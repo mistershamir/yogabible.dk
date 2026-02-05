@@ -1,0 +1,2084 @@
+---
+layout: base.njk
+title: "Design System & Samples | YOGA BIBLE"
+description: "Comprehensive design system with all UI components, patterns, and styles."
+permalink: /samples/
+includeScheduleModal: false
+eleventyExcludeFromCollections: true
+---
+
+<style>
+/* ================================================================
+   SAMPLES PAGE - DESIGN SYSTEM STYLES
+   ================================================================ */
+
+.ds {
+  --ds-border: #E8E4E0;
+  --ds-bg-light: #FFFCF9;
+  --ds-bg-dark: #0F0F0F;
+  --ds-text: #1C1C1C;
+  --ds-text-muted: #6F6A66;
+}
+
+/* Page Layout */
+.ds-page {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 60px 24px 120px;
+}
+
+.ds-header {
+  text-align: center;
+  margin-bottom: 80px;
+  padding-bottom: 60px;
+  border-bottom: 1px solid var(--ds-border);
+}
+
+.ds-header__title {
+  font-size: clamp(2.5rem, 5vw, 4rem);
+  font-weight: 700;
+  margin-bottom: 16px;
+}
+
+.ds-header__subtitle {
+  font-size: 1.2rem;
+  color: var(--ds-text-muted);
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+/* Section */
+.ds-section {
+  margin-bottom: 100px;
+}
+
+.ds-section__header {
+  margin-bottom: 40px;
+  padding-bottom: 20px;
+  border-bottom: 2px solid var(--yb-brand);
+}
+
+.ds-section__title {
+  font-size: 1.75rem;
+  font-weight: 700;
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.ds-section__title::before {
+  content: attr(data-number);
+  background: var(--yb-brand);
+  color: #fff;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.9rem;
+}
+
+.ds-section__desc {
+  color: var(--ds-text-muted);
+  font-size: 1rem;
+}
+
+/* Subsection */
+.ds-subsection {
+  margin-bottom: 60px;
+}
+
+.ds-subsection__title {
+  font-size: 1.1rem;
+  font-weight: 700;
+  margin-bottom: 8px;
+  color: var(--ds-text);
+}
+
+.ds-subsection__desc {
+  font-size: 0.9rem;
+  color: var(--ds-text-muted);
+  margin-bottom: 24px;
+}
+
+/* Demo Container */
+.ds-demo {
+  background: var(--ds-bg-light);
+  border: 1px solid var(--ds-border);
+  border-radius: 12px;
+  padding: 40px;
+  margin-bottom: 16px;
+}
+
+.ds-demo--dark {
+  background: var(--ds-bg-dark);
+  border-color: #333;
+}
+
+.ds-demo--grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 24px;
+}
+
+.ds-demo--flex {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  align-items: center;
+}
+
+.ds-code {
+  background: #1C1C1C;
+  color: #E8E4E0;
+  padding: 16px 20px;
+  border-radius: 8px;
+  font-family: 'SF Mono', Monaco, monospace;
+  font-size: 0.8rem;
+  overflow-x: auto;
+  margin-top: 16px;
+}
+
+.ds-code span {
+  color: var(--yb-brand);
+}
+
+/* ================================================================
+   1. COLORS
+   ================================================================ */
+
+.ds-color-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 20px;
+}
+
+.ds-color {
+  text-align: center;
+}
+
+.ds-color__swatch {
+  height: 100px;
+  border-radius: 12px;
+  margin-bottom: 12px;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding-bottom: 12px;
+  font-size: 0.75rem;
+  font-family: monospace;
+  border: 1px solid rgba(0,0,0,0.1);
+}
+
+.ds-color__name {
+  font-weight: 700;
+  font-size: 0.9rem;
+  margin-bottom: 4px;
+}
+
+.ds-color__usage {
+  font-size: 0.8rem;
+  color: var(--ds-text-muted);
+}
+
+/* ================================================================
+   2. TYPOGRAPHY
+   ================================================================ */
+
+.ds-type-sample {
+  margin-bottom: 32px;
+  padding-bottom: 32px;
+  border-bottom: 1px solid var(--ds-border);
+}
+
+.ds-type-sample:last-child {
+  border-bottom: none;
+}
+
+.ds-type-sample__label {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  color: var(--yb-brand);
+  margin-bottom: 8px;
+}
+
+.ds-type-sample__specs {
+  font-size: 0.8rem;
+  color: var(--ds-text-muted);
+  margin-top: 8px;
+  font-family: monospace;
+}
+
+/* ================================================================
+   3. BUTTONS
+   ================================================================ */
+
+.ds-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px 32px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  text-decoration: none;
+  border: 2px solid transparent;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-family: inherit;
+}
+
+/* Primary */
+.ds-btn--primary {
+  background: var(--yb-brand);
+  color: #fff;
+  border-color: var(--yb-brand);
+}
+.ds-btn--primary:hover {
+  background: #d94f02;
+  border-color: #d94f02;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(247, 92, 3, 0.35);
+}
+
+/* Secondary */
+.ds-btn--secondary {
+  background: #0F0F0F;
+  color: #fff;
+  border-color: #0F0F0F;
+}
+.ds-btn--secondary:hover {
+  background: var(--yb-brand);
+  border-color: var(--yb-brand);
+}
+
+/* Outline */
+.ds-btn--outline {
+  background: transparent;
+  color: #0F0F0F;
+  border-color: #0F0F0F;
+}
+.ds-btn--outline:hover {
+  background: #0F0F0F;
+  color: #fff;
+}
+
+/* Outline Light (for dark bg) */
+.ds-btn--outline-light {
+  background: transparent;
+  color: #fff;
+  border-color: rgba(255,255,255,0.5);
+}
+.ds-btn--outline-light:hover {
+  background: rgba(255,255,255,0.1);
+  border-color: #fff;
+}
+
+/* Ghost */
+.ds-btn--ghost {
+  background: transparent;
+  color: var(--yb-brand);
+  border-color: transparent;
+  padding: 12px 0;
+}
+.ds-btn--ghost:hover {
+  color: #d94f02;
+}
+.ds-btn--ghost::after {
+  content: " →";
+  transition: transform 0.2s ease;
+}
+.ds-btn--ghost:hover::after {
+  transform: translateX(4px);
+}
+
+/* Pill */
+.ds-btn--pill {
+  border-radius: 100px;
+  padding: 14px 28px;
+}
+
+/* Large */
+.ds-btn--large {
+  padding: 20px 48px;
+  font-size: 0.95rem;
+}
+
+/* Small */
+.ds-btn--small {
+  padding: 10px 20px;
+  font-size: 0.75rem;
+}
+
+/* Full Width */
+.ds-btn--full {
+  width: 100%;
+}
+
+/* Icon Button */
+.ds-btn--icon {
+  width: 48px;
+  height: 48px;
+  padding: 0;
+  border-radius: 50%;
+}
+
+/* ================================================================
+   4. CARDS
+   ================================================================ */
+
+/* Basic Card */
+.ds-card {
+  background: #fff;
+  border: 1px solid var(--ds-border);
+  border-radius: 12px;
+  overflow: hidden;
+  transition: all 0.3s ease;
+}
+
+/* Card Hover Styles */
+.ds-card--hover-lift:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 20px 60px rgba(0,0,0,0.12);
+}
+
+.ds-card--hover-border:hover {
+  border-color: var(--yb-brand);
+}
+
+.ds-card--hover-shadow:hover {
+  box-shadow: 0 12px 40px rgba(0,0,0,0.1);
+}
+
+.ds-card--hover-glow:hover {
+  box-shadow: 0 0 30px rgba(247, 92, 3, 0.2);
+  border-color: var(--yb-brand);
+}
+
+/* Card with Image */
+.ds-card__image {
+  height: 200px;
+  background: linear-gradient(135deg, var(--yb-brand), #d94f02);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: rgba(255,255,255,0.3);
+  font-size: 2rem;
+}
+
+.ds-card__body {
+  padding: 24px;
+}
+
+.ds-card__tag {
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--yb-brand);
+  margin-bottom: 8px;
+}
+
+.ds-card__title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+
+.ds-card__desc {
+  font-size: 0.95rem;
+  color: var(--ds-text-muted);
+  line-height: 1.6;
+}
+
+/* Horizontal Card */
+.ds-card--horizontal {
+  display: grid;
+  grid-template-columns: 200px 1fr;
+}
+
+.ds-card--horizontal .ds-card__image {
+  height: 100%;
+  min-height: 180px;
+}
+
+/* Dark Card */
+.ds-card--dark {
+  background: #0F0F0F;
+  border-color: #333;
+  color: #fff;
+}
+
+.ds-card--dark .ds-card__desc {
+  color: rgba(255,255,255,0.7);
+}
+
+/* Glass Card */
+.ds-card--glass {
+  background: rgba(255,255,255,0.8);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255,255,255,0.3);
+}
+
+/* Stat Card */
+.ds-card--stat {
+  text-align: center;
+  padding: 40px;
+}
+
+.ds-card--stat .ds-card__number {
+  font-size: 3rem;
+  font-weight: 700;
+  color: var(--yb-brand);
+  line-height: 1;
+  margin-bottom: 8px;
+}
+
+.ds-card--stat .ds-card__label {
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  color: var(--ds-text-muted);
+}
+
+/* Testimonial Card */
+.ds-card--testimonial {
+  padding: 32px;
+}
+
+.ds-card--testimonial .ds-card__stars {
+  color: var(--yb-brand);
+  margin-bottom: 16px;
+  letter-spacing: 2px;
+}
+
+.ds-card--testimonial .ds-card__quote {
+  font-size: 1.05rem;
+  line-height: 1.7;
+  margin-bottom: 20px;
+  font-style: italic;
+}
+
+.ds-card--testimonial .ds-card__author {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.ds-card--testimonial .ds-card__avatar {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--yb-brand), #d94f02);
+}
+
+/* ================================================================
+   5. EYEBROWS / LABELS
+   ================================================================ */
+
+.ds-eyebrow {
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.25em;
+  margin-bottom: 12px;
+  display: inline-block;
+}
+
+.ds-eyebrow--brand { color: var(--yb-brand); }
+.ds-eyebrow--muted { color: var(--ds-text-muted); }
+.ds-eyebrow--white { color: rgba(255,255,255,0.7); }
+
+.ds-eyebrow--line {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.ds-eyebrow--line::before {
+  content: "";
+  width: 40px;
+  height: 1px;
+  background: currentColor;
+}
+
+.ds-eyebrow--dot {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.ds-eyebrow--dot::before {
+  content: "";
+  width: 6px;
+  height: 6px;
+  background: var(--yb-brand);
+  border-radius: 50%;
+}
+
+/* ================================================================
+   6. BADGES / TAGS
+   ================================================================ */
+
+.ds-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 6px 14px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  border-radius: 4px;
+}
+
+.ds-badge--primary {
+  background: var(--yb-brand);
+  color: #fff;
+}
+
+.ds-badge--secondary {
+  background: #0F0F0F;
+  color: #fff;
+}
+
+.ds-badge--outline {
+  background: transparent;
+  border: 1px solid var(--yb-brand);
+  color: var(--yb-brand);
+}
+
+.ds-badge--muted {
+  background: #F5F3F0;
+  color: var(--ds-text-muted);
+}
+
+.ds-badge--pill {
+  border-radius: 100px;
+  padding: 8px 18px;
+}
+
+.ds-badge--large {
+  padding: 10px 20px;
+  font-size: 0.8rem;
+}
+
+/* ================================================================
+   7. FORM ELEMENTS
+   ================================================================ */
+
+.ds-input {
+  width: 100%;
+  padding: 16px 20px;
+  font-size: 1rem;
+  font-family: inherit;
+  border: 1px solid var(--ds-border);
+  border-radius: 8px;
+  background: #fff;
+  transition: all 0.2s ease;
+}
+
+.ds-input:focus {
+  outline: none;
+  border-color: var(--yb-brand);
+  box-shadow: 0 0 0 3px rgba(247, 92, 3, 0.1);
+}
+
+.ds-input--dark {
+  background: #1C1C1C;
+  border-color: #333;
+  color: #fff;
+}
+
+.ds-input--dark:focus {
+  border-color: var(--yb-brand);
+}
+
+.ds-label {
+  display: block;
+  font-size: 0.8rem;
+  font-weight: 600;
+  margin-bottom: 8px;
+  color: var(--ds-text);
+}
+
+.ds-select {
+  width: 100%;
+  padding: 16px 20px;
+  font-size: 1rem;
+  font-family: inherit;
+  border: 1px solid var(--ds-border);
+  border-radius: 8px;
+  background: #fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%236F6A66' d='M6 8L1 3h10z'/%3E%3C/svg%3E") no-repeat right 16px center;
+  appearance: none;
+  cursor: pointer;
+}
+
+/* ================================================================
+   8. ACCORDIONS
+   ================================================================ */
+
+.ds-accordion {
+  border: 1px solid var(--ds-border);
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.ds-accordion__item {
+  border-bottom: 1px solid var(--ds-border);
+}
+
+.ds-accordion__item:last-child {
+  border-bottom: none;
+}
+
+.ds-accordion__header {
+  padding: 20px 24px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  cursor: pointer;
+  background: #fff;
+  transition: background 0.2s ease;
+}
+
+.ds-accordion__header:hover {
+  background: var(--ds-bg-light);
+}
+
+.ds-accordion__title {
+  font-weight: 700;
+}
+
+.ds-accordion__icon {
+  width: 32px;
+  height: 32px;
+  background: #F5F3F0;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+}
+
+.ds-accordion__item.active .ds-accordion__icon {
+  background: var(--yb-brand);
+  color: #fff;
+  transform: rotate(45deg);
+}
+
+.ds-accordion__body {
+  display: none;
+  padding: 0 24px 24px;
+  color: var(--ds-text-muted);
+  line-height: 1.7;
+}
+
+.ds-accordion__item.active .ds-accordion__body {
+  display: block;
+}
+
+/* ================================================================
+   9. TABS
+   ================================================================ */
+
+/* Style 1: Underline Tabs */
+.ds-tabs--underline {
+  display: flex;
+  border-bottom: 2px solid var(--ds-border);
+}
+
+.ds-tabs--underline .ds-tab {
+  padding: 16px 24px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--ds-text-muted);
+  position: relative;
+  transition: color 0.2s ease;
+}
+
+.ds-tabs--underline .ds-tab:hover {
+  color: var(--ds-text);
+}
+
+.ds-tabs--underline .ds-tab.active {
+  color: var(--yb-brand);
+}
+
+.ds-tabs--underline .ds-tab.active::after {
+  content: "";
+  position: absolute;
+  bottom: -2px;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: var(--yb-brand);
+}
+
+/* Style 2: Pill Tabs */
+.ds-tabs--pills {
+  display: flex;
+  gap: 4px;
+  background: #F5F3F0;
+  padding: 4px;
+  border-radius: 8px;
+  width: fit-content;
+}
+
+.ds-tabs--pills .ds-tab {
+  padding: 12px 24px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  background: none;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  color: var(--ds-text-muted);
+  transition: all 0.2s ease;
+}
+
+.ds-tabs--pills .ds-tab:hover {
+  color: var(--ds-text);
+}
+
+.ds-tabs--pills .ds-tab.active {
+  background: #fff;
+  color: var(--ds-text);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+}
+
+/* Style 3: Button Tabs */
+.ds-tabs--buttons {
+  display: flex;
+  gap: 8px;
+}
+
+.ds-tabs--buttons .ds-tab {
+  padding: 14px 28px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  background: transparent;
+  border: 2px solid var(--ds-border);
+  border-radius: 6px;
+  cursor: pointer;
+  color: var(--ds-text-muted);
+  transition: all 0.2s ease;
+}
+
+.ds-tabs--buttons .ds-tab:hover {
+  border-color: var(--ds-text);
+  color: var(--ds-text);
+}
+
+.ds-tabs--buttons .ds-tab.active {
+  background: var(--yb-brand);
+  border-color: var(--yb-brand);
+  color: #fff;
+}
+
+/* ================================================================
+   10. SECTION LAYOUTS
+   ================================================================ */
+
+/* Split Section */
+.ds-split {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  min-height: 400px;
+}
+
+.ds-split__side {
+  padding: 60px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.ds-split__side--dark {
+  background: #0F0F0F;
+  color: #fff;
+}
+
+.ds-split__side--light {
+  background: var(--ds-bg-light);
+}
+
+.ds-split__side--brand {
+  background: linear-gradient(135deg, var(--yb-brand), #d94f02);
+  color: #fff;
+}
+
+/* Full Width Section */
+.ds-fullwidth {
+  padding: 100px 40px;
+  text-align: center;
+}
+
+.ds-fullwidth--dark {
+  background: #0F0F0F;
+  color: #fff;
+}
+
+.ds-fullwidth--brand {
+  background: linear-gradient(135deg, var(--yb-brand), #d94f02);
+  color: #fff;
+}
+
+.ds-fullwidth--gradient {
+  background: linear-gradient(180deg, #FFFCF9 0%, #fff 100%);
+}
+
+/* ================================================================
+   11. HOVER EFFECTS
+   ================================================================ */
+
+.ds-hover-demo {
+  width: 200px;
+  height: 120px;
+  background: var(--ds-bg-light);
+  border: 1px solid var(--ds-border);
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.85rem;
+  font-weight: 600;
+  transition: all 0.3s ease;
+}
+
+/* Lift */
+.ds-hover--lift:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+}
+
+/* Scale */
+.ds-hover--scale:hover {
+  transform: scale(1.05);
+}
+
+/* Border Color */
+.ds-hover--border:hover {
+  border-color: var(--yb-brand);
+}
+
+/* Glow */
+.ds-hover--glow:hover {
+  box-shadow: 0 0 30px rgba(247, 92, 3, 0.3);
+}
+
+/* Background */
+.ds-hover--bg:hover {
+  background: var(--yb-brand);
+  color: #fff;
+  border-color: var(--yb-brand);
+}
+
+/* Shine */
+.ds-hover--shine {
+  position: relative;
+  overflow: hidden;
+}
+.ds-hover--shine::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+  transition: left 0.5s ease;
+}
+.ds-hover--shine:hover::before {
+  left: 100%;
+}
+
+/* Tilt */
+.ds-hover--tilt:hover {
+  transform: perspective(1000px) rotateX(5deg) rotateY(-5deg);
+}
+
+/* ================================================================
+   12. ANIMATIONS
+   ================================================================ */
+
+.ds-anim-demo {
+  width: 80px;
+  height: 80px;
+  background: var(--yb-brand);
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-size: 0.7rem;
+  font-weight: 700;
+}
+
+/* Pulse */
+.ds-anim--pulse {
+  animation: ds-pulse 2s infinite;
+}
+@keyframes ds-pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.1); }
+}
+
+/* Breathe */
+.ds-anim--breathe {
+  animation: ds-breathe 4s ease-in-out infinite;
+}
+@keyframes ds-breathe {
+  0%, 100% { opacity: 0.7; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.05); }
+}
+
+/* Float */
+.ds-anim--float {
+  animation: ds-float 3s ease-in-out infinite;
+}
+@keyframes ds-float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+
+/* Spin */
+.ds-anim--spin {
+  animation: ds-spin 3s linear infinite;
+}
+@keyframes ds-spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* Fade In */
+.ds-anim--fadein {
+  animation: ds-fadein 1s ease forwards;
+}
+@keyframes ds-fadein {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Bounce */
+.ds-anim--bounce {
+  animation: ds-bounce 1s infinite;
+}
+@keyframes ds-bounce {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-15px); }
+}
+
+/* ================================================================
+   13. BACKGROUNDS
+   ================================================================ */
+
+.ds-bg-demo {
+  height: 200px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-weight: 700;
+  text-shadow: 0 2px 10px rgba(0,0,0,0.3);
+}
+
+.ds-bg--solid-dark { background: #0F0F0F; }
+.ds-bg--solid-brand { background: var(--yb-brand); }
+.ds-bg--gradient-brand { background: linear-gradient(135deg, var(--yb-brand), #d94f02); }
+.ds-bg--gradient-dark { background: linear-gradient(180deg, #1C1C1C, #0F0F0F); }
+.ds-bg--gradient-warm { background: linear-gradient(180deg, #FFFCF9, #FFF5EE); color: #0F0F0F; text-shadow: none; }
+.ds-bg--gradient-radial { background: radial-gradient(circle at center, var(--yb-brand), #0F0F0F); }
+.ds-bg--overlay {
+  background: linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)),
+              linear-gradient(135deg, var(--yb-brand), #d94f02);
+}
+.ds-bg--blur {
+  background: rgba(255,255,255,0.1);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255,255,255,0.2);
+}
+
+/* ================================================================
+   14. DIVIDERS & SEPARATORS
+   ================================================================ */
+
+.ds-divider {
+  height: 1px;
+  background: var(--ds-border);
+  margin: 24px 0;
+}
+
+.ds-divider--thick {
+  height: 2px;
+}
+
+.ds-divider--brand {
+  background: var(--yb-brand);
+}
+
+.ds-divider--gradient {
+  background: linear-gradient(90deg, transparent, var(--yb-brand), transparent);
+}
+
+.ds-divider--dashed {
+  background: none;
+  border-top: 2px dashed var(--ds-border);
+}
+
+.ds-divider--dots {
+  background: none;
+  text-align: center;
+}
+.ds-divider--dots::before {
+  content: "• • •";
+  color: var(--ds-text-muted);
+  letter-spacing: 8px;
+}
+
+/* ================================================================
+   15. SCROLL EFFECTS
+   ================================================================ */
+
+.ds-scroll-demo {
+  height: 300px;
+  overflow-y: auto;
+  border: 1px solid var(--ds-border);
+  border-radius: 12px;
+  padding: 24px;
+}
+
+/* Custom Scrollbar */
+.ds-scroll--styled::-webkit-scrollbar {
+  width: 8px;
+}
+.ds-scroll--styled::-webkit-scrollbar-track {
+  background: #F5F3F0;
+}
+.ds-scroll--styled::-webkit-scrollbar-thumb {
+  background: var(--yb-brand);
+  border-radius: 4px;
+}
+
+/* Fade Edge */
+.ds-scroll--fade {
+  position: relative;
+}
+.ds-scroll--fade::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 60px;
+  background: linear-gradient(transparent, #fff);
+  pointer-events: none;
+}
+
+/* ================================================================
+   16. ICONS & SYMBOLS
+   ================================================================ */
+
+.ds-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.ds-icon--circle {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+}
+
+.ds-icon--square {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+}
+
+.ds-icon--brand {
+  background: var(--yb-brand);
+  color: #fff;
+}
+
+.ds-icon--outline {
+  border: 2px solid var(--yb-brand);
+  color: var(--yb-brand);
+}
+
+.ds-icon--muted {
+  background: #F5F3F0;
+  color: var(--ds-text-muted);
+}
+
+/* ================================================================
+   17. LISTS
+   ================================================================ */
+
+.ds-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.ds-list--checkmarks li {
+  padding-left: 28px;
+  position: relative;
+  margin-bottom: 12px;
+}
+.ds-list--checkmarks li::before {
+  content: "✓";
+  position: absolute;
+  left: 0;
+  color: var(--yb-brand);
+  font-weight: 700;
+}
+
+.ds-list--numbers li {
+  padding-left: 36px;
+  position: relative;
+  margin-bottom: 16px;
+  counter-increment: list-counter;
+}
+.ds-list--numbers li::before {
+  content: counter(list-counter);
+  position: absolute;
+  left: 0;
+  width: 24px;
+  height: 24px;
+  background: var(--yb-brand);
+  color: #fff;
+  border-radius: 50%;
+  font-size: 0.75rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.ds-list--arrows li {
+  padding-left: 24px;
+  position: relative;
+  margin-bottom: 12px;
+}
+.ds-list--arrows li::before {
+  content: "→";
+  position: absolute;
+  left: 0;
+  color: var(--yb-brand);
+}
+
+/* ================================================================
+   18. QUOTES
+   ================================================================ */
+
+.ds-quote {
+  font-size: 1.3rem;
+  line-height: 1.7;
+  font-style: italic;
+  position: relative;
+  padding-left: 32px;
+}
+
+.ds-quote::before {
+  content: """;
+  position: absolute;
+  left: 0;
+  top: -10px;
+  font-size: 4rem;
+  color: var(--yb-brand);
+  opacity: 0.3;
+  font-style: normal;
+  line-height: 1;
+}
+
+.ds-quote__author {
+  margin-top: 16px;
+  font-size: 0.9rem;
+  font-style: normal;
+  color: var(--ds-text-muted);
+}
+
+.ds-quote--centered {
+  text-align: center;
+  padding-left: 0;
+}
+.ds-quote--centered::before {
+  position: static;
+  display: block;
+  margin-bottom: -20px;
+}
+
+/* ================================================================
+   19. PROGRESS & STEPS
+   ================================================================ */
+
+/* Timeline */
+.ds-timeline {
+  position: relative;
+  padding-left: 32px;
+}
+
+.ds-timeline::before {
+  content: "";
+  position: absolute;
+  left: 6px;
+  top: 8px;
+  bottom: 8px;
+  width: 2px;
+  background: linear-gradient(to bottom, var(--yb-brand), var(--ds-border));
+}
+
+.ds-timeline__item {
+  position: relative;
+  padding-bottom: 32px;
+}
+
+.ds-timeline__item:last-child {
+  padding-bottom: 0;
+}
+
+.ds-timeline__dot {
+  position: absolute;
+  left: -28px;
+  top: 4px;
+  width: 12px;
+  height: 12px;
+  background: var(--yb-brand);
+  border-radius: 50%;
+  box-shadow: 0 0 0 4px #fff;
+}
+
+.ds-timeline__title {
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+
+.ds-timeline__desc {
+  color: var(--ds-text-muted);
+  font-size: 0.95rem;
+}
+
+/* Progress Bar */
+.ds-progress {
+  height: 8px;
+  background: #F5F3F0;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.ds-progress__bar {
+  height: 100%;
+  background: linear-gradient(90deg, var(--yb-brand), #d94f02);
+  border-radius: 4px;
+  transition: width 0.5s ease;
+}
+
+/* ================================================================
+   20. TOOLTIPS & POPOVERS
+   ================================================================ */
+
+.ds-tooltip-demo {
+  position: relative;
+  display: inline-block;
+  padding: 12px 24px;
+  background: var(--ds-bg-light);
+  border: 1px solid var(--ds-border);
+  border-radius: 8px;
+  cursor: help;
+}
+
+.ds-tooltip-demo::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%) translateY(-8px);
+  padding: 8px 16px;
+  background: #0F0F0F;
+  color: #fff;
+  font-size: 0.8rem;
+  border-radius: 6px;
+  white-space: nowrap;
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.2s ease;
+}
+
+.ds-tooltip-demo:hover::after {
+  opacity: 1;
+  visibility: visible;
+  transform: translateX(-50%) translateY(-12px);
+}
+
+/* ================================================================
+   RESPONSIVE
+   ================================================================ */
+
+@media (max-width: 900px) {
+  .ds-demo--grid {
+    grid-template-columns: 1fr;
+  }
+
+  .ds-split {
+    grid-template-columns: 1fr;
+  }
+
+  .ds-card--horizontal {
+    grid-template-columns: 1fr;
+  }
+}
+</style>
+
+<div class="ds-page">
+  <!-- Header -->
+  <header class="ds-header">
+    <h1 class="ds-header__title">Design System</h1>
+    <p class="ds-header__subtitle">Comprehensive reference library of all UI components, patterns, and styles used across Yoga Bible. Point to any sample when requesting designs.</p>
+  </header>
+
+  <!-- ═══════════════════════════════════════════════════════════════
+       1. COLORS
+       ═══════════════════════════════════════════════════════════════ -->
+  <section class="ds-section">
+    <div class="ds-section__header">
+      <h2 class="ds-section__title" data-number="1">Colors</h2>
+      <p class="ds-section__desc">Brand and UI color palette</p>
+    </div>
+
+    <div class="ds-demo">
+      <div class="ds-color-grid">
+        <div class="ds-color">
+          <div class="ds-color__swatch" style="background: #f75c03; color: #fff;">#f75c03</div>
+          <div class="ds-color__name">Brand Orange</div>
+          <div class="ds-color__usage">Primary actions, CTAs, accents</div>
+        </div>
+        <div class="ds-color">
+          <div class="ds-color__swatch" style="background: #d94f02; color: #fff;">#d94f02</div>
+          <div class="ds-color__name">Brand Dark</div>
+          <div class="ds-color__usage">Hover states, gradients</div>
+        </div>
+        <div class="ds-color">
+          <div class="ds-color__swatch" style="background: #0F0F0F; color: #fff;">#0F0F0F</div>
+          <div class="ds-color__name">Black</div>
+          <div class="ds-color__usage">Text, dark backgrounds</div>
+        </div>
+        <div class="ds-color">
+          <div class="ds-color__swatch" style="background: #1C1C1C; color: #fff;">#1C1C1C</div>
+          <div class="ds-color__name">Dark Gray</div>
+          <div class="ds-color__usage">Header, dark sections</div>
+        </div>
+        <div class="ds-color">
+          <div class="ds-color__swatch" style="background: #6F6A66; color: #fff;">#6F6A66</div>
+          <div class="ds-color__name">Muted</div>
+          <div class="ds-color__usage">Secondary text, descriptions</div>
+        </div>
+        <div class="ds-color">
+          <div class="ds-color__swatch" style="background: #E8E4E0;">#E8E4E0</div>
+          <div class="ds-color__name">Border</div>
+          <div class="ds-color__usage">Borders, dividers</div>
+        </div>
+        <div class="ds-color">
+          <div class="ds-color__swatch" style="background: #F5F3F0;">#F5F3F0</div>
+          <div class="ds-color__name">Light Gray</div>
+          <div class="ds-color__usage">Backgrounds, inputs</div>
+        </div>
+        <div class="ds-color">
+          <div class="ds-color__swatch" style="background: #FFFCF9;">#FFFCF9</div>
+          <div class="ds-color__name">Warm White</div>
+          <div class="ds-color__usage">Card backgrounds, sections</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════════════════════════════
+       2. TYPOGRAPHY
+       ═══════════════════════════════════════════════════════════════ -->
+  <section class="ds-section">
+    <div class="ds-section__header">
+      <h2 class="ds-section__title" data-number="2">Typography</h2>
+      <p class="ds-section__desc">Font styles and text hierarchy</p>
+    </div>
+
+    <div class="ds-demo">
+      <div class="ds-type-sample">
+        <div class="ds-type-sample__label">Hero Title</div>
+        <div style="font-size: clamp(2.5rem, 6vw, 5rem); font-weight: 700; line-height: 1.05;">Hvor din praksis bliver til dit kald.</div>
+        <div class="ds-type-sample__specs">clamp(2.5rem, 6vw, 5rem) / 700 / 1.05</div>
+      </div>
+
+      <div class="ds-type-sample">
+        <div class="ds-type-sample__label">Section Title</div>
+        <div style="font-size: clamp(2rem, 4vw, 3rem); font-weight: 700; line-height: 1.1;">Yogalaereruddannelser</div>
+        <div class="ds-type-sample__specs">clamp(2rem, 4vw, 3rem) / 700 / 1.1</div>
+      </div>
+
+      <div class="ds-type-sample">
+        <div class="ds-type-sample__label">Card Title</div>
+        <div style="font-size: 1.25rem; font-weight: 700; line-height: 1.2;">18 Ugers Fleksibel Uddannelse</div>
+        <div class="ds-type-sample__specs">1.25rem / 700 / 1.2</div>
+      </div>
+
+      <div class="ds-type-sample">
+        <div class="ds-type-sample__label">Body Text</div>
+        <div style="font-size: 1rem; font-weight: 400; line-height: 1.7; color: #6F6A66;">Yoga Bible er for dig, der vil videre. Bliv certificeret yogalaerer - eller fordyb dig i din egen praksis gennem malrettede forlab.</div>
+        <div class="ds-type-sample__specs">1rem / 400 / 1.7</div>
+      </div>
+
+      <div class="ds-type-sample">
+        <div class="ds-type-sample__label">Small / Caption</div>
+        <div style="font-size: 0.85rem; font-weight: 400; line-height: 1.5; color: #6F6A66;">Max 20 studerende per hold</div>
+        <div class="ds-type-sample__specs">0.85rem / 400 / 1.5</div>
+      </div>
+
+      <div class="ds-type-sample">
+        <div class="ds-type-sample__label">Eyebrow / Label</div>
+        <div style="font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.25em; color: #f75c03;">Yogalaereruddannelse</div>
+        <div class="ds-type-sample__specs">0.7rem / 700 / uppercase / 0.25em spacing</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════════════════════════════
+       3. BUTTONS
+       ═══════════════════════════════════════════════════════════════ -->
+  <section class="ds-section">
+    <div class="ds-section__header">
+      <h2 class="ds-section__title" data-number="3">Buttons</h2>
+      <p class="ds-section__desc">All button styles and variations</p>
+    </div>
+
+    <div class="ds-subsection">
+      <h3 class="ds-subsection__title">Button Types</h3>
+      <div class="ds-demo ds-demo--flex">
+        <button class="ds-btn ds-btn--primary">Primary</button>
+        <button class="ds-btn ds-btn--secondary">Secondary</button>
+        <button class="ds-btn ds-btn--outline">Outline</button>
+        <a class="ds-btn ds-btn--ghost">Ghost Link</a>
+      </div>
+    </div>
+
+    <div class="ds-subsection">
+      <h3 class="ds-subsection__title">Button on Dark Background</h3>
+      <div class="ds-demo ds-demo--dark ds-demo--flex">
+        <button class="ds-btn ds-btn--primary">Primary</button>
+        <button class="ds-btn ds-btn--outline-light">Outline Light</button>
+      </div>
+    </div>
+
+    <div class="ds-subsection">
+      <h3 class="ds-subsection__title">Button Shapes</h3>
+      <div class="ds-demo ds-demo--flex">
+        <button class="ds-btn ds-btn--primary">Square</button>
+        <button class="ds-btn ds-btn--primary ds-btn--pill">Pill Shape</button>
+        <button class="ds-btn ds-btn--primary ds-btn--icon">+</button>
+      </div>
+    </div>
+
+    <div class="ds-subsection">
+      <h3 class="ds-subsection__title">Button Sizes</h3>
+      <div class="ds-demo ds-demo--flex">
+        <button class="ds-btn ds-btn--primary ds-btn--small">Small</button>
+        <button class="ds-btn ds-btn--primary">Default</button>
+        <button class="ds-btn ds-btn--primary ds-btn--large">Large</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════════════════════════════
+       4. CARDS
+       ═══════════════════════════════════════════════════════════════ -->
+  <section class="ds-section">
+    <div class="ds-section__header">
+      <h2 class="ds-section__title" data-number="4">Cards</h2>
+      <p class="ds-section__desc">Card layouts and hover effects</p>
+    </div>
+
+    <div class="ds-subsection">
+      <h3 class="ds-subsection__title">Basic Cards with Hover Effects</h3>
+      <p class="ds-subsection__desc">hover-lift | hover-border | hover-shadow | hover-glow</p>
+      <div class="ds-demo ds-demo--grid">
+        <div class="ds-card ds-card--hover-lift">
+          <div class="ds-card__image">[IMG]</div>
+          <div class="ds-card__body">
+            <p class="ds-card__tag">4 ugers kursus</p>
+            <h3 class="ds-card__title">Hover Lift</h3>
+            <p class="ds-card__desc">Lifts up on hover with shadow</p>
+          </div>
+        </div>
+
+        <div class="ds-card ds-card--hover-border">
+          <div class="ds-card__image">[IMG]</div>
+          <div class="ds-card__body">
+            <p class="ds-card__tag">4 ugers kursus</p>
+            <h3 class="ds-card__title">Hover Border</h3>
+            <p class="ds-card__desc">Border changes to brand color</p>
+          </div>
+        </div>
+
+        <div class="ds-card ds-card--hover-glow">
+          <div class="ds-card__image">[IMG]</div>
+          <div class="ds-card__body">
+            <p class="ds-card__tag">4 ugers kursus</p>
+            <h3 class="ds-card__title">Hover Glow</h3>
+            <p class="ds-card__desc">Glows with brand color shadow</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="ds-subsection">
+      <h3 class="ds-subsection__title">Card Variations</h3>
+      <div class="ds-demo ds-demo--grid">
+        <!-- Stat Card -->
+        <div class="ds-card ds-card--stat ds-card--hover-lift">
+          <div class="ds-card__number">500+</div>
+          <div class="ds-card__label">Uddannede laerere</div>
+        </div>
+
+        <!-- Dark Card -->
+        <div class="ds-card ds-card--dark ds-card--stat ds-card--hover-lift">
+          <div class="ds-card__number">90%</div>
+          <div class="ds-card__label">Besta-rate</div>
+        </div>
+
+        <!-- Testimonial Card -->
+        <div class="ds-card ds-card--testimonial ds-card--hover-border">
+          <div class="ds-card__stars">★★★★★</div>
+          <p class="ds-card__quote">"Uddannelsen hos Yoga Bible har aendret mit liv."</p>
+          <div class="ds-card__author">
+            <div class="ds-card__avatar"></div>
+            <div>
+              <strong>Maria K.</strong><br>
+              <small style="color: var(--ds-text-muted);">18-ugers, 2024</small>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="ds-subsection">
+      <h3 class="ds-subsection__title">Horizontal Card</h3>
+      <div class="ds-demo">
+        <div class="ds-card ds-card--horizontal ds-card--hover-lift" style="max-width: 600px;">
+          <div class="ds-card__image">[IMG]</div>
+          <div class="ds-card__body">
+            <p class="ds-card__tag">Uddannelse</p>
+            <h3 class="ds-card__title">18 Ugers Fleksibel</h3>
+            <p class="ds-card__desc">Ved siden af job eller studie. Hverdage eller weekend.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════════════════════════════
+       5. EYEBROWS & LABELS
+       ═══════════════════════════════════════════════════════════════ -->
+  <section class="ds-section">
+    <div class="ds-section__header">
+      <h2 class="ds-section__title" data-number="5">Eyebrows & Labels</h2>
+      <p class="ds-section__desc">Small text labels above headings</p>
+    </div>
+
+    <div class="ds-demo">
+      <div style="margin-bottom: 32px;">
+        <p class="ds-eyebrow ds-eyebrow--brand">Brand Color Eyebrow</p>
+        <h3 style="font-size: 1.5rem; font-weight: 700;">Section Title</h3>
+      </div>
+
+      <div style="margin-bottom: 32px;">
+        <p class="ds-eyebrow ds-eyebrow--muted">Muted Eyebrow</p>
+        <h3 style="font-size: 1.5rem; font-weight: 700;">Section Title</h3>
+      </div>
+
+      <div style="margin-bottom: 32px;">
+        <p class="ds-eyebrow ds-eyebrow--brand ds-eyebrow--line">Eyebrow with Line</p>
+        <h3 style="font-size: 1.5rem; font-weight: 700;">Section Title</h3>
+      </div>
+
+      <div>
+        <p class="ds-eyebrow ds-eyebrow--brand ds-eyebrow--dot">Eyebrow with Dot</p>
+        <h3 style="font-size: 1.5rem; font-weight: 700;">Section Title</h3>
+      </div>
+    </div>
+
+    <div class="ds-demo ds-demo--dark" style="margin-top: 16px;">
+      <p class="ds-eyebrow ds-eyebrow--white">White Eyebrow on Dark</p>
+      <h3 style="font-size: 1.5rem; font-weight: 700; color: #fff;">Section Title</h3>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════════════════════════════
+       6. BADGES & TAGS
+       ═══════════════════════════════════════════════════════════════ -->
+  <section class="ds-section">
+    <div class="ds-section__header">
+      <h2 class="ds-section__title" data-number="6">Badges & Tags</h2>
+      <p class="ds-section__desc">Small inline labels for categorization</p>
+    </div>
+
+    <div class="ds-demo ds-demo--flex">
+      <span class="ds-badge ds-badge--primary">18 Uger</span>
+      <span class="ds-badge ds-badge--secondary">Ny</span>
+      <span class="ds-badge ds-badge--outline">Popular</span>
+      <span class="ds-badge ds-badge--muted">Afsluttet</span>
+      <span class="ds-badge ds-badge--primary ds-badge--pill">Pill Badge</span>
+      <span class="ds-badge ds-badge--primary ds-badge--large">Large Badge</span>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════════════════════════════
+       7. FORM ELEMENTS
+       ═══════════════════════════════════════════════════════════════ -->
+  <section class="ds-section">
+    <div class="ds-section__header">
+      <h2 class="ds-section__title" data-number="7">Form Elements</h2>
+      <p class="ds-section__desc">Inputs, selects, and form controls</p>
+    </div>
+
+    <div class="ds-demo" style="max-width: 500px;">
+      <div style="margin-bottom: 24px;">
+        <label class="ds-label">Text Input</label>
+        <input type="text" class="ds-input" placeholder="Dit navn">
+      </div>
+
+      <div style="margin-bottom: 24px;">
+        <label class="ds-label">Email Input</label>
+        <input type="email" class="ds-input" placeholder="din@email.dk">
+      </div>
+
+      <div style="margin-bottom: 24px;">
+        <label class="ds-label">Select / Dropdown</label>
+        <select class="ds-select">
+          <option>Vaelg program...</option>
+          <option>18 Uger Fleksibel</option>
+          <option>8 Uger Semi-intensiv</option>
+          <option>4 Uger Intensiv</option>
+        </select>
+      </div>
+
+      <div>
+        <label class="ds-label">Textarea</label>
+        <textarea class="ds-input" rows="4" placeholder="Din besked..."></textarea>
+      </div>
+    </div>
+
+    <div class="ds-subsection" style="margin-top: 40px;">
+      <h3 class="ds-subsection__title">Dark Input</h3>
+      <div class="ds-demo ds-demo--dark" style="max-width: 500px;">
+        <label class="ds-label" style="color: #fff;">Email</label>
+        <input type="email" class="ds-input ds-input--dark" placeholder="din@email.dk">
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════════════════════════════
+       8. ACCORDIONS
+       ═══════════════════════════════════════════════════════════════ -->
+  <section class="ds-section">
+    <div class="ds-section__header">
+      <h2 class="ds-section__title" data-number="8">Accordions</h2>
+      <p class="ds-section__desc">Expandable content sections</p>
+    </div>
+
+    <div class="ds-demo" style="max-width: 700px;">
+      <div class="ds-accordion">
+        <div class="ds-accordion__item active">
+          <div class="ds-accordion__header" onclick="this.parentElement.classList.toggle('active')">
+            <span class="ds-accordion__title">Hvad er inkluderet i prisen?</span>
+            <div class="ds-accordion__icon">+</div>
+          </div>
+          <div class="ds-accordion__body">
+            Prisen inkluderer al undervisning, materialer, certificering og adgang til alumni-netvaerk.
+          </div>
+        </div>
+        <div class="ds-accordion__item">
+          <div class="ds-accordion__header" onclick="this.parentElement.classList.toggle('active')">
+            <span class="ds-accordion__title">Er der ratebetaling?</span>
+            <div class="ds-accordion__icon">+</div>
+          </div>
+          <div class="ds-accordion__body">
+            Ja, vi tilbyder fleksibel ratebetaling. Kontakt os for at hore om mulighederne.
+          </div>
+        </div>
+        <div class="ds-accordion__item">
+          <div class="ds-accordion__header" onclick="this.parentElement.classList.toggle('active')">
+            <span class="ds-accordion__title">Hvad er forkundskaber krav?</span>
+            <div class="ds-accordion__icon">+</div>
+          </div>
+          <div class="ds-accordion__body">
+            Vi anbefaler minimum 1 ars regelmassig yoga-praksis, men vi vurderer alle ansogninger individuelt.
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════════════════════════════
+       9. TABS
+       ═══════════════════════════════════════════════════════════════ -->
+  <section class="ds-section">
+    <div class="ds-section__header">
+      <h2 class="ds-section__title" data-number="9">Tabs</h2>
+      <p class="ds-section__desc">Different tab navigation styles</p>
+    </div>
+
+    <div class="ds-subsection">
+      <h3 class="ds-subsection__title">Underline Tabs</h3>
+      <div class="ds-demo">
+        <div class="ds-tabs--underline">
+          <button class="ds-tab active">Uddannelser</button>
+          <button class="ds-tab">Kurser</button>
+          <button class="ds-tab">Skema</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="ds-subsection">
+      <h3 class="ds-subsection__title">Pill Tabs</h3>
+      <div class="ds-demo">
+        <div class="ds-tabs--pills">
+          <button class="ds-tab active">Alle</button>
+          <button class="ds-tab">Styrke</button>
+          <button class="ds-tab">Fleksibilitet</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="ds-subsection">
+      <h3 class="ds-subsection__title">Button Tabs</h3>
+      <div class="ds-demo">
+        <div class="ds-tabs--buttons">
+          <button class="ds-tab active">18 Uger</button>
+          <button class="ds-tab">8 Uger</button>
+          <button class="ds-tab">4 Uger</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════════════════════════════
+       10. SECTION LAYOUTS
+       ═══════════════════════════════════════════════════════════════ -->
+  <section class="ds-section">
+    <div class="ds-section__header">
+      <h2 class="ds-section__title" data-number="10">Section Layouts</h2>
+      <p class="ds-section__desc">Full-width section background styles</p>
+    </div>
+
+    <div class="ds-subsection">
+      <h3 class="ds-subsection__title">Split Section (Dark / Light)</h3>
+      <div class="ds-split" style="border-radius: 12px; overflow: hidden;">
+        <div class="ds-split__side ds-split__side--dark">
+          <p class="ds-eyebrow ds-eyebrow--white ds-eyebrow--line">For den kommende laerer</p>
+          <h3 style="font-size: 2rem; font-weight: 700; margin-bottom: 12px;">Bliv Yogalaerer</h3>
+          <p style="opacity: 0.8;">200-timers Yoga Alliance certificering.</p>
+        </div>
+        <div class="ds-split__side ds-split__side--light">
+          <p class="ds-eyebrow ds-eyebrow--brand ds-eyebrow--line">For praktikeren</p>
+          <h3 style="font-size: 2rem; font-weight: 700; margin-bottom: 12px;">Fordyb Din Praksis</h3>
+          <p style="color: var(--ds-text-muted);">4-ugers specialkurser.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="ds-subsection">
+      <h3 class="ds-subsection__title">Full Width Backgrounds</h3>
+      <div class="ds-demo--grid" style="gap: 16px;">
+        <div class="ds-fullwidth ds-fullwidth--dark" style="border-radius: 12px; padding: 40px;">
+          <p>Dark Background</p>
+        </div>
+        <div class="ds-fullwidth ds-fullwidth--brand" style="border-radius: 12px; padding: 40px;">
+          <p>Brand Gradient</p>
+        </div>
+        <div class="ds-fullwidth ds-fullwidth--gradient" style="border-radius: 12px; padding: 40px; border: 1px solid var(--ds-border);">
+          <p style="color: var(--ds-text);">Warm Gradient</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════════════════════════════
+       11. HOVER EFFECTS
+       ═══════════════════════════════════════════════════════════════ -->
+  <section class="ds-section">
+    <div class="ds-section__header">
+      <h2 class="ds-section__title" data-number="11">Hover Effects</h2>
+      <p class="ds-section__desc">Interactive hover animations</p>
+    </div>
+
+    <div class="ds-demo ds-demo--flex" style="gap: 24px;">
+      <div class="ds-hover-demo ds-hover--lift">Lift</div>
+      <div class="ds-hover-demo ds-hover--scale">Scale</div>
+      <div class="ds-hover-demo ds-hover--border">Border</div>
+      <div class="ds-hover-demo ds-hover--glow">Glow</div>
+      <div class="ds-hover-demo ds-hover--bg">Background</div>
+      <div class="ds-hover-demo ds-hover--shine">Shine</div>
+      <div class="ds-hover-demo ds-hover--tilt">Tilt 3D</div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════════════════════════════
+       12. ANIMATIONS
+       ═══════════════════════════════════════════════════════════════ -->
+  <section class="ds-section">
+    <div class="ds-section__header">
+      <h2 class="ds-section__title" data-number="12">Animations</h2>
+      <p class="ds-section__desc">Continuous and triggered animations</p>
+    </div>
+
+    <div class="ds-demo ds-demo--flex" style="gap: 32px;">
+      <div class="ds-anim-demo ds-anim--pulse">Pulse</div>
+      <div class="ds-anim-demo ds-anim--breathe">Breathe</div>
+      <div class="ds-anim-demo ds-anim--float">Float</div>
+      <div class="ds-anim-demo ds-anim--spin">Spin</div>
+      <div class="ds-anim-demo ds-anim--bounce">Bounce</div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════════════════════════════
+       13. BACKGROUNDS
+       ═══════════════════════════════════════════════════════════════ -->
+  <section class="ds-section">
+    <div class="ds-section__header">
+      <h2 class="ds-section__title" data-number="13">Backgrounds</h2>
+      <p class="ds-section__desc">Background colors and gradients</p>
+    </div>
+
+    <div class="ds-demo--grid" style="gap: 16px;">
+      <div class="ds-bg-demo ds-bg--solid-dark">Solid Dark</div>
+      <div class="ds-bg-demo ds-bg--solid-brand">Solid Brand</div>
+      <div class="ds-bg-demo ds-bg--gradient-brand">Gradient Brand</div>
+      <div class="ds-bg-demo ds-bg--gradient-dark">Gradient Dark</div>
+      <div class="ds-bg-demo ds-bg--gradient-warm">Gradient Warm</div>
+      <div class="ds-bg-demo ds-bg--gradient-radial">Radial Gradient</div>
+      <div class="ds-bg-demo ds-bg--overlay">With Overlay</div>
+      <div class="ds-bg-demo ds-bg--solid-dark ds-bg--blur">Glass / Blur</div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════════════════════════════
+       14. DIVIDERS & SEPARATORS
+       ═══════════════════════════════════════════════════════════════ -->
+  <section class="ds-section">
+    <div class="ds-section__header">
+      <h2 class="ds-section__title" data-number="14">Dividers & Separators</h2>
+      <p class="ds-section__desc">Visual breaks between content</p>
+    </div>
+
+    <div class="ds-demo">
+      <p>Content above</p>
+      <div class="ds-divider"></div>
+      <p>Default divider</p>
+
+      <div class="ds-divider ds-divider--thick ds-divider--brand"></div>
+      <p>Thick brand divider</p>
+
+      <div class="ds-divider ds-divider--gradient"></div>
+      <p>Gradient divider</p>
+
+      <div class="ds-divider ds-divider--dashed"></div>
+      <p>Dashed divider</p>
+
+      <div class="ds-divider ds-divider--dots"></div>
+      <p>Dots divider</p>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════════════════════════════
+       15. ICONS & SYMBOLS
+       ═══════════════════════════════════════════════════════════════ -->
+  <section class="ds-section">
+    <div class="ds-section__header">
+      <h2 class="ds-section__title" data-number="15">Icons & Symbols</h2>
+      <p class="ds-section__desc">Icon containers and styles</p>
+    </div>
+
+    <div class="ds-demo ds-demo--flex" style="gap: 24px;">
+      <div class="ds-icon ds-icon--circle ds-icon--brand">✓</div>
+      <div class="ds-icon ds-icon--circle ds-icon--outline">1</div>
+      <div class="ds-icon ds-icon--circle ds-icon--muted">→</div>
+      <div class="ds-icon ds-icon--square ds-icon--brand">Y</div>
+      <div class="ds-icon ds-icon--square ds-icon--outline">★</div>
+      <div class="ds-icon ds-icon--square ds-icon--muted">+</div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════════════════════════════
+       16. LISTS
+       ═══════════════════════════════════════════════════════════════ -->
+  <section class="ds-section">
+    <div class="ds-section__header">
+      <h2 class="ds-section__title" data-number="16">Lists</h2>
+      <p class="ds-section__desc">Styled list variations</p>
+    </div>
+
+    <div class="ds-demo ds-demo--grid">
+      <div>
+        <h4 style="margin-bottom: 16px; font-weight: 700;">Checkmark List</h4>
+        <ul class="ds-list ds-list--checkmarks">
+          <li>Yoga Alliance certificering</li>
+          <li>Sma hold (max 20)</li>
+          <li>Erfarne instruktorer</li>
+          <li>Alumni netvaerk</li>
+        </ul>
+      </div>
+
+      <div>
+        <h4 style="margin-bottom: 16px; font-weight: 700;">Numbered List</h4>
+        <ol class="ds-list ds-list--numbers" style="counter-reset: list-counter;">
+          <li>Ansog online</li>
+          <li>Introsamtale</li>
+          <li>Bekraeft plads</li>
+          <li>Start uddannelse</li>
+        </ol>
+      </div>
+
+      <div>
+        <h4 style="margin-bottom: 16px; font-weight: 700;">Arrow List</h4>
+        <ul class="ds-list ds-list--arrows">
+          <li>Se program</li>
+          <li>Laes mere</li>
+          <li>Book tid</li>
+          <li>Kontakt os</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════════════════════════════
+       17. QUOTES
+       ═══════════════════════════════════════════════════════════════ -->
+  <section class="ds-section">
+    <div class="ds-section__header">
+      <h2 class="ds-section__title" data-number="17">Quotes</h2>
+      <p class="ds-section__desc">Blockquote and testimonial styles</p>
+    </div>
+
+    <div class="ds-demo">
+      <blockquote class="ds-quote">
+        Yoga er ikke om at rore dine taeer. Det handler om, hvad du laerer pa vejen derned.
+        <p class="ds-quote__author">- Judith Hanson Lasater</p>
+      </blockquote>
+    </div>
+
+    <div class="ds-demo ds-demo--dark" style="margin-top: 16px;">
+      <blockquote class="ds-quote ds-quote--centered" style="color: #fff;">
+        Yoga er ikke om at rore dine taeer. Det handler om, hvad du laerer pa vejen derned.
+        <p class="ds-quote__author">- Judith Hanson Lasater</p>
+      </blockquote>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════════════════════════════
+       18. PROGRESS & STEPS
+       ═══════════════════════════════════════════════════════════════ -->
+  <section class="ds-section">
+    <div class="ds-section__header">
+      <h2 class="ds-section__title" data-number="18">Progress & Steps</h2>
+      <p class="ds-section__desc">Timelines and progress indicators</p>
+    </div>
+
+    <div class="ds-subsection">
+      <h3 class="ds-subsection__title">Timeline</h3>
+      <div class="ds-demo" style="max-width: 500px;">
+        <div class="ds-timeline">
+          <div class="ds-timeline__item">
+            <div class="ds-timeline__dot"></div>
+            <h4 class="ds-timeline__title">Ansog online</h4>
+            <p class="ds-timeline__desc">Udfyld ansogningsformularen</p>
+          </div>
+          <div class="ds-timeline__item">
+            <div class="ds-timeline__dot"></div>
+            <h4 class="ds-timeline__title">Introsamtale</h4>
+            <p class="ds-timeline__desc">Vi laerer hinanden at kende</p>
+          </div>
+          <div class="ds-timeline__item">
+            <div class="ds-timeline__dot"></div>
+            <h4 class="ds-timeline__title">Start uddannelse</h4>
+            <p class="ds-timeline__desc">Velkommen til Yoga Bible</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="ds-subsection">
+      <h3 class="ds-subsection__title">Progress Bar</h3>
+      <div class="ds-demo" style="max-width: 500px;">
+        <p style="margin-bottom: 8px; font-size: 0.85rem;">75% Complete</p>
+        <div class="ds-progress">
+          <div class="ds-progress__bar" style="width: 75%;"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════════════════════════════
+       19. TOOLTIPS
+       ═══════════════════════════════════════════════════════════════ -->
+  <section class="ds-section">
+    <div class="ds-section__header">
+      <h2 class="ds-section__title" data-number="19">Tooltips</h2>
+      <p class="ds-section__desc">Hover-triggered information popups</p>
+    </div>
+
+    <div class="ds-demo ds-demo--flex">
+      <div class="ds-tooltip-demo" data-tooltip="This is a tooltip!">Hover me</div>
+      <div class="ds-tooltip-demo" data-tooltip="More information here">Another one</div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════════════════════════════
+       20. SCROLL EFFECTS
+       ═══════════════════════════════════════════════════════════════ -->
+  <section class="ds-section">
+    <div class="ds-section__header">
+      <h2 class="ds-section__title" data-number="20">Scroll Effects</h2>
+      <p class="ds-section__desc">Custom scrollbars and scroll containers</p>
+    </div>
+
+    <div class="ds-demo--grid">
+      <div>
+        <h4 style="margin-bottom: 12px; font-weight: 700;">Styled Scrollbar</h4>
+        <div class="ds-scroll-demo ds-scroll--styled">
+          <p style="margin-bottom: 16px;">Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.</p>
+          <p style="margin-bottom: 16px;">Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.</p>
+          <p style="margin-bottom: 16px;">Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur.</p>
+          <p style="margin-bottom: 16px;">Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</p>
+          <p>More content here to enable scrolling...</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════════════════════════════
+       USAGE GUIDE
+       ═══════════════════════════════════════════════════════════════ -->
+  <section class="ds-section" style="margin-top: 80px; padding-top: 60px; border-top: 2px solid var(--ds-border);">
+    <div class="ds-section__header">
+      <h2 class="ds-section__title" data-number="★">How to Use This Guide</h2>
+      <p class="ds-section__desc">Reference these samples when requesting designs</p>
+    </div>
+
+    <div class="ds-demo">
+      <h4 style="font-weight: 700; margin-bottom: 16px;">Example Requests:</h4>
+      <ul class="ds-list ds-list--arrows">
+        <li>"Use the <strong>hover-lift</strong> card style from section 4"</li>
+        <li>"Add an <strong>eyebrow with line</strong> above the heading (section 5)"</li>
+        <li>"Use <strong>pill tabs</strong> for the navigation (section 9)"</li>
+        <li>"Apply the <strong>glow hover effect</strong> to buttons (section 11)"</li>
+        <li>"Use the <strong>breathe animation</strong> on the hero (section 12)"</li>
+        <li>"Add a <strong>timeline</strong> for the application steps (section 18)"</li>
+        <li>"Use the <strong>split section layout</strong> with dark/light sides (section 10)"</li>
+      </ul>
+    </div>
+  </section>
+
+</div>
