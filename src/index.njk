@@ -1,315 +1,472 @@
 ---
 layout: base.njk
-title: "YOGA BIBLE - Denmark"
-description: "Yoga Bible er din platform for yogalæreruddannelser, fordybelse og professionelle yogaklasser. Uanset om du vil undervise, lære mere eller finde dit fællesskab – vi er her."
+title: "YOGA BIBLE — Yogalæreruddannelse i København"
+description: "Professionel yogalæreruddannelse i København siden 2014. Yoga Alliance certificeret (RYS-200). 500+ uddannede lærere. Vælg din vej: bliv yogalærer eller løft din praksis."
 includeScheduleModal: true
 ---
 
-<!-- Hero Section -->
-<section class="hero">
-  <div class="hero__content">
-    <h1 class="hero__title" data-i18n="hero.title">Et sted. To veje.</h1>
-    <p class="hero__subtitle" data-i18n="hero.subtitle">
-      Yoga Bible er en professionel skole for dig, der vil videre fra almindelig holdpraksis.
-      Vælg din vej: bliv yogalærer – eller løft din praksis gennem målrettede forløb og mentoring.
-    </p>
-    <div class="hero__trust">
-      <span data-i18n="hero.trust">Siden 2014 · Erfarne undervisere · Real-class praksis · 500+ uddannede · 4.8★ · 700+ anmeldelser</span>
+<!-- ═══════════════════════════════════════════════════════════════
+     HERO — The Opening Statement
+     Two columns: Content left, Portrait image right
+     ═══════════════════════════════════════════════════════════════ -->
+<section class="yb-hero">
+  <div class="yb-hero__inner">
+    <div class="yb-hero__content">
+      <div class="yb-hero__flag">Professionel Yogaskole · København</div>
+
+      <h1 class="yb-hero__title">Et sted.<br>To veje.</h1>
+
+      <p class="yb-hero__lead">
+        Yoga Bible er for dig, der vil videre. Bliv certificeret yogalærer — eller fordyb dig i din egen praksis gennem målrettede forløb.
+      </p>
+
+      <div class="yb-hero__paths">
+        <a href="#uddannelser" class="yb-hero__path">
+          <span class="yb-hero__path-title">Bliv Yogalærer</span>
+          <span class="yb-hero__path-desc">200-timer certificering · Yoga Alliance</span>
+        </a>
+        <a href="#kurser" class="yb-hero__path">
+          <span class="yb-hero__path-title">Udvikl Min Praksis</span>
+          <span class="yb-hero__path-desc">4-ugers fordybelseskurser</span>
+        </a>
+      </div>
+
+      <div class="yb-hero__trust">
+        <span>Siden 2014</span>
+        <span class="yb-hero__trust-dot"></span>
+        <span>500+ uddannede</span>
+        <span class="yb-hero__trust-dot"></span>
+        <span>4.8★ · 700+ anmeldelser</span>
+      </div>
+    </div>
+
+    <div class="yb-hero__media">
+      <!-- PLACEHOLDER: Replace with portrait yoga image (3:4 aspect ratio) -->
+      <img
+        src="/assets/images/hero/hero-portrait.jpg"
+        alt="Yogalærer i praksis — Yoga Bible København"
+        class="yb-hero__img"
+        loading="eager"
+      >
+      <div class="yb-hero__accent"></div>
     </div>
   </div>
 </section>
 
-<!-- Trust Badges Section -->
-<section class="trust-badges">
-  <div class="container">
-    <div class="trust-badges__grid">
-      <div class="trust-badge">
-        <div class="trust-badge__icon">
-          <svg width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <circle cx="32" cy="32" r="30" stroke="#f75c03" stroke-width="2"/>
-            <text x="32" y="38" font-size="14" fill="#f75c03" text-anchor="middle" font-weight="700">2014</text>
-          </svg>
-        </div>
-        <div class="trust-badge__text">
-          <strong data-i18n="trust.since">Siden 2014</strong>
-          <span data-i18n="trust.since.sub">11+ års erfaring</span>
-        </div>
-      </div>
 
-      <div class="trust-badge">
-        <div class="trust-badge__icon">
-          <svg width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M32 10L46 18V30C46 40 40 48 32 54C24 48 18 40 18 30V18L32 10Z" stroke="#f75c03" stroke-width="2" fill="none"/>
-            <text x="32" y="35" font-size="12" fill="#f75c03" text-anchor="middle" font-weight="700">500+</text>
-          </svg>
-        </div>
-        <div class="trust-badge__text">
-          <strong data-i18n="trust.graduates">500+ Uddannede</strong>
-          <span data-i18n="trust.graduates.sub">Certificerede lærere</span>
-        </div>
-      </div>
+<!-- ═══════════════════════════════════════════════════════════════
+     UDDANNELSER — Choose Your Path
+     Two program cards: 18-week flexible & 4-week intensive
+     ═══════════════════════════════════════════════════════════════ -->
+<section class="yb-programs" id="uddannelser">
+  <div class="yb-programs__inner">
+    <header class="yb-programs__header">
+      <h2 class="yb-programs__title">Yogalæreruddannelser</h2>
+      <p class="yb-programs__subtitle">
+        To veje til samme mål: 200-timers Yoga Alliance certificering. Vælg det format, der passer dit liv.
+      </p>
+    </header>
 
-      <div class="trust-badge">
-        <div class="trust-badge__icon">
-          <svg width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M32 12L36 24H48L38 32L42 44L32 36L22 44L26 32L16 24H28L32 12Z" fill="#f75c03"/>
-          </svg>
-        </div>
-        <div class="trust-badge__text">
-          <strong data-i18n="trust.rating">4.8★ Bedømmelse</strong>
-          <span data-i18n="trust.rating.sub">700+ anmeldelser</span>
-        </div>
-      </div>
+    <div class="yb-programs__grid">
+      <!-- 18-Week Flexible -->
+      <article class="yb-program-card">
+        <div class="yb-program-card__badge">Fleksibel</div>
+        <h3 class="yb-program-card__title">18 Uger</h3>
+        <p class="yb-program-card__tagline">Ved siden af job eller studie</p>
 
-      <div class="trust-badge">
-        <div class="trust-badge__icon">
-          <svg width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <rect x="16" y="20" width="32" height="28" rx="2" stroke="#f75c03" stroke-width="2"/>
-            <path d="M20 16L32 8L44 16" stroke="#f75c03" stroke-width="2" stroke-linecap="round"/>
-          </svg>
+        <div class="yb-program-card__meta">
+          <span class="yb-program-card__date">Marts – Juni 2026</span>
         </div>
-        <div class="trust-badge__text">
-          <strong data-i18n="trust.practice">Real-class Praksis</strong>
-          <span data-i18n="trust.practice.sub">Hands-on undervisning</span>
-        </div>
-      </div>
-    </div>
-  </div>
-</section>
 
-<!-- Program Pathways Section -->
-<section class="pathways">
-  <div class="container">
-    <h2 class="section-title" data-i18n="pathways.title">Vælg din vej</h2>
-
-    <div class="pathways__grid">
-      <!-- 18-Week Flexible Program -->
-      <div class="program-card">
-        <div class="program-card__badge" data-i18n="program.flexible.badge">Fleksibel</div>
-        <h3 class="program-card__title" data-i18n="program.flexible.title">18 Ugers Program</h3>
-        <p class="program-card__subtitle" data-i18n="program.flexible.subtitle">Bliv yogalærer ved siden af job eller studie</p>
-
-        <ul class="program-card__features">
-          <li data-i18n="program.flexible.feature1">Start: Marts–Juni 2026</li>
-          <li data-i18n="program.flexible.feature2">Hverdage (10–15) ELLER weekendspor</li>
-          <li data-i18n="program.flexible.feature3">90%+ bestå-rate</li>
-          <li data-i18n="program.flexible.feature4">Real-class praksis inkluderet</li>
-          <li data-i18n="program.flexible.feature5">200-timer certificering</li>
+        <ul class="yb-program-card__points">
+          <li>Hverdage 10–15 eller weekend-spor</li>
+          <li>Real-class undervisningspraksis</li>
+          <li>Max 20 per hold · 90%+ bestå-rate</li>
+          <li>Livslang adgang til alumni-netværk</li>
         </ul>
 
-        <a href="/200-hours-18-weeks-flexible-programs" class="program-card__cta btn btn--primary" data-i18n="program.cta">Læs mere</a>
-      </div>
+        <div class="yb-program-card__price">
+          <span class="yb-program-card__amount">25.500 kr</span>
+          <span class="yb-program-card__note">Ratebetaling mulig</span>
+        </div>
 
-      <!-- 4-Week Intensive Program -->
-      <div class="program-card program-card--featured">
-        <div class="program-card__badge program-card__badge--featured" data-i18n="program.intensive.badge">Intensiv</div>
-        <h3 class="program-card__title" data-i18n="program.intensive.title">4 Ugers Program</h3>
-        <p class="program-card__subtitle" data-i18n="program.intensive.subtitle">Kompakt uddannelse på fuld tid</p>
+        <a href="/200-hours-18-weeks-flexible-programs" class="yb-btn yb-btn--primary yb-btn--full">
+          Se Program
+        </a>
+      </article>
 
-        <ul class="program-card__features">
-          <li data-i18n="program.intensive.feature1">Start: Februar 2026</li>
-          <li data-i18n="program.intensive.feature2">Kompakt læring med workshops</li>
-          <li data-i18n="program.intensive.feature3">Valgfrit indkvartering i København</li>
-          <li data-i18n="program.intensive.feature4">Real-class praksis & certificering</li>
-          <li data-i18n="program.intensive.feature5">200-timer certificering</li>
+      <!-- 4-Week Intensive -->
+      <article class="yb-program-card yb-program-card--featured">
+        <div class="yb-program-card__badge yb-program-card__badge--orange">Intensiv</div>
+        <h3 class="yb-program-card__title">4 Uger</h3>
+        <p class="yb-program-card__tagline">Fuld immersion · Transformativ</p>
+
+        <div class="yb-program-card__meta">
+          <span class="yb-program-card__date">April & Juli 2026</span>
+        </div>
+
+        <ul class="yb-program-card__points">
+          <li>Mandag–Søndag 08–18 · Total fordybelse</li>
+          <li>Real-class undervisningspraksis</li>
+          <li>Bolighjælp til internationale</li>
+          <li>Stærke bånd · Intense venskaber</li>
         </ul>
 
-        <a href="/200-hours-4-weeks-intensive-programs" class="program-card__cta btn btn--primary" data-i18n="program.cta">Læs mere</a>
-      </div>
+        <div class="yb-program-card__price">
+          <span class="yb-program-card__amount">25.500 kr</span>
+          <span class="yb-program-card__note">Samme pris, kortere tid</span>
+        </div>
+
+        <a href="/200-hours-4-weeks-intensive-programs" class="yb-btn yb-btn--primary yb-btn--full">
+          Se Program
+        </a>
+      </article>
+    </div>
+
+    <div class="yb-programs__compare">
+      <a href="/sammenlign-yogalreruddannelser" class="yb-link-arrow">
+        Sammenlign alle formater og destinationer
+      </a>
     </div>
   </div>
 </section>
 
-<!-- Courses Section -->
-<section class="courses">
-  <div class="container">
-    <h2 class="section-title" data-i18n="courses.title">Fordybelseskurser</h2>
-    <p class="section-subtitle" data-i18n="courses.subtitle">
-      4-ugers moduler · 8 × 90 minutter · Aftener + udvalgte weekender
-    </p>
 
-    <div class="courses__grid">
-      <!-- Inversions -->
-      <div class="course-card">
-        <div class="course-card__image">
-          <img src="https://images.squarespace-cdn.com/content/v1/681de856601c934813e409a1/1746790400000/inversions-course.jpg" alt="Inversions" loading="lazy">
-        </div>
-        <div class="course-card__content">
-          <h3 class="course-card__title" data-i18n="courses.inversions.title">Inversions</h3>
-          <p class="course-card__description" data-i18n="courses.inversions.desc">
-            Handstand, forearm stand, headstand med væg, spotting og partnerarbejde.
-            Fokus på setup, bailouts og skadesforebyggelse.
+<!-- ═══════════════════════════════════════════════════════════════
+     KURSER — 4-Week Specialty Courses (Tabbed Interface)
+     ═══════════════════════════════════════════════════════════════ -->
+<section class="yb-courses" id="kurser">
+  <div class="yb-courses__inner">
+    <header class="yb-courses__header">
+      <h2 class="yb-courses__title">Fordybelseskurser</h2>
+      <p class="yb-courses__subtitle">
+        4 uger · 8 sessioner · For dig der vil mestre ét område
+      </p>
+    </header>
+
+    <!-- Tab Navigation -->
+    <div class="yb-courses__tabs" role="tablist">
+      <button
+        class="yb-courses__tab yb-courses__tab--active"
+        role="tab"
+        aria-selected="true"
+        data-course="inversions"
+      >Inversions</button>
+      <button
+        class="yb-courses__tab"
+        role="tab"
+        aria-selected="false"
+        data-course="splits"
+      >Splits</button>
+      <button
+        class="yb-courses__tab"
+        role="tab"
+        aria-selected="false"
+        data-course="backbends"
+      >Backbends</button>
+    </div>
+
+    <!-- Tab Panels -->
+    <div class="yb-courses__panels">
+      <!-- Inversions Panel -->
+      <article class="yb-courses__panel yb-courses__panel--active" data-panel="inversions">
+        <div class="yb-courses__panel-content">
+          <div class="yb-courses__panel-meta">
+            <span>8 × 90 min</span>
+            <span>Aftener + weekends</span>
+            <span>2.300 kr</span>
+          </div>
+          <h3 class="yb-courses__panel-title">Inversions</h3>
+          <p class="yb-courses__panel-desc">
+            Handstand, forearm stand, headstand. Lær setup, entries, bailouts og spotting.
+            Fokus på skulderaktivering, core-engagement og skadesforebyggelse.
+            Fra væg til freestanding — i dit eget tempo.
           </p>
-          <a href="/inversions" class="course-card__link" data-i18n="courses.link">Læs mere →</a>
+          <a href="/inversions" class="yb-btn yb-btn--primary">Se Datoer & Tilmeld</a>
         </div>
-      </div>
+        <div class="yb-courses__panel-media">
+          <!-- PLACEHOLDER: Replace with inversions course image -->
+          <img
+            src="/assets/images/courses/inversions-hero.jpg"
+            alt="Inversions kursus — handstand træning"
+            loading="lazy"
+          >
+        </div>
+      </article>
 
-      <!-- Splits -->
-      <div class="course-card">
-        <div class="course-card__image">
-          <img src="https://images.squarespace-cdn.com/content/v1/681de856601c934813e409a1/1746790400000/splits-course.jpg" alt="Splits" loading="lazy">
-        </div>
-        <div class="course-card__content">
-          <h3 class="course-card__title" data-i18n="courses.splits.title">Splits</h3>
-          <p class="course-card__description" data-i18n="courses.splits.desc">
-            Hoftemobilitet og hamstring-fleksibilitet gennem aktiv/passiv stretching,
-            PNF-teknikker og nervesystem-beroligelse.
+      <!-- Splits Panel -->
+      <article class="yb-courses__panel" data-panel="splits" hidden>
+        <div class="yb-courses__panel-content">
+          <div class="yb-courses__panel-meta">
+            <span>8 × 90 min</span>
+            <span>Aftener + weekends</span>
+            <span>2.300 kr</span>
+          </div>
+          <h3 class="yb-courses__panel-title">Splits</h3>
+          <p class="yb-courses__panel-desc">
+            Front splits, middle splits, oversplits. Hoftemobilitet og hamstring-fleksibilitet
+            gennem aktiv/passiv stretching, PNF-teknikker og nervesystem-arbejde.
+            Sikker progression uden at forcere.
           </p>
-          <a href="/splits" class="course-card__link" data-i18n="courses.link">Læs mere →</a>
+          <a href="/splits" class="yb-btn yb-btn--primary">Se Datoer & Tilmeld</a>
         </div>
-      </div>
+        <div class="yb-courses__panel-media">
+          <!-- PLACEHOLDER: Replace with splits course image -->
+          <img
+            src="/assets/images/courses/splits-hero.jpg"
+            alt="Splits kursus — fleksibilitetstræning"
+            loading="lazy"
+          >
+        </div>
+      </article>
 
-      <!-- Backbends -->
-      <div class="course-card">
-        <div class="course-card__image">
-          <img src="https://images.squarespace-cdn.com/content/v1/681de856601c934813e409a1/1746790400000/backbends-course.jpg" alt="Backbends" loading="lazy">
-        </div>
-        <div class="course-card__content">
-          <h3 class="course-card__title" data-i18n="courses.backbends.title">Backbends</h3>
-          <p class="course-card__description" data-i18n="courses.backbends.desc">
-            Bryst- og skulderåbning, ryg- og core-styrke, thoracic mobilitet,
-            vejrtrækning og sikre overgange.
+      <!-- Backbends Panel -->
+      <article class="yb-courses__panel" data-panel="backbends" hidden>
+        <div class="yb-courses__panel-content">
+          <div class="yb-courses__panel-meta">
+            <span>8 × 90 min</span>
+            <span>Aftener + weekends</span>
+            <span>2.300 kr</span>
+          </div>
+          <h3 class="yb-courses__panel-title">Backbends</h3>
+          <p class="yb-courses__panel-desc">
+            Wheel, kapotasana, drop-backs. Bryst- og skulderåbning, thoracic mobilitet,
+            ryg- og core-styrke. Lær at bøje fra de rigtige steder —
+            og beskytte lænden.
           </p>
-          <a href="/backbends" class="course-card__link" data-i18n="courses.link">Læs mere →</a>
+          <a href="/backbends" class="yb-btn yb-btn--primary">Se Datoer & Tilmeld</a>
         </div>
+        <div class="yb-courses__panel-media">
+          <!-- PLACEHOLDER: Replace with backbends course image -->
+          <img
+            src="/assets/images/courses/backbends-hero.jpg"
+            alt="Backbends kursus — rygbøjninger"
+            loading="lazy"
+          >
+        </div>
+      </article>
+    </div>
+
+    <div class="yb-courses__bundle">
+      <p>Tag alle tre kurser og spar 15%</p>
+      <a href="/course-bundles" class="yb-link-arrow">Se kursuspakker</a>
+    </div>
+  </div>
+</section>
+
+
+<!-- ═══════════════════════════════════════════════════════════════
+     STUDIO — Visual Break / Atmosphere Shot
+     Full-width image with overlay text
+     ═══════════════════════════════════════════════════════════════ -->
+<section class="yb-studio">
+  <div class="yb-studio__bg">
+    <!-- PLACEHOLDER: Replace with wide studio/class image -->
+    <img
+      src="/assets/images/studio/studio-wide.jpg"
+      alt="Yoga Bible studie i København — klasse i gang"
+      loading="lazy"
+    >
+  </div>
+  <div class="yb-studio__overlay">
+    <div class="yb-studio__content">
+      <h2 class="yb-studio__title">Træn hvor professionelle træner</h2>
+      <p class="yb-studio__text">
+        Christianshavn, København. Hot room + main studio.
+        Et rum skabt til fordybelse, fællesskab og vækst.
+      </p>
+      <a href="/about-copenhagen" class="yb-btn yb-btn--outline-light">Om Studiet & København</a>
+    </div>
+  </div>
+</section>
+
+
+<!-- ═══════════════════════════════════════════════════════════════
+     TESTIMONIALS — Social Proof
+     Horizontal scroll on mobile, 3-up grid on desktop
+     ═══════════════════════════════════════════════════════════════ -->
+<section class="yb-testimonials">
+  <div class="yb-testimonials__inner">
+    <header class="yb-testimonials__header">
+      <h2 class="yb-testimonials__title">Fra vores studerende</h2>
+    </header>
+
+    <div class="yb-testimonials__track">
+      <article class="yb-testimonial">
+        <div class="yb-testimonial__stars" aria-label="5 stjerner">★★★★★</div>
+        <blockquote class="yb-testimonial__quote">
+          "18-ugers programmet ændrede mit liv. Instruktørerne skaber et trygt rum til at udforske og vokse. Jeg føler mig nu klar til at undervise med ægte selvtillid."
+        </blockquote>
+        <footer class="yb-testimonial__footer">
+          <strong>Maria K.</strong>
+          <span>18-ugers uddannelse, 2024</span>
+        </footer>
+      </article>
+
+      <article class="yb-testimonial">
+        <div class="yb-testimonial__stars" aria-label="5 stjerner">★★★★★</div>
+        <blockquote class="yb-testimonial__quote">
+          "Inversions-kurset var præcis hvad jeg havde brug for. Fra at være bange for at kicke op til stabil handstand. Progressionen er gennemtænkt og sikker."
+        </blockquote>
+        <footer class="yb-testimonial__footer">
+          <strong>Jonas L.</strong>
+          <span>Inversions kursus, 2025</span>
+        </footer>
+      </article>
+
+      <article class="yb-testimonial">
+        <div class="yb-testimonial__stars" aria-label="5 stjerner">★★★★★</div>
+        <blockquote class="yb-testimonial__quote">
+          "Det 4-ugers intensive var transformerende. Real-class praksis gjorde hele forskellen — jeg følte mig virkelig forberedt til at stå foran en klasse."
+        </blockquote>
+        <footer class="yb-testimonial__footer">
+          <strong>Sarah H.</strong>
+          <span>4-ugers uddannelse, 2025</span>
+        </footer>
+      </article>
+    </div>
+  </div>
+</section>
+
+
+<!-- ═══════════════════════════════════════════════════════════════
+     WHY YOGA BIBLE — The Differentiators
+     ═══════════════════════════════════════════════════════════════ -->
+<section class="yb-why">
+  <div class="yb-why__inner">
+    <header class="yb-why__header">
+      <h2 class="yb-why__title">Hvorfor Yoga Bible</h2>
+    </header>
+
+    <div class="yb-why__grid">
+      <div class="yb-why__item">
+        <div class="yb-why__number">01</div>
+        <h3 class="yb-why__item-title">Real-Class Praksis</h3>
+        <p class="yb-why__item-desc">
+          Du underviser rigtige klasser under supervision — ikke kun dine medstuderende.
+          Når du er færdig, har du allerede erfaring.
+        </p>
+      </div>
+
+      <div class="yb-why__item">
+        <div class="yb-why__number">02</div>
+        <h3 class="yb-why__item-title">Små Hold</h3>
+        <p class="yb-why__item-desc">
+          Max 20 per hold. Personlig feedback, tæt community,
+          og instruktører der kender dit navn og din praksis.
+        </p>
+      </div>
+
+      <div class="yb-why__item">
+        <div class="yb-why__number">03</div>
+        <h3 class="yb-why__item-title">Erfarne Undervisere</h3>
+        <p class="yb-why__item-desc">
+          Vores lead instructors har 10+ års undervisningserfaring og
+          aktiv praksis. De underviser stadig dagligt.
+        </p>
+      </div>
+
+      <div class="yb-why__item">
+        <div class="yb-why__number">04</div>
+        <h3 class="yb-why__item-title">Livslang Adgang</h3>
+        <p class="yb-why__item-desc">
+          Alumni-netværk, mentorship, fortsættelsesuddannelser.
+          Certificeringen er starten — ikke slutningen.
+        </p>
       </div>
     </div>
   </div>
 </section>
 
-<!-- Instructors Section -->
-<section class="instructors">
-  <div class="container">
-    <h2 class="section-title" data-i18n="instructors.title">Mød Vores Instruktører</h2>
-    <p class="section-subtitle" data-i18n="instructors.subtitle">
-      Erfarne, certificerede yogalærere med passion for at dele deres viden
+
+<!-- ═══════════════════════════════════════════════════════════════
+     FINAL CTA — The Invitation
+     ═══════════════════════════════════════════════════════════════ -->
+<section class="yb-cta">
+  <div class="yb-cta__inner">
+    <h2 class="yb-cta__title">Klar til at starte?</h2>
+    <p class="yb-cta__text">
+      Få skemaet, stil spørgsmål, eller ansøg direkte. Vi svarer inden 24 timer.
     </p>
-
-    <div class="instructors__grid">
-      <div class="instructor-card">
-        <div class="instructor-card__image">
-          <img src="https://via.placeholder.com/400x400/1C1C1C/f75c03?text=Instructor+1" alt="Lead Instructor" loading="lazy">
-        </div>
-        <h3 class="instructor-card__name">Instruktør Navn</h3>
-        <p class="instructor-card__title" data-i18n="instructors.lead">Lead Instruktør</p>
-        <p class="instructor-card__bio" data-i18n="instructors.bio1">
-          E-RYT 500 certificeret med 10+ års erfaring i Vinyasa og Ashtanga yoga.
-        </p>
-      </div>
-
-      <div class="instructor-card">
-        <div class="instructor-card__image">
-          <img src="https://via.placeholder.com/400x400/1C1C1C/f75c03?text=Instructor+2" alt="Senior Instructor" loading="lazy">
-        </div>
-        <h3 class="instructor-card__name">Instruktør Navn</h3>
-        <p class="instructor-card__title" data-i18n="instructors.senior">Senior Instruktør</p>
-        <p class="instructor-card__bio" data-i18n="instructors.bio2">
-          Specialist i anatomi og skadesforebyggelse med baggrund i fysioterapi.
-        </p>
-      </div>
-
-      <div class="instructor-card">
-        <div class="instructor-card__image">
-          <img src="https://via.placeholder.com/400x400/1C1C1C/f75c03?text=Instructor+3" alt="Instructor" loading="lazy">
-        </div>
-        <h3 class="instructor-card__name">Instruktør Navn</h3>
-        <p class="instructor-card__title" data-i18n="instructors.teacher">Instruktør</p>
-        <p class="instructor-card__bio" data-i18n="instructors.bio3">
-          200-timer certificeret med speciale i inversions og arm balances.
-        </p>
-      </div>
+    <div class="yb-cta__buttons">
+      <button onclick="openYBScheduleModal('all')" class="yb-btn yb-btn--white yb-btn--large">
+        Få Skema & Info
+      </button>
+      <a href="/apply" class="yb-btn yb-btn--outline-white yb-btn--large">
+        Ansøg Nu
+      </a>
     </div>
   </div>
 </section>
 
-<!-- Testimonials Section -->
-<section class="testimonials">
-  <div class="container">
-    <h2 class="section-title" data-i18n="testimonials.title">Hvad Siger Vores Studerende</h2>
 
-    <div class="testimonials__grid">
-      <div class="testimonial-card">
-        <div class="testimonial-card__stars">★★★★★</div>
-        <p class="testimonial-card__quote" data-i18n="testimonial.quote1">
-          "Yoga Bible's 18-ugers program ændrede mit liv. Instruktørerne er utroligt vidende og skaber et trygt rum til at udforske og vokse. Jeg føler mig nu klar til at undervise med selvtillid."
-        </p>
-        <div class="testimonial-card__author">
-          <div class="testimonial-card__avatar">
-            <img src="https://via.placeholder.com/80x80/f75c03/1C1C1C?text=MK" alt="" loading="lazy">
-          </div>
-          <div class="testimonial-card__info">
-            <strong class="testimonial-card__name">Maria K.</strong>
-            <span class="testimonial-card__meta" data-i18n="testimonial.meta1">18-ugers uddannelse, 2024</span>
-          </div>
-        </div>
-      </div>
+<!-- ═══════════════════════════════════════════════════════════════
+     HOMEPAGE SCRIPTS — Tab switching, scroll effects
+     ═══════════════════════════════════════════════════════════════ -->
+<script>
+(function() {
+  // Course Tab Switching
+  var tabs = document.querySelectorAll('.yb-courses__tab');
+  var panels = document.querySelectorAll('.yb-courses__panel');
 
-      <div class="testimonial-card">
-        <div class="testimonial-card__stars">★★★★★</div>
-        <p class="testimonial-card__quote" data-i18n="testimonial.quote2">
-          "Inversions kurset var præcis hvad jeg havde brug for. Jeg gik fra at være bange for at kicke op til at kunne holde en stabil handstand. Fantastisk undervisning og progression!"
-        </p>
-        <div class="testimonial-card__author">
-          <div class="testimonial-card__avatar">
-            <img src="https://via.placeholder.com/80x80/f75c03/1C1C1C?text=JL" alt="" loading="lazy">
-          </div>
-          <div class="testimonial-card__info">
-            <strong class="testimonial-card__name">Jonas L.</strong>
-            <span class="testimonial-card__meta" data-i18n="testimonial.meta2">Inversions kursus, 2025</span>
-          </div>
-        </div>
-      </div>
+  tabs.forEach(function(tab) {
+    tab.addEventListener('click', function() {
+      var course = this.getAttribute('data-course');
 
-      <div class="testimonial-card">
-        <div class="testimonial-card__stars">★★★★★</div>
-        <p class="testimonial-card__quote" data-i18n="testimonial.quote3">
-          "Det 4-ugers intensive program var en transformerende oplevelse. Real-class praksis gjorde hele forskellen - jeg følte mig virkelig forberedt til at stå foran en klasse."
-        </p>
-        <div class="testimonial-card__author">
-          <div class="testimonial-card__avatar">
-            <img src="https://via.placeholder.com/80x80/f75c03/1C1C1C?text=SH" alt="" loading="lazy">
-          </div>
-          <div class="testimonial-card__info">
-            <strong class="testimonial-card__name">Sarah H.</strong>
-            <span class="testimonial-card__meta" data-i18n="testimonial.meta3">4-ugers uddannelse, 2025</span>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-</section>
+      // Update tabs
+      tabs.forEach(function(t) {
+        t.classList.remove('yb-courses__tab--active');
+        t.setAttribute('aria-selected', 'false');
+      });
+      this.classList.add('yb-courses__tab--active');
+      this.setAttribute('aria-selected', 'true');
 
-<!-- Video Section -->
-<section class="video-section">
-  <div class="container">
-    <h2 class="section-title" data-i18n="video.title">Oplev Yoga Bible</h2>
-    <p class="section-subtitle" data-i18n="video.subtitle">
-      Tag et kig ind i vores studie og mød vores community
-    </p>
+      // Update panels
+      panels.forEach(function(p) {
+        if (p.getAttribute('data-panel') === course) {
+          p.classList.add('yb-courses__panel--active');
+          p.removeAttribute('hidden');
+        } else {
+          p.classList.remove('yb-courses__panel--active');
+          p.setAttribute('hidden', '');
+        }
+      });
+    });
 
-    <div class="video-wrapper">
-      <div class="video-placeholder">
-        <div class="video-placeholder__icon">
-          <svg width="80" height="80" viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <circle cx="40" cy="40" r="38" stroke="#f75c03" stroke-width="2"/>
-            <path d="M32 28L54 40L32 52V28Z" fill="#f75c03"/>
-          </svg>
-        </div>
-        <p class="video-placeholder__text" data-i18n="video.placeholder">
-          Video kommer snart - Indtil da, besøg vores Instagram @yoga_bible
-        </p>
-      </div>
-    </div>
-  </div>
-</section>
+    // Keyboard navigation
+    tab.addEventListener('keydown', function(e) {
+      var index = Array.from(tabs).indexOf(this);
+      if (e.key === 'ArrowRight') {
+        e.preventDefault();
+        var next = tabs[(index + 1) % tabs.length];
+        next.focus();
+        next.click();
+      } else if (e.key === 'ArrowLeft') {
+        e.preventDefault();
+        var prev = tabs[(index - 1 + tabs.length) % tabs.length];
+        prev.focus();
+        prev.click();
+      }
+    });
+  });
 
-<!-- CTA Section -->
-<section class="cta-section">
-  <div class="container">
-    <h2 class="cta-section__title" data-i18n="cta.title">Klar til at starte din rejse?</h2>
-    <p class="cta-section__text" data-i18n="cta.text">
-      Ansøg i dag og bliv en del af Yoga Bible's community
-    </p>
-    <a href="/apply" class="btn btn--large btn--primary" data-i18n="cta.button">Ansøg nu</a>
-  </div>
-</section>
+  // Scroll-triggered fade-in animations
+  var observerOptions = {
+    threshold: 0.1,
+    rootMargin: '0px 0px -50px 0px'
+  };
+
+  var fadeObserver = new IntersectionObserver(function(entries) {
+    entries.forEach(function(entry) {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('yb-visible');
+        fadeObserver.unobserve(entry.target);
+      }
+    });
+  }, observerOptions);
+
+  document.querySelectorAll('.yb-fade-in').forEach(function(el) {
+    fadeObserver.observe(el);
+  });
+})();
+</script>
