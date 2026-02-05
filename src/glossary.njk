@@ -1,0 +1,173 @@
+---
+layout: base.njk
+title: "Yoga Ordbog — Yoga Glossary | YOGA BIBLE"
+description: "Søgbar yoga-ordbog med 100+ begreber på sanskrit, dansk og engelsk. Til yogalæreruddannelser, studerende og nysgerrige udøvere."
+includeScheduleModal: false
+---
+
+<!-- Hero -->
+<section class="program-hero">
+  <div class="container">
+    <div class="program-hero__badge">YOGA ORDBOG</div>
+    <h1 class="program-hero__title">Yoga Glossary</h1>
+    <p class="program-hero__subtitle">
+      Denne ordliste er udviklet af Yoga Bible i København som et fagligt opslagsværk til vores yogalæreruddannelser, studerende og nysgerrige udøvere. Her samler vi centrale begreber fra klassisk og moderne yoga — på sanskrit, dansk og engelsk.
+    </p>
+  </div>
+</section>
+
+<!-- Search & Filter -->
+<section class="program-overview">
+  <div class="container">
+    <div class="yb-glossary">
+      <!-- Search -->
+      <div class="yb-glossary__search">
+        <input type="text" id="ybGlossarySearch" placeholder="Søg i yogaordlisten..." class="yb-glossary__input">
+      </div>
+
+      <!-- Category Filter -->
+      <div class="yb-glossary__filters">
+        <button class="yb-glossary__filter-btn active" data-filter="all">Alle</button>
+        <button class="yb-glossary__filter-btn" data-filter="asana">Asanas/Poses</button>
+        <button class="yb-glossary__filter-btn" data-filter="breathing">Breathing & Pranayama</button>
+        <button class="yb-glossary__filter-btn" data-filter="meditation">Meditation</button>
+        <button class="yb-glossary__filter-btn" data-filter="philosophy">Philosophy & History</button>
+        <button class="yb-glossary__filter-btn" data-filter="anatomy">Yoga Anatomy</button>
+        <button class="yb-glossary__filter-btn" data-filter="energy">Energy/Subtle Body</button>
+        <button class="yb-glossary__filter-btn" data-filter="teaching">Teaching & Cueing</button>
+        <button class="yb-glossary__filter-btn" data-filter="styles">Yoga Styles</button>
+        <button class="yb-glossary__filter-btn" data-filter="business">Business & Studio</button>
+        <button class="yb-glossary__filter-btn" data-filter="equipment">Equipment & Props</button>
+      </div>
+
+      <!-- Results -->
+      <div id="ybGlossaryResults" class="yb-glossary__results">
+        <p class="yb-glossary__loading">Ordlisten indlæses...</p>
+      </div>
+
+      <button id="ybGlossaryMore" class="btn btn--secondary" style="display:none; margin:24px auto;">Indlæs flere</button>
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+<section class="cta-section">
+  <div class="container">
+    <h2 class="cta-section__title">Vil du lære mere?</h2>
+    <p class="cta-section__text">Vores 200-timers yogalæreruddannelse dækker alle disse begreber i dybden.</p>
+    <a href="/om-200hrs-yogalreruddannelser" class="btn btn--large btn--primary">Se Uddannelser</a>
+  </div>
+</section>
+
+<script>
+(function() {
+  'use strict';
+
+  /* ── Sample glossary data (core terms) ── */
+  var TERMS = [
+    { sanskrit: 'Tadasana', en: 'Mountain Pose', da: 'Bjergstilling', cat: 'asana', desc_da: 'Grundlæggende stående stilling med fokus på alignment, rodfæstning og kroppens neutrale linje.', desc_en: 'Foundational standing pose focusing on alignment, grounding, and the body\'s neutral line.' },
+    { sanskrit: 'Uttanasana', en: 'Standing Forward Fold', da: 'Stående foroverbøjning', cat: 'asana', desc_da: 'Stående foroverbøjning der strækker baglår og ryg.', desc_en: 'Standing forward fold that stretches hamstrings and back.' },
+    { sanskrit: 'Adho Mukha Svanasana', en: 'Downward-Facing Dog', da: 'Nedadgående hundestræk', cat: 'asana', desc_da: 'Klassisk omvendt V-stilling der styrker arme og strækker bagsiden af kroppen.', desc_en: 'Classic inverted V-shape pose that strengthens arms and stretches the back body.' },
+    { sanskrit: 'Urdhva Mukha Svanasana', en: 'Upward-Facing Dog', da: 'Opadgående hundestræk', cat: 'asana', desc_da: 'Backbend der åbner bryst og skuldre.', desc_en: 'Backbend that opens chest and shoulders.' },
+    { sanskrit: 'Bhujangasana', en: 'Cobra Pose', da: 'Kobra', cat: 'asana', desc_da: 'Blid backbend udført fra gulvet med fokus på rygstyrkelse.', desc_en: 'Gentle backbend from the floor focusing on back strengthening.' },
+    { sanskrit: 'Chaturanga Dandasana', en: 'Four-Limbed Staff Pose', da: 'Lav planke / Chaturanga', cat: 'asana', desc_da: 'Lav push-up position der bygger skuldre, core og armstyrke.', desc_en: 'Low push-up position building shoulder, core, and arm strength.' },
+    { sanskrit: 'Virabhadrasana I', en: 'Warrior I', da: 'Krigeren I', cat: 'asana', desc_da: 'Kraftig stående stilling der styrker ben, hofter og core.', desc_en: 'Powerful standing pose strengthening legs, hips, and core.' },
+    { sanskrit: 'Virabhadrasana II', en: 'Warrior II', da: 'Krigeren II', cat: 'asana', desc_da: 'Åben hofteposition med stærke ben og rolig overkrop.', desc_en: 'Open hip position with strong legs and calm upper body.' },
+    { sanskrit: 'Virabhadrasana III', en: 'Warrior III', da: 'Krigeren III', cat: 'asana', desc_da: 'Balance på ét ben med kroppen i vandret linje.', desc_en: 'One-leg balance with the body in a horizontal line.' },
+    { sanskrit: 'Utkatasana', en: 'Chair Pose', da: 'Stolestilling', cat: 'asana', desc_da: 'Kraftig stilling der styrker lår, knæ og core.', desc_en: 'Powerful pose strengthening thighs, knees, and core.' },
+    { sanskrit: 'Trikonasana', en: 'Triangle Pose', da: 'Trekantstilling', cat: 'asana', desc_da: 'Lateral stræk der åbner hofter og strækker sidens krop.', desc_en: 'Lateral stretch opening hips and stretching the side body.' },
+    { sanskrit: 'Ardha Chandrasana', en: 'Half Moon Pose', da: 'Halvmånestilling', cat: 'asana', desc_da: 'Balance-stilling der styrker standbenet og åbner hofter.', desc_en: 'Balance pose strengthening the standing leg and opening hips.' },
+    { sanskrit: 'Parivrtta Trikonasana', en: 'Revolved Triangle Pose', da: 'Drejet trekantstilling', cat: 'asana', desc_da: 'Drejet variation af trekantstilling der strækker baglår og rygsøjle.', desc_en: 'Twisted variation of triangle pose stretching hamstrings and spine.' },
+    { sanskrit: 'Utthita Parsvakonasana', en: 'Extended Side Angle', da: 'Udstrakt sidevinkel', cat: 'asana', desc_da: 'Dybt sidestræk der åbner hofter og styrker ben.', desc_en: 'Deep side stretch opening hips and strengthening legs.' },
+    { sanskrit: 'Vrksasana', en: 'Tree Pose', da: 'Træstilling', cat: 'asana', desc_da: 'Klassisk balance-stilling på ét ben med foden mod inderlåret.', desc_en: 'Classic one-leg balance with foot placed on inner thigh.' },
+    { sanskrit: 'Pranayama', en: 'Breath Control', da: 'Åndedrætsteknikker', cat: 'breathing', desc_da: 'Bevidst styring af åndedrættet. Fundamental praksis i yoga der forbinder krop og sind.', desc_en: 'Conscious breath regulation. Fundamental yoga practice connecting body and mind.' },
+    { sanskrit: 'Ujjayi', en: 'Victorious Breath', da: 'Sejrende åndedræt', cat: 'breathing', desc_da: 'Åndedrætsteknik med let sammentrækning i svælget der skaber en hørbar lyd.', desc_en: 'Breathing technique with slight throat constriction creating an audible sound.' },
+    { sanskrit: 'Kapalabhati', en: 'Skull Shining Breath', da: 'Kraniepolering', cat: 'breathing', desc_da: 'Hurtige, kraftige udåndinger med passiv indånding. Rensende og energiserende teknik.', desc_en: 'Quick, forceful exhales with passive inhales. Cleansing and energizing technique.' },
+    { sanskrit: 'Nadi Shodhana', en: 'Alternate Nostril Breathing', da: 'Vekslende næseåndedræt', cat: 'breathing', desc_da: 'Vekslende åndedræt gennem højre og venstre næsebor. Balancerer nervesystemet.', desc_en: 'Alternating breath through right and left nostrils. Balances the nervous system.' },
+    { sanskrit: 'Dhyana', en: 'Meditation', da: 'Meditation', cat: 'meditation', desc_da: 'Dyb, uafbrudt kontemplation og fokus. Det 7. lem af yoga.', desc_en: 'Deep, uninterrupted contemplation and focus. The 7th limb of yoga.' },
+    { sanskrit: 'Dharana', en: 'Concentration', da: 'Koncentration', cat: 'meditation', desc_da: 'Enkeltpunktet fokus der forbereder sindet til meditation. Det 6. lem af yoga.', desc_en: 'Single-pointed focus that prepares the mind for meditation. The 6th limb of yoga.' },
+    { sanskrit: 'Ahimsa', en: 'Non-violence', da: 'Ikke-vold', cat: 'philosophy', desc_da: 'Det første yama. Princippet om ikke at skade — i tanke, ord og handling.', desc_en: 'The first yama. The principle of not causing harm — in thought, word, and action.' },
+    { sanskrit: 'Satya', en: 'Truthfulness', da: 'Sandfærdighed', cat: 'philosophy', desc_da: 'Det andet yama. At leve og kommunikere med ærlighed og integritet.', desc_en: 'The second yama. Living and communicating with honesty and integrity.' },
+    { sanskrit: 'Ashtanga', en: 'Eight Limbs', da: 'Otte lemmer', cat: 'philosophy', desc_da: 'Patanjalis ottefoldige vej: yama, niyama, asana, pranayama, pratyahara, dharana, dhyana, samadhi.', desc_en: 'Patanjali\'s eightfold path: yama, niyama, asana, pranayama, pratyahara, dharana, dhyana, samadhi.' },
+    { sanskrit: 'Chakra', en: 'Energy Center', da: 'Energicenter', cat: 'energy', desc_da: 'Energicentre langs rygsøjlen. Syv primære chakraer fra rodchakra til kronechakra.', desc_en: 'Energy centers along the spine. Seven primary chakras from root to crown.' },
+    { sanskrit: 'Bandha', en: 'Energy Lock', da: 'Energilås', cat: 'energy', desc_da: 'Muskelaktiveringer der styrer energiflow. Tre hovedbandhas: mula, uddiyana, jalandhara.', desc_en: 'Muscular engagements that direct energy flow. Three main bandhas: mula, uddiyana, jalandhara.' },
+    { sanskrit: 'Shavasana', en: 'Corpse Pose', da: 'Ligstilling', cat: 'asana', desc_da: 'Afsluttende hvile i rygleje. Dyb afslapning og integration af praksis.', desc_en: 'Final resting pose lying on back. Deep relaxation and integration of practice.' },
+    { sanskrit: 'Namaste', en: 'The light in me honors the light in you', da: 'Lyset i mig ærer lyset i dig', cat: 'philosophy', desc_da: 'Hilsen med hænderne i Anjali Mudra ved hjertet. Udtryk for respekt og anerkendelse.', desc_en: 'Greeting with hands in Anjali Mudra at the heart. Expression of respect and recognition.' },
+    { sanskrit: 'Vinyasa', en: 'Flow / Breath-Movement Link', da: 'Flow / Åndedræt-bevægelsesforbindelse', cat: 'styles', desc_da: 'Stil der forbinder åndedræt med bevægelse i flydende sekvenser.', desc_en: 'Style linking breath with movement in flowing sequences.' },
+    { sanskrit: 'Hatha', en: 'Sun-Moon / Physical Yoga', da: 'Sol-Måne / Fysisk Yoga', cat: 'styles', desc_da: 'Grundlæggende stilart der balancerer modsatrettede energier. Basis for mange moderne stilarter.', desc_en: 'Foundational style balancing opposing energies. Foundation for many modern styles.' }
+  ];
+
+  var PER_PAGE = 15;
+  var visible = PER_PAGE;
+  var activeFilter = 'all';
+  var searchQuery = '';
+
+  var resultsEl = document.getElementById('ybGlossaryResults');
+  var moreBtn = document.getElementById('ybGlossaryMore');
+  var searchInput = document.getElementById('ybGlossarySearch');
+  var filterBtns = document.querySelectorAll('.yb-glossary__filter-btn');
+
+  function filtered() {
+    return TERMS.filter(function(t) {
+      if (activeFilter !== 'all' && t.cat !== activeFilter) return false;
+      if (!searchQuery) return true;
+      var q = searchQuery.toLowerCase();
+      return t.sanskrit.toLowerCase().indexOf(q) !== -1 ||
+             t.en.toLowerCase().indexOf(q) !== -1 ||
+             t.da.toLowerCase().indexOf(q) !== -1 ||
+             t.desc_da.toLowerCase().indexOf(q) !== -1 ||
+             t.desc_en.toLowerCase().indexOf(q) !== -1;
+    });
+  }
+
+  function render() {
+    var items = filtered();
+    var show = items.slice(0, visible);
+
+    if (show.length === 0) {
+      resultsEl.innerHTML = '<p class="yb-glossary__empty">Ingen termer matcher din søgning. Prøv et andet ord, bogstav eller filter.</p>';
+      moreBtn.style.display = 'none';
+      return;
+    }
+
+    var html = '';
+    show.forEach(function(t) {
+      html += '<div class="yb-glossary__entry">' +
+        '<h3 class="yb-glossary__term">' + t.sanskrit + '</h3>' +
+        '<div class="yb-glossary__translations">' +
+          '<span class="yb-glossary__en">' + t.en + '</span>' +
+          '<span class="yb-glossary__da">' + t.da + '</span>' +
+        '</div>' +
+        '<p class="yb-glossary__desc">' + t.desc_da + '</p>' +
+        '<p class="yb-glossary__desc yb-glossary__desc--en">' + t.desc_en + '</p>' +
+        '<span class="yb-glossary__cat">' + t.cat + '</span>' +
+      '</div>';
+    });
+    resultsEl.innerHTML = html;
+    moreBtn.style.display = show.length < items.length ? 'block' : 'none';
+  }
+
+  searchInput.addEventListener('input', function() {
+    searchQuery = this.value;
+    visible = PER_PAGE;
+    render();
+  });
+
+  filterBtns.forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      filterBtns.forEach(function(b) { b.classList.remove('active'); });
+      this.classList.add('active');
+      activeFilter = this.getAttribute('data-filter');
+      visible = PER_PAGE;
+      render();
+    });
+  });
+
+  moreBtn.addEventListener('click', function() {
+    visible += PER_PAGE;
+    render();
+  });
+
+  render();
+})();
+</script>

@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="{{ site.lang }}">
+<head>
+  {% include "head.njk" %}
+</head>
+
+<body>
+  <!-- Google Tag Manager (noscript) -->
+  <noscript><iframe src="https://www.googletagmanager.com/ns.html?id={{ site.gtmId }}" height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
+
+  {% include "header.njk" %}
+
+  <!-- Main Content -->
+  <main id="main-content">
+    {{ content | safe }}
+  </main>
+
+  {% include "footer.njk" %}
+
+  {% if includeScheduleModal %}
+    {% include "modal-schedule.njk" %}
+  {% endif %}
+
+  <!-- Scripts -->
+  <script src="/js/header.js"></script>
+  <script src="/js/main.js"></script>
+  <script src="/js/footer.js"></script>
+  {% if includeScheduleModal %}
+    <script src="/js/modal.js"></script>
+  {% endif %}
+</body>
+</html>

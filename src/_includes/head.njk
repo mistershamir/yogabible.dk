@@ -1,0 +1,174 @@
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+
+<!-- SEO Meta Tags -->
+<title>{{ title | default("YOGA BIBLE - Denmark") }}</title>
+<meta name="description" content="{{ description | default("Yoga Bible er din platform for yogalæreruddannelser, fordybelse og professionelle yogaklasser. Uanset om du vil undervise, lære mere eller finde dit fællesskab – vi er her.") }}">
+<link rel="canonical" href="{{ site.url }}{{ page.url }}">
+
+<!-- Open Graph -->
+<meta property="og:site_name" content="{{ site.name }}">
+<meta property="og:title" content="{{ title | default("YOGA BIBLE - Denmark") }}">
+<meta property="og:url" content="{{ site.url }}{{ page.url }}">
+<meta property="og:type" content="website">
+<meta property="og:description" content="{{ description | default("Yoga Bible er din platform for yogalæreruddannelser, fordybelse og professionelle yogaklasser.") }}">
+<meta property="og:image" content="{{ site.url }}/assets/images/og/og-1200x630.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+
+<!-- Twitter Card -->
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="{{ title | default("YOGA BIBLE - Denmark") }}">
+<meta name="twitter:description" content="{{ description | default("Yoga Bible er din platform for yogalæreruddannelser, fordybelse og professionelle yogaklasser.") }}">
+<meta name="twitter:image" content="{{ site.url }}/assets/images/og/og-1200x630.png">
+
+<!-- Favicon -->
+<link rel="icon" href="/favicon.ico" sizes="any">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+
+<!-- Google Site Verification -->
+<meta name="google-site-verification" content="TwcY-eZVLkyfpXRQVox4jFESZT0sitKW9qkvkJLE0P0">
+
+<!-- Google Tag Manager -->
+<script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+})(window,document,'script','dataLayer','{{ site.gtmId }}');</script>
+
+<!-- hreflang: Danish is primary, English planned -->
+<link rel="alternate" hreflang="da" href="{{ site.url }}{{ page.url }}">
+<link rel="alternate" hreflang="x-default" href="{{ site.url }}{{ page.url }}">
+
+<!-- JSON-LD: Organization (all pages) -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "EducationalOrganization",
+  "name": "Yoga Bible",
+  "alternateName": "YOGA BIBLE",
+  "url": "{{ site.url }}",
+  "logo": "{{ site.url }}/assets/images/og/og-1200x630.png",
+  "description": "Yogalæreruddannelser i København. Yoga Alliance certificeret (RYS-200). Hatha, Vinyasa, Yin og Hot Yoga.",
+  "address": {
+    "@type": "PostalAddress",
+    "streetAddress": "Torvegade 66",
+    "addressLocality": "København K",
+    "postalCode": "1400",
+    "addressCountry": "DK"
+  },
+  "telephone": "{{ site.phone }}",
+  "email": "{{ site.email }}",
+  "sameAs": [
+    "{{ site.instagram }}"
+  ],
+  "areaServed": {
+    "@type": "City",
+    "name": "København"
+  }
+}
+</script>
+
+{% if page.url == "/" %}
+<!-- JSON-LD: WebSite with SearchAction (homepage only, AEO) -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebSite",
+  "name": "Yoga Bible",
+  "url": "{{ site.url }}",
+  "description": "Yogalæreruddannelser, kurser og klasser i København. Yoga Alliance certificeret.",
+  "inLanguage": ["da", "en"],
+  "publisher": {
+    "@type": "EducationalOrganization",
+    "name": "Yoga Bible"
+  }
+}
+</script>
+{% endif %}
+
+{% if page.url == "/om-200hrs-yogalreruddannelser/" or page.url == "/200-hours-18-weeks-flexible-programs/" or page.url == "/200-hours-8-weeks-semi-intensive-programs/" or page.url == "/200-hours-4-weeks-intensive-programs/" %}
+<!-- JSON-LD: Course (program pages) -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Course",
+  "name": "{{ title }}",
+  "description": "{{ description }}",
+  "url": "{{ site.url }}{{ page.url }}",
+  "provider": {
+    "@type": "EducationalOrganization",
+    "name": "Yoga Bible",
+    "url": "{{ site.url }}",
+    "address": {
+      "@type": "PostalAddress",
+      "streetAddress": "Torvegade 66",
+      "addressLocality": "København K",
+      "postalCode": "1400",
+      "addressCountry": "DK"
+    }
+  },
+  "educationalCredentialAwarded": "RYT-200 Yoga Alliance Certification",
+  "inLanguage": ["da", "en"],
+  "hasCourseInstance": {
+    "@type": "CourseInstance",
+    "courseMode": "onsite",
+    "location": {
+      "@type": "Place",
+      "name": "Yoga Bible Studio",
+      "address": {
+        "@type": "PostalAddress",
+        "streetAddress": "Torvegade 66",
+        "addressLocality": "København K",
+        "postalCode": "1400",
+        "addressCountry": "DK"
+      }
+    }
+  },
+  "offers": {
+    "@type": "Offer",
+    "price": "25500",
+    "priceCurrency": "DKK",
+    "availability": "https://schema.org/InStock",
+    "url": "{{ site.url }}/apply"
+  }
+}
+</script>
+{% endif %}
+
+{% if page.url == "/inversions/" or page.url == "/splits/" or page.url == "/backbends/" %}
+<!-- JSON-LD: Course (specialty courses) -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Course",
+  "name": "{{ title }}",
+  "description": "{{ description }}",
+  "url": "{{ site.url }}{{ page.url }}",
+  "provider": {
+    "@type": "EducationalOrganization",
+    "name": "Yoga Bible",
+    "url": "{{ site.url }}"
+  },
+  "offers": {
+    "@type": "Offer",
+    "price": "2300",
+    "priceCurrency": "DKK",
+    "availability": "https://schema.org/InStock"
+  }
+}
+</script>
+{% endif %}
+
+<!-- Stylesheets -->
+<link rel="stylesheet" href="/css/main.css">
+<link rel="preconnect" href="https://use.typekit.net" crossorigin>
+<link rel="preconnect" href="https://p.typekit.net" crossorigin>
+
+<!-- Adobe Fonts (Typekit) -->
+<script type="text/javascript" src="//use.typekit.net/ik/hQtGqprj-gRFyuhFQlUdToJsdbe0LIz-yoettQMNu36fecjJXnX1IyvhF2jtFRZLFR6UZe9tFQjhw2BR5QwX52IDZQb35AIUe6MK21gkjAiljWsTjhIlihmKJ6NGjAUojW4qOAsTSagCjWq7fbKbmsMMeMw6MKGHf5A5MyMgeMw6MTMgTVDOk3j.js" async fetchpriority="high" onload="try{Typekit.load();}catch(e){} document.documentElement.classList.remove('wf-loading');"></script>
+<script>document.documentElement.classList.add('wf-loading')</script>
+<style>@keyframes fonts-loading { 0%, 99% { color: transparent; } } html.wf-loading * { animation: fonts-loading 3s; }</style>

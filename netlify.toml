@@ -1,0 +1,134 @@
+[build]
+  command = "npx @11ty/eleventy"
+  publish = "_site"
+
+[build.environment]
+  NODE_VERSION = "20"
+
+# Redirect www to non-www (301)
+[[redirects]]
+  from = "https://www.yogabible.dk/*"
+  to = "https://yogabible.dk/:splat"
+  status = 301
+  force = true
+
+# Legacy Squarespace URL redirects (301)
+[[redirects]]
+  from = "/yoga-glossory"
+  to = "/glossary"
+  status = 301
+
+[[redirects]]
+  from = "/kontakt-11"
+  to = "/kontakt"
+  status = 301
+
+[[redirects]]
+  from = "/about-copenhagen-1"
+  to = "/about-copenhagen"
+  status = 301
+
+[[redirects]]
+  from = "/200hrs-yogalreruddannelser"
+  to = "/om-200hrs-yogalreruddannelser"
+  status = 301
+
+[[redirects]]
+  from = "/yoga-bible-historie-1"
+  to = "/yoga-bible-historie"
+  status = 301
+
+[[redirects]]
+  from = "/200-hours-18-weeks-flexible-programs-1"
+  to = "/200-hours-18-weeks-flexible-programs"
+  status = 301
+
+[[redirects]]
+  from = "/200-hours-8-weeks-semi-intensive-programs-1"
+  to = "/200-hours-8-weeks-semi-intensive-programs"
+  status = 301
+
+[[redirects]]
+  from = "/200-hours-4-weeks-intensive-programs-1"
+  to = "/200-hours-4-weeks-intensive-programs"
+  status = 301
+
+[[redirects]]
+  from = "/sammenlign-yogalreruddannelser-1"
+  to = "/sammenlign-yogalreruddannelser"
+  status = 301
+
+[[redirects]]
+  from = "/mentorship"
+  to = "/mentorship-private-training"
+  status = 301
+
+[[redirects]]
+  from = "/private-training"
+  to = "/mentorship-private-training"
+  status = 301
+
+[[redirects]]
+  from = "/code-of-conduct-1"
+  to = "/code-of-conduct"
+  status = 301
+
+[[redirects]]
+  from = "/privacy-policy-1"
+  to = "/privacy-policy"
+  status = 301
+
+[[redirects]]
+  from = "/terms-conditions-1"
+  to = "/terms-conditions"
+  status = 301
+
+# Custom 404 (must be last redirect rule)
+[[redirects]]
+  from = "/*"
+  to = "/404.html"
+  status = 404
+
+# Security headers
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Frame-Options = "SAMEORIGIN"
+    X-Content-Type-Options = "nosniff"
+    X-XSS-Protection = "1; mode=block"
+    Referrer-Policy = "strict-origin-when-cross-origin"
+    Permissions-Policy = "camera=(), microphone=(), geolocation=()"
+
+# Cache: fonts (1 year)
+[[headers]]
+  for = "/assets/fonts/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+# Cache: images (1 year)
+[[headers]]
+  for = "/assets/images/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+# Cache: CSS/JS (1 year)
+[[headers]]
+  for = "/css/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+[[headers]]
+  for = "/js/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+# Cache: favicons (1 year)
+[[headers]]
+  for = "/favicon*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000"
+
+[[headers]]
+  for = "/apple-touch-icon.png"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000"

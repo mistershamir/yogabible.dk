@@ -1,0 +1,21 @@
+{
+  "name": "yogabible-dk14",
+  "version": "1.0.0",
+  "description": "A clean, modern rebuild of the Yoga Bible Denmark website, migrated from Squarespace to a custom HTML/CSS/JS implementation.",
+  "main": "extracted-custom-script.js",
+  "directories": {
+    "doc": "docs"
+  },
+  "scripts": {
+    "build": "npx @11ty/eleventy",
+    "start": "npx @11ty/eleventy --serve",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "devDependencies": {
+    "@11ty/eleventy": "^3.1.2"
+  }
+}

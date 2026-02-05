@@ -1,0 +1,104 @@
+<!-- Schedule Modal (shared across all 200-hour program pages) -->
+<section class="yb-modals-unified">
+  <div class="yb-modal-u" id="yb-schedule-modal" aria-hidden="true">
+    <div class="yb-modal-u__overlay" data-ybu-close></div>
+    <div class="yb-modal-u__box" role="dialog" aria-modal="true" aria-labelledby="ybuModalTitle">
+      <button class="yb-modal-u__close" type="button" data-ybu-close aria-label="Luk">&times;</button>
+
+      <div id="ybu-view-form">
+        <h3 id="ybuModalTitle">Fa skemaet pa e-mail</h3>
+        <p class="yb-modal-u__lead">Valg de formater du er interesseret i — vi sender dig programmet og praktisk info.</p>
+
+        <p id="ybuError" class="yb-modal-u__error" hidden>
+          Kunne ikke sende lige nu. Prov igen — eller skriv til
+          <a href="mailto:{{ site.email }}">{{ site.email }}</a>.
+        </p>
+
+        <form id="ybuForm" class="yb-modal-u__form" novalidate>
+          <input class="yb-modal-u__hp" type="text" name="ybu_hp" tabindex="-1" autocomplete="off" aria-hidden="true">
+
+          <div class="yb-modal-u__grid">
+            <label class="yb-modal-u__field">
+              <span>Fornavn *</span>
+              <input type="text" name="firstName" id="ybuFirstName" inputmode="text" autocomplete="given-name" required>
+            </label>
+
+            <label class="yb-modal-u__field">
+              <span>Efternavn *</span>
+              <input type="text" name="lastName" id="ybuLastName" inputmode="text" autocomplete="family-name" required>
+            </label>
+
+            <label class="yb-modal-u__field">
+              <span>E-mail *</span>
+              <input type="email" name="email" id="ybuEmail" inputmode="email" autocomplete="email" required>
+            </label>
+
+            <label class="yb-modal-u__field">
+              <span>Telefonnummer *</span>
+              <div class="yb-modal-u__phone">
+                <span class="yb-modal-u__prefix">+45</span>
+                <input type="tel" name="phone" id="ybuPhone" inputmode="tel" autocomplete="tel" required>
+              </div>
+            </label>
+          </div>
+
+          <div class="yb-modal-u__section">
+            <span class="yb-modal-u__label">Valg format *</span>
+            <div class="yb-modal-u__formats">
+              <label class="yb-modal-u__format">
+                <input type="checkbox" name="format" value="18w">
+                <span class="yb-modal-u__checkbox"></span>
+                <span class="yb-modal-u__format-text">
+                  <strong>18 ugers fleksibelt program</strong>
+                  <small>Marts – Juni 2026</small>
+                </span>
+              </label>
+              <label class="yb-modal-u__format">
+                <input type="checkbox" name="format" value="8w">
+                <span class="yb-modal-u__checkbox"></span>
+                <span class="yb-modal-u__format-text">
+                  <strong>8 ugers semi-intensivt program</strong>
+                  <small>Maj – Juni 2026</small>
+                </span>
+              </label>
+              <label class="yb-modal-u__format">
+                <input type="checkbox" name="format" value="4w">
+                <span class="yb-modal-u__checkbox"></span>
+                <span class="yb-modal-u__format-text">
+                  <strong>4 ugers intensivt program</strong>
+                  <small>April & Juli 2026</small>
+                </span>
+              </label>
+            </div>
+          </div>
+
+          <div class="yb-modal-u__section">
+            <span class="yb-modal-u__label">Bolig</span>
+            <div class="yb-modal-u__acc-row">
+              <span>Har du brug for bolig i Kobenhavn?</span>
+              <div class="yb-modal-u__toggle">
+                <button type="button" class="yb-modal-u__toggle-btn is-active" data-acc="No">Nej</button>
+                <button type="button" class="yb-modal-u__toggle-btn" data-acc="Yes">Ja</button>
+              </div>
+            </div>
+            <input type="hidden" name="accommodation" id="ybuAccommodation" value="No">
+            <input type="text" name="cityCountry" id="ybuCity" class="yb-modal-u__city" placeholder="Hvor kommer du fra? (by, land)" hidden>
+          </div>
+
+          <button id="ybuSubmit" class="yb-btn yb-btn--cta" type="submit">
+            Send & fa skema
+          </button>
+
+          <p class="yb-modal-u__fine">Ved indsendelse accepterer du vores <a href="/privacy-policy">privatlivspolitik</a>.</p>
+        </form>
+      </div>
+
+      <div id="ybu-view-success" class="yb-modal-u__success" hidden role="status" aria-live="polite">
+        <div class="yb-modal-u__success-icon">&#10003;</div>
+        <h3>Tak for din tilmelding!</h3>
+        <p>Vi har sendt skemaet til din e-mail.</p>
+        <button class="yb-btn yb-btn--outline" type="button" data-ybu-close>Luk</button>
+      </div>
+    </div>
+  </div>
+</section>
