@@ -1790,7 +1790,7 @@ eleventyExcludeFromCollections: true
 }
 
 .ds-pricing-table th {
-  background: #0F0F0F;
+  background: var(--yb-brand);
   color: #fff;
   padding: 18px 20px;
   text-align: left;
@@ -2526,6 +2526,12 @@ eleventyExcludeFromCollections: true
       <p class="ds-section__desc">Text styles and hierarchy</p>
     </div>
     <div class="ds-demo">
+      <div class="ds-type" style="background:var(--ds-bg-light);padding:20px;border-radius:8px;margin-bottom:28px;border:none">
+        <span class="ds-label">Primary Font</span>
+        <div style="font-size:1.5rem;font-weight:700;margin-bottom:6px">Abacaxi Latin</div>
+        <div class="ds-type__specs">font-family: 'Abacaxi', "Helvetica Neue", Helvetica, Arial, system-ui, sans-serif</div>
+        <div style="margin-top:10px;font-size:0.85rem;color:var(--ds-text-muted)">Used globally for ALL text — headings, body, buttons, labels. Regular (400) + Bold (700) weights loaded via WOFF2.</div>
+      </div>
       <div class="ds-type">
         <span class="ds-label">Hero Title</span>
         <div style="font-size:clamp(2.5rem,6vw,5rem);font-weight:700;line-height:1.05">Hvor din praksis bliver til dit kald.</div>
@@ -2925,70 +2931,92 @@ eleventyExcludeFromCollections: true
   <section class="ds-section">
     <div class="ds-section__header">
       <h2 class="ds-section__title" data-number="14">Form Elements</h2>
-      <p class="ds-section__desc">Input styles and form layouts</p>
+      <p class="ds-section__desc">Unified form style — matching modal design with orange-stroke fields</p>
     </div>
 
     <div class="ds-sub">
-      <h3 class="ds-sub__title">Variation A — Floating Labels</h3>
-      <p class="ds-sub__desc">Labels float up when focused. Clean, minimal look.</p>
-      <div class="ds-demo" style="max-width:500px">
-        <div class="ds-field" style="margin-bottom:24px">
-          <input type="text" class="ds-input ds-input--floating" placeholder=" " id="ds-float-name">
-          <label class="ds-field__label" for="ds-float-name">Dit fulde navn</label>
+      <h3 class="ds-sub__title">Standard Form — Orange Stroke Fields</h3>
+      <p class="ds-sub__desc">Two-column grid, label above, rounded inputs with thin orange border. Matches our modal forms.</p>
+      <div class="ds-demo" style="max-width:560px;background:#fff">
+        <h3 style="font-size:1.25rem;font-weight:800;margin-bottom:6px">Fa brochure pa e-mail</h3>
+        <p style="color:#444;line-height:1.6;font-size:0.95rem;margin-bottom:20px">Vaelg de kurser du er interesseret i — vi sender praktisk info til din e-mail.</p>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+          <label style="display:grid;gap:6px">
+            <span style="font-size:0.85rem;font-weight:600;color:var(--ds-text-muted)">Fornavn *</span>
+            <input type="text" style="width:100%;height:48px;border:1px solid var(--yb-brand);border-radius:12px;padding:0.75rem 1rem;font-size:16px;background:#fff;outline:none;font-family:inherit;transition:box-shadow 0.15s ease" placeholder="">
+          </label>
+          <label style="display:grid;gap:6px">
+            <span style="font-size:0.85rem;font-weight:600;color:var(--ds-text-muted)">Efternavn *</span>
+            <input type="text" style="width:100%;height:48px;border:1px solid var(--yb-brand);border-radius:12px;padding:0.75rem 1rem;font-size:16px;background:#fff;outline:none;font-family:inherit" placeholder="">
+          </label>
+          <label style="display:grid;gap:6px">
+            <span style="font-size:0.85rem;font-weight:600;color:var(--ds-text-muted)">E-mail *</span>
+            <input type="email" style="width:100%;height:48px;border:1px solid var(--yb-brand);border-radius:12px;padding:0.75rem 1rem;font-size:16px;background:#fff;outline:none;font-family:inherit" placeholder="">
+          </label>
+          <label style="display:grid;gap:6px">
+            <span style="font-size:0.85rem;font-weight:600;color:var(--ds-text-muted)">Telefonnummer *</span>
+            <input type="tel" style="width:100%;height:48px;border:1px solid var(--yb-brand);border-radius:12px;padding:0.75rem 1rem;font-size:16px;background:#fff;outline:none;font-family:inherit" placeholder="">
+          </label>
+          <div style="grid-column:1/-1">
+            <span style="display:block;font-size:0.85rem;font-weight:600;color:var(--ds-text-muted);margin-bottom:6px">Hvilke kurser vil du have info om? *</span>
+            <div style="border:1px solid var(--ds-border);border-radius:12px;background:var(--ds-bg-light);padding:12px;display:grid;gap:8px">
+              <label style="display:flex;gap:12px;align-items:center;padding:12px 16px;border-radius:10px;border:2px solid var(--ds-border);background:#fff;cursor:pointer;transition:border-color 0.15s">
+                <span style="width:22px;height:22px;border:2px solid var(--ds-border);border-radius:6px;flex-shrink:0"></span>
+                <span style="font-weight:600;font-size:0.95rem">Inversions</span>
+              </label>
+              <label style="display:flex;gap:12px;align-items:center;padding:12px 16px;border-radius:10px;border:2px solid var(--ds-border);background:#fff;cursor:pointer">
+                <span style="width:22px;height:22px;border:2px solid var(--ds-border);border-radius:6px;flex-shrink:0"></span>
+                <span style="font-weight:600;font-size:0.95rem">Splits</span>
+              </label>
+              <label style="display:flex;gap:12px;align-items:center;padding:12px 16px;border-radius:10px;border:2px solid var(--ds-border);background:#fff;cursor:pointer">
+                <span style="width:22px;height:22px;border:2px solid var(--ds-border);border-radius:6px;flex-shrink:0"></span>
+                <span style="font-weight:600;font-size:0.95rem">Backbends</span>
+              </label>
+            </div>
+          </div>
+          <label style="display:grid;gap:6px;grid-column:1/-1">
+            <span style="font-size:0.85rem;font-weight:600;color:var(--ds-text-muted)">Hvilken maned passer dig bedst? *</span>
+            <select style="width:100%;height:48px;border:1px solid var(--yb-brand);border-radius:12px;padding:0.75rem 1rem;font-size:16px;background:#fff;outline:none;font-family:inherit;-webkit-appearance:none;appearance:none">
+              <option>Ikke sikker endnu</option>
+              <option>Januar 2026</option>
+              <option>Februar 2026</option>
+              <option>Marts 2026</option>
+            </select>
+          </label>
         </div>
-        <div class="ds-field" style="margin-bottom:24px">
-          <input type="email" class="ds-input ds-input--floating" placeholder=" " id="ds-float-email">
-          <label class="ds-field__label" for="ds-float-email">Email adresse</label>
+        <div style="display:flex;gap:12px;align-items:flex-start;padding:12px 16px;border-radius:12px;border:1px solid var(--ds-border);background:var(--ds-bg-light);margin-top:16px;cursor:pointer">
+          <span style="width:22px;height:22px;border:2px solid var(--ds-border);border-radius:6px;flex-shrink:0;margin-top:2px"></span>
+          <span style="color:#444;line-height:1.5;font-size:0.9rem">Jeg giver samtykke til at modtage e-mails om de valgte kurser (du kan altid afmelde dig).</span>
         </div>
-        <div class="ds-field">
-          <input type="tel" class="ds-input ds-input--floating" placeholder=" " id="ds-float-phone">
-          <label class="ds-field__label" for="ds-float-phone">Telefonnummer</label>
+        <div style="margin-top:20px">
+          <button class="ds-btn ds-btn--primary" style="border-radius:999px;padding:14px 32px;box-shadow:0 4px 14px rgba(247,92,3,0.25)">Send & fa brochure</button>
         </div>
+        <p style="margin-top:12px;color:var(--ds-text-muted);font-size:0.8rem;line-height:1.5">Ved at sende accepterer du, at vi ma kontakte dig om din foresporsel.</p>
       </div>
     </div>
 
     <div class="ds-sub">
-      <h3 class="ds-sub__title">Variation B — Underline Only</h3>
-      <p class="ds-sub__desc">Borderless, just a bottom line. Modern, editorial feel.</p>
-      <div class="ds-demo" style="max-width:500px">
-        <div style="margin-bottom:24px">
-          <label style="display:block;font-size:0.7rem;font-weight:700;text-transform:uppercase;letter-spacing:0.15em;color:var(--ds-text-muted);margin-bottom:8px">Navn</label>
-          <input type="text" class="ds-input" style="border:none;border-bottom:2px solid var(--ds-border);border-radius:0;padding-left:0;background:transparent" placeholder="Dit navn">
+      <h3 class="ds-sub__title">Newsletter Signup</h3>
+      <p class="ds-sub__desc">First name, last name, email + orange submit. For footer or CTA sections.</p>
+      <div class="ds-demo" style="max-width:500px;background:#fff">
+        <h3 style="font-size:1.25rem;font-weight:800;margin-bottom:6px">Tilmeld dig vores nyhedsbrev</h3>
+        <p style="color:#444;line-height:1.6;font-size:0.95rem;margin-bottom:20px">Fa de seneste nyheder, tips og tilbud direkte i din indbakke.</p>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+          <label style="display:grid;gap:6px">
+            <span style="font-size:0.85rem;font-weight:600;color:var(--ds-text-muted)">Fornavn *</span>
+            <input type="text" style="width:100%;height:48px;border:1px solid var(--yb-brand);border-radius:12px;padding:0.75rem 1rem;font-size:16px;background:#fff;outline:none;font-family:inherit" placeholder="">
+          </label>
+          <label style="display:grid;gap:6px">
+            <span style="font-size:0.85rem;font-weight:600;color:var(--ds-text-muted)">Efternavn *</span>
+            <input type="text" style="width:100%;height:48px;border:1px solid var(--yb-brand);border-radius:12px;padding:0.75rem 1rem;font-size:16px;background:#fff;outline:none;font-family:inherit" placeholder="">
+          </label>
+          <label style="display:grid;gap:6px;grid-column:1/-1">
+            <span style="font-size:0.85rem;font-weight:600;color:var(--ds-text-muted)">E-mail *</span>
+            <input type="email" style="width:100%;height:48px;border:1px solid var(--yb-brand);border-radius:12px;padding:0.75rem 1rem;font-size:16px;background:#fff;outline:none;font-family:inherit" placeholder="">
+          </label>
         </div>
-        <div style="margin-bottom:24px">
-          <label style="display:block;font-size:0.7rem;font-weight:700;text-transform:uppercase;letter-spacing:0.15em;color:var(--ds-text-muted);margin-bottom:8px">Email</label>
-          <input type="email" class="ds-input" style="border:none;border-bottom:2px solid var(--ds-border);border-radius:0;padding-left:0;background:transparent" placeholder="din@email.dk">
-        </div>
-        <div>
-          <label style="display:block;font-size:0.7rem;font-weight:700;text-transform:uppercase;letter-spacing:0.15em;color:var(--ds-text-muted);margin-bottom:8px">Besked</label>
-          <textarea class="ds-input" style="border:none;border-bottom:2px solid var(--ds-border);border-radius:0;padding-left:0;background:transparent" rows="2" placeholder="Skriv din besked her..."></textarea>
-        </div>
-      </div>
-    </div>
-
-    <div class="ds-sub">
-      <h3 class="ds-sub__title">Variation C — Dark Theme with Icon Hints</h3>
-      <p class="ds-sub__desc">For dark section backgrounds. Input with left icon area.</p>
-      <div class="ds-demo ds-demo--dark" style="max-width:500px">
-        <div style="margin-bottom:20px;position:relative">
-          <span style="position:absolute;left:14px;top:50%;transform:translateY(-50%);color:var(--yb-brand);font-size:1rem">&#9993;</span>
-          <input type="email" class="ds-input ds-input--dark" style="padding-left:40px" placeholder="din@email.dk">
-        </div>
-        <div style="margin-bottom:20px;position:relative">
-          <span style="position:absolute;left:14px;top:50%;transform:translateY(-50%);color:var(--yb-brand);font-size:1rem">&#9742;</span>
-          <input type="tel" class="ds-input ds-input--dark" style="padding-left:40px" placeholder="+45 00 00 00 00">
-        </div>
-        <button class="ds-btn ds-btn--primary" style="width:100%">Send Ansogning</button>
-      </div>
-    </div>
-
-    <div class="ds-sub">
-      <h3 class="ds-sub__title">Variation D — Inline Compact</h3>
-      <p class="ds-sub__desc">Side-by-side email + button. Great for newsletter CTAs.</p>
-      <div class="ds-demo">
-        <div style="display:flex;gap:12px;max-width:500px">
-          <input type="email" class="ds-input" placeholder="din@email.dk" style="flex:1">
-          <button class="ds-btn ds-btn--primary" style="white-space:nowrap">Tilmeld</button>
+        <div style="margin-top:20px">
+          <button class="ds-btn ds-btn--primary" style="border-radius:999px;padding:14px 32px;width:100%;box-shadow:0 4px 14px rgba(247,92,3,0.25)">Tilmeld Nyhedsbrev</button>
         </div>
       </div>
     </div>
@@ -3000,25 +3028,67 @@ eleventyExcludeFromCollections: true
   <section class="ds-section">
     <div class="ds-section__header">
       <h2 class="ds-section__title" data-number="15">Accordions</h2>
-      <p class="ds-section__desc">Expandable sections</p>
+      <p class="ds-section__desc">Global accordion style — separate rounded items with orange + icon</p>
     </div>
-    <div class="ds-demo" style="max-width:600px">
-      <div class="ds-accordion">
-        <div class="ds-accordion__item active">
-          <div class="ds-accordion__header" onclick="this.parentElement.classList.toggle('active')">
-            <span style="font-weight:700">Hvad er inkluderet?</span>
-            <div class="ds-accordion__icon">+</div>
+    <div class="ds-demo" style="max-width:700px;background:#fff">
+      <p style="color:var(--ds-text-muted);margin-bottom:32px;text-align:center">Alt du skal vide om booking, klasser og faciliteter.</p>
+      <div style="display:flex;flex-direction:column;gap:10px">
+        <div style="background:var(--ds-bg-light);border-radius:12px;overflow:hidden;transition:all 0.2s" onclick="var b=this.querySelector('.ds-acc-body');var i=this.querySelector('.ds-acc-icon');if(b.style.display==='block'){b.style.display='none';i.textContent='+';i.style.background='transparent';i.style.color='var(--yb-brand)'}else{b.style.display='block';i.textContent='×';i.style.background='var(--yb-brand)';i.style.color='#fff'}">
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:18px 24px;cursor:pointer">
+            <span style="font-weight:700;font-size:0.95rem">Hvordan booker jeg en klasse?</span>
+            <span class="ds-acc-icon" style="width:32px;height:32px;border-radius:50%;border:1.5px solid var(--yb-brand);display:flex;align-items:center;justify-content:center;font-size:1.2rem;color:var(--yb-brand);flex-shrink:0;transition:all 0.2s">+</span>
           </div>
-          <div class="ds-accordion__body">Al undervisning, materialer og certificering.</div>
+          <div class="ds-acc-body" style="display:none;padding:0 24px 18px;color:var(--ds-text-muted);line-height:1.6;font-size:0.9rem">
+            Du kan booke via vores hjemmeside eller ring til os pa +45 00 00 00 00. Vi anbefaler at booke mindst 24 timer i forvejen.
+          </div>
         </div>
-        <div class="ds-accordion__item">
-          <div class="ds-accordion__header" onclick="this.parentElement.classList.toggle('active')">
-            <span style="font-weight:700">Er der ratebetaling?</span>
-            <div class="ds-accordion__icon">+</div>
+        <div style="background:var(--ds-bg-light);border-radius:12px;overflow:hidden" onclick="var b=this.querySelector('.ds-acc-body');var i=this.querySelector('.ds-acc-icon');if(b.style.display==='block'){b.style.display='none';i.textContent='+';i.style.background='transparent';i.style.color='var(--yb-brand)'}else{b.style.display='block';i.textContent='×';i.style.background='var(--yb-brand)';i.style.color='#fff'}">
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:18px 24px;cursor:pointer">
+            <span style="font-weight:700;font-size:0.95rem">Hvad er jeres afbestillingspolitik?</span>
+            <span class="ds-acc-icon" style="width:32px;height:32px;border-radius:50%;border:1.5px solid var(--yb-brand);display:flex;align-items:center;justify-content:center;font-size:1.2rem;color:var(--yb-brand);flex-shrink:0;transition:all 0.2s">+</span>
           </div>
-          <div class="ds-accordion__body">Ja, vi tilbyder fleksibel ratebetaling.</div>
+          <div class="ds-acc-body" style="display:none;padding:0 24px 18px;color:var(--ds-text-muted);line-height:1.6;font-size:0.9rem">
+            Du kan afbestille op til 12 timer for klassen uden gebyr. Senere afbestillinger refunderes ikke.
+          </div>
+        </div>
+        <div style="background:var(--ds-bg-light);border-radius:12px;overflow:hidden" onclick="var b=this.querySelector('.ds-acc-body');var i=this.querySelector('.ds-acc-icon');if(b.style.display==='block'){b.style.display='none';i.textContent='+';i.style.background='transparent';i.style.color='var(--yb-brand)'}else{b.style.display='block';i.textContent='×';i.style.background='var(--yb-brand)';i.style.color='#fff'}">
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:18px 24px;cursor:pointer">
+            <span style="font-weight:700;font-size:0.95rem">Hvad skal jeg medbringe til min forste klasse?</span>
+            <span class="ds-acc-icon" style="width:32px;height:32px;border-radius:50%;border:1.5px solid var(--yb-brand);display:flex;align-items:center;justify-content:center;font-size:1.2rem;color:var(--yb-brand);flex-shrink:0;transition:all 0.2s">+</span>
+          </div>
+          <div class="ds-acc-body" style="display:none;padding:0 24px 18px;color:var(--ds-text-muted);line-height:1.6;font-size:0.9rem">
+            Medring behageligt toj, en vandflaske og et abent sind. Vi har matter til udlan.
+          </div>
+        </div>
+        <div style="background:var(--ds-bg-light);border-radius:12px;overflow:hidden" onclick="var b=this.querySelector('.ds-acc-body');var i=this.querySelector('.ds-acc-icon');if(b.style.display==='block'){b.style.display='none';i.textContent='+';i.style.background='transparent';i.style.color='var(--yb-brand)'}else{b.style.display='block';i.textContent='×';i.style.background='var(--yb-brand)';i.style.color='#fff'}">
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:18px 24px;cursor:pointer">
+            <span style="font-weight:700;font-size:0.95rem">Hvad er forskellen pa hot, varm og stuetemperatur klasser?</span>
+            <span class="ds-acc-icon" style="width:32px;height:32px;border-radius:50%;border:1.5px solid var(--yb-brand);display:flex;align-items:center;justify-content:center;font-size:1.2rem;color:var(--yb-brand);flex-shrink:0;transition:all 0.2s">+</span>
+          </div>
+          <div class="ds-acc-body" style="display:none;padding:0 24px 18px;color:var(--ds-text-muted);line-height:1.6;font-size:0.9rem">
+            Hot yoga er 38°C, varm er 30°C, og stuetemperatur er ca. 22°C. Vaelg det der passer dig bedst.
+          </div>
+        </div>
+        <div style="background:var(--ds-bg-light);border-radius:12px;overflow:hidden" onclick="var b=this.querySelector('.ds-acc-body');var i=this.querySelector('.ds-acc-icon');if(b.style.display==='block'){b.style.display='none';i.textContent='+';i.style.background='transparent';i.style.color='var(--yb-brand)'}else{b.style.display='block';i.textContent='×';i.style.background='var(--yb-brand)';i.style.color='#fff'}">
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:18px 24px;cursor:pointer">
+            <span style="font-weight:700;font-size:0.95rem">Har I omklaedning og badefaciliteter?</span>
+            <span class="ds-acc-icon" style="width:32px;height:32px;border-radius:50%;border:1.5px solid var(--yb-brand);display:flex;align-items:center;justify-content:center;font-size:1.2rem;color:var(--yb-brand);flex-shrink:0;transition:all 0.2s">+</span>
+          </div>
+          <div class="ds-acc-body" style="display:none;padding:0 24px 18px;color:var(--ds-text-muted);line-height:1.6;font-size:0.9rem">
+            Ja, vi har fulde omkladningsrum med brusere, handklaeder og laaserum.
+          </div>
+        </div>
+        <div style="background:var(--ds-bg-light);border-radius:12px;overflow:hidden" onclick="var b=this.querySelector('.ds-acc-body');var i=this.querySelector('.ds-acc-icon');if(b.style.display==='block'){b.style.display='none';i.textContent='+';i.style.background='transparent';i.style.color='var(--yb-brand)'}else{b.style.display='block';i.textContent='×';i.style.background='var(--yb-brand)';i.style.color='#fff'}">
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:18px 24px;cursor:pointer">
+            <span style="font-weight:700;font-size:0.95rem">Hvornar far YTT-elever og kursister adgang til at booke?</span>
+            <span class="ds-acc-icon" style="width:32px;height:32px;border-radius:50%;border:1.5px solid var(--yb-brand);display:flex;align-items:center;justify-content:center;font-size:1.2rem;color:var(--yb-brand);flex-shrink:0;transition:all 0.2s">+</span>
+          </div>
+          <div class="ds-acc-body" style="display:none;padding:0 24px 18px;color:var(--ds-text-muted);line-height:1.6;font-size:0.9rem">
+            Fra dag 1 af din uddannelse har du fri adgang til alle klasser i den periode uddannelsen varer.
+          </div>
         </div>
       </div>
+      <p style="text-align:center;margin-top:28px;color:var(--ds-text-muted);font-size:0.9rem">Finder du ikke svar? Skriv til <a href="mailto:info@yogabible.dk" style="color:var(--yb-brand)">info@yogabible.dk</a></p>
     </div>
   </section>
 
@@ -3169,24 +3239,79 @@ eleventyExcludeFromCollections: true
   <section class="ds-section">
     <div class="ds-section__header">
       <h2 class="ds-section__title" data-number="19">Timeline</h2>
-      <p class="ds-section__desc">Step-by-step progress</p>
+      <p class="ds-section__desc">Step-by-step progress — two variations</p>
     </div>
-    <div class="ds-demo" style="max-width:450px">
-      <div class="ds-timeline">
-        <div class="ds-timeline__item">
-          <div class="ds-timeline__dot"></div>
-          <h4 class="ds-timeline__title">Ansog online</h4>
-          <p class="ds-timeline__desc">Udfyld formularen</p>
+
+    <div class="ds-sub">
+      <h3 class="ds-sub__title">Variation A — Compact</h3>
+      <div class="ds-demo" style="max-width:450px">
+        <div class="ds-timeline">
+          <div class="ds-timeline__item">
+            <div class="ds-timeline__dot"></div>
+            <h4 class="ds-timeline__title">Ansog online</h4>
+            <p class="ds-timeline__desc">Udfyld formularen</p>
+          </div>
+          <div class="ds-timeline__item">
+            <div class="ds-timeline__dot"></div>
+            <h4 class="ds-timeline__title">Introsamtale</h4>
+            <p class="ds-timeline__desc">Vi laerer hinanden at kende</p>
+          </div>
+          <div class="ds-timeline__item">
+            <div class="ds-timeline__dot"></div>
+            <h4 class="ds-timeline__title">Start uddannelse</h4>
+            <p class="ds-timeline__desc">Velkommen!</p>
+          </div>
         </div>
-        <div class="ds-timeline__item">
-          <div class="ds-timeline__dot"></div>
-          <h4 class="ds-timeline__title">Introsamtale</h4>
-          <p class="ds-timeline__desc">Vi laerer hinanden at kende</p>
-        </div>
-        <div class="ds-timeline__item">
-          <div class="ds-timeline__dot"></div>
-          <h4 class="ds-timeline__title">Start uddannelse</h4>
-          <p class="ds-timeline__desc">Velkommen!</p>
+      </div>
+    </div>
+
+    <div class="ds-sub">
+      <h3 class="ds-sub__title">Variation B — Full Journey (from screenshot)</h3>
+      <p class="ds-sub__desc">Larger dots, step labels, more spacing. "Fra ansogning til certificering" style.</p>
+      <div class="ds-demo" style="max-width:550px;background:var(--ds-bg-light);padding:60px 40px">
+        <div style="position:relative;padding-left:36px">
+          <!-- Vertical line -->
+          <div style="position:absolute;left:8px;top:14px;bottom:14px;width:2px;background:var(--yb-brand)"></div>
+
+          <!-- Step 1 -->
+          <div style="position:relative;padding-bottom:40px">
+            <div style="position:absolute;left:-32px;top:0;width:18px;height:18px;background:var(--yb-brand);border-radius:50%;border:3px solid var(--ds-bg-light)"></div>
+            <p style="font-size:0.65rem;text-transform:uppercase;letter-spacing:0.2em;color:var(--yb-brand);font-weight:700;margin-bottom:4px">Skridt 1</p>
+            <h4 style="font-weight:700;font-size:1.05rem;margin-bottom:6px">Ansog online</h4>
+            <p style="color:var(--ds-text-muted);font-size:0.9rem;line-height:1.5">Udfyld vores ansogningsformular. Vi vender tilbage indenfor 48 timer.</p>
+          </div>
+
+          <!-- Step 2 -->
+          <div style="position:relative;padding-bottom:40px">
+            <div style="position:absolute;left:-32px;top:0;width:18px;height:18px;background:var(--yb-brand);border-radius:50%;border:3px solid var(--ds-bg-light)"></div>
+            <p style="font-size:0.65rem;text-transform:uppercase;letter-spacing:0.2em;color:var(--yb-brand);font-weight:700;margin-bottom:4px">Skridt 2</p>
+            <h4 style="font-weight:700;font-size:1.05rem;margin-bottom:6px">Introduktionssamtale</h4>
+            <p style="color:var(--ds-text-muted);font-size:0.9rem;line-height:1.5">En kort samtale hvor vi laerer hinanden at kende og sikrer det rette match.</p>
+          </div>
+
+          <!-- Step 3 -->
+          <div style="position:relative;padding-bottom:40px">
+            <div style="position:absolute;left:-32px;top:0;width:18px;height:18px;background:var(--yb-brand);border-radius:50%;border:3px solid var(--ds-bg-light)"></div>
+            <p style="font-size:0.65rem;text-transform:uppercase;letter-spacing:0.2em;color:var(--yb-brand);font-weight:700;margin-bottom:4px">Skridt 3</p>
+            <h4 style="font-weight:700;font-size:1.05rem;margin-bottom:6px">Bekraeft din plads</h4>
+            <p style="color:var(--ds-text-muted);font-size:0.9rem;line-height:1.5">Betal depositum og sikr din plads. Ratebetaling er muligt.</p>
+          </div>
+
+          <!-- Step 4 -->
+          <div style="position:relative;padding-bottom:40px">
+            <div style="position:absolute;left:-32px;top:0;width:18px;height:18px;background:var(--yb-brand);border-radius:50%;border:3px solid var(--ds-bg-light)"></div>
+            <p style="font-size:0.65rem;text-transform:uppercase;letter-spacing:0.2em;color:var(--yb-brand);font-weight:700;margin-bottom:4px">Skridt 4</p>
+            <h4 style="font-weight:700;font-size:1.05rem;margin-bottom:6px">Start din uddannelse</h4>
+            <p style="color:var(--ds-text-muted);font-size:0.9rem;line-height:1.5">Mod op til forste dag og begyn din transformation.</p>
+          </div>
+
+          <!-- Step 5 -->
+          <div style="position:relative">
+            <div style="position:absolute;left:-32px;top:0;width:18px;height:18px;background:var(--yb-brand);border-radius:50%;border:3px solid var(--ds-bg-light)"></div>
+            <p style="font-size:0.65rem;text-transform:uppercase;letter-spacing:0.2em;color:var(--yb-brand);font-weight:700;margin-bottom:4px">Skridt 5</p>
+            <h4 style="font-weight:700;font-size:1.05rem;margin-bottom:6px">Bliv certificeret</h4>
+            <p style="color:var(--ds-text-muted);font-size:0.9rem;line-height:1.5">Modtag din internationale Yoga Alliance RYT-200 certificering.</p>
+          </div>
         </div>
       </div>
     </div>

@@ -93,3 +93,65 @@ Each blog should use rich, varied HTML. Available elements:
 - **CMS:** Decap CMS at `/admin/` with Netlify Identity
 - **i18n:** Hostname-based (www=DA, en=EN), per-post `data-yj-da`/`data-yj-en` toggle
 - **Deploy:** Netlify from `main` branch
+- **Design System:** `src/samples.njk` → `/samples/` — the single source of truth for all UI components
+
+---
+
+## Unified Design System (MANDATORY)
+
+**IMPORTANT:** When building or modifying ANY page on this site, you MUST use ONLY the approved components from `/samples/` (`src/samples.njk`). Do NOT invent new styles, patterns, or components. Reference the design system by section number and name.
+
+### Brand Identity
+
+- **Font:** Abacaxi Latin (`'Abacaxi'`) — Regular (400) + Bold (700). Used for ALL text globally. Fallback: `"Helvetica Neue", Helvetica, Arial, system-ui, sans-serif`
+- **Primary Color:** `#f75c03` (Brand Orange) — CTAs, accents, hover states
+- **Brand Dark:** `#d94f02` — Hovers, gradients
+- **Brand Light:** `#ff9966` — Gradients, accents
+- **Hot Yoga CPH Color:** `#3f99a5` — Use ONLY for Hot Yoga Copenhagen topics (CTAs, frames, strokes, round elements)
+- **Black:** `#0F0F0F` — Text, dark backgrounds
+- **Muted:** `#6F6A66` — Secondary text
+- **Border:** `#E8E4E0` — Dividers, borders
+- **Light BG:** `#F5F3F0` — Section backgrounds
+- **Warm White:** `#FFFCF9` — Cards, light sections
+
+### Approved Components (by section in `/samples/`)
+
+| # | Component | Usage Notes |
+|---|-----------|-------------|
+| 1 | **Colors** | Use only the approved palette above. Hot Yoga CPH color only for Hot Yoga topics. |
+| 2 | **Typography** | Abacaxi Latin only. Hero/Section/Card/Body/Eyebrow sizes defined in samples. |
+| 3 | **Buttons** | Primary (orange), Secondary (black), Outline, Ghost, Outline-Light (dark BG). Pill/Icon shapes. Shimmer + Gradient Border for special. |
+| 4 | **Cards** | Hover effects: Lift, Border, Glow. **3D Tilt only for special offers.** Testimonial cards use orange stroke border. |
+| 5 | **Hover Effects** | ONLY use: Lift, Glow, Background, Invert, Underline, Fill Up. No others. |
+| 6 | **Animations** | ONLY use: Pulse, Bounce, Breathe. Use sparingly. |
+| 7 | **Scroll-Triggered** | Fade Up, Slide Left/Right, Scale In, Staggered Children. Use where relevant. |
+| 8 | **Parallax & Scroll** | Horizontal Scroll Gallery, Sticky Elements. |
+| 9 | **Apple-Style Effects** | Large Gradient Title, Blur Reveal, Marquee/Ticker. |
+| 10 | **Backgrounds** | ONLY: Solid Brand, Solid Dark, Gradient H, Animated. No others. |
+| 11 | **Section Layouts** | Split Dark/Light, Split Brand/Light, Asymmetric, Overlap. |
+| 12 | **Eyebrows** | Brand, With Line, With Dot. No others. Badge Style belongs in badges. |
+| 13 | **Badges & Tags** | Primary, Secondary, Outline, Muted, Success, Warning, Pill, Badge Eyebrow. |
+| 14 | **Forms** | Orange-stroke rounded inputs (12px radius, 1px solid brand orange). Two-column grid layout. Label above field. Newsletter form for CTAs. Match the modal form style. |
+| 15 | **Accordions** | Separate rounded items (light gray bg), orange circle + icon on right. NOT connected bordered style. |
+| 16 | **Tabs** | Underline, Pills, Buttons. |
+| 17 | **Lists** | Checkmarks, Numbers, Arrows. |
+| 18 | **Quotes** | 5 variations: Default (left mark), Dark Cinematic, Brand Gradient, Side Bar, Centered. |
+| 19 | **Timeline** | Two variations: Compact (small dots) and Full Journey (SKRIDT labels, large dots). |
+| 20 | **Dividers** | Default, Thick Brand, Gradient, Dashed, Dots. |
+| 25 | **Reviews** | Orange stroke cards, 3-column layout, stars + quote + avatar. |
+| 26 | **Pricing/Format** | Three variations: Accordion (expandable rows), Side-by-Side Cards, Comparison Table (orange header). |
+| 27 | **Navigation Arrows** | Circle Outline, Circle Filled, Square, Pill, Ghost (dark BG), Minimal. |
+| 28 | **Section Layout Variations** | Content+Video, Image Mosaic, Content+Looping Visual, Full-Width Overlay, Three-Column Features. |
+| 29 | **Hero Sections** | 4 unified styles: Centered Clean, Split with Image, Dark Cinematic, Asymmetric with Stats Bar. |
+
+### Design Rules
+
+1. **Never invent new component styles** — always reference `/samples/`
+2. **Forms must use orange-stroke inputs** with 12px border-radius, matching the modal design
+3. **Accordions must be separate rounded items** — not connected bordered blocks
+4. **3D tilt effect is reserved for special offers only**
+5. **Animations (Pulse/Bounce/Breathe) should be used rarely** — not on every element
+6. **Hot Yoga CPH color `#3f99a5`** is only used for Hot Yoga Copenhagen content — never for general Yoga Bible branding
+7. **All hero sections should follow one of the 4 approved hero patterns** from section 29 for cross-page consistency
+8. **Review/testimonial cards always have orange stroke border** (`1.5px solid var(--yb-brand)`)
+9. **Pricing comparison tables use orange header bar** — not black
