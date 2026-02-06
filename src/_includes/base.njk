@@ -5,8 +5,8 @@
 </head>
 
 <body>
-  <!-- Google Tag Manager (noscript) -->
-  <noscript><iframe src="https://www.googletagmanager.com/ns.html?id={{ site.gtmId }}" height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
+  <!-- GTM noscript — injected by consent manager when accepted -->
+  <noscript id="yb-gtm-noscript"></noscript>
 
   {% include "header.njk" %}
 
@@ -41,6 +41,10 @@
       });
     }
   </script>
+
+  <!-- Cookie Consent -->
+  {% include "cookies.njk" %}
+  <script src="/js/cookies.js"></script>
 
   <!-- Scripts -->
   <script src="/js/header.js"></script>
