@@ -2444,6 +2444,55 @@ eleventyExcludeFromCollections: true
 @media (max-width: 900px) {
   .ds-credential-bar { grid-template-columns: repeat(2, 1fr); }
 }
+
+/* ================================================================
+   30. SCROLL-DRAW PATHS (Vine/Branch SVG animations)
+   ================================================================ */
+.ds-scroll-draw {
+  position: relative;
+  overflow: hidden;
+}
+
+.ds-scroll-draw svg {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+.ds-scroll-draw path {
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+/* Preview container for samples */
+.ds-draw-preview {
+  position: relative;
+  height: 600px;
+  overflow-y: auto;
+  border-radius: 12px;
+  border: 1px solid var(--ds-border);
+  background: #fff;
+}
+
+.ds-draw-preview svg {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.ds-draw-preview .ds-draw-content {
+  position: relative;
+  z-index: 2;
+  padding: 60px 40px;
+}
 </style>
 
 <div class="ds-page">
@@ -3980,6 +4029,128 @@ eleventyExcludeFromCollections: true
   </section>
 
   <!-- ═══════════════════════════════════════════════════════════════
+       30. SCROLL-DRAW PATHS
+       ═══════════════════════════════════════════════════════════════ -->
+  <section class="ds-section">
+    <div class="ds-section__header">
+      <h2 class="ds-section__title" data-number="30">Scroll-Draw Paths</h2>
+      <p class="ds-section__desc">SVG paths that draw themselves as you scroll — vine/branch style decorative elements. Scroll inside each preview to see the animation.</p>
+    </div>
+
+    <div class="ds-sub">
+      <h3 class="ds-sub__title">Variation A — Flowing Vine</h3>
+      <p class="ds-sub__desc">A curving organic path that flows down and loops — like the Hot Yoga CPH branch. Orange stroke with a lighter shadow trail.</p>
+      <div class="ds-draw-preview" data-scroll-draw>
+        <svg viewBox="0 0 800 1200" preserveAspectRatio="none">
+          <!-- Shadow trail (lighter, offset) -->
+          <path class="ds-draw-shadow" d="M 400,0 C 500,100 650,150 600,250 C 550,350 350,300 300,400 C 250,500 450,550 500,650 C 550,750 350,800 400,900 C 450,1000 600,1050 550,1200"
+                stroke="rgba(247,92,3,0.12)" stroke-width="1.5" />
+          <!-- Main vine path -->
+          <path class="ds-draw-path" d="M 400,0 C 500,100 650,150 600,250 C 550,350 350,300 300,400 C 250,500 450,550 500,650 C 550,750 350,800 400,900 C 450,1000 600,1050 550,1200"
+                stroke="var(--yb-brand)" stroke-width="2" />
+        </svg>
+        <div class="ds-draw-content">
+          <p class="ds-eyebrow ds-eyebrow--brand" style="margin-bottom:12px">Yogalaereruddannelse</p>
+          <h2 style="font-size:clamp(2rem,4vw,3rem);font-weight:700;margin-bottom:16px">Hvor din praksis<br>bliver til dit kald</h2>
+          <p style="color:var(--ds-text-muted);max-width:400px;line-height:1.6;margin-bottom:40px">200-timers Yoga Alliance certificering i hjertet af Kobenhavn.</p>
+          <div style="height:300px"></div>
+          <h3 style="font-size:1.5rem;font-weight:700;margin-bottom:12px">Dybere forbindelse</h3>
+          <p style="color:var(--ds-text-muted);max-width:400px;line-height:1.6">Oplev en praksis der forener krop og sind.</p>
+          <div style="height:200px"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="ds-sub">
+      <h3 class="ds-sub__title">Variation B — Spiraling Branch</h3>
+      <p class="ds-sub__desc">A path that spirals and loops like a growing branch — more ornamental, with a loop in the middle.</p>
+      <div class="ds-draw-preview" data-scroll-draw>
+        <svg viewBox="0 0 800 1200" preserveAspectRatio="none">
+          <path class="ds-draw-shadow" d="M 200,0 C 250,80 450,120 500,200 C 550,280 400,350 350,400 C 300,450 200,420 180,480 C 140,580 350,580 420,520 C 490,460 520,380 560,450 C 600,520 500,620 450,700 C 400,780 550,850 600,950 C 650,1050 500,1100 450,1200"
+                stroke="rgba(247,92,3,0.1)" stroke-width="1.5" />
+          <path class="ds-draw-path" d="M 200,0 C 250,80 450,120 500,200 C 550,280 400,350 350,400 C 300,450 200,420 180,480 C 140,580 350,580 420,520 C 490,460 520,380 560,450 C 600,520 500,620 450,700 C 400,780 550,850 600,950 C 650,1050 500,1100 450,1200"
+                stroke="var(--yb-brand)" stroke-width="2" />
+        </svg>
+        <div class="ds-draw-content">
+          <div style="text-align:right;max-width:350px;margin-left:auto">
+            <p class="ds-eyebrow ds-eyebrow--brand ds-eyebrow--dot" style="margin-bottom:12px;justify-content:flex-end">Din rejse</p>
+            <h2 style="font-size:2rem;font-weight:700;margin-bottom:12px">Fra ansogning til certificering</h2>
+            <p style="color:var(--ds-text-muted);line-height:1.6">Vi guider dig hele vejen.</p>
+          </div>
+          <div style="height:400px"></div>
+          <div style="max-width:350px">
+            <h3 style="font-size:1.3rem;font-weight:700;margin-bottom:8px">Bliv certificeret</h3>
+            <p style="color:var(--ds-text-muted);line-height:1.6">Modtag din Yoga Alliance RYT-200.</p>
+          </div>
+          <div style="height:200px"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="ds-sub">
+      <h3 class="ds-sub__title">Variation C — Gentle S-Curve</h3>
+      <p class="ds-sub__desc">A simpler, more elegant S-curve — subtle, good as a background accent between sections.</p>
+      <div class="ds-draw-preview" data-scroll-draw style="height:500px">
+        <svg viewBox="0 0 800 1000" preserveAspectRatio="none">
+          <path class="ds-draw-shadow" d="M 100,0 C 100,150 700,200 700,400 C 700,600 100,650 100,850 C 100,950 400,1000 400,1000"
+                stroke="rgba(247,92,3,0.08)" stroke-width="2" />
+          <path class="ds-draw-path" d="M 100,0 C 100,150 700,200 700,400 C 700,600 100,650 100,850 C 100,950 400,1000 400,1000"
+                stroke="var(--yb-brand)" stroke-width="1.5" />
+        </svg>
+        <div class="ds-draw-content" style="text-align:center">
+          <h2 style="font-size:2rem;font-weight:700;margin-bottom:16px">Elegant S-kurve</h2>
+          <p style="color:var(--ds-text-muted)">Subtil baggrundsdekoration mellem sektioner</p>
+          <div style="height:300px"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="ds-sub">
+      <h3 class="ds-sub__title">Variation D — Dual Paths (Brand + Muted)</h3>
+      <p class="ds-sub__desc">Two intertwining paths at different speeds — one orange, one light. Creates depth.</p>
+      <div class="ds-draw-preview" data-scroll-draw>
+        <svg viewBox="0 0 800 1200" preserveAspectRatio="none">
+          <!-- Path 1: light, wider -->
+          <path class="ds-draw-path" data-draw-speed="0.7" d="M 600,0 C 550,100 250,180 300,300 C 350,420 650,400 600,550 C 550,700 200,750 250,900 C 300,1050 550,1100 500,1200"
+                stroke="#E8E4E0" stroke-width="2.5" />
+          <!-- Path 2: brand, on top -->
+          <path class="ds-draw-path" data-draw-speed="1" d="M 550,0 C 600,120 300,200 350,350 C 400,500 600,450 550,600 C 500,750 250,800 300,950 C 350,1100 500,1150 450,1200"
+                stroke="var(--yb-brand)" stroke-width="2" />
+        </svg>
+        <div class="ds-draw-content">
+          <p class="ds-eyebrow ds-eyebrow--brand ds-eyebrow--line" style="margin-bottom:12px">Hot Yoga Copenhagen</p>
+          <h2 style="font-size:2rem;font-weight:700;margin-bottom:12px">Oplev kraften<br>i varmen</h2>
+          <p style="color:var(--ds-text-muted);max-width:350px;line-height:1.6">Intensive klasser i vores studio.</p>
+          <div style="height:400px"></div>
+          <div style="text-align:right;max-width:400px;margin-left:auto">
+            <h3 style="font-size:1.3rem;font-weight:700;margin-bottom:8px">26 grader. Dyb fordybelse.</h3>
+            <p style="color:var(--ds-text-muted);line-height:1.6">Intens transformation.</p>
+          </div>
+          <div style="height:200px"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="ds-sub">
+      <h3 class="ds-sub__title">Variation E — Progress Line (Straight with Curves)</h3>
+      <p class="ds-sub__desc">A mostly vertical line with gentle curves — works as a scrolling progress indicator alongside content.</p>
+      <div class="ds-draw-preview" data-scroll-draw style="height:500px">
+        <svg viewBox="0 0 800 1000" preserveAspectRatio="none">
+          <path class="ds-draw-shadow" d="M 400,0 C 420,100 380,200 400,300 C 420,400 440,500 400,600 C 360,700 380,800 400,900 L 400,1000"
+                stroke="rgba(247,92,3,0.08)" stroke-width="3" />
+          <path class="ds-draw-path" d="M 400,0 C 420,100 380,200 400,300 C 420,400 440,500 400,600 C 360,700 380,800 400,900 L 400,1000"
+                stroke="var(--yb-brand)" stroke-width="2" />
+        </svg>
+        <div class="ds-draw-content" style="text-align:center">
+          <h2 style="font-size:2rem;font-weight:700;margin-bottom:16px">Vertikal fremskridt</h2>
+          <p style="color:var(--ds-text-muted)">Fungerer som scrollbar-lignende accent</p>
+          <div style="height:300px"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════════════════════════════
        HOW TO USE
        ═══════════════════════════════════════════════════════════════ -->
   <section class="ds-section" style="margin-top:60px;padding-top:60px;border-top:2px solid var(--ds-border)">
@@ -4007,6 +4178,8 @@ eleventyExcludeFromCollections: true
         <li>"Use <strong>content + video layout</strong> from section 28"</li>
         <li>"Use <strong>Hero B (split)</strong> from section 29 for this page"</li>
         <li>"Use <strong>Hot Yoga CPH color #3f99a5</strong> for Hot Yoga CTAs and strokes"</li>
+        <li>"Add <strong>scroll-draw vine path (variation A)</strong> from section 30 as page decoration"</li>
+        <li>"Use <strong>dual scroll-draw paths</strong> from section 30 (variation D) for depth"</li>
       </ul>
     </div>
   </section>
@@ -4054,6 +4227,53 @@ document.addEventListener('DOMContentLoaded', function() {
     }, { threshold: 0.5 });
 
     counterObserver.observe(counter);
+  });
+
+  // ══════════════════════════════════════════════════════════════
+  // SCROLL-DRAW PATH ANIMATION
+  // SVG paths draw themselves as you scroll inside their container
+  // ══════════════════════════════════════════════════════════════
+  var drawPreviews = document.querySelectorAll('[data-scroll-draw]');
+  drawPreviews.forEach(function(container) {
+    var paths = container.querySelectorAll('.ds-draw-path');
+    var shadows = container.querySelectorAll('.ds-draw-shadow');
+
+    // Initialize all paths with dash offset
+    paths.forEach(function(path) {
+      var length = path.getTotalLength();
+      path.style.strokeDasharray = length;
+      path.style.strokeDashoffset = length;
+      path.style.transition = 'none';
+    });
+
+    shadows.forEach(function(shadow) {
+      var length = shadow.getTotalLength();
+      shadow.style.strokeDasharray = length;
+      shadow.style.strokeDashoffset = length;
+      shadow.style.transition = 'none';
+    });
+
+    // Listen for scroll inside the container
+    container.addEventListener('scroll', function() {
+      var scrollTop = container.scrollTop;
+      var scrollHeight = container.scrollHeight - container.clientHeight;
+      if (scrollHeight <= 0) return;
+      var progress = scrollTop / scrollHeight;
+
+      paths.forEach(function(path) {
+        var length = path.getTotalLength();
+        var speed = parseFloat(path.getAttribute('data-draw-speed')) || 1;
+        var drawLength = Math.min(progress * speed, 1) * length;
+        path.style.strokeDashoffset = length - drawLength;
+      });
+
+      shadows.forEach(function(shadow) {
+        var length = shadow.getTotalLength();
+        // Shadow draws slightly ahead for trail effect
+        var drawLength = Math.min(progress * 1.15, 1) * length;
+        shadow.style.strokeDashoffset = length - drawLength;
+      });
+    });
   });
 });
 </script>
