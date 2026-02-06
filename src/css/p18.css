@@ -695,6 +695,66 @@
   margin: 0;
 }
 
+/* -- 8-Week Schedule Detail Cards -- */
+.p18-8w-schedule-details {
+  display: grid;
+  gap: 16px;
+  max-width: 900px;
+  margin: 32px auto 0;
+}
+
+.p18-8w-detail-card {
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+  background: #fff;
+  border-radius: 14px;
+  padding: 24px;
+  border: 1px solid #E8E4E0;
+}
+
+.p18-8w-detail-card__icon {
+  flex-shrink: 0;
+  width: 44px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(246, 93, 4, 0.06);
+  border: 1px solid rgba(246, 93, 4, 0.15);
+  border-radius: 12px;
+  font-size: 1.25rem;
+}
+
+.p18-8w-detail-card__content {
+  flex: 1;
+}
+
+.p18-8w-detail-card__content h4 {
+  margin: 0 0 6px;
+  font-size: 15px;
+  font-weight: 700;
+  color: #1C1C1C;
+}
+
+.p18-8w-detail-card__content p {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.6;
+  color: #6F6A66;
+}
+
+@media (max-width: 599px) {
+  .p18-8w-detail-card {
+    flex-direction: column;
+    text-align: center;
+  }
+
+  .p18-8w-detail-card__icon {
+    margin: 0 auto;
+  }
+}
+
 /* -- Trainee Video Interview -- */
 .p18-video-interview {
   padding: 80px 20px;
