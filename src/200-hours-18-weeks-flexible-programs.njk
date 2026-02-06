@@ -100,17 +100,109 @@ includeP18Styles: true
     <p class="p18-section-sub">Hør direkte fra vores studerende, hvad uddannelsen har betydet for dem.</p>
 
     <div class="p18-video-interview__wrap">
-      <!-- Replace src with actual trainee interview video -->
-      <video controls preload="metadata" poster="/assets/images/og/og-1200x630.png">
-        <source src="/assets/video/trainee-interview.mp4" type="video/mp4">
-        Din browser understøtter ikke video.
-      </video>
+      <iframe
+        src="https://drive.google.com/file/d/1WWanYni0tZKJ656czw_N2Vf6thCKFwU8/preview?t=10"
+        allow="autoplay; encrypted-media"
+        allowfullscreen
+        loading="lazy"
+        style="width:100%;height:100%;border:none;">
+      </iframe>
     </div>
   </div>
 </section>
 
 <!-- ═══════════════════════════════════════
-     4. SCHEDULE & FLEXIBILITY — Unique Dual Format
+     4. CERTIFICATION — Yoga Alliance RYT-200
+     ═══════════════════════════════════════ -->
+<section class="p18-certification">
+  <div class="container">
+    <span class="p18-eyebrow">Internationalt anerkendt</span>
+    <h2 class="p18-section-title">Yoga Alliance RYT-200 Certificering</h2>
+    <p class="p18-section-sub">En globalt anerkendt certificering, der åbner døre — uanset om du vil undervise i København, på Bali eller online fra din stue.</p>
+
+    <div class="p18-cert-grid">
+
+      <!-- Left: Yoga styles you master -->
+      <div>
+        <h3 class="p18-cert-subtitle">Yogastile du mestrer</h3>
+        <div class="p18-cert-style-cards">
+          <div class="p18-cert-style">
+            <div class="p18-cert-style__icon">🧘</div>
+            <div class="p18-cert-style__text">
+              <h4>Hatha Yoga</h4>
+              <p>Den klassiske form — både statisk og dynamisk. Styrker balance, fokus, fleksibilitet og koncentration. Grundlaget for al yogaundervisning.</p>
+            </div>
+          </div>
+          <div class="p18-cert-style">
+            <div class="p18-cert-style__icon">🌊</div>
+            <div class="p18-cert-style__text">
+              <h4>Vinyasa Flow</h4>
+              <p>Dynamisk, kreativt og fysisk udfordrende. Verdens mest populære yogastil — og den mest efterspurgte i studier og fitnesscentre.</p>
+            </div>
+          </div>
+          <div class="p18-cert-style">
+            <div class="p18-cert-style__icon">🌙</div>
+            <div class="p18-cert-style__text">
+              <h4>Yin Yoga</h4>
+              <p>Lange stræk, dyb restitution og fleksibilitet. Idéel til at komplementere dynamiske stilarter og guide elever i ro og tålmodighed.</p>
+            </div>
+          </div>
+          <div class="p18-cert-style">
+            <div class="p18-cert-style__icon">🔥</div>
+            <div class="p18-cert-style__text">
+              <h4>Hot Yoga</h4>
+              <p>Undervis i opvarmet miljø. Du lærer forskellen på heated og non-heated undervisning — og kan certificere dig i begge.</p>
+            </div>
+          </div>
+          <div class="p18-cert-style">
+            <div class="p18-cert-style__icon">🧠</div>
+            <div class="p18-cert-style__text">
+              <h4>Meditation & Mindfulness</h4>
+              <p>Guide dine elever sikkert gennem meditation og åndedrætsøvelser — en uundværlig del af professionel yogaundervisning.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right: What it opens for you -->
+      <div>
+        <h3 class="p18-cert-subtitle">Det åbner døre</h3>
+        <ul class="p18-cert-list">
+          <li>
+            <span class="p18-cert-check" aria-hidden="true">✓</span>
+            <span><strong>Undervis over hele verden</strong> — certificeringen er anerkendt internationalt, så du kan undervise mens du rejser eller hvis du flytter til et andet land.</span>
+          </li>
+          <li>
+            <span class="p18-cert-check" aria-hidden="true">✓</span>
+            <span><strong>Start dit eget studie</strong> — med RYT-200 kan du oprette dine egne klasser, workshops og kurser med troværdighed og kvalitetsstempel bag dig.</span>
+          </li>
+          <li>
+            <span class="p18-cert-check" aria-hidden="true">✓</span>
+            <span><strong>Certificér andre i fremtiden</strong> — med erfaring kan du oprette din egen skole via Yoga Alliance USA og uddanne kommende yogalærere.</span>
+          </li>
+          <li>
+            <span class="p18-cert-check" aria-hidden="true">✓</span>
+            <span><strong>Videreuddannelse</strong> — fortsæt til 300-timers avanceret program og bliv RYT-500 certificeret for endnu flere muligheder.</span>
+          </li>
+          <li>
+            <span class="p18-cert-check" aria-hidden="true">✓</span>
+            <span><strong>Bred karriereadgang</strong> — fra yogastudier og fitnesscentre til corporate wellness, retreats og online undervisning. Denne certificering favner det hele.</span>
+          </li>
+        </ul>
+      </div>
+
+    </div>
+
+    <p class="p18-cert-closing">Certificeringen er bred og alligevel dybt professionel — den giver dig en solid base til at undervise enhver yogastil og åbner karrieremuligheder du måske ikke havde forestillet dig.</p>
+
+    <div class="p18-cert-cta">
+      <a href="/om-200hrs-yogalreruddannelser" class="btn btn--primary btn--large">Læs mere om 200-timers uddannelsen</a>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════
+     5. SCHEDULE & FLEXIBILITY — Unique Dual Format
      (with scroll-draw vine accent)
      ═══════════════════════════════════════ -->
 <section class="p18-flexibility">
@@ -949,7 +1041,10 @@ includeP18Styles: true
       if (revNext) revNext.addEventListener('click', function() { scrollRevByCards(1); });
       revViewport.addEventListener('scroll', updateRevButtons, { passive: true });
       window.addEventListener('resize', updateRevButtons, { passive: true });
-      updateRevButtons();
+      // Delay initial button state until layout is computed
+      requestAnimationFrame(function() {
+        requestAnimationFrame(updateRevButtons);
+      });
     }
   }
 
