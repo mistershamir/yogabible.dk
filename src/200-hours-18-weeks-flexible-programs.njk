@@ -1,236 +1,415 @@
 ---
 layout: base.njk
 title: "200-timer Yogalæreruddannelse – 18 Ugers Fleksibel | YOGA BIBLE"
-description: "Bliv certificeret yogalærer på 18 uger ved siden af dit job eller studie. Yoga Alliance certificeret, real-class praksis, erfarne undervisere. Start Marts-Juni 2026."
+description: "Bliv certificeret yogalærer på 18 uger ved siden af dit job, studie eller familieliv. Hatha Vinyasa Yin Hot Yoga & Meditation. Yoga Alliance RYT-200. Start Marts–Juni 2026."
 includeScheduleModal: true
 ---
 
-<!-- Program Hero -->
-<section class="program-hero">
-  <div class="container">
-    <div class="program-hero__badge">200-TIMER YOGALÆRERUDDANNELSE</div>
-    <h1 class="program-hero__title">18 Ugers Fleksibelt Program</h1>
-    <p class="program-hero__subtitle">Bliv certificeret yogalærer ved siden af dit job eller studie</p>
+<!-- ═══════════════════════════════════════
+     HERO — Dark Cinematic with Video-Ready BG
+     ═══════════════════════════════════════ -->
+<section class="p18-hero">
+  <div class="p18-hero__bg">
+    <!-- Video slot: add <video> here when ready -->
+  </div>
+  <div class="p18-hero__overlay"></div>
 
-    <div class="program-hero__meta">
-      <div class="program-hero__meta-item">
-        <strong>Start:</strong> Marts–Juni 2026
+  <div class="container p18-hero__inner">
+    <span class="p18-hero__eyebrow">200-Timer Yogalæreruddannelse</span>
+    <h1 class="p18-hero__title">18 Ugers Fleksibelt<br>Program</h1>
+    <p class="p18-hero__subtitle">Bliv certificeret yogalærer ved siden af dit job, studie eller familieliv</p>
+
+    <div class="p18-hero__meta">
+      <div class="p18-hero__meta-item">
+        <strong>Næste program:</strong> Marts–Juni 2026
       </div>
-      <div class="program-hero__meta-item">
-        <strong>Format:</strong> Hverdage (10–15) ELLER Weekends
+      <div class="p18-hero__meta-item">
+        <strong>Format:</strong> Hverdags- eller weekendforløb
       </div>
-      <div class="program-hero__meta-item">
+      <div class="p18-hero__meta-item">
         <strong>Certificering:</strong> Yoga Alliance RYT-200
       </div>
     </div>
 
-    <div class="program-hero__cta">
-      <button onclick="openYBScheduleModal('18w')" class="btn btn--large btn--primary">Fa Skema & Ansøg</button>
-      <a href="#program-details" class="btn btn--large btn--secondary">Læs Mere</a>
+    <p class="p18-hero__styles">Hatha · Vinyasa · Yin · Hot Yoga & Meditation</p>
+
+    <div class="p18-hero__cta">
+      <button onclick="openYBScheduleModal('18w')" class="btn btn--primary btn--large">Få Skema</button>
+      <a href="#program-overview" class="btn btn--secondary btn--large">Læs Mere</a>
     </div>
   </div>
 </section>
 
-<!-- Program Overview -->
-<section class="program-overview" id="program-details">
+<!-- ═══════════════════════════════════════
+     PROGRAM OVERVIEW — Switchable Routes
+     ═══════════════════════════════════════ -->
+<section class="p18-overview" id="program-overview">
   <div class="container">
-    <h2 class="section-title">Programoversigt</h2>
+    <span class="p18-eyebrow">Programoversigt</span>
+    <h2 class="p18-section-title">Vælg dit forløb</h2>
+    <p class="p18-section-sub">Samme uddannelse, samme certificering — to forskellige tempi, der passer til din hverdag.</p>
 
-    <div class="program-grid">
-      <div class="program-feature">
-        <div class="program-feature__icon">📅</div>
-        <h3>Fleksibel Struktur</h3>
-        <p>18 uger med undervisning 2-3 gange om ugen. Vælg mellem hverdagstimer (10-15) eller weekend-spor. Perfekt til dig med job eller studie.</p>
+    <!-- Route Tabs -->
+    <div class="p18-tabs">
+      <button class="p18-tab is-active" data-tab="weekday">Hverdagsforløb</button>
+      <button class="p18-tab" data-tab="weekend">Weekendforløb</button>
+    </div>
+
+    <!-- Weekday Route -->
+    <div class="p18-route is-active" id="route-weekday">
+      <div class="p18-route__grid">
+        <div class="p18-route__info">
+          <h3 class="p18-route__title">Hverdagsforløb</h3>
+          <p class="p18-route__desc">Perfekt til dig med fleksible arbejdstider, deltidsjob eller studier. Undervisningen ligger midt på dagen, så du har morgen og aften fri.</p>
+          <ul class="p18-route__list">
+            <li>1–3 workshops per uge</li>
+            <li>Primært kl. 10:00–15:00</li>
+            <li>18 uger fra marts til juni</li>
+            <li>Mulighed for at skifte til weekenddage</li>
+          </ul>
+        </div>
+        <div class="p18-route__visual">
+          <div class="p18-route__card">
+            <span class="p18-route__card-label">Typisk uge</span>
+            <div class="p18-route__schedule-row">
+              <span class="p18-route__day">Man</span>
+              <span class="p18-route__time">10:00–15:00</span>
+            </div>
+            <div class="p18-route__schedule-row">
+              <span class="p18-route__day">Ons</span>
+              <span class="p18-route__time">10:00–15:00</span>
+            </div>
+            <div class="p18-route__schedule-row p18-route__schedule-row--light">
+              <span class="p18-route__day">Fre</span>
+              <span class="p18-route__time">Valgfri workshop</span>
+            </div>
+          </div>
+        </div>
       </div>
+    </div>
 
-      <div class="program-feature">
-        <div class="program-feature__icon">🧘</div>
-        <h3>Real-Class Praksis</h3>
-        <p>Undervis rigtige klasser under supervision fra uge 8. Fa praktisk erfaring med feedback fra erfarne lærere.</p>
+    <!-- Weekend Route -->
+    <div class="p18-route" id="route-weekend">
+      <div class="p18-route__grid">
+        <div class="p18-route__info">
+          <h3 class="p18-route__title">Weekendforløb</h3>
+          <p class="p18-route__desc">Designet til dig med fuldtidsjob eller andre daglige forpligtelser. Undervisningen ligger i weekenden, så hverdagen forbliver uberørt.</p>
+          <ul class="p18-route__list">
+            <li>Udvalgte weekender (ikke alle)</li>
+            <li>Primært lør/søn kl. 13:00–18:00</li>
+            <li>18 uger fra marts til juni</li>
+            <li>Mulighed for at skifte til hverdagsdatoer</li>
+          </ul>
+        </div>
+        <div class="p18-route__visual">
+          <div class="p18-route__card">
+            <span class="p18-route__card-label">Typisk weekend</span>
+            <div class="p18-route__schedule-row">
+              <span class="p18-route__day">Lør</span>
+              <span class="p18-route__time">13:00–18:00</span>
+            </div>
+            <div class="p18-route__schedule-row">
+              <span class="p18-route__day">Søn</span>
+              <span class="p18-route__time">13:00–18:00</span>
+            </div>
+            <div class="p18-route__schedule-row p18-route__schedule-row--light">
+              <span class="p18-route__day">—</span>
+              <span class="p18-route__time">Ikke hver weekend</span>
+            </div>
+          </div>
+        </div>
       </div>
+    </div>
 
-      <div class="program-feature">
-        <div class="program-feature__icon">📚</div>
-        <h3>Komplet Curriculum</h3>
-        <p>Anatomi, filosofi, sekvensering, justeringer, pranayama, meditation og professionel udvikling. Alt du skal bruge.</p>
+    <div class="p18-route__cta">
+      <button onclick="openYBScheduleModal('18w')" class="btn btn--primary">Få det fulde skema på e-mail</button>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════
+     SCHEDULE & FLEXIBILITY — Unique Dual Format
+     (with scroll-draw vine accent)
+     ═══════════════════════════════════════ -->
+<section class="p18-flexibility">
+  <div class="p18-flexibility__vine" data-p18-scroll-draw>
+    <svg viewBox="0 0 120 800" preserveAspectRatio="xMidYMid meet" fill="none">
+      <path class="p18-vine-shadow" fill="none"
+            d="M 60,0 C 80,80 100,120 80,200 C 60,280 40,300 50,380 C 60,460 90,500 70,580 C 50,660 60,720 60,800"
+            stroke="rgba(247,92,3,0.08)" stroke-width="1.5" stroke-linecap="round" />
+      <path class="p18-vine-path" fill="none"
+            d="M 60,0 C 80,80 100,120 80,200 C 60,280 40,300 50,380 C 60,460 90,500 70,580 C 50,660 60,720 60,800"
+            stroke="#f75c03" stroke-width="2" stroke-linecap="round" />
+    </svg>
+  </div>
+
+  <div class="container">
+    <span class="p18-eyebrow">Maksimal Fleksibilitet</span>
+    <h2 class="p18-section-title">To formater. Én uddannelse.</h2>
+    <p class="p18-section-sub">Vi er formentlig den eneste skole i verden, der kører uddannelsen i to formater samtidig — hverdag og weekend. Det giver dig maksimal fleksibilitet, og du kan frit skifte mellem datoerne.</p>
+
+    <div class="p18-flex-grid">
+      <div class="p18-flex-card">
+        <div class="p18-flex-card__icon">⇄</div>
+        <h3>Skift frit mellem datoer</h3>
+        <p>Kan du ikke en hverdag? Tag en weekenddag i stedet. Du er ikke låst til ét spor.</p>
       </div>
-
-      <div class="program-feature">
-        <div class="program-feature__icon">👥</div>
-        <h3>Sma Hold</h3>
-        <p>Max 20 deltagere per hold. Personlig attention og tæt community. 90%+ gennemførelsesrate.</p>
+      <div class="p18-flex-card">
+        <div class="p18-flex-card__icon">⏱</div>
+        <h3>Samme indhold, dit tempo</h3>
+        <p>Begge formater dækker præcis det samme pensum og giver samme Yoga Alliance certificering.</p>
       </div>
-
-      <div class="program-feature">
-        <div class="program-feature__icon">🎓</div>
-        <h3>Yoga Alliance Certificeret</h3>
-        <p>Fuld RYT-200 certificering. Anerkendt internationalt. Start din karriere med troværdighed.</p>
-      </div>
-
-      <div class="program-feature">
-        <div class="program-feature__icon">💪</div>
-        <h3>Livslang Support</h3>
-        <p>Adgang til alumni-netværk, fortsættelsesuddannelser og mentorship-programmer efter graduering.</p>
+      <div class="p18-flex-card">
+        <div class="p18-flex-card__icon">✦</div>
+        <h3>Max 20 deltagere</h3>
+        <p>Små hold betyder personlig opmærksomhed, tæt community og 90%+ gennemførelsesrate.</p>
       </div>
     </div>
   </div>
 </section>
 
-<!-- Schedule & Format -->
-<section class="program-schedule">
+<!-- ═══════════════════════════════════════
+     WHAT YOU LEARN — Lifting Cards
+     ═══════════════════════════════════════ -->
+<section class="p18-curriculum">
   <div class="container">
-    <h2 class="section-title">Skema & Format</h2>
+    <span class="p18-eyebrow">Curriculum</span>
+    <h2 class="p18-section-title">Hvad du lærer</h2>
+    <p class="p18-section-sub">Et komplet 200-timers curriculum der giver dig alt, du skal bruge som yogalærer.</p>
 
-    <div class="schedule-options">
-      <div class="schedule-card">
-        <h3>Hverdagsforløb</h3>
-        <div class="schedule-card__time">Mandag-Fredag 10:00-15:00</div>
+    <div class="p18-curr-grid">
+      <div class="p18-curr-card">
+        <div class="p18-curr-card__accent"></div>
+        <h3>Asana & Teknik</h3>
+        <p>Hatha, Vinyasa og Yin fundamentals. Stillinger, modificationer, props og sekvensering for alle niveauer.</p>
+      </div>
+
+      <div class="p18-curr-card">
+        <div class="p18-curr-card__accent"></div>
+        <h3>Anatomi & Fysiologi</h3>
+        <p>Muskulatur, skeletstruktur, bevægelsesmekanik og skadesforebyggelse. Praktisk anvendt i din undervisning.</p>
+      </div>
+
+      <div class="p18-curr-card">
+        <div class="p18-curr-card__accent"></div>
+        <h3>Undervisningsmetodik</h3>
+        <p>Klasseopbygning, cueing, stemmetræning, hands-on assists og hvordan du skaber en tryg atmosfære.</p>
+      </div>
+
+      <div class="p18-curr-card">
+        <div class="p18-curr-card__accent"></div>
+        <h3>Filosofi & Historie</h3>
+        <p>Yoga Sutras, Bhagavad Gita, de 8 lemmer, chakras og yogaens udvikling fra oldtid til nutid.</p>
+      </div>
+
+      <div class="p18-curr-card">
+        <div class="p18-curr-card__accent"></div>
+        <h3>Pranayama & Meditation</h3>
+        <p>Åndedrætsteknikker, bandhas, meditationsformer og integration i dine klasser.</p>
+      </div>
+
+      <div class="p18-curr-card">
+        <div class="p18-curr-card__accent"></div>
+        <h3>Professionel Udvikling</h3>
+        <p>Karrierestart, business basics, markedsføring, etik og livslang faglig udvikling.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════
+     INVESTMENT — 23.750 DKK
+     ═══════════════════════════════════════ -->
+<section class="p18-investment">
+  <div class="container">
+    <span class="p18-eyebrow">Investering</span>
+    <h2 class="p18-section-title">Pris & betalingsmuligheder</h2>
+
+    <div class="p18-invest-box">
+      <div class="p18-invest-price">
+        <span class="p18-invest-price__amount">23.750 DKK</span>
+        <span class="p18-invest-price__label">Samlet pris for uddannelsen</span>
+      </div>
+
+      <div class="p18-invest-includes">
+        <h4>Alt inkluderet</h4>
         <ul>
-          <li>2-3 dage per uge</li>
-          <li>Perfekt til fleksible arbejdstider</li>
-          <li>Nogle weekender inkluderet</li>
-          <li>Start: Marts, April eller Juni 2026</li>
+          <li>200+ timers undervisning & workshops</li>
+          <li>Alle undervisningsmaterialer & manualer</li>
+          <li>Praksis i virkelige omgivelser — yogastudio, hot yoga & Vibro Yoga</li>
+          <li>Yoga Alliance RYT-200 certificering</li>
+          <li>Adgang til alumni-netværk</li>
+          <li>Livslang support fra instruktører</li>
         </ul>
       </div>
 
-      <div class="schedule-card">
-        <h3>Weekend-forløb</h3>
-        <div class="schedule-card__time">Lørdag-Søndag 09:00-17:00</div>
-        <ul>
-          <li>Primært weekends</li>
-          <li>Nogle hverdagsaftener</li>
-          <li>Perfekt ved siden af fuldtidsarbejde</li>
-          <li>Start: Marts eller Maj 2026</li>
-        </ul>
-      </div>
-    </div>
+      <div class="p18-invest-divider"></div>
 
-    <div class="schedule-cta">
-      <button onclick="openYBScheduleModal('18w')" class="btn btn--primary">Fa Fuld Skema pa E-mail</button>
-    </div>
-  </div>
-</section>
-
-<!-- Curriculum -->
-<section class="program-curriculum">
-  <div class="container">
-    <h2 class="section-title">Hvad Lærer Du?</h2>
-
-    <div class="curriculum-grid">
-      <div class="curriculum-module">
-        <h3>🧘 Asana & Teknik</h3>
-        <p>Primære serier, avancerede stillinger, modificationer, props og variationer. Bade Vinyasa og Hatha fundamentals.</p>
+      <div class="p18-invest-payment">
+        <h4>Betalingsmuligheder</h4>
+        <div class="p18-invest-options">
+          <div class="p18-invest-option">
+            <span class="p18-invest-option__label">Fuld betaling</span>
+            <span class="p18-invest-option__value">23.750 DKK</span>
+          </div>
+          <div class="p18-invest-option">
+            <span class="p18-invest-option__label">Depositum + 2 rater</span>
+            <span class="p18-invest-option__value">3 × 8.250 DKK</span>
+          </div>
+          <div class="p18-invest-option">
+            <span class="p18-invest-option__label">Månedlig betaling</span>
+            <span class="p18-invest-option__value">6 × 4.200 DKK</span>
+          </div>
+        </div>
       </div>
 
-      <div class="curriculum-module">
-        <h3>📐 Anatomi & Fysiologi</h3>
-        <p>Muskulatur, skeletstruktur, bevægelsesmekanik, common injuries og skadesforebyggelse. Praktisk anvendt anatomi.</p>
-      </div>
-
-      <div class="curriculum-module">
-        <h3>🎭 Undervisningsmetodik</h3>
-        <p>Klasseopbygning, cueing, stemmetræning, assisting, modifications og hvordan man skaber en tryg atmosfære.</p>
-      </div>
-
-      <div class="curriculum-module">
-        <h3>📿 Filosofi & Historie</h3>
-        <p>Yoga Sutras, Bhagavad Gita, de 8 lemmer, chakras, koshas og yogaens udvikling fra oldtid til nu.</p>
-      </div>
-
-      <div class="curriculum-module">
-        <h3>🫁 Pranayama & Meditation</h3>
-        <p>Åndedrætsteknikker, bandhas, meditationsformer og hvordan man integrerer dem i klasser.</p>
-      </div>
-
-      <div class="curriculum-module">
-        <h3>💼 Professionel Udvikling</h3>
-        <p>Hvordan starter man karriere, business basics, marketing, etik og hvordan man fortsætter sin uddannelse.</p>
-      </div>
+      <button onclick="openYBScheduleModal('18w')" class="btn btn--primary btn--large" style="width:100%;margin-top:1.5rem">Få Skema & Ansøg</button>
     </div>
   </div>
 </section>
 
-<!-- Investment -->
-<section class="program-investment">
+<!-- ═══════════════════════════════════════
+     VISIT STUDIO & DEPOSIT — Early Access
+     ═══════════════════════════════════════ -->
+<section class="p18-visit">
   <div class="container">
-    <h2 class="section-title">Investering</h2>
-
-    <div class="investment-box">
-      <div class="investment-price">
-        <span class="investment-price__amount">25.500 DKK</span>
-        <span class="investment-price__label">Fuld pris</span>
+    <div class="p18-visit__grid">
+      <div class="p18-visit__content">
+        <span class="p18-eyebrow">Kom & se studiet</span>
+        <h2 class="p18-section-title" style="text-align:left">Besøg os i studiet</h2>
+        <p>Du er altid velkommen til at kigge forbi vores studio, møde holdet og få en fornemmelse af atmosfæren, inden du tilmelder dig.</p>
+        <p>Vi tilbyder gratis introduktionsmøder, hvor du kan stille alle dine spørgsmål og mærke energien.</p>
+        <a href="mailto:info@yogabible.dk" class="btn btn--secondary" style="margin-top:1rem">Book et besøg</a>
       </div>
 
-      <div class="investment-includes">
-        <h4>Inkluderet:</h4>
-        <ul>
-          <li>✓ 200+ timers undervisning & praksis</li>
-          <li>✓ Alle undervisningsmaterialer & manualer</li>
-          <li>✓ Real-class undervisningserfaring</li>
-          <li>✓ Yoga Alliance certificering</li>
-          <li>✓ Adgang til alumni-netværk</li>
-          <li>✓ Livslang support fra instruktører</li>
-        </ul>
+      <div class="p18-visit__deposit">
+        <div class="p18-visit__deposit-card">
+          <h3>Start tidligt med depositum</h3>
+          <p>Som en del af uddannelsen skal du praktisere op til <strong>60 klasser</strong> i vores studio. Jo hurtigere du betaler depositum, jo før kan du begynde at deltage i klasser og samle dine timer.</p>
+          <div class="p18-visit__deposit-highlight">
+            <span class="p18-visit__deposit-number">60</span>
+            <span class="p18-visit__deposit-label">klasser<br>i studiet</span>
+          </div>
+          <p class="p18-visit__deposit-note">Betal depositum → få adgang med det samme → begynd at praktisere før uddannelsen starter.</p>
+          <button onclick="openYBScheduleModal('18w')" class="btn btn--primary" style="width:100%">Få Skema & Kom i gang</button>
+        </div>
       </div>
-
-      <div class="investment-payment">
-        <p><strong>Betalingsmuligheder:</strong></p>
-        <ul>
-          <li>Fuld betaling: 25.500 DKK</li>
-          <li>Depositum + 2 rater: 3 × 8.800 DKK</li>
-          <li>Månedlig: 6 × 4.500 DKK</li>
-        </ul>
-      </div>
-
-      <button onclick="openYBScheduleModal('18w')" class="btn btn--large btn--primary">Ansøg Nu</button>
     </div>
   </div>
 </section>
 
-<!-- FAQ -->
-<section class="program-faq">
+<!-- ═══════════════════════════════════════
+     FAQ — Accordions
+     ═══════════════════════════════════════ -->
+<section class="p18-faq">
   <div class="container">
-    <h2 class="section-title">Ofte Stillede Spørgsmål</h2>
+    <span class="p18-eyebrow">Spørgsmål & svar</span>
+    <h2 class="p18-section-title">Ofte stillede spørgsmål</h2>
 
-    <div class="faq-list">
-      <details class="faq-item">
+    <div class="p18-faq-list">
+      <details class="p18-faq-item">
         <summary>Skal jeg have erfaring for at starte?</summary>
-        <p>Du bør have minimum 6-12 måneders regelmæssig yogapraksis (2-3 gange om ugen). Vi anbefaler at du er fortrolig med basic stillinger og kan holde en 60-minutters klasse.</p>
+        <p>Du bør have minimum 6–12 måneders regelmæssig yogapraksis (2–3 gange om ugen). Du skal være fortrolig med basale stillinger og kunne holde en 60-minutters klasse.</p>
       </details>
 
-      <details class="faq-item">
-        <summary>Hvad er forskellen pa hverdags- og weekend-forløb?</summary>
-        <p>Indholdet er det samme. Hverdagsforløbet er spredt over 2-3 dage om ugen kl. 10-15, mens weekend-forløbet primært er lørdag-søndag med nogle hverdagsaftener. Vælg det der passer til din livsstil.</p>
+      <details class="p18-faq-item">
+        <summary>Hvad er forskellen på hverdags- og weekendforløb?</summary>
+        <p>Indholdet og certificeringen er identisk. Hverdagsforløbet kører 1–3 dage om ugen kl. 10–15, mens weekendforløbet primært er udvalgte weekender kl. 13–18. Du kan frit skifte mellem datoerne.</p>
       </details>
 
-      <details class="faq-item">
-        <summary>Kan jeg arbejde/studere samtidig?</summary>
-        <p>Ja, det er designet til det! Mange af vores studerende arbejder fuldtid eller studerer. Du skal dog afsætte 15-20 timer om ugen inkl. undervisning, hjemmeopgaver og egen praksis.</p>
+      <details class="p18-faq-item">
+        <summary>Kan jeg arbejde eller studere samtidig?</summary>
+        <p>Ja, uddannelsen er designet til det. Mange af vores studerende arbejder fuldtid eller studerer. Regn med 15–20 timer om ugen inkl. undervisning, hjemmeopgaver og egen praksis.</p>
       </details>
 
-      <details class="faq-item">
+      <details class="p18-faq-item">
         <summary>Er uddannelsen Yoga Alliance certificeret?</summary>
-        <p>Ja, vi er en registreret Yoga Alliance skole (RYS-200). Du far RYT-200 certificering efter graduation, som er anerkendt globalt.</p>
+        <p>Ja, vi er en registreret Yoga Alliance skole (RYS-200). Du modtager RYT-200 certificering efter graduation — anerkendt globalt.</p>
       </details>
 
-      <details class="faq-item">
-        <summary>Hvad sker hvis jeg bliver syg eller skal rejse?</summary>
-        <p>Du ma maks. misse 10% af timerne. Vi tilbyder make-up sessions, og du kan eventuelt færdiggøre i næste hold hvis nødvendigt.</p>
+      <details class="p18-faq-item">
+        <summary>Hvad sker der, hvis jeg bliver syg?</summary>
+        <p>Du må maks. misse 10% af timerne. Vi tilbyder make-up sessions, og du kan eventuelt færdiggøre i næste hold hvis nødvendigt.</p>
       </details>
 
-      <details class="faq-item">
+      <details class="p18-faq-item">
         <summary>Er der eksamener?</summary>
-        <p>Ja - praktisk undervisningseksamen, skriftlig anatomi-test og filosofi-aflevering. Alt er designed til læring, ikke stress. Vi har 90%+ bestáelsesrate.</p>
+        <p>Ja — praktisk undervisningsprøve, skriftlig anatomi-test og filosofi-aflevering. Alt er designet til læring, ikke stress. Vi har 90%+ beståelsesrate.</p>
       </details>
     </div>
   </div>
 </section>
 
-<!-- Final CTA -->
-<section class="cta-section">
+<!-- ═══════════════════════════════════════
+     FINAL CTA
+     ═══════════════════════════════════════ -->
+<section class="p18-final-cta">
   <div class="container">
-    <h2 class="cta-section__title">Klar til at Starte din Rejse?</h2>
-    <p class="cta-section__text">Næste hold starter snart. Fa skemaet og ansøg i dag.</p>
-    <button onclick="openYBScheduleModal('18w')" class="btn btn--large btn--primary">Fa Skema & Ansøg Nu</button>
+    <h2 class="p18-final-cta__title">Klar til at starte din rejse?</h2>
+    <p class="p18-final-cta__text">Næste 18-ugers hold starter Marts 2026. Få skemaet og svar på alle dine spørgsmål.</p>
+    <button onclick="openYBScheduleModal('18w')" class="btn btn--large btn--primary">Få Skema & Ansøg Nu</button>
   </div>
 </section>
+
+<!-- Page-specific JS -->
+<script>
+(function() {
+  /* ── Route Tabs ── */
+  var tabs = document.querySelectorAll('.p18-tab');
+  var routes = document.querySelectorAll('.p18-route');
+
+  tabs.forEach(function(tab) {
+    tab.addEventListener('click', function() {
+      var target = tab.getAttribute('data-tab');
+      tabs.forEach(function(t) { t.classList.remove('is-active'); });
+      routes.forEach(function(r) { r.classList.remove('is-active'); });
+      tab.classList.add('is-active');
+      var el = document.getElementById('route-' + target);
+      if (el) el.classList.add('is-active');
+    });
+  });
+
+  /* ── Scroll-Draw Vine ── */
+  var vineWrap = document.querySelector('[data-p18-scroll-draw]');
+  if (vineWrap) {
+    var mainPath = vineWrap.querySelector('.p18-vine-path');
+    var shadowPath = vineWrap.querySelector('.p18-vine-shadow');
+    var allPaths = [mainPath, shadowPath].filter(Boolean);
+
+    allPaths.forEach(function(p) {
+      var len = p.getTotalLength();
+      p.style.strokeDasharray = len;
+      p.style.strokeDashoffset = len;
+    });
+
+    function drawVine() {
+      var rect = vineWrap.getBoundingClientRect();
+      var winH = window.innerHeight;
+      var start = winH;
+      var end = -rect.height;
+      var progress = Math.max(0, Math.min(1, (start - rect.top) / (start - end)));
+
+      allPaths.forEach(function(p) {
+        var len = p.getTotalLength();
+        p.style.strokeDashoffset = len - (progress * len);
+      });
+      requestAnimationFrame(drawVine);
+    }
+    drawVine();
+  }
+
+  /* ── Scroll-triggered fade-up ── */
+  var fadeEls = document.querySelectorAll('.p18-curr-card, .p18-flex-card');
+  if (fadeEls.length && 'IntersectionObserver' in window) {
+    var obs = new IntersectionObserver(function(entries) {
+      entries.forEach(function(e) {
+        if (e.isIntersecting) {
+          e.target.classList.add('p18-visible');
+          obs.unobserve(e.target);
+        }
+      });
+    }, { threshold: 0.15 });
+    fadeEls.forEach(function(el) { obs.observe(el); });
+  }
+})();
+</script>
