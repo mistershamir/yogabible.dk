@@ -1,6 +1,6 @@
 /**
  * YOGA BIBLE - JOURNAL FUNCTIONALITY
- * Handles language switching, search, filtering, and related journals
+ * Handles language switching, search, filtering, progress bar, and sharing
  */
 
 (function() {
@@ -81,9 +81,7 @@
   var emptyState = document.getElementById('yjEmpty');
   var filterBtns = document.querySelectorAll('[data-yj-filter]');
 
-  if (!grid) return; // Exit if not on listing page
-
-  var cards = grid.querySelectorAll('.yj-card');
+  var cards = grid ? grid.querySelectorAll('.yj-card') : [];
   var activeFilter = 'all';
   var searchQuery = '';
 
@@ -94,6 +92,7 @@
   }
 
   function filterAndSearch() {
+    if (!grid) return;
     var visibleCount = 0;
 
     for (var i = 0; i < cards.length; i++) {
@@ -185,8 +184,88 @@
     });
   }
 
-  // Initial count
-  filterAndSearch();
+  // Initial count (listing page only)
+  if (grid) {
+    filterAndSearch();
+  }
+
+  // ============================================
+  // READING PROGRESS BAR (Post Page Only)
+  // ============================================
+
+  var progressBar = document.getElementById('yjProgressBar');
+  var postContent = document.querySelector('.yj-post-content');
+
+  if (progressBar && postContent) {
+    var ticking = false;
+
+    function updateProgress() {
+      var contentRect = postContent.getBoundingClientRect();
+      var contentTop = contentRect.top + window.pageYOffset;
+      var contentHeight = postContent.offsetHeight;
+      var windowHeight = window.innerHeight;
+      var scrolled = window.pageYOffset;
+
+      // Calculate progress: 0 at top of content, 100 at bottom
+      var start = contentTop - windowHeight * 0.3;
+      var end = contentTop + contentHeight - windowHeight * 0.5;
+      var progress = Math.min(Math.max((scrolled - start) / (end - start), 0), 1);
+
+      progressBar.style.width = (progress * 100) + '%';
+      ticking = false;
+    }
+
+    window.addEventListener('scroll', function() {
+      if (!ticking) {
+        requestAnimationFrame(updateProgress);
+        ticking = true;
+      }
+    }, { passive: true });
+
+    updateProgress();
+  }
+
+  // ============================================
+  // SHARE BUTTONS (Post Page Only)
+  // ============================================
+
+  var copyBtn = document.querySelector('[data-yj-share="copy"]');
+  if (copyBtn) {
+    copyBtn.addEventListener('click', function() {
+      var url = window.location.href;
+      var btn = this;
+
+      if (navigator.clipboard) {
+        navigator.clipboard.writeText(url).then(function() {
+          showCopyFeedback(btn);
+        });
+      } else {
+        // Fallback for older browsers
+        var input = document.createElement('input');
+        input.value = url;
+        input.style.position = 'fixed';
+        input.style.opacity = '0';
+        document.body.appendChild(input);
+        input.select();
+        document.execCommand('copy');
+        document.body.removeChild(input);
+        showCopyFeedback(btn);
+      }
+    });
+  }
+
+  function showCopyFeedback(btn) {
+    var originalHTML = btn.innerHTML;
+    btn.innerHTML = '<svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8.5L6.5 12L13 4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+    btn.style.borderColor = 'var(--yb-brand)';
+    btn.style.color = 'var(--yb-brand)';
+
+    setTimeout(function() {
+      btn.innerHTML = originalHTML;
+      btn.style.borderColor = '';
+      btn.style.color = '';
+    }, 1500);
+  }
 
   console.log('Yoga Journal initialized (Language: ' + currentLang.toUpperCase() + ')');
 })();
