@@ -19,6 +19,7 @@
   const submitBtn = document.getElementById("ybuSubmit");
   const accHidden = document.getElementById("ybuAccommodation");
   const cityInput = document.getElementById("ybuCity");
+  const countryCode = document.getElementById("ybuCountryCode");
   const toggleBtns = modal.querySelectorAll(".yb-modal-u__toggle-btn");
 
   let scrollY = 0;
@@ -60,6 +61,9 @@
     if (accHidden) accHidden.value = 'No';
     if (cityInput) cityInput.hidden = true;
     toggleBtns.forEach(b => b.classList.toggle('is-active', b.dataset.acc === 'No'));
+
+    // Reset country code to Denmark
+    if (countryCode) countryCode.value = '+45';
 
     // Pre-check default format
     modal.querySelectorAll('input[name="format"]').forEach(cb => {
@@ -119,11 +123,15 @@
     });
   });
 
-  // Form submission
+  // Form submission using Image beacon (reliable with Google Apps Script redirects)
   if (form) {
     form.addEventListener('submit', e => {
       e.preventDefault();
       if (errBox) errBox.hidden = true;
+
+      // Honeypot check
+      const hp = form.querySelector('[name="ybu_hp"]');
+      if (hp && hp.value) return;
 
       // Get selected formats
       const fmts = [];
@@ -141,6 +149,7 @@
       const ln = document.getElementById('ybuLastName').value.trim();
       const em = document.getElementById('ybuEmail').value.trim();
       const ph = document.getElementById('ybuPhone').value.trim();
+      const cc = countryCode ? countryCode.value : '+45';
       const acc = accHidden ? accHidden.value : 'No';
       const city = cityInput && !cityInput.hidden ? cityInput.value.trim() : '';
 
@@ -160,7 +169,7 @@
       params.append('firstName', fn);
       params.append('lastName', ln);
       params.append('email', em);
-      params.append('phone', '+45' + ph);
+      params.append('phone', cc + ph);
       params.append('accommodation', acc);
       params.append('source', 'Modal-' + (fmts.length > 1 ? 'Multi' : fmts[0]));
 
@@ -171,21 +180,30 @@
         params.append('allFormats', fmts.join(','));
       }
 
-      fetch(FORM_URL + '?' + params.toString(), {
-        method: 'GET',
-        mode: 'no-cors'
-      })
-      .finally(() => {
+      // Use Image beacon — follows redirects natively (unlike fetch no-cors)
+      var beacon = new Image();
+      beacon.onload = beacon.onerror = function() {
         submitBtn.disabled = false;
         submitBtn.textContent = 'Send & få skema';
         if (viewForm) viewForm.hidden = true;
         if (viewSuccess) viewSuccess.hidden = false;
-      });
+      };
+      beacon.src = FORM_URL + '?' + params.toString();
+
+      // Fallback timeout in case neither onload nor onerror fires
+      setTimeout(function() {
+        if (submitBtn.disabled) {
+          submitBtn.disabled = false;
+          submitBtn.textContent = 'Send & få skema';
+          if (viewForm) viewForm.hidden = true;
+          if (viewSuccess) viewSuccess.hidden = false;
+        }
+      }, 5000);
     });
   }
 
   // Start closed
   closeModal();
 
-  console.log('✅ Schedule modal initialized');
+  console.log('Schedule modal initialized');
 })();
