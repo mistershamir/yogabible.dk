@@ -6,12 +6,12 @@
       <button class="yb-modal-u__close" type="button" data-ybu-close aria-label="Luk">&times;</button>
 
       <div id="ybu-view-form">
-        <h3 id="ybuModalTitle">Fa skemaet pa e-mail</h3>
-        <p class="yb-modal-u__lead">Valg de formater du er interesseret i — vi sender dig programmet og praktisk info.</p>
+        <h3 id="ybuModalTitle">Få skemaet på e-mail</h3>
+        <p class="yb-modal-u__lead">Vælg de formater du er interesseret i — vi sender dig programmet og praktisk info.</p>
 
         <p id="ybuError" class="yb-modal-u__error" hidden>
-          Kunne ikke sende lige nu. Prov igen — eller skriv til
-          <a href="mailto:{{ site.email }}">{{ site.email }}</a>.
+          Kunne ikke sende lige nu. Prøv igen — eller skriv til
+          <a href="mailto:info@yogabible.dk">info@yogabible.dk</a>.
         </p>
 
         <form id="ybuForm" class="yb-modal-u__form" novalidate>
@@ -36,32 +36,14 @@
             <label class="yb-modal-u__field">
               <span>Telefonnummer *</span>
               <div class="yb-modal-u__phone">
-                <select class="yb-modal-u__prefix" id="ybuCountryCode" aria-label="Landekode">
-                  <option value="+45" selected>🇩🇰 +45</option>
-                  <option value="+46">🇸🇪 +46</option>
-                  <option value="+47">🇳🇴 +47</option>
-                  <option value="+358">🇫🇮 +358</option>
-                  <option value="+354">🇮🇸 +354</option>
-                  <option value="+49">🇩🇪 +49</option>
-                  <option value="+44">🇬🇧 +44</option>
-                  <option value="+31">🇳🇱 +31</option>
-                  <option value="+33">🇫🇷 +33</option>
-                  <option value="+34">🇪🇸 +34</option>
-                  <option value="+39">🇮🇹 +39</option>
-                  <option value="+43">🇦🇹 +43</option>
-                  <option value="+41">🇨🇭 +41</option>
-                  <option value="+48">🇵🇱 +48</option>
-                  <option value="+1">🇺🇸 +1</option>
-                  <option value="+61">🇦🇺 +61</option>
-                  <option value="+91">🇮🇳 +91</option>
-                </select>
+                <span class="yb-modal-u__prefix">+45</span>
                 <input type="tel" name="phone" id="ybuPhone" inputmode="tel" autocomplete="tel" required>
               </div>
             </label>
           </div>
 
           <div class="yb-modal-u__section">
-            <span class="yb-modal-u__label">Valg format *</span>
+            <span class="yb-modal-u__label">Vælg format *</span>
             <div class="yb-modal-u__formats">
               <label class="yb-modal-u__format">
                 <input type="checkbox" name="format" value="18w">
@@ -84,7 +66,7 @@
                 <span class="yb-modal-u__checkbox"></span>
                 <span class="yb-modal-u__format-text">
                   <strong>4 ugers intensivt program</strong>
-                  <small>April & Juli 2026</small>
+                  <small>Marts & April 2026</small>
                 </span>
               </label>
             </div>
@@ -93,7 +75,7 @@
           <div class="yb-modal-u__section">
             <span class="yb-modal-u__label">Bolig</span>
             <div class="yb-modal-u__acc-row">
-              <span>Har du brug for bolig i Kobenhavn?</span>
+              <span>Har du brug for bolig i København?</span>
               <div class="yb-modal-u__toggle">
                 <button type="button" class="yb-modal-u__toggle-btn is-active" data-acc="No">Nej</button>
                 <button type="button" class="yb-modal-u__toggle-btn" data-acc="Yes">Ja</button>
@@ -104,7 +86,7 @@
           </div>
 
           <button id="ybuSubmit" class="yb-btn yb-btn--cta" type="submit">
-            Send & fa skema
+            Send & få skema
           </button>
 
           <p class="yb-modal-u__fine">Ved indsendelse accepterer du vores <a href="/privacy-policy">privatlivspolitik</a>.</p>
