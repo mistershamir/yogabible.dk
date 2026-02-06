@@ -1,6 +1,6 @@
 ---
 pagination:
-  data: journals
+  data: journals.entries
   size: 1
   alias: journal
 permalink: "/yoga-journal/{{ journal.slug }}/"
@@ -151,10 +151,10 @@ eleventyComputed:
     <div class="yj-post-content__inner">
       <!-- Drop Cap First Paragraph Wrapper -->
       <div class="yj-post-body yj-post-body--dropcap" data-yj-da>
-        {{ journal.content_da | safe }}
+        {{ journal.content_da | renderContent | safe }}
       </div>
       <div class="yj-post-body yj-post-body--dropcap" data-yj-en hidden>
-        {{ journal.content_en | safe }}
+        {{ journal.content_en | renderContent | safe }}
       </div>
     </div>
   </div>
@@ -208,7 +208,7 @@ eleventyComputed:
       {%- set currentSlug = journal.slug %}
       {%- set currentTags = journal.tags %}
       {%- set relatedCount = 0 %}
-      {%- for other in journals | sort(true, false, 'date') %}
+      {%- for other in journals.entries | sort(true, false, 'date') %}
         {%- if other.slug != currentSlug and relatedCount < 3 %}
           {%- set hasMatch = false %}
           {%- for tag in other.tags %}

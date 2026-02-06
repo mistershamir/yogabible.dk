@@ -80,7 +80,7 @@ isJournalListing: true
 <section class="yj-grid-section">
   <div class="container">
     <div class="yj-grid" id="yjGrid">
-      {%- for journal in journals | sort(true, false, 'date') %}
+      {%- for journal in journals.entries | sort(true, false, 'date') %}
       <article class="yj-card" data-yj-slug="{{ journal.slug }}" data-yj-category="{{ journal.category }}" data-yj-tags="{{ journal.tags | join(',') }}" data-yj-featured="{{ journal.featured }}" data-yj-gated="{{ journal.gated }}">
         <a href="/yoga-journal/{{ journal.slug }}/" class="yj-card__link">
           <div class="yj-card__img-wrap">
