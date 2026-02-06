@@ -99,14 +99,13 @@ includeP18Styles: true
     <h2 class="p18-section-title">Oplev uddannelsen indefra</h2>
     <p class="p18-section-sub">Hør direkte fra vores studerende, hvad uddannelsen har betydet for dem.</p>
 
-    <div class="p18-video-interview__wrap">
-      <iframe
-        src="https://drive.google.com/file/d/1WWanYni0tZKJ656czw_N2Vf6thCKFwU8/preview?t=10"
-        allow="autoplay; encrypted-media"
-        allowfullscreen
-        loading="lazy"
-        style="width:100%;height:100%;border:none;">
-      </iframe>
+    <div class="p18-video-interview__wrap" id="interviewVideoWrap">
+      <div class="p18-video-interview__overlay" id="interviewOverlay">
+        <button class="p18-video-interview__play-btn" id="interviewPlayBtn" aria-label="Afspil video">
+          <span>▶</span>
+        </button>
+        <span class="p18-video-interview__play-label">Se interview med studerende</span>
+      </div>
     </div>
   </div>
 </section>
@@ -246,7 +245,7 @@ includeP18Styles: true
      5. PROGRAM FORMAT — Weekday / Weekend Tracks
      ═══════════════════════════════════════ -->
 <section class="yb-tracks" aria-labelledby="tracks-title">
-  <div class="yb-tracks__inner">
+  <div class="yb-tracks__inner container">
     <p class="yb-tracks__kicker">Fleksibelt program</p>
     <h2 id="tracks-title" class="yb-tracks__title">Hverdags- eller weekendprogram</h2>
     <p class="yb-tracks__subtitle">Skift mellem sporene når du har brug for det</p>
@@ -463,7 +462,7 @@ includeP18Styles: true
      8. EARLY DEPOSIT — Get Studio Access Now
      ═══════════════════════════════════════ -->
 <section class="yb-early" aria-label="Tidlig ansøgning">
-  <div class="yb-early-wrap">
+  <div class="yb-early-wrap container">
     <figure class="yb-early-media">
       <img
         src="https://www.yogabible.dk/s/Start_with_Hot_Yoga_Copenhagen.jpg"
@@ -524,7 +523,7 @@ includeP18Styles: true
      9. REVIEWS — Google Reviews Carousel
      ═══════════════════════════════════════ -->
 <section class="yb-reviews" id="yb-reviews-section" aria-labelledby="yb-reviews-title">
-  <div class="yb-reviews__inner">
+  <div class="yb-reviews__inner container">
     <p class="yb-reviews__kicker">Google-anmeldelser</p>
     <h2 id="yb-reviews-title" class="yb-reviews__title">Hvad tidligere elever fortæller</h2>
 
@@ -560,7 +559,7 @@ includeP18Styles: true
      10. VISIT STUDIO — Gallery + Calendly Booking
      ═══════════════════════════════════════ -->
 <section class="yb-visit" id="yb-visit">
-  <div class="yb-visit__wrap">
+  <div class="yb-visit__wrap container">
 
     <div class="yb-visit__copy">
       <p class="yb-visit__kicker">Besøg os først</p>
@@ -715,7 +714,7 @@ includeP18Styles: true
      13. EXPLORE MORE — Other Programs & Courses
      ═══════════════════════════════════════ -->
 <section class="yb-more" aria-labelledby="yb-more-title">
-  <div class="yb-more__inner">
+  <div class="yb-more__inner container">
 
     <header class="yb-more__header">
       <p class="yb-more__kicker">Udforsk mere</p>
@@ -846,6 +845,21 @@ includeP18Styles: true
       });
     }, { threshold: 0.15 });
     fadeEls.forEach(function(el) { obs.observe(el); });
+  }
+
+  /* ── Interview Video (click-to-load iframe) ── */
+  var interviewWrap = document.getElementById('interviewVideoWrap');
+  var interviewOverlay = document.getElementById('interviewOverlay');
+  if (interviewWrap && interviewOverlay) {
+    interviewOverlay.addEventListener('click', function() {
+      var iframe = document.createElement('iframe');
+      iframe.src = 'https://drive.google.com/file/d/1WWanYni0tZKJ656czw_N2Vf6thCKFwU8/preview?t=10';
+      iframe.allow = 'autoplay; encrypted-media';
+      iframe.allowFullscreen = true;
+      iframe.style.cssText = 'width:100%;height:100%;border:none;position:absolute;top:0;left:0;';
+      interviewWrap.appendChild(iframe);
+      interviewOverlay.classList.add('is-hidden');
+    });
   }
 
   /* ── Tracks Video ── */
