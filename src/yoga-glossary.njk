@@ -16,15 +16,21 @@ includeScheduleModal: false
   </div>
 </section>
 
-{# ── Search & Filter ── #}
+{# ── Glossary Module ── #}
 <section class="program-overview">
   <div class="container">
     <div class="yb-glossary">
 
-      {# Scope toggle #}
-      <div class="yb-glossary__scope" role="group" aria-label="Omfang">
-        <button class="yb-glossary__scope-btn active" data-scope="common" type="button">Mest brugte</button>
-        <button class="yb-glossary__scope-btn" data-scope="all" type="button">Komplet ordbog</button>
+      {# Top controls: Scope + Language #}
+      <div class="yb-glossary__controls">
+        <div class="yb-glossary__scope" role="group" aria-label="Omfang">
+          <button class="yb-glossary__scope-btn active" data-scope="common" type="button">Mest brugte</button>
+          <button class="yb-glossary__scope-btn" data-scope="all" type="button">Komplet ordbog</button>
+        </div>
+        <div class="yb-glossary__lang-switch" role="group" aria-label="Sprog">
+          <button class="yb-glossary__lang-btn active" data-lang="da" type="button">DA</button>
+          <button class="yb-glossary__lang-btn" data-lang="en" type="button">EN</button>
+        </div>
       </div>
 
       {# Search #}
@@ -41,7 +47,7 @@ includeScheduleModal: false
         {% endfor %}
       </div>
 
-      {# Dynamic sub-filters (populated by JS based on active category) #}
+      {# Dynamic sub-filters (JS populates when a category with sub-filters is active) #}
       <div id="ybGlossarySubFilters" class="yb-glossary__subfilters" hidden></div>
 
       {# Toolbar: A-Z + count #}
@@ -51,11 +57,11 @@ includeScheduleModal: false
       </div>
 
       {# Results grid #}
-      <div id="ybGlossaryResults" class="yb-glossary__results">
+      <div id="ybGlossaryResults" class="yb-glossary__grid">
         <p class="yb-glossary__loading">Ordlisten indlæses...</p>
       </div>
 
-      <button id="ybGlossaryMore" class="btn btn--secondary yb-glossary__more-btn" type="button" style="display:none;">Indlæs flere</button>
+      <button id="ybGlossaryMore" class="btn btn--secondary yb-glossary__more-btn" type="button" style="display:none;">Vis flere begreber</button>
     </div>
   </div>
 </section>
