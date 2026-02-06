@@ -7,7 +7,7 @@ includeP18Styles: true
 ---
 
 <!-- ═══════════════════════════════════════
-     HERO — Dark Cinematic with Video-Ready BG
+     1. HERO — Dark Cinematic with Video-Ready BG
      ═══════════════════════════════════════ -->
 <section class="p18-hero">
   <div class="p18-hero__bg">
@@ -42,7 +42,26 @@ includeP18Styles: true
 </section>
 
 <!-- ═══════════════════════════════════════
-     PROGRAM FORMAT — Weekday / Weekend Tracks
+     2. TRAINEE INTERVIEW — Video with Sound
+     ═══════════════════════════════════════ -->
+<section class="p18-video-interview">
+  <div class="container">
+    <span class="p18-eyebrow">Hør fra vores studerende</span>
+    <h2 class="p18-section-title">Oplev uddannelsen indefra</h2>
+    <p class="p18-section-sub">Hør direkte fra vores studerende, hvad uddannelsen har betydet for dem.</p>
+
+    <div class="p18-video-interview__wrap">
+      <!-- Replace src with actual trainee interview video -->
+      <video controls preload="metadata" poster="/assets/images/og/og-1200x630.png">
+        <source src="/assets/video/trainee-interview.mp4" type="video/mp4">
+        Din browser understøtter ikke video.
+      </video>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════
+     3. PROGRAM FORMAT — Weekday / Weekend Tracks
      ═══════════════════════════════════════ -->
 <section class="yb-tracks" id="program-overview" aria-labelledby="tracks-title">
   <div class="yb-tracks__inner">
@@ -185,7 +204,7 @@ includeP18Styles: true
 </section>
 
 <!-- ═══════════════════════════════════════
-     SCHEDULE & FLEXIBILITY — Unique Dual Format
+     4. SCHEDULE & FLEXIBILITY — Unique Dual Format
      (with scroll-draw vine accent)
      ═══════════════════════════════════════ -->
 <section class="p18-flexibility">
@@ -218,34 +237,15 @@ includeP18Styles: true
       </div>
       <div class="p18-flex-card">
         <div class="p18-flex-card__icon">✦</div>
-        <h3>Max 20 deltagere</h3>
-        <p>Små hold betyder personlig opmærksomhed, tæt community og 90%+ gennemførelsesrate.</p>
+        <h3>Max 24 deltagere</h3>
+        <p>Små hold (ca. 12 per kursus) betyder personlig opmærksomhed, tæt community og 90%+ gennemførelsesrate.</p>
       </div>
     </div>
   </div>
 </section>
 
 <!-- ═══════════════════════════════════════
-     TRAINEE INTERVIEW — Video with Sound
-     ═══════════════════════════════════════ -->
-<section class="p18-video-interview">
-  <div class="container">
-    <span class="p18-eyebrow">Hør fra vores studerende</span>
-    <h2 class="p18-section-title">Oplev uddannelsen indefra</h2>
-    <p class="p18-section-sub">Hør direkte fra vores studerende, hvad uddannelsen har betydet for dem.</p>
-
-    <div class="p18-video-interview__wrap">
-      <!-- Replace src with actual trainee interview video -->
-      <video controls preload="metadata" poster="/assets/images/og/og-1200x630.png">
-        <source src="/assets/video/trainee-interview.mp4" type="video/mp4">
-        Din browser understøtter ikke video.
-      </video>
-    </div>
-  </div>
-</section>
-
-<!-- ═══════════════════════════════════════
-     WHAT YOU LEARN — Lifting Cards
+     5. WHAT YOU LEARN — Lifting Cards
      ═══════════════════════════════════════ -->
 <section class="p18-curriculum">
   <div class="container">
@@ -294,7 +294,7 @@ includeP18Styles: true
 </section>
 
 <!-- ═══════════════════════════════════════
-     VERTICAL VIDEO + GRADUATION QUOTE
+     6. VERTICAL VIDEO + GRADUATION QUOTE
      ═══════════════════════════════════════ -->
 <section class="p18-testimonial-video">
   <div class="container">
@@ -316,7 +316,43 @@ includeP18Styles: true
 </section>
 
 <!-- ═══════════════════════════════════════
-     INVESTMENT — 23.750 DKK
+     7. REVIEWS — Google Reviews Carousel
+     ═══════════════════════════════════════ -->
+<section class="yb-reviews" id="yb-reviews-section" aria-labelledby="yb-reviews-title">
+  <div class="yb-reviews__inner">
+    <p class="yb-reviews__kicker">Google-anmeldelser</p>
+    <h2 id="yb-reviews-title" class="yb-reviews__title">Hvad tidligere elever fortæller</h2>
+
+    <p class="yb-reviews__lead">
+      Uddannelsen har hjulpet <strong>500+ elever</strong> videre — nogle fordyber egen praksis,
+      andre underviser ved siden af et hovedjob, og flere er gået heltidsvejen med egne studier og retreats.
+    </p>
+
+    <div class="yb-reviews__carousel">
+      <button class="yb-reviews__nav yb-reviews__nav--prev" aria-label="Forrige" data-prev type="button">❮</button>
+
+      <div class="yb-reviews__viewport" data-viewport>
+        <div class="yb-reviews__track" data-track></div>
+      </div>
+
+      <button class="yb-reviews__nav yb-reviews__nav--next" aria-label="Næste" data-next type="button">❯</button>
+    </div>
+
+    <div class="yb-reviews__footer">
+      <div class="yb-reviews__rating">
+        <span class="yb-reviews__stars" aria-hidden="true">★★★★★</span>
+        <span class="yb-reviews__score">4.8 på Google</span>
+      </div>
+      <a class="yb-reviews__link" target="_blank" rel="noopener"
+         href="https://search.google.com/local/reviews?placeid=ChIJpQHE13BTUkYRY6oGEONORHM">
+        Se alle anmeldelser →
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════
+     8. INVESTMENT — 23.750 DKK
      ═══════════════════════════════════════ -->
 <section class="p18-investment">
   <div class="container">
@@ -367,7 +403,7 @@ includeP18Styles: true
 </section>
 
 <!-- ═══════════════════════════════════════
-     VISIT STUDIO — Gallery + Calendly Booking
+     9. VISIT STUDIO — Gallery + Calendly Booking
      ═══════════════════════════════════════ -->
 <section class="yb-visit" id="yb-visit">
   <div class="yb-visit__wrap">
@@ -469,7 +505,7 @@ includeP18Styles: true
 </section>
 
 <!-- ═══════════════════════════════════════
-     EARLY DEPOSIT — Get Studio Access Now
+     10. EARLY DEPOSIT — Get Studio Access Now
      ═══════════════════════════════════════ -->
 <section class="yb-early" aria-label="Tidlig ansøgning">
   <div class="yb-early-wrap">
@@ -530,43 +566,7 @@ includeP18Styles: true
 </section>
 
 <!-- ═══════════════════════════════════════
-     REVIEWS — Google Reviews Carousel
-     ═══════════════════════════════════════ -->
-<section class="yb-reviews" id="yb-reviews-section" aria-labelledby="yb-reviews-title">
-  <div class="yb-reviews__inner">
-    <p class="yb-reviews__kicker">Google-anmeldelser</p>
-    <h2 id="yb-reviews-title" class="yb-reviews__title">Hvad tidligere elever fortæller</h2>
-
-    <p class="yb-reviews__lead">
-      Uddannelsen har hjulpet <strong>500+ elever</strong> videre — nogle fordyber egen praksis,
-      andre underviser ved siden af et hovedjob, og flere er gået heltidsvejen med egne studier og retreats.
-    </p>
-
-    <div class="yb-reviews__carousel">
-      <button class="yb-reviews__nav yb-reviews__nav--prev" aria-label="Forrige" data-prev type="button">❮</button>
-
-      <div class="yb-reviews__viewport" data-viewport>
-        <div class="yb-reviews__track" data-track></div>
-      </div>
-
-      <button class="yb-reviews__nav yb-reviews__nav--next" aria-label="Næste" data-next type="button">❯</button>
-    </div>
-
-    <div class="yb-reviews__footer">
-      <div class="yb-reviews__rating">
-        <span class="yb-reviews__stars" aria-hidden="true">★★★★★</span>
-        <span class="yb-reviews__score">4.8 på Google</span>
-      </div>
-      <a class="yb-reviews__link" target="_blank" rel="noopener"
-         href="https://search.google.com/local/reviews?placeid=ChIJpQHE13BTUkYRY6oGEONORHM">
-        Se alle anmeldelser →
-      </a>
-    </div>
-  </div>
-</section>
-
-<!-- ═══════════════════════════════════════
-     FAQ — Accordions
+     11. FAQ — Accordions
      ═══════════════════════════════════════ -->
 <section class="p18-faq">
   <div class="container">
@@ -608,13 +608,104 @@ includeP18Styles: true
 </section>
 
 <!-- ═══════════════════════════════════════
-     FINAL CTA
+     12. FINAL CTA
      ═══════════════════════════════════════ -->
 <section class="p18-final-cta">
   <div class="container">
     <h2 class="p18-final-cta__title">Klar til at starte din rejse?</h2>
     <p class="p18-final-cta__text">Næste 18-ugers hold starter Marts 2026. Få skemaet og svar på alle dine spørgsmål.</p>
     <button onclick="openYBScheduleModal('18w')" class="btn btn--large btn--primary">Få Skema & Ansøg Nu</button>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════
+     13. EXPLORE MORE — Other Programs & Courses
+     ═══════════════════════════════════════ -->
+<section class="yb-more" aria-labelledby="yb-more-title">
+  <div class="yb-more__inner">
+
+    <header class="yb-more__header">
+      <p class="yb-more__kicker">Udforsk mere</p>
+      <h2 id="yb-more-title" class="yb-more__title">Andre uddannelser og kurser</h2>
+      <p class="yb-more__lead">
+        Hos <strong>Yoga Bible</strong> tilbyder vi forløb, der hjælper dig videre i din praksis – fra
+        målrettede kursusforløb til fleksible læreruddannelser.
+      </p>
+    </header>
+
+    <div class="yb-more__grid">
+
+      <!-- Courses Card -->
+      <article class="yb-more-card">
+        <figure class="yb-more-card__image">
+          <img id="ybCourseImg"
+               src="https://www.yogabible.dk/s/Inversions_Course_Copenhagen.jpg?format=1500w"
+               alt="Inversions kursus"
+               loading="lazy">
+          <span class="yb-more-card__badge yb-more-card__badge--soft">Månedligt</span>
+        </figure>
+
+        <div class="yb-more-card__body">
+          <h3 class="yb-more-card__title">Kurser – 4 uger, 8 × 90 min</h3>
+          <p class="yb-more-card__text">
+            Vi afholder hver måned fokuserede <strong>4-ugers forløb</strong> pakket som
+            <strong>8 × 90 minutters workshops</strong> (to gange om ugen) – til en rimelig pris og
+            designet til alle, der vil fordybe deres praksis trin for trin.
+          </p>
+
+          <div class="yb-more-card__pills" role="tablist" aria-label="Vælg kursus">
+            <button class="yb-pill is-active" role="tab" aria-selected="true" data-course="inv">Inversions</button>
+            <button class="yb-pill" role="tab" aria-selected="false" data-course="spl">Splits</button>
+            <button class="yb-pill" role="tab" aria-selected="false" data-course="bb">Backbends</button>
+          </div>
+
+          <p id="ybCourseBlurb" class="yb-more-card__blurb">
+            Lær at arbejde sikkert med håndstande, underarmsbalancer og hovedstande – teknik, styrke og mod.
+          </p>
+
+          <a id="ybCourseCta" class="yb-btn yb-btn--outline" href="/inversions">
+            Læs mere om Inversions →
+          </a>
+        </div>
+      </article>
+
+      <!-- Programs Card (4-Week + 8-Week with pill switching) -->
+      <article class="yb-more-card">
+        <figure class="yb-more-card__image">
+          <img id="ybProgramImg"
+               src="https://www.yogabible.dk/s/200timer-Yoga-Education-Kbenhavn.png?format=1500w"
+               alt="200-timers – 4 ugers intensivt program"
+               loading="lazy">
+          <span id="ybProgramBadge" class="yb-more-card__badge yb-more-card__badge--primary">Intensivt</span>
+          <span class="yb-more-card__badge yb-more-card__badge--soft yb-more-card__badge--right">Bolig muligt</span>
+        </figure>
+
+        <div class="yb-more-card__body">
+          <h3 id="ybProgramTitle" class="yb-more-card__title">200 timer – 4 ugers intensivt program</h3>
+
+          <div class="yb-more-card__pills" role="tablist" aria-label="Vælg program">
+            <button class="yb-pill is-active" role="tab" aria-selected="true" data-program="4w">4 Weeks Intensive</button>
+            <button class="yb-pill" role="tab" aria-selected="false" data-program="8w">8 Weeks Semi-Intensive</button>
+          </div>
+
+          <p id="ybProgramBlurb" class="yb-more-card__blurb">
+            Samme <strong>Yoga Alliance–certificerede</strong> uddannelse – komprimeret til
+            <strong>4 uger</strong> for dig, der vil gennemføre hurtigt og har tiden til at fordybe dig hver dag.
+          </p>
+
+          <ul id="ybProgramList" class="yb-more-card__list">
+            <li>Daglig træning og teori i et fokuseret forløb</li>
+            <li>Stærkt fokus på teknik, undervisningshåndværk & praksis</li>
+            <li><strong>Mulighed for indkvartering</strong> under forløbet</li>
+          </ul>
+
+          <a id="ybProgramCta" class="yb-btn yb-btn--cta" href="/200-hours-4-weeks-intensive-programs">
+            Gå til 4-ugers intensiv uddannelse →
+          </a>
+        </div>
+      </article>
+
+    </div>
   </div>
 </section>
 
@@ -859,6 +950,125 @@ includeP18Styles: true
       window.addEventListener('resize', updateRevButtons, { passive: true });
       updateRevButtons();
     }
+  }
+
+  /* ── yb-more: Course pills ── */
+  var COURSE_DATA = {
+    inv: {
+      image: 'https://www.yogabible.dk/s/Inversions_Course_Copenhagen.jpg?format=1500w',
+      blurb: 'Lær at arbejde sikkert med håndstande, underarmsbalancer og hovedstande – teknik, styrke og mod.',
+      href: '/inversions',
+      label: 'Læs mere om Inversions',
+      alt: 'Inversions kursus'
+    },
+    spl: {
+      image: 'https://www.yogabible.dk/s/Splits_Course_Kursus_Kbenhavn_Copenhagen.jpg?format=1500w',
+      blurb: 'Smidighed med system – hofteåbnere, baglår og teknik til front & middle splits uden at presse kroppen.',
+      href: '/splits',
+      label: 'Læs mere om Splits',
+      alt: 'Splits kursus'
+    },
+    bb: {
+      image: 'https://www.yogabible.dk/s/professional-backbend-yoga-training-copenhagen.jpg?format=1500w',
+      blurb: 'Sunde bagoverbøjninger med fokus på åndedræt, stabilitet og gradvis mobilitet i brystryg og hofter.',
+      href: '/backbends',
+      label: 'Læs mere om Backbends',
+      alt: 'Backbends kursus'
+    }
+  };
+
+  var courseImg = document.getElementById('ybCourseImg');
+  var courseBlurb = document.getElementById('ybCourseBlurb');
+  var courseCta = document.getElementById('ybCourseCta');
+  var coursePills = document.querySelectorAll('.yb-more [data-course]');
+
+  if (courseImg && courseBlurb && courseCta && coursePills.length) {
+    var setCourse = function(key) {
+      var data = COURSE_DATA[key];
+      if (!data) return;
+      coursePills.forEach(function(p) {
+        var isActive = p.dataset.course === key;
+        p.classList.toggle('is-active', isActive);
+        p.setAttribute('aria-selected', isActive);
+      });
+      courseImg.src = data.image;
+      courseImg.alt = data.alt;
+      courseBlurb.textContent = data.blurb;
+      courseCta.href = data.href;
+      courseCta.textContent = data.label + ' \u2192';
+    };
+    coursePills.forEach(function(p) {
+      p.addEventListener('click', function() { setCourse(p.dataset.course); });
+    });
+    setCourse('inv');
+  }
+
+  /* ── yb-more: Program pills (4w / 8w) ── */
+  var PROGRAM_DATA = {
+    '4w': {
+      title: '200 timer – 4 ugers intensivt program',
+      badge: 'Intensivt',
+      blurb: 'Samme <strong>Yoga Alliance–certificerede</strong> uddannelse – komprimeret til <strong>4 uger</strong> for dig, der vil gennemføre hurtigt og har tiden til at fordybe dig hver dag.',
+      list: [
+        'Daglig træning og teori i et fokuseret forløb',
+        'Stærkt fokus på teknik, undervisningshåndværk & praksis',
+        '<strong>Mulighed for indkvartering</strong> under forløbet'
+      ],
+      href: '/200-hours-4-weeks-intensive-programs',
+      ctaLabel: 'Gå til 4-ugers intensiv uddannelse \u2192',
+      alt: '200-timers – 4 ugers intensivt program'
+    },
+    '8w': {
+      title: '200 timer – 8 ugers semi-intensivt program',
+      badge: 'Semi-Intensivt',
+      blurb: 'Samme <strong>Yoga Alliance–certificerede</strong> uddannelse – fordelt over <strong>8 uger</strong> med et balanceret tempo, der giver plads til integration og hverdagsliv.',
+      list: [
+        'Flere dage om ugen med blandet teori og praksis',
+        'Tid til at fordøje stoffet mellem sessioner',
+        '<strong>Mulighed for indkvartering</strong> under forløbet'
+      ],
+      href: '/200-hours-8-weeks-semi-intensive-programs',
+      ctaLabel: 'Gå til 8-ugers semi-intensiv uddannelse \u2192',
+      alt: '200-timers – 8 ugers semi-intensivt program'
+    }
+  };
+
+  var programTitle = document.getElementById('ybProgramTitle');
+  var programBadge = document.getElementById('ybProgramBadge');
+  var programBlurb = document.getElementById('ybProgramBlurb');
+  var programList = document.getElementById('ybProgramList');
+  var programCta = document.getElementById('ybProgramCta');
+  var programImg = document.getElementById('ybProgramImg');
+  var programPills = document.querySelectorAll('.yb-more [data-program]');
+
+  if (programTitle && programBlurb && programCta && programPills.length) {
+    var setProgram = function(key) {
+      var data = PROGRAM_DATA[key];
+      if (!data) return;
+      programPills.forEach(function(p) {
+        var isActive = p.dataset.program === key;
+        p.classList.toggle('is-active', isActive);
+        p.setAttribute('aria-selected', isActive);
+      });
+      programTitle.textContent = data.title;
+      if (programBadge) programBadge.textContent = data.badge;
+      programBlurb.innerHTML = data.blurb;
+      if (programImg) programImg.alt = data.alt;
+      if (programList) {
+        programList.innerHTML = '';
+        data.list.forEach(function(item) {
+          var li = document.createElement('li');
+          li.innerHTML = item;
+          programList.appendChild(li);
+        });
+      }
+      programCta.href = data.href;
+      programCta.textContent = data.ctaLabel;
+    };
+    programPills.forEach(function(p) {
+      p.addEventListener('click', function() { setProgram(p.dataset.program); });
+    });
+    setProgram('4w');
   }
 })();
 </script>
