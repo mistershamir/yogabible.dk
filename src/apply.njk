@@ -5,281 +5,2271 @@ description: "Ansøg til Yoga Bible's yogalæreruddannelse (YTT), kurser eller m
 includeScheduleModal: false
 ---
 
-<!-- Apply Hero -->
-<section class="program-hero">
-  <div class="container">
-    <div class="program-hero__badge">YOGA BIBLE</div>
-    <h1 class="program-hero__title">Ansøgning & Ændringer</h1>
-    <p class="program-hero__subtitle">Et valg der kan ændre din hverdag</p>
-  </div>
-</section>
-
-<!-- Introduction -->
-<section class="program-overview">
-  <div class="container">
-    <p class="section-subtitle">
-      At ansøge hos Yoga Bible er et stærkt skridt: mere viden, mere ro, mere styrke — og en praksis du kan bruge resten af livet. Uanset om du vælger uddannelse eller kursus, får du et klart forløb, dygtige undervisere og et fællesskab, der løfter dig.
-    </p>
-
-    <div class="program-grid" style="margin-top:32px">
-      <div class="program-feature">
-        <div class="program-feature__icon">🎯</div>
-        <h3>Klar struktur og retning</h3>
-        <p>Et gennemtænkt forløb med klare mål og milepæle fra dag ét.</p>
-      </div>
-      <div class="program-feature">
-        <div class="program-feature__icon">🧘</div>
-        <h3>Praktisk undervisning</h3>
-        <p>Du kan bruge det med det samme — i din praksis, dit liv og din karriere.</p>
-      </div>
-      <div class="program-feature">
-        <div class="program-feature__icon">👥</div>
-        <h3>Et fællesskab</h3>
-        <p>Et community der støtter din udvikling og løfter dig hele vejen.</p>
-      </div>
+<!-- =========================================================
+  YogaBible.dk — Apply Page: Hero
+========================================================= -->
+<section id="yb-apply-hero" class="yb-apply-hero" lang="da">
+  <div class="yb-apply-hero__wrap">
+    <div class="yb-apply-hero__content">
+      <span class="yb-apply-hero__badge">Yoga Bible</span>
+      <h1 class="yb-apply-hero__title">Tag det næste skridt<br>i din yoga-rejse</h1>
+      <p class="yb-apply-hero__sub">Ansøg til uddannelse, kursus eller mentorship — og bliv en del af Yoga Bible.</p>
+      <a href="#yb-apply-intro" class="yb-apply-hero__arrow" aria-label="Scroll ned">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+      </a>
     </div>
   </div>
 </section>
 
-<!-- Application Form -->
-<section class="program-schedule">
-  <div class="container">
-    <h2 class="section-title">Ny Ansøgning</h2>
-    <p class="section-subtitle">
-      Vælg først om du vil ansøge om <strong>Yoga læreruddannelse (YTT)</strong> og/eller <strong>Kursus</strong>. Betaling håndteres <strong>separat</strong> for hver del. Hvis du <strong>ikke allerede har betalt</strong>, og ansøgning er åben, kan du betale via link og derefter indsende ansøgningen.
+<!-- =========================================================
+  YogaBible.dk — Apply Page: PART 1 — Intro Section
+========================================================= -->
+<section id="yb-apply-intro" class="yb-apply-intro" lang="da">
+  <div class="yb-apply-intro__wrap yb-font">
+
+    <!-- Page head -->
+    <header class="yb-apply-intro__head">
+      <p class="yb-apply-intro__eyebrow">Yoga Bible</p>
+      <h2 class="yb-apply-intro__title">Ansøgning & ændringer</h2>
+    </header>
+
+    <!-- Hero (text + image) -->
+    <div class="yb-apply-intro__hero">
+      <div class="yb-apply-intro__heroCard">
+        <div class="yb-apply-intro__heroText">
+          <p class="yb-apply-intro__kicker">Et valg der kan ændre din hverdag</p>
+
+          <p class="yb-apply-intro__heroCopy">
+            At ansøge hos Yoga Bible er et stærkt skridt: mere viden, mere ro, mere styrke —
+            og en praksis du kan bruge resten af livet. Uanset om du vælger uddannelse eller kursus,
+            får du et klart forløb, dygtige undervisere og et fællesskab, der løfter dig.
+          </p>
+
+          <ul class="yb-apply-intro__bullets" aria-label="Fordele">
+            <li>Klar struktur og retning</li>
+            <li>Praktisk undervisning — du kan bruge det med det samme</li>
+            <li>Et fællesskab, der støtter din udvikling</li>
+          </ul>
+        </div>
+
+        <!-- Image frame -->
+        <figure class="yb-apply-intro__heroMedia" style="--yb-hero-img:url('https://www.yogabible.dk/s/Beth-02.jpg')" aria-label="Yoga Bible">
+          <img
+            src="https://www.yogabible.dk/s/Beth-02.jpg"
+            alt="Yoga Bible — uddannelser og kurser"
+            loading="eager"
+            decoding="async"
+          />
+        </figure>
+      </div>
+    </div>
+
+    <!-- Instruction -->
+    <p class="yb-apply-intro__note">
+      Vælg først om du vil ansøge om <strong>Yoga læreruddannelse (YTT)</strong> og/eller <strong>Kursus</strong>.
+      Betaling håndteres <strong>separat</strong> for hver del (så vi kan matche korrekt).
+      Hvis du <strong>ikke allerede har betalt</strong>, og ansøgning er åben, kan du betale via link og derefter indsende ansøgningen.
     </p>
 
-    <form id="ybApplyForm" class="yb-apply-form" novalidate>
-      <input class="yb-modal-u__hp" type="text" name="website" tabindex="-1" autocomplete="off" aria-hidden="true" style="position:absolute;left:-9999px">
+  </div>
+</section>
 
-      <!-- Step 1: What to apply for -->
-      <div class="yb-apply-section">
-        <h3 class="yb-apply-section__title">Hvad vil du ansøge om? *</h3>
-        <div class="yb-apply-radio-group">
-          <label class="yb-apply-radio">
-            <input type="radio" name="applyType" value="ytt" required>
+<!-- =========================================================
+  YogaBible.dk — Apply Page: PART 2 — Application Form
+========================================================= -->
+<section id="yb-apply-form" class="yb-apply-form" lang="da" aria-label="Ny ansøgning">
+  <div class="yb-apply-form__wrap yb-font">
+
+    <!-- Form card -->
+    <div class="yb-card yb-card--form">
+      <header class="yb-card__head">
+        <h2 class="yb-card__title">Ny ansøgning</h2>
+        <p class="yb-card__sub">Vælg dit forløb nedenfor.</p>
+      </header>
+
+      <form id="ybApplyForm" class="yb-form" novalidate>
+
+        <!-- Builder choose -->
+        <fieldset class="yb-fieldset">
+          <legend class="yb-legend">Hvad vil du ansøge om?</legend>
+
+          <label class="yb-check yb-check--builder">
+            <input id="ybApplyYTT" type="checkbox" />
             <span>Yoga læreruddannelse (YTT)</span>
           </label>
-          <label class="yb-apply-radio">
-            <input type="radio" name="applyType" value="kursus">
+
+          <label class="yb-check yb-check--builder">
+            <input id="ybApplyCourse" type="checkbox" />
             <span>Kursus</span>
           </label>
-          <label class="yb-apply-radio">
-            <input type="radio" name="applyType" value="mentorship">
+
+          <label class="yb-check yb-check--builder">
+            <input id="ybApplyMentorship" type="checkbox" />
             <span>Mentorship — privat træning</span>
           </label>
-        </div>
-      </div>
 
-      <!-- YTT Block (shown when YTT selected) -->
-      <div id="ybYttBlock" class="yb-apply-card" hidden>
-        <h3>Yoga læreruddannelse (YTT)</h3>
-        <p class="yb-apply-hint">Vælg program, periode — og evt. spor.</p>
+          <div id="ybBuilderHint" class="yb-hint" aria-live="polite"></div>
+        </fieldset>
 
-        <div class="yb-modal-u__grid">
-          <label class="yb-modal-u__field">
-            <span>YTT program *</span>
-            <select name="yttProgram" id="ybYttProgram" required>
-              <option value="">Vælg...</option>
-              <option value="200h-18w">200-timer — 18 ugers fleksibel</option>
-              <option value="200h-8w">200-timer — 8 ugers semi-intensiv</option>
-              <option value="200h-4w">200-timer — 4 ugers intensiv</option>
-            </select>
-          </label>
+        <!-- BUILDER GRID (YTT + Course blocks) -->
+        <div class="yb-builderGrid" id="ybBuilderGrid" aria-label="Valgte moduler">
 
-          <label class="yb-modal-u__field">
-            <span>YTT periode *</span>
-            <select name="yttPeriod" id="ybYttPeriod" disabled>
-              <option value="">Vælg program først...</option>
-            </select>
-          </label>
+          <!-- YTT block -->
+          <section id="ybYttBlock" class="yb-subCard is-hidden" aria-label="Yoga læreruddannelse">
+            <div class="yb-subHead">
+              <div>
+                <div class="yb-subTitle">Yoga læreruddannelse (YTT)</div>
+                <div class="yb-subSub">Vælg program, periode — og evt. spor.</div>
+              </div>
+            </div>
 
-          <label class="yb-modal-u__field">
-            <span>YTT spor</span>
-            <select name="yttTrack" id="ybYttTrack" disabled>
-              <option value="">Vælg...</option>
-              <option value="hverdag">Hverdagsforløb</option>
-              <option value="weekend">Weekend-forløb</option>
-            </select>
-          </label>
-        </div>
-
-        <!-- YTT Payment -->
-        <div class="yb-apply-payment">
-          <h4>YTT betaling</h4>
-          <div class="yb-apply-radio-group">
-            <label class="yb-apply-radio">
-              <input type="radio" name="yttPayment" value="paid">
-              <span>Jeg har betalt (fuldt / depositum) for YTT</span>
+            <label class="yb-field">
+              <span class="yb-label">YTT program *</span>
+              <select id="ybYttProgram" required>
+                <option value="">Vælg...</option>
+              </select>
             </label>
-            <label class="yb-apply-radio">
-              <input type="radio" name="yttPayment" value="pay-now">
-              <span>Jeg betaler nu for YTT (åbn betalingslink)</span>
+
+            <label class="yb-field">
+              <span class="yb-label">YTT periode *</span>
+              <select id="ybYttPeriod" required disabled>
+                <option value="">Vælg program først...</option>
+              </select>
+              <div id="ybYttPeriodHint" class="yb-hint" aria-live="polite"></div>
             </label>
-          </div>
 
-          <div id="ybYttPayAlert" class="yb-apply-alert" hidden>
-            <p><strong>Vigtigt:</strong> Betal først — og indsend derefter ansøgningen. Så kan vi hurtigt matche din betaling og behandle din ansøgning korrekt.</p>
-            <a id="ybYttPayLink" class="btn btn--primary" href="#" target="_blank" rel="noopener">Betal — YTT ↗</a>
-          </div>
-
-          <label class="yb-apply-checkbox" id="ybYttConfirmWrap" hidden>
-            <input type="checkbox" name="yttPayConfirm" id="ybYttPayConfirm">
-            <span>Jeg bekræfter, at jeg har gennemført YTT-betalingen</span>
-          </label>
-        </div>
-      </div>
-
-      <!-- Course Block (shown when Kursus selected) -->
-      <div id="ybCourseBlock" class="yb-apply-card" hidden>
-        <h3>Kursus</h3>
-        <p class="yb-apply-hint">Vælg kursus, periode — eller en kursuspakke (bundle).</p>
-
-        <div class="yb-modal-u__grid">
-          <label class="yb-modal-u__field">
-            <span>Kursus *</span>
-            <select name="course" id="ybCourse">
-              <option value="">Vælg...</option>
-              <option value="inversions">Inversions</option>
-              <option value="splits">Splits</option>
-              <option value="backbends">Backbends</option>
-            </select>
-          </label>
-
-          <label class="yb-modal-u__field">
-            <span>Periode *</span>
-            <select name="coursePeriod" id="ybCoursePeriod" disabled>
-              <option value="">Vælg kursus først...</option>
-            </select>
-          </label>
-
-          <label class="yb-modal-u__field">
-            <span>Kursuspakke</span>
-            <select name="courseBundle" id="ybCourseBundle">
-              <option value="">Ingen bundle</option>
-              <option value="inv-back">Inversions + Backbends</option>
-              <option value="inv-splits">Inversions + Splits</option>
-              <option value="back-splits">Backbends + Splits</option>
-              <option value="all-in">All-in (Inversions + Backbends + Splits)</option>
-            </select>
-          </label>
-        </div>
-
-        <!-- Course Payment -->
-        <div class="yb-apply-payment">
-          <h4>Kursus betaling</h4>
-          <div class="yb-apply-radio-group">
-            <label class="yb-apply-radio">
-              <input type="radio" name="coursePayment" value="paid">
-              <span>Jeg har betalt for dette kursus</span>
+            <!-- Track under period -->
+            <label id="ybYttTrackField" class="yb-field is-hidden">
+              <span class="yb-label">YTT spor *</span>
+              <select id="ybYttTrack">
+                <option value="">Vælg...</option>
+              </select>
+              <div id="ybYttTrackHint" class="yb-hint" aria-live="polite"></div>
             </label>
-            <label class="yb-apply-radio">
-              <input type="radio" name="coursePayment" value="pay-now">
-              <span>Jeg betaler nu for dette kursus (åbn betalingslink)</span>
+
+            <fieldset class="yb-fieldset">
+              <legend class="yb-legend">YTT betaling</legend>
+
+              <div class="yb-radioGroup" role="radiogroup" aria-label="YTT Betaling">
+                <label class="yb-radio">
+                  <input type="radio" name="ytt_payment_choice" value="paid" />
+                  <span>Jeg har betalt (fuldt / depositum) for YTT</span>
+                </label>
+
+                <label class="yb-radio">
+                  <input type="radio" name="ytt_payment_choice" value="pay_now" />
+                  <span>Jeg betaler nu for YTT (åbn betalingslink)</span>
+                </label>
+              </div>
+
+              <div class="yb-payBox is-hidden" id="ybYttPayBox" aria-hidden="true">
+                <div class="yb-alert">
+                  <strong>Vigtigt:</strong> Betal først — og indsend derefter ansøgningen.
+                  Så kan vi hurtigt matche din betaling og behandle din ansøgning korrekt.
+                </div>
+
+                <div class="yb-payRow">
+                  <a id="ybYttPayLink" class="yb-payBtn" href="#" target="_blank" rel="noopener">
+                    <span class="yb-payBtn__txt">Betal — YTT</span>
+                    <span class="yb-payBtn__icon" aria-hidden="true">&#8599;</span>
+                  </a>
+                  <span class="yb-payMeta">Åbner i nyt faneblad</span>
+                </div>
+
+                <label class="yb-check yb-check--pay">
+                  <input id="ybYttPaidConfirm" type="checkbox" />
+                  <span>Jeg bekræfter, at jeg har gennemført YTT-betalingen</span>
+                </label>
+              </div>
+            </fieldset>
+          </section>
+
+          <!-- Course block -->
+          <section id="ybCourseBlock" class="yb-subCard is-hidden" aria-label="Kursus">
+            <div class="yb-subHead">
+              <div>
+                <div class="yb-subTitle">Kursus</div>
+                <div class="yb-subSub">Vælg kursus, periode — eller en kursuspakke (bundle).</div>
+              </div>
+            </div>
+
+            <label class="yb-field">
+              <span class="yb-label">Kursus *</span>
+              <select id="ybCourseProgram" required>
+                <option value="">Vælg...</option>
+              </select>
             </label>
-          </div>
 
-          <div id="ybCoursePayAlert" class="yb-apply-alert" hidden>
-            <p><strong>Vigtigt:</strong> Betal først — og indsend derefter ansøgningen.</p>
-            <a id="ybCoursePayLink" class="btn btn--primary" href="#" target="_blank" rel="noopener">Betal fuld betaling — Kursus ↗</a>
-          </div>
+            <label class="yb-field">
+              <span class="yb-label">Periode *</span>
+              <select id="ybCoursePeriod" required disabled>
+                <option value="">Vælg kursus først...</option>
+              </select>
+              <div id="ybCoursePeriodHint" class="yb-hint" aria-live="polite"></div>
+            </label>
 
-          <label class="yb-apply-checkbox" id="ybCourseConfirmWrap" hidden>
-            <input type="checkbox" name="coursePayConfirm" id="ybCoursePayConfirm">
-            <span>Jeg bekræfter, at jeg har gennemført kursus-betalingen</span>
-          </label>
-        </div>
-      </div>
+            <!-- Bundle type (shows only when program = Kursuspakke) -->
+            <label id="ybCourseBundleField" class="yb-field is-hidden">
+              <span class="yb-label">Kursuspakke *</span>
+              <select id="ybCourseBundleType" required disabled>
+                <option value="">Vælg...</option>
+                <option value="Inversions + Backbends">Inversions + Backbends</option>
+                <option value="Inversions + Splits">Inversions + Splits</option>
+                <option value="Backbends + Splits">Backbends + Splits</option>
+                <option value="All-in (Inversions + Backbends + Splits)">All-in (Inversions + Backbends + Splits)</option>
+              </select>
+              <div id="ybCourseBundleHint" class="yb-hint" aria-live="polite"></div>
+            </label>
 
-      <!-- Accommodation Block -->
-      <div id="ybAccBlock" class="yb-apply-card" hidden>
-        <h3>Overnatning</h3>
-        <p class="yb-apply-hint">Har du brug for overnatning i 2026? (Feb–Jun)</p>
+            <fieldset class="yb-fieldset">
+              <legend class="yb-legend">Kursus betaling</legend>
 
-        <div class="yb-apply-radio-group">
-          <label class="yb-apply-radio">
-            <input type="radio" name="accommodation" value="no" checked>
-            <span>Nej tak</span>
-          </label>
-          <label class="yb-apply-radio">
-            <input type="radio" name="accommodation" value="yes">
-            <span>Ja tak</span>
-          </label>
-        </div>
+              <div class="yb-radioGroup" role="radiogroup" aria-label="Kursus betaling">
+                <label class="yb-radio">
+                  <input type="radio" name="course_payment_choice" value="paid" />
+                  <span>Jeg har betalt for dette kursus</span>
+                </label>
 
-        <div id="ybAccMonths" class="yb-apply-months" hidden>
-          <p>Vælg de måneder du ønsker (du kan vælge flere):</p>
-          <div class="yb-month-chips">
-            <label class="yb-month-chip"><input type="checkbox" name="accMonth" value="feb"><span>Februar</span></label>
-            <label class="yb-month-chip"><input type="checkbox" name="accMonth" value="mar"><span>Marts</span></label>
-            <label class="yb-month-chip"><input type="checkbox" name="accMonth" value="apr"><span>April</span></label>
-            <label class="yb-month-chip"><input type="checkbox" name="accMonth" value="maj"><span>Maj</span></label>
-          </div>
-        </div>
-      </div>
+                <label class="yb-radio">
+                  <input type="radio" name="course_payment_choice" value="pay_now" />
+                  <span>Jeg betaler nu for dette kursus (åbn betalingslink)</span>
+                </label>
+              </div>
 
-      <!-- Contact Info -->
-      <div class="yb-apply-card">
-        <h3>Dine Oplysninger</h3>
+              <div class="yb-payBox is-hidden" id="ybCoursePayBox" aria-hidden="true">
+                <div class="yb-alert">
+                  <strong>Vigtigt:</strong> Betal først — og indsend derefter ansøgningen.
+                  Så kan vi hurtigt matche din betaling og behandle din ansøgning korrekt.
+                </div>
 
-        <div class="yb-modal-u__grid">
-          <label class="yb-modal-u__field">
-            <span>Fornavn *</span>
-            <input type="text" name="firstName" required>
-          </label>
-          <label class="yb-modal-u__field">
-            <span>Efternavn *</span>
-            <input type="text" name="lastName" required>
-          </label>
-          <label class="yb-modal-u__field">
-            <span>E-mail *</span>
-            <input type="email" name="email" required>
-          </label>
-          <label class="yb-modal-u__field">
-            <span>Telefon *</span>
-            <input type="tel" name="phone" required>
-          </label>
-        </div>
+                <div class="yb-payRow">
+                  <a id="ybCoursePayLink" class="yb-payBtn" href="#" target="_blank" rel="noopener">
+                    <span class="yb-payBtn__txt">Betal fuld betaling — Kursus</span>
+                    <span class="yb-payBtn__icon" aria-hidden="true">&#8599;</span>
+                  </a>
+                  <span class="yb-payMeta">Åbner i nyt faneblad</span>
+                </div>
 
-        <label class="yb-modal-u__field">
-          <span>Hvordan hørte du om os? *</span>
-          <select name="source" id="ybSource" required>
+                <label class="yb-check yb-check--pay">
+                  <input id="ybCoursePaidConfirm" type="checkbox" />
+                  <span>Jeg bekræfter, at jeg har gennemført kursus-betalingen</span>
+                </label>
+              </div>
+            </fieldset>
+          </section>
+
+          <!-- Accommodation block (full width) -->
+          <section id="ybAccomBlock" class="yb-subCard yb-subCard--wide" aria-label="Overnatning">
+            <div class="yb-subHead">
+              <div>
+                <div class="yb-subTitle">Overnatning</div>
+                <div class="yb-subSub">Har du brug for overnatning i 2026? (Feb–Jun)</div>
+              </div>
+            </div>
+
+            <fieldset class="yb-fieldset">
+              <legend class="yb-legend">Overnatning?</legend>
+
+              <div class="yb-radioGroup" role="radiogroup" aria-label="Overnatning behov">
+                <label class="yb-radio">
+                  <input type="radio" name="accom_need" value="no" checked />
+                  <span>Nej tak</span>
+                </label>
+                <label class="yb-radio">
+                  <input type="radio" name="accom_need" value="yes" />
+                  <span>Ja tak</span>
+                </label>
+              </div>
+
+              <div id="ybAccomInner" class="is-hidden" aria-hidden="true">
+                <div id="ybAccomHint" class="yb-hint" style="margin-top:2px;">
+                  Vælg de måneder du ønsker (du kan vælge flere).
+                </div>
+
+                <div class="yb-months" id="ybAccomMonths" aria-label="Vælg måneder"></div>
+                <input id="ybAccomMonthsValue" type="hidden" />
+
+                <fieldset class="yb-fieldset" style="margin-top:10px;">
+                  <legend class="yb-legend">Overnatning betaling</legend>
+
+                  <div class="yb-radioGroup" role="radiogroup" aria-label="Overnatning betaling">
+                    <label class="yb-radio">
+                      <input type="radio" name="accom_payment_choice" value="paid" />
+                      <span>Jeg har betalt for overnatning</span>
+                    </label>
+
+                    <label class="yb-radio">
+                      <input type="radio" name="accom_payment_choice" value="pay_now" />
+                      <span>Jeg betaler nu (åbn overnatningsside)</span>
+                    </label>
+                  </div>
+
+                  <div class="yb-payBox is-hidden" id="ybAccomPayBox" aria-hidden="true">
+                    <div class="yb-alert">
+                      <strong>Vigtigt:</strong> Betal på overnatningssiden — og indsend derefter ansøgningen.
+                    </div>
+
+                    <div class="yb-payRow">
+                      <a id="ybAccomPayLink" class="yb-payBtn" href="/accommodation" target="_blank" rel="noopener">
+                        <span class="yb-payBtn__txt">Åbn overnatningsside</span>
+                        <span class="yb-payBtn__icon" aria-hidden="true">&#8599;</span>
+                      </a>
+                      <span class="yb-payMeta">Åbner i nyt faneblad</span>
+                    </div>
+
+                    <label class="yb-check yb-check--pay">
+                      <input id="ybAccomPaidConfirm" type="checkbox" />
+                      <span>Jeg bekræfter, at jeg har gennemført overnatningsbetalingen</span>
+                    </label>
+                  </div>
+                </fieldset>
+              </div>
+            </fieldset>
+          </section>
+
+        </div><!-- /builder grid -->
+
+        <!-- User info -->
+        <label class="yb-field">
+          <span class="yb-label">Fornavn *</span>
+          <input id="ybFirstName" name="first_name" type="text" autocomplete="given-name" required />
+        </label>
+
+        <label class="yb-field">
+          <span class="yb-label">Efternavn *</span>
+          <input id="ybLastName" name="last_name" type="text" autocomplete="family-name" required />
+        </label>
+
+        <label class="yb-field">
+          <span class="yb-label">E-mail *</span>
+          <input id="ybEmail" name="email" type="email" autocomplete="email" required />
+        </label>
+
+        <label class="yb-field">
+          <span class="yb-label">Telefon *</span>
+          <input id="ybPhone" name="phone" type="tel" autocomplete="tel" required />
+        </label>
+
+        <!-- How did you hear about us -->
+        <label class="yb-field">
+          <span class="yb-label">Hvordan hørte du om os? *</span>
+          <select id="ybHearAbout" required>
             <option value="">Vælg...</option>
-            <option value="google">Google</option>
-            <option value="social">Sociale medier</option>
-            <option value="friend">En ven</option>
-            <option value="hyc">Hot Yoga Copenhagen medlem</option>
-            <option value="ai">AI ChatBots (fx ChatGPT..)</option>
-            <option value="unsure">Ikke sikker endnu</option>
-            <option value="other">Andet</option>
+            <option value="Google">Google</option>
+            <option value="Social Media">Sociale medier</option>
+            <option value="A Friend">En ven</option>
+            <option value="Hot Yoga Copenhagen member">Hot Yoga Copenhagen medlem</option>
+            <option value="AI ChatBots (fx ChatGPT)">AI ChatBots (fx ChatGPT..)</option>
+            <option value="Not sure yet">Ikke sikker endnu</option>
+            <option value="Other">Andet</option>
           </select>
         </label>
 
-        <label class="yb-modal-u__field" id="ybSourceOtherWrap" hidden>
-          <span>Andet — skriv her</span>
-          <input type="text" name="sourceOther">
+        <label id="ybHearOtherField" class="yb-field is-hidden">
+          <span class="yb-label">Andet — skriv her</span>
+          <input id="ybHearOther" type="text" placeholder="Skriv kort..." />
         </label>
 
-        <label class="yb-modal-u__field">
-          <span>Anti-spam: Skriv NAMASTE *</span>
-          <input type="text" name="antispam" id="ybApplyAntispam" required autocomplete="off">
+        <label class="yb-field">
+          <span class="yb-label">Anti-spam *</span>
+          <input id="ybAntiSpam" name="anti_spam" type="text" placeholder="Skriv ordet: YOGA" required />
+          <span class="yb-hint">Et lille yogisk tjek for at holde formularen ren</span>
         </label>
 
-        <label class="yb-apply-checkbox">
-          <input type="checkbox" name="consent" id="ybConsent" required>
+        <label class="yb-check">
+          <input id="ybConsent" type="checkbox" required />
           <span>Jeg accepterer, at Yoga Bible gemmer mine oplysninger for at administrere ansøgningen.</span>
         </label>
-      </div>
 
-      <p id="ybApplyError" class="yb-modal-u__error" hidden></p>
+        <button id="ybApplySubmit" class="yb-btn yb-btn--primary" type="submit" disabled>
+          Send ansøgning
+        </button>
 
-      <button id="ybApplySubmit" class="yb-btn yb-btn--cta" type="submit" disabled>Send ansøgning</button>
-    </form>
-
-    <div id="ybApplySuccess" class="yb-modal-u__success" hidden role="status" aria-live="polite">
-      <div class="yb-modal-u__success-icon">&#10003;</div>
-      <h3>Tak for din ansøgning!</h3>
-      <p>Vi har modtaget din ansøgning og vender tilbage snarest med næste skridt.</p>
+        <p id="ybApplyMsg" class="yb-msg" aria-live="polite"></p>
+      </form>
     </div>
+
   </div>
 </section>
+
+
+<!-- =========================================================
+  STYLES: Hero + Intro + Form
+========================================================= -->
+<style>
+/* ========================================
+   HERO SECTION (top banner)
+======================================== */
+#yb-apply-hero,
+#yb-apply-hero * {
+  box-sizing: border-box !important;
+}
+
+#yb-apply-hero {
+  position: relative;
+  min-height: 420px;
+  display: grid;
+  place-items: center;
+  background: linear-gradient(135deg, #1C1C1C 0%, #2a2a2a 50%, #1C1C1C 100%);
+  color: #FDFBF7;
+  padding: 140px 20px 80px;
+  text-align: center;
+  overflow: hidden;
+}
+
+#yb-apply-hero::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse 60% 50% at 50% 40%, rgba(247, 92, 3, 0.12) 0%, transparent 70%),
+    radial-gradient(circle at 20% 80%, rgba(247, 92, 3, 0.06) 0%, transparent 50%);
+  pointer-events: none;
+}
+
+#yb-apply-hero::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 120px;
+  background: linear-gradient(to bottom, transparent, #FFFCF9);
+  pointer-events: none;
+}
+
+.yb-apply-hero__wrap {
+  position: relative;
+  z-index: 1;
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.yb-apply-hero__content {
+  display: grid;
+  gap: 1.25rem;
+  justify-items: center;
+}
+
+.yb-apply-hero__badge {
+  display: inline-block;
+  background: rgba(247, 92, 3, 0.15);
+  border: 1.5px solid rgba(247, 92, 3, 0.4);
+  color: #f75c03;
+  padding: 8px 22px;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+}
+
+.yb-apply-hero__title {
+  font-size: clamp(2.2rem, 5vw, 3.6rem);
+  font-weight: 800;
+  line-height: 1.08;
+  letter-spacing: -0.02em;
+  margin: 0;
+  color: #FDFBF7;
+}
+
+.yb-apply-hero__sub {
+  font-size: clamp(1rem, 2vw, 1.2rem);
+  color: rgba(253, 251, 247, 0.7);
+  max-width: 520px;
+  line-height: 1.6;
+  margin: 0;
+  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+}
+
+.yb-apply-hero__arrow {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: 1.5px solid rgba(253, 251, 247, 0.2);
+  color: rgba(253, 251, 247, 0.5);
+  text-decoration: none;
+  margin-top: 0.75rem;
+  transition: all 0.2s ease;
+  animation: yb-hero-bounce 2s ease-in-out infinite;
+}
+
+.yb-apply-hero__arrow:hover {
+  border-color: rgba(247, 92, 3, 0.5);
+  color: #f75c03;
+  transform: translateY(2px);
+}
+
+@keyframes yb-hero-bounce {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(6px); }
+}
+
+@media (max-width: 600px) {
+  #yb-apply-hero {
+    min-height: 340px;
+    padding: 120px 18px 60px;
+  }
+}
+
+/* ========================================
+   PART 1: INTRO SECTION
+======================================== */
+#yb-apply-intro,
+#yb-apply-intro * {
+  box-sizing: border-box !important;
+}
+
+#yb-apply-intro {
+  --yb-primary: #f75c03;
+  --yb-primary-dark: #e05402;
+  --yb-ink: #161616;
+  --yb-muted: #6F6A66;
+  --yb-border: #e5e0db;
+  --yb-surface: #FFFCF9;
+  --yb-card: #ffffff;
+  --yb-shadow: 0 24px 60px rgba(0, 0, 0, 0.1);
+
+  background: var(--yb-surface);
+  color: var(--yb-ink);
+  padding: 56px 18px 0;
+  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif !important;
+}
+
+#yb-apply-intro img {
+  max-width: 100%;
+  height: auto;
+  display: block;
+}
+
+#yb-apply-intro .yb-apply-intro__wrap {
+  max-width: 1120px;
+  margin: 0 auto;
+}
+
+#yb-apply-intro .yb-apply-intro__head {
+  margin-bottom: 1.25rem;
+}
+
+#yb-apply-intro .yb-apply-intro__eyebrow {
+  font-size: 0.8rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--yb-muted);
+  margin: 0 0 0.5rem;
+  font-weight: 600;
+}
+
+#yb-apply-intro .yb-apply-intro__title {
+  font-size: clamp(2rem, 4vw, 3rem);
+  line-height: 1.1;
+  margin: 0;
+  letter-spacing: -0.02em;
+  font-weight: 800;
+  color: var(--yb-ink);
+}
+
+#yb-apply-intro .yb-apply-intro__hero {
+  margin-top: 1.25rem;
+}
+
+#yb-apply-intro .yb-apply-intro__heroCard {
+  display: grid;
+  grid-template-columns: 1.15fr 0.85fr;
+  gap: 1.5rem;
+  align-items: stretch;
+  background: var(--yb-card);
+  border: 1px solid var(--yb-border);
+  border-radius: 16px;
+  padding: 1.5rem;
+  box-shadow: var(--yb-shadow);
+}
+
+#yb-apply-intro .yb-apply-intro__kicker {
+  font-size: 0.8rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--yb-muted);
+  margin: 0 0 0.5rem;
+  font-weight: 600;
+}
+
+#yb-apply-intro .yb-apply-intro__heroCopy {
+  margin: 0;
+  color: var(--yb-ink);
+  line-height: 1.65;
+  font-size: 0.95rem;
+  max-width: 66ch;
+}
+
+#yb-apply-intro .yb-apply-intro__bullets {
+  list-style: none;
+  padding: 0;
+  margin: 1rem 0 0;
+  display: grid;
+  gap: 0.5rem;
+  color: var(--yb-muted);
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+
+#yb-apply-intro .yb-apply-intro__bullets li {
+  position: relative;
+  padding-left: 1rem;
+}
+
+#yb-apply-intro .yb-apply-intro__bullets li::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0.55em;
+  width: 6px;
+  height: 6px;
+  border-radius: 999px;
+  background: rgba(247, 92, 3, 0.65);
+}
+
+#yb-apply-intro .yb-apply-intro__heroMedia {
+  margin: 0;
+  border-radius: 12px;
+  border: 1px solid var(--yb-border);
+  background: var(--yb-surface);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.08);
+  position: relative;
+  min-height: 240px;
+  height: 100%;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+}
+
+#yb-apply-intro .yb-apply-intro__heroMedia::before {
+  content: "";
+  position: absolute;
+  inset: -20px;
+  background-image: var(--yb-hero-img);
+  background-size: cover;
+  background-position: center;
+  filter: blur(18px) saturate(1.05);
+  transform: scale(1.08);
+  opacity: 0.55;
+}
+
+#yb-apply-intro .yb-apply-intro__heroMedia::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(255, 252, 249, 0.35), rgba(255, 252, 249, 0.65));
+}
+
+#yb-apply-intro .yb-apply-intro__heroMedia img {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  object-position: center;
+  padding: 10px 12px;
+  max-height: 330px;
+}
+
+#yb-apply-intro .yb-apply-intro__note {
+  margin: 1.25rem 0 1.5rem;
+  color: var(--yb-muted);
+  line-height: 1.6;
+  font-size: 0.9rem;
+  max-width: 92ch;
+}
+
+#yb-apply-intro .yb-apply-intro__note strong {
+  color: var(--yb-ink);
+}
+
+@media (max-width: 900px) {
+  #yb-apply-intro .yb-apply-intro__heroCard {
+    grid-template-columns: 1fr;
+  }
+
+  #yb-apply-intro .yb-apply-intro__heroMedia {
+    min-height: 260px;
+  }
+
+  #yb-apply-intro .yb-apply-intro__heroMedia img {
+    max-height: 360px;
+  }
+}
+
+/* ========================================
+   PART 2: APPLICATION FORM
+======================================== */
+#yb-apply-form,
+#yb-apply-form * {
+  box-sizing: border-box !important;
+}
+
+#yb-apply-form {
+  --yb-primary: #f75c03;
+  --yb-primary-dark: #e05402;
+  --yb-ink: #161616;
+  --yb-muted: #6F6A66;
+  --yb-border: #e5e0db;
+  --yb-surface: #FFFCF9;
+  --yb-card: #ffffff;
+  --yb-shadow: 0 24px 60px rgba(0, 0, 0, 0.1);
+
+  background: var(--yb-surface);
+  color: var(--yb-ink);
+  padding: 0 18px 24px;
+  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif !important;
+}
+
+#yb-apply-form input,
+#yb-apply-form select,
+#yb-apply-form button {
+  font-family: inherit;
+}
+
+#yb-apply-form .is-hidden {
+  display: none !important;
+}
+
+#yb-apply-form .yb-apply-form__wrap {
+  max-width: 1120px;
+  margin: 0 auto;
+}
+
+/* Cards */
+#yb-apply-form .yb-card {
+  background: var(--yb-card);
+  border: 1px solid var(--yb-border);
+  border-radius: 16px;
+  box-shadow: var(--yb-shadow);
+  padding: 1.5rem;
+  min-width: 0;
+  overflow: visible;
+  position: relative;
+  z-index: 1;
+}
+
+#yb-apply-form .yb-card__head {
+  margin-bottom: 1rem;
+}
+
+#yb-apply-form .yb-card__title {
+  font-size: 1.25rem;
+  margin: 0 0 0.5rem;
+  font-weight: 800;
+  color: var(--yb-ink);
+}
+
+#yb-apply-form .yb-card__sub {
+  margin: 0;
+  color: var(--yb-muted);
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+
+/* Forms */
+#yb-apply-form .yb-form {
+  display: grid;
+  gap: 1rem;
+}
+
+#yb-apply-form .yb-field {
+  display: grid;
+  gap: 0.5rem;
+  position: relative;
+  z-index: 2;
+}
+
+#yb-apply-form .yb-label {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--yb-muted);
+}
+
+#yb-apply-form input,
+#yb-apply-form select {
+  width: 100%;
+  height: 48px;
+  padding: 0.75rem 1rem;
+  border-radius: 12px;
+  border: 1px solid var(--yb-border);
+  background: #fff;
+  font-size: 0.95rem;
+  color: var(--yb-ink);
+  outline: none;
+  position: relative;
+  z-index: 3;
+  -webkit-appearance: none;
+  appearance: none;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+#yb-apply-form input:focus,
+#yb-apply-form select:focus {
+  border-color: var(--yb-primary);
+  box-shadow: 0 0 0 3px rgba(247, 92, 3, 0.15);
+}
+
+#yb-apply-form select:disabled {
+  opacity: 0.6;
+}
+
+/* Chrome autofill fix */
+#yb-apply-form input:-webkit-autofill,
+#yb-apply-form input:-webkit-autofill:hover,
+#yb-apply-form input:-webkit-autofill:focus,
+#yb-apply-form select:-webkit-autofill {
+  -webkit-box-shadow: 0 0 0 1000px #fff inset !important;
+  box-shadow: 0 0 0 1000px #fff inset !important;
+  -webkit-text-fill-color: var(--yb-ink) !important;
+  border: 1px solid var(--yb-border) !important;
+  transition: background-color 9999s ease-in-out 0s;
+}
+
+#yb-apply-form .yb-hint {
+  color: var(--yb-muted);
+  font-size: 0.8rem;
+  line-height: 1.5;
+  margin-top: -0.25rem;
+}
+
+#yb-apply-form .yb-hint a {
+  color: var(--yb-primary);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+/* Fieldsets */
+#yb-apply-form .yb-fieldset {
+  border: 1px solid var(--yb-border);
+  border-radius: 12px;
+  padding: 1rem 1.25rem;
+  margin: 0;
+  background: var(--yb-surface);
+  display: grid;
+  gap: 0.5rem;
+  position: relative;
+  z-index: 2;
+}
+
+#yb-apply-form .yb-legend {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--yb-ink);
+  padding: 0 0.5rem;
+  margin-bottom: 0.25rem;
+}
+
+/* Radio Groups */
+#yb-apply-form .yb-radioGroup {
+  display: grid;
+  gap: 0.5rem;
+}
+
+#yb-apply-form .yb-radio {
+  display: flex;
+  align-items: center;
+  gap: 0.875rem;
+  font-size: 0.9rem;
+  color: var(--yb-ink);
+  margin: 0;
+  padding: 0.625rem 0.75rem;
+  width: 100%;
+  cursor: pointer;
+  border-radius: 8px;
+  transition: background-color 0.15s ease;
+}
+
+#yb-apply-form .yb-radio:hover {
+  background: rgba(247, 92, 3, 0.04);
+}
+
+#yb-apply-form .yb-radio input {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+  pointer-events: none;
+}
+
+#yb-apply-form .yb-radio input + span {
+  display: flex;
+  align-items: center;
+  gap: 0.875rem;
+  line-height: 1.4;
+}
+
+#yb-apply-form .yb-radio input + span::before {
+  content: "";
+  flex-shrink: 0;
+  width: 20px;
+  height: 20px;
+  border: 2px solid var(--yb-border);
+  border-radius: 50%;
+  background: #fff;
+  transition: all 0.15s ease;
+  box-shadow: inset 0 1px 2px rgba(0,0,0,0.05);
+}
+
+#yb-apply-form .yb-radio:hover input + span::before {
+  border-color: var(--yb-primary);
+}
+
+#yb-apply-form .yb-radio input:checked + span::before {
+  border-color: var(--yb-primary);
+  border-width: 6px;
+  background: #fff;
+}
+
+#yb-apply-form .yb-radio input:focus-visible + span::before {
+  box-shadow: 0 0 0 3px rgba(247, 92, 3, 0.2);
+}
+
+/* Payment Box */
+#yb-apply-form .yb-payBox {
+  display: grid;
+  gap: 0.75rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid var(--yb-border);
+}
+
+#yb-apply-form .yb-alert {
+  background: #FEF2F2;
+  border: 1px solid #FECACA;
+  color: #991B1B;
+  border-radius: 12px;
+  padding: 0.75rem 1rem;
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+
+#yb-apply-form .yb-alert strong {
+  color: #7F1D1D;
+}
+
+#yb-apply-form .yb-payRow {
+  display: grid;
+  gap: 0.5rem;
+  justify-items: start;
+}
+
+#yb-apply-form .yb-payBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  min-height: 40px;
+  padding: 0.6rem 1rem;
+  border-radius: 999px;
+  border: 2px solid var(--yb-primary);
+  color: var(--yb-primary);
+  background: #fff;
+  text-decoration: none;
+  font-weight: 700;
+  font-size: 0.9rem;
+  line-height: 1;
+  transition: all 0.15s ease;
+  max-width: 340px;
+  width: auto;
+  cursor: pointer;
+}
+
+#yb-apply-form .yb-payBtn:hover {
+  background: var(--yb-primary);
+  color: #fff;
+  transform: translateY(-1px);
+  box-shadow: 0 6px 20px rgba(247, 92, 3, 0.3);
+}
+
+#yb-apply-form .yb-payBtn__icon {
+  font-weight: 900;
+  opacity: 0.9;
+}
+
+#yb-apply-form .yb-payMeta {
+  font-size: 0.8rem;
+  color: var(--yb-muted);
+}
+
+/* Checkboxes */
+#yb-apply-form .yb-check {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.875rem;
+  color: #444;
+  font-size: 0.9rem;
+  line-height: 1.5;
+  width: 100%;
+  margin: 0;
+  padding: 0.5rem 0;
+  cursor: pointer;
+}
+
+#yb-apply-form .yb-check input {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+  pointer-events: none;
+}
+
+#yb-apply-form .yb-check span {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.875rem;
+}
+
+#yb-apply-form .yb-check span::before {
+  content: "";
+  flex-shrink: 0;
+  width: 22px;
+  height: 22px;
+  margin-top: -1px;
+  border: 2px solid var(--yb-border);
+  border-radius: 6px;
+  background: #fff;
+  transition: all 0.15s ease;
+  box-shadow: inset 0 1px 2px rgba(0,0,0,0.05);
+}
+
+#yb-apply-form .yb-check:hover span::before {
+  border-color: var(--yb-primary);
+}
+
+#yb-apply-form .yb-check input:checked + span::before {
+  background: var(--yb-primary);
+  border-color: var(--yb-primary);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='20 6 9 17 4 12'%3E%3C/polyline%3E%3C/svg%3E");
+  background-size: 14px;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
+#yb-apply-form .yb-check input:focus-visible + span::before {
+  box-shadow: 0 0 0 3px rgba(247, 92, 3, 0.2);
+}
+
+#yb-apply-form .yb-check--pay {
+  color: var(--yb-ink);
+  padding: 0.625rem 0.75rem;
+  border-radius: 8px;
+}
+
+#yb-apply-form .yb-check--pay:hover {
+  background: rgba(247, 92, 3, 0.04);
+}
+
+#yb-apply-form .yb-check--builder {
+  color: var(--yb-ink);
+  padding: 0.625rem 0.75rem;
+  border-radius: 8px;
+}
+
+#yb-apply-form .yb-check--builder:hover {
+  background: rgba(247, 92, 3, 0.04);
+}
+
+/* Buttons */
+#yb-apply-form .yb-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  padding: 0.85rem 1.6rem;
+  border-radius: 999px;
+  border: 2px solid transparent;
+  background: #fff;
+  color: var(--yb-ink);
+  font-weight: 700;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+#yb-apply-form .yb-btn:focus-visible {
+  outline: 3px solid var(--yb-primary);
+  outline-offset: 2px;
+}
+
+#yb-apply-form .yb-btn:active {
+  transform: scale(0.98);
+}
+
+#yb-apply-form .yb-btn--primary {
+  background: var(--yb-primary);
+  border-color: var(--yb-primary);
+  color: #fff;
+  box-shadow: 0 4px 14px rgba(247, 92, 3, 0.25);
+}
+
+#yb-apply-form .yb-btn--primary:hover {
+  background: var(--yb-primary-dark);
+  border-color: var(--yb-primary-dark);
+  box-shadow: 0 6px 20px rgba(247, 92, 3, 0.3);
+  transform: translateY(-1px);
+}
+
+#yb-apply-form .yb-btn--primary:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+/* Misc */
+#yb-apply-form .yb-msg {
+  margin: 0;
+  font-size: 0.9rem;
+  line-height: 1.5;
+  color: var(--yb-muted);
+}
+
+#yb-apply-form .yb-msg.is-ok {
+  color: #166534;
+}
+
+#yb-apply-form .yb-msg.is-err {
+  color: #991B1B;
+}
+
+/* Sub Cards (YTT, Course, Accommodation) */
+#yb-apply-form .yb-subCard {
+  border: 1px solid var(--yb-border);
+  border-radius: 12px;
+  padding: 1rem;
+  background: #fff;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.06);
+  position: relative;
+  z-index: 2;
+  min-width: 0;
+  display: grid;
+  gap: 1rem;
+}
+
+#yb-apply-form .yb-subHead {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+#yb-apply-form .yb-subTitle {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--yb-ink);
+}
+
+#yb-apply-form .yb-subSub {
+  font-size: 0.9rem;
+  color: var(--yb-muted);
+  margin-top: 0.25rem;
+  line-height: 1.4;
+}
+
+/* Builder grid */
+#yb-apply-form .yb-builderGrid {
+  display: grid;
+  gap: 1rem;
+  margin-top: 0.25rem;
+  grid-template-columns: 1fr;
+  align-items: start;
+}
+
+@media (min-width: 980px) {
+  #yb-apply-form .yb-builderGrid.is-double {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  #yb-apply-form .yb-builderGrid.is-double .yb-subCard--wide {
+    grid-column: 1 / -1;
+  }
+}
+
+/* Month Chips */
+#yb-apply-form .yb-months {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+}
+
+#yb-apply-form .yb-chip {
+  border: 1px solid var(--yb-border);
+  background: #fff;
+  border-radius: 999px;
+  padding: 0.5rem 1rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--yb-ink);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  user-select: none;
+}
+
+#yb-apply-form .yb-chip:hover {
+  border-color: var(--yb-primary);
+  color: var(--yb-primary);
+}
+
+#yb-apply-form .yb-chip.is-on {
+  background: var(--yb-primary);
+  border-color: var(--yb-primary);
+  color: #fff;
+}
+</style>
+
+
+<!-- =========================================================
+  JAVASCRIPT: Application Form Logic
+========================================================= -->
+<script>
+(function(){
+  const roots = document.querySelectorAll("section#yb-apply-form");
+  if(!roots.length) return;
+
+  roots.forEach((root) => {
+    if(root.__ybApplyBooted) return;
+    root.__ybApplyBooted = true;
+
+    const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbzYyWIlFHXlH7kOiRiBFVTspYkEAbL9_z7brMPcllYp3Hl5QhlHcspNmQW9tFDtj6GLGQ/exec";
+
+    window.YB_WEB_APP_URL = WEB_APP_URL;
+
+    const $  = (sel) => root.querySelector(sel);
+    const $$ = (sel) => Array.from(root.querySelectorAll(sel));
+
+    // ===== Course bundle config =====
+    const BUNDLE_PROGRAM_ID = "__bundle__";
+    const BUNDLE_MONTH_LABELS = ["Februar 2026","Marts 2026","April 2026","Maj 2026"];
+
+    const BUNDLE_PAY_URLS = {
+      "Februar 2026": {
+        "Inversions + Backbends": "https://clients.mindbodyonline.com/classic/ws?studioid=574883&stype=40&prodid=113",
+        "Backbends + Splits": "https://clients.mindbodyonline.com/classic/ws?studioid=574883&stype=40&prodid=115",
+        "Inversions + Splits": "https://clients.mindbodyonline.com/classic/ws?studioid=574883&stype=40&prodid=114",
+        "All-in (Inversions + Backbends + Splits)": "https://clients.mindbodyonline.com/classic/ws?studioid=574883&stype=40&prodid=125"
+      },
+      "Marts 2026": {
+        "Inversions + Backbends": "https://clients.mindbodyonline.com/classic/ws?studioid=574883&stype=40&prodid=116",
+        "Inversions + Splits": "https://clients.mindbodyonline.com/classic/ws?studioid=574883&stype=40&prodid=117",
+        "Backbends + Splits": "https://clients.mindbodyonline.com/classic/ws?studioid=574883&stype=40&prodid=118",
+        "All-in (Inversions + Backbends + Splits)": "https://clients.mindbodyonline.com/classic/ws?studioid=574883&stype=40&prodid=126"
+      },
+      "April 2026": {
+        "Inversions + Splits": "https://clients.mindbodyonline.com/classic/ws?studioid=574883&stype=40&prodid=120",
+        "Inversions + Backbends": "https://clients.mindbodyonline.com/classic/ws?studioid=574883&stype=40&prodid=119",
+        "Backbends + Splits": "https://clients.mindbodyonline.com/classic/ws?studioid=574883&stype=40&prodid=121",
+        "All-in (Inversions + Backbends + Splits)": "https://clients.mindbodyonline.com/classic/ws?studioid=574883&stype=40&prodid=127"
+      },
+      "Maj 2026": {
+        "Inversions + Backbends": "https://clients.mindbodyonline.com/classic/ws?studioid=574883&stype=40&prodid=122",
+        "Inversions + Splits": "https://clients.mindbodyonline.com/classic/ws?studioid=574883&stype=40&prodid=123",
+        "Backbends + Splits": "https://clients.mindbodyonline.com/classic/ws?studioid=574883&stype=40&prodid=124",
+        "All-in (Inversions + Backbends + Splits)": "https://clients.mindbodyonline.com/classic/ws?studioid=574883&stype=40&prodid=128"
+      }
+    };
+
+    // ===== DOM =====
+    const applyForYTT       = $("#ybApplyYTT");
+    const applyForCourse    = $("#ybApplyCourse");
+    const applyForMentorship= $("#ybApplyMentorship");
+    const builderHint       = $("#ybBuilderHint");
+    const builderGrid       = $("#ybBuilderGrid");
+
+    const yttBlock   = $("#ybYttBlock");
+    const courseBlock= $("#ybCourseBlock");
+
+    const yttProgramSel = $("#ybYttProgram");
+    const yttPeriodSel  = $("#ybYttPeriod");
+    const yttPeriodHint = $("#ybYttPeriodHint");
+    const yttTrackField = $("#ybYttTrackField");
+    const yttTrackSel   = $("#ybYttTrack");
+    const yttTrackHint  = $("#ybYttTrackHint");
+
+    const courseProgramSel = $("#ybCourseProgram");
+    const coursePeriodSel  = $("#ybCoursePeriod");
+    const coursePeriodHint = $("#ybCoursePeriodHint");
+
+    const courseBundleField= $("#ybCourseBundleField");
+    const courseBundleType = $("#ybCourseBundleType");
+    const courseBundleHint = $("#ybCourseBundleHint");
+
+    const accomMonthsWrap  = $("#ybAccomMonths");
+    const accomMonthsValue = $("#ybAccomMonthsValue");
+    const accomHint        = $("#ybAccomHint");
+    const accomInner       = $("#ybAccomInner");
+    const accomPayBox      = $("#ybAccomPayBox");
+    const accomPaidConfirm = $("#ybAccomPaidConfirm");
+
+    const yttPayBox        = $("#ybYttPayBox");
+    const yttPayLink       = $("#ybYttPayLink");
+    const yttPaidConfirm   = $("#ybYttPaidConfirm");
+
+    const coursePayBox     = $("#ybCoursePayBox");
+    const coursePayLink    = $("#ybCoursePayLink");
+    const coursePaidConfirm= $("#ybCoursePaidConfirm");
+
+    const firstName = $("#ybFirstName");
+    const lastName  = $("#ybLastName");
+    const email     = $("#ybEmail");
+    const phone     = $("#ybPhone");
+
+    const hearAbout     = $("#ybHearAbout");
+    const hearOtherField= $("#ybHearOtherField");
+    const hearOther     = $("#ybHearOther");
+
+    const antiSpam = $("#ybAntiSpam");
+    const consent  = $("#ybConsent");
+
+    const applyForm = $("#ybApplyForm");
+    const applyMsg  = $("#ybApplyMsg");
+    const submitBtn = $("#ybApplySubmit");
+
+    // ===== Helpers =====
+    let catalog = [];
+    let byCourse = new Map();
+
+    window.ybCatalog = { catalog: [], byCourse: new Map(), helpers: {} };
+
+    function setMsg(el, text, type){
+      if(!el) return;
+      el.textContent = text || "";
+      el.classList.remove("is-ok","is-err");
+      if(type) el.classList.add(type === "ok" ? "is-ok" : "is-err");
+    }
+
+    function setHintMailto(el, text){
+      if(!el) return;
+      el.innerHTML = text + ' <a href="mailto:info@yogabible.dk">info@yogabible.dk</a>.';
+    }
+
+    function show(el, on){
+      if(!el) return;
+      el.classList.toggle("is-hidden", !on);
+      el.setAttribute("aria-hidden", on ? "false" : "true");
+    }
+
+    function normalize(s){ return String(s||"").trim(); }
+    function lower(s){ return normalize(s).toLowerCase(); }
+    function catNorm(c){ return String(c||"").trim().toLowerCase(); }
+
+    function isEducationRow(r){
+      var c = catNorm(r.category);
+      if(["education","ytt","teacher training","teachertraining","teacher-training"].includes(c)) return true;
+      var name = catNorm(r.course_name);
+      return name.includes("ytt") || name.includes("læreruddannelse") || name.includes("teacher training");
+    }
+
+    function isBundleRow(r){
+      var c = catNorm(r.category);
+      if(c === "bundle") return true;
+      var name = catNorm(r.course_name);
+      return name.includes("bundle");
+    }
+
+    function isCourseRow(r){
+      if(isBundleRow(r)) return false;
+      var c = catNorm(r.category);
+      if(["course","kursus","workshop","courses"].includes(c)) return true;
+      var name = catNorm(r.course_name);
+      return name.includes("kursus") || name.includes("workshop") || name.includes("inversions course") || name.includes("splits course") || name.includes("backbends course");
+    }
+
+    function looksNotOpenYet(openStatus){
+      var t = String(openStatus || "").toLowerCase();
+      return (
+        t.includes("ikke åben") ||
+        t.includes("not open") ||
+        t.includes("coming soon") ||
+        t.includes("åbner snart") ||
+        (t.includes("snart") && t.includes("åbn")) ||
+        (t.includes("soon") && t.includes("open"))
+      );
+    }
+
+    async function getJSON(url){
+      var res = await fetch(url, { method: "GET", redirect: "follow" });
+      var txt = await res.text();
+      try { return JSON.parse(txt); }
+      catch(e){ throw new Error("Bad JSON from web app"); }
+    }
+
+    async function postJSON(payload){
+      var res = await fetch(WEB_APP_URL, {
+        method: "POST",
+        redirect: "follow",
+        headers: { "Content-Type": "text/plain;charset=utf-8" },
+        body: JSON.stringify(payload)
+      });
+      var txt = await res.text();
+      try { return JSON.parse(txt); }
+      catch(e){ throw new Error("Bad JSON from web app"); }
+    }
+
+    function looksLikeRawDateLabel(label){
+      var t = lower(label);
+      if(!t) return false;
+      if(t.includes("gmt")) return true;
+      if(/central(europe|europ)/i.test(t)) return true;
+      if(/\b(mon|tue|wed|thu|fri|sat|sun)\b/i.test(t)) return true;
+      return false;
+    }
+
+    var MONTH_ALIASES = {
+      jan:0, januar:0, january:0,
+      feb:1, februar:1, february:1,
+      mar:2, marts:2, march:2,
+      apr:3, april:3,
+      maj:4, may:4,
+      jun:5, juni:5, june:5,
+      jul:6, juli:6, july:6,
+      aug:7, august:7,
+      sep:8, sept:8, september:8,
+      okt:9, oct:9, oktober:9, october:9,
+      nov:10, november:10,
+      dec:11, dek:11, december:11
+    };
+
+    function parseMonthYear(text){
+      var raw = String(text || "").trim();
+      if(!raw) return null;
+      var t = raw.replace(/[–—-]/g, " ").replace(/[,/]/g, " ").replace(/\s+/g, " ").trim();
+      var year = null;
+      var y4 = t.match(/\b(20\d{2})\b/);
+      if(y4) year = Number(y4[1]);
+      if(!year){
+        var y2 = t.match(/\b(\d{2})\b/);
+        if(y2){
+          var yy = Number(y2[1]);
+          if(!isNaN(yy)) year = 2000 + yy;
+        }
+      }
+      var tokens = t.toLowerCase().split(" ").map(function(w){ return w.replace(/[^a-zæøå]/g, ""); }).filter(Boolean);
+      var month = null;
+      for(var i = 0; i < tokens.length; i++){
+        if(MONTH_ALIASES.hasOwnProperty(tokens[i])){
+          month = MONTH_ALIASES[tokens[i]];
+          break;
+        }
+      }
+      if(month === null) return null;
+      return { month: month, year: year };
+    }
+
+    function sortKeyForRow(row){
+      var label = row.cohort_label || row.cohort_id || "";
+      var pm = parseMonthYear(label);
+      var labelTime = (pm && pm.year) ? new Date(pm.year, pm.month, 1).getTime() : null;
+      var sk = (row.sort_key || "").trim();
+      var d = sk ? new Date(sk) : null;
+      var sortTime = (d && !isNaN(d.getTime())) ? d.getTime() : null;
+      if(sortTime && labelTime){
+        var diffDays = Math.abs(sortTime - labelTime) / (1000*60*60*24);
+        if(diffDays > 200) return labelTime;
+        return sortTime;
+      }
+      if(sortTime) return sortTime;
+      if(labelTime) return labelTime;
+      return Number.MAX_SAFE_INTEGER;
+    }
+
+    function buildMaps(){
+      byCourse = new Map();
+      (catalog || []).forEach(function(r){
+        if(!r.course_id) return;
+        if(!byCourse.has(r.course_id)) byCourse.set(r.course_id, []);
+        byCourse.get(r.course_id).push(r);
+      });
+      byCourse.forEach(function(list){ list.sort(function(a,b){ return sortKeyForRow(a) - sortKeyForRow(b); }); });
+      window.ybCatalog.catalog = catalog;
+      window.ybCatalog.byCourse = byCourse;
+      window.ybCatalog.helpers = {
+        isEducationRow: isEducationRow,
+        isCourseRow: isCourseRow,
+        isBundleRow: isBundleRow,
+        looksLikeRawDateLabel: looksLikeRawDateLabel,
+        looksNotOpenYet: looksNotOpenYet,
+        sortKeyForRow: sortKeyForRow,
+        groupCohorts: groupCohorts,
+        formatPeriodLabel: formatPeriodLabel,
+        isCourseRowAllowed: isCourseRowAllowed
+      };
+    }
+
+    function paymentMetaForRow(row){
+      var allowDeposit = String(row.allow_deposit || "").toLowerCase() === "true";
+      var dep = row.payment_url_deposit || "";
+      var full = row.payment_url_full || "";
+      if(isEducationRow(row)){
+        if(allowDeposit && dep) return { url: dep, label: "Betal depositum — YTT", kind: "deposit" };
+        return { url: full || dep || "", label: "Betal fuld betaling — YTT", kind: "full" };
+      }
+      return { url: full || dep || "", label: "Betal fuld betaling — Kursus", kind: "full" };
+    }
+
+    function formatPeriodLabel(row){
+      return row.cohort_label || row.cohort_id || "Periode";
+    }
+
+    function groupCohorts(list){
+      var map = new Map();
+      list.forEach(function(r){
+        var key = String(r.cohort_id || r.cohort_label || "");
+        if(!key) return;
+        if(!map.has(key)) map.set(key, []);
+        map.get(key).push(r);
+      });
+      return map;
+    }
+
+    function fillProgramSelect(sel, kind){
+      sel.innerHTML = '<option value="">Vælg...</option>';
+      var seen = new Map();
+      (catalog || []).forEach(function(r){
+        if(!r.course_id) return;
+        var ok = (kind === "education") ? isEducationRow(r) : isCourseRow(r);
+        if(!ok) return;
+        if(seen.has(r.course_id)) return;
+        seen.set(r.course_id, r.course_name || r.course_id);
+      });
+      Array.from(seen.entries())
+        .sort(function(a,b){ return String(a[1]).localeCompare(String(b[1]), "da"); })
+        .forEach(function(entry){
+          var opt = document.createElement("option");
+          opt.value = entry[0];
+          opt.textContent = entry[1];
+          sel.appendChild(opt);
+        });
+      if(kind === "course"){
+        var bundleOpt = document.createElement("option");
+        bundleOpt.value = BUNDLE_PROGRAM_ID;
+        bundleOpt.textContent = "Kursuspakke (bundle — kombiner kurser)";
+        sel.insertBefore(bundleOpt, sel.options[1] || null);
+      }
+    }
+
+    function isBundleSelected(){
+      return courseProgramSel.value === BUNDLE_PROGRAM_ID;
+    }
+
+    // ===== YTT specific =====
+    function is200Hr4WeekIntensive(courseId){
+      var list = byCourse.get(courseId) || [];
+      var name = (list[0] && list[0].course_name || "").toLowerCase();
+      return /200/.test(name) && /(4\s*[- ]?(ugers|uger|weeks|week))/.test(name) && /(intensiv|intensive)/.test(name);
+    }
+
+    function yttPeriodAllowed(courseId, rep){
+      var label = lower(rep.cohort_label || rep.cohort_id || "");
+      if(!label) return false;
+      if(looksLikeRawDateLabel(label)) return false;
+      if(is200Hr4WeekIntensive(courseId)){
+        if(!/2026/.test(label)) return false;
+        return /(februar|feb)\s*2026|(marts|mar|march)\s*2026|(april|apr)\s*2026/i.test(label);
+      }
+      return true;
+    }
+
+    function setYttPeriods(courseId){
+      yttPeriodSel.innerHTML = '<option value="">Vælg...</option>';
+      yttPeriodHint.textContent = "";
+      yttPeriodSel.disabled = true;
+      show(yttTrackField, false);
+      yttTrackSel.innerHTML = '<option value="">Vælg...</option>';
+      yttTrackSel.value = "";
+      yttTrackHint.textContent = "";
+      if(!courseId){
+        yttPeriodSel.innerHTML = '<option value="">Vælg program først...</option>';
+        return;
+      }
+      var list = (byCourse.get(courseId) || []).filter(isEducationRow);
+      if(!list.length){
+        yttPeriodSel.innerHTML = '<option value="">Ingen perioder lige nu...</option>';
+        return;
+      }
+      var groups = groupCohorts(list);
+      var reps = Array.from(groups.entries()).map(function(entry){ return { key: entry[0], rep: entry[1][0] }; });
+      reps.sort(function(a,b){
+        var ka = sortKeyForRow(a.rep);
+        var kb = sortKeyForRow(b.rep);
+        if(ka !== kb) return ka - kb;
+        return String(a.rep.cohort_label||a.rep.cohort_id||"").localeCompare(String(b.rep.cohort_label||b.rep.cohort_id||""), "da");
+      });
+      reps.forEach(function(item){
+        if(!yttPeriodAllowed(courseId, item.rep)) return;
+        var opt = document.createElement("option");
+        opt.value = item.key;
+        opt.textContent = formatPeriodLabel(item.rep);
+        var meta = paymentMetaForRow(item.rep);
+        opt.dataset.course_id = item.rep.course_id || "";
+        opt.dataset.course_name = item.rep.course_name || "";
+        opt.dataset.cohort_label = item.rep.cohort_label || "";
+        opt.dataset.open_status = item.rep.open_status || "";
+        opt.dataset.notes = item.rep.notes || "";
+        opt.dataset.pay_url = meta.url || "";
+        opt.dataset.pay_label = meta.label || "Betal";
+        opt.dataset.pay_kind = meta.kind || "full";
+        yttPeriodSel.appendChild(opt);
+      });
+      yttPeriodSel.disabled = (yttPeriodSel.options.length <= 1);
+      if(yttPeriodSel.disabled){
+        yttPeriodSel.innerHTML = '<option value="">Ingen perioder lige nu...</option>';
+      }
+    }
+
+    function is18WeeksProgram(courseId){
+      var list = byCourse.get(courseId) || [];
+      var name = (list[0] && list[0].course_name || "").toLowerCase();
+      return /18\s*(weeks|week|ugers|uger)/i.test(name);
+    }
+
+    function getYttRowsForSelection(){
+      var courseId = yttProgramSel.value;
+      var cohortKey = yttPeriodSel.value;
+      if(!courseId || !cohortKey) return [];
+      var list = (byCourse.get(courseId) || []).filter(isEducationRow);
+      return list.filter(function(r){ return String(r.cohort_id || r.cohort_label || "") === String(cohortKey); });
+    }
+
+    function updateYttTrackUI(){
+      show(yttTrackField, false);
+      yttTrackSel.innerHTML = '<option value="">Vælg...</option>';
+      yttTrackSel.value = "";
+      yttTrackHint.textContent = "";
+      if(!yttProgramSel.value || !yttPeriodSel.value) return;
+      var forceTrack = is18WeeksProgram(yttProgramSel.value);
+      var rows = getYttRowsForSelection();
+      var tracks = Array.from(new Set(rows.map(function(r){ return String(r.track||"").trim(); }).filter(Boolean)));
+      if(tracks.length > 1){
+        show(yttTrackField, true);
+        yttTrackSel.innerHTML = '<option value="">Vælg...</option>';
+        tracks.forEach(function(t){
+          var opt = document.createElement("option");
+          opt.value = t;
+          opt.textContent = t;
+          yttTrackSel.appendChild(opt);
+        });
+        yttTrackHint.textContent = "Vælg spor (kræves).";
+        return;
+      }
+      if(forceTrack){
+        show(yttTrackField, true);
+        yttTrackSel.innerHTML = '<option value="">Vælg...</option><option value="Hverdagsprogram">Hverdagsprogram</option><option value="Weekendprogram">Weekendprogram</option>';
+        yttTrackHint.textContent = "Vælg spor (kræves for 18-ugers program).";
+        return;
+      }
+      if(tracks.length === 1){
+        yttTrackSel.innerHTML = '<option value="' + tracks[0] + '">' + tracks[0] + '</option>';
+        yttTrackSel.value = tracks[0];
+      }
+    }
+
+    function getSelectedYttRow(){
+      var courseId = yttProgramSel.value;
+      var cohortKey = yttPeriodSel.value;
+      if(!courseId || !cohortKey) return null;
+      var rows = getYttRowsForSelection();
+      if(!rows.length) return null;
+      var wantedTrack = yttTrackSel.value;
+      if(wantedTrack){
+        var match = rows.find(function(r){ return String(r.track||"").trim() === String(wantedTrack).trim(); });
+        if(match) return match;
+      }
+      return rows[0];
+    }
+
+    function onYttPeriodChange(){
+      var opt = yttPeriodSel.options[yttPeriodSel.selectedIndex];
+      if(!opt || !yttPeriodSel.value){
+        yttPeriodHint.textContent = "";
+        show(yttTrackField, false);
+        updateYttPaymentUI();
+        return;
+      }
+      var openStatus = String(opt.dataset.open_status || "");
+      var notes = String(opt.dataset.notes || "");
+      if(openStatus && looksNotOpenYet(openStatus)){
+        setHintMailto(yttPeriodHint, "Denne ansøgning er ikke åben endnu. Skriv til");
+      } else if(openStatus && /lukket/i.test(openStatus)){
+        yttPeriodHint.textContent = "Denne periode er lukket — vi modtager stadig ansøgning og placerer dig på venteliste.";
+      } else if(notes){
+        yttPeriodHint.textContent = notes;
+      } else {
+        yttPeriodHint.textContent = "Hvis perioden er fuld, modtager vi stadig ansøgningen og sætter dig på venteliste.";
+      }
+      updateYttTrackUI();
+      updateYttPaymentUI();
+    }
+
+    function updateYttPaymentUI(){
+      var choice = (applyForm.querySelector("input[name='ytt_payment_choice']:checked") || {}).value || "";
+      var row = getSelectedYttRow();
+      var meta = row ? paymentMetaForRow(row) : { url:"", label:"Betal — YTT" };
+      if(choice === "pay_now"){
+        show(yttPayBox, true);
+        yttPayLink.href = meta.url || "#";
+        yttPayLink.style.pointerEvents = meta.url ? "auto" : "none";
+        yttPayLink.style.opacity = meta.url ? "1" : ".55";
+        yttPayLink.querySelector(".yb-payBtn__txt").textContent = meta.label || "Betal — YTT";
+      } else {
+        show(yttPayBox, false);
+        yttPaidConfirm.checked = false;
+      }
+    }
+
+    // ===== Course specific =====
+    function isCourseRowAllowed(row){
+      var label = lower(row.cohort_label || row.cohort_id || "");
+      var name  = lower(row.course_name || "");
+      if(!label) return false;
+      if(looksLikeRawDateLabel(label)) return false;
+      if(!/2026/.test(label)) return false;
+      var allowedMonthPatterns = [/feb/i, /mar/i, /apr/i, /maj|may/i, /jun/i];
+      var hasAllowedMonth = allowedMonthPatterns.some(function(p){ return p.test(label); });
+      if(!hasAllowedMonth) return false;
+      var is4 = /(^|[^0-9])4\s*[- ]?(ugers|uger|weeks|week)\b/i.test(name) || /4\s*[- ]?ugers/i.test(label) || /4\s*weeks/i.test(label);
+      if(is4) return /(feb|mar|apr)/i.test(label);
+      var is8 = /(^|[^0-9])8\s*[- ]?(ugers|uger|weeks|week)\b/i.test(name) || /8\s*[- ]?ugers/i.test(label) || /8\s*weeks/i.test(label);
+      if(is8) return /(maj|may|jun)/i.test(label);
+      return true;
+    }
+
+    function resetBundleUI(){
+      show(courseBundleField, false);
+      courseBundleType.value = "";
+      courseBundleType.disabled = true;
+      courseBundleHint.textContent = "";
+    }
+
+    function setCoursePeriods(courseId){
+      coursePeriodSel.innerHTML = '<option value="">Vælg...</option>';
+      coursePeriodHint.textContent = "";
+      coursePeriodSel.disabled = true;
+      resetBundleUI();
+      if(!courseId){
+        coursePeriodSel.innerHTML = '<option value="">Vælg kursus først...</option>';
+        return;
+      }
+      if(courseId === BUNDLE_PROGRAM_ID){
+        coursePeriodSel.innerHTML = '<option value="">Vælg...</option>';
+        BUNDLE_MONTH_LABELS.forEach(function(lbl){
+          var opt = document.createElement("option");
+          opt.value = lbl;
+          opt.textContent = lbl;
+          coursePeriodSel.appendChild(opt);
+        });
+        coursePeriodSel.disabled = false;
+        show(courseBundleField, true);
+        courseBundleHint.textContent = "Vælg først periode — derefter din kursuspakke.";
+        courseBundleType.disabled = true;
+        return;
+      }
+      var listAll = (byCourse.get(courseId) || []).filter(isCourseRow);
+      var list = listAll.filter(isCourseRowAllowed);
+      if(!list.length){
+        coursePeriodSel.innerHTML = '<option value="">Ingen åbne perioder lige nu...</option>';
+        return;
+      }
+      var groups = groupCohorts(list);
+      var reps = Array.from(groups.entries()).map(function(entry){ return { key: entry[0], rep: entry[1][0] }; });
+      reps.sort(function(a,b){ return sortKeyForRow(a.rep) - sortKeyForRow(b.rep); });
+      reps.forEach(function(item){
+        var opt = document.createElement("option");
+        opt.value = item.key;
+        opt.textContent = formatPeriodLabel(item.rep);
+        var meta = paymentMetaForRow(item.rep);
+        opt.dataset.course_id = item.rep.course_id || "";
+        opt.dataset.course_name = item.rep.course_name || "";
+        opt.dataset.cohort_label = item.rep.cohort_label || "";
+        opt.dataset.open_status = item.rep.open_status || "";
+        opt.dataset.notes = item.rep.notes || "";
+        opt.dataset.pay_url = meta.url || "";
+        opt.dataset.pay_label = meta.label || "Betal";
+        opt.dataset.pay_kind = meta.kind || "full";
+        coursePeriodSel.appendChild(opt);
+      });
+      coursePeriodSel.disabled = (coursePeriodSel.options.length <= 1);
+    }
+
+    function getSelectedCourseRow(){
+      if(isBundleSelected()) return null;
+      var courseId = courseProgramSel.value;
+      var cohortKey = coursePeriodSel.value;
+      if(!courseId || !cohortKey) return null;
+      var list = (byCourse.get(courseId) || []).filter(isCourseRow);
+      var rows = list.filter(function(r){ return String(r.cohort_id || r.cohort_label || "") === String(cohortKey); });
+      return rows[0] || null;
+    }
+
+    function getBundlePayUrl(){
+      var month = coursePeriodSel.value;
+      var type = courseBundleType.value;
+      if(!month || !type) return "";
+      return (BUNDLE_PAY_URLS[month] && BUNDLE_PAY_URLS[month][type]) ? BUNDLE_PAY_URLS[month][type] : "";
+    }
+
+    function onCoursePeriodChange(){
+      if(isBundleSelected()){
+        coursePeriodHint.textContent = "Vælg nu din kursuspakke (bundle) nedenfor.";
+        courseBundleType.disabled = !coursePeriodSel.value;
+        if(courseBundleType.disabled){
+          courseBundleType.value = "";
+          courseBundleHint.textContent = "Vælg først periode.";
+        } else {
+          courseBundleHint.textContent = "Vælg din kursuspakke (kombination).";
+        }
+        updateCoursePaymentUI();
+        return;
+      }
+      var opt = coursePeriodSel.options[coursePeriodSel.selectedIndex];
+      if(!opt || !coursePeriodSel.value){
+        coursePeriodHint.textContent = "";
+        updateCoursePaymentUI();
+        return;
+      }
+      var openStatus = String(opt.dataset.open_status || "");
+      var notes = String(opt.dataset.notes || "");
+      if(openStatus && looksNotOpenYet(openStatus)){
+        setHintMailto(coursePeriodHint, "Dette kursus er ikke åben endnu. Skriv til");
+      } else if(openStatus && /lukket/i.test(openStatus)){
+        coursePeriodHint.textContent = "Dette kursus er lukket — vi modtager stadig ansøgning og placerer dig på venteliste.";
+      } else if(notes){
+        coursePeriodHint.textContent = notes;
+      } else {
+        coursePeriodHint.textContent = "Hvis perioden er fuld, modtager vi stadig ansøgningen og sætter dig på venteliste.";
+      }
+      updateCoursePaymentUI();
+    }
+
+    function updateCoursePaymentUI(){
+      var choice = (applyForm.querySelector("input[name='course_payment_choice']:checked") || {}).value || "";
+      if(isBundleSelected()){
+        var url = getBundlePayUrl();
+        var label = courseBundleType.value ? "Betal kursuspakke — " + courseBundleType.value : "Betal kursuspakke";
+        if(choice === "pay_now"){
+          show(coursePayBox, true);
+          coursePayLink.href = url || "#";
+          coursePayLink.style.pointerEvents = url ? "auto" : "none";
+          coursePayLink.style.opacity = url ? "1" : ".55";
+          coursePayLink.querySelector(".yb-payBtn__txt").textContent = label;
+        } else {
+          show(coursePayBox, false);
+          coursePaidConfirm.checked = false;
+        }
+        return;
+      }
+      var row = getSelectedCourseRow();
+      var meta = row ? paymentMetaForRow(row) : { url:"", label:"Betal fuld betaling — Kursus" };
+      if(choice === "pay_now"){
+        show(coursePayBox, true);
+        coursePayLink.href = meta.url || "#";
+        coursePayLink.style.pointerEvents = meta.url ? "auto" : "none";
+        coursePayLink.style.opacity = meta.url ? "1" : ".55";
+        coursePayLink.querySelector(".yb-payBtn__txt").textContent = meta.label || "Betal fuld betaling — Kursus";
+      } else {
+        show(coursePayBox, false);
+        coursePaidConfirm.checked = false;
+      }
+    }
+
+    // ===== Overnatning =====
+    var FIXED_ACCOM_MONTHS = [
+      new Date(2026, 1, 1),
+      new Date(2026, 2, 1),
+      new Date(2026, 3, 1),
+      new Date(2026, 4, 1),
+      new Date(2026, 5, 1)
+    ];
+
+    function renderFixedAccomMonths(){
+      var keep = new Set((accomMonthsValue.value || "").split(",").map(function(s){ return s.trim(); }).filter(Boolean));
+      accomMonthsWrap.innerHTML = "";
+      FIXED_ACCOM_MONTHS.forEach(function(d){
+        var label = d.toLocaleDateString("da-DK", { month:"long", year:"numeric" });
+        var cap = label.charAt(0).toUpperCase() + label.slice(1);
+        var b = document.createElement("button");
+        b.type = "button";
+        b.className = "yb-chip";
+        b.textContent = cap;
+        if(keep.has(cap)) b.classList.add("is-on");
+        b.addEventListener("click", function(){
+          b.classList.toggle("is-on");
+          syncAccomMonths();
+          updateSubmitState();
+        });
+        accomMonthsWrap.appendChild(b);
+      });
+      syncAccomMonths();
+    }
+
+    function syncAccomMonths(){
+      var selected = Array.from(accomMonthsWrap.querySelectorAll(".yb-chip.is-on")).map(function(x){ return x.textContent.trim(); });
+      accomMonthsValue.value = selected.join(", ");
+    }
+
+    function getAccomNeed(){
+      return (applyForm.querySelector("input[name='accom_need']:checked") || {}).value || "no";
+    }
+
+    function updateAccomPaymentUI(){
+      var on = (getAccomNeed() === "yes");
+      var choice = (applyForm.querySelector("input[name='accom_payment_choice']:checked") || {}).value || "";
+      if(!on){
+        show(accomPayBox, false);
+        return;
+      }
+      if(choice === "pay_now"){
+        show(accomPayBox, true);
+      } else {
+        show(accomPayBox, false);
+        accomPaidConfirm.checked = false;
+      }
+    }
+
+    function updateAccomUI(){
+      var need = getAccomNeed();
+      var on = (need === "yes");
+      show(accomInner, on);
+      if(on){
+        accomHint.textContent = "Vælg de måneder du ønsker (du kan vælge flere).";
+        if(!accomMonthsWrap.children.length) renderFixedAccomMonths();
+      } else {
+        accomMonthsWrap.innerHTML = "";
+        accomMonthsValue.value = "";
+        show(accomPayBox, false);
+        accomPaidConfirm.checked = false;
+        applyForm.querySelectorAll("input[name='accom_payment_choice']").forEach(function(r){ r.checked = false; });
+      }
+      updateAccomPaymentUI();
+      updateSubmitState();
+    }
+
+    // ===== Builder UI =====
+    function updateBuilderHint(){
+      var yttOn = applyForYTT.checked;
+      var courseOn = applyForCourse.checked;
+      var mentorOn = applyForMentorship.checked;
+      var html = "";
+      if(!yttOn && !courseOn && !mentorOn){
+        html = "Vælg mindst én: Yoga læreruddannelse (YTT) og/eller Kursus.";
+      }
+      if(mentorOn){
+        var link = "https://www.yogabible.dk/mentorship-private-training";
+        var line = 'Mentorship har sin egen tilmeldingsside: <a href="' + link + '">Åbn Mentorship</a>.';
+        html = html ? (html + "<br>" + line) : line;
+      }
+      builderHint.innerHTML = html;
+    }
+
+    function resetBundleUISafe(){
+      resetBundleUI();
+      updateCoursePaymentUI();
+    }
+
+    function updateBuilderUI(){
+      var yttOn = applyForYTT.checked;
+      var courseOn = applyForCourse.checked;
+      builderGrid.classList.toggle("is-double", (yttOn && courseOn));
+      show(yttBlock, yttOn);
+      show(courseBlock, courseOn);
+      if(!yttOn){
+        yttProgramSel.value = "";
+        yttPeriodSel.innerHTML = '<option value="">Vælg program først...</option>';
+        yttPeriodSel.disabled = true;
+        show(yttTrackField, false);
+        yttTrackSel.innerHTML = '<option value="">Vælg...</option>';
+        yttTrackSel.value = "";
+        yttTrackHint.textContent = "";
+        yttPeriodHint.textContent = "";
+        show(yttPayBox, false);
+        yttPaidConfirm.checked = false;
+        applyForm.querySelectorAll("input[name='ytt_payment_choice']").forEach(function(r){ r.checked = false; });
+      }
+      if(!courseOn){
+        courseProgramSel.value = "";
+        coursePeriodSel.innerHTML = '<option value="">Vælg kursus først...</option>';
+        coursePeriodSel.disabled = true;
+        coursePeriodHint.textContent = "";
+        resetBundleUISafe();
+        show(coursePayBox, false);
+        coursePaidConfirm.checked = false;
+        applyForm.querySelectorAll("input[name='course_payment_choice']").forEach(function(r){ r.checked = false; });
+      }
+      updateBuilderHint();
+      updateAccomUI();
+      updateSubmitState();
+    }
+
+    function updateHearAboutUI(){
+      var v = hearAbout.value;
+      show(hearOtherField, v === "Other");
+      if(v !== "Other") hearOther.value = "";
+      updateSubmitState();
+    }
+
+    function updateSubmitState(){
+      var antiOk = (antiSpam.value || "").trim().toUpperCase() === "YOGA";
+      var consentOk = consent.checked;
+      var builderOk = applyForYTT.checked || applyForCourse.checked;
+      var userOk = firstName.value.trim() && lastName.value.trim() && email.value.trim() && phone.value.trim();
+      var hearOk = !!hearAbout.value && (hearAbout.value !== "Other" || !!hearOther.value.trim());
+
+      var yttOk = true;
+      if(applyForYTT.checked){
+        var yttPayChoice = (applyForm.querySelector("input[name='ytt_payment_choice']:checked") || {}).value || "";
+        var row = getSelectedYttRow();
+        var url = row ? paymentMetaForRow(row).url : "";
+        var trackNeeded = !yttTrackField.classList.contains("is-hidden");
+        var trackOk = !trackNeeded || !!yttTrackSel.value;
+        var payOk = false;
+        if(yttPayChoice === "paid") payOk = true;
+        if(yttPayChoice === "pay_now") payOk = !!url && yttPaidConfirm.checked;
+        yttOk = !!yttProgramSel.value && !!yttPeriodSel.value && trackOk && !!yttPayChoice && payOk;
+      }
+
+      var courseOk = true;
+      if(applyForCourse.checked){
+        var coursePayChoice = (applyForm.querySelector("input[name='course_payment_choice']:checked") || {}).value || "";
+        if(isBundleSelected()){
+          var monthOk = !!coursePeriodSel.value;
+          var typeOk = !!courseBundleType.value;
+          var bUrl = getBundlePayUrl();
+          var bPayOk = false;
+          if(coursePayChoice === "paid") bPayOk = true;
+          if(coursePayChoice === "pay_now") bPayOk = !!bUrl && coursePaidConfirm.checked;
+          courseOk = monthOk && typeOk && !!coursePayChoice && bPayOk;
+        } else {
+          var cRow = getSelectedCourseRow();
+          var cUrl = cRow ? paymentMetaForRow(cRow).url : "";
+          var cPayOk = false;
+          if(coursePayChoice === "paid") cPayOk = true;
+          if(coursePayChoice === "pay_now") cPayOk = !!cUrl && coursePaidConfirm.checked;
+          courseOk = !!courseProgramSel.value && !!coursePeriodSel.value && !!coursePayChoice && cPayOk;
+        }
+      }
+
+      var accomOk = true;
+      if(getAccomNeed() === "yes"){
+        var months = (accomMonthsValue.value || "").trim();
+        var aChoice = (applyForm.querySelector("input[name='accom_payment_choice']:checked") || {}).value || "";
+        var aPayOk = false;
+        if(aChoice === "paid") aPayOk = true;
+        if(aChoice === "pay_now") aPayOk = accomPaidConfirm.checked;
+        accomOk = !!months && !!aChoice && aPayOk;
+      }
+
+      submitBtn.disabled = !(antiOk && consentOk && builderOk && userOk && hearOk && yttOk && courseOk && accomOk);
+    }
+
+    async function loadCatalog(){
+      try{
+        var data = await getJSON(WEB_APP_URL + "?action=catalog&v=" + Date.now());
+        if(!data || data.ok !== true) throw new Error("catalog not ok");
+        catalog = data.catalog || [];
+        buildMaps();
+        fillProgramSelect(yttProgramSel, "education");
+        fillProgramSelect(courseProgramSel, "course");
+        if(yttProgramSel.options.length <= 1){
+          builderHint.innerHTML = "YTT-programmer kunne ikke findes i kataloget. Tjek at katalogrækker har kategori (fx Education/YTT).";
+        }
+        window.dispatchEvent(new CustomEvent('ybCatalogLoaded'));
+      } catch(e){
+        console.error("Catalog load error:", e);
+        setMsg(applyMsg, "Kunne ikke indlæse programmer lige nu. Prøv igen — eller skriv til info@yogabible.dk.", "err");
+      }
+    }
+
+    // ===== Events =====
+    applyForYTT.addEventListener("change", updateBuilderUI);
+    applyForCourse.addEventListener("change", updateBuilderUI);
+    applyForMentorship.addEventListener("change", function(){ updateBuilderHint(); updateSubmitState(); });
+
+    yttProgramSel.addEventListener("change", function(){
+      setYttPeriods(yttProgramSel.value);
+      onYttPeriodChange();
+      updateSubmitState();
+    });
+    yttPeriodSel.addEventListener("change", function(){
+      onYttPeriodChange();
+      updateSubmitState();
+    });
+    yttTrackSel.addEventListener("change", function(){
+      updateYttPaymentUI();
+      updateSubmitState();
+    });
+
+    courseProgramSel.addEventListener("change", function(){
+      setCoursePeriods(courseProgramSel.value);
+      onCoursePeriodChange();
+      updateSubmitState();
+    });
+    coursePeriodSel.addEventListener("change", function(){ onCoursePeriodChange(); updateSubmitState(); });
+    courseBundleType.addEventListener("change", function(){ updateCoursePaymentUI(); updateSubmitState(); });
+
+    applyForm.addEventListener("input", function(e){
+      if(e.target && e.target.name === "ytt_payment_choice") updateYttPaymentUI();
+      if(e.target && e.target.name === "course_payment_choice") updateCoursePaymentUI();
+      if(e.target && e.target.name === "accom_payment_choice") updateAccomPaymentUI();
+      if(e.target && e.target.name === "accom_need") updateAccomUI();
+      updateSubmitState();
+    });
+
+    yttPaidConfirm.addEventListener("change", updateSubmitState);
+    coursePaidConfirm.addEventListener("change", updateSubmitState);
+    accomPaidConfirm.addEventListener("change", updateSubmitState);
+
+    hearAbout.addEventListener("change", updateHearAboutUI);
+    hearOther.addEventListener("input", updateSubmitState);
+
+    antiSpam.addEventListener("input", updateSubmitState);
+    consent.addEventListener("change", updateSubmitState);
+    [firstName,lastName,email,phone].forEach(function(el){ el.addEventListener("input", updateSubmitState); });
+
+    // Submit handler
+    applyForm.addEventListener("submit", async function(e){
+      e.preventDefault();
+      setMsg(applyMsg, "", null);
+
+      if(submitBtn.disabled){
+        setMsg(applyMsg, "Udfyld alle felter, skriv YOGA, accepter vilkår — og bekræft betaling før du sender.", "err");
+        return;
+      }
+
+      var payload = {
+        action: "apply_builder",
+        source: "Ansøgningsside",
+        applicant: {
+          first_name: firstName.value.trim(),
+          last_name: lastName.value.trim(),
+          email: email.value.trim(),
+          phone: phone.value.trim(),
+          hear_about: hearAbout.value,
+          hear_about_other: hearOther.value.trim(),
+          mentorship_selected: !!applyForMentorship.checked
+        },
+        selections: {
+          ytt: null,
+          course: null,
+          accommodation: { need: getAccomNeed(), months: [], payment_choice: "" }
+        }
+      };
+
+      if(applyForYTT.checked){
+        var yttRow = getSelectedYttRow();
+        var yttOpt = yttPeriodSel.options[yttPeriodSel.selectedIndex];
+        payload.selections.ytt = {
+          course_id: yttProgramSel.value,
+          course_name: (yttRow && yttRow.course_name) || (yttOpt && yttOpt.dataset.course_name) || "",
+          cohort_id: yttPeriodSel.value,
+          cohort_label: (yttRow && yttRow.cohort_label) || (yttOpt && yttOpt.dataset.cohort_label) || "",
+          track: (!yttTrackField.classList.contains("is-hidden") ? (yttTrackSel.value || "") : ((yttRow && yttRow.track) || "")),
+          payment_choice: (applyForm.querySelector("input[name='ytt_payment_choice']:checked") || {}).value || ""
+        };
+      }
+
+      if(applyForCourse.checked){
+        if(isBundleSelected()){
+          var bundleMonth = coursePeriodSel.value;
+          var bundleType = courseBundleType.value;
+          var bundlePayUrl = getBundlePayUrl();
+          payload.selections.course = {
+            course_id: BUNDLE_PROGRAM_ID,
+            course_name: "Kursuspakke — " + bundleType,
+            cohort_id: bundleMonth,
+            cohort_label: bundleMonth,
+            bundle_type: bundleType,
+            bundle_payment_url: bundlePayUrl,
+            payment_choice: (applyForm.querySelector("input[name='course_payment_choice']:checked") || {}).value || ""
+          };
+        } else {
+          var courseRow = getSelectedCourseRow();
+          var courseOpt = coursePeriodSel.options[coursePeriodSel.selectedIndex];
+          payload.selections.course = {
+            course_id: courseProgramSel.value,
+            course_name: (courseRow && courseRow.course_name) || (courseOpt && courseOpt.dataset.course_name) || "",
+            cohort_id: coursePeriodSel.value,
+            cohort_label: (courseRow && courseRow.cohort_label) || (courseOpt && courseOpt.dataset.cohort_label) || "",
+            payment_choice: (applyForm.querySelector("input[name='course_payment_choice']:checked") || {}).value || ""
+          };
+        }
+      }
+
+      if(getAccomNeed() === "yes"){
+        payload.selections.accommodation.months = (accomMonthsValue.value || "").split(",").map(function(x){ return x.trim(); }).filter(Boolean);
+        payload.selections.accommodation.payment_choice = (applyForm.querySelector("input[name='accom_payment_choice']:checked") || {}).value || "";
+      }
+
+      try{
+        submitBtn.disabled = true;
+        var res = await postJSON(payload);
+
+        if(res && res.ok){
+          setMsg(applyMsg, "Tak — vi har modtaget din ansøgning. Dit ansøgnings-ID er: " + (res.application_id || "YB-XXXX") + ".", "ok");
+          applyForm.reset();
+
+          show(yttBlock, false);
+          show(courseBlock, false);
+          builderGrid.classList.remove("is-double");
+          updateBuilderHint();
+
+          yttPeriodSel.innerHTML = '<option value="">Vælg program først...</option>';
+          yttPeriodSel.disabled = true;
+          show(yttTrackField, false);
+          yttTrackSel.innerHTML = '<option value="">Vælg...</option>';
+          yttTrackSel.value = "";
+
+          coursePeriodSel.innerHTML = '<option value="">Vælg kursus først...</option>';
+          coursePeriodSel.disabled = true;
+
+          resetBundleUI();
+
+          show(yttPayBox, false);
+          show(coursePayBox, false);
+          show(accomPayBox, false);
+          show(accomInner, false);
+          show(hearOtherField, false);
+
+          accomMonthsWrap.innerHTML = "";
+          accomMonthsValue.value = "";
+
+          applyForYTT.checked = false;
+          applyForCourse.checked = false;
+          applyForMentorship.checked = false;
+
+        } else {
+          setMsg(applyMsg, (res && res.message) || "Kunne ikke sende lige nu. Prøv igen — eller skriv til info@yogabible.dk.", "err");
+        }
+      } catch(err){
+        setMsg(applyMsg, "Kunne ikke sende lige nu. Prøv igen — eller skriv til info@yogabible.dk.", "err");
+      } finally {
+        updateBuilderUI();
+        updateHearAboutUI();
+        updateAccomUI();
+        updateSubmitState();
+      }
+    });
+
+    // Smooth scroll for hero arrow
+    var heroArrow = document.querySelector('.yb-apply-hero__arrow');
+    if(heroArrow){
+      heroArrow.addEventListener('click', function(e){
+        e.preventDefault();
+        var target = document.querySelector('#yb-apply-intro');
+        if(target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      });
+    }
+
+    // Init
+    loadCatalog();
+    updateBuilderUI();
+    updateHearAboutUI();
+    updateAccomUI();
+    updateSubmitState();
+  });
+})();
+</script>
