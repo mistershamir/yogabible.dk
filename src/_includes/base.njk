@@ -21,6 +21,10 @@
     {% include "modal-schedule.njk" %}
   {% endif %}
 
+  {% if includeP18Styles %}
+    <link rel="stylesheet" href="/css/p18.css">
+  {% endif %}
+
   {% if includeCoursesModal %}
     {% include "modal-courses.njk" %}
   {% endif %}
