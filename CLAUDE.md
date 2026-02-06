@@ -143,7 +143,7 @@ Each blog should use rich, varied HTML. Available elements:
 | 27 | **Navigation Arrows** | Circle Outline, Circle Filled, Square, Pill, Ghost (dark BG), Minimal. |
 | 28 | **Section Layout Variations** | Content+Video, Image Mosaic, Content+Looping Visual, Full-Width Overlay, Three-Column Features. |
 | 29 | **Hero Sections** | 4 unified styles: Centered Clean, Split with Image, Dark Cinematic, Asymmetric with Stats Bar. |
-| 30 | **Scroll-Draw Paths** | SVG vine/branch paths that draw on scroll. 5 variations: Flowing Vine, Spiraling Branch, Gentle S-Curve, Dual Paths, Progress Line. Use sparingly as decorative accents. |
+| 30 | **Scroll-Draw Paths** | SVG vine/branch paths that draw on scroll. 5 variations: Flowing Vine, Spiraling Branch, Gentle S-Curve, Dual Paths, Progress Line. Use sparingly as decorative accents. Variation C has growing leaves. All SVGs must use `fill="none"` and `preserveAspectRatio="xMidYMid meet"`. |
 
 ### Design Rules
 
