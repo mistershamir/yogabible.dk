@@ -1,0 +1,178 @@
+[
+  {
+    "sanskrit": "Chakra",
+    "en": "Energy Center",
+    "da": "Energicenter",
+    "category": "energy",
+    "desc_da": "Energicentre langs rygsøjlen. Syv primære chakraer fra rodchakra til kronechakra. Hvert center forbindes med specifikke kvaliteter.",
+    "desc_en": "Energy centers along the spine. Seven primary chakras from root to crown. Each center is associated with specific qualities."
+  },
+  {
+    "sanskrit": "Muladhara",
+    "en": "Root Chakra",
+    "da": "Rodchakra",
+    "category": "energy",
+    "desc_da": "Første chakra ved bunden af rygsøjlen. Forbundet med sikkerhed, stabilitet og grundlæggende overlevelse. Element: jord.",
+    "desc_en": "First chakra at the base of the spine. Connected to safety, stability, and basic survival. Element: earth."
+  },
+  {
+    "sanskrit": "Svadhisthana",
+    "en": "Sacral Chakra",
+    "da": "Sakralchakra",
+    "category": "energy",
+    "desc_da": "Andet chakra i nedre mave. Forbundet med kreativitet, seksualitet og følelser. Element: vand.",
+    "desc_en": "Second chakra in the lower abdomen. Connected to creativity, sexuality, and emotions. Element: water."
+  },
+  {
+    "sanskrit": "Manipura",
+    "en": "Solar Plexus Chakra",
+    "da": "Solar plexus-chakra",
+    "category": "energy",
+    "desc_da": "Tredje chakra ved solar plexus. Forbundet med viljestyrke, selvtillid og personlig kraft. Element: ild.",
+    "desc_en": "Third chakra at the solar plexus. Connected to willpower, confidence, and personal power. Element: fire."
+  },
+  {
+    "sanskrit": "Anahata",
+    "en": "Heart Chakra",
+    "da": "Hjertechakra",
+    "category": "energy",
+    "desc_da": "Fjerde chakra ved hjertet. Forbundet med kærlighed, medfølelse og forbindelse. Element: luft.",
+    "desc_en": "Fourth chakra at the heart. Connected to love, compassion, and connection. Element: air."
+  },
+  {
+    "sanskrit": "Vishuddha",
+    "en": "Throat Chakra",
+    "da": "Halschakra",
+    "category": "energy",
+    "desc_da": "Femte chakra ved halsen. Forbundet med kommunikation, selvudtryk og sandhed. Element: æter.",
+    "desc_en": "Fifth chakra at the throat. Connected to communication, self-expression, and truth. Element: ether."
+  },
+  {
+    "sanskrit": "Ajna",
+    "en": "Third Eye Chakra",
+    "da": "Det tredje øje-chakra",
+    "category": "energy",
+    "desc_da": "Sjette chakra mellem øjenbrynene. Forbundet med intuition, visdom og indre syn.",
+    "desc_en": "Sixth chakra between the eyebrows. Connected to intuition, wisdom, and inner vision."
+  },
+  {
+    "sanskrit": "Sahasrara",
+    "en": "Crown Chakra",
+    "da": "Kronechakra",
+    "category": "energy",
+    "desc_da": "Syvende chakra på toppen af hovedet. Forbundet med spirituel forbindelse, oplysning og kosmisk bevidsthed.",
+    "desc_en": "Seventh chakra at the top of the head. Connected to spiritual connection, enlightenment, and cosmic consciousness."
+  },
+  {
+    "sanskrit": "Nadi",
+    "en": "Energy Channel",
+    "da": "Energikanal",
+    "category": "energy",
+    "desc_da": "Subtile energikanaler i kroppen. 72.000 nadier ifølge yogisk tradition. De tre vigtigste: ida, pingala og sushumna.",
+    "desc_en": "Subtle energy channels in the body. 72,000 nadis according to yogic tradition. The three most important: ida, pingala, and sushumna."
+  },
+  {
+    "sanskrit": "Ida",
+    "en": "Lunar Channel",
+    "da": "Månekanal",
+    "category": "energy",
+    "desc_da": "Venstre energikanal der starter ved rodchakra og slutter ved venstre næsebor. Forbundet med måneenergi og det feminine.",
+    "desc_en": "Left energy channel starting at the root chakra and ending at the left nostril. Connected to lunar energy and the feminine."
+  },
+  {
+    "sanskrit": "Pingala",
+    "en": "Solar Channel",
+    "da": "Solkanal",
+    "category": "energy",
+    "desc_da": "Højre energikanal der starter ved rodchakra og slutter ved højre næsebor. Forbundet med solenergi og det maskuline.",
+    "desc_en": "Right energy channel starting at the root chakra and ending at the right nostril. Connected to solar energy and the masculine."
+  },
+  {
+    "sanskrit": "Sushumna",
+    "en": "Central Channel",
+    "da": "Centralkanal",
+    "category": "energy",
+    "desc_da": "Den centrale energikanal langs rygsøjlen. Kundalini-energien stiger op gennem sushumna ved opvågning.",
+    "desc_en": "The central energy channel along the spine. Kundalini energy rises through sushumna upon awakening."
+  },
+  {
+    "sanskrit": "Kundalini",
+    "en": "Coiled Energy",
+    "da": "Oprullet energi",
+    "category": "energy",
+    "desc_da": "Sovende energi oprullet ved bunden af rygsøjlen. Når den vækkes, stiger den op gennem chakraerne.",
+    "desc_en": "Dormant energy coiled at the base of the spine. When awakened, it rises through the chakras."
+  },
+  {
+    "sanskrit": "Prana",
+    "en": "Life Force / Vital Energy",
+    "da": "Livskraft / Vital energi",
+    "category": "energy",
+    "desc_da": "Universel livsenergi der gennemstrømmer alt levende. Styres gennem pranayama og bevidst åndedræt.",
+    "desc_en": "Universal life energy that flows through all living things. Controlled through pranayama and conscious breathing."
+  },
+  {
+    "sanskrit": "Bandha",
+    "en": "Energy Lock",
+    "da": "Energilås",
+    "category": "energy",
+    "desc_da": "Muskelaktiveringer der styrer energiflow i kroppen. Tre hovedbandhas: mula, uddiyana og jalandhara.",
+    "desc_en": "Muscular engagements that direct energy flow in the body. Three main bandhas: mula, uddiyana, and jalandhara."
+  },
+  {
+    "sanskrit": "Mula Bandha",
+    "en": "Root Lock",
+    "da": "Rodlås",
+    "category": "energy",
+    "desc_da": "Aktivering af bækkenbundsmuskulaturen. Styrer nedadgående energi (apana) og løfter den opad.",
+    "desc_en": "Engagement of the pelvic floor muscles. Controls downward energy (apana) and lifts it upward."
+  },
+  {
+    "sanskrit": "Uddiyana Bandha",
+    "en": "Abdominal Lock",
+    "da": "Mavelås",
+    "category": "energy",
+    "desc_da": "Indadtrækning af maven mod rygsøjlen efter udånding. Stimulerer fordøjelsesild og løfter energi opad.",
+    "desc_en": "Drawing the abdomen inward toward the spine after exhalation. Stimulates digestive fire and lifts energy upward."
+  },
+  {
+    "sanskrit": "Jalandhara Bandha",
+    "en": "Throat Lock",
+    "da": "Halslås",
+    "category": "energy",
+    "desc_da": "Hagen trækkes mod brystet under åndedrætshold. Regulerer energiflow i halsen og beskytter nakken.",
+    "desc_en": "Chin drawn toward chest during breath retention. Regulates energy flow in the throat and protects the neck."
+  },
+  {
+    "sanskrit": "Mudra",
+    "en": "Seal / Gesture",
+    "da": "Segl / Gestus",
+    "category": "energy",
+    "desc_da": "Symbolske hånd- eller kropsgestus der styrer og segler energi. Bruges i meditation og pranayama.",
+    "desc_en": "Symbolic hand or body gestures that direct and seal energy. Used in meditation and pranayama."
+  },
+  {
+    "sanskrit": "Anjali Mudra",
+    "en": "Prayer Hands",
+    "da": "Bønnehænder",
+    "category": "energy",
+    "desc_da": "Hænderne samlet foran hjertet i bønnestilling. Symbol på respekt, taknemmelighed og forening.",
+    "desc_en": "Hands joined in front of the heart in prayer position. Symbol of respect, gratitude, and union."
+  },
+  {
+    "sanskrit": "Gyan Mudra",
+    "en": "Wisdom Seal",
+    "da": "Visdomssegl",
+    "category": "energy",
+    "desc_da": "Tommelfinger og pegefinger mødes i en cirkel. Bruges under meditation for at fremme koncentration og visdom.",
+    "desc_en": "Thumb and index finger meet in a circle. Used during meditation to promote concentration and wisdom."
+  },
+  {
+    "sanskrit": "Kosha",
+    "en": "Sheath / Layer",
+    "da": "Lag / Hylster",
+    "category": "energy",
+    "desc_da": "Fem lag af menneskelig eksistens: annamaya (fysisk), pranamaya (energi), manomaya (sind), vijnanamaya (visdom), anandamaya (lyksalighed).",
+    "desc_en": "Five layers of human existence: annamaya (physical), pranamaya (energy), manomaya (mind), vijnanamaya (wisdom), anandamaya (bliss)."
+  }
+]

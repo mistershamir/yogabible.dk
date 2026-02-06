@@ -1,0 +1,378 @@
+[
+  {
+    "sanskrit": "Tadasana",
+    "en": "Mountain Pose",
+    "da": "Bjergstilling",
+    "category": "asana",
+    "desc_da": "Grundlæggende stående stilling med fokus på alignment, rodfæstning og kroppens neutrale linje. Udgangspunkt for alle stående stillinger.",
+    "desc_en": "Foundational standing pose focusing on alignment, grounding, and the body's neutral line. Starting point for all standing poses."
+  },
+  {
+    "sanskrit": "Uttanasana",
+    "en": "Standing Forward Fold",
+    "da": "Stående foroverbøjning",
+    "category": "asana",
+    "desc_da": "Stående foroverbøjning der strækker baglår, lægmuskler og ryg. Beroligende for nervesystemet.",
+    "desc_en": "Standing forward fold that stretches hamstrings, calves, and back. Calming for the nervous system."
+  },
+  {
+    "sanskrit": "Adho Mukha Svanasana",
+    "en": "Downward-Facing Dog",
+    "da": "Nedadgående hund",
+    "category": "asana",
+    "desc_da": "Klassisk omvendt V-stilling der styrker arme og strækker bagsiden af kroppen. En af yogas mest ikoniske stillinger.",
+    "desc_en": "Classic inverted V-shape pose that strengthens arms and stretches the back body. One of yoga's most iconic poses."
+  },
+  {
+    "sanskrit": "Urdhva Mukha Svanasana",
+    "en": "Upward-Facing Dog",
+    "da": "Opadgående hund",
+    "category": "asana",
+    "desc_da": "Backbend der åbner bryst og skuldre med strakte arme og løftede lår fra gulvet.",
+    "desc_en": "Backbend that opens chest and shoulders with straight arms and thighs lifted off the floor."
+  },
+  {
+    "sanskrit": "Bhujangasana",
+    "en": "Cobra Pose",
+    "da": "Kobrastilling",
+    "category": "asana",
+    "desc_da": "Blid backbend udført fra gulvet med fokus på rygstyrkelse. Hænderne er placeret under skuldrene.",
+    "desc_en": "Gentle backbend from the floor focusing on back strengthening. Hands placed under shoulders."
+  },
+  {
+    "sanskrit": "Chaturanga Dandasana",
+    "en": "Four-Limbed Staff Pose",
+    "da": "Lav planke",
+    "category": "asana",
+    "desc_da": "Lav push-up position der bygger skuldre, core og armstyrke. Central del af Surya Namaskar.",
+    "desc_en": "Low push-up position building shoulder, core, and arm strength. Central part of Surya Namaskar."
+  },
+  {
+    "sanskrit": "Virabhadrasana I",
+    "en": "Warrior I",
+    "da": "Kriger I",
+    "category": "asana",
+    "desc_da": "Kraftig stående stilling der styrker ben, hofter og core. Bagbenet er drejet indad med hælen plantet.",
+    "desc_en": "Powerful standing pose strengthening legs, hips, and core. Back leg turned inward with heel planted."
+  },
+  {
+    "sanskrit": "Virabhadrasana II",
+    "en": "Warrior II",
+    "da": "Kriger II",
+    "category": "asana",
+    "desc_da": "Åben hofteposition med stærke ben og rolig overkrop. Blikket rettes over den forreste hånd.",
+    "desc_en": "Open hip position with strong legs and calm upper body. Gaze directed over the front hand."
+  },
+  {
+    "sanskrit": "Virabhadrasana III",
+    "en": "Warrior III",
+    "da": "Kriger III",
+    "category": "asana",
+    "desc_da": "Balance på ét ben med kroppen i vandret linje. Styrker standbenet og hele bagsiden af kroppen.",
+    "desc_en": "One-leg balance with the body in a horizontal line. Strengthens the standing leg and entire back body."
+  },
+  {
+    "sanskrit": "Utkatasana",
+    "en": "Chair Pose",
+    "da": "Stolstilling",
+    "category": "asana",
+    "desc_da": "Kraftig stilling der styrker lår, knæ og core. Som at sætte sig på en usynlig stol.",
+    "desc_en": "Powerful pose strengthening thighs, knees, and core. Like sitting in an invisible chair."
+  },
+  {
+    "sanskrit": "Trikonasana",
+    "en": "Triangle Pose",
+    "da": "Trekantstilling",
+    "category": "asana",
+    "desc_da": "Lateral stræk der åbner hofter og strækker sidens krop. Forbedrer balance og stabilitet.",
+    "desc_en": "Lateral stretch opening hips and stretching the side body. Improves balance and stability."
+  },
+  {
+    "sanskrit": "Ardha Chandrasana",
+    "en": "Half Moon Pose",
+    "da": "Halvmånestilling",
+    "category": "asana",
+    "desc_da": "Balance-stilling der styrker standbenet og åbner hofter. Kræver god proprioception.",
+    "desc_en": "Balance pose strengthening the standing leg and opening hips. Requires good proprioception."
+  },
+  {
+    "sanskrit": "Parivrtta Trikonasana",
+    "en": "Revolved Triangle Pose",
+    "da": "Drejet trekantstilling",
+    "category": "asana",
+    "desc_da": "Drejet variation af trekantstilling der strækker baglår og rygsøjle med en dyb rotation.",
+    "desc_en": "Twisted variation of triangle pose stretching hamstrings and spine with a deep rotation."
+  },
+  {
+    "sanskrit": "Utthita Parsvakonasana",
+    "en": "Extended Side Angle Pose",
+    "da": "Udstrakt sidevinkelstilling",
+    "category": "asana",
+    "desc_da": "Dybt sidestræk der åbner hofter og styrker ben. Skaber en lang diagonal linje fra fod til fingerspidser.",
+    "desc_en": "Deep side stretch opening hips and strengthening legs. Creates a long diagonal line from foot to fingertips."
+  },
+  {
+    "sanskrit": "Vrksasana",
+    "en": "Tree Pose",
+    "da": "Træstilling",
+    "category": "asana",
+    "desc_da": "Klassisk balance-stilling på ét ben med foden mod inderlåret. Fremmer fokus og mental ro.",
+    "desc_en": "Classic one-leg balance with foot placed on inner thigh. Promotes focus and mental calm."
+  },
+  {
+    "sanskrit": "Shavasana",
+    "en": "Corpse Pose",
+    "da": "Ligstilling",
+    "category": "asana",
+    "desc_da": "Afsluttende hvile i rygleje. Dyb afslapning og integration af praksis. Betragtes som den sværeste stilling.",
+    "desc_en": "Final resting pose lying on back. Deep relaxation and integration of practice. Considered the most difficult pose."
+  },
+  {
+    "sanskrit": "Balasana",
+    "en": "Child's Pose",
+    "da": "Barnestilling",
+    "category": "asana",
+    "desc_da": "Blid hvilestilling med panden mod gulvet. Strækker ryg, hofter og lår. Bruges som hvile mellem stillinger.",
+    "desc_en": "Gentle resting pose with forehead to the floor. Stretches back, hips, and thighs. Used as rest between poses."
+  },
+  {
+    "sanskrit": "Setu Bandhasana",
+    "en": "Bridge Pose",
+    "da": "Brostilling",
+    "category": "asana",
+    "desc_da": "Rygleje-backbend der åbner brystet og styrker ben, baller og ryg. God forberedelse til dybere backbends.",
+    "desc_en": "Supine backbend that opens the chest and strengthens legs, glutes, and back. Good preparation for deeper backbends."
+  },
+  {
+    "sanskrit": "Sirsasana",
+    "en": "Headstand",
+    "da": "Hovedstand",
+    "category": "asana",
+    "desc_da": "Omvendt stilling på hovedet og underarmene. Kaldes 'kongen af asanas'. Styrker core og skuldre.",
+    "desc_en": "Inverted pose on head and forearms. Called the 'king of asanas'. Strengthens core and shoulders."
+  },
+  {
+    "sanskrit": "Sarvangasana",
+    "en": "Shoulder Stand",
+    "da": "Skulderstand",
+    "category": "asana",
+    "desc_da": "Omvendt stilling på skuldrene. Kaldes 'dronningen af asanas'. Stimulerer skjoldbruskkirtlen.",
+    "desc_en": "Inverted pose on shoulders. Called the 'queen of asanas'. Stimulates the thyroid gland."
+  },
+  {
+    "sanskrit": "Halasana",
+    "en": "Plow Pose",
+    "da": "Plovstilling",
+    "category": "asana",
+    "desc_da": "Omvendt stilling hvor fødderne føres bagud over hovedet. Strækker rygsøjle og skuldre dybt.",
+    "desc_en": "Inverted pose where feet are brought over the head. Deeply stretches spine and shoulders."
+  },
+  {
+    "sanskrit": "Matsyasana",
+    "en": "Fish Pose",
+    "da": "Fiskestilling",
+    "category": "asana",
+    "desc_da": "Backbend i rygleje der åbner bryst og hals. Traditionel modstilling til skulderstand.",
+    "desc_en": "Supine backbend opening chest and throat. Traditional counterpose to shoulder stand."
+  },
+  {
+    "sanskrit": "Paschimottanasana",
+    "en": "Seated Forward Fold",
+    "da": "Siddende foroverbøjning",
+    "category": "asana",
+    "desc_da": "Siddende foroverbøjning over strakte ben. Strækker hele bagsiden af kroppen fra hæle til isse.",
+    "desc_en": "Seated forward fold over straight legs. Stretches the entire back body from heels to crown."
+  },
+  {
+    "sanskrit": "Navasana",
+    "en": "Boat Pose",
+    "da": "Bådstilling",
+    "category": "asana",
+    "desc_da": "Kraftig core-stilling i balance på sædebenet. Strakte ben og overkrop danner en V-form.",
+    "desc_en": "Powerful core pose balancing on the sit bones. Straight legs and torso form a V-shape."
+  },
+  {
+    "sanskrit": "Bakasana",
+    "en": "Crow Pose",
+    "da": "Kragestilling",
+    "category": "asana",
+    "desc_da": "Armbalance med knæene hvilende mod overarmene. En af de første armbalancer de fleste lærer.",
+    "desc_en": "Arm balance with knees resting on upper arms. One of the first arm balances most people learn."
+  },
+  {
+    "sanskrit": "Pincha Mayurasana",
+    "en": "Forearm Stand",
+    "da": "Underarmsstand",
+    "category": "asana",
+    "desc_da": "Omvendt stilling på underarmene. Kræver åbne skuldre, core-styrke og balance.",
+    "desc_en": "Inverted pose on forearms. Requires open shoulders, core strength, and balance."
+  },
+  {
+    "sanskrit": "Adho Mukha Vrksasana",
+    "en": "Handstand",
+    "da": "Håndstand",
+    "category": "asana",
+    "desc_da": "Fuld omvendt balance på hænderne. Udvikler styrke, kropsbevidsthed og mod.",
+    "desc_en": "Full inverted balance on hands. Develops strength, body awareness, and courage."
+  },
+  {
+    "sanskrit": "Ustrasana",
+    "en": "Camel Pose",
+    "da": "Kamelstilling",
+    "category": "asana",
+    "desc_da": "Knælende backbend der åbner hele forsiden af kroppen. Hænderne når mod hælene.",
+    "desc_en": "Kneeling backbend that opens the entire front body. Hands reach toward the heels."
+  },
+  {
+    "sanskrit": "Dhanurasana",
+    "en": "Bow Pose",
+    "da": "Buestilling",
+    "category": "asana",
+    "desc_da": "Maveleje-backbend hvor man griber anklerne og løfter bryst og lår. Kroppen danner en bueform.",
+    "desc_en": "Prone backbend where you grip the ankles and lift chest and thighs. Body forms a bow shape."
+  },
+  {
+    "sanskrit": "Urdhva Dhanurasana",
+    "en": "Wheel Pose",
+    "da": "Hjulstilling",
+    "category": "asana",
+    "desc_da": "Dyb backbend med hænder og fødder i gulvet og kroppen løftet i en bue. Også kaldet 'bro'.",
+    "desc_en": "Deep backbend with hands and feet on the floor and body lifted in an arch. Also called 'full bridge'."
+  },
+  {
+    "sanskrit": "Garudasana",
+    "en": "Eagle Pose",
+    "da": "Ørnestilling",
+    "category": "asana",
+    "desc_da": "Balance-stilling med snoede arme og ben. Åbner skuldrene og styrker ankler og hofter.",
+    "desc_en": "Balance pose with wrapped arms and legs. Opens shoulders and strengthens ankles and hips."
+  },
+  {
+    "sanskrit": "Natarajasana",
+    "en": "Dancer Pose",
+    "da": "Danserstilling",
+    "category": "asana",
+    "desc_da": "Stående balance-backbend opkaldt efter Shiva som Nataraja, dansens herre. Kræver fleksibilitet og balance.",
+    "desc_en": "Standing balance-backbend named after Shiva as Nataraja, lord of the dance. Requires flexibility and balance."
+  },
+  {
+    "sanskrit": "Padmasana",
+    "en": "Lotus Pose",
+    "da": "Lotusstilling",
+    "category": "asana",
+    "desc_da": "Siddende meditationsstilling med krydsede ben og fødder på modsatte lår. Symbol på åndelig opvågning.",
+    "desc_en": "Seated meditation posture with crossed legs and feet on opposite thighs. Symbol of spiritual awakening."
+  },
+  {
+    "sanskrit": "Sukhasana",
+    "en": "Easy Pose",
+    "da": "Let siddestilling",
+    "category": "asana",
+    "desc_da": "Enkel krydset siddestilling til meditation og pranayama. Grundlæggende siddestilling for alle niveauer.",
+    "desc_en": "Simple cross-legged sitting posture for meditation and pranayama. Basic seated pose for all levels."
+  },
+  {
+    "sanskrit": "Dandasana",
+    "en": "Staff Pose",
+    "da": "Stavstilling",
+    "category": "asana",
+    "desc_da": "Siddende stilling med strakte ben og opret ryg. Grundstilling for alle siddende stillinger.",
+    "desc_en": "Seated pose with straight legs and upright spine. Foundation for all seated poses."
+  },
+  {
+    "sanskrit": "Malasana",
+    "en": "Garland Pose / Yogi Squat",
+    "da": "Guirlandestilling / Yogi Squat",
+    "category": "asana",
+    "desc_da": "Dyb squat med fødderne flade i gulvet. Åbner hofter og styrker ben og ankler.",
+    "desc_en": "Deep squat with feet flat on the floor. Opens hips and strengthens legs and ankles."
+  },
+  {
+    "sanskrit": "Supta Baddha Konasana",
+    "en": "Reclining Bound Angle Pose",
+    "da": "Liggende sommerfuglestilling",
+    "category": "asana",
+    "desc_da": "Restorativ stilling i rygleje med fodsålerne mod hinanden. Åbner hofter og inderlår.",
+    "desc_en": "Restorative supine pose with soles of feet together. Opens hips and inner thighs."
+  },
+  {
+    "sanskrit": "Viparita Karani",
+    "en": "Legs Up the Wall",
+    "da": "Ben op ad væggen",
+    "category": "asana",
+    "desc_da": "Restorativ omvendt stilling med benene op ad en væg. Fremmer afslapning og kredsløb.",
+    "desc_en": "Restorative inversion with legs up against a wall. Promotes relaxation and circulation."
+  },
+  {
+    "sanskrit": "Anjaneyasana",
+    "en": "Low Lunge / Crescent Lunge",
+    "da": "Lavt udfald",
+    "category": "asana",
+    "desc_da": "Dybt udfald med bagknæet i gulvet. Strækker hoftefleksorer og styrker ben.",
+    "desc_en": "Deep lunge with back knee on the floor. Stretches hip flexors and strengthens legs."
+  },
+  {
+    "sanskrit": "Phalakasana",
+    "en": "Plank Pose",
+    "da": "Planke",
+    "category": "asana",
+    "desc_da": "Armstøtte-position der styrker core, arme og skuldre. Grundlæggende styrkestilling.",
+    "desc_en": "Push-up position that strengthens core, arms, and shoulders. Fundamental strength pose."
+  },
+  {
+    "sanskrit": "Vasisthasana",
+    "en": "Side Plank Pose",
+    "da": "Sideplanke",
+    "category": "asana",
+    "desc_da": "Balance på én hånd og ydersiden af foden. Styrker skuldre, skrå mavemuskler og håndled.",
+    "desc_en": "Balance on one hand and outer edge of foot. Strengthens shoulders, obliques, and wrists."
+  },
+  {
+    "sanskrit": "Eka Pada Rajakapotasana",
+    "en": "Pigeon Pose",
+    "da": "Duestilling",
+    "category": "asana",
+    "desc_da": "Dyb hoftestræk med ét ben foran og ét strakt bagud. Åbner hoftefleksorer og ydre rotation.",
+    "desc_en": "Deep hip stretch with one leg forward and one extended back. Opens hip flexors and external rotation."
+  },
+  {
+    "sanskrit": "Gomukhasana",
+    "en": "Cow Face Pose",
+    "da": "Kohoved-stilling",
+    "category": "asana",
+    "desc_da": "Siddende stilling med stablede knæ og armstræk bag ryggen. Åbner skuldre og hofter dybt.",
+    "desc_en": "Seated pose with stacked knees and arm stretch behind the back. Deeply opens shoulders and hips."
+  },
+  {
+    "sanskrit": "Marichyasana",
+    "en": "Sage Twist",
+    "da": "Marichys stilling",
+    "category": "asana",
+    "desc_da": "Siddende twist opkaldt efter vismanden Marichi. Flere variationer der roterer rygsøjlen.",
+    "desc_en": "Seated twist named after the sage Marichi. Multiple variations that rotate the spine."
+  },
+  {
+    "sanskrit": "Surya Namaskar",
+    "en": "Sun Salutation",
+    "da": "Solhilsen",
+    "category": "asana",
+    "desc_da": "Dynamisk sekvens af stillinger der varmer kroppen op og forbinder bevægelse med åndedræt.",
+    "desc_en": "Dynamic sequence of poses that warms the body and connects movement with breath."
+  },
+  {
+    "sanskrit": "Chandra Namaskar",
+    "en": "Moon Salutation",
+    "da": "Månehilsen",
+    "category": "asana",
+    "desc_da": "Blødere sekvens der hylder månens energi. Fokus på lateral bevægelse og indadvendthed.",
+    "desc_en": "Softer sequence honoring the moon's energy. Focus on lateral movement and introspection."
+  },
+  {
+    "sanskrit": "Savasana",
+    "en": "Final Relaxation",
+    "da": "Slutafslapning",
+    "category": "asana",
+    "desc_da": "Variant af Shavasana brugt specifikt som den afsluttende hvile i en yogaklasse.",
+    "desc_en": "Variant of Shavasana used specifically as the closing relaxation in a yoga class."
+  }
+]

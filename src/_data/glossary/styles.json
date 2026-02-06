@@ -1,0 +1,122 @@
+[
+  {
+    "sanskrit": "Vinyasa",
+    "en": "Flow Yoga",
+    "da": "Flow Yoga",
+    "category": "styles",
+    "desc_da": "Dynamisk stil der forbinder åndedræt med bevægelse i flydende sekvenser. Varieret og kreativ i opbygning.",
+    "desc_en": "Dynamic style linking breath with movement in flowing sequences. Varied and creative in structure."
+  },
+  {
+    "sanskrit": "Hatha",
+    "en": "Traditional Physical Yoga",
+    "da": "Traditionel fysisk yoga",
+    "category": "styles",
+    "desc_da": "Grundlæggende stilart der balancerer modsatrettede energier (ha=sol, tha=måne). Basis for mange moderne stilarter.",
+    "desc_en": "Foundational style balancing opposing energies (ha=sun, tha=moon). Foundation for many modern styles."
+  },
+  {
+    "sanskrit": "Ashtanga Vinyasa",
+    "en": "Ashtanga Yoga",
+    "da": "Ashtanga Yoga",
+    "category": "styles",
+    "desc_da": "Struktureret system med faste sekvenser udviklet af K. Pattabhi Jois. Kraftig, svedfremmende praksis med ujjayi-åndedræt.",
+    "desc_en": "Structured system with fixed sequences developed by K. Pattabhi Jois. Powerful, sweat-inducing practice with ujjayi breathing."
+  },
+  {
+    "sanskrit": "Iyengar",
+    "en": "Iyengar Yoga",
+    "da": "Iyengar Yoga",
+    "category": "styles",
+    "desc_da": "Præcisionsorienteret stil udviklet af B.K.S. Iyengar. Fokus på alignment og udstrakt brug af rekvisitter.",
+    "desc_en": "Precision-oriented style developed by B.K.S. Iyengar. Focus on alignment and extensive use of props."
+  },
+  {
+    "sanskrit": "Bikram / Hot Yoga",
+    "en": "Hot Yoga",
+    "da": "Hot Yoga",
+    "category": "styles",
+    "desc_da": "Yoga udøvet i opvarmet rum (typisk 35-42°C). Fremmer fleksibilitet og svedbaseret udrensning.",
+    "desc_en": "Yoga practiced in a heated room (typically 35-42°C). Promotes flexibility and sweat-based detoxification."
+  },
+  {
+    "sanskrit": "Yin Yoga",
+    "en": "Yin Yoga",
+    "da": "Yin Yoga",
+    "category": "styles",
+    "desc_da": "Langsom, passiv stil med stillinger holdt i 3-5 minutter. Fokuserer på dybe bindevæv, led og faskier.",
+    "desc_en": "Slow, passive style with poses held for 3-5 minutes. Focuses on deep connective tissue, joints, and fascia."
+  },
+  {
+    "sanskrit": "Restorative Yoga",
+    "en": "Restorative Yoga",
+    "da": "Restorativ Yoga",
+    "category": "styles",
+    "desc_da": "Dybt afslappende stil med fuldt understøttede stillinger via rekvisitter. Aktiverer det parasympatiske nervesystem.",
+    "desc_en": "Deeply relaxing style with fully supported poses via props. Activates the parasympathetic nervous system."
+  },
+  {
+    "sanskrit": "Kundalini Yoga",
+    "en": "Kundalini Yoga",
+    "da": "Kundalini Yoga",
+    "category": "styles",
+    "desc_da": "Stil der fokuserer på at vække kundalini-energien. Kombination af asana, pranayama, mantra og meditation.",
+    "desc_en": "Style focused on awakening kundalini energy. Combination of asana, pranayama, mantra, and meditation."
+  },
+  {
+    "sanskrit": "Jivamukti",
+    "en": "Jivamukti Yoga",
+    "da": "Jivamukti Yoga",
+    "category": "styles",
+    "desc_da": "Moderne stil grundlagt i New York der integrerer fysisk praksis med filosofi, chanting, musik og aktivisme.",
+    "desc_en": "Modern style founded in New York integrating physical practice with philosophy, chanting, music, and activism."
+  },
+  {
+    "sanskrit": "Anusara",
+    "en": "Anusara Yoga",
+    "da": "Anusara Yoga",
+    "category": "styles",
+    "desc_da": "Hjertecentreret stil med fokus på universelle alignment-principper og positiv filosofi. 'At flyde med nåde.'",
+    "desc_en": "Heart-centered style focusing on universal alignment principles and positive philosophy. 'To flow with grace.'"
+  },
+  {
+    "sanskrit": "Power Yoga",
+    "en": "Power Yoga",
+    "da": "Power Yoga",
+    "category": "styles",
+    "desc_da": "Fitness-orienteret, atletisk tilgang til vinyasa yoga. Fokus på styrke, udholdenhed og fleksibilitet.",
+    "desc_en": "Fitness-oriented, athletic approach to vinyasa yoga. Focus on strength, endurance, and flexibility."
+  },
+  {
+    "sanskrit": "Raja Yoga",
+    "en": "Royal Yoga / Meditation Path",
+    "da": "Kongelig yoga / Meditationsvej",
+    "category": "styles",
+    "desc_da": "Den 'kongelige' yogavej baseret på Patanjalis Yoga Sutra. Fokuserer på meditation og sindets kontrol.",
+    "desc_en": "The 'royal' yoga path based on Patanjali's Yoga Sutras. Focuses on meditation and control of the mind."
+  },
+  {
+    "sanskrit": "Bhakti Yoga",
+    "en": "Yoga of Devotion",
+    "da": "Hengivenhedens yoga",
+    "category": "styles",
+    "desc_da": "Yogavej centreret om hengivenhed og kærlighed til det guddommelige. Praksis inkluderer kirtan, bøn og ritualer.",
+    "desc_en": "Yoga path centered on devotion and love for the divine. Practices include kirtan, prayer, and rituals."
+  },
+  {
+    "sanskrit": "Karma Yoga",
+    "en": "Yoga of Selfless Action",
+    "da": "Uselvisk handlings yoga",
+    "category": "styles",
+    "desc_da": "Yogavej gennem uselvisk handling og tjeneste uden tilknytning til resultater. Central lære i Bhagavad Gita.",
+    "desc_en": "Yoga path through selfless action and service without attachment to results. Central teaching in the Bhagavad Gita."
+  },
+  {
+    "sanskrit": "Jnana Yoga",
+    "en": "Yoga of Knowledge",
+    "da": "Videnens yoga",
+    "category": "styles",
+    "desc_da": "Yogavej gennem intellektuel undersøgelse og skelnen mellem det virkelige og uvirkelige. Den mest direkte vej til selverkendelse.",
+    "desc_en": "Yoga path through intellectual inquiry and discernment between the real and unreal. The most direct path to self-knowledge."
+  }
+]

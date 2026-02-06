@@ -1,0 +1,82 @@
+[
+  {
+    "sanskrit": "Sequencing",
+    "en": "Class Sequencing",
+    "da": "Klassesekvensering",
+    "category": "teaching",
+    "desc_da": "Kunsten at sammensætte en yogaklasse med logisk opbygning: opvarmning, peakstilling, nedkøling og hvile.",
+    "desc_en": "The art of structuring a yoga class with logical progression: warm-up, peak pose, cool-down, and rest."
+  },
+  {
+    "sanskrit": "Cueing",
+    "en": "Verbal Cueing",
+    "da": "Verbal vejledning",
+    "category": "teaching",
+    "desc_da": "Klare, præcise instruktioner til at guide elever ind i og ud af stillinger. Inkluderer alignment-cues og åndedrætsanvisninger.",
+    "desc_en": "Clear, precise instructions to guide students into and out of poses. Includes alignment cues and breathing directions."
+  },
+  {
+    "sanskrit": "Adjustment",
+    "en": "Hands-on Adjustment",
+    "da": "Fysisk justering",
+    "category": "teaching",
+    "desc_da": "Berøringsbaseret vejledning for at hjælpe elever med alignment, fordybning eller sikkerhed i en stilling.",
+    "desc_en": "Touch-based guidance to help students with alignment, deepening, or safety in a pose."
+  },
+  {
+    "sanskrit": "Modification",
+    "en": "Pose Modification",
+    "da": "Stillingsmodifikation",
+    "category": "teaching",
+    "desc_da": "Tilpasning af en stilling for at imødekomme individuelle behov, begrænsninger eller skader.",
+    "desc_en": "Adaptation of a pose to meet individual needs, limitations, or injuries."
+  },
+  {
+    "sanskrit": "Counterpose",
+    "en": "Counterpose",
+    "da": "Modstilling",
+    "category": "teaching",
+    "desc_da": "En stilling der neutraliserer eller balancerer effekten af den foregående. F.eks. en foroverbøjning efter en backbend.",
+    "desc_en": "A pose that neutralizes or balances the effect of the preceding one. E.g., a forward fold after a backbend."
+  },
+  {
+    "sanskrit": "Peak Pose",
+    "en": "Peak Pose",
+    "da": "Peakstilling",
+    "category": "teaching",
+    "desc_da": "Den mest udfordrende stilling i en klasse som hele sekvensen bygger hen imod.",
+    "desc_en": "The most challenging pose in a class that the entire sequence builds toward."
+  },
+  {
+    "sanskrit": "Warm-up",
+    "en": "Warm-up Sequence",
+    "da": "Opvarmningssekvens",
+    "category": "teaching",
+    "desc_da": "Indledende bevægelser og stillinger der forbereder kroppen ved at øge blodcirkulation og mobilisere led.",
+    "desc_en": "Introductory movements and poses that prepare the body by increasing circulation and mobilizing joints."
+  },
+  {
+    "sanskrit": "Cool-down",
+    "en": "Cool-down Sequence",
+    "da": "Nedkølingssekvens",
+    "category": "teaching",
+    "desc_da": "Afsluttende blide stillinger der gradvist bringer kroppen til hvile efter den aktive del af praksis.",
+    "desc_en": "Closing gentle poses that gradually bring the body to rest after the active part of practice."
+  },
+  {
+    "sanskrit": "Prop",
+    "en": "Yoga Prop Usage",
+    "da": "Brug af rekvisitter",
+    "category": "teaching",
+    "desc_da": "Strategisk brug af blokke, stropper, bolstre og tæpper til at tilpasse stillinger og gøre dem tilgængelige.",
+    "desc_en": "Strategic use of blocks, straps, bolsters, and blankets to adapt poses and make them accessible."
+  },
+  {
+    "sanskrit": "Demonstration",
+    "en": "Pose Demonstration",
+    "da": "Stillingsdemonstration",
+    "category": "teaching",
+    "desc_da": "Visuel præsentation af en stilling som læreren demonstrerer for eleverne. Kombineres ofte med verbal cueing.",
+    "desc_en": "Visual presentation of a pose demonstrated by the teacher for students. Often combined with verbal cueing."
+  }
+]
