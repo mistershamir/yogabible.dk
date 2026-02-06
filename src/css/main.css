@@ -9,8 +9,8 @@
 
 @font-face {
   font-family: 'Abacaxi';
-  src: url('https://static1.squarespace.com/static/681de856601c934813e409a1/t/6972fa794f94982b76efe07e/1769142905958/AbacaxiLatinWeb-Regular.woff2') format('woff2'),
-       url('https://static1.squarespace.com/static/681de856601c934813e409a1/t/6972fa79c37a534676c0dd70/1769142905984/AbacaxiLatinWeb-Regular.woff') format('woff');
+  src: url('/assets/fonts/AbacaxiLatinWeb-Regular.woff2') format('woff2'),
+       url('/assets/fonts/AbacaxiLatinWeb-Regular.woff') format('woff');
   font-weight: 400;
   font-style: normal;
   font-display: swap;
@@ -18,8 +18,8 @@
 
 @font-face {
   font-family: 'Abacaxi';
-  src: url('https://static1.squarespace.com/static/681de856601c934813e409a1/t/6972fa793ad633073c2cd649/1769142905942/AbacaxiLatinWeb-Bold.woff2') format('woff2'),
-       url('https://static1.squarespace.com/static/681de856601c934813e409a1/t/6972fa79ca71f0314c9fb25c/1769142905963/AbacaxiLatinWeb-Bold.woff') format('woff');
+  src: url('/assets/fonts/AbacaxiLatinWeb-Bold.woff2') format('woff2'),
+       url('/assets/fonts/AbacaxiLatinWeb-Bold.woff') format('woff');
   font-weight: 700;
   font-style: normal;
   font-display: swap;
