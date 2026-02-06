@@ -76,8 +76,8 @@
   gap: 24px;
   flex-wrap: wrap;
   margin-bottom: 18px;
-  font-size: 15px;
-  color: rgba(253, 251, 247, 0.7);
+  font-size: 17px;
+  color: rgba(253, 251, 247, 0.75);
 }
 
 .p18-hero__meta-item strong {
@@ -86,7 +86,7 @@
 }
 
 .p18-hero__styles {
-  font-size: 14px;
+  font-size: 15px;
   font-weight: 600;
   letter-spacing: 0.06em;
   color: rgba(253, 251, 247, 0.55);
@@ -871,6 +871,125 @@
   line-height: 1.65;
   color: #6F6A66;
   margin: 0;
+}
+
+/* -- Certification — Yoga Alliance RYT-200 -- */
+.p18-certification {
+  padding: 80px 20px;
+  background: #FFFCF9;
+}
+
+.p18-cert-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 40px;
+  max-width: 960px;
+  margin: 0 auto;
+}
+
+.p18-cert-subtitle {
+  font-size: 18px;
+  font-weight: 700;
+  color: #1C1C1C;
+  margin-bottom: 20px;
+  padding-bottom: 10px;
+  border-bottom: 2px solid #F65D04;
+  display: inline-block;
+}
+
+.p18-cert-style-cards {
+  display: grid;
+  gap: 12px;
+}
+
+.p18-cert-style {
+  background: #fff;
+  border-radius: 12px;
+  padding: 18px 20px;
+  border: 1px solid #E8E4E0;
+  display: flex;
+  gap: 14px;
+  align-items: flex-start;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.p18-cert-style:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.06);
+}
+
+.p18-cert-style__icon {
+  font-size: 22px;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.p18-cert-style__text h4 {
+  font-size: 15px;
+  font-weight: 700;
+  color: #1C1C1C;
+  margin: 0 0 4px;
+}
+
+.p18-cert-style__text p {
+  font-size: 13px;
+  line-height: 1.55;
+  color: #6F6A66;
+  margin: 0;
+}
+
+.p18-cert-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.p18-cert-list li {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 16px 0;
+  border-bottom: 1px solid #E8E4E0;
+}
+
+.p18-cert-list li:last-child {
+  border-bottom: none;
+}
+
+.p18-cert-check {
+  flex-shrink: 0;
+  width: 24px;
+  height: 24px;
+  border-radius: 999px;
+  background: #F65D04;
+  color: #fff;
+  font-size: 12px;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 2px;
+}
+
+.p18-cert-list li > span:last-child {
+  font-size: 14px;
+  line-height: 1.6;
+  color: #444;
+}
+
+.p18-cert-closing {
+  text-align: center;
+  max-width: 700px;
+  margin: 40px auto 0;
+  font-size: 15px;
+  line-height: 1.65;
+  color: #6F6A66;
+  font-style: italic;
+}
+
+.p18-cert-cta {
+  text-align: center;
+  margin-top: 28px;
 }
 
 /* -- Investment -- */
@@ -1754,10 +1873,16 @@
   .p18-video-interview,
   .p18-testimonial-video,
   .p18-curriculum,
+  .p18-certification,
   .p18-investment,
   .p18-faq,
   .p18-final-cta {
     padding: 56px 20px;
+  }
+
+  .p18-cert-grid {
+    grid-template-columns: 1fr;
+    gap: 32px;
   }
 
   .p18-flex-grid {
@@ -1970,9 +2095,13 @@
   aspect-ratio: 4 / 3;
   overflow: hidden;
   background: #f5f4f2;
+  flex-shrink: 0;
+  width: 100%;
+  display: block;
 }
 
 .yb-more-card__image img {
+  display: block;
   width: 100%;
   height: 100%;
   object-fit: cover;

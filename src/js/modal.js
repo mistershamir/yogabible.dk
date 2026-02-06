@@ -180,25 +180,26 @@
         params.append('allFormats', fmts.join(','));
       }
 
-      // Use Image beacon — follows redirects natively (unlike fetch no-cors)
-      var beacon = new Image();
-      beacon.onload = beacon.onerror = function() {
+      // Submit via fetch POST (Google Apps Script doPost handler)
+      fetch(FORM_URL, {
+        method: 'POST',
+        mode: 'no-cors',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: params.toString()
+      }).then(function() {
         submitBtn.disabled = false;
         submitBtn.textContent = 'Send & få skema';
         if (viewForm) viewForm.hidden = true;
         if (viewSuccess) viewSuccess.hidden = false;
-      };
-      beacon.src = FORM_URL + '?' + params.toString();
-
-      // Fallback timeout in case neither onload nor onerror fires
-      setTimeout(function() {
-        if (submitBtn.disabled) {
-          submitBtn.disabled = false;
-          submitBtn.textContent = 'Send & få skema';
-          if (viewForm) viewForm.hidden = true;
-          if (viewSuccess) viewSuccess.hidden = false;
+      }).catch(function(err) {
+        console.error('Form submission error:', err);
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Send & få skema';
+        if (errBox) {
+          errBox.textContent = 'Der opstod en fejl. Prøv igen.';
+          errBox.hidden = false;
         }
-      }, 5000);
+      });
     });
   }
 
