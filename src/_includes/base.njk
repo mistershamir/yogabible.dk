@@ -21,6 +21,10 @@
     {% include "modal-schedule.njk" %}
   {% endif %}
 
+  {% if includeCoursesModal %}
+    {% include "modal-courses.njk" %}
+  {% endif %}
+
   <!-- Netlify Identity redirect (for CMS login flow) -->
   <script>
     if (window.netlifyIdentity) {
