@@ -20,6 +20,12 @@ module.exports = function(eleventyConfig) {
     return dateObj;
   });
 
+  // Limit filter for arrays
+  eleventyConfig.addFilter("limit", function(arr, count) {
+    if (!Array.isArray(arr)) return arr;
+    return arr.slice(0, count);
+  });
+
   return {
     dir: {
       input: "src",

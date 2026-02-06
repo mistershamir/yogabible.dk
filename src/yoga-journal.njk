@@ -1,0 +1,144 @@
+---
+layout: base.njk
+title: "Yoga Journal — Artikler om Yoga, Mindfulness & Uddannelse | YOGA BIBLE"
+description: "Udforsk Yoga Bibles journal med dybdegående artikler om yogafilosofi, pranayama, asanas, mental sundhed og yogalæreruddannelse. Tilgængelig på dansk og engelsk."
+permalink: /yoga-journal/
+isJournalListing: true
+---
+
+<!-- Hero -->
+<section class="yj-hero">
+  <div class="container">
+    <div class="yj-hero__badge" data-yj-i18n="badge">YOGA JOURNAL</div>
+    <h1 class="yj-hero__title" data-yj-i18n="hero.title">Yoga Journal</h1>
+    <p class="yj-hero__subtitle" data-yj-da>
+      Dybdegående artikler om yogafilosofi, pranayama, asanas, mental sundhed og uddannelse — skrevet af Yoga Bible i København.
+    </p>
+    <p class="yj-hero__subtitle" data-yj-en hidden>
+      In-depth articles about yoga philosophy, pranayama, asanas, mental health, and education — written by Yoga Bible in Copenhagen.
+    </p>
+  </div>
+</section>
+
+<!-- Search & Filter Bar -->
+<section class="yj-controls">
+  <div class="container">
+    <div class="yj-controls__bar">
+      <!-- Language Toggle -->
+      <div class="yj-lang" role="group" aria-label="Sprog / Language">
+        <button class="yj-lang__btn is-active" data-yj-lang="da" type="button">DA</button>
+        <button class="yj-lang__btn" data-yj-lang="en" type="button">EN</button>
+      </div>
+
+      <!-- Search -->
+      <div class="yj-search">
+        <input
+          type="search"
+          id="yjSearch"
+          class="yj-search__input"
+          placeholder="Søg i journalen..."
+          autocomplete="off"
+          data-yj-placeholder-da="Søg i journalen..."
+          data-yj-placeholder-en="Search the journal..."
+        >
+        <span class="yj-search__icon" aria-hidden="true">&#128269;</span>
+      </div>
+
+      <!-- Category Filters -->
+      <div class="yj-filters" role="group" aria-label="Kategorier / Categories">
+        <button class="yj-filters__btn is-active" data-yj-filter="all" type="button">
+          <span data-yj-da>Alle</span><span data-yj-en hidden>All</span>
+        </button>
+        <button class="yj-filters__btn" data-yj-filter="yoga-styles" type="button">
+          <span data-yj-da>Yoga Stilarter</span><span data-yj-en hidden>Yoga Styles</span>
+        </button>
+        <button class="yj-filters__btn" data-yj-filter="pranayama" type="button">
+          <span data-yj-da>Pranayama</span><span data-yj-en hidden>Pranayama</span>
+        </button>
+        <button class="yj-filters__btn" data-yj-filter="philosophy" type="button">
+          <span data-yj-da>Filosofi</span><span data-yj-en hidden>Philosophy</span>
+        </button>
+        <button class="yj-filters__btn" data-yj-filter="wellness" type="button">
+          <span data-yj-da>Velvære</span><span data-yj-en hidden>Wellness</span>
+        </button>
+        <button class="yj-filters__btn" data-yj-filter="teacher-training" type="button">
+          <span data-yj-da>Uddannelse</span><span data-yj-en hidden>Training</span>
+        </button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Results Counter -->
+<section class="yj-results-bar">
+  <div class="container">
+    <p class="yj-results-bar__count" id="yjResultsCount"></p>
+  </div>
+</section>
+
+<!-- Journal Grid -->
+<section class="yj-grid-section">
+  <div class="container">
+    <div class="yj-grid" id="yjGrid">
+      {%- for journal in journals | sort(true, false, 'date') %}
+      <article class="yj-card" data-yj-slug="{{ journal.slug }}" data-yj-category="{{ journal.category }}" data-yj-tags="{{ journal.tags | join(',') }}" data-yj-featured="{{ journal.featured }}" data-yj-gated="{{ journal.gated }}">
+        <a href="/yoga-journal/{{ journal.slug }}/" class="yj-card__link">
+          <div class="yj-card__img-wrap">
+            <div class="yj-card__img" style="background-image:url('{{ journal.image }}')"></div>
+            {%- if journal.featured %}
+            <span class="yj-card__featured-badge">
+              <span data-yj-da>Fremhævet</span><span data-yj-en hidden>Featured</span>
+            </span>
+            {%- endif %}
+          </div>
+          <div class="yj-card__body">
+            <div class="yj-card__meta">
+              <time datetime="{{ journal.date }}">{{ journal.date }}</time>
+              <span class="yj-card__dot">&middot;</span>
+              <span data-yj-da>{{ journal.readTime_da }} læsetid</span>
+              <span data-yj-en hidden>{{ journal.readTime_en }} read</span>
+            </div>
+            <h2 class="yj-card__title">
+              <span data-yj-da>{{ journal.title_da }}</span>
+              <span data-yj-en hidden>{{ journal.title_en }}</span>
+            </h2>
+            <p class="yj-card__excerpt">
+              <span data-yj-da>{{ journal.excerpt_da }}</span>
+              <span data-yj-en hidden>{{ journal.excerpt_en }}</span>
+            </p>
+            <div class="yj-card__tags">
+              {%- for tag in journal.tags %}
+              <span class="yj-card__tag">{{ tag }}</span>
+              {%- endfor %}
+            </div>
+            <span class="yj-card__read-more">
+              <span data-yj-da>Læs mere &rarr;</span>
+              <span data-yj-en hidden>Read more &rarr;</span>
+            </span>
+          </div>
+        </a>
+      </article>
+      {%- endfor %}
+    </div>
+
+    <!-- Empty State -->
+    <div class="yj-empty" id="yjEmpty" hidden>
+      <p data-yj-da>Ingen artikler matcher din søgning. Prøv et andet ord eller filter.</p>
+      <p data-yj-en hidden>No articles match your search. Try a different word or filter.</p>
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+<section class="cta-section">
+  <div class="container">
+    <h2 class="cta-section__title" data-yj-da>Klar til at fordybe dig?</h2>
+    <h2 class="cta-section__title" data-yj-en hidden>Ready to go deeper?</h2>
+    <p class="cta-section__text" data-yj-da>Vores yogalæreruddannelser dækker alle disse emner i dybden. Start din rejse i dag.</p>
+    <p class="cta-section__text" data-yj-en hidden>Our yoga teacher training programs cover all these topics in depth. Start your journey today.</p>
+    <a href="/om-200hrs-yogalreruddannelser" class="btn btn--large btn--primary" data-yj-da>Se Uddannelser</a>
+    <a href="/om-200hrs-yogalreruddannelser" class="btn btn--large btn--primary" data-yj-en hidden>View Programs</a>
+  </div>
+</section>
+
+<script src="/js/journal.js"></script>

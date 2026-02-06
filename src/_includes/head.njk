@@ -39,8 +39,9 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
 'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
 })(window,document,'script','dataLayer','{{ site.gtmId }}');</script>
 
-<!-- hreflang: Danish is primary, English planned -->
+<!-- hreflang: Danish is primary, English via subdomain -->
 <link rel="alternate" hreflang="da" href="{{ site.url }}{{ page.url }}">
+<link rel="alternate" hreflang="en" href="https://en.yogabible.dk{{ page.url }}">
 <link rel="alternate" hreflang="x-default" href="{{ site.url }}{{ page.url }}">
 
 <!-- JSON-LD: Organization (all pages) -->
@@ -158,6 +159,25 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
     "price": "2300",
     "priceCurrency": "DKK",
     "availability": "https://schema.org/InStock"
+  }
+}
+</script>
+{% endif %}
+
+{% if isJournalListing %}
+<!-- JSON-LD: Blog (journal listing page, AEO) -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Blog",
+  "name": "Yoga Journal — YOGA BIBLE",
+  "description": "Dybdegående artikler om yogafilosofi, pranayama, asanas, mental sundhed og uddannelse fra Yoga Bible i København.",
+  "url": "{{ site.url }}/yoga-journal/",
+  "inLanguage": ["da", "en"],
+  "publisher": {
+    "@type": "EducationalOrganization",
+    "name": "Yoga Bible",
+    "url": "{{ site.url }}"
   }
 }
 </script>
