@@ -140,7 +140,7 @@
    ============================================= */
 .yb-tracks {
   background: #fff;
-  padding: 4rem 1.5rem;
+  padding: 80px 20px;
 }
 
 .yb-tracks__inner {
@@ -151,10 +151,10 @@
 .yb-tracks__kicker {
   display: inline-block;
   margin: 0 0 0.5rem;
-  font-weight: 600;
+  font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.04em;
-  font-size: 0.85rem;
+  letter-spacing: 0.12em;
+  font-size: 11px;
   color: #F65D04;
 }
 
@@ -1095,7 +1095,7 @@
    ============================================= */
 .yb-visit {
   background: #FFF8F4;
-  padding: 4rem 1.5rem;
+  padding: 80px 20px;
 }
 
 .yb-visit__wrap {
@@ -1117,10 +1117,10 @@
 .yb-visit__kicker {
   display: inline-block;
   margin: 0 0 0.5rem;
-  font-weight: 600;
+  font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.04em;
-  font-size: 0.85rem;
+  letter-spacing: 0.12em;
+  font-size: 11px;
   color: #F65D04;
 }
 
@@ -1370,7 +1370,7 @@
    ============================================= */
 .yb-early {
   background: #FFFCF9;
-  padding: 4rem 1.5rem;
+  padding: 80px 20px;
 }
 
 .yb-early-wrap {
@@ -1424,10 +1424,10 @@
 .yb-early-kicker {
   display: inline-block;
   margin: 0 0 0.5rem;
-  font-weight: 600;
+  font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.04em;
-  font-size: 0.85rem;
+  letter-spacing: 0.12em;
+  font-size: 11px;
   color: #F65D04;
 }
 
@@ -1541,7 +1541,7 @@
    ============================================= */
 .yb-reviews {
   background: #fff;
-  padding: 4rem 1.5rem;
+  padding: 80px 20px;
 }
 
 .yb-reviews__inner {
@@ -1552,10 +1552,10 @@
 .yb-reviews__kicker {
   display: inline-block;
   margin: 0 0 0.5rem;
-  font-weight: 600;
+  font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.04em;
-  font-size: 0.85rem;
+  letter-spacing: 0.12em;
+  font-size: 11px;
   color: #F65D04;
 }
 
@@ -1876,7 +1876,12 @@
   .p18-certification,
   .p18-investment,
   .p18-faq,
-  .p18-final-cta {
+  .p18-final-cta,
+  .yb-tracks,
+  .yb-visit,
+  .yb-early,
+  .yb-reviews,
+  .yb-more {
     padding: 56px 20px;
   }
 
@@ -1947,10 +1952,6 @@
 }
 
 @media (max-width: 599px) {
-  .yb-tracks {
-    padding: 3rem 1rem;
-  }
-
   .yb-track-card {
     flex-direction: column;
     text-align: center;
@@ -1976,10 +1977,6 @@
 
   .yb-tracks__cta .yb-btn {
     width: 100%;
-  }
-
-  .yb-visit {
-    padding: 3rem 1rem;
   }
 
   .yb-visit .yb-btn {
@@ -2023,7 +2020,7 @@
    ============================================= */
 .yb-more {
   background: #FFFCF9;
-  padding: 4rem 1.5rem;
+  padding: 80px 20px;
 }
 
 .yb-more__inner {
@@ -2039,10 +2036,10 @@
 .yb-more__kicker {
   display: inline-block;
   margin: 0 0 0.5rem;
-  font-weight: 600;
+  font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.04em;
-  font-size: 0.85rem;
+  letter-spacing: 0.12em;
+  font-size: 11px;
   color: #F65D04;
 }
 
@@ -2265,10 +2262,6 @@
 }
 
 @media (max-width: 599px) {
-  .yb-more {
-    padding: 3rem 1rem;
-  }
-
   .yb-more-card__body {
     padding: 1.25rem;
   }
