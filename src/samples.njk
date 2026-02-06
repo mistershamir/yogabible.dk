@@ -2493,6 +2493,19 @@ eleventyExcludeFromCollections: true
   z-index: 2;
   padding: 60px 40px;
 }
+
+/* Vine leaves — appear with scale + fade as line draws past them */
+.ds-vine-leaf {
+  transform-origin: center;
+  transition: opacity 0.6s ease, transform 0.6s ease;
+}
+.ds-vine-leaf.ds-leaf--visible {
+  opacity: 1 !important;
+  transform: scale(1);
+}
+.ds-vine-leaf:not(.ds-leaf--visible) {
+  transform: scale(0);
+}
 </style>
 
 <div class="ds-page">
@@ -4034,20 +4047,20 @@ eleventyExcludeFromCollections: true
   <section class="ds-section">
     <div class="ds-section__header">
       <h2 class="ds-section__title" data-number="30">Scroll-Draw Paths</h2>
-      <p class="ds-section__desc">SVG paths that draw themselves as you scroll — vine/branch style decorative elements. Scroll inside each preview to see the animation.</p>
+      <p class="ds-section__desc">SVG vine/branch paths that draw on scroll — brand decorative elements for landing pages. Scroll inside each preview to see the animation. Use sparingly as accents.</p>
     </div>
 
     <div class="ds-sub">
-      <h3 class="ds-sub__title">Variation A — Flowing Vine</h3>
-      <p class="ds-sub__desc">A curving organic path that flows down and loops — like the Hot Yoga CPH branch. Orange stroke with a lighter shadow trail.</p>
+      <h3 class="ds-sub__title">Variation A — Flowing Vine + Shadow Trail</h3>
+      <p class="ds-sub__desc">An organic vine that curves and flows down the page. The main orange line is accompanied by a soft shadow trail that draws slightly ahead.</p>
       <div class="ds-draw-preview" data-scroll-draw>
-        <svg viewBox="0 0 800 1200" preserveAspectRatio="none">
-          <!-- Shadow trail (lighter, offset) -->
-          <path class="ds-draw-shadow" d="M 400,0 C 500,100 650,150 600,250 C 550,350 350,300 300,400 C 250,500 450,550 500,650 C 550,750 350,800 400,900 C 450,1000 600,1050 550,1200"
-                stroke="rgba(247,92,3,0.12)" stroke-width="1.5" />
-          <!-- Main vine path -->
-          <path class="ds-draw-path" d="M 400,0 C 500,100 650,150 600,250 C 550,350 350,300 300,400 C 250,500 450,550 500,650 C 550,750 350,800 400,900 C 450,1000 600,1050 550,1200"
-                stroke="var(--yb-brand)" stroke-width="2" />
+        <svg viewBox="0 0 800 1200" preserveAspectRatio="xMidYMid meet" fill="none">
+          <path class="ds-draw-shadow" fill="none"
+                d="M 400,20 C 480,100 620,140 580,240 C 540,340 380,310 330,400 C 280,490 420,530 470,620 C 520,710 380,770 400,870 C 420,970 560,1020 520,1150"
+                stroke="rgba(247,92,3,0.12)" stroke-width="1.5" stroke-linecap="round" />
+          <path class="ds-draw-path" fill="none"
+                d="M 400,20 C 480,100 620,140 580,240 C 540,340 380,310 330,400 C 280,490 420,530 470,620 C 520,710 380,770 400,870 C 420,970 560,1020 520,1150"
+                stroke="#f75c03" stroke-width="2.5" stroke-linecap="round" />
         </svg>
         <div class="ds-draw-content">
           <p class="ds-eyebrow ds-eyebrow--brand" style="margin-bottom:12px">Yogalaereruddannelse</p>
@@ -4062,19 +4075,18 @@ eleventyExcludeFromCollections: true
     </div>
 
     <div class="ds-sub">
-      <h3 class="ds-sub__title">Variation B — Spiraling Branch</h3>
-      <p class="ds-sub__desc">A path that spirals and loops like a growing branch — more ornamental, with a loop in the middle.</p>
+      <h3 class="ds-sub__title">Variation B — Clean Vine (No Shadow)</h3>
+      <p class="ds-sub__desc">Just the orange line — clean and minimal. A spiraling branch with no shadow trail. Great for subtle page decoration.</p>
       <div class="ds-draw-preview" data-scroll-draw>
-        <svg viewBox="0 0 800 1200" preserveAspectRatio="none">
-          <path class="ds-draw-shadow" d="M 200,0 C 250,80 450,120 500,200 C 550,280 400,350 350,400 C 300,450 200,420 180,480 C 140,580 350,580 420,520 C 490,460 520,380 560,450 C 600,520 500,620 450,700 C 400,780 550,850 600,950 C 650,1050 500,1100 450,1200"
-                stroke="rgba(247,92,3,0.1)" stroke-width="1.5" />
-          <path class="ds-draw-path" d="M 200,0 C 250,80 450,120 500,200 C 550,280 400,350 350,400 C 300,450 200,420 180,480 C 140,580 350,580 420,520 C 490,460 520,380 560,450 C 600,520 500,620 450,700 C 400,780 550,850 600,950 C 650,1050 500,1100 450,1200"
-                stroke="var(--yb-brand)" stroke-width="2" />
+        <svg viewBox="0 0 800 1200" preserveAspectRatio="xMidYMid meet" fill="none">
+          <path class="ds-draw-path" fill="none"
+                d="M 250,20 C 300,90 500,120 520,210 C 540,300 400,350 360,430 C 320,510 240,490 220,560 C 190,660 380,650 440,590 C 500,530 530,460 560,530 C 590,600 500,680 460,760 C 420,840 540,900 580,1000 C 620,1100 490,1130 450,1180"
+                stroke="#f75c03" stroke-width="2.5" stroke-linecap="round" />
         </svg>
         <div class="ds-draw-content">
           <div style="text-align:right;max-width:350px;margin-left:auto">
             <p class="ds-eyebrow ds-eyebrow--brand ds-eyebrow--dot" style="margin-bottom:12px;justify-content:flex-end">Din rejse</p>
-            <h2 style="font-size:2rem;font-weight:700;margin-bottom:12px">Fra ansogning til certificering</h2>
+            <h2 style="font-size:2rem;font-weight:700;margin-bottom:12px">Fra ansogning<br>til certificering</h2>
             <p style="color:var(--ds-text-muted);line-height:1.6">Vi guider dig hele vejen.</p>
           </div>
           <div style="height:400px"></div>
@@ -4088,14 +4100,79 @@ eleventyExcludeFromCollections: true
     </div>
 
     <div class="ds-sub">
-      <h3 class="ds-sub__title">Variation C — Gentle S-Curve</h3>
-      <p class="ds-sub__desc">A simpler, more elegant S-curve — subtle, good as a background accent between sections.</p>
+      <h3 class="ds-sub__title">Variation C — Vine with Growing Leaves</h3>
+      <p class="ds-sub__desc">The vine draws and tiny leaves sprout along the path as it extends. A living, organic brand element.</p>
+      <div class="ds-draw-preview" data-scroll-draw data-has-leaves="true">
+        <svg viewBox="0 0 800 1200" preserveAspectRatio="xMidYMid meet" fill="none">
+          <path class="ds-draw-shadow" fill="none"
+                d="M 420,20 C 490,110 600,150 560,260 C 520,370 370,340 340,430 C 310,520 440,560 480,650 C 520,740 400,790 410,890 C 420,990 540,1030 510,1150"
+                stroke="rgba(247,92,3,0.1)" stroke-width="1.5" stroke-linecap="round" />
+          <path class="ds-draw-path" fill="none"
+                d="M 420,20 C 490,110 600,150 560,260 C 520,370 370,340 340,430 C 310,520 440,560 480,650 C 520,740 400,790 410,890 C 420,990 540,1030 510,1150"
+                stroke="#f75c03" stroke-width="2.5" stroke-linecap="round" />
+          <!-- Tiny leaves that appear as the vine extends -->
+          <g class="ds-vine-leaves">
+            <!-- Leaf pair at ~12% -->
+            <path class="ds-vine-leaf" data-appear-at="0.12"
+                  d="M 555,148 Q 570,130 565,155 Q 558,168 548,155 Z"
+                  fill="#f75c03" stroke="none" opacity="0" />
+            <path class="ds-vine-leaf" data-appear-at="0.14"
+                  d="M 545,152 Q 530,135 535,158 Q 540,170 550,158 Z"
+                  fill="rgba(247,92,3,0.5)" stroke="none" opacity="0" />
+            <!-- Leaf at ~28% -->
+            <path class="ds-vine-leaf" data-appear-at="0.28"
+                  d="M 448,310 Q 462,292 458,318 Q 452,332 442,318 Z"
+                  fill="#f75c03" stroke="none" opacity="0" />
+            <!-- Leaf pair at ~42% -->
+            <path class="ds-vine-leaf" data-appear-at="0.42"
+                  d="M 348,435 Q 332,418 337,442 Q 342,455 352,442 Z"
+                  fill="#f75c03" stroke="none" opacity="0" />
+            <path class="ds-vine-leaf" data-appear-at="0.44"
+                  d="M 358,430 Q 374,414 368,438 Q 362,452 352,438 Z"
+                  fill="rgba(247,92,3,0.5)" stroke="none" opacity="0" />
+            <!-- Leaf at ~58% -->
+            <path class="ds-vine-leaf" data-appear-at="0.58"
+                  d="M 488,650 Q 504,633 498,658 Q 492,672 482,658 Z"
+                  fill="#f75c03" stroke="none" opacity="0" />
+            <!-- Leaf pair at ~72% -->
+            <path class="ds-vine-leaf" data-appear-at="0.72"
+                  d="M 405,830 Q 420,812 415,838 Q 408,852 398,838 Z"
+                  fill="#f75c03" stroke="none" opacity="0" />
+            <path class="ds-vine-leaf" data-appear-at="0.74"
+                  d="M 415,825 Q 400,808 405,832 Q 410,845 420,832 Z"
+                  fill="rgba(247,92,3,0.5)" stroke="none" opacity="0" />
+            <!-- Leaf at ~88% -->
+            <path class="ds-vine-leaf" data-appear-at="0.88"
+                  d="M 520,1035 Q 536,1018 530,1042 Q 524,1056 514,1042 Z"
+                  fill="#f75c03" stroke="none" opacity="0" />
+            <path class="ds-vine-leaf" data-appear-at="0.90"
+                  d="M 510,1040 Q 494,1024 500,1048 Q 506,1060 516,1048 Z"
+                  fill="rgba(247,92,3,0.5)" stroke="none" opacity="0" />
+          </g>
+        </svg>
+        <div class="ds-draw-content" style="text-align:center">
+          <p class="ds-eyebrow ds-eyebrow--brand ds-eyebrow--line" style="margin-bottom:12px">Yoga Bible</p>
+          <h2 style="font-size:clamp(2rem,4vw,3rem);font-weight:700;margin-bottom:16px">Voks med os</h2>
+          <p style="color:var(--ds-text-muted);max-width:400px;margin:0 auto;line-height:1.6">Se bladene gro mens du scroller — en levende vine som brand-element.</p>
+          <div style="height:300px"></div>
+          <h3 style="font-size:1.5rem;font-weight:700;margin-bottom:12px">Naturen foldes ud</h3>
+          <p style="color:var(--ds-text-muted);max-width:400px;margin:0 auto;line-height:1.6">Hver side fortaeller en organisk historie.</p>
+          <div style="height:200px"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="ds-sub">
+      <h3 class="ds-sub__title">Variation D — Gentle S-Curve</h3>
+      <p class="ds-sub__desc">A simpler, wider S-curve — subtle background accent between sections. Orange line with light shadow.</p>
       <div class="ds-draw-preview" data-scroll-draw style="height:500px">
-        <svg viewBox="0 0 800 1000" preserveAspectRatio="none">
-          <path class="ds-draw-shadow" d="M 100,0 C 100,150 700,200 700,400 C 700,600 100,650 100,850 C 100,950 400,1000 400,1000"
-                stroke="rgba(247,92,3,0.08)" stroke-width="2" />
-          <path class="ds-draw-path" d="M 100,0 C 100,150 700,200 700,400 C 700,600 100,650 100,850 C 100,950 400,1000 400,1000"
-                stroke="var(--yb-brand)" stroke-width="1.5" />
+        <svg viewBox="0 0 800 1000" preserveAspectRatio="xMidYMid meet" fill="none">
+          <path class="ds-draw-shadow" fill="none"
+                d="M 150,20 C 150,180 650,220 650,420 C 650,620 150,660 150,860 C 150,940 400,980 400,980"
+                stroke="rgba(247,92,3,0.08)" stroke-width="2" stroke-linecap="round" />
+          <path class="ds-draw-path" fill="none"
+                d="M 150,20 C 150,180 650,220 650,420 C 650,620 150,660 150,860 C 150,940 400,980 400,980"
+                stroke="#f75c03" stroke-width="2" stroke-linecap="round" />
         </svg>
         <div class="ds-draw-content" style="text-align:center">
           <h2 style="font-size:2rem;font-weight:700;margin-bottom:16px">Elegant S-kurve</h2>
@@ -4106,40 +4183,13 @@ eleventyExcludeFromCollections: true
     </div>
 
     <div class="ds-sub">
-      <h3 class="ds-sub__title">Variation D — Dual Paths (Brand + Muted)</h3>
-      <p class="ds-sub__desc">Two intertwining paths at different speeds — one orange, one light. Creates depth.</p>
-      <div class="ds-draw-preview" data-scroll-draw>
-        <svg viewBox="0 0 800 1200" preserveAspectRatio="none">
-          <!-- Path 1: light, wider -->
-          <path class="ds-draw-path" data-draw-speed="0.7" d="M 600,0 C 550,100 250,180 300,300 C 350,420 650,400 600,550 C 550,700 200,750 250,900 C 300,1050 550,1100 500,1200"
-                stroke="#E8E4E0" stroke-width="2.5" />
-          <!-- Path 2: brand, on top -->
-          <path class="ds-draw-path" data-draw-speed="1" d="M 550,0 C 600,120 300,200 350,350 C 400,500 600,450 550,600 C 500,750 250,800 300,950 C 350,1100 500,1150 450,1200"
-                stroke="var(--yb-brand)" stroke-width="2" />
-        </svg>
-        <div class="ds-draw-content">
-          <p class="ds-eyebrow ds-eyebrow--brand ds-eyebrow--line" style="margin-bottom:12px">Hot Yoga Copenhagen</p>
-          <h2 style="font-size:2rem;font-weight:700;margin-bottom:12px">Oplev kraften<br>i varmen</h2>
-          <p style="color:var(--ds-text-muted);max-width:350px;line-height:1.6">Intensive klasser i vores studio.</p>
-          <div style="height:400px"></div>
-          <div style="text-align:right;max-width:400px;margin-left:auto">
-            <h3 style="font-size:1.3rem;font-weight:700;margin-bottom:8px">26 grader. Dyb fordybelse.</h3>
-            <p style="color:var(--ds-text-muted);line-height:1.6">Intens transformation.</p>
-          </div>
-          <div style="height:200px"></div>
-        </div>
-      </div>
-    </div>
-
-    <div class="ds-sub">
-      <h3 class="ds-sub__title">Variation E — Progress Line (Straight with Curves)</h3>
-      <p class="ds-sub__desc">A mostly vertical line with gentle curves — works as a scrolling progress indicator alongside content.</p>
+      <h3 class="ds-sub__title">Variation E — Progress Line</h3>
+      <p class="ds-sub__desc">A mostly vertical line with gentle curves — works as a scrolling progress indicator alongside content. No shadow, clean and functional.</p>
       <div class="ds-draw-preview" data-scroll-draw style="height:500px">
-        <svg viewBox="0 0 800 1000" preserveAspectRatio="none">
-          <path class="ds-draw-shadow" d="M 400,0 C 420,100 380,200 400,300 C 420,400 440,500 400,600 C 360,700 380,800 400,900 L 400,1000"
-                stroke="rgba(247,92,3,0.08)" stroke-width="3" />
-          <path class="ds-draw-path" d="M 400,0 C 420,100 380,200 400,300 C 420,400 440,500 400,600 C 360,700 380,800 400,900 L 400,1000"
-                stroke="var(--yb-brand)" stroke-width="2" />
+        <svg viewBox="0 0 800 1000" preserveAspectRatio="xMidYMid meet" fill="none">
+          <path class="ds-draw-path" fill="none"
+                d="M 400,20 C 420,120 380,220 400,320 C 420,420 440,520 400,620 C 360,720 380,820 400,920 L 400,980"
+                stroke="#f75c03" stroke-width="2" stroke-linecap="round" />
         </svg>
         <div class="ds-draw-content" style="text-align:center">
           <h2 style="font-size:2rem;font-weight:700;margin-bottom:16px">Vertikal fremskridt</h2>
@@ -4178,8 +4228,9 @@ eleventyExcludeFromCollections: true
         <li>"Use <strong>content + video layout</strong> from section 28"</li>
         <li>"Use <strong>Hero B (split)</strong> from section 29 for this page"</li>
         <li>"Use <strong>Hot Yoga CPH color #3f99a5</strong> for Hot Yoga CTAs and strokes"</li>
-        <li>"Add <strong>scroll-draw vine path (variation A)</strong> from section 30 as page decoration"</li>
-        <li>"Use <strong>dual scroll-draw paths</strong> from section 30 (variation D) for depth"</li>
+        <li>"Add <strong>scroll-draw vine with shadow</strong> from section 30 (variation A) as page decoration"</li>
+        <li>"Use <strong>clean scroll-draw vine</strong> from section 30 (variation B) — no shadow"</li>
+        <li>"Add <strong>vine with growing leaves</strong> from section 30 (variation C) for organic feel"</li>
       </ul>
     </div>
   </section>
@@ -4232,11 +4283,13 @@ document.addEventListener('DOMContentLoaded', function() {
   // ══════════════════════════════════════════════════════════════
   // SCROLL-DRAW PATH ANIMATION
   // SVG paths draw themselves as you scroll inside their container
+  // Supports: shadow trails, growing leaves
   // ══════════════════════════════════════════════════════════════
   var drawPreviews = document.querySelectorAll('[data-scroll-draw]');
   drawPreviews.forEach(function(container) {
     var paths = container.querySelectorAll('.ds-draw-path');
     var shadows = container.querySelectorAll('.ds-draw-shadow');
+    var leaves = container.querySelectorAll('.ds-vine-leaf');
 
     // Initialize all paths with dash offset
     paths.forEach(function(path) {
@@ -4269,9 +4322,18 @@ document.addEventListener('DOMContentLoaded', function() {
 
       shadows.forEach(function(shadow) {
         var length = shadow.getTotalLength();
-        // Shadow draws slightly ahead for trail effect
         var drawLength = Math.min(progress * 1.15, 1) * length;
         shadow.style.strokeDashoffset = length - drawLength;
+      });
+
+      // Grow leaves when the vine reaches their position
+      leaves.forEach(function(leaf) {
+        var appearAt = parseFloat(leaf.getAttribute('data-appear-at')) || 0;
+        if (progress >= appearAt) {
+          leaf.classList.add('ds-leaf--visible');
+        } else {
+          leaf.classList.remove('ds-leaf--visible');
+        }
       });
     });
   });
