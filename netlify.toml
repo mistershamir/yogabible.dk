@@ -15,7 +15,12 @@
 # Legacy Squarespace URL redirects (301)
 [[redirects]]
   from = "/yoga-glossory"
-  to = "/glossary"
+  to = "/yoga-glossary"
+  status = 301
+
+[[redirects]]
+  from = "/glossary"
+  to = "/yoga-glossary"
   status = 301
 
 [[redirects]]
