@@ -4,6 +4,7 @@
     "en": "Posture / Seat",
     "da": "Stilling / Sæde",
     "category": "anatomy",
+    "subcategory": "alignment-principles",
     "desc_da": "Bogstaveligt 'sæde'. Det tredje lem af yoga. I moderne yoga refererer det til fysiske stillinger og kropsholdninger.",
     "desc_en": "Literally 'seat'. The third limb of yoga. In modern yoga it refers to physical postures and positions."
   },
@@ -12,6 +13,7 @@
     "en": "Gaze Point",
     "da": "Blikretning",
     "category": "anatomy",
+    "subcategory": "alignment-principles",
     "desc_da": "Specifik blikretning i en stilling der hjælper med balance, fokus og energistyring. Ni klassiske drishti-punkter.",
     "desc_en": "Specific gaze direction in a pose that helps with balance, focus, and energy management. Nine classical drishti points."
   },
@@ -20,6 +22,7 @@
     "en": "Stability / Steadiness",
     "da": "Stabilitet / Fasthed",
     "category": "anatomy",
+    "subcategory": "alignment-principles",
     "desc_da": "Stabilitet og fasthed i en stilling. Patanjali: 'Sthira sukham asanam' — stillingen skal være stabil og behagelig.",
     "desc_en": "Stability and steadiness in a pose. Patanjali: 'Sthira sukham asanam' — the posture should be steady and comfortable."
   },
@@ -28,6 +31,7 @@
     "en": "Ease / Comfort",
     "da": "Lethed / Komfort",
     "category": "anatomy",
+    "subcategory": "alignment-principles",
     "desc_da": "Lethed og komfort i en stilling. Modvægten til sthira. Sammen skaber de balancen i enhver asana.",
     "desc_en": "Ease and comfort in a pose. The counterbalance to sthira. Together they create the balance in any asana."
   },
@@ -36,6 +40,7 @@
     "en": "Intelligent Sequencing",
     "da": "Intelligent sekvensering",
     "category": "anatomy",
+    "subcategory": "alignment-principles",
     "desc_da": "Princippet om at opbygge en yogasekvens trinvis med stigende sværhedsgrad og passende modstillinger.",
     "desc_en": "The principle of building a yoga sequence step-by-step with increasing difficulty and appropriate counterpositions."
   },
@@ -44,6 +49,7 @@
     "en": "Body Alignment",
     "da": "Kropsjustering",
     "category": "anatomy",
+    "subcategory": "alignment-principles",
     "desc_da": "Korrekt placering af kroppen i en stilling for at beskytte led, optimere stræk og forhindre skader.",
     "desc_en": "Correct placement of the body in a pose to protect joints, optimize stretches, and prevent injuries."
   },
@@ -52,6 +58,7 @@
     "en": "Joint Flexion",
     "da": "Fleksion / Bøjning",
     "category": "anatomy",
+    "subcategory": "joint-movement",
     "desc_da": "Ledbevægelse der reducerer vinklen mellem to knogler. F.eks. bøjning af albuen eller knæet.",
     "desc_en": "Joint movement that reduces the angle between two bones. E.g., bending the elbow or knee."
   },
@@ -60,6 +67,7 @@
     "en": "Joint Extension",
     "da": "Ekstension / Strækning",
     "category": "anatomy",
+    "subcategory": "joint-movement",
     "desc_da": "Ledbevægelse der øger vinklen mellem to knogler. F.eks. at strække benet i knæleddet.",
     "desc_en": "Joint movement that increases the angle between two bones. E.g., straightening the leg at the knee."
   },
@@ -68,6 +76,7 @@
     "en": "Joint Rotation",
     "da": "Rotation / Drejning",
     "category": "anatomy",
+    "subcategory": "joint-movement",
     "desc_da": "Drejning af en kropsdel omkring sin længdeakse. Indre og ydre rotation er fundamental i mange yoga-stillinger.",
     "desc_en": "Turning of a body part around its long axis. Internal and external rotation are fundamental in many yoga poses."
   },
@@ -76,6 +85,7 @@
     "en": "Anterior Pelvic Tilt",
     "da": "Forreste bækkentilt",
     "category": "anatomy",
+    "subcategory": "joint-movement",
     "desc_da": "Fremadtipning af bækkenet der øger lændesvajet. Vigtig at forstå for korrekt alignment i foroverbøjninger.",
     "desc_en": "Forward tilting of the pelvis that increases lumbar curve. Important to understand for correct alignment in forward folds."
   },
@@ -84,6 +94,7 @@
     "en": "Body Awareness",
     "da": "Kropsbevidsthed",
     "category": "anatomy",
+    "subcategory": "body-systems",
     "desc_da": "Kroppens evne til at sanse sin position og bevægelse i rummet. Grundlæggende for balance og koordination i yoga.",
     "desc_en": "The body's ability to sense its position and movement in space. Fundamental for balance and coordination in yoga."
   },
@@ -92,6 +103,7 @@
     "en": "Connective Tissue",
     "da": "Bindevæv / Fascie",
     "category": "anatomy",
+    "subcategory": "body-systems",
     "desc_da": "Netværk af bindevæv der omslutter muskler, organer og hele kroppen. Vigtig for fleksibilitet og bevægelighed i yoga.",
     "desc_en": "Network of connective tissue that surrounds muscles, organs, and the entire body. Important for flexibility and mobility in yoga."
   }
