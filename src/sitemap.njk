@@ -10,7 +10,7 @@ eleventyExcludeFromCollections: true
     <loc>{{ site.url }}{{ p.url }}</loc>
     <lastmod>{{ p.date | date("%Y-%m-%d") }}</lastmod>
     <changefreq>weekly</changefreq>
-    <priority>{%- if p.url == "/" %}1.0{%- elif "200-hours" in p.url or p.url == "/om-200hrs-yogalreruddannelser/" or p.url == "/sammenlign-yogalreruddannelser/" %}0.9{%- elif p.url == "/apply/" or p.url == "/kontakt/" %}0.8{%- elif p.url == "/inversions/" or p.url == "/splits/" or p.url == "/backbends/" or p.url == "/course-bundles/" %}0.7{%- else %}0.5{%- endif %}</priority>
+    <priority>{%- if p.url == "/" %}1.0{%- elif "200-hours" in p.url or p.url == "/om-200hrs-yogalreruddannelser/" or p.url == "/sammenlign-yogalreruddannelser/" %}0.9{%- elif p.url == "/apply/" or p.url == "/kontakt/" %}0.8{%- elif p.url == "/yoga-journal/" %}0.8{%- elif p.url == "/inversions/" or p.url == "/splits/" or p.url == "/backbends/" or p.url == "/course-bundles/" %}0.7{%- elif "/yoga-journal/" in p.url %}0.6{%- else %}0.5{%- endif %}</priority>
   </url>
   {%- endif %}
   {%- endfor %}
