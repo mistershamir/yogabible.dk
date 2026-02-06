@@ -3158,6 +3158,93 @@ section {
   margin-bottom: 0;
 }
 
+/* Pronunciation */
+.yb-glossary__pron {
+  font-size: 0.82rem;
+  font-weight: 400;
+  font-style: italic;
+  color: #9a9590;
+  margin-left: 8px;
+}
+
+/* Meta badges row (level, position, body areas, props) */
+.yb-glossary__meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 10px;
+}
+
+.yb-glossary__meta > span {
+  display: inline-block;
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: 2px 8px;
+  border-radius: 4px;
+  border: 1px solid #e5e0db;
+  background: #faf9f7;
+  color: #6F6A66;
+  white-space: nowrap;
+}
+
+/* Level badge colors */
+.yb-glossary__level--beginner {
+  border-color: #b8d8ba !important;
+  background: #eef6ee !important;
+  color: #3d7a40 !important;
+}
+
+.yb-glossary__level--intermediate {
+  border-color: #d4c49a !important;
+  background: #faf5e8 !important;
+  color: #8a7030 !important;
+}
+
+.yb-glossary__level--advanced {
+  border-color: #d4a0a0 !important;
+  background: #faf0f0 !important;
+  color: #8a3030 !important;
+}
+
+/* Expandable detail sections */
+.yb-glossary__detail {
+  margin-top: 8px;
+  border-top: 1px dashed #e5e0db;
+  padding-top: 6px;
+}
+
+.yb-glossary__detail-toggle {
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--yb-brand);
+  cursor: pointer;
+  padding: 4px 0;
+  list-style: none;
+}
+
+.yb-glossary__detail-toggle::-webkit-details-marker {
+  display: none;
+}
+
+.yb-glossary__detail-toggle::before {
+  content: '+ ';
+}
+
+.yb-glossary__detail[open] .yb-glossary__detail-toggle::before {
+  content: '− ';
+}
+
+.yb-glossary__detail-body {
+  padding: 6px 0 2px;
+}
+
+.yb-glossary__detail-body .yb-glossary__desc {
+  font-size: 0.88rem;
+}
+
 .yb-glossary__cat {
   display: inline-block;
   flex-shrink: 0;

@@ -1,7 +1,8 @@
 /**
  * Yoga Bible — Glossary
  * Reads from window.YB_GLOSSARY_DATA (injected at build time from JSON data files).
- * Handles search, category filtering, alphabet navigation, and pagination.
+ * Handles search, category filtering, alphabet navigation, pagination,
+ * and rich card rendering (pronunciation, level, alignment, modifications).
  */
 (function () {
   'use strict';
@@ -22,6 +23,25 @@
     categoryLabels[c.id] = c.name_da;
   });
 
+  /* ── Level labels ── */
+  var levelLabels = {
+    beginner: 'Begynder',
+    intermediate: 'Mellem',
+    advanced: 'Avanceret'
+  };
+
+  /* ── Position labels ── */
+  var positionLabels = {
+    standing: 'Stående',
+    seated: 'Siddende',
+    kneeling: 'Knælende',
+    supine: 'Rygleje',
+    prone: 'Maveleje',
+    'all-fours': 'Alle fire',
+    'arm-balance': 'Armbalance',
+    inversion: 'Omvendt'
+  };
+
   /* ── DOM refs ── */
   var resultsEl = document.getElementById('ybGlossaryResults');
   var moreBtn = document.getElementById('ybGlossaryMore');
@@ -36,18 +56,19 @@
       if (activeFilter !== 'all' && t.category !== activeFilter) return false;
       if (!searchQuery) return true;
       var q = searchQuery.toLowerCase();
-      return (
-        t.sanskrit.toLowerCase().indexOf(q) !== -1 ||
-        t.en.toLowerCase().indexOf(q) !== -1 ||
-        t.da.toLowerCase().indexOf(q) !== -1 ||
-        t.desc_da.toLowerCase().indexOf(q) !== -1 ||
-        t.desc_en.toLowerCase().indexOf(q) !== -1
-      );
+      var fields = [t.sanskrit, t.en, t.da, t.desc_da, t.desc_en];
+      if (t.tags) fields = fields.concat(t.tags);
+      if (t.pronunciation) fields.push(t.pronunciation);
+      for (var i = 0; i < fields.length; i++) {
+        if (fields[i] && fields[i].toLowerCase().indexOf(q) !== -1) return true;
+      }
+      return false;
     });
   }
 
-  /* ── Escape HTML to prevent XSS ── */
+  /* ── Escape HTML ── */
   function esc(str) {
+    if (!str) return '';
     var d = document.createElement('div');
     d.appendChild(document.createTextNode(str));
     return d.innerHTML;
@@ -55,6 +76,7 @@
 
   /* ── Highlight search matches ── */
   function highlight(text, query) {
+    if (!text) return '';
     if (!query) return esc(text);
     var escaped = esc(text);
     var qEsc = query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
@@ -76,10 +98,7 @@
     sorted.forEach(function (letter) {
       html +=
         '<button class="yb-glossary__alpha-btn" type="button" data-letter="' +
-        letter +
-        '">' +
-        letter +
-        '</button>';
+        letter + '">' + letter + '</button>';
     });
     alphaEl.innerHTML = html;
 
@@ -94,6 +113,45 @@
         }
       });
     });
+  }
+
+  /* ── Build meta badges row (level, position, body areas) ── */
+  function buildMeta(t) {
+    var parts = [];
+    if (t.level) {
+      var lvl = levelLabels[t.level] || t.level;
+      var cls = 'yb-glossary__level yb-glossary__level--' + t.level;
+      parts.push('<span class="' + cls + '">' + esc(lvl) + '</span>');
+    }
+    if (t.position) {
+      var pos = positionLabels[t.position] || t.position;
+      parts.push('<span class="yb-glossary__position">' + esc(pos) + '</span>');
+    }
+    if (t.body_areas && t.body_areas.length) {
+      t.body_areas.forEach(function (area) {
+        parts.push('<span class="yb-glossary__body-area">' + esc(area) + '</span>');
+      });
+    }
+    if (t.props && t.props.length) {
+      t.props.forEach(function (prop) {
+        parts.push('<span class="yb-glossary__prop">' + esc(prop) + '</span>');
+      });
+    }
+    if (!parts.length) return '';
+    return '<div class="yb-glossary__meta">' + parts.join('') + '</div>';
+  }
+
+  /* ── Build expandable detail section ── */
+  function buildDetail(id, labelDa, textDa, textEn) {
+    if (!textDa && !textEn) return '';
+    return (
+      '<details class="yb-glossary__detail">' +
+      '<summary class="yb-glossary__detail-toggle">' + esc(labelDa) + '</summary>' +
+      '<div class="yb-glossary__detail-body">' +
+      (textDa ? '<p class="yb-glossary__desc">' + esc(textDa) + '</p>' : '') +
+      (textEn ? '<p class="yb-glossary__desc yb-glossary__desc--en">' + esc(textEn) + '</p>' : '') +
+      '</div></details>'
+    );
   }
 
   /* ── Render ── */
@@ -124,44 +182,45 @@
 
     show.forEach(function (t) {
       var first = t.sanskrit.charAt(0).toUpperCase();
-      var letterAttr = '';
       if (first !== lastLetter) {
-        letterAttr = ' data-glossary-letter="' + first + '"';
         html +=
-          '<div class="yb-glossary__letter-heading"' +
-          letterAttr +
-          ' role="presentation">' +
-          first +
-          '</div>';
+          '<div class="yb-glossary__letter-heading" data-glossary-letter="' +
+          first + '" role="presentation">' + first + '</div>';
         lastLetter = first;
       }
 
       var catLabel = categoryLabels[t.category] || t.category;
+      var pron = t.pronunciation
+        ? '<span class="yb-glossary__pron">' + esc(t.pronunciation) + '</span>'
+        : '';
 
       html +=
         '<article class="yb-glossary__entry" role="listitem">' +
+
+        /* Header: term + category */
         '<div class="yb-glossary__entry-header">' +
-        '<h3 class="yb-glossary__term">' +
-        highlight(t.sanskrit, q) +
-        '</h3>' +
-        '<span class="yb-glossary__cat">' +
-        esc(catLabel) +
-        '</span>' +
+        '<h3 class="yb-glossary__term">' + highlight(t.sanskrit, q) + pron + '</h3>' +
+        '<span class="yb-glossary__cat">' + esc(catLabel) + '</span>' +
         '</div>' +
+
+        /* Translations */
         '<div class="yb-glossary__translations">' +
-        '<span class="yb-glossary__en" title="English">' +
-        highlight(t.en, q) +
-        '</span>' +
-        '<span class="yb-glossary__da" title="Dansk">' +
-        highlight(t.da, q) +
-        '</span>' +
+        '<span class="yb-glossary__en" title="English">' + highlight(t.en, q) + '</span>' +
+        '<span class="yb-glossary__da" title="Dansk">' + highlight(t.da, q) + '</span>' +
         '</div>' +
-        '<p class="yb-glossary__desc">' +
-        highlight(t.desc_da, q) +
-        '</p>' +
-        '<p class="yb-glossary__desc yb-glossary__desc--en">' +
-        highlight(t.desc_en, q) +
-        '</p>' +
+
+        /* Meta badges (level, position, body areas) */
+        buildMeta(t) +
+
+        /* Description */
+        '<p class="yb-glossary__desc">' + highlight(t.desc_da, q) + '</p>' +
+        '<p class="yb-glossary__desc yb-glossary__desc--en">' + highlight(t.desc_en, q) + '</p>' +
+
+        /* Expandable details (only if data present) */
+        buildDetail('align', 'Alignment cues', t.alignment_da, t.alignment_en) +
+        buildDetail('contra', 'Kontraindikationer', t.contraindications_da, t.contraindications_en) +
+        buildDetail('mods', 'Modifikationer & variationer', t.modifications_da, t.modifications_en) +
+
         '</article>';
     });
 
