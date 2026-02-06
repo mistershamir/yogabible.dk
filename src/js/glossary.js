@@ -1,6 +1,6 @@
 /**
- * Yoga Bible — Glossary v2
- * Grid card layout, scope toggle, dynamic sub-filters, A-Z nav.
+ * Yoga Bible — Glossary v3
+ * 3-column grid, scope toggle, language switch, dynamic sub-filters, A-Z nav.
  */
 (function () {
   'use strict';
@@ -9,10 +9,13 @@
   var data = window.YB_GLOSSARY_DATA || { terms: [], categories: [] };
   var TERMS = data.terms;
   var CATEGORIES = data.categories;
+
+  /* ── State ── */
   var PER_PAGE = 36;
   var visible = PER_PAGE;
   var activeFilter = 'all';
   var activeScope = 'common';
+  var activeLang = 'da';
   var activeSubFilters = {};
   var searchQuery = '';
   var debounceTimer = null;
@@ -21,12 +24,13 @@
   var COMMON_ASANAS = {
     'Adho Mukha Svanasana': 1, 'Anjaneyasana': 1, 'Ardha Chandrasana': 1,
     'Ardha Matsyendrasana': 1, 'Baddha Konasana': 1, 'Bakasana': 1,
-    'Balasana': 1, 'Bhujangasana': 1, 'Chaturanga Dandasana': 1,
-    'Dandasana': 1, 'Dhanurasana': 1, 'Eka Pada Rajakapotasana': 1,
-    'Garudasana': 1, 'Gomukhasana': 1, 'Halasana': 1, 'Malasana': 1,
-    'Marjaryasana\u2013Bitilasana': 1, 'Matsyasana': 1, 'Natarajasana': 1,
-    'Navasana': 1, 'Padmasana': 1, 'Paschimottanasana': 1,
-    'Phalakasana': 1, 'Prasarita Padottanasana': 1,
+    'Balasana': 1, 'Bhujangasana': 1, 'Bitilasana': 1,
+    'Chaturanga Dandasana': 1, 'Dandasana': 1, 'Dhanurasana': 1,
+    'Eka Pada Rajakapotasana': 1, 'Garudasana': 1, 'Gomukhasana': 1,
+    'Halasana': 1, 'Malasana': 1, 'Marjaryasana': 1,
+    'Marjaryasana\u2013Bitilasana': 1, 'Matsyasana': 1,
+    'Natarajasana': 1, 'Navasana': 1, 'Padmasana': 1,
+    'Paschimottanasana': 1, 'Phalakasana': 1, 'Prasarita Padottanasana': 1,
     'Salamba Sarvangasana': 1, 'Savasana': 1,
     'Setu Bandha Sarvangasana': 1, 'Sirsasana': 1, 'Sukhasana': 1,
     'Tadasana': 1, 'Trikonasana': 1, 'Urdhva Dhanurasana': 1,
@@ -36,7 +40,6 @@
     'Virabhadrasana III': 1, 'Vrksasana': 1
   };
 
-  /* For non-asana categories all terms are common/foundational */
   function isCommon(t) {
     if (t.category !== 'asana') return true;
     return !!COMMON_ASANAS[t.sanskrit];
@@ -80,6 +83,7 @@
   var alphaEl = document.getElementById('ybGlossaryAlpha');
   var subFiltersEl = document.getElementById('ybGlossarySubFilters');
   var scopeBtns = document.querySelectorAll('.yb-glossary__scope-btn');
+  var langBtns = document.querySelectorAll('.yb-glossary__lang-btn');
 
   /* ── Helpers ── */
   function esc(str) {
@@ -101,7 +105,7 @@
     return s ? s.charAt(0).toUpperCase() + s.slice(1) : '';
   }
 
-  /* ── Collect unique values from terms ── */
+  /* ── Collect unique values for sub-filters ── */
   function collectValues(terms, key) {
     var vals = {};
     terms.forEach(function (t) { if (t[key]) vals[t[key]] = true; });
@@ -137,27 +141,30 @@
         : collectValues(catTerms, def.key);
       if (!values.length) return;
 
-      html += '<div class="yb-glossary__subfilter-group">';
+      html += '<div class="yb-glossary__subfilter-row">';
       html += '<span class="yb-glossary__subfilter-label">' + esc(def.label) + '</span>';
-      html += '<button class="yb-glossary__subfilter-chip active" data-subkey="' + def.key + '" data-subval="all" type="button">Alle</button>';
+      html += '<div class="yb-glossary__subfilter-chips">';
+      html += '<button class="yb-glossary__chip active" data-subkey="' + def.key + '" data-subval="all" type="button">Alle</button>';
 
       values.forEach(function (val) {
         var display = (def.labelMap && def.labelMap[val]) ? def.labelMap[val] : capitalize(val);
-        html += '<button class="yb-glossary__subfilter-chip" data-subkey="' + def.key + '" data-subval="' + esc(val) + '" type="button">' + esc(display) + '</button>';
+        html += '<button class="yb-glossary__chip" data-subkey="' + def.key + '" data-subval="' + esc(val) + '" type="button">' + esc(display) + '</button>';
       });
-      html += '</div>';
+      html += '</div></div>';
     });
 
     subFiltersEl.innerHTML = html;
     subFiltersEl.hidden = !html;
     activeSubFilters = {};
 
-    subFiltersEl.querySelectorAll('.yb-glossary__subfilter-chip').forEach(function (btn) {
+    /* Bind chip click events */
+    subFiltersEl.querySelectorAll('.yb-glossary__chip').forEach(function (btn) {
       btn.addEventListener('click', function () {
         var key = this.getAttribute('data-subkey');
         var val = this.getAttribute('data-subval');
-        var group = this.parentNode;
-        group.querySelectorAll('.yb-glossary__subfilter-chip').forEach(function (b) {
+        /* Toggle active within the same row */
+        var row = this.closest('.yb-glossary__subfilter-row');
+        row.querySelectorAll('.yb-glossary__chip').forEach(function (b) {
           b.classList.remove('active');
         });
         this.classList.add('active');
@@ -176,9 +183,12 @@
   /* ── Filter logic ── */
   function filtered() {
     return TERMS.filter(function (t) {
+      /* Scope */
       if (activeScope === 'common' && !isCommon(t)) return false;
+      /* Category */
       if (activeFilter !== 'all' && t.category !== activeFilter) return false;
 
+      /* Sub-filters */
       for (var key in activeSubFilters) {
         var val = activeSubFilters[key];
         var def = null;
@@ -195,6 +205,7 @@
         }
       }
 
+      /* Search */
       if (!searchQuery) return true;
       var q = searchQuery.toLowerCase();
       var fields = [t.sanskrit, t.en, t.da, t.desc_da, t.desc_en];
@@ -223,8 +234,15 @@
     alphaEl.querySelectorAll('.yb-glossary__alpha-btn').forEach(function (btn) {
       btn.addEventListener('click', function () {
         var letter = this.getAttribute('data-letter');
-        var target = document.querySelector('[data-glossary-letter="' + letter + '"]');
-        if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        /* Show ALL items so the letter heading is guaranteed to exist */
+        var allItems = filtered();
+        visible = allItems.length;
+        render();
+        /* Scroll to letter heading after render */
+        requestAnimationFrame(function () {
+          var target = document.querySelector('[data-glossary-letter="' + letter + '"]');
+          if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        });
       });
     });
   }
@@ -232,12 +250,11 @@
   /* ── Build card HTML ── */
   function buildCard(t, q) {
     var catLabel = categoryLabels[t.category] || t.category;
-
     var pron = t.pronunciation
-      ? '<span class="yb-glossary__pron">' + esc(t.pronunciation) + '</span>'
+      ? '<div class="yb-glossary__pron">' + esc(t.pronunciation) + '</div>'
       : '';
 
-    /* Meta badges */
+    /* Meta line: level + position + styles as text */
     var metaParts = [];
     if (t.level) {
       var lvl = levelLabels[t.level] || t.level;
@@ -245,62 +262,54 @@
     }
     if (t.position) {
       var pos = positionLabels[t.position] || capitalize(t.position);
-      metaParts.push('<span class="yb-glossary__badge">' + esc(pos) + '</span>');
+      metaParts.push('<span class="yb-glossary__tag">' + esc(pos) + '</span>');
     }
+    /* Yoga styles as a single compact tag */
     if (t.yoga_styles && t.yoga_styles.length) {
-      t.yoga_styles.slice(0, 4).forEach(function (s) {
-        var label = styleLabels[s] || capitalize(s);
-        metaParts.push('<span class="yb-glossary__badge yb-glossary__badge--style">' + esc(label) + '</span>');
+      var styleNames = t.yoga_styles.map(function (s) {
+        return styleLabels[s] || capitalize(s);
       });
-      if (t.yoga_styles.length > 4) {
-        metaParts.push('<span class="yb-glossary__badge yb-glossary__badge--more">+' + (t.yoga_styles.length - 4) + '</span>');
-      }
-    }
-    if (t.props && t.props.length) {
-      t.props.forEach(function (prop) {
-        metaParts.push('<span class="yb-glossary__badge yb-glossary__badge--prop">' + esc(capitalize(prop)) + '</span>');
-      });
+      metaParts.push('<span class="yb-glossary__tag yb-glossary__tag--styles">' + esc(styleNames.join(' \u00B7 ')) + '</span>');
     }
     var metaHtml = metaParts.length
       ? '<div class="yb-glossary__meta">' + metaParts.join('') + '</div>'
       : '';
 
-    /* Expandable details */
+    /* Description — active language only */
+    var desc = activeLang === 'da' ? t.desc_da : t.desc_en;
+
+    /* Expandable details — active language only */
     var detailsHtml = '';
-    if (t.alignment_da || t.alignment_en) {
-      detailsHtml += '<details class="yb-glossary__detail"><summary>Alignment</summary><div class="yb-glossary__detail-body">' +
-        (t.alignment_da ? '<p>' + esc(t.alignment_da) + '</p>' : '') +
-        (t.alignment_en ? '<p class="yb-glossary__desc--en">' + esc(t.alignment_en) + '</p>' : '') +
-        '</div></details>';
+    var alignText = activeLang === 'da' ? t.alignment_da : t.alignment_en;
+    var contraText = activeLang === 'da' ? t.contraindications_da : t.contraindications_en;
+    var modText = activeLang === 'da' ? t.modifications_da : t.modifications_en;
+
+    if (alignText) {
+      detailsHtml += '<details class="yb-glossary__detail"><summary>Alignment cues</summary>' +
+        '<div class="yb-glossary__detail-body"><p>' + esc(alignText) + '</p></div></details>';
     }
-    if (t.contraindications_da || t.contraindications_en) {
-      detailsHtml += '<details class="yb-glossary__detail"><summary>Kontraindikationer</summary><div class="yb-glossary__detail-body">' +
-        (t.contraindications_da ? '<p>' + esc(t.contraindications_da) + '</p>' : '') +
-        (t.contraindications_en ? '<p class="yb-glossary__desc--en">' + esc(t.contraindications_en) + '</p>' : '') +
-        '</div></details>';
+    if (contraText) {
+      detailsHtml += '<details class="yb-glossary__detail"><summary>Kontraindikationer</summary>' +
+        '<div class="yb-glossary__detail-body"><p>' + esc(contraText) + '</p></div></details>';
     }
-    if (t.modifications_da || t.modifications_en) {
-      detailsHtml += '<details class="yb-glossary__detail"><summary>Modifikationer</summary><div class="yb-glossary__detail-body">' +
-        (t.modifications_da ? '<p>' + esc(t.modifications_da) + '</p>' : '') +
-        (t.modifications_en ? '<p class="yb-glossary__desc--en">' + esc(t.modifications_en) + '</p>' : '') +
-        '</div></details>';
+    if (modText) {
+      detailsHtml += '<details class="yb-glossary__detail"><summary>Modifikationer</summary>' +
+        '<div class="yb-glossary__detail-body"><p>' + esc(modText) + '</p></div></details>';
     }
 
     return '<article class="yb-glossary__card">' +
-      '<div class="yb-glossary__card-top">' +
-        '<div class="yb-glossary__card-title">' +
-          '<h3 class="yb-glossary__term">' + highlight(t.sanskrit, q) + '</h3>' +
-          pron +
-        '</div>' +
+      '<div class="yb-glossary__card-head">' +
+        '<h3 class="yb-glossary__term">' + highlight(t.sanskrit, q) + '</h3>' +
         '<span class="yb-glossary__cat">' + esc(catLabel) + '</span>' +
       '</div>' +
-      '<div class="yb-glossary__translations">' +
-        '<span class="yb-glossary__lang" title="English">' + highlight(t.en, q) + '</span>' +
-        '<span class="yb-glossary__lang" title="Dansk">' + highlight(t.da, q) + '</span>' +
+      pron +
+      '<div class="yb-glossary__names">' +
+        '<span title="English">' + highlight(t.en, q) + '</span>' +
+        '<span class="yb-glossary__names-sep">/</span>' +
+        '<span title="Dansk">' + highlight(t.da, q) + '</span>' +
       '</div>' +
       metaHtml +
-      '<p class="yb-glossary__desc">' + highlight(t.desc_da, q) + '</p>' +
-      '<p class="yb-glossary__desc yb-glossary__desc--en">' + highlight(t.desc_en, q) + '</p>' +
+      '<p class="yb-glossary__desc">' + highlight(desc, q) + '</p>' +
       detailsHtml +
     '</article>';
   }
@@ -326,7 +335,7 @@
     show.forEach(function (t) {
       var first = t.sanskrit.charAt(0).toUpperCase();
       if (first !== lastLetter) {
-        html += '<div class="yb-glossary__letter-heading" data-glossary-letter="' + first + '">' + first + '</div>';
+        html += '<div class="yb-glossary__letter" data-glossary-letter="' + first + '">' + first + '</div>';
         lastLetter = first;
       }
       html += buildCard(t, q);
@@ -343,6 +352,17 @@
       this.classList.add('active');
       activeScope = this.getAttribute('data-scope');
       visible = PER_PAGE;
+      render();
+      updateHash();
+    });
+  });
+
+  /* ── Language toggle ── */
+  langBtns.forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      langBtns.forEach(function (b) { b.classList.remove('active'); });
+      this.classList.add('active');
+      activeLang = this.getAttribute('data-lang');
       render();
       updateHash();
     });
@@ -385,6 +405,7 @@
     var parts = [];
     if (activeScope !== 'common') parts.push('scope=' + activeScope);
     if (activeFilter !== 'all') parts.push('cat=' + activeFilter);
+    if (activeLang !== 'da') parts.push('lang=' + activeLang);
     if (searchQuery) parts.push('q=' + encodeURIComponent(searchQuery));
     var hash = parts.length ? '#' + parts.join('&') : '';
     if (history.replaceState) {
@@ -407,6 +428,12 @@
         activeFilter = kv[1];
         filterBtns.forEach(function (b) {
           b.classList.toggle('active', b.getAttribute('data-filter') === activeFilter);
+        });
+      }
+      if (kv[0] === 'lang' && kv[1]) {
+        activeLang = kv[1];
+        langBtns.forEach(function (b) {
+          b.classList.toggle('active', b.getAttribute('data-lang') === activeLang);
         });
       }
       if (kv[0] === 'q' && kv[1]) {
