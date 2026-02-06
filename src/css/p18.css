@@ -721,6 +721,60 @@
   border: none;
 }
 
+.p18-video-interview__overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #1C1C1C 0%, #2a2a2a 100%);
+  cursor: pointer;
+  transition: opacity 0.3s ease;
+  z-index: 1;
+}
+
+.p18-video-interview__overlay.is-hidden {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.p18-video-interview__play-btn {
+  width: 64px;
+  height: 64px;
+  border-radius: 999px;
+  border: none;
+  background: #fff;
+  color: #F65D04;
+  font-size: 20px;
+  cursor: pointer;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+  transition: all 0.15s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: inherit;
+}
+
+.p18-video-interview__play-btn span {
+  margin-left: 4px;
+}
+
+.p18-video-interview__play-btn:hover {
+  transform: scale(1.08);
+}
+
+.p18-video-interview__play-label {
+  margin-top: 0.75rem;
+  color: #fff;
+  font-size: 0.9rem;
+  font-weight: 600;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
 /* -- Looping Vertical Video + Quote -- */
 .p18-testimonial-video {
   padding: 80px 20px;
