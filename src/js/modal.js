@@ -152,7 +152,7 @@
       p.append('firstName', fn);
       p.append('lastName', ln);
       p.append('email', em);
-      p.append('phone', '+45' + ph);
+      p.append('phone', ph);
       p.append('accommodation', acc);
       p.append('source', 'Modal-' + (fmts.length > 1 ? 'Multi' : fmts[0]));
       if (city) p.append('cityCountry', city);

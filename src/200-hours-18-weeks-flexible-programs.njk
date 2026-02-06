@@ -99,13 +99,14 @@ includeP18Styles: true
     <h2 class="p18-section-title">Oplev uddannelsen indefra</h2>
     <p class="p18-section-sub">Hør direkte fra vores studerende, hvad uddannelsen har betydet for dem.</p>
 
-    <div class="p18-video-interview__wrap" id="interviewVideoWrap">
-      <div class="p18-video-interview__overlay" id="interviewOverlay">
-        <button class="p18-video-interview__play-btn" id="interviewPlayBtn" aria-label="Afspil video">
-          <span>▶</span>
-        </button>
-        <span class="p18-video-interview__play-label">Se interview med studerende</span>
-      </div>
+    <div class="p18-video-interview__wrap">
+      <iframe
+        src="https://drive.google.com/file/d/1WWanYni0tZKJ656czw_N2Vf6thCKFwU8/preview?t=10"
+        allow="autoplay; encrypted-media"
+        allowfullscreen
+        loading="lazy"
+        style="width:100%;height:100%;border:none;">
+      </iframe>
     </div>
   </div>
 </section>
@@ -845,21 +846,6 @@ includeP18Styles: true
       });
     }, { threshold: 0.15 });
     fadeEls.forEach(function(el) { obs.observe(el); });
-  }
-
-  /* ── Interview Video (click-to-load iframe) ── */
-  var interviewWrap = document.getElementById('interviewVideoWrap');
-  var interviewOverlay = document.getElementById('interviewOverlay');
-  if (interviewWrap && interviewOverlay) {
-    interviewOverlay.addEventListener('click', function() {
-      var iframe = document.createElement('iframe');
-      iframe.src = 'https://drive.google.com/file/d/1WWanYni0tZKJ656czw_N2Vf6thCKFwU8/preview?t=10';
-      iframe.allow = 'autoplay; encrypted-media';
-      iframe.allowFullscreen = true;
-      iframe.style.cssText = 'width:100%;height:100%;border:none;position:absolute;top:0;left:0;';
-      interviewWrap.appendChild(iframe);
-      interviewOverlay.classList.add('is-hidden');
-    });
   }
 
   /* ── Tracks Video ── */
