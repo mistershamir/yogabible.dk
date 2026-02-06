@@ -65,12 +65,93 @@
     yin: 'Yin', restorative: 'Restorative', kundalini: 'Kundalini'
   };
 
+  /* ── Subcategory label maps per category ── */
+  var anatomySubLabels = {
+    'alignment-principles': 'Alignment principper',
+    'joint-movement': 'Ledbevægelse',
+    'body-systems': 'Kroppens systemer'
+  };
+
+  var breathingSubLabels = {
+    technique: 'Teknik',
+    concept: 'Koncept'
+  };
+
+  var meditationSubLabels = {
+    limb: 'Yogas lemmer',
+    technique: 'Teknik',
+    tool: 'Redskab'
+  };
+
+  var philosophySubLabels = {
+    yama: 'Yama',
+    niyama: 'Niyama',
+    text: 'Tekster',
+    concept: 'Koncept'
+  };
+
+  var energySubLabels = {
+    chakra: 'Chakra',
+    nadi: 'Nadi',
+    bandha: 'Bandha',
+    mudra: 'Mudra',
+    concept: 'Koncept'
+  };
+
+  var teachingSubLabels = {
+    'class-structure': 'Klasseopbygning',
+    instruction: 'Instruktion',
+    adaptation: 'Tilpasning'
+  };
+
+  var stylesSubLabels = {
+    physical: 'Fysisk stil',
+    path: 'Yogavej'
+  };
+
+  var businessSubLabels = {
+    certification: 'Certificering',
+    'studio-training': 'Studio & uddannelse'
+  };
+
+  var equipmentSubLabels = {
+    essential: 'Basis',
+    support: 'Støtte & komfort'
+  };
+
   /* ── Sub-filter definitions per category ── */
   var SUB_FILTER_DEFS = {
     asana: [
       { key: 'level', label: 'Niveau', labelMap: levelLabels },
       { key: 'position', label: 'Position', labelMap: positionLabels },
       { key: 'yoga_styles', label: 'Yogastil', labelMap: styleLabels, isArray: true }
+    ],
+    anatomy: [
+      { key: 'subcategory', label: 'Underkategori', labelMap: anatomySubLabels }
+    ],
+    breathing: [
+      { key: 'subcategory', label: 'Type', labelMap: breathingSubLabels }
+    ],
+    meditation: [
+      { key: 'subcategory', label: 'Type', labelMap: meditationSubLabels }
+    ],
+    philosophy: [
+      { key: 'subcategory', label: 'Tradition', labelMap: philosophySubLabels }
+    ],
+    energy: [
+      { key: 'subcategory', label: 'System', labelMap: energySubLabels }
+    ],
+    teaching: [
+      { key: 'subcategory', label: 'Område', labelMap: teachingSubLabels }
+    ],
+    styles: [
+      { key: 'subcategory', label: 'Type', labelMap: stylesSubLabels }
+    ],
+    business: [
+      { key: 'subcategory', label: 'Område', labelMap: businessSubLabels }
+    ],
+    equipment: [
+      { key: 'subcategory', label: 'Type', labelMap: equipmentSubLabels }
     ]
   };
 
