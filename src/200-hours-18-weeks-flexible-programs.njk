@@ -42,88 +42,144 @@ includeP18Styles: true
 </section>
 
 <!-- ═══════════════════════════════════════
-     PROGRAM OVERVIEW — Switchable Routes
+     PROGRAM FORMAT — Weekday / Weekend Tracks
      ═══════════════════════════════════════ -->
-<section class="p18-overview" id="program-overview">
-  <div class="container">
-    <span class="p18-eyebrow">Programoversigt</span>
-    <h2 class="p18-section-title">Vælg dit forløb</h2>
-    <p class="p18-section-sub">Samme uddannelse, samme certificering — to forskellige tempi, der passer til din hverdag.</p>
+<section class="yb-tracks" id="program-overview" aria-labelledby="tracks-title">
+  <div class="yb-tracks__inner">
+    <p class="yb-tracks__kicker">Fleksibelt program</p>
+    <h2 id="tracks-title" class="yb-tracks__title">Hverdags- eller weekendprogram</h2>
+    <p class="yb-tracks__subtitle">Skift mellem sporene når du har brug for det</p>
 
-    <!-- Route Tabs -->
-    <div class="p18-tabs">
-      <button class="p18-tab is-active" data-tab="weekday">Hverdagsforløb</button>
-      <button class="p18-tab" data-tab="weekend">Weekendforløb</button>
+    <p class="yb-tracks__lead">
+      Hver workshop kører to gange: én på <strong>udvalgte hverdage</strong> og én på
+      <strong>udvalgte weekender</strong>. Vælg dit standardspor — byt frit når det passer bedre.
+    </p>
+
+    <!-- Cards -->
+    <div class="yb-tracks__cards">
+      <article class="yb-track-card">
+        <div class="yb-track-card__icon">☀️</div>
+        <div class="yb-track-card__content">
+          <h3 class="yb-track-card__title">Hverdagsspor</h3>
+          <p class="yb-track-card__time">Typisk kl. 10.00–15.00</p>
+          <p class="yb-track-card__text">
+            Kører på udvalgte hverdage. Perfekt hvis du har fleksible arbejdstider eller mulighed for fri.
+          </p>
+        </div>
+      </article>
+
+      <article class="yb-track-card">
+        <div class="yb-track-card__icon">🌙</div>
+        <div class="yb-track-card__content">
+          <h3 class="yb-track-card__title">Weekendspor</h3>
+          <p class="yb-track-card__time">Typisk eftermiddag / tidlig aften</p>
+          <p class="yb-track-card__text">
+            Kører på udvalgte weekender. Ideelt hvis du arbejder fuldtid i hverdagene.
+          </p>
+        </div>
+      </article>
+
+      <article class="yb-track-card yb-track-card--highlight">
+        <div class="yb-track-card__icon">↔️</div>
+        <div class="yb-track-card__content">
+          <h3 class="yb-track-card__title">Fleksibelt skift</h3>
+          <p class="yb-track-card__time">Samme indhold i begge spor</p>
+          <p class="yb-track-card__text">
+            Kan du ikke komme? Deltag i spejl-workshoppen i det andet spor — samme emne, samme underviser.
+          </p>
+        </div>
+      </article>
     </div>
 
-    <!-- Weekday Route -->
-    <div class="p18-route is-active" id="route-weekday">
-      <div class="p18-route__grid">
-        <div class="p18-route__info">
-          <h3 class="p18-route__title">Hverdagsforløb</h3>
-          <p class="p18-route__desc">Perfekt til dig med fleksible arbejdstider, deltidsjob eller studier. Undervisningen ligger midt på dagen, så du har morgen og aften fri.</p>
-          <ul class="p18-route__list">
-            <li>1–3 workshops per uge</li>
-            <li>Primært kl. 10:00–15:00</li>
-            <li>18 uger fra marts til juni</li>
-            <li>Mulighed for at skifte til weekenddage</li>
-          </ul>
+    <!-- Mirror example -->
+    <div class="yb-mirror">
+      <p class="yb-mirror__label">Eksempel på spejlet workshop</p>
+      <div class="yb-mirror__row">
+        <div class="yb-mirror__item">
+          <strong>Workshop 03</strong>
+          <span>Udvalgt hverdag</span>
         </div>
-        <div class="p18-route__visual">
-          <div class="p18-route__card">
-            <span class="p18-route__card-label">Typisk uge</span>
-            <div class="p18-route__schedule-row">
-              <span class="p18-route__day">Man</span>
-              <span class="p18-route__time">10:00–15:00</span>
-            </div>
-            <div class="p18-route__schedule-row">
-              <span class="p18-route__day">Ons</span>
-              <span class="p18-route__time">10:00–15:00</span>
-            </div>
-            <div class="p18-route__schedule-row p18-route__schedule-row--light">
-              <span class="p18-route__day">Fre</span>
-              <span class="p18-route__time">Valgfri workshop</span>
-            </div>
-          </div>
+        <div class="yb-mirror__arrow">↔</div>
+        <div class="yb-mirror__item">
+          <strong>Workshop 03</strong>
+          <span>Udvalgt weekend</span>
         </div>
       </div>
     </div>
 
-    <!-- Weekend Route -->
-    <div class="p18-route" id="route-weekend">
-      <div class="p18-route__grid">
-        <div class="p18-route__info">
-          <h3 class="p18-route__title">Weekendforløb</h3>
-          <p class="p18-route__desc">Designet til dig med fuldtidsjob eller andre daglige forpligtelser. Undervisningen ligger i weekenden, så hverdagen forbliver uberørt.</p>
-          <ul class="p18-route__list">
-            <li>Udvalgte weekender (ikke alle)</li>
-            <li>Primært lør/søn kl. 13:00–18:00</li>
-            <li>18 uger fra marts til juni</li>
-            <li>Mulighed for at skifte til hverdagsdatoer</li>
-          </ul>
+    <!-- Video -->
+    <figure class="yb-tracks__video">
+      <div class="yb-tracks__video-container">
+        <video id="tracksVideo" preload="metadata" playsinline>
+          <source src="https://www.yogabible.dk/s/Bliv-Yogalrer_-Tidligere-Elever-Deler-Deres-Erfaringer-fra-Vores-Yogauddannelse-i-Kbenhavn_Weekday_W.mp4" type="video/mp4">
+        </video>
+        <div class="yb-tracks__video-overlay" id="tracksVideoOverlay">
+          <button class="yb-tracks__video-btn" id="tracksVideoBtn" aria-label="Afspil video">
+            <span>▶</span>
+          </button>
+          <span class="yb-tracks__video-label">Se hvordan sporene fungerer</span>
         </div>
-        <div class="p18-route__visual">
-          <div class="p18-route__card">
-            <span class="p18-route__card-label">Typisk weekend</span>
-            <div class="p18-route__schedule-row">
-              <span class="p18-route__day">Lør</span>
-              <span class="p18-route__time">13:00–18:00</span>
-            </div>
-            <div class="p18-route__schedule-row">
-              <span class="p18-route__day">Søn</span>
-              <span class="p18-route__time">13:00–18:00</span>
-            </div>
-            <div class="p18-route__schedule-row p18-route__schedule-row--light">
-              <span class="p18-route__day">—</span>
-              <span class="p18-route__time">Ikke hver weekend</span>
-            </div>
-          </div>
-        </div>
+      </div>
+      <figcaption class="yb-tracks__video-caption">Kort video: Sådan fungerer Hverdags- & Weekendspor</figcaption>
+    </figure>
+
+    <!-- Key points -->
+    <ul class="yb-tracks__points">
+      <li>
+        <span class="yb-point-icon">✓</span>
+        <span>Samme workshop udbydes to gange — én gang i hvert spor</span>
+      </li>
+      <li>
+        <span class="yb-point-icon">✓</span>
+        <span>Skift holder dig på sporet, når livet sker</span>
+      </li>
+      <li>
+        <span class="yb-point-icon">✓</span>
+        <span>Små øvehold for tæt og personlig feedback</span>
+      </li>
+    </ul>
+
+    <!-- Fallback option -->
+    <div class="yb-fallback">
+      <div class="yb-fallback__icon">🎥</div>
+      <div class="yb-fallback__content">
+        <p class="yb-fallback__title">Passer hverken hverdag eller weekend?</p>
+        <p class="yb-fallback__text">Deltag <strong>live online</strong> eller se <strong>optagelsen</strong> efterfølgende.</p>
       </div>
     </div>
 
-    <div class="p18-route__cta">
-      <button onclick="openYBScheduleModal('18w')" class="btn btn--primary">Få det fulde skema på e-mail</button>
+    <!-- Scenarios -->
+    <div class="yb-scenarios">
+      <div class="yb-scenario">
+        <h4 class="yb-scenario__title">Arbejder du fuldtid?</h4>
+        <p class="yb-scenario__text">Vælg weekendsporet. Skift til en hverdag, hvis du får mulighed.</p>
+      </div>
+      <div class="yb-scenario">
+        <h4 class="yb-scenario__title">Har du fleksible tider?</h4>
+        <p class="yb-scenario__text">Vælg hverdagssporet og hop til en weekend, når kalenderen driller.</p>
+      </div>
+    </div>
+
+    <!-- FAQ -->
+    <div class="yb-tracks__faq">
+      <details class="yb-faq-item">
+        <summary class="yb-faq-item__summary">Skal jeg give besked, før jeg skifter?</summary>
+        <p class="yb-faq-item__answer">Ja tak — en kort besked hjælper os med at balancere øveholdene.</p>
+      </details>
+      <details class="yb-faq-item">
+        <summary class="yb-faq-item__summary">Misser jeg noget ved at skifte?</summary>
+        <p class="yb-faq-item__answer">Nej. Spejl-sessionen har samme emne, underviser og struktur.</p>
+      </details>
+      <details class="yb-faq-item">
+        <summary class="yb-faq-item__summary">Er der workshops hver uge / weekend?</summary>
+        <p class="yb-faq-item__answer">Nej. Vi planlægger udvalgte hverdage og weekender, og nogle perioder er helt fri.</p>
+      </details>
+    </div>
+
+    <!-- CTA -->
+    <div class="yb-tracks__cta">
+      <p class="yb-tracks__cta-hint">Vil du se de præcise datoer?</p>
+      <button onclick="openYBScheduleModal('18w')" class="yb-btn yb-btn--cta">Få Skema</button>
     </div>
   </div>
 </section>
@@ -311,31 +367,200 @@ includeP18Styles: true
 </section>
 
 <!-- ═══════════════════════════════════════
-     VISIT STUDIO & DEPOSIT — Early Access
+     VISIT STUDIO — Gallery + Calendly Booking
      ═══════════════════════════════════════ -->
-<section class="p18-visit">
-  <div class="container">
-    <div class="p18-visit__grid">
-      <div class="p18-visit__content">
-        <span class="p18-eyebrow">Kom & se studiet</span>
-        <h2 class="p18-section-title" style="text-align:left">Besøg os i studiet</h2>
-        <p>Du er altid velkommen til at kigge forbi vores studio, møde holdet og få en fornemmelse af atmosfæren, inden du tilmelder dig.</p>
-        <p>Vi tilbyder gratis introduktionsmøder, hvor du kan stille alle dine spørgsmål og mærke energien.</p>
-        <a href="mailto:info@yogabible.dk" class="btn btn--secondary" style="margin-top:1rem">Book et besøg</a>
-      </div>
+<section class="yb-visit" id="yb-visit">
+  <div class="yb-visit__wrap">
 
-      <div class="p18-visit__deposit">
-        <div class="p18-visit__deposit-card">
-          <h3>Start tidligt med depositum</h3>
-          <p>Som en del af uddannelsen skal du praktisere op til <strong>60 klasser</strong> i vores studio. Jo hurtigere du betaler depositum, jo før kan du begynde at deltage i klasser og samle dine timer.</p>
-          <div class="p18-visit__deposit-highlight">
-            <span class="p18-visit__deposit-number">60</span>
-            <span class="p18-visit__deposit-label">klasser<br>i studiet</span>
+    <div class="yb-visit__copy">
+      <p class="yb-visit__kicker">Besøg os først</p>
+      <h2 class="yb-visit__title">Book en gratis rundvisning i Christianshavn</h2>
+
+      <p class="yb-visit__lead">
+        Kom forbi og få en følelse af stedet — jeg viser dig rundt, svarer på spørgsmål
+        og hjælper dig med at se, hvordan uddannelsen kan passe i din hverdag.
+        Rundvisningen tager ca. <strong>20 minutter</strong>.
+      </p>
+
+      <ul class="yb-visit__list" role="list">
+        <li>
+          <span class="yb-visit__check" aria-hidden="true">✓</span>
+          <span>Se lokaler, udstyr og roen i huset</span>
+        </li>
+        <li>
+          <span class="yb-visit__check" aria-hidden="true">✓</span>
+          <span>Gratis mini-introduktion til uddannelsen</span>
+        </li>
+        <li>
+          <span class="yb-visit__check" aria-hidden="true">✓</span>
+          <span>Få en klar plan for næste skridt</span>
+        </li>
+      </ul>
+
+      <p class="yb-visit__note">
+        Bor du ikke i København? Vi kan også lave en kort <strong>video-rundvisning</strong> via WhatsApp eller FaceTime.
+      </p>
+
+      <button class="yb-btn yb-btn--cta" type="button" data-open="visit-modal">
+        Book en aftale
+      </button>
+    </div>
+
+    <div class="yb-visit__media">
+      <div class="yb-visit__slider">
+        <div class="yb-visit__viewport">
+          <div class="yb-visit__track" id="visit-track">
+            <figure class="yb-visit__slide">
+              <img src="https://www.yogabible.dk/s/Yoga_bible_studio_Kbenhavn_Hot_Yoga_Copenhagen01" alt="Yogasal med varmt trægulv og måtter" loading="lazy">
+            </figure>
+            <figure class="yb-visit__slide">
+              <img src="https://www.yogabible.dk/s/Yoga_bible_studio_Kbenhavn_Hot_Yoga_Copenhagen01_Yoga_Teacher_Training_space02" alt="Lyst yogarum og rekvisitter" loading="lazy">
+            </figure>
+            <figure class="yb-visit__slide">
+              <img src="https://www.yogabible.dk/s/Yoga_Bible_Studio_Torvegade_66_Christianshavn" alt="Reception og loungeområde" loading="lazy">
+            </figure>
+            <figure class="yb-visit__slide">
+              <img src="https://www.yogabible.dk/s/Yoga_bible_shower_facilities" alt="Brus & faciliteter" loading="lazy">
+            </figure>
+            <figure class="yb-visit__slide">
+              <img src="https://www.yogabible.dk/s/Christianshavn_Yoga_Bible_Central_Location.jpg" alt="Central placering i Christianshavn" loading="lazy">
+            </figure>
+            <figure class="yb-visit__slide">
+              <img src="https://www.yogabible.dk/s/christianshavn_metro_Station_studio_central_Yoga_Bible_Hot_Yoga_Copenhagen_02.jpeg" alt="Metro ved studiet" loading="lazy">
+            </figure>
+            <figure class="yb-visit__slide">
+              <img src="https://www.yogabible.dk/s/christianshavn_metro_Station_studio_central_Yoga_Bible_Hot_Yoga_Copenhagen.jpeg" alt="Metro ved studiet" loading="lazy">
+            </figure>
           </div>
-          <p class="p18-visit__deposit-note">Betal depositum → få adgang med det samme → begynd at praktisere før uddannelsen starter.</p>
-          <button onclick="openYBScheduleModal('18w')" class="btn btn--primary" style="width:100%">Få Skema & Kom i gang</button>
+        </div>
+
+        <div class="yb-visit__nav">
+          <button class="yb-visit__arrow" type="button" aria-label="Forrige billede" data-dir="-1">❮</button>
+          <button class="yb-visit__arrow" type="button" aria-label="Næste billede" data-dir="1">❯</button>
         </div>
       </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- Calendly Visit Modal -->
+<section class="yb-modal-visit" id="visit-modal" aria-hidden="true">
+  <div class="yb-modal-visit__overlay" data-close></div>
+
+  <div class="yb-modal-visit__box" role="dialog" aria-modal="true" aria-label="Book en aftale">
+    <button class="yb-modal-visit__close" type="button" data-close aria-label="Luk">×</button>
+
+    <div class="yb-modal-visit__header">
+      <h3 class="yb-modal-visit__title">Book en tid til rundvisning</h3>
+      <p class="yb-modal-visit__subtitle">Vælg en dato og et tidspunkt der passer dig.</p>
+    </div>
+
+    <link href="https://assets.calendly.com/assets/external/widget.css" rel="stylesheet">
+    <div class="calendly-inline-widget"
+         data-url="https://calendly.com/yogabible/studio-tour-consultation-yoga-teacher-training"
+         style="min-width:320px;height:680px;"></div>
+    <script src="https://assets.calendly.com/assets/external/widget.js" type="text/javascript" async></script>
+
+    <p class="yb-modal-visit__fallback">
+      Oplever du problemer? <a href="https://calendly.com/yogabible/studio-tour-consultation-yoga-teacher-training" target="_blank" rel="noopener">Åbn booking i ny fane</a>
+    </p>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════
+     EARLY DEPOSIT — Get Studio Access Now
+     ═══════════════════════════════════════ -->
+<section class="yb-early" aria-label="Tidlig ansøgning">
+  <div class="yb-early-wrap">
+    <figure class="yb-early-media">
+      <img
+        src="https://www.yogabible.dk/s/Start_with_Hot_Yoga_Copenhagen.jpg"
+        alt="Rolig yogasal i København med måtter og varmt lys"
+        loading="lazy"
+        decoding="async"
+      />
+    </figure>
+
+    <div class="yb-early-copy">
+      <p class="yb-early-kicker">Hvorfor ansøge tidligt?</p>
+      <h2 class="yb-early-title">Betal depositum og få tidlig adgang til studiet</h2>
+
+      <div class="yb-early-meta">
+        <span class="yb-meta-item">
+          <span class="yb-meta-icon">📍</span>
+          Christianshavn
+        </span>
+        <span class="yb-meta-divider">•</span>
+        <span class="yb-meta-item">30+ klasser om ugen</span>
+      </div>
+
+      <p class="yb-early-styles">Hot Yoga · Vinyasa · Yin · Non-heated</p>
+
+      <ul class="yb-early-list" role="list">
+        <li>
+          <span class="yb-check" aria-hidden="true">✓</span>
+          <span>Sikr din plads på uddannelsen</span>
+        </li>
+        <li>
+          <span class="yb-check" aria-hidden="true">✓</span>
+          <span>Brug depositummet til at booke klasser med det samme</span>
+        </li>
+        <li>
+          <span class="yb-check" aria-hidden="true">✓</span>
+          <span>Bliv klar — krop og sind — før uddannelsen starter</span>
+        </li>
+        <li>
+          <span class="yb-check" aria-hidden="true">✓</span>
+          <span>Forudfyld selvpraksis-timer til dine 200 timer</span>
+        </li>
+      </ul>
+
+      <div class="yb-early-cta">
+        <a class="yb-btn yb-btn--cta"
+           href="https://clients.mindbodyonline.com/classic/ws?studioid=5748831&stype=41&sTG=46&prodId=100078"
+           target="_blank" rel="noopener">Betal depositum og begynd at booke</a>
+        <div class="yb-early-pricing">
+          <span class="yb-deposit">Depositum: 3.750 kr.</span>
+          <span class="yb-installment">Resten kan betales i op til 5 rater fra feb/mar 2026</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════
+     REVIEWS — Google Reviews Carousel
+     ═══════════════════════════════════════ -->
+<section class="yb-reviews" id="yb-reviews-section" aria-labelledby="yb-reviews-title">
+  <div class="yb-reviews__inner">
+    <p class="yb-reviews__kicker">Google-anmeldelser</p>
+    <h2 id="yb-reviews-title" class="yb-reviews__title">Hvad tidligere elever fortæller</h2>
+
+    <p class="yb-reviews__lead">
+      Uddannelsen har hjulpet <strong>500+ elever</strong> videre — nogle fordyber egen praksis,
+      andre underviser ved siden af et hovedjob, og flere er gået heltidsvejen med egne studier og retreats.
+    </p>
+
+    <div class="yb-reviews__carousel">
+      <button class="yb-reviews__nav yb-reviews__nav--prev" aria-label="Forrige" data-prev type="button">❮</button>
+
+      <div class="yb-reviews__viewport" data-viewport>
+        <div class="yb-reviews__track" data-track></div>
+      </div>
+
+      <button class="yb-reviews__nav yb-reviews__nav--next" aria-label="Næste" data-next type="button">❯</button>
+    </div>
+
+    <div class="yb-reviews__footer">
+      <div class="yb-reviews__rating">
+        <span class="yb-reviews__stars" aria-hidden="true">★★★★★</span>
+        <span class="yb-reviews__score">4.8 på Google</span>
+      </div>
+      <a class="yb-reviews__link" target="_blank" rel="noopener"
+         href="https://search.google.com/local/reviews?placeid=ChIJpQHE13BTUkYRY6oGEONORHM">
+        Se alle anmeldelser →
+      </a>
     </div>
   </div>
 </section>
@@ -396,21 +621,6 @@ includeP18Styles: true
 <!-- Page-specific JS -->
 <script>
 (function() {
-  /* ── Route Tabs ── */
-  var tabs = document.querySelectorAll('.p18-tab');
-  var routes = document.querySelectorAll('.p18-route');
-
-  tabs.forEach(function(tab) {
-    tab.addEventListener('click', function() {
-      var target = tab.getAttribute('data-tab');
-      tabs.forEach(function(t) { t.classList.remove('is-active'); });
-      routes.forEach(function(r) { r.classList.remove('is-active'); });
-      tab.classList.add('is-active');
-      var el = document.getElementById('route-' + target);
-      if (el) el.classList.add('is-active');
-    });
-  });
-
   /* ── Scroll-Draw Vine ── */
   var vineWrap = document.querySelector('[data-p18-scroll-draw]');
   if (vineWrap) {
@@ -452,6 +662,203 @@ includeP18Styles: true
       });
     }, { threshold: 0.15 });
     fadeEls.forEach(function(el) { obs.observe(el); });
+  }
+
+  /* ── Tracks Video ── */
+  var tracksVideo = document.getElementById('tracksVideo');
+  var tracksOverlay = document.getElementById('tracksVideoOverlay');
+  var tracksPlayBtn = document.getElementById('tracksVideoBtn');
+
+  if (tracksVideo && tracksOverlay && tracksPlayBtn) {
+    tracksVideo.volume = 1.0;
+
+    var playVideo = function() {
+      tracksVideo.play().then(function() {
+        tracksOverlay.classList.add('is-playing');
+      }).catch(function(err) {
+        console.log('Video play failed:', err);
+      });
+    };
+
+    var pauseVideo = function() {
+      tracksVideo.pause();
+      tracksOverlay.classList.remove('is-playing');
+    };
+
+    var toggleVideo = function() {
+      if (tracksVideo.paused) { playVideo(); } else { pauseVideo(); }
+    };
+
+    tracksPlayBtn.addEventListener('click', function(e) {
+      e.stopPropagation();
+      toggleVideo();
+    });
+    tracksOverlay.addEventListener('click', toggleVideo);
+    tracksVideo.addEventListener('click', function() {
+      if (!tracksVideo.paused) pauseVideo();
+    });
+    tracksVideo.addEventListener('ended', function() {
+      tracksOverlay.classList.remove('is-playing');
+    });
+    tracksVideo.addEventListener('pause', function() {
+      tracksOverlay.classList.remove('is-playing');
+    });
+  }
+
+  /* ── Visit Gallery Slider ── */
+  var visitTrack = document.getElementById('visit-track');
+  if (visitTrack) {
+    var visitSlides = Array.from(visitTrack.children);
+    var visitArrows = document.querySelectorAll('.yb-visit__arrow');
+
+    if (visitSlides.length > 1) {
+      var visitIdx = 0;
+      var visitTotal = visitSlides.length;
+
+      var visitGoTo = function(i) {
+        if (i >= visitTotal) visitIdx = 0;
+        else if (i < 0) visitIdx = visitTotal - 1;
+        else visitIdx = i;
+        visitTrack.style.transform = 'translateX(-' + (visitIdx * 100) + '%)';
+      };
+
+      var visitAutoInterval = setInterval(function() { visitGoTo(visitIdx + 1); }, 5000);
+      var visitResetAuto = function() {
+        clearInterval(visitAutoInterval);
+        visitAutoInterval = setInterval(function() { visitGoTo(visitIdx + 1); }, 5000);
+      };
+
+      visitArrows.forEach(function(btn) {
+        btn.addEventListener('click', function() {
+          visitGoTo(visitIdx + Number(btn.getAttribute('data-dir')));
+          visitResetAuto();
+        });
+      });
+
+      /* Swipe support */
+      var visitStartX = 0;
+      var visitDeltaX = 0;
+      visitTrack.addEventListener('touchstart', function(e) {
+        visitStartX = e.touches[0].clientX;
+      }, { passive: true });
+      visitTrack.addEventListener('touchmove', function(e) {
+        visitDeltaX = e.touches[0].clientX - visitStartX;
+      }, { passive: true });
+      visitTrack.addEventListener('touchend', function() {
+        if (Math.abs(visitDeltaX) > 50) {
+          visitGoTo(visitIdx + (visitDeltaX < 0 ? 1 : -1));
+        }
+        visitDeltaX = 0;
+        visitResetAuto();
+      });
+    }
+  }
+
+  /* ── Visit Calendly Modal ── */
+  var visitModal = document.getElementById('visit-modal');
+  if (visitModal) {
+    var visitOpeners = document.querySelectorAll('[data-open="visit-modal"]');
+    var openVisitModal = function() {
+      visitModal.setAttribute('aria-hidden', 'false');
+      document.documentElement.style.overflow = 'hidden';
+      document.body.style.overflow = 'hidden';
+    };
+    var closeVisitModal = function() {
+      visitModal.setAttribute('aria-hidden', 'true');
+      document.documentElement.style.overflow = '';
+      document.body.style.overflow = '';
+    };
+    visitOpeners.forEach(function(btn) { btn.addEventListener('click', openVisitModal); });
+    visitModal.addEventListener('click', function(e) {
+      if (e.target.hasAttribute('data-close')) closeVisitModal();
+    });
+    var visitCloseBtn = visitModal.querySelector('.yb-modal-visit__close');
+    if (visitCloseBtn) visitCloseBtn.addEventListener('click', closeVisitModal);
+    document.addEventListener('keydown', function(e) {
+      if (e.key === 'Escape' && visitModal.getAttribute('aria-hidden') === 'false') {
+        closeVisitModal();
+      }
+    });
+  }
+
+  /* ── Reviews Carousel ── */
+  var reviewsSection = document.getElementById('yb-reviews-section');
+  if (reviewsSection) {
+    var REVIEWS = [
+      {name:"Tanja E.",when:"for 4 mdr. siden",text:"Varmt, venligt miljø og kompetente lærere. God balance mellem praksis og den filosofiske del – stærk forståelse for anatomi."},
+      {name:"Sara Gerlee",when:"for 4 mdr. siden",text:"200-timers forløb var transformerende. Vidende og støttende team – studiet føles som et andet hjem, for både nye og erfarne."},
+      {name:"Clara Aagaard",when:"for 5 mdr. siden",text:"Holistisk læringsmiljø med plads til spørgsmål og praksisfokus. Dygtige undervisere og anvendelige værktøjer til klasseledelse."},
+      {name:"Liza Westh",when:"for 9 mdr. siden",text:"Min varmeste anbefaling. 200 timer i class management, anatomi og praksis – følte mig optimalt forberedt som yogalærer."},
+      {name:"Signe Schmidt",when:"for 1 år siden",text:"Effektiv 18-ugers uddannelse i anatomi, filosofi og praksis (yin, vinyasa, hatha) – i en smuk sal med dagslys og grønne planter."},
+      {name:"Meg Ellis",when:"for 10 mdr. siden",text:"Ekstraordinært studie og lærerteam. 200t forløb forbereder dig fuldt — perfekt til både fordybelse og undervisning."},
+      {name:"Kama Krystel",when:"for 1 år siden",text:"Velstruktureret intensivt forløb, der blander teori og praksis. Personlig feedback og støttende community – kan varmt anbefales."},
+      {name:"Giorgianna G.",when:"for 1 år siden",text:"Udfordrende og belønnende. Unikt fokus på class management. Fem stjerner for de dygtige lærere og forberedelse til at undervise."},
+      {name:"Helena Bend...",when:"for 1 år siden",text:"Kan virkelig anbefale uddannelsen – 5 lærerige måneder. Jeg føler mig godt klædt på til at fortsætte som yogalærer."},
+      {name:"Tonje Follum",when:"for 1 år siden",text:"Inspiration, stor detaljegrad og varmt miljø. Fantastisk atmosfære med planter, lys og musik – mit yndlings-yogafællesskab."},
+      {name:"Ping Li",when:"for 1 år siden",text:"Afsluttede netop min 200t – stor mental & fysisk udvikling. Dybt professionelt team. Meget glad for min rejse her."},
+      {name:"Camilla Rend...",when:"for 1 år siden",text:"Nyuddannet instruktør – føler mig klar i hatha, vinyasa og yin. Hårdt arbejde, men det værd. Anbefales til både udøvere og kommende instruktører."},
+      {name:"Dagmar Eliza...",when:"for 1 år siden",text:"Bredt udbud af klasser + mulighed for YTT. Dygtige undervisere i anatomi & filosofi. Lærte meget og fandt et stærkt fællesskab."},
+      {name:"Yasmine Olof...",when:"for 1 år siden",text:"Fantastisk uddannelse! Føler mig klar til at lede egne klasser. Varme, professionelle undervisere og hyggeligt studie."},
+      {name:"Anastasia Se...",when:"for 1 år siden",text:"Vidunderligt sted at praktisere. 5-måneders YTT var informativt og professionelt – lærerne støtter dig hele vejen."},
+      {name:"Maja Pedersen",when:"for 10 mdr. siden",text:"Pragmatisk tilgang – man udvikler sig hurtigt. Super undervisere med stor erfaring i Hatha/Vinyasa, anatomi og yogafilosofi."}
+    ];
+
+    var revTrack = reviewsSection.querySelector('[data-track]');
+    var revViewport = reviewsSection.querySelector('[data-viewport]');
+    var revPrev = reviewsSection.querySelector('[data-prev]');
+    var revNext = reviewsSection.querySelector('[data-next]');
+
+    if (revTrack && revViewport) {
+      REVIEWS.forEach(function(review) {
+        var card = document.createElement('article');
+        card.className = 'yb-reviews__card';
+        card.setAttribute('aria-label', 'Anmeldelse fra ' + review.name);
+        card.innerHTML =
+          '<div class="yb-reviews__card-header">' +
+            '<div class="yb-reviews__card-info">' +
+              '<h3 class="yb-reviews__name">' + review.name + '</h3>' +
+              '<p class="yb-reviews__when">' + review.when + '</p>' +
+            '</div>' +
+            '<span class="yb-reviews__card-stars" aria-hidden="true">★★★★★</span>' +
+          '</div>' +
+          '<p class="yb-reviews__text">' + review.text + '</p>';
+        revTrack.appendChild(card);
+      });
+
+      var getRevScrollAmount = function() {
+        var card = revTrack.querySelector('.yb-reviews__card');
+        if (!card) return 0;
+        var style = window.getComputedStyle(revTrack);
+        var gap = parseInt(style.gap) || 16;
+        return card.offsetWidth + gap;
+      };
+
+      var getRevVisibleCount = function() {
+        var w = window.innerWidth;
+        if (w >= 900) return 3;
+        if (w >= 600) return 2;
+        return 1;
+      };
+
+      var updateRevButtons = function() {
+        if (!revPrev || !revNext) return;
+        var scrollLeft = revViewport.scrollLeft;
+        var maxScroll = revViewport.scrollWidth - revViewport.clientWidth;
+        revPrev.disabled = scrollLeft <= 5;
+        revNext.disabled = scrollLeft >= maxScroll - 5;
+      };
+
+      var scrollRevByCards = function(direction) {
+        var amount = getRevScrollAmount() * getRevVisibleCount();
+        revViewport.scrollBy({ left: direction * amount, behavior: 'smooth' });
+      };
+
+      if (revPrev) revPrev.addEventListener('click', function() { scrollRevByCards(-1); });
+      if (revNext) revNext.addEventListener('click', function() { scrollRevByCards(1); });
+      revViewport.addEventListener('scroll', updateRevButtons, { passive: true });
+      window.addEventListener('resize', updateRevButtons, { passive: true });
+      updateRevButtons();
+    }
   }
 })();
 </script>
