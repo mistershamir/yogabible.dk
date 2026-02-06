@@ -1,0 +1,225 @@
+---
+pagination:
+  data: journals
+  size: 1
+  alias: journal
+permalink: "/yoga-journal/{{ journal.slug }}/"
+layout: base.njk
+eleventyComputed:
+  title: "{{ journal.title_da }} | Yoga Journal — YOGA BIBLE"
+  description: "{{ journal.excerpt_da }}"
+  journalPost: true
+---
+
+<!-- JSON-LD: BlogPosting (inline for each journal post) -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "{{ journal.title_da }}",
+  "alternativeHeadline": "{{ journal.title_en }}",
+  "description": "{{ journal.excerpt_da }}",
+  "image": "{{ site.url }}{{ journal.image }}",
+  "url": "{{ site.url }}/yoga-journal/{{ journal.slug }}/",
+  "datePublished": "{{ journal.date }}",
+  "dateModified": "{{ journal.date }}",
+  "author": {
+    "@type": "Organization",
+    "name": "{{ journal.author }}",
+    "url": "{{ site.url }}"
+  },
+  "publisher": {
+    "@type": "EducationalOrganization",
+    "name": "Yoga Bible",
+    "url": "{{ site.url }}",
+    "logo": {
+      "@type": "ImageObject",
+      "url": "{{ site.url }}/assets/images/og/og-1200x630.png"
+    }
+  },
+  "inLanguage": ["da", "en"],
+  "isPartOf": {
+    "@type": "Blog",
+    "name": "Yoga Journal",
+    "url": "{{ site.url }}/yoga-journal/"
+  },
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "{{ site.url }}/yoga-journal/{{ journal.slug }}/"
+  },
+  "keywords": "{{ journal.tags | join(', ') }}"
+}
+</script>
+
+<!-- Breadcrumb JSON-LD -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    { "@type": "ListItem", "position": 1, "name": "Yoga Bible", "item": "{{ site.url }}/" },
+    { "@type": "ListItem", "position": 2, "name": "Yoga Journal", "item": "{{ site.url }}/yoga-journal/" },
+    { "@type": "ListItem", "position": 3, "name": "{{ journal.title_da }}", "item": "{{ site.url }}/yoga-journal/{{ journal.slug }}/" }
+  ]
+}
+</script>
+
+<!-- Breadcrumb -->
+<nav class="yj-breadcrumb" aria-label="Breadcrumb">
+  <div class="container">
+    <ol class="yj-breadcrumb__list">
+      <li><a href="/">Yoga Bible</a></li>
+      <li><a href="/yoga-journal/">Yoga Journal</a></li>
+      <li aria-current="page">
+        <span data-yj-da>{{ journal.title_da }}</span>
+        <span data-yj-en hidden>{{ journal.title_en }}</span>
+      </li>
+    </ol>
+  </div>
+</nav>
+
+<!-- Article Hero -->
+<header class="yj-post-hero">
+  <div class="container">
+    <div class="yj-post-hero__inner">
+      <div class="yj-post-hero__meta">
+        <span class="yj-post-hero__category">{{ journal.category }}</span>
+        <span class="yj-post-hero__dot">&middot;</span>
+        <time datetime="{{ journal.date }}">{{ journal.date }}</time>
+        <span class="yj-post-hero__dot">&middot;</span>
+        <span data-yj-da>{{ journal.readTime_da }} læsetid</span>
+        <span data-yj-en hidden>{{ journal.readTime_en }} read</span>
+      </div>
+
+      <h1 class="yj-post-hero__title">
+        <span data-yj-da>{{ journal.title_da }}</span>
+        <span data-yj-en hidden>{{ journal.title_en }}</span>
+      </h1>
+
+      <p class="yj-post-hero__excerpt">
+        <span data-yj-da>{{ journal.excerpt_da }}</span>
+        <span data-yj-en hidden>{{ journal.excerpt_en }}</span>
+      </p>
+
+      <!-- Per-post Language Switcher -->
+      <div class="yj-post-lang" role="group" aria-label="Sprog / Language">
+        <button class="yj-lang__btn is-active" data-yj-lang="da" type="button">
+          Dansk
+        </button>
+        <button class="yj-lang__btn" data-yj-lang="en" type="button">
+          English
+        </button>
+      </div>
+
+      <div class="yj-post-hero__author">
+        <span data-yj-da>Af {{ journal.author }}</span>
+        <span data-yj-en hidden>By {{ journal.author }}</span>
+      </div>
+    </div>
+  </div>
+</header>
+
+<!-- Article Content -->
+<article class="yj-post-content">
+  <div class="container">
+    <div class="yj-post-content__inner">
+      <div class="yj-post-body" data-yj-da>
+        {{ journal.content_da | safe }}
+      </div>
+      <div class="yj-post-body" data-yj-en hidden>
+        {{ journal.content_en | safe }}
+      </div>
+    </div>
+  </div>
+</article>
+
+<!-- Tags -->
+<section class="yj-post-tags">
+  <div class="container">
+    <div class="yj-post-tags__inner">
+      <span class="yj-post-tags__label" data-yj-da>Tags:</span>
+      <span class="yj-post-tags__label" data-yj-en hidden>Tags:</span>
+      <div class="yj-post-tags__list">
+        {%- for tag in journal.tags %}
+        <span class="yj-card__tag">{{ tag }}</span>
+        {%- endfor %}
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Related Journals -->
+<section class="yj-related">
+  <div class="container">
+    <h2 class="yj-related__title">
+      <span data-yj-da>Relaterede Artikler</span>
+      <span data-yj-en hidden>Related Articles</span>
+    </h2>
+    <div class="yj-related__grid" id="yjRelated">
+      {%- set currentSlug = journal.slug %}
+      {%- set currentTags = journal.tags %}
+      {%- set relatedCount = 0 %}
+      {%- for other in journals | sort(true, false, 'date') %}
+        {%- if other.slug != currentSlug and relatedCount < 3 %}
+          {%- set hasMatch = false %}
+          {%- for tag in other.tags %}
+            {%- if tag in currentTags %}
+              {%- set hasMatch = true %}
+            {%- endif %}
+          {%- endfor %}
+          {%- if hasMatch %}
+            {%- set relatedCount = relatedCount + 1 %}
+            <article class="yj-card yj-card--related">
+              <a href="/yoga-journal/{{ other.slug }}/" class="yj-card__link">
+                <div class="yj-card__body">
+                  <div class="yj-card__meta">
+                    <time datetime="{{ other.date }}">{{ other.date }}</time>
+                    <span class="yj-card__dot">&middot;</span>
+                    <span data-yj-da>{{ other.readTime_da }} læsetid</span>
+                    <span data-yj-en hidden>{{ other.readTime_en }} read</span>
+                  </div>
+                  <h3 class="yj-card__title yj-card__title--sm">
+                    <span data-yj-da>{{ other.title_da }}</span>
+                    <span data-yj-en hidden>{{ other.title_en }}</span>
+                  </h3>
+                  <p class="yj-card__excerpt yj-card__excerpt--sm">
+                    <span data-yj-da>{{ other.excerpt_da }}</span>
+                    <span data-yj-en hidden>{{ other.excerpt_en }}</span>
+                  </p>
+                  <span class="yj-card__read-more">
+                    <span data-yj-da>Læs mere &rarr;</span>
+                    <span data-yj-en hidden>Read more &rarr;</span>
+                  </span>
+                </div>
+              </a>
+            </article>
+          {%- endif %}
+        {%- endif %}
+      {%- endfor %}
+    </div>
+  </div>
+</section>
+
+<!-- Back to Journal -->
+<section class="yj-back">
+  <div class="container">
+    <a href="/yoga-journal/" class="yj-back__link">
+      <span data-yj-da>&larr; Tilbage til Yoga Journal</span>
+      <span data-yj-en hidden>&larr; Back to Yoga Journal</span>
+    </a>
+  </div>
+</section>
+
+<!-- CTA -->
+<section class="cta-section">
+  <div class="container">
+    <h2 class="cta-section__title" data-yj-da>Vil du lære mere?</h2>
+    <h2 class="cta-section__title" data-yj-en hidden>Want to learn more?</h2>
+    <p class="cta-section__text" data-yj-da>Vores yogalæreruddannelser dækker alle disse emner i dybden.</p>
+    <p class="cta-section__text" data-yj-en hidden>Our yoga teacher training programs cover all these topics in depth.</p>
+    <a href="/om-200hrs-yogalreruddannelser" class="btn btn--large btn--primary" data-yj-da>Se Uddannelser</a>
+    <a href="/om-200hrs-yogalreruddannelser" class="btn btn--large btn--primary" data-yj-en hidden>View Programs</a>
+  </div>
+</section>
+
+<script src="/js/journal.js"></script>
