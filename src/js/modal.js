@@ -10,7 +10,7 @@
   if (!modal || modal.dataset.ybuInit === "1") return;
   modal.dataset.ybuInit = "1";
 
-  const FORM_URL = 'https://script.google.com/macros/s/AKfycbyhs4bfPcvcqaJRTmAlPTFf_uIOkFatZviKKO20nckbfGi78JqkNzy4FNpWztl7nQsSAA/exec';
+  const FORM_URL = 'https://script.google.com/macros/s/AKfycbyhs4bfPcvcqaJRTmAlPTFf_uIOkFatZviKKO20nckBfGi78JqkNzy4FNpWztl7nQsSAA/exec';
 
   const form = document.getElementById("ybuForm");
   const viewForm = document.getElementById("ybu-view-form");

@@ -76,7 +76,7 @@
   gap: 24px;
   flex-wrap: wrap;
   margin-bottom: 18px;
-  font-size: 12px;
+  font-size: 15px;
   color: rgba(253, 251, 247, 0.7);
 }
 
@@ -86,7 +86,7 @@
 }
 
 .p18-hero__styles {
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 600;
   letter-spacing: 0.06em;
   color: rgba(253, 251, 247, 0.55);
@@ -98,6 +98,11 @@
   justify-content: center;
   gap: 12px;
   flex-wrap: wrap;
+}
+
+.p18-hero__cta .btn {
+  font-size: 14px;
+  padding: 12px 28px;
 }
 
 /* -- Shared section helpers -- */
