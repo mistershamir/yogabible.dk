@@ -1,0 +1,122 @@
+[
+  {
+    "sanskrit": "Pranayama",
+    "en": "Breath Control",
+    "da": "Åndedrætsteknikker",
+    "category": "breathing",
+    "desc_da": "Bevidst styring af åndedrættet. Fjerde lem af Patanjalis ottefoldige vej. Fundamental praksis der forbinder krop og sind.",
+    "desc_en": "Conscious breath regulation. Fourth limb of Patanjali's eightfold path. Fundamental practice connecting body and mind."
+  },
+  {
+    "sanskrit": "Ujjayi",
+    "en": "Victorious Breath",
+    "da": "Sejrende åndedræt",
+    "category": "breathing",
+    "desc_da": "Åndedrætsteknik med let sammentrækning i svælget der skaber en hørbar, havlignende lyd. Bruges i Ashtanga og Vinyasa.",
+    "desc_en": "Breathing technique with slight throat constriction creating an audible, ocean-like sound. Used in Ashtanga and Vinyasa."
+  },
+  {
+    "sanskrit": "Kapalabhati",
+    "en": "Skull Shining Breath",
+    "da": "Kraniepolering",
+    "category": "breathing",
+    "desc_da": "Hurtige, kraftige udåndinger med passiv indånding. Rensende og energiserende teknik. En af de seks shatkarmas.",
+    "desc_en": "Quick, forceful exhales with passive inhales. Cleansing and energizing technique. One of the six shatkarmas."
+  },
+  {
+    "sanskrit": "Nadi Shodhana",
+    "en": "Alternate Nostril Breathing",
+    "da": "Vekslende næseåndedræt",
+    "category": "breathing",
+    "desc_da": "Vekslende åndedræt gennem højre og venstre næsebor. Balancerer nervesystemet og harmoniserer hjernehalvdelene.",
+    "desc_en": "Alternating breath through right and left nostrils. Balances the nervous system and harmonizes brain hemispheres."
+  },
+  {
+    "sanskrit": "Bhramari",
+    "en": "Bee Breath",
+    "da": "Bi-åndedræt",
+    "category": "breathing",
+    "desc_da": "Summende udånding med lukkede ører. Beroligende teknik der reducerer angst og fremmer indre ro.",
+    "desc_en": "Humming exhalation with closed ears. Calming technique that reduces anxiety and promotes inner peace."
+  },
+  {
+    "sanskrit": "Sitali",
+    "en": "Cooling Breath",
+    "da": "Kølende åndedræt",
+    "category": "breathing",
+    "desc_da": "Indånding gennem en rullet tunge der køler kroppen. Bruges til at reducere varme og stress.",
+    "desc_en": "Inhalation through a curled tongue that cools the body. Used to reduce heat and stress."
+  },
+  {
+    "sanskrit": "Sitkari",
+    "en": "Hissing Breath",
+    "da": "Hvislende åndedræt",
+    "category": "breathing",
+    "desc_da": "Indånding gennem sammenpressede tænder. Alternativ kølende teknik for dem der ikke kan rulle tungen.",
+    "desc_en": "Inhalation through clenched teeth. Alternative cooling technique for those who cannot curl the tongue."
+  },
+  {
+    "sanskrit": "Bhastrika",
+    "en": "Bellows Breath",
+    "da": "Blæsebælg-åndedræt",
+    "category": "breathing",
+    "desc_da": "Kraftige, lige stærke ind- og udåndinger. Energiserende teknik der øger ildenergi (agni) i kroppen.",
+    "desc_en": "Powerful, equal-force inhales and exhales. Energizing technique that increases fire energy (agni) in the body."
+  },
+  {
+    "sanskrit": "Kumbhaka",
+    "en": "Breath Retention",
+    "da": "Åndedrætshold",
+    "category": "breathing",
+    "desc_da": "Bevidst tilbageholdelse af åndedrættet efter ind- eller udånding. Central avanceret pranayama-teknik.",
+    "desc_en": "Conscious retention of breath after inhalation or exhalation. Central advanced pranayama technique."
+  },
+  {
+    "sanskrit": "Puraka",
+    "en": "Inhalation",
+    "da": "Indånding",
+    "category": "breathing",
+    "desc_da": "Den kontrollerede indånding i pranayama. Bevidst, langsom indånding der fylder lungerne fuldstændigt.",
+    "desc_en": "The controlled inhalation in pranayama. Conscious, slow inhalation that fills the lungs completely."
+  },
+  {
+    "sanskrit": "Rechaka",
+    "en": "Exhalation",
+    "da": "Udånding",
+    "category": "breathing",
+    "desc_da": "Den kontrollerede udånding i pranayama. Bevidst, langsom udånding der tømmer lungerne helt.",
+    "desc_en": "The controlled exhalation in pranayama. Conscious, slow exhalation that empties the lungs completely."
+  },
+  {
+    "sanskrit": "Viloma",
+    "en": "Interrupted Breathing",
+    "da": "Afbrudt åndedræt",
+    "category": "breathing",
+    "desc_da": "Åndedrætsteknik med pauser under ind- eller udånding. Opbygger lungekapacitet og åndedrætsbevidsthed.",
+    "desc_en": "Breathing technique with pauses during inhalation or exhalation. Builds lung capacity and breath awareness."
+  },
+  {
+    "sanskrit": "Surya Bhedana",
+    "en": "Right Nostril Breathing",
+    "da": "Højre næsebor-åndedræt",
+    "category": "breathing",
+    "desc_da": "Indånding kun gennem højre næsebor. Aktiverer solenergi (pingala nadi) og varmer kroppen.",
+    "desc_en": "Inhalation through the right nostril only. Activates solar energy (pingala nadi) and warms the body."
+  },
+  {
+    "sanskrit": "Chandra Bhedana",
+    "en": "Left Nostril Breathing",
+    "da": "Venstre næsebor-åndedræt",
+    "category": "breathing",
+    "desc_da": "Indånding kun gennem venstre næsebor. Aktiverer måneenergi (ida nadi) og køler kroppen.",
+    "desc_en": "Inhalation through the left nostril only. Activates lunar energy (ida nadi) and cools the body."
+  },
+  {
+    "sanskrit": "Sama Vritti",
+    "en": "Equal Breathing",
+    "da": "Lige åndedræt",
+    "category": "breathing",
+    "desc_da": "Åndedrætsteknik hvor ind- og udånding har samme varighed. Grundlæggende balancerende pranayama.",
+    "desc_en": "Breathing technique where inhalation and exhalation have equal duration. Foundational balancing pranayama."
+  }
+]

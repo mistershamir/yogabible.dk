@@ -1,0 +1,186 @@
+[
+  {
+    "sanskrit": "Ahimsa",
+    "en": "Non-violence",
+    "da": "Ikke-vold",
+    "category": "philosophy",
+    "desc_da": "Det første yama. Princippet om ikke at skade — i tanke, ord og handling. Grundlaget for al yogisk etik.",
+    "desc_en": "The first yama. The principle of not causing harm — in thought, word, and action. Foundation of all yogic ethics."
+  },
+  {
+    "sanskrit": "Satya",
+    "en": "Truthfulness",
+    "da": "Sandfærdighed",
+    "category": "philosophy",
+    "desc_da": "Det andet yama. At leve og kommunikere med ærlighed og integritet i alle handlinger.",
+    "desc_en": "The second yama. Living and communicating with honesty and integrity in all actions."
+  },
+  {
+    "sanskrit": "Asteya",
+    "en": "Non-stealing",
+    "da": "Ikke-stjæle",
+    "category": "philosophy",
+    "desc_da": "Det tredje yama. At ikke tage det der ikke tilhører en — materielt, intellektuelt eller energimæssigt.",
+    "desc_en": "The third yama. Not taking what does not belong to you — materially, intellectually, or energetically."
+  },
+  {
+    "sanskrit": "Brahmacharya",
+    "en": "Moderation / Wise Use of Energy",
+    "da": "Mådehold / Klog brug af energi",
+    "category": "philosophy",
+    "desc_da": "Det fjerde yama. Klog forvaltning af livskraft og energi. Traditionelt fortolket som afholdenhed, moderne som mådehold.",
+    "desc_en": "The fourth yama. Wise management of vital energy. Traditionally interpreted as celibacy, modernly as moderation."
+  },
+  {
+    "sanskrit": "Aparigraha",
+    "en": "Non-possessiveness",
+    "da": "Ikke-begærlighed",
+    "category": "philosophy",
+    "desc_da": "Det femte yama. At slippe tilknytning til materielle ting. At tage kun det man har brug for.",
+    "desc_en": "The fifth yama. Letting go of attachment to material things. Taking only what one needs."
+  },
+  {
+    "sanskrit": "Saucha",
+    "en": "Cleanliness / Purity",
+    "da": "Renhed",
+    "category": "philosophy",
+    "desc_da": "Det første niyama. Renhed af krop, sind og omgivelser. Inkluderer kost, tanker og livsstil.",
+    "desc_en": "The first niyama. Purity of body, mind, and surroundings. Includes diet, thoughts, and lifestyle."
+  },
+  {
+    "sanskrit": "Santosha",
+    "en": "Contentment",
+    "da": "Tilfredshed",
+    "category": "philosophy",
+    "desc_da": "Det andet niyama. Indre tilfredshed og accept af det nuværende øjeblik uden at begære mere.",
+    "desc_en": "The second niyama. Inner contentment and acceptance of the present moment without craving more."
+  },
+  {
+    "sanskrit": "Tapas",
+    "en": "Discipline / Inner Fire",
+    "da": "Disciplin / Indre ild",
+    "category": "philosophy",
+    "desc_da": "Det tredje niyama. Selvdisciplin og brændende bestræbelse. Den indre ild der driver transformation.",
+    "desc_en": "The third niyama. Self-discipline and burning effort. The inner fire that drives transformation."
+  },
+  {
+    "sanskrit": "Svadhyaya",
+    "en": "Self-study",
+    "da": "Selvstudium",
+    "category": "philosophy",
+    "desc_da": "Det fjerde niyama. Studium af sig selv og hellige tekster. Selvrefleksion som vej til selverkendelse.",
+    "desc_en": "The fourth niyama. Study of the self and sacred texts. Self-reflection as a path to self-knowledge."
+  },
+  {
+    "sanskrit": "Ishvara Pranidhana",
+    "en": "Surrender to a Higher Power",
+    "da": "Overgivelse til en højere kraft",
+    "category": "philosophy",
+    "desc_da": "Det femte niyama. Overgivelse til det guddommelige eller en kraft større end egoet. Tillid til livets flow.",
+    "desc_en": "The fifth niyama. Surrender to the divine or a power greater than the ego. Trust in the flow of life."
+  },
+  {
+    "sanskrit": "Ashtanga (Filosofi)",
+    "en": "Eight Limbs of Yoga",
+    "da": "Yogas otte lemmer",
+    "category": "philosophy",
+    "desc_da": "Patanjalis ottefoldige vej: yama, niyama, asana, pranayama, pratyahara, dharana, dhyana og samadhi.",
+    "desc_en": "Patanjali's eightfold path: yama, niyama, asana, pranayama, pratyahara, dharana, dhyana, and samadhi."
+  },
+  {
+    "sanskrit": "Yoga Sutra",
+    "en": "Yoga Sutras of Patanjali",
+    "da": "Patanjalis Yoga Sutra",
+    "category": "philosophy",
+    "desc_da": "Klassisk tekst med 196 aforismer om yogafilosofi, skrevet af vismanden Patanjali. Grundtekst for Raja Yoga.",
+    "desc_en": "Classical text with 196 aphorisms on yoga philosophy, written by sage Patanjali. Foundational text for Raja Yoga."
+  },
+  {
+    "sanskrit": "Bhagavad Gita",
+    "en": "Song of God",
+    "da": "Guds sang",
+    "category": "philosophy",
+    "desc_da": "Hinduistisk hellig tekst i dialogform mellem Krishna og Arjuna. Udforsker dharma, karma yoga, bhakti og jnana.",
+    "desc_en": "Hindu sacred text in dialogue form between Krishna and Arjuna. Explores dharma, karma yoga, bhakti, and jnana."
+  },
+  {
+    "sanskrit": "Karma",
+    "en": "Action / Cause and Effect",
+    "da": "Handling / Årsag og virkning",
+    "category": "philosophy",
+    "desc_da": "Loven om årsag og virkning. Enhver handling skaber en konsekvens. Central lære i yogafilosofi.",
+    "desc_en": "The law of cause and effect. Every action creates a consequence. Central teaching in yoga philosophy."
+  },
+  {
+    "sanskrit": "Dharma",
+    "en": "Duty / Righteous Path",
+    "da": "Pligt / Retfærdig vej",
+    "category": "philosophy",
+    "desc_da": "Ens livspligt eller retfærdige vej. Den kosmiske orden og den enkeltes rolle i den.",
+    "desc_en": "One's life duty or righteous path. The cosmic order and the individual's role within it."
+  },
+  {
+    "sanskrit": "Moksha",
+    "en": "Liberation",
+    "da": "Befrielse",
+    "category": "philosophy",
+    "desc_da": "Befrielse fra lidelsens og genfødselsens cyklus (samsara). Det ultimative mål i yogafilosofien.",
+    "desc_en": "Liberation from the cycle of suffering and rebirth (samsara). The ultimate goal in yoga philosophy."
+  },
+  {
+    "sanskrit": "Samsara",
+    "en": "Cycle of Rebirth",
+    "da": "Genfødselsens kredsløb",
+    "category": "philosophy",
+    "desc_da": "Den kontinuerlige cyklus af fødsel, død og genfødsel. Drevet af karma og avidya (uvidenhed).",
+    "desc_en": "The continuous cycle of birth, death, and rebirth. Driven by karma and avidya (ignorance)."
+  },
+  {
+    "sanskrit": "Namaste",
+    "en": "The Light in Me Honors the Light in You",
+    "da": "Lyset i mig ærer lyset i dig",
+    "category": "philosophy",
+    "desc_da": "Hilsen med hænderne i Anjali Mudra ved hjertet. Udtryk for gensidig respekt og anerkendelse af det guddommelige i alle.",
+    "desc_en": "Greeting with hands in Anjali Mudra at the heart. Expression of mutual respect and recognition of the divine in all."
+  },
+  {
+    "sanskrit": "Guru",
+    "en": "Teacher / Spiritual Guide",
+    "da": "Lærer / Åndelig vejleder",
+    "category": "philosophy",
+    "desc_da": "'Gu' (mørke) + 'ru' (fjerner). Den der fører fra uvidenhed til viden. Åndelig lærer og vejleder.",
+    "desc_en": "'Gu' (darkness) + 'ru' (remover). One who leads from ignorance to knowledge. Spiritual teacher and guide."
+  },
+  {
+    "sanskrit": "Atman",
+    "en": "True Self / Soul",
+    "da": "Sandt selv / Sjæl",
+    "category": "philosophy",
+    "desc_da": "Det individuelle sande selv eller sjæl. Ifølge Vedanta-filosofien er Atman identisk med Brahman (det universelle).",
+    "desc_en": "The individual true self or soul. According to Vedanta philosophy, Atman is identical to Brahman (the universal)."
+  },
+  {
+    "sanskrit": "Brahman",
+    "en": "Universal Consciousness",
+    "da": "Universel bevidsthed",
+    "category": "philosophy",
+    "desc_da": "Den ultimative virkelighed og universelle bevidsthed i hinduistisk filosofi. Alt der eksisterer er en manifestation af Brahman.",
+    "desc_en": "The ultimate reality and universal consciousness in Hindu philosophy. All that exists is a manifestation of Brahman."
+  },
+  {
+    "sanskrit": "Maya",
+    "en": "Illusion",
+    "da": "Illusion",
+    "category": "philosophy",
+    "desc_da": "Den kosmiske illusion der skjuler virkelighedens sande natur. Årsag til oplevelsen af adskillelse.",
+    "desc_en": "The cosmic illusion that conceals the true nature of reality. Cause of the experience of separation."
+  },
+  {
+    "sanskrit": "Avidya",
+    "en": "Ignorance / Misperception",
+    "da": "Uvidenhed",
+    "category": "philosophy",
+    "desc_da": "Grundlæggende uvidenhed om ens sande natur. Ifølge Patanjali er det roden til al lidelse (klesha).",
+    "desc_en": "Fundamental ignorance of one's true nature. According to Patanjali, it is the root of all suffering (klesha)."
+  }
+]

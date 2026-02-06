@@ -1,0 +1,12 @@
+[
+  { "id": "asana", "name_da": "Stillinger / Asanas", "name_en": "Asanas / Poses" },
+  { "id": "breathing", "name_da": "Åndedræt & Pranayama", "name_en": "Breathing & Pranayama" },
+  { "id": "meditation", "name_da": "Meditation", "name_en": "Meditation" },
+  { "id": "philosophy", "name_da": "Filosofi & Historie", "name_en": "Philosophy & History" },
+  { "id": "anatomy", "name_da": "Yoga Anatomi", "name_en": "Yoga Anatomy" },
+  { "id": "energy", "name_da": "Energi / Subtil Krop", "name_en": "Energy / Subtle Body" },
+  { "id": "teaching", "name_da": "Undervisning & Cueing", "name_en": "Teaching & Cueing" },
+  { "id": "styles", "name_da": "Yogastilarter", "name_en": "Yoga Styles" },
+  { "id": "business", "name_da": "Business & Studio", "name_en": "Business & Studio" },
+  { "id": "equipment", "name_da": "Udstyr & Rekvisitter", "name_en": "Equipment & Props" }
+]
