@@ -1,184 +1,159 @@
 {% set lp = "/en" if lang == "en" else "" %}
 
-<!-- Main Header -->
-<header id="yb-header" class="ybhd-header" role="banner">
-  <!-- Utility Bar (Orange) — inside header for unified sticky -->
-  <div id="yb-utilbar" class="ybhd-utilbar">
-    <div class="ybhd-utilbar__inner">
-      <div class="ybhd-utilbar__left">
+<header id="yb-header">
+  {# ── Orange utility strip (desktop only, hidden on mobile via CSS) ── #}
+  <div class="yb-util">
+    <div class="yb-util__wrap">
+      <div class="yb-util__left">
         <a href="mailto:{{ site.email }}" data-i18n="util.email">info@yogabible.dk</a>
-        <span class="ybhd-utilbar__sep"></span>
+        <span class="yb-util__dot"></span>
         <a href="tel:{{ site.phone }}" data-i18n="util.phone">+45 53 88 12 09</a>
-        <span class="ybhd-utilbar__sep"></span>
+        <span class="yb-util__dot"></span>
         <span data-i18n="util.address">Torvegade 66, 1400, København K</span>
       </div>
-      <div class="ybhd-utilbar__right">
-        <div class="ybhd-utilbar__social">
-          <a href="{{ site.instagram }}" target="_blank" rel="noopener">Instagram</a>
-          <a href="{{ site.soundcloud }}" target="_blank" rel="noopener">SoundCloud</a>
-        </div>
-        <span class="ybhd-utilbar__sep"></span>
-        <div class="ybhd-utilbar__flags" role="navigation" aria-label="Language selector">
-          <a class="ybhd-utilbar__flag" data-lang="da" href="/" aria-label="Dansk" title="Dansk">🇩🇰</a>
-          <a class="ybhd-utilbar__flag" data-lang="en" href="/en/" aria-label="English" title="English">🇬🇧</a>
-        </div>
+      <div class="yb-util__right">
+        <a href="{{ site.instagram }}" target="_blank" rel="noopener">Instagram</a>
+        <a href="{{ site.soundcloud }}" target="_blank" rel="noopener">SoundCloud</a>
+        <span class="yb-util__dot"></span>
+        <a class="yb-util__flag{% if lang != 'en' %} is-active{% endif %}" data-lang="da" href="/">🇩🇰</a>
+        <a class="yb-util__flag{% if lang == 'en' %} is-active{% endif %}" data-lang="en" href="/en/">🇬🇧</a>
       </div>
     </div>
   </div>
 
-  <div class="ybhd-inner">
-    <!-- LEFT NAV (Desktop) -->
-    <nav class="ybhd-nav ybhd-nav--left" aria-label="Primary navigation">
-      <!-- EDUCATION — mega dropdown -->
-      <div class="ybhd-dd" data-ybhd-dd="mega">
-        <button class="ybhd-link ybhd-dd__trigger" type="button" aria-haspopup="true" aria-expanded="false">
-          <span data-i18n="nav.education">Uddannelser</span>
-          <span class="ybhd-caret" aria-hidden="true">▾</span>
-        </button>
-      </div>
-
-      <!-- COURSES -->
-      <div class="ybhd-dd" data-ybhd-dd>
-        <button class="ybhd-link ybhd-dd__trigger" type="button" aria-haspopup="true" aria-expanded="false">
-          <span data-i18n="nav.courses">Kurser</span>
-          <span class="ybhd-caret" aria-hidden="true">▾</span>
-        </button>
-
-        <div class="ybhd-dd__menu" role="menu" aria-label="Courses menu">
-          <a role="menuitem" class="ybhd-dd__item" href="{{ lp }}/inversions" data-i18n="courses.inversions">Inversions</a>
-          <a role="menuitem" class="ybhd-dd__item" href="{{ lp }}/splits" data-i18n="courses.splits">Splits</a>
-          <a role="menuitem" class="ybhd-dd__item" href="{{ lp }}/backbends" data-i18n="courses.backbends">Backbends</a>
-          <a role="menuitem" class="ybhd-dd__item" href="{{ lp }}/course-bundles" data-i18n="courses.bundles">Kursus Bundles</a>
-        </div>
-      </div>
-
-      <!-- Mentorship -->
-      <a class="ybhd-link" href="{{ lp }}/mentorship-private-training" data-i18n="nav.mentorship">Mentorship</a>
-    </nav>
-
-    <!-- BRAND (Center) -->
-    <a class="ybhd-brand" href="{{ lp }}/" aria-label="Yoga Bible home">
-      <img
-        class="ybhd-brand__img"
-        src="/assets/images/brand/logo-orange-on-transparent.png"
-        alt="Yoga Bible"
-        loading="eager"
-        decoding="async"
-      />
-    </a>
-
-    <!-- RIGHT SIDE -->
-    <div class="ybhd-right">
-      <nav class="ybhd-nav ybhd-nav--right" aria-label="Secondary navigation">
-        <!-- More -->
-        <div class="ybhd-dd ybhd-dd--right" data-ybhd-dd>
-          <button class="ybhd-link ybhd-dd__trigger" type="button" aria-haspopup="true" aria-expanded="false">
-            <span data-i18n="nav.more">Mere</span>
-            <span class="ybhd-caret" aria-hidden="true">▾</span>
+  {# ── Main navigation bar ── #}
+  <div class="yb-nav">
+    <div class="yb-nav__wrap">
+      {# Left nav (desktop) #}
+      <nav class="yb-nav__left" aria-label="Primary">
+        <div class="yb-dd" data-dd="mega">
+          <button class="yb-dd__btn" type="button" aria-haspopup="true" aria-expanded="false">
+            <span data-i18n="nav.education">Uddannelser</span>
+            <span class="yb-dd__arrow">▾</span>
           </button>
-
-          <div class="ybhd-dd__menu ybhd-dd__menu--right" role="menu" aria-label="More menu">
-            <a role="menuitem" class="ybhd-dd__item" href="{{ lp }}/yoga-journal" data-i18n="more.journal">Yoga Journal</a>
-            <a role="menuitem" class="ybhd-dd__item" href="{{ lp }}/yogaphotography" data-i18n="more.photo">Yoga Fotografi</a>
-            <a role="menuitem" class="ybhd-dd__item" href="{{ lp }}/yogamusic" data-i18n="more.music">Yoga Musik</a>
-            <a role="menuitem" class="ybhd-dd__item" href="{{ lp }}/yoga-glossary" data-i18n="more.glossary">Yoga Ordbog</a>
+        </div>
+        <div class="yb-dd" data-dd>
+          <button class="yb-dd__btn" type="button" aria-haspopup="true" aria-expanded="false">
+            <span data-i18n="nav.courses">Kurser</span>
+            <span class="yb-dd__arrow">▾</span>
+          </button>
+          <div class="yb-dd__panel" role="menu">
+            <a href="{{ lp }}/inversions" data-i18n="courses.inversions">Inversions</a>
+            <a href="{{ lp }}/splits" data-i18n="courses.splits">Splits</a>
+            <a href="{{ lp }}/backbends" data-i18n="courses.backbends">Backbends</a>
+            <a href="{{ lp }}/course-bundles" data-i18n="courses.bundles">Kursus Bundles</a>
           </div>
         </div>
-
-        <!-- Yoga Bible dropdown -->
-        <div class="ybhd-dd ybhd-dd--right" data-ybhd-dd>
-          <button class="ybhd-link ybhd-dd__trigger" type="button" aria-haspopup="true" aria-expanded="false">
-            <span data-i18n="nav.yogabible">Yoga Bible</span>
-            <span class="ybhd-caret" aria-hidden="true">▾</span>
-          </button>
-
-          <div class="ybhd-dd__menu ybhd-dd__menu--right" role="menu" aria-label="Yoga Bible menu">
-            <a role="menuitem" class="ybhd-dd__item" href="{{ lp }}/yoga-bible-historie" data-i18n="nav.ourstory">Vores Historie</a>
-            <a role="menuitem" class="ybhd-dd__item" href="{{ lp }}/about-copenhagen" data-i18n="nav.copenhagen">About Copenhagen</a>
-            <a role="menuitem" class="ybhd-dd__item" href="{{ lp }}/accommodation" data-i18n="nav.accommodation">Bolig til Kursister</a>
-            <a role="menuitem" class="ybhd-dd__item" href="{{ lp }}/weekly-schedule" data-i18n="nav.schedule">Ugentligt Klasseskema</a>
-            <a role="menuitem" class="ybhd-dd__item" href="{{ lp }}/careers" data-i18n="nav.careers">Karriere</a>
-            <a role="menuitem" class="ybhd-dd__item" href="{{ lp }}/terms-conditions" data-i18n="nav.terms">Handelsbetingelser</a>
-            <a role="menuitem" class="ybhd-dd__item" href="{{ lp }}/privacy-policy" data-i18n="nav.privacy">Privatlivspolitik</a>
-            <a role="menuitem" class="ybhd-dd__item" href="{{ lp }}/code-of-conduct" data-i18n="nav.conduct">Code of Conduct</a>
-            <a role="menuitem" class="ybhd-dd__item" href="{{ lp }}/kontakt" data-i18n="nav.contact">Kontakt</a>
-          </div>
-        </div>
+        <a class="yb-dd__btn" href="{{ lp }}/mentorship-private-training" data-i18n="nav.mentorship">Mentorship</a>
       </nav>
 
-      <!-- Apply CTA (Desktop) -->
-      <a class="ybhd-cta" href="{{ lp }}/apply" data-i18n="nav.apply">Ansøg</a>
+      {# Center logo #}
+      <a class="yb-nav__logo" href="{{ lp }}/" aria-label="Yoga Bible">
+        <img src="/assets/images/brand/logo-orange-on-transparent.png" alt="Yoga Bible" width="180" height="44" />
+      </a>
 
-      <!-- Mobile: flags + burger -->
-      <div class="ybhd-mobileFlags" role="navigation" aria-label="Language selector">
-        <a class="ybhd-mobileFlagBtn" data-lang="da" href="/" aria-label="Dansk" title="Dansk">🇩🇰</a>
-        <a class="ybhd-mobileFlagBtn" data-lang="en" href="/en/" aria-label="English" title="English">🇬🇧</a>
-      </div>
+      {# Right nav (desktop) + mobile controls #}
+      <div class="yb-nav__right">
+        <nav class="yb-nav__links" aria-label="Secondary">
+          <div class="yb-dd yb-dd--right" data-dd>
+            <button class="yb-dd__btn" type="button" aria-haspopup="true" aria-expanded="false">
+              <span data-i18n="nav.more">Mere</span>
+              <span class="yb-dd__arrow">▾</span>
+            </button>
+            <div class="yb-dd__panel yb-dd__panel--right" role="menu">
+              <a href="{{ lp }}/yoga-journal" data-i18n="more.journal">Yoga Journal</a>
+              <a href="{{ lp }}/yogaphotography" data-i18n="more.photo">Yoga Fotografi</a>
+              <a href="{{ lp }}/yogamusic" data-i18n="more.music">Yoga Musik</a>
+              <a href="{{ lp }}/yoga-glossary" data-i18n="more.glossary">Yoga Ordbog</a>
+            </div>
+          </div>
+          <div class="yb-dd yb-dd--right" data-dd>
+            <button class="yb-dd__btn" type="button" aria-haspopup="true" aria-expanded="false">
+              <span data-i18n="nav.yogabible">Yoga Bible</span>
+              <span class="yb-dd__arrow">▾</span>
+            </button>
+            <div class="yb-dd__panel yb-dd__panel--right" role="menu">
+              <a href="{{ lp }}/yoga-bible-historie" data-i18n="nav.ourstory">Vores Historie</a>
+              <a href="{{ lp }}/about-copenhagen" data-i18n="nav.copenhagen">About Copenhagen</a>
+              <a href="{{ lp }}/accommodation" data-i18n="nav.accommodation">Bolig til Kursister</a>
+              <a href="{{ lp }}/weekly-schedule" data-i18n="nav.schedule">Ugentligt Klasseskema</a>
+              <a href="{{ lp }}/careers" data-i18n="nav.careers">Karriere</a>
+              <a href="{{ lp }}/terms-conditions" data-i18n="nav.terms">Handelsbetingelser</a>
+              <a href="{{ lp }}/privacy-policy" data-i18n="nav.privacy">Privatlivspolitik</a>
+              <a href="{{ lp }}/code-of-conduct" data-i18n="nav.conduct">Code of Conduct</a>
+              <a href="{{ lp }}/kontakt" data-i18n="nav.contact">Kontakt</a>
+            </div>
+          </div>
+        </nav>
 
-      <button class="ybhd-burger" type="button" aria-label="Open menu" aria-controls="ybhdMobileNav" aria-expanded="false">
-        <span class="ybhd-burgerIcon" aria-hidden="true">
+        <a class="yb-nav__cta" href="{{ lp }}/apply" data-i18n="nav.apply">Ansøg</a>
+
+        {# Mobile: flags + burger #}
+        <div class="yb-mob-flags">
+          <a class="yb-mob-flag{% if lang != 'en' %} is-active{% endif %}" data-lang="da" href="/">🇩🇰</a>
+          <a class="yb-mob-flag{% if lang == 'en' %} is-active{% endif %}" data-lang="en" href="/en/">🇬🇧</a>
+        </div>
+
+        <button class="yb-burger" type="button" aria-label="Menu" aria-expanded="false">
           <span></span><span></span><span></span>
-        </span>
-      </button>
-    </div>
-  </div>
-
-  <!-- MEGA MENU — Education (full-width panel) -->
-  <div id="ybhdMegaEdu" class="ybhd-mega" hidden aria-hidden="true">
-    <div class="ybhd-mega__inner">
-      <div class="ybhd-mega__col">
-        <div class="ybhd-mega__title" data-i18n="mega.200.title">200 Timer — All Levels</div>
-        <a class="ybhd-mega__link" href="{{ lp }}/om-200hrs-yogalreruddannelser" data-i18n="edu.200.about">Om 200-timers yogalæreruddannelser</a>
-        <a class="ybhd-mega__sub" href="{{ lp }}/200-hours-18-weeks-flexible-programs" data-i18n="edu.200.18">18 uger — fleksibel</a>
-        <a class="ybhd-mega__sub" href="{{ lp }}/200-hours-8-weeks-semi-intensive-programs" data-i18n="edu.200.8">8 uger — semi-intensiv</a>
-        <a class="ybhd-mega__sub" href="{{ lp }}/200-hours-4-weeks-intensive-programs" data-i18n="edu.200.4">4 uger — intensiv</a>
-        <a class="ybhd-mega__link ybhd-mega__link--spaced" href="{{ lp }}/sammenlign-yogalreruddannelser" data-i18n="edu.compare">Sammenlign uddannelser</a>
-      </div>
-      <div class="ybhd-mega__col">
-        <div class="ybhd-mega__title" data-i18n="mega.300.title">300 Timer — Advanced</div>
-        <a class="ybhd-mega__link" href="{{ lp }}/300-hours-advanced-teacher-training" data-i18n="edu.300.about">300-timers avanceret uddannelse</a>
+        </button>
       </div>
     </div>
   </div>
 
-  <!-- MOBILE DRAWER -->
-  <div id="ybhdMobileNav" class="ybhd-drawer" hidden aria-hidden="true">
-    <div class="ybhd-drawer__overlay" data-close></div>
+  {# ── Mega menu panel (Education) ── #}
+  <div class="yb-mega" id="yb-mega" hidden>
+    <div class="yb-mega__wrap">
+      <div class="yb-mega__col">
+        <div class="yb-mega__heading" data-i18n="mega.200.title">200 Timer — All Levels</div>
+        <a class="yb-mega__link" href="{{ lp }}/om-200hrs-yogalreruddannelser" data-i18n="edu.200.about">Om 200-timers yogalæreruddannelser</a>
+        <a class="yb-mega__sub" href="{{ lp }}/200-hours-18-weeks-flexible-programs" data-i18n="edu.200.18">18 uger — fleksibel</a>
+        <a class="yb-mega__sub" href="{{ lp }}/200-hours-8-weeks-semi-intensive-programs" data-i18n="edu.200.8">8 uger — semi-intensiv</a>
+        <a class="yb-mega__sub" href="{{ lp }}/200-hours-4-weeks-intensive-programs" data-i18n="edu.200.4">4 uger — intensiv</a>
+        <a class="yb-mega__link yb-mega__link--mt" href="{{ lp }}/sammenlign-yogalreruddannelser" data-i18n="edu.compare">Sammenlign uddannelser</a>
+      </div>
+      <div class="yb-mega__col">
+        <div class="yb-mega__heading" data-i18n="mega.300.title">300 Timer — Advanced</div>
+        <a class="yb-mega__link" href="{{ lp }}/300-hours-advanced-teacher-training" data-i18n="edu.300.about">300-timers avanceret uddannelse</a>
+      </div>
+    </div>
+  </div>
 
-    <div class="ybhd-drawer__panel" role="dialog" aria-modal="true" aria-label="Menu">
-      <div class="ybhd-drawer__top">
-        <a class="ybhd-drawer__logo" href="{{ lp }}/" aria-label="Yoga Bible home">
-          <img src="/assets/images/brand/logo-orange-on-transparent.png" alt="Yoga Bible" loading="eager" decoding="async" />
+  {# ── Mobile drawer ── #}
+  <div class="yb-drawer" id="yb-drawer" hidden>
+    <div class="yb-drawer__bg" data-close-drawer></div>
+    <div class="yb-drawer__body">
+      <div class="yb-drawer__head">
+        <a href="{{ lp }}/">
+          <img src="/assets/images/brand/logo-orange-on-transparent.png" alt="Yoga Bible" height="34" />
         </a>
-        <button class="ybhd-drawer__x" type="button" data-close aria-label="Close menu">✕</button>
+        <button class="yb-drawer__close" type="button" data-close-drawer aria-label="Close">✕</button>
       </div>
 
-      <nav class="ybhd-drawer__nav" aria-label="Mobile navigation">
-        <!-- Education — card style -->
-        <div class="ybhd-mCard" data-mcard>
-          <button class="ybhd-mCard__head" type="button" aria-expanded="false">
-            <span class="ybhd-mCard__title" data-i18n="nav.education">Uddannelser</span>
-            <span class="ybhd-mCard__caret" aria-hidden="true">▾</span>
+      <nav class="yb-drawer__list">
+        {# Education accordion #}
+        <div class="yb-acc" data-acc>
+          <button class="yb-acc__toggle" type="button" aria-expanded="false">
+            <span data-i18n="nav.education">Uddannelser</span><span class="yb-acc__icon">▾</span>
           </button>
-          <div class="ybhd-mCard__body">
-            <div class="ybhd-mCard__sub" data-i18n="mega.200.title">200 Timer — All Levels</div>
+          <div class="yb-acc__content">
+            <p class="yb-acc__label" data-i18n="mega.200.title">200 Timer — All Levels</p>
             <a href="{{ lp }}/om-200hrs-yogalreruddannelser" data-i18n="edu.200.about">Om 200-timers uddannelser</a>
             <a href="{{ lp }}/200-hours-18-weeks-flexible-programs" data-i18n="edu.200.18">18 uger — fleksibel</a>
             <a href="{{ lp }}/200-hours-8-weeks-semi-intensive-programs" data-i18n="edu.200.8">8 uger — semi-intensiv</a>
             <a href="{{ lp }}/200-hours-4-weeks-intensive-programs" data-i18n="edu.200.4">4 uger — intensiv</a>
             <a href="{{ lp }}/sammenlign-yogalreruddannelser" data-i18n="edu.compare">Sammenlign uddannelser</a>
-            <div class="ybhd-mCard__sub" data-i18n="mega.300.title">300 Timer — Advanced</div>
+            <p class="yb-acc__label" data-i18n="mega.300.title">300 Timer — Advanced</p>
             <a href="{{ lp }}/300-hours-advanced-teacher-training" data-i18n="edu.300.about">300-timers avanceret uddannelse</a>
           </div>
         </div>
 
-        <!-- Courses -->
-        <div class="ybhd-mCard" data-mcard>
-          <button class="ybhd-mCard__head" type="button" aria-expanded="false">
-            <span class="ybhd-mCard__title" data-i18n="nav.courses">Kurser</span>
-            <span class="ybhd-mCard__caret" aria-hidden="true">▾</span>
+        {# Courses accordion #}
+        <div class="yb-acc" data-acc>
+          <button class="yb-acc__toggle" type="button" aria-expanded="false">
+            <span data-i18n="nav.courses">Kurser</span><span class="yb-acc__icon">▾</span>
           </button>
-          <div class="ybhd-mCard__body">
+          <div class="yb-acc__content">
             <a href="{{ lp }}/inversions" data-i18n="courses.inversions">Inversions</a>
             <a href="{{ lp }}/splits" data-i18n="courses.splits">Splits</a>
             <a href="{{ lp }}/backbends" data-i18n="courses.backbends">Backbends</a>
@@ -186,15 +161,14 @@
           </div>
         </div>
 
-        <a class="ybhd-mLink" href="{{ lp }}/mentorship-private-training" data-i18n="nav.mentorship">Mentorship &amp; Privat Træning</a>
+        <a class="yb-drawer__link" href="{{ lp }}/mentorship-private-training" data-i18n="nav.mentorship">Mentorship &amp; Privat Træning</a>
 
-        <!-- More -->
-        <div class="ybhd-mCard" data-mcard>
-          <button class="ybhd-mCard__head" type="button" aria-expanded="false">
-            <span class="ybhd-mCard__title" data-i18n="nav.more">Mere</span>
-            <span class="ybhd-mCard__caret" aria-hidden="true">▾</span>
+        {# More accordion #}
+        <div class="yb-acc" data-acc>
+          <button class="yb-acc__toggle" type="button" aria-expanded="false">
+            <span data-i18n="nav.more">Mere</span><span class="yb-acc__icon">▾</span>
           </button>
-          <div class="ybhd-mCard__body">
+          <div class="yb-acc__content">
             <a href="{{ lp }}/yoga-journal" data-i18n="more.journal">Yoga Journal</a>
             <a href="{{ lp }}/yogaphotography" data-i18n="more.photo">Yoga Fotografi</a>
             <a href="{{ lp }}/yogamusic" data-i18n="more.music">Yoga Musik</a>
@@ -202,13 +176,12 @@
           </div>
         </div>
 
-        <!-- Yoga Bible -->
-        <div class="ybhd-mCard" data-mcard>
-          <button class="ybhd-mCard__head" type="button" aria-expanded="false">
-            <span class="ybhd-mCard__title" data-i18n="nav.yogabible">Yoga Bible</span>
-            <span class="ybhd-mCard__caret" aria-hidden="true">▾</span>
+        {# Yoga Bible accordion #}
+        <div class="yb-acc" data-acc>
+          <button class="yb-acc__toggle" type="button" aria-expanded="false">
+            <span data-i18n="nav.yogabible">Yoga Bible</span><span class="yb-acc__icon">▾</span>
           </button>
-          <div class="ybhd-mCard__body">
+          <div class="yb-acc__content">
             <a href="{{ lp }}/yoga-bible-historie" data-i18n="nav.ourstory">Vores Historie</a>
             <a href="{{ lp }}/about-copenhagen" data-i18n="nav.copenhagen">About Copenhagen</a>
             <a href="{{ lp }}/accommodation" data-i18n="nav.accommodation">Bolig til Kursister</a>
@@ -221,33 +194,27 @@
           </div>
         </div>
 
-        <!-- Apply CTA -->
-        <a class="ybhd-mLink ybhd-mApply" href="{{ lp }}/apply" data-i18n="nav.apply">Ansøg</a>
-
-        <!-- Footer -->
-        <div class="ybhd-mFooter">
-          <div class="ybhd-mFooterRow">
-            <div class="ybhd-mSocialCol">
-              <div class="ybhd-mSocialLinks">
-                <a class="ybhd-mSocialLink" href="{{ site.instagram }}" target="_blank" rel="noopener">Instagram</a>
-                <a class="ybhd-mSocialLink" href="{{ site.soundcloud }}" target="_blank" rel="noopener">SoundCloud</a>
-              </div>
-              <div class="ybhd-mSocialFlags">
-                <a class="ybhd-mSocialFlag" data-lang="da" href="/" aria-label="Dansk" title="Dansk">🇩🇰</a>
-                <a class="ybhd-mSocialFlag" data-lang="en" href="/en/" aria-label="English" title="English">🇬🇧</a>
-              </div>
-            </div>
-            <div class="ybhd-mApps" aria-label="Download the app">
-              <a class="ybhd-appBadge" href="{{ site.appStore }}" target="_blank" rel="noopener" aria-label="Download on the App Store">
-                <img src="https://www.yogabible.dk/s/Yoga_Bible_App_Store.svg" alt="Download on the App Store" loading="lazy" decoding="async" />
-              </a>
-              <a class="ybhd-appBadge" href="{{ site.googlePlay }}" target="_blank" rel="noopener" aria-label="Get it on Google Play">
-                <img src="https://www.yogabible.dk/s/Yoga_Bible_App_Google_Play.svg" alt="Get it on Google Play" loading="lazy" decoding="async" />
-              </a>
-            </div>
-          </div>
-        </div>
+        <a class="yb-drawer__cta" href="{{ lp }}/apply" data-i18n="nav.apply">Ansøg</a>
       </nav>
+
+      <div class="yb-drawer__foot">
+        <div class="yb-drawer__social">
+          <a class="yb-drawer__pill" href="{{ site.instagram }}" target="_blank" rel="noopener">Instagram</a>
+          <a class="yb-drawer__pill" href="{{ site.soundcloud }}" target="_blank" rel="noopener">SoundCloud</a>
+        </div>
+        <div class="yb-drawer__flags">
+          <a class="yb-drawer__flag{% if lang != 'en' %} is-active{% endif %}" data-lang="da" href="/">🇩🇰</a>
+          <a class="yb-drawer__flag{% if lang == 'en' %} is-active{% endif %}" data-lang="en" href="/en/">🇬🇧</a>
+        </div>
+        <div class="yb-drawer__apps">
+          <a href="{{ site.appStore }}" target="_blank" rel="noopener" aria-label="App Store">
+            <img src="https://www.yogabible.dk/s/Yoga_Bible_App_Store.svg" alt="App Store" height="28" />
+          </a>
+          <a href="{{ site.googlePlay }}" target="_blank" rel="noopener" aria-label="Google Play">
+            <img src="https://www.yogabible.dk/s/Yoga_Bible_App_Google_Play.svg" alt="Google Play" height="28" />
+          </a>
+        </div>
+      </div>
     </div>
   </div>
 </header>
