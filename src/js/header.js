@@ -10,6 +10,18 @@
   var utilbar = document.getElementById('yb-utilbar');
   if (!header) return;
 
+  // Set utilbar height as CSS variable so header stacks below it
+  function syncUtilbarHeight() {
+    if (utilbar && window.matchMedia("(min-width:980px)").matches) {
+      var h = utilbar.getBoundingClientRect().height;
+      header.style.setProperty('--utilbar-h', h + 'px');
+    } else {
+      header.style.removeProperty('--utilbar-h');
+    }
+  }
+  syncUtilbarHeight();
+  window.addEventListener('resize', syncUtilbarHeight);
+
   // ============================================
   // LANGUAGE DETECTION & TRANSLATIONS
   // ============================================
@@ -37,6 +49,8 @@
       "nav.careers": "Karriere",
       "nav.terms": "Handelsbetingelser",
       "nav.privacy": "Privatlivspolitik",
+      "nav.copenhagen": "Om København",
+      "nav.accommodation": "Bolig til Kursister",
       "nav.conduct": "Code of Conduct",
       "nav.contact": "Kontakt",
       "nav.apply": "Ansøg",
@@ -71,6 +85,8 @@
       "nav.careers": "Careers",
       "nav.terms": "Terms & Conditions",
       "nav.privacy": "Privacy Policy",
+      "nav.copenhagen": "About Copenhagen",
+      "nav.accommodation": "Student Accommodation",
       "nav.conduct": "Code of Conduct",
       "nav.contact": "Contact",
       "nav.apply": "Apply",
