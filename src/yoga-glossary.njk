@@ -8,9 +8,9 @@ includeScheduleModal: false
 {# ── Hero ── #}
 <section class="program-hero">
   <div class="container">
-    <div class="program-hero__badge">YOGA ORDBOG</div>
+    <div class="program-hero__badge" data-glossary-i18n="hero_badge">YOGA ORDBOG</div>
     <h1 class="program-hero__title">Yoga Glossary</h1>
-    <p class="program-hero__subtitle">
+    <p class="program-hero__subtitle" data-glossary-i18n="hero_subtitle">
       Denne ordliste er udviklet af Yoga Bible i København som et fagligt opslagsværk til vores yogalæreruddannelser, studerende og nysgerrige udøvere. Her samler vi centrale begreber fra klassisk og moderne yoga — på sanskrit, dansk og engelsk.
     </p>
   </div>
@@ -21,15 +21,11 @@ includeScheduleModal: false
   <div class="container">
     <div class="yb-glossary">
 
-      {# Top controls: Scope + Language #}
+      {# Scope toggle (language comes from global subdomain switcher) #}
       <div class="yb-glossary__controls">
         <div class="yb-glossary__scope" role="group" aria-label="Omfang">
           <button class="yb-glossary__scope-btn active" data-scope="common" type="button">Mest brugte</button>
           <button class="yb-glossary__scope-btn" data-scope="all" type="button">Komplet ordbog</button>
-        </div>
-        <div class="yb-glossary__lang-switch" role="group" aria-label="Sprog">
-          <button class="yb-glossary__lang-btn active" data-lang="da" type="button">DA</button>
-          <button class="yb-glossary__lang-btn" data-lang="en" type="button">EN</button>
         </div>
       </div>
 
@@ -69,9 +65,9 @@ includeScheduleModal: false
 {# ── CTA ── #}
 <section class="cta-section">
   <div class="container">
-    <h2 class="cta-section__title">Vil du lære mere?</h2>
-    <p class="cta-section__text">Vores 200-timers yogalæreruddannelse dækker alle disse begreber i dybden.</p>
-    <a href="/om-200hrs-yogalreruddannelser" class="btn btn--large btn--primary">Se Uddannelser</a>
+    <h2 class="cta-section__title" data-glossary-i18n="cta_title">Vil du lære mere?</h2>
+    <p class="cta-section__text" data-glossary-i18n="cta_text">Vores 200-timers yogalæreruddannelse dækker alle disse begreber i dybden.</p>
+    <a href="/om-200hrs-yogalreruddannelser" class="btn btn--large btn--primary" data-glossary-i18n="cta_btn">Se Uddannelser</a>
   </div>
 </section>
 
