@@ -1,5 +1,4 @@
 {% set t = i18n["course-admin"][lang or "da"] %}
-{% set tc = i18n.common[lang or "da"] %}
 {% set lp = "/en" if lang == "en" else "" %}
 
 <script>
@@ -8,47 +7,43 @@
 </script>
 
 <section class="yb-admin" id="yb-admin">
+  <div class="container">
 
-  {# ── Gate: not logged in ── #}
-  <div class="yb-admin__gate" id="yb-admin-gate">
-    <div class="yb-admin__gate-icon">
-      <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#6F6A66" stroke-width="1.5"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-    </div>
-    <h1 class="yb-admin__gate-title">{{ t.not_logged_in_title }}</h1>
-    <p class="yb-admin__gate-text">{{ t.not_logged_in_text }}</p>
-    <button class="yb-btn yb-btn--primary" onclick="document.getElementById('yb-login-modal')&&document.getElementById('yb-login-modal').classList.add('is-active')">{{ t.login_btn }}</button>
-  </div>
-
-  {# ── Loading ── #}
-  <div class="yb-admin__loading" id="yb-admin-loading" hidden>
-    <div class="yb-mb-spinner"></div>
-    <p>{{ t.loading }}</p>
-  </div>
-
-  {# ── Main admin panel ── #}
-  <div class="yb-admin__panel" id="yb-admin-panel" hidden>
-
-    {# Top bar with breadcrumb #}
-    <div class="yb-admin__topbar">
-      <div class="yb-admin__breadcrumb" id="yb-admin-breadcrumb">
-        <span>{{ t.courses_title }}</span>
-      </div>
-      <div class="yb-admin__topbar-actions" id="yb-admin-topbar-actions"></div>
+    {# ── Header ── #}
+    <div class="yb-admin__header">
+      <p class="yb-profile__eyebrow">Admin</p>
+      <h1 class="yb-profile__title">{{ t.page_title }}</h1>
+      <p class="yb-profile__subtitle">{{ t.page_subtitle }}</p>
     </div>
 
-    <div class="yb-admin__layout">
-
-      {# ── Sidebar tree ── #}
-      <aside class="yb-admin__sidebar" id="yb-admin-sidebar">
-        <div class="yb-admin__sidebar-head">
-          <strong>{{ t.courses_title }}</strong>
-          <button class="yb-admin__sidebar-btn" data-action="new-course" title="{{ t.new_course }}">+</button>
+    {# ── Gate: not logged in ── #}
+    <div class="yb-admin__gate" id="yb-admin-gate" style="display:none">
+      <div class="yb-profile__guest-inner">
+        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#6F6A66" stroke-width="1.5"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+        <h2 class="yb-profile__guest-title">{{ t.not_logged_in_title }}</h2>
+        <p class="yb-profile__guest-text">{{ t.not_logged_in_text }}</p>
+        <div class="yb-profile__guest-actions">
+          <button class="yb-btn yb-btn--primary" type="button" data-yb-auth-open="login">{{ t.login_btn }}</button>
         </div>
-        <nav class="yb-admin__tree" id="yb-admin-tree"></nav>
-      </aside>
+      </div>
+    </div>
 
-      {# ── Main content area ── #}
-      <main class="yb-admin__main" id="yb-admin-main">
+    {# ── Logged-in content ── #}
+    <div id="yb-admin-panel" style="display:none">
+
+      {# Tab navigation — extensible for future modules #}
+      <div class="yb-profile__tabs">
+        <button class="yb-profile__tab is-active" type="button" data-yb-admin-tab="courses">{{ t.courses_title }}</button>
+        {# Future tabs: Users, Settings, etc. #}
+      </div>
+
+      {# ═══════════════════════════════════
+         TAB: Course Builder
+         ═══════════════════════════════════ #}
+      <div class="yb-admin__tab-panel is-active" data-yb-admin-panel="courses">
+
+        {# Breadcrumb #}
+        <div class="yb-admin__breadcrumb" id="yb-admin-breadcrumb"></div>
 
         {# VIEW: Courses list (default) #}
         <div class="yb-admin__view" id="yb-admin-v-courses">
@@ -92,7 +87,7 @@
           </form>
         </div>
 
-        {# VIEW: Modules list #}
+        {# VIEW: Modules list + Enrollments #}
         <div class="yb-admin__view" id="yb-admin-v-modules" hidden>
           <div class="yb-admin__view-head">
             <button class="yb-admin__back-btn" data-action="back-courses">&larr; {{ t.back }}</button>
@@ -100,16 +95,16 @@
             <button class="yb-btn yb-btn--primary" data-action="new-module">+ {{ t.new_module }}</button>
           </div>
           <div id="yb-admin-module-list" class="yb-admin__item-list"></div>
-          <div class="yb-admin__view-head" style="margin-top:2rem;border-top:1px solid #E8E4E0;padding-top:1.5rem">
-            <h2 id="yb-admin-enroll-heading">{{ t.enrollments_title }}</h2>
+
+          <div class="yb-admin__section-divider"></div>
+          <div class="yb-admin__view-head">
+            <h2>{{ t.enrollments_title }}</h2>
           </div>
-          <div id="yb-admin-enroll-section">
-            <form id="yb-admin-enroll-form" class="yb-admin__enroll-form">
-              <input type="text" id="yb-admin-enroll-input" placeholder="{{ t.enroll_placeholder }}" required>
-              <button type="submit" class="yb-btn yb-btn--primary">{{ t.enroll_btn }}</button>
-            </form>
-            <div id="yb-admin-enroll-list"></div>
-          </div>
+          <form id="yb-admin-enroll-form" class="yb-admin__enroll-form">
+            <input type="text" id="yb-admin-enroll-input" placeholder="{{ t.enroll_placeholder }}" required>
+            <button type="submit" class="yb-btn yb-btn--primary">{{ t.enroll_btn }}</button>
+          </form>
+          <div id="yb-admin-enroll-list"></div>
         </div>
 
         {# VIEW: Module form #}
@@ -176,8 +171,6 @@
                 <input type="number" id="yb-chf-order" min="1" value="1" style="max-width:80px">
               </div>
             </div>
-
-            {# Content editor with live preview #}
             <label class="yb-admin__field-label">{{ t.content }}</label>
             <div class="yb-admin__editor-wrap">
               <div class="yb-admin__editor-panel">
@@ -188,7 +181,6 @@
                 <div class="yb-admin__preview-body yb-cv__content" id="yb-admin-preview-body"></div>
               </div>
             </div>
-
             <div class="yb-admin__form-actions">
               <button type="submit" class="yb-btn yb-btn--primary">{{ t.save }}</button>
               <button type="button" class="yb-btn yb-btn--outline" data-action="back-chapters">{{ t.cancel }}</button>
@@ -202,11 +194,8 @@
             <button class="yb-admin__back-btn" data-action="back-chapters">&larr; {{ t.back }}</button>
             <h2>{{ t.bulk_import }}</h2>
           </div>
-
-          {# Step 1: Paste & configure #}
           <div id="yb-admin-bulk-step1">
             <textarea id="yb-admin-bulk-text" class="yb-admin__bulk-textarea" rows="16" placeholder="{{ t.bulk_paste }}"></textarea>
-
             <div class="yb-admin__bulk-options">
               <div class="yb-admin__bulk-opt">
                 <strong>{{ t.bulk_split_by }}</strong>
@@ -215,11 +204,8 @@
                 <label><input type="radio" name="bulk-split" value="hr"> {{ t.bulk_split_hr }}</label>
               </div>
             </div>
-
             <button class="yb-btn yb-btn--primary" id="yb-admin-bulk-preview-btn">{{ t.bulk_preview_btn }}</button>
           </div>
-
-          {# Step 2: Preview & create #}
           <div id="yb-admin-bulk-step2" hidden>
             <div class="yb-admin__bulk-count" id="yb-admin-bulk-count"></div>
             <div id="yb-admin-bulk-cards" class="yb-admin__bulk-cards"></div>
@@ -228,21 +214,20 @@
               <button class="yb-btn yb-btn--outline" id="yb-admin-bulk-back-btn">{{ t.back }}</button>
             </div>
           </div>
-
-          {# Progress #}
           <div id="yb-admin-bulk-progress" hidden>
             <div class="yb-admin__progress-bar"><div class="yb-admin__progress-fill" id="yb-admin-bulk-fill"></div></div>
             <p id="yb-admin-bulk-status"></p>
           </div>
         </div>
 
-      </main>
-    </div>
-  </div>
+      </div>{# end courses tab panel #}
+
+    </div>{# end yb-admin-panel #}
+
+  </div>{# end container #}
 
   {# Toast #}
   <div class="yb-admin__toast" id="yb-admin-toast" hidden></div>
-
 </section>
 
 <script src="/js/course-admin.js"></script>
