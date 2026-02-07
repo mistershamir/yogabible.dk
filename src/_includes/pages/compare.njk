@@ -1,0 +1,875 @@
+{% set t = i18n.compare[lang or "da"] %}
+
+<!-- Hero -->
+<section class="program-hero">
+  <div class="container">
+    <div class="program-hero__badge">{{ t.hero_badge }}</div>
+    <h1 class="program-hero__title">{{ t.hero_title }}</h1>
+    <p class="program-hero__subtitle">{{ t.hero_subtitle }}</p>
+
+    <div class="program-hero__cta">
+      <a href="#format-comparison" class="btn btn--large btn--primary">{{ t.hero_cta_format }}</a>
+      <a href="#destinations" class="btn btn--large btn--secondary">{{ t.hero_cta_dest }}</a>
+    </div>
+  </div>
+</section>
+
+<!-- Table of Contents -->
+<section class="program-overview">
+  <div class="container">
+    <h2 class="section-title">{{ t.toc_title }}</h2>
+    <p class="section-subtitle">{{ t.toc_subtitle }}</p>
+
+    <div class="program-grid" style="max-width: 800px; margin: 0 auto;">
+      <div class="program-feature">
+        <div class="program-feature__icon">1</div>
+        <h3><a href="#format-comparison" style="color:inherit; text-decoration:none;">{{ t.toc1_title }}</a></h3>
+        <p>{{ t.toc1_desc }}</p>
+      </div>
+      <div class="program-feature">
+        <div class="program-feature__icon">2</div>
+        <h3><a href="#seasons" style="color:inherit; text-decoration:none;">{{ t.toc2_title }}</a></h3>
+        <p>{{ t.toc2_desc }}</p>
+      </div>
+      <div class="program-feature">
+        <div class="program-feature__icon">3</div>
+        <h3><a href="#destinations" style="color:inherit; text-decoration:none;">{{ t.toc3_title }}</a></h3>
+        <p>{{ t.toc3_desc }}</p>
+      </div>
+      <div class="program-feature">
+        <div class="program-feature__icon">4</div>
+        <h3><a href="#choosing" style="color:inherit; text-decoration:none;">{{ t.toc4_title }}</a></h3>
+        <p>{{ t.toc4_desc }}</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SECTION 1: FORMAT COMPARISON -->
+<section class="program-schedule" id="format-comparison">
+  <div class="container">
+    <h2 class="section-title">{{ t.s1_title }}</h2>
+    <p class="section-subtitle">{{ t.s1_subtitle }}</p>
+  </div>
+</section>
+
+<!-- 18-Week Flexible (Weekday Track) -->
+<section class="program-overview">
+  <div class="container">
+    <h2 class="section-title">{{ t.f18wd_title }}</h2>
+    <p class="section-subtitle">{{ t.f18wd_subtitle }}</p>
+
+    <img src="/assets/images/programs/18w-weekday-training.jpg" alt="{{ t.f18wd_img_alt }}" style="width:100%; max-width:800px; border-radius:8px; aspect-ratio:16/9; object-fit:cover; background:#f5f3f0; margin: 0 auto 32px; display:block;" loading="lazy">
+
+    <div class="schedule-options">
+      <div class="schedule-card">
+        <h3>{{ t.f18wd_details_title }}</h3>
+        <ul>
+          <li>{{ t.f18wd_d1 | safe }}</li>
+          <li>{{ t.f18wd_d2 | safe }}</li>
+          <li>{{ t.f18wd_d3 | safe }}</li>
+          <li>{{ t.f18wd_d4 | safe }}</li>
+          <li>{{ t.f18wd_d5 | safe }}</li>
+          <li>{{ t.f18wd_d6 | safe }}</li>
+          <li>{{ t.f18wd_d7 | safe }}</li>
+        </ul>
+      </div>
+
+      <div class="schedule-card" style="border-left: 3px solid #5a8f5a;">
+        <h3>{{ t.f18wd_pros_title }}</h3>
+        <ul>
+          <li>{{ t.f18wd_p1 | safe }}</li>
+          <li>{{ t.f18wd_p2 | safe }}</li>
+          <li>{{ t.f18wd_p3 | safe }}</li>
+          <li>{{ t.f18wd_p4 | safe }}</li>
+          <li>{{ t.f18wd_p5 | safe }}</li>
+          <li>{{ t.f18wd_p6 | safe }}</li>
+        </ul>
+      </div>
+
+      <div class="schedule-card" style="border-left: 3px solid #c27a4a;">
+        <h3>{{ t.f18wd_cons_title }}</h3>
+        <ul>
+          <li>{{ t.f18wd_c1 | safe }}</li>
+          <li>{{ t.f18wd_c2 | safe }}</li>
+          <li>{{ t.f18wd_c3 | safe }}</li>
+          <li>{{ t.f18wd_c4 | safe }}</li>
+          <li>{{ t.f18wd_c5 | safe }}</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 18-Week Flexible (Weekend Track) -->
+<section class="program-schedule">
+  <div class="container">
+    <h2 class="section-title">{{ t.f18we_title }}</h2>
+    <p class="section-subtitle">{{ t.f18we_subtitle }}</p>
+
+    <img src="/assets/images/programs/18w-weekend-training.jpg" alt="{{ t.f18we_img_alt }}" style="width:100%; max-width:800px; border-radius:8px; aspect-ratio:16/9; object-fit:cover; background:#f5f3f0; margin: 0 auto 32px; display:block;" loading="lazy">
+
+    <div class="schedule-options">
+      <div class="schedule-card">
+        <h3>{{ t.f18we_details_title }}</h3>
+        <ul>
+          <li>{{ t.f18we_d1 | safe }}</li>
+          <li>{{ t.f18we_d2 | safe }}</li>
+          <li>{{ t.f18we_d3 | safe }}</li>
+          <li>{{ t.f18we_d4 | safe }}</li>
+          <li>{{ t.f18we_d5 | safe }}</li>
+          <li>{{ t.f18we_d6 | safe }}</li>
+          <li>{{ t.f18we_d7 | safe }}</li>
+        </ul>
+      </div>
+
+      <div class="schedule-card" style="border-left: 3px solid #5a8f5a;">
+        <h3>{{ t.f18we_pros_title }}</h3>
+        <ul>
+          <li>{{ t.f18we_p1 | safe }}</li>
+          <li>{{ t.f18we_p2 | safe }}</li>
+          <li>{{ t.f18we_p3 | safe }}</li>
+          <li>{{ t.f18we_p4 | safe }}</li>
+          <li>{{ t.f18we_p5 | safe }}</li>
+        </ul>
+      </div>
+
+      <div class="schedule-card" style="border-left: 3px solid #c27a4a;">
+        <h3>{{ t.f18we_cons_title }}</h3>
+        <ul>
+          <li>{{ t.f18we_c1 | safe }}</li>
+          <li>{{ t.f18we_c2 | safe }}</li>
+          <li>{{ t.f18we_c3 | safe }}</li>
+          <li>{{ t.f18we_c4 | safe }}</li>
+          <li>{{ t.f18we_c5 | safe }}</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 8-Week Semi-Intensive -->
+<section class="program-overview">
+  <div class="container">
+    <h2 class="section-title">{{ t.f8w_title }}</h2>
+    <p class="section-subtitle">{{ t.f8w_subtitle }}</p>
+
+    <img src="/assets/images/programs/8w-semi-intensive.jpg" alt="{{ t.f8w_img_alt }}" style="width:100%; max-width:800px; border-radius:8px; aspect-ratio:16/9; object-fit:cover; background:#f5f3f0; margin: 0 auto 32px; display:block;" loading="lazy">
+
+    <div class="schedule-options">
+      <div class="schedule-card">
+        <h3>{{ t.f8w_details_title }}</h3>
+        <ul>
+          <li>{{ t.f8w_d1 | safe }}</li>
+          <li>{{ t.f8w_d2 | safe }}</li>
+          <li>{{ t.f8w_d3 | safe }}</li>
+          <li>{{ t.f8w_d4 | safe }}</li>
+          <li>{{ t.f8w_d5 | safe }}</li>
+          <li>{{ t.f8w_d6 | safe }}</li>
+        </ul>
+      </div>
+
+      <div class="schedule-card" style="border-left: 3px solid #5a8f5a;">
+        <h3>{{ t.f8w_pros_title }}</h3>
+        <ul>
+          <li>{{ t.f8w_p1 | safe }}</li>
+          <li>{{ t.f8w_p2 | safe }}</li>
+          <li>{{ t.f8w_p3 | safe }}</li>
+          <li>{{ t.f8w_p4 | safe }}</li>
+          <li>{{ t.f8w_p5 | safe }}</li>
+          <li>{{ t.f8w_p6 | safe }}</li>
+        </ul>
+      </div>
+
+      <div class="schedule-card" style="border-left: 3px solid #c27a4a;">
+        <h3>{{ t.f8w_cons_title }}</h3>
+        <ul>
+          <li>{{ t.f8w_c1 | safe }}</li>
+          <li>{{ t.f8w_c2 | safe }}</li>
+          <li>{{ t.f8w_c3 | safe }}</li>
+          <li>{{ t.f8w_c4 | safe }}</li>
+          <li>{{ t.f8w_c5 | safe }}</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 4-Week Intensive -->
+<section class="program-schedule">
+  <div class="container">
+    <h2 class="section-title">{{ t.f4w_title }}</h2>
+    <p class="section-subtitle">{{ t.f4w_subtitle }}</p>
+
+    <img src="/assets/images/programs/4w-intensive.jpg" alt="{{ t.f4w_img_alt }}" style="width:100%; max-width:800px; border-radius:8px; aspect-ratio:16/9; object-fit:cover; background:#f5f3f0; margin: 0 auto 32px; display:block;" loading="lazy">
+
+    <div class="schedule-options">
+      <div class="schedule-card">
+        <h3>{{ t.f4w_details_title }}</h3>
+        <ul>
+          <li>{{ t.f4w_d1 | safe }}</li>
+          <li>{{ t.f4w_d2 | safe }}</li>
+          <li>{{ t.f4w_d3 | safe }}</li>
+          <li>{{ t.f4w_d4 | safe }}</li>
+          <li>{{ t.f4w_d5 | safe }}</li>
+          <li>{{ t.f4w_d6 | safe }}</li>
+          <li>{{ t.f4w_d7 | safe }}</li>
+        </ul>
+      </div>
+
+      <div class="schedule-card" style="border-left: 3px solid #5a8f5a;">
+        <h3>{{ t.f4w_pros_title }}</h3>
+        <ul>
+          <li>{{ t.f4w_p1 | safe }}</li>
+          <li>{{ t.f4w_p2 | safe }}</li>
+          <li>{{ t.f4w_p3 | safe }}</li>
+          <li>{{ t.f4w_p4 | safe }}</li>
+          <li>{{ t.f4w_p5 | safe }}</li>
+          <li>{{ t.f4w_p6 | safe }}</li>
+          <li>{{ t.f4w_p7 | safe }}</li>
+        </ul>
+      </div>
+
+      <div class="schedule-card" style="border-left: 3px solid #c27a4a;">
+        <h3>{{ t.f4w_cons_title }}</h3>
+        <ul>
+          <li>{{ t.f4w_c1 | safe }}</li>
+          <li>{{ t.f4w_c2 | safe }}</li>
+          <li>{{ t.f4w_c3 | safe }}</li>
+          <li>{{ t.f4w_c4 | safe }}</li>
+          <li>{{ t.f4w_c5 | safe }}</li>
+          <li>{{ t.f4w_c6 | safe }}</li>
+          <li>{{ t.f4w_c7 | safe }}</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Side-by-Side Summary Table -->
+<section class="program-overview">
+  <div class="container">
+    <h2 class="section-title">{{ t.table_title }}</h2>
+    <div style="overflow-x:auto; margin-bottom:32px;">
+      <table style="width:100%; border-collapse:collapse; min-width:700px; font-size:0.95rem;">
+        <thead>
+          <tr style="background:#2a2a2a; color:#fff;">
+            <th style="padding:12px 16px; text-align:left;">{{ t.ft_h_factor }}</th>
+            <th style="padding:12px 16px; text-align:center;">{{ t.ft_h_18wd }}</th>
+            <th style="padding:12px 16px; text-align:center;">{{ t.ft_h_18we }}</th>
+            <th style="padding:12px 16px; text-align:center;">{{ t.ft_h_8w }}</th>
+            <th style="padding:12px 16px; text-align:center;">{{ t.ft_h_4w }}</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr style="border-bottom:1px solid #e0e0e0;">
+            <td style="padding:12px 16px; font-weight:600;">{{ t.ft_r1_label }}</td>
+            <td style="padding:12px 16px; text-align:center;">{{ t.ft_r1_18wd }}</td>
+            <td style="padding:12px 16px; text-align:center;">{{ t.ft_r1_18we }}</td>
+            <td style="padding:12px 16px; text-align:center;">{{ t.ft_r1_8w }}</td>
+            <td style="padding:12px 16px; text-align:center;">{{ t.ft_r1_4w }}</td>
+          </tr>
+          <tr style="border-bottom:1px solid #e0e0e0; background:#f9f9f9;">
+            <td style="padding:12px 16px; font-weight:600;">{{ t.ft_r2_label }}</td>
+            <td style="padding:12px 16px; text-align:center;">{{ t.ft_r2_18wd }}</td>
+            <td style="padding:12px 16px; text-align:center;">{{ t.ft_r2_18we }}</td>
+            <td style="padding:12px 16px; text-align:center;">{{ t.ft_r2_8w }}</td>
+            <td style="padding:12px 16px; text-align:center;">{{ t.ft_r2_4w }}</td>
+          </tr>
+          <tr style="border-bottom:1px solid #e0e0e0;">
+            <td style="padding:12px 16px; font-weight:600;">{{ t.ft_r3_label }}</td>
+            <td style="padding:12px 16px; text-align:center;">{{ t.ft_r3_18wd }}</td>
+            <td style="padding:12px 16px; text-align:center;">{{ t.ft_r3_18we }}</td>
+            <td style="padding:12px 16px; text-align:center;">{{ t.ft_r3_8w }}</td>
+            <td style="padding:12px 16px; text-align:center;">{{ t.ft_r3_4w }}</td>
+          </tr>
+          <tr style="border-bottom:1px solid #e0e0e0; background:#f9f9f9;">
+            <td style="padding:12px 16px; font-weight:600;">{{ t.ft_r4_label }}</td>
+            <td style="padding:12px 16px; text-align:center;">{{ t.ft_r4_18wd }}</td>
+            <td style="padding:12px 16px; text-align:center;">{{ t.ft_r4_18we }}</td>
+            <td style="padding:12px 16px; text-align:center;">{{ t.ft_r4_8w }}</td>
+            <td style="padding:12px 16px; text-align:center;">{{ t.ft_r4_4w }}</td>
+          </tr>
+          <tr style="border-bottom:1px solid #e0e0e0;">
+            <td style="padding:12px 16px; font-weight:600;">{{ t.ft_r5_label }}</td>
+            <td style="padding:12px 16px; text-align:center;">{{ t.ft_r5_18wd }}</td>
+            <td style="padding:12px 16px; text-align:center;">{{ t.ft_r5_18we }}</td>
+            <td style="padding:12px 16px; text-align:center;">{{ t.ft_r5_8w }}</td>
+            <td style="padding:12px 16px; text-align:center;">{{ t.ft_r5_4w }}</td>
+          </tr>
+          <tr style="border-bottom:1px solid #e0e0e0; background:#f9f9f9;">
+            <td style="padding:12px 16px; font-weight:600;">{{ t.ft_r6_label }}</td>
+            <td style="padding:12px 16px; text-align:center;">{{ t.ft_r6_18wd }}</td>
+            <td style="padding:12px 16px; text-align:center;">{{ t.ft_r6_18we }}</td>
+            <td style="padding:12px 16px; text-align:center;">{{ t.ft_r6_8w }}</td>
+            <td style="padding:12px 16px; text-align:center;">{{ t.ft_r6_4w }}</td>
+          </tr>
+          <tr style="border-bottom:1px solid #e0e0e0;">
+            <td style="padding:12px 16px; font-weight:600;">{{ t.ft_r7_label }}</td>
+            <td style="padding:12px 16px; text-align:center;">{{ t.ft_r7_18wd }}</td>
+            <td style="padding:12px 16px; text-align:center;">{{ t.ft_r7_18we }}</td>
+            <td style="padding:12px 16px; text-align:center;">{{ t.ft_r7_8w }}</td>
+            <td style="padding:12px 16px; text-align:center;">{{ t.ft_r7_4w }}</td>
+          </tr>
+          <tr style="border-bottom:1px solid #e0e0e0; background:#f9f9f9;">
+            <td style="padding:12px 16px; font-weight:600;">{{ t.ft_r8_label }}</td>
+            <td style="padding:12px 16px; text-align:center;">{{ t.ft_r8_18wd }}</td>
+            <td style="padding:12px 16px; text-align:center;">{{ t.ft_r8_18we }}</td>
+            <td style="padding:12px 16px; text-align:center;">{{ t.ft_r8_8w }}</td>
+            <td style="padding:12px 16px; text-align:center;">{{ t.ft_r8_4w }}</td>
+          </tr>
+          <tr>
+            <td style="padding:12px 16px; font-weight:600;">{{ t.ft_r9_label }}</td>
+            <td style="padding:12px 16px; text-align:center;">{{ t.ft_r9_18wd }}</td>
+            <td style="padding:12px 16px; text-align:center;">{{ t.ft_r9_18we }}</td>
+            <td style="padding:12px 16px; text-align:center;">{{ t.ft_r9_8w }}</td>
+            <td style="padding:12px 16px; text-align:center;">{{ t.ft_r9_4w }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <p style="text-align:center; color:#666; font-size:0.9rem;">{{ t.table_note }}</p>
+  </div>
+</section>
+
+<!-- SECTION 2: SEASON GUIDE -->
+<section class="program-schedule" id="seasons">
+  <div class="container">
+    <h2 class="section-title">{{ t.s2_title }}</h2>
+    <p class="section-subtitle">{{ t.s2_subtitle }}</p>
+    <img src="/assets/images/copenhagen/four-seasons.jpg" alt="{{ t.s2_img_alt }}" style="width:100%; max-width:800px; border-radius:8px; aspect-ratio:16/9; object-fit:cover; background:#f5f3f0; margin: 0 auto 32px; display:block;" loading="lazy">
+  </div>
+</section>
+
+<section class="program-overview">
+  <div class="container">
+    <div class="schedule-options">
+      <div class="schedule-card">
+        <h3>{{ t.spring_title }}</h3>
+        <p style="font-size:0.85rem; color:#666; margin-bottom:12px;">{{ t.spring_meta }}</p>
+        <ul>
+          <li>{{ t.spring_b1 | safe }}</li>
+          <li>{{ t.spring_b2 | safe }}</li>
+          <li>{{ t.spring_b3 | safe }}</li>
+          <li>{{ t.spring_b4 | safe }}</li>
+          <li>{{ t.spring_b5 | safe }}</li>
+        </ul>
+      </div>
+
+      <div class="schedule-card">
+        <h3>{{ t.summer_title }}</h3>
+        <p style="font-size:0.85rem; color:#666; margin-bottom:12px;">{{ t.summer_meta }}</p>
+        <ul>
+          <li>{{ t.summer_b1 | safe }}</li>
+          <li>{{ t.summer_b2 | safe }}</li>
+          <li>{{ t.summer_b3 | safe }}</li>
+          <li>{{ t.summer_b4 | safe }}</li>
+          <li>{{ t.summer_b5 | safe }}</li>
+          <li>{{ t.summer_b6 | safe }}</li>
+        </ul>
+      </div>
+
+      <div class="schedule-card">
+        <h3>{{ t.autumn_title }}</h3>
+        <p style="font-size:0.85rem; color:#666; margin-bottom:12px;">{{ t.autumn_meta }}</p>
+        <ul>
+          <li>{{ t.autumn_b1 | safe }}</li>
+          <li>{{ t.autumn_b2 | safe }}</li>
+          <li>{{ t.autumn_b3 | safe }}</li>
+          <li>{{ t.autumn_b4 | safe }}</li>
+          <li>{{ t.autumn_b5 | safe }}</li>
+        </ul>
+      </div>
+
+      <div class="schedule-card">
+        <h3>{{ t.winter_title }}</h3>
+        <p style="font-size:0.85rem; color:#666; margin-bottom:12px;">{{ t.winter_meta }}</p>
+        <ul>
+          <li>{{ t.winter_b1 | safe }}</li>
+          <li>{{ t.winter_b2 | safe }}</li>
+          <li>{{ t.winter_b3 | safe }}</li>
+          <li>{{ t.winter_b4 | safe }}</li>
+          <li>{{ t.winter_b5 | safe }}</li>
+          <li>{{ t.winter_b6 | safe }}</li>
+        </ul>
+      </div>
+    </div>
+
+    <div style="background:#f5f3f0; padding:24px; border-radius:8px; margin-top:24px;">
+      <h3 style="margin-top:0;">{{ t.season_rec_title }}</h3>
+      <p style="margin-bottom:0;">{{ t.season_rec_text }}</p>
+    </div>
+  </div>
+</section>
+
+<!-- SECTION 3: DESTINATION GUIDE -->
+<section class="program-schedule" id="destinations">
+  <div class="container">
+    <h2 class="section-title">{{ t.s3_title }}</h2>
+    <p class="section-subtitle">{{ t.s3_subtitle }}</p>
+  </div>
+</section>
+
+<!-- Bali -->
+<section class="program-overview">
+  <div class="container">
+    <h2 class="section-title">{{ t.bali_title }}</h2>
+    <p class="section-subtitle">{{ t.bali_subtitle }}</p>
+
+    <img src="/assets/images/destinations/bali-yoga.jpg" alt="{{ t.bali_img_alt }}" style="width:100%; max-width:800px; border-radius:8px; aspect-ratio:16/9; object-fit:cover; background:#f5f3f0; margin: 0 auto 32px; display:block;" loading="lazy">
+
+    <div class="schedule-options">
+      <div class="schedule-card" style="border-left: 3px solid #5a8f5a;">
+        <h3>{{ t.dest_strengths }}</h3>
+        <ul>
+          <li>{{ t.bali_s1 | safe }}</li>
+          <li>{{ t.bali_s2 | safe }}</li>
+          <li>{{ t.bali_s3 | safe }}</li>
+          <li>{{ t.bali_s4 | safe }}</li>
+          <li>{{ t.bali_s5 | safe }}</li>
+          <li>{{ t.bali_s6 | safe }}</li>
+        </ul>
+      </div>
+
+      <div class="schedule-card" style="border-left: 3px solid #c27a4a;">
+        <h3>{{ t.dest_weaknesses }}</h3>
+        <ul>
+          <li>{{ t.bali_w1 | safe }}</li>
+          <li>{{ t.bali_w2 | safe }}</li>
+          <li>{{ t.bali_w3 | safe }}</li>
+          <li>{{ t.bali_w4 | safe }}</li>
+          <li>{{ t.bali_w5 | safe }}</li>
+          <li>{{ t.bali_w6 | safe }}</li>
+          <li>{{ t.bali_w7 | safe }}</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- India -->
+<section class="program-schedule">
+  <div class="container">
+    <h2 class="section-title">{{ t.india_title }}</h2>
+    <p class="section-subtitle">{{ t.india_subtitle }}</p>
+
+    <img src="/assets/images/destinations/india-rishikesh.jpg" alt="{{ t.india_img_alt }}" style="width:100%; max-width:800px; border-radius:8px; aspect-ratio:16/9; object-fit:cover; background:#f5f3f0; margin: 0 auto 32px; display:block;" loading="lazy">
+
+    <div class="schedule-options">
+      <div class="schedule-card" style="border-left: 3px solid #5a8f5a;">
+        <h3>{{ t.dest_strengths }}</h3>
+        <ul>
+          <li>{{ t.india_s1 | safe }}</li>
+          <li>{{ t.india_s2 | safe }}</li>
+          <li>{{ t.india_s3 | safe }}</li>
+          <li>{{ t.india_s4 | safe }}</li>
+          <li>{{ t.india_s5 | safe }}</li>
+        </ul>
+      </div>
+
+      <div class="schedule-card" style="border-left: 3px solid #c27a4a;">
+        <h3>{{ t.dest_weaknesses }}</h3>
+        <ul>
+          <li>{{ t.india_w1 | safe }}</li>
+          <li>{{ t.india_w2 | safe }}</li>
+          <li>{{ t.india_w3 | safe }}</li>
+          <li>{{ t.india_w4 | safe }}</li>
+          <li>{{ t.india_w5 | safe }}</li>
+          <li>{{ t.india_w6 | safe }}</li>
+          <li>{{ t.india_w7 | safe }}</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Thailand -->
+<section class="program-overview">
+  <div class="container">
+    <h2 class="section-title">{{ t.thailand_title }}</h2>
+    <p class="section-subtitle">{{ t.thailand_subtitle }}</p>
+
+    <img src="/assets/images/destinations/thailand-yoga.jpg" alt="{{ t.thailand_img_alt }}" style="width:100%; max-width:800px; border-radius:8px; aspect-ratio:16/9; object-fit:cover; background:#f5f3f0; margin: 0 auto 32px; display:block;" loading="lazy">
+
+    <div class="schedule-options">
+      <div class="schedule-card" style="border-left: 3px solid #5a8f5a;">
+        <h3>{{ t.dest_strengths }}</h3>
+        <ul>
+          <li>{{ t.thailand_s1 | safe }}</li>
+          <li>{{ t.thailand_s2 | safe }}</li>
+          <li>{{ t.thailand_s3 | safe }}</li>
+          <li>{{ t.thailand_s4 | safe }}</li>
+          <li>{{ t.thailand_s5 | safe }}</li>
+        </ul>
+      </div>
+
+      <div class="schedule-card" style="border-left: 3px solid #c27a4a;">
+        <h3>{{ t.dest_weaknesses }}</h3>
+        <ul>
+          <li>{{ t.thailand_w1 | safe }}</li>
+          <li>{{ t.thailand_w2 | safe }}</li>
+          <li>{{ t.thailand_w3 | safe }}</li>
+          <li>{{ t.thailand_w4 | safe }}</li>
+          <li>{{ t.thailand_w5 | safe }}</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Costa Rica -->
+<section class="program-schedule">
+  <div class="container">
+    <h2 class="section-title">{{ t.costarica_title }}</h2>
+    <p class="section-subtitle">{{ t.costarica_subtitle }}</p>
+
+    <img src="/assets/images/destinations/costa-rica-yoga.jpg" alt="{{ t.costarica_img_alt }}" style="width:100%; max-width:800px; border-radius:8px; aspect-ratio:16/9; object-fit:cover; background:#f5f3f0; margin: 0 auto 32px; display:block;" loading="lazy">
+
+    <div class="schedule-options">
+      <div class="schedule-card" style="border-left: 3px solid #5a8f5a;">
+        <h3>{{ t.dest_strengths }}</h3>
+        <ul>
+          <li>{{ t.costarica_s1 | safe }}</li>
+          <li>{{ t.costarica_s2 | safe }}</li>
+          <li>{{ t.costarica_s3 | safe }}</li>
+          <li>{{ t.costarica_s4 | safe }}</li>
+        </ul>
+      </div>
+
+      <div class="schedule-card" style="border-left: 3px solid #c27a4a;">
+        <h3>{{ t.dest_weaknesses }}</h3>
+        <ul>
+          <li>{{ t.costarica_w1 | safe }}</li>
+          <li>{{ t.costarica_w2 | safe }}</li>
+          <li>{{ t.costarica_w3 | safe }}</li>
+          <li>{{ t.costarica_w4 | safe }}</li>
+          <li>{{ t.costarica_w5 | safe }}</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Portugal -->
+<section class="program-overview">
+  <div class="container">
+    <h2 class="section-title">{{ t.portugal_title }}</h2>
+    <p class="section-subtitle">{{ t.portugal_subtitle }}</p>
+
+    <img src="/assets/images/destinations/portugal-yoga.jpg" alt="{{ t.portugal_img_alt }}" style="width:100%; max-width:800px; border-radius:8px; aspect-ratio:16/9; object-fit:cover; background:#f5f3f0; margin: 0 auto 32px; display:block;" loading="lazy">
+
+    <div class="schedule-options">
+      <div class="schedule-card" style="border-left: 3px solid #5a8f5a;">
+        <h3>{{ t.dest_strengths }}</h3>
+        <ul>
+          <li>{{ t.portugal_s1 | safe }}</li>
+          <li>{{ t.portugal_s2 | safe }}</li>
+          <li>{{ t.portugal_s3 | safe }}</li>
+          <li>{{ t.portugal_s4 | safe }}</li>
+          <li>{{ t.portugal_s5 | safe }}</li>
+        </ul>
+      </div>
+
+      <div class="schedule-card" style="border-left: 3px solid #c27a4a;">
+        <h3>{{ t.dest_weaknesses }}</h3>
+        <ul>
+          <li>{{ t.portugal_w1 | safe }}</li>
+          <li>{{ t.portugal_w2 | safe }}</li>
+          <li>{{ t.portugal_w3 | safe }}</li>
+          <li>{{ t.portugal_w4 | safe }}</li>
+          <li>{{ t.portugal_w5 | safe }}</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Copenhagen -->
+<section class="program-schedule">
+  <div class="container">
+    <h2 class="section-title">{{ t.cph_title }}</h2>
+    <p class="section-subtitle">{{ t.cph_subtitle }}</p>
+
+    <img src="/assets/images/destinations/copenhagen-yoga.jpg" alt="{{ t.cph_img_alt }}" style="width:100%; max-width:800px; border-radius:8px; aspect-ratio:16/9; object-fit:cover; background:#f5f3f0; margin: 0 auto 32px; display:block;" loading="lazy">
+
+    <div class="schedule-options">
+      <div class="schedule-card" style="border-left: 3px solid #5a8f5a;">
+        <h3>{{ t.dest_strengths }}</h3>
+        <ul>
+          <li>{{ t.cph_s1 | safe }}</li>
+          <li>{{ t.cph_s2 | safe }}</li>
+          <li>{{ t.cph_s3 | safe }}</li>
+          <li>{{ t.cph_s4 | safe }}</li>
+          <li>{{ t.cph_s5 | safe }}</li>
+          <li>{{ t.cph_s6 | safe }}</li>
+          <li>{{ t.cph_s7 | safe }}</li>
+          <li>{{ t.cph_s8 | safe }}</li>
+          <li>{{ t.cph_s9 | safe }}</li>
+        </ul>
+      </div>
+
+      <div class="schedule-card" style="border-left: 3px solid #c27a4a;">
+        <h3>{{ t.dest_weaknesses }}</h3>
+        <ul>
+          <li>{{ t.cph_w1 | safe }}</li>
+          <li>{{ t.cph_w2 | safe }}</li>
+          <li>{{ t.cph_w3 | safe }}</li>
+          <li>{{ t.cph_w4 | safe }}</li>
+          <li>{{ t.cph_w5 | safe }}</li>
+          <li>{{ t.cph_w6 | safe }}</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Destination Comparison Table -->
+<section class="program-overview">
+  <div class="container">
+    <h2 class="section-title">{{ t.dest_table_title }}</h2>
+    <div style="overflow-x:auto; margin-bottom:32px;">
+      <table style="width:100%; border-collapse:collapse; min-width:900px; font-size:0.9rem;">
+        <thead>
+          <tr style="background:#2a2a2a; color:#fff;">
+            <th style="padding:10px 12px; text-align:left;">{{ t.dt_h_factor }}</th>
+            <th style="padding:10px 12px; text-align:center;">{{ t.dt_h_bali }}</th>
+            <th style="padding:10px 12px; text-align:center;">{{ t.dt_h_india }}</th>
+            <th style="padding:10px 12px; text-align:center;">{{ t.dt_h_thailand }}</th>
+            <th style="padding:10px 12px; text-align:center;">{{ t.dt_h_costarica }}</th>
+            <th style="padding:10px 12px; text-align:center;">{{ t.dt_h_portugal }}</th>
+            <th style="padding:10px 12px; text-align:center;">{{ t.dt_h_cph }}</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr style="border-bottom:1px solid #e0e0e0;">
+            <td style="padding:10px 12px; font-weight:600;">{{ t.dt_r1_label }}</td>
+            <td style="padding:10px 12px; text-align:center;">{{ t.dt_r1_bali }}</td>
+            <td style="padding:10px 12px; text-align:center;">{{ t.dt_r1_india }}</td>
+            <td style="padding:10px 12px; text-align:center;">{{ t.dt_r1_thailand }}</td>
+            <td style="padding:10px 12px; text-align:center;">{{ t.dt_r1_costarica }}</td>
+            <td style="padding:10px 12px; text-align:center;">{{ t.dt_r1_portugal }}</td>
+            <td style="padding:10px 12px; text-align:center;">{{ t.dt_r1_cph | safe }}</td>
+          </tr>
+          <tr style="border-bottom:1px solid #e0e0e0; background:#f9f9f9;">
+            <td style="padding:10px 12px; font-weight:600;">{{ t.dt_r2_label }}</td>
+            <td style="padding:10px 12px; text-align:center;">{{ t.dt_r2_bali }}</td>
+            <td style="padding:10px 12px; text-align:center;">{{ t.dt_r2_india }}</td>
+            <td style="padding:10px 12px; text-align:center;">{{ t.dt_r2_thailand }}</td>
+            <td style="padding:10px 12px; text-align:center;">{{ t.dt_r2_costarica }}</td>
+            <td style="padding:10px 12px; text-align:center;">{{ t.dt_r2_portugal }}</td>
+            <td style="padding:10px 12px; text-align:center;">{{ t.dt_r2_cph }}</td>
+          </tr>
+          <tr style="border-bottom:1px solid #e0e0e0;">
+            <td style="padding:10px 12px; font-weight:600;">{{ t.dt_r3_label }}</td>
+            <td style="padding:10px 12px; text-align:center;">{{ t.dt_r3_bali }}</td>
+            <td style="padding:10px 12px; text-align:center;">{{ t.dt_r3_india }}</td>
+            <td style="padding:10px 12px; text-align:center;">{{ t.dt_r3_thailand }}</td>
+            <td style="padding:10px 12px; text-align:center;">{{ t.dt_r3_costarica }}</td>
+            <td style="padding:10px 12px; text-align:center;">{{ t.dt_r3_portugal }}</td>
+            <td style="padding:10px 12px; text-align:center;">{{ t.dt_r3_cph }}</td>
+          </tr>
+          <tr style="border-bottom:1px solid #e0e0e0; background:#f9f9f9;">
+            <td style="padding:10px 12px; font-weight:600;">{{ t.dt_r4_label }}</td>
+            <td style="padding:10px 12px; text-align:center;">{{ t.dt_r4_bali }}</td>
+            <td style="padding:10px 12px; text-align:center;">{{ t.dt_r4_india }}</td>
+            <td style="padding:10px 12px; text-align:center;">{{ t.dt_r4_thailand }}</td>
+            <td style="padding:10px 12px; text-align:center;">{{ t.dt_r4_costarica }}</td>
+            <td style="padding:10px 12px; text-align:center;">{{ t.dt_r4_portugal }}</td>
+            <td style="padding:10px 12px; text-align:center;">{{ t.dt_r4_cph }}</td>
+          </tr>
+          <tr style="border-bottom:1px solid #e0e0e0;">
+            <td style="padding:10px 12px; font-weight:600;">{{ t.dt_r5_label }}</td>
+            <td style="padding:10px 12px; text-align:center;">{{ t.dt_r5_bali }}</td>
+            <td style="padding:10px 12px; text-align:center;">{{ t.dt_r5_india }}</td>
+            <td style="padding:10px 12px; text-align:center;">{{ t.dt_r5_thailand }}</td>
+            <td style="padding:10px 12px; text-align:center;">{{ t.dt_r5_costarica }}</td>
+            <td style="padding:10px 12px; text-align:center;">{{ t.dt_r5_portugal }}</td>
+            <td style="padding:10px 12px; text-align:center;">{{ t.dt_r5_cph }}</td>
+          </tr>
+          <tr style="border-bottom:1px solid #e0e0e0; background:#f9f9f9;">
+            <td style="padding:10px 12px; font-weight:600;">{{ t.dt_r6_label }}</td>
+            <td style="padding:10px 12px; text-align:center;">{{ t.dt_r6_bali }}</td>
+            <td style="padding:10px 12px; text-align:center;">{{ t.dt_r6_india }}</td>
+            <td style="padding:10px 12px; text-align:center;">{{ t.dt_r6_thailand }}</td>
+            <td style="padding:10px 12px; text-align:center;">{{ t.dt_r6_costarica }}</td>
+            <td style="padding:10px 12px; text-align:center;">{{ t.dt_r6_portugal }}</td>
+            <td style="padding:10px 12px; text-align:center;">{{ t.dt_r6_cph }}</td>
+          </tr>
+          <tr style="border-bottom:1px solid #e0e0e0;">
+            <td style="padding:10px 12px; font-weight:600;">{{ t.dt_r7_label }}</td>
+            <td style="padding:10px 12px; text-align:center;">{{ t.dt_r7_bali }}</td>
+            <td style="padding:10px 12px; text-align:center;">{{ t.dt_r7_india }}</td>
+            <td style="padding:10px 12px; text-align:center;">{{ t.dt_r7_thailand }}</td>
+            <td style="padding:10px 12px; text-align:center;">{{ t.dt_r7_costarica }}</td>
+            <td style="padding:10px 12px; text-align:center;">{{ t.dt_r7_portugal }}</td>
+            <td style="padding:10px 12px; text-align:center;">{{ t.dt_r7_cph }}</td>
+          </tr>
+          <tr style="border-bottom:1px solid #e0e0e0; background:#f9f9f9;">
+            <td style="padding:10px 12px; font-weight:600;">{{ t.dt_r8_label }}</td>
+            <td style="padding:10px 12px; text-align:center;">{{ t.dt_r8_bali }}</td>
+            <td style="padding:10px 12px; text-align:center;">{{ t.dt_r8_india }}</td>
+            <td style="padding:10px 12px; text-align:center;">{{ t.dt_r8_thailand }}</td>
+            <td style="padding:10px 12px; text-align:center;">{{ t.dt_r8_costarica }}</td>
+            <td style="padding:10px 12px; text-align:center;">{{ t.dt_r8_portugal }}</td>
+            <td style="padding:10px 12px; text-align:center;">{{ t.dt_r8_cph }}</td>
+          </tr>
+          <tr>
+            <td style="padding:10px 12px; font-weight:600;">{{ t.dt_r9_label }}</td>
+            <td style="padding:10px 12px; text-align:center;">{{ t.dt_r9_bali }}</td>
+            <td style="padding:10px 12px; text-align:center;">{{ t.dt_r9_india }}</td>
+            <td style="padding:10px 12px; text-align:center;">{{ t.dt_r9_thailand }}</td>
+            <td style="padding:10px 12px; text-align:center;">{{ t.dt_r9_costarica }}</td>
+            <td style="padding:10px 12px; text-align:center;">{{ t.dt_r9_portugal }}</td>
+            <td style="padding:10px 12px; text-align:center;">{{ t.dt_r9_cph }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- The Real Questions -->
+<section class="program-schedule">
+  <div class="container">
+    <h2 class="section-title">{{ t.retreat_title }}</h2>
+    <p class="section-subtitle">{{ t.retreat_subtitle }}</p>
+
+    <div class="schedule-options">
+      <div class="schedule-card">
+        <h3>{{ t.retreat_choose_title }}</h3>
+        <ul>
+          <li>{{ t.retreat_r1 }}</li>
+          <li>{{ t.retreat_r2 }}</li>
+          <li>{{ t.retreat_r3 }}</li>
+          <li>{{ t.retreat_r4 }}</li>
+          <li>{{ t.retreat_r5 }}</li>
+          <li>{{ t.retreat_r6 }}</li>
+        </ul>
+      </div>
+
+      <div class="schedule-card">
+        <h3>{{ t.home_choose_title }}</h3>
+        <ul>
+          <li>{{ t.home_r1 }}</li>
+          <li>{{ t.home_r2 }}</li>
+          <li>{{ t.home_r3 }}</li>
+          <li>{{ t.home_r4 }}</li>
+          <li>{{ t.home_r5 }}</li>
+          <li>{{ t.home_r6 }}</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SECTION 4: CHOOSING THE RIGHT ONE -->
+<section class="program-overview" id="choosing">
+  <div class="container">
+    <h2 class="section-title">{{ t.s4_title }}</h2>
+    <p class="section-subtitle">{{ t.s4_subtitle }}</p>
+
+    <div class="program-grid">
+      <div class="program-feature">
+        <div class="program-feature__icon">1</div>
+        <h3>{{ t.choose1_title }}</h3>
+        <p>{{ t.choose1_desc | safe }}</p>
+      </div>
+
+      <div class="program-feature">
+        <div class="program-feature__icon">2</div>
+        <h3>{{ t.choose2_title }}</h3>
+        <p>{{ t.choose2_desc | safe }}</p>
+      </div>
+
+      <div class="program-feature">
+        <div class="program-feature__icon">3</div>
+        <h3>{{ t.choose3_title }}</h3>
+        <p>{{ t.choose3_desc | safe }}</p>
+      </div>
+
+      <div class="program-feature">
+        <div class="program-feature__icon">4</div>
+        <h3>{{ t.choose4_title }}</h3>
+        <p>{{ t.choose4_desc | safe }}</p>
+      </div>
+
+      <div class="program-feature">
+        <div class="program-feature__icon">5</div>
+        <h3>{{ t.choose5_title }}</h3>
+        <p>{{ t.choose5_desc | safe }}</p>
+      </div>
+
+      <div class="program-feature">
+        <div class="program-feature__icon">6</div>
+        <h3>{{ t.choose6_title }}</h3>
+        <p>{{ t.choose6_desc | safe }}</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Key Insight -->
+<section class="program-schedule">
+  <div class="container">
+    <div style="background:#f5f3f0; padding:32px; border-radius:8px; max-width:800px; margin:0 auto;">
+      <h3 style="margin-top:0; text-align:center;">{{ t.insight_title }}</h3>
+      <p>{{ t.insight_p1 }}</p>
+      <p style="margin-bottom:0;">{{ t.insight_p2 }}</p>
+    </div>
+  </div>
+</section>
+
+<!-- FAQ -->
+<section class="program-faq">
+  <div class="container">
+    <h2 class="section-title">{{ t.faq_title }}</h2>
+
+    <div class="faq-list">
+      <details class="faq-item">
+        <summary>{{ t.faq1_q }}</summary>
+        <p>{{ t.faq1_a }}</p>
+      </details>
+      <details class="faq-item">
+        <summary>{{ t.faq2_q }}</summary>
+        <p>{{ t.faq2_a }}</p>
+      </details>
+      <details class="faq-item">
+        <summary>{{ t.faq3_q }}</summary>
+        <p>{{ t.faq3_a }}</p>
+      </details>
+      <details class="faq-item">
+        <summary>{{ t.faq4_q }}</summary>
+        <p>{{ t.faq4_a }}</p>
+      </details>
+      <details class="faq-item">
+        <summary>{{ t.faq5_q }}</summary>
+        <p>{{ t.faq5_a }}</p>
+      </details>
+      <details class="faq-item">
+        <summary>{{ t.faq6_q }}</summary>
+        <p>{{ t.faq6_a }}</p>
+      </details>
+      <details class="faq-item">
+        <summary>{{ t.faq7_q }}</summary>
+        <p>{{ t.faq7_a }}</p>
+      </details>
+      <details class="faq-item">
+        <summary>{{ t.faq8_q }}</summary>
+        <p>{{ t.faq8_a }}</p>
+      </details>
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+<section class="cta-section">
+  <div class="container">
+    <h2 class="cta-section__title">{{ t.cta_title }}</h2>
+    <p class="cta-section__text">{{ t.cta_text }}</p>
+    <div style="display:flex; gap:16px; justify-content:center; flex-wrap:wrap;">
+      <a href="{% if lang == 'en' %}/en/om-200hrs-yogalreruddannelser{% else %}/om-200hrs-yogalreruddannelser{% endif %}" class="btn btn--large btn--primary">{{ t.cta_primary }}</a>
+      <a href="{% if lang == 'en' %}/en/kontakt{% else %}/kontakt{% endif %}" class="btn btn--large btn--secondary">{{ t.cta_secondary }}</a>
+    </div>
+  </div>
+</section>

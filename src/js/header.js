@@ -13,15 +13,16 @@
   // LANGUAGE DETECTION & TRANSLATIONS
   // ============================================
 
-  const host = window.location.hostname.toLowerCase();
-  const isEN = host.indexOf("en.") === 0;
+  const path = window.location.pathname || "/";
+  const isEN = path.indexOf("/en/") === 0 || path === "/en";
   const lang = isEN ? "en" : "da";
 
-  const path = window.location.pathname || "/";
   const qs = window.location.search || "";
   const hash = window.location.hash || "";
-  const daURL = "https://www.yogabible.dk" + path + qs + hash;
-  const enURL = "https://en.yogabible.dk" + path + qs + hash;
+  // Build language-switch URLs: strip /en/ prefix for DA, add it for EN
+  const basePath = isEN ? path.replace(/^\/en(\/|$)/, "/") : path;
+  const daURL = basePath + qs + hash;
+  const enURL = "/en" + basePath + qs + hash;
 
   // Translation dictionary
   const dict = {
