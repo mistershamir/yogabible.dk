@@ -617,6 +617,7 @@
       promise = Promise.resolve(val);
     }
 
+    toast('Looking up user...');
     promise.then(function (uid) {
       var docId = uid + '_' + state.courseId;
       return db.collection('enrollments').doc(docId).set({
@@ -631,8 +632,12 @@
       input.value = '';
       loadEnrollments(state.courseId);
     }).catch(function (err) {
-      console.error(err);
-      toast(err.message || t('error_save'), true);
+      console.error('Enroll error:', err);
+      var msg = err.message || t('error_save');
+      if (msg.indexOf('permission') > -1 || msg.indexOf('Permission') > -1) {
+        msg = 'Permission denied — update Firestore rules to allow admin to read users collection';
+      }
+      toast(msg, true);
     });
   }
 
