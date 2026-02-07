@@ -91,5 +91,5 @@ Each blog should use rich, varied HTML. Available elements:
 - **JS:** `src/js/journal.js` — language switching, search, progress bar, share
 - **CSS:** `src/css/main.css` — all journal styles prefixed `yj-`
 - **CMS:** Decap CMS at `/admin/` with Netlify Identity
-- **i18n:** Hostname-based (www=DA, en=EN), per-post `data-yj-da`/`data-yj-en` toggle
+- **i18n:** Hostname-based (www=DA, en=EN), global flag switcher in header, journal uses `data-yj-da`/`data-yj-en` attributes toggled by hostname detection
 - **Deploy:** Netlify from `main` branch
