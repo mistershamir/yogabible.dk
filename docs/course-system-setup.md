@@ -66,34 +66,46 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
+    // Helper: check if user is admin
+    function isAdmin() {
+      return request.auth != null
+        && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
+    }
+
     // User profiles
     match /users/{userId} {
       allow read, write: if request.auth != null && request.auth.uid == userId;
     }
 
-    // Courses: top-level metadata readable by authenticated users
+    // Courses: readable by authenticated users, writable by admin
     match /courses/{courseId} {
       allow read: if request.auth != null;
+      allow write: if isAdmin();
     }
 
-    // Course modules: readable by enrolled users
+    // Course modules: readable by enrolled users, writable by admin
     match /courses/{courseId}/modules/{moduleId} {
       allow read: if request.auth != null
-        && exists(/databases/$(database)/documents/enrollments/$(request.auth.uid + '_' + courseId))
-        && get(/databases/$(database)/documents/enrollments/$(request.auth.uid + '_' + courseId)).data.status == 'active';
+        && (isAdmin()
+            || (exists(/databases/$(database)/documents/enrollments/$(request.auth.uid + '_' + courseId))
+                && get(/databases/$(database)/documents/enrollments/$(request.auth.uid + '_' + courseId)).data.status == 'active'));
+      allow write: if isAdmin();
     }
 
-    // Course chapters: readable by enrolled users
+    // Course chapters: readable by enrolled users, writable by admin
     match /courses/{courseId}/modules/{moduleId}/chapters/{chapterId} {
       allow read: if request.auth != null
-        && exists(/databases/$(database)/documents/enrollments/$(request.auth.uid + '_' + courseId))
-        && get(/databases/$(database)/documents/enrollments/$(request.auth.uid + '_' + courseId)).data.status == 'active';
+        && (isAdmin()
+            || (exists(/databases/$(database)/documents/enrollments/$(request.auth.uid + '_' + courseId))
+                && get(/databases/$(database)/documents/enrollments/$(request.auth.uid + '_' + courseId)).data.status == 'active'));
+      allow write: if isAdmin();
     }
 
-    // Enrollments: users can read their own
+    // Enrollments: users can read their own, admin can read/write all
     match /enrollments/{enrollmentId} {
       allow read: if request.auth != null
-        && resource.data.userId == request.auth.uid;
+        && (resource.data.userId == request.auth.uid || isAdmin());
+      allow write: if isAdmin();
     }
 
     // Course Progress: users can read/write their own
@@ -114,6 +126,11 @@ service cloud.firestore {
   }
 }
 ```
+
+**IMPORTANT:** You must set `role: "admin"` on your user document in the Firebase Console:
+1. Go to Firestore → `users` collection → find your document (your UID)
+2. Add a field: `role` (string) = `admin`
+3. Then re-publish the security rules above
 
 ## Composite Indexes Required
 
