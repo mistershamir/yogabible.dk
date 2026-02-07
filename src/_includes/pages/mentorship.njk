@@ -1,284 +1,1013 @@
-{% set t = i18n.mentorship[lang or "da"] %}
-
-<!-- Hero -->
-<section class="program-hero">
-  <div class="container">
-    <div class="program-hero__badge">{{ t.hero_badge }}</div>
-    <h1 class="program-hero__title">{{ t.hero_title }}</h1>
-    <p class="program-hero__subtitle">{{ t.hero_subtitle }}</p>
-
-    <div class="program-hero__meta">
-      <div class="program-hero__meta-item">
-        {{ t.hero_meta }}
-      </div>
-    </div>
-
-    <div class="program-hero__cta">
-      <a href="#yb-intake" class="btn btn--large btn--primary">{{ t.hero_cta }}</a>
-    </div>
-  </div>
-</section>
-
-<!-- Three Services -->
-<section class="program-overview">
-  <div class="container">
-    <h2 class="section-title">{{ t.services_title }}</h2>
-
-    <div class="program-grid">
-      <div class="program-feature">
-        <div class="program-feature__icon">🧘</div>
-        <h3>{{ t.svc1_title }}</h3>
-        <p>{{ t.svc1_desc }}</p>
-        <ul style="text-align:left; margin-top:12px; font-size:0.9rem;">
-          {% for item in t.svc1_items.split("|") %}
-          <li>{{ item }}</li>
-          {% endfor %}
-        </ul>
+<!-- ═══════════════════════════════════════════════════════════════
+     SECTION 1 — HERO
+     ═══════════════════════════════════════════════════════════════ -->
+<section class="yb-hero yb-hero--mentorship" aria-labelledby="yb-hero-title">
+  <div class="yb-hero__wrap">
+    <div class="yb-hero__card">
+      <!-- MEDIA (mobile first) -->
+      <div class="yb-hero__media" aria-label="Media">
+        <div class="yb-media" id="ybMediaCard">
+          <video class="yb-media__video" id="ybMentorVideo" playsinline muted loop preload="metadata">
+            <source id="ybMentorVideoSource" src="" type="video/mp4" />
+          </video>
+          <img class="yb-media__img" id="ybMentorImage" alt="Mentorship & Privatundervisning" loading="lazy" decoding="async"
+               src="https://www.yogabible.dk/s/mentor_03_private_class_inversions_course.jpg" />
+          <button class="yb-media__play" id="ybMentorPlay" type="button" aria-label="Afspil video">
+            <span class="yb-media__playIcon" aria-hidden="true"></span>
+          </button>
+        </div>
       </div>
 
-      <div class="program-feature">
-        <div class="program-feature__icon">🎓</div>
-        <h3>{{ t.svc2_title }}</h3>
-        <p>{{ t.svc2_desc }}</p>
-        <ul style="text-align:left; margin-top:12px; font-size:0.9rem;">
-          {% for item in t.svc2_items.split("|") %}
-          <li>{{ item }}</li>
-          {% endfor %}
-        </ul>
-      </div>
+      <!-- COPY -->
+      <div class="yb-hero__content">
+        <p class="yb-hero__eyebrow">Yoga Bible · 1:1</p>
+        <h1 id="yb-hero-title" class="yb-hero__title">Mentorship &amp; Privatundervisning</h1>
+        <p class="yb-hero__subtitle">En personlig rejse – dybere end yogamåtten</p>
+        <p class="yb-hero__lead">
+          Uanset om du vil bygge en stærk basis, gå dybere i din praksis eller udvikle dig som underviser, tilbyder Yoga Bible
+          personlige 1:1-forløb og mentorprogrammer – skræddersyet til dine mål. Vi arbejder med alignment, teknik og
+          hands-on justeringer (hvis du ønsker), samt cueing, stemme, selvtillid og klassepsykologi.
+        </p>
 
-      <div class="program-feature">
-        <div class="program-feature__icon">💼</div>
-        <h3>{{ t.svc3_title }}</h3>
-        <p>{{ t.svc3_desc }}</p>
-        <ul style="text-align:left; margin-top:12px; font-size:0.9rem;">
-          {% for item in t.svc3_items.split("|") %}
-          <li>{{ item }}</li>
-          {% endfor %}
-        </ul>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- Key Attributes -->
-<section class="program-schedule">
-  <div class="container">
-    <h2 class="section-title">{{ t.format_title }}</h2>
-
-    <div class="schedule-options">
-      <div class="schedule-card">
-        <h3>{{ t.format_studio_title }}</h3>
-        <ul>
-          {% for item in t.format_studio_items.split("|") %}
-          <li>{{ item }}</li>
-          {% endfor %}
-        </ul>
-      </div>
-      <div class="schedule-card">
-        <h3>{{ t.format_online_title }}</h3>
-        <ul>
-          {% for item in t.format_online_items.split("|") %}
-          <li>{{ item }}</li>
-          {% endfor %}
-        </ul>
-      </div>
-    </div>
-
-    <div class="schedule-cta" style="margin-top:32px; text-align:center;">
-      <p style="margin-bottom:16px;">{{ t.format_note }}</p>
-    </div>
-  </div>
-</section>
-
-<!-- Intake Form -->
-<section class="program-investment" id="yb-intake">
-  <div class="container">
-    <h2 class="section-title">{{ t.intake_title }}</h2>
-    <p class="section-subtitle">{{ t.intake_subtitle }}</p>
-
-    <div class="investment-box" style="max-width:640px; margin:0 auto;">
-      <form id="ybIntakeForm" novalidate
-        data-msg-error="{{ t.intake_error_required }}"
-        data-msg-sending="{{ t.intake_js_sending }}"
-        data-msg-submit="{{ t.intake_submit }}">
-        <input class="yb-modal-u__hp" type="text" name="website" tabindex="-1" autocomplete="off" aria-hidden="true" style="position:absolute;left:-9999px">
-        <input type="hidden" name="sourceUrl" id="ybIntakeSource">
-        <input type="hidden" name="pageTitle" id="ybIntakeTitle">
-
-        <div class="yb-modal-u__grid">
-          <label class="yb-modal-u__field">
-            <span>{{ t.intake_firstname }}</span>
-            <input type="text" name="firstName" required autocomplete="given-name">
-          </label>
-          <label class="yb-modal-u__field">
-            <span>{{ t.intake_lastname }}</span>
-            <input type="text" name="lastName" required autocomplete="family-name">
-          </label>
-          <label class="yb-modal-u__field">
-            <span>{{ t.intake_phone }}</span>
-            <input type="tel" name="phone" required autocomplete="tel">
-          </label>
-          <label class="yb-modal-u__field">
-            <span>{{ t.intake_email }}</span>
-            <input type="email" name="email" required autocomplete="email">
-          </label>
+        <div class="yb-hero__chips" role="tablist" aria-label="Vælg fokusområde">
+          <button class="yb-chip yb-chip--active" type="button" role="tab" aria-selected="true" data-topic="practice">Praksis</button>
+          <button class="yb-chip" type="button" role="tab" aria-selected="false" data-topic="teaching">Undervisning</button>
+          <button class="yb-chip" type="button" role="tab" aria-selected="false" data-topic="business">Yoga Business</button>
         </div>
 
-        <label class="yb-modal-u__field">
-          <span>{{ t.intake_service }}</span>
-          <select name="service" id="ybIntakeService" required>
-            <option value="" disabled selected>{{ t.intake_service_placeholder }}</option>
-            <option value="Personlig praksis">{{ t.intake_service_practice }}</option>
-            <option value="Undervisning">{{ t.intake_service_teaching }}</option>
-            <option value="Yoga Business">{{ t.intake_service_business }}</option>
-            <option value="Ikke sikker endnu">{{ t.intake_service_unsure }}</option>
-          </select>
-        </label>
-
-        <div id="ybIntakeSubs" style="margin-top:12px;" hidden>
-          <p style="margin-bottom:8px; font-weight:600;">{{ t.intake_focus_label }}</p>
-          <div id="ybIntakeSubList" class="yb-apply-radio-group"></div>
+        <div class="yb-hero__focus" aria-live="polite">
+          <p class="yb-hero__focusTitle" id="ybFocusTitle">Typiske fokusområder · Praksis</p>
+          <ul class="yb-hero__focusList" id="ybFocusList">
+            <li><strong>Basis &amp; alignment</strong> — stabil praksis, korrekt teknik</li>
+            <li><strong>Dybere stillinger</strong> — inversions, backbends, splits (sikkert)</li>
+            <li><strong>Hands-on</strong> — præcise justeringer og bedre "følelse" i stillinger</li>
+            <li><strong>Mobilitet</strong> — skuldre, hofter og ryg for mere frihed</li>
+          </ul>
         </div>
 
-        <label class="yb-modal-u__field" style="margin-top:16px;">
-          <span>{{ t.intake_message_label }}</span>
-          <textarea name="message" rows="3" placeholder="{{ t.intake_message_placeholder }}"></textarea>
-        </label>
+        <div class="yb-hero__micro">
+          <span class="yb-dot" aria-hidden="true"></span>
+          <span>Kan tilpasses: begyndere, øvede, undervisere og iværksættere</span>
+        </div>
 
-        <p id="ybIntakeError" class="yb-modal-u__error" hidden></p>
-        <button id="ybIntakeSubmit" class="yb-btn yb-btn--cta" type="submit">{{ t.intake_submit }}</button>
-      </form>
-
-      <div id="ybIntakeSuccess" class="yb-modal-u__success" hidden role="status" aria-live="polite">
-        <div class="yb-modal-u__success-icon">&#10003;</div>
-        <h3>{{ t.intake_success_title }}</h3>
-        <p>{{ t.intake_success_p1 }}</p>
-        <p>{{ t.intake_success_p2 | safe }}</p>
+        <div class="yb-hero__cta">
+          <a class="yb-btn yb-btn--primary" href="#yb-intake">Book en samtale</a>
+        </div>
       </div>
     </div>
   </div>
-</section>
-
-<!-- FAQ -->
-<section class="program-faq">
-  <div class="container">
-    <h2 class="section-title">{{ t.faq_title }}</h2>
-
-    <div class="faq-list">
-      <details class="faq-item">
-        <summary>{{ t.faq1_q }}</summary>
-        <p>{{ t.faq1_a }}</p>
-      </details>
-
-      <details class="faq-item">
-        <summary>{{ t.faq2_q }}</summary>
-        <p>{{ t.faq2_a }}</p>
-      </details>
-
-      <details class="faq-item">
-        <summary>{{ t.faq3_q }}</summary>
-        <p>{{ t.faq3_a }}</p>
-      </details>
-
-      <details class="faq-item">
-        <summary>{{ t.faq4_q }}</summary>
-        <p>{{ t.faq4_a }}</p>
-      </details>
-
-      <details class="faq-item">
-        <summary>{{ t.faq5_q }}</summary>
-        <p>{{ t.faq5_a }}</p>
-      </details>
-    </div>
-  </div>
-</section>
-
-<!-- CTA -->
-<section class="cta-section">
-  <div class="container">
-    <h2 class="cta-section__title">{{ t.cta_title }}</h2>
-    <p class="cta-section__text">{{ t.cta_text }}</p>
-    <a href="#yb-intake" class="btn btn--large btn--primary">{{ t.cta_btn }}</a>
-  </div>
-</section>
-
-<script>
-(function() {
-  'use strict';
-  var FORM_URL = 'https://script.google.com/macros/s/AKfycbyhs4bfPcvcqaJRTmAlPTFf_uIOkFatZviKKO20nckBfGi78JqkNzy4FNpWztl7nQsSAA/exec';
-
-  var SUBS = {
-    'Personlig praksis': ['Basis & alignment', 'Dybere stillinger (inversions / backbends / splits)', 'Mobilitet (skuldre / hofter / ryg)', 'Hands-on justeringer (valgfrit)', 'Åndedræt & fokus', 'Andet'],
-    'Undervisning': ['Cueing & sprog', 'Stemme & presence', 'Selvtillid & læreridentitet', 'Sekvensering & klasseflow', 'Hands-on (etik & sikkerhed)', 'Klassepsykologi & energi', 'At blive mere efterspurgt', 'Andet'],
-    'Yoga Business': ['Find job (CV / auditions)', 'Start studio / forretning', 'Lokation & lejekontrakt', 'Pris & pakker', 'Staff & drift', 'Booking-systemer', 'Marketing & strategi', 'SoMe / reels', 'YouTube / online kurser', 'Merch / brand', 'Tech / workflow', 'Andet'],
-    'Ikke sikker endnu': ['Jeg er ikke sikker endnu (vi afklarer sammen)']
-  };
-
-  var form = document.getElementById('ybIntakeForm');
-  var serviceSelect = document.getElementById('ybIntakeService');
-  var subsWrap = document.getElementById('ybIntakeSubs');
-  var subList = document.getElementById('ybIntakeSubList');
-  var errBox = document.getElementById('ybIntakeError');
-  var successBox = document.getElementById('ybIntakeSuccess');
-  var submitBtn = document.getElementById('ybIntakeSubmit');
-  var srcField = document.getElementById('ybIntakeSource');
-  var titleField = document.getElementById('ybIntakeTitle');
-
-  if (!form) return;
-
-  var MSG_ERROR = form.getAttribute('data-msg-error') || 'Udfyld venligst alle påkrævede felter.';
-  var MSG_SENDING = form.getAttribute('data-msg-sending') || 'Sender\u2026';
-  var MSG_SUBMIT = form.getAttribute('data-msg-submit') || 'Send forespørgsel';
-
-  if (srcField) srcField.value = window.location.href;
-  if (titleField) titleField.value = document.title;
-
-  serviceSelect.addEventListener('change', function() {
-    var items = SUBS[this.value];
-    if (!items) { subsWrap.hidden = true; return; }
-    subList.innerHTML = '';
-    items.forEach(function(item) {
-      var label = document.createElement('label');
-      label.className = 'yb-apply-checkbox';
-      label.innerHTML = '<input type="checkbox" name="subcategory" value="' + item + '"><span>' + item + '</span>';
-      subList.appendChild(label);
-    });
-    subsWrap.hidden = false;
-  });
-
-  form.addEventListener('submit', function(e) {
-    e.preventDefault();
-    if (errBox) errBox.hidden = true;
-
-    var hp = form.querySelector('[name="website"]');
-    if (hp && hp.value) return;
-
-    if (!form.checkValidity()) {
-      errBox.textContent = MSG_ERROR;
-      errBox.hidden = false;
-      return;
+  <style>
+    .yb-hero, .yb-hero * { box-sizing: border-box; }
+    .yb-hero {
+      font-family: 'Abacaxi', "Helvetica Neue", Helvetica, Arial, system-ui, sans-serif;
+      background: #FCFBF9; padding: clamp(20px, 4.5vw, 64px) 0;
+      position: relative; overflow: hidden; overflow-x: clip;
+      --ybAccent: #f75c03; --ybAccentRgb: 247, 92, 3;
     }
+    .yb-hero::before, .yb-hero::after {
+      content: ""; position: absolute; border-radius: 999px;
+      filter: blur(32px); opacity: 0.18; pointer-events: none; transform: translateZ(0);
+    }
+    .yb-hero::before { width: 520px; height: 520px; right: -240px; top: -280px; background: rgba(var(--ybAccentRgb), 0.55); }
+    .yb-hero::after { width: 420px; height: 420px; left: -260px; bottom: -280px; background: rgba(26, 26, 26, 0.10); }
+    .yb-hero__wrap { max-width: 1120px; margin: 0 auto; padding: 0 16px; }
+    @media (min-width: 1024px) { .yb-hero__wrap { padding: 0 24px; } }
+    .yb-hero__card {
+      width: 100%; margin: 0 auto; background: rgba(255,255,255,0.72);
+      border: 1px solid #EBE7E3; border-radius: 20px;
+      box-shadow: 0 18px 60px rgba(0,0,0,0.10);
+      backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+      overflow: hidden; display: grid; grid-template-columns: 0.92fr 1.08fr; align-items: stretch;
+    }
+    .yb-hero__media { padding: clamp(14px, 2.2vw, 22px); display: flex; align-items: stretch; justify-content: center; min-width: 0; }
+    .yb-media {
+      width: 100%; height: 100%; border-radius: 16px; border: 1px solid #EBE7E3;
+      background: #fff; overflow: hidden; position: relative; min-height: 520px;
+    }
+    .yb-media__video, .yb-media__img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; display: block; }
+    .yb-media__video { display: none; }
+    .yb-media__play {
+      position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%);
+      width: 64px; height: 64px; border-radius: 999px; border: 1px solid #EBE7E3;
+      background: rgba(255,255,255,0.80); box-shadow: 0 18px 60px rgba(0,0,0,0.10);
+      backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+      display: grid; place-items: center; cursor: pointer;
+      opacity: 0; pointer-events: none; transition: opacity 180ms ease, transform 180ms ease;
+    }
+    .yb-media__playIcon { width: 0; height: 0; border-left: 14px solid var(--ybAccent); border-top: 10px solid transparent; border-bottom: 10px solid transparent; margin-left: 3px; }
+    .yb-media.has-video .yb-media__play { opacity: 1; pointer-events: auto; }
+    .yb-media.is-playing .yb-media__play { opacity: 0; pointer-events: none; transform: translate(-50%, -50%) scale(0.98); }
+    .yb-media.has-video:hover .yb-media__play { transform: translate(-50%, -50%) scale(1.02); }
+    .yb-media__play:focus-visible { outline: none; box-shadow: 0 0 0 4px rgba(var(--ybAccentRgb), 0.22), 0 18px 60px rgba(0,0,0,0.10); }
+    .yb-hero__content { padding: clamp(18px, 2.6vw, 30px); min-width: 0; }
+    .yb-hero__eyebrow { margin: 0 0 10px 0; color: #6B6B6B; font-size: 13px; letter-spacing: 0.12em; text-transform: uppercase; }
+    .yb-hero__title { margin: 0 0 10px 0; color: #1A1A1A; font-size: clamp(28px, 4vw, 48px); line-height: 1.08; font-weight: 750; letter-spacing: -0.02em; overflow-wrap: anywhere; word-break: break-word; hyphens: auto; }
+    .yb-hero__subtitle { margin: 0 0 14px 0; color: #222; font-size: clamp(16px, 1.6vw, 20px); line-height: 1.45; font-weight: 500; overflow-wrap: anywhere; }
+    .yb-hero__lead { margin: 0 0 18px 0; color: #333; font-size: 16px; line-height: 1.65; max-width: 66ch; overflow-wrap: anywhere; }
+    .yb-hero__chips { display: flex; flex-wrap: wrap; gap: 10px; margin: 0 0 14px 0; }
+    .yb-chip { appearance: none; border: 1px solid var(--ybAccent); color: var(--ybAccent); background: #fff; padding: 9px 14px; border-radius: 999px; font-size: 13px; font-family: inherit; line-height: 1; cursor: pointer; transition: transform 160ms ease, background 160ms ease, color 160ms ease, box-shadow 160ms ease; user-select: none; max-width: 100%; }
+    .yb-chip:hover { transform: translateY(-1px); box-shadow: 0 10px 24px rgba(0,0,0,0.08); }
+    .yb-chip:focus-visible { outline: none; box-shadow: 0 0 0 4px rgba(var(--ybAccentRgb), 0.22); }
+    .yb-chip--active { background: var(--ybAccent); color: #fff; border-color: var(--ybAccent); box-shadow: 0 12px 30px rgba(0,0,0,0.12); }
+    .yb-hero__micro { display: flex; align-items: center; gap: 10px; margin: 14px 0; color: #6B6B6B; font-size: 14px; line-height: 1.5; }
+    .yb-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--ybAccent); box-shadow: 0 0 0 6px rgba(var(--ybAccentRgb), 0.12); flex: 0 0 auto; }
+    .yb-hero__cta { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; margin: 0; }
+    .yb-btn { display: inline-flex; align-items: center; justify-content: center; padding: 12px 18px; border-radius: 999px; font-weight: 650; font-size: 14px; font-family: inherit; line-height: 1; text-decoration: none; transition: transform 160ms ease, box-shadow 160ms ease, background 160ms ease, filter 160ms ease; outline: none; min-width: 170px; max-width: 100%; }
+    .yb-btn:focus-visible { box-shadow: 0 0 0 4px rgba(var(--ybAccentRgb), 0.22); }
+    .yb-btn--primary { background: var(--ybAccent); color: #fff; border: 1px solid var(--ybAccent); box-shadow: 0 12px 30px rgba(0,0,0,0.12); }
+    .yb-btn--primary:hover { filter: brightness(0.98); transform: translateY(-1px); box-shadow: 0 16px 40px rgba(0,0,0,0.14); }
+    .yb-hero__focus { border-top: 1px solid #EBE7E3; padding-top: 14px; margin-top: 10px; margin-bottom: 10px; }
+    .yb-hero__focusTitle { margin: 0 0 10px 0; color: #1A1A1A; font-weight: 700; letter-spacing: -0.01em; font-size: 15px; overflow-wrap: anywhere; }
+    .yb-hero__focusList { margin: 0; padding: 0; list-style: none; display: grid; grid-template-columns: 1fr 1fr; gap: 10px 18px; color: #333; font-size: 14px; line-height: 1.55; min-width: 0; }
+    .yb-hero__focusList li { position: relative; padding-left: 14px; min-width: 0; }
+    .yb-hero__focusList li::before { content: ""; position: absolute; left: 0; top: 0.65em; width: 6px; height: 6px; border-radius: 50%; background: var(--ybAccent); opacity: 0.9; transform: translateY(-50%); }
+    .yb-hero__focusList strong { color: #1A1A1A; font-weight: 700; }
+    .yb-fade { opacity: 0; transform: translateY(2px); transition: opacity 180ms ease, transform 180ms ease; }
+    .yb-fade.is-in { opacity: 1; transform: translateY(0); }
+    @media (max-width: 980px) {
+      .yb-hero__card { grid-template-columns: 1fr; }
+      .yb-hero__media { padding: 14px 14px 0 14px; }
+      .yb-media { height: auto; min-height: 0; aspect-ratio: 4 / 5; max-height: 420px; }
+      .yb-hero__content { padding: 14px; }
+      .yb-hero__focusList { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 640px) { .yb-btn { width: 100%; min-width: 0; } }
+  </style>
+  <script>
+  (function () {
+    var mediaCard = document.getElementById("ybMediaCard");
+    var video = document.getElementById("ybMentorVideo");
+    var sourceEl = document.getElementById("ybMentorVideoSource");
+    var img = document.getElementById("ybMentorImage");
+    var playBtn = document.getElementById("ybMentorPlay");
+    function getVideoSrc() {
+      var s = sourceEl && sourceEl.getAttribute("src") ? sourceEl.getAttribute("src").trim() : "";
+      var direct = (video.getAttribute("src") || "").trim();
+      return s || direct;
+    }
+    function showVideo() {
+      if (!mediaCard || !video || !img) return;
+      mediaCard.classList.add("has-video"); img.style.display = "none"; video.style.display = "block";
+      var p = video.play();
+      if (p && typeof p.then === "function") { p.then(function () { mediaCard.classList.add("is-playing"); }).catch(function () { mediaCard.classList.remove("is-playing"); }); }
+    }
+    function showImage() {
+      if (!mediaCard || !video || !img) return;
+      mediaCard.classList.remove("has-video"); mediaCard.classList.remove("is-playing");
+      try { video.pause(); } catch(e){}
+      video.style.display = "none"; img.style.display = "block";
+    }
+    function refreshMedia() { if (getVideoSrc()) showVideo(); else showImage(); }
+    if (playBtn && video) {
+      playBtn.addEventListener("click", function () {
+        if (!getVideoSrc()) return;
+        var p = video.play();
+        if (p && typeof p.then === "function") { p.then(function () { mediaCard.classList.add("is-playing"); }).catch(function () { mediaCard.classList.remove("is-playing"); }); }
+      });
+      video.addEventListener("pause", function () { mediaCard.classList.remove("is-playing"); });
+      video.addEventListener("play", function () { mediaCard.classList.add("is-playing"); });
+      video.addEventListener("error", showImage);
+      video.addEventListener("stalled", showImage);
+    }
+    if (sourceEl && window.MutationObserver) {
+      var obs = new MutationObserver(refreshMedia);
+      obs.observe(sourceEl, { attributes: true, attributeFilter: ["src"] });
+    }
+    refreshMedia();
 
-    submitBtn.disabled = true;
-    submitBtn.textContent = MSG_SENDING;
+    // Chips: update focus list
+    var chips = Array.prototype.slice.call(document.querySelectorAll(".yb-chip[data-topic]"));
+    var focusTitle = document.getElementById("ybFocusTitle");
+    var focusList = document.getElementById("ybFocusList");
+    var topics = {
+      practice: { title: "Typiske fokusområder · Praksis", items: [
+        "<strong>Basis &amp; alignment</strong> — stabil praksis, korrekt teknik",
+        "<strong>Dybere stillinger</strong> — inversions, backbends, splits (sikkert)",
+        "<strong>Hands-on</strong> — præcise justeringer og bedre \u201Cf\u00F8lelse\u201D i stillinger",
+        "<strong>Mobilitet</strong> — skuldre, hofter og ryg for mere frihed"
+      ]},
+      teaching: { title: "Typiske fokusområder · Undervisning", items: [
+        "<strong>Stemme &amp; presence</strong> — ro, autoritet og timing",
+        "<strong>Cueing &amp; struktur</strong> — tydelige cues, tempo og klasseflow",
+        "<strong>Hands-on &amp; sikkerhed</strong> — justeringer, grænser og etik",
+        "<strong>Klassepsykologi</strong> — energi, tryghed og at blive en \u201Cgo-to\u201D lærer"
+      ]},
+      business: { title: "Typiske fokusområder · Yoga Business", items: [
+        "<strong>Find job</strong> — CV, auditions, studio match og positionering",
+        "<strong>Start din egen forretning</strong> — koncept, pricing, tilbud og drift",
+        "<strong>Studio &amp; location</strong> — leasing, kontrakter, setup og staff",
+        "<strong>Marketing &amp; content</strong> — SoMe, reels, YouTube, online courses &amp; merch"
+      ]}
+    };
+    function setActiveChip(activeTopic) {
+      chips.forEach(function (btn) {
+        var isActive = btn.getAttribute("data-topic") === activeTopic;
+        btn.classList.toggle("yb-chip--active", isActive);
+        btn.setAttribute("aria-selected", isActive ? "true" : "false");
+      });
+    }
+    function renderTopic(topicKey) {
+      var data = topics[topicKey]; if (!data || !focusTitle || !focusList) return;
+      focusTitle.classList.add("yb-fade"); focusList.classList.add("yb-fade");
+      requestAnimationFrame(function () {
+        focusTitle.textContent = data.title;
+        focusList.innerHTML = data.items.map(function (html) { return "<li>" + html + "</li>"; }).join("");
+        setActiveChip(topicKey);
+        requestAnimationFrame(function () {
+          focusTitle.classList.add("is-in"); focusList.classList.add("is-in");
+          setTimeout(function () { focusTitle.classList.remove("yb-fade", "is-in"); focusList.classList.remove("yb-fade", "is-in"); }, 220);
+        });
+      });
+    }
+    chips.forEach(function (btn) { btn.addEventListener("click", function () { renderTopic(btn.getAttribute("data-topic")); }); });
+  })();
+  </script>
+</section>
 
-    var data = new FormData(form);
-    data.append('action', 'mentorship-intake');
-    data.append('submittedAt', new Date().toISOString());
-    data.append('userAgent', navigator.userAgent);
+<!-- ═══════════════════════════════════════════════════════════════
+     SECTION 2 — FOR DIN PRAKSIS
+     ═══════════════════════════════════════════════════════════════ -->
+<section class="yb-practice" aria-labelledby="yb-practice-title">
+  <div class="yb-practice__wrap">
+    <div class="yb-practice__grid">
+      <!-- LEFT: Media -->
+      <div class="yb-practice__mediaCol" aria-label="Billede eller video">
+        <div class="yb-practice__media" id="ybPracticeMedia">
+          <video class="yb-practice__video" id="ybPracticeVideo" playsinline muted loop preload="metadata">
+            <source id="ybPracticeVideoSource" src="" type="video/mp4" />
+          </video>
+          <img class="yb-practice__img" id="ybPracticeImage" alt="Privatundervisning" loading="lazy" decoding="async"
+               src="https://www.yogabible.dk/s/mentor_03_private_class_inversions_course.jpg" />
+          <button class="yb-practice__play" id="ybPracticePlay" type="button" aria-label="Afspil video">
+            <span class="yb-practice__playIcon" aria-hidden="true"></span>
+          </button>
+          <div class="yb-practice__badge" aria-hidden="true">
+            <span class="yb-practice__badgeKicker">1:1</span>
+            <span class="yb-practice__badgeTitle">Praksis</span>
+          </div>
+        </div>
+        <div class="yb-practice__mini">
+          <div class="yb-practice__miniItem">
+            <p class="yb-practice__miniTitle">Fokus</p>
+            <p class="yb-practice__miniText">Basis · Alignment · Dybere stillinger</p>
+          </div>
+          <div class="yb-practice__miniItem">
+            <p class="yb-practice__miniTitle">Format</p>
+            <p class="yb-practice__miniText">Studio eller online</p>
+          </div>
+          <div class="yb-practice__miniItem">
+            <p class="yb-practice__miniTitle">Tempo</p>
+            <p class="yb-practice__miniText">Trygt, tydeligt, trin-for-trin</p>
+          </div>
+        </div>
+      </div>
 
-    var subs = [];
-    form.querySelectorAll('input[name="subcategory"]:checked').forEach(function(c) { subs.push(c.value); });
-    data.append('subcategories', subs.join(', '));
+      <!-- RIGHT: Content + FAQ -->
+      <div class="yb-practice__content">
+        <div class="yb-practice__head">
+          <p class="yb-practice__eyebrow">Yoga Bible · Privatundervisning</p>
+          <h2 id="yb-practice-title" class="yb-practice__title">For din praksis</h2>
+          <p class="yb-practice__sub">Byg en stærk base, få bedre alignment og gå dybere i de stillinger, du drømmer om — på en sikker og effektiv måde.</p>
+        </div>
 
-    fetch(FORM_URL, { method: 'POST', body: data, mode: 'no-cors' })
-    .finally(function() {
-      submitBtn.disabled = false;
-      submitBtn.textContent = MSG_SUBMIT;
-      form.hidden = true;
-      successBox.hidden = false;
-    });
+        <div class="yb-practice__selector" role="tablist" aria-label="Vælg fokus">
+          <button class="yb-practiceChip is-active" type="button" role="tab" aria-selected="true" data-p="foundation">Basis &amp; alignment</button>
+          <button class="yb-practiceChip" type="button" role="tab" aria-selected="false" data-p="deep">Dybere stillinger</button>
+          <button class="yb-practiceChip" type="button" role="tab" aria-selected="false" data-p="mobility">Mobilitet &amp; styrke</button>
+          <button class="yb-practiceChip" type="button" role="tab" aria-selected="false" data-p="recovery">Skader &amp; tilbagevenden</button>
+        </div>
+
+        <div class="yb-practice__panel" aria-live="polite">
+          <div class="yb-practice__panelTop">
+            <h3 class="yb-practice__panelTitle" id="ybPracticePanelTitle">Hvad vi arbejder med · Basis &amp; alignment</h3>
+            <p class="yb-practice__panelNote" id="ybPracticePanelNote">Perfekt til dig, der vil blive stærk i det grundlæggende og få en praksis, der føles stabil og fri.</p>
+          </div>
+          <ul class="yb-practice__list" id="ybPracticeList">
+            <li><strong>Alignment-check</strong> — fødder, knæ, hofter, skuldre og nakke</li>
+            <li><strong>Teknik i klassikere</strong> — fremoverbøjninger, twists, balance og core</li>
+            <li><strong>Åndedræt &amp; tempo</strong> — ro, kontrol og bedre fokus</li>
+            <li><strong>Personlige cues</strong> — præcise rettelser du kan huske og bruge selv</li>
+          </ul>
+          <div class="yb-practice__ctaRow">
+            <a class="yb-btn yb-btn--primary" href="#yb-intake">Book en samtale</a>
+          </div>
+        </div>
+
+        <div class="yb-practice__faq">
+          <h3 class="yb-practice__faqTitle">FAQ</h3>
+          <div class="yb-pracAcc" data-prac-accordion>
+            <div class="yb-pracItem">
+              <button class="yb-pracBtn" type="button" aria-expanded="false" aria-controls="ybPrF1" id="ybPrFB1">Hvem passer privatundervisning til?<span class="yb-pracIcon" aria-hidden="true"></span></button>
+              <div class="yb-pracPanel" id="ybPrF1" role="region" aria-labelledby="ybPrFB1" hidden><p>Til både begyndere og øvede. For begyndere skaber vi en solid base. For øvede går vi målrettet efter dine mål — fx dybere stillinger, bedre kontrol eller mere frihed i kroppen.</p></div>
+            </div>
+            <div class="yb-pracItem">
+              <button class="yb-pracBtn" type="button" aria-expanded="false" aria-controls="ybPrF2" id="ybPrFB2">Kan vi arbejde med inversions, backbends eller splits?<span class="yb-pracIcon" aria-hidden="true"></span></button>
+              <div class="yb-pracPanel" id="ybPrF2" role="region" aria-labelledby="ybPrFB2" hidden><p>Ja — vi bygger det op sikkert og systematisk med teknik, mobilitet og styrke, så du får progression uden at presse kroppen.</p></div>
+            </div>
+            <div class="yb-pracItem">
+              <button class="yb-pracBtn" type="button" aria-expanded="false" aria-controls="ybPrF3" id="ybPrFB3">Er hands-on justeringer en del af det?<span class="yb-pracIcon" aria-hidden="true"></span></button>
+              <div class="yb-pracPanel" id="ybPrF3" role="region" aria-labelledby="ybPrFB3" hidden><p>Kun hvis du ønsker det. Alternativt bruger vi verbale cues, spejl, video og simple "self-adjustments". Tryghed og tydelige grænser først.</p></div>
+            </div>
+            <div class="yb-pracItem">
+              <button class="yb-pracBtn" type="button" aria-expanded="false" aria-controls="ybPrF4" id="ybPrFB4">Hvor mange sessioner giver bedst effekt?<span class="yb-pracIcon" aria-hidden="true"></span></button>
+              <div class="yb-pracPanel" id="ybPrF4" role="region" aria-labelledby="ybPrFB4" hidden><p>De fleste får stor værdi af <strong>3–5 sessioner</strong>. Det giver tid til at lære, integrere og mærke reelle ændringer.</p></div>
+            </div>
+            <div class="yb-pracItem">
+              <button class="yb-pracBtn" type="button" aria-expanded="false" aria-controls="ybPrF5" id="ybPrFB5">Kan det være online?<span class="yb-pracIcon" aria-hidden="true"></span></button>
+              <div class="yb-pracPanel" id="ybPrF5" role="region" aria-labelledby="ybPrFB5" hidden><p>Ja. Online fungerer godt til teknik, alignment, styrke/mobilitet-plan og tydelige cues. Hvis du vil have hands-on, anbefaler vi studio.</p></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <style>
+    .yb-practice, .yb-practice * { box-sizing: border-box; }
+    .yb-practice {
+      font-family: 'Abacaxi', "Helvetica Neue", Helvetica, Arial, system-ui, sans-serif;
+      background: #FCFBF9; padding: clamp(28px, 5vw, 76px) 0;
+      overflow-x: clip; position: relative;
+      --ybAccent: #f75c03; --ybAccentRgb: 247, 92, 3;
+    }
+    .yb-practice::before { content:""; position:absolute; left:-220px; top:40px; width:520px; height:520px; border-radius:999px; background:rgba(var(--ybAccentRgb),0.14); filter:blur(36px); pointer-events:none; }
+    .yb-practice::after { content:""; position:absolute; right:-260px; bottom:40px; width:520px; height:520px; border-radius:999px; background:rgba(26,26,26,0.08); filter:blur(40px); pointer-events:none; }
+    .yb-practice__wrap { max-width:1120px; margin:0 auto; padding:0 16px; }
+    @media (min-width:1024px) { .yb-practice__wrap { padding:0 24px; } }
+    .yb-practice__grid { display:grid; grid-template-columns:0.95fr 1.05fr; gap:clamp(16px,3vw,32px); align-items:start; }
+    .yb-practice__mediaCol { min-width:0; display:grid; gap:14px; }
+    .yb-practice__media { position:relative; border-radius:20px; border:1px solid #EBE7E3; overflow:hidden; background:#FFFFFF; box-shadow:0 18px 60px rgba(0,0,0,0.10); aspect-ratio:4/5; min-height:420px; }
+    .yb-practice__video, .yb-practice__img { position:absolute; inset:0; width:100%; height:100%; object-fit:cover; display:block; }
+    .yb-practice__video { display:none; }
+    .yb-practice__badge { position:absolute; left:14px; bottom:14px; display:grid; gap:2px; padding:10px 12px; border-radius:16px; border:1px solid #EBE7E3; background:rgba(255,255,255,0.82); backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px); box-shadow:0 18px 60px rgba(0,0,0,0.10); }
+    .yb-practice__badgeKicker { font-size:12px; letter-spacing:0.12em; text-transform:uppercase; color:#6B6B6B; line-height:1; }
+    .yb-practice__badgeTitle { font-size:16px; font-weight:750; color:#1A1A1A; line-height:1.1; letter-spacing:-0.01em; }
+    .yb-practice__play { position:absolute; left:50%; top:50%; transform:translate(-50%,-50%); width:64px; height:64px; border-radius:999px; border:1px solid #EBE7E3; background:rgba(255,255,255,0.82); box-shadow:0 18px 60px rgba(0,0,0,0.10); backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px); display:grid; place-items:center; cursor:pointer; opacity:0; pointer-events:none; transition:opacity 180ms ease, transform 180ms ease; }
+    .yb-practice__playIcon { width:0; height:0; border-left:14px solid var(--ybAccent); border-top:10px solid transparent; border-bottom:10px solid transparent; margin-left:3px; }
+    .yb-practice__media.has-video .yb-practice__play { opacity:1; pointer-events:auto; }
+    .yb-practice__media.is-playing .yb-practice__play { opacity:0; pointer-events:none; transform:translate(-50%,-50%) scale(0.98); }
+    .yb-practice__media.has-video:hover .yb-practice__play { transform:translate(-50%,-50%) scale(1.02); }
+    .yb-practice__play:focus-visible { outline:none; box-shadow:0 0 0 4px rgba(var(--ybAccentRgb),0.22), 0 18px 60px rgba(0,0,0,0.10); }
+    .yb-practice__mini { display:grid; grid-template-columns:1fr; gap:10px; }
+    .yb-practice__miniItem { border:1px solid #EBE7E3; border-radius:16px; background:rgba(255,255,255,0.72); box-shadow:0 18px 60px rgba(0,0,0,0.06); padding:12px 14px; }
+    .yb-practice__miniTitle { margin:0 0 4px 0; color:#6B6B6B; font-size:12px; letter-spacing:0.12em; text-transform:uppercase; }
+    .yb-practice__miniText { margin:0; color:#1A1A1A; font-size:14px; line-height:1.5; font-weight:650; letter-spacing:-0.01em; }
+    .yb-practice__content { min-width:0; display:grid; gap:14px; }
+    .yb-practice__head { border:1px solid #EBE7E3; border-radius:20px; background:rgba(255,255,255,0.72); box-shadow:0 18px 60px rgba(0,0,0,0.06); padding:clamp(16px,2.4vw,22px); }
+    .yb-practice__eyebrow { margin:0 0 10px 0; color:#6B6B6B; font-size:13px; letter-spacing:0.12em; text-transform:uppercase; }
+    .yb-practice__title { margin:0 0 10px 0; color:#1A1A1A; font-size:clamp(28px,3.2vw,40px); line-height:1.12; font-weight:780; letter-spacing:-0.02em; overflow-wrap:anywhere; hyphens:auto; }
+    .yb-practice__sub { margin:0; color:#333; font-size:15px; line-height:1.65; }
+    .yb-practice__selector { display:flex; flex-wrap:wrap; gap:10px; }
+    .yb-practiceChip { appearance:none; border:1px solid var(--ybAccent); color:var(--ybAccent); background:#fff; border-radius:999px; padding:9px 14px; font-size:13px; font-family:inherit; line-height:1; cursor:pointer; transition:transform 160ms ease, background 160ms ease, color 160ms ease, box-shadow 160ms ease; max-width:100%; }
+    .yb-practiceChip:hover { transform:translateY(-1px); box-shadow:0 10px 24px rgba(0,0,0,0.08); }
+    .yb-practiceChip:focus-visible { outline:none; box-shadow:0 0 0 4px rgba(var(--ybAccentRgb),0.22); }
+    .yb-practiceChip.is-active { background:var(--ybAccent); color:#fff; border-color:var(--ybAccent); box-shadow:0 12px 30px rgba(0,0,0,0.12); }
+    .yb-practice__panel { border:1px solid #EBE7E3; border-radius:20px; background:#FFFFFF; box-shadow:0 18px 60px rgba(0,0,0,0.08); padding:clamp(16px,2.4vw,22px); }
+    .yb-practice__panelTop { margin-bottom:10px; }
+    .yb-practice__panelTitle { margin:0 0 6px 0; color:#1A1A1A; font-size:16px; font-weight:750; letter-spacing:-0.01em; }
+    .yb-practice__panelNote { margin:0; color:#6B6B6B; font-size:14px; line-height:1.55; }
+    .yb-practice__list { margin:12px 0 0 0; padding:0; list-style:none; display:grid; gap:10px; color:#333; font-size:14px; line-height:1.6; }
+    .yb-practice__list li { position:relative; padding-left:14px; }
+    .yb-practice__list li::before { content:""; position:absolute; left:0; top:0.65em; width:6px; height:6px; border-radius:50%; background:var(--ybAccent); transform:translateY(-50%); opacity:.9; }
+    .yb-practice__list strong { color:#1A1A1A; }
+    .yb-practice__ctaRow { margin-top:14px; display:flex; justify-content:flex-start; }
+    .yb-practice__faq { border:1px solid #EBE7E3; border-radius:20px; background:rgba(255,255,255,0.72); box-shadow:0 18px 60px rgba(0,0,0,0.06); padding:clamp(16px,2.4vw,22px); }
+    .yb-practice__faqTitle { margin:0 0 10px 0; color:#1A1A1A; font-size:16px; font-weight:750; letter-spacing:-0.01em; }
+    .yb-pracAcc { border-top:1px solid #EBE7E3; }
+    .yb-pracItem { border-bottom:1px solid #EBE7E3; }
+    .yb-pracBtn { width:100%; text-align:left; appearance:none; background:transparent; border:0; padding:14px 0; display:flex; align-items:center; justify-content:space-between; gap:14px; cursor:pointer; color:#1A1A1A; font-weight:650; font-size:14px; font-family:inherit; line-height:1.35; }
+    .yb-pracBtn:hover { color:#111; }
+    .yb-pracBtn:focus-visible { outline:none; box-shadow:0 0 0 4px rgba(var(--ybAccentRgb),0.18); border-radius:12px; padding-left:10px; padding-right:10px; margin-left:-10px; margin-right:-10px; }
+    .yb-pracIcon { width:18px; height:18px; flex:0 0 auto; position:relative; opacity:.8; }
+    .yb-pracIcon::before, .yb-pracIcon::after { content:""; position:absolute; left:50%; top:50%; width:14px; height:2px; background:#1A1A1A; transform:translate(-50%,-50%); border-radius:2px; }
+    .yb-pracIcon::after { transform:translate(-50%,-50%) rotate(90deg); transition:transform 180ms ease; }
+    .yb-pracBtn[aria-expanded="true"] .yb-pracIcon::after { transform:translate(-50%,-50%) rotate(0deg); }
+    .yb-pracPanel { padding:0 0 14px 0; color:#333; font-size:14px; line-height:1.65; }
+    .yb-pracPanel p { margin:0; }
+    .yb-prFade { opacity:0; transform:translateY(2px); transition:opacity 180ms ease, transform 180ms ease; }
+    .yb-prFade.is-in { opacity:1; transform:translateY(0); }
+    @media (max-width:980px) { .yb-practice__grid { grid-template-columns:1fr; } .yb-practice__media { min-height:0; max-height:440px; } .yb-practice__mini { grid-template-columns:1fr; } }
+    @media (max-width:640px) { .yb-practice .yb-btn--primary { width:100%; } }
+  </style>
+  <script>
+  (function(){
+    var media = document.getElementById("ybPracticeMedia");
+    var video = document.getElementById("ybPracticeVideo");
+    var srcEl = document.getElementById("ybPracticeVideoSource");
+    var img = document.getElementById("ybPracticeImage");
+    var play = document.getElementById("ybPracticePlay");
+    function getSrc(){ var s=srcEl&&srcEl.getAttribute("src")?srcEl.getAttribute("src").trim():""; var d=video?(video.getAttribute("src")||"").trim():""; return s||d; }
+    function showVideo(){ if(!media||!video||!img)return; media.classList.add("has-video"); img.style.display="none"; video.style.display="block"; var p=video.play(); if(p&&typeof p.then==="function"){p.then(function(){media.classList.add("is-playing");}).catch(function(){media.classList.remove("is-playing");});} }
+    function showImage(){ if(!media||!video||!img)return; media.classList.remove("has-video"); media.classList.remove("is-playing"); try{video.pause();}catch(e){} video.style.display="none"; img.style.display="block"; }
+    function refresh(){ if(getSrc()) showVideo(); else showImage(); }
+    if(play&&video){ play.addEventListener("click",function(){ if(!getSrc())return; var p=video.play(); if(p&&typeof p.then==="function"){p.then(function(){media.classList.add("is-playing");}).catch(function(){media.classList.remove("is-playing");});} }); video.addEventListener("pause",function(){media.classList.remove("is-playing");}); video.addEventListener("play",function(){media.classList.add("is-playing");}); video.addEventListener("error",showImage); video.addEventListener("stalled",showImage); }
+    if(srcEl&&window.MutationObserver){ var obs=new MutationObserver(refresh); obs.observe(srcEl,{attributes:true,attributeFilter:["src"]}); }
+    refresh();
+
+    // Selector chips
+    var chips=Array.prototype.slice.call(document.querySelectorAll(".yb-practiceChip[data-p]"));
+    var title=document.getElementById("ybPracticePanelTitle");
+    var note=document.getElementById("ybPracticePanelNote");
+    var list=document.getElementById("ybPracticeList");
+    var presets={
+      foundation:{title:"Hvad vi arbejder med \u00B7 Basis & alignment",note:"Perfekt til dig, der vil blive st\u00E6rk i det grundl\u00E6ggende og f\u00E5 en praksis, der f\u00F8les stabil og fri.",items:["<strong>Alignment-check</strong> \u2014 f\u00F8dder, kn\u00E6, hofter, skuldre og nakke","<strong>Teknik i klassikere</strong> \u2014 fremoverbøjninger, twists, balance og core","<strong>\u00C5ndedræt &amp; tempo</strong> \u2014 ro, kontrol og bedre fokus","<strong>Personlige cues</strong> \u2014 pr\u00E6cise rettelser du kan huske og bruge selv"]},
+      deep:{title:"Hvad vi arbejder med \u00B7 Dybere stillinger",note:"M\u00E5lrettet progression i fx inversions, backbends eller splits \u2014 med en sikker opbygning.",items:["<strong>Forberedende \u00F8velser</strong> \u2014 mobilitet + styrke for din krop","<strong>Teknik &amp; linjer</strong> \u2014 hvor du skaber stabilitet og l\u00E6ngde","<strong>Progression</strong> \u2014 trin-for-trin og realistiske delm\u00E5l","<strong>Smartere tr\u00E6ning</strong> \u2014 mindre pres, bedre resultat"]},
+      mobility:{title:"Hvad vi arbejder med \u00B7 Mobilitet & styrke",note:"For dig der vil \u00E5bne kroppen, f\u00F8le dig st\u00E6rkere og f\u00E5 mere kontrol i praksis.",items:["<strong>Hofter &amp; bagk\u00E6de</strong> \u2014 fleksibilitet uden at \u201Ch\u00E6nde\u201D","<strong>Skuldre &amp; bryst</strong> \u2014 bedre range + stabilitet","<strong>Core &amp; balance</strong> \u2014 kontrol, holdning, flow","<strong>Mini-program</strong> \u2014 en enkel plan du kan gentage hjemme"]},
+      recovery:{title:"Hvad vi arbejder med \u00B7 Skader & tilbagevenden",note:"Vi tilpasser, bygger op og skaber tryghed, s\u00E5 du kan komme tilbage med struktur og ro.",items:["<strong>Tilpasninger</strong> \u2014 hvad du kan g\u00F8re, og hvad du b\u00F8r undg\u00E5","<strong>Gradvis opbygning</strong> \u2014 belastning, pauser, progression","<strong>Teknisk oprydning</strong> \u2014 f\u00E6rre kompensationer, mere stabilitet","<strong>Plan for praksis</strong> \u2014 s\u00E5 du ved pr\u00E6cis hvad n\u00E6ste skridt er"]}
+    };
+    function setActive(key){ chips.forEach(function(b){ var on=b.getAttribute("data-p")===key; b.classList.toggle("is-active",on); b.setAttribute("aria-selected",on?"true":"false"); }); }
+    function render(key){ var d=presets[key]; if(!d||!title||!note||!list)return; title.classList.add("yb-prFade"); note.classList.add("yb-prFade"); list.classList.add("yb-prFade"); requestAnimationFrame(function(){ title.textContent=d.title; note.textContent=d.note; list.innerHTML=d.items.map(function(html){return"<li>"+html+"</li>";}).join(""); setActive(key); requestAnimationFrame(function(){ title.classList.add("is-in"); note.classList.add("is-in"); list.classList.add("is-in"); setTimeout(function(){ title.classList.remove("yb-prFade","is-in"); note.classList.remove("yb-prFade","is-in"); list.classList.remove("yb-prFade","is-in"); },220); }); }); }
+    chips.forEach(function(btn){ btn.addEventListener("click",function(){ render(btn.getAttribute("data-p")); }); });
+
+    // Accordion
+    var accRoot=document.querySelector(".yb-practice [data-prac-accordion]");
+    if(accRoot){ var btns=Array.prototype.slice.call(accRoot.querySelectorAll(".yb-pracBtn")); btns.forEach(function(btn){ btn.addEventListener("click",function(){ var isOpen=btn.getAttribute("aria-expanded")==="true"; btns.forEach(function(b){ var id=b.getAttribute("aria-controls"); var p=id?document.getElementById(id):null; b.setAttribute("aria-expanded","false"); if(p)p.hidden=true; }); if(!isOpen){ var id2=btn.getAttribute("aria-controls"); var p2=id2?document.getElementById(id2):null; btn.setAttribute("aria-expanded","true"); if(p2)p2.hidden=false; } }); }); }
+  })();
+  </script>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     SECTION 3 — FOR YOGAUNDERVISERE
+     ═══════════════════════════════════════════════════════════════ -->
+<section class="yb-mentor2" aria-labelledby="yb-mentor2-title">
+  <div class="yb-mentor2__wrap">
+    <!-- MEDIA ROW (top) -->
+    <div class="yb-mentor2__mediaRow" aria-label="Billede eller video">
+      <div class="yb-mentor2__media" id="ybMentor2Media">
+        <video class="yb-mentor2__video" id="ybMentor2Video" playsinline muted loop preload="metadata">
+          <source id="ybMentor2VideoSource" src="" type="video/mp4" />
+        </video>
+        <img class="yb-mentor2__img" id="ybMentor2Image" alt="Mentorforløb for undervisere" loading="lazy" decoding="async"
+             src="/assets/images/og/og-1200x630.png" />
+        <button class="yb-mentor2__play" id="ybMentor2Play" type="button" aria-label="Afspil video">
+          <span class="yb-mentor2__playIcon" aria-hidden="true"></span>
+        </button>
+        <div class="yb-mentor2__mediaTag" aria-hidden="true">
+          <span class="yb-mentor2__mediaKicker">Yoga Bible · 1:1</span>
+          <span class="yb-mentor2__mediaTitle">Mentorforløb for undervisere</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- CARDS BELOW -->
+    <div class="yb-mentor2__bottom">
+      <!-- LEFT COLUMN -->
+      <div class="yb-mentor2__col yb-mentor2__col--left">
+        <div class="yb-mentor2__headline">
+          <p class="yb-mentor2__eyebrow">Yoga Bible · Mentorforløb</p>
+          <h2 id="yb-mentor2-title" class="yb-mentor2__title">For<br/>yogaundervisere</h2>
+          <p class="yb-mentor2__tagline">— Løft din undervisning</p>
+          <p class="yb-mentor2__intro">Et 1:1 mentorforløb, hvor vi arbejder med din stil, dine styrker og din konkrete undervisningshverdag. Fokus er altid praktisk, personligt og implementerbart — ikke et fast pensum.</p>
+          <div class="yb-mentor2__meta">
+            <span class="yb-mentor2__dot" aria-hidden="true"></span>
+            <span>Kan foregå i studio eller online · Mulighed for observation/video-feedback</span>
+          </div>
+          <div class="yb-mentor2__chips" aria-label="Kort fortalt">
+            <span class="yb-mentor2__chip">Cueing</span>
+            <span class="yb-mentor2__chip">Stemme</span>
+            <span class="yb-mentor2__chip">Sekvensering</span>
+            <span class="yb-mentor2__chip">Tryghed &amp; autoritet</span>
+          </div>
+        </div>
+
+        <div class="yb-mentor2__how">
+          <h3 class="yb-mentor2__boxTitle">Sådan arbejder vi</h3>
+          <ol class="yb-mentor2__steps">
+            <li><span class="yb-mentor2__stepNum">1</span><div class="yb-mentor2__stepBody"><p class="yb-mentor2__stepTitle">Afklaring</p><p class="yb-mentor2__stepText">Mål, styrker, udfordringer og din undervisningsstil.</p></div></li>
+            <li><span class="yb-mentor2__stepNum">2</span><div class="yb-mentor2__stepBody"><p class="yb-mentor2__stepTitle">Konkrete værktøjer</p><p class="yb-mentor2__stepText">Struktur, cues, stemme, sekvensering og klasseledelse.</p></div></li>
+            <li><span class="yb-mentor2__stepNum">3</span><div class="yb-mentor2__stepBody"><p class="yb-mentor2__stepTitle">Feedback &amp; implementering</p><p class="yb-mentor2__stepText">Observation eller video — med en enkel plan til din næste klasse.</p></div></li>
+          </ol>
+        </div>
+      </div>
+
+      <!-- RIGHT COLUMN -->
+      <div class="yb-mentor2__col yb-mentor2__col--right">
+        <div class="yb-mentor2__box">
+          <h3 class="yb-mentor2__boxTitle">Typiske temaer vi arbejder med</h3>
+          <ul class="yb-mentor2__bullets">
+            <li><strong>Klasseledelse &amp; nærvær</strong> — ro, timing, energi, autoritet</li>
+            <li><strong>Cueing &amp; sprog</strong> — tydelighed, rytme, progression, "hvad siger jeg hvornår?"</li>
+            <li><strong>Stemmeføring</strong> — volumen, pauser, intention og sikker guidance</li>
+            <li><strong>Sekvensering</strong> — opbygning, tema, peak, transitions og flow</li>
+            <li><strong>Hands-on (valgfrit)</strong> — tryghed, etik, grænser og præcision</li>
+            <li><strong>Din læreridentitet</strong> — selvtillid, signatur, professionalisme</li>
+          </ul>
+          <div class="yb-mentor2__ctaRow">
+            <a class="yb-mentor2__cta" href="#yb-intake">Book en mentor-samtale</a>
+          </div>
+        </div>
+
+        <div class="yb-mentor2__faq">
+          <h3 class="yb-mentor2__boxTitle">FAQ</h3>
+          <div class="yb-accordion" data-accordion>
+            <div class="yb-accItem"><button class="yb-accBtn" type="button" aria-expanded="false" aria-controls="ybFaq1" id="ybFaqBtn1">Hvem er mentorforløbet for?<span class="yb-accIcon" aria-hidden="true"></span></button><div class="yb-accPanel" id="ybFaq1" role="region" aria-labelledby="ybFaqBtn1" hidden><p>For undervisere, der vil løfte kvaliteten og blive mere trygge i deres undervisning — uanset om du er ny underviser eller har erfaring og vil tage næste niveau.</p></div></div>
+            <div class="yb-accItem"><button class="yb-accBtn" type="button" aria-expanded="false" aria-controls="ybFaq2" id="ybFaqBtn2">Hvordan foregår den første session?<span class="yb-accIcon" aria-hidden="true"></span></button><div class="yb-accPanel" id="ybFaq2" role="region" aria-labelledby="ybFaqBtn2" hidden><p>Vi afklarer dit mål, din stil og dine udfordringer. Derefter laver vi en klar plan for de næste skridt — fx cueing-struktur, stemme, sekvensering eller klasseledelse — så du kan mærke effekt med det samme.</p></div></div>
+            <div class="yb-accItem"><button class="yb-accBtn" type="button" aria-expanded="false" aria-controls="ybFaq3" id="ybFaqBtn3">Hvor mange sessioner anbefales?<span class="yb-accIcon" aria-hidden="true"></span></button><div class="yb-accPanel" id="ybFaq3" role="region" aria-labelledby="ybFaqBtn3" hidden><p>De fleste starter med <strong>3–5 sessioner</strong>. Det giver tid til at teste, få feedback og justere, så det du lærer bliver integreret i dine egne klasser.</p></div></div>
+            <div class="yb-accItem"><button class="yb-accBtn" type="button" aria-expanded="false" aria-controls="ybFaq4" id="ybFaqBtn4">Kan vi fokusere på fx sekvensering eller cueing?<span class="yb-accIcon" aria-hidden="true"></span></button><div class="yb-accPanel" id="ybFaq4" role="region" aria-labelledby="ybFaqBtn4" hidden><p>Ja. Vi kan gå dybt i ét område eller kombinere flere. Du bestemmer — og vi prioriterer det, der giver størst effekt i din undervisning lige nu.</p></div></div>
+            <div class="yb-accItem"><button class="yb-accBtn" type="button" aria-expanded="false" aria-controls="ybFaq5" id="ybFaqBtn5">Får jeg feedback på min undervisning?<span class="yb-accIcon" aria-hidden="true"></span></button><div class="yb-accPanel" id="ybFaq5" role="region" aria-labelledby="ybFaqBtn5" hidden><p>Ja. Du kan vælge observation i en klasse, eller sende en videooptagelse. Du får konkret feedback, tydelige forbedringspunkter og en enkel plan for næste klasse.</p></div></div>
+            <div class="yb-accItem"><button class="yb-accBtn" type="button" aria-expanded="false" aria-controls="ybFaq6" id="ybFaqBtn6">Kan det være online?<span class="yb-accIcon" aria-hidden="true"></span></button><div class="yb-accPanel" id="ybFaq6" role="region" aria-labelledby="ybFaqBtn6" hidden><p>Ja. Online fungerer særligt godt til cueing, stemme, struktur og sekvensering. Hvis du vil arbejde med hands-on, anbefaler vi studio-sessioner.</p></div></div>
+            <div class="yb-accItem"><button class="yb-accBtn" type="button" aria-expanded="false" aria-controls="ybFaq7" id="ybFaqBtn7">Kan vi også tale karriere og "næste skridt"?<span class="yb-accIcon" aria-hidden="true"></span></button><div class="yb-accPanel" id="ybFaq7" role="region" aria-labelledby="ybFaqBtn7" hidden><p>Ja. Vi kan fx kigge på auditions, studievalg, positionering, pricing og hvordan du bliver mere efterspurgt — uden at miste din autenticitet.</p></div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <style>
+    .yb-mentor2, .yb-mentor2 * { box-sizing: border-box; }
+    .yb-mentor2 { font-family:'Abacaxi',"Helvetica Neue",Helvetica,Arial,system-ui,sans-serif; background:#FFFFFF; padding:clamp(28px,5vw,76px) 0; overflow-x:clip; position:relative; --ybAccent:#f75c03; --ybAccentRgb:247,92,3; }
+    .yb-mentor2::before { content:""; position:absolute; right:-180px; top:18%; width:420px; height:420px; border-radius:999px; background:rgba(var(--ybAccentRgb),0.14); filter:blur(34px); pointer-events:none; }
+    .yb-mentor2__wrap { max-width:1120px; margin:0 auto; padding:0 16px; }
+    @media (min-width:1024px) { .yb-mentor2__wrap { padding:0 24px; } }
+    .yb-mentor2__mediaRow { margin-bottom:clamp(16px,3vw,24px); }
+    .yb-mentor2__media { position:relative; border-radius:20px; border:1px solid #EBE7E3; overflow:hidden; background:#FCFBF9; box-shadow:0 18px 60px rgba(0,0,0,0.08); aspect-ratio:16/9; min-height:280px; }
+    .yb-mentor2__video, .yb-mentor2__img { position:absolute; inset:0; width:100%; height:100%; object-fit:cover; display:block; }
+    .yb-mentor2__video { display:none; }
+    .yb-mentor2__play { position:absolute; left:50%; top:50%; transform:translate(-50%,-50%); width:66px; height:66px; border-radius:999px; border:1px solid #EBE7E3; background:rgba(255,255,255,0.80); box-shadow:0 18px 60px rgba(0,0,0,0.10); backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px); display:grid; place-items:center; cursor:pointer; opacity:0; pointer-events:none; transition:opacity 180ms ease, transform 180ms ease; }
+    .yb-mentor2__playIcon { width:0; height:0; border-left:14px solid var(--ybAccent); border-top:10px solid transparent; border-bottom:10px solid transparent; margin-left:3px; }
+    .yb-mentor2__media.has-video .yb-mentor2__play { opacity:1; pointer-events:auto; }
+    .yb-mentor2__media.is-playing .yb-mentor2__play { opacity:0; pointer-events:none; transform:translate(-50%,-50%) scale(0.98); }
+    .yb-mentor2__media.has-video:hover .yb-mentor2__play { transform:translate(-50%,-50%) scale(1.02); }
+    .yb-mentor2__play:focus-visible { outline:none; box-shadow:0 0 0 4px rgba(var(--ybAccentRgb),0.22), 0 18px 60px rgba(0,0,0,0.10); }
+    .yb-mentor2__mediaTag { position:absolute; left:14px; bottom:14px; border-radius:16px; border:1px solid #EBE7E3; background:rgba(255,255,255,0.82); box-shadow:0 18px 60px rgba(0,0,0,0.10); backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px); padding:10px 12px; display:grid; gap:2px; max-width:min(420px,calc(100%-28px)); }
+    .yb-mentor2__mediaKicker { color:#6B6B6B; font-size:12px; letter-spacing:0.12em; text-transform:uppercase; line-height:1; }
+    .yb-mentor2__mediaTitle { color:#1A1A1A; font-size:15px; font-weight:750; letter-spacing:-0.01em; line-height:1.2; }
+    .yb-mentor2__bottom { display:grid; grid-template-columns:0.92fr 1.08fr; gap:clamp(16px,3vw,32px); align-items:start; }
+    .yb-mentor2__col { display:grid; gap:16px; min-width:0; }
+    .yb-mentor2__headline { border:1px solid #EBE7E3; border-radius:20px; background:#FCFBF9; padding:clamp(18px,2.8vw,28px); box-shadow:0 18px 60px rgba(0,0,0,0.08); }
+    .yb-mentor2__how, .yb-mentor2__box, .yb-mentor2__faq { border:1px solid #EBE7E3; border-radius:20px; background:#FFFFFF; padding:clamp(16px,2.4vw,22px); box-shadow:0 18px 60px rgba(0,0,0,0.06); min-width:0; }
+    .yb-mentor2__eyebrow { margin:0 0 10px 0; color:#6B6B6B; font-size:13px; letter-spacing:0.12em; text-transform:uppercase; }
+    .yb-mentor2__title { margin:0; color:#1A1A1A; font-size:clamp(38px,5vw,64px); line-height:0.95; font-weight:780; letter-spacing:-0.03em; overflow-wrap:anywhere; hyphens:auto; }
+    .yb-mentor2__tagline { margin:12px 0 14px 0; color:#1A1A1A; font-size:18px; font-weight:650; letter-spacing:-0.01em; }
+    .yb-mentor2__intro { margin:0 0 14px 0; color:#333; font-size:15px; line-height:1.65; }
+    .yb-mentor2__meta { display:flex; gap:10px; align-items:flex-start; color:#6B6B6B; font-size:14px; line-height:1.5; margin-bottom:12px; }
+    .yb-mentor2__dot { width:8px; height:8px; border-radius:50%; background:var(--ybAccent); box-shadow:0 0 0 6px rgba(var(--ybAccentRgb),0.12); margin-top:6px; flex:0 0 auto; }
+    .yb-mentor2__chips { display:flex; flex-wrap:wrap; gap:10px; margin:0; }
+    .yb-mentor2__chip { border:1px solid #EBE7E3; background:rgba(255,255,255,0.72); color:#1A1A1A; border-radius:999px; padding:8px 12px; font-size:13px; line-height:1; font-weight:650; box-shadow:0 18px 60px rgba(0,0,0,0.04); }
+    .yb-mentor2__boxTitle { margin:0 0 12px 0; color:#1A1A1A; font-size:16px; font-weight:750; letter-spacing:-0.01em; }
+    .yb-mentor2__bullets { margin:0; padding:0; list-style:none; display:grid; grid-template-columns:1fr 1fr; gap:10px 18px; color:#333; font-size:14px; line-height:1.55; }
+    .yb-mentor2__bullets li { position:relative; padding-left:14px; min-width:0; }
+    .yb-mentor2__bullets li::before { content:""; position:absolute; left:0; top:0.65em; width:6px; height:6px; border-radius:50%; background:var(--ybAccent); transform:translateY(-50%); opacity:.9; }
+    .yb-mentor2__bullets strong { color:#1A1A1A; }
+    .yb-mentor2__ctaRow { margin-top:14px; display:flex; justify-content:flex-start; }
+    .yb-mentor2__cta { display:inline-flex; align-items:center; justify-content:center; padding:12px 18px; border-radius:999px; border:1px solid var(--ybAccent); background:var(--ybAccent); color:#fff; text-decoration:none; font-weight:700; font-size:14px; font-family:inherit; line-height:1; box-shadow:0 12px 30px rgba(0,0,0,0.12); transition:transform 160ms ease, box-shadow 160ms ease, filter 160ms ease; }
+    .yb-mentor2__cta:hover { transform:translateY(-1px); filter:brightness(0.98); box-shadow:0 16px 40px rgba(0,0,0,0.14); }
+    .yb-mentor2__cta:focus-visible { outline:none; box-shadow:0 0 0 4px rgba(var(--ybAccentRgb),0.22), 0 16px 40px rgba(0,0,0,0.14); }
+    .yb-mentor2__steps { margin:0; padding:0; list-style:none; display:grid; gap:12px; }
+    .yb-mentor2__steps li { display:grid; grid-template-columns:30px 1fr; gap:12px; align-items:start; }
+    .yb-mentor2__stepNum { width:30px; height:30px; border-radius:999px; display:grid; place-items:center; border:1px solid #EBE7E3; background:#FCFBF9; color:var(--ybAccent); font-weight:800; font-size:13px; line-height:1; box-shadow:0 18px 60px rgba(0,0,0,0.04); }
+    .yb-mentor2__stepTitle { margin:0 0 2px 0; color:#1A1A1A; font-weight:750; font-size:14px; letter-spacing:-0.01em; }
+    .yb-mentor2__stepText { margin:0; color:#6B6B6B; font-size:14px; line-height:1.55; }
+    .yb-accordion { display:grid; gap:0; border-top:1px solid #EBE7E3; }
+    .yb-accItem { border-bottom:1px solid #EBE7E3; }
+    .yb-accBtn { width:100%; text-align:left; appearance:none; background:transparent; border:0; padding:14px 0; display:flex; align-items:center; justify-content:space-between; gap:14px; cursor:pointer; color:#1A1A1A; font-weight:650; font-size:14px; font-family:inherit; line-height:1.35; }
+    .yb-accBtn:hover { color:#111; }
+    .yb-accBtn:focus-visible { outline:none; box-shadow:0 0 0 4px rgba(var(--ybAccentRgb),0.18); border-radius:12px; padding-left:10px; padding-right:10px; margin-left:-10px; margin-right:-10px; }
+    .yb-accIcon { width:18px; height:18px; flex:0 0 auto; position:relative; opacity:.8; }
+    .yb-accIcon::before, .yb-accIcon::after { content:""; position:absolute; left:50%; top:50%; width:14px; height:2px; background:#1A1A1A; transform:translate(-50%,-50%); border-radius:2px; }
+    .yb-accIcon::after { transform:translate(-50%,-50%) rotate(90deg); transition:transform 180ms ease; }
+    .yb-accBtn[aria-expanded="true"] .yb-accIcon::after { transform:translate(-50%,-50%) rotate(0deg); }
+    .yb-accPanel { padding:0 0 14px 0; color:#333; font-size:14px; line-height:1.65; }
+    .yb-accPanel p { margin:0; }
+    @media (max-width:980px) { .yb-mentor2__bottom { grid-template-columns:1fr; } .yb-mentor2__bullets { grid-template-columns:1fr; } .yb-mentor2__title { font-size:clamp(34px,10vw,56px); } .yb-mentor2__media { aspect-ratio:4/3; min-height:240px; } }
+  </style>
+  <script>
+  (function () {
+    // Accordion
+    var root = document.querySelector(".yb-mentor2 [data-accordion]");
+    if (root) {
+      var btns = Array.prototype.slice.call(root.querySelectorAll(".yb-accBtn"));
+      btns.forEach(function (btn) {
+        btn.addEventListener("click", function () {
+          var isOpen = btn.getAttribute("aria-expanded") === "true";
+          btns.forEach(function (b) { var id=b.getAttribute("aria-controls"); var p=id?document.getElementById(id):null; b.setAttribute("aria-expanded","false"); if(p)p.hidden=true; });
+          if (!isOpen) { var id=btn.getAttribute("aria-controls"); var p=id?document.getElementById(id):null; btn.setAttribute("aria-expanded","true"); if(p)p.hidden=false; }
+        });
+      });
+    }
+    // Media
+    var media=document.getElementById("ybMentor2Media"); var video=document.getElementById("ybMentor2Video"); var srcEl=document.getElementById("ybMentor2VideoSource"); var img=document.getElementById("ybMentor2Image"); var play=document.getElementById("ybMentor2Play");
+    function getSrc(){var s=srcEl&&srcEl.getAttribute("src")?srcEl.getAttribute("src").trim():""; var d=video?(video.getAttribute("src")||"").trim():""; return s||d;}
+    function showVideo(){if(!media||!video||!img)return; media.classList.add("has-video"); img.style.display="none"; video.style.display="block"; var p=video.play(); if(p&&typeof p.then==="function"){p.then(function(){media.classList.add("is-playing");}).catch(function(){media.classList.remove("is-playing");});}}
+    function showImage(){if(!media||!video||!img)return; media.classList.remove("has-video"); media.classList.remove("is-playing"); try{video.pause();}catch(e){} video.style.display="none"; img.style.display="block";}
+    function refresh(){if(getSrc())showVideo();else showImage();}
+    if(play&&video){play.addEventListener("click",function(){if(!getSrc())return;var p=video.play();if(p&&typeof p.then==="function"){p.then(function(){media.classList.add("is-playing");}).catch(function(){media.classList.remove("is-playing");});}}); video.addEventListener("pause",function(){media.classList.remove("is-playing");}); video.addEventListener("play",function(){media.classList.add("is-playing");}); video.addEventListener("error",showImage); video.addEventListener("stalled",showImage);}
+    if(srcEl&&window.MutationObserver){var obs=new MutationObserver(refresh); obs.observe(srcEl,{attributes:true,attributeFilter:["src"]});}
+    refresh();
+  })();
+  </script>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     SECTION 4 — YOGA BUSINESS
+     ═══════════════════════════════════════════════════════════════ -->
+<section class="yb-biz" aria-labelledby="yb-biz-title">
+  <div class="yb-biz__wrap">
+    <div class="yb-biz__card">
+      <div class="yb-biz__grid">
+        <!-- MEDIA -->
+        <div class="yb-biz__mediaCol" aria-label="Billede eller video">
+          <div class="yb-biz__media" id="ybBizMedia">
+            <video class="yb-biz__video" id="ybBizVideo" playsinline muted loop preload="metadata">
+              <source id="ybBizVideoSource" src="" type="video/mp4" />
+            </video>
+            <img class="yb-biz__img" id="ybBizImage" alt="Yoga Business mentorship" loading="lazy" decoding="async"
+                 src="/assets/images/og/og-1200x630.png" />
+            <button class="yb-biz__play" id="ybBizPlay" type="button" aria-label="Afspil video">
+              <span class="yb-biz__playIcon" aria-hidden="true"></span>
+            </button>
+            <div class="yb-biz__stamp" aria-hidden="true">
+              <span class="yb-biz__stampKicker">Yoga Bible · 1:1</span>
+              <span class="yb-biz__stampTitle">Yoga Business</span>
+            </div>
+          </div>
+          <div class="yb-biz__mini">
+            <div class="yb-biz__miniItem"><p class="yb-biz__miniTitle">Typisk fokus</p><p class="yb-biz__miniText">Koncept · Pris · Marketing · Drift</p></div>
+            <div class="yb-biz__miniItem"><p class="yb-biz__miniTitle">Format</p><p class="yb-biz__miniText">Online eller fysisk sparring</p></div>
+          </div>
+        </div>
+
+        <!-- CONTENT -->
+        <div class="yb-biz__content">
+          <div class="yb-biz__header">
+            <p class="yb-biz__eyebrow">Mentorship &amp; Privatundervisning</p>
+            <h2 id="yb-biz-title" class="yb-biz__title">Yoga Business</h2>
+            <p class="yb-biz__sub">Klar retning og konkrete beslutninger — så dit yoga-projekt bliver bæredygtigt, professionelt og lettere at drive.</p>
+          </div>
+
+          <div class="yb-biz__diagnostic">
+            <div class="yb-biz__diagLeft">
+              <p class="yb-biz__diagTitle">Hvad har du brug for lige nu?</p>
+              <p class="yb-biz__diagText">Vælg et spor — så ændrer indholdet sig med det samme. (Du kan også kombinere flere i et forløb.)</p>
+            </div>
+            <div class="yb-biz__tabs" role="tablist" aria-label="Vælg spor">
+              <button class="yb-bizTab is-active" type="button" role="tab" aria-selected="true" data-b="launch">Startup</button>
+              <button class="yb-bizTab" type="button" role="tab" aria-selected="false" data-b="growth">Vækst</button>
+              <button class="yb-bizTab" type="button" role="tab" aria-selected="false" data-b="ops">Drift</button>
+              <button class="yb-bizTab" type="button" role="tab" aria-selected="false" data-b="content">Content</button>
+            </div>
+          </div>
+
+          <div class="yb-biz__panel" aria-live="polite">
+            <div class="yb-biz__panelTop">
+              <h3 class="yb-biz__panelTitle" id="ybBizPanelTitle">Startup · Fra idé til klar plan</h3>
+              <p class="yb-biz__panelNote" id="ybBizPanelNote">Til dig der vil starte studio, privatforløb, brand eller online tilbud — og vil undgå dyre fejl.</p>
+            </div>
+            <div class="yb-biz__cols">
+              <div class="yb-biz__col">
+                <p class="yb-biz__colTitle">Vi kan hjælpe med</p>
+                <ul class="yb-biz__list" id="ybBizListA">
+                  <li><strong>Koncept &amp; positionering</strong> — hvem er det til, og hvorfor dig?</li>
+                  <li><strong>Pris &amp; pakkestruktur</strong> — medlemskaber, klippekort, intro-tilbud</li>
+                  <li><strong>Lokation &amp; lease</strong> — hvad skal du kigge efter i kontrakten?</li>
+                  <li><strong>Booking &amp; systemer</strong> — setup der passer til din drift</li>
+                </ul>
+              </div>
+              <div class="yb-biz__col">
+                <p class="yb-biz__colTitle">Typiske deliverables</p>
+                <ul class="yb-biz__list" id="ybBizListB">
+                  <li><strong>1-sides business blueprint</strong> — mål, tilbud, priser, næste skridt</li>
+                  <li><strong>Simple KPI'er</strong> — så du måler det rigtige</li>
+                  <li><strong>Plan for første 30 dage</strong> — launch, content, samarbejder</li>
+                  <li><strong>Beslutningsliste</strong> — prioriteringer der sparer tid</li>
+                </ul>
+              </div>
+            </div>
+            <div class="yb-biz__ctaRow">
+              <a class="yb-biz__cta" href="#yb-intake">Book en business-samtale</a>
+              <p class="yb-biz__ctaHint">Kort og konkret. Du går herfra med næste skridt.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- FAQ full width -->
+      <div class="yb-biz__faqRow">
+        <div class="yb-biz__faq">
+          <h3 class="yb-biz__faqTitle">FAQ</h3>
+          <div class="yb-bizAcc" data-biz-accordion>
+            <div class="yb-bizItem"><button class="yb-bizBtn" type="button" aria-expanded="false" aria-controls="ybBizF1" id="ybBizB1">Hvem er business-mentorship til?<span class="yb-bizIcon" aria-hidden="true"></span></button><div class="yb-bizPanel" id="ybBizF1" role="region" aria-labelledby="ybBizB1" hidden><p>Til yogalærere, studio-ejere og iværksættere, der vil skabe et bæredygtigt setup — fra første idé til optimering af drift.</p></div></div>
+            <div class="yb-bizItem"><button class="yb-bizBtn" type="button" aria-expanded="false" aria-controls="ybBizF2" id="ybBizB2">Hjælper du også med kontrakt og lokation?<span class="yb-bizIcon" aria-hidden="true"></span></button><div class="yb-bizPanel" id="ybBizF2" role="region" aria-labelledby="ybBizB2" hidden><p>Ja — vi kan gennemgå din situation og de vigtigste punkter, du bør være opmærksom på. (Det er sparring, ikke juridisk rådgivning — men det giver dig en stærkere forberedelse.)</p></div></div>
+            <div class="yb-bizItem"><button class="yb-bizBtn" type="button" aria-expanded="false" aria-controls="ybBizF3" id="ybBizB3">Kan vi arbejde med pris og pakker?<span class="yb-bizIcon" aria-hidden="true"></span></button><div class="yb-bizPanel" id="ybBizF3" role="region" aria-labelledby="ybBizB3" hidden><p>Ja. Vi bygger en klar struktur, der er let at kommunikere — og som passer til din økonomi, tid og målgruppe.</p></div></div>
+            <div class="yb-bizItem"><button class="yb-bizBtn" type="button" aria-expanded="false" aria-controls="ybBizF4" id="ybBizB4">Kan vi også tale om online kurser eller YouTube?<span class="yb-bizIcon" aria-hidden="true"></span></button><div class="yb-bizPanel" id="ybBizF4" role="region" aria-labelledby="ybBizB4" hidden><p>Ja — vi kan planlægge format, workflow, udstyr, editing-flow og en simpel udgivelsesplan, så du faktisk får det gjort.</p></div></div>
+            <div class="yb-bizItem"><button class="yb-bizBtn" type="button" aria-expanded="false" aria-controls="ybBizF5" id="ybBizB5">Hvor mange sessioner giver mening?<span class="yb-bizIcon" aria-hidden="true"></span></button><div class="yb-bizPanel" id="ybBizF5" role="region" aria-labelledby="ybBizB5" hidden><p>Mange starter med <strong>2–4 sessioner</strong> til at få retning og beslutninger på plads, og fortsætter derefter ved behov.</p></div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <style>
+    .yb-biz, .yb-biz * { box-sizing:border-box; }
+    .yb-biz { font-family:'Abacaxi',"Helvetica Neue",Helvetica,Arial,system-ui,sans-serif; background:#FCFBF9; padding:clamp(28px,5vw,76px) 0; overflow-x:clip; position:relative; --ybCardPad:clamp(16px,2.4vw,22px); --ybAccent:#f75c03; --ybAccentRgb:247,92,3; }
+    .yb-biz::before { content:""; position:absolute; left:-30%; top:8%; width:120%; height:340px; background:linear-gradient(90deg,rgba(var(--ybAccentRgb),0.10),rgba(var(--ybAccentRgb),0.02),rgba(26,26,26,0.04)); transform:rotate(-6deg); pointer-events:none; }
+    .yb-biz__wrap { max-width:1120px; margin:0 auto; padding:0 16px; position:relative; z-index:1; }
+    @media (min-width:1024px) { .yb-biz__wrap { padding:0 24px; } }
+    .yb-biz__card { border:1px solid #EBE7E3; border-radius:22px; background:rgba(255,255,255,0.76); backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px); box-shadow:0 18px 60px rgba(0,0,0,0.10); padding:clamp(16px,2.6vw,22px); overflow:hidden; }
+    .yb-biz__grid { display:grid; grid-template-columns:0.92fr 1.08fr; gap:clamp(16px,3vw,34px); align-items:start; }
+    .yb-biz__mediaCol { min-width:0; display:grid; gap:14px; }
+    .yb-biz__media { position:relative; border-radius:20px; border:1px solid #EBE7E3; overflow:hidden; background:#FFFFFF; box-shadow:0 18px 60px rgba(0,0,0,0.08); aspect-ratio:4/5; min-height:420px; }
+    .yb-biz__video, .yb-biz__img { position:absolute; inset:0; width:100%; height:100%; object-fit:cover; display:block; }
+    .yb-biz__video { display:none; }
+    .yb-biz__play { position:absolute; left:50%; top:50%; transform:translate(-50%,-50%); width:64px; height:64px; border-radius:999px; border:1px solid #EBE7E3; background:rgba(255,255,255,0.82); box-shadow:0 18px 60px rgba(0,0,0,0.10); backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px); display:grid; place-items:center; cursor:pointer; opacity:0; pointer-events:none; transition:opacity 180ms ease, transform 180ms ease; }
+    .yb-biz__playIcon { width:0; height:0; border-left:14px solid var(--ybAccent); border-top:10px solid transparent; border-bottom:10px solid transparent; margin-left:3px; }
+    .yb-biz__media.has-video .yb-biz__play { opacity:1; pointer-events:auto; }
+    .yb-biz__media.is-playing .yb-biz__play { opacity:0; pointer-events:none; transform:translate(-50%,-50%) scale(0.98); }
+    .yb-biz__media.has-video:hover .yb-biz__play { transform:translate(-50%,-50%) scale(1.02); }
+    .yb-biz__play:focus-visible { outline:none; box-shadow:0 0 0 4px rgba(var(--ybAccentRgb),0.22), 0 18px 60px rgba(0,0,0,0.10); }
+    .yb-biz__stamp { position:absolute; left:14px; bottom:14px; border-radius:16px; border:1px solid #EBE7E3; background:rgba(255,255,255,0.82); box-shadow:0 18px 60px rgba(0,0,0,0.10); backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px); padding:10px 12px; display:grid; gap:2px; max-width:min(420px,calc(100%-28px)); }
+    .yb-biz__stampKicker { font-size:12px; letter-spacing:0.12em; text-transform:uppercase; color:#6B6B6B; line-height:1; }
+    .yb-biz__stampTitle { font-size:16px; font-weight:780; letter-spacing:-0.01em; color:#1A1A1A; line-height:1.15; }
+    .yb-biz__mini { display:grid; gap:10px; }
+    .yb-biz__miniItem { border:1px solid #EBE7E3; border-radius:16px; background:rgba(255,255,255,0.72); box-shadow:0 18px 60px rgba(0,0,0,0.06); padding:12px 14px; }
+    .yb-biz__miniTitle { margin:0 0 4px 0; color:#6B6B6B; font-size:12px; letter-spacing:0.12em; text-transform:uppercase; }
+    .yb-biz__miniText { margin:0; color:#1A1A1A; font-size:14px; line-height:1.5; font-weight:650; letter-spacing:-0.01em; }
+    .yb-biz__content { min-width:0; display:grid; gap:14px; }
+    .yb-biz__header { padding:2px 0 0 0; }
+    .yb-biz__eyebrow { margin:0; color:#6B6B6B; font-size:13px; letter-spacing:0.12em; text-transform:uppercase; }
+    .yb-biz__title { margin:8px 0 6px 0; color:#1A1A1A; font-size:clamp(30px,3.4vw,42px); line-height:1.08; font-weight:800; letter-spacing:-0.02em; overflow-wrap:anywhere; hyphens:auto; }
+    .yb-biz__sub { margin:0; color:#333; font-size:15px; line-height:1.65; max-width:62ch; }
+    .yb-biz__diagnostic, .yb-biz__panel { border:1px solid #EBE7E3; border-radius:20px; background:#FFFFFF; box-shadow:0 18px 60px rgba(0,0,0,0.06); padding:var(--ybCardPad); }
+    .yb-biz__diagTitle { margin:0 0 2px 0; color:#1A1A1A; font-size:14px; font-weight:780; letter-spacing:-0.01em; }
+    .yb-biz__diagText { margin:0 0 12px 0; color:#6B6B6B; font-size:14px; line-height:1.55; }
+    .yb-biz__tabs { display:flex; flex-wrap:wrap; gap:10px; }
+    .yb-bizTab { appearance:none; border:1px solid var(--ybAccent); color:var(--ybAccent); background:#fff; border-radius:999px; padding:9px 14px; font-size:13px; font-family:inherit; line-height:1; cursor:pointer; transition:transform 160ms ease, background 160ms ease, color 160ms ease, box-shadow 160ms ease; }
+    .yb-bizTab:hover { transform:translateY(-1px); box-shadow:0 10px 24px rgba(0,0,0,0.08); }
+    .yb-bizTab:focus-visible { outline:none; box-shadow:0 0 0 4px rgba(var(--ybAccentRgb),0.22); }
+    .yb-bizTab.is-active { background:var(--ybAccent); color:#fff; border-color:var(--ybAccent); box-shadow:0 12px 30px rgba(0,0,0,0.12); }
+    .yb-biz__panelTitle { margin:0 0 6px 0; color:#1A1A1A; font-size:16px; font-weight:780; letter-spacing:-0.01em; }
+    .yb-biz__panelNote { margin:0 0 12px 0; color:#6B6B6B; font-size:14px; line-height:1.55; }
+    .yb-biz__cols { display:grid; grid-template-columns:1fr 1fr; gap:14px 18px; }
+    .yb-biz__colTitle { margin:0 0 8px 0; color:#1A1A1A; font-size:13px; letter-spacing:0.12em; text-transform:uppercase; font-weight:780; }
+    .yb-biz__list { margin:0; padding:0; list-style:none; display:grid; gap:10px; color:#333; font-size:14px; line-height:1.6; }
+    .yb-biz__list li { position:relative; padding-left:14px; }
+    .yb-biz__list li::before { content:""; position:absolute; left:0; top:0.65em; width:6px; height:6px; border-radius:50%; background:var(--ybAccent); transform:translateY(-50%); opacity:.9; }
+    .yb-biz__list strong { color:#1A1A1A; }
+    .yb-biz__ctaRow { margin-top:14px; display:grid; gap:8px; justify-items:start; }
+    .yb-biz__cta { display:inline-flex; align-items:center; justify-content:center; padding:12px 18px; border-radius:999px; border:1px solid var(--ybAccent); background:var(--ybAccent); color:#fff; text-decoration:none; font-weight:700; font-size:14px; font-family:inherit; line-height:1; box-shadow:0 12px 30px rgba(0,0,0,0.12); transition:transform 160ms ease, box-shadow 160ms ease, filter 160ms ease; }
+    .yb-biz__cta:hover { transform:translateY(-1px); filter:brightness(0.98); box-shadow:0 16px 40px rgba(0,0,0,0.14); }
+    .yb-biz__cta:focus-visible { outline:none; box-shadow:0 0 0 4px rgba(var(--ybAccentRgb),0.22), 0 16px 40px rgba(0,0,0,0.14); }
+    .yb-biz__ctaHint { margin:0; color:#6B6B6B; font-size:13px; line-height:1.5; }
+    .yb-biz__faqRow { margin-top:clamp(16px,3vw,22px); }
+    .yb-biz__faq { border:1px solid #EBE7E3; border-radius:20px; background:rgba(255,255,255,0.72); box-shadow:0 18px 60px rgba(0,0,0,0.06); padding:var(--ybCardPad); }
+    .yb-biz__faqTitle { margin:0 0 10px 0; color:#1A1A1A; font-size:16px; font-weight:780; letter-spacing:-0.01em; }
+    .yb-bizAcc { border-top:1px solid #EBE7E3; }
+    .yb-bizItem { border-bottom:1px solid #EBE7E3; }
+    .yb-bizBtn { width:100%; text-align:left; appearance:none; background:transparent; border:0; padding:14px 0; display:flex; align-items:center; justify-content:space-between; gap:14px; cursor:pointer; color:#1A1A1A; font-weight:650; font-size:14px; font-family:inherit; line-height:1.35; }
+    .yb-bizBtn:hover { color:#111; }
+    .yb-bizBtn:focus-visible { outline:none; box-shadow:0 0 0 4px rgba(var(--ybAccentRgb),0.18); border-radius:12px; padding-left:10px; padding-right:10px; margin-left:-10px; margin-right:-10px; }
+    .yb-bizIcon { width:18px; height:18px; flex:0 0 auto; position:relative; opacity:.8; }
+    .yb-bizIcon::before, .yb-bizIcon::after { content:""; position:absolute; left:50%; top:50%; width:14px; height:2px; background:#1A1A1A; transform:translate(-50%,-50%); border-radius:2px; }
+    .yb-bizIcon::after { transform:translate(-50%,-50%) rotate(90deg); transition:transform 180ms ease; }
+    .yb-bizBtn[aria-expanded="true"] .yb-bizIcon::after { transform:translate(-50%,-50%) rotate(0deg); }
+    .yb-bizPanel { padding:0 0 14px 0; color:#333; font-size:14px; line-height:1.65; }
+    .yb-bizPanel p { margin:0; }
+    .yb-bizFade { opacity:0; transform:translateY(2px); transition:opacity 180ms ease, transform 180ms ease; }
+    .yb-bizFade.is-in { opacity:1; transform:translateY(0); }
+    @media (max-width:980px) { .yb-biz__grid { grid-template-columns:1fr; } .yb-biz__media { min-height:0; max-height:440px; } .yb-biz__cols { grid-template-columns:1fr; } .yb-biz__cta { width:100%; } .yb-biz__ctaRow { justify-items:stretch; } }
+  </style>
+  <script>
+  (function(){
+    // Media
+    var media=document.getElementById("ybBizMedia"); var video=document.getElementById("ybBizVideo"); var srcEl=document.getElementById("ybBizVideoSource"); var img=document.getElementById("ybBizImage"); var play=document.getElementById("ybBizPlay");
+    function getSrc(){var s=srcEl&&srcEl.getAttribute("src")?srcEl.getAttribute("src").trim():""; var d=video?(video.getAttribute("src")||"").trim():""; return s||d;}
+    function showVideo(){if(!media||!video||!img)return; media.classList.add("has-video"); img.style.display="none"; video.style.display="block"; var p=video.play(); if(p&&typeof p.then==="function"){p.then(function(){media.classList.add("is-playing");}).catch(function(){media.classList.remove("is-playing");});}}
+    function showImage(){if(!media||!video||!img)return; media.classList.remove("has-video"); media.classList.remove("is-playing"); try{video.pause();}catch(e){} video.style.display="none"; img.style.display="block";}
+    function refresh(){if(getSrc())showVideo();else showImage();}
+    if(play&&video){play.addEventListener("click",function(){if(!getSrc())return;var p=video.play();if(p&&typeof p.then==="function"){p.then(function(){media.classList.add("is-playing");}).catch(function(){media.classList.remove("is-playing");});}}); video.addEventListener("pause",function(){media.classList.remove("is-playing");}); video.addEventListener("play",function(){media.classList.add("is-playing");}); video.addEventListener("error",showImage); video.addEventListener("stalled",showImage);}
+    if(srcEl&&window.MutationObserver){var obs=new MutationObserver(refresh); obs.observe(srcEl,{attributes:true,attributeFilter:["src"]});}
+    refresh();
+
+    // Tabs
+    var tabs=Array.prototype.slice.call(document.querySelectorAll(".yb-bizTab[data-b]"));
+    var title=document.getElementById("ybBizPanelTitle"); var note=document.getElementById("ybBizPanelNote");
+    var listA=document.getElementById("ybBizListA"); var listB=document.getElementById("ybBizListB");
+    var presets={
+      launch:{title:"Startup \u00B7 Fra id\u00E9 til klar plan",note:"Til dig der vil starte studio, privatforl\u00F8b, brand eller online tilbud \u2014 og vil undg\u00E5 dyre fejl.",aTitle:"Vi kan hj\u00E6lpe med",a:["<strong>Koncept &amp; positionering</strong> \u2014 hvem er det til, og hvorfor dig?","<strong>Pris &amp; pakkestruktur</strong> \u2014 medlemskaber, klippekort, intro-tilbud","<strong>Lokation &amp; lease</strong> \u2014 hvad skal du kigge efter i kontrakten?","<strong>Booking &amp; systemer</strong> \u2014 setup der passer til din drift"],bTitle:"Typiske deliverables",b:["<strong>1-sides business blueprint</strong> \u2014 m\u00E5l, tilbud, priser, n\u00E6ste skridt","<strong>Simple KPI\u2019er</strong> \u2014 s\u00E5 du m\u00E5ler det rigtige","<strong>Plan for f\u00F8rste 30 dage</strong> \u2014 launch, content, samarbejder","<strong>Beslutningsliste</strong> \u2014 prioriteringer der sparer tid"]},
+      growth:{title:"V\u00E6kst \u00B7 Flere kunder uden stress",note:"Til dig der har gang i noget, men vil g\u00F8re det tydeligere, mere effektivt og mere efterspurgt.",aTitle:"Vi kan hj\u00E6lpe med",a:["<strong>Tilbud der konverterer</strong> \u2014 g\u00F8r det nemt at v\u00E6lge dig","<strong>Retention</strong> \u2014 fastholdelse, community og medlemsrejse","<strong>Samarbejder</strong> \u2014 partnerskaber der giver mening","<strong>Marketing-plan</strong> \u2014 simple kampagner du kan gentage"],bTitle:"Typiske deliverables",b:["<strong>Website/landing feedback</strong> \u2014 klarhed, flow, CTA\u2019er","<strong>Pris-justering</strong> \u2014 n\u00E5r du skal op i niveau","<strong>Intro-flow</strong> \u2014 fra f\u00F8rste bes\u00F8g til loyal kunde","<strong>Mini-kalender</strong> \u2014 4 ugers plan med content + tilbud"]},
+      ops:{title:"Drift \u00B7 Systemer, team og struktur",note:"Til studio-ejere og undervisere, der vil skabe ro, kvalitet og stabilitet i hverdagen.",aTitle:"Vi kan hj\u00E6lpe med",a:["<strong>Staff management</strong> \u2014 roller, standarder, kommunikation","<strong>Booking &amp; no-show</strong> \u2014 regler der fungerer i praksis","<strong>\u00D8konomisk overblik</strong> \u2014 simple rutiner og prioritering","<strong>Kvalitetssikring</strong> \u2014 ensartet oplevelse p\u00E5 tv\u00E6rs af l\u00E6rere"],bTitle:"Typiske deliverables",b:["<strong>Standarder &amp; playbook</strong> \u2014 onboarding, tone, service","<strong>Policy-setup</strong> \u2014 no-show, venteliste, refunds","<strong>Weekly ops plan</strong> \u2014 hvad du f\u00F8lger op p\u00E5 hver uge","<strong>Bedre arbejdsgange</strong> \u2014 f\u00E6rre \u201Csm\u00E5 brande\u201D"]},
+      content:{title:"Content \u00B7 Reels, YouTube og online produkter",note:"Til dig der vil bygge synlighed og skabe salg \u2014 uden at det f\u00F8les kaotisk.",aTitle:"Vi kan hj\u00E6lpe med",a:["<strong>Content retning</strong> \u2014 temaer der passer til dit brand","<strong>Workflow</strong> \u2014 optag, redig\u00E9r, public\u00E9r (enkelt)","<strong>Udstyr &amp; setup</strong> \u2014 lyd, lys, kamera, editing","<strong>Online produkter</strong> \u2014 kurser, memberships, digitale forl\u00F8b"],bTitle:"Typiske deliverables",b:["<strong>4-ugers content plan</strong> \u2014 reels + captions + CTA","<strong>Skabeloner</strong> \u2014 hooks, struktur, afslutning","<strong>Studio/optageplan</strong> \u2014 batch-produktion","<strong>Simple funnels</strong> \u2014 fra video til kunde"]}
+    };
+    function setActive(key){tabs.forEach(function(t){var on=t.getAttribute("data-b")===key;t.classList.toggle("is-active",on);t.setAttribute("aria-selected",on?"true":"false");});}
+    function setColTitle(listEl,newTitle){if(!listEl)return;var col=listEl.closest(".yb-biz__col");if(!col)return;var h=col.querySelector(".yb-biz__colTitle");if(h)h.textContent=newTitle;}
+    function render(key){
+      var d=presets[key]; if(!d||!title||!note||!listA||!listB)return;
+      [title,note,listA,listB].forEach(function(el){el.classList.add("yb-bizFade");});
+      requestAnimationFrame(function(){
+        title.textContent=d.title; note.textContent=d.note;
+        setColTitle(listA,d.aTitle); setColTitle(listB,d.bTitle);
+        listA.innerHTML=d.a.map(function(x){return"<li>"+x+"</li>";}).join("");
+        listB.innerHTML=d.b.map(function(x){return"<li>"+x+"</li>";}).join("");
+        setActive(key);
+        requestAnimationFrame(function(){[title,note,listA,listB].forEach(function(el){el.classList.add("is-in");}); setTimeout(function(){[title,note,listA,listB].forEach(function(el){el.classList.remove("yb-bizFade","is-in");});},220);});
+      });
+    }
+    tabs.forEach(function(btn){btn.addEventListener("click",function(){render(btn.getAttribute("data-b"));});});
+
+    // Accordion
+    var accRoot=document.querySelector(".yb-biz [data-biz-accordion]");
+    if(accRoot){var btns=Array.prototype.slice.call(accRoot.querySelectorAll(".yb-bizBtn"));btns.forEach(function(btn){btn.addEventListener("click",function(){var isOpen=btn.getAttribute("aria-expanded")==="true";btns.forEach(function(b){var id=b.getAttribute("aria-controls");var p=id?document.getElementById(id):null;b.setAttribute("aria-expanded","false");if(p)p.hidden=true;});if(!isOpen){var id2=btn.getAttribute("aria-controls");var p2=id2?document.getElementById(id2):null;btn.setAttribute("aria-expanded","true");if(p2)p2.hidden=false;}});});}
+    render("launch");
+  })();
+  </script>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     GLOBAL INTAKE MODAL (ybintake) — Book en samtale
+     Trigger: href="#yb-intake"
+     ═══════════════════════════════════════════════════════════════ -->
+<section class="yb-modals-intake">
+  <div class="yb-modal-intake" id="ybintake-modal" aria-hidden="true">
+    <div class="yb-modal-intake__overlay" data-ybintake-close></div>
+    <div class="yb-modal-intake__box" role="dialog" aria-modal="true" aria-labelledby="ybintake-title">
+      <button class="yb-modal-intake__close" type="button" data-ybintake-close aria-label="Luk">&times;</button>
+
+      <!-- Form View -->
+      <div id="ybintake-view-form">
+        <p class="yb-modal-intake__eyebrow">Yoga Bible · 1:1</p>
+        <h3 id="ybintake-title">Book en samtale</h3>
+        <p class="yb-modal-intake__lead">Udfyld kort — så vender vi tilbage hurtigst muligt.</p>
+
+        <iframe name="ybintakeFrame" class="yb-modal-intake__frame" title="Skjult submit" tabindex="-1"></iframe>
+
+        <form id="ybintake-form" class="yb-modal-intake__form" method="POST" target="ybintakeFrame" novalidate>
+          <input class="yb-modal-intake__hp" type="text" name="website" autocomplete="off" tabindex="-1" />
+          <input type="hidden" name="sourceUrl" id="ybintake-sourceUrl" />
+          <input type="hidden" name="pageTitle" id="ybintake-pageTitle" />
+          <input type="hidden" name="userAgent" id="ybintake-userAgent" />
+          <input type="hidden" name="submittedAt" id="ybintake-submittedAt" />
+
+          <p id="ybintake-error" class="yb-modal-intake__error" hidden>
+            Kunne ikke sende lige nu. Prøv igen — eller skriv til <a href="mailto:info@yogabible.dk">info@yogabible.dk</a>.
+          </p>
+
+          <div class="yb-modal-intake__grid">
+            <label class="yb-modal-intake__field"><span>Fornavn *</span><input name="firstName" type="text" required autocomplete="given-name" /></label>
+            <label class="yb-modal-intake__field"><span>Efternavn *</span><input name="lastName" type="text" required autocomplete="family-name" /></label>
+            <label class="yb-modal-intake__field"><span>Telefon *</span><input name="phone" type="tel" required autocomplete="tel" /></label>
+            <label class="yb-modal-intake__field"><span>E-mail *</span><input name="email" type="email" required autocomplete="email" /></label>
+            <label class="yb-modal-intake__field yb-modal-intake__field--full">
+              <span>Vælg service *</span>
+              <select name="service" id="ybintake-service" required>
+                <option value="" selected disabled>Vælg service…</option>
+                <option value="Personlig praksis">Personlig praksis</option>
+                <option value="Undervisning">Undervisning</option>
+                <option value="Yoga Business">Yoga Business</option>
+                <option value="Ikke sikker endnu">Ikke sikker endnu</option>
+              </select>
+              <small class="yb-modal-intake__hint">Vælg først service — derefter kan du vælge fokus.</small>
+            </label>
+          </div>
+
+          <div class="yb-modal-intake__subs" id="ybintake-subs" hidden>
+            <p class="yb-modal-intake__subs-title">Vælg fokus (du kan vælge flere)</p>
+            <div class="yb-modal-intake__subs-grid" id="ybintake-subsGrid" aria-live="polite"></div>
+            <label class="yb-modal-intake__notsure">
+              <input type="checkbox" id="ybintake-notSure" name="notSure" value="Ja" />
+              <span>Jeg er ikke sikker endnu (vi afklarer sammen)</span>
+            </label>
+          </div>
+
+          <label class="yb-modal-intake__field yb-modal-intake__field--full">
+            <span>Kort besked (valgfrit)</span>
+            <textarea name="message" rows="3" placeholder="Fx dit mål, erfaring, eller hvad du gerne vil fokusere på."></textarea>
+          </label>
+
+          <button id="ybintake-submit" class="yb-btn yb-btn--cta" type="submit">Send</button>
+          <p class="yb-modal-intake__fine">Ved at sende accepterer du, at vi må kontakte dig om din forespørgsel.</p>
+        </form>
+      </div>
+
+      <!-- Success View -->
+      <div id="ybintake-view-success" class="yb-modal-intake__success" hidden role="status" aria-live="polite">
+        <div class="yb-modal-intake__success-icon">&#10003;</div>
+        <h3>Tak!</h3>
+        <p>Vi har modtaget din forespørgsel og vender tilbage hurtigst muligt.</p>
+        <p class="yb-modal-intake__success-contact">
+          Imens er du velkommen til at ringe på <a href="tel:+4553881209">+45 53 88 12 09</a> eller skrive til <a href="mailto:info@yogabible.dk">info@yogabible.dk</a>.
+        </p>
+        <button class="yb-btn yb-btn--outline" type="button" data-ybintake-close>Luk</button>
+      </div>
+    </div>
+  </div>
+</section>
+<style>
+  #ybintake-modal, #ybintake-modal * { box-sizing:border-box !important; }
+  #ybintake-modal { --yb-primary:#f75c03; --yb-primary-dark:#e05402; --yb-ink:#161616; --yb-muted:#6F6A66; --yb-border:#e5e0db; --yb-surface:#FFFCF9; font-family:'Abacaxi',"Helvetica Neue",Helvetica,Arial,sans-serif !important; color:var(--yb-ink); }
+  #ybintake-modal { display:none; }
+  #ybintake-modal[aria-hidden="false"] { position:fixed; inset:0; display:grid; place-items:center; padding:1rem; z-index:2147483647 !important; }
+  #ybintake-modal .yb-modal-intake__overlay { position:absolute; inset:0; background:rgba(0,0,0,0.5) !important; backdrop-filter:blur(4px); -webkit-backdrop-filter:blur(4px); z-index:0; }
+  #ybintake-modal .yb-modal-intake__box { position:relative; width:min(600px,calc(100% - 2rem)); max-height:calc(100vh - 2rem); overflow:auto; overflow-x:hidden !important; border-radius:16px; border:1px solid var(--yb-border) !important; background:#fff !important; box-shadow:0 24px 60px rgba(0,0,0,0.2) !important; padding:1.5rem; z-index:1; }
+  #ybintake-modal .yb-modal-intake__close { position:absolute; top:1rem; right:1rem; width:36px; height:36px; border-radius:999px; border:1px solid var(--yb-border) !important; background:#fff !important; cursor:pointer; font-size:20px; display:flex; align-items:center; justify-content:center; color:var(--yb-ink) !important; transition:all 0.15s ease; }
+  #ybintake-modal .yb-modal-intake__close:hover { background:var(--yb-surface) !important; border-color:var(--yb-primary) !important; color:var(--yb-primary) !important; }
+  #ybintake-modal .yb-modal-intake__close:focus-visible { outline:3px solid var(--yb-primary); outline-offset:2px; }
+  #ybintake-modal .yb-modal-intake__eyebrow { margin:0 0 0.5rem !important; color:var(--yb-muted) !important; font-size:0.8rem !important; letter-spacing:0.08em !important; text-transform:uppercase !important; font-weight:600 !important; }
+  #ybintake-modal h3 { margin:0 0 0.5rem !important; font-size:1.25rem !important; font-weight:800 !important; color:var(--yb-ink) !important; }
+  #ybintake-modal .yb-modal-intake__lead { margin:0 0 1.25rem !important; color:#444 !important; line-height:1.6 !important; font-size:0.95rem !important; }
+  #ybintake-modal .yb-modal-intake__frame { display:none; }
+  #ybintake-modal .yb-modal-intake__hp { position:absolute; left:-9999px; opacity:0; height:0; }
+  #ybintake-modal .yb-modal-intake__form { display:grid; gap:1rem; }
+  #ybintake-modal .yb-modal-intake__grid { display:grid; grid-template-columns:1fr 1fr; gap:1rem; }
+  #ybintake-modal .yb-modal-intake__field { display:grid; gap:0.5rem; min-width:0; }
+  #ybintake-modal .yb-modal-intake__field--full { grid-column:1/-1; }
+  #ybintake-modal .yb-modal-intake__field[hidden] { display:none !important; }
+  #ybintake-modal .yb-modal-intake__field > span { font-size:0.85rem !important; font-weight:600 !important; color:var(--yb-muted) !important; }
+  #ybintake-modal .yb-modal-intake__field input, #ybintake-modal .yb-modal-intake__field select, #ybintake-modal .yb-modal-intake__field textarea { width:100% !important; max-width:100% !important; min-width:0 !important; border:1px solid var(--yb-border) !important; border-radius:12px !important; padding:0.75rem 1rem !important; font-size:0.95rem !important; background:#fff !important; color:var(--yb-ink) !important; outline:none !important; box-shadow:none !important; -webkit-appearance:none; appearance:none; transition:border-color 0.15s ease, box-shadow 0.15s ease; font-family:inherit; }
+  #ybintake-modal .yb-modal-intake__field input, #ybintake-modal .yb-modal-intake__field select { height:48px !important; }
+  #ybintake-modal .yb-modal-intake__field textarea { resize:vertical; min-height:92px; }
+  #ybintake-modal .yb-modal-intake__field input:focus, #ybintake-modal .yb-modal-intake__field select:focus, #ybintake-modal .yb-modal-intake__field textarea:focus { border-color:var(--yb-primary) !important; box-shadow:0 0 0 3px rgba(247,92,3,0.15) !important; }
+  #ybintake-modal input:-webkit-autofill, #ybintake-modal input:-webkit-autofill:hover, #ybintake-modal input:-webkit-autofill:focus, #ybintake-modal select:-webkit-autofill, #ybintake-modal textarea:-webkit-autofill { -webkit-box-shadow:0 0 0 1000px #fff inset !important; box-shadow:0 0 0 1000px #fff inset !important; -webkit-text-fill-color:var(--yb-ink) !important; border:1px solid var(--yb-border) !important; transition:background-color 9999s ease-in-out 0s; }
+  #ybintake-modal .yb-modal-intake__hint { display:block; margin-top:0.5rem; color:var(--yb-muted) !important; font-size:0.8rem !important; line-height:1.4 !important; }
+  #ybintake-modal .yb-modal-intake__subs { border:1px solid var(--yb-border) !important; border-radius:12px; background:var(--yb-surface) !important; padding:1rem; }
+  #ybintake-modal .yb-modal-intake__subs[hidden] { display:none !important; }
+  #ybintake-modal .yb-modal-intake__subs-title { margin:0 0 0.75rem !important; font-weight:700 !important; font-size:0.9rem !important; color:var(--yb-ink) !important; }
+  #ybintake-modal .yb-modal-intake__subs-grid { display:grid; grid-template-columns:1fr 1fr; gap:0.75rem 1rem; margin-bottom:0.75rem; }
+  #ybintake-modal .yb-modal-intake__subs-grid label { display:flex; gap:0.6rem; align-items:flex-start; font-size:0.9rem !important; line-height:1.5 !important; color:#333 !important; cursor:pointer; }
+  #ybintake-modal .yb-modal-intake__subs-grid input { margin-top:3px; width:18px !important; height:18px !important; accent-color:var(--yb-primary) !important; flex:0 0 auto; }
+  #ybintake-modal .yb-modal-intake__notsure { display:flex; gap:0.6rem; align-items:flex-start; padding-top:0.75rem; border-top:1px solid var(--yb-border) !important; font-size:0.9rem !important; line-height:1.5 !important; color:#333 !important; cursor:pointer; }
+  #ybintake-modal .yb-modal-intake__notsure input { margin-top:3px; width:18px !important; height:18px !important; accent-color:var(--yb-primary) !important; }
+  #ybintake-modal .yb-btn { display:inline-flex; align-items:center; justify-content:center; padding:0.85rem 1.6rem; border-radius:999px; font-weight:700; font-size:0.95rem; font-family:inherit; text-decoration:none; border:2px solid transparent; cursor:pointer; transition:all 0.15s ease; }
+  #ybintake-modal .yb-btn:focus-visible { outline:3px solid var(--yb-primary); outline-offset:2px; }
+  #ybintake-modal .yb-btn:active { transform:scale(0.98); }
+  #ybintake-modal .yb-btn--cta { background:var(--yb-primary) !important; color:#fff !important; border-color:var(--yb-primary) !important; box-shadow:0 4px 14px rgba(247,92,3,0.25); width:fit-content; }
+  #ybintake-modal .yb-btn--cta:hover { background:var(--yb-primary-dark) !important; border-color:var(--yb-primary-dark) !important; box-shadow:0 6px 20px rgba(247,92,3,0.3); transform:translateY(-1px); }
+  #ybintake-modal .yb-btn--cta[disabled] { opacity:0.6 !important; cursor:not-allowed !important; box-shadow:none !important; transform:none !important; }
+  #ybintake-modal .yb-btn--outline { background:#fff !important; color:var(--yb-primary) !important; border-color:var(--yb-primary) !important; }
+  #ybintake-modal .yb-btn--outline:hover { background:var(--yb-primary) !important; color:#fff !important; }
+  #ybintake-modal .yb-modal-intake__fine { margin:0 !important; color:var(--yb-muted) !important; font-size:0.8rem !important; line-height:1.5 !important; }
+  #ybintake-modal .yb-modal-intake__error { margin:0 0 1rem !important; padding:0.75rem 1rem; background:#FEF2F2; border:1px solid #FECACA; border-radius:12px; font-size:0.9rem !important; color:#991B1B !important; line-height:1.5 !important; }
+  #ybintake-modal .yb-modal-intake__error a { color:var(--yb-primary) !important; text-decoration:underline !important; }
+  #ybintake-modal .yb-modal-intake__success { text-align:center; padding:1rem 0; }
+  #ybintake-modal .yb-modal-intake__success-icon { width:56px; height:56px; border-radius:999px; background:var(--yb-primary); color:#fff; font-size:1.5rem; font-weight:700; display:flex; align-items:center; justify-content:center; margin:0 auto 1rem; }
+  #ybintake-modal .yb-modal-intake__success h3 { margin:0 0 0.5rem !important; font-size:1.25rem !important; }
+  #ybintake-modal .yb-modal-intake__success p { margin:0 0 0.75rem !important; color:#444 !important; line-height:1.6 !important; }
+  #ybintake-modal .yb-modal-intake__success-contact { margin:0 0 1.25rem !important; font-size:0.9rem !important; }
+  #ybintake-modal .yb-modal-intake__success-contact a { color:var(--yb-primary) !important; text-decoration:none !important; border-bottom:1px solid rgba(247,92,3,0.35) !important; }
+  #ybintake-modal .yb-modal-intake__success-contact a:hover { border-bottom-color:var(--yb-primary) !important; }
+  @media (max-width:599px) { #ybintake-modal .yb-modal-intake__grid { grid-template-columns:1fr; } #ybintake-modal .yb-modal-intake__subs-grid { grid-template-columns:1fr; } #ybintake-modal .yb-btn--cta { width:100%; } }
+</style>
+<script>
+(function(){
+  var YBINTAKE_WEBAPP_URL="https://script.google.com/macros/s/AKfycbyhs4bfPcvcqaJRTmAlPTFf_uIOkFatZviKKO20nckBfGi78JqkNzy4FNpWztl7nQsSAA/exec";
+  var modal=document.getElementById("ybintake-modal");
+  var form=document.getElementById("ybintake-form");
+  var frame=document.getElementsByName("ybintakeFrame")[0];
+  var viewForm=document.getElementById("ybintake-view-form");
+  var viewSuccess=document.getElementById("ybintake-view-success");
+  var errorBox=document.getElementById("ybintake-error");
+  var submitBtn=document.getElementById("ybintake-submit");
+  var service=document.getElementById("ybintake-service");
+  var subsWrap=document.getElementById("ybintake-subs");
+  var subsGrid=document.getElementById("ybintake-subsGrid");
+  var notSure=document.getElementById("ybintake-notSure");
+  var metaUrl=document.getElementById("ybintake-sourceUrl");
+  var metaTitle=document.getElementById("ybintake-pageTitle");
+  var metaUA=document.getElementById("ybintake-userAgent");
+  var metaAt=document.getElementById("ybintake-submittedAt");
+  try{if(modal.parentElement!==document.body)document.body.appendChild(modal);}catch(e){}
+  var pendingSubmit=false;
+  var SUBS={
+    "Personlig praksis":["Basis & alignment","Dybere stillinger (inversions / backbends / splits)","Mobilitet (skuldre / hofter / ryg)","Hands-on justeringer (valgfrit)","\u00C5ndedr\u00E6t & fokus","Andet"],
+    "Undervisning":["Cueing & sprog (tydelighed / timing)","Stemme & presence (ro / autoritet)","Selvtillid & l\u00E6reridentitet","Sekvensering & klasseflow","Hands-on (etik & sikkerhed)","Klassepsykologi & energi","At blive mere efterspurgt","Andet"],
+    "Yoga Business":["Find job (CV / auditions / studio match)","Start studio / forretning","Lokation & lejekontrakt (sparring)","Pris & pakker (pricing)","Staff & drift","Booking-systemer","Marketing & strategi","SoMe / reels / produktion","YouTube / online kurser","Merch / brand","Tech / workflow (v\u00E6rkt\u00F8jer)","Andet"],
+    "Ikke sikker endnu":[]
+  };
+  function closeModal(){modal.setAttribute('aria-hidden','true');document.documentElement.style.overflow='';document.body.style.overflow='';}
+  function openModal(){modal.setAttribute('aria-hidden','false');document.documentElement.style.overflow='hidden';document.body.style.overflow='hidden';}
+  function clearSubs(){if(subsGrid)subsGrid.innerHTML="";if(notSure)notSure.checked=false;}
+  function hideSubs(){clearSubs();if(subsWrap)subsWrap.hidden=true;}
+  function renderSubs(serviceValue){
+    hideSubs();var s=(serviceValue||"").trim();if(!s)return;
+    if(s==="Ikke sikker endnu"){subsWrap.hidden=false;notSure.checked=true;return;}
+    var list=SUBS[s]||[];if(!list.length)return;subsWrap.hidden=false;
+    list.forEach(function(label,idx){var id="ybintake-sub-"+s.replace(/\W+/g,"-").toLowerCase()+"-"+idx;var row=document.createElement("label");row.setAttribute("for",id);var cb=document.createElement("input");cb.type="checkbox";cb.name="subcategories";cb.value=label;cb.id=id;row.appendChild(cb);row.appendChild(document.createTextNode(" "+label));subsGrid.appendChild(row);});
+  }
+  function resetModal(){
+    pendingSubmit=false;if(errorBox)errorBox.hidden=true;if(viewSuccess)viewSuccess.hidden=true;if(viewForm)viewForm.hidden=false;
+    try{form.reset();}catch(e){}if(service)service.selectedIndex=0;hideSubs();
+    if(submitBtn){submitBtn.disabled=false;submitBtn.textContent="Send";}
+  }
+  function showSuccess(){if(viewForm)viewForm.hidden=true;if(viewSuccess)viewSuccess.hidden=false;}
+  function doOpenModal(){
+    form.setAttribute("action",YBINTAKE_WEBAPP_URL);
+    if(metaUrl)metaUrl.value=window.location.href;if(metaTitle)metaTitle.value=document.title||"";if(metaUA)metaUA.value=navigator.userAgent||"";
+    resetModal();openModal();
+    if(window.location.hash==="#yb-intake"){history.replaceState(null,document.title,window.location.pathname+window.location.search);}
+    var first=form.querySelector('input[name="firstName"]');if(first)setTimeout(function(){first.focus();},30);
+  }
+  document.addEventListener('click',function(e){
+    var opener=e.target.closest('a[href="#yb-intake"]');if(opener){e.preventDefault();doOpenModal();return;}
+    var closer=e.target.closest("[data-ybintake-close]");if(closer&&modal.getAttribute('aria-hidden')==='false'){e.preventDefault();closeModal();resetModal();return;}
   });
+  document.addEventListener("keydown",function(e){if(e.key==="Escape"&&modal.getAttribute('aria-hidden')==='false'){closeModal();resetModal();}});
+  if(window.location.hash==="#yb-intake"){doOpenModal();}
+  if(service){service.addEventListener("change",function(){renderSubs(service.value);});}
+  if(form&&frame){
+    form.addEventListener("submit",function(ev){
+      if(errorBox)errorBox.hidden=true;var required=form.querySelectorAll("[required]");
+      for(var i=0;i<required.length;i++){if(!required[i].value){required[i].focus();ev.preventDefault();return;}}
+      if(metaAt)metaAt.value=new Date().toISOString();pendingSubmit=true;
+      if(submitBtn){submitBtn.disabled=true;submitBtn.textContent="Sender\u2026";}
+    });
+    frame.addEventListener("load",function(){if(!pendingSubmit)return;pendingSubmit=false;if(submitBtn){submitBtn.disabled=false;submitBtn.textContent="Send";}showSuccess();});
+  }
+  closeModal();
 })();
 </script>
