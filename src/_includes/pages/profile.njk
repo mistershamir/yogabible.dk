@@ -40,7 +40,13 @@
 
           <!-- Left: avatar + member info -->
           <aside class="yb-profile__sidebar">
-            <div class="yb-profile__avatar" id="yb-profile-avatar">YB</div>
+            <div class="yb-profile__avatar-wrap">
+              <div class="yb-profile__avatar" id="yb-profile-avatar">YB</div>
+              <button class="yb-profile__avatar-edit" type="button" id="yb-profile-avatar-btn" title="{{ t.avatar_change }}">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+              </button>
+              <input type="file" id="yb-profile-avatar-input" accept="image/*" hidden>
+            </div>
             <div class="yb-profile__member-info">
               <span class="yb-profile__member-name" id="yb-profile-display-name"></span>
               <span class="yb-profile__member-email" id="yb-profile-display-email"></span>
