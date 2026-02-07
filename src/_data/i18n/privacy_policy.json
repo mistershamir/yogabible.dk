@@ -1,0 +1,150 @@
+{
+  "da": {
+    "hero_title": "Privatlivspolitik",
+    "hero_subtitle": "Hot Yoga Copenhagen ApS · CVR: 41295252",
+    "last_updated": "Sidst opdateret: 11. januar 2026",
+    "data_controller": "<strong>Dataansvarlig:</strong> Hot Yoga Copenhagen ApS · CVR: 41295252<br>Torvegade 66, 1400 København K, Danmark<br><a href=\"mailto:info@yogabible.dk\">info@yogabible.dk</a> · <a href=\"tel:+4553881209\">+45 53 88 12 09</a>",
+
+    "s1_title": "1. Hvad er personoplysninger?",
+    "s1_text": "Information der kan identificere dig direkte eller indirekte, herunder navn, e-mail, telefon, IP-adresse, købshistorik, klassefremmøde og genkendelige fotos/videoer.",
+
+    "s2_title": "2. Politikkens omfang",
+    "s2_text": "Gælder for alle Yoga Bible brands, når Hot Yoga Copenhagen ApS fungerer som dataansvarlig. Tredjepartsansvarlige vil modtage separat meddelelse.",
+
+    "s3_title": "3. Datakategorier vi indsamler",
+    "s3_contact": "<strong>Kontakt & Konto:</strong> Navn, e-mail, telefon, adresse, loginoplysninger",
+    "s3_purchase": "<strong>Køb & Betaling:</strong> Købshistorik, fakturaer, betalingsstatus, afdragsordninger",
+    "s3_attendance": "<strong>Deltagelse & Uddannelse:</strong> Klassetilmeldinger, fremmøde, workshopdeltagelse, certificeringsstatus",
+    "s3_communication": "<strong>Kommunikation:</strong> E-mails, beskeder, formularindsendelser, kundeservice",
+    "s3_media": "<strong>Foto/Video/Lyd:</strong> Klasseoptagelser, event-footage, Namaste Online streams",
+    "s3_technical": "<strong>Tekniske Data:</strong> IP-adresse, enhed/browser-info, sessionsdata, cookies",
+    "s3_health": "<strong>Sundhedsoplysninger:</strong> Indsamles kun når frivilligt delt til sikre undervisningsmodifikationer.",
+
+    "s4_title": "4. Behandlingsformål & Retsgrundlag",
+    "s4_service": "Servicelevering (klasser, kurser, YTT, mentorship) — Kontrakt",
+    "s4_admin": "Administration (bookinger, fremmøde, support) — Kontrakt + Legitim interesse",
+    "s4_payment": "Betaling, fakturering, bogføring — Kontrakt + Juridisk forpligtelse",
+    "s4_comms": "Praktisk kommunikation — Kontrakt + Legitim interesse",
+    "s4_marketing": "Marketing/nyhedsbreve — Samtykke ELLER Legitim interesse",
+    "s4_security": "Sikkerhed & svindelforebyggelse — Legitim interesse",
+    "s4_consent_note": "Marketingsamtykke kan trækkes tilbage til enhver tid.",
+
+    "s5_title": "5. Optagelse, Fotografi & Live-Streaming",
+    "s5_text": "Foto/video/lyd kan optages under undervisning og events. Deltagere kan anmode om kamerafri placering (24+ timers varsel foretrukket). Fuld udelukkelse i gruppeaktiviteter kan ikke altid garanteres.",
+
+    "s6_title": "6. Datadeling & Databehandlere",
+    "s6_booking": "<strong>Booking/Medlemskab:</strong> Mindbody",
+    "s6_invoicing": "<strong>Fakturering:</strong> e-conomic",
+    "s6_terminal": "<strong>Betalingsterminal:</strong> Zettle",
+    "s6_cms": "<strong>Website/CMS:</strong> Squarespace",
+    "s6_email": "<strong>E-mail:</strong> Google Workspace / Gmail",
+    "s6_analytics": "<strong>Analyse:</strong> Google Analytics + Squarespace Analytics",
+    "s6_tracking": "<strong>Marketingsporing:</strong> Meta Pixel (afhængigt af samtykke)",
+
+    "s7_title": "7. Overførsler uden for EU/EØS",
+    "s7_text": "Nogle leverandører opererer uden for EU/EØS. Lovlige overførselsgrundlag og supplerende sikkerhedsforanstaltninger (standardkontraktbestemmelser) implementeres.",
+
+    "s8_title": "8. Dataopbevaring & Sletning",
+    "s8_accounting": "Bogføring/Fakturering: ~5 år fra regnskabsårets afslutning",
+    "s8_education": "Uddannelsesadministration: Varighed nødvendig for administration og certificeringsdokumentation",
+    "s8_support": "Kundeservice: 12-24 måneder afhængigt af sagstype",
+    "s8_marketing": "Marketinglister: Indtil afmelding",
+    "s8_applicants": "Jobansøgere: ~6 måneder efter rekruttering",
+
+    "s9_title": "9. Dine Rettigheder (GDPR)",
+    "s9_access": "Indsigt i dine data",
+    "s9_rectification": "Rettelse af forkerte oplysninger",
+    "s9_erasure": "Sletning (hvor ingen juridisk forpligtelse til opbevaring)",
+    "s9_restriction": "Begrænsning af behandling",
+    "s9_portability": "Dataportabilitet",
+    "s9_objection": "Indsigelse mod behandling baseret på legitim interesse",
+    "s9_withdrawal": "Tilbagetrækning af samtykke",
+    "s9_contact": "Kontakt: <a href=\"mailto:info@yogabible.dk\">info@yogabible.dk</a>",
+
+    "s10_title": "10. Cookies & Sporing",
+    "s10_necessary": "<strong>Nødvendige cookies:</strong> Webstedsfunktionalitet og sikkerhed",
+    "s10_analytics": "<strong>Google Analytics:</strong> Trafik og brugeradfærd",
+    "s10_meta": "<strong>Meta Pixel:</strong> Annoncer og retargeting",
+    "s10_consent": "Statistik- og marketingcookies kræver samtykke.",
+
+    "s11_title": "11. Sikkerhed",
+    "s11_text": "Tekniske og organisatoriske sikkerhedsforanstaltninger: adgangskontrol, need-to-know begrænsninger, systemopdateringer.",
+
+    "s12_title": "12. Kontakt, Klager & Opdateringer",
+    "s12_text": "E-mail: <a href=\"mailto:info@yogabible.dk\">info@yogabible.dk</a> · Telefon: <a href=\"tel:+4553881209\">+45 53 88 12 09</a><br>Klager: Først intern løsning; ret til klage hos Datatilsynet.<br>Politikken opdateres efter behov; seneste version altid på websitet."
+  },
+  "en": {
+    "hero_title": "Privacy Policy",
+    "hero_subtitle": "Hot Yoga Copenhagen ApS · CVR: 41295252",
+    "last_updated": "Last updated: January 11, 2026",
+    "data_controller": "<strong>Data Controller:</strong> Hot Yoga Copenhagen ApS · CVR: 41295252<br>Torvegade 66, 1400 København K, Denmark<br><a href=\"mailto:info@yogabible.dk\">info@yogabible.dk</a> · <a href=\"tel:+4553881209\">+45 53 88 12 09</a>",
+
+    "s1_title": "1. What Are Personal Data?",
+    "s1_text": "Information that can identify you directly or indirectly, including name, email, phone, IP address, purchase history, class attendance, and recognizable photos/videos.",
+
+    "s2_title": "2. Scope of This Policy",
+    "s2_text": "Applies to all Yoga Bible brands when Hot Yoga Copenhagen ApS acts as data controller. Third-party controllers will receive separate notice.",
+
+    "s3_title": "3. Data Categories We Collect",
+    "s3_contact": "<strong>Contact & Account:</strong> Name, email, phone, address, login credentials",
+    "s3_purchase": "<strong>Purchase & Payment:</strong> Purchase history, invoices, payment status, installment plans",
+    "s3_attendance": "<strong>Attendance & Training:</strong> Class sign-ups, attendance, workshop participation, certification status",
+    "s3_communication": "<strong>Communication:</strong> Emails, messages, form submissions, customer service",
+    "s3_media": "<strong>Photo/Video/Audio:</strong> Class recordings, event footage, Namaste Online streams",
+    "s3_technical": "<strong>Technical Data:</strong> IP address, device/browser info, session data, cookies",
+    "s3_health": "<strong>Health Information:</strong> Only collected when voluntarily shared for safe teaching modifications.",
+
+    "s4_title": "4. Processing Purposes & Legal Basis",
+    "s4_service": "Service delivery (classes, courses, YTT, mentorship) — Contract",
+    "s4_admin": "Administration (bookings, attendance, support) — Contract + Legitimate interest",
+    "s4_payment": "Payment, invoicing, accounting — Contract + Legal obligation",
+    "s4_comms": "Operational communication — Contract + Legitimate interest",
+    "s4_marketing": "Marketing/newsletters — Consent OR Legitimate interest",
+    "s4_security": "Security & fraud prevention — Legitimate interest",
+    "s4_consent_note": "Marketing consent can be withdrawn at any time.",
+
+    "s5_title": "5. Recording, Photography & Live Streaming",
+    "s5_text": "Photo/video/audio may be recorded during classes and events. Participants can request camera-free placement (24+ hours notice preferred). Full exclusion in group activities cannot always be guaranteed.",
+
+    "s6_title": "6. Data Sharing & Data Processors",
+    "s6_booking": "<strong>Booking/Membership:</strong> Mindbody",
+    "s6_invoicing": "<strong>Invoicing:</strong> e-conomic",
+    "s6_terminal": "<strong>Payment Terminal:</strong> Zettle",
+    "s6_cms": "<strong>Website/CMS:</strong> Squarespace",
+    "s6_email": "<strong>Email:</strong> Google Workspace / Gmail",
+    "s6_analytics": "<strong>Analytics:</strong> Google Analytics + Squarespace Analytics",
+    "s6_tracking": "<strong>Marketing Tracking:</strong> Meta Pixel (depending on consent)",
+
+    "s7_title": "7. Transfers Outside EU/EEA",
+    "s7_text": "Some vendors operate outside the EU/EEA. Lawful transfer mechanisms and supplementary safeguards (Standard Contractual Clauses) are implemented.",
+
+    "s8_title": "8. Data Retention & Deletion",
+    "s8_accounting": "Accounting/Invoicing: ~5 years from end of fiscal year",
+    "s8_education": "Training Administration: Duration necessary for administration and certification documentation",
+    "s8_support": "Customer Service: 12–24 months depending on case type",
+    "s8_marketing": "Marketing lists: Until unsubscribed",
+    "s8_applicants": "Job applicants: ~6 months after recruitment",
+
+    "s9_title": "9. Your Rights (GDPR)",
+    "s9_access": "Access to your data",
+    "s9_rectification": "Rectification of incorrect information",
+    "s9_erasure": "Erasure (where no legal obligation to retain)",
+    "s9_restriction": "Restriction of processing",
+    "s9_portability": "Data portability",
+    "s9_objection": "Objection to processing based on legitimate interest",
+    "s9_withdrawal": "Withdrawal of consent",
+    "s9_contact": "Contact: <a href=\"mailto:info@yogabible.dk\">info@yogabible.dk</a>",
+
+    "s10_title": "10. Cookies & Tracking",
+    "s10_necessary": "<strong>Essential cookies:</strong> Website functionality and security",
+    "s10_analytics": "<strong>Google Analytics:</strong> Traffic and user behavior",
+    "s10_meta": "<strong>Meta Pixel:</strong> Ads and retargeting",
+    "s10_consent": "Statistics and marketing cookies require consent.",
+
+    "s11_title": "11. Security",
+    "s11_text": "Technical and organizational security measures: access control, need-to-know restrictions, system updates.",
+
+    "s12_title": "12. Contact, Complaints & Updates",
+    "s12_text": "Email: <a href=\"mailto:info@yogabible.dk\">info@yogabible.dk</a> · Phone: <a href=\"tel:+4553881209\">+45 53 88 12 09</a><br>Complaints: Internal resolution first; right to complain to the Danish Data Protection Agency (Datatilsynet).<br>This policy is updated as needed; the latest version is always available on the website."
+  }
+}

@@ -12,6 +12,13 @@
   status = 301
   force = true
 
+# Redirect old en subdomain to /en/ path prefix (301)
+[[redirects]]
+  from = "https://en.yogabible.dk/*"
+  to = "https://yogabible.dk/en/:splat"
+  status = 301
+  force = true
+
 # Legacy Squarespace URL redirects (301)
 [[redirects]]
   from = "/yoga-glossory"

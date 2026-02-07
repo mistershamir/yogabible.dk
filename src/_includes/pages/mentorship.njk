@@ -1,0 +1,284 @@
+{% set t = i18n.mentorship[lang or "da"] %}
+
+<!-- Hero -->
+<section class="program-hero">
+  <div class="container">
+    <div class="program-hero__badge">{{ t.hero_badge }}</div>
+    <h1 class="program-hero__title">{{ t.hero_title }}</h1>
+    <p class="program-hero__subtitle">{{ t.hero_subtitle }}</p>
+
+    <div class="program-hero__meta">
+      <div class="program-hero__meta-item">
+        {{ t.hero_meta }}
+      </div>
+    </div>
+
+    <div class="program-hero__cta">
+      <a href="#yb-intake" class="btn btn--large btn--primary">{{ t.hero_cta }}</a>
+    </div>
+  </div>
+</section>
+
+<!-- Three Services -->
+<section class="program-overview">
+  <div class="container">
+    <h2 class="section-title">{{ t.services_title }}</h2>
+
+    <div class="program-grid">
+      <div class="program-feature">
+        <div class="program-feature__icon">🧘</div>
+        <h3>{{ t.svc1_title }}</h3>
+        <p>{{ t.svc1_desc }}</p>
+        <ul style="text-align:left; margin-top:12px; font-size:0.9rem;">
+          {% for item in t.svc1_items.split("|") %}
+          <li>{{ item }}</li>
+          {% endfor %}
+        </ul>
+      </div>
+
+      <div class="program-feature">
+        <div class="program-feature__icon">🎓</div>
+        <h3>{{ t.svc2_title }}</h3>
+        <p>{{ t.svc2_desc }}</p>
+        <ul style="text-align:left; margin-top:12px; font-size:0.9rem;">
+          {% for item in t.svc2_items.split("|") %}
+          <li>{{ item }}</li>
+          {% endfor %}
+        </ul>
+      </div>
+
+      <div class="program-feature">
+        <div class="program-feature__icon">💼</div>
+        <h3>{{ t.svc3_title }}</h3>
+        <p>{{ t.svc3_desc }}</p>
+        <ul style="text-align:left; margin-top:12px; font-size:0.9rem;">
+          {% for item in t.svc3_items.split("|") %}
+          <li>{{ item }}</li>
+          {% endfor %}
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Key Attributes -->
+<section class="program-schedule">
+  <div class="container">
+    <h2 class="section-title">{{ t.format_title }}</h2>
+
+    <div class="schedule-options">
+      <div class="schedule-card">
+        <h3>{{ t.format_studio_title }}</h3>
+        <ul>
+          {% for item in t.format_studio_items.split("|") %}
+          <li>{{ item }}</li>
+          {% endfor %}
+        </ul>
+      </div>
+      <div class="schedule-card">
+        <h3>{{ t.format_online_title }}</h3>
+        <ul>
+          {% for item in t.format_online_items.split("|") %}
+          <li>{{ item }}</li>
+          {% endfor %}
+        </ul>
+      </div>
+    </div>
+
+    <div class="schedule-cta" style="margin-top:32px; text-align:center;">
+      <p style="margin-bottom:16px;">{{ t.format_note }}</p>
+    </div>
+  </div>
+</section>
+
+<!-- Intake Form -->
+<section class="program-investment" id="yb-intake">
+  <div class="container">
+    <h2 class="section-title">{{ t.intake_title }}</h2>
+    <p class="section-subtitle">{{ t.intake_subtitle }}</p>
+
+    <div class="investment-box" style="max-width:640px; margin:0 auto;">
+      <form id="ybIntakeForm" novalidate
+        data-msg-error="{{ t.intake_error_required }}"
+        data-msg-sending="{{ t.intake_js_sending }}"
+        data-msg-submit="{{ t.intake_submit }}">
+        <input class="yb-modal-u__hp" type="text" name="website" tabindex="-1" autocomplete="off" aria-hidden="true" style="position:absolute;left:-9999px">
+        <input type="hidden" name="sourceUrl" id="ybIntakeSource">
+        <input type="hidden" name="pageTitle" id="ybIntakeTitle">
+
+        <div class="yb-modal-u__grid">
+          <label class="yb-modal-u__field">
+            <span>{{ t.intake_firstname }}</span>
+            <input type="text" name="firstName" required autocomplete="given-name">
+          </label>
+          <label class="yb-modal-u__field">
+            <span>{{ t.intake_lastname }}</span>
+            <input type="text" name="lastName" required autocomplete="family-name">
+          </label>
+          <label class="yb-modal-u__field">
+            <span>{{ t.intake_phone }}</span>
+            <input type="tel" name="phone" required autocomplete="tel">
+          </label>
+          <label class="yb-modal-u__field">
+            <span>{{ t.intake_email }}</span>
+            <input type="email" name="email" required autocomplete="email">
+          </label>
+        </div>
+
+        <label class="yb-modal-u__field">
+          <span>{{ t.intake_service }}</span>
+          <select name="service" id="ybIntakeService" required>
+            <option value="" disabled selected>{{ t.intake_service_placeholder }}</option>
+            <option value="Personlig praksis">{{ t.intake_service_practice }}</option>
+            <option value="Undervisning">{{ t.intake_service_teaching }}</option>
+            <option value="Yoga Business">{{ t.intake_service_business }}</option>
+            <option value="Ikke sikker endnu">{{ t.intake_service_unsure }}</option>
+          </select>
+        </label>
+
+        <div id="ybIntakeSubs" style="margin-top:12px;" hidden>
+          <p style="margin-bottom:8px; font-weight:600;">{{ t.intake_focus_label }}</p>
+          <div id="ybIntakeSubList" class="yb-apply-radio-group"></div>
+        </div>
+
+        <label class="yb-modal-u__field" style="margin-top:16px;">
+          <span>{{ t.intake_message_label }}</span>
+          <textarea name="message" rows="3" placeholder="{{ t.intake_message_placeholder }}"></textarea>
+        </label>
+
+        <p id="ybIntakeError" class="yb-modal-u__error" hidden></p>
+        <button id="ybIntakeSubmit" class="yb-btn yb-btn--cta" type="submit">{{ t.intake_submit }}</button>
+      </form>
+
+      <div id="ybIntakeSuccess" class="yb-modal-u__success" hidden role="status" aria-live="polite">
+        <div class="yb-modal-u__success-icon">&#10003;</div>
+        <h3>{{ t.intake_success_title }}</h3>
+        <p>{{ t.intake_success_p1 }}</p>
+        <p>{{ t.intake_success_p2 | safe }}</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FAQ -->
+<section class="program-faq">
+  <div class="container">
+    <h2 class="section-title">{{ t.faq_title }}</h2>
+
+    <div class="faq-list">
+      <details class="faq-item">
+        <summary>{{ t.faq1_q }}</summary>
+        <p>{{ t.faq1_a }}</p>
+      </details>
+
+      <details class="faq-item">
+        <summary>{{ t.faq2_q }}</summary>
+        <p>{{ t.faq2_a }}</p>
+      </details>
+
+      <details class="faq-item">
+        <summary>{{ t.faq3_q }}</summary>
+        <p>{{ t.faq3_a }}</p>
+      </details>
+
+      <details class="faq-item">
+        <summary>{{ t.faq4_q }}</summary>
+        <p>{{ t.faq4_a }}</p>
+      </details>
+
+      <details class="faq-item">
+        <summary>{{ t.faq5_q }}</summary>
+        <p>{{ t.faq5_a }}</p>
+      </details>
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+<section class="cta-section">
+  <div class="container">
+    <h2 class="cta-section__title">{{ t.cta_title }}</h2>
+    <p class="cta-section__text">{{ t.cta_text }}</p>
+    <a href="#yb-intake" class="btn btn--large btn--primary">{{ t.cta_btn }}</a>
+  </div>
+</section>
+
+<script>
+(function() {
+  'use strict';
+  var FORM_URL = 'https://script.google.com/macros/s/AKfycbyhs4bfPcvcqaJRTmAlPTFf_uIOkFatZviKKO20nckBfGi78JqkNzy4FNpWztl7nQsSAA/exec';
+
+  var SUBS = {
+    'Personlig praksis': ['Basis & alignment', 'Dybere stillinger (inversions / backbends / splits)', 'Mobilitet (skuldre / hofter / ryg)', 'Hands-on justeringer (valgfrit)', 'Åndedræt & fokus', 'Andet'],
+    'Undervisning': ['Cueing & sprog', 'Stemme & presence', 'Selvtillid & læreridentitet', 'Sekvensering & klasseflow', 'Hands-on (etik & sikkerhed)', 'Klassepsykologi & energi', 'At blive mere efterspurgt', 'Andet'],
+    'Yoga Business': ['Find job (CV / auditions)', 'Start studio / forretning', 'Lokation & lejekontrakt', 'Pris & pakker', 'Staff & drift', 'Booking-systemer', 'Marketing & strategi', 'SoMe / reels', 'YouTube / online kurser', 'Merch / brand', 'Tech / workflow', 'Andet'],
+    'Ikke sikker endnu': ['Jeg er ikke sikker endnu (vi afklarer sammen)']
+  };
+
+  var form = document.getElementById('ybIntakeForm');
+  var serviceSelect = document.getElementById('ybIntakeService');
+  var subsWrap = document.getElementById('ybIntakeSubs');
+  var subList = document.getElementById('ybIntakeSubList');
+  var errBox = document.getElementById('ybIntakeError');
+  var successBox = document.getElementById('ybIntakeSuccess');
+  var submitBtn = document.getElementById('ybIntakeSubmit');
+  var srcField = document.getElementById('ybIntakeSource');
+  var titleField = document.getElementById('ybIntakeTitle');
+
+  if (!form) return;
+
+  var MSG_ERROR = form.getAttribute('data-msg-error') || 'Udfyld venligst alle påkrævede felter.';
+  var MSG_SENDING = form.getAttribute('data-msg-sending') || 'Sender\u2026';
+  var MSG_SUBMIT = form.getAttribute('data-msg-submit') || 'Send forespørgsel';
+
+  if (srcField) srcField.value = window.location.href;
+  if (titleField) titleField.value = document.title;
+
+  serviceSelect.addEventListener('change', function() {
+    var items = SUBS[this.value];
+    if (!items) { subsWrap.hidden = true; return; }
+    subList.innerHTML = '';
+    items.forEach(function(item) {
+      var label = document.createElement('label');
+      label.className = 'yb-apply-checkbox';
+      label.innerHTML = '<input type="checkbox" name="subcategory" value="' + item + '"><span>' + item + '</span>';
+      subList.appendChild(label);
+    });
+    subsWrap.hidden = false;
+  });
+
+  form.addEventListener('submit', function(e) {
+    e.preventDefault();
+    if (errBox) errBox.hidden = true;
+
+    var hp = form.querySelector('[name="website"]');
+    if (hp && hp.value) return;
+
+    if (!form.checkValidity()) {
+      errBox.textContent = MSG_ERROR;
+      errBox.hidden = false;
+      return;
+    }
+
+    submitBtn.disabled = true;
+    submitBtn.textContent = MSG_SENDING;
+
+    var data = new FormData(form);
+    data.append('action', 'mentorship-intake');
+    data.append('submittedAt', new Date().toISOString());
+    data.append('userAgent', navigator.userAgent);
+
+    var subs = [];
+    form.querySelectorAll('input[name="subcategory"]:checked').forEach(function(c) { subs.push(c.value); });
+    data.append('subcategories', subs.join(', '));
+
+    fetch(FORM_URL, { method: 'POST', body: data, mode: 'no-cors' })
+    .finally(function() {
+      submitBtn.disabled = false;
+      submitBtn.textContent = MSG_SUBMIT;
+      form.hidden = true;
+      successBox.hidden = false;
+    });
+  });
+})();
+</script>

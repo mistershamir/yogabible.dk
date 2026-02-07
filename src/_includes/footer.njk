@@ -1,3 +1,6 @@
+{% set tc = i18n.common[lang or "da"] %}
+{% set lp = "/en" if lang == "en" else "" %}
+
 <footer class="yb-footer" role="contentinfo">
   <div class="yb-footer-inner">
     <!-- TOP: COLUMNS / CARDS -->
@@ -6,40 +9,40 @@
         <!-- CARD 1: YOGA BIBLE SITES -->
         <section class="yb-col">
           <button class="yb-col-header" type="button">
-            <span class="yb-col-title">YOGA BIBLE SINCE 2014</span>
+            <span class="yb-col-title">{{ tc.footer_col1_title }}</span>
             <span class="yb-col-toggle" aria-hidden="true">▾</span>
           </button>
           <div class="yb-col-body">
             <div class="yb-site-block">
-              <a class="yb-footer-link" href="https://www.yogabible.dk">YOGA BIBLE DANMARK</a>
-              <div class="yb-site-sub">LOKALE UDDANNELSER OG FORLØB</div>
+              <a class="yb-footer-link" href="https://www.yogabible.dk{{ lp }}/">{{ tc.footer_dk_name }}</a>
+              <div class="yb-site-sub">{{ tc.footer_dk_sub }}</div>
               <a class="yb-site-email" href="mailto:info@yogabible.dk">INFO@YOGABIBLE.DK</a>
             </div>
             <div class="yb-site-block">
-              <a class="yb-footer-link" href="https://www.yogabible.com" target="_blank" rel="noopener">YOGA BIBLE INTERNATIONAL</a>
-              <div class="yb-site-sub">ONLINE UDDANNELSER OG FORLØB TIL DET INTERNATIONALE FÆLLESSKAB — LANCERES 2027</div>
+              <a class="yb-footer-link" href="https://www.yogabible.com" target="_blank" rel="noopener">{{ tc.footer_int_name }}</a>
+              <div class="yb-site-sub">{{ tc.footer_int_sub }}</div>
               <a class="yb-site-email" href="mailto:info@yogabible.com">INFO@YOGABIBLE.COM</a>
             </div>
           </div>
         </section>
 
-        <!-- CARD 2: YOGA BIBLE - DK (formerly VIRKSOMHED) -->
+        <!-- CARD 2: YOGA BIBLE - DK -->
         <section class="yb-col">
           <button class="yb-col-header" type="button">
-            <span class="yb-col-title">YOGA BIBLE - DK</span>
+            <span class="yb-col-title">{{ tc.footer_col2_title }}</span>
             <span class="yb-col-toggle" aria-hidden="true">▾</span>
           </button>
           <div class="yb-col-body">
-            <a class="yb-footer-link" href="https://www.yogabible.dk/yoga-bible-historie">OM OS</a>
-            <a class="yb-footer-link" href="/about-copenhagen">ABOUT COPENHAGEN</a>
-            <a class="yb-footer-link" href="/accommodation">BOLIG TIL KURSISTER</a>
-            <a class="yb-footer-link" href="/weekly-schedule">UGENTLIGT KLASSESKEMA</a>
-            <a class="yb-footer-link" href="/careers">KARRIERE</a>
-            <a class="yb-footer-link" href="/terms-conditions">HANDELSBETINGELSER</a>
-            <a class="yb-footer-link" href="/privacy-policy">PRIVATLIVSPOLITIK</a>
-            <a class="yb-footer-link" href="#" data-yb-cookie-settings>COOKIEINDSTILLINGER</a>
-            <a class="yb-footer-link" href="/code-of-conduct">CODE OF CONDUCT</a>
-            <a class="yb-footer-link" href="https://www.yogabible.dk/kontakt">KONTAKT OS</a>
+            <a class="yb-footer-link" href="{{ lp }}/yoga-bible-historie">{{ tc.footer_about }}</a>
+            <a class="yb-footer-link" href="{{ lp }}/about-copenhagen">{{ tc.footer_copenhagen }}</a>
+            <a class="yb-footer-link" href="{{ lp }}/accommodation">{{ tc.footer_accommodation }}</a>
+            <a class="yb-footer-link" href="{{ lp }}/weekly-schedule">{{ tc.footer_schedule }}</a>
+            <a class="yb-footer-link" href="{{ lp }}/careers">{{ tc.footer_careers }}</a>
+            <a class="yb-footer-link" href="{{ lp }}/terms-conditions">{{ tc.footer_terms }}</a>
+            <a class="yb-footer-link" href="{{ lp }}/privacy-policy">{{ tc.footer_privacy }}</a>
+            <a class="yb-footer-link" href="#" data-yb-cookie-settings>{{ tc.footer_cookies }}</a>
+            <a class="yb-footer-link" href="{{ lp }}/code-of-conduct">{{ tc.footer_conduct }}</a>
+            <a class="yb-footer-link" href="{{ lp }}/kontakt">{{ tc.footer_contact }}</a>
             <div class="yb-contact-meta">
               <a class="yb-contact-link" href="https://www.google.com/maps/search/?api=1&amp;query=Torvegade%2066%2C%201400%20K%C3%B8benhavn%20K" target="_blank" rel="noopener">TORVEGADE 66, 1400 KØBENHAVN K</a>
               <a class="yb-contact-link" href="tel:+4553881209">+45 53 88 12 09</a>
@@ -54,39 +57,39 @@
         <!-- CARD 3: EDUCATIONS & COURSES -->
         <section class="yb-col">
           <button class="yb-col-header" type="button">
-            <span class="yb-col-title">UDDANNELSER &amp; KURSER</span>
+            <span class="yb-col-title">{{ tc.footer_col3_title }}</span>
             <span class="yb-col-toggle" aria-hidden="true">▾</span>
           </button>
           <div class="yb-col-body">
-            <a class="yb-footer-link" href="https://www.yogabible.dk/200-hours-18-weeks-flexible-programs">200 TIMER – 18 UGERS FLEKSIBEL YOGALÆRERUDDANNELSE</a>
-            <a class="yb-footer-link" href="https://www.yogabible.dk/200-hours-4-weeks-intensive-programs">200 TIMER – 4 UGERS INTENSIV YOGALÆRERUDDANNELSE</a>
-            <a class="yb-footer-link" href="https://www.yogabible.dk/om-200hrs-yogalreruddannelser">OM 200-TIMERS YOGALÆRERUDDANNELSER</a>
-            <a class="yb-footer-link" href="https://www.yogabible.dk/inversions">INVERSIONS KURSUS</a>
-            <a class="yb-footer-link" href="https://www.yogabible.dk/splits">SPLITS KURSUS</a>
-            <a class="yb-footer-link" href="https://www.yogabible.dk/backbends">BACKBENDS KURSUS</a>
-            <a class="yb-footer-link" href="https://www.yogabible.dk/course-bundles">KURSUS BUNDLES</a>
+            <a class="yb-footer-link" href="{{ lp }}/200-hours-18-weeks-flexible-programs">{{ tc.footer_18week }}</a>
+            <a class="yb-footer-link" href="{{ lp }}/200-hours-4-weeks-intensive-programs">{{ tc.footer_4week }}</a>
+            <a class="yb-footer-link" href="{{ lp }}/om-200hrs-yogalreruddannelser">{{ tc.footer_about200 }}</a>
+            <a class="yb-footer-link" href="{{ lp }}/inversions">{{ tc.footer_inversions }}</a>
+            <a class="yb-footer-link" href="{{ lp }}/splits">{{ tc.footer_splits }}</a>
+            <a class="yb-footer-link" href="{{ lp }}/backbends">{{ tc.footer_backbends }}</a>
+            <a class="yb-footer-link" href="{{ lp }}/course-bundles">{{ tc.footer_bundles }}</a>
           </div>
         </section>
 
         <!-- CARD 4: MORE FROM YOGA BIBLE -->
         <section class="yb-col">
           <button class="yb-col-header" type="button">
-            <span class="yb-col-title">MERE FRA YOGA BIBLE</span>
+            <span class="yb-col-title">{{ tc.footer_col4_title }}</span>
             <span class="yb-col-toggle" aria-hidden="true">▾</span>
           </button>
           <div class="yb-col-body">
-            <a class="yb-footer-link" href="https://www.yogabible.dk/yogaphotography">YOGA FOTOGRAFI</a>
-            <a class="yb-footer-link" href="https://www.yogabible.dk/yogamusic">YOGA MUSIK</a>
-            <a class="yb-footer-link" href="https://www.yogabible.dk/mentorship-private-training">MENTORSHIP &amp; PRIVAT TRÆNING</a>
-            <a class="yb-footer-link" href="https://www.yogabible.dk/glossary">YOGA ORDBOG</a>
-            <a class="yb-footer-link" href="/yoga-journal">YOGA JOURNAL</a>
+            <a class="yb-footer-link" href="{{ lp }}/yogaphotography">{{ tc.footer_photo }}</a>
+            <a class="yb-footer-link" href="{{ lp }}/yogamusic">{{ tc.footer_music }}</a>
+            <a class="yb-footer-link" href="{{ lp }}/mentorship-private-training">{{ tc.footer_mentorship }}</a>
+            <a class="yb-footer-link" href="{{ lp }}/yoga-glossary">{{ tc.footer_glossary }}</a>
+            <a class="yb-footer-link" href="{{ lp }}/yoga-journal">{{ tc.footer_journal }}</a>
           </div>
         </section>
 
         <!-- CARD 5: BRANDS & SOCIALS -->
         <section class="yb-col">
           <button class="yb-col-header" type="button">
-            <span class="yb-col-title">BRANDS &amp; SOCIALE MEDIER</span>
+            <span class="yb-col-title">{{ tc.footer_col5_title }}</span>
             <span class="yb-col-toggle" aria-hidden="true">▾</span>
           </button>
           <div class="yb-col-body">
@@ -104,11 +107,11 @@
     <!-- BOTTOM: META + BIG LOGO -->
     <div class="yb-footer-bottom">
       <div class="yb-footer-meta">
-        <span class="yb-meta-item">COPYRIGHT © 2026</span>
+        <span class="yb-meta-item">{{ tc.footer_copyright }}</span>
         <div class="yb-footer-lang" role="navigation" aria-label="Language selector">
-          <a class="yb-footer-lang__btn is-active" data-lang="da" href="https://www.yogabible.dk/" aria-label="Dansk" title="Dansk">🇩🇰 Dansk</a>
+          <a class="yb-footer-lang__btn{% if lang != 'en' %} is-active{% endif %}" data-lang="da" href="/" aria-label="Dansk" title="Dansk">🇩🇰 {{ tc.footer_lang_da }}</a>
           <span class="yb-footer-lang__sep" aria-hidden="true">·</span>
-          <a class="yb-footer-lang__btn" data-lang="en" href="https://en.yogabible.dk/" aria-label="English" title="English">🇬🇧 English</a>
+          <a class="yb-footer-lang__btn{% if lang == 'en' %} is-active{% endif %}" data-lang="en" href="/en/" aria-label="English" title="English">🇬🇧 {{ tc.footer_lang_en }}</a>
         </div>
       </div>
       <div class="yb-footer-mark">

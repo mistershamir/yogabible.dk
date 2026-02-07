@@ -1,0 +1,231 @@
+{% set t = i18n.p8w[lang or "da"] %}
+
+<!-- Program Hero -->
+<section class="program-hero">
+  <div class="container">
+    <div class="program-hero__badge">{{ t.hero_badge }}</div>
+    <h1 class="program-hero__title">{{ t.hero_title }}</h1>
+    <p class="program-hero__subtitle">{{ t.hero_subtitle }}</p>
+
+    <div class="program-hero__meta">
+      <div class="program-hero__meta-item">
+        <strong>{{ t.meta_start_label }}</strong> {{ t.meta_start_val }}
+      </div>
+      <div class="program-hero__meta-item">
+        <strong>{{ t.meta_format_label }}</strong> {{ t.meta_format_val }}
+      </div>
+      <div class="program-hero__meta-item">
+        <strong>{{ t.meta_cert_label }}</strong> {{ t.meta_cert_val }}
+      </div>
+    </div>
+
+    <div class="program-hero__cta">
+      <button onclick="openYBScheduleModal('8w')" class="btn btn--large btn--primary">{{ t.hero_cta_schedule }}</button>
+      <a href="#program-details" class="btn btn--large btn--secondary">{{ t.hero_cta_more }}</a>
+    </div>
+  </div>
+</section>
+
+<!-- Program Overview -->
+<section class="program-overview" id="program-details">
+  <div class="container">
+    <h2 class="section-title">{{ t.overview_title }}</h2>
+
+    <div class="program-grid">
+      <div class="program-feature">
+        <div class="program-feature__icon">📅</div>
+        <h3>{{ t.feat1_title }}</h3>
+        <p>{{ t.feat1_desc }}</p>
+      </div>
+
+      <div class="program-feature">
+        <div class="program-feature__icon">🧘</div>
+        <h3>{{ t.feat2_title }}</h3>
+        <p>{{ t.feat2_desc }}</p>
+      </div>
+
+      <div class="program-feature">
+        <div class="program-feature__icon">📚</div>
+        <h3>{{ t.feat3_title }}</h3>
+        <p>{{ t.feat3_desc }}</p>
+      </div>
+
+      <div class="program-feature">
+        <div class="program-feature__icon">👥</div>
+        <h3>{{ t.feat4_title }}</h3>
+        <p>{{ t.feat4_desc }}</p>
+      </div>
+
+      <div class="program-feature">
+        <div class="program-feature__icon">🎓</div>
+        <h3>{{ t.feat5_title }}</h3>
+        <p>{{ t.feat5_desc }}</p>
+      </div>
+
+      <div class="program-feature">
+        <div class="program-feature__icon">💪</div>
+        <h3>{{ t.feat6_title }}</h3>
+        <p>{{ t.feat6_desc }}</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Schedule & Format -->
+<section class="program-schedule">
+  <div class="container">
+    <h2 class="section-title">{{ t.schedule_title }}</h2>
+
+    <div class="schedule-options">
+      <div class="schedule-card">
+        <h3>{{ t.sched1_title }}</h3>
+        <div class="schedule-card__time">{{ t.sched1_time }}</div>
+        <ul>
+          <li>{{ t.sched1_item1 }}</li>
+          <li>{{ t.sched1_item2 }}</li>
+          <li>{{ t.sched1_item3 }}</li>
+          <li>{{ t.sched1_item4 }}</li>
+        </ul>
+      </div>
+
+      <div class="schedule-card">
+        <h3>{{ t.sched2_title }}</h3>
+        <div class="schedule-card__time">{{ t.sched2_time }}</div>
+        <ul>
+          <li>{{ t.sched2_item1 }}</li>
+          <li>{{ t.sched2_item2 }}</li>
+          <li>{{ t.sched2_item3 }}</li>
+          <li>{{ t.sched2_item4 }}</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="schedule-cta">
+      <button onclick="openYBScheduleModal('8w')" class="btn btn--primary">{{ t.schedule_cta }}</button>
+    </div>
+  </div>
+</section>
+
+<!-- Curriculum -->
+<section class="program-curriculum">
+  <div class="container">
+    <h2 class="section-title">{{ t.curriculum_title }}</h2>
+
+    <div class="curriculum-grid">
+      <div class="curriculum-module">
+        <h3>{{ t.curr1_title }}</h3>
+        <p>{{ t.curr1_desc }}</p>
+      </div>
+
+      <div class="curriculum-module">
+        <h3>{{ t.curr2_title }}</h3>
+        <p>{{ t.curr2_desc }}</p>
+      </div>
+
+      <div class="curriculum-module">
+        <h3>{{ t.curr3_title }}</h3>
+        <p>{{ t.curr3_desc }}</p>
+      </div>
+
+      <div class="curriculum-module">
+        <h3>{{ t.curr4_title }}</h3>
+        <p>{{ t.curr4_desc }}</p>
+      </div>
+
+      <div class="curriculum-module">
+        <h3>{{ t.curr5_title }}</h3>
+        <p>{{ t.curr5_desc }}</p>
+      </div>
+
+      <div class="curriculum-module">
+        <h3>{{ t.curr6_title }}</h3>
+        <p>{{ t.curr6_desc }}</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Investment -->
+<section class="program-investment">
+  <div class="container">
+    <h2 class="section-title">{{ t.invest_title }}</h2>
+
+    <div class="investment-box">
+      <div class="investment-price">
+        <span class="investment-price__amount">{{ t.invest_amount }}</span>
+        <span class="investment-price__label">{{ t.invest_label }}</span>
+      </div>
+
+      <div class="investment-includes">
+        <h4>{{ t.invest_incl_title }}</h4>
+        <ul>
+          <li>{{ t.invest_incl1 }}</li>
+          <li>{{ t.invest_incl2 }}</li>
+          <li>{{ t.invest_incl3 }}</li>
+          <li>{{ t.invest_incl4 }}</li>
+          <li>{{ t.invest_incl5 }}</li>
+          <li>{{ t.invest_incl6 }}</li>
+        </ul>
+      </div>
+
+      <div class="investment-payment">
+        <p><strong>{{ t.invest_payment_title }}</strong></p>
+        <ul>
+          <li>{{ t.invest_pay1 }}</li>
+          <li>{{ t.invest_pay2 }}</li>
+          <li>{{ t.invest_pay3 }}</li>
+        </ul>
+      </div>
+
+      <button onclick="openYBScheduleModal('8w')" class="btn btn--large btn--primary">{{ t.invest_cta }}</button>
+    </div>
+  </div>
+</section>
+
+<!-- FAQ -->
+<section class="program-faq">
+  <div class="container">
+    <h2 class="section-title">{{ t.faq_title }}</h2>
+
+    <div class="faq-list">
+      <details class="faq-item">
+        <summary>{{ t.faq1_q }}</summary>
+        <p>{{ t.faq1_a }}</p>
+      </details>
+
+      <details class="faq-item">
+        <summary>{{ t.faq2_q }}</summary>
+        <p>{{ t.faq2_a }}</p>
+      </details>
+
+      <details class="faq-item">
+        <summary>{{ t.faq3_q }}</summary>
+        <p>{{ t.faq3_a }}</p>
+      </details>
+
+      <details class="faq-item">
+        <summary>{{ t.faq4_q }}</summary>
+        <p>{{ t.faq4_a }}</p>
+      </details>
+
+      <details class="faq-item">
+        <summary>{{ t.faq5_q }}</summary>
+        <p>{{ t.faq5_a }}</p>
+      </details>
+
+      <details class="faq-item">
+        <summary>{{ t.faq6_q }}</summary>
+        <p>{{ t.faq6_a }}</p>
+      </details>
+    </div>
+  </div>
+</section>
+
+<!-- Final CTA -->
+<section class="cta-section">
+  <div class="container">
+    <h2 class="cta-section__title">{{ t.final_cta_title }}</h2>
+    <p class="cta-section__text">{{ t.final_cta_text }}</p>
+    <button onclick="openYBScheduleModal('8w')" class="btn btn--large btn--primary">{{ t.final_cta_button }}</button>
+  </div>
+</section>

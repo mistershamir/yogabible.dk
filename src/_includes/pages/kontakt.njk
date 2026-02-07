@@ -1,0 +1,194 @@
+{% set t = i18n.kontakt[lang or "da"] %}
+
+<!-- Contact Hero -->
+<section class="program-hero">
+  <div class="container">
+    <h1 class="program-hero__title">{{ t.hero_title }}</h1>
+    <p class="program-hero__subtitle">
+      {{ t.hero_subtitle }}
+    </p>
+
+    <div class="program-hero__meta">
+      <div class="program-hero__meta-item">
+        <strong>{{ t.meta_phone_label }}</strong> <a href="tel:+4553881209">+45 53 88 12 09</a>
+      </div>
+      <div class="program-hero__meta-item">
+        <strong>{{ t.meta_email_label }}</strong> <a href="mailto:{{ site.email }}">{{ site.email }}</a>
+      </div>
+      <div class="program-hero__meta-item">
+        <strong>{{ t.meta_address_label }}</strong> <a href="https://maps.apple.com/?q=Torvegade%2066,%201400,%20K%C3%B8benhavn%20K" target="_blank" rel="noopener">Torvegade 66, 1400 København K</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Contact Info -->
+<section class="program-overview">
+  <div class="container">
+    <p class="section-subtitle">
+      {{ t.overview_text }}
+    </p>
+  </div>
+</section>
+
+<!-- Contact Form -->
+<section class="program-schedule">
+  <div class="container">
+    <h2 class="section-title">{{ t.form_title }}</h2>
+
+    <div class="yb-contact-form-wrap">
+      <form id="ybForm" class="yb-contact-form" novalidate
+        data-msg-antispam="{{ t.js_antispam_error }}"
+        data-msg-wait="{{ t.js_wait_error }}"
+        data-msg-sending="{{ t.js_sending }}"
+        data-msg-submit="{{ t.submit_btn }}">
+        <input class="yb-modal-u__hp" type="text" name="website" tabindex="-1" autocomplete="off" aria-hidden="true" style="position:absolute;left:-9999px">
+        <input type="hidden" name="yb_ts" id="ybTs">
+        <input type="hidden" name="yb_elapsed" id="ybElapsed">
+
+        <div class="yb-modal-u__grid">
+          <label class="yb-modal-u__field">
+            <span>{{ t.label_firstname }}</span>
+            <input type="text" name="firstName" id="ybFirstName" required>
+          </label>
+
+          <label class="yb-modal-u__field">
+            <span>{{ t.label_lastname }}</span>
+            <input type="text" name="lastName" id="ybLastName" required>
+          </label>
+
+          <label class="yb-modal-u__field">
+            <span>{{ t.label_email }}</span>
+            <input type="email" name="email" id="ybEmail" required>
+          </label>
+
+          <label class="yb-modal-u__field">
+            <span>{{ t.label_phone }}</span>
+            <input type="tel" name="phone" id="ybPhone" required>
+          </label>
+        </div>
+
+        <label class="yb-modal-u__field">
+          <span>{{ t.label_topic }}</span>
+          <select name="topic" id="ybTopic" required>
+            <option value="">{{ t.topic_placeholder }}</option>
+            <option value="generel">{{ t.topic_general }}</option>
+            <option value="uddannelse">{{ t.topic_education }}</option>
+            <option value="kursus">{{ t.topic_course }}</option>
+            <option value="indkvartering">{{ t.topic_accommodation }}</option>
+            <option value="job">{{ t.topic_job }}</option>
+          </select>
+        </label>
+
+        <label class="yb-modal-u__field">
+          <span>{{ t.label_antispam }}</span>
+          <input type="text" name="antispam" id="ybAntispam" required autocomplete="off">
+        </label>
+
+        <label class="yb-modal-u__field">
+          <span>{{ t.label_message }}</span>
+          <textarea name="message" id="ybMessage" rows="5" required></textarea>
+        </label>
+
+        <p class="yb-modal-u__fine">{{ t.required_note }}</p>
+
+        <p id="ybFormError" class="yb-modal-u__error" hidden></p>
+
+        <button id="ybSubmitBtn" class="yb-btn yb-btn--cta" type="submit">{{ t.submit_btn }}</button>
+      </form>
+
+      <div id="ybFormSuccess" class="yb-modal-u__success" hidden role="status" aria-live="polite">
+        <div class="yb-modal-u__success-icon">&#10003;</div>
+        <h3>{{ t.success_title }}</h3>
+        <p>{{ t.success_message }}</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Find Us -->
+<section class="program-overview">
+  <div class="container">
+    <h2 class="section-title">{{ t.findus_title }}</h2>
+    <div class="schedule-options">
+      <div class="schedule-card" style="text-align:center">
+        <h3>Yoga Bible</h3>
+        <p>
+          <a href="https://maps.apple.com/?q=Torvegade%2066,%201400,%20K%C3%B8benhavn%20K" target="_blank" rel="noopener">
+            Torvegade 66<br>1400 København K
+          </a>
+        </p>
+        <p><a href="tel:+4553881209">+45 53 88 12 09</a></p>
+        <p><a href="mailto:{{ site.email }}">{{ site.email }}</a></p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<script>
+(function() {
+  'use strict';
+  const FORM_URL = 'https://script.google.com/macros/s/AKfycbwQ1re_EuGYRKfa8yDsObFxIL2h9qXudpBZ477tT__CYxVBTgkuao-02iOtr0YvMdEu/exec';
+  const form = document.getElementById('ybForm');
+  const errBox = document.getElementById('ybFormError');
+  const successBox = document.getElementById('ybFormSuccess');
+  const submitBtn = document.getElementById('ybSubmitBtn');
+  const tsField = document.getElementById('ybTs');
+  const elField = document.getElementById('ybElapsed');
+
+  if (!form) return;
+
+  var MSG_ANTISPAM = form.getAttribute('data-msg-antispam') || 'Udfyld venligst anti-spam korrekt (skriv: NAMASTE).';
+  var MSG_WAIT = form.getAttribute('data-msg-wait') || 'Vent venligst et øjeblik og prøv igen.';
+  var MSG_SENDING = form.getAttribute('data-msg-sending') || 'Sender\u2026';
+  var MSG_SUBMIT = form.getAttribute('data-msg-submit') || 'Send henvendelse';
+
+  const loadTime = Date.now();
+  if (tsField) tsField.value = loadTime;
+
+  form.addEventListener('submit', function(e) {
+    e.preventDefault();
+    if (errBox) errBox.hidden = true;
+
+    const elapsed = Date.now() - loadTime;
+    if (elField) elField.value = elapsed;
+
+    // Anti-spam check
+    const antispam = document.getElementById('ybAntispam').value.trim().toUpperCase();
+    if (antispam !== 'NAMASTE') {
+      errBox.textContent = MSG_ANTISPAM;
+      errBox.hidden = false;
+      return;
+    }
+
+    // Time trap (minimum 3 seconds)
+    if (elapsed < 3000) {
+      errBox.textContent = MSG_WAIT;
+      errBox.hidden = false;
+      return;
+    }
+
+    // Honeypot check
+    const hp = form.querySelector('[name="website"]');
+    if (hp && hp.value) return;
+
+    submitBtn.disabled = true;
+    submitBtn.textContent = MSG_SENDING;
+
+    const data = new FormData(form);
+    data.append('action', 'contact');
+
+    fetch(FORM_URL, {
+      method: 'POST',
+      body: data,
+      mode: 'no-cors'
+    })
+    .finally(function() {
+      submitBtn.disabled = false;
+      submitBtn.textContent = MSG_SUBMIT;
+      form.hidden = true;
+      successBox.hidden = false;
+    });
+  });
+})();
+</script>

@@ -36,10 +36,17 @@
 <meta name="yb-gtm-id" content="{{ site.gtmId }}">
 <script>window.dataLayer = window.dataLayer || [];</script>
 
-<!-- hreflang: Danish is primary, English via subdomain -->
-<link rel="alternate" hreflang="da" href="{{ site.url }}{{ page.url }}">
-<link rel="alternate" hreflang="en" href="https://en.yogabible.dk{{ page.url }}">
-<link rel="alternate" hreflang="x-default" href="{{ site.url }}{{ page.url }}">
+<!-- hreflang: Danish is primary, English at /en/ prefix -->
+{% if lang == "en" %}
+{% set daPath = page.url | replace("/en/", "/") %}
+{% set enPath = page.url %}
+{% else %}
+{% set daPath = page.url %}
+{% set enPath = "/en" + page.url %}
+{% endif %}
+<link rel="alternate" hreflang="da" href="{{ site.url }}{{ daPath }}">
+<link rel="alternate" hreflang="en" href="{{ site.url }}{{ enPath }}">
+<link rel="alternate" hreflang="x-default" href="{{ site.url }}{{ daPath }}">
 
 <!-- JSON-LD: Organization (all pages) -->
 <script type="application/ld+json">
@@ -70,7 +77,7 @@
 }
 </script>
 
-{% if page.url == "/" %}
+{% if page.url == "/" or page.url == "/en/" %}
 <!-- JSON-LD: WebSite with SearchAction (homepage only, AEO) -->
 <script type="application/ld+json">
 {
@@ -88,7 +95,9 @@
 </script>
 {% endif %}
 
-{% if page.url == "/om-200hrs-yogalreruddannelser/" or page.url == "/200-hours-18-weeks-flexible-programs/" or page.url == "/200-hours-8-weeks-semi-intensive-programs/" or page.url == "/200-hours-4-weeks-intensive-programs/" %}
+{% set coursePages = ["/om-200hrs-yogalreruddannelser/", "/200-hours-18-weeks-flexible-programs/", "/200-hours-8-weeks-semi-intensive-programs/", "/200-hours-4-weeks-intensive-programs/"] %}
+{% set isCourse = page.url in coursePages or page.url | replace("/en/", "/") in coursePages %}
+{% if isCourse %}
 <!-- JSON-LD: Course (program pages) -->
 <script type="application/ld+json">
 {
@@ -137,7 +146,9 @@
 </script>
 {% endif %}
 
-{% if page.url == "/inversions/" or page.url == "/splits/" or page.url == "/backbends/" %}
+{% set specPages = ["/inversions/", "/splits/", "/backbends/"] %}
+{% set isSpec = page.url in specPages or page.url | replace("/en/", "/") in specPages %}
+{% if isSpec %}
 <!-- JSON-LD: Course (specialty courses) -->
 <script type="application/ld+json">
 {
