@@ -6846,6 +6846,23 @@ section {
   justify-content: center;
 }
 
+/* ── Save Card Checkbox ── */
+.yb-store__save-card {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+  font-size: 0.9rem;
+  color: #6F6A66;
+  margin-top: 0.5rem;
+}
+
+.yb-store__save-card input[type="checkbox"] {
+  accent-color: #f75c03;
+  width: 16px;
+  height: 16px;
+}
+
 /* ── Store Success ── */
 .yb-store__success-inner {
   text-align: center;
