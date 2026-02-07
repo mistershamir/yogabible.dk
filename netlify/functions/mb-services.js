@@ -38,7 +38,7 @@ exports.handler = async function(event) {
     }
 
     if (type === 'products') {
-      var prodData = await mbFetch('/sale/products?limit=200');
+      var prodData = await mbFetch('/sale/products?Limit=200');
       var products = (prodData.Products || []).map(function(p) {
         return {
           id: p.Id,
@@ -54,8 +54,13 @@ exports.handler = async function(event) {
     }
 
     // Default: services (pricing options, packages, etc.)
-    var svcPath = '/sale/services?limit=200';
-    if (params.serviceIds) svcPath += '&ServiceIds=' + params.serviceIds;
+    var svcPath = '/sale/services?Limit=200';
+    if (params.serviceIds) {
+      // Send each ID as a separate repeated param for Mindbody API compatibility
+      params.serviceIds.split(',').forEach(function(id) {
+        svcPath += '&ServiceIds=' + id.trim();
+      });
+    }
     if (params.sellOnline === 'true') svcPath += '&SellOnline=true';
     if (params.serviceCategoryIds) svcPath += '&ServiceCategoryIds=' + params.serviceCategoryIds;
     if (params.programIds) svcPath += '&ProgramIds=' + params.programIds;

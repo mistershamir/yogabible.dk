@@ -27,14 +27,10 @@ exports.handler = async function(event) {
     const endDate = params.endDate || new Date(now.getTime() + 7 * 86400000).toISOString().split('T')[0];
 
     var qsParams = {
-      startDate: startDate,
-      endDate: endDate,
-      limit: '200'
+      StartDate: startDate,
+      EndDate: endDate,
+      Limit: '200'
     };
-    // If clientId provided, check booking status
-    if (params.clientId) {
-      qsParams.clientId = params.clientId;
-    }
 
     const queryString = new URLSearchParams(qsParams).toString();
 

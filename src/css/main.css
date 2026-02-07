@@ -6527,6 +6527,12 @@ section {
   top: 120px;
 }
 
+.yb-profile__avatar-wrap {
+  position: relative;
+  width: 80px;
+  margin: 0 auto 16px;
+}
+
 .yb-profile__avatar {
   width: 80px;
   height: 80px;
@@ -6538,7 +6544,35 @@ section {
   justify-content: center;
   font-size: 1.5rem;
   font-weight: 700;
-  margin: 0 auto 16px;
+  background-size: cover;
+  background-position: center;
+  overflow: hidden;
+}
+
+.yb-profile__avatar.has-photo {
+  background-color: #E8E4E0;
+}
+
+.yb-profile__avatar-edit {
+  position: absolute;
+  bottom: 0;
+  right: -4px;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: #0F0F0F;
+  color: #fff;
+  border: 2px solid #fff;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  transition: background 0.2s;
+}
+
+.yb-profile__avatar-edit:hover {
+  background: var(--yb-brand);
 }
 
 .yb-profile__member-name {

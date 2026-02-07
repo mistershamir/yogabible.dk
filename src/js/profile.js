@@ -28,6 +28,7 @@
     initTabs();
     initStoreForm();
     initScheduleNav();
+    initAvatarUpload(db);
 
     auth.onAuthStateChanged(function(user) {
       if (user) {
@@ -179,6 +180,13 @@
 
       if (d.mindbodyClientId) clientId = d.mindbodyClientId;
 
+      // Load saved profile picture
+      if (d.photoURL && avatarEl) {
+        avatarEl.style.backgroundImage = 'url(' + d.photoURL + ')';
+        avatarEl.textContent = '';
+        avatarEl.classList.add('has-photo');
+      }
+
       var sinceEl = document.getElementById('yb-profile-member-since');
       if (sinceEl && d.createdAt) {
         var date = d.createdAt.toDate ? d.createdAt.toDate() : new Date(d.createdAt);
@@ -229,6 +237,62 @@
             });
         }).catch(function() {});
     });
+  }
+
+  // ══════════════════════════════════════
+  // PROFILE PICTURE
+  // ══════════════════════════════════════
+  function initAvatarUpload(db) {
+    var avatarBtn = document.getElementById('yb-profile-avatar-btn');
+    var avatarInput = document.getElementById('yb-profile-avatar-input');
+    if (!avatarBtn || !avatarInput) return;
+
+    avatarBtn.addEventListener('click', function() { avatarInput.click(); });
+
+    avatarInput.addEventListener('change', function() {
+      var file = this.files && this.files[0];
+      if (!file || !currentUser) return;
+      if (!file.type.startsWith('image/')) return;
+      if (file.size > 10 * 1024 * 1024) { alert(isDa() ? 'Billedet er for stort (maks 10 MB).' : 'Image too large (max 10 MB).'); return; }
+
+      resizeImage(file, 200, function(dataUrl) {
+        // Show immediately
+        var avatarEl = document.getElementById('yb-profile-avatar');
+        if (avatarEl) {
+          avatarEl.style.backgroundImage = 'url(' + dataUrl + ')';
+          avatarEl.textContent = '';
+          avatarEl.classList.add('has-photo');
+        }
+        // Save to Firestore
+        db.collection('users').doc(currentUser.uid).update({
+          photoURL: dataUrl,
+          updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+        }).catch(function(err) { console.warn('Could not save photo:', err); });
+      });
+      // Reset so same file can be re-selected
+      this.value = '';
+    });
+  }
+
+  function resizeImage(file, maxSize, callback) {
+    var reader = new FileReader();
+    reader.onload = function(e) {
+      var img = new Image();
+      img.onload = function() {
+        var canvas = document.createElement('canvas');
+        var w = img.width, h = img.height;
+        // Crop to square from center
+        var side = Math.min(w, h);
+        var sx = (w - side) / 2, sy = (h - side) / 2;
+        canvas.width = maxSize;
+        canvas.height = maxSize;
+        var ctx = canvas.getContext('2d');
+        ctx.drawImage(img, sx, sy, side, side, 0, 0, maxSize, maxSize);
+        callback(canvas.toDataURL('image/jpeg', 0.85));
+      };
+      img.src = e.target.result;
+    };
+    reader.readAsDataURL(file);
   }
 
   // ══════════════════════════════════════
@@ -405,12 +469,13 @@
     listEl.innerHTML = '<div class="yb-store__loading"><div class="yb-mb-spinner"></div><span>' + t('schedule_loading') + '</span></div>';
 
     var now = new Date();
-    var start = new Date(now);
+    // Get Monday of the target week
+    var start = new Date(now.getFullYear(), now.getMonth(), now.getDate());
     start.setDate(start.getDate() + (scheduleWeekOffset * 7));
-    // Align to Monday
     var dayOfWeek = start.getDay();
     var diff = dayOfWeek === 0 ? -6 : 1 - dayOfWeek;
     start.setDate(start.getDate() + diff);
+    // Sunday = end of the week
     var end = new Date(start);
     end.setDate(end.getDate() + 6);
 
