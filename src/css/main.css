@@ -6656,3 +6656,242 @@ section {
     font-size: 1.8rem;
   }
 }
+
+/* ── Profile Tabs ── */
+.yb-profile__tabs {
+  display: flex;
+  gap: 0;
+  border-bottom: 1.5px solid #E8E4E0;
+  margin-bottom: 2rem;
+}
+
+.yb-profile__tab {
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  padding: 0.75rem 1.5rem;
+  font-family: 'Abacaxi', sans-serif;
+  font-size: 1rem;
+  color: #6F6A66;
+  cursor: pointer;
+  transition: color 0.2s, border-color 0.2s;
+  margin-bottom: -1.5px;
+}
+
+.yb-profile__tab:hover {
+  color: #0F0F0F;
+}
+
+.yb-profile__tab.is-active {
+  color: #0F0F0F;
+  border-bottom-color: #f75c03;
+  font-weight: 700;
+}
+
+.yb-profile__tab-panel {
+  display: none;
+}
+
+.yb-profile__tab-panel.is-active {
+  display: block;
+}
+
+/* ── Profile Form 3-column row ── */
+.yb-profile__form-row--3 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+/* ── Online Store ── */
+.yb-store__header {
+  margin-bottom: 2rem;
+}
+
+.yb-store__title {
+  font-family: 'Abacaxi', sans-serif;
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #0F0F0F;
+  margin: 0 0 0.5rem;
+}
+
+.yb-store__subtitle {
+  color: #6F6A66;
+  font-size: 0.95rem;
+  margin: 0;
+}
+
+.yb-store__loading {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  color: #6F6A66;
+  padding: 2rem 0;
+}
+
+.yb-store__empty,
+.yb-store__error {
+  color: #6F6A66;
+  padding: 2rem 0;
+  text-align: center;
+}
+
+.yb-store__error {
+  color: #c0392b;
+}
+
+.yb-store__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 1.25rem;
+}
+
+.yb-store__item {
+  background: #FFFCF9;
+  border: 1.5px solid #E8E4E0;
+  border-radius: 12px;
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  transition: border-color 0.2s;
+}
+
+.yb-store__item:hover {
+  border-color: #f75c03;
+}
+
+.yb-store__item-info {
+  flex: 1;
+}
+
+.yb-store__item-name {
+  font-family: 'Abacaxi', sans-serif;
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #0F0F0F;
+  margin: 0 0 0.5rem;
+}
+
+.yb-store__item-price {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #f75c03;
+}
+
+.yb-store__item-btn {
+  width: 100%;
+}
+
+/* ── Store Checkout ── */
+.yb-store__checkout-inner {
+  background: #FFFCF9;
+  border: 1.5px solid #E8E4E0;
+  border-radius: 12px;
+  padding: 2rem;
+  max-width: 520px;
+}
+
+.yb-store__checkout-title {
+  font-family: 'Abacaxi', sans-serif;
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: #0F0F0F;
+  margin: 0 0 1.5rem;
+}
+
+.yb-store__checkout-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #F5F3F0;
+  border-radius: 8px;
+  padding: 1rem 1.25rem;
+  margin-bottom: 1.5rem;
+}
+
+.yb-store__checkout-item-name {
+  font-weight: 700;
+  color: #0F0F0F;
+}
+
+.yb-store__checkout-item-price {
+  font-weight: 700;
+  color: #f75c03;
+  font-size: 1.1rem;
+}
+
+.yb-store__checkout-actions {
+  display: flex;
+  gap: 0.75rem;
+  margin-top: 1rem;
+}
+
+.yb-store__checkout-actions .yb-auth-submit {
+  flex: 1;
+}
+
+.yb-store__checkout-actions .yb-btn--outline {
+  flex: 0 0 auto;
+}
+
+.yb-store__secure {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: #6F6A66;
+  font-size: 0.8rem;
+  margin-top: 1rem;
+  justify-content: center;
+}
+
+/* ── Store Success ── */
+.yb-store__success-inner {
+  text-align: center;
+  background: #FFFCF9;
+  border: 1.5px solid #E8E4E0;
+  border-radius: 12px;
+  padding: 3rem 2rem;
+  max-width: 480px;
+}
+
+.yb-store__success-inner h3 {
+  font-family: 'Abacaxi', sans-serif;
+  font-size: 1.3rem;
+  margin: 1rem 0 0.5rem;
+  color: #0F0F0F;
+}
+
+.yb-store__success-inner p {
+  color: #6F6A66;
+  margin-bottom: 1.5rem;
+}
+
+/* ── Store Responsive ── */
+@media (max-width: 768px) {
+  .yb-store__grid {
+    grid-template-columns: 1fr;
+  }
+
+  .yb-store__checkout-inner {
+    padding: 1.5rem;
+  }
+
+  .yb-store__checkout-actions {
+    flex-direction: column;
+  }
+
+  .yb-profile__form-row--3 {
+    grid-template-columns: 1fr;
+  }
+
+  .yb-profile__tabs {
+    gap: 0;
+  }
+
+  .yb-profile__tab {
+    padding: 0.6rem 1rem;
+    font-size: 0.9rem;
+  }
+}
