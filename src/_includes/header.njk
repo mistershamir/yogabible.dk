@@ -1,3 +1,5 @@
+{% set lp = "/en" if lang == "en" else "" %}
+
 <!-- Custom Header -->
 <header id="yb-header" class="ybhd-header" role="banner">
   <div class="ybhd-inner">
@@ -17,16 +19,16 @@
               <span data-i18n="edu.200.title">200-timer Yogalæreuddannelse</span>
             </div>
 
-            <a role="menuitem" class="ybhd-dd__item ybhd-dd__item--sub" href="/200-hours-18-weeks-flexible-programs" data-i18n="edu.200.18">
+            <a role="menuitem" class="ybhd-dd__item ybhd-dd__item--sub" href="{{ lp }}/200-hours-18-weeks-flexible-programs" data-i18n="edu.200.18">
               18 ugers fleksibel
             </a>
-            <a role="menuitem" class="ybhd-dd__item ybhd-dd__item--sub" href="/200-hours-8-weeks-semi-intensive-programs" data-i18n="edu.200.8">
+            <a role="menuitem" class="ybhd-dd__item ybhd-dd__item--sub" href="{{ lp }}/200-hours-8-weeks-semi-intensive-programs" data-i18n="edu.200.8">
               8 ugers semi-intensiv
             </a>
-            <a role="menuitem" class="ybhd-dd__item ybhd-dd__item--sub" href="/200-hours-4-weeks-intensive-programs" data-i18n="edu.200.4">
+            <a role="menuitem" class="ybhd-dd__item ybhd-dd__item--sub" href="{{ lp }}/200-hours-4-weeks-intensive-programs" data-i18n="edu.200.4">
               4 ugers intensiv
             </a>
-            <a role="menuitem" class="ybhd-dd__item ybhd-dd__item--sub" href="/om-200hrs-yogalreruddannelser" data-i18n="edu.200.about">
+            <a role="menuitem" class="ybhd-dd__item ybhd-dd__item--sub" href="{{ lp }}/om-200hrs-yogalreruddannelser" data-i18n="edu.200.about">
               Om 200-timers yogalæreruddannelser
             </a>
           </div>
@@ -41,19 +43,19 @@
         </button>
 
         <div class="ybhd-dd__menu" role="menu" aria-label="Courses menu">
-          <a role="menuitem" class="ybhd-dd__item" href="/inversions" data-i18n="courses.inversions">Inversions</a>
-          <a role="menuitem" class="ybhd-dd__item" href="/splits" data-i18n="courses.splits">Splits</a>
-          <a role="menuitem" class="ybhd-dd__item" href="/backbends" data-i18n="courses.backbends">Backbends</a>
-          <a role="menuitem" class="ybhd-dd__item" href="/course-bundles" data-i18n="courses.bundles">Kursus Bundles</a>
+          <a role="menuitem" class="ybhd-dd__item" href="{{ lp }}/inversions" data-i18n="courses.inversions">Inversions</a>
+          <a role="menuitem" class="ybhd-dd__item" href="{{ lp }}/splits" data-i18n="courses.splits">Splits</a>
+          <a role="menuitem" class="ybhd-dd__item" href="{{ lp }}/backbends" data-i18n="courses.backbends">Backbends</a>
+          <a role="menuitem" class="ybhd-dd__item" href="{{ lp }}/course-bundles" data-i18n="courses.bundles">Kursus Bundles</a>
         </div>
       </div>
 
       <!-- Mentorship -->
-      <a class="ybhd-link" href="/mentorship-private-training" data-i18n="nav.mentorship">Mentorship &amp; Privat Træning</a>
+      <a class="ybhd-link" href="{{ lp }}/mentorship-private-training" data-i18n="nav.mentorship">Mentorship &amp; Privat Træning</a>
     </nav>
 
     <!-- BRAND (Center) -->
-    <a class="ybhd-brand" href="/" aria-label="Yoga Bible home">
+    <a class="ybhd-brand" href="{{ lp }}/" aria-label="Yoga Bible home">
       <img
         class="ybhd-brand__img"
         src="/assets/images/brand/logo-orange-on-transparent.png"
@@ -74,10 +76,10 @@
           </button>
 
           <div class="ybhd-dd__menu ybhd-dd__menu--right" role="menu" aria-label="More menu">
-            <a role="menuitem" class="ybhd-dd__item" href="/yoga-journal" data-i18n="more.journal">Yoga Journal</a>
-            <a role="menuitem" class="ybhd-dd__item" href="/yogaphotography" data-i18n="more.photo">Yoga Fotografi</a>
-            <a role="menuitem" class="ybhd-dd__item" href="/yogamusic" data-i18n="more.music">Yoga Musik</a>
-            <a role="menuitem" class="ybhd-dd__item" href="/yoga-glossary" data-i18n="more.glossary">Yoga Ordbog</a>
+            <a role="menuitem" class="ybhd-dd__item" href="{{ lp }}/yoga-journal" data-i18n="more.journal">Yoga Journal</a>
+            <a role="menuitem" class="ybhd-dd__item" href="{{ lp }}/yogaphotography" data-i18n="more.photo">Yoga Fotografi</a>
+            <a role="menuitem" class="ybhd-dd__item" href="{{ lp }}/yogamusic" data-i18n="more.music">Yoga Musik</a>
+            <a role="menuitem" class="ybhd-dd__item" href="{{ lp }}/yoga-glossary" data-i18n="more.glossary">Yoga Ordbog</a>
           </div>
         </div>
 
@@ -89,13 +91,13 @@
           </button>
 
           <div class="ybhd-dd__menu ybhd-dd__menu--right" role="menu" aria-label="Yoga Bible menu">
-            <a role="menuitem" class="ybhd-dd__item" href="/yoga-bible-historie" data-i18n="nav.ourstory">Vores Historie</a>
-            <a role="menuitem" class="ybhd-dd__item" href="/weekly-schedule" data-i18n="nav.schedule">Ugentligt Klasseskema</a>
-            <a role="menuitem" class="ybhd-dd__item" href="/careers" data-i18n="nav.careers">Karriere</a>
-            <a role="menuitem" class="ybhd-dd__item" href="/terms-conditions" data-i18n="nav.terms">Handelsbetingelser</a>
-            <a role="menuitem" class="ybhd-dd__item" href="/privacy-policy" data-i18n="nav.privacy">Privatlivspolitik</a>
-            <a role="menuitem" class="ybhd-dd__item" href="/code-of-conduct" data-i18n="nav.conduct">Code of Conduct</a>
-            <a role="menuitem" class="ybhd-dd__item" href="/kontakt" data-i18n="nav.contact">Kontakt</a>
+            <a role="menuitem" class="ybhd-dd__item" href="{{ lp }}/yoga-bible-historie" data-i18n="nav.ourstory">Vores Historie</a>
+            <a role="menuitem" class="ybhd-dd__item" href="{{ lp }}/weekly-schedule" data-i18n="nav.schedule">Ugentligt Klasseskema</a>
+            <a role="menuitem" class="ybhd-dd__item" href="{{ lp }}/careers" data-i18n="nav.careers">Karriere</a>
+            <a role="menuitem" class="ybhd-dd__item" href="{{ lp }}/terms-conditions" data-i18n="nav.terms">Handelsbetingelser</a>
+            <a role="menuitem" class="ybhd-dd__item" href="{{ lp }}/privacy-policy" data-i18n="nav.privacy">Privatlivspolitik</a>
+            <a role="menuitem" class="ybhd-dd__item" href="{{ lp }}/code-of-conduct" data-i18n="nav.conduct">Code of Conduct</a>
+            <a role="menuitem" class="ybhd-dd__item" href="{{ lp }}/kontakt" data-i18n="nav.contact">Kontakt</a>
           </div>
         </div>
       </nav>
@@ -123,18 +125,18 @@
         </a>
 
         <div class="ybhd-flags" role="navigation" aria-label="Language selector">
-          <a class="ybhd-flagBtn" data-lang="da" href="https://www.yogabible.dk/" aria-label="Dansk" title="Dansk">🇩🇰</a>
-          <a class="ybhd-flagBtn" data-lang="en" href="https://en.yogabible.dk/" aria-label="English" title="English">🇬🇧</a>
+          <a class="ybhd-flagBtn" data-lang="da" href="/" aria-label="Dansk" title="Dansk">🇩🇰</a>
+          <a class="ybhd-flagBtn" data-lang="en" href="/en/" aria-label="English" title="English">🇬🇧</a>
         </div>
 
         <!-- Apply CTA -->
-        <a class="ybhd-cta" href="/apply" data-i18n="nav.apply">Ansøg</a>
+        <a class="ybhd-cta" href="{{ lp }}/apply" data-i18n="nav.apply">Ansøg</a>
       </div>
 
       <!-- Mobile flags (visible outside drawer) -->
       <div class="ybhd-mobileFlags" role="navigation" aria-label="Language selector">
-        <a class="ybhd-mobileFlagBtn" data-lang="da" href="https://www.yogabible.dk/" aria-label="Dansk" title="Dansk">🇩🇰</a>
-        <a class="ybhd-mobileFlagBtn" data-lang="en" href="https://en.yogabible.dk/" aria-label="English" title="English">🇬🇧</a>
+        <a class="ybhd-mobileFlagBtn" data-lang="da" href="/" aria-label="Dansk" title="Dansk">🇩🇰</a>
+        <a class="ybhd-mobileFlagBtn" data-lang="en" href="/en/" aria-label="English" title="English">🇬🇧</a>
       </div>
 
       <!-- Mobile burger -->
@@ -154,7 +156,7 @@
       <div class="ybhd-drawer__top">
         <div class="ybhd-drawer__title" data-i18n="mobile.menu">Menu</div>
 
-        <a class="ybhd-drawer__logo" href="/" aria-label="Yoga Bible home">
+        <a class="ybhd-drawer__logo" href="{{ lp }}/" aria-label="Yoga Bible home">
           <img
             src="/assets/images/brand/logo-orange-on-transparent.png"
             alt="Yoga Bible"
@@ -176,10 +178,10 @@
             <span class="ybhd-folder" aria-hidden="true"></span>
             <span data-i18n="edu.200.title">200-timer Yogalæreuddannelse</span>
           </div>
-          <a href="/200-hours-18-weeks-flexible-programs" data-i18n="edu.200.18">18 ugers fleksibel</a>
-          <a href="/200-hours-8-weeks-semi-intensive-programs" data-i18n="edu.200.8">8 ugers semi-intensiv</a>
-          <a href="/200-hours-4-weeks-intensive-programs" data-i18n="edu.200.4">4 ugers intensiv</a>
-          <a href="/om-200hrs-yogalreruddannelser" data-i18n="edu.200.about">Om 200-timers yogalæreruddannelser</a>
+          <a href="{{ lp }}/200-hours-18-weeks-flexible-programs" data-i18n="edu.200.18">18 ugers fleksibel</a>
+          <a href="{{ lp }}/200-hours-8-weeks-semi-intensive-programs" data-i18n="edu.200.8">8 ugers semi-intensiv</a>
+          <a href="{{ lp }}/200-hours-4-weeks-intensive-programs" data-i18n="edu.200.4">4 ugers intensiv</a>
+          <a href="{{ lp }}/om-200hrs-yogalreruddannelser" data-i18n="edu.200.about">Om 200-timers yogalæreruddannelser</a>
         </div>
 
         <button class="ybhd-mGroup" type="button" data-mgroup aria-expanded="false">
@@ -187,23 +189,23 @@
           <span class="ybhd-caret" aria-hidden="true">▾</span>
         </button>
         <div class="ybhd-mItems">
-          <a href="/inversions" data-i18n="courses.inversions">Inversions</a>
-          <a href="/splits" data-i18n="courses.splits">Splits</a>
-          <a href="/backbends" data-i18n="courses.backbends">Backbends</a>
-          <a href="/course-bundles" data-i18n="courses.bundles">Course Bundles</a>
+          <a href="{{ lp }}/inversions" data-i18n="courses.inversions">Inversions</a>
+          <a href="{{ lp }}/splits" data-i18n="courses.splits">Splits</a>
+          <a href="{{ lp }}/backbends" data-i18n="courses.backbends">Backbends</a>
+          <a href="{{ lp }}/course-bundles" data-i18n="courses.bundles">Course Bundles</a>
         </div>
 
-        <a class="ybhd-mLink" href="/mentorship-private-training" data-i18n="nav.mentorship">Mentorship &amp; Privat Træning</a>
+        <a class="ybhd-mLink" href="{{ lp }}/mentorship-private-training" data-i18n="nav.mentorship">Mentorship &amp; Privat Træning</a>
 
         <button class="ybhd-mGroup" type="button" data-mgroup aria-expanded="false">
           <span data-i18n="nav.more">Mere</span>
           <span class="ybhd-caret" aria-hidden="true">▾</span>
         </button>
         <div class="ybhd-mItems">
-          <a href="/yoga-journal" data-i18n="more.journal">Yoga Journal</a>
-          <a href="/yogaphotography" data-i18n="more.photo">Yoga Fotografi</a>
-          <a href="/yogamusic" data-i18n="more.music">Yoga Musik</a>
-          <a href="/yoga-glossary" data-i18n="more.glossary">Yoga Ordbog</a>
+          <a href="{{ lp }}/yoga-journal" data-i18n="more.journal">Yoga Journal</a>
+          <a href="{{ lp }}/yogaphotography" data-i18n="more.photo">Yoga Fotografi</a>
+          <a href="{{ lp }}/yogamusic" data-i18n="more.music">Yoga Musik</a>
+          <a href="{{ lp }}/yoga-glossary" data-i18n="more.glossary">Yoga Ordbog</a>
         </div>
 
         <!-- Yoga Bible dropdown (mobile) -->
@@ -212,17 +214,17 @@
           <span class="ybhd-caret" aria-hidden="true">▾</span>
         </button>
         <div class="ybhd-mItems">
-          <a href="/yoga-bible-historie" data-i18n="nav.ourstory">Vores Historie</a>
-          <a href="/weekly-schedule" data-i18n="nav.schedule">Ugentligt Klasseskema</a>
-          <a href="/careers" data-i18n="nav.careers">Karriere</a>
-          <a href="/terms-conditions" data-i18n="nav.terms">Handelsbetingelser</a>
-          <a href="/privacy-policy" data-i18n="nav.privacy">Privatlivspolitik</a>
-          <a href="/code-of-conduct" data-i18n="nav.conduct">Code of Conduct</a>
-          <a href="/kontakt" data-i18n="nav.contact">Kontakt</a>
+          <a href="{{ lp }}/yoga-bible-historie" data-i18n="nav.ourstory">Vores Historie</a>
+          <a href="{{ lp }}/weekly-schedule" data-i18n="nav.schedule">Ugentligt Klasseskema</a>
+          <a href="{{ lp }}/careers" data-i18n="nav.careers">Karriere</a>
+          <a href="{{ lp }}/terms-conditions" data-i18n="nav.terms">Handelsbetingelser</a>
+          <a href="{{ lp }}/privacy-policy" data-i18n="nav.privacy">Privatlivspolitik</a>
+          <a href="{{ lp }}/code-of-conduct" data-i18n="nav.conduct">Code of Conduct</a>
+          <a href="{{ lp }}/kontakt" data-i18n="nav.contact">Kontakt</a>
         </div>
 
         <!-- Apply CTA (mobile) -->
-        <a class="ybhd-mLink ybhd-mApply" href="/apply" data-i18n="nav.apply">Ansøg</a>
+        <a class="ybhd-mLink ybhd-mApply" href="{{ lp }}/apply" data-i18n="nav.apply">Ansøg</a>
 
         <!-- Footer: Social + Language flags + App badges -->
         <div class="ybhd-mFooter">
@@ -237,8 +239,8 @@
                 </a>
               </div>
               <div class="ybhd-mSocialFlags">
-                <a class="ybhd-mSocialFlag" data-lang="da" href="https://www.yogabible.dk/" aria-label="Dansk" title="Dansk">🇩🇰</a>
-                <a class="ybhd-mSocialFlag" data-lang="en" href="https://en.yogabible.dk/" aria-label="English" title="English">🇬🇧</a>
+                <a class="ybhd-mSocialFlag" data-lang="da" href="/" aria-label="Dansk" title="Dansk">🇩🇰</a>
+                <a class="ybhd-mSocialFlag" data-lang="en" href="/en/" aria-label="English" title="English">🇬🇧</a>
               </div>
             </div>
             <div class="ybhd-mApps" aria-label="Download the app">

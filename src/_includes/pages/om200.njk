@@ -1,0 +1,158 @@
+{% set t = i18n.om200[lang or "da"] %}
+
+<!-- Hero -->
+<section class="program-hero">
+  <div class="container">
+    <div class="program-hero__badge">{{ t.hero_badge }}</div>
+    <h1 class="program-hero__title">{{ t.hero_title }}</h1>
+    <p class="program-hero__subtitle">{{ t.hero_subtitle }}</p>
+
+    <div class="program-hero__meta">
+      <div class="program-hero__meta-item">
+        <strong>{{ t.meta_cert_label }}</strong> {{ t.meta_cert_val }}
+      </div>
+      <div class="program-hero__meta-item">
+        <strong>{{ t.meta_location_label }}</strong> {{ t.meta_location_val }}
+      </div>
+      <div class="program-hero__meta-item">
+        <strong>{{ t.meta_levels }}</strong>
+      </div>
+    </div>
+
+    <div class="program-hero__cta">
+      <a href="{% if lang == 'en' %}/en/apply{% else %}/apply{% endif %}" class="btn btn--large btn--primary">{{ t.hero_cta_apply }}</a>
+      <a href="#curriculum" class="btn btn--large btn--secondary">{{ t.hero_cta_curriculum }}</a>
+    </div>
+  </div>
+</section>
+
+<!-- What You Learn -->
+<section class="program-overview" id="curriculum">
+  <div class="container">
+    <h2 class="section-title">{{ t.learn_title }}</h2>
+
+    <div class="program-grid">
+      <div class="program-feature">
+        <div class="program-feature__icon">🧘</div>
+        <h3>{{ t.learn1_title }}</h3>
+        <p>{{ t.learn1_desc }}</p>
+      </div>
+
+      <div class="program-feature">
+        <div class="program-feature__icon">📐</div>
+        <h3>{{ t.learn2_title }}</h3>
+        <p>{{ t.learn2_desc }}</p>
+      </div>
+
+      <div class="program-feature">
+        <div class="program-feature__icon">📿</div>
+        <h3>{{ t.learn3_title }}</h3>
+        <p>{{ t.learn3_desc }}</p>
+      </div>
+
+      <div class="program-feature">
+        <div class="program-feature__icon">🎭</div>
+        <h3>{{ t.learn4_title }}</h3>
+        <p>{{ t.learn4_desc }}</p>
+      </div>
+
+      <div class="program-feature">
+        <div class="program-feature__icon">📋</div>
+        <h3>{{ t.learn5_title }}</h3>
+        <p>{{ t.learn5_desc }}</p>
+      </div>
+
+      <div class="program-feature">
+        <div class="program-feature__icon">💼</div>
+        <h3>{{ t.learn6_title }}</h3>
+        <p>{{ t.learn6_desc }}</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 200-Hour Breakdown -->
+<section class="program-schedule">
+  <div class="container">
+    <h2 class="section-title">{{ t.hours_title }}</h2>
+    <p class="section-subtitle">{{ t.hours_subtitle }}</p>
+
+    <div class="schedule-options">
+      <div class="schedule-card">
+        <h3>{{ t.hours_contact_title }}</h3>
+        <ul>
+          <li>{{ t.hours_contact1 }}</li>
+          <li>{{ t.hours_contact2 }}</li>
+          <li>{{ t.hours_contact3 }}</li>
+          <li>{{ t.hours_contact4 }}</li>
+          <li>{{ t.hours_contact5 }}</li>
+        </ul>
+      </div>
+      <div class="schedule-card">
+        <h3>{{ t.hours_self_title }}</h3>
+        <ul>
+          <li>{{ t.hours_self1 }}</li>
+          <li>{{ t.hours_self2 }}</li>
+          <li>{{ t.hours_self3 }}</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Program Formats -->
+<section class="program-overview">
+  <div class="container">
+    <h2 class="section-title">{{ t.formats_title }}</h2>
+    <p class="section-subtitle">{{ t.formats_subtitle }}</p>
+
+    <div class="program-grid" style="max-width: 800px; margin: 0 auto;">
+      <div class="program-feature">
+        <div class="program-feature__icon">📅</div>
+        <h3>{{ t.format18_title }}</h3>
+        <p>{{ t.format18_desc }}</p>
+        <a href="{% if lang == 'en' %}/en/200-hours-18-weeks-flexible-programs{% else %}/200-hours-18-weeks-flexible-programs{% endif %}" class="btn btn--primary" style="margin-top:12px">{{ t.format18_cta }}</a>
+      </div>
+
+      <div class="program-feature">
+        <div class="program-feature__icon">⚡</div>
+        <h3>{{ t.format8_title }}</h3>
+        <p>{{ t.format8_desc }}</p>
+        <a href="{% if lang == 'en' %}/en/200-hours-8-weeks-semi-intensive-programs{% else %}/200-hours-8-weeks-semi-intensive-programs{% endif %}" class="btn btn--primary" style="margin-top:12px">{{ t.format8_cta }}</a>
+      </div>
+
+      <div class="program-feature">
+        <div class="program-feature__icon">🔥</div>
+        <h3>{{ t.format4_title }}</h3>
+        <p>{{ t.format4_desc }}</p>
+        <a href="{% if lang == 'en' %}/en/200-hours-4-weeks-intensive-programs{% else %}/200-hours-4-weeks-intensive-programs{% endif %}" class="btn btn--primary" style="margin-top:12px">{{ t.format4_cta }}</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Certification -->
+<section class="program-schedule">
+  <div class="container">
+    <h2 class="section-title">{{ t.cert_title }}</h2>
+    <p class="section-subtitle">{{ t.cert_subtitle }}</p>
+
+    <div class="schedule-options">
+      <div class="schedule-card" style="text-align:center">
+        <h3>{{ t.cert_ryt_title }}</h3>
+        <p>{{ t.cert_ryt1 }}</p>
+        <p>{{ t.cert_ryt2 }}</p>
+        <p>{{ t.cert_ryt3 }}</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+<section class="cta-section">
+  <div class="container">
+    <h2 class="cta-section__title">{{ t.cta_title }}</h2>
+    <p class="cta-section__text">{{ t.cta_text }}</p>
+    <button onclick="openYBScheduleModal('18w')" class="btn btn--large btn--primary">{{ t.cta_button }}</button>
+  </div>
+</section>

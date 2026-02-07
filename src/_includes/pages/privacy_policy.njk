@@ -1,0 +1,98 @@
+{% set t = i18n.privacy_policy[lang or "da"] %}
+
+<section class="program-hero">
+  <div class="container">
+    <h1 class="program-hero__title">{{ t.hero_title }}</h1>
+    <p class="program-hero__subtitle">{{ t.hero_subtitle }}</p>
+  </div>
+</section>
+
+<section class="program-overview">
+  <div class="container">
+    <div class="yb-legal-content">
+      <p class="yb-legal-meta">{{ t.last_updated }}</p>
+
+      <p>{{ t.data_controller | safe }}</p>
+
+      <h2>{{ t.s1_title }}</h2>
+      <p>{{ t.s1_text }}</p>
+
+      <h2>{{ t.s2_title }}</h2>
+      <p>{{ t.s2_text }}</p>
+
+      <h2>{{ t.s3_title }}</h2>
+      <ul>
+        <li>{{ t.s3_contact | safe }}</li>
+        <li>{{ t.s3_purchase | safe }}</li>
+        <li>{{ t.s3_attendance | safe }}</li>
+        <li>{{ t.s3_communication | safe }}</li>
+        <li>{{ t.s3_media | safe }}</li>
+        <li>{{ t.s3_technical | safe }}</li>
+      </ul>
+      <p>{{ t.s3_health | safe }}</p>
+
+      <h2>{{ t.s4_title }}</h2>
+      <ul>
+        <li>{{ t.s4_service }}</li>
+        <li>{{ t.s4_admin }}</li>
+        <li>{{ t.s4_payment }}</li>
+        <li>{{ t.s4_comms }}</li>
+        <li>{{ t.s4_marketing }}</li>
+        <li>{{ t.s4_security }}</li>
+      </ul>
+      <p>{{ t.s4_consent_note }}</p>
+
+      <h2>{{ t.s5_title }}</h2>
+      <p>{{ t.s5_text }}</p>
+
+      <h2>{{ t.s6_title }}</h2>
+      <ul>
+        <li>{{ t.s6_booking | safe }}</li>
+        <li>{{ t.s6_invoicing | safe }}</li>
+        <li>{{ t.s6_terminal | safe }}</li>
+        <li>{{ t.s6_cms | safe }}</li>
+        <li>{{ t.s6_email | safe }}</li>
+        <li>{{ t.s6_analytics | safe }}</li>
+        <li>{{ t.s6_tracking | safe }}</li>
+      </ul>
+
+      <h2>{{ t.s7_title }}</h2>
+      <p>{{ t.s7_text }}</p>
+
+      <h2>{{ t.s8_title }}</h2>
+      <ul>
+        <li>{{ t.s8_accounting }}</li>
+        <li>{{ t.s8_education }}</li>
+        <li>{{ t.s8_support }}</li>
+        <li>{{ t.s8_marketing }}</li>
+        <li>{{ t.s8_applicants }}</li>
+      </ul>
+
+      <h2>{{ t.s9_title }}</h2>
+      <ul>
+        <li>{{ t.s9_access }}</li>
+        <li>{{ t.s9_rectification }}</li>
+        <li>{{ t.s9_erasure }}</li>
+        <li>{{ t.s9_restriction }}</li>
+        <li>{{ t.s9_portability }}</li>
+        <li>{{ t.s9_objection }}</li>
+        <li>{{ t.s9_withdrawal }}</li>
+      </ul>
+      <p>{{ t.s9_contact | safe }}</p>
+
+      <h2>{{ t.s10_title }}</h2>
+      <ul>
+        <li>{{ t.s10_necessary | safe }}</li>
+        <li>{{ t.s10_analytics | safe }}</li>
+        <li>{{ t.s10_meta | safe }}</li>
+      </ul>
+      <p>{{ t.s10_consent }}</p>
+
+      <h2>{{ t.s11_title }}</h2>
+      <p>{{ t.s11_text }}</p>
+
+      <h2>{{ t.s12_title }}</h2>
+      <p>{{ t.s12_text | safe }}</p>
+    </div>
+  </div>
+</section>

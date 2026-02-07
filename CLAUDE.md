@@ -82,6 +82,57 @@ Each blog should use rich, varied HTML. Available elements:
 - For custom images: place in `src/assets/images/journal/` named as `{slug}.jpg`
 - Recommended size: 1200x630px (OG/hero compatible)
 
+## Bilingual i18n System (MANDATORY)
+
+**IMPORTANT:** This site is fully bilingual (Danish + English). ALL pages must exist in both languages. Danish is the primary language. English pages live under `/en/`.
+
+### How It Works
+
+Every page follows this pattern — **no exceptions**:
+
+1. **Translation data:** `src/_data/i18n/{page}.json` — contains `{"da": {...}, "en": {...}}` with all translatable strings
+2. **Shared template:** `src/_includes/pages/{page}.njk` — uses `{% set t = i18n.{page}[lang or "da"] %}` and `{{ t.key }}` for all text
+3. **DA wrapper:** `src/{page}.njk` — thin file with front matter (lang: da) + `{% include "pages/{page}.njk" %}`
+4. **EN wrapper:** `src/en/{page}.njk` — thin file with front matter (lang: en, permalink: /en/{slug}/) + `{% include "pages/{page}.njk" %}`
+
+### Auto-loaded data
+- `src/_data/i18n.js` auto-loads all `.json` files from `src/_data/i18n/`
+- `src/en/en.11tydata.json` sets `lang: "en"` for all EN pages automatically
+
+### Rules for editing existing pages
+
+- **Always update the JSON** (`src/_data/i18n/{page}.json`) — both `da` and `en` keys
+- **Never hardcode text** in the shared template — use `{{ t.key }}` or `{{ t.key | safe }}` (for HTML)
+- **Internal links** must be language-aware: `{% if lang == 'en' %}/en/path{% else %}/path{% endif %}`
+- **Shared footer translations** are in `src/_data/i18n/common.json`
+
+### Rules for creating new pages
+
+1. Create `src/_data/i18n/{page}.json` with both `da` and `en` objects
+2. Create `src/_includes/pages/{page}.njk` using translation keys
+3. Create `src/{page}.njk` as thin DA wrapper (include front matter with `lang: da`)
+4. Create `src/en/{page}.njk` as thin EN wrapper (include `lang: en` + `permalink: /en/{slug}/`)
+5. Add navigation links using `{% set lp = "/en" if lang == "en" else "" %}` prefix pattern
+6. Verify build: `npx @11ty/eleventy`
+
+### Language-aware patterns used in templates
+
+```nunjucks
+{# Link prefix for internal links in header/footer #}
+{% set lp = "/en" if lang == "en" else "" %}
+<a href="{{ lp }}/kontakt">...</a>
+
+{# Conditional links in page content #}
+<a href="{% if lang == 'en' %}/en/kontakt{% else %}/kontakt{% endif %}">...</a>
+
+{# Translation reference #}
+{% set t = i18n.{page}[lang or "da"] %}
+{{ t.title }}           {# plain text #}
+{{ t.content | safe }}  {# HTML content #}
+```
+
+---
+
 ## Architecture Reference
 
 - **Framework:** Eleventy v3.1.2, Nunjucks templates
@@ -91,7 +142,7 @@ Each blog should use rich, varied HTML. Available elements:
 - **JS:** `src/js/journal.js` — language switching, search, progress bar, share
 - **CSS:** `src/css/main.css` — all journal styles prefixed `yj-`
 - **CMS:** Decap CMS at `/admin/` with Netlify Identity
-- **i18n:** Hostname-based (www=DA, en=EN), per-post `data-yj-da`/`data-yj-en` toggle
+- **i18n:** Build-time via JSON files in `src/_data/i18n/`, path-based (`/en/` prefix)
 - **Deploy:** Netlify from `main` branch
 - **Design System:** `src/samples.njk` → `/samples/` — the single source of truth for all UI components
 
