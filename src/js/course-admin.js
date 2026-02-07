@@ -62,12 +62,12 @@
     var parts = ['<span class="yb-admin__bc-link" data-action="back-courses">' + t('courses_title') + '</span>'];
     if (state.courseId) {
       var c = state.courses.find(function (x) { return x.id === state.courseId; });
-      var cName = c ? (c['title_' + lang] || c.title_da || state.courseId) : state.courseId;
+      var cName = c ? (c.title_en || c.title_da || state.courseId) : state.courseId;
       parts.push('<span class="yb-admin__bc-link" data-action="select-course" data-id="' + state.courseId + '">' + esc(cName) + '</span>');
     }
     if (state.moduleId) {
       var m = state.modules.find(function (x) { return x.id === state.moduleId; });
-      var mName = m ? (m['title_' + lang] || m.title_da || state.moduleId) : state.moduleId;
+      var mName = m ? (m.title_en || m.title_da || state.moduleId) : state.moduleId;
       parts.push('<span class="yb-admin__bc-link" data-action="select-module" data-id="' + state.moduleId + '">' + esc(mName) + '</span>');
     }
     bc.innerHTML = parts.join(' <span class="yb-admin__bc-sep">/</span> ');
@@ -84,7 +84,7 @@
     el.innerHTML = state.courses.map(function (c) {
       var active = c.id === state.courseId ? ' is-active' : '';
       return '<div class="yb-admin__tree-course' + active + '" data-action="select-course" data-id="' + c.id + '">' +
-        '<span>' + (c.icon || '📚') + ' ' + esc(c['title_' + lang] || c.title_da) + '</span></div>';
+        '<span>' + (c.icon || '📚') + ' ' + esc(c.title_en || c.title_da) + '</span></div>';
     }).join('');
   }
 
@@ -109,8 +109,8 @@
       return '<div class="yb-admin__card">' +
         '<div class="yb-admin__card-icon">' + (c.icon || '📚') + '</div>' +
         '<div class="yb-admin__card-body">' +
-          '<h3>' + esc(c['title_' + lang] || c.title_da) + '</h3>' +
-          '<p>' + esc(c['description_' + lang] || c.description_da || '') + '</p>' +
+          '<h3>' + esc(c.title_en || c.title_da) + '</h3>' +
+          '<p>' + esc(c.description_en || c.description_da || '') + '</p>' +
           (c.program ? '<span class="yb-admin__badge">' + esc(c.program) + '</span>' : '') +
         '</div>' +
         '<div class="yb-admin__card-actions">' +
@@ -125,24 +125,24 @@
   function showCourseForm(courseId) {
     var c = courseId ? state.courses.find(function (x) { return x.id === courseId; }) : null;
     $('yb-cf-id').value = courseId || '';
-    $('yb-cf-title-da').value = c ? c.title_da || '' : '';
-    $('yb-cf-title-en').value = c ? c.title_en || '' : '';
-    $('yb-cf-desc-da').value = c ? c.description_da || '' : '';
-    $('yb-cf-desc-en').value = c ? c.description_en || '' : '';
+    $('yb-cf-title').value = c ? c.title_en || c.title_da || '' : '';
+    $('yb-cf-desc').value = c ? c.description_en || c.description_da || '' : '';
     $('yb-cf-icon').value = c ? c.icon || '' : '🧘';
     $('yb-cf-program').value = c ? c.program || '' : '';
-    $('yb-admin-course-form-title').textContent = c ? t('edit') + ': ' + (c['title_' + lang] || c.title_da) : t('new_course');
+    $('yb-admin-course-form-title').textContent = c ? t('edit') + ': ' + (c.title_en || c.title_da) : t('new_course');
     showView('course-form');
   }
 
   function saveCourse(e) {
     e.preventDefault();
-    var id = $('yb-cf-id').value || slug($('yb-cf-title-da').value || $('yb-cf-title-en').value || 'course');
+    var title = $('yb-cf-title').value.trim();
+    var desc = $('yb-cf-desc').value.trim();
+    var id = $('yb-cf-id').value || slug(title || 'course');
     var data = {
-      title_da: $('yb-cf-title-da').value.trim(),
-      title_en: $('yb-cf-title-en').value.trim(),
-      description_da: $('yb-cf-desc-da').value.trim(),
-      description_en: $('yb-cf-desc-en').value.trim(),
+      title_da: title,
+      title_en: title,
+      description_da: desc,
+      description_en: desc,
       icon: $('yb-cf-icon').value.trim() || '📚',
       program: $('yb-cf-program').value.trim()
     };
@@ -199,7 +199,7 @@
         renderModuleList();
         var c = state.courses.find(function (x) { return x.id === courseId; });
         var heading = $('yb-admin-modules-heading');
-        if (heading && c) heading.textContent = (c['title_' + lang] || c.title_da) + ' — ' + t('modules_title');
+        if (heading && c) heading.textContent = (c.title_en || c.title_da) + ' — ' + t('modules_title');
       }).catch(function (err) { console.error(err); toast(t('error_load'), true); });
   }
 
@@ -213,8 +213,8 @@
         '<span class="yb-admin__item-order">' + (m.order || idx + 1) + '</span>' +
         '<span class="yb-admin__item-icon">' + (m.icon || '📖') + '</span>' +
         '<div class="yb-admin__item-body">' +
-          '<strong>' + esc(m['title_' + lang] || m.title_da) + '</strong>' +
-          '<small>' + esc(m['description_' + lang] || m.description_da || '') + '</small>' +
+          '<strong>' + esc(m.title_en || m.title_da) + '</strong>' +
+          '<small>' + esc(m.description_en || m.description_da || '') + '</small>' +
         '</div>' +
         '<div class="yb-admin__item-actions">' +
           '<button class="yb-admin__sm-btn" data-action="move-module" data-id="' + m.id + '" data-dir="-1" ' + (idx === 0 ? 'disabled' : '') + '>&uarr;</button>' +
@@ -230,24 +230,24 @@
   function showModuleForm(moduleId) {
     var m = moduleId ? state.modules.find(function (x) { return x.id === moduleId; }) : null;
     $('yb-mf-id').value = moduleId || '';
-    $('yb-mf-title-da').value = m ? m.title_da || '' : '';
-    $('yb-mf-title-en').value = m ? m.title_en || '' : '';
-    $('yb-mf-desc-da').value = m ? m.description_da || '' : '';
-    $('yb-mf-desc-en').value = m ? m.description_en || '' : '';
+    $('yb-mf-title').value = m ? m.title_en || m.title_da || '' : '';
+    $('yb-mf-desc').value = m ? m.description_en || m.description_da || '' : '';
     $('yb-mf-icon').value = m ? m.icon || '' : '📖';
     $('yb-mf-order').value = m ? m.order || 1 : state.modules.length + 1;
-    $('yb-admin-module-form-title').textContent = m ? t('edit') + ': ' + (m['title_' + lang] || m.title_da) : t('new_module');
+    $('yb-admin-module-form-title').textContent = m ? t('edit') + ': ' + (m.title_en || m.title_da) : t('new_module');
     showView('module-form');
   }
 
   function saveModule(e) {
     e.preventDefault();
-    var id = $('yb-mf-id').value || slug($('yb-mf-title-da').value || $('yb-mf-title-en').value || 'module');
+    var title = $('yb-mf-title').value.trim();
+    var desc = $('yb-mf-desc').value.trim();
+    var id = $('yb-mf-id').value || slug(title || 'module');
     var data = {
-      title_da: $('yb-mf-title-da').value.trim(),
-      title_en: $('yb-mf-title-en').value.trim(),
-      description_da: $('yb-mf-desc-da').value.trim(),
-      description_en: $('yb-mf-desc-en').value.trim(),
+      title_da: title,
+      title_en: title,
+      description_da: desc,
+      description_en: desc,
       icon: $('yb-mf-icon').value.trim() || '📖',
       order: parseInt($('yb-mf-order').value, 10) || 1
     };
@@ -305,7 +305,7 @@
         renderChapterList();
         var m = state.modules.find(function (x) { return x.id === moduleId; });
         var heading = $('yb-admin-chapters-heading');
-        if (heading && m) heading.textContent = (m['title_' + lang] || m.title_da) + ' — ' + t('chapters_title');
+        if (heading && m) heading.textContent = (m.title_en || m.title_da) + ' — ' + t('chapters_title');
       }).catch(function (err) { console.error(err); toast(t('error_load'), true); });
   }
 
@@ -315,11 +315,11 @@
     if (!state.chapters.length) { el.innerHTML = '<p class="yb-admin__empty">' + t('no_chapters') + '</p>'; return; }
 
     el.innerHTML = state.chapters.map(function (ch, idx) {
-      var preview = (ch['content_' + lang] || ch.content_da || '').replace(/<[^>]+>/g, '').substring(0, 80);
+      var preview = (ch.content_en || ch.content_da || '').replace(/<[^>]+>/g, '').substring(0, 80);
       return '<div class="yb-admin__item">' +
         '<span class="yb-admin__item-order">' + (ch.order || idx + 1) + '</span>' +
         '<div class="yb-admin__item-body">' +
-          '<strong>' + esc(ch['title_' + lang] || ch.title_da) + '</strong>' +
+          '<strong>' + esc(ch.title_en || ch.title_da) + '</strong>' +
           '<small>' + esc(preview) + (preview.length >= 80 ? '...' : '') + '</small>' +
         '</div>' +
         '<div class="yb-admin__item-actions">' +
@@ -335,37 +335,30 @@
   function showChapterForm(chapterId) {
     var ch = chapterId ? state.chapters.find(function (x) { return x.id === chapterId; }) : null;
     $('yb-chf-id').value = chapterId || '';
-    $('yb-chf-title-da').value = ch ? ch.title_da || '' : '';
-    $('yb-chf-title-en').value = ch ? ch.title_en || '' : '';
+    $('yb-chf-title').value = ch ? ch.title_en || ch.title_da || '' : '';
     $('yb-chf-order').value = ch ? ch.order || 1 : state.chapters.length + 1;
-    $('yb-chf-content-da').value = ch ? ch.content_da || '' : '';
-    $('yb-chf-content-en').value = ch ? ch.content_en || '' : '';
-    $('yb-admin-chapter-form-title').textContent = ch ? t('edit') + ': ' + (ch['title_' + lang] || ch.title_da) : t('new_chapter');
-    // reset content tabs
-    document.querySelectorAll('[data-content-tab]').forEach(function (b) { b.classList.remove('is-active'); });
-    document.querySelectorAll('[data-content-panel]').forEach(function (p) { p.hidden = true; });
-    var defTab = document.querySelector('[data-content-tab="da"]');
-    var defPanel = document.querySelector('[data-content-panel="da"]');
-    if (defTab) defTab.classList.add('is-active');
-    if (defPanel) defPanel.hidden = false;
+    $('yb-chf-content').value = ch ? ch.content_en || ch.content_da || '' : '';
+    $('yb-admin-chapter-form-title').textContent = ch ? t('edit') + ': ' + (ch.title_en || ch.title_da) : t('new_chapter');
     updatePreview();
     showView('chapter-form');
   }
 
   function saveChapter(e) {
     e.preventDefault();
-    var id = $('yb-chf-id').value || slug($('yb-chf-title-da').value || $('yb-chf-title-en').value || 'chapter');
+    var title = $('yb-chf-title').value.trim();
+    var content = $('yb-chf-content').value;
+    var id = $('yb-chf-id').value || slug(title || 'chapter');
     // Ensure unique ID with order prefix
     if (!$('yb-chf-id').value) {
       var orderNum = String($('yb-chf-order').value).padStart(2, '0');
       id = orderNum + '-' + id;
     }
     var data = {
-      title_da: $('yb-chf-title-da').value.trim(),
-      title_en: $('yb-chf-title-en').value.trim(),
+      title_da: title,
+      title_en: title,
       order: parseInt($('yb-chf-order').value, 10) || 1,
-      content_da: $('yb-chf-content-da').value,
-      content_en: $('yb-chf-content-en').value
+      content_da: content,
+      content_en: content
     };
 
     db.collection('courses').doc(state.courseId).collection('modules').doc(state.moduleId)
@@ -396,9 +389,7 @@
   }
 
   function updatePreview() {
-    var activeTab = document.querySelector('[data-content-tab].is-active');
-    var tabLang = activeTab ? activeTab.getAttribute('data-content-tab') : 'da';
-    var textarea = $('yb-chf-content-' + tabLang);
+    var textarea = $('yb-chf-content');
     var preview = $('yb-admin-preview-body');
     if (textarea && preview) preview.innerHTML = textarea.value;
   }
@@ -535,10 +526,6 @@
   function createBulkChapters() {
     if (!state.bulkChapters.length) return;
 
-    var bulkLang = 'da';
-    document.querySelectorAll('[name="bulk-lang"]').forEach(function (r) { if (r.checked) bulkLang = r.value; });
-    var otherLang = bulkLang === 'da' ? 'en' : 'da';
-
     // Update titles from inputs
     document.querySelectorAll('[data-bulk-title]').forEach(function (inp) {
       var idx = parseInt(inp.getAttribute('data-bulk-title'), 10);
@@ -554,13 +541,14 @@
       var orderNum = String(startOrder + idx).padStart(2, '0');
       var id = orderNum + '-' + slug(ch.title || 'chapter-' + (startOrder + idx));
 
-      var data = { order: startOrder + idx };
-      data['title_' + bulkLang] = ch.title;
-      data['content_' + bulkLang] = ch.content;
-      data['title_' + otherLang] = '';
-      data['content_' + otherLang] = '';
-
-      batch.set(basePath.doc(id), data);
+      // Write same content to both _da and _en fields
+      batch.set(basePath.doc(id), {
+        order: startOrder + idx,
+        title_da: ch.title,
+        title_en: ch.title,
+        content_da: ch.content,
+        content_en: ch.content
+      });
     });
 
     var progressEl = $('yb-admin-bulk-progress');
@@ -730,22 +718,9 @@
       $('yb-admin-bulk-step2').hidden = true;
     });
 
-    // Content tabs & live preview
-    document.addEventListener('click', function (e) {
-      var tab = e.target.closest('[data-content-tab]');
-      if (!tab) return;
-      var tabLang = tab.getAttribute('data-content-tab');
-      document.querySelectorAll('[data-content-tab]').forEach(function (b) { b.classList.remove('is-active'); });
-      document.querySelectorAll('[data-content-panel]').forEach(function (p) { p.hidden = true; });
-      tab.classList.add('is-active');
-      var panel = document.querySelector('[data-content-panel="' + tabLang + '"]');
-      if (panel) panel.hidden = false;
-      updatePreview();
-    });
-
     // Live preview on textarea input
     document.addEventListener('input', function (e) {
-      if (e.target.id === 'yb-chf-content-da' || e.target.id === 'yb-chf-content-en') {
+      if (e.target.id === 'yb-chf-content') {
         updatePreview();
       }
     });

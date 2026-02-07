@@ -8341,17 +8341,11 @@ section {
 /* Empty state */
 .yb-admin__empty { color: #6F6A66; font-size: 0.9rem; text-align: center; padding: 2rem; }
 
-/* Content editor tabs */
-.yb-admin__content-tabs { display: flex; gap: 0; margin-top: 0.5rem; }
-.yb-admin__content-tab {
-  padding: 0.5rem 1.25rem; border: 1px solid #E8E4E0; border-bottom: none;
-  background: #F5F3F0; cursor: pointer; font-family: inherit; font-size: 0.85rem;
-  color: #6F6A66; border-radius: 8px 8px 0 0; transition: all 0.15s;
-}
-.yb-admin__content-tab.is-active { background: #FFFCF9; color: #f75c03; font-weight: 600; border-color: #f75c03; }
+/* Editor label */
+.yb-admin__field-label { font-size: 0.8rem; font-weight: 600; color: #6F6A66; margin-top: 0.5rem; }
 
 /* Editor + Preview split */
-.yb-admin__editor-wrap { display: grid; grid-template-columns: 1fr 1fr; gap: 0; border: 1px solid #E8E4E0; border-radius: 0 0 12px 12px; overflow: hidden; min-height: 400px; }
+.yb-admin__editor-wrap { display: grid; grid-template-columns: 1fr 1fr; gap: 0; border: 1px solid #E8E4E0; border-radius: 12px; overflow: hidden; min-height: 400px; }
 .yb-admin__editor-panel { display: flex; flex-direction: column; }
 .yb-admin__editor-textarea {
   width: 100%; height: 100%; min-height: 380px; padding: 1rem; border: none;

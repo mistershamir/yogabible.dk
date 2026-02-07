@@ -67,25 +67,13 @@
           </div>
           <form id="yb-admin-course-form" class="yb-admin__form">
             <input type="hidden" id="yb-cf-id">
-            <div class="yb-admin__form-row">
-              <div class="yb-admin__field">
-                <label for="yb-cf-title-da">{{ t.title_da }}</label>
-                <input type="text" id="yb-cf-title-da" required>
-              </div>
-              <div class="yb-admin__field">
-                <label for="yb-cf-title-en">{{ t.title_en }}</label>
-                <input type="text" id="yb-cf-title-en" required>
-              </div>
+            <div class="yb-admin__field">
+              <label for="yb-cf-title">{{ t.title }}</label>
+              <input type="text" id="yb-cf-title" required>
             </div>
-            <div class="yb-admin__form-row">
-              <div class="yb-admin__field">
-                <label for="yb-cf-desc-da">{{ t.desc_da }}</label>
-                <textarea id="yb-cf-desc-da" rows="3"></textarea>
-              </div>
-              <div class="yb-admin__field">
-                <label for="yb-cf-desc-en">{{ t.desc_en }}</label>
-                <textarea id="yb-cf-desc-en" rows="3"></textarea>
-              </div>
+            <div class="yb-admin__field">
+              <label for="yb-cf-desc">{{ t.description }}</label>
+              <textarea id="yb-cf-desc" rows="3"></textarea>
             </div>
             <div class="yb-admin__form-row">
               <div class="yb-admin__field">
@@ -132,25 +120,13 @@
           </div>
           <form id="yb-admin-module-form" class="yb-admin__form">
             <input type="hidden" id="yb-mf-id">
-            <div class="yb-admin__form-row">
-              <div class="yb-admin__field">
-                <label for="yb-mf-title-da">{{ t.title_da }}</label>
-                <input type="text" id="yb-mf-title-da" required>
-              </div>
-              <div class="yb-admin__field">
-                <label for="yb-mf-title-en">{{ t.title_en }}</label>
-                <input type="text" id="yb-mf-title-en" required>
-              </div>
+            <div class="yb-admin__field">
+              <label for="yb-mf-title">{{ t.title }}</label>
+              <input type="text" id="yb-mf-title" required>
             </div>
-            <div class="yb-admin__form-row">
-              <div class="yb-admin__field">
-                <label for="yb-mf-desc-da">{{ t.desc_da }}</label>
-                <textarea id="yb-mf-desc-da" rows="3"></textarea>
-              </div>
-              <div class="yb-admin__field">
-                <label for="yb-mf-desc-en">{{ t.desc_en }}</label>
-                <textarea id="yb-mf-desc-en" rows="3"></textarea>
-              </div>
+            <div class="yb-admin__field">
+              <label for="yb-mf-desc">{{ t.description }}</label>
+              <textarea id="yb-mf-desc" rows="3"></textarea>
             </div>
             <div class="yb-admin__form-row">
               <div class="yb-admin__field">
@@ -192,30 +168,20 @@
             <input type="hidden" id="yb-chf-id">
             <div class="yb-admin__form-row">
               <div class="yb-admin__field">
-                <label for="yb-chf-title-da">{{ t.title_da }}</label>
-                <input type="text" id="yb-chf-title-da" required>
+                <label for="yb-chf-title">{{ t.title }}</label>
+                <input type="text" id="yb-chf-title" required>
               </div>
               <div class="yb-admin__field">
-                <label for="yb-chf-title-en">{{ t.title_en }}</label>
-                <input type="text" id="yb-chf-title-en" required>
+                <label for="yb-chf-order">{{ t.order }}</label>
+                <input type="number" id="yb-chf-order" min="1" value="1" style="max-width:80px">
               </div>
-            </div>
-            <div class="yb-admin__field">
-              <label for="yb-chf-order">{{ t.order }}</label>
-              <input type="number" id="yb-chf-order" min="1" value="1" style="max-width:80px">
             </div>
 
-            {# Content tabs: DA / EN with live preview #}
-            <div class="yb-admin__content-tabs">
-              <button type="button" class="yb-admin__content-tab is-active" data-content-tab="da">{{ t.content_da }}</button>
-              <button type="button" class="yb-admin__content-tab" data-content-tab="en">{{ t.content_en }}</button>
-            </div>
+            {# Content editor with live preview #}
+            <label class="yb-admin__field-label">{{ t.content }}</label>
             <div class="yb-admin__editor-wrap">
-              <div class="yb-admin__editor-panel" data-content-panel="da">
-                <textarea id="yb-chf-content-da" class="yb-admin__editor-textarea" rows="20" placeholder="<h2>Overskrift</h2><p>Indhold...</p>"></textarea>
-              </div>
-              <div class="yb-admin__editor-panel" data-content-panel="en" hidden>
-                <textarea id="yb-chf-content-en" class="yb-admin__editor-textarea" rows="20" placeholder="<h2>Heading</h2><p>Content...</p>"></textarea>
+              <div class="yb-admin__editor-panel">
+                <textarea id="yb-chf-content" class="yb-admin__editor-textarea" rows="20" placeholder="<h2>Heading</h2><p>Content...</p>"></textarea>
               </div>
               <div class="yb-admin__preview-panel" id="yb-admin-preview">
                 <div class="yb-admin__preview-label">{{ t.preview }}</div>
@@ -242,11 +208,6 @@
             <textarea id="yb-admin-bulk-text" class="yb-admin__bulk-textarea" rows="16" placeholder="{{ t.bulk_paste }}"></textarea>
 
             <div class="yb-admin__bulk-options">
-              <div class="yb-admin__bulk-opt">
-                <strong>{{ t.bulk_language }}</strong>
-                <label><input type="radio" name="bulk-lang" value="da" checked> {{ t.bulk_danish }}</label>
-                <label><input type="radio" name="bulk-lang" value="en"> {{ t.bulk_english }}</label>
-              </div>
               <div class="yb-admin__bulk-opt">
                 <strong>{{ t.bulk_split_by }}</strong>
                 <label><input type="radio" name="bulk-split" value="headings" checked> {{ t.bulk_split_headings }}</label>
