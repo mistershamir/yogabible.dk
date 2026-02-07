@@ -1848,6 +1848,33 @@ section {
   height: auto;
 }
 
+/* Language Switcher */
+.yb-footer-lang {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.yb-footer-lang__btn {
+  color: rgba(255,255,255,.5);
+  text-decoration: none;
+  font-weight: 600;
+  font-size: inherit;
+  transition: color 0.15s;
+}
+
+.yb-footer-lang__btn:hover {
+  color: #f75c03;
+}
+
+.yb-footer-lang__btn.is-active {
+  color: rgba(255,255,255,.85);
+}
+
+.yb-footer-lang__sep {
+  color: rgba(255,255,255,.25);
+}
+
 @media (max-width: 768px) {
   .yb-footer-inner {
     padding: 30px 16px 22px;

@@ -34,12 +34,14 @@
           </button>
           <div class="yb-col-body">
             <a class="yb-footer-link" href="{{ lp }}/yoga-bible-historie">{{ tc.footer_about }}</a>
+            <a class="yb-footer-link" href="{{ lp }}/about-copenhagen">{{ tc.footer_copenhagen }}</a>
+            <a class="yb-footer-link" href="{{ lp }}/accommodation">{{ tc.footer_accommodation }}</a>
+            <a class="yb-footer-link" href="{{ lp }}/weekly-schedule">{{ tc.footer_schedule }}</a>
             <a class="yb-footer-link" href="{{ lp }}/careers">{{ tc.footer_careers }}</a>
             <a class="yb-footer-link" href="{{ lp }}/terms-conditions">{{ tc.footer_terms }}</a>
             <a class="yb-footer-link" href="{{ lp }}/privacy-policy">{{ tc.footer_privacy }}</a>
             <a class="yb-footer-link" href="#" data-yb-cookie-settings>{{ tc.footer_cookies }}</a>
             <a class="yb-footer-link" href="{{ lp }}/code-of-conduct">{{ tc.footer_conduct }}</a>
-            <a class="yb-footer-link" href="{{ lp }}/weekly-schedule">{{ tc.footer_schedule }}</a>
             <a class="yb-footer-link" href="{{ lp }}/kontakt">{{ tc.footer_contact }}</a>
             <div class="yb-contact-meta">
               <a class="yb-contact-link" href="https://www.google.com/maps/search/?api=1&amp;query=Torvegade%2066%2C%201400%20K%C3%B8benhavn%20K" target="_blank" rel="noopener">TORVEGADE 66, 1400 KØBENHAVN K</a>
@@ -81,7 +83,6 @@
             <a class="yb-footer-link" href="{{ lp }}/mentorship-private-training">{{ tc.footer_mentorship }}</a>
             <a class="yb-footer-link" href="{{ lp }}/yoga-glossary">{{ tc.footer_glossary }}</a>
             <a class="yb-footer-link" href="{{ lp }}/yoga-journal">{{ tc.footer_journal }}</a>
-            <a class="yb-footer-link" href="{{ lp }}/about-copenhagen">{{ tc.footer_copenhagen }}</a>
           </div>
         </section>
 
@@ -107,6 +108,11 @@
     <div class="yb-footer-bottom">
       <div class="yb-footer-meta">
         <span class="yb-meta-item">{{ tc.footer_copyright }}</span>
+        <div class="yb-footer-lang" role="navigation" aria-label="Language selector">
+          <a class="yb-footer-lang__btn{% if lang != 'en' %} is-active{% endif %}" data-lang="da" href="/" aria-label="Dansk" title="Dansk">🇩🇰 {{ tc.footer_lang_da }}</a>
+          <span class="yb-footer-lang__sep" aria-hidden="true">·</span>
+          <a class="yb-footer-lang__btn{% if lang == 'en' %} is-active{% endif %}" data-lang="en" href="/en/" aria-label="English" title="English">🇬🇧 {{ tc.footer_lang_en }}</a>
+        </div>
       </div>
       <div class="yb-footer-mark">
         <img src="https://www.yogabible.dk/s/YOGA-BIBLE-FOOTER-2000-x-350-7ndy.svg" alt="YOGA BIBLE" class="yb-footer-logo" loading="lazy">

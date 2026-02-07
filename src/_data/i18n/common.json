@@ -7,6 +7,8 @@
     "footer_int_sub": "ONLINE UDDANNELSER OG FORLØB TIL DET INTERNATIONALE FÆLLESSKAB — LANCERES 2027",
     "footer_col2_title": "YOGA BIBLE - DK",
     "footer_about": "OM OS",
+    "footer_copenhagen": "ABOUT COPENHAGEN",
+    "footer_accommodation": "BOLIG TIL KURSISTER",
     "footer_careers": "KARRIERE",
     "footer_terms": "HANDELSBETINGELSER",
     "footer_privacy": "PRIVATLIVSPOLITIK",
@@ -28,9 +30,10 @@
     "footer_mentorship": "MENTORSHIP & PRIVAT TRÆNING",
     "footer_glossary": "YOGA ORDBOG",
     "footer_journal": "YOGA JOURNAL",
-    "footer_copenhagen": "ABOUT COPENHAGEN",
     "footer_col5_title": "BRANDS & SOCIALE MEDIER",
-    "footer_copyright": "COPYRIGHT © 2026"
+    "footer_copyright": "COPYRIGHT © 2026",
+    "footer_lang_da": "Dansk",
+    "footer_lang_en": "English"
   },
   "en": {
     "footer_col1_title": "YOGA BIBLE SINCE 2014",
@@ -40,6 +43,8 @@
     "footer_int_sub": "ONLINE TRAININGS AND PROGRAMS FOR THE INTERNATIONAL COMMUNITY — LAUNCHING 2027",
     "footer_col2_title": "YOGA BIBLE - DK",
     "footer_about": "ABOUT US",
+    "footer_copenhagen": "ABOUT COPENHAGEN",
+    "footer_accommodation": "STUDENT ACCOMMODATION",
     "footer_careers": "CAREERS",
     "footer_terms": "TERMS & CONDITIONS",
     "footer_privacy": "PRIVACY POLICY",
@@ -61,8 +66,9 @@
     "footer_mentorship": "MENTORSHIP & PRIVATE TRAINING",
     "footer_glossary": "YOGA GLOSSARY",
     "footer_journal": "YOGA JOURNAL",
-    "footer_copenhagen": "ABOUT COPENHAGEN",
     "footer_col5_title": "BRANDS & SOCIAL MEDIA",
-    "footer_copyright": "COPYRIGHT © 2026"
+    "footer_copyright": "COPYRIGHT © 2026",
+    "footer_lang_da": "Dansk",
+    "footer_lang_en": "English"
   }
 }
