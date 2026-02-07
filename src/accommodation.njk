@@ -1,0 +1,2478 @@
+---
+layout: base.njk
+title: "Accommodation for Yoga Students in Copenhagen — Bolig til Yogakursister | YOGA BIBLE"
+description: "Furnished student accommodation near Yoga Bible studio in Christianshavn. Single or shared apartments from 6.500 kr. Kitchen, wifi, fitness — alt inkluderet."
+includeScheduleModal: false
+---
+
+<!-- JSON-LD: Accommodation Structured Data (AEO) -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "LodgingBusiness",
+  "name": "Yoga Bible Student Accommodation",
+  "description": "Furnished apartments for yoga teacher training students in Copenhagen. Located 800m from Yoga Bible studio in Christianshavn.",
+  "url": "{{ site.url }}/accommodation/",
+  "address": {
+    "@type": "PostalAddress",
+    "addressLocality": "København K",
+    "postalCode": "1400",
+    "addressCountry": "DK"
+  },
+  "geo": {
+    "@type": "GeoCoordinates",
+    "latitude": 55.6722,
+    "longitude": 12.5930
+  },
+  "priceRange": "6500-9500 DKK",
+  "amenityFeature": [
+    { "@type": "LocationFeatureSpecification", "name": "Kitchen", "value": true },
+    { "@type": "LocationFeatureSpecification", "name": "WiFi", "value": true },
+    { "@type": "LocationFeatureSpecification", "name": "Fitness Center", "value": true },
+    { "@type": "LocationFeatureSpecification", "name": "Laundry", "value": true }
+  ],
+  "parentOrganization": {
+    "@type": "EducationalOrganization",
+    "name": "Yoga Bible",
+    "url": "{{ site.url }}"
+  }
+}
+</script>
+
+<!-- FAQPage Schema (AEO — helps with featured snippets) -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "How much does student accommodation cost during Yoga Bible training?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Single studio apartments cost 9,500 DKK for the full training period. Shared double apartments cost 6,500 DKK per person. All utilities are included."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "How far is the accommodation from Yoga Bible studio?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "The student residence is approximately 800 meters from the Yoga Bible studio at Torvegade 66, Christianshavn — about a 10-minute walk or 3-minute bike ride."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Can I cook my own food during yoga teacher training in Copenhagen?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Yes. All apartments have a fully equipped kitchen. Budget supermarkets like Netto and Rema 1000 are nearby. Cooking at home costs approximately 55-75 DKK per day."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "What is the average monthly living cost for a yoga student in Copenhagen?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Excluding accommodation: food (cooking at home) ~1,500-2,500 DKK/month, bike rental ~175 DKK/month, coffee & extras ~500-800 DKK/month. Total around 2,500-4,000 DKK per month."
+      }
+    }
+  ]
+}
+</script>
+
+
+<!-- ═══════════════════════════════════════════════════════════
+     SECTION 1 — HERO (Dark Cinematic)
+     ═══════════════════════════════════════════════════════════ -->
+<section class="yba-hero">
+  <div class="yba-hero__bg">
+    <!-- PLACEHOLDER: Drop hero image here → /assets/images/accommodation/hero-accommodation-copenhagen.jpg
+         Recommended: 1920×1080px, dark/moody apartment or Copenhagen skyline at dusk
+         Alt SEO: "Yoga teacher training accommodation Copenhagen Christianshavn" -->
+  </div>
+  <div class="yba-hero__overlay"></div>
+  <div class="yba-hero__inner">
+    <p class="yba-hero__eyebrow">Accommodation for Yoga Students</p>
+    <h1 class="yba-hero__title">Bo tæt på studiet<br>— vi ordner resten</h1>
+    <p class="yba-hero__subtitle">
+      Furnished apartments in Christianshavn, København. Fair priser, alt inkluderet,
+      10 minutters gang fra Yoga Bible. Designet til kursister, der rejser hertil for at træne.
+    </p>
+    <div class="yba-hero__meta">
+      <div class="yba-hero__meta-item"><strong>Fra</strong> 6.500 kr</div>
+      <div class="yba-hero__meta-item"><strong>Afstand</strong> ~800 m til studiet</div>
+      <div class="yba-hero__meta-item"><strong>Alt inkl.</strong> Wifi · Køkken · Fitness</div>
+    </div>
+    <div class="yba-hero__cta">
+      <a href="#roomoptions" class="btn btn--large btn--primary">Se boligmuligheder</a>
+      <a href="mailto:info@yogabible.dk?subject=Accommodation%20inquiry" class="btn btn--large btn--outline-light">Kontakt os</a>
+    </div>
+  </div>
+</section>
+
+
+<!-- ═══════════════════════════════════════════════════════════
+     SECTION 2 — WHY WE OFFER ACCOMMODATION
+     ═══════════════════════════════════════════════════════════ -->
+<section class="yba-section yba-section--light" id="why-accommodation">
+  <div class="yba-container">
+    <div class="yba-split">
+      <div class="yba-split__content">
+        <p class="yba-eyebrow">Kommer du udefra København?</p>
+        <h2 class="yba-h2">Vi har gjort det nemt for dig</h2>
+        <p class="yba-lead">
+          Mange af vores kursister rejser fra andre byer i Danmark, fra Sverige, Tyskland eller endnu længere væk.
+          Derfor har vi lavet en aftale med en boligpartner tæt på studiet — så du slipper for den stressende
+          boligjagt i København og kan fokusere 100 % på din uddannelse.
+        </p>
+        <ul class="yba-checklist">
+          <li>Ingen depositum-bøvl eller CPR-krav</li>
+          <li>Datoer afstemt med kursusstart og -slut</li>
+          <li>Fuldt møbleret med køkken og bad</li>
+          <li>Alt forbrug inkluderet i prisen</li>
+          <li>~800 m fra Yoga Bible — gå eller cykl</li>
+          <li>Risikofrit: fuld refundering ved aflysning</li>
+        </ul>
+        <a href="#roomoptions" class="btn btn--primary">Se valgmuligheder</a>
+      </div>
+      <div class="yba-split__media">
+        <!-- PLACEHOLDER: Drop image here → /assets/images/accommodation/student-apartment-living-yoga-copenhagen.jpg
+             Recommended: 800×1000px (portrait), student in apartment setting, bright and inviting
+             Alt SEO: "Yoga student apartment Copenhagen furnished living" -->
+        <div class="yba-img-placeholder" style="aspect-ratio:4/5;">
+          <span>student-apartment-living-yoga-copenhagen.jpg<br>800 × 1000 px</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ═══════════════════════════════════════════════════════════
+     SECTION 3 — ROOM OPTIONS (Adapted from existing block)
+     ═══════════════════════════════════════════════════════════ -->
+<section id="roomoptions" class="yba-rooms" aria-label="Boligmuligheder under din uddannelse">
+  <div class="yba-rooms__inner">
+
+    <header class="yba-rooms__header">
+      <p class="yba-eyebrow" style="text-align:center;">Vælg din bolig</p>
+      <h2 class="yba-h2" style="text-align:center;">Boligmuligheder under din uddannelse</h2>
+      <p class="yba-rooms__lead">
+        Vi tilbyder to boligtyper specifikt til kursister, der kommer fra andre byer eller udlandet.
+        Fair priser, enkel logistik og tæt på studiet — så du kan fokusere på praksis og progression.
+      </p>
+    </header>
+
+    <div class="yba-rooms__grid" aria-label="Boligmuligheder">
+
+      <!-- ── Single Studio Apartment ── -->
+      <article class="yba-room-card" data-type="single">
+        <div class="yba-gallery" aria-label="Single Studio Apartment galleri">
+          <button class="yba-gallery__prev" type="button" aria-label="Forrige billede">‹</button>
+          <div class="yba-gallery__track">
+            <img src="https://www.yogabible.dk/s/Yoga-Teacher-Training-Copenhagen-Accommodation-Single-Studio-Apartment.jpg" alt="Single studio apartment for yoga students Copenhagen — interior view 1" loading="lazy" decoding="async">
+            <img src="https://www.yogabible.dk/s/Single-Studio-Apartment-01.jpg" alt="Single studio lejlighed København — soveområde" loading="lazy" decoding="async">
+            <img src="https://www.yogabible.dk/s/Single-Studio-Apartment-03.jpg" alt="Studio apartment kitchen yoga student accommodation" loading="lazy" decoding="async">
+            <img src="https://www.yogabible.dk/s/Single-Studio-Apartment-02.jpg" alt="Privat studiolejlighed — badeværelse" loading="lazy" decoding="async">
+            <img src="https://www.yogabible.dk/s/Single-Studio-Apartment-04.jpg" alt="Single studio apartment workspace and living area" loading="lazy" decoding="async">
+          </div>
+          <button class="yba-gallery__next" type="button" aria-label="Næste billede">›</button>
+          <div class="yba-gallery__dots"></div>
+          <span class="yba-gallery__frame" aria-hidden="true"></span>
+        </div>
+
+        <header class="yba-room-card__head">
+          <h3>Single Studio Apartment</h3>
+          <p class="yba-room-card__tag">Privat lejlighed · Eget køkken &amp; bad</p>
+        </header>
+
+        <div class="yba-room-card__price">
+          <div class="yba-price__main">
+            <span class="yba-price__amount">9.500 kr</span>
+            <span class="yba-price__note">for hele opholdet</span>
+          </div>
+          <p class="yba-price__fine">
+            Inkl. forbrug · Perfekt hvis du ønsker ro, privatliv og et trygt sted at lade op mellem workshops.
+          </p>
+        </div>
+
+        <ul class="yba-room-card__list">
+          <li><strong>~800 m</strong> fra studiet</li>
+          <li>Eget fuldt udstyret køkken — lav din egen mad</li>
+          <li>Studie- &amp; co-working områder</li>
+          <li>Lounge, café, vaskeri</li>
+          <li>24/7 sikkerhed &amp; adgang til fitness</li>
+          <li>Forbrug inkluderet (wifi, el, vand, varme)</li>
+          <li>Cykeludlejning muligt (lille gebyr)</li>
+        </ul>
+
+        <div class="yba-room-card__months" role="tablist" aria-label="Vælg kursusmåned">
+          <button class="yba-chip is-active" role="tab" aria-selected="true" data-month="feb" type="button">Februar 2026</button>
+          <button class="yba-chip" role="tab" aria-selected="false" data-month="mar" type="button">Marts 2026</button>
+          <button class="yba-chip" role="tab" aria-selected="false" data-month="apr" type="button">April 2026</button>
+        </div>
+
+        <div class="yba-room-card__cta">
+          <a href="#" class="yba-btn yba-btn--cta js-reserve" target="_blank" rel="noopener">Reserver &amp; betal for februar 2026</a>
+        </div>
+      </article>
+
+      <!-- ── Double Studio Apartment ── -->
+      <article class="yba-room-card" data-type="double">
+        <div class="yba-gallery" aria-label="Double Studio Apartment galleri">
+          <button class="yba-gallery__prev" type="button" aria-label="Forrige billede">‹</button>
+          <div class="yba-gallery__track">
+            <img src="https://www.yogabible.dk/s/Double-Private-Bedroom-03.jpg" alt="Double studio apartment yoga student Copenhagen — bedroom" loading="lazy" decoding="async">
+            <img src="https://www.yogabible.dk/s/Double-Private-Bedroom-01.jpg" alt="Delt lejlighed privat soveværelse — indretning" loading="lazy" decoding="async">
+            <img src="https://www.yogabible.dk/s/Double-Private-Bedroom-07.jpg" alt="Shared apartment common area yoga accommodation" loading="lazy" decoding="async">
+            <img src="https://www.yogabible.dk/s/Double-Private-Bedroom-02.jpg" alt="Double studio badeværelse og køkken" loading="lazy" decoding="async">
+            <img src="https://www.yogabible.dk/s/Double-Private-Bedroom-04.jpg" alt="Shared yoga student accommodation Copenhagen living space" loading="lazy" decoding="async">
+          </div>
+          <button class="yba-gallery__next" type="button" aria-label="Næste billede">›</button>
+          <div class="yba-gallery__dots"></div>
+          <span class="yba-gallery__frame" aria-hidden="true"></span>
+        </div>
+
+        <header class="yba-room-card__head">
+          <h3>Double Studio Apartment</h3>
+          <p class="yba-room-card__tag">Delt lejlighed · Dit eget private soveværelse</p>
+        </header>
+
+        <div class="yba-room-card__price">
+          <div class="yba-price__main">
+            <span class="yba-price__amount">6.500 kr</span>
+            <span class="yba-price__note">pr. person · for hele opholdet</span>
+          </div>
+          <p class="yba-price__fine">
+            En stærk løsning, hvis du ønsker fair pris og en enkel, rolig base tæt på studiet.
+          </p>
+        </div>
+
+        <ul class="yba-room-card__list">
+          <li><strong>~800 m</strong> fra studiet</li>
+          <li>Dit eget private soveværelse</li>
+          <li>Delt køkken — lav mad sammen eller for dig selv</li>
+          <li>Studie- &amp; co-working områder</li>
+          <li>Lounge, café, vaskeri</li>
+          <li>24/7 sikkerhed &amp; adgang til fitness</li>
+          <li>Forbrug inkluderet (wifi, el, vand, varme)</li>
+          <li>Cykeludlejning muligt (lille gebyr)</li>
+        </ul>
+
+        <div class="yba-room-card__months" role="tablist" aria-label="Vælg kursusmåned">
+          <button class="yba-chip is-active" role="tab" aria-selected="true" data-month="feb" type="button">Februar 2026</button>
+          <button class="yba-chip" role="tab" aria-selected="false" data-month="mar" type="button">Marts 2026</button>
+          <button class="yba-chip" role="tab" aria-selected="false" data-month="apr" type="button">April 2026</button>
+        </div>
+
+        <div class="yba-room-card__cta">
+          <a href="#" class="yba-btn yba-btn--cta js-reserve" target="_blank" rel="noopener">Reserver &amp; betal for februar 2026</a>
+        </div>
+      </article>
+
+    </div>
+
+    <footer class="yba-rooms__footer">
+      <div class="yba-rooms__refund">
+        <p><strong>Risikofrit:</strong> Fuld refundering af boligbetaling, hvis kurset aflyses.</p>
+      </div>
+      <p class="yba-rooms__tip">
+        Tip: Er du i tvivl om datoer? Kontakt os på <a href="mailto:info@yogabible.dk">info@yogabible.dk</a> — så hjælper vi dig med den bedste løsning.
+      </p>
+    </footer>
+
+  </div>
+</section>
+
+
+<!-- ═══════════════════════════════════════════════════════════
+     SECTION 4 — THE RESIDENCE — WHAT'S INCLUDED
+     ═══════════════════════════════════════════════════════════ -->
+<section class="yba-section yba-section--warm" id="amenities">
+  <div class="yba-container">
+    <p class="yba-eyebrow" style="text-align:center;">Faciliteter &amp; Amenities</p>
+    <h2 class="yba-h2" style="text-align:center;">Alt du har brug for under dit ophold</h2>
+    <p class="yba-lead" style="text-align:center; max-width:65ch; margin:0 auto 2.5rem;">
+      Residensen er bygget til studerende og unge professionelle. Her er hvad der venter dig.
+    </p>
+
+    <div class="yba-amenities-grid">
+
+      <div class="yba-amenity-card">
+        <div class="yba-amenity-card__icon">
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9h18v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V9z"/><path d="M3 9V7a2 2 0 0 1 2-2h2l2-2h6l2 2h2a2 2 0 0 1 2 2v2"/><line x1="8" y1="13" x2="8" y2="17"/><line x1="16" y1="13" x2="16" y2="17"/><line x1="12" y1="13" x2="12" y2="17"/></svg>
+        </div>
+        <h3>Eget køkken</h3>
+        <p>Fuldt udstyret med komfur, ovn, køleskab og redskaber. Lav din egen sunde mad og spar penge.</p>
+      </div>
+
+      <div class="yba-amenity-card">
+        <div class="yba-amenity-card__icon">
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2 20h20"/><path d="M5 20V4a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16"/><path d="M9 8h6"/><path d="M9 12h6"/></svg>
+        </div>
+        <h3>Co-working &amp; Studieområder</h3>
+        <p>Rolige zoner med wifi, strøm og gode stole. Perfekt til anatomi-læsning eller planlægning af undervisning.</p>
+      </div>
+
+      <div class="yba-amenity-card">
+        <div class="yba-amenity-card__icon">
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+        </div>
+        <h3>24/7 Adgang &amp; Sikkerhed</h3>
+        <p>Nøglekort-system og overvågning. Du kan komme og gå som det passer — også til tidlige morgenyoga-sessions.</p>
+      </div>
+
+      <div class="yba-amenity-card">
+        <div class="yba-amenity-card__icon">
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 3l-4 4-4-4"/><circle cx="12" cy="14" r="3"/></svg>
+        </div>
+        <h3>Vaskeri</h3>
+        <p>Vaskemaskiner og tørretumblere i bygningen. Du behøver ikke slæbe vasketøj rundt i byen.</p>
+      </div>
+
+      <div class="yba-amenity-card">
+        <div class="yba-amenity-card__icon">
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/><path d="M2 8a10 10 0 0 1 20 0"/></svg>
+        </div>
+        <h3>Fitness &amp; Træning</h3>
+        <p>Fitnesscenter i bygningen — perfekt til supplerende styrketræning på fridage fra yogaprogrammet.</p>
+      </div>
+
+      <div class="yba-amenity-card">
+        <div class="yba-amenity-card__icon">
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M2 12h20"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+        </div>
+        <h3>Wifi &amp; Forbrug inkl.</h3>
+        <p>Højhastigheds-wifi, el, vand og varme — alt er inkluderet. Ingen overraskelser.</p>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+
+<!-- ═══════════════════════════════════════════════════════════
+     SECTION 5 — COOK YOUR OWN FOOD
+     ═══════════════════════════════════════════════════════════ -->
+<section class="yba-section" id="cooking">
+  <div class="yba-container">
+    <div class="yba-split yba-split--reverse">
+      <div class="yba-split__content">
+        <p class="yba-eyebrow">Lav din egen mad</p>
+        <h2 class="yba-h2">Dit køkken, dine regler</h2>
+        <p class="yba-lead">
+          Alle lejligheder har et fuldt udstyret køkken. Du bestemmer selv, hvad du spiser —
+          og du sparer markant i forhold til at spise ude i København.
+        </p>
+        <p>
+          Budget-supermarkeder som <strong>Netto</strong>, <strong>Rema 1000</strong> og <strong>Lidl</strong> ligger
+          inden for kort gåafstand. Mange kursister meal-prepper sunde, plantebaserede måltider og deler mad i fællesskabet.
+        </p>
+
+        <div class="yba-quote-side">
+          <div class="yba-quote-bar"></div>
+          <div>
+            <p class="yba-quote-text">Tip: Download appen <strong>Too Good To Go</strong> — køb overskudsmad fra restauranter og bagerier til halv pris.</p>
+          </div>
+        </div>
+
+        <div class="yba-food-stats">
+          <div class="yba-food-stat">
+            <span class="yba-food-stat__number">55-75 kr</span>
+            <span class="yba-food-stat__label">Dagligt madbudget<br>(lav selv)</span>
+          </div>
+          <div class="yba-food-stat">
+            <span class="yba-food-stat__number">375-500 kr</span>
+            <span class="yba-food-stat__label">Ugentligt<br>indkøbsbudget</span>
+          </div>
+          <div class="yba-food-stat">
+            <span class="yba-food-stat__number">~30-50%</span>
+            <span class="yba-food-stat__label">Sparet vs.<br>at spise ude</span>
+          </div>
+        </div>
+      </div>
+      <div class="yba-split__media">
+        <!-- PLACEHOLDER: Drop image here → /assets/images/accommodation/yoga-student-cooking-copenhagen-kitchen.jpg
+             Recommended: 800×1000px (portrait), someone cooking in a clean modern kitchen
+             Alt SEO: "Yoga student cooking healthy meal Copenhagen apartment kitchen" -->
+        <div class="yba-img-placeholder" style="aspect-ratio:4/5;">
+          <span>yoga-student-cooking-copenhagen-kitchen.jpg<br>800 × 1000 px</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ═══════════════════════════════════════════════════════════
+     SECTION 6 — LOCATION & MAP
+     ═══════════════════════════════════════════════════════════ -->
+<section class="yba-section yba-section--dark" id="location">
+  <div class="yba-container">
+    <p class="yba-eyebrow yba-eyebrow--white" style="text-align:center;">Beliggenhed</p>
+    <h2 class="yba-h2" style="text-align:center; color:#fff;">Christianshavn — Hjertet af København</h2>
+    <p class="yba-lead" style="text-align:center; max-width:60ch; margin:0 auto 2.5rem; color:rgba(255,255,255,.75);">
+      Yoga Bible ligger på Torvegade 66 i Christianshavn — et af Københavns mest charmerende kvarterer.
+      Kanaler, caféer, Christiania og havnebadet er alt sammen inden for få minutters gang.
+    </p>
+
+    <div class="yba-map-wrapper">
+      <div class="yba-map-container">
+        <iframe
+          src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d2250.089!2d12.5905!3d55.6722!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x4652530fa0a14c27%3A0x3d4b6e5c8a2e0a0a!2sTorvegade%2066%2C%201400%20K%C3%B8benhavn!5e0!3m2!1sda!2sdk!4v1700000000000!5m2!1sda!2sdk"
+          width="100%"
+          height="100%"
+          style="border:0;"
+          allowfullscreen=""
+          loading="lazy"
+          referrerpolicy="no-referrer-when-downgrade"
+          title="Yoga Bible studio location — Torvegade 66, Christianshavn, København">
+        </iframe>
+      </div>
+
+      <div class="yba-map-info">
+        <h3>Yoga Bible Studio</h3>
+        <p class="yba-map-address">Torvegade 66, 1400 København K</p>
+
+        <div class="yba-map-distances">
+          <div class="yba-map-distance">
+            <span class="yba-map-distance__icon">🚶</span>
+            <div>
+              <strong>Til studiet fra boligen</strong>
+              <p>~800 m · 10 min gang · 3 min cykel</p>
+            </div>
+          </div>
+          <div class="yba-map-distance">
+            <span class="yba-map-distance__icon">🚇</span>
+            <div>
+              <strong>Christianshavn Metro</strong>
+              <p>~250 m · 3 min gang</p>
+            </div>
+          </div>
+          <div class="yba-map-distance">
+            <span class="yba-map-distance__icon">🛒</span>
+            <div>
+              <strong>Netto / Rema 1000</strong>
+              <p>~400 m · 5 min gang</p>
+            </div>
+          </div>
+          <div class="yba-map-distance">
+            <span class="yba-map-distance__icon">🏊</span>
+            <div>
+              <strong>Islands Brygge Havnebad</strong>
+              <p>~1.2 km · 5 min cykel</p>
+            </div>
+          </div>
+        </div>
+
+        <a href="https://maps.google.com/?q=Torvegade+66,+1400+København+K,+Denmark" target="_blank" rel="noopener" class="btn btn--primary" style="margin-top:1.25rem;">
+          Åbn i Google Maps
+        </a>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ═══════════════════════════════════════════════════════════
+     SECTION 7 — BUDGET ESTIMATION
+     ═══════════════════════════════════════════════════════════ -->
+<section class="yba-section" id="budget">
+  <div class="yba-container">
+    <p class="yba-eyebrow" style="text-align:center;">Hvad koster det at bo i København?</p>
+    <h2 class="yba-h2" style="text-align:center;">Estimeret månedligt budget</h2>
+    <p class="yba-lead" style="text-align:center; max-width:65ch; margin:0 auto 2.5rem;">
+      København er ikke billigt — men det behøver ikke at være dyrt. Her er et realistisk overblik over
+      dine udgifter som yogakursist (ud over bolig og kursus).
+    </p>
+
+    <div class="yba-budget-table-wrap">
+      <table class="yba-budget-table">
+        <thead>
+          <tr>
+            <th>Kategori</th>
+            <th>Budget</th>
+            <th>Komfort</th>
+            <th>Bemærkning</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td data-label="Kategori">
+              <span class="yba-budget-icon">🍳</span>
+              <strong>Mad (lav selv)</strong>
+            </td>
+            <td data-label="Budget">1.500 kr</td>
+            <td data-label="Komfort">2.500 kr</td>
+            <td data-label="Bemærkning">Netto, Rema 1000, Lidl. Meal prep!</td>
+          </tr>
+          <tr>
+            <td data-label="Kategori">
+              <span class="yba-budget-icon">🍽️</span>
+              <strong>Spise ude (lejlighedsvis)</strong>
+            </td>
+            <td data-label="Budget">500 kr</td>
+            <td data-label="Komfort">1.500 kr</td>
+            <td data-label="Bemærkning">Kebab ~100 kr · Street food ~120 kr</td>
+          </tr>
+          <tr>
+            <td data-label="Kategori">
+              <span class="yba-budget-icon">🚲</span>
+              <strong>Transport (cykel)</strong>
+            </td>
+            <td data-label="Budget">175 kr</td>
+            <td data-label="Komfort">400 kr</td>
+            <td data-label="Bemærkning">Swapfiets 175 kr/md · Brugt cykel fra 500 kr</td>
+          </tr>
+          <tr>
+            <td data-label="Kategori">
+              <span class="yba-budget-icon">☕</span>
+              <strong>Kaffe &amp; café</strong>
+            </td>
+            <td data-label="Budget">300 kr</td>
+            <td data-label="Komfort">800 kr</td>
+            <td data-label="Bemærkning">Cappuccino ~45-55 kr · Lav selv: ~5 kr</td>
+          </tr>
+          <tr>
+            <td data-label="Kategori">
+              <span class="yba-budget-icon">🏛️</span>
+              <strong>Museer &amp; oplevelser</strong>
+            </td>
+            <td data-label="Budget">0 kr</td>
+            <td data-label="Komfort">500 kr</td>
+            <td data-label="Bemærkning">Nationalmuseet gratis · Tivoli ~155 kr</td>
+          </tr>
+          <tr>
+            <td data-label="Kategori">
+              <span class="yba-budget-icon">📱</span>
+              <strong>Mobil / SIM-kort</strong>
+            </td>
+            <td data-label="Budget">100 kr</td>
+            <td data-label="Komfort">150 kr</td>
+            <td data-label="Bemærkning">Lebara eller Oister prepaid</td>
+          </tr>
+          <tr class="yba-budget-table__total">
+            <td data-label="Kategori"><strong>Total pr. måned</strong></td>
+            <td data-label="Budget"><strong>~2.575 kr</strong></td>
+            <td data-label="Komfort"><strong>~5.850 kr</strong></td>
+            <td data-label="Bemærkning">Ekskl. bolig &amp; kursus</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="yba-budget-tips">
+      <h3>Spare-tips fra tidligere kursister</h3>
+      <div class="yba-budget-tips__grid">
+        <div class="yba-tip-card">
+          <span class="yba-tip-card__icon">🚲</span>
+          <p><strong>Cykl overalt.</strong> Swapfiets til 175 kr/md slår enhver transportløsning. København er bygget til cykler.</p>
+        </div>
+        <div class="yba-tip-card">
+          <span class="yba-tip-card__icon">🥘</span>
+          <p><strong>Meal prep søndag.</strong> Lav mad til hele ugen. Dine medkursister gør det — lav det sammen!</p>
+        </div>
+        <div class="yba-tip-card">
+          <span class="yba-tip-card__icon">📱</span>
+          <p><strong>Too Good To Go.</strong> Overskudsmad fra restauranter og bagerier til 30-50% af prisen.</p>
+        </div>
+        <div class="yba-tip-card">
+          <span class="yba-tip-card__icon">🚰</span>
+          <p><strong>Drik postevand.</strong> Københavns vand er fantastisk. Tag en genanvendelig flaske med overalt.</p>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+
+<!-- ═══════════════════════════════════════════════════════════
+     SECTION 8 — FIND YOUR OWN ACCOMMODATION
+     ═══════════════════════════════════════════════════════════ -->
+<section class="yba-section yba-section--light" id="find-your-own">
+  <div class="yba-container">
+    <p class="yba-eyebrow" style="text-align:center;">Foretrækker du at finde din egen bolig?</p>
+    <h2 class="yba-h2" style="text-align:center;">Andre boligmuligheder i København</h2>
+    <p class="yba-lead" style="text-align:center; max-width:65ch; margin:0 auto 2.5rem;">
+      Vores tilbud er den nemmeste løsning — men hvis du hellere vil finde noget selv,
+      har vi samlet de bedste muligheder for dig herunder.
+    </p>
+
+    <!-- ── Hotels Nearby ── -->
+    <div class="yba-alt-section">
+      <h3 class="yba-h3">
+        <span class="yba-h3__icon">🏨</span>
+        Hoteller i nærheden
+      </h3>
+      <p class="yba-alt-section__desc">Alle inden for gå- eller cykelafstand fra studiet i Christianshavn.</p>
+
+      <div class="yba-hotel-grid">
+        <div class="yba-hotel-card">
+          <div class="yba-hotel-card__img">
+            <!-- PLACEHOLDER: Drop image → /assets/images/accommodation/hotel-cph-living-floating.jpg
+                 Recommended: 600×400px, CPH Living floating hotel
+                 Alt SEO: "CPH Living floating hotel Copenhagen harbor accommodation" -->
+            <div class="yba-img-placeholder" style="aspect-ratio:3/2;"><span>hotel-cph-living-floating.jpg<br>600×400</span></div>
+          </div>
+          <div class="yba-hotel-card__body">
+            <span class="yba-badge yba-badge--outline">Budget-Mid</span>
+            <h4>CPH Living — The Floating Hotel</h4>
+            <p>Danmarks første flydende hotel. 12 intime værelser med havneudsigt, geotermisk opvarmning, dansk morgenmad.</p>
+            <div class="yba-hotel-card__meta">
+              <span>Fra ~865 kr/nat</span>
+              <span>Christianshavn havnefront</span>
+            </div>
+            <a href="https://www.cphliving.com/" target="_blank" rel="noopener" class="yba-link">Se priser &amp; book →</a>
+          </div>
+        </div>
+
+        <div class="yba-hotel-card">
+          <div class="yba-hotel-card__img">
+            <!-- PLACEHOLDER: Drop image → /assets/images/accommodation/hotel-25hours-paper-island.jpg
+                 Recommended: 600×400px, 25hours Hotel Paper Island
+                 Alt SEO: "25hours Hotel Paper Island Copenhagen design hotel" -->
+            <div class="yba-img-placeholder" style="aspect-ratio:3/2;"><span>hotel-25hours-paper-island.jpg<br>600×400</span></div>
+          </div>
+          <div class="yba-hotel-card__body">
+            <span class="yba-badge yba-badge--outline">Design Hotel</span>
+            <h4>25hours Hotel Paper Island</h4>
+            <p>128-værelses designhotel på Papirøen, trin fra Nyhavn. Gratis minibar, tagterrasse, a la carte restaurant.</p>
+            <div class="yba-hotel-card__meta">
+              <span>Fra ~1.180 kr/nat</span>
+              <span>Paper Island / Christiansholm</span>
+            </div>
+            <a href="https://25hours-hotels.com/copenhagen/paper-island/" target="_blank" rel="noopener" class="yba-link">Se priser &amp; book →</a>
+          </div>
+        </div>
+
+        <div class="yba-hotel-card">
+          <div class="yba-hotel-card__img">
+            <!-- PLACEHOLDER: Drop image → /assets/images/accommodation/hostel-generator-copenhagen.jpg
+                 Recommended: 600×400px, Generator Copenhagen hostel
+                 Alt SEO: "Generator Copenhagen hostel budget accommodation yoga students" -->
+            <div class="yba-img-placeholder" style="aspect-ratio:3/2;"><span>hostel-generator-copenhagen.jpg<br>600×400</span></div>
+          </div>
+          <div class="yba-hotel-card__body">
+            <span class="yba-badge yba-badge--outline">Hostel / Budget</span>
+            <h4>Generator Copenhagen</h4>
+            <p>Design-hostel med dorms og private værelser nær Kongens Nytorv. 10 min cykel til studiet. Perfekt til budgetbevidste.</p>
+            <div class="yba-hotel-card__meta">
+              <span>Dorm fra ~175 kr · Privat fra ~860 kr</span>
+              <span>Adelgade, Indre By</span>
+            </div>
+            <a href="https://staygenerator.com/hostels/copenhagen" target="_blank" rel="noopener" class="yba-link">Se priser &amp; book →</a>
+          </div>
+        </div>
+
+        <div class="yba-hotel-card">
+          <div class="yba-hotel-card__img">
+            <!-- PLACEHOLDER: Drop image → /assets/images/accommodation/hostel-steel-house-copenhagen.jpg
+                 Recommended: 600×400px, Steel House Copenhagen
+                 Alt SEO: "Steel House Copenhagen hostel pool gym yoga student budget" -->
+            <div class="yba-img-placeholder" style="aspect-ratio:3/2;"><span>hostel-steel-house-copenhagen.jpg<br>600×400</span></div>
+          </div>
+          <div class="yba-hotel-card__body">
+            <span class="yba-badge yba-badge--outline">Hostel / Budget</span>
+            <h4>Steel House Copenhagen</h4>
+            <p>Industriel-nordisk hostel med pool, fitnesscenter og biograf. 15 min cykel fra studiet. Mere end et typisk hostel.</p>
+            <div class="yba-hotel-card__meta">
+              <span>Dorm fra ~220 kr · Privat fra ~960 kr</span>
+              <span>Vesterbro, nær Tivoli</span>
+            </div>
+            <a href="https://www.hostelworld.com/hostels/p/277862/steel-house-copenhagen/" target="_blank" rel="noopener" class="yba-link">Se priser &amp; book →</a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Short-term Rentals ── -->
+    <div class="yba-alt-section">
+      <h3 class="yba-h3">
+        <span class="yba-h3__icon">🏠</span>
+        Airbnb &amp; Korttidslejemål
+      </h3>
+      <p class="yba-alt-section__desc">
+        En studiolejlighed i Christianshavn koster typisk 1.000–2.000 kr/nat på Airbnb.
+        For længere ophold (4+ uger) kan du ofte forhandle en bedre pris.
+      </p>
+
+      <div class="yba-platform-grid">
+        <a href="https://www.airbnb.com/s/Christianshavn--Copenhagen/homes" target="_blank" rel="noopener" class="yba-platform-card">
+          <strong>Airbnb</strong>
+          <p>Lejligheder &amp; værelser</p>
+        </a>
+        <a href="https://www.booking.com/searchresults.html?ss=Christianshavn%2C+Copenhagen" target="_blank" rel="noopener" class="yba-platform-card">
+          <strong>Booking.com</strong>
+          <p>Hoteller &amp; apartments</p>
+        </a>
+        <a href="https://www.boligportal.dk/" target="_blank" rel="noopener" class="yba-platform-card">
+          <strong>BoligPortal</strong>
+          <p>Danmarks største lejeportal</p>
+        </a>
+        <a href="https://housinganywhere.com/s/Copenhagen--Denmark" target="_blank" rel="noopener" class="yba-platform-card">
+          <strong>HousingAnywhere</strong>
+          <p>Verificerede lejemål</p>
+        </a>
+      </div>
+    </div>
+
+    <!-- ── Student Housing & Coliving ── -->
+    <div class="yba-alt-section">
+      <h3 class="yba-h3">
+        <span class="yba-h3__icon">🎓</span>
+        Studieboliger &amp; Coliving
+      </h3>
+      <p class="yba-alt-section__desc">
+        Hvis du har en længere tidshorisont (8+ uger), kan studieboliger og coliving-koncepter være en attraktiv mulighed.
+      </p>
+
+      <div class="yba-coliving-grid">
+        <div class="yba-coliving-card">
+          <h4>Basecamp by Xior</h4>
+          <p>463 lejligheder, biograf, fitness, studierum, tagterrasse. Semesterbaseret.</p>
+          <div class="yba-coliving-card__price">Fra 7.500 kr/md</div>
+          <a href="https://www.basecampstudent.com/student/copenhagen-south/" target="_blank" rel="noopener" class="yba-link">Læs mere →</a>
+        </div>
+        <div class="yba-coliving-card">
+          <h4>CPH Village</h4>
+          <p>Community-drevet, bæredygtigt, overkommeligt. Social og bevidst tilgang til bolig.</p>
+          <div class="yba-coliving-card__price">Fra ~6.000 kr/md</div>
+          <a href="https://www.cphvillage.com/" target="_blank" rel="noopener" class="yba-link">Læs mere →</a>
+        </div>
+        <div class="yba-coliving-card">
+          <h4>LifeX Coliving</h4>
+          <p>Alt-inklusiv pris (leje + wifi + Netflix + rengøring). Ingen indskud. Fleksible kontrakter.</p>
+          <div class="yba-coliving-card__price">Fra ~7.000 kr/md</div>
+          <a href="https://joinlifex.com/copenhagen" target="_blank" rel="noopener" class="yba-link">Læs mere →</a>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Facebook Groups ── -->
+    <div class="yba-alt-section">
+      <h3 class="yba-h3">
+        <span class="yba-h3__icon">💬</span>
+        Facebook-grupper for boligsøgning
+      </h3>
+      <p class="yba-alt-section__desc">
+        Mange finder værelser og lejligheder via Facebook. Her er de mest aktive grupper:
+      </p>
+
+      <div class="yba-fb-groups">
+        <div class="yba-fb-group">
+          <strong>Lejligheder i København</strong>
+          <p>Lejligheder til leje/fremleje i KBH</p>
+        </div>
+        <div class="yba-fb-group">
+          <strong>Lejeboliger til unge og studerende</strong>
+          <p>~50.000 medlemmer · Gratis og sikker boligsøgning</p>
+        </div>
+        <div class="yba-fb-group">
+          <strong>Kollektiver i København</strong>
+          <p>~30.000 medlemmer · Delt bolig, 1-9 måneders ophold</p>
+        </div>
+        <div class="yba-fb-group">
+          <strong>Roommate Copenhagen</strong>
+          <p>Engelsksprog · Find en roommate til delt lejlighed</p>
+        </div>
+        <div class="yba-fb-group">
+          <strong>International Students in Copenhagen — Housing</strong>
+          <p>Engelsksprog · Specifikt for internationale studerende</p>
+        </div>
+      </div>
+
+      <div class="yba-scam-warning">
+        <strong>⚠️ Pas på svindel:</strong> Overfør aldrig penge, før du har set boligen og underskrevet en kontrakt.
+        Brug verificerede platforme og vær opmærksom på for-gode-til-at-være-sande tilbud.
+      </div>
+    </div>
+
+  </div>
+</section>
+
+
+<!-- ═══════════════════════════════════════════════════════════
+     SECTION 9 — WHICH COURSE ARE YOU JOINING?
+     ═══════════════════════════════════════════════════════════ -->
+<section class="yba-section yba-section--warm" id="courses">
+  <div class="yba-container">
+    <p class="yba-eyebrow" style="text-align:center;">Hvilket kursus deltager du i?</p>
+    <h2 class="yba-h2" style="text-align:center;">Vores uddannelser &amp; kurser</h2>
+    <p class="yba-lead" style="text-align:center; max-width:60ch; margin:0 auto 2.5rem;">
+      Bolig er relevant for kursister, der rejser til København. Her er de programmer, der typisk har brug for overnatning.
+    </p>
+
+    <div class="yba-course-grid">
+      <a href="/200-hours-4-weeks-intensive-programs" class="yba-course-card">
+        <div class="yba-course-card__img">
+          <!-- PLACEHOLDER: Drop image → /assets/images/accommodation/course-4-week-intensive-yoga-training.jpg
+               Recommended: 600×400px, yoga class or training in action
+               Alt SEO: "4 week intensive yoga teacher training Copenhagen" -->
+          <div class="yba-img-placeholder" style="aspect-ratio:3/2;"><span>course-4-week-intensive-yoga-training.jpg<br>600×400</span></div>
+        </div>
+        <div class="yba-course-card__body">
+          <span class="yba-badge yba-badge--primary">Mest populær</span>
+          <h3>4 Weeks Intensive</h3>
+          <p>200-timers Yoga Alliance certificering. Fuld immersion — mandag til lørdag, morgen til aften.</p>
+          <span class="yba-course-card__link">Se program →</span>
+        </div>
+      </a>
+
+      <a href="/200-hours-8-weeks-semi-intensive-programs" class="yba-course-card">
+        <div class="yba-course-card__img">
+          <!-- PLACEHOLDER: Drop image → /assets/images/accommodation/course-8-week-semi-intensive-yoga.jpg
+               Recommended: 600×400px
+               Alt SEO: "8 week semi-intensive yoga teacher training Copenhagen" -->
+          <div class="yba-img-placeholder" style="aspect-ratio:3/2;"><span>course-8-week-semi-intensive-yoga.jpg<br>600×400</span></div>
+        </div>
+        <div class="yba-course-card__body">
+          <h3>8 Weeks Semi-Intensive</h3>
+          <p>200-timers certificering med mere tid til integration. Perfekt balance mellem intensitet og hverdagsliv.</p>
+          <span class="yba-course-card__link">Se program →</span>
+        </div>
+      </a>
+
+      <a href="/course-bundles" class="yba-course-card">
+        <div class="yba-course-card__img">
+          <!-- PLACEHOLDER: Drop image → /assets/images/accommodation/course-bundles-yoga-specialty-training.jpg
+               Recommended: 600×400px
+               Alt SEO: "Yoga course bundles inversions backbends splits Copenhagen" -->
+          <div class="yba-img-placeholder" style="aspect-ratio:3/2;"><span>course-bundles-yoga-specialty-training.jpg<br>600×400</span></div>
+        </div>
+        <div class="yba-course-card__body">
+          <h3>Course Bundles</h3>
+          <p>Kombiner 2-3 specialkurser (inversions, splits, backbends) til én intensiv måned med rabat.</p>
+          <span class="yba-course-card__link">Byg din pakke →</span>
+        </div>
+      </a>
+    </div>
+  </div>
+</section>
+
+
+<!-- ═══════════════════════════════════════════════════════════
+     SECTION 10 — FAQ ACCORDION
+     ═══════════════════════════════════════════════════════════ -->
+<section class="yba-section" id="faq">
+  <div class="yba-container" style="max-width:800px;">
+    <p class="yba-eyebrow" style="text-align:center;">Spørgsmål &amp; Svar</p>
+    <h2 class="yba-h2" style="text-align:center;">Ofte stillede spørgsmål om bolig</h2>
+    <p class="yba-lead" style="text-align:center; max-width:60ch; margin:0 auto 2.5rem;">
+      Alt det praktiske du har brug for at vide, inden du booker.
+    </p>
+
+    <div class="yba-faq-list">
+
+      <div class="yba-faq-item">
+        <button class="yba-faq-trigger" type="button" aria-expanded="false">
+          <span>Hvornår kan jeg flytte ind og ud?</span>
+          <span class="yba-faq-icon">+</span>
+        </button>
+        <div class="yba-faq-body" hidden>
+          <p>Indflytning er typisk 1-2 dage inden kursusstart, og udflytning er dagen efter kurset slutter.
+          De præcise datoer afhænger af den måned, du vælger. Vi sender dig alle detaljer, når du har reserveret.</p>
+        </div>
+      </div>
+
+      <div class="yba-faq-item">
+        <button class="yba-faq-trigger" type="button" aria-expanded="false">
+          <span>Hvad er inkluderet i prisen?</span>
+          <span class="yba-faq-icon">+</span>
+        </button>
+        <div class="yba-faq-body" hidden>
+          <p>Alt forbrug er inkluderet: wifi, elektricitet, vand, varme. Lejligheden er fuldt møbleret med seng,
+          skrivebord, garderobe, køkken (komfur, køleskab, redskaber) og badeværelse. Sengetøj og håndklæder medbringes selv
+          eller kan købes billigt i IKEA/Flying Tiger.</p>
+        </div>
+      </div>
+
+      <div class="yba-faq-item">
+        <button class="yba-faq-trigger" type="button" aria-expanded="false">
+          <span>Kan jeg leje en cykel?</span>
+          <span class="yba-faq-icon">+</span>
+        </button>
+        <div class="yba-faq-body" hidden>
+          <p>Ja! Residensen tilbyder cykeludlejning (lille gebyr). Du kan også bruge <strong>Swapfiets</strong>
+          (175 kr/md for din egen cykel med reparationsservice inkluderet) eller købe en brugt cykel via DBA.dk
+          eller Facebook Marketplace fra 500-1.500 kr.</p>
+        </div>
+      </div>
+
+      <div class="yba-faq-item">
+        <button class="yba-faq-trigger" type="button" aria-expanded="false">
+          <span>Er der depositum?</span>
+          <span class="yba-faq-icon">+</span>
+        </button>
+        <div class="yba-faq-body" hidden>
+          <p>Nej, der er intet depositum eller ekstra gebyrer. Du betaler den fulde pris ved reservation,
+          og det er det. Ingen overraskelser.</p>
+        </div>
+      </div>
+
+      <div class="yba-faq-item">
+        <button class="yba-faq-trigger" type="button" aria-expanded="false">
+          <span>Hvad hvis kurset bliver aflyst?</span>
+          <span class="yba-faq-icon">+</span>
+        </button>
+        <div class="yba-faq-body" hidden>
+          <p>Hvis Yoga Bible aflyser kurset, får du fuld refundering af din boligbetaling. Risikofrit.</p>
+        </div>
+      </div>
+
+      <div class="yba-faq-item">
+        <button class="yba-faq-trigger" type="button" aria-expanded="false">
+          <span>Kan jeg forlænge mit ophold?</span>
+          <span class="yba-faq-icon">+</span>
+        </button>
+        <div class="yba-faq-body" hidden>
+          <p>Det afhænger af tilgængelighed. Kontakt os på <a href="mailto:info@yogabible.dk">info@yogabible.dk</a>,
+          og vi tjekker mulighederne for dig. Mange kursister vælger at blive lidt ekstra i København efter kurset.</p>
+        </div>
+      </div>
+
+      <div class="yba-faq-item">
+        <button class="yba-faq-trigger" type="button" aria-expanded="false">
+          <span>Er lejlighederne mixed/kønsopdelte?</span>
+          <span class="yba-faq-icon">+</span>
+        </button>
+        <div class="yba-faq-body" hidden>
+          <p>Single-lejligheder er private — du bor alene. Double-lejligheder deles med en medkursist af samme køn,
+          medmindre I selv aftaler noget andet (f.eks. par eller venner, der rejser sammen).</p>
+        </div>
+      </div>
+
+      <div class="yba-faq-item">
+        <button class="yba-faq-trigger" type="button" aria-expanded="false">
+          <span>Kan jeg have gæster eller kæledyr?</span>
+          <span class="yba-faq-icon">+</span>
+        </button>
+        <div class="yba-faq-body" hidden>
+          <p>Overnatningsgæster er generelt ikke tilladt. Kæledyr er desværre heller ikke muligt.
+          Det er en studiebolig med fokus på ro og tryghed for alle beboere.</p>
+        </div>
+      </div>
+
+      <div class="yba-faq-item">
+        <button class="yba-faq-trigger" type="button" aria-expanded="false">
+          <span>Hvad med sengetøj, håndklæder og rengøring?</span>
+          <span class="yba-faq-icon">+</span>
+        </button>
+        <div class="yba-faq-body" hidden>
+          <p>Sengetøj og håndklæder medbringes selv. Du kan købe billige sæt i IKEA (Amager), Flying Tiger eller Normal.
+          Rengøring af din lejlighed står du selv for — der er støvsuger og rengøringsmidler tilgængelige.</p>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+
+<!-- ═══════════════════════════════════════════════════════════
+     SECTION 11 — ABOUT COPENHAGEN CTA
+     ═══════════════════════════════════════════════════════════ -->
+<section class="yba-section yba-section--brand" id="discover-copenhagen">
+  <div class="yba-container" style="text-align:center;">
+    <p class="yba-eyebrow yba-eyebrow--white">Oplev København</p>
+    <h2 class="yba-h2" style="color:#fff; margin-bottom:1rem;">Mere end bare et kursus — det er en oplevelse</h2>
+    <p style="color:rgba(255,255,255,.85); max-width:55ch; margin:0 auto 2rem; line-height:1.65; font-size:clamp(0.95rem,1.5vw,1.1rem);">
+      Cykelkultur, kanaler, specialkaffe, saunagus, havnebad og New Nordic food.
+      København er den perfekte by at fordybe sig i yoga — og i livet.
+    </p>
+    <div style="display:flex; gap:12px; justify-content:center; flex-wrap:wrap;">
+      <a href="/about-copenhagen" class="btn btn--large" style="background:#fff; color:#f75c03; font-weight:700;">Udforsk København</a>
+      <a href="mailto:info@yogabible.dk?subject=Accommodation%20question" class="btn btn--large btn--outline-light">Stil et spørgsmål</a>
+    </div>
+  </div>
+</section>
+
+
+<!-- ═══════════════════════════════════════════════════════════
+     SECTION 12 — FINAL CTA
+     ═══════════════════════════════════════════════════════════ -->
+<section class="yba-section" id="book-now" style="padding-bottom:clamp(60px,8vw,100px);">
+  <div class="yba-container" style="text-align:center; max-width:700px;">
+    <h2 class="yba-h2">Klar til at booke din bolig?</h2>
+    <p class="yba-lead" style="margin-bottom:1.5rem;">
+      Vælg din foretrukne lejlighedstype og kursusmåned ovenfor — og reserver din plads i dag.
+      Har du spørgsmål? Vi svarer altid hurtigt.
+    </p>
+    <div style="display:flex; gap:12px; justify-content:center; flex-wrap:wrap; margin-bottom:1.5rem;">
+      <a href="#roomoptions" class="btn btn--large btn--primary">Se boligmuligheder</a>
+      <a href="/apply" class="btn btn--large btn--secondary">Ansøg til uddannelsen</a>
+    </div>
+    <div class="yba-rooms__refund" style="display:inline-block;">
+      <p><strong>Risikofrit:</strong> Fuld refundering af boligbetaling, hvis kurset aflyses.</p>
+    </div>
+    <p style="margin-top:1rem; color:#6F6A66; font-size:0.88rem;">
+      Kontakt os på <a href="mailto:info@yogabible.dk" style="color:#f75c03; font-weight:700;">info@yogabible.dk</a>
+      eller ring <a href="tel:+4553881209" style="color:#f75c03; font-weight:700;">+45 53 88 12 09</a>
+    </p>
+  </div>
+</section>
+
+
+<!-- ═══════════════════════════════════════════════════════════
+     STYLES — Scoped to .yba-* (Yoga Bible Accommodation)
+     ═══════════════════════════════════════════════════════════ -->
+<style>
+/* ── Variables ── */
+:root {
+  --yba-brand: #f75c03;
+  --yba-brand-dark: #e05402;
+  --yba-brand-light: #ff9966;
+  --yba-ink: #0F0F0F;
+  --yba-muted: #6F6A66;
+  --yba-border: #E8E4E0;
+  --yba-bg-light: #F5F3F0;
+  --yba-bg-warm: #FFFCF9;
+  --yba-ring: rgba(247,92,3,.30);
+}
+
+/* ── Sections ── */
+.yba-section {
+  padding: clamp(48px,7vw,96px) clamp(18px,4vw,28px);
+}
+.yba-section--light { background: var(--yba-bg-light); }
+.yba-section--warm { background: var(--yba-bg-warm); }
+.yba-section--dark { background: var(--yba-ink); color: #fff; }
+.yba-section--brand {
+  background: linear-gradient(135deg, #f75c03, #d94f02 60%, #c44600);
+  color: #fff;
+}
+
+.yba-container {
+  max-width: 1140px;
+  margin: 0 auto;
+}
+
+
+/* ══════════════════════════════════
+   HERO
+   ══════════════════════════════════ */
+.yba-hero {
+  position: relative;
+  min-height: clamp(500px, 70vh, 750px);
+  display: flex;
+  align-items: flex-end;
+  padding: clamp(48px,8vw,96px) clamp(18px,4vw,28px) clamp(48px,6vw,72px);
+  overflow: hidden;
+}
+
+.yba-hero__bg {
+  position: absolute;
+  inset: 0;
+  background: #1a1a1a url('/assets/images/accommodation/hero-accommodation-copenhagen.jpg') center/cover no-repeat;
+  z-index: 0;
+}
+
+.yba-hero__overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    to top,
+    rgba(15,15,15,.92) 0%,
+    rgba(15,15,15,.65) 40%,
+    rgba(15,15,15,.35) 70%,
+    rgba(15,15,15,.15) 100%
+  );
+  z-index: 1;
+}
+
+.yba-hero__inner {
+  position: relative;
+  z-index: 2;
+  max-width: 750px;
+}
+
+.yba-hero__eyebrow {
+  display: inline-block;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--yba-brand);
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  margin: 0 0 0.75rem;
+}
+
+.yba-hero__title {
+  font-size: clamp(2.2rem, 5vw, 3.5rem);
+  font-weight: 700;
+  color: #fff;
+  line-height: 1.08;
+  margin: 0 0 1rem;
+  letter-spacing: -0.02em;
+}
+
+.yba-hero__subtitle {
+  color: rgba(255,255,255,.8);
+  font-size: clamp(1rem, 1.6vw, 1.15rem);
+  line-height: 1.6;
+  max-width: 60ch;
+  margin: 0 0 1.5rem;
+}
+
+.yba-hero__meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-bottom: 1.75rem;
+}
+
+.yba-hero__meta-item {
+  background: rgba(255,255,255,.1);
+  border: 1px solid rgba(255,255,255,.15);
+  border-radius: 999px;
+  padding: 0.5rem 1rem;
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: rgba(255,255,255,.9);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+.yba-hero__meta-item strong {
+  color: var(--yba-brand-light);
+}
+
+.yba-hero__cta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+/* ══════════════════════════════════
+   TYPOGRAPHY
+   ══════════════════════════════════ */
+.yba-eyebrow {
+  display: inline-block;
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--yba-brand);
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  margin: 0 0 0.5rem;
+}
+
+.yba-eyebrow--white { color: rgba(255,255,255,.7); }
+
+.yba-h2 {
+  font-size: clamp(1.8rem, 3.5vw, 2.5rem);
+  font-weight: 700;
+  line-height: 1.1;
+  letter-spacing: -0.01em;
+  margin: 0 0 0.75rem;
+  color: var(--yba-ink);
+}
+
+.yba-section--dark .yba-h2 { color: #fff; }
+.yba-section--brand .yba-h2 { color: #fff; }
+
+.yba-h3 {
+  font-size: clamp(1.2rem, 2vw, 1.5rem);
+  font-weight: 700;
+  color: var(--yba-ink);
+  margin: 0 0 0.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.yba-h3__icon { font-size: 1.3em; }
+
+.yba-lead {
+  font-size: clamp(0.95rem, 1.5vw, 1.08rem);
+  color: var(--yba-muted);
+  line-height: 1.65;
+  margin: 0 0 1.5rem;
+}
+
+
+/* ══════════════════════════════════
+   SPLIT LAYOUT
+   ══════════════════════════════════ */
+.yba-split {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 2.5rem;
+  align-items: center;
+}
+
+@media (min-width: 800px) {
+  .yba-split { grid-template-columns: 1fr 1fr; gap: 3.5rem; }
+  .yba-split--reverse .yba-split__media { order: -1; }
+}
+
+.yba-split__media {
+  border-radius: 16px;
+  overflow: hidden;
+}
+
+.yba-img-placeholder {
+  background: var(--yba-bg-light);
+  border: 2px dashed var(--yba-border);
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  color: var(--yba-muted);
+  font-size: 0.85rem;
+  line-height: 1.5;
+  padding: 1rem;
+}
+
+
+/* ══════════════════════════════════
+   CHECKLIST
+   ══════════════════════════════════ */
+.yba-checklist {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 1.5rem;
+  display: grid;
+  gap: 0.65rem;
+}
+
+.yba-checklist li {
+  padding-left: 1.75rem;
+  position: relative;
+  font-size: 0.95rem;
+  font-weight: 550;
+  color: var(--yba-ink);
+  line-height: 1.5;
+}
+
+.yba-checklist li::before {
+  content: "✓";
+  position: absolute;
+  left: 0;
+  color: var(--yba-brand);
+  font-weight: 700;
+  font-size: 1rem;
+}
+
+
+/* ══════════════════════════════════
+   ROOM OPTIONS (adapted from yb4w)
+   ══════════════════════════════════ */
+.yba-rooms, .yba-rooms * { box-sizing: border-box; }
+
+.yba-rooms {
+  color: var(--yba-ink);
+  background:
+    radial-gradient(80% 60% at 20% 5%, rgba(247,92,3,.06), transparent 60%),
+    linear-gradient(#fff,#fff);
+  padding: clamp(48px,6vw,92px) clamp(18px,4vw,28px);
+}
+
+.yba-rooms__inner {
+  max-width: 1140px;
+  margin: 0 auto;
+}
+
+.yba-rooms__header {
+  max-width: 900px;
+  margin: 0 auto clamp(24px,3vw,36px);
+}
+
+.yba-rooms__lead {
+  text-align: center;
+  margin: 0.6rem auto 0;
+  max-width: 70ch;
+  color: #333;
+  line-height: 1.65;
+  font-size: clamp(0.95rem,1.5vw,1.05rem);
+}
+
+/* Grid */
+.yba-rooms__grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.5rem;
+  align-items: stretch;
+}
+@media (min-width: 960px) {
+  .yba-rooms__grid { grid-template-columns: 1fr 1fr; gap: 1.75rem; }
+}
+
+/* Card */
+.yba-room-card {
+  border: 1px solid var(--yba-border);
+  border-radius: 20px;
+  background: #fff;
+  box-shadow: 0 18px 60px rgba(0,0,0,.10);
+  overflow: hidden;
+  display: grid;
+  grid-template-rows: auto auto auto 1fr auto auto;
+  min-height: 100%;
+}
+
+/* Gallery */
+.yba-gallery {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16/11;
+  background: #f6f3f0;
+  overflow: hidden;
+}
+
+.yba-gallery__track {
+  height: 100%;
+  display: flex;
+  transform: translateX(0);
+  transition: transform 0.35s ease;
+}
+
+.yba-gallery__track img {
+  flex: 0 0 100%;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.yba-gallery__frame {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  box-shadow: inset 0 0 0 1px rgba(0,0,0,.06), inset 0 0 0 2px rgba(247,92,3,.10);
+}
+
+.yba-gallery__prev,
+.yba-gallery__next {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 42px;
+  height: 42px;
+  border-radius: 999px;
+  border: 1px solid rgba(255,255,255,.55);
+  background: rgba(15,15,15,.35);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 22px;
+  cursor: pointer;
+  z-index: 2;
+  transition: background 0.18s, transform 0.1s, box-shadow 0.18s;
+  box-shadow: 0 10px 22px rgba(0,0,0,.18);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+}
+
+.yba-gallery__prev { left: 12px; }
+.yba-gallery__next { right: 12px; }
+
+.yba-gallery__prev:hover,
+.yba-gallery__next:hover {
+  background: rgba(247,92,3,.92);
+  border-color: rgba(247,92,3,.4);
+  transform: translateY(-50%) translateY(-1px);
+  box-shadow: 0 16px 34px rgba(247,92,3,.25);
+}
+
+.yba-gallery__prev:focus-visible,
+.yba-gallery__next:focus-visible {
+  outline: 0;
+  box-shadow: 0 0 0 6px var(--yba-ring);
+}
+
+/* Dots */
+.yba-gallery__dots {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 12px;
+  display: flex;
+  justify-content: center;
+  gap: 6px;
+  z-index: 2;
+}
+
+.yba-gallery__dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  background: rgba(255,255,255,.6);
+  border: 1px solid rgba(0,0,0,.10);
+  box-shadow: 0 6px 14px rgba(0,0,0,.12);
+  cursor: pointer;
+  padding: 0;
+  transition: all 0.15s;
+}
+
+.yba-gallery__dot.is-active {
+  background: rgba(247,92,3,.95);
+  border-color: rgba(247,92,3,.25);
+  box-shadow: 0 10px 22px rgba(247,92,3,.20);
+  transform: scale(1.15);
+}
+
+/* Card Head */
+.yba-room-card__head { padding: 1rem 1.25rem 0; }
+
+.yba-room-card__head h3 {
+  margin: 0;
+  font-weight: 900;
+  letter-spacing: -0.01em;
+  font-size: 1.15rem;
+  line-height: 1.25;
+  text-transform: uppercase;
+}
+
+.yba-room-card__tag {
+  margin: 0.35rem 0 0;
+  color: var(--yba-muted);
+  font-weight: 600;
+  font-size: 0.95rem;
+  line-height: 1.45;
+}
+
+/* Price */
+.yba-room-card__price { padding: 0.85rem 1.25rem 0; }
+
+.yba-price__main {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 0.75rem;
+  align-items: baseline;
+}
+
+.yba-price__amount {
+  font-weight: 900;
+  font-size: 1.6rem;
+  letter-spacing: -0.01em;
+  color: var(--yba-ink);
+}
+
+.yba-price__note {
+  color: var(--yba-muted);
+  font-weight: 650;
+  font-size: 0.95rem;
+}
+
+.yba-price__fine {
+  margin: 0.5rem 0 0;
+  color: #2a2f3a;
+  line-height: 1.55;
+  font-weight: 550;
+  font-size: 0.9rem;
+}
+
+/* Room List */
+.yba-room-card__list {
+  margin: 1rem 0 0;
+  padding: 0 1.25rem;
+  list-style: none;
+  display: grid;
+  gap: 0.6rem;
+}
+
+.yba-room-card__list li {
+  position: relative;
+  padding-left: 1.25rem;
+  color: var(--yba-ink);
+  line-height: 1.5;
+  font-size: 0.95rem;
+  font-weight: 550;
+}
+
+.yba-room-card__list li::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0.55em;
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  background: var(--yba-brand);
+  box-shadow: 0 6px 14px rgba(247,92,3,.16);
+  transform: translateY(-50%);
+}
+
+.yba-room-card__list strong { font-weight: 800; }
+
+/* Month Chips */
+.yba-room-card__months {
+  padding: 1rem 1.25rem 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.yba-chip {
+  appearance: none;
+  border: 1px solid var(--yba-border);
+  background: #fff;
+  color: var(--yba-ink);
+  padding: 0.5rem 1rem;
+  border-radius: 999px;
+  font-weight: 700;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: background 0.16s, color 0.16s, border-color 0.16s, transform 0.1s, box-shadow 0.16s;
+  font-family: inherit;
+}
+
+.yba-chip:hover {
+  background: #fff5ef;
+  border-color: var(--yba-brand);
+  transform: translateY(-1px);
+  box-shadow: 0 8px 20px rgba(247,92,3,.10);
+}
+
+.yba-chip.is-active {
+  background: var(--yba-brand);
+  color: #fff;
+  border-color: var(--yba-brand);
+  box-shadow: 0 10px 24px rgba(247,92,3,.18);
+}
+
+/* CTA Button */
+.yba-room-card__cta {
+  padding: 1.25rem;
+  margin-top: auto;
+}
+
+.yba-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  padding: 0.85rem 1.5rem;
+  border-radius: 999px;
+  border: 2px solid transparent;
+  text-decoration: none;
+  font-weight: 700;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: all 0.15s;
+  font-family: inherit;
+}
+
+.yba-btn:focus-visible {
+  outline: 0;
+  box-shadow: 0 0 0 5px var(--yba-ring);
+}
+
+.yba-btn--cta {
+  background: var(--yba-brand);
+  color: #fff;
+  border-color: var(--yba-brand);
+  box-shadow: 0 8px 24px rgba(247,92,3,.22);
+}
+
+.yba-btn--cta:hover {
+  background: var(--yba-brand-dark);
+  border-color: var(--yba-brand-dark);
+  transform: translateY(-1px);
+  box-shadow: 0 12px 32px rgba(247,92,3,.28);
+}
+
+/* Footer */
+.yba-rooms__footer {
+  margin-top: 2rem;
+  text-align: center;
+}
+
+.yba-rooms__refund {
+  display: inline-block;
+  background: #fff;
+  border: 2px solid var(--yba-brand);
+  border-radius: 12px;
+  padding: 0.85rem 1.5rem;
+  margin-bottom: 1rem;
+}
+
+.yba-rooms__refund p {
+  margin: 0;
+  font-size: 0.95rem;
+  color: var(--yba-ink);
+  line-height: 1.5;
+}
+
+.yba-rooms__refund strong { color: var(--yba-brand); }
+
+.yba-rooms__tip {
+  margin: 0;
+  color: var(--yba-muted);
+  font-size: 0.88rem;
+  line-height: 1.55;
+  font-weight: 550;
+}
+
+.yba-rooms__tip a {
+  color: var(--yba-brand);
+  text-decoration: none;
+  font-weight: 700;
+}
+
+.yba-rooms__tip a:hover { text-decoration: underline; }
+
+
+/* ══════════════════════════════════
+   AMENITIES GRID
+   ══════════════════════════════════ */
+.yba-amenities-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1.25rem;
+}
+
+.yba-amenity-card {
+  background: #fff;
+  border: 1px solid var(--yba-border);
+  border-radius: 16px;
+  padding: 1.5rem;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.yba-amenity-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 16px 48px rgba(0,0,0,.08);
+}
+
+.yba-amenity-card__icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  background: rgba(247,92,3,.08);
+  color: var(--yba-brand);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 1rem;
+}
+
+.yba-amenity-card h3 {
+  font-size: 1.05rem;
+  font-weight: 700;
+  margin: 0 0 0.5rem;
+}
+
+.yba-amenity-card p {
+  margin: 0;
+  font-size: 0.9rem;
+  color: var(--yba-muted);
+  line-height: 1.55;
+}
+
+
+/* ══════════════════════════════════
+   QUOTE SIDE
+   ══════════════════════════════════ */
+.yba-quote-side {
+  display: flex;
+  gap: 1rem;
+  padding: 1rem 0;
+  margin: 1rem 0 1.5rem;
+}
+
+.yba-quote-bar {
+  width: 3px;
+  background: var(--yba-brand);
+  border-radius: 2px;
+  flex-shrink: 0;
+}
+
+.yba-quote-text {
+  margin: 0;
+  font-size: 0.92rem;
+  color: var(--yba-muted);
+  line-height: 1.6;
+  font-style: italic;
+}
+
+
+/* ══════════════════════════════════
+   FOOD STATS
+   ══════════════════════════════════ */
+.yba-food-stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1rem;
+  margin-top: 1.5rem;
+}
+
+.yba-food-stat {
+  text-align: center;
+  background: var(--yba-bg-light);
+  border-radius: 12px;
+  padding: 1rem 0.5rem;
+}
+
+.yba-food-stat__number {
+  display: block;
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: var(--yba-brand);
+  margin-bottom: 0.25rem;
+}
+
+.yba-food-stat__label {
+  font-size: 0.78rem;
+  color: var(--yba-muted);
+  line-height: 1.35;
+  font-weight: 600;
+}
+
+
+/* ══════════════════════════════════
+   MAP
+   ══════════════════════════════════ */
+.yba-map-wrapper {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0;
+  border-radius: 20px;
+  overflow: hidden;
+  border: 1px solid rgba(255,255,255,.1);
+  box-shadow: 0 24px 60px rgba(0,0,0,.3);
+}
+
+@media (min-width: 800px) {
+  .yba-map-wrapper { grid-template-columns: 1.3fr 1fr; }
+}
+
+.yba-map-container {
+  min-height: 350px;
+  background: #2a2a2a;
+}
+
+.yba-map-container iframe {
+  width: 100%;
+  height: 100%;
+  min-height: 350px;
+  display: block;
+}
+
+.yba-map-info {
+  padding: 2rem;
+  background: rgba(255,255,255,.06);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+.yba-map-info h3 {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #fff;
+  margin: 0 0 0.25rem;
+}
+
+.yba-map-address {
+  color: var(--yba-brand-light);
+  font-size: 0.9rem;
+  font-weight: 600;
+  margin: 0 0 1.5rem;
+}
+
+.yba-map-distances {
+  display: grid;
+  gap: 1rem;
+}
+
+.yba-map-distance {
+  display: flex;
+  gap: 0.75rem;
+  align-items: flex-start;
+}
+
+.yba-map-distance__icon {
+  font-size: 1.3rem;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.yba-map-distance strong {
+  display: block;
+  color: #fff;
+  font-size: 0.9rem;
+  font-weight: 700;
+}
+
+.yba-map-distance p {
+  margin: 0.15rem 0 0;
+  color: rgba(255,255,255,.6);
+  font-size: 0.82rem;
+}
+
+
+/* ══════════════════════════════════
+   BUDGET TABLE
+   ══════════════════════════════════ */
+.yba-budget-table-wrap {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  border-radius: 16px;
+  border: 1px solid var(--yba-border);
+  background: #fff;
+  box-shadow: 0 8px 32px rgba(0,0,0,.06);
+}
+
+.yba-budget-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.92rem;
+}
+
+.yba-budget-table thead {
+  background: var(--yba-brand);
+  color: #fff;
+}
+
+.yba-budget-table th {
+  padding: 0.85rem 1.25rem;
+  text-align: left;
+  font-weight: 700;
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.yba-budget-table td {
+  padding: 0.85rem 1.25rem;
+  border-bottom: 1px solid var(--yba-bg-light);
+  vertical-align: middle;
+}
+
+.yba-budget-table tbody tr:hover {
+  background: rgba(247,92,3,.03);
+}
+
+.yba-budget-table__total {
+  background: var(--yba-bg-light) !important;
+}
+
+.yba-budget-table__total td {
+  border-bottom: none;
+  font-size: 1rem;
+}
+
+.yba-budget-icon {
+  margin-right: 0.5rem;
+  font-size: 1.1rem;
+}
+
+/* Budget table mobile */
+@media (max-width: 640px) {
+  .yba-budget-table thead { display: none; }
+  .yba-budget-table tr {
+    display: block;
+    padding: 1rem;
+    border-bottom: 1px solid var(--yba-bg-light);
+  }
+  .yba-budget-table td {
+    display: flex;
+    justify-content: space-between;
+    padding: 0.35rem 0;
+    border-bottom: none;
+  }
+  .yba-budget-table td::before {
+    content: attr(data-label);
+    font-weight: 700;
+    color: var(--yba-muted);
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+}
+
+
+/* ══════════════════════════════════
+   BUDGET TIPS
+   ══════════════════════════════════ */
+.yba-budget-tips {
+  margin-top: 2.5rem;
+}
+
+.yba-budget-tips h3 {
+  text-align: center;
+  font-size: 1.15rem;
+  font-weight: 700;
+  margin: 0 0 1.25rem;
+}
+
+.yba-budget-tips__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 1rem;
+}
+
+.yba-tip-card {
+  background: var(--yba-bg-light);
+  border-radius: 12px;
+  padding: 1.25rem;
+  display: flex;
+  gap: 0.75rem;
+  align-items: flex-start;
+  transition: transform 0.15s;
+}
+
+.yba-tip-card:hover { transform: translateY(-2px); }
+
+.yba-tip-card__icon {
+  font-size: 1.5rem;
+  flex-shrink: 0;
+}
+
+.yba-tip-card p {
+  margin: 0;
+  font-size: 0.9rem;
+  line-height: 1.55;
+  color: var(--yba-ink);
+}
+
+.yba-tip-card strong {
+  display: block;
+  margin-bottom: 0.2rem;
+}
+
+
+/* ══════════════════════════════════
+   ALTERNATIVE ACCOMMODATION
+   ══════════════════════════════════ */
+.yba-alt-section {
+  margin-bottom: 3rem;
+}
+
+.yba-alt-section:last-child { margin-bottom: 0; }
+
+.yba-alt-section__desc {
+  color: var(--yba-muted);
+  font-size: 0.92rem;
+  line-height: 1.6;
+  margin: 0 0 1.25rem;
+  max-width: 60ch;
+}
+
+/* Hotel Cards */
+.yba-hotel-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1.25rem;
+}
+
+.yba-hotel-card {
+  background: #fff;
+  border: 1px solid var(--yba-border);
+  border-radius: 16px;
+  overflow: hidden;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.yba-hotel-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 16px 48px rgba(0,0,0,.08);
+}
+
+.yba-hotel-card__img {
+  aspect-ratio: 3/2;
+  background: var(--yba-bg-light);
+  overflow: hidden;
+}
+
+.yba-hotel-card__img img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.yba-hotel-card__body {
+  padding: 1.25rem;
+}
+
+.yba-hotel-card__body h4 {
+  font-size: 1.05rem;
+  font-weight: 700;
+  margin: 0.5rem 0;
+}
+
+.yba-hotel-card__body p {
+  font-size: 0.88rem;
+  color: var(--yba-muted);
+  line-height: 1.55;
+  margin: 0 0 0.75rem;
+}
+
+.yba-hotel-card__meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.yba-hotel-card__meta span {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--yba-ink);
+  background: var(--yba-bg-light);
+  padding: 0.3rem 0.6rem;
+  border-radius: 6px;
+}
+
+/* Badge */
+.yba-badge {
+  display: inline-block;
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  padding: 0.3rem 0.65rem;
+  border-radius: 999px;
+}
+
+.yba-badge--primary {
+  background: var(--yba-brand);
+  color: #fff;
+}
+
+.yba-badge--outline {
+  background: transparent;
+  border: 1px solid var(--yba-border);
+  color: var(--yba-muted);
+}
+
+/* Link Arrow */
+.yba-link {
+  color: var(--yba-brand);
+  font-weight: 700;
+  font-size: 0.88rem;
+  text-decoration: none;
+  transition: color 0.15s;
+}
+
+.yba-link:hover { color: var(--yba-brand-dark); text-decoration: underline; }
+
+
+/* Platform Cards */
+.yba-platform-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 0.75rem;
+}
+
+.yba-platform-card {
+  display: block;
+  background: #fff;
+  border: 1px solid var(--yba-border);
+  border-radius: 12px;
+  padding: 1.25rem;
+  text-decoration: none;
+  transition: border-color 0.15s, transform 0.15s, box-shadow 0.15s;
+}
+
+.yba-platform-card:hover {
+  border-color: var(--yba-brand);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(247,92,3,.08);
+}
+
+.yba-platform-card strong {
+  display: block;
+  color: var(--yba-ink);
+  font-size: 1rem;
+  margin-bottom: 0.2rem;
+}
+
+.yba-platform-card p {
+  margin: 0;
+  color: var(--yba-muted);
+  font-size: 0.82rem;
+}
+
+
+/* Coliving Cards */
+.yba-coliving-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 1rem;
+}
+
+.yba-coliving-card {
+  background: #fff;
+  border: 1px solid var(--yba-border);
+  border-radius: 16px;
+  padding: 1.5rem;
+  transition: transform 0.15s, box-shadow 0.15s;
+}
+
+.yba-coliving-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 12px 36px rgba(0,0,0,.06);
+}
+
+.yba-coliving-card h4 {
+  font-size: 1.05rem;
+  font-weight: 700;
+  margin: 0 0 0.5rem;
+}
+
+.yba-coliving-card p {
+  font-size: 0.88rem;
+  color: var(--yba-muted);
+  line-height: 1.55;
+  margin: 0 0 0.75rem;
+}
+
+.yba-coliving-card__price {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--yba-brand);
+  margin-bottom: 0.5rem;
+}
+
+
+/* Facebook Groups */
+.yba-fb-groups {
+  display: grid;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.yba-fb-group {
+  background: #fff;
+  border: 1px solid var(--yba-border);
+  border-radius: 12px;
+  padding: 1rem 1.25rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem 1rem;
+  align-items: baseline;
+}
+
+.yba-fb-group strong {
+  font-size: 0.95rem;
+  color: var(--yba-ink);
+}
+
+.yba-fb-group p {
+  margin: 0;
+  font-size: 0.82rem;
+  color: var(--yba-muted);
+}
+
+.yba-scam-warning {
+  background: #fff5ef;
+  border: 1px solid rgba(247,92,3,.25);
+  border-radius: 12px;
+  padding: 1rem 1.25rem;
+  font-size: 0.88rem;
+  color: var(--yba-ink);
+  line-height: 1.55;
+}
+
+.yba-scam-warning strong {
+  color: var(--yba-brand);
+}
+
+
+/* ══════════════════════════════════
+   COURSE CARDS
+   ══════════════════════════════════ */
+.yba-course-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 1.25rem;
+}
+
+.yba-course-card {
+  background: #fff;
+  border: 1px solid var(--yba-border);
+  border-radius: 16px;
+  overflow: hidden;
+  text-decoration: none;
+  color: var(--yba-ink);
+  transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s;
+  display: block;
+}
+
+.yba-course-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 20px 48px rgba(0,0,0,.10);
+  border-color: var(--yba-brand);
+}
+
+.yba-course-card__img {
+  aspect-ratio: 3/2;
+  background: var(--yba-bg-light);
+  overflow: hidden;
+}
+
+.yba-course-card__img img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.yba-course-card__body {
+  padding: 1.25rem;
+}
+
+.yba-course-card__body h3 {
+  font-size: 1.15rem;
+  font-weight: 700;
+  margin: 0.5rem 0 0.5rem;
+}
+
+.yba-course-card__body p {
+  font-size: 0.88rem;
+  color: var(--yba-muted);
+  line-height: 1.55;
+  margin: 0 0 0.75rem;
+}
+
+.yba-course-card__link {
+  color: var(--yba-brand);
+  font-weight: 700;
+  font-size: 0.9rem;
+}
+
+
+/* ══════════════════════════════════
+   FAQ ACCORDION
+   ══════════════════════════════════ */
+.yba-faq-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.yba-faq-item {
+  background: var(--yba-bg-light);
+  border-radius: 12px;
+  overflow: hidden;
+  transition: box-shadow 0.2s;
+}
+
+.yba-faq-item:hover {
+  box-shadow: 0 4px 16px rgba(0,0,0,.04);
+}
+
+.yba-faq-trigger {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.1rem 1.25rem;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  text-align: left;
+  gap: 1rem;
+  font-family: inherit;
+}
+
+.yba-faq-trigger span:first-child {
+  font-weight: 700;
+  font-size: 0.95rem;
+  color: var(--yba-ink);
+  line-height: 1.4;
+}
+
+.yba-faq-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: 1.5px solid var(--yba-brand);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.2rem;
+  color: var(--yba-brand);
+  flex-shrink: 0;
+  transition: all 0.2s;
+}
+
+.yba-faq-item.is-open .yba-faq-icon {
+  background: var(--yba-brand);
+  color: #fff;
+}
+
+.yba-faq-body {
+  padding: 0 1.25rem 1.1rem;
+}
+
+.yba-faq-body p {
+  margin: 0;
+  font-size: 0.9rem;
+  color: var(--yba-muted);
+  line-height: 1.65;
+}
+
+.yba-faq-body a {
+  color: var(--yba-brand);
+  font-weight: 600;
+}
+
+
+/* ══════════════════════════════════
+   MOBILE TWEAKS
+   ══════════════════════════════════ */
+@media (max-width: 599px) {
+  .yba-gallery__prev,
+  .yba-gallery__next {
+    width: 36px;
+    height: 36px;
+    font-size: 18px;
+  }
+  .yba-gallery__prev { left: 8px; }
+  .yba-gallery__next { right: 8px; }
+
+  .yba-food-stats {
+    grid-template-columns: 1fr;
+  }
+
+  .yba-hero__meta {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+}
+</style>
+
+
+<!-- ═══════════════════════════════════════════════════════════
+     JAVASCRIPT — Galleries, Chips, FAQ Accordion
+     ═══════════════════════════════════════════════════════════ -->
+<script>
+(function(){
+  /* ── Payment Links ── */
+  var reserveLinks = {
+    feb: {
+      single: 'https://clients.mindbodyonline.com/classic/ws?studioid=5748831&stype=43&prodid=100114',
+      double: 'https://clients.mindbodyonline.com/classic/ws?studioid=5748831&stype=43&catid=100003&prodGroupId=100136'
+    },
+    mar: {
+      single: 'https://clients.mindbodyonline.com/classic/ws?studioid=5748831&stype=43&prodid=100115',
+      double: 'https://clients.mindbodyonline.com/classic/ws?studioid=5748831&stype=43&catid=100003&prodGroupId=100135'
+    },
+    apr: {
+      single: 'https://clients.mindbodyonline.com/classic/ws?studioid=5748831&stype=43&catid=100001&prodGroupId=100116',
+      double: 'https://clients.mindbodyonline.com/classic/ws?studioid=5748831&stype=43&catid=100003&prodGroupId=100134'
+    }
+  };
+
+  var monthLabels = {
+    feb: 'februar 2026',
+    mar: 'marts 2026',
+    apr: 'april 2026'
+  };
+
+  /* ── Room Cards: Chips + Gallery ── */
+  document.querySelectorAll('.yba-room-card').forEach(function(card) {
+    var type = card.dataset.type;
+    var chips = card.querySelectorAll('.yba-chip');
+    var reserveBtn = card.querySelector('.js-reserve');
+    var currentMonth = 'feb';
+
+    function updateReserveBtn() {
+      if (!reserveBtn) return;
+      var url = (reserveLinks[currentMonth] && reserveLinks[currentMonth][type]) || '#';
+      var label = monthLabels[currentMonth] || currentMonth;
+      reserveBtn.href = url;
+      reserveBtn.textContent = 'Reserver & betal for ' + label;
+    }
+    updateReserveBtn();
+
+    chips.forEach(function(chip) {
+      chip.addEventListener('click', function() {
+        chips.forEach(function(c) {
+          c.classList.remove('is-active');
+          c.setAttribute('aria-selected', 'false');
+        });
+        chip.classList.add('is-active');
+        chip.setAttribute('aria-selected', 'true');
+        currentMonth = chip.dataset.month;
+        updateReserveBtn();
+      });
+    });
+
+    /* Gallery */
+    var gallery = card.querySelector('.yba-gallery');
+    if (!gallery) return;
+
+    var track = gallery.querySelector('.yba-gallery__track');
+    var imgs = track ? Array.from(track.querySelectorAll('img')) : [];
+    var prevBtn = gallery.querySelector('.yba-gallery__prev');
+    var nextBtn = gallery.querySelector('.yba-gallery__next');
+    var dotsWrap = gallery.querySelector('.yba-gallery__dots');
+
+    if (imgs.length <= 1) return;
+
+    var index = 0;
+
+    var dots = imgs.map(function(_, i) {
+      var d = document.createElement('button');
+      d.type = 'button';
+      d.className = 'yba-gallery__dot' + (i === 0 ? ' is-active' : '');
+      d.setAttribute('aria-label', 'Gå til billede ' + (i + 1));
+      d.addEventListener('click', function() { goTo(i); });
+      dotsWrap.appendChild(d);
+      return d;
+    });
+
+    function goTo(n) {
+      index = (n + imgs.length) % imgs.length;
+      track.style.transform = 'translateX(-' + (index * 100) + '%)';
+      dots.forEach(function(d, i) { d.classList.toggle('is-active', i === index); });
+    }
+
+    prevBtn.addEventListener('click', function(e) { e.preventDefault(); goTo(index - 1); });
+    nextBtn.addEventListener('click', function(e) { e.preventDefault(); goTo(index + 1); });
+
+    /* Touch/Swipe */
+    var startX = 0, diffX = 0, dragging = false;
+    gallery.addEventListener('touchstart', function(e) { startX = e.touches[0].clientX; diffX = 0; dragging = true; }, { passive: true });
+    gallery.addEventListener('touchmove', function(e) { if (!dragging) return; diffX = e.touches[0].clientX - startX; }, { passive: true });
+    gallery.addEventListener('touchend', function() { dragging = false; if (diffX < -40) goTo(index + 1); if (diffX > 40) goTo(index - 1); startX = diffX = 0; });
+
+    /* Auto-advance */
+    var prefersReduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (!prefersReduced) {
+      var timer = setInterval(function() { goTo(index + 1); }, 5000);
+      card.addEventListener('mouseenter', function() { clearInterval(timer); });
+      card.addEventListener('mouseleave', function() { timer = setInterval(function() { goTo(index + 1); }, 5000); });
+    }
+  });
+
+
+  /* ── FAQ Accordion ── */
+  document.querySelectorAll('.yba-faq-trigger').forEach(function(trigger) {
+    trigger.addEventListener('click', function() {
+      var item = trigger.closest('.yba-faq-item');
+      var body = item.querySelector('.yba-faq-body');
+      var icon = trigger.querySelector('.yba-faq-icon');
+      var isOpen = item.classList.contains('is-open');
+
+      if (isOpen) {
+        item.classList.remove('is-open');
+        body.hidden = true;
+        icon.textContent = '+';
+        trigger.setAttribute('aria-expanded', 'false');
+      } else {
+        item.classList.add('is-open');
+        body.hidden = false;
+        icon.textContent = '×';
+        trigger.setAttribute('aria-expanded', 'true');
+      }
+    });
+  });
+
+
+  /* ── Smooth scroll for anchor links ── */
+  document.querySelectorAll('a[href^="#"]').forEach(function(a) {
+    a.addEventListener('click', function(e) {
+      var target = document.querySelector(a.getAttribute('href'));
+      if (target) {
+        e.preventDefault();
+        target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    });
+  });
+
+})();
+</script>
