@@ -61,7 +61,7 @@ exports.handler = async function(event) {
     var paymentInfo = {
       Type: 'CreditCard',
       Metadata: {
-        amount: body.amount || 0,
+        amount: parseFloat(body.amount) || 0,
         creditCardNumber: body.payment.cardNumber,
         expirationMonth: body.payment.expMonth,
         expirationYear: body.payment.expYear,
@@ -84,6 +84,17 @@ exports.handler = async function(event) {
     };
 
     // NOTE: Card data is passed through to Mindbody and never stored.
+    // Log request shape for debugging (no card details)
+    console.log('mb-checkout request:', JSON.stringify({
+      ClientId: checkoutData.ClientId,
+      CartItems: checkoutData.CartItems,
+      PaymentType: paymentInfo.Type,
+      MetadataKeys: Object.keys(paymentInfo.Metadata),
+      Amount: paymentInfo.Metadata.amount,
+      Test: checkoutData.Test,
+      InStore: checkoutData.InStore
+    }));
+
     var data = await mbFetch('/sale/checkoutshoppingcart', {
       method: 'POST',
       body: JSON.stringify(checkoutData)
