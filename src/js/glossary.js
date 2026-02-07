@@ -1,9 +1,100 @@
 /**
- * Yoga Bible — Glossary v3
- * 3-column grid, scope toggle, language switch, dynamic sub-filters, A-Z nav.
+ * Yoga Bible — Glossary v4
+ * Global language integration via path + hostname detection (mirrors header.js).
+ * Dynamic field access pattern: field(obj, 'desc') → obj['desc_' + lang]
+ * Future-proof for yogabible.com with additional languages.
  */
 (function () {
   'use strict';
+
+  /* ── Language detection (mirrors header.js: path-based first, hostname fallback) ── */
+  function detectLang() {
+    var path = window.location.pathname || '/';
+    /* Path-based: /en/yoga-glossary/ (current yogabible.dk setup) */
+    var pathMatch = path.match(/^\/([a-z]{2})\//);
+    if (pathMatch) return pathMatch[1];
+    /* Hostname-based: en.yogabible.com (future yogabible.com setup) */
+    var host = window.location.hostname.toLowerCase();
+    var hostMatch = host.match(/^([a-z]{2})\./);
+    if (hostMatch) return hostMatch[1];
+    return 'da';
+  }
+  var activeLang = detectLang();
+
+  /* ── Localized field accessor with fallback chain ── */
+  function field(obj, key) {
+    return obj[key + '_' + activeLang] || obj[key + '_en'] || obj[key + '_da'] || '';
+  }
+
+  /* ── UI Strings (extend per language as needed) ── */
+  var UI = {
+    da: {
+      scope_common: 'Mest brugte',
+      scope_all: 'Komplet ordbog',
+      search_placeholder: 'S\u00F8g fx "tadasana", "pranayama" eller "vinyasa"...',
+      filter_all: 'Alle',
+      sub_all: 'Alle',
+      count_one: ' begreb fundet',
+      count_many: ' begreber fundet',
+      empty: 'Ingen termer matcher din s\u00F8gning. Pr\u00F8v et andet ord, bogstav eller filter.',
+      show_more: 'Vis flere begreber',
+      detail_alignment: 'Alignment cues',
+      detail_contra: 'Kontraindikationer',
+      detail_mods: 'Modifikationer',
+      sub_level: 'Niveau',
+      sub_position: 'Position',
+      sub_style: 'Yogastil',
+      sub_anatomy: 'Underkategori',
+      sub_breathing: 'Type',
+      sub_meditation: 'Type',
+      sub_philosophy: 'Tradition',
+      sub_energy: 'System',
+      sub_teaching: 'Omr\u00E5de',
+      sub_styles: 'Type',
+      sub_business: 'Omr\u00E5de',
+      sub_equipment: 'Type',
+      hero_badge: 'YOGA ORDBOG',
+      hero_subtitle: 'Denne ordliste er udviklet af Yoga Bible i K\u00F8benhavn som et fagligt opslagsv\u00E6rk til vores yogal\u00E6reruddannelser, studerende og nysgerrige ud\u00F8vere. Her samler vi centrale begreber fra klassisk og moderne yoga \u2014 p\u00E5 sanskrit, dansk og engelsk.',
+      cta_title: 'Vil du l\u00E6re mere?',
+      cta_text: 'Vores 200-timers yogal\u00E6reruddannelse d\u00E6kker alle disse begreber i dybden.',
+      cta_btn: 'Se Uddannelser'
+    },
+    en: {
+      scope_common: 'Most Common',
+      scope_all: 'Complete Glossary',
+      search_placeholder: 'Search e.g. "tadasana", "pranayama" or "vinyasa"...',
+      filter_all: 'All',
+      sub_all: 'All',
+      count_one: ' term found',
+      count_many: ' terms found',
+      empty: 'No terms match your search. Try another word, letter, or filter.',
+      show_more: 'Show more terms',
+      detail_alignment: 'Alignment Cues',
+      detail_contra: 'Contraindications',
+      detail_mods: 'Modifications',
+      sub_level: 'Level',
+      sub_position: 'Position',
+      sub_style: 'Yoga Style',
+      sub_anatomy: 'Subcategory',
+      sub_breathing: 'Type',
+      sub_meditation: 'Type',
+      sub_philosophy: 'Tradition',
+      sub_energy: 'System',
+      sub_teaching: 'Area',
+      sub_styles: 'Type',
+      sub_business: 'Area',
+      sub_equipment: 'Type',
+      hero_badge: 'YOGA GLOSSARY',
+      hero_subtitle: 'This glossary was developed by Yoga Bible in Copenhagen as a professional reference for our yoga teacher trainings, students, and curious practitioners. Here we gather key concepts from classical and modern yoga \u2014 in Sanskrit, Danish, and English.',
+      cta_title: 'Want to learn more?',
+      cta_text: 'Our 200-hour yoga teacher training covers all these concepts in depth.',
+      cta_btn: 'View Programs'
+    }
+  };
+
+  function ui(key) {
+    return (UI[activeLang] && UI[activeLang][key]) || UI.da[key] || key;
+  }
 
   /* ── Data ── */
   var data = window.YB_GLOSSARY_DATA || { terms: [], categories: [] };
@@ -15,12 +106,11 @@
   var visible = PER_PAGE;
   var activeFilter = 'all';
   var activeScope = 'common';
-  var activeLang = 'da';
   var activeSubFilters = {};
   var searchQuery = '';
   var debounceTimer = null;
 
-  /* ── Common asanas (curated for "Mest brugte" scope) ── */
+  /* ── Common asanas (curated for scope toggle) ── */
   var COMMON_ASANAS = {
     'Adho Mukha Svanasana': 1, 'Anjaneyasana': 1, 'Ardha Chandrasana': 1,
     'Ardha Matsyendrasana': 1, 'Baddha Konasana': 1, 'Bakasana': 1,
@@ -45,18 +135,28 @@
     return !!COMMON_ASANAS[t.sanskrit];
   }
 
-  /* ── Label maps ── */
+  /* ── Label helpers (multi-language) ── */
   var categoryLabels = {};
-  CATEGORIES.forEach(function (c) { categoryLabels[c.id] = c.name_da; });
+  CATEGORIES.forEach(function (c) {
+    categoryLabels[c.id] = c['name_' + activeLang] || c.name_da || c.name_en;
+  });
 
-  var levelLabels = {
-    beginner: 'Begynder', intermediate: 'Mellem', advanced: 'Avanceret'
+  var LEVEL_LABELS = {
+    da: { beginner: 'Begynder', intermediate: 'Mellem', advanced: 'Avanceret' },
+    en: { beginner: 'Beginner', intermediate: 'Intermediate', advanced: 'Advanced' }
   };
 
-  var positionLabels = {
-    standing: 'Stående', seated: 'Siddende', kneeling: 'Knælende',
-    supine: 'Rygleje', prone: 'Maveleje', 'all-fours': 'Alle fire',
-    'arm-balance': 'Armbalance', inversion: 'Omvendt'
+  var POSITION_LABELS = {
+    da: {
+      standing: 'St\u00E5ende', seated: 'Siddende', kneeling: 'Kn\u00E6lende',
+      supine: 'Rygleje', prone: 'Maveleje', 'all-fours': 'Alle fire',
+      'arm-balance': 'Armbalance', inversion: 'Omvendt'
+    },
+    en: {
+      standing: 'Standing', seated: 'Seated', kneeling: 'Kneeling',
+      supine: 'Supine', prone: 'Prone', 'all-fours': 'All Fours',
+      'arm-balance': 'Arm Balance', inversion: 'Inversion'
+    }
   };
 
   var styleLabels = {
@@ -65,12 +165,106 @@
     yin: 'Yin', restorative: 'Restorative', kundalini: 'Kundalini'
   };
 
+  function getLevelLabel(val) {
+    var map = LEVEL_LABELS[activeLang] || LEVEL_LABELS.da;
+    return map[val] || capitalize(val);
+  }
+
+  function getPositionLabel(val) {
+    var map = POSITION_LABELS[activeLang] || POSITION_LABELS.da;
+    return map[val] || capitalize(val);
+  }
+
+  function getStyleLabel(val) {
+    return styleLabels[val] || capitalize(val);
+  }
+
+  /* ── Subcategory label maps (bilingual, per category) ── */
+  function makeLabelFn(bilingualMap) {
+    return function (val) {
+      var map = bilingualMap[activeLang] || bilingualMap.da;
+      return (map && map[val]) || capitalize(val);
+    };
+  }
+
+  var ANATOMY_SUB_LABELS = {
+    da: { 'alignment-principles': 'Alignment principper', 'joint-movement': 'Ledbev\u00E6gelse', 'body-systems': 'Kroppens systemer' },
+    en: { 'alignment-principles': 'Alignment Principles', 'joint-movement': 'Joint Movement', 'body-systems': 'Body Systems' }
+  };
+
+  var BREATHING_SUB_LABELS = {
+    da: { technique: 'Teknik', concept: 'Koncept' },
+    en: { technique: 'Technique', concept: 'Concept' }
+  };
+
+  var MEDITATION_SUB_LABELS = {
+    da: { limb: 'Yogas lemmer', technique: 'Teknik', tool: 'Redskab' },
+    en: { limb: 'Yoga Limbs', technique: 'Technique', tool: 'Tool' }
+  };
+
+  var PHILOSOPHY_SUB_LABELS = {
+    da: { yama: 'Yama', niyama: 'Niyama', text: 'Tekster', concept: 'Koncept' },
+    en: { yama: 'Yama', niyama: 'Niyama', text: 'Texts', concept: 'Concept' }
+  };
+
+  var ENERGY_SUB_LABELS = {
+    da: { chakra: 'Chakra', nadi: 'Nadi', bandha: 'Bandha', mudra: 'Mudra', concept: 'Koncept' },
+    en: { chakra: 'Chakra', nadi: 'Nadi', bandha: 'Bandha', mudra: 'Mudra', concept: 'Concept' }
+  };
+
+  var TEACHING_SUB_LABELS = {
+    da: { 'class-structure': 'Klasseopbygning', instruction: 'Instruktion', adaptation: 'Tilpasning' },
+    en: { 'class-structure': 'Class Structure', instruction: 'Instruction', adaptation: 'Adaptation' }
+  };
+
+  var STYLES_SUB_LABELS = {
+    da: { physical: 'Fysisk stil', path: 'Yogavej' },
+    en: { physical: 'Physical Style', path: 'Yoga Path' }
+  };
+
+  var BUSINESS_SUB_LABELS = {
+    da: { certification: 'Certificering', 'studio-training': 'Studio & uddannelse' },
+    en: { certification: 'Certification', 'studio-training': 'Studio & Training' }
+  };
+
+  var EQUIPMENT_SUB_LABELS = {
+    da: { essential: 'Basis', support: 'St\u00F8tte & komfort' },
+    en: { essential: 'Essential', support: 'Support & Comfort' }
+  };
+
   /* ── Sub-filter definitions per category ── */
   var SUB_FILTER_DEFS = {
     asana: [
-      { key: 'level', label: 'Niveau', labelMap: levelLabels },
-      { key: 'position', label: 'Position', labelMap: positionLabels },
-      { key: 'yoga_styles', label: 'Yogastil', labelMap: styleLabels, isArray: true }
+      { key: 'level', uiKey: 'sub_level', labelFn: getLevelLabel },
+      { key: 'position', uiKey: 'sub_position', labelFn: getPositionLabel },
+      { key: 'yoga_styles', uiKey: 'sub_style', labelFn: getStyleLabel, isArray: true }
+    ],
+    anatomy: [
+      { key: 'subcategory', uiKey: 'sub_anatomy', labelFn: makeLabelFn(ANATOMY_SUB_LABELS) }
+    ],
+    breathing: [
+      { key: 'subcategory', uiKey: 'sub_breathing', labelFn: makeLabelFn(BREATHING_SUB_LABELS) }
+    ],
+    meditation: [
+      { key: 'subcategory', uiKey: 'sub_meditation', labelFn: makeLabelFn(MEDITATION_SUB_LABELS) }
+    ],
+    philosophy: [
+      { key: 'subcategory', uiKey: 'sub_philosophy', labelFn: makeLabelFn(PHILOSOPHY_SUB_LABELS) }
+    ],
+    energy: [
+      { key: 'subcategory', uiKey: 'sub_energy', labelFn: makeLabelFn(ENERGY_SUB_LABELS) }
+    ],
+    teaching: [
+      { key: 'subcategory', uiKey: 'sub_teaching', labelFn: makeLabelFn(TEACHING_SUB_LABELS) }
+    ],
+    styles: [
+      { key: 'subcategory', uiKey: 'sub_styles', labelFn: makeLabelFn(STYLES_SUB_LABELS) }
+    ],
+    business: [
+      { key: 'subcategory', uiKey: 'sub_business', labelFn: makeLabelFn(BUSINESS_SUB_LABELS) }
+    ],
+    equipment: [
+      { key: 'subcategory', uiKey: 'sub_equipment', labelFn: makeLabelFn(EQUIPMENT_SUB_LABELS) }
     ]
   };
 
@@ -83,7 +277,6 @@
   var alphaEl = document.getElementById('ybGlossaryAlpha');
   var subFiltersEl = document.getElementById('ybGlossarySubFilters');
   var scopeBtns = document.querySelectorAll('.yb-glossary__scope-btn');
-  var langBtns = document.querySelectorAll('.yb-glossary__lang-btn');
 
   /* ── Helpers ── */
   function esc(str) {
@@ -103,6 +296,31 @@
 
   function capitalize(s) {
     return s ? s.charAt(0).toUpperCase() + s.slice(1) : '';
+  }
+
+  /* ── Translate static page elements on init ── */
+  function translatePage() {
+    document.querySelectorAll('[data-glossary-i18n]').forEach(function (el) {
+      var key = el.getAttribute('data-glossary-i18n');
+      var text = ui(key);
+      if (text && text !== key) el.textContent = text;
+    });
+    searchInput.placeholder = ui('search_placeholder');
+    scopeBtns.forEach(function (btn) {
+      var scope = btn.getAttribute('data-scope');
+      if (scope === 'common') btn.textContent = ui('scope_common');
+      if (scope === 'all') btn.textContent = ui('scope_all');
+    });
+    filterBtns.forEach(function (btn) {
+      var filter = btn.getAttribute('data-filter');
+      if (filter === 'all') {
+        btn.textContent = ui('filter_all');
+      } else {
+        var label = categoryLabels[filter];
+        if (label) btn.textContent = label;
+      }
+    });
+    moreBtn.textContent = ui('show_more');
   }
 
   /* ── Collect unique values for sub-filters ── */
@@ -142,12 +360,12 @@
       if (!values.length) return;
 
       html += '<div class="yb-glossary__subfilter-row">';
-      html += '<span class="yb-glossary__subfilter-label">' + esc(def.label) + '</span>';
+      html += '<span class="yb-glossary__subfilter-label">' + esc(ui(def.uiKey)) + '</span>';
       html += '<div class="yb-glossary__subfilter-chips">';
-      html += '<button class="yb-glossary__chip active" data-subkey="' + def.key + '" data-subval="all" type="button">Alle</button>';
+      html += '<button class="yb-glossary__chip active" data-subkey="' + def.key + '" data-subval="all" type="button">' + esc(ui('sub_all')) + '</button>';
 
       values.forEach(function (val) {
-        var display = (def.labelMap && def.labelMap[val]) ? def.labelMap[val] : capitalize(val);
+        var display = def.labelFn(val);
         html += '<button class="yb-glossary__chip" data-subkey="' + def.key + '" data-subval="' + esc(val) + '" type="button">' + esc(display) + '</button>';
       });
       html += '</div></div>';
@@ -162,7 +380,6 @@
       btn.addEventListener('click', function () {
         var key = this.getAttribute('data-subkey');
         var val = this.getAttribute('data-subval');
-        /* Toggle active within the same row */
         var row = this.closest('.yb-glossary__subfilter-row');
         row.querySelectorAll('.yb-glossary__chip').forEach(function (b) {
           b.classList.remove('active');
@@ -208,7 +425,7 @@
       /* Search */
       if (!searchQuery) return true;
       var q = searchQuery.toLowerCase();
-      var fields = [t.sanskrit, t.en, t.da, t.desc_da, t.desc_en];
+      var fields = [t.sanskrit, t.en, t.da, field(t, 'desc')];
       if (t.tags) fields = fields.concat(t.tags);
       if (t.pronunciation) fields.push(t.pronunciation);
       for (var j = 0; j < fields.length; j++) {
@@ -254,46 +471,43 @@
       ? '<div class="yb-glossary__pron">' + esc(t.pronunciation) + '</div>'
       : '';
 
-    /* Meta line: level + position + styles as text */
+    /* Meta line: level + position + styles */
     var metaParts = [];
     if (t.level) {
-      var lvl = levelLabels[t.level] || t.level;
+      var lvl = getLevelLabel(t.level);
       metaParts.push('<span class="yb-glossary__level yb-glossary__level--' + t.level + '">' + esc(lvl) + '</span>');
     }
     if (t.position) {
-      var pos = positionLabels[t.position] || capitalize(t.position);
+      var pos = getPositionLabel(t.position);
       metaParts.push('<span class="yb-glossary__tag">' + esc(pos) + '</span>');
     }
-    /* Yoga styles as a single compact tag */
     if (t.yoga_styles && t.yoga_styles.length) {
-      var styleNames = t.yoga_styles.map(function (s) {
-        return styleLabels[s] || capitalize(s);
-      });
+      var styleNames = t.yoga_styles.map(function (s) { return getStyleLabel(s); });
       metaParts.push('<span class="yb-glossary__tag yb-glossary__tag--styles">' + esc(styleNames.join(' \u00B7 ')) + '</span>');
     }
     var metaHtml = metaParts.length
       ? '<div class="yb-glossary__meta">' + metaParts.join('') + '</div>'
       : '';
 
-    /* Description — active language only */
-    var desc = activeLang === 'da' ? t.desc_da : t.desc_en;
+    /* Description — dynamic language field with fallback */
+    var desc = field(t, 'desc');
 
-    /* Expandable details — active language only */
+    /* Expandable details — dynamic language field with fallback */
     var detailsHtml = '';
-    var alignText = activeLang === 'da' ? t.alignment_da : t.alignment_en;
-    var contraText = activeLang === 'da' ? t.contraindications_da : t.contraindications_en;
-    var modText = activeLang === 'da' ? t.modifications_da : t.modifications_en;
+    var alignText = field(t, 'alignment');
+    var contraText = field(t, 'contraindications');
+    var modText = field(t, 'modifications');
 
     if (alignText) {
-      detailsHtml += '<details class="yb-glossary__detail"><summary>Alignment cues</summary>' +
+      detailsHtml += '<details class="yb-glossary__detail"><summary>' + esc(ui('detail_alignment')) + '</summary>' +
         '<div class="yb-glossary__detail-body"><p>' + esc(alignText) + '</p></div></details>';
     }
     if (contraText) {
-      detailsHtml += '<details class="yb-glossary__detail"><summary>Kontraindikationer</summary>' +
+      detailsHtml += '<details class="yb-glossary__detail"><summary>' + esc(ui('detail_contra')) + '</summary>' +
         '<div class="yb-glossary__detail-body"><p>' + esc(contraText) + '</p></div></details>';
     }
     if (modText) {
-      detailsHtml += '<details class="yb-glossary__detail"><summary>Modifikationer</summary>' +
+      detailsHtml += '<details class="yb-glossary__detail"><summary>' + esc(ui('detail_mods')) + '</summary>' +
         '<div class="yb-glossary__detail-body"><p>' + esc(modText) + '</p></div></details>';
     }
 
@@ -319,11 +533,11 @@
     var items = filtered();
     var show = items.slice(0, visible);
 
-    countEl.textContent = items.length + (items.length === 1 ? ' begreb fundet' : ' begreber fundet');
+    countEl.textContent = items.length + (items.length === 1 ? ui('count_one') : ui('count_many'));
     buildAlphaNav(items);
 
     if (show.length === 0) {
-      resultsEl.innerHTML = '<p class="yb-glossary__empty">Ingen termer matcher din søgning. Prøv et andet ord, bogstav eller filter.</p>';
+      resultsEl.innerHTML = '<p class="yb-glossary__empty">' + esc(ui('empty')) + '</p>';
       moreBtn.style.display = 'none';
       return;
     }
@@ -352,17 +566,6 @@
       this.classList.add('active');
       activeScope = this.getAttribute('data-scope');
       visible = PER_PAGE;
-      render();
-      updateHash();
-    });
-  });
-
-  /* ── Language toggle ── */
-  langBtns.forEach(function (btn) {
-    btn.addEventListener('click', function () {
-      langBtns.forEach(function (b) { b.classList.remove('active'); });
-      this.classList.add('active');
-      activeLang = this.getAttribute('data-lang');
       render();
       updateHash();
     });
@@ -400,12 +603,11 @@
     render();
   });
 
-  /* ── URL hash state ── */
+  /* ── URL hash state (no lang — language comes from subdomain) ── */
   function updateHash() {
     var parts = [];
     if (activeScope !== 'common') parts.push('scope=' + activeScope);
     if (activeFilter !== 'all') parts.push('cat=' + activeFilter);
-    if (activeLang !== 'da') parts.push('lang=' + activeLang);
     if (searchQuery) parts.push('q=' + encodeURIComponent(searchQuery));
     var hash = parts.length ? '#' + parts.join('&') : '';
     if (history.replaceState) {
@@ -430,12 +632,6 @@
           b.classList.toggle('active', b.getAttribute('data-filter') === activeFilter);
         });
       }
-      if (kv[0] === 'lang' && kv[1]) {
-        activeLang = kv[1];
-        langBtns.forEach(function (b) {
-          b.classList.toggle('active', b.getAttribute('data-lang') === activeLang);
-        });
-      }
       if (kv[0] === 'q' && kv[1]) {
         searchQuery = decodeURIComponent(kv[1]);
         searchInput.value = searchQuery;
@@ -444,6 +640,7 @@
   }
 
   /* ── Init ── */
+  translatePage();
   readHash();
   buildSubFilters();
   render();

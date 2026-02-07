@@ -1,0 +1,140 @@
+<!-- ========================================
+     COOKIE CONSENT BANNER
+     Fixed bottom bar — appears on first visit
+     i18n: DA shown by default, EN hidden with hidden attribute
+     (same pattern as data-yj-da / data-yj-en in journal)
+     ======================================== -->
+<div id="yb-cookie-banner" class="yb-cookie-banner" role="dialog" aria-label="Cookie consent" aria-hidden="true">
+  <div class="yb-cookie-banner__inner">
+    <div class="yb-cookie-banner__text">
+      <p class="yb-cookie-banner__msg" data-yb-da>
+        Vi bruger cookies til at forbedre din oplevelse. Nødvendige cookies sikrer, at siden fungerer. Statistik- og marketingcookies hjælper os med at forstå trafik og vise relevante annoncer.
+        <a href="/privacy-policy">Læs vores privatlivspolitik</a>
+      </p>
+      <p class="yb-cookie-banner__msg" data-yb-en hidden>
+        We use cookies to improve your experience. Necessary cookies ensure the site works. Statistics and marketing cookies help us understand traffic and show relevant ads.
+        <a href="/privacy-policy">Read our privacy policy</a>
+      </p>
+    </div>
+    <div class="yb-cookie-banner__actions">
+      <button id="yb-cookie-settings-btn" class="yb-cookie-btn yb-cookie-btn--ghost" type="button">
+        <span data-yb-da>Indstillinger</span>
+        <span data-yb-en hidden>Settings</span>
+      </button>
+      <button id="yb-cookie-reject-all" class="yb-cookie-btn yb-cookie-btn--outline" type="button">
+        <span data-yb-da>Afvis alle</span>
+        <span data-yb-en hidden>Reject all</span>
+      </button>
+      <button id="yb-cookie-accept-all" class="yb-cookie-btn yb-cookie-btn--primary" type="button">
+        <span data-yb-da>Acceptér alle</span>
+        <span data-yb-en hidden>Accept all</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ========================================
+     COOKIE PREFERENCES MODAL
+     Overlay modal — opened from banner or footer link
+     ======================================== -->
+<div id="yb-cookie-modal" class="yb-cookie-modal" role="dialog" aria-label="Cookie preferences" aria-hidden="true">
+  <div class="yb-cookie-modal__dialog">
+    <div class="yb-cookie-modal__header">
+      <h2 class="yb-cookie-modal__title">
+        <span data-yb-da>Cookieindstillinger</span>
+        <span data-yb-en hidden>Cookie Settings</span>
+      </h2>
+      <button id="yb-cookie-modal-close" class="yb-cookie-modal__close" type="button" aria-label="Close">
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M15 5L5 15M5 5L15 15" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+      </button>
+    </div>
+
+    <div class="yb-cookie-modal__body">
+      <p class="yb-cookie-modal__intro">
+        <span data-yb-da>Vi respekterer dit privatliv. Vælg hvilke cookietyper du vil tillade. Nødvendige cookies kan ikke slås fra, da de er afgørende for sidens funktion.</span>
+        <span data-yb-en hidden>We respect your privacy. Choose which cookie types you allow. Necessary cookies cannot be turned off as they are essential for the site to function.</span>
+      </p>
+
+      <!-- Category: Necessary -->
+      <div class="yb-cookie-category">
+        <div class="yb-cookie-category__header">
+          <div class="yb-cookie-category__info">
+            <h3 class="yb-cookie-category__name">
+              <span data-yb-da>Nødvendige</span>
+              <span data-yb-en hidden>Necessary</span>
+            </h3>
+            <p class="yb-cookie-category__desc">
+              <span data-yb-da>Disse cookies er nødvendige for sidens grundlæggende funktioner, f.eks. sprogvalg og samtykke.</span>
+              <span data-yb-en hidden>These cookies are required for basic site functions like language preference and consent storage.</span>
+            </p>
+          </div>
+          <div class="yb-cookie-toggle yb-cookie-toggle--locked">
+            <input type="checkbox" checked disabled id="yb-cookie-toggle-necessary" aria-label="Necessary cookies (always on)">
+            <label for="yb-cookie-toggle-necessary" class="yb-cookie-toggle__slider"></label>
+            <span class="yb-cookie-toggle__label">
+              <span data-yb-da>Altid aktiv</span>
+              <span data-yb-en hidden>Always on</span>
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Category: Statistics -->
+      <div class="yb-cookie-category">
+        <div class="yb-cookie-category__header">
+          <div class="yb-cookie-category__info">
+            <h3 class="yb-cookie-category__name">
+              <span data-yb-da>Statistik</span>
+              <span data-yb-en hidden>Statistics</span>
+            </h3>
+            <p class="yb-cookie-category__desc">
+              <span data-yb-da>Hjælper os med at forstå, hvordan besøgende bruger siden, via anonyme data (Google Analytics).</span>
+              <span data-yb-en hidden>Helps us understand how visitors use the site through anonymous data (Google Analytics).</span>
+            </p>
+          </div>
+          <div class="yb-cookie-toggle">
+            <input type="checkbox" id="yb-cookie-toggle-statistics" aria-label="Statistics cookies">
+            <label for="yb-cookie-toggle-statistics" class="yb-cookie-toggle__slider"></label>
+          </div>
+        </div>
+      </div>
+
+      <!-- Category: Marketing -->
+      <div class="yb-cookie-category">
+        <div class="yb-cookie-category__header">
+          <div class="yb-cookie-category__info">
+            <h3 class="yb-cookie-category__name">
+              <span data-yb-da>Marketing</span>
+              <span data-yb-en hidden>Marketing</span>
+            </h3>
+            <p class="yb-cookie-category__desc">
+              <span data-yb-da>Bruges til at vise relevante annoncer og måle kampagners effektivitet (Meta Pixel).</span>
+              <span data-yb-en hidden>Used to show relevant ads and measure campaign effectiveness (Meta Pixel).</span>
+            </p>
+          </div>
+          <div class="yb-cookie-toggle">
+            <input type="checkbox" id="yb-cookie-toggle-marketing" aria-label="Marketing cookies">
+            <label for="yb-cookie-toggle-marketing" class="yb-cookie-toggle__slider"></label>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="yb-cookie-modal__footer">
+      <button id="yb-cookie-modal-reject" class="yb-cookie-btn yb-cookie-btn--outline" type="button">
+        <span data-yb-da>Afvis alle</span>
+        <span data-yb-en hidden>Reject all</span>
+      </button>
+      <button id="yb-cookie-modal-save" class="yb-cookie-btn yb-cookie-btn--secondary" type="button">
+        <span data-yb-da>Gem valg</span>
+        <span data-yb-en hidden>Save choices</span>
+      </button>
+      <button id="yb-cookie-modal-accept-all" class="yb-cookie-btn yb-cookie-btn--primary" type="button">
+        <span data-yb-da>Acceptér alle</span>
+        <span data-yb-en hidden>Accept all</span>
+      </button>
+    </div>
+  </div>
+</div>

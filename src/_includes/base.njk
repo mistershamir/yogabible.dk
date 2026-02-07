@@ -1,12 +1,12 @@
 <!DOCTYPE html>
-<html lang="{{ site.lang }}">
+<html lang="{% if lang == 'en' %}en{% else %}da-DK{% endif %}">
 <head>
   {% include "head.njk" %}
 </head>
 
 <body>
-  <!-- Google Tag Manager (noscript) -->
-  <noscript><iframe src="https://www.googletagmanager.com/ns.html?id={{ site.gtmId }}" height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
+  <!-- GTM noscript — injected by consent manager when accepted -->
+  <noscript id="yb-gtm-noscript"></noscript>
 
   {% include "header.njk" %}
 
@@ -19,6 +19,14 @@
 
   {% if includeScheduleModal %}
     {% include "modal-schedule.njk" %}
+  {% endif %}
+
+  {% if includeP18Styles %}
+    <link rel="stylesheet" href="/css/p18.css">
+  {% endif %}
+
+  {% if includeCoursesModal %}
+    {% include "modal-courses.njk" %}
   {% endif %}
 
   <!-- Auth Modal -->
@@ -39,6 +47,10 @@
       });
     }
   </script>
+
+  <!-- Cookie Consent -->
+  {% include "cookies.njk" %}
+  <script src="/js/cookies.js"></script>
 
   <!-- Firebase SDK (compat for broad browser support) -->
   <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>

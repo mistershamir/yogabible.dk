@@ -1,0 +1,224 @@
+{% set t = i18n.p300[lang or "da"] %}
+
+<!-- Coming Soon Hero -->
+<section class="coming-soon-hero">
+  <div class="container">
+    <div class="coming-soon-badge">{{ t.hero_badge }}</div>
+    <h1 class="coming-soon-title">{{ t.hero_title | safe }}</h1>
+    <p class="coming-soon-subtitle">{{ t.hero_subtitle }}</p>
+
+    <div class="coming-soon-meta">
+      <div class="coming-soon-meta-item">
+        <strong>{{ t.meta_level_label }}</strong> {{ t.meta_level_val }}
+      </div>
+      <div class="coming-soon-meta-item">
+        <strong>{{ t.meta_cert_label }}</strong> {{ t.meta_cert_val }}
+      </div>
+      <div class="coming-soon-meta-item">
+        <strong>{{ t.meta_launch_label }}</strong> {{ t.meta_launch_val }}
+      </div>
+    </div>
+
+    <a href="#waitlist" class="btn btn--large btn--primary">{{ t.hero_cta }}</a>
+  </div>
+</section>
+
+<!-- What to Expect -->
+<section class="program-overview">
+  <div class="container">
+    <h2 class="section-title">{{ t.expect_title }}</h2>
+    <p class="section-subtitle">{{ t.expect_subtitle }}</p>
+
+    <div class="program-grid">
+      <div class="program-feature">
+        <div class="program-feature__icon">🎓</div>
+        <h3>{{ t.expect1_title }}</h3>
+        <p>{{ t.expect1_desc }}</p>
+      </div>
+
+      <div class="program-feature">
+        <div class="program-feature__icon">🧘</div>
+        <h3>{{ t.expect2_title }}</h3>
+        <p>{{ t.expect2_desc }}</p>
+      </div>
+
+      <div class="program-feature">
+        <div class="program-feature__icon">📚</div>
+        <h3>{{ t.expect3_title }}</h3>
+        <p>{{ t.expect3_desc }}</p>
+      </div>
+
+      <div class="program-feature">
+        <div class="program-feature__icon">🎤</div>
+        <h3>{{ t.expect4_title }}</h3>
+        <p>{{ t.expect4_desc }}</p>
+      </div>
+
+      <div class="program-feature">
+        <div class="program-feature__icon">💼</div>
+        <h3>{{ t.expect5_title }}</h3>
+        <p>{{ t.expect5_desc }}</p>
+      </div>
+
+      <div class="program-feature">
+        <div class="program-feature__icon">🌍</div>
+        <h3>{{ t.expect6_title }}</h3>
+        <p>{{ t.expect6_desc }}</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Program Modules Preview -->
+<section class="program-curriculum">
+  <div class="container">
+    <h2 class="section-title">{{ t.modules_title }}</h2>
+    <p class="section-subtitle">{{ t.modules_subtitle }}</p>
+
+    <div class="curriculum-grid">
+      <div class="curriculum-module">
+        <h3>{{ t.mod1_title }}</h3>
+        <p>{{ t.mod1_desc }}</p>
+      </div>
+
+      <div class="curriculum-module">
+        <h3>{{ t.mod2_title }}</h3>
+        <p>{{ t.mod2_desc }}</p>
+      </div>
+
+      <div class="curriculum-module">
+        <h3>{{ t.mod3_title }}</h3>
+        <p>{{ t.mod3_desc }}</p>
+      </div>
+
+      <div class="curriculum-module">
+        <h3>{{ t.mod4_title }}</h3>
+        <p>{{ t.mod4_desc }}</p>
+      </div>
+
+      <div class="curriculum-module">
+        <h3>{{ t.mod5_title }}</h3>
+        <p>{{ t.mod5_desc }}</p>
+      </div>
+
+      <div class="curriculum-module">
+        <h3>{{ t.mod6_title }}</h3>
+        <p>{{ t.mod6_desc }}</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Prerequisites -->
+<section class="program-schedule">
+  <div class="container">
+    <h2 class="section-title">{{ t.prereq_title }}</h2>
+
+    <div class="schedule-options">
+      <div class="schedule-card">
+        <h3>{{ t.prereq_have_title }}</h3>
+        <ul>
+          <li>{{ t.prereq_have1 }}</li>
+          <li>{{ t.prereq_have2 }}</li>
+          <li>{{ t.prereq_have3 }}</li>
+          <li>{{ t.prereq_have4 }}</li>
+        </ul>
+      </div>
+
+      <div class="schedule-card">
+        <h3>{{ t.prereq_look_title }}</h3>
+        <ul>
+          <li>{{ t.prereq_look1 }}</li>
+          <li>{{ t.prereq_look2 }}</li>
+          <li>{{ t.prereq_look3 }}</li>
+          <li>{{ t.prereq_look4 }}</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Waitlist Form -->
+<section class="waitlist-section" id="waitlist">
+  <div class="container">
+    <h2 class="section-title">{{ t.waitlist_title }}</h2>
+    <p class="section-subtitle">{{ t.waitlist_subtitle }}</p>
+
+    <form class="waitlist-form">
+      <div class="waitlist-form__grid">
+        <input type="text" placeholder="{{ t.form_firstname }}" required>
+        <input type="text" placeholder="{{ t.form_lastname }}" required>
+        <input type="email" placeholder="{{ t.form_email }}" required>
+        <input type="tel" placeholder="{{ t.form_phone }}" required>
+      </div>
+
+      <div class="waitlist-form__field">
+        <label>{{ t.form_hours_label }}</label>
+        <select required>
+          <option value="">{{ t.form_hours_placeholder }}</option>
+          <option value="100-300">{{ t.form_hours_opt1 }}</option>
+          <option value="300-500">{{ t.form_hours_opt2 }}</option>
+          <option value="500-1000">{{ t.form_hours_opt3 }}</option>
+          <option value="1000+">{{ t.form_hours_opt4 }}</option>
+        </select>
+      </div>
+
+      <div class="waitlist-form__field">
+        <label>{{ t.form_specializations_label }}</label>
+        <textarea rows="3" placeholder="{{ t.form_specializations_placeholder }}"></textarea>
+      </div>
+
+      <button type="submit" class="btn btn--large btn--primary">{{ t.form_submit }}</button>
+
+      <p class="waitlist-form__fine">{{ t.form_privacy | safe }}</p>
+    </form>
+  </div>
+</section>
+
+<!-- FAQ -->
+<section class="program-faq">
+  <div class="container">
+    <h2 class="section-title">{{ t.faq_title }}</h2>
+
+    <div class="faq-list">
+      <details class="faq-item">
+        <summary>{{ t.faq1_q }}</summary>
+        <p>{{ t.faq1_a }}</p>
+      </details>
+
+      <details class="faq-item">
+        <summary>{{ t.faq2_q }}</summary>
+        <p>{{ t.faq2_a }}</p>
+      </details>
+
+      <details class="faq-item">
+        <summary>{{ t.faq3_q }}</summary>
+        <p>{{ t.faq3_a }}</p>
+      </details>
+
+      <details class="faq-item">
+        <summary>{{ t.faq4_q }}</summary>
+        <p>{{ t.faq4_a }}</p>
+      </details>
+
+      <details class="faq-item">
+        <summary>{{ t.faq5_q }}</summary>
+        <p>{{ t.faq5_a }}</p>
+      </details>
+
+      <details class="faq-item">
+        <summary>{{ t.faq6_q }}</summary>
+        <p>{{ t.faq6_a }}</p>
+      </details>
+    </div>
+  </div>
+</section>
+
+<!-- Final CTA -->
+<section class="cta-section">
+  <div class="container">
+    <h2 class="cta-section__title">{{ t.final_cta_title }}</h2>
+    <p class="cta-section__text">{{ t.final_cta_text }}</p>
+    <a href="#waitlist" class="btn btn--large btn--primary">{{ t.final_cta_button }}</a>
+  </div>
+</section>

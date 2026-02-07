@@ -2493,6 +2493,347 @@ eleventyExcludeFromCollections: true
   z-index: 2;
   padding: 60px 40px;
 }
+
+/* Vine leaves — appear with scale + fade as line draws past them */
+.ds-vine-leaf {
+  transform-origin: center;
+  transition: opacity 0.6s ease, transform 0.6s ease;
+}
+.ds-vine-leaf.ds-leaf--visible {
+  opacity: 1 !important;
+  transform: scale(1);
+}
+.ds-vine-leaf:not(.ds-leaf--visible) {
+  transform: scale(0);
+}
+
+/* ================================================================
+   31. PHOTOGRAPHY PAGE LAYOUTS
+   ================================================================ */
+/* Hero — full-bleed image with text overlay */
+.ds-photo-hero {
+  position: relative;
+  height: 85vh;
+  min-height: 500px;
+  overflow: hidden;
+  border-radius: 12px;
+  background: #0F0F0F;
+}
+.ds-photo-hero__img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0.6;
+}
+.ds-photo-hero__content {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  height: 100%;
+  padding: 60px;
+  color: #fff;
+}
+.ds-photo-hero__eyebrow {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 3px;
+  color: #f75c03;
+  margin-bottom: 16px;
+}
+.ds-photo-hero__title {
+  font-size: clamp(2.5rem, 6vw, 5rem);
+  font-weight: 700;
+  line-height: 1.05;
+  margin-bottom: 16px;
+}
+.ds-photo-hero__sub {
+  font-size: 1.1rem;
+  color: rgba(255,255,255,0.7);
+  max-width: 500px;
+  line-height: 1.6;
+}
+
+/* Big Picture + Text split */
+.ds-photo-split {
+  display: grid;
+  grid-template-columns: 1.2fr 1fr;
+  gap: 0;
+  min-height: 500px;
+  border-radius: 12px;
+  overflow: hidden;
+  background: #0F0F0F;
+}
+.ds-photo-split__image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  min-height: 500px;
+}
+.ds-photo-split__text {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 60px 50px;
+  color: #fff;
+}
+
+/* Art Grid — rule-breaking creative photo layouts */
+.ds-photo-art {
+  display: grid;
+  gap: 8px;
+  border-radius: 12px;
+  overflow: hidden;
+}
+.ds-photo-art--bleed-right {
+  grid-template-columns: 1fr 1fr 1.5fr;
+  grid-template-rows: 280px 280px;
+}
+.ds-photo-art--bleed-right .ds-photo-art__item:nth-child(1) {
+  grid-row: 1 / 3;
+}
+.ds-photo-art--bleed-right .ds-photo-art__item:nth-child(4) {
+  grid-column: 2 / 4;
+}
+.ds-photo-art--overlap {
+  grid-template-columns: 2fr 1fr 1fr;
+  grid-template-rows: 250px 250px;
+  position: relative;
+}
+.ds-photo-art--overlap .ds-photo-art__item:nth-child(1) {
+  grid-row: 1 / 3;
+  grid-column: 1 / 2;
+}
+.ds-photo-art--overlap .ds-photo-art__item:nth-child(2) {
+  grid-column: 2 / 4;
+}
+.ds-photo-art--diagonal {
+  grid-template-columns: 1.5fr 1fr 1fr;
+  grid-template-rows: 300px 200px;
+}
+.ds-photo-art--diagonal .ds-photo-art__item:nth-child(1) {
+  grid-column: 1 / 3;
+}
+.ds-photo-art--diagonal .ds-photo-art__item:nth-child(4) {
+  grid-column: 2 / 4;
+}
+.ds-photo-art__item {
+  overflow: hidden;
+  border-radius: 4px;
+  background: var(--ds-light);
+  position: relative;
+}
+.ds-photo-art__item img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.5s ease;
+}
+.ds-photo-art__item:hover img {
+  transform: scale(1.04);
+}
+
+/* ================================================================
+   32. MODEL / PHOTOGRAPHER SHOWCASE — Loose, Editorial Style
+   Photos are offset, varied sizes, with breathing room. Not rigid grids.
+   ================================================================ */
+.ds-model-showcase {
+  border-radius: 16px;
+  overflow: hidden;
+  background: #0F0F0F;
+  padding: 60px 50px;
+}
+.ds-model__intro {
+  display: flex;
+  gap: 40px;
+  align-items: flex-start;
+  margin-bottom: 50px;
+}
+.ds-model__portrait {
+  width: 280px;
+  min-width: 280px;
+  height: 360px;
+  border-radius: 12px;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+.ds-model__portrait img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.ds-model__info {
+  padding-top: 20px;
+  color: #fff;
+}
+.ds-model__eyebrow {
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 2.5px;
+  color: #f75c03;
+  margin-bottom: 10px;
+}
+.ds-model__name {
+  font-size: clamp(2rem, 3.5vw, 3rem);
+  font-weight: 700;
+  line-height: 1.1;
+  margin-bottom: 16px;
+  color: #fff;
+}
+.ds-model__bio {
+  color: rgba(255,255,255,0.6);
+  line-height: 1.7;
+  font-size: 0.95rem;
+  margin-bottom: 20px;
+  max-width: 450px;
+}
+.ds-model__links {
+  display: flex;
+  gap: 16px;
+}
+.ds-model__links a {
+  color: #f75c03;
+  text-decoration: none;
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  transition: opacity 0.2s;
+}
+.ds-model__links a:hover { opacity: 0.7; }
+
+/* Loose photo gallery — offset, varied sizes, breathing room */
+.ds-model__gallery {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+  align-items: flex-start;
+}
+.ds-model__photo {
+  border-radius: 10px;
+  overflow: hidden;
+  position: relative;
+}
+.ds-model__photo img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.6s ease;
+}
+.ds-model__photo:hover img {
+  transform: scale(1.03);
+}
+
+/* Variation A: portrait left intro, photos loosely scattered below
+   1 horizontal wide, 2 portraits offset */
+.ds-model-a .ds-model__gallery {
+  padding-left: 30px;
+}
+.ds-model-a .ds-model__photo--h {
+  width: 58%;
+  height: 280px;
+}
+.ds-model-a .ds-model__photo--v1 {
+  width: 36%;
+  height: 340px;
+  margin-top: -40px;
+}
+.ds-model-a .ds-model__photo--v2 {
+  width: 40%;
+  height: 300px;
+  margin-left: 10%;
+  margin-top: -20px;
+}
+
+/* Variation B: hero portrait intro, photos: 1 portrait, 2 horizontal, 1 vertical
+   Staggered rows with offsets */
+.ds-model-b .ds-model__intro {
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+.ds-model-b .ds-model__portrait {
+  width: 100%;
+  max-width: 700px;
+  height: 320px;
+  border-radius: 12px;
+}
+.ds-model-b .ds-model__bio {
+  max-width: 550px;
+  margin: 0 auto 20px;
+}
+.ds-model-b .ds-model__gallery {
+  justify-content: center;
+}
+.ds-model-b .ds-model__photo--p {
+  width: 30%;
+  height: 320px;
+  margin-top: 20px;
+}
+.ds-model-b .ds-model__photo--h1 {
+  width: 42%;
+  height: 260px;
+}
+.ds-model-b .ds-model__photo--h2 {
+  width: 55%;
+  height: 240px;
+  margin-top: -30px;
+}
+.ds-model-b .ds-model__photo--v {
+  width: 35%;
+  height: 300px;
+  margin-top: -50px;
+}
+
+/* Variation C: portrait + info side by side, gallery below with editorial offsets
+   Mixed: portrait overlapping, wide shot, and detail shot */
+.ds-model-c .ds-model__gallery {
+  align-items: center;
+  justify-content: space-between;
+}
+.ds-model-c .ds-model__photo--wide {
+  width: 100%;
+  height: 300px;
+  margin-bottom: -30px;
+}
+.ds-model-c .ds-model__photo--offset-left {
+  width: 45%;
+  height: 340px;
+  margin-left: -20px;
+  transform: rotate(-1.5deg);
+  z-index: 2;
+}
+.ds-model-c .ds-model__photo--offset-right {
+  width: 48%;
+  height: 280px;
+  margin-right: -10px;
+  margin-top: 30px;
+  transform: rotate(1deg);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .ds-model__intro { flex-direction: column; }
+  .ds-model__portrait { width: 100%; min-width: auto; }
+  .ds-model-showcase { padding: 30px 20px; }
+  .ds-model__gallery { flex-direction: column; }
+  .ds-model__photo { width: 100% !important; margin: 0 !important; transform: none !important; }
+  .ds-photo-split { grid-template-columns: 1fr; }
+  .ds-photo-art--bleed-right,
+  .ds-photo-art--overlap,
+  .ds-photo-art--diagonal { grid-template-columns: 1fr 1fr; grid-template-rows: auto; }
+  .ds-photo-art--bleed-right .ds-photo-art__item:nth-child(1),
+  .ds-photo-art--bleed-right .ds-photo-art__item:nth-child(4),
+  .ds-photo-art--overlap .ds-photo-art__item:nth-child(1),
+  .ds-photo-art--overlap .ds-photo-art__item:nth-child(2),
+  .ds-photo-art--diagonal .ds-photo-art__item:nth-child(1),
+  .ds-photo-art--diagonal .ds-photo-art__item:nth-child(4) {
+    grid-column: auto;
+    grid-row: auto;
+  }
+}
 </style>
 
 <div class="ds-page">
@@ -4034,20 +4375,20 @@ eleventyExcludeFromCollections: true
   <section class="ds-section">
     <div class="ds-section__header">
       <h2 class="ds-section__title" data-number="30">Scroll-Draw Paths</h2>
-      <p class="ds-section__desc">SVG paths that draw themselves as you scroll — vine/branch style decorative elements. Scroll inside each preview to see the animation.</p>
+      <p class="ds-section__desc">SVG vine/branch paths that draw on scroll — brand decorative elements for landing pages. Scroll inside each preview to see the animation. Use sparingly as accents.</p>
     </div>
 
     <div class="ds-sub">
-      <h3 class="ds-sub__title">Variation A — Flowing Vine</h3>
-      <p class="ds-sub__desc">A curving organic path that flows down and loops — like the Hot Yoga CPH branch. Orange stroke with a lighter shadow trail.</p>
+      <h3 class="ds-sub__title">Variation A — Flowing Vine + Shadow Trail</h3>
+      <p class="ds-sub__desc">An organic vine that curves and flows down the page. The main orange line is accompanied by a soft shadow trail that draws slightly ahead.</p>
       <div class="ds-draw-preview" data-scroll-draw>
-        <svg viewBox="0 0 800 1200" preserveAspectRatio="none">
-          <!-- Shadow trail (lighter, offset) -->
-          <path class="ds-draw-shadow" d="M 400,0 C 500,100 650,150 600,250 C 550,350 350,300 300,400 C 250,500 450,550 500,650 C 550,750 350,800 400,900 C 450,1000 600,1050 550,1200"
-                stroke="rgba(247,92,3,0.12)" stroke-width="1.5" />
-          <!-- Main vine path -->
-          <path class="ds-draw-path" d="M 400,0 C 500,100 650,150 600,250 C 550,350 350,300 300,400 C 250,500 450,550 500,650 C 550,750 350,800 400,900 C 450,1000 600,1050 550,1200"
-                stroke="var(--yb-brand)" stroke-width="2" />
+        <svg viewBox="0 0 800 1200" preserveAspectRatio="xMidYMid meet" fill="none">
+          <path class="ds-draw-shadow" fill="none"
+                d="M 400,20 C 480,100 620,140 580,240 C 540,340 380,310 330,400 C 280,490 420,530 470,620 C 520,710 380,770 400,870 C 420,970 560,1020 520,1150"
+                stroke="rgba(247,92,3,0.12)" stroke-width="1.5" stroke-linecap="round" />
+          <path class="ds-draw-path" fill="none"
+                d="M 400,20 C 480,100 620,140 580,240 C 540,340 380,310 330,400 C 280,490 420,530 470,620 C 520,710 380,770 400,870 C 420,970 560,1020 520,1150"
+                stroke="#f75c03" stroke-width="2.5" stroke-linecap="round" />
         </svg>
         <div class="ds-draw-content">
           <p class="ds-eyebrow ds-eyebrow--brand" style="margin-bottom:12px">Yogalaereruddannelse</p>
@@ -4062,40 +4403,131 @@ eleventyExcludeFromCollections: true
     </div>
 
     <div class="ds-sub">
-      <h3 class="ds-sub__title">Variation B — Spiraling Branch</h3>
-      <p class="ds-sub__desc">A path that spirals and loops like a growing branch — more ornamental, with a loop in the middle.</p>
+      <h3 class="ds-sub__title">Variation B — Keyword-Touching Vine</h3>
+      <p class="ds-sub__desc">The vine flows down and curves toward important content — touching keywords and headings as it passes. Design the path coordinates to land near your key text elements on each page.</p>
       <div class="ds-draw-preview" data-scroll-draw>
-        <svg viewBox="0 0 800 1200" preserveAspectRatio="none">
-          <path class="ds-draw-shadow" d="M 200,0 C 250,80 450,120 500,200 C 550,280 400,350 350,400 C 300,450 200,420 180,480 C 140,580 350,580 420,520 C 490,460 520,380 560,450 C 600,520 500,620 450,700 C 400,780 550,850 600,950 C 650,1050 500,1100 450,1200"
-                stroke="rgba(247,92,3,0.1)" stroke-width="1.5" />
-          <path class="ds-draw-path" d="M 200,0 C 250,80 450,120 500,200 C 550,280 400,350 350,400 C 300,450 200,420 180,480 C 140,580 350,580 420,520 C 490,460 520,380 560,450 C 600,520 500,620 450,700 C 400,780 550,850 600,950 C 650,1050 500,1100 450,1200"
-                stroke="var(--yb-brand)" stroke-width="2" />
+        <svg viewBox="0 0 800 1200" preserveAspectRatio="xMidYMid meet" fill="none">
+          <!-- Vine starts top-center, swoops right to first keyword, left to second, right to third -->
+          <path class="ds-draw-path" fill="none"
+                d="M 400,20 C 420,60 580,80 620,120 C 660,160 640,190 580,200
+                   C 500,215 350,230 300,280 C 250,330 200,380 180,420
+                   C 160,460 200,490 280,480 C 360,470 550,440 620,480
+                   C 690,520 680,570 620,600 C 560,630 400,640 350,680
+                   C 300,720 280,770 320,820 C 360,870 500,880 560,900
+                   C 620,920 640,960 600,1000 C 560,1040 420,1060 380,1100
+                   C 340,1140 360,1170 400,1180"
+                stroke="#f75c03" stroke-width="2.5" stroke-linecap="round" />
+          <!-- Small dots where vine touches keywords -->
+          <circle cx="580" cy="200" r="4" fill="#f75c03" opacity="0.3" />
+          <circle cx="180" cy="420" r="4" fill="#f75c03" opacity="0.3" />
+          <circle cx="620" cy="600" r="4" fill="#f75c03" opacity="0.3" />
+          <circle cx="320" cy="820" r="4" fill="#f75c03" opacity="0.3" />
+          <circle cx="600" cy="1000" r="4" fill="#f75c03" opacity="0.3" />
         </svg>
         <div class="ds-draw-content">
-          <div style="text-align:right;max-width:350px;margin-left:auto">
-            <p class="ds-eyebrow ds-eyebrow--brand ds-eyebrow--dot" style="margin-bottom:12px;justify-content:flex-end">Din rejse</p>
-            <h2 style="font-size:2rem;font-weight:700;margin-bottom:12px">Fra ansogning til certificering</h2>
-            <p style="color:var(--ds-text-muted);line-height:1.6">Vi guider dig hele vejen.</p>
+          <!-- Keyword positioned right — vine touches here -->
+          <div style="text-align:right;max-width:300px;margin-left:auto">
+            <p class="ds-eyebrow ds-eyebrow--brand ds-eyebrow--dot" style="margin-bottom:8px;justify-content:flex-end">Uddannelse</p>
+            <h2 style="font-size:1.8rem;font-weight:700;margin-bottom:8px">RYT-200 Certificering</h2>
+            <p style="color:var(--ds-text-muted);line-height:1.5;font-size:0.95rem">Internationalt anerkendt.</p>
           </div>
-          <div style="height:400px"></div>
-          <div style="max-width:350px">
-            <h3 style="font-size:1.3rem;font-weight:700;margin-bottom:8px">Bliv certificeret</h3>
-            <p style="color:var(--ds-text-muted);line-height:1.6">Modtag din Yoga Alliance RYT-200.</p>
+          <div style="height:160px"></div>
+          <!-- Keyword positioned left — vine swoops here -->
+          <div style="max-width:280px">
+            <h3 style="font-size:1.4rem;font-weight:700;margin-bottom:8px">Personlig vejledning</h3>
+            <p style="color:var(--ds-text-muted);line-height:1.5;font-size:0.95rem">En-til-en mentoring gennem hele forlobet.</p>
           </div>
+          <div style="height:160px"></div>
+          <!-- Keyword positioned right again -->
+          <div style="text-align:right;max-width:280px;margin-left:auto">
+            <h3 style="font-size:1.4rem;font-weight:700;margin-bottom:8px">Fuldtid & deltid</h3>
+            <p style="color:var(--ds-text-muted);line-height:1.5;font-size:0.95rem">Flexibel uddannelse der passer dit liv.</p>
+          </div>
+          <div style="height:160px"></div>
+          <!-- Bottom keyword left -->
+          <div style="max-width:300px">
+            <h3 style="font-size:1.4rem;font-weight:700;margin-bottom:8px">Kobenhavn studio</h3>
+            <p style="color:var(--ds-text-muted);line-height:1.5;font-size:0.95rem">I hjertet af byen.</p>
+          </div>
+          <div style="height:100px"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="ds-sub">
+      <h3 class="ds-sub__title">Variation C — Vine with Growing Leaves</h3>
+      <p class="ds-sub__desc">The vine draws and tiny leaves sprout along the path as it extends. A living, organic brand element.</p>
+      <div class="ds-draw-preview" data-scroll-draw data-has-leaves="true">
+        <svg viewBox="0 0 800 1200" preserveAspectRatio="xMidYMid meet" fill="none">
+          <path class="ds-draw-shadow" fill="none"
+                d="M 420,20 C 490,110 600,150 560,260 C 520,370 370,340 340,430 C 310,520 440,560 480,650 C 520,740 400,790 410,890 C 420,990 540,1030 510,1150"
+                stroke="rgba(247,92,3,0.1)" stroke-width="1.5" stroke-linecap="round" />
+          <path class="ds-draw-path" fill="none"
+                d="M 420,20 C 490,110 600,150 560,260 C 520,370 370,340 340,430 C 310,520 440,560 480,650 C 520,740 400,790 410,890 C 420,990 540,1030 510,1150"
+                stroke="#f75c03" stroke-width="2.5" stroke-linecap="round" />
+          <!-- Tiny leaves that appear as the vine extends -->
+          <g class="ds-vine-leaves">
+            <!-- Leaf pair at ~12% -->
+            <path class="ds-vine-leaf" data-appear-at="0.12"
+                  d="M 555,148 Q 570,130 565,155 Q 558,168 548,155 Z"
+                  fill="#f75c03" stroke="none" opacity="0" />
+            <path class="ds-vine-leaf" data-appear-at="0.14"
+                  d="M 545,152 Q 530,135 535,158 Q 540,170 550,158 Z"
+                  fill="rgba(247,92,3,0.5)" stroke="none" opacity="0" />
+            <!-- Leaf at ~28% -->
+            <path class="ds-vine-leaf" data-appear-at="0.28"
+                  d="M 448,310 Q 462,292 458,318 Q 452,332 442,318 Z"
+                  fill="#f75c03" stroke="none" opacity="0" />
+            <!-- Leaf pair at ~42% -->
+            <path class="ds-vine-leaf" data-appear-at="0.42"
+                  d="M 348,435 Q 332,418 337,442 Q 342,455 352,442 Z"
+                  fill="#f75c03" stroke="none" opacity="0" />
+            <path class="ds-vine-leaf" data-appear-at="0.44"
+                  d="M 358,430 Q 374,414 368,438 Q 362,452 352,438 Z"
+                  fill="rgba(247,92,3,0.5)" stroke="none" opacity="0" />
+            <!-- Leaf at ~58% -->
+            <path class="ds-vine-leaf" data-appear-at="0.58"
+                  d="M 488,650 Q 504,633 498,658 Q 492,672 482,658 Z"
+                  fill="#f75c03" stroke="none" opacity="0" />
+            <!-- Leaf pair at ~72% -->
+            <path class="ds-vine-leaf" data-appear-at="0.72"
+                  d="M 405,830 Q 420,812 415,838 Q 408,852 398,838 Z"
+                  fill="#f75c03" stroke="none" opacity="0" />
+            <path class="ds-vine-leaf" data-appear-at="0.74"
+                  d="M 415,825 Q 400,808 405,832 Q 410,845 420,832 Z"
+                  fill="rgba(247,92,3,0.5)" stroke="none" opacity="0" />
+            <!-- Leaf at ~88% -->
+            <path class="ds-vine-leaf" data-appear-at="0.88"
+                  d="M 520,1035 Q 536,1018 530,1042 Q 524,1056 514,1042 Z"
+                  fill="#f75c03" stroke="none" opacity="0" />
+            <path class="ds-vine-leaf" data-appear-at="0.90"
+                  d="M 510,1040 Q 494,1024 500,1048 Q 506,1060 516,1048 Z"
+                  fill="rgba(247,92,3,0.5)" stroke="none" opacity="0" />
+          </g>
+        </svg>
+        <div class="ds-draw-content" style="text-align:center">
+          <p class="ds-eyebrow ds-eyebrow--brand ds-eyebrow--line" style="margin-bottom:12px">Yoga Bible</p>
+          <h2 style="font-size:clamp(2rem,4vw,3rem);font-weight:700;margin-bottom:16px">Voks med os</h2>
+          <p style="color:var(--ds-text-muted);max-width:400px;margin:0 auto;line-height:1.6">Se bladene gro mens du scroller — en levende vine som brand-element.</p>
+          <div style="height:300px"></div>
+          <h3 style="font-size:1.5rem;font-weight:700;margin-bottom:12px">Naturen foldes ud</h3>
+          <p style="color:var(--ds-text-muted);max-width:400px;margin:0 auto;line-height:1.6">Hver side fortaeller en organisk historie.</p>
           <div style="height:200px"></div>
         </div>
       </div>
     </div>
 
     <div class="ds-sub">
-      <h3 class="ds-sub__title">Variation C — Gentle S-Curve</h3>
-      <p class="ds-sub__desc">A simpler, more elegant S-curve — subtle, good as a background accent between sections.</p>
+      <h3 class="ds-sub__title">Variation D — Gentle S-Curve</h3>
+      <p class="ds-sub__desc">A simpler, wider S-curve — subtle background accent between sections. Orange line with light shadow.</p>
       <div class="ds-draw-preview" data-scroll-draw style="height:500px">
-        <svg viewBox="0 0 800 1000" preserveAspectRatio="none">
-          <path class="ds-draw-shadow" d="M 100,0 C 100,150 700,200 700,400 C 700,600 100,650 100,850 C 100,950 400,1000 400,1000"
-                stroke="rgba(247,92,3,0.08)" stroke-width="2" />
-          <path class="ds-draw-path" d="M 100,0 C 100,150 700,200 700,400 C 700,600 100,650 100,850 C 100,950 400,1000 400,1000"
-                stroke="var(--yb-brand)" stroke-width="1.5" />
+        <svg viewBox="0 0 800 1000" preserveAspectRatio="xMidYMid meet" fill="none">
+          <path class="ds-draw-shadow" fill="none"
+                d="M 150,20 C 150,180 650,220 650,420 C 650,620 150,660 150,860 C 150,940 400,980 400,980"
+                stroke="rgba(247,92,3,0.08)" stroke-width="2" stroke-linecap="round" />
+          <path class="ds-draw-path" fill="none"
+                d="M 150,20 C 150,180 650,220 650,420 C 650,620 150,660 150,860 C 150,940 400,980 400,980"
+                stroke="#f75c03" stroke-width="2" stroke-linecap="round" />
         </svg>
         <div class="ds-draw-content" style="text-align:center">
           <h2 style="font-size:2rem;font-weight:700;margin-bottom:16px">Elegant S-kurve</h2>
@@ -4106,40 +4538,13 @@ eleventyExcludeFromCollections: true
     </div>
 
     <div class="ds-sub">
-      <h3 class="ds-sub__title">Variation D — Dual Paths (Brand + Muted)</h3>
-      <p class="ds-sub__desc">Two intertwining paths at different speeds — one orange, one light. Creates depth.</p>
-      <div class="ds-draw-preview" data-scroll-draw>
-        <svg viewBox="0 0 800 1200" preserveAspectRatio="none">
-          <!-- Path 1: light, wider -->
-          <path class="ds-draw-path" data-draw-speed="0.7" d="M 600,0 C 550,100 250,180 300,300 C 350,420 650,400 600,550 C 550,700 200,750 250,900 C 300,1050 550,1100 500,1200"
-                stroke="#E8E4E0" stroke-width="2.5" />
-          <!-- Path 2: brand, on top -->
-          <path class="ds-draw-path" data-draw-speed="1" d="M 550,0 C 600,120 300,200 350,350 C 400,500 600,450 550,600 C 500,750 250,800 300,950 C 350,1100 500,1150 450,1200"
-                stroke="var(--yb-brand)" stroke-width="2" />
-        </svg>
-        <div class="ds-draw-content">
-          <p class="ds-eyebrow ds-eyebrow--brand ds-eyebrow--line" style="margin-bottom:12px">Hot Yoga Copenhagen</p>
-          <h2 style="font-size:2rem;font-weight:700;margin-bottom:12px">Oplev kraften<br>i varmen</h2>
-          <p style="color:var(--ds-text-muted);max-width:350px;line-height:1.6">Intensive klasser i vores studio.</p>
-          <div style="height:400px"></div>
-          <div style="text-align:right;max-width:400px;margin-left:auto">
-            <h3 style="font-size:1.3rem;font-weight:700;margin-bottom:8px">26 grader. Dyb fordybelse.</h3>
-            <p style="color:var(--ds-text-muted);line-height:1.6">Intens transformation.</p>
-          </div>
-          <div style="height:200px"></div>
-        </div>
-      </div>
-    </div>
-
-    <div class="ds-sub">
-      <h3 class="ds-sub__title">Variation E — Progress Line (Straight with Curves)</h3>
-      <p class="ds-sub__desc">A mostly vertical line with gentle curves — works as a scrolling progress indicator alongside content.</p>
+      <h3 class="ds-sub__title">Variation E — Progress Line</h3>
+      <p class="ds-sub__desc">A mostly vertical line with gentle curves — works as a scrolling progress indicator alongside content. No shadow, clean and functional.</p>
       <div class="ds-draw-preview" data-scroll-draw style="height:500px">
-        <svg viewBox="0 0 800 1000" preserveAspectRatio="none">
-          <path class="ds-draw-shadow" d="M 400,0 C 420,100 380,200 400,300 C 420,400 440,500 400,600 C 360,700 380,800 400,900 L 400,1000"
-                stroke="rgba(247,92,3,0.08)" stroke-width="3" />
-          <path class="ds-draw-path" d="M 400,0 C 420,100 380,200 400,300 C 420,400 440,500 400,600 C 360,700 380,800 400,900 L 400,1000"
-                stroke="var(--yb-brand)" stroke-width="2" />
+        <svg viewBox="0 0 800 1000" preserveAspectRatio="xMidYMid meet" fill="none">
+          <path class="ds-draw-path" fill="none"
+                d="M 400,20 C 420,120 380,220 400,320 C 420,420 440,520 400,620 C 360,720 380,820 400,920 L 400,980"
+                stroke="#f75c03" stroke-width="2" stroke-linecap="round" />
         </svg>
         <div class="ds-draw-content" style="text-align:center">
           <h2 style="font-size:2rem;font-weight:700;margin-bottom:16px">Vertikal fremskridt</h2>
@@ -4148,6 +4553,1164 @@ eleventyExcludeFromCollections: true
         </div>
       </div>
     </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════════════════════════════
+       31. PHOTOGRAPHY PAGE LAYOUTS
+       ═══════════════════════════════════════════════════════════════ -->
+  <section class="ds-section">
+    <div class="ds-section__header">
+      <h2 class="ds-section__title" data-number="31">Photography Page Layouts</h2>
+      <p class="ds-section__desc">Layouts designed for the Yoga Photography page — cinematic hero, big-picture storytelling, and creative art grids that break conventional rules.</p>
+    </div>
+
+    <!-- 31A: Dark Cinematic Hero -->
+    <div class="ds-sub">
+      <h3 class="ds-sub__title">A — Dark Cinematic Photo Hero</h3>
+      <p class="ds-sub__desc">Full-bleed image with dark overlay. Text positioned bottom-left. The image does the talking — text is minimal and elegant.</p>
+      <div class="ds-demo" style="padding:0;overflow:hidden;border-radius:12px">
+        <div class="ds-photo-hero">
+          <div style="position:absolute;inset:0;background:linear-gradient(135deg, #1a1a1a 0%, #333 40%, #555 70%, #444 100%);opacity:0.9"></div>
+          <div style="position:absolute;inset:0;background:radial-gradient(ellipse at 60% 40%, rgba(247,92,3,0.08) 0%, transparent 70%)"></div>
+          <div class="ds-photo-hero__content">
+            <p class="ds-photo-hero__eyebrow">Yoga Bible Photography</p>
+            <h1 class="ds-photo-hero__title">Capturing the<br>Art of Movement</h1>
+            <p class="ds-photo-hero__sub">Professionel yogafotografering der fanger styrke, balance og ro i hvert billede.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 31B: Big Picture + Text Split -->
+    <div class="ds-sub">
+      <h3 class="ds-sub__title">B — Big Picture + Text Split</h3>
+      <p class="ds-sub__desc">Dominant image (60%) with text on dark background. The image is the star — text supports it.</p>
+      <div class="ds-demo" style="padding:0;overflow:hidden;border-radius:12px">
+        <div class="ds-photo-split">
+          <div style="background:linear-gradient(180deg, #444 0%, #666 50%, #555 100%);min-height:500px;display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,0.15);font-size:3rem;font-weight:700">
+            PHOTO
+          </div>
+          <div class="ds-photo-split__text">
+            <p style="font-size:0.75rem;text-transform:uppercase;letter-spacing:3px;color:#f75c03;margin-bottom:16px">Bag kameraet</p>
+            <h2 style="font-size:clamp(1.8rem,3vw,2.8rem);font-weight:700;line-height:1.1;margin-bottom:20px">Hvor bevægelse<br>møder lyset</h2>
+            <p style="color:rgba(255,255,255,0.6);line-height:1.7;margin-bottom:30px;font-size:0.95rem">Vi arbejder med naturligt lys og bevægelse for at skabe billeder der fortæller en historie. Hvert shoot er unikt — tilpasset modellen og øjeblikket.</p>
+            <a href="#" style="display:inline-flex;align-items:center;gap:8px;color:#f75c03;font-weight:700;text-decoration:none;font-size:0.9rem">Se galleri →</a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 31C: Art Grid — Bleed Right -->
+    <div class="ds-sub">
+      <h3 class="ds-sub__title">C — Art Grid: Bleed Right</h3>
+      <p class="ds-sub__desc">Photos extend toward the right edge — one tall portrait on the left, smaller images stacked right. Breaks the grid intentionally. "Art mode."</p>
+      <div class="ds-demo" style="padding:0;overflow:hidden;border-radius:12px">
+        <div class="ds-photo-art ds-photo-art--bleed-right">
+          <div class="ds-photo-art__item" style="background:linear-gradient(135deg,#3a3a3a,#555)">
+            <div style="height:100%;display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,0.12);font-size:1.2rem;font-weight:700">PORTRAIT</div>
+          </div>
+          <div class="ds-photo-art__item" style="background:linear-gradient(135deg,#4a4a4a,#666)">
+            <div style="height:100%;display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,0.12);font-size:1rem;font-weight:700">SQUARE</div>
+          </div>
+          <div class="ds-photo-art__item" style="background:linear-gradient(135deg,#555,#777)">
+            <div style="height:100%;display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,0.12);font-size:1rem;font-weight:700">WIDE</div>
+          </div>
+          <div class="ds-photo-art__item" style="background:linear-gradient(135deg,#3d3d3d,#5a5a5a)">
+            <div style="height:100%;display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,0.12);font-size:1rem;font-weight:700">PANORAMIC</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 31D: Art Grid — Overlap Style -->
+    <div class="ds-sub">
+      <h3 class="ds-sub__title">D — Art Grid: Overlap</h3>
+      <p class="ds-sub__desc">Large hero image on the left with overlapping smaller images right. Feels layered and editorial.</p>
+      <div class="ds-demo" style="padding:0;overflow:hidden;border-radius:12px">
+        <div class="ds-photo-art ds-photo-art--overlap">
+          <div class="ds-photo-art__item" style="background:linear-gradient(180deg,#3a3a3a,#555)">
+            <div style="height:100%;display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,0.12);font-size:1.5rem;font-weight:700">HERO SHOT</div>
+          </div>
+          <div class="ds-photo-art__item" style="background:linear-gradient(135deg,#4a4a4a,#666)">
+            <div style="height:100%;display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,0.12);font-size:1rem;font-weight:700">HORIZONTAL</div>
+          </div>
+          <div class="ds-photo-art__item" style="background:linear-gradient(135deg,#555,#777)">
+            <div style="height:100%;display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,0.12);font-size:0.9rem;font-weight:700">DETAIL</div>
+          </div>
+          <div class="ds-photo-art__item" style="background:linear-gradient(135deg,#3d3d3d,#5a5a5a)">
+            <div style="height:100%;display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,0.12);font-size:0.9rem;font-weight:700">DETAIL</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 31E: Art Grid — Diagonal Flow -->
+    <div class="ds-sub">
+      <h3 class="ds-sub__title">E — Art Grid: Diagonal Flow</h3>
+      <p class="ds-sub__desc">Images flow diagonally across the grid — the eye moves from top-left to bottom-right naturally. Creative, editorial feel.</p>
+      <div class="ds-demo" style="padding:0;overflow:hidden;border-radius:12px">
+        <div class="ds-photo-art ds-photo-art--diagonal">
+          <div class="ds-photo-art__item" style="background:linear-gradient(135deg,#3a3a3a,#555)">
+            <div style="height:100%;display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,0.12);font-size:1.2rem;font-weight:700">WIDE SHOT</div>
+          </div>
+          <div class="ds-photo-art__item" style="background:linear-gradient(135deg,#4a4a4a,#666)">
+            <div style="height:100%;display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,0.12);font-size:0.9rem;font-weight:700">SQUARE</div>
+          </div>
+          <div class="ds-photo-art__item" style="background:linear-gradient(135deg,#555,#777)">
+            <div style="height:100%;display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,0.12);font-size:0.9rem;font-weight:700">DETAIL</div>
+          </div>
+          <div class="ds-photo-art__item" style="background:linear-gradient(135deg,#3d3d3d,#5a5a5a)">
+            <div style="height:100%;display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,0.12);font-size:1.2rem;font-weight:700">BOTTOM PANORAMIC</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════════════════════════════
+       32. MODEL / PHOTOGRAPHER SHOWCASE
+       Loose, editorial style — photos offset with breathing room,
+       not rigid grids. Dark backgrounds. Magazine feel.
+       ═══════════════════════════════════════════════════════════════ -->
+  <section class="ds-section">
+    <div class="ds-section__header">
+      <h2 class="ds-section__title" data-number="32">Model Showcase</h2>
+      <p class="ds-section__desc">Loose, editorial model profiles — arty photo layouts with offsets, varied sizes, and breathing room. Each includes: name, bio, social links, 1 portrait + featured yoga photos. Dark background, magazine feel.</p>
+    </div>
+
+    <!-- 32A: Portrait left intro → 1 horizontal + 2 portrait loosely placed below -->
+    <div class="ds-sub">
+      <h3 class="ds-sub__title">Variation A — Portrait + Scattered Gallery</h3>
+      <p class="ds-sub__desc">Portrait photo and bio side-by-side at top. Below: photos placed loosely — one wide horizontal, two portraits at different heights with offsets. Organic, breathing layout.</p>
+      <div class="ds-demo" style="padding:0;overflow:hidden;border-radius:12px">
+        <div class="ds-model-showcase ds-model-a">
+          <div class="ds-model__intro">
+            <div class="ds-model__portrait" style="background:linear-gradient(180deg,#333,#555);display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,0.08);font-size:1rem;font-weight:700">
+              PORTRAIT
+            </div>
+            <div class="ds-model__info">
+              <p class="ds-model__eyebrow">Yoga Model</p>
+              <h3 class="ds-model__name">Sofia Andersen</h3>
+              <p class="ds-model__bio">Certificeret Vinyasa-instruktør med 8 års erfaring. Sofia kombinerer kraft og elegance i sin praksis og bringer en unik æstetik til hvert shoot.</p>
+              <div class="ds-model__links">
+                <a href="#">◎ Instagram</a>
+                <a href="#">◇ Website</a>
+              </div>
+            </div>
+          </div>
+          <div class="ds-model__gallery">
+            <div class="ds-model__photo ds-model__photo--h" style="background:linear-gradient(135deg,#3a3a3a,#555);display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,0.06);font-size:0.85rem;font-weight:700">HORIZONTAL</div>
+            <div class="ds-model__photo ds-model__photo--v1" style="background:linear-gradient(135deg,#444,#666);display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,0.06);font-size:0.85rem;font-weight:700">PORTRAIT</div>
+            <div class="ds-model__photo ds-model__photo--v2" style="background:linear-gradient(135deg,#383838,#5a5a5a);display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,0.06);font-size:0.85rem;font-weight:700">PORTRAIT</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 32B: Wide hero portrait → info centered → 1 portrait, 2 horizontal, 1 vertical staggered -->
+    <div class="ds-sub">
+      <h3 class="ds-sub__title">Variation B — Hero Portrait + Staggered Photos</h3>
+      <p class="ds-sub__desc">Wide cinematic portrait at top with centered name. Info below. Photos staggered in two rows with different heights and negative margins for overlap feel. Bold, editorial.</p>
+      <div class="ds-demo" style="padding:0;overflow:hidden;border-radius:12px">
+        <div class="ds-model-showcase ds-model-b">
+          <div class="ds-model__intro">
+            <div class="ds-model__portrait" style="background:linear-gradient(180deg,#333,#4a4a4a);display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,0.06);font-size:1.5rem;font-weight:700">
+              HERO PORTRAIT
+            </div>
+            <div class="ds-model__info">
+              <p class="ds-model__eyebrow">Yoga Model</p>
+              <h3 class="ds-model__name">Mie Kristensen</h3>
+              <p class="ds-model__bio">Yin yoga-specialist og meditationsguide. Mie skaber stille rum hvor kameraet finder ro i bevægelsen. Hendes praksis er rolig, dyb og visuelt meditativ.</p>
+              <div class="ds-model__links">
+                <a href="#">◎ Instagram</a>
+                <a href="#">◇ Website</a>
+              </div>
+            </div>
+          </div>
+          <div class="ds-model__gallery">
+            <div class="ds-model__photo ds-model__photo--p" style="background:linear-gradient(135deg,#444,#666);display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,0.06);font-size:0.85rem;font-weight:700">PORTRAIT</div>
+            <div class="ds-model__photo ds-model__photo--h1" style="background:linear-gradient(135deg,#3a3a3a,#555);display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,0.06);font-size:0.85rem;font-weight:700">HORIZONTAL</div>
+            <div class="ds-model__photo ds-model__photo--h2" style="background:linear-gradient(135deg,#383838,#5a5a5a);display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,0.06);font-size:0.85rem;font-weight:700">HORIZONTAL</div>
+            <div class="ds-model__photo ds-model__photo--v" style="background:linear-gradient(135deg,#404040,#606060);display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,0.06);font-size:0.85rem;font-weight:700">VERTICAL</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 32C: Portrait + info side by side → wide shot below → 2 offset photos with slight rotation -->
+    <div class="ds-sub">
+      <h3 class="ds-sub__title">Variation C — Editorial with Rotated Offsets</h3>
+      <p class="ds-sub__desc">Portrait and bio side-by-side. Below: one full-width wide shot, then two photos slightly rotated and overlapping — like photos casually placed on a table. Most artistic variation.</p>
+      <div class="ds-demo" style="padding:0;overflow:hidden;border-radius:12px">
+        <div class="ds-model-showcase ds-model-c">
+          <div class="ds-model__intro">
+            <div class="ds-model__portrait" style="background:linear-gradient(180deg,#333,#555);display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,0.08);font-size:1rem;font-weight:700">
+              PORTRAIT
+            </div>
+            <div class="ds-model__info">
+              <p class="ds-model__eyebrow">Yoga Model</p>
+              <h3 class="ds-model__name">Emilie Storm</h3>
+              <p class="ds-model__bio">Ashtanga-praktiker og performancekunstner. Hendes praksis er rå, kraftfuld og visuelt fængende. Emilie bryder grænser mellem yoga og scenekunst.</p>
+              <div class="ds-model__links">
+                <a href="#">◎ Instagram</a>
+                <a href="#">◇ Portfolio</a>
+              </div>
+            </div>
+          </div>
+          <div class="ds-model__gallery">
+            <div class="ds-model__photo ds-model__photo--wide" style="background:linear-gradient(135deg,#3a3a3a,#555);display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,0.06);font-size:0.9rem;font-weight:700">WIDE SHOT</div>
+            <div class="ds-model__photo ds-model__photo--offset-left" style="background:linear-gradient(135deg,#444,#666);display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,0.06);font-size:0.85rem;font-weight:700">PORTRAIT</div>
+            <div class="ds-model__photo ds-model__photo--offset-right" style="background:linear-gradient(135deg,#383838,#5a5a5a);display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,0.06);font-size:0.85rem;font-weight:700">LANDSCAPE</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+<!-- ═══════════════════════════════════════════════════════════════
+       33. HEADER DESIGN — VARIATION 2 OPTIONS
+       ═══════════════════════════════════════════════════════════════ -->
+  <section class="ds-section">
+    <div class="ds-section__header">
+      <h2 class="ds-section__title" data-number="33">Header Design — Variation 2 Options</h2>
+      <p class="ds-section__desc">Centered logo, orange utility bar, underline nav with mega dropdown. Desktop variations + mobile (Menu B style with lang switcher, app badges). Only real existing pages shown.</p>
+    </div>
+
+    <style>
+    /* ── Section 33: Header Previews ── */
+    .ds-hdr-preview { border: 1px solid var(--ds-border); border-radius: 16px; overflow: hidden; margin-bottom: 40px; }
+    .ds-hdr-preview__label { padding: 14px 20px; background: #F5F3F0; font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ds-text-muted); font-weight: 700; border-bottom: 1px solid var(--ds-border); display: flex; align-items: center; gap: 8px; }
+    .ds-hdr-preview__dot { width: 8px; height: 8px; border-radius: 50%; }
+    .ds-hdr-preview__dot--dk { background: #0F0F0F; }
+    .ds-hdr-preview__dot--tb { background: var(--yb-brand); }
+    .ds-hdr-preview__dot--mb { background: #3f99a5; }
+    .ds-hdr-wrap { overflow-x: auto; }
+    .ds-hdr-frame { min-width: fit-content; }
+    .ds-hdr-frame--desktop { width: 1280px; }
+    .ds-hdr-frame--tablet { width: 768px; }
+    .ds-hdr-frame--mobile { width: 375px; }
+    .ds-hdr-frame * { box-sizing: border-box; margin: 0; padding: 0; }
+    .ds-hdr-frame a { text-decoration: none; color: inherit; }
+
+    /* ═══ Orange Utility Bar ═══ */
+    .hv2-util {
+      background: #f75c03;
+      font-family: 'Abacaxi', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    }
+    .hv2-util__inner {
+      max-width: 1280px; margin: 0 auto;
+      padding: 7px clamp(16px,3vw,30px);
+      display: flex; align-items: center; justify-content: space-between;
+      font-size: 10px; letter-spacing: 0.09em; text-transform: uppercase;
+      color: rgba(255,255,255,0.85);
+    }
+    .hv2-util__left, .hv2-util__right { display: flex; align-items: center; gap: 14px; }
+    .hv2-util a { color: rgba(255,255,255,0.85); transition: color 0.15s; }
+    .hv2-util a:hover { color: #fff; }
+    .hv2-util__sep { width: 1px; height: 12px; background: rgba(255,255,255,0.25); }
+    .hv2-util__social { display: flex; gap: 8px; align-items: center; }
+    .hv2-util__social-ico {
+      width: 24px; height: 24px; border-radius: 50%;
+      border: 1px solid rgba(255,255,255,0.3);
+      display: inline-flex; align-items: center; justify-content: center;
+      font-size: 9px; color: rgba(255,255,255,0.85);
+      transition: background 0.15s, color 0.15s;
+    }
+    .hv2-util__social-ico:hover { background: rgba(255,255,255,0.15); color: #fff; }
+    .hv2-util__flags { display: flex; gap: 6px; align-items: center; }
+    .hv2-util__flag { font-size: 13px; cursor: pointer; opacity: 0.6; transition: opacity 0.15s; }
+    .hv2-util__flag.is-active { opacity: 1; }
+
+    /* ═══ Main Header Bar ═══ */
+    .hv2 {
+      background: #FFFCF9;
+      font-family: 'Abacaxi', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+      color: #0F0F0F;
+      border-bottom: 1px solid #E8E4E0;
+    }
+    .hv2-inner {
+      max-width: 1280px; margin: 0 auto;
+      padding: 0 clamp(16px,3vw,30px);
+    }
+    .hv2-main {
+      display: grid; grid-template-columns: 1fr auto 1fr;
+      align-items: center; padding: 18px 0; gap: 24px;
+    }
+    .hv2-navL, .hv2-navR { display: flex; align-items: center; gap: 26px; }
+    .hv2-navL { justify-self: start; }
+    .hv2-navR { justify-self: end; }
+    .hv2-navL a, .hv2-navL button, .hv2-navR a, .hv2-navR button {
+      font-size: 12px; letter-spacing: 0.06em; text-transform: uppercase;
+      color: #0F0F0F; background: none; border: none;
+      cursor: pointer; font-family: inherit; padding: 8px 0;
+      position: relative; transition: color 0.15s; white-space: nowrap;
+    }
+    .hv2-navL a:hover, .hv2-navL button:hover,
+    .hv2-navR a:hover, .hv2-navR button:hover { color: #f75c03; }
+    .hv2-navL a::after, .hv2-navL button::after,
+    .hv2-navR a::after, .hv2-navR button::after {
+      content: ''; position: absolute; bottom: 4px; left: 0; width: 0; height: 1.5px;
+      background: #f75c03; transition: width 0.2s;
+    }
+    .hv2-navL a:hover::after, .hv2-navL button:hover::after,
+    .hv2-navR a:hover::after, .hv2-navR button:hover::after { width: 100%; }
+    .hv2-caret { color: #f75c03; font-size: 13px; margin-left: 2px; }
+    .hv2-logo { display: inline-flex; justify-self: center; }
+    .hv2-logo img { height: 44px; display: block; }
+    .hv2-cta {
+      display: inline-flex; padding: 9px 20px; border-radius: 999px;
+      background: #f75c03; color: #fff;
+      font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase;
+      border: none; cursor: pointer; font-family: inherit; font-weight: 700;
+      transition: transform 0.15s, filter 0.15s;
+    }
+    .hv2-cta:hover { transform: translateY(-1px); filter: brightness(1.08); }
+
+    /* ═══ Mega Dropdown ═══ */
+    .hv2-mega {
+      background: #FFFCF9; border-top: 1px solid #E8E4E0;
+      border-bottom: 2px solid #f75c03;
+      padding: 28px clamp(16px,3vw,30px) 24px;
+    }
+    .hv2-mega__inner {
+      max-width: 1280px; margin: 0 auto;
+      display: grid; gap: 32px;
+    }
+    .hv2-mega__inner--2col { grid-template-columns: 1fr 1fr; }
+    .hv2-mega__inner--3col { grid-template-columns: repeat(3, 1fr); }
+    .hv2-mega__inner--4col { grid-template-columns: repeat(4, 1fr); }
+    .hv2-mega__title {
+      font-size: 13px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase;
+      color: #f75c03; margin-bottom: 12px; padding-bottom: 8px;
+      border-bottom: 1px solid #E8E4E0;
+    }
+    .hv2-mega__subtitle {
+      font-size: 10px; color: #6F6A66; letter-spacing: 0.08em; text-transform: uppercase;
+      margin-bottom: 4px;
+    }
+    .hv2-mega__link {
+      display: block; font-size: 12px; letter-spacing: 0.04em; text-transform: uppercase;
+      color: #0F0F0F; padding: 6px 0; transition: color 0.15s;
+    }
+    .hv2-mega__link:hover { color: #f75c03; }
+    .hv2-mega__sub {
+      font-size: 10px; color: #6F6A66; letter-spacing: 0.05em; text-transform: uppercase;
+      padding: 4px 0 4px 12px; display: block;
+      border-left: 1.5px solid #E8E4E0; margin-left: 4px;
+      transition: color 0.15s, border-color 0.15s;
+    }
+    .hv2-mega__sub:hover { color: #f75c03; border-color: #f75c03; }
+
+    /* ═══ Dark Variant ═══ */
+    .hv2--dark { background: #0F0F0F; color: #FDFBF7; border-bottom: 1px solid rgba(253,251,247,0.06); }
+    .hv2--dark .hv2-navL a, .hv2--dark .hv2-navL button,
+    .hv2--dark .hv2-navR a, .hv2--dark .hv2-navR button { color: rgba(253,251,247,0.8); }
+    .hv2--dark .hv2-navL a:hover, .hv2--dark .hv2-navL button:hover,
+    .hv2--dark .hv2-navR a:hover, .hv2--dark .hv2-navR button:hover { color: #f75c03; }
+    .hv2-cta--outline {
+      background: transparent; border: 1.5px solid #f75c03; color: #f75c03;
+      transition: background 0.2s, color 0.2s, transform 0.15s;
+    }
+    .hv2-cta--outline:hover { background: #f75c03; color: #fff; transform: translateY(-1px); filter: none; }
+    .hv2-mega--dark {
+      background: #161616; border-top: 1px solid rgba(253,251,247,0.06);
+      border-bottom: 2px solid #f75c03;
+    }
+    .hv2-mega--dark .hv2-mega__title { color: #f75c03; border-bottom-color: rgba(253,251,247,0.08); }
+    .hv2-mega--dark .hv2-mega__link { color: rgba(253,251,247,0.8); }
+    .hv2-mega--dark .hv2-mega__link:hover { color: #f75c03; }
+    .hv2-mega--dark .hv2-mega__sub { color: rgba(253,251,247,0.4); border-left-color: rgba(253,251,247,0.08); }
+    .hv2-mega--dark .hv2-mega__sub:hover { color: #f75c03; border-left-color: #f75c03; }
+    .hv2-mega--dark .hv2-mega__subtitle { color: rgba(253,251,247,0.35); }
+
+    /* ═══ Thick Border Variant ═══ */
+    .hv2--thick { border-bottom: 2.5px solid #0F0F0F; }
+
+    /* ═══ Mobile Header Bar ═══ */
+    .hv2m-bar {
+      background: #FFFCF9; font-family: 'Abacaxi', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+      border-bottom: 1px solid #E8E4E0;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 12px 16px;
+    }
+    .hv2m-bar__logo img { height: 34px; display: block; }
+    .hv2m-bar__right { display: flex; align-items: center; gap: 8px; }
+    .hv2m-bar__flag {
+      font-size: 15px; width: 34px; height: 34px;
+      display: inline-flex; align-items: center; justify-content: center;
+      border-radius: 10px; border: 1px solid #E8E4E0; cursor: pointer;
+      transition: border-color 0.15s;
+    }
+    .hv2m-bar__flag.is-active { border-color: #f75c03; }
+    .hv2m-burger {
+      width: 42px; height: 42px; border-radius: 999px;
+      border: 1.5px solid #f75c03; background: none; cursor: pointer;
+      display: inline-flex; align-items: center; justify-content: center;
+      flex-direction: column; gap: 4px;
+    }
+    .hv2m-burger span { display: block; width: 16px; height: 1.5px; background: #f75c03; border-radius: 2px; }
+
+    /* ═══ Mobile Menu (Menu B style) ═══ */
+    .hv2m {
+      background: #FFFCF9; font-family: 'Abacaxi', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+      color: #0F0F0F; min-height: 740px; display: flex; flex-direction: column;
+    }
+    .hv2m-top {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 14px 16px; border-bottom: 1px solid #E8E4E0;
+    }
+    .hv2m-top__logo img { height: 34px; display: block; }
+    .hv2m-close {
+      width: 42px; height: 42px; border-radius: 999px;
+      border: 1.5px solid #0F0F0F; background: none; cursor: pointer;
+      color: #0F0F0F; font-size: 18px;
+      display: flex; align-items: center; justify-content: center;
+      transition: background 0.15s, color 0.15s;
+    }
+    .hv2m-close:hover { background: #0F0F0F; color: #fff; }
+    .hv2m-body { flex: 1; padding: 14px 14px 10px; overflow: auto; }
+    .hv2m-card {
+      background: #fff; border: 1px solid #E8E4E0; border-radius: 16px;
+      margin-bottom: 8px; overflow: hidden; transition: border-color 0.15s;
+    }
+    .hv2m-card.is-open { border-color: #f75c03; }
+    .hv2m-card__head {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 13px 16px; cursor: pointer;
+    }
+    .hv2m-card__title { font-size: 13px; font-weight: 700; letter-spacing: 0.07em; text-transform: uppercase; }
+    .hv2m-card__badge {
+      font-size: 9px; background: #F5F3F0; color: #6F6A66;
+      padding: 3px 8px; border-radius: 999px; letter-spacing: 0.08em; text-transform: uppercase;
+    }
+    .hv2m-card__caret { color: #f75c03; font-size: 16px; transition: transform 0.2s; }
+    .hv2m-card.is-open .hv2m-card__caret { transform: rotate(180deg); }
+    .hv2m-card__body { padding: 0 16px 14px; border-top: 1px solid #E8E4E0; }
+    .hv2m-card__sub-title {
+      font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase;
+      color: #f75c03; font-weight: 700; padding: 12px 0 4px;
+    }
+    .hv2m-card__link {
+      display: block; font-size: 12px; letter-spacing: 0.05em; text-transform: uppercase;
+      color: #0F0F0F; padding: 8px 10px; border-radius: 10px;
+      transition: background 0.15s, color 0.15s;
+    }
+    .hv2m-card__link:hover { background: #f75c03; color: #fff; }
+    .hv2m-link {
+      display: block; padding: 13px 16px; border-radius: 16px;
+      border: 1px solid #E8E4E0; background: #fff;
+      color: #0F0F0F; font-size: 13px; font-weight: 700; letter-spacing: 0.07em; text-transform: uppercase;
+      margin-bottom: 8px; transition: border-color 0.15s;
+    }
+    .hv2m-link:hover { border-color: #f75c03; }
+    .hv2m-cta {
+      display: block; text-align: center; padding: 14px; border-radius: 999px;
+      background: #f75c03; color: #fff;
+      font-size: 13px; letter-spacing: 0.08em; text-transform: uppercase; font-weight: 700;
+      margin: 8px 0 14px; transition: filter 0.15s;
+    }
+    .hv2m-cta:hover { filter: brightness(1.08); }
+    .hv2m-footer {
+      padding: 14px 16px; border-top: 1px solid #E8E4E0;
+      display: flex; flex-direction: column; gap: 12px;
+    }
+    .hv2m-footer__row { display: flex; align-items: center; justify-content: space-between; }
+    .hv2m-footer__social { display: flex; gap: 8px; }
+    .hv2m-footer__ico {
+      width: 38px; height: 38px; border-radius: 50%;
+      border: 1px solid #E8E4E0;
+      display: inline-flex; align-items: center; justify-content: center;
+      font-size: 11px; color: #6F6A66; transition: border-color 0.15s, color 0.15s;
+    }
+    .hv2m-footer__ico:hover { border-color: #f75c03; color: #f75c03; }
+    .hv2m-footer__flags { display: flex; gap: 8px; }
+    .hv2m-footer__flag {
+      font-size: 18px; width: 38px; height: 38px;
+      display: inline-flex; align-items: center; justify-content: center;
+      border-radius: 50%; border: 1px solid #E8E4E0; cursor: pointer;
+      transition: border-color 0.15s;
+    }
+    .hv2m-footer__flag.is-active { border-color: #f75c03; }
+    .hv2m-footer__apps { display: flex; gap: 8px; }
+    .hv2m-footer__app {
+      flex: 1; display: flex; align-items: center; justify-content: center;
+      padding: 10px 12px; border-radius: 12px;
+      border: 1px solid #E8E4E0; background: #fff;
+      font-size: 10px; letter-spacing: 0.06em; text-transform: uppercase;
+      color: #6F6A66; transition: border-color 0.15s;
+    }
+    .hv2m-footer__app:hover { border-color: #f75c03; }
+    .hv2m-footer__app-icon { margin-right: 6px; font-size: 16px; }
+    </style>
+
+    <!-- ══════════════════════════════════════════════════════════════════
+         DESKTOP VARIATIONS
+         ══════════════════════════════════════════════════════════════════ -->
+    <h3 style="font-size:1.35rem;font-weight:700;margin-bottom:8px;color:#f75c03">Desktop Variations</h3>
+    <p style="color:var(--ds-text-muted);font-size:0.9rem;margin-bottom:32px">
+      All share: orange utility bar (IG, SoundCloud, language, contact) + centered logo + underline nav with mega dropdown.
+      Only existing pages shown. Variations explore styling options.
+    </p>
+
+    <!-- ── Option A: Light + Orange bar + thin border ── -->
+    <div style="margin-bottom:48px">
+      <h4 style="font-weight:700;margin-bottom:4px">Option A — Light + Orange Bar + Filled CTA</h4>
+      <p style="color:var(--ds-text-muted);font-size:0.85rem;margin-bottom:16px">
+        Warm white header, orange utility bar on top, thin bottom border. Filled orange CTA.
+      </p>
+      <div class="ds-hdr-preview">
+        <div class="ds-hdr-preview__label"><span class="ds-hdr-preview__dot ds-hdr-preview__dot--dk"></span> Desktop — 1280px</div>
+        <div class="ds-hdr-wrap">
+          <div class="ds-hdr-frame ds-hdr-frame--desktop">
+            <div class="hv2-util">
+              <div class="hv2-util__inner">
+                <div class="hv2-util__left">
+                  <a href="#">info@yogabible.dk</a>
+                  <span class="hv2-util__sep"></span>
+                  <a href="#">+45 53 88 12 09</a>
+                </div>
+                <div class="hv2-util__right">
+                  <div class="hv2-util__social">
+                    <a href="#" class="hv2-util__social-ico" aria-label="Instagram">IG</a>
+                    <a href="#" class="hv2-util__social-ico" aria-label="SoundCloud">SC</a>
+                  </div>
+                  <span class="hv2-util__sep"></span>
+                  <div class="hv2-util__flags">
+                    <span class="hv2-util__flag is-active">&#x1F1E9;&#x1F1F0;</span>
+                    <span class="hv2-util__flag">&#x1F1EC;&#x1F1E7;</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <header class="hv2">
+              <div class="hv2-inner">
+                <div class="hv2-main">
+                  <nav class="hv2-navL">
+                    <button>Uddannelser <span class="hv2-caret">&#x25BE;</span></button>
+                    <button>Kurser <span class="hv2-caret">&#x25BE;</span></button>
+                    <a href="#">Mentorship</a>
+                  </nav>
+                  <a href="#" class="hv2-logo">
+                    <img src="/assets/images/brand/logo-orange-on-transparent.png" alt="Yoga Bible" />
+                  </a>
+                  <nav class="hv2-navR">
+                    <button>Mere <span class="hv2-caret">&#x25BE;</span></button>
+                    <button>Yoga Bible <span class="hv2-caret">&#x25BE;</span></button>
+                    <a href="#" class="hv2-cta">Ansog</a>
+                  </nav>
+                </div>
+              </div>
+            </header>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Option B: Light + Orange bar + thick bottom border ── -->
+    <div style="margin-bottom:48px">
+      <h4 style="font-weight:700;margin-bottom:4px">Option B — Light + Orange Bar + Thick Black Border</h4>
+      <p style="color:var(--ds-text-muted);font-size:0.85rem;margin-bottom:16px">
+        Same as A but with a bold 2.5px black bottom border for a more editorial, magazine feel.
+      </p>
+      <div class="ds-hdr-preview">
+        <div class="ds-hdr-preview__label"><span class="ds-hdr-preview__dot ds-hdr-preview__dot--dk"></span> Desktop — 1280px</div>
+        <div class="ds-hdr-wrap">
+          <div class="ds-hdr-frame ds-hdr-frame--desktop">
+            <div class="hv2-util">
+              <div class="hv2-util__inner">
+                <div class="hv2-util__left">
+                  <a href="#">info@yogabible.dk</a>
+                  <span class="hv2-util__sep"></span>
+                  <a href="#">+45 53 88 12 09</a>
+                </div>
+                <div class="hv2-util__right">
+                  <div class="hv2-util__social">
+                    <a href="#" class="hv2-util__social-ico">IG</a>
+                    <a href="#" class="hv2-util__social-ico">SC</a>
+                  </div>
+                  <span class="hv2-util__sep"></span>
+                  <div class="hv2-util__flags">
+                    <span class="hv2-util__flag is-active">&#x1F1E9;&#x1F1F0;</span>
+                    <span class="hv2-util__flag">&#x1F1EC;&#x1F1E7;</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <header class="hv2 hv2--thick">
+              <div class="hv2-inner">
+                <div class="hv2-main">
+                  <nav class="hv2-navL">
+                    <button>Uddannelser <span class="hv2-caret">&#x25BE;</span></button>
+                    <button>Kurser <span class="hv2-caret">&#x25BE;</span></button>
+                    <a href="#">Mentorship</a>
+                  </nav>
+                  <a href="#" class="hv2-logo">
+                    <img src="/assets/images/brand/logo-orange-on-transparent.png" alt="Yoga Bible" />
+                  </a>
+                  <nav class="hv2-navR">
+                    <button>Mere <span class="hv2-caret">&#x25BE;</span></button>
+                    <button>Yoga Bible <span class="hv2-caret">&#x25BE;</span></button>
+                    <a href="#" class="hv2-cta">Ansog</a>
+                  </nav>
+                </div>
+              </div>
+            </header>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Option C: Dark header + Orange bar + Outline CTA ── -->
+    <div style="margin-bottom:48px">
+      <h4 style="font-weight:700;margin-bottom:4px">Option C — Dark Header + Orange Bar + Outline CTA</h4>
+      <p style="color:var(--ds-text-muted);font-size:0.85rem;margin-bottom:16px">
+        Dark header bar flowing from the orange utility bar. Outline CTA button. More dramatic / cinematic.
+      </p>
+      <div class="ds-hdr-preview">
+        <div class="ds-hdr-preview__label"><span class="ds-hdr-preview__dot ds-hdr-preview__dot--dk"></span> Desktop — 1280px</div>
+        <div class="ds-hdr-wrap">
+          <div class="ds-hdr-frame ds-hdr-frame--desktop">
+            <div class="hv2-util">
+              <div class="hv2-util__inner">
+                <div class="hv2-util__left">
+                  <a href="#">info@yogabible.dk</a>
+                  <span class="hv2-util__sep"></span>
+                  <a href="#">+45 53 88 12 09</a>
+                </div>
+                <div class="hv2-util__right">
+                  <div class="hv2-util__social">
+                    <a href="#" class="hv2-util__social-ico">IG</a>
+                    <a href="#" class="hv2-util__social-ico">SC</a>
+                  </div>
+                  <span class="hv2-util__sep"></span>
+                  <div class="hv2-util__flags">
+                    <span class="hv2-util__flag is-active">&#x1F1E9;&#x1F1F0;</span>
+                    <span class="hv2-util__flag">&#x1F1EC;&#x1F1E7;</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <header class="hv2 hv2--dark">
+              <div class="hv2-inner">
+                <div class="hv2-main">
+                  <nav class="hv2-navL">
+                    <button>Uddannelser <span class="hv2-caret">&#x25BE;</span></button>
+                    <button>Kurser <span class="hv2-caret">&#x25BE;</span></button>
+                    <a href="#">Mentorship</a>
+                  </nav>
+                  <a href="#" class="hv2-logo">
+                    <img src="/assets/images/brand/logo-orange-on-transparent.png" alt="Yoga Bible" />
+                  </a>
+                  <nav class="hv2-navR">
+                    <button>Mere <span class="hv2-caret">&#x25BE;</span></button>
+                    <button>Yoga Bible <span class="hv2-caret">&#x25BE;</span></button>
+                    <a href="#" class="hv2-cta hv2-cta--outline">Ansog</a>
+                  </nav>
+                </div>
+              </div>
+            </header>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════════════════════════════
+         MEGA MENU OPTIONS
+         ══════════════════════════════════════════════════════════════════ -->
+    <h3 style="font-size:1.35rem;font-weight:700;margin-bottom:8px;margin-top:60px;color:#f75c03">Mega Menu — Open State Options</h3>
+    <p style="color:var(--ds-text-muted);font-size:0.9rem;margin-bottom:32px">
+      What the mega dropdown looks like when hovering "Uddannelser". Only real programs (200hr + 300hr) shown now.
+      Columns will grow as you add 50hr, 100hr, 30hr programs.
+    </p>
+
+    <!-- ── Mega A: Light 2-Column ── -->
+    <div style="margin-bottom:48px">
+      <h4 style="font-weight:700;margin-bottom:4px">Mega A — Light, 2-Column (current programs)</h4>
+      <p style="color:var(--ds-text-muted);font-size:0.85rem;margin-bottom:16px">
+        Clean white mega panel. 200hr (All Levels) left, 300hr (Advanced) right. Sub-programs indented. Orange bottom accent border.
+      </p>
+      <div class="ds-hdr-preview">
+        <div class="ds-hdr-preview__label"><span class="ds-hdr-preview__dot ds-hdr-preview__dot--dk"></span> Desktop — Mega open on "Uddannelser"</div>
+        <div class="ds-hdr-wrap">
+          <div class="ds-hdr-frame ds-hdr-frame--desktop">
+            <div class="hv2-util">
+              <div class="hv2-util__inner">
+                <div class="hv2-util__left">
+                  <a href="#">info@yogabible.dk</a>
+                  <span class="hv2-util__sep"></span>
+                  <a href="#">+45 53 88 12 09</a>
+                </div>
+                <div class="hv2-util__right">
+                  <div class="hv2-util__social">
+                    <a href="#" class="hv2-util__social-ico">IG</a>
+                    <a href="#" class="hv2-util__social-ico">SC</a>
+                  </div>
+                  <span class="hv2-util__sep"></span>
+                  <div class="hv2-util__flags">
+                    <span class="hv2-util__flag is-active">&#x1F1E9;&#x1F1F0;</span>
+                    <span class="hv2-util__flag">&#x1F1EC;&#x1F1E7;</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <header class="hv2">
+              <div class="hv2-inner">
+                <div class="hv2-main">
+                  <nav class="hv2-navL">
+                    <button style="color:#f75c03">Uddannelser <span class="hv2-caret">&#x25B4;</span></button>
+                    <button>Kurser <span class="hv2-caret">&#x25BE;</span></button>
+                    <a href="#">Mentorship</a>
+                  </nav>
+                  <a href="#" class="hv2-logo">
+                    <img src="/assets/images/brand/logo-orange-on-transparent.png" alt="Yoga Bible" />
+                  </a>
+                  <nav class="hv2-navR">
+                    <button>Mere <span class="hv2-caret">&#x25BE;</span></button>
+                    <button>Yoga Bible <span class="hv2-caret">&#x25BE;</span></button>
+                    <a href="#" class="hv2-cta">Ansog</a>
+                  </nav>
+                </div>
+              </div>
+              <div class="hv2-mega">
+                <div class="hv2-mega__inner hv2-mega__inner--2col">
+                  <div>
+                    <div class="hv2-mega__title">200 Timer &mdash; All Levels</div>
+                    <a href="#" class="hv2-mega__link">Om 200-timers yogalreruddannelser</a>
+                    <a href="#" class="hv2-mega__sub">18 uger &mdash; fleksibel</a>
+                    <a href="#" class="hv2-mega__sub">8 uger &mdash; semi-intensiv</a>
+                    <a href="#" class="hv2-mega__sub">4 uger &mdash; intensiv</a>
+                    <a href="#" class="hv2-mega__link" style="margin-top:6px">Sammenlign uddannelser</a>
+                  </div>
+                  <div>
+                    <div class="hv2-mega__title">300 Timer &mdash; Advanced</div>
+                    <a href="#" class="hv2-mega__link">300-timers avanceret uddannelse</a>
+                  </div>
+                </div>
+              </div>
+            </header>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Mega B: Dark 2-Column ── -->
+    <div style="margin-bottom:48px">
+      <h4 style="font-weight:700;margin-bottom:4px">Mega B — Dark, 2-Column (current programs)</h4>
+      <p style="color:var(--ds-text-muted);font-size:0.85rem;margin-bottom:16px">
+        Same structure but with dark background. Pairs with Option C (dark header).
+      </p>
+      <div class="ds-hdr-preview">
+        <div class="ds-hdr-preview__label"><span class="ds-hdr-preview__dot ds-hdr-preview__dot--dk"></span> Desktop — Dark mega on "Uddannelser"</div>
+        <div class="ds-hdr-wrap">
+          <div class="ds-hdr-frame ds-hdr-frame--desktop">
+            <div class="hv2-util">
+              <div class="hv2-util__inner">
+                <div class="hv2-util__left">
+                  <a href="#">info@yogabible.dk</a>
+                  <span class="hv2-util__sep"></span>
+                  <a href="#">+45 53 88 12 09</a>
+                </div>
+                <div class="hv2-util__right">
+                  <div class="hv2-util__social">
+                    <a href="#" class="hv2-util__social-ico">IG</a>
+                    <a href="#" class="hv2-util__social-ico">SC</a>
+                  </div>
+                  <span class="hv2-util__sep"></span>
+                  <div class="hv2-util__flags">
+                    <span class="hv2-util__flag is-active">&#x1F1E9;&#x1F1F0;</span>
+                    <span class="hv2-util__flag">&#x1F1EC;&#x1F1E7;</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <header class="hv2 hv2--dark">
+              <div class="hv2-inner">
+                <div class="hv2-main">
+                  <nav class="hv2-navL">
+                    <button style="color:#f75c03">Uddannelser <span class="hv2-caret">&#x25B4;</span></button>
+                    <button>Kurser <span class="hv2-caret">&#x25BE;</span></button>
+                    <a href="#">Mentorship</a>
+                  </nav>
+                  <a href="#" class="hv2-logo">
+                    <img src="/assets/images/brand/logo-orange-on-transparent.png" alt="Yoga Bible" />
+                  </a>
+                  <nav class="hv2-navR">
+                    <button>Mere <span class="hv2-caret">&#x25BE;</span></button>
+                    <button>Yoga Bible <span class="hv2-caret">&#x25BE;</span></button>
+                    <a href="#" class="hv2-cta hv2-cta--outline">Ansog</a>
+                  </nav>
+                </div>
+              </div>
+              <div class="hv2-mega hv2-mega--dark">
+                <div class="hv2-mega__inner hv2-mega__inner--2col">
+                  <div>
+                    <div class="hv2-mega__title">200 Timer &mdash; All Levels</div>
+                    <a href="#" class="hv2-mega__link">Om 200-timers yogalreruddannelser</a>
+                    <a href="#" class="hv2-mega__sub">18 uger &mdash; fleksibel</a>
+                    <a href="#" class="hv2-mega__sub">8 uger &mdash; semi-intensiv</a>
+                    <a href="#" class="hv2-mega__sub">4 uger &mdash; intensiv</a>
+                    <a href="#" class="hv2-mega__link" style="margin-top:6px">Sammenlign uddannelser</a>
+                  </div>
+                  <div>
+                    <div class="hv2-mega__title">300 Timer &mdash; Advanced</div>
+                    <a href="#" class="hv2-mega__link">300-timers avanceret uddannelse</a>
+                  </div>
+                </div>
+              </div>
+            </header>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Mega C: Future-proof 4-Column ── -->
+    <div style="margin-bottom:48px">
+      <h4 style="font-weight:700;margin-bottom:4px">Mega C — Future Preview: 4-Column (when programs expand)</h4>
+      <p style="color:var(--ds-text-muted);font-size:0.85rem;margin-bottom:16px">
+        Preview of how the mega menu will scale once 50hr and 30hr programs are added. 4 columns, still clean.
+      </p>
+      <div class="ds-hdr-preview">
+        <div class="ds-hdr-preview__label"><span class="ds-hdr-preview__dot ds-hdr-preview__dot--dk"></span> Desktop — 4-column mega (future state)</div>
+        <div class="ds-hdr-wrap">
+          <div class="ds-hdr-frame ds-hdr-frame--desktop">
+            <div class="hv2-util">
+              <div class="hv2-util__inner">
+                <div class="hv2-util__left">
+                  <a href="#">info@yogabible.dk</a>
+                  <span class="hv2-util__sep"></span>
+                  <a href="#">+45 53 88 12 09</a>
+                </div>
+                <div class="hv2-util__right">
+                  <div class="hv2-util__social">
+                    <a href="#" class="hv2-util__social-ico">IG</a>
+                    <a href="#" class="hv2-util__social-ico">SC</a>
+                  </div>
+                  <span class="hv2-util__sep"></span>
+                  <div class="hv2-util__flags">
+                    <span class="hv2-util__flag is-active">&#x1F1E9;&#x1F1F0;</span>
+                    <span class="hv2-util__flag">&#x1F1EC;&#x1F1E7;</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <header class="hv2">
+              <div class="hv2-inner">
+                <div class="hv2-main">
+                  <nav class="hv2-navL">
+                    <button style="color:#f75c03">Uddannelser <span class="hv2-caret">&#x25B4;</span></button>
+                    <button>Kurser <span class="hv2-caret">&#x25BE;</span></button>
+                    <a href="#">Mentorship</a>
+                  </nav>
+                  <a href="#" class="hv2-logo">
+                    <img src="/assets/images/brand/logo-orange-on-transparent.png" alt="Yoga Bible" />
+                  </a>
+                  <nav class="hv2-navR">
+                    <button>Mere <span class="hv2-caret">&#x25BE;</span></button>
+                    <button>Yoga Bible <span class="hv2-caret">&#x25BE;</span></button>
+                    <a href="#" class="hv2-cta">Ansog</a>
+                  </nav>
+                </div>
+              </div>
+              <div class="hv2-mega">
+                <div class="hv2-mega__inner hv2-mega__inner--4col">
+                  <div>
+                    <div class="hv2-mega__title">200 Timer &mdash; All Levels</div>
+                    <a href="#" class="hv2-mega__link">Om 200-timers</a>
+                    <a href="#" class="hv2-mega__sub">18 uger &mdash; fleksibel</a>
+                    <a href="#" class="hv2-mega__sub">8 uger &mdash; semi-intensiv</a>
+                    <a href="#" class="hv2-mega__sub">4 uger &mdash; intensiv</a>
+                    <a href="#" class="hv2-mega__link" style="margin-top:6px">Sammenlign</a>
+                  </div>
+                  <div>
+                    <div class="hv2-mega__title">300 Timer &mdash; Advanced</div>
+                    <a href="#" class="hv2-mega__link">Om 300-timers</a>
+                    <a href="#" class="hv2-mega__sub">12 uger &mdash; fleksibel</a>
+                    <a href="#" class="hv2-mega__sub">6 uger &mdash; intensiv</a>
+                  </div>
+                  <div>
+                    <div class="hv2-mega__title">50 Timer &mdash; Specialisering</div>
+                    <a href="#" class="hv2-mega__link">Yin Yoga</a>
+                    <a href="#" class="hv2-mega__link">Vinyasa</a>
+                    <a href="#" class="hv2-mega__link">Ashtanga</a>
+                    <a href="#" class="hv2-mega__link">Prenatal</a>
+                  </div>
+                  <div>
+                    <div class="hv2-mega__title">30 Timer &mdash; Workshops</div>
+                    <a href="#" class="hv2-mega__link">Meditation</a>
+                    <a href="#" class="hv2-mega__link">Pranayama</a>
+                    <a href="#" class="hv2-mega__link">Yoga Nidra</a>
+                  </div>
+                </div>
+              </div>
+            </header>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════════════════════════════
+         MOBILE — CLOSED + OPEN STATE
+         ══════════════════════════════════════════════════════════════════ -->
+    <h3 style="font-size:1.35rem;font-weight:700;margin-bottom:8px;margin-top:60px;color:#f75c03">Mobile Views</h3>
+    <p style="color:var(--ds-text-muted);font-size:0.9rem;margin-bottom:32px">
+      Header bar with language flags next to burger. Menu B style with cards, app download badges in footer.
+    </p>
+
+    <!-- Mobile: Closed state -->
+    <div style="margin-bottom:48px">
+      <h4 style="font-weight:700;margin-bottom:4px">Mobile — Header Bar (closed)</h4>
+      <p style="color:var(--ds-text-muted);font-size:0.85rem;margin-bottom:16px">
+        Logo left, language flags + burger right. Clean and minimal.
+      </p>
+      <div class="ds-hdr-preview">
+        <div class="ds-hdr-preview__label"><span class="ds-hdr-preview__dot ds-hdr-preview__dot--mb"></span> Mobile — 375px (closed)</div>
+        <div class="ds-hdr-wrap">
+          <div class="ds-hdr-frame ds-hdr-frame--mobile">
+            <div class="hv2m-bar">
+              <a href="#" class="hv2m-bar__logo">
+                <img src="/assets/images/brand/logo-orange-on-transparent.png" alt="Yoga Bible" />
+              </a>
+              <div class="hv2m-bar__right">
+                <span class="hv2m-bar__flag is-active">&#x1F1E9;&#x1F1F0;</span>
+                <span class="hv2m-bar__flag">&#x1F1EC;&#x1F1E7;</span>
+                <button class="hv2m-burger" aria-label="Menu"><span></span><span></span><span></span></button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Mobile: Open state -->
+    <div style="margin-bottom:48px">
+      <h4 style="font-weight:700;margin-bottom:4px">Mobile — Menu Open (Card Drawer)</h4>
+      <p style="color:var(--ds-text-muted);font-size:0.85rem;margin-bottom:16px">
+        Light card-based drawer. Uddannelser expanded showing 200hr (All Levels) and 300hr (Advanced).
+        Orange CTA. Footer with social, language flags, and app download badges.
+      </p>
+      <div class="ds-hdr-preview">
+        <div class="ds-hdr-preview__label"><span class="ds-hdr-preview__dot ds-hdr-preview__dot--mb"></span> Mobile — 375px (menu open)</div>
+        <div class="ds-hdr-wrap">
+          <div class="ds-hdr-frame ds-hdr-frame--mobile">
+            <div class="hv2m">
+              <div class="hv2m-top">
+                <a href="#" class="hv2m-top__logo">
+                  <img src="/assets/images/brand/logo-orange-on-transparent.png" alt="Yoga Bible" />
+                </a>
+                <button class="hv2m-close" aria-label="Close">&#x2715;</button>
+              </div>
+              <div class="hv2m-body">
+                <!-- Uddannelser OPEN -->
+                <div class="hv2m-card is-open">
+                  <div class="hv2m-card__head">
+                    <span class="hv2m-card__title">Uddannelser</span>
+                    <span class="hv2m-card__caret">&#x25B4;</span>
+                  </div>
+                  <div class="hv2m-card__body">
+                    <div class="hv2m-card__sub-title">200 Timer &mdash; All Levels</div>
+                    <a href="#" class="hv2m-card__link">Om 200-timers uddannelser</a>
+                    <a href="#" class="hv2m-card__link">18 uger &mdash; fleksibel</a>
+                    <a href="#" class="hv2m-card__link">8 uger &mdash; semi-intensiv</a>
+                    <a href="#" class="hv2m-card__link">4 uger &mdash; intensiv</a>
+                    <a href="#" class="hv2m-card__link">Sammenlign uddannelser</a>
+                    <div class="hv2m-card__sub-title">300 Timer &mdash; Advanced</div>
+                    <a href="#" class="hv2m-card__link">300-timers avanceret uddannelse</a>
+                  </div>
+                </div>
+                <!-- Kurser collapsed -->
+                <div class="hv2m-card">
+                  <div class="hv2m-card__head">
+                    <span class="hv2m-card__title">Kurser</span>
+                    <div style="display:flex;align-items:center;gap:8px">
+                      <span class="hv2m-card__badge">4 kurser</span>
+                      <span class="hv2m-card__caret">&#x25BE;</span>
+                    </div>
+                  </div>
+                </div>
+                <a href="#" class="hv2m-link">Mentorship &amp; Privat Tr&aelig;ning</a>
+                <!-- Mere collapsed -->
+                <div class="hv2m-card">
+                  <div class="hv2m-card__head">
+                    <span class="hv2m-card__title">Mere</span>
+                    <span class="hv2m-card__caret">&#x25BE;</span>
+                  </div>
+                </div>
+                <div class="hv2m-card">
+                  <div class="hv2m-card__head">
+                    <span class="hv2m-card__title">Yoga Bible</span>
+                    <span class="hv2m-card__caret">&#x25BE;</span>
+                  </div>
+                </div>
+                <a href="#" class="hv2m-cta">Ansog Nu</a>
+              </div>
+              <div class="hv2m-footer">
+                <div class="hv2m-footer__row">
+                  <div class="hv2m-footer__social">
+                    <a href="#" class="hv2m-footer__ico">IG</a>
+                    <a href="#" class="hv2m-footer__ico">SC</a>
+                  </div>
+                  <div class="hv2m-footer__flags">
+                    <span class="hv2m-footer__flag is-active">&#x1F1E9;&#x1F1F0;</span>
+                    <span class="hv2m-footer__flag">&#x1F1EC;&#x1F1E7;</span>
+                  </div>
+                </div>
+                <div class="hv2m-footer__apps">
+                  <a href="#" class="hv2m-footer__app"><span class="hv2m-footer__app-icon">&#xF8FF;</span> App Store</a>
+                  <a href="#" class="hv2m-footer__app"><span class="hv2m-footer__app-icon">&#x25B6;</span> Google Play</a>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════════════════════════════
+         TABLET — CLOSED + OPEN STATE
+         ══════════════════════════════════════════════════════════════════ -->
+    <h3 style="font-size:1.35rem;font-weight:700;margin-bottom:8px;margin-top:60px;color:#f75c03">Tablet Views</h3>
+    <p style="color:var(--ds-text-muted);font-size:0.9rem;margin-bottom:32px">
+      On tablet the utility bar stays, main nav collapses to logo + key links + burger. Menu opens as a full-width panel.
+    </p>
+
+    <!-- Tablet: Closed -->
+    <div style="margin-bottom:48px">
+      <h4 style="font-weight:700;margin-bottom:4px">Tablet — Header Bar (closed)</h4>
+      <p style="color:var(--ds-text-muted);font-size:0.85rem;margin-bottom:16px">
+        Orange utility bar stays visible. Main bar: logo left, top-level links center, CTA + burger right.
+      </p>
+      <div class="ds-hdr-preview">
+        <div class="ds-hdr-preview__label"><span class="ds-hdr-preview__dot ds-hdr-preview__dot--tb"></span> Tablet — 768px (closed)</div>
+        <div class="ds-hdr-wrap">
+          <div class="ds-hdr-frame ds-hdr-frame--tablet">
+            <div class="hv2-util">
+              <div class="hv2-util__inner">
+                <div class="hv2-util__left">
+                  <a href="#">info@yogabible.dk</a>
+                  <span class="hv2-util__sep"></span>
+                  <a href="#">+45 53 88 12 09</a>
+                </div>
+                <div class="hv2-util__right">
+                  <div class="hv2-util__social">
+                    <a href="#" class="hv2-util__social-ico">IG</a>
+                    <a href="#" class="hv2-util__social-ico">SC</a>
+                  </div>
+                  <span class="hv2-util__sep"></span>
+                  <div class="hv2-util__flags">
+                    <span class="hv2-util__flag is-active">&#x1F1E9;&#x1F1F0;</span>
+                    <span class="hv2-util__flag">&#x1F1EC;&#x1F1E7;</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <header class="hv2">
+              <div class="hv2-inner">
+                <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 0">
+                  <a href="#" class="hv2-logo" style="justify-self:start">
+                    <img src="/assets/images/brand/logo-orange-on-transparent.png" alt="Yoga Bible" style="height:38px" />
+                  </a>
+                  <nav style="display:flex;align-items:center;gap:20px">
+                    <button style="font-size:11px;letter-spacing:0.06em;text-transform:uppercase;color:#0F0F0F;background:none;border:none;cursor:pointer;font-family:inherit">Uddannelser <span class="hv2-caret">&#x25BE;</span></button>
+                    <button style="font-size:11px;letter-spacing:0.06em;text-transform:uppercase;color:#0F0F0F;background:none;border:none;cursor:pointer;font-family:inherit">Kurser <span class="hv2-caret">&#x25BE;</span></button>
+                    <a href="#" style="font-size:11px;letter-spacing:0.06em;text-transform:uppercase;color:#0F0F0F">Mere <span class="hv2-caret">&#x25BE;</span></a>
+                  </nav>
+                  <div style="display:flex;align-items:center;gap:10px">
+                    <a href="#" class="hv2-cta" style="font-size:10px;padding:8px 16px">Ansog</a>
+                    <button class="hv2m-burger" aria-label="Menu"><span></span><span></span><span></span></button>
+                  </div>
+                </div>
+              </div>
+            </header>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tablet: Open state -->
+    <div style="margin-bottom:48px">
+      <h4 style="font-weight:700;margin-bottom:4px">Tablet — Menu Open (Full-Width Panel)</h4>
+      <p style="color:var(--ds-text-muted);font-size:0.85rem;margin-bottom:16px">
+        Same card-based layout as mobile but using 2 columns on tablet width. App badges in footer.
+      </p>
+      <div class="ds-hdr-preview">
+        <div class="ds-hdr-preview__label"><span class="ds-hdr-preview__dot ds-hdr-preview__dot--tb"></span> Tablet — 768px (menu open)</div>
+        <div class="ds-hdr-wrap">
+          <div class="ds-hdr-frame ds-hdr-frame--tablet">
+            <div style="background:#FFFCF9;font-family:'Abacaxi','Helvetica Neue',Helvetica,Arial,sans-serif;color:#0F0F0F">
+              <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 20px;border-bottom:1px solid #E8E4E0">
+                <a href="#"><img src="/assets/images/brand/logo-orange-on-transparent.png" alt="Yoga Bible" style="height:38px;display:block" /></a>
+                <button class="hv2m-close" aria-label="Close">&#x2715;</button>
+              </div>
+              <div style="padding:16px 20px;display:grid;grid-template-columns:1fr 1fr;gap:10px">
+                <!-- Uddannelser OPEN -->
+                <div class="hv2m-card is-open" style="grid-column:1/-1">
+                  <div class="hv2m-card__head">
+                    <span class="hv2m-card__title">Uddannelser</span>
+                    <span class="hv2m-card__caret">&#x25B4;</span>
+                  </div>
+                  <div class="hv2m-card__body" style="display:grid;grid-template-columns:1fr 1fr;gap:0 24px">
+                    <div>
+                      <div class="hv2m-card__sub-title">200 Timer &mdash; All Levels</div>
+                      <a href="#" class="hv2m-card__link">Om 200-timers uddannelser</a>
+                      <a href="#" class="hv2m-card__link">18 uger &mdash; fleksibel</a>
+                      <a href="#" class="hv2m-card__link">8 uger &mdash; semi-intensiv</a>
+                      <a href="#" class="hv2m-card__link">4 uger &mdash; intensiv</a>
+                      <a href="#" class="hv2m-card__link">Sammenlign uddannelser</a>
+                    </div>
+                    <div>
+                      <div class="hv2m-card__sub-title">300 Timer &mdash; Advanced</div>
+                      <a href="#" class="hv2m-card__link">300-timers avanceret uddannelse</a>
+                    </div>
+                  </div>
+                </div>
+                <!-- Kurser -->
+                <div class="hv2m-card">
+                  <div class="hv2m-card__head">
+                    <span class="hv2m-card__title">Kurser</span>
+                    <div style="display:flex;align-items:center;gap:8px">
+                      <span class="hv2m-card__badge">4 kurser</span>
+                      <span class="hv2m-card__caret">&#x25BE;</span>
+                    </div>
+                  </div>
+                </div>
+                <!-- Mere -->
+                <div class="hv2m-card">
+                  <div class="hv2m-card__head">
+                    <span class="hv2m-card__title">Mere</span>
+                    <span class="hv2m-card__caret">&#x25BE;</span>
+                  </div>
+                </div>
+                <a href="#" class="hv2m-link" style="grid-column:1/-1">Mentorship &amp; Privat Tr&aelig;ning</a>
+                <div class="hv2m-card" style="grid-column:1/-1">
+                  <div class="hv2m-card__head">
+                    <span class="hv2m-card__title">Yoga Bible</span>
+                    <span class="hv2m-card__caret">&#x25BE;</span>
+                  </div>
+                </div>
+                <a href="#" class="hv2m-cta" style="grid-column:1/-1">Ansog Nu</a>
+              </div>
+              <div class="hv2m-footer">
+                <div class="hv2m-footer__row">
+                  <div class="hv2m-footer__social">
+                    <a href="#" class="hv2m-footer__ico">IG</a>
+                    <a href="#" class="hv2m-footer__ico">SC</a>
+                  </div>
+                  <div class="hv2m-footer__flags">
+                    <span class="hv2m-footer__flag is-active">&#x1F1E9;&#x1F1F0;</span>
+                    <span class="hv2m-footer__flag">&#x1F1EC;&#x1F1E7;</span>
+                  </div>
+                </div>
+                <div class="hv2m-footer__apps">
+                  <a href="#" class="hv2m-footer__app"><span class="hv2m-footer__app-icon">&#xF8FF;</span> App Store</a>
+                  <a href="#" class="hv2m-footer__app"><span class="hv2m-footer__app-icon">&#x25B6;</span> Google Play</a>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
   </section>
 
   <!-- ═══════════════════════════════════════════════════════════════
@@ -4178,8 +5741,20 @@ eleventyExcludeFromCollections: true
         <li>"Use <strong>content + video layout</strong> from section 28"</li>
         <li>"Use <strong>Hero B (split)</strong> from section 29 for this page"</li>
         <li>"Use <strong>Hot Yoga CPH color #3f99a5</strong> for Hot Yoga CTAs and strokes"</li>
-        <li>"Add <strong>scroll-draw vine path (variation A)</strong> from section 30 as page decoration"</li>
-        <li>"Use <strong>dual scroll-draw paths</strong> from section 30 (variation D) for depth"</li>
+        <li>"Add <strong>scroll-draw vine with shadow</strong> from section 30 (variation A) as page decoration"</li>
+        <li>"Use <strong>keyword-touching vine</strong> from section 30 (variation B) — vine flows toward key text"</li>
+        <li>"Add <strong>vine with growing leaves</strong> from section 30 (variation C) for organic feel"</li>
+        <li>"Use <strong>dark cinematic photo hero</strong> from section 31 (variation A) for photography page"</li>
+        <li>"Use <strong>big picture + text split</strong> from section 31 (variation B)"</li>
+        <li>"Add <strong>art grid bleed-right</strong> from section 31 (variation C) for creative photo layout"</li>
+        <li>"Use <strong>model showcase classic</strong> from section 32 (variation A) for model profiles"</li>
+        <li>"Use <strong>model hero-top layout</strong> from section 32 (variation B) — editorial feel"</li>
+        <li>"Use <strong>model side-by-side editorial</strong> from section 32 (variation C)"</li>
+        <li>"Use <strong>header Option A (light + filled CTA)</strong> from section 33"</li>
+        <li>"Use <strong>header Option B (light + thick border)</strong> from section 33"</li>
+        <li>"Use <strong>header Option C (dark + outline CTA)</strong> from section 33"</li>
+        <li>"Use <strong>mega A (light 2-col)</strong> or <strong>mega B (dark 2-col)</strong> from section 33"</li>
+        <li>"Use <strong>mega C (4-col future)</strong> from section 33 for expanded programs"</li>
       </ul>
     </div>
   </section>
@@ -4232,11 +5807,13 @@ document.addEventListener('DOMContentLoaded', function() {
   // ══════════════════════════════════════════════════════════════
   // SCROLL-DRAW PATH ANIMATION
   // SVG paths draw themselves as you scroll inside their container
+  // Supports: shadow trails, growing leaves
   // ══════════════════════════════════════════════════════════════
   var drawPreviews = document.querySelectorAll('[data-scroll-draw]');
   drawPreviews.forEach(function(container) {
     var paths = container.querySelectorAll('.ds-draw-path');
     var shadows = container.querySelectorAll('.ds-draw-shadow');
+    var leaves = container.querySelectorAll('.ds-vine-leaf');
 
     // Initialize all paths with dash offset
     paths.forEach(function(path) {
@@ -4269,9 +5846,18 @@ document.addEventListener('DOMContentLoaded', function() {
 
       shadows.forEach(function(shadow) {
         var length = shadow.getTotalLength();
-        // Shadow draws slightly ahead for trail effect
         var drawLength = Math.min(progress * 1.15, 1) * length;
         shadow.style.strokeDashoffset = length - drawLength;
+      });
+
+      // Grow leaves when the vine reaches their position
+      leaves.forEach(function(leaf) {
+        var appearAt = parseFloat(leaf.getAttribute('data-appear-at')) || 0;
+        if (progress >= appearAt) {
+          leaf.classList.add('ds-leaf--visible');
+        } else {
+          leaf.classList.remove('ds-leaf--visible');
+        }
       });
     });
   });

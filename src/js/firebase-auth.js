@@ -94,10 +94,12 @@
   // ============================================
 
   function updateHeaderUI(user) {
-    var loginBtn = document.getElementById('yb-auth-login-btn');
-    var userMenu = document.getElementById('yb-auth-user-menu');
+    // Desktop (utility bar)
+    var loginLink = document.getElementById('yb-auth-login-link');
+    var userLink = document.getElementById('yb-auth-user-link');
     var userName = document.getElementById('yb-auth-user-name');
     var userAvatar = document.getElementById('yb-auth-user-avatar');
+    // Mobile (drawer)
     var mobileLoginBtn = document.getElementById('yb-auth-mobile-login');
     var mobileUserSection = document.getElementById('yb-auth-mobile-user');
     var mobileUserName = document.getElementById('yb-auth-mobile-name');
@@ -106,20 +108,20 @@
       var displayName = user.displayName || user.email.split('@')[0];
       var initials = getInitials(displayName);
 
-      // Desktop: hide login, show user menu
-      if (loginBtn) loginBtn.style.display = 'none';
-      if (userMenu) userMenu.style.display = 'flex';
+      // Desktop: hide login link, show user info
+      if (loginLink) loginLink.style.display = 'none';
+      if (userLink) userLink.style.display = 'inline-flex';
       if (userName) userName.textContent = displayName;
       if (userAvatar) userAvatar.textContent = initials;
 
       // Mobile: hide login, show user section
       if (mobileLoginBtn) mobileLoginBtn.style.display = 'none';
-      if (mobileUserSection) mobileUserSection.style.display = 'block';
+      if (mobileUserSection) mobileUserSection.style.display = 'flex';
       if (mobileUserName) mobileUserName.textContent = displayName;
     } else {
-      // Desktop: show login, hide user menu
-      if (loginBtn) loginBtn.style.display = '';
-      if (userMenu) userMenu.style.display = 'none';
+      // Desktop: show login link, hide user info
+      if (loginLink) loginLink.style.display = '';
+      if (userLink) userLink.style.display = 'none';
 
       // Mobile: show login, hide user section
       if (mobileLoginBtn) mobileLoginBtn.style.display = '';
