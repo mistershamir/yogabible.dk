@@ -37,6 +37,10 @@
 
     if (user) {
       ensureUserProfile(user);
+      // Sync with Mindbody to check membership status
+      if (window.syncMindbodyClient) {
+        window.syncMindbodyClient(user);
+      }
     }
   });
 

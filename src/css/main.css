@@ -5812,3 +5812,337 @@ section {
     font-size: 1.1rem;
   }
 }
+
+/* ========================================
+   MINDBODY SCHEDULE
+   ======================================== */
+
+.yb-mb-schedule {
+  background: #fff;
+  border: 1px solid #E8E4E0;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.yb-mb-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 60px 24px;
+  color: #6F6A66;
+  font-size: 0.92rem;
+}
+
+.yb-mb-spinner {
+  width: 24px;
+  height: 24px;
+  border: 3px solid #E8E4E0;
+  border-top-color: var(--yb-brand);
+  border-radius: 50%;
+  animation: yb-spin 0.7s linear infinite;
+}
+
+@keyframes yb-spin {
+  to { transform: rotate(360deg); }
+}
+
+.yb-mb-error,
+.yb-mb-empty {
+  padding: 48px 24px;
+  text-align: center;
+  color: #6F6A66;
+  font-size: 0.92rem;
+}
+
+/* Week grid */
+.yb-mb-week {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  min-height: 300px;
+}
+
+.yb-mb-day {
+  border-right: 1px solid #E8E4E0;
+}
+
+.yb-mb-day:last-child {
+  border-right: none;
+}
+
+.yb-mb-day--today {
+  background: rgba(247, 92, 3, 0.03);
+}
+
+.yb-mb-day__header {
+  padding: 12px 10px;
+  border-bottom: 1px solid #E8E4E0;
+  text-align: center;
+}
+
+.yb-mb-day--today .yb-mb-day__header {
+  border-bottom-color: var(--yb-brand);
+}
+
+.yb-mb-day__name {
+  display: block;
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #0F0F0F;
+}
+
+.yb-mb-day--today .yb-mb-day__name {
+  color: var(--yb-brand);
+}
+
+.yb-mb-day__date {
+  display: block;
+  font-size: 0.72rem;
+  color: #6F6A66;
+  margin-top: 2px;
+}
+
+.yb-mb-day__classes {
+  padding: 6px 4px;
+}
+
+.yb-mb-noclass {
+  padding: 20px 8px;
+  text-align: center;
+  font-size: 0.78rem;
+  color: #B5B0AB;
+}
+
+/* Individual class card */
+.yb-mb-class {
+  padding: 8px 8px;
+  border-radius: 8px;
+  margin-bottom: 4px;
+  transition: background var(--transition-fast);
+  cursor: default;
+}
+
+.yb-mb-class:hover {
+  background: #F5F3F0;
+}
+
+.yb-mb-class__time {
+  font-size: 0.72rem;
+  color: #6F6A66;
+  margin-bottom: 2px;
+}
+
+.yb-mb-class__name {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: #0F0F0F;
+  line-height: 1.3;
+}
+
+.yb-mb-class__instructor {
+  font-size: 0.72rem;
+  color: #6F6A66;
+  margin-top: 1px;
+}
+
+.yb-mb-class__action {
+  margin-top: 6px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.yb-mb-class__book {
+  font-family: var(--font-primary);
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 4px 12px;
+  background: var(--yb-brand);
+  color: #fff;
+  border: none;
+  border-radius: 20px;
+  cursor: pointer;
+  transition: background var(--transition-fast), transform var(--transition-fast);
+}
+
+.yb-mb-class__book:hover {
+  background: #d94f02;
+}
+
+.yb-mb-class__book:active {
+  transform: scale(0.96);
+}
+
+.yb-mb-class__book:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.yb-mb-class__book--success {
+  background: #2e7d32;
+}
+
+.yb-mb-class__spots {
+  font-size: 0.68rem;
+  color: #6F6A66;
+}
+
+.yb-mb-class__full {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: #d32f2f;
+}
+
+.yb-mb-class--full {
+  opacity: 0.6;
+}
+
+/* Week navigation */
+.yb-mb-week-nav {
+  display: flex;
+  justify-content: space-between;
+  padding: 12px 16px;
+  border-top: 1px solid #E8E4E0;
+}
+
+.yb-mb-week-nav__btn {
+  font-family: var(--font-primary);
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--yb-brand);
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 6px 12px;
+  border-radius: 8px;
+  transition: background var(--transition-fast);
+}
+
+.yb-mb-week-nav__btn:hover {
+  background: rgba(247, 92, 3, 0.08);
+}
+
+/* ========================================
+   CHECKOUT MODAL EXTRAS
+   ======================================== */
+
+.yb-auth-modal__box--wide {
+  max-width: 480px;
+}
+
+.yb-checkout-service {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 14px 16px;
+  background: #F5F3F0;
+  border-radius: 10px;
+  margin-bottom: 20px;
+}
+
+.yb-checkout-service__name {
+  font-weight: 700;
+  font-size: 0.92rem;
+  color: #0F0F0F;
+}
+
+.yb-checkout-service__price {
+  font-weight: 700;
+  font-size: 1rem;
+  color: var(--yb-brand);
+}
+
+.yb-checkout-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.yb-checkout-divider {
+  text-align: center;
+  padding: 8px 0;
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: #6F6A66;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  border-top: 1px solid #E8E4E0;
+  margin-top: 4px;
+  padding-top: 16px;
+}
+
+.yb-checkout-secure {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  font-size: 0.78rem;
+  color: #6F6A66;
+  margin-top: 8px;
+}
+
+.yb-checkout-success__inner {
+  text-align: center;
+  padding: 20px 0;
+}
+
+.yb-checkout-success__icon {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: #2e7d32;
+  color: #fff;
+  font-size: 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 20px;
+}
+
+/* ========================================
+   MINDBODY RESPONSIVE
+   ======================================== */
+
+@media (max-width: 768px) {
+  .yb-mb-week {
+    grid-template-columns: 1fr;
+  }
+
+  .yb-mb-day {
+    border-right: none;
+    border-bottom: 1px solid #E8E4E0;
+  }
+
+  .yb-mb-day:last-child {
+    border-bottom: none;
+  }
+
+  .yb-mb-day__header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 16px;
+  }
+
+  .yb-mb-day__classes {
+    padding: 4px 8px 12px;
+  }
+
+  .yb-mb-class {
+    display: grid;
+    grid-template-columns: 80px 1fr auto;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 8px;
+  }
+
+  .yb-mb-class__action {
+    margin-top: 0;
+  }
+
+  .yb-checkout-row {
+    grid-template-columns: 1fr;
+  }
+}

@@ -64,22 +64,14 @@ includeScheduleModal: false
   </div>
 </section>
 
-<!-- MindBody Schedule Widget -->
+<!-- Live Class Schedule (from Mindbody API) -->
 <section class="program-schedule" id="schedule-widget">
   <div class="container">
     <h2 class="section-title">Ugentlige Klasser</h2>
-    <p class="section-subtitle">Book din plads direkte i skemaet nedenfor.</p>
+    <p class="section-subtitle">Book din plads direkte i skemaet nedenfor. Log ind for at booke.</p>
 
-    <div class="yb-schedule-widget">
-      <div class="mindbody-widget" style="background:#fff; border:1px solid #e5e0db; border-radius:12px; padding:24px; min-height:400px; text-align:center;">
-        <p style="color:#6F6A66; padding:40px 0;">Skemaet indlæses...</p>
-        <!-- MindBody widget will be embedded here -->
-        <script>
-          // MindBody widget loader placeholder
-          // Will be configured with actual MindBody Studio ID: 574883
-        </script>
-      </div>
-    </div>
+    <!-- Schedule rendered by mindbody.js -->
+    <div id="yb-mb-schedule" class="yb-mb-schedule"></div>
   </div>
 </section>
 
