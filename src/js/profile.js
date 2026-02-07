@@ -436,7 +436,7 @@
         } else if (data.requiresSCA) {
           showSimpleError(errorEl, isDa() ? 'Dit kort kræver yderligere godkendelse.' : 'Your card requires additional authentication.');
         } else {
-          console.error('[Checkout] Error:', data.error, data.details);
+          console.error('[Checkout] Error:', data.error, data.details, 'fn_v:', data._v);
           showSimpleError(errorEl, data.error || t('checkout_error'));
         }
       }).catch(function(err) {
