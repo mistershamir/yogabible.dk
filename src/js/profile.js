@@ -477,22 +477,38 @@
 
     listEl.innerHTML = '<div class="yb-store__loading"><div class="yb-mb-spinner"></div><span>' + t('schedule_loading') + '</span></div>';
 
-    var now = new Date();
-    // Get Monday of the target week
-    var start = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-    start.setDate(start.getDate() + (scheduleWeekOffset * 7));
-    var dayOfWeek = start.getDay();
-    var diff = dayOfWeek === 0 ? -6 : 1 - dayOfWeek;
-    start.setDate(start.getDate() + diff);
-    // Sunday = end of the week
-    var end = new Date(start);
-    end.setDate(end.getDate() + 6);
+    var today = new Date();
+    today = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+
+    var start, end;
+    if (scheduleWeekOffset === 0) {
+      // Current view: today through Sunday
+      start = new Date(today);
+      end = new Date(today);
+      var daysUntilSunday = (7 - today.getDay()) % 7;
+      // If today is Sunday, show just today
+      end.setDate(end.getDate() + (daysUntilSunday || 0));
+    } else {
+      // Other weeks: full Mon–Sun
+      var refDate = new Date(today);
+      refDate.setDate(refDate.getDate() + (scheduleWeekOffset * 7));
+      var dow = refDate.getDay();
+      var mondayDiff = dow === 0 ? -6 : 1 - dow;
+      start = new Date(refDate);
+      start.setDate(start.getDate() + mondayDiff);
+      end = new Date(start);
+      end.setDate(end.getDate() + 6);
+    }
 
     var labelEl = document.getElementById('yb-schedule-week-label');
     if (labelEl) {
       var opts = { day: 'numeric', month: 'short' };
       var locale = isDa() ? 'da-DK' : 'en-GB';
-      labelEl.textContent = start.toLocaleDateString(locale, opts) + ' – ' + end.toLocaleDateString(locale, opts);
+      if (scheduleWeekOffset === 0) {
+        labelEl.textContent = (isDa() ? 'I dag' : 'Today') + ' – ' + end.toLocaleDateString(locale, opts);
+      } else {
+        labelEl.textContent = start.toLocaleDateString(locale, opts) + ' – ' + end.toLocaleDateString(locale, opts);
+      }
     }
 
     var startStr = toDateStr(start);
@@ -609,11 +625,11 @@
           // Re-attach as cancel handler
           btn.addEventListener('click', function() { cancelClass(btn); });
         } else {
-          // Likely no valid pass
-          if (data.error && (data.error.toLowerCase().indexOf('pass') !== -1 || data.error.toLowerCase().indexOf('pricing') !== -1 || data.error.toLowerCase().indexOf('service') !== -1)) {
+          // No active membership or pass
+          if (data.error === 'no_pass') {
             var noPassEl = document.getElementById('yb-schedule-no-pass');
             if (noPassEl) noPassEl.hidden = false;
-            showScheduleToast(isDa() ? 'Du har brug for et klippekort.' : 'You need a class pass.', 'error');
+            showScheduleToast(isDa() ? 'Du har brug for et klippekort eller medlemskab.' : 'You need a class pass or membership.', 'error');
           } else {
             showScheduleToast(data.error || (isDa() ? 'Booking fejlede.' : 'Booking failed.'), 'error');
           }
