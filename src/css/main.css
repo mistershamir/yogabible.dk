@@ -154,12 +154,12 @@ p, span, li, a, div {
 .yb-nav__wrap {
   max-width: var(--max-width);
   margin: 0 auto;
-  padding: 0 clamp(16px, 4vw, 30px);
+  padding: 14px clamp(16px, 4vw, 30px);
   display: grid;
   grid-template-columns: 1fr auto 1fr;
   align-items: center;
   gap: 18px;
-  min-height: 80px;
+  min-height: 92px;
 }
 
 /* Left / right nav areas */
@@ -670,8 +670,8 @@ p, span, li, a, div {
     display: flex !important;
     align-items: center;
     justify-content: space-between;
-    min-height: 72px;
-    padding: 12px 16px;
+    min-height: 82px;
+    padding: 14px 16px;
   }
   .yb-nav__logo img { height: 36px; }
   .yb-mob-flags { display: flex; }
