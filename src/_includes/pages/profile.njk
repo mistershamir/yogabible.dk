@@ -37,8 +37,17 @@
           <button class="yb-btn yb-btn--outline yb-btn--full" type="button" data-yb-auth-logout>{{ t.btn_logout }}</button>
         </aside>
 
-        <!-- Right: forms -->
+        <!-- Right: tabs + content -->
         <div class="yb-profile__main">
+
+          <!-- Tab bar -->
+          <div class="yb-profile__tabs">
+            <button class="yb-profile__tab yb-profile__tab--active" data-yb-tab="profile" id="yb-profile-tab-profile">{{ t.tab_profile }}</button>
+            <button class="yb-profile__tab" data-yb-tab="courses" id="yb-profile-tab-courses">{{ t.tab_courses }}</button>
+          </div>
+
+          <!-- ═══ TAB: PROFILE ═══ -->
+          <div class="yb-profile__tab-panel yb-profile__tab-panel--active" id="yb-profile-panel-profile">
 
           <!-- Personal details -->
           <div class="yb-profile__card">
@@ -123,10 +132,33 @@
             </div>
           </div>
 
+          </div>{# end TAB: PROFILE panel #}
+
+          <!-- ═══ TAB: MY COURSES ═══ -->
+          <div class="yb-profile__tab-panel" id="yb-profile-panel-courses">
+            <div class="yb-profile__courses" id="yb-profile-courses">
+              <!-- Courses loaded by JS -->
+            </div>
+            <div class="yb-profile__courses-empty" id="yb-profile-courses-empty" hidden>
+              <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#6F6A66" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
+              <h3>{{ t.courses_empty_title }}</h3>
+              <p>{{ t.courses_empty_text }}</p>
+            </div>
+          </div>
+
         </div>
       </div>
     </div>
   </div>
 </section>
 
+<script>
+  window._ybProfileLang = '{{ lang or "da" }}';
+  window._ybProfileTranslations = {
+    courses_progress: {{ t.courses_progress | dump | safe }},
+    courses_continue: {{ t.courses_continue | dump | safe }},
+    courses_start: {{ t.courses_start | dump | safe }},
+    courses_open: {{ t.courses_open | dump | safe }}
+  };
+</script>
 <script src="/js/profile.js"></script>

@@ -1,6 +1,6 @@
 /**
  * YOGA BIBLE — PROFILE PAGE
- * Loads user data from Firestore, handles edits, password change, Mindbody sync
+ * Loads user data from Firestore, handles edits, password change, Mindbody sync, My Courses
  */
 (function() {
   'use strict';
@@ -22,11 +22,20 @@
 
     if (!guestEl || !userEl) return; // Not on profile page
 
+    // ── Tab switching ──
+    initTabs();
+
     auth.onAuthStateChanged(function(user) {
       if (user) {
         guestEl.style.display = 'none';
         userEl.style.display = 'block';
         loadProfile(user, db);
+        loadMyCourses(user, db);
+
+        // Check URL hash for direct tab navigation
+        if (window.location.hash === '#mine-kurser' || window.location.hash === '#my-courses') {
+          switchTab('courses');
+        }
       } else {
         guestEl.style.display = '';
         userEl.style.display = 'none';
@@ -283,5 +292,149 @@
     if (!isError && successEl) {
       setTimeout(function() { successEl.hidden = true; }, 4000);
     }
+  }
+
+  // ── Tab switching ──
+  function initTabs() {
+    var tabs = document.querySelectorAll('.yb-profile__tab');
+    tabs.forEach(function(tab) {
+      tab.addEventListener('click', function() {
+        var tabName = tab.getAttribute('data-yb-tab');
+        switchTab(tabName);
+      });
+    });
+  }
+
+  function switchTab(tabName) {
+    // Update tab buttons
+    var tabs = document.querySelectorAll('.yb-profile__tab');
+    tabs.forEach(function(tab) {
+      var isActive = tab.getAttribute('data-yb-tab') === tabName;
+      tab.classList.toggle('yb-profile__tab--active', isActive);
+    });
+
+    // Update panels
+    var panels = document.querySelectorAll('.yb-profile__tab-panel');
+    panels.forEach(function(panel) {
+      var panelName = panel.id.replace('yb-profile-panel-', '');
+      panel.classList.toggle('yb-profile__tab-panel--active', panelName === tabName);
+    });
+  }
+
+  // ── My Courses ──
+  function loadMyCourses(user, db) {
+    var coursesEl = document.getElementById('yb-profile-courses');
+    var emptyEl = document.getElementById('yb-profile-courses-empty');
+    if (!coursesEl) return;
+
+    var lang = isDa() ? 'da' : 'en';
+    var pt = window._ybProfileTranslations || {};
+    var lp = isDa() ? '' : '/en';
+
+    // Get enrollments for this user
+    db.collection('enrollments')
+      .where('userId', '==', user.uid)
+      .where('status', '==', 'active')
+      .get()
+      .then(function(snapshot) {
+        if (snapshot.empty) {
+          coursesEl.innerHTML = '';
+          if (emptyEl) emptyEl.hidden = false;
+          return;
+        }
+
+        if (emptyEl) emptyEl.hidden = true;
+        var enrollments = [];
+        snapshot.forEach(function(doc) {
+          enrollments.push(doc.data());
+        });
+
+        // Load course data for each enrollment
+        var promises = enrollments.map(function(enrollment) {
+          return db.collection('courses').doc(enrollment.courseId).get()
+            .then(function(courseDoc) {
+              if (!courseDoc.exists) return null;
+              var course = courseDoc.data();
+              course.id = courseDoc.id;
+              course._enrollment = enrollment;
+              return course;
+            });
+        });
+
+        return Promise.all(promises);
+      })
+      .then(function(courses) {
+        if (!courses) return;
+        courses = courses.filter(function(c) { return c !== null; });
+
+        if (!courses.length) {
+          coursesEl.innerHTML = '';
+          if (emptyEl) emptyEl.hidden = false;
+          return;
+        }
+
+        // Load progress for each course
+        var progressPromises = courses.map(function(course) {
+          var progressId = user.uid + '_' + course.id;
+          return db.collection('courseProgress').doc(progressId).get()
+            .then(function(doc) {
+              course._progress = doc.exists ? doc.data() : { viewed: {} };
+              return course;
+            })
+            .catch(function() {
+              course._progress = { viewed: {} };
+              return course;
+            });
+        });
+
+        return Promise.all(progressPromises);
+      })
+      .then(function(courses) {
+        if (!courses) return;
+        renderCourseCards(courses, coursesEl, lang, lp, pt);
+      })
+      .catch(function(err) {
+        console.warn('Failed to load courses:', err);
+        if (emptyEl) emptyEl.hidden = false;
+      });
+  }
+
+  function renderCourseCards(courses, container, lang, lp, pt) {
+    var html = '';
+    courses.forEach(function(course) {
+      var title = course['title_' + lang] || course.title_da || course.id;
+      var desc = course['description_' + lang] || course.description_da || '';
+      var viewedCount = course._progress && course._progress.viewed ? Object.keys(course._progress.viewed).length : 0;
+      var hasProgress = viewedCount > 0;
+      var viewerUrl = lp + '/kursus-materiale/?course=' + encodeURIComponent(course.id);
+      var icon = course.icon || '';
+
+      html += '<a href="' + viewerUrl + '" class="yb-profile__course-card">';
+      html += '  <div class="yb-profile__course-thumb">';
+      if (course.thumbnail) {
+        html += '    <img src="' + escHtml(course.thumbnail) + '" alt="' + escHtml(title) + '" loading="lazy">';
+      } else if (icon) {
+        html += '    <span class="yb-profile__course-thumb-icon">' + icon + '</span>';
+      }
+      html += '    <div class="yb-profile__course-progress-bar" style="width:0%"></div>';
+      html += '  </div>';
+      html += '  <div class="yb-profile__course-body">';
+      html += '    <h3 class="yb-profile__course-title">' + escHtml(title) + '</h3>';
+      html += '    <p class="yb-profile__course-desc">' + escHtml(desc) + '</p>';
+      html += '    <div class="yb-profile__course-meta">';
+      html += '      <span class="yb-profile__course-pct">' + viewedCount + ' ' + (pt.courses_progress || 'progress') + '</span>';
+      html += '      <span class="yb-profile__course-btn">' + (hasProgress ? (pt.courses_continue || 'Continue') : (pt.courses_start || 'Start')) + ' <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 6 15 12 9 18"/></svg></span>';
+      html += '    </div>';
+      html += '  </div>';
+      html += '</a>';
+    });
+
+    container.innerHTML = html;
+  }
+
+  function escHtml(str) {
+    var div = document.createElement('div');
+    div.textContent = str || '';
+    return div.innerHTML;
   }
 })();

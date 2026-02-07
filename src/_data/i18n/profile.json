@@ -44,7 +44,15 @@
     "site_not_linked": "Ikke forbundet",
     "section_danger": "Konto",
     "btn_logout": "Log ud",
-    "member_since": "Medlem siden"
+    "member_since": "Medlem siden",
+    "tab_profile": "Profil",
+    "tab_courses": "Mine Kurser",
+    "courses_empty_title": "Ingen kurser endnu",
+    "courses_empty_text": "Når du er tilmeldt en læreruddannelse, vil dine kursusmaterialer vises her.",
+    "courses_progress": "fremgang",
+    "courses_continue": "Fortsæt",
+    "courses_start": "Start",
+    "courses_open": "Åbn kursus"
   },
   "en": {
     "meta_title": "My Profile | YOGA BIBLE",
@@ -91,6 +99,14 @@
     "site_not_linked": "Not connected",
     "section_danger": "Account",
     "btn_logout": "Sign out",
-    "member_since": "Member since"
+    "member_since": "Member since",
+    "tab_profile": "Profile",
+    "tab_courses": "My Courses",
+    "courses_empty_title": "No courses yet",
+    "courses_empty_text": "When you're enrolled in a teacher training program, your course materials will appear here.",
+    "courses_progress": "progress",
+    "courses_continue": "Continue",
+    "courses_start": "Start",
+    "courses_open": "Open course"
   }
 }
