@@ -2385,3 +2385,578 @@
     text-align: center;
   }
 }
+
+/* =============================================
+   P18-COMPARE — Why Copenhagen (Table + Approach)
+   ============================================= */
+.p18-compare {
+  padding: 80px 20px;
+  background: #fff;
+}
+
+.p18-compare__table {
+  max-width: 900px;
+  margin: 0 auto 48px;
+  border-radius: 16px;
+  overflow: hidden;
+  border: 1px solid #E8E4E0;
+}
+
+.p18-compare__header {
+  display: grid;
+  grid-template-columns: 1.4fr repeat(3, 1fr);
+  background: #1C1C1C;
+  color: #FDFBF7;
+  font-size: 13px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.p18-compare__header > div {
+  padding: 16px 16px;
+  text-align: center;
+}
+
+.p18-compare__header > div:first-child {
+  text-align: left;
+}
+
+.p18-compare__col--cph {
+  background: #F65D04;
+  color: #fff;
+}
+
+.p18-compare__row {
+  display: grid;
+  grid-template-columns: 1.4fr repeat(3, 1fr);
+  border-bottom: 1px solid #E8E4E0;
+}
+
+.p18-compare__row:last-child {
+  border-bottom: none;
+}
+
+.p18-compare__row > div {
+  padding: 13px 16px;
+  font-size: 13px;
+  line-height: 1.5;
+  text-align: center;
+  color: #444;
+}
+
+.p18-compare__row > div:first-child {
+  text-align: left;
+  font-weight: 700;
+  color: #1C1C1C;
+  background: #FFFCF9;
+}
+
+.p18-compare__row > div:nth-child(2) {
+  background: rgba(246, 93, 4, 0.04);
+  color: #1C1C1C;
+  font-weight: 600;
+}
+
+.p18-compare__approach-title {
+  text-align: center;
+  font-size: clamp(22px, 3vw, 32px);
+  font-weight: 700;
+  color: #1C1C1C;
+  margin-bottom: 28px;
+}
+
+.p18-compare__cards {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+  max-width: 960px;
+  margin: 0 auto;
+}
+
+.p18-compare__card {
+  background: #FFFCF9;
+  border-radius: 14px;
+  padding: 24px;
+  text-align: center;
+  border: 1px solid #E8E4E0;
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+
+.p18-compare__card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.08);
+}
+
+.p18-compare__card-icon {
+  font-size: 28px;
+  margin-bottom: 12px;
+}
+
+.p18-compare__card h4 {
+  font-size: 15px;
+  font-weight: 700;
+  color: #1C1C1C;
+  margin: 0 0 8px;
+}
+
+.p18-compare__card p {
+  font-size: 13px;
+  line-height: 1.6;
+  color: #6F6A66;
+  margin: 0;
+}
+
+/* =============================================
+   P18-CPH — Copenhagen Showcase
+   ============================================= */
+.p18-cph {
+  padding: 80px 20px;
+  background: #F5F3F0;
+}
+
+.p18-cph__slider {
+  max-width: 900px;
+  margin: 0 auto 48px;
+  background: #fff;
+  border-radius: 16px;
+  padding: 0.5rem;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.1);
+  border: 1.5px solid #F65D04;
+}
+
+.p18-cph__viewport {
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.p18-cph__track {
+  display: flex;
+  transition: transform 0.4s ease;
+}
+
+.p18-cph__slide {
+  flex: 0 0 100%;
+  margin: 0;
+}
+
+.p18-cph__slide img {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 16 / 9;
+  object-fit: cover;
+  background: #E8E4E0;
+}
+
+.p18-cph__nav {
+  display: flex;
+  justify-content: center;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+}
+
+.p18-cph__arrow {
+  width: 40px;
+  height: 40px;
+  border-radius: 999px;
+  border: none;
+  background: #fff;
+  color: #F65D04;
+  font-size: 16px;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  transition: all 0.15s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: inherit;
+}
+
+.p18-cph__arrow:hover {
+  transform: scale(1.05);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
+}
+
+.p18-cph__features {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+  max-width: 960px;
+  margin: 0 auto 48px;
+}
+
+.p18-cph__feature {
+  background: #fff;
+  border-radius: 14px;
+  padding: 24px;
+  text-align: center;
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+
+.p18-cph__feature:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.08);
+}
+
+.p18-cph__feature-icon {
+  font-size: 28px;
+  display: block;
+  margin-bottom: 12px;
+}
+
+.p18-cph__feature h3 {
+  font-size: 16px;
+  font-weight: 700;
+  color: #1C1C1C;
+  margin: 0 0 8px;
+}
+
+.p18-cph__feature p {
+  font-size: 13px;
+  line-height: 1.6;
+  color: #6F6A66;
+  margin: 0;
+}
+
+.p18-cph__studio {
+  max-width: 900px;
+  margin: 0 auto 40px;
+  background: #fff;
+  border-radius: 16px;
+  padding: 32px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 32px;
+  align-items: center;
+  border: 1px solid #E8E4E0;
+}
+
+.p18-cph__studio-text h3 {
+  font-size: 20px;
+  font-weight: 700;
+  color: #1C1C1C;
+  margin: 0 0 12px;
+}
+
+.p18-cph__studio-text p {
+  font-size: 14px;
+  line-height: 1.6;
+  color: #6F6A66;
+  margin: 0;
+}
+
+.p18-cph__studio-details {
+  list-style: none;
+  margin: 16px 0 0;
+  padding: 0;
+  display: grid;
+  gap: 8px;
+}
+
+.p18-cph__studio-details li {
+  font-size: 14px;
+  color: #1C1C1C;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.p18-cph__studio-details li span:first-child {
+  flex-shrink: 0;
+}
+
+.p18-cph__studio-img {
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.p18-cph__studio-img img {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+}
+
+.p18-cph__strip {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.p18-cph__strip span {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  background: #fff;
+  border: 1px solid #E8E4E0;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #1C1C1C;
+}
+
+.p18-cph__cta {
+  text-align: center;
+  margin-top: 2rem;
+}
+
+/* =============================================
+   P18-ROOMS — Accommodation Options
+   ============================================= */
+.p18-rooms {
+  padding: 80px 20px;
+  background: #FFFCF9;
+}
+
+.p18-rooms__grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+  max-width: 960px;
+  margin: 0 auto;
+}
+
+.p18-rooms__card {
+  background: #fff;
+  border: 1px solid #E8E4E0;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06);
+  transition: box-shadow 0.2s ease;
+}
+
+.p18-rooms__card:hover {
+  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.1);
+}
+
+.p18-rooms__gallery {
+  position: relative;
+  aspect-ratio: 4 / 3;
+  overflow: hidden;
+  background: #F5F3F0;
+}
+
+.p18-rooms__gallery-track {
+  display: flex;
+  height: 100%;
+  transition: transform 0.4s ease;
+}
+
+.p18-rooms__gallery-track img {
+  flex: 0 0 100%;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.p18-rooms__gallery-nav {
+  position: absolute;
+  bottom: 12px;
+  right: 12px;
+  display: flex;
+  gap: 6px;
+}
+
+.p18-rooms__gallery-arrow {
+  width: 32px;
+  height: 32px;
+  border-radius: 999px;
+  border: none;
+  background: rgba(255, 255, 255, 0.9);
+  color: #F65D04;
+  font-size: 14px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: inherit;
+  backdrop-filter: blur(4px);
+  transition: all 0.15s ease;
+}
+
+.p18-rooms__gallery-arrow:hover {
+  background: #fff;
+  transform: scale(1.08);
+}
+
+.p18-rooms__body {
+  padding: 24px;
+}
+
+.p18-rooms__body h3 {
+  font-size: 18px;
+  font-weight: 700;
+  color: #1C1C1C;
+  margin: 0 0 8px;
+}
+
+.p18-rooms__body > p {
+  font-size: 14px;
+  line-height: 1.6;
+  color: #6F6A66;
+  margin: 0 0 16px;
+}
+
+.p18-rooms__chips {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
+}
+
+.p18-rooms__chip {
+  display: inline-block;
+  padding: 6px 14px;
+  background: rgba(246, 93, 4, 0.08);
+  color: #F65D04;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.p18-rooms__cta-row {
+  text-align: center;
+  margin-top: 2rem;
+}
+
+.p18-rooms__cta-link {
+  display: inline-block;
+  margin-top: 1rem;
+  color: #F65D04;
+  font-weight: 600;
+  font-size: 0.95rem;
+  text-decoration: none;
+  transition: color 0.15s ease;
+}
+
+.p18-rooms__cta-link:hover {
+  color: #d94f02;
+}
+
+/* =============================================
+   P18-QUOTE-DARK — Full-Width Dark Quote
+   ============================================= */
+.p18-quote-dark {
+  padding: 100px 20px;
+  background: #1C1C1C;
+  color: #FDFBF7;
+  text-align: center;
+  overflow: hidden;
+}
+
+.p18-quote-dark__quote {
+  font-size: clamp(24px, 4vw, 42px);
+  font-weight: 700;
+  line-height: 1.2;
+  max-width: 800px;
+  margin: 0 auto 24px;
+  position: relative;
+}
+
+.p18-quote-dark__quote::before {
+  content: "\201C";
+  display: block;
+  font-size: 80px;
+  color: #F65D04;
+  opacity: 0.4;
+  line-height: 0.6;
+  margin-bottom: 12px;
+  font-weight: 400;
+}
+
+.p18-quote-dark__attribution {
+  font-size: 15px;
+  color: rgba(253, 251, 247, 0.55);
+  font-style: italic;
+  line-height: 1.5;
+}
+
+.p18-quote-dark__attribution strong {
+  color: #F65D04;
+  font-style: normal;
+  font-weight: 700;
+}
+
+.p18-invest-note {
+  font-size: 13px;
+  color: #6F6A66;
+  margin: 0 0 12px;
+}
+
+/* =============================================
+   NEW SECTIONS — MOBILE BREAKPOINTS
+   ============================================= */
+@media (max-width: 768px) {
+  .p18-compare,
+  .p18-cph,
+  .p18-rooms,
+  .p18-quote-dark {
+    padding: 56px 20px;
+  }
+
+  .p18-compare__header,
+  .p18-compare__row {
+    grid-template-columns: 1.6fr repeat(3, 1fr);
+  }
+
+  .p18-compare__header > div,
+  .p18-compare__row > div {
+    padding: 10px 8px;
+    font-size: 11px;
+  }
+
+  .p18-compare__cards {
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+  }
+
+  .p18-cph__features {
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+  }
+
+  .p18-cph__studio {
+    grid-template-columns: 1fr;
+    gap: 20px;
+    padding: 24px;
+  }
+
+  .p18-rooms__grid {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+}
+
+@media (max-width: 599px) {
+  .p18-compare__cards {
+    grid-template-columns: 1fr;
+  }
+
+  .p18-cph__features {
+    grid-template-columns: 1fr;
+  }
+
+  .p18-rooms .yb-btn {
+    width: 100%;
+    text-align: center;
+  }
+}
+
+@media (max-width: 480px) {
+  .p18-compare__header > div,
+  .p18-compare__row > div {
+    padding: 8px 6px;
+    font-size: 10px;
+  }
+
+  .p18-quote-dark__quote {
+    font-size: 22px;
+  }
+}
