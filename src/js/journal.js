@@ -11,8 +11,8 @@
   // LANGUAGE DETECTION (from global switcher)
   // ============================================
 
-  var host = window.location.hostname.toLowerCase();
-  var currentLang = host.indexOf('en.') === 0 ? 'en' : 'da';
+  var pathname = window.location.pathname || "/";
+  var currentLang = (pathname.indexOf('/en/') === 0 || pathname === '/en') ? 'en' : 'da';
 
   // ============================================
   // BILINGUAL CONTENT TOGGLE

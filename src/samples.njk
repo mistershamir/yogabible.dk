@@ -1517,6 +1517,1323 @@ eleventyExcludeFromCollections: true
     grid-template-columns: 1fr;
   }
 }
+
+/* ================================================================
+   25. REVIEWS SECTION (Screenshot-style)
+   ================================================================ */
+.ds-reviews {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+}
+
+.ds-review-card {
+  background: #fff;
+  border: 1.5px solid var(--yb-brand);
+  border-radius: 16px;
+  padding: 32px;
+  transition: all 0.3s ease;
+}
+
+.ds-review-card:hover {
+  box-shadow: 0 12px 40px rgba(247,92,3,0.12);
+  transform: translateY(-4px);
+}
+
+.ds-review-card .stars {
+  color: var(--yb-brand);
+  font-size: 1rem;
+  margin-bottom: 16px;
+  letter-spacing: 2px;
+}
+
+.ds-review-card .review-text {
+  font-size: 0.95rem;
+  line-height: 1.7;
+  color: var(--ds-text);
+  margin-bottom: 20px;
+}
+
+.ds-review-card .reviewer {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.ds-review-card .reviewer-avatar {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: var(--yb-brand);
+  flex-shrink: 0;
+}
+
+.ds-review-card .reviewer-name {
+  font-weight: 700;
+  font-size: 0.9rem;
+}
+
+.ds-review-card .reviewer-detail {
+  font-size: 0.75rem;
+  color: var(--ds-text-muted);
+}
+
+@media (max-width: 900px) {
+  .ds-reviews { grid-template-columns: 1fr; }
+}
+
+/* ================================================================
+   26. PRICING / FORMAT SECTIONS
+   ================================================================ */
+.ds-pricing-accordion {
+  border: 1.5px solid var(--ds-border);
+  border-radius: 16px;
+  overflow: hidden;
+  transition: all 0.3s ease;
+}
+
+.ds-pricing-accordion.ds-pricing--active {
+  border-color: var(--yb-brand);
+}
+
+.ds-pricing-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 28px;
+  cursor: pointer;
+  background: #fff;
+  transition: background 0.2s;
+}
+
+.ds-pricing-header:hover {
+  background: var(--ds-bg-light);
+}
+
+.ds-pricing-duration {
+  display: inline-flex;
+  align-items: center;
+  padding: 6px 16px;
+  background: var(--yb-brand);
+  color: #fff;
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  border-radius: 4px;
+  margin-right: 16px;
+}
+
+.ds-pricing-name {
+  font-weight: 700;
+  font-size: 1.1rem;
+  flex: 1;
+}
+
+.ds-pricing-price {
+  font-weight: 700;
+  font-size: 1.1rem;
+  margin-right: 16px;
+}
+
+.ds-pricing-toggle {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.2rem;
+  transition: all 0.3s;
+  flex-shrink: 0;
+}
+
+.ds-pricing--active .ds-pricing-toggle {
+  background: var(--yb-brand);
+  color: #fff;
+}
+
+.ds-pricing-body {
+  display: none;
+  padding: 0 28px 28px;
+  border-top: 1px solid var(--ds-border);
+}
+
+.ds-pricing--active .ds-pricing-body {
+  display: block;
+}
+
+.ds-pricing-details {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+  margin-top: 20px;
+}
+
+.ds-pricing-detail-label {
+  font-size: 0.65rem;
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  color: var(--ds-text-muted);
+  margin-bottom: 4px;
+}
+
+.ds-pricing-detail-value {
+  font-weight: 700;
+  font-size: 0.95rem;
+}
+
+/* Pricing Variant B: Cards Side-by-Side */
+.ds-pricing-cards {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+}
+
+.ds-pricing-card {
+  background: #fff;
+  border: 1.5px solid var(--ds-border);
+  border-radius: 16px;
+  padding: 40px 28px;
+  text-align: center;
+  transition: all 0.3s ease;
+  position: relative;
+}
+
+.ds-pricing-card:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 20px 50px rgba(0,0,0,0.1);
+}
+
+.ds-pricing-card--featured {
+  border-color: var(--yb-brand);
+  transform: scale(1.03);
+}
+
+.ds-pricing-card--featured::before {
+  content: "Mest populaer";
+  position: absolute;
+  top: -12px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--yb-brand);
+  color: #fff;
+  padding: 4px 16px;
+  border-radius: 100px;
+  font-size: 0.65rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  white-space: nowrap;
+}
+
+.ds-pricing-card .card-duration {
+  display: inline-block;
+  background: rgba(247,92,3,0.1);
+  color: var(--yb-brand);
+  padding: 4px 14px;
+  border-radius: 100px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  margin-bottom: 16px;
+}
+
+.ds-pricing-card .card-title {
+  font-size: 1.2rem;
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+
+.ds-pricing-card .card-price {
+  font-size: 2.2rem;
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+
+.ds-pricing-card .card-period {
+  font-size: 0.8rem;
+  color: var(--ds-text-muted);
+  margin-bottom: 24px;
+}
+
+.ds-pricing-card .card-features {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 28px;
+  text-align: left;
+}
+
+.ds-pricing-card .card-features li {
+  padding: 8px 0;
+  font-size: 0.85rem;
+  border-bottom: 1px solid var(--ds-border);
+  padding-left: 22px;
+  position: relative;
+}
+
+.ds-pricing-card .card-features li::before {
+  content: "✓";
+  position: absolute;
+  left: 0;
+  color: var(--yb-brand);
+  font-weight: 700;
+}
+
+/* Pricing Variant C: Horizontal Comparison */
+.ds-pricing-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  border: 1px solid var(--ds-border);
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.ds-pricing-table th {
+  background: var(--yb-brand);
+  color: #fff;
+  padding: 18px 20px;
+  text-align: left;
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+
+.ds-pricing-table th:not(:first-child) {
+  text-align: center;
+}
+
+.ds-pricing-table td {
+  padding: 14px 20px;
+  border-bottom: 1px solid var(--ds-border);
+  font-size: 0.85rem;
+}
+
+.ds-pricing-table td:not(:first-child) {
+  text-align: center;
+  font-weight: 600;
+}
+
+.ds-pricing-table tr:last-child td {
+  border-bottom: none;
+}
+
+.ds-pricing-table tr:hover td {
+  background: var(--ds-bg-light);
+}
+
+@media (max-width: 900px) {
+  .ds-pricing-cards { grid-template-columns: 1fr; }
+}
+
+/* ================================================================
+   27. QUOTE VARIATIONS
+   ================================================================ */
+/* Dark full-width quote */
+.ds-quote-dark {
+  background: #0F0F0F;
+  padding: 80px 40px;
+  text-align: center;
+  border-radius: 12px;
+}
+
+.ds-quote-dark .quote-marks {
+  color: #d94f02;
+  font-size: 3rem;
+  line-height: 1;
+  margin-bottom: 24px;
+  font-family: Georgia, serif;
+}
+
+.ds-quote-dark .quote-text {
+  font-size: clamp(1.2rem, 2.5vw, 1.6rem);
+  color: rgba(255,255,255,0.9);
+  font-style: italic;
+  line-height: 1.7;
+  max-width: 700px;
+  margin: 0 auto 24px;
+}
+
+.ds-quote-dark .quote-author {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.25em;
+  color: rgba(255,255,255,0.5);
+}
+
+/* Brand accent quote */
+.ds-quote-brand {
+  background: linear-gradient(135deg, var(--yb-brand), #d94f02);
+  padding: 60px 40px;
+  border-radius: 12px;
+  text-align: center;
+}
+
+.ds-quote-brand .quote-text {
+  font-size: clamp(1.1rem, 2vw, 1.4rem);
+  color: #fff;
+  font-style: italic;
+  line-height: 1.7;
+  max-width: 600px;
+  margin: 0 auto 20px;
+}
+
+.ds-quote-brand .quote-author {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.25em;
+  color: rgba(255,255,255,0.7);
+}
+
+/* Minimal side-quote */
+.ds-quote-side {
+  display: grid;
+  grid-template-columns: 4px 1fr;
+  gap: 24px;
+  align-items: stretch;
+}
+
+.ds-quote-side .quote-bar {
+  background: var(--yb-brand);
+  border-radius: 2px;
+}
+
+.ds-quote-side .quote-text {
+  font-size: 1.2rem;
+  line-height: 1.8;
+  font-style: italic;
+  color: var(--ds-text);
+}
+
+.ds-quote-side .quote-author {
+  margin-top: 12px;
+  font-size: 0.8rem;
+  color: var(--ds-text-muted);
+  font-style: normal;
+}
+
+/* Centered with large decorative mark */
+.ds-quote-centered {
+  text-align: center;
+  padding: 40px;
+}
+
+.ds-quote-centered .quote-icon {
+  font-size: 4rem;
+  color: var(--yb-brand);
+  opacity: 0.25;
+  line-height: 1;
+  margin-bottom: 16px;
+  font-family: Georgia, serif;
+}
+
+.ds-quote-centered .quote-text {
+  font-size: 1.15rem;
+  line-height: 1.8;
+  font-style: italic;
+  max-width: 550px;
+  margin: 0 auto 16px;
+}
+
+.ds-quote-centered .quote-author {
+  font-size: 0.8rem;
+  color: var(--ds-text-muted);
+  font-style: normal;
+}
+
+/* ================================================================
+   28. NAVIGATION ARROWS
+   ================================================================ */
+.ds-arrow {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  flex-shrink: 0;
+}
+
+/* Style A: Circle outline */
+.ds-arrow--circle {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  border: 1.5px solid var(--ds-border);
+  background: #fff;
+  font-size: 1.2rem;
+  color: var(--ds-text);
+}
+
+.ds-arrow--circle:hover {
+  border-color: var(--yb-brand);
+  color: var(--yb-brand);
+}
+
+/* Style B: Circle filled */
+.ds-arrow--circle-filled {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: var(--yb-brand);
+  color: #fff;
+  font-size: 1.2rem;
+  border: none;
+}
+
+.ds-arrow--circle-filled:hover {
+  background: #d94f02;
+  transform: scale(1.08);
+}
+
+/* Style C: Square */
+.ds-arrow--square {
+  width: 44px;
+  height: 44px;
+  border-radius: 6px;
+  border: 1.5px solid var(--ds-border);
+  background: #fff;
+  font-size: 1rem;
+  color: var(--ds-text);
+}
+
+.ds-arrow--square:hover {
+  background: #0F0F0F;
+  color: #fff;
+  border-color: #0F0F0F;
+}
+
+/* Style D: Pill with text */
+.ds-arrow--pill {
+  padding: 10px 20px;
+  border-radius: 100px;
+  border: 1.5px solid var(--ds-border);
+  background: #fff;
+  font-size: 0.75rem;
+  font-weight: 700;
+  gap: 6px;
+  color: var(--ds-text);
+}
+
+.ds-arrow--pill:hover {
+  background: var(--yb-brand);
+  color: #fff;
+  border-color: var(--yb-brand);
+}
+
+/* Style E: Ghost (dark BG) */
+.ds-arrow--ghost {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.1);
+  color: #fff;
+  font-size: 1.2rem;
+  border: 1px solid rgba(255,255,255,0.2);
+}
+
+.ds-arrow--ghost:hover {
+  background: rgba(255,255,255,0.2);
+}
+
+/* Style F: Large minimal */
+.ds-arrow--minimal {
+  font-size: 2rem;
+  color: var(--ds-text-muted);
+  background: none;
+  border: none;
+  padding: 8px;
+}
+
+.ds-arrow--minimal:hover {
+  color: var(--yb-brand);
+  transform: translateX(4px);
+}
+
+.ds-arrow--minimal.ds-arrow--left:hover {
+  transform: translateX(-4px);
+}
+
+/* Arrow group */
+.ds-arrow-group {
+  display: inline-flex;
+  gap: 8px;
+}
+
+/* ================================================================
+   29. SECTION LAYOUT VARIATIONS
+   ================================================================ */
+/* Content + Video */
+.ds-layout-video {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0;
+  min-height: 400px;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.ds-layout-video__content {
+  padding: 60px 48px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  background: var(--ds-bg-light);
+}
+
+.ds-layout-video__media {
+  background: #0F0F0F;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.ds-layout-video__media .play-btn {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: var(--yb-brand);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  z-index: 2;
+  transition: transform 0.3s;
+  cursor: pointer;
+}
+
+.ds-layout-video__media .play-btn:hover {
+  transform: scale(1.1);
+}
+
+/* Image Mosaic */
+.ds-layout-mosaic {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr;
+  grid-template-rows: 200px 200px;
+  gap: 12px;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.ds-layout-mosaic__item {
+  background: linear-gradient(135deg, var(--yb-brand), #d94f02);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: rgba(255,255,255,0.5);
+  font-weight: 700;
+  font-size: 0.8rem;
+}
+
+.ds-layout-mosaic__item:first-child {
+  grid-row: 1 / 3;
+}
+
+/* Content + Looping Visual */
+.ds-layout-loop {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  min-height: 350px;
+  border-radius: 12px;
+  overflow: hidden;
+  border: 1px solid var(--ds-border);
+}
+
+.ds-layout-loop__content {
+  padding: 48px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  background: #fff;
+}
+
+.ds-layout-loop__visual {
+  background: linear-gradient(-45deg, #f75c03, #ff9966, #d94f02, #f75c03);
+  background-size: 400% 400%;
+  animation: gradientAnim 8s ease infinite;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: rgba(255,255,255,0.4);
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
+/* Full-width hero-style with overlay text */
+.ds-layout-fullmedia {
+  position: relative;
+  min-height: 400px;
+  border-radius: 12px;
+  overflow: hidden;
+  background: linear-gradient(135deg, #0F0F0F 0%, #1C1C1C 100%);
+  display: flex;
+  align-items: center;
+}
+
+.ds-layout-fullmedia__overlay {
+  position: relative;
+  z-index: 2;
+  padding: 60px;
+  max-width: 600px;
+  color: #fff;
+}
+
+/* Three-column feature */
+.ds-layout-triple {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 32px;
+}
+
+.ds-layout-triple__item {
+  text-align: center;
+  padding: 40px 24px;
+}
+
+.ds-layout-triple__icon {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: rgba(247,92,3,0.1);
+  color: var(--yb-brand);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  margin: 0 auto 16px;
+}
+
+@media (max-width: 900px) {
+  .ds-layout-video,
+  .ds-layout-loop { grid-template-columns: 1fr; }
+  .ds-layout-mosaic { grid-template-columns: 1fr 1fr; grid-template-rows: auto; }
+  .ds-layout-mosaic__item:first-child { grid-row: auto; }
+  .ds-layout-triple { grid-template-columns: 1fr; }
+}
+
+/* ================================================================
+   30. HERO SECTIONS
+   ================================================================ */
+/* Hero A: Centered with gradient text */
+.ds-hero-a {
+  min-height: 500px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 60px 40px;
+  background: var(--ds-bg-light);
+  border-radius: 12px;
+}
+
+.ds-hero-a__eyebrow {
+  font-size: 0.65rem;
+  text-transform: uppercase;
+  letter-spacing: 0.25em;
+  color: var(--yb-brand);
+  margin-bottom: 16px;
+}
+
+.ds-hero-a__title {
+  font-size: clamp(2.5rem, 6vw, 4.5rem);
+  font-weight: 700;
+  line-height: 1.05;
+  margin-bottom: 20px;
+  max-width: 800px;
+}
+
+.ds-hero-a__subtitle {
+  font-size: 1.1rem;
+  color: var(--ds-text-muted);
+  max-width: 550px;
+  line-height: 1.6;
+  margin-bottom: 32px;
+}
+
+/* Hero B: Split with image area */
+.ds-hero-b {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  min-height: 500px;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.ds-hero-b__content {
+  padding: 60px 48px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  background: #fff;
+}
+
+.ds-hero-b__media {
+  background: linear-gradient(135deg, var(--yb-brand), #d94f02);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: rgba(255,255,255,0.3);
+  font-size: 1.2rem;
+}
+
+/* Hero C: Dark cinematic */
+.ds-hero-c {
+  min-height: 550px;
+  background: #0F0F0F;
+  border-radius: 12px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 60px 40px;
+  position: relative;
+  overflow: hidden;
+}
+
+.ds-hero-c::before {
+  content: "";
+  position: absolute;
+  width: 600px;
+  height: 600px;
+  background: radial-gradient(circle, rgba(247,92,3,0.15), transparent 70%);
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.ds-hero-c__title {
+  font-size: clamp(2.5rem, 6vw, 5rem);
+  font-weight: 700;
+  line-height: 1.05;
+  color: #fff;
+  position: relative;
+  z-index: 1;
+  margin-bottom: 20px;
+}
+
+.ds-hero-c__subtitle {
+  font-size: 1.1rem;
+  color: rgba(255,255,255,0.6);
+  max-width: 500px;
+  line-height: 1.6;
+  position: relative;
+  z-index: 1;
+  margin-bottom: 32px;
+}
+
+/* Hero D: Asymmetric with stats bar */
+.ds-hero-d {
+  border-radius: 12px;
+  overflow: hidden;
+  border: 1px solid var(--ds-border);
+}
+
+.ds-hero-d__main {
+  display: grid;
+  grid-template-columns: 1.3fr 1fr;
+  min-height: 400px;
+}
+
+.ds-hero-d__content {
+  padding: 60px 48px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.ds-hero-d__media {
+  background: linear-gradient(135deg, #0F0F0F, #1C1C1C);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: rgba(255,255,255,0.3);
+  font-size: 1rem;
+}
+
+.ds-hero-d__stats {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  border-top: 1px solid var(--ds-border);
+}
+
+.ds-hero-d__stat {
+  padding: 20px;
+  text-align: center;
+  border-right: 1px solid var(--ds-border);
+}
+
+.ds-hero-d__stat:last-child {
+  border-right: none;
+}
+
+.ds-hero-d__stat-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  background: var(--ds-bg-light);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 8px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: var(--yb-brand);
+}
+
+.ds-hero-d__stat-title {
+  font-weight: 700;
+  font-size: 0.85rem;
+  margin-bottom: 2px;
+}
+
+.ds-hero-d__stat-desc {
+  font-size: 0.7rem;
+  color: var(--ds-text-muted);
+}
+
+@media (max-width: 900px) {
+  .ds-hero-b { grid-template-columns: 1fr; }
+  .ds-hero-d__main { grid-template-columns: 1fr; }
+  .ds-hero-d__stats { grid-template-columns: repeat(2, 1fr); }
+}
+
+/* ================================================================
+   CREDENTIAL BAR (from screenshot)
+   ================================================================ */
+.ds-credential-bar {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 24px;
+  padding: 24px 0;
+}
+
+.ds-credential {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.ds-credential__icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 10px;
+  background: var(--ds-bg-light);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: var(--yb-brand);
+  flex-shrink: 0;
+}
+
+.ds-credential__title {
+  font-weight: 700;
+  font-size: 0.85rem;
+}
+
+.ds-credential__desc {
+  font-size: 0.7rem;
+  color: var(--ds-text-muted);
+}
+
+@media (max-width: 900px) {
+  .ds-credential-bar { grid-template-columns: repeat(2, 1fr); }
+}
+
+/* ================================================================
+   30. SCROLL-DRAW PATHS (Vine/Branch SVG animations)
+   ================================================================ */
+.ds-scroll-draw {
+  position: relative;
+  overflow: hidden;
+}
+
+.ds-scroll-draw svg {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+.ds-scroll-draw path {
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+/* Preview container for samples */
+.ds-draw-preview {
+  position: relative;
+  height: 600px;
+  overflow-y: auto;
+  border-radius: 12px;
+  border: 1px solid var(--ds-border);
+  background: #fff;
+}
+
+.ds-draw-preview svg {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.ds-draw-preview .ds-draw-content {
+  position: relative;
+  z-index: 2;
+  padding: 60px 40px;
+}
+
+/* Vine leaves — appear with scale + fade as line draws past them */
+.ds-vine-leaf {
+  transform-origin: center;
+  transition: opacity 0.6s ease, transform 0.6s ease;
+}
+.ds-vine-leaf.ds-leaf--visible {
+  opacity: 1 !important;
+  transform: scale(1);
+}
+.ds-vine-leaf:not(.ds-leaf--visible) {
+  transform: scale(0);
+}
+
+/* ================================================================
+   31. PHOTOGRAPHY PAGE LAYOUTS
+   ================================================================ */
+/* Hero — full-bleed image with text overlay */
+.ds-photo-hero {
+  position: relative;
+  height: 85vh;
+  min-height: 500px;
+  overflow: hidden;
+  border-radius: 12px;
+  background: #0F0F0F;
+}
+.ds-photo-hero__img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0.6;
+}
+.ds-photo-hero__content {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  height: 100%;
+  padding: 60px;
+  color: #fff;
+}
+.ds-photo-hero__eyebrow {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 3px;
+  color: #f75c03;
+  margin-bottom: 16px;
+}
+.ds-photo-hero__title {
+  font-size: clamp(2.5rem, 6vw, 5rem);
+  font-weight: 700;
+  line-height: 1.05;
+  margin-bottom: 16px;
+}
+.ds-photo-hero__sub {
+  font-size: 1.1rem;
+  color: rgba(255,255,255,0.7);
+  max-width: 500px;
+  line-height: 1.6;
+}
+
+/* Big Picture + Text split */
+.ds-photo-split {
+  display: grid;
+  grid-template-columns: 1.2fr 1fr;
+  gap: 0;
+  min-height: 500px;
+  border-radius: 12px;
+  overflow: hidden;
+  background: #0F0F0F;
+}
+.ds-photo-split__image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  min-height: 500px;
+}
+.ds-photo-split__text {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 60px 50px;
+  color: #fff;
+}
+
+/* Art Grid — rule-breaking creative photo layouts */
+.ds-photo-art {
+  display: grid;
+  gap: 8px;
+  border-radius: 12px;
+  overflow: hidden;
+}
+.ds-photo-art--bleed-right {
+  grid-template-columns: 1fr 1fr 1.5fr;
+  grid-template-rows: 280px 280px;
+}
+.ds-photo-art--bleed-right .ds-photo-art__item:nth-child(1) {
+  grid-row: 1 / 3;
+}
+.ds-photo-art--bleed-right .ds-photo-art__item:nth-child(4) {
+  grid-column: 2 / 4;
+}
+.ds-photo-art--overlap {
+  grid-template-columns: 2fr 1fr 1fr;
+  grid-template-rows: 250px 250px;
+  position: relative;
+}
+.ds-photo-art--overlap .ds-photo-art__item:nth-child(1) {
+  grid-row: 1 / 3;
+  grid-column: 1 / 2;
+}
+.ds-photo-art--overlap .ds-photo-art__item:nth-child(2) {
+  grid-column: 2 / 4;
+}
+.ds-photo-art--diagonal {
+  grid-template-columns: 1.5fr 1fr 1fr;
+  grid-template-rows: 300px 200px;
+}
+.ds-photo-art--diagonal .ds-photo-art__item:nth-child(1) {
+  grid-column: 1 / 3;
+}
+.ds-photo-art--diagonal .ds-photo-art__item:nth-child(4) {
+  grid-column: 2 / 4;
+}
+.ds-photo-art__item {
+  overflow: hidden;
+  border-radius: 4px;
+  background: var(--ds-light);
+  position: relative;
+}
+.ds-photo-art__item img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.5s ease;
+}
+.ds-photo-art__item:hover img {
+  transform: scale(1.04);
+}
+
+/* ================================================================
+   32. MODEL / PHOTOGRAPHER SHOWCASE — Loose, Editorial Style
+   Photos are offset, varied sizes, with breathing room. Not rigid grids.
+   ================================================================ */
+.ds-model-showcase {
+  border-radius: 16px;
+  overflow: hidden;
+  background: #0F0F0F;
+  padding: 60px 50px;
+}
+.ds-model__intro {
+  display: flex;
+  gap: 40px;
+  align-items: flex-start;
+  margin-bottom: 50px;
+}
+.ds-model__portrait {
+  width: 280px;
+  min-width: 280px;
+  height: 360px;
+  border-radius: 12px;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+.ds-model__portrait img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.ds-model__info {
+  padding-top: 20px;
+  color: #fff;
+}
+.ds-model__eyebrow {
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 2.5px;
+  color: #f75c03;
+  margin-bottom: 10px;
+}
+.ds-model__name {
+  font-size: clamp(2rem, 3.5vw, 3rem);
+  font-weight: 700;
+  line-height: 1.1;
+  margin-bottom: 16px;
+  color: #fff;
+}
+.ds-model__bio {
+  color: rgba(255,255,255,0.6);
+  line-height: 1.7;
+  font-size: 0.95rem;
+  margin-bottom: 20px;
+  max-width: 450px;
+}
+.ds-model__links {
+  display: flex;
+  gap: 16px;
+}
+.ds-model__links a {
+  color: #f75c03;
+  text-decoration: none;
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  transition: opacity 0.2s;
+}
+.ds-model__links a:hover { opacity: 0.7; }
+
+/* Loose photo gallery — offset, varied sizes, breathing room */
+.ds-model__gallery {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+  align-items: flex-start;
+}
+.ds-model__photo {
+  border-radius: 10px;
+  overflow: hidden;
+  position: relative;
+}
+.ds-model__photo img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.6s ease;
+}
+.ds-model__photo:hover img {
+  transform: scale(1.03);
+}
+
+/* Variation A: portrait left intro, photos loosely scattered below
+   1 horizontal wide, 2 portraits offset */
+.ds-model-a .ds-model__gallery {
+  padding-left: 30px;
+}
+.ds-model-a .ds-model__photo--h {
+  width: 58%;
+  height: 280px;
+}
+.ds-model-a .ds-model__photo--v1 {
+  width: 36%;
+  height: 340px;
+  margin-top: -40px;
+}
+.ds-model-a .ds-model__photo--v2 {
+  width: 40%;
+  height: 300px;
+  margin-left: 10%;
+  margin-top: -20px;
+}
+
+/* Variation B: hero portrait intro, photos: 1 portrait, 2 horizontal, 1 vertical
+   Staggered rows with offsets */
+.ds-model-b .ds-model__intro {
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+.ds-model-b .ds-model__portrait {
+  width: 100%;
+  max-width: 700px;
+  height: 320px;
+  border-radius: 12px;
+}
+.ds-model-b .ds-model__bio {
+  max-width: 550px;
+  margin: 0 auto 20px;
+}
+.ds-model-b .ds-model__gallery {
+  justify-content: center;
+}
+.ds-model-b .ds-model__photo--p {
+  width: 30%;
+  height: 320px;
+  margin-top: 20px;
+}
+.ds-model-b .ds-model__photo--h1 {
+  width: 42%;
+  height: 260px;
+}
+.ds-model-b .ds-model__photo--h2 {
+  width: 55%;
+  height: 240px;
+  margin-top: -30px;
+}
+.ds-model-b .ds-model__photo--v {
+  width: 35%;
+  height: 300px;
+  margin-top: -50px;
+}
+
+/* Variation C: portrait + info side by side, gallery below with editorial offsets
+   Mixed: portrait overlapping, wide shot, and detail shot */
+.ds-model-c .ds-model__gallery {
+  align-items: center;
+  justify-content: space-between;
+}
+.ds-model-c .ds-model__photo--wide {
+  width: 100%;
+  height: 300px;
+  margin-bottom: -30px;
+}
+.ds-model-c .ds-model__photo--offset-left {
+  width: 45%;
+  height: 340px;
+  margin-left: -20px;
+  transform: rotate(-1.5deg);
+  z-index: 2;
+}
+.ds-model-c .ds-model__photo--offset-right {
+  width: 48%;
+  height: 280px;
+  margin-right: -10px;
+  margin-top: 30px;
+  transform: rotate(1deg);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .ds-model__intro { flex-direction: column; }
+  .ds-model__portrait { width: 100%; min-width: auto; }
+  .ds-model-showcase { padding: 30px 20px; }
+  .ds-model__gallery { flex-direction: column; }
+  .ds-model__photo { width: 100% !important; margin: 0 !important; transform: none !important; }
+  .ds-photo-split { grid-template-columns: 1fr; }
+  .ds-photo-art--bleed-right,
+  .ds-photo-art--overlap,
+  .ds-photo-art--diagonal { grid-template-columns: 1fr 1fr; grid-template-rows: auto; }
+  .ds-photo-art--bleed-right .ds-photo-art__item:nth-child(1),
+  .ds-photo-art--bleed-right .ds-photo-art__item:nth-child(4),
+  .ds-photo-art--overlap .ds-photo-art__item:nth-child(1),
+  .ds-photo-art--overlap .ds-photo-art__item:nth-child(2),
+  .ds-photo-art--diagonal .ds-photo-art__item:nth-child(1),
+  .ds-photo-art--diagonal .ds-photo-art__item:nth-child(4) {
+    grid-column: auto;
+    grid-row: auto;
+  }
+}
 </style>
 
 <div class="ds-page">
@@ -1581,6 +2898,11 @@ eleventyExcludeFromCollections: true
           <div class="ds-color__name">Warm White</div>
           <div class="ds-color__usage">Cards, sections</div>
         </div>
+        <div class="ds-color">
+          <div class="ds-color__swatch" style="background:#3f99a5;color:#fff">#3f99a5</div>
+          <div class="ds-color__name">Hot Yoga CPH</div>
+          <div class="ds-color__usage">Hot Yoga CTAs, frames, strokes</div>
+        </div>
       </div>
     </div>
   </section>
@@ -1594,6 +2916,12 @@ eleventyExcludeFromCollections: true
       <p class="ds-section__desc">Text styles and hierarchy</p>
     </div>
     <div class="ds-demo">
+      <div class="ds-type" style="background:var(--ds-bg-light);padding:20px;border-radius:8px;margin-bottom:28px;border:none">
+        <span class="ds-label">Primary Font</span>
+        <div style="font-size:1.5rem;font-weight:700;margin-bottom:6px">Abacaxi Latin</div>
+        <div class="ds-type__specs">font-family: 'Abacaxi', "Helvetica Neue", Helvetica, Arial, system-ui, sans-serif</div>
+        <div style="margin-top:10px;font-size:0.85rem;color:var(--ds-text-muted)">Used globally for ALL text — headings, body, buttons, labels. Regular (400) + Bold (700) weights loaded via WOFF2.</div>
+      </div>
       <div class="ds-type">
         <span class="ds-label">Hero Title</span>
         <div style="font-size:clamp(2.5rem,6vw,5rem);font-weight:700;line-height:1.05">Hvor din praksis bliver til dit kald.</div>
@@ -1689,7 +3017,7 @@ eleventyExcludeFromCollections: true
 
     <div class="ds-sub">
       <h3 class="ds-sub__title">Hover Effects</h3>
-      <p class="ds-sub__desc">lift | border | glow | scale | tilt</p>
+      <p class="ds-sub__desc">lift | border | glow — tilt reserved for special offers only</p>
       <div class="ds-demo ds-demo--grid">
         <div class="ds-card ds-card--lift">
           <div class="ds-card__img">[IMG]</div>
@@ -1715,12 +3043,13 @@ eleventyExcludeFromCollections: true
             <p class="ds-card__desc">Orange glow shadow</p>
           </div>
         </div>
-        <div class="ds-card ds-card--tilt">
+        <div class="ds-card ds-card--tilt" style="border:2px solid var(--yb-brand);position:relative">
+          <div style="position:absolute;top:10px;right:10px"><span class="ds-badge ds-badge--primary ds-badge--pill" style="font-size:0.6rem">Special Offers Only</span></div>
           <div class="ds-card__img">[IMG]</div>
           <div class="ds-card__body">
             <p class="ds-card__tag">Hover Effect</p>
             <h3 class="ds-card__title">3D Tilt</h3>
-            <p class="ds-card__desc">Perspective tilt</p>
+            <p class="ds-card__desc">Perspective tilt — use ONLY for special offers</p>
           </div>
         </div>
       </div>
@@ -1737,12 +3066,12 @@ eleventyExcludeFromCollections: true
           <div class="num">90%</div>
           <div class="label">Besta-rate</div>
         </div>
-        <div class="ds-card ds-card--testimonial ds-card--border">
+        <div class="ds-card ds-card--testimonial" style="border:1.5px solid var(--yb-brand);border-radius:12px">
           <div class="stars">★★★★★</div>
           <p class="quote">"Yoga Bible aendrede mit liv."</p>
           <div class="author">
             <div class="avatar"></div>
-            <div><strong>Maria K.</strong><br><small style="color:var(--ds-text-muted)">2024</small></div>
+            <div><strong>Maria K.</strong><br><small style="color:var(--ds-text-muted)">18-ugers uddannelse, 2024</small></div>
           </div>
         </div>
         <div class="ds-card ds-card--glass ds-card--lift" style="background:linear-gradient(135deg,var(--yb-brand),#d94f02);padding:24px">
@@ -1764,17 +3093,11 @@ eleventyExcludeFromCollections: true
     </div>
     <div class="ds-demo ds-demo--flex" style="gap:20px">
       <div class="ds-hover ds-hover--lift">Lift</div>
-      <div class="ds-hover ds-hover--scale">Scale</div>
-      <div class="ds-hover ds-hover--rotate">Rotate</div>
-      <div class="ds-hover ds-hover--skew">Skew</div>
-      <div class="ds-hover ds-hover--border">Border</div>
       <div class="ds-hover ds-hover--glow">Glow</div>
       <div class="ds-hover ds-hover--bg">Background</div>
       <div class="ds-hover ds-hover--invert">Invert</div>
-      <div class="ds-hover ds-hover--shine">Shine</div>
       <div class="ds-hover ds-hover--underline">Underline</div>
       <div class="ds-hover ds-hover--fill">Fill Up</div>
-      <div class="ds-hover ds-hover--pulse">Pulse</div>
     </div>
   </section>
 
@@ -1786,15 +3109,11 @@ eleventyExcludeFromCollections: true
       <h2 class="ds-section__title" data-number="6">Animations</h2>
       <p class="ds-section__desc">Continuous loop animations</p>
     </div>
+    <p class="ds-sub__desc" style="margin-bottom:20px">Use sparingly for emphasis</p>
     <div class="ds-demo ds-demo--flex" style="gap:28px">
       <div class="ds-anim ds-anim--pulse">Pulse</div>
-      <div class="ds-anim ds-anim--breathe">Breathe</div>
-      <div class="ds-anim ds-anim--float">Float</div>
       <div class="ds-anim ds-anim--bounce">Bounce</div>
-      <div class="ds-anim ds-anim--spin">Spin</div>
-      <div class="ds-anim ds-anim--shake">Shake</div>
-      <div class="ds-anim ds-anim--swing">Swing</div>
-      <div class="ds-anim ds-anim--heartbeat">Heart</div>
+      <div class="ds-anim ds-anim--breathe">Breathe</div>
     </div>
   </section>
 
@@ -1905,16 +3224,11 @@ eleventyExcludeFromCollections: true
       <h2 class="ds-section__title" data-number="10">Backgrounds & Gradients</h2>
       <p class="ds-section__desc">Surface styles and patterns</p>
     </div>
-    <div class="ds-demo ds-demo--grid" style="gap:16px">
-      <div class="ds-bg ds-bg--dark">Solid Dark</div>
+    <div class="ds-demo ds-demo--grid" style="gap:16px;grid-template-columns:repeat(auto-fit,minmax(250px,1fr))">
       <div class="ds-bg ds-bg--brand">Solid Brand</div>
+      <div class="ds-bg ds-bg--dark">Solid Dark</div>
       <div class="ds-bg ds-bg--gradient-h">Gradient H</div>
-      <div class="ds-bg ds-bg--gradient-v">Gradient V</div>
-      <div class="ds-bg ds-bg--gradient-d">Gradient Diagonal</div>
-      <div class="ds-bg ds-bg--gradient-radial">Radial</div>
-      <div class="ds-bg ds-bg--mesh">Mesh Gradient</div>
       <div class="ds-bg ds-bg--animated">Animated</div>
-      <div class="ds-bg ds-bg--glass" style="background:linear-gradient(135deg,var(--yb-brand),#d94f02)">Glass/Blur</div>
     </div>
   </section>
 
@@ -1974,12 +3288,8 @@ eleventyExcludeFromCollections: true
         <p class="ds-eyebrow ds-eyebrow--brand ds-eyebrow--line">With Line</p>
         <h3 style="font-size:1.5rem;font-weight:700">Section Title</h3>
       </div>
-      <div style="margin-bottom:30px">
-        <p class="ds-eyebrow ds-eyebrow--brand ds-eyebrow--dot">With Dot</p>
-        <h3 style="font-size:1.5rem;font-weight:700">Section Title</h3>
-      </div>
       <div>
-        <p class="ds-eyebrow ds-eyebrow--badge">Badge Style</p>
+        <p class="ds-eyebrow ds-eyebrow--brand ds-eyebrow--dot">With Dot</p>
         <h3 style="font-size:1.5rem;font-weight:700">Section Title</h3>
       </div>
     </div>
@@ -2001,6 +3311,7 @@ eleventyExcludeFromCollections: true
       <span class="ds-badge ds-badge--success">Success</span>
       <span class="ds-badge ds-badge--warning">Warning</span>
       <span class="ds-badge ds-badge--primary ds-badge--pill">Pill</span>
+      <span class="ds-eyebrow ds-eyebrow--badge" style="margin-bottom:0">Badge Eyebrow</span>
     </div>
   </section>
 
@@ -2010,20 +3321,93 @@ eleventyExcludeFromCollections: true
   <section class="ds-section">
     <div class="ds-section__header">
       <h2 class="ds-section__title" data-number="14">Form Elements</h2>
-      <p class="ds-section__desc">Inputs and controls</p>
+      <p class="ds-section__desc">Unified form style — matching modal design with orange-stroke fields</p>
     </div>
-    <div class="ds-demo" style="max-width:450px">
-      <div style="margin-bottom:20px">
-        <label style="display:block;font-size:0.8rem;font-weight:600;margin-bottom:6px">Text Input</label>
-        <input type="text" class="ds-input" placeholder="Dit navn">
+
+    <div class="ds-sub">
+      <h3 class="ds-sub__title">Standard Form — Orange Stroke Fields</h3>
+      <p class="ds-sub__desc">Two-column grid, label above, rounded inputs with thin orange border. Matches our modal forms.</p>
+      <div class="ds-demo" style="max-width:560px;background:#fff">
+        <h3 style="font-size:1.25rem;font-weight:800;margin-bottom:6px">Fa brochure pa e-mail</h3>
+        <p style="color:#444;line-height:1.6;font-size:0.95rem;margin-bottom:20px">Vaelg de kurser du er interesseret i — vi sender praktisk info til din e-mail.</p>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+          <label style="display:grid;gap:6px">
+            <span style="font-size:0.85rem;font-weight:600;color:var(--ds-text-muted)">Fornavn *</span>
+            <input type="text" style="width:100%;height:48px;border:1px solid var(--yb-brand);border-radius:12px;padding:0.75rem 1rem;font-size:16px;background:#fff;outline:none;font-family:inherit;transition:box-shadow 0.15s ease" placeholder="">
+          </label>
+          <label style="display:grid;gap:6px">
+            <span style="font-size:0.85rem;font-weight:600;color:var(--ds-text-muted)">Efternavn *</span>
+            <input type="text" style="width:100%;height:48px;border:1px solid var(--yb-brand);border-radius:12px;padding:0.75rem 1rem;font-size:16px;background:#fff;outline:none;font-family:inherit" placeholder="">
+          </label>
+          <label style="display:grid;gap:6px">
+            <span style="font-size:0.85rem;font-weight:600;color:var(--ds-text-muted)">E-mail *</span>
+            <input type="email" style="width:100%;height:48px;border:1px solid var(--yb-brand);border-radius:12px;padding:0.75rem 1rem;font-size:16px;background:#fff;outline:none;font-family:inherit" placeholder="">
+          </label>
+          <label style="display:grid;gap:6px">
+            <span style="font-size:0.85rem;font-weight:600;color:var(--ds-text-muted)">Telefonnummer *</span>
+            <input type="tel" style="width:100%;height:48px;border:1px solid var(--yb-brand);border-radius:12px;padding:0.75rem 1rem;font-size:16px;background:#fff;outline:none;font-family:inherit" placeholder="">
+          </label>
+          <div style="grid-column:1/-1">
+            <span style="display:block;font-size:0.85rem;font-weight:600;color:var(--ds-text-muted);margin-bottom:6px">Hvilke kurser vil du have info om? *</span>
+            <div style="border:1px solid var(--ds-border);border-radius:12px;background:var(--ds-bg-light);padding:12px;display:grid;gap:8px">
+              <label style="display:flex;gap:12px;align-items:center;padding:12px 16px;border-radius:10px;border:2px solid var(--ds-border);background:#fff;cursor:pointer;transition:border-color 0.15s">
+                <span style="width:22px;height:22px;border:2px solid var(--ds-border);border-radius:6px;flex-shrink:0"></span>
+                <span style="font-weight:600;font-size:0.95rem">Inversions</span>
+              </label>
+              <label style="display:flex;gap:12px;align-items:center;padding:12px 16px;border-radius:10px;border:2px solid var(--ds-border);background:#fff;cursor:pointer">
+                <span style="width:22px;height:22px;border:2px solid var(--ds-border);border-radius:6px;flex-shrink:0"></span>
+                <span style="font-weight:600;font-size:0.95rem">Splits</span>
+              </label>
+              <label style="display:flex;gap:12px;align-items:center;padding:12px 16px;border-radius:10px;border:2px solid var(--ds-border);background:#fff;cursor:pointer">
+                <span style="width:22px;height:22px;border:2px solid var(--ds-border);border-radius:6px;flex-shrink:0"></span>
+                <span style="font-weight:600;font-size:0.95rem">Backbends</span>
+              </label>
+            </div>
+          </div>
+          <label style="display:grid;gap:6px;grid-column:1/-1">
+            <span style="font-size:0.85rem;font-weight:600;color:var(--ds-text-muted)">Hvilken maned passer dig bedst? *</span>
+            <select style="width:100%;height:48px;border:1px solid var(--yb-brand);border-radius:12px;padding:0.75rem 1rem;font-size:16px;background:#fff;outline:none;font-family:inherit;-webkit-appearance:none;appearance:none">
+              <option>Ikke sikker endnu</option>
+              <option>Januar 2026</option>
+              <option>Februar 2026</option>
+              <option>Marts 2026</option>
+            </select>
+          </label>
+        </div>
+        <div style="display:flex;gap:12px;align-items:flex-start;padding:12px 16px;border-radius:12px;border:1px solid var(--ds-border);background:var(--ds-bg-light);margin-top:16px;cursor:pointer">
+          <span style="width:22px;height:22px;border:2px solid var(--ds-border);border-radius:6px;flex-shrink:0;margin-top:2px"></span>
+          <span style="color:#444;line-height:1.5;font-size:0.9rem">Jeg giver samtykke til at modtage e-mails om de valgte kurser (du kan altid afmelde dig).</span>
+        </div>
+        <div style="margin-top:20px">
+          <button class="ds-btn ds-btn--primary" style="border-radius:999px;padding:14px 32px;box-shadow:0 4px 14px rgba(247,92,3,0.25)">Send & fa brochure</button>
+        </div>
+        <p style="margin-top:12px;color:var(--ds-text-muted);font-size:0.8rem;line-height:1.5">Ved at sende accepterer du, at vi ma kontakte dig om din foresporsel.</p>
       </div>
-      <div style="margin-bottom:20px">
-        <label style="display:block;font-size:0.8rem;font-weight:600;margin-bottom:6px">Email</label>
-        <input type="email" class="ds-input" placeholder="din@email.dk">
-      </div>
-      <div>
-        <label style="display:block;font-size:0.8rem;font-weight:600;margin-bottom:6px">Textarea</label>
-        <textarea class="ds-input" rows="3" placeholder="Din besked..."></textarea>
+    </div>
+
+    <div class="ds-sub">
+      <h3 class="ds-sub__title">Newsletter Signup</h3>
+      <p class="ds-sub__desc">First name, last name, email + orange submit. For footer or CTA sections.</p>
+      <div class="ds-demo" style="max-width:500px;background:#fff">
+        <h3 style="font-size:1.25rem;font-weight:800;margin-bottom:6px">Tilmeld dig vores nyhedsbrev</h3>
+        <p style="color:#444;line-height:1.6;font-size:0.95rem;margin-bottom:20px">Fa de seneste nyheder, tips og tilbud direkte i din indbakke.</p>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+          <label style="display:grid;gap:6px">
+            <span style="font-size:0.85rem;font-weight:600;color:var(--ds-text-muted)">Fornavn *</span>
+            <input type="text" style="width:100%;height:48px;border:1px solid var(--yb-brand);border-radius:12px;padding:0.75rem 1rem;font-size:16px;background:#fff;outline:none;font-family:inherit" placeholder="">
+          </label>
+          <label style="display:grid;gap:6px">
+            <span style="font-size:0.85rem;font-weight:600;color:var(--ds-text-muted)">Efternavn *</span>
+            <input type="text" style="width:100%;height:48px;border:1px solid var(--yb-brand);border-radius:12px;padding:0.75rem 1rem;font-size:16px;background:#fff;outline:none;font-family:inherit" placeholder="">
+          </label>
+          <label style="display:grid;gap:6px;grid-column:1/-1">
+            <span style="font-size:0.85rem;font-weight:600;color:var(--ds-text-muted)">E-mail *</span>
+            <input type="email" style="width:100%;height:48px;border:1px solid var(--yb-brand);border-radius:12px;padding:0.75rem 1rem;font-size:16px;background:#fff;outline:none;font-family:inherit" placeholder="">
+          </label>
+        </div>
+        <div style="margin-top:20px">
+          <button class="ds-btn ds-btn--primary" style="border-radius:999px;padding:14px 32px;width:100%;box-shadow:0 4px 14px rgba(247,92,3,0.25)">Tilmeld Nyhedsbrev</button>
+        </div>
       </div>
     </div>
   </section>
@@ -2034,25 +3418,67 @@ eleventyExcludeFromCollections: true
   <section class="ds-section">
     <div class="ds-section__header">
       <h2 class="ds-section__title" data-number="15">Accordions</h2>
-      <p class="ds-section__desc">Expandable sections</p>
+      <p class="ds-section__desc">Global accordion style — separate rounded items with orange + icon</p>
     </div>
-    <div class="ds-demo" style="max-width:600px">
-      <div class="ds-accordion">
-        <div class="ds-accordion__item active">
-          <div class="ds-accordion__header" onclick="this.parentElement.classList.toggle('active')">
-            <span style="font-weight:700">Hvad er inkluderet?</span>
-            <div class="ds-accordion__icon">+</div>
+    <div class="ds-demo" style="max-width:700px;background:#fff">
+      <p style="color:var(--ds-text-muted);margin-bottom:32px;text-align:center">Alt du skal vide om booking, klasser og faciliteter.</p>
+      <div style="display:flex;flex-direction:column;gap:10px">
+        <div style="background:var(--ds-bg-light);border-radius:12px;overflow:hidden;transition:all 0.2s" onclick="var b=this.querySelector('.ds-acc-body');var i=this.querySelector('.ds-acc-icon');if(b.style.display==='block'){b.style.display='none';i.textContent='+';i.style.background='transparent';i.style.color='var(--yb-brand)'}else{b.style.display='block';i.textContent='×';i.style.background='var(--yb-brand)';i.style.color='#fff'}">
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:18px 24px;cursor:pointer">
+            <span style="font-weight:700;font-size:0.95rem">Hvordan booker jeg en klasse?</span>
+            <span class="ds-acc-icon" style="width:32px;height:32px;border-radius:50%;border:1.5px solid var(--yb-brand);display:flex;align-items:center;justify-content:center;font-size:1.2rem;color:var(--yb-brand);flex-shrink:0;transition:all 0.2s">+</span>
           </div>
-          <div class="ds-accordion__body">Al undervisning, materialer og certificering.</div>
+          <div class="ds-acc-body" style="display:none;padding:0 24px 18px;color:var(--ds-text-muted);line-height:1.6;font-size:0.9rem">
+            Du kan booke via vores hjemmeside eller ring til os pa +45 00 00 00 00. Vi anbefaler at booke mindst 24 timer i forvejen.
+          </div>
         </div>
-        <div class="ds-accordion__item">
-          <div class="ds-accordion__header" onclick="this.parentElement.classList.toggle('active')">
-            <span style="font-weight:700">Er der ratebetaling?</span>
-            <div class="ds-accordion__icon">+</div>
+        <div style="background:var(--ds-bg-light);border-radius:12px;overflow:hidden" onclick="var b=this.querySelector('.ds-acc-body');var i=this.querySelector('.ds-acc-icon');if(b.style.display==='block'){b.style.display='none';i.textContent='+';i.style.background='transparent';i.style.color='var(--yb-brand)'}else{b.style.display='block';i.textContent='×';i.style.background='var(--yb-brand)';i.style.color='#fff'}">
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:18px 24px;cursor:pointer">
+            <span style="font-weight:700;font-size:0.95rem">Hvad er jeres afbestillingspolitik?</span>
+            <span class="ds-acc-icon" style="width:32px;height:32px;border-radius:50%;border:1.5px solid var(--yb-brand);display:flex;align-items:center;justify-content:center;font-size:1.2rem;color:var(--yb-brand);flex-shrink:0;transition:all 0.2s">+</span>
           </div>
-          <div class="ds-accordion__body">Ja, vi tilbyder fleksibel ratebetaling.</div>
+          <div class="ds-acc-body" style="display:none;padding:0 24px 18px;color:var(--ds-text-muted);line-height:1.6;font-size:0.9rem">
+            Du kan afbestille op til 12 timer for klassen uden gebyr. Senere afbestillinger refunderes ikke.
+          </div>
+        </div>
+        <div style="background:var(--ds-bg-light);border-radius:12px;overflow:hidden" onclick="var b=this.querySelector('.ds-acc-body');var i=this.querySelector('.ds-acc-icon');if(b.style.display==='block'){b.style.display='none';i.textContent='+';i.style.background='transparent';i.style.color='var(--yb-brand)'}else{b.style.display='block';i.textContent='×';i.style.background='var(--yb-brand)';i.style.color='#fff'}">
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:18px 24px;cursor:pointer">
+            <span style="font-weight:700;font-size:0.95rem">Hvad skal jeg medbringe til min forste klasse?</span>
+            <span class="ds-acc-icon" style="width:32px;height:32px;border-radius:50%;border:1.5px solid var(--yb-brand);display:flex;align-items:center;justify-content:center;font-size:1.2rem;color:var(--yb-brand);flex-shrink:0;transition:all 0.2s">+</span>
+          </div>
+          <div class="ds-acc-body" style="display:none;padding:0 24px 18px;color:var(--ds-text-muted);line-height:1.6;font-size:0.9rem">
+            Medring behageligt toj, en vandflaske og et abent sind. Vi har matter til udlan.
+          </div>
+        </div>
+        <div style="background:var(--ds-bg-light);border-radius:12px;overflow:hidden" onclick="var b=this.querySelector('.ds-acc-body');var i=this.querySelector('.ds-acc-icon');if(b.style.display==='block'){b.style.display='none';i.textContent='+';i.style.background='transparent';i.style.color='var(--yb-brand)'}else{b.style.display='block';i.textContent='×';i.style.background='var(--yb-brand)';i.style.color='#fff'}">
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:18px 24px;cursor:pointer">
+            <span style="font-weight:700;font-size:0.95rem">Hvad er forskellen pa hot, varm og stuetemperatur klasser?</span>
+            <span class="ds-acc-icon" style="width:32px;height:32px;border-radius:50%;border:1.5px solid var(--yb-brand);display:flex;align-items:center;justify-content:center;font-size:1.2rem;color:var(--yb-brand);flex-shrink:0;transition:all 0.2s">+</span>
+          </div>
+          <div class="ds-acc-body" style="display:none;padding:0 24px 18px;color:var(--ds-text-muted);line-height:1.6;font-size:0.9rem">
+            Hot yoga er 38°C, varm er 30°C, og stuetemperatur er ca. 22°C. Vaelg det der passer dig bedst.
+          </div>
+        </div>
+        <div style="background:var(--ds-bg-light);border-radius:12px;overflow:hidden" onclick="var b=this.querySelector('.ds-acc-body');var i=this.querySelector('.ds-acc-icon');if(b.style.display==='block'){b.style.display='none';i.textContent='+';i.style.background='transparent';i.style.color='var(--yb-brand)'}else{b.style.display='block';i.textContent='×';i.style.background='var(--yb-brand)';i.style.color='#fff'}">
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:18px 24px;cursor:pointer">
+            <span style="font-weight:700;font-size:0.95rem">Har I omklaedning og badefaciliteter?</span>
+            <span class="ds-acc-icon" style="width:32px;height:32px;border-radius:50%;border:1.5px solid var(--yb-brand);display:flex;align-items:center;justify-content:center;font-size:1.2rem;color:var(--yb-brand);flex-shrink:0;transition:all 0.2s">+</span>
+          </div>
+          <div class="ds-acc-body" style="display:none;padding:0 24px 18px;color:var(--ds-text-muted);line-height:1.6;font-size:0.9rem">
+            Ja, vi har fulde omkladningsrum med brusere, handklaeder og laaserum.
+          </div>
+        </div>
+        <div style="background:var(--ds-bg-light);border-radius:12px;overflow:hidden" onclick="var b=this.querySelector('.ds-acc-body');var i=this.querySelector('.ds-acc-icon');if(b.style.display==='block'){b.style.display='none';i.textContent='+';i.style.background='transparent';i.style.color='var(--yb-brand)'}else{b.style.display='block';i.textContent='×';i.style.background='var(--yb-brand)';i.style.color='#fff'}">
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:18px 24px;cursor:pointer">
+            <span style="font-weight:700;font-size:0.95rem">Hvornar far YTT-elever og kursister adgang til at booke?</span>
+            <span class="ds-acc-icon" style="width:32px;height:32px;border-radius:50%;border:1.5px solid var(--yb-brand);display:flex;align-items:center;justify-content:center;font-size:1.2rem;color:var(--yb-brand);flex-shrink:0;transition:all 0.2s">+</span>
+          </div>
+          <div class="ds-acc-body" style="display:none;padding:0 24px 18px;color:var(--ds-text-muted);line-height:1.6;font-size:0.9rem">
+            Fra dag 1 af din uddannelse har du fri adgang til alle klasser i den periode uddannelsen varer.
+          </div>
         </div>
       </div>
+      <p style="text-align:center;margin-top:28px;color:var(--ds-text-muted);font-size:0.9rem">Finder du ikke svar? Skriv til <a href="mailto:info@yogabible.dk" style="color:var(--yb-brand)">info@yogabible.dk</a></p>
     </div>
   </section>
 
@@ -2138,13 +3564,62 @@ eleventyExcludeFromCollections: true
   <section class="ds-section">
     <div class="ds-section__header">
       <h2 class="ds-section__title" data-number="18">Quotes</h2>
-      <p class="ds-section__desc">Blockquote styles</p>
+      <p class="ds-section__desc">Blockquote styles and variations</p>
     </div>
-    <div class="ds-demo">
-      <blockquote class="ds-quote">
-        Yoga er ikke om at rore dine taeer. Det handler om, hvad du laerer pa vejen derned.
-        <p class="ds-quote__author">- Judith Hanson Lasater</p>
-      </blockquote>
+
+    <div class="ds-sub">
+      <h3 class="ds-sub__title">Default — Left Quote Mark</h3>
+      <div class="ds-demo">
+        <blockquote class="ds-quote">
+          Yoga er ikke om at rore dine taeer. Det handler om, hvad du laerer pa vejen derned.
+          <p class="ds-quote__author">- Judith Hanson Lasater</p>
+        </blockquote>
+      </div>
+    </div>
+
+    <div class="ds-sub">
+      <h3 class="ds-sub__title">Dark Full-Width — Cinematic</h3>
+      <p class="ds-sub__desc">For dramatic visual breaks between content sections</p>
+      <div class="ds-quote-dark">
+        <div class="quote-marks">||</div>
+        <p class="quote-text">Yoga er ikke om at rore dine taeer. Det handler om, hvad du laerer pa vejen derned.</p>
+        <p class="quote-author">Judith Hanson Lasater</p>
+      </div>
+    </div>
+
+    <div class="ds-sub">
+      <h3 class="ds-sub__title">Brand Gradient — Warm</h3>
+      <p class="ds-sub__desc">Inviting, great for teacher or student quotes</p>
+      <div class="ds-quote-brand">
+        <p class="quote-text">"Uddannelsen hos Yoga Bible har fuldstaendigt aendret min tilgang til yoga - bade som praktiker og som laerer."</p>
+        <p class="quote-author">Maria K. — 18-ugers uddannelse</p>
+      </div>
+    </div>
+
+    <div class="ds-sub">
+      <h3 class="ds-sub__title">Side Bar — Minimal</h3>
+      <p class="ds-sub__desc">Clean, works well inline with articles or journal posts</p>
+      <div class="ds-demo">
+        <div class="ds-quote-side">
+          <div class="quote-bar"></div>
+          <div>
+            <p class="quote-text">Kroppen er dit tempel. Hold det rent og rent for sjaelen at bo i.</p>
+            <p class="quote-author">- B.K.S. Iyengar</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="ds-sub">
+      <h3 class="ds-sub__title">Centered — With Decorative Mark</h3>
+      <p class="ds-sub__desc">Elegant, for landing pages or between sections</p>
+      <div class="ds-demo">
+        <div class="ds-quote-centered">
+          <div class="quote-icon">"</div>
+          <p class="quote-text">Den intensive 4-ugers uddannelse var den bedste beslutning, jeg har taget. Dyb fordybelse, fantastiske instruktorer og et staerkt faellesskab.</p>
+          <p class="quote-author">Thomas R. — 4-ugers intensiv</p>
+        </div>
+      </div>
     </div>
   </section>
 
@@ -2154,24 +3629,79 @@ eleventyExcludeFromCollections: true
   <section class="ds-section">
     <div class="ds-section__header">
       <h2 class="ds-section__title" data-number="19">Timeline</h2>
-      <p class="ds-section__desc">Step-by-step progress</p>
+      <p class="ds-section__desc">Step-by-step progress — two variations</p>
     </div>
-    <div class="ds-demo" style="max-width:450px">
-      <div class="ds-timeline">
-        <div class="ds-timeline__item">
-          <div class="ds-timeline__dot"></div>
-          <h4 class="ds-timeline__title">Ansog online</h4>
-          <p class="ds-timeline__desc">Udfyld formularen</p>
+
+    <div class="ds-sub">
+      <h3 class="ds-sub__title">Variation A — Compact</h3>
+      <div class="ds-demo" style="max-width:450px">
+        <div class="ds-timeline">
+          <div class="ds-timeline__item">
+            <div class="ds-timeline__dot"></div>
+            <h4 class="ds-timeline__title">Ansog online</h4>
+            <p class="ds-timeline__desc">Udfyld formularen</p>
+          </div>
+          <div class="ds-timeline__item">
+            <div class="ds-timeline__dot"></div>
+            <h4 class="ds-timeline__title">Introsamtale</h4>
+            <p class="ds-timeline__desc">Vi laerer hinanden at kende</p>
+          </div>
+          <div class="ds-timeline__item">
+            <div class="ds-timeline__dot"></div>
+            <h4 class="ds-timeline__title">Start uddannelse</h4>
+            <p class="ds-timeline__desc">Velkommen!</p>
+          </div>
         </div>
-        <div class="ds-timeline__item">
-          <div class="ds-timeline__dot"></div>
-          <h4 class="ds-timeline__title">Introsamtale</h4>
-          <p class="ds-timeline__desc">Vi laerer hinanden at kende</p>
-        </div>
-        <div class="ds-timeline__item">
-          <div class="ds-timeline__dot"></div>
-          <h4 class="ds-timeline__title">Start uddannelse</h4>
-          <p class="ds-timeline__desc">Velkommen!</p>
+      </div>
+    </div>
+
+    <div class="ds-sub">
+      <h3 class="ds-sub__title">Variation B — Full Journey (from screenshot)</h3>
+      <p class="ds-sub__desc">Larger dots, step labels, more spacing. "Fra ansogning til certificering" style.</p>
+      <div class="ds-demo" style="max-width:550px;background:var(--ds-bg-light);padding:60px 40px">
+        <div style="position:relative;padding-left:36px">
+          <!-- Vertical line -->
+          <div style="position:absolute;left:8px;top:14px;bottom:14px;width:2px;background:var(--yb-brand)"></div>
+
+          <!-- Step 1 -->
+          <div style="position:relative;padding-bottom:40px">
+            <div style="position:absolute;left:-32px;top:0;width:18px;height:18px;background:var(--yb-brand);border-radius:50%;border:3px solid var(--ds-bg-light)"></div>
+            <p style="font-size:0.65rem;text-transform:uppercase;letter-spacing:0.2em;color:var(--yb-brand);font-weight:700;margin-bottom:4px">Skridt 1</p>
+            <h4 style="font-weight:700;font-size:1.05rem;margin-bottom:6px">Ansog online</h4>
+            <p style="color:var(--ds-text-muted);font-size:0.9rem;line-height:1.5">Udfyld vores ansogningsformular. Vi vender tilbage indenfor 48 timer.</p>
+          </div>
+
+          <!-- Step 2 -->
+          <div style="position:relative;padding-bottom:40px">
+            <div style="position:absolute;left:-32px;top:0;width:18px;height:18px;background:var(--yb-brand);border-radius:50%;border:3px solid var(--ds-bg-light)"></div>
+            <p style="font-size:0.65rem;text-transform:uppercase;letter-spacing:0.2em;color:var(--yb-brand);font-weight:700;margin-bottom:4px">Skridt 2</p>
+            <h4 style="font-weight:700;font-size:1.05rem;margin-bottom:6px">Introduktionssamtale</h4>
+            <p style="color:var(--ds-text-muted);font-size:0.9rem;line-height:1.5">En kort samtale hvor vi laerer hinanden at kende og sikrer det rette match.</p>
+          </div>
+
+          <!-- Step 3 -->
+          <div style="position:relative;padding-bottom:40px">
+            <div style="position:absolute;left:-32px;top:0;width:18px;height:18px;background:var(--yb-brand);border-radius:50%;border:3px solid var(--ds-bg-light)"></div>
+            <p style="font-size:0.65rem;text-transform:uppercase;letter-spacing:0.2em;color:var(--yb-brand);font-weight:700;margin-bottom:4px">Skridt 3</p>
+            <h4 style="font-weight:700;font-size:1.05rem;margin-bottom:6px">Bekraeft din plads</h4>
+            <p style="color:var(--ds-text-muted);font-size:0.9rem;line-height:1.5">Betal depositum og sikr din plads. Ratebetaling er muligt.</p>
+          </div>
+
+          <!-- Step 4 -->
+          <div style="position:relative;padding-bottom:40px">
+            <div style="position:absolute;left:-32px;top:0;width:18px;height:18px;background:var(--yb-brand);border-radius:50%;border:3px solid var(--ds-bg-light)"></div>
+            <p style="font-size:0.65rem;text-transform:uppercase;letter-spacing:0.2em;color:var(--yb-brand);font-weight:700;margin-bottom:4px">Skridt 4</p>
+            <h4 style="font-weight:700;font-size:1.05rem;margin-bottom:6px">Start din uddannelse</h4>
+            <p style="color:var(--ds-text-muted);font-size:0.9rem;line-height:1.5">Mod op til forste dag og begyn din transformation.</p>
+          </div>
+
+          <!-- Step 5 -->
+          <div style="position:relative">
+            <div style="position:absolute;left:-32px;top:0;width:18px;height:18px;background:var(--yb-brand);border-radius:50%;border:3px solid var(--ds-bg-light)"></div>
+            <p style="font-size:0.65rem;text-transform:uppercase;letter-spacing:0.2em;color:var(--yb-brand);font-weight:700;margin-bottom:4px">Skridt 5</p>
+            <h4 style="font-weight:700;font-size:1.05rem;margin-bottom:6px">Bliv certificeret</h4>
+            <p style="color:var(--ds-text-muted);font-size:0.9rem;line-height:1.5">Modtag din internationale Yoga Alliance RYT-200 certificering.</p>
+          </div>
         </div>
       </div>
     </div>
@@ -2278,6 +3808,1967 @@ eleventyExcludeFromCollections: true
   </section>
 
   <!-- ═══════════════════════════════════════════════════════════════
+       25. REVIEWS
+       ═══════════════════════════════════════════════════════════════ -->
+  <section class="ds-section">
+    <div class="ds-section__header">
+      <h2 class="ds-section__title" data-number="25">Reviews Section</h2>
+      <p class="ds-section__desc">Student testimonial cards with orange stroke — as shown in screenshot</p>
+    </div>
+
+    <div class="ds-sub">
+      <h3 class="ds-sub__title">Full Section Layout</h3>
+      <p class="ds-sub__desc">Centered eyebrow + heading + 3-column review cards</p>
+      <div class="ds-demo" style="padding:60px 40px;background:#fff">
+        <div style="text-align:center;margin-bottom:48px">
+          <p class="ds-eyebrow ds-eyebrow--brand" style="margin-bottom:12px">Stemmer fra vores community</p>
+          <h2 style="font-size:clamp(2rem,4vw,3rem);font-weight:700">Hvad vores studerende siger</h2>
+        </div>
+        <div class="ds-reviews">
+          <div class="ds-review-card">
+            <div class="stars">★★★★★</div>
+            <p class="review-text">"Uddannelsen hos Yoga Bible har fuldstaendigt aendret min tilgang til yoga - bade som praktiker og som laerer. Kvaliteten af undervisningen er uovertruffet."</p>
+            <div class="reviewer">
+              <div class="reviewer-avatar"></div>
+              <div>
+                <div class="reviewer-name">Maria K.</div>
+                <div class="reviewer-detail">18-ugers uddannelse, 2024</div>
+              </div>
+            </div>
+          </div>
+          <div class="ds-review-card">
+            <div class="stars">★★★★★</div>
+            <p class="review-text">"Den intensive 4-ugers uddannelse var den bedste beslutning, jeg har taget. Dyb fordybelse, fantastiske instruktorer og et staerkt faellesskab."</p>
+            <div class="reviewer">
+              <div class="reviewer-avatar"></div>
+              <div>
+                <div class="reviewer-name">Thomas R.</div>
+                <div class="reviewer-detail">4-ugers intensiv, 2024</div>
+              </div>
+            </div>
+          </div>
+          <div class="ds-review-card">
+            <div class="stars">★★★★★</div>
+            <p class="review-text">"Inversions-kurset gav mig modet og teknikken til at laere handstand. Progressionen var gennemtaenkt, sikker og inspirerende."</p>
+            <div class="reviewer">
+              <div class="reviewer-avatar"></div>
+              <div>
+                <div class="reviewer-name">Sofie L.</div>
+                <div class="reviewer-detail">Inversions kursus, 2025</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════════════════════════════
+       26. PRICING / FORMAT SECTIONS
+       ═══════════════════════════════════════════════════════════════ -->
+  <section class="ds-section">
+    <div class="ds-section__header">
+      <h2 class="ds-section__title" data-number="26">Pricing / Format Sections</h2>
+      <p class="ds-section__desc">Three variations for displaying program options and pricing</p>
+    </div>
+
+    <div class="ds-sub">
+      <h3 class="ds-sub__title">Variation A — Accordion Style (from screenshot)</h3>
+      <p class="ds-sub__desc">Expandable rows. First open by default. Compact when closed.</p>
+      <div class="ds-demo" style="padding:60px 40px;background:#fff">
+        <div style="text-align:center;margin-bottom:48px">
+          <p class="ds-eyebrow ds-eyebrow--brand" style="margin-bottom:12px">Yogalaereruddannelser</p>
+          <h2 style="font-size:clamp(2rem,4vw,3rem);font-weight:700;margin-bottom:12px">Vaelg dit format</h2>
+          <p style="color:var(--ds-text-muted);max-width:500px;margin:0 auto">Tre veje til samme mal: 200-timers Yoga Alliance certificering. Alle programmer har samme dybde og kvalitet.</p>
+        </div>
+        <div style="max-width:800px;margin:0 auto;display:flex;flex-direction:column;gap:12px">
+          <div class="ds-pricing-accordion ds-pricing--active" onclick="this.classList.toggle('ds-pricing--active')">
+            <div class="ds-pricing-header">
+              <div style="display:flex;align-items:center">
+                <span class="ds-pricing-duration">18 Uger</span>
+                <span class="ds-pricing-name">Fleksibel uddannelse</span>
+              </div>
+              <div style="display:flex;align-items:center;gap:12px">
+                <span class="ds-pricing-price">25.500 kr</span>
+                <div class="ds-pricing-toggle">&times;</div>
+              </div>
+            </div>
+            <div class="ds-pricing-body">
+              <div style="display:grid;grid-template-columns:1.2fr 1fr;gap:28px;padding-top:20px">
+                <p style="color:var(--ds-text-muted);font-size:0.9rem;line-height:1.6">Perfekt hvis du vil integrere uddannelsen i din hverdag. Vaelg mellem hverdage 10-15 eller weekend-spor. Samme dybde, mere fleksibilitet.</p>
+                <div class="ds-pricing-details">
+                  <div>
+                    <div class="ds-pricing-detail-label">Naeste Start</div>
+                    <div class="ds-pricing-detail-value">Marts 2026</div>
+                  </div>
+                  <div>
+                    <div class="ds-pricing-detail-label">Tider</div>
+                    <div class="ds-pricing-detail-value">Hverdage eller weekend</div>
+                  </div>
+                  <div>
+                    <div class="ds-pricing-detail-label">Holdstorrelse</div>
+                    <div class="ds-pricing-detail-value">Max 20 studerende</div>
+                  </div>
+                  <div>
+                    <div class="ds-pricing-detail-label">Betaling</div>
+                    <div class="ds-pricing-detail-value">Ratebetaling mulig</div>
+                  </div>
+                </div>
+              </div>
+              <div style="margin-top:24px">
+                <button class="ds-btn ds-btn--secondary">Se Program Detaljer</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="ds-pricing-accordion" onclick="this.classList.toggle('ds-pricing--active')">
+            <div class="ds-pricing-header">
+              <div style="display:flex;align-items:center">
+                <span class="ds-pricing-duration">8 Uger</span>
+                <span class="ds-pricing-name">Semi-intensiv</span>
+              </div>
+              <div style="display:flex;align-items:center;gap:12px">
+                <span class="ds-pricing-price">25.500 kr</span>
+                <div class="ds-pricing-toggle">+</div>
+              </div>
+            </div>
+            <div class="ds-pricing-body">
+              <p style="color:var(--ds-text-muted);padding-top:20px">8 ugers fokuseret uddannelse med intensiv undervisning 3-4 dage om ugen.</p>
+            </div>
+          </div>
+
+          <div class="ds-pricing-accordion" onclick="this.classList.toggle('ds-pricing--active')">
+            <div class="ds-pricing-header">
+              <div style="display:flex;align-items:center">
+                <span class="ds-pricing-duration">4 Uger</span>
+                <span class="ds-pricing-name">Intensiv</span>
+              </div>
+              <div style="display:flex;align-items:center;gap:12px">
+                <span class="ds-pricing-price">25.500 kr</span>
+                <div class="ds-pricing-toggle">+</div>
+              </div>
+            </div>
+            <div class="ds-pricing-body">
+              <p style="color:var(--ds-text-muted);padding-top:20px">Fuld immersion i 4 uger. Mandag-fredag, fuld dag. Hurtigste vej til certificering.</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Credential bar from screenshot -->
+        <div class="ds-credential-bar" style="max-width:800px;margin:40px auto 0;border-top:1px solid var(--ds-border);padding-top:24px">
+          <div class="ds-credential">
+            <div class="ds-credential__icon">YA</div>
+            <div>
+              <div class="ds-credential__title">Yoga Alliance</div>
+              <div class="ds-credential__desc">RYS 200 Registered</div>
+            </div>
+          </div>
+          <div class="ds-credential">
+            <div class="ds-credential__icon">10+</div>
+            <div>
+              <div class="ds-credential__title">Ars erfaring</div>
+              <div class="ds-credential__desc">Siden 2014</div>
+            </div>
+          </div>
+          <div class="ds-credential">
+            <div class="ds-credential__icon">500+</div>
+            <div>
+              <div class="ds-credential__title">Uddannede</div>
+              <div class="ds-credential__desc">Yogalaerere</div>
+            </div>
+          </div>
+          <div class="ds-credential">
+            <div class="ds-credential__icon">4.8</div>
+            <div>
+              <div class="ds-credential__title">Bedommelse</div>
+              <div class="ds-credential__desc">700+ anmeldelser</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="ds-sub">
+      <h3 class="ds-sub__title">Variation B — Side-by-Side Cards</h3>
+      <p class="ds-sub__desc">Three cards with features list. Middle card featured. Classic pricing layout.</p>
+      <div class="ds-demo" style="padding:40px 20px">
+        <div class="ds-pricing-cards">
+          <div class="ds-pricing-card">
+            <span class="card-duration">18 Uger</span>
+            <h3 class="card-title">Fleksibel</h3>
+            <div class="card-price">25.500 kr</div>
+            <div class="card-period">Ratebetaling mulig</div>
+            <ul class="card-features">
+              <li>200 timers certificering</li>
+              <li>Hverdage eller weekend</li>
+              <li>Max 20 studerende</li>
+              <li>Alle materialer inkluderet</li>
+            </ul>
+            <button class="ds-btn ds-btn--outline" style="width:100%">Laes Mere</button>
+          </div>
+          <div class="ds-pricing-card ds-pricing-card--featured">
+            <span class="card-duration">4 Uger</span>
+            <h3 class="card-title">Intensiv</h3>
+            <div class="card-price">25.500 kr</div>
+            <div class="card-period">Fuld immersion</div>
+            <ul class="card-features">
+              <li>200 timers certificering</li>
+              <li>Mandag-fredag, fuld dag</li>
+              <li>Max 20 studerende</li>
+              <li>Alle materialer inkluderet</li>
+              <li>Hurtigste vej til certificering</li>
+            </ul>
+            <button class="ds-btn ds-btn--primary" style="width:100%">Ansog Nu</button>
+          </div>
+          <div class="ds-pricing-card">
+            <span class="card-duration">8 Uger</span>
+            <h3 class="card-title">Semi-intensiv</h3>
+            <div class="card-price">25.500 kr</div>
+            <div class="card-period">3-4 dage/uge</div>
+            <ul class="card-features">
+              <li>200 timers certificering</li>
+              <li>Intensiv 3-4 dage/uge</li>
+              <li>Max 20 studerende</li>
+              <li>Alle materialer inkluderet</li>
+            </ul>
+            <button class="ds-btn ds-btn--outline" style="width:100%">Laes Mere</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="ds-sub">
+      <h3 class="ds-sub__title">Variation C — Comparison Table</h3>
+      <p class="ds-sub__desc">Horizontal table comparing features across formats. Clean, data-first.</p>
+      <div class="ds-demo" style="overflow-x:auto">
+        <table class="ds-pricing-table" style="min-width:600px">
+          <thead>
+            <tr>
+              <th>Feature</th>
+              <th>18 Uger</th>
+              <th>8 Uger</th>
+              <th>4 Uger</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Pris</td>
+              <td><strong>25.500 kr</strong></td>
+              <td><strong>25.500 kr</strong></td>
+              <td><strong>25.500 kr</strong></td>
+            </tr>
+            <tr>
+              <td>Dage/uge</td>
+              <td>2-3 dage</td>
+              <td>3-4 dage</td>
+              <td>5 dage (fuld)</td>
+            </tr>
+            <tr>
+              <td>Yoga Alliance RYT-200</td>
+              <td>✓</td>
+              <td>✓</td>
+              <td>✓</td>
+            </tr>
+            <tr>
+              <td>Materialer inkluderet</td>
+              <td>✓</td>
+              <td>✓</td>
+              <td>✓</td>
+            </tr>
+            <tr>
+              <td>Ratebetaling</td>
+              <td>✓</td>
+              <td>✓</td>
+              <td>—</td>
+            </tr>
+            <tr>
+              <td>Holdstorrelse</td>
+              <td>Max 20</td>
+              <td>Max 20</td>
+              <td>Max 20</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════════════════════════════
+       27. NAVIGATION ARROWS
+       ═══════════════════════════════════════════════════════════════ -->
+  <section class="ds-section">
+    <div class="ds-section__header">
+      <h2 class="ds-section__title" data-number="27">Navigation Arrows</h2>
+      <p class="ds-section__desc">Arrow variations for galleries, carousels, and card navigation</p>
+    </div>
+
+    <div class="ds-sub">
+      <h3 class="ds-sub__title">Light Background</h3>
+      <div class="ds-demo ds-demo--flex" style="gap:32px;flex-wrap:wrap">
+        <div>
+          <p class="ds-label">Circle Outline</p>
+          <div class="ds-arrow-group">
+            <div class="ds-arrow ds-arrow--circle ds-arrow--left">&#8592;</div>
+            <div class="ds-arrow ds-arrow--circle">&#8594;</div>
+          </div>
+        </div>
+        <div>
+          <p class="ds-label">Circle Filled</p>
+          <div class="ds-arrow-group">
+            <div class="ds-arrow ds-arrow--circle-filled ds-arrow--left">&#8592;</div>
+            <div class="ds-arrow ds-arrow--circle-filled">&#8594;</div>
+          </div>
+        </div>
+        <div>
+          <p class="ds-label">Square</p>
+          <div class="ds-arrow-group">
+            <div class="ds-arrow ds-arrow--square ds-arrow--left">&#8592;</div>
+            <div class="ds-arrow ds-arrow--square">&#8594;</div>
+          </div>
+        </div>
+        <div>
+          <p class="ds-label">Pill with Text</p>
+          <div class="ds-arrow-group">
+            <div class="ds-arrow ds-arrow--pill ds-arrow--left">&#8592; Forrige</div>
+            <div class="ds-arrow ds-arrow--pill">Naeste &#8594;</div>
+          </div>
+        </div>
+        <div>
+          <p class="ds-label">Minimal Large</p>
+          <div class="ds-arrow-group" style="gap:16px">
+            <div class="ds-arrow ds-arrow--minimal ds-arrow--left">&#8592;</div>
+            <div class="ds-arrow ds-arrow--minimal">&#8594;</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="ds-sub">
+      <h3 class="ds-sub__title">Dark Background</h3>
+      <div class="ds-demo ds-demo--dark ds-demo--flex" style="gap:32px">
+        <div>
+          <p class="ds-label" style="background:#333;color:#fff">Ghost</p>
+          <div class="ds-arrow-group">
+            <div class="ds-arrow ds-arrow--ghost ds-arrow--left">&#8592;</div>
+            <div class="ds-arrow ds-arrow--ghost">&#8594;</div>
+          </div>
+        </div>
+        <div>
+          <p class="ds-label" style="background:#333;color:#fff">Circle Filled</p>
+          <div class="ds-arrow-group">
+            <div class="ds-arrow ds-arrow--circle-filled ds-arrow--left">&#8592;</div>
+            <div class="ds-arrow ds-arrow--circle-filled">&#8594;</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="ds-sub">
+      <h3 class="ds-sub__title">In Context — Gallery Navigation</h3>
+      <p class="ds-sub__desc">Arrows positioned over a horizontal scroll gallery</p>
+      <div class="ds-demo" style="position:relative;padding:0;overflow:hidden">
+        <div class="ds-hscroll" style="padding:20px 60px">
+          <div class="ds-hscroll__item">Slide 1</div>
+          <div class="ds-hscroll__item">Slide 2</div>
+          <div class="ds-hscroll__item">Slide 3</div>
+          <div class="ds-hscroll__item">Slide 4</div>
+        </div>
+        <div style="position:absolute;left:12px;top:50%;transform:translateY(-50%)">
+          <div class="ds-arrow ds-arrow--circle ds-arrow--left" style="background:#fff;box-shadow:0 2px 8px rgba(0,0,0,0.15)">&#8592;</div>
+        </div>
+        <div style="position:absolute;right:12px;top:50%;transform:translateY(-50%)">
+          <div class="ds-arrow ds-arrow--circle" style="background:#fff;box-shadow:0 2px 8px rgba(0,0,0,0.15)">&#8594;</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════════════════════════════
+       28. SECTION LAYOUT VARIATIONS
+       ═══════════════════════════════════════════════════════════════ -->
+  <section class="ds-section">
+    <div class="ds-section__header">
+      <h2 class="ds-section__title" data-number="28">Section Layout Variations</h2>
+      <p class="ds-section__desc">New layouts with video, images, looping visuals, and mixed content</p>
+    </div>
+
+    <div class="ds-sub">
+      <h3 class="ds-sub__title">Content + Video Placeholder</h3>
+      <p class="ds-sub__desc">Left text, right video area with play button. Great for program intros.</p>
+      <div class="ds-layout-video">
+        <div class="ds-layout-video__content">
+          <p class="ds-eyebrow ds-eyebrow--brand ds-eyebrow--line">Yogalaereruddannelse</p>
+          <h3 style="font-size:1.8rem;font-weight:700;margin-bottom:12px">Se uddannelsen indefra</h3>
+          <p style="color:var(--ds-text-muted);line-height:1.6;margin-bottom:24px">Oplev vores undervisning, faciliteter og det staerke faellesskab der venter dig.</p>
+          <div>
+            <button class="ds-btn ds-btn--primary">Ansog Nu</button>
+          </div>
+        </div>
+        <div class="ds-layout-video__media">
+          <div class="play-btn">&#9654;</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="ds-sub">
+      <h3 class="ds-sub__title">Image Mosaic Grid</h3>
+      <p class="ds-sub__desc">Asymmetric image grid. Large hero image left, smaller images right.</p>
+      <div class="ds-layout-mosaic">
+        <div class="ds-layout-mosaic__item">[Hero Image]</div>
+        <div class="ds-layout-mosaic__item">[Image 2]</div>
+        <div class="ds-layout-mosaic__item">[Image 3]</div>
+        <div class="ds-layout-mosaic__item">[Image 4]</div>
+        <div class="ds-layout-mosaic__item">[Image 5]</div>
+      </div>
+    </div>
+
+    <div class="ds-sub">
+      <h3 class="ds-sub__title">Content + Looping Visual</h3>
+      <p class="ds-sub__desc">Right side shows animated gradient (placeholder for looping video or GIF)</p>
+      <div class="ds-layout-loop">
+        <div class="ds-layout-loop__content">
+          <p class="ds-eyebrow ds-eyebrow--brand ds-eyebrow--dot">Praktik & Bevegelse</p>
+          <h3 style="font-size:1.6rem;font-weight:700;margin-bottom:10px">Dybere forbindelse</h3>
+          <p style="color:var(--ds-text-muted);line-height:1.6;margin-bottom:20px">Oplev en praksis der forener krop og sind. Vores uddannelse giver dig de vaerktojer du har brug for.</p>
+          <a class="ds-btn ds-btn--ghost" style="padding-left:0">Laes mere</a>
+        </div>
+        <div class="ds-layout-loop__visual">[Looping video / GIF]</div>
+      </div>
+    </div>
+
+    <div class="ds-sub">
+      <h3 class="ds-sub__title">Full-Width Media with Overlay</h3>
+      <p class="ds-sub__desc">Dark background image with overlaid text. For impact sections.</p>
+      <div class="ds-layout-fullmedia">
+        <div class="ds-layout-fullmedia__overlay">
+          <p class="ds-eyebrow ds-eyebrow--white ds-eyebrow--line" style="color:rgba(255,255,255,0.7)">Hot Yoga Copenhagen</p>
+          <h3 style="font-size:clamp(1.8rem,4vw,2.5rem);font-weight:700;margin-bottom:12px;color:#fff">Oplev kraften i varmen</h3>
+          <p style="color:rgba(255,255,255,0.7);line-height:1.6;margin-bottom:24px">26 grader. Dyb fordybelse. Intens transformation. Traen i vores Hot Yoga studio.</p>
+          <button class="ds-btn ds-btn--primary">Book en klasse</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="ds-sub">
+      <h3 class="ds-sub__title">Three-Column Features</h3>
+      <p class="ds-sub__desc">Icon + title + description in three columns. Clean feature showcase.</p>
+      <div class="ds-demo">
+        <div class="ds-layout-triple">
+          <div class="ds-layout-triple__item">
+            <div class="ds-layout-triple__icon">&#9775;</div>
+            <h4 style="font-weight:700;margin-bottom:6px">Traditionel yoga</h4>
+            <p style="font-size:0.85rem;color:var(--ds-text-muted);line-height:1.5">Rodfaestet i autentisk yogafilosofi og klassiske teknikker</p>
+          </div>
+          <div class="ds-layout-triple__item">
+            <div class="ds-layout-triple__icon">&#9827;</div>
+            <h4 style="font-weight:700;margin-bottom:6px">Moderne tilgang</h4>
+            <p style="font-size:0.85rem;color:var(--ds-text-muted);line-height:1.5">Opdateret med nyeste viden inden for anatomi og bevegelse</p>
+          </div>
+          <div class="ds-layout-triple__item">
+            <div class="ds-layout-triple__icon">&#10022;</div>
+            <h4 style="font-weight:700;margin-bottom:6px">Personlig vejledning</h4>
+            <p style="font-size:0.85rem;color:var(--ds-text-muted);line-height:1.5">Sma hold sikrer individuel opmaerksomhed og udvikling</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════════════════════════════
+       29. HERO SECTIONS
+       ═══════════════════════════════════════════════════════════════ -->
+  <section class="ds-section">
+    <div class="ds-section__header">
+      <h2 class="ds-section__title" data-number="29">Hero Sections</h2>
+      <p class="ds-section__desc">Unified hero ideas for different pages. Pick a style for consistency across the site.</p>
+    </div>
+
+    <div class="ds-sub">
+      <h3 class="ds-sub__title">Hero A — Centered Clean</h3>
+      <p class="ds-sub__desc">Light background, centered text, eyebrow + title + subtitle + CTA. Works for all pages.</p>
+      <div class="ds-hero-a">
+        <p class="ds-hero-a__eyebrow">Yogalaereruddannelse i Kobenhavn</p>
+        <h1 class="ds-hero-a__title">Hvor din praksis bliver til dit kald.</h1>
+        <p class="ds-hero-a__subtitle">200-timers Yoga Alliance certificering. Tre formater. Et faellesskab. Bliv certificeret yogalaerer hos Yoga Bible.</p>
+        <div style="display:flex;gap:12px">
+          <button class="ds-btn ds-btn--primary ds-btn--large">Ansog Nu</button>
+          <button class="ds-btn ds-btn--outline ds-btn--large">Se Programmer</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="ds-sub">
+      <h3 class="ds-sub__title">Hero B — Split with Image</h3>
+      <p class="ds-sub__desc">Text left, image/media right. Good for program landing pages.</p>
+      <div class="ds-hero-b">
+        <div class="ds-hero-b__content">
+          <p class="ds-eyebrow ds-eyebrow--brand ds-eyebrow--dot" style="margin-bottom:16px">200-timers Certificering</p>
+          <h1 style="font-size:clamp(2rem,4vw,3rem);font-weight:700;line-height:1.1;margin-bottom:16px">Bliv yogalaerer hos Yoga Bible</h1>
+          <p style="color:var(--ds-text-muted);line-height:1.6;margin-bottom:28px;max-width:450px">Yoga Alliance godkendt uddannelse i hjertet af Kobenhavn. Vaelg mellem 4, 8 eller 18 ugers format.</p>
+          <div style="display:flex;gap:12px;flex-wrap:wrap">
+            <button class="ds-btn ds-btn--primary">Start Din Rejse</button>
+            <button class="ds-btn ds-btn--ghost">Se video &#9654;</button>
+          </div>
+        </div>
+        <div class="ds-hero-b__media">[Hero Image / Video]</div>
+      </div>
+    </div>
+
+    <div class="ds-sub">
+      <h3 class="ds-sub__title">Hero C — Dark Cinematic</h3>
+      <p class="ds-sub__desc">Dark background with radial glow. Dramatic, premium feel. Good for Hot Yoga or special pages.</p>
+      <div class="ds-hero-c">
+        <h1 class="ds-hero-c__title">Hot Yoga<br>Copenhagen</h1>
+        <p class="ds-hero-c__subtitle">Oplev kraften i varmen. Intensive klasser i vores studio i Kobenhavn.</p>
+        <div style="display:flex;gap:12px;position:relative;z-index:1">
+          <button class="ds-btn ds-btn--primary ds-btn--large">Book Klasse</button>
+          <button class="ds-btn ds-btn--outline-light ds-btn--large">Se Skema</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="ds-sub">
+      <h3 class="ds-sub__title">Hero D — Asymmetric with Stats Bar</h3>
+      <p class="ds-sub__desc">Content + media on top, credential stats bar at bottom. Great for trust-building landing pages.</p>
+      <div class="ds-hero-d">
+        <div class="ds-hero-d__main">
+          <div class="ds-hero-d__content">
+            <p class="ds-eyebrow ds-eyebrow--brand ds-eyebrow--line" style="margin-bottom:16px">Yoga Bible</p>
+            <h1 style="font-size:clamp(2rem,4vw,2.8rem);font-weight:700;line-height:1.1;margin-bottom:14px">Din rejse mod certificering starter her</h1>
+            <p style="color:var(--ds-text-muted);line-height:1.6;margin-bottom:28px">Vi har uddannet over 500 yogalaerere siden 2014. Vaer den naeste.</p>
+            <div style="display:flex;gap:12px;flex-wrap:wrap">
+              <button class="ds-btn ds-btn--primary">Ansog Nu</button>
+              <button class="ds-btn ds-btn--outline">Download Brochure</button>
+            </div>
+          </div>
+          <div class="ds-hero-d__media">[Hero Image]</div>
+        </div>
+        <div class="ds-hero-d__stats">
+          <div class="ds-hero-d__stat">
+            <div class="ds-hero-d__stat-icon">YA</div>
+            <div class="ds-hero-d__stat-title">Yoga Alliance</div>
+            <div class="ds-hero-d__stat-desc">RYS 200 Registered</div>
+          </div>
+          <div class="ds-hero-d__stat">
+            <div class="ds-hero-d__stat-icon">10+</div>
+            <div class="ds-hero-d__stat-title">Ars erfaring</div>
+            <div class="ds-hero-d__stat-desc">Siden 2014</div>
+          </div>
+          <div class="ds-hero-d__stat">
+            <div class="ds-hero-d__stat-icon">500+</div>
+            <div class="ds-hero-d__stat-title">Uddannede</div>
+            <div class="ds-hero-d__stat-desc">Yogalaerere</div>
+          </div>
+          <div class="ds-hero-d__stat">
+            <div class="ds-hero-d__stat-icon">4.8</div>
+            <div class="ds-hero-d__stat-title">Bedommelse</div>
+            <div class="ds-hero-d__stat-desc">700+ anmeldelser</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════════════════════════════
+       30. SCROLL-DRAW PATHS
+       ═══════════════════════════════════════════════════════════════ -->
+  <section class="ds-section">
+    <div class="ds-section__header">
+      <h2 class="ds-section__title" data-number="30">Scroll-Draw Paths</h2>
+      <p class="ds-section__desc">SVG vine/branch paths that draw on scroll — brand decorative elements for landing pages. Scroll inside each preview to see the animation. Use sparingly as accents.</p>
+    </div>
+
+    <div class="ds-sub">
+      <h3 class="ds-sub__title">Variation A — Flowing Vine + Shadow Trail</h3>
+      <p class="ds-sub__desc">An organic vine that curves and flows down the page. The main orange line is accompanied by a soft shadow trail that draws slightly ahead.</p>
+      <div class="ds-draw-preview" data-scroll-draw>
+        <svg viewBox="0 0 800 1200" preserveAspectRatio="xMidYMid meet" fill="none">
+          <path class="ds-draw-shadow" fill="none"
+                d="M 400,20 C 480,100 620,140 580,240 C 540,340 380,310 330,400 C 280,490 420,530 470,620 C 520,710 380,770 400,870 C 420,970 560,1020 520,1150"
+                stroke="rgba(247,92,3,0.12)" stroke-width="1.5" stroke-linecap="round" />
+          <path class="ds-draw-path" fill="none"
+                d="M 400,20 C 480,100 620,140 580,240 C 540,340 380,310 330,400 C 280,490 420,530 470,620 C 520,710 380,770 400,870 C 420,970 560,1020 520,1150"
+                stroke="#f75c03" stroke-width="2.5" stroke-linecap="round" />
+        </svg>
+        <div class="ds-draw-content">
+          <p class="ds-eyebrow ds-eyebrow--brand" style="margin-bottom:12px">Yogalaereruddannelse</p>
+          <h2 style="font-size:clamp(2rem,4vw,3rem);font-weight:700;margin-bottom:16px">Hvor din praksis<br>bliver til dit kald</h2>
+          <p style="color:var(--ds-text-muted);max-width:400px;line-height:1.6;margin-bottom:40px">200-timers Yoga Alliance certificering i hjertet af Kobenhavn.</p>
+          <div style="height:300px"></div>
+          <h3 style="font-size:1.5rem;font-weight:700;margin-bottom:12px">Dybere forbindelse</h3>
+          <p style="color:var(--ds-text-muted);max-width:400px;line-height:1.6">Oplev en praksis der forener krop og sind.</p>
+          <div style="height:200px"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="ds-sub">
+      <h3 class="ds-sub__title">Variation B — Keyword-Touching Vine</h3>
+      <p class="ds-sub__desc">The vine flows down and curves toward important content — touching keywords and headings as it passes. Design the path coordinates to land near your key text elements on each page.</p>
+      <div class="ds-draw-preview" data-scroll-draw>
+        <svg viewBox="0 0 800 1200" preserveAspectRatio="xMidYMid meet" fill="none">
+          <!-- Vine starts top-center, swoops right to first keyword, left to second, right to third -->
+          <path class="ds-draw-path" fill="none"
+                d="M 400,20 C 420,60 580,80 620,120 C 660,160 640,190 580,200
+                   C 500,215 350,230 300,280 C 250,330 200,380 180,420
+                   C 160,460 200,490 280,480 C 360,470 550,440 620,480
+                   C 690,520 680,570 620,600 C 560,630 400,640 350,680
+                   C 300,720 280,770 320,820 C 360,870 500,880 560,900
+                   C 620,920 640,960 600,1000 C 560,1040 420,1060 380,1100
+                   C 340,1140 360,1170 400,1180"
+                stroke="#f75c03" stroke-width="2.5" stroke-linecap="round" />
+          <!-- Small dots where vine touches keywords -->
+          <circle cx="580" cy="200" r="4" fill="#f75c03" opacity="0.3" />
+          <circle cx="180" cy="420" r="4" fill="#f75c03" opacity="0.3" />
+          <circle cx="620" cy="600" r="4" fill="#f75c03" opacity="0.3" />
+          <circle cx="320" cy="820" r="4" fill="#f75c03" opacity="0.3" />
+          <circle cx="600" cy="1000" r="4" fill="#f75c03" opacity="0.3" />
+        </svg>
+        <div class="ds-draw-content">
+          <!-- Keyword positioned right — vine touches here -->
+          <div style="text-align:right;max-width:300px;margin-left:auto">
+            <p class="ds-eyebrow ds-eyebrow--brand ds-eyebrow--dot" style="margin-bottom:8px;justify-content:flex-end">Uddannelse</p>
+            <h2 style="font-size:1.8rem;font-weight:700;margin-bottom:8px">RYT-200 Certificering</h2>
+            <p style="color:var(--ds-text-muted);line-height:1.5;font-size:0.95rem">Internationalt anerkendt.</p>
+          </div>
+          <div style="height:160px"></div>
+          <!-- Keyword positioned left — vine swoops here -->
+          <div style="max-width:280px">
+            <h3 style="font-size:1.4rem;font-weight:700;margin-bottom:8px">Personlig vejledning</h3>
+            <p style="color:var(--ds-text-muted);line-height:1.5;font-size:0.95rem">En-til-en mentoring gennem hele forlobet.</p>
+          </div>
+          <div style="height:160px"></div>
+          <!-- Keyword positioned right again -->
+          <div style="text-align:right;max-width:280px;margin-left:auto">
+            <h3 style="font-size:1.4rem;font-weight:700;margin-bottom:8px">Fuldtid & deltid</h3>
+            <p style="color:var(--ds-text-muted);line-height:1.5;font-size:0.95rem">Flexibel uddannelse der passer dit liv.</p>
+          </div>
+          <div style="height:160px"></div>
+          <!-- Bottom keyword left -->
+          <div style="max-width:300px">
+            <h3 style="font-size:1.4rem;font-weight:700;margin-bottom:8px">Kobenhavn studio</h3>
+            <p style="color:var(--ds-text-muted);line-height:1.5;font-size:0.95rem">I hjertet af byen.</p>
+          </div>
+          <div style="height:100px"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="ds-sub">
+      <h3 class="ds-sub__title">Variation C — Vine with Growing Leaves</h3>
+      <p class="ds-sub__desc">The vine draws and tiny leaves sprout along the path as it extends. A living, organic brand element.</p>
+      <div class="ds-draw-preview" data-scroll-draw data-has-leaves="true">
+        <svg viewBox="0 0 800 1200" preserveAspectRatio="xMidYMid meet" fill="none">
+          <path class="ds-draw-shadow" fill="none"
+                d="M 420,20 C 490,110 600,150 560,260 C 520,370 370,340 340,430 C 310,520 440,560 480,650 C 520,740 400,790 410,890 C 420,990 540,1030 510,1150"
+                stroke="rgba(247,92,3,0.1)" stroke-width="1.5" stroke-linecap="round" />
+          <path class="ds-draw-path" fill="none"
+                d="M 420,20 C 490,110 600,150 560,260 C 520,370 370,340 340,430 C 310,520 440,560 480,650 C 520,740 400,790 410,890 C 420,990 540,1030 510,1150"
+                stroke="#f75c03" stroke-width="2.5" stroke-linecap="round" />
+          <!-- Tiny leaves that appear as the vine extends -->
+          <g class="ds-vine-leaves">
+            <!-- Leaf pair at ~12% -->
+            <path class="ds-vine-leaf" data-appear-at="0.12"
+                  d="M 555,148 Q 570,130 565,155 Q 558,168 548,155 Z"
+                  fill="#f75c03" stroke="none" opacity="0" />
+            <path class="ds-vine-leaf" data-appear-at="0.14"
+                  d="M 545,152 Q 530,135 535,158 Q 540,170 550,158 Z"
+                  fill="rgba(247,92,3,0.5)" stroke="none" opacity="0" />
+            <!-- Leaf at ~28% -->
+            <path class="ds-vine-leaf" data-appear-at="0.28"
+                  d="M 448,310 Q 462,292 458,318 Q 452,332 442,318 Z"
+                  fill="#f75c03" stroke="none" opacity="0" />
+            <!-- Leaf pair at ~42% -->
+            <path class="ds-vine-leaf" data-appear-at="0.42"
+                  d="M 348,435 Q 332,418 337,442 Q 342,455 352,442 Z"
+                  fill="#f75c03" stroke="none" opacity="0" />
+            <path class="ds-vine-leaf" data-appear-at="0.44"
+                  d="M 358,430 Q 374,414 368,438 Q 362,452 352,438 Z"
+                  fill="rgba(247,92,3,0.5)" stroke="none" opacity="0" />
+            <!-- Leaf at ~58% -->
+            <path class="ds-vine-leaf" data-appear-at="0.58"
+                  d="M 488,650 Q 504,633 498,658 Q 492,672 482,658 Z"
+                  fill="#f75c03" stroke="none" opacity="0" />
+            <!-- Leaf pair at ~72% -->
+            <path class="ds-vine-leaf" data-appear-at="0.72"
+                  d="M 405,830 Q 420,812 415,838 Q 408,852 398,838 Z"
+                  fill="#f75c03" stroke="none" opacity="0" />
+            <path class="ds-vine-leaf" data-appear-at="0.74"
+                  d="M 415,825 Q 400,808 405,832 Q 410,845 420,832 Z"
+                  fill="rgba(247,92,3,0.5)" stroke="none" opacity="0" />
+            <!-- Leaf at ~88% -->
+            <path class="ds-vine-leaf" data-appear-at="0.88"
+                  d="M 520,1035 Q 536,1018 530,1042 Q 524,1056 514,1042 Z"
+                  fill="#f75c03" stroke="none" opacity="0" />
+            <path class="ds-vine-leaf" data-appear-at="0.90"
+                  d="M 510,1040 Q 494,1024 500,1048 Q 506,1060 516,1048 Z"
+                  fill="rgba(247,92,3,0.5)" stroke="none" opacity="0" />
+          </g>
+        </svg>
+        <div class="ds-draw-content" style="text-align:center">
+          <p class="ds-eyebrow ds-eyebrow--brand ds-eyebrow--line" style="margin-bottom:12px">Yoga Bible</p>
+          <h2 style="font-size:clamp(2rem,4vw,3rem);font-weight:700;margin-bottom:16px">Voks med os</h2>
+          <p style="color:var(--ds-text-muted);max-width:400px;margin:0 auto;line-height:1.6">Se bladene gro mens du scroller — en levende vine som brand-element.</p>
+          <div style="height:300px"></div>
+          <h3 style="font-size:1.5rem;font-weight:700;margin-bottom:12px">Naturen foldes ud</h3>
+          <p style="color:var(--ds-text-muted);max-width:400px;margin:0 auto;line-height:1.6">Hver side fortaeller en organisk historie.</p>
+          <div style="height:200px"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="ds-sub">
+      <h3 class="ds-sub__title">Variation D — Gentle S-Curve</h3>
+      <p class="ds-sub__desc">A simpler, wider S-curve — subtle background accent between sections. Orange line with light shadow.</p>
+      <div class="ds-draw-preview" data-scroll-draw style="height:500px">
+        <svg viewBox="0 0 800 1000" preserveAspectRatio="xMidYMid meet" fill="none">
+          <path class="ds-draw-shadow" fill="none"
+                d="M 150,20 C 150,180 650,220 650,420 C 650,620 150,660 150,860 C 150,940 400,980 400,980"
+                stroke="rgba(247,92,3,0.08)" stroke-width="2" stroke-linecap="round" />
+          <path class="ds-draw-path" fill="none"
+                d="M 150,20 C 150,180 650,220 650,420 C 650,620 150,660 150,860 C 150,940 400,980 400,980"
+                stroke="#f75c03" stroke-width="2" stroke-linecap="round" />
+        </svg>
+        <div class="ds-draw-content" style="text-align:center">
+          <h2 style="font-size:2rem;font-weight:700;margin-bottom:16px">Elegant S-kurve</h2>
+          <p style="color:var(--ds-text-muted)">Subtil baggrundsdekoration mellem sektioner</p>
+          <div style="height:300px"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="ds-sub">
+      <h3 class="ds-sub__title">Variation E — Progress Line</h3>
+      <p class="ds-sub__desc">A mostly vertical line with gentle curves — works as a scrolling progress indicator alongside content. No shadow, clean and functional.</p>
+      <div class="ds-draw-preview" data-scroll-draw style="height:500px">
+        <svg viewBox="0 0 800 1000" preserveAspectRatio="xMidYMid meet" fill="none">
+          <path class="ds-draw-path" fill="none"
+                d="M 400,20 C 420,120 380,220 400,320 C 420,420 440,520 400,620 C 360,720 380,820 400,920 L 400,980"
+                stroke="#f75c03" stroke-width="2" stroke-linecap="round" />
+        </svg>
+        <div class="ds-draw-content" style="text-align:center">
+          <h2 style="font-size:2rem;font-weight:700;margin-bottom:16px">Vertikal fremskridt</h2>
+          <p style="color:var(--ds-text-muted)">Fungerer som scrollbar-lignende accent</p>
+          <div style="height:300px"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════════════════════════════
+       31. PHOTOGRAPHY PAGE LAYOUTS
+       ═══════════════════════════════════════════════════════════════ -->
+  <section class="ds-section">
+    <div class="ds-section__header">
+      <h2 class="ds-section__title" data-number="31">Photography Page Layouts</h2>
+      <p class="ds-section__desc">Layouts designed for the Yoga Photography page — cinematic hero, big-picture storytelling, and creative art grids that break conventional rules.</p>
+    </div>
+
+    <!-- 31A: Dark Cinematic Hero -->
+    <div class="ds-sub">
+      <h3 class="ds-sub__title">A — Dark Cinematic Photo Hero</h3>
+      <p class="ds-sub__desc">Full-bleed image with dark overlay. Text positioned bottom-left. The image does the talking — text is minimal and elegant.</p>
+      <div class="ds-demo" style="padding:0;overflow:hidden;border-radius:12px">
+        <div class="ds-photo-hero">
+          <div style="position:absolute;inset:0;background:linear-gradient(135deg, #1a1a1a 0%, #333 40%, #555 70%, #444 100%);opacity:0.9"></div>
+          <div style="position:absolute;inset:0;background:radial-gradient(ellipse at 60% 40%, rgba(247,92,3,0.08) 0%, transparent 70%)"></div>
+          <div class="ds-photo-hero__content">
+            <p class="ds-photo-hero__eyebrow">Yoga Bible Photography</p>
+            <h1 class="ds-photo-hero__title">Capturing the<br>Art of Movement</h1>
+            <p class="ds-photo-hero__sub">Professionel yogafotografering der fanger styrke, balance og ro i hvert billede.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 31B: Big Picture + Text Split -->
+    <div class="ds-sub">
+      <h3 class="ds-sub__title">B — Big Picture + Text Split</h3>
+      <p class="ds-sub__desc">Dominant image (60%) with text on dark background. The image is the star — text supports it.</p>
+      <div class="ds-demo" style="padding:0;overflow:hidden;border-radius:12px">
+        <div class="ds-photo-split">
+          <div style="background:linear-gradient(180deg, #444 0%, #666 50%, #555 100%);min-height:500px;display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,0.15);font-size:3rem;font-weight:700">
+            PHOTO
+          </div>
+          <div class="ds-photo-split__text">
+            <p style="font-size:0.75rem;text-transform:uppercase;letter-spacing:3px;color:#f75c03;margin-bottom:16px">Bag kameraet</p>
+            <h2 style="font-size:clamp(1.8rem,3vw,2.8rem);font-weight:700;line-height:1.1;margin-bottom:20px">Hvor bevægelse<br>møder lyset</h2>
+            <p style="color:rgba(255,255,255,0.6);line-height:1.7;margin-bottom:30px;font-size:0.95rem">Vi arbejder med naturligt lys og bevægelse for at skabe billeder der fortæller en historie. Hvert shoot er unikt — tilpasset modellen og øjeblikket.</p>
+            <a href="#" style="display:inline-flex;align-items:center;gap:8px;color:#f75c03;font-weight:700;text-decoration:none;font-size:0.9rem">Se galleri →</a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 31C: Art Grid — Bleed Right -->
+    <div class="ds-sub">
+      <h3 class="ds-sub__title">C — Art Grid: Bleed Right</h3>
+      <p class="ds-sub__desc">Photos extend toward the right edge — one tall portrait on the left, smaller images stacked right. Breaks the grid intentionally. "Art mode."</p>
+      <div class="ds-demo" style="padding:0;overflow:hidden;border-radius:12px">
+        <div class="ds-photo-art ds-photo-art--bleed-right">
+          <div class="ds-photo-art__item" style="background:linear-gradient(135deg,#3a3a3a,#555)">
+            <div style="height:100%;display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,0.12);font-size:1.2rem;font-weight:700">PORTRAIT</div>
+          </div>
+          <div class="ds-photo-art__item" style="background:linear-gradient(135deg,#4a4a4a,#666)">
+            <div style="height:100%;display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,0.12);font-size:1rem;font-weight:700">SQUARE</div>
+          </div>
+          <div class="ds-photo-art__item" style="background:linear-gradient(135deg,#555,#777)">
+            <div style="height:100%;display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,0.12);font-size:1rem;font-weight:700">WIDE</div>
+          </div>
+          <div class="ds-photo-art__item" style="background:linear-gradient(135deg,#3d3d3d,#5a5a5a)">
+            <div style="height:100%;display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,0.12);font-size:1rem;font-weight:700">PANORAMIC</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 31D: Art Grid — Overlap Style -->
+    <div class="ds-sub">
+      <h3 class="ds-sub__title">D — Art Grid: Overlap</h3>
+      <p class="ds-sub__desc">Large hero image on the left with overlapping smaller images right. Feels layered and editorial.</p>
+      <div class="ds-demo" style="padding:0;overflow:hidden;border-radius:12px">
+        <div class="ds-photo-art ds-photo-art--overlap">
+          <div class="ds-photo-art__item" style="background:linear-gradient(180deg,#3a3a3a,#555)">
+            <div style="height:100%;display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,0.12);font-size:1.5rem;font-weight:700">HERO SHOT</div>
+          </div>
+          <div class="ds-photo-art__item" style="background:linear-gradient(135deg,#4a4a4a,#666)">
+            <div style="height:100%;display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,0.12);font-size:1rem;font-weight:700">HORIZONTAL</div>
+          </div>
+          <div class="ds-photo-art__item" style="background:linear-gradient(135deg,#555,#777)">
+            <div style="height:100%;display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,0.12);font-size:0.9rem;font-weight:700">DETAIL</div>
+          </div>
+          <div class="ds-photo-art__item" style="background:linear-gradient(135deg,#3d3d3d,#5a5a5a)">
+            <div style="height:100%;display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,0.12);font-size:0.9rem;font-weight:700">DETAIL</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 31E: Art Grid — Diagonal Flow -->
+    <div class="ds-sub">
+      <h3 class="ds-sub__title">E — Art Grid: Diagonal Flow</h3>
+      <p class="ds-sub__desc">Images flow diagonally across the grid — the eye moves from top-left to bottom-right naturally. Creative, editorial feel.</p>
+      <div class="ds-demo" style="padding:0;overflow:hidden;border-radius:12px">
+        <div class="ds-photo-art ds-photo-art--diagonal">
+          <div class="ds-photo-art__item" style="background:linear-gradient(135deg,#3a3a3a,#555)">
+            <div style="height:100%;display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,0.12);font-size:1.2rem;font-weight:700">WIDE SHOT</div>
+          </div>
+          <div class="ds-photo-art__item" style="background:linear-gradient(135deg,#4a4a4a,#666)">
+            <div style="height:100%;display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,0.12);font-size:0.9rem;font-weight:700">SQUARE</div>
+          </div>
+          <div class="ds-photo-art__item" style="background:linear-gradient(135deg,#555,#777)">
+            <div style="height:100%;display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,0.12);font-size:0.9rem;font-weight:700">DETAIL</div>
+          </div>
+          <div class="ds-photo-art__item" style="background:linear-gradient(135deg,#3d3d3d,#5a5a5a)">
+            <div style="height:100%;display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,0.12);font-size:1.2rem;font-weight:700">BOTTOM PANORAMIC</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════════════════════════════
+       32. MODEL / PHOTOGRAPHER SHOWCASE
+       Loose, editorial style — photos offset with breathing room,
+       not rigid grids. Dark backgrounds. Magazine feel.
+       ═══════════════════════════════════════════════════════════════ -->
+  <section class="ds-section">
+    <div class="ds-section__header">
+      <h2 class="ds-section__title" data-number="32">Model Showcase</h2>
+      <p class="ds-section__desc">Loose, editorial model profiles — arty photo layouts with offsets, varied sizes, and breathing room. Each includes: name, bio, social links, 1 portrait + featured yoga photos. Dark background, magazine feel.</p>
+    </div>
+
+    <!-- 32A: Portrait left intro → 1 horizontal + 2 portrait loosely placed below -->
+    <div class="ds-sub">
+      <h3 class="ds-sub__title">Variation A — Portrait + Scattered Gallery</h3>
+      <p class="ds-sub__desc">Portrait photo and bio side-by-side at top. Below: photos placed loosely — one wide horizontal, two portraits at different heights with offsets. Organic, breathing layout.</p>
+      <div class="ds-demo" style="padding:0;overflow:hidden;border-radius:12px">
+        <div class="ds-model-showcase ds-model-a">
+          <div class="ds-model__intro">
+            <div class="ds-model__portrait" style="background:linear-gradient(180deg,#333,#555);display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,0.08);font-size:1rem;font-weight:700">
+              PORTRAIT
+            </div>
+            <div class="ds-model__info">
+              <p class="ds-model__eyebrow">Yoga Model</p>
+              <h3 class="ds-model__name">Sofia Andersen</h3>
+              <p class="ds-model__bio">Certificeret Vinyasa-instruktør med 8 års erfaring. Sofia kombinerer kraft og elegance i sin praksis og bringer en unik æstetik til hvert shoot.</p>
+              <div class="ds-model__links">
+                <a href="#">◎ Instagram</a>
+                <a href="#">◇ Website</a>
+              </div>
+            </div>
+          </div>
+          <div class="ds-model__gallery">
+            <div class="ds-model__photo ds-model__photo--h" style="background:linear-gradient(135deg,#3a3a3a,#555);display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,0.06);font-size:0.85rem;font-weight:700">HORIZONTAL</div>
+            <div class="ds-model__photo ds-model__photo--v1" style="background:linear-gradient(135deg,#444,#666);display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,0.06);font-size:0.85rem;font-weight:700">PORTRAIT</div>
+            <div class="ds-model__photo ds-model__photo--v2" style="background:linear-gradient(135deg,#383838,#5a5a5a);display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,0.06);font-size:0.85rem;font-weight:700">PORTRAIT</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 32B: Wide hero portrait → info centered → 1 portrait, 2 horizontal, 1 vertical staggered -->
+    <div class="ds-sub">
+      <h3 class="ds-sub__title">Variation B — Hero Portrait + Staggered Photos</h3>
+      <p class="ds-sub__desc">Wide cinematic portrait at top with centered name. Info below. Photos staggered in two rows with different heights and negative margins for overlap feel. Bold, editorial.</p>
+      <div class="ds-demo" style="padding:0;overflow:hidden;border-radius:12px">
+        <div class="ds-model-showcase ds-model-b">
+          <div class="ds-model__intro">
+            <div class="ds-model__portrait" style="background:linear-gradient(180deg,#333,#4a4a4a);display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,0.06);font-size:1.5rem;font-weight:700">
+              HERO PORTRAIT
+            </div>
+            <div class="ds-model__info">
+              <p class="ds-model__eyebrow">Yoga Model</p>
+              <h3 class="ds-model__name">Mie Kristensen</h3>
+              <p class="ds-model__bio">Yin yoga-specialist og meditationsguide. Mie skaber stille rum hvor kameraet finder ro i bevægelsen. Hendes praksis er rolig, dyb og visuelt meditativ.</p>
+              <div class="ds-model__links">
+                <a href="#">◎ Instagram</a>
+                <a href="#">◇ Website</a>
+              </div>
+            </div>
+          </div>
+          <div class="ds-model__gallery">
+            <div class="ds-model__photo ds-model__photo--p" style="background:linear-gradient(135deg,#444,#666);display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,0.06);font-size:0.85rem;font-weight:700">PORTRAIT</div>
+            <div class="ds-model__photo ds-model__photo--h1" style="background:linear-gradient(135deg,#3a3a3a,#555);display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,0.06);font-size:0.85rem;font-weight:700">HORIZONTAL</div>
+            <div class="ds-model__photo ds-model__photo--h2" style="background:linear-gradient(135deg,#383838,#5a5a5a);display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,0.06);font-size:0.85rem;font-weight:700">HORIZONTAL</div>
+            <div class="ds-model__photo ds-model__photo--v" style="background:linear-gradient(135deg,#404040,#606060);display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,0.06);font-size:0.85rem;font-weight:700">VERTICAL</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 32C: Portrait + info side by side → wide shot below → 2 offset photos with slight rotation -->
+    <div class="ds-sub">
+      <h3 class="ds-sub__title">Variation C — Editorial with Rotated Offsets</h3>
+      <p class="ds-sub__desc">Portrait and bio side-by-side. Below: one full-width wide shot, then two photos slightly rotated and overlapping — like photos casually placed on a table. Most artistic variation.</p>
+      <div class="ds-demo" style="padding:0;overflow:hidden;border-radius:12px">
+        <div class="ds-model-showcase ds-model-c">
+          <div class="ds-model__intro">
+            <div class="ds-model__portrait" style="background:linear-gradient(180deg,#333,#555);display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,0.08);font-size:1rem;font-weight:700">
+              PORTRAIT
+            </div>
+            <div class="ds-model__info">
+              <p class="ds-model__eyebrow">Yoga Model</p>
+              <h3 class="ds-model__name">Emilie Storm</h3>
+              <p class="ds-model__bio">Ashtanga-praktiker og performancekunstner. Hendes praksis er rå, kraftfuld og visuelt fængende. Emilie bryder grænser mellem yoga og scenekunst.</p>
+              <div class="ds-model__links">
+                <a href="#">◎ Instagram</a>
+                <a href="#">◇ Portfolio</a>
+              </div>
+            </div>
+          </div>
+          <div class="ds-model__gallery">
+            <div class="ds-model__photo ds-model__photo--wide" style="background:linear-gradient(135deg,#3a3a3a,#555);display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,0.06);font-size:0.9rem;font-weight:700">WIDE SHOT</div>
+            <div class="ds-model__photo ds-model__photo--offset-left" style="background:linear-gradient(135deg,#444,#666);display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,0.06);font-size:0.85rem;font-weight:700">PORTRAIT</div>
+            <div class="ds-model__photo ds-model__photo--offset-right" style="background:linear-gradient(135deg,#383838,#5a5a5a);display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,0.06);font-size:0.85rem;font-weight:700">LANDSCAPE</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════════════════════════════
+       33. HEADER DESIGN ALTERNATIVES
+       ═══════════════════════════════════════════════════════════════ -->
+  <section class="ds-section">
+    <div class="ds-section__header">
+      <h2 class="ds-section__title" data-number="33">Header Design Alternatives</h2>
+      <p class="ds-section__desc">4 header concepts to replace the Squarespace header. Each shown at Desktop (1280px), Tablet (768px), and Mobile (375px).</p>
+    </div>
+
+    <style>
+    /* ── Section 33: Header Design Previews ── */
+    .ds-hdr-preview { border: 1px solid var(--ds-border); border-radius: 16px; overflow: hidden; margin-bottom: 48px; }
+    .ds-hdr-preview__label { padding: 14px 20px; background: #F5F3F0; font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ds-text-muted); font-weight: 700; border-bottom: 1px solid var(--ds-border); display: flex; align-items: center; gap: 8px; }
+    .ds-hdr-preview__dot { width: 8px; height: 8px; border-radius: 50%; }
+    .ds-hdr-preview__dot--dk { background: #0F0F0F; }
+    .ds-hdr-preview__dot--tb { background: var(--yb-brand); }
+    .ds-hdr-preview__dot--mb { background: #3f99a5; }
+    .ds-hdr-wrap { overflow-x: auto; }
+    .ds-hdr-frame { min-width: fit-content; }
+    .ds-hdr-frame--desktop { width: 1280px; }
+    .ds-hdr-frame--tablet { width: 768px; }
+    .ds-hdr-frame--mobile { width: 375px; }
+
+    /* Shared header reset inside previews */
+    .ds-hdr-frame * { box-sizing: border-box; margin: 0; padding: 0; }
+    .ds-hdr-frame a { text-decoration: none; color: inherit; }
+
+    /* ───────────────────────────────────────
+       DESIGN A: Minimal Light — Centered Logo
+       ─────────────────────────────────────── */
+    .hdrA {
+      background: #FFFCF9;
+      border-bottom: 1px solid #E8E4E0;
+      font-family: 'Abacaxi', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    }
+    .hdrA-inner {
+      max-width: 1280px;
+      margin: 0 auto;
+      padding: 0 clamp(16px, 3vw, 30px);
+    }
+    .hdrA-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 8px 0;
+      font-size: 11px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: #6F6A66;
+      border-bottom: 1px solid #E8E4E0;
+    }
+    .hdrA-top__left { display: flex; gap: 16px; align-items: center; }
+    .hdrA-top__right { display: flex; gap: 12px; align-items: center; }
+    .hdrA-top a { color: #6F6A66; transition: color 0.15s; }
+    .hdrA-top a:hover { color: #f75c03; }
+    .hdrA-top__flag { font-size: 14px; cursor: pointer; }
+    .hdrA-top__flag.is-active { opacity: 1; }
+    .hdrA-top__flag:not(.is-active) { opacity: 0.5; }
+
+    .hdrA-main {
+      display: grid;
+      grid-template-columns: 1fr auto 1fr;
+      align-items: center;
+      padding: 18px 0;
+      gap: 24px;
+    }
+    .hdrA-nav { display: flex; align-items: center; gap: 24px; }
+    .hdrA-nav--left { justify-content: flex-start; }
+    .hdrA-nav--right { justify-content: flex-end; }
+    .hdrA-nav a, .hdrA-nav button {
+      font-size: 12px;
+      letter-spacing: 0.07em;
+      text-transform: uppercase;
+      color: #0F0F0F;
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: 8px 0;
+      position: relative;
+      font-family: inherit;
+      transition: color 0.15s;
+    }
+    .hdrA-nav a:hover, .hdrA-nav button:hover { color: #f75c03; }
+    .hdrA-nav a::after, .hdrA-nav button::after {
+      content: '';
+      position: absolute;
+      bottom: 4px;
+      left: 0;
+      width: 0;
+      height: 1.5px;
+      background: #f75c03;
+      transition: width 0.2s ease;
+    }
+    .hdrA-nav a:hover::after, .hdrA-nav button:hover::after { width: 100%; }
+
+    .hdrA-logo img { height: 42px; display: block; }
+    .hdrA-cta {
+      display: inline-flex;
+      align-items: center;
+      padding: 9px 20px;
+      border-radius: 999px;
+      background: #f75c03;
+      color: #fff;
+      font-size: 11px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      border: none;
+      cursor: pointer;
+      font-family: inherit;
+      font-weight: 700;
+      transition: transform 0.15s, filter 0.15s;
+    }
+    .hdrA-cta:hover { transform: translateY(-1px); filter: brightness(1.05); }
+    .hdrA-caret { color: #f75c03; font-size: 14px; margin-left: 2px; }
+
+    /* A — Tablet */
+    .ds-hdr-frame--tablet .hdrA-top { display: none; }
+    .ds-hdr-frame--tablet .hdrA-main {
+      grid-template-columns: auto 1fr auto;
+      gap: 16px;
+    }
+    .ds-hdr-frame--tablet .hdrA-nav--left { display: none; }
+    .ds-hdr-frame--tablet .hdrA-nav--right { gap: 16px; }
+    .ds-hdr-frame--tablet .hdrA-burger { display: flex; }
+
+    /* A — Mobile */
+    .ds-hdr-frame--mobile .hdrA-top { display: none; }
+    .ds-hdr-frame--mobile .hdrA-main {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 14px 0;
+    }
+    .ds-hdr-frame--mobile .hdrA-nav { display: none; }
+    .ds-hdr-frame--mobile .hdrA-burger { display: flex; }
+    .ds-hdr-frame--mobile .hdrA-logo img { height: 36px; }
+
+    /* Burger (hidden on desktop by default) */
+    .hdrA-burger {
+      display: none;
+      width: 42px;
+      height: 42px;
+      border-radius: 999px;
+      border: 1.5px solid #f75c03;
+      background: none;
+      cursor: pointer;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .hdrA-burger span { display: block; width: 16px; height: 1.5px; background: #f75c03; border-radius: 2px; }
+
+    /* ───────────────────────────────────────
+       DESIGN B: Two-Tier Dark — Logo Left
+       ─────────────────────────────────────── */
+    .hdrB {
+      background: #0F0F0F;
+      font-family: 'Abacaxi', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+      color: #FDFBF7;
+    }
+    .hdrB-inner {
+      max-width: 1280px;
+      margin: 0 auto;
+      padding: 0 clamp(16px, 3vw, 30px);
+    }
+    .hdrB-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 0;
+      border-bottom: 1px solid rgba(253,251,247,0.08);
+      font-size: 11px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: rgba(253,251,247,0.55);
+    }
+    .hdrB-top__left { display: flex; gap: 20px; align-items: center; }
+    .hdrB-top__right { display: flex; gap: 14px; align-items: center; }
+    .hdrB-top a { color: rgba(253,251,247,0.55); transition: color 0.15s; }
+    .hdrB-top a:hover { color: #f75c03; }
+    .hdrB-top__sep { width: 1px; height: 14px; background: rgba(253,251,247,0.12); }
+    .hdrB-top__flag { font-size: 14px; cursor: pointer; }
+    .hdrB-top__social { display: flex; gap: 10px; align-items: center; }
+    .hdrB-top__social-dot {
+      width: 28px; height: 28px;
+      border-radius: 50%;
+      border: 1px solid rgba(253,251,247,0.15);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      color: rgba(253,251,247,0.6);
+      transition: border-color 0.15s, color 0.15s;
+    }
+    .hdrB-top__social-dot:hover { border-color: #f75c03; color: #f75c03; }
+
+    .hdrB-main {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 16px 0;
+      gap: 32px;
+    }
+    .hdrB-logo img { height: 44px; display: block; }
+    .hdrB-nav { display: flex; align-items: center; gap: 28px; }
+    .hdrB-nav a, .hdrB-nav button {
+      font-size: 13px;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: #FDFBF7;
+      background: none;
+      border: none;
+      cursor: pointer;
+      font-family: inherit;
+      padding: 8px 0;
+      position: relative;
+      transition: color 0.15s;
+    }
+    .hdrB-nav a:hover, .hdrB-nav button:hover { color: #f75c03; }
+    .hdrB-nav a::after, .hdrB-nav button::after {
+      content: '';
+      position: absolute;
+      bottom: 4px;
+      left: 50%;
+      width: 0;
+      height: 2px;
+      background: #f75c03;
+      transition: width 0.2s, left 0.2s;
+    }
+    .hdrB-nav a:hover::after, .hdrB-nav button:hover::after { width: 100%; left: 0; }
+    .hdrB-caret { color: #f75c03; font-size: 14px; margin-left: 3px; }
+
+    .hdrB-right { display: flex; align-items: center; gap: 16px; }
+    .hdrB-cta {
+      display: inline-flex;
+      padding: 10px 22px;
+      border-radius: 999px;
+      border: 1.5px solid #f75c03;
+      background: transparent;
+      color: #f75c03;
+      font-size: 12px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      cursor: pointer;
+      font-family: inherit;
+      font-weight: 700;
+      transition: background 0.2s, color 0.2s, transform 0.15s;
+    }
+    .hdrB-cta:hover { background: #f75c03; color: #fff; transform: translateY(-1px); }
+
+    /* B — Tablet */
+    .ds-hdr-frame--tablet .hdrB-top { display: none; }
+    .ds-hdr-frame--tablet .hdrB-nav { gap: 18px; }
+    .ds-hdr-frame--tablet .hdrB-nav a, .ds-hdr-frame--tablet .hdrB-nav button { font-size: 11px; }
+    .ds-hdr-frame--tablet .hdrB-burger { display: none; }
+
+    /* B — Mobile */
+    .ds-hdr-frame--mobile .hdrB-top { display: none; }
+    .ds-hdr-frame--mobile .hdrB-nav { display: none; }
+    .ds-hdr-frame--mobile .hdrB-cta--desk { display: none; }
+    .ds-hdr-frame--mobile .hdrB-burger { display: flex; }
+    .ds-hdr-frame--mobile .hdrB-logo img { height: 36px; }
+
+    .hdrB-burger {
+      display: none;
+      width: 44px;
+      height: 44px;
+      border-radius: 999px;
+      border: 1.5px solid #f75c03;
+      background: none;
+      cursor: pointer;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      gap: 5px;
+    }
+    .hdrB-burger span { display: block; width: 18px; height: 2px; background: #f75c03; border-radius: 2px; }
+
+    /* ───────────────────────────────────────
+       DESIGN C: Transparent Overlay Header
+       ─────────────────────────────────────── */
+    .hdrC-wrap {
+      position: relative;
+      background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+      min-height: 220px;
+      font-family: 'Abacaxi', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+      color: #FDFBF7;
+    }
+    .hdrC-wrap__hero-text {
+      position: absolute;
+      bottom: 30px;
+      left: clamp(16px, 3vw, 30px);
+      font-size: 11px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: rgba(253,251,247,0.25);
+    }
+    .hdrC {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      background: transparent;
+      z-index: 10;
+    }
+    .hdrC-inner {
+      max-width: 1280px;
+      margin: 0 auto;
+      padding: 24px clamp(16px, 3vw, 30px);
+      display: grid;
+      grid-template-columns: 1fr auto 1fr;
+      align-items: center;
+      gap: 24px;
+    }
+    .hdrC-nav { display: flex; align-items: center; gap: 24px; }
+    .hdrC-nav--left { justify-content: flex-start; }
+    .hdrC-nav--right { justify-content: flex-end; }
+    .hdrC-nav a, .hdrC-nav button {
+      font-size: 12px;
+      letter-spacing: 0.07em;
+      text-transform: uppercase;
+      color: rgba(253,251,247,0.85);
+      background: none;
+      border: none;
+      cursor: pointer;
+      font-family: inherit;
+      padding: 8px 0;
+      transition: color 0.15s;
+    }
+    .hdrC-nav a:hover, .hdrC-nav button:hover { color: #f75c03; }
+    .hdrC-caret { color: #f75c03; font-size: 14px; margin-left: 2px; }
+    .hdrC-logo img { height: 46px; display: block; filter: brightness(1.1); }
+
+    .hdrC-actions { display: flex; align-items: center; gap: 12px; }
+    .hdrC-flag { font-size: 15px; cursor: pointer; opacity: 0.7; transition: opacity 0.15s; }
+    .hdrC-flag:hover, .hdrC-flag.is-active { opacity: 1; }
+    .hdrC-cta {
+      display: inline-flex;
+      padding: 9px 20px;
+      border-radius: 999px;
+      background: #f75c03;
+      color: #fff;
+      font-size: 11px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      border: none;
+      cursor: pointer;
+      font-family: inherit;
+      font-weight: 700;
+      transition: transform 0.15s, filter 0.15s;
+    }
+    .hdrC-cta:hover { transform: translateY(-1px); filter: brightness(1.08); }
+
+    /* C scrolled state indicator */
+    .hdrC-scrolled-label {
+      font-size: 10px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: rgba(253,251,247,0.35);
+      text-align: center;
+      padding: 6px 0 0;
+    }
+    .hdrC--solid {
+      background: rgba(15,15,15,0.92);
+      backdrop-filter: blur(16px);
+      border-bottom: 1px solid rgba(253,251,247,0.08);
+      position: relative;
+    }
+    .hdrC--solid .hdrC-inner { padding: 14px clamp(16px, 3vw, 30px); }
+    .hdrC--solid .hdrC-logo img { height: 36px; }
+
+    /* C — Tablet */
+    .ds-hdr-frame--tablet .hdrC-inner {
+      grid-template-columns: auto 1fr auto;
+      gap: 16px;
+    }
+    .ds-hdr-frame--tablet .hdrC-nav--left { display: none; }
+    .ds-hdr-frame--tablet .hdrC-nav--right { justify-content: flex-end; gap: 16px; }
+    .ds-hdr-frame--tablet .hdrC-nav--right a, .ds-hdr-frame--tablet .hdrC-nav--right button { font-size: 11px; }
+    .ds-hdr-frame--tablet .hdrC-burger { display: none; }
+
+    /* C — Mobile */
+    .ds-hdr-frame--mobile .hdrC-inner { display: flex; justify-content: space-between; align-items: center; }
+    .ds-hdr-frame--mobile .hdrC-nav { display: none; }
+    .ds-hdr-frame--mobile .hdrC-actions--desk { display: none; }
+    .ds-hdr-frame--mobile .hdrC-burger { display: flex; }
+    .ds-hdr-frame--mobile .hdrC-logo img { height: 34px; }
+
+    .hdrC-burger {
+      display: none;
+      width: 42px;
+      height: 42px;
+      border-radius: 999px;
+      border: 1.5px solid rgba(253,251,247,0.3);
+      background: none;
+      cursor: pointer;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .hdrC-burger span { display: block; width: 16px; height: 1.5px; background: #FDFBF7; border-radius: 2px; }
+
+    /* ───────────────────────────────────────
+       DESIGN D: Ultra-Minimal Editorial
+       ─────────────────────────────────────── */
+    .hdrD {
+      background: #FFFCF9;
+      font-family: 'Abacaxi', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+      color: #0F0F0F;
+      border-bottom: 2px solid #0F0F0F;
+    }
+    .hdrD-inner {
+      max-width: 1280px;
+      margin: 0 auto;
+      padding: 0 clamp(16px, 3vw, 30px);
+    }
+    .hdrD-main {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 20px 0;
+    }
+    .hdrD-left { display: flex; align-items: center; gap: 32px; }
+    .hdrD-logo img { height: 40px; display: block; }
+    .hdrD-logo-text {
+      font-size: 22px;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: #0F0F0F;
+      line-height: 1;
+    }
+    .hdrD-logo-text span { color: #f75c03; }
+
+    .hdrD-nav {
+      display: flex;
+      align-items: center;
+      gap: 0;
+      border: 1.5px solid #0F0F0F;
+      border-radius: 999px;
+      overflow: hidden;
+    }
+    .hdrD-nav a, .hdrD-nav button {
+      font-size: 11px;
+      letter-spacing: 0.07em;
+      text-transform: uppercase;
+      color: #0F0F0F;
+      background: none;
+      border: none;
+      border-right: 1px solid rgba(15,15,15,0.15);
+      cursor: pointer;
+      font-family: inherit;
+      padding: 10px 16px;
+      transition: background 0.15s, color 0.15s;
+      white-space: nowrap;
+    }
+    .hdrD-nav a:last-child, .hdrD-nav button:last-child { border-right: none; }
+    .hdrD-nav a:hover, .hdrD-nav button:hover { background: #0F0F0F; color: #FDFBF7; }
+    .hdrD-caret { color: #f75c03; font-size: 12px; margin-left: 2px; }
+
+    .hdrD-right { display: flex; align-items: center; gap: 14px; }
+    .hdrD-flags { display: flex; gap: 6px; align-items: center; }
+    .hdrD-flag {
+      font-size: 14px;
+      width: 32px; height: 32px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
+      border: 1.5px solid #E8E4E0;
+      cursor: pointer;
+      transition: border-color 0.15s;
+    }
+    .hdrD-flag:hover, .hdrD-flag.is-active { border-color: #f75c03; }
+    .hdrD-cta {
+      display: inline-flex;
+      padding: 10px 22px;
+      border-radius: 999px;
+      background: #0F0F0F;
+      color: #FDFBF7;
+      font-size: 11px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      border: none;
+      cursor: pointer;
+      font-family: inherit;
+      font-weight: 700;
+      transition: background 0.2s, transform 0.15s;
+    }
+    .hdrD-cta:hover { background: #f75c03; transform: translateY(-1px); }
+
+    /* D bottom nav bar */
+    .hdrD-bottom {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 32px;
+      padding: 12px 0;
+      border-top: 1px solid #E8E4E0;
+    }
+    .hdrD-bottom a {
+      font-size: 11px;
+      letter-spacing: 0.07em;
+      text-transform: uppercase;
+      color: #6F6A66;
+      transition: color 0.15s;
+    }
+    .hdrD-bottom a:hover { color: #f75c03; }
+    .hdrD-bottom__dot { width: 3px; height: 3px; border-radius: 50%; background: #E8E4E0; }
+
+    /* D — Tablet */
+    .ds-hdr-frame--tablet .hdrD-nav { display: none; }
+    .ds-hdr-frame--tablet .hdrD-bottom { gap: 20px; }
+    .ds-hdr-frame--tablet .hdrD-bottom a { font-size: 10px; }
+    .ds-hdr-frame--tablet .hdrD-burger { display: flex; }
+
+    /* D — Mobile */
+    .ds-hdr-frame--mobile .hdrD-nav { display: none; }
+    .ds-hdr-frame--mobile .hdrD-bottom { display: none; }
+    .ds-hdr-frame--mobile .hdrD-burger { display: flex; }
+    .ds-hdr-frame--mobile .hdrD-logo img { height: 32px; }
+    .ds-hdr-frame--mobile .hdrD-flags { display: none; }
+
+    .hdrD-burger {
+      display: none;
+      width: 40px;
+      height: 40px;
+      border-radius: 999px;
+      border: 1.5px solid #0F0F0F;
+      background: none;
+      cursor: pointer;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .hdrD-burger span { display: block; width: 16px; height: 1.5px; background: #0F0F0F; border-radius: 2px; }
+    </style>
+
+    <!-- ══════════════════════════════════════
+         DESIGN A — Minimal Light, Centered Logo
+         ══════════════════════════════════════ -->
+    <div style="margin-bottom:60px">
+      <h3 style="font-size:1.2rem;font-weight:700;margin-bottom:6px">Design A — Minimal Light, Centered Logo</h3>
+      <p style="color:var(--ds-text-muted);font-size:0.9rem;margin-bottom:24px">
+        Light warm-white background with a thin utility bar on top (social, language) and the main nav below.
+        Logo centered with navigation split left/right. Clean, editorial, Scandinavian feel.
+        Utility bar collapses on tablet/mobile. Burger menu appears at mobile.
+      </p>
+
+      <!-- A: Desktop -->
+      <div class="ds-hdr-preview">
+        <div class="ds-hdr-preview__label"><span class="ds-hdr-preview__dot ds-hdr-preview__dot--dk"></span> Desktop — 1280px</div>
+        <div class="ds-hdr-wrap">
+          <div class="ds-hdr-frame ds-hdr-frame--desktop">
+            <header class="hdrA">
+              <div class="hdrA-inner">
+                <div class="hdrA-top">
+                  <div class="hdrA-top__left">
+                    <a href="#">info@yogabible.dk</a>
+                    <a href="#">+45 53 88 12 09</a>
+                  </div>
+                  <div class="hdrA-top__right">
+                    <a href="#">Instagram</a>
+                    <a href="#">SoundCloud</a>
+                    <span style="width:1px;height:12px;background:#E8E4E0;display:inline-block"></span>
+                    <span class="hdrA-top__flag is-active">&#x1F1E9;&#x1F1F0;</span>
+                    <span class="hdrA-top__flag">&#x1F1EC;&#x1F1E7;</span>
+                  </div>
+                </div>
+                <div class="hdrA-main">
+                  <nav class="hdrA-nav hdrA-nav--left">
+                    <button>Uddannelser <span class="hdrA-caret">&#x25BE;</span></button>
+                    <button>Kurser <span class="hdrA-caret">&#x25BE;</span></button>
+                    <a href="#">Mentorship</a>
+                  </nav>
+                  <a href="#" class="hdrA-logo">
+                    <img src="/assets/images/brand/logo-orange-on-transparent.png" alt="Yoga Bible" />
+                  </a>
+                  <nav class="hdrA-nav hdrA-nav--right">
+                    <button>Mere <span class="hdrA-caret">&#x25BE;</span></button>
+                    <button>Yoga Bible <span class="hdrA-caret">&#x25BE;</span></button>
+                    <a href="#" class="hdrA-cta">Ansog</a>
+                  </nav>
+                </div>
+              </div>
+            </header>
+          </div>
+        </div>
+      </div>
+
+      <!-- A: Tablet -->
+      <div class="ds-hdr-preview">
+        <div class="ds-hdr-preview__label"><span class="ds-hdr-preview__dot ds-hdr-preview__dot--tb"></span> Tablet — 768px</div>
+        <div class="ds-hdr-wrap">
+          <div class="ds-hdr-frame ds-hdr-frame--tablet">
+            <header class="hdrA">
+              <div class="hdrA-inner">
+                <div class="hdrA-main">
+                  <a href="#" class="hdrA-logo">
+                    <img src="/assets/images/brand/logo-orange-on-transparent.png" alt="Yoga Bible" />
+                  </a>
+                  <nav class="hdrA-nav hdrA-nav--right">
+                    <button>Uddannelser <span class="hdrA-caret">&#x25BE;</span></button>
+                    <button>Kurser <span class="hdrA-caret">&#x25BE;</span></button>
+                    <a href="#">Mere <span class="hdrA-caret">&#x25BE;</span></a>
+                    <a href="#" class="hdrA-cta">Ansog</a>
+                  </nav>
+                  <button class="hdrA-burger" aria-label="Menu"><span></span><span></span><span></span></button>
+                </div>
+              </div>
+            </header>
+          </div>
+        </div>
+      </div>
+
+      <!-- A: Mobile -->
+      <div class="ds-hdr-preview">
+        <div class="ds-hdr-preview__label"><span class="ds-hdr-preview__dot ds-hdr-preview__dot--mb"></span> Mobile — 375px</div>
+        <div class="ds-hdr-wrap">
+          <div class="ds-hdr-frame ds-hdr-frame--mobile">
+            <header class="hdrA">
+              <div class="hdrA-inner">
+                <div class="hdrA-main">
+                  <a href="#" class="hdrA-logo">
+                    <img src="/assets/images/brand/logo-orange-on-transparent.png" alt="Yoga Bible" />
+                  </a>
+                  <div style="display:flex;gap:8px;align-items:center">
+                    <span style="font-size:15px;cursor:pointer">&#x1F1E9;&#x1F1F0;</span>
+                    <span style="font-size:15px;cursor:pointer;opacity:0.5">&#x1F1EC;&#x1F1E7;</span>
+                    <button class="hdrA-burger" aria-label="Menu"><span></span><span></span><span></span></button>
+                  </div>
+                </div>
+              </div>
+            </header>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══════════════════════════════════════
+         DESIGN B — Two-Tier Dark, Logo Left
+         ══════════════════════════════════════ -->
+    <div style="margin-bottom:60px">
+      <h3 style="font-size:1.2rem;font-weight:700;margin-bottom:6px">Design B — Two-Tier Dark, Logo Left</h3>
+      <p style="color:var(--ds-text-muted);font-size:0.9rem;margin-bottom:24px">
+        Dark background (#0F0F0F) with a slim utility bar on top (social icons, language, contact info)
+        and a main navigation bar below. Logo aligned left, navigation in center, CTA button on right.
+        Outline-style CTA button. Utility bar hides on smaller screens.
+      </p>
+
+      <!-- B: Desktop -->
+      <div class="ds-hdr-preview">
+        <div class="ds-hdr-preview__label"><span class="ds-hdr-preview__dot ds-hdr-preview__dot--dk"></span> Desktop — 1280px</div>
+        <div class="ds-hdr-wrap">
+          <div class="ds-hdr-frame ds-hdr-frame--desktop">
+            <header class="hdrB">
+              <div class="hdrB-inner">
+                <div class="hdrB-top">
+                  <div class="hdrB-top__left">
+                    <a href="#">info@yogabible.dk</a>
+                    <span class="hdrB-top__sep"></span>
+                    <a href="#">+45 53 88 12 09</a>
+                    <span class="hdrB-top__sep"></span>
+                    <a href="#">Torvegade 66, Kobenhavn K</a>
+                  </div>
+                  <div class="hdrB-top__right">
+                    <div class="hdrB-top__social">
+                      <a href="#" class="hdrB-top__social-dot" aria-label="Instagram">IG</a>
+                      <a href="#" class="hdrB-top__social-dot" aria-label="SoundCloud">SC</a>
+                    </div>
+                    <span class="hdrB-top__sep"></span>
+                    <span class="hdrB-top__flag">&#x1F1E9;&#x1F1F0;</span>
+                    <span class="hdrB-top__flag" style="opacity:0.5">&#x1F1EC;&#x1F1E7;</span>
+                  </div>
+                </div>
+                <div class="hdrB-main">
+                  <a href="#" class="hdrB-logo">
+                    <img src="/assets/images/brand/logo-orange-on-transparent.png" alt="Yoga Bible" />
+                  </a>
+                  <nav class="hdrB-nav">
+                    <button>Uddannelser <span class="hdrB-caret">&#x25BE;</span></button>
+                    <button>Kurser <span class="hdrB-caret">&#x25BE;</span></button>
+                    <a href="#">Mentorship</a>
+                    <button>Mere <span class="hdrB-caret">&#x25BE;</span></button>
+                    <button>Yoga Bible <span class="hdrB-caret">&#x25BE;</span></button>
+                  </nav>
+                  <div class="hdrB-right">
+                    <a href="#" class="hdrB-cta hdrB-cta--desk">Ansog</a>
+                  </div>
+                </div>
+              </div>
+            </header>
+          </div>
+        </div>
+      </div>
+
+      <!-- B: Tablet -->
+      <div class="ds-hdr-preview">
+        <div class="ds-hdr-preview__label"><span class="ds-hdr-preview__dot ds-hdr-preview__dot--tb"></span> Tablet — 768px</div>
+        <div class="ds-hdr-wrap">
+          <div class="ds-hdr-frame ds-hdr-frame--tablet">
+            <header class="hdrB">
+              <div class="hdrB-inner">
+                <div class="hdrB-main">
+                  <a href="#" class="hdrB-logo">
+                    <img src="/assets/images/brand/logo-orange-on-transparent.png" alt="Yoga Bible" />
+                  </a>
+                  <nav class="hdrB-nav">
+                    <button>Uddannelser <span class="hdrB-caret">&#x25BE;</span></button>
+                    <button>Kurser <span class="hdrB-caret">&#x25BE;</span></button>
+                    <a href="#">Mentorship</a>
+                    <button>Mere <span class="hdrB-caret">&#x25BE;</span></button>
+                  </nav>
+                  <div class="hdrB-right">
+                    <a href="#" class="hdrB-cta hdrB-cta--desk">Ansog</a>
+                  </div>
+                </div>
+              </div>
+            </header>
+          </div>
+        </div>
+      </div>
+
+      <!-- B: Mobile -->
+      <div class="ds-hdr-preview">
+        <div class="ds-hdr-preview__label"><span class="ds-hdr-preview__dot ds-hdr-preview__dot--mb"></span> Mobile — 375px</div>
+        <div class="ds-hdr-wrap">
+          <div class="ds-hdr-frame ds-hdr-frame--mobile">
+            <header class="hdrB">
+              <div class="hdrB-inner">
+                <div class="hdrB-main">
+                  <a href="#" class="hdrB-logo">
+                    <img src="/assets/images/brand/logo-orange-on-transparent.png" alt="Yoga Bible" />
+                  </a>
+                  <div class="hdrB-right">
+                    <button class="hdrB-burger" aria-label="Menu"><span></span><span></span><span></span></button>
+                  </div>
+                </div>
+              </div>
+            </header>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══════════════════════════════════════
+         DESIGN C — Transparent Overlay
+         ══════════════════════════════════════ -->
+    <div style="margin-bottom:60px">
+      <h3 style="font-size:1.2rem;font-weight:700;margin-bottom:6px">Design C — Transparent Overlay</h3>
+      <p style="color:var(--ds-text-muted);font-size:0.9rem;margin-bottom:24px">
+        Transparent header that sits on top of hero imagery. Navigation split left/right with centered logo.
+        On scroll, header transitions to a solid dark background with backdrop blur. Maximizes hero visual impact.
+        Shown here in two states: transparent (over content) and scrolled (solid).
+      </p>
+
+      <!-- C: Desktop — Transparent -->
+      <div class="ds-hdr-preview">
+        <div class="ds-hdr-preview__label"><span class="ds-hdr-preview__dot ds-hdr-preview__dot--dk"></span> Desktop — 1280px (Transparent over hero)</div>
+        <div class="ds-hdr-wrap">
+          <div class="ds-hdr-frame ds-hdr-frame--desktop">
+            <div class="hdrC-wrap">
+              <header class="hdrC">
+                <div class="hdrC-inner">
+                  <nav class="hdrC-nav hdrC-nav--left">
+                    <button>Uddannelser <span class="hdrC-caret">&#x25BE;</span></button>
+                    <button>Kurser <span class="hdrC-caret">&#x25BE;</span></button>
+                    <a href="#">Mentorship</a>
+                  </nav>
+                  <a href="#" class="hdrC-logo">
+                    <img src="/assets/images/brand/logo-orange-on-transparent.png" alt="Yoga Bible" />
+                  </a>
+                  <div style="display:flex;align-items:center;justify-content:flex-end;gap:16px">
+                    <nav class="hdrC-nav hdrC-nav--right">
+                      <button>Mere <span class="hdrC-caret">&#x25BE;</span></button>
+                      <button>Yoga Bible <span class="hdrC-caret">&#x25BE;</span></button>
+                    </nav>
+                    <div class="hdrC-actions hdrC-actions--desk">
+                      <span class="hdrC-flag is-active">&#x1F1E9;&#x1F1F0;</span>
+                      <span class="hdrC-flag">&#x1F1EC;&#x1F1E7;</span>
+                      <a href="#" class="hdrC-cta">Ansog</a>
+                    </div>
+                  </div>
+                </div>
+              </header>
+              <div class="hdrC-wrap__hero-text">&#x2190; Hero image / video fills this space</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- C: Desktop — Scrolled / Solid -->
+      <div class="ds-hdr-preview">
+        <div class="ds-hdr-preview__label"><span class="ds-hdr-preview__dot ds-hdr-preview__dot--dk"></span> Desktop — 1280px (Scrolled — solid background)</div>
+        <div class="ds-hdr-wrap">
+          <div class="ds-hdr-frame ds-hdr-frame--desktop">
+            <header class="hdrC hdrC--solid">
+              <div class="hdrC-inner">
+                <nav class="hdrC-nav hdrC-nav--left">
+                  <button>Uddannelser <span class="hdrC-caret">&#x25BE;</span></button>
+                  <button>Kurser <span class="hdrC-caret">&#x25BE;</span></button>
+                  <a href="#">Mentorship</a>
+                </nav>
+                <a href="#" class="hdrC-logo">
+                  <img src="/assets/images/brand/logo-orange-on-transparent.png" alt="Yoga Bible" />
+                </a>
+                <div style="display:flex;align-items:center;justify-content:flex-end;gap:16px">
+                  <nav class="hdrC-nav hdrC-nav--right">
+                    <button>Mere <span class="hdrC-caret">&#x25BE;</span></button>
+                    <button>Yoga Bible <span class="hdrC-caret">&#x25BE;</span></button>
+                  </nav>
+                  <div class="hdrC-actions hdrC-actions--desk">
+                    <span class="hdrC-flag is-active">&#x1F1E9;&#x1F1F0;</span>
+                    <span class="hdrC-flag">&#x1F1EC;&#x1F1E7;</span>
+                    <a href="#" class="hdrC-cta">Ansog</a>
+                  </div>
+                </div>
+              </div>
+            </header>
+          </div>
+        </div>
+      </div>
+
+      <!-- C: Tablet -->
+      <div class="ds-hdr-preview">
+        <div class="ds-hdr-preview__label"><span class="ds-hdr-preview__dot ds-hdr-preview__dot--tb"></span> Tablet — 768px</div>
+        <div class="ds-hdr-wrap">
+          <div class="ds-hdr-frame ds-hdr-frame--tablet">
+            <div class="hdrC-wrap" style="min-height:160px">
+              <header class="hdrC">
+                <div class="hdrC-inner">
+                  <a href="#" class="hdrC-logo">
+                    <img src="/assets/images/brand/logo-orange-on-transparent.png" alt="Yoga Bible" style="height:38px" />
+                  </a>
+                  <nav class="hdrC-nav hdrC-nav--right">
+                    <button>Uddannelser <span class="hdrC-caret">&#x25BE;</span></button>
+                    <button>Kurser <span class="hdrC-caret">&#x25BE;</span></button>
+                    <a href="#">Mere <span class="hdrC-caret">&#x25BE;</span></a>
+                    <a href="#" class="hdrC-cta">Ansog</a>
+                  </nav>
+                  <div></div>
+                </div>
+              </header>
+              <div class="hdrC-wrap__hero-text">&#x2190; Hero content</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- C: Mobile -->
+      <div class="ds-hdr-preview">
+        <div class="ds-hdr-preview__label"><span class="ds-hdr-preview__dot ds-hdr-preview__dot--mb"></span> Mobile — 375px</div>
+        <div class="ds-hdr-wrap">
+          <div class="ds-hdr-frame ds-hdr-frame--mobile">
+            <div class="hdrC-wrap" style="min-height:140px">
+              <header class="hdrC">
+                <div class="hdrC-inner">
+                  <a href="#" class="hdrC-logo">
+                    <img src="/assets/images/brand/logo-orange-on-transparent.png" alt="Yoga Bible" />
+                  </a>
+                  <div style="display:flex;gap:8px;align-items:center">
+                    <span class="hdrC-flag is-active" style="font-size:14px">&#x1F1E9;&#x1F1F0;</span>
+                    <span class="hdrC-flag" style="font-size:14px">&#x1F1EC;&#x1F1E7;</span>
+                    <button class="hdrC-burger" aria-label="Menu"><span></span><span></span><span></span></button>
+                  </div>
+                </div>
+              </header>
+              <div class="hdrC-wrap__hero-text">&#x2190; Hero</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══════════════════════════════════════
+         DESIGN D — Ultra-Minimal Editorial
+         ══════════════════════════════════════ -->
+    <div style="margin-bottom:60px">
+      <h3 style="font-size:1.2rem;font-weight:700;margin-bottom:6px">Design D — Ultra-Minimal Editorial</h3>
+      <p style="color:var(--ds-text-muted);font-size:0.9rem;margin-bottom:24px">
+        Clean white background with a bold black bottom border. Logo on left with wordmark.
+        Navigation inside a pill-shaped container with dividers between items — hover inverts to black.
+        Secondary links in a thin bottom bar. High-end editorial / magazine aesthetic. CTA is black with orange hover.
+      </p>
+
+      <!-- D: Desktop -->
+      <div class="ds-hdr-preview">
+        <div class="ds-hdr-preview__label"><span class="ds-hdr-preview__dot ds-hdr-preview__dot--dk"></span> Desktop — 1280px</div>
+        <div class="ds-hdr-wrap">
+          <div class="ds-hdr-frame ds-hdr-frame--desktop">
+            <header class="hdrD">
+              <div class="hdrD-inner">
+                <div class="hdrD-main">
+                  <div class="hdrD-left">
+                    <a href="#" class="hdrD-logo">
+                      <img src="/assets/images/brand/logo-orange-on-transparent.png" alt="Yoga Bible" />
+                    </a>
+                  </div>
+                  <nav class="hdrD-nav">
+                    <button>Uddannelser <span class="hdrD-caret">&#x25BE;</span></button>
+                    <button>Kurser <span class="hdrD-caret">&#x25BE;</span></button>
+                    <a href="#">Mentorship</a>
+                    <button>Mere <span class="hdrD-caret">&#x25BE;</span></button>
+                    <button>Yoga Bible <span class="hdrD-caret">&#x25BE;</span></button>
+                  </nav>
+                  <div class="hdrD-right">
+                    <div class="hdrD-flags">
+                      <span class="hdrD-flag is-active">&#x1F1E9;&#x1F1F0;</span>
+                      <span class="hdrD-flag">&#x1F1EC;&#x1F1E7;</span>
+                    </div>
+                    <a href="#" class="hdrD-cta">Ansog</a>
+                  </div>
+                </div>
+                <div class="hdrD-bottom">
+                  <a href="#">Yoga Journal</a>
+                  <span class="hdrD-bottom__dot"></span>
+                  <a href="#">Fotografi</a>
+                  <span class="hdrD-bottom__dot"></span>
+                  <a href="#">Musik</a>
+                  <span class="hdrD-bottom__dot"></span>
+                  <a href="#">Ordbog</a>
+                  <span class="hdrD-bottom__dot"></span>
+                  <a href="#">Skema</a>
+                  <span class="hdrD-bottom__dot"></span>
+                  <a href="#">Kontakt</a>
+                </div>
+              </div>
+            </header>
+          </div>
+        </div>
+      </div>
+
+      <!-- D: Tablet -->
+      <div class="ds-hdr-preview">
+        <div class="ds-hdr-preview__label"><span class="ds-hdr-preview__dot ds-hdr-preview__dot--tb"></span> Tablet — 768px</div>
+        <div class="ds-hdr-wrap">
+          <div class="ds-hdr-frame ds-hdr-frame--tablet">
+            <header class="hdrD">
+              <div class="hdrD-inner">
+                <div class="hdrD-main">
+                  <div class="hdrD-left">
+                    <a href="#" class="hdrD-logo">
+                      <img src="/assets/images/brand/logo-orange-on-transparent.png" alt="Yoga Bible" />
+                    </a>
+                  </div>
+                  <div class="hdrD-right">
+                    <div class="hdrD-flags">
+                      <span class="hdrD-flag is-active">&#x1F1E9;&#x1F1F0;</span>
+                      <span class="hdrD-flag">&#x1F1EC;&#x1F1E7;</span>
+                    </div>
+                    <a href="#" class="hdrD-cta">Ansog</a>
+                    <button class="hdrD-burger" aria-label="Menu"><span></span><span></span><span></span></button>
+                  </div>
+                </div>
+                <div class="hdrD-bottom">
+                  <a href="#">Journal</a>
+                  <span class="hdrD-bottom__dot"></span>
+                  <a href="#">Fotografi</a>
+                  <span class="hdrD-bottom__dot"></span>
+                  <a href="#">Musik</a>
+                  <span class="hdrD-bottom__dot"></span>
+                  <a href="#">Ordbog</a>
+                  <span class="hdrD-bottom__dot"></span>
+                  <a href="#">Kontakt</a>
+                </div>
+              </div>
+            </header>
+          </div>
+        </div>
+      </div>
+
+      <!-- D: Mobile -->
+      <div class="ds-hdr-preview">
+        <div class="ds-hdr-preview__label"><span class="ds-hdr-preview__dot ds-hdr-preview__dot--mb"></span> Mobile — 375px</div>
+        <div class="ds-hdr-wrap">
+          <div class="ds-hdr-frame ds-hdr-frame--mobile">
+            <header class="hdrD">
+              <div class="hdrD-inner">
+                <div class="hdrD-main">
+                  <div class="hdrD-left">
+                    <a href="#" class="hdrD-logo">
+                      <img src="/assets/images/brand/logo-orange-on-transparent.png" alt="Yoga Bible" />
+                    </a>
+                  </div>
+                  <div class="hdrD-right">
+                    <a href="#" class="hdrD-cta">Ansog</a>
+                    <button class="hdrD-burger" aria-label="Menu"><span></span><span></span><span></span></button>
+                  </div>
+                </div>
+              </div>
+            </header>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </section>
+
+  <!-- ═══════════════════════════════════════════════════════════════
        HOW TO USE
        ═══════════════════════════════════════════════════════════════ -->
   <section class="ds-section" style="margin-top:60px;padding-top:60px;border-top:2px solid var(--ds-border)">
@@ -2291,13 +5782,33 @@ eleventyExcludeFromCollections: true
         <li>"Use <strong>card hover-glow</strong> from section 4"</li>
         <li>"Add <strong>eyebrow with line</strong> from section 12"</li>
         <li>"Use <strong>pill tabs</strong> from section 16"</li>
-        <li>"Apply <strong>breathe animation</strong> from section 6"</li>
+        <li>"Apply <strong>breathe animation</strong> from section 6 (use rarely)"</li>
         <li>"Use <strong>split dark/light layout</strong> from section 11"</li>
-        <li>"Add <strong>horizontal scroll gallery</strong> from section 8"</li>
+        <li>"Add <strong>horizontal scroll gallery with arrows</strong> from sections 8 + 27"</li>
         <li>"Use <strong>gradient text</strong> from section 2"</li>
         <li>"Apply <strong>shimmer button</strong> from section 3"</li>
         <li>"Use <strong>staggered animation</strong> from section 7"</li>
         <li>"Add <strong>timeline</strong> from section 19"</li>
+        <li>"Use <strong>review cards with orange stroke</strong> from section 25"</li>
+        <li>"Add <strong>accordion pricing layout</strong> from section 26 (variation A)"</li>
+        <li>"Use <strong>dark cinematic quote</strong> from section 18"</li>
+        <li>"Add <strong>circle navigation arrows</strong> from section 27"</li>
+        <li>"Use <strong>content + video layout</strong> from section 28"</li>
+        <li>"Use <strong>Hero B (split)</strong> from section 29 for this page"</li>
+        <li>"Use <strong>Hot Yoga CPH color #3f99a5</strong> for Hot Yoga CTAs and strokes"</li>
+        <li>"Add <strong>scroll-draw vine with shadow</strong> from section 30 (variation A) as page decoration"</li>
+        <li>"Use <strong>keyword-touching vine</strong> from section 30 (variation B) — vine flows toward key text"</li>
+        <li>"Add <strong>vine with growing leaves</strong> from section 30 (variation C) for organic feel"</li>
+        <li>"Use <strong>dark cinematic photo hero</strong> from section 31 (variation A) for photography page"</li>
+        <li>"Use <strong>big picture + text split</strong> from section 31 (variation B)"</li>
+        <li>"Add <strong>art grid bleed-right</strong> from section 31 (variation C) for creative photo layout"</li>
+        <li>"Use <strong>model showcase classic</strong> from section 32 (variation A) for model profiles"</li>
+        <li>"Use <strong>model hero-top layout</strong> from section 32 (variation B) — editorial feel"</li>
+        <li>"Use <strong>model side-by-side editorial</strong> from section 32 (variation C)"</li>
+        <li>"Use <strong>header Design A (minimal light)</strong> from section 33"</li>
+        <li>"Use <strong>header Design B (two-tier dark)</strong> from section 33"</li>
+        <li>"Use <strong>header Design C (transparent overlay)</strong> from section 33"</li>
+        <li>"Use <strong>header Design D (editorial pill nav)</strong> from section 33"</li>
       </ul>
     </div>
   </section>
@@ -2345,6 +5856,64 @@ document.addEventListener('DOMContentLoaded', function() {
     }, { threshold: 0.5 });
 
     counterObserver.observe(counter);
+  });
+
+  // ══════════════════════════════════════════════════════════════
+  // SCROLL-DRAW PATH ANIMATION
+  // SVG paths draw themselves as you scroll inside their container
+  // Supports: shadow trails, growing leaves
+  // ══════════════════════════════════════════════════════════════
+  var drawPreviews = document.querySelectorAll('[data-scroll-draw]');
+  drawPreviews.forEach(function(container) {
+    var paths = container.querySelectorAll('.ds-draw-path');
+    var shadows = container.querySelectorAll('.ds-draw-shadow');
+    var leaves = container.querySelectorAll('.ds-vine-leaf');
+
+    // Initialize all paths with dash offset
+    paths.forEach(function(path) {
+      var length = path.getTotalLength();
+      path.style.strokeDasharray = length;
+      path.style.strokeDashoffset = length;
+      path.style.transition = 'none';
+    });
+
+    shadows.forEach(function(shadow) {
+      var length = shadow.getTotalLength();
+      shadow.style.strokeDasharray = length;
+      shadow.style.strokeDashoffset = length;
+      shadow.style.transition = 'none';
+    });
+
+    // Listen for scroll inside the container
+    container.addEventListener('scroll', function() {
+      var scrollTop = container.scrollTop;
+      var scrollHeight = container.scrollHeight - container.clientHeight;
+      if (scrollHeight <= 0) return;
+      var progress = scrollTop / scrollHeight;
+
+      paths.forEach(function(path) {
+        var length = path.getTotalLength();
+        var speed = parseFloat(path.getAttribute('data-draw-speed')) || 1;
+        var drawLength = Math.min(progress * speed, 1) * length;
+        path.style.strokeDashoffset = length - drawLength;
+      });
+
+      shadows.forEach(function(shadow) {
+        var length = shadow.getTotalLength();
+        var drawLength = Math.min(progress * 1.15, 1) * length;
+        shadow.style.strokeDashoffset = length - drawLength;
+      });
+
+      // Grow leaves when the vine reaches their position
+      leaves.forEach(function(leaf) {
+        var appearAt = parseFloat(leaf.getAttribute('data-appear-at')) || 0;
+        if (progress >= appearAt) {
+          leaf.classList.add('ds-leaf--visible');
+        } else {
+          leaf.classList.remove('ds-leaf--visible');
+        }
+      });
+    });
   });
 });
 </script>

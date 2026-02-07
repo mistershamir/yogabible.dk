@@ -1,0 +1,921 @@
+{% set t = i18n.careers[lang or "da"] %}
+
+<!-- ===================== SECTION 1 — HERO ===================== -->
+<section id="yb-careers-hero" class="yb-careers-scope" aria-label="Careers hero">
+  <div class="yb-careers-hero__inner">
+    <div class="yb-careers-hero__grid">
+      <div class="yb-careers-hero__copy">
+        <p class="yb-careers-hero__kicker">{{ t.hero_kicker | safe }}</p>
+        <h1 class="yb-careers-hero__title">{{ t.hero_title | safe }}</h1>
+        <p class="yb-careers-hero__lead">{{ t.hero_lead }}</p>
+        <ul class="yb-careers-hero__bullets">
+          <li>{{ t.hero_li1 | safe }}</li>
+          <li>{{ t.hero_li2 | safe }}</li>
+          <li>{{ t.hero_li3 }}</li>
+          <li>{{ t.hero_li4 | safe }}</li>
+          <li>{{ t.hero_li5 }}</li>
+        </ul>
+        <div class="yb-careers-hero__ctaRow">
+          <a class="yb-btn yb-btn--cta" href="#" data-ybcar-open="careers">{{ t.hero_cta_apply }}</a>
+          <a class="yb-btn yb-btn--ghost" href="#yb-careers-need">{{ t.hero_cta_options }}</a>
+        </div>
+        <p class="yb-careers-hero__fine">{{ t.hero_fine }}</p>
+      </div>
+      <div class="yb-careers-hero__media" aria-label="Video">
+        <div class="yb-careers-hero__frame">
+          <video class="yb-careers-hero__video" autoplay muted loop playsinline preload="metadata" poster="https://www.yogabible.dk/s/DSC_8528.jpg">
+            <source src="https://www.yogabible.dk/s/careers-vertical.mp4" type="video/mp4">
+          </video>
+        </div>
+        <p class="yb-careers-hero__caption">{{ t.hero_caption }}</p>
+      </div>
+    </div>
+  </div>
+  <style>
+    #yb-careers-hero, #yb-careers-hero *{ box-sizing:border-box; }
+    #yb-careers-hero{ background: linear-gradient(180deg, var(--yb-soft), #fff 70%); border-bottom:1px solid var(--yb-border); padding: 72px 20px 44px; }
+    #yb-careers-hero .yb-careers-hero__inner{ max-width:1120px; margin:0 auto; }
+    #yb-careers-hero .yb-careers-hero__grid{ display:grid; gap:28px; align-items:center; }
+    @media (min-width: 980px){ #yb-careers-hero .yb-careers-hero__grid{ grid-template-columns: 1.12fr .88fr; } }
+    #yb-careers-hero .yb-careers-hero__kicker{ margin:0 0 10px; font-size:12px; letter-spacing:.12em; text-transform:uppercase; color:#777; font-weight:800; }
+    #yb-careers-hero .yb-careers-hero__title{ margin:0 0 10px; font-size: clamp(32px, 4.2vw, 52px); line-height:1.06; letter-spacing:-.02em; }
+    #yb-careers-hero .yb-careers-hero__accent{ color: var(--yb-accent); }
+    #yb-careers-hero .yb-careers-hero__lead{ margin:0 0 18px; color:#333; line-height:1.6; font-size:1.02rem; max-width: 56ch; }
+    #yb-careers-hero .yb-careers-hero__bullets{ margin:0 0 20px; padding:0 0 0 18px; color:#333; line-height:1.6; }
+    #yb-careers-hero .yb-careers-hero__bullets li{ margin:6px 0; }
+    #yb-careers-hero .yb-careers-hero__ctaRow{ display:flex; gap:12px; flex-wrap:wrap; margin: 8px 0 10px; }
+    #yb-careers-hero .yb-careers-hero__fine{ margin:0; color:var(--yb-muted); font-size:12.8px; line-height:1.55; max-width: 62ch; }
+    #yb-careers-hero .yb-careers-hero__frame{ border-radius: 22px; border:1px solid var(--yb-border); background:#fff; box-shadow: 0 18px 60px rgba(0,0,0,0.12); overflow:hidden; aspect-ratio: 9 / 16; }
+    #yb-careers-hero .yb-careers-hero__video{ width:100%; height:100%; object-fit:cover; display:block; }
+    #yb-careers-hero .yb-careers-hero__caption{ margin:10px 0 0; color:#777; font-size:12.5px; letter-spacing:.02em; text-align:center; }
+  </style>
+</section>
+
+<!-- ===================== SECTION 2 — HVEM VI SOEGER ===================== -->
+<section id="yb-careers-need" class="yb-careers-scope" aria-label="{{ t.need_title }}">
+  <div class="yb-careers-need__inner">
+    <header class="yb-careers-need__head">
+      <span class="yb-careers-need__eyebrow">{{ t.need_eyebrow }}</span>
+      <h2>{{ t.need_title }}</h2>
+      <p>{{ t.need_subtitle }}</p>
+    </header>
+    <div class="yb-careers-need__cards" role="list">
+      <article class="yb-careers-need__card yb-careers-need__card--featured" role="listitem">
+        <span class="yb-careers-need__tag">{{ t.need_card1_tag }}</span>
+        <h3>{{ t.need_card1_title }}</h3>
+        <p>{{ t.need_card1_desc }}</p>
+        <ul>
+          <li>{{ t.need_card1_li1 }}</li>
+          <li>{{ t.need_card1_li2 }}</li>
+          <li>{{ t.need_card1_li3 }}</li>
+          <li>{{ t.need_card1_li4 }}</li>
+          <li>{{ t.need_card1_li5 | safe }}</li>
+        </ul>
+        <a class="yb-btn yb-btn--cta" href="#" data-ybcar-open="careers" data-ybcar-prefill="Yoga / Meditation Teacher">{{ t.hero_cta_apply }}</a>
+      </article>
+      <article class="yb-careers-need__card" role="listitem">
+        <span class="yb-careers-need__tag yb-careers-need__tag--muted">{{ t.need_card2_tag }}</span>
+        <h3>{{ t.need_card2_title }}</h3>
+        <p>{{ t.need_card2_desc }}</p>
+        <ul>
+          <li>{{ t.need_card2_li1 }}</li>
+          <li>{{ t.need_card2_li2 | safe }}</li>
+          <li>{{ t.need_card2_li3 | safe }}</li>
+          <li>{{ t.need_card2_li4 }}</li>
+          <li>{{ t.need_card2_li5 | safe }}</li>
+        </ul>
+        <a class="yb-btn yb-btn--outline" href="#" data-ybcar-open="careers" data-ybcar-prefill="Uddannelser (YTT)">{{ t.hero_cta_apply }}</a>
+      </article>
+      <article class="yb-careers-need__card" role="listitem">
+        <span class="yb-careers-need__tag yb-careers-need__tag--muted">{{ t.need_card3_tag }}</span>
+        <h3>{{ t.need_card3_title | safe }}</h3>
+        <p>{{ t.need_card3_desc }}</p>
+        <ul>
+          <li>{{ t.need_card3_li1 }}</li>
+          <li>{{ t.need_card3_li2 }}</li>
+          <li>{{ t.need_card3_li3 | safe }}</li>
+          <li>{{ t.need_card3_li4 | safe }}</li>
+          <li>{{ t.need_card3_li5 }}</li>
+        </ul>
+        <a class="yb-btn yb-btn--outline" href="#" data-ybcar-open="careers" data-ybcar-prefill="Kurser &amp; workshops">{{ t.hero_cta_apply }}</a>
+      </article>
+      <article class="yb-careers-need__card" role="listitem">
+        <span class="yb-careers-need__tag yb-careers-need__tag--muted">{{ t.need_card4_tag }}</span>
+        <h3>{{ t.need_card4_title | safe }}</h3>
+        <p>{{ t.need_card4_desc }}</p>
+        <ul>
+          <li>{{ t.need_card4_li1 }}</li>
+          <li>{{ t.need_card4_li2 }}</li>
+          <li>{{ t.need_card4_li3 }}</li>
+          <li>{{ t.need_card4_li4 }}</li>
+          <li>{{ t.need_card4_li5 | safe }}</li>
+        </ul>
+        <a class="yb-btn yb-btn--outline" href="#" data-ybcar-open="careers" data-ybcar-prefill="Mentorship &amp; privates">{{ t.hero_cta_apply }}</a>
+      </article>
+      <article class="yb-careers-need__card" role="listitem">
+        <span class="yb-careers-need__tag yb-careers-need__tag--muted">{{ t.need_card5_tag }}</span>
+        <h3>{{ t.need_card5_title | safe }}</h3>
+        <p>{{ t.need_card5_desc }}</p>
+        <ul>
+          <li>{{ t.need_card5_li1 }}</li>
+          <li>{{ t.need_card5_li2 | safe }}</li>
+          <li>{{ t.need_card5_li3 | safe }}</li>
+          <li>{{ t.need_card5_li4 | safe }}</li>
+          <li>{{ t.need_card5_li5 | safe }}</li>
+        </ul>
+        <a class="yb-btn yb-btn--outline" href="#" data-ybcar-open="careers" data-ybcar-prefill="Marketing &amp; content">{{ t.hero_cta_apply }}</a>
+      </article>
+      <article class="yb-careers-need__card" role="listitem">
+        <span class="yb-careers-need__tag yb-careers-need__tag--muted">{{ t.need_card6_tag }}</span>
+        <h3>{{ t.need_card6_title | safe }}</h3>
+        <p>{{ t.need_card6_desc }}</p>
+        <ul>
+          <li>{{ t.need_card6_li1 | safe }}</li>
+          <li>{{ t.need_card6_li2 | safe }}</li>
+          <li>{{ t.need_card6_li3 }}</li>
+          <li>{{ t.need_card6_li4 | safe }}</li>
+          <li>{{ t.need_card6_li5 | safe }}</li>
+        </ul>
+        <a class="yb-btn yb-btn--outline" href="#" data-ybcar-open="careers" data-ybcar-prefill="Administration &amp; outreach">{{ t.hero_cta_apply }}</a>
+      </article>
+      <article class="yb-careers-need__card yb-careers-need__card--cta" role="listitem">
+        <div class="yb-careers-need__cta-inner">
+          <div class="yb-careers-need__cta-content">
+            <h3>{{ t.need_idea_title }}</h3>
+            <p>{{ t.need_idea_desc }}</p>
+          </div>
+          <a class="yb-btn yb-btn--cta" href="#" data-ybcar-open="careers" data-ybcar-prefill="Andet samarbejde">{{ t.need_idea_cta }}</a>
+        </div>
+      </article>
+    </div>
+  </div>
+  <style>
+    #yb-careers-need, #yb-careers-need *{ box-sizing:border-box; }
+    #yb-careers-need{ --yb-accent: #f75c03; --yb-accent-rgb: 247, 92, 3; --yb-border: #EBE7E3; --yb-soft: #FCFBF9; --yb-text: #1A1A1A; --yb-muted: #6B6B6B; padding: clamp(48px, 7vw, 80px) clamp(16px, 4vw, 24px); background: radial-gradient(ellipse 80% 50% at 20% 0%, rgba(247, 92, 3, 0.06), transparent 60%), radial-gradient(ellipse 60% 40% at 90% 100%, rgba(247, 92, 3, 0.04), transparent 50%), linear-gradient(180deg, #FFFCF9 0%, #fff 100%); font-family: "Helvetica Neue", Helvetica, Arial, system-ui, -apple-system, sans-serif; }
+    #yb-careers-need .yb-careers-need__inner{ max-width: 1160px; margin: 0 auto; }
+    #yb-careers-need .yb-careers-need__head{ max-width: 680px; margin-bottom: clamp(28px, 4vw, 40px); }
+    #yb-careers-need .yb-careers-need__eyebrow{ display: inline-block; font-size: 0.8rem; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase; color: var(--yb-accent); margin-bottom: 10px; }
+    #yb-careers-need h2{ margin: 0 0 12px; font-size: clamp(1.75rem, 4vw, 2.25rem); font-weight: 900; letter-spacing: -0.02em; line-height: 1.15; color: var(--yb-text); }
+    #yb-careers-need .yb-careers-need__head > p{ margin: 0; font-size: clamp(1rem, 2vw, 1.1rem); color: #555; line-height: 1.65; }
+    #yb-careers-need .yb-careers-need__cards{ display: grid; grid-template-columns: 1fr; gap: 16px; }
+    @media (min-width: 640px){ #yb-careers-need .yb-careers-need__cards{ grid-template-columns: repeat(2, 1fr); gap: 18px; } }
+    @media (min-width: 1000px){ #yb-careers-need .yb-careers-need__cards{ grid-template-columns: repeat(3, 1fr); gap: 20px; } }
+    #yb-careers-need .yb-careers-need__card{ position: relative; border: 1px solid var(--yb-border); border-radius: 20px; background: #fff; box-shadow: 0 1px 2px rgba(0,0,0,0.04), 0 8px 24px rgba(0,0,0,0.06); padding: 20px 18px 18px; display: flex; flex-direction: column; min-height: 280px; transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease; }
+    #yb-careers-need .yb-careers-need__card:hover{ transform: translateY(-3px); box-shadow: 0 4px 8px rgba(0,0,0,0.04), 0 16px 40px rgba(0,0,0,0.10); border-color: rgba(var(--yb-accent-rgb), 0.25); }
+    #yb-careers-need .yb-careers-need__tag{ display: inline-block; align-self: flex-start; font-size: 0.7rem; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase; padding: 5px 10px; border-radius: 999px; margin-bottom: 12px; background: rgba(var(--yb-accent-rgb), 0.12); color: var(--yb-accent); }
+    #yb-careers-need .yb-careers-need__tag--muted{ background: #f3f2f0; color: #666; }
+    #yb-careers-need .yb-careers-need__card h3{ margin: 0 0 8px; font-size: 1.15rem; font-weight: 800; letter-spacing: -0.01em; color: var(--yb-text); }
+    #yb-careers-need .yb-careers-need__card > p{ margin: 0; color: #555; line-height: 1.55; font-size: 0.95rem; }
+    #yb-careers-need .yb-careers-need__card ul{ margin: 14px 0 18px; padding: 0 0 0 18px; color: #444; line-height: 1.55; font-size: 0.9rem; flex: 1; }
+    #yb-careers-need .yb-careers-need__card li{ margin: 5px 0; }
+    #yb-careers-need .yb-careers-need__card li::marker{ color: rgba(var(--yb-accent-rgb), 0.5); }
+    #yb-careers-need .yb-careers-need__card .yb-btn{ margin-top: auto; width: 100%; justify-content: center; text-align: center; }
+    #yb-careers-need .yb-careers-need__card--featured{ background: linear-gradient(135deg, rgba(var(--yb-accent-rgb), 0.03) 0%, transparent 60%), #fff; border-color: rgba(var(--yb-accent-rgb), 0.3); box-shadow: 0 1px 2px rgba(0,0,0,0.04), 0 12px 32px rgba(var(--yb-accent-rgb), 0.12); }
+    #yb-careers-need .yb-careers-need__card--featured:hover{ border-color: var(--yb-accent); box-shadow: 0 4px 8px rgba(0,0,0,0.04), 0 20px 50px rgba(var(--yb-accent-rgb), 0.18); }
+    #yb-careers-need .yb-careers-need__card--featured::before{ content: ''; position: absolute; top: 0; left: 24px; right: 24px; height: 3px; background: linear-gradient(90deg, var(--yb-accent), rgba(var(--yb-accent-rgb), 0.3)); border-radius: 0 0 3px 3px; }
+    #yb-careers-need .yb-careers-need__card--cta{ grid-column: 1 / -1; background: radial-gradient(ellipse 60% 100% at 0% 50%, rgba(var(--yb-accent-rgb), 0.08), transparent 50%), radial-gradient(ellipse 40% 80% at 100% 50%, rgba(var(--yb-accent-rgb), 0.05), transparent 50%), linear-gradient(135deg, #FFFCF9 0%, #fff 100%); border: 2px dashed rgba(var(--yb-accent-rgb), 0.35); min-height: auto; padding: clamp(24px, 4vw, 32px) clamp(20px, 4vw, 32px); }
+    #yb-careers-need .yb-careers-need__card--cta:hover{ border-color: var(--yb-accent); border-style: solid; transform: translateY(-2px); }
+    #yb-careers-need .yb-careers-need__cta-inner{ display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 16px; text-align: center; }
+    @media (min-width: 640px){ #yb-careers-need .yb-careers-need__cta-inner{ flex-direction: row; text-align: left; gap: clamp(24px, 4vw, 48px); } }
+    #yb-careers-need .yb-careers-need__cta-content{ flex: 1; }
+    #yb-careers-need .yb-careers-need__card--cta h3{ margin: 0 0 6px; font-size: clamp(1.1rem, 2.5vw, 1.35rem); }
+    #yb-careers-need .yb-careers-need__card--cta p{ margin: 0; max-width: 480px; color: #555; font-size: clamp(0.9rem, 2vw, 1rem); }
+    #yb-careers-need .yb-careers-need__card--cta .yb-btn{ width: auto; padding: 0.85rem 2rem; flex-shrink: 0; margin-top: 0; }
+    #yb-careers-need .yb-btn{ display: inline-flex; align-items: center; justify-content: center; padding: 0.75rem 1.25rem; border-radius: 999px; font-weight: 750; font-size: 0.92rem; text-decoration: none; border: 2px solid transparent; cursor: pointer; user-select: none; transition: all 0.18s ease; white-space: nowrap; }
+    #yb-careers-need .yb-btn--cta{ background: var(--yb-accent) !important; border-color: var(--yb-accent) !important; color: #fff !important; box-shadow: 0 4px 14px rgba(var(--yb-accent-rgb), 0.25); }
+    #yb-careers-need .yb-btn--cta:hover{ background: #e05402 !important; border-color: #e05402 !important; box-shadow: 0 6px 20px rgba(var(--yb-accent-rgb), 0.32); transform: translateY(-1px); }
+    #yb-careers-need .yb-btn--outline{ background: #fff !important; border-color: rgba(var(--yb-accent-rgb), 0.45) !important; color: var(--yb-accent) !important; }
+    #yb-careers-need .yb-btn--outline:hover{ background: var(--yb-accent) !important; border-color: var(--yb-accent) !important; color: #fff !important; box-shadow: 0 4px 14px rgba(var(--yb-accent-rgb), 0.25); transform: translateY(-1px); }
+    @media (prefers-reduced-motion: reduce){ #yb-careers-need .yb-careers-need__card, #yb-careers-need .yb-btn{ transition: none; } #yb-careers-need .yb-careers-need__card:hover, #yb-careers-need .yb-btn:hover{ transform: none; } }
+  </style>
+</section>
+
+<!-- ===================== SECTION 3 — STEPS ===================== -->
+<section id="yb-careers-steps" class="yb-careers-scope" aria-label="{{ t.steps_title }}">
+  <div class="yb-careers-steps__inner">
+    <header class="yb-careers-steps__head">
+      <h2>{{ t.steps_title }}</h2>
+      <p>{{ t.steps_subtitle }}</p>
+    </header>
+    <div class="yb-careers-steps__grid">
+      <div class="yb-careers-steps__step"><div class="yb-careers-steps__nr">1</div><h3>{{ t.step1_title | safe }}</h3><p>{{ t.step1_desc }}</p></div>
+      <div class="yb-careers-steps__step"><div class="yb-careers-steps__nr">2</div><h3>{{ t.step2_title | safe }}</h3><p>{{ t.step2_desc }}</p></div>
+      <div class="yb-careers-steps__step"><div class="yb-careers-steps__nr">3</div><h3>{{ t.step3_title | safe }}</h3><p>{{ t.step3_desc }}</p></div>
+    </div>
+    <div class="yb-careers-steps__ctaStrip">
+      <div><h3>{{ t.steps_cta_title }}</h3><p>{{ t.steps_cta_desc }}</p></div>
+      <a class="yb-btn yb-btn--cta" href="#" data-ybcar-open="careers">{{ t.hero_cta_apply }}</a>
+    </div>
+  </div>
+  <style>
+    #yb-careers-steps, #yb-careers-steps *{ box-sizing:border-box; }
+    #yb-careers-steps{ padding: 52px 20px; background: var(--yb-soft); border-top:1px solid var(--yb-border); border-bottom:1px solid var(--yb-border); }
+    #yb-careers-steps .yb-careers-steps__inner{ max-width:1120px; margin:0 auto; }
+    #yb-careers-steps .yb-careers-steps__head{ max-width: 760px; }
+    #yb-careers-steps h2{ margin:0 0 8px; font-size:28px; letter-spacing:-.01em; }
+    #yb-careers-steps p{ margin:0; color:#444; line-height:1.65; }
+    #yb-careers-steps .yb-careers-steps__grid{ display:grid; grid-template-columns:1fr; gap:14px; margin-top:18px; }
+    @media (min-width: 860px){ #yb-careers-steps .yb-careers-steps__grid{ grid-template-columns: 1fr 1fr 1fr; } }
+    #yb-careers-steps .yb-careers-steps__step{ border:1px solid var(--yb-border); border-radius: 20px; background:#fff; padding: 16px; box-shadow: 0 18px 60px rgba(0,0,0,0.07); }
+    #yb-careers-steps .yb-careers-steps__nr{ width:32px; height:32px; display:flex; align-items:center; justify-content:center; border-radius:999px; background: var(--yb-accent); color:#fff; font-weight:900; font-size:15px; margin-bottom:10px; }
+    #yb-careers-steps .yb-careers-steps__step h3{ margin:0 0 6px; font-size:18px; }
+    #yb-careers-steps .yb-careers-steps__step p{ margin:0; color:#444; line-height:1.6; }
+    #yb-careers-steps .yb-careers-steps__ctaStrip{ margin-top:18px; border:1px solid var(--yb-border); border-radius:20px; background:#fff; padding:16px; display:flex; align-items:center; justify-content:space-between; gap:14px; flex-wrap:wrap; box-shadow: 0 18px 60px rgba(0,0,0,0.07); }
+    #yb-careers-steps .yb-careers-steps__ctaStrip h3{ margin:0 0 6px; font-size:18px; }
+    #yb-careers-steps .yb-careers-steps__ctaStrip p{ margin:0; color:#444; line-height:1.6; }
+  </style>
+</section>
+
+<!-- ===================== SECTION 4 — WHY ===================== -->
+<section id="yb-careers-why" class="yb-careers-scope" aria-label="{{ t.why_title }}">
+  <div class="yb-careers-why__inner">
+    <header class="yb-careers-why__head">
+      <h2>{{ t.why_title }}</h2>
+      <p>{{ t.why_subtitle }}</p>
+    </header>
+    <div class="yb-careers-why__features">
+      <div class="yb-careers-why__feature"><h3>{{ t.why1_title }}</h3><p>{{ t.why1_desc }}</p></div>
+      <div class="yb-careers-why__feature"><h3>{{ t.why2_title }}</h3><p>{{ t.why2_desc }}</p></div>
+      <div class="yb-careers-why__feature"><h3>{{ t.why3_title }}</h3><p>{{ t.why3_desc }}</p></div>
+    </div>
+    <div class="yb-careers-why__mini">
+      <div class="yb-careers-why__miniCard"><h3>{{ t.contact_title }}</h3><p>{{ t.contact_info | safe }}</p></div>
+      <div class="yb-careers-why__miniCard"><h3>{{ t.what_we_ask_title }}</h3><p>{{ t.what_we_ask_desc }}</p></div>
+    </div>
+  </div>
+  <style>
+    #yb-careers-why, #yb-careers-why *{ box-sizing:border-box; }
+    #yb-careers-why{ padding: 52px 20px; background:#fff; }
+    #yb-careers-why .yb-careers-why__inner{ max-width:1120px; margin:0 auto; }
+    #yb-careers-why .yb-careers-why__head{ max-width: 760px; }
+    #yb-careers-why h2{ margin:0 0 8px; font-size:28px; letter-spacing:-.01em; }
+    #yb-careers-why p{ margin:0; color:#444; line-height:1.65; }
+    #yb-careers-why .yb-careers-why__features{ display:grid; grid-template-columns: 1fr; gap:14px; margin-top: 18px; }
+    @media (min-width: 860px){ #yb-careers-why .yb-careers-why__features{ grid-template-columns: 1fr 1fr 1fr; } }
+    #yb-careers-why .yb-careers-why__feature{ border:1px solid var(--yb-border); border-radius: 20px; background:#fff; padding: 16px; box-shadow: 0 18px 60px rgba(0,0,0,0.07); }
+    #yb-careers-why .yb-careers-why__feature h3{ margin:0 0 6px; font-size: 18px; }
+    #yb-careers-why .yb-careers-why__feature p{ margin:0; color:#444; line-height:1.6; }
+    #yb-careers-why .yb-careers-why__mini{ display:grid; grid-template-columns: 1fr; gap:14px; margin-top: 18px; }
+    @media (min-width: 860px){ #yb-careers-why .yb-careers-why__mini{ grid-template-columns: 1fr 1fr; } }
+    #yb-careers-why .yb-careers-why__miniCard{ border:1px solid var(--yb-border); border-radius: 20px; background: var(--yb-soft); padding: 16px; }
+    #yb-careers-why .yb-careers-why__miniCard h3{ margin:0 0 6px; font-size: 18px; }
+    #yb-careers-why .yb-careers-why__miniCard p{ margin:0; color:#444; line-height:1.6; }
+  </style>
+</section>
+
+<!-- ===================== SECTION 5 — FAQ ===================== -->
+<section id="yb-careers-faq" class="yb-careers-scope" aria-label="FAQ">
+  <div class="yb-careers-faq__inner">
+    <header class="yb-careers-faq__head"><h2>{{ t.faq_title }}</h2><p>{{ t.faq_subtitle }}</p></header>
+    <div class="yb-careers-faq__box" data-yb-careers-faq>
+      <button class="yb-careers-faq__q" type="button" aria-expanded="false">{{ t.faq1_q }}<span class="yb-careers-faq__icon" aria-hidden="true">&#9662;</span></button>
+      <div class="yb-careers-faq__a" hidden>{{ t.faq1_a }}</div>
+      <button class="yb-careers-faq__q" type="button" aria-expanded="false">{{ t.faq2_q }}<span class="yb-careers-faq__icon" aria-hidden="true">&#9662;</span></button>
+      <div class="yb-careers-faq__a" hidden>{{ t.faq2_a }}</div>
+      <button class="yb-careers-faq__q" type="button" aria-expanded="false">{{ t.faq3_q }}<span class="yb-careers-faq__icon" aria-hidden="true">&#9662;</span></button>
+      <div class="yb-careers-faq__a" hidden>{{ t.faq3_a }}</div>
+      <button class="yb-careers-faq__q" type="button" aria-expanded="false">{{ t.faq4_q }}<span class="yb-careers-faq__icon" aria-hidden="true">&#9662;</span></button>
+      <div class="yb-careers-faq__a" hidden>{{ t.faq4_a }}</div>
+    </div>
+  </div>
+  <style>
+    #yb-careers-faq, #yb-careers-faq *{ box-sizing:border-box; }
+    #yb-careers-faq{ padding: 52px 20px; background: var(--yb-soft); border-top:1px solid var(--yb-border); border-bottom:1px solid var(--yb-border); }
+    #yb-careers-faq .yb-careers-faq__inner{ max-width:1120px; margin:0 auto; }
+    #yb-careers-faq .yb-careers-faq__head{ max-width: 760px; }
+    #yb-careers-faq h2{ margin:0 0 8px; font-size:28px; letter-spacing:-.01em; }
+    #yb-careers-faq p{ margin:0; color:#444; line-height:1.65; }
+    #yb-careers-faq .yb-careers-faq__box{ border:1px solid var(--yb-border); border-radius: 20px; background:#fff; overflow:hidden; margin-top: 18px; box-shadow: 0 18px 60px rgba(0,0,0,0.07); }
+    #yb-careers-faq .yb-careers-faq__q{ width:100%; text-align:left; padding: 14px 16px; background:#fff; border:0; border-bottom:1px solid var(--yb-border); cursor:pointer; font-weight:800; display:flex; align-items:center; justify-content:space-between; gap:10px; font-family:inherit; color: var(--yb-text); }
+    #yb-careers-faq .yb-careers-faq__icon{ color:#777; }
+    #yb-careers-faq .yb-careers-faq__a{ padding: 0 16px 14px; color:#444; line-height:1.65; border-bottom:1px solid var(--yb-border); }
+  </style>
+  <script>
+  (function(){
+    var root = document.querySelector('#yb-careers-faq [data-yb-careers-faq]');
+    if (!root) return;
+    if (root.dataset.init === "1") return;
+    root.dataset.init = "1";
+    root.addEventListener("click", function(e){
+      var btn = e.target.closest(".yb-careers-faq__q");
+      if (!btn) return;
+      var ans = btn.nextElementSibling;
+      var isOpen = btn.getAttribute("aria-expanded") === "true";
+      root.querySelectorAll(".yb-careers-faq__q").forEach(function(b){
+        b.setAttribute("aria-expanded","false");
+        var a = b.nextElementSibling;
+        if (a) a.hidden = true;
+      });
+      btn.setAttribute("aria-expanded", String(!isOpen));
+      if (ans) ans.hidden = isOpen ? true : false;
+    });
+  })();
+  </script>
+</section>
+
+<!-- ===================== SECTION 6 — BOTTOM CTA ===================== -->
+<section id="yb-careers-bottomcta" class="yb-careers-scope" aria-label="CTA">
+  <div class="yb-careers-bottomcta__inner">
+    <div class="yb-careers-bottomcta__card">
+      <div><h3>{{ t.bottom_cta_title }}</h3><p>{{ t.bottom_cta_desc }}</p></div>
+      <div class="yb-careers-bottomcta__actions">
+        <a class="yb-btn yb-btn--cta" href="#" data-ybcar-open="careers">{{ t.hero_cta_apply }}</a>
+        <a class="yb-btn yb-btn--outline" href="mailto:info@yogabible.dk">E-mail</a>
+      </div>
+    </div>
+  </div>
+  <style>
+    #yb-careers-bottomcta, #yb-careers-bottomcta *{ box-sizing:border-box; }
+    #yb-careers-bottomcta{ padding: 52px 20px; background:#fff; }
+    #yb-careers-bottomcta .yb-careers-bottomcta__inner{ max-width:1120px; margin:0 auto; }
+    #yb-careers-bottomcta .yb-careers-bottomcta__card{ border:1px solid var(--yb-border); border-radius: 20px; background: var(--yb-soft); padding: 16px; display:flex; align-items:center; justify-content:space-between; gap:14px; flex-wrap:wrap; }
+    #yb-careers-bottomcta h3{ margin:0 0 6px; font-size:18px; }
+    #yb-careers-bottomcta p{ margin:0; color:#444; line-height:1.6; }
+    #yb-careers-bottomcta .yb-careers-bottomcta__actions{ display:flex; gap:12px; flex-wrap:wrap; }
+  </style>
+</section>
+
+<!-- ===================== CAREERS MODAL (Form) ===================== -->
+<div id="ybcar-modal" class="ybcar-modal" hidden aria-hidden="true">
+  <div class="ybcar-modal__overlay" data-ybcar-close></div>
+  <div class="ybcar-modal__box" role="dialog" aria-modal="true" aria-labelledby="ybcarTitle">
+    <button class="ybcar-x" type="button" data-ybcar-close aria-label="{{ t.modal_close }}">&times;</button>
+    <div id="ybcar-view-form">
+      <h3 id="ybcarTitle">{{ t.modal_title }}</h3>
+      <p class="ybcar-lead">{{ t.modal_lead }}</p>
+      <p id="ybcarError" class="ybcar-error" hidden>{{ t.modal_error }} <a href="mailto:info@yogabible.dk">info@yogabible.dk</a>.<span id="ybcarErrorDetail" class="ybcar-error__detail"></span></p>
+      <iframe name="ybcarFrame" id="ybcarFrame" title="Career submit frame" style="display:none;"></iframe>
+      <form id="ybcarForm" class="ybcar-form" method="post" action="https://script.google.com/macros/s/AKfycbyJAhka6X4XJQrxxSRUlloRtKwnGLZMnAqeMbUTAur7XJM6yQ_1RTZQd9fdXEdRO8Yz/exec" target="ybcarFrame" novalidate
+        data-msg-sending="{{ t.js_sending }}"
+        data-msg-submit="{{ t.js_submit_default }}"
+        data-msg-too-many="{{ t.js_too_many_files }}"
+        data-msg-too-large-pre="{{ t.js_file_too_large_prefix }}"
+        data-msg-too-large-suf="{{ t.js_file_too_large_suffix }}"
+        data-msg-bad-type="{{ t.js_unsupported_type }}"
+        data-msg-unknown="{{ t.js_unknown_error }}"
+        data-msg-filereader="{{ t.js_filereader_error }}">
+        <input class="ybcar-hp" type="text" name="ybcar_hp" tabindex="-1" autocomplete="off" aria-hidden="true">
+        <input type="hidden" name="mode" value="careers">
+        <input type="hidden" id="ybcarPageUrl" name="pageUrl" value="">
+        <input type="hidden" id="ybcarSubmittedAt" name="submittedAt" value="">
+        <input type="hidden" id="ybcarPayload" name="payload" value="">
+        <input type="hidden" id="ybcarCategoryValue" name="category" value="">
+        <div class="ybcar-grid">
+          <label class="ybcar-field"><span>{{ t.modal_firstname }}</span><input type="text" name="firstName" autocomplete="given-name" required></label>
+          <label class="ybcar-field"><span>{{ t.modal_lastname }}</span><input type="text" name="lastName" autocomplete="family-name" required></label>
+          <label class="ybcar-field"><span>{{ t.modal_email }}</span><input type="email" name="email" autocomplete="email" required></label>
+          <label class="ybcar-field"><span>{{ t.modal_phone }}</span><input type="tel" name="phone" autocomplete="tel" required></label>
+          <div class="ybcar-field ybcar-field--full">
+            <span>{{ t.modal_category_label }} <small class="ybcar-hint">{{ t.modal_category_hint }}</small></span>
+            <div id="ybcarCategoryChips" class="ybcar-chips" role="group" aria-label="{{ t.modal_category_label }}">
+              <label class="ybcar-chip"><input type="checkbox" name="categoryChip" value="Yoga / Meditation Teacher"><span>{{ t.modal_chip_yoga }}</span></label>
+              <label class="ybcar-chip"><input type="checkbox" name="categoryChip" value="Uddannelser (YTT)"><span>{{ t.modal_chip_ytt }}</span></label>
+              <label class="ybcar-chip"><input type="checkbox" name="categoryChip" value="Kurser &amp; workshops"><span>{{ t.modal_chip_courses | safe }}</span></label>
+              <label class="ybcar-chip"><input type="checkbox" name="categoryChip" value="Mentorship &amp; privates"><span>{{ t.modal_chip_mentorship | safe }}</span></label>
+              <label class="ybcar-chip"><input type="checkbox" name="categoryChip" value="Marketing &amp; content"><span>{{ t.modal_chip_marketing | safe }}</span></label>
+              <label class="ybcar-chip"><input type="checkbox" name="categoryChip" value="Administration &amp; outreach"><span>{{ t.modal_chip_admin | safe }}</span></label>
+              <label class="ybcar-chip"><input type="checkbox" name="categoryChip" value="Andet samarbejde"><span>{{ t.modal_chip_other }}</span></label>
+            </div>
+            <p id="ybcarCategoryError" class="ybcar-field-error" hidden>{{ t.modal_category_error }}</p>
+          </div>
+          <label id="ybcarSubWrap" class="ybcar-field ybcar-field--full" hidden>
+            <span>{{ t.modal_sub_label }} <small class="ybcar-hint">{{ t.modal_sub_hint }}</small></span>
+            <div id="ybcarSubcategoryChips" class="ybcar-chips ybcar-chips--sub" role="group" aria-label="{{ t.modal_sub_label }}"></div>
+            <p id="ybcarSubError" class="ybcar-field-error" hidden>{{ t.modal_sub_error }}</p>
+            <input type="hidden" id="ybcarSubcategoryValue" name="subcategory" value="">
+          </label>
+          <label id="ybcarOtherWrap" class="ybcar-field ybcar-field--full" hidden>
+            <span>{{ t.modal_other_label }}</span>
+            <input id="ybcarOtherTopic" type="text" name="otherTopic" placeholder="{{ t.modal_other_placeholder }}" autocomplete="off">
+          </label>
+          <label class="ybcar-field"><span>{{ t.modal_role_label }}</span>
+            <select name="role" required><option value="" selected disabled>{{ t.modal_role_placeholder }}</option><option value="Lead trainer">Lead trainer</option><option value="Assistant lead trainer">Assistant lead trainer</option><option value="Underviser / modul">Underviser / modul</option><option value="Workshop facilitator">Workshop facilitator</option><option value="Mentor / privates">Mentor / privates</option><option value="Marketing / content">Marketing / content</option><option value="Administration / outreach">Administration / outreach</option><option value="Andet">Andet</option></select>
+          </label>
+          <label class="ybcar-field"><span>{{ t.modal_exp_label }}</span>
+            <select name="experience" required><option value="" selected disabled>{{ t.modal_exp_placeholder }}</option><option value="0-2 years">0–2</option><option value="3-5 years">3–5</option><option value="6-10 years">6–10</option><option value="10+ years">10+</option></select>
+          </label>
+          <label class="ybcar-field ybcar-field--full"><span>{{ t.modal_links_label }}</span><input type="url" name="links" placeholder="https://..." autocomplete="off"></label>
+          <label class="ybcar-field ybcar-field--zip"><span>{{ t.modal_zip_label }}</span><input type="text" name="zipCode" placeholder="2300" autocomplete="postal-code" inputmode="numeric"></label>
+          <label class="ybcar-field"><span>{{ t.modal_city_label }}</span><input type="text" name="cityCountry" placeholder="Copenhagen, DK" autocomplete="off"></label>
+          <label class="ybcar-field"><span>{{ t.modal_lang_label }}</span><input type="text" name="languages" placeholder="Danish, English" autocomplete="off"></label>
+          <label class="ybcar-field ybcar-field--full"><span>{{ t.modal_bg_label }}</span><textarea name="background" rows="3" placeholder="{{ t.modal_bg_placeholder }}"></textarea></label>
+          <label class="ybcar-field ybcar-field--full"><span>{{ t.modal_msg_label }}</span><textarea name="message" rows="5" required placeholder="{{ t.modal_msg_placeholder }}"></textarea></label>
+          <div class="ybcar-upload ybcar-field--full">
+            <div class="ybcar-upload__row">
+              <div class="ybcar-upload__col"><span class="ybcar-upload__label">{{ t.modal_cv_label }}</span><input id="ybcarCv" type="file" accept=".pdf,.doc,.docx,application/pdf" /><p class="ybcar-upload__hint">{{ t.modal_cv_hint }}</p></div>
+              <div class="ybcar-upload__col"><span class="ybcar-upload__label">{{ t.modal_extra_label }}</span><input id="ybcarExtra" type="file" multiple accept=".pdf,.jpg,.jpeg,.png,application/pdf,image/*" /><p class="ybcar-upload__hint">{{ t.modal_extra_hint }}</p></div>
+            </div>
+          </div>
+        </div>
+        <label class="ybcar-consent"><input type="checkbox" name="consent" value="Yes" required><span>{{ t.modal_consent }}</span></label>
+        <button id="ybcarSubmit" class="ybcar-btn ybcar-btn--cta ybcar-submit" type="submit">{{ t.modal_submit }}</button>
+        <p class="ybcar-fine">{{ t.modal_fine }}</p>
+      </form>
+    </div>
+    <div id="ybcar-view-success" class="ybcar-success" hidden role="status" aria-live="polite">
+      <h3>{{ t.modal_success_title }}</h3>
+      <p>{{ t.modal_success_msg }}</p>
+      <button class="ybcar-btn ybcar-btn--outline" type="button" data-ybcar-close>{{ t.modal_close }}</button>
+    </div>
+  </div>
+  <style>
+    .yb-careers-scope{ --yb-accent:#f75c03; --yb-accent-rgb:247,92,3; --yb-border:#EBE7E3; --yb-soft:#FCFBF9; --yb-text:#1A1A1A; --yb-muted:#6B6B6B; font-family:"Helvetica Neue", Helvetica, Arial, system-ui, -apple-system, sans-serif; color:var(--yb-text); }
+    .yb-careers-scope .yb-btn{ display:inline-flex; align-items:center; justify-content:center; padding:.75rem 1.15rem; border-radius:999px; font-weight:780; font-size:.95rem; text-decoration:none; border:1px solid transparent; cursor:pointer; user-select:none; transition: filter .16s ease, box-shadow .16s ease, background-color .16s ease, color .16s ease, border-color .16s ease; white-space:nowrap; }
+    .yb-careers-scope .yb-btn--cta{ background:var(--yb-accent); border-color:var(--yb-accent); color:#fff; box-shadow: 0 14px 40px rgba(0,0,0,0.10); }
+    .yb-careers-scope .yb-btn--cta:hover{ filter:brightness(.96); }
+    .yb-careers-scope .yb-btn--outline{ background:#fff; border-color: rgba(var(--yb-accent-rgb), .55); color: var(--yb-accent); }
+    .yb-careers-scope .yb-btn--outline:hover{ border-color: var(--yb-accent); filter:brightness(.99); }
+    .yb-careers-scope .yb-btn--ghost{ background:transparent; border-color: var(--yb-border); color:#222; }
+    .yb-careers-scope .yb-btn--ghost:hover{ border-color: rgba(var(--yb-accent-rgb), .55); }
+    .yb-careers-scope .yb-link{ color:inherit; text-decoration:none; border-bottom:1px solid rgba(0,0,0,0.18); }
+    .yb-careers-scope .yb-link:hover{ border-bottom-color: rgba(var(--yb-accent-rgb), .55); }
+    #ybcar-modal, #ybcar-modal * { box-sizing:border-box; }
+    #ybcar-modal{ --ybcar-accent: #f75c03; --ybcar-accent-rgb: 247,92,3; --ybcar-border: #EBE7E3; --ybcar-soft: #FCFBF9; --ybcar-text: #1A1A1A; --ybcar-muted: #6B6B6B; font-family:"Helvetica Neue", Helvetica, Arial, system-ui, -apple-system, sans-serif; color:var(--ybcar-text); }
+    .ybcar-modal{ position:fixed; inset:0; z-index:2147483647; display:grid; place-items:center; padding:14px; }
+    .ybcar-modal[aria-hidden="true"]{ display:none; }
+    .ybcar-modal__overlay{ position:absolute; inset:0; background: rgba(26,26,26,0.46); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); z-index:0; }
+    .ybcar-modal__box{ position:relative; width: min(680px, calc(100% - 18px)); max-height: calc(100% - 18px); overflow:auto; border-radius: 22px; border:1px solid var(--ybcar-border); background: rgba(255,255,255,0.94); box-shadow: 0 18px 60px rgba(0,0,0,0.16); padding: 18px 18px 16px; z-index:1; pointer-events:auto; }
+    .ybcar-x{ position:absolute; top:12px; right:12px; width:38px; height:38px; border-radius:999px; border:1px solid var(--ybcar-border); background:#fff; cursor:pointer; font-size:22px; line-height:1; color:var(--ybcar-text); display:flex; align-items:center; justify-content:center; }
+    .ybcar-x:hover{ background:var(--ybcar-accent); color:#fff; border-color:var(--ybcar-accent); }
+    .ybcar-modal__box h3{ margin:.1rem 0 .35rem; font-size:1.15rem; letter-spacing:.01em; }
+    .ybcar-lead{ margin:0 0 14px; color:#444; line-height:1.6; font-size:.95rem; }
+    .ybcar-hp{ position:absolute; left:-9999px; opacity:0; height:0; }
+    .ybcar-form{ display:grid; gap:12px; }
+    .ybcar-grid{ display:grid; grid-template-columns: 1fr 1fr; gap: 12px 14px; }
+    .ybcar-field{ display:grid; gap:7px; }
+    .ybcar-field--full{ grid-column: 1 / -1; }
+    .ybcar-field--zip{ grid-column: span 1; max-width: 120px; }
+    .ybcar-field[hidden]{ display:none !important; }
+    .ybcar-field > span{ font-size:12px; letter-spacing:.08em; text-transform:uppercase; color:#6b6b6b; font-weight:800; }
+    .ybcar-field > span .ybcar-hint{ font-size:11px; font-weight:600; letter-spacing:.02em; text-transform:none; color:#999; }
+    .ybcar-field input, .ybcar-field select, .ybcar-field textarea{ width:100%; border:1px solid var(--ybcar-border); border-radius:14px; padding: 11px 12px; font-size:15px; background:#fff; color:var(--ybcar-text); outline:none; font-family:inherit; }
+    .ybcar-field input, .ybcar-field select{ height:46px; }
+    .ybcar-field textarea{ resize: vertical; min-height: 92px; }
+    .ybcar-field input:focus, .ybcar-field select:focus, .ybcar-field textarea:focus{ border-color: rgba(var(--ybcar-accent-rgb), .55); box-shadow: 0 0 0 4px rgba(var(--ybcar-accent-rgb), .14); }
+    .ybcar-chips{ display:flex; flex-wrap:wrap; gap:8px; padding:4px 0; }
+    .ybcar-chip{ position:relative; display:inline-flex; align-items:center; cursor:pointer; user-select:none; }
+    .ybcar-chip input[type="checkbox"]{ position:absolute; opacity:0; width:0; height:0; pointer-events:none; }
+    .ybcar-chip span{ display:inline-block; padding: 9px 14px; border-radius:999px; border: 1.5px solid var(--ybcar-border); background:#fff; color:#2a2a2a; font-size:14px; font-weight:700; line-height:1.2; transition: all .16s ease; }
+    .ybcar-chip:hover span{ border-color: rgba(var(--ybcar-accent-rgb), .5); }
+    .ybcar-chip input:checked + span{ background: var(--ybcar-accent); border-color: var(--ybcar-accent); color:#fff; box-shadow: 0 4px 14px rgba(var(--ybcar-accent-rgb), .22); }
+    .ybcar-chip input:focus-visible + span{ outline: 3px solid var(--ybcar-accent); outline-offset: 2px; }
+    .ybcar-chips--sub .ybcar-chip span{ padding: 7px 12px; font-size:13px; font-weight:650; }
+    .ybcar-field-error{ margin:4px 0 0; font-size:12.5px; color:#B00020; font-weight:600; }
+    .ybcar-field-error[hidden]{ display:none; }
+    .ybcar-upload{ border:1px solid var(--ybcar-border); border-radius:16px; background: var(--ybcar-soft); padding: 12px; }
+    .ybcar-upload__row{ display:grid; gap:12px; }
+    @media (min-width: 720px){ .ybcar-upload__row{ grid-template-columns: 1fr 1fr; } }
+    .ybcar-upload__label{ display:block; font-size:12px; letter-spacing:.08em; text-transform:uppercase; color:#6b6b6b; font-weight:800; margin-bottom: 7px; }
+    .ybcar-upload input[type="file"]{ width:100%; border:1px solid var(--ybcar-border); border-radius:14px; padding: 10px; background:#fff; height:auto; }
+    .ybcar-upload__hint{ margin:6px 0 0; color:#777; font-size:12.5px; line-height:1.45; }
+    .ybcar-consent{ display:grid; grid-template-columns: 18px 1fr; gap:10px; align-items:flex-start; margin-top: 2px; color:#333; line-height:1.45; font-weight:650; font-size:.92rem; }
+    .ybcar-consent input{ margin-top:3px; width:18px; height:18px; accent-color: var(--ybcar-accent); }
+    .ybcar-btn{ display:inline-flex; align-items:center; justify-content:center; padding:.7rem 1.1rem; border-radius:999px; font-weight:780; font-size:.95rem; text-decoration:none; border:1px solid transparent; cursor:pointer; user-select:none; transition: filter .16s ease, box-shadow .16s ease, background-color .16s ease, color .16s ease, border-color .16s ease; white-space:nowrap; }
+    .ybcar-btn--cta{ background:var(--ybcar-accent); border-color:var(--ybcar-accent); color:#fff; box-shadow: 0 14px 40px rgba(0,0,0,0.10); }
+    .ybcar-btn--cta:hover{ filter:brightness(.96); }
+    .ybcar-btn--outline{ background:#fff; border-color: rgba(var(--ybcar-accent-rgb), .55); color: var(--ybcar-accent); }
+    .ybcar-btn--outline:hover{ border-color: var(--ybcar-accent); filter: brightness(.99); }
+    .ybcar-submit{ width: fit-content; }
+    .ybcar-submit[disabled]{ opacity:.65; cursor:not-allowed; box-shadow:none; }
+    .ybcar-fine{ margin:0; color:var(--ybcar-muted); font-size:12.5px; line-height:1.55; }
+    .ybcar-error{ margin:0; font-size:13px; color:#B00020; line-height:1.45; }
+    .ybcar-error a{ color: var(--ybcar-accent); text-decoration:none; border-bottom:1px solid rgba(var(--ybcar-accent-rgb), .35); }
+    .ybcar-error__detail{ display:block; margin-top:6px; color:#7a1e1e; font-size:12.5px; }
+    .ybcar-success{ border:1px solid var(--ybcar-border); border-radius:18px; background: var(--ybcar-soft); padding: 16px; }
+    .ybcar-success h3{ margin:.1rem 0 .4rem; font-size:20px; }
+    .ybcar-success p{ margin:0 0 .9rem; color:#444; line-height:1.65; }
+    @media (max-width: 720px){ .ybcar-grid{ grid-template-columns:1fr; } .ybcar-field--zip{ max-width: none; } .ybcar-submit{ width:100%; } .ybcar-chips{ gap:6px; } .ybcar-chip span{ padding: 8px 12px; font-size:13px; } .ybcar-chips--sub .ybcar-chip span{ padding: 6px 10px; font-size:12px; } }
+  </style>
+</div>
+
+<!-- ===================== SUBCATS DATA ===================== -->
+<script id="ybcar-subcats-data" type="application/json">{{ t.js_subcats | dump | safe }}</script>
+
+<!-- ===================== CAREERS MODAL LOGIC ===================== -->
+<script>
+(function(){
+  var modal = document.getElementById("ybcar-modal");
+  if (!modal) return;
+  if (modal.dataset.ybcarInit === "1") return;
+  modal.dataset.ybcarInit = "1";
+
+  var form       = document.getElementById("ybcarForm");
+  var frame      = document.getElementById("ybcarFrame");
+
+  var viewForm    = document.getElementById("ybcar-view-form");
+  var viewSuccess = document.getElementById("ybcar-view-success");
+
+  var metaUrl   = document.getElementById("ybcarPageUrl");
+  var metaAt    = document.getElementById("ybcarSubmittedAt");
+  var payloadEl = document.getElementById("ybcarPayload");
+
+  var errBox    = document.getElementById("ybcarError");
+  var errDetail = document.getElementById("ybcarErrorDetail");
+  var submitBtn = document.getElementById("ybcarSubmit");
+
+  var categoryChipsWrap = document.getElementById("ybcarCategoryChips");
+  var categoryValueEl   = document.getElementById("ybcarCategoryValue");
+  var categoryErrorEl   = document.getElementById("ybcarCategoryError");
+
+  var subWrap           = document.getElementById("ybcarSubWrap");
+  var subChipsWrap      = document.getElementById("ybcarSubcategoryChips");
+  var subValueEl        = document.getElementById("ybcarSubcategoryValue");
+  var subErrorEl        = document.getElementById("ybcarSubError");
+
+  var otherWrap = document.getElementById("ybcarOtherWrap");
+  var otherInp  = document.getElementById("ybcarOtherTopic");
+
+  var cvInp     = document.getElementById("ybcarCv");
+  var extraInp  = document.getElementById("ybcarExtra");
+
+  try{ if (modal.parentElement !== document.body) document.body.appendChild(modal); }catch(e){}
+
+  /* --- Translated JS strings via data attributes --- */
+  var MSG_SENDING = form ? (form.getAttribute('data-msg-sending') || 'Sender\u2026') : 'Sender\u2026';
+  var MSG_SUBMIT = form ? (form.getAttribute('data-msg-submit') || 'Send foresp\u00f8rgsel') : 'Send foresp\u00f8rgsel';
+  var MSG_TOO_MANY = form ? (form.getAttribute('data-msg-too-many') || 'For mange filer.') : 'For mange filer.';
+  var MSG_TOO_LARGE_PRE = form ? (form.getAttribute('data-msg-too-large-pre') || 'En fil er for stor. Max ') : 'En fil er for stor. Max ';
+  var MSG_TOO_LARGE_SUF = form ? (form.getAttribute('data-msg-too-large-suf') || ' MB pr. fil.') : ' MB pr. fil.';
+  var MSG_BAD_TYPE = form ? (form.getAttribute('data-msg-bad-type') || 'Filtype ikke underst\u00f8ttet: ') : 'Filtype ikke underst\u00f8ttet: ';
+  var MSG_UNKNOWN = form ? (form.getAttribute('data-msg-unknown') || '(Ukendt fejl)') : '(Ukendt fejl)';
+  var MSG_FILEREADER = form ? (form.getAttribute('data-msg-filereader') || '(Kunne ikke l\u00e6se filer.)') : '(Kunne ikke l\u00e6se filer.)';
+
+  /* --- SUBCATS from JSON data element --- */
+  var SUBCATS = {};
+  try {
+    var subcatsEl = document.getElementById("ybcar-subcats-data");
+    if (subcatsEl) SUBCATS = JSON.parse(subcatsEl.textContent);
+  } catch(e){}
+
+  var awaitingResponse = false;
+  var submitStartedAt = 0;
+  var fallbackTimer = null;
+
+  function setLoading(is){
+    if (!submitBtn) return;
+    submitBtn.disabled = !!is;
+    submitBtn.textContent = is ? MSG_SENDING : MSG_SUBMIT;
+  }
+
+  function showError(msg){
+    if (errBox) errBox.hidden = false;
+    if (errDetail) errDetail.textContent = msg ? (" " + msg) : "";
+  }
+
+  function showSuccessUI(){
+    awaitingResponse = false;
+    if (fallbackTimer) clearTimeout(fallbackTimer);
+    fallbackTimer = null;
+
+    setLoading(false);
+
+    if (viewForm) viewForm.hidden = true;
+    if (viewSuccess) viewSuccess.hidden = false;
+
+    try{ form && form.reset(); }catch(e){}
+    if (subWrap) subWrap.hidden = true;
+    if (otherWrap) otherWrap.hidden = true;
+    if (payloadEl) payloadEl.value = "";
+    if (categoryValueEl) categoryValueEl.value = "";
+    if (subValueEl) subValueEl.value = "";
+  }
+
+  function resetViews(){
+    if (viewForm) viewForm.hidden = false;
+    if (viewSuccess) viewSuccess.hidden = true;
+    if (errBox) errBox.hidden = true;
+    if (errDetail) errDetail.textContent = "";
+    if (categoryErrorEl) categoryErrorEl.hidden = true;
+    if (subErrorEl) subErrorEl.hidden = true;
+    setLoading(false);
+
+    awaitingResponse = false;
+    if (fallbackTimer) clearTimeout(fallbackTimer);
+    fallbackTimer = null;
+  }
+
+  function getSelectedCategories(){
+    if (!categoryChipsWrap) return [];
+    var checkboxes = categoryChipsWrap.querySelectorAll('input[type="checkbox"]:checked');
+    return Array.from(checkboxes).map(function(cb){ return cb.value; });
+  }
+
+  function getSelectedSubcategories(){
+    if (!subChipsWrap) return [];
+    var checkboxes = subChipsWrap.querySelectorAll('input[type="checkbox"]:checked');
+    return Array.from(checkboxes).map(function(cb){ return cb.value; });
+  }
+
+  function getMergedSubcategories(selectedCats){
+    var merged = [];
+    var seen = {};
+    selectedCats.forEach(function(cat){
+      var subs = SUBCATS[cat] || [];
+      subs.forEach(function(sub){
+        if (!seen[sub]){
+          seen[sub] = true;
+          merged.push(sub);
+        }
+      });
+    });
+    return merged;
+  }
+
+  function updateSubcategoryValue(){
+    var selected = getSelectedSubcategories();
+    if (subValueEl) subValueEl.value = selected.join(", ");
+  }
+
+  function updateCategoryValue(){
+    var selected = getSelectedCategories();
+    if (categoryValueEl) categoryValueEl.value = selected.join(", ");
+  }
+
+  function renderSubcategoryChips(items, preserveSelections){
+    if (!subChipsWrap) return;
+
+    var prevSelected = {};
+    if (preserveSelections){
+      getSelectedSubcategories().forEach(function(s){ prevSelected[s] = true; });
+    }
+
+    subChipsWrap.innerHTML = "";
+
+    items.forEach(function(item){
+      var label = document.createElement("label");
+      label.className = "ybcar-chip";
+
+      var checkbox = document.createElement("input");
+      checkbox.type = "checkbox";
+      checkbox.name = "subcategoryChip";
+      checkbox.value = item;
+      if (prevSelected[item]) checkbox.checked = true;
+
+      var span = document.createElement("span");
+      span.textContent = item;
+
+      label.appendChild(checkbox);
+      label.appendChild(span);
+      subChipsWrap.appendChild(label);
+
+      checkbox.addEventListener("change", updateSubcategoryValue);
+    });
+
+    updateSubcategoryValue();
+  }
+
+  function syncCategoryUI(preserveSubSelections){
+    var selectedCats = getSelectedCategories();
+
+    updateCategoryValue();
+
+    var hasAndet = selectedCats.indexOf("Andet samarbejde") !== -1;
+    if (otherWrap) otherWrap.hidden = !hasAndet;
+    if (otherInp){
+      otherInp.required = hasAndet;
+      if (!hasAndet) otherInp.value = "";
+    }
+
+    var mergedSubs = getMergedSubcategories(selectedCats);
+    var hasSubs = mergedSubs.length > 0;
+
+    if (subWrap) subWrap.hidden = !hasSubs;
+
+    if (hasSubs){
+      renderSubcategoryChips(mergedSubs, preserveSubSelections);
+    } else {
+      if (subChipsWrap) subChipsWrap.innerHTML = "";
+      if (subValueEl) subValueEl.value = "";
+    }
+
+    if (categoryErrorEl) categoryErrorEl.hidden = true;
+    if (subErrorEl) subErrorEl.hidden = true;
+  }
+
+  function openModal(prefillCategories){
+    try{ form && form.reset(); }catch(e){}
+    if (metaUrl) metaUrl.value = window.location.href;
+    if (metaAt) metaAt.value = "";
+    if (payloadEl) payloadEl.value = "";
+    if (categoryValueEl) categoryValueEl.value = "";
+    if (subValueEl) subValueEl.value = "";
+
+    if (categoryChipsWrap){
+      categoryChipsWrap.querySelectorAll('input[type="checkbox"]').forEach(function(cb){ cb.checked = false; });
+    }
+
+    if (prefillCategories){
+      var prefillArr = Array.isArray(prefillCategories)
+        ? prefillCategories
+        : prefillCategories.split(",").map(function(s){ return s.trim(); });
+
+      if (categoryChipsWrap){
+        prefillArr.forEach(function(cat){
+          var cb = categoryChipsWrap.querySelector('input[value="' + cat + '"]');
+          if (cb) cb.checked = true;
+        });
+      }
+    }
+
+    syncCategoryUI(false);
+    resetViews();
+
+    modal.hidden = false;
+    modal.setAttribute("aria-hidden","false");
+
+    var first = form ? form.querySelector('input[name="firstName"]') : null;
+    if (first) setTimeout(function(){ first.focus(); }, 30);
+  }
+
+  function closeModal(){
+    modal.hidden = true;
+    modal.setAttribute("aria-hidden","true");
+  }
+
+  if (categoryChipsWrap){
+    categoryChipsWrap.addEventListener("change", function(){ syncCategoryUI(true); });
+  }
+
+  document.addEventListener("click", function(e){
+    var opener = e.target.closest('[data-ybcar-open="careers"]');
+    if (opener){
+      e.preventDefault();
+      var prefill = opener.getAttribute("data-ybcar-prefill") || "";
+      openModal(prefill);
+      return;
+    }
+    var closer = e.target.closest("[data-ybcar-close]");
+    if (closer){
+      e.preventDefault();
+      closeModal();
+      return;
+    }
+  });
+
+  document.addEventListener("keydown", function(e){
+    if (e.key === "Escape" && !modal.hidden) closeModal();
+  });
+
+  if (frame){
+    frame.addEventListener("load", function(){
+      if (!awaitingResponse) return;
+      if (Date.now() - submitStartedAt < 250) return;
+      showSuccessUI();
+    });
+  }
+
+  var MAX_MB_PER_FILE = 6;
+  var MAX_FILES_TOTAL = 6;
+  var ACCEPT_MIME_LIST = [
+    "application/pdf","image/jpeg","image/png","image/webp",
+    "application/msword","application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+  ];
+
+  function fileToBase64(file){
+    return new Promise(function(resolve, reject){
+      var fr = new FileReader();
+      fr.onerror = function(){ reject(new Error("FileReader error")); };
+      fr.onload = function(){
+        var res = String(fr.result || "");
+        var comma = res.indexOf(",");
+        var b64 = comma >= 0 ? res.slice(comma+1) : "";
+        resolve(b64);
+      };
+      fr.readAsDataURL(file);
+    });
+  }
+
+  async function buildPayload(){
+    var fd = new FormData(form);
+    var fields = {};
+    fd.forEach(function(v,k){ fields[k] = String(v); });
+
+    fields.category = categoryValueEl ? categoryValueEl.value : "";
+    fields.subcategory = subValueEl ? subValueEl.value : "";
+
+    fields.pageUrl = (metaUrl && metaUrl.value) ? metaUrl.value : window.location.href;
+    fields.submittedAt = (metaAt && metaAt.value) ? metaAt.value : new Date().toISOString();
+    fields.mode = "careers";
+
+    var files = [];
+    var cv = cvInp && cvInp.files && cvInp.files[0] ? cvInp.files[0] : null;
+    var extras = extraInp && extraInp.files ? Array.from(extraInp.files) : [];
+
+    var all = [];
+    if (cv) all.push({kind:"cv", file:cv});
+    extras.forEach(function(f){ all.push({kind:"extra", file:f}); });
+
+    if (all.length > MAX_FILES_TOTAL){
+      throw new Error(MSG_TOO_MANY);
+    }
+
+    for (var i = 0; i < all.length; i++){
+      var item = all[i];
+      var f = item.file;
+
+      if (f.size > MAX_MB_PER_FILE * 1024 * 1024){
+        throw new Error(MSG_TOO_LARGE_PRE + MAX_MB_PER_FILE + MSG_TOO_LARGE_SUF);
+      }
+      if (f.type && ACCEPT_MIME_LIST.indexOf(f.type) === -1){
+        throw new Error(MSG_BAD_TYPE + (f.type || "unknown"));
+      }
+
+      var b64 = await fileToBase64(f);
+      files.push({
+        kind: item.kind,
+        filename: f.name,
+        mimeType: f.type || "application/octet-stream",
+        base64: b64
+      });
+    }
+
+    return { fields: fields, files: files };
+  }
+
+  function validateChipFields(){
+    var valid = true;
+
+    var selectedCats = getSelectedCategories();
+    if (selectedCats.length === 0){
+      if (categoryErrorEl) categoryErrorEl.hidden = false;
+      valid = false;
+    } else {
+      if (categoryErrorEl) categoryErrorEl.hidden = true;
+    }
+
+    var mergedSubs = getMergedSubcategories(selectedCats);
+    if (mergedSubs.length > 0){
+      var selectedSubs = getSelectedSubcategories();
+      if (selectedSubs.length === 0){
+        if (subErrorEl) subErrorEl.hidden = false;
+        valid = false;
+      } else {
+        if (subErrorEl) subErrorEl.hidden = true;
+      }
+    }
+
+    return valid;
+  }
+
+  window.addEventListener("message", function(event){
+    var origin = String(event.origin || "");
+    var okOrigin = origin.indexOf("script.google.com") !== -1 || origin.indexOf("script.googleusercontent.com") !== -1;
+    if (!okOrigin) return;
+
+    var data = event.data || {};
+    if (!data || typeof data !== "object") return;
+    if (data.source !== "yb-careers-webapp") return;
+
+    if (data.ok){
+      showSuccessUI();
+    } else {
+      awaitingResponse = false;
+      if (fallbackTimer) clearTimeout(fallbackTimer);
+      fallbackTimer = null;
+      setLoading(false);
+      showError(data.error ? "(" + data.error + ")" : MSG_UNKNOWN);
+    }
+  });
+
+  if (form){
+    form.addEventListener("submit", async function(e){
+      e.preventDefault();
+
+      if (errBox) errBox.hidden = true;
+      if (errDetail) errDetail.textContent = "";
+
+      syncCategoryUI(true);
+
+      if (!validateChipFields()) return;
+
+      if (metaAt) metaAt.value = new Date().toISOString();
+      if (!form.reportValidity()) return;
+
+      try{
+        setLoading(true);
+
+        awaitingResponse = true;
+        submitStartedAt = Date.now();
+
+        if (fallbackTimer) clearTimeout(fallbackTimer);
+        fallbackTimer = setTimeout(function(){
+          if (!awaitingResponse) return;
+          showSuccessUI();
+        }, 9000);
+
+        var payload = await buildPayload();
+        if (payloadEl) payloadEl.value = JSON.stringify(payload);
+
+        form.submit();
+      } catch(err){
+        awaitingResponse = false;
+        if (fallbackTimer) clearTimeout(fallbackTimer);
+        fallbackTimer = null;
+
+        setLoading(false);
+        showError(err && err.message ? "(" + err.message + ")" : MSG_FILEREADER);
+      }
+    });
+  }
+})();
+</script>
