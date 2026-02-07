@@ -57,20 +57,21 @@ exports.handler = async function(event) {
       return cartItem;
     });
 
-    // Build payment info — Mindbody v6 uses camelCase for all Metadata keys
+    // Build payment info — Mindbody v6 Metadata is Dictionary<string, string>
+    // ALL values MUST be strings, not numbers or booleans
     var paymentInfo = {
       Type: 'CreditCard',
       Metadata: {
-        amount: parseFloat(body.amount) || 0,
-        creditCardNumber: body.payment.cardNumber,
-        expMonth: body.payment.expMonth,
-        expYear: body.payment.expYear,
-        cvv: body.payment.cvv,
-        billingName: body.payment.cardHolder || '',
-        billingAddress: body.payment.billingAddress || '',
-        billingCity: body.payment.billingCity || '',
-        billingPostalCode: body.payment.billingPostalCode || '',
-        saveInfo: body.payment.saveCard || false
+        amount: String(body.amount || 0),
+        creditCardNumber: String(body.payment.cardNumber),
+        expMonth: String(body.payment.expMonth),
+        expYear: String(body.payment.expYear),
+        cvv: String(body.payment.cvv),
+        billingName: String(body.payment.cardHolder || ''),
+        billingAddress: String(body.payment.billingAddress || ''),
+        billingCity: String(body.payment.billingCity || ''),
+        billingPostalCode: String(body.payment.billingPostalCode || ''),
+        saveInfo: String(body.payment.saveCard || false)
       }
     };
 
@@ -122,6 +123,6 @@ exports.handler = async function(event) {
     if (err.data && err.data.Error && err.data.Error.Message) {
       errorMsg = err.data.Error.Message;
     }
-    return jsonResponse(err.status || 500, { error: errorMsg, details: err.data || null });
+    return jsonResponse(err.status || 500, { error: errorMsg, details: err.data || null, _v: 7 });
   }
 };
