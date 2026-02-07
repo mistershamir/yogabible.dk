@@ -28,10 +28,13 @@
       <!-- Tab navigation -->
       <div class="yb-profile__tabs">
         <button class="yb-profile__tab is-active" type="button" data-yb-tab="profile">{{ t.tab_profile }}</button>
+        <button class="yb-profile__tab" type="button" data-yb-tab="schedule">{{ t.tab_schedule }}</button>
         <button class="yb-profile__tab" type="button" data-yb-tab="store">{{ t.tab_store }}</button>
+        <button class="yb-profile__tab" type="button" data-yb-tab="visits">{{ t.tab_visits }}</button>
+        <button class="yb-profile__tab" type="button" data-yb-tab="receipts">{{ t.tab_receipts }}</button>
       </div>
 
-      <!-- ═══════ TAB: Profile ═══════ -->
+      {# ═══════ TAB: Profile ═══════ #}
       <div class="yb-profile__tab-panel is-active" data-yb-panel="profile">
         <div class="yb-profile__grid">
 
@@ -103,7 +106,7 @@
               <div class="yb-profile__info-grid">
                 <div class="yb-profile__info-item">
                   <span class="yb-profile__info-label">{{ t.label_tier }}</span>
-                  <span class="yb-profile__info-value" id="yb-profile-tier">—</span>
+                  <span class="yb-profile__info-value" id="yb-profile-tier">&mdash;</span>
                 </div>
               </div>
             </div>
@@ -112,7 +115,47 @@
         </div>
       </div>
 
-      <!-- ═══════ TAB: Online Store ═══════ -->
+      {# ═══════ TAB: Schedule ═══════ #}
+      <div class="yb-profile__tab-panel" data-yb-panel="schedule">
+        <div class="yb-schedule">
+          <div class="yb-schedule__header">
+            <div>
+              <h2 class="yb-schedule__title">{{ t.schedule_title }}</h2>
+              <p class="yb-schedule__subtitle">{{ t.schedule_subtitle }}</p>
+            </div>
+            <div class="yb-schedule__nav">
+              <button class="yb-btn yb-btn--outline yb-schedule__nav-btn" type="button" id="yb-schedule-prev">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+                <span class="yb-schedule__nav-label">{{ t.schedule_prev_week }}</span>
+              </button>
+              <span class="yb-schedule__week-label" id="yb-schedule-week-label"></span>
+              <button class="yb-btn yb-btn--outline yb-schedule__nav-btn" type="button" id="yb-schedule-next">
+                <span class="yb-schedule__nav-label">{{ t.schedule_next_week }}</span>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+              </button>
+            </div>
+          </div>
+
+          <!-- No-pass prompt (hidden by default) -->
+          <div id="yb-schedule-no-pass" class="yb-schedule__no-pass" hidden>
+            <p>{{ t.schedule_no_pass }}</p>
+            <button class="yb-btn yb-btn--primary" type="button" id="yb-schedule-buy-pass">{{ t.schedule_buy_pass }}</button>
+          </div>
+
+          <!-- Schedule list (loaded via JS) -->
+          <div id="yb-schedule-list" class="yb-schedule__list">
+            <div class="yb-store__loading">
+              <div class="yb-mb-spinner"></div>
+              <span>{{ t.schedule_loading }}</span>
+            </div>
+          </div>
+
+          <!-- Toast notification -->
+          <div id="yb-schedule-toast" class="yb-schedule__toast" hidden></div>
+        </div>
+      </div>
+
+      {# ═══════ TAB: Store ═══════ #}
       <div class="yb-profile__tab-panel" data-yb-panel="store" data-store-items="{{ t.store_items | join(',') }}">
         <div class="yb-store">
           <div class="yb-store__header">
@@ -197,6 +240,38 @@
               <h3>{{ t.checkout_success_title }}</h3>
               <p>{{ t.checkout_success_text }}</p>
               <button class="yb-btn yb-btn--primary" type="button" id="yb-store-success-close">{{ t.checkout_success_close }}</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {# ═══════ TAB: Visit History ═══════ #}
+      <div class="yb-profile__tab-panel" data-yb-panel="visits">
+        <div class="yb-visits">
+          <div class="yb-visits__header">
+            <h2 class="yb-visits__title">{{ t.visits_title }}</h2>
+            <p class="yb-visits__subtitle">{{ t.visits_subtitle }}</p>
+          </div>
+          <div id="yb-visits-list" class="yb-visits__list">
+            <div class="yb-store__loading">
+              <div class="yb-mb-spinner"></div>
+              <span>{{ t.visits_loading }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {# ═══════ TAB: Receipts ═══════ #}
+      <div class="yb-profile__tab-panel" data-yb-panel="receipts">
+        <div class="yb-receipts">
+          <div class="yb-receipts__header">
+            <h2 class="yb-receipts__title">{{ t.receipts_title }}</h2>
+            <p class="yb-receipts__subtitle">{{ t.receipts_subtitle }}</p>
+          </div>
+          <div id="yb-receipts-list" class="yb-receipts__list">
+            <div class="yb-store__loading">
+              <div class="yb-mb-spinner"></div>
+              <span>{{ t.receipts_loading }}</span>
             </div>
           </div>
         </div>

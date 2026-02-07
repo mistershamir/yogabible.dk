@@ -6908,7 +6908,357 @@ section {
   }
 
   .yb-profile__tab {
-    padding: 0.6rem 1rem;
-    font-size: 0.9rem;
+    padding: 0.6rem 0.75rem;
+    font-size: 0.8rem;
+  }
+
+  .yb-profile__tabs {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    flex-wrap: nowrap;
+  }
+}
+
+/* ═══════════════════════════════════════
+   SCHEDULE TAB
+   ═══════════════════════════════════════ */
+
+.yb-schedule__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+  margin-bottom: 2rem;
+  flex-wrap: wrap;
+}
+
+.yb-schedule__title {
+  font-family: 'Abacaxi', sans-serif;
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #0F0F0F;
+  margin: 0 0 0.25rem;
+}
+
+.yb-schedule__subtitle {
+  color: #6F6A66;
+  font-size: 0.95rem;
+  margin: 0;
+}
+
+.yb-schedule__nav {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.yb-schedule__nav-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.4rem 0.75rem;
+  font-size: 0.85rem;
+}
+
+.yb-schedule__nav-label {
+  display: inline;
+}
+
+.yb-schedule__week-label {
+  font-weight: 700;
+  color: #0F0F0F;
+  min-width: 130px;
+  text-align: center;
+  font-size: 0.95rem;
+}
+
+.yb-schedule__no-pass {
+  background: #FFF8F0;
+  border: 1.5px solid #f75c03;
+  border-radius: 12px;
+  padding: 1.25rem 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.yb-schedule__no-pass p {
+  margin: 0;
+  font-weight: 700;
+  color: #0F0F0F;
+}
+
+.yb-schedule__day {
+  margin-bottom: 1.5rem;
+}
+
+.yb-schedule__day-label {
+  font-family: 'Abacaxi', sans-serif;
+  font-size: 1rem;
+  font-weight: 700;
+  color: #0F0F0F;
+  padding-bottom: 0.5rem;
+  border-bottom: 1.5px solid #E8E4E0;
+  margin: 0 0 0.5rem;
+}
+
+.yb-schedule__day-label span {
+  font-weight: 400;
+  color: #6F6A66;
+}
+
+.yb-schedule__class {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.75rem 0;
+  border-bottom: 1px solid #F5F3F0;
+}
+
+.yb-schedule__class.is-cancelled {
+  opacity: 0.5;
+  text-decoration: line-through;
+}
+
+.yb-schedule__class.is-past {
+  opacity: 0.5;
+}
+
+.yb-schedule__class-time {
+  min-width: 110px;
+  font-weight: 700;
+  color: #0F0F0F;
+  font-size: 0.9rem;
+}
+
+.yb-schedule__class-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+}
+
+.yb-schedule__class-name {
+  font-weight: 700;
+  color: #0F0F0F;
+}
+
+.yb-schedule__class-instructor {
+  font-size: 0.85rem;
+  color: #6F6A66;
+}
+
+.yb-schedule__class-spots {
+  font-size: 0.8rem;
+  color: #f75c03;
+}
+
+.yb-schedule__class-action {
+  min-width: 90px;
+  text-align: right;
+}
+
+.yb-schedule__book-btn,
+.yb-schedule__cancel-btn {
+  padding: 0.4rem 1rem;
+  font-size: 0.85rem;
+}
+
+.yb-schedule__badge {
+  display: inline-block;
+  padding: 0.25rem 0.75rem;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.yb-schedule__badge--cancelled {
+  background: #F5F3F0;
+  color: #6F6A66;
+}
+
+.yb-schedule__badge--full {
+  background: #FFF0E0;
+  color: #d94f02;
+}
+
+.yb-schedule__toast {
+  position: fixed;
+  bottom: 2rem;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  font-weight: 700;
+  font-size: 0.9rem;
+  z-index: 1000;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+}
+
+.yb-schedule__toast--success {
+  background: #0F0F0F;
+  color: #fff;
+}
+
+.yb-schedule__toast--error {
+  background: #c0392b;
+  color: #fff;
+}
+
+@media (max-width: 768px) {
+  .yb-schedule__header {
+    flex-direction: column;
+  }
+
+  .yb-schedule__nav {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .yb-schedule__nav-label {
+    display: none;
+  }
+
+  .yb-schedule__class {
+    flex-wrap: wrap;
+  }
+
+  .yb-schedule__class-time {
+    min-width: auto;
+  }
+
+  .yb-schedule__class-action {
+    width: 100%;
+    text-align: left;
+  }
+
+  .yb-schedule__no-pass {
+    flex-direction: column;
+    text-align: center;
+  }
+}
+
+/* ═══════════════════════════════════════
+   VISITS TAB
+   ═══════════════════════════════════════ */
+
+.yb-visits__header,
+.yb-receipts__header {
+  margin-bottom: 2rem;
+}
+
+.yb-visits__title,
+.yb-receipts__title {
+  font-family: 'Abacaxi', sans-serif;
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #0F0F0F;
+  margin: 0 0 0.25rem;
+}
+
+.yb-visits__subtitle,
+.yb-receipts__subtitle {
+  color: #6F6A66;
+  font-size: 0.95rem;
+  margin: 0;
+}
+
+.yb-visits__table,
+.yb-receipts__table {
+  border: 1.5px solid #E8E4E0;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.yb-visits__row,
+.yb-receipts__row {
+  display: grid;
+  grid-template-columns: 140px 1fr 120px 100px;
+  padding: 0.75rem 1.25rem;
+  border-bottom: 1px solid #F5F3F0;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.yb-visits__row:last-child,
+.yb-receipts__row:last-child {
+  border-bottom: none;
+}
+
+.yb-visits__row--header,
+.yb-receipts__row--header {
+  background: #F5F3F0;
+  font-weight: 700;
+  font-size: 0.85rem;
+  color: #6F6A66;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.yb-visits__date,
+.yb-receipts__date {
+  font-size: 0.9rem;
+}
+
+.yb-visits__date small,
+.yb-receipts__date small {
+  color: #6F6A66;
+}
+
+.yb-visits__name,
+.yb-receipts__name {
+  font-weight: 700;
+  color: #0F0F0F;
+}
+
+.yb-visits__instructor {
+  color: #6F6A66;
+  font-size: 0.9rem;
+}
+
+.yb-visits__status {
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
+.yb-visits__status--attended {
+  color: #2e7d32;
+}
+
+.yb-visits__status--noshow {
+  color: #B5B0AB;
+}
+
+.yb-visits__status--late {
+  color: #c0392b;
+}
+
+.yb-receipts__amount {
+  font-weight: 700;
+  color: #0F0F0F;
+}
+
+.yb-receipts__payment {
+  color: #6F6A66;
+  font-size: 0.85rem;
+}
+
+.yb-receipts__row--returned {
+  opacity: 0.5;
+  text-decoration: line-through;
+}
+
+@media (max-width: 768px) {
+  .yb-visits__row,
+  .yb-receipts__row {
+    grid-template-columns: 1fr 1fr;
+    gap: 0.25rem;
+  }
+
+  .yb-visits__row--header,
+  .yb-receipts__row--header {
+    display: none;
   }
 }
