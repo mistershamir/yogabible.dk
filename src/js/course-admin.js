@@ -576,8 +576,31 @@
     db.collection('enrollments').where('courseId', '==', courseId).get()
       .then(function (snap) {
         state.enrollments = [];
-        snap.forEach(function (doc) { state.enrollments.push(Object.assign({ id: doc.id }, doc.data())); });
-        renderEnrollments();
+        var userIds = [];
+        snap.forEach(function (doc) {
+          var data = Object.assign({ id: doc.id }, doc.data());
+          state.enrollments.push(data);
+          if (data.userId && !data.userName) userIds.push(data.userId);
+        });
+
+        // If enrollments lack user info, fetch from users collection
+        if (userIds.length) {
+          var lookups = userIds.map(function (uid) {
+            return db.collection('users').doc(uid).get().then(function (uDoc) {
+              if (!uDoc.exists) return;
+              var u = uDoc.data();
+              state.enrollments.forEach(function (e) {
+                if (e.userId === uid) {
+                  e.userName = u.name || ((u.firstName || '') + ' ' + (u.lastName || '')).trim() || '';
+                  e.userEmail = u.email || '';
+                }
+              });
+            }).catch(function () {}); // skip if can't read
+          });
+          Promise.all(lookups).then(function () { renderEnrollments(); });
+        } else {
+          renderEnrollments();
+        }
       }).catch(function (err) { console.error(err); });
   }
 
@@ -589,8 +612,13 @@
     el.innerHTML = state.enrollments.map(function (e) {
       var statusClass = e.status === 'active' ? 'yb-admin__badge--ok' : 'yb-admin__badge--muted';
       var statusLabel = e.status === 'active' ? t('status_active') : t('status_revoked');
+      var displayName = e.userName || '';
+      var displayEmail = e.userEmail || '';
+      var userLabel = displayName
+        ? esc(displayName) + ' <small style="color:#6F6A66">' + esc(displayEmail) + '</small>'
+        : esc(displayEmail || e.userId);
       return '<div class="yb-admin__enroll-row">' +
-        '<span>' + esc(e.userId) + '</span>' +
+        '<span>' + userLabel + '</span>' +
         '<span class="yb-admin__badge ' + statusClass + '">' + statusLabel + '</span>' +
         (e.status === 'active'
           ? '<button class="yb-admin__sm-btn yb-admin__sm-btn--danger" data-action="revoke-enroll" data-id="' + e.id + '">' + t('revoke_btn') + '</button>'
@@ -610,18 +638,25 @@
       promise = db.collection('users').where('email', '==', val).limit(1).get()
         .then(function (snap) {
           if (snap.empty) throw new Error('User not found: ' + val);
-          var uid = snap.docs[0].id;
-          return uid;
+          var doc = snap.docs[0];
+          var u = doc.data();
+          return {
+            uid: doc.id,
+            name: u.name || ((u.firstName || '') + ' ' + (u.lastName || '')).trim() || '',
+            email: u.email || val
+          };
         });
     } else {
-      promise = Promise.resolve(val);
+      promise = Promise.resolve({ uid: val, name: '', email: '' });
     }
 
     toast('Looking up user...');
-    promise.then(function (uid) {
-      var docId = uid + '_' + state.courseId;
+    promise.then(function (user) {
+      var docId = user.uid + '_' + state.courseId;
       return db.collection('enrollments').doc(docId).set({
-        userId: uid,
+        userId: user.uid,
+        userName: user.name,
+        userEmail: user.email,
         courseId: state.courseId,
         enrolledAt: firebase.firestore.FieldValue.serverTimestamp(),
         enrolledBy: 'admin',
