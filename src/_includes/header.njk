@@ -100,7 +100,7 @@
         </div>
       </nav>
 
-      <!-- Desktop: icons + flags + CTA -->
+      <!-- Desktop: icons + flags + Auth + CTA -->
       <div class="ybhd-miniDesk" aria-label="Social and language">
         <a class="ybhd-icon" href="{{ site.instagram }}" target="_blank" rel="noopener" aria-label="Instagram">
           <img
@@ -125,6 +125,27 @@
         <div class="ybhd-flags" role="navigation" aria-label="Language selector">
           <a class="ybhd-flagBtn" data-lang="da" href="https://www.yogabible.dk/" aria-label="Dansk" title="Dansk">🇩🇰</a>
           <a class="ybhd-flagBtn" data-lang="en" href="https://en.yogabible.dk/" aria-label="English" title="English">🇬🇧</a>
+        </div>
+
+        <!-- Auth: Login Button (shown when logged out) -->
+        <button id="yb-auth-login-btn" class="ybhd-auth-btn" type="button" data-yb-auth-open="login" aria-label="Log ind">
+          <svg class="ybhd-auth-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        </button>
+
+        <!-- Auth: User Menu (shown when logged in) -->
+        <div id="yb-auth-user-menu" class="ybhd-user-menu" style="display:none">
+          <button class="ybhd-user-trigger" type="button" aria-haspopup="true" aria-expanded="false">
+            <span id="yb-auth-user-avatar" class="ybhd-user-avatar">YB</span>
+          </button>
+          <div class="ybhd-user-dropdown">
+            <div class="ybhd-user-info">
+              <span id="yb-auth-user-name" class="ybhd-user-name"></span>
+            </div>
+            <a href="#" class="ybhd-user-link" data-yb-auth-logout>
+              <span data-yj-da>Log ud</span>
+              <span data-yj-en hidden>Sign out</span>
+            </a>
+          </div>
         </div>
 
         <!-- Apply CTA -->
@@ -219,6 +240,22 @@
           <a href="/privacy-policy" data-i18n="nav.privacy">Privatlivspolitik</a>
           <a href="/code-of-conduct" data-i18n="nav.conduct">Code of Conduct</a>
           <a href="/kontakt" data-i18n="nav.contact">Kontakt</a>
+        </div>
+
+        <!-- Auth (mobile) -->
+        <a id="yb-auth-mobile-login" class="ybhd-mLink" href="#" data-yb-auth-open="login" data-i18n="nav.login">
+          <span data-yj-da>Log ind / Opret konto</span>
+          <span data-yj-en hidden>Sign in / Create account</span>
+        </a>
+        <div id="yb-auth-mobile-user" class="ybhd-mUserSection" style="display:none">
+          <div class="ybhd-mUserInfo">
+            <span class="ybhd-mUserAvatar">YB</span>
+            <span id="yb-auth-mobile-name" class="ybhd-mUserName"></span>
+          </div>
+          <a class="ybhd-mLink" href="#" data-yb-auth-logout>
+            <span data-yj-da>Log ud</span>
+            <span data-yj-en hidden>Sign out</span>
+          </a>
         </div>
 
         <!-- Apply CTA (mobile) -->

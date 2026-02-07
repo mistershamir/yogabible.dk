@@ -1,0 +1,119 @@
+<!-- Auth Modal -->
+<div id="yb-auth-modal" class="yb-auth-modal" aria-hidden="true" role="dialog" aria-modal="true" aria-label="Log ind / Opret konto">
+  <div class="yb-auth-modal__overlay" data-yb-auth-close></div>
+
+  <div class="yb-auth-modal__box">
+    <button class="yb-auth-modal__close" type="button" data-yb-auth-close aria-label="Luk">&#10005;</button>
+
+    <!-- LOGIN VIEW -->
+    <div id="yb-auth-login" class="yb-auth-view">
+      <div class="yb-auth-modal__header">
+        <div class="yb-auth-modal__logo">
+          <img src="/assets/images/brand/logo-orange-on-transparent.png" alt="Yoga Bible" loading="lazy" />
+        </div>
+        <h2 class="yb-auth-modal__title" data-yj-da>Log ind</h2>
+        <h2 class="yb-auth-modal__title" data-yj-en hidden>Sign in</h2>
+        <p class="yb-auth-modal__subtitle" data-yj-da>Velkommen tilbage til Yoga Bible</p>
+        <p class="yb-auth-modal__subtitle" data-yj-en hidden>Welcome back to Yoga Bible</p>
+      </div>
+
+      <form id="yb-auth-login-form" class="yb-auth-form" novalidate>
+        <div class="yb-auth-field">
+          <label for="yb-login-email" data-yj-da>Email</label>
+          <label for="yb-login-email" data-yj-en hidden>Email</label>
+          <input type="email" id="yb-login-email" required autocomplete="email" placeholder="din@email.dk">
+        </div>
+        <div class="yb-auth-field">
+          <label for="yb-login-password" data-yj-da>Adgangskode</label>
+          <label for="yb-login-password" data-yj-en hidden>Password</label>
+          <input type="password" id="yb-login-password" required autocomplete="current-password" placeholder="••••••••">
+        </div>
+        <div class="yb-auth-error" id="yb-login-error" hidden role="alert"></div>
+        <button type="submit" class="yb-auth-submit" data-yj-da>Log ind</button>
+        <button type="submit" class="yb-auth-submit" data-yj-en hidden>Sign in</button>
+      </form>
+
+      <div class="yb-auth-links">
+        <a href="#" data-yb-auth-switch="reset" data-yj-da>Glemt adgangskode?</a>
+        <a href="#" data-yb-auth-switch="reset" data-yj-en hidden>Forgot password?</a>
+      </div>
+      <div class="yb-auth-divider">
+        <span data-yj-da>Har du ikke en konto?</span>
+        <span data-yj-en hidden>Don't have an account?</span>
+        <a href="#" data-yb-auth-switch="register" data-yj-da>Opret konto</a>
+        <a href="#" data-yb-auth-switch="register" data-yj-en hidden>Create account</a>
+      </div>
+    </div>
+
+    <!-- REGISTER VIEW -->
+    <div id="yb-auth-register" class="yb-auth-view" hidden>
+      <div class="yb-auth-modal__header">
+        <div class="yb-auth-modal__logo">
+          <img src="/assets/images/brand/logo-orange-on-transparent.png" alt="Yoga Bible" loading="lazy" />
+        </div>
+        <h2 class="yb-auth-modal__title" data-yj-da>Opret konto</h2>
+        <h2 class="yb-auth-modal__title" data-yj-en hidden>Create account</h2>
+        <p class="yb-auth-modal__subtitle" data-yj-da>Bliv en del af Yoga Bible</p>
+        <p class="yb-auth-modal__subtitle" data-yj-en hidden>Join the Yoga Bible community</p>
+      </div>
+
+      <form id="yb-auth-register-form" class="yb-auth-form" novalidate>
+        <div class="yb-auth-field">
+          <label for="yb-register-name" data-yj-da>Fulde navn</label>
+          <label for="yb-register-name" data-yj-en hidden>Full name</label>
+          <input type="text" id="yb-register-name" required autocomplete="name" placeholder="Dit navn">
+        </div>
+        <div class="yb-auth-field">
+          <label for="yb-register-email" data-yj-da>Email</label>
+          <label for="yb-register-email" data-yj-en hidden>Email</label>
+          <input type="email" id="yb-register-email" required autocomplete="email" placeholder="din@email.dk">
+        </div>
+        <div class="yb-auth-field">
+          <label for="yb-register-password" data-yj-da>Adgangskode</label>
+          <label for="yb-register-password" data-yj-en hidden>Password</label>
+          <input type="password" id="yb-register-password" required autocomplete="new-password" placeholder="Mindst 6 tegn">
+        </div>
+        <div class="yb-auth-error" id="yb-register-error" hidden role="alert"></div>
+        <button type="submit" class="yb-auth-submit" data-yj-da>Opret konto</button>
+        <button type="submit" class="yb-auth-submit" data-yj-en hidden>Create account</button>
+      </form>
+
+      <div class="yb-auth-divider">
+        <span data-yj-da>Har du allerede en konto?</span>
+        <span data-yj-en hidden>Already have an account?</span>
+        <a href="#" data-yb-auth-switch="login" data-yj-da>Log ind</a>
+        <a href="#" data-yb-auth-switch="login" data-yj-en hidden>Sign in</a>
+      </div>
+    </div>
+
+    <!-- RESET PASSWORD VIEW -->
+    <div id="yb-auth-reset" class="yb-auth-view" hidden>
+      <div class="yb-auth-modal__header">
+        <div class="yb-auth-modal__logo">
+          <img src="/assets/images/brand/logo-orange-on-transparent.png" alt="Yoga Bible" loading="lazy" />
+        </div>
+        <h2 class="yb-auth-modal__title" data-yj-da>Nulstil adgangskode</h2>
+        <h2 class="yb-auth-modal__title" data-yj-en hidden>Reset password</h2>
+        <p class="yb-auth-modal__subtitle" data-yj-da>Indtast din email, så sender vi dig et link</p>
+        <p class="yb-auth-modal__subtitle" data-yj-en hidden>Enter your email and we'll send you a reset link</p>
+      </div>
+
+      <form id="yb-auth-reset-form" class="yb-auth-form" novalidate>
+        <div class="yb-auth-field">
+          <label for="yb-reset-email" data-yj-da>Email</label>
+          <label for="yb-reset-email" data-yj-en hidden>Email</label>
+          <input type="email" id="yb-reset-email" required autocomplete="email" placeholder="din@email.dk">
+        </div>
+        <div class="yb-auth-error" id="yb-reset-error" hidden role="alert"></div>
+        <div class="yb-auth-success" id="yb-reset-success" hidden role="status"></div>
+        <button type="submit" class="yb-auth-submit" data-yj-da>Send nulstillingslink</button>
+        <button type="submit" class="yb-auth-submit" data-yj-en hidden>Send reset link</button>
+      </form>
+
+      <div class="yb-auth-divider">
+        <a href="#" data-yb-auth-switch="login" data-yj-da>&larr; Tilbage til log ind</a>
+        <a href="#" data-yb-auth-switch="login" data-yj-en hidden>&larr; Back to sign in</a>
+      </div>
+    </div>
+  </div>
+</div>
