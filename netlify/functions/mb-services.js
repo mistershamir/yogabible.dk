@@ -21,6 +21,18 @@ exports.handler = async function(event) {
     var params = event.queryStringParameters || {};
     var type = params.type || 'services';
 
+    // Return service categories
+    if (type === 'categories') {
+      var catData = await mbFetch('/sale/servicecategories');
+      var categories = (catData.ServiceCategories || []).map(function(c) {
+        return {
+          id: c.Id,
+          name: c.Name
+        };
+      });
+      return jsonResponse(200, { categories, total: categories.length });
+    }
+
     if (type === 'products') {
       var prodData = await mbFetch('/sale/products?limit=200');
       var products = (prodData.Products || []).map(function(p) {
@@ -38,7 +50,12 @@ exports.handler = async function(event) {
     }
 
     // Default: services (pricing options, packages, etc.)
-    var svcData = await mbFetch('/sale/services?limit=200');
+    var svcPath = '/sale/services?limit=200';
+    if (params.sellOnline === 'true') svcPath += '&SellOnline=true';
+    if (params.serviceCategoryIds) svcPath += '&ServiceCategoryIds=' + params.serviceCategoryIds;
+    if (params.programIds) svcPath += '&ProgramIds=' + params.programIds;
+
+    var svcData = await mbFetch(svcPath);
     var services = (svcData.Services || []).map(function(s) {
       return {
         id: s.Id,

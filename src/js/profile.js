@@ -291,14 +291,43 @@
     var listEl = document.getElementById('yb-store-list');
     if (!listEl) return;
 
-    fetch('/.netlify/functions/mb-services')
+    // Step 1: Fetch service categories to find "Teacher Training - Deposits"
+    fetch('/.netlify/functions/mb-services?type=categories')
+      .then(function(r) { return r.json(); })
+      .then(function(catData) {
+        var categories = catData.categories || [];
+        console.log('[Store] Categories from API:', categories);
+
+        // Find the matching category (case-insensitive partial match)
+        var targetCat = categories.find(function(c) {
+          var name = (c.name || '').toLowerCase();
+          return name.indexOf('teacher training') !== -1 && name.indexOf('deposit') !== -1;
+        });
+
+        if (targetCat) {
+          console.log('[Store] Found category:', targetCat.name, 'ID:', targetCat.id);
+          // Step 2: Fetch services filtered by this category ID
+          return fetch('/.netlify/functions/mb-services?serviceCategoryIds=' + targetCat.id);
+        }
+
+        // If no exact category match, try fetching ALL services and filter by name
+        console.log('[Store] No exact category match, fetching all services...');
+        return fetch('/.netlify/functions/mb-services');
+      })
       .then(function(r) { return r.json(); })
       .then(function(data) {
-        // Filter to "Teacher Training - Deposits" service category
-        storeServices = (data.services || []).filter(function(s) {
-          return s.programName && s.programName.toLowerCase().indexOf('teacher training') !== -1 &&
-                 s.programName.toLowerCase().indexOf('deposit') !== -1;
-        });
+        storeServices = data.services || [];
+        console.log('[Store] Services returned:', storeServices);
+
+        // If we got all services (no category filter), filter client-side by name/program
+        if (storeServices.length > 10) {
+          storeServices = storeServices.filter(function(s) {
+            var name = (s.name || '').toLowerCase();
+            var prog = (s.programName || '').toLowerCase();
+            return (name.indexOf('deposit') !== -1 || name.indexOf('teacher training') !== -1) ||
+                   (prog.indexOf('teacher training') !== -1 && prog.indexOf('deposit') !== -1);
+          });
+        }
 
         if (!storeServices.length) {
           listEl.innerHTML = '<p class="yb-store__empty">' + (isDa() ? 'Ingen pakker tilgængelige lige nu.' : 'No packages available right now.') + '</p>';
@@ -307,7 +336,8 @@
 
         renderStoreItems(listEl);
       })
-      .catch(function() {
+      .catch(function(err) {
+        console.error('[Store] Error loading store:', err);
         listEl.innerHTML = '<p class="yb-store__error">' + (isDa() ? 'Kunne ikke hente pakker. Prøv igen senere.' : 'Could not load packages. Please try again later.') + '</p>';
       });
   }
