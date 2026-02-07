@@ -884,21 +884,22 @@
       modules: isDa() ? 'moduler' : 'modules'
     };
 
-    // 1. Find enrollments for this user
+    // 1. Find enrollments for this user (single where to avoid composite index)
     currentDb.collection('enrollments')
       .where('userId', '==', currentUser.uid)
-      .where('status', '==', 'active')
       .get()
       .then(function(snap) {
-        if (snap.empty) {
+        var courseIds = [];
+        snap.forEach(function(doc) {
+          var d = doc.data();
+          if (d.status === 'active') courseIds.push(d.courseId);
+        });
+        if (!courseIds.length) {
           container.innerHTML = '';
           if (emptyEl) emptyEl.hidden = false;
           return;
         }
         if (emptyEl) emptyEl.hidden = true;
-
-        var courseIds = [];
-        snap.forEach(function(doc) { courseIds.push(doc.data().courseId); });
 
         // 2. Fetch each course and its progress
         var promises = courseIds.map(function(courseId) {
