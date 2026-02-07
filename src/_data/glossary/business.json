@@ -4,6 +4,7 @@
     "en": "Yoga Alliance (RYT/RYS)",
     "da": "Yoga Alliance (RYT/RYS)",
     "category": "business",
+    "subcategory": "certification",
     "desc_da": "International registreringsorganisation for yogalærere (RYT) og yogaskoler (RYS). Standarden for 200- og 500-timers certificeringer.",
     "desc_en": "International registry for yoga teachers (RYT) and yoga schools (RYS). The standard for 200- and 500-hour certifications."
   },
@@ -12,6 +13,7 @@
     "en": "Registered Yoga Teacher 200hr",
     "da": "Registreret yogalærer 200 timer",
     "category": "business",
+    "subcategory": "certification",
     "desc_da": "Grundlæggende yogalærercertificering efter gennemført 200-timers uddannelse ved en registreret skole.",
     "desc_en": "Foundational yoga teacher certification after completing a 200-hour training at a registered school."
   },
@@ -20,6 +22,7 @@
     "en": "Registered Yoga Teacher 500hr",
     "da": "Registreret yogalærer 500 timer",
     "category": "business",
+    "subcategory": "certification",
     "desc_da": "Avanceret yogalærercertificering. Kræver 200+300 timers uddannelse og yderligere undervisningserfaring.",
     "desc_en": "Advanced yoga teacher certification. Requires 200+300 hours of training and additional teaching experience."
   },
@@ -28,6 +31,7 @@
     "en": "Experienced Registered Yoga Teacher",
     "da": "Erfaren registreret yogalærer",
     "category": "business",
+    "subcategory": "certification",
     "desc_da": "Erfaren yogalærer der opfylder krav om undervisningstimer efter certificering. Kan lede læreruddannelser.",
     "desc_en": "Experienced yoga teacher meeting requirements for teaching hours after certification. Can lead teacher trainings."
   },
@@ -36,6 +40,7 @@
     "en": "Yoga Teacher Training",
     "da": "Yogalæreruddannelse",
     "category": "business",
+    "subcategory": "studio-training",
     "desc_da": "Struktureret uddannelsesprogram til at certificere yogalærere. Typisk 200 eller 500 timer med teori og praksis.",
     "desc_en": "Structured training program to certify yoga teachers. Typically 200 or 500 hours of theory and practice."
   },
@@ -44,6 +49,7 @@
     "en": "Continuing Education Units",
     "da": "Efteruddannelsespoint",
     "category": "business",
+    "subcategory": "certification",
     "desc_da": "Point for løbende faglig udvikling krævet af Yoga Alliance for at opretholde registrering.",
     "desc_en": "Points for ongoing professional development required by Yoga Alliance to maintain registration."
   },
@@ -52,6 +58,7 @@
     "en": "Yoga Studio / Practice Space",
     "da": "Yogastudio / Øvelokale",
     "category": "business",
+    "subcategory": "studio-training",
     "desc_da": "Traditionelt sanskritord for et sted til yoga-praksis. Bruges i dag om yogastudier og øvelokaler.",
     "desc_en": "Traditional Sanskrit word for a place of yoga practice. Used today for yoga studios and practice spaces."
   }
