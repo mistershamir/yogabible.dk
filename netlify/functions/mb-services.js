@@ -3,7 +3,11 @@
  * Fetches purchasable services/products from Mindbody.
  *
  * Query params:
- *   type - 'services' (default) or 'products'
+ *   type - 'services' (default), 'products', or 'categories'
+ *   serviceIds - comma-separated service IDs (barcodes)
+ *   serviceCategoryIds - filter by category
+ *   programIds - filter by program
+ *   sellOnline - 'true' to filter online-purchasable only
  */
 
 const { mbFetch, jsonResponse, corsHeaders } = require('./shared/mb-api');
@@ -51,6 +55,7 @@ exports.handler = async function(event) {
 
     // Default: services (pricing options, packages, etc.)
     var svcPath = '/sale/services?limit=200';
+    if (params.serviceIds) svcPath += '&ServiceIds=' + params.serviceIds;
     if (params.sellOnline === 'true') svcPath += '&SellOnline=true';
     if (params.serviceCategoryIds) svcPath += '&ServiceCategoryIds=' + params.serviceCategoryIds;
     if (params.programIds) svcPath += '&ProgramIds=' + params.programIds;

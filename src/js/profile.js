@@ -291,43 +291,22 @@
     var listEl = document.getElementById('yb-store-list');
     if (!listEl) return;
 
-    // Step 1: Fetch service categories to find "Teacher Training - Deposits"
-    fetch('/.netlify/functions/mb-services?type=categories')
-      .then(function(r) { return r.json(); })
-      .then(function(catData) {
-        var categories = catData.categories || [];
-        console.log('[Store] Categories from API:', categories);
+    // Get item IDs from data attribute on the store panel
+    var storePanel = document.querySelector('[data-yb-panel="store"]');
+    var itemIds = storePanel ? storePanel.getAttribute('data-store-items') : '';
 
-        // Find the matching category (case-insensitive partial match)
-        var targetCat = categories.find(function(c) {
-          var name = (c.name || '').toLowerCase();
-          return name.indexOf('teacher training') !== -1 && name.indexOf('deposit') !== -1;
-        });
+    if (!itemIds) {
+      listEl.innerHTML = '<p class="yb-store__empty">' + (isDa() ? 'Ingen pakker tilgængelige lige nu.' : 'No packages available right now.') + '</p>';
+      return;
+    }
 
-        if (targetCat) {
-          console.log('[Store] Found category:', targetCat.name, 'ID:', targetCat.id);
-          // Step 2: Fetch services filtered by this category ID
-          return fetch('/.netlify/functions/mb-services?serviceCategoryIds=' + targetCat.id);
-        }
+    console.log('[Store] Fetching service IDs:', itemIds);
 
-        // If no exact category match, try fetching ALL services and filter by name
-        console.log('[Store] No exact category match, fetching all services...');
-        return fetch('/.netlify/functions/mb-services');
-      })
+    fetch('/.netlify/functions/mb-services?serviceIds=' + itemIds)
       .then(function(r) { return r.json(); })
       .then(function(data) {
         storeServices = data.services || [];
         console.log('[Store] Services returned:', storeServices);
-
-        // If we got all services (no category filter), filter client-side by name/program
-        if (storeServices.length > 10) {
-          storeServices = storeServices.filter(function(s) {
-            var name = (s.name || '').toLowerCase();
-            var prog = (s.programName || '').toLowerCase();
-            return (name.indexOf('deposit') !== -1 || name.indexOf('teacher training') !== -1) ||
-                   (prog.indexOf('teacher training') !== -1 && prog.indexOf('deposit') !== -1);
-          });
-        }
 
         if (!storeServices.length) {
           listEl.innerHTML = '<p class="yb-store__empty">' + (isDa() ? 'Ingen pakker tilgængelige lige nu.' : 'No packages available right now.') + '</p>';

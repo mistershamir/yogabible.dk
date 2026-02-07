@@ -58,7 +58,8 @@
     "checkout_success_text": "Du modtager en bekræftelse på email. Velkommen til uddannelsen!",
     "checkout_success_close": "Luk",
     "checkout_error": "Betalingen fejlede. Prøv igen.",
-    "checkout_secure": "Sikker betaling"
+    "checkout_secure": "Sikker betaling",
+    "store_items": [100078]
   },
   "en": {
     "meta_title": "My Profile | YOGA BIBLE",
@@ -119,6 +120,7 @@
     "checkout_success_text": "You'll receive a confirmation email. Welcome to the training!",
     "checkout_success_close": "Close",
     "checkout_error": "Payment failed. Please try again.",
-    "checkout_secure": "Secure payment"
+    "checkout_secure": "Secure payment",
+    "store_items": [100078]
   }
 }
