@@ -3080,12 +3080,10 @@ section {
   margin: 0 auto;
 }
 
-/* ── Controls bar: scope + language ── */
+/* ── Controls bar: scope toggle ── */
 .yb-glossary__controls {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  flex-wrap: wrap;
   gap: 12px;
   margin-bottom: 24px;
 }
@@ -3120,37 +3118,6 @@ section {
   background: var(--yb-brand);
   color: #fff;
   box-shadow: 0 2px 10px rgba(var(--yb-brand-rgb), 0.3);
-}
-
-/* Language switch */
-.yb-glossary__lang-switch {
-  display: inline-flex;
-  background: #f0eeec;
-  border-radius: 999px;
-  padding: 3px;
-}
-
-.yb-glossary__lang-btn {
-  padding: 7px 14px;
-  border: none;
-  border-radius: 999px;
-  background: transparent;
-  color: #6F6A66;
-  font-size: 0.8rem;
-  font-family: var(--font-primary);
-  font-weight: 700;
-  letter-spacing: 0.04em;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.yb-glossary__lang-btn:hover {
-  color: #3a3a3a;
-}
-
-.yb-glossary__lang-btn.active {
-  background: #1C1C1C;
-  color: #fff;
 }
 
 /* ── Search ── */
@@ -3576,10 +3543,6 @@ section {
     text-align: center;
     font-size: 0.84rem;
     padding: 10px 12px;
-  }
-
-  .yb-glossary__lang-switch {
-    align-self: flex-end;
   }
 
   .yb-glossary__filters {
