@@ -436,6 +436,7 @@
         } else if (data.requiresSCA) {
           showSimpleError(errorEl, isDa() ? 'Dit kort kræver yderligere godkendelse.' : 'Your card requires additional authentication.');
         } else {
+          console.error('[Checkout] Error:', data.error, data.details);
           showSimpleError(errorEl, data.error || t('checkout_error'));
         }
       }).catch(function(err) {
@@ -490,6 +491,8 @@
     var endStr = toDateStr(end);
     var url = '/.netlify/functions/mb-classes?startDate=' + startStr + '&endDate=' + endStr;
     if (clientId) url += '&clientId=' + clientId;
+
+    console.log('[Schedule] Fetching:', url, 'week offset:', scheduleWeekOffset);
 
     fetch(url)
       .then(function(r) { return r.json(); })

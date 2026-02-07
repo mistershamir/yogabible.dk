@@ -105,7 +105,12 @@ exports.handler = async function(event) {
       message: 'Purchase completed successfully'
     });
   } catch (err) {
-    console.error('mb-checkout error:', err);
-    return jsonResponse(err.status || 500, { error: err.message });
+    console.error('mb-checkout error:', err.message, err.data ? JSON.stringify(err.data) : '');
+    var errorMsg = err.message || 'Checkout failed';
+    // Include Mindbody error details if available
+    if (err.data && err.data.Error && err.data.Error.Message) {
+      errorMsg = err.data.Error.Message;
+    }
+    return jsonResponse(err.status || 500, { error: errorMsg, details: err.data || null });
   }
 };

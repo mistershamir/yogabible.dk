@@ -27,12 +27,18 @@ exports.handler = async function(event) {
     const endDate = params.endDate || new Date(now.getTime() + 7 * 86400000).toISOString().split('T')[0];
 
     var qsParams = {
-      StartDate: startDate,
-      EndDate: endDate,
+      StartDateTime: startDate,
+      EndDateTime: endDate,
       Limit: '200'
     };
 
+    if (params.clientId) {
+      qsParams.ClientId = params.clientId;
+    }
+
     const queryString = new URLSearchParams(qsParams).toString();
+
+    console.log('mb-classes query:', queryString);
 
     const data = await mbFetch('/class/classes?' + queryString);
 
