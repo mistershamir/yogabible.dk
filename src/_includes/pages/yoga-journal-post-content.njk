@@ -126,7 +126,7 @@
 </div>
 
 <!-- Article Content -->
-<article class="yj-post-content">
+<article class="yj-post-content" {% if journal.gated %}data-yb-gated-post="true"{% endif %}>
   <div class="container">
     <div class="yj-post-content__inner">
       <div class="yj-post-body yj-post-body--dropcap" data-yj-da>
@@ -136,6 +136,41 @@
         {{ journal.content_en | renderContent | safe }}
       </div>
     </div>
+
+    {% if journal.gated %}
+    <!-- Gate Wall (shown to non-members) -->
+    <div id="yb-gate-wall" class="yb-gate-wall" hidden>
+      <div class="yb-gate-wall__inner">
+        <div class="yb-gate-wall__icon">&#128274;</div>
+
+        <!-- For logged-out users -->
+        <div class="yb-gate-login">
+          <h3 class="yb-gate-wall__title" data-yj-da>Log ind for at læse denne artikel</h3>
+          <h3 class="yb-gate-wall__title" data-yj-en hidden>Sign in to read this article</h3>
+          <p class="yb-gate-wall__text" data-yj-da>Denne artikel er kun tilgængelig for Yoga Bible medlemmer. Log ind eller opret en gratis konto.</p>
+          <p class="yb-gate-wall__text" data-yj-en hidden>This article is available to Yoga Bible members only. Sign in or create a free account.</p>
+          <div class="yb-gate-wall__actions">
+            <button class="yb-btn yb-btn--primary" type="button" data-yb-auth-open="login" data-yj-da>Log ind</button>
+            <button class="yb-btn yb-btn--primary" type="button" data-yb-auth-open="login" data-yj-en hidden>Sign in</button>
+            <button class="yb-btn yb-btn--outline" type="button" data-yb-auth-open="register" data-yj-da>Opret konto</button>
+            <button class="yb-btn yb-btn--outline" type="button" data-yb-auth-open="register" data-yj-en hidden>Create account</button>
+          </div>
+        </div>
+
+        <!-- For logged-in free users -->
+        <div class="yb-gate-upgrade" hidden>
+          <h3 class="yb-gate-wall__title" data-yj-da>Bliv medlem for at læse denne artikel</h3>
+          <h3 class="yb-gate-wall__title" data-yj-en hidden>Become a member to read this article</h3>
+          <p class="yb-gate-wall__text" data-yj-da>Denne artikel kræver et aktivt Yoga Bible medlemskab. Opgrader din konto for at få adgang.</p>
+          <p class="yb-gate-wall__text" data-yj-en hidden>This article requires an active Yoga Bible membership. Upgrade your account to get access.</p>
+          <div class="yb-gate-wall__actions">
+            <a class="yb-btn yb-btn--primary" href="{{ lp }}/apply" data-yj-da>Se medlemskaber</a>
+            <a class="yb-btn yb-btn--primary" href="{{ lp }}/apply" data-yj-en hidden>View memberships</a>
+          </div>
+        </div>
+      </div>
+    </div>
+    {% endif %}
   </div>
 </article>
 

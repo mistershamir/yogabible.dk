@@ -17,6 +17,21 @@
         <span class="yb-util__dot"></span>
         <a class="yb-util__flag{% if lang != 'en' %} is-active{% endif %}" data-lang="da" href="/">🇩🇰</a>
         <a class="yb-util__flag{% if lang == 'en' %} is-active{% endif %}" data-lang="en" href="/en/">🇬🇧</a>
+        <span class="yb-util__dot"></span>
+        {# Auth: login link (shown when logged out) #}
+        <a id="yb-auth-login-link" class="yb-util__auth" href="#" data-yb-auth-open="login">
+          <span data-yj-da>Log ind</span>
+          <span data-yj-en hidden>Sign in</span>
+        </a>
+        {# Auth: user name (shown when logged in) #}
+        <span id="yb-auth-user-link" class="yb-util__auth yb-util__auth--user" style="display:none">
+          <span id="yb-auth-user-avatar" class="yb-util__avatar">YB</span>
+          <span id="yb-auth-user-name" class="yb-util__user-name"></span>
+          <a href="#" class="yb-util__logout" data-yb-auth-logout>
+            <span data-yj-da>Log ud</span>
+            <span data-yj-en hidden>Sign out</span>
+          </a>
+        </span>
       </div>
     </div>
   </div>
@@ -128,6 +143,23 @@
           <img src="/assets/images/brand/logo-orange-on-transparent.png" alt="Yoga Bible" height="34" />
         </a>
         <button class="yb-drawer__close" type="button" data-close-drawer aria-label="Close">✕</button>
+      </div>
+
+      {# Auth section (mobile drawer) #}
+      <div class="yb-drawer__auth">
+        <a id="yb-auth-mobile-login" class="yb-drawer__auth-login" href="#" data-yb-auth-open="login">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+          <span data-yj-da>Log ind / Opret konto</span>
+          <span data-yj-en hidden>Sign in / Create account</span>
+        </a>
+        <div id="yb-auth-mobile-user" class="yb-drawer__auth-user" style="display:none">
+          <span class="yb-drawer__auth-avatar">YB</span>
+          <span id="yb-auth-mobile-name" class="yb-drawer__auth-name"></span>
+          <a class="yb-drawer__auth-logout" href="#" data-yb-auth-logout>
+            <span data-yj-da>Log ud</span>
+            <span data-yj-en hidden>Sign out</span>
+          </a>
+        </div>
       </div>
 
       <nav class="yb-drawer__list">
