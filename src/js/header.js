@@ -7,20 +7,7 @@
   'use strict';
 
   var header = document.getElementById('yb-header');
-  var utilbar = document.getElementById('yb-utilbar');
   if (!header) return;
-
-  // Set utilbar height as CSS variable so header stacks below it
-  function syncUtilbarHeight() {
-    if (utilbar && window.matchMedia("(min-width:980px)").matches) {
-      var h = utilbar.getBoundingClientRect().height;
-      header.style.setProperty('--utilbar-h', h + 'px');
-    } else {
-      header.style.removeProperty('--utilbar-h');
-    }
-  }
-  syncUtilbarHeight();
-  window.addEventListener('resize', syncUtilbarHeight);
 
   // ============================================
   // LANGUAGE DETECTION & TRANSLATIONS

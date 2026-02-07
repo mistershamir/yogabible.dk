@@ -32,11 +32,11 @@
   --yb-brand-rgb: 247, 92, 3;
   --yb-accent: #F65D04;
 
-  /* Header Colors */
-  --yb-bg: #1C1C1C;
-  --yb-text: #FDFBF7;
-  --yb-muted: rgba(253, 251, 247, 0.74);
-  --yb-line: rgba(253, 251, 247, 0.12);
+  /* Header Colors (V2 — light theme) */
+  --yb-bg: #FFFCF9;
+  --yb-text: #0F0F0F;
+  --yb-muted: rgba(15, 15, 15, 0.55);
+  --yb-line: #E8E4E0;
 
   /* Typography */
   --font-primary: 'Abacaxi', "Helvetica Neue", Helvetica, Arial, system-ui, -apple-system, sans-serif;
@@ -94,13 +94,10 @@ p, span, li, a, div {
    Old header backed up in header-old.njk / header-old.js / main.css.bak
    ======================================== */
 
-/* ═══ Orange Utility Bar ═══ */
+/* ═══ Orange Utility Bar (inside #yb-header) ═══ */
 #yb-utilbar {
   font-family: var(--font-primary);
   background: var(--yb-brand);
-  position: sticky;
-  top: 0;
-  z-index: 10000;
 }
 
 #yb-utilbar .ybhd-utilbar__inner {
@@ -169,9 +166,9 @@ p, span, li, a, div {
   background: #FFFCF9;
   color: #0F0F0F;
   position: sticky;
-  top: var(--utilbar-h, 0px);
+  top: 0;
   z-index: 9999;
-  border-bottom: 2px solid var(--yb-brand);
+  border-bottom: 3px solid var(--yb-brand);
   isolation: isolate;
 }
 
@@ -826,11 +823,7 @@ p, span, li, a, div {
 
 @media (max-width: 979px) {
   #yb-utilbar {
-    display: none;
-  }
-
-  #yb-header {
-    top: 0 !important;
+    display: none !important;
   }
 
   #yb-header .ybhd-nav--left {
