@@ -83,31 +83,35 @@ includeScheduleModal: false
 
 
 <!-- ═══════════════════════════════════════════════════════════
-     SECTION 1 — HERO (Dark Cinematic)
+     SECTION 1 — HERO (Centered Clean — matches site pattern)
      ═══════════════════════════════════════════════════════════ -->
-<section class="yba-hero">
-  <div class="yba-hero__bg">
-    <!-- PLACEHOLDER: Drop hero image here → /assets/images/accommodation/hero-accommodation-copenhagen.jpg
-         Recommended: 1920×1080px, dark/moody apartment or Copenhagen skyline at dusk
-         Alt SEO: "Yoga teacher training accommodation Copenhagen Christianshavn" -->
-  </div>
-  <div class="yba-hero__overlay"></div>
-  <div class="yba-hero__inner">
-    <p class="yba-hero__eyebrow">Accommodation for Yoga Students</p>
-    <h1 class="yba-hero__title">Bo tæt på studiet<br>— vi ordner resten</h1>
-    <p class="yba-hero__subtitle">
+<section class="program-hero">
+  <div class="container">
+    <div class="program-hero__badge">Accommodation for Yoga Students</div>
+    <h1 class="program-hero__title">Bo tæt på studiet — vi ordner resten</h1>
+    <p class="program-hero__subtitle">
       Furnished apartments in Christianshavn, København. Fair priser, alt inkluderet,
       10 minutters gang fra Yoga Bible. Designet til kursister, der rejser hertil for at træne.
     </p>
-    <div class="yba-hero__meta">
-      <div class="yba-hero__meta-item"><strong>Fra</strong> 6.500 kr</div>
-      <div class="yba-hero__meta-item"><strong>Afstand</strong> ~800 m til studiet</div>
-      <div class="yba-hero__meta-item"><strong>Alt inkl.</strong> Wifi · Køkken · Fitness</div>
+    <div class="program-hero__meta">
+      <div class="program-hero__meta-item"><strong>Fra</strong> 6.500 kr</div>
+      <div class="program-hero__meta-item"><strong>Afstand</strong> ~800 m til studiet</div>
+      <div class="program-hero__meta-item"><strong>Alt inkl.</strong> Wifi · Køkken · Fitness</div>
     </div>
-    <div class="yba-hero__cta">
+    <div class="program-hero__cta">
       <a href="#roomoptions" class="btn btn--large btn--primary">Se boligmuligheder</a>
-      <a href="mailto:info@yogabible.dk?subject=Accommodation%20inquiry" class="btn btn--large btn--outline-light">Kontakt os</a>
+      <a href="mailto:info@yogabible.dk?subject=Accommodation%20inquiry" class="btn btn--large btn--secondary">Kontakt os</a>
     </div>
+  </div>
+</section>
+
+<!-- Hero Image -->
+<section class="program-overview" style="padding-top:0;">
+  <div class="container">
+    <!-- PLACEHOLDER: Drop hero image here → /assets/images/accommodation/hero-accommodation-copenhagen.jpg
+         Recommended: 1400×600px, apartment or Copenhagen skyline
+         Alt SEO: "Yoga teacher training accommodation Copenhagen Christianshavn" -->
+    <img src="/assets/images/accommodation/hero-accommodation-copenhagen.jpg" alt="Yoga teacher training accommodation Copenhagen Christianshavn" style="width:100%; border-radius:12px; aspect-ratio:7/3; object-fit:cover; background:#f5f3f0;" loading="lazy">
   </div>
 </section>
 
@@ -1048,100 +1052,6 @@ includeScheduleModal: false
   margin: 0 auto;
 }
 
-
-/* ══════════════════════════════════
-   HERO
-   ══════════════════════════════════ */
-.yba-hero {
-  position: relative;
-  min-height: clamp(500px, 70vh, 750px);
-  display: flex;
-  align-items: flex-end;
-  padding: clamp(48px,8vw,96px) clamp(18px,4vw,28px) clamp(48px,6vw,72px);
-  overflow: hidden;
-}
-
-.yba-hero__bg {
-  position: absolute;
-  inset: 0;
-  background: #1a1a1a url('/assets/images/accommodation/hero-accommodation-copenhagen.jpg') center/cover no-repeat;
-  z-index: 0;
-}
-
-.yba-hero__overlay {
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(
-    to top,
-    rgba(15,15,15,.92) 0%,
-    rgba(15,15,15,.65) 40%,
-    rgba(15,15,15,.35) 70%,
-    rgba(15,15,15,.15) 100%
-  );
-  z-index: 1;
-}
-
-.yba-hero__inner {
-  position: relative;
-  z-index: 2;
-  max-width: 750px;
-}
-
-.yba-hero__eyebrow {
-  display: inline-block;
-  font-size: 0.8rem;
-  font-weight: 700;
-  color: var(--yba-brand);
-  text-transform: uppercase;
-  letter-spacing: 0.15em;
-  margin: 0 0 0.75rem;
-}
-
-.yba-hero__title {
-  font-size: clamp(2.2rem, 5vw, 3.5rem);
-  font-weight: 700;
-  color: #fff;
-  line-height: 1.08;
-  margin: 0 0 1rem;
-  letter-spacing: -0.02em;
-}
-
-.yba-hero__subtitle {
-  color: rgba(255,255,255,.8);
-  font-size: clamp(1rem, 1.6vw, 1.15rem);
-  line-height: 1.6;
-  max-width: 60ch;
-  margin: 0 0 1.5rem;
-}
-
-.yba-hero__meta {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.75rem;
-  margin-bottom: 1.75rem;
-}
-
-.yba-hero__meta-item {
-  background: rgba(255,255,255,.1);
-  border: 1px solid rgba(255,255,255,.15);
-  border-radius: 999px;
-  padding: 0.5rem 1rem;
-  font-size: 0.88rem;
-  font-weight: 600;
-  color: rgba(255,255,255,.9);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-}
-
-.yba-hero__meta-item strong {
-  color: var(--yba-brand-light);
-}
-
-.yba-hero__cta {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 12px;
-}
 
 /* ══════════════════════════════════
    TYPOGRAPHY
@@ -2325,11 +2235,6 @@ includeScheduleModal: false
 
   .yba-food-stats {
     grid-template-columns: 1fr;
-  }
-
-  .yba-hero__meta {
-    flex-direction: column;
-    gap: 0.5rem;
   }
 }
 </style>
