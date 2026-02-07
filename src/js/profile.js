@@ -1,9 +1,13 @@
 /**
  * YOGA BIBLE — PROFILE PAGE
- * Tabs, user data, online store, checkout
+ * Tabs: Profile, Schedule, Store, Visit History, Receipts
  */
 (function() {
   'use strict';
+
+  var currentUser = null;
+  var currentDb = null;
+  var clientId = null; // Mindbody client ID from Firestore
 
   var checkInterval = setInterval(function() {
     if (typeof firebase !== 'undefined' && firebase.apps && firebase.apps.length) {
@@ -15,21 +19,26 @@
   function init() {
     var auth = firebase.auth();
     var db = firebase.firestore();
+    currentDb = db;
 
     var guestEl = document.getElementById('yb-profile-guest');
     var userEl = document.getElementById('yb-profile-user');
     if (!guestEl || !userEl) return;
 
-    // ── Tabs ──
     initTabs();
+    initStoreForm();
+    initScheduleNav();
 
     auth.onAuthStateChanged(function(user) {
       if (user) {
+        currentUser = user;
         guestEl.style.display = 'none';
         userEl.style.display = 'block';
         loadProfile(user, db);
         ensureBackendClient(user, db);
       } else {
+        currentUser = null;
+        clientId = null;
         guestEl.style.display = '';
         userEl.style.display = 'none';
       }
@@ -58,15 +67,11 @@
 
         btn.disabled = true;
         btn.textContent = isDa() ? 'Gemmer...' : 'Saving...';
-
         var fullName = firstName + ' ' + lastName;
 
         user.updateProfile({ displayName: fullName }).then(function() {
           return db.collection('users').doc(user.uid).update({
-            firstName: firstName,
-            lastName: lastName,
-            name: fullName,
-            phone: phone,
+            firstName: firstName, lastName: lastName, name: fullName, phone: phone,
             updatedAt: firebase.firestore.FieldValue.serverTimestamp()
           });
         }).then(function() {
@@ -77,29 +82,15 @@
           if (avatarEl) avatarEl.textContent = getInitials(fullName);
 
           // Sync to backend silently
-          return db.collection('users').doc(user.uid).get();
-        }).then(function(doc) {
-          if (!doc || !doc.exists) return;
-          var d = doc.data();
-          if (!d.mindbodyClientId) return;
-
-          fetch('/.netlify/functions/mb-client', {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              clientId: d.mindbodyClientId,
-              firstName: firstName,
-              lastName: lastName,
-              phone: phone,
-              email: user.email
-            })
-          }).catch(function() {}); // silent
+          if (clientId) {
+            fetch('/.netlify/functions/mb-client', {
+              method: 'PUT', headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ clientId: clientId, firstName: firstName, lastName: lastName, phone: phone, email: user.email })
+            }).catch(function() {});
+          }
         }).catch(function(err) {
           showMsg(errorEl, successEl, err.message, true);
-        }).finally(function() {
-          btn.disabled = false;
-          btn.textContent = btnText;
-        });
+        }).finally(function() { btn.disabled = false; btn.textContent = btnText; });
       });
     }
 
@@ -110,7 +101,6 @@
         e.preventDefault();
         var user = auth.currentUser;
         if (!user) return;
-
         var newPw = document.getElementById('yb-profile-new-password').value;
         var confirmPw = document.getElementById('yb-profile-confirm-password').value;
         var errorEl = document.getElementById('yb-profile-pw-error');
@@ -118,114 +108,46 @@
         var btn = pwForm.querySelector('button[type="submit"]');
         var btnText = btn.textContent;
 
-        if (newPw.length < 6) {
-          showMsg(errorEl, successEl, isDa() ? 'Adgangskoden skal være mindst 6 tegn.' : 'Password must be at least 6 characters.', true);
-          return;
-        }
-        if (newPw !== confirmPw) {
-          showMsg(errorEl, successEl, isDa() ? 'Adgangskoderne matcher ikke.' : 'Passwords do not match.', true);
-          return;
-        }
+        if (newPw.length < 6) { showMsg(errorEl, successEl, isDa() ? 'Adgangskoden skal være mindst 6 tegn.' : 'Password must be at least 6 characters.', true); return; }
+        if (newPw !== confirmPw) { showMsg(errorEl, successEl, isDa() ? 'Adgangskoderne matcher ikke.' : 'Passwords do not match.', true); return; }
 
         btn.disabled = true;
         btn.textContent = isDa() ? 'Skifter...' : 'Changing...';
-
         user.updatePassword(newPw).then(function() {
           showMsg(errorEl, successEl, isDa() ? 'Din adgangskode er ændret.' : 'Your password has been changed.', false);
           pwForm.reset();
         }).catch(function(err) {
-          if (err.code === 'auth/requires-recent-login') {
-            showMsg(errorEl, successEl, isDa() ? 'Log venligst ud og ind igen før du skifter adgangskode.' : 'Please sign out and back in before changing your password.', true);
-          } else {
-            showMsg(errorEl, successEl, err.message, true);
-          }
-        }).finally(function() {
-          btn.disabled = false;
-          btn.textContent = btnText;
-        });
+          var msg = err.code === 'auth/requires-recent-login'
+            ? (isDa() ? 'Log venligst ud og ind igen før du skifter adgangskode.' : 'Please sign out and back in before changing your password.')
+            : err.message;
+          showMsg(errorEl, successEl, msg, true);
+        }).finally(function() { btn.disabled = false; btn.textContent = btnText; });
       });
-    }
-
-    // ── Store: checkout form ──
-    var checkoutForm = document.getElementById('yb-store-checkout-form');
-    var cancelBtn = document.getElementById('yb-store-cancel-btn');
-    var successCloseBtn = document.getElementById('yb-store-success-close');
-
-    if (cancelBtn) {
-      cancelBtn.addEventListener('click', function() {
-        var checkoutEl = document.getElementById('yb-store-checkout');
-        var listEl = document.getElementById('yb-store-list');
-        if (checkoutEl) checkoutEl.hidden = true;
-        if (listEl) listEl.style.display = '';
-      });
-    }
-
-    if (successCloseBtn) {
-      successCloseBtn.addEventListener('click', function() {
-        var successEl = document.getElementById('yb-store-success');
-        var listEl = document.getElementById('yb-store-list');
-        if (successEl) successEl.hidden = true;
-        if (listEl) listEl.style.display = '';
-      });
-    }
-
-    if (checkoutForm) {
-      checkoutForm.addEventListener('submit', function(e) {
-        e.preventDefault();
-        processCheckout(auth, db);
-      });
-    }
-
-    // Format card number with spaces
-    var cardInput = document.getElementById('yb-store-cardnumber');
-    if (cardInput) {
-      cardInput.addEventListener('input', function() {
-        var v = this.value.replace(/\D/g, '').substring(0, 16);
-        this.value = v.replace(/(.{4})/g, '$1 ').trim();
-      });
-    }
-
-    // Format expiry as MM/YY
-    var expiryInput = document.getElementById('yb-store-expiry');
-    if (expiryInput) {
-      expiryInput.addEventListener('input', function() {
-        var v = this.value.replace(/\D/g, '').substring(0, 4);
-        if (v.length >= 3) v = v.substring(0, 2) + '/' + v.substring(2);
-        this.value = v;
-      });
-    }
-
-    // Save card checkbox
-    var saveCardCheck = document.getElementById('yb-store-save-card');
-    if (saveCardCheck) {
-      saveCardCheck.checked = true; // default to saving
     }
   }
 
   // ══════════════════════════════════════
   // TABS
   // ══════════════════════════════════════
-
-  var storeLoaded = false;
+  var tabLoaded = {};
 
   function initTabs() {
     document.querySelectorAll('[data-yb-tab]').forEach(function(btn) {
       btn.addEventListener('click', function() {
         var tabName = btn.getAttribute('data-yb-tab');
-
-        // Update active tab button
         document.querySelectorAll('[data-yb-tab]').forEach(function(b) { b.classList.remove('is-active'); });
         btn.classList.add('is-active');
-
-        // Update active panel
         document.querySelectorAll('[data-yb-panel]').forEach(function(p) { p.classList.remove('is-active'); });
         var panel = document.querySelector('[data-yb-panel="' + tabName + '"]');
         if (panel) panel.classList.add('is-active');
 
-        // Load store on first visit
-        if (tabName === 'store' && !storeLoaded) {
-          storeLoaded = true;
-          loadStore();
+        // Lazy-load tab content
+        if (!tabLoaded[tabName]) {
+          tabLoaded[tabName] = true;
+          if (tabName === 'store') loadStore();
+          if (tabName === 'schedule') loadSchedule();
+          if (tabName === 'visits') loadVisits();
+          if (tabName === 'receipts') loadReceipts();
         }
       });
     });
@@ -234,12 +156,10 @@
   // ══════════════════════════════════════
   // LOAD PROFILE
   // ══════════════════════════════════════
-
   function loadProfile(user, db) {
     var nameEl = document.getElementById('yb-profile-display-name');
     var emailEl = document.getElementById('yb-profile-display-email');
     var avatarEl = document.getElementById('yb-profile-avatar');
-
     if (nameEl) nameEl.textContent = user.displayName || user.email.split('@')[0];
     if (emailEl) emailEl.textContent = user.email;
     if (avatarEl) avatarEl.textContent = getInitials(user.displayName || user.email);
@@ -250,7 +170,6 @@
     db.collection('users').doc(user.uid).get().then(function(doc) {
       if (!doc.exists) return;
       var d = doc.data();
-
       var fnEl = document.getElementById('yb-profile-firstname');
       var lnEl = document.getElementById('yb-profile-lastname');
       var phEl = document.getElementById('yb-profile-phone');
@@ -258,11 +177,12 @@
       if (lnEl) lnEl.value = d.lastName || '';
       if (phEl) phEl.value = d.phone || '';
 
+      if (d.mindbodyClientId) clientId = d.mindbodyClientId;
+
       var sinceEl = document.getElementById('yb-profile-member-since');
       if (sinceEl && d.createdAt) {
         var date = d.createdAt.toDate ? d.createdAt.toDate() : new Date(d.createdAt);
-        var label = isDa() ? 'Medlem siden' : 'Member since';
-        sinceEl.textContent = label + ' ' + date.toLocaleDateString(isDa() ? 'da-DK' : 'en-GB', { year: 'numeric', month: 'long' });
+        sinceEl.textContent = (isDa() ? 'Medlem siden ' : 'Member since ') + date.toLocaleDateString(isDa() ? 'da-DK' : 'en-GB', { year: 'numeric', month: 'long' });
       }
 
       var tierEl = document.getElementById('yb-profile-tier');
@@ -271,47 +191,39 @@
         tierEl.textContent = tier === 'free' ? (isDa() ? 'Gratis' : 'Free') : (isDa() ? 'Medlem' : 'Member');
         tierEl.className = 'yb-profile__info-value ' + (tier === 'free' ? 'yb-profile__info-value--muted' : 'yb-profile__info-value--success');
       }
-    }).catch(function(err) {
-      console.warn('Could not load profile:', err);
-    });
+    }).catch(function(err) { console.warn('Could not load profile:', err); });
   }
 
   // ══════════════════════════════════════
   // ENSURE BACKEND CLIENT (silent)
   // ══════════════════════════════════════
-
   function ensureBackendClient(user, db) {
     db.collection('users').doc(user.uid).get().then(function(doc) {
       if (!doc.exists) return;
       var d = doc.data();
-      if (d.mindbodyClientId) return; // Already linked
+      if (d.mindbodyClientId) { clientId = d.mindbodyClientId; return; }
 
       var firstName = d.firstName || (user.displayName || '').split(' ')[0] || '';
       var lastName = d.lastName || (user.displayName || '').split(' ').slice(1).join(' ') || '';
 
-      // First try to find existing client by email
       fetch('/.netlify/functions/mb-client?email=' + encodeURIComponent(user.email))
         .then(function(r) { return r.json(); })
         .then(function(data) {
           if (data.found && data.client && data.client.id) {
-            // Existing client found — link it
+            clientId = String(data.client.id);
             return db.collection('users').doc(user.uid).update({
-              mindbodyClientId: String(data.client.id),
-              updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+              mindbodyClientId: clientId, updatedAt: firebase.firestore.FieldValue.serverTimestamp()
             });
           }
-
-          // No existing client — create new one
           return fetch('/.netlify/functions/mb-client', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            method: 'POST', headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ firstName: firstName, lastName: lastName, email: user.email })
           }).then(function(r) { return r.json(); })
-            .then(function(createData) {
-              if (createData.client && createData.client.id) {
+            .then(function(cd) {
+              if (cd.client && cd.client.id) {
+                clientId = String(cd.client.id);
                 return db.collection('users').doc(user.uid).update({
-                  mindbodyClientId: String(createData.client.id),
-                  updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+                  mindbodyClientId: clientId, updatedAt: firebase.firestore.FieldValue.serverTimestamp()
                 });
               }
             });
@@ -320,121 +232,102 @@
   }
 
   // ══════════════════════════════════════
-  // ONLINE STORE
+  // STORE TAB
   // ══════════════════════════════════════
-
   var storeServices = [];
+
+  function initStoreForm() {
+    var checkoutForm = document.getElementById('yb-store-checkout-form');
+    var cancelBtn = document.getElementById('yb-store-cancel-btn');
+    var successCloseBtn = document.getElementById('yb-store-success-close');
+
+    if (cancelBtn) cancelBtn.addEventListener('click', function() {
+      var el = document.getElementById('yb-store-checkout');
+      var list = document.getElementById('yb-store-list');
+      if (el) el.hidden = true;
+      if (list) list.style.display = '';
+    });
+    if (successCloseBtn) successCloseBtn.addEventListener('click', function() {
+      var el = document.getElementById('yb-store-success');
+      var list = document.getElementById('yb-store-list');
+      if (el) el.hidden = true;
+      if (list) list.style.display = '';
+    });
+    if (checkoutForm) checkoutForm.addEventListener('submit', function(e) { e.preventDefault(); processCheckout(); });
+
+    var cardInput = document.getElementById('yb-store-cardnumber');
+    if (cardInput) cardInput.addEventListener('input', function() {
+      var v = this.value.replace(/\D/g, '').substring(0, 16);
+      this.value = v.replace(/(.{4})/g, '$1 ').trim();
+    });
+    var expiryInput = document.getElementById('yb-store-expiry');
+    if (expiryInput) expiryInput.addEventListener('input', function() {
+      var v = this.value.replace(/\D/g, '').substring(0, 4);
+      if (v.length >= 3) v = v.substring(0, 2) + '/' + v.substring(2);
+      this.value = v;
+    });
+  }
 
   function loadStore() {
     var listEl = document.getElementById('yb-store-list');
     if (!listEl) return;
-
-    // Get item IDs from data attribute on the store panel
     var storePanel = document.querySelector('[data-yb-panel="store"]');
     var itemIds = storePanel ? storePanel.getAttribute('data-store-items') : '';
-
-    if (!itemIds) {
-      listEl.innerHTML = '<p class="yb-store__empty">' + (isDa() ? 'Ingen pakker tilgængelige lige nu.' : 'No packages available right now.') + '</p>';
-      return;
-    }
+    if (!itemIds) { listEl.innerHTML = '<p class="yb-store__empty">' + t('store_empty') + '</p>'; return; }
 
     fetch('/.netlify/functions/mb-services?serviceIds=' + itemIds)
       .then(function(r) { return r.json(); })
       .then(function(data) {
         storeServices = data.services || [];
-
-        if (!storeServices.length) {
-          listEl.innerHTML = '<p class="yb-store__empty">' + (isDa() ? 'Ingen pakker tilgængelige lige nu.' : 'No packages available right now.') + '</p>';
-          return;
-        }
-
+        if (!storeServices.length) { listEl.innerHTML = '<p class="yb-store__empty">' + t('store_empty') + '</p>'; return; }
         renderStoreItems(listEl);
       })
-      .catch(function(err) {
-        console.error('[Store] Error:', err);
-        listEl.innerHTML = '<p class="yb-store__error">' + (isDa() ? 'Kunne ikke hente pakker. Prøv igen senere.' : 'Could not load packages. Please try again later.') + '</p>';
-      });
+      .catch(function() { listEl.innerHTML = '<p class="yb-store__error">' + t('store_error') + '</p>'; });
   }
 
   function renderStoreItems(container) {
     var html = '<div class="yb-store__grid">';
-
     storeServices.forEach(function(s) {
       var price = s.onlinePrice || s.price || 0;
-      var priceStr = formatDKK(price);
-
       html += '<div class="yb-store__item">';
       html += '  <div class="yb-store__item-info">';
-      html += '    <h3 class="yb-store__item-name">' + escapeHtml(s.name) + '</h3>';
-      html += '    <span class="yb-store__item-price">' + priceStr + '</span>';
+      html += '    <h3 class="yb-store__item-name">' + esc(s.name) + '</h3>';
+      html += '    <span class="yb-store__item-price">' + formatDKK(price) + '</span>';
       html += '  </div>';
-      html += '  <button class="yb-btn yb-btn--primary yb-store__item-btn" type="button" data-store-buy="' + s.id + '">';
-      html += (isDa() ? 'Betal nu' : 'Pay now');
-      html += '  </button>';
+      html += '  <button class="yb-btn yb-btn--primary yb-store__item-btn" type="button" data-store-buy="' + s.id + '">' + t('store_buy') + '</button>';
       html += '</div>';
     });
-
     html += '</div>';
     container.innerHTML = html;
-
-    // Attach buy handlers
     container.querySelectorAll('[data-store-buy]').forEach(function(btn) {
-      btn.addEventListener('click', function() {
-        var rawId = btn.getAttribute('data-store-buy');
-        openCheckout(rawId);
-      });
+      btn.addEventListener('click', function() { openCheckout(btn.getAttribute('data-store-buy')); });
     });
   }
 
   function openCheckout(serviceId) {
-    // Use == for loose comparison (handles string/number mismatch)
     var service = storeServices.find(function(s) { return String(s.id) === String(serviceId); });
-    if (!service) {
-      console.error('[Store] Service not found for ID:', serviceId, 'Available:', storeServices.map(function(s) { return s.id; }));
-      return;
-    }
-
+    if (!service) return;
     var listEl = document.getElementById('yb-store-list');
     var checkoutEl = document.getElementById('yb-store-checkout');
     var itemEl = document.getElementById('yb-store-checkout-item');
-
     if (listEl) listEl.style.display = 'none';
     if (checkoutEl) checkoutEl.hidden = false;
-
-    // Show selected item
     var price = service.onlinePrice || service.price || 0;
-    if (itemEl) {
-      itemEl.innerHTML = '<span class="yb-store__checkout-item-name">' + escapeHtml(service.name) + '</span>' +
-                         '<span class="yb-store__checkout-item-price">' + formatDKK(price) + '</span>';
-    }
-
-    // Store active service for checkout
+    if (itemEl) itemEl.innerHTML = '<span class="yb-store__checkout-item-name">' + esc(service.name) + '</span><span class="yb-store__checkout-item-price">' + formatDKK(price) + '</span>';
     checkoutEl.setAttribute('data-service-id', service.id);
     checkoutEl.setAttribute('data-service-price', price);
-
-    // Pre-fill cardholder from profile
-    var user = firebase.auth().currentUser;
     var holderInput = document.getElementById('yb-store-cardholder');
-    if (holderInput && user && user.displayName) {
-      holderInput.value = user.displayName;
-    }
-
-    // Clear previous errors
+    if (holderInput && currentUser && currentUser.displayName) holderInput.value = currentUser.displayName;
     var errEl = document.getElementById('yb-store-error');
     if (errEl) errEl.hidden = true;
-
-    // Scroll to checkout
-    if (checkoutEl) checkoutEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    checkoutEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }
 
-  function processCheckout(auth, db) {
-    var user = auth.currentUser;
-    if (!user) return;
-
+  function processCheckout() {
+    if (!currentUser) return;
     var checkoutEl = document.getElementById('yb-store-checkout');
     var serviceId = checkoutEl.getAttribute('data-service-id');
     var amount = parseFloat(checkoutEl.getAttribute('data-service-price'));
-
     var cardNumber = document.getElementById('yb-store-cardnumber').value.replace(/\s/g, '');
     var expiry = document.getElementById('yb-store-expiry').value;
     var cvv = document.getElementById('yb-store-cvv').value;
@@ -443,84 +336,402 @@
     var city = document.getElementById('yb-store-city').value.trim();
     var zip = document.getElementById('yb-store-zip').value.trim();
     var saveCard = document.getElementById('yb-store-save-card');
-    var shouldSaveCard = saveCard ? saveCard.checked : false;
     var errorEl = document.getElementById('yb-store-error');
     var payBtn = document.getElementById('yb-store-pay-btn');
     var payBtnText = payBtn.textContent;
 
-    // Validation
-    if (!cardNumber || cardNumber.length < 13) {
-      showSimpleError(errorEl, isDa() ? 'Indtast et gyldigt kortnummer.' : 'Enter a valid card number.');
-      return;
-    }
-    if (!expiry || expiry.length < 4) {
-      showSimpleError(errorEl, isDa() ? 'Indtast udløbsdato.' : 'Enter expiry date.');
-      return;
-    }
-    if (!cvv || cvv.length < 3) {
-      showSimpleError(errorEl, isDa() ? 'Indtast CVV.' : 'Enter CVV.');
-      return;
-    }
+    if (!cardNumber || cardNumber.length < 13) { showSimpleError(errorEl, isDa() ? 'Indtast et gyldigt kortnummer.' : 'Enter a valid card number.'); return; }
+    if (!expiry || expiry.length < 4) { showSimpleError(errorEl, isDa() ? 'Indtast udløbsdato.' : 'Enter expiry date.'); return; }
+    if (!cvv || cvv.length < 3) { showSimpleError(errorEl, isDa() ? 'Indtast CVV.' : 'Enter CVV.'); return; }
 
     var expParts = expiry.split('/');
-    var expMonth = expParts[0];
-    var expYear = expParts[1] ? '20' + expParts[1] : '';
-
     payBtn.disabled = true;
     payBtn.textContent = isDa() ? 'Behandler betaling...' : 'Processing payment...';
 
-    // Get clientId from Firestore
-    db.collection('users').doc(user.uid).get().then(function(doc) {
-      var d = doc.data() || {};
-      if (!d.mindbodyClientId) {
-        throw new Error(isDa() ? 'Din konto er ikke klar endnu. Prøv igen om et øjeblik.' : 'Your account is not ready yet. Please try again in a moment.');
-      }
+    if (!clientId) { showSimpleError(errorEl, isDa() ? 'Din konto er ikke klar endnu.' : 'Your account is not ready yet.'); payBtn.disabled = false; payBtn.textContent = payBtnText; return; }
 
-      return fetch('/.netlify/functions/mb-checkout', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          clientId: d.mindbodyClientId,
-          items: [{ type: 'Service', id: Number(serviceId), quantity: 1 }],
-          amount: amount,
-          payment: {
-            cardNumber: cardNumber,
-            expMonth: expMonth,
-            expYear: expYear,
-            cvv: cvv,
-            cardHolder: cardHolder,
-            billingAddress: address,
-            billingCity: city,
-            billingPostalCode: zip,
-            saveCard: shouldSaveCard
-          }
-        })
-      });
+    fetch('/.netlify/functions/mb-checkout', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        clientId: clientId,
+        items: [{ type: 'Service', id: Number(serviceId), quantity: 1 }],
+        amount: amount,
+        payment: {
+          cardNumber: cardNumber, expMonth: expParts[0], expYear: expParts[1] ? '20' + expParts[1] : '',
+          cvv: cvv, cardHolder: cardHolder, billingAddress: address, billingCity: city, billingPostalCode: zip,
+          saveCard: saveCard ? saveCard.checked : false
+        }
+      })
     }).then(function(r) { return r.json(); })
       .then(function(data) {
         if (data.success) {
           checkoutEl.hidden = true;
-          var successEl = document.getElementById('yb-store-success');
-          if (successEl) successEl.hidden = false;
+          var sEl = document.getElementById('yb-store-success');
+          if (sEl) sEl.hidden = false;
           document.getElementById('yb-store-checkout-form').reset();
         } else if (data.requiresSCA) {
-          showSimpleError(errorEl, isDa() ? 'Dit kort kræver yderligere godkendelse. Prøv et andet kort.' : 'Your card requires additional authentication. Please try another card.');
+          showSimpleError(errorEl, isDa() ? 'Dit kort kræver yderligere godkendelse.' : 'Your card requires additional authentication.');
         } else {
-          showSimpleError(errorEl, data.error || (isDa() ? 'Betalingen fejlede.' : 'Payment failed.'));
+          showSimpleError(errorEl, data.error || t('checkout_error'));
         }
       }).catch(function(err) {
-        showSimpleError(errorEl, err.message || (isDa() ? 'Betalingen fejlede. Prøv igen.' : 'Payment failed. Please try again.'));
-      }).finally(function() {
-        payBtn.disabled = false;
-        payBtn.textContent = payBtnText;
+        showSimpleError(errorEl, err.message || t('checkout_error'));
+      }).finally(function() { payBtn.disabled = false; payBtn.textContent = payBtnText; });
+  }
+
+  // ══════════════════════════════════════
+  // SCHEDULE TAB
+  // ══════════════════════════════════════
+  var scheduleWeekOffset = 0;
+
+  function initScheduleNav() {
+    var prevBtn = document.getElementById('yb-schedule-prev');
+    var nextBtn = document.getElementById('yb-schedule-next');
+    var buyPassBtn = document.getElementById('yb-schedule-buy-pass');
+
+    if (prevBtn) prevBtn.addEventListener('click', function() { scheduleWeekOffset--; loadSchedule(); });
+    if (nextBtn) nextBtn.addEventListener('click', function() { scheduleWeekOffset++; loadSchedule(); });
+    if (buyPassBtn) buyPassBtn.addEventListener('click', function() {
+      // Switch to store tab
+      var storeBtn = document.querySelector('[data-yb-tab="store"]');
+      if (storeBtn) storeBtn.click();
+    });
+  }
+
+  function loadSchedule() {
+    var listEl = document.getElementById('yb-schedule-list');
+    if (!listEl) return;
+
+    listEl.innerHTML = '<div class="yb-store__loading"><div class="yb-mb-spinner"></div><span>' + t('schedule_loading') + '</span></div>';
+
+    var now = new Date();
+    var start = new Date(now);
+    start.setDate(start.getDate() + (scheduleWeekOffset * 7));
+    // Align to Monday
+    var dayOfWeek = start.getDay();
+    var diff = dayOfWeek === 0 ? -6 : 1 - dayOfWeek;
+    start.setDate(start.getDate() + diff);
+    var end = new Date(start);
+    end.setDate(end.getDate() + 6);
+
+    var labelEl = document.getElementById('yb-schedule-week-label');
+    if (labelEl) {
+      var opts = { day: 'numeric', month: 'short' };
+      var locale = isDa() ? 'da-DK' : 'en-GB';
+      labelEl.textContent = start.toLocaleDateString(locale, opts) + ' – ' + end.toLocaleDateString(locale, opts);
+    }
+
+    var startStr = toDateStr(start);
+    var endStr = toDateStr(end);
+    var url = '/.netlify/functions/mb-classes?startDate=' + startStr + '&endDate=' + endStr;
+    if (clientId) url += '&clientId=' + clientId;
+
+    fetch(url)
+      .then(function(r) { return r.json(); })
+      .then(function(data) {
+        var classes = data.classes || [];
+        if (!classes.length) { listEl.innerHTML = '<p class="yb-store__empty">' + t('schedule_empty') + '</p>'; return; }
+        renderSchedule(listEl, classes, start);
+      })
+      .catch(function() { listEl.innerHTML = '<p class="yb-store__error">' + t('schedule_error') + '</p>'; });
+  }
+
+  function renderSchedule(container, classes, weekStart) {
+    var days = {};
+    var dayNames = isDa()
+      ? ['Søndag', 'Mandag', 'Tirsdag', 'Onsdag', 'Torsdag', 'Fredag', 'Lørdag']
+      : ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+
+    classes.forEach(function(cls) {
+      var d = new Date(cls.startDateTime);
+      var key = toDateStr(d);
+      if (!days[key]) days[key] = { date: d, classes: [] };
+      days[key].classes.push(cls);
+    });
+
+    var html = '';
+    var sortedKeys = Object.keys(days).sort();
+    sortedKeys.forEach(function(key) {
+      var day = days[key];
+      var dateObj = day.date;
+      var dayName = dayNames[dateObj.getDay()];
+      var dateLabel = dateObj.toLocaleDateString(isDa() ? 'da-DK' : 'en-GB', { day: 'numeric', month: 'long' });
+
+      html += '<div class="yb-schedule__day">';
+      html += '<h3 class="yb-schedule__day-label">' + dayName + ' <span>' + dateLabel + '</span></h3>';
+
+      day.classes.forEach(function(cls) {
+        var startTime = formatTime(cls.startDateTime);
+        var endTime = formatTime(cls.endDateTime);
+        var isPast = new Date(cls.startDateTime) < new Date();
+
+        html += '<div class="yb-schedule__class' + (cls.isCanceled ? ' is-cancelled' : '') + (isPast ? ' is-past' : '') + '">';
+        html += '  <div class="yb-schedule__class-time">' + startTime + ' – ' + endTime + '</div>';
+        html += '  <div class="yb-schedule__class-info">';
+        html += '    <span class="yb-schedule__class-name">' + esc(cls.name) + '</span>';
+        html += '    <span class="yb-schedule__class-instructor">' + esc(cls.instructor) + '</span>';
+        if (cls.spotsLeft !== null && cls.spotsLeft > 0 && !cls.isCanceled && !isPast) {
+          html += '    <span class="yb-schedule__class-spots">' + cls.spotsLeft + ' ' + t('schedule_spots_left') + '</span>';
+        }
+        html += '  </div>';
+        html += '  <div class="yb-schedule__class-action">';
+
+        if (cls.isCanceled) {
+          html += '<span class="yb-schedule__badge yb-schedule__badge--cancelled">' + t('schedule_cancelled') + '</span>';
+        } else if (isPast) {
+          // No action for past classes
+        } else if (cls.isBooked) {
+          html += '<button class="yb-btn yb-btn--outline yb-schedule__cancel-btn" type="button" data-schedule-cancel="' + cls.id + '">' + t('schedule_cancel') + '</button>';
+        } else if (cls.spotsLeft === 0) {
+          html += '<span class="yb-schedule__badge yb-schedule__badge--full">' + t('schedule_full') + '</span>';
+        } else if (cls.isAvailable) {
+          html += '<button class="yb-btn yb-btn--primary yb-schedule__book-btn" type="button" data-schedule-book="' + cls.id + '">' + t('schedule_book') + '</button>';
+        }
+
+        html += '  </div>';
+        html += '</div>';
       });
+
+      html += '</div>';
+    });
+
+    container.innerHTML = html;
+
+    // Attach book/cancel handlers
+    container.querySelectorAll('[data-schedule-book]').forEach(function(btn) {
+      btn.addEventListener('click', function() { bookClass(btn); });
+    });
+    container.querySelectorAll('[data-schedule-cancel]').forEach(function(btn) {
+      btn.addEventListener('click', function() { cancelClass(btn); });
+    });
+  }
+
+  function bookClass(btn) {
+    var classId = btn.getAttribute('data-schedule-book');
+    if (!clientId) {
+      var noPassEl = document.getElementById('yb-schedule-no-pass');
+      if (noPassEl) noPassEl.hidden = false;
+      return;
+    }
+
+    btn.disabled = true;
+    btn.textContent = isDa() ? 'Booker...' : 'Booking...';
+
+    fetch('/.netlify/functions/mb-book', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ clientId: clientId, classId: Number(classId) })
+    }).then(function(r) { return r.json(); })
+      .then(function(data) {
+        if (data.success) {
+          showScheduleToast(isDa() ? 'Du er booket!' : "You're booked!", 'success');
+          // Switch button to Cancel
+          btn.textContent = isDa() ? 'Annuller' : 'Cancel';
+          btn.className = 'yb-btn yb-btn--outline yb-schedule__cancel-btn';
+          btn.removeAttribute('data-schedule-book');
+          btn.setAttribute('data-schedule-cancel', classId);
+          btn.disabled = false;
+          // Re-attach as cancel handler
+          btn.addEventListener('click', function() { cancelClass(btn); });
+        } else {
+          // Likely no valid pass
+          if (data.error && (data.error.toLowerCase().indexOf('pass') !== -1 || data.error.toLowerCase().indexOf('pricing') !== -1 || data.error.toLowerCase().indexOf('service') !== -1)) {
+            var noPassEl = document.getElementById('yb-schedule-no-pass');
+            if (noPassEl) noPassEl.hidden = false;
+            showScheduleToast(isDa() ? 'Du har brug for et klippekort.' : 'You need a class pass.', 'error');
+          } else {
+            showScheduleToast(data.error || (isDa() ? 'Booking fejlede.' : 'Booking failed.'), 'error');
+          }
+          btn.disabled = false;
+          btn.textContent = isDa() ? 'Book' : 'Book';
+        }
+      }).catch(function(err) {
+        showScheduleToast(err.message || (isDa() ? 'Booking fejlede.' : 'Booking failed.'), 'error');
+        btn.disabled = false;
+        btn.textContent = isDa() ? 'Book' : 'Book';
+      });
+  }
+
+  function cancelClass(btn) {
+    var classId = btn.getAttribute('data-schedule-cancel');
+    if (!clientId) return;
+
+    btn.disabled = true;
+    btn.textContent = isDa() ? 'Annullerer...' : 'Cancelling...';
+
+    fetch('/.netlify/functions/mb-book', {
+      method: 'DELETE', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ clientId: clientId, classId: Number(classId) })
+    }).then(function(r) { return r.json(); })
+      .then(function(data) {
+        if (data.success) {
+          showScheduleToast(isDa() ? 'Booking annulleret.' : 'Booking cancelled.', 'success');
+          // Switch button back to Book
+          btn.textContent = isDa() ? 'Book' : 'Book';
+          btn.className = 'yb-btn yb-btn--primary yb-schedule__book-btn';
+          btn.removeAttribute('data-schedule-cancel');
+          btn.setAttribute('data-schedule-book', classId);
+          btn.disabled = false;
+          btn.addEventListener('click', function() { bookClass(btn); });
+        } else {
+          showScheduleToast(data.error || (isDa() ? 'Annullering fejlede.' : 'Cancellation failed.'), 'error');
+          btn.disabled = false;
+          btn.textContent = isDa() ? 'Annuller' : 'Cancel';
+        }
+      }).catch(function(err) {
+        showScheduleToast(err.message || (isDa() ? 'Annullering fejlede.' : 'Cancellation failed.'), 'error');
+        btn.disabled = false;
+        btn.textContent = isDa() ? 'Annuller' : 'Cancel';
+      });
+  }
+
+  function showScheduleToast(msg, type) {
+    var el = document.getElementById('yb-schedule-toast');
+    if (!el) return;
+    el.textContent = msg;
+    el.className = 'yb-schedule__toast yb-schedule__toast--' + type;
+    el.hidden = false;
+    setTimeout(function() { el.hidden = true; }, 3500);
+  }
+
+  // ══════════════════════════════════════
+  // VISITS TAB
+  // ══════════════════════════════════════
+  function loadVisits() {
+    var listEl = document.getElementById('yb-visits-list');
+    if (!listEl || !clientId) {
+      if (listEl) listEl.innerHTML = '<p class="yb-store__empty">' + t('visits_empty') + '</p>';
+      return;
+    }
+
+    fetch('/.netlify/functions/mb-visits?clientId=' + clientId)
+      .then(function(r) { return r.json(); })
+      .then(function(data) {
+        var visits = data.visits || [];
+        if (!visits.length) { listEl.innerHTML = '<p class="yb-store__empty">' + t('visits_empty') + '</p>'; return; }
+        renderVisits(listEl, visits);
+      })
+      .catch(function() { listEl.innerHTML = '<p class="yb-store__error">' + t('visits_error') + '</p>'; });
+  }
+
+  function renderVisits(container, visits) {
+    // Sort newest first
+    visits.sort(function(a, b) { return new Date(b.startDateTime) - new Date(a.startDateTime); });
+
+    var html = '<div class="yb-visits__table">';
+    html += '<div class="yb-visits__row yb-visits__row--header">';
+    html += '<span>' + (isDa() ? 'Dato' : 'Date') + '</span>';
+    html += '<span>' + (isDa() ? 'Hold' : 'Class') + '</span>';
+    html += '<span>' + (isDa() ? 'Instruktør' : 'Instructor') + '</span>';
+    html += '<span>' + (isDa() ? 'Status' : 'Status') + '</span>';
+    html += '</div>';
+
+    visits.forEach(function(v) {
+      var d = new Date(v.startDateTime);
+      var dateStr = d.toLocaleDateString(isDa() ? 'da-DK' : 'en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
+      var timeStr = formatTime(v.startDateTime);
+
+      var status = '';
+      var statusClass = '';
+      if (v.lateCancelled) { status = t('visits_late_cancel'); statusClass = 'yb-visits__status--late'; }
+      else if (v.signedIn) { status = t('visits_signed_in'); statusClass = 'yb-visits__status--attended'; }
+      else { status = t('visits_no_show'); statusClass = 'yb-visits__status--noshow'; }
+
+      html += '<div class="yb-visits__row">';
+      html += '<span class="yb-visits__date">' + dateStr + '<br><small>' + timeStr + '</small></span>';
+      html += '<span class="yb-visits__name">' + esc(v.name) + '</span>';
+      html += '<span class="yb-visits__instructor">' + esc(v.instructor) + '</span>';
+      html += '<span class="yb-visits__status ' + statusClass + '">' + status + '</span>';
+      html += '</div>';
+    });
+
+    html += '</div>';
+    container.innerHTML = html;
+  }
+
+  // ══════════════════════════════════════
+  // RECEIPTS TAB
+  // ══════════════════════════════════════
+  function loadReceipts() {
+    var listEl = document.getElementById('yb-receipts-list');
+    if (!listEl || !clientId) {
+      if (listEl) listEl.innerHTML = '<p class="yb-store__empty">' + t('receipts_empty') + '</p>';
+      return;
+    }
+
+    fetch('/.netlify/functions/mb-purchases?clientId=' + clientId)
+      .then(function(r) { return r.json(); })
+      .then(function(data) {
+        var purchases = data.purchases || [];
+        if (!purchases.length) { listEl.innerHTML = '<p class="yb-store__empty">' + t('receipts_empty') + '</p>'; return; }
+        renderReceipts(listEl, purchases);
+      })
+      .catch(function() { listEl.innerHTML = '<p class="yb-store__error">' + t('receipts_error') + '</p>'; });
+  }
+
+  function renderReceipts(container, purchases) {
+    // Sort newest first
+    purchases.sort(function(a, b) { return new Date(b.saleDate) - new Date(a.saleDate); });
+
+    var html = '<div class="yb-receipts__table">';
+    html += '<div class="yb-receipts__row yb-receipts__row--header">';
+    html += '<span>' + t('receipts_date') + '</span>';
+    html += '<span>' + t('receipts_item') + '</span>';
+    html += '<span>' + t('receipts_amount') + '</span>';
+    html += '<span>' + t('receipts_payment') + '</span>';
+    html += '</div>';
+
+    purchases.forEach(function(p) {
+      var d = new Date(p.saleDate);
+      var dateStr = d.toLocaleDateString(isDa() ? 'da-DK' : 'en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
+      var name = p.serviceName || p.description || '—';
+
+      html += '<div class="yb-receipts__row' + (p.returned ? ' yb-receipts__row--returned' : '') + '">';
+      html += '<span class="yb-receipts__date">' + dateStr + '</span>';
+      html += '<span class="yb-receipts__name">' + esc(name) + '</span>';
+      html += '<span class="yb-receipts__amount">' + formatDKK(p.amountPaid || p.price) + '</span>';
+      html += '<span class="yb-receipts__payment">' + esc(p.paymentMethod || '—') + '</span>';
+      html += '</div>';
+    });
+
+    html += '</div>';
+    container.innerHTML = html;
   }
 
   // ══════════════════════════════════════
   // HELPERS
   // ══════════════════════════════════════
-
   function isDa() { return window.location.pathname.indexOf('/en/') !== 0; }
+
+  // Quick i18n helper — reads translation key or returns key
+  function t(key) {
+    var map = {
+      store_empty: isDa() ? 'Ingen pakker tilgængelige lige nu.' : 'No packages available right now.',
+      store_error: isDa() ? 'Kunne ikke hente pakker.' : 'Could not load packages.',
+      store_buy: isDa() ? 'Køb' : 'Buy',
+      checkout_error: isDa() ? 'Betalingen fejlede.' : 'Payment failed.',
+      schedule_loading: isDa() ? 'Henter hold...' : 'Loading classes...',
+      schedule_empty: isDa() ? 'Ingen hold tilgængelige denne uge.' : 'No classes available this week.',
+      schedule_error: isDa() ? 'Kunne ikke hente skema.' : 'Could not load schedule.',
+      schedule_book: isDa() ? 'Book' : 'Book',
+      schedule_cancel: isDa() ? 'Annuller' : 'Cancel',
+      schedule_booked: isDa() ? 'Booket' : 'Booked',
+      schedule_full: isDa() ? 'Fuldt' : 'Full',
+      schedule_cancelled: isDa() ? 'Aflyst' : 'Cancelled',
+      schedule_spots_left: isDa() ? 'pladser tilbage' : 'spots left',
+      visits_empty: isDa() ? 'Ingen besøg endnu.' : 'No visits yet.',
+      visits_error: isDa() ? 'Kunne ikke hente besøgshistorik.' : 'Could not load visit history.',
+      visits_signed_in: isDa() ? 'Deltaget' : 'Attended',
+      visits_no_show: isDa() ? 'Udeblivelse' : 'No show',
+      visits_late_cancel: isDa() ? 'Sen annullering' : 'Late cancellation',
+      receipts_empty: isDa() ? 'Ingen kvitteringer endnu.' : 'No receipts yet.',
+      receipts_error: isDa() ? 'Kunne ikke hente kvitteringer.' : 'Could not load receipts.',
+      receipts_date: isDa() ? 'Dato' : 'Date',
+      receipts_item: isDa() ? 'Vare' : 'Item',
+      receipts_amount: isDa() ? 'Beløb' : 'Amount',
+      receipts_payment: isDa() ? 'Betaling' : 'Payment'
+    };
+    return map[key] || key;
+  }
 
   function getInitials(name) {
     if (!name) return '?';
@@ -537,22 +748,25 @@
       if (successEl) { successEl.textContent = message; successEl.hidden = false; }
       if (errorEl) errorEl.hidden = true;
     }
-    if (!isError && successEl) {
-      setTimeout(function() { successEl.hidden = true; }, 4000);
-    }
+    if (!isError && successEl) setTimeout(function() { successEl.hidden = true; }, 4000);
   }
 
-  function showSimpleError(el, msg) {
-    if (el) { el.textContent = msg; el.hidden = false; }
+  function showSimpleError(el, msg) { if (el) { el.textContent = msg; el.hidden = false; } }
+
+  function formatDKK(amount) { return amount.toLocaleString('da-DK', { style: 'currency', currency: 'DKK', minimumFractionDigits: 0 }); }
+
+  function formatTime(isoStr) {
+    var d = new Date(isoStr);
+    return d.toLocaleTimeString(isDa() ? 'da-DK' : 'en-GB', { hour: '2-digit', minute: '2-digit' });
   }
 
-  function formatDKK(amount) {
-    return amount.toLocaleString('da-DK', { style: 'currency', currency: 'DKK', minimumFractionDigits: 0 });
+  function toDateStr(d) {
+    return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
   }
 
-  function escapeHtml(str) {
+  function esc(str) {
     var div = document.createElement('div');
-    div.textContent = str;
+    div.textContent = str || '';
     return div.innerHTML;
   }
 })();
