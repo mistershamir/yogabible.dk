@@ -537,6 +537,10 @@
     var sortedKeys = Object.keys(days).sort();
     sortedKeys.forEach(function(key) {
       var day = days[key];
+      // Sort classes within each day by start time
+      day.classes.sort(function(a, b) {
+        return new Date(a.startDateTime) - new Date(b.startDateTime);
+      });
       var dateObj = day.date;
       var dayName = dayNames[dateObj.getDay()];
       var dateLabel = dateObj.toLocaleDateString(isDa() ? 'da-DK' : 'en-GB', { day: 'numeric', month: 'long' });

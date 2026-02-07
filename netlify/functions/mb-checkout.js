@@ -57,10 +57,11 @@ exports.handler = async function(event) {
       return cartItem;
     });
 
-    // Build payment info — Mindbody v6 uses camelCase for Metadata keys
+    // Build payment info — Mindbody v6 uses camelCase for all Metadata keys
     var paymentInfo = {
       Type: 'CreditCard',
       Metadata: {
+        amount: body.amount || 0,
         creditCardNumber: body.payment.cardNumber,
         expirationMonth: body.payment.expMonth,
         expirationYear: body.payment.expYear,
@@ -70,8 +71,7 @@ exports.handler = async function(event) {
         billingCity: body.payment.billingCity || '',
         billingPostalCode: body.payment.billingPostalCode || '',
         saveInfo: body.payment.saveCard || false
-      },
-      Amount: body.amount || 0
+      }
     };
 
     var checkoutData = {
