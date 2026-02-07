@@ -1,17 +1,22 @@
 /**
  * Yoga Bible — Glossary v4
- * Global language integration via hostname detection (mirrors header.js).
+ * Global language integration via path + hostname detection (mirrors header.js).
  * Dynamic field access pattern: field(obj, 'desc') → obj['desc_' + lang]
  * Future-proof for yogabible.com with additional languages.
  */
 (function () {
   'use strict';
 
-  /* ── Language detection (same pattern as header.js) ── */
+  /* ── Language detection (mirrors header.js: path-based first, hostname fallback) ── */
   function detectLang() {
+    var path = window.location.pathname || '/';
+    /* Path-based: /en/yoga-glossary/ (current yogabible.dk setup) */
+    var pathMatch = path.match(/^\/([a-z]{2})\//);
+    if (pathMatch) return pathMatch[1];
+    /* Hostname-based: en.yogabible.com (future yogabible.com setup) */
     var host = window.location.hostname.toLowerCase();
-    var match = host.match(/^([a-z]{2})\./);
-    if (match) return match[1];
+    var hostMatch = host.match(/^([a-z]{2})\./);
+    if (hostMatch) return hostMatch[1];
     return 'da';
   }
   var activeLang = detectLang();
