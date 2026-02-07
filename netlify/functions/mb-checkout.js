@@ -77,7 +77,7 @@ exports.handler = async function(event) {
 
     var checkoutData = {
       ClientId: body.clientId,
-      CartItems: cartItems,
+      Items: cartItems,
       Payments: [paymentInfo],
       Test: body.test || false,
       SendEmail: true,
