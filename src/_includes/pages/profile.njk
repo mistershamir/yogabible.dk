@@ -24,107 +24,179 @@
 
     <!-- Logged in state -->
     <div id="yb-profile-user" class="yb-profile__content" style="display:none">
-      <div class="yb-profile__grid">
 
-        <!-- Left: avatar + member info -->
-        <aside class="yb-profile__sidebar">
-          <div class="yb-profile__avatar" id="yb-profile-avatar">YB</div>
-          <div class="yb-profile__member-info">
-            <span class="yb-profile__member-name" id="yb-profile-display-name"></span>
-            <span class="yb-profile__member-email" id="yb-profile-display-email"></span>
-            <span class="yb-profile__member-since" id="yb-profile-member-since"></span>
-          </div>
-          <button class="yb-btn yb-btn--outline yb-btn--full" type="button" data-yb-auth-logout>{{ t.btn_logout }}</button>
-        </aside>
+      <!-- Tab navigation -->
+      <div class="yb-profile__tabs">
+        <button class="yb-profile__tab is-active" type="button" data-yb-tab="profile">{{ t.tab_profile }}</button>
+        <button class="yb-profile__tab" type="button" data-yb-tab="store">{{ t.tab_store }}</button>
+      </div>
 
-        <!-- Right: forms -->
-        <div class="yb-profile__main">
+      <!-- ═══════ TAB: Profile ═══════ -->
+      <div class="yb-profile__tab-panel is-active" data-yb-panel="profile">
+        <div class="yb-profile__grid">
 
-          <!-- Personal details -->
-          <div class="yb-profile__card">
-            <h2 class="yb-profile__card-title">{{ t.section_personal }}</h2>
-            <form id="yb-profile-form" class="yb-profile__form" novalidate>
-              <div class="yb-profile__form-row">
-                <div class="yb-auth-field">
-                  <label for="yb-profile-firstname">{{ t.label_firstname }}</label>
-                  <input type="text" id="yb-profile-firstname" autocomplete="given-name">
+          <!-- Left: avatar + member info -->
+          <aside class="yb-profile__sidebar">
+            <div class="yb-profile__avatar" id="yb-profile-avatar">YB</div>
+            <div class="yb-profile__member-info">
+              <span class="yb-profile__member-name" id="yb-profile-display-name"></span>
+              <span class="yb-profile__member-email" id="yb-profile-display-email"></span>
+              <span class="yb-profile__member-since" id="yb-profile-member-since"></span>
+            </div>
+            <button class="yb-btn yb-btn--outline yb-btn--full" type="button" data-yb-auth-logout>{{ t.btn_logout }}</button>
+          </aside>
+
+          <!-- Right: forms -->
+          <div class="yb-profile__main">
+
+            <!-- Personal details -->
+            <div class="yb-profile__card">
+              <h2 class="yb-profile__card-title">{{ t.section_personal }}</h2>
+              <form id="yb-profile-form" class="yb-profile__form" novalidate>
+                <div class="yb-profile__form-row">
+                  <div class="yb-auth-field">
+                    <label for="yb-profile-firstname">{{ t.label_firstname }}</label>
+                    <input type="text" id="yb-profile-firstname" autocomplete="given-name">
+                  </div>
+                  <div class="yb-auth-field">
+                    <label for="yb-profile-lastname">{{ t.label_lastname }}</label>
+                    <input type="text" id="yb-profile-lastname" autocomplete="family-name">
+                  </div>
                 </div>
                 <div class="yb-auth-field">
-                  <label for="yb-profile-lastname">{{ t.label_lastname }}</label>
-                  <input type="text" id="yb-profile-lastname" autocomplete="family-name">
-                </div>
-              </div>
-              <div class="yb-auth-field">
-                <label for="yb-profile-email">{{ t.label_email }}</label>
-                <input type="email" id="yb-profile-email" disabled>
-              </div>
-              <div class="yb-auth-field">
-                <label for="yb-profile-phone">{{ t.label_phone }}</label>
-                <input type="tel" id="yb-profile-phone" autocomplete="tel" placeholder="{{ t.placeholder_phone }}">
-              </div>
-              <div class="yb-auth-error" id="yb-profile-error" hidden role="alert"></div>
-              <div class="yb-auth-success" id="yb-profile-success" hidden role="status"></div>
-              <button type="submit" class="yb-auth-submit">{{ t.btn_save }}</button>
-            </form>
-          </div>
-
-          <!-- Change password -->
-          <div class="yb-profile__card">
-            <h2 class="yb-profile__card-title">{{ t.section_password }}</h2>
-            <form id="yb-profile-password-form" class="yb-profile__form" novalidate>
-              <div class="yb-profile__form-row">
-                <div class="yb-auth-field">
-                  <label for="yb-profile-new-password">{{ t.label_new_password }}</label>
-                  <input type="password" id="yb-profile-new-password" autocomplete="new-password" placeholder="{{ t.placeholder_password }}">
+                  <label for="yb-profile-email">{{ t.label_email }}</label>
+                  <input type="email" id="yb-profile-email" disabled>
                 </div>
                 <div class="yb-auth-field">
-                  <label for="yb-profile-confirm-password">{{ t.label_confirm_password }}</label>
-                  <input type="password" id="yb-profile-confirm-password" autocomplete="new-password" placeholder="{{ t.placeholder_password }}">
+                  <label for="yb-profile-phone">{{ t.label_phone }}</label>
+                  <input type="tel" id="yb-profile-phone" autocomplete="tel" placeholder="{{ t.placeholder_phone }}">
                 </div>
-              </div>
-              <div class="yb-auth-error" id="yb-profile-pw-error" hidden role="alert"></div>
-              <div class="yb-auth-success" id="yb-profile-pw-success" hidden role="status"></div>
-              <button type="submit" class="yb-auth-submit">{{ t.btn_change_password }}</button>
-            </form>
-          </div>
+                <div class="yb-auth-error" id="yb-profile-error" hidden role="alert"></div>
+                <div class="yb-auth-success" id="yb-profile-success" hidden role="status"></div>
+                <button type="submit" class="yb-auth-submit">{{ t.btn_save }}</button>
+              </form>
+            </div>
 
-          <!-- Membership & Mindbody -->
-          <div class="yb-profile__card">
-            <h2 class="yb-profile__card-title">{{ t.section_membership }}</h2>
-            <div class="yb-profile__info-grid">
-              <div class="yb-profile__info-item">
-                <span class="yb-profile__info-label">{{ t.label_tier }}</span>
-                <span class="yb-profile__info-value" id="yb-profile-tier">—</span>
-              </div>
-              <div class="yb-profile__info-item">
-                <span class="yb-profile__info-label">{{ t.label_mindbody }}</span>
-                <span class="yb-profile__info-value" id="yb-profile-mb-status">—</span>
-              </div>
-              <div class="yb-profile__info-item" id="yb-profile-mb-id-row" style="display:none">
-                <span class="yb-profile__info-label">{{ t.label_mindbody_id }}</span>
-                <span class="yb-profile__info-value" id="yb-profile-mb-id">—</span>
+            <!-- Change password -->
+            <div class="yb-profile__card">
+              <h2 class="yb-profile__card-title">{{ t.section_password }}</h2>
+              <form id="yb-profile-password-form" class="yb-profile__form" novalidate>
+                <div class="yb-profile__form-row">
+                  <div class="yb-auth-field">
+                    <label for="yb-profile-new-password">{{ t.label_new_password }}</label>
+                    <input type="password" id="yb-profile-new-password" autocomplete="new-password" placeholder="{{ t.placeholder_password }}">
+                  </div>
+                  <div class="yb-auth-field">
+                    <label for="yb-profile-confirm-password">{{ t.label_confirm_password }}</label>
+                    <input type="password" id="yb-profile-confirm-password" autocomplete="new-password" placeholder="{{ t.placeholder_password }}">
+                  </div>
+                </div>
+                <div class="yb-auth-error" id="yb-profile-pw-error" hidden role="alert"></div>
+                <div class="yb-auth-success" id="yb-profile-pw-success" hidden role="status"></div>
+                <button type="submit" class="yb-auth-submit">{{ t.btn_change_password }}</button>
+              </form>
+            </div>
+
+            <!-- Membership -->
+            <div class="yb-profile__card">
+              <h2 class="yb-profile__card-title">{{ t.section_membership }}</h2>
+              <div class="yb-profile__info-grid">
+                <div class="yb-profile__info-item">
+                  <span class="yb-profile__info-label">{{ t.label_tier }}</span>
+                  <span class="yb-profile__info-value" id="yb-profile-tier">—</span>
+                </div>
               </div>
             </div>
-            <button class="yb-btn yb-btn--outline" type="button" id="yb-profile-mb-connect" style="display:none">{{ t.mb_connect_btn }}</button>
-          </div>
 
-          <!-- Connected sites -->
-          <div class="yb-profile__card">
-            <h2 class="yb-profile__card-title">{{ t.section_sites }}</h2>
-            <div class="yb-profile__info-grid">
-              <div class="yb-profile__info-item">
-                <span class="yb-profile__info-label">{{ t.site_dk }}</span>
-                <span class="yb-profile__info-value" id="yb-profile-site-dk">—</span>
-              </div>
-              <div class="yb-profile__info-item">
-                <span class="yb-profile__info-label">{{ t.site_com }}</span>
-                <span class="yb-profile__info-value" id="yb-profile-site-com">—</span>
-              </div>
-            </div>
           </div>
-
         </div>
       </div>
+
+      <!-- ═══════ TAB: Online Store ═══════ -->
+      <div class="yb-profile__tab-panel" data-yb-panel="store">
+        <div class="yb-store">
+          <div class="yb-store__header">
+            <h2 class="yb-store__title">{{ t.store_title }}</h2>
+            <p class="yb-store__subtitle">{{ t.store_subtitle }}</p>
+          </div>
+
+          <!-- Services list (loaded via JS) -->
+          <div id="yb-store-list" class="yb-store__list">
+            <div class="yb-store__loading">
+              <div class="yb-mb-spinner"></div>
+              <span>{{ t.store_loading }}</span>
+            </div>
+          </div>
+
+          <!-- Checkout overlay (hidden by default) -->
+          <div id="yb-store-checkout" class="yb-store__checkout" hidden>
+            <div class="yb-store__checkout-inner">
+              <h3 class="yb-store__checkout-title">{{ t.checkout_title }}</h3>
+
+              <!-- Selected service summary -->
+              <div class="yb-store__checkout-item" id="yb-store-checkout-item"></div>
+
+              <form id="yb-store-checkout-form" class="yb-profile__form" novalidate>
+                <div class="yb-auth-field">
+                  <label for="yb-store-cardholder">{{ t.checkout_cardholder }}</label>
+                  <input type="text" id="yb-store-cardholder" required autocomplete="cc-name">
+                </div>
+                <div class="yb-auth-field">
+                  <label for="yb-store-cardnumber">{{ t.checkout_card_number }}</label>
+                  <input type="text" id="yb-store-cardnumber" required autocomplete="cc-number" placeholder="1234 5678 9012 3456" inputmode="numeric" maxlength="19">
+                </div>
+                <div class="yb-profile__form-row yb-profile__form-row--3">
+                  <div class="yb-auth-field">
+                    <label for="yb-store-expiry">{{ t.checkout_expiry }}</label>
+                    <input type="text" id="yb-store-expiry" required placeholder="MM/YY" inputmode="numeric" maxlength="5">
+                  </div>
+                  <div class="yb-auth-field">
+                    <label for="yb-store-cvv">{{ t.checkout_cvv }}</label>
+                    <input type="text" id="yb-store-cvv" required autocomplete="cc-csc" placeholder="123" inputmode="numeric" maxlength="4">
+                  </div>
+                </div>
+                <div class="yb-auth-field">
+                  <label for="yb-store-address">{{ t.checkout_address }}</label>
+                  <input type="text" id="yb-store-address" autocomplete="street-address">
+                </div>
+                <div class="yb-profile__form-row">
+                  <div class="yb-auth-field">
+                    <label for="yb-store-city">{{ t.checkout_city }}</label>
+                    <input type="text" id="yb-store-city" autocomplete="address-level2">
+                  </div>
+                  <div class="yb-auth-field">
+                    <label for="yb-store-zip">{{ t.checkout_zip }}</label>
+                    <input type="text" id="yb-store-zip" autocomplete="postal-code">
+                  </div>
+                </div>
+
+                <div class="yb-auth-error" id="yb-store-error" hidden role="alert"></div>
+
+                <div class="yb-store__checkout-actions">
+                  <button type="submit" class="yb-auth-submit" id="yb-store-pay-btn">{{ t.checkout_pay }}</button>
+                  <button type="button" class="yb-btn yb-btn--outline" id="yb-store-cancel-btn">{{ t.checkout_cancel }}</button>
+                </div>
+
+                <div class="yb-store__secure">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                  {{ t.checkout_secure }}
+                </div>
+              </form>
+            </div>
+          </div>
+
+          <!-- Success state -->
+          <div id="yb-store-success" class="yb-store__success" hidden>
+            <div class="yb-store__success-inner">
+              <div class="yb-checkout-success__icon">&#10003;</div>
+              <h3>{{ t.checkout_success_title }}</h3>
+              <p>{{ t.checkout_success_text }}</p>
+              <button class="yb-btn yb-btn--primary" type="button" id="yb-store-success-close">{{ t.checkout_success_close }}</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
     </div>
   </div>
 </section>
