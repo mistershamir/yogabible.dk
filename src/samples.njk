@@ -4768,6 +4768,1007 @@ eleventyExcludeFromCollections: true
   </section>
 
   <!-- ═══════════════════════════════════════════════════════════════
+       33. HEADER DESIGN ALTERNATIVES
+       ═══════════════════════════════════════════════════════════════ -->
+  <section class="ds-section">
+    <div class="ds-section__header">
+      <h2 class="ds-section__title" data-number="33">Header Design Alternatives</h2>
+      <p class="ds-section__desc">4 header concepts to replace the Squarespace header. Each shown at Desktop (1280px), Tablet (768px), and Mobile (375px).</p>
+    </div>
+
+    <style>
+    /* ── Section 33: Header Design Previews ── */
+    .ds-hdr-preview { border: 1px solid var(--ds-border); border-radius: 16px; overflow: hidden; margin-bottom: 48px; }
+    .ds-hdr-preview__label { padding: 14px 20px; background: #F5F3F0; font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ds-text-muted); font-weight: 700; border-bottom: 1px solid var(--ds-border); display: flex; align-items: center; gap: 8px; }
+    .ds-hdr-preview__dot { width: 8px; height: 8px; border-radius: 50%; }
+    .ds-hdr-preview__dot--dk { background: #0F0F0F; }
+    .ds-hdr-preview__dot--tb { background: var(--yb-brand); }
+    .ds-hdr-preview__dot--mb { background: #3f99a5; }
+    .ds-hdr-wrap { overflow-x: auto; }
+    .ds-hdr-frame { min-width: fit-content; }
+    .ds-hdr-frame--desktop { width: 1280px; }
+    .ds-hdr-frame--tablet { width: 768px; }
+    .ds-hdr-frame--mobile { width: 375px; }
+
+    /* Shared header reset inside previews */
+    .ds-hdr-frame * { box-sizing: border-box; margin: 0; padding: 0; }
+    .ds-hdr-frame a { text-decoration: none; color: inherit; }
+
+    /* ───────────────────────────────────────
+       DESIGN A: Minimal Light — Centered Logo
+       ─────────────────────────────────────── */
+    .hdrA {
+      background: #FFFCF9;
+      border-bottom: 1px solid #E8E4E0;
+      font-family: 'Abacaxi', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    }
+    .hdrA-inner {
+      max-width: 1280px;
+      margin: 0 auto;
+      padding: 0 clamp(16px, 3vw, 30px);
+    }
+    .hdrA-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 8px 0;
+      font-size: 11px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: #6F6A66;
+      border-bottom: 1px solid #E8E4E0;
+    }
+    .hdrA-top__left { display: flex; gap: 16px; align-items: center; }
+    .hdrA-top__right { display: flex; gap: 12px; align-items: center; }
+    .hdrA-top a { color: #6F6A66; transition: color 0.15s; }
+    .hdrA-top a:hover { color: #f75c03; }
+    .hdrA-top__flag { font-size: 14px; cursor: pointer; }
+    .hdrA-top__flag.is-active { opacity: 1; }
+    .hdrA-top__flag:not(.is-active) { opacity: 0.5; }
+
+    .hdrA-main {
+      display: grid;
+      grid-template-columns: 1fr auto 1fr;
+      align-items: center;
+      padding: 18px 0;
+      gap: 24px;
+    }
+    .hdrA-nav { display: flex; align-items: center; gap: 24px; }
+    .hdrA-nav--left { justify-content: flex-start; }
+    .hdrA-nav--right { justify-content: flex-end; }
+    .hdrA-nav a, .hdrA-nav button {
+      font-size: 12px;
+      letter-spacing: 0.07em;
+      text-transform: uppercase;
+      color: #0F0F0F;
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: 8px 0;
+      position: relative;
+      font-family: inherit;
+      transition: color 0.15s;
+    }
+    .hdrA-nav a:hover, .hdrA-nav button:hover { color: #f75c03; }
+    .hdrA-nav a::after, .hdrA-nav button::after {
+      content: '';
+      position: absolute;
+      bottom: 4px;
+      left: 0;
+      width: 0;
+      height: 1.5px;
+      background: #f75c03;
+      transition: width 0.2s ease;
+    }
+    .hdrA-nav a:hover::after, .hdrA-nav button:hover::after { width: 100%; }
+
+    .hdrA-logo img { height: 42px; display: block; }
+    .hdrA-cta {
+      display: inline-flex;
+      align-items: center;
+      padding: 9px 20px;
+      border-radius: 999px;
+      background: #f75c03;
+      color: #fff;
+      font-size: 11px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      border: none;
+      cursor: pointer;
+      font-family: inherit;
+      font-weight: 700;
+      transition: transform 0.15s, filter 0.15s;
+    }
+    .hdrA-cta:hover { transform: translateY(-1px); filter: brightness(1.05); }
+    .hdrA-caret { color: #f75c03; font-size: 14px; margin-left: 2px; }
+
+    /* A — Tablet */
+    .ds-hdr-frame--tablet .hdrA-top { display: none; }
+    .ds-hdr-frame--tablet .hdrA-main {
+      grid-template-columns: auto 1fr auto;
+      gap: 16px;
+    }
+    .ds-hdr-frame--tablet .hdrA-nav--left { display: none; }
+    .ds-hdr-frame--tablet .hdrA-nav--right { gap: 16px; }
+    .ds-hdr-frame--tablet .hdrA-burger { display: flex; }
+
+    /* A — Mobile */
+    .ds-hdr-frame--mobile .hdrA-top { display: none; }
+    .ds-hdr-frame--mobile .hdrA-main {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 14px 0;
+    }
+    .ds-hdr-frame--mobile .hdrA-nav { display: none; }
+    .ds-hdr-frame--mobile .hdrA-burger { display: flex; }
+    .ds-hdr-frame--mobile .hdrA-logo img { height: 36px; }
+
+    /* Burger (hidden on desktop by default) */
+    .hdrA-burger {
+      display: none;
+      width: 42px;
+      height: 42px;
+      border-radius: 999px;
+      border: 1.5px solid #f75c03;
+      background: none;
+      cursor: pointer;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .hdrA-burger span { display: block; width: 16px; height: 1.5px; background: #f75c03; border-radius: 2px; }
+
+    /* ───────────────────────────────────────
+       DESIGN B: Two-Tier Dark — Logo Left
+       ─────────────────────────────────────── */
+    .hdrB {
+      background: #0F0F0F;
+      font-family: 'Abacaxi', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+      color: #FDFBF7;
+    }
+    .hdrB-inner {
+      max-width: 1280px;
+      margin: 0 auto;
+      padding: 0 clamp(16px, 3vw, 30px);
+    }
+    .hdrB-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 0;
+      border-bottom: 1px solid rgba(253,251,247,0.08);
+      font-size: 11px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: rgba(253,251,247,0.55);
+    }
+    .hdrB-top__left { display: flex; gap: 20px; align-items: center; }
+    .hdrB-top__right { display: flex; gap: 14px; align-items: center; }
+    .hdrB-top a { color: rgba(253,251,247,0.55); transition: color 0.15s; }
+    .hdrB-top a:hover { color: #f75c03; }
+    .hdrB-top__sep { width: 1px; height: 14px; background: rgba(253,251,247,0.12); }
+    .hdrB-top__flag { font-size: 14px; cursor: pointer; }
+    .hdrB-top__social { display: flex; gap: 10px; align-items: center; }
+    .hdrB-top__social-dot {
+      width: 28px; height: 28px;
+      border-radius: 50%;
+      border: 1px solid rgba(253,251,247,0.15);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      color: rgba(253,251,247,0.6);
+      transition: border-color 0.15s, color 0.15s;
+    }
+    .hdrB-top__social-dot:hover { border-color: #f75c03; color: #f75c03; }
+
+    .hdrB-main {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 16px 0;
+      gap: 32px;
+    }
+    .hdrB-logo img { height: 44px; display: block; }
+    .hdrB-nav { display: flex; align-items: center; gap: 28px; }
+    .hdrB-nav a, .hdrB-nav button {
+      font-size: 13px;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: #FDFBF7;
+      background: none;
+      border: none;
+      cursor: pointer;
+      font-family: inherit;
+      padding: 8px 0;
+      position: relative;
+      transition: color 0.15s;
+    }
+    .hdrB-nav a:hover, .hdrB-nav button:hover { color: #f75c03; }
+    .hdrB-nav a::after, .hdrB-nav button::after {
+      content: '';
+      position: absolute;
+      bottom: 4px;
+      left: 50%;
+      width: 0;
+      height: 2px;
+      background: #f75c03;
+      transition: width 0.2s, left 0.2s;
+    }
+    .hdrB-nav a:hover::after, .hdrB-nav button:hover::after { width: 100%; left: 0; }
+    .hdrB-caret { color: #f75c03; font-size: 14px; margin-left: 3px; }
+
+    .hdrB-right { display: flex; align-items: center; gap: 16px; }
+    .hdrB-cta {
+      display: inline-flex;
+      padding: 10px 22px;
+      border-radius: 999px;
+      border: 1.5px solid #f75c03;
+      background: transparent;
+      color: #f75c03;
+      font-size: 12px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      cursor: pointer;
+      font-family: inherit;
+      font-weight: 700;
+      transition: background 0.2s, color 0.2s, transform 0.15s;
+    }
+    .hdrB-cta:hover { background: #f75c03; color: #fff; transform: translateY(-1px); }
+
+    /* B — Tablet */
+    .ds-hdr-frame--tablet .hdrB-top { display: none; }
+    .ds-hdr-frame--tablet .hdrB-nav { gap: 18px; }
+    .ds-hdr-frame--tablet .hdrB-nav a, .ds-hdr-frame--tablet .hdrB-nav button { font-size: 11px; }
+    .ds-hdr-frame--tablet .hdrB-burger { display: none; }
+
+    /* B — Mobile */
+    .ds-hdr-frame--mobile .hdrB-top { display: none; }
+    .ds-hdr-frame--mobile .hdrB-nav { display: none; }
+    .ds-hdr-frame--mobile .hdrB-cta--desk { display: none; }
+    .ds-hdr-frame--mobile .hdrB-burger { display: flex; }
+    .ds-hdr-frame--mobile .hdrB-logo img { height: 36px; }
+
+    .hdrB-burger {
+      display: none;
+      width: 44px;
+      height: 44px;
+      border-radius: 999px;
+      border: 1.5px solid #f75c03;
+      background: none;
+      cursor: pointer;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      gap: 5px;
+    }
+    .hdrB-burger span { display: block; width: 18px; height: 2px; background: #f75c03; border-radius: 2px; }
+
+    /* ───────────────────────────────────────
+       DESIGN C: Transparent Overlay Header
+       ─────────────────────────────────────── */
+    .hdrC-wrap {
+      position: relative;
+      background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+      min-height: 220px;
+      font-family: 'Abacaxi', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+      color: #FDFBF7;
+    }
+    .hdrC-wrap__hero-text {
+      position: absolute;
+      bottom: 30px;
+      left: clamp(16px, 3vw, 30px);
+      font-size: 11px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: rgba(253,251,247,0.25);
+    }
+    .hdrC {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      background: transparent;
+      z-index: 10;
+    }
+    .hdrC-inner {
+      max-width: 1280px;
+      margin: 0 auto;
+      padding: 24px clamp(16px, 3vw, 30px);
+      display: grid;
+      grid-template-columns: 1fr auto 1fr;
+      align-items: center;
+      gap: 24px;
+    }
+    .hdrC-nav { display: flex; align-items: center; gap: 24px; }
+    .hdrC-nav--left { justify-content: flex-start; }
+    .hdrC-nav--right { justify-content: flex-end; }
+    .hdrC-nav a, .hdrC-nav button {
+      font-size: 12px;
+      letter-spacing: 0.07em;
+      text-transform: uppercase;
+      color: rgba(253,251,247,0.85);
+      background: none;
+      border: none;
+      cursor: pointer;
+      font-family: inherit;
+      padding: 8px 0;
+      transition: color 0.15s;
+    }
+    .hdrC-nav a:hover, .hdrC-nav button:hover { color: #f75c03; }
+    .hdrC-caret { color: #f75c03; font-size: 14px; margin-left: 2px; }
+    .hdrC-logo img { height: 46px; display: block; filter: brightness(1.1); }
+
+    .hdrC-actions { display: flex; align-items: center; gap: 12px; }
+    .hdrC-flag { font-size: 15px; cursor: pointer; opacity: 0.7; transition: opacity 0.15s; }
+    .hdrC-flag:hover, .hdrC-flag.is-active { opacity: 1; }
+    .hdrC-cta {
+      display: inline-flex;
+      padding: 9px 20px;
+      border-radius: 999px;
+      background: #f75c03;
+      color: #fff;
+      font-size: 11px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      border: none;
+      cursor: pointer;
+      font-family: inherit;
+      font-weight: 700;
+      transition: transform 0.15s, filter 0.15s;
+    }
+    .hdrC-cta:hover { transform: translateY(-1px); filter: brightness(1.08); }
+
+    /* C scrolled state indicator */
+    .hdrC-scrolled-label {
+      font-size: 10px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: rgba(253,251,247,0.35);
+      text-align: center;
+      padding: 6px 0 0;
+    }
+    .hdrC--solid {
+      background: rgba(15,15,15,0.92);
+      backdrop-filter: blur(16px);
+      border-bottom: 1px solid rgba(253,251,247,0.08);
+      position: relative;
+    }
+    .hdrC--solid .hdrC-inner { padding: 14px clamp(16px, 3vw, 30px); }
+    .hdrC--solid .hdrC-logo img { height: 36px; }
+
+    /* C — Tablet */
+    .ds-hdr-frame--tablet .hdrC-inner {
+      grid-template-columns: auto 1fr auto;
+      gap: 16px;
+    }
+    .ds-hdr-frame--tablet .hdrC-nav--left { display: none; }
+    .ds-hdr-frame--tablet .hdrC-nav--right { justify-content: flex-end; gap: 16px; }
+    .ds-hdr-frame--tablet .hdrC-nav--right a, .ds-hdr-frame--tablet .hdrC-nav--right button { font-size: 11px; }
+    .ds-hdr-frame--tablet .hdrC-burger { display: none; }
+
+    /* C — Mobile */
+    .ds-hdr-frame--mobile .hdrC-inner { display: flex; justify-content: space-between; align-items: center; }
+    .ds-hdr-frame--mobile .hdrC-nav { display: none; }
+    .ds-hdr-frame--mobile .hdrC-actions--desk { display: none; }
+    .ds-hdr-frame--mobile .hdrC-burger { display: flex; }
+    .ds-hdr-frame--mobile .hdrC-logo img { height: 34px; }
+
+    .hdrC-burger {
+      display: none;
+      width: 42px;
+      height: 42px;
+      border-radius: 999px;
+      border: 1.5px solid rgba(253,251,247,0.3);
+      background: none;
+      cursor: pointer;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .hdrC-burger span { display: block; width: 16px; height: 1.5px; background: #FDFBF7; border-radius: 2px; }
+
+    /* ───────────────────────────────────────
+       DESIGN D: Ultra-Minimal Editorial
+       ─────────────────────────────────────── */
+    .hdrD {
+      background: #FFFCF9;
+      font-family: 'Abacaxi', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+      color: #0F0F0F;
+      border-bottom: 2px solid #0F0F0F;
+    }
+    .hdrD-inner {
+      max-width: 1280px;
+      margin: 0 auto;
+      padding: 0 clamp(16px, 3vw, 30px);
+    }
+    .hdrD-main {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 20px 0;
+    }
+    .hdrD-left { display: flex; align-items: center; gap: 32px; }
+    .hdrD-logo img { height: 40px; display: block; }
+    .hdrD-logo-text {
+      font-size: 22px;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: #0F0F0F;
+      line-height: 1;
+    }
+    .hdrD-logo-text span { color: #f75c03; }
+
+    .hdrD-nav {
+      display: flex;
+      align-items: center;
+      gap: 0;
+      border: 1.5px solid #0F0F0F;
+      border-radius: 999px;
+      overflow: hidden;
+    }
+    .hdrD-nav a, .hdrD-nav button {
+      font-size: 11px;
+      letter-spacing: 0.07em;
+      text-transform: uppercase;
+      color: #0F0F0F;
+      background: none;
+      border: none;
+      border-right: 1px solid rgba(15,15,15,0.15);
+      cursor: pointer;
+      font-family: inherit;
+      padding: 10px 16px;
+      transition: background 0.15s, color 0.15s;
+      white-space: nowrap;
+    }
+    .hdrD-nav a:last-child, .hdrD-nav button:last-child { border-right: none; }
+    .hdrD-nav a:hover, .hdrD-nav button:hover { background: #0F0F0F; color: #FDFBF7; }
+    .hdrD-caret { color: #f75c03; font-size: 12px; margin-left: 2px; }
+
+    .hdrD-right { display: flex; align-items: center; gap: 14px; }
+    .hdrD-flags { display: flex; gap: 6px; align-items: center; }
+    .hdrD-flag {
+      font-size: 14px;
+      width: 32px; height: 32px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
+      border: 1.5px solid #E8E4E0;
+      cursor: pointer;
+      transition: border-color 0.15s;
+    }
+    .hdrD-flag:hover, .hdrD-flag.is-active { border-color: #f75c03; }
+    .hdrD-cta {
+      display: inline-flex;
+      padding: 10px 22px;
+      border-radius: 999px;
+      background: #0F0F0F;
+      color: #FDFBF7;
+      font-size: 11px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      border: none;
+      cursor: pointer;
+      font-family: inherit;
+      font-weight: 700;
+      transition: background 0.2s, transform 0.15s;
+    }
+    .hdrD-cta:hover { background: #f75c03; transform: translateY(-1px); }
+
+    /* D bottom nav bar */
+    .hdrD-bottom {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 32px;
+      padding: 12px 0;
+      border-top: 1px solid #E8E4E0;
+    }
+    .hdrD-bottom a {
+      font-size: 11px;
+      letter-spacing: 0.07em;
+      text-transform: uppercase;
+      color: #6F6A66;
+      transition: color 0.15s;
+    }
+    .hdrD-bottom a:hover { color: #f75c03; }
+    .hdrD-bottom__dot { width: 3px; height: 3px; border-radius: 50%; background: #E8E4E0; }
+
+    /* D — Tablet */
+    .ds-hdr-frame--tablet .hdrD-nav { display: none; }
+    .ds-hdr-frame--tablet .hdrD-bottom { gap: 20px; }
+    .ds-hdr-frame--tablet .hdrD-bottom a { font-size: 10px; }
+    .ds-hdr-frame--tablet .hdrD-burger { display: flex; }
+
+    /* D — Mobile */
+    .ds-hdr-frame--mobile .hdrD-nav { display: none; }
+    .ds-hdr-frame--mobile .hdrD-bottom { display: none; }
+    .ds-hdr-frame--mobile .hdrD-burger { display: flex; }
+    .ds-hdr-frame--mobile .hdrD-logo img { height: 32px; }
+    .ds-hdr-frame--mobile .hdrD-flags { display: none; }
+
+    .hdrD-burger {
+      display: none;
+      width: 40px;
+      height: 40px;
+      border-radius: 999px;
+      border: 1.5px solid #0F0F0F;
+      background: none;
+      cursor: pointer;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .hdrD-burger span { display: block; width: 16px; height: 1.5px; background: #0F0F0F; border-radius: 2px; }
+    </style>
+
+    <!-- ══════════════════════════════════════
+         DESIGN A — Minimal Light, Centered Logo
+         ══════════════════════════════════════ -->
+    <div style="margin-bottom:60px">
+      <h3 style="font-size:1.2rem;font-weight:700;margin-bottom:6px">Design A — Minimal Light, Centered Logo</h3>
+      <p style="color:var(--ds-text-muted);font-size:0.9rem;margin-bottom:24px">
+        Light warm-white background with a thin utility bar on top (social, language) and the main nav below.
+        Logo centered with navigation split left/right. Clean, editorial, Scandinavian feel.
+        Utility bar collapses on tablet/mobile. Burger menu appears at mobile.
+      </p>
+
+      <!-- A: Desktop -->
+      <div class="ds-hdr-preview">
+        <div class="ds-hdr-preview__label"><span class="ds-hdr-preview__dot ds-hdr-preview__dot--dk"></span> Desktop — 1280px</div>
+        <div class="ds-hdr-wrap">
+          <div class="ds-hdr-frame ds-hdr-frame--desktop">
+            <header class="hdrA">
+              <div class="hdrA-inner">
+                <div class="hdrA-top">
+                  <div class="hdrA-top__left">
+                    <a href="#">info@yogabible.dk</a>
+                    <a href="#">+45 53 88 12 09</a>
+                  </div>
+                  <div class="hdrA-top__right">
+                    <a href="#">Instagram</a>
+                    <a href="#">SoundCloud</a>
+                    <span style="width:1px;height:12px;background:#E8E4E0;display:inline-block"></span>
+                    <span class="hdrA-top__flag is-active">&#x1F1E9;&#x1F1F0;</span>
+                    <span class="hdrA-top__flag">&#x1F1EC;&#x1F1E7;</span>
+                  </div>
+                </div>
+                <div class="hdrA-main">
+                  <nav class="hdrA-nav hdrA-nav--left">
+                    <button>Uddannelser <span class="hdrA-caret">&#x25BE;</span></button>
+                    <button>Kurser <span class="hdrA-caret">&#x25BE;</span></button>
+                    <a href="#">Mentorship</a>
+                  </nav>
+                  <a href="#" class="hdrA-logo">
+                    <img src="/assets/images/brand/logo-orange-on-transparent.png" alt="Yoga Bible" />
+                  </a>
+                  <nav class="hdrA-nav hdrA-nav--right">
+                    <button>Mere <span class="hdrA-caret">&#x25BE;</span></button>
+                    <button>Yoga Bible <span class="hdrA-caret">&#x25BE;</span></button>
+                    <a href="#" class="hdrA-cta">Ansog</a>
+                  </nav>
+                </div>
+              </div>
+            </header>
+          </div>
+        </div>
+      </div>
+
+      <!-- A: Tablet -->
+      <div class="ds-hdr-preview">
+        <div class="ds-hdr-preview__label"><span class="ds-hdr-preview__dot ds-hdr-preview__dot--tb"></span> Tablet — 768px</div>
+        <div class="ds-hdr-wrap">
+          <div class="ds-hdr-frame ds-hdr-frame--tablet">
+            <header class="hdrA">
+              <div class="hdrA-inner">
+                <div class="hdrA-main">
+                  <a href="#" class="hdrA-logo">
+                    <img src="/assets/images/brand/logo-orange-on-transparent.png" alt="Yoga Bible" />
+                  </a>
+                  <nav class="hdrA-nav hdrA-nav--right">
+                    <button>Uddannelser <span class="hdrA-caret">&#x25BE;</span></button>
+                    <button>Kurser <span class="hdrA-caret">&#x25BE;</span></button>
+                    <a href="#">Mere <span class="hdrA-caret">&#x25BE;</span></a>
+                    <a href="#" class="hdrA-cta">Ansog</a>
+                  </nav>
+                  <button class="hdrA-burger" aria-label="Menu"><span></span><span></span><span></span></button>
+                </div>
+              </div>
+            </header>
+          </div>
+        </div>
+      </div>
+
+      <!-- A: Mobile -->
+      <div class="ds-hdr-preview">
+        <div class="ds-hdr-preview__label"><span class="ds-hdr-preview__dot ds-hdr-preview__dot--mb"></span> Mobile — 375px</div>
+        <div class="ds-hdr-wrap">
+          <div class="ds-hdr-frame ds-hdr-frame--mobile">
+            <header class="hdrA">
+              <div class="hdrA-inner">
+                <div class="hdrA-main">
+                  <a href="#" class="hdrA-logo">
+                    <img src="/assets/images/brand/logo-orange-on-transparent.png" alt="Yoga Bible" />
+                  </a>
+                  <div style="display:flex;gap:8px;align-items:center">
+                    <span style="font-size:15px;cursor:pointer">&#x1F1E9;&#x1F1F0;</span>
+                    <span style="font-size:15px;cursor:pointer;opacity:0.5">&#x1F1EC;&#x1F1E7;</span>
+                    <button class="hdrA-burger" aria-label="Menu"><span></span><span></span><span></span></button>
+                  </div>
+                </div>
+              </div>
+            </header>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══════════════════════════════════════
+         DESIGN B — Two-Tier Dark, Logo Left
+         ══════════════════════════════════════ -->
+    <div style="margin-bottom:60px">
+      <h3 style="font-size:1.2rem;font-weight:700;margin-bottom:6px">Design B — Two-Tier Dark, Logo Left</h3>
+      <p style="color:var(--ds-text-muted);font-size:0.9rem;margin-bottom:24px">
+        Dark background (#0F0F0F) with a slim utility bar on top (social icons, language, contact info)
+        and a main navigation bar below. Logo aligned left, navigation in center, CTA button on right.
+        Outline-style CTA button. Utility bar hides on smaller screens.
+      </p>
+
+      <!-- B: Desktop -->
+      <div class="ds-hdr-preview">
+        <div class="ds-hdr-preview__label"><span class="ds-hdr-preview__dot ds-hdr-preview__dot--dk"></span> Desktop — 1280px</div>
+        <div class="ds-hdr-wrap">
+          <div class="ds-hdr-frame ds-hdr-frame--desktop">
+            <header class="hdrB">
+              <div class="hdrB-inner">
+                <div class="hdrB-top">
+                  <div class="hdrB-top__left">
+                    <a href="#">info@yogabible.dk</a>
+                    <span class="hdrB-top__sep"></span>
+                    <a href="#">+45 53 88 12 09</a>
+                    <span class="hdrB-top__sep"></span>
+                    <a href="#">Torvegade 66, Kobenhavn K</a>
+                  </div>
+                  <div class="hdrB-top__right">
+                    <div class="hdrB-top__social">
+                      <a href="#" class="hdrB-top__social-dot" aria-label="Instagram">IG</a>
+                      <a href="#" class="hdrB-top__social-dot" aria-label="SoundCloud">SC</a>
+                    </div>
+                    <span class="hdrB-top__sep"></span>
+                    <span class="hdrB-top__flag">&#x1F1E9;&#x1F1F0;</span>
+                    <span class="hdrB-top__flag" style="opacity:0.5">&#x1F1EC;&#x1F1E7;</span>
+                  </div>
+                </div>
+                <div class="hdrB-main">
+                  <a href="#" class="hdrB-logo">
+                    <img src="/assets/images/brand/logo-orange-on-transparent.png" alt="Yoga Bible" />
+                  </a>
+                  <nav class="hdrB-nav">
+                    <button>Uddannelser <span class="hdrB-caret">&#x25BE;</span></button>
+                    <button>Kurser <span class="hdrB-caret">&#x25BE;</span></button>
+                    <a href="#">Mentorship</a>
+                    <button>Mere <span class="hdrB-caret">&#x25BE;</span></button>
+                    <button>Yoga Bible <span class="hdrB-caret">&#x25BE;</span></button>
+                  </nav>
+                  <div class="hdrB-right">
+                    <a href="#" class="hdrB-cta hdrB-cta--desk">Ansog</a>
+                  </div>
+                </div>
+              </div>
+            </header>
+          </div>
+        </div>
+      </div>
+
+      <!-- B: Tablet -->
+      <div class="ds-hdr-preview">
+        <div class="ds-hdr-preview__label"><span class="ds-hdr-preview__dot ds-hdr-preview__dot--tb"></span> Tablet — 768px</div>
+        <div class="ds-hdr-wrap">
+          <div class="ds-hdr-frame ds-hdr-frame--tablet">
+            <header class="hdrB">
+              <div class="hdrB-inner">
+                <div class="hdrB-main">
+                  <a href="#" class="hdrB-logo">
+                    <img src="/assets/images/brand/logo-orange-on-transparent.png" alt="Yoga Bible" />
+                  </a>
+                  <nav class="hdrB-nav">
+                    <button>Uddannelser <span class="hdrB-caret">&#x25BE;</span></button>
+                    <button>Kurser <span class="hdrB-caret">&#x25BE;</span></button>
+                    <a href="#">Mentorship</a>
+                    <button>Mere <span class="hdrB-caret">&#x25BE;</span></button>
+                  </nav>
+                  <div class="hdrB-right">
+                    <a href="#" class="hdrB-cta hdrB-cta--desk">Ansog</a>
+                  </div>
+                </div>
+              </div>
+            </header>
+          </div>
+        </div>
+      </div>
+
+      <!-- B: Mobile -->
+      <div class="ds-hdr-preview">
+        <div class="ds-hdr-preview__label"><span class="ds-hdr-preview__dot ds-hdr-preview__dot--mb"></span> Mobile — 375px</div>
+        <div class="ds-hdr-wrap">
+          <div class="ds-hdr-frame ds-hdr-frame--mobile">
+            <header class="hdrB">
+              <div class="hdrB-inner">
+                <div class="hdrB-main">
+                  <a href="#" class="hdrB-logo">
+                    <img src="/assets/images/brand/logo-orange-on-transparent.png" alt="Yoga Bible" />
+                  </a>
+                  <div class="hdrB-right">
+                    <button class="hdrB-burger" aria-label="Menu"><span></span><span></span><span></span></button>
+                  </div>
+                </div>
+              </div>
+            </header>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══════════════════════════════════════
+         DESIGN C — Transparent Overlay
+         ══════════════════════════════════════ -->
+    <div style="margin-bottom:60px">
+      <h3 style="font-size:1.2rem;font-weight:700;margin-bottom:6px">Design C — Transparent Overlay</h3>
+      <p style="color:var(--ds-text-muted);font-size:0.9rem;margin-bottom:24px">
+        Transparent header that sits on top of hero imagery. Navigation split left/right with centered logo.
+        On scroll, header transitions to a solid dark background with backdrop blur. Maximizes hero visual impact.
+        Shown here in two states: transparent (over content) and scrolled (solid).
+      </p>
+
+      <!-- C: Desktop — Transparent -->
+      <div class="ds-hdr-preview">
+        <div class="ds-hdr-preview__label"><span class="ds-hdr-preview__dot ds-hdr-preview__dot--dk"></span> Desktop — 1280px (Transparent over hero)</div>
+        <div class="ds-hdr-wrap">
+          <div class="ds-hdr-frame ds-hdr-frame--desktop">
+            <div class="hdrC-wrap">
+              <header class="hdrC">
+                <div class="hdrC-inner">
+                  <nav class="hdrC-nav hdrC-nav--left">
+                    <button>Uddannelser <span class="hdrC-caret">&#x25BE;</span></button>
+                    <button>Kurser <span class="hdrC-caret">&#x25BE;</span></button>
+                    <a href="#">Mentorship</a>
+                  </nav>
+                  <a href="#" class="hdrC-logo">
+                    <img src="/assets/images/brand/logo-orange-on-transparent.png" alt="Yoga Bible" />
+                  </a>
+                  <div style="display:flex;align-items:center;justify-content:flex-end;gap:16px">
+                    <nav class="hdrC-nav hdrC-nav--right">
+                      <button>Mere <span class="hdrC-caret">&#x25BE;</span></button>
+                      <button>Yoga Bible <span class="hdrC-caret">&#x25BE;</span></button>
+                    </nav>
+                    <div class="hdrC-actions hdrC-actions--desk">
+                      <span class="hdrC-flag is-active">&#x1F1E9;&#x1F1F0;</span>
+                      <span class="hdrC-flag">&#x1F1EC;&#x1F1E7;</span>
+                      <a href="#" class="hdrC-cta">Ansog</a>
+                    </div>
+                  </div>
+                </div>
+              </header>
+              <div class="hdrC-wrap__hero-text">&#x2190; Hero image / video fills this space</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- C: Desktop — Scrolled / Solid -->
+      <div class="ds-hdr-preview">
+        <div class="ds-hdr-preview__label"><span class="ds-hdr-preview__dot ds-hdr-preview__dot--dk"></span> Desktop — 1280px (Scrolled — solid background)</div>
+        <div class="ds-hdr-wrap">
+          <div class="ds-hdr-frame ds-hdr-frame--desktop">
+            <header class="hdrC hdrC--solid">
+              <div class="hdrC-inner">
+                <nav class="hdrC-nav hdrC-nav--left">
+                  <button>Uddannelser <span class="hdrC-caret">&#x25BE;</span></button>
+                  <button>Kurser <span class="hdrC-caret">&#x25BE;</span></button>
+                  <a href="#">Mentorship</a>
+                </nav>
+                <a href="#" class="hdrC-logo">
+                  <img src="/assets/images/brand/logo-orange-on-transparent.png" alt="Yoga Bible" />
+                </a>
+                <div style="display:flex;align-items:center;justify-content:flex-end;gap:16px">
+                  <nav class="hdrC-nav hdrC-nav--right">
+                    <button>Mere <span class="hdrC-caret">&#x25BE;</span></button>
+                    <button>Yoga Bible <span class="hdrC-caret">&#x25BE;</span></button>
+                  </nav>
+                  <div class="hdrC-actions hdrC-actions--desk">
+                    <span class="hdrC-flag is-active">&#x1F1E9;&#x1F1F0;</span>
+                    <span class="hdrC-flag">&#x1F1EC;&#x1F1E7;</span>
+                    <a href="#" class="hdrC-cta">Ansog</a>
+                  </div>
+                </div>
+              </div>
+            </header>
+          </div>
+        </div>
+      </div>
+
+      <!-- C: Tablet -->
+      <div class="ds-hdr-preview">
+        <div class="ds-hdr-preview__label"><span class="ds-hdr-preview__dot ds-hdr-preview__dot--tb"></span> Tablet — 768px</div>
+        <div class="ds-hdr-wrap">
+          <div class="ds-hdr-frame ds-hdr-frame--tablet">
+            <div class="hdrC-wrap" style="min-height:160px">
+              <header class="hdrC">
+                <div class="hdrC-inner">
+                  <a href="#" class="hdrC-logo">
+                    <img src="/assets/images/brand/logo-orange-on-transparent.png" alt="Yoga Bible" style="height:38px" />
+                  </a>
+                  <nav class="hdrC-nav hdrC-nav--right">
+                    <button>Uddannelser <span class="hdrC-caret">&#x25BE;</span></button>
+                    <button>Kurser <span class="hdrC-caret">&#x25BE;</span></button>
+                    <a href="#">Mere <span class="hdrC-caret">&#x25BE;</span></a>
+                    <a href="#" class="hdrC-cta">Ansog</a>
+                  </nav>
+                  <div></div>
+                </div>
+              </header>
+              <div class="hdrC-wrap__hero-text">&#x2190; Hero content</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- C: Mobile -->
+      <div class="ds-hdr-preview">
+        <div class="ds-hdr-preview__label"><span class="ds-hdr-preview__dot ds-hdr-preview__dot--mb"></span> Mobile — 375px</div>
+        <div class="ds-hdr-wrap">
+          <div class="ds-hdr-frame ds-hdr-frame--mobile">
+            <div class="hdrC-wrap" style="min-height:140px">
+              <header class="hdrC">
+                <div class="hdrC-inner">
+                  <a href="#" class="hdrC-logo">
+                    <img src="/assets/images/brand/logo-orange-on-transparent.png" alt="Yoga Bible" />
+                  </a>
+                  <div style="display:flex;gap:8px;align-items:center">
+                    <span class="hdrC-flag is-active" style="font-size:14px">&#x1F1E9;&#x1F1F0;</span>
+                    <span class="hdrC-flag" style="font-size:14px">&#x1F1EC;&#x1F1E7;</span>
+                    <button class="hdrC-burger" aria-label="Menu"><span></span><span></span><span></span></button>
+                  </div>
+                </div>
+              </header>
+              <div class="hdrC-wrap__hero-text">&#x2190; Hero</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══════════════════════════════════════
+         DESIGN D — Ultra-Minimal Editorial
+         ══════════════════════════════════════ -->
+    <div style="margin-bottom:60px">
+      <h3 style="font-size:1.2rem;font-weight:700;margin-bottom:6px">Design D — Ultra-Minimal Editorial</h3>
+      <p style="color:var(--ds-text-muted);font-size:0.9rem;margin-bottom:24px">
+        Clean white background with a bold black bottom border. Logo on left with wordmark.
+        Navigation inside a pill-shaped container with dividers between items — hover inverts to black.
+        Secondary links in a thin bottom bar. High-end editorial / magazine aesthetic. CTA is black with orange hover.
+      </p>
+
+      <!-- D: Desktop -->
+      <div class="ds-hdr-preview">
+        <div class="ds-hdr-preview__label"><span class="ds-hdr-preview__dot ds-hdr-preview__dot--dk"></span> Desktop — 1280px</div>
+        <div class="ds-hdr-wrap">
+          <div class="ds-hdr-frame ds-hdr-frame--desktop">
+            <header class="hdrD">
+              <div class="hdrD-inner">
+                <div class="hdrD-main">
+                  <div class="hdrD-left">
+                    <a href="#" class="hdrD-logo">
+                      <img src="/assets/images/brand/logo-orange-on-transparent.png" alt="Yoga Bible" />
+                    </a>
+                  </div>
+                  <nav class="hdrD-nav">
+                    <button>Uddannelser <span class="hdrD-caret">&#x25BE;</span></button>
+                    <button>Kurser <span class="hdrD-caret">&#x25BE;</span></button>
+                    <a href="#">Mentorship</a>
+                    <button>Mere <span class="hdrD-caret">&#x25BE;</span></button>
+                    <button>Yoga Bible <span class="hdrD-caret">&#x25BE;</span></button>
+                  </nav>
+                  <div class="hdrD-right">
+                    <div class="hdrD-flags">
+                      <span class="hdrD-flag is-active">&#x1F1E9;&#x1F1F0;</span>
+                      <span class="hdrD-flag">&#x1F1EC;&#x1F1E7;</span>
+                    </div>
+                    <a href="#" class="hdrD-cta">Ansog</a>
+                  </div>
+                </div>
+                <div class="hdrD-bottom">
+                  <a href="#">Yoga Journal</a>
+                  <span class="hdrD-bottom__dot"></span>
+                  <a href="#">Fotografi</a>
+                  <span class="hdrD-bottom__dot"></span>
+                  <a href="#">Musik</a>
+                  <span class="hdrD-bottom__dot"></span>
+                  <a href="#">Ordbog</a>
+                  <span class="hdrD-bottom__dot"></span>
+                  <a href="#">Skema</a>
+                  <span class="hdrD-bottom__dot"></span>
+                  <a href="#">Kontakt</a>
+                </div>
+              </div>
+            </header>
+          </div>
+        </div>
+      </div>
+
+      <!-- D: Tablet -->
+      <div class="ds-hdr-preview">
+        <div class="ds-hdr-preview__label"><span class="ds-hdr-preview__dot ds-hdr-preview__dot--tb"></span> Tablet — 768px</div>
+        <div class="ds-hdr-wrap">
+          <div class="ds-hdr-frame ds-hdr-frame--tablet">
+            <header class="hdrD">
+              <div class="hdrD-inner">
+                <div class="hdrD-main">
+                  <div class="hdrD-left">
+                    <a href="#" class="hdrD-logo">
+                      <img src="/assets/images/brand/logo-orange-on-transparent.png" alt="Yoga Bible" />
+                    </a>
+                  </div>
+                  <div class="hdrD-right">
+                    <div class="hdrD-flags">
+                      <span class="hdrD-flag is-active">&#x1F1E9;&#x1F1F0;</span>
+                      <span class="hdrD-flag">&#x1F1EC;&#x1F1E7;</span>
+                    </div>
+                    <a href="#" class="hdrD-cta">Ansog</a>
+                    <button class="hdrD-burger" aria-label="Menu"><span></span><span></span><span></span></button>
+                  </div>
+                </div>
+                <div class="hdrD-bottom">
+                  <a href="#">Journal</a>
+                  <span class="hdrD-bottom__dot"></span>
+                  <a href="#">Fotografi</a>
+                  <span class="hdrD-bottom__dot"></span>
+                  <a href="#">Musik</a>
+                  <span class="hdrD-bottom__dot"></span>
+                  <a href="#">Ordbog</a>
+                  <span class="hdrD-bottom__dot"></span>
+                  <a href="#">Kontakt</a>
+                </div>
+              </div>
+            </header>
+          </div>
+        </div>
+      </div>
+
+      <!-- D: Mobile -->
+      <div class="ds-hdr-preview">
+        <div class="ds-hdr-preview__label"><span class="ds-hdr-preview__dot ds-hdr-preview__dot--mb"></span> Mobile — 375px</div>
+        <div class="ds-hdr-wrap">
+          <div class="ds-hdr-frame ds-hdr-frame--mobile">
+            <header class="hdrD">
+              <div class="hdrD-inner">
+                <div class="hdrD-main">
+                  <div class="hdrD-left">
+                    <a href="#" class="hdrD-logo">
+                      <img src="/assets/images/brand/logo-orange-on-transparent.png" alt="Yoga Bible" />
+                    </a>
+                  </div>
+                  <div class="hdrD-right">
+                    <a href="#" class="hdrD-cta">Ansog</a>
+                    <button class="hdrD-burger" aria-label="Menu"><span></span><span></span><span></span></button>
+                  </div>
+                </div>
+              </div>
+            </header>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </section>
+
+  <!-- ═══════════════════════════════════════════════════════════════
        HOW TO USE
        ═══════════════════════════════════════════════════════════════ -->
   <section class="ds-section" style="margin-top:60px;padding-top:60px;border-top:2px solid var(--ds-border)">
@@ -4804,6 +5805,10 @@ eleventyExcludeFromCollections: true
         <li>"Use <strong>model showcase classic</strong> from section 32 (variation A) for model profiles"</li>
         <li>"Use <strong>model hero-top layout</strong> from section 32 (variation B) — editorial feel"</li>
         <li>"Use <strong>model side-by-side editorial</strong> from section 32 (variation C)"</li>
+        <li>"Use <strong>header Design A (minimal light)</strong> from section 33"</li>
+        <li>"Use <strong>header Design B (two-tier dark)</strong> from section 33"</li>
+        <li>"Use <strong>header Design C (transparent overlay)</strong> from section 33"</li>
+        <li>"Use <strong>header Design D (editorial pill nav)</strong> from section 33"</li>
       </ul>
     </div>
   </section>
