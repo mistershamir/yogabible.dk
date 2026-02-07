@@ -5477,16 +5477,6 @@ section {
    GDPR-compliant consent UI
    ======================================== */
 
-/* --- Language toggle: show only current lang --- */
-.yb-cookie-banner[data-lang="da"] [data-yb-lang="en"],
-.yb-cookie-modal[data-lang="da"] [data-yb-lang="en"] {
-  display: none;
-}
-.yb-cookie-banner[data-lang="en"] [data-yb-lang="da"],
-.yb-cookie-modal[data-lang="en"] [data-yb-lang="da"] {
-  display: none;
-}
-
 /* --- Banner (bottom bar) --- */
 .yb-cookie-banner {
   position: fixed;
@@ -5500,6 +5490,7 @@ section {
   opacity: 0;
   transition: transform 0.4s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.3s ease;
   pointer-events: none;
+  font-family: var(--font-primary);
 }
 
 .yb-cookie-banner--visible {
@@ -5511,21 +5502,21 @@ section {
 .yb-cookie-banner__inner {
   max-width: var(--max-width);
   margin: 0 auto;
-  padding: 20px 24px;
+  padding: 22px 28px;
   display: flex;
   align-items: center;
-  gap: 24px;
-  font-family: var(--font-primary);
+  gap: 28px;
 }
 
 .yb-cookie-banner__text {
   flex: 1;
+  min-width: 0;
 }
 
 .yb-cookie-banner__msg {
-  font-size: 0.88rem;
-  line-height: 1.5;
-  color: rgba(255, 255, 255, 0.85);
+  font-size: 0.85rem;
+  line-height: 1.55;
+  color: rgba(255, 255, 255, 0.8);
   margin: 0;
 }
 
@@ -5543,22 +5534,28 @@ section {
   display: flex;
   gap: 10px;
   flex-shrink: 0;
+  align-items: center;
 }
 
 /* --- Shared button styles --- */
 .yb-cookie-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   font-family: var(--font-primary);
-  font-size: 0.82rem;
+  font-size: 0.78rem;
   font-weight: 700;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.05em;
   text-transform: uppercase;
   border: none;
   border-radius: 50px;
-  padding: 10px 22px;
+  padding: 11px 22px;
   cursor: pointer;
   transition: all 0.18s ease;
   white-space: nowrap;
-  line-height: 1.2;
+  line-height: 1;
+  -webkit-appearance: none;
+  appearance: none;
 }
 
 .yb-cookie-btn--primary {
@@ -5594,10 +5591,11 @@ section {
 
 .yb-cookie-btn--ghost {
   background: transparent;
-  color: rgba(255, 255, 255, 0.6);
-  padding: 10px 16px;
+  color: rgba(255, 255, 255, 0.55);
+  padding: 11px 14px;
   text-decoration: underline;
   text-underline-offset: 3px;
+  border: none;
 }
 
 .yb-cookie-btn--ghost:hover {
@@ -5618,6 +5616,8 @@ section {
   opacity: 0;
   pointer-events: none;
   transition: opacity 0.3s ease;
+  font-family: var(--font-primary);
+  padding: 16px;
 }
 
 .yb-cookie-modal--visible {
@@ -5629,12 +5629,12 @@ section {
   background: #0F0F0F;
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 16px;
-  width: 90%;
-  max-width: 580px;
+  width: 100%;
+  max-width: 560px;
   max-height: 85vh;
   overflow-y: auto;
-  font-family: var(--font-primary);
   color: #fff;
+  -webkit-overflow-scrolling: touch;
 }
 
 .yb-cookie-modal__header {
@@ -5642,10 +5642,11 @@ section {
   align-items: center;
   justify-content: space-between;
   padding: 24px 28px 0;
+  gap: 12px;
 }
 
 .yb-cookie-modal__title {
-  font-size: 1.3rem;
+  font-size: 1.2rem;
   font-weight: 700;
   letter-spacing: 0.02em;
   margin: 0;
@@ -5656,12 +5657,18 @@ section {
   border: none;
   color: rgba(255, 255, 255, 0.5);
   cursor: pointer;
-  padding: 4px;
-  transition: color 0.18s ease;
+  padding: 6px;
+  border-radius: 50%;
+  transition: all 0.18s ease;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .yb-cookie-modal__close:hover {
   color: var(--yb-brand);
+  background: rgba(255, 255, 255, 0.05);
 }
 
 .yb-cookie-modal__body {
@@ -5669,16 +5676,16 @@ section {
 }
 
 .yb-cookie-modal__intro {
-  font-size: 0.88rem;
+  font-size: 0.85rem;
   line-height: 1.6;
-  color: rgba(255, 255, 255, 0.7);
-  margin: 0 0 24px;
+  color: rgba(255, 255, 255, 0.65);
+  margin: 0 0 20px;
 }
 
 /* --- Category rows --- */
 .yb-cookie-category {
   border-top: 1px solid rgba(255, 255, 255, 0.08);
-  padding: 18px 0;
+  padding: 16px 0;
 }
 
 .yb-cookie-category:last-child {
@@ -5694,19 +5701,20 @@ section {
 
 .yb-cookie-category__info {
   flex: 1;
+  min-width: 0;
 }
 
 .yb-cookie-category__name {
-  font-size: 0.95rem;
+  font-size: 0.92rem;
   font-weight: 700;
   margin: 0 0 4px;
   color: #fff;
 }
 
 .yb-cookie-category__desc {
-  font-size: 0.82rem;
+  font-size: 0.78rem;
   line-height: 1.5;
-  color: rgba(255, 255, 255, 0.55);
+  color: rgba(255, 255, 255, 0.5);
   margin: 0;
 }
 
@@ -5728,8 +5736,9 @@ section {
 
 .yb-cookie-toggle__slider {
   position: relative;
-  display: inline-block;
+  display: block;
   width: 44px;
+  min-width: 44px;
   height: 24px;
   background: rgba(255, 255, 255, 0.15);
   border-radius: 24px;
@@ -5774,7 +5783,7 @@ section {
 }
 
 .yb-cookie-toggle__label {
-  font-size: 0.72rem;
+  font-size: 0.68rem;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.06em;
@@ -5791,30 +5800,43 @@ section {
   border-top: 1px solid rgba(255, 255, 255, 0.08);
 }
 
-/* --- Responsive --- */
+/* --- Mobile --- */
 @media (max-width: 768px) {
   .yb-cookie-banner__inner {
     flex-direction: column;
     text-align: center;
-    gap: 16px;
+    gap: 14px;
     padding: 18px 16px;
   }
 
   .yb-cookie-banner__actions {
-    width: 100%;
+    display: flex;
     flex-direction: column;
+    width: 100%;
     gap: 8px;
   }
 
-  .yb-cookie-btn {
+  .yb-cookie-banner__actions .yb-cookie-btn {
+    display: flex;
     width: 100%;
-    padding: 12px 20px;
-    font-size: 0.85rem;
+    padding: 13px 20px;
+    font-size: 0.82rem;
+  }
+
+  .yb-cookie-banner__actions .yb-cookie-btn--ghost {
+    order: 3;
+    padding: 8px 20px;
+    font-size: 0.75rem;
+  }
+
+  .yb-cookie-modal {
+    padding: 10px;
+    align-items: flex-end;
   }
 
   .yb-cookie-modal__dialog {
-    width: 95%;
-    max-height: 90vh;
+    max-height: 92vh;
+    border-radius: 16px 16px 0 0;
   }
 
   .yb-cookie-modal__header {
@@ -5828,14 +5850,19 @@ section {
   .yb-cookie-modal__footer {
     padding: 14px 20px 20px;
     flex-direction: column;
+    gap: 8px;
   }
 
   .yb-cookie-modal__footer .yb-cookie-btn {
+    display: flex;
     width: 100%;
+    padding: 13px 20px;
+    font-size: 0.82rem;
   }
 
   .yb-cookie-category__header {
-    flex-direction: column;
-    gap: 10px;
+    flex-direction: row;
+    align-items: center;
+    gap: 12px;
   }
 }
