@@ -100,6 +100,17 @@
     "receipts_item": "Vare",
     "receipts_amount": "Beløb",
     "receipts_payment": "Betaling",
+    "tab_courses": "Mine Kurser",
+    "courses_title": "Mine Kurser",
+    "courses_subtitle": "Adgang til dine kursusmaterialer.",
+    "courses_loading": "Henter kurser...",
+    "courses_empty_title": "Ingen kurser endnu",
+    "courses_empty_text": "Når du er tilmeldt et kursus, vil dine materialer blive vist her.",
+    "courses_progress": "fremgang",
+    "courses_continue": "Fortsæt",
+    "courses_start": "Start",
+    "courses_open": "Åbn kursus",
+    "courses_modules": "moduler",
     "store_items": [100078, 100203]
   },
   "en": {
@@ -203,6 +214,17 @@
     "receipts_item": "Item",
     "receipts_amount": "Amount",
     "receipts_payment": "Payment",
+    "tab_courses": "My Courses",
+    "courses_title": "My Courses",
+    "courses_subtitle": "Access your course materials.",
+    "courses_loading": "Loading courses...",
+    "courses_empty_title": "No courses yet",
+    "courses_empty_text": "When you're enrolled in a course, your materials will appear here.",
+    "courses_progress": "progress",
+    "courses_continue": "Continue",
+    "courses_start": "Start",
+    "courses_open": "Open course",
+    "courses_modules": "modules",
     "store_items": [100078, 100203]
   }
 }
