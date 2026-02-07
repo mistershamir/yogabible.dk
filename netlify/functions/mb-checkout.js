@@ -63,8 +63,8 @@ exports.handler = async function(event) {
       Metadata: {
         amount: parseFloat(body.amount) || 0,
         creditCardNumber: body.payment.cardNumber,
-        expirationMonth: body.payment.expMonth,
-        expirationYear: body.payment.expYear,
+        expMonth: body.payment.expMonth,
+        expYear: body.payment.expYear,
         cvv: body.payment.cvv,
         billingName: body.payment.cardHolder || '',
         billingAddress: body.payment.billingAddress || '',
