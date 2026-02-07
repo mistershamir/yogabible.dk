@@ -5195,6 +5195,10 @@ section {
   text-decoration-color: #d94f02;
 }
 
+.yj-post-body .yj-media-placeholder {
+  border: 2px dashed rgba(0, 0, 0, 0.1);
+}
+
 .yj-post-body blockquote {
   border-left: 3px solid var(--yb-brand);
   padding: 20px 28px;

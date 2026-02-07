@@ -142,7 +142,7 @@ Every page follows this pattern — **no exceptions**:
 - **JS:** `src/js/journal.js` — language switching, search, progress bar, share
 - **CSS:** `src/css/main.css` — all journal styles prefixed `yj-`
 - **CMS:** Decap CMS at `/admin/` with Netlify Identity
-- **i18n:** Build-time via JSON files in `src/_data/i18n/`, path-based (`/en/` prefix)
+- **i18n:** Build-time via JSON files in `src/_data/i18n/`, path-based (`/en/` prefix). Journal uses `data-yj-da`/`data-yj-en` attributes toggled by path detection.
 - **Deploy:** Netlify from `main` branch
 - **Design System:** `src/samples.njk` → `/samples/` — the single source of truth for all UI components
 
