@@ -59,6 +59,7 @@
     "checkout_success_close": "Luk",
     "checkout_error": "Betalingen fejlede. Prøv igen.",
     "checkout_secure": "Sikker betaling",
+    "checkout_save_card": "Gem kort til fremtidige køb",
     "store_items": [100078]
   },
   "en": {
@@ -121,6 +122,7 @@
     "checkout_success_close": "Close",
     "checkout_error": "Payment failed. Please try again.",
     "checkout_secure": "Secure payment",
+    "checkout_save_card": "Save card for future purchases",
     "store_items": [100078]
   }
 }

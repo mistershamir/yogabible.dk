@@ -28,7 +28,6 @@
         guestEl.style.display = 'none';
         userEl.style.display = 'block';
         loadProfile(user, db);
-        // Ensure user has a backend client (silent, in background)
         ensureBackendClient(user, db);
       } else {
         guestEl.style.display = '';
@@ -36,7 +35,7 @@
       }
     });
 
-    // ── Save personal details ──
+    // ── Save personal details (+ sync to backend) ──
     var profileForm = document.getElementById('yb-profile-form');
     if (profileForm) {
       profileForm.addEventListener('submit', function(e) {
@@ -76,6 +75,25 @@
           var avatarEl = document.getElementById('yb-profile-avatar');
           if (nameEl) nameEl.textContent = fullName;
           if (avatarEl) avatarEl.textContent = getInitials(fullName);
+
+          // Sync to backend silently
+          return db.collection('users').doc(user.uid).get();
+        }).then(function(doc) {
+          if (!doc || !doc.exists) return;
+          var d = doc.data();
+          if (!d.mindbodyClientId) return;
+
+          fetch('/.netlify/functions/mb-client', {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              clientId: d.mindbodyClientId,
+              firstName: firstName,
+              lastName: lastName,
+              phone: phone,
+              email: user.email
+            })
+          }).catch(function() {}); // silent
         }).catch(function(err) {
           showMsg(errorEl, successEl, err.message, true);
         }).finally(function() {
@@ -176,6 +194,12 @@
         this.value = v;
       });
     }
+
+    // Save card checkbox
+    var saveCardCheck = document.getElementById('yb-store-save-card');
+    if (saveCardCheck) {
+      saveCardCheck.checked = true; // default to saving
+    }
   }
 
   // ══════════════════════════════════════
@@ -260,23 +284,37 @@
     db.collection('users').doc(user.uid).get().then(function(doc) {
       if (!doc.exists) return;
       var d = doc.data();
-      if (d.mindbodyClientId) return; // Already connected
+      if (d.mindbodyClientId) return; // Already linked
 
       var firstName = d.firstName || (user.displayName || '').split(' ')[0] || '';
       var lastName = d.lastName || (user.displayName || '').split(' ').slice(1).join(' ') || '';
 
-      fetch('/.netlify/functions/mb-client', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ firstName: firstName, lastName: lastName, email: user.email })
-      }).then(function(r) { return r.json(); })
+      // First try to find existing client by email
+      fetch('/.netlify/functions/mb-client?email=' + encodeURIComponent(user.email))
+        .then(function(r) { return r.json(); })
         .then(function(data) {
-          if (data.client && data.client.Id) {
-            db.collection('users').doc(user.uid).update({
-              mindbodyClientId: String(data.client.Id),
+          if (data.found && data.client && data.client.id) {
+            // Existing client found — link it
+            return db.collection('users').doc(user.uid).update({
+              mindbodyClientId: String(data.client.id),
               updatedAt: firebase.firestore.FieldValue.serverTimestamp()
             });
           }
+
+          // No existing client — create new one
+          return fetch('/.netlify/functions/mb-client', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ firstName: firstName, lastName: lastName, email: user.email })
+          }).then(function(r) { return r.json(); })
+            .then(function(createData) {
+              if (createData.client && createData.client.id) {
+                return db.collection('users').doc(user.uid).update({
+                  mindbodyClientId: String(createData.client.id),
+                  updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+                });
+              }
+            });
         }).catch(function() {});
     });
   }
@@ -300,13 +338,10 @@
       return;
     }
 
-    console.log('[Store] Fetching service IDs:', itemIds);
-
     fetch('/.netlify/functions/mb-services?serviceIds=' + itemIds)
       .then(function(r) { return r.json(); })
       .then(function(data) {
         storeServices = data.services || [];
-        console.log('[Store] Services returned:', storeServices);
 
         if (!storeServices.length) {
           listEl.innerHTML = '<p class="yb-store__empty">' + (isDa() ? 'Ingen pakker tilgængelige lige nu.' : 'No packages available right now.') + '</p>';
@@ -316,7 +351,7 @@
         renderStoreItems(listEl);
       })
       .catch(function(err) {
-        console.error('[Store] Error loading store:', err);
+        console.error('[Store] Error:', err);
         listEl.innerHTML = '<p class="yb-store__error">' + (isDa() ? 'Kunne ikke hente pakker. Prøv igen senere.' : 'Could not load packages. Please try again later.') + '</p>';
       });
   }
@@ -345,15 +380,19 @@
     // Attach buy handlers
     container.querySelectorAll('[data-store-buy]').forEach(function(btn) {
       btn.addEventListener('click', function() {
-        var serviceId = parseInt(btn.getAttribute('data-store-buy'), 10);
-        openCheckout(serviceId);
+        var rawId = btn.getAttribute('data-store-buy');
+        openCheckout(rawId);
       });
     });
   }
 
   function openCheckout(serviceId) {
-    var service = storeServices.find(function(s) { return s.id === serviceId; });
-    if (!service) return;
+    // Use == for loose comparison (handles string/number mismatch)
+    var service = storeServices.find(function(s) { return String(s.id) === String(serviceId); });
+    if (!service) {
+      console.error('[Store] Service not found for ID:', serviceId, 'Available:', storeServices.map(function(s) { return s.id; }));
+      return;
+    }
 
     var listEl = document.getElementById('yb-store-list');
     var checkoutEl = document.getElementById('yb-store-checkout');
@@ -370,7 +409,7 @@
     }
 
     // Store active service for checkout
-    checkoutEl.setAttribute('data-service-id', serviceId);
+    checkoutEl.setAttribute('data-service-id', service.id);
     checkoutEl.setAttribute('data-service-price', price);
 
     // Pre-fill cardholder from profile
@@ -380,9 +419,12 @@
       holderInput.value = user.displayName;
     }
 
-    // Clear errors
+    // Clear previous errors
     var errEl = document.getElementById('yb-store-error');
     if (errEl) errEl.hidden = true;
+
+    // Scroll to checkout
+    if (checkoutEl) checkoutEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }
 
   function processCheckout(auth, db) {
@@ -390,7 +432,7 @@
     if (!user) return;
 
     var checkoutEl = document.getElementById('yb-store-checkout');
-    var serviceId = parseInt(checkoutEl.getAttribute('data-service-id'), 10);
+    var serviceId = checkoutEl.getAttribute('data-service-id');
     var amount = parseFloat(checkoutEl.getAttribute('data-service-price'));
 
     var cardNumber = document.getElementById('yb-store-cardnumber').value.replace(/\s/g, '');
@@ -400,11 +442,13 @@
     var address = document.getElementById('yb-store-address').value.trim();
     var city = document.getElementById('yb-store-city').value.trim();
     var zip = document.getElementById('yb-store-zip').value.trim();
+    var saveCard = document.getElementById('yb-store-save-card');
+    var shouldSaveCard = saveCard ? saveCard.checked : false;
     var errorEl = document.getElementById('yb-store-error');
     var payBtn = document.getElementById('yb-store-pay-btn');
     var payBtnText = payBtn.textContent;
 
-    // Basic validation
+    // Validation
     if (!cardNumber || cardNumber.length < 13) {
       showSimpleError(errorEl, isDa() ? 'Indtast et gyldigt kortnummer.' : 'Enter a valid card number.');
       return;
@@ -429,7 +473,7 @@
     db.collection('users').doc(user.uid).get().then(function(doc) {
       var d = doc.data() || {};
       if (!d.mindbodyClientId) {
-        throw new Error(isDa() ? 'Din konto er ikke forbundet endnu. Prøv igen om et øjeblik.' : 'Your account is not connected yet. Please try again in a moment.');
+        throw new Error(isDa() ? 'Din konto er ikke klar endnu. Prøv igen om et øjeblik.' : 'Your account is not ready yet. Please try again in a moment.');
       }
 
       return fetch('/.netlify/functions/mb-checkout', {
@@ -437,7 +481,7 @@
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           clientId: d.mindbodyClientId,
-          items: [{ type: 'Service', id: serviceId, quantity: 1 }],
+          items: [{ type: 'Service', id: Number(serviceId), quantity: 1 }],
           amount: amount,
           payment: {
             cardNumber: cardNumber,
@@ -447,19 +491,17 @@
             cardHolder: cardHolder,
             billingAddress: address,
             billingCity: city,
-            billingPostalCode: zip
+            billingPostalCode: zip,
+            saveCard: shouldSaveCard
           }
         })
       });
     }).then(function(r) { return r.json(); })
       .then(function(data) {
         if (data.success) {
-          // Show success
           checkoutEl.hidden = true;
           var successEl = document.getElementById('yb-store-success');
           if (successEl) successEl.hidden = false;
-
-          // Reset form
           document.getElementById('yb-store-checkout-form').reset();
         } else if (data.requiresSCA) {
           showSimpleError(errorEl, isDa() ? 'Dit kort kræver yderligere godkendelse. Prøv et andet kort.' : 'Your card requires additional authentication. Please try another card.');

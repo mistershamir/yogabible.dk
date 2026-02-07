@@ -35,7 +35,7 @@ exports.handler = async function(event) {
       return jsonResponse(400, { error: 'At least one item is required' });
     }
     if (!body.payment || !body.payment.cardNumber) {
-      return jsonResponse(400, { error: 'Payment information is required' });
+      return jsonResponse(400, { error: 'Payment card details are required' });
     }
 
     // Build cart items for Mindbody API
@@ -70,7 +70,7 @@ exports.handler = async function(event) {
         BillingAddress: body.payment.billingAddress || '',
         BillingCity: body.payment.billingCity || '',
         BillingPostalCode: body.payment.billingPostalCode || '',
-        SaveInfo: false
+        SaveInfo: body.payment.saveCard || false
       }
     };
 

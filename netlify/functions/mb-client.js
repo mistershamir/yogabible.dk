@@ -107,5 +107,42 @@ exports.handler = async function(event) {
     }
   }
 
+  // PUT: Update existing client
+  if (event.httpMethod === 'PUT') {
+    try {
+      var body = JSON.parse(event.body || '{}');
+
+      if (!body.clientId) {
+        return jsonResponse(400, { error: 'clientId is required' });
+      }
+
+      var updateData = { ClientId: body.clientId };
+      if (body.firstName) updateData.FirstName = body.firstName;
+      if (body.lastName) updateData.LastName = body.lastName;
+      if (body.email) updateData.Email = body.email;
+      if (body.phone) updateData.MobilePhone = body.phone;
+
+      var data = await mbFetch('/client/updateclient', {
+        method: 'POST',
+        body: JSON.stringify({ Client: updateData, CrossRegionalUpdate: true })
+      });
+
+      var updated = data.Client || {};
+      return jsonResponse(200, {
+        success: true,
+        client: {
+          id: updated.Id,
+          firstName: updated.FirstName,
+          lastName: updated.LastName,
+          email: updated.Email,
+          phone: updated.MobilePhone || ''
+        }
+      });
+    } catch (err) {
+      console.error('mb-client PUT error:', err);
+      return jsonResponse(err.status || 500, { error: err.message });
+    }
+  }
+
   return jsonResponse(405, { error: 'Method not allowed' });
 };
