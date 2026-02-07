@@ -25,8 +25,10 @@
         </a>
         {# Auth: user name (shown when logged in) #}
         <span id="yb-auth-user-link" class="yb-util__auth yb-util__auth--user" style="display:none">
-          <span id="yb-auth-user-avatar" class="yb-util__avatar">YB</span>
-          <span id="yb-auth-user-name" class="yb-util__user-name"></span>
+          <a href="{{ lp }}/profile" class="yb-util__profile-link">
+            <span id="yb-auth-user-avatar" class="yb-util__avatar">YB</span>
+            <span id="yb-auth-user-name" class="yb-util__user-name"></span>
+          </a>
           <a href="#" class="yb-util__logout" data-yb-auth-logout>
             <span data-yj-da>Log ud</span>
             <span data-yj-en hidden>Sign out</span>
@@ -153,8 +155,10 @@
           <span data-yj-en hidden>Sign in / Create account</span>
         </a>
         <div id="yb-auth-mobile-user" class="yb-drawer__auth-user" style="display:none">
-          <span class="yb-drawer__auth-avatar">YB</span>
-          <span id="yb-auth-mobile-name" class="yb-drawer__auth-name"></span>
+          <a href="{{ lp }}/profile" class="yb-drawer__auth-profile">
+            <span class="yb-drawer__auth-avatar">YB</span>
+            <span id="yb-auth-mobile-name" class="yb-drawer__auth-name"></span>
+          </a>
           <a class="yb-drawer__auth-logout" href="#" data-yb-auth-logout>
             <span data-yj-da>Log ud</span>
             <span data-yj-en hidden>Sign out</span>

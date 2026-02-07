@@ -50,14 +50,23 @@
 
   function ensureUserProfile(user) {
     var userRef = db.collection('users').doc(user.uid);
+    var reg = window._ybRegistration || {};
+    var displayName = user.displayName || '';
+    var nameParts = displayName.split(' ');
 
     userRef.get().then(function(doc) {
       if (!doc.exists) {
-        // Create new profile
+        var firstName = reg.firstName || nameParts[0] || '';
+        var lastName = reg.lastName || nameParts.slice(1).join(' ') || '';
+
+        // Create new Firestore profile
         userRef.set({
           uid: user.uid,
           email: user.email,
-          name: user.displayName || '',
+          firstName: firstName,
+          lastName: lastName,
+          name: displayName,
+          phone: '',
           role: 'user',
           membershipTier: 'free',
           membershipExpiresAt: null,
@@ -69,19 +78,53 @@
           createdAt: firebase.firestore.FieldValue.serverTimestamp(),
           updatedAt: firebase.firestore.FieldValue.serverTimestamp()
         });
+
+        // Create Mindbody client in background
+        createMindbodyClient(firstName, lastName, user.email);
+
+        // Clean up temp registration data
+        delete window._ybRegistration;
       } else {
-        // Mark yogabible.dk as linked
+        // Existing user — ensure yogabible.dk is linked
         var data = doc.data();
-        if (!data.yogabibleDkLinked) {
-          userRef.update({
-            yogabibleDkLinked: true,
-            updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-          });
+        var updates = {};
+        if (!data.yogabibleDkLinked) updates.yogabibleDkLinked = true;
+        // Backfill firstName/lastName if missing
+        if (!data.firstName && displayName) {
+          updates.firstName = nameParts[0] || '';
+          updates.lastName = nameParts.slice(1).join(' ') || '';
+        }
+        if (Object.keys(updates).length) {
+          updates.updatedAt = firebase.firestore.FieldValue.serverTimestamp();
+          userRef.update(updates);
         }
       }
     }).catch(function(err) {
       console.warn('Could not sync user profile:', err);
     });
+  }
+
+  function createMindbodyClient(firstName, lastName, email) {
+    fetch('/.netlify/functions/mb-client', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ firstName: firstName, lastName: lastName, email: email })
+    }).then(function(res) { return res.json(); })
+      .then(function(data) {
+        if (data.client && data.client.Id) {
+          // Store Mindbody client ID in Firestore
+          var user = auth.currentUser;
+          if (user) {
+            db.collection('users').doc(user.uid).update({
+              mindbodyClientId: String(data.client.Id),
+              updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+            });
+          }
+          console.log('Mindbody client created/found:', data.client.Id);
+        }
+      }).catch(function(err) {
+        console.warn('Mindbody client sync failed:', err);
+      });
   }
 
   function detectLocale() {
@@ -272,13 +315,14 @@
   if (registerForm) {
     registerForm.addEventListener('submit', function(e) {
       e.preventDefault();
-      var name = document.getElementById('yb-register-name').value.trim();
+      var firstName = document.getElementById('yb-register-firstname').value.trim();
+      var lastName = document.getElementById('yb-register-lastname').value.trim();
       var email = document.getElementById('yb-register-email').value.trim();
       var password = document.getElementById('yb-register-password').value;
       var errorEl = document.getElementById('yb-register-error');
       var submitBtn = registerForm.querySelector('button[type="submit"]');
 
-      if (!name || !email || !password) {
+      if (!firstName || !lastName || !email || !password) {
         showError(errorEl, detectLocale() === 'da' ? 'Udfyld alle felter.' : 'Please fill in all fields.');
         return;
       }
@@ -291,9 +335,13 @@
       submitBtn.disabled = true;
       submitBtn.textContent = detectLocale() === 'da' ? 'Opretter...' : 'Creating account...';
 
+      var fullName = firstName + ' ' + lastName;
+
       auth.createUserWithEmailAndPassword(email, password)
         .then(function(result) {
-          return result.user.updateProfile({ displayName: name });
+          // Store first/last name for Mindbody sync
+          window._ybRegistration = { firstName: firstName, lastName: lastName };
+          return result.user.updateProfile({ displayName: fullName });
         })
         .then(function() {
           closeAuthModal();

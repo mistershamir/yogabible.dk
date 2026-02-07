@@ -58,10 +58,17 @@
       </div>
 
       <form id="yb-auth-register-form" class="yb-auth-form" novalidate>
-        <div class="yb-auth-field">
-          <label for="yb-register-name" data-yj-da>Fulde navn</label>
-          <label for="yb-register-name" data-yj-en hidden>Full name</label>
-          <input type="text" id="yb-register-name" required autocomplete="name" placeholder="Dit navn">
+        <div class="yb-auth-row">
+          <div class="yb-auth-field">
+            <label for="yb-register-firstname" data-yj-da>Fornavn</label>
+            <label for="yb-register-firstname" data-yj-en hidden>First name</label>
+            <input type="text" id="yb-register-firstname" required autocomplete="given-name" placeholder="Fornavn">
+          </div>
+          <div class="yb-auth-field">
+            <label for="yb-register-lastname" data-yj-da>Efternavn</label>
+            <label for="yb-register-lastname" data-yj-en hidden>Last name</label>
+            <input type="text" id="yb-register-lastname" required autocomplete="family-name" placeholder="Efternavn">
+          </div>
         </div>
         <div class="yb-auth-field">
           <label for="yb-register-email" data-yj-da>Email</label>

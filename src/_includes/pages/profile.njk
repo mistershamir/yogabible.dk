@@ -1,0 +1,132 @@
+{% set t = i18n.profile[lang or "da"] %}
+{% set lp = "/en" if lang == "en" else "" %}
+
+<section class="yb-profile">
+  <div class="container">
+    <div class="yb-profile__header">
+      <p class="yb-profile__eyebrow">{{ t.page_eyebrow }}</p>
+      <h1 class="yb-profile__title">{{ t.page_title }}</h1>
+      <p class="yb-profile__subtitle">{{ t.page_subtitle }}</p>
+    </div>
+
+    <!-- Not logged in state -->
+    <div id="yb-profile-guest" class="yb-profile__guest">
+      <div class="yb-profile__guest-inner">
+        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#6F6A66" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        <h2 class="yb-profile__guest-title">{{ t.not_logged_in_title }}</h2>
+        <p class="yb-profile__guest-text">{{ t.not_logged_in_text }}</p>
+        <div class="yb-profile__guest-actions">
+          <button class="yb-btn yb-btn--primary" type="button" data-yb-auth-open="login">{{ t.login_btn }}</button>
+          <button class="yb-btn yb-btn--outline" type="button" data-yb-auth-open="register">{{ t.register_btn }}</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Logged in state -->
+    <div id="yb-profile-user" class="yb-profile__content" style="display:none">
+      <div class="yb-profile__grid">
+
+        <!-- Left: avatar + member info -->
+        <aside class="yb-profile__sidebar">
+          <div class="yb-profile__avatar" id="yb-profile-avatar">YB</div>
+          <div class="yb-profile__member-info">
+            <span class="yb-profile__member-name" id="yb-profile-display-name"></span>
+            <span class="yb-profile__member-email" id="yb-profile-display-email"></span>
+            <span class="yb-profile__member-since" id="yb-profile-member-since"></span>
+          </div>
+          <button class="yb-btn yb-btn--outline yb-btn--full" type="button" data-yb-auth-logout>{{ t.btn_logout }}</button>
+        </aside>
+
+        <!-- Right: forms -->
+        <div class="yb-profile__main">
+
+          <!-- Personal details -->
+          <div class="yb-profile__card">
+            <h2 class="yb-profile__card-title">{{ t.section_personal }}</h2>
+            <form id="yb-profile-form" class="yb-profile__form" novalidate>
+              <div class="yb-profile__form-row">
+                <div class="yb-auth-field">
+                  <label for="yb-profile-firstname">{{ t.label_firstname }}</label>
+                  <input type="text" id="yb-profile-firstname" autocomplete="given-name">
+                </div>
+                <div class="yb-auth-field">
+                  <label for="yb-profile-lastname">{{ t.label_lastname }}</label>
+                  <input type="text" id="yb-profile-lastname" autocomplete="family-name">
+                </div>
+              </div>
+              <div class="yb-auth-field">
+                <label for="yb-profile-email">{{ t.label_email }}</label>
+                <input type="email" id="yb-profile-email" disabled>
+              </div>
+              <div class="yb-auth-field">
+                <label for="yb-profile-phone">{{ t.label_phone }}</label>
+                <input type="tel" id="yb-profile-phone" autocomplete="tel" placeholder="{{ t.placeholder_phone }}">
+              </div>
+              <div class="yb-auth-error" id="yb-profile-error" hidden role="alert"></div>
+              <div class="yb-auth-success" id="yb-profile-success" hidden role="status"></div>
+              <button type="submit" class="yb-auth-submit">{{ t.btn_save }}</button>
+            </form>
+          </div>
+
+          <!-- Change password -->
+          <div class="yb-profile__card">
+            <h2 class="yb-profile__card-title">{{ t.section_password }}</h2>
+            <form id="yb-profile-password-form" class="yb-profile__form" novalidate>
+              <div class="yb-profile__form-row">
+                <div class="yb-auth-field">
+                  <label for="yb-profile-new-password">{{ t.label_new_password }}</label>
+                  <input type="password" id="yb-profile-new-password" autocomplete="new-password" placeholder="{{ t.placeholder_password }}">
+                </div>
+                <div class="yb-auth-field">
+                  <label for="yb-profile-confirm-password">{{ t.label_confirm_password }}</label>
+                  <input type="password" id="yb-profile-confirm-password" autocomplete="new-password" placeholder="{{ t.placeholder_password }}">
+                </div>
+              </div>
+              <div class="yb-auth-error" id="yb-profile-pw-error" hidden role="alert"></div>
+              <div class="yb-auth-success" id="yb-profile-pw-success" hidden role="status"></div>
+              <button type="submit" class="yb-auth-submit">{{ t.btn_change_password }}</button>
+            </form>
+          </div>
+
+          <!-- Membership & Mindbody -->
+          <div class="yb-profile__card">
+            <h2 class="yb-profile__card-title">{{ t.section_membership }}</h2>
+            <div class="yb-profile__info-grid">
+              <div class="yb-profile__info-item">
+                <span class="yb-profile__info-label">{{ t.label_tier }}</span>
+                <span class="yb-profile__info-value" id="yb-profile-tier">—</span>
+              </div>
+              <div class="yb-profile__info-item">
+                <span class="yb-profile__info-label">{{ t.label_mindbody }}</span>
+                <span class="yb-profile__info-value" id="yb-profile-mb-status">—</span>
+              </div>
+              <div class="yb-profile__info-item" id="yb-profile-mb-id-row" style="display:none">
+                <span class="yb-profile__info-label">{{ t.label_mindbody_id }}</span>
+                <span class="yb-profile__info-value" id="yb-profile-mb-id">—</span>
+              </div>
+            </div>
+            <button class="yb-btn yb-btn--outline" type="button" id="yb-profile-mb-connect" style="display:none">{{ t.mb_connect_btn }}</button>
+          </div>
+
+          <!-- Connected sites -->
+          <div class="yb-profile__card">
+            <h2 class="yb-profile__card-title">{{ t.section_sites }}</h2>
+            <div class="yb-profile__info-grid">
+              <div class="yb-profile__info-item">
+                <span class="yb-profile__info-label">{{ t.site_dk }}</span>
+                <span class="yb-profile__info-value" id="yb-profile-site-dk">—</span>
+              </div>
+              <div class="yb-profile__info-item">
+                <span class="yb-profile__info-label">{{ t.site_com }}</span>
+                <span class="yb-profile__info-value" id="yb-profile-site-com">—</span>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<script src="/js/profile.js"></script>
