@@ -3,7 +3,11 @@
  * Fetches purchasable services/products from Mindbody.
  *
  * Query params:
- *   type - 'services' (default) or 'products'
+ *   type - 'services' (default), 'products', or 'categories'
+ *   serviceIds - comma-separated service IDs (barcodes)
+ *   serviceCategoryIds - filter by category
+ *   programIds - filter by program
+ *   sellOnline - 'true' to filter online-purchasable only
  */
 
 const { mbFetch, jsonResponse, corsHeaders } = require('./shared/mb-api');
@@ -21,8 +25,20 @@ exports.handler = async function(event) {
     var params = event.queryStringParameters || {};
     var type = params.type || 'services';
 
+    // Return service categories
+    if (type === 'categories') {
+      var catData = await mbFetch('/sale/servicecategories');
+      var categories = (catData.ServiceCategories || []).map(function(c) {
+        return {
+          id: c.Id,
+          name: c.Name
+        };
+      });
+      return jsonResponse(200, { categories, total: categories.length });
+    }
+
     if (type === 'products') {
-      var prodData = await mbFetch('/sale/products?limit=200');
+      var prodData = await mbFetch('/sale/products?Limit=200');
       var products = (prodData.Products || []).map(function(p) {
         return {
           id: p.Id,
@@ -38,7 +54,18 @@ exports.handler = async function(event) {
     }
 
     // Default: services (pricing options, packages, etc.)
-    var svcData = await mbFetch('/sale/services?limit=200');
+    var svcPath = '/sale/services?Limit=200';
+    if (params.serviceIds) {
+      // Send each ID as a separate repeated param for Mindbody API compatibility
+      params.serviceIds.split(',').forEach(function(id) {
+        svcPath += '&ServiceIds=' + id.trim();
+      });
+    }
+    if (params.sellOnline === 'true') svcPath += '&SellOnline=true';
+    if (params.serviceCategoryIds) svcPath += '&ServiceCategoryIds=' + params.serviceCategoryIds;
+    if (params.programIds) svcPath += '&ProgramIds=' + params.programIds;
+
+    var svcData = await mbFetch(svcPath);
     var services = (svcData.Services || []).map(function(s) {
       return {
         id: s.Id,

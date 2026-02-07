@@ -66,53 +66,48 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // ── Existing user profiles ──
+    // User profiles
     match /users/{userId} {
       allow read, write: if request.auth != null && request.auth.uid == userId;
     }
 
-    // ── Courses: metadata readable by any authenticated user ──
+    // Courses: top-level metadata readable by authenticated users
     match /courses/{courseId} {
       allow read: if request.auth != null;
-
-      // Modules: readable by enrolled users
-      match /modules/{moduleId} {
-        allow read: if request.auth != null
-          && exists(/databases/$(database)/documents/enrollments/$(request.auth.uid)_$(courseId))
-          && get(/databases/$(database)/documents/enrollments/$(request.auth.uid)_$(courseId)).data.status == 'active';
-
-        // Chapters: readable by enrolled users
-        match /chapters/{chapterId} {
-          allow read: if request.auth != null
-            && exists(/databases/$(database)/documents/enrollments/$(request.auth.uid)_$(courseId))
-            && get(/databases/$(database)/documents/enrollments/$(request.auth.uid)_$(courseId)).data.status == 'active';
-        }
-      }
     }
 
-    // ── Enrollments: users can read their own ──
+    // Course modules: readable by enrolled users
+    match /courses/{courseId}/modules/{moduleId} {
+      allow read: if request.auth != null
+        && exists(/databases/$(database)/documents/enrollments/$(request.auth.uid + '_' + courseId))
+        && get(/databases/$(database)/documents/enrollments/$(request.auth.uid + '_' + courseId)).data.status == 'active';
+    }
+
+    // Course chapters: readable by enrolled users
+    match /courses/{courseId}/modules/{moduleId}/chapters/{chapterId} {
+      allow read: if request.auth != null
+        && exists(/databases/$(database)/documents/enrollments/$(request.auth.uid + '_' + courseId))
+        && get(/databases/$(database)/documents/enrollments/$(request.auth.uid + '_' + courseId)).data.status == 'active';
+    }
+
+    // Enrollments: users can read their own
     match /enrollments/{enrollmentId} {
       allow read: if request.auth != null
         && resource.data.userId == request.auth.uid;
-      // Only admin (via Firebase Console) can write enrollments
     }
 
-    // ── Course Progress: users can read/write their own ──
+    // Course Progress: users can read/write their own
     match /courseProgress/{progressId} {
       allow read, write: if request.auth != null
-        && resource.data.userId == request.auth.uid;
-      allow create: if request.auth != null
-        && request.resource.data.userId == request.auth.uid;
+        && (resource == null || resource.data.userId == request.auth.uid)
+        && (request.resource == null || request.resource.data.userId == request.auth.uid);
     }
 
-    // ── Course Comments ──
+    // Course Comments
     match /courseComments/{commentId} {
-      // Anyone authenticated can read comments for courses they're enrolled in
       allow read: if request.auth != null;
-      // Users can create comments with their own userId
       allow create: if request.auth != null
         && request.resource.data.userId == request.auth.uid;
-      // Users can update/delete their own comments
       allow update, delete: if request.auth != null
         && resource.data.userId == request.auth.uid;
     }

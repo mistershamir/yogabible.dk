@@ -26,16 +26,26 @@ exports.handler = async function(event) {
     const startDate = params.startDate || now.toISOString().split('T')[0];
     const endDate = params.endDate || new Date(now.getTime() + 7 * 86400000).toISOString().split('T')[0];
 
-    const queryString = new URLSearchParams({
-      startDate,
-      endDate,
-      limit: '200'
-    }).toString();
+    var qsParams = {
+      StartDate: startDate,
+      EndDate: endDate,
+      Limit: '200'
+    };
 
-    const data = await mbFetch(`/class/classes?${queryString}`);
+    const queryString = new URLSearchParams(qsParams).toString();
+
+    const data = await mbFetch('/class/classes?' + queryString);
 
     // Transform for frontend consumption
     const classes = (data.Classes || []).map(function(cls) {
+      // Check if this client is already booked
+      var isBooked = false;
+      if (params.clientId && cls.Clients) {
+        isBooked = cls.Clients.some(function(c) {
+          return String(c.Id) === String(params.clientId);
+        });
+      }
+
       return {
         id: cls.Id,
         name: cls.ClassDescription ? cls.ClassDescription.Name : cls.Name || 'Class',
@@ -48,8 +58,10 @@ exports.handler = async function(event) {
         locationId: cls.Location ? cls.Location.Id : null,
         maxCapacity: cls.MaxCapacity,
         totalBooked: cls.TotalBooked,
+        spotsLeft: cls.MaxCapacity ? cls.MaxCapacity - (cls.TotalBooked || 0) : null,
         isAvailable: cls.IsAvailable,
         isCanceled: cls.IsCanceled,
+        isBooked: isBooked,
         substituteTeacher: cls.Substitute || false,
         classDescriptionId: cls.ClassDescription ? cls.ClassDescription.Id : null
       };
