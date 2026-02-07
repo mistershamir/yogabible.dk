@@ -1,0 +1,451 @@
+{% set t = i18n.index[lang or "da"] %}
+
+<!-- ═══════════════════════════════════════════════════════════════
+     HERO — The Opening Statement
+     Two columns: Content left, Portrait image right
+     ═══════════════════════════════════════════════════════════════ -->
+<section class="yb-hero">
+  <div class="yb-hero__inner">
+    <div class="yb-hero__content">
+      <div class="yb-hero__flag">{{ t.hero_flag }}</div>
+
+      <h1 class="yb-hero__title">{{ t.hero_title | safe }}</h1>
+
+      <p class="yb-hero__lead">
+        {{ t.hero_lead }}
+      </p>
+
+      <div class="yb-hero__paths">
+        <a href="{% if lang == 'en' %}/en/#programs{% else %}#uddannelser{% endif %}" class="yb-hero__path">
+          <span class="yb-hero__path-title">{{ t.hero_path1_title }}</span>
+          <span class="yb-hero__path-desc">{{ t.hero_path1_desc }}</span>
+        </a>
+        <a href="{% if lang == 'en' %}/en/#courses{% else %}#kurser{% endif %}" class="yb-hero__path">
+          <span class="yb-hero__path-title">{{ t.hero_path2_title }}</span>
+          <span class="yb-hero__path-desc">{{ t.hero_path2_desc }}</span>
+        </a>
+      </div>
+
+      <div class="yb-hero__trust">
+        <span>{{ t.hero_trust1 }}</span>
+        <span class="yb-hero__trust-dot"></span>
+        <span>{{ t.hero_trust2 }}</span>
+        <span class="yb-hero__trust-dot"></span>
+        <span>{{ t.hero_trust3 }}</span>
+      </div>
+    </div>
+
+    <div class="yb-hero__media">
+      <img
+        src="/assets/images/hero/hero-portrait.jpg"
+        alt="{{ t.hero_img_alt }}"
+        class="yb-hero__img"
+        loading="eager"
+      >
+      <div class="yb-hero__accent"></div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ═══════════════════════════════════════════════════════════════
+     UDDANNELSER — Choose Your Path
+     Two program cards: 18-week flexible & 4-week intensive
+     ═══════════════════════════════════════════════════════════════ -->
+<section class="yb-programs" id="{% if lang == 'en' %}programs{% else %}uddannelser{% endif %}">
+  <div class="yb-programs__inner">
+    <header class="yb-programs__header">
+      <h2 class="yb-programs__title">{{ t.programs_title }}</h2>
+      <p class="yb-programs__subtitle">
+        {{ t.programs_subtitle }}
+      </p>
+    </header>
+
+    <div class="yb-programs__grid">
+      <!-- 18-Week Flexible -->
+      <article class="yb-program-card">
+        <div class="yb-program-card__badge">{{ t.prog18_badge }}</div>
+        <h3 class="yb-program-card__title">{{ t.prog18_title }}</h3>
+        <p class="yb-program-card__tagline">{{ t.prog18_tagline }}</p>
+
+        <div class="yb-program-card__meta">
+          <span class="yb-program-card__date">{{ t.prog18_date }}</span>
+        </div>
+
+        <ul class="yb-program-card__points">
+          <li>{{ t.prog18_point1 }}</li>
+          <li>{{ t.prog18_point2 }}</li>
+          <li>{{ t.prog18_point3 }}</li>
+          <li>{{ t.prog18_point4 }}</li>
+        </ul>
+
+        <div class="yb-program-card__price">
+          <span class="yb-program-card__amount">{{ t.prog18_price }}</span>
+          <span class="yb-program-card__note">{{ t.prog18_note }}</span>
+        </div>
+
+        <a href="{% if lang == 'en' %}/en/200-hours-18-weeks-flexible-programs{% else %}/200-hours-18-weeks-flexible-programs{% endif %}" class="yb-btn yb-btn--primary yb-btn--full">
+          {{ t.prog18_cta }}
+        </a>
+      </article>
+
+      <!-- 4-Week Intensive -->
+      <article class="yb-program-card yb-program-card--featured">
+        <div class="yb-program-card__badge yb-program-card__badge--orange">{{ t.prog4_badge }}</div>
+        <h3 class="yb-program-card__title">{{ t.prog4_title }}</h3>
+        <p class="yb-program-card__tagline">{{ t.prog4_tagline }}</p>
+
+        <div class="yb-program-card__meta">
+          <span class="yb-program-card__date">{{ t.prog4_date }}</span>
+        </div>
+
+        <ul class="yb-program-card__points">
+          <li>{{ t.prog4_point1 }}</li>
+          <li>{{ t.prog4_point2 }}</li>
+          <li>{{ t.prog4_point3 }}</li>
+          <li>{{ t.prog4_point4 }}</li>
+        </ul>
+
+        <div class="yb-program-card__price">
+          <span class="yb-program-card__amount">{{ t.prog4_price }}</span>
+          <span class="yb-program-card__note">{{ t.prog4_note }}</span>
+        </div>
+
+        <a href="{% if lang == 'en' %}/en/200-hours-4-weeks-intensive-programs{% else %}/200-hours-4-weeks-intensive-programs{% endif %}" class="yb-btn yb-btn--primary yb-btn--full">
+          {{ t.prog4_cta }}
+        </a>
+      </article>
+    </div>
+
+    <div class="yb-programs__compare">
+      <a href="{% if lang == 'en' %}/en/sammenlign-yogalreruddannelser{% else %}/sammenlign-yogalreruddannelser{% endif %}" class="yb-link-arrow">
+        {{ t.programs_compare }}
+      </a>
+    </div>
+  </div>
+</section>
+
+
+<!-- ═══════════════════════════════════════════════════════════════
+     KURSER — 4-Week Specialty Courses (Tabbed Interface)
+     ═══════════════════════════════════════════════════════════════ -->
+<section class="yb-courses" id="{% if lang == 'en' %}courses{% else %}kurser{% endif %}">
+  <div class="yb-courses__inner">
+    <header class="yb-courses__header">
+      <h2 class="yb-courses__title">{{ t.courses_title }}</h2>
+      <p class="yb-courses__subtitle">
+        {{ t.courses_subtitle }}
+      </p>
+    </header>
+
+    <!-- Tab Navigation -->
+    <div class="yb-courses__tabs" role="tablist">
+      <button
+        class="yb-courses__tab yb-courses__tab--active"
+        role="tab"
+        aria-selected="true"
+        data-course="inversions"
+      >Inversions</button>
+      <button
+        class="yb-courses__tab"
+        role="tab"
+        aria-selected="false"
+        data-course="splits"
+      >Splits</button>
+      <button
+        class="yb-courses__tab"
+        role="tab"
+        aria-selected="false"
+        data-course="backbends"
+      >Backbends</button>
+    </div>
+
+    <!-- Tab Panels -->
+    <div class="yb-courses__panels">
+      <!-- Inversions Panel -->
+      <article class="yb-courses__panel yb-courses__panel--active" data-panel="inversions">
+        <div class="yb-courses__panel-content">
+          <div class="yb-courses__panel-meta">
+            <span>{{ t.courses_meta_sessions }}</span>
+            <span>{{ t.courses_meta_schedule }}</span>
+            <span>{{ t.courses_meta_price }}</span>
+          </div>
+          <h3 class="yb-courses__panel-title">Inversions</h3>
+          <p class="yb-courses__panel-desc">
+            {{ t.inv_desc }}
+          </p>
+          <a href="{% if lang == 'en' %}/en/inversions{% else %}/inversions{% endif %}" class="yb-btn yb-btn--primary">{{ t.inv_cta }}</a>
+        </div>
+        <div class="yb-courses__panel-media">
+          <img
+            src="/assets/images/courses/inversions-hero.jpg"
+            alt="{{ t.inv_img_alt }}"
+            loading="lazy"
+          >
+        </div>
+      </article>
+
+      <!-- Splits Panel -->
+      <article class="yb-courses__panel" data-panel="splits" hidden>
+        <div class="yb-courses__panel-content">
+          <div class="yb-courses__panel-meta">
+            <span>{{ t.courses_meta_sessions }}</span>
+            <span>{{ t.courses_meta_schedule }}</span>
+            <span>{{ t.courses_meta_price }}</span>
+          </div>
+          <h3 class="yb-courses__panel-title">Splits</h3>
+          <p class="yb-courses__panel-desc">
+            {{ t.splits_desc }}
+          </p>
+          <a href="{% if lang == 'en' %}/en/splits{% else %}/splits{% endif %}" class="yb-btn yb-btn--primary">{{ t.splits_cta }}</a>
+        </div>
+        <div class="yb-courses__panel-media">
+          <img
+            src="/assets/images/courses/splits-hero.jpg"
+            alt="{{ t.splits_img_alt }}"
+            loading="lazy"
+          >
+        </div>
+      </article>
+
+      <!-- Backbends Panel -->
+      <article class="yb-courses__panel" data-panel="backbends" hidden>
+        <div class="yb-courses__panel-content">
+          <div class="yb-courses__panel-meta">
+            <span>{{ t.courses_meta_sessions }}</span>
+            <span>{{ t.courses_meta_schedule }}</span>
+            <span>{{ t.courses_meta_price }}</span>
+          </div>
+          <h3 class="yb-courses__panel-title">Backbends</h3>
+          <p class="yb-courses__panel-desc">
+            {{ t.back_desc }}
+          </p>
+          <a href="{% if lang == 'en' %}/en/backbends{% else %}/backbends{% endif %}" class="yb-btn yb-btn--primary">{{ t.back_cta }}</a>
+        </div>
+        <div class="yb-courses__panel-media">
+          <img
+            src="/assets/images/courses/backbends-hero.jpg"
+            alt="{{ t.back_img_alt }}"
+            loading="lazy"
+          >
+        </div>
+      </article>
+    </div>
+
+    <div class="yb-courses__bundle">
+      <p>{{ t.courses_bundle }}</p>
+      <a href="{% if lang == 'en' %}/en/course-bundles{% else %}/course-bundles{% endif %}" class="yb-link-arrow">{{ t.courses_bundle_link }}</a>
+    </div>
+  </div>
+</section>
+
+
+<!-- ═══════════════════════════════════════════════════════════════
+     STUDIO — Visual Break / Atmosphere Shot
+     Full-width image with overlay text
+     ═══════════════════════════════════════════════════════════════ -->
+<section class="yb-studio">
+  <div class="yb-studio__bg">
+    <img
+      src="/assets/images/studio/studio-wide.jpg"
+      alt="{{ t.studio_img_alt }}"
+      loading="lazy"
+    >
+  </div>
+  <div class="yb-studio__overlay">
+    <div class="yb-studio__content">
+      <h2 class="yb-studio__title">{{ t.studio_title }}</h2>
+      <p class="yb-studio__text">
+        {{ t.studio_text }}
+      </p>
+      <a href="{% if lang == 'en' %}/en/about-copenhagen{% else %}/about-copenhagen{% endif %}" class="yb-btn yb-btn--outline-light">{{ t.studio_cta }}</a>
+    </div>
+  </div>
+</section>
+
+
+<!-- ═══════════════════════════════════════════════════════════════
+     TESTIMONIALS — Social Proof
+     Horizontal scroll on mobile, 3-up grid on desktop
+     ═══════════════════════════════════════════════════════════════ -->
+<section class="yb-testimonials">
+  <div class="yb-testimonials__inner">
+    <header class="yb-testimonials__header">
+      <h2 class="yb-testimonials__title">{{ t.testimonials_title }}</h2>
+    </header>
+
+    <div class="yb-testimonials__track">
+      <article class="yb-testimonial">
+        <div class="yb-testimonial__stars" aria-label="{{ t.testimonial1_stars }}">★★★★★</div>
+        <blockquote class="yb-testimonial__quote">
+          {{ t.testimonial1_quote }}
+        </blockquote>
+        <footer class="yb-testimonial__footer">
+          <strong>{{ t.testimonial1_name }}</strong>
+          <span>{{ t.testimonial1_info }}</span>
+        </footer>
+      </article>
+
+      <article class="yb-testimonial">
+        <div class="yb-testimonial__stars" aria-label="{{ t.testimonial1_stars }}">★★★★★</div>
+        <blockquote class="yb-testimonial__quote">
+          {{ t.testimonial2_quote }}
+        </blockquote>
+        <footer class="yb-testimonial__footer">
+          <strong>{{ t.testimonial2_name }}</strong>
+          <span>{{ t.testimonial2_info }}</span>
+        </footer>
+      </article>
+
+      <article class="yb-testimonial">
+        <div class="yb-testimonial__stars" aria-label="{{ t.testimonial1_stars }}">★★★★★</div>
+        <blockquote class="yb-testimonial__quote">
+          {{ t.testimonial3_quote }}
+        </blockquote>
+        <footer class="yb-testimonial__footer">
+          <strong>{{ t.testimonial3_name }}</strong>
+          <span>{{ t.testimonial3_info }}</span>
+        </footer>
+      </article>
+    </div>
+  </div>
+</section>
+
+
+<!-- ═══════════════════════════════════════════════════════════════
+     WHY YOGA BIBLE — The Differentiators
+     ═══════════════════════════════════════════════════════════════ -->
+<section class="yb-why">
+  <div class="yb-why__inner">
+    <header class="yb-why__header">
+      <h2 class="yb-why__title">{{ t.why_title }}</h2>
+    </header>
+
+    <div class="yb-why__grid">
+      <div class="yb-why__item">
+        <div class="yb-why__number">01</div>
+        <h3 class="yb-why__item-title">{{ t.why1_title }}</h3>
+        <p class="yb-why__item-desc">
+          {{ t.why1_desc }}
+        </p>
+      </div>
+
+      <div class="yb-why__item">
+        <div class="yb-why__number">02</div>
+        <h3 class="yb-why__item-title">{{ t.why2_title }}</h3>
+        <p class="yb-why__item-desc">
+          {{ t.why2_desc }}
+        </p>
+      </div>
+
+      <div class="yb-why__item">
+        <div class="yb-why__number">03</div>
+        <h3 class="yb-why__item-title">{{ t.why3_title }}</h3>
+        <p class="yb-why__item-desc">
+          {{ t.why3_desc }}
+        </p>
+      </div>
+
+      <div class="yb-why__item">
+        <div class="yb-why__number">04</div>
+        <h3 class="yb-why__item-title">{{ t.why4_title }}</h3>
+        <p class="yb-why__item-desc">
+          {{ t.why4_desc }}
+        </p>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ═══════════════════════════════════════════════════════════════
+     FINAL CTA — The Invitation
+     ═══════════════════════════════════════════════════════════════ -->
+<section class="yb-cta">
+  <div class="yb-cta__inner">
+    <h2 class="yb-cta__title">{{ t.cta_title }}</h2>
+    <p class="yb-cta__text">
+      {{ t.cta_text }}
+    </p>
+    <div class="yb-cta__buttons">
+      <button onclick="openYBScheduleModal('all')" class="yb-btn yb-btn--white yb-btn--large">
+        {{ t.cta_btn1 }}
+      </button>
+      <a href="{% if lang == 'en' %}/en/apply{% else %}/apply{% endif %}" class="yb-btn yb-btn--outline-white yb-btn--large">
+        {{ t.cta_btn2 }}
+      </a>
+    </div>
+  </div>
+</section>
+
+
+<!-- ═══════════════════════════════════════════════════════════════
+     HOMEPAGE SCRIPTS — Tab switching, scroll effects
+     ═══════════════════════════════════════════════════════════════ -->
+<script>
+(function() {
+  // Course Tab Switching
+  var tabs = document.querySelectorAll('.yb-courses__tab');
+  var panels = document.querySelectorAll('.yb-courses__panel');
+
+  tabs.forEach(function(tab) {
+    tab.addEventListener('click', function() {
+      var course = this.getAttribute('data-course');
+
+      // Update tabs
+      tabs.forEach(function(t) {
+        t.classList.remove('yb-courses__tab--active');
+        t.setAttribute('aria-selected', 'false');
+      });
+      this.classList.add('yb-courses__tab--active');
+      this.setAttribute('aria-selected', 'true');
+
+      // Update panels
+      panels.forEach(function(p) {
+        if (p.getAttribute('data-panel') === course) {
+          p.classList.add('yb-courses__panel--active');
+          p.removeAttribute('hidden');
+        } else {
+          p.classList.remove('yb-courses__panel--active');
+          p.setAttribute('hidden', '');
+        }
+      });
+    });
+
+    // Keyboard navigation
+    tab.addEventListener('keydown', function(e) {
+      var index = Array.from(tabs).indexOf(this);
+      if (e.key === 'ArrowRight') {
+        e.preventDefault();
+        var next = tabs[(index + 1) % tabs.length];
+        next.focus();
+        next.click();
+      } else if (e.key === 'ArrowLeft') {
+        e.preventDefault();
+        var prev = tabs[(index - 1 + tabs.length) % tabs.length];
+        prev.focus();
+        prev.click();
+      }
+    });
+  });
+
+  // Scroll-triggered fade-in animations
+  var observerOptions = {
+    threshold: 0.1,
+    rootMargin: '0px 0px -50px 0px'
+  };
+
+  var fadeObserver = new IntersectionObserver(function(entries) {
+    entries.forEach(function(entry) {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('yb-visible');
+        fadeObserver.unobserve(entry.target);
+      }
+    });
+  }, observerOptions);
+
+  document.querySelectorAll('.yb-fade-in').forEach(function(el) {
+    fadeObserver.observe(el);
+  });
+})();
+</script>

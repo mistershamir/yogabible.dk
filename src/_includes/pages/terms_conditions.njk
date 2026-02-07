@@ -1,0 +1,71 @@
+{% set t = i18n.terms_conditions[lang or "da"] %}
+
+<section class="program-hero">
+  <div class="container">
+    <h1 class="program-hero__title">{{ t.hero_title }}</h1>
+    <p class="program-hero__subtitle">{{ t.hero_subtitle }}</p>
+  </div>
+</section>
+
+<section class="program-overview">
+  <div class="container">
+    <div class="yb-legal-content">
+      <p class="yb-legal-meta">{{ t.last_updated }}</p>
+
+      <p>{{ t.company_info | safe }}</p>
+
+      <p>{{ t.subbrands }}</p>
+
+      <h2>{{ t.s1_title }}</h2>
+      <p>{{ t.s1_text }}</p>
+
+      <h2>{{ t.s2_title }}</h2>
+      <p>{{ t.s2_text }}</p>
+
+      <h2>{{ t.s3_title }}</h2>
+      <ul>
+        <li>{{ t.s3_courses | safe }}</li>
+        <li>{{ t.s3_workshops | safe }}</li>
+        <li>{{ t.s3_illness | safe }}</li>
+        <li>{{ t.s3_org_cancel }}</li>
+      </ul>
+
+      <h2>{{ t.s4_title }}</h2>
+      <p>{{ t.s4_text }}</p>
+
+      <h2>{{ t.s5_title }}</h2>
+      <ul>
+        <li>{{ t.s5_physical }}</li>
+        <li>{{ t.s5_education }}</li>
+        <li>{{ t.s5_international }}</li>
+      </ul>
+
+      <h2>{{ t.s6_title }}</h2>
+      <p>{{ t.s6_text }}</p>
+
+      <h2>{{ t.s7_title }}</h2>
+      <p>{{ t.s7_text }}</p>
+
+      <h2>{{ t.s8_title }}</h2>
+      <p>{{ t.s8_text }}</p>
+
+      <h2>{{ t.s9_title }}</h2>
+      <p>{{ t.s9_text }}</p>
+
+      <h2>{{ t.s10_title }}</h2>
+      <p>{{ t.s10_text }}</p>
+
+      <h2>{{ t.s11_title }}</h2>
+      <p>{{ t.s11_text }}</p>
+
+      <h2>{{ t.s12_title }}</h2>
+      <p>{{ t.s12_text }}</p>
+
+      <h2>{{ t.s13_title }}</h2>
+      <p>{{ t.s13_text }}</p>
+
+      <h2>{{ t.s14_title }}</h2>
+      <p>{{ t.s14_text | safe }}</p>
+    </div>
+  </div>
+</section>

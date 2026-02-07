@@ -39,6 +39,15 @@
       sub_level: 'Niveau',
       sub_position: 'Position',
       sub_style: 'Yogastil',
+      sub_anatomy: 'Underkategori',
+      sub_breathing: 'Type',
+      sub_meditation: 'Type',
+      sub_philosophy: 'Tradition',
+      sub_energy: 'System',
+      sub_teaching: 'Omr\u00E5de',
+      sub_styles: 'Type',
+      sub_business: 'Omr\u00E5de',
+      sub_equipment: 'Type',
       hero_badge: 'YOGA ORDBOG',
       hero_subtitle: 'Denne ordliste er udviklet af Yoga Bible i K\u00F8benhavn som et fagligt opslagsv\u00E6rk til vores yogal\u00E6reruddannelser, studerende og nysgerrige ud\u00F8vere. Her samler vi centrale begreber fra klassisk og moderne yoga \u2014 p\u00E5 sanskrit, dansk og engelsk.',
       cta_title: 'Vil du l\u00E6re mere?',
@@ -61,6 +70,15 @@
       sub_level: 'Level',
       sub_position: 'Position',
       sub_style: 'Yoga Style',
+      sub_anatomy: 'Subcategory',
+      sub_breathing: 'Type',
+      sub_meditation: 'Type',
+      sub_philosophy: 'Tradition',
+      sub_energy: 'System',
+      sub_teaching: 'Area',
+      sub_styles: 'Type',
+      sub_business: 'Area',
+      sub_equipment: 'Type',
       hero_badge: 'YOGA GLOSSARY',
       hero_subtitle: 'This glossary was developed by Yoga Bible in Copenhagen as a professional reference for our yoga teacher trainings, students, and curious practitioners. Here we gather key concepts from classical and modern yoga \u2014 in Sanskrit, Danish, and English.',
       cta_title: 'Want to learn more?',
@@ -156,12 +174,92 @@
     return styleLabels[val] || capitalize(val);
   }
 
+  /* ── Subcategory label maps (bilingual, per category) ── */
+  function makeLabelFn(bilingualMap) {
+    return function (val) {
+      var map = bilingualMap[activeLang] || bilingualMap.da;
+      return (map && map[val]) || capitalize(val);
+    };
+  }
+
+  var ANATOMY_SUB_LABELS = {
+    da: { 'alignment-principles': 'Alignment principper', 'joint-movement': 'Ledbev\u00E6gelse', 'body-systems': 'Kroppens systemer' },
+    en: { 'alignment-principles': 'Alignment Principles', 'joint-movement': 'Joint Movement', 'body-systems': 'Body Systems' }
+  };
+
+  var BREATHING_SUB_LABELS = {
+    da: { technique: 'Teknik', concept: 'Koncept' },
+    en: { technique: 'Technique', concept: 'Concept' }
+  };
+
+  var MEDITATION_SUB_LABELS = {
+    da: { limb: 'Yogas lemmer', technique: 'Teknik', tool: 'Redskab' },
+    en: { limb: 'Yoga Limbs', technique: 'Technique', tool: 'Tool' }
+  };
+
+  var PHILOSOPHY_SUB_LABELS = {
+    da: { yama: 'Yama', niyama: 'Niyama', text: 'Tekster', concept: 'Koncept' },
+    en: { yama: 'Yama', niyama: 'Niyama', text: 'Texts', concept: 'Concept' }
+  };
+
+  var ENERGY_SUB_LABELS = {
+    da: { chakra: 'Chakra', nadi: 'Nadi', bandha: 'Bandha', mudra: 'Mudra', concept: 'Koncept' },
+    en: { chakra: 'Chakra', nadi: 'Nadi', bandha: 'Bandha', mudra: 'Mudra', concept: 'Concept' }
+  };
+
+  var TEACHING_SUB_LABELS = {
+    da: { 'class-structure': 'Klasseopbygning', instruction: 'Instruktion', adaptation: 'Tilpasning' },
+    en: { 'class-structure': 'Class Structure', instruction: 'Instruction', adaptation: 'Adaptation' }
+  };
+
+  var STYLES_SUB_LABELS = {
+    da: { physical: 'Fysisk stil', path: 'Yogavej' },
+    en: { physical: 'Physical Style', path: 'Yoga Path' }
+  };
+
+  var BUSINESS_SUB_LABELS = {
+    da: { certification: 'Certificering', 'studio-training': 'Studio & uddannelse' },
+    en: { certification: 'Certification', 'studio-training': 'Studio & Training' }
+  };
+
+  var EQUIPMENT_SUB_LABELS = {
+    da: { essential: 'Basis', support: 'St\u00F8tte & komfort' },
+    en: { essential: 'Essential', support: 'Support & Comfort' }
+  };
+
   /* ── Sub-filter definitions per category ── */
   var SUB_FILTER_DEFS = {
     asana: [
       { key: 'level', uiKey: 'sub_level', labelFn: getLevelLabel },
       { key: 'position', uiKey: 'sub_position', labelFn: getPositionLabel },
       { key: 'yoga_styles', uiKey: 'sub_style', labelFn: getStyleLabel, isArray: true }
+    ],
+    anatomy: [
+      { key: 'subcategory', uiKey: 'sub_anatomy', labelFn: makeLabelFn(ANATOMY_SUB_LABELS) }
+    ],
+    breathing: [
+      { key: 'subcategory', uiKey: 'sub_breathing', labelFn: makeLabelFn(BREATHING_SUB_LABELS) }
+    ],
+    meditation: [
+      { key: 'subcategory', uiKey: 'sub_meditation', labelFn: makeLabelFn(MEDITATION_SUB_LABELS) }
+    ],
+    philosophy: [
+      { key: 'subcategory', uiKey: 'sub_philosophy', labelFn: makeLabelFn(PHILOSOPHY_SUB_LABELS) }
+    ],
+    energy: [
+      { key: 'subcategory', uiKey: 'sub_energy', labelFn: makeLabelFn(ENERGY_SUB_LABELS) }
+    ],
+    teaching: [
+      { key: 'subcategory', uiKey: 'sub_teaching', labelFn: makeLabelFn(TEACHING_SUB_LABELS) }
+    ],
+    styles: [
+      { key: 'subcategory', uiKey: 'sub_styles', labelFn: makeLabelFn(STYLES_SUB_LABELS) }
+    ],
+    business: [
+      { key: 'subcategory', uiKey: 'sub_business', labelFn: makeLabelFn(BUSINESS_SUB_LABELS) }
+    ],
+    equipment: [
+      { key: 'subcategory', uiKey: 'sub_equipment', labelFn: makeLabelFn(EQUIPMENT_SUB_LABELS) }
     ]
   };
 

@@ -11,13 +11,13 @@
   // ============================================
 
   var STORAGE_KEY = 'yb-journal-lang';
-  var host = window.location.hostname.toLowerCase();
-  var isENHost = host.indexOf('en.') === 0;
+  var pathname = window.location.pathname || "/";
+  var isENPath = pathname.indexOf('/en/') === 0 || pathname === '/en';
 
-  // Priority: localStorage > hostname > default (da)
+  // Priority: localStorage > URL path > default (da)
   var stored = null;
   try { stored = localStorage.getItem(STORAGE_KEY); } catch(e) {}
-  var currentLang = stored || (isENHost ? 'en' : 'da');
+  var currentLang = stored || (isENPath ? 'en' : 'da');
 
   // ============================================
   // LANGUAGE SWITCHING

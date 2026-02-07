@@ -4,6 +4,7 @@
     "en": "Yoga Mat",
     "da": "Yogamåtte",
     "category": "equipment",
+    "subcategory": "essential",
     "desc_da": "Skridsikker måtte der giver greb og polstring under praksis. Fås i forskellige tykkelser og materialer.",
     "desc_en": "Non-slip mat providing grip and cushioning during practice. Available in various thicknesses and materials."
   },
@@ -12,6 +13,7 @@
     "en": "Yoga Block",
     "da": "Yogablok",
     "category": "equipment",
+    "subcategory": "essential",
     "desc_da": "Rektangulær blok af kork, skum eller træ. Bruges til at 'bringe gulvet op' og tilpasse stillinger.",
     "desc_en": "Rectangular block of cork, foam, or wood. Used to 'bring the floor up' and adapt poses."
   },
@@ -20,6 +22,7 @@
     "en": "Yoga Strap",
     "da": "Yogastrop",
     "category": "equipment",
+    "subcategory": "essential",
     "desc_da": "Bælte eller strop der forlænger rækkevidden i stræk. Uvurderligt hjælpemiddel til stramme muskler.",
     "desc_en": "Belt or strap that extends reach in stretches. Invaluable aid for tight muscles."
   },
@@ -28,6 +31,7 @@
     "en": "Yoga Bolster",
     "da": "Yogabolster",
     "category": "equipment",
+    "subcategory": "support",
     "desc_da": "Firm, lang pude brugt i restorativ yoga og yin yoga til at understøtte kroppen i passive stillinger.",
     "desc_en": "Firm, long cushion used in restorative and yin yoga to support the body in passive poses."
   },
@@ -36,6 +40,7 @@
     "en": "Yoga Blanket",
     "da": "Yogatæppe",
     "category": "equipment",
+    "subcategory": "support",
     "desc_da": "Foldet tæppe brugt til polstring under knæ, hæle eller sæde. Bruges også til varme under Shavasana.",
     "desc_en": "Folded blanket used for cushioning under knees, heels, or seat. Also used for warmth during Shavasana."
   },
@@ -44,6 +49,7 @@
     "en": "Yoga Wheel",
     "da": "Yogahjul",
     "category": "equipment",
+    "subcategory": "support",
     "desc_da": "Cirkulært hjul brugt til at støtte rygsøjlen i backbends, åbne skuldre og fordybe stræk.",
     "desc_en": "Circular wheel used to support the spine in backbends, open shoulders, and deepen stretches."
   },
@@ -52,6 +58,7 @@
     "en": "Zafu / Meditation Cushion",
     "da": "Meditationspude",
     "category": "equipment",
+    "subcategory": "support",
     "desc_da": "Rund eller halvmåneformet pude der løfter hofterne under siddende meditation for komfortabel alignment.",
     "desc_en": "Round or crescent-shaped cushion that elevates the hips during seated meditation for comfortable alignment."
   },
@@ -60,6 +67,7 @@
     "en": "Eye Pillow",
     "da": "Øjenpude",
     "category": "equipment",
+    "subcategory": "support",
     "desc_da": "Let, ofte lavendel-fyldt pude der placeres over øjnene under Shavasana for at blokere lys og fremme afslapning.",
     "desc_en": "Light, often lavender-filled pillow placed over the eyes during Shavasana to block light and promote relaxation."
   }

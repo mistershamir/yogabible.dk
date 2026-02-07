@@ -4,6 +4,7 @@
     "en": "Meditation",
     "da": "Meditation",
     "category": "meditation",
+    "subcategory": "limb",
     "desc_da": "Dyb, uafbrudt kontemplation og fokus. Det syvende lem af Patanjalis ottefoldige vej.",
     "desc_en": "Deep, uninterrupted contemplation and focus. The seventh limb of Patanjali's eightfold path."
   },
@@ -12,6 +13,7 @@
     "en": "Concentration",
     "da": "Koncentration",
     "category": "meditation",
+    "subcategory": "limb",
     "desc_da": "Enkeltpunktet fokus der forbereder sindet til meditation. Det sjette lem af yoga.",
     "desc_en": "Single-pointed focus that prepares the mind for meditation. The sixth limb of yoga."
   },
@@ -20,6 +22,7 @@
     "en": "Sense Withdrawal",
     "da": "Sansetilbagetrækning",
     "category": "meditation",
+    "subcategory": "limb",
     "desc_da": "Tilbagetrækning af sanserne fra ydre stimuli. Det femte lem af yoga. Bro mellem ydre og indre praksis.",
     "desc_en": "Withdrawal of the senses from external stimuli. The fifth limb of yoga. Bridge between outer and inner practice."
   },
@@ -28,6 +31,7 @@
     "en": "Absorption / Enlightenment",
     "da": "Absorption / Oplysning",
     "category": "meditation",
+    "subcategory": "limb",
     "desc_da": "Tilstand af dyb forening med meditationsobjektet. Det ottende og sidste lem. Yogaens ultimative mål.",
     "desc_en": "State of deep union with the object of meditation. The eighth and final limb. The ultimate goal of yoga."
   },
@@ -36,6 +40,7 @@
     "en": "Sacred Sound / Chant",
     "da": "Helligt lydord",
     "category": "meditation",
+    "subcategory": "technique",
     "desc_da": "Hellige lyde eller ord der gentages under meditation. 'Man' (sind) + 'tra' (instrument/befrielse).",
     "desc_en": "Sacred sounds or words repeated during meditation. 'Man' (mind) + 'tra' (instrument/liberation)."
   },
@@ -44,6 +49,7 @@
     "en": "Primordial Sound",
     "da": "Urlyd",
     "category": "meditation",
+    "subcategory": "technique",
     "desc_da": "Universets grundlæggende vibration. Tre stavelser repræsenterer skabelse (A), opretholdelse (U) og opløsning (M).",
     "desc_en": "The fundamental vibration of the universe. Three syllables represent creation (A), preservation (U), and dissolution (M)."
   },
@@ -52,6 +58,7 @@
     "en": "Mantra Repetition",
     "da": "Mantragentagelse",
     "category": "meditation",
+    "subcategory": "technique",
     "desc_da": "Disciplineret gentagelse af et mantra, ofte med en mala (bedekrans) med 108 perler.",
     "desc_en": "Disciplined repetition of a mantra, often using a mala (prayer beads) with 108 beads."
   },
@@ -60,6 +67,7 @@
     "en": "Candle Gazing Meditation",
     "da": "Flammemeditation",
     "category": "meditation",
+    "subcategory": "technique",
     "desc_da": "Meditativ praksis med fokuseret blik på et enkelt punkt, typisk en stearinlysflamme. En af de seks shatkarmas.",
     "desc_en": "Meditative practice with focused gaze on a single point, typically a candle flame. One of the six shatkarmas."
   },
@@ -68,6 +76,7 @@
     "en": "Yogic Sleep",
     "da": "Yogisk søvn",
     "category": "meditation",
+    "subcategory": "technique",
     "desc_da": "Guidet dyb afslapning i bevidst tilstand mellem vågen og søvn. Systematisk kropsscanning og visualisering.",
     "desc_en": "Guided deep relaxation in a conscious state between waking and sleep. Systematic body scanning and visualization."
   },
@@ -76,6 +85,7 @@
     "en": "Intention / Resolve",
     "da": "Intention / Beslutning",
     "category": "meditation",
+    "subcategory": "tool",
     "desc_da": "Dybfølt intention eller løfte formuleret i nutid. Central del af Yoga Nidra og meditationspraksis.",
     "desc_en": "Heartfelt intention or resolve formulated in present tense. Central part of Yoga Nidra and meditation practice."
   },
@@ -84,6 +94,7 @@
     "en": "Focused Gaze",
     "da": "Fokuspunkt",
     "category": "meditation",
+    "subcategory": "tool",
     "desc_da": "Fokuseret blikretning brugt i asana og meditation. Ni drishti-punkter i Ashtanga-traditionen.",
     "desc_en": "Focused gaze direction used in asana and meditation. Nine drishti points in the Ashtanga tradition."
   },
@@ -92,6 +103,7 @@
     "en": "Prayer Beads",
     "da": "Bedekrans",
     "category": "meditation",
+    "subcategory": "tool",
     "desc_da": "Kæde med 108 perler brugt til mantra-meditation (japa). Hjælper med at holde tælling og fokus.",
     "desc_en": "String of 108 beads used for mantra meditation (japa). Helps maintain count and focus."
   }

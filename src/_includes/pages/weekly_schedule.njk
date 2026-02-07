@@ -1,0 +1,409 @@
+{% set t = i18n.weekly_schedule[lang or "da"] %}
+
+<!-- Schedule Hero -->
+<section class="program-hero">
+  <div class="container">
+    <div class="program-hero__badge">{{ t.hero_badge }}</div>
+    <h1 class="program-hero__title">{{ t.hero_title }}</h1>
+    <p class="program-hero__subtitle">
+      {{ t.hero_subtitle }}
+    </p>
+    <div class="program-hero__cta">
+      <a href="#schedule-widget" class="btn btn--large btn--primary">{{ t.hero_cta }}</a>
+    </div>
+  </div>
+</section>
+
+<!-- SEKTION 1A: HERO INTRO -->
+<section id="yb-hero-intro">
+  <style>
+    #yb-hero-intro {
+      background: #fff;
+      color: #161616;
+      padding: clamp(48px, 6vw, 96px) clamp(18px, 4vw, 28px);
+      text-align: center;
+    }
+    #yb-hero-intro .ybHI__inner { max-width: 840px; margin: 0 auto; }
+    #yb-hero-intro .ybHI__eyebrow { display: inline-block; color: var(--yb-brand); font-size: 13px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; margin-bottom: 16px; }
+    #yb-hero-intro .ybHI__title { font-size: clamp(2.2rem, 5.5vw, 3.5rem); line-height: 1.08; letter-spacing: -0.025em; color: #161616; margin: 0 0 20px 0; }
+    #yb-hero-intro .ybHI__subtitle { font-size: clamp(1rem, 1.8vw, 1.15rem); line-height: 1.7; color: #6F6A66; margin: 0 auto; max-width: 680px; }
+  </style>
+  <div class="ybHI__inner">
+    <p class="ybHI__eyebrow">{{ t.intro_eyebrow | safe }}</p>
+    <h1 class="ybHI__title">{{ t.intro_title | safe }}</h1>
+    <p class="ybHI__subtitle">{{ t.intro_subtitle }}</p>
+  </div>
+</section>
+
+<!-- SEKTION 1B: HERO VIDEO FEATURE -->
+<section id="yb-hero-video">
+  <style>
+    #yb-hero-video { background: linear-gradient(180deg, #fff 0%, #FFFCF9 100%); color: #161616; padding: clamp(48px, 6vw, 96px) clamp(18px, 4vw, 28px); }
+    #yb-hero-video .ybHV__inner { max-width: 1120px; margin: 0 auto; display: flex; align-items: stretch; gap: clamp(32px, 5vw, 64px); }
+    @media (max-width: 980px) { #yb-hero-video .ybHV__inner { flex-direction: column; align-items: center; gap: 40px; } }
+    #yb-hero-video .ybHV__media { flex: 0 0 auto; width: clamp(300px, 38vw, 420px); display: flex; }
+    @media (max-width: 980px) { #yb-hero-video .ybHV__media { width: min(100%, 400px); } }
+    #yb-hero-video .ybHV__videoWrap { position: relative; width: 100%; height: 100%; min-height: 400px; border-radius: 16px; overflow: hidden; background: #1a1a1a; box-shadow: 0 20px 50px rgba(0, 0, 0, 0.12), 0 0 0 1px rgba(0, 0, 0, 0.05); }
+    @media (max-width: 980px) { #yb-hero-video .ybHV__videoWrap { aspect-ratio: 4 / 5; height: auto; } }
+    #yb-hero-video .ybHV__videoWrap::after { content: ''; position: absolute; inset: 0; border-radius: inherit; pointer-events: none; box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.08); }
+    #yb-hero-video .ybHV__video { width: 100%; height: 100%; object-fit: cover; display: block; }
+    #yb-hero-video .ybHV__content { flex: 1; display: flex; flex-direction: column; }
+    @media (max-width: 980px) { #yb-hero-video .ybHV__content { text-align: center; } }
+    #yb-hero-video .ybHV__eyebrow { display: inline-block; color: var(--yb-brand); font-size: 13px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; margin-bottom: 12px; }
+    #yb-hero-video .ybHV__title { font-size: clamp(1.65rem, 3.2vw, 2.25rem); line-height: 1.15; letter-spacing: -0.015em; color: #161616; margin: 0 0 14px 0; }
+    #yb-hero-video .ybHV__desc { font-size: clamp(1rem, 1.6vw, 1.06rem); line-height: 1.7; color: #6F6A66; margin: 0 0 28px 0; }
+    #yb-hero-video .ybHV__cards { display: grid; gap: 12px; margin-bottom: 28px; flex-grow: 1; }
+    #yb-hero-video .ybHV__card { background: #fff; border: 1px solid #e5e0db; border-radius: 14px; padding: 16px 18px; display: flex; align-items: flex-start; gap: 14px; }
+    @media (max-width: 980px) { #yb-hero-video .ybHV__card { text-align: left; } }
+    #yb-hero-video .ybHV__cardIcon { width: 28px; height: 28px; color: var(--yb-brand); flex-shrink: 0; margin-top: 2px; }
+    #yb-hero-video .ybHV__cardContent { flex: 1; }
+    #yb-hero-video .ybHV__cardTitle { font-size: 15px; color: #161616; margin: 0 0 4px 0; }
+    #yb-hero-video .ybHV__cardText { font-size: 14px; color: #6F6A66; line-height: 1.5; margin: 0; }
+    #yb-hero-video .ybHV__timePills { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+    #yb-hero-video .ybHV__timePill { background: #FFFCF9; border: 1px solid #e5e0db; border-radius: 999px; padding: 5px 12px; font-size: 12px; font-weight: 700; color: #333; }
+    #yb-hero-video .ybHV__buttons { display: flex; flex-wrap: wrap; gap: 12px; margin-top: auto; }
+    @media (max-width: 980px) { #yb-hero-video .ybHV__buttons { justify-content: center; } }
+    @media (max-width: 480px) { #yb-hero-video .ybHV__buttons { flex-direction: column; } }
+    #yb-hero-video .ybHV__btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 14px 28px; border-radius: 999px; font-size: 15px; font-weight: 700; text-decoration: none; cursor: pointer; transition: all var(--transition-fast); border: 2px solid transparent; }
+    #yb-hero-video .ybHV__btn--primary { background: var(--yb-brand); color: #fff; border-color: var(--yb-brand); box-shadow: 0 4px 14px rgba(var(--yb-brand-rgb), 0.25); }
+    #yb-hero-video .ybHV__btn--primary:hover { background: #e05402; border-color: #e05402; transform: translateY(-2px); box-shadow: 0 6px 20px rgba(var(--yb-brand-rgb), 0.3); }
+    #yb-hero-video .ybHV__btn svg { width: 18px; height: 18px; }
+    @media (prefers-reduced-motion: reduce) { #yb-hero-video .ybHV__video { animation: none; } }
+  </style>
+
+  <div class="ybHV__inner">
+    <div class="ybHV__media">
+      <div class="ybHV__videoWrap">
+        <video class="ybHV__video" src="https://www.yogabible.dk/s/Yoga-practice-man-01.mp4" autoplay muted loop playsinline preload="metadata"></video>
+      </div>
+    </div>
+    <div class="ybHV__content">
+      <p class="ybHV__eyebrow">{{ t.video_eyebrow | safe }}</p>
+      <h2 class="ybHV__title">{{ t.video_title | safe }}</h2>
+      <p class="ybHV__desc">{{ t.video_desc }}</p>
+      <div class="ybHV__cards">
+        <div class="ybHV__card">
+          <svg class="ybHV__cardIcon" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4.26 10.147a60.436 60.436 0 00-.491 6.347A48.627 48.627 0 0112 20.904a48.627 48.627 0 018.232-4.41 60.46 60.46 0 00-.491-6.347m-15.482 0a50.57 50.57 0 00-2.658-.813A59.905 59.905 0 0112 3.493a59.902 59.902 0 0110.399 5.84c-.896.248-1.783.52-2.658.814m-15.482 0A50.697 50.697 0 0112 13.489a50.702 50.702 0 017.74-3.342M6.75 15a.75.75 0 100-1.5.75.75 0 000 1.5zm0 0v-3.675A55.378 55.378 0 0112 8.443m-7.007 11.55A5.981 5.981 0 006.75 15.75v-1.5"/></svg>
+          <div class="ybHV__cardContent">
+            <h3 class="ybHV__cardTitle">{{ t.card1_title }}</h3>
+            <p class="ybHV__cardText">{{ t.card1_desc }}</p>
+          </div>
+        </div>
+        <div class="ybHV__card">
+          <svg class="ybHV__cardIcon" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09zM18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 00-2.456 2.456zM16.894 20.567L16.5 21.75l-.394-1.183a2.25 2.25 0 00-1.423-1.423L13.5 18.75l1.183-.394a2.25 2.25 0 001.423-1.423l.394-1.183.394 1.183a2.25 2.25 0 001.423 1.423l1.183.394-1.183.394a2.25 2.25 0 00-1.423 1.423z"/></svg>
+          <div class="ybHV__cardContent">
+            <h3 class="ybHV__cardTitle">{{ t.card2_title | safe }}</h3>
+            <p class="ybHV__cardText">{{ t.card2_desc }}</p>
+          </div>
+        </div>
+        <div class="ybHV__card">
+          <svg class="ybHV__cardIcon" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+          <div class="ybHV__cardContent">
+            <h3 class="ybHV__cardTitle">{{ t.card3_title }}</h3>
+            <p class="ybHV__cardText">{{ t.card3_desc }}</p>
+            <div class="ybHV__timePills">
+              <span class="ybHV__timePill">{{ t.time_morning }}</span>
+              <span class="ybHV__timePill">{{ t.time_midmorning }}</span>
+              <span class="ybHV__timePill">{{ t.time_afternoon }}</span>
+              <span class="ybHV__timePill">{{ t.time_evening }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="ybHV__buttons">
+        <a href="#booking" class="ybHV__btn ybHV__btn--primary">
+          <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 14l-7 7m0 0l-7-7m7 7V3"/></svg>
+          {{ t.video_cta }}
+        </a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SCHEDULE WIDGET -->
+<section id="yb-schedule">
+  <style>
+    #yb-schedule { background: linear-gradient(180deg, #FFFCF9 0%, #fff 100%); color: #161616; padding: clamp(48px, 6vw, 96px) clamp(18px, 4vw, 28px); }
+    #yb-schedule .yb-schedule-inner { max-width: 1120px; margin: 0 auto; }
+    #yb-schedule .yb-schedule-header { text-align: center; margin-bottom: 40px; }
+    #yb-schedule .yb-schedule-eyebrow { display: inline-block; color: var(--yb-brand); font-size: 13px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; margin-bottom: 12px; }
+    #yb-schedule .yb-schedule-title { font-size: clamp(1.75rem, 3.6vw, 2.25rem); line-height: 1.15; color: #161616; margin: 0 0 16px 0; }
+    #yb-schedule .yb-schedule-subtitle { font-size: clamp(1rem, 1.6vw, 1.06rem); line-height: 1.6; color: #6F6A66; max-width: 600px; margin: 0 auto; }
+    #yb-schedule .yb-schedule-widget { background: #fff; border: 1px solid #e5e0db; border-radius: 16px; padding: 24px; margin-bottom: 40px; min-height: 500px; }
+    @media (max-width: 768px) { #yb-schedule .yb-schedule-widget { padding: 16px; } }
+    #yb-schedule .yb-schedule-widget .mindbody-widget { width: 100%; }
+    #yb-schedule .yb-schedule-app { text-align: center; padding: 32px; background: #fff; border: 1px solid #e5e0db; border-radius: 16px; }
+    #yb-schedule .yb-schedule-app-text { font-size: 16px; color: #333; margin: 0 0 20px 0; }
+    #yb-schedule .yb-schedule-app-badges { display: flex; justify-content: center; align-items: center; gap: 16px; }
+    @media (max-width: 480px) { #yb-schedule .yb-schedule-app-badges { flex-direction: column; gap: 12px; } }
+    #yb-schedule .yb-schedule-app-badge { display: block; transition: transform var(--transition-fast), opacity var(--transition-fast); }
+    #yb-schedule .yb-schedule-app-badge:hover { transform: translateY(-2px); opacity: 0.9; }
+    #yb-schedule .yb-schedule-app-badge img { height: 48px; width: auto; display: block; }
+    @media (max-width: 480px) { #yb-schedule .yb-schedule-app-badge img { height: 44px; } }
+  </style>
+
+  <div class="yb-schedule-inner">
+    <div class="yb-schedule-header" id="booking">
+      <p class="yb-schedule-eyebrow">{{ t.schedule_eyebrow }}</p>
+      <h2 class="yb-schedule-title">{{ t.schedule_title }}</h2>
+      <p class="yb-schedule-subtitle">{{ t.schedule_subtitle }}</p>
+    </div>
+    <div class="yb-schedule-widget">
+      <div class="mindbody-widget" data-widget-type="Schedules" data-widget-id="3943900f46e"></div>
+      <script async src="https://brandedweb.mindbodyonline.com/embed/widget.js"></script>
+    </div>
+    <div class="yb-schedule-app">
+      <p class="yb-schedule-app-text">{{ t.app_text | safe }}</p>
+      <div class="yb-schedule-app-badges">
+        <a href="https://apps.apple.com/us/app/yoga-bible-dk/id1089612518?itscg=30200&itsct=apps_box_link&mttnsubad=1089612518" class="yb-schedule-app-badge" target="_blank" rel="noopener noreferrer" aria-label="{{ t.app_store_label }}">
+          <img src="https://www.yogabible.dk/s/Yoga_Bible_App_Store.svg" alt="App Store">
+        </a>
+        <a href="https://play.google.com/store/apps/details?id=com.fitnessmobileapps.hotyogacopenhagen&hl=en_US&gl=US" class="yb-schedule-app-badge" target="_blank" rel="noopener noreferrer" aria-label="{{ t.google_play_label }}">
+          <img src="https://www.yogabible.dk/s/Yoga_Bible_App_Google_Play.svg" alt="Google Play">
+        </a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- STUDENTS SECTION -->
+<section id="yb-students">
+  <style>
+    #yb-students { background: #fff; color: #161616; padding: clamp(48px, 6vw, 96px) clamp(18px, 4vw, 28px); position: relative; overflow: hidden; }
+    #yb-students::before { content: ''; position: absolute; inset: 0; background: radial-gradient(ellipse at 20% 50%, rgba(var(--yb-brand-rgb), 0.04) 0%, transparent 60%); pointer-events: none; }
+    #yb-students .yb-students-inner { max-width: 1120px; margin: 0 auto; position: relative; z-index: 1; }
+    #yb-students .yb-students-header { text-align: center; margin-bottom: clamp(32px, 5vw, 56px); }
+    #yb-students .yb-students-eyebrow { display: inline-block; color: var(--yb-brand); font-size: 13px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; margin-bottom: 12px; }
+    #yb-students .yb-students-title { font-size: clamp(1.75rem, 3.6vw, 2.25rem); line-height: 1.15; color: #161616; margin: 0 0 16px 0; }
+    #yb-students .yb-students-subtitle { font-size: clamp(1rem, 1.6vw, 1.06rem); line-height: 1.6; color: #6F6A66; max-width: 640px; margin: 0 auto; }
+    #yb-students .yb-students-layout { display: flex; align-items: flex-start; gap: clamp(32px, 5vw, 56px); }
+    @media (max-width: 980px) { #yb-students .yb-students-layout { flex-direction: column; align-items: center; gap: 40px; } }
+    #yb-students .yb-students-phone-wrap { flex: 0 0 280px; width: 280px; }
+    @media (max-width: 980px) { #yb-students .yb-students-phone-wrap { flex: none; width: 240px; order: 1; } }
+    #yb-students .yb-students-phone { position: relative; width: 100%; aspect-ratio: 9 / 19; background: linear-gradient(145deg, #1a1a1a 0%, #2d2d2d 100%); border-radius: 40px; padding: 12px 10px; box-shadow: 0 30px 60px rgba(0, 0, 0, 0.15), 0 10px 20px rgba(0, 0, 0, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.1); }
+    #yb-students .yb-students-phone-screen { width: 100%; height: 100%; background: #000; border-radius: 30px; overflow: hidden; position: relative; }
+    #yb-students .yb-students-phone-video { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: contain; background: #000; border-radius: 30px; display: block; }
+    #yb-students .yb-students-content { flex: 1; }
+    @media (max-width: 980px) { #yb-students .yb-students-content { order: 2; text-align: center; width: 100%; } }
+    #yb-students .yb-students-cards { display: flex; flex-direction: column; gap: 16px; margin-bottom: 28px; }
+    #yb-students .yb-students-card { display: flex; align-items: flex-start; gap: 16px; background: #FFFCF9; border: 1px solid #e5e0db; border-radius: 16px; padding: 20px 24px; }
+    @media (max-width: 980px) { #yb-students .yb-students-card { text-align: left; } }
+    @media (max-width: 480px) { #yb-students .yb-students-card { padding: 18px 20px; } }
+    #yb-students .yb-students-card-icon { width: 44px; height: 44px; min-width: 44px; background: #fff; border: 1px solid #e5e0db; border-radius: 12px; display: flex; align-items: center; justify-content: center; }
+    #yb-students .yb-students-card-icon svg { width: 22px; height: 22px; color: var(--yb-brand); }
+    #yb-students .yb-students-card-content { flex: 1; }
+    #yb-students .yb-students-card-title { font-size: 16px; color: #161616; margin: 0 0 4px 0; text-transform: uppercase; letter-spacing: 0.02em; }
+    #yb-students .yb-students-card-desc { font-size: 14px; line-height: 1.5; color: #6F6A66; margin: 0; }
+    #yb-students .yb-students-times, #yb-students .yb-students-facilities { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+    #yb-students .yb-students-time, #yb-students .yb-students-facility { display: inline-flex; align-items: center; gap: 6px; background: #fff; border: 1px solid #e5e0db; border-radius: 999px; padding: 5px 12px; font-size: 13px; font-weight: 700; color: #333; }
+    #yb-students .yb-students-time svg, #yb-students .yb-students-facility svg { width: 14px; height: 14px; color: var(--yb-brand); }
+    #yb-students .yb-students-card-address { display: inline-flex; align-items: center; gap: 4px; color: var(--yb-brand); text-decoration: none; font-weight: 700; font-size: 14px; margin-top: 10px; }
+    #yb-students .yb-students-card-address:hover { text-decoration: underline; }
+    #yb-students .yb-students-card-address svg { width: 14px; height: 14px; }
+    #yb-students .yb-students-badges { display: flex; align-items: center; justify-content: flex-start; gap: 16px; flex-wrap: nowrap; }
+    @media (max-width: 980px) { #yb-students .yb-students-badges { justify-content: center; } }
+    #yb-students .yb-students-badge { display: block; flex-shrink: 0; transition: transform var(--transition-fast), opacity var(--transition-fast); }
+    #yb-students .yb-students-badge:hover { transform: translateY(-2px); opacity: 0.9; }
+    #yb-students .yb-students-badge img { height: 46px; width: auto; display: block; }
+    @media (max-width: 480px) { #yb-students .yb-students-badge img { height: 42px; } }
+    #yb-students .yb-students-note { text-align: center; font-size: 14px; color: #6F6A66; margin-top: 40px; }
+    #yb-students .yb-students-note a { color: var(--yb-brand); text-decoration: none; font-weight: 700; }
+    #yb-students .yb-students-note a:hover { text-decoration: underline; }
+  </style>
+
+  <div class="yb-students-inner">
+    <div class="yb-students-header">
+      <p class="yb-students-eyebrow">{{ t.students_eyebrow | safe }}</p>
+      <h2 class="yb-students-title">{{ t.students_title }}</h2>
+      <p class="yb-students-subtitle">{{ t.students_subtitle }}</p>
+    </div>
+    <div class="yb-students-layout">
+      <div class="yb-students-phone-wrap">
+        <div class="yb-students-phone">
+          <div class="yb-students-phone-screen">
+            <video class="yb-students-phone-video" autoplay muted loop playsinline>
+              <source src="https://www.yogabible.dk/s/Yoga-Bible-hot-yoga-copenhagen-app.mov" type="video/quicktime">
+              <source src="https://www.yogabible.dk/s/Yoga-Bible-hot-yoga-copenhagen-app.mov" type="video/mp4">
+            </video>
+          </div>
+        </div>
+      </div>
+      <div class="yb-students-content">
+        <div class="yb-students-cards">
+          <div class="yb-students-card">
+            <div class="yb-students-card-icon"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg></div>
+            <div class="yb-students-card-content">
+              <h3 class="yb-students-card-title">{{ t.scard1_title }}</h3>
+              <p class="yb-students-card-desc">{{ t.scard1_desc }}</p>
+              <div class="yb-students-times">
+                <span class="yb-students-time"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 3v2.25m6.364.386l-1.591 1.591M21 12h-2.25m-.386 6.364l-1.591-1.591M12 18.75V21m-4.773-4.227l-1.591 1.591M5.25 12H3m4.227-4.773L5.636 5.636M15.75 12a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0z"/></svg>{{ t.time_morning }}</span>
+                <span class="yb-students-time"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 3v2.25m6.364.386l-1.591 1.591M21 12h-2.25m-.386 6.364l-1.591-1.591M12 18.75V21m-4.773-4.227l-1.591 1.591M5.25 12H3m4.227-4.773L5.636 5.636M15.75 12a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0z"/></svg>{{ t.time_midmorning }}</span>
+                <span class="yb-students-time"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 3v2.25m6.364.386l-1.591 1.591M21 12h-2.25m-.386 6.364l-1.591-1.591M12 18.75V21m-4.773-4.227l-1.591 1.591M5.25 12H3m4.227-4.773L5.636 5.636M15.75 12a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0z"/></svg>{{ t.time_afternoon }}</span>
+                <span class="yb-students-time"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M21.752 15.002A9.718 9.718 0 0118 15.75c-5.385 0-9.75-4.365-9.75-9.75 0-1.33.266-2.597.748-3.752A9.753 9.753 0 003 11.25C3 16.635 7.365 21 12.75 21a9.753 9.753 0 009.002-5.998z"/></svg>{{ t.time_evening }}</span>
+              </div>
+            </div>
+          </div>
+          <div class="yb-students-card">
+            <div class="yb-students-card-icon"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg></div>
+            <div class="yb-students-card-content">
+              <h3 class="yb-students-card-title">{{ t.scard2_title }}</h3>
+              <p class="yb-students-card-desc">{{ t.scard2_desc }}</p>
+            </div>
+          </div>
+          <div class="yb-students-card">
+            <div class="yb-students-card-icon"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg></div>
+            <div class="yb-students-card-content">
+              <h3 class="yb-students-card-title">{{ t.scard3_title }}</h3>
+              <p class="yb-students-card-desc">{{ t.scard3_desc }}</p>
+            </div>
+          </div>
+          <div class="yb-students-card">
+            <div class="yb-students-card-icon"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15 10.5a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1115 0z"/></svg></div>
+            <div class="yb-students-card-content">
+              <h3 class="yb-students-card-title">{{ t.scard4_title }}</h3>
+              <p class="yb-students-card-desc">{{ t.scard4_desc }}</p>
+              <div class="yb-students-facilities">
+                <span class="yb-students-facility"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8.25 18.75a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m3 0h6m-9 0H3.375a1.125 1.125 0 01-1.125-1.125V14.25m17.25 4.5a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m3 0h1.125c.621 0 1.129-.504 1.09-1.124a17.902 17.902 0 00-3.213-9.193 2.056 2.056 0 00-1.58-.86H14.25M16.5 18.75h-2.25m0-11.177v-.958c0-.568-.422-1.048-.987-1.106a48.554 48.554 0 00-10.026 0 1.106 1.106 0 00-.987 1.106v7.635m12-6.677v6.677m0 4.5v-4.5m0 0h-12"/></svg>{{ t.facility_metro }}</span>
+                <span class="yb-students-facility"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8.25 18.75a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m3 0h6m-9 0H3.375a1.125 1.125 0 01-1.125-1.125V14.25m17.25 4.5a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m3 0h1.125c.621 0 1.129-.504 1.09-1.124a17.902 17.902 0 00-3.213-9.193 2.056 2.056 0 00-1.58-.86H14.25m-2.25 0V6.75m0 0h2.25m-2.25 0h-2.182a2.25 2.25 0 00-1.976 1.17l-3.233 6.025A2.25 2.25 0 004.41 15.375h1.215"/></svg>{{ t.facility_parking }}</span>
+                <span class="yb-students-facility"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>{{ t.facility_changing }}</span>
+                <span class="yb-students-facility"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15.362 5.214A8.252 8.252 0 0112 21 8.25 8.25 0 016.038 7.048 8.287 8.287 0 009 9.6a8.983 8.983 0 013-5.386z"/></svg>{{ t.facility_rooms }}</span>
+              </div>
+              <a href="https://www.google.com/maps/search/?api=1&query=Torvegade+66+1400+K%C3%B8benhavn+K" target="_blank" rel="noopener noreferrer" class="yb-students-card-address">
+                Torvegade 66, 1400 København K
+                <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25"/></svg>
+              </a>
+            </div>
+          </div>
+        </div>
+        <div class="yb-students-badges">
+          <a href="https://apps.apple.com/us/app/yoga-bible-dk/id1089612518?itscg=30200&itsct=apps_box_link&mttnsubad=1089612518" class="yb-students-badge" target="_blank" rel="noopener noreferrer" aria-label="{{ t.app_store_label }}"><img src="https://www.yogabible.dk/s/Yoga_Bible_App_Store.svg" alt="App Store"></a>
+          <a href="https://play.google.com/store/apps/details?id=com.fitnessmobileapps.hotyogacopenhagen&hl=en_US&gl=US" class="yb-students-badge" target="_blank" rel="noopener noreferrer" aria-label="{{ t.google_play_label }}"><img src="https://www.yogabible.dk/s/Yoga_Bible_App_Google_Play.svg" alt="Google Play"></a>
+        </div>
+      </div>
+    </div>
+    <p class="yb-students-note">{{ t.students_note }} <a href="mailto:info@yogabible.dk">info@yogabible.dk</a></p>
+  </div>
+</section>
+
+<!-- EXPLORE MORE -->
+<section id="yb-explore" class="ybEX" aria-labelledby="yb-explore-title">
+  <div class="ybEX__inner">
+    <header class="ybEX__header">
+      <p class="ybEX__kicker">{{ t.explore_kicker }}</p>
+      <h2 id="yb-explore-title" class="ybEX__title">{{ t.explore_title | safe }}</h2>
+      <p class="ybEX__lead">{{ t.explore_lead | safe }}</p>
+    </header>
+    <div class="ybEX__grid">
+      <article class="ybEX-card">
+        <figure class="ybEX-card__image">
+          <img id="ybCourseImg" src="https://www.yogabible.dk/s/Inversions_Course_Copenhagen.jpg?format=1500w" alt="Inversions" loading="lazy">
+          <span class="ybEX-card__badge ybEX-card__badge--soft">{{ t.explore_courses_badge }}</span>
+        </figure>
+        <div class="ybEX-card__body">
+          <h3 class="ybEX-card__title">{{ t.explore_courses_title }}</h3>
+          <p class="ybEX-card__text">{{ t.explore_courses_text | safe }}</p>
+          <div class="ybEX-card__pills" role="tablist" aria-label="Courses">
+            <button class="ybEX-pill is-active" role="tab" aria-selected="true" data-course="inv">Inversions</button>
+            <button class="ybEX-pill" role="tab" aria-selected="false" data-course="spl">Splits</button>
+            <button class="ybEX-pill" role="tab" aria-selected="false" data-course="bb">Backbends</button>
+          </div>
+          <p id="ybCourseBlurb" class="ybEX-card__blurb">{{ t.explore_inv_blurb }}</p>
+          <a id="ybCourseCta" class="ybEX-btn ybEX-btn--outline" href="https://www.yogabible.dk/inversions">{{ t.explore_inv_cta }} &rarr;</a>
+        </div>
+      </article>
+      <article class="ybEX-card">
+        <figure class="ybEX-card__image">
+          <img src="https://www.yogabible.dk/s/200timer-Yoga-Education-Kbenhavn.png?format=1500w" alt="{{ t.explore_4w_title }}" loading="lazy">
+          <span class="ybEX-card__badge ybEX-card__badge--primary">{{ t.explore_4w_badge_primary }}</span>
+          <span class="ybEX-card__badge ybEX-card__badge--soft ybEX-card__badge--right">{{ t.explore_4w_badge_soft }}</span>
+        </figure>
+        <div class="ybEX-card__body">
+          <h3 class="ybEX-card__title">{{ t.explore_4w_title }}</h3>
+          <p class="ybEX-card__text">{{ t.explore_4w_text | safe }}</p>
+          <ul class="ybEX-card__list">
+            <li>{{ t.explore_4w_li1 }}</li>
+            <li>{{ t.explore_4w_li2 | safe }}</li>
+            <li>{{ t.explore_4w_li3 | safe }}</li>
+          </ul>
+          <a class="ybEX-btn ybEX-btn--cta" href="{% if lang == 'en' %}/en/200-hours-4-weeks-intensive-programs{% else %}/200-hours-4-weeks-intensive-programs{% endif %}">{{ t.explore_4w_cta }} &rarr;</a>
+        </div>
+      </article>
+      <article class="ybEX-card">
+        <figure class="ybEX-card__image">
+          <img src="https://www.yogabible.dk/s/200timer-Yoga-Education-Kbenhavn.png?format=1500w" alt="{{ t.explore_18w_title }}" loading="lazy">
+          <span class="ybEX-card__badge ybEX-card__badge--primary">{{ t.explore_18w_badge }}</span>
+        </figure>
+        <div class="ybEX-card__body">
+          <h3 class="ybEX-card__title">{{ t.explore_18w_title }}</h3>
+          <p class="ybEX-card__text">{{ t.explore_18w_text | safe }}</p>
+          <ul class="ybEX-card__list">
+            <li>{{ t.explore_18w_li1 }}</li>
+            <li>{{ t.explore_18w_li2 | safe }}</li>
+            <li>{{ t.explore_18w_li3 }}</li>
+          </ul>
+          <a class="ybEX-btn ybEX-btn--cta" href="{% if lang == 'en' %}/en/200-hours-18-weeks-flexible-programs{% else %}/200-hours-18-weeks-flexible-programs{% endif %}">{{ t.explore_18w_cta }} &rarr;</a>
+        </div>
+      </article>
+    </div>
+  </div>
+
+  <style>
+    #yb-explore{ --ybEX-primary: var(--yb-brand); --ybEX-primary-dark:#e05402; --ybEX-ink:#161616; --ybEX-muted:#6F6A66; --ybEX-border:#e5e0db; --ybEX-surface:#FFFCF9; color:var(--ybEX-ink); background:var(--ybEX-surface); padding: clamp(48px, 6vw, 96px) clamp(18px, 4vw, 28px); }
+    #yb-explore .ybEX__inner{ max-width:1120px; margin:0 auto; }
+    #yb-explore .ybEX__header{ max-width:720px; margin-bottom:clamp(28px,4vw,40px); }
+    #yb-explore .ybEX__kicker{ display:inline-block; margin:0 0 .5rem; font-weight:700; text-transform:uppercase; letter-spacing:.12em; font-size:.82rem; color:var(--ybEX-primary); }
+    #yb-explore .ybEX__title{ margin:0 0 .75rem; font-size:clamp(1.75rem,3.6vw,2.25rem); color:var(--ybEX-ink); line-height:1.15; letter-spacing:-.01em; }
+    #yb-explore .ybEX__lead{ margin:0; color:#6F6A66; line-height:1.65; font-size:clamp(1rem,1.6vw,1.06rem); }
+    #yb-explore .ybEX__grid{ display:grid; grid-template-columns:1fr; gap:1.5rem; }
+    @media (min-width:720px){ #yb-explore .ybEX__grid{ grid-template-columns:1fr 1fr; gap:1.5rem; } }
+    @media (min-width:1000px){ #yb-explore .ybEX__grid{ grid-template-columns:1fr 1fr 1fr; gap:1.75rem; } }
+    #yb-explore .ybEX-card{ background:#fff; border:1px solid var(--ybEX-border); border-radius:18px; overflow:hidden; display:flex; flex-direction:column; box-shadow:0 12px 34px rgba(0,0,0,.05); transition:box-shadow .2s ease, transform .2s ease; }
+    #yb-explore .ybEX-card:hover{ box-shadow:0 16px 44px rgba(0,0,0,.1); transform:translateY(-2px); }
+    #yb-explore .ybEX-card__image{ position:relative; margin:0; aspect-ratio:4/3; overflow:hidden; background:#f5f4f2; }
+    #yb-explore .ybEX-card__image img{ width:100%; height:100%; object-fit:cover; object-position:center; }
+    #yb-explore .ybEX-card__badge{ position:absolute; top:.75rem; left:.75rem; padding:.4rem .75rem; border-radius:999px; font-weight:700; font-size:.72rem; letter-spacing:.02em; text-transform:uppercase; }
+    #yb-explore .ybEX-card__badge--primary{ background:var(--ybEX-primary); color:#fff; box-shadow:0 4px 12px rgba(247,92,3,.3); }
+    #yb-explore .ybEX-card__badge--soft{ background:rgba(255,255,255,.95); color:var(--ybEX-ink); border:1px solid rgba(0,0,0,.08); backdrop-filter:blur(4px); }
+    #yb-explore .ybEX-card__badge--right{ left:auto; right:.75rem; }
+    #yb-explore .ybEX-card__body{ padding:1.25rem; display:flex; flex-direction:column; flex-grow:1; }
+    #yb-explore .ybEX-card__title{ margin:0 0 .6rem; font-size:1.08rem; color:var(--ybEX-ink); line-height:1.3; }
+    #yb-explore .ybEX-card__text{ margin:0 0 .85rem; font-size:.92rem; color:#6F6A66; line-height:1.6; }
+    #yb-explore .ybEX-card__pills{ display:flex; flex-wrap:wrap; gap:.4rem; margin-bottom:.85rem; }
+    #yb-explore .ybEX-pill{ appearance:none; background:#fff; color:var(--ybEX-ink); border:1px solid var(--ybEX-border); padding:.4rem .85rem; border-radius:999px; font-weight:700; font-size:.85rem; cursor:pointer; transition:all .15s ease; font-family:inherit; }
+    #yb-explore .ybEX-pill:hover{ border-color:var(--ybEX-primary); color:var(--ybEX-primary); }
+    #yb-explore .ybEX-pill.is-active{ background:rgba(247,92,3,.08); border-color:var(--ybEX-primary); color:var(--ybEX-primary); }
+    #yb-explore .ybEX-card__blurb{ margin:0 0 1rem; font-size:.88rem; color:var(--ybEX-muted); line-height:1.6; flex-grow:1; }
+    #yb-explore .ybEX-card__list{ list-style:none; margin:0 0 1rem; padding:0; flex-grow:1; }
+    #yb-explore .ybEX-card__list li{ position:relative; padding-left:1.4rem; margin:.4rem 0; font-size:.9rem; color:var(--ybEX-ink); line-height:1.5; }
+    #yb-explore .ybEX-card__list li::before{ content:"\2192"; position:absolute; left:0; color:var(--ybEX-primary); font-weight:700; }
+    #yb-explore .ybEX-btn{ display:inline-flex; align-items:center; justify-content:center; padding:.75rem 1.25rem; border-radius:999px; font-weight:700; font-size:.9rem; text-decoration:none; border:2px solid transparent; cursor:pointer; transition:all .15s ease; margin-top:auto; }
+    #yb-explore .ybEX-btn:focus-visible{ outline:3px solid var(--ybEX-primary); outline-offset:2px; }
+    #yb-explore .ybEX-btn:active{ transform:scale(.98); }
+    #yb-explore .ybEX-btn--cta{ background:var(--ybEX-primary); color:#fff; border-color:var(--ybEX-primary); box-shadow:0 4px 14px rgba(247,92,3,.25); }
+    #yb-explore .ybEX-btn--cta:hover{ background:var(--ybEX-primary-dark); border-color:var(--ybEX-primary-dark); box-shadow:0 6px 20px rgba(247,92,3,.3); transform:translateY(-1px); }
+    #yb-explore .ybEX-btn--outline{ background:transparent; color:var(--ybEX-primary); border-color:var(--ybEX-primary); }
+    #yb-explore .ybEX-btn--outline:hover{ background:var(--ybEX-primary); color:#fff; }
+    @media (max-width:599px){ #yb-explore .ybEX-card__body{ padding:1.1rem; } #yb-explore .ybEX-btn{ width:100%; text-align:center; } }
+    @media (prefers-reduced-motion: reduce){ #yb-explore, #yb-explore *{ transition:none !important; } }
+  </style>
+
+  <script>
+    (function(){
+      const root = document.getElementById('yb-explore');
+      if(!root) return;
+      const COURSE_DATA = {
+        inv: { image: 'https://www.yogabible.dk/s/Inversions_Course_Copenhagen.jpg?format=1500w', blurb: '{{ t.explore_inv_blurb }}', href: 'https://www.yogabible.dk/inversions', label: '{{ t.explore_inv_cta }}', alt: 'Inversions' },
+        spl: { image: 'https://www.yogabible.dk/s/Splits_Course_Kursus_Kbenhavn_Copenhagen.jpg?format=1500w', blurb: '{{ t.explore_spl_blurb }}', href: 'https://www.yogabible.dk/splits', label: '{{ t.explore_spl_cta }}', alt: 'Splits' },
+        bb: { image: 'https://www.yogabible.dk/s/professional-backbend-yoga-training-copenhagen.jpg?format=1500w', blurb: '{{ t.explore_bb_blurb }}', href: 'https://www.yogabible.dk/backbends', label: '{{ t.explore_bb_cta }}', alt: 'Backbends' }
+      };
+      const img = document.getElementById('ybCourseImg');
+      const blurb = document.getElementById('ybCourseBlurb');
+      const cta = document.getElementById('ybCourseCta');
+      const pills = root.querySelectorAll('.ybEX-pill');
+      if (!img || !blurb || !cta || !pills.length) return;
+      const setCourse = (key) => { const data = COURSE_DATA[key]; if (!data) return; pills.forEach(p => { const isActive = p.dataset.course === key; p.classList.toggle('is-active', isActive); p.setAttribute('aria-selected', isActive); }); img.src = data.image; img.alt = data.alt; blurb.textContent = data.blurb; cta.href = data.href; cta.textContent = data.label + ' \u2192'; };
+      pills.forEach(p => { p.addEventListener('click', () => setCourse(p.dataset.course)); });
+      setCourse('inv');
+    })();
+  </script>
+</section>

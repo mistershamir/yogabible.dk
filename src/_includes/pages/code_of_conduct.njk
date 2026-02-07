@@ -1,0 +1,83 @@
+{% set t = i18n.code_of_conduct[lang or "da"] %}
+
+<section class="program-hero">
+  <div class="container">
+    <h1 class="program-hero__title">{{ t.hero_title }}</h1>
+    <p class="program-hero__subtitle">{{ t.hero_subtitle }}</p>
+  </div>
+</section>
+
+<section class="program-overview">
+  <div class="container">
+    <div class="yb-legal-content">
+      <p class="yb-legal-meta">{{ t.last_updated }}</p>
+
+      <p>{{ t.intro }}</p>
+
+      <p>{{ t.applies_to }}</p>
+
+      <h2>{{ t.standard_title }}</h2>
+      <ul>
+        <li>{{ t.standard_ahimsa | safe }}</li>
+        <li>{{ t.standard_satya | safe }}</li>
+        <li>{{ t.standard_saucha | safe }}</li>
+        <li>{{ t.standard_professionalism | safe }}</li>
+        <li>{{ t.standard_privacy | safe }}</li>
+      </ul>
+
+      <h2>{{ t.s1_title }}</h2>
+      <p>{{ t.s1_text }}</p>
+
+      <h2>{{ t.s2_title }}</h2>
+      <p>{{ t.s2_intro }}</p>
+      <ul>
+        <li>{{ t.s2_sexual }}</li>
+        <li>{{ t.s2_threats }}</li>
+        <li>{{ t.s2_discrimination }}</li>
+        <li>{{ t.s2_pressure }}</li>
+        <li>{{ t.s2_unsafe }}</li>
+      </ul>
+      <p>{{ t.s2_quote | safe }}</p>
+
+      <h2>{{ t.s3_title }}</h2>
+      <p>{{ t.s3_text }}</p>
+
+      <h3>{{ t.s3_adjustments_title }}</h3>
+      <p>{{ t.s3_adjustments_text }}</p>
+
+      <h3>{{ t.s3_minors_title }}</h3>
+      <p>{{ t.s3_minors_text }}</p>
+
+      <h2>{{ t.s4_title }}</h2>
+      <p>{{ t.s4_text }}</p>
+
+      <h2>{{ t.s5_title }}</h2>
+      <p>{{ t.s5_integrity | safe }}</p>
+      <p>{{ t.s5_boundaries | safe }}</p>
+
+      <h2>{{ t.s6_title }}</h2>
+      <p>{{ t.s6_text }}</p>
+
+      <h2>{{ t.s7_title }}</h2>
+      <p>{{ t.s7_text }}</p>
+
+      <h2>{{ t.s8_title }}</h2>
+      <p>{{ t.s8_confidentiality | safe }}</p>
+      <p>{{ t.s8_nonsolicit | safe }}</p>
+
+      <h2>{{ t.s9_title }}</h2>
+      <ul>
+        <li>{{ t.s9_email | safe }}</li>
+        <li>{{ t.s9_phone | safe }}</li>
+        <li>{{ t.s9_studio }}</li>
+      </ul>
+      <p>{{ t.s9_details }}</p>
+      <p>{{ t.s9_emergency | safe }}</p>
+
+      <h2>{{ t.s10_title }}</h2>
+      <p>{{ t.s10_text }}</p>
+
+      <p>{{ t.closing | safe }}</p>
+    </div>
+  </div>
+</section>
