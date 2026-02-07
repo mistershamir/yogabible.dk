@@ -5075,6 +5075,7 @@ section {
 
 .yj-post-content__inner {
   max-width: 760px;
+  margin: 0 auto;
 }
 
 .yj-post-body {
@@ -5181,6 +5182,7 @@ section {
 
 .yj-post-tags__inner {
   max-width: 760px;
+  margin: 0 auto;
   display: flex;
   align-items: center;
   gap: 12px;
@@ -5210,6 +5212,7 @@ section {
 
 .yj-author-card__inner {
   max-width: 760px;
+  margin: 0 auto;
   display: flex;
   align-items: flex-start;
   gap: 20px;
