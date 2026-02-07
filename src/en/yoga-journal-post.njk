@@ -3,12 +3,12 @@ pagination:
   data: journals.entries
   size: 1
   alias: journal
-permalink: "/yoga-journal/{{ journal.slug }}/"
+permalink: "/en/yoga-journal/{{ journal.slug }}/"
 layout: base.njk
-lang: da
+lang: en
 eleventyComputed:
-  title: "{{ journal.title_da }} | Yoga Journal — YOGA BIBLE"
-  description: "{{ journal.excerpt_da }}"
+  title: "{{ journal.title_en }} | Yoga Journal — YOGA BIBLE"
+  description: "{{ journal.excerpt_en }}"
   journalPost: true
 ---
 
