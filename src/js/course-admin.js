@@ -47,6 +47,24 @@
   }
 
   /* ═══════════════════════════════════════
+     TAB SWITCHING
+     ═══════════════════════════════════════ */
+  function initTabs() {
+    document.querySelectorAll('[data-yb-admin-tab]').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        var tabName = btn.getAttribute('data-yb-admin-tab');
+        // Toggle active on buttons
+        document.querySelectorAll('[data-yb-admin-tab]').forEach(function (b) { b.classList.remove('is-active'); });
+        btn.classList.add('is-active');
+        // Toggle active on panels
+        document.querySelectorAll('[data-yb-admin-panel]').forEach(function (p) { p.classList.remove('is-active'); });
+        var panel = document.querySelector('[data-yb-admin-panel="' + tabName + '"]');
+        if (panel) panel.classList.add('is-active');
+      });
+    });
+  }
+
+  /* ═══════════════════════════════════════
      VIEW SWITCHING
      ═══════════════════════════════════════ */
   function showView(name) {
@@ -74,21 +92,6 @@
   }
 
   /* ═══════════════════════════════════════
-     SIDEBAR TREE
-     ═══════════════════════════════════════ */
-  function renderTree() {
-    var el = $('yb-admin-tree');
-    if (!el) return;
-    if (!state.courses.length) { el.innerHTML = '<p class="yb-admin__tree-empty">' + t('no_courses') + '</p>'; return; }
-
-    el.innerHTML = state.courses.map(function (c) {
-      var active = c.id === state.courseId ? ' is-active' : '';
-      return '<div class="yb-admin__tree-course' + active + '" data-action="select-course" data-id="' + c.id + '">' +
-        '<span>' + (c.icon || '📚') + ' ' + esc(c.title_en || c.title_da) + '</span></div>';
-    }).join('');
-  }
-
-  /* ═══════════════════════════════════════
      COURSES
      ═══════════════════════════════════════ */
   function loadCourses() {
@@ -96,7 +99,6 @@
       state.courses = [];
       snap.forEach(function (doc) { state.courses.push(Object.assign({ id: doc.id }, doc.data())); });
       renderCourseList();
-      renderTree();
     }).catch(function (err) { console.error(err); toast(t('error_load'), true); });
   }
 
@@ -155,7 +157,6 @@
 
   function deleteCourse(courseId) {
     if (!confirm(t('confirm_delete_course'))) return;
-    // Cascade: delete chapters, modules, then course
     var courseRef = db.collection('courses').doc(courseId);
     courseRef.collection('modules').get().then(function (modSnap) {
       var promises = [];
@@ -182,7 +183,6 @@
   function selectCourse(courseId) {
     state.courseId = courseId;
     state.moduleId = null;
-    renderTree();
     loadModules(courseId);
     loadEnrollments(courseId);
     showView('modules');
@@ -348,7 +348,6 @@
     var title = $('yb-chf-title').value.trim();
     var content = $('yb-chf-content').value;
     var id = $('yb-chf-id').value || slug(title || 'chapter');
-    // Ensure unique ID with order prefix
     if (!$('yb-chf-id').value) {
       var orderNum = String($('yb-chf-order').value).padStart(2, '0');
       id = orderNum + '-' + id;
@@ -406,17 +405,14 @@
     for (var i = 0; i < lines.length; i++) {
       var line = lines[i].trim();
 
-      // Skip empty lines — close list if open
       if (!line) {
         if (inList) { html += '</' + listType + '>\n'; inList = false; }
         continue;
       }
 
-      // Headings
       if (line.match(/^###\s/)) { if (inList) { html += '</' + listType + '>\n'; inList = false; } html += '<h3>' + esc(line.replace(/^###\s*/, '')) + '</h3>\n'; continue; }
       if (line.match(/^##\s/)) { if (inList) { html += '</' + listType + '>\n'; inList = false; } html += '<h2>' + esc(line.replace(/^##\s*/, '')) + '</h2>\n'; continue; }
 
-      // Bullet list
       if (line.match(/^[-*]\s/)) {
         if (!inList || listType !== 'ul') {
           if (inList) html += '</' + listType + '>\n';
@@ -426,7 +422,6 @@
         continue;
       }
 
-      // Numbered list
       if (line.match(/^\d+[.)]\s/)) {
         if (!inList || listType !== 'ol') {
           if (inList) html += '</' + listType + '>\n';
@@ -436,7 +431,6 @@
         continue;
       }
 
-      // Regular paragraph
       if (inList) { html += '</' + listType + '>\n'; inList = false; }
       html += '<p>' + esc(line) + '</p>\n';
     }
@@ -455,7 +449,6 @@
     var chunks = [];
 
     if (splitMode === 'headings') {
-      // Split on lines starting with ## (or lines that are ALL CAPS and > 3 chars)
       var parts = text.split(/\n(?=##\s|[A-ZÆØÅ][A-ZÆØÅ\s]{3,}$)/m);
       parts.forEach(function (part) {
         part = part.trim();
@@ -466,7 +459,6 @@
         chunks.push({ title: title, raw: body });
       });
     } else if (splitMode === 'blank') {
-      // Split on double blank lines
       var parts = text.split(/\n\s*\n\s*\n/);
       parts.forEach(function (part, idx) {
         part = part.trim();
@@ -476,7 +468,6 @@
         chunks.push({ title: firstLine || ('Chapter ' + (idx + 1)), raw: body || part });
       });
     } else if (splitMode === 'hr') {
-      // Split on --- or ===
       var parts = text.split(/\n-{3,}\n|\n={3,}\n/);
       parts.forEach(function (part, idx) {
         part = part.trim();
@@ -487,7 +478,6 @@
       });
     }
 
-    // Convert raw text to HTML for each chunk
     chunks.forEach(function (ch) {
       ch.content = textToHtml(ch.raw);
     });
@@ -526,7 +516,6 @@
   function createBulkChapters() {
     if (!state.bulkChapters.length) return;
 
-    // Update titles from inputs
     document.querySelectorAll('[data-bulk-title]').forEach(function (inp) {
       var idx = parseInt(inp.getAttribute('data-bulk-title'), 10);
       if (state.bulkChapters[idx]) state.bulkChapters[idx].title = inp.value.trim();
@@ -541,7 +530,6 @@
       var orderNum = String(startOrder + idx).padStart(2, '0');
       var id = orderNum + '-' + slug(ch.title || 'chapter-' + (startOrder + idx));
 
-      // Write same content to both _da and _en fields
       batch.set(basePath.doc(id), {
         order: startOrder + idx,
         title_da: ch.title,
@@ -567,7 +555,6 @@
       setTimeout(function () {
         loadChapters(state.courseId, state.moduleId);
         showView('chapters');
-        // reset bulk UI
         $('yb-admin-bulk-step1').hidden = false;
         $('yb-admin-bulk-step2').hidden = true;
         if (progressEl) progressEl.hidden = true;
@@ -618,7 +605,6 @@
     var val = input.value.trim();
     if (!val || !state.courseId) return;
 
-    // If it looks like email, find user by email
     var promise;
     if (val.indexOf('@') > -1) {
       promise = db.collection('users').where('email', '==', val).limit(1).get()
@@ -660,7 +646,6 @@
      EVENT BINDING
      ═══════════════════════════════════════ */
   function bindEvents() {
-    // Delegated click handler
     document.addEventListener('click', function (e) {
       var btn = e.target.closest('[data-action]');
       if (!btn) return;
@@ -674,7 +659,7 @@
         case 'edit-course': showCourseForm(id); break;
         case 'delete-course': deleteCourse(id); break;
         case 'select-course': selectCourse(id); break;
-        case 'back-courses': state.courseId = null; state.moduleId = null; renderTree(); showView('courses'); break;
+        case 'back-courses': state.courseId = null; state.moduleId = null; showView('courses'); break;
 
         case 'new-module': showModuleForm(null); break;
         case 'edit-module': showModuleForm(id); break;
@@ -694,6 +679,9 @@
           state.bulkChapters.splice(idx, 1);
           renderBulkPreview();
           break;
+
+        case 'revoke-enroll': toggleEnrollment(id, 'revoked'); break;
+        case 'activate-enroll': toggleEnrollment(id, 'active'); break;
       }
     });
 
@@ -739,23 +727,21 @@
     db = firebase.firestore();
 
     bindEvents();
+    initTabs();
 
     var gateEl = $('yb-admin-gate');
-    var loadingEl = $('yb-admin-loading');
     var panelEl = $('yb-admin-panel');
 
     auth.onAuthStateChanged(function (user) {
       if (!user) {
         currentUser = null;
-        if (gateEl) gateEl.hidden = false;
-        if (loadingEl) loadingEl.hidden = true;
-        if (panelEl) panelEl.hidden = true;
+        if (gateEl) gateEl.style.display = '';
+        if (panelEl) panelEl.style.display = 'none';
         return;
       }
       currentUser = user;
-      if (gateEl) gateEl.hidden = true;
-      if (loadingEl) loadingEl.hidden = true;
-      if (panelEl) panelEl.hidden = false;
+      if (gateEl) gateEl.style.display = 'none';
+      if (panelEl) panelEl.style.display = '';
       loadCourses();
     });
   }
