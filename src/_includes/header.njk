@@ -1,31 +1,31 @@
 {% set lp = "/en" if lang == "en" else "" %}
 
-<!-- Utility Bar (Orange) -->
-<div id="yb-utilbar" class="ybhd-utilbar">
-  <div class="ybhd-utilbar__inner">
-    <div class="ybhd-utilbar__left">
-      <a href="mailto:{{ site.email }}" data-i18n="util.email">info@yogabible.dk</a>
-      <span class="ybhd-utilbar__sep"></span>
-      <a href="tel:{{ site.phone }}" data-i18n="util.phone">+45 53 88 12 09</a>
-      <span class="ybhd-utilbar__sep"></span>
-      <span data-i18n="util.address">Torvegade 66, 1400, København K</span>
-    </div>
-    <div class="ybhd-utilbar__right">
-      <div class="ybhd-utilbar__social">
-        <a href="{{ site.instagram }}" target="_blank" rel="noopener">Instagram</a>
-        <a href="{{ site.soundcloud }}" target="_blank" rel="noopener">SoundCloud</a>
+<!-- Main Header -->
+<header id="yb-header" class="ybhd-header" role="banner">
+  <!-- Utility Bar (Orange) — inside header for unified sticky -->
+  <div id="yb-utilbar" class="ybhd-utilbar">
+    <div class="ybhd-utilbar__inner">
+      <div class="ybhd-utilbar__left">
+        <a href="mailto:{{ site.email }}" data-i18n="util.email">info@yogabible.dk</a>
+        <span class="ybhd-utilbar__sep"></span>
+        <a href="tel:{{ site.phone }}" data-i18n="util.phone">+45 53 88 12 09</a>
+        <span class="ybhd-utilbar__sep"></span>
+        <span data-i18n="util.address">Torvegade 66, 1400, København K</span>
       </div>
-      <span class="ybhd-utilbar__sep"></span>
-      <div class="ybhd-utilbar__flags" role="navigation" aria-label="Language selector">
-        <a class="ybhd-utilbar__flag" data-lang="da" href="/" aria-label="Dansk" title="Dansk">🇩🇰</a>
-        <a class="ybhd-utilbar__flag" data-lang="en" href="/en/" aria-label="English" title="English">🇬🇧</a>
+      <div class="ybhd-utilbar__right">
+        <div class="ybhd-utilbar__social">
+          <a href="{{ site.instagram }}" target="_blank" rel="noopener">Instagram</a>
+          <a href="{{ site.soundcloud }}" target="_blank" rel="noopener">SoundCloud</a>
+        </div>
+        <span class="ybhd-utilbar__sep"></span>
+        <div class="ybhd-utilbar__flags" role="navigation" aria-label="Language selector">
+          <a class="ybhd-utilbar__flag" data-lang="da" href="/" aria-label="Dansk" title="Dansk">🇩🇰</a>
+          <a class="ybhd-utilbar__flag" data-lang="en" href="/en/" aria-label="English" title="English">🇬🇧</a>
+        </div>
       </div>
     </div>
   </div>
-</div>
 
-<!-- Main Header -->
-<header id="yb-header" class="ybhd-header" role="banner">
   <div class="ybhd-inner">
     <!-- LEFT NAV (Desktop) -->
     <nav class="ybhd-nav ybhd-nav--left" aria-label="Primary navigation">
