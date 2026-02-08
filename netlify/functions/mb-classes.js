@@ -60,6 +60,8 @@ exports.handler = async function(event) {
         endDateTime: cls.EndDateTime,
         instructor: cls.Staff ? cls.Staff.Name : 'TBA',
         instructorId: cls.Staff ? cls.Staff.Id : null,
+        instructorBio: cls.Staff ? cls.Staff.Bio : null,
+        instructorImageUrl: cls.Staff ? cls.Staff.ImageUrl : null,
         location: cls.Location ? cls.Location.Name : '',
         locationId: cls.Location ? cls.Location.Id : null,
         maxCapacity: cls.MaxCapacity,

@@ -7149,6 +7149,11 @@ section {
   color: #fff;
 }
 
+.yb-schedule__toast--warning {
+  background: #e67e22;
+  color: #fff;
+}
+
 @media (max-width: 768px) {
   .yb-schedule__header {
     flex-direction: column;
@@ -7398,17 +7403,112 @@ section {
 }
 
 .yb-schedule__desc {
-  background: #F5F3F0;
-  border-radius: 8px;
-  padding: 0.75rem 1rem;
-  margin: 0 0 0.5rem 0;
+  background: #FFFCF9;
+  border: 1px solid #E8E4E0;
+  border-left: 3px solid #f75c03;
+  border-radius: 0 8px 8px 0;
+  padding: 1rem 1.25rem;
+  margin: 0 0 0.75rem 0;
 }
 
-.yb-schedule__desc p {
-  margin: 0;
-  font-size: 0.85rem;
+.yb-schedule__desc-content {
+  font-size: 0.8rem;
+  color: #6F6A66;
+  line-height: 1.6;
+}
+
+.yb-schedule__desc-content p {
+  margin: 0 0 0.5rem;
+  font-size: 0.8rem;
+  color: #6F6A66;
+  line-height: 1.6;
+}
+
+.yb-schedule__desc-content p:last-child {
+  margin-bottom: 0;
+}
+
+.yb-schedule__desc-content ul,
+.yb-schedule__desc-content ol {
+  margin: 0.25rem 0 0.5rem 1.25rem;
+  padding: 0;
+  font-size: 0.8rem;
+  color: #6F6A66;
+}
+
+.yb-schedule__desc-content li {
+  margin-bottom: 0.25rem;
+  line-height: 1.5;
+}
+
+.yb-schedule__desc-content li::marker {
+  color: #f75c03;
+}
+
+.yb-schedule__desc-content strong {
+  color: #0F0F0F;
+  font-weight: 700;
+}
+
+.yb-schedule__desc-content em {
+  color: #f75c03;
+  font-style: italic;
+}
+
+/* ═══════════════════════════════════════
+   SCHEDULE: TEACHER BIO EXPANDABLE
+   ═══════════════════════════════════════ */
+
+.yb-schedule__class-instructor--clickable {
+  cursor: pointer;
+  text-decoration: underline;
+  text-decoration-color: #E8E4E0;
+  text-underline-offset: 2px;
+  transition: color 0.2s;
+}
+
+.yb-schedule__class-instructor--clickable:hover {
+  color: #f75c03;
+  text-decoration-color: #f75c03;
+}
+
+.yb-schedule__teacher-bio {
+  background: #FFFCF9;
+  border: 1px solid #E8E4E0;
+  border-radius: 8px;
+  padding: 1rem 1.25rem;
+  margin: 0 0 0.75rem 0;
+  display: flex;
+  gap: 1rem;
+  align-items: flex-start;
+}
+
+.yb-schedule__teacher-photo {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid #f75c03;
+  flex-shrink: 0;
+}
+
+.yb-schedule__teacher-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.yb-schedule__teacher-name {
+  font-weight: 700;
+  font-size: 0.9rem;
+  color: #0F0F0F;
+  margin: 0 0 0.25rem;
+}
+
+.yb-schedule__teacher-bio-text {
+  font-size: 0.8rem;
   color: #6F6A66;
   line-height: 1.5;
+  margin: 0;
 }
 
 /* ═══════════════════════════════════════

@@ -30,48 +30,89 @@ exports.handler = async function(event) {
     var startDate = params.startDate || new Date(now.getTime() - 365 * 86400000).toISOString().split('T')[0];
     var endDate = params.endDate || now.toISOString().split('T')[0];
 
+    // Try /sale/sales (more reliable) with ClientId filter
+    // Params: StartSaleDateTime, EndSaleDateTime, ClientId, Limit
     var queryString = new URLSearchParams({
       ClientId: params.clientId,
-      StartDate: startDate,
-      EndDate: endDate,
+      StartSaleDateTime: startDate + 'T00:00:00',
+      EndSaleDateTime: endDate + 'T23:59:59',
       Limit: '200'
     }).toString();
 
-    console.log('mb-purchases query:', queryString);
-    var data = await mbFetch('/sale/clientpurchases?' + queryString);
+    console.log('mb-purchases query (sale/sales):', queryString);
 
-    var purchases = (data.Purchases || []).map(function(p) {
-      // Build payment details string
-      var paymentMethod = '';
-      var paymentLast4 = '';
-      if (p.Payments && p.Payments.length) {
-        paymentMethod = p.Payments[0].Method || '';
-        if (p.Payments[0].Last4Digits) paymentLast4 = p.Payments[0].Last4Digits;
-        else if (p.Payments[0].Notes) paymentLast4 = p.Payments[0].Notes;
-      }
+    var data;
+    var purchases = [];
 
-      return {
-        id: p.Id,
-        saleDate: p.SaleDate,
-        saleTime: p.SaleTime,
-        description: p.Description || '',
-        accountPayment: p.AccountPayment || false,
-        price: p.Price || 0,
-        amountPaid: p.AmountPaid || 0,
-        discount: p.Discount || 0,
-        tax: p.Tax || 0,
-        returned: p.Returned || false,
-        quantity: p.Quantity || 1,
-        serviceName: p.Service ? p.Service.Name : (p.Product ? p.Product.Name : p.Description || ''),
-        serviceId: p.Service ? p.Service.Id : null,
-        productId: p.Product ? p.Product.Id : null,
-        paymentMethod: paymentMethod,
-        paymentLast4: paymentLast4,
-        locationName: p.Location ? p.Location.Name : '',
-        saleId: p.SaleId || null
-      };
-    });
+    try {
+      data = await mbFetch('/sale/sales?' + queryString);
+      var sales = data.Sales || [];
+      console.log('mb-purchases: /sale/sales returned', sales.length, 'sales');
 
+      // Each Sale has Items array with the purchased line items
+      sales.forEach(function(sale) {
+        var items = sale.Items || [];
+        items.forEach(function(item) {
+          purchases.push({
+            id: item.Id || sale.Id,
+            saleId: sale.Id,
+            saleDate: sale.SaleDateTime || sale.SaleDate,
+            description: item.Description || '',
+            price: item.Price || 0,
+            amountPaid: item.AmountPaid || item.Price || 0,
+            discount: item.Discount || 0,
+            tax: item.Tax || 0,
+            returned: item.Returned || false,
+            quantity: item.Quantity || 1,
+            serviceName: item.Description || '',
+            paymentMethod: (sale.Payments && sale.Payments.length) ? sale.Payments[0].Method || '' : '',
+            paymentLast4: (sale.Payments && sale.Payments.length && sale.Payments[0].Last4) ? sale.Payments[0].Last4 : '',
+            locationName: sale.LocationId ? ('Location ' + sale.LocationId) : ''
+          });
+        });
+      });
+    } catch (salesErr) {
+      console.warn('mb-purchases: /sale/sales failed:', salesErr.message, '— trying /sale/clientpurchases');
+
+      // Fallback to /sale/clientpurchases
+      var fallbackQs = new URLSearchParams({
+        ClientId: params.clientId,
+        StartDate: startDate,
+        EndDate: endDate,
+        Limit: '200'
+      }).toString();
+
+      data = await mbFetch('/sale/clientpurchases?' + fallbackQs);
+
+      purchases = (data.Purchases || []).map(function(p) {
+        var paymentMethod = '';
+        var paymentLast4 = '';
+        if (p.Payments && p.Payments.length) {
+          paymentMethod = p.Payments[0].Method || '';
+          if (p.Payments[0].Last4Digits) paymentLast4 = p.Payments[0].Last4Digits;
+          else if (p.Payments[0].Notes) paymentLast4 = p.Payments[0].Notes;
+        }
+
+        return {
+          id: p.Id,
+          saleId: p.SaleId || null,
+          saleDate: p.SaleDate,
+          description: p.Description || '',
+          price: p.Price || 0,
+          amountPaid: p.AmountPaid || 0,
+          discount: p.Discount || 0,
+          tax: p.Tax || 0,
+          returned: p.Returned || false,
+          quantity: p.Quantity || 1,
+          serviceName: p.Service ? p.Service.Name : (p.Product ? p.Product.Name : p.Description || ''),
+          paymentMethod: paymentMethod,
+          paymentLast4: paymentLast4,
+          locationName: p.Location ? p.Location.Name : ''
+        };
+      });
+    }
+
+    console.log('mb-purchases: returning', purchases.length, 'purchases total');
     return jsonResponse(200, { purchases: purchases, total: purchases.length });
   } catch (err) {
     console.error('mb-purchases error:', err);
