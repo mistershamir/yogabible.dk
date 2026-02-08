@@ -1352,6 +1352,7 @@
     var startDate = new Date(now.getTime() - Number(receiptsPeriod) * 86400000).toISOString().split('T')[0];
     var endDate = now.toISOString().split('T')[0];
 
+    console.log('Receipts: fetching for clientId=' + clientId + ' range=' + startDate + ' to ' + endDate);
     fetch('/.netlify/functions/mb-purchases?clientId=' + clientId + '&startDate=' + startDate + '&endDate=' + endDate)
       .then(function(r) { return r.json(); })
       .then(function(data) {
