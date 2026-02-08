@@ -6990,12 +6990,8 @@ section {
    ═══════════════════════════════════════ */
 
 .yb-schedule__header {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  gap: 1rem;
-  margin-bottom: 2rem;
-  flex-wrap: wrap;
+  text-align: center;
+  margin-bottom: 0.75rem;
 }
 
 .yb-schedule__title {
@@ -7015,7 +7011,9 @@ section {
 .yb-schedule__nav {
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 0.75rem;
+  margin-bottom: 1.25rem;
 }
 
 .yb-schedule__nav-btn {
@@ -7200,15 +7198,6 @@ section {
 }
 
 @media (max-width: 768px) {
-  .yb-schedule__header {
-    flex-direction: column;
-  }
-
-  .yb-schedule__nav {
-    width: 100%;
-    justify-content: space-between;
-  }
-
   .yb-schedule__nav-label {
     display: none;
   }

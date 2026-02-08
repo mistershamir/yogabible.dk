@@ -169,21 +169,21 @@
       <div class="yb-profile__tab-panel" data-yb-panel="schedule">
         <div class="yb-schedule">
           <div class="yb-schedule__header">
-            <div>
-              <h2 class="yb-schedule__title">{{ t.schedule_title }}</h2>
-              <p class="yb-schedule__subtitle">{{ t.schedule_subtitle }}</p>
-            </div>
-            <div class="yb-schedule__nav">
-              <button class="yb-schedule__nav-btn" type="button" id="yb-schedule-prev">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
-                <span class="yb-schedule__nav-label">{{ t.schedule_prev_week }}</span>
-              </button>
-              <span class="yb-schedule__week-label" id="yb-schedule-week-label"></span>
-              <button class="yb-schedule__nav-btn" type="button" id="yb-schedule-next">
-                <span class="yb-schedule__nav-label">{{ t.schedule_next_week }}</span>
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
-              </button>
-            </div>
+            <h2 class="yb-schedule__title">{{ t.schedule_title }}</h2>
+            <p class="yb-schedule__subtitle">{{ t.schedule_subtitle }}</p>
+          </div>
+
+          <div class="yb-schedule__nav">
+            <button class="yb-schedule__nav-btn" type="button" id="yb-schedule-prev">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+              <span class="yb-schedule__nav-label">{{ t.schedule_prev_week }}</span>
+            </button>
+            <span class="yb-schedule__week-label" id="yb-schedule-week-label"></span>
+            <button class="yb-schedule__nav-btn" type="button" id="yb-schedule-next">
+              <span class="yb-schedule__nav-label">{{ t.schedule_next_week }}</span>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+            </button>
+          </div>
           </div>
 
           <!-- Pass info or no-pass prompt (toggled by JS) -->
