@@ -246,12 +246,9 @@
         sinceEl.textContent = (isDa() ? 'Medlem siden ' : 'Member since ') + date.toLocaleDateString(isDa() ? 'da-DK' : 'en-GB', { year: 'numeric', month: 'long' });
       }
 
+      // Tier is set by loadMembershipDetails after fetching pass data
       var tierEl = document.getElementById('yb-profile-tier');
-      if (tierEl) {
-        var tier = d.membershipTier || 'free';
-        tierEl.textContent = tier === 'free' ? (isDa() ? 'Gratis' : 'Free') : (isDa() ? 'Medlem' : 'Member');
-        tierEl.className = 'yb-profile__info-value ' + (tier === 'free' ? 'yb-profile__info-value--muted' : 'yb-profile__info-value--success');
-      }
+      if (tierEl) tierEl.textContent = '—';
     }).catch(function(err) { console.warn('Could not load profile:', err); });
   }
 
@@ -366,15 +363,19 @@
         clientPassData = data;
         renderMembershipDetails(contentEl, data);
 
-        // Update tier: only autopay contracts make someone a "Member"
+        // Show pass type in tier field
         var hasAutopayContract = data.activeContracts && data.activeContracts.length > 0;
+        var hasActiveService = data.activeServices && data.activeServices.length > 0;
         var tierEl = document.getElementById('yb-profile-tier');
         if (tierEl) {
           if (hasAutopayContract) {
-            tierEl.textContent = isDa() ? 'Medlem' : 'Member';
+            tierEl.textContent = isDa() ? 'Månedligt Medlemskab' : 'Monthly Membership';
+            tierEl.className = 'yb-profile__info-value yb-profile__info-value--success';
+          } else if (hasActiveService) {
+            tierEl.textContent = isDa() ? 'Klippekort' : 'Clip Card';
             tierEl.className = 'yb-profile__info-value yb-profile__info-value--success';
           } else {
-            tierEl.textContent = isDa() ? 'Gratis' : 'Free';
+            tierEl.textContent = isDa() ? 'Intet aktivt pas' : 'No active pass';
             tierEl.className = 'yb-profile__info-value yb-profile__info-value--muted';
           }
         }
@@ -658,7 +659,30 @@
     payBtn.disabled = true;
     payBtn.textContent = isDa() ? 'Behandler betaling...' : 'Processing payment...';
 
-    if (!clientId) { showSimpleError(errorEl, isDa() ? 'Din konto er ikke klar endnu.' : 'Your account is not ready yet.'); payBtn.disabled = false; payBtn.textContent = payBtnText; return; }
+    if (!clientId) {
+      // Try to sync account first, then retry
+      showSimpleError(errorEl, isDa() ? 'Vent venligst — vi opretter din konto...' : 'Please wait — setting up your account...');
+      var syncUser = firebase.auth().currentUser;
+      if (syncUser && currentDb) {
+        var fn = (syncUser.displayName || '').split(' ')[0] || '';
+        var ln = (syncUser.displayName || '').split(' ').slice(1).join(' ') || '';
+        fetch('/.netlify/functions/mb-sync', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email: syncUser.email, firstName: fn, lastName: ln })
+        }).then(function(r) { return r.json(); }).then(function(syncData) {
+          if (syncData.clientId) {
+            clientId = String(syncData.clientId);
+            currentDb.collection('users').doc(syncUser.uid).update({ mindbodyClientId: clientId });
+            showSimpleError(errorEl, isDa() ? 'Konto oprettet! Prøv igen.' : 'Account ready! Please try again.');
+          } else {
+            showSimpleError(errorEl, isDa() ? 'Kunne ikke oprette konto. Kontakt os.' : 'Could not set up account. Contact us.');
+          }
+        }).catch(function() {
+          showSimpleError(errorEl, isDa() ? 'Kunne ikke oprette konto. Kontakt os.' : 'Could not set up account. Contact us.');
+        });
+      }
+      payBtn.disabled = false; payBtn.textContent = payBtnText; return;
+    }
 
     fetch('/.netlify/functions/mb-checkout', {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
@@ -825,7 +849,9 @@
     var activeContracts = data.activeContracts || [];
     var hasMembership = activeContracts.length > 0;
 
-    if (data.hasActivePass) {
+    var hasAnyActivePass = (data.activeServices && data.activeServices.length > 0) || (data.activeContracts && data.activeContracts.length > 0);
+
+    if (hasAnyActivePass) {
       // Always hide buy-pass banner for active pass holders
       if (noPassEl) noPassEl.hidden = true;
 
@@ -875,8 +901,11 @@
         passInfoEl.innerHTML = html;
         passInfoEl.hidden = false;
       }
+    } else {
+      // No active pass — show the buy-pass banner
+      if (passInfoEl) passInfoEl.hidden = true;
+      if (noPassEl) noPassEl.hidden = false;
     }
-    // Don't show no-pass by default — only show after a booking fails
   }
 
   function renderSchedule(container, classes, weekStart) {
@@ -923,8 +952,8 @@
         } else {
           html += '    <span class="yb-schedule__class-instructor">' + esc(cls.instructor) + '</span>';
         }
-        if (cls.spotsLeft !== null && cls.spotsLeft > 0 && !cls.isCanceled && !isPast) {
-          html += '    <span class="yb-schedule__class-spots">' + cls.spotsLeft + ' ' + t('schedule_spots_left') + '</span>';
+        if (cls.spotsLeft !== null && cls.spotsLeft > 0 && cls.spotsLeft <= 7 && !cls.isCanceled && !isPast) {
+          html += '    <span class="yb-schedule__class-spots">' + (isDa() ? 'Få pladser tilbage' : 'Few spots left') + '</span>';
         }
         // Class description toggle
         if (cls.description) {
@@ -940,7 +969,7 @@
         } else if (cls.isBooked) {
           html += '<button class="yb-btn yb-btn--outline yb-schedule__cancel-btn" type="button" data-schedule-cancel="' + cls.id + '">' + t('schedule_cancel') + '</button>';
         } else if (cls.spotsLeft === 0) {
-          html += '<span class="yb-schedule__badge yb-schedule__badge--full">' + t('schedule_full') + '</span>';
+          html += '<button class="yb-btn yb-btn--outline yb-schedule__waitlist-btn" type="button" data-schedule-waitlist="' + cls.id + '">' + (isDa() ? 'Skriv op' : 'Join Waitlist') + '</button>';
         } else {
           // Always show Book for available future classes — let backend validate
           html += '<button class="yb-btn yb-btn--primary yb-schedule__book-btn" type="button" data-schedule-book="' + cls.id + '">' + t('schedule_book') + '</button>';
@@ -973,6 +1002,38 @@
     });
     container.querySelectorAll('[data-schedule-cancel]').forEach(function(btn) {
       btn.addEventListener('click', function() { cancelClass(btn); });
+    });
+    // Attach waitlist handlers
+    container.querySelectorAll('[data-schedule-waitlist]').forEach(function(btn) {
+      btn.addEventListener('click', function() {
+        if (!clientId) {
+          showScheduleToast(isDa() ? 'Køb et pas først i Butik-fanen.' : 'Buy a pass first in the Store tab.', 'error');
+          return;
+        }
+        var classId = btn.getAttribute('data-schedule-waitlist');
+        btn.disabled = true;
+        btn.textContent = isDa() ? 'Tilmelder...' : 'Joining...';
+        fetch('/.netlify/functions/mb-waitlist', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ clientId: clientId, classScheduleId: Number(classId) })
+        }).then(function(r) { return r.json(); })
+          .then(function(data) {
+            if (data.success || data.WaitlistEntry) {
+              showScheduleToast(isDa() ? 'Du er på ventelisten!' : "You're on the waiting list!", 'success');
+              btn.textContent = isDa() ? 'På venteliste' : 'On waitlist';
+              btn.disabled = true;
+            } else {
+              showScheduleToast(data.error || (isDa() ? 'Kunne ikke tilmelde venteliste.' : 'Could not join waitlist.'), 'error');
+              btn.textContent = isDa() ? 'Skriv op' : 'Join Waitlist';
+              btn.disabled = false;
+            }
+          })
+          .catch(function() {
+            showScheduleToast(isDa() ? 'Fejl. Prøv igen.' : 'Error. Try again.', 'error');
+            btn.textContent = isDa() ? 'Skriv op' : 'Join Waitlist';
+            btn.disabled = false;
+          });
+      });
     });
     // Attach description toggle handlers
     container.querySelectorAll('[data-toggle-desc]').forEach(function(btn) {
@@ -1070,6 +1131,16 @@
   function bookClass(btn) {
     var classId = btn.getAttribute('data-schedule-book');
     if (!clientId) {
+      showScheduleToast(isDa() ? 'Køb et pas først i Butik-fanen.' : 'Buy a pass first in the Store tab.', 'error');
+      var noPassEl = document.getElementById('yb-schedule-no-pass');
+      if (noPassEl) noPassEl.hidden = false;
+      return;
+    }
+
+    // Check if client has ANY active pass
+    var hasAnyPass = clientPassData && ((clientPassData.activeServices && clientPassData.activeServices.length > 0) || (clientPassData.activeContracts && clientPassData.activeContracts.length > 0));
+    if (!hasAnyPass) {
+      showScheduleToast(isDa() ? 'Køb et pas først i Butik-fanen.' : 'Buy a pass first in the Store tab.', 'error');
       var noPassEl = document.getElementById('yb-schedule-no-pass');
       if (noPassEl) noPassEl.hidden = false;
       return;
@@ -1080,9 +1151,7 @@
     var programId = classRow ? Number(classRow.getAttribute('data-program-id')) : null;
 
     if (!clientCanBook(programId)) {
-      var noPassEl = document.getElementById('yb-schedule-no-pass');
-      if (noPassEl) noPassEl.hidden = false;
-      showScheduleToast(isDa() ? 'Du har ikke et gyldigt kort til denne klasse.' : "You don't have a valid pass for this class.", 'error');
+      showScheduleToast(isDa() ? 'Dit pas dækker ikke denne type klasse.' : "Your pass doesn't cover this class type.", 'error');
       return;
     }
 
