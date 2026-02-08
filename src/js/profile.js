@@ -901,24 +901,34 @@
         }
         if (emptyEl) emptyEl.hidden = true;
 
-        // 2. Fetch each course and its progress
+        // 2. Fetch each course — modules and progress are optional (may fail on rules)
         var promises = courseIds.map(function(courseId) {
-          return Promise.all([
-            currentDb.collection('courses').doc(courseId).get(),
-            currentDb.collection('courses').doc(courseId).collection('modules').orderBy('order').get(),
-            currentDb.collection('courseProgress').doc(currentUser.uid + '_' + courseId).get()
-          ]).then(function(results) {
-            var courseDoc = results[0];
-            var modulesSnap = results[1];
-            var progressDoc = results[2];
-            if (!courseDoc.exists) return null;
-            return {
-              id: courseId,
-              course: courseDoc.data(),
-              moduleCount: modulesSnap.size,
-              progress: progressDoc.exists ? progressDoc.data() : null
-            };
-          });
+          return currentDb.collection('courses').doc(courseId).get()
+            .then(function(courseDoc) {
+              if (!courseDoc.exists) return null;
+              // Try loading modules count (may fail for non-admin)
+              var modulesPromise = currentDb.collection('courses').doc(courseId)
+                .collection('modules').orderBy('order').get()
+                .then(function(snap) { return snap.size; })
+                .catch(function() { return 0; }); // silently fallback
+              // Try loading progress (may not exist yet)
+              var progressPromise = currentDb.collection('courseProgress')
+                .doc(currentUser.uid + '_' + courseId).get()
+                .then(function(doc) { return doc.exists ? doc.data() : null; })
+                .catch(function() { return null; }); // silently fallback
+              return Promise.all([modulesPromise, progressPromise])
+                .then(function(results) {
+                  return {
+                    id: courseId,
+                    course: courseDoc.data(),
+                    moduleCount: results[0],
+                    progress: results[1]
+                  };
+                });
+            }).catch(function(err) {
+              console.warn('Could not load course ' + courseId + ':', err);
+              return null;
+            });
         });
 
         return Promise.all(promises);
@@ -926,12 +936,21 @@
       .then(function(courses) {
         if (!courses) return;
         courses = courses.filter(function(c) { return c !== null; });
+        if (!courses.length) {
+          container.innerHTML = '<p style="color:#6F6A66;text-align:center;padding:2rem;">' +
+            (isDa() ? 'Kurser fundet men kunne ikke indlæses. Tjek Firestore regler.' : 'Courses found but could not load. Check Firestore rules.') + '</p>';
+          return;
+        }
         renderCourseCards(container, courses, lang, t);
       })
       .catch(function(err) {
         console.error('Error loading courses:', err);
+        var msg = err.message || '';
+        var hint = '';
+        if (msg.indexOf('ermission') > -1) hint = isDa() ? ' (Firestore regler mangler)' : ' (Firestore rules issue)';
+        if (msg.indexOf('index') > -1) hint = isDa() ? ' (Firestore index mangler)' : ' (Firestore index needed)';
         container.innerHTML = '<p style="color:#6F6A66;text-align:center;padding:2rem;">' +
-          (isDa() ? 'Kunne ikke hente kurser.' : 'Could not load courses.') + '</p>';
+          (isDa() ? 'Kunne ikke hente kurser.' : 'Could not load courses.') + hint + '</p>';
       });
   }
 

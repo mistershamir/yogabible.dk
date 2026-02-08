@@ -52,7 +52,12 @@
     "no_enrollments": "Ingen tilmeldinger.",
     "status_active": "Aktiv",
     "status_revoked": "Ophævet",
-    "back": "Tilbage"
+    "back": "Tilbage",
+    "user_lookup_title": "Brugeropslag",
+    "user_lookup_placeholder": "Søg efter email",
+    "user_lookup_btn": "Søg",
+    "user_lookup_no_result": "Ingen bruger fundet.",
+    "user_lookup_courses": "Tilmeldte kurser"
   },
   "en": {
     "page_title": "Course Administration",
@@ -107,6 +112,11 @@
     "no_enrollments": "No enrollments.",
     "status_active": "Active",
     "status_revoked": "Revoked",
-    "back": "Back"
+    "back": "Back",
+    "user_lookup_title": "User Lookup",
+    "user_lookup_placeholder": "Search by email",
+    "user_lookup_btn": "Search",
+    "user_lookup_no_result": "No user found.",
+    "user_lookup_courses": "Enrolled courses"
   }
 }

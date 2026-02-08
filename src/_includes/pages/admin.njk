@@ -222,6 +222,19 @@
 
       </div>{# end courses tab panel #}
 
+      {# ═══════════════════════════════════
+         VIEW: User Lookup (always visible below tabs)
+         ═══════════════════════════════════ #}
+      <div class="yb-admin__section-divider"></div>
+      <div class="yb-admin__view-head">
+        <h2>{{ t.user_lookup_title }}</h2>
+      </div>
+      <form id="yb-admin-user-lookup-form" class="yb-admin__enroll-form">
+        <input type="email" id="yb-admin-user-lookup-input" placeholder="{{ t.user_lookup_placeholder }}" required>
+        <button type="submit" class="yb-btn yb-btn--primary">{{ t.user_lookup_btn }}</button>
+      </form>
+      <div id="yb-admin-user-lookup-result"></div>
+
     </div>{# end yb-admin-panel #}
 
   </div>{# end container #}

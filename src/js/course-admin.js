@@ -683,6 +683,67 @@
   }
 
   /* ═══════════════════════════════════════
+     USER LOOKUP
+     ═══════════════════════════════════════ */
+  function lookupUser(e) {
+    e.preventDefault();
+    var input = $('yb-admin-user-lookup-input');
+    var resultEl = $('yb-admin-user-lookup-result');
+    var email = input.value.trim();
+    if (!email || !resultEl) return;
+
+    resultEl.innerHTML = '<p class="yb-admin__empty">' + t('loading') + '</p>';
+
+    db.collection('users').where('email', '==', email).limit(1).get()
+      .then(function (snap) {
+        if (snap.empty) {
+          resultEl.innerHTML = '<p class="yb-admin__empty">' + t('user_lookup_no_result') + '</p>';
+          return;
+        }
+        var userDoc = snap.docs[0];
+        var u = userDoc.data();
+        var uid = userDoc.id;
+        var name = u.name || ((u.firstName || '') + ' ' + (u.lastName || '')).trim() || '';
+
+        // Find all enrollments for this user
+        return db.collection('enrollments').where('userId', '==', uid).get()
+          .then(function (enrollSnap) {
+            var enrollments = [];
+            enrollSnap.forEach(function (doc) { enrollments.push(doc.data()); });
+
+            var html = '<div class="yb-admin__card" style="margin-bottom:1rem">' +
+              '<div class="yb-admin__card-body">' +
+                '<h3>' + esc(name || email) + '</h3>' +
+                '<p>' + esc(u.email || email) + ' &middot; <small style="color:#6F6A66">' + esc(uid) + '</small></p>' +
+              '</div>' +
+            '</div>';
+
+            if (enrollments.length) {
+              html += '<h3 style="font-size:0.95rem;font-weight:700;margin-bottom:0.5rem">' + t('user_lookup_courses') + '</h3>';
+              html += enrollments.map(function (en) {
+                var course = state.courses.find(function (c) { return c.id === en.courseId; });
+                var courseName = course ? (course.title_en || course.title_da) : en.courseId;
+                var statusClass = en.status === 'active' ? 'yb-admin__badge--ok' : 'yb-admin__badge--muted';
+                var statusLabel = en.status === 'active' ? t('status_active') : t('status_revoked');
+                return '<div class="yb-admin__enroll-row">' +
+                  '<span>' + (course ? (course.icon || '') + ' ' : '') + esc(courseName) + '</span>' +
+                  '<span class="yb-admin__badge ' + statusClass + '">' + statusLabel + '</span>' +
+                '</div>';
+              }).join('');
+            } else {
+              html += '<p class="yb-admin__empty">' + t('no_enrollments') + '</p>';
+            }
+
+            resultEl.innerHTML = html;
+          });
+      })
+      .catch(function (err) {
+        console.error('Lookup error:', err);
+        resultEl.innerHTML = '<p class="yb-admin__empty" style="color:#dc2626">' + (err.message || t('error_load')) + '</p>';
+      });
+  }
+
+  /* ═══════════════════════════════════════
      EVENT BINDING
      ═══════════════════════════════════════ */
   function bindEvents() {
@@ -734,6 +795,8 @@
     if (chapterForm) chapterForm.addEventListener('submit', saveChapter);
     var enrollForm = $('yb-admin-enroll-form');
     if (enrollForm) enrollForm.addEventListener('submit', enrollUser);
+    var lookupForm = $('yb-admin-user-lookup-form');
+    if (lookupForm) lookupForm.addEventListener('submit', lookupUser);
 
     // Bulk buttons
     var bulkPreview = $('yb-admin-bulk-preview-btn');
