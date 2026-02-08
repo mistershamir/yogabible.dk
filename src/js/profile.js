@@ -828,26 +828,20 @@
     }
 
     // ── Reactivate (retention) buttons ──
+    // First month free is already set on all contracts in Mindbody,
+    // so no promo code needed — just navigate to the store checkout.
     var reactivateBtns = container.querySelectorAll('[data-reactivate]');
     for (var r = 0; r < reactivateBtns.length; r++) {
       reactivateBtns[r].addEventListener('click', function() {
         var contractId = this.getAttribute('data-reactivate');
-        var locationId = this.getAttribute('data-location-id') || '1';
-        // Switch to Store tab, memberships category, with promo code pre-set
+        // Switch to Store tab and auto-open checkout for the same contract
         var storeBtn = document.querySelector('[data-yb-tab="store"]');
         if (storeBtn) {
           storeBtn.click();
-          // After store loads, auto-open checkout for this contract with promo
           setTimeout(function() {
-            // Find the matching contract in the store and open its checkout
             var buyBtn = document.querySelector('[data-store-buy="' + contractId + '"]');
             if (buyBtn) {
               buyBtn.click();
-              // Set the promo code flag on checkout element
-              setTimeout(function() {
-                var checkoutEl = document.getElementById('yb-store-checkout');
-                if (checkoutEl) checkoutEl.setAttribute('data-promo-code', 'COMEBACK50');
-              }, 100);
             } else {
               // Contract not found in store — show memberships category
               var memCat = document.querySelector('[data-store-category="memberships"]');
@@ -2212,8 +2206,8 @@
       membership_retention_title: isDa() ? 'Vi savner dig allerede!' : 'We already miss you!',
       membership_retention_desc: isDa() ? 'Genaktiver dit abonnement inden {date} og spar tilmeldingsgebyret.' : 'Reactivate your membership before {date} and save the registration fee.',
       membership_retention_perk1: isDa() ? 'Ingen nyt tilmeldingsgebyr' : 'No new registration fee',
-      membership_retention_perk2: isDa() ? '50% rabat på din næste måned' : '50% off your next month',
-      membership_retention_cta: isDa() ? 'Genaktiver med 50% rabat' : 'Reactivate with 50% off',
+      membership_retention_perk2: isDa() ? 'Første måned gratis' : 'First month free',
+      membership_retention_cta: isDa() ? 'Genaktiver — første måned gratis' : 'Reactivate — first month free',
       membership_pause_title: isDa() ? 'Sæt abonnement på pause' : 'Pause membership',
       membership_pause_desc: isDa() ? 'Du kan sætte dit abonnement på pause i 14 dage til 3 måneder. Pausen starter efter din næste faktureringscyklus.' : 'You can pause your membership for 14 days to 3 months. The pause starts after your next billing cycle.',
       membership_pause_start: isDa() ? 'Pause starter' : 'Pause starts',
