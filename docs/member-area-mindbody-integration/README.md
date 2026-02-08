@@ -4,6 +4,18 @@
 > All brands share the same Mindbody Site ID and Firebase project (yoga-bible-dk-com).
 > **Last updated: 2026-02-08** — reflects all debugging from the full build session.
 
+## What This System Does
+
+A complete self-service member area powered by Firebase Auth + Mindbody API v6:
+
+- **Profile & Auth** — Firebase login, Firestore profiles, Mindbody client sync, avatar upload
+- **Class Schedule** — Weekly view, book/cancel, waitlist, teacher bios, pass validation
+- **Online Store** — Sell services AND contracts (recurring memberships) from Mindbody, categorized with heuristic tabs
+- **Membership Management** — Pause (suspend) and cancel (terminate) autopay contracts directly from profile
+- **Visit History** — Filterable past + upcoming visits with status badges
+- **Receipts** — Purchase history with downloadable text receipts
+- **Courses** — Custom course system via Firestore (separate from Mindbody)
+
 ## Quick Start for New Brand
 
 1. Copy all `netlify/functions/mb-*.js` and `netlify/functions/shared/` to the new project
@@ -12,7 +24,9 @@
 4. Set up Firebase Auth + Firestore (or connect to existing project)
 5. Configure Netlify env vars (see Environment Setup below)
 6. Adapt the profile template and translations for the new brand
-7. Build and verify: `npx @11ty/eleventy`
+7. Customize `storeCategories` and `categorizeService()` heuristics for brand-specific product names
+8. Customize termination/pause business rules (notice period, min/max pause duration)
+9. Build and verify: `npx @11ty/eleventy`
 
 ## Architecture
 
@@ -55,6 +69,13 @@ External Services
 └── Firestore ────────── users/{uid} profiles + course data
 ```
 
+### Key Design Decisions
+
+- **Staff token auth** — All API calls use staff credentials, which bypasses Mindbody's "Sell Online" filter. This means we can sell ANY pass/contract from our store, even if not marked "Sell Online" in Mindbody admin. Positive for flexibility, but requires careful product curation on our side.
+- **Backend validation** — Staff tokens also bypass payment/pass validation, so we must always validate pass-to-program match server-side before booking.
+- **Text-first JSON parsing** — `shared/mb-api.js` reads responses as text first, then parses JSON. This prevents cryptic `Unexpected token '<'` errors when Mindbody returns HTML error pages.
+- **Dedicated manage function** — Contract management (pause/cancel) uses a separate `mb-contract-manage.js` function to avoid routing ambiguity with the purchase endpoint.
+
 ## Environment Variables (Netlify)
 
 ```
@@ -63,6 +84,27 @@ MB_SITE_ID=<your-site-id>
 MB_STAFF_USERNAME=<staff-email-for-token>
 MB_STAFF_PASSWORD=<staff-password-for-token>
 ```
+
+## Function Overview
+
+| Function | Methods | Purpose |
+|----------|---------|---------|
+| `mb-classes` | GET | Class schedule |
+| `mb-book` | POST/DELETE | Book/cancel classes |
+| `mb-client` | POST | Create/update MB client |
+| `mb-sync` | POST | Firebase → MB client sync |
+| `mb-client-services` | GET | Active passes + contract billing data |
+| `mb-services` | GET | Purchasable services/products/categories |
+| `mb-contracts` | GET/POST | List + purchase contracts |
+| `mb-contract-manage` | POST | Pause (suspend) / cancel (terminate) contracts |
+| `mb-checkout` | POST | Purchase services with credit card |
+| `mb-purchases` | GET | Purchase receipts |
+| `mb-visits` | GET | Visit history |
+| `mb-staff` | GET | Teacher bios/photos |
+| `mb-waitlist` | GET/POST/DELETE | Waitlist management |
+| `mb-site` | GET | Site config (programs, locations, etc.) |
+| `mb-class-descriptions` | GET | Class type library |
+| `mb-return-sale` | POST | Refunds |
 
 ## Key Flows
 
@@ -97,6 +139,6 @@ MB_STAFF_PASSWORD=<staff-password-for-token>
 
 ## See Also
 
-- [API Reference & Debug Trail](./api-reference.md) — ALL the lessons learned
-- [Function Catalog](./function-catalog.md) — Every Netlify function with usage
-- [Profile JS Architecture](./profile-architecture.md) — How the frontend works
+- [API Reference & Debug Trail](./api-reference.md) — ALL the lessons learned the hard way
+- [Function Catalog](./function-catalog.md) — Every Netlify function with params and returns
+- [Profile JS Architecture](./profile-architecture.md) — How the frontend works (tabs, store, membership mgmt)

@@ -19,6 +19,8 @@
 const { mbFetch, clearTokenCache, jsonResponse, corsHeaders } = require('./shared/mb-api');
 
 exports.handler = async function(event) {
+  console.log('[mb-contracts] Method:', event.httpMethod, 'Path:', event.path);
+
   if (event.httpMethod === 'OPTIONS') {
     return { statusCode: 204, headers: corsHeaders, body: '' };
   }
@@ -123,6 +125,7 @@ exports.handler = async function(event) {
   if (event.httpMethod === 'POST') {
     try {
       var body = JSON.parse(event.body || '{}');
+      console.log('[mb-contracts] POST action:', body.action || 'purchase', 'clientId:', body.clientId);
 
       // ── Route: manage actions (terminate / suspend / activate) ──
       if (body.action === 'terminate' || body.action === 'suspend' || body.action === 'activate') {
@@ -218,7 +221,7 @@ exports.handler = async function(event) {
           var durationDays = Math.round((end - start) / 86400000);
 
           if (durationDays < 14) {
-            return jsonResponse(400, { error: isDa ? 'Pausen skal være mindst 14 dage.' : 'Suspension must be at least 14 days' });
+            return jsonResponse(400, { error: 'Suspension must be at least 14 days' });
           }
           if (durationDays > 93) {
             return jsonResponse(400, { error: 'Suspension cannot exceed 3 months (93 days)' });

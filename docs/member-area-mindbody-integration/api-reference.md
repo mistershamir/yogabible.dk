@@ -88,8 +88,14 @@ Our code tries paths in order: `/contract/`, `/sale/`, `/client/`.
 | `/site/locations` | GET | — | `Locations[]` | Studio locations |
 | `/site/memberships` | GET | `Limit` | `Memberships[]` | Membership types |
 | `/site/promocodes` | GET | `Limit` | `PromoCodes[]` | Promo codes |
+### Staff & Auth Endpoints
+
+| Endpoint | Method | Params | Response Key | Notes |
+|----------|--------|--------|-------------|-------|
 | `/staff/staff` | GET | `StaffIds`, `Limit` | `StaffMembers[]` | Teacher details + bio + photo |
 | `/usertoken/issue` | POST | Body: `Username`, `Password` | `AccessToken` | Auth token. Cache 6 hours |
+
+**Note on Contract Management:** The preferred endpoint category is `/contract/` (i.e., `/contract/terminatecontract` and `/contract/suspendcontract`), NOT `/sale/` or `/client/`. The MB v6 docs are ambiguous on this. If `/contract/` fails, the function retries without TerminationCode (some sites don't have codes configured). See the "Contract Management Endpoints (AMBIGUOUS PATH)" section above for full details.
 
 ## Checkout Payment Format (WORKING)
 
@@ -123,6 +129,7 @@ Our code tries paths in order: `/contract/`, `/sale/`, `/client/`.
 
 **ALL Metadata values MUST be strings.** `amount: 10` fails, `amount: "10"` works.
 
+
 ## Contract Purchase Format (WORKING)
 
 ```json
@@ -145,7 +152,50 @@ Our code tries paths in order: `/contract/`, `/sale/`, `/client/`.
 }
 ```
 
-Note: `CreditCardInfo` uses **PascalCase** (unlike checkout Metadata which uses camelCase).
+**Key notes:**
+- `CreditCardInfo` uses **PascalCase** (unlike checkout Metadata which uses camelCase)
+- `LocationId` is REQUIRED — omitting it returns "LocationID provided is not valid"
+- `ContractId` is the contract template ID from `/sale/contracts`, NOT the client's contract ID
+- Staff token bypasses payment — no credit card info needed for staff-authenticated purchases
+- Response returns `ClientContractId` — store this for future manage operations
+
+## Contract Suspend Format (WORKING)
+
+```json
+{
+  "ClientContractId": 12345,
+  "SuspendDate": "2025-04-08",
+  "ResumeDate": "2025-05-08",
+  "SendNotifications": true
+}
+```
+
+**Business rules (configurable per brand):**
+- Minimum suspension: 14 days
+- Maximum suspension: 3 months (93 days)
+- Start date must be after next billing cycle (can't pause mid-cycle)
+
+## Contract Terminate Format (WORKING)
+
+```json
+{
+  "ClientContractId": 12345,
+  "TerminationDate": "2025-04-07",
+  "SendNotifications": true
+}
+```
+
+**Business rules (Yoga Bible DK):**
+- Next billing date = last payment taken
+- Use membership until end of that billing cycle (next billing + 1 month - 1 day)
+- Example: next billing Mar 8 → last payment Mar 8 → use until Apr 7
+
+## Staff Token "Sell Online" Bypass
+
+**Discovery:** When calling Mindbody API with staff credentials, you can sell ANY pass or contract — even if NOT marked "Sell Online" in Mindbody admin. This means:
+- Our store can display and sell everything, regardless of Mindbody's online visibility setting
+- The `sellOnline=true` filter is optional — we control what to show in our own UI
+- Useful for brand-specific promotions or internal-only passes
 
 ## Booking Strategy
 
@@ -220,16 +270,21 @@ Users can revoke a pending termination before the termination date. Frontend sho
 | 17 | Trust `ReferredBy` is writable via API | It's read-only in public API v6 | Must set referrals in admin panel |
 | 18 | Single error toast for late cancel | Rich HTML toast with wellness note | 6s timeout, explain fee purpose |
 | 19 | PUT method to Netlify Functions | POST with action field | PUT returns HTML 404 on Netlify |
-| 20 | `res.json()` on MB API response | Parse as text first, try JSON | HTML 404 pages crash JSON parse |
-| 21 | `/contract/terminatecontract` | Try `/contract/`, `/sale/`, `/client/` | Endpoint category is ambiguous in docs |
+| 20 | `res.json()` on MB API response | Parse as text first, try JSON | HTML 404 pages crash JSON parse. `shared/mb-api.js` reads text→JSON to catch HTML responses gracefully |
+| 21 | `/contract/terminatecontract` | Try `/contract/`, `/sale/`, `/client/` | Endpoint category is ambiguous in docs. Preferred path is `/contract/` |
 | 22 | `/sale/contracts?sellOnline=true` | No filter, fetch all | MB contracts endpoint may not support sellOnline |
 | 23 | `/sale/contracts` without LocationId | Retry with `LocationId=1` on 400 | Single-location sites may require it |
-| 24 | `autopaySchedule` as string | Could be object — extract `FrequencyType` | Was showing `[object Object]` in UI |
-| 25 | Separate `mb-contract-manage` function | Merged into `mb-contracts` as POST with action | New Netlify functions can 404 before deploy completes |
+| 24 | `autopaySchedule` as string | Could be object `{FrequencyType: "Monthly"}` — extract `FrequencyType` | Was showing `[object Object]` in UI |
+| 25 | Separate `mb-contract-manage` function | Use dedicated `mb-contract-manage.js` to avoid routing ambiguity | New Netlify functions can 404 before deploy completes. POST to mb-contracts for manage returns 405 |
 | 26 | `Limit=200` on contracts fetch | No default Limit | May cause 400 errors |
 | 27 | `/sale/sales` for per-client receipts | `/client/clientservices` + `/client/clientcontracts` | `/sale/sales` ignores ClientId filter |
-| 28 | 99999 remaining clips displayed | Hide if >= 99999 | Mindbody's "unlimited" placeholder |
+| 28 | 99999 remaining clips displayed | Hide if >= 99999, show "Unlimited" text | Mindbody's "unlimited" placeholder |
 | 29 | `ContractId` for terminate/suspend | `ClientContractId` | Template ID vs instance ID |
 | 30 | `StartDate`/`EndDate` for classes | `StartDateTime`/`EndDateTime` | Classes endpoint uses DateTime variant |
 | 31 | Firestore compound `.where()` queries | Filter client-side | Avoids need for composite indexes |
 | 32 | `client.updateclient` with PUT | Uses POST internally | MB API uses POST for updates despite convention |
+| 33 | `recurringPaymentAmount` ignored | Use as primary price for contracts | The `price` field may show first payment, not recurring |
+| 34 | Time-based passes = memberships | They're NOT contracts | "unlimited 1 month" is a time-based pass, not a membership |
+| 35 | `/sale/purchasecontract` without LocationId | Must include `LocationId` | Returns "LocationID provided is not valid" |
+| 36 | `isDa` in serverless function | Variable doesn't exist server-side | Only use language detection in frontend JS, not in Netlify functions |
+| 37 | Terminate with TerminationCode always | Some sites don't have codes configured | Retry without TerminationCode if first attempt fails |
