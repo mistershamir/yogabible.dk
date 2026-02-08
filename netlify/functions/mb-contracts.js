@@ -1,0 +1,147 @@
+/**
+ * Netlify Function: GET /.netlify/functions/mb-contracts
+ * Fetches available contracts/memberships for purchase from Mindbody.
+ *
+ * Query params:
+ *   contractId (optional) - specific contract ID
+ *   locationId (optional) - filter by location
+ *   sellOnline (optional) - 'true' for online-purchasable only
+ *
+ * POST: Purchase a contract for a client.
+ *   clientId (string) - Mindbody client ID
+ *   contractId (number) - contract to purchase
+ *   startDate (string) - YYYY-MM-DD when contract starts
+ *   payment (object) - card details (same shape as mb-checkout)
+ *   promoCode (string, optional) - promotional code
+ *   test (boolean, optional)
+ */
+
+const { mbFetch, jsonResponse, corsHeaders } = require('./shared/mb-api');
+
+exports.handler = async function(event) {
+  if (event.httpMethod === 'OPTIONS') {
+    return { statusCode: 204, headers: corsHeaders, body: '' };
+  }
+
+  // GET: Fetch available contracts
+  if (event.httpMethod === 'GET') {
+    try {
+      var params = event.queryStringParameters || {};
+      var qsParams = { Limit: '200' };
+
+      if (params.contractId) qsParams.ContractIds = params.contractId;
+      if (params.locationId) qsParams.LocationId = params.locationId;
+      if (params.sellOnline === 'true') qsParams.SellOnline = 'true';
+
+      var queryString = new URLSearchParams(qsParams).toString();
+      console.log('mb-contracts GET query:', queryString);
+
+      var data = await mbFetch('/sale/contracts?' + queryString);
+
+      var contracts = (data.Contracts || []).map(function(c) {
+        return {
+          id: c.Id,
+          name: c.Name || '',
+          description: c.Description || '',
+          assignsMembershipId: c.AssignsMembershipId || null,
+          assignsMembershipName: c.AssignsMembershipName || '',
+          contractItems: (c.ContractItems || []).map(function(ci) {
+            return {
+              id: ci.Id,
+              name: ci.Name || '',
+              price: ci.TotalPrice || ci.Price || 0,
+              taxAmount: ci.TaxAmount || 0,
+              recurringPaymentAmount: ci.RecurringPaymentAmount || 0,
+              frequency: ci.AutopayFrequency || '',
+              numberOfPayments: ci.NumberOfPayments || 0
+            };
+          }),
+          soldOnline: c.SoldOnline || false,
+          firstPaymentAmount: c.FirstPaymentAmountSubtotal || null,
+          firstPaymentTax: c.FirstPaymentTaxAmount || null,
+          recurringPaymentAmount: c.RecurringPaymentAmountSubtotal || null,
+          totalContractAmount: c.TotalContractAmountSubtotal || null,
+          duration: c.Duration || null,
+          durationUnit: c.DurationUnit || '',
+          autopaySchedule: c.AutopaySchedule || '',
+          numberOfAutopays: c.NumberOfAutopays || null,
+          locationId: c.LocationId || null,
+          programIds: c.ProgramIds || [],
+          membershipTypeRestrictions: c.MembershipTypeRestrictions || []
+        };
+      });
+
+      return jsonResponse(200, { contracts: contracts, total: contracts.length });
+    } catch (err) {
+      console.error('mb-contracts GET error:', err);
+      return jsonResponse(err.status || 500, { error: err.message });
+    }
+  }
+
+  // POST: Purchase a contract
+  if (event.httpMethod === 'POST') {
+    try {
+      var body = JSON.parse(event.body || '{}');
+
+      if (!body.clientId || !body.contractId) {
+        return jsonResponse(400, { error: 'clientId and contractId are required' });
+      }
+
+      var purchaseBody = {
+        ClientId: body.clientId,
+        ContractId: body.contractId,
+        StartDate: body.startDate || new Date().toISOString().split('T')[0],
+        Test: body.test || false,
+        SendNotifications: true
+      };
+
+      if (body.promoCode) {
+        purchaseBody.PromotionCode = body.promoCode;
+      }
+
+      // Add payment if provided
+      if (body.payment && body.payment.cardNumber) {
+        purchaseBody.CreditCardInfo = {
+          CreditCardNumber: String(body.payment.cardNumber),
+          ExpMonth: String(body.payment.expMonth),
+          ExpYear: String(body.payment.expYear),
+          CVV: String(body.payment.cvv),
+          BillingName: String(body.payment.cardHolder || ''),
+          BillingAddress: String(body.payment.billingAddress || ''),
+          BillingCity: String(body.payment.billingCity || ''),
+          BillingPostalCode: String(body.payment.billingPostalCode || ''),
+          SaveInfo: body.payment.saveCard ? true : false
+        };
+      }
+
+      console.log('mb-contracts POST:', JSON.stringify({
+        ClientId: purchaseBody.ClientId,
+        ContractId: purchaseBody.ContractId,
+        StartDate: purchaseBody.StartDate,
+        HasPayment: !!purchaseBody.CreditCardInfo,
+        PromoCode: purchaseBody.PromotionCode || null
+      }));
+
+      var data = await mbFetch('/sale/purchasecontract', {
+        method: 'POST',
+        body: JSON.stringify(purchaseBody)
+      });
+
+      return jsonResponse(200, {
+        success: true,
+        contractId: data.ContractId || body.contractId,
+        clientContractId: data.ClientContractId || null,
+        message: 'Contract purchased successfully'
+      });
+    } catch (err) {
+      console.error('mb-contracts POST error:', err.message, err.data ? JSON.stringify(err.data) : '');
+      var errorMsg = err.message || 'Contract purchase failed';
+      if (err.data && err.data.Error && err.data.Error.Message) {
+        errorMsg = err.data.Error.Message;
+      }
+      return jsonResponse(err.status || 500, { error: errorMsg });
+    }
+  }
+
+  return jsonResponse(405, { error: 'Method not allowed' });
+};
