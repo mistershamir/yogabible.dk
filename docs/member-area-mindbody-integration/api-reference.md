@@ -140,3 +140,7 @@
 | 12 | Fail on cancel window error | Retry with `LateCancel: true` | Auto-detect |
 | 13 | Comma-separated ServiceIds | Repeated params | `ServiceIds=X&ServiceIds=Y` |
 | 14 | Staff Bio from /class/classes | Fetch from /staff/staff | Classes only has Id+Name |
+| 15 | Compare dates for "upcoming" filter | Compare full datetimes | `new Date(startDateTime) > now`, not date-only |
+| 16 | Show "buy pass" banner always | Smart logic: clips < 3 warning, never for members | Membership autopays should never see buy-pass CTA |
+| 17 | Trust `ReferredBy` is writable via API | It's read-only in public API v6 | Must set referrals in admin panel |
+| 18 | Single error toast for late cancel | Rich HTML toast with wellness note | 6s timeout, explain fee purpose |
