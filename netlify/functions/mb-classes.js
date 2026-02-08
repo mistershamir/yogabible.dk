@@ -69,7 +69,9 @@ exports.handler = async function(event) {
         isCanceled: cls.IsCanceled,
         isBooked: isBooked,
         substituteTeacher: cls.Substitute || false,
-        classDescriptionId: cls.ClassDescription ? cls.ClassDescription.Id : null
+        classDescriptionId: cls.ClassDescription ? cls.ClassDescription.Id : null,
+        programId: cls.ClassDescription && cls.ClassDescription.Program ? cls.ClassDescription.Program.Id : null,
+        programName: cls.ClassDescription && cls.ClassDescription.Program ? cls.ClassDescription.Program.Name : ''
       };
     });
 
