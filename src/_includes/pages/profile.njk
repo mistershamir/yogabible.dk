@@ -77,9 +77,20 @@
                   <label for="yb-profile-email">{{ t.label_email }}</label>
                   <input type="email" id="yb-profile-email" disabled>
                 </div>
-                <div class="yb-auth-field">
-                  <label for="yb-profile-phone">{{ t.label_phone }}</label>
-                  <input type="tel" id="yb-profile-phone" autocomplete="tel" placeholder="{{ t.placeholder_phone }}">
+                <div class="yb-profile__form-row">
+                  <div class="yb-auth-field">
+                    <label for="yb-profile-phone">{{ t.label_phone }}</label>
+                    <input type="tel" id="yb-profile-phone" autocomplete="tel" placeholder="{{ t.placeholder_phone }}">
+                  </div>
+                  <div class="yb-auth-field">
+                    <label for="yb-profile-dob">{{ t.label_dob }}</label>
+                    <input type="date" id="yb-profile-dob">
+                  </div>
+                </div>
+                <!-- Soft reminder for missing phone/DOB -->
+                <div class="yb-profile__reminder" id="yb-profile-reminder" hidden>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#f75c03" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                  <span>{{ t.profile_reminder }}</span>
                 </div>
                 <div class="yb-auth-error" id="yb-profile-error" hidden role="alert"></div>
                 <div class="yb-auth-success" id="yb-profile-success" hidden role="status"></div>
@@ -116,6 +127,14 @@
                   <span class="yb-profile__info-value" id="yb-profile-tier">&mdash;</span>
                 </div>
               </div>
+              <!-- Active passes loaded via JS -->
+              <div id="yb-membership-details" class="yb-membership">
+                <div class="yb-store__loading yb-membership__loading" id="yb-membership-loading" hidden>
+                  <div class="yb-mb-spinner"></div>
+                  <span>{{ t.membership_loading }}</span>
+                </div>
+                <div id="yb-membership-content"></div>
+              </div>
             </div>
 
           </div>
@@ -143,7 +162,8 @@
             </div>
           </div>
 
-          <!-- No-pass prompt (hidden by default) -->
+          <!-- Pass info or no-pass prompt (toggled by JS) -->
+          <div id="yb-schedule-pass-info" class="yb-schedule__pass-info" hidden></div>
           <div id="yb-schedule-no-pass" class="yb-schedule__no-pass" hidden>
             <p>{{ t.schedule_no_pass }}</p>
             <button class="yb-btn yb-btn--primary" type="button" id="yb-schedule-buy-pass">{{ t.schedule_buy_pass }}</button>
@@ -258,6 +278,12 @@
           <div class="yb-visits__header">
             <h2 class="yb-visits__title">{{ t.visits_title }}</h2>
             <p class="yb-visits__subtitle">{{ t.visits_subtitle }}</p>
+          </div>
+          <div class="yb-visits__filters">
+            <button class="yb-visits__filter is-active" type="button" data-visit-filter="all">{{ t.visits_filter_all }}</button>
+            <button class="yb-visits__filter" type="button" data-visit-filter="upcoming">{{ t.visits_filter_upcoming }}</button>
+            <button class="yb-visits__filter" type="button" data-visit-filter="attended">{{ t.visits_filter_attended }}</button>
+            <button class="yb-visits__filter" type="button" data-visit-filter="noshow">{{ t.visits_filter_noshow }}</button>
           </div>
           <div id="yb-visits-list" class="yb-visits__list">
             <div class="yb-store__loading">

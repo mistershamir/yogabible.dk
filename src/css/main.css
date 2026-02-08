@@ -1465,7 +1465,7 @@ section {
   justify-content: space-between;
   text-align: left;
   font-size: 13px;
-  font-weight: 600;
+  font-weight: bold;
   letter-spacing: 0.08em;
   cursor: default;
   color: #1C1C1C !important;
@@ -6992,6 +6992,14 @@ section {
   gap: 0.25rem;
   padding: 0.4rem 0.75rem;
   font-size: 0.85rem;
+  border-color: #f75c03;
+  color: #f75c03;
+}
+
+.yb-schedule__nav-btn:hover {
+  background: #f75c03;
+  color: #fff;
+  border-color: #f75c03;
 }
 
 .yb-schedule__nav-label {
@@ -7297,6 +7305,278 @@ section {
   }
 }
 
+/* ═══════════════════════════════════════
+   PROFILE REMINDER (soft prompt)
+   ═══════════════════════════════════════ */
+
+.yb-profile__reminder {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: #FFF8F0;
+  border: 1px solid #f75c03;
+  border-radius: 8px;
+  padding: 0.75rem 1rem;
+  font-size: 0.85rem;
+  color: #0F0F0F;
+  margin-bottom: 0.5rem;
+}
+
+.yb-profile__reminder svg {
+  flex-shrink: 0;
+}
+
+/* ═══════════════════════════════════════
+   SCHEDULE: PASS INFO BANNER
+   ═══════════════════════════════════════ */
+
+.yb-schedule__pass-info {
+  margin-bottom: 1.5rem;
+}
+
+.yb-schedule__pass-detail {
+  background: linear-gradient(135deg, #FFF8F0, #FFFCF9);
+  border: 1.5px solid #f75c03;
+  border-radius: 12px;
+  padding: 1rem 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.yb-schedule__pass-detail-label {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #6F6A66;
+  display: block;
+}
+
+.yb-schedule__pass-detail-name {
+  font-weight: 700;
+  color: #0F0F0F;
+  font-size: 1rem;
+  display: block;
+}
+
+.yb-schedule__pass-detail-stats {
+  display: flex;
+  gap: 1.5rem;
+  align-items: center;
+}
+
+.yb-schedule__pass-stat {
+  font-size: 0.85rem;
+  color: #6F6A66;
+}
+
+.yb-schedule__pass-stat strong {
+  color: #f75c03;
+  font-size: 1.1rem;
+}
+
+/* ═══════════════════════════════════════
+   SCHEDULE: CLASS DESCRIPTION EXPANDABLE
+   ═══════════════════════════════════════ */
+
+.yb-schedule__desc-toggle {
+  background: none;
+  border: none;
+  color: #f75c03;
+  font-size: 0.8rem;
+  cursor: pointer;
+  padding: 0;
+  font-family: inherit;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.yb-schedule__desc-toggle:hover {
+  color: #d94f02;
+}
+
+.yb-schedule__desc {
+  background: #F5F3F0;
+  border-radius: 8px;
+  padding: 0.75rem 1rem;
+  margin: 0 0 0.5rem 0;
+}
+
+.yb-schedule__desc p {
+  margin: 0;
+  font-size: 0.85rem;
+  color: #6F6A66;
+  line-height: 1.5;
+}
+
+/* ═══════════════════════════════════════
+   VISIT FILTERS
+   ═══════════════════════════════════════ */
+
+.yb-visits__filters {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1.5rem;
+  flex-wrap: wrap;
+}
+
+.yb-visits__filter {
+  background: #F5F3F0;
+  border: 1.5px solid transparent;
+  border-radius: 20px;
+  padding: 0.4rem 1rem;
+  font-size: 0.85rem;
+  font-weight: 700;
+  font-family: inherit;
+  color: #6F6A66;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.yb-visits__filter:hover {
+  border-color: #f75c03;
+  color: #f75c03;
+}
+
+.yb-visits__filter.is-active {
+  background: #f75c03;
+  color: #fff;
+  border-color: #f75c03;
+}
+
+/* Visit: Booked status (future bookings) */
+.yb-visits__status--booked {
+  color: #f75c03;
+}
+
+.yb-visits__row--future {
+  background: #FFFCF9;
+}
+
+/* ═══════════════════════════════════════
+   MEMBERSHIP SECTION
+   ═══════════════════════════════════════ */
+
+.yb-membership {
+  margin-top: 1.5rem;
+}
+
+.yb-membership__loading {
+  padding: 1rem 0;
+}
+
+.yb-membership__section {
+  margin-bottom: 1.5rem;
+}
+
+.yb-membership__section-title {
+  font-family: 'Abacaxi', sans-serif;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #0F0F0F;
+  margin: 0 0 0.75rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid #E8E4E0;
+}
+
+.yb-membership__pass {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.75rem 1rem;
+  border: 1.5px solid #E8E4E0;
+  border-radius: 10px;
+  margin-bottom: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.yb-membership__pass--expired {
+  opacity: 0.55;
+}
+
+.yb-membership__pass-info {
+  flex: 1;
+  min-width: 120px;
+}
+
+.yb-membership__pass-name {
+  display: block;
+  font-weight: 700;
+  color: #0F0F0F;
+  font-size: 0.95rem;
+}
+
+.yb-membership__pass-remaining {
+  display: block;
+  font-size: 0.8rem;
+  color: #f75c03;
+  font-weight: 700;
+}
+
+.yb-membership__pass-expiry {
+  font-size: 0.8rem;
+  color: #6F6A66;
+}
+
+.yb-membership__badge {
+  display: inline-block;
+  padding: 0.2rem 0.6rem;
+  border-radius: 20px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.yb-membership__badge--active {
+  background: #e8f5e9;
+  color: #2e7d32;
+}
+
+.yb-membership__empty {
+  color: #6F6A66;
+  font-size: 0.9rem;
+  margin: 0;
+}
+
+/* ═══════════════════════════════════════
+   RECEIPTS CARDS (enhanced layout)
+   ═══════════════════════════════════════ */
+
+.yb-receipts__list-inner {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.yb-receipts__card {
+  border: 1.5px solid #E8E4E0;
+  border-radius: 12px;
+  padding: 1rem 1.25rem;
+  transition: border-color 0.15s ease;
+}
+
+.yb-receipts__card:hover {
+  border-color: #f75c03;
+}
+
+.yb-receipts__card--returned {
+  opacity: 0.55;
+}
+
+.yb-receipts__card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+
+.yb-receipts__card-date {
+  font-size: 0.8rem;
+  color: #6F6A66;
+}
 
 /* ═══════════════════════════════════════════
    PROFILE — MY COURSES CARDS
@@ -7419,6 +7699,8 @@ section {
     text-align: center;
   }
 }
+
+
 
 
 /* ═══════════════════════════════════════════

@@ -57,26 +57,27 @@ exports.handler = async function(event) {
       return cartItem;
     });
 
-    // Build payment info
+    // Build payment info — Mindbody v6 Metadata is Dictionary<string, string>
+    // ALL values MUST be strings, not numbers or booleans
     var paymentInfo = {
       Type: 'CreditCard',
       Metadata: {
-        Amount: body.amount || 0,
-        CardNumber: body.payment.cardNumber,
-        ExpMonth: body.payment.expMonth,
-        ExpYear: body.payment.expYear,
-        CVV: body.payment.cvv,
-        CardHolder: body.payment.cardHolder || '',
-        BillingAddress: body.payment.billingAddress || '',
-        BillingCity: body.payment.billingCity || '',
-        BillingPostalCode: body.payment.billingPostalCode || '',
-        SaveInfo: body.payment.saveCard || false
+        amount: String(body.amount || 0),
+        creditCardNumber: String(body.payment.cardNumber),
+        expMonth: String(body.payment.expMonth),
+        expYear: String(body.payment.expYear),
+        cvv: String(body.payment.cvv),
+        billingName: String(body.payment.cardHolder || ''),
+        billingAddress: String(body.payment.billingAddress || ''),
+        billingCity: String(body.payment.billingCity || ''),
+        billingPostalCode: String(body.payment.billingPostalCode || ''),
+        saveInfo: String(body.payment.saveCard || false)
       }
     };
 
     var checkoutData = {
       ClientId: body.clientId,
-      CartItems: cartItems,
+      Items: cartItems,
       Payments: [paymentInfo],
       Test: body.test || false,
       SendEmail: true,
@@ -84,6 +85,17 @@ exports.handler = async function(event) {
     };
 
     // NOTE: Card data is passed through to Mindbody and never stored.
+    // Log request shape for debugging (no card details)
+    console.log('mb-checkout request:', JSON.stringify({
+      ClientId: checkoutData.ClientId,
+      CartItems: checkoutData.CartItems,
+      PaymentType: paymentInfo.Type,
+      MetadataKeys: Object.keys(paymentInfo.Metadata),
+      Amount: paymentInfo.Metadata.amount,
+      Test: checkoutData.Test,
+      InStore: checkoutData.InStore
+    }));
+
     var data = await mbFetch('/sale/checkoutshoppingcart', {
       method: 'POST',
       body: JSON.stringify(checkoutData)
@@ -105,7 +117,12 @@ exports.handler = async function(event) {
       message: 'Purchase completed successfully'
     });
   } catch (err) {
-    console.error('mb-checkout error:', err);
-    return jsonResponse(err.status || 500, { error: err.message });
+    console.error('mb-checkout error:', err.message, err.data ? JSON.stringify(err.data) : '');
+    var errorMsg = err.message || 'Checkout failed';
+    // Include Mindbody error details if available
+    if (err.data && err.data.Error && err.data.Error.Message) {
+      errorMsg = err.data.Error.Message;
+    }
+    return jsonResponse(err.status || 500, { error: errorMsg, details: err.data || null, _v: 7 });
   }
 };

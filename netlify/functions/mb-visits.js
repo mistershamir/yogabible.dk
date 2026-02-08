@@ -1,11 +1,12 @@
 /**
  * Netlify Function: GET /.netlify/functions/mb-visits
  * Fetches client visit history from Mindbody.
+ * Includes future bookings (30 days ahead) so upcoming classes show as "Booked".
  *
  * Query params:
  *   clientId (required) - Mindbody client ID
  *   startDate (YYYY-MM-DD) - defaults to 90 days ago
- *   endDate (YYYY-MM-DD) - defaults to today
+ *   endDate (YYYY-MM-DD) - defaults to 30 days from now
  */
 
 const { mbFetch, jsonResponse, corsHeaders } = require('./shared/mb-api');
@@ -28,18 +29,24 @@ exports.handler = async function(event) {
 
     var now = new Date();
     var startDate = params.startDate || new Date(now.getTime() - 90 * 86400000).toISOString().split('T')[0];
-    var endDate = params.endDate || now.toISOString().split('T')[0];
+    // Include 30 days into the future to capture upcoming bookings
+    var endDate = params.endDate || new Date(now.getTime() + 30 * 86400000).toISOString().split('T')[0];
 
     var queryString = new URLSearchParams({
-      clientId: params.clientId,
-      startDate: startDate,
-      endDate: endDate,
-      limit: '200'
+      ClientId: params.clientId,
+      StartDate: startDate,
+      EndDate: endDate,
+      Limit: '200'
     }).toString();
 
+    console.log('mb-visits query:', queryString);
     var data = await mbFetch('/client/clientvisits?' + queryString);
 
+    var nowISO = now.toISOString();
+
     var visits = (data.Visits || []).map(function(v) {
+      var isFuture = v.StartDateTime && v.StartDateTime > nowISO;
+
       return {
         id: v.Id,
         classId: v.ClassId,
@@ -51,7 +58,9 @@ exports.handler = async function(event) {
         status: v.AppointmentStatus || v.Status || '',
         serviceName: v.Service ? v.Service.Name : '',
         signedIn: v.SignedIn || false,
-        lateCancelled: v.LateCancelled || false
+        lateCancelled: v.LateCancelled || false,
+        isFuture: isFuture,
+        classDescriptionId: v.ClassDescription ? v.ClassDescription.Id : null
       };
     });
 
