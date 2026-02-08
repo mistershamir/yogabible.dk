@@ -31,12 +31,13 @@ exports.handler = async function(event) {
     var endDate = params.endDate || now.toISOString().split('T')[0];
 
     var queryString = new URLSearchParams({
-      clientId: params.clientId,
-      startDate: startDate,
-      endDate: endDate,
-      limit: '200'
+      ClientId: params.clientId,
+      StartDate: startDate,
+      EndDate: endDate,
+      Limit: '200'
     }).toString();
 
+    console.log('mb-purchases query:', queryString);
     var data = await mbFetch('/sale/clientpurchases?' + queryString);
 
     var purchases = (data.Purchases || []).map(function(p) {

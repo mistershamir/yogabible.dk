@@ -84,6 +84,19 @@ exports.handler = async function(event) {
         errorMsg = err.data.Error.Message;
       }
 
+      // If already booked, treat as success
+      var isAlreadyBooked = errorMsg.toLowerCase().indexOf('already') !== -1
+        || errorMsg.toLowerCase().indexOf('enrolled') !== -1
+        || errorMsg.toLowerCase().indexOf('signed up') !== -1;
+
+      if (isAlreadyBooked) {
+        return jsonResponse(200, {
+          success: true,
+          alreadyBooked: true,
+          message: 'Client is already booked for this class'
+        });
+      }
+
       // If Mindbody rejects due to no valid pricing/pass, check for autopay contract
       var isPaymentError = errorMsg.toLowerCase().indexOf('payment') !== -1
         || errorMsg.toLowerCase().indexOf('pricing') !== -1
