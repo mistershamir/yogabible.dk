@@ -387,6 +387,8 @@
 
   function renderMembershipDetails(container, data) {
     var html = '';
+    var locale = isDa() ? 'da-DK' : 'en-GB';
+    var dateOpts = { day: 'numeric', month: 'short', year: 'numeric' };
 
     // Active passes
     var active = data.activeServices || [];
@@ -404,8 +406,7 @@
         }
         html += '</div>';
         if (s.expirationDate) {
-          var expDate = new Date(s.expirationDate);
-          html += '<span class="yb-membership__pass-expiry">' + t('membership_expires') + ' ' + expDate.toLocaleDateString(isDa() ? 'da-DK' : 'en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) + '</span>';
+          html += '<span class="yb-membership__pass-expiry">' + t('membership_expires') + ' ' + new Date(s.expirationDate).toLocaleDateString(locale, dateOpts) + '</span>';
         }
         html += '<span class="yb-membership__badge yb-membership__badge--active">' + t('membership_status_active') + '</span>';
         html += '</div>';
@@ -415,24 +416,42 @@
     }
     html += '</div>';
 
-    // Active contracts (subscriptions)
+    // Active contracts (subscriptions) with manage buttons
     var contracts = data.activeContracts || [];
     if (contracts.length) {
       html += '<div class="yb-membership__section">';
       html += '<h3 class="yb-membership__section-title">' + t('membership_contracts') + '</h3>';
       contracts.forEach(function(c) {
-        html += '<div class="yb-membership__pass">';
+        html += '<div class="yb-membership__pass yb-membership__contract-card" data-contract-id="' + c.id + '">';
         html += '<div class="yb-membership__pass-info">';
         html += '<span class="yb-membership__pass-name">' + esc(c.name) + '</span>';
-        if (c.isAutopay) {
+        if (c.isAutopay && c.autopayAmount) {
+          html += '<span class="yb-membership__pass-remaining">' + t('membership_autopay') + ' &middot; ' + c.autopayAmount + ' kr ' + t('membership_autopay_amount') + '</span>';
+        } else if (c.isAutopay) {
           html += '<span class="yb-membership__pass-remaining">' + t('membership_autopay') + '</span>';
         }
         html += '</div>';
-        if (c.endDate) {
-          var endDate = new Date(c.endDate);
-          html += '<span class="yb-membership__pass-expiry">' + t('membership_expires') + ' ' + endDate.toLocaleDateString(isDa() ? 'da-DK' : 'en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) + '</span>';
+        // Show next billing date or end date
+        if (c.nextBillingDate) {
+          html += '<span class="yb-membership__pass-expiry">' + t('membership_next_billing') + ' ' + new Date(c.nextBillingDate).toLocaleDateString(locale, dateOpts) + '</span>';
+        } else if (c.endDate) {
+          html += '<span class="yb-membership__pass-expiry">' + t('membership_expires') + ' ' + new Date(c.endDate).toLocaleDateString(locale, dateOpts) + '</span>';
         }
-        html += '<span class="yb-membership__badge yb-membership__badge--active">' + t('membership_status_active') + '</span>';
+        // Status badge
+        if (c.isSuspended) {
+          html += '<span class="yb-membership__badge yb-membership__badge--paused">' + t('membership_paused_badge') + '</span>';
+        } else if (c.terminationDate) {
+          html += '<span class="yb-membership__badge yb-membership__badge--terminating">' + t('membership_terminating_badge') + '</span>';
+        } else {
+          html += '<span class="yb-membership__badge yb-membership__badge--active">' + t('membership_status_active') + '</span>';
+        }
+        // Manage buttons (only for active, non-suspended, non-terminating contracts)
+        if (!c.isSuspended && !c.terminationDate && c.isAutopay) {
+          html += '<div class="yb-membership__manage-btns">';
+          html += '<button type="button" class="yb-membership__manage-btn yb-membership__manage-btn--pause" data-manage-pause="' + c.id + '">' + t('membership_pause_btn') + '</button>';
+          html += '<button type="button" class="yb-membership__manage-btn yb-membership__manage-btn--cancel" data-manage-cancel="' + c.id + '">' + t('membership_cancel_btn') + '</button>';
+          html += '</div>';
+        }
         html += '</div>';
       });
       html += '</div>';
@@ -452,15 +471,328 @@
         }
         html += '</div>';
         if (s.expirationDate) {
-          var expDate = new Date(s.expirationDate);
-          html += '<span class="yb-membership__pass-expiry">' + t('membership_expires') + ' ' + expDate.toLocaleDateString(isDa() ? 'da-DK' : 'en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) + '</span>';
+          html += '<span class="yb-membership__pass-expiry">' + t('membership_expires') + ' ' + new Date(s.expirationDate).toLocaleDateString(locale, dateOpts) + '</span>';
         }
         html += '</div>';
       });
       html += '</div>';
     }
 
+    // Pause panel (hidden by default, shown when user clicks Pause)
+    html += '<div id="yb-membership-pause-panel" class="yb-membership__manage-panel" hidden>';
+    html += '<div class="yb-membership__manage-header">';
+    html += '<button type="button" class="yb-membership__back-btn" data-manage-back>&larr; ' + t('membership_back') + '</button>';
+    html += '<h3 class="yb-membership__manage-title">' + t('membership_pause_title') + '</h3>';
+    html += '</div>';
+    html += '<p class="yb-membership__manage-desc">' + t('membership_pause_desc') + '</p>';
+    html += '<div class="yb-membership__manage-form">';
+    html += '<div class="yb-membership__manage-field">';
+    html += '<label>' + t('membership_pause_start') + '</label>';
+    html += '<input type="date" id="yb-pause-start" class="yb-membership__date-input" />';
+    html += '<span class="yb-membership__field-hint" id="yb-pause-start-hint"></span>';
+    html += '</div>';
+    html += '<div class="yb-membership__manage-field">';
+    html += '<label>' + t('membership_pause_end') + '</label>';
+    html += '<input type="date" id="yb-pause-end" class="yb-membership__date-input" />';
+    html += '<span class="yb-membership__field-hint">' + t('membership_pause_min') + ' · ' + t('membership_pause_max') + '</span>';
+    html += '</div>';
+    html += '<p class="yb-membership__resume-info" id="yb-pause-resume-info" hidden></p>';
+    html += '</div>';
+    html += '<div class="yb-auth-error" id="yb-pause-error" hidden role="alert"></div>';
+    html += '<button type="button" class="yb-membership__confirm-btn yb-membership__confirm-btn--pause" id="yb-pause-confirm">' + t('membership_pause_confirm') + '</button>';
+    html += '</div>';
+
+    // Cancel panel (hidden by default, shown when user clicks Cancel)
+    html += '<div id="yb-membership-cancel-panel" class="yb-membership__manage-panel" hidden>';
+    html += '<div class="yb-membership__manage-header">';
+    html += '<button type="button" class="yb-membership__back-btn" data-manage-back>&larr; ' + t('membership_back') + '</button>';
+    html += '<h3 class="yb-membership__manage-title">' + t('membership_cancel_title') + '</h3>';
+    html += '</div>';
+    html += '<p class="yb-membership__manage-desc">' + t('membership_cancel_desc') + '</p>';
+    html += '<div class="yb-membership__manage-info">';
+    html += '<div class="yb-membership__info-row"><span class="yb-membership__info-label">' + t('membership_cancel_earliest') + ':</span> <strong id="yb-cancel-earliest-date"></strong></div>';
+    html += '<div class="yb-membership__info-row"><span class="yb-membership__info-label">' + t('membership_cancel_use_until') + ':</span> <strong id="yb-cancel-use-until"></strong></div>';
+    html += '</div>';
+    html += '<div class="yb-membership__cancel-warning">' + t('membership_cancel_warning') + '</div>';
+    html += '<div class="yb-auth-error" id="yb-cancel-error" hidden role="alert"></div>';
+    html += '<button type="button" class="yb-membership__confirm-btn yb-membership__confirm-btn--cancel" id="yb-cancel-confirm">' + t('membership_cancel_confirm') + '</button>';
+    html += '</div>';
+
     container.innerHTML = html;
+
+    // Bind manage button event listeners
+    bindMembershipManageEvents(container, data);
+  }
+
+  // ── Calculate earliest termination date: 1 month + running days ──
+  function calcEarliestTerminationDate(nextBillingDate) {
+    var now = new Date();
+    var base = nextBillingDate ? new Date(nextBillingDate) : now;
+    // If next billing is in the past, use today
+    if (base < now) base = now;
+    // Add 1 month
+    var earliest = new Date(base);
+    earliest.setMonth(earliest.getMonth() + 1);
+    // "Running days" means it aligns to end of billing cycle after the notice period
+    // The termination takes effect at the end of the billing period that follows the 1-month notice
+    return earliest;
+  }
+
+  // ── Calculate earliest pause start date (after next billing cycle) ──
+  function calcEarliestPauseStart(nextBillingDate) {
+    var now = new Date();
+    if (nextBillingDate) {
+      var nbd = new Date(nextBillingDate);
+      // Must start after next billing (not during current paid period)
+      if (nbd > now) return nbd;
+    }
+    // Fallback: tomorrow
+    var tomorrow = new Date(now);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    return tomorrow;
+  }
+
+  function bindMembershipManageEvents(container, data) {
+    var contracts = data.activeContracts || [];
+    var locale = isDa() ? 'da-DK' : 'en-GB';
+    var dateOpts = { day: 'numeric', month: 'long', year: 'numeric' };
+    var activeContractId = null;
+    var activeContract = null;
+
+    // Sections to show/hide
+    var allSections = container.querySelectorAll('.yb-membership__section');
+    var pausePanel = document.getElementById('yb-membership-pause-panel');
+    var cancelPanel = document.getElementById('yb-membership-cancel-panel');
+
+    function showSections() {
+      for (var i = 0; i < allSections.length; i++) allSections[i].hidden = false;
+      if (pausePanel) pausePanel.hidden = true;
+      if (cancelPanel) cancelPanel.hidden = true;
+    }
+
+    function hideSections() {
+      for (var i = 0; i < allSections.length; i++) allSections[i].hidden = true;
+    }
+
+    // Back buttons
+    var backBtns = container.querySelectorAll('[data-manage-back]');
+    for (var b = 0; b < backBtns.length; b++) {
+      backBtns[b].addEventListener('click', showSections);
+    }
+
+    // ── Pause buttons ──
+    var pauseBtns = container.querySelectorAll('[data-manage-pause]');
+    for (var p = 0; p < pauseBtns.length; p++) {
+      pauseBtns[p].addEventListener('click', function() {
+        activeContractId = this.getAttribute('data-manage-pause');
+        activeContract = contracts.find(function(c) { return String(c.id) === String(activeContractId); });
+        if (!activeContract || !pausePanel) return;
+
+        hideSections();
+        pausePanel.hidden = false;
+
+        // Set min date for pause start (after next billing cycle)
+        var earliestStart = calcEarliestPauseStart(activeContract.nextBillingDate);
+        var startInput = document.getElementById('yb-pause-start');
+        var endInput = document.getElementById('yb-pause-end');
+        var hintEl = document.getElementById('yb-pause-start-hint');
+        var resumeInfoEl = document.getElementById('yb-pause-resume-info');
+        var errorEl = document.getElementById('yb-pause-error');
+
+        if (startInput) {
+          startInput.min = earliestStart.toISOString().split('T')[0];
+          startInput.value = earliestStart.toISOString().split('T')[0];
+        }
+        if (hintEl) {
+          hintEl.textContent = t('membership_pause_next_billing') + ': ' + earliestStart.toLocaleDateString(locale, dateOpts);
+        }
+
+        // Set default end date (14 days after start)
+        if (endInput && startInput) {
+          var defaultEnd = new Date(earliestStart);
+          defaultEnd.setDate(defaultEnd.getDate() + 14);
+          endInput.min = defaultEnd.toISOString().split('T')[0];
+          var maxEnd = new Date(earliestStart);
+          maxEnd.setMonth(maxEnd.getMonth() + 3);
+          endInput.max = maxEnd.toISOString().split('T')[0];
+          endInput.value = defaultEnd.toISOString().split('T')[0];
+        }
+
+        // Update resume info when dates change
+        function updateResumeInfo() {
+          if (!resumeInfoEl || !endInput) return;
+          if (endInput.value) {
+            var resumeDate = new Date(endInput.value);
+            resumeInfoEl.textContent = t('membership_pause_resume') + ' ' + resumeDate.toLocaleDateString(locale, dateOpts);
+            resumeInfoEl.hidden = false;
+          } else {
+            resumeInfoEl.hidden = true;
+          }
+        }
+
+        // Update end date constraints when start changes
+        function onStartChange() {
+          if (!endInput || !startInput || !startInput.value) return;
+          var sd = new Date(startInput.value);
+          var minEnd = new Date(sd);
+          minEnd.setDate(minEnd.getDate() + 14);
+          var maxEnd = new Date(sd);
+          maxEnd.setMonth(maxEnd.getMonth() + 3);
+          endInput.min = minEnd.toISOString().split('T')[0];
+          endInput.max = maxEnd.toISOString().split('T')[0];
+          // Reset end if out of range
+          if (endInput.value < endInput.min) endInput.value = endInput.min;
+          if (endInput.value > endInput.max) endInput.value = endInput.max;
+          updateResumeInfo();
+        }
+
+        if (startInput) startInput.addEventListener('change', onStartChange);
+        if (endInput) endInput.addEventListener('change', updateResumeInfo);
+        updateResumeInfo();
+
+        if (errorEl) errorEl.hidden = true;
+      });
+    }
+
+    // ── Pause confirm button ──
+    var pauseConfirmBtn = document.getElementById('yb-pause-confirm');
+    if (pauseConfirmBtn) {
+      pauseConfirmBtn.addEventListener('click', function() {
+        if (!activeContractId || !clientId) return;
+        var startInput = document.getElementById('yb-pause-start');
+        var endInput = document.getElementById('yb-pause-end');
+        var errorEl = document.getElementById('yb-pause-error');
+
+        if (!startInput || !startInput.value || !endInput || !endInput.value) return;
+
+        pauseConfirmBtn.disabled = true;
+        pauseConfirmBtn.textContent = t('membership_pause_confirming');
+        if (errorEl) errorEl.hidden = true;
+
+        fetch('/.netlify/functions/mb-contract-manage', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            action: 'suspend',
+            clientId: clientId,
+            clientContractId: Number(activeContractId),
+            startDate: startInput.value,
+            endDate: endInput.value
+          })
+        })
+        .then(function(r) { return r.json().then(function(d) { return { ok: r.ok, data: d }; }); })
+        .then(function(res) {
+          if (res.ok && res.data.success) {
+            showSections();
+            // Reload membership data
+            loadMembershipDetails();
+            showMembershipToast(t('membership_pause_success'), 'success');
+          } else {
+            if (errorEl) {
+              errorEl.textContent = res.data.error || t('membership_pause_error');
+              errorEl.hidden = false;
+            }
+          }
+          pauseConfirmBtn.disabled = false;
+          pauseConfirmBtn.textContent = t('membership_pause_confirm');
+        })
+        .catch(function() {
+          if (errorEl) {
+            errorEl.textContent = t('membership_pause_error');
+            errorEl.hidden = false;
+          }
+          pauseConfirmBtn.disabled = false;
+          pauseConfirmBtn.textContent = t('membership_pause_confirm');
+        });
+      });
+    }
+
+    // ── Cancel buttons ──
+    var cancelBtns = container.querySelectorAll('[data-manage-cancel]');
+    for (var c = 0; c < cancelBtns.length; c++) {
+      cancelBtns[c].addEventListener('click', function() {
+        activeContractId = this.getAttribute('data-manage-cancel');
+        activeContract = contracts.find(function(ct) { return String(ct.id) === String(activeContractId); });
+        if (!activeContract || !cancelPanel) return;
+
+        hideSections();
+        cancelPanel.hidden = false;
+
+        var errorEl = document.getElementById('yb-cancel-error');
+        if (errorEl) errorEl.hidden = true;
+
+        // Calculate earliest termination date (1 month + running days)
+        var earliest = calcEarliestTerminationDate(activeContract.nextBillingDate);
+        var earliestEl = document.getElementById('yb-cancel-earliest-date');
+        if (earliestEl) earliestEl.textContent = earliest.toLocaleDateString(locale, dateOpts);
+
+        // "Use until" = the termination date (end of paid period)
+        // The paid period ends at earliest termination date since that's after 1 month notice
+        var useUntilEl = document.getElementById('yb-cancel-use-until');
+        if (useUntilEl) useUntilEl.textContent = earliest.toLocaleDateString(locale, dateOpts);
+      });
+    }
+
+    // ── Cancel confirm button ──
+    var cancelConfirmBtn = document.getElementById('yb-cancel-confirm');
+    if (cancelConfirmBtn) {
+      cancelConfirmBtn.addEventListener('click', function() {
+        if (!activeContractId || !clientId) return;
+        var errorEl = document.getElementById('yb-cancel-error');
+
+        var earliest = calcEarliestTerminationDate(activeContract ? activeContract.nextBillingDate : null);
+        var terminationDate = earliest.toISOString().split('T')[0];
+
+        cancelConfirmBtn.disabled = true;
+        cancelConfirmBtn.textContent = t('membership_cancel_confirming');
+        if (errorEl) errorEl.hidden = true;
+
+        fetch('/.netlify/functions/mb-contract-manage', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            action: 'terminate',
+            clientId: clientId,
+            clientContractId: Number(activeContractId),
+            terminationDate: terminationDate
+          })
+        })
+        .then(function(r) { return r.json().then(function(d) { return { ok: r.ok, data: d }; }); })
+        .then(function(res) {
+          if (res.ok && res.data.success) {
+            showSections();
+            loadMembershipDetails();
+            showMembershipToast(t('membership_cancel_success'), 'success');
+          } else {
+            if (errorEl) {
+              errorEl.textContent = res.data.error || t('membership_cancel_error');
+              errorEl.hidden = false;
+            }
+          }
+          cancelConfirmBtn.disabled = false;
+          cancelConfirmBtn.textContent = t('membership_cancel_confirm');
+        })
+        .catch(function() {
+          if (errorEl) {
+            errorEl.textContent = t('membership_cancel_error');
+            errorEl.hidden = false;
+          }
+          cancelConfirmBtn.disabled = false;
+          cancelConfirmBtn.textContent = t('membership_cancel_confirm');
+        });
+      });
+    }
+  }
+
+  function showMembershipToast(message, type) {
+    var existing = document.querySelector('.yb-membership__toast');
+    if (existing) existing.remove();
+    var toast = document.createElement('div');
+    toast.className = 'yb-membership__toast yb-membership__toast--' + (type || 'info');
+    toast.textContent = message;
+    var container = document.getElementById('yb-membership-content');
+    if (container) container.insertBefore(toast, container.firstChild);
+    setTimeout(function() { toast.remove(); }, 5000);
   }
 
   // ══════════════════════════════════════

@@ -7958,6 +7958,250 @@ section {
   margin: 0;
 }
 
+/* Contract card with manage buttons */
+.yb-membership__contract-card {
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.5rem;
+}
+
+.yb-membership__contract-card .yb-membership__pass-info {
+  width: 100%;
+}
+
+.yb-membership__manage-btns {
+  display: flex;
+  gap: 0.5rem;
+  width: 100%;
+  padding-top: 0.5rem;
+  border-top: 1px solid #E8E4E0;
+}
+
+.yb-membership__manage-btn {
+  font-family: 'Abacaxi', sans-serif;
+  font-size: 0.8rem;
+  font-weight: 700;
+  padding: 0.4rem 1rem;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.yb-membership__manage-btn--pause {
+  background: none;
+  border: 1.5px solid #E8E4E0;
+  color: #0F0F0F;
+}
+
+.yb-membership__manage-btn--pause:hover {
+  border-color: #f75c03;
+  color: #f75c03;
+}
+
+.yb-membership__manage-btn--cancel {
+  background: none;
+  border: 1.5px solid #E8E4E0;
+  color: #6F6A66;
+}
+
+.yb-membership__manage-btn--cancel:hover {
+  border-color: #c0392b;
+  color: #c0392b;
+}
+
+/* Badge variants */
+.yb-membership__badge--paused {
+  background: #fff3cd;
+  color: #856404;
+}
+
+.yb-membership__badge--terminating {
+  background: #f8d7da;
+  color: #721c24;
+}
+
+/* ── Manage Panels (Pause / Cancel) ── */
+.yb-membership__manage-panel {
+  padding: 1rem 0;
+}
+
+.yb-membership__manage-header {
+  margin-bottom: 1rem;
+}
+
+.yb-membership__back-btn {
+  background: none;
+  border: none;
+  color: #f75c03;
+  font-family: 'Abacaxi', sans-serif;
+  font-size: 0.85rem;
+  font-weight: 700;
+  cursor: pointer;
+  padding: 0;
+  margin-bottom: 0.5rem;
+}
+
+.yb-membership__back-btn:hover {
+  text-decoration: underline;
+}
+
+.yb-membership__manage-title {
+  font-family: 'Abacaxi', sans-serif;
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #0F0F0F;
+  margin: 0;
+}
+
+.yb-membership__manage-desc {
+  color: #6F6A66;
+  font-size: 0.9rem;
+  line-height: 1.5;
+  margin: 0 0 1.25rem;
+}
+
+.yb-membership__manage-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin-bottom: 1.25rem;
+}
+
+.yb-membership__manage-field label {
+  display: block;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #0F0F0F;
+  margin-bottom: 0.35rem;
+}
+
+.yb-membership__date-input {
+  width: 100%;
+  padding: 0.6rem 0.75rem;
+  border: 1px solid #f75c03;
+  border-radius: 12px;
+  font-family: 'Abacaxi', sans-serif;
+  font-size: 0.9rem;
+  color: #0F0F0F;
+  background: #fff;
+  box-sizing: border-box;
+}
+
+.yb-membership__date-input:focus {
+  outline: none;
+  border-color: #d94f02;
+  box-shadow: 0 0 0 2px rgba(247, 92, 3, 0.15);
+}
+
+.yb-membership__field-hint {
+  display: block;
+  font-size: 0.75rem;
+  color: #6F6A66;
+  margin-top: 0.3rem;
+}
+
+.yb-membership__resume-info {
+  background: #e8f5e9;
+  color: #2e7d32;
+  font-size: 0.85rem;
+  font-weight: 700;
+  padding: 0.6rem 0.75rem;
+  border-radius: 8px;
+  margin: 0;
+}
+
+.yb-membership__manage-info {
+  background: #F5F3F0;
+  border-radius: 10px;
+  padding: 1rem;
+  margin-bottom: 1rem;
+}
+
+.yb-membership__info-row {
+  font-size: 0.9rem;
+  color: #0F0F0F;
+  margin-bottom: 0.4rem;
+}
+
+.yb-membership__info-row:last-child {
+  margin-bottom: 0;
+}
+
+.yb-membership__info-label {
+  color: #6F6A66;
+}
+
+.yb-membership__cancel-warning {
+  background: #fff3cd;
+  color: #856404;
+  font-size: 0.85rem;
+  padding: 0.75rem 1rem;
+  border-radius: 8px;
+  margin-bottom: 1rem;
+  line-height: 1.4;
+}
+
+.yb-membership__confirm-btn {
+  display: block;
+  width: 100%;
+  padding: 0.7rem 1.25rem;
+  border: none;
+  border-radius: 12px;
+  font-family: 'Abacaxi', sans-serif;
+  font-size: 0.95rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.yb-membership__confirm-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.yb-membership__confirm-btn--pause {
+  background: #f75c03;
+  color: #fff;
+}
+
+.yb-membership__confirm-btn--pause:hover:not(:disabled) {
+  background: #d94f02;
+}
+
+.yb-membership__confirm-btn--cancel {
+  background: #c0392b;
+  color: #fff;
+}
+
+.yb-membership__confirm-btn--cancel:hover:not(:disabled) {
+  background: #a93226;
+}
+
+/* Toast notification */
+.yb-membership__toast {
+  padding: 0.75rem 1rem;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  font-weight: 700;
+  margin-bottom: 1rem;
+  animation: yb-fade-in 0.3s ease;
+}
+
+.yb-membership__toast--success {
+  background: #e8f5e9;
+  color: #2e7d32;
+}
+
+.yb-membership__toast--error {
+  background: #fce4ec;
+  color: #c0392b;
+}
+
+@keyframes yb-fade-in {
+  from { opacity: 0; transform: translateY(-8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
 /* ═══════════════════════════════════════
    RECEIPTS CARDS (enhanced layout)
    ═══════════════════════════════════════ */
