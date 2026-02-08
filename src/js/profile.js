@@ -878,12 +878,19 @@
         // Normalize contract shape to match service display
         c._itemType = 'contract';
         c.name = c.name || '';
-        c.price = c.firstPaymentAmount || c.recurringPaymentAmount || c.totalContractAmount || 0;
+        // Price: use the recurring payment (what they pay each cycle), fallback to first payment or total
+        var recurringAmt = c.recurringPaymentAmount || 0;
+        var firstAmt = c.firstPaymentAmount || 0;
+        c.price = recurringAmt || firstAmt || c.totalContractAmount || 0;
         c.onlinePrice = c.price;
         c.count = null;
-        // Build a readable description from contract details
-        if (c.recurringPaymentAmount && c.autopaySchedule) {
-          c._recurringInfo = c.recurringPaymentAmount + ' kr / ' + (c.autopaySchedule || '');
+        // Build recurring info string (e.g. "799 kr / Monthly")
+        var scheduleStr = c.autopaySchedule || '';
+        if (typeof scheduleStr === 'object') scheduleStr = scheduleStr.FrequencyType || '';
+        if (recurringAmt && scheduleStr) {
+          c._recurringInfo = recurringAmt + ' kr / ' + scheduleStr;
+        } else if (recurringAmt) {
+          c._recurringInfo = recurringAmt + ' kr ' + (isDa() ? 'pr. periode' : 'per period');
         }
         return c;
       });
@@ -1009,6 +1016,7 @@
     checkoutEl.setAttribute('data-service-id', service.id);
     checkoutEl.setAttribute('data-service-price', price);
     checkoutEl.setAttribute('data-item-type', itemType || service._itemType || 'service');
+    if (service.locationId) checkoutEl.setAttribute('data-location-id', service.locationId);
     var holderInput = document.getElementById('yb-store-cardholder');
     if (holderInput && currentUser && currentUser.displayName) holderInput.value = currentUser.displayName;
     var errEl = document.getElementById('yb-store-error');
@@ -1076,10 +1084,12 @@
     var fetchUrl, fetchBody;
     if (itemType === 'contract') {
       // Contract purchase uses /sale/purchasecontract via mb-contracts POST
+      var locationId = checkoutEl.getAttribute('data-location-id');
       fetchUrl = '/.netlify/functions/mb-contracts';
       fetchBody = {
         clientId: clientId,
         contractId: Number(serviceId),
+        locationId: locationId ? Number(locationId) : 1,
         startDate: new Date().toISOString().split('T')[0],
         payment: paymentInfo
       };

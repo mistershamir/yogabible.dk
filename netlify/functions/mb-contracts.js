@@ -90,7 +90,9 @@ exports.handler = async function(event) {
           totalContractAmount: c.TotalContractAmountSubtotal || null,
           duration: c.Duration || null,
           durationUnit: c.DurationUnit || '',
-          autopaySchedule: c.AutopaySchedule || '',
+          autopaySchedule: (c.AutopaySchedule && typeof c.AutopaySchedule === 'object')
+            ? (c.AutopaySchedule.FrequencyType || c.AutopaySchedule.Description || JSON.stringify(c.AutopaySchedule))
+            : (c.AutopaySchedule || ''),
           numberOfAutopays: c.NumberOfAutopays || null,
           locationId: c.LocationId || null,
           programIds: c.ProgramIds || [],
@@ -129,6 +131,7 @@ exports.handler = async function(event) {
       var purchaseBody = {
         ClientId: body.clientId,
         ContractId: body.contractId,
+        LocationId: body.locationId || 1,
         StartDate: body.startDate || new Date().toISOString().split('T')[0],
         Test: body.test || false,
         SendNotifications: true
