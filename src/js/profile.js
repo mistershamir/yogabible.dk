@@ -359,30 +359,31 @@
     fetch('/.netlify/functions/mb-client-services?clientId=' + clientId)
       .then(function(r) { return r.json(); })
       .then(function(data) {
-        clientPassData = data;
         try {
+          clientPassData = data;
           renderMembershipDetails(contentEl, data);
+
+          // Show pass type in tier field
+          var hasAutopayContract = data.activeContracts && data.activeContracts.length > 0;
+          var hasActiveService = data.activeServices && data.activeServices.length > 0;
+          var tierEl = document.getElementById('yb-profile-tier');
+          if (tierEl) {
+            if (hasAutopayContract) {
+              tierEl.textContent = isDa() ? 'Månedligt Medlemskab' : 'Monthly Membership';
+              tierEl.className = 'yb-profile__info-value yb-profile__info-value--success';
+            } else if (hasActiveService) {
+              tierEl.textContent = isDa() ? 'Klippekort' : 'Clip Card';
+              tierEl.className = 'yb-profile__info-value yb-profile__info-value--success';
+            } else {
+              tierEl.textContent = isDa() ? 'Intet aktivt pas' : 'No active pass';
+              tierEl.className = 'yb-profile__info-value yb-profile__info-value--muted';
+            }
+          }
         } catch (renderErr) {
           console.error('[Membership] Render error:', renderErr);
+        } finally {
+          if (loadingEl) loadingEl.hidden = true;
         }
-
-        // Show pass type in tier field
-        var hasAutopayContract = data.activeContracts && data.activeContracts.length > 0;
-        var hasActiveService = data.activeServices && data.activeServices.length > 0;
-        var tierEl = document.getElementById('yb-profile-tier');
-        if (tierEl) {
-          if (hasAutopayContract) {
-            tierEl.textContent = isDa() ? 'Månedligt Medlemskab' : 'Monthly Membership';
-            tierEl.className = 'yb-profile__info-value yb-profile__info-value--success';
-          } else if (hasActiveService) {
-            tierEl.textContent = isDa() ? 'Klippekort' : 'Clip Card';
-            tierEl.className = 'yb-profile__info-value yb-profile__info-value--success';
-          } else {
-            tierEl.textContent = isDa() ? 'Intet aktivt pas' : 'No active pass';
-            tierEl.className = 'yb-profile__info-value yb-profile__info-value--muted';
-          }
-        }
-        if (loadingEl) loadingEl.hidden = true;
       })
       .catch(function(err) {
         console.error('[Membership] Load error:', err);
@@ -681,7 +682,7 @@
         pauseConfirmBtn.textContent = t('membership_pause_confirming');
         if (errorEl) errorEl.hidden = true;
 
-        fetch('/.netlify/functions/mb-contracts', {
+        fetch('/.netlify/functions/mb-contract-manage', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -692,11 +693,16 @@
             endDate: endInput.value
           })
         })
-        .then(function(r) { return r.json().then(function(d) { return { ok: r.ok, data: d }; }); })
+        .then(function(r) {
+          var ct = r.headers.get('content-type') || '';
+          if (ct.indexOf('application/json') === -1) {
+            throw new Error('Server returned non-JSON (status ' + r.status + ')');
+          }
+          return r.json().then(function(d) { return { ok: r.ok, data: d }; });
+        })
         .then(function(res) {
           if (res.ok && res.data.success) {
             showSections();
-            // Reload membership data
             loadMembershipDetails();
             showMembershipToast(t('membership_pause_success'), 'success');
           } else {
@@ -708,9 +714,10 @@
           pauseConfirmBtn.disabled = false;
           pauseConfirmBtn.textContent = t('membership_pause_confirm');
         })
-        .catch(function() {
+        .catch(function(err) {
+          console.error('[Membership] Pause error:', err);
           if (errorEl) {
-            errorEl.textContent = t('membership_pause_error');
+            errorEl.textContent = err.message || t('membership_pause_error');
             errorEl.hidden = false;
           }
           pauseConfirmBtn.disabled = false;
@@ -758,7 +765,7 @@
         cancelConfirmBtn.textContent = t('membership_cancel_confirming');
         if (errorEl) errorEl.hidden = true;
 
-        fetch('/.netlify/functions/mb-contracts', {
+        fetch('/.netlify/functions/mb-contract-manage', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -768,7 +775,13 @@
             terminationDate: terminationDate
           })
         })
-        .then(function(r) { return r.json().then(function(d) { return { ok: r.ok, data: d }; }); })
+        .then(function(r) {
+          var ct = r.headers.get('content-type') || '';
+          if (ct.indexOf('application/json') === -1) {
+            throw new Error('Server returned non-JSON (status ' + r.status + ')');
+          }
+          return r.json().then(function(d) { return { ok: r.ok, data: d }; });
+        })
         .then(function(res) {
           if (res.ok && res.data.success) {
             showSections();
@@ -783,9 +796,10 @@
           cancelConfirmBtn.disabled = false;
           cancelConfirmBtn.textContent = t('membership_cancel_confirm');
         })
-        .catch(function() {
+        .catch(function(err) {
+          console.error('[Membership] Cancel error:', err);
           if (errorEl) {
-            errorEl.textContent = t('membership_cancel_error');
+            errorEl.textContent = err.message || t('membership_cancel_error');
             errorEl.hidden = false;
           }
           cancelConfirmBtn.disabled = false;
