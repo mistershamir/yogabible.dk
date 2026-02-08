@@ -366,12 +366,16 @@
         clientPassData = data;
         renderMembershipDetails(contentEl, data);
 
-        // Update tier if they have active passes
-        if (data.hasActivePass) {
-          var tierEl = document.getElementById('yb-profile-tier');
-          if (tierEl) {
+        // Update tier: only autopay contracts make someone a "Member"
+        var hasAutopayContract = data.activeContracts && data.activeContracts.length > 0;
+        var tierEl = document.getElementById('yb-profile-tier');
+        if (tierEl) {
+          if (hasAutopayContract) {
             tierEl.textContent = isDa() ? 'Medlem' : 'Member';
             tierEl.className = 'yb-profile__info-value yb-profile__info-value--success';
+          } else {
+            tierEl.textContent = isDa() ? 'Gratis' : 'Free';
+            tierEl.className = 'yb-profile__info-value yb-profile__info-value--muted';
           }
         }
       })
