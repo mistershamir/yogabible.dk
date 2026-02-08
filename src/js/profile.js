@@ -664,11 +664,36 @@
     // Also load pass info for the schedule banner
     loadSchedulePassInfo();
 
-    fetch(url)
-      .then(function(r) { return r.json(); })
-      .then(function(data) {
-        var classes = data.classes || [];
+    // Fetch classes and visits in parallel to detect already-booked classes
+    var classesPromise = fetch(url).then(function(r) { return r.json(); });
+    var visitsPromise = clientId
+      ? fetch('/.netlify/functions/mb-visits?clientId=' + clientId + '&startDate=' + startStr + '&endDate=' + endStr)
+          .then(function(r) { return r.json(); })
+          .catch(function() { return { visits: [] }; })
+      : Promise.resolve({ visits: [] });
+
+    Promise.all([classesPromise, visitsPromise])
+      .then(function(results) {
+        var classes = results[0].classes || [];
+        var visits = results[1].visits || [];
+
         if (!classes.length) { listEl.innerHTML = '<p class="yb-store__empty">' + t('schedule_empty') + '</p>'; return; }
+
+        // Build set of booked class IDs from future visits
+        var bookedClassIds = {};
+        visits.forEach(function(v) {
+          if (v.classId && v.isFuture && !v.lateCancelled) {
+            bookedClassIds[v.classId] = true;
+          }
+        });
+
+        // Mark classes as booked if found in visits
+        classes.forEach(function(cls) {
+          if (bookedClassIds[cls.id]) {
+            cls.isBooked = true;
+          }
+        });
+
         renderSchedule(listEl, classes, start);
       })
       .catch(function() { listEl.innerHTML = '<p class="yb-store__error">' + t('schedule_error') + '</p>'; });
@@ -758,7 +783,7 @@
         var isPast = new Date(cls.startDateTime) < new Date();
         var descId = 'yb-desc-' + cls.id;
 
-        html += '<div class="yb-schedule__class' + (cls.isCanceled ? ' is-cancelled' : '') + (isPast ? ' is-past' : '') + '">';
+        html += '<div class="yb-schedule__class' + (cls.isCanceled ? ' is-cancelled' : '') + (isPast ? ' is-past' : '') + '"' + (cls.programId ? ' data-program-id="' + cls.programId + '"' : '') + '>';
         html += '  <div class="yb-schedule__class-time">' + startTime + ' – ' + endTime + '</div>';
         html += '  <div class="yb-schedule__class-info">';
         html += '    <span class="yb-schedule__class-name">' + esc(cls.name) + '</span>';
@@ -822,11 +847,45 @@
     });
   }
 
+  /**
+   * Check if the client's active passes cover this class's program.
+   * Returns true if they have a matching service or an active contract (membership).
+   */
+  function clientCanBook(programId) {
+    if (!clientPassData) return true; // If pass data not loaded, let backend decide
+    if (!programId) return true; // If class has no program info, let backend decide
+
+    // Active contracts (memberships) typically cover all classes
+    if (clientPassData.activeContracts && clientPassData.activeContracts.length > 0) {
+      return true;
+    }
+
+    // Check if any active service covers this program
+    var activeServices = clientPassData.activeServices || [];
+    for (var i = 0; i < activeServices.length; i++) {
+      if (activeServices[i].programId === programId) {
+        return true;
+      }
+    }
+    return false;
+  }
+
   function bookClass(btn) {
     var classId = btn.getAttribute('data-schedule-book');
     if (!clientId) {
       var noPassEl = document.getElementById('yb-schedule-no-pass');
       if (noPassEl) noPassEl.hidden = false;
+      return;
+    }
+
+    // Check if client's pass covers this class's program BEFORE sending request
+    var classRow = btn.closest('.yb-schedule__class');
+    var programId = classRow ? Number(classRow.getAttribute('data-program-id')) : null;
+
+    if (!clientCanBook(programId)) {
+      var noPassEl = document.getElementById('yb-schedule-no-pass');
+      if (noPassEl) noPassEl.hidden = false;
+      showScheduleToast(isDa() ? 'Du har ikke et gyldigt kort til denne klasse.' : "You don't have a valid pass for this class.", 'error');
       return;
     }
 
