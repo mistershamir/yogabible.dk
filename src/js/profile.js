@@ -177,6 +177,7 @@
           if (tabName === 'store') loadStore();
           if (tabName === 'schedule') loadSchedule();
           if (tabName === 'visits') loadVisits();
+          if (tabName === 'passes') loadMembershipDetails();
           if (tabName === 'receipts') loadReceipts();
           if (tabName === 'courses') loadMyCourses();
         }

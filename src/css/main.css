@@ -7231,6 +7231,7 @@ section {
 }
 
 .yb-visits__title,
+.yb-membership-tab__title,
 .yb-receipts__title {
   font-family: 'Abacaxi', sans-serif;
   font-size: 1.5rem;
