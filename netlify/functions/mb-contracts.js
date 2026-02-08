@@ -185,5 +185,123 @@ exports.handler = async function(event) {
     }
   }
 
+  // PUT: Manage contract (terminate or suspend/pause)
+  if (event.httpMethod === 'PUT') {
+    try {
+      var body = JSON.parse(event.body || '{}');
+
+      if (!body.clientId || !body.clientContractId || !body.action) {
+        return jsonResponse(400, { error: 'clientId, clientContractId, and action are required' });
+      }
+
+      // ── TERMINATE ──
+      if (body.action === 'terminate') {
+        if (!body.terminationDate) {
+          return jsonResponse(400, { error: 'terminationDate is required for termination' });
+        }
+
+        var terminateBody = {
+          ClientId: body.clientId,
+          ClientContractId: body.clientContractId,
+          TerminationDate: body.terminationDate,
+          SendNotifications: true
+        };
+
+        if (body.terminationCode) {
+          terminateBody.TerminationCode = body.terminationCode;
+        }
+
+        console.log('[mb-contracts] Terminating:', JSON.stringify({
+          ClientId: terminateBody.ClientId,
+          ClientContractId: terminateBody.ClientContractId,
+          TerminationDate: terminateBody.TerminationDate
+        }));
+
+        try {
+          await mbFetch('/contract/terminatecontract', {
+            method: 'POST',
+            body: JSON.stringify(terminateBody)
+          });
+        } catch (termErr) {
+          // If error mentions termination code, retry without it
+          var msg = (termErr.message || '').toLowerCase();
+          if (msg.indexOf('termination') > -1 || msg.indexOf('code') > -1) {
+            console.log('[mb-contracts] Retrying termination without code...');
+            delete terminateBody.TerminationCode;
+            await mbFetch('/contract/terminatecontract', {
+              method: 'POST',
+              body: JSON.stringify(terminateBody)
+            });
+          } else {
+            throw termErr;
+          }
+        }
+
+        return jsonResponse(200, {
+          success: true,
+          action: 'terminate',
+          terminationDate: body.terminationDate
+        });
+      }
+
+      // ── SUSPEND (PAUSE) ──
+      if (body.action === 'suspend') {
+        if (!body.startDate || !body.endDate) {
+          return jsonResponse(400, { error: 'startDate and endDate are required for suspension' });
+        }
+
+        var start = new Date(body.startDate);
+        var end = new Date(body.endDate);
+        var durationDays = Math.round((end - start) / 86400000);
+
+        if (durationDays < 14) {
+          return jsonResponse(400, { error: 'Suspension must be at least 14 days' });
+        }
+        if (durationDays > 93) {
+          return jsonResponse(400, { error: 'Suspension cannot exceed 3 months (93 days)' });
+        }
+
+        var suspendBody = {
+          ClientId: body.clientId,
+          ClientContractId: body.clientContractId,
+          SuspendDate: body.startDate,
+          ResumeDate: body.endDate,
+          SendNotifications: true
+        };
+
+        console.log('[mb-contracts] Suspending:', JSON.stringify({
+          ClientId: suspendBody.ClientId,
+          ClientContractId: suspendBody.ClientContractId,
+          SuspendDate: suspendBody.SuspendDate,
+          ResumeDate: suspendBody.ResumeDate,
+          DurationDays: durationDays
+        }));
+
+        await mbFetch('/contract/suspendcontract', {
+          method: 'POST',
+          body: JSON.stringify(suspendBody)
+        });
+
+        return jsonResponse(200, {
+          success: true,
+          action: 'suspend',
+          suspendDate: body.startDate,
+          resumeDate: body.endDate,
+          durationDays: durationDays
+        });
+      }
+
+      return jsonResponse(400, { error: 'Invalid action. Use "terminate" or "suspend".' });
+
+    } catch (err) {
+      console.error('[mb-contracts] PUT error:', err.message, err.data ? JSON.stringify(err.data) : '');
+      var errorMsg = err.message || 'Contract management failed';
+      if (err.data && err.data.Error && err.data.Error.Message) {
+        errorMsg = err.data.Error.Message;
+      }
+      return jsonResponse(err.status || 500, { error: errorMsg });
+    }
+  }
+
   return jsonResponse(405, { error: 'Method not allowed' });
 };

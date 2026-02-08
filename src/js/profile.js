@@ -359,9 +359,12 @@
     fetch('/.netlify/functions/mb-client-services?clientId=' + clientId)
       .then(function(r) { return r.json(); })
       .then(function(data) {
-        if (loadingEl) loadingEl.hidden = true;
         clientPassData = data;
-        renderMembershipDetails(contentEl, data);
+        try {
+          renderMembershipDetails(contentEl, data);
+        } catch (renderErr) {
+          console.error('[Membership] Render error:', renderErr);
+        }
 
         // Show pass type in tier field
         var hasAutopayContract = data.activeContracts && data.activeContracts.length > 0;
@@ -379,11 +382,10 @@
             tierEl.className = 'yb-profile__info-value yb-profile__info-value--muted';
           }
         }
+        if (loadingEl) loadingEl.hidden = true;
       })
       .catch(function(err) {
         console.error('[Membership] Load error:', err);
-      })
-      .finally(function() {
         if (loadingEl) loadingEl.hidden = true;
       });
   }
@@ -679,8 +681,8 @@
         pauseConfirmBtn.textContent = t('membership_pause_confirming');
         if (errorEl) errorEl.hidden = true;
 
-        fetch('/.netlify/functions/mb-contract-manage', {
-          method: 'POST',
+        fetch('/.netlify/functions/mb-contracts', {
+          method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             action: 'suspend',
@@ -756,8 +758,8 @@
         cancelConfirmBtn.textContent = t('membership_cancel_confirming');
         if (errorEl) errorEl.hidden = true;
 
-        fetch('/.netlify/functions/mb-contract-manage', {
-          method: 'POST',
+        fetch('/.netlify/functions/mb-contracts', {
+          method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             action: 'terminate',
