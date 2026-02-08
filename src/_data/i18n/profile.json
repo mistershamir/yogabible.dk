@@ -138,6 +138,17 @@
     "courses_start": "Start",
     "courses_open": "Åbn kursus",
     "courses_modules": "moduler",
+    "label_client_id": "Mindbody Klient-ID",
+    "label_yoga_level": "Yoganiveau",
+    "yoga_level_placeholder": "Vælg dit niveau",
+    "yoga_level_beginner": "Begynder",
+    "yoga_level_intermediate": "Øvet",
+    "yoga_level_advanced": "Avanceret",
+    "label_practice_freq": "Praksis-hyppighed",
+    "practice_freq_placeholder": "Vælg hyppighed",
+    "practice_freq_occasional": "Lejlighedsvis",
+    "practice_freq_regular": "Regelmæssig",
+    "practice_freq_dedicated": "Dedikeret",
     "store_items": [100078, 100203]
   },
   "en": {
@@ -279,6 +290,17 @@
     "courses_start": "Start",
     "courses_open": "Open course",
     "courses_modules": "modules",
+    "label_client_id": "Mindbody Client ID",
+    "label_yoga_level": "Yoga Level",
+    "yoga_level_placeholder": "Select your level",
+    "yoga_level_beginner": "Beginner",
+    "yoga_level_intermediate": "Intermediate",
+    "yoga_level_advanced": "Advanced",
+    "label_practice_freq": "Practice Frequency",
+    "practice_freq_placeholder": "Select frequency",
+    "practice_freq_occasional": "Occasional",
+    "practice_freq_regular": "Regular",
+    "practice_freq_dedicated": "Dedicated",
     "store_items": [100078, 100203]
   }
 }
