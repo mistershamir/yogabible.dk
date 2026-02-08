@@ -616,6 +616,10 @@
     var listEl = document.getElementById('yb-schedule-list');
     if (!listEl) return;
 
+    // Reset banners at start of each load
+    var noPassEl = document.getElementById('yb-schedule-no-pass');
+    if (noPassEl) noPassEl.hidden = true;
+
     listEl.innerHTML = '<div class="yb-store__loading"><div class="yb-mb-spinner"></div><span>' + t('schedule_loading') + '</span></div>';
 
     var today = new Date();
@@ -777,17 +781,18 @@
           html += '<button class="yb-btn yb-btn--outline yb-schedule__cancel-btn" type="button" data-schedule-cancel="' + cls.id + '">' + t('schedule_cancel') + '</button>';
         } else if (cls.spotsLeft === 0) {
           html += '<span class="yb-schedule__badge yb-schedule__badge--full">' + t('schedule_full') + '</span>';
-        } else if (cls.isAvailable) {
+        } else {
+          // Always show Book for available future classes — let backend validate
           html += '<button class="yb-btn yb-btn--primary yb-schedule__book-btn" type="button" data-schedule-book="' + cls.id + '">' + t('schedule_book') + '</button>';
         }
 
         html += '  </div>';
         html += '</div>';
 
-        // Expandable description
+        // Expandable description (render HTML from Mindbody)
         if (cls.description) {
           html += '<div class="yb-schedule__desc" id="' + descId + '" hidden>';
-          html += '<p>' + esc(cls.description) + '</p>';
+          html += '<div class="yb-schedule__desc-content">' + cls.description + '</div>';
           html += '</div>';
         }
       });
@@ -833,8 +838,10 @@
       body: JSON.stringify({ clientId: clientId, classId: Number(classId) })
     }).then(function(r) { return r.json(); })
       .then(function(data) {
-        if (data.success) {
-          showScheduleToast(isDa() ? 'Du er booket!' : "You're booked!", 'success');
+        if (data.success || data.alreadyBooked) {
+          showScheduleToast(data.alreadyBooked
+            ? (isDa() ? 'Du er allerede booket!' : "You're already booked!")
+            : (isDa() ? 'Du er booket!' : "You're booked!"), 'success');
           // Switch button to Cancel
           btn.textContent = isDa() ? 'Annuller' : 'Cancel';
           btn.className = 'yb-btn yb-btn--outline yb-schedule__cancel-btn';

@@ -33,12 +33,13 @@ exports.handler = async function(event) {
     var endDate = params.endDate || new Date(now.getTime() + 30 * 86400000).toISOString().split('T')[0];
 
     var queryString = new URLSearchParams({
-      clientId: params.clientId,
-      startDate: startDate,
-      endDate: endDate,
-      limit: '200'
+      ClientId: params.clientId,
+      StartDate: startDate,
+      EndDate: endDate,
+      Limit: '200'
     }).toString();
 
+    console.log('mb-visits query:', queryString);
     var data = await mbFetch('/client/clientvisits?' + queryString);
 
     var nowISO = now.toISOString();
