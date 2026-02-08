@@ -1,6 +1,8 @@
 /**
  * YOGA BIBLE — COURSE ADMIN
  * Manage courses, modules, chapters (CRUD + bulk import) & enrollments
+ * Analytics, student progress, draft/published status, duplicate chapter,
+ * rich text toolbar, word count
  */
 (function () {
   'use strict';
@@ -60,6 +62,11 @@
         document.querySelectorAll('[data-yb-admin-panel]').forEach(function (p) { p.classList.remove('is-active'); });
         var panel = document.querySelector('[data-yb-admin-panel="' + tabName + '"]');
         if (panel) panel.classList.add('is-active');
+
+        // Load analytics when analytics tab is clicked
+        if (tabName === 'analytics') {
+          loadAnalytics();
+        }
       });
     });
   }
@@ -108,14 +115,22 @@
     if (!state.courses.length) { el.innerHTML = '<p class="yb-admin__empty">' + t('no_courses') + '</p>'; return; }
 
     el.innerHTML = state.courses.map(function (c) {
+      var courseStatus = c.status || 'published';
+      var statusBadgeClass = courseStatus === 'published' ? 'yb-admin__badge--ok' : 'yb-admin__badge--muted';
+      var statusLabel = courseStatus === 'published' ? t('status_published') || 'Published' : t('status_draft') || 'Draft';
+
       return '<div class="yb-admin__card">' +
         '<div class="yb-admin__card-icon">' + (c.icon || '📚') + '</div>' +
         '<div class="yb-admin__card-body">' +
           '<h3>' + esc(c.title_en || c.title_da) + '</h3>' +
           '<p>' + esc(c.description_en || c.description_da || '') + '</p>' +
-          (c.program ? '<span class="yb-admin__badge">' + esc(c.program) + '</span>' : '') +
+          (c.program ? '<span class="yb-admin__badge">' + esc(c.program) + '</span> ' : '') +
+          '<span class="yb-admin__badge ' + statusBadgeClass + '">' + statusLabel + '</span>' +
         '</div>' +
         '<div class="yb-admin__card-actions">' +
+          '<button class="yb-admin__icon-btn" data-action="toggle-course-status" data-id="' + c.id + '" title="' + (courseStatus === 'published' ? (t('set_draft') || 'Set as Draft') : (t('set_published') || 'Publish')) + '">' +
+            (courseStatus === 'published' ? '&#9724;' : '&#9654;') +
+          '</button>' +
           '<button class="yb-admin__icon-btn" data-action="edit-course" data-id="' + c.id + '" title="' + t('edit') + '">&#9998;</button>' +
           '<button class="yb-admin__icon-btn yb-admin__icon-btn--danger" data-action="delete-course" data-id="' + c.id + '" title="' + t('delete') + '">&times;</button>' +
           '<button class="yb-btn yb-btn--outline yb-btn--sm" data-action="select-course" data-id="' + c.id + '">' + t('modules_title') + ' &rarr;</button>' +
@@ -131,6 +146,13 @@
     $('yb-cf-desc').value = c ? c.description_en || c.description_da || '' : '';
     $('yb-cf-icon').value = c ? c.icon || '' : '🧘';
     $('yb-cf-program').value = c ? c.program || '' : '';
+
+    // Status field
+    var statusEl = $('yb-cf-status');
+    if (statusEl) {
+      statusEl.value = c ? (c.status || 'published') : 'published';
+    }
+
     $('yb-admin-course-form-title').textContent = c ? t('edit') + ': ' + (c.title_en || c.title_da) : t('new_course');
     showView('course-form');
   }
@@ -140,13 +162,18 @@
     var title = $('yb-cf-title').value.trim();
     var desc = $('yb-cf-desc').value.trim();
     var id = $('yb-cf-id').value || slug(title || 'course');
+
+    var statusEl = $('yb-cf-status');
+    var statusVal = statusEl ? statusEl.value : 'published';
+
     var data = {
       title_da: title,
       title_en: title,
       description_da: desc,
       description_en: desc,
       icon: $('yb-cf-icon').value.trim() || '📚',
-      program: $('yb-cf-program').value.trim()
+      program: $('yb-cf-program').value.trim(),
+      status: statusVal
     };
     if (!$('yb-cf-id').value) data.createdAt = firebase.firestore.FieldValue.serverTimestamp();
 
@@ -185,7 +212,27 @@
     state.moduleId = null;
     loadModules(courseId);
     loadEnrollments(courseId);
+    loadStudentProgress(courseId);
     showView('modules');
+  }
+
+  /* ═══════════════════════════════════════
+     TOGGLE COURSE STATUS (Draft/Published)
+     ═══════════════════════════════════════ */
+  function toggleCourseStatus(courseId) {
+    var c = state.courses.find(function (x) { return x.id === courseId; });
+    if (!c) return;
+    var currentStatus = c.status || 'published';
+    var newStatus = currentStatus === 'published' ? 'draft' : 'published';
+
+    db.collection('courses').doc(courseId).update({ status: newStatus })
+      .then(function () {
+        c.status = newStatus;
+        renderCourseList();
+        var label = newStatus === 'published' ? (t('status_published') || 'Published') : (t('status_draft') || 'Draft');
+        toast(esc(c.title_en || c.title_da) + ' → ' + label);
+      })
+      .catch(function (err) { console.error(err); toast(t('error_save'), true); });
   }
 
   /* ═══════════════════════════════════════
@@ -325,6 +372,7 @@
         '<div class="yb-admin__item-actions">' +
           '<button class="yb-admin__sm-btn" data-action="move-chapter" data-id="' + ch.id + '" data-dir="-1" ' + (idx === 0 ? 'disabled' : '') + '>&uarr;</button>' +
           '<button class="yb-admin__sm-btn" data-action="move-chapter" data-id="' + ch.id + '" data-dir="1" ' + (idx === state.chapters.length - 1 ? 'disabled' : '') + '>&darr;</button>' +
+          '<button class="yb-admin__sm-btn" data-action="duplicate-chapter" data-id="' + ch.id + '" title="' + (t('duplicate') || 'Duplicate') + '">&#9851;</button>' +
           '<button class="yb-admin__sm-btn" data-action="edit-chapter" data-id="' + ch.id + '">&#9998;</button>' +
           '<button class="yb-admin__sm-btn yb-admin__sm-btn--danger" data-action="delete-chapter" data-id="' + ch.id + '">&times;</button>' +
         '</div>' +
@@ -340,6 +388,7 @@
     $('yb-chf-content').value = ch ? ch.content_en || ch.content_da || '' : '';
     $('yb-admin-chapter-form-title').textContent = ch ? t('edit') + ': ' + (ch.title_en || ch.title_da) : t('new_chapter');
     updatePreview();
+    updateWordCount();
     showView('chapter-form');
   }
 
@@ -391,6 +440,122 @@
     var textarea = $('yb-chf-content');
     var preview = $('yb-admin-preview-body');
     if (textarea && preview) preview.innerHTML = textarea.value;
+  }
+
+  /* ═══════════════════════════════════════
+     DUPLICATE CHAPTER
+     ═══════════════════════════════════════ */
+  function duplicateChapter(chapterId) {
+    var ch = state.chapters.find(function (x) { return x.id === chapterId; });
+    if (!ch) return;
+
+    var newTitle = 'Copy of ' + (ch.title_en || ch.title_da || 'Chapter');
+    var maxOrder = 0;
+    state.chapters.forEach(function (c) {
+      if ((c.order || 0) > maxOrder) maxOrder = c.order || 0;
+    });
+    var newOrder = maxOrder + 1;
+    var orderNum = String(newOrder).padStart(2, '0');
+    var newId = orderNum + '-' + slug(newTitle);
+
+    var data = {
+      title_da: newTitle,
+      title_en: newTitle,
+      order: newOrder,
+      content_da: ch.content_da || '',
+      content_en: ch.content_en || ''
+    };
+
+    var basePath = db.collection('courses').doc(state.courseId)
+      .collection('modules').doc(state.moduleId).collection('chapters');
+
+    basePath.doc(newId).set(data)
+      .then(function () {
+        toast(t('duplicated') || 'Duplicated!');
+        loadChapters(state.courseId, state.moduleId);
+      })
+      .catch(function (err) { console.error(err); toast(t('error_save'), true); });
+  }
+
+  /* ═══════════════════════════════════════
+     RICH TEXT TOOLBAR
+     ═══════════════════════════════════════ */
+  function insertTag(tag) {
+    var textarea = $('yb-chf-content');
+    if (!textarea) return;
+
+    var start = textarea.selectionStart;
+    var end = textarea.selectionEnd;
+    var selected = textarea.value.substring(start, end);
+    var before = textarea.value.substring(0, start);
+    var after = textarea.value.substring(end);
+    var replacement = '';
+
+    switch (tag) {
+      case 'bold':
+        replacement = '<strong>' + (selected || t('bold_text') || 'bold text') + '</strong>';
+        break;
+      case 'italic':
+        replacement = '<em>' + (selected || t('italic_text') || 'italic text') + '</em>';
+        break;
+      case 'h2':
+        replacement = '<h2>' + (selected || t('heading') || 'Heading') + '</h2>';
+        break;
+      case 'h3':
+        replacement = '<h3>' + (selected || t('subheading') || 'Subheading') + '</h3>';
+        break;
+      case 'ul':
+        if (selected) {
+          var items = selected.split('\n').filter(function (l) { return l.trim(); });
+          replacement = '<ul>\n' + items.map(function (item) { return '  <li>' + item.trim() + '</li>'; }).join('\n') + '\n</ul>';
+        } else {
+          replacement = '<ul>\n  <li>' + (t('list_item') || 'Item') + '</li>\n</ul>';
+        }
+        break;
+      case 'ol':
+        if (selected) {
+          var items = selected.split('\n').filter(function (l) { return l.trim(); });
+          replacement = '<ol>\n' + items.map(function (item) { return '  <li>' + item.trim() + '</li>'; }).join('\n') + '\n</ol>';
+        } else {
+          replacement = '<ol>\n  <li>' + (t('list_item') || 'Item') + '</li>\n</ol>';
+        }
+        break;
+      case 'quote':
+        replacement = '<blockquote>' + (selected || t('quote_text') || 'Quote') + '</blockquote>';
+        break;
+      case 'link':
+        var url = window.prompt(t('enter_url') || 'Enter URL:', 'https://');
+        if (!url) return;
+        replacement = '<a href="' + url + '">' + (selected || t('link_text') || 'Link text') + '</a>';
+        break;
+      default:
+        return;
+    }
+
+    textarea.value = before + replacement + after;
+    textarea.focus();
+
+    // Place cursor after the insertion
+    var newPos = before.length + replacement.length;
+    textarea.selectionStart = newPos;
+    textarea.selectionEnd = newPos;
+
+    updatePreview();
+    updateWordCount();
+  }
+
+  /* ═══════════════════════════════════════
+     WORD COUNT
+     ═══════════════════════════════════════ */
+  function updateWordCount() {
+    var textarea = $('yb-chf-content');
+    var countEl = $('yb-admin-word-count');
+    if (!textarea || !countEl) return;
+
+    var text = textarea.value.replace(/<[^>]+>/g, ' ').trim();
+    var words = text ? text.split(/\s+/).length : 0;
+    var label = lang === 'da' ? 'ord' : 'words';
+    countEl.textContent = words + ' ' + label;
   }
 
   /* ═══════════════════════════════════════
@@ -744,6 +909,278 @@
   }
 
   /* ═══════════════════════════════════════
+     ANALYTICS
+     ═══════════════════════════════════════ */
+  function loadAnalytics() {
+    var statCourses = $('yb-admin-stat-courses');
+    var statEnrollments = $('yb-admin-stat-enrollments');
+    var statStudents = $('yb-admin-stat-students');
+    var statProgress = $('yb-admin-stat-progress');
+    var tableEl = $('yb-admin-analytics-courses');
+
+    // Show loading state
+    if (statCourses) statCourses.textContent = '...';
+    if (statEnrollments) statEnrollments.textContent = '...';
+    if (statStudents) statStudents.textContent = '...';
+    if (statProgress) statProgress.textContent = '...';
+    if (tableEl) tableEl.innerHTML = '<p class="yb-admin__empty">' + t('loading') + '</p>';
+
+    var allCourses = [];
+    var allEnrollments = [];
+    var allProgress = [];
+
+    // Fetch all courses
+    var coursesPromise = db.collection('courses').get().then(function (snap) {
+      snap.forEach(function (doc) { allCourses.push(Object.assign({ id: doc.id }, doc.data())); });
+    });
+
+    // Fetch all enrollments
+    var enrollPromise = db.collection('enrollments').get().then(function (snap) {
+      snap.forEach(function (doc) { allEnrollments.push(Object.assign({ id: doc.id }, doc.data())); });
+    });
+
+    // Fetch all courseProgress docs
+    var progressPromise = db.collection('courseProgress').get().then(function (snap) {
+      snap.forEach(function (doc) { allProgress.push(Object.assign({ id: doc.id }, doc.data())); });
+    });
+
+    Promise.all([coursesPromise, enrollPromise, progressPromise]).then(function () {
+      // Total courses
+      var totalCourses = allCourses.length;
+
+      // Active enrollments
+      var activeEnrollments = allEnrollments.filter(function (e) { return e.status === 'active'; });
+      var totalActive = activeEnrollments.length;
+
+      // Unique active students
+      var uniqueStudents = {};
+      activeEnrollments.forEach(function (e) {
+        if (e.userId) uniqueStudents[e.userId] = true;
+      });
+      var totalStudents = Object.keys(uniqueStudents).length;
+
+      // Average completion %
+      var totalPercent = 0;
+      var progressCount = 0;
+      allProgress.forEach(function (p) {
+        var viewed = p.viewed;
+        if (viewed && typeof viewed === 'object') {
+          var keys = Object.keys(viewed);
+          var total = keys.length;
+          var done = 0;
+          keys.forEach(function (k) { if (viewed[k]) done++; });
+          if (total > 0) {
+            totalPercent += (done / total) * 100;
+            progressCount++;
+          }
+        }
+      });
+      var avgProgress = progressCount > 0 ? Math.round(totalPercent / progressCount) : 0;
+
+      // Render stat cards
+      if (statCourses) statCourses.textContent = totalCourses;
+      if (statEnrollments) statEnrollments.textContent = totalActive;
+      if (statStudents) statStudents.textContent = totalStudents;
+      if (statProgress) statProgress.textContent = avgProgress + '%';
+
+      // Per-course stats table
+      if (tableEl) {
+        if (!allCourses.length) {
+          tableEl.innerHTML = '<p class="yb-admin__empty">' + t('no_courses') + '</p>';
+          return;
+        }
+
+        tableEl.innerHTML = allCourses.map(function (course) {
+          // Enrollments for this course
+          var courseEnrollments = activeEnrollments.filter(function (e) { return e.courseId === course.id; });
+          var enrollCount = courseEnrollments.length;
+
+          // Progress for this course
+          var courseProgressDocs = allProgress.filter(function (p) {
+            return p.id && p.id.indexOf('_' + course.id) > -1;
+          });
+
+          var coursePercent = 0;
+          var courseProgressCount = 0;
+          var completedCount = 0;
+          courseProgressDocs.forEach(function (p) {
+            var viewed = p.viewed;
+            if (viewed && typeof viewed === 'object') {
+              var keys = Object.keys(viewed);
+              var total = keys.length;
+              var done = 0;
+              keys.forEach(function (k) { if (viewed[k]) done++; });
+              if (total > 0) {
+                var pct = (done / total) * 100;
+                coursePercent += pct;
+                courseProgressCount++;
+                if (pct >= 100) completedCount++;
+              }
+            }
+          });
+
+          var avgCoursePct = courseProgressCount > 0 ? Math.round(coursePercent / courseProgressCount) : 0;
+          var completionRate = enrollCount > 0 ? Math.round((completedCount / enrollCount) * 100) : 0;
+
+          return '<div class="yb-admin__analytics-row">' +
+            '<span class="yb-admin__analytics-icon">' + (course.icon || '📚') + '</span>' +
+            '<span class="yb-admin__analytics-name">' + esc(course.title_en || course.title_da) + '</span>' +
+            '<span class="yb-admin__analytics-stat">' + enrollCount + ' ' + (t('enrolled') || 'enrolled') + '</span>' +
+            '<span class="yb-admin__analytics-stat">' + avgCoursePct + '% ' + (t('avg_progress') || 'avg') + '</span>' +
+            '<span class="yb-admin__analytics-stat">' + completionRate + '% ' + (t('completion') || 'completion') + '</span>' +
+          '</div>';
+        }).join('');
+      }
+    }).catch(function (err) {
+      console.error('Analytics error:', err);
+      toast(t('error_load'), true);
+    });
+  }
+
+  /* ═══════════════════════════════════════
+     STUDENT PROGRESS (per course)
+     ═══════════════════════════════════════ */
+  function loadStudentProgress(courseId) {
+    var el = $('yb-admin-student-progress');
+    if (!el) return;
+
+    el.innerHTML = '<p class="yb-admin__empty">' + t('loading') + '</p>';
+
+    // First count total chapters across all modules for this course
+    var totalChapters = 0;
+    var chaptersPromise = db.collection('courses').doc(courseId).collection('modules').get()
+      .then(function (modSnap) {
+        var chapterCounts = [];
+        modSnap.forEach(function (modDoc) {
+          chapterCounts.push(
+            modDoc.ref.collection('chapters').get().then(function (chapSnap) {
+              totalChapters += chapSnap.size;
+            })
+          );
+        });
+        return Promise.all(chapterCounts);
+      });
+
+    // Fetch enrollments for this course
+    var courseEnrollments = [];
+    var enrollPromise = db.collection('enrollments').where('courseId', '==', courseId).get()
+      .then(function (snap) {
+        snap.forEach(function (doc) {
+          var data = Object.assign({ id: doc.id }, doc.data());
+          if (data.status === 'active') courseEnrollments.push(data);
+        });
+      });
+
+    Promise.all([chaptersPromise, enrollPromise]).then(function () {
+      if (!courseEnrollments.length) {
+        el.innerHTML = '<p class="yb-admin__empty">' + t('no_enrollments') + '</p>';
+        return;
+      }
+
+      // For each enrolled student, fetch progress
+      var progressPromises = courseEnrollments.map(function (enrollment) {
+        var progressDocId = enrollment.userId + '_' + courseId;
+        return db.collection('courseProgress').doc(progressDocId).get()
+          .then(function (pDoc) {
+            var chaptersRead = 0;
+            var lastActive = null;
+
+            if (pDoc.exists) {
+              var pData = pDoc.data();
+              var viewed = pData.viewed;
+              if (viewed && typeof viewed === 'object') {
+                Object.keys(viewed).forEach(function (k) {
+                  if (viewed[k]) chaptersRead++;
+                });
+              }
+              if (pData.lastViewed && pData.lastViewed.toDate) {
+                lastActive = pData.lastViewed.toDate();
+              } else if (pData.updatedAt && pData.updatedAt.toDate) {
+                lastActive = pData.updatedAt.toDate();
+              }
+            }
+
+            // Get user name from enrollment or users collection
+            var namePromise;
+            if (enrollment.userName) {
+              namePromise = Promise.resolve({
+                name: enrollment.userName,
+                email: enrollment.userEmail || ''
+              });
+            } else {
+              namePromise = db.collection('users').doc(enrollment.userId).get()
+                .then(function (uDoc) {
+                  if (!uDoc.exists) return { name: '', email: '' };
+                  var u = uDoc.data();
+                  return {
+                    name: u.name || ((u.firstName || '') + ' ' + (u.lastName || '')).trim() || '',
+                    email: u.email || ''
+                  };
+                }).catch(function () { return { name: '', email: '' }; });
+            }
+
+            return namePromise.then(function (userInfo) {
+              return {
+                userId: enrollment.userId,
+                name: userInfo.name,
+                email: userInfo.email,
+                chaptersRead: chaptersRead,
+                totalChapters: totalChapters,
+                lastActive: lastActive
+              };
+            });
+          }).catch(function () {
+            return {
+              userId: enrollment.userId,
+              name: enrollment.userName || '',
+              email: enrollment.userEmail || '',
+              chaptersRead: 0,
+              totalChapters: totalChapters,
+              lastActive: null
+            };
+          });
+      });
+
+      return Promise.all(progressPromises);
+    }).then(function (students) {
+      if (!students || !students.length) {
+        el.innerHTML = '<p class="yb-admin__empty">' + t('no_enrollments') + '</p>';
+        return;
+      }
+
+      el.innerHTML = students.map(function (s) {
+        var pct = s.totalChapters > 0 ? Math.round((s.chaptersRead / s.totalChapters) * 100) : 0;
+        var lastActiveStr = '';
+        if (s.lastActive) {
+          lastActiveStr = s.lastActive.toLocaleDateString(lang === 'da' ? 'da-DK' : 'en-US', {
+            year: 'numeric', month: 'short', day: 'numeric'
+          });
+        }
+        var displayName = s.name || s.email || s.userId;
+        var chaptersLabel = lang === 'da' ? 'kapitler læst' : 'chapters read';
+
+        return '<div class="yb-admin__student-row">' +
+          '<div class="yb-admin__student-info">' +
+            '<strong>' + esc(displayName) + '</strong>' +
+            (s.email ? ' <small style="color:#6F6A66">' + esc(s.email) + '</small>' : '') +
+          '</div>' +
+          '<div class="yb-admin__student-bar-wrap">' +
+            '<div class="yb-admin__student-bar" style="width:' + pct + '%"></div>' +
+          '</div>' +
+          '<div class="yb-admin__student-stats">' +
+            '<span>' + s.chaptersRead + '/' + s.totalChapters + ' ' + chaptersLabel + '</span>' +
+            '<span>' + pct + '%</span>' +
+            (lastActiveStr ? '<small style="color:#6F6A66">' + (lang === 'da' ? 'Sidst aktiv: ' : 'Last active: ') + lastActiveStr + '</small>' : '') +
+          '</div>' +
+        '</div>';
+      }).join('');
+    }).catch(function (err) {
+      console.error('Student progress error:', err);
+      el.innerHTML = '<p class="yb-admin__empty" style="color:#dc2626">' + (t('error_load') || 'Error loading data') + '</p>';
+    });
+  }
+
+  /* ═══════════════════════════════════════
      EVENT BINDING
      ═══════════════════════════════════════ */
   function bindEvents() {
@@ -761,6 +1198,7 @@
         case 'delete-course': deleteCourse(id); break;
         case 'select-course': selectCourse(id); break;
         case 'back-courses': state.courseId = null; state.moduleId = null; showView('courses'); break;
+        case 'toggle-course-status': toggleCourseStatus(id); break;
 
         case 'new-module': showModuleForm(null); break;
         case 'edit-module': showModuleForm(id); break;
@@ -774,6 +1212,7 @@
         case 'delete-chapter': deleteChapter(id); break;
         case 'move-chapter': moveChapter(id, dir); break;
         case 'back-chapters': showView('chapters'); break;
+        case 'duplicate-chapter': duplicateChapter(id); break;
 
         case 'bulk-import': showView('bulk'); break;
         case 'bulk-remove':
@@ -783,6 +1222,16 @@
 
         case 'revoke-enroll': toggleEnrollment(id, 'revoked'); break;
         case 'activate-enroll': toggleEnrollment(id, 'active'); break;
+
+        // Rich text toolbar actions
+        case 'toolbar-bold': insertTag('bold'); break;
+        case 'toolbar-italic': insertTag('italic'); break;
+        case 'toolbar-h2': insertTag('h2'); break;
+        case 'toolbar-h3': insertTag('h3'); break;
+        case 'toolbar-ul': insertTag('ul'); break;
+        case 'toolbar-ol': insertTag('ol'); break;
+        case 'toolbar-quote': insertTag('quote'); break;
+        case 'toolbar-link': insertTag('link'); break;
       }
     });
 
@@ -809,10 +1258,11 @@
       $('yb-admin-bulk-step2').hidden = true;
     });
 
-    // Live preview on textarea input
+    // Live preview and word count on textarea input
     document.addEventListener('input', function (e) {
       if (e.target.id === 'yb-chf-content') {
         updatePreview();
+        updateWordCount();
       }
     });
   }

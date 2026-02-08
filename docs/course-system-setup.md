@@ -13,6 +13,7 @@ courses/{courseId}
   ├── thumbnail: string (URL, optional)
   ├── icon: string (emoji, optional)
   ├── program: "200h" | "300h" | null
+  ├── status: "published" | "draft" (default: "published")
   └── createdAt: timestamp
 
 courses/{courseId}/modules/{moduleId}
@@ -41,6 +42,7 @@ courseProgress/{odcId}  (document ID = userId_courseId)
   ├── userId: string
   ├── courseId: string
   ├── viewed: map { "moduleId__chapterId": timestamp }
+  ├── completed: map { "moduleId__chapterId": timestamp }
   ├── lastModule: string
   ├── lastChapter: string
   └── lastAccessedAt: timestamp
@@ -53,6 +55,14 @@ courseComments/{auto-generated-id}
   ├── chapterId: string
   ├── content: string
   ├── createdAt: timestamp
+  └── updatedAt: timestamp
+
+courseNotes/{docId}  (document ID = userId_courseId_moduleId_chapterId)
+  ├── userId: string
+  ├── courseId: string
+  ├── moduleId: string
+  ├── chapterId: string
+  ├── content: string (private note text)
   └── updatedAt: timestamp
 ```
 
@@ -109,11 +119,13 @@ service cloud.firestore {
       allow write: if isAdmin();
     }
 
-    // Course Progress: users can read/write their own
+    // Course Progress: users can read/write their own, admin can read all (for analytics)
     match /courseProgress/{progressId} {
       allow create: if request.auth != null
         && request.resource.data.userId == request.auth.uid;
-      allow read, update, delete: if request.auth != null
+      allow read: if request.auth != null
+        && (resource.data.userId == request.auth.uid || isAdmin());
+      allow update, delete: if request.auth != null
         && resource.data.userId == request.auth.uid;
     }
 
@@ -123,6 +135,14 @@ service cloud.firestore {
       allow create: if request.auth != null
         && request.resource.data.userId == request.auth.uid;
       allow update, delete: if request.auth != null
+        && resource.data.userId == request.auth.uid;
+    }
+
+    // Course Notes: users can read/write their own private notes
+    match /courseNotes/{noteId} {
+      allow create: if request.auth != null
+        && request.resource.data.userId == request.auth.uid;
+      allow read, update, delete: if request.auth != null
         && resource.data.userId == request.auth.uid;
     }
   }

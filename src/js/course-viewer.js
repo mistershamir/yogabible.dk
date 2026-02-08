@@ -1,15 +1,17 @@
 /**
  * YOGA BIBLE — COURSE VIEWER
- * Handles course content display, navigation, search, comments, and progress.
+ * Handles course content display, navigation, search, comments, progress,
+ * personal notes, TOC, font size, reading time, completion tracking, and more.
  * Requires Firebase Auth + Firestore (loaded via CDN in base.njk).
  *
  * Firestore collections used:
- *   courses/{courseId}                         — course metadata
- *   courses/{courseId}/modules/{moduleId}       — module metadata
- *   courses/{courseId}/modules/{mid}/chapters/{cid} — chapter content
- *   enrollments/{odcId_odcId}                  — user enrollment
- *   courseProgress/{odcId_odcId}                — reading progress
- *   courseComments/{auto}                       — user comments
+ *   courses/{courseId}                              — course metadata
+ *   courses/{courseId}/modules/{moduleId}            — module metadata
+ *   courses/{courseId}/modules/{mid}/chapters/{cid}  — chapter content
+ *   enrollments/{userId_courseId}                    — user enrollment
+ *   courseProgress/{userId_courseId}                  — reading progress (viewed + completed)
+ *   courseComments/{auto}                            — user comments
+ *   courseNotes/{userId_courseId_moduleId_chapterId}  — personal notes per chapter
  */
 (function() {
   'use strict';
@@ -28,10 +30,14 @@
     currentModule: null,
     currentChapter: null,
     enrollment: null,
-    progress: null,      // { viewed: {}, lastModule, lastChapter }
+    progress: null,      // { viewed: {}, completed: {}, lastModule, lastChapter }
     comments: [],
+    currentNote: null,
     sidebarOpen: false,
     searchOpen: false,
+    tocOpen: false,
+    fontsizeOpen: false,
+    completionShown: false,
     lang: 'da'
   };
 
@@ -74,6 +80,9 @@
 
     auth = firebase.auth();
     db = firebase.firestore();
+
+    // Restore font size preference
+    restoreFontSize();
 
     bindEvents();
 
@@ -154,11 +163,53 @@
     var searchResults = document.getElementById('yb-cv-search-results');
     if (searchResults) searchResults.addEventListener('click', handleSearchResultClick);
 
-    // Keyboard: Escape closes search/sidebar
+    // TOC toggle and close
+    var tocToggle = document.getElementById('yb-cv-toc-toggle');
+    var tocClose = document.getElementById('yb-cv-toc-close');
+    if (tocToggle) tocToggle.addEventListener('click', toggleTOC);
+    if (tocClose) tocClose.addEventListener('click', closeTOC);
+
+    // Font size toggle
+    var fontsizeToggle = document.getElementById('yb-cv-fontsize-toggle');
+    if (fontsizeToggle) fontsizeToggle.addEventListener('click', toggleFontSize);
+
+    // Font size buttons (delegated)
+    var fontsizePanel = document.getElementById('yb-cv-fontsize');
+    if (fontsizePanel) fontsizePanel.addEventListener('click', handleFontSizeClick);
+
+    // Notes save
+    var notesSaveBtn = document.getElementById('yb-cv-notes-save');
+    if (notesSaveBtn) notesSaveBtn.addEventListener('click', saveNote);
+
+    // Print button
+    var printBtn = document.getElementById('yb-cv-print-btn');
+    if (printBtn) printBtn.addEventListener('click', function() { window.print(); });
+
+    // Complete checkbox
+    var completeCheckbox = document.getElementById('yb-cv-complete-checkbox');
+    if (completeCheckbox) completeCheckbox.addEventListener('change', handleCompleteToggle);
+
+    // Completion celebration close
+    var completionClose = document.getElementById('yb-cv-completion-close');
+    if (completionClose) completionClose.addEventListener('click', closeCompletionCelebration);
+
+    // Keyboard: Escape closes search/sidebar/TOC/fontsize, arrows navigate chapters
     document.addEventListener('keydown', function(e) {
       if (e.key === 'Escape') {
         if (state.searchOpen) closeSearch();
         if (state.sidebarOpen) closeSidebar();
+        if (state.tocOpen) closeTOC();
+        if (state.fontsizeOpen) closeFontSize();
+      }
+
+      // Arrow key navigation — only when not focused on input/textarea/select
+      var tag = document.activeElement ? document.activeElement.tagName.toLowerCase() : '';
+      if (tag === 'input' || tag === 'textarea' || tag === 'select') return;
+
+      if (e.key === 'ArrowLeft') {
+        navigatePrev();
+      } else if (e.key === 'ArrowRight') {
+        navigateNext();
       }
     });
   }
@@ -332,15 +383,35 @@
     updateChapterNav();
     markChapterViewed(moduleId, chapterId);
 
+    // Build TOC from rendered content
+    buildTOC();
+
+    // Calculate and display reading time
+    updateReadingTime();
+
+    // Render breadcrumb
+    renderBreadcrumb(moduleId, chapter);
+
+    // Update complete checkbox state
+    updateCompleteCheckbox(moduleId, chapterId);
+
     // Close sidebar on mobile
     closeSidebar();
 
-    // Scroll content to top
+    // Close TOC and font size panels
+    closeTOC();
+    closeFontSize();
+
+    // Scroll content to top (both the content pane and window)
     var contentEl = document.getElementById('yb-cv-content');
     if (contentEl) contentEl.scrollTop = 0;
+    window.scrollTo(0, 0);
 
-    // Load comments
-    return loadComments(moduleId, chapterId);
+    // Load comments and notes in parallel
+    var commentsPromise = loadComments(moduleId, chapterId);
+    var notesPromise = loadNote(moduleId, chapterId);
+
+    return Promise.all([commentsPromise, notesPromise]);
   }
 
   // ════════════════════════════════════════
@@ -374,6 +445,391 @@
     if (contentEl) {
       contentEl.innerHTML = localised(chapter, 'content');
     }
+  }
+
+  // ════════════════════════════════════════
+  // BREADCRUMB
+  // ════════════════════════════════════════
+
+  function renderBreadcrumb(moduleId, chapter) {
+    var breadcrumbEl = document.getElementById('yb-cv-chapter-breadcrumb');
+    if (!breadcrumbEl) return;
+
+    var mod = null;
+    for (var i = 0; i < state.modules.length; i++) {
+      if (state.modules[i].id === moduleId) { mod = state.modules[i]; break; }
+    }
+
+    if (!mod) {
+      breadcrumbEl.innerHTML = '';
+      return;
+    }
+
+    var moduleTitle = esc(localised(mod, 'title'));
+    var chapterTitle = esc(localised(chapter, 'title'));
+
+    var html = '<button class="yb-cv-breadcrumb__module" data-action="breadcrumb-module" data-module="' + moduleId + '">' + moduleTitle + '</button>';
+    html += '<span class="yb-cv-breadcrumb__sep"> / </span>';
+    html += '<span class="yb-cv-breadcrumb__chapter">' + chapterTitle + '</span>';
+
+    breadcrumbEl.innerHTML = html;
+
+    // Bind breadcrumb module click
+    var moduleBtn = breadcrumbEl.querySelector('[data-action="breadcrumb-module"]');
+    if (moduleBtn) {
+      moduleBtn.addEventListener('click', function() {
+        var mid = moduleBtn.getAttribute('data-module');
+        openModule(mid);
+      });
+    }
+  }
+
+  // ════════════════════════════════════════
+  // READING TIME
+  // ════════════════════════════════════════
+
+  function updateReadingTime() {
+    var readingTimeEl = document.getElementById('yb-cv-reading-time');
+    if (!readingTimeEl) return;
+
+    var contentEl = document.getElementById('yb-cv-chapter-content');
+    if (!contentEl) {
+      readingTimeEl.textContent = '';
+      return;
+    }
+
+    // Strip HTML and count words
+    var text = contentEl.textContent || contentEl.innerText || '';
+    var words = text.trim().split(/\s+/).filter(function(w) { return w.length > 0; });
+    var minutes = Math.max(1, Math.round(words.length / 200));
+
+    if (state.lang === 'en') {
+      readingTimeEl.textContent = minutes + ' min read';
+    } else {
+      readingTimeEl.textContent = minutes + ' min læsning';
+    }
+  }
+
+  // ════════════════════════════════════════
+  // TABLE OF CONTENTS (TOC)
+  // ════════════════════════════════════════
+
+  function buildTOC() {
+    var contentEl = document.getElementById('yb-cv-chapter-content');
+    var tocListEl = document.getElementById('yb-cv-toc-list');
+    if (!contentEl || !tocListEl) return;
+
+    var headings = contentEl.querySelectorAll('h2, h3');
+    if (!headings.length) {
+      tocListEl.innerHTML = '';
+      // Hide TOC toggle if no headings
+      var tocToggle = document.getElementById('yb-cv-toc-toggle');
+      if (tocToggle) tocToggle.hidden = true;
+      return;
+    }
+
+    // Show TOC toggle
+    var tocToggle = document.getElementById('yb-cv-toc-toggle');
+    if (tocToggle) tocToggle.hidden = false;
+
+    var html = '';
+    for (var i = 0; i < headings.length; i++) {
+      var heading = headings[i];
+      var slug = slugify(heading.textContent);
+      // Ensure unique ID by appending index if needed
+      var id = slug || 'heading-' + i;
+      heading.setAttribute('id', id);
+
+      var isH3 = heading.tagName.toLowerCase() === 'h3';
+      html += '<li class="yb-cv-toc__item' + (isH3 ? ' yb-cv-toc__item--indent' : '') + '">';
+      html += '<a class="yb-cv-toc__link" href="#' + id + '" data-toc-target="' + id + '">' + esc(heading.textContent) + '</a>';
+      html += '</li>';
+    }
+
+    tocListEl.innerHTML = html;
+
+    // Bind TOC link clicks for smooth scroll
+    var tocLinks = tocListEl.querySelectorAll('.yb-cv-toc__link');
+    for (var j = 0; j < tocLinks.length; j++) {
+      tocLinks[j].addEventListener('click', handleTOCClick);
+    }
+  }
+
+  function handleTOCClick(e) {
+    e.preventDefault();
+    var targetId = e.currentTarget.getAttribute('data-toc-target');
+    var targetEl = document.getElementById(targetId);
+    if (targetEl) {
+      targetEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+    closeTOC();
+  }
+
+  function slugify(text) {
+    return (text || '')
+      .toLowerCase()
+      .trim()
+      .replace(/[^\w\s-æøåäöü]/g, '')
+      .replace(/[\s_]+/g, '-')
+      .replace(/^-+|-+$/g, '')
+      .substring(0, 80);
+  }
+
+  function toggleTOC() {
+    state.tocOpen = !state.tocOpen;
+    var tocEl = document.getElementById('yb-cv-toc');
+    if (tocEl) tocEl.hidden = !state.tocOpen;
+  }
+
+  function closeTOC() {
+    state.tocOpen = false;
+    var tocEl = document.getElementById('yb-cv-toc');
+    if (tocEl) tocEl.hidden = true;
+  }
+
+  // ════════════════════════════════════════
+  // FONT SIZE
+  // ════════════════════════════════════════
+
+  function toggleFontSize() {
+    state.fontsizeOpen = !state.fontsizeOpen;
+    var panel = document.getElementById('yb-cv-fontsize');
+    if (panel) panel.hidden = !state.fontsizeOpen;
+  }
+
+  function closeFontSize() {
+    state.fontsizeOpen = false;
+    var panel = document.getElementById('yb-cv-fontsize');
+    if (panel) panel.hidden = true;
+  }
+
+  function handleFontSizeClick(e) {
+    var btn = e.target.closest('[data-fontsize]');
+    if (!btn) return;
+    var size = btn.getAttribute('data-fontsize');
+    applyFontSize(size);
+    try { localStorage.setItem('yb-cv-fontsize', size); } catch (err) { /* ignore */ }
+    closeFontSize();
+  }
+
+  function applyFontSize(size) {
+    var contentEl = document.getElementById('yb-cv-chapter-content');
+    if (!contentEl) return;
+
+    // Remove all size classes
+    contentEl.classList.remove(
+      'yb-cv-chapter__body--small',
+      'yb-cv-chapter__body--medium',
+      'yb-cv-chapter__body--large'
+    );
+
+    // Apply requested size
+    if (size === 'small' || size === 'medium' || size === 'large') {
+      contentEl.classList.add('yb-cv-chapter__body--' + size);
+    }
+
+    // Update active state on buttons
+    var panel = document.getElementById('yb-cv-fontsize');
+    if (panel) {
+      var buttons = panel.querySelectorAll('[data-fontsize]');
+      for (var i = 0; i < buttons.length; i++) {
+        var isActive = buttons[i].getAttribute('data-fontsize') === size;
+        buttons[i].classList.toggle('yb-cv-fontsize__btn--active', isActive);
+      }
+    }
+  }
+
+  function restoreFontSize() {
+    try {
+      var saved = localStorage.getItem('yb-cv-fontsize');
+      if (saved) {
+        applyFontSize(saved);
+      }
+    } catch (err) { /* ignore */ }
+  }
+
+  // ════════════════════════════════════════
+  // PERSONAL NOTES
+  // ════════════════════════════════════════
+
+  function getNoteId(moduleId, chapterId) {
+    return state.user.uid + '_' + state.courseId + '_' + moduleId + '_' + chapterId;
+  }
+
+  function loadNote(moduleId, chapterId) {
+    var noteInput = document.getElementById('yb-cv-notes-input');
+    var noteStatus = document.getElementById('yb-cv-notes-status');
+    if (noteInput) noteInput.value = '';
+    if (noteStatus) noteStatus.textContent = '';
+    state.currentNote = null;
+
+    var noteId = getNoteId(moduleId, chapterId);
+    return db.collection('courseNotes').doc(noteId).get()
+      .then(function(doc) {
+        if (doc.exists) {
+          state.currentNote = doc.data();
+          if (noteInput) noteInput.value = state.currentNote.content || '';
+        }
+      })
+      .catch(function(err) {
+        console.warn('Failed to load note:', err);
+      });
+  }
+
+  function saveNote() {
+    var noteInput = document.getElementById('yb-cv-notes-input');
+    var noteStatus = document.getElementById('yb-cv-notes-status');
+    if (!noteInput || !state.currentModule || !state.currentChapter) return;
+
+    var content = noteInput.value.trim();
+    var noteId = getNoteId(state.currentModule, state.currentChapter);
+
+    var noteData = {
+      userId: state.user.uid,
+      courseId: state.courseId,
+      moduleId: state.currentModule,
+      chapterId: state.currentChapter,
+      content: content,
+      updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+    };
+
+    if (noteStatus) noteStatus.textContent = t('notes_saving') || '...';
+
+    db.collection('courseNotes').doc(noteId).set(noteData, { merge: true })
+      .then(function() {
+        state.currentNote = noteData;
+        state.currentNote.content = content;
+        if (noteStatus) {
+          noteStatus.textContent = t('notes_saved') || (state.lang === 'en' ? 'Note saved' : 'Note gemt');
+          // Clear status after 3 seconds
+          setTimeout(function() {
+            if (noteStatus) noteStatus.textContent = '';
+          }, 3000);
+        }
+      })
+      .catch(function(err) {
+        console.error('Failed to save note:', err);
+        if (noteStatus) noteStatus.textContent = t('notes_error') || 'Error';
+      });
+  }
+
+  // ════════════════════════════════════════
+  // MARK CHAPTER COMPLETE
+  // ════════════════════════════════════════
+
+  function handleCompleteToggle() {
+    var checkbox = document.getElementById('yb-cv-complete-checkbox');
+    if (!checkbox || !state.currentModule || !state.currentChapter) return;
+
+    if (checkbox.checked) {
+      markChapterComplete(state.currentModule, state.currentChapter);
+    } else {
+      unmarkChapterComplete(state.currentModule, state.currentChapter);
+    }
+  }
+
+  function markChapterComplete(moduleId, chapterId) {
+    var key = moduleId + '__' + chapterId;
+    var progressId = state.user.uid + '_' + state.courseId;
+    var update = {};
+    update['completed.' + key] = firebase.firestore.FieldValue.serverTimestamp();
+
+    db.collection('courseProgress').doc(progressId).set(update, { merge: true })
+      .then(function() {
+        if (!state.progress) state.progress = { viewed: {}, completed: {} };
+        if (!state.progress.completed) state.progress.completed = {};
+        state.progress.completed[key] = new Date();
+        updateCompleteCheckbox(moduleId, chapterId);
+        updateProgressUI();
+        // Check if all chapters are now complete
+        checkCourseDone();
+      })
+      .catch(function(err) {
+        console.warn('Failed to mark complete:', err);
+        // Revert checkbox
+        var checkbox = document.getElementById('yb-cv-complete-checkbox');
+        if (checkbox) checkbox.checked = false;
+      });
+  }
+
+  function unmarkChapterComplete(moduleId, chapterId) {
+    var key = moduleId + '__' + chapterId;
+    var progressId = state.user.uid + '_' + state.courseId;
+    var update = {};
+    update['completed.' + key] = firebase.firestore.FieldValue.delete();
+
+    db.collection('courseProgress').doc(progressId).update(update)
+      .then(function() {
+        if (state.progress && state.progress.completed) {
+          delete state.progress.completed[key];
+        }
+        updateCompleteCheckbox(moduleId, chapterId);
+        updateProgressUI();
+      })
+      .catch(function(err) {
+        console.warn('Failed to unmark complete:', err);
+        // Revert checkbox
+        var checkbox = document.getElementById('yb-cv-complete-checkbox');
+        if (checkbox) checkbox.checked = true;
+      });
+  }
+
+  function isChapterComplete(moduleId, chapterId) {
+    var key = moduleId + '__' + chapterId;
+    return state.progress && state.progress.completed && state.progress.completed[key];
+  }
+
+  function updateCompleteCheckbox(moduleId, chapterId) {
+    var checkbox = document.getElementById('yb-cv-complete-checkbox');
+    var label = document.getElementById('yb-cv-complete-text');
+    if (!checkbox) return;
+
+    var completed = isChapterComplete(moduleId, chapterId);
+    checkbox.checked = !!completed;
+    if (label) {
+      label.textContent = completed ? t('mark_complete_done') : t('mark_complete');
+    }
+  }
+
+  // ════════════════════════════════════════
+  // COMPLETION CELEBRATION
+  // ════════════════════════════════════════
+
+  function checkCourseDone() {
+    if (!state.allChaptersLoaded) return;
+
+    // Check localStorage flag — only show once per course
+    var shownKey = 'yb-cv-completion-shown-' + state.courseId;
+    try {
+      if (localStorage.getItem(shownKey)) return;
+    } catch (err) { /* ignore */ }
+
+    var totalChapters = 0;
+    var completedChapters = 0;
+
+    state.modules.forEach(function(mod) {
+      var chapters = state.chaptersCache[mod.id] || [];
+      totalChapters += chapters.length;
+      chapters.forEach(function(ch) {
+        if (isChapterComplete(mod.id, ch.id)) completedChapters++;
+      });
+    });
+
+    if (totalChapters > 0 && completedChapters === totalChapters) {
+      showCompletionCelebration();
+      try { localStorage.setItem(shownKey, '1'); } catch (err) { /* ignore */ }
+    }
+  }
+
+  function showCompletionCelebration() {
+    var overlay = document.getElementById('yb-cv-completion');
+    if (overlay) overlay.hidden = false;
+    state.completionShown = true;
+  }
+
+  function closeCompletionCelebration() {
+    var overlay = document.getElementById('yb-cv-completion');
+    if (overlay) overlay.hidden = true;
   }
 
   // ════════════════════════════════════════
@@ -886,11 +1342,16 @@
     var progressId = state.user.uid + '_' + state.courseId;
     return db.collection('courseProgress').doc(progressId).get()
       .then(function(doc) {
-        state.progress = doc.exists ? doc.data() : { viewed: {}, lastModule: null, lastChapter: null };
+        state.progress = doc.exists
+          ? doc.data()
+          : { viewed: {}, completed: {}, lastModule: null, lastChapter: null };
+        // Ensure completed map exists
+        if (!state.progress.completed) state.progress.completed = {};
+        if (!state.progress.viewed) state.progress.viewed = {};
         updateProgressUI();
       })
       .catch(function() {
-        state.progress = { viewed: {}, lastModule: null, lastChapter: null };
+        state.progress = { viewed: {}, completed: {}, lastModule: null, lastChapter: null };
       });
   }
 
@@ -910,7 +1371,7 @@
 
     db.collection('courseProgress').doc(progressId).set(update, { merge: true })
       .then(function() {
-        if (!state.progress) state.progress = { viewed: {} };
+        if (!state.progress) state.progress = { viewed: {}, completed: {} };
         if (!state.progress.viewed) state.progress.viewed = {};
         state.progress.viewed[key] = new Date();
         state.progress.lastModule = moduleId;
@@ -931,23 +1392,23 @@
 
   function updateProgressUI() {
     var totalChapters = 0;
-    var viewedChapters = 0;
+    var completedChapters = 0;
 
     state.modules.forEach(function(mod) {
       var chapters = state.chaptersCache[mod.id] || [];
       totalChapters += chapters.length;
       chapters.forEach(function(ch) {
-        if (isChapterViewed(mod.id, ch.id)) viewedChapters++;
+        if (isChapterComplete(mod.id, ch.id)) completedChapters++;
       });
     });
 
-    var pct = totalChapters > 0 ? Math.round((viewedChapters / totalChapters) * 100) : 0;
+    var pct = totalChapters > 0 ? Math.round((completedChapters / totalChapters) * 100) : 0;
 
     var barEl = document.getElementById('yb-cv-progress-bar');
     var textEl = document.getElementById('yb-cv-progress-text');
 
     if (barEl) barEl.style.width = pct + '%';
-    if (textEl) textEl.textContent = viewedChapters + ' ' + t('progress_of') + ' ' + totalChapters + ' — ' + pct + '%';
+    if (textEl) textEl.textContent = completedChapters + ' ' + t('progress_of') + ' ' + totalChapters + ' — ' + pct + '%';
   }
 
   function updateSidebarChapterViewed(moduleId, chapterId) {
