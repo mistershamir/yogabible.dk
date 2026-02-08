@@ -852,28 +852,46 @@
 
     listEl.innerHTML = '<div class="yb-store__loading"><div class="yb-mb-spinner"></div><span>' + (isDa() ? 'Henter pakker...' : 'Loading packages...') + '</span></div>';
 
-    // Check if specific items are configured, otherwise load all sellable online
-    var storePanel = document.querySelector('[data-yb-panel="store"]');
-    var itemIds = storePanel ? storePanel.getAttribute('data-store-items') : '';
-    var url = itemIds
-      ? '/.netlify/functions/mb-services?serviceIds=' + itemIds
-      : '/.netlify/functions/mb-services?sellOnline=true';
+    // Fetch both services and contracts in parallel
+    var servicesUrl = '/.netlify/functions/mb-services?sellOnline=true';
+    var contractsUrl = '/.netlify/functions/mb-contracts?sellOnline=true';
 
-    fetch(url)
-      .then(function(r) { return r.json(); })
-      .then(function(data) {
-        storeServices = data.services || [];
-        if (!storeServices.length) { listEl.innerHTML = '<p class="yb-store__empty">' + t('store_empty') + '</p>'; return; }
-        renderStoreItems(listEl);
-      })
-      .catch(function() { listEl.innerHTML = '<p class="yb-store__error">' + t('store_error') + '</p>'; });
+    Promise.all([
+      fetch(servicesUrl).then(function(r) { return r.json(); }),
+      fetch(contractsUrl).then(function(r) { return r.json(); })
+    ]).then(function(results) {
+      var services = (results[0].services || []).map(function(s) {
+        s._itemType = 'service';
+        return s;
+      });
+      var contracts = (results[1].contracts || []).map(function(c) {
+        // Normalize contract shape to match service display
+        c._itemType = 'contract';
+        c.name = c.name || '';
+        c.price = c.firstPaymentAmount || c.recurringPaymentAmount || c.totalContractAmount || 0;
+        c.onlinePrice = c.price;
+        c.count = null;
+        // Build a readable description from contract details
+        if (c.recurringPaymentAmount && c.autopaySchedule) {
+          c._recurringInfo = c.recurringPaymentAmount + ' kr / ' + (c.autopaySchedule || '');
+        }
+        return c;
+      });
+
+      storeServices = services.concat(contracts);
+      if (!storeServices.length) { listEl.innerHTML = '<p class="yb-store__empty">' + t('store_empty') + '</p>'; return; }
+      renderStoreItems(listEl);
+    }).catch(function() { listEl.innerHTML = '<p class="yb-store__error">' + t('store_error') + '</p>'; });
   }
 
   /**
-   * Categorize a service by name heuristics.
-   * Once you assign Mindbody barcodes, this can be refined by programId.
+   * Categorize a store item by type and name heuristics.
+   * Contracts are always 'memberships'. Services are categorized by name.
    */
   function categorizeService(s) {
+    // All contracts go under memberships
+    if (s._itemType === 'contract') return 'memberships';
+
     var name = (s.name || '').toLowerCase();
     if (name.indexOf('trial') !== -1 || name.indexOf('prøv') !== -1 || name.indexOf('intro') !== -1) return 'trials';
     if (name.indexOf('tourist') !== -1 || name.indexOf('turist') !== -1 || name.indexOf('drop-in') !== -1 || name.indexOf('drop in') !== -1) return 'tourist';
@@ -917,13 +935,21 @@
     html += '<div class="yb-store__grid">';
     filtered.forEach(function(s) {
       var price = s.onlinePrice || s.price || 0;
-      html += '<div class="yb-store__item">';
+      var isContract = s._itemType === 'contract';
+      html += '<div class="yb-store__item' + (isContract ? ' yb-store__item--contract' : '') + '">';
       html += '  <div class="yb-store__item-info">';
       html += '    <h3 class="yb-store__item-name">' + esc(s.name) + '</h3>';
-      if (s.count) html += '    <span class="yb-store__item-count">' + s.count + ' ' + (isDa() ? 'klip' : 'sessions') + '</span>';
+      if (isContract && s._recurringInfo) {
+        html += '    <span class="yb-store__item-recurring">' + esc(s._recurringInfo) + '</span>';
+      } else if (s.count) {
+        html += '    <span class="yb-store__item-count">' + s.count + ' ' + (isDa() ? 'klip' : 'sessions') + '</span>';
+      }
+      if (isContract && s.duration && s.durationUnit) {
+        html += '    <span class="yb-store__item-duration">' + s.duration + ' ' + esc(s.durationUnit) + '</span>';
+      }
       html += '    <span class="yb-store__item-price">' + formatDKK(price) + '</span>';
       html += '  </div>';
-      html += '  <button class="yb-btn yb-btn--primary yb-store__item-btn" type="button" data-store-buy="' + s.id + '">' + t('store_buy') + '</button>';
+      html += '  <button class="yb-btn yb-btn--primary yb-store__item-btn" type="button" data-store-buy="' + s.id + '" data-item-type="' + (s._itemType || 'service') + '">' + t('store_buy') + '</button>';
       html += '</div>';
     });
     if (!filtered.length) {
@@ -943,11 +969,11 @@
 
     // Attach buy handlers
     container.querySelectorAll('[data-store-buy]').forEach(function(btn) {
-      btn.addEventListener('click', function() { openCheckout(btn.getAttribute('data-store-buy')); });
+      btn.addEventListener('click', function() { openCheckout(btn.getAttribute('data-store-buy'), btn.getAttribute('data-item-type') || 'service'); });
     });
   }
 
-  function openCheckout(serviceId) {
+  function openCheckout(serviceId, itemType) {
     var service = storeServices.find(function(s) { return String(s.id) === String(serviceId); });
     if (!service) return;
     var listEl = document.getElementById('yb-store-list');
@@ -956,9 +982,15 @@
     if (listEl) listEl.style.display = 'none';
     if (checkoutEl) checkoutEl.hidden = false;
     var price = service.onlinePrice || service.price || 0;
-    if (itemEl) itemEl.innerHTML = '<span class="yb-store__checkout-item-name">' + esc(service.name) + '</span><span class="yb-store__checkout-item-price">' + formatDKK(price) + '</span>';
+    var itemHtml = '<span class="yb-store__checkout-item-name">' + esc(service.name) + '</span>';
+    if (service._itemType === 'contract' && service._recurringInfo) {
+      itemHtml += '<span class="yb-store__checkout-item-recurring">' + esc(service._recurringInfo) + '</span>';
+    }
+    itemHtml += '<span class="yb-store__checkout-item-price">' + formatDKK(price) + '</span>';
+    if (itemEl) itemEl.innerHTML = itemHtml;
     checkoutEl.setAttribute('data-service-id', service.id);
     checkoutEl.setAttribute('data-service-price', price);
+    checkoutEl.setAttribute('data-item-type', itemType || service._itemType || 'service');
     var holderInput = document.getElementById('yb-store-cardholder');
     if (holderInput && currentUser && currentUser.displayName) holderInput.value = currentUser.displayName;
     var errEl = document.getElementById('yb-store-error');
@@ -1016,18 +1048,37 @@
       payBtn.disabled = false; payBtn.textContent = payBtnText; return;
     }
 
-    fetch('/.netlify/functions/mb-checkout', {
-      method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
+    var itemType = checkoutEl.getAttribute('data-item-type') || 'service';
+    var paymentInfo = {
+      cardNumber: cardNumber, expMonth: expParts[0], expYear: expParts[1] ? '20' + expParts[1] : '',
+      cvv: cvv, cardHolder: cardHolder, billingAddress: address, billingCity: city, billingPostalCode: zip,
+      saveCard: saveCard ? saveCard.checked : false
+    };
+
+    var fetchUrl, fetchBody;
+    if (itemType === 'contract') {
+      // Contract purchase uses /sale/purchasecontract via mb-contracts POST
+      fetchUrl = '/.netlify/functions/mb-contracts';
+      fetchBody = {
+        clientId: clientId,
+        contractId: Number(serviceId),
+        startDate: new Date().toISOString().split('T')[0],
+        payment: paymentInfo
+      };
+    } else {
+      // Service purchase uses /sale/cartcheckout via mb-checkout POST
+      fetchUrl = '/.netlify/functions/mb-checkout';
+      fetchBody = {
         clientId: clientId,
         items: [{ type: 'Service', id: Number(serviceId), quantity: 1 }],
         amount: amount,
-        payment: {
-          cardNumber: cardNumber, expMonth: expParts[0], expYear: expParts[1] ? '20' + expParts[1] : '',
-          cvv: cvv, cardHolder: cardHolder, billingAddress: address, billingCity: city, billingPostalCode: zip,
-          saveCard: saveCard ? saveCard.checked : false
-        }
-      })
+        payment: paymentInfo
+      };
+    }
+
+    fetch(fetchUrl, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(fetchBody)
     }).then(function(r) { return r.json(); })
       .then(function(data) {
         if (data.success) {

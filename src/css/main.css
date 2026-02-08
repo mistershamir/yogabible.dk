@@ -7569,6 +7569,28 @@ section {
   margin: 0.15rem 0;
 }
 
+.yb-store__item-recurring {
+  font-size: 0.8rem;
+  color: #f75c03;
+  font-weight: 700;
+  display: block;
+  margin: 0.15rem 0;
+}
+
+.yb-store__item-duration {
+  font-size: 0.75rem;
+  color: #6F6A66;
+  display: block;
+}
+
+.yb-store__checkout-item-recurring {
+  display: block;
+  font-size: 0.8rem;
+  color: #f75c03;
+  font-weight: 700;
+  margin-top: 0.15rem;
+}
+
 /* ═══════════════════════════════════════
    SCHEDULE TOAST - RICH MESSAGES
    ═══════════════════════════════════════ */
