@@ -18,6 +18,11 @@
 
 const { mbFetch, jsonResponse, corsHeaders } = require('./shared/mb-api');
 
+// MB v6 docs are ambiguous on the category for contract management endpoints.
+// Try these paths in order until one returns a JSON response.
+var TERMINATE_PATHS = ['/contract/terminatecontract', '/sale/terminatecontract', '/client/terminatecontract'];
+var SUSPEND_PATHS = ['/contract/suspendcontract', '/sale/suspendcontract', '/client/suspendcontract'];
+
 exports.handler = async function(event) {
   if (event.httpMethod === 'OPTIONS') {
     return { statusCode: 204, headers: corsHeaders, body: '' };
@@ -47,7 +52,6 @@ exports.handler = async function(event) {
         SendNotifications: true
       };
 
-      // Add termination code if provided
       if (body.terminationCode) {
         terminateBody.TerminationCode = body.terminationCode;
       }
@@ -59,27 +63,12 @@ exports.handler = async function(event) {
         HasTerminationCode: !!terminateBody.TerminationCode
       }));
 
-      // Try with termination code first, then without if it fails
-      try {
-        var result = await mbFetch('/contract/terminatecontract', {
-          method: 'POST',
-          body: JSON.stringify(terminateBody)
-        });
+      var lastTermErr = null;
 
-        return jsonResponse(200, {
-          success: true,
-          action: 'terminate',
-          terminationDate: body.terminationDate,
-          message: 'Contract termination scheduled'
-        });
-      } catch (termErr) {
-        // If the error is about termination code, retry without it
-        var errMsg = termErr.message || '';
-        var errData = termErr.data || {};
-        if (errMsg.toLowerCase().indexOf('termination') > -1 || errMsg.toLowerCase().indexOf('code') > -1) {
-          console.log('[mb-contract-manage] Retrying without termination code...');
-          delete terminateBody.TerminationCode;
-          var result2 = await mbFetch('/contract/terminatecontract', {
+      for (var ti = 0; ti < TERMINATE_PATHS.length; ti++) {
+        try {
+          console.log('[mb-contract-manage] Trying: ' + TERMINATE_PATHS[ti]);
+          await mbFetch(TERMINATE_PATHS[ti], {
             method: 'POST',
             body: JSON.stringify(terminateBody)
           });
@@ -88,11 +77,44 @@ exports.handler = async function(event) {
             success: true,
             action: 'terminate',
             terminationDate: body.terminationDate,
+            endpointUsed: TERMINATE_PATHS[ti],
             message: 'Contract termination scheduled'
           });
-        }
+        } catch (termErr) {
+          var errMsg = (termErr.message || '').toLowerCase();
 
-        throw termErr;
+          // If error is about termination code, retry without it on same path
+          if (errMsg.indexOf('termination') > -1 || errMsg.indexOf('code') > -1) {
+            console.log('[mb-contract-manage] Retrying without termination code on ' + TERMINATE_PATHS[ti]);
+            delete terminateBody.TerminationCode;
+            try {
+              await mbFetch(TERMINATE_PATHS[ti], {
+                method: 'POST',
+                body: JSON.stringify(terminateBody)
+              });
+
+              return jsonResponse(200, {
+                success: true,
+                action: 'terminate',
+                terminationDate: body.terminationDate,
+                endpointUsed: TERMINATE_PATHS[ti],
+                message: 'Contract termination scheduled'
+              });
+            } catch (retryErr) {
+              lastTermErr = retryErr;
+            }
+          } else if (errMsg.indexOf('non-json') > -1 || errMsg.indexOf('not exist') > -1 || termErr.status === 404 || termErr.status === 405) {
+            console.log('[mb-contract-manage] Path ' + TERMINATE_PATHS[ti] + ' failed (' + (termErr.status || 'unknown') + '), trying next...');
+            lastTermErr = termErr;
+          } else {
+            // Real API error — don't try other paths
+            throw termErr;
+          }
+        }
+      }
+
+      if (lastTermErr) {
+        throw lastTermErr;
       }
     }
 
@@ -102,7 +124,6 @@ exports.handler = async function(event) {
         return jsonResponse(400, { error: 'startDate and endDate are required for suspension' });
       }
 
-      // Validate duration: 14 days minimum, 3 months maximum
       var start = new Date(body.startDate);
       var end = new Date(body.endDate);
       var durationDays = Math.round((end - start) / 86400000);
@@ -130,19 +151,39 @@ exports.handler = async function(event) {
         DurationDays: durationDays
       }));
 
-      var suspResult = await mbFetch('/contract/suspendcontract', {
-        method: 'POST',
-        body: JSON.stringify(suspendBody)
-      });
+      var lastSuspErr = null;
 
-      return jsonResponse(200, {
-        success: true,
-        action: 'suspend',
-        suspendDate: body.startDate,
-        resumeDate: body.endDate,
-        durationDays: durationDays,
-        message: 'Contract suspension scheduled'
-      });
+      for (var si = 0; si < SUSPEND_PATHS.length; si++) {
+        try {
+          console.log('[mb-contract-manage] Trying: ' + SUSPEND_PATHS[si]);
+          await mbFetch(SUSPEND_PATHS[si], {
+            method: 'POST',
+            body: JSON.stringify(suspendBody)
+          });
+
+          return jsonResponse(200, {
+            success: true,
+            action: 'suspend',
+            suspendDate: body.startDate,
+            resumeDate: body.endDate,
+            durationDays: durationDays,
+            endpointUsed: SUSPEND_PATHS[si],
+            message: 'Contract suspension scheduled'
+          });
+        } catch (suspErr) {
+          var suspMsg = (suspErr.message || '').toLowerCase();
+          if (suspMsg.indexOf('non-json') > -1 || suspMsg.indexOf('not exist') > -1 || suspErr.status === 404 || suspErr.status === 405) {
+            console.log('[mb-contract-manage] Path ' + SUSPEND_PATHS[si] + ' failed (' + (suspErr.status || 'unknown') + '), trying next...');
+            lastSuspErr = suspErr;
+          } else {
+            throw suspErr;
+          }
+        }
+      }
+
+      if (lastSuspErr) {
+        throw lastSuspErr;
+      }
     }
 
     return jsonResponse(400, { error: 'Invalid action. Use "terminate" or "suspend".' });

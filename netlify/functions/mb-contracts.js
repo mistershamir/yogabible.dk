@@ -152,23 +152,48 @@ exports.handler = async function(event) {
             TerminationDate: terminateBody.TerminationDate
           }));
 
-          try {
-            await mbFetch('/contract/terminatecontract', {
-              method: 'POST',
-              body: JSON.stringify(terminateBody)
-            });
-          } catch (termErr) {
-            var msg = (termErr.message || '').toLowerCase();
-            if (msg.indexOf('termination') > -1 || msg.indexOf('code') > -1) {
-              console.log('[mb-contracts] Retrying termination without code...');
-              delete terminateBody.TerminationCode;
-              await mbFetch('/contract/terminatecontract', {
+          // Try endpoint paths in order — MB v6 docs are ambiguous on the category
+          var terminatePaths = ['/contract/terminatecontract', '/sale/terminatecontract', '/client/terminatecontract'];
+          var lastTermErr = null;
+
+          for (var ti = 0; ti < terminatePaths.length; ti++) {
+            try {
+              console.log('[mb-contracts] Trying terminate path: ' + terminatePaths[ti]);
+              await mbFetch(terminatePaths[ti], {
                 method: 'POST',
                 body: JSON.stringify(terminateBody)
               });
-            } else {
-              throw termErr;
+              lastTermErr = null;
+              break; // success
+            } catch (termErr) {
+              var msg = (termErr.message || '').toLowerCase();
+              // If error is about termination code, retry without it on same path
+              if (msg.indexOf('termination') > -1 || msg.indexOf('code') > -1) {
+                console.log('[mb-contracts] Retrying without termination code on ' + terminatePaths[ti]);
+                delete terminateBody.TerminationCode;
+                try {
+                  await mbFetch(terminatePaths[ti], {
+                    method: 'POST',
+                    body: JSON.stringify(terminateBody)
+                  });
+                  lastTermErr = null;
+                  break; // success
+                } catch (retryErr) {
+                  lastTermErr = retryErr;
+                }
+              } else if (msg.indexOf('non-json') > -1 || msg.indexOf('not exist') > -1 || termErr.status === 404 || termErr.status === 405) {
+                // Path doesn't exist or method not allowed — try next path
+                console.log('[mb-contracts] Path ' + terminatePaths[ti] + ' failed (' + (termErr.status || 'unknown') + '), trying next...');
+                lastTermErr = termErr;
+              } else {
+                // Real API error (not path issue) — don't try other paths
+                throw termErr;
+              }
             }
+          }
+
+          if (lastTermErr) {
+            throw lastTermErr;
           }
 
           return jsonResponse(200, {
@@ -210,10 +235,33 @@ exports.handler = async function(event) {
             DurationDays: durationDays
           }));
 
-          await mbFetch('/contract/suspendcontract', {
-            method: 'POST',
-            body: JSON.stringify(suspendBody)
-          });
+          // Try endpoint paths in order
+          var suspendPaths = ['/contract/suspendcontract', '/sale/suspendcontract', '/client/suspendcontract'];
+          var lastSuspErr = null;
+
+          for (var si = 0; si < suspendPaths.length; si++) {
+            try {
+              console.log('[mb-contracts] Trying suspend path: ' + suspendPaths[si]);
+              await mbFetch(suspendPaths[si], {
+                method: 'POST',
+                body: JSON.stringify(suspendBody)
+              });
+              lastSuspErr = null;
+              break;
+            } catch (suspErr) {
+              var suspMsg = (suspErr.message || '').toLowerCase();
+              if (suspMsg.indexOf('non-json') > -1 || suspMsg.indexOf('not exist') > -1 || suspErr.status === 404 || suspErr.status === 405) {
+                console.log('[mb-contracts] Path ' + suspendPaths[si] + ' failed (' + (suspErr.status || 'unknown') + '), trying next...');
+                lastSuspErr = suspErr;
+              } else {
+                throw suspErr;
+              }
+            }
+          }
+
+          if (lastSuspErr) {
+            throw lastSuspErr;
+          }
 
           return jsonResponse(200, {
             success: true,

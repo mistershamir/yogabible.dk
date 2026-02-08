@@ -59,15 +59,29 @@ async function mbFetch(path, options = {}) {
   };
 
   const url = path.startsWith('http') ? path : `${MB_BASE}${path}`;
+  console.log('[mb-api] ' + (options.method || 'GET') + ' ' + url);
 
   const res = await fetch(url, {
     ...options,
     headers
   });
 
-  const data = await res.json();
+  // Read response as text first, then try to parse as JSON
+  // This prevents cryptic "Unexpected token '<'" errors when MB returns HTML
+  const text = await res.text();
+  let data;
+  try {
+    data = JSON.parse(text);
+  } catch (parseErr) {
+    console.error('[mb-api] Non-JSON response from ' + url + ' (HTTP ' + res.status + '):', text.substring(0, 500));
+    const error = new Error('Mindbody returned non-JSON response (HTTP ' + res.status + ') for ' + path + '. Endpoint may not exist.');
+    error.status = res.status;
+    error.data = { rawResponse: text.substring(0, 200) };
+    throw error;
+  }
 
   if (!res.ok) {
+    console.error('[mb-api] Error ' + res.status + ' from ' + url + ':', JSON.stringify(data).substring(0, 500));
     const error = new Error(data.Message || `Mindbody API error (${res.status})`);
     error.status = res.status;
     error.data = data;
