@@ -16,7 +16,7 @@
  *   test (boolean, optional)
  */
 
-const { mbFetch, jsonResponse, corsHeaders } = require('./shared/mb-api');
+const { mbFetch, clearTokenCache, jsonResponse, corsHeaders } = require('./shared/mb-api');
 
 exports.handler = async function(event) {
   console.log('[mb-contracts] Method:', event.httpMethod, 'Path:', event.path);
@@ -129,6 +129,9 @@ exports.handler = async function(event) {
 
       // ── Route: manage actions (terminate / suspend) ──
       if (body.action === 'terminate' || body.action === 'suspend') {
+        // Force fresh token for contract management (staff permissions may have changed)
+        clearTokenCache();
+
         if (!body.clientId || !body.clientContractId) {
           return jsonResponse(400, { error: 'clientId and clientContractId are required' });
         }
@@ -158,55 +161,53 @@ exports.handler = async function(event) {
           // Try endpoint paths in order — MB v6 docs put this under Sale category
           var terminatePaths = ['/sale/terminatecontract', '/contract/terminatecontract', '/client/terminatecontract'];
           var lastTermErr = null;
+          var pathResults = []; // diagnostic trail
 
           for (var ti = 0; ti < terminatePaths.length; ti++) {
             try {
               console.log('[mb-contracts] Trying terminate path: ' + terminatePaths[ti]);
-              await mbFetch(terminatePaths[ti], {
+              var termResult = await mbFetch(terminatePaths[ti], {
                 method: 'POST',
                 body: JSON.stringify(terminateBody)
               });
+              pathResults.push({ path: terminatePaths[ti], status: 'success' });
               lastTermErr = null;
-              break; // success
+              return jsonResponse(200, {
+                success: true,
+                action: 'terminate',
+                terminationDate: body.terminationDate,
+                endpointUsed: terminatePaths[ti],
+                _pathResults: pathResults
+              });
             } catch (termErr) {
               var msg = (termErr.message || '').toLowerCase();
-              // If error is about termination code, retry without it on same path
-              if (msg.indexOf('termination') > -1 || msg.indexOf('code') > -1) {
-                console.log('[mb-contracts] Retrying without termination code on ' + terminatePaths[ti]);
-                delete terminateBody.TerminationCode;
-                try {
-                  await mbFetch(terminatePaths[ti], {
-                    method: 'POST',
-                    body: JSON.stringify(terminateBody)
-                  });
-                  lastTermErr = null;
-                  break; // success
-                } catch (retryErr) {
-                  lastTermErr = retryErr;
-                }
-              } else if (msg.indexOf('non-json') > -1 || msg.indexOf('not exist') > -1 || termErr.status === 404 || termErr.status === 405) {
-                // Path doesn't exist or method not allowed — try next path
+              pathResults.push({ path: terminatePaths[ti], status: termErr.status || 'error', error: termErr.message });
+              // Path doesn't exist, method not allowed, or permission denied — try next path
+              if (msg.indexOf('non-json') > -1 || msg.indexOf('not exist') > -1 || termErr.status === 404 || termErr.status === 405) {
                 console.log('[mb-contracts] Path ' + terminatePaths[ti] + ' failed (' + (termErr.status || 'unknown') + '), trying next...');
                 lastTermErr = termErr;
               } else if (msg.indexOf('permission') > -1) {
-                // Permission error — try next path (different paths may have different permission models)
                 console.log('[mb-contracts] Permission denied on ' + terminatePaths[ti] + ', trying next path...');
                 lastTermErr = termErr;
               } else {
-                // Real API error (not path issue) — don't try other paths
-                throw termErr;
+                // Real API error — stop and return with diagnostic trail
+                console.error('[mb-contracts] Real API error on ' + terminatePaths[ti] + ':', termErr.message);
+                return jsonResponse(termErr.status || 500, {
+                  error: termErr.message,
+                  endpointTried: terminatePaths[ti],
+                  _pathResults: pathResults
+                });
               }
             }
           }
 
-          if (lastTermErr) {
-            throw lastTermErr;
-          }
-
-          return jsonResponse(200, {
-            success: true,
-            action: 'terminate',
-            terminationDate: body.terminationDate
+          // All paths failed — return error with diagnostic trail
+          var finalErrMsg = lastTermErr ? lastTermErr.message : 'All terminate paths failed';
+          console.error('[mb-contracts] All terminate paths failed:', JSON.stringify(pathResults));
+          return jsonResponse(lastTermErr ? (lastTermErr.status || 500) : 500, {
+            error: finalErrMsg,
+            _pathResults: pathResults,
+            _hint: 'All 3 endpoint paths failed. Check Mindbody staff permissions for the API user, or contact Mindbody API support.'
           });
         }
 
@@ -245,6 +246,7 @@ exports.handler = async function(event) {
           // Try endpoint paths in order — MB v6 docs put this under Sale category
           var suspendPaths = ['/sale/suspendcontract', '/contract/suspendcontract', '/client/suspendcontract'];
           var lastSuspErr = null;
+          var suspPathResults = [];
 
           for (var si = 0; si < suspendPaths.length; si++) {
             try {
@@ -253,10 +255,19 @@ exports.handler = async function(event) {
                 method: 'POST',
                 body: JSON.stringify(suspendBody)
               });
-              lastSuspErr = null;
-              break;
+              suspPathResults.push({ path: suspendPaths[si], status: 'success' });
+              return jsonResponse(200, {
+                success: true,
+                action: 'suspend',
+                suspendDate: body.startDate,
+                resumeDate: body.endDate,
+                durationDays: durationDays,
+                endpointUsed: suspendPaths[si],
+                _pathResults: suspPathResults
+              });
             } catch (suspErr) {
               var suspMsg = (suspErr.message || '').toLowerCase();
+              suspPathResults.push({ path: suspendPaths[si], status: suspErr.status || 'error', error: suspErr.message });
               if (suspMsg.indexOf('non-json') > -1 || suspMsg.indexOf('not exist') > -1 || suspErr.status === 404 || suspErr.status === 405) {
                 console.log('[mb-contracts] Path ' + suspendPaths[si] + ' failed (' + (suspErr.status || 'unknown') + '), trying next...');
                 lastSuspErr = suspErr;
@@ -264,21 +275,20 @@ exports.handler = async function(event) {
                 console.log('[mb-contracts] Permission denied on ' + suspendPaths[si] + ', trying next path...');
                 lastSuspErr = suspErr;
               } else {
-                throw suspErr;
+                return jsonResponse(suspErr.status || 500, {
+                  error: suspErr.message,
+                  _pathResults: suspPathResults
+                });
               }
             }
           }
 
-          if (lastSuspErr) {
-            throw lastSuspErr;
-          }
-
-          return jsonResponse(200, {
-            success: true,
-            action: 'suspend',
-            suspendDate: body.startDate,
-            resumeDate: body.endDate,
-            durationDays: durationDays
+          var finalSuspMsg = lastSuspErr ? lastSuspErr.message : 'All suspend paths failed';
+          console.error('[mb-contracts] All suspend paths failed:', JSON.stringify(suspPathResults));
+          return jsonResponse(lastSuspErr ? (lastSuspErr.status || 500) : 500, {
+            error: finalSuspMsg,
+            _pathResults: suspPathResults,
+            _hint: 'All 3 endpoint paths failed. Check Mindbody staff permissions for the API user.'
           });
         }
       }
