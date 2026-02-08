@@ -7282,6 +7282,192 @@ section {
   color: #c0392b;
 }
 
+/* ═══════════════════════════════════════
+   VISITS SUMMARY BAR
+   ═══════════════════════════════════════ */
+
+.yb-visits__controls {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+  flex-wrap: wrap;
+}
+
+.yb-visits__period,
+.yb-receipts__period {
+  border: 1.5px solid #E8E4E0;
+  border-radius: 8px;
+  padding: 0.4rem 0.75rem;
+  font-family: inherit;
+  font-size: 0.8rem;
+  color: #6F6A66;
+  background: #fff;
+  cursor: pointer;
+}
+
+.yb-visits__period:focus,
+.yb-receipts__period:focus {
+  border-color: #f75c03;
+  outline: none;
+}
+
+.yb-receipts__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.yb-visits__summary {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+  padding: 1rem;
+  background: #F5F3F0;
+  border-radius: 12px;
+  flex-wrap: wrap;
+}
+
+.yb-visits__summary-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex: 1;
+  min-width: 70px;
+}
+
+.yb-visits__summary-item strong {
+  font-size: 1.5rem;
+  color: #0F0F0F;
+}
+
+.yb-visits__summary-item span {
+  font-size: 0.75rem;
+  color: #6F6A66;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+
+.yb-visits__summary-item--warn strong { color: #e67e22; }
+.yb-visits__summary-item--danger strong { color: #c0392b; }
+
+/* ═══════════════════════════════════════
+   RECEIPTS DOWNLOAD BUTTON
+   ═══════════════════════════════════════ */
+
+.yb-receipts__card-actions {
+  padding: 0.5rem 0 0;
+  border-top: 1px solid #F5F3F0;
+  margin-top: 0.5rem;
+}
+
+.yb-receipts__download-btn {
+  background: none;
+  border: none;
+  color: #f75c03;
+  font-size: 0.8rem;
+  cursor: pointer;
+  padding: 0;
+  font-family: inherit;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.yb-receipts__download-btn:hover {
+  color: #d94f02;
+}
+
+/* ═══════════════════════════════════════
+   STORE CATEGORY TABS
+   ═══════════════════════════════════════ */
+
+.yb-store__categories {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1.5rem;
+  overflow-x: auto;
+  padding-bottom: 0.5rem;
+  -webkit-overflow-scrolling: touch;
+}
+
+.yb-store__cat-btn {
+  background: #F5F3F0;
+  border: 1.5px solid #E8E4E0;
+  border-radius: 20px;
+  padding: 0.4rem 1rem;
+  font-size: 0.8rem;
+  font-family: inherit;
+  font-weight: 600;
+  color: #6F6A66;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.2s;
+}
+
+.yb-store__cat-btn:hover {
+  border-color: #f75c03;
+  color: #f75c03;
+}
+
+.yb-store__cat-btn.is-active {
+  background: #f75c03;
+  border-color: #f75c03;
+  color: #fff;
+}
+
+.yb-store__cat-count {
+  display: inline-block;
+  background: rgba(255,255,255,0.25);
+  border-radius: 10px;
+  padding: 0 0.4rem;
+  font-size: 0.7rem;
+  margin-left: 0.25rem;
+}
+
+.yb-store__cat-btn.is-active .yb-store__cat-count {
+  background: rgba(255,255,255,0.3);
+}
+
+.yb-store__item-count {
+  font-size: 0.8rem;
+  color: #6F6A66;
+  display: block;
+  margin: 0.15rem 0;
+}
+
+/* ═══════════════════════════════════════
+   SCHEDULE TOAST - RICH MESSAGES
+   ═══════════════════════════════════════ */
+
+.yb-schedule__toast-main {
+  font-weight: 700;
+  margin-bottom: 0.35rem;
+}
+
+.yb-schedule__toast-note {
+  font-size: 0.75rem;
+  font-weight: 400;
+  opacity: 0.9;
+  line-height: 1.4;
+}
+
+/* ═══════════════════════════════════════
+   PASS INFO — LOW CLIP WARNING + MEMBERSHIP
+   ═══════════════════════════════════════ */
+
+.yb-schedule__pass-stat--low {
+  color: #e67e22;
+  font-weight: 600;
+  font-size: 0.8rem;
+}
+
+.yb-schedule__pass-detail--membership {
+  border-left-color: #27ae60;
+}
+
 .yb-receipts__amount {
   font-weight: 700;
   color: #0F0F0F;
