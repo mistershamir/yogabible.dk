@@ -1,91 +1,156 @@
 # Netlify Functions — Mindbody Integration Catalog
 
 > All functions live in `netlify/functions/` and share `netlify/functions/shared/mb-api.js`
+> **Last updated: 2026-02-08** — reflects final working state after all debugging.
 
-## Core Functions (Essential)
+## Shared Module
+
+### shared/mb-api.js
+- **`mbFetch(path, options?)`** — Authenticated API call with staff token. Parses response as text first, then JSON (handles HTML 404 gracefully). Logs full URL for every request.
+- **`jsonResponse(status, body)`** — CORS-enabled JSON response helper
+- **`corsHeaders`** — Standard CORS headers (`GET, POST, PUT, DELETE, OPTIONS`)
+- **`getStaffToken()`** — Token acquisition + 6-hour in-memory caching
+- **`getBaseHeaders()`** — API key + SiteId headers
+- **`MB_BASE`** — `https://api.mindbodyonline.com/public/v6`
+
+## Core Functions
 
 ### mb-classes.js
 - **Method:** GET
 - **Purpose:** Fetch class schedule from Mindbody
-- **Params:** `startDate`, `endDate`, `clientId`
+- **Params:** `startDate`, `endDate`, `clientId` (optional, for booking status)
+- **MB Endpoint:** `GET /class/classes` with `StartDateTime`, `EndDateTime`
 - **Returns:** `{ classes[], startDate, endDate, total }`
-- **Each class:** `id`, `name`, `description`, `startDateTime`, `endDateTime`, `instructor`, `instructorId`, `instructorBio`, `instructorImageUrl`, `spotsLeft`, `isBooked`, `isCanceled`, `programId`, `programName`
+- **Each class:** `id`, `name`, `description` (HTML), `startDateTime`, `endDateTime`, `instructor`, `instructorId`, `instructorBio`, `instructorImageUrl`, `spotsLeft`, `isBooked`, `isCanceled`, `programId`, `programName`
+- **Note:** Uses `StartDateTime` NOT `StartDate` (different from other endpoints)
 
 ### mb-book.js
 - **Method:** POST (book) / DELETE (cancel)
 - **Purpose:** Book or cancel a class for a client
 - **POST Body:** `{ clientId, classId, test? }`
 - **DELETE Body:** `{ clientId, classId, lateCancel? }`
-- **Features:**
-  - Server-side pass validation (checks program match before booking)
-  - "Already booked" detection (returns success + flag)
-  - Late cancel auto-retry (detects window error, retries with LateCancel: true)
-- **Returns:** `{ success, visit?, alreadyBooked?, lateCancel? }`
+- **MB Endpoints:**
+  - `GET /class/classes?ClassIds=X` — fetch class program
+  - `GET /client/clientservices?ClientId=X` — fetch passes (parallel)
+  - `GET /client/clientcontracts?ClientId=X` — fetch memberships (parallel)
+  - `POST /class/addclienttoclass` — book
+  - `POST /class/removeclientfromclass` — cancel
+- **Retry Logic:**
+  - Pass validation: `validateClientPass()` checks program match, fails open on error
+  - "Already booked" detection: keywords "already", "enrolled", "signed up" → success
+  - Payment error + autopay → retry with `RequirePayment: false`
+  - Cancel window error → retry with `LateCancel: true`
+- **Returns:** `{ success, visit?, alreadyBooked?, lateCancel?, error? }`
+- **Error:** `{ error: 'no_pass' }` with 403 status when no valid pass
 
 ### mb-client.js
-- **Method:** POST
-- **Purpose:** Create or update a Mindbody client
-- **Body:** `{ firstName, lastName, email, phone?, action: 'create'|'update', clientId? }`
-- **Returns:** `{ client, clientId }`
+- **Method:** GET (find) / POST (create) / PUT (update)
+- **Purpose:** Find, create, or update a Mindbody client
+- **GET Params:** `email` — searches by email, filters to exact match client-side
+- **POST Body:** `{ firstName, lastName, email, phone? }`
+- **PUT Body:** `{ clientId, firstName?, lastName?, email?, phone? }`
+- **MB Endpoints:**
+  - `GET /client/clients?searchText=X&limit=10`
+  - `POST /client/addclient` (returns 400 for duplicates → mapped to 409)
+  - `POST /client/updateclient` with `CrossRegionalUpdate: true`
+- **Returns:** GET: `{ found, client }` | POST/PUT: `{ success, client }`
 
 ### mb-sync.js
 - **Method:** POST
-- **Purpose:** Sync a Firebase user to Mindbody (find or create client)
-- **Body:** `{ email, firstName, lastName }`
-- **Returns:** `{ clientId, synced: true }`
+- **Purpose:** Sync Firebase user with Mindbody (find client, determine membership tier)
+- **Body:** `{ email, firebaseUid? }`
+- **MB Endpoints:**
+  - `GET /client/clients?searchText=X` — find by email
+  - `GET /client/clientcontracts?clientId=X` — check memberships (optional, graceful fallback)
+  - `GET /client/clientservices?clientId=X` — check passes (optional, graceful fallback)
+- **Tier Logic:** Active autopay contract → `'member'`, active service → `'member'`, otherwise → `'free'`
+- **Returns:** `{ found, mindbodyClientId, membershipTier, activeMemberships[], clientName }`
 
 ### mb-client-services.js
 - **Method:** GET
 - **Purpose:** Fetch client's active passes, services, and contracts
 - **Params:** `clientId`
+- **MB Endpoints:** Parallel fetch with graceful fallback:
+  - `GET /client/clientservices?ClientId=X&Limit=200`
+  - `GET /client/clientcontracts?ClientId=X`
+- **Service "current" logic:** `Current` flag OR (activeDate ≤ now AND expirationDate ≥ now)
+- **Contract billing:** Extracts `nextBillingDate` from `UpcomingAutopayEvents` (sorted, first future event)
 - **Returns:** `{ services[], contracts[], activeServices[], activeContracts[], hasActivePass }`
+- **Contract fields include:** `isAutopay`, `autopayStatus`, `nextBillingDate`, `autopayAmount`, `isSuspended`, `terminationDate`
 
 ### mb-visits.js
 - **Method:** GET
 - **Purpose:** Fetch client visit history (past + 30 days future)
-- **Params:** `clientId`, `startDate?`, `endDate?`
+- **Params:** `clientId`, `startDate?` (default 90 days ago), `endDate?` (default 30 days future)
+- **MB Endpoint:** `GET /client/clientvisits?ClientId=X&StartDate=X&EndDate=X&Limit=200`
 - **Returns:** `{ visits[], total }` — each visit has `isFuture` flag
+- **Note:** 30-day future window captures upcoming bookings
 
 ### mb-staff.js
 - **Method:** GET
 - **Purpose:** Fetch teacher/staff details (bio, photo)
 - **Params:** `staffId?` (if omitted, returns all)
-- **Returns:** `{ staff[], total }`
+- **MB Endpoint:** `GET /staff/staff?Limit=200&StaffIds=X`
+- **Returns:** `{ staff[], total }` — each has `bio`, `imageUrl`
 
 ## Store & Payment Functions
 
 ### mb-services.js
 - **Method:** GET
 - **Purpose:** Fetch purchasable services, products, or categories
-- **Params:** `type=services|products|categories`, `serviceIds?`, `sellOnline?`, `programIds?`
-- **Returns:** `{ services[] }` or `{ products[] }` or `{ categories[] }`
+- **Params:** `type=services|products|categories`, `serviceIds?` (comma-separated), `sellOnline?`, `programIds?`, `serviceCategoryIds?`
+- **MB Endpoints:**
+  - `GET /sale/services?Limit=200` with repeated `ServiceIds=X&ServiceIds=Y`
+  - `GET /sale/products?Limit=200`
+  - `GET /sale/servicecategories`
+- **Note:** Multiple ServiceIds use repeated params, NOT comma-separated
 
 ### mb-checkout.js
 - **Method:** POST
 - **Purpose:** Purchase a service/product with credit card
-- **Body:** `{ clientId, items[], payment: { cardNumber, expMonth, expYear, cvv, ... }, test? }`
-- **Handles:** SCA (Strong Customer Authentication) redirects
+- **Body:** `{ clientId, items[], payment: { cardNumber, expMonth, expYear, cvv, cardHolder, ... }, test? }`
+- **MB Endpoint:** `POST /sale/checkoutshoppingcart`
+- **Critical:** ALL Metadata values must be strings. Card data passed through, never stored.
+- **SCA Handling:** If response has `AuthenticationUrls`, returns 202 with redirect URL
 - **Returns:** `{ success, transactionId }` or `{ requiresSCA, authenticationUrl }`
+
+### mb-contracts.js
+- **Method:** GET (list) / POST (purchase OR manage)
+- **Purpose:** Fetch contracts, purchase them, OR terminate/suspend memberships
+- **GET Params:** `contractId?`, `locationId?`, `sellOnline?`, `limit?`
+- **GET Retry:** If 400 error, retries with `LocationId=1`
+- **POST Body (purchase):** `{ clientId, contractId, startDate?, payment?, promoCode?, locationId?, test? }`
+- **POST Body (manage):** `{ action: 'terminate'|'suspend', clientId, clientContractId, terminationDate?, startDate?, endDate? }`
+- **MB Endpoints:**
+  - `GET /sale/contracts` (with LocationId=1 retry)
+  - `POST /sale/purchasecontract` (with CreditCardInfo in PascalCase)
+  - `POST /{category}/terminatecontract` (tries `/contract/`, `/sale/`, `/client/`)
+  - `POST /{category}/suspendcontract` (tries `/contract/`, `/sale/`, `/client/`)
+- **Returns:** GET: `{ contracts[], total }` | POST: `{ success, endpointUsed?, ... }`
+
+### mb-contract-manage.js
+- **Method:** POST
+- **Purpose:** Standalone terminate/suspend function (same logic as mb-contracts manage routes)
+- **Body:** `{ action, clientId, clientContractId, terminationDate?, terminationCode?, startDate?, endDate? }`
+- **Same endpoint path fallback strategy as mb-contracts**
+- **Suspension validation:** 14 days minimum, 93 days maximum
 
 ### mb-purchases.js
 - **Method:** GET
-- **Purpose:** Fetch client purchase receipts
+- **Purpose:** Fetch client purchase/receipt history
 - **Params:** `clientId`, `startDate?`, `endDate?`
-- **Strategy:** Tries `/sale/sales` first, falls back to `/sale/clientpurchases`
-- **Returns:** `{ purchases[], total }`
-
-### mb-contracts.js
-- **Method:** GET (list) / POST (purchase)
-- **Purpose:** Fetch available contracts/memberships and purchase them
-- **GET Params:** `contractId?`, `locationId?`, `sellOnline?`
-- **POST Body:** `{ clientId, contractId, startDate?, payment?, promoCode?, test? }`
-- **Returns:** GET: `{ contracts[], total }` | POST: `{ success, clientContractId }`
+- **MB Endpoints:** (with graceful fallback)
+  - `GET /client/clientservices?ClientId=X` — purchased passes
+  - `GET /client/clientcontracts?ClientId=X` — purchased memberships
+- **Note:** `/sale/sales` was removed — it ignores ClientId filter and floods results
+- **Returns:** `{ purchases[], total }` — includes type, amount, paymentMethod, remaining, etc.
 
 ### mb-return-sale.js
 - **Method:** POST
 - **Purpose:** Process a sale return/refund
 - **Body:** `{ saleId, test? }`
-- **Returns:** `{ success, sale }`
+- **MB Endpoint:** `POST /sale/returnsale`
+- **SECURITY:** Admin-level operation. No frontend auth checks. Add authorization in production.
 
 ## Site Configuration Functions
 
@@ -93,13 +158,13 @@
 - **Method:** GET
 - **Purpose:** Fetch site configuration data
 - **Params:** `type=sessionTypes|programs|locations|memberships|promoCodes`
-- **Returns:** Depends on type
+- **MB Endpoints:** `/site/sessiontypes`, `/site/programs`, `/site/locations`, `/site/memberships`, `/site/promocodes`
 
 ### mb-class-descriptions.js
 - **Method:** GET
 - **Purpose:** Fetch class type library (descriptions, programs, images)
-- **Params:** `classDescriptionId?`, `programId?`, `startDate?`, `endDate?`
-- **Returns:** `{ classDescriptions[], total }`
+- **Params:** `classDescriptionId?`, `programId?`, `startDate?`, `endDate?`, `limit?`
+- **MB Endpoint:** `GET /class/classdescriptions`
 
 ### mb-waitlist.js
 - **Method:** GET (list) / POST (add) / DELETE (remove)
@@ -107,11 +172,25 @@
 - **GET Params:** `classScheduleId?`, `clientId?`, `classDescriptionId?`
 - **POST Body:** `{ clientId, classScheduleId }`
 - **DELETE Body:** `{ waitlistEntryId }`
+- **Note:** DELETE method sends to Mindbody POST endpoint with array wrapper: `{ WaitlistEntryIds: [id] }`
 
-## Shared Module
+## Cross-Function Patterns
 
-### shared/mb-api.js
-- **`mbFetch(path, options?)`** — Authenticated API call with staff token
-- **`jsonResponse(status, body)`** — CORS-enabled JSON response helper
-- **`corsHeaders`** — Standard CORS headers object
-- **`getStaffToken()`** — Token acquisition + 6-hour caching
+### Pattern 1: Graceful Fallback
+If optional endpoint fails → return empty array, continue. Used in `mb-sync`, `mb-client-services`, `mb-purchases`.
+
+### Pattern 2: Retry on Specific Errors
+- Autopay booking retry: payment error → `RequirePayment: false`
+- Late cancel retry: window error → `LateCancel: true`
+- Location retry: 400 → add `LocationId=1`
+- Termination code retry: code error → remove `TerminationCode`
+- Endpoint path retry: 404/405/HTML → try next category path
+
+### Pattern 3: Parallel Requests
+`Promise.all()` with per-promise `.catch()` fallbacks. Both requests attempted regardless of failures.
+
+### Pattern 4: PascalCase → camelCase Transform
+All functions transform MB PascalCase responses to camelCase for frontend. Request bodies transform camelCase inputs to PascalCase for MB.
+
+### Pattern 5: API Inspection Logging
+Key functions log raw field names and sample data (truncated to 500 chars) for debugging schema changes without code modification.
