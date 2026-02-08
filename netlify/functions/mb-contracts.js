@@ -34,9 +34,17 @@ exports.handler = async function(event) {
       if (params.sellOnline === 'true') qsParams.SellOnline = 'true';
 
       var queryString = new URLSearchParams(qsParams).toString();
-      console.log('mb-contracts GET query:', queryString);
+      console.log('[mb-contracts] GET query:', queryString);
 
       var data = await mbFetch('/sale/contracts?' + queryString);
+
+      console.log('[mb-contracts] Raw response keys:', Object.keys(data));
+      console.log('[mb-contracts] Contracts count:', (data.Contracts || []).length);
+      if ((data.Contracts || []).length > 0) {
+        console.log('[mb-contracts] First contract sample:', JSON.stringify(data.Contracts[0]).substring(0, 300));
+      } else {
+        console.log('[mb-contracts] No contracts returned. Full response:', JSON.stringify(data).substring(0, 500));
+      }
 
       var contracts = (data.Contracts || []).map(function(c) {
         return {

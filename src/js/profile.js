@@ -859,7 +859,10 @@
 
     Promise.all([
       fetch(servicesUrl).then(function(r) { return r.json(); }),
-      fetch(contractsUrl).then(function(r) { return r.json(); }).catch(function() { return { contracts: [] }; })
+      fetch(contractsUrl).then(function(r) {
+        console.log('[Store] Contracts HTTP status:', r.status);
+        return r.json();
+      }).catch(function(err) { console.error('[Store] Contracts fetch FAILED:', err); return { contracts: [], _error: String(err) }; })
     ]).then(function(results) {
       var services = (results[0].services || []).map(function(s) {
         s._itemType = 'service';
@@ -867,7 +870,9 @@
       });
 
       console.log('[Store] Services loaded:', services.length);
-      console.log('[Store] Contracts response:', JSON.stringify(results[1]).substring(0, 500));
+      console.log('[Store] Contracts full response:', results[1]);
+      if (results[1]._error) console.error('[Store] Contracts had error:', results[1]._error);
+      if (results[1].error) console.error('[Store] Contracts API error:', results[1].error);
 
       var contracts = (results[1].contracts || []).map(function(c) {
         // Normalize contract shape to match service display
