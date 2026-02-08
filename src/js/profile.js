@@ -380,7 +380,10 @@
           }
         }
       })
-      .catch(function() {
+      .catch(function(err) {
+        console.error('[Membership] Load error:', err);
+      })
+      .finally(function() {
         if (loadingEl) loadingEl.hidden = true;
       });
   }
@@ -406,7 +409,7 @@
         }
         html += '</div>';
         if (s.expirationDate) {
-          html += '<span class="yb-membership__pass-expiry">' + t('membership_expires') + ' ' + new Date(s.expirationDate).toLocaleDateString(locale, dateOpts) + '</span>';
+          html += '<span class="yb-membership__pass-expiry">' + t('membership_expires') + ' ' + formatDateDK(s.expirationDate) + '</span>';
         }
         html += '<span class="yb-membership__badge yb-membership__badge--active">' + t('membership_status_active') + '</span>';
         html += '</div>';
@@ -433,9 +436,9 @@
         html += '</div>';
         // Show next billing date or end date
         if (c.nextBillingDate) {
-          html += '<span class="yb-membership__pass-expiry">' + t('membership_next_billing') + ' ' + new Date(c.nextBillingDate).toLocaleDateString(locale, dateOpts) + '</span>';
+          html += '<span class="yb-membership__pass-expiry">' + t('membership_next_billing') + ' ' + formatDateDK(c.nextBillingDate) + '</span>';
         } else if (c.endDate) {
-          html += '<span class="yb-membership__pass-expiry">' + t('membership_expires') + ' ' + new Date(c.endDate).toLocaleDateString(locale, dateOpts) + '</span>';
+          html += '<span class="yb-membership__pass-expiry">' + t('membership_expires') + ' ' + formatDateDK(c.endDate) + '</span>';
         }
         // Status badge
         if (c.isSuspended) {
@@ -471,7 +474,7 @@
         }
         html += '</div>';
         if (s.expirationDate) {
-          html += '<span class="yb-membership__pass-expiry">' + t('membership_expires') + ' ' + new Date(s.expirationDate).toLocaleDateString(locale, dateOpts) + '</span>';
+          html += '<span class="yb-membership__pass-expiry">' + t('membership_expires') + ' ' + formatDateDK(s.expirationDate) + '</span>';
         }
         html += '</div>';
       });
@@ -525,17 +528,24 @@
   }
 
   // ── Calculate earliest termination date: 1 month + running days ──
-  function calcEarliestTerminationDate(nextBillingDate) {
+  // T&C: 1 month + running days notice.
+  // Next billing = last payment taken. Use membership until end of that cycle.
+  // Example: next billing Mar 8 → last payment Mar 8 → use until Apr 7 (day before next cycle)
+  // Returns { lastPaymentDate, useUntilDate }
+  function calcTerminationDates(nextBillingDate) {
     var now = new Date();
     var base = nextBillingDate ? new Date(nextBillingDate) : now;
-    // If next billing is in the past, use today
     if (base < now) base = now;
-    // Add 1 month
-    var earliest = new Date(base);
-    earliest.setMonth(earliest.getMonth() + 1);
-    // "Running days" means it aligns to end of billing cycle after the notice period
-    // The termination takes effect at the end of the billing period that follows the 1-month notice
-    return earliest;
+
+    // Last payment = next billing date
+    var lastPayment = new Date(base);
+
+    // Use until = end of that billing cycle = 1 month later minus 1 day
+    var useUntil = new Date(base);
+    useUntil.setMonth(useUntil.getMonth() + 1);
+    useUntil.setDate(useUntil.getDate() - 1);
+
+    return { lastPaymentDate: lastPayment, useUntilDate: useUntil };
   }
 
   // ── Calculate earliest pause start date (after next billing cycle) ──
@@ -604,7 +614,7 @@
           startInput.value = earliestStart.toISOString().split('T')[0];
         }
         if (hintEl) {
-          hintEl.textContent = t('membership_pause_next_billing') + ': ' + earliestStart.toLocaleDateString(locale, dateOpts);
+          hintEl.textContent = t('membership_pause_next_billing') + ': ' + formatDateDK(earliestStart);
         }
 
         // Set default end date (14 days after start)
@@ -623,7 +633,7 @@
           if (!resumeInfoEl || !endInput) return;
           if (endInput.value) {
             var resumeDate = new Date(endInput.value);
-            resumeInfoEl.textContent = t('membership_pause_resume') + ' ' + resumeDate.toLocaleDateString(locale, dateOpts);
+            resumeInfoEl.textContent = t('membership_pause_resume') + ' ' + formatDateDK(resumeDate);
             resumeInfoEl.hidden = false;
           } else {
             resumeInfoEl.hidden = true;
@@ -721,15 +731,14 @@
         var errorEl = document.getElementById('yb-cancel-error');
         if (errorEl) errorEl.hidden = true;
 
-        // Calculate earliest termination date (1 month + running days)
-        var earliest = calcEarliestTerminationDate(activeContract.nextBillingDate);
+        // Calculate termination dates
+        var termDates = calcTerminationDates(activeContract.nextBillingDate);
         var earliestEl = document.getElementById('yb-cancel-earliest-date');
-        if (earliestEl) earliestEl.textContent = earliest.toLocaleDateString(locale, dateOpts);
+        if (earliestEl) earliestEl.textContent = formatDateDK(termDates.lastPaymentDate);
 
-        // "Use until" = the termination date (end of paid period)
-        // The paid period ends at earliest termination date since that's after 1 month notice
+        // "Use until" = end of that billing cycle (day before next would-be billing)
         var useUntilEl = document.getElementById('yb-cancel-use-until');
-        if (useUntilEl) useUntilEl.textContent = earliest.toLocaleDateString(locale, dateOpts);
+        if (useUntilEl) useUntilEl.textContent = formatDateDK(termDates.useUntilDate);
       });
     }
 
@@ -740,8 +749,8 @@
         if (!activeContractId || !clientId) return;
         var errorEl = document.getElementById('yb-cancel-error');
 
-        var earliest = calcEarliestTerminationDate(activeContract ? activeContract.nextBillingDate : null);
-        var terminationDate = earliest.toISOString().split('T')[0];
+        var termDates = calcTerminationDates(activeContract ? activeContract.nextBillingDate : null);
+        var terminationDate = termDates.useUntilDate.toISOString().split('T')[0];
 
         cancelConfirmBtn.disabled = true;
         cancelConfirmBtn.textContent = t('membership_cancel_confirming');
@@ -2060,6 +2069,15 @@
   }
 
   // ══════════════════════════════════════
+  // DATE FORMATTING
+  // ══════════════════════════════════════
+  function formatDateDK(date) {
+    if (!date) return '';
+    var d = new Date(date);
+    return d.toLocaleDateString(isDa() ? 'da-DK' : 'en-GB', { day: 'numeric', month: 'long', year: 'numeric' });
+  }
+
+  // ══════════════════════════════════════
   // HELPERS
   // ══════════════════════════════════════
   function isDa() { return window.location.pathname.indexOf('/en/') !== 0; }
@@ -2107,7 +2125,36 @@
       membership_autopay: isDa() ? 'Automatisk betaling' : 'Auto-pay',
       membership_status_active: isDa() ? 'Aktiv' : 'Active',
       membership_past_passes: isDa() ? 'Tidligere Klippekort' : 'Past Passes',
-      membership_no_past: isDa() ? 'Ingen tidligere klippekort.' : 'No past passes.'
+      membership_no_past: isDa() ? 'Ingen tidligere klippekort.' : 'No past passes.',
+      membership_manage_title: isDa() ? 'Administrer Abonnement' : 'Manage Subscription',
+      membership_pause_btn: isDa() ? 'Sæt på pause' : 'Pause',
+      membership_cancel_btn: isDa() ? 'Opsig abonnement' : 'Cancel membership',
+      membership_paused_badge: isDa() ? 'På pause' : 'Paused',
+      membership_terminating_badge: isDa() ? 'Opsagt' : 'Terminating',
+      membership_pause_title: isDa() ? 'Sæt abonnement på pause' : 'Pause membership',
+      membership_pause_desc: isDa() ? 'Du kan sætte dit abonnement på pause i 14 dage til 3 måneder. Pausen starter efter din næste faktureringscyklus.' : 'You can pause your membership for 14 days to 3 months. The pause starts after your next billing cycle.',
+      membership_pause_start: isDa() ? 'Pause starter' : 'Pause starts',
+      membership_pause_end: isDa() ? 'Pause slutter' : 'Pause ends',
+      membership_pause_min: isDa() ? 'Minimum 14 dage' : 'Minimum 14 days',
+      membership_pause_max: isDa() ? 'Maksimum 3 måneder' : 'Maximum 3 months',
+      membership_pause_resume: isDa() ? 'Dit abonnement genoptages automatisk den' : 'Your membership will resume automatically on',
+      membership_pause_next_billing: isDa() ? 'Tidligste startdato (efter næste fakturering)' : 'Earliest start date (after next billing)',
+      membership_pause_confirm: isDa() ? 'Bekræft pause' : 'Confirm pause',
+      membership_pause_confirming: isDa() ? 'Behandler...' : 'Processing...',
+      membership_pause_success: isDa() ? 'Dit abonnement er sat på pause.' : 'Your membership has been paused.',
+      membership_pause_error: isDa() ? 'Kunne ikke sætte abonnement på pause. Prøv igen.' : 'Could not pause membership. Please try again.',
+      membership_cancel_title: isDa() ? 'Opsig abonnement' : 'Cancel membership',
+      membership_cancel_desc: isDa() ? 'Opsigelse følger vores vilkår: 1 måned + løbende dage. Du kan bruge dit abonnement indtil udgangen af den betalte periode.' : 'Cancellation follows our terms: 1 month + running days notice. You can use your membership until the end of the paid period.',
+      membership_cancel_earliest: isDa() ? 'Sidste betaling (næste fakturering)' : 'Last payment (next billing)',
+      membership_cancel_use_until: isDa() ? 'Brug dit abonnement til og med' : 'Use your membership until',
+      membership_cancel_confirm: isDa() ? 'Bekræft opsigelse' : 'Confirm cancellation',
+      membership_cancel_confirming: isDa() ? 'Behandler...' : 'Processing...',
+      membership_cancel_success: isDa() ? 'Dit abonnement er opsagt.' : 'Your membership has been cancelled.',
+      membership_cancel_error: isDa() ? 'Kunne ikke opsige abonnement. Prøv igen.' : 'Could not cancel membership. Please try again.',
+      membership_cancel_warning: isDa() ? 'Denne handling kan ikke fortrydes. Dit abonnement opsiges ved udgangen af den betalte periode.' : 'This action cannot be undone. Your membership will end at the end of the paid period.',
+      membership_next_billing: isDa() ? 'Næste fakturering' : 'Next billing',
+      membership_autopay_amount: isDa() ? 'pr. periode' : 'per period',
+      membership_back: isDa() ? 'Tilbage' : 'Back'
     };
     return map[key] || key;
   }
