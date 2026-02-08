@@ -49,7 +49,19 @@
     <div class="yb-cv-error-page__inner">
       <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#6F6A66" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
       <p class="yb-cv-error-page__msg" id="yb-cv-error-msg">{{ t.error_load_failed }}</p>
-      <a href="{{ lp }}/profil" class="yb-btn yb-btn--outline">{{ t.back_to_courses }}</a>
+      <a href="{{ lp }}/profile#mine-kurser" class="yb-btn yb-btn--outline">{{ t.back_to_courses }}</a>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════
+       COMPLETION CELEBRATION
+       ═══════════════════════════════════════ -->
+  <div class="yb-cv-completion" id="yb-cv-completion" hidden>
+    <div class="yb-cv-completion__inner">
+      <div class="yb-cv-completion__icon">🎉</div>
+      <h2 class="yb-cv-completion__title">{{ t.completion_title }}</h2>
+      <p class="yb-cv-completion__text">{{ t.completion_text }}</p>
+      <button class="yb-btn yb-btn--primary" type="button" id="yb-cv-completion-close">{{ t.completion_close }}</button>
     </div>
   </div>
 
@@ -60,19 +72,54 @@
 
     <!-- Top Bar -->
     <div class="yb-cv-topbar">
-      <a href="{{ lp }}/profil#mine-kurser" class="yb-cv-topbar__back" id="yb-cv-back-link">
+      <a href="{{ lp }}/profile#mine-kurser" class="yb-cv-topbar__back" id="yb-cv-back-link">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
         {{ t.back_to_courses }}
       </a>
       <h1 class="yb-cv-topbar__title" id="yb-cv-course-title"></h1>
       <div class="yb-cv-topbar__actions">
-        <button class="yb-cv-topbar__btn" type="button" id="yb-cv-search-toggle" aria-label="{{ t.search_btn }}">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <!-- Font size -->
+        <button class="yb-cv-topbar__btn" type="button" id="yb-cv-fontsize-toggle" aria-label="{{ t.font_size }}" title="{{ t.font_size }}">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7V4h16v3"/><path d="M9 20h6"/><path d="M12 4v16"/></svg>
         </button>
+        <!-- TOC -->
+        <button class="yb-cv-topbar__btn" type="button" id="yb-cv-toc-toggle" aria-label="{{ t.toc_title }}" title="{{ t.toc_title }}">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+        </button>
+        <!-- Print -->
+        <button class="yb-cv-topbar__btn" type="button" id="yb-cv-print-btn" aria-label="{{ t.print_btn }}" title="{{ t.print_btn }}">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+        </button>
+        <!-- Search -->
+        <button class="yb-cv-topbar__btn" type="button" id="yb-cv-search-toggle" aria-label="{{ t.search_btn }}">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        </button>
+        <!-- Mobile sidebar toggle -->
         <button class="yb-cv-topbar__btn yb-cv-topbar__btn--sidebar" type="button" id="yb-cv-sidebar-toggle" aria-label="{{ t.sidebar_toggle }}">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
         </button>
       </div>
+    </div>
+
+    <!-- Font Size Popover -->
+    <div class="yb-cv-fontsize" id="yb-cv-fontsize" hidden>
+      <span class="yb-cv-fontsize__label">{{ t.font_size }}</span>
+      <button class="yb-cv-fontsize__btn" data-fontsize="small" type="button">A<small>-</small></button>
+      <button class="yb-cv-fontsize__btn yb-cv-fontsize__btn--active" data-fontsize="medium" type="button">A</button>
+      <button class="yb-cv-fontsize__btn" data-fontsize="large" type="button">A<small>+</small></button>
+    </div>
+
+    <!-- TOC Panel -->
+    <div class="yb-cv-toc" id="yb-cv-toc" hidden>
+      <div class="yb-cv-toc__header">
+        <h3 class="yb-cv-toc__title">{{ t.toc_title }}</h3>
+        <button class="yb-cv-toc__close" type="button" id="yb-cv-toc-close">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+      <nav class="yb-cv-toc__list" id="yb-cv-toc-list">
+        <!-- Rendered by JS -->
+      </nav>
     </div>
 
     <!-- Search Panel -->
@@ -113,6 +160,7 @@
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
             {{ t.my_comments_btn }}
           </button>
+          <p class="yb-cv-sidebar__hint" id="yb-cv-keyboard-hint">{{ t.keyboard_hint }}</p>
         </div>
       </aside>
 
@@ -121,12 +169,40 @@
 
         <!-- Chapter View -->
         <article class="yb-cv-chapter" id="yb-cv-chapter" hidden>
+          <!-- Breadcrumb -->
+          <div class="yb-cv-chapter__breadcrumb" id="yb-cv-chapter-breadcrumb"></div>
+
           <div class="yb-cv-chapter__header">
             <span class="yb-cv-chapter__eyebrow" id="yb-cv-chapter-eyebrow"></span>
             <h1 class="yb-cv-chapter__title" id="yb-cv-chapter-title"></h1>
+            <div class="yb-cv-chapter__meta" id="yb-cv-chapter-meta">
+              <span class="yb-cv-chapter__reading-time" id="yb-cv-reading-time"></span>
+            </div>
           </div>
           <div class="yb-cv-chapter__body" id="yb-cv-chapter-content">
             <!-- Chapter HTML content loaded by JS -->
+          </div>
+
+          <!-- Mark Complete -->
+          <div class="yb-cv-mark-complete" id="yb-cv-mark-complete">
+            <label class="yb-cv-mark-complete__label">
+              <input type="checkbox" id="yb-cv-complete-checkbox" class="yb-cv-mark-complete__checkbox">
+              <span class="yb-cv-mark-complete__check"></span>
+              <span class="yb-cv-mark-complete__text" id="yb-cv-complete-text">{{ t.mark_complete }}</span>
+            </label>
+          </div>
+
+          <!-- Personal Notes -->
+          <div class="yb-cv-notes" id="yb-cv-notes">
+            <h3 class="yb-cv-notes__title">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+              {{ t.notes_title }}
+            </h3>
+            <textarea id="yb-cv-notes-input" class="yb-cv-notes__input" placeholder="{{ t.notes_placeholder }}" rows="3"></textarea>
+            <div class="yb-cv-notes__actions">
+              <button type="button" class="yb-btn yb-btn--outline yb-btn--sm" id="yb-cv-notes-save">{{ t.notes_save }}</button>
+              <span class="yb-cv-notes__status" id="yb-cv-notes-status"></span>
+            </div>
           </div>
 
           <!-- Chapter Navigation -->

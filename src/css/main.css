@@ -8234,3 +8234,264 @@ section {
   .yb-cv-topbar__btn--sidebar { display: none; }
   .yb-cv-sidebar-overlay { display: none !important; }
 }
+
+/* ── Completion Celebration ── */
+.yb-cv-completion {
+  position: fixed; inset: 0; z-index: 100;
+  background: rgba(0,0,0,0.6); backdrop-filter: blur(4px);
+  display: flex; align-items: center; justify-content: center;
+  padding: 2rem; animation: yb-cv-fadeIn 0.3s ease;
+}
+.yb-cv-completion__inner {
+  background: #fff; border-radius: 20px; padding: 3rem 2.5rem;
+  text-align: center; max-width: 440px; width: 100%;
+  box-shadow: 0 8px 40px rgba(0,0,0,0.15);
+  animation: yb-cv-scaleIn 0.35s ease;
+}
+.yb-cv-completion__icon { font-size: 4rem; margin-bottom: 1rem; }
+.yb-cv-completion__title { font-size: 1.8rem; font-weight: 700; color: #0F0F0F; margin: 0 0 0.75rem; }
+.yb-cv-completion__text { color: #6F6A66; margin: 0 0 2rem; line-height: 1.6; }
+@keyframes yb-cv-fadeIn { from { opacity: 0; } to { opacity: 1; } }
+@keyframes yb-cv-scaleIn { from { transform: scale(0.9); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+
+/* ── Font Size Popover ── */
+.yb-cv-fontsize {
+  display: flex; align-items: center; gap: 0.5rem;
+  padding: 0.5rem 1rem; background: #fff; border-bottom: 1px solid #E8E4E0;
+}
+.yb-cv-fontsize__label { font-size: 0.8rem; color: #6F6A66; margin-right: 0.25rem; }
+.yb-cv-fontsize__btn {
+  width: 36px; height: 36px; border: 1px solid #E8E4E0; background: #fff;
+  border-radius: 8px; cursor: pointer; font-family: inherit; font-size: 0.9rem;
+  font-weight: 600; color: #6F6A66; transition: all 0.15s;
+  display: flex; align-items: center; justify-content: center;
+}
+.yb-cv-fontsize__btn small { font-size: 0.65em; }
+.yb-cv-fontsize__btn:hover { border-color: #f75c03; color: #f75c03; }
+.yb-cv-fontsize__btn--active { border-color: #f75c03; background: #f75c03; color: #fff; }
+.yb-cv-fontsize__btn--active:hover { background: #d94f02; }
+
+/* Font size classes on chapter body */
+.yb-cv-chapter__body--small { font-size: 0.9rem; }
+.yb-cv-chapter__body--medium { font-size: 1rem; }
+.yb-cv-chapter__body--large { font-size: 1.15rem; }
+
+/* ── TOC Panel ── */
+.yb-cv-toc {
+  background: #fff; border-bottom: 1px solid #E8E4E0;
+  padding: 1rem 1.5rem; max-height: 50vh; overflow-y: auto;
+}
+.yb-cv-toc__header {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 0.75rem;
+}
+.yb-cv-toc__title { font-size: 0.9rem; font-weight: 700; color: #0F0F0F; margin: 0; }
+.yb-cv-toc__close {
+  border: none; background: transparent; cursor: pointer; color: #6F6A66;
+  display: flex; align-items: center; padding: 0;
+}
+.yb-cv-toc__close:hover { color: #0F0F0F; }
+.yb-cv-toc__list { display: flex; flex-direction: column; gap: 0.15rem; }
+.yb-cv-toc__item {
+  display: block; width: 100%; text-align: left; border: none;
+  background: transparent; padding: 0.4rem 0.6rem; border-radius: 6px;
+  cursor: pointer; font-family: inherit; font-size: 0.85rem;
+  color: #0F0F0F; transition: background 0.15s; line-height: 1.35;
+}
+.yb-cv-toc__item:hover { background: #F5F3F0; }
+.yb-cv-toc__item--h3 { padding-left: 1.5rem; font-size: 0.8rem; color: #6F6A66; }
+.yb-cv-toc__empty { color: #6F6A66; font-size: 0.85rem; font-style: italic; padding: 0.5rem 0; }
+
+/* ── Chapter Breadcrumb ── */
+.yb-cv-chapter__breadcrumb {
+  display: flex; align-items: center; gap: 0.35rem;
+  font-size: 0.78rem; color: #6F6A66; margin-bottom: 1rem;
+}
+.yb-cv-chapter__breadcrumb span { color: #6F6A66; }
+.yb-cv-chapter__breadcrumb .yb-cv-bc-link {
+  color: #f75c03; cursor: pointer; text-decoration: none;
+  transition: opacity 0.15s;
+}
+.yb-cv-chapter__breadcrumb .yb-cv-bc-link:hover { opacity: 0.7; }
+
+/* ── Chapter Meta (reading time) ── */
+.yb-cv-chapter__meta {
+  display: flex; align-items: center; gap: 0.75rem;
+  margin-top: 0.5rem; font-size: 0.8rem; color: #6F6A66;
+}
+.yb-cv-chapter__reading-time {
+  display: flex; align-items: center; gap: 0.3rem;
+}
+
+/* ── Mark Complete ── */
+.yb-cv-mark-complete {
+  margin: 2.5rem 0 0; padding: 1.25rem;
+  background: #F5F3F0; border-radius: 12px;
+}
+.yb-cv-mark-complete__label {
+  display: flex; align-items: center; gap: 0.75rem;
+  cursor: pointer; font-size: 0.95rem; font-weight: 600; color: #0F0F0F;
+  user-select: none;
+}
+.yb-cv-mark-complete__checkbox { display: none; }
+.yb-cv-mark-complete__check {
+  width: 24px; height: 24px; border-radius: 6px;
+  border: 2px solid #E8E4E0; background: #fff;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0; transition: all 0.2s;
+}
+.yb-cv-mark-complete__checkbox:checked + .yb-cv-mark-complete__check {
+  border-color: #f75c03; background: #f75c03;
+}
+.yb-cv-mark-complete__checkbox:checked + .yb-cv-mark-complete__check::after {
+  content: ''; display: block; width: 6px; height: 12px;
+  border: solid #fff; border-width: 0 2.5px 2.5px 0;
+  transform: rotate(45deg); margin-top: -2px;
+}
+.yb-cv-mark-complete__text { transition: color 0.2s; }
+.yb-cv-mark-complete__checkbox:checked ~ .yb-cv-mark-complete__text { color: #f75c03; }
+
+/* ── Personal Notes ── */
+.yb-cv-notes {
+  margin-top: 2rem; padding-top: 2rem; border-top: 1px solid #E8E4E0;
+}
+.yb-cv-notes__title {
+  display: flex; align-items: center; gap: 0.5rem;
+  font-size: 1rem; font-weight: 700; color: #0F0F0F; margin: 0 0 0.75rem;
+}
+.yb-cv-notes__input {
+  width: 100%; padding: 0.75rem 1rem; border: 1px solid #E8E4E0;
+  border-radius: 10px; font-family: inherit; font-size: 0.9rem;
+  resize: vertical; outline: none; transition: border-color 0.15s;
+  background: #FFFCF9; min-height: 80px;
+}
+.yb-cv-notes__input:focus { border-color: #f75c03; }
+.yb-cv-notes__actions {
+  display: flex; align-items: center; gap: 0.75rem; margin-top: 0.5rem;
+}
+.yb-cv-notes__status { font-size: 0.8rem; color: #f75c03; font-weight: 600; }
+
+/* ── Sidebar Hint ── */
+.yb-cv-sidebar__hint {
+  font-size: 0.7rem; color: #6F6A66; margin: 0.5rem 0 0; text-align: center;
+  opacity: 0.7;
+}
+
+/* ═══════════════════════════════════════════
+   ADMIN NEW FEATURES
+   ═══════════════════════════════════════════ */
+
+/* ── Analytics Stats Grid ── */
+.yb-admin__stats-grid {
+  display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem;
+  margin-bottom: 2rem;
+}
+.yb-admin__stat-card {
+  background: #FFFCF9; border: 1px solid #E8E4E0; border-radius: 12px;
+  padding: 1.25rem; text-align: center; transition: border-color 0.15s;
+}
+.yb-admin__stat-card:hover { border-color: #f75c03; }
+.yb-admin__stat-value {
+  font-size: 2rem; font-weight: 700; color: #f75c03; margin: 0;
+  line-height: 1.2;
+}
+.yb-admin__stat-label {
+  font-size: 0.8rem; color: #6F6A66; margin-top: 0.25rem;
+}
+
+/* ── Analytics Per-Course ── */
+.yb-admin__analytics-row {
+  display: flex; align-items: center; gap: 1rem;
+  padding: 0.75rem 1rem; border-bottom: 1px solid #E8E4E0;
+}
+.yb-admin__analytics-row:last-child { border-bottom: none; }
+.yb-admin__analytics-icon { font-size: 1.25rem; flex-shrink: 0; }
+.yb-admin__analytics-name { flex: 1; font-weight: 600; font-size: 0.9rem; color: #0F0F0F; }
+.yb-admin__analytics-stat {
+  font-size: 0.8rem; color: #6F6A66; text-align: right; min-width: 80px;
+}
+.yb-admin__analytics-bar {
+  width: 80px; height: 6px; background: #E8E4E0; border-radius: 3px;
+  overflow: hidden; flex-shrink: 0;
+}
+.yb-admin__analytics-fill {
+  height: 100%; background: #f75c03; border-radius: 3px;
+  transition: width 0.4s ease;
+}
+
+/* ── Student Progress ── */
+.yb-admin__student-row {
+  display: flex; align-items: center; gap: 0.75rem;
+  padding: 0.6rem 0; border-bottom: 1px solid #E8E4E0; font-size: 0.85rem;
+}
+.yb-admin__student-row:last-child { border-bottom: none; }
+.yb-admin__student-name { flex: 1; font-weight: 600; color: #0F0F0F; min-width: 0; }
+.yb-admin__student-name small { display: block; font-weight: 400; color: #6F6A66; font-size: 0.78rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.yb-admin__student-bar {
+  width: 100px; height: 6px; background: #E8E4E0; border-radius: 3px;
+  overflow: hidden; flex-shrink: 0;
+}
+.yb-admin__student-fill {
+  height: 100%; background: #f75c03; border-radius: 3px;
+}
+.yb-admin__student-stat { font-size: 0.78rem; color: #6F6A66; white-space: nowrap; }
+.yb-admin__student-date { font-size: 0.72rem; color: #6F6A66; white-space: nowrap; }
+
+/* ── Rich Text Toolbar ── */
+.yb-admin__toolbar {
+  display: flex; flex-wrap: wrap; gap: 0.25rem;
+  padding: 0.5rem; background: #F5F3F0; border: 1px solid #E8E4E0;
+  border-bottom: none; border-radius: 12px 12px 0 0;
+}
+.yb-admin__toolbar-btn {
+  width: 32px; height: 32px; border: 1px solid transparent;
+  background: transparent; border-radius: 6px; cursor: pointer;
+  font-family: inherit; font-size: 0.8rem; font-weight: 700;
+  color: #6F6A66; display: flex; align-items: center; justify-content: center;
+  transition: all 0.15s;
+}
+.yb-admin__toolbar-btn:hover { background: #FFFCF9; border-color: #E8E4E0; color: #0F0F0F; }
+.yb-admin__toolbar-sep { width: 1px; background: #E8E4E0; margin: 0 0.15rem; }
+
+/* Adjust textarea when toolbar is present */
+.yb-admin__editor-textarea--with-toolbar {
+  border-radius: 0 0 12px 12px;
+}
+
+/* ── Word Count ── */
+.yb-admin__word-count {
+  display: block; font-size: 0.75rem; color: #6F6A66;
+  text-align: right; margin-top: 0.35rem;
+}
+
+/* ── Status Badge in Course Cards ── */
+.yb-admin__badge--draft { background: #fef3c7; color: #92400e; }
+.yb-admin__badge--published { background: #dcfce7; color: #166534; }
+
+/* ── Responsive for new components ── */
+@media (max-width: 768px) {
+  .yb-admin__stats-grid { grid-template-columns: repeat(2, 1fr); }
+  .yb-admin__student-row { flex-wrap: wrap; }
+  .yb-admin__student-bar { width: 100%; }
+  .yb-admin__toolbar { gap: 0.15rem; }
+}
+@media (max-width: 480px) {
+  .yb-admin__stats-grid { grid-template-columns: 1fr; }
+}
+
+/* ── Print styles ── */
+@media print {
+  .yb-cv-topbar, .yb-cv-sidebar, .yb-cv-sidebar-overlay,
+  .yb-cv-search, .yb-cv-fontsize, .yb-cv-toc,
+  .yb-cv-mark-complete, .yb-cv-notes, .yb-cv-chapter-nav,
+  .yb-cv-comments, .yb-cv-my-comments, .yb-cv-completion,
+  .yb-cv-sidebar__footer, .yb-cv-topbar__actions,
+  .yb-cv-chapter__breadcrumb { display: none !important; }
+  .yb-cv-viewer { display: block !important; }
+  .yb-cv-layout { display: block !important; }
+  .yb-cv-content { padding: 0 !important; max-width: 100% !important; }
+  .yb-cv-chapter { display: block !important; }
+  .yb-cv [hidden] { display: none !important; }
+  .yb-cv-chapter__body { font-size: 11pt !important; line-height: 1.6 !important; }
+  .yb-cv-chapter__title { font-size: 18pt !important; }
+}
