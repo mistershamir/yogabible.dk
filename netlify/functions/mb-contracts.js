@@ -27,16 +27,35 @@ exports.handler = async function(event) {
   if (event.httpMethod === 'GET') {
     try {
       var params = event.queryStringParameters || {};
-      var qsParams = { Limit: '200' };
+      var qsParams = {};
 
       if (params.contractId) qsParams.ContractIds = params.contractId;
       if (params.locationId) qsParams.LocationId = params.locationId;
       if (params.sellOnline === 'true') qsParams.SellOnline = 'true';
+      if (params.limit) qsParams.Limit = params.limit;
 
-      var queryString = new URLSearchParams(qsParams).toString();
-      console.log('[mb-contracts] GET query:', queryString);
+      var queryString = Object.keys(qsParams).length ? '?' + new URLSearchParams(qsParams).toString() : '';
+      console.log('[mb-contracts] GET path: /sale/contracts' + queryString);
 
-      var data = await mbFetch('/sale/contracts?' + queryString);
+      var data;
+      try {
+        data = await mbFetch('/sale/contracts' + queryString);
+      } catch (firstErr) {
+        // Log the full error details from Mindbody
+        console.error('[mb-contracts] First attempt failed:', firstErr.message);
+        console.error('[mb-contracts] Error data:', JSON.stringify(firstErr.data || {}));
+
+        // Retry with LocationId=1 (common default for single-location sites)
+        console.log('[mb-contracts] Retrying with LocationId=1...');
+        var retryQs = queryString ? queryString + '&LocationId=1' : '?LocationId=1';
+        try {
+          data = await mbFetch('/sale/contracts' + retryQs);
+        } catch (secondErr) {
+          console.error('[mb-contracts] Retry with LocationId also failed:', secondErr.message);
+          console.error('[mb-contracts] Retry error data:', JSON.stringify(secondErr.data || {}));
+          throw secondErr;
+        }
+      }
 
       console.log('[mb-contracts] Raw response keys:', Object.keys(data));
       console.log('[mb-contracts] Contracts count:', (data.Contracts || []).length);
@@ -81,8 +100,20 @@ exports.handler = async function(event) {
 
       return jsonResponse(200, { contracts: contracts, total: contracts.length });
     } catch (err) {
-      console.error('mb-contracts GET error:', err);
-      return jsonResponse(err.status || 500, { error: err.message });
+      console.error('[mb-contracts] GET error:', err.message);
+      console.error('[mb-contracts] GET error data:', JSON.stringify(err.data || {}));
+      var errorDetail = err.message || 'Unknown error';
+      if (err.data) {
+        if (err.data.Error && err.data.Error.Message) errorDetail = err.data.Error.Message;
+        else if (err.data.Message) errorDetail = err.data.Message;
+      }
+      return jsonResponse(err.status || 500, {
+        error: errorDetail,
+        _debug: {
+          status: err.status,
+          rawError: err.data || null
+        }
+      });
     }
   }
 
