@@ -17,6 +17,11 @@ function getBaseHeaders() {
   };
 }
 
+function clearTokenCache() {
+  cachedToken = null;
+  tokenExpiry = 0;
+}
+
 async function getStaffToken() {
   // Return cached token if still valid
   if (cachedToken && Date.now() < tokenExpiry) {
@@ -114,4 +119,4 @@ function jsonResponse(statusCode, body) {
   };
 }
 
-module.exports = { mbFetch, getStaffToken, getBaseHeaders, corsHeaders, jsonResponse, MB_BASE };
+module.exports = { mbFetch, getStaffToken, clearTokenCache, getBaseHeaders, corsHeaders, jsonResponse, MB_BASE };

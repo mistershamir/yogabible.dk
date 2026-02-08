@@ -776,8 +776,16 @@
             showMembershipToast(t('membership_cancel_success'), 'success');
           } else {
             if (errorEl) {
-              errorEl.textContent = res.data.error || t('membership_cancel_error');
+              var errMsg = res.data.error || t('membership_cancel_error');
+              errorEl.textContent = errMsg;
               errorEl.hidden = false;
+            }
+            // Log diagnostic trail to console for debugging
+            if (res.data._pathResults) {
+              console.log('[Cancel] Path results:', JSON.stringify(res.data._pathResults, null, 2));
+            }
+            if (res.data._hint) {
+              console.log('[Cancel] Hint:', res.data._hint);
             }
           }
           cancelConfirmBtn.disabled = false;

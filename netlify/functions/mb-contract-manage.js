@@ -16,7 +16,7 @@
  *     endDate (string, YYYY-MM-DD) - When suspension ends
  */
 
-const { mbFetch, jsonResponse, corsHeaders } = require('./shared/mb-api');
+const { mbFetch, clearTokenCache, jsonResponse, corsHeaders } = require('./shared/mb-api');
 
 // MB v6 docs are ambiguous on the category for contract management endpoints.
 // Try these paths in order until one returns a JSON response.
@@ -35,6 +35,9 @@ exports.handler = async function(event) {
 
   try {
     var body = JSON.parse(event.body || '{}');
+
+    // Force fresh token for contract management (staff permissions may have changed)
+    clearTokenCache();
 
     if (!body.clientId || !body.clientContractId || !body.action) {
       return jsonResponse(400, { error: 'clientId, clientContractId, and action are required' });
