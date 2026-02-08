@@ -39,6 +39,13 @@
         userEl.style.display = 'block';
         loadProfile(user, db);
         ensureBackendClient(user, db);
+
+        // Deep-link to courses tab via hash
+        var hash = window.location.hash;
+        if (hash === '#mine-kurser' || hash === '#my-courses') {
+          var coursesTab = document.querySelector('[data-yb-tab="courses"]');
+          if (coursesTab) coursesTab.click();
+        }
       } else {
         currentUser = null;
         clientId = null;
@@ -165,6 +172,7 @@
           if (tabName === 'schedule') loadSchedule();
           if (tabName === 'visits') loadVisits();
           if (tabName === 'receipts') loadReceipts();
+          if (tabName === 'courses') loadMyCourses();
         }
       });
     });
@@ -1155,4 +1163,120 @@
     div.textContent = str || '';
     return div.innerHTML;
   }
+
+  // ══════════════════════════════════════
+  // MY COURSES TAB
+  // ══════════════════════════════════════
+  function loadMyCourses() {
+    if (!currentUser || !currentDb) return;
+    var container = document.getElementById('yb-profile-courses');
+    var emptyEl = document.getElementById('yb-profile-courses-empty');
+    if (!container) return;
+
+    var lang = isDa() ? 'da' : 'en';
+    var t = {
+      progress: isDa() ? 'fremgang' : 'progress',
+      continue_btn: isDa() ? 'Fortsæt' : 'Continue',
+      start_btn: 'Start',
+      open_btn: isDa() ? 'Åbn kursus' : 'Open course',
+      modules: isDa() ? 'moduler' : 'modules'
+    };
+
+    // 1. Find enrollments for this user (single where to avoid composite index)
+    currentDb.collection('enrollments')
+      .where('userId', '==', currentUser.uid)
+      .get()
+      .then(function(snap) {
+        var courseIds = [];
+        snap.forEach(function(doc) {
+          var d = doc.data();
+          if (d.status === 'active') courseIds.push(d.courseId);
+        });
+        if (!courseIds.length) {
+          container.innerHTML = '';
+          if (emptyEl) emptyEl.hidden = false;
+          return;
+        }
+        if (emptyEl) emptyEl.hidden = true;
+
+        // 2. Fetch each course and its progress
+        var promises = courseIds.map(function(courseId) {
+          return Promise.all([
+            currentDb.collection('courses').doc(courseId).get(),
+            currentDb.collection('courses').doc(courseId).collection('modules').orderBy('order').get(),
+            currentDb.collection('courseProgress').doc(currentUser.uid + '_' + courseId).get()
+          ]).then(function(results) {
+            var courseDoc = results[0];
+            var modulesSnap = results[1];
+            var progressDoc = results[2];
+            if (!courseDoc.exists) return null;
+            return {
+              id: courseId,
+              course: courseDoc.data(),
+              moduleCount: modulesSnap.size,
+              progress: progressDoc.exists ? progressDoc.data() : null
+            };
+          });
+        });
+
+        return Promise.all(promises);
+      })
+      .then(function(courses) {
+        if (!courses) return;
+        courses = courses.filter(function(c) { return c !== null; });
+        renderCourseCards(container, courses, lang, t);
+      })
+      .catch(function(err) {
+        console.error('Error loading courses:', err);
+        container.innerHTML = '<p style="color:#6F6A66;text-align:center;padding:2rem;">' +
+          (isDa() ? 'Kunne ikke hente kurser.' : 'Could not load courses.') + '</p>';
+      });
+  }
+
+  function renderCourseCards(container, courses, lang, t) {
+    if (!courses.length) {
+      container.innerHTML = '';
+      var emptyEl = document.getElementById('yb-profile-courses-empty');
+      if (emptyEl) emptyEl.hidden = false;
+      return;
+    }
+
+    var lp = lang === 'en' ? '/en' : '';
+    var viewerPath = lang === 'en' ? '/en/course-material/' : '/kursus-materiale/';
+
+    var html = courses.map(function(item) {
+      var c = item.course;
+      var title = c['title_' + lang] || c.title_da || 'Course';
+      var desc = c['description_' + lang] || c.description_da || '';
+      var icon = c.icon || '📖';
+
+      // Calculate progress
+      var viewed = item.progress && item.progress.viewed ? Object.keys(item.progress.viewed).length : 0;
+      var pct = 0;
+      // We don't know total chapters without fetching all, so show viewed count
+      var hasProgress = viewed > 0;
+      var btnLabel = hasProgress ? t.continue_btn : t.start_btn;
+      var btnUrl = viewerPath + '?course=' + item.id;
+
+      // If user has progress, deep-link to last chapter
+      if (item.progress && item.progress.lastModule && item.progress.lastChapter) {
+        btnUrl += '&module=' + item.progress.lastModule + '&chapter=' + item.progress.lastChapter;
+      }
+
+      return '<div class="yb-profile__course-card">' +
+        '<div class="yb-profile__course-icon">' + icon + '</div>' +
+        '<div class="yb-profile__course-info">' +
+          '<h3 class="yb-profile__course-name">' + esc(title) + '</h3>' +
+          '<p class="yb-profile__course-desc">' + esc(desc) + '</p>' +
+          '<span class="yb-profile__course-meta">' + item.moduleCount + ' ' + t.modules +
+            (hasProgress ? ' · ' + viewed + ' ' + (isDa() ? 'kapitler læst' : 'chapters read') : '') +
+          '</span>' +
+        '</div>' +
+        '<a href="' + btnUrl + '" class="yb-btn yb-btn--primary yb-profile__course-btn">' + btnLabel + '</a>' +
+      '</div>';
+    }).join('');
+
+    container.innerHTML = html;
+  }
+
 })();

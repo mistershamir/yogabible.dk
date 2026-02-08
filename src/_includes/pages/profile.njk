@@ -32,6 +32,7 @@
         <button class="yb-profile__tab" type="button" data-yb-tab="store">{{ t.tab_store }}</button>
         <button class="yb-profile__tab" type="button" data-yb-tab="visits">{{ t.tab_visits }}</button>
         <button class="yb-profile__tab" type="button" data-yb-tab="receipts">{{ t.tab_receipts }}</button>
+        <button class="yb-profile__tab" type="button" data-yb-tab="courses">{{ t.tab_courses }}</button>
       </div>
 
       {# ═══════ TAB: Profile ═══════ #}
@@ -306,6 +307,25 @@
               <span>{{ t.receipts_loading }}</span>
             </div>
           </div>
+        </div>
+      </div>
+
+      {# ═══════ TAB: My Courses ═══════ #}
+      <div class="yb-profile__tab-panel" data-yb-panel="courses">
+        <div class="yb-profile__courses-header">
+          <h2 class="yb-profile__courses-title">{{ t.courses_title }}</h2>
+          <p class="yb-profile__courses-subtitle">{{ t.courses_subtitle }}</p>
+        </div>
+        <div id="yb-profile-courses" class="yb-profile__courses-grid">
+          <div class="yb-store__loading">
+            <div class="yb-mb-spinner"></div>
+            <span>{{ t.courses_loading }}</span>
+          </div>
+        </div>
+        <div id="yb-profile-courses-empty" class="yb-profile__courses-empty" hidden>
+          <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#6F6A66" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+          <h3>{{ t.courses_empty_title }}</h3>
+          <p>{{ t.courses_empty_text }}</p>
         </div>
       </div>
 

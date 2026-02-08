@@ -1,0 +1,233 @@
+{% set t = i18n["course-admin"][lang or "da"] %}
+{% set lp = "/en" if lang == "en" else "" %}
+
+<script>
+  window._ybAdminLang = '{{ lang or "da" }}';
+  window._ybAdminT = {{ i18n["course-admin"][lang or "da"] | dump | safe }};
+</script>
+
+<section class="yb-admin" id="yb-admin">
+  <div class="container">
+
+    {# ── Header ── #}
+    <div class="yb-admin__header">
+      <p class="yb-profile__eyebrow">Admin</p>
+      <h1 class="yb-profile__title">{{ t.page_title }}</h1>
+      <p class="yb-profile__subtitle">{{ t.page_subtitle }}</p>
+    </div>
+
+    {# ── Gate: not logged in ── #}
+    <div class="yb-admin__gate" id="yb-admin-gate" style="display:none">
+      <div class="yb-profile__guest-inner">
+        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#6F6A66" stroke-width="1.5"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+        <h2 class="yb-profile__guest-title">{{ t.not_logged_in_title }}</h2>
+        <p class="yb-profile__guest-text">{{ t.not_logged_in_text }}</p>
+        <div class="yb-profile__guest-actions">
+          <button class="yb-btn yb-btn--primary" type="button" data-yb-auth-open="login">{{ t.login_btn }}</button>
+        </div>
+      </div>
+    </div>
+
+    {# ── Logged-in content ── #}
+    <div id="yb-admin-panel" style="display:none">
+
+      {# Tab navigation — extensible for future modules #}
+      <div class="yb-profile__tabs">
+        <button class="yb-profile__tab is-active" type="button" data-yb-admin-tab="courses">{{ t.courses_title }}</button>
+        {# Future tabs: Users, Settings, etc. #}
+      </div>
+
+      {# ═══════════════════════════════════
+         TAB: Course Builder
+         ═══════════════════════════════════ #}
+      <div class="yb-admin__tab-panel is-active" data-yb-admin-panel="courses">
+
+        {# Breadcrumb #}
+        <div class="yb-admin__breadcrumb" id="yb-admin-breadcrumb"></div>
+
+        {# VIEW: Courses list (default) #}
+        <div class="yb-admin__view" id="yb-admin-v-courses">
+          <div class="yb-admin__view-head">
+            <h2>{{ t.courses_title }}</h2>
+            <button class="yb-btn yb-btn--primary" data-action="new-course">+ {{ t.new_course }}</button>
+          </div>
+          <div id="yb-admin-course-list" class="yb-admin__card-grid"></div>
+        </div>
+
+        {# VIEW: Course form #}
+        <div class="yb-admin__view" id="yb-admin-v-course-form" hidden>
+          <div class="yb-admin__view-head">
+            <button class="yb-admin__back-btn" data-action="back-courses">&larr; {{ t.back }}</button>
+            <h2 id="yb-admin-course-form-title">{{ t.new_course }}</h2>
+          </div>
+          <form id="yb-admin-course-form" class="yb-admin__form">
+            <input type="hidden" id="yb-cf-id">
+            <div class="yb-admin__field">
+              <label for="yb-cf-title">{{ t.title }}</label>
+              <input type="text" id="yb-cf-title" required>
+            </div>
+            <div class="yb-admin__field">
+              <label for="yb-cf-desc">{{ t.description }}</label>
+              <textarea id="yb-cf-desc" rows="3"></textarea>
+            </div>
+            <div class="yb-admin__form-row">
+              <div class="yb-admin__field">
+                <label for="yb-cf-icon">{{ t.icon }}</label>
+                <input type="text" id="yb-cf-icon" placeholder="🧘" style="max-width:80px">
+              </div>
+              <div class="yb-admin__field">
+                <label for="yb-cf-program">{{ t.program }}</label>
+                <input type="text" id="yb-cf-program" placeholder="200h">
+              </div>
+            </div>
+            <div class="yb-admin__form-actions">
+              <button type="submit" class="yb-btn yb-btn--primary">{{ t.save }}</button>
+              <button type="button" class="yb-btn yb-btn--outline" data-action="back-courses">{{ t.cancel }}</button>
+            </div>
+          </form>
+        </div>
+
+        {# VIEW: Modules list + Enrollments #}
+        <div class="yb-admin__view" id="yb-admin-v-modules" hidden>
+          <div class="yb-admin__view-head">
+            <button class="yb-admin__back-btn" data-action="back-courses">&larr; {{ t.back }}</button>
+            <h2 id="yb-admin-modules-heading">{{ t.modules_title }}</h2>
+            <button class="yb-btn yb-btn--primary" data-action="new-module">+ {{ t.new_module }}</button>
+          </div>
+          <div id="yb-admin-module-list" class="yb-admin__item-list"></div>
+
+          <div class="yb-admin__section-divider"></div>
+          <div class="yb-admin__view-head">
+            <h2>{{ t.enrollments_title }}</h2>
+          </div>
+          <form id="yb-admin-enroll-form" class="yb-admin__enroll-form">
+            <input type="text" id="yb-admin-enroll-input" placeholder="{{ t.enroll_placeholder }}" required>
+            <button type="submit" class="yb-btn yb-btn--primary">{{ t.enroll_btn }}</button>
+          </form>
+          <div id="yb-admin-enroll-list"></div>
+        </div>
+
+        {# VIEW: Module form #}
+        <div class="yb-admin__view" id="yb-admin-v-module-form" hidden>
+          <div class="yb-admin__view-head">
+            <button class="yb-admin__back-btn" data-action="back-modules">&larr; {{ t.back }}</button>
+            <h2 id="yb-admin-module-form-title">{{ t.new_module }}</h2>
+          </div>
+          <form id="yb-admin-module-form" class="yb-admin__form">
+            <input type="hidden" id="yb-mf-id">
+            <div class="yb-admin__field">
+              <label for="yb-mf-title">{{ t.title }}</label>
+              <input type="text" id="yb-mf-title" required>
+            </div>
+            <div class="yb-admin__field">
+              <label for="yb-mf-desc">{{ t.description }}</label>
+              <textarea id="yb-mf-desc" rows="3"></textarea>
+            </div>
+            <div class="yb-admin__form-row">
+              <div class="yb-admin__field">
+                <label for="yb-mf-icon">{{ t.icon }}</label>
+                <input type="text" id="yb-mf-icon" placeholder="📖" style="max-width:80px">
+              </div>
+              <div class="yb-admin__field">
+                <label for="yb-mf-order">{{ t.order }}</label>
+                <input type="number" id="yb-mf-order" min="1" value="1" style="max-width:80px">
+              </div>
+            </div>
+            <div class="yb-admin__form-actions">
+              <button type="submit" class="yb-btn yb-btn--primary">{{ t.save }}</button>
+              <button type="button" class="yb-btn yb-btn--outline" data-action="back-modules">{{ t.cancel }}</button>
+            </div>
+          </form>
+        </div>
+
+        {# VIEW: Chapters list #}
+        <div class="yb-admin__view" id="yb-admin-v-chapters" hidden>
+          <div class="yb-admin__view-head">
+            <button class="yb-admin__back-btn" data-action="back-modules">&larr; {{ t.back }}</button>
+            <h2 id="yb-admin-chapters-heading">{{ t.chapters_title }}</h2>
+            <div class="yb-admin__view-head-btns">
+              <button class="yb-btn yb-btn--outline" data-action="bulk-import">{{ t.bulk_import }}</button>
+              <button class="yb-btn yb-btn--primary" data-action="new-chapter">+ {{ t.new_chapter }}</button>
+            </div>
+          </div>
+          <div id="yb-admin-chapter-list" class="yb-admin__item-list"></div>
+        </div>
+
+        {# VIEW: Chapter form #}
+        <div class="yb-admin__view" id="yb-admin-v-chapter-form" hidden>
+          <div class="yb-admin__view-head">
+            <button class="yb-admin__back-btn" data-action="back-chapters">&larr; {{ t.back }}</button>
+            <h2 id="yb-admin-chapter-form-title">{{ t.new_chapter }}</h2>
+          </div>
+          <form id="yb-admin-chapter-form" class="yb-admin__form">
+            <input type="hidden" id="yb-chf-id">
+            <div class="yb-admin__form-row">
+              <div class="yb-admin__field">
+                <label for="yb-chf-title">{{ t.title }}</label>
+                <input type="text" id="yb-chf-title" required>
+              </div>
+              <div class="yb-admin__field">
+                <label for="yb-chf-order">{{ t.order }}</label>
+                <input type="number" id="yb-chf-order" min="1" value="1" style="max-width:80px">
+              </div>
+            </div>
+            <label class="yb-admin__field-label">{{ t.content }}</label>
+            <div class="yb-admin__editor-wrap">
+              <div class="yb-admin__editor-panel">
+                <textarea id="yb-chf-content" class="yb-admin__editor-textarea" rows="20" placeholder="<h2>Heading</h2><p>Content...</p>"></textarea>
+              </div>
+              <div class="yb-admin__preview-panel" id="yb-admin-preview">
+                <div class="yb-admin__preview-label">{{ t.preview }}</div>
+                <div class="yb-admin__preview-body yb-cv__content" id="yb-admin-preview-body"></div>
+              </div>
+            </div>
+            <div class="yb-admin__form-actions">
+              <button type="submit" class="yb-btn yb-btn--primary">{{ t.save }}</button>
+              <button type="button" class="yb-btn yb-btn--outline" data-action="back-chapters">{{ t.cancel }}</button>
+            </div>
+          </form>
+        </div>
+
+        {# VIEW: Bulk import #}
+        <div class="yb-admin__view" id="yb-admin-v-bulk" hidden>
+          <div class="yb-admin__view-head">
+            <button class="yb-admin__back-btn" data-action="back-chapters">&larr; {{ t.back }}</button>
+            <h2>{{ t.bulk_import }}</h2>
+          </div>
+          <div id="yb-admin-bulk-step1">
+            <textarea id="yb-admin-bulk-text" class="yb-admin__bulk-textarea" rows="16" placeholder="{{ t.bulk_paste }}"></textarea>
+            <div class="yb-admin__bulk-options">
+              <div class="yb-admin__bulk-opt">
+                <strong>{{ t.bulk_split_by }}</strong>
+                <label><input type="radio" name="bulk-split" value="headings" checked> {{ t.bulk_split_headings }}</label>
+                <label><input type="radio" name="bulk-split" value="blank"> {{ t.bulk_split_blank }}</label>
+                <label><input type="radio" name="bulk-split" value="hr"> {{ t.bulk_split_hr }}</label>
+              </div>
+            </div>
+            <button class="yb-btn yb-btn--primary" id="yb-admin-bulk-preview-btn">{{ t.bulk_preview_btn }}</button>
+          </div>
+          <div id="yb-admin-bulk-step2" hidden>
+            <div class="yb-admin__bulk-count" id="yb-admin-bulk-count"></div>
+            <div id="yb-admin-bulk-cards" class="yb-admin__bulk-cards"></div>
+            <div class="yb-admin__bulk-actions">
+              <button class="yb-btn yb-btn--primary" id="yb-admin-bulk-create-btn">{{ t.bulk_create_btn }}</button>
+              <button class="yb-btn yb-btn--outline" id="yb-admin-bulk-back-btn">{{ t.back }}</button>
+            </div>
+          </div>
+          <div id="yb-admin-bulk-progress" hidden>
+            <div class="yb-admin__progress-bar"><div class="yb-admin__progress-fill" id="yb-admin-bulk-fill"></div></div>
+            <p id="yb-admin-bulk-status"></p>
+          </div>
+        </div>
+
+      </div>{# end courses tab panel #}
+
+    </div>{# end yb-admin-panel #}
+
+  </div>{# end container #}
+
+  {# Toast #}
+  <div class="yb-admin__toast" id="yb-admin-toast" hidden></div>
+</section>
+
+<script src="/js/course-admin.js"></script>
