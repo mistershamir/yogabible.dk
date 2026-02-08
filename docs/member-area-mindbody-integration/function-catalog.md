@@ -68,7 +68,7 @@
 
 ### mb-client-services.js
 - **Method:** GET
-- **Purpose:** Fetch client's active passes, services, and contracts
+- **Purpose:** Fetch client's active passes, services, and contracts with billing data
 - **Params:** `clientId`
 - **MB Endpoints:** Parallel fetch with graceful fallback:
   - `GET /client/clientservices?ClientId=X&Limit=200`
@@ -76,7 +76,8 @@
 - **Service "current" logic:** `Current` flag OR (activeDate ≤ now AND expirationDate ≥ now)
 - **Contract billing:** Extracts `nextBillingDate` from `UpcomingAutopayEvents` (sorted, first future event)
 - **Returns:** `{ services[], contracts[], activeServices[], activeContracts[], hasActivePass }`
-- **Contract fields include:** `isAutopay`, `autopayStatus`, `nextBillingDate`, `autopayAmount`, `isSuspended`, `terminationDate`
+- **Enriched contract fields:** `isAutopay`, `autopayStatus`, `nextBillingDate`, `autopayAmount`, `isSuspended`, `terminationDate`, `agreementDate`
+- **Calculates** `nextBillingDate` from `UpcomingAutopayEvents` array
 
 ### mb-visits.js
 - **Method:** GET
@@ -126,14 +127,19 @@
   - `POST /sale/purchasecontract` (with CreditCardInfo in PascalCase)
   - `POST /{category}/terminatecontract` (tries `/contract/`, `/sale/`, `/client/`)
   - `POST /{category}/suspendcontract` (tries `/contract/`, `/sale/`, `/client/`)
-- **Returns:** GET: `{ contracts[], total }` | POST: `{ success, endpointUsed?, ... }`
+- **Returns:** GET: `{ contracts[], total }` | POST: `{ success, endpointUsed?, clientContractId?, ... }`
+- **Each contract:** `id`, `name`, `description`, `price`, `recurringPaymentAmount`, `autopaySchedule` (object with `FrequencyType`), `locationId`, `durationMonths`, `autopay`, `onlineDescription`
+- **POST Note:** `LocationId` is REQUIRED for purchase — defaults to 1 if not provided
 
 ### mb-contract-manage.js
 - **Method:** POST
-- **Purpose:** Standalone terminate/suspend function (same logic as mb-contracts manage routes)
-- **Body:** `{ action, clientId, clientContractId, terminationDate?, terminationCode?, startDate?, endDate? }`
-- **Same endpoint path fallback strategy as mb-contracts**
+- **Purpose:** Standalone terminate/suspend function (avoids routing ambiguity with mb-contracts purchase endpoint)
+- **Body (terminate):** `{ action: 'terminate', clientId, clientContractId, terminationDate, terminationCode? }`
+- **Body (suspend):** `{ action: 'suspend', clientId, clientContractId, startDate, endDate }`
+- **API Path:** Uses `/contract/terminatecontract` and `/contract/suspendcontract` (with fallback to `/sale/`, `/client/`)
 - **Suspension validation:** 14 days minimum, 93 days maximum
+- **Fallback:** If terminate fails with TerminationCode, retries without it
+- **Returns:** `{ success, action, terminationDate|suspendDate, message }`
 
 ### mb-purchases.js
 - **Method:** GET
@@ -194,3 +200,6 @@ All functions transform MB PascalCase responses to camelCase for frontend. Reque
 
 ### Pattern 5: API Inspection Logging
 Key functions log raw field names and sample data (truncated to 500 chars) for debugging schema changes without code modification.
+
+### Pattern 6: Non-JSON Response Detection
+`shared/mb-api.js` reads response as text first, then parses JSON. This prevents `Unexpected token '<'` errors when Mindbody returns HTML error pages. On non-JSON response, throws descriptive error with first 200 chars of raw response. On API error, includes `error.status` and `error.data` for downstream handling.
