@@ -69,6 +69,10 @@
         var phone = document.getElementById('yb-profile-phone').value.trim();
         var dobInput = document.getElementById('yb-profile-dob');
         var dob = dobInput ? dobInput.value : '';
+        var yogaLevelEl = document.getElementById('yb-profile-yoga-level');
+        var practiceFreqEl = document.getElementById('yb-profile-practice-freq');
+        var yogaLevel = yogaLevelEl ? yogaLevelEl.value : '';
+        var practiceFrequency = practiceFreqEl ? practiceFreqEl.value : '';
         var errorEl = document.getElementById('yb-profile-error');
         var successEl = document.getElementById('yb-profile-success');
         var btn = profileForm.querySelector('button[type="submit"]');
@@ -85,6 +89,7 @@
 
         var updateData = {
           firstName: firstName, lastName: lastName, name: fullName, phone: phone,
+          yogaLevel: yogaLevel, practiceFrequency: practiceFrequency,
           updatedAt: firebase.firestore.FieldValue.serverTimestamp()
         };
         if (dob) updateData.dateOfBirth = dob;
@@ -205,8 +210,19 @@
       if (phEl) phEl.value = d.phone || '';
       if (dobEl) dobEl.value = d.dateOfBirth || '';
 
+      // Yoga level & practice frequency
+      var levelEl = document.getElementById('yb-profile-yoga-level');
+      var freqEl = document.getElementById('yb-profile-practice-freq');
+      if (levelEl) levelEl.value = d.yogaLevel || '';
+      if (freqEl) freqEl.value = d.practiceFrequency || '';
+
       if (d.mindbodyClientId) {
         clientId = d.mindbodyClientId;
+        // Show Client ID in profile
+        var cidWrap = document.getElementById('yb-profile-client-id-wrap');
+        var cidEl = document.getElementById('yb-profile-client-id');
+        if (cidWrap) cidWrap.hidden = false;
+        if (cidEl) cidEl.textContent = clientId;
         // Load membership details
         loadMembershipDetails();
       }
@@ -1373,39 +1389,145 @@
 
     var html = '<div class="yb-receipts__list-inner">';
 
-    purchases.forEach(function(p) {
+    purchases.forEach(function(p, idx) {
       var d = new Date(p.saleDate);
       var dateStr = d.toLocaleDateString(isDa() ? 'da-DK' : 'en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
       var name = p.serviceName || p.description || '—';
-      var paymentDisplay = p.paymentMethod || '—';
-      if (p.paymentLast4) paymentDisplay += ' ****' + p.paymentLast4;
+      var amount = p.amountPaid || p.price || 0;
 
-      html += '<div class="yb-receipts__card' + (p.returned ? ' yb-receipts__card--returned' : '') + '">';
+      // Build type badge
+      var typeBadge = '';
+      if (p.type === 'contract') {
+        typeBadge = '<span class="yb-receipts__badge yb-receipts__badge--contract">' + (isDa() ? 'Medlemskab' : 'Membership') + '</span>';
+      } else if (p.type === 'service') {
+        typeBadge = '<span class="yb-receipts__badge yb-receipts__badge--service">' + (isDa() ? 'Klippekort' : 'Pass') + '</span>';
+      } else if (p.type === 'sale') {
+        typeBadge = '<span class="yb-receipts__badge yb-receipts__badge--sale">' + (isDa() ? 'Køb' : 'Purchase') + '</span>';
+      }
+
+      html += '<div class="yb-receipts__card' + (p.returned ? ' yb-receipts__card--returned' : '') + '" data-receipt-idx="' + idx + '">';
+
+      // Header: date + badges
       html += '<div class="yb-receipts__card-header">';
       html += '<span class="yb-receipts__card-date">' + dateStr + '</span>';
+      html += '<div class="yb-receipts__card-badges">';
+      html += typeBadge;
       if (p.returned) {
-        html += '<span class="yb-receipts__card-badge yb-receipts__card-badge--returned">' + (isDa() ? 'Refunderet' : 'Refunded') + '</span>';
+        html += '<span class="yb-receipts__badge yb-receipts__badge--returned">' + (isDa() ? 'Refunderet' : 'Refunded') + '</span>';
+      }
+      if (p.current) {
+        html += '<span class="yb-receipts__badge yb-receipts__badge--active">' + (isDa() ? 'Aktiv' : 'Active') + '</span>';
       }
       html += '</div>';
+      html += '</div>';
+
+      // Body: name
       html += '<div class="yb-receipts__card-body">';
       html += '<span class="yb-receipts__card-name">' + esc(name) + '</span>';
+      if (p.programName) {
+        html += '<span class="yb-receipts__card-program">' + esc(p.programName) + '</span>';
+      }
+      html += '</div>';
+
+      // Details grid
+      html += '<div class="yb-receipts__card-details">';
+
+      // Amount
+      html += '<div class="yb-receipts__detail">';
+      html += '<span class="yb-receipts__detail-label">' + (isDa() ? 'Beløb' : 'Amount') + '</span>';
+      html += '<span class="yb-receipts__detail-value">' + (amount > 0 ? formatDKK(amount) : (isDa() ? 'Inkluderet' : 'Included')) + '</span>';
+      html += '</div>';
+
+      // Payment method
+      if (p.paymentMethod) {
+        var paymentDisplay = p.paymentMethod;
+        if (p.paymentLast4) paymentDisplay += ' ****' + p.paymentLast4;
+        html += '<div class="yb-receipts__detail">';
+        html += '<span class="yb-receipts__detail-label">' + (isDa() ? 'Betaling' : 'Payment') + '</span>';
+        html += '<span class="yb-receipts__detail-value">' + esc(paymentDisplay) + '</span>';
+        html += '</div>';
+      }
+
+      // Quantity
       if (p.quantity > 1) {
-        html += '<span class="yb-receipts__card-qty">' + (isDa() ? 'Antal' : 'Qty') + ': ' + p.quantity + '</span>';
+        html += '<div class="yb-receipts__detail">';
+        html += '<span class="yb-receipts__detail-label">' + (isDa() ? 'Antal' : 'Qty') + '</span>';
+        html += '<span class="yb-receipts__detail-value">' + p.quantity + '</span>';
+        html += '</div>';
       }
-      html += '</div>';
-      html += '<div class="yb-receipts__card-footer">';
-      html += '<span class="yb-receipts__card-amount">' + formatDKK(p.amountPaid || p.price) + '</span>';
-      html += '<span class="yb-receipts__card-payment">' + esc(paymentDisplay) + '</span>';
-      html += '</div>';
+
+      // Remaining (for services)
+      if (typeof p.remaining === 'number' && p.count) {
+        html += '<div class="yb-receipts__detail">';
+        html += '<span class="yb-receipts__detail-label">' + (isDa() ? 'Klip brugt' : 'Sessions used') + '</span>';
+        html += '<span class="yb-receipts__detail-value">' + (p.count - p.remaining) + ' / ' + p.count + '</span>';
+        html += '</div>';
+      }
+
+      // Expiration
+      if (p.expirationDate) {
+        var expDate = new Date(p.expirationDate);
+        var expStr = expDate.toLocaleDateString(isDa() ? 'da-DK' : 'en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
+        html += '<div class="yb-receipts__detail">';
+        html += '<span class="yb-receipts__detail-label">' + (isDa() ? 'Udløber' : 'Expires') + '</span>';
+        html += '<span class="yb-receipts__detail-value">' + expStr + '</span>';
+        html += '</div>';
+      }
+
+      // Contract end date
+      if (p.contractEndDate) {
+        var endDate = new Date(p.contractEndDate);
+        var endStr = endDate.toLocaleDateString(isDa() ? 'da-DK' : 'en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
+        html += '<div class="yb-receipts__detail">';
+        html += '<span class="yb-receipts__detail-label">' + (isDa() ? 'Slutdato' : 'End date') + '</span>';
+        html += '<span class="yb-receipts__detail-value">' + endStr + '</span>';
+        html += '</div>';
+      }
+
+      // Autopay info
+      if (p.autopayAmount > 0) {
+        html += '<div class="yb-receipts__detail">';
+        html += '<span class="yb-receipts__detail-label">' + (isDa() ? 'Autopay' : 'Auto-pay') + '</span>';
+        html += '<span class="yb-receipts__detail-value">' + formatDKK(p.autopayAmount) + (isDa() ? '/md' : '/mo') + '</span>';
+        html += '</div>';
+      }
+
+      // Discount
       if (p.discount > 0) {
-        html += '<div class="yb-receipts__card-discount">' + (isDa() ? 'Rabat' : 'Discount') + ': -' + formatDKK(p.discount) + '</div>';
+        html += '<div class="yb-receipts__detail">';
+        html += '<span class="yb-receipts__detail-label">' + (isDa() ? 'Rabat' : 'Discount') + '</span>';
+        html += '<span class="yb-receipts__detail-value yb-receipts__detail-value--discount">-' + formatDKK(p.discount) + '</span>';
+        html += '</div>';
       }
+
+      // Tax
+      if (p.tax > 0) {
+        html += '<div class="yb-receipts__detail">';
+        html += '<span class="yb-receipts__detail-label">' + (isDa() ? 'Moms' : 'Tax') + '</span>';
+        html += '<span class="yb-receipts__detail-value">' + formatDKK(p.tax) + '</span>';
+        html += '</div>';
+      }
+
+      // Location
+      if (p.locationName) {
+        html += '<div class="yb-receipts__detail">';
+        html += '<span class="yb-receipts__detail-label">' + (isDa() ? 'Lokation' : 'Location') + '</span>';
+        html += '<span class="yb-receipts__detail-value">' + esc(p.locationName) + '</span>';
+        html += '</div>';
+      }
+
+      html += '</div>'; // end details grid
+
+      // Reference + download
       html += '<div class="yb-receipts__card-actions">';
-      html += '<button class="yb-receipts__download-btn" type="button" data-receipt-download="' + (p.saleId || p.id) + '">';
+      html += '<span class="yb-receipts__card-ref">#' + (p.saleId || p.id) + '</span>';
+      html += '<button class="yb-receipts__download-btn" type="button" data-receipt-download="' + idx + '">';
+      html += '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>';
       html += (isDa() ? 'Download kvittering' : 'Download receipt');
       html += '</button>';
       html += '</div>';
-      html += '</div>';
+
+      html += '</div>'; // end card
     });
 
     html += '</div>';
@@ -1414,32 +1536,39 @@
     // Attach download handlers
     container.querySelectorAll('[data-receipt-download]').forEach(function(btn) {
       btn.addEventListener('click', function() {
-        var saleId = btn.getAttribute('data-receipt-download');
-        var card = btn.closest('.yb-receipts__card');
-        if (!card) return;
+        var idx = parseInt(btn.getAttribute('data-receipt-download'), 10);
+        var p = purchases[idx];
+        if (!p) return;
 
-        // Generate a simple text receipt from card data
-        var date = card.querySelector('.yb-receipts__card-date');
-        var name = card.querySelector('.yb-receipts__card-name');
-        var amount = card.querySelector('.yb-receipts__card-amount');
-        var payment = card.querySelector('.yb-receipts__card-payment');
+        var d = new Date(p.saleDate);
+        var dateStr = d.toLocaleDateString(isDa() ? 'da-DK' : 'en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
+        var name = p.serviceName || p.description || '—';
+        var amount = p.amountPaid || p.price || 0;
 
         var txt = '═══════════════════════════════════\n';
         txt += '       YOGA BIBLE — KVITTERING\n';
         txt += '═══════════════════════════════════\n\n';
-        txt += (isDa() ? 'Dato: ' : 'Date: ') + (date ? date.textContent : '') + '\n';
-        txt += (isDa() ? 'Vare: ' : 'Item: ') + (name ? name.textContent : '') + '\n';
-        txt += (isDa() ? 'Beløb: ' : 'Amount: ') + (amount ? amount.textContent : '') + '\n';
-        txt += (isDa() ? 'Betaling: ' : 'Payment: ') + (payment ? payment.textContent : '') + '\n';
-        txt += (isDa() ? 'Reference: ' : 'Reference: ') + '#' + saleId + '\n\n';
+        txt += (isDa() ? 'Dato: ' : 'Date: ') + dateStr + '\n';
+        txt += (isDa() ? 'Vare: ' : 'Item: ') + name + '\n';
+        if (p.programName) txt += (isDa() ? 'Program: ' : 'Program: ') + p.programName + '\n';
+        txt += (isDa() ? 'Beløb: ' : 'Amount: ') + (amount > 0 ? formatDKK(amount) : (isDa() ? 'Inkluderet' : 'Included')) + '\n';
+        if (p.paymentMethod) txt += (isDa() ? 'Betaling: ' : 'Payment: ') + p.paymentMethod + (p.paymentLast4 ? ' ****' + p.paymentLast4 : '') + '\n';
+        if (p.quantity > 1) txt += (isDa() ? 'Antal: ' : 'Qty: ') + p.quantity + '\n';
+        if (typeof p.remaining === 'number' && p.count) txt += (isDa() ? 'Klip brugt: ' : 'Sessions used: ') + (p.count - p.remaining) + ' / ' + p.count + '\n';
+        if (p.expirationDate) txt += (isDa() ? 'Udløber: ' : 'Expires: ') + new Date(p.expirationDate).toLocaleDateString(isDa() ? 'da-DK' : 'en-GB') + '\n';
+        if (p.discount > 0) txt += (isDa() ? 'Rabat: -' : 'Discount: -') + formatDKK(p.discount) + '\n';
+        if (p.tax > 0) txt += (isDa() ? 'Moms: ' : 'Tax: ') + formatDKK(p.tax) + '\n';
+        if (p.locationName) txt += (isDa() ? 'Lokation: ' : 'Location: ') + p.locationName + '\n';
+        txt += (isDa() ? 'Reference: #' : 'Reference: #') + (p.saleId || p.id) + '\n\n';
         txt += '═══════════════════════════════════\n';
         txt += 'Yoga Bible DK | yogabible.dk\n';
+        txt += 'Torvegade 66, 1400, København K\n';
 
         var blob = new Blob([txt], { type: 'text/plain' });
         var url = URL.createObjectURL(blob);
         var a = document.createElement('a');
         a.href = url;
-        a.download = 'receipt-' + saleId + '.txt';
+        a.download = 'kvittering-' + (p.saleId || p.id) + '.txt';
         a.click();
         URL.revokeObjectURL(url);
       });

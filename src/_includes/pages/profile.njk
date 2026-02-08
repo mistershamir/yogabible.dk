@@ -87,6 +87,26 @@
                     <input type="date" id="yb-profile-dob">
                   </div>
                 </div>
+                <div class="yb-profile__form-row">
+                  <div class="yb-auth-field">
+                    <label for="yb-profile-yoga-level">{{ t.label_yoga_level }}</label>
+                    <select id="yb-profile-yoga-level" class="yb-auth-field__select">
+                      <option value="">{{ t.yoga_level_placeholder }}</option>
+                      <option value="beginner">{{ t.yoga_level_beginner }}</option>
+                      <option value="intermediate">{{ t.yoga_level_intermediate }}</option>
+                      <option value="advanced">{{ t.yoga_level_advanced }}</option>
+                    </select>
+                  </div>
+                  <div class="yb-auth-field">
+                    <label for="yb-profile-practice-freq">{{ t.label_practice_freq }}</label>
+                    <select id="yb-profile-practice-freq" class="yb-auth-field__select">
+                      <option value="">{{ t.practice_freq_placeholder }}</option>
+                      <option value="occasional">{{ t.practice_freq_occasional }}</option>
+                      <option value="regular">{{ t.practice_freq_regular }}</option>
+                      <option value="dedicated">{{ t.practice_freq_dedicated }}</option>
+                    </select>
+                  </div>
+                </div>
                 <!-- Soft reminder for missing phone/DOB -->
                 <div class="yb-profile__reminder" id="yb-profile-reminder" hidden>
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#f75c03" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
@@ -126,6 +146,10 @@
                   <span class="yb-profile__info-label">{{ t.label_tier }}</span>
                   <span class="yb-profile__info-value" id="yb-profile-tier">&mdash;</span>
                 </div>
+                <div class="yb-profile__info-item" id="yb-profile-client-id-wrap" hidden>
+                  <span class="yb-profile__info-label">{{ t.label_client_id }}</span>
+                  <span class="yb-profile__info-value yb-profile__info-value--muted" id="yb-profile-client-id">&mdash;</span>
+                </div>
               </div>
               <!-- Active passes loaded via JS -->
               <div id="yb-membership-details" class="yb-membership">
@@ -150,12 +174,12 @@
               <p class="yb-schedule__subtitle">{{ t.schedule_subtitle }}</p>
             </div>
             <div class="yb-schedule__nav">
-              <button class="yb-btn yb-btn--outline yb-schedule__nav-btn" type="button" id="yb-schedule-prev">
+              <button class="yb-schedule__nav-btn" type="button" id="yb-schedule-prev">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
                 <span class="yb-schedule__nav-label">{{ t.schedule_prev_week }}</span>
               </button>
               <span class="yb-schedule__week-label" id="yb-schedule-week-label"></span>
-              <button class="yb-btn yb-btn--outline yb-schedule__nav-btn" type="button" id="yb-schedule-next">
+              <button class="yb-schedule__nav-btn" type="button" id="yb-schedule-next">
                 <span class="yb-schedule__nav-label">{{ t.schedule_next_week }}</span>
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
               </button>
