@@ -853,17 +853,22 @@
     listEl.innerHTML = '<div class="yb-store__loading"><div class="yb-mb-spinner"></div><span>' + (isDa() ? 'Henter pakker...' : 'Loading packages...') + '</span></div>';
 
     // Fetch both services and contracts in parallel
+    // Contracts: no sellOnline filter — MB /sale/contracts may not support it
     var servicesUrl = '/.netlify/functions/mb-services?sellOnline=true';
-    var contractsUrl = '/.netlify/functions/mb-contracts?sellOnline=true';
+    var contractsUrl = '/.netlify/functions/mb-contracts';
 
     Promise.all([
       fetch(servicesUrl).then(function(r) { return r.json(); }),
-      fetch(contractsUrl).then(function(r) { return r.json(); })
+      fetch(contractsUrl).then(function(r) { return r.json(); }).catch(function() { return { contracts: [] }; })
     ]).then(function(results) {
       var services = (results[0].services || []).map(function(s) {
         s._itemType = 'service';
         return s;
       });
+
+      console.log('[Store] Services loaded:', services.length);
+      console.log('[Store] Contracts response:', JSON.stringify(results[1]).substring(0, 500));
+
       var contracts = (results[1].contracts || []).map(function(c) {
         // Normalize contract shape to match service display
         c._itemType = 'contract';
@@ -878,10 +883,12 @@
         return c;
       });
 
+      console.log('[Store] Contracts loaded:', contracts.length, contracts.map(function(c) { return c.name; }));
+
       storeServices = services.concat(contracts);
       if (!storeServices.length) { listEl.innerHTML = '<p class="yb-store__empty">' + t('store_empty') + '</p>'; return; }
       renderStoreItems(listEl);
-    }).catch(function() { listEl.innerHTML = '<p class="yb-store__error">' + t('store_error') + '</p>'; });
+    }).catch(function(err) { console.error('[Store] Load error:', err); listEl.innerHTML = '<p class="yb-store__error">' + t('store_error') + '</p>'; });
   }
 
   /**
@@ -893,11 +900,16 @@
     if (s._itemType === 'contract') return 'memberships';
 
     var name = (s.name || '').toLowerCase();
+    var hasTimePeriod = name.indexOf('day') !== -1 || name.indexOf('dag') !== -1 || name.indexOf('month') !== -1 || name.indexOf('måned') !== -1 || name.indexOf('week') !== -1 || name.indexOf('uge') !== -1;
+
     if (name.indexOf('trial') !== -1 || name.indexOf('prøv') !== -1 || name.indexOf('intro') !== -1) return 'trials';
     if (name.indexOf('tourist') !== -1 || name.indexOf('turist') !== -1 || name.indexOf('drop-in') !== -1 || name.indexOf('drop in') !== -1) return 'tourist';
-    if (name.indexOf('membership') !== -1 || name.indexOf('medlems') !== -1 || name.indexOf('unlimited') !== -1 || name.indexOf('autopay') !== -1) return 'memberships';
+    // Time-based passes: "14 Days Unlimited", "3 Months Unlimited" etc. — these have a time period in the name
+    if (hasTimePeriod && (name.indexOf('unlimited') !== -1 || name.indexOf('non-contract') !== -1 || name.indexOf('non-binding') !== -1)) return 'timebased';
+    // True memberships: only "membership" or "medlems" keywords, or autopay without a time period
+    if (name.indexOf('membership') !== -1 || name.indexOf('medlems') !== -1 || name.indexOf('autopay') !== -1) return 'memberships';
     if (name.indexOf('clip') !== -1 || name.indexOf('klip') !== -1 || name.indexOf('punch') !== -1 || name.indexOf('pack') !== -1 || name.indexOf('class') !== -1) return 'clips';
-    if (name.indexOf('month') !== -1 || name.indexOf('week') !== -1 || name.indexOf('uge') !== -1 || name.indexOf('måned') !== -1 || name.indexOf('day') !== -1 || name.indexOf('dag') !== -1) return 'timebased';
+    if (hasTimePeriod) return 'timebased';
     if (name.indexOf('teacher') !== -1 || name.indexOf('lærer') !== -1 || name.indexOf('training') !== -1 || name.indexOf('uddannelse') !== -1 || name.indexOf('200') !== -1 || name.indexOf('300') !== -1) return 'teacher';
     if (name.indexOf('course') !== -1 || name.indexOf('kursus') !== -1 || name.indexOf('workshop') !== -1) return 'courses';
     if (name.indexOf('private') !== -1 || name.indexOf('privat') !== -1 || name.indexOf('1-on-1') !== -1 || name.indexOf('personal') !== -1) return 'private';
@@ -941,7 +953,8 @@
       html += '    <h3 class="yb-store__item-name">' + esc(s.name) + '</h3>';
       if (isContract && s._recurringInfo) {
         html += '    <span class="yb-store__item-recurring">' + esc(s._recurringInfo) + '</span>';
-      } else if (s.count) {
+      } else if (s.count && s.count < 9999) {
+        // Hide 99999/999999 — that's MB's "unlimited" placeholder
         html += '    <span class="yb-store__item-count">' + s.count + ' ' + (isDa() ? 'klip' : 'sessions') + '</span>';
       }
       if (isContract && s.duration && s.durationUnit) {
