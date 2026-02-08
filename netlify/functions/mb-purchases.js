@@ -40,6 +40,15 @@ exports.handler = async function(event) {
     var data = await mbFetch('/sale/clientpurchases?' + queryString);
 
     var purchases = (data.Purchases || []).map(function(p) {
+      // Build payment details string
+      var paymentMethod = '';
+      var paymentLast4 = '';
+      if (p.Payments && p.Payments.length) {
+        paymentMethod = p.Payments[0].Method || '';
+        if (p.Payments[0].Last4Digits) paymentLast4 = p.Payments[0].Last4Digits;
+        else if (p.Payments[0].Notes) paymentLast4 = p.Payments[0].Notes;
+      }
+
       return {
         id: p.Id,
         saleDate: p.SaleDate,
@@ -53,7 +62,12 @@ exports.handler = async function(event) {
         returned: p.Returned || false,
         quantity: p.Quantity || 1,
         serviceName: p.Service ? p.Service.Name : (p.Product ? p.Product.Name : p.Description || ''),
-        paymentMethod: p.Payments && p.Payments.length ? p.Payments[0].Method : ''
+        serviceId: p.Service ? p.Service.Id : null,
+        productId: p.Product ? p.Product.Id : null,
+        paymentMethod: paymentMethod,
+        paymentLast4: paymentLast4,
+        locationName: p.Location ? p.Location.Name : '',
+        saleId: p.SaleId || null
       };
     });
 
