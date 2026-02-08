@@ -72,34 +72,34 @@ service cloud.firestore {
         && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
     }
 
+    // Helper: check if user is enrolled in a course
+    function isEnrolled(courseId) {
+      return exists(/databases/$(database)/documents/enrollments/$(request.auth.uid + '_' + courseId))
+        && get(/databases/$(database)/documents/enrollments/$(request.auth.uid + '_' + courseId)).data.status == 'active';
+    }
+
     // User profiles — admin can read all (for enrollment email lookup)
     match /users/{userId} {
       allow read: if request.auth != null && (request.auth.uid == userId || isAdmin());
       allow write: if request.auth != null && request.auth.uid == userId;
     }
 
-    // Courses: readable by authenticated users, writable by admin
+    // Courses: readable by any authenticated user, writable by admin
     match /courses/{courseId} {
       allow read: if request.auth != null;
       allow write: if isAdmin();
-    }
 
-    // Course modules: readable by enrolled users, writable by admin
-    match /courses/{courseId}/modules/{moduleId} {
-      allow read: if request.auth != null
-        && (isAdmin()
-            || (exists(/databases/$(database)/documents/enrollments/$(request.auth.uid + '_' + courseId))
-                && get(/databases/$(database)/documents/enrollments/$(request.auth.uid + '_' + courseId)).data.status == 'active'));
-      allow write: if isAdmin();
-    }
+      // Modules: enrolled users can read, admin can write
+      match /modules/{moduleId} {
+        allow read: if request.auth != null && (isAdmin() || isEnrolled(courseId));
+        allow write: if isAdmin();
 
-    // Course chapters: readable by enrolled users, writable by admin
-    match /courses/{courseId}/modules/{moduleId}/chapters/{chapterId} {
-      allow read: if request.auth != null
-        && (isAdmin()
-            || (exists(/databases/$(database)/documents/enrollments/$(request.auth.uid + '_' + courseId))
-                && get(/databases/$(database)/documents/enrollments/$(request.auth.uid + '_' + courseId)).data.status == 'active'));
-      allow write: if isAdmin();
+        // Chapters: enrolled users can read, admin can write
+        match /chapters/{chapterId} {
+          allow read: if request.auth != null && (isAdmin() || isEnrolled(courseId));
+          allow write: if isAdmin();
+        }
+      }
     }
 
     // Enrollments: users can read their own, admin can read/write all
@@ -111,9 +111,10 @@ service cloud.firestore {
 
     // Course Progress: users can read/write their own
     match /courseProgress/{progressId} {
-      allow read, write: if request.auth != null
-        && (resource == null || resource.data.userId == request.auth.uid)
-        && (request.resource == null || request.resource.data.userId == request.auth.uid);
+      allow create: if request.auth != null
+        && request.resource.data.userId == request.auth.uid;
+      allow read, update, delete: if request.auth != null
+        && resource.data.userId == request.auth.uid;
     }
 
     // Course Comments
