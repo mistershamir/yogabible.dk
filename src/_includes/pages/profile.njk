@@ -279,11 +279,20 @@
             <h2 class="yb-visits__title">{{ t.visits_title }}</h2>
             <p class="yb-visits__subtitle">{{ t.visits_subtitle }}</p>
           </div>
-          <div class="yb-visits__filters">
-            <button class="yb-visits__filter is-active" type="button" data-visit-filter="all">{{ t.visits_filter_all }}</button>
-            <button class="yb-visits__filter" type="button" data-visit-filter="upcoming">{{ t.visits_filter_upcoming }}</button>
-            <button class="yb-visits__filter" type="button" data-visit-filter="attended">{{ t.visits_filter_attended }}</button>
-            <button class="yb-visits__filter" type="button" data-visit-filter="noshow">{{ t.visits_filter_noshow }}</button>
+          <div class="yb-visits__controls">
+            <div class="yb-visits__filters">
+              <button class="yb-visits__filter is-active" type="button" data-visit-filter="all">{{ t.visits_filter_all }}</button>
+              <button class="yb-visits__filter" type="button" data-visit-filter="upcoming">{{ t.visits_filter_upcoming }}</button>
+              <button class="yb-visits__filter" type="button" data-visit-filter="attended">{{ t.visits_filter_attended }}</button>
+              <button class="yb-visits__filter" type="button" data-visit-filter="lateCancelled">{% if lang == 'en' %}Late Cancel{% else %}Sen afmelding{% endif %}</button>
+              <button class="yb-visits__filter" type="button" data-visit-filter="noshow">{{ t.visits_filter_noshow }}</button>
+            </div>
+            <select class="yb-visits__period" id="yb-visits-period">
+              <option value="30">{% if lang == 'en' %}Last 30 days{% else %}Sidste 30 dage{% endif %}</option>
+              <option value="90" selected>{% if lang == 'en' %}Last 90 days{% else %}Sidste 90 dage{% endif %}</option>
+              <option value="180">{% if lang == 'en' %}Last 6 months{% else %}Sidste 6 måneder{% endif %}</option>
+              <option value="365">{% if lang == 'en' %}Last year{% else %}Sidste år{% endif %}</option>
+            </select>
           </div>
           <div id="yb-visits-list" class="yb-visits__list">
             <div class="yb-store__loading">
@@ -298,8 +307,16 @@
       <div class="yb-profile__tab-panel" data-yb-panel="receipts">
         <div class="yb-receipts">
           <div class="yb-receipts__header">
-            <h2 class="yb-receipts__title">{{ t.receipts_title }}</h2>
-            <p class="yb-receipts__subtitle">{{ t.receipts_subtitle }}</p>
+            <div>
+              <h2 class="yb-receipts__title">{{ t.receipts_title }}</h2>
+              <p class="yb-receipts__subtitle">{{ t.receipts_subtitle }}</p>
+            </div>
+            <select class="yb-receipts__period" id="yb-receipts-period">
+              <option value="90">{% if lang == 'en' %}Last 90 days{% else %}Sidste 90 dage{% endif %}</option>
+              <option value="180">{% if lang == 'en' %}Last 6 months{% else %}Sidste 6 måneder{% endif %}</option>
+              <option value="365" selected>{% if lang == 'en' %}Last year{% else %}Sidste år{% endif %}</option>
+              <option value="730">{% if lang == 'en' %}Last 2 years{% else %}Sidste 2 år{% endif %}</option>
+            </select>
           </div>
           <div id="yb-receipts-list" class="yb-receipts__list">
             <div class="yb-store__loading">

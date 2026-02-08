@@ -446,6 +446,20 @@
   // STORE TAB
   // ══════════════════════════════════════
   var storeServices = [];
+  var storeActiveCategory = 'all';
+
+  // Store category config — maps to Mindbody programs/categories
+  var storeCategories = [
+    { id: 'all', da: 'Alle', en: 'All' },
+    { id: 'trials', da: 'Prøvekort', en: 'Trials' },
+    { id: 'tourist', da: 'Turistpas', en: 'Tourist Pass' },
+    { id: 'memberships', da: 'Medlemskaber', en: 'Memberships' },
+    { id: 'clips', da: 'Klippekort', en: 'Clip Cards' },
+    { id: 'timebased', da: 'Tidsbegrænsede Pas', en: 'Time-based Passes' },
+    { id: 'teacher', da: 'Yogalæreruddannelser', en: 'Teacher Trainings' },
+    { id: 'courses', da: 'Kurser', en: 'Courses' },
+    { id: 'private', da: 'Privattimer', en: 'Private Sessions' }
+  ];
 
   function initStoreForm() {
     var checkoutForm = document.getElementById('yb-store-checkout-form');
@@ -482,11 +496,17 @@
   function loadStore() {
     var listEl = document.getElementById('yb-store-list');
     if (!listEl) return;
+
+    listEl.innerHTML = '<div class="yb-store__loading"><div class="yb-mb-spinner"></div><span>' + (isDa() ? 'Henter pakker...' : 'Loading packages...') + '</span></div>';
+
+    // Check if specific items are configured, otherwise load all sellable online
     var storePanel = document.querySelector('[data-yb-panel="store"]');
     var itemIds = storePanel ? storePanel.getAttribute('data-store-items') : '';
-    if (!itemIds) { listEl.innerHTML = '<p class="yb-store__empty">' + t('store_empty') + '</p>'; return; }
+    var url = itemIds
+      ? '/.netlify/functions/mb-services?serviceIds=' + itemIds
+      : '/.netlify/functions/mb-services?sellOnline=true';
 
-    fetch('/.netlify/functions/mb-services?serviceIds=' + itemIds)
+    fetch(url)
       .then(function(r) { return r.json(); })
       .then(function(data) {
         storeServices = data.services || [];
@@ -496,20 +516,79 @@
       .catch(function() { listEl.innerHTML = '<p class="yb-store__error">' + t('store_error') + '</p>'; });
   }
 
+  /**
+   * Categorize a service by name heuristics.
+   * Once you assign Mindbody barcodes, this can be refined by programId.
+   */
+  function categorizeService(s) {
+    var name = (s.name || '').toLowerCase();
+    if (name.indexOf('trial') !== -1 || name.indexOf('prøv') !== -1 || name.indexOf('intro') !== -1) return 'trials';
+    if (name.indexOf('tourist') !== -1 || name.indexOf('turist') !== -1 || name.indexOf('drop-in') !== -1 || name.indexOf('drop in') !== -1) return 'tourist';
+    if (name.indexOf('membership') !== -1 || name.indexOf('medlems') !== -1 || name.indexOf('unlimited') !== -1 || name.indexOf('autopay') !== -1) return 'memberships';
+    if (name.indexOf('clip') !== -1 || name.indexOf('klip') !== -1 || name.indexOf('punch') !== -1 || name.indexOf('pack') !== -1 || name.indexOf('class') !== -1) return 'clips';
+    if (name.indexOf('month') !== -1 || name.indexOf('week') !== -1 || name.indexOf('uge') !== -1 || name.indexOf('måned') !== -1 || name.indexOf('day') !== -1 || name.indexOf('dag') !== -1) return 'timebased';
+    if (name.indexOf('teacher') !== -1 || name.indexOf('lærer') !== -1 || name.indexOf('training') !== -1 || name.indexOf('uddannelse') !== -1 || name.indexOf('200') !== -1 || name.indexOf('300') !== -1) return 'teacher';
+    if (name.indexOf('course') !== -1 || name.indexOf('kursus') !== -1 || name.indexOf('workshop') !== -1) return 'courses';
+    if (name.indexOf('private') !== -1 || name.indexOf('privat') !== -1 || name.indexOf('1-on-1') !== -1 || name.indexOf('personal') !== -1) return 'private';
+    return 'all';
+  }
+
   function renderStoreItems(container) {
-    var html = '<div class="yb-store__grid">';
+    // Categorize services
     storeServices.forEach(function(s) {
+      s._category = categorizeService(s);
+    });
+
+    // Build category tabs
+    var html = '<div class="yb-store__categories">';
+    storeCategories.forEach(function(cat) {
+      // Count items in category
+      var count = cat.id === 'all'
+        ? storeServices.length
+        : storeServices.filter(function(s) { return s._category === cat.id; }).length;
+      if (count === 0 && cat.id !== 'all') return;
+      var isActive = storeActiveCategory === cat.id;
+      html += '<button class="yb-store__cat-btn' + (isActive ? ' is-active' : '') + '" type="button" data-store-cat="' + cat.id + '">';
+      html += (isDa() ? cat.da : cat.en);
+      if (cat.id !== 'all') html += ' <span class="yb-store__cat-count">' + count + '</span>';
+      html += '</button>';
+    });
+    html += '</div>';
+
+    // Filter services
+    var filtered = storeActiveCategory === 'all'
+      ? storeServices
+      : storeServices.filter(function(s) { return s._category === storeActiveCategory; });
+
+    // Grid
+    html += '<div class="yb-store__grid">';
+    filtered.forEach(function(s) {
       var price = s.onlinePrice || s.price || 0;
       html += '<div class="yb-store__item">';
       html += '  <div class="yb-store__item-info">';
       html += '    <h3 class="yb-store__item-name">' + esc(s.name) + '</h3>';
+      if (s.count) html += '    <span class="yb-store__item-count">' + s.count + ' ' + (isDa() ? 'klip' : 'sessions') + '</span>';
       html += '    <span class="yb-store__item-price">' + formatDKK(price) + '</span>';
       html += '  </div>';
       html += '  <button class="yb-btn yb-btn--primary yb-store__item-btn" type="button" data-store-buy="' + s.id + '">' + t('store_buy') + '</button>';
       html += '</div>';
     });
+    if (!filtered.length) {
+      html += '<p class="yb-store__empty">' + t('store_empty') + '</p>';
+    }
     html += '</div>';
+
     container.innerHTML = html;
+
+    // Attach category tab handlers
+    container.querySelectorAll('[data-store-cat]').forEach(function(btn) {
+      btn.addEventListener('click', function() {
+        storeActiveCategory = btn.getAttribute('data-store-cat');
+        renderStoreItems(container);
+      });
+    });
+
+    // Attach buy handlers
     container.querySelectorAll('[data-store-buy]').forEach(function(btn) {
       btn.addEventListener('click', function() { openCheckout(btn.getAttribute('data-store-buy')); });
     });
@@ -722,13 +801,19 @@
   }
 
   function renderSchedulePassInfo(passInfoEl, noPassEl, data) {
+    var activeServices = data.activeServices || [];
+    var activeContracts = data.activeContracts || [];
+    var hasMembership = activeContracts.length > 0;
+
     if (data.hasActivePass) {
-      // Show pass info, hide "buy pass"
+      // Always hide buy-pass banner for active pass holders
       if (noPassEl) noPassEl.hidden = true;
-      var active = data.activeServices || [];
-      if (active.length) {
-        var s = active[0]; // Show primary active pass
-        var html = '<div class="yb-schedule__pass-detail">';
+
+      var html = '';
+
+      // Show each active pass/clip card
+      activeServices.forEach(function(s) {
+        html += '<div class="yb-schedule__pass-detail">';
         html += '<div class="yb-schedule__pass-detail-info">';
         html += '<span class="yb-schedule__pass-detail-label">' + t('schedule_pass_info') + '</span>';
         html += '<span class="yb-schedule__pass-detail-name">' + esc(s.name) + '</span>';
@@ -736,6 +821,11 @@
         html += '<div class="yb-schedule__pass-detail-stats">';
         if (s.remaining != null) {
           html += '<span class="yb-schedule__pass-stat"><strong>' + s.remaining + '</strong> ' + t('schedule_remaining') + '</span>';
+          // Show low-clip warning when below 3
+          if (s.remaining > 0 && s.remaining < 3) {
+            html += '<span class="yb-schedule__pass-stat yb-schedule__pass-stat--low">' +
+              (isDa() ? 'Snart opbrugt — overvej at fylde op' : 'Running low — consider topping up') + '</span>';
+          }
         }
         if (s.expirationDate) {
           var expDate = new Date(s.expirationDate);
@@ -743,6 +833,25 @@
         }
         html += '</div>';
         html += '</div>';
+      });
+
+      // Show membership info (no buy-pass prompt for members)
+      activeContracts.forEach(function(c) {
+        html += '<div class="yb-schedule__pass-detail yb-schedule__pass-detail--membership">';
+        html += '<div class="yb-schedule__pass-detail-info">';
+        html += '<span class="yb-schedule__pass-detail-label">' + (isDa() ? 'Medlemskab' : 'Membership') + '</span>';
+        html += '<span class="yb-schedule__pass-detail-name">' + esc(c.name) + '</span>';
+        html += '</div>';
+        if (c.endDate) {
+          html += '<div class="yb-schedule__pass-detail-stats">';
+          var endDate = new Date(c.endDate);
+          html += '<span class="yb-schedule__pass-stat">' + (isDa() ? 'Fornyes' : 'Renews') + ' ' + endDate.toLocaleDateString(isDa() ? 'da-DK' : 'en-GB', { day: 'numeric', month: 'short' }) + '</span>';
+          html += '</div>';
+        }
+        html += '</div>';
+      });
+
+      if (html) {
         passInfoEl.innerHTML = html;
         passInfoEl.hidden = false;
       }
@@ -1047,10 +1156,22 @@
   function showScheduleToast(msg, type) {
     var el = document.getElementById('yb-schedule-toast');
     if (!el) return;
-    el.textContent = msg;
     el.className = 'yb-schedule__toast yb-schedule__toast--' + type;
+
+    // For late cancel, show rich HTML with wellness note
+    if (type === 'warning' && msg.indexOf('late') !== -1 || msg.indexOf('Sen') !== -1) {
+      el.innerHTML = '<div class="yb-schedule__toast-main">' + esc(msg) + '</div>' +
+        '<div class="yb-schedule__toast-note">' +
+        (isDa()
+          ? 'Gebyrer for sen afmelding og udeblivelse går til ekstra wellness: ingefærshots, urtete, frosne ansigtshåndklæder og rene håndklæder til alle besøg.'
+          : 'Late cancellation and no-show fees go towards extra wellness: ginger shots, herbal tea, frozen face towels, and clean hand towels on every visit.') +
+        '</div>';
+    } else {
+      el.textContent = msg;
+    }
+
     el.hidden = false;
-    setTimeout(function() { el.hidden = true; }, 3500);
+    setTimeout(function() { el.hidden = true; }, type === 'warning' ? 6000 : 3500);
   }
 
   // ══════════════════════════════════════
@@ -1071,27 +1192,56 @@
         }
       });
     });
+
+    // Time period selector for visits
+    var visitsPeriodEl = document.getElementById('yb-visits-period');
+    if (visitsPeriodEl) {
+      visitsPeriodEl.addEventListener('change', function() {
+        loadVisits(this.value);
+      });
+    }
+
+    // Time period selector for receipts
+    var receiptsPeriodEl = document.getElementById('yb-receipts-period');
+    if (receiptsPeriodEl) {
+      receiptsPeriodEl.addEventListener('change', function() {
+        loadReceipts(this.value);
+      });
+    }
   }
 
   function filterVisits(visits) {
     if (activeVisitFilter === 'all') return visits;
     var now = new Date();
     return visits.filter(function(v) {
-      if (activeVisitFilter === 'upcoming') return v.isFuture || new Date(v.startDateTime) > now;
+      var classTime = new Date(v.startDateTime);
+      var isUpcoming = classTime > now; // Compare datetime, not just date
+      if (activeVisitFilter === 'upcoming') return isUpcoming && !v.lateCancelled;
       if (activeVisitFilter === 'attended') return v.signedIn;
-      if (activeVisitFilter === 'noshow') return !v.signedIn && !v.lateCancelled && !v.isFuture && new Date(v.startDateTime) <= now;
+      if (activeVisitFilter === 'lateCancelled') return v.lateCancelled;
+      if (activeVisitFilter === 'noshow') return !v.signedIn && !v.lateCancelled && !isUpcoming;
       return true;
     });
   }
 
-  function loadVisits() {
+  var visitsPeriod = '90'; // default 90 days
+
+  function loadVisits(period) {
     var listEl = document.getElementById('yb-visits-list');
     if (!listEl || !clientId) {
       if (listEl) listEl.innerHTML = '<p class="yb-store__empty">' + t('visits_empty') + '</p>';
       return;
     }
 
-    fetch('/.netlify/functions/mb-visits?clientId=' + clientId)
+    if (period) visitsPeriod = period;
+
+    listEl.innerHTML = '<div class="yb-store__loading"><div class="yb-mb-spinner"></div><span>' + (isDa() ? 'Henter besøg...' : 'Loading visits...') + '</span></div>';
+
+    var now = new Date();
+    var startDate = new Date(now.getTime() - Number(visitsPeriod) * 86400000).toISOString().split('T')[0];
+    var endDate = new Date(now.getTime() + 30 * 86400000).toISOString().split('T')[0];
+
+    fetch('/.netlify/functions/mb-visits?clientId=' + clientId + '&startDate=' + startDate + '&endDate=' + endDate)
       .then(function(r) { return r.json(); })
       .then(function(data) {
         allVisits = data.visits || [];
@@ -1102,15 +1252,45 @@
   }
 
   function renderVisits(container, visits) {
-    // Sort newest first
-    visits.sort(function(a, b) { return new Date(b.startDateTime) - new Date(a.startDateTime); });
+    // Sort: upcoming first (by date asc), then past (by date desc)
+    var now = new Date();
+    visits.sort(function(a, b) {
+      var aTime = new Date(a.startDateTime);
+      var bTime = new Date(b.startDateTime);
+      var aUp = aTime > now;
+      var bUp = bTime > now;
+      if (aUp && bUp) return aTime - bTime;
+      if (!aUp && !bUp) return bTime - aTime;
+      return aUp ? -1 : 1;
+    });
 
     if (!visits.length) {
       container.innerHTML = '<p class="yb-store__empty">' + t('visits_empty') + '</p>';
       return;
     }
 
-    var html = '<div class="yb-visits__table">';
+    // Count statuses from ALL visits (not just filtered)
+    var counts = { upcoming: 0, attended: 0, lateCancelled: 0, noshow: 0, total: allVisits.length };
+    allVisits.forEach(function(v) {
+      var classTime = new Date(v.startDateTime);
+      if (v.lateCancelled) counts.lateCancelled++;
+      else if (classTime > now) counts.upcoming++;
+      else if (v.signedIn) counts.attended++;
+      else counts.noshow++;
+    });
+
+    var html = '';
+
+    // Status summary bar
+    html += '<div class="yb-visits__summary">';
+    html += '<div class="yb-visits__summary-item"><strong>' + counts.upcoming + '</strong><span>' + (isDa() ? 'Kommende' : 'Upcoming') + '</span></div>';
+    html += '<div class="yb-visits__summary-item"><strong>' + counts.attended + '</strong><span>' + (isDa() ? 'Deltaget' : 'Attended') + '</span></div>';
+    html += '<div class="yb-visits__summary-item yb-visits__summary-item--warn"><strong>' + counts.lateCancelled + '</strong><span>' + (isDa() ? 'Sen afmelding' : 'Late Cancel') + '</span></div>';
+    html += '<div class="yb-visits__summary-item yb-visits__summary-item--danger"><strong>' + counts.noshow + '</strong><span>' + (isDa() ? 'Udeblivelse' : 'No-show') + '</span></div>';
+    html += '</div>';
+
+    // Table
+    html += '<div class="yb-visits__table">';
     html += '<div class="yb-visits__row yb-visits__row--header">';
     html += '<span>' + (isDa() ? 'Dato' : 'Date') + '</span>';
     html += '<span>' + (isDa() ? 'Hold' : 'Class') + '</span>';
@@ -1118,20 +1298,18 @@
     html += '<span>' + (isDa() ? 'Status' : 'Status') + '</span>';
     html += '</div>';
 
-    var now = new Date();
-
     visits.forEach(function(v) {
       var d = new Date(v.startDateTime);
       var dateStr = d.toLocaleDateString(isDa() ? 'da-DK' : 'en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
       var timeStr = formatTime(v.startDateTime);
-      var isFuture = v.isFuture || d > now;
+      var isUpcoming = d > now; // Use full datetime comparison
 
       var status = '';
       var statusClass = '';
       if (v.lateCancelled) {
         status = t('visits_late_cancel');
         statusClass = 'yb-visits__status--late';
-      } else if (isFuture) {
+      } else if (isUpcoming) {
         status = t('visits_booked');
         statusClass = 'yb-visits__status--booked';
       } else if (v.signedIn) {
@@ -1142,7 +1320,7 @@
         statusClass = 'yb-visits__status--noshow';
       }
 
-      html += '<div class="yb-visits__row' + (isFuture ? ' yb-visits__row--future' : '') + '">';
+      html += '<div class="yb-visits__row' + (isUpcoming ? ' yb-visits__row--future' : '') + '">';
       html += '<span class="yb-visits__date">' + dateStr + '<br><small>' + timeStr + '</small></span>';
       html += '<span class="yb-visits__name">' + esc(v.name) + '</span>';
       html += '<span class="yb-visits__instructor">' + esc(v.instructor) + '</span>';
@@ -1157,23 +1335,35 @@
   // ══════════════════════════════════════
   // RECEIPTS TAB
   // ══════════════════════════════════════
-  function loadReceipts() {
+  var receiptsPeriod = '365'; // default 1 year
+
+  function loadReceipts(period) {
     var listEl = document.getElementById('yb-receipts-list');
     if (!listEl || !clientId) {
       if (listEl) listEl.innerHTML = '<p class="yb-store__empty">' + t('receipts_empty') + '</p>';
       return;
     }
 
+    if (period) receiptsPeriod = period;
+
     listEl.innerHTML = '<div class="yb-store__loading"><div class="yb-mb-spinner"></div><span>' + (isDa() ? 'Henter kvitteringer...' : 'Loading receipts...') + '</span></div>';
 
-    fetch('/.netlify/functions/mb-purchases?clientId=' + clientId)
+    var now = new Date();
+    var startDate = new Date(now.getTime() - Number(receiptsPeriod) * 86400000).toISOString().split('T')[0];
+    var endDate = now.toISOString().split('T')[0];
+
+    fetch('/.netlify/functions/mb-purchases?clientId=' + clientId + '&startDate=' + startDate + '&endDate=' + endDate)
       .then(function(r) { return r.json(); })
       .then(function(data) {
+        console.log('Receipts response:', data);
         var purchases = data.purchases || [];
         if (!purchases.length) { listEl.innerHTML = '<p class="yb-store__empty">' + t('receipts_empty') + '</p>'; return; }
         renderReceipts(listEl, purchases);
       })
-      .catch(function() { listEl.innerHTML = '<p class="yb-store__error">' + t('receipts_error') + '</p>'; });
+      .catch(function(err) {
+        console.error('Receipts error:', err);
+        listEl.innerHTML = '<p class="yb-store__error">' + t('receipts_error') + '</p>';
+      });
   }
 
   function renderReceipts(container, purchases) {
@@ -1209,11 +1399,50 @@
       if (p.discount > 0) {
         html += '<div class="yb-receipts__card-discount">' + (isDa() ? 'Rabat' : 'Discount') + ': -' + formatDKK(p.discount) + '</div>';
       }
+      html += '<div class="yb-receipts__card-actions">';
+      html += '<button class="yb-receipts__download-btn" type="button" data-receipt-download="' + (p.saleId || p.id) + '">';
+      html += (isDa() ? 'Download kvittering' : 'Download receipt');
+      html += '</button>';
+      html += '</div>';
       html += '</div>';
     });
 
     html += '</div>';
     container.innerHTML = html;
+
+    // Attach download handlers
+    container.querySelectorAll('[data-receipt-download]').forEach(function(btn) {
+      btn.addEventListener('click', function() {
+        var saleId = btn.getAttribute('data-receipt-download');
+        var card = btn.closest('.yb-receipts__card');
+        if (!card) return;
+
+        // Generate a simple text receipt from card data
+        var date = card.querySelector('.yb-receipts__card-date');
+        var name = card.querySelector('.yb-receipts__card-name');
+        var amount = card.querySelector('.yb-receipts__card-amount');
+        var payment = card.querySelector('.yb-receipts__card-payment');
+
+        var txt = '═══════════════════════════════════\n';
+        txt += '       YOGA BIBLE — KVITTERING\n';
+        txt += '═══════════════════════════════════\n\n';
+        txt += (isDa() ? 'Dato: ' : 'Date: ') + (date ? date.textContent : '') + '\n';
+        txt += (isDa() ? 'Vare: ' : 'Item: ') + (name ? name.textContent : '') + '\n';
+        txt += (isDa() ? 'Beløb: ' : 'Amount: ') + (amount ? amount.textContent : '') + '\n';
+        txt += (isDa() ? 'Betaling: ' : 'Payment: ') + (payment ? payment.textContent : '') + '\n';
+        txt += (isDa() ? 'Reference: ' : 'Reference: ') + '#' + saleId + '\n\n';
+        txt += '═══════════════════════════════════\n';
+        txt += 'Yoga Bible DK | yogabible.dk\n';
+
+        var blob = new Blob([txt], { type: 'text/plain' });
+        var url = URL.createObjectURL(blob);
+        var a = document.createElement('a');
+        a.href = url;
+        a.download = 'receipt-' + saleId + '.txt';
+        a.click();
+        URL.revokeObjectURL(url);
+      });
+    });
   }
 
   // ══════════════════════════════════════
