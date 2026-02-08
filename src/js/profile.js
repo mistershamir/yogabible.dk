@@ -682,7 +682,7 @@
         if (errorEl) errorEl.hidden = true;
 
         fetch('/.netlify/functions/mb-contracts', {
-          method: 'PUT',
+          method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             action: 'suspend',
@@ -759,7 +759,7 @@
         if (errorEl) errorEl.hidden = true;
 
         fetch('/.netlify/functions/mb-contracts', {
-          method: 'PUT',
+          method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             action: 'terminate',
