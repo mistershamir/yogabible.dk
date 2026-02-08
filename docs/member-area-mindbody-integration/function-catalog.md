@@ -125,21 +125,26 @@
 - **MB Endpoints:**
   - `GET /sale/contracts` (with LocationId=1 retry)
   - `POST /sale/purchasecontract` (with CreditCardInfo in PascalCase)
-  - `POST /{category}/terminatecontract` (tries `/contract/`, `/sale/`, `/client/`)
-  - `POST /{category}/suspendcontract` (tries `/contract/`, `/sale/`, `/client/`)
-- **Returns:** GET: `{ contracts[], total }` | POST: `{ success, endpointUsed?, clientContractId?, ... }`
+  - `POST /sale/terminatecontract` (primary — also tries `/contract/`, `/client/` as fallback)
+  - `POST /sale/suspendcontract` (primary — also tries `/contract/`, `/client/` as fallback)
+  - `POST /sale/activatecontract` (revoke termination — also tries fallback paths)
+- **Actions:** `terminate`, `suspend`, `activate` (via `body.action`)
+- **Token:** Forces fresh token (clears cache) for all management actions
+- **Diagnostics:** Returns `_pathResults` array showing which paths were tried and what each returned
+- **Returns:** GET: `{ contracts[], total }` | POST: `{ success, endpointUsed?, _pathResults, ... }`
 - **Each contract:** `id`, `name`, `description`, `price`, `recurringPaymentAmount`, `autopaySchedule` (object with `FrequencyType`), `locationId`, `durationMonths`, `autopay`, `onlineDescription`
 - **POST Note:** `LocationId` is REQUIRED for purchase — defaults to 1 if not provided
 
 ### mb-contract-manage.js
 - **Method:** POST
-- **Purpose:** Standalone terminate/suspend function (avoids routing ambiguity with mb-contracts purchase endpoint)
+- **Purpose:** Standalone terminate/suspend function (same logic as mb-contracts manage routes, kept as backup)
 - **Body (terminate):** `{ action: 'terminate', clientId, clientContractId, terminationDate, terminationCode? }`
 - **Body (suspend):** `{ action: 'suspend', clientId, clientContractId, startDate, endDate }`
-- **API Path:** Uses `/contract/terminatecontract` and `/contract/suspendcontract` (with fallback to `/sale/`, `/client/`)
+- **API Path:** Tries `/sale/` first, then `/contract/`, `/client/` (same order as mb-contracts)
+- **Token:** Forces fresh token (clears cache)
 - **Suspension validation:** 14 days minimum, 93 days maximum
 - **Fallback:** If terminate fails with TerminationCode, retries without it
-- **Returns:** `{ success, action, terminationDate|suspendDate, message }`
+- **Returns:** `{ success, action, terminationDate|suspendDate, endpointUsed, message }`
 
 ### mb-purchases.js
 - **Method:** GET

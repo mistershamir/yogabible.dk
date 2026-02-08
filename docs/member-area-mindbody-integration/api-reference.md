@@ -226,6 +226,27 @@ terminationDate = useUntilDate (sent to Mindbody API)
 
 If `nextBillingDate` is in the past (edge case), use today as base.
 
+## Contract Management Endpoints — RESOLVED
+
+After extensive debugging, the correct paths are under the **Sale** category:
+
+| Action | Correct Path | Body Fields |
+|--------|-------------|-------------|
+| Terminate | `POST /sale/terminatecontract` | `ClientId`, `ClientContractId`, `TerminationDate`, `SendNotifications` |
+| Suspend | `POST /sale/suspendcontract` | `ClientId`, `ClientContractId`, `SuspendDate`, `ResumeDate`, `SendNotifications` |
+| Activate (revoke) | `POST /sale/activatecontract` | `ClientId`, `ClientContractId` |
+
+**Key findings:**
+- `/contract/terminatecontract` exists but has **different permission model** — returns "User does not have permission" even when the same staff user succeeds via `/sale/`
+- `/client/terminatecontract` does NOT exist — returns HTML 404
+- The code tries all 3 paths (`/sale/`, `/contract/`, `/client/`) with fallback, but `/sale/` should be first
+- `activatecontract` (revoke termination) — endpoint path is undocumented. Same multi-path trial strategy used.
+- Staff token must be **fresh** for contract management — code clears token cache before these operations
+
+## Revoke Cancellation (Activate Contract)
+
+Users can revoke a pending termination before the termination date. Frontend shows a "Revoke cancellation" button on terminated contracts. The backend tries `/sale/activatecontract` first. If the API path doesn't exist, falls back gracefully with a "contact studio" message.
+
 ## Error Debugging Trail
 
 | # | Wrong | Correct | Notes |

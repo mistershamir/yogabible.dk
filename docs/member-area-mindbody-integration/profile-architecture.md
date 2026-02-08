@@ -84,9 +84,14 @@ var storeServices = [];        // Combined services + contracts for store displa
 - **Cancel (terminate):** Shows calculated dates:
   - Last payment date = next billing date
   - Use until date = next billing date + 1 month - 1 day
-  - Warning: "This action cannot be undone"
-- Both POST to `/.netlify/functions/mb-contracts` with `action: 'suspend'` or `action: 'terminate'`
-- On success: reloads membership details, shows toast
+  - Warning updated: "You can revoke the cancellation until then"
+- **Revoke (activate):** Shown on terminated contracts:
+  - Confirm dialog before proceeding
+  - POSTs `action: 'activate'` to `mb-contracts`
+  - On success: reloads membership, shows success toast (8s)
+  - On API failure: shows "contact us" message (graceful degradation)
+- All three POST to `/.netlify/functions/mb-contracts` with `action: 'suspend'|'terminate'|'activate'`
+- On success: reloads membership details, shows toast (8s for cancel farewell, 5s for others)
 
 **Termination date calculation:**
 ```

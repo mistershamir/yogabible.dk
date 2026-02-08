@@ -177,6 +177,7 @@
           if (tabName === 'store') loadStore();
           if (tabName === 'schedule') loadSchedule();
           if (tabName === 'visits') loadVisits();
+          if (tabName === 'passes') loadMembershipDetails();
           if (tabName === 'receipts') loadReceipts();
           if (tabName === 'courses') loadMyCourses();
         }
@@ -443,19 +444,26 @@
         } else if (c.endDate) {
           html += '<span class="yb-membership__pass-expiry">' + t('membership_expires') + ' ' + formatDateDK(c.endDate) + '</span>';
         }
-        // Status badge
+        // Status badge + termination info
         if (c.isSuspended) {
           html += '<span class="yb-membership__badge yb-membership__badge--paused">' + t('membership_paused_badge') + '</span>';
         } else if (c.terminationDate) {
-          html += '<span class="yb-membership__badge yb-membership__badge--terminating">' + t('membership_terminating_badge') + '</span>';
+          html += '<span class="yb-membership__badge yb-membership__badge--terminating">' + t('membership_terminated_badge') + '</span>';
+          html += '<span class="yb-membership__pass-expiry yb-membership__active-until">' + t('membership_active_until') + ' ' + formatDateDK(c.terminationDate) + '</span>';
         } else {
           html += '<span class="yb-membership__badge yb-membership__badge--active">' + t('membership_status_active') + '</span>';
         }
-        // Manage buttons (only for active, non-suspended, non-terminating contracts)
+        // Manage buttons
         if (!c.isSuspended && !c.terminationDate && c.isAutopay) {
           html += '<div class="yb-membership__manage-btns">';
           html += '<button type="button" class="yb-membership__manage-btn yb-membership__manage-btn--pause" data-manage-pause="' + c.id + '">' + t('membership_pause_btn') + '</button>';
           html += '<button type="button" class="yb-membership__manage-btn yb-membership__manage-btn--cancel" data-manage-cancel="' + c.id + '">' + t('membership_cancel_btn') + '</button>';
+          html += '</div>';
+        }
+        // Revoke button for terminating contracts
+        if (c.terminationDate && !c.isSuspended) {
+          html += '<div class="yb-membership__manage-btns">';
+          html += '<button type="button" class="yb-membership__manage-btn yb-membership__manage-btn--revoke" data-manage-revoke="' + c.id + '">' + t('membership_revoke_btn') + '</button>';
           html += '</div>';
         }
         html += '</div>';
@@ -786,19 +794,15 @@
           if (res.ok && res.data.success) {
             showSections();
             loadMembershipDetails();
-            showMembershipToast(t('membership_cancel_success'), 'success');
+            showMembershipToast(t('membership_cancel_farewell'), 'success', 8000);
           } else {
             if (errorEl) {
               var errMsg = res.data.error || t('membership_cancel_error');
               errorEl.textContent = errMsg;
               errorEl.hidden = false;
             }
-            // Log diagnostic trail to console for debugging
             if (res.data._pathResults) {
               console.log('[Cancel] Path results:', JSON.stringify(res.data._pathResults, null, 2));
-            }
-            if (res.data._hint) {
-              console.log('[Cancel] Hint:', res.data._hint);
             }
           }
           cancelConfirmBtn.disabled = false;
@@ -815,9 +819,56 @@
         });
       });
     }
+
+    // ── Revoke cancellation buttons ──
+    var revokeBtns = container.querySelectorAll('[data-manage-revoke]');
+    for (var r = 0; r < revokeBtns.length; r++) {
+      revokeBtns[r].addEventListener('click', function() {
+        var revokeContractId = this.getAttribute('data-manage-revoke');
+        var btn = this;
+        if (!revokeContractId || !clientId) return;
+
+        var confirmed = confirm(isDa()
+          ? 'Er du sikker på, at du vil fortryde opsigelsen og genaktivere dit abonnement?'
+          : 'Are you sure you want to revoke the cancellation and reactivate your membership?');
+        if (!confirmed) return;
+
+        btn.disabled = true;
+        btn.textContent = t('membership_revoke_confirming');
+
+        fetch('/.netlify/functions/mb-contracts', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            action: 'activate',
+            clientId: clientId,
+            clientContractId: Number(revokeContractId)
+          })
+        })
+        .then(function(resp) { return resp.json().then(function(d) { return { ok: resp.ok, data: d }; }); })
+        .then(function(res) {
+          if (res.ok && res.data.success) {
+            loadMembershipDetails();
+            showMembershipToast(t('membership_revoke_success'), 'success', 8000);
+          } else {
+            showMembershipToast(res.data.error || t('membership_revoke_error'), 'error', 8000);
+            if (res.data._pathResults) {
+              console.log('[Revoke] Path results:', JSON.stringify(res.data._pathResults, null, 2));
+            }
+          }
+          btn.disabled = false;
+          btn.textContent = t('membership_revoke_btn');
+        })
+        .catch(function() {
+          showMembershipToast(t('membership_revoke_error'), 'error', 8000);
+          btn.disabled = false;
+          btn.textContent = t('membership_revoke_btn');
+        });
+      });
+    }
   }
 
-  function showMembershipToast(message, type) {
+  function showMembershipToast(message, type, duration) {
     var existing = document.querySelector('.yb-membership__toast');
     if (existing) existing.remove();
     var toast = document.createElement('div');
@@ -825,7 +876,7 @@
     toast.textContent = message;
     var container = document.getElementById('yb-membership-content');
     if (container) container.insertBefore(toast, container.firstChild);
-    setTimeout(function() { toast.remove(); }, 5000);
+    setTimeout(function() { toast.remove(); }, duration || 5000);
   }
 
   // ══════════════════════════════════════
@@ -2154,7 +2205,14 @@
       membership_pause_btn: isDa() ? 'Sæt på pause' : 'Pause',
       membership_cancel_btn: isDa() ? 'Opsig abonnement' : 'Cancel membership',
       membership_paused_badge: isDa() ? 'På pause' : 'Paused',
-      membership_terminating_badge: isDa() ? 'Opsagt' : 'Terminating',
+      membership_terminating_badge: isDa() ? 'Opsagt' : 'Cancelled',
+      membership_terminated_badge: isDa() ? 'Opsagt' : 'Cancelled',
+      membership_active_until: isDa() ? 'Aktiv til' : 'Active until',
+      membership_revoke_btn: isDa() ? 'Fortryd opsigelse' : 'Revoke cancellation',
+      membership_revoke_confirming: isDa() ? 'Behandler...' : 'Processing...',
+      membership_revoke_success: isDa() ? 'Din opsigelse er fortrudt! Dit abonnement er aktivt igen.' : 'Your cancellation has been revoked! Your membership is active again.',
+      membership_revoke_error: isDa() ? 'Kunne ikke fortryde opsigelse. Kontakt os venligst.' : 'Could not revoke cancellation. Please contact us.',
+      membership_cancel_farewell: isDa() ? 'Vi er kede af at se dig gå. Dit abonnement er nu opsagt — du kan stadig bruge det indtil udgangen af den betalte periode.' : 'Sorry to see you go. Your membership has been cancelled — you can still use it until the end of the paid period.',
       membership_pause_title: isDa() ? 'Sæt abonnement på pause' : 'Pause membership',
       membership_pause_desc: isDa() ? 'Du kan sætte dit abonnement på pause i 14 dage til 3 måneder. Pausen starter efter din næste faktureringscyklus.' : 'You can pause your membership for 14 days to 3 months. The pause starts after your next billing cycle.',
       membership_pause_start: isDa() ? 'Pause starter' : 'Pause starts',
@@ -2175,7 +2233,7 @@
       membership_cancel_confirming: isDa() ? 'Behandler...' : 'Processing...',
       membership_cancel_success: isDa() ? 'Dit abonnement er opsagt.' : 'Your membership has been cancelled.',
       membership_cancel_error: isDa() ? 'Kunne ikke opsige abonnement. Prøv igen.' : 'Could not cancel membership. Please try again.',
-      membership_cancel_warning: isDa() ? 'Denne handling kan ikke fortrydes. Dit abonnement opsiges ved udgangen af den betalte periode.' : 'This action cannot be undone. Your membership will end at the end of the paid period.',
+      membership_cancel_warning: isDa() ? 'Dit abonnement opsiges ved udgangen af den betalte periode. Du kan fortryde opsigelsen indtil da.' : 'Your membership will end at the end of the paid period. You can revoke the cancellation until then.',
       membership_next_billing: isDa() ? 'Næste fakturering' : 'Next billing',
       membership_autopay_amount: isDa() ? 'pr. periode' : 'per period',
       membership_back: isDa() ? 'Tilbage' : 'Back'

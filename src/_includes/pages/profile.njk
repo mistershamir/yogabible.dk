@@ -31,6 +31,7 @@
         <button class="yb-profile__tab" type="button" data-yb-tab="schedule">{{ t.tab_schedule }}</button>
         <button class="yb-profile__tab" type="button" data-yb-tab="store">{{ t.tab_store }}</button>
         <button class="yb-profile__tab" type="button" data-yb-tab="visits">{{ t.tab_visits }}</button>
+        <button class="yb-profile__tab" type="button" data-yb-tab="passes">{{ t.tab_passes }}</button>
         <button class="yb-profile__tab" type="button" data-yb-tab="receipts">{{ t.tab_receipts }}</button>
         <button class="yb-profile__tab" type="button" data-yb-tab="courses">{{ t.tab_courses }}</button>
       </div>
@@ -138,7 +139,7 @@
               </form>
             </div>
 
-            <!-- Membership -->
+            <!-- Membership summary (details in My Passes tab) -->
             <div class="yb-profile__card">
               <h2 class="yb-profile__card-title">{{ t.section_membership }}</h2>
               <div class="yb-profile__info-grid">
@@ -150,14 +151,6 @@
                   <span class="yb-profile__info-label">{{ t.label_client_id }}</span>
                   <span class="yb-profile__info-value yb-profile__info-value--muted" id="yb-profile-client-id">&mdash;</span>
                 </div>
-              </div>
-              <!-- Active passes loaded via JS -->
-              <div id="yb-membership-details" class="yb-membership">
-                <div class="yb-store__loading yb-membership__loading" id="yb-membership-loading" hidden>
-                  <div class="yb-mb-spinner"></div>
-                  <span>{{ t.membership_loading }}</span>
-                </div>
-                <div id="yb-membership-content"></div>
               </div>
             </div>
 
@@ -322,6 +315,22 @@
               <div class="yb-mb-spinner"></div>
               <span>{{ t.visits_loading }}</span>
             </div>
+          </div>
+        </div>
+      </div>
+
+      {# ═══════ TAB: My Passes ═══════ #}
+      <div class="yb-profile__tab-panel" data-yb-panel="passes">
+        <div class="yb-membership-tab">
+          <div class="yb-membership-tab__header">
+            <h2 class="yb-membership-tab__title">{{ t.tab_passes }}</h2>
+          </div>
+          <div id="yb-membership-details" class="yb-membership">
+            <div class="yb-store__loading yb-membership__loading" id="yb-membership-loading" hidden>
+              <div class="yb-mb-spinner"></div>
+              <span>{{ t.membership_loading }}</span>
+            </div>
+            <div id="yb-membership-content"></div>
           </div>
         </div>
       </div>

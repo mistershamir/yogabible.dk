@@ -7231,6 +7231,7 @@ section {
 }
 
 .yb-visits__title,
+.yb-membership-tab__title,
 .yb-receipts__title {
   font-family: 'Abacaxi', sans-serif;
   font-size: 1.5rem;
@@ -8040,6 +8041,24 @@ section {
 .yb-membership__badge--terminating {
   background: #f8d7da;
   color: #721c24;
+}
+
+.yb-membership__active-until {
+  display: block;
+  font-size: 0.82rem;
+  color: #6F6A66;
+  margin-top: 0.25rem;
+}
+
+.yb-membership__manage-btn--revoke {
+  background: none;
+  border: 1.5px solid #f75c03;
+  color: #f75c03;
+}
+
+.yb-membership__manage-btn--revoke:hover {
+  background: #f75c03;
+  color: #fff;
 }
 
 /* ── Manage Panels (Pause / Cancel) ── */
