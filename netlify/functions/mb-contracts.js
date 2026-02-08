@@ -124,8 +124,8 @@ exports.handler = async function(event) {
     try {
       var body = JSON.parse(event.body || '{}');
 
-      // ── Route: manage actions (terminate / suspend) ──
-      if (body.action === 'terminate' || body.action === 'suspend') {
+      // ── Route: manage actions (terminate / suspend / activate) ──
+      if (body.action === 'terminate' || body.action === 'suspend' || body.action === 'activate') {
         // Force fresh token for contract management (staff permissions may have changed)
         clearTokenCache();
 
@@ -286,6 +286,60 @@ exports.handler = async function(event) {
             error: finalSuspMsg,
             _pathResults: suspPathResults,
             _hint: 'All 3 endpoint paths failed. Check Mindbody staff permissions for the API user.'
+          });
+        }
+
+        if (body.action === 'activate') {
+          var activateBody = {
+            ClientId: body.clientId,
+            ClientContractId: body.clientContractId
+          };
+
+          console.log('[mb-contracts] Activating (revoking termination):', JSON.stringify(activateBody));
+
+          // Try multiple endpoint paths — no documented endpoint, so we try common patterns
+          var activatePaths = ['/sale/activatecontract', '/contract/activatecontract', '/client/activatecontract'];
+          var lastActErr = null;
+          var actPathResults = [];
+
+          for (var ai = 0; ai < activatePaths.length; ai++) {
+            try {
+              console.log('[mb-contracts] Trying activate path: ' + activatePaths[ai]);
+              await mbFetch(activatePaths[ai], {
+                method: 'POST',
+                body: JSON.stringify(activateBody)
+              });
+              actPathResults.push({ path: activatePaths[ai], status: 'success' });
+              return jsonResponse(200, {
+                success: true,
+                action: 'activate',
+                endpointUsed: activatePaths[ai],
+                _pathResults: actPathResults
+              });
+            } catch (actErr) {
+              var actMsg = (actErr.message || '').toLowerCase();
+              actPathResults.push({ path: activatePaths[ai], status: actErr.status || 'error', error: actErr.message });
+              if (actMsg.indexOf('non-json') > -1 || actMsg.indexOf('not exist') > -1 || actErr.status === 404 || actErr.status === 405) {
+                console.log('[mb-contracts] Path ' + activatePaths[ai] + ' failed (' + (actErr.status || 'unknown') + '), trying next...');
+                lastActErr = actErr;
+              } else if (actMsg.indexOf('permission') > -1) {
+                console.log('[mb-contracts] Permission denied on ' + activatePaths[ai] + ', trying next path...');
+                lastActErr = actErr;
+              } else {
+                return jsonResponse(actErr.status || 500, {
+                  error: actErr.message,
+                  _pathResults: actPathResults
+                });
+              }
+            }
+          }
+
+          var finalActMsg = lastActErr ? lastActErr.message : 'All activate paths failed';
+          console.error('[mb-contracts] All activate paths failed:', JSON.stringify(actPathResults));
+          return jsonResponse(lastActErr ? (lastActErr.status || 500) : 500, {
+            error: finalActMsg,
+            _pathResults: actPathResults,
+            _hint: 'Contract reactivation may not be available via API. Contact Mindbody support or reactivate from Mindbody admin.'
           });
         }
       }
