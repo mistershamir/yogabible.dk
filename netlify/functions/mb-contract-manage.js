@@ -20,8 +20,9 @@ const { mbFetch, jsonResponse, corsHeaders } = require('./shared/mb-api');
 
 // MB v6 docs are ambiguous on the category for contract management endpoints.
 // Try these paths in order until one returns a JSON response.
-var TERMINATE_PATHS = ['/contract/terminatecontract', '/sale/terminatecontract', '/client/terminatecontract'];
-var SUSPEND_PATHS = ['/contract/suspendcontract', '/sale/suspendcontract', '/client/suspendcontract'];
+// MB v6 docs put these under Sale category — try /sale/ first
+var TERMINATE_PATHS = ['/sale/terminatecontract', '/contract/terminatecontract', '/client/terminatecontract'];
+var SUSPEND_PATHS = ['/sale/suspendcontract', '/contract/suspendcontract', '/client/suspendcontract'];
 
 exports.handler = async function(event) {
   if (event.httpMethod === 'OPTIONS') {
@@ -106,6 +107,9 @@ exports.handler = async function(event) {
           } else if (errMsg.indexOf('non-json') > -1 || errMsg.indexOf('not exist') > -1 || termErr.status === 404 || termErr.status === 405) {
             console.log('[mb-contract-manage] Path ' + TERMINATE_PATHS[ti] + ' failed (' + (termErr.status || 'unknown') + '), trying next...');
             lastTermErr = termErr;
+          } else if (errMsg.indexOf('permission') > -1) {
+            console.log('[mb-contract-manage] Permission denied on ' + TERMINATE_PATHS[ti] + ', trying next path...');
+            lastTermErr = termErr;
           } else {
             // Real API error — don't try other paths
             throw termErr;
@@ -174,6 +178,9 @@ exports.handler = async function(event) {
           var suspMsg = (suspErr.message || '').toLowerCase();
           if (suspMsg.indexOf('non-json') > -1 || suspMsg.indexOf('not exist') > -1 || suspErr.status === 404 || suspErr.status === 405) {
             console.log('[mb-contract-manage] Path ' + SUSPEND_PATHS[si] + ' failed (' + (suspErr.status || 'unknown') + '), trying next...');
+            lastSuspErr = suspErr;
+          } else if (suspMsg.indexOf('permission') > -1) {
+            console.log('[mb-contract-manage] Permission denied on ' + SUSPEND_PATHS[si] + ', trying next path...');
             lastSuspErr = suspErr;
           } else {
             throw suspErr;

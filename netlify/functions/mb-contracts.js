@@ -152,8 +152,8 @@ exports.handler = async function(event) {
             TerminationDate: terminateBody.TerminationDate
           }));
 
-          // Try endpoint paths in order — MB v6 docs are ambiguous on the category
-          var terminatePaths = ['/contract/terminatecontract', '/sale/terminatecontract', '/client/terminatecontract'];
+          // Try endpoint paths in order — MB v6 docs put this under Sale category
+          var terminatePaths = ['/sale/terminatecontract', '/contract/terminatecontract', '/client/terminatecontract'];
           var lastTermErr = null;
 
           for (var ti = 0; ti < terminatePaths.length; ti++) {
@@ -184,6 +184,10 @@ exports.handler = async function(event) {
               } else if (msg.indexOf('non-json') > -1 || msg.indexOf('not exist') > -1 || termErr.status === 404 || termErr.status === 405) {
                 // Path doesn't exist or method not allowed — try next path
                 console.log('[mb-contracts] Path ' + terminatePaths[ti] + ' failed (' + (termErr.status || 'unknown') + '), trying next...');
+                lastTermErr = termErr;
+              } else if (msg.indexOf('permission') > -1) {
+                // Permission error — try next path (different paths may have different permission models)
+                console.log('[mb-contracts] Permission denied on ' + terminatePaths[ti] + ', trying next path...');
                 lastTermErr = termErr;
               } else {
                 // Real API error (not path issue) — don't try other paths
@@ -235,8 +239,8 @@ exports.handler = async function(event) {
             DurationDays: durationDays
           }));
 
-          // Try endpoint paths in order
-          var suspendPaths = ['/contract/suspendcontract', '/sale/suspendcontract', '/client/suspendcontract'];
+          // Try endpoint paths in order — MB v6 docs put this under Sale category
+          var suspendPaths = ['/sale/suspendcontract', '/contract/suspendcontract', '/client/suspendcontract'];
           var lastSuspErr = null;
 
           for (var si = 0; si < suspendPaths.length; si++) {
@@ -252,6 +256,9 @@ exports.handler = async function(event) {
               var suspMsg = (suspErr.message || '').toLowerCase();
               if (suspMsg.indexOf('non-json') > -1 || suspMsg.indexOf('not exist') > -1 || suspErr.status === 404 || suspErr.status === 405) {
                 console.log('[mb-contracts] Path ' + suspendPaths[si] + ' failed (' + (suspErr.status || 'unknown') + '), trying next...');
+                lastSuspErr = suspErr;
+              } else if (suspMsg.indexOf('permission') > -1) {
+                console.log('[mb-contracts] Permission denied on ' + suspendPaths[si] + ', trying next path...');
                 lastSuspErr = suspErr;
               } else {
                 throw suspErr;
