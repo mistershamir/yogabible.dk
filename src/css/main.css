@@ -9402,6 +9402,12 @@ section {
   overflow: hidden;
   position: relative;
 }
+.yb-k-video__wrap video {
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  display: block;
+  background: #0F0F0F;
+}
 .yb-k-video__wrap--hy .yb-k-video__placeholder {
   background: linear-gradient(135deg, #2c7a84 0%, #3f99a5 50%, #2c7a84 100%);
 }
