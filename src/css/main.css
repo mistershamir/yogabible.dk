@@ -8923,3 +8923,606 @@ section {
   .yb-cv-chapter__body { font-size: 11pt !important; line-height: 1.6 !important; }
   .yb-cv-chapter__title { font-size: 18pt !important; }
 }
+
+/* ========================================
+   KONCEPTER PAGE (yb-k- prefix)
+   Brand showcase — Hot Yoga CPH, Namasté, Vibro Yoga
+   ======================================== */
+
+/* ── Hero ── */
+.yb-k-hero {
+  position: relative;
+  background: linear-gradient(135deg, #0F0F0F 0%, #1C1C1C 50%, #0F0F0F 100%);
+  color: #FDFBF7;
+  padding: 180px 20px 100px;
+  text-align: center;
+  overflow: hidden;
+}
+.yb-k-hero__bg {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+}
+.yb-k-hero__bg img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.yb-k-hero__overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(15,15,15,0.92) 0%, rgba(28,28,28,0.85) 50%, rgba(15,15,15,0.92) 100%);
+}
+.yb-k-hero .container {
+  position: relative;
+  z-index: 1;
+}
+.yb-k-hero__badge {
+  display: inline-block;
+  background: var(--yb-brand);
+  color: #fff;
+  padding: 8px 24px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  margin-bottom: 28px;
+}
+.yb-k-hero__title {
+  font-size: clamp(40px, 7vw, 80px);
+  font-weight: 700;
+  line-height: 1.05;
+  margin-bottom: 24px;
+  background: linear-gradient(135deg, #FDFBF7 0%, #ff9966 50%, var(--yb-brand) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+.yb-k-hero__subtitle {
+  font-size: clamp(16px, 2.2vw, 22px);
+  color: rgba(253, 251, 247, 0.75);
+  max-width: 720px;
+  margin: 0 auto 50px;
+  line-height: 1.6;
+}
+.yb-k-hero__stats {
+  display: flex;
+  justify-content: center;
+  gap: 48px;
+  flex-wrap: wrap;
+  padding-top: 40px;
+  border-top: 1px solid rgba(253, 251, 247, 0.1);
+}
+.yb-k-hero__stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+.yb-k-hero__stat-num {
+  font-size: clamp(28px, 4vw, 40px);
+  font-weight: 700;
+  color: var(--yb-brand);
+}
+.yb-k-hero__stat-label {
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: rgba(253, 251, 247, 0.6);
+}
+
+/* ── Intro ── */
+.yb-k-intro {
+  padding: 100px 20px;
+  background: #fff;
+}
+.yb-k-intro__text {
+  max-width: 800px;
+  margin: 0 auto 24px;
+  font-size: clamp(17px, 2vw, 20px);
+  line-height: 1.7;
+  color: #333;
+  text-align: center;
+}
+.yb-k-intro__text--secondary {
+  color: #666;
+  font-size: clamp(15px, 1.8vw, 18px);
+}
+
+/* ── Brand Hero Sections ── */
+.yb-k-brand-hero {
+  padding: 100px 20px;
+  background: linear-gradient(135deg, #1C1C1C 0%, #2a2a2a 100%);
+  color: #FDFBF7;
+}
+.yb-k-brand-hero__inner {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 60px;
+  align-items: center;
+  max-width: 1100px;
+  margin: 0 auto;
+}
+.yb-k-brand-hero__badge {
+  display: inline-block;
+  background: var(--yb-brand);
+  color: #fff;
+  padding: 6px 18px;
+  border-radius: 16px;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  margin-bottom: 20px;
+}
+.yb-k-brand-hero__badge--hy {
+  background: #3f99a5;
+}
+.yb-k-brand-hero__title {
+  font-size: clamp(36px, 5vw, 56px);
+  font-weight: 700;
+  line-height: 1.1;
+  margin-bottom: 12px;
+}
+.yb-k-brand-hero__subtitle {
+  font-size: clamp(16px, 2vw, 20px);
+  color: rgba(253, 251, 247, 0.7);
+  margin-bottom: 24px;
+  font-weight: 700;
+}
+.yb-k-brand-hero__text {
+  font-size: 16px;
+  line-height: 1.7;
+  color: rgba(253, 251, 247, 0.8);
+  margin-bottom: 16px;
+}
+.yb-k-brand-hero__image {
+  display: flex;
+  justify-content: center;
+}
+.yb-k-brand-hero__placeholder {
+  width: 100%;
+  min-height: 400px;
+  background: linear-gradient(135deg, #2a2a2a 0%, #3a3a3a 100%);
+  border-radius: 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  color: rgba(253, 251, 247, 0.4);
+  font-size: 18px;
+  border: 1px dashed rgba(253, 251, 247, 0.15);
+}
+.yb-k-brand-hero__placeholder small {
+  font-size: 12px;
+  opacity: 0.6;
+}
+.yb-k-brand-hero__placeholder--hy {
+  border-color: rgba(63, 153, 165, 0.3);
+}
+
+/* ── Stats Bar ── */
+.yb-k-stats {
+  display: flex;
+  justify-content: center;
+  gap: 40px;
+  flex-wrap: wrap;
+  margin-top: 60px;
+  padding-top: 40px;
+  border-top: 1px solid rgba(253, 251, 247, 0.1);
+}
+.yb-k-stats__item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+.yb-k-stats__num {
+  font-size: clamp(24px, 3.5vw, 36px);
+  font-weight: 700;
+  color: var(--yb-brand);
+}
+.yb-k-stats__num--hy {
+  color: #3f99a5;
+}
+.yb-k-stats__label {
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: rgba(253, 251, 247, 0.55);
+}
+
+/* ── Split Section ── */
+.yb-k-split {
+  padding: 80px 20px;
+  background: #f9f9f9;
+}
+.yb-k-split--hy {
+  background: #f4fafb;
+}
+.yb-k-split__inner {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 60px;
+  align-items: center;
+  max-width: 1100px;
+  margin: 0 auto;
+}
+.yb-k-split__inner--reverse {
+  direction: rtl;
+}
+.yb-k-split__inner--reverse > * {
+  direction: ltr;
+}
+.yb-k-split__media {
+  border-radius: 16px;
+  overflow: hidden;
+}
+.yb-k-split__media img {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+.yb-k-split__title {
+  font-size: clamp(24px, 3vw, 36px);
+  font-weight: 700;
+  margin-bottom: 20px;
+  color: #1C1C1C;
+}
+.yb-k-split__title--hy {
+  color: #3f99a5;
+}
+.yb-k-split__text {
+  font-size: 16px;
+  line-height: 1.7;
+  color: #555;
+}
+
+/* ── Features Grid ── */
+.yb-k-features {
+  padding: 100px 20px;
+  background: #fff;
+}
+.yb-k-features--light {
+  background: #F5F3F0;
+}
+.yb-k-features__grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 32px;
+  max-width: 1000px;
+  margin: 48px auto 0;
+}
+.yb-k-features__card {
+  background: #FFFCF9;
+  border: 1px solid #E8E4E0;
+  border-radius: 16px;
+  padding: 36px;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+.yb-k-features__card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.08);
+}
+.yb-k-features__card--hy {
+  border-color: rgba(63, 153, 165, 0.2);
+}
+.yb-k-features__card--hy:hover {
+  border-color: rgba(63, 153, 165, 0.4);
+  box-shadow: 0 12px 32px rgba(63, 153, 165, 0.1);
+}
+.yb-k-features__icon {
+  width: 56px;
+  height: 56px;
+  border-radius: 14px;
+  background: linear-gradient(135deg, var(--yb-brand), #ff9966);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 20px;
+  color: #fff;
+}
+.yb-k-features__icon--hy {
+  background: linear-gradient(135deg, #3f99a5, #5bbac6);
+}
+.yb-k-features__card h4 {
+  font-size: 20px;
+  font-weight: 700;
+  margin-bottom: 12px;
+  color: #1C1C1C;
+}
+.yb-k-features__card p {
+  font-size: 15px;
+  line-height: 1.7;
+  color: #666;
+}
+
+/* ── Video Placeholder ── */
+.yb-k-video {
+  padding: 80px 20px;
+  background: #F5F3F0;
+}
+.yb-k-video__wrap {
+  max-width: 900px;
+  margin: 0 auto;
+  border-radius: 16px;
+  overflow: hidden;
+  position: relative;
+}
+.yb-k-video__wrap--hy .yb-k-video__placeholder {
+  background: linear-gradient(135deg, #2c7a84 0%, #3f99a5 50%, #2c7a84 100%);
+}
+.yb-k-video__placeholder {
+  aspect-ratio: 16 / 9;
+  background: linear-gradient(135deg, #1C1C1C 0%, #2a2a2a 50%, #1C1C1C 100%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  cursor: pointer;
+  transition: opacity 0.3s ease;
+}
+.yb-k-video__placeholder:hover {
+  opacity: 0.9;
+}
+.yb-k-video__placeholder span {
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 14px;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+.yb-k-video__cta {
+  text-align: center;
+  margin-top: 32px;
+}
+
+/* Hot Yoga CPH specific button */
+.yb-k-btn--hy {
+  background: #3f99a5;
+  border-color: #3f99a5;
+  color: #fff;
+}
+.yb-k-btn--hy:hover {
+  background: #358a95;
+  border-color: #358a95;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(63, 153, 165, 0.3);
+}
+
+/* ── Divider ── */
+.yb-k-divider {
+  padding: 0 20px;
+  background: #fff;
+}
+.yb-k-divider__line {
+  max-width: 200px;
+  margin: 0 auto;
+  height: 3px;
+  background: linear-gradient(90deg, transparent, var(--yb-brand), transparent);
+  border-radius: 2px;
+}
+
+/* ── Statement / Ambition Block ── */
+.yb-k-statement {
+  padding: 100px 20px;
+  background: #F5F3F0;
+}
+.yb-k-statement--dark {
+  background: linear-gradient(135deg, #1C1C1C 0%, #2a2a2a 100%);
+}
+.yb-k-statement__inner {
+  max-width: 800px;
+  margin: 0 auto;
+  text-align: center;
+}
+.yb-k-statement__title {
+  font-size: clamp(28px, 4vw, 44px);
+  font-weight: 700;
+  margin-bottom: 24px;
+  color: #1C1C1C;
+}
+.yb-k-statement__text {
+  font-size: clamp(16px, 2vw, 20px);
+  line-height: 1.7;
+  color: #555;
+}
+
+/* ── Image Band ── */
+.yb-k-imageband {
+  padding: 0;
+}
+.yb-k-imageband__grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0;
+}
+.yb-k-imageband__grid img {
+  width: 100%;
+  height: 300px;
+  object-fit: cover;
+  display: block;
+}
+
+/* ── Sessions (dark bg — Vibro) ── */
+.yb-k-sessions {
+  padding: 100px 20px;
+  background: linear-gradient(135deg, #0F0F0F 0%, #1C1C1C 100%);
+}
+.yb-k-sessions__grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 28px;
+  max-width: 1000px;
+  margin: 48px auto 0;
+}
+.yb-k-sessions__card {
+  background: rgba(253, 251, 247, 0.04);
+  border: 1px solid rgba(253, 251, 247, 0.08);
+  border-radius: 16px;
+  padding: 40px 32px;
+  transition: border-color 0.3s ease, transform 0.3s ease;
+}
+.yb-k-sessions__card:hover {
+  border-color: rgba(247, 92, 3, 0.3);
+  transform: translateY(-4px);
+}
+.yb-k-sessions__number {
+  font-size: 48px;
+  font-weight: 700;
+  color: var(--yb-brand);
+  opacity: 0.3;
+  margin-bottom: 16px;
+  line-height: 1;
+}
+.yb-k-sessions__card h4 {
+  font-size: 22px;
+  font-weight: 700;
+  color: #FDFBF7;
+  margin-bottom: 12px;
+}
+.yb-k-sessions__card p {
+  font-size: 15px;
+  line-height: 1.7;
+  color: rgba(253, 251, 247, 0.65);
+}
+
+/* ── Science section ── */
+.yb-k-science {
+  padding: 100px 20px;
+  background: #fff;
+}
+
+/* ── Reviews Carousel ── */
+.yb-k-reviews {
+  padding: 100px 20px;
+  background: #F5F3F0;
+}
+.yb-k-reviews__track {
+  display: flex;
+  gap: 24px;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  -webkit-overflow-scrolling: touch;
+  padding: 20px 0 32px;
+  margin-top: 40px;
+  scrollbar-width: thin;
+  scrollbar-color: var(--yb-brand) #E8E4E0;
+}
+.yb-k-reviews__track::-webkit-scrollbar {
+  height: 6px;
+}
+.yb-k-reviews__track::-webkit-scrollbar-track {
+  background: #E8E4E0;
+  border-radius: 3px;
+}
+.yb-k-reviews__track::-webkit-scrollbar-thumb {
+  background: var(--yb-brand);
+  border-radius: 3px;
+}
+.yb-k-reviews__card {
+  min-width: 340px;
+  max-width: 380px;
+  flex-shrink: 0;
+  scroll-snap-align: start;
+  background: #FFFCF9;
+  border: 1.5px solid var(--yb-brand);
+  border-radius: 16px;
+  padding: 32px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.yb-k-reviews__stars {
+  color: var(--yb-brand);
+  font-size: 18px;
+  letter-spacing: 2px;
+}
+.yb-k-reviews__text {
+  font-size: 15px;
+  line-height: 1.7;
+  color: #444;
+  flex: 1;
+  font-style: italic;
+}
+.yb-k-reviews__author {
+  font-size: 13px;
+  font-weight: 700;
+  color: #999;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+/* ── CTA ── */
+.yb-k-cta {
+  background: linear-gradient(135deg, var(--yb-brand) 0%, #d94f02 100%);
+  color: #fff;
+  text-align: center;
+  padding: 120px 20px;
+}
+.yb-k-cta__title {
+  font-size: clamp(32px, 5vw, 52px);
+  font-weight: 700;
+  margin-bottom: 20px;
+}
+.yb-k-cta__text {
+  font-size: clamp(16px, 2vw, 20px);
+  margin-bottom: 40px;
+  opacity: 0.92;
+  max-width: 700px;
+  margin-left: auto;
+  margin-right: auto;
+  margin-bottom: 48px;
+}
+.yb-k-cta__buttons {
+  display: flex;
+  justify-content: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+/* ── Responsive ── */
+@media (max-width: 768px) {
+  .yb-k-hero {
+    padding: 140px 16px 80px;
+  }
+  .yb-k-hero__stats {
+    gap: 24px;
+  }
+  .yb-k-brand-hero__inner {
+    grid-template-columns: 1fr;
+    gap: 40px;
+  }
+  .yb-k-split__inner,
+  .yb-k-split__inner--reverse {
+    grid-template-columns: 1fr;
+    direction: ltr;
+    gap: 32px;
+  }
+  .yb-k-features__grid {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+  .yb-k-sessions__grid {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+  .yb-k-imageband__grid {
+    grid-template-columns: 1fr;
+  }
+  .yb-k-imageband__grid .yb-k-brand-hero__placeholder {
+    min-height: 200px !important;
+  }
+  .yb-k-stats {
+    gap: 20px;
+  }
+  .yb-k-reviews__card {
+    min-width: 280px;
+    max-width: 320px;
+  }
+  .yb-k-cta {
+    padding: 80px 16px;
+  }
+}
