@@ -172,6 +172,8 @@ Promise.all([
 ```
 - Contracts fetch has `.catch()` fallback → returns `{ contracts: [] }` on error
 - Both results merged into single `storeServices` array with `_itemType` marker
+- Each item stores `data-item-type` ('service' or 'contract') and `data-location-id`
+- Staff token bypass: can sell items not marked "Sell Online" in Mindbody admin
 
 **Contract normalization:**
 - Price: `recurringPaymentAmount || firstPaymentAmount || totalContractAmount`
@@ -184,7 +186,7 @@ Promise.all([
 |----------|----------|-------|
 | `trials` | trial, prøv, intro | |
 | `tourist` | tourist, turist, drop-in | |
-| `timebased` | day/month/week + unlimited/non-contract | Time period + unlimited keyword |
+| `timebased` | day/month/week + unlimited/non-contract | Time period + unlimited keyword. "unlimited 1 month" is timebased NOT memberships |
 | `memberships` | membership, medlems, autopay | + ALL contracts regardless of name |
 | `clips` | clip, klip, punch, pack, class | |
 | `teacher` | teacher, lærer, training, 200, 300 | Teacher trainings |
@@ -192,18 +194,18 @@ Promise.all([
 | `private` | private, privat, 1-on-1, personal | |
 
 - Categories with 0 items are hidden (except "All")
-- Each category tab shows item count badge
+- Each category tab shows item count badge (pill buttons with active styling)
 
 **Unlimited clips display:**
 - Mindbody uses 99999/999999 as "unlimited" placeholder
-- Hidden in UI: `if (s.count && s.count < 9999)` — only show real clip counts
+- Hidden in UI: `if (s.count && s.count < 9999)` — only show real clip counts, show "Unlimited" text instead
 
 **Checkout flow (dual routing):**
 - **Service checkout:** POST to `/.netlify/functions/mb-checkout`
   ```json
   { "clientId": "X", "items": [{"type":"Service","id":123,"quantity":1}], "amount": 799, "payment": {...} }
   ```
-- **Contract checkout:** POST to `/.netlify/functions/mb-contracts`
+- **Contract checkout:** POST to `/.netlify/functions/mb-contracts` (routes to `/sale/purchasecontract`)
   ```json
   { "clientId": "X", "contractId": 456, "locationId": 1, "startDate": "2026-02-08", "payment": {...} }
   ```
@@ -273,6 +275,35 @@ Torvegade 66, 1400, København K
 - Generated as Blob → `URL.createObjectURL()` → triggers `<a>` download
 - Filename: `kvittering-{saleId}.txt`
 
+### Membership Management (within Profile Tab)
+Active autopay contracts show Pause and Cancel buttons directly in the membership section.
+
+**Pause (Suspend) flow:**
+1. Click "Pause" → shows pause panel with date pickers
+2. Start date defaults to after next billing cycle (`calcEarliestPauseStart()`)
+3. End date: min 14 days, max 3 months from start
+4. Confirm → POST to `mb-contract-manage` with `action: 'suspend'`
+5. Success → reload membership details, show toast
+
+**Cancel (Terminate) flow:**
+1. Click "Cancel" → shows cancel panel with calculated dates
+2. `calcTerminationDates(nextBillingDate)` calculates:
+   - **Last payment:** next billing date (the final charge)
+   - **Use until:** next billing + 1 month - 1 day (end of that billing cycle)
+   - Example: next billing Mar 8 → last payment Mar 8 → use until Apr 7
+3. Confirm → POST to `mb-contract-manage` with `action: 'terminate'`
+4. Success → reload membership details, show toast
+
+**Status badges:**
+- Active: green badge
+- Paused/Suspended: amber badge
+- Terminating: red badge
+- Pause/Cancel buttons only shown for active, non-suspended, non-terminating autopay contracts
+
+**Date formatting:**
+- All dates use `formatDateDK()` for consistent Danish-style display
+- Date picker inputs use browser native `<input type="date">`
+
 ### 6. Courses Tab (Mine Kurser)
 
 **Data source:** Firestore only (not connected to Mindbody)
@@ -299,8 +330,11 @@ function isDa() { return window.location.pathname.indexOf('/en/') !== 0; }
 
 **Translation function `t(key)`:**
 - Returns DA or EN string based on `isDa()` result
-- ~60+ translation keys covering all tabs
-- Inline map, not external file (all strings in profile.js)
+- **Hardcoded JS map** inside profile.js — does NOT read from `profile.json` at runtime
+- ~80+ translation keys covering all tabs, including membership management (pause/cancel/badges/toasts)
+- When adding new features, you must add translation keys to BOTH:
+  1. `src/_data/i18n/profile.json` (for template-level translations)
+  2. The `t()` map in `src/js/profile.js` (for JS-generated UI)
 
 **Inline bilingual patterns:**
 ```javascript
@@ -309,8 +343,15 @@ isDa() ? 'Du er booket!' : "You're booked!"
 
 // For store categories
 storeCategories = [
+  { id: 'all', da: 'Alle', en: 'All' },
   { id: 'trials', da: 'Prøvekort', en: 'Trials' },
-  ...
+  { id: 'tourist', da: 'Turistpas', en: 'Tourist Pass' },
+  { id: 'memberships', da: 'Medlemskaber', en: 'Memberships' },
+  { id: 'clips', da: 'Klippekort', en: 'Clip Cards' },
+  { id: 'timebased', da: 'Tidsbegrænsede Pas', en: 'Time-based Passes' },
+  { id: 'teacher', da: 'Yogalæreruddannelser', en: 'Teacher Trainings' },
+  { id: 'courses', da: 'Kurser', en: 'Courses' },
+  { id: 'private', da: 'Privattimer', en: 'Private Sessions' }
 ];
 ```
 
@@ -318,6 +359,44 @@ storeCategories = [
 - Nunjucks template uses `{% set t = i18n.profile[lang or "da"] %}`
 - Static labels come from `src/_data/i18n/profile.json`
 - Dynamic content (from JS) uses the `t()` function and `isDa()` checks
+
+**Key functions reference:**
+```
+// ─── Core Data Functions ───
+loadProfile(user, db)              — Firebase profile + Mindbody sync
+loadSchedule()                     — Classes + visits parallel fetch
+renderSchedule()                   — Build schedule HTML with book/cancel/bio
+renderSchedulePassInfo()           — Smart pass banner (clips, membership, low warning)
+clientCanBook(programId)           — Frontend pass-to-program validation
+bookClass(btn)                     — Pass validation + booking
+cancelClass(btn)                   — Cancel with late-cancel retry
+loadReceipts(periodDays?)          — Purchase history with period filter
+loadVisitHistory(periodDays?)      — Visit data + filters + status counts
+loadStore()                        — Services + contracts (parallel fetch) with category tabs
+categorizeService(s)               — Heuristic name→category mapping
+downloadReceipt(purchase)          — Generate + download text receipt
+
+// ─── Membership Management Functions ───
+loadMembershipDetails()            — Fetch passes/contracts, render, set tier badge
+renderMembershipDetails(el, data)  — Build membership HTML (passes, contracts, panels)
+bindMembershipManageEvents(el, d)  — Wire up pause/cancel buttons + date pickers
+calcTerminationDates(nextBilling)  — Returns { lastPaymentDate, useUntilDate }
+calcEarliestPauseStart(nextBill)   — Returns earliest valid pause start date
+showMembershipToast(msg, type)     — Toast notification for manage actions
+
+// ─── Store Checkout Functions ───
+openCheckout(item)                 — Open payment modal, store item-type + location-id
+processCheckout(formData)          — Route to mb-checkout (services) or mb-contracts (contracts)
+
+// ─── Helper Functions ───
+t(key)              — Translation lookup (hardcoded DA/EN map, ~80+ keys)
+isDa()              — Language detection (path-based)
+esc(str)            — HTML escape
+formatTime(iso)     — Time formatting
+formatDKK(num)      — Danish Krone formatting
+formatDateDK(date)  — Danish date format (d. MMM yyyy)
+toDateStr(date)     — YYYY-MM-DD formatting
+```
 
 ## Firestore Schema
 
@@ -429,13 +508,47 @@ All profile-related CSS classes use these prefixes:
 - Max file size check: 10 MB
 - Immediate preview before Firestore save completes
 
+## Error Handling Patterns
+
+### Loading Spinner Safety
+All data-loading functions use `try/finally` to guarantee spinner hide:
+```javascript
+.then(function(data) {
+  try {
+    renderMembershipDetails(contentEl, data);
+    // ... more logic
+  } catch (renderErr) {
+    console.error('[Membership] Render error:', renderErr);
+  } finally {
+    if (loadingEl) loadingEl.hidden = true;  // Always hides
+  }
+})
+```
+
+### Non-JSON Response Detection
+Frontend fetch calls check `content-type` before parsing:
+```javascript
+.then(function(r) {
+  var ct = r.headers.get('content-type') || '';
+  if (ct.indexOf('application/json') === -1) {
+    throw new Error('Server returned non-JSON (status ' + r.status + ')');
+  }
+  return r.json().then(function(d) { return { ok: r.ok, data: d }; });
+})
+```
+This catches the case where Netlify returns HTML 404 pages instead of function responses (common during deploy propagation).
+
 ## Adaptation Guide for New Brands
 
+When porting this system to a new brand (e.g., Hot Yoga CPH):
+
 1. **Copy files:** `src/js/profile.js`, `src/js/firebase-auth.js`, `src/js/mindbody.js`
-2. **Update translations:** Modify `t()` function map and `storeCategories` array
+2. **Update translations:** Modify `t()` function map and `storeCategories` array, add brand-specific keys to both `t()` map and `profile.json`
 3. **Update receipt footer:** Change studio name/address in `downloadReceipt()`
-4. **Update Firebase config:** Change `firebaseConfig` in `firebase-auth.js`
+4. **Update Firebase config:** Change `firebaseConfig` in `firebase-auth.js` (can share same project yoga-bible-dk-com or use separate)
 5. **Update category heuristics:** Adjust `categorizeService()` keywords if services have different naming
-6. **Adapt CSS:** Keep class naming convention, update brand colors
-7. **Template:** Create profile page template with required DOM IDs (see element IDs in init functions)
-8. **Share Mindbody functions:** All `mb-*.js` files are brand-agnostic — same Site ID works across brands
+6. **Termination rules:** Adjust `calcTerminationDates()` — notice period, billing cycle logic may differ per brand's T&C
+7. **Pause rules:** Adjust min/max duration in `mb-contract-manage.js` (currently 14 days min, 93 days max)
+8. **Adapt CSS:** Keep class naming convention, update brand colors — all classes prefixed `yb-` for Yoga Bible
+9. **Template:** Create profile page template with required DOM IDs (see element IDs in init functions)
+10. **Share Mindbody functions:** All `mb-*.js` files are brand-agnostic — same Site ID (5748831), use LocationId to filter per studio if needed
