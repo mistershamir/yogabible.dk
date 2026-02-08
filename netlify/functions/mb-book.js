@@ -253,7 +253,8 @@ exports.handler = async function(event) {
 
       return jsonResponse(200, {
         success: true,
-        message: 'Booking cancelled successfully'
+        lateCancel: body.lateCancel || false,
+        message: body.lateCancel ? 'Late cancellation processed' : 'Booking cancelled successfully'
       });
     } catch (err) {
       console.error('mb-book DELETE error:', err.message, err.data ? JSON.stringify(err.data) : '');
@@ -261,6 +262,41 @@ exports.handler = async function(event) {
       if (err.data && err.data.Error && err.data.Error.Message) {
         cancelMsg = err.data.Error.Message;
       }
+
+      // Detect cancellation window error — retry with LateCancel: true
+      var isWindowError = cancelMsg.toLowerCase().indexOf('cancel') !== -1
+        && (cancelMsg.toLowerCase().indexOf('window') !== -1
+          || cancelMsg.toLowerCase().indexOf('late') !== -1
+          || cancelMsg.toLowerCase().indexOf('deadline') !== -1
+          || cancelMsg.toLowerCase().indexOf('period') !== -1);
+
+      if (isWindowError && !body.lateCancel) {
+        console.log('mb-book: Outside cancellation window — retrying as late cancel');
+        try {
+          await mbFetch('/class/removeclientfromclass', {
+            method: 'POST',
+            body: JSON.stringify({
+              ClientId: body.clientId,
+              ClassId: body.classId,
+              LateCancel: true,
+              SendEmail: true
+            })
+          });
+          return jsonResponse(200, {
+            success: true,
+            lateCancel: true,
+            message: 'Late cancellation processed — may incur fees'
+          });
+        } catch (retryErr) {
+          console.error('mb-book late cancel retry error:', retryErr.message);
+          var retryMsg = retryErr.message;
+          if (retryErr.data && retryErr.data.Error && retryErr.data.Error.Message) {
+            retryMsg = retryErr.data.Error.Message;
+          }
+          return jsonResponse(retryErr.status || 500, { error: retryMsg });
+        }
+      }
+
       return jsonResponse(err.status || 500, { error: cancelMsg });
     }
   }

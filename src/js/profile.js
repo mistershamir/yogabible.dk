@@ -9,6 +9,7 @@
   var currentDb = null;
   var clientId = null; // Mindbody client ID from Firestore
   var clientPassData = null; // Cached pass/service data
+  var staffCache = {}; // Cache staff bios by ID
 
   var checkInterval = setInterval(function() {
     if (typeof firebase !== 'undefined' && firebase.apps && firebase.apps.length) {
@@ -787,7 +788,12 @@
         html += '  <div class="yb-schedule__class-time">' + startTime + ' – ' + endTime + '</div>';
         html += '  <div class="yb-schedule__class-info">';
         html += '    <span class="yb-schedule__class-name">' + esc(cls.name) + '</span>';
-        html += '    <span class="yb-schedule__class-instructor">' + esc(cls.instructor) + '</span>';
+        var bioId = 'yb-bio-' + cls.id;
+        if (cls.instructorId && cls.instructor !== 'TBA') {
+          html += '    <span class="yb-schedule__class-instructor yb-schedule__class-instructor--clickable" data-toggle-bio="' + bioId + '" data-staff-id="' + cls.instructorId + '">' + esc(cls.instructor) + '</span>';
+        } else {
+          html += '    <span class="yb-schedule__class-instructor">' + esc(cls.instructor) + '</span>';
+        }
         if (cls.spotsLeft !== null && cls.spotsLeft > 0 && !cls.isCanceled && !isPast) {
           html += '    <span class="yb-schedule__class-spots">' + cls.spotsLeft + ' ' + t('schedule_spots_left') + '</span>';
         }
@@ -813,6 +819,11 @@
 
         html += '  </div>';
         html += '</div>';
+
+        // Teacher bio (loaded on demand)
+        if (cls.instructorId && cls.instructor !== 'TBA') {
+          html += '<div class="yb-schedule__teacher-bio" id="' + bioId + '" hidden></div>';
+        }
 
         // Expandable description (render HTML from Mindbody)
         if (cls.description) {
@@ -845,6 +856,63 @@
         }
       });
     });
+
+    // Attach teacher bio toggle handlers
+    container.querySelectorAll('[data-toggle-bio]').forEach(function(el) {
+      el.addEventListener('click', function() {
+        var bioEl = document.getElementById(el.getAttribute('data-toggle-bio'));
+        if (!bioEl) return;
+
+        if (!bioEl.hidden) {
+          bioEl.hidden = true;
+          return;
+        }
+
+        var staffId = el.getAttribute('data-staff-id');
+
+        // Check cache first
+        if (staffCache[staffId]) {
+          renderTeacherBio(bioEl, staffCache[staffId]);
+          bioEl.hidden = false;
+          return;
+        }
+
+        // Fetch staff details
+        bioEl.innerHTML = '<p class="yb-schedule__teacher-bio-text">' + (isDa() ? 'Henter...' : 'Loading...') + '</p>';
+        bioEl.hidden = false;
+
+        fetch('/.netlify/functions/mb-staff?staffId=' + staffId)
+          .then(function(r) { return r.json(); })
+          .then(function(data) {
+            var staff = (data.staff || [])[0];
+            if (staff) {
+              staffCache[staffId] = staff;
+              renderTeacherBio(bioEl, staff);
+            } else {
+              bioEl.innerHTML = '<p class="yb-schedule__teacher-bio-text">' + (isDa() ? 'Ingen info tilgængelig.' : 'No info available.') + '</p>';
+            }
+          })
+          .catch(function() {
+            bioEl.innerHTML = '<p class="yb-schedule__teacher-bio-text">' + (isDa() ? 'Kunne ikke hente info.' : 'Could not load info.') + '</p>';
+          });
+      });
+    });
+  }
+
+  function renderTeacherBio(container, staff) {
+    var html = '';
+    if (staff.imageUrl) {
+      html += '<img class="yb-schedule__teacher-photo" src="' + esc(staff.imageUrl) + '" alt="' + esc(staff.name) + '">';
+    }
+    html += '<div class="yb-schedule__teacher-info">';
+    html += '<p class="yb-schedule__teacher-name">' + esc(staff.name) + '</p>';
+    if (staff.bio) {
+      html += '<p class="yb-schedule__teacher-bio-text">' + staff.bio + '</p>';
+    } else {
+      html += '<p class="yb-schedule__teacher-bio-text">' + (isDa() ? 'Ingen biografi tilgængelig.' : 'No biography available.') + '</p>';
+    }
+    html += '</div>';
+    container.innerHTML = html;
   }
 
   /**
@@ -947,7 +1015,13 @@
     }).then(function(r) { return r.json(); })
       .then(function(data) {
         if (data.success) {
-          showScheduleToast(isDa() ? 'Booking annulleret.' : 'Booking cancelled.', 'success');
+          if (data.lateCancel) {
+            showScheduleToast(isDa()
+              ? 'Sen annullering — kan medføre gebyr.'
+              : 'Late cancellation — may incur fees.', 'warning');
+          } else {
+            showScheduleToast(isDa() ? 'Booking annulleret.' : 'Booking cancelled.', 'success');
+          }
           // Switch button back to Book
           btn.textContent = isDa() ? 'Book' : 'Book';
           btn.className = 'yb-btn yb-btn--primary yb-schedule__book-btn';
@@ -1089,6 +1163,8 @@
       if (listEl) listEl.innerHTML = '<p class="yb-store__empty">' + t('receipts_empty') + '</p>';
       return;
     }
+
+    listEl.innerHTML = '<div class="yb-store__loading"><div class="yb-mb-spinner"></div><span>' + (isDa() ? 'Henter kvitteringer...' : 'Loading receipts...') + '</span></div>';
 
     fetch('/.netlify/functions/mb-purchases?clientId=' + clientId)
       .then(function(r) { return r.json(); })
