@@ -337,12 +337,11 @@ exports.handler = async function(event) {
             }
           }
 
-          var finalActMsg = lastActErr ? lastActErr.message : 'All activate paths failed';
           console.error('[mb-contracts] All activate paths failed:', JSON.stringify(actPathResults));
-          return jsonResponse(lastActErr ? (lastActErr.status || 500) : 500, {
-            error: finalActMsg,
+          return jsonResponse(404, {
+            error: 'not_available',
             _pathResults: actPathResults,
-            _hint: 'Contract reactivation may not be available via API. Contact Mindbody support or reactivate from Mindbody admin.'
+            _hint: 'Contract reactivation is not available via the Mindbody API. Reactivate from Mindbody admin or contact support.'
           });
         }
       }

@@ -851,7 +851,8 @@
             loadMembershipDetails();
             showMembershipToast(t('membership_revoke_success'), 'success', 8000);
           } else {
-            showMembershipToast(res.data.error || t('membership_revoke_error'), 'error', 8000);
+            // Always show friendly message — the raw API error is too technical
+            showMembershipToast(t('membership_revoke_error'), 'error', 8000);
             if (res.data._pathResults) {
               console.log('[Revoke] Path results:', JSON.stringify(res.data._pathResults, null, 2));
             }
