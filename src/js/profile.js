@@ -460,10 +460,17 @@
           html += '<button type="button" class="yb-membership__manage-btn yb-membership__manage-btn--cancel" data-manage-cancel="' + c.id + '">' + t('membership_cancel_btn') + '</button>';
           html += '</div>';
         }
-        // Revoke button for terminating contracts
+        // Retention card for terminating contracts
         if (c.terminationDate && !c.isSuspended) {
-          html += '<div class="yb-membership__manage-btns">';
-          html += '<button type="button" class="yb-membership__manage-btn yb-membership__manage-btn--revoke" data-manage-revoke="' + c.id + '">' + t('membership_revoke_btn') + '</button>';
+          html += '<div class="yb-membership__retention-card">';
+          html += '<div class="yb-membership__retention-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#f75c03" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg></div>';
+          html += '<p class="yb-membership__retention-title">' + t('membership_retention_title') + '</p>';
+          html += '<p class="yb-membership__retention-desc">' + t('membership_retention_desc').replace('{date}', formatDateDK(c.terminationDate)) + '</p>';
+          html += '<ul class="yb-membership__retention-perks">';
+          html += '<li>' + t('membership_retention_perk1') + '</li>';
+          html += '<li>' + t('membership_retention_perk2') + '</li>';
+          html += '</ul>';
+          html += '<button type="button" class="yb-btn yb-btn--primary yb-membership__retention-btn" data-reactivate="' + (c.contractId || '') + '" data-location-id="' + (c.locationId || '1') + '">' + t('membership_retention_cta') + '</button>';
           html += '</div>';
         }
         html += '</div>';
@@ -820,51 +827,34 @@
       });
     }
 
-    // ── Revoke cancellation buttons ──
-    var revokeBtns = container.querySelectorAll('[data-manage-revoke]');
-    for (var r = 0; r < revokeBtns.length; r++) {
-      revokeBtns[r].addEventListener('click', function() {
-        var revokeContractId = this.getAttribute('data-manage-revoke');
-        var btn = this;
-        if (!revokeContractId || !clientId) return;
-
-        var confirmed = confirm(isDa()
-          ? 'Er du sikker på, at du vil fortryde opsigelsen og genaktivere dit abonnement?'
-          : 'Are you sure you want to revoke the cancellation and reactivate your membership?');
-        if (!confirmed) return;
-
-        btn.disabled = true;
-        btn.textContent = t('membership_revoke_confirming');
-
-        fetch('/.netlify/functions/mb-contracts', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            action: 'activate',
-            clientId: clientId,
-            clientContractId: Number(revokeContractId)
-          })
-        })
-        .then(function(resp) { return resp.json().then(function(d) { return { ok: resp.ok, data: d }; }); })
-        .then(function(res) {
-          if (res.ok && res.data.success) {
-            loadMembershipDetails();
-            showMembershipToast(t('membership_revoke_success'), 'success', 8000);
-          } else {
-            // Always show friendly message — the raw API error is too technical
-            showMembershipToast(t('membership_revoke_error'), 'error', 8000);
-            if (res.data._pathResults) {
-              console.log('[Revoke] Path results:', JSON.stringify(res.data._pathResults, null, 2));
+    // ── Reactivate (retention) buttons ──
+    var reactivateBtns = container.querySelectorAll('[data-reactivate]');
+    for (var r = 0; r < reactivateBtns.length; r++) {
+      reactivateBtns[r].addEventListener('click', function() {
+        var contractId = this.getAttribute('data-reactivate');
+        var locationId = this.getAttribute('data-location-id') || '1';
+        // Switch to Store tab, memberships category, with promo code pre-set
+        var storeBtn = document.querySelector('[data-yb-tab="store"]');
+        if (storeBtn) {
+          storeBtn.click();
+          // After store loads, auto-open checkout for this contract with promo
+          setTimeout(function() {
+            // Find the matching contract in the store and open its checkout
+            var buyBtn = document.querySelector('[data-store-buy="' + contractId + '"]');
+            if (buyBtn) {
+              buyBtn.click();
+              // Set the promo code flag on checkout element
+              setTimeout(function() {
+                var checkoutEl = document.getElementById('yb-store-checkout');
+                if (checkoutEl) checkoutEl.setAttribute('data-promo-code', 'COMEBACK50');
+              }, 100);
+            } else {
+              // Contract not found in store — show memberships category
+              var memCat = document.querySelector('[data-store-category="memberships"]');
+              if (memCat) memCat.click();
             }
-          }
-          btn.disabled = false;
-          btn.textContent = t('membership_revoke_btn');
-        })
-        .catch(function() {
-          showMembershipToast(t('membership_revoke_error'), 'error', 8000);
-          btn.disabled = false;
-          btn.textContent = t('membership_revoke_btn');
-        });
+          }, 800);
+        }
       });
     }
   }
@@ -1170,6 +1160,7 @@
     if (itemType === 'contract') {
       // Contract purchase uses /sale/purchasecontract via mb-contracts POST
       var locationId = checkoutEl.getAttribute('data-location-id');
+      var promoCode = checkoutEl.getAttribute('data-promo-code') || '';
       fetchUrl = '/.netlify/functions/mb-contracts';
       fetchBody = {
         clientId: clientId,
@@ -1178,6 +1169,10 @@
         startDate: new Date().toISOString().split('T')[0],
         payment: paymentInfo
       };
+      if (promoCode) {
+        fetchBody.promoCode = promoCode;
+        console.log('[Checkout] Applying promo code:', promoCode);
+      }
     } else {
       // Service purchase uses /sale/cartcheckout via mb-checkout POST
       fetchUrl = '/.netlify/functions/mb-checkout';
@@ -2214,6 +2209,11 @@
       membership_revoke_success: isDa() ? 'Din opsigelse er fortrudt! Dit abonnement er aktivt igen.' : 'Your cancellation has been revoked! Your membership is active again.',
       membership_revoke_error: isDa() ? 'Kunne ikke fortryde opsigelse. Kontakt os venligst.' : 'Could not revoke cancellation. Please contact us.',
       membership_cancel_farewell: isDa() ? 'Vi er kede af at se dig gå. Dit abonnement er nu opsagt — du kan stadig bruge det indtil udgangen af den betalte periode.' : 'Sorry to see you go. Your membership has been cancelled — you can still use it until the end of the paid period.',
+      membership_retention_title: isDa() ? 'Vi savner dig allerede!' : 'We already miss you!',
+      membership_retention_desc: isDa() ? 'Genaktiver dit abonnement inden {date} og spar tilmeldingsgebyret.' : 'Reactivate your membership before {date} and save the registration fee.',
+      membership_retention_perk1: isDa() ? 'Ingen nyt tilmeldingsgebyr' : 'No new registration fee',
+      membership_retention_perk2: isDa() ? '50% rabat på din næste måned' : '50% off your next month',
+      membership_retention_cta: isDa() ? 'Genaktiver med 50% rabat' : 'Reactivate with 50% off',
       membership_pause_title: isDa() ? 'Sæt abonnement på pause' : 'Pause membership',
       membership_pause_desc: isDa() ? 'Du kan sætte dit abonnement på pause i 14 dage til 3 måneder. Pausen starter efter din næste faktureringscyklus.' : 'You can pause your membership for 14 days to 3 months. The pause starts after your next billing cycle.',
       membership_pause_start: isDa() ? 'Pause starter' : 'Pause starts',
