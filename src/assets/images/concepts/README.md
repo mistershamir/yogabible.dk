@@ -1,7 +1,7 @@
-# Koncepter Page Images
+# Concepts Page Images
 
-Drop images here for the /koncepter/ page. See the template comments in
-`src/_includes/pages/koncepter.njk` for exact filenames and dimensions.
+Drop images here for the /concepts/ page. See the template comments in
+`src/_includes/pages/concepts.njk` for exact filenames and dimensions.
 
 ## Required images
 
