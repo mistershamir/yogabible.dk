@@ -9081,6 +9081,12 @@ section {
   display: flex;
   justify-content: center;
 }
+.yb-k-brand-hero__image img {
+  width: 100%;
+  height: auto;
+  border-radius: 16px;
+  object-fit: cover;
+}
 .yb-k-brand-hero__placeholder {
   width: 100%;
   min-height: 400px;
@@ -9334,6 +9340,13 @@ section {
 }
 .yb-k-bridge__logo {
   margin-bottom: 20px;
+}
+.yb-k-bridge__logo img {
+  width: 100%;
+  height: auto;
+  max-height: 120px;
+  object-fit: contain;
+  border-radius: 12px;
 }
 .yb-k-bridge__logo-ph {
   width: 100%;
