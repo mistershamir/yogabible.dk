@@ -9397,6 +9397,12 @@ section {
   display: flex;
   justify-content: center;
 }
+.yb-k-brand-hero__image img {
+  width: 100%;
+  height: auto;
+  border-radius: 16px;
+  object-fit: cover;
+}
 .yb-k-brand-hero__placeholder {
   width: 100%;
   min-height: 400px;
@@ -9651,6 +9657,13 @@ section {
 .yb-k-bridge__logo {
   margin-bottom: 20px;
 }
+.yb-k-bridge__logo img {
+  width: 100%;
+  height: auto;
+  max-height: 120px;
+  object-fit: contain;
+  border-radius: 12px;
+}
 .yb-k-bridge__logo-ph {
   width: 100%;
   height: 120px;
@@ -9704,6 +9717,12 @@ section {
   border-radius: 16px;
   overflow: hidden;
   position: relative;
+}
+.yb-k-video__wrap video {
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  display: block;
+  background: #0F0F0F;
 }
 .yb-k-video__wrap--hy .yb-k-video__placeholder {
   background: linear-gradient(135deg, #2c7a84 0%, #3f99a5 50%, #2c7a84 100%);
