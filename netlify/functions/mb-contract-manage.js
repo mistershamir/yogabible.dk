@@ -61,7 +61,7 @@ exports.handler = async function(event) {
 
       // Try with termination code first, then without if it fails
       try {
-        var result = await mbFetch('/contract/terminatecontract', {
+        var result = await mbFetch('/client/terminatecontract', {
           method: 'POST',
           body: JSON.stringify(terminateBody)
         });
@@ -79,7 +79,7 @@ exports.handler = async function(event) {
         if (errMsg.toLowerCase().indexOf('termination') > -1 || errMsg.toLowerCase().indexOf('code') > -1) {
           console.log('[mb-contract-manage] Retrying without termination code...');
           delete terminateBody.TerminationCode;
-          var result2 = await mbFetch('/contract/terminatecontract', {
+          var result2 = await mbFetch('/client/terminatecontract', {
             method: 'POST',
             body: JSON.stringify(terminateBody)
           });
@@ -130,7 +130,7 @@ exports.handler = async function(event) {
         DurationDays: durationDays
       }));
 
-      var suspResult = await mbFetch('/contract/suspendcontract', {
+      var suspResult = await mbFetch('/client/suspendcontract', {
         method: 'POST',
         body: JSON.stringify(suspendBody)
       });

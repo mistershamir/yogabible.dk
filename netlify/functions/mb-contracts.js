@@ -153,7 +153,7 @@ exports.handler = async function(event) {
           }));
 
           try {
-            await mbFetch('/contract/terminatecontract', {
+            await mbFetch('/client/terminatecontract', {
               method: 'POST',
               body: JSON.stringify(terminateBody)
             });
@@ -162,7 +162,7 @@ exports.handler = async function(event) {
             if (msg.indexOf('termination') > -1 || msg.indexOf('code') > -1) {
               console.log('[mb-contracts] Retrying termination without code...');
               delete terminateBody.TerminationCode;
-              await mbFetch('/contract/terminatecontract', {
+              await mbFetch('/client/terminatecontract', {
                 method: 'POST',
                 body: JSON.stringify(terminateBody)
               });
@@ -210,7 +210,7 @@ exports.handler = async function(event) {
             DurationDays: durationDays
           }));
 
-          await mbFetch('/contract/suspendcontract', {
+          await mbFetch('/client/suspendcontract', {
             method: 'POST',
             body: JSON.stringify(suspendBody)
           });
