@@ -529,25 +529,23 @@
 
   // ── Calculate earliest termination date: 1 month + running days ──
   // T&C: 1 month + running days notice.
-  // Example: today Feb 8, next billing Mar 8.
-  //   Notice period: Mar 8 → Apr 8 (1 month)
-  //   Client uses membership until end of THAT billing cycle: Apr 8 → May 8
-  //   So termination effective date = next billing + 2 months
-  // Returns { terminationDate, useUntilDate }
+  // Next billing = last payment taken. Use membership until end of that cycle.
+  // Example: next billing Mar 8 → last payment Mar 8 → use until Apr 7 (day before next cycle)
+  // Returns { lastPaymentDate, useUntilDate }
   function calcTerminationDates(nextBillingDate) {
     var now = new Date();
     var base = nextBillingDate ? new Date(nextBillingDate) : now;
     if (base < now) base = now;
 
-    // Notice period ends 1 month after next billing
-    var noticeEnd = new Date(base);
-    noticeEnd.setMonth(noticeEnd.getMonth() + 1);
+    // Last payment = next billing date
+    var lastPayment = new Date(base);
 
-    // Client can use until end of the billing cycle that follows the notice period
-    var useUntil = new Date(noticeEnd);
+    // Use until = end of that billing cycle = 1 month later minus 1 day
+    var useUntil = new Date(base);
     useUntil.setMonth(useUntil.getMonth() + 1);
+    useUntil.setDate(useUntil.getDate() - 1);
 
-    return { terminationDate: noticeEnd, useUntilDate: useUntil };
+    return { lastPaymentDate: lastPayment, useUntilDate: useUntil };
   }
 
   // ── Calculate earliest pause start date (after next billing cycle) ──
@@ -733,12 +731,12 @@
         var errorEl = document.getElementById('yb-cancel-error');
         if (errorEl) errorEl.hidden = true;
 
-        // Calculate termination dates (1 month notice + running days)
+        // Calculate termination dates
         var termDates = calcTerminationDates(activeContract.nextBillingDate);
         var earliestEl = document.getElementById('yb-cancel-earliest-date');
-        if (earliestEl) earliestEl.textContent = formatDateDK(termDates.terminationDate);
+        if (earliestEl) earliestEl.textContent = formatDateDK(termDates.lastPaymentDate);
 
-        // "Use until" = end of the billing cycle after notice period
+        // "Use until" = end of that billing cycle (day before next would-be billing)
         var useUntilEl = document.getElementById('yb-cancel-use-until');
         if (useUntilEl) useUntilEl.textContent = formatDateDK(termDates.useUntilDate);
       });
@@ -2147,8 +2145,8 @@
       membership_pause_error: isDa() ? 'Kunne ikke sætte abonnement på pause. Prøv igen.' : 'Could not pause membership. Please try again.',
       membership_cancel_title: isDa() ? 'Opsig abonnement' : 'Cancel membership',
       membership_cancel_desc: isDa() ? 'Opsigelse følger vores vilkår: 1 måned + løbende dage. Du kan bruge dit abonnement indtil udgangen af den betalte periode.' : 'Cancellation follows our terms: 1 month + running days notice. You can use your membership until the end of the paid period.',
-      membership_cancel_earliest: isDa() ? 'Tidligste opsigelsesdato' : 'Earliest cancellation date',
-      membership_cancel_use_until: isDa() ? 'Du kan bruge dit abonnement til og med' : 'You can use your membership until',
+      membership_cancel_earliest: isDa() ? 'Sidste betaling (næste fakturering)' : 'Last payment (next billing)',
+      membership_cancel_use_until: isDa() ? 'Brug dit abonnement til og med' : 'Use your membership until',
       membership_cancel_confirm: isDa() ? 'Bekræft opsigelse' : 'Confirm cancellation',
       membership_cancel_confirming: isDa() ? 'Behandler...' : 'Processing...',
       membership_cancel_success: isDa() ? 'Dit abonnement er opsagt.' : 'Your membership has been cancelled.',
