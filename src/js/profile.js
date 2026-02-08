@@ -8,6 +8,7 @@
   var currentUser = null;
   var currentDb = null;
   var clientId = null; // Mindbody client ID from Firestore
+  var clientPassData = null; // Cached pass/service data
 
   var checkInterval = setInterval(function() {
     if (typeof firebase !== 'undefined' && firebase.apps && firebase.apps.length) {
@@ -29,6 +30,7 @@
     initStoreForm();
     initScheduleNav();
     initAvatarUpload(db);
+    initVisitFilters();
 
     auth.onAuthStateChanged(function(user) {
       if (user) {
@@ -40,6 +42,7 @@
       } else {
         currentUser = null;
         clientId = null;
+        clientPassData = null;
         guestEl.style.display = '';
         userEl.style.display = 'none';
       }
@@ -56,6 +59,8 @@
         var firstName = document.getElementById('yb-profile-firstname').value.trim();
         var lastName = document.getElementById('yb-profile-lastname').value.trim();
         var phone = document.getElementById('yb-profile-phone').value.trim();
+        var dobInput = document.getElementById('yb-profile-dob');
+        var dob = dobInput ? dobInput.value : '';
         var errorEl = document.getElementById('yb-profile-error');
         var successEl = document.getElementById('yb-profile-success');
         var btn = profileForm.querySelector('button[type="submit"]');
@@ -70,23 +75,34 @@
         btn.textContent = isDa() ? 'Gemmer...' : 'Saving...';
         var fullName = firstName + ' ' + lastName;
 
+        var updateData = {
+          firstName: firstName, lastName: lastName, name: fullName, phone: phone,
+          updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+        };
+        if (dob) updateData.dateOfBirth = dob;
+
         user.updateProfile({ displayName: fullName }).then(function() {
-          return db.collection('users').doc(user.uid).update({
-            firstName: firstName, lastName: lastName, name: fullName, phone: phone,
-            updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-          });
+          return db.collection('users').doc(user.uid).update(updateData);
         }).then(function() {
           showMsg(errorEl, successEl, isDa() ? 'Dine oplysninger er opdateret.' : 'Your details have been updated.', false);
           var nameEl = document.getElementById('yb-profile-display-name');
           var avatarEl = document.getElementById('yb-profile-avatar');
           if (nameEl) nameEl.textContent = fullName;
-          if (avatarEl) avatarEl.textContent = getInitials(fullName);
+          if (avatarEl && !avatarEl.classList.contains('has-photo')) avatarEl.textContent = getInitials(fullName);
+
+          // Hide reminder if now complete
+          if (phone && dob) {
+            var reminderEl = document.getElementById('yb-profile-reminder');
+            if (reminderEl) reminderEl.hidden = true;
+          }
 
           // Sync to backend silently
           if (clientId) {
+            var mbData = { clientId: clientId, firstName: firstName, lastName: lastName, phone: phone, email: user.email };
+            if (dob) mbData.birthDate = dob;
             fetch('/.netlify/functions/mb-client', {
               method: 'PUT', headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ clientId: clientId, firstName: firstName, lastName: lastName, phone: phone, email: user.email })
+              body: JSON.stringify(mbData)
             }).catch(function() {});
           }
         }).catch(function(err) {
@@ -174,17 +190,29 @@
       var fnEl = document.getElementById('yb-profile-firstname');
       var lnEl = document.getElementById('yb-profile-lastname');
       var phEl = document.getElementById('yb-profile-phone');
+      var dobEl = document.getElementById('yb-profile-dob');
       if (fnEl) fnEl.value = d.firstName || '';
       if (lnEl) lnEl.value = d.lastName || '';
       if (phEl) phEl.value = d.phone || '';
+      if (dobEl) dobEl.value = d.dateOfBirth || '';
 
-      if (d.mindbodyClientId) clientId = d.mindbodyClientId;
+      if (d.mindbodyClientId) {
+        clientId = d.mindbodyClientId;
+        // Load membership details
+        loadMembershipDetails();
+      }
 
       // Load saved profile picture
       if (d.photoURL && avatarEl) {
         avatarEl.style.backgroundImage = 'url(' + d.photoURL + ')';
         avatarEl.textContent = '';
         avatarEl.classList.add('has-photo');
+      }
+
+      // Show soft reminder if phone or DOB missing
+      var reminderEl = document.getElementById('yb-profile-reminder');
+      if (reminderEl && (!d.phone || !d.dateOfBirth)) {
+        reminderEl.hidden = false;
       }
 
       var sinceEl = document.getElementById('yb-profile-member-since');
@@ -293,6 +321,116 @@
       img.src = e.target.result;
     };
     reader.readAsDataURL(file);
+  }
+
+  // ══════════════════════════════════════
+  // MEMBERSHIP DETAILS (passes + contracts)
+  // ══════════════════════════════════════
+  function loadMembershipDetails() {
+    if (!clientId) return;
+
+    var loadingEl = document.getElementById('yb-membership-loading');
+    var contentEl = document.getElementById('yb-membership-content');
+    if (!contentEl) return;
+    if (loadingEl) loadingEl.hidden = false;
+
+    fetch('/.netlify/functions/mb-client-services?clientId=' + clientId)
+      .then(function(r) { return r.json(); })
+      .then(function(data) {
+        if (loadingEl) loadingEl.hidden = true;
+        clientPassData = data;
+        renderMembershipDetails(contentEl, data);
+
+        // Update tier if they have active passes
+        if (data.hasActivePass) {
+          var tierEl = document.getElementById('yb-profile-tier');
+          if (tierEl) {
+            tierEl.textContent = isDa() ? 'Medlem' : 'Member';
+            tierEl.className = 'yb-profile__info-value yb-profile__info-value--success';
+          }
+        }
+      })
+      .catch(function() {
+        if (loadingEl) loadingEl.hidden = true;
+      });
+  }
+
+  function renderMembershipDetails(container, data) {
+    var html = '';
+
+    // Active passes
+    var active = data.activeServices || [];
+    html += '<div class="yb-membership__section">';
+    html += '<h3 class="yb-membership__section-title">' + t('membership_active_passes') + '</h3>';
+    if (active.length) {
+      active.forEach(function(s) {
+        html += '<div class="yb-membership__pass">';
+        html += '<div class="yb-membership__pass-info">';
+        html += '<span class="yb-membership__pass-name">' + esc(s.name) + '</span>';
+        if (s.remaining != null) {
+          html += '<span class="yb-membership__pass-remaining">' + s.remaining + ' ' + t('membership_remaining') + '</span>';
+        } else {
+          html += '<span class="yb-membership__pass-remaining">' + t('membership_unlimited') + '</span>';
+        }
+        html += '</div>';
+        if (s.expirationDate) {
+          var expDate = new Date(s.expirationDate);
+          html += '<span class="yb-membership__pass-expiry">' + t('membership_expires') + ' ' + expDate.toLocaleDateString(isDa() ? 'da-DK' : 'en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) + '</span>';
+        }
+        html += '<span class="yb-membership__badge yb-membership__badge--active">' + t('membership_status_active') + '</span>';
+        html += '</div>';
+      });
+    } else {
+      html += '<p class="yb-membership__empty">' + t('membership_no_active') + '</p>';
+    }
+    html += '</div>';
+
+    // Active contracts (subscriptions)
+    var contracts = data.activeContracts || [];
+    if (contracts.length) {
+      html += '<div class="yb-membership__section">';
+      html += '<h3 class="yb-membership__section-title">' + t('membership_contracts') + '</h3>';
+      contracts.forEach(function(c) {
+        html += '<div class="yb-membership__pass">';
+        html += '<div class="yb-membership__pass-info">';
+        html += '<span class="yb-membership__pass-name">' + esc(c.name) + '</span>';
+        if (c.isAutopay) {
+          html += '<span class="yb-membership__pass-remaining">' + t('membership_autopay') + '</span>';
+        }
+        html += '</div>';
+        if (c.endDate) {
+          var endDate = new Date(c.endDate);
+          html += '<span class="yb-membership__pass-expiry">' + t('membership_expires') + ' ' + endDate.toLocaleDateString(isDa() ? 'da-DK' : 'en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) + '</span>';
+        }
+        html += '<span class="yb-membership__badge yb-membership__badge--active">' + t('membership_status_active') + '</span>';
+        html += '</div>';
+      });
+      html += '</div>';
+    }
+
+    // Past passes (expired)
+    var past = (data.services || []).filter(function(s) { return !s.current; });
+    if (past.length) {
+      html += '<div class="yb-membership__section">';
+      html += '<h3 class="yb-membership__section-title">' + t('membership_past_passes') + '</h3>';
+      past.forEach(function(s) {
+        html += '<div class="yb-membership__pass yb-membership__pass--expired">';
+        html += '<div class="yb-membership__pass-info">';
+        html += '<span class="yb-membership__pass-name">' + esc(s.name) + '</span>';
+        if (s.remaining != null) {
+          html += '<span class="yb-membership__pass-remaining">' + s.remaining + ' ' + t('membership_remaining') + '</span>';
+        }
+        html += '</div>';
+        if (s.expirationDate) {
+          var expDate = new Date(s.expirationDate);
+          html += '<span class="yb-membership__pass-expiry">' + t('membership_expires') + ' ' + expDate.toLocaleDateString(isDa() ? 'da-DK' : 'en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) + '</span>';
+        }
+        html += '</div>';
+      });
+      html += '</div>';
+    }
+
+    container.innerHTML = html;
   }
 
   // ══════════════════════════════════════
@@ -433,6 +571,9 @@
           var sEl = document.getElementById('yb-store-success');
           if (sEl) sEl.hidden = false;
           document.getElementById('yb-store-checkout-form').reset();
+          // Refresh membership data after purchase
+          clientPassData = null;
+          loadMembershipDetails();
         } else if (data.requiresSCA) {
           showSimpleError(errorEl, isDa() ? 'Dit kort kræver yderligere godkendelse.' : 'Your card requires additional authentication.');
         } else {
@@ -508,7 +649,8 @@
     var url = '/.netlify/functions/mb-classes?startDate=' + startStr + '&endDate=' + endStr;
     if (clientId) url += '&clientId=' + clientId;
 
-    console.log('[Schedule] Fetching:', url, 'week offset:', scheduleWeekOffset);
+    // Also load pass info for the schedule banner
+    loadSchedulePassInfo();
 
     fetch(url)
       .then(function(r) { return r.json(); })
@@ -518,6 +660,56 @@
         renderSchedule(listEl, classes, start);
       })
       .catch(function() { listEl.innerHTML = '<p class="yb-store__error">' + t('schedule_error') + '</p>'; });
+  }
+
+  function loadSchedulePassInfo() {
+    if (!clientId) return;
+    var passInfoEl = document.getElementById('yb-schedule-pass-info');
+    var noPassEl = document.getElementById('yb-schedule-no-pass');
+    if (!passInfoEl) return;
+
+    // Use cached data if available
+    if (clientPassData) {
+      renderSchedulePassInfo(passInfoEl, noPassEl, clientPassData);
+      return;
+    }
+
+    fetch('/.netlify/functions/mb-client-services?clientId=' + clientId)
+      .then(function(r) { return r.json(); })
+      .then(function(data) {
+        clientPassData = data;
+        renderSchedulePassInfo(passInfoEl, noPassEl, data);
+      })
+      .catch(function() {});
+  }
+
+  function renderSchedulePassInfo(passInfoEl, noPassEl, data) {
+    if (data.hasActivePass) {
+      // Show pass info, hide "buy pass"
+      if (noPassEl) noPassEl.hidden = true;
+      var active = data.activeServices || [];
+      if (active.length) {
+        var s = active[0]; // Show primary active pass
+        var html = '<div class="yb-schedule__pass-detail">';
+        html += '<div class="yb-schedule__pass-detail-info">';
+        html += '<span class="yb-schedule__pass-detail-label">' + t('schedule_pass_info') + '</span>';
+        html += '<span class="yb-schedule__pass-detail-name">' + esc(s.name) + '</span>';
+        html += '</div>';
+        html += '<div class="yb-schedule__pass-detail-stats">';
+        if (s.remaining != null) {
+          html += '<span class="yb-schedule__pass-stat"><strong>' + s.remaining + '</strong> ' + t('schedule_remaining') + '</span>';
+        }
+        if (s.expirationDate) {
+          var expDate = new Date(s.expirationDate);
+          html += '<span class="yb-schedule__pass-stat">' + t('schedule_expires') + ' ' + expDate.toLocaleDateString(isDa() ? 'da-DK' : 'en-GB', { day: 'numeric', month: 'short' }) + '</span>';
+        }
+        html += '</div>';
+        html += '</div>';
+        passInfoEl.innerHTML = html;
+        passInfoEl.hidden = false;
+      }
+    }
+    // Don't show no-pass by default — only show after a booking fails
   }
 
   function renderSchedule(container, classes, weekStart) {
@@ -552,6 +744,7 @@
         var startTime = formatTime(cls.startDateTime);
         var endTime = formatTime(cls.endDateTime);
         var isPast = new Date(cls.startDateTime) < new Date();
+        var descId = 'yb-desc-' + cls.id;
 
         html += '<div class="yb-schedule__class' + (cls.isCanceled ? ' is-cancelled' : '') + (isPast ? ' is-past' : '') + '">';
         html += '  <div class="yb-schedule__class-time">' + startTime + ' – ' + endTime + '</div>';
@@ -560,6 +753,10 @@
         html += '    <span class="yb-schedule__class-instructor">' + esc(cls.instructor) + '</span>';
         if (cls.spotsLeft !== null && cls.spotsLeft > 0 && !cls.isCanceled && !isPast) {
           html += '    <span class="yb-schedule__class-spots">' + cls.spotsLeft + ' ' + t('schedule_spots_left') + '</span>';
+        }
+        // Class description toggle
+        if (cls.description) {
+          html += '    <button class="yb-schedule__desc-toggle" type="button" data-toggle-desc="' + descId + '">' + t('schedule_show_desc') + '</button>';
         }
         html += '  </div>';
         html += '  <div class="yb-schedule__class-action">';
@@ -578,6 +775,13 @@
 
         html += '  </div>';
         html += '</div>';
+
+        // Expandable description
+        if (cls.description) {
+          html += '<div class="yb-schedule__desc" id="' + descId + '" hidden>';
+          html += '<p>' + esc(cls.description) + '</p>';
+          html += '</div>';
+        }
       });
 
       html += '</div>';
@@ -591,6 +795,17 @@
     });
     container.querySelectorAll('[data-schedule-cancel]').forEach(function(btn) {
       btn.addEventListener('click', function() { cancelClass(btn); });
+    });
+    // Attach description toggle handlers
+    container.querySelectorAll('[data-toggle-desc]').forEach(function(btn) {
+      btn.addEventListener('click', function() {
+        var descEl = document.getElementById(btn.getAttribute('data-toggle-desc'));
+        if (descEl) {
+          var isHidden = descEl.hidden;
+          descEl.hidden = !isHidden;
+          btn.textContent = isHidden ? t('schedule_hide_desc') : t('schedule_show_desc');
+        }
+      });
     });
   }
 
@@ -620,11 +835,17 @@
           btn.disabled = false;
           // Re-attach as cancel handler
           btn.addEventListener('click', function() { cancelClass(btn); });
+          // Refresh pass data (booking uses a clip)
+          clientPassData = null;
+          loadSchedulePassInfo();
         } else {
           // No active membership or pass
           if (data.error === 'no_pass') {
             var noPassEl = document.getElementById('yb-schedule-no-pass');
             if (noPassEl) noPassEl.hidden = false;
+            // Hide pass info banner if it was shown
+            var passInfoEl = document.getElementById('yb-schedule-pass-info');
+            if (passInfoEl) passInfoEl.hidden = true;
             showScheduleToast(isDa() ? 'Du har brug for et klippekort eller medlemskab.' : 'You need a class pass or membership.', 'error');
           } else {
             showScheduleToast(data.error || (isDa() ? 'Booking fejlede.' : 'Booking failed.'), 'error');
@@ -660,6 +881,9 @@
           btn.setAttribute('data-schedule-book', classId);
           btn.disabled = false;
           btn.addEventListener('click', function() { bookClass(btn); });
+          // Refresh pass data (cancel returns a clip)
+          clientPassData = null;
+          loadSchedulePassInfo();
         } else {
           showScheduleToast(data.error || (isDa() ? 'Annullering fejlede.' : 'Cancellation failed.'), 'error');
           btn.disabled = false;
@@ -684,6 +908,34 @@
   // ══════════════════════════════════════
   // VISITS TAB
   // ══════════════════════════════════════
+  var allVisits = []; // Cache for filtering
+  var activeVisitFilter = 'all';
+
+  function initVisitFilters() {
+    document.querySelectorAll('[data-visit-filter]').forEach(function(btn) {
+      btn.addEventListener('click', function() {
+        activeVisitFilter = btn.getAttribute('data-visit-filter');
+        document.querySelectorAll('[data-visit-filter]').forEach(function(b) { b.classList.remove('is-active'); });
+        btn.classList.add('is-active');
+        if (allVisits.length) {
+          var listEl = document.getElementById('yb-visits-list');
+          if (listEl) renderVisits(listEl, filterVisits(allVisits));
+        }
+      });
+    });
+  }
+
+  function filterVisits(visits) {
+    if (activeVisitFilter === 'all') return visits;
+    var now = new Date();
+    return visits.filter(function(v) {
+      if (activeVisitFilter === 'upcoming') return v.isFuture || new Date(v.startDateTime) > now;
+      if (activeVisitFilter === 'attended') return v.signedIn;
+      if (activeVisitFilter === 'noshow') return !v.signedIn && !v.lateCancelled && !v.isFuture && new Date(v.startDateTime) <= now;
+      return true;
+    });
+  }
+
   function loadVisits() {
     var listEl = document.getElementById('yb-visits-list');
     if (!listEl || !clientId) {
@@ -694,9 +946,9 @@
     fetch('/.netlify/functions/mb-visits?clientId=' + clientId)
       .then(function(r) { return r.json(); })
       .then(function(data) {
-        var visits = data.visits || [];
-        if (!visits.length) { listEl.innerHTML = '<p class="yb-store__empty">' + t('visits_empty') + '</p>'; return; }
-        renderVisits(listEl, visits);
+        allVisits = data.visits || [];
+        if (!allVisits.length) { listEl.innerHTML = '<p class="yb-store__empty">' + t('visits_empty') + '</p>'; return; }
+        renderVisits(listEl, filterVisits(allVisits));
       })
       .catch(function() { listEl.innerHTML = '<p class="yb-store__error">' + t('visits_error') + '</p>'; });
   }
@@ -704,6 +956,11 @@
   function renderVisits(container, visits) {
     // Sort newest first
     visits.sort(function(a, b) { return new Date(b.startDateTime) - new Date(a.startDateTime); });
+
+    if (!visits.length) {
+      container.innerHTML = '<p class="yb-store__empty">' + t('visits_empty') + '</p>';
+      return;
+    }
 
     var html = '<div class="yb-visits__table">';
     html += '<div class="yb-visits__row yb-visits__row--header">';
@@ -713,18 +970,31 @@
     html += '<span>' + (isDa() ? 'Status' : 'Status') + '</span>';
     html += '</div>';
 
+    var now = new Date();
+
     visits.forEach(function(v) {
       var d = new Date(v.startDateTime);
       var dateStr = d.toLocaleDateString(isDa() ? 'da-DK' : 'en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
       var timeStr = formatTime(v.startDateTime);
+      var isFuture = v.isFuture || d > now;
 
       var status = '';
       var statusClass = '';
-      if (v.lateCancelled) { status = t('visits_late_cancel'); statusClass = 'yb-visits__status--late'; }
-      else if (v.signedIn) { status = t('visits_signed_in'); statusClass = 'yb-visits__status--attended'; }
-      else { status = t('visits_no_show'); statusClass = 'yb-visits__status--noshow'; }
+      if (v.lateCancelled) {
+        status = t('visits_late_cancel');
+        statusClass = 'yb-visits__status--late';
+      } else if (isFuture) {
+        status = t('visits_booked');
+        statusClass = 'yb-visits__status--booked';
+      } else if (v.signedIn) {
+        status = t('visits_signed_in');
+        statusClass = 'yb-visits__status--attended';
+      } else {
+        status = t('visits_no_show');
+        statusClass = 'yb-visits__status--noshow';
+      }
 
-      html += '<div class="yb-visits__row">';
+      html += '<div class="yb-visits__row' + (isFuture ? ' yb-visits__row--future' : '') + '">';
       html += '<span class="yb-visits__date">' + dateStr + '<br><small>' + timeStr + '</small></span>';
       html += '<span class="yb-visits__name">' + esc(v.name) + '</span>';
       html += '<span class="yb-visits__instructor">' + esc(v.instructor) + '</span>';
@@ -760,24 +1030,35 @@
     // Sort newest first
     purchases.sort(function(a, b) { return new Date(b.saleDate) - new Date(a.saleDate); });
 
-    var html = '<div class="yb-receipts__table">';
-    html += '<div class="yb-receipts__row yb-receipts__row--header">';
-    html += '<span>' + t('receipts_date') + '</span>';
-    html += '<span>' + t('receipts_item') + '</span>';
-    html += '<span>' + t('receipts_amount') + '</span>';
-    html += '<span>' + t('receipts_payment') + '</span>';
-    html += '</div>';
+    var html = '<div class="yb-receipts__list-inner">';
 
     purchases.forEach(function(p) {
       var d = new Date(p.saleDate);
       var dateStr = d.toLocaleDateString(isDa() ? 'da-DK' : 'en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
       var name = p.serviceName || p.description || '—';
+      var paymentDisplay = p.paymentMethod || '—';
+      if (p.paymentLast4) paymentDisplay += ' ****' + p.paymentLast4;
 
-      html += '<div class="yb-receipts__row' + (p.returned ? ' yb-receipts__row--returned' : '') + '">';
-      html += '<span class="yb-receipts__date">' + dateStr + '</span>';
-      html += '<span class="yb-receipts__name">' + esc(name) + '</span>';
-      html += '<span class="yb-receipts__amount">' + formatDKK(p.amountPaid || p.price) + '</span>';
-      html += '<span class="yb-receipts__payment">' + esc(p.paymentMethod || '—') + '</span>';
+      html += '<div class="yb-receipts__card' + (p.returned ? ' yb-receipts__card--returned' : '') + '">';
+      html += '<div class="yb-receipts__card-header">';
+      html += '<span class="yb-receipts__card-date">' + dateStr + '</span>';
+      if (p.returned) {
+        html += '<span class="yb-receipts__card-badge yb-receipts__card-badge--returned">' + (isDa() ? 'Refunderet' : 'Refunded') + '</span>';
+      }
+      html += '</div>';
+      html += '<div class="yb-receipts__card-body">';
+      html += '<span class="yb-receipts__card-name">' + esc(name) + '</span>';
+      if (p.quantity > 1) {
+        html += '<span class="yb-receipts__card-qty">' + (isDa() ? 'Antal' : 'Qty') + ': ' + p.quantity + '</span>';
+      }
+      html += '</div>';
+      html += '<div class="yb-receipts__card-footer">';
+      html += '<span class="yb-receipts__card-amount">' + formatDKK(p.amountPaid || p.price) + '</span>';
+      html += '<span class="yb-receipts__card-payment">' + esc(paymentDisplay) + '</span>';
+      html += '</div>';
+      if (p.discount > 0) {
+        html += '<div class="yb-receipts__card-discount">' + (isDa() ? 'Rabat' : 'Discount') + ': -' + formatDKK(p.discount) + '</div>';
+      }
       html += '</div>';
     });
 
@@ -806,17 +1087,34 @@
       schedule_full: isDa() ? 'Fuldt' : 'Full',
       schedule_cancelled: isDa() ? 'Aflyst' : 'Cancelled',
       schedule_spots_left: isDa() ? 'pladser tilbage' : 'spots left',
+      schedule_pass_info: isDa() ? 'Dit aktive klippekort' : 'Your active pass',
+      schedule_remaining: isDa() ? 'klip tilbage' : 'sessions left',
+      schedule_expires: isDa() ? 'Udløber' : 'Expires',
+      schedule_show_desc: isDa() ? 'Vis beskrivelse' : 'Show description',
+      schedule_hide_desc: isDa() ? 'Skjul beskrivelse' : 'Hide description',
       visits_empty: isDa() ? 'Ingen besøg endnu.' : 'No visits yet.',
       visits_error: isDa() ? 'Kunne ikke hente besøgshistorik.' : 'Could not load visit history.',
       visits_signed_in: isDa() ? 'Deltaget' : 'Attended',
       visits_no_show: isDa() ? 'Udeblivelse' : 'No show',
       visits_late_cancel: isDa() ? 'Sen annullering' : 'Late cancellation',
+      visits_booked: isDa() ? 'Booket' : 'Booked',
       receipts_empty: isDa() ? 'Ingen kvitteringer endnu.' : 'No receipts yet.',
       receipts_error: isDa() ? 'Kunne ikke hente kvitteringer.' : 'Could not load receipts.',
       receipts_date: isDa() ? 'Dato' : 'Date',
       receipts_item: isDa() ? 'Vare' : 'Item',
       receipts_amount: isDa() ? 'Beløb' : 'Amount',
-      receipts_payment: isDa() ? 'Betaling' : 'Payment'
+      receipts_payment: isDa() ? 'Betaling' : 'Payment',
+      membership_active_passes: isDa() ? 'Aktive Klippekort' : 'Active Passes',
+      membership_no_active: isDa() ? 'Ingen aktive klippekort.' : 'No active passes.',
+      membership_remaining: isDa() ? 'klip tilbage' : 'sessions left',
+      membership_expires: isDa() ? 'Udløber' : 'Expires',
+      membership_unlimited: isDa() ? 'Ubegrænset' : 'Unlimited',
+      membership_contracts: isDa() ? 'Abonnementer' : 'Subscriptions',
+      membership_no_contracts: isDa() ? 'Ingen aktive abonnementer.' : 'No active subscriptions.',
+      membership_autopay: isDa() ? 'Automatisk betaling' : 'Auto-pay',
+      membership_status_active: isDa() ? 'Aktiv' : 'Active',
+      membership_past_passes: isDa() ? 'Tidligere Klippekort' : 'Past Passes',
+      membership_no_past: isDa() ? 'Ingen tidligere klippekort.' : 'No past passes.'
     };
     return map[key] || key;
   }
