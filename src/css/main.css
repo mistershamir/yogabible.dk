@@ -8050,15 +8050,57 @@ section {
   margin-top: 0.25rem;
 }
 
-.yb-membership__manage-btn--revoke {
-  background: none;
+.yb-membership__retention-card {
+  margin-top: 1rem;
+  padding: 1.25rem;
+  background: linear-gradient(135deg, #FFFCF9 0%, #FFF5EE 100%);
   border: 1.5px solid #f75c03;
-  color: #f75c03;
+  border-radius: 12px;
 }
 
-.yb-membership__manage-btn--revoke:hover {
-  background: #f75c03;
-  color: #fff;
+.yb-membership__retention-icon {
+  margin-bottom: 0.5rem;
+}
+
+.yb-membership__retention-title {
+  font-family: 'Abacaxi', sans-serif;
+  font-weight: 700;
+  font-size: 1.05rem;
+  color: #0F0F0F;
+  margin: 0 0 0.35rem;
+}
+
+.yb-membership__retention-desc {
+  color: #6F6A66;
+  font-size: 0.9rem;
+  margin: 0 0 0.75rem;
+  line-height: 1.5;
+}
+
+.yb-membership__retention-perks {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 1rem;
+}
+
+.yb-membership__retention-perks li {
+  position: relative;
+  padding-left: 1.5rem;
+  font-size: 0.9rem;
+  color: #0F0F0F;
+  margin-bottom: 0.4rem;
+}
+
+.yb-membership__retention-perks li::before {
+  content: '\2713';
+  position: absolute;
+  left: 0;
+  color: #f75c03;
+  font-weight: 700;
+}
+
+.yb-membership__retention-btn {
+  width: 100%;
 }
 
 /* ── Manage Panels (Pause / Cancel) ── */
