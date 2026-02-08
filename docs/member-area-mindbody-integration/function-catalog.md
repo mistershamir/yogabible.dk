@@ -124,9 +124,13 @@
 - **MB Endpoints:**
   - `GET /sale/contracts` (with LocationId=1 retry)
   - `POST /sale/purchasecontract` (with CreditCardInfo in PascalCase)
-  - `POST /{category}/terminatecontract` (tries `/contract/`, `/sale/`, `/client/`)
-  - `POST /{category}/suspendcontract` (tries `/contract/`, `/sale/`, `/client/`)
-- **Returns:** GET: `{ contracts[], total }` | POST: `{ success, endpointUsed?, ... }`
+  - `POST /sale/terminatecontract` (primary — also tries `/contract/`, `/client/` as fallback)
+  - `POST /sale/suspendcontract` (primary — also tries `/contract/`, `/client/` as fallback)
+  - `POST /sale/activatecontract` (revoke termination — also tries fallback paths)
+- **Actions:** `terminate`, `suspend`, `activate` (via `body.action`)
+- **Token:** Forces fresh token (clears cache) for all management actions
+- **Diagnostics:** Returns `_pathResults` array showing which paths were tried and what each returned
+- **Returns:** GET: `{ contracts[], total }` | POST: `{ success, endpointUsed?, _pathResults, ... }`
 
 ### mb-contract-manage.js
 - **Method:** POST
