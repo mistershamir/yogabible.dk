@@ -1,6 +1,577 @@
 {% set t = i18n.compare[lang or "da"] %}
 
-<!-- Hero -->
+<!-- ═══════════════════════════════════════
+     PAGE-SCOPED STYLES
+     ═══════════════════════════════════════ -->
+<style>
+/* Compare Page — Scoped Styles */
+.cmp-dark {
+  background: linear-gradient(135deg, #1C1C1C 0%, #2a2a2a 100%);
+  color: #FDFBF7;
+  padding: 100px 20px;
+}
+.cmp-dark .section-title,
+.cmp-dark .section-subtitle { color: #FDFBF7; }
+.cmp-dark .section-subtitle { opacity: 0.8; }
+
+.cmp-light {
+  background: #fff;
+  padding: 100px 20px;
+}
+
+.cmp-warm {
+  background: #F5F3F0;
+  padding: 100px 20px;
+}
+
+.cmp-brand {
+  background: linear-gradient(135deg, #f75c03 0%, #d94f02 100%);
+  color: #fff;
+  padding: 100px 20px;
+}
+
+/* Eyebrow */
+.cmp-eyebrow {
+  display: inline-block;
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  color: var(--yb-brand);
+  margin-bottom: 16px;
+}
+.cmp-dark .cmp-eyebrow { color: #ff9966; }
+.cmp-brand .cmp-eyebrow { color: rgba(255,255,255,0.7); }
+
+/* Stats Bar */
+.cmp-stats {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 32px;
+  max-width: 900px;
+  margin: 0 auto;
+  text-align: center;
+}
+.cmp-stats__item { padding: 20px 0; }
+.cmp-stats__num {
+  display: block;
+  font-size: clamp(2.2rem, 4vw, 3.2rem);
+  font-weight: 700;
+  color: var(--yb-brand);
+  line-height: 1;
+  margin-bottom: 8px;
+}
+.cmp-dark .cmp-stats__num { color: #ff9966; }
+.cmp-stats__label {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: #6F6A66;
+}
+.cmp-dark .cmp-stats__label { color: rgba(253,251,247,0.6); }
+
+/* Accent Cards Grid */
+.cmp-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 24px;
+  max-width: 1100px;
+  margin: 48px auto 0;
+}
+.cmp-card {
+  background: #fff;
+  border: 1px solid #E8E4E0;
+  border-radius: 12px;
+  padding: 28px 24px;
+  position: relative;
+  overflow: hidden;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+.cmp-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 32px rgba(0,0,0,0.1);
+}
+.cmp-card::before {
+  content: "";
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 4px;
+  background: var(--yb-brand);
+  border-radius: 12px 12px 0 0;
+}
+.cmp-card__icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 10px;
+  background: #FFF5F0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.2rem;
+  margin-bottom: 16px;
+}
+.cmp-card h3 {
+  font-size: 1rem;
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+.cmp-card p {
+  font-size: 0.85rem;
+  color: #6F6A66;
+  line-height: 1.6;
+}
+.cmp-dark .cmp-card {
+  background: rgba(255,255,255,0.05);
+  border-color: rgba(255,255,255,0.1);
+}
+.cmp-dark .cmp-card p { color: rgba(253,251,247,0.7); }
+.cmp-dark .cmp-card h3 { color: #FDFBF7; }
+.cmp-dark .cmp-card__icon { background: rgba(247,92,3,0.15); }
+
+/* Spectrum Visual */
+.cmp-spectrum {
+  display: flex;
+  max-width: 900px;
+  margin: 48px auto 0;
+  border-radius: 12px;
+  overflow: hidden;
+}
+.cmp-spectrum__bar {
+  padding: 24px 12px;
+  text-align: center;
+  font-weight: 700;
+  font-size: 0.85rem;
+  color: #fff;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  transition: flex 0.5s ease;
+}
+.cmp-spectrum__bar small {
+  font-size: 0.65rem;
+  font-weight: 400;
+  opacity: 0.8;
+}
+
+/* Hour Section Cards (30h, 50h, 100h) */
+.cmp-hour-section {
+  max-width: 1000px;
+  margin: 0 auto;
+}
+.cmp-hour-header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 32px;
+}
+.cmp-hour-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  font-weight: 700;
+  font-size: 1rem;
+  flex-shrink: 0;
+}
+.cmp-hour-badge--30 { background: #6F6A66; color: #fff; }
+.cmp-hour-badge--50 { background: #8a7968; color: #fff; }
+.cmp-hour-badge--100 { background: #6a5a4a; color: #fff; }
+.cmp-hour-badge--200 { background: var(--yb-brand); color: #fff; }
+.cmp-hour-badge--300 { background: #d94f02; color: #fff; }
+
+.cmp-two-col {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+  margin-top: 32px;
+}
+.cmp-col-card {
+  background: #fff;
+  border: 1px solid #E8E4E0;
+  border-radius: 12px;
+  padding: 28px;
+}
+.cmp-col-card h3 {
+  font-size: 1rem;
+  font-weight: 700;
+  margin-bottom: 16px;
+  padding-bottom: 12px;
+  border-bottom: 2px solid var(--yb-brand);
+}
+.cmp-col-card ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+.cmp-col-card li {
+  padding: 8px 0;
+  font-size: 0.85rem;
+  line-height: 1.6;
+  border-bottom: 1px solid #F5F3F0;
+}
+.cmp-col-card li:last-child { border-bottom: none; }
+.cmp-dark .cmp-col-card {
+  background: rgba(255,255,255,0.05);
+  border-color: rgba(255,255,255,0.1);
+}
+.cmp-dark .cmp-col-card h3 { color: #FDFBF7; }
+.cmp-dark .cmp-col-card li { color: rgba(253,251,247,0.85); border-color: rgba(255,255,255,0.06); }
+
+/* Split Comparison (Courses vs Trainings) */
+.cmp-split {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  max-width: 1000px;
+  margin: 48px auto 0;
+  border-radius: 12px;
+  overflow: hidden;
+}
+.cmp-split__dark {
+  background: #0F0F0F;
+  color: #FDFBF7;
+  padding: 40px 36px;
+}
+.cmp-split__light {
+  background: #fff;
+  padding: 40px 36px;
+  border: 1px solid #E8E4E0;
+  border-left: none;
+}
+.cmp-split h3 {
+  font-size: 1.2rem;
+  margin: 12px 0 20px;
+}
+.cmp-split__eyebrow {
+  font-size: 0.65rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+}
+.cmp-split__dark .cmp-split__eyebrow { color: rgba(255,255,255,0.5); }
+.cmp-split__light .cmp-split__eyebrow { color: var(--yb-brand); }
+.cmp-split ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+.cmp-split li {
+  padding: 10px 0;
+  font-size: 0.88rem;
+  line-height: 1.5;
+}
+.cmp-split__dark li { border-bottom: 1px solid rgba(255,255,255,0.08); }
+.cmp-split__light li { border-bottom: 1px solid #F5F3F0; }
+.cmp-split li:last-child { border-bottom: none; }
+
+/* Dark Quote */
+.cmp-quote-dark {
+  max-width: 800px;
+  margin: 0 auto;
+  text-align: center;
+  padding: 60px 40px;
+}
+.cmp-quote-dark__marks {
+  font-size: 3rem;
+  color: var(--yb-brand);
+  line-height: 1;
+  margin-bottom: 20px;
+}
+.cmp-quote-dark__text {
+  font-size: clamp(1.1rem, 2vw, 1.4rem);
+  font-style: italic;
+  line-height: 1.7;
+  color: #FDFBF7;
+  margin-bottom: 20px;
+}
+.cmp-quote-dark__author {
+  font-size: 0.85rem;
+  color: rgba(253,251,247,0.5);
+}
+
+/* Curriculum Bars */
+.cmp-bars {
+  max-width: 700px;
+  margin: 40px auto 0;
+}
+.cmp-bar-item {
+  margin-bottom: 20px;
+}
+.cmp-bar-item__header {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 6px;
+  font-size: 0.88rem;
+}
+.cmp-bar-item__label { font-weight: 700; }
+.cmp-bar-item__value { font-weight: 700; color: var(--yb-brand); }
+.cmp-bar-track {
+  background: rgba(247,92,3,0.1);
+  border-radius: 8px;
+  height: 10px;
+  overflow: hidden;
+}
+.cmp-bar-fill {
+  height: 100%;
+  background: var(--yb-brand);
+  border-radius: 8px;
+  transition: width 1s ease;
+}
+
+/* Numbered List (Why / Decision) */
+.cmp-numbered {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 32px;
+  max-width: 1100px;
+  margin: 48px auto 0;
+}
+.cmp-numbered__item {
+  padding: 32px 28px;
+  border: 1px solid #E8E4E0;
+  border-radius: 12px;
+  background: #fff;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+.cmp-numbered__item:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 32px rgba(0,0,0,0.1);
+}
+.cmp-numbered__num {
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--yb-brand);
+  line-height: 1;
+  margin-bottom: 12px;
+}
+.cmp-numbered__item h3 {
+  font-size: 1.05rem;
+  font-weight: 700;
+  margin-bottom: 10px;
+}
+.cmp-numbered__item p {
+  font-size: 0.85rem;
+  color: #6F6A66;
+  line-height: 1.6;
+  margin-bottom: 12px;
+}
+.cmp-numbered__link {
+  color: var(--yb-brand);
+  font-weight: 700;
+  font-size: 0.85rem;
+  text-decoration: none;
+}
+.cmp-numbered__link:hover { text-decoration: underline; }
+
+/* Teacher Profiles */
+.cmp-profiles {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 28px;
+  max-width: 1000px;
+  margin: 48px auto 0;
+}
+.cmp-profile {
+  border: 1.5px solid var(--yb-brand);
+  border-radius: 12px;
+  padding: 32px;
+  background: rgba(255,255,255,0.03);
+  transition: transform 0.3s ease;
+}
+.cmp-profile:hover { transform: translateY(-4px); }
+.cmp-profile__avatar {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  object-fit: cover;
+  margin-bottom: 16px;
+  background: rgba(247,92,3,0.15);
+}
+.cmp-profile__name {
+  font-size: 1.1rem;
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+.cmp-dark .cmp-profile__name { color: #FDFBF7; }
+.cmp-profile__hours {
+  font-size: 0.8rem;
+  color: var(--yb-brand);
+  font-weight: 700;
+  margin-bottom: 12px;
+}
+.cmp-dark .cmp-profile__hours { color: #ff9966; }
+.cmp-profile__bio {
+  font-size: 0.88rem;
+  line-height: 1.6;
+  color: #6F6A66;
+  margin-bottom: 16px;
+}
+.cmp-dark .cmp-profile__bio { color: rgba(253,251,247,0.7); }
+.cmp-profile__quote {
+  border-left: 3px solid var(--yb-brand);
+  padding-left: 16px;
+  font-style: italic;
+  font-size: 0.88rem;
+  color: #444;
+}
+.cmp-dark .cmp-profile__quote { color: rgba(253,251,247,0.6); }
+
+/* Comparison Table Redesign */
+.cmp-formats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+  max-width: 1000px;
+  margin: 48px auto 0;
+}
+.cmp-format-card {
+  background: #fff;
+  border: 1px solid #E8E4E0;
+  border-radius: 12px;
+  overflow: hidden;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+.cmp-format-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 32px rgba(0,0,0,0.1);
+}
+.cmp-format-card__header {
+  background: var(--yb-brand);
+  color: #fff;
+  padding: 20px 24px;
+  text-align: center;
+}
+.cmp-format-card__header h3 {
+  font-size: 1.1rem;
+  margin: 0;
+}
+.cmp-format-card__header small {
+  font-size: 0.75rem;
+  opacity: 0.85;
+}
+.cmp-format-card__body {
+  padding: 24px;
+}
+.cmp-format-card__row {
+  display: flex;
+  justify-content: space-between;
+  padding: 10px 0;
+  font-size: 0.85rem;
+  border-bottom: 1px solid #F5F3F0;
+}
+.cmp-format-card__row:last-child { border-bottom: none; }
+.cmp-format-card__row span:first-child {
+  color: #6F6A66;
+}
+.cmp-format-card__row span:last-child {
+  font-weight: 700;
+}
+.cmp-format-card__cta {
+  padding: 0 24px 24px;
+  text-align: center;
+}
+
+/* Journal CTA Banner */
+.cmp-journal-cta {
+  max-width: 800px;
+  margin: 40px auto 0;
+  background: rgba(247,92,3,0.06);
+  border: 1px solid rgba(247,92,3,0.15);
+  border-radius: 12px;
+  padding: 20px 28px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+.cmp-journal-cta__label {
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--yb-brand);
+  font-weight: 700;
+  margin-bottom: 2px;
+}
+.cmp-journal-cta__title {
+  font-weight: 700;
+  font-size: 0.95rem;
+  margin: 0;
+}
+.cmp-journal-cta__link {
+  color: var(--yb-brand);
+  font-weight: 700;
+  font-size: 0.85rem;
+  white-space: nowrap;
+  text-decoration: none;
+}
+.cmp-journal-cta__link:hover { text-decoration: underline; }
+.cmp-dark .cmp-journal-cta {
+  background: rgba(255,255,255,0.05);
+  border-color: rgba(255,255,255,0.1);
+}
+.cmp-dark .cmp-journal-cta__label { color: #ff9966; }
+.cmp-dark .cmp-journal-cta__title { color: #FDFBF7; }
+.cmp-dark .cmp-journal-cta__link { color: #ff9966; }
+
+/* Credential Strip */
+.cmp-credential {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 24px;
+  flex-wrap: wrap;
+  max-width: 700px;
+  margin: 40px auto 0;
+  padding: 20px 28px;
+  background: rgba(247,92,3,0.06);
+  border: 1px solid rgba(247,92,3,0.15);
+  border-radius: 12px;
+  text-align: center;
+  font-size: 0.88rem;
+}
+.cmp-credential strong {
+  font-size: 1rem;
+}
+
+/* Final CTA */
+.cmp-final-cta {
+  text-align: center;
+  max-width: 700px;
+  margin: 0 auto;
+}
+.cmp-final-cta h2 {
+  font-size: clamp(1.8rem, 3.5vw, 2.8rem);
+  font-weight: 700;
+  color: #fff;
+  margin-bottom: 16px;
+}
+.cmp-final-cta p {
+  font-size: 1.05rem;
+  color: rgba(255,255,255,0.85);
+  margin-bottom: 32px;
+  line-height: 1.6;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .cmp-stats { grid-template-columns: repeat(2, 1fr); gap: 20px; }
+  .cmp-split { grid-template-columns: 1fr; }
+  .cmp-split__light { border-left: 1px solid #E8E4E0; border-top: none; }
+  .cmp-two-col { grid-template-columns: 1fr; }
+  .cmp-formats { grid-template-columns: 1fr; }
+  .cmp-spectrum { flex-direction: column; }
+  .cmp-spectrum__bar { padding: 16px; }
+}
+</style>
+
+
+<!-- ═══════════════════════════════════════
+     1. HERO — Dark Cinematic
+     ═══════════════════════════════════════ -->
 <section class="yb-hero">
   <div class="yb-hero__glow"></div>
   <div class="yb-hero__content">
@@ -26,689 +597,753 @@
   </div>
 </section>
 
-<!-- Table of Contents -->
-<section class="program-overview">
-  <div class="container">
-    <h2 class="section-title">{{ t.toc_title }}</h2>
-    <p class="section-subtitle">{{ t.toc_subtitle }}</p>
 
-    <div class="program-grid" style="max-width:1000px; margin:0 auto;">
-      <div class="program-feature">
-        <div class="program-feature__icon">1</div>
-        <h3><a href="#knowledge-pillars" style="color:inherit; text-decoration:none;">{{ t.toc1_title }}</a></h3>
-        <p>{{ t.toc1_desc }}</p>
+<!-- ═══════════════════════════════════════
+     2. STATS BAR — Immediate Social Proof
+     ═══════════════════════════════════════ -->
+<section class="cmp-dark" style="padding:60px 20px;">
+  <div class="container">
+    <div class="cmp-stats">
+      <div class="cmp-stats__item">
+        <span class="cmp-stats__num">{{ t.stats_1_num }}</span>
+        <span class="cmp-stats__label">{{ t.stats_1_label }}</span>
       </div>
-      <div class="program-feature">
-        <div class="program-feature__icon">2</div>
-        <h3><a href="#hour-spectrum" style="color:inherit; text-decoration:none;">{{ t.toc2_title }}</a></h3>
-        <p>{{ t.toc2_desc }}</p>
+      <div class="cmp-stats__item">
+        <span class="cmp-stats__num">{{ t.stats_2_num }}</span>
+        <span class="cmp-stats__label">{{ t.stats_2_label }}</span>
       </div>
-      <div class="program-feature">
-        <div class="program-feature__icon">3</div>
-        <h3><a href="#courses-vs-trainings" style="color:inherit; text-decoration:none;">{{ t.toc3_title }}</a></h3>
-        <p>{{ t.toc3_desc }}</p>
+      <div class="cmp-stats__item">
+        <span class="cmp-stats__num">{{ t.stats_3_num }}</span>
+        <span class="cmp-stats__label">{{ t.stats_3_label }}</span>
       </div>
-      <div class="program-feature">
-        <div class="program-feature__icon">4</div>
-        <h3><a href="#200h-gold-standard" style="color:inherit; text-decoration:none;">{{ t.toc4_title }}</a></h3>
-        <p>{{ t.toc4_desc }}</p>
-      </div>
-      <div class="program-feature">
-        <div class="program-feature__icon">5</div>
-        <h3><a href="#300h-advanced" style="color:inherit; text-decoration:none;">{{ t.toc5_title }}</a></h3>
-        <p>{{ t.toc5_desc }}</p>
-      </div>
-      <div class="program-feature">
-        <div class="program-feature__icon">6</div>
-        <h3><a href="#decision-framework" style="color:inherit; text-decoration:none;">{{ t.toc6_title }}</a></h3>
-        <p>{{ t.toc6_desc }}</p>
+      <div class="cmp-stats__item">
+        <span class="cmp-stats__num">{{ t.stats_4_num }}</span>
+        <span class="cmp-stats__label">{{ t.stats_4_label }}</span>
       </div>
     </div>
   </div>
 </section>
 
-<!-- SECTION 3: Knowledge Pillars — What It Takes to Teach Yoga -->
-<section class="program-schedule" id="knowledge-pillars">
-  <div class="container">
-    <span class="ds-eyebrow ds-eyebrow--brand">{{ t.pillars_eyebrow }}</span>
+
+<!-- ═══════════════════════════════════════
+     3. TABLE OF CONTENTS — Navigation Cards
+     ═══════════════════════════════════════ -->
+<section class="cmp-light">
+  <div class="container" style="text-align:center;">
+    <span class="cmp-eyebrow">{{ t.toc_eyebrow }}</span>
+    <h2 class="section-title">{{ t.toc_title }}</h2>
+    <p class="section-subtitle">{{ t.toc_subtitle }}</p>
+
+    <div class="cmp-cards" style="margin-top:48px;">
+      <a href="#knowledge-pillars" class="cmp-card" style="text-decoration:none; color:inherit;">
+        <div class="cmp-card__icon">01</div>
+        <h3>{{ t.toc1_title }}</h3>
+        <p>{{ t.toc1_desc }}</p>
+      </a>
+      <a href="#hour-spectrum" class="cmp-card" style="text-decoration:none; color:inherit;">
+        <div class="cmp-card__icon">02</div>
+        <h3>{{ t.toc2_title }}</h3>
+        <p>{{ t.toc2_desc }}</p>
+      </a>
+      <a href="#courses-vs-trainings" class="cmp-card" style="text-decoration:none; color:inherit;">
+        <div class="cmp-card__icon">03</div>
+        <h3>{{ t.toc3_title }}</h3>
+        <p>{{ t.toc3_desc }}</p>
+      </a>
+      <a href="#200h-gold-standard" class="cmp-card" style="text-decoration:none; color:inherit;">
+        <div class="cmp-card__icon">04</div>
+        <h3>{{ t.toc4_title }}</h3>
+        <p>{{ t.toc4_desc }}</p>
+      </a>
+      <a href="#300h-advanced" class="cmp-card" style="text-decoration:none; color:inherit;">
+        <div class="cmp-card__icon">05</div>
+        <h3>{{ t.toc5_title }}</h3>
+        <p>{{ t.toc5_desc }}</p>
+      </a>
+      <a href="#decision-framework" class="cmp-card" style="text-decoration:none; color:inherit;">
+        <div class="cmp-card__icon">06</div>
+        <h3>{{ t.toc6_title }}</h3>
+        <p>{{ t.toc6_desc }}</p>
+      </a>
+    </div>
+  </div>
+</section>
+
+
+<!-- ═══════════════════════════════════════
+     4. KNOWLEDGE PILLARS — Accent Cards on Warm BG
+     ═══════════════════════════════════════ -->
+<section class="cmp-warm" id="knowledge-pillars">
+  <div class="container" style="text-align:center;">
+    <span class="cmp-eyebrow">{{ t.pillars_eyebrow }}</span>
     <h2 class="section-title">{{ t.pillars_title }}</h2>
     <p class="section-subtitle">{{ t.pillars_subtitle }}</p>
 
-    <div class="program-grid" style="max-width:1100px; margin:40px auto 0;">
-      <div class="program-feature">
-        <div class="program-feature__icon" style="font-size:1.6rem;">📜</div>
+    <div class="cmp-cards">
+      <div class="cmp-card">
+        <div class="cmp-card__icon">01</div>
         <h3>{{ t.pillar1_title }}</h3>
         <p>{{ t.pillar1_desc }}</p>
       </div>
-      <div class="program-feature">
-        <div class="program-feature__icon" style="font-size:1.6rem;">🧘</div>
+      <div class="cmp-card">
+        <div class="cmp-card__icon">02</div>
         <h3>{{ t.pillar2_title }}</h3>
         <p>{{ t.pillar2_desc }}</p>
       </div>
-      <div class="program-feature">
-        <div class="program-feature__icon" style="font-size:1.6rem;">🦴</div>
+      <div class="cmp-card">
+        <div class="cmp-card__icon">03</div>
         <h3>{{ t.pillar3_title }}</h3>
         <p>{{ t.pillar3_desc }}</p>
       </div>
-      <div class="program-feature">
-        <div class="program-feature__icon" style="font-size:1.6rem;">🌱</div>
+      <div class="cmp-card">
+        <div class="cmp-card__icon">04</div>
         <h3>{{ t.pillar4_title }}</h3>
         <p>{{ t.pillar4_desc }}</p>
       </div>
-      <div class="program-feature">
-        <div class="program-feature__icon" style="font-size:1.6rem;">🎯</div>
+      <div class="cmp-card">
+        <div class="cmp-card__icon">05</div>
         <h3>{{ t.pillar5_title }}</h3>
         <p>{{ t.pillar5_desc }}</p>
       </div>
-      <div class="program-feature">
-        <div class="program-feature__icon" style="font-size:1.6rem;">🗣️</div>
+      <div class="cmp-card">
+        <div class="cmp-card__icon">06</div>
         <h3>{{ t.pillar6_title }}</h3>
         <p>{{ t.pillar6_desc }}</p>
       </div>
-      <div class="program-feature">
-        <div class="program-feature__icon" style="font-size:1.6rem;">🧠</div>
+      <div class="cmp-card">
+        <div class="cmp-card__icon">07</div>
         <h3>{{ t.pillar7_title }}</h3>
         <p>{{ t.pillar7_desc }}</p>
       </div>
-      <div class="program-feature">
-        <div class="program-feature__icon" style="font-size:1.6rem;">💼</div>
+      <div class="cmp-card">
+        <div class="cmp-card__icon">08</div>
         <h3>{{ t.pillar8_title }}</h3>
         <p>{{ t.pillar8_desc }}</p>
       </div>
     </div>
 
-    <!-- Blockquote about why hours matter -->
-    <div style="max-width:800px; margin:48px auto 0;">
-      <div class="ds-quote-brand">
-        <p class="quote-text">{{ t.pillars_quote }}</p>
-        <p class="quote-author">{{ t.pillars_quote_author }}</p>
-      </div>
-    </div>
-
-    <!-- Journal CTA: Yoga Philosophy Deep Dive -->
-    <div style="max-width:800px; margin:32px auto 0; background:white; border-radius:12px; padding:24px 32px; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:16px; box-shadow:0 2px 12px rgba(0,0,0,0.06);">
+    <!-- Journal CTA -->
+    <div class="cmp-journal-cta">
       <div>
-        <p style="font-size:0.75rem; text-transform:uppercase; letter-spacing:0.1em; color:var(--yb-brand); font-weight:700; margin-bottom:4px;">{{ t.journal_cta_label }}</p>
-        <p style="font-weight:700; font-size:1rem; margin:0;">{{ t.journal_philosophy_title }}</p>
+        <p class="cmp-journal-cta__label">{{ t.journal_cta_label }}</p>
+        <p class="cmp-journal-cta__title">{{ t.journal_philosophy_title }}</p>
       </div>
-      <a href="{% if lang == 'en' %}/en/yoga-journal{% else %}/yoga-journal{% endif %}" style="color:var(--yb-brand); font-weight:700; font-size:0.9rem; white-space:nowrap;">{{ t.journal_read_more }} →</a>
+      <a href="{% if lang == 'en' %}/en/yoga-journal{% else %}/yoga-journal{% endif %}" class="cmp-journal-cta__link">{{ t.journal_read_more }} &rarr;</a>
     </div>
   </div>
 </section>
 
-<!-- SECTION 4: THE HOUR SPECTRUM -->
 
-<!-- 4a: Spectrum Intro -->
-<section class="program-overview" id="hour-spectrum">
-  <div class="container">
-    <span class="ds-eyebrow ds-eyebrow--brand">{{ t.spectrum_eyebrow }}</span>
+<!-- ═══════════════════════════════════════
+     5. DARK QUOTE BREAK — Pillars
+     ═══════════════════════════════════════ -->
+<section class="cmp-dark" style="padding:80px 20px;">
+  <div class="cmp-quote-dark">
+    <div class="cmp-quote-dark__marks">&ldquo;</div>
+    <p class="cmp-quote-dark__text">{{ t.pillars_quote }}</p>
+    <p class="cmp-quote-dark__author">{{ t.pillars_quote_author }}</p>
+  </div>
+</section>
+
+
+<!-- ═══════════════════════════════════════
+     6. HOUR SPECTRUM — Visual Timeline on Light BG
+     ═══════════════════════════════════════ -->
+<section class="cmp-light" id="hour-spectrum">
+  <div class="container" style="text-align:center;">
+    <span class="cmp-eyebrow">{{ t.spectrum_eyebrow }}</span>
     <h2 class="section-title">{{ t.spectrum_title }}</h2>
     <p class="section-subtitle">{{ t.spectrum_subtitle }}</p>
 
-    <!-- Visual Spectrum Bar -->
-    <div style="display:flex; max-width:800px; margin:40px auto; border-radius:12px; overflow:hidden; font-size:0.8rem; font-weight:700; text-align:center; color:white;">
-      <div style="flex:1; background:var(--ds-text-muted); padding:16px 8px;">{{ t.spectrum_30h }}</div>
-      <div style="flex:1.5; background:#8a7968; padding:16px 8px;">{{ t.spectrum_50h }}</div>
-      <div style="flex:2; background:#6a5a4a; padding:16px 8px;">{{ t.spectrum_100h }}</div>
-      <div style="flex:4; background:var(--yb-brand); padding:16px 8px;">{{ t.spectrum_200h }}</div>
-      <div style="flex:3; background:var(--yb-brand-dark); padding:16px 8px;">{{ t.spectrum_300h }}</div>
+    <!-- Spectrum Bar -->
+    <div class="cmp-spectrum">
+      <div class="cmp-spectrum__bar" style="flex:1; background:#6F6A66;">
+        {{ t.spectrum_30h }}
+        <small>{{ t.spectrum_intro }}</small>
+      </div>
+      <div class="cmp-spectrum__bar" style="flex:1.5; background:#8a7968;">
+        {{ t.spectrum_50h }}
+        <small>{{ t.spectrum_special }}</small>
+      </div>
+      <div class="cmp-spectrum__bar" style="flex:2; background:#6a5a4a;">
+        {{ t.spectrum_100h }}
+        <small>{{ t.spectrum_bridge }}</small>
+      </div>
+      <div class="cmp-spectrum__bar" style="flex:4; background:var(--yb-brand);">
+        {{ t.spectrum_200h }}
+        <small>{{ t.spectrum_gold }}</small>
+      </div>
+      <div class="cmp-spectrum__bar" style="flex:3; background:#d94f02;">
+        {{ t.spectrum_300h }}
+        <small>{{ t.spectrum_advanced }}</small>
+      </div>
     </div>
-    <p style="text-align:center; color:var(--ds-text-muted); font-size:0.85rem; max-width:600px; margin:0 auto;">{{ t.spectrum_caption }}</p>
+    <p style="color:#6F6A66; font-size:0.82rem; margin-top:16px;">{{ t.spectrum_caption }}</p>
   </div>
 </section>
 
-<!-- 4b: 30-HOUR TRAININGS -->
-<section class="program-schedule" id="30h-trainings">
+
+<!-- ═══════════════════════════════════════
+     7. 30-HOUR — Warm BG
+     ═══════════════════════════════════════ -->
+<section class="cmp-warm" id="30h-trainings">
   <div class="container">
-    <div style="display:flex; align-items:center; gap:12px; justify-content:center; margin-bottom:16px;">
-      <span class="ds-eyebrow ds-eyebrow--brand">{{ t.thirty_eyebrow }}</span>
-      <span class="ds-badge ds-badge--muted">{{ t.thirty_badge }}</span>
-    </div>
-    <h2 class="section-title">{{ t.thirty_title }}</h2>
-    <p class="section-subtitle">{{ t.thirty_subtitle }}</p>
-
-    <img src="/assets/images/compare/30-timers-yoga-workshop.jpg" alt="{{ t.img_30h_alt }}" style="width:100%; max-width:800px; border-radius:8px; aspect-ratio:16/9; object-fit:cover; background:#f5f3f0; margin:0 auto 32px; display:block;" loading="lazy">
-
-    <div class="schedule-options">
-      <div class="schedule-card">
-        <h3>{{ t.thirty_covers_title }}</h3>
-        <ul>
-          <li>{{ t.thirty_covers1 | safe }}</li>
-          <li>{{ t.thirty_covers2 | safe }}</li>
-          <li>{{ t.thirty_covers3 | safe }}</li>
-          <li>{{ t.thirty_covers4 | safe }}</li>
-          <li>{{ t.thirty_covers5 | safe }}</li>
-          <li>{{ t.thirty_covers6 | safe }}</li>
-        </ul>
+    <div class="cmp-hour-section">
+      <div class="cmp-hour-header">
+        <div class="cmp-hour-badge cmp-hour-badge--30">30t</div>
+        <div>
+          <span class="cmp-eyebrow">{{ t.thirty_eyebrow }}</span>
+          <h2 class="section-title" style="text-align:left; margin-bottom:0;">{{ t.thirty_title }}</h2>
+        </div>
       </div>
+      <p class="section-subtitle" style="text-align:left;">{{ t.thirty_subtitle }}</p>
 
-      <div class="schedule-card">
-        <h3>{{ t.thirty_understand_title }}</h3>
-        <ul>
-          <li>{{ t.thirty_understand1 | safe }}</li>
-          <li>{{ t.thirty_understand2 | safe }}</li>
-          <li>{{ t.thirty_understand3 | safe }}</li>
-          <li>{{ t.thirty_understand4 | safe }}</li>
-          <li>{{ t.thirty_understand5 | safe }}</li>
-        </ul>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- 4c: 50-HOUR TRAININGS -->
-<section class="program-overview" id="50h-trainings">
-  <div class="container">
-    <div style="display:flex; align-items:center; gap:12px; justify-content:center; margin-bottom:16px;">
-      <span class="ds-eyebrow ds-eyebrow--brand">{{ t.fifty_eyebrow }}</span>
-      <span class="ds-badge ds-badge--outline">{{ t.fifty_badge }}</span>
-    </div>
-    <h2 class="section-title">{{ t.fifty_title }}</h2>
-    <p class="section-subtitle">{{ t.fifty_subtitle }}</p>
-
-    <img src="/assets/images/compare/50-timers-yoga-specialisering.jpg" alt="{{ t.img_50h_alt }}" style="width:100%; max-width:800px; border-radius:8px; aspect-ratio:16/9; object-fit:cover; background:#f5f3f0; margin:0 auto 32px; display:block;" loading="lazy">
-
-    <div class="schedule-options">
-      <div class="schedule-card">
-        <h3>{{ t.fifty_programs_title }}</h3>
-        <ul>
-          <li>{{ t.fifty_programs1 | safe }}</li>
-          <li>{{ t.fifty_programs2 | safe }}</li>
-          <li>{{ t.fifty_programs3 | safe }}</li>
-          <li>{{ t.fifty_programs4 | safe }}</li>
-          <li>{{ t.fifty_programs5 | safe }}</li>
-        </ul>
-      </div>
-
-      <div class="schedule-card">
-        <h3>{{ t.fifty_know_title }}</h3>
-        <ul>
-          <li>{{ t.fifty_know1 | safe }}</li>
-          <li>{{ t.fifty_know2 | safe }}</li>
-          <li>{{ t.fifty_know3 | safe }}</li>
-          <li>{{ t.fifty_know4 | safe }}</li>
-          <li>{{ t.fifty_know5 | safe }}</li>
-        </ul>
+      <div class="cmp-two-col">
+        <div class="cmp-col-card">
+          <h3>{{ t.thirty_covers_title }}</h3>
+          <ul>
+            <li>{{ t.thirty_covers1 | safe }}</li>
+            <li>{{ t.thirty_covers2 | safe }}</li>
+            <li>{{ t.thirty_covers3 | safe }}</li>
+            <li>{{ t.thirty_covers4 | safe }}</li>
+            <li>{{ t.thirty_covers5 | safe }}</li>
+            <li>{{ t.thirty_covers6 | safe }}</li>
+          </ul>
+        </div>
+        <div class="cmp-col-card">
+          <h3>{{ t.thirty_understand_title }}</h3>
+          <ul>
+            <li>{{ t.thirty_understand1 | safe }}</li>
+            <li>{{ t.thirty_understand2 | safe }}</li>
+            <li>{{ t.thirty_understand3 | safe }}</li>
+            <li>{{ t.thirty_understand4 | safe }}</li>
+            <li>{{ t.thirty_understand5 | safe }}</li>
+          </ul>
+        </div>
       </div>
     </div>
   </div>
 </section>
 
-<!-- 4d: 100-HOUR TRAININGS -->
-<section class="program-schedule" id="100h-trainings">
+
+<!-- ═══════════════════════════════════════
+     8. 50-HOUR — Light BG
+     ═══════════════════════════════════════ -->
+<section class="cmp-light" id="50h-trainings">
   <div class="container">
-    <div style="display:flex; align-items:center; gap:12px; justify-content:center; margin-bottom:16px;">
-      <span class="ds-eyebrow ds-eyebrow--brand">{{ t.hundred_eyebrow }}</span>
-      <span class="ds-badge ds-badge--secondary">{{ t.hundred_badge }}</span>
-    </div>
-    <h2 class="section-title">{{ t.hundred_title }}</h2>
-    <p class="section-subtitle">{{ t.hundred_subtitle }}</p>
-
-    <img src="/assets/images/compare/100-timers-yoga-uddannelse.jpg" alt="{{ t.img_100h_alt }}" style="width:100%; max-width:800px; border-radius:8px; aspect-ratio:16/9; object-fit:cover; background:#f5f3f0; margin:0 auto 32px; display:block;" loading="lazy">
-
-    <div class="schedule-options">
-      <div class="schedule-card">
-        <h3>{{ t.hundred_covers_title }}</h3>
-        <ul>
-          <li>{{ t.hundred_covers1 | safe }}</li>
-          <li>{{ t.hundred_covers2 | safe }}</li>
-          <li>{{ t.hundred_covers3 | safe }}</li>
-          <li>{{ t.hundred_covers4 | safe }}</li>
-          <li>{{ t.hundred_covers5 | safe }}</li>
-        </ul>
+    <div class="cmp-hour-section">
+      <div class="cmp-hour-header">
+        <div class="cmp-hour-badge cmp-hour-badge--50">50t</div>
+        <div>
+          <span class="cmp-eyebrow">{{ t.fifty_eyebrow }}</span>
+          <h2 class="section-title" style="text-align:left; margin-bottom:0;">{{ t.fifty_title }}</h2>
+        </div>
       </div>
+      <p class="section-subtitle" style="text-align:left;">{{ t.fifty_subtitle }}</p>
 
-      <div class="schedule-card">
-        <h3>{{ t.hundred_bridge_title }}</h3>
-        <ul>
-          <li>{{ t.hundred_bridge1 | safe }}</li>
-          <li>{{ t.hundred_bridge2 | safe }}</li>
-          <li>{{ t.hundred_bridge3 | safe }}</li>
-          <li>{{ t.hundred_bridge4 | safe }}</li>
-          <li>{{ t.hundred_bridge5 | safe }}</li>
-        </ul>
+      <div class="cmp-two-col">
+        <div class="cmp-col-card">
+          <h3>{{ t.fifty_programs_title }}</h3>
+          <ul>
+            <li>{{ t.fifty_programs1 | safe }}</li>
+            <li>{{ t.fifty_programs2 | safe }}</li>
+            <li>{{ t.fifty_programs3 | safe }}</li>
+            <li>{{ t.fifty_programs4 | safe }}</li>
+            <li>{{ t.fifty_programs5 | safe }}</li>
+          </ul>
+        </div>
+        <div class="cmp-col-card">
+          <h3>{{ t.fifty_know_title }}</h3>
+          <ul>
+            <li>{{ t.fifty_know1 | safe }}</li>
+            <li>{{ t.fifty_know2 | safe }}</li>
+            <li>{{ t.fifty_know3 | safe }}</li>
+            <li>{{ t.fifty_know4 | safe }}</li>
+            <li>{{ t.fifty_know5 | safe }}</li>
+          </ul>
+        </div>
       </div>
     </div>
   </div>
 </section>
 
-<!-- SECTION 5: COURSES vs. TEACHER TRAININGS -->
-<section class="program-overview" id="courses-vs-trainings">
+
+<!-- ═══════════════════════════════════════
+     9. 100-HOUR — Warm BG
+     ═══════════════════════════════════════ -->
+<section class="cmp-warm" id="100h-trainings">
   <div class="container">
-    <span class="ds-eyebrow ds-eyebrow--brand">{{ t.cvt_eyebrow }}</span>
+    <div class="cmp-hour-section">
+      <div class="cmp-hour-header">
+        <div class="cmp-hour-badge cmp-hour-badge--100">100t</div>
+        <div>
+          <span class="cmp-eyebrow">{{ t.hundred_eyebrow }}</span>
+          <h2 class="section-title" style="text-align:left; margin-bottom:0;">{{ t.hundred_title }}</h2>
+        </div>
+      </div>
+      <p class="section-subtitle" style="text-align:left;">{{ t.hundred_subtitle }}</p>
+
+      <div class="cmp-two-col">
+        <div class="cmp-col-card">
+          <h3>{{ t.hundred_covers_title }}</h3>
+          <ul>
+            <li>{{ t.hundred_covers1 | safe }}</li>
+            <li>{{ t.hundred_covers2 | safe }}</li>
+            <li>{{ t.hundred_covers3 | safe }}</li>
+            <li>{{ t.hundred_covers4 | safe }}</li>
+            <li>{{ t.hundred_covers5 | safe }}</li>
+          </ul>
+        </div>
+        <div class="cmp-col-card">
+          <h3>{{ t.hundred_bridge_title }}</h3>
+          <ul>
+            <li>{{ t.hundred_bridge1 | safe }}</li>
+            <li>{{ t.hundred_bridge2 | safe }}</li>
+            <li>{{ t.hundred_bridge3 | safe }}</li>
+            <li>{{ t.hundred_bridge4 | safe }}</li>
+            <li>{{ t.hundred_bridge5 | safe }}</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ═══════════════════════════════════════
+     10. COURSES vs. TRAININGS — Split Dark/Light
+     ═══════════════════════════════════════ -->
+<section class="cmp-light" id="courses-vs-trainings">
+  <div class="container" style="text-align:center;">
+    <span class="cmp-eyebrow">{{ t.cvt_eyebrow }}</span>
     <h2 class="section-title">{{ t.cvt_title }}</h2>
     <p class="section-subtitle">{{ t.cvt_subtitle }}</p>
 
-    <div class="ds-split ds-split--dark-light" style="max-width:1000px; margin:40px auto 0;">
-      <div class="ds-split__side">
-        <span class="ds-eyebrow ds-eyebrow--white">{{ t.cvt_course_eyebrow }}</span>
-        <h3 style="font-size:1.4rem; margin:12px 0 20px;">{{ t.cvt_course_title }}</h3>
-        <ul style="list-style:none; padding:0; margin:0;">
-          <li style="padding:8px 0; border-bottom:1px solid rgba(255,255,255,0.1); font-size:0.9rem;">{{ t.cvt_course1 | safe }}</li>
-          <li style="padding:8px 0; border-bottom:1px solid rgba(255,255,255,0.1); font-size:0.9rem;">{{ t.cvt_course2 | safe }}</li>
-          <li style="padding:8px 0; border-bottom:1px solid rgba(255,255,255,0.1); font-size:0.9rem;">{{ t.cvt_course3 | safe }}</li>
-          <li style="padding:8px 0; border-bottom:1px solid rgba(255,255,255,0.1); font-size:0.9rem;">{{ t.cvt_course4 | safe }}</li>
-          <li style="padding:8px 0; border-bottom:1px solid rgba(255,255,255,0.1); font-size:0.9rem;">{{ t.cvt_course5 | safe }}</li>
-          <li style="padding:8px 0; font-size:0.9rem;">{{ t.cvt_course6 | safe }}</li>
+    <!-- Side-by-side split -->
+    <div class="cmp-split">
+      <div class="cmp-split__dark">
+        <span class="cmp-split__eyebrow">{{ t.cvt_course_eyebrow }}</span>
+        <h3>{{ t.cvt_course_title }}</h3>
+        <ul>
+          <li>{{ t.cvt_course1 | safe }}</li>
+          <li>{{ t.cvt_course2 | safe }}</li>
+          <li>{{ t.cvt_course3 | safe }}</li>
+          <li>{{ t.cvt_course4 | safe }}</li>
+          <li>{{ t.cvt_course5 | safe }}</li>
+          <li>{{ t.cvt_course6 | safe }}</li>
         </ul>
       </div>
-      <div class="ds-split__side">
-        <span class="ds-eyebrow ds-eyebrow--brand">{{ t.cvt_training_eyebrow }}</span>
-        <h3 style="font-size:1.4rem; margin:12px 0 20px; color:#0F0F0F;">{{ t.cvt_training_title }}</h3>
-        <ul style="list-style:none; padding:0; margin:0;">
-          <li style="padding:8px 0; border-bottom:1px solid var(--ds-border); font-size:0.9rem;">{{ t.cvt_training1 | safe }}</li>
-          <li style="padding:8px 0; border-bottom:1px solid var(--ds-border); font-size:0.9rem;">{{ t.cvt_training2 | safe }}</li>
-          <li style="padding:8px 0; border-bottom:1px solid var(--ds-border); font-size:0.9rem;">{{ t.cvt_training3 | safe }}</li>
-          <li style="padding:8px 0; border-bottom:1px solid var(--ds-border); font-size:0.9rem;">{{ t.cvt_training4 | safe }}</li>
-          <li style="padding:8px 0; border-bottom:1px solid var(--ds-border); font-size:0.9rem;">{{ t.cvt_training5 | safe }}</li>
-          <li style="padding:8px 0; font-size:0.9rem;">{{ t.cvt_training6 | safe }}</li>
+      <div class="cmp-split__light">
+        <span class="cmp-split__eyebrow">{{ t.cvt_training_eyebrow }}</span>
+        <h3 style="color:#0F0F0F;">{{ t.cvt_training_title }}</h3>
+        <ul>
+          <li>{{ t.cvt_training1 | safe }}</li>
+          <li>{{ t.cvt_training2 | safe }}</li>
+          <li>{{ t.cvt_training3 | safe }}</li>
+          <li>{{ t.cvt_training4 | safe }}</li>
+          <li>{{ t.cvt_training5 | safe }}</li>
+          <li>{{ t.cvt_training6 | safe }}</li>
         </ul>
       </div>
     </div>
 
-    <!-- Journal CTA: Courses vs Trainings -->
-    <div style="max-width:1000px; margin:32px auto 0; background:var(--ds-bg-light); border-radius:12px; padding:24px 32px; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:16px;">
+    <!-- Concrete Examples -->
+    <div class="cmp-two-col" style="max-width:1000px; margin:40px auto 0;">
+      <div class="cmp-col-card">
+        <h3>{{ t.cvt_example_courses_label }}</h3>
+        <ul>
+          <li>{{ t.cvt_ex_course1 }}</li>
+          <li>{{ t.cvt_ex_course2 }}</li>
+          <li>{{ t.cvt_ex_course3 }}</li>
+          <li>{{ t.cvt_ex_course4 }}</li>
+        </ul>
+      </div>
+      <div class="cmp-col-card">
+        <h3>{{ t.cvt_example_trainings_label }}</h3>
+        <ul>
+          <li>{{ t.cvt_ex_training1 }}</li>
+          <li>{{ t.cvt_ex_training2 }}</li>
+          <li>{{ t.cvt_ex_training3 }}</li>
+          <li>{{ t.cvt_ex_training4 }}</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Journal CTA -->
+    <div class="cmp-journal-cta">
       <div>
-        <p style="font-size:0.75rem; text-transform:uppercase; letter-spacing:0.1em; color:var(--yb-brand); font-weight:700; margin-bottom:4px;">{{ t.journal_cta_label }}</p>
-        <p style="font-weight:700; font-size:1rem; margin:0;">{{ t.journal_cvt_title }}</p>
+        <p class="cmp-journal-cta__label">{{ t.journal_cta_label }}</p>
+        <p class="cmp-journal-cta__title">{{ t.journal_cvt_title }}</p>
       </div>
-      <a href="{% if lang == 'en' %}/en/yoga-journal{% else %}/yoga-journal{% endif %}" style="color:var(--yb-brand); font-weight:700; font-size:0.9rem; white-space:nowrap;">{{ t.journal_read_more }} →</a>
-    </div>
-
-    <!-- Concrete examples -->
-    <div style="max-width:1000px; margin:40px auto 0;">
-      <div class="schedule-card" style="padding:32px;">
-        <h3 style="text-align:center; margin-bottom:24px;">{{ t.cvt_examples_title }}</h3>
-        <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(280px, 1fr)); gap:32px;">
-          <div>
-            <h4 style="font-size:0.85rem; text-transform:uppercase; letter-spacing:0.1em; color:var(--ds-text-muted); margin-bottom:12px;">{{ t.cvt_example_courses_label }}</h4>
-            <ul style="padding-left:20px; font-size:0.9rem; line-height:1.8;">
-              <li>{{ t.cvt_ex_course1 }}</li>
-              <li>{{ t.cvt_ex_course2 }}</li>
-              <li>{{ t.cvt_ex_course3 }}</li>
-              <li>{{ t.cvt_ex_course4 }}</li>
-            </ul>
-          </div>
-          <div>
-            <h4 style="font-size:0.85rem; text-transform:uppercase; letter-spacing:0.1em; color:var(--ds-text-muted); margin-bottom:12px;">{{ t.cvt_example_trainings_label }}</h4>
-            <ul style="padding-left:20px; font-size:0.9rem; line-height:1.8;">
-              <li>{{ t.cvt_ex_training1 }}</li>
-              <li>{{ t.cvt_ex_training2 }}</li>
-              <li>{{ t.cvt_ex_training3 }}</li>
-              <li>{{ t.cvt_ex_training4 }}</li>
-            </ul>
-          </div>
-        </div>
-      </div>
+      <a href="{% if lang == 'en' %}/en/yoga-journal{% else %}/yoga-journal{% endif %}" class="cmp-journal-cta__link">{{ t.journal_read_more }} &rarr;</a>
     </div>
   </div>
 </section>
 
-<!-- SECTION 6: 200 HOURS — THE GOLD STANDARD -->
-<section class="program-schedule" id="200h-gold-standard">
-  <div class="container">
-    <span class="ds-eyebrow ds-eyebrow--brand">{{ t.gold_eyebrow }}</span>
+
+<!-- ═══════════════════════════════════════
+     11. 200H GOLD STANDARD — Dark Cinematic
+     ═══════════════════════════════════════ -->
+<section class="cmp-dark" id="200h-gold-standard">
+  <div class="container" style="text-align:center;">
+    <span class="cmp-eyebrow">{{ t.gold_eyebrow }}</span>
     <h2 class="section-title">{{ t.gold_title }}</h2>
     <p class="section-subtitle">{{ t.gold_subtitle }}</p>
 
-    <img src="/assets/images/compare/200-timers-yogalareruddannelse-certificering.jpg" alt="{{ t.img_200h_alt }}" style="width:100%; max-width:800px; border-radius:8px; aspect-ratio:16/9; object-fit:cover; background:#f5f3f0; margin:0 auto 32px; display:block;" loading="lazy">
+    <!-- Curriculum Bars -->
+    <div class="cmp-bars">
+      <h3 style="text-align:center; margin-bottom:28px; font-size:1rem; color:#FDFBF7;">{{ t.ya_chart_title }}</h3>
 
-    <!-- Curriculum Bar Chart -->
-    <div style="max-width:700px; margin:40px auto;">
-      <h3 style="text-align:center; margin-bottom:24px; font-size:1.1rem;">{{ t.ya_chart_title }}</h3>
-
-      <!-- Techniques & Training -->
-      <div style="margin-bottom:16px;">
-        <div style="display:flex; justify-content:space-between; margin-bottom:4px;">
-          <span style="font-weight:700; font-size:0.9rem;">{{ t.ya_techniques }}</span>
-          <span style="font-weight:700; color:var(--yb-brand);">100+ {{ t.ya_hours_label }}</span>
+      <div class="cmp-bar-item">
+        <div class="cmp-bar-item__header">
+          <span class="cmp-bar-item__label" style="color:#FDFBF7;">{{ t.ya_techniques }}</span>
+          <span class="cmp-bar-item__value" style="color:#ff9966;">100+ {{ t.ya_hours_label }}</span>
         </div>
-        <div style="background:var(--ds-bg-light); border-radius:8px; height:28px; overflow:hidden;">
-          <div style="background:var(--yb-brand); height:100%; width:50%; border-radius:8px; transition:width 1s;"></div>
+        <div class="cmp-bar-track" style="background:rgba(255,255,255,0.08);">
+          <div class="cmp-bar-fill" style="width:50%;"></div>
         </div>
       </div>
 
-      <!-- Teaching Methodology -->
-      <div style="margin-bottom:16px;">
-        <div style="display:flex; justify-content:space-between; margin-bottom:4px;">
-          <span style="font-weight:700; font-size:0.9rem;">{{ t.ya_methodology }}</span>
-          <span style="font-weight:700; color:var(--yb-brand);">25+ {{ t.ya_hours_label }}</span>
+      <div class="cmp-bar-item">
+        <div class="cmp-bar-item__header">
+          <span class="cmp-bar-item__label" style="color:#FDFBF7;">{{ t.ya_philosophy }}</span>
+          <span class="cmp-bar-item__value" style="color:#ff9966;">30+ {{ t.ya_hours_label }}</span>
         </div>
-        <div style="background:var(--ds-bg-light); border-radius:8px; height:28px; overflow:hidden;">
-          <div style="background:var(--yb-brand); height:100%; width:12.5%; border-radius:8px; transition:width 1s;"></div>
-        </div>
-      </div>
-
-      <!-- Anatomy & Physiology -->
-      <div style="margin-bottom:16px;">
-        <div style="display:flex; justify-content:space-between; margin-bottom:4px;">
-          <span style="font-weight:700; font-size:0.9rem;">{{ t.ya_anatomy }}</span>
-          <span style="font-weight:700; color:var(--yb-brand);">20+ {{ t.ya_hours_label }}</span>
-        </div>
-        <div style="background:var(--ds-bg-light); border-radius:8px; height:28px; overflow:hidden;">
-          <div style="background:var(--yb-brand); height:100%; width:10%; border-radius:8px; transition:width 1s;"></div>
+        <div class="cmp-bar-track" style="background:rgba(255,255,255,0.08);">
+          <div class="cmp-bar-fill" style="width:15%;"></div>
         </div>
       </div>
 
-      <!-- Yoga Philosophy -->
-      <div style="margin-bottom:16px;">
-        <div style="display:flex; justify-content:space-between; margin-bottom:4px;">
-          <span style="font-weight:700; font-size:0.9rem;">{{ t.ya_philosophy }}</span>
-          <span style="font-weight:700; color:var(--yb-brand);">30+ {{ t.ya_hours_label }}</span>
+      <div class="cmp-bar-item">
+        <div class="cmp-bar-item__header">
+          <span class="cmp-bar-item__label" style="color:#FDFBF7;">{{ t.ya_methodology }}</span>
+          <span class="cmp-bar-item__value" style="color:#ff9966;">25+ {{ t.ya_hours_label }}</span>
         </div>
-        <div style="background:var(--ds-bg-light); border-radius:8px; height:28px; overflow:hidden;">
-          <div style="background:var(--yb-brand); height:100%; width:15%; border-radius:8px; transition:width 1s;"></div>
-        </div>
-      </div>
-
-      <!-- Practicum -->
-      <div style="margin-bottom:16px;">
-        <div style="display:flex; justify-content:space-between; margin-bottom:4px;">
-          <span style="font-weight:700; font-size:0.9rem;">{{ t.ya_practicum }}</span>
-          <span style="font-weight:700; color:var(--yb-brand);">10+ {{ t.ya_hours_label }}</span>
-        </div>
-        <div style="background:var(--ds-bg-light); border-radius:8px; height:28px; overflow:hidden;">
-          <div style="background:var(--yb-brand); height:100%; width:5%; border-radius:8px; transition:width 1s;"></div>
+        <div class="cmp-bar-track" style="background:rgba(255,255,255,0.08);">
+          <div class="cmp-bar-fill" style="width:12.5%;"></div>
         </div>
       </div>
 
-      <p style="text-align:center; color:var(--ds-text-muted); font-size:0.8rem; margin-top:16px;">{{ t.ya_chart_note }}</p>
+      <div class="cmp-bar-item">
+        <div class="cmp-bar-item__header">
+          <span class="cmp-bar-item__label" style="color:#FDFBF7;">{{ t.ya_anatomy }}</span>
+          <span class="cmp-bar-item__value" style="color:#ff9966;">20+ {{ t.ya_hours_label }}</span>
+        </div>
+        <div class="cmp-bar-track" style="background:rgba(255,255,255,0.08);">
+          <div class="cmp-bar-fill" style="width:10%;"></div>
+        </div>
+      </div>
+
+      <div class="cmp-bar-item">
+        <div class="cmp-bar-item__header">
+          <span class="cmp-bar-item__label" style="color:#FDFBF7;">{{ t.ya_practicum }}</span>
+          <span class="cmp-bar-item__value" style="color:#ff9966;">10+ {{ t.ya_hours_label }}</span>
+        </div>
+        <div class="cmp-bar-track" style="background:rgba(255,255,255,0.08);">
+          <div class="cmp-bar-fill" style="width:5%;"></div>
+        </div>
+      </div>
+
+      <p style="text-align:center; color:rgba(253,251,247,0.4); font-size:0.75rem; margin-top:16px;">{{ t.ya_chart_note }}</p>
     </div>
 
     <!-- Three info cards -->
-    <div class="schedule-options" style="margin-top:48px;">
-      <div class="schedule-card">
+    <div class="cmp-cards" style="margin-top:48px;">
+      <div class="cmp-card">
         <h3>{{ t.gold_learn_title }}</h3>
-        <ul>
-          <li>{{ t.gold_learn1 | safe }}</li>
-          <li>{{ t.gold_learn2 | safe }}</li>
-          <li>{{ t.gold_learn3 | safe }}</li>
-          <li>{{ t.gold_learn4 | safe }}</li>
-          <li>{{ t.gold_learn5 | safe }}</li>
-          <li>{{ t.gold_learn6 | safe }}</li>
-          <li>{{ t.gold_learn7 | safe }}</li>
+        <ul style="list-style:none; padding:0; margin:8px 0 0;">
+          <li style="padding:6px 0; font-size:0.85rem; color:rgba(253,251,247,0.85);">{{ t.gold_learn1 | safe }}</li>
+          <li style="padding:6px 0; font-size:0.85rem; color:rgba(253,251,247,0.85);">{{ t.gold_learn2 | safe }}</li>
+          <li style="padding:6px 0; font-size:0.85rem; color:rgba(253,251,247,0.85);">{{ t.gold_learn3 | safe }}</li>
+          <li style="padding:6px 0; font-size:0.85rem; color:rgba(253,251,247,0.85);">{{ t.gold_learn4 | safe }}</li>
+          <li style="padding:6px 0; font-size:0.85rem; color:rgba(253,251,247,0.85);">{{ t.gold_learn5 | safe }}</li>
+          <li style="padding:6px 0; font-size:0.85rem; color:rgba(253,251,247,0.85);">{{ t.gold_learn6 | safe }}</li>
+          <li style="padding:6px 0; font-size:0.85rem; color:rgba(253,251,247,0.85);">{{ t.gold_learn7 | safe }}</li>
         </ul>
       </div>
-
-      <div class="schedule-card">
+      <div class="cmp-card">
         <h3>{{ t.gold_after_title }}</h3>
-        <ul>
-          <li>{{ t.gold_after1 | safe }}</li>
-          <li>{{ t.gold_after2 | safe }}</li>
-          <li>{{ t.gold_after3 | safe }}</li>
-          <li>{{ t.gold_after4 | safe }}</li>
-          <li>{{ t.gold_after5 | safe }}</li>
-          <li>{{ t.gold_after6 | safe }}</li>
+        <ul style="list-style:none; padding:0; margin:8px 0 0;">
+          <li style="padding:6px 0; font-size:0.85rem; color:rgba(253,251,247,0.85);">{{ t.gold_after1 | safe }}</li>
+          <li style="padding:6px 0; font-size:0.85rem; color:rgba(253,251,247,0.85);">{{ t.gold_after2 | safe }}</li>
+          <li style="padding:6px 0; font-size:0.85rem; color:rgba(253,251,247,0.85);">{{ t.gold_after3 | safe }}</li>
+          <li style="padding:6px 0; font-size:0.85rem; color:rgba(253,251,247,0.85);">{{ t.gold_after4 | safe }}</li>
+          <li style="padding:6px 0; font-size:0.85rem; color:rgba(253,251,247,0.85);">{{ t.gold_after5 | safe }}</li>
+          <li style="padding:6px 0; font-size:0.85rem; color:rgba(253,251,247,0.85);">{{ t.gold_after6 | safe }}</li>
         </ul>
       </div>
-
-      <div class="schedule-card">
+      <div class="cmp-card">
         <h3>{{ t.gold_formats_title }}</h3>
-        <ul>
-          <li>{{ t.gold_formats1 | safe }}</li>
-          <li>{{ t.gold_formats2 | safe }}</li>
-          <li>{{ t.gold_formats3 | safe }}</li>
-          <li>{{ t.gold_formats4 | safe }}</li>
-          <li>{{ t.gold_formats5 | safe }}</li>
+        <ul style="list-style:none; padding:0; margin:8px 0 0;">
+          <li style="padding:6px 0; font-size:0.85rem; color:rgba(253,251,247,0.85);">{{ t.gold_formats1 | safe }}</li>
+          <li style="padding:6px 0; font-size:0.85rem; color:rgba(253,251,247,0.85);">{{ t.gold_formats2 | safe }}</li>
+          <li style="padding:6px 0; font-size:0.85rem; color:rgba(253,251,247,0.85);">{{ t.gold_formats3 | safe }}</li>
+          <li style="padding:6px 0; font-size:0.85rem; color:rgba(253,251,247,0.85);">{{ t.gold_formats4 | safe }}</li>
+          <li style="padding:6px 0; font-size:0.85rem; color:rgba(253,251,247,0.85);">{{ t.gold_formats5 | safe }}</li>
         </ul>
       </div>
     </div>
 
-    <!-- Dark cinematic quote -->
-    <div style="max-width:900px; margin:48px auto 0;">
-      <div class="ds-quote-dark">
-        <div class="quote-marks">||</div>
-        <p class="quote-text">{{ t.gold_quote }}</p>
-        <p class="quote-author">{{ t.gold_quote_author }}</p>
-      </div>
-    </div>
-
-    <!-- Journal CTA: What Happens During a 200h YTT -->
-    <div style="max-width:800px; margin:32px auto 0; background:white; border-radius:12px; padding:24px 32px; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:16px; box-shadow:0 2px 12px rgba(0,0,0,0.06);">
+    <!-- Journal CTA -->
+    <div class="cmp-journal-cta">
       <div>
-        <p style="font-size:0.75rem; text-transform:uppercase; letter-spacing:0.1em; color:var(--yb-brand); font-weight:700; margin-bottom:4px;">{{ t.journal_cta_label }}</p>
-        <p style="font-weight:700; font-size:1rem; margin:0;">{{ t.journal_200h_title }}</p>
+        <p class="cmp-journal-cta__label">{{ t.journal_cta_label }}</p>
+        <p class="cmp-journal-cta__title">{{ t.journal_200h_title }}</p>
       </div>
-      <a href="{% if lang == 'en' %}/en/yoga-journal{% else %}/yoga-journal{% endif %}" style="color:var(--yb-brand); font-weight:700; font-size:0.9rem; white-space:nowrap;">{{ t.journal_read_more }} →</a>
+      <a href="{% if lang == 'en' %}/en/yoga-journal{% else %}/yoga-journal{% endif %}" class="cmp-journal-cta__link">{{ t.journal_read_more }} &rarr;</a>
     </div>
   </div>
 </section>
 
-<!-- SECTION 7: 300 HOURS — THE ADVANCED PATH -->
-<section class="program-overview" id="300h-advanced">
+
+<!-- ═══════════════════════════════════════
+     12. DARK QUOTE BREAK — Gold Standard
+     ═══════════════════════════════════════ -->
+<section class="cmp-dark" style="padding:80px 20px;">
+  <div class="cmp-quote-dark">
+    <div class="cmp-quote-dark__marks">&ldquo;</div>
+    <p class="cmp-quote-dark__text">{{ t.gold_quote }}</p>
+    <p class="cmp-quote-dark__author">{{ t.gold_quote_author }}</p>
+  </div>
+</section>
+
+
+<!-- ═══════════════════════════════════════
+     13. 300H ADVANCED — Light BG with Accent Cards
+     ═══════════════════════════════════════ -->
+<section class="cmp-light" id="300h-advanced">
   <div class="container">
-    <span class="ds-eyebrow ds-eyebrow--brand">{{ t.advanced_eyebrow }}</span>
-    <h2 class="section-title">{{ t.advanced_title }}</h2>
-    <p class="section-subtitle">{{ t.advanced_subtitle }}</p>
+    <div class="cmp-hour-section" style="text-align:center;">
+      <div style="display:flex; align-items:center; justify-content:center; gap:16px; margin-bottom:16px;">
+        <div class="cmp-hour-badge cmp-hour-badge--300">300t</div>
+        <span class="cmp-eyebrow" style="margin-bottom:0;">{{ t.advanced_eyebrow }}</span>
+      </div>
+      <h2 class="section-title">{{ t.advanced_title }}</h2>
+      <p class="section-subtitle">{{ t.advanced_subtitle }}</p>
 
-    <img src="/assets/images/compare/300-timers-avanceret-yogauddannelse.jpg" alt="{{ t.img_300h_alt }}" style="width:100%; max-width:800px; border-radius:8px; aspect-ratio:16/9; object-fit:cover; background:#f5f3f0; margin:0 auto 32px; display:block;" loading="lazy">
-
-    <div class="schedule-options">
-      <div class="schedule-card">
-        <h3>{{ t.advanced_expands_title }}</h3>
-        <ul>
-          <li>{{ t.advanced_expands1 | safe }}</li>
-          <li>{{ t.advanced_expands2 | safe }}</li>
-          <li>{{ t.advanced_expands3 | safe }}</li>
-          <li>{{ t.advanced_expands4 | safe }}</li>
-          <li>{{ t.advanced_expands5 | safe }}</li>
-          <li>{{ t.advanced_expands6 | safe }}</li>
-        </ul>
+      <div class="cmp-cards" style="text-align:left;">
+        <div class="cmp-card">
+          <h3>{{ t.advanced_expands_title }}</h3>
+          <ul style="list-style:none; padding:0; margin:8px 0 0;">
+            <li style="padding:6px 0; font-size:0.85rem; color:#6F6A66;">{{ t.advanced_expands1 | safe }}</li>
+            <li style="padding:6px 0; font-size:0.85rem; color:#6F6A66;">{{ t.advanced_expands2 | safe }}</li>
+            <li style="padding:6px 0; font-size:0.85rem; color:#6F6A66;">{{ t.advanced_expands3 | safe }}</li>
+            <li style="padding:6px 0; font-size:0.85rem; color:#6F6A66;">{{ t.advanced_expands4 | safe }}</li>
+            <li style="padding:6px 0; font-size:0.85rem; color:#6F6A66;">{{ t.advanced_expands5 | safe }}</li>
+            <li style="padding:6px 0; font-size:0.85rem; color:#6F6A66;">{{ t.advanced_expands6 | safe }}</li>
+          </ul>
+        </div>
+        <div class="cmp-card">
+          <h3>{{ t.advanced_specializations_title }}</h3>
+          <ul style="list-style:none; padding:0; margin:8px 0 0;">
+            <li style="padding:6px 0; font-size:0.85rem; color:#6F6A66;">{{ t.advanced_spec1 | safe }}</li>
+            <li style="padding:6px 0; font-size:0.85rem; color:#6F6A66;">{{ t.advanced_spec2 | safe }}</li>
+            <li style="padding:6px 0; font-size:0.85rem; color:#6F6A66;">{{ t.advanced_spec3 | safe }}</li>
+            <li style="padding:6px 0; font-size:0.85rem; color:#6F6A66;">{{ t.advanced_spec4 | safe }}</li>
+            <li style="padding:6px 0; font-size:0.85rem; color:#6F6A66;">{{ t.advanced_spec5 | safe }}</li>
+            <li style="padding:6px 0; font-size:0.85rem; color:#6F6A66;">{{ t.advanced_spec6 | safe }}</li>
+          </ul>
+        </div>
+        <div class="cmp-card">
+          <h3>{{ t.advanced_career_title }}</h3>
+          <ul style="list-style:none; padding:0; margin:8px 0 0;">
+            <li style="padding:6px 0; font-size:0.85rem; color:#6F6A66;">{{ t.advanced_career1 | safe }}</li>
+            <li style="padding:6px 0; font-size:0.85rem; color:#6F6A66;">{{ t.advanced_career2 | safe }}</li>
+            <li style="padding:6px 0; font-size:0.85rem; color:#6F6A66;">{{ t.advanced_career3 | safe }}</li>
+            <li style="padding:6px 0; font-size:0.85rem; color:#6F6A66;">{{ t.advanced_career4 | safe }}</li>
+            <li style="padding:6px 0; font-size:0.85rem; color:#6F6A66;">{{ t.advanced_career5 | safe }}</li>
+          </ul>
+        </div>
       </div>
 
-      <div class="schedule-card">
-        <h3>{{ t.advanced_specializations_title }}</h3>
-        <ul>
-          <li>{{ t.advanced_spec1 | safe }}</li>
-          <li>{{ t.advanced_spec2 | safe }}</li>
-          <li>{{ t.advanced_spec3 | safe }}</li>
-          <li>{{ t.advanced_spec4 | safe }}</li>
-          <li>{{ t.advanced_spec5 | safe }}</li>
-          <li>{{ t.advanced_spec6 | safe }}</li>
-        </ul>
+      <!-- Journal CTA -->
+      <div class="cmp-journal-cta">
+        <div>
+          <p class="cmp-journal-cta__label">{{ t.journal_cta_label }}</p>
+          <p class="cmp-journal-cta__title">{{ t.journal_anatomy_title }}</p>
+        </div>
+        <a href="{% if lang == 'en' %}/en/yoga-journal{% else %}/yoga-journal{% endif %}" class="cmp-journal-cta__link">{{ t.journal_read_more }} &rarr;</a>
       </div>
-
-      <div class="schedule-card">
-        <h3>{{ t.advanced_career_title }}</h3>
-        <ul>
-          <li>{{ t.advanced_career1 | safe }}</li>
-          <li>{{ t.advanced_career2 | safe }}</li>
-          <li>{{ t.advanced_career3 | safe }}</li>
-          <li>{{ t.advanced_career4 | safe }}</li>
-          <li>{{ t.advanced_career5 | safe }}</li>
-        </ul>
-      </div>
-    </div>
-
-    <!-- Journal CTA: Anatomy for Yoga Teachers -->
-    <div style="max-width:900px; margin:32px auto 0; background:var(--ds-bg-light); border-radius:12px; padding:24px 32px; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:16px;">
-      <div>
-        <p style="font-size:0.75rem; text-transform:uppercase; letter-spacing:0.1em; color:var(--yb-brand); font-weight:700; margin-bottom:4px;">{{ t.journal_cta_label }}</p>
-        <p style="font-weight:700; font-size:1rem; margin:0;">{{ t.journal_anatomy_title }}</p>
-      </div>
-      <a href="{% if lang == 'en' %}/en/yoga-journal{% else %}/yoga-journal{% endif %}" style="color:var(--yb-brand); font-weight:700; font-size:0.9rem; white-space:nowrap;">{{ t.journal_read_more }} →</a>
     </div>
   </div>
 </section>
 
-<!-- SECTION 8: INSPIRATIONAL TEACHER PROFILES -->
-<section class="program-schedule" id="teacher-profiles">
-  <div class="container">
-    <span class="ds-eyebrow ds-eyebrow--brand">{{ t.profiles_eyebrow }}</span>
+
+<!-- ═══════════════════════════════════════
+     14. TEACHER PROFILES — Dark Cinematic
+     ═══════════════════════════════════════ -->
+<section class="cmp-dark" id="teacher-profiles">
+  <div class="container" style="text-align:center;">
+    <span class="cmp-eyebrow">{{ t.profiles_eyebrow }}</span>
     <h2 class="section-title">{{ t.profiles_title }}</h2>
     <p class="section-subtitle">{{ t.profiles_subtitle }}</p>
 
-    <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(300px, 1fr)); gap:30px; max-width:1000px; margin:40px auto 0;">
-
-      <!-- Teacher Profile 1: The Lifelong Student -->
-      <div class="ds-card ds-card--testimonial" style="border:1.5px solid var(--yb-brand); border-radius:12px; padding:32px;">
-        <img src="/assets/images/compare/teacher-profile-lifelong.jpg" alt="{{ t.teacher1_name }}" style="width:80px; height:80px; border-radius:50%; object-fit:cover; margin-bottom:16px; background:var(--ds-bg-light);">
-        <h3 style="font-size:1.1rem; font-weight:700; margin-bottom:4px;">{{ t.teacher1_name }}</h3>
-        <p style="font-size:0.8rem; color:var(--yb-brand); font-weight:700; margin-bottom:12px;">{{ t.teacher1_hours }}</p>
-        <p style="color:var(--ds-text-muted); font-size:0.9rem; line-height:1.6; margin-bottom:16px;">{{ t.teacher1_bio }}</p>
-        <blockquote style="border-left:3px solid var(--yb-brand); padding-left:16px; font-style:italic; color:#444; font-size:0.9rem;">{{ t.teacher1_quote }}</blockquote>
+    <div class="cmp-profiles">
+      <div class="cmp-profile">
+        <img src="/assets/images/compare/teacher-profile-lifelong.jpg" alt="{{ t.teacher1_name }}" class="cmp-profile__avatar" loading="lazy">
+        <h3 class="cmp-profile__name">{{ t.teacher1_name }}</h3>
+        <p class="cmp-profile__hours">{{ t.teacher1_hours }}</p>
+        <p class="cmp-profile__bio">{{ t.teacher1_bio }}</p>
+        <blockquote class="cmp-profile__quote">{{ t.teacher1_quote }}</blockquote>
       </div>
 
-      <!-- Teacher Profile 2: Mid-Career Teacher -->
-      <div class="ds-card ds-card--testimonial" style="border:1.5px solid var(--yb-brand); border-radius:12px; padding:32px;">
-        <img src="/assets/images/compare/teacher-profile-midcareer.jpg" alt="{{ t.teacher2_name }}" style="width:80px; height:80px; border-radius:50%; object-fit:cover; margin-bottom:16px; background:var(--ds-bg-light);">
-        <h3 style="font-size:1.1rem; font-weight:700; margin-bottom:4px;">{{ t.teacher2_name }}</h3>
-        <p style="font-size:0.8rem; color:var(--yb-brand); font-weight:700; margin-bottom:12px;">{{ t.teacher2_hours }}</p>
-        <p style="color:var(--ds-text-muted); font-size:0.9rem; line-height:1.6; margin-bottom:16px;">{{ t.teacher2_bio }}</p>
-        <blockquote style="border-left:3px solid var(--yb-brand); padding-left:16px; font-style:italic; color:#444; font-size:0.9rem;">{{ t.teacher2_quote }}</blockquote>
+      <div class="cmp-profile">
+        <img src="/assets/images/compare/teacher-profile-midcareer.jpg" alt="{{ t.teacher2_name }}" class="cmp-profile__avatar" loading="lazy">
+        <h3 class="cmp-profile__name">{{ t.teacher2_name }}</h3>
+        <p class="cmp-profile__hours">{{ t.teacher2_hours }}</p>
+        <p class="cmp-profile__bio">{{ t.teacher2_bio }}</p>
+        <blockquote class="cmp-profile__quote">{{ t.teacher2_quote }}</blockquote>
       </div>
 
-      <!-- Teacher Profile 3: Rising Teacher -->
-      <div class="ds-card ds-card--testimonial" style="border:1.5px solid var(--yb-brand); border-radius:12px; padding:32px;">
-        <img src="/assets/images/compare/teacher-profile-rising.jpg" alt="{{ t.teacher3_name }}" style="width:80px; height:80px; border-radius:50%; object-fit:cover; margin-bottom:16px; background:var(--ds-bg-light);">
-        <h3 style="font-size:1.1rem; font-weight:700; margin-bottom:4px;">{{ t.teacher3_name }}</h3>
-        <p style="font-size:0.8rem; color:var(--yb-brand); font-weight:700; margin-bottom:12px;">{{ t.teacher3_hours }}</p>
-        <p style="color:var(--ds-text-muted); font-size:0.9rem; line-height:1.6; margin-bottom:16px;">{{ t.teacher3_bio }}</p>
-        <blockquote style="border-left:3px solid var(--yb-brand); padding-left:16px; font-style:italic; color:#444; font-size:0.9rem;">{{ t.teacher3_quote }}</blockquote>
+      <div class="cmp-profile">
+        <img src="/assets/images/compare/teacher-profile-rising.jpg" alt="{{ t.teacher3_name }}" class="cmp-profile__avatar" loading="lazy">
+        <h3 class="cmp-profile__name">{{ t.teacher3_name }}</h3>
+        <p class="cmp-profile__hours">{{ t.teacher3_hours }}</p>
+        <p class="cmp-profile__bio">{{ t.teacher3_bio }}</p>
+        <blockquote class="cmp-profile__quote">{{ t.teacher3_quote }}</blockquote>
       </div>
-
     </div>
   </div>
 </section>
 
-<!-- SECTION 9: YOGA BIBLE'S 200-HOUR PROGRAMS -->
-<section class="program-overview" id="yoga-bible-programs">
-  <div class="container">
-    <span class="ds-eyebrow ds-eyebrow--brand">{{ t.yb_eyebrow }}</span>
+
+<!-- ═══════════════════════════════════════
+     15. YOGA BIBLE PROGRAMS — Format Cards
+     ═══════════════════════════════════════ -->
+<section class="cmp-warm" id="yoga-bible-programs">
+  <div class="container" style="text-align:center;">
+    <span class="cmp-eyebrow">{{ t.yb_eyebrow }}</span>
     <h2 class="section-title">{{ t.yb_title }}</h2>
     <p class="section-subtitle">{{ t.yb_subtitle }}</p>
 
-    <div style="overflow-x:auto; margin:40px auto; max-width:900px;">
-      <table class="ds-pricing-table" style="min-width:600px;">
-        <thead>
-          <tr>
-            <th>{{ t.yb_th_feature }}</th>
-            <th>{{ t.yb_th_18w }}</th>
-            <th>{{ t.yb_th_8w }}</th>
-            <th>{{ t.yb_th_4w }}</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td>{{ t.yb_row1_label }}</td>
-            <td>{{ t.yb_row1_18w }}</td>
-            <td>{{ t.yb_row1_8w }}</td>
-            <td>{{ t.yb_row1_4w }}</td>
-          </tr>
-          <tr>
-            <td>{{ t.yb_row2_label }}</td>
-            <td>{{ t.yb_row2_18w }}</td>
-            <td>{{ t.yb_row2_8w }}</td>
-            <td>{{ t.yb_row2_4w }}</td>
-          </tr>
-          <tr>
-            <td>{{ t.yb_row3_label }}</td>
-            <td>{{ t.yb_row3_18w }}</td>
-            <td>{{ t.yb_row3_8w }}</td>
-            <td>{{ t.yb_row3_4w }}</td>
-          </tr>
-          <tr>
-            <td>{{ t.yb_row4_label }}</td>
-            <td>{{ t.yb_row4_18w }}</td>
-            <td>{{ t.yb_row4_8w }}</td>
-            <td>{{ t.yb_row4_4w }}</td>
-          </tr>
-          <tr>
-            <td>{{ t.yb_row5_label }}</td>
-            <td>{{ t.yb_row5_18w }}</td>
-            <td>{{ t.yb_row5_8w }}</td>
-            <td>{{ t.yb_row5_4w }}</td>
-          </tr>
-          <tr>
-            <td>{{ t.yb_row6_label }}</td>
-            <td>{{ t.yb_row6_18w }}</td>
-            <td>{{ t.yb_row6_8w }}</td>
-            <td>{{ t.yb_row6_4w }}</td>
-          </tr>
-          <tr>
-            <td>{{ t.yb_row7_label }}</td>
-            <td>{{ t.yb_row7_18w }}</td>
-            <td>{{ t.yb_row7_8w }}</td>
-            <td>{{ t.yb_row7_4w }}</td>
-          </tr>
-          <tr>
-            <td>{{ t.yb_row8_label }}</td>
-            <td>{{ t.yb_row8_18w }}</td>
-            <td>{{ t.yb_row8_8w }}</td>
-            <td>{{ t.yb_row8_4w }}</td>
-          </tr>
-          <tr>
-            <td>{{ t.yb_row9_label }}</td>
-            <td>{{ t.yb_row9_18w }}</td>
-            <td>{{ t.yb_row9_8w }}</td>
-            <td>{{ t.yb_row9_4w }}</td>
-          </tr>
-          <tr>
-            <td>{{ t.yb_row10_label }}</td>
-            <td>{{ t.yb_row10_18w }}</td>
-            <td>{{ t.yb_row10_8w }}</td>
-            <td>{{ t.yb_row10_4w }}</td>
-          </tr>
-        </tbody>
-      </table>
+    <div class="cmp-formats">
+      <!-- 18 Weeks -->
+      <div class="cmp-format-card">
+        <div class="cmp-format-card__header">
+          <h3>{{ t.yb_th_18w }}</h3>
+          <small>{{ t.yb_format_18w_sub }}</small>
+        </div>
+        <div class="cmp-format-card__body">
+          <div class="cmp-format-card__row"><span>{{ t.yb_row1_label }}</span><span>{{ t.yb_row1_18w }}</span></div>
+          <div class="cmp-format-card__row"><span>{{ t.yb_row2_label }}</span><span>{{ t.yb_row2_18w }}</span></div>
+          <div class="cmp-format-card__row"><span>{{ t.yb_row3_label }}</span><span>{{ t.yb_row3_18w }}</span></div>
+          <div class="cmp-format-card__row"><span>{{ t.yb_row4_label }}</span><span>{{ t.yb_row4_18w }}</span></div>
+          <div class="cmp-format-card__row"><span>{{ t.yb_row5_label }}</span><span>{{ t.yb_row5_18w }}</span></div>
+          <div class="cmp-format-card__row"><span>{{ t.yb_row6_label }}</span><span>{{ t.yb_row6_18w }}</span></div>
+          <div class="cmp-format-card__row"><span>{{ t.yb_row7_label }}</span><span>{{ t.yb_row7_18w }}</span></div>
+          <div class="cmp-format-card__row"><span>{{ t.yb_row8_label }}</span><span>{{ t.yb_row8_18w }}</span></div>
+          <div class="cmp-format-card__row"><span>{{ t.yb_row9_label }}</span><span>{{ t.yb_row9_18w }}</span></div>
+        </div>
+        <div class="cmp-format-card__cta">
+          <a href="{% if lang == 'en' %}/en/18-ugers-yogalareruddannelse{% else %}/18-ugers-yogalareruddannelse{% endif %}" class="yb-btn yb-btn--primary" style="width:100%;">{{ t.yb_cta_18w }}</a>
+        </div>
+      </div>
+
+      <!-- 8 Weeks -->
+      <div class="cmp-format-card">
+        <div class="cmp-format-card__header">
+          <h3>{{ t.yb_th_8w }}</h3>
+          <small>{{ t.yb_format_8w_sub }}</small>
+        </div>
+        <div class="cmp-format-card__body">
+          <div class="cmp-format-card__row"><span>{{ t.yb_row1_label }}</span><span>{{ t.yb_row1_8w }}</span></div>
+          <div class="cmp-format-card__row"><span>{{ t.yb_row2_label }}</span><span>{{ t.yb_row2_8w }}</span></div>
+          <div class="cmp-format-card__row"><span>{{ t.yb_row3_label }}</span><span>{{ t.yb_row3_8w }}</span></div>
+          <div class="cmp-format-card__row"><span>{{ t.yb_row4_label }}</span><span>{{ t.yb_row4_8w }}</span></div>
+          <div class="cmp-format-card__row"><span>{{ t.yb_row5_label }}</span><span>{{ t.yb_row5_8w }}</span></div>
+          <div class="cmp-format-card__row"><span>{{ t.yb_row6_label }}</span><span>{{ t.yb_row6_8w }}</span></div>
+          <div class="cmp-format-card__row"><span>{{ t.yb_row7_label }}</span><span>{{ t.yb_row7_8w }}</span></div>
+          <div class="cmp-format-card__row"><span>{{ t.yb_row8_label }}</span><span>{{ t.yb_row8_8w }}</span></div>
+          <div class="cmp-format-card__row"><span>{{ t.yb_row9_label }}</span><span>{{ t.yb_row9_8w }}</span></div>
+        </div>
+        <div class="cmp-format-card__cta">
+          <a href="{% if lang == 'en' %}/en/8-ugers-yogalareruddannelse{% else %}/8-ugers-yogalareruddannelse{% endif %}" class="yb-btn yb-btn--primary" style="width:100%;">{{ t.yb_cta_8w }}</a>
+        </div>
+      </div>
+
+      <!-- 4 Weeks -->
+      <div class="cmp-format-card">
+        <div class="cmp-format-card__header">
+          <h3>{{ t.yb_th_4w }}</h3>
+          <small>{{ t.yb_format_4w_sub }}</small>
+        </div>
+        <div class="cmp-format-card__body">
+          <div class="cmp-format-card__row"><span>{{ t.yb_row1_label }}</span><span>{{ t.yb_row1_4w }}</span></div>
+          <div class="cmp-format-card__row"><span>{{ t.yb_row2_label }}</span><span>{{ t.yb_row2_4w }}</span></div>
+          <div class="cmp-format-card__row"><span>{{ t.yb_row3_label }}</span><span>{{ t.yb_row3_4w }}</span></div>
+          <div class="cmp-format-card__row"><span>{{ t.yb_row4_label }}</span><span>{{ t.yb_row4_4w }}</span></div>
+          <div class="cmp-format-card__row"><span>{{ t.yb_row5_label }}</span><span>{{ t.yb_row5_4w }}</span></div>
+          <div class="cmp-format-card__row"><span>{{ t.yb_row6_label }}</span><span>{{ t.yb_row6_4w }}</span></div>
+          <div class="cmp-format-card__row"><span>{{ t.yb_row7_label }}</span><span>{{ t.yb_row7_4w }}</span></div>
+          <div class="cmp-format-card__row"><span>{{ t.yb_row8_label }}</span><span>{{ t.yb_row8_4w }}</span></div>
+          <div class="cmp-format-card__row"><span>{{ t.yb_row9_label }}</span><span>{{ t.yb_row9_4w }}</span></div>
+        </div>
+        <div class="cmp-format-card__cta">
+          <a href="{% if lang == 'en' %}/en/4-ugers-yogalareruddannelse{% else %}/4-ugers-yogalareruddannelse{% endif %}" class="yb-btn yb-btn--primary" style="width:100%;">{{ t.yb_cta_4w }}</a>
+        </div>
+      </div>
     </div>
 
-    <!-- Credential bar -->
-    <div style="background:var(--ds-bg-light); border-radius:12px; padding:24px 32px; max-width:700px; margin:32px auto 0; display:flex; align-items:center; gap:20px; flex-wrap:wrap; justify-content:center;">
-      <div style="font-size:0.85rem; text-align:center;">
-        <strong style="display:block; font-size:1rem; margin-bottom:4px;">{{ t.yb_credential_title }}</strong>
-        <span style="color:var(--ds-text-muted);">{{ t.yb_credential_text }}</span>
-      </div>
+    <!-- Credential Strip -->
+    <div class="cmp-credential">
+      <strong>{{ t.yb_credential_title }}</strong>
+      <span style="color:#6F6A66;">{{ t.yb_credential_text }}</span>
     </div>
   </div>
 </section>
 
-<!-- SECTION 10: DECISION FRAMEWORK -->
-<section class="program-schedule" id="decision-framework">
-  <div class="container">
-    <span class="ds-eyebrow ds-eyebrow--brand">{{ t.decision_eyebrow }}</span>
+
+<!-- ═══════════════════════════════════════
+     16. DECISION FRAMEWORK — Numbered Cards
+     ═══════════════════════════════════════ -->
+<section class="cmp-light" id="decision-framework">
+  <div class="container" style="text-align:center;">
+    <span class="cmp-eyebrow">{{ t.decision_eyebrow }}</span>
     <h2 class="section-title">{{ t.decision_title }}</h2>
     <p class="section-subtitle">{{ t.decision_subtitle }}</p>
 
-    <div class="program-grid" style="max-width:1000px; margin:40px auto 0;">
-      <div class="program-feature">
-        <div class="program-feature__icon" style="font-size:1.4rem;">💼</div>
+    <div class="cmp-numbered">
+      <div class="cmp-numbered__item">
+        <div class="cmp-numbered__num">01</div>
         <h3>{{ t.scenario1_title }}</h3>
         <p>{{ t.scenario1_desc | safe }}</p>
-        <a href="{% if lang == 'en' %}/en/18-ugers-yogalareruddannelse{% else %}/18-ugers-yogalareruddannelse{% endif %}" style="color:var(--yb-brand); font-weight:700; font-size:0.9rem; text-decoration:underline;">{{ t.scenario1_link }}</a>
+        <a href="{% if lang == 'en' %}/en/18-ugers-yogalareruddannelse{% else %}/18-ugers-yogalareruddannelse{% endif %}" class="cmp-numbered__link">{{ t.scenario1_link }}</a>
       </div>
 
-      <div class="program-feature">
-        <div class="program-feature__icon" style="font-size:1.4rem;">🔥</div>
+      <div class="cmp-numbered__item">
+        <div class="cmp-numbered__num">02</div>
         <h3>{{ t.scenario2_title }}</h3>
         <p>{{ t.scenario2_desc | safe }}</p>
-        <a href="{% if lang == 'en' %}/en/4-ugers-yogalareruddannelse{% else %}/4-ugers-yogalareruddannelse{% endif %}" style="color:var(--yb-brand); font-weight:700; font-size:0.9rem; text-decoration:underline;">{{ t.scenario2_link }}</a>
+        <a href="{% if lang == 'en' %}/en/4-ugers-yogalareruddannelse{% else %}/4-ugers-yogalareruddannelse{% endif %}" class="cmp-numbered__link">{{ t.scenario2_link }}</a>
       </div>
 
-      <div class="program-feature">
-        <div class="program-feature__icon" style="font-size:1.4rem;">⚖️</div>
+      <div class="cmp-numbered__item">
+        <div class="cmp-numbered__num">03</div>
         <h3>{{ t.scenario3_title }}</h3>
         <p>{{ t.scenario3_desc | safe }}</p>
-        <a href="{% if lang == 'en' %}/en/8-ugers-yogalareruddannelse{% else %}/8-ugers-yogalareruddannelse{% endif %}" style="color:var(--yb-brand); font-weight:700; font-size:0.9rem; text-decoration:underline;">{{ t.scenario3_link }}</a>
+        <a href="{% if lang == 'en' %}/en/8-ugers-yogalareruddannelse{% else %}/8-ugers-yogalareruddannelse{% endif %}" class="cmp-numbered__link">{{ t.scenario3_link }}</a>
       </div>
 
-      <div class="program-feature">
-        <div class="program-feature__icon" style="font-size:1.4rem;">🕐</div>
+      <div class="cmp-numbered__item">
+        <div class="cmp-numbered__num">04</div>
         <h3>{{ t.scenario4_title }}</h3>
         <p>{{ t.scenario4_desc | safe }}</p>
-        <a href="{% if lang == 'en' %}/en/18-ugers-yogalareruddannelse{% else %}/18-ugers-yogalareruddannelse{% endif %}" style="color:var(--yb-brand); font-weight:700; font-size:0.9rem; text-decoration:underline;">{{ t.scenario4_link }}</a>
+        <a href="{% if lang == 'en' %}/en/18-ugers-yogalareruddannelse{% else %}/18-ugers-yogalareruddannelse{% endif %}" class="cmp-numbered__link">{{ t.scenario4_link }}</a>
       </div>
     </div>
   </div>
 </section>
 
-<!-- SECTION 11: FAQ -->
-<section class="program-faq">
-  <div class="container">
+
+<!-- ═══════════════════════════════════════
+     17. FAQ — Dark BG
+     ═══════════════════════════════════════ -->
+<section class="cmp-dark" style="padding:80px 20px;">
+  <div class="container" style="text-align:center;">
     <h2 class="section-title">{{ t.faq_title }}</h2>
     <p class="section-subtitle">{{ t.faq_subtitle }}</p>
 
-    <div class="faq-list">
+    <div class="faq-list" style="max-width:800px; margin:40px auto 0; text-align:left;">
       <details class="faq-item">
         <summary>{{ t.faq1_q }}</summary>
         <p>{{ t.faq1_a | safe }}</p>
@@ -753,14 +1388,17 @@
   </div>
 </section>
 
-<!-- SECTION 12: CTA -->
-<section class="cta-section">
-  <div class="container">
-    <h2 class="cta-section__title">{{ t.cta_title }}</h2>
-    <p class="cta-section__text">{{ t.cta_text }}</p>
+
+<!-- ═══════════════════════════════════════
+     18. FINAL CTA — Orange Gradient
+     ═══════════════════════════════════════ -->
+<section class="cmp-brand">
+  <div class="cmp-final-cta">
+    <h2>{{ t.cta_title }}</h2>
+    <p>{{ t.cta_text }}</p>
     <div style="display:flex; gap:16px; justify-content:center; flex-wrap:wrap;">
-      <a href="{% if lang == 'en' %}/en/om-200hrs-yogalreruddannelser{% else %}/om-200hrs-yogalreruddannelser{% endif %}" class="btn btn--large btn--primary">{{ t.cta_primary }}</a>
-      <a href="{% if lang == 'en' %}/en/kontakt{% else %}/kontakt{% endif %}" class="btn btn--large btn--secondary">{{ t.cta_secondary }}</a>
+      <a href="{% if lang == 'en' %}/en/om-200hrs-yogalreruddannelser{% else %}/om-200hrs-yogalreruddannelser{% endif %}" class="yb-btn yb-btn--white yb-btn--large">{{ t.cta_primary }}</a>
+      <a href="{% if lang == 'en' %}/en/kontakt{% else %}/kontakt{% endif %}" class="yb-btn yb-btn--outline-light yb-btn--large">{{ t.cta_secondary }}</a>
     </div>
   </div>
 </section>
