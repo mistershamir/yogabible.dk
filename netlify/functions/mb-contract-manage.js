@@ -146,92 +146,91 @@ exports.handler = async function(event) {
 
       var ccId = Number(body.clientContractId);
 
-      // MB API docs are behind auth — try multiple body formats to find what works.
-      // The MB UI shows: SuspensionType dropdown, StartDate, Duration number + DurationUnit dropdown.
+      // MB API docs behind auth — try multiple body formats to find what works.
+      // The MB UI shows: SuspensionType dropdown, StartDate, Duration + DurationUnit.
       var bodyVariants = [
-        // A: Standard with plural "Days" + SuspendDate
-        { ClientContractId: ccId, SuspendDate: body.startDate, Duration: durationDays, DurationUnit: 'Days' },
-        // B: Singular "Day" (common API enum pattern)
-        { ClientContractId: ccId, SuspendDate: body.startDate, Duration: durationDays, DurationUnit: 'Day' },
-        // C: With ClientId included
-        { ClientId: body.clientId, ClientContractId: ccId, SuspendDate: body.startDate, Duration: durationDays, DurationUnit: 'Days' },
-        // D: Minimal — no SuspendDate (maybe defaults to today)
-        { ClientContractId: ccId, Duration: durationDays, DurationUnit: 'Days' },
-        // E: Duration as string (MB sometimes expects strings for numbers)
-        { ClientContractId: ccId, SuspendDate: body.startDate, Duration: String(durationDays), DurationUnit: 'Days' },
+        { label: 'A', body: { ClientContractId: ccId, SuspendDate: body.startDate, Duration: durationDays, DurationUnit: 'Days' } },
+        { label: 'B', body: { ClientContractId: ccId, SuspendDate: body.startDate, Duration: durationDays, DurationUnit: 'Day' } },
+        { label: 'C', body: { ClientId: body.clientId, ClientContractId: ccId, SuspendDate: body.startDate, Duration: durationDays, DurationUnit: 'Days' } },
+        { label: 'D', body: { ClientContractId: ccId, Duration: durationDays, DurationUnit: 'Days' } },
+        { label: 'E', body: { ClientContractId: ccId, SuspendDate: body.startDate, Duration: String(durationDays), DurationUnit: 'Days' } },
+        { label: 'F', body: { ClientId: body.clientId, ClientContractId: ccId, SuspendDate: body.startDate, Duration: durationDays, DurationUnit: 'Day' } },
+        { label: 'G', body: { ClientContractId: ccId, SuspendDate: body.startDate, Duration: durationDays, DurationUnit: 'Day', Test: true } },
       ];
 
+      var suspendPaths = ['/sale/suspendcontract', '/contract/suspendcontract', '/client/suspendcontract'];
       var allResults = [];
-      var suspendPath = '/sale/suspendcontract';
 
-      // Try each body variant on the primary path
-      for (var vi = 0; vi < bodyVariants.length; vi++) {
-        var variant = bodyVariants[vi];
-        var label = String.fromCharCode(65 + vi);
+      // Step 1: Find which endpoint path exists (returns JSON, not 404 HTML)
+      var activePath = null;
+      for (var pi = 0; pi < suspendPaths.length; pi++) {
         try {
-          console.log('[mb-contract-manage] Trying variant ' + label + ' on ' + suspendPath + ':', JSON.stringify(variant));
-          var suspResult = await mbFetch(suspendPath, {
+          console.log('[mb-contract-manage] Probing path: ' + suspendPaths[pi]);
+          var probeResult = await mbFetch(suspendPaths[pi], {
             method: 'POST',
-            body: JSON.stringify(variant)
+            body: JSON.stringify(bodyVariants[0].body)
           });
-
-          console.log('[mb-contract-manage] SUCCESS variant ' + label + ':', JSON.stringify(suspResult).substring(0, 300));
-
+          // If it succeeded, we're done!
+          console.log('[mb-contract-manage] SUCCESS on probe ' + suspendPaths[pi]);
           return jsonResponse(200, {
             success: true,
             action: 'suspend',
             suspendDate: body.startDate,
             resumeDate: body.endDate,
             durationDays: durationDays,
-            endpointUsed: suspendPath,
-            bodyVariant: label,
+            endpointUsed: suspendPaths[pi],
+            bodyVariant: 'A',
             message: 'Contract suspension scheduled'
           });
-        } catch (suspErr) {
-          var errInfo = {
-            variant: label,
-            path: suspendPath,
-            status: suspErr.status,
-            message: suspErr.message,
-            data: suspErr.data ? JSON.stringify(suspErr.data).substring(0, 200) : null
-          };
-          console.log('[mb-contract-manage] Variant ' + label + ' failed:', JSON.stringify(errInfo));
-          allResults.push(errInfo);
+        } catch (probeErr) {
+          var probeMsg = (probeErr.message || '').toLowerCase();
+          allResults.push({ variant: 'A-probe', path: suspendPaths[pi], status: probeErr.status, message: probeErr.message });
 
-          // If 404/405 on primary path, skip remaining variants and try alt paths
-          if (suspErr.status === 404 || suspErr.status === 405) break;
+          if (probeErr.status === 404 || probeErr.status === 405 || probeMsg.indexOf('non-json') > -1) {
+            console.log('[mb-contract-manage] Path ' + suspendPaths[pi] + ' does not exist (404/HTML), trying next...');
+            continue;
+          }
+          // This path exists (returned JSON error like 400) — use it
+          activePath = suspendPaths[pi];
+          console.log('[mb-contract-manage] Found active path: ' + activePath + ' (status ' + probeErr.status + ')');
+          break;
         }
       }
 
-      // If primary path was 404, try alternate paths with variant A
-      var firstResult = allResults[0] || {};
-      if (firstResult.status === 404 || firstResult.status === 405) {
-        var altPaths = ['/contract/suspendcontract', '/client/suspendcontract'];
-        for (var pi = 0; pi < altPaths.length; pi++) {
+      // Step 2: Try ALL body variants on the active path
+      if (activePath) {
+        // Skip variant A (already tried as probe) — start from B
+        for (var vi = 1; vi < bodyVariants.length; vi++) {
+          var v = bodyVariants[vi];
           try {
-            console.log('[mb-contract-manage] Trying alt path: ' + altPaths[pi]);
-            var altResult = await mbFetch(altPaths[pi], {
+            console.log('[mb-contract-manage] Trying variant ' + v.label + ' on ' + activePath + ':', JSON.stringify(v.body));
+            var suspResult = await mbFetch(activePath, {
               method: 'POST',
-              body: JSON.stringify(bodyVariants[0])
+              body: JSON.stringify(v.body)
             });
-            console.log('[mb-contract-manage] SUCCESS on ' + altPaths[pi]);
+
+            console.log('[mb-contract-manage] SUCCESS variant ' + v.label + ':', JSON.stringify(suspResult).substring(0, 300));
+
             return jsonResponse(200, {
               success: true,
               action: 'suspend',
               suspendDate: body.startDate,
               resumeDate: body.endDate,
               durationDays: durationDays,
-              endpointUsed: altPaths[pi],
+              endpointUsed: activePath,
+              bodyVariant: v.label,
               message: 'Contract suspension scheduled'
             });
-          } catch (altErr) {
-            allResults.push({
-              variant: 'A',
-              path: altPaths[pi],
-              status: altErr.status,
-              message: altErr.message,
-              data: altErr.data ? JSON.stringify(altErr.data).substring(0, 200) : null
-            });
+          } catch (suspErr) {
+            var errInfo = {
+              variant: v.label,
+              path: activePath,
+              status: suspErr.status,
+              message: suspErr.message,
+              data: suspErr.data ? JSON.stringify(suspErr.data).substring(0, 300) : null
+            };
+            console.log('[mb-contract-manage] Variant ' + v.label + ' failed:', JSON.stringify(errInfo));
+            allResults.push(errInfo);
           }
         }
       }
@@ -242,7 +241,8 @@ exports.handler = async function(event) {
       return jsonResponse(lastErr.status || 500, {
         error: lastErr.message || 'All suspend attempts failed',
         _attempts: allResults,
-        _hint: 'Tried ' + allResults.length + ' body variants. Check Netlify function logs for full details.'
+        _activePath: activePath,
+        _hint: 'Tried ' + allResults.length + ' combinations. Check Netlify function logs for details.'
       });
     }
 
