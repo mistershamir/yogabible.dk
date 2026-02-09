@@ -983,6 +983,7 @@
     ]).then(function(results) {
       var services = (results[0].services || []).map(function(s) {
         s._itemType = 'service';
+        if (s.description) s.description = stripHtml(s.description);
         return s;
       });
 
@@ -995,20 +996,51 @@
         // Normalize contract shape to match service display
         c._itemType = 'contract';
         c.name = c.name || '';
-        c.description = c.description || c.onlineDescription || '';
+        // Strip HTML from Mindbody descriptions (they contain inline styles)
+        c.description = stripHtml(c.description || c.onlineDescription || '');
         // Price: use the recurring payment (what they pay each cycle), fallback to first payment or total
         var recurringAmt = c.recurringPaymentAmount || 0;
         var firstAmt = c.firstPaymentAmount || 0;
         c.price = recurringAmt || firstAmt || c.totalContractAmount || 0;
         c.onlinePrice = c.price;
         c.count = null;
-        // Build recurring info string (e.g. "799 kr / Monthly")
+        // Map schedule string to friendly text
         var scheduleStr = c.autopaySchedule || '';
         if (typeof scheduleStr === 'object') scheduleStr = scheduleStr.FrequencyType || '';
-        if (recurringAmt && scheduleStr) {
-          c._recurringInfo = recurringAmt + ' kr / ' + scheduleStr;
+        // Clean up raw MB values like "SetNumberOfAutopays" or technical strings
+        var friendlySchedule = '';
+        var sLower = scheduleStr.toLowerCase();
+        if (sLower.indexOf('month') !== -1 || sLower === 'setnumberofautopays') {
+          friendlySchedule = isDa() ? 'pr. måned' : 'per month';
+        } else if (sLower.indexOf('week') !== -1) {
+          friendlySchedule = isDa() ? 'pr. uge' : 'per week';
+        } else if (sLower.indexOf('year') !== -1) {
+          friendlySchedule = isDa() ? 'pr. år' : 'per year';
+        } else if (scheduleStr) {
+          friendlySchedule = scheduleStr;
+        }
+        if (recurringAmt && friendlySchedule) {
+          c._recurringInfo = formatDKK(recurringAmt) + ' ' + friendlySchedule;
         } else if (recurringAmt) {
-          c._recurringInfo = recurringAmt + ' kr ' + (isDa() ? 'pr. periode' : 'per period');
+          c._recurringInfo = formatDKK(recurringAmt) + ' ' + (isDa() ? 'pr. periode' : 'per period');
+        }
+        // Extract class count from name for per-class cost calc
+        var nameClasses = (c.name || '').match(/(\d+)\s*class/i) || (c.name || '').match(/(\d+)\s*klasse/i);
+        var classCount = nameClasses ? parseInt(nameClasses[1], 10) : 0;
+        // Check for "unlimited" in name
+        var isUnlimited = /unlimited|ubegrænset/i.test(c.name || '');
+        // Per-class cost info
+        c._perClassInfo = '';
+        if (classCount > 0 && recurringAmt > 0) {
+          var perClass = Math.round(recurringAmt / classCount);
+          c._perClassInfo = isDa()
+            ? classCount + ' klasser — kun ' + formatDKK(perClass) + ' pr. gang'
+            : classCount + ' classes — only ' + formatDKK(perClass) + ' per class';
+        } else if (isUnlimited && recurringAmt > 0) {
+          var approxPerClass = Math.round(recurringAmt / 20);
+          c._perClassInfo = isDa()
+            ? 'Ubegrænset yoga — ca. ' + formatDKK(approxPerClass) + ' pr. gang (ved ~20 klasser/md.)'
+            : 'Unlimited yoga — approx. ' + formatDKK(approxPerClass) + ' per class (at ~20 classes/mo.)';
         }
         // Build contract terms summary for display
         var terms = [];
@@ -1017,12 +1049,7 @@
         } else if (firstAmt && recurringAmt && firstAmt !== recurringAmt) {
           terms.push((isDa() ? 'Første betaling: ' : 'First payment: ') + formatDKK(firstAmt));
         }
-        if (c.duration && c.durationUnit) {
-          terms.push(c.duration + ' ' + c.durationUnit);
-        }
-        if (c.numberOfAutopays) {
-          terms.push(c.numberOfAutopays + (isDa() ? ' betalinger' : ' payments'));
-        }
+        terms.push(isDa() ? 'Løbende månedligt — opsig eller pause når som helst' : 'Month-to-month — cancel or pause anytime');
         c._terms = terms;
         return c;
       });
@@ -1146,6 +1173,11 @@
         html += '    <span class="yb-store__item-count">' + s.count + ' ' + (isDa() ? 'klip' : 'sessions') + '</span>';
       }
       html += '  </div>';
+
+      // Per-class cost breakdown
+      if (isContract && s._perClassInfo) {
+        html += '  <p class="yb-store__item-per-class">' + esc(s._perClassInfo) + '</p>';
+      }
 
       // Contract terms (bullet list of key terms)
       if (isContract && s._terms && s._terms.length) {
@@ -2424,6 +2456,13 @@
     var div = document.createElement('div');
     div.textContent = str || '';
     return div.innerHTML;
+  }
+
+  function stripHtml(str) {
+    if (!str) return '';
+    var div = document.createElement('div');
+    div.innerHTML = str;
+    return (div.textContent || div.innerText || '').trim();
   }
 
   // ══════════════════════════════════════
