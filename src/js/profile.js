@@ -956,6 +956,7 @@
     html += '</div>';
     html += '<p class="yb-membership__resume-info" id="yb-pause-resume-info" hidden></p>';
     html += '</div>';
+    html += '<p class="yb-membership__special-note">' + t('membership_pause_special') + '</p>';
     html += '<div class="yb-auth-error" id="yb-pause-error" hidden role="alert"></div>';
     html += '<button type="button" class="yb-membership__confirm-btn yb-membership__confirm-btn--pause" id="yb-pause-confirm">' + t('membership_pause_confirm') + '</button>';
     html += '</div>';
@@ -1083,21 +1084,31 @@
           endInput.value = defaultEnd.toISOString().split('T')[0];
         }
 
-        // Update resume info when dates change
+        // Update resume info + duration feedback
         function updateResumeInfo() {
-          if (!resumeInfoEl || !endInput) return;
-          if (endInput.value) {
+          if (!resumeInfoEl || !endInput || !startInput) return;
+          if (endInput.value && startInput.value) {
+            var sd = new Date(startInput.value);
+            var ed = new Date(endInput.value);
+            var days = Math.round((ed - sd) / 86400000);
             var resumeDate = new Date(endInput.value);
-            resumeInfoEl.textContent = t('membership_pause_resume') + ' ' + formatDateDK(resumeDate);
+            var durationLabel = isDa() ? (days + ' dage') : (days + ' days');
+            resumeInfoEl.textContent = t('membership_pause_resume') + ' ' + formatDateDK(resumeDate) + ' (' + durationLabel + ')';
             resumeInfoEl.hidden = false;
           } else {
             resumeInfoEl.hidden = true;
           }
+          // Clear any previous errors when dates change
+          if (errorEl) errorEl.hidden = true;
         }
 
-        // Update end date constraints when start changes
+        // Enforce start date cannot be before earliest
         function onStartChange() {
           if (!endInput || !startInput || !startInput.value) return;
+          // Prevent picking before next billing
+          if (startInput.min && startInput.value < startInput.min) {
+            startInput.value = startInput.min;
+          }
           var sd = new Date(startInput.value);
           var minEnd = new Date(sd);
           minEnd.setDate(minEnd.getDate() + 14);
@@ -1128,7 +1139,29 @@
         var endInput = document.getElementById('yb-pause-end');
         var errorEl = document.getElementById('yb-pause-error');
 
-        if (!startInput || !startInput.value || !endInput || !endInput.value) return;
+        if (!startInput || !startInput.value || !endInput || !endInput.value) {
+          if (errorEl) { errorEl.textContent = isDa() ? 'Vælg venligst start- og slutdato.' : 'Please select start and end dates.'; errorEl.hidden = false; }
+          return;
+        }
+
+        // Validate: start must be >= next billing (min attribute)
+        if (startInput.min && startInput.value < startInput.min) {
+          if (errorEl) { errorEl.textContent = isDa() ? 'Startdato kan tidligst være efter næste faktureringsperiode.' : 'Start date cannot be before your next billing cycle.'; errorEl.hidden = false; }
+          return;
+        }
+
+        // Validate duration
+        var sd = new Date(startInput.value);
+        var ed = new Date(endInput.value);
+        var days = Math.round((ed - sd) / 86400000);
+        if (days < 14) {
+          if (errorEl) { errorEl.textContent = isDa() ? 'Pause skal være mindst 14 dage.' : 'Pause must be at least 14 days.'; errorEl.hidden = false; }
+          return;
+        }
+        if (days > 93) {
+          if (errorEl) { errorEl.textContent = isDa() ? 'Pause kan højst være 3 måneder. Ved særlige omstændigheder (skade, graviditet, rejse mv.) kontakt os.' : 'Pause cannot exceed 3 months. For special circumstances (injury, pregnancy, travel etc.) please contact us.'; errorEl.hidden = false; }
+          return;
+        }
 
         pauseConfirmBtn.disabled = true;
         pauseConfirmBtn.textContent = t('membership_pause_confirming');

@@ -8965,6 +8965,13 @@ section {
   line-height: 1.4;
 }
 
+.yb-membership__special-note {
+  font-size: 0.8rem;
+  color: #6F6A66;
+  font-style: italic;
+  margin: 0.75rem 0 1rem;
+}
+
 .yb-membership__confirm-btn {
   display: block;
   width: 100%;
