@@ -905,37 +905,36 @@
         var data = combined.data;
         var firestorePauses = combined.pauses;
         try {
-          // Merge Firestore pause data into MB contracts
+          // Merge Firestore pause data into MB contracts.
+          // MB IsSuspended is ONLY true for currently active pauses, not future-dated.
+          // MB notes are unreliable (persist after admin deletes suspension).
+          // So: MB fields are authoritative when present. Firestore fills the gap
+          // for the first 5 minutes after pausing (before MB confirms).
           var now = new Date().toISOString().split('T')[0];
           (data.activeContracts || []).forEach(function(c) {
             var key = 'pause_' + c.id;
             var fsPause = firestorePauses[key];
-            if (fsPause && fsPause.endDate >= now) {
-              // Firestore says paused AND not expired yet
-              if (c.isSuspended || c.pauseStartDate) {
-                // MB also confirms pause — keep Firestore data
+            if (c.isSuspended || c.pauseStartDate) {
+              // MB confirms pause — authoritative. Use Firestore dates as fallback.
+              if (fsPause) {
                 if (!c.pauseStartDate) c.pauseStartDate = fsPause.startDate;
                 if (!c.pauseEndDate) c.pauseEndDate = fsPause.endDate;
-              } else if (fsPause.startDate > now) {
-                // Future-dated pause — MB IsSuspended is ALWAYS false for these.
-                // Firestore is the source of truth. Trust it unconditionally.
+              }
+            } else if (fsPause && fsPause.endDate >= now) {
+              // MB says NOT paused, but Firestore has an unexpired pause.
+              // Trust Firestore only if saved recently (within 5 min).
+              // After 5 min, MB should have caught up — if it hasn't,
+              // admin likely deleted the suspension.
+              var savedAt = fsPause.savedAt ? new Date(fsPause.savedAt).getTime() : 0;
+              var ageMs = Date.now() - savedAt;
+              if (ageMs < 300000) {
                 c.isSuspended = true;
                 c.pauseStartDate = fsPause.startDate;
                 c.pauseEndDate = fsPause.endDate;
+                console.log('[Pause] Using Firestore pause for contract', c.id, '(saved', Math.round(ageMs / 1000) + 's ago)');
               } else {
-                // Pause should be active NOW (startDate <= today).
-                // MB should show IsSuspended=true. If not, admin may have removed it.
-                // Give a 5-min grace period for MB propagation after saving.
-                var savedAt = fsPause.savedAt ? new Date(fsPause.savedAt).getTime() : 0;
-                var ageMs = Date.now() - savedAt;
-                if (ageMs < 300000) {
-                  c.isSuspended = true;
-                  c.pauseStartDate = fsPause.startDate;
-                  c.pauseEndDate = fsPause.endDate;
-                } else {
-                  console.log('[Pause] Removing stale Firestore pause for contract', c.id, '(active pause not confirmed by MB)');
-                  removePauseFromFirestore(c.id);
-                }
+                console.log('[Pause] Removing Firestore pause for contract', c.id, '(MB does not confirm, saved', Math.round(ageMs / 1000) + 's ago)');
+                removePauseFromFirestore(c.id);
               }
             }
             // Clean up expired pauses from Firestore
