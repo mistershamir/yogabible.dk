@@ -95,44 +95,45 @@ exports.handler = async function(event) {
 
       var ccId = Number(body.clientContractId);
 
-      // CONFIRMED: /client/suspendcontract is the ONLY endpoint (others return HTML 404).
-      // Error "InvalidParameter" means MB receives the fields but values fail validation.
-      // Hypothesis: DurationUnit enum is singular "Day" not "Days", or Duration must be string.
+      // CONFIRMED: /client/suspendcontract is the ONLY endpoint.
+      // "InvalidParameter" on Duration/DurationUnit regardless of Day/Days/string/number.
+      // New approaches: integer enum, Test mode, and diagnostic (omit SuspendDate).
       var attempts = [
-        // 1: DurationUnit "Day" (singular) — most likely fix (ASP.NET enums are singular)
+        // 1: DurationUnit as integer enum (0 = Days in ASP.NET)
         {
-          label: 'day-singular',
+          label: 'int-enum-0',
           path: '/client/suspendcontract',
           body: {
             ClientId: body.clientId,
             ClientContractId: ccId,
             SuspendDate: body.startDate,
             Duration: durationDays,
-            DurationUnit: 'Day'
+            DurationUnit: 0
           }
         },
-        // 2: Duration as string + DurationUnit "Day" (singular) — both type fixes
+        // 2: Test mode with Day singular — dry run may reveal different validation
         {
-          label: 'str-day-singular',
+          label: 'test-mode',
           path: '/client/suspendcontract',
           body: {
             ClientId: body.clientId,
             ClientContractId: ccId,
             SuspendDate: body.startDate,
-            Duration: String(durationDays),
-            DurationUnit: 'Day'
+            Duration: durationDays,
+            DurationUnit: 'Day',
+            Test: true
           }
         },
-        // 3: Duration as string + DurationUnit "Days" (plural) — in case only type matters
+        // 3: Diagnostic — omit SuspendDate to see if error changes
+        //    If we get "SuspendDate required" then Duration IS being accepted
         {
-          label: 'str-days-plural',
+          label: 'no-suspenddate',
           path: '/client/suspendcontract',
           body: {
             ClientId: body.clientId,
             ClientContractId: ccId,
-            SuspendDate: body.startDate,
-            Duration: String(durationDays),
-            DurationUnit: 'Days'
+            Duration: durationDays,
+            DurationUnit: 'Day'
           }
         },
       ];
