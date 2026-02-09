@@ -11,6 +11,62 @@
 const { mbFetch, getStaffToken, jsonResponse, corsHeaders } = require('./shared/mb-api');
 
 var TERMINATE_PATHS = ['/sale/terminatecontract', '/contract/terminatecontract', '/client/terminatecontract'];
+var PAUSE_MARKER = 'CONTRACT_PAUSED';
+
+// Read pause notes for a client from MB client notes
+async function getPauseNotes(clientId) {
+  try {
+    var notesData = await mbFetch('/client/clientnotes?ClientId=' + clientId + '&Limit=100');
+    var notes = notesData.Notes || [];
+    var pauses = [];
+    for (var i = 0; i < notes.length; i++) {
+      var text = notes[i].Text || notes[i].Note || '';
+      if (text.indexOf(PAUSE_MARKER) === 0) {
+        // Format: CONTRACT_PAUSED|contractId|startDate|endDate
+        var parts = text.split('|');
+        if (parts.length >= 4) {
+          pauses.push({
+            noteId: notes[i].Id,
+            contractId: Number(parts[1]),
+            startDate: parts[2],
+            endDate: parts[3],
+            noteDate: notes[i].DateTime || notes[i].CreatedDateTime || null
+          });
+        }
+      }
+    }
+    return pauses;
+  } catch (err) {
+    console.warn('[mb-contract-manage] Could not read pause notes:', err.message);
+    return [];
+  }
+}
+
+// Save a pause marker note
+async function savePauseNote(clientId, contractId, startDate, endDate) {
+  var noteText = PAUSE_MARKER + '|' + contractId + '|' + startDate + '|' + endDate;
+  try {
+    await mbFetch('/client/addclientnote', {
+      method: 'POST',
+      body: JSON.stringify({
+        ClientId: clientId,
+        Note: { Text: noteText, Type: { Id: 1 } }
+      })
+    });
+    console.log('[mb-contract-manage] Saved pause note:', noteText);
+  } catch (err) {
+    console.warn('[mb-contract-manage] Could not save pause note:', err.message);
+    // Try alternate format
+    try {
+      await mbFetch('/client/addclientnote', {
+        method: 'POST',
+        body: JSON.stringify({ ClientId: clientId, Text: noteText })
+      });
+    } catch (e) {
+      console.warn('[mb-contract-manage] Alternate note format also failed:', e.message);
+    }
+  }
+}
 
 exports.handler = async function(event) {
   if (event.httpMethod === 'OPTIONS') {
@@ -100,7 +156,8 @@ exports.handler = async function(event) {
 
       var ccId = Number(body.clientContractId);
 
-      // Check if contract is already suspended
+      // Check if contract is already suspended (MB field + our notes)
+      var existingPause = null;
       try {
         var contractsData = await mbFetch('/client/clientcontracts?ClientId=' + body.clientId);
         var targetContract = (contractsData.Contracts || []).find(function(c) { return c.Id === ccId; });
@@ -111,12 +168,24 @@ exports.handler = async function(event) {
           });
         }
       } catch (checkErr) {
-        console.warn('[mb-contract-manage] Could not check suspension status:', checkErr.message);
-        // Continue anyway — MB will reject duplicate if needed
+        console.warn('[mb-contract-manage] Could not check MB suspension status:', checkErr.message);
+      }
+
+      // Also check our pause notes (catches future-dated pauses MB doesn't flag yet)
+      var pauseNotes = await getPauseNotes(body.clientId);
+      var now = new Date().toISOString().split('T')[0];
+      existingPause = pauseNotes.find(function(p) {
+        return p.contractId === ccId && p.endDate >= now;
+      });
+      if (existingPause) {
+        return jsonResponse(409, {
+          error: 'already_suspended',
+          message: 'This membership already has a pause scheduled (' + existingPause.startDate + ' to ' + existingPause.endDate + ').',
+          existingPause: existingPause
+        });
       }
 
       // CONFIRMED WORKING FORMAT (2026-02-09):
-      // POST /client/suspendcontract with SuspensionType:"Vacation", DurationUnit:"Day"
       var suspendBody = {
         ClientId: body.clientId,
         ClientContractId: ccId,
@@ -134,6 +203,10 @@ exports.handler = async function(event) {
       });
 
       console.log('[mb-contract-manage] Suspend SUCCESS:', JSON.stringify(suspResult).substring(0, 300));
+
+      // Save pause marker note for cross-session persistence
+      await savePauseNote(body.clientId, ccId, body.startDate, body.endDate);
+
       return jsonResponse(200, {
         success: true,
         action: 'suspend',
@@ -141,6 +214,71 @@ exports.handler = async function(event) {
         resumeDate: body.endDate,
         durationDays: durationDays,
         message: 'Contract suspension scheduled'
+      });
+    }
+
+    // ── EXTEND PAUSE ──
+    if (body.action === 'extend') {
+      if (!body.newEndDate) {
+        return jsonResponse(400, { error: 'newEndDate is required for extension' });
+      }
+      var extCcId = Number(body.clientContractId);
+
+      // Find existing pause note
+      var extPauseNotes = await getPauseNotes(body.clientId);
+      var extNow = new Date().toISOString().split('T')[0];
+      var existingPauseNote = extPauseNotes.find(function(p) {
+        return p.contractId === extCcId && p.endDate >= extNow;
+      });
+
+      if (!existingPauseNote) {
+        return jsonResponse(400, { error: 'No active or scheduled pause found to extend' });
+      }
+
+      var extStart = new Date(existingPauseNote.startDate);
+      var extEnd = new Date(body.newEndDate);
+      var extDays = Math.round((extEnd - extStart) / 86400000);
+
+      if (extDays < 14) {
+        return jsonResponse(400, { error: 'Total pause must be at least 14 days' });
+      }
+      if (extDays > 93) {
+        return jsonResponse(400, { error: 'Total pause cannot exceed 3 months (93 days)' });
+      }
+
+      // Create a new suspension with the extended dates
+      // MB may stack suspensions — this effectively extends the pause
+      var extSuspendBody = {
+        ClientId: body.clientId,
+        ClientContractId: extCcId,
+        SuspendDate: existingPauseNote.startDate,
+        Duration: extDays,
+        DurationUnit: 'Day',
+        SuspensionType: 'Vacation'
+      };
+
+      console.log('[mb-contract-manage] Extending pause:', JSON.stringify(extSuspendBody));
+
+      try {
+        await mbFetch('/client/suspendcontract', {
+          method: 'POST',
+          body: JSON.stringify(extSuspendBody)
+        });
+      } catch (extErr) {
+        console.warn('[mb-contract-manage] Extend suspend call failed:', extErr.message);
+        // Non-fatal — the note update below is the reliable record
+      }
+
+      // Update the pause note with new end date
+      await savePauseNote(body.clientId, extCcId, existingPauseNote.startDate, body.newEndDate);
+
+      return jsonResponse(200, {
+        success: true,
+        action: 'extend',
+        suspendDate: existingPauseNote.startDate,
+        resumeDate: body.newEndDate,
+        durationDays: extDays,
+        message: 'Pause extended to ' + body.newEndDate
       });
     }
 

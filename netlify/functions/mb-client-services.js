@@ -24,8 +24,10 @@ exports.handler = async function(event) {
       return jsonResponse(400, { error: 'clientId is required' });
     }
 
-    // Fetch both client services and contracts in parallel
-    var [servicesData, contractsData] = await Promise.all([
+    var PAUSE_MARKER = 'CONTRACT_PAUSED';
+
+    // Fetch client services, contracts, and notes in parallel
+    var [servicesData, contractsData, notesData] = await Promise.all([
       mbFetch('/client/clientservices?ClientId=' + params.clientId + '&Limit=200').catch(function(e) {
         console.warn('mb-client-services: services fetch failed:', e.message);
         return { ClientServices: [] };
@@ -33,8 +35,29 @@ exports.handler = async function(event) {
       mbFetch('/client/clientcontracts?ClientId=' + params.clientId).catch(function(e) {
         console.warn('mb-client-services: contracts fetch failed:', e.message);
         return { Contracts: [] };
+      }),
+      mbFetch('/client/clientnotes?ClientId=' + params.clientId + '&Limit=100').catch(function(e) {
+        console.warn('mb-client-services: notes fetch failed:', e.message);
+        return { Notes: [] };
       })
     ]);
+
+    // Parse pause notes (CONTRACT_PAUSED|contractId|startDate|endDate)
+    var pauseNotes = [];
+    var nowStr = new Date().toISOString().split('T')[0];
+    (notesData.Notes || []).forEach(function(note) {
+      var text = note.Text || note.Note || '';
+      if (text.indexOf(PAUSE_MARKER) === 0) {
+        var parts = text.split('|');
+        if (parts.length >= 4) {
+          pauseNotes.push({
+            contractId: Number(parts[1]),
+            startDate: parts[2],
+            endDate: parts[3]
+          });
+        }
+      }
+    });
 
     var now = new Date();
 
@@ -79,12 +102,19 @@ exports.handler = async function(event) {
         if (next) nextBillingDate = next.ChargeDate || next.ScheduleDate;
       }
 
-      // Log raw contract fields for debugging suspension state
+      // Find matching pause note for this contract (active or future-dated)
+      var pauseNote = pauseNotes.find(function(p) {
+        return p.contractId === c.Id && p.endDate >= nowStr;
+      });
+
+      // Determine pause state: MB IsSuspended OR our pause note
+      var isPaused = c.IsSuspended || !!pauseNote;
+      var pauseStartDate = c.SuspendDate || c.SuspensionDate || (pauseNote ? pauseNote.startDate : null);
+      var pauseEndDate = c.ResumeDate || c.ResumptionDate || (pauseNote ? pauseNote.endDate : null);
+
       console.log('[mb-client-services] Contract', c.Id, c.ContractName,
-        'IsSuspended:', c.IsSuspended,
-        'SuspendDate:', c.SuspendDate || c.SuspensionDate || 'none',
-        'ResumeDate:', c.ResumeDate || c.ResumptionDate || 'none',
-        'raw keys:', Object.keys(c).filter(function(k) { return /suspend|resume|pause/i.test(k); })
+        'IsSuspended:', c.IsSuspended, 'pauseNote:', pauseNote ? 'yes' : 'no',
+        'pauseStart:', pauseStartDate, 'pauseEnd:', pauseEndDate
       );
 
       return {
@@ -100,9 +130,9 @@ exports.handler = async function(event) {
         agreementDate: c.AgreementDate || null,
         nextBillingDate: nextBillingDate,
         autopayAmount: c.AutopayAmount || 0,
-        isSuspended: c.IsSuspended || false,
-        suspendDate: c.SuspendDate || c.SuspensionDate || null,
-        resumeDate: c.ResumeDate || c.ResumptionDate || null,
+        isSuspended: isPaused,
+        pauseStartDate: pauseStartDate,
+        pauseEndDate: pauseEndDate,
         terminationDate: c.TerminationDate || null
       };
     });

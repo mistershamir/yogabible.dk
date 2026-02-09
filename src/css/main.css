@@ -8811,6 +8811,17 @@ section {
   color: #fff;
 }
 
+/* Extend pause button */
+.yb-membership__manage-btn--extend {
+  background: none;
+  border: 1.5px solid #f75c03;
+  color: #f75c03;
+}
+.yb-membership__manage-btn--extend:hover {
+  background: #f75c03;
+  color: #fff;
+}
+
 /* Toast info variant */
 .yb-membership__toast--info {
   background: #e3f2fd;
