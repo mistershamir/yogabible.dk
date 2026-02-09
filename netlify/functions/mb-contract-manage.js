@@ -95,89 +95,103 @@ exports.handler = async function(event) {
 
       var ccId = Number(body.clientContractId);
 
-      // CONFIRMED: /client/suspendcontract is the ONLY endpoint.
-      // "InvalidParameter" on Duration/DurationUnit regardless of Day/Days/string/number.
-      // New approaches: integer enum, Test mode, and diagnostic (omit SuspendDate).
-      var attempts = [
-        // 1: DurationUnit as integer enum (0 = Days in ASP.NET)
+      // MB admin UI shows "Select a Suspension Type" as FIRST field (currently "None").
+      // The API likely requires this field, and without it Duration/DurationUnit validation fails.
+      // Also try form-urlencoded in case JSON body binding doesn't work for these fields.
+      var token = await getStaffToken();
+      var baseHeaders = {
+        'Api-Key': process.env.MB_API_KEY,
+        'SiteId': process.env.MB_SITE_ID,
+        'Authorization': token
+      };
+
+      var allResults = [];
+
+      // ── Attempt 1: form-urlencoded (bypass JSON body entirely) ──
+      try {
+        var formBody = 'ClientId=' + encodeURIComponent(body.clientId)
+          + '&ClientContractId=' + ccId
+          + '&SuspendDate=' + encodeURIComponent(body.startDate)
+          + '&Duration=' + durationDays
+          + '&DurationUnit=Day';
+
+        console.log('[mb-contract-manage] Attempt form-urlencoded: ' + formBody);
+        var formRes = await fetch('https://api.mindbodyonline.com/public/v6/client/suspendcontract', {
+          method: 'POST',
+          headers: { ...baseHeaders, 'Content-Type': 'application/x-www-form-urlencoded' },
+          body: formBody
+        });
+        var formText = await formRes.text();
+        var formData;
+        try { formData = JSON.parse(formText); } catch(e) { formData = { raw: formText.substring(0, 300) }; }
+
+        if (formRes.ok) {
+          console.log('[mb-contract-manage] SUCCESS (form-urlencoded)');
+          return jsonResponse(200, { success: true, action: 'suspend', method: 'form-urlencoded', data: formData });
+        }
+        allResults.push({ label: 'form-urlencoded', status: formRes.status, message: (formData.Error && formData.Error.Message) || formData.Message || 'Error', fullResponse: JSON.stringify(formData).substring(0, 500) });
+        console.error('[mb-contract-manage] form-urlencoded failed:', JSON.stringify(allResults[allResults.length - 1]));
+      } catch (formErr) {
+        allResults.push({ label: 'form-urlencoded', status: 'exception', message: formErr.message });
+      }
+
+      // ── Attempt 2: JSON with SuspensionType fields (from MB admin UI) ──
+      var suspTypeAttempts = [
         {
-          label: 'int-enum-0',
-          path: '/client/suspendcontract',
-          body: {
-            ClientId: body.clientId,
-            ClientContractId: ccId,
-            SuspendDate: body.startDate,
-            Duration: durationDays,
-            DurationUnit: 0
-          }
-        },
-        // 2: Test mode with Day singular — dry run may reveal different validation
-        {
-          label: 'test-mode',
-          path: '/client/suspendcontract',
+          label: 'with-susptype-none',
           body: {
             ClientId: body.clientId,
             ClientContractId: ccId,
             SuspendDate: body.startDate,
             Duration: durationDays,
             DurationUnit: 'Day',
-            Test: true
+            SuspensionType: 'None'
           }
         },
-        // 3: Diagnostic — omit SuspendDate to see if error changes
-        //    If we get "SuspendDate required" then Duration IS being accepted
         {
-          label: 'no-suspenddate',
-          path: '/client/suspendcontract',
+          label: 'with-susptype-id-0',
           body: {
             ClientId: body.clientId,
             ClientContractId: ccId,
+            SuspendDate: body.startDate,
             Duration: durationDays,
-            DurationUnit: 'Day'
+            DurationUnit: 'Day',
+            SuspensionTypeId: 0
           }
         },
       ];
 
-      var allResults = [];
-      for (var ai = 0; ai < attempts.length; ai++) {
-        var attempt = attempts[ai];
+      for (var ai = 0; ai < suspTypeAttempts.length; ai++) {
+        var attempt = suspTypeAttempts[ai];
         try {
-          console.log('[mb-contract-manage] Attempt ' + attempt.label + ': POST ' + attempt.path);
-          console.log('[mb-contract-manage] Body:', JSON.stringify(attempt.body));
-          var suspResult = await mbFetch(attempt.path, {
+          console.log('[mb-contract-manage] Attempt ' + attempt.label + ':', JSON.stringify(attempt.body));
+          var suspResult = await mbFetch('/client/suspendcontract', {
             method: 'POST',
             body: JSON.stringify(attempt.body)
           });
 
-          console.log('[mb-contract-manage] SUCCESS (' + attempt.label + '):', JSON.stringify(suspResult).substring(0, 500));
+          console.log('[mb-contract-manage] SUCCESS (' + attempt.label + ')');
           return jsonResponse(200, {
             success: true,
             action: 'suspend',
             suspendDate: body.startDate,
             resumeDate: body.endDate,
             durationDays: durationDays,
-            endpointUsed: attempt.path,
             method: attempt.label,
             message: 'Contract suspension scheduled'
           });
         } catch (suspErr) {
           var mbData = suspErr.data || {};
           var mbErrorMsg = suspErr.message || 'Unknown error';
-          if (mbData.Message) mbErrorMsg = mbData.Message;
           if (mbData.Error && mbData.Error.Message) mbErrorMsg = mbData.Error.Message;
-          if (mbData.Errors && mbData.Errors.length) mbErrorMsg = mbData.Errors.map(function(e) { return e.Message || e.message || JSON.stringify(e); }).join('; ');
 
-          var errInfo = {
+          allResults.push({
             label: attempt.label,
             status: suspErr.status,
             message: mbErrorMsg,
             fullResponse: JSON.stringify(mbData).substring(0, 500)
-          };
-          console.error('[mb-contract-manage] Failed ' + attempt.label + ':', JSON.stringify(errInfo));
-          allResults.push(errInfo);
-
-          // If we got a non-JSON/404 response, skip to next path quickly
-          // But if we got a real JSON error, still continue to next attempt
+          });
+          console.error('[mb-contract-manage] Failed ' + attempt.label + ':', mbErrorMsg);
         }
       }
 
