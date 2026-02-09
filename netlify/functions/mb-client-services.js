@@ -81,6 +81,8 @@ exports.handler = async function(event) {
 
       return {
         id: c.Id,
+        contractId: c.ContractId || null,
+        locationId: c.LocationId || null,
         name: c.ContractName || '',
         startDate: c.StartDate,
         endDate: c.EndDate,

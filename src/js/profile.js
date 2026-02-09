@@ -438,8 +438,12 @@
           html += '<span class="yb-membership__pass-remaining">' + t('membership_autopay') + '</span>';
         }
         html += '</div>';
-        // Show next billing date or end date
-        if (c.nextBillingDate) {
+        // Show billing date — "Last billing" for terminated, "Next billing" otherwise
+        if (c.terminationDate && !c.isSuspended) {
+          if (c.nextBillingDate) {
+            html += '<span class="yb-membership__pass-expiry">' + t('membership_last_billing') + ' ' + formatDateDK(c.nextBillingDate) + '</span>';
+          }
+        } else if (c.nextBillingDate) {
           html += '<span class="yb-membership__pass-expiry">' + t('membership_next_billing') + ' ' + formatDateDK(c.nextBillingDate) + '</span>';
         } else if (c.endDate) {
           html += '<span class="yb-membership__pass-expiry">' + t('membership_expires') + ' ' + formatDateDK(c.endDate) + '</span>';
@@ -450,6 +454,7 @@
         } else if (c.terminationDate) {
           html += '<span class="yb-membership__badge yb-membership__badge--terminating">' + t('membership_terminated_badge') + '</span>';
           html += '<span class="yb-membership__pass-expiry yb-membership__active-until">' + t('membership_active_until') + ' ' + formatDateDK(c.terminationDate) + '</span>';
+          html += '<span class="yb-membership__notice-period">' + t('membership_notice_period') + '</span>';
         } else {
           html += '<span class="yb-membership__badge yb-membership__badge--active">' + t('membership_status_active') + '</span>';
         }
@@ -460,18 +465,28 @@
           html += '<button type="button" class="yb-membership__manage-btn yb-membership__manage-btn--cancel" data-manage-cancel="' + c.id + '">' + t('membership_cancel_btn') + '</button>';
           html += '</div>';
         }
-        // Retention card for terminating contracts
+        // Retention card or rejoin CTA depending on whether termination date has passed
         if (c.terminationDate && !c.isSuspended) {
-          html += '<div class="yb-membership__retention-card">';
-          html += '<div class="yb-membership__retention-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#f75c03" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg></div>';
-          html += '<p class="yb-membership__retention-title">' + t('membership_retention_title') + '</p>';
-          html += '<p class="yb-membership__retention-desc">' + t('membership_retention_desc').replace('{date}', formatDateDK(c.terminationDate)) + '</p>';
-          html += '<ul class="yb-membership__retention-perks">';
-          html += '<li>' + t('membership_retention_perk1') + '</li>';
-          html += '<li>' + t('membership_retention_perk2') + '</li>';
-          html += '</ul>';
-          html += '<button type="button" class="yb-btn yb-btn--primary yb-membership__retention-btn" data-reactivate="' + (c.contractId || '') + '" data-location-id="' + (c.locationId || '1') + '">' + t('membership_retention_cta') + '</button>';
-          html += '</div>';
+          var termDate = new Date(c.terminationDate);
+          var now = new Date();
+          if (termDate > now) {
+            // Still within notice period — show retention card
+            html += '<div class="yb-membership__retention-card">';
+            html += '<div class="yb-membership__retention-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#f75c03" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg></div>';
+            html += '<p class="yb-membership__retention-title">' + t('membership_retention_title') + '</p>';
+            html += '<p class="yb-membership__retention-desc">' + t('membership_retention_desc').replace('{date}', formatDateDK(c.terminationDate)) + '</p>';
+            html += '<ul class="yb-membership__retention-perks">';
+            html += '<li>' + t('membership_retention_perk1') + '</li>';
+            html += '<li>' + t('membership_retention_perk2') + '</li>';
+            html += '</ul>';
+            html += '<button type="button" class="yb-btn yb-btn--primary yb-membership__retention-btn" data-reactivate="' + (c.contractId || '') + '" data-contract-name="' + esc(c.name) + '" data-location-id="' + (c.locationId || '1') + '">' + t('membership_retention_cta') + '</button>';
+            html += '</div>';
+          } else {
+            // Termination date passed — show simple rejoin CTA
+            html += '<div class="yb-membership__rejoin">';
+            html += '<button type="button" class="yb-btn yb-btn--primary yb-membership__rejoin-btn" data-rejoin="1">' + t('membership_rejoin_cta') + '</button>';
+            html += '</div>';
+          }
         }
         html += '</div>';
       });
@@ -834,19 +849,51 @@
     for (var r = 0; r < reactivateBtns.length; r++) {
       reactivateBtns[r].addEventListener('click', function() {
         var contractId = this.getAttribute('data-reactivate');
-        // Switch to Store tab and auto-open checkout for the same contract
+        var contractName = this.getAttribute('data-contract-name') || '';
+        console.log('[Reactivate] Looking for contract template ID:', contractId, 'name:', contractName);
+        // Switch to Store tab and auto-open checkout for the matching contract
+        var storeBtn = document.querySelector('[data-yb-tab="store"]');
+        if (storeBtn) {
+          storeBtn.click();
+          // First show memberships category, then find the contract
+          setTimeout(function() {
+            var memCat = document.querySelector('[data-store-cat="memberships"]');
+            if (memCat) memCat.click();
+            // Wait for re-render after category switch
+            setTimeout(function() {
+              var buyBtn = document.querySelector('[data-store-buy="' + contractId + '"]');
+              if (buyBtn) {
+                console.log('[Reactivate] Found contract by ID, opening checkout');
+                buyBtn.click();
+              } else if (contractName) {
+                // Fallback: match by name in storeServices array
+                var match = storeServices.find(function(s) {
+                  return s._itemType === 'contract' && s.name === contractName;
+                });
+                if (match) {
+                  console.log('[Reactivate] Found contract by name match, ID:', match.id);
+                  var nameBtn = document.querySelector('[data-store-buy="' + match.id + '"]');
+                  if (nameBtn) nameBtn.click();
+                } else {
+                  console.log('[Reactivate] No match found. Store contracts:', storeServices.filter(function(s) { return s._itemType === 'contract'; }).map(function(s) { return s.id + ':' + s.name; }));
+                }
+              }
+            }, 300);
+          }, 800);
+        }
+      });
+    }
+
+    // ── Rejoin buttons (after termination date has passed) ──
+    var rejoinBtns = container.querySelectorAll('[data-rejoin]');
+    for (var j = 0; j < rejoinBtns.length; j++) {
+      rejoinBtns[j].addEventListener('click', function() {
         var storeBtn = document.querySelector('[data-yb-tab="store"]');
         if (storeBtn) {
           storeBtn.click();
           setTimeout(function() {
-            var buyBtn = document.querySelector('[data-store-buy="' + contractId + '"]');
-            if (buyBtn) {
-              buyBtn.click();
-            } else {
-              // Contract not found in store — show memberships category
-              var memCat = document.querySelector('[data-store-category="memberships"]');
-              if (memCat) memCat.click();
-            }
+            var memCat = document.querySelector('[data-store-cat="memberships"]');
+            if (memCat) memCat.click();
           }, 800);
         }
       });
@@ -2196,7 +2243,11 @@
       membership_cancel_btn: isDa() ? 'Opsig abonnement' : 'Cancel membership',
       membership_paused_badge: isDa() ? 'På pause' : 'Paused',
       membership_terminating_badge: isDa() ? 'Opsagt' : 'Cancelled',
-      membership_terminated_badge: isDa() ? 'Opsagt' : 'Cancelled',
+      membership_terminated_badge: isDa() ? 'Medlemskab Opsagt' : 'Membership Terminated',
+      membership_last_billing: isDa() ? 'Sidste fakturering' : 'Last billing',
+      membership_notice_period: isDa()
+        ? '1 hel måneds opsigelsesvarsel jf. <a href="/terms-conditions/" target="_blank" rel="noopener">Handelsbetingelser</a>'
+        : '1 full month notification period per <a href="/en/terms-conditions/" target="_blank" rel="noopener">Terms &amp; Conditions</a>',
       membership_active_until: isDa() ? 'Aktiv til' : 'Active until',
       membership_revoke_btn: isDa() ? 'Fortryd opsigelse' : 'Revoke cancellation',
       membership_revoke_confirming: isDa() ? 'Behandler...' : 'Processing...',
@@ -2208,6 +2259,7 @@
       membership_retention_perk1: isDa() ? 'Ingen nyt tilmeldingsgebyr' : 'No new registration fee',
       membership_retention_perk2: isDa() ? 'Første måned gratis' : 'First month free',
       membership_retention_cta: isDa() ? 'Genaktiver — første måned gratis' : 'Reactivate — first month free',
+      membership_rejoin_cta: isDa() ? 'Bliv medlem igen' : 'Become a member again',
       membership_pause_title: isDa() ? 'Sæt abonnement på pause' : 'Pause membership',
       membership_pause_desc: isDa() ? 'Du kan sætte dit abonnement på pause i 14 dage til 3 måneder. Pausen starter efter din næste faktureringscyklus.' : 'You can pause your membership for 14 days to 3 months. The pause starts after your next billing cycle.',
       membership_pause_start: isDa() ? 'Pause starter' : 'Pause starts',
