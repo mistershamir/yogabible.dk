@@ -242,18 +242,21 @@ exports.handler = async function(event) {
             return jsonResponse(400, { error: 'Suspension cannot exceed 3 months (93 days)' });
           }
 
+          var ccId = Number(body.clientContractId);
+
+          // API reference docs confirm: /sale/suspendcontract with ResumeDate is the working format.
           var suspendBody = {
             ClientId: body.clientId,
-            ClientContractId: Number(body.clientContractId),
+            ClientContractId: ccId,
             SuspendDate: body.startDate,
-            Duration: durationDays,
-            DurationUnit: 'Days'
+            ResumeDate: body.endDate,
+            SendNotifications: true
           };
 
-          console.log('[mb-contracts] Suspending — full body:', JSON.stringify(suspendBody));
+          console.log('[mb-contracts] Suspending — body:', JSON.stringify(suspendBody));
 
-          // Try endpoint paths in order — MB v6 docs put this under Sale category
-          var suspendPaths = ['/sale/suspendcontract', '/contract/suspendcontract', '/client/suspendcontract'];
+          // Try /sale/ first (documented working), then /client/ as fallback
+          var suspendPaths = ['/sale/suspendcontract', '/client/suspendcontract'];
           var lastSuspErr = null;
           var suspPathResults = [];
 
@@ -279,7 +282,6 @@ exports.handler = async function(event) {
               console.log('[mb-contracts] Path ' + suspendPaths[si] + ' failed (' + (suspErr.status || 'unknown') + '): ' + suspErr.message);
               suspPathResults.push({ path: suspendPaths[si], status: suspErr.status || 'error', error: suspErr.message });
               lastSuspErr = suspErr;
-              // Always try the next path
             }
           }
 
@@ -287,8 +289,7 @@ exports.handler = async function(event) {
           console.error('[mb-contracts] All suspend paths failed:', JSON.stringify(suspPathResults));
           return jsonResponse(lastSuspErr ? (lastSuspErr.status || 500) : 500, {
             error: finalSuspMsg,
-            _pathResults: suspPathResults,
-            _hint: 'All 3 endpoint paths failed. Check Mindbody staff permissions for the API user.'
+            _pathResults: suspPathResults
           });
         }
 

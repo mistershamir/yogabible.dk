@@ -95,22 +95,61 @@ exports.handler = async function(event) {
 
       var ccId = Number(body.clientContractId);
 
-      // /client/suspendcontract is the confirmed active endpoint.
-      // MB says "Duration and DurationUnit are required" even when sent in body.
-      // Try: 1) query params, 2) body-only, 3) both combined
-      var basePath = '/client/suspendcontract';
-      var qp = '?ClientContractId=' + ccId
-        + '&SuspendDate=' + encodeURIComponent(body.startDate)
-        + '&Duration=' + durationDays
-        + '&DurationUnit=Days';
-
+      // API reference docs confirm: /sale/suspendcontract with ResumeDate is the working format.
+      // /client/suspendcontract returns "Duration and DurationUnit are required" with InvalidParameter code.
+      // Try multiple approaches with full diagnostic capture.
       var attempts = [
-        // 1: All fields as query params (empty body)
-        { label: 'query-params', path: basePath + qp, body: {} },
-        // 2: Query params + body together
-        { label: 'query+body', path: basePath + qp, body: { ClientId: body.clientId, ClientContractId: ccId, SuspendDate: body.startDate, Duration: durationDays, DurationUnit: 'Days' } },
-        // 3: Body only (original approach)
-        { label: 'body-only', path: basePath, body: { ClientId: body.clientId, ClientContractId: ccId, SuspendDate: body.startDate, Duration: durationDays, DurationUnit: 'Days' } },
+        // 1: /sale/ with ResumeDate format (documented as WORKING in api-reference.md)
+        {
+          label: 'sale-resumeDate',
+          path: '/sale/suspendcontract',
+          body: {
+            ClientId: body.clientId,
+            ClientContractId: ccId,
+            SuspendDate: body.startDate,
+            ResumeDate: body.endDate,
+            SendNotifications: true
+          }
+        },
+        // 2: /client/ with ResumeDate format
+        {
+          label: 'client-resumeDate',
+          path: '/client/suspendcontract',
+          body: {
+            ClientId: body.clientId,
+            ClientContractId: ccId,
+            SuspendDate: body.startDate,
+            ResumeDate: body.endDate,
+            SendNotifications: true
+          }
+        },
+        // 3: /client/ with Duration + DurationUnit + ResumeDate (all fields combined)
+        {
+          label: 'client-all-fields',
+          path: '/client/suspendcontract',
+          body: {
+            ClientId: body.clientId,
+            ClientContractId: ccId,
+            SuspendDate: body.startDate,
+            ResumeDate: body.endDate,
+            Duration: durationDays,
+            DurationUnit: 'Days',
+            SendNotifications: true
+          }
+        },
+        // 4: /sale/ with Duration + DurationUnit (in case /sale/ needs different fields)
+        {
+          label: 'sale-duration',
+          path: '/sale/suspendcontract',
+          body: {
+            ClientId: body.clientId,
+            ClientContractId: ccId,
+            SuspendDate: body.startDate,
+            Duration: durationDays,
+            DurationUnit: 'Days',
+            SendNotifications: true
+          }
+        },
       ];
 
       var allResults = [];
@@ -150,11 +189,21 @@ exports.handler = async function(event) {
           };
           console.error('[mb-contract-manage] Failed ' + attempt.label + ':', JSON.stringify(errInfo));
           allResults.push(errInfo);
+
+          // If we got a non-JSON/404 response, skip to next path quickly
+          // But if we got a real JSON error, still continue to next attempt
         }
       }
 
       // All failed — return diagnostic data
-      var lastErr = allResults[allResults.length - 1] || {};
+      var lastJsonErr = null;
+      for (var ri = allResults.length - 1; ri >= 0; ri--) {
+        if (allResults[ri].status && allResults[ri].status !== 404) {
+          lastJsonErr = allResults[ri];
+          break;
+        }
+      }
+      var lastErr = lastJsonErr || allResults[allResults.length - 1] || {};
       return jsonResponse(400, {
         error: lastErr.message || 'All suspend attempts failed',
         _attempts: allResults
