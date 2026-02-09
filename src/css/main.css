@@ -8049,6 +8049,20 @@ section {
   color: #6F6A66;
   margin-top: 0.25rem;
 }
+.yb-membership__notice-period {
+  display: block;
+  font-size: 0.78rem;
+  color: #6F6A66;
+  margin-top: 0.35rem;
+  font-style: italic;
+}
+.yb-membership__notice-period a {
+  color: #f75c03;
+  text-decoration: underline;
+}
+.yb-membership__notice-period a:hover {
+  color: #d94f02;
+}
 
 .yb-membership__retention-card {
   margin-top: 1rem;

@@ -438,8 +438,12 @@
           html += '<span class="yb-membership__pass-remaining">' + t('membership_autopay') + '</span>';
         }
         html += '</div>';
-        // Show next billing date or end date
-        if (c.nextBillingDate) {
+        // Show billing date — "Last billing" for terminated, "Next billing" otherwise
+        if (c.terminationDate && !c.isSuspended) {
+          if (c.nextBillingDate) {
+            html += '<span class="yb-membership__pass-expiry">' + t('membership_last_billing') + ' ' + formatDateDK(c.nextBillingDate) + '</span>';
+          }
+        } else if (c.nextBillingDate) {
           html += '<span class="yb-membership__pass-expiry">' + t('membership_next_billing') + ' ' + formatDateDK(c.nextBillingDate) + '</span>';
         } else if (c.endDate) {
           html += '<span class="yb-membership__pass-expiry">' + t('membership_expires') + ' ' + formatDateDK(c.endDate) + '</span>';
@@ -450,6 +454,7 @@
         } else if (c.terminationDate) {
           html += '<span class="yb-membership__badge yb-membership__badge--terminating">' + t('membership_terminated_badge') + '</span>';
           html += '<span class="yb-membership__pass-expiry yb-membership__active-until">' + t('membership_active_until') + ' ' + formatDateDK(c.terminationDate) + '</span>';
+          html += '<span class="yb-membership__notice-period">' + t('membership_notice_period') + '</span>';
         } else {
           html += '<span class="yb-membership__badge yb-membership__badge--active">' + t('membership_status_active') + '</span>';
         }
@@ -2213,7 +2218,11 @@
       membership_cancel_btn: isDa() ? 'Opsig abonnement' : 'Cancel membership',
       membership_paused_badge: isDa() ? 'På pause' : 'Paused',
       membership_terminating_badge: isDa() ? 'Opsagt' : 'Cancelled',
-      membership_terminated_badge: isDa() ? 'Opsagt' : 'Cancelled',
+      membership_terminated_badge: isDa() ? 'Medlemskab Opsagt' : 'Membership Terminated',
+      membership_last_billing: isDa() ? 'Sidste fakturering' : 'Last billing',
+      membership_notice_period: isDa()
+        ? '1 hel måneds opsigelsesvarsel jf. <a href="/terms-conditions/" target="_blank" rel="noopener">Handelsbetingelser</a>'
+        : '1 full month notification period per <a href="/en/terms-conditions/" target="_blank" rel="noopener">Terms &amp; Conditions</a>',
       membership_active_until: isDa() ? 'Aktiv til' : 'Active until',
       membership_revoke_btn: isDa() ? 'Fortryd opsigelse' : 'Revoke cancellation',
       membership_revoke_confirming: isDa() ? 'Behandler...' : 'Processing...',
