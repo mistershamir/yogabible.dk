@@ -146,7 +146,8 @@ exports.handler = async function(event) {
         ClientId: body.clientId,
         ClientContractId: body.clientContractId,
         SuspendDate: body.startDate,
-        ResumeDate: body.endDate,
+        Duration: durationDays,
+        DurationUnit: 'Days',
         SendNotifications: true
       };
 
@@ -154,8 +155,8 @@ exports.handler = async function(event) {
         ClientId: suspendBody.ClientId,
         ClientContractId: suspendBody.ClientContractId,
         SuspendDate: suspendBody.SuspendDate,
-        ResumeDate: suspendBody.ResumeDate,
-        DurationDays: durationDays
+        Duration: suspendBody.Duration,
+        DurationUnit: suspendBody.DurationUnit
       }));
 
       var lastSuspErr = null;
