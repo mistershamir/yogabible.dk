@@ -95,59 +95,44 @@ exports.handler = async function(event) {
 
       var ccId = Number(body.clientContractId);
 
-      // API reference docs confirm: /sale/suspendcontract with ResumeDate is the working format.
-      // /client/suspendcontract returns "Duration and DurationUnit are required" with InvalidParameter code.
-      // Try multiple approaches with full diagnostic capture.
+      // CONFIRMED: /client/suspendcontract is the ONLY endpoint (others return HTML 404).
+      // Error "InvalidParameter" means MB receives the fields but values fail validation.
+      // Hypothesis: DurationUnit enum is singular "Day" not "Days", or Duration must be string.
       var attempts = [
-        // 1: /sale/ with ResumeDate format (documented as WORKING in api-reference.md)
+        // 1: DurationUnit "Day" (singular) — most likely fix (ASP.NET enums are singular)
         {
-          label: 'sale-resumeDate',
-          path: '/sale/suspendcontract',
-          body: {
-            ClientId: body.clientId,
-            ClientContractId: ccId,
-            SuspendDate: body.startDate,
-            ResumeDate: body.endDate,
-            SendNotifications: true
-          }
-        },
-        // 2: /client/ with ResumeDate format
-        {
-          label: 'client-resumeDate',
+          label: 'day-singular',
           path: '/client/suspendcontract',
           body: {
             ClientId: body.clientId,
             ClientContractId: ccId,
             SuspendDate: body.startDate,
-            ResumeDate: body.endDate,
-            SendNotifications: true
+            Duration: durationDays,
+            DurationUnit: 'Day'
           }
         },
-        // 3: /client/ with Duration + DurationUnit + ResumeDate (all fields combined)
+        // 2: Duration as string + DurationUnit "Day" (singular) — both type fixes
         {
-          label: 'client-all-fields',
+          label: 'str-day-singular',
           path: '/client/suspendcontract',
           body: {
             ClientId: body.clientId,
             ClientContractId: ccId,
             SuspendDate: body.startDate,
-            ResumeDate: body.endDate,
-            Duration: durationDays,
-            DurationUnit: 'Days',
-            SendNotifications: true
+            Duration: String(durationDays),
+            DurationUnit: 'Day'
           }
         },
-        // 4: /sale/ with Duration + DurationUnit (in case /sale/ needs different fields)
+        // 3: Duration as string + DurationUnit "Days" (plural) — in case only type matters
         {
-          label: 'sale-duration',
-          path: '/sale/suspendcontract',
+          label: 'str-days-plural',
+          path: '/client/suspendcontract',
           body: {
             ClientId: body.clientId,
             ClientContractId: ccId,
             SuspendDate: body.startDate,
-            Duration: durationDays,
-            DurationUnit: 'Days',
-            SendNotifications: true
+            Duration: String(durationDays),
+            DurationUnit: 'Days'
           }
         },
       ];
