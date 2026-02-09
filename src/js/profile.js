@@ -932,12 +932,16 @@
     var contracts = data.activeContracts || [];
     if (contracts.length) {
       contracts.forEach(function(c) {
+        // Detect pause: either IsSuspended=true OR has a future/current suspendDate
+        var isPaused = c.isSuspended;
+        var hasPendingPause = !isPaused && (c.suspendDate || c.pauseStartDate);
+
         html += '<div class="yb-membership__pass yb-membership__contract-card" data-contract-id="' + c.id + '">';
         html += '<div class="yb-membership__pass-info">';
         html += '<span class="yb-membership__pass-name">' + esc(c.name) + '</span>';
 
         // Status badge
-        if (c.isSuspended) {
+        if (isPaused || hasPendingPause) {
           html += '<span class="yb-membership__badge yb-membership__badge--paused">' + t('membership_paused_badge') + '</span>';
         } else if (c.terminationDate) {
           html += '<span class="yb-membership__badge yb-membership__badge--terminating">' + t('membership_terminated_badge') + '</span>';
@@ -951,7 +955,7 @@
         }
 
         // Billing info
-        if (c.isSuspended) {
+        if (isPaused || hasPendingPause) {
           html += '<span class="yb-membership__pass-expiry">' + t('membership_billing_paused') + '</span>';
         } else if (c.terminationDate) {
           html += '<span class="yb-membership__pass-expiry">' + t('membership_active_until') + ' ' + formatDateDK(c.terminationDate) + '</span>';
@@ -961,10 +965,14 @@
         html += '</div>';
 
         // ── PAUSED STATE: Show pause details + reactivate button ──
-        if (c.isSuspended) {
+        if (isPaused || hasPendingPause) {
+          var pauseStart = c.pauseStartDate || c.suspendDate || null;
+          var pauseEnd = c.pauseEndDate || c.resumeDate || null;
           var pauseDetail = '';
-          if (c.pauseStartDate && c.pauseEndDate) {
-            pauseDetail = formatDateDK(c.pauseStartDate) + ' – ' + formatDateDK(c.pauseEndDate);
+          if (pauseStart && pauseEnd) {
+            pauseDetail = formatDateDK(pauseStart) + ' – ' + formatDateDK(pauseEnd);
+          } else if (pauseStart) {
+            pauseDetail = t('membership_pause_from') + ' ' + formatDateDK(pauseStart);
           }
           html += '<div class="yb-membership__pause-status">';
           html += '<div class="yb-membership__pause-status-icon">';
@@ -984,7 +992,8 @@
         }
 
         // ── ACTIVE STATE: Manage buttons ──
-        if (!c.isSuspended && !c.terminationDate && c.isAutopay) {
+        var showActiveButtons = !isPaused && !hasPendingPause && !c.terminationDate && c.isAutopay;
+        if (showActiveButtons) {
           html += '<div class="yb-membership__manage-btns">';
           html += '<button type="button" class="yb-membership__manage-btn yb-membership__manage-btn--pause" data-manage-pause="' + c.id + '">' + t('membership_pause_btn') + '</button>';
           html += '<button type="button" class="yb-membership__manage-btn yb-membership__manage-btn--cancel" data-manage-cancel="' + c.id + '">' + t('membership_cancel_btn') + '</button>';
@@ -3246,6 +3255,7 @@
       membership_pause_special: isDa() ? 'Særlige omstændigheder (skade, graviditet, rejse mv.)? Kontakt os for forlænget pause.' : 'Special circumstances (injury, pregnancy, travel etc.)? Contact us for an extended pause.',
       membership_billing_paused: isDa() ? 'Fakturering sat på pause' : 'Billing paused',
       membership_pause_active_title: isDa() ? 'Medlemskab er på pause' : 'Membership is paused',
+      membership_pause_from: isDa() ? 'Fra' : 'From',
       membership_pause_auto_resume: isDa() ? 'Genoptages automatisk ved pausens udløb.' : 'Will resume automatically when the pause period ends.',
       membership_resume_btn: isDa() ? 'Annuller pause' : 'Cancel pause',
       membership_reactivate_early: isDa() ? 'Genaktivér nu' : 'Reactivate now',
