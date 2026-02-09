@@ -1,7 +1,7 @@
 # Profile Page Architecture — Frontend Reference
 
-> Frontend architecture for the member area profile page (`src/js/profile.js`, ~2500 lines).
-> Adapt for each brand's design system. **Last updated: 2026-02-09** — reflects store redesign, My Passes tab, retention card, and all session fixes.
+> Frontend architecture for the member area profile page (`src/js/profile.js`, ~2600 lines).
+> Adapt for each brand's design system. **Last updated: 2026-02-09** — reflects store redesign, My Passes tab, retention card, consent/audit trail, mandatory onboarding, bidirectional MB sync.
 
 ## Overview
 
@@ -10,7 +10,15 @@ Single-page profile dashboard with 7 tabs. Each tab lazy-loads data on first cli
 ```
 ┌─────────────────────────────────────────────────────────────┐
 │  Header: Avatar | Name | Email | Tier Badge                  │
-│  Reminder Banner (if phone/DOB missing)                     │
+│                                                               │
+│  ┌─ ONBOARDING OVERLAY (blocks everything below) ──────────┐ │
+│  │  "Welcome! Let's complete your profile"                   │ │
+│  │  [Phone*] [Date of Birth*]                                │ │
+│  │  [Save and continue]                                      │ │
+│  └──────────────────────────────────────────────────────────┘ │
+│                                                               │
+│  Reminder Banner (soft — if phone/DOB missing, hidden if      │
+│  onboarding overlay is shown instead)                         │
 ├─────────────────────────────────────────────────────────────┤
 │  [Profil] [Skema] [Butik] [Mine Pas] [Besøg] [Kvit] [Kurs] │
 ├─────────────────────────────────────────────────────────────┤
@@ -22,12 +30,15 @@ Single-page profile dashboard with 7 tabs. Each tab lazy-loads data on first cli
 
 ```
 1. Poll for Firebase SDK readiness (setInterval 100ms)
-2. init() — attach tab handlers, store form, schedule nav, avatar upload, visit filters
+2. init() — attach tab handlers, store form, schedule nav, avatar upload, visit filters, onboarding form
 3. onAuthStateChanged → if logged in:
    a. loadProfile(user, db) — populate form from Firestore
+      → If phone or DOB missing: show onboarding overlay, hide tabs
+      → If both present: hide overlay, show tabs normally
    b. ensureBackendClient(user, db) — find-or-create Mindbody client
    c. Deep-link to courses tab via #mine-kurser / #my-courses hash
-4. First tab click triggers lazy data fetch
+4. Onboarding form submit → save to Firestore + push to MB → dismiss overlay → show tabs
+5. First tab click triggers lazy data fetch
 ```
 
 ## Global State Variables
@@ -65,13 +76,38 @@ var storeServices = [];        // Combined services + contracts for store displa
 **Profile save flow:**
 1. Validate first + last name required
 2. Update Firebase Auth `displayName`
-3. Update Firestore `users/{uid}` (firstName, lastName, phone, yogaLevel, practiceFrequency, etc.)
-4. Silently sync to Mindbody via `PUT /.netlify/functions/mb-client`
-5. Hide reminder banner if phone + DOB now complete
+3. Update Firestore `users/{uid}` (firstName, lastName, phone, dateOfBirth, yogaLevel, practiceFrequency, etc.)
+4. Silently sync to Mindbody via `PUT /.netlify/functions/mb-client` (includes phone + birthDate)
+5. Hide reminder banner + dismiss onboarding overlay if phone + DOB now complete
 
 **Simplified to:**
 - Tier badge + Mindbody Client ID display only
 - Membership details moved to dedicated "My Passes" tab (see section 3.5)
+
+### 0. Mandatory Onboarding Overlay
+
+**Trigger:** Shown when `loadProfile()` finds phone OR dateOfBirth missing in Firestore.
+
+**Behavior:**
+- Hides all tab buttons + tab panels (`display: none`)
+- Shows centered card with phone + DOB form (both required, marked with `*`)
+- User cannot interact with any tab until form is submitted
+- Pre-fills any existing partial data (e.g., phone exists but DOB is missing)
+
+**Submit flow:**
+1. Validate phone is not empty
+2. Validate DOB is not empty
+3. Update Firestore `users/{uid}` with `phone` + `dateOfBirth`
+4. Push to Mindbody via `PUT /.netlify/functions/mb-client` with `phone` + `birthDate`
+5. If `clientId` isn't ready yet (async), poll every 1s for up to 15s before pushing
+6. Hide onboarding overlay, restore tab display
+7. Also hides the soft reminder banner
+
+**Translations:** `onboarding_title`, `onboarding_desc`, `onboarding_submit`, `onboarding_note`, `onboarding_error_phone`, `onboarding_error_dob`, `onboarding_saving` — in both `profile.json` and `t()` map.
+
+**HTML location:** `profile.njk` → `#yb-onboarding-overlay` div inside `#yb-profile-user`, before the tab navigation.
+
+**CSS:** `.yb-onboarding` (flex center), `.yb-onboarding__card` (warm white card, 440px max-width, 16px border-radius, light shadow).
 
 ### 2. Schedule Tab (Skema)
 
@@ -473,9 +509,27 @@ users/{uid}:
   yogabibleComLinked: boolean
   locale: string
   role: string ('user')
+  consents: {                              // Set on registration, serves as quick reference
+    termsAndConditions: { accepted: true, timestamp: string (ISO), version: string }
+    privacyPolicy: { accepted: true, timestamp: string (ISO), version: string }
+    codeOfConduct: { accepted: true, timestamp: string (ISO), version: string }
+  }
   createdAt: timestamp
   updatedAt: timestamp
   lastLogin: timestamp
+
+consents/{auto-id}:                        // Audit trail — one doc per document per user
+  userId: string (uid)
+  email: string
+  document: string ('termsAndConditions' | 'privacyPolicy' | 'codeOfConduct')
+  documentLabel: string ('Terms & Conditions' | 'Privacy Policy' | 'Code of Conduct')
+  accepted: boolean (true)
+  timestamp: string (ISO)                  // When the user clicked accept
+  version: string                          // Document version date (e.g. '2026-02-09')
+  userAgent: string                        // Browser UA string
+  locale: string ('da' | 'en')
+  source: string ('registration')          // Where consent was collected
+  createdAt: timestamp                     // Server timestamp
 
 enrollments/{id}:
   userId: string (uid)
@@ -507,11 +561,27 @@ On every login, silently ensures user has a Mindbody client:
 
 **Registration flow:**
 1. User submits signup form (firstName, lastName, email, password)
-2. Firebase creates auth account + sets `displayName`
-3. `window._ybRegistration` stores name parts temporarily
-4. `ensureUserProfile()` creates Firestore doc at `users/{uid}`
-5. `createMindbodyClient()` calls `mb-client` POST in background
-6. `window.syncMindbodyClient()` called if available → checks membership tier
+2. User must check two consent checkboxes: T&C + Privacy Policy, and Code of Conduct
+3. Consent validation: both must be checked, otherwise error shown
+4. Firebase creates auth account + sets `displayName`
+5. `window._ybRegistration` stores name parts + consent data (document, timestamp, version) temporarily
+6. `ensureUserProfile()` creates Firestore doc at `users/{uid}` including `consents` object
+7. `storeConsentAuditTrail()` writes 3 individual records to `consents` collection (one per policy document) with userId, email, timestamp, version, userAgent, locale, source
+8. `createMindbodyClient()` calls `mb-client` POST in background
+9. If 409 (duplicate email) → `linkExistingMindbodyClient()` looks up existing MB client, stores `mindbodyClientId`, pulls phone/DOB from MB profile into Firestore
+10. `window.syncMindbodyClient()` called if available → checks membership tier
+
+**Bidirectional Mindbody sync:**
+- **Website → MB:** On registration, `createMindbodyClient()` creates new MB client
+- **MB → Website:** If MB client already exists (409), `linkExistingMindbodyClient()` looks up by email, stores `mindbodyClientId`, and pulls phone + DOB from MB into Firestore (if user hasn't set them locally)
+- **On login (existing user):** `ensureUserProfile()` checks if `mindbodyClientId` is missing, calls `linkExistingMindbodyClient()` to auto-link
+- **BirthDate filtering:** Mindbody returns `0001-01-01T00:00:00` for unset DOB — filtered out before storing
+
+**Consent audit trail:**
+- Each consent record stored individually in `consents` Firestore collection
+- Fields: `userId`, `email`, `document` (type), `documentLabel`, `accepted`, `timestamp`, `version`, `userAgent`, `locale`, `source`, `createdAt`
+- Queryable by userId or email for legal proof of consent
+- Consent summary also stored on user profile for quick reference
 
 **Content gating:**
 - `handleContentGating(user)` — shows/hides gated content based on auth state
@@ -530,6 +600,8 @@ All profile-related CSS classes use these prefixes:
 - `yb-visits__` — Visit history elements
 - `yb-receipts__` — Receipts elements
 - `yb-membership__` — Membership/passes section in My Passes tab (includes retention card, manage panels)
+- `yb-onboarding__` — Mandatory onboarding overlay (phone + DOB form)
+- `yb-auth-consent__` — Consent checkboxes in registration form
 - `yb-mb-spinner` — Loading spinner
 - `yb-btn` / `yb-btn--primary` / `yb-btn--outline` — Button styles
 - `is-active` — Active state for tabs, filters, categories
@@ -553,8 +625,17 @@ All profile-related CSS classes use these prefixes:
 - `staffCache` never cleared (bios don't change during session)
 - `tabLoaded` tracks which tabs have been loaded (prevents re-fetch on tab switch)
 
-### Profile Reminder Banner
-- Shows when phone OR dateOfBirth is missing
+### Mandatory Onboarding Overlay
+- Shown when phone OR dateOfBirth is missing in Firestore on login
+- **Blocks all tab navigation** — tabs and panels set to `display: none`
+- Centered card with phone + DOB form (both required)
+- On save: updates Firestore + pushes to Mindbody + dismisses overlay + shows tabs
+- If `clientId` not yet available (async MB sync), polls every 1s for up to 15s before MB push
+- Existing partial data is pre-filled
+
+### Profile Reminder Banner (soft)
+- Shows inside profile form when phone OR dateOfBirth is missing
+- Hidden when onboarding overlay is shown (overlay takes priority)
 - Hidden after successful profile save if both are now filled
 
 ### Avatar Upload
@@ -607,5 +688,8 @@ When porting this system to a new brand (e.g., Hot Yoga CPH):
 8. **Retention card messaging:** Update `membership_retention_*` translations for brand-specific perks and reactivation offer
 9. **Notice period text:** Update `membership_notice_period` translation — different brands may have different T&C URLs and notice periods
 10. **Adapt CSS:** Keep class naming convention, update brand colors — all classes prefixed `yb-` for Yoga Bible
-11. **Template:** Create profile page template with required DOM IDs (see element IDs in init functions). Must include 7 tab panels: profile, schedule, store, passes, visits, receipts, courses
-12. **Share Mindbody functions:** All `mb-*.js` files are brand-agnostic — same Site ID (5748831), use LocationId to filter per studio if needed
+11. **Template:** Create profile page template with required DOM IDs (see element IDs in init functions). Must include 7 tab panels: profile, schedule, store, passes, visits, receipts, courses. Include `#yb-onboarding-overlay` div and consent checkboxes in auth modal
+12. **Consent checkbox links:** Update links in `modal-auth.njk` consent checkboxes to point to new brand's Terms & Conditions, Privacy Policy, and Code of Conduct pages
+13. **Consent version:** Update the `version` string in `firebase-auth.js` registration handler whenever policy documents change
+14. **Firestore rules:** Set up security rules for `consents` collection — write-only from clients, admin-read for legal queries
+15. **Share Mindbody functions:** All `mb-*.js` files are brand-agnostic — same Site ID (5748831), use LocationId to filter per studio if needed

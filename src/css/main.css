@@ -5619,6 +5619,63 @@ section {
   text-decoration: underline;
 }
 
+/* Consent checkboxes in registration form */
+.yb-auth-consent {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 4px;
+  margin-bottom: 16px;
+}
+.yb-auth-consent__item {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  font-size: 0.82rem;
+  color: #0F0F0F;
+  line-height: 1.45;
+  cursor: pointer;
+}
+.yb-auth-consent__item input[type="checkbox"] {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 18px;
+  height: 18px;
+  min-width: 18px;
+  border: 1.5px solid #E8E4E0;
+  border-radius: 4px;
+  margin-top: 1px;
+  cursor: pointer;
+  position: relative;
+  transition: border-color 0.15s, background 0.15s;
+}
+.yb-auth-consent__item input[type="checkbox"]:checked {
+  background: var(--yb-brand);
+  border-color: var(--yb-brand);
+}
+.yb-auth-consent__item input[type="checkbox"]:checked::after {
+  content: '';
+  position: absolute;
+  left: 5px;
+  top: 1px;
+  width: 5px;
+  height: 10px;
+  border: solid #fff;
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
+}
+.yb-auth-consent__item input[type="checkbox"]:focus-visible {
+  box-shadow: 0 0 0 3px rgba(247, 92, 3, 0.12);
+}
+.yb-auth-consent__item a {
+  color: var(--yb-brand);
+  text-decoration: underline;
+  font-weight: 600;
+}
+.yb-auth-consent__item a:hover {
+  color: #d94f02;
+}
+
 /* ========================================
    CONTENT GATING
    ======================================== */
@@ -7905,6 +7962,154 @@ section {
   }
   .yb-onboarding__title {
     font-size: 1.15rem;
+  }
+}
+
+/* ═══════════════════════════════════════
+   LIABILITY WAIVER & SIGNATURE PAD
+   ═══════════════════════════════════════ */
+
+.yb-waiver__card {
+  max-width: 560px;
+}
+.yb-waiver__text {
+  max-height: 280px;
+  overflow-y: auto;
+  padding: 1rem 1.25rem;
+  background: #F5F3F0;
+  border-radius: 10px;
+  border: 1px solid #E8E4E0;
+  font-size: 0.88rem;
+  line-height: 1.65;
+  color: #0F0F0F;
+  margin-bottom: 1.25rem;
+}
+.yb-waiver__text p { margin: 0 0 0.75rem; }
+.yb-waiver__text p:last-child { margin-bottom: 0; }
+
+.yb-waiver__sign-section {
+  margin-top: 0.5rem;
+}
+.yb-waiver__agree {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.6rem;
+  cursor: pointer;
+  font-size: 0.88rem;
+  line-height: 1.4;
+  margin-bottom: 1rem;
+}
+.yb-waiver__agree input[type="checkbox"] {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  width: 20px;
+  height: 20px;
+  min-width: 20px;
+  border: 1.5px solid #f75c03;
+  border-radius: 5px;
+  background: #fff;
+  cursor: pointer;
+  position: relative;
+  margin-top: 1px;
+  transition: background 0.2s;
+}
+.yb-waiver__agree input[type="checkbox"]:checked {
+  background: #f75c03;
+}
+.yb-waiver__agree input[type="checkbox"]:checked::after {
+  content: '\2713';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  color: #fff;
+  font-size: 13px;
+  font-weight: 700;
+}
+.yb-waiver__agree input[type="checkbox"]:focus-visible {
+  outline: 2px solid #f75c03;
+  outline-offset: 2px;
+}
+.yb-waiver__agree a { color: #f75c03; text-decoration: underline; }
+
+.yb-waiver__sign-label {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #0F0F0F;
+  margin-bottom: 0.5rem;
+}
+
+/* Signature Pad */
+.yb-signature-pad {
+  position: relative;
+  border: 1.5px solid #E8E4E0;
+  border-radius: 10px;
+  background: #fff;
+  overflow: hidden;
+  margin-bottom: 1rem;
+}
+.yb-signature-pad canvas {
+  display: block;
+  width: 100%;
+  cursor: crosshair;
+  touch-action: none;
+}
+.yb-signature-pad__clear {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  background: rgba(15, 15, 15, 0.06);
+  border: none;
+  border-radius: 6px;
+  padding: 4px 12px;
+  font-size: 0.78rem;
+  color: #6F6A66;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.yb-signature-pad__clear:hover {
+  background: rgba(15, 15, 15, 0.12);
+  color: #0F0F0F;
+}
+
+/* Contract Terms in Checkout */
+.yb-checkout-terms {
+  margin-bottom: 1.25rem;
+  padding-bottom: 1.25rem;
+  border-bottom: 1px solid #E8E4E0;
+}
+.yb-checkout-terms__title {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #0F0F0F;
+  margin: 0 0 0.75rem;
+}
+.yb-checkout-terms__text {
+  max-height: 200px;
+  overflow-y: auto;
+  padding: 0.75rem 1rem;
+  background: #F5F3F0;
+  border-radius: 8px;
+  border: 1px solid #E8E4E0;
+  font-size: 0.85rem;
+  line-height: 1.6;
+  color: #0F0F0F;
+  margin-bottom: 1rem;
+}
+.yb-checkout-terms__text p { margin: 0 0 0.5rem; }
+.yb-checkout-terms__text p:last-child { margin-bottom: 0; }
+
+@media (max-width: 520px) {
+  .yb-waiver__card {
+    max-width: 100%;
+  }
+  .yb-waiver__text {
+    max-height: 220px;
+    padding: 0.75rem 1rem;
+  }
+  .yb-checkout-terms__text {
+    max-height: 160px;
   }
 }
 
