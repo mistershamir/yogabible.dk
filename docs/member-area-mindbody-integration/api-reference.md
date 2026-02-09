@@ -72,15 +72,41 @@
 | `/sale/purchasecontract` | POST | Body: `ClientId`, `ContractId`, `LocationId`, `StartDate`, `CreditCardInfo`, `PromotionCode` | `ClientContractId` | Buy membership |
 | `/sale/returnsale` | POST | Body: `Id`, `Test` | `Sale` | Refund. Admin-level — needs auth guard |
 
-### Contract Management Endpoints (RESOLVED — use `/sale/`)
-
-After extensive debugging, the **correct** category is `/sale/`. Our code tries paths in order: `/sale/`, `/contract/`, `/client/`.
+### Contract Management Endpoints (RESOLVED)
 
 | Endpoint | Method | Body | Notes |
 |----------|--------|------|-------|
 | `/sale/terminatecontract` | POST | `ClientId`, `ClientContractId`, `TerminationDate`, `SendNotifications` | **CONFIRMED WORKING.** `/contract/` returns permission error. `/client/` returns HTML 404 |
-| `/sale/suspendcontract` | POST | `ClientId`, `ClientContractId`, `SuspendDate`, `ResumeDate`, `SendNotifications` | Duration: 14-93 days |
+| `/client/suspendcontract` | POST | `ClientId`, `ClientContractId`, `SuspendDate`, `Duration`, `DurationUnit`, `SuspensionType` | **CONFIRMED WORKING (2026-02-09).** See details below |
 | `/sale/activatecontract` | POST | `ClientId`, `ClientContractId` | **DOES NOT EXIST** — all 3 paths return HTML 404. Revoke cancellation is not possible via API |
+| `resumecontract` / `removecontractsuspension` | POST | — | **NOT FOUND** — tried all 3 path categories, none exist. Cancel pause early requires studio admin |
+
+### Suspend Contract — CONFIRMED WORKING FORMAT
+
+**Endpoint:** `POST /client/suspendcontract` (NOT `/sale/` — returns 404)
+
+**Request body:**
+```json
+{
+  "ClientId": "100000037",
+  "ClientContractId": 12345,
+  "SuspendDate": "2026-03-09",
+  "Duration": 14,
+  "DurationUnit": "Day",
+  "SuspensionType": "Vacation"
+}
+```
+
+**Key findings (2026-02-09):**
+- `/sale/suspendcontract` → **HTML 404** (does not exist)
+- `/contract/suspendcontract` → **HTML 404** (does not exist)
+- `/client/suspendcontract` → **ONLY working path** (returns JSON)
+- `SuspensionType` is **REQUIRED**. Valid values: `"Vacation"`, `"Illness"`, `"Injury"` (configured in MB admin: Settings > Contract Options > Suspension Types)
+- Without `SuspensionType`, error = `"Duration and DurationUnit are required."` with code `InvalidParameter`
+- With `SuspensionType: "None"`, error = **500 server crash** (invalid value)
+- `DurationUnit` accepts both `"Day"` and `"Days"` when `SuspensionType` is valid
+- `Duration` accepts both number and string when `SuspensionType` is valid
+- Duplicate suspension check: use `IsSuspended` field from `GET /client/clientcontracts`
 
 ### Site & Staff Endpoints
 
@@ -229,17 +255,19 @@ terminationDate = useUntilDate (sent to Mindbody API)
 
 If `nextBillingDate` is in the past (edge case), use today as base.
 
-## Contract Management Endpoints — RESOLVED
-
-After extensive debugging, the correct paths are under the **Sale** category:
+## Contract Management Endpoints — RESOLVED (Updated 2026-02-09)
 
 | Action | Correct Path | Body Fields | Status |
 |--------|-------------|-------------|--------|
 | Terminate | `POST /sale/terminatecontract` | `ClientId`, `ClientContractId`, `TerminationDate`, `SendNotifications` | **WORKING** |
-| Suspend | `POST /sale/suspendcontract` | `ClientId`, `ClientContractId`, `SuspendDate`, `ResumeDate`, `SendNotifications` | **WORKING** |
+| Suspend | `POST /client/suspendcontract` | `ClientId`, `ClientContractId`, `SuspendDate`, `Duration`, `DurationUnit`, `SuspensionType` | **WORKING** (SuspensionType:"Vacation", DurationUnit:"Day") |
+| Resume/Cancel Pause | N/A | N/A | **DOES NOT EXIST** — tried all path categories |
 | Activate (revoke) | N/A | N/A | **DOES NOT EXIST** |
 
 **Key findings:**
+- **Suspend uses `/client/` category** (NOT `/sale/`) — `/sale/suspendcontract` returns HTML 404
+- **`SuspensionType` is the missing required field** — without it, API says "Duration and DurationUnit are required" (misleading error)
+- Valid suspension types configured in MB admin: Vacation, Illness, Injury
 - `/contract/terminatecontract` exists but has **different permission model** — returns "User does not have permission" even when the same staff user succeeds via `/sale/`
 - `/client/terminatecontract` does NOT exist — returns HTML 404
 - The code tries all 3 paths (`/sale/`, `/contract/`, `/client/`) with fallback, but `/sale/` **must be first**

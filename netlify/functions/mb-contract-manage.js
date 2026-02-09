@@ -1,9 +1,14 @@
 /**
  * Netlify Function: POST /.netlify/functions/mb-contract-manage
- * Manages client contracts: terminate or suspend (pause).
+ * Manages client contracts: terminate, suspend (pause), or resume.
+ *
+ * CONFIRMED WORKING (2026-02-09):
+ *   Endpoint: POST /client/suspendcontract
+ *   Required fields: ClientId, ClientContractId, SuspendDate, Duration, DurationUnit, SuspensionType
+ *   Working values: SuspensionType:"Vacation", DurationUnit:"Day"
  */
 
-const { mbFetch, getStaffToken, clearTokenCache, jsonResponse, corsHeaders } = require('./shared/mb-api');
+const { mbFetch, getStaffToken, jsonResponse, corsHeaders } = require('./shared/mb-api');
 
 var TERMINATE_PATHS = ['/sale/terminatecontract', '/contract/terminatecontract', '/client/terminatecontract'];
 
@@ -95,101 +100,108 @@ exports.handler = async function(event) {
 
       var ccId = Number(body.clientContractId);
 
-      // BREAKTHROUGH: SuspensionType:"None" caused 500 (different from 400 InvalidParameter).
-      // MB admin shows valid types: Illness, Injury, Vacation.
-      // When a type is selected, form shows "Suspension Length" + "Month(s)" + "No Of Iterations".
-      // Try real suspension types with Duration in both days and months.
-      var allResults = [];
-
-      var suspTypeAttempts = [
-        // 1: Vacation type + duration in days (user's 14-day pause)
-        {
-          label: 'vacation-days',
-          body: {
-            ClientId: body.clientId,
-            ClientContractId: ccId,
-            SuspendDate: body.startDate,
-            Duration: durationDays,
-            DurationUnit: 'Day',
-            SuspensionType: 'Vacation'
-          }
-        },
-        // 2: Vacation type + duration in months (1 month, like admin UI default)
-        {
-          label: 'vacation-month',
-          body: {
-            ClientId: body.clientId,
-            ClientContractId: ccId,
-            SuspendDate: body.startDate,
-            Duration: 1,
-            DurationUnit: 'Month',
-            SuspensionType: 'Vacation'
-          }
-        },
-        // 3: Illness type + days
-        {
-          label: 'illness-days',
-          body: {
-            ClientId: body.clientId,
-            ClientContractId: ccId,
-            SuspendDate: body.startDate,
-            Duration: durationDays,
-            DurationUnit: 'Day',
-            SuspensionType: 'Illness'
-          }
-        },
-      ];
-
-      for (var ai = 0; ai < suspTypeAttempts.length; ai++) {
-        var attempt = suspTypeAttempts[ai];
-        try {
-          console.log('[mb-contract-manage] Attempt ' + attempt.label + ':', JSON.stringify(attempt.body));
-          var suspResult = await mbFetch('/client/suspendcontract', {
-            method: 'POST',
-            body: JSON.stringify(attempt.body)
+      // Check if contract is already suspended
+      try {
+        var contractsData = await mbFetch('/client/clientcontracts?ClientId=' + body.clientId);
+        var targetContract = (contractsData.Contracts || []).find(function(c) { return c.Id === ccId; });
+        if (targetContract && targetContract.IsSuspended) {
+          return jsonResponse(409, {
+            error: 'already_suspended',
+            message: 'This membership is already paused. You cannot add another pause while one is active.'
           });
-
-          console.log('[mb-contract-manage] SUCCESS (' + attempt.label + ')');
-          return jsonResponse(200, {
-            success: true,
-            action: 'suspend',
-            suspendDate: body.startDate,
-            resumeDate: body.endDate,
-            durationDays: durationDays,
-            method: attempt.label,
-            message: 'Contract suspension scheduled'
-          });
-        } catch (suspErr) {
-          var mbData = suspErr.data || {};
-          var mbErrorMsg = suspErr.message || 'Unknown error';
-          if (mbData.Error && mbData.Error.Message) mbErrorMsg = mbData.Error.Message;
-
-          allResults.push({
-            label: attempt.label,
-            status: suspErr.status,
-            message: mbErrorMsg,
-            fullResponse: JSON.stringify(mbData).substring(0, 500)
-          });
-          console.error('[mb-contract-manage] Failed ' + attempt.label + ':', mbErrorMsg);
         }
+      } catch (checkErr) {
+        console.warn('[mb-contract-manage] Could not check suspension status:', checkErr.message);
+        // Continue anyway — MB will reject duplicate if needed
       }
 
-      // All failed — return diagnostic data
-      var lastJsonErr = null;
-      for (var ri = allResults.length - 1; ri >= 0; ri--) {
-        if (allResults[ri].status && allResults[ri].status !== 404) {
-          lastJsonErr = allResults[ri];
-          break;
-        }
-      }
-      var lastErr = lastJsonErr || allResults[allResults.length - 1] || {};
-      return jsonResponse(400, {
-        error: lastErr.message || 'All suspend attempts failed',
-        _attempts: allResults
+      // CONFIRMED WORKING FORMAT (2026-02-09):
+      // POST /client/suspendcontract with SuspensionType:"Vacation", DurationUnit:"Day"
+      var suspendBody = {
+        ClientId: body.clientId,
+        ClientContractId: ccId,
+        SuspendDate: body.startDate,
+        Duration: durationDays,
+        DurationUnit: 'Day',
+        SuspensionType: 'Vacation'
+      };
+
+      console.log('[mb-contract-manage] Suspending contract:', JSON.stringify(suspendBody));
+
+      var suspResult = await mbFetch('/client/suspendcontract', {
+        method: 'POST',
+        body: JSON.stringify(suspendBody)
+      });
+
+      console.log('[mb-contract-manage] Suspend SUCCESS:', JSON.stringify(suspResult).substring(0, 300));
+      return jsonResponse(200, {
+        success: true,
+        action: 'suspend',
+        suspendDate: body.startDate,
+        resumeDate: body.endDate,
+        durationDays: durationDays,
+        message: 'Contract suspension scheduled'
       });
     }
 
-    return jsonResponse(400, { error: 'Invalid action. Use "terminate" or "suspend".' });
+    // ── RESUME (CANCEL PAUSE EARLY) ──
+    if (body.action === 'resume') {
+      var resumeCcId = Number(body.clientContractId);
+
+      // Try known endpoint paths for resuming/removing suspension
+      var resumePaths = [
+        '/client/resumecontract',
+        '/sale/resumecontract',
+        '/contract/resumecontract',
+        '/client/removecontractsuspension',
+        '/sale/removecontractsuspension'
+      ];
+
+      var resumeBody = {
+        ClientId: body.clientId,
+        ClientContractId: resumeCcId
+      };
+
+      console.log('[mb-contract-manage] Attempting to resume contract:', JSON.stringify(resumeBody));
+
+      var lastResumeErr = null;
+      var resumeResults = [];
+
+      for (var ri = 0; ri < resumePaths.length; ri++) {
+        try {
+          var resumeResult = await mbFetch(resumePaths[ri], {
+            method: 'POST',
+            body: JSON.stringify(resumeBody)
+          });
+          console.log('[mb-contract-manage] Resume SUCCESS on ' + resumePaths[ri]);
+          return jsonResponse(200, {
+            success: true,
+            action: 'resume',
+            endpointUsed: resumePaths[ri],
+            message: 'Contract suspension cancelled — membership resumed'
+          });
+        } catch (resumeErr) {
+          var rMsg = resumeErr.message || '';
+          var isNotFound = rMsg.indexOf('non-JSON') > -1 || resumeErr.status === 404;
+          resumeResults.push({ path: resumePaths[ri], status: resumeErr.status || 'error', message: rMsg.substring(0, 100) });
+          lastResumeErr = resumeErr;
+          if (!isNotFound) {
+            // Got a real JSON error — endpoint exists but rejected. Log and continue.
+            console.log('[mb-contract-manage] Resume path ' + resumePaths[ri] + ' returned:', rMsg.substring(0, 200));
+          }
+        }
+      }
+
+      // All paths failed — resume is not available via API
+      console.error('[mb-contract-manage] All resume paths failed:', JSON.stringify(resumeResults));
+      return jsonResponse(400, {
+        error: 'resume_not_available',
+        message: 'Automatic resume is not available. Please contact the studio to cancel your pause early.',
+        _pathResults: resumeResults
+      });
+    }
+
+    return jsonResponse(400, { error: 'Invalid action. Use "terminate", "suspend", or "resume".' });
 
   } catch (err) {
     console.error('[mb-contract-manage] Error:', err.message, err.data ? JSON.stringify(err.data) : '');
