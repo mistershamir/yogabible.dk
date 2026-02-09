@@ -3520,33 +3520,36 @@ section {
   justify-content: center;
   gap: 12px;
   flex-wrap: wrap;
-  font-size: 0.9rem;
+  font-size: 1rem;
   font-weight: 700;
-  color: #fff;
+  background: linear-gradient(135deg, #ff9966 0%, var(--yb-brand) 50%, #ff9966 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
   text-transform: uppercase;
   letter-spacing: 0.06em;
   filter: blur(12px);
-  transition: filter 0.5s ease, color 0.5s ease;
+  transition: filter 0.5s ease;
   cursor: pointer;
   animation: yb-trust-pulse 3s ease-in-out infinite;
 }
 
 .yb-hero__trust:hover {
   filter: blur(0);
-  color: rgba(255, 255, 255, 0.6);
   animation: none;
 }
 
 @keyframes yb-trust-pulse {
-  0%, 100% { opacity: 0.5; }
-  50% { opacity: 1; }
+  0%, 100% { opacity: 0.6; }
+  50% { opacity: 1; filter: blur(10px); }
 }
 
 .yb-hero__trust-dot {
-  width: 4px;
-  height: 4px;
+  width: 6px;
+  height: 6px;
   border-radius: 50%;
   background: var(--yb-brand);
+  -webkit-text-fill-color: initial;
 }
 
 /* Floating scroll indicator */
