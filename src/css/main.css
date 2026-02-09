@@ -8063,6 +8063,12 @@ section {
 .yb-membership__notice-period a:hover {
   color: #d94f02;
 }
+.yb-membership__rejoin {
+  margin-top: 1rem;
+}
+.yb-membership__rejoin-btn {
+  width: 100%;
+}
 
 .yb-membership__retention-card {
   margin-top: 1rem;

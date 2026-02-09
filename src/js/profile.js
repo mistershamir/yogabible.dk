@@ -465,18 +465,28 @@
           html += '<button type="button" class="yb-membership__manage-btn yb-membership__manage-btn--cancel" data-manage-cancel="' + c.id + '">' + t('membership_cancel_btn') + '</button>';
           html += '</div>';
         }
-        // Retention card for terminating contracts
+        // Retention card or rejoin CTA depending on whether termination date has passed
         if (c.terminationDate && !c.isSuspended) {
-          html += '<div class="yb-membership__retention-card">';
-          html += '<div class="yb-membership__retention-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#f75c03" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg></div>';
-          html += '<p class="yb-membership__retention-title">' + t('membership_retention_title') + '</p>';
-          html += '<p class="yb-membership__retention-desc">' + t('membership_retention_desc').replace('{date}', formatDateDK(c.terminationDate)) + '</p>';
-          html += '<ul class="yb-membership__retention-perks">';
-          html += '<li>' + t('membership_retention_perk1') + '</li>';
-          html += '<li>' + t('membership_retention_perk2') + '</li>';
-          html += '</ul>';
-          html += '<button type="button" class="yb-btn yb-btn--primary yb-membership__retention-btn" data-reactivate="' + (c.contractId || '') + '" data-contract-name="' + esc(c.name) + '" data-location-id="' + (c.locationId || '1') + '">' + t('membership_retention_cta') + '</button>';
-          html += '</div>';
+          var termDate = new Date(c.terminationDate);
+          var now = new Date();
+          if (termDate > now) {
+            // Still within notice period — show retention card
+            html += '<div class="yb-membership__retention-card">';
+            html += '<div class="yb-membership__retention-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#f75c03" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg></div>';
+            html += '<p class="yb-membership__retention-title">' + t('membership_retention_title') + '</p>';
+            html += '<p class="yb-membership__retention-desc">' + t('membership_retention_desc').replace('{date}', formatDateDK(c.terminationDate)) + '</p>';
+            html += '<ul class="yb-membership__retention-perks">';
+            html += '<li>' + t('membership_retention_perk1') + '</li>';
+            html += '<li>' + t('membership_retention_perk2') + '</li>';
+            html += '</ul>';
+            html += '<button type="button" class="yb-btn yb-btn--primary yb-membership__retention-btn" data-reactivate="' + (c.contractId || '') + '" data-contract-name="' + esc(c.name) + '" data-location-id="' + (c.locationId || '1') + '">' + t('membership_retention_cta') + '</button>';
+            html += '</div>';
+          } else {
+            // Termination date passed — show simple rejoin CTA
+            html += '<div class="yb-membership__rejoin">';
+            html += '<button type="button" class="yb-btn yb-btn--primary yb-membership__rejoin-btn" data-rejoin="1">' + t('membership_rejoin_cta') + '</button>';
+            html += '</div>';
+          }
         }
         html += '</div>';
       });
@@ -869,6 +879,21 @@
                 }
               }
             }, 300);
+          }, 800);
+        }
+      });
+    }
+
+    // ── Rejoin buttons (after termination date has passed) ──
+    var rejoinBtns = container.querySelectorAll('[data-rejoin]');
+    for (var j = 0; j < rejoinBtns.length; j++) {
+      rejoinBtns[j].addEventListener('click', function() {
+        var storeBtn = document.querySelector('[data-yb-tab="store"]');
+        if (storeBtn) {
+          storeBtn.click();
+          setTimeout(function() {
+            var memCat = document.querySelector('[data-store-cat="memberships"]');
+            if (memCat) memCat.click();
           }, 800);
         }
       });
@@ -2234,6 +2259,7 @@
       membership_retention_perk1: isDa() ? 'Ingen nyt tilmeldingsgebyr' : 'No new registration fee',
       membership_retention_perk2: isDa() ? 'Første måned gratis' : 'First month free',
       membership_retention_cta: isDa() ? 'Genaktiver — første måned gratis' : 'Reactivate — first month free',
+      membership_rejoin_cta: isDa() ? 'Bliv medlem igen' : 'Become a member again',
       membership_pause_title: isDa() ? 'Sæt abonnement på pause' : 'Pause membership',
       membership_pause_desc: isDa() ? 'Du kan sætte dit abonnement på pause i 14 dage til 3 måneder. Pausen starter efter din næste faktureringscyklus.' : 'You can pause your membership for 14 days to 3 months. The pause starts after your next billing cycle.',
       membership_pause_start: isDa() ? 'Pause starter' : 'Pause starts',
