@@ -98,6 +98,10 @@
           updates.updatedAt = firebase.firestore.FieldValue.serverTimestamp();
           userRef.update(updates);
         }
+        // If no Mindbody client ID yet, try to link existing MB client
+        if (!data.mindbodyClientId) {
+          linkExistingMindbodyClient(user.email);
+        }
       }
     }).catch(function(err) {
       console.warn('Could not sync user profile:', err);
@@ -109,22 +113,66 @@
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ firstName: firstName, lastName: lastName, email: email })
-    }).then(function(res) { return res.json(); })
-      .then(function(data) {
+    }).then(function(res) {
+      if (res.status === 409) {
+        // Duplicate — existing Mindbody client. Look them up and link.
+        return linkExistingMindbodyClient(email);
+      }
+      return res.json().then(function(data) {
         if (data.client && data.client.Id) {
-          // Store Mindbody client ID in Firestore
-          var user = auth.currentUser;
-          if (user) {
-            db.collection('users').doc(user.uid).update({
-              mindbodyClientId: String(data.client.Id),
-              updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-            });
-          }
-          console.log('Mindbody client created/found:', data.client.Id);
+          storeMindbodyClientId(String(data.client.Id));
+          console.log('Mindbody client created:', data.client.Id);
         }
-      }).catch(function(err) {
-        console.warn('Mindbody client sync failed:', err);
       });
+    }).catch(function(err) {
+      console.warn('Mindbody client sync failed:', err);
+    });
+  }
+
+  function linkExistingMindbodyClient(email) {
+    return fetch('/.netlify/functions/mb-client?email=' + encodeURIComponent(email))
+      .then(function(res) { return res.json(); })
+      .then(function(data) {
+        if (data.found && data.client && data.client.id) {
+          var mbId = String(data.client.id);
+          var user = auth.currentUser;
+          if (!user) return;
+
+          // Store MB client ID + pull phone/DOB if available and missing locally
+          var updates = {
+            mindbodyClientId: mbId,
+            updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+          };
+
+          db.collection('users').doc(user.uid).get().then(function(doc) {
+            var d = doc.exists ? doc.data() : {};
+            // Pull phone from Mindbody if user hasn't set one yet
+            if (!d.phone && data.client.phone) {
+              updates.phone = data.client.phone;
+            }
+            // Pull birthDate from Mindbody if user hasn't set one yet
+            if (!d.dateOfBirth && data.client.birthDate) {
+              // Mindbody returns ISO date — extract YYYY-MM-DD
+              var bd = data.client.birthDate;
+              if (bd && bd.indexOf('T') !== -1) bd = bd.split('T')[0];
+              if (bd && bd !== '0001-01-01') updates.dateOfBirth = bd;
+            }
+            return db.collection('users').doc(user.uid).update(updates);
+          });
+
+          console.log('Linked existing Mindbody client:', mbId);
+        }
+      });
+  }
+
+  function storeMindbodyClientId(mbId) {
+    var user = auth.currentUser;
+    if (user) {
+      db.collection('users').doc(user.uid).update({
+        mindbodyClientId: mbId,
+        updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+      });
+    }
   }
 
   function detectLocale() {

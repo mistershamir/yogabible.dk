@@ -103,10 +103,18 @@
           if (nameEl) nameEl.textContent = fullName;
           if (avatarEl && !avatarEl.classList.contains('has-photo')) avatarEl.textContent = getInitials(fullName);
 
-          // Hide reminder if now complete
+          // Hide reminder + onboarding if now complete
           if (phone && dob) {
             var reminderEl = document.getElementById('yb-profile-reminder');
             if (reminderEl) reminderEl.hidden = true;
+            var onboardingOverlay = document.getElementById('yb-onboarding-overlay');
+            if (onboardingOverlay && !onboardingOverlay.hidden) {
+              onboardingOverlay.hidden = true;
+              var tabsEl = document.querySelector('.yb-profile__tabs');
+              var panelsEl = document.querySelectorAll('.yb-profile__tab-panel');
+              if (tabsEl) tabsEl.style.display = '';
+              panelsEl.forEach(function(p) { p.style.display = ''; });
+            }
           }
 
           // Sync to backend silently
@@ -152,6 +160,91 @@
             : err.message;
           showMsg(errorEl, successEl, msg, true);
         }).finally(function() { btn.disabled = false; btn.textContent = btnText; });
+      });
+    }
+
+    // ── Mandatory onboarding form (phone + DOB) ──
+    var onboardingForm = document.getElementById('yb-onboarding-form');
+    if (onboardingForm) {
+      onboardingForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+        var user = auth.currentUser;
+        if (!user) return;
+
+        var phone = document.getElementById('yb-onboarding-phone').value.trim();
+        var dob = document.getElementById('yb-onboarding-dob').value;
+        var errorEl = document.getElementById('yb-onboarding-error');
+        var btn = onboardingForm.querySelector('button[type="submit"]');
+        var btnText = btn.textContent;
+
+        // Validate
+        if (!phone) {
+          if (errorEl) { errorEl.textContent = isDa() ? 'Telefonnummer er påkrævet.' : 'Phone number is required.'; errorEl.hidden = false; }
+          return;
+        }
+        if (!dob) {
+          if (errorEl) { errorEl.textContent = isDa() ? 'Fødselsdato er påkrævet.' : 'Date of birth is required.'; errorEl.hidden = false; }
+          return;
+        }
+
+        if (errorEl) errorEl.hidden = true;
+        btn.disabled = true;
+        btn.textContent = isDa() ? 'Gemmer...' : 'Saving...';
+
+        // Update Firestore
+        var updateData = {
+          phone: phone,
+          dateOfBirth: dob,
+          updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+        };
+
+        db.collection('users').doc(user.uid).update(updateData).then(function() {
+          // Also update the profile form fields so they're in sync
+          var phEl = document.getElementById('yb-profile-phone');
+          var dobEl = document.getElementById('yb-profile-dob');
+          if (phEl) phEl.value = phone;
+          if (dobEl) dobEl.value = dob;
+
+          // Hide the soft reminder
+          var reminderEl = document.getElementById('yb-profile-reminder');
+          if (reminderEl) reminderEl.hidden = true;
+
+          // Push to Mindbody in background
+          if (clientId) {
+            fetch('/.netlify/functions/mb-client', {
+              method: 'PUT',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ clientId: clientId, phone: phone, birthDate: dob })
+            }).catch(function() {});
+          } else {
+            // clientId may not be ready yet — wait for ensureBackendClient, then push
+            var pushInterval = setInterval(function() {
+              if (clientId) {
+                clearInterval(pushInterval);
+                fetch('/.netlify/functions/mb-client', {
+                  method: 'PUT',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({ clientId: clientId, phone: phone, birthDate: dob })
+                }).catch(function() {});
+              }
+            }, 1000);
+            // Stop checking after 15 seconds
+            setTimeout(function() { clearInterval(pushInterval); }, 15000);
+          }
+
+          // Dismiss onboarding overlay and show tabs
+          var onboardingOverlay = document.getElementById('yb-onboarding-overlay');
+          var tabsEl = document.querySelector('.yb-profile__tabs');
+          var panelsEl = document.querySelectorAll('.yb-profile__tab-panel');
+          if (onboardingOverlay) onboardingOverlay.hidden = true;
+          if (tabsEl) tabsEl.style.display = '';
+          panelsEl.forEach(function(p) { p.style.display = ''; });
+        }).catch(function(err) {
+          if (errorEl) { errorEl.textContent = err.message; errorEl.hidden = false; }
+        }).finally(function() {
+          btn.disabled = false;
+          btn.textContent = btnText;
+        });
       });
     }
   }
@@ -235,10 +328,27 @@
         avatarEl.classList.add('has-photo');
       }
 
-      // Show soft reminder if phone or DOB missing
+      // Show soft reminder if phone or DOB missing (inside profile form)
       var reminderEl = document.getElementById('yb-profile-reminder');
       if (reminderEl && (!d.phone || !d.dateOfBirth)) {
         reminderEl.hidden = false;
+      }
+
+      // Mandatory onboarding overlay — blocks all tabs until phone + DOB are filled
+      var onboardingOverlay = document.getElementById('yb-onboarding-overlay');
+      var tabsEl = document.querySelector('.yb-profile__tabs');
+      var panelsEl = document.querySelectorAll('.yb-profile__tab-panel');
+      if (onboardingOverlay && (!d.phone || !d.dateOfBirth)) {
+        onboardingOverlay.hidden = false;
+        if (tabsEl) tabsEl.style.display = 'none';
+        panelsEl.forEach(function(p) { p.style.display = 'none'; });
+        // Pre-fill if we have partial data
+        var obPhone = document.getElementById('yb-onboarding-phone');
+        var obDob = document.getElementById('yb-onboarding-dob');
+        if (obPhone && d.phone) obPhone.value = d.phone;
+        if (obDob && d.dateOfBirth) obDob.value = d.dateOfBirth;
+      } else if (onboardingOverlay) {
+        onboardingOverlay.hidden = true;
       }
 
       var sinceEl = document.getElementById('yb-profile-member-since');

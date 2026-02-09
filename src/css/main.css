@@ -7835,6 +7835,80 @@ section {
 }
 
 /* ═══════════════════════════════════════
+   ONBOARDING OVERLAY (mandatory phone + DOB)
+   ═══════════════════════════════════════ */
+.yb-onboarding {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 50vh;
+  padding: 2rem 0;
+}
+.yb-onboarding__card {
+  background: #FFFCF9;
+  border: 1.5px solid #E8E4E0;
+  border-radius: 16px;
+  padding: 2.5rem 2rem;
+  max-width: 440px;
+  width: 100%;
+  text-align: center;
+  box-shadow: 0 4px 24px rgba(0,0,0,0.06);
+}
+.yb-onboarding__icon {
+  margin-bottom: 1rem;
+}
+.yb-onboarding__icon svg {
+  display: inline-block;
+}
+.yb-onboarding__title {
+  font-size: 1.35rem;
+  font-weight: 700;
+  color: #0F0F0F;
+  margin: 0 0 0.5rem;
+}
+.yb-onboarding__desc {
+  font-size: 0.9rem;
+  color: #6F6A66;
+  margin: 0 0 1.5rem;
+  line-height: 1.5;
+}
+.yb-onboarding__form {
+  text-align: left;
+}
+.yb-onboarding__form .yb-auth-field {
+  margin-bottom: 1rem;
+}
+.yb-onboarding__form .yb-auth-field label {
+  display: block;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #0F0F0F;
+  margin-bottom: 0.3rem;
+}
+.yb-onboarding__required {
+  color: #f75c03;
+}
+.yb-onboarding__submit {
+  width: 100%;
+  margin-top: 0.5rem;
+}
+.yb-onboarding__note {
+  font-size: 0.78rem;
+  color: #6F6A66;
+  margin-top: 1rem;
+  text-align: center;
+}
+@media (max-width: 520px) {
+  .yb-onboarding__card {
+    padding: 1.5rem 1.25rem;
+    border-radius: 12px;
+  }
+  .yb-onboarding__title {
+    font-size: 1.15rem;
+  }
+}
+
+/* ═══════════════════════════════════════
    SCHEDULE: PASS INFO BANNER
    ═══════════════════════════════════════ */
 

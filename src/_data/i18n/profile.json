@@ -179,6 +179,13 @@
     "membership_next_billing": "Næste fakturering",
     "membership_autopay_amount": "pr. periode",
     "membership_back": "Tilbage",
+    "onboarding_title": "Velkommen! Lad os fuldende din profil",
+    "onboarding_desc": "Vi mangler dit telefonnummer og din fødselsdato for at fuldende din konto. Disse oplysninger er påkrævet for at booke hold og administrere dit medlemskab.",
+    "onboarding_submit": "Gem og fortsæt",
+    "onboarding_note": "Dine oplysninger er sikre og bruges kun til studiebrug.",
+    "onboarding_error_phone": "Telefonnummer er påkrævet.",
+    "onboarding_error_dob": "Fødselsdato er påkrævet.",
+    "onboarding_saving": "Gemmer...",
     "store_items": [100078, 100203]
   },
   "en": {
@@ -361,6 +368,13 @@
     "membership_next_billing": "Next billing",
     "membership_autopay_amount": "per period",
     "membership_back": "Back",
+    "onboarding_title": "Welcome! Let's complete your profile",
+    "onboarding_desc": "We need your phone number and date of birth to complete your account. This information is required for booking classes and managing your membership.",
+    "onboarding_submit": "Save and continue",
+    "onboarding_note": "Your information is secure and only used for studio purposes.",
+    "onboarding_error_phone": "Phone number is required.",
+    "onboarding_error_dob": "Date of birth is required.",
+    "onboarding_saving": "Saving...",
     "store_items": [100078, 100203]
   }
 }
