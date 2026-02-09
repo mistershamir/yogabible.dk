@@ -7682,6 +7682,15 @@ section {
   margin: 0.35rem 0 0.5rem;
 }
 
+/* ── Store Per-Class Cost ── */
+.yb-store__item-per-class {
+  font-size: 0.78rem;
+  color: #6F6A66;
+  font-style: italic;
+  margin: 0.35rem 0 0;
+  line-height: 1.4;
+}
+
 /* ── Store Item Pricing ── */
 .yb-store__item-pricing {
   display: flex;
