@@ -1,26 +1,10 @@
 /**
  * Netlify Function: POST /.netlify/functions/mb-contract-manage
  * Manages client contracts: terminate or suspend (pause).
- *
- * POST body:
- *   action (string) - 'terminate' or 'suspend'
- *   clientId (string) - Mindbody client ID
- *   clientContractId (number) - The client's specific contract instance ID
- *
- *   For terminate:
- *     terminationDate (string, YYYY-MM-DD) - When the termination takes effect
- *     terminationCode (string, optional) - Mindbody termination code
- *
- *   For suspend:
- *     startDate (string, YYYY-MM-DD) - When suspension begins
- *     endDate (string, YYYY-MM-DD) - When suspension ends
  */
 
-const { mbFetch, clearTokenCache, jsonResponse, corsHeaders } = require('./shared/mb-api');
+const { mbFetch, getStaffToken, clearTokenCache, jsonResponse, corsHeaders } = require('./shared/mb-api');
 
-// MB v6 docs are ambiguous on the category for contract management endpoints.
-// Try these paths in order until one returns a JSON response.
-// MB v6 docs put these under Sale category — try /sale/ first
 var TERMINATE_PATHS = ['/sale/terminatecontract', '/contract/terminatecontract', '/client/terminatecontract'];
 
 exports.handler = async function(event) {
@@ -35,12 +19,12 @@ exports.handler = async function(event) {
   try {
     var body = JSON.parse(event.body || '{}');
 
-    // Force fresh token for contract management (staff permissions may have changed)
-    clearTokenCache();
-
     if (!body.clientId || !body.clientContractId || !body.action) {
       return jsonResponse(400, { error: 'clientId, clientContractId, and action are required' });
     }
+
+    // Ensure auth token is cached before making API calls
+    await getStaffToken();
 
     // ── TERMINATE ──
     if (body.action === 'terminate') {
@@ -62,66 +46,31 @@ exports.handler = async function(event) {
       console.log('[mb-contract-manage] Terminating contract:', JSON.stringify({
         ClientId: terminateBody.ClientId,
         ClientContractId: terminateBody.ClientContractId,
-        TerminationDate: terminateBody.TerminationDate,
-        HasTerminationCode: !!terminateBody.TerminationCode
+        TerminationDate: terminateBody.TerminationDate
       }));
 
       var lastTermErr = null;
 
       for (var ti = 0; ti < TERMINATE_PATHS.length; ti++) {
         try {
-          console.log('[mb-contract-manage] Trying: ' + TERMINATE_PATHS[ti]);
-          await mbFetch(TERMINATE_PATHS[ti], {
-            method: 'POST',
-            body: JSON.stringify(terminateBody)
-          });
-
-          return jsonResponse(200, {
-            success: true,
-            action: 'terminate',
-            terminationDate: body.terminationDate,
-            endpointUsed: TERMINATE_PATHS[ti],
-            message: 'Contract termination scheduled'
-          });
+          await mbFetch(TERMINATE_PATHS[ti], { method: 'POST', body: JSON.stringify(terminateBody) });
+          return jsonResponse(200, { success: true, action: 'terminate', terminationDate: body.terminationDate, endpointUsed: TERMINATE_PATHS[ti] });
         } catch (termErr) {
           var errMsg = (termErr.message || '').toLowerCase();
-
-          // If error is about termination code, retry without it on same path
           if (errMsg.indexOf('termination') > -1 || errMsg.indexOf('code') > -1) {
-            console.log('[mb-contract-manage] Retrying without termination code on ' + TERMINATE_PATHS[ti]);
             delete terminateBody.TerminationCode;
             try {
-              await mbFetch(TERMINATE_PATHS[ti], {
-                method: 'POST',
-                body: JSON.stringify(terminateBody)
-              });
-
-              return jsonResponse(200, {
-                success: true,
-                action: 'terminate',
-                terminationDate: body.terminationDate,
-                endpointUsed: TERMINATE_PATHS[ti],
-                message: 'Contract termination scheduled'
-              });
-            } catch (retryErr) {
-              lastTermErr = retryErr;
-            }
-          } else if (errMsg.indexOf('non-json') > -1 || errMsg.indexOf('not exist') > -1 || termErr.status === 404 || termErr.status === 405) {
-            console.log('[mb-contract-manage] Path ' + TERMINATE_PATHS[ti] + ' failed (' + (termErr.status || 'unknown') + '), trying next...');
-            lastTermErr = termErr;
-          } else if (errMsg.indexOf('permission') > -1) {
-            console.log('[mb-contract-manage] Permission denied on ' + TERMINATE_PATHS[ti] + ', trying next path...');
+              await mbFetch(TERMINATE_PATHS[ti], { method: 'POST', body: JSON.stringify(terminateBody) });
+              return jsonResponse(200, { success: true, action: 'terminate', terminationDate: body.terminationDate, endpointUsed: TERMINATE_PATHS[ti] });
+            } catch (retryErr) { lastTermErr = retryErr; }
+          } else if (errMsg.indexOf('non-json') > -1 || termErr.status === 404 || termErr.status === 405) {
             lastTermErr = termErr;
           } else {
-            // Real API error — don't try other paths
             throw termErr;
           }
         }
       }
-
-      if (lastTermErr) {
-        throw lastTermErr;
-      }
+      if (lastTermErr) throw lastTermErr;
     }
 
     // ── SUSPEND (PAUSE) ──
@@ -146,72 +95,68 @@ exports.handler = async function(event) {
 
       var ccId = Number(body.clientContractId);
 
-      // Fire ALL path+body combos in PARALLEL to avoid 504 timeout.
-      // /sale/suspendcontract returns 404, so focus on /contract/ and /client/.
-      var paths = ['/contract/suspendcontract', '/client/suspendcontract', '/sale/suspendcontract'];
-      var bodies = [
-        { label: 'A', data: { ClientContractId: ccId, SuspendDate: body.startDate, Duration: durationDays, DurationUnit: 'Days' } },
-        { label: 'B', data: { ClientContractId: ccId, SuspendDate: body.startDate, Duration: durationDays, DurationUnit: 'Day' } },
-        { label: 'C', data: { ClientId: body.clientId, ClientContractId: ccId, SuspendDate: body.startDate, Duration: durationDays, DurationUnit: 'Days' } },
-        { label: 'D', data: { ClientId: body.clientId, ClientContractId: ccId, SuspendDate: body.startDate, Duration: durationDays, DurationUnit: 'Day' } },
+      // Try /contract/ path first (confirmed to return JSON, not 404 HTML like /sale/).
+      // Then /client/ as fallback. Max 4 sequential API calls.
+      var suspendPaths = ['/contract/suspendcontract', '/client/suspendcontract'];
+      var suspendBodies = [
+        // Primary: with ClientId, Duration as int, "Days" plural
+        { label: 'A', data: { ClientId: body.clientId, ClientContractId: ccId, SuspendDate: body.startDate, Duration: durationDays, DurationUnit: 'Days' } },
+        // Alt: singular "Day"
+        { label: 'B', data: { ClientId: body.clientId, ClientContractId: ccId, SuspendDate: body.startDate, Duration: durationDays, DurationUnit: 'Day' } },
       ];
 
-      // Build all combos
-      var combos = [];
-      for (var pi = 0; pi < paths.length; pi++) {
-        for (var bi = 0; bi < bodies.length; bi++) {
-          combos.push({ path: paths[pi], label: bodies[bi].label, body: bodies[bi].data });
+      var allResults = [];
+
+      for (var sp = 0; sp < suspendPaths.length; sp++) {
+        var spath = suspendPaths[sp];
+        for (var sb = 0; sb < suspendBodies.length; sb++) {
+          var svariant = suspendBodies[sb];
+          try {
+            console.log('[mb-contract-manage] Suspend ' + svariant.label + ' on ' + spath + ':', JSON.stringify(svariant.data));
+            var suspResult = await mbFetch(spath, {
+              method: 'POST',
+              body: JSON.stringify(svariant.data)
+            });
+
+            console.log('[mb-contract-manage] SUCCESS:', JSON.stringify(suspResult).substring(0, 300));
+            return jsonResponse(200, {
+              success: true,
+              action: 'suspend',
+              suspendDate: body.startDate,
+              resumeDate: body.endDate,
+              durationDays: durationDays,
+              endpointUsed: spath,
+              bodyVariant: svariant.label,
+              message: 'Contract suspension scheduled'
+            });
+          } catch (suspErr) {
+            var suspMsg = (suspErr.message || '').toLowerCase();
+            var errDetail = {
+              variant: svariant.label,
+              path: spath,
+              status: suspErr.status,
+              message: suspErr.message,
+              fullData: suspErr.data ? JSON.stringify(suspErr.data).substring(0, 500) : null
+            };
+            console.log('[mb-contract-manage] Failed ' + svariant.label + ':', JSON.stringify(errDetail));
+            allResults.push(errDetail);
+
+            // If this path returns 404/HTML, skip remaining variants on it
+            if (suspErr.status === 404 || suspErr.status === 405 || suspMsg.indexOf('non-json') > -1) {
+              console.log('[mb-contract-manage] Path ' + spath + ' does not exist, skipping...');
+              break;
+            }
+          }
         }
       }
 
-      console.log('[mb-contract-manage] Firing ' + combos.length + ' suspend combos in parallel');
-
-      var results = await Promise.allSettled(combos.map(function(combo) {
-        return mbFetch(combo.path, {
-          method: 'POST',
-          body: JSON.stringify(combo.body)
-        }).then(function(data) {
-          return { success: true, combo: combo, data: data };
-        });
-      }));
-
-      // Check for any success
-      var diagnostics = [];
-      for (var ri = 0; ri < results.length; ri++) {
-        var r = results[ri];
-        var combo = combos[ri];
-        if (r.status === 'fulfilled' && r.value.success) {
-          console.log('[mb-contract-manage] SUCCESS: path=' + combo.path + ' variant=' + combo.label);
-          return jsonResponse(200, {
-            success: true,
-            action: 'suspend',
-            suspendDate: body.startDate,
-            resumeDate: body.endDate,
-            durationDays: durationDays,
-            endpointUsed: combo.path,
-            bodyVariant: combo.label,
-            message: 'Contract suspension scheduled'
-          });
-        } else {
-          var err = r.reason || {};
-          diagnostics.push({
-            path: combo.path,
-            variant: combo.label,
-            status: err.status || 'error',
-            message: (err.message || '').substring(0, 120),
-            data: err.data ? JSON.stringify(err.data).substring(0, 150) : null
-          });
-        }
-      }
-
-      // All failed
-      console.error('[mb-contract-manage] All ' + combos.length + ' suspend combos failed');
-      console.error('[mb-contract-manage] Diagnostics:', JSON.stringify(diagnostics));
-      var lastDiag = diagnostics[diagnostics.length - 1] || {};
+      // All attempts failed — return full diagnostic data
+      console.error('[mb-contract-manage] All suspend attempts failed:', JSON.stringify(allResults));
+      var lastRes = allResults[allResults.length - 1] || {};
       return jsonResponse(400, {
-        error: lastDiag.message || 'All suspend attempts failed',
-        _attempts: diagnostics,
-        _hint: 'Tried ' + combos.length + ' path+body combos in parallel.'
+        error: lastRes.message || 'All suspend attempts failed',
+        _attempts: allResults,
+        _hint: 'Tried ' + allResults.length + ' combos. Check _attempts for full error data from MB.'
       });
     }
 
