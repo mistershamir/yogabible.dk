@@ -9,8 +9,8 @@
     <p class="yb-hero__subtitle">{{ t.hero_subtitle }}</p>
     <div class="yb-hero__line"></div>
     <div class="yb-hero__ctas">
-      <a href="#format-comparison" class="yb-btn yb-btn--primary yb-btn--large">{{ t.hero_cta_format }}</a>
-      <a href="#destinations" class="yb-btn yb-btn--outline-white yb-btn--large">{{ t.hero_cta_dest }}</a>
+      <a href="#knowledge-pillars" class="yb-btn yb-btn--primary yb-btn--large">{{ t.hero_cta_explore }}</a>
+      <a href="#hour-spectrum" class="yb-btn yb-btn--outline-white yb-btn--large">{{ t.hero_cta_hours }}</a>
     </div>
     <div class="yb-hero__trust">
       <span>{{ t.hero_trust1 }}</span>
@@ -32,849 +32,728 @@
     <h2 class="section-title">{{ t.toc_title }}</h2>
     <p class="section-subtitle">{{ t.toc_subtitle }}</p>
 
-    <div class="program-grid" style="max-width: 800px; margin: 0 auto;">
+    <div class="program-grid" style="max-width:1000px; margin:0 auto;">
       <div class="program-feature">
         <div class="program-feature__icon">1</div>
-        <h3><a href="#format-comparison" style="color:inherit; text-decoration:none;">{{ t.toc1_title }}</a></h3>
+        <h3><a href="#knowledge-pillars" style="color:inherit; text-decoration:none;">{{ t.toc1_title }}</a></h3>
         <p>{{ t.toc1_desc }}</p>
       </div>
       <div class="program-feature">
         <div class="program-feature__icon">2</div>
-        <h3><a href="#seasons" style="color:inherit; text-decoration:none;">{{ t.toc2_title }}</a></h3>
+        <h3><a href="#hour-spectrum" style="color:inherit; text-decoration:none;">{{ t.toc2_title }}</a></h3>
         <p>{{ t.toc2_desc }}</p>
       </div>
       <div class="program-feature">
         <div class="program-feature__icon">3</div>
-        <h3><a href="#destinations" style="color:inherit; text-decoration:none;">{{ t.toc3_title }}</a></h3>
+        <h3><a href="#courses-vs-trainings" style="color:inherit; text-decoration:none;">{{ t.toc3_title }}</a></h3>
         <p>{{ t.toc3_desc }}</p>
       </div>
       <div class="program-feature">
         <div class="program-feature__icon">4</div>
-        <h3><a href="#choosing" style="color:inherit; text-decoration:none;">{{ t.toc4_title }}</a></h3>
+        <h3><a href="#200h-gold-standard" style="color:inherit; text-decoration:none;">{{ t.toc4_title }}</a></h3>
         <p>{{ t.toc4_desc }}</p>
       </div>
-    </div>
-  </div>
-</section>
-
-<!-- SECTION 1: FORMAT COMPARISON -->
-<section class="program-schedule" id="format-comparison">
-  <div class="container">
-    <h2 class="section-title">{{ t.s1_title }}</h2>
-    <p class="section-subtitle">{{ t.s1_subtitle }}</p>
-  </div>
-</section>
-
-<!-- 18-Week Flexible (Weekday Track) -->
-<section class="program-overview">
-  <div class="container">
-    <h2 class="section-title">{{ t.f18wd_title }}</h2>
-    <p class="section-subtitle">{{ t.f18wd_subtitle }}</p>
-
-    <img src="/assets/images/programs/18w-weekday-training.jpg" alt="{{ t.f18wd_img_alt }}" style="width:100%; max-width:800px; border-radius:8px; aspect-ratio:16/9; object-fit:cover; background:#f5f3f0; margin: 0 auto 32px; display:block;" loading="lazy">
-
-    <div class="schedule-options">
-      <div class="schedule-card">
-        <h3>{{ t.f18wd_details_title }}</h3>
-        <ul>
-          <li>{{ t.f18wd_d1 | safe }}</li>
-          <li>{{ t.f18wd_d2 | safe }}</li>
-          <li>{{ t.f18wd_d3 | safe }}</li>
-          <li>{{ t.f18wd_d4 | safe }}</li>
-          <li>{{ t.f18wd_d5 | safe }}</li>
-          <li>{{ t.f18wd_d6 | safe }}</li>
-          <li>{{ t.f18wd_d7 | safe }}</li>
-        </ul>
-      </div>
-
-      <div class="schedule-card" style="border-left: 3px solid #5a8f5a;">
-        <h3>{{ t.f18wd_pros_title }}</h3>
-        <ul>
-          <li>{{ t.f18wd_p1 | safe }}</li>
-          <li>{{ t.f18wd_p2 | safe }}</li>
-          <li>{{ t.f18wd_p3 | safe }}</li>
-          <li>{{ t.f18wd_p4 | safe }}</li>
-          <li>{{ t.f18wd_p5 | safe }}</li>
-          <li>{{ t.f18wd_p6 | safe }}</li>
-        </ul>
-      </div>
-
-      <div class="schedule-card" style="border-left: 3px solid #c27a4a;">
-        <h3>{{ t.f18wd_cons_title }}</h3>
-        <ul>
-          <li>{{ t.f18wd_c1 | safe }}</li>
-          <li>{{ t.f18wd_c2 | safe }}</li>
-          <li>{{ t.f18wd_c3 | safe }}</li>
-          <li>{{ t.f18wd_c4 | safe }}</li>
-          <li>{{ t.f18wd_c5 | safe }}</li>
-        </ul>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- 18-Week Flexible (Weekend Track) -->
-<section class="program-schedule">
-  <div class="container">
-    <h2 class="section-title">{{ t.f18we_title }}</h2>
-    <p class="section-subtitle">{{ t.f18we_subtitle }}</p>
-
-    <img src="/assets/images/programs/18w-weekend-training.jpg" alt="{{ t.f18we_img_alt }}" style="width:100%; max-width:800px; border-radius:8px; aspect-ratio:16/9; object-fit:cover; background:#f5f3f0; margin: 0 auto 32px; display:block;" loading="lazy">
-
-    <div class="schedule-options">
-      <div class="schedule-card">
-        <h3>{{ t.f18we_details_title }}</h3>
-        <ul>
-          <li>{{ t.f18we_d1 | safe }}</li>
-          <li>{{ t.f18we_d2 | safe }}</li>
-          <li>{{ t.f18we_d3 | safe }}</li>
-          <li>{{ t.f18we_d4 | safe }}</li>
-          <li>{{ t.f18we_d5 | safe }}</li>
-          <li>{{ t.f18we_d6 | safe }}</li>
-          <li>{{ t.f18we_d7 | safe }}</li>
-        </ul>
-      </div>
-
-      <div class="schedule-card" style="border-left: 3px solid #5a8f5a;">
-        <h3>{{ t.f18we_pros_title }}</h3>
-        <ul>
-          <li>{{ t.f18we_p1 | safe }}</li>
-          <li>{{ t.f18we_p2 | safe }}</li>
-          <li>{{ t.f18we_p3 | safe }}</li>
-          <li>{{ t.f18we_p4 | safe }}</li>
-          <li>{{ t.f18we_p5 | safe }}</li>
-        </ul>
-      </div>
-
-      <div class="schedule-card" style="border-left: 3px solid #c27a4a;">
-        <h3>{{ t.f18we_cons_title }}</h3>
-        <ul>
-          <li>{{ t.f18we_c1 | safe }}</li>
-          <li>{{ t.f18we_c2 | safe }}</li>
-          <li>{{ t.f18we_c3 | safe }}</li>
-          <li>{{ t.f18we_c4 | safe }}</li>
-          <li>{{ t.f18we_c5 | safe }}</li>
-        </ul>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- 8-Week Semi-Intensive -->
-<section class="program-overview">
-  <div class="container">
-    <h2 class="section-title">{{ t.f8w_title }}</h2>
-    <p class="section-subtitle">{{ t.f8w_subtitle }}</p>
-
-    <img src="/assets/images/programs/8w-semi-intensive.jpg" alt="{{ t.f8w_img_alt }}" style="width:100%; max-width:800px; border-radius:8px; aspect-ratio:16/9; object-fit:cover; background:#f5f3f0; margin: 0 auto 32px; display:block;" loading="lazy">
-
-    <div class="schedule-options">
-      <div class="schedule-card">
-        <h3>{{ t.f8w_details_title }}</h3>
-        <ul>
-          <li>{{ t.f8w_d1 | safe }}</li>
-          <li>{{ t.f8w_d2 | safe }}</li>
-          <li>{{ t.f8w_d3 | safe }}</li>
-          <li>{{ t.f8w_d4 | safe }}</li>
-          <li>{{ t.f8w_d5 | safe }}</li>
-          <li>{{ t.f8w_d6 | safe }}</li>
-        </ul>
-      </div>
-
-      <div class="schedule-card" style="border-left: 3px solid #5a8f5a;">
-        <h3>{{ t.f8w_pros_title }}</h3>
-        <ul>
-          <li>{{ t.f8w_p1 | safe }}</li>
-          <li>{{ t.f8w_p2 | safe }}</li>
-          <li>{{ t.f8w_p3 | safe }}</li>
-          <li>{{ t.f8w_p4 | safe }}</li>
-          <li>{{ t.f8w_p5 | safe }}</li>
-          <li>{{ t.f8w_p6 | safe }}</li>
-        </ul>
-      </div>
-
-      <div class="schedule-card" style="border-left: 3px solid #c27a4a;">
-        <h3>{{ t.f8w_cons_title }}</h3>
-        <ul>
-          <li>{{ t.f8w_c1 | safe }}</li>
-          <li>{{ t.f8w_c2 | safe }}</li>
-          <li>{{ t.f8w_c3 | safe }}</li>
-          <li>{{ t.f8w_c4 | safe }}</li>
-          <li>{{ t.f8w_c5 | safe }}</li>
-        </ul>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- 4-Week Intensive -->
-<section class="program-schedule">
-  <div class="container">
-    <h2 class="section-title">{{ t.f4w_title }}</h2>
-    <p class="section-subtitle">{{ t.f4w_subtitle }}</p>
-
-    <img src="/assets/images/programs/4w-intensive.jpg" alt="{{ t.f4w_img_alt }}" style="width:100%; max-width:800px; border-radius:8px; aspect-ratio:16/9; object-fit:cover; background:#f5f3f0; margin: 0 auto 32px; display:block;" loading="lazy">
-
-    <div class="schedule-options">
-      <div class="schedule-card">
-        <h3>{{ t.f4w_details_title }}</h3>
-        <ul>
-          <li>{{ t.f4w_d1 | safe }}</li>
-          <li>{{ t.f4w_d2 | safe }}</li>
-          <li>{{ t.f4w_d3 | safe }}</li>
-          <li>{{ t.f4w_d4 | safe }}</li>
-          <li>{{ t.f4w_d5 | safe }}</li>
-          <li>{{ t.f4w_d6 | safe }}</li>
-          <li>{{ t.f4w_d7 | safe }}</li>
-        </ul>
-      </div>
-
-      <div class="schedule-card" style="border-left: 3px solid #5a8f5a;">
-        <h3>{{ t.f4w_pros_title }}</h3>
-        <ul>
-          <li>{{ t.f4w_p1 | safe }}</li>
-          <li>{{ t.f4w_p2 | safe }}</li>
-          <li>{{ t.f4w_p3 | safe }}</li>
-          <li>{{ t.f4w_p4 | safe }}</li>
-          <li>{{ t.f4w_p5 | safe }}</li>
-          <li>{{ t.f4w_p6 | safe }}</li>
-          <li>{{ t.f4w_p7 | safe }}</li>
-        </ul>
-      </div>
-
-      <div class="schedule-card" style="border-left: 3px solid #c27a4a;">
-        <h3>{{ t.f4w_cons_title }}</h3>
-        <ul>
-          <li>{{ t.f4w_c1 | safe }}</li>
-          <li>{{ t.f4w_c2 | safe }}</li>
-          <li>{{ t.f4w_c3 | safe }}</li>
-          <li>{{ t.f4w_c4 | safe }}</li>
-          <li>{{ t.f4w_c5 | safe }}</li>
-          <li>{{ t.f4w_c6 | safe }}</li>
-          <li>{{ t.f4w_c7 | safe }}</li>
-        </ul>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- Side-by-Side Summary Table -->
-<section class="program-overview">
-  <div class="container">
-    <h2 class="section-title">{{ t.table_title }}</h2>
-    <div style="overflow-x:auto; margin-bottom:32px;">
-      <table style="width:100%; border-collapse:collapse; min-width:700px; font-size:0.95rem;">
-        <thead>
-          <tr style="background:#2a2a2a; color:#fff;">
-            <th style="padding:12px 16px; text-align:left;">{{ t.ft_h_factor }}</th>
-            <th style="padding:12px 16px; text-align:center;">{{ t.ft_h_18wd }}</th>
-            <th style="padding:12px 16px; text-align:center;">{{ t.ft_h_18we }}</th>
-            <th style="padding:12px 16px; text-align:center;">{{ t.ft_h_8w }}</th>
-            <th style="padding:12px 16px; text-align:center;">{{ t.ft_h_4w }}</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr style="border-bottom:1px solid #e0e0e0;">
-            <td style="padding:12px 16px; font-weight:600;">{{ t.ft_r1_label }}</td>
-            <td style="padding:12px 16px; text-align:center;">{{ t.ft_r1_18wd }}</td>
-            <td style="padding:12px 16px; text-align:center;">{{ t.ft_r1_18we }}</td>
-            <td style="padding:12px 16px; text-align:center;">{{ t.ft_r1_8w }}</td>
-            <td style="padding:12px 16px; text-align:center;">{{ t.ft_r1_4w }}</td>
-          </tr>
-          <tr style="border-bottom:1px solid #e0e0e0; background:#f9f9f9;">
-            <td style="padding:12px 16px; font-weight:600;">{{ t.ft_r2_label }}</td>
-            <td style="padding:12px 16px; text-align:center;">{{ t.ft_r2_18wd }}</td>
-            <td style="padding:12px 16px; text-align:center;">{{ t.ft_r2_18we }}</td>
-            <td style="padding:12px 16px; text-align:center;">{{ t.ft_r2_8w }}</td>
-            <td style="padding:12px 16px; text-align:center;">{{ t.ft_r2_4w }}</td>
-          </tr>
-          <tr style="border-bottom:1px solid #e0e0e0;">
-            <td style="padding:12px 16px; font-weight:600;">{{ t.ft_r3_label }}</td>
-            <td style="padding:12px 16px; text-align:center;">{{ t.ft_r3_18wd }}</td>
-            <td style="padding:12px 16px; text-align:center;">{{ t.ft_r3_18we }}</td>
-            <td style="padding:12px 16px; text-align:center;">{{ t.ft_r3_8w }}</td>
-            <td style="padding:12px 16px; text-align:center;">{{ t.ft_r3_4w }}</td>
-          </tr>
-          <tr style="border-bottom:1px solid #e0e0e0; background:#f9f9f9;">
-            <td style="padding:12px 16px; font-weight:600;">{{ t.ft_r4_label }}</td>
-            <td style="padding:12px 16px; text-align:center;">{{ t.ft_r4_18wd }}</td>
-            <td style="padding:12px 16px; text-align:center;">{{ t.ft_r4_18we }}</td>
-            <td style="padding:12px 16px; text-align:center;">{{ t.ft_r4_8w }}</td>
-            <td style="padding:12px 16px; text-align:center;">{{ t.ft_r4_4w }}</td>
-          </tr>
-          <tr style="border-bottom:1px solid #e0e0e0;">
-            <td style="padding:12px 16px; font-weight:600;">{{ t.ft_r5_label }}</td>
-            <td style="padding:12px 16px; text-align:center;">{{ t.ft_r5_18wd }}</td>
-            <td style="padding:12px 16px; text-align:center;">{{ t.ft_r5_18we }}</td>
-            <td style="padding:12px 16px; text-align:center;">{{ t.ft_r5_8w }}</td>
-            <td style="padding:12px 16px; text-align:center;">{{ t.ft_r5_4w }}</td>
-          </tr>
-          <tr style="border-bottom:1px solid #e0e0e0; background:#f9f9f9;">
-            <td style="padding:12px 16px; font-weight:600;">{{ t.ft_r6_label }}</td>
-            <td style="padding:12px 16px; text-align:center;">{{ t.ft_r6_18wd }}</td>
-            <td style="padding:12px 16px; text-align:center;">{{ t.ft_r6_18we }}</td>
-            <td style="padding:12px 16px; text-align:center;">{{ t.ft_r6_8w }}</td>
-            <td style="padding:12px 16px; text-align:center;">{{ t.ft_r6_4w }}</td>
-          </tr>
-          <tr style="border-bottom:1px solid #e0e0e0;">
-            <td style="padding:12px 16px; font-weight:600;">{{ t.ft_r7_label }}</td>
-            <td style="padding:12px 16px; text-align:center;">{{ t.ft_r7_18wd }}</td>
-            <td style="padding:12px 16px; text-align:center;">{{ t.ft_r7_18we }}</td>
-            <td style="padding:12px 16px; text-align:center;">{{ t.ft_r7_8w }}</td>
-            <td style="padding:12px 16px; text-align:center;">{{ t.ft_r7_4w }}</td>
-          </tr>
-          <tr style="border-bottom:1px solid #e0e0e0; background:#f9f9f9;">
-            <td style="padding:12px 16px; font-weight:600;">{{ t.ft_r8_label }}</td>
-            <td style="padding:12px 16px; text-align:center;">{{ t.ft_r8_18wd }}</td>
-            <td style="padding:12px 16px; text-align:center;">{{ t.ft_r8_18we }}</td>
-            <td style="padding:12px 16px; text-align:center;">{{ t.ft_r8_8w }}</td>
-            <td style="padding:12px 16px; text-align:center;">{{ t.ft_r8_4w }}</td>
-          </tr>
-          <tr>
-            <td style="padding:12px 16px; font-weight:600;">{{ t.ft_r9_label }}</td>
-            <td style="padding:12px 16px; text-align:center;">{{ t.ft_r9_18wd }}</td>
-            <td style="padding:12px 16px; text-align:center;">{{ t.ft_r9_18we }}</td>
-            <td style="padding:12px 16px; text-align:center;">{{ t.ft_r9_8w }}</td>
-            <td style="padding:12px 16px; text-align:center;">{{ t.ft_r9_4w }}</td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-
-    <p style="text-align:center; color:#666; font-size:0.9rem;">{{ t.table_note }}</p>
-  </div>
-</section>
-
-<!-- SECTION 2: SEASON GUIDE -->
-<section class="program-schedule" id="seasons">
-  <div class="container">
-    <h2 class="section-title">{{ t.s2_title }}</h2>
-    <p class="section-subtitle">{{ t.s2_subtitle }}</p>
-    <img src="/assets/images/copenhagen/four-seasons.jpg" alt="{{ t.s2_img_alt }}" style="width:100%; max-width:800px; border-radius:8px; aspect-ratio:16/9; object-fit:cover; background:#f5f3f0; margin: 0 auto 32px; display:block;" loading="lazy">
-  </div>
-</section>
-
-<section class="program-overview">
-  <div class="container">
-    <div class="schedule-options">
-      <div class="schedule-card">
-        <h3>{{ t.spring_title }}</h3>
-        <p style="font-size:0.85rem; color:#666; margin-bottom:12px;">{{ t.spring_meta }}</p>
-        <ul>
-          <li>{{ t.spring_b1 | safe }}</li>
-          <li>{{ t.spring_b2 | safe }}</li>
-          <li>{{ t.spring_b3 | safe }}</li>
-          <li>{{ t.spring_b4 | safe }}</li>
-          <li>{{ t.spring_b5 | safe }}</li>
-        </ul>
-      </div>
-
-      <div class="schedule-card">
-        <h3>{{ t.summer_title }}</h3>
-        <p style="font-size:0.85rem; color:#666; margin-bottom:12px;">{{ t.summer_meta }}</p>
-        <ul>
-          <li>{{ t.summer_b1 | safe }}</li>
-          <li>{{ t.summer_b2 | safe }}</li>
-          <li>{{ t.summer_b3 | safe }}</li>
-          <li>{{ t.summer_b4 | safe }}</li>
-          <li>{{ t.summer_b5 | safe }}</li>
-          <li>{{ t.summer_b6 | safe }}</li>
-        </ul>
-      </div>
-
-      <div class="schedule-card">
-        <h3>{{ t.autumn_title }}</h3>
-        <p style="font-size:0.85rem; color:#666; margin-bottom:12px;">{{ t.autumn_meta }}</p>
-        <ul>
-          <li>{{ t.autumn_b1 | safe }}</li>
-          <li>{{ t.autumn_b2 | safe }}</li>
-          <li>{{ t.autumn_b3 | safe }}</li>
-          <li>{{ t.autumn_b4 | safe }}</li>
-          <li>{{ t.autumn_b5 | safe }}</li>
-        </ul>
-      </div>
-
-      <div class="schedule-card">
-        <h3>{{ t.winter_title }}</h3>
-        <p style="font-size:0.85rem; color:#666; margin-bottom:12px;">{{ t.winter_meta }}</p>
-        <ul>
-          <li>{{ t.winter_b1 | safe }}</li>
-          <li>{{ t.winter_b2 | safe }}</li>
-          <li>{{ t.winter_b3 | safe }}</li>
-          <li>{{ t.winter_b4 | safe }}</li>
-          <li>{{ t.winter_b5 | safe }}</li>
-          <li>{{ t.winter_b6 | safe }}</li>
-        </ul>
-      </div>
-    </div>
-
-    <div style="background:#f5f3f0; padding:24px; border-radius:8px; margin-top:24px;">
-      <h3 style="margin-top:0;">{{ t.season_rec_title }}</h3>
-      <p style="margin-bottom:0;">{{ t.season_rec_text }}</p>
-    </div>
-  </div>
-</section>
-
-<!-- SECTION 3: DESTINATION GUIDE -->
-<section class="program-schedule" id="destinations">
-  <div class="container">
-    <h2 class="section-title">{{ t.s3_title }}</h2>
-    <p class="section-subtitle">{{ t.s3_subtitle }}</p>
-  </div>
-</section>
-
-<!-- Bali -->
-<section class="program-overview">
-  <div class="container">
-    <h2 class="section-title">{{ t.bali_title }}</h2>
-    <p class="section-subtitle">{{ t.bali_subtitle }}</p>
-
-    <img src="/assets/images/destinations/bali-yoga.jpg" alt="{{ t.bali_img_alt }}" style="width:100%; max-width:800px; border-radius:8px; aspect-ratio:16/9; object-fit:cover; background:#f5f3f0; margin: 0 auto 32px; display:block;" loading="lazy">
-
-    <div class="schedule-options">
-      <div class="schedule-card" style="border-left: 3px solid #5a8f5a;">
-        <h3>{{ t.dest_strengths }}</h3>
-        <ul>
-          <li>{{ t.bali_s1 | safe }}</li>
-          <li>{{ t.bali_s2 | safe }}</li>
-          <li>{{ t.bali_s3 | safe }}</li>
-          <li>{{ t.bali_s4 | safe }}</li>
-          <li>{{ t.bali_s5 | safe }}</li>
-          <li>{{ t.bali_s6 | safe }}</li>
-        </ul>
-      </div>
-
-      <div class="schedule-card" style="border-left: 3px solid #c27a4a;">
-        <h3>{{ t.dest_weaknesses }}</h3>
-        <ul>
-          <li>{{ t.bali_w1 | safe }}</li>
-          <li>{{ t.bali_w2 | safe }}</li>
-          <li>{{ t.bali_w3 | safe }}</li>
-          <li>{{ t.bali_w4 | safe }}</li>
-          <li>{{ t.bali_w5 | safe }}</li>
-          <li>{{ t.bali_w6 | safe }}</li>
-          <li>{{ t.bali_w7 | safe }}</li>
-        </ul>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- India -->
-<section class="program-schedule">
-  <div class="container">
-    <h2 class="section-title">{{ t.india_title }}</h2>
-    <p class="section-subtitle">{{ t.india_subtitle }}</p>
-
-    <img src="/assets/images/destinations/india-rishikesh.jpg" alt="{{ t.india_img_alt }}" style="width:100%; max-width:800px; border-radius:8px; aspect-ratio:16/9; object-fit:cover; background:#f5f3f0; margin: 0 auto 32px; display:block;" loading="lazy">
-
-    <div class="schedule-options">
-      <div class="schedule-card" style="border-left: 3px solid #5a8f5a;">
-        <h3>{{ t.dest_strengths }}</h3>
-        <ul>
-          <li>{{ t.india_s1 | safe }}</li>
-          <li>{{ t.india_s2 | safe }}</li>
-          <li>{{ t.india_s3 | safe }}</li>
-          <li>{{ t.india_s4 | safe }}</li>
-          <li>{{ t.india_s5 | safe }}</li>
-        </ul>
-      </div>
-
-      <div class="schedule-card" style="border-left: 3px solid #c27a4a;">
-        <h3>{{ t.dest_weaknesses }}</h3>
-        <ul>
-          <li>{{ t.india_w1 | safe }}</li>
-          <li>{{ t.india_w2 | safe }}</li>
-          <li>{{ t.india_w3 | safe }}</li>
-          <li>{{ t.india_w4 | safe }}</li>
-          <li>{{ t.india_w5 | safe }}</li>
-          <li>{{ t.india_w6 | safe }}</li>
-          <li>{{ t.india_w7 | safe }}</li>
-        </ul>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- Thailand -->
-<section class="program-overview">
-  <div class="container">
-    <h2 class="section-title">{{ t.thailand_title }}</h2>
-    <p class="section-subtitle">{{ t.thailand_subtitle }}</p>
-
-    <img src="/assets/images/destinations/thailand-yoga.jpg" alt="{{ t.thailand_img_alt }}" style="width:100%; max-width:800px; border-radius:8px; aspect-ratio:16/9; object-fit:cover; background:#f5f3f0; margin: 0 auto 32px; display:block;" loading="lazy">
-
-    <div class="schedule-options">
-      <div class="schedule-card" style="border-left: 3px solid #5a8f5a;">
-        <h3>{{ t.dest_strengths }}</h3>
-        <ul>
-          <li>{{ t.thailand_s1 | safe }}</li>
-          <li>{{ t.thailand_s2 | safe }}</li>
-          <li>{{ t.thailand_s3 | safe }}</li>
-          <li>{{ t.thailand_s4 | safe }}</li>
-          <li>{{ t.thailand_s5 | safe }}</li>
-        </ul>
-      </div>
-
-      <div class="schedule-card" style="border-left: 3px solid #c27a4a;">
-        <h3>{{ t.dest_weaknesses }}</h3>
-        <ul>
-          <li>{{ t.thailand_w1 | safe }}</li>
-          <li>{{ t.thailand_w2 | safe }}</li>
-          <li>{{ t.thailand_w3 | safe }}</li>
-          <li>{{ t.thailand_w4 | safe }}</li>
-          <li>{{ t.thailand_w5 | safe }}</li>
-        </ul>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- Costa Rica -->
-<section class="program-schedule">
-  <div class="container">
-    <h2 class="section-title">{{ t.costarica_title }}</h2>
-    <p class="section-subtitle">{{ t.costarica_subtitle }}</p>
-
-    <img src="/assets/images/destinations/costa-rica-yoga.jpg" alt="{{ t.costarica_img_alt }}" style="width:100%; max-width:800px; border-radius:8px; aspect-ratio:16/9; object-fit:cover; background:#f5f3f0; margin: 0 auto 32px; display:block;" loading="lazy">
-
-    <div class="schedule-options">
-      <div class="schedule-card" style="border-left: 3px solid #5a8f5a;">
-        <h3>{{ t.dest_strengths }}</h3>
-        <ul>
-          <li>{{ t.costarica_s1 | safe }}</li>
-          <li>{{ t.costarica_s2 | safe }}</li>
-          <li>{{ t.costarica_s3 | safe }}</li>
-          <li>{{ t.costarica_s4 | safe }}</li>
-        </ul>
-      </div>
-
-      <div class="schedule-card" style="border-left: 3px solid #c27a4a;">
-        <h3>{{ t.dest_weaknesses }}</h3>
-        <ul>
-          <li>{{ t.costarica_w1 | safe }}</li>
-          <li>{{ t.costarica_w2 | safe }}</li>
-          <li>{{ t.costarica_w3 | safe }}</li>
-          <li>{{ t.costarica_w4 | safe }}</li>
-          <li>{{ t.costarica_w5 | safe }}</li>
-        </ul>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- Portugal -->
-<section class="program-overview">
-  <div class="container">
-    <h2 class="section-title">{{ t.portugal_title }}</h2>
-    <p class="section-subtitle">{{ t.portugal_subtitle }}</p>
-
-    <img src="/assets/images/destinations/portugal-yoga.jpg" alt="{{ t.portugal_img_alt }}" style="width:100%; max-width:800px; border-radius:8px; aspect-ratio:16/9; object-fit:cover; background:#f5f3f0; margin: 0 auto 32px; display:block;" loading="lazy">
-
-    <div class="schedule-options">
-      <div class="schedule-card" style="border-left: 3px solid #5a8f5a;">
-        <h3>{{ t.dest_strengths }}</h3>
-        <ul>
-          <li>{{ t.portugal_s1 | safe }}</li>
-          <li>{{ t.portugal_s2 | safe }}</li>
-          <li>{{ t.portugal_s3 | safe }}</li>
-          <li>{{ t.portugal_s4 | safe }}</li>
-          <li>{{ t.portugal_s5 | safe }}</li>
-        </ul>
-      </div>
-
-      <div class="schedule-card" style="border-left: 3px solid #c27a4a;">
-        <h3>{{ t.dest_weaknesses }}</h3>
-        <ul>
-          <li>{{ t.portugal_w1 | safe }}</li>
-          <li>{{ t.portugal_w2 | safe }}</li>
-          <li>{{ t.portugal_w3 | safe }}</li>
-          <li>{{ t.portugal_w4 | safe }}</li>
-          <li>{{ t.portugal_w5 | safe }}</li>
-        </ul>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- Copenhagen -->
-<section class="program-schedule">
-  <div class="container">
-    <h2 class="section-title">{{ t.cph_title }}</h2>
-    <p class="section-subtitle">{{ t.cph_subtitle }}</p>
-
-    <img src="/assets/images/destinations/copenhagen-yoga.jpg" alt="{{ t.cph_img_alt }}" style="width:100%; max-width:800px; border-radius:8px; aspect-ratio:16/9; object-fit:cover; background:#f5f3f0; margin: 0 auto 32px; display:block;" loading="lazy">
-
-    <div class="schedule-options">
-      <div class="schedule-card" style="border-left: 3px solid #5a8f5a;">
-        <h3>{{ t.dest_strengths }}</h3>
-        <ul>
-          <li>{{ t.cph_s1 | safe }}</li>
-          <li>{{ t.cph_s2 | safe }}</li>
-          <li>{{ t.cph_s3 | safe }}</li>
-          <li>{{ t.cph_s4 | safe }}</li>
-          <li>{{ t.cph_s5 | safe }}</li>
-          <li>{{ t.cph_s6 | safe }}</li>
-          <li>{{ t.cph_s7 | safe }}</li>
-          <li>{{ t.cph_s8 | safe }}</li>
-          <li>{{ t.cph_s9 | safe }}</li>
-        </ul>
-      </div>
-
-      <div class="schedule-card" style="border-left: 3px solid #c27a4a;">
-        <h3>{{ t.dest_weaknesses }}</h3>
-        <ul>
-          <li>{{ t.cph_w1 | safe }}</li>
-          <li>{{ t.cph_w2 | safe }}</li>
-          <li>{{ t.cph_w3 | safe }}</li>
-          <li>{{ t.cph_w4 | safe }}</li>
-          <li>{{ t.cph_w5 | safe }}</li>
-          <li>{{ t.cph_w6 | safe }}</li>
-        </ul>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- Destination Comparison Table -->
-<section class="program-overview">
-  <div class="container">
-    <h2 class="section-title">{{ t.dest_table_title }}</h2>
-    <div style="overflow-x:auto; margin-bottom:32px;">
-      <table style="width:100%; border-collapse:collapse; min-width:900px; font-size:0.9rem;">
-        <thead>
-          <tr style="background:#2a2a2a; color:#fff;">
-            <th style="padding:10px 12px; text-align:left;">{{ t.dt_h_factor }}</th>
-            <th style="padding:10px 12px; text-align:center;">{{ t.dt_h_bali }}</th>
-            <th style="padding:10px 12px; text-align:center;">{{ t.dt_h_india }}</th>
-            <th style="padding:10px 12px; text-align:center;">{{ t.dt_h_thailand }}</th>
-            <th style="padding:10px 12px; text-align:center;">{{ t.dt_h_costarica }}</th>
-            <th style="padding:10px 12px; text-align:center;">{{ t.dt_h_portugal }}</th>
-            <th style="padding:10px 12px; text-align:center;">{{ t.dt_h_cph }}</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr style="border-bottom:1px solid #e0e0e0;">
-            <td style="padding:10px 12px; font-weight:600;">{{ t.dt_r1_label }}</td>
-            <td style="padding:10px 12px; text-align:center;">{{ t.dt_r1_bali }}</td>
-            <td style="padding:10px 12px; text-align:center;">{{ t.dt_r1_india }}</td>
-            <td style="padding:10px 12px; text-align:center;">{{ t.dt_r1_thailand }}</td>
-            <td style="padding:10px 12px; text-align:center;">{{ t.dt_r1_costarica }}</td>
-            <td style="padding:10px 12px; text-align:center;">{{ t.dt_r1_portugal }}</td>
-            <td style="padding:10px 12px; text-align:center;">{{ t.dt_r1_cph | safe }}</td>
-          </tr>
-          <tr style="border-bottom:1px solid #e0e0e0; background:#f9f9f9;">
-            <td style="padding:10px 12px; font-weight:600;">{{ t.dt_r2_label }}</td>
-            <td style="padding:10px 12px; text-align:center;">{{ t.dt_r2_bali }}</td>
-            <td style="padding:10px 12px; text-align:center;">{{ t.dt_r2_india }}</td>
-            <td style="padding:10px 12px; text-align:center;">{{ t.dt_r2_thailand }}</td>
-            <td style="padding:10px 12px; text-align:center;">{{ t.dt_r2_costarica }}</td>
-            <td style="padding:10px 12px; text-align:center;">{{ t.dt_r2_portugal }}</td>
-            <td style="padding:10px 12px; text-align:center;">{{ t.dt_r2_cph }}</td>
-          </tr>
-          <tr style="border-bottom:1px solid #e0e0e0;">
-            <td style="padding:10px 12px; font-weight:600;">{{ t.dt_r3_label }}</td>
-            <td style="padding:10px 12px; text-align:center;">{{ t.dt_r3_bali }}</td>
-            <td style="padding:10px 12px; text-align:center;">{{ t.dt_r3_india }}</td>
-            <td style="padding:10px 12px; text-align:center;">{{ t.dt_r3_thailand }}</td>
-            <td style="padding:10px 12px; text-align:center;">{{ t.dt_r3_costarica }}</td>
-            <td style="padding:10px 12px; text-align:center;">{{ t.dt_r3_portugal }}</td>
-            <td style="padding:10px 12px; text-align:center;">{{ t.dt_r3_cph }}</td>
-          </tr>
-          <tr style="border-bottom:1px solid #e0e0e0; background:#f9f9f9;">
-            <td style="padding:10px 12px; font-weight:600;">{{ t.dt_r4_label }}</td>
-            <td style="padding:10px 12px; text-align:center;">{{ t.dt_r4_bali }}</td>
-            <td style="padding:10px 12px; text-align:center;">{{ t.dt_r4_india }}</td>
-            <td style="padding:10px 12px; text-align:center;">{{ t.dt_r4_thailand }}</td>
-            <td style="padding:10px 12px; text-align:center;">{{ t.dt_r4_costarica }}</td>
-            <td style="padding:10px 12px; text-align:center;">{{ t.dt_r4_portugal }}</td>
-            <td style="padding:10px 12px; text-align:center;">{{ t.dt_r4_cph }}</td>
-          </tr>
-          <tr style="border-bottom:1px solid #e0e0e0;">
-            <td style="padding:10px 12px; font-weight:600;">{{ t.dt_r5_label }}</td>
-            <td style="padding:10px 12px; text-align:center;">{{ t.dt_r5_bali }}</td>
-            <td style="padding:10px 12px; text-align:center;">{{ t.dt_r5_india }}</td>
-            <td style="padding:10px 12px; text-align:center;">{{ t.dt_r5_thailand }}</td>
-            <td style="padding:10px 12px; text-align:center;">{{ t.dt_r5_costarica }}</td>
-            <td style="padding:10px 12px; text-align:center;">{{ t.dt_r5_portugal }}</td>
-            <td style="padding:10px 12px; text-align:center;">{{ t.dt_r5_cph }}</td>
-          </tr>
-          <tr style="border-bottom:1px solid #e0e0e0; background:#f9f9f9;">
-            <td style="padding:10px 12px; font-weight:600;">{{ t.dt_r6_label }}</td>
-            <td style="padding:10px 12px; text-align:center;">{{ t.dt_r6_bali }}</td>
-            <td style="padding:10px 12px; text-align:center;">{{ t.dt_r6_india }}</td>
-            <td style="padding:10px 12px; text-align:center;">{{ t.dt_r6_thailand }}</td>
-            <td style="padding:10px 12px; text-align:center;">{{ t.dt_r6_costarica }}</td>
-            <td style="padding:10px 12px; text-align:center;">{{ t.dt_r6_portugal }}</td>
-            <td style="padding:10px 12px; text-align:center;">{{ t.dt_r6_cph }}</td>
-          </tr>
-          <tr style="border-bottom:1px solid #e0e0e0;">
-            <td style="padding:10px 12px; font-weight:600;">{{ t.dt_r7_label }}</td>
-            <td style="padding:10px 12px; text-align:center;">{{ t.dt_r7_bali }}</td>
-            <td style="padding:10px 12px; text-align:center;">{{ t.dt_r7_india }}</td>
-            <td style="padding:10px 12px; text-align:center;">{{ t.dt_r7_thailand }}</td>
-            <td style="padding:10px 12px; text-align:center;">{{ t.dt_r7_costarica }}</td>
-            <td style="padding:10px 12px; text-align:center;">{{ t.dt_r7_portugal }}</td>
-            <td style="padding:10px 12px; text-align:center;">{{ t.dt_r7_cph }}</td>
-          </tr>
-          <tr style="border-bottom:1px solid #e0e0e0; background:#f9f9f9;">
-            <td style="padding:10px 12px; font-weight:600;">{{ t.dt_r8_label }}</td>
-            <td style="padding:10px 12px; text-align:center;">{{ t.dt_r8_bali }}</td>
-            <td style="padding:10px 12px; text-align:center;">{{ t.dt_r8_india }}</td>
-            <td style="padding:10px 12px; text-align:center;">{{ t.dt_r8_thailand }}</td>
-            <td style="padding:10px 12px; text-align:center;">{{ t.dt_r8_costarica }}</td>
-            <td style="padding:10px 12px; text-align:center;">{{ t.dt_r8_portugal }}</td>
-            <td style="padding:10px 12px; text-align:center;">{{ t.dt_r8_cph }}</td>
-          </tr>
-          <tr>
-            <td style="padding:10px 12px; font-weight:600;">{{ t.dt_r9_label }}</td>
-            <td style="padding:10px 12px; text-align:center;">{{ t.dt_r9_bali }}</td>
-            <td style="padding:10px 12px; text-align:center;">{{ t.dt_r9_india }}</td>
-            <td style="padding:10px 12px; text-align:center;">{{ t.dt_r9_thailand }}</td>
-            <td style="padding:10px 12px; text-align:center;">{{ t.dt_r9_costarica }}</td>
-            <td style="padding:10px 12px; text-align:center;">{{ t.dt_r9_portugal }}</td>
-            <td style="padding:10px 12px; text-align:center;">{{ t.dt_r9_cph }}</td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-  </div>
-</section>
-
-<!-- The Real Questions -->
-<section class="program-schedule">
-  <div class="container">
-    <h2 class="section-title">{{ t.retreat_title }}</h2>
-    <p class="section-subtitle">{{ t.retreat_subtitle }}</p>
-
-    <div class="schedule-options">
-      <div class="schedule-card">
-        <h3>{{ t.retreat_choose_title }}</h3>
-        <ul>
-          <li>{{ t.retreat_r1 }}</li>
-          <li>{{ t.retreat_r2 }}</li>
-          <li>{{ t.retreat_r3 }}</li>
-          <li>{{ t.retreat_r4 }}</li>
-          <li>{{ t.retreat_r5 }}</li>
-          <li>{{ t.retreat_r6 }}</li>
-        </ul>
-      </div>
-
-      <div class="schedule-card">
-        <h3>{{ t.home_choose_title }}</h3>
-        <ul>
-          <li>{{ t.home_r1 }}</li>
-          <li>{{ t.home_r2 }}</li>
-          <li>{{ t.home_r3 }}</li>
-          <li>{{ t.home_r4 }}</li>
-          <li>{{ t.home_r5 }}</li>
-          <li>{{ t.home_r6 }}</li>
-        </ul>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- SECTION 4: CHOOSING THE RIGHT ONE -->
-<section class="program-overview" id="choosing">
-  <div class="container">
-    <h2 class="section-title">{{ t.s4_title }}</h2>
-    <p class="section-subtitle">{{ t.s4_subtitle }}</p>
-
-    <div class="program-grid">
-      <div class="program-feature">
-        <div class="program-feature__icon">1</div>
-        <h3>{{ t.choose1_title }}</h3>
-        <p>{{ t.choose1_desc | safe }}</p>
-      </div>
-
-      <div class="program-feature">
-        <div class="program-feature__icon">2</div>
-        <h3>{{ t.choose2_title }}</h3>
-        <p>{{ t.choose2_desc | safe }}</p>
-      </div>
-
-      <div class="program-feature">
-        <div class="program-feature__icon">3</div>
-        <h3>{{ t.choose3_title }}</h3>
-        <p>{{ t.choose3_desc | safe }}</p>
-      </div>
-
-      <div class="program-feature">
-        <div class="program-feature__icon">4</div>
-        <h3>{{ t.choose4_title }}</h3>
-        <p>{{ t.choose4_desc | safe }}</p>
-      </div>
-
       <div class="program-feature">
         <div class="program-feature__icon">5</div>
-        <h3>{{ t.choose5_title }}</h3>
-        <p>{{ t.choose5_desc | safe }}</p>
+        <h3><a href="#300h-advanced" style="color:inherit; text-decoration:none;">{{ t.toc5_title }}</a></h3>
+        <p>{{ t.toc5_desc }}</p>
+      </div>
+      <div class="program-feature">
+        <div class="program-feature__icon">6</div>
+        <h3><a href="#decision-framework" style="color:inherit; text-decoration:none;">{{ t.toc6_title }}</a></h3>
+        <p>{{ t.toc6_desc }}</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SECTION 3: Knowledge Pillars — What It Takes to Teach Yoga -->
+<section class="program-schedule" id="knowledge-pillars">
+  <div class="container">
+    <span class="ds-eyebrow ds-eyebrow--brand">{{ t.pillars_eyebrow }}</span>
+    <h2 class="section-title">{{ t.pillars_title }}</h2>
+    <p class="section-subtitle">{{ t.pillars_subtitle }}</p>
+
+    <div class="program-grid" style="max-width:1100px; margin:40px auto 0;">
+      <div class="program-feature">
+        <div class="program-feature__icon" style="font-size:1.6rem;">📜</div>
+        <h3>{{ t.pillar1_title }}</h3>
+        <p>{{ t.pillar1_desc }}</p>
+      </div>
+      <div class="program-feature">
+        <div class="program-feature__icon" style="font-size:1.6rem;">🧘</div>
+        <h3>{{ t.pillar2_title }}</h3>
+        <p>{{ t.pillar2_desc }}</p>
+      </div>
+      <div class="program-feature">
+        <div class="program-feature__icon" style="font-size:1.6rem;">🦴</div>
+        <h3>{{ t.pillar3_title }}</h3>
+        <p>{{ t.pillar3_desc }}</p>
+      </div>
+      <div class="program-feature">
+        <div class="program-feature__icon" style="font-size:1.6rem;">🌱</div>
+        <h3>{{ t.pillar4_title }}</h3>
+        <p>{{ t.pillar4_desc }}</p>
+      </div>
+      <div class="program-feature">
+        <div class="program-feature__icon" style="font-size:1.6rem;">🎯</div>
+        <h3>{{ t.pillar5_title }}</h3>
+        <p>{{ t.pillar5_desc }}</p>
+      </div>
+      <div class="program-feature">
+        <div class="program-feature__icon" style="font-size:1.6rem;">🗣️</div>
+        <h3>{{ t.pillar6_title }}</h3>
+        <p>{{ t.pillar6_desc }}</p>
+      </div>
+      <div class="program-feature">
+        <div class="program-feature__icon" style="font-size:1.6rem;">🧠</div>
+        <h3>{{ t.pillar7_title }}</h3>
+        <p>{{ t.pillar7_desc }}</p>
+      </div>
+      <div class="program-feature">
+        <div class="program-feature__icon" style="font-size:1.6rem;">💼</div>
+        <h3>{{ t.pillar8_title }}</h3>
+        <p>{{ t.pillar8_desc }}</p>
+      </div>
+    </div>
+
+    <!-- Blockquote about why hours matter -->
+    <div style="max-width:800px; margin:48px auto 0;">
+      <div class="ds-quote-brand">
+        <p class="quote-text">{{ t.pillars_quote }}</p>
+        <p class="quote-author">{{ t.pillars_quote_author }}</p>
+      </div>
+    </div>
+
+    <!-- Journal CTA: Yoga Philosophy Deep Dive -->
+    <div style="max-width:800px; margin:32px auto 0; background:white; border-radius:12px; padding:24px 32px; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:16px; box-shadow:0 2px 12px rgba(0,0,0,0.06);">
+      <div>
+        <p style="font-size:0.75rem; text-transform:uppercase; letter-spacing:0.1em; color:var(--yb-brand); font-weight:700; margin-bottom:4px;">{{ t.journal_cta_label }}</p>
+        <p style="font-weight:700; font-size:1rem; margin:0;">{{ t.journal_philosophy_title }}</p>
+      </div>
+      <a href="{% if lang == 'en' %}/en/yoga-journal{% else %}/yoga-journal{% endif %}" style="color:var(--yb-brand); font-weight:700; font-size:0.9rem; white-space:nowrap;">{{ t.journal_read_more }} →</a>
+    </div>
+  </div>
+</section>
+
+<!-- SECTION 4: THE HOUR SPECTRUM -->
+
+<!-- 4a: Spectrum Intro -->
+<section class="program-overview" id="hour-spectrum">
+  <div class="container">
+    <span class="ds-eyebrow ds-eyebrow--brand">{{ t.spectrum_eyebrow }}</span>
+    <h2 class="section-title">{{ t.spectrum_title }}</h2>
+    <p class="section-subtitle">{{ t.spectrum_subtitle }}</p>
+
+    <!-- Visual Spectrum Bar -->
+    <div style="display:flex; max-width:800px; margin:40px auto; border-radius:12px; overflow:hidden; font-size:0.8rem; font-weight:700; text-align:center; color:white;">
+      <div style="flex:1; background:var(--ds-text-muted); padding:16px 8px;">{{ t.spectrum_30h }}</div>
+      <div style="flex:1.5; background:#8a7968; padding:16px 8px;">{{ t.spectrum_50h }}</div>
+      <div style="flex:2; background:#6a5a4a; padding:16px 8px;">{{ t.spectrum_100h }}</div>
+      <div style="flex:4; background:var(--yb-brand); padding:16px 8px;">{{ t.spectrum_200h }}</div>
+      <div style="flex:3; background:var(--yb-brand-dark); padding:16px 8px;">{{ t.spectrum_300h }}</div>
+    </div>
+    <p style="text-align:center; color:var(--ds-text-muted); font-size:0.85rem; max-width:600px; margin:0 auto;">{{ t.spectrum_caption }}</p>
+  </div>
+</section>
+
+<!-- 4b: 30-HOUR TRAININGS -->
+<section class="program-schedule" id="30h-trainings">
+  <div class="container">
+    <div style="display:flex; align-items:center; gap:12px; justify-content:center; margin-bottom:16px;">
+      <span class="ds-eyebrow ds-eyebrow--brand">{{ t.thirty_eyebrow }}</span>
+      <span class="ds-badge ds-badge--muted">{{ t.thirty_badge }}</span>
+    </div>
+    <h2 class="section-title">{{ t.thirty_title }}</h2>
+    <p class="section-subtitle">{{ t.thirty_subtitle }}</p>
+
+    <img src="/assets/images/compare/30-timers-yoga-workshop.jpg" alt="{{ t.img_30h_alt }}" style="width:100%; max-width:800px; border-radius:8px; aspect-ratio:16/9; object-fit:cover; background:#f5f3f0; margin:0 auto 32px; display:block;" loading="lazy">
+
+    <div class="schedule-options">
+      <div class="schedule-card">
+        <h3>{{ t.thirty_covers_title }}</h3>
+        <ul>
+          <li>{{ t.thirty_covers1 | safe }}</li>
+          <li>{{ t.thirty_covers2 | safe }}</li>
+          <li>{{ t.thirty_covers3 | safe }}</li>
+          <li>{{ t.thirty_covers4 | safe }}</li>
+          <li>{{ t.thirty_covers5 | safe }}</li>
+          <li>{{ t.thirty_covers6 | safe }}</li>
+        </ul>
+      </div>
+
+      <div class="schedule-card">
+        <h3>{{ t.thirty_understand_title }}</h3>
+        <ul>
+          <li>{{ t.thirty_understand1 | safe }}</li>
+          <li>{{ t.thirty_understand2 | safe }}</li>
+          <li>{{ t.thirty_understand3 | safe }}</li>
+          <li>{{ t.thirty_understand4 | safe }}</li>
+          <li>{{ t.thirty_understand5 | safe }}</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 4c: 50-HOUR TRAININGS -->
+<section class="program-overview" id="50h-trainings">
+  <div class="container">
+    <div style="display:flex; align-items:center; gap:12px; justify-content:center; margin-bottom:16px;">
+      <span class="ds-eyebrow ds-eyebrow--brand">{{ t.fifty_eyebrow }}</span>
+      <span class="ds-badge ds-badge--outline">{{ t.fifty_badge }}</span>
+    </div>
+    <h2 class="section-title">{{ t.fifty_title }}</h2>
+    <p class="section-subtitle">{{ t.fifty_subtitle }}</p>
+
+    <img src="/assets/images/compare/50-timers-yoga-specialisering.jpg" alt="{{ t.img_50h_alt }}" style="width:100%; max-width:800px; border-radius:8px; aspect-ratio:16/9; object-fit:cover; background:#f5f3f0; margin:0 auto 32px; display:block;" loading="lazy">
+
+    <div class="schedule-options">
+      <div class="schedule-card">
+        <h3>{{ t.fifty_programs_title }}</h3>
+        <ul>
+          <li>{{ t.fifty_programs1 | safe }}</li>
+          <li>{{ t.fifty_programs2 | safe }}</li>
+          <li>{{ t.fifty_programs3 | safe }}</li>
+          <li>{{ t.fifty_programs4 | safe }}</li>
+          <li>{{ t.fifty_programs5 | safe }}</li>
+        </ul>
+      </div>
+
+      <div class="schedule-card">
+        <h3>{{ t.fifty_know_title }}</h3>
+        <ul>
+          <li>{{ t.fifty_know1 | safe }}</li>
+          <li>{{ t.fifty_know2 | safe }}</li>
+          <li>{{ t.fifty_know3 | safe }}</li>
+          <li>{{ t.fifty_know4 | safe }}</li>
+          <li>{{ t.fifty_know5 | safe }}</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 4d: 100-HOUR TRAININGS -->
+<section class="program-schedule" id="100h-trainings">
+  <div class="container">
+    <div style="display:flex; align-items:center; gap:12px; justify-content:center; margin-bottom:16px;">
+      <span class="ds-eyebrow ds-eyebrow--brand">{{ t.hundred_eyebrow }}</span>
+      <span class="ds-badge ds-badge--secondary">{{ t.hundred_badge }}</span>
+    </div>
+    <h2 class="section-title">{{ t.hundred_title }}</h2>
+    <p class="section-subtitle">{{ t.hundred_subtitle }}</p>
+
+    <img src="/assets/images/compare/100-timers-yoga-uddannelse.jpg" alt="{{ t.img_100h_alt }}" style="width:100%; max-width:800px; border-radius:8px; aspect-ratio:16/9; object-fit:cover; background:#f5f3f0; margin:0 auto 32px; display:block;" loading="lazy">
+
+    <div class="schedule-options">
+      <div class="schedule-card">
+        <h3>{{ t.hundred_covers_title }}</h3>
+        <ul>
+          <li>{{ t.hundred_covers1 | safe }}</li>
+          <li>{{ t.hundred_covers2 | safe }}</li>
+          <li>{{ t.hundred_covers3 | safe }}</li>
+          <li>{{ t.hundred_covers4 | safe }}</li>
+          <li>{{ t.hundred_covers5 | safe }}</li>
+        </ul>
+      </div>
+
+      <div class="schedule-card">
+        <h3>{{ t.hundred_bridge_title }}</h3>
+        <ul>
+          <li>{{ t.hundred_bridge1 | safe }}</li>
+          <li>{{ t.hundred_bridge2 | safe }}</li>
+          <li>{{ t.hundred_bridge3 | safe }}</li>
+          <li>{{ t.hundred_bridge4 | safe }}</li>
+          <li>{{ t.hundred_bridge5 | safe }}</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SECTION 5: COURSES vs. TEACHER TRAININGS -->
+<section class="program-overview" id="courses-vs-trainings">
+  <div class="container">
+    <span class="ds-eyebrow ds-eyebrow--brand">{{ t.cvt_eyebrow }}</span>
+    <h2 class="section-title">{{ t.cvt_title }}</h2>
+    <p class="section-subtitle">{{ t.cvt_subtitle }}</p>
+
+    <div class="ds-split ds-split--dark-light" style="max-width:1000px; margin:40px auto 0;">
+      <div class="ds-split__side">
+        <span class="ds-eyebrow ds-eyebrow--white">{{ t.cvt_course_eyebrow }}</span>
+        <h3 style="font-size:1.4rem; margin:12px 0 20px;">{{ t.cvt_course_title }}</h3>
+        <ul style="list-style:none; padding:0; margin:0;">
+          <li style="padding:8px 0; border-bottom:1px solid rgba(255,255,255,0.1); font-size:0.9rem;">{{ t.cvt_course1 | safe }}</li>
+          <li style="padding:8px 0; border-bottom:1px solid rgba(255,255,255,0.1); font-size:0.9rem;">{{ t.cvt_course2 | safe }}</li>
+          <li style="padding:8px 0; border-bottom:1px solid rgba(255,255,255,0.1); font-size:0.9rem;">{{ t.cvt_course3 | safe }}</li>
+          <li style="padding:8px 0; border-bottom:1px solid rgba(255,255,255,0.1); font-size:0.9rem;">{{ t.cvt_course4 | safe }}</li>
+          <li style="padding:8px 0; border-bottom:1px solid rgba(255,255,255,0.1); font-size:0.9rem;">{{ t.cvt_course5 | safe }}</li>
+          <li style="padding:8px 0; font-size:0.9rem;">{{ t.cvt_course6 | safe }}</li>
+        </ul>
+      </div>
+      <div class="ds-split__side">
+        <span class="ds-eyebrow ds-eyebrow--brand">{{ t.cvt_training_eyebrow }}</span>
+        <h3 style="font-size:1.4rem; margin:12px 0 20px; color:#0F0F0F;">{{ t.cvt_training_title }}</h3>
+        <ul style="list-style:none; padding:0; margin:0;">
+          <li style="padding:8px 0; border-bottom:1px solid var(--ds-border); font-size:0.9rem;">{{ t.cvt_training1 | safe }}</li>
+          <li style="padding:8px 0; border-bottom:1px solid var(--ds-border); font-size:0.9rem;">{{ t.cvt_training2 | safe }}</li>
+          <li style="padding:8px 0; border-bottom:1px solid var(--ds-border); font-size:0.9rem;">{{ t.cvt_training3 | safe }}</li>
+          <li style="padding:8px 0; border-bottom:1px solid var(--ds-border); font-size:0.9rem;">{{ t.cvt_training4 | safe }}</li>
+          <li style="padding:8px 0; border-bottom:1px solid var(--ds-border); font-size:0.9rem;">{{ t.cvt_training5 | safe }}</li>
+          <li style="padding:8px 0; font-size:0.9rem;">{{ t.cvt_training6 | safe }}</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Journal CTA: Courses vs Trainings -->
+    <div style="max-width:1000px; margin:32px auto 0; background:var(--ds-bg-light); border-radius:12px; padding:24px 32px; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:16px;">
+      <div>
+        <p style="font-size:0.75rem; text-transform:uppercase; letter-spacing:0.1em; color:var(--yb-brand); font-weight:700; margin-bottom:4px;">{{ t.journal_cta_label }}</p>
+        <p style="font-weight:700; font-size:1rem; margin:0;">{{ t.journal_cvt_title }}</p>
+      </div>
+      <a href="{% if lang == 'en' %}/en/yoga-journal{% else %}/yoga-journal{% endif %}" style="color:var(--yb-brand); font-weight:700; font-size:0.9rem; white-space:nowrap;">{{ t.journal_read_more }} →</a>
+    </div>
+
+    <!-- Concrete examples -->
+    <div style="max-width:1000px; margin:40px auto 0;">
+      <div class="schedule-card" style="padding:32px;">
+        <h3 style="text-align:center; margin-bottom:24px;">{{ t.cvt_examples_title }}</h3>
+        <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(280px, 1fr)); gap:32px;">
+          <div>
+            <h4 style="font-size:0.85rem; text-transform:uppercase; letter-spacing:0.1em; color:var(--ds-text-muted); margin-bottom:12px;">{{ t.cvt_example_courses_label }}</h4>
+            <ul style="padding-left:20px; font-size:0.9rem; line-height:1.8;">
+              <li>{{ t.cvt_ex_course1 }}</li>
+              <li>{{ t.cvt_ex_course2 }}</li>
+              <li>{{ t.cvt_ex_course3 }}</li>
+              <li>{{ t.cvt_ex_course4 }}</li>
+            </ul>
+          </div>
+          <div>
+            <h4 style="font-size:0.85rem; text-transform:uppercase; letter-spacing:0.1em; color:var(--ds-text-muted); margin-bottom:12px;">{{ t.cvt_example_trainings_label }}</h4>
+            <ul style="padding-left:20px; font-size:0.9rem; line-height:1.8;">
+              <li>{{ t.cvt_ex_training1 }}</li>
+              <li>{{ t.cvt_ex_training2 }}</li>
+              <li>{{ t.cvt_ex_training3 }}</li>
+              <li>{{ t.cvt_ex_training4 }}</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SECTION 6: 200 HOURS — THE GOLD STANDARD -->
+<section class="program-schedule" id="200h-gold-standard">
+  <div class="container">
+    <span class="ds-eyebrow ds-eyebrow--brand">{{ t.gold_eyebrow }}</span>
+    <h2 class="section-title">{{ t.gold_title }}</h2>
+    <p class="section-subtitle">{{ t.gold_subtitle }}</p>
+
+    <img src="/assets/images/compare/200-timers-yogalareruddannelse-certificering.jpg" alt="{{ t.img_200h_alt }}" style="width:100%; max-width:800px; border-radius:8px; aspect-ratio:16/9; object-fit:cover; background:#f5f3f0; margin:0 auto 32px; display:block;" loading="lazy">
+
+    <!-- Curriculum Bar Chart -->
+    <div style="max-width:700px; margin:40px auto;">
+      <h3 style="text-align:center; margin-bottom:24px; font-size:1.1rem;">{{ t.ya_chart_title }}</h3>
+
+      <!-- Techniques & Training -->
+      <div style="margin-bottom:16px;">
+        <div style="display:flex; justify-content:space-between; margin-bottom:4px;">
+          <span style="font-weight:700; font-size:0.9rem;">{{ t.ya_techniques }}</span>
+          <span style="font-weight:700; color:var(--yb-brand);">100+ {{ t.ya_hours_label }}</span>
+        </div>
+        <div style="background:var(--ds-bg-light); border-radius:8px; height:28px; overflow:hidden;">
+          <div style="background:var(--yb-brand); height:100%; width:50%; border-radius:8px; transition:width 1s;"></div>
+        </div>
+      </div>
+
+      <!-- Teaching Methodology -->
+      <div style="margin-bottom:16px;">
+        <div style="display:flex; justify-content:space-between; margin-bottom:4px;">
+          <span style="font-weight:700; font-size:0.9rem;">{{ t.ya_methodology }}</span>
+          <span style="font-weight:700; color:var(--yb-brand);">25+ {{ t.ya_hours_label }}</span>
+        </div>
+        <div style="background:var(--ds-bg-light); border-radius:8px; height:28px; overflow:hidden;">
+          <div style="background:var(--yb-brand); height:100%; width:12.5%; border-radius:8px; transition:width 1s;"></div>
+        </div>
+      </div>
+
+      <!-- Anatomy & Physiology -->
+      <div style="margin-bottom:16px;">
+        <div style="display:flex; justify-content:space-between; margin-bottom:4px;">
+          <span style="font-weight:700; font-size:0.9rem;">{{ t.ya_anatomy }}</span>
+          <span style="font-weight:700; color:var(--yb-brand);">20+ {{ t.ya_hours_label }}</span>
+        </div>
+        <div style="background:var(--ds-bg-light); border-radius:8px; height:28px; overflow:hidden;">
+          <div style="background:var(--yb-brand); height:100%; width:10%; border-radius:8px; transition:width 1s;"></div>
+        </div>
+      </div>
+
+      <!-- Yoga Philosophy -->
+      <div style="margin-bottom:16px;">
+        <div style="display:flex; justify-content:space-between; margin-bottom:4px;">
+          <span style="font-weight:700; font-size:0.9rem;">{{ t.ya_philosophy }}</span>
+          <span style="font-weight:700; color:var(--yb-brand);">30+ {{ t.ya_hours_label }}</span>
+        </div>
+        <div style="background:var(--ds-bg-light); border-radius:8px; height:28px; overflow:hidden;">
+          <div style="background:var(--yb-brand); height:100%; width:15%; border-radius:8px; transition:width 1s;"></div>
+        </div>
+      </div>
+
+      <!-- Practicum -->
+      <div style="margin-bottom:16px;">
+        <div style="display:flex; justify-content:space-between; margin-bottom:4px;">
+          <span style="font-weight:700; font-size:0.9rem;">{{ t.ya_practicum }}</span>
+          <span style="font-weight:700; color:var(--yb-brand);">10+ {{ t.ya_hours_label }}</span>
+        </div>
+        <div style="background:var(--ds-bg-light); border-radius:8px; height:28px; overflow:hidden;">
+          <div style="background:var(--yb-brand); height:100%; width:5%; border-radius:8px; transition:width 1s;"></div>
+        </div>
+      </div>
+
+      <p style="text-align:center; color:var(--ds-text-muted); font-size:0.8rem; margin-top:16px;">{{ t.ya_chart_note }}</p>
+    </div>
+
+    <!-- Three info cards -->
+    <div class="schedule-options" style="margin-top:48px;">
+      <div class="schedule-card">
+        <h3>{{ t.gold_learn_title }}</h3>
+        <ul>
+          <li>{{ t.gold_learn1 | safe }}</li>
+          <li>{{ t.gold_learn2 | safe }}</li>
+          <li>{{ t.gold_learn3 | safe }}</li>
+          <li>{{ t.gold_learn4 | safe }}</li>
+          <li>{{ t.gold_learn5 | safe }}</li>
+          <li>{{ t.gold_learn6 | safe }}</li>
+          <li>{{ t.gold_learn7 | safe }}</li>
+        </ul>
+      </div>
+
+      <div class="schedule-card">
+        <h3>{{ t.gold_after_title }}</h3>
+        <ul>
+          <li>{{ t.gold_after1 | safe }}</li>
+          <li>{{ t.gold_after2 | safe }}</li>
+          <li>{{ t.gold_after3 | safe }}</li>
+          <li>{{ t.gold_after4 | safe }}</li>
+          <li>{{ t.gold_after5 | safe }}</li>
+          <li>{{ t.gold_after6 | safe }}</li>
+        </ul>
+      </div>
+
+      <div class="schedule-card">
+        <h3>{{ t.gold_formats_title }}</h3>
+        <ul>
+          <li>{{ t.gold_formats1 | safe }}</li>
+          <li>{{ t.gold_formats2 | safe }}</li>
+          <li>{{ t.gold_formats3 | safe }}</li>
+          <li>{{ t.gold_formats4 | safe }}</li>
+          <li>{{ t.gold_formats5 | safe }}</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Dark cinematic quote -->
+    <div style="max-width:900px; margin:48px auto 0;">
+      <div class="ds-quote-dark">
+        <div class="quote-marks">||</div>
+        <p class="quote-text">{{ t.gold_quote }}</p>
+        <p class="quote-author">{{ t.gold_quote_author }}</p>
+      </div>
+    </div>
+
+    <!-- Journal CTA: What Happens During a 200h YTT -->
+    <div style="max-width:800px; margin:32px auto 0; background:white; border-radius:12px; padding:24px 32px; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:16px; box-shadow:0 2px 12px rgba(0,0,0,0.06);">
+      <div>
+        <p style="font-size:0.75rem; text-transform:uppercase; letter-spacing:0.1em; color:var(--yb-brand); font-weight:700; margin-bottom:4px;">{{ t.journal_cta_label }}</p>
+        <p style="font-weight:700; font-size:1rem; margin:0;">{{ t.journal_200h_title }}</p>
+      </div>
+      <a href="{% if lang == 'en' %}/en/yoga-journal{% else %}/yoga-journal{% endif %}" style="color:var(--yb-brand); font-weight:700; font-size:0.9rem; white-space:nowrap;">{{ t.journal_read_more }} →</a>
+    </div>
+  </div>
+</section>
+
+<!-- SECTION 7: 300 HOURS — THE ADVANCED PATH -->
+<section class="program-overview" id="300h-advanced">
+  <div class="container">
+    <span class="ds-eyebrow ds-eyebrow--brand">{{ t.advanced_eyebrow }}</span>
+    <h2 class="section-title">{{ t.advanced_title }}</h2>
+    <p class="section-subtitle">{{ t.advanced_subtitle }}</p>
+
+    <img src="/assets/images/compare/300-timers-avanceret-yogauddannelse.jpg" alt="{{ t.img_300h_alt }}" style="width:100%; max-width:800px; border-radius:8px; aspect-ratio:16/9; object-fit:cover; background:#f5f3f0; margin:0 auto 32px; display:block;" loading="lazy">
+
+    <div class="schedule-options">
+      <div class="schedule-card">
+        <h3>{{ t.advanced_expands_title }}</h3>
+        <ul>
+          <li>{{ t.advanced_expands1 | safe }}</li>
+          <li>{{ t.advanced_expands2 | safe }}</li>
+          <li>{{ t.advanced_expands3 | safe }}</li>
+          <li>{{ t.advanced_expands4 | safe }}</li>
+          <li>{{ t.advanced_expands5 | safe }}</li>
+          <li>{{ t.advanced_expands6 | safe }}</li>
+        </ul>
+      </div>
+
+      <div class="schedule-card">
+        <h3>{{ t.advanced_specializations_title }}</h3>
+        <ul>
+          <li>{{ t.advanced_spec1 | safe }}</li>
+          <li>{{ t.advanced_spec2 | safe }}</li>
+          <li>{{ t.advanced_spec3 | safe }}</li>
+          <li>{{ t.advanced_spec4 | safe }}</li>
+          <li>{{ t.advanced_spec5 | safe }}</li>
+          <li>{{ t.advanced_spec6 | safe }}</li>
+        </ul>
+      </div>
+
+      <div class="schedule-card">
+        <h3>{{ t.advanced_career_title }}</h3>
+        <ul>
+          <li>{{ t.advanced_career1 | safe }}</li>
+          <li>{{ t.advanced_career2 | safe }}</li>
+          <li>{{ t.advanced_career3 | safe }}</li>
+          <li>{{ t.advanced_career4 | safe }}</li>
+          <li>{{ t.advanced_career5 | safe }}</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Journal CTA: Anatomy for Yoga Teachers -->
+    <div style="max-width:900px; margin:32px auto 0; background:var(--ds-bg-light); border-radius:12px; padding:24px 32px; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:16px;">
+      <div>
+        <p style="font-size:0.75rem; text-transform:uppercase; letter-spacing:0.1em; color:var(--yb-brand); font-weight:700; margin-bottom:4px;">{{ t.journal_cta_label }}</p>
+        <p style="font-weight:700; font-size:1rem; margin:0;">{{ t.journal_anatomy_title }}</p>
+      </div>
+      <a href="{% if lang == 'en' %}/en/yoga-journal{% else %}/yoga-journal{% endif %}" style="color:var(--yb-brand); font-weight:700; font-size:0.9rem; white-space:nowrap;">{{ t.journal_read_more }} →</a>
+    </div>
+  </div>
+</section>
+
+<!-- SECTION 8: INSPIRATIONAL TEACHER PROFILES -->
+<section class="program-schedule" id="teacher-profiles">
+  <div class="container">
+    <span class="ds-eyebrow ds-eyebrow--brand">{{ t.profiles_eyebrow }}</span>
+    <h2 class="section-title">{{ t.profiles_title }}</h2>
+    <p class="section-subtitle">{{ t.profiles_subtitle }}</p>
+
+    <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(300px, 1fr)); gap:30px; max-width:1000px; margin:40px auto 0;">
+
+      <!-- Teacher Profile 1: The Lifelong Student -->
+      <div class="ds-card ds-card--testimonial" style="border:1.5px solid var(--yb-brand); border-radius:12px; padding:32px;">
+        <img src="/assets/images/compare/teacher-profile-lifelong.jpg" alt="{{ t.teacher1_name }}" style="width:80px; height:80px; border-radius:50%; object-fit:cover; margin-bottom:16px; background:var(--ds-bg-light);">
+        <h3 style="font-size:1.1rem; font-weight:700; margin-bottom:4px;">{{ t.teacher1_name }}</h3>
+        <p style="font-size:0.8rem; color:var(--yb-brand); font-weight:700; margin-bottom:12px;">{{ t.teacher1_hours }}</p>
+        <p style="color:var(--ds-text-muted); font-size:0.9rem; line-height:1.6; margin-bottom:16px;">{{ t.teacher1_bio }}</p>
+        <blockquote style="border-left:3px solid var(--yb-brand); padding-left:16px; font-style:italic; color:#444; font-size:0.9rem;">{{ t.teacher1_quote }}</blockquote>
+      </div>
+
+      <!-- Teacher Profile 2: Mid-Career Teacher -->
+      <div class="ds-card ds-card--testimonial" style="border:1.5px solid var(--yb-brand); border-radius:12px; padding:32px;">
+        <img src="/assets/images/compare/teacher-profile-midcareer.jpg" alt="{{ t.teacher2_name }}" style="width:80px; height:80px; border-radius:50%; object-fit:cover; margin-bottom:16px; background:var(--ds-bg-light);">
+        <h3 style="font-size:1.1rem; font-weight:700; margin-bottom:4px;">{{ t.teacher2_name }}</h3>
+        <p style="font-size:0.8rem; color:var(--yb-brand); font-weight:700; margin-bottom:12px;">{{ t.teacher2_hours }}</p>
+        <p style="color:var(--ds-text-muted); font-size:0.9rem; line-height:1.6; margin-bottom:16px;">{{ t.teacher2_bio }}</p>
+        <blockquote style="border-left:3px solid var(--yb-brand); padding-left:16px; font-style:italic; color:#444; font-size:0.9rem;">{{ t.teacher2_quote }}</blockquote>
+      </div>
+
+      <!-- Teacher Profile 3: Rising Teacher -->
+      <div class="ds-card ds-card--testimonial" style="border:1.5px solid var(--yb-brand); border-radius:12px; padding:32px;">
+        <img src="/assets/images/compare/teacher-profile-rising.jpg" alt="{{ t.teacher3_name }}" style="width:80px; height:80px; border-radius:50%; object-fit:cover; margin-bottom:16px; background:var(--ds-bg-light);">
+        <h3 style="font-size:1.1rem; font-weight:700; margin-bottom:4px;">{{ t.teacher3_name }}</h3>
+        <p style="font-size:0.8rem; color:var(--yb-brand); font-weight:700; margin-bottom:12px;">{{ t.teacher3_hours }}</p>
+        <p style="color:var(--ds-text-muted); font-size:0.9rem; line-height:1.6; margin-bottom:16px;">{{ t.teacher3_bio }}</p>
+        <blockquote style="border-left:3px solid var(--yb-brand); padding-left:16px; font-style:italic; color:#444; font-size:0.9rem;">{{ t.teacher3_quote }}</blockquote>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- SECTION 9: YOGA BIBLE'S 200-HOUR PROGRAMS -->
+<section class="program-overview" id="yoga-bible-programs">
+  <div class="container">
+    <span class="ds-eyebrow ds-eyebrow--brand">{{ t.yb_eyebrow }}</span>
+    <h2 class="section-title">{{ t.yb_title }}</h2>
+    <p class="section-subtitle">{{ t.yb_subtitle }}</p>
+
+    <div style="overflow-x:auto; margin:40px auto; max-width:900px;">
+      <table class="ds-pricing-table" style="min-width:600px;">
+        <thead>
+          <tr>
+            <th>{{ t.yb_th_feature }}</th>
+            <th>{{ t.yb_th_18w }}</th>
+            <th>{{ t.yb_th_8w }}</th>
+            <th>{{ t.yb_th_4w }}</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>{{ t.yb_row1_label }}</td>
+            <td>{{ t.yb_row1_18w }}</td>
+            <td>{{ t.yb_row1_8w }}</td>
+            <td>{{ t.yb_row1_4w }}</td>
+          </tr>
+          <tr>
+            <td>{{ t.yb_row2_label }}</td>
+            <td>{{ t.yb_row2_18w }}</td>
+            <td>{{ t.yb_row2_8w }}</td>
+            <td>{{ t.yb_row2_4w }}</td>
+          </tr>
+          <tr>
+            <td>{{ t.yb_row3_label }}</td>
+            <td>{{ t.yb_row3_18w }}</td>
+            <td>{{ t.yb_row3_8w }}</td>
+            <td>{{ t.yb_row3_4w }}</td>
+          </tr>
+          <tr>
+            <td>{{ t.yb_row4_label }}</td>
+            <td>{{ t.yb_row4_18w }}</td>
+            <td>{{ t.yb_row4_8w }}</td>
+            <td>{{ t.yb_row4_4w }}</td>
+          </tr>
+          <tr>
+            <td>{{ t.yb_row5_label }}</td>
+            <td>{{ t.yb_row5_18w }}</td>
+            <td>{{ t.yb_row5_8w }}</td>
+            <td>{{ t.yb_row5_4w }}</td>
+          </tr>
+          <tr>
+            <td>{{ t.yb_row6_label }}</td>
+            <td>{{ t.yb_row6_18w }}</td>
+            <td>{{ t.yb_row6_8w }}</td>
+            <td>{{ t.yb_row6_4w }}</td>
+          </tr>
+          <tr>
+            <td>{{ t.yb_row7_label }}</td>
+            <td>{{ t.yb_row7_18w }}</td>
+            <td>{{ t.yb_row7_8w }}</td>
+            <td>{{ t.yb_row7_4w }}</td>
+          </tr>
+          <tr>
+            <td>{{ t.yb_row8_label }}</td>
+            <td>{{ t.yb_row8_18w }}</td>
+            <td>{{ t.yb_row8_8w }}</td>
+            <td>{{ t.yb_row8_4w }}</td>
+          </tr>
+          <tr>
+            <td>{{ t.yb_row9_label }}</td>
+            <td>{{ t.yb_row9_18w }}</td>
+            <td>{{ t.yb_row9_8w }}</td>
+            <td>{{ t.yb_row9_4w }}</td>
+          </tr>
+          <tr>
+            <td>{{ t.yb_row10_label }}</td>
+            <td>{{ t.yb_row10_18w }}</td>
+            <td>{{ t.yb_row10_8w }}</td>
+            <td>{{ t.yb_row10_4w }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Credential bar -->
+    <div style="background:var(--ds-bg-light); border-radius:12px; padding:24px 32px; max-width:700px; margin:32px auto 0; display:flex; align-items:center; gap:20px; flex-wrap:wrap; justify-content:center;">
+      <div style="font-size:0.85rem; text-align:center;">
+        <strong style="display:block; font-size:1rem; margin-bottom:4px;">{{ t.yb_credential_title }}</strong>
+        <span style="color:var(--ds-text-muted);">{{ t.yb_credential_text }}</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SECTION 10: DECISION FRAMEWORK -->
+<section class="program-schedule" id="decision-framework">
+  <div class="container">
+    <span class="ds-eyebrow ds-eyebrow--brand">{{ t.decision_eyebrow }}</span>
+    <h2 class="section-title">{{ t.decision_title }}</h2>
+    <p class="section-subtitle">{{ t.decision_subtitle }}</p>
+
+    <div class="program-grid" style="max-width:1000px; margin:40px auto 0;">
+      <div class="program-feature">
+        <div class="program-feature__icon" style="font-size:1.4rem;">💼</div>
+        <h3>{{ t.scenario1_title }}</h3>
+        <p>{{ t.scenario1_desc | safe }}</p>
+        <a href="{% if lang == 'en' %}/en/18-ugers-yogalareruddannelse{% else %}/18-ugers-yogalareruddannelse{% endif %}" style="color:var(--yb-brand); font-weight:700; font-size:0.9rem; text-decoration:underline;">{{ t.scenario1_link }}</a>
       </div>
 
       <div class="program-feature">
-        <div class="program-feature__icon">6</div>
-        <h3>{{ t.choose6_title }}</h3>
-        <p>{{ t.choose6_desc | safe }}</p>
+        <div class="program-feature__icon" style="font-size:1.4rem;">🔥</div>
+        <h3>{{ t.scenario2_title }}</h3>
+        <p>{{ t.scenario2_desc | safe }}</p>
+        <a href="{% if lang == 'en' %}/en/4-ugers-yogalareruddannelse{% else %}/4-ugers-yogalareruddannelse{% endif %}" style="color:var(--yb-brand); font-weight:700; font-size:0.9rem; text-decoration:underline;">{{ t.scenario2_link }}</a>
+      </div>
+
+      <div class="program-feature">
+        <div class="program-feature__icon" style="font-size:1.4rem;">⚖️</div>
+        <h3>{{ t.scenario3_title }}</h3>
+        <p>{{ t.scenario3_desc | safe }}</p>
+        <a href="{% if lang == 'en' %}/en/8-ugers-yogalareruddannelse{% else %}/8-ugers-yogalareruddannelse{% endif %}" style="color:var(--yb-brand); font-weight:700; font-size:0.9rem; text-decoration:underline;">{{ t.scenario3_link }}</a>
+      </div>
+
+      <div class="program-feature">
+        <div class="program-feature__icon" style="font-size:1.4rem;">🕐</div>
+        <h3>{{ t.scenario4_title }}</h3>
+        <p>{{ t.scenario4_desc | safe }}</p>
+        <a href="{% if lang == 'en' %}/en/18-ugers-yogalareruddannelse{% else %}/18-ugers-yogalareruddannelse{% endif %}" style="color:var(--yb-brand); font-weight:700; font-size:0.9rem; text-decoration:underline;">{{ t.scenario4_link }}</a>
       </div>
     </div>
   </div>
 </section>
 
-<!-- Key Insight -->
-<section class="program-schedule">
-  <div class="container">
-    <div style="background:#f5f3f0; padding:32px; border-radius:8px; max-width:800px; margin:0 auto;">
-      <h3 style="margin-top:0; text-align:center;">{{ t.insight_title }}</h3>
-      <p>{{ t.insight_p1 }}</p>
-      <p style="margin-bottom:0;">{{ t.insight_p2 }}</p>
-    </div>
-  </div>
-</section>
-
-<!-- FAQ -->
+<!-- SECTION 11: FAQ -->
 <section class="program-faq">
   <div class="container">
     <h2 class="section-title">{{ t.faq_title }}</h2>
+    <p class="section-subtitle">{{ t.faq_subtitle }}</p>
 
     <div class="faq-list">
       <details class="faq-item">
         <summary>{{ t.faq1_q }}</summary>
-        <p>{{ t.faq1_a }}</p>
+        <p>{{ t.faq1_a | safe }}</p>
       </details>
       <details class="faq-item">
         <summary>{{ t.faq2_q }}</summary>
-        <p>{{ t.faq2_a }}</p>
+        <p>{{ t.faq2_a | safe }}</p>
       </details>
       <details class="faq-item">
         <summary>{{ t.faq3_q }}</summary>
-        <p>{{ t.faq3_a }}</p>
+        <p>{{ t.faq3_a | safe }}</p>
       </details>
       <details class="faq-item">
         <summary>{{ t.faq4_q }}</summary>
-        <p>{{ t.faq4_a }}</p>
+        <p>{{ t.faq4_a | safe }}</p>
       </details>
       <details class="faq-item">
         <summary>{{ t.faq5_q }}</summary>
-        <p>{{ t.faq5_a }}</p>
+        <p>{{ t.faq5_a | safe }}</p>
       </details>
       <details class="faq-item">
         <summary>{{ t.faq6_q }}</summary>
-        <p>{{ t.faq6_a }}</p>
+        <p>{{ t.faq6_a | safe }}</p>
       </details>
       <details class="faq-item">
         <summary>{{ t.faq7_q }}</summary>
-        <p>{{ t.faq7_a }}</p>
+        <p>{{ t.faq7_a | safe }}</p>
       </details>
       <details class="faq-item">
         <summary>{{ t.faq8_q }}</summary>
-        <p>{{ t.faq8_a }}</p>
+        <p>{{ t.faq8_a | safe }}</p>
+      </details>
+      <details class="faq-item">
+        <summary>{{ t.faq9_q }}</summary>
+        <p>{{ t.faq9_a | safe }}</p>
+      </details>
+      <details class="faq-item">
+        <summary>{{ t.faq10_q }}</summary>
+        <p>{{ t.faq10_a | safe }}</p>
       </details>
     </div>
   </div>
 </section>
 
-<!-- CTA -->
+<!-- SECTION 12: CTA -->
 <section class="cta-section">
   <div class="container">
     <h2 class="cta-section__title">{{ t.cta_title }}</h2>
