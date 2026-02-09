@@ -95,68 +95,47 @@ exports.handler = async function(event) {
 
       var ccId = Number(body.clientContractId);
 
-      // MB admin UI shows "Select a Suspension Type" as FIRST field (currently "None").
-      // The API likely requires this field, and without it Duration/DurationUnit validation fails.
-      // Also try form-urlencoded in case JSON body binding doesn't work for these fields.
-      var token = await getStaffToken();
-      var baseHeaders = {
-        'Api-Key': process.env.MB_API_KEY,
-        'SiteId': process.env.MB_SITE_ID,
-        'Authorization': token
-      };
-
+      // BREAKTHROUGH: SuspensionType:"None" caused 500 (different from 400 InvalidParameter).
+      // MB admin shows valid types: Illness, Injury, Vacation.
+      // When a type is selected, form shows "Suspension Length" + "Month(s)" + "No Of Iterations".
+      // Try real suspension types with Duration in both days and months.
       var allResults = [];
 
-      // ── Attempt 1: form-urlencoded (bypass JSON body entirely) ──
-      try {
-        var formBody = 'ClientId=' + encodeURIComponent(body.clientId)
-          + '&ClientContractId=' + ccId
-          + '&SuspendDate=' + encodeURIComponent(body.startDate)
-          + '&Duration=' + durationDays
-          + '&DurationUnit=Day';
-
-        console.log('[mb-contract-manage] Attempt form-urlencoded: ' + formBody);
-        var formRes = await fetch('https://api.mindbodyonline.com/public/v6/client/suspendcontract', {
-          method: 'POST',
-          headers: { ...baseHeaders, 'Content-Type': 'application/x-www-form-urlencoded' },
-          body: formBody
-        });
-        var formText = await formRes.text();
-        var formData;
-        try { formData = JSON.parse(formText); } catch(e) { formData = { raw: formText.substring(0, 300) }; }
-
-        if (formRes.ok) {
-          console.log('[mb-contract-manage] SUCCESS (form-urlencoded)');
-          return jsonResponse(200, { success: true, action: 'suspend', method: 'form-urlencoded', data: formData });
-        }
-        allResults.push({ label: 'form-urlencoded', status: formRes.status, message: (formData.Error && formData.Error.Message) || formData.Message || 'Error', fullResponse: JSON.stringify(formData).substring(0, 500) });
-        console.error('[mb-contract-manage] form-urlencoded failed:', JSON.stringify(allResults[allResults.length - 1]));
-      } catch (formErr) {
-        allResults.push({ label: 'form-urlencoded', status: 'exception', message: formErr.message });
-      }
-
-      // ── Attempt 2: JSON with SuspensionType fields (from MB admin UI) ──
       var suspTypeAttempts = [
+        // 1: Vacation type + duration in days (user's 14-day pause)
         {
-          label: 'with-susptype-none',
+          label: 'vacation-days',
           body: {
             ClientId: body.clientId,
             ClientContractId: ccId,
             SuspendDate: body.startDate,
             Duration: durationDays,
             DurationUnit: 'Day',
-            SuspensionType: 'None'
+            SuspensionType: 'Vacation'
           }
         },
+        // 2: Vacation type + duration in months (1 month, like admin UI default)
         {
-          label: 'with-susptype-id-0',
+          label: 'vacation-month',
+          body: {
+            ClientId: body.clientId,
+            ClientContractId: ccId,
+            SuspendDate: body.startDate,
+            Duration: 1,
+            DurationUnit: 'Month',
+            SuspensionType: 'Vacation'
+          }
+        },
+        // 3: Illness type + days
+        {
+          label: 'illness-days',
           body: {
             ClientId: body.clientId,
             ClientContractId: ccId,
             SuspendDate: body.startDate,
             Duration: durationDays,
             DurationUnit: 'Day',
-            SuspensionTypeId: 0
+            SuspensionType: 'Illness'
           }
         },
       ];
