@@ -108,7 +108,9 @@ exports.handler = async function(event) {
           numberOfAutopays: c.NumberOfAutopays || null,
           locationId: c.LocationId || null,
           programIds: c.ProgramIds || [],
-          membershipTypeRestrictions: c.MembershipTypeRestrictions || []
+          membershipTypeRestrictions: c.MembershipTypeRestrictions || [],
+          agreementTerms: c.AgreementTerms || '',
+          requiresElectronicConfirmation: c.RequiresElectronicConfirmation || false
         };
       });
 
@@ -372,6 +374,11 @@ exports.handler = async function(event) {
 
       if (body.promoCode) {
         purchaseBody.PromotionCode = body.promoCode;
+      }
+
+      // Electronic signature (Base64 PNG) — Mindbody auto-files under Client Documents
+      if (body.clientSignature) {
+        purchaseBody.ClientSignature = body.clientSignature.replace(/^data:image\/png;base64,/, '');
       }
 
       // Add payment if provided

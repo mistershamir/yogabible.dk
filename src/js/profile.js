@@ -11,6 +11,86 @@
   var clientPassData = null; // Cached pass/service data
   var staffCache = {}; // Cache staff bios by ID
 
+  var waiverSigned = false; // Track if liability waiver is signed in Mindbody
+
+  // ── Simple canvas signature pad ──
+  function SignaturePad(canvasId, clearBtnId) {
+    var canvas = document.getElementById(canvasId);
+    var clearBtn = document.getElementById(clearBtnId);
+    if (!canvas) return null;
+    var ctx = canvas.getContext('2d');
+    var drawing = false;
+    var hasStrokes = false;
+
+    function resize() {
+      var rect = canvas.parentElement.getBoundingClientRect();
+      var ratio = window.devicePixelRatio || 1;
+      canvas.width = rect.width * ratio;
+      canvas.height = 160 * ratio;
+      canvas.style.width = rect.width + 'px';
+      canvas.style.height = '160px';
+      ctx.scale(ratio, ratio);
+      ctx.lineWidth = 2;
+      ctx.lineCap = 'round';
+      ctx.lineJoin = 'round';
+      ctx.strokeStyle = '#0F0F0F';
+    }
+    resize();
+
+    function getPos(e) {
+      var rect = canvas.getBoundingClientRect();
+      var touch = e.touches ? e.touches[0] : e;
+      return { x: touch.clientX - rect.left, y: touch.clientY - rect.top };
+    }
+
+    function start(e) {
+      e.preventDefault();
+      drawing = true;
+      var p = getPos(e);
+      ctx.beginPath();
+      ctx.moveTo(p.x, p.y);
+    }
+
+    function move(e) {
+      if (!drawing) return;
+      e.preventDefault();
+      var p = getPos(e);
+      ctx.lineTo(p.x, p.y);
+      ctx.stroke();
+      hasStrokes = true;
+    }
+
+    function end() { drawing = false; }
+
+    canvas.addEventListener('mousedown', start);
+    canvas.addEventListener('mousemove', move);
+    canvas.addEventListener('mouseup', end);
+    canvas.addEventListener('mouseleave', end);
+    canvas.addEventListener('touchstart', start, { passive: false });
+    canvas.addEventListener('touchmove', move, { passive: false });
+    canvas.addEventListener('touchend', end);
+
+    if (clearBtn) {
+      clearBtn.addEventListener('click', function() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        hasStrokes = false;
+      });
+    }
+
+    window.addEventListener('resize', function() {
+      if (!hasStrokes) resize();
+    });
+
+    return {
+      isEmpty: function() { return !hasStrokes; },
+      toDataURL: function() { return canvas.toDataURL('image/png'); },
+      clear: function() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        hasStrokes = false;
+      }
+    };
+  }
+
   var checkInterval = setInterval(function() {
     if (typeof firebase !== 'undefined' && firebase.apps && firebase.apps.length) {
       clearInterval(checkInterval);
@@ -351,6 +431,10 @@
         if (obDob && d.dateOfBirth) obDob.value = d.dateOfBirth;
       } else if (onboardingOverlay) {
         onboardingOverlay.hidden = true;
+        // Onboarding done — check liability waiver status (only if we have a MB client)
+        if (d.mindbodyClientId) {
+          checkLiabilityWaiver(d.mindbodyClientId, tabsEl, panelsEl);
+        }
       }
 
       var sinceEl = document.getElementById('yb-profile-member-since');
@@ -400,6 +484,143 @@
             });
         }).catch(function() {});
     });
+  }
+
+  // ══════════════════════════════════════
+  // LIABILITY WAIVER
+  // ══════════════════════════════════════
+  var waiverSigPad = null;
+
+  function checkLiabilityWaiver(mbClientId, tabsEl, panelsEl) {
+    fetch('/.netlify/functions/mb-waiver?clientId=' + encodeURIComponent(mbClientId))
+      .then(function(r) { return r.json(); })
+      .then(function(data) {
+        if (data.clientSigned) {
+          waiverSigned = true;
+          var overlay = document.getElementById('yb-waiver-overlay');
+          if (overlay) overlay.hidden = true;
+          return;
+        }
+        // Waiver not signed — show overlay, block tabs
+        waiverSigned = false;
+        var overlay = document.getElementById('yb-waiver-overlay');
+        if (!overlay) return;
+        overlay.hidden = false;
+        if (tabsEl) tabsEl.style.display = 'none';
+        if (panelsEl) panelsEl.forEach(function(p) { p.style.display = 'none'; });
+
+        // Display waiver text
+        var textEl = document.getElementById('yb-waiver-text');
+        if (textEl) {
+          if (data.waiverText) {
+            textEl.innerHTML = data.waiverText;
+          } else {
+            // Fallback waiver text (from translations)
+            textEl.innerHTML = '<p>' + (isDa()
+              ? t('waiver_fallback')
+              : t('waiver_fallback')
+            ) + '</p>';
+          }
+        }
+
+        // Init signature pad
+        if (!waiverSigPad) {
+          waiverSigPad = SignaturePad('yb-waiver-canvas', 'yb-waiver-sig-clear');
+        }
+
+        // Submit handler
+        var submitBtn = document.getElementById('yb-waiver-submit');
+        if (submitBtn && !submitBtn._bound) {
+          submitBtn._bound = true;
+          submitBtn.addEventListener('click', function() {
+            submitLiabilityWaiver(mbClientId, tabsEl, panelsEl);
+          });
+        }
+      })
+      .catch(function(err) {
+        console.warn('Could not check waiver status:', err);
+        // Don't block the user if waiver check fails
+        waiverSigned = true;
+      });
+  }
+
+  function submitLiabilityWaiver(mbClientId, tabsEl, panelsEl) {
+    var agreeCheck = document.getElementById('yb-waiver-agree-check');
+    var errorEl = document.getElementById('yb-waiver-error');
+    var submitBtn = document.getElementById('yb-waiver-submit');
+
+    if (!agreeCheck || !agreeCheck.checked) {
+      if (errorEl) {
+        errorEl.textContent = isDa() ? 'Du skal acceptere ansvarsfrihedserklæringen.' : 'You must accept the liability waiver.';
+        errorEl.hidden = false;
+      }
+      return;
+    }
+    if (waiverSigPad && waiverSigPad.isEmpty()) {
+      if (errorEl) {
+        errorEl.textContent = isDa() ? 'Tegn venligst din underskrift.' : 'Please draw your signature.';
+        errorEl.hidden = false;
+      }
+      return;
+    }
+
+    if (errorEl) errorEl.hidden = true;
+    var btnText = submitBtn.textContent;
+    submitBtn.disabled = true;
+    submitBtn.textContent = isDa() ? 'Gemmer...' : 'Saving...';
+
+    var postBody = { clientId: mbClientId };
+    if (waiverSigPad) {
+      postBody.signatureImage = waiverSigPad.toDataURL();
+    }
+
+    fetch('/.netlify/functions/mb-waiver', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(postBody)
+    }).then(function(r) { return r.json(); })
+      .then(function(data) {
+        if (data.success) {
+          waiverSigned = true;
+          var overlay = document.getElementById('yb-waiver-overlay');
+          if (overlay) overlay.hidden = true;
+          if (tabsEl) tabsEl.style.display = '';
+          if (panelsEl) panelsEl.forEach(function(p) { p.style.display = ''; });
+
+          // Also store waiver consent in Firestore audit trail
+          if (currentUser && currentDb) {
+            currentDb.collection('consents').add({
+              userId: currentUser.uid,
+              email: currentUser.email,
+              document: 'liability_waiver',
+              documentLabel: 'Liability Waiver / Ansvarsfrihedserklæring',
+              accepted: true,
+              timestamp: new Date().toISOString(),
+              version: '2026-02-09',
+              userAgent: navigator.userAgent,
+              locale: navigator.language,
+              source: 'profile_waiver_overlay',
+              mindbodyClientId: mbClientId,
+              createdAt: firebase.firestore.FieldValue.serverTimestamp()
+            }).catch(function() {});
+          }
+        } else {
+          if (errorEl) {
+            errorEl.textContent = data.error || (isDa() ? 'Fejl — prøv igen.' : 'Error — please try again.');
+            errorEl.hidden = false;
+          }
+        }
+      })
+      .catch(function(err) {
+        if (errorEl) {
+          errorEl.textContent = err.message || (isDa() ? 'Fejl — prøv igen.' : 'Error — please try again.');
+          errorEl.hidden = false;
+        }
+      })
+      .finally(function() {
+        submitBtn.disabled = false;
+        submitBtn.textContent = btnText;
+      });
   }
 
   // ══════════════════════════════════════
@@ -1053,6 +1274,10 @@
       var list = document.getElementById('yb-store-list');
       if (el) el.hidden = true;
       if (list) list.style.display = '';
+      // Reset contract terms section
+      var termsSection = document.getElementById('yb-checkout-terms-section');
+      if (termsSection) termsSection.hidden = true;
+      if (checkoutSigPad) checkoutSigPad.clear();
     });
     if (successCloseBtn) successCloseBtn.addEventListener('click', function() {
       var el = document.getElementById('yb-store-success');
@@ -1382,8 +1607,29 @@
     if (holderInput && currentUser && currentUser.displayName) holderInput.value = currentUser.displayName;
     var errEl = document.getElementById('yb-store-error');
     if (errEl) errEl.hidden = true;
+
+    // Show contract terms + signature if contract has AgreementTerms
+    var termsSection = document.getElementById('yb-checkout-terms-section');
+    var termsTextEl = document.getElementById('yb-checkout-terms-text');
+    var termsAgreeEl = document.getElementById('yb-checkout-terms-agree');
+    if (termsSection && isContract && service.agreementTerms) {
+      termsSection.hidden = false;
+      if (termsTextEl) termsTextEl.innerHTML = service.agreementTerms;
+      if (termsAgreeEl) termsAgreeEl.checked = false;
+      // Init checkout signature pad
+      if (!checkoutSigPad) {
+        checkoutSigPad = SignaturePad('yb-checkout-canvas', 'yb-checkout-sig-clear');
+      } else {
+        checkoutSigPad.clear();
+      }
+    } else if (termsSection) {
+      termsSection.hidden = true;
+    }
+
     checkoutEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }
+
+  var checkoutSigPad = null;
 
   function processCheckout() {
     if (!currentUser) return;
@@ -1401,6 +1647,20 @@
     var errorEl = document.getElementById('yb-store-error');
     var payBtn = document.getElementById('yb-store-pay-btn');
     var payBtnText = payBtn.textContent;
+
+    // Validate contract terms + signature if visible
+    var termsSection = document.getElementById('yb-checkout-terms-section');
+    if (termsSection && !termsSection.hidden) {
+      var termsAgree = document.getElementById('yb-checkout-terms-agree');
+      if (!termsAgree || !termsAgree.checked) {
+        showSimpleError(errorEl, isDa() ? 'Du skal acceptere kontraktvilkårene.' : 'You must accept the contract terms.');
+        return;
+      }
+      if (checkoutSigPad && checkoutSigPad.isEmpty()) {
+        showSimpleError(errorEl, isDa() ? 'Tegn venligst din underskrift.' : 'Please draw your signature.');
+        return;
+      }
+    }
 
     if (!cardNumber || cardNumber.length < 13) { showSimpleError(errorEl, isDa() ? 'Indtast et gyldigt kortnummer.' : 'Enter a valid card number.'); return; }
     if (!expiry || expiry.length < 4) { showSimpleError(errorEl, isDa() ? 'Indtast udløbsdato.' : 'Enter expiry date.'); return; }
@@ -1458,6 +1718,10 @@
       if (promoCode) {
         fetchBody.promoCode = promoCode;
         console.log('[Checkout] Applying promo code:', promoCode);
+      }
+      // Include electronic signature if contract terms were shown
+      if (checkoutSigPad && !checkoutSigPad.isEmpty()) {
+        fetchBody.clientSignature = checkoutSigPad.toDataURL();
       }
     } else {
       // Service purchase uses /sale/cartcheckout via mb-checkout POST
@@ -2528,7 +2792,10 @@
       membership_cancel_warning: isDa() ? 'Dit abonnement opsiges ved udgangen af den betalte periode. Du kan fortryde opsigelsen indtil da.' : 'Your membership will end at the end of the paid period. You can revoke the cancellation until then.',
       membership_next_billing: isDa() ? 'Næste fakturering' : 'Next billing',
       membership_autopay_amount: isDa() ? 'pr. periode' : 'per period',
-      membership_back: isDa() ? 'Tilbage' : 'Back'
+      membership_back: isDa() ? 'Tilbage' : 'Back',
+      waiver_fallback: isDa()
+        ? 'Ved at acceptere denne erklæring bekræfter jeg, at jeg deltager i yogahold hos Yoga Bible på eget ansvar. Jeg er opmærksom på, at yoga indebærer fysisk aktivitet, der kan medføre skader. Jeg bekræfter, at jeg er rask nok til at deltage, og at jeg vil informere underviseren om eventuelle helbredsproblemer eller begrænsninger inden holdet. Yoga Bible er ikke ansvarlig for skader der måtte opstå under eller som følge af undervisningen.'
+        : 'By accepting this waiver, I confirm that I participate in yoga classes at Yoga Bible at my own risk. I am aware that yoga involves physical activity that may result in injury. I confirm that I am healthy enough to participate and that I will inform the instructor of any health issues or limitations before class. Yoga Bible is not liable for injuries that may occur during or as a result of instruction.'
     };
     return map[key] || key;
   }

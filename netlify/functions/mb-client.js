@@ -48,7 +48,12 @@ exports.handler = async function(event) {
             birthDate: client.BirthDate || null,
             status: client.Status,
             active: client.Active,
-            membershipName: client.MembershipIcon ? client.MembershipIcon.Name : null
+            membershipName: client.MembershipIcon ? client.MembershipIcon.Name : null,
+            liability: client.Liability ? {
+              isReleased: client.Liability.IsReleased || false,
+              agreementDate: client.Liability.AgreementDate || null,
+              releasedBy: client.Liability.ReleasedBy
+            } : { isReleased: false, agreementDate: null, releasedBy: null }
           }
         });
       }
