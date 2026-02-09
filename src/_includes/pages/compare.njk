@@ -556,6 +556,203 @@
   line-height: 1.6;
 }
 
+/* Courses vs Trainings Redesign */
+.cmp-cvt-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 32px;
+  max-width: 1000px;
+  margin: 48px auto 0;
+}
+.cmp-cvt-card {
+  background: #fff;
+  border-radius: 12px;
+  padding: 36px 32px;
+  border: 1px solid #E8E4E0;
+  position: relative;
+  overflow: hidden;
+  text-align: left;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+.cmp-cvt-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 32px rgba(0,0,0,0.1);
+}
+.cmp-cvt-card::before {
+  content: "";
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 4px;
+  border-radius: 12px 12px 0 0;
+}
+.cmp-cvt-card--course::before { background: #6F6A66; }
+.cmp-cvt-card--training::before { background: var(--yb-brand); }
+.cmp-cvt-card__eyebrow {
+  font-size: 0.65rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+}
+.cmp-cvt-card--course .cmp-cvt-card__eyebrow { color: #6F6A66; }
+.cmp-cvt-card--training .cmp-cvt-card__eyebrow { color: var(--yb-brand); }
+.cmp-cvt-card h3 {
+  font-size: 1.15rem;
+  font-weight: 700;
+  margin: 8px 0 20px;
+}
+.cmp-cvt-card ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+.cmp-cvt-card li {
+  padding: 10px 0 10px 28px;
+  font-size: 0.88rem;
+  line-height: 1.5;
+  border-bottom: 1px solid #F5F3F0;
+  position: relative;
+}
+.cmp-cvt-card li:last-child { border-bottom: none; }
+.cmp-cvt-card--course li::before {
+  content: "—";
+  position: absolute;
+  left: 0;
+  color: #6F6A66;
+  font-weight: 700;
+}
+.cmp-cvt-card--training li::before {
+  content: "✓";
+  position: absolute;
+  left: 0;
+  color: var(--yb-brand);
+  font-weight: 700;
+}
+
+/* Yoga Alliance Badges */
+.cmp-ya-badges {
+  display: flex;
+  justify-content: center;
+  gap: 48px;
+  flex-wrap: wrap;
+  margin: 48px auto;
+}
+.cmp-ya-badge {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+.cmp-ya-badge__circle {
+  width: 110px;
+  height: 110px;
+  border-radius: 50%;
+  border: 3px solid var(--yb-brand);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: var(--yb-brand);
+  background: rgba(247,92,3,0.06);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+.cmp-ya-badge__circle:hover {
+  transform: scale(1.08);
+  box-shadow: 0 8px 24px rgba(247,92,3,0.2);
+}
+.cmp-ya-badge__label {
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: #6F6A66;
+}
+
+/* Destination Comparison Table */
+.cmp-dest-table {
+  width: 100%;
+  max-width: 1100px;
+  margin: 48px auto 0;
+  border-collapse: separate;
+  border-spacing: 0;
+  border-radius: 12px;
+  overflow: hidden;
+  font-size: 0.85rem;
+}
+.cmp-dest-table thead th {
+  background: var(--yb-brand);
+  color: #fff;
+  padding: 16px 14px;
+  font-weight: 700;
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  text-align: center;
+}
+.cmp-dest-table thead th:first-child {
+  text-align: left;
+  background: #d94f02;
+}
+.cmp-dest-table tbody td {
+  padding: 14px;
+  border-bottom: 1px solid #E8E4E0;
+  text-align: center;
+  vertical-align: top;
+}
+.cmp-dest-table tbody td:first-child {
+  font-weight: 700;
+  text-align: left;
+  color: #0F0F0F;
+  background: #FDFBF7;
+}
+.cmp-dest-table tbody tr:nth-child(even) { background: #FDFBF7; }
+.cmp-dest-table tbody tr:nth-child(odd) { background: #fff; }
+.cmp-dest-table tbody tr:last-child td { border-bottom: none; }
+.cmp-dest-table .cmp-dest-highlight { color: var(--yb-brand); font-weight: 700; }
+
+/* Journal Suggestions Grid */
+.cmp-journal-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 24px;
+  max-width: 1100px;
+  margin: 48px auto 0;
+}
+.cmp-journal-item {
+  background: #fff;
+  border: 1px solid #E8E4E0;
+  border-radius: 12px;
+  padding: 28px 24px;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  text-align: left;
+}
+.cmp-journal-item:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 32px rgba(0,0,0,0.1);
+}
+.cmp-journal-item__tag {
+  display: inline-block;
+  font-size: 0.65rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--yb-brand);
+  background: rgba(247,92,3,0.08);
+  padding: 4px 10px;
+  border-radius: 20px;
+  margin-bottom: 12px;
+}
+.cmp-journal-item h3 {
+  font-size: 0.95rem;
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+.cmp-journal-item p {
+  font-size: 0.82rem;
+  color: #6F6A66;
+  line-height: 1.6;
+}
+
 /* Responsive */
 @media (max-width: 768px) {
   .cmp-stats { grid-template-columns: repeat(2, 1fr); gap: 20px; }
@@ -565,6 +762,12 @@
   .cmp-formats { grid-template-columns: 1fr; }
   .cmp-spectrum { flex-direction: column; }
   .cmp-spectrum__bar { padding: 16px; }
+  .cmp-cvt-grid { grid-template-columns: 1fr; }
+  .cmp-dest-table { font-size: 0.75rem; }
+  .cmp-dest-table thead th,
+  .cmp-dest-table tbody td { padding: 10px 8px; }
+  .cmp-ya-badges { gap: 24px; }
+  .cmp-ya-badge__circle { width: 80px; height: 80px; font-size: 1rem; }
 }
 </style>
 
@@ -626,7 +829,21 @@
 
 
 <!-- ═══════════════════════════════════════
-     3. TABLE OF CONTENTS — Navigation Cards
+     3. READ TIME + WHY THIS MATTERS
+     ═══════════════════════════════════════ -->
+<section class="cmp-warm" style="padding:60px 20px;">
+  <div class="container" style="max-width:800px; text-align:center;">
+    <p style="font-size:0.75rem; text-transform:uppercase; letter-spacing:0.15em; color:var(--yb-brand); font-weight:700; margin-bottom:20px;">{{ t.readtime_label }}</p>
+    <blockquote style="margin:0; padding:0; border:none;">
+      <p style="font-size:clamp(1.05rem, 2vw, 1.3rem); font-style:italic; line-height:1.8; color:#0F0F0F; margin-bottom:16px;">{{ t.readtime_quote }}</p>
+    </blockquote>
+    <p style="font-size:0.88rem; color:#6F6A66; line-height:1.6;">{{ t.readtime_worth }}</p>
+  </div>
+</section>
+
+
+<!-- ═══════════════════════════════════════
+     4. TABLE OF CONTENTS — Navigation Cards
      ═══════════════════════════════════════ -->
 <section class="cmp-light">
   <div class="container" style="text-align:center;">
@@ -784,20 +1001,24 @@
 
 
 <!-- ═══════════════════════════════════════
-     7. 30-HOUR — Warm BG
+     7. SUB-200H NOTE + COMPACT SECTIONS
      ═══════════════════════════════════════ -->
 <section class="cmp-warm" id="30h-trainings">
-  <div class="container">
-    <div class="cmp-hour-section">
+  <div class="container" style="text-align:center;">
+    <span class="cmp-eyebrow">{{ t.sub200_eyebrow }}</span>
+    <h2 class="section-title">{{ t.sub200_title }}</h2>
+    <p class="section-subtitle" style="max-width:700px; margin:0 auto 48px;">{{ t.sub200_subtitle }}</p>
+
+    <!-- 30h -->
+    <div class="cmp-hour-section" style="margin-bottom:64px;">
       <div class="cmp-hour-header">
         <div class="cmp-hour-badge cmp-hour-badge--30">30t</div>
         <div>
           <span class="cmp-eyebrow">{{ t.thirty_eyebrow }}</span>
-          <h2 class="section-title" style="text-align:left; margin-bottom:0;">{{ t.thirty_title }}</h2>
+          <h3 style="font-size:1.3rem; font-weight:700; margin:0; text-align:left;">{{ t.thirty_title }}</h3>
         </div>
       </div>
-      <p class="section-subtitle" style="text-align:left;">{{ t.thirty_subtitle }}</p>
-
+      <p style="text-align:left; color:#6F6A66; font-size:0.9rem; line-height:1.6; margin-bottom:24px;">{{ t.thirty_subtitle }}</p>
       <div class="cmp-two-col">
         <div class="cmp-col-card">
           <h3>{{ t.thirty_covers_title }}</h3>
@@ -822,25 +1043,17 @@
         </div>
       </div>
     </div>
-  </div>
-</section>
 
-
-<!-- ═══════════════════════════════════════
-     8. 50-HOUR — Light BG
-     ═══════════════════════════════════════ -->
-<section class="cmp-light" id="50h-trainings">
-  <div class="container">
-    <div class="cmp-hour-section">
+    <!-- 50h -->
+    <div class="cmp-hour-section" id="50h-trainings" style="margin-bottom:64px;">
       <div class="cmp-hour-header">
         <div class="cmp-hour-badge cmp-hour-badge--50">50t</div>
         <div>
           <span class="cmp-eyebrow">{{ t.fifty_eyebrow }}</span>
-          <h2 class="section-title" style="text-align:left; margin-bottom:0;">{{ t.fifty_title }}</h2>
+          <h3 style="font-size:1.3rem; font-weight:700; margin:0; text-align:left;">{{ t.fifty_title }}</h3>
         </div>
       </div>
-      <p class="section-subtitle" style="text-align:left;">{{ t.fifty_subtitle }}</p>
-
+      <p style="text-align:left; color:#6F6A66; font-size:0.9rem; line-height:1.6; margin-bottom:24px;">{{ t.fifty_subtitle }}</p>
       <div class="cmp-two-col">
         <div class="cmp-col-card">
           <h3>{{ t.fifty_programs_title }}</h3>
@@ -864,25 +1077,17 @@
         </div>
       </div>
     </div>
-  </div>
-</section>
 
-
-<!-- ═══════════════════════════════════════
-     9. 100-HOUR — Warm BG
-     ═══════════════════════════════════════ -->
-<section class="cmp-warm" id="100h-trainings">
-  <div class="container">
-    <div class="cmp-hour-section">
+    <!-- 100h -->
+    <div class="cmp-hour-section" id="100h-trainings">
       <div class="cmp-hour-header">
         <div class="cmp-hour-badge cmp-hour-badge--100">100t</div>
         <div>
           <span class="cmp-eyebrow">{{ t.hundred_eyebrow }}</span>
-          <h2 class="section-title" style="text-align:left; margin-bottom:0;">{{ t.hundred_title }}</h2>
+          <h3 style="font-size:1.3rem; font-weight:700; margin:0; text-align:left;">{{ t.hundred_title }}</h3>
         </div>
       </div>
-      <p class="section-subtitle" style="text-align:left;">{{ t.hundred_subtitle }}</p>
-
+      <p style="text-align:left; color:#6F6A66; font-size:0.9rem; line-height:1.6; margin-bottom:24px;">{{ t.hundred_subtitle }}</p>
       <div class="cmp-two-col">
         <div class="cmp-col-card">
           <h3>{{ t.hundred_covers_title }}</h3>
@@ -919,10 +1124,10 @@
     <h2 class="section-title">{{ t.cvt_title }}</h2>
     <p class="section-subtitle">{{ t.cvt_subtitle }}</p>
 
-    <!-- Side-by-side split -->
-    <div class="cmp-split">
-      <div class="cmp-split__dark">
-        <span class="cmp-split__eyebrow">{{ t.cvt_course_eyebrow }}</span>
+    <!-- Side-by-side cards -->
+    <div class="cmp-cvt-grid">
+      <div class="cmp-cvt-card cmp-cvt-card--course">
+        <span class="cmp-cvt-card__eyebrow">{{ t.cvt_course_eyebrow }}</span>
         <h3>{{ t.cvt_course_title }}</h3>
         <ul>
           <li>{{ t.cvt_course1 | safe }}</li>
@@ -933,9 +1138,9 @@
           <li>{{ t.cvt_course6 | safe }}</li>
         </ul>
       </div>
-      <div class="cmp-split__light">
-        <span class="cmp-split__eyebrow">{{ t.cvt_training_eyebrow }}</span>
-        <h3 style="color:#0F0F0F;">{{ t.cvt_training_title }}</h3>
+      <div class="cmp-cvt-card cmp-cvt-card--training">
+        <span class="cmp-cvt-card__eyebrow">{{ t.cvt_training_eyebrow }}</span>
+        <h3>{{ t.cvt_training_title }}</h3>
         <ul>
           <li>{{ t.cvt_training1 | safe }}</li>
           <li>{{ t.cvt_training2 | safe }}</li>
@@ -1109,6 +1314,53 @@
 
 
 <!-- ═══════════════════════════════════════
+     12b. YOGA ALLIANCE USA — Explainer + Badges
+     ═══════════════════════════════════════ -->
+<section class="cmp-warm" id="yoga-alliance">
+  <div class="container" style="text-align:center;">
+    <span class="cmp-eyebrow">{{ t.ya_section_eyebrow }}</span>
+    <h2 class="section-title">{{ t.ya_section_title }}</h2>
+    <p class="section-subtitle">{{ t.ya_section_subtitle }}</p>
+
+    <!-- Badge Placeholders -->
+    <div class="cmp-ya-badges">
+      <div class="cmp-ya-badge">
+        <div class="cmp-ya-badge__circle">RYT-200</div>
+        <span class="cmp-ya-badge__label">{{ t.ya_badge_200_label }}</span>
+      </div>
+      <div class="cmp-ya-badge">
+        <div class="cmp-ya-badge__circle">RYT-300</div>
+        <span class="cmp-ya-badge__label">{{ t.ya_badge_300_label }}</span>
+      </div>
+      <div class="cmp-ya-badge">
+        <div class="cmp-ya-badge__circle">RYT-500</div>
+        <span class="cmp-ya-badge__label">{{ t.ya_badge_500_label }}</span>
+      </div>
+    </div>
+
+    <!-- What & Why cards -->
+    <div class="cmp-two-col" style="max-width:1000px; margin:0 auto;">
+      <div class="cmp-col-card">
+        <h3>{{ t.ya_what_title }}</h3>
+        <p style="font-size:0.88rem; color:#6F6A66; line-height:1.7;">{{ t.ya_what_text }}</p>
+      </div>
+      <div class="cmp-col-card">
+        <h3>{{ t.ya_why_title }}</h3>
+        <p style="font-size:0.88rem; color:#6F6A66; line-height:1.7;">{{ t.ya_why_text }}</p>
+      </div>
+    </div>
+
+    <!-- RYS vs RYT -->
+    <div style="max-width:700px; margin:32px auto 0; padding:24px 28px; background:rgba(247,92,3,0.06); border:1px solid rgba(247,92,3,0.15); border-radius:12px; text-align:left;">
+      <h3 style="font-size:0.95rem; font-weight:700; margin-bottom:12px;">{{ t.ya_rys_vs_ryt_title }}</h3>
+      <p style="font-size:0.85rem; color:#6F6A66; line-height:1.7; margin-bottom:8px;">{{ t.ya_rys_desc | safe }}</p>
+      <p style="font-size:0.85rem; color:#6F6A66; line-height:1.7; margin:0;">{{ t.ya_ryt_desc | safe }}</p>
+    </div>
+  </div>
+</section>
+
+
+<!-- ═══════════════════════════════════════
      13. 300H ADVANCED — Light BG with Accent Cards
      ═══════════════════════════════════════ -->
 <section class="cmp-light" id="300h-advanced">
@@ -1121,7 +1373,57 @@
       <h2 class="section-title">{{ t.advanced_title }}</h2>
       <p class="section-subtitle">{{ t.advanced_subtitle }}</p>
 
-      <div class="cmp-cards" style="text-align:left;">
+      <!-- 300h Curriculum Depth Bars -->
+      <div class="cmp-bars" style="margin-top:48px;">
+        <h3 style="text-align:center; margin-bottom:28px; font-size:1rem;">{{ t.advanced_bars_title }}</h3>
+        <div class="cmp-bar-item">
+          <div class="cmp-bar-item__header">
+            <span class="cmp-bar-item__label">{{ t.advanced_bar1_label }}</span>
+            <span class="cmp-bar-item__value">{{ t.advanced_bar1_value }}</span>
+          </div>
+          <div class="cmp-bar-track">
+            <div class="cmp-bar-fill" style="width:30%; background:#d94f02;"></div>
+          </div>
+        </div>
+        <div class="cmp-bar-item">
+          <div class="cmp-bar-item__header">
+            <span class="cmp-bar-item__label">{{ t.advanced_bar2_label }}</span>
+            <span class="cmp-bar-item__value">{{ t.advanced_bar2_value }}</span>
+          </div>
+          <div class="cmp-bar-track">
+            <div class="cmp-bar-fill" style="width:25%; background:#d94f02;"></div>
+          </div>
+        </div>
+        <div class="cmp-bar-item">
+          <div class="cmp-bar-item__header">
+            <span class="cmp-bar-item__label">{{ t.advanced_bar3_label }}</span>
+            <span class="cmp-bar-item__value">{{ t.advanced_bar3_value }}</span>
+          </div>
+          <div class="cmp-bar-track">
+            <div class="cmp-bar-fill" style="width:20%; background:#d94f02;"></div>
+          </div>
+        </div>
+        <div class="cmp-bar-item">
+          <div class="cmp-bar-item__header">
+            <span class="cmp-bar-item__label">{{ t.advanced_bar4_label }}</span>
+            <span class="cmp-bar-item__value">{{ t.advanced_bar4_value }}</span>
+          </div>
+          <div class="cmp-bar-track">
+            <div class="cmp-bar-fill" style="width:15%; background:#d94f02;"></div>
+          </div>
+        </div>
+        <div class="cmp-bar-item">
+          <div class="cmp-bar-item__header">
+            <span class="cmp-bar-item__label">{{ t.advanced_bar5_label }}</span>
+            <span class="cmp-bar-item__value">{{ t.advanced_bar5_value }}</span>
+          </div>
+          <div class="cmp-bar-track">
+            <div class="cmp-bar-fill" style="width:10%; background:#d94f02;"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="cmp-cards" style="text-align:left; margin-top:48px;">
         <div class="cmp-card">
           <h3>{{ t.advanced_expands_title }}</h3>
           <ul style="list-style:none; padding:0; margin:8px 0 0;">
@@ -1156,8 +1458,13 @@
         </div>
       </div>
 
+      <!-- 300h CTA -->
+      <div style="text-align:center; margin-top:48px;">
+        <a href="{% if lang == 'en' %}/en/300-hours-advanced-teacher-training{% else %}/300-hours-advanced-teacher-training{% endif %}" class="yb-btn yb-btn--primary yb-btn--large">{{ t.advanced_cta_text }}</a>
+      </div>
+
       <!-- Journal CTA -->
-      <div class="cmp-journal-cta">
+      <div class="cmp-journal-cta" style="margin-top:40px;">
         <div>
           <p class="cmp-journal-cta__label">{{ t.journal_cta_label }}</p>
           <p class="cmp-journal-cta__title">{{ t.journal_anatomy_title }}</p>
@@ -1208,6 +1515,105 @@
 
 
 <!-- ═══════════════════════════════════════
+     14b. DESTINATION COMPARISON — Where to Train
+     ═══════════════════════════════════════ -->
+<section class="cmp-warm" id="destination-comparison">
+  <div class="container" style="text-align:center;">
+    <span class="cmp-eyebrow">{{ t.dest_eyebrow }}</span>
+    <h2 class="section-title">{{ t.dest_title }}</h2>
+    <p class="section-subtitle">{{ t.dest_subtitle }}</p>
+
+    <div style="overflow-x:auto;">
+      <table class="cmp-dest-table">
+        <thead>
+          <tr>
+            <th>{{ t.dest_th_category }}</th>
+            <th>🇮🇩 {{ t.dest_th_bali }}</th>
+            <th>🇮🇳 {{ t.dest_th_india }}</th>
+            <th>🇹🇭 {{ t.dest_th_thailand }}</th>
+            <th>🇩🇰 {{ t.dest_th_copenhagen }}</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>{{ t.dest_r1_label }}</td>
+            <td>{{ t.dest_r1_bali }}</td>
+            <td>{{ t.dest_r1_india }}</td>
+            <td>{{ t.dest_r1_thailand }}</td>
+            <td class="cmp-dest-highlight">{{ t.dest_r1_cph }}</td>
+          </tr>
+          <tr>
+            <td>{{ t.dest_r2_label }}</td>
+            <td>{{ t.dest_r2_bali }}</td>
+            <td>{{ t.dest_r2_india }}</td>
+            <td>{{ t.dest_r2_thailand }}</td>
+            <td class="cmp-dest-highlight">{{ t.dest_r2_cph }}</td>
+          </tr>
+          <tr>
+            <td>{{ t.dest_r3_label }}</td>
+            <td>{{ t.dest_r3_bali }}</td>
+            <td>{{ t.dest_r3_india }}</td>
+            <td>{{ t.dest_r3_thailand }}</td>
+            <td class="cmp-dest-highlight">{{ t.dest_r3_cph }}</td>
+          </tr>
+          <tr>
+            <td>{{ t.dest_r4_label }}</td>
+            <td>{{ t.dest_r4_bali }}</td>
+            <td>{{ t.dest_r4_india }}</td>
+            <td>{{ t.dest_r4_thailand }}</td>
+            <td class="cmp-dest-highlight">{{ t.dest_r4_cph }}</td>
+          </tr>
+          <tr>
+            <td>{{ t.dest_r5_label }}</td>
+            <td>{{ t.dest_r5_bali }}</td>
+            <td>{{ t.dest_r5_india }}</td>
+            <td>{{ t.dest_r5_thailand }}</td>
+            <td class="cmp-dest-highlight">{{ t.dest_r5_cph }}</td>
+          </tr>
+          <tr>
+            <td>{{ t.dest_r6_label }}</td>
+            <td>{{ t.dest_r6_bali }}</td>
+            <td>{{ t.dest_r6_india }}</td>
+            <td>{{ t.dest_r6_thailand }}</td>
+            <td class="cmp-dest-highlight">{{ t.dest_r6_cph }}</td>
+          </tr>
+          <tr>
+            <td>{{ t.dest_r7_label }}</td>
+            <td>{{ t.dest_r7_bali }}</td>
+            <td>{{ t.dest_r7_india }}</td>
+            <td>{{ t.dest_r7_thailand }}</td>
+            <td class="cmp-dest-highlight">{{ t.dest_r7_cph }}</td>
+          </tr>
+          <tr>
+            <td>{{ t.dest_r8_label }}</td>
+            <td>{{ t.dest_r8_bali }}</td>
+            <td>{{ t.dest_r8_india }}</td>
+            <td>{{ t.dest_r8_thailand }}</td>
+            <td class="cmp-dest-highlight">{{ t.dest_r8_cph }}</td>
+          </tr>
+          <tr>
+            <td>{{ t.dest_r9_label }}</td>
+            <td>{{ t.dest_r9_bali }}</td>
+            <td>{{ t.dest_r9_india }}</td>
+            <td>{{ t.dest_r9_thailand }}</td>
+            <td class="cmp-dest-highlight">{{ t.dest_r9_cph }}</td>
+          </tr>
+          <tr>
+            <td>{{ t.dest_r10_label }}</td>
+            <td>{{ t.dest_r10_bali }}</td>
+            <td>{{ t.dest_r10_india }}</td>
+            <td>{{ t.dest_r10_thailand }}</td>
+            <td class="cmp-dest-highlight">{{ t.dest_r10_cph }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <p style="color:#6F6A66; font-size:0.78rem; margin-top:16px; font-style:italic;">{{ t.dest_note }}</p>
+  </div>
+</section>
+
+
+<!-- ═══════════════════════════════════════
      15. YOGA BIBLE PROGRAMS — Format Cards
      ═══════════════════════════════════════ -->
 <section class="cmp-warm" id="yoga-bible-programs">
@@ -1232,7 +1638,6 @@
           <div class="cmp-format-card__row"><span>{{ t.yb_row6_label }}</span><span>{{ t.yb_row6_18w }}</span></div>
           <div class="cmp-format-card__row"><span>{{ t.yb_row7_label }}</span><span>{{ t.yb_row7_18w }}</span></div>
           <div class="cmp-format-card__row"><span>{{ t.yb_row8_label }}</span><span>{{ t.yb_row8_18w }}</span></div>
-          <div class="cmp-format-card__row"><span>{{ t.yb_row9_label }}</span><span>{{ t.yb_row9_18w }}</span></div>
         </div>
         <div class="cmp-format-card__cta">
           <a href="{% if lang == 'en' %}/en/18-ugers-yogalareruddannelse{% else %}/18-ugers-yogalareruddannelse{% endif %}" class="yb-btn yb-btn--primary" style="width:100%;">{{ t.yb_cta_18w }}</a>
@@ -1254,7 +1659,6 @@
           <div class="cmp-format-card__row"><span>{{ t.yb_row6_label }}</span><span>{{ t.yb_row6_8w }}</span></div>
           <div class="cmp-format-card__row"><span>{{ t.yb_row7_label }}</span><span>{{ t.yb_row7_8w }}</span></div>
           <div class="cmp-format-card__row"><span>{{ t.yb_row8_label }}</span><span>{{ t.yb_row8_8w }}</span></div>
-          <div class="cmp-format-card__row"><span>{{ t.yb_row9_label }}</span><span>{{ t.yb_row9_8w }}</span></div>
         </div>
         <div class="cmp-format-card__cta">
           <a href="{% if lang == 'en' %}/en/8-ugers-yogalareruddannelse{% else %}/8-ugers-yogalareruddannelse{% endif %}" class="yb-btn yb-btn--primary" style="width:100%;">{{ t.yb_cta_8w }}</a>
@@ -1276,7 +1680,6 @@
           <div class="cmp-format-card__row"><span>{{ t.yb_row6_label }}</span><span>{{ t.yb_row6_4w }}</span></div>
           <div class="cmp-format-card__row"><span>{{ t.yb_row7_label }}</span><span>{{ t.yb_row7_4w }}</span></div>
           <div class="cmp-format-card__row"><span>{{ t.yb_row8_label }}</span><span>{{ t.yb_row8_4w }}</span></div>
-          <div class="cmp-format-card__row"><span>{{ t.yb_row9_label }}</span><span>{{ t.yb_row9_4w }}</span></div>
         </div>
         <div class="cmp-format-card__cta">
           <a href="{% if lang == 'en' %}/en/4-ugers-yogalareruddannelse{% else %}/4-ugers-yogalareruddannelse{% endif %}" class="yb-btn yb-btn--primary" style="width:100%;">{{ t.yb_cta_4w }}</a>
@@ -1384,6 +1787,51 @@
         <summary>{{ t.faq10_q }}</summary>
         <p>{{ t.faq10_a | safe }}</p>
       </details>
+    </div>
+  </div>
+</section>
+
+
+<!-- ═══════════════════════════════════════
+     17b. JOURNAL SUGGESTIONS — Related Reading
+     ═══════════════════════════════════════ -->
+<section class="cmp-warm">
+  <div class="container" style="text-align:center;">
+    <span class="cmp-eyebrow">{{ t.journal_suggest_eyebrow }}</span>
+    <h2 class="section-title">{{ t.journal_suggest_title }}</h2>
+    <p class="section-subtitle">{{ t.journal_suggest_subtitle }}</p>
+
+    <div class="cmp-journal-grid">
+      <div class="cmp-journal-item">
+        <span class="cmp-journal-item__tag">{{ t.journal_s1_tag }}</span>
+        <h3>{{ t.journal_s1_title }}</h3>
+        <p>{{ t.journal_s1_desc }}</p>
+      </div>
+      <div class="cmp-journal-item">
+        <span class="cmp-journal-item__tag">{{ t.journal_s2_tag }}</span>
+        <h3>{{ t.journal_s2_title }}</h3>
+        <p>{{ t.journal_s2_desc }}</p>
+      </div>
+      <div class="cmp-journal-item">
+        <span class="cmp-journal-item__tag">{{ t.journal_s3_tag }}</span>
+        <h3>{{ t.journal_s3_title }}</h3>
+        <p>{{ t.journal_s3_desc }}</p>
+      </div>
+      <div class="cmp-journal-item">
+        <span class="cmp-journal-item__tag">{{ t.journal_s4_tag }}</span>
+        <h3>{{ t.journal_s4_title }}</h3>
+        <p>{{ t.journal_s4_desc }}</p>
+      </div>
+      <div class="cmp-journal-item">
+        <span class="cmp-journal-item__tag">{{ t.journal_s5_tag }}</span>
+        <h3>{{ t.journal_s5_title }}</h3>
+        <p>{{ t.journal_s5_desc }}</p>
+      </div>
+      <div class="cmp-journal-item">
+        <span class="cmp-journal-item__tag">{{ t.journal_s6_tag }}</span>
+        <h3>{{ t.journal_s6_title }}</h3>
+        <p>{{ t.journal_s6_desc }}</p>
+      </div>
     </div>
   </div>
 </section>
