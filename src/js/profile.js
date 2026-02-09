@@ -1030,12 +1030,7 @@
           html += '<span>' + t('membership_pause_auto_resume') + '</span>';
           html += '</div>';
           html += '</div>';
-          html += '<div class="yb-membership__manage-btns">';
-          if (pauseStart && pauseEnd) {
-            html += '<button type="button" class="yb-membership__manage-btn yb-membership__manage-btn--extend" data-manage-extend="' + c.id + '" data-pause-start="' + pauseStart + '" data-pause-end="' + pauseEnd + '">' + t('membership_extend_pause_btn') + '</button>';
-          }
-          html += '<button type="button" class="yb-membership__manage-btn yb-membership__manage-btn--resume" data-manage-resume="' + c.id + '">' + t('membership_reactivate_early') + '</button>';
-          html += '</div>';
+          html += '<p class="yb-membership__pause-contact">' + t('membership_resume_contact') + '</p>';
         }
 
         // ── ACTIVE STATE: Manage buttons ──
@@ -1153,28 +1148,6 @@
     html += '<p class="yb-membership__special-note">' + t('membership_pause_special') + '</p>';
     html += '<div class="yb-auth-error" id="yb-pause-error" hidden role="alert"></div>';
     html += '<button type="button" class="yb-membership__confirm-btn yb-membership__confirm-btn--pause" id="yb-pause-confirm">' + t('membership_pause_confirm') + '</button>';
-    html += '</div>';
-
-    // Extend pause panel (hidden by default, shown when user clicks Extend Pause)
-    html += '<div id="yb-membership-extend-panel" class="yb-membership__manage-panel" hidden>';
-    html += '<div class="yb-membership__manage-header">';
-    html += '<button type="button" class="yb-membership__back-btn" data-manage-back>&larr; ' + t('membership_back') + '</button>';
-    html += '<h3 class="yb-membership__manage-title">' + t('membership_extend_title') + '</h3>';
-    html += '</div>';
-    html += '<p class="yb-membership__manage-desc">' + t('membership_extend_desc') + '</p>';
-    html += '<div class="yb-membership__manage-info">';
-    html += '<div class="yb-membership__info-row"><span class="yb-membership__info-label">' + t('membership_extend_current') + ':</span> <strong id="yb-extend-current-period"></strong></div>';
-    html += '</div>';
-    html += '<div class="yb-membership__manage-form">';
-    html += '<div class="yb-membership__manage-field">';
-    html += '<label>' + t('membership_extend_new_end') + '</label>';
-    html += '<input type="date" id="yb-extend-end" class="yb-membership__date-input" />';
-    html += '<span class="yb-membership__field-hint">' + t('membership_pause_max') + '</span>';
-    html += '</div>';
-    html += '<p class="yb-membership__resume-info" id="yb-extend-resume-info" hidden></p>';
-    html += '</div>';
-    html += '<div class="yb-auth-error" id="yb-extend-error" hidden role="alert"></div>';
-    html += '<button type="button" class="yb-membership__confirm-btn yb-membership__confirm-btn--pause" id="yb-extend-confirm">' + t('membership_extend_confirm') + '</button>';
     html += '</div>';
 
     // Cancel panel (hidden by default, shown when user clicks Cancel)
@@ -1302,19 +1275,15 @@
     var dateOpts = { day: 'numeric', month: 'long', year: 'numeric' };
     var activeContractId = null;
     var activeContract = null;
-    var activePauseStart = null; // Track current pause start for extend
-
     // Sections to show/hide
     var allSections = container.querySelectorAll('.yb-membership__section');
     var pausePanel = document.getElementById('yb-membership-pause-panel');
     var cancelPanel = document.getElementById('yb-membership-cancel-panel');
-    var extendPanel = document.getElementById('yb-membership-extend-panel');
 
     function showSections() {
       for (var i = 0; i < allSections.length; i++) allSections[i].hidden = false;
       if (pausePanel) pausePanel.hidden = true;
       if (cancelPanel) cancelPanel.hidden = true;
-      if (extendPanel) extendPanel.hidden = true;
     }
 
     function hideSections() {
@@ -1511,130 +1480,6 @@
       });
     }
 
-    // ── Extend pause buttons ──
-    var extendBtns = container.querySelectorAll('[data-manage-extend]');
-    for (var ex = 0; ex < extendBtns.length; ex++) {
-      extendBtns[ex].addEventListener('click', function() {
-        activeContractId = this.getAttribute('data-manage-extend');
-        activeContract = contracts.find(function(ct) { return String(ct.id) === String(activeContractId); });
-        if (!activeContract || !extendPanel) return;
-
-        var pauseStart = this.getAttribute('data-pause-start');
-        var pauseEnd = this.getAttribute('data-pause-end');
-        activePauseStart = pauseStart; // Save for confirm handler
-
-        hideSections();
-        extendPanel.hidden = false;
-
-        var currentPeriodEl = document.getElementById('yb-extend-current-period');
-        var endInput = document.getElementById('yb-extend-end');
-        var resumeInfoEl = document.getElementById('yb-extend-resume-info');
-        var errorEl = document.getElementById('yb-extend-error');
-
-        if (currentPeriodEl) {
-          currentPeriodEl.textContent = formatDateDK(pauseStart) + ' – ' + formatDateDK(pauseEnd);
-        }
-
-        if (endInput) {
-          // Min: current end date + 1 day
-          var currentEnd = new Date(pauseEnd);
-          var minNew = new Date(currentEnd);
-          minNew.setDate(minNew.getDate() + 1);
-          endInput.min = toLocalDateStr(minNew);
-
-          // Max: 93 days from pause start
-          var maxEnd = new Date(pauseStart);
-          maxEnd.setDate(maxEnd.getDate() + 93);
-          endInput.max = toLocalDateStr(maxEnd);
-
-          // Default to 14 days after current end (or max, whichever is less)
-          var defaultNew = new Date(currentEnd);
-          defaultNew.setDate(defaultNew.getDate() + 14);
-          if (defaultNew > maxEnd) defaultNew = maxEnd;
-          if (defaultNew < minNew) defaultNew = minNew;
-          endInput.value = toLocalDateStr(defaultNew);
-
-          endInput.addEventListener('change', function() {
-            if (!resumeInfoEl || !endInput.value) return;
-            var sd = new Date(pauseStart);
-            var ed = new Date(endInput.value);
-            var days = Math.round((ed - sd) / 86400000);
-            var durationLabel = isDa() ? (days + ' dage i alt') : (days + ' days total');
-            resumeInfoEl.textContent = t('membership_pause_resume') + ' ' + formatDateDK(ed) + ' (' + durationLabel + ')';
-            resumeInfoEl.hidden = false;
-          });
-        }
-
-        if (errorEl) errorEl.hidden = true;
-        // Trigger initial info
-        if (endInput) endInput.dispatchEvent(new Event('change'));
-      });
-    }
-
-    // ── Extend confirm button ──
-    var extendConfirmBtn = document.getElementById('yb-extend-confirm');
-    if (extendConfirmBtn) {
-      extendConfirmBtn.addEventListener('click', function() {
-        if (!activeContractId || !clientId) return;
-        var endInput = document.getElementById('yb-extend-end');
-        var errorEl = document.getElementById('yb-extend-error');
-
-        if (!endInput || !endInput.value) {
-          if (errorEl) { errorEl.textContent = isDa() ? 'Vælg venligst ny slutdato.' : 'Please select a new end date.'; errorEl.hidden = false; }
-          return;
-        }
-
-        extendConfirmBtn.disabled = true;
-        extendConfirmBtn.textContent = t('membership_pause_confirming');
-        if (errorEl) errorEl.hidden = true;
-
-        fetch('/.netlify/functions/mb-contract-manage', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            action: 'extend',
-            clientId: clientId,
-            clientContractId: Number(activeContractId),
-            currentStartDate: activePauseStart,
-            newEndDate: endInput.value
-          })
-        })
-        .then(function(r) {
-          var ct = r.headers.get('content-type') || '';
-          if (ct.indexOf('application/json') === -1) {
-            throw new Error('Server returned non-JSON (status ' + r.status + ')');
-          }
-          return r.json().then(function(d) { return { ok: r.ok, data: d }; });
-        })
-        .then(function(res) {
-          if (res.ok && res.data.success) {
-            // Update local + Firestore
-            markContractPaused(activeContractId, activePauseStart, endInput.value);
-            showSections();
-            renderMembershipDetails(container, clientPassData);
-            bindMembershipManageEvents(container, clientPassData);
-            showMembershipToast(t('membership_extend_success'), 'success', 15000);
-          } else {
-            if (errorEl) {
-              errorEl.textContent = res.data.error || t('membership_pause_error');
-              errorEl.hidden = false;
-            }
-          }
-          extendConfirmBtn.disabled = false;
-          extendConfirmBtn.textContent = t('membership_extend_confirm');
-        })
-        .catch(function(err) {
-          console.error('[Membership] Extend error:', err);
-          if (errorEl) {
-            errorEl.textContent = err.message || t('membership_pause_error');
-            errorEl.hidden = false;
-          }
-          extendConfirmBtn.disabled = false;
-          extendConfirmBtn.textContent = t('membership_extend_confirm');
-        });
-      });
-    }
-
     // ── Cancel buttons ──
     var cancelBtns = container.querySelectorAll('[data-manage-cancel]');
     for (var c = 0; c < cancelBtns.length; c++) {
@@ -1778,14 +1623,7 @@
       });
     }
 
-    // ── Resume (cancel pause early) buttons ──
-    // MB Public API v6 has no resume/unsuspend endpoint — show contact info directly
-    var resumeBtns = container.querySelectorAll('[data-manage-resume]');
-    for (var rm = 0; rm < resumeBtns.length; rm++) {
-      resumeBtns[rm].addEventListener('click', function() {
-        showMembershipToast(t('membership_resume_contact'), 'info', 12000);
-      });
-    }
+
 
     // ── Past passes toggle ──
     var pastToggle = container.querySelector('[data-toggle-past]');
@@ -3454,22 +3292,12 @@
       membership_pause_success: isDa() ? 'Dit abonnement er nu sat på pause. Du vil se status opdateret herunder.' : 'Your membership is now paused. You will see the updated status below.',
       membership_pause_error: isDa() ? 'Kunne ikke sætte abonnement på pause. Prøv igen.' : 'Could not pause membership. Please try again.',
       membership_already_paused: isDa() ? 'Dit abonnement er allerede på pause. Du kan ikke tilføje endnu en pause.' : 'Your membership is already paused. You cannot add another pause.',
-      membership_extend_pause_btn: isDa() ? 'Forlæng pause' : 'Extend pause',
-      membership_extend_title: isDa() ? 'Forlæng pause' : 'Extend pause',
-      membership_extend_desc: isDa() ? 'Du kan forlænge din nuværende pause op til maksimalt 3 måneder fra startdato.' : 'You can extend your current pause up to a maximum of 3 months from the start date.',
-      membership_extend_current: isDa() ? 'Nuværende pause' : 'Current pause',
-      membership_extend_new_end: isDa() ? 'Ny slutdato' : 'New end date',
-      membership_extend_confirm: isDa() ? 'Bekræft forlængelse' : 'Confirm extension',
-      membership_extend_success: isDa() ? 'Din pause er blevet forlænget.' : 'Your pause has been extended.',
-      membership_pause_special: isDa() ? 'Særlige omstændigheder (skade, graviditet, rejse mv.)? Kontakt os for forlænget pause.' : 'Special circumstances (injury, pregnancy, travel etc.)? Contact us for an extended pause.',
+      membership_pause_special: isDa() ? 'Særlige omstændigheder (skade, graviditet, rejse mv.)? Kontakt os.' : 'Special circumstances (injury, pregnancy, travel etc.)? Contact us.',
       membership_billing_paused: isDa() ? 'Fakturering sat på pause' : 'Billing paused',
       membership_pause_active_title: isDa() ? 'Medlemskab er på pause' : 'Membership is paused',
       membership_pause_from: isDa() ? 'Fra' : 'From',
       membership_pause_auto_resume: isDa() ? 'Genoptages automatisk ved pausens udløb.' : 'Will resume automatically when the pause period ends.',
-      membership_resume_btn: isDa() ? 'Annuller pause' : 'Cancel pause',
-      membership_reactivate_early: isDa() ? 'Genaktivér nu' : 'Reactivate now',
-      membership_resume_success: isDa() ? 'Pausen er annulleret — dit abonnement er aktivt igen!' : 'Pause cancelled — your membership is active again!',
-      membership_resume_contact: isDa() ? 'Automatisk annullering af pause er desværre ikke tilgængelig. Kontakt os på info@yogabible.dk for at annullere pausen.' : 'Automatic pause cancellation is not available. Please contact us at info@yogabible.dk to cancel the pause.',
+      membership_resume_contact: isDa() ? 'Vil du annullere pausen? Kontakt os på info@yogabible.dk, så fjerner vi den og du kan sætte en ny pause.' : 'Want to cancel the pause? Contact us at info@yogabible.dk and we will remove it so you can set a new pause.',
       membership_cancel_title: isDa() ? 'Opsig abonnement' : 'Cancel membership',
       membership_cancel_desc: isDa() ? 'Opsigelse følger vores vilkår: 1 måned + løbende dage. Du kan bruge dit abonnement indtil udgangen af den betalte periode.' : 'Cancellation follows our terms: 1 month + running days notice. You can use your membership until the end of the paid period.',
       membership_cancel_earliest: isDa() ? 'Sidste betaling (næste fakturering)' : 'Last payment (next billing)',

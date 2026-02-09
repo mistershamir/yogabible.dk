@@ -239,38 +239,6 @@ exports.handler = async function(event) {
       });
     }
 
-    // ── EXTEND PAUSE ──
-    // IMPORTANT: Do NOT call suspendcontract again — each call creates a NEW
-    // suspension in MB (no "update/extend" API exists). Firestore is the source
-    // of truth for extended dates. The original MB suspension stands.
-    if (body.action === 'extend') {
-      if (!body.newEndDate || !body.currentStartDate) {
-        return jsonResponse(400, { error: 'newEndDate and currentStartDate are required for extension' });
-      }
-
-      var extStart = new Date(body.currentStartDate);
-      var extEnd = new Date(body.newEndDate);
-      var extDays = Math.round((extEnd - extStart) / 86400000);
-
-      if (extDays < 14) {
-        return jsonResponse(400, { error: 'Total pause must be at least 14 days' });
-      }
-      if (extDays > 93) {
-        return jsonResponse(400, { error: 'Total pause cannot exceed 3 months (93 days)' });
-      }
-
-      console.log('[mb-contract-manage] Extend pause (Firestore only):', body.currentStartDate, '->', body.newEndDate, '(' + extDays + ' days)');
-
-      return jsonResponse(200, {
-        success: true,
-        action: 'extend',
-        suspendDate: body.currentStartDate,
-        resumeDate: body.newEndDate,
-        durationDays: extDays,
-        message: 'Pause extended to ' + body.newEndDate
-      });
-    }
-
     // ── RESUME (CANCEL PAUSE EARLY) ──
     // MB Public API v6 has NO resume/unsuspend endpoint. All paths tested, none work.
     // Do NOT probe endpoints — they may cause side effects (duplicate suspensions).

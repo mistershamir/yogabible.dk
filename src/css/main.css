@@ -8800,26 +8800,16 @@ section {
   color: #991b1b;
 }
 
-/* Resume button */
-.yb-membership__manage-btn--resume {
-  background: none;
-  border: 1.5px solid #27ae60;
-  color: #27ae60;
-}
-.yb-membership__manage-btn--resume:hover {
-  background: #27ae60;
-  color: #fff;
-}
-
-/* Extend pause button */
-.yb-membership__manage-btn--extend {
-  background: none;
-  border: 1.5px solid #f75c03;
-  color: #f75c03;
-}
-.yb-membership__manage-btn--extend:hover {
-  background: #f75c03;
-  color: #fff;
+/* Pause contact info (shown instead of extend/reactivate buttons) */
+.yb-membership__pause-contact {
+  margin: 0.75rem 0 0;
+  padding: 0.75rem 1rem;
+  background: #FFFCF9;
+  border: 1px solid #E8E4E0;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  color: #6F6A66;
+  line-height: 1.5;
 }
 
 /* Toast info variant */
