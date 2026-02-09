@@ -68,10 +68,21 @@ exports.handler = async function(event) {
       }
 
       var contracts = (data.Contracts || []).map(function(c) {
+        // Extract autopay frequency details
+        var scheduleObj = c.AutopaySchedule || {};
+        var freqType = '';
+        if (typeof scheduleObj === 'object') {
+          freqType = scheduleObj.FrequencyType || scheduleObj.Description || JSON.stringify(scheduleObj);
+        } else {
+          freqType = scheduleObj;
+        }
+        // First payment of 0 means first period is free
+        var firstPaymentRaw = c.FirstPaymentAmountSubtotal || 0;
         return {
           id: c.Id,
           name: c.Name || '',
           description: c.Description || '',
+          onlineDescription: c.OnlineDescription || '',
           assignsMembershipId: c.AssignsMembershipId || null,
           assignsMembershipName: c.AssignsMembershipName || '',
           contractItems: (c.ContractItems || []).map(function(ci) {
@@ -86,15 +97,14 @@ exports.handler = async function(event) {
             };
           }),
           soldOnline: c.SoldOnline || false,
-          firstPaymentAmount: c.FirstPaymentAmountSubtotal || null,
+          firstPaymentAmount: firstPaymentRaw,
           firstPaymentTax: c.FirstPaymentTaxAmount || null,
+          firstMonthFree: firstPaymentRaw === 0,
           recurringPaymentAmount: c.RecurringPaymentAmountSubtotal || null,
           totalContractAmount: c.TotalContractAmountSubtotal || null,
           duration: c.Duration || null,
           durationUnit: c.DurationUnit || '',
-          autopaySchedule: (c.AutopaySchedule && typeof c.AutopaySchedule === 'object')
-            ? (c.AutopaySchedule.FrequencyType || c.AutopaySchedule.Description || JSON.stringify(c.AutopaySchedule))
-            : (c.AutopaySchedule || ''),
+          autopaySchedule: freqType,
           numberOfAutopays: c.NumberOfAutopays || null,
           locationId: c.LocationId || null,
           programIds: c.ProgramIds || [],
