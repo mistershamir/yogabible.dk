@@ -1,8 +1,11 @@
 {
   "da": {
-    "hero_eyebrow": "200-Timer Yogalæreruddannelse",
+    "hero_tagline": "200-Timer Yogalæreruddannelse",
     "hero_title": "18 Ugers Fleksibelt<br>Program",
     "hero_subtitle": "Bliv certificeret yogalærer ved siden af dit job, studie eller familieliv",
+    "hero_trust1": "Marts–Juni 2026",
+    "hero_trust2": "Hverdag eller weekend",
+    "hero_trust3": "Yoga Alliance RYT-200",
     "hero_meta_next_label": "Næste program:",
     "hero_meta_next_val": "Marts–Juni 2026",
     "hero_meta_format_label": "Format:",
@@ -246,9 +249,12 @@
     "prog8w_alt": "200-timers – 8 ugers semi-intensivt program"
   },
   "en": {
-    "hero_eyebrow": "200-Hour Yoga Teacher Training",
+    "hero_tagline": "200-Hour Yoga Teacher Training",
     "hero_title": "18-Week Flexible<br>Program",
     "hero_subtitle": "Become a certified yoga teacher alongside your job, studies or family life",
+    "hero_trust1": "March–June 2026",
+    "hero_trust2": "Weekday or weekend",
+    "hero_trust3": "Yoga Alliance RYT-200",
     "hero_meta_next_label": "Next program:",
     "hero_meta_next_val": "March–June 2026",
     "hero_meta_format_label": "Format:",

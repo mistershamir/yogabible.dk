@@ -1,8 +1,11 @@
 {
   "da": {
-    "hero_badge": "UDDANNELSESGUIDE",
+    "hero_tagline": "Uddannelsesguide",
     "hero_title": "Sammenlign Yogalæreruddannelser",
     "hero_subtitle": "En ærlig, dybdegående guide til at vælge det rigtige format, den rigtige sæson og den rigtige destination for din yogalæreruddannelse.",
+    "hero_trust1": "3 Formater",
+    "hero_trust2": "4 Sæsoner",
+    "hero_trust3": "København & Bali",
     "hero_cta_format": "Sammenlign Formater",
     "hero_cta_dest": "Se Destinationer",
 
@@ -441,9 +444,12 @@
     "cta_secondary": "Kontakt Os"
   },
   "en": {
-    "hero_badge": "EDUCATION GUIDE",
+    "hero_tagline": "Education Guide",
     "hero_title": "Compare Yoga Teacher Trainings",
     "hero_subtitle": "An honest, in-depth guide to choosing the right format, the right season and the right destination for your yoga teacher training.",
+    "hero_trust1": "3 Formats",
+    "hero_trust2": "4 Seasons",
+    "hero_trust3": "Copenhagen & Bali",
     "hero_cta_format": "Compare Formats",
     "hero_cta_dest": "See Destinations",
 

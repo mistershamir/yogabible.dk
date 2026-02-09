@@ -1,8 +1,11 @@
 {
   "da": {
-    "hero_badge": "YOGA ALLIANCE RYS-200",
+    "hero_tagline": "200-Timer Yogalæreruddannelse",
     "hero_title": "Din rejse mod at blive yogalærer",
     "hero_subtitle": "200-timers yogauddannelse i København — Hatha, Vinyasa, Yin og Hot Yoga plus meditation",
+    "hero_trust1": "Yoga Alliance RYT-200",
+    "hero_trust2": "Christianshavn, København",
+    "hero_trust3": "Alle niveauer velkomne",
     "meta_cert_label": "Certificering:",
     "meta_cert_val": "Yoga Alliance RYT-200",
     "meta_location_label": "Lokation:",
@@ -62,9 +65,12 @@
     "cta_button": "Få Skema & Ansøg"
   },
   "en": {
-    "hero_badge": "YOGA ALLIANCE RYS-200",
+    "hero_tagline": "200-Hour Yoga Teacher Training",
     "hero_title": "Your journey to becoming a yoga teacher",
     "hero_subtitle": "200-hour yoga education in Copenhagen — Hatha, Vinyasa, Yin & Hot Yoga plus meditation",
+    "hero_trust1": "Yoga Alliance RYT-200",
+    "hero_trust2": "Christianshavn, Copenhagen",
+    "hero_trust3": "All levels welcome",
     "meta_cert_label": "Certification:",
     "meta_cert_val": "Yoga Alliance RYT-200",
     "meta_location_label": "Location:",

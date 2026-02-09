@@ -1,8 +1,11 @@
 {
   "da": {
-    "hero_eyebrow": "200-Timer Yogalæreruddannelse",
+    "hero_tagline": "200-Timer Yogalæreruddannelse",
     "hero_title": "8 Ugers Semi-Intensivt<br>Program",
     "hero_subtitle": "Gennemfør den fulde RYT-200 på 2 måneder med et balanceret tempo",
+    "hero_trust1": "Maj–Juni 2026",
+    "hero_trust2": "Semi-intensivt",
+    "hero_trust3": "Yoga Alliance RYT-200",
     "hero_meta_next_label": "Næste program:",
     "hero_meta_next_val": "Maj–Juni 2026",
     "hero_meta_format_label": "Format:",
@@ -218,9 +221,12 @@
     "prog4w_alt": "200-timers – 4 ugers intensivt program"
   },
   "en": {
-    "hero_eyebrow": "200-Hour Yoga Teacher Training",
+    "hero_tagline": "200-Hour Yoga Teacher Training",
     "hero_title": "8-Week Semi-Intensive<br>Program",
     "hero_subtitle": "Complete the full RYT-200 in 2 months with a balanced pace",
+    "hero_trust1": "May–June 2026",
+    "hero_trust2": "Semi-intensive",
+    "hero_trust3": "Yoga Alliance RYT-200",
     "hero_meta_next_label": "Next program:",
     "hero_meta_next_val": "May–June 2026",
     "hero_meta_format_label": "Format:",
