@@ -997,6 +997,14 @@
     return { lastPaymentDate: lastPayment, useUntilDate: useUntil };
   }
 
+  // ── Local date string helper (avoids UTC shift from toISOString) ──
+  function toLocalDateStr(d) {
+    var y = d.getFullYear();
+    var m = ('0' + (d.getMonth() + 1)).slice(-2);
+    var day = ('0' + d.getDate()).slice(-2);
+    return y + '-' + m + '-' + day;
+  }
+
   // ── Calculate earliest pause start date (after next billing cycle) ──
   function calcEarliestPauseStart(nextBillingDate) {
     var now = new Date();
@@ -1059,8 +1067,8 @@
         var errorEl = document.getElementById('yb-pause-error');
 
         if (startInput) {
-          startInput.min = earliestStart.toISOString().split('T')[0];
-          startInput.value = earliestStart.toISOString().split('T')[0];
+          startInput.min = toLocalDateStr(earliestStart);
+          startInput.value = toLocalDateStr(earliestStart);
         }
         if (hintEl) {
           hintEl.textContent = t('membership_pause_next_billing') + ': ' + formatDateDK(earliestStart);
@@ -1070,11 +1078,11 @@
         if (endInput && startInput) {
           var defaultEnd = new Date(earliestStart);
           defaultEnd.setDate(defaultEnd.getDate() + 14);
-          endInput.min = defaultEnd.toISOString().split('T')[0];
+          endInput.min = toLocalDateStr(defaultEnd);
           var maxEnd = new Date(earliestStart);
           maxEnd.setMonth(maxEnd.getMonth() + 3);
-          endInput.max = maxEnd.toISOString().split('T')[0];
-          endInput.value = defaultEnd.toISOString().split('T')[0];
+          endInput.max = toLocalDateStr(maxEnd);
+          endInput.value = toLocalDateStr(defaultEnd);
         }
 
         // Update resume info + duration feedback
@@ -1107,8 +1115,8 @@
           minEnd.setDate(minEnd.getDate() + 14);
           var maxEnd = new Date(sd);
           maxEnd.setMonth(maxEnd.getMonth() + 3);
-          endInput.min = minEnd.toISOString().split('T')[0];
-          endInput.max = maxEnd.toISOString().split('T')[0];
+          endInput.min = toLocalDateStr(minEnd);
+          endInput.max = toLocalDateStr(maxEnd);
           // Reset end if out of range
           if (endInput.value < endInput.min) endInput.value = endInput.min;
           if (endInput.value > endInput.max) endInput.value = endInput.max;
@@ -1237,7 +1245,7 @@
         var errorEl = document.getElementById('yb-cancel-error');
 
         var termDates = calcTerminationDates(activeContract ? activeContract.nextBillingDate : null);
-        var terminationDate = termDates.useUntilDate.toISOString().split('T')[0];
+        var terminationDate = toLocalDateStr(termDates.useUntilDate);
 
         cancelConfirmBtn.disabled = true;
         cancelConfirmBtn.textContent = t('membership_cancel_confirming');
@@ -1914,7 +1922,7 @@
         clientId: clientId,
         contractId: Number(serviceId),
         locationId: locationId ? Number(locationId) : 1,
-        startDate: new Date().toISOString().split('T')[0],
+        startDate: toLocalDateStr(new Date()),
         payment: paymentInfo
       };
       if (promoCode) {
@@ -3004,6 +3012,7 @@
       membership_pause_confirming: isDa() ? 'Behandler...' : 'Processing...',
       membership_pause_success: isDa() ? 'Dit abonnement er sat på pause.' : 'Your membership has been paused.',
       membership_pause_error: isDa() ? 'Kunne ikke sætte abonnement på pause. Prøv igen.' : 'Could not pause membership. Please try again.',
+      membership_pause_special: isDa() ? 'Særlige omstændigheder (skade, graviditet, rejse mv.)? Kontakt os for forlænget pause.' : 'Special circumstances (injury, pregnancy, travel etc.)? Contact us for an extended pause.',
       membership_cancel_title: isDa() ? 'Opsig abonnement' : 'Cancel membership',
       membership_cancel_desc: isDa() ? 'Opsigelse følger vores vilkår: 1 måned + løbende dage. Du kan bruge dit abonnement indtil udgangen af den betalte periode.' : 'Cancellation follows our terms: 1 month + running days notice. You can use your membership until the end of the paid period.',
       membership_cancel_earliest: isDa() ? 'Sidste betaling (næste fakturering)' : 'Last payment (next billing)',
