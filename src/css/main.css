@@ -9931,6 +9931,27 @@ section {
   border-radius: 50%;
   background: var(--yb-brand);
 }
+.yb-k-hero__scroll {
+  position: absolute;
+  bottom: 40px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.2em;
+  color: rgba(253, 251, 247, 0.5);
+  z-index: 2;
+  animation: yb-hero-float 3s ease-in-out infinite;
+}
+.yb-k-hero__scroll-line {
+  width: 1px;
+  height: 50px;
+  background: linear-gradient(to bottom, rgba(253, 251, 247, 0.6), transparent);
+}
 
 /* ── Intro ── */
 .yb-k-intro {
