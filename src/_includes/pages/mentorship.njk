@@ -1,5 +1,34 @@
+{% set t = i18n.mentorship[lang or "da"] %}
+
 <!-- ═══════════════════════════════════════════════════════════════
-     SECTION 1 — HERO
+     PRIMARY HERO — Dark Cinematic with Breathing Glow
+     ═══════════════════════════════════════════════════════════════ -->
+<section class="yb-hero">
+  <div class="yb-hero__glow"></div>
+  <div class="yb-hero__content">
+    <p class="yb-hero__tagline">{{ t.hero_tagline }}</p>
+    <h1 class="yb-hero__title">{{ t.hero_title }}</h1>
+    <p class="yb-hero__subtitle">{{ t.hero_subtitle }}</p>
+    <div class="yb-hero__line"></div>
+    <div class="yb-hero__ctas">
+      <a href="#yb-intake" class="yb-btn yb-btn--primary yb-btn--large">{{ t.hero_cta }}</a>
+    </div>
+    <div class="yb-hero__trust">
+      <span>{{ t.hero_trust1 }}</span>
+      <span class="yb-hero__trust-dot"></span>
+      <span>{{ t.hero_trust2 }}</span>
+      <span class="yb-hero__trust-dot"></span>
+      <span>{{ t.hero_trust3 }}</span>
+    </div>
+  </div>
+  <div class="yb-hero__scroll">
+    <span>Scroll</span>
+    <div class="yb-hero__scroll-line"></div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     SECTION 2 — DETAILED HERO
      ═══════════════════════════════════════════════════════════════ -->
 <section class="yb-hero yb-hero--mentorship" aria-labelledby="yb-hero-title">
   <div class="yb-hero__wrap">
