@@ -53,20 +53,9 @@ async function validateClientPass(clientId, classId) {
 
     var now = new Date();
 
-    // Active contracts (memberships) typically cover all classes
-    var contracts = contractsData.Contracts || [];
-    for (var i = 0; i < contracts.length; i++) {
-      var c = contracts[i];
-      var startDate = c.StartDate ? new Date(c.StartDate) : null;
-      var endDate = c.EndDate ? new Date(c.EndDate) : null;
-      var isActive = startDate && startDate <= now && (!endDate || endDate >= now);
-      if (isActive) {
-        console.log('mb-book: Client has active contract:', c.ContractName || c.Id, '— allowing booking');
-        return { allowed: true };
-      }
-    }
-
     // Check if any active service covers this class's program
+    // NOTE: Contracts (memberships) create corresponding services in MB,
+    // so we match services only — this correctly gates workshop/special passes
     var services = servicesData.ClientServices || [];
     for (var j = 0; j < services.length; j++) {
       var s = services[j];

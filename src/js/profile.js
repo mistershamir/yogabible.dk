@@ -637,6 +637,29 @@
       });
   }
 
+  // Bind the "Read full waiver" toggle handler (shared between signed/unsigned views)
+  function bindWaiverReadToggle(textEl) {
+    var readToggle = document.getElementById('yb-waiver-read-toggle');
+    if (!readToggle) return;
+    readToggle.hidden = false;
+    if (readToggle._bound) return;
+    readToggle._bound = true;
+    readToggle.addEventListener('click', function() {
+      if (textEl.hidden) {
+        textEl.hidden = false;
+        loadWaiverText(textEl);
+        readToggle.classList.add('is-expanded');
+        var toggleText = readToggle.querySelector('span');
+        if (toggleText) toggleText.textContent = isDa() ? 'Skjul erklæring' : 'Hide waiver';
+      } else {
+        textEl.hidden = true;
+        readToggle.classList.remove('is-expanded');
+        var toggleText2 = readToggle.querySelector('span');
+        if (toggleText2) toggleText2.textContent = isDa() ? 'Læs fuld erklæring' : 'Read full waiver';
+      }
+    });
+  }
+
   // Render the waiver status card in My Passes tab
   function renderWaiverCard() {
     var card = document.getElementById('yb-waiver-card');
@@ -667,11 +690,8 @@
           if (bodyEl.hidden) {
             bodyEl.hidden = false;
             if (signSection) signSection.hidden = true;
-            // Hide the read-toggle (not needed when viewing signed)
-            var readToggle = document.getElementById('yb-waiver-read-toggle');
-            if (readToggle) readToggle.hidden = true;
-            if (textEl) textEl.hidden = false;
-            loadWaiverText(textEl);
+            if (textEl) textEl.hidden = true; // start collapsed, use toggle
+            bindWaiverReadToggle(textEl);
             toggleBtn.textContent = isDa() ? 'Skjul' : 'Hide';
           } else {
             bodyEl.hidden = true;
@@ -686,27 +706,7 @@
       if (signSection) signSection.hidden = false;
       // Waiver text starts collapsed — user toggles to read
       if (textEl) textEl.hidden = true;
-      var readToggle = document.getElementById('yb-waiver-read-toggle');
-      if (readToggle) {
-        readToggle.hidden = false;
-        if (!readToggle._bound) {
-          readToggle._bound = true;
-          readToggle.addEventListener('click', function() {
-            if (textEl.hidden) {
-              textEl.hidden = false;
-              loadWaiverText(textEl);
-              readToggle.classList.add('is-expanded');
-              var toggleText = readToggle.querySelector('span');
-              if (toggleText) toggleText.textContent = isDa() ? 'Skjul erklæring' : 'Hide waiver';
-            } else {
-              textEl.hidden = true;
-              readToggle.classList.remove('is-expanded');
-              var toggleText2 = readToggle.querySelector('span');
-              if (toggleText2) toggleText2.textContent = isDa() ? 'Læs fuld erklæring' : 'Read full waiver';
-            }
-          });
-        }
-      }
+      bindWaiverReadToggle(textEl);
       initWaiverSignForm();
     }
   }
@@ -960,19 +960,26 @@
         }
         html += '</div>';
 
-        // ── PAUSED STATE: Show pause details + resume button ──
+        // ── PAUSED STATE: Show pause details + reactivate button ──
         if (c.isSuspended) {
+          var pauseDetail = '';
+          if (c.pauseStartDate && c.pauseEndDate) {
+            pauseDetail = formatDateDK(c.pauseStartDate) + ' – ' + formatDateDK(c.pauseEndDate);
+          }
           html += '<div class="yb-membership__pause-status">';
           html += '<div class="yb-membership__pause-status-icon">';
-          html += '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#856404" stroke-width="2"><rect x="6" y="4" width="4" height="16" rx="1"/><rect x="14" y="4" width="4" height="16" rx="1"/></svg>';
+          html += '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#b91c1c" stroke-width="2"><rect x="6" y="4" width="4" height="16" rx="1"/><rect x="14" y="4" width="4" height="16" rx="1"/></svg>';
           html += '</div>';
           html += '<div class="yb-membership__pause-status-text">';
           html += '<strong>' + t('membership_pause_active_title') + '</strong>';
+          if (pauseDetail) {
+            html += '<span>' + pauseDetail + '</span>';
+          }
           html += '<span>' + t('membership_pause_auto_resume') + '</span>';
           html += '</div>';
           html += '</div>';
           html += '<div class="yb-membership__manage-btns">';
-          html += '<button type="button" class="yb-membership__manage-btn yb-membership__manage-btn--resume" data-manage-resume="' + c.id + '">' + t('membership_resume_btn') + '</button>';
+          html += '<button type="button" class="yb-membership__manage-btn yb-membership__manage-btn--resume" data-manage-resume="' + c.id + '">' + t('membership_reactivate_early') + '</button>';
           html += '</div>';
         }
 
@@ -999,6 +1006,7 @@
             html += '<li>' + t('membership_retention_perk2') + '</li>';
             html += '</ul>';
             html += '<button type="button" class="yb-btn yb-btn--primary yb-membership__retention-btn" data-reactivate="' + (c.contractId || '') + '" data-contract-name="' + esc(c.name) + '" data-location-id="' + (c.locationId || '1') + '">' + t('membership_retention_cta') + '</button>';
+            html += '<p class="yb-membership__cancel-term-hint">' + t('membership_cancel_termination_hint') + '</p>';
             html += '</div>';
           } else {
             html += '<div class="yb-membership__rejoin">';
@@ -1326,9 +1334,23 @@
         .then(function(res) {
           if (res.ok && res.data.success) {
             showSections();
-            // Reload data — the contract will now show isSuspended: true
-            loadMembershipDetails();
-            // Show persistent success toast (longer duration)
+            // Immediately mark contract as suspended in local data so UI shows pause state
+            // (MB may not reflect IsSuspended=true until the actual start date arrives)
+            if (clientPassData && clientPassData.activeContracts) {
+              for (var ci = 0; ci < clientPassData.activeContracts.length; ci++) {
+                if (String(clientPassData.activeContracts[ci].id) === String(activeContractId)) {
+                  clientPassData.activeContracts[ci].isSuspended = true;
+                  clientPassData.activeContracts[ci].pauseStartDate = startInput.value;
+                  clientPassData.activeContracts[ci].pauseEndDate = endInput.value;
+                  break;
+                }
+              }
+            }
+            renderMembershipDetails(contentEl, clientPassData);
+            bindMembershipManageEvents(contentEl, clientPassData);
+            // Also reload from server (background, may overwrite if MB not yet updated)
+            setTimeout(function() { loadMembershipDetails(); }, 3000);
+            // Show persistent success toast
             showMembershipToast(t('membership_pause_success'), 'success', 15000);
           } else {
             // Handle "already paused" specifically
@@ -2582,16 +2604,12 @@
 
   /**
    * Check if the client's active passes cover this class's program.
-   * Returns true if they have a matching service or an active contract (membership).
+   * Only checks services (not contracts directly), because memberships create
+   * corresponding services in MB. This correctly gates workshops/special passes.
    */
   function clientCanBook(programId) {
     if (!clientPassData) return true; // If pass data not loaded, let backend decide
     if (!programId) return true; // If class has no program info, let backend decide
-
-    // Active contracts (memberships) typically cover all classes
-    if (clientPassData.activeContracts && clientPassData.activeContracts.length > 0) {
-      return true;
-    }
 
     // Check if any active service covers this program
     var activeServices = clientPassData.activeServices || [];
@@ -2635,7 +2653,7 @@
     var programId = classRow ? Number(classRow.getAttribute('data-program-id')) : null;
 
     if (!clientCanBook(programId)) {
-      showScheduleToast(isDa() ? 'Dit pas dækker ikke denne type klasse.' : "Your pass doesn't cover this class type.", 'error');
+      showScheduleToast(isDa() ? 'Dit pas dækker ikke denne type klasse. Køb det rette pas i Butik-fanen.' : "Your pass doesn't cover this class type. Purchase the required pass in the Store tab.", 'error');
       return;
     }
 
@@ -3230,6 +3248,7 @@
       membership_pause_active_title: isDa() ? 'Medlemskab er på pause' : 'Membership is paused',
       membership_pause_auto_resume: isDa() ? 'Genoptages automatisk ved pausens udløb.' : 'Will resume automatically when the pause period ends.',
       membership_resume_btn: isDa() ? 'Annuller pause' : 'Cancel pause',
+      membership_reactivate_early: isDa() ? 'Genaktivér nu' : 'Reactivate now',
       membership_resume_success: isDa() ? 'Pausen er annulleret — dit abonnement er aktivt igen!' : 'Pause cancelled — your membership is active again!',
       membership_resume_contact: isDa() ? 'Automatisk annullering af pause er desværre ikke tilgængelig. Kontakt os på info@yogabible.dk for at annullere pausen.' : 'Automatic pause cancellation is not available. Please contact us at info@yogabible.dk to cancel the pause.',
       membership_cancel_title: isDa() ? 'Opsig abonnement' : 'Cancel membership',
@@ -3244,6 +3263,9 @@
       membership_next_billing: isDa() ? 'Næste fakturering' : 'Next billing',
       membership_autopay_amount: isDa() ? 'pr. periode' : 'per period',
       membership_back: isDa() ? 'Tilbage' : 'Back',
+      membership_cancel_termination_hint: isDa()
+        ? 'Vil du annullere opsigelsen? Kontakt os på <a href="mailto:info@yogabible.dk">info@yogabible.dk</a>'
+        : 'Want to cancel the termination? Contact us at <a href="mailto:info@yogabible.dk">info@yogabible.dk</a>',
       waiver_fallback: isDa()
         ? 'Ved at acceptere denne erklæring bekræfter jeg, at jeg deltager i yogahold hos Yoga Bible på eget ansvar. Jeg er opmærksom på, at yoga indebærer fysisk aktivitet, der kan medføre skader. Jeg bekræfter, at jeg er rask nok til at deltage, og at jeg vil informere underviseren om eventuelle helbredsproblemer eller begrænsninger inden holdet. Yoga Bible er ikke ansvarlig for skader der måtte opstå under eller som følge af undervisningen.'
         : 'By accepting this waiver, I confirm that I participate in yoga classes at Yoga Bible at my own risk. I am aware that yoga involves physical activity that may result in injury. I confirm that I am healthy enough to participate and that I will inform the instructor of any health issues or limitations before class. Yoga Bible is not liable for injuries that may occur during or as a result of instruction.'
