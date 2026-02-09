@@ -1722,6 +1722,13 @@
       termsSection.hidden = true;
     }
 
+    // Toggle two-column layout when waiver or terms are visible
+    var checkoutGrid = document.getElementById('yb-checkout-grid');
+    if (checkoutGrid) {
+      var hasLeftContent = (waiverSection && !waiverSection.hidden) || (termsSection && !termsSection.hidden);
+      checkoutGrid.classList.toggle('yb-checkout__grid--split', hasLeftContent);
+    }
+
     checkoutEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }
 
