@@ -9828,9 +9828,12 @@ section {
 /* ── Hero ── */
 .yb-k-hero {
   position: relative;
-  background: linear-gradient(135deg, #0F0F0F 0%, #1C1C1C 50%, #0F0F0F 100%);
+  min-height: calc(100vh - 107px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #1C1C1C;
   color: #FDFBF7;
-  padding: 180px 20px 100px;
   text-align: center;
   overflow: hidden;
 }
@@ -9839,19 +9842,33 @@ section {
   inset: 0;
   z-index: 0;
 }
+.yb-k-hero__bg video,
 .yb-k-hero__bg img {
   width: 100%;
   height: 100%;
   object-fit: cover;
 }
-.yb-k-hero__overlay {
+.yb-k-hero__bg::after {
+  content: "";
   position: absolute;
   inset: 0;
-  background: linear-gradient(135deg, rgba(15,15,15,0.92) 0%, rgba(28,28,28,0.85) 50%, rgba(15,15,15,0.92) 100%);
+  background: linear-gradient(180deg, rgba(28, 28, 28, 0.65) 0%, rgba(28, 28, 28, 0.75) 100%);
+}
+.yb-k-hero__glow {
+  position: absolute;
+  width: 800px;
+  height: 800px;
+  background: radial-gradient(circle, rgba(247, 92, 3, 0.15) 0%, transparent 60%);
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  animation: yb-hero-breathe 10s ease-in-out infinite;
+  pointer-events: none;
+  z-index: 1;
 }
 .yb-k-hero .container {
   position: relative;
-  z-index: 1;
+  z-index: 2;
 }
 .yb-k-hero__tagline {
   display: inline-flex;
