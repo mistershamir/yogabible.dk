@@ -3525,12 +3525,20 @@ section {
   color: rgba(255, 255, 255, 0.6);
   text-transform: uppercase;
   letter-spacing: 0.06em;
-  filter: blur(8px);
+  filter: blur(12px);
   transition: filter 0.5s ease;
+  cursor: pointer;
+  animation: yb-trust-pulse 3s ease-in-out infinite;
 }
 
 .yb-hero__trust:hover {
   filter: blur(0);
+  animation: none;
+}
+
+@keyframes yb-trust-pulse {
+  0%, 100% { opacity: 0.5; }
+  50% { opacity: 1; }
 }
 
 .yb-hero__trust-dot {
