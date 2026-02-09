@@ -17,10 +17,11 @@ var PAUSE_MARKER = 'CONTRACT_PAUSED';
 async function getPauseNotes(clientId) {
   try {
     var notesData = await mbFetch('/client/clientnotes?ClientId=' + clientId + '&Limit=100');
-    var notes = notesData.Notes || [];
+    var notes = notesData.Notes || notesData.ClientNotes || [];
+    console.log('[mb-contract-manage] getPauseNotes: keys:', Object.keys(notesData), 'count:', notes.length);
     var pauses = [];
     for (var i = 0; i < notes.length; i++) {
-      var text = notes[i].Text || notes[i].Note || '';
+      var text = notes[i].Text || notes[i].Note || notes[i].Body || '';
       if (text.indexOf(PAUSE_MARKER) === 0) {
         // Format: CONTRACT_PAUSED|contractId|startDate|endDate
         var parts = text.split('|');
@@ -42,30 +43,29 @@ async function getPauseNotes(clientId) {
   }
 }
 
-// Save a pause marker note
+// Save a pause marker note — try multiple MB API body formats
 async function savePauseNote(clientId, contractId, startDate, endDate) {
   var noteText = PAUSE_MARKER + '|' + contractId + '|' + startDate + '|' + endDate;
-  try {
-    await mbFetch('/client/addclientnote', {
-      method: 'POST',
-      body: JSON.stringify({
-        ClientId: clientId,
-        Note: { Text: noteText, Type: { Id: 1 } }
-      })
-    });
-    console.log('[mb-contract-manage] Saved pause note:', noteText);
-  } catch (err) {
-    console.warn('[mb-contract-manage] Could not save pause note:', err.message);
-    // Try alternate format
+  var formats = [
+    { ClientId: String(clientId), Note: { Text: noteText, Type: { Id: 1 } } },
+    { ClientId: String(clientId), Body: noteText },
+    { ClientId: String(clientId), Text: noteText },
+    { ClientId: String(clientId), Note: noteText }
+  ];
+  for (var i = 0; i < formats.length; i++) {
     try {
-      await mbFetch('/client/addclientnote', {
+      var result = await mbFetch('/client/addclientnote', {
         method: 'POST',
-        body: JSON.stringify({ ClientId: clientId, Text: noteText })
+        body: JSON.stringify(formats[i])
       });
-    } catch (e) {
-      console.warn('[mb-contract-manage] Alternate note format also failed:', e.message);
+      console.log('[mb-contract-manage] Saved pause note (format ' + i + '):', noteText, 'result:', JSON.stringify(result).substring(0, 200));
+      return true;
+    } catch (err) {
+      console.warn('[mb-contract-manage] Note format ' + i + ' failed:', err.message);
     }
   }
+  console.error('[mb-contract-manage] ALL note formats failed for:', noteText);
+  return false;
 }
 
 exports.handler = async function(event) {
@@ -205,7 +205,7 @@ exports.handler = async function(event) {
       console.log('[mb-contract-manage] Suspend SUCCESS:', JSON.stringify(suspResult).substring(0, 300));
 
       // Save pause marker note for cross-session persistence
-      await savePauseNote(body.clientId, ccId, body.startDate, body.endDate);
+      var noteSaved = await savePauseNote(body.clientId, ccId, body.startDate, body.endDate);
 
       return jsonResponse(200, {
         success: true,
@@ -213,6 +213,7 @@ exports.handler = async function(event) {
         suspendDate: body.startDate,
         resumeDate: body.endDate,
         durationDays: durationDays,
+        noteSaved: noteSaved,
         message: 'Contract suspension scheduled'
       });
     }

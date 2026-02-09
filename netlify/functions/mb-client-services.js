@@ -45,11 +45,14 @@ exports.handler = async function(event) {
     // Parse pause notes (CONTRACT_PAUSED|contractId|startDate|endDate)
     var pauseNotes = [];
     var nowStr = new Date().toISOString().split('T')[0];
-    (notesData.Notes || []).forEach(function(note) {
-      var text = note.Text || note.Note || '';
+    var allNotes = notesData.Notes || notesData.ClientNotes || [];
+    console.log('[mb-client-services] Notes response keys:', Object.keys(notesData), 'notes count:', allNotes.length);
+    allNotes.forEach(function(note) {
+      var text = note.Text || note.Note || note.Body || '';
       if (text.indexOf(PAUSE_MARKER) === 0) {
         var parts = text.split('|');
         if (parts.length >= 4) {
+          console.log('[mb-client-services] Found pause note:', text);
           pauseNotes.push({
             contractId: Number(parts[1]),
             startDate: parts[2],
