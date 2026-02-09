@@ -241,23 +241,12 @@ exports.handler = async function(event) {
 
     // ── EXTEND PAUSE ──
     if (body.action === 'extend') {
-      if (!body.newEndDate) {
-        return jsonResponse(400, { error: 'newEndDate is required for extension' });
+      if (!body.newEndDate || !body.currentStartDate) {
+        return jsonResponse(400, { error: 'newEndDate and currentStartDate are required for extension' });
       }
       var extCcId = Number(body.clientContractId);
 
-      // Find existing pause note
-      var extPauseNotes = await getPauseNotes(body.clientId);
-      var extNow = new Date().toISOString().split('T')[0];
-      var existingPauseNote = extPauseNotes.find(function(p) {
-        return p.contractId === extCcId && p.endDate >= extNow;
-      });
-
-      if (!existingPauseNote) {
-        return jsonResponse(400, { error: 'No active or scheduled pause found to extend' });
-      }
-
-      var extStart = new Date(existingPauseNote.startDate);
+      var extStart = new Date(body.currentStartDate);
       var extEnd = new Date(body.newEndDate);
       var extDays = Math.round((extEnd - extStart) / 86400000);
 
@@ -268,12 +257,11 @@ exports.handler = async function(event) {
         return jsonResponse(400, { error: 'Total pause cannot exceed 3 months (93 days)' });
       }
 
-      // Create a new suspension with the extended dates
-      // MB may stack suspensions — this effectively extends the pause
+      // Try to re-suspend with the new duration (MB may reject if already at max)
       var extSuspendBody = {
         ClientId: body.clientId,
         ClientContractId: extCcId,
-        SuspendDate: existingPauseNote.startDate,
+        SuspendDate: body.currentStartDate,
         Duration: extDays,
         DurationUnit: 'Day',
         SuspensionType: 'Vacation'
@@ -287,17 +275,16 @@ exports.handler = async function(event) {
           body: JSON.stringify(extSuspendBody)
         });
       } catch (extErr) {
-        console.warn('[mb-contract-manage] Extend suspend call failed:', extErr.message);
-        // Non-fatal — the note update below is the reliable record
+        console.warn('[mb-contract-manage] Extend suspend call failed:', extErr.message, '(non-fatal, Firestore is primary record)');
       }
 
-      // Update the pause note with new end date
-      await savePauseNote(body.clientId, extCcId, existingPauseNote.startDate, body.newEndDate);
+      // Also save updated note as backup
+      await savePauseNote(body.clientId, extCcId, body.currentStartDate, body.newEndDate);
 
       return jsonResponse(200, {
         success: true,
         action: 'extend',
-        suspendDate: existingPauseNote.startDate,
+        suspendDate: body.currentStartDate,
         resumeDate: body.newEndDate,
         durationDays: extDays,
         message: 'Pause extended to ' + body.newEndDate
