@@ -9414,6 +9414,98 @@ section {
   .yb-cv-chapter__title { font-size: 18pt !important; }
 }
 
+/* ═══════════════════════════════════════
+   COURSE VIEWER — EMBEDDED MODE
+   (inline within profile page)
+   ═══════════════════════════════════════ */
+
+.yb-cv--embedded {
+  min-height: auto;
+  background: transparent;
+  border: 1px solid #E8E4E0;
+  border-radius: 16px;
+  overflow: hidden;
+}
+
+.yb-cv--embedded .yb-cv-gate {
+  min-height: 240px;
+}
+
+.yb-cv--embedded .yb-cv-loading {
+  min-height: 240px;
+}
+
+.yb-cv--embedded .yb-cv-error-page {
+  min-height: 240px;
+}
+
+.yb-cv--embedded .yb-cv-completion {
+  position: absolute;
+  inset: 0;
+  z-index: 50;
+  background: rgba(255, 252, 249, 0.95);
+  border-radius: 16px;
+}
+
+.yb-cv--embedded .yb-cv-topbar {
+  position: relative;
+  top: auto;
+  border-radius: 16px 16px 0 0;
+}
+
+.yb-cv--embedded .yb-cv-search {
+  position: relative;
+  top: auto;
+}
+
+.yb-cv--embedded .yb-cv-layout {
+  min-height: 500px;
+  max-height: none;
+}
+
+.yb-cv--embedded .yb-cv-sidebar {
+  position: relative;
+  top: auto;
+  height: auto;
+  max-height: none;
+  min-height: 500px;
+}
+
+.yb-cv--embedded .yb-cv-content {
+  min-height: 500px;
+}
+
+.yb-cv--embedded .yb-cv-fontsize {
+  position: absolute;
+  right: 1rem;
+  top: 53px;
+  z-index: 25;
+}
+
+.yb-cv--embedded .yb-cv-toc {
+  position: absolute;
+  right: 0;
+  top: 53px;
+  z-index: 25;
+  max-height: 400px;
+  border-radius: 0 0 0 12px;
+  box-shadow: -2px 4px 12px rgba(0,0,0,0.08);
+}
+
+/* Embedded responsive */
+@media (max-width: 768px) {
+  .yb-cv--embedded .yb-cv-layout {
+    min-height: 400px;
+  }
+  .yb-cv--embedded .yb-cv-sidebar {
+    min-height: auto;
+  }
+  .yb-cv--embedded .yb-cv-topbar__title {
+    font-size: 0.95rem;
+
+  }
+}
+
 /* ========================================
    KONCEPTER PAGE (yb-k- prefix)
    Brand showcase — Hot Yoga CPH, Namasté, Vibro Yoga
