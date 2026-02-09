@@ -613,6 +613,20 @@
             } catch (e) {}
           }
         }
+        // SYNC: If signed locally (localStorage/Firestore) but MB doesn't know yet,
+        // push the marker note to MB so other browsers can detect it
+        if (waiverSigned && !data.clientSigned) {
+          console.log('[waiver] Syncing waiver marker to MB for cross-browser persistence');
+          fetch('/.netlify/functions/mb-waiver', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ clientId: mbClientId })
+          }).then(function() {
+            console.log('[waiver] Sync to MB succeeded');
+          }).catch(function(syncErr) {
+            console.warn('[waiver] Sync to MB failed (non-critical):', syncErr);
+          });
+        }
         waiverStatusLoaded = true;
         renderWaiverCard();
       })
@@ -645,14 +659,18 @@
         var d = new Date(waiverAgreementDate);
         dateEl.textContent = d.toLocaleDateString(isDa() ? 'da-DK' : 'en-GB', { year: 'numeric', month: 'short', day: 'numeric' });
       }
-      // Toggle button expands/collapses the waiver text
+      // Toggle button expands/collapses the waiver text (read-only view when signed)
       var toggleBtn = document.getElementById('yb-waiver-toggle-btn');
       if (toggleBtn && !toggleBtn._bound) {
         toggleBtn._bound = true;
         toggleBtn.addEventListener('click', function() {
           if (bodyEl.hidden) {
             bodyEl.hidden = false;
-            if (signSection) signSection.hidden = true; // hide sign section when just viewing
+            if (signSection) signSection.hidden = true;
+            // Hide the read-toggle (not needed when viewing signed)
+            var readToggle = document.getElementById('yb-waiver-read-toggle');
+            if (readToggle) readToggle.hidden = true;
+            if (textEl) textEl.hidden = false;
             loadWaiverText(textEl);
             toggleBtn.textContent = isDa() ? 'Skjul' : 'Hide';
           } else {
@@ -662,11 +680,33 @@
         });
       }
     } else {
-      // Unsigned — show full card with sign form
+      // Unsigned — show compact card with collapsible waiver text
       if (signedEl) signedEl.hidden = true;
       if (bodyEl) bodyEl.hidden = false;
       if (signSection) signSection.hidden = false;
-      loadWaiverText(textEl);
+      // Waiver text starts collapsed — user toggles to read
+      if (textEl) textEl.hidden = true;
+      var readToggle = document.getElementById('yb-waiver-read-toggle');
+      if (readToggle) {
+        readToggle.hidden = false;
+        if (!readToggle._bound) {
+          readToggle._bound = true;
+          readToggle.addEventListener('click', function() {
+            if (textEl.hidden) {
+              textEl.hidden = false;
+              loadWaiverText(textEl);
+              readToggle.classList.add('is-expanded');
+              var toggleText = readToggle.querySelector('span');
+              if (toggleText) toggleText.textContent = isDa() ? 'Skjul erklæring' : 'Hide waiver';
+            } else {
+              textEl.hidden = true;
+              readToggle.classList.remove('is-expanded');
+              var toggleText2 = readToggle.querySelector('span');
+              if (toggleText2) toggleText2.textContent = isDa() ? 'Læs fuld erklæring' : 'Read full waiver';
+            }
+          });
+        }
+      }
       initWaiverSignForm();
     }
   }

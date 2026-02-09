@@ -422,8 +422,18 @@
             </div>
             <!-- Expanded state (unsigned or expanded) -->
             <div id="yb-waiver-card-body" class="yb-waiver-card__body" hidden>
-              <h3 class="yb-waiver-card__title">{{ t.waiver_title }}</h3>
-              <div id="yb-waiver-text" class="yb-waiver__text">
+              <div class="yb-waiver-card__header-row">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#f75c03" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+                <div>
+                  <h3 class="yb-waiver-card__title">{{ t.waiver_title }}</h3>
+                  <p class="yb-waiver-card__desc">{{ t.waiver_desc }}</p>
+                </div>
+              </div>
+              <button type="button" class="yb-waiver__read-toggle" id="yb-waiver-read-toggle">
+                <span>{{ t.waiver_read_toggle }}</span>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+              </button>
+              <div id="yb-waiver-text" class="yb-waiver__text" hidden>
                 <div class="yb-store__loading">
                   <div class="yb-mb-spinner"></div>
                   <span>{{ t.waiver_loading }}</span>
@@ -436,7 +446,7 @@
                 </label>
                 <p class="yb-waiver__sign-label">{{ t.waiver_sign_label }}</p>
                 <div class="yb-signature-pad" id="yb-waiver-sigpad">
-                  <canvas id="yb-waiver-canvas" width="400" height="160"></canvas>
+                  <canvas id="yb-waiver-canvas" width="360" height="120"></canvas>
                   <button type="button" class="yb-signature-pad__clear" id="yb-waiver-sig-clear">{{ t.signature_clear }}</button>
                 </div>
                 <div class="yb-auth-error" id="yb-waiver-error" hidden role="alert"></div>
