@@ -470,7 +470,7 @@
           html += '<li>' + t('membership_retention_perk1') + '</li>';
           html += '<li>' + t('membership_retention_perk2') + '</li>';
           html += '</ul>';
-          html += '<button type="button" class="yb-btn yb-btn--primary yb-membership__retention-btn" data-reactivate="' + (c.contractId || '') + '" data-location-id="' + (c.locationId || '1') + '">' + t('membership_retention_cta') + '</button>';
+          html += '<button type="button" class="yb-btn yb-btn--primary yb-membership__retention-btn" data-reactivate="' + (c.contractId || '') + '" data-contract-name="' + esc(c.name) + '" data-location-id="' + (c.locationId || '1') + '">' + t('membership_retention_cta') + '</button>';
           html += '</div>';
         }
         html += '</div>';
@@ -834,19 +834,36 @@
     for (var r = 0; r < reactivateBtns.length; r++) {
       reactivateBtns[r].addEventListener('click', function() {
         var contractId = this.getAttribute('data-reactivate');
-        // Switch to Store tab and auto-open checkout for the same contract
+        var contractName = this.getAttribute('data-contract-name') || '';
+        console.log('[Reactivate] Looking for contract template ID:', contractId, 'name:', contractName);
+        // Switch to Store tab and auto-open checkout for the matching contract
         var storeBtn = document.querySelector('[data-yb-tab="store"]');
         if (storeBtn) {
           storeBtn.click();
+          // First show memberships category, then find the contract
           setTimeout(function() {
-            var buyBtn = document.querySelector('[data-store-buy="' + contractId + '"]');
-            if (buyBtn) {
-              buyBtn.click();
-            } else {
-              // Contract not found in store — show memberships category
-              var memCat = document.querySelector('[data-store-category="memberships"]');
-              if (memCat) memCat.click();
-            }
+            var memCat = document.querySelector('[data-store-cat="memberships"]');
+            if (memCat) memCat.click();
+            // Wait for re-render after category switch
+            setTimeout(function() {
+              var buyBtn = document.querySelector('[data-store-buy="' + contractId + '"]');
+              if (buyBtn) {
+                console.log('[Reactivate] Found contract by ID, opening checkout');
+                buyBtn.click();
+              } else if (contractName) {
+                // Fallback: match by name in storeServices array
+                var match = storeServices.find(function(s) {
+                  return s._itemType === 'contract' && s.name === contractName;
+                });
+                if (match) {
+                  console.log('[Reactivate] Found contract by name match, ID:', match.id);
+                  var nameBtn = document.querySelector('[data-store-buy="' + match.id + '"]');
+                  if (nameBtn) nameBtn.click();
+                } else {
+                  console.log('[Reactivate] No match found. Store contracts:', storeServices.filter(function(s) { return s._itemType === 'contract'; }).map(function(s) { return s.id + ':' + s.name; }));
+                }
+              }
+            }, 300);
           }, 800);
         }
       });
