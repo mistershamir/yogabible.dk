@@ -913,23 +913,27 @@
             if (fsPause && fsPause.endDate >= now) {
               // Firestore says paused AND not expired yet
               if (c.isSuspended || c.pauseStartDate) {
-                // MB also confirms pause — keep Firestore data (may have extended dates)
+                // MB also confirms pause — keep Firestore data
                 if (!c.pauseStartDate) c.pauseStartDate = fsPause.startDate;
                 if (!c.pauseEndDate) c.pauseEndDate = fsPause.endDate;
+              } else if (fsPause.startDate > now) {
+                // Future-dated pause — MB IsSuspended is ALWAYS false for these.
+                // Firestore is the source of truth. Trust it unconditionally.
+                c.isSuspended = true;
+                c.pauseStartDate = fsPause.startDate;
+                c.pauseEndDate = fsPause.endDate;
               } else {
-                // MB says NOT paused but Firestore says paused
-                // Check if MB was cleaned up by admin (trust MB as source of truth)
-                // Only apply Firestore pause if it was saved very recently (within 60s)
+                // Pause should be active NOW (startDate <= today).
+                // MB should show IsSuspended=true. If not, admin may have removed it.
+                // Give a 5-min grace period for MB propagation after saving.
                 var savedAt = fsPause.savedAt ? new Date(fsPause.savedAt).getTime() : 0;
                 var ageMs = Date.now() - savedAt;
-                if (ageMs < 60000) {
-                  // Just paused — MB may not reflect it yet
+                if (ageMs < 300000) {
                   c.isSuspended = true;
                   c.pauseStartDate = fsPause.startDate;
                   c.pauseEndDate = fsPause.endDate;
                 } else {
-                  // Stale Firestore data — MB admin likely removed the pause
-                  console.log('[Pause] Removing stale Firestore pause for contract', c.id, '(MB says not suspended)');
+                  console.log('[Pause] Removing stale Firestore pause for contract', c.id, '(active pause not confirmed by MB)');
                   removePauseFromFirestore(c.id);
                 }
               }
