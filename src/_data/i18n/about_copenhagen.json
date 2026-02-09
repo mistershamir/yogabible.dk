@@ -93,7 +93,11 @@
     "cta_title": "Klar til at træne i København?",
     "cta_text": "Udforsk vores programmer, sammenlign formater og start din rejse.",
     "cta_programs": "Se Alle Programmer",
-    "cta_compare": "Sammenlign Formater"
+    "cta_compare": "Sammenlign Formater",
+    "hero_tagline": "Yoga Bible · Din Destination",
+    "hero_trust1": "Christianshavn, København",
+    "hero_trust2": "Internationalt Fællesskab",
+    "hero_trust3": "Skandinavisk Livsstil"
   },
   "en": {
     "hero_badge": "YOUR TRAINING DESTINATION",
@@ -189,6 +193,10 @@
     "cta_title": "Ready to Train in Copenhagen?",
     "cta_text": "Explore our programs, compare formats, and start your journey.",
     "cta_programs": "See All Programs",
-    "cta_compare": "Compare Formats"
+    "cta_compare": "Compare Formats",
+    "hero_tagline": "Yoga Bible · Your Destination",
+    "hero_trust1": "Christianshavn, Copenhagen",
+    "hero_trust2": "International Community",
+    "hero_trust3": "Scandinavian Lifestyle"
   }
 }

@@ -132,7 +132,7 @@
     "modal_city_label": "BY / LAND",
     "modal_lang_label": "SPROG",
     "modal_bg_label": "CERTIFICERINGER / BAGGRUND",
-    "modal_bg_placeholder": "Kort oversigt over uddannelse, stilretninger, erfaring\u2026",
+    "modal_bg_placeholder": "Kort oversigt over uddannelse, stilretninger, erfaring…",
     "modal_msg_label": "BESKED*",
     "modal_msg_placeholder": "Hvad vil du gerne undervise i / bidrage med? Hvilket format foreslår du (modul, workshop, 30–50 timer, mentorship osv.)?",
     "modal_cv_label": "CV (valgfrit)",
@@ -144,7 +144,7 @@
     "modal_fine": "Ved at sende accepterer du, at vi må behandle oplysningerne for at kunne kontakte dig.",
     "modal_success_title": "Tak!",
     "modal_success_msg": "Vi har modtaget din forespørgsel. Du får en bekræftelse på e-mail om lidt.",
-    "js_sending": "Sender\u2026",
+    "js_sending": "Sender…",
     "js_submit_default": "Send forespørgsel",
     "js_too_many_files": "For mange filer. Vælg færre bilag.",
     "js_file_too_large_prefix": "En fil er for stor. Max ",
@@ -153,14 +153,71 @@
     "js_unknown_error": "(Ukendt fejl)",
     "js_filereader_error": "(Kunne ikke læse filer.)",
     "js_subcats": {
-      "Yoga / Meditation Teacher": ["Vinyasa","Yin","Ashtanga","Hatha","Hot Yoga","Meditation","Breathwork","Pilates","Bikram Yoga","Iyengar","Acro Yoga","Vibro Yoga","Pre- & postnatal","Kids Yoga","Yoga for seniors"],
-      "Uddannelser (YTT)": ["Lead trainer","Assistant lead trainer","Anatomi & biomekanik","Filosofi & historie","Breathwork / pranayama","Pre & postnatal","Yin / restorative","Alignment & skadeforebyggelse","Andet YTT modul"],
-      "Kurser & workshops": ["Dybe backbends","Inversions","Splits & hip opening","Mobilitet & styrke","Meditation","Tema-forløb (30\u201350 timer)","Weekend intensive","Andet workshop"],
-      "Mentorship & privates": ["Privat undervisning (praksis)","Mentorship for undervisere","Business / studio mentorship","Program design & sparring"],
-      "Marketing & content": ["SoMe strategi","Video filming","Video editing","Content plan & copy","SEO / landing pages","Partnerskaber / outreach"],
-      "Administration & outreach": ["Client communication","Kundeservice / koordinering","CRM / opfølgning","Sales / outreach","Events / community"],
+      "Yoga / Meditation Teacher": [
+        "Vinyasa",
+        "Yin",
+        "Ashtanga",
+        "Hatha",
+        "Hot Yoga",
+        "Meditation",
+        "Breathwork",
+        "Pilates",
+        "Bikram Yoga",
+        "Iyengar",
+        "Acro Yoga",
+        "Vibro Yoga",
+        "Pre- & postnatal",
+        "Kids Yoga",
+        "Yoga for seniors"
+      ],
+      "Uddannelser (YTT)": [
+        "Lead trainer",
+        "Assistant lead trainer",
+        "Anatomi & biomekanik",
+        "Filosofi & historie",
+        "Breathwork / pranayama",
+        "Pre & postnatal",
+        "Yin / restorative",
+        "Alignment & skadeforebyggelse",
+        "Andet YTT modul"
+      ],
+      "Kurser & workshops": [
+        "Dybe backbends",
+        "Inversions",
+        "Splits & hip opening",
+        "Mobilitet & styrke",
+        "Meditation",
+        "Tema-forløb (30–50 timer)",
+        "Weekend intensive",
+        "Andet workshop"
+      ],
+      "Mentorship & privates": [
+        "Privat undervisning (praksis)",
+        "Mentorship for undervisere",
+        "Business / studio mentorship",
+        "Program design & sparring"
+      ],
+      "Marketing & content": [
+        "SoMe strategi",
+        "Video filming",
+        "Video editing",
+        "Content plan & copy",
+        "SEO / landing pages",
+        "Partnerskaber / outreach"
+      ],
+      "Administration & outreach": [
+        "Client communication",
+        "Kundeservice / koordinering",
+        "CRM / opfølgning",
+        "Sales / outreach",
+        "Events / community"
+      ],
       "Andet samarbejde": []
-    }
+    },
+    "hero_tagline": "Yoga Bible · Karriere",
+    "hero_trust1": "Undervisere & Mentorer",
+    "hero_trust2": "Kreative Profiler",
+    "hero_trust3": "København"
   },
   "en": {
     "hero_kicker": "CAREERS &amp; COLLABORATION",
@@ -295,7 +352,7 @@
     "modal_city_label": "CITY / COUNTRY",
     "modal_lang_label": "LANGUAGES",
     "modal_bg_label": "CERTIFICATIONS / BACKGROUND",
-    "modal_bg_placeholder": "Brief overview of education, styles, experience\u2026",
+    "modal_bg_placeholder": "Brief overview of education, styles, experience…",
     "modal_msg_label": "MESSAGE*",
     "modal_msg_placeholder": "What would you like to teach / contribute? What format do you suggest (module, workshop, 30-50 hours, mentorship, etc.)?",
     "modal_cv_label": "CV (optional)",
@@ -307,7 +364,7 @@
     "modal_fine": "By submitting, you accept that we may process the information to contact you.",
     "modal_success_title": "Thank you!",
     "modal_success_msg": "We have received your inquiry. You will receive a confirmation email shortly.",
-    "js_sending": "Sending\u2026",
+    "js_sending": "Sending…",
     "js_submit_default": "Send inquiry",
     "js_too_many_files": "Too many files. Select fewer attachments.",
     "js_file_too_large_prefix": "A file is too large. Max ",
@@ -316,13 +373,70 @@
     "js_unknown_error": "(Unknown error)",
     "js_filereader_error": "(Could not read files.)",
     "js_subcats": {
-      "Yoga / Meditation Teacher": ["Vinyasa","Yin","Ashtanga","Hatha","Hot Yoga","Meditation","Breathwork","Pilates","Bikram Yoga","Iyengar","Acro Yoga","Vibro Yoga","Pre- & postnatal","Kids Yoga","Yoga for seniors"],
-      "Uddannelser (YTT)": ["Lead trainer","Assistant lead trainer","Anatomy & biomechanics","Philosophy & history","Breathwork / pranayama","Pre & postnatal","Yin / restorative","Alignment & injury prevention","Other YTT module"],
-      "Kurser & workshops": ["Deep backbends","Inversions","Splits & hip opening","Mobility & strength","Meditation","Theme program (30\u201350 hours)","Weekend intensive","Other workshop"],
-      "Mentorship & privates": ["Private training (practice)","Mentorship for instructors","Business / studio mentorship","Program design & consulting"],
-      "Marketing & content": ["Social media strategy","Video filming","Video editing","Content plan & copy","SEO / landing pages","Partnerships / outreach"],
-      "Administration & outreach": ["Client communication","Customer service / coordination","CRM / follow-up","Sales / outreach","Events / community"],
+      "Yoga / Meditation Teacher": [
+        "Vinyasa",
+        "Yin",
+        "Ashtanga",
+        "Hatha",
+        "Hot Yoga",
+        "Meditation",
+        "Breathwork",
+        "Pilates",
+        "Bikram Yoga",
+        "Iyengar",
+        "Acro Yoga",
+        "Vibro Yoga",
+        "Pre- & postnatal",
+        "Kids Yoga",
+        "Yoga for seniors"
+      ],
+      "Uddannelser (YTT)": [
+        "Lead trainer",
+        "Assistant lead trainer",
+        "Anatomy & biomechanics",
+        "Philosophy & history",
+        "Breathwork / pranayama",
+        "Pre & postnatal",
+        "Yin / restorative",
+        "Alignment & injury prevention",
+        "Other YTT module"
+      ],
+      "Kurser & workshops": [
+        "Deep backbends",
+        "Inversions",
+        "Splits & hip opening",
+        "Mobility & strength",
+        "Meditation",
+        "Theme program (30–50 hours)",
+        "Weekend intensive",
+        "Other workshop"
+      ],
+      "Mentorship & privates": [
+        "Private training (practice)",
+        "Mentorship for instructors",
+        "Business / studio mentorship",
+        "Program design & consulting"
+      ],
+      "Marketing & content": [
+        "Social media strategy",
+        "Video filming",
+        "Video editing",
+        "Content plan & copy",
+        "SEO / landing pages",
+        "Partnerships / outreach"
+      ],
+      "Administration & outreach": [
+        "Client communication",
+        "Customer service / coordination",
+        "CRM / follow-up",
+        "Sales / outreach",
+        "Events / community"
+      ],
       "Andet samarbejde": []
-    }
+    },
+    "hero_tagline": "Yoga Bible · Careers",
+    "hero_trust1": "Teachers & Mentors",
+    "hero_trust2": "Creative Professionals",
+    "hero_trust3": "Copenhagen"
   }
 }
