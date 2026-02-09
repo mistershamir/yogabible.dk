@@ -42,9 +42,16 @@
 
         // Deep-link to courses tab via hash
         var hash = window.location.hash;
-        if (hash === '#mine-kurser' || hash === '#my-courses') {
+        if (hash === '#mine-kurser' || hash === '#my-courses' || hash.indexOf('#course=') === 0) {
           var coursesTab = document.querySelector('[data-yb-tab="courses"]');
           if (coursesTab) coursesTab.click();
+          // If deep-linking to a specific course, open it after courses load
+          if (hash.indexOf('#course=') === 0) {
+            var deepCourseId = hash.substring(8);
+            setTimeout(function() {
+              openCourseViewer(deepCourseId, null, null);
+            }, 500);
+          }
         }
       } else {
         currentUser = null;
@@ -1267,9 +1274,6 @@
       return;
     }
 
-    var lp = lang === 'en' ? '/en' : '';
-    var viewerPath = lang === 'en' ? '/en/course-material/' : '/kursus-materiale/';
-
     var html = courses.map(function(item) {
       var c = item.course;
       var title = c['title_' + lang] || c.title_da || 'Course';
@@ -1278,15 +1282,16 @@
 
       // Calculate progress
       var viewed = item.progress && item.progress.viewed ? Object.keys(item.progress.viewed).length : 0;
-      var pct = 0;
-      // We don't know total chapters without fetching all, so show viewed count
       var hasProgress = viewed > 0;
       var btnLabel = hasProgress ? t.continue_btn : t.start_btn;
-      var btnUrl = viewerPath + '?course=' + item.id;
 
-      // If user has progress, deep-link to last chapter
-      if (item.progress && item.progress.lastModule && item.progress.lastChapter) {
-        btnUrl += '&module=' + item.progress.lastModule + '&chapter=' + item.progress.lastChapter;
+      // Build data attributes for inline course viewer
+      var dataAttrs = 'data-course-open="' + item.id + '"';
+      if (item.progress && item.progress.lastModule) {
+        dataAttrs += ' data-module="' + item.progress.lastModule + '"';
+      }
+      if (item.progress && item.progress.lastChapter) {
+        dataAttrs += ' data-chapter="' + item.progress.lastChapter + '"';
       }
 
       return '<div class="yb-profile__course-card">' +
@@ -1298,11 +1303,67 @@
             (hasProgress ? ' · ' + viewed + ' ' + (isDa() ? 'kapitler læst' : 'chapters read') : '') +
           '</span>' +
         '</div>' +
-        '<a href="' + btnUrl + '" class="yb-btn yb-btn--primary yb-profile__course-btn">' + btnLabel + '</a>' +
+        '<button type="button" ' + dataAttrs + ' class="yb-btn yb-btn--primary yb-profile__course-btn">' + btnLabel + '</button>' +
       '</div>';
     }).join('');
 
     container.innerHTML = html;
+
+    // Bind inline course viewer buttons
+    container.querySelectorAll('[data-course-open]').forEach(function(btn) {
+      btn.addEventListener('click', function() {
+        var courseId = btn.getAttribute('data-course-open');
+        var moduleId = btn.getAttribute('data-module') || null;
+        var chapterId = btn.getAttribute('data-chapter') || null;
+        openCourseViewer(courseId, moduleId, chapterId);
+      });
+    });
+  }
+
+  // ══════════════════════════════════════
+  // INLINE COURSE VIEWER
+  // ══════════════════════════════════════
+  function openCourseViewer(courseId, moduleId, chapterId) {
+    var listEl = document.getElementById('yb-profile-courses-list');
+    var viewerEl = document.getElementById('yb-profile-course-viewer');
+    if (!listEl || !viewerEl) return;
+
+    // Hide course list, show viewer
+    listEl.hidden = true;
+    viewerEl.hidden = false;
+
+    // Scroll to top of viewer
+    viewerEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+    // Init the course viewer in embedded mode
+    if (window.YBCourseViewer) {
+      window.YBCourseViewer.init(courseId, {
+        embedded: true,
+        lang: isDa() ? 'da' : 'en',
+        module: moduleId,
+        chapter: chapterId,
+        onBack: function() {
+          closeCourseViewer();
+        }
+      });
+    }
+  }
+
+  function closeCourseViewer() {
+    var listEl = document.getElementById('yb-profile-courses-list');
+    var viewerEl = document.getElementById('yb-profile-course-viewer');
+    if (!listEl || !viewerEl) return;
+
+    // Destroy the viewer and hide it
+    if (window.YBCourseViewer) {
+      window.YBCourseViewer.destroy();
+    }
+    viewerEl.hidden = true;
+    listEl.hidden = false;
+
+    // Re-load courses to refresh progress
+    tabLoaded['courses'] = false;
+    loadMyCourses();
   }
 
 })();

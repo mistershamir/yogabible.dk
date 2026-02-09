@@ -38,8 +38,12 @@
     tocOpen: false,
     fontsizeOpen: false,
     completionShown: false,
+    embedded: false,
+    onBack: null,
     lang: 'da'
   };
+
+  var eventsBound = false;
 
   var db, auth;
 
@@ -63,19 +67,33 @@
   // INIT
   // ════════════════════════════════════════
 
-  function init() {
+  function init(options) {
+    options = options || {};
     var wrapper = document.getElementById('yb-cv-wrapper');
     if (!wrapper) return;
 
-    state.lang = window._ybCVLang || 'da';
+    state.embedded = !!options.embedded;
+    state.onBack = options.onBack || null;
+    state.lang = options.lang || window._ybCVLang || 'da';
 
-    // Parse URL params
-    var params = new URLSearchParams(window.location.search);
-    state.courseId = params.get('course');
+    // Get courseId from options (embedded) or URL (standalone)
+    if (options.courseId) {
+      state.courseId = options.courseId;
+    } else {
+      var params = new URLSearchParams(window.location.search);
+      state.courseId = params.get('course');
+    }
 
     if (!state.courseId) {
       showError(t('error_no_course'));
       return;
+    }
+
+    // Add/remove embedded class
+    if (state.embedded) {
+      wrapper.classList.add('yb-cv--embedded');
+    } else {
+      wrapper.classList.remove('yb-cv--embedded');
     }
 
     auth = firebase.auth();
@@ -86,23 +104,39 @@
 
     bindEvents();
 
-    auth.onAuthStateChanged(function(user) {
-      if (!user) {
+    // Get module/chapter targets
+    var moduleTarget = options.module || null;
+    var chapterTarget = options.chapter || null;
+    if (!state.embedded) {
+      var urlParams = new URLSearchParams(window.location.search);
+      moduleTarget = moduleTarget || urlParams.get('module');
+      chapterTarget = chapterTarget || urlParams.get('chapter');
+    }
+
+    if (state.embedded) {
+      // In embedded mode, user is already authenticated on profile page
+      state.user = auth.currentUser;
+      if (!state.user) {
         showGate('login');
         return;
       }
-      state.user = user;
       checkEnrollment().then(function(enrolled) {
-        if (!enrolled) {
-          showGate('enroll');
-          return;
-        }
+        if (!enrolled) { showGate('enroll'); return; }
         showViewer();
-        var moduleParam = params.get('module');
-        var chapterParam = params.get('chapter');
-        loadCourse(moduleParam, chapterParam);
+        loadCourse(moduleTarget, chapterTarget);
       });
-    });
+    } else {
+      // Standalone mode: listen for auth state changes
+      auth.onAuthStateChanged(function(user) {
+        if (!user) { showGate('login'); return; }
+        state.user = user;
+        checkEnrollment().then(function(enrolled) {
+          if (!enrolled) { showGate('enroll'); return; }
+          showViewer();
+          loadCourse(moduleTarget, chapterTarget);
+        });
+      });
+    }
   }
 
   // ════════════════════════════════════════
@@ -110,6 +144,29 @@
   // ════════════════════════════════════════
 
   function bindEvents() {
+    if (eventsBound) return;
+    eventsBound = true;
+
+    // Back link — in embedded mode, call onBack callback instead of navigating
+    var backLink = document.getElementById('yb-cv-back-link');
+    if (backLink) {
+      backLink.addEventListener('click', function(e) {
+        if (state.embedded && state.onBack) {
+          e.preventDefault();
+          state.onBack();
+        }
+      });
+    }
+    // Error page back button (embedded mode)
+    var errorBack = document.getElementById('yb-cv-error-back');
+    if (errorBack) {
+      errorBack.addEventListener('click', function() {
+        if (state.embedded && state.onBack) {
+          state.onBack();
+        }
+      });
+    }
+
     // Sidebar toggle (mobile)
     var sidebarToggle = document.getElementById('yb-cv-sidebar-toggle');
     var overlay = document.getElementById('yb-cv-sidebar-overlay');
@@ -195,6 +252,10 @@
 
     // Keyboard: Escape closes search/sidebar/TOC/fontsize, arrows navigate chapters
     document.addEventListener('keydown', function(e) {
+      // Only handle when viewer is active (not hidden)
+      var viewer = document.getElementById('yb-cv-viewer');
+      if (!viewer || viewer.hidden) return;
+
       if (e.key === 'Escape') {
         if (state.searchOpen) closeSearch();
         if (state.sidebarOpen) closeSidebar();
@@ -364,12 +425,14 @@
     state.currentModule = moduleId;
     state.currentChapter = chapterId;
 
-    // Update URL
-    var url = new URL(window.location);
-    url.searchParams.set('course', state.courseId);
-    url.searchParams.set('module', moduleId);
-    url.searchParams.set('chapter', chapterId);
-    window.history.replaceState({}, '', url);
+    // Update URL (standalone mode only)
+    if (!state.embedded) {
+      var url = new URL(window.location);
+      url.searchParams.set('course', state.courseId);
+      url.searchParams.set('module', moduleId);
+      url.searchParams.set('chapter', chapterId);
+      window.history.replaceState({}, '', url);
+    }
 
     // Show chapter view, hide my comments
     var chapterEl = document.getElementById('yb-cv-chapter');
@@ -402,10 +465,16 @@
     closeTOC();
     closeFontSize();
 
-    // Scroll content to top (both the content pane and window)
+    // Scroll content to top
     var contentEl = document.getElementById('yb-cv-content');
     if (contentEl) contentEl.scrollTop = 0;
-    window.scrollTo(0, 0);
+    if (state.embedded) {
+      // Scroll the wrapper into view rather than full page scroll
+      var wrapper = document.getElementById('yb-cv-wrapper');
+      if (wrapper) wrapper.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    } else {
+      window.scrollTo(0, 0);
+    }
 
     // Load comments and notes in parallel
     var commentsPromise = loadComments(moduleId, chapterId);
@@ -1496,14 +1565,92 @@
   }
 
   // ════════════════════════════════════════
-  // BOOTSTRAP
+  // RESET STATE (for re-init in embedded mode)
   // ════════════════════════════════════════
 
-  var checkInterval = setInterval(function() {
-    if (typeof firebase !== 'undefined' && firebase.apps && firebase.apps.length) {
-      clearInterval(checkInterval);
-      init();
+  function resetState() {
+    state.user = null;
+    state.courseId = null;
+    state.course = null;
+    state.modules = [];
+    state.chaptersCache = {};
+    state.allChaptersLoaded = false;
+    state.currentModule = null;
+    state.currentChapter = null;
+    state.enrollment = null;
+    state.progress = null;
+    state.comments = [];
+    state.currentNote = null;
+    state.sidebarOpen = false;
+    state.searchOpen = false;
+    state.tocOpen = false;
+    state.fontsizeOpen = false;
+    state.completionShown = false;
+    state.embedded = false;
+    state.onBack = null;
+    // Clear rendered content
+    var sidebarNav = document.getElementById('yb-cv-sidebar-modules');
+    if (sidebarNav) sidebarNav.innerHTML = '';
+    var commentsList = document.getElementById('yb-cv-comments-list');
+    if (commentsList) commentsList.innerHTML = '';
+    var searchResults = document.getElementById('yb-cv-search-results');
+    if (searchResults) searchResults.innerHTML = '';
+    var tocList = document.getElementById('yb-cv-toc-list');
+    if (tocList) tocList.innerHTML = '';
+    var chapterContent = document.getElementById('yb-cv-chapter-content');
+    if (chapterContent) chapterContent.innerHTML = '';
+    // Hide all states
+    hide('yb-cv-viewer');
+    hide('yb-cv-gate');
+    hide('yb-cv-loading');
+    hide('yb-cv-error-page');
+    hide('yb-cv-completion');
+  }
+
+  // ════════════════════════════════════════
+  // PUBLIC API (for embedded use from profile page)
+  // ════════════════════════════════════════
+
+  window.YBCourseViewer = {
+    init: function(courseId, options) {
+      options = options || {};
+      options.courseId = courseId;
+      options.embedded = true;
+
+      function doInit() {
+        resetState();
+        init(options);
+      }
+
+      if (typeof firebase !== 'undefined' && firebase.apps && firebase.apps.length) {
+        doInit();
+      } else {
+        var check = setInterval(function() {
+          if (typeof firebase !== 'undefined' && firebase.apps && firebase.apps.length) {
+            clearInterval(check);
+            doInit();
+          }
+        }, 100);
+      }
+    },
+    destroy: function() {
+      resetState();
     }
-  }, 100);
+  };
+
+  // ════════════════════════════════════════
+  // BOOTSTRAP (standalone page only)
+  // ════════════════════════════════════════
+
+  // Auto-init on standalone course-viewer page (URL has ?course= param)
+  var _urlParams = new URLSearchParams(window.location.search);
+  if (_urlParams.has('course')) {
+    var checkInterval = setInterval(function() {
+      if (typeof firebase !== 'undefined' && firebase.apps && firebase.apps.length) {
+        clearInterval(checkInterval);
+        init();
+      }
+    }, 100);
+  }
 
 })();
