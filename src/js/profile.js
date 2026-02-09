@@ -910,10 +910,29 @@
           (data.activeContracts || []).forEach(function(c) {
             var key = 'pause_' + c.id;
             var fsPause = firestorePauses[key];
-            if (fsPause && fsPause.endDate >= now && !c.isSuspended && !c.pauseStartDate) {
-              c.isSuspended = true;
-              c.pauseStartDate = fsPause.startDate;
-              c.pauseEndDate = fsPause.endDate;
+            if (fsPause && fsPause.endDate >= now) {
+              // Firestore says paused AND not expired yet
+              if (c.isSuspended || c.pauseStartDate) {
+                // MB also confirms pause — keep Firestore data (may have extended dates)
+                if (!c.pauseStartDate) c.pauseStartDate = fsPause.startDate;
+                if (!c.pauseEndDate) c.pauseEndDate = fsPause.endDate;
+              } else {
+                // MB says NOT paused but Firestore says paused
+                // Check if MB was cleaned up by admin (trust MB as source of truth)
+                // Only apply Firestore pause if it was saved very recently (within 60s)
+                var savedAt = fsPause.savedAt ? new Date(fsPause.savedAt).getTime() : 0;
+                var ageMs = Date.now() - savedAt;
+                if (ageMs < 60000) {
+                  // Just paused — MB may not reflect it yet
+                  c.isSuspended = true;
+                  c.pauseStartDate = fsPause.startDate;
+                  c.pauseEndDate = fsPause.endDate;
+                } else {
+                  // Stale Firestore data — MB admin likely removed the pause
+                  console.log('[Pause] Removing stale Firestore pause for contract', c.id, '(MB says not suspended)');
+                  removePauseFromFirestore(c.id);
+                }
+              }
             }
             // Clean up expired pauses from Firestore
             if (fsPause && fsPause.endDate < now) {
