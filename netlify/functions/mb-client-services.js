@@ -79,6 +79,14 @@ exports.handler = async function(event) {
         if (next) nextBillingDate = next.ChargeDate || next.ScheduleDate;
       }
 
+      // Log raw contract fields for debugging suspension state
+      console.log('[mb-client-services] Contract', c.Id, c.ContractName,
+        'IsSuspended:', c.IsSuspended,
+        'SuspendDate:', c.SuspendDate || c.SuspensionDate || 'none',
+        'ResumeDate:', c.ResumeDate || c.ResumptionDate || 'none',
+        'raw keys:', Object.keys(c).filter(function(k) { return /suspend|resume|pause/i.test(k); })
+      );
+
       return {
         id: c.Id,
         contractId: c.ContractId || null,
@@ -93,6 +101,8 @@ exports.handler = async function(event) {
         nextBillingDate: nextBillingDate,
         autopayAmount: c.AutopayAmount || 0,
         isSuspended: c.IsSuspended || false,
+        suspendDate: c.SuspendDate || c.SuspensionDate || null,
+        resumeDate: c.ResumeDate || c.ResumptionDate || null,
         terminationDate: c.TerminationDate || null
       };
     });
