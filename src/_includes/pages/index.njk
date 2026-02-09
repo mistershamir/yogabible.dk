@@ -1,49 +1,32 @@
 {% set t = i18n.index[lang or "da"] %}
 
 <!-- ═══════════════════════════════════════════════════════════════
-     HERO — The Opening Statement
-     Two columns: Content left, Portrait image right
+     HERO — Cinematic Dark with Breathing Glow
+     Centered layout, optional video/image background
      ═══════════════════════════════════════════════════════════════ -->
 <section class="yb-hero">
-  <div class="yb-hero__inner">
-    <div class="yb-hero__content">
-      <div class="yb-hero__flag">{{ t.hero_flag }}</div>
+  <div class="yb-hero__glow"></div>
 
-      <h1 class="yb-hero__title">{{ t.hero_title | safe }}</h1>
-
-      <p class="yb-hero__lead">
-        {{ t.hero_lead }}
-      </p>
-
-      <div class="yb-hero__paths">
-        <a href="{% if lang == 'en' %}/en/#programs{% else %}#uddannelser{% endif %}" class="yb-hero__path">
-          <span class="yb-hero__path-title">{{ t.hero_path1_title }}</span>
-          <span class="yb-hero__path-desc">{{ t.hero_path1_desc }}</span>
-        </a>
-        <a href="{% if lang == 'en' %}/en/#courses{% else %}#kurser{% endif %}" class="yb-hero__path">
-          <span class="yb-hero__path-title">{{ t.hero_path2_title }}</span>
-          <span class="yb-hero__path-desc">{{ t.hero_path2_desc }}</span>
-        </a>
-      </div>
-
-      <div class="yb-hero__trust">
-        <span>{{ t.hero_trust1 }}</span>
-        <span class="yb-hero__trust-dot"></span>
-        <span>{{ t.hero_trust2 }}</span>
-        <span class="yb-hero__trust-dot"></span>
-        <span>{{ t.hero_trust3 }}</span>
-      </div>
+  <div class="yb-hero__content">
+    <p class="yb-hero__tagline">{{ t.hero_flag }}</p>
+    <h1 class="yb-hero__title">{{ t.hero_title | safe }}</h1>
+    <p class="yb-hero__subtitle">{{ t.hero_lead }}</p>
+    <div class="yb-hero__ctas">
+      <a href="{% if lang == 'en' %}/en/apply{% else %}/apply{% endif %}" class="yb-btn yb-btn--primary yb-btn--large">{{ t.hero_cta1 }}</a>
+      <a href="{% if lang == 'en' %}/en/sammenlign-yogalreruddannelser{% else %}/sammenlign-yogalreruddannelser{% endif %}" class="yb-btn yb-btn--outline-white yb-btn--large">{{ t.hero_cta2 }}</a>
     </div>
-
-    <div class="yb-hero__media">
-      <img
-        src="/assets/images/hero/hero-portrait.jpg"
-        alt="{{ t.hero_img_alt }}"
-        class="yb-hero__img"
-        loading="eager"
-      >
-      <div class="yb-hero__accent"></div>
+    <div class="yb-hero__trust">
+      <span>{{ t.hero_trust1 }}</span>
+      <span class="yb-hero__trust-dot"></span>
+      <span>{{ t.hero_trust2 }}</span>
+      <span class="yb-hero__trust-dot"></span>
+      <span>{{ t.hero_trust3 }}</span>
     </div>
+  </div>
+
+  <div class="yb-hero__scroll">
+    <span>{{ t.hero_scroll }}</span>
+    <div class="yb-hero__scroll-line"></div>
   </div>
 </section>
 
