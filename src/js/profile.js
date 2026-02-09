@@ -1381,8 +1381,8 @@
                 }
               }
             }
-            renderMembershipDetails(contentEl, clientPassData);
-            bindMembershipManageEvents(contentEl, clientPassData);
+            renderMembershipDetails(container, clientPassData);
+            bindMembershipManageEvents(container, clientPassData);
             // Also reload from server (background, may overwrite if MB not yet updated)
             setTimeout(function() { loadMembershipDetails(); }, 3000);
             // Show persistent success toast
@@ -1522,8 +1522,8 @@
                 }
               }
             }
-            renderMembershipDetails(contentEl, clientPassData);
-            bindMembershipManageEvents(contentEl, clientPassData);
+            renderMembershipDetails(container, clientPassData);
+            bindMembershipManageEvents(container, clientPassData);
             setTimeout(function() { loadMembershipDetails(); }, 3000);
             showMembershipToast(t('membership_extend_success'), 'success', 15000);
           } else {
