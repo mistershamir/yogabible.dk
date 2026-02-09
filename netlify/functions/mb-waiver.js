@@ -25,21 +25,58 @@ exports.handler = async function(event) {
       var params = event.queryStringParameters || {};
       var result = { waiverText: null, clientSigned: false, agreementDate: null };
 
-      // 1. Fetch the liability waiver text
+      // 1. Fetch the liability waiver text (try multiple endpoints/field paths)
       try {
         var waiverData = await mbFetch('/client/liabilitywaiver');
-        result.waiverText = waiverData.Waiver || waiverData.WaiverText || waiverData.Text || waiverData.Html || null;
+        console.log('[mb-waiver] liabilitywaiver response keys:', Object.keys(waiverData || {}));
+        // Try known field paths
+        result.waiverText = waiverData.Waiver || waiverData.WaiverText || waiverData.Text
+          || waiverData.Html || waiverData.Content || waiverData.Body || null;
+        // Try nested: LiabilityWaiver.Content, etc.
+        if (!result.waiverText && waiverData.LiabilityWaiver) {
+          var lw = waiverData.LiabilityWaiver;
+          result.waiverText = lw.Content || lw.Text || lw.Html || lw.Waiver || lw.Body || null;
+        }
+        // Fallback: scan all string fields
         if (!result.waiverText && typeof waiverData === 'object') {
           var keys = Object.keys(waiverData);
           for (var i = 0; i < keys.length; i++) {
-            if (typeof waiverData[keys[i]] === 'string' && waiverData[keys[i]].length > 50) {
-              result.waiverText = waiverData[keys[i]];
+            var val = waiverData[keys[i]];
+            if (typeof val === 'string' && val.length > 50) {
+              result.waiverText = val;
+              console.log('[mb-waiver] Found waiver text in field:', keys[i]);
               break;
+            }
+            // Scan nested objects too
+            if (val && typeof val === 'object' && !Array.isArray(val)) {
+              var subKeys = Object.keys(val);
+              for (var si = 0; si < subKeys.length; si++) {
+                if (typeof val[subKeys[si]] === 'string' && val[subKeys[si]].length > 50) {
+                  result.waiverText = val[subKeys[si]];
+                  console.log('[mb-waiver] Found waiver text in nested field:', keys[i] + '.' + subKeys[si]);
+                  break;
+                }
+              }
+              if (result.waiverText) break;
             }
           }
         }
       } catch (waiverErr) {
         console.warn('[mb-waiver] Could not fetch waiver text:', waiverErr.message);
+        // Try alternate endpoint: /site/liabilitywaiver
+        try {
+          var altData = await mbFetch('/site/liabilitywaiver');
+          console.log('[mb-waiver] site/liabilitywaiver response keys:', Object.keys(altData || {}));
+          var altKeys = Object.keys(altData || {});
+          for (var ai = 0; ai < altKeys.length; ai++) {
+            if (typeof altData[altKeys[ai]] === 'string' && altData[altKeys[ai]].length > 50) {
+              result.waiverText = altData[altKeys[ai]];
+              break;
+            }
+          }
+        } catch (altErr) {
+          console.warn('[mb-waiver] Alternate endpoint also failed:', altErr.message);
+        }
       }
 
       // 2. Check if client has signed (if clientId provided)

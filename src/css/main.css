@@ -3,6 +3,9 @@
    Modern, clean rebuild from Squarespace
    ======================================== */
 
+/* Global: ensure [hidden] always works even when CSS sets explicit display */
+[hidden] { display: none !important; }
+
 /* ========================================
    ABACAXI FONT (Custom Brand Font)
    ======================================== */
@@ -8745,8 +8748,8 @@ section {
   display: flex;
   align-items: flex-start;
   gap: 0.75rem;
-  background: #fff3cd;
-  border: 1px solid #ffc107;
+  background: #fef2f2;
+  border: 1px solid #fca5a5;
   border-radius: 10px;
   padding: 0.75rem 1rem;
   width: 100%;
@@ -8763,11 +8766,11 @@ section {
 }
 .yb-membership__pause-status-text strong {
   font-size: 0.9rem;
-  color: #856404;
+  color: #b91c1c;
 }
 .yb-membership__pause-status-text span {
   font-size: 0.8rem;
-  color: #856404;
+  color: #991b1b;
 }
 
 /* Resume button */
@@ -8840,8 +8843,8 @@ section {
 
 /* Badge variants */
 .yb-membership__badge--paused {
-  background: #fff3cd;
-  color: #856404;
+  background: #fee2e2;
+  color: #b91c1c;
 }
 
 .yb-membership__badge--terminating {
@@ -8927,6 +8930,16 @@ section {
 
 .yb-membership__retention-btn {
   width: 100%;
+}
+.yb-membership__cancel-term-hint {
+  font-size: 0.8rem;
+  color: #6F6A66;
+  text-align: center;
+  margin: 0.5rem 0 0;
+}
+.yb-membership__cancel-term-hint a {
+  color: #f75c03;
+  text-decoration: underline;
 }
 
 /* ── Manage Panels (Pause / Cancel) ── */
