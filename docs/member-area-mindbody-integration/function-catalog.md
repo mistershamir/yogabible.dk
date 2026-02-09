@@ -1,7 +1,7 @@
 # Netlify Functions — Mindbody Integration Catalog
 
 > All functions live in `netlify/functions/` and share `netlify/functions/shared/mb-api.js`
-> **Last updated: 2026-02-09** — reflects store redesign, description fields, firstMonthFree flag, clearTokenCache.
+> **Last updated: 2026-02-09** — reflects store redesign, description fields, firstMonthFree flag, clearTokenCache, BirthDate support.
 
 ## Shared Module
 
@@ -48,13 +48,17 @@
 - **Method:** GET (find) / POST (create) / PUT (update)
 - **Purpose:** Find, create, or update a Mindbody client
 - **GET Params:** `email` — searches by email, filters to exact match client-side
-- **POST Body:** `{ firstName, lastName, email, phone? }`
-- **PUT Body:** `{ clientId, firstName?, lastName?, email?, phone? }`
+- **POST Body:** `{ firstName, lastName, email, phone?, birthDate? }`
+- **PUT Body:** `{ clientId, firstName?, lastName?, email?, phone?, birthDate? }`
 - **MB Endpoints:**
   - `GET /client/clients?searchText=X&limit=10`
   - `POST /client/addclient` (returns 400 for duplicates → mapped to 409)
   - `POST /client/updateclient` with `CrossRegionalUpdate: true`
-- **Returns:** GET: `{ found, client }` | POST/PUT: `{ success, client }`
+- **GET client fields:** `id`, `firstName`, `lastName`, `email`, `phone`, `birthDate`, `status`, `active`, `membershipName`
+- **PUT client fields:** `id`, `firstName`, `lastName`, `email`, `phone`, `birthDate`
+- **Returns:** GET: `{ found, client }` | POST: `{ success, client }` | PUT: `{ success, client }`
+- **BirthDate:** Mapped to Mindbody's `BirthDate` field (PascalCase). Returns ISO date from GET, accepts YYYY-MM-DD for POST/PUT. Mindbody returns `0001-01-01T00:00:00` for unset — filter this out client-side.
+- **Duplicate handling:** POST returns 409 when email exists. Frontend `createMindbodyClient()` catches this and calls `linkExistingMindbodyClient()` to auto-link.
 
 ### mb-sync.js
 - **Method:** POST

@@ -32,6 +32,8 @@
 17. **`/sale/sales` silently ignores ClientId filter** — may return ALL studio sales or empty. Use `/client/clientservices` + `/client/clientcontracts` as receipt data source
 18. **Mindbody clips with 99999/999999 remaining = unlimited** — hide these counts in UI
 19. **Contract `ClientContractId` vs `ContractId`** — `ContractId` is the template, `ClientContractId` is the specific client's instance. Terminate/suspend need `ClientContractId`
+20. **`BirthDate` returns `0001-01-01T00:00:00` for unset** — Mindbody's placeholder. Filter this out before storing in Firestore. Extract `YYYY-MM-DD` from ISO string.
+21. **`addclient` returns 400 for duplicate email** — Not 409. Map to 409 in our function, then look up the existing client to link accounts.
 
 ## Endpoint Reference
 
@@ -52,8 +54,8 @@
 | Endpoint | Method | Params | Response Key | Notes |
 |----------|--------|--------|-------------|-------|
 | `/client/clients` | GET | `SearchText`, `Limit` | `Clients[]` | Search clients. Filter to exact email match client-side (case-insensitive) |
-| `/client/addclient` | POST | Body: `FirstName`, `LastName`, `Email`, `SendAccountEmails`, `MobilePhone` | `Client` | Create client. Returns 400 for duplicates |
-| `/client/updateclient` | POST | Body: `Client: {ClientId, ...}`, `CrossRegionalUpdate` | `Client` | Update client. Note: POST not PUT |
+| `/client/addclient` | POST | Body: `FirstName`, `LastName`, `Email`, `SendAccountEmails`, `MobilePhone`, `BirthDate` | `Client` | Create client. Returns 400 for duplicates → mapped to 409 |
+| `/client/updateclient` | POST | Body: `Client: {ClientId, FirstName, LastName, Email, MobilePhone, BirthDate, ...}`, `CrossRegionalUpdate` | `Client` | Update client. Note: POST not PUT. Supports `BirthDate` (ISO format) |
 | `/client/clientservices` | GET | `ClientId`, `Limit`, `CrossRegionalLookup` | `ClientServices[]` | Active passes. Check `Current` flag + date range |
 | `/client/clientcontracts` | GET | `ClientId` | `Contracts[]` | Memberships. Has `UpcomingAutopayEvents` for billing dates |
 | `/client/clientvisits` | GET | `ClientId`, `StartDate`, `EndDate`, `Limit` | `Visits[]` | Visit history. Include 30 days future for upcoming bookings |
@@ -300,3 +302,6 @@ After extensive debugging, the correct paths are under the **Sale** category:
 | 41 | Frontend calls `mb-contract-manage` | Should call `mb-contracts` with action field | Old code referenced wrong function endpoint — caused 401 errors on deployed site |
 | 42 | `c.contractId` in client-services = template ID | `c.Id` is instance, `c.ContractId` is template | Must return both: `id` (instance for manage) + `contractId` (template for store matching) |
 | 43 | `FirstPaymentAmountSubtotal` of 0 | Means first month is free | Check `firstMonthFree: firstPaymentRaw === 0` — useful for retention card messaging |
+| 44 | `addclient` returns 400 for duplicate email | Handle as 409 → look up existing client | `createMindbodyClient()` must catch 409 and call `linkExistingMindbodyClient()` to auto-link |
+| 45 | Mindbody `BirthDate` returns `0001-01-01T00:00:00` for unset | Filter out `0001-01-01` | When pulling DOB from MB, check `bd !== '0001-01-01'` before storing in Firestore |
+| 46 | `updateclient` doesn't accept `BirthDate` | It DOES — use PascalCase `BirthDate` in body | `mb-client.js` PUT now supports `birthDate` → mapped to `BirthDate` |
