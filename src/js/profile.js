@@ -21,9 +21,11 @@
     var ctx = canvas.getContext('2d');
     var drawing = false;
     var hasStrokes = false;
+    var ready = false;
 
     function resize() {
       var rect = canvas.parentElement.getBoundingClientRect();
+      if (rect.width < 1) return; // parent hidden — skip, will resize on first interaction
       var ratio = window.devicePixelRatio || 1;
       canvas.width = rect.width * ratio;
       canvas.height = 160 * ratio;
@@ -34,8 +36,13 @@
       ctx.lineCap = 'round';
       ctx.lineJoin = 'round';
       ctx.strokeStyle = '#0F0F0F';
+      ready = true;
     }
     resize();
+
+    function ensureReady() {
+      if (!ready) resize();
+    }
 
     function getPos(e) {
       var rect = canvas.getBoundingClientRect();
@@ -45,6 +52,7 @@
 
     function start(e) {
       e.preventDefault();
+      ensureReady();
       drawing = true;
       var p = getPos(e);
       ctx.beginPath();
@@ -84,8 +92,9 @@
     return {
       isEmpty: function() { return !hasStrokes; },
       toDataURL: function() { return canvas.toDataURL('image/png'); },
+      resize: resize,
       clear: function() {
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        resize();
         hasStrokes = false;
       }
     };
@@ -1684,49 +1693,56 @@
     var errEl = document.getElementById('yb-store-error');
     if (errEl) errEl.hidden = true;
 
-    // Show liability waiver in checkout if not yet signed (all purchases)
+    // 1. Determine section visibility first (before initializing canvases)
     var waiverSection = document.getElementById('yb-checkout-waiver-section');
+    var showWaiver = !waiverSigned;
     if (waiverSection) {
-      if (!waiverSigned) {
-        waiverSection.hidden = false;
+      waiverSection.hidden = !showWaiver;
+      if (showWaiver) {
         var waiverTextEl = document.getElementById('yb-checkout-waiver-text');
         if (waiverTextEl) {
           waiverTextEl.innerHTML = waiverTextCache || ('<p>' + t('waiver_fallback') + '</p>');
         }
         var waiverAgree = document.getElementById('yb-checkout-waiver-agree');
         if (waiverAgree) waiverAgree.checked = false;
-        if (!checkoutWaiverSigPad) {
-          checkoutWaiverSigPad = SignaturePad('yb-checkout-waiver-canvas', 'yb-checkout-waiver-sig-clear');
-        } else {
-          checkoutWaiverSigPad.clear();
-        }
-      } else {
-        waiverSection.hidden = true;
       }
     }
 
-    // Show contract terms + signature if contract has AgreementTerms
     var termsSection = document.getElementById('yb-checkout-terms-section');
     var termsTextEl = document.getElementById('yb-checkout-terms-text');
     var termsAgreeEl = document.getElementById('yb-checkout-terms-agree');
-    if (termsSection && isContract && service.agreementTerms) {
-      termsSection.hidden = false;
-      if (termsTextEl) termsTextEl.innerHTML = service.agreementTerms;
-      if (termsAgreeEl) termsAgreeEl.checked = false;
+    var showTerms = isContract && service.agreementTerms;
+    if (termsSection) {
+      termsSection.hidden = !showTerms;
+      if (showTerms) {
+        if (termsTextEl) termsTextEl.innerHTML = service.agreementTerms;
+        if (termsAgreeEl) termsAgreeEl.checked = false;
+      }
+    }
+
+    // 2. Toggle two-column grid BEFORE initializing signature pads
+    //    so the left column is display:block and canvases get correct dimensions
+    var checkoutGrid = document.getElementById('yb-checkout-grid');
+    var hasLeftContent = showWaiver || showTerms;
+    if (checkoutGrid) {
+      checkoutGrid.classList.toggle('yb-checkout__grid--split', hasLeftContent);
+    }
+
+    // 3. Force reflow so canvases have correct parent dimensions, then init/reset pads
+    if (hasLeftContent && checkoutGrid) checkoutGrid.offsetHeight; // force reflow
+    if (showWaiver) {
+      if (!checkoutWaiverSigPad) {
+        checkoutWaiverSigPad = SignaturePad('yb-checkout-waiver-canvas', 'yb-checkout-waiver-sig-clear');
+      } else {
+        checkoutWaiverSigPad.clear();
+      }
+    }
+    if (showTerms) {
       if (!checkoutSigPad) {
         checkoutSigPad = SignaturePad('yb-checkout-canvas', 'yb-checkout-sig-clear');
       } else {
         checkoutSigPad.clear();
       }
-    } else if (termsSection) {
-      termsSection.hidden = true;
-    }
-
-    // Toggle two-column layout when waiver or terms are visible
-    var checkoutGrid = document.getElementById('yb-checkout-grid');
-    if (checkoutGrid) {
-      var hasLeftContent = (waiverSection && !waiverSection.hidden) || (termsSection && !termsSection.hidden);
-      checkoutGrid.classList.toggle('yb-checkout__grid--split', hasLeftContent);
     }
 
     checkoutEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
