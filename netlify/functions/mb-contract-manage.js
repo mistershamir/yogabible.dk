@@ -146,103 +146,72 @@ exports.handler = async function(event) {
 
       var ccId = Number(body.clientContractId);
 
-      // MB API docs behind auth — try multiple body formats to find what works.
-      // The MB UI shows: SuspensionType dropdown, StartDate, Duration + DurationUnit.
-      var bodyVariants = [
-        { label: 'A', body: { ClientContractId: ccId, SuspendDate: body.startDate, Duration: durationDays, DurationUnit: 'Days' } },
-        { label: 'B', body: { ClientContractId: ccId, SuspendDate: body.startDate, Duration: durationDays, DurationUnit: 'Day' } },
-        { label: 'C', body: { ClientId: body.clientId, ClientContractId: ccId, SuspendDate: body.startDate, Duration: durationDays, DurationUnit: 'Days' } },
-        { label: 'D', body: { ClientContractId: ccId, Duration: durationDays, DurationUnit: 'Days' } },
-        { label: 'E', body: { ClientContractId: ccId, SuspendDate: body.startDate, Duration: String(durationDays), DurationUnit: 'Days' } },
-        { label: 'F', body: { ClientId: body.clientId, ClientContractId: ccId, SuspendDate: body.startDate, Duration: durationDays, DurationUnit: 'Day' } },
-        { label: 'G', body: { ClientContractId: ccId, SuspendDate: body.startDate, Duration: durationDays, DurationUnit: 'Day', Test: true } },
+      // Fire ALL path+body combos in PARALLEL to avoid 504 timeout.
+      // /sale/suspendcontract returns 404, so focus on /contract/ and /client/.
+      var paths = ['/contract/suspendcontract', '/client/suspendcontract', '/sale/suspendcontract'];
+      var bodies = [
+        { label: 'A', data: { ClientContractId: ccId, SuspendDate: body.startDate, Duration: durationDays, DurationUnit: 'Days' } },
+        { label: 'B', data: { ClientContractId: ccId, SuspendDate: body.startDate, Duration: durationDays, DurationUnit: 'Day' } },
+        { label: 'C', data: { ClientId: body.clientId, ClientContractId: ccId, SuspendDate: body.startDate, Duration: durationDays, DurationUnit: 'Days' } },
+        { label: 'D', data: { ClientId: body.clientId, ClientContractId: ccId, SuspendDate: body.startDate, Duration: durationDays, DurationUnit: 'Day' } },
       ];
 
-      var suspendPaths = ['/sale/suspendcontract', '/contract/suspendcontract', '/client/suspendcontract'];
-      var allResults = [];
+      // Build all combos
+      var combos = [];
+      for (var pi = 0; pi < paths.length; pi++) {
+        for (var bi = 0; bi < bodies.length; bi++) {
+          combos.push({ path: paths[pi], label: bodies[bi].label, body: bodies[bi].data });
+        }
+      }
 
-      // Step 1: Find which endpoint path exists (returns JSON, not 404 HTML)
-      var activePath = null;
-      for (var pi = 0; pi < suspendPaths.length; pi++) {
-        try {
-          console.log('[mb-contract-manage] Probing path: ' + suspendPaths[pi]);
-          var probeResult = await mbFetch(suspendPaths[pi], {
-            method: 'POST',
-            body: JSON.stringify(bodyVariants[0].body)
-          });
-          // If it succeeded, we're done!
-          console.log('[mb-contract-manage] SUCCESS on probe ' + suspendPaths[pi]);
+      console.log('[mb-contract-manage] Firing ' + combos.length + ' suspend combos in parallel');
+
+      var results = await Promise.allSettled(combos.map(function(combo) {
+        return mbFetch(combo.path, {
+          method: 'POST',
+          body: JSON.stringify(combo.body)
+        }).then(function(data) {
+          return { success: true, combo: combo, data: data };
+        });
+      }));
+
+      // Check for any success
+      var diagnostics = [];
+      for (var ri = 0; ri < results.length; ri++) {
+        var r = results[ri];
+        var combo = combos[ri];
+        if (r.status === 'fulfilled' && r.value.success) {
+          console.log('[mb-contract-manage] SUCCESS: path=' + combo.path + ' variant=' + combo.label);
           return jsonResponse(200, {
             success: true,
             action: 'suspend',
             suspendDate: body.startDate,
             resumeDate: body.endDate,
             durationDays: durationDays,
-            endpointUsed: suspendPaths[pi],
-            bodyVariant: 'A',
+            endpointUsed: combo.path,
+            bodyVariant: combo.label,
             message: 'Contract suspension scheduled'
           });
-        } catch (probeErr) {
-          var probeMsg = (probeErr.message || '').toLowerCase();
-          allResults.push({ variant: 'A-probe', path: suspendPaths[pi], status: probeErr.status, message: probeErr.message });
-
-          if (probeErr.status === 404 || probeErr.status === 405 || probeMsg.indexOf('non-json') > -1) {
-            console.log('[mb-contract-manage] Path ' + suspendPaths[pi] + ' does not exist (404/HTML), trying next...');
-            continue;
-          }
-          // This path exists (returned JSON error like 400) — use it
-          activePath = suspendPaths[pi];
-          console.log('[mb-contract-manage] Found active path: ' + activePath + ' (status ' + probeErr.status + ')');
-          break;
+        } else {
+          var err = r.reason || {};
+          diagnostics.push({
+            path: combo.path,
+            variant: combo.label,
+            status: err.status || 'error',
+            message: (err.message || '').substring(0, 120),
+            data: err.data ? JSON.stringify(err.data).substring(0, 150) : null
+          });
         }
       }
 
-      // Step 2: Try ALL body variants on the active path
-      if (activePath) {
-        // Skip variant A (already tried as probe) — start from B
-        for (var vi = 1; vi < bodyVariants.length; vi++) {
-          var v = bodyVariants[vi];
-          try {
-            console.log('[mb-contract-manage] Trying variant ' + v.label + ' on ' + activePath + ':', JSON.stringify(v.body));
-            var suspResult = await mbFetch(activePath, {
-              method: 'POST',
-              body: JSON.stringify(v.body)
-            });
-
-            console.log('[mb-contract-manage] SUCCESS variant ' + v.label + ':', JSON.stringify(suspResult).substring(0, 300));
-
-            return jsonResponse(200, {
-              success: true,
-              action: 'suspend',
-              suspendDate: body.startDate,
-              resumeDate: body.endDate,
-              durationDays: durationDays,
-              endpointUsed: activePath,
-              bodyVariant: v.label,
-              message: 'Contract suspension scheduled'
-            });
-          } catch (suspErr) {
-            var errInfo = {
-              variant: v.label,
-              path: activePath,
-              status: suspErr.status,
-              message: suspErr.message,
-              data: suspErr.data ? JSON.stringify(suspErr.data).substring(0, 300) : null
-            };
-            console.log('[mb-contract-manage] Variant ' + v.label + ' failed:', JSON.stringify(errInfo));
-            allResults.push(errInfo);
-          }
-        }
-      }
-
-      // All attempts failed — return diagnostic info
-      console.error('[mb-contract-manage] All suspend attempts failed:', JSON.stringify(allResults));
-      var lastErr = allResults[allResults.length - 1] || {};
-      return jsonResponse(lastErr.status || 500, {
-        error: lastErr.message || 'All suspend attempts failed',
-        _attempts: allResults,
-        _activePath: activePath,
-        _hint: 'Tried ' + allResults.length + ' combinations. Check Netlify function logs for details.'
+      // All failed
+      console.error('[mb-contract-manage] All ' + combos.length + ' suspend combos failed');
+      console.error('[mb-contract-manage] Diagnostics:', JSON.stringify(diagnostics));
+      var lastDiag = diagnostics[diagnostics.length - 1] || {};
+      return jsonResponse(400, {
+        error: lastDiag.message || 'All suspend attempts failed',
+        _attempts: diagnostics,
+        _hint: 'Tried ' + combos.length + ' path+body combos in parallel.'
       });
     }
 
