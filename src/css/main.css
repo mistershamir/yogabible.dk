@@ -8658,6 +8658,97 @@ section {
   margin: 0;
 }
 
+/* Pass grid — compact 2-column layout for clip cards */
+.yb-membership__pass-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.5rem;
+}
+.yb-membership__pass-grid .yb-membership__pass {
+  padding: 0.6rem 0.75rem;
+  margin-bottom: 0;
+}
+@media (max-width: 600px) {
+  .yb-membership__pass-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Past passes — collapsed toggle */
+.yb-membership__section--collapsed {
+  margin-bottom: 0.5rem;
+}
+.yb-membership__section-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  background: none;
+  border: none;
+  border-bottom: 1px solid #E8E4E0;
+  padding: 0.5rem 0;
+  cursor: pointer;
+  color: #6F6A66;
+  font-family: 'Abacaxi', sans-serif;
+}
+.yb-membership__section-toggle:hover {
+  color: #0F0F0F;
+}
+.yb-membership__toggle-icon {
+  transition: transform 0.2s ease;
+  flex-shrink: 0;
+}
+.yb-membership__past-list {
+  padding-top: 0.5rem;
+}
+
+/* Paused contract status card */
+.yb-membership__pause-status {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  background: #fff3cd;
+  border: 1px solid #ffc107;
+  border-radius: 10px;
+  padding: 0.75rem 1rem;
+  width: 100%;
+  box-sizing: border-box;
+}
+.yb-membership__pause-status-icon {
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+.yb-membership__pause-status-text {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+.yb-membership__pause-status-text strong {
+  font-size: 0.9rem;
+  color: #856404;
+}
+.yb-membership__pause-status-text span {
+  font-size: 0.8rem;
+  color: #856404;
+}
+
+/* Resume button */
+.yb-membership__manage-btn--resume {
+  background: none;
+  border: 1.5px solid #27ae60;
+  color: #27ae60;
+}
+.yb-membership__manage-btn--resume:hover {
+  background: #27ae60;
+  color: #fff;
+}
+
+/* Toast info variant */
+.yb-membership__toast--info {
+  background: #e3f2fd;
+  color: #1565c0;
+}
+
 /* Contract card with manage buttons */
 .yb-membership__contract-card {
   flex-direction: column;

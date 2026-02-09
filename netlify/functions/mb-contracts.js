@@ -244,52 +244,30 @@ exports.handler = async function(event) {
 
           var ccId = Number(body.clientContractId);
 
-          // API reference docs confirm: /sale/suspendcontract with ResumeDate is the working format.
+          // CONFIRMED WORKING (2026-02-09):
+          // POST /client/suspendcontract with SuspensionType:"Vacation", DurationUnit:"Day"
           var suspendBody = {
             ClientId: body.clientId,
             ClientContractId: ccId,
             SuspendDate: body.startDate,
-            ResumeDate: body.endDate,
-            SendNotifications: true
+            Duration: durationDays,
+            DurationUnit: 'Day',
+            SuspensionType: 'Vacation'
           };
 
           console.log('[mb-contracts] Suspending — body:', JSON.stringify(suspendBody));
 
-          // Try /sale/ first (documented working), then /client/ as fallback
-          var suspendPaths = ['/sale/suspendcontract', '/client/suspendcontract'];
-          var lastSuspErr = null;
-          var suspPathResults = [];
-
-          for (var si = 0; si < suspendPaths.length; si++) {
-            try {
-              console.log('[mb-contracts] Trying suspend path: ' + suspendPaths[si]);
-              var suspResult = await mbFetch(suspendPaths[si], {
-                method: 'POST',
-                body: JSON.stringify(suspendBody)
-              });
-              suspPathResults.push({ path: suspendPaths[si], status: 'success' });
-              console.log('[mb-contracts] Success on ' + suspendPaths[si] + ':', JSON.stringify(suspResult).substring(0, 300));
-              return jsonResponse(200, {
-                success: true,
-                action: 'suspend',
-                suspendDate: body.startDate,
-                resumeDate: body.endDate,
-                durationDays: durationDays,
-                endpointUsed: suspendPaths[si],
-                _pathResults: suspPathResults
-              });
-            } catch (suspErr) {
-              console.log('[mb-contracts] Path ' + suspendPaths[si] + ' failed (' + (suspErr.status || 'unknown') + '): ' + suspErr.message);
-              suspPathResults.push({ path: suspendPaths[si], status: suspErr.status || 'error', error: suspErr.message });
-              lastSuspErr = suspErr;
-            }
-          }
-
-          var finalSuspMsg = lastSuspErr ? lastSuspErr.message : 'All suspend paths failed';
-          console.error('[mb-contracts] All suspend paths failed:', JSON.stringify(suspPathResults));
-          return jsonResponse(lastSuspErr ? (lastSuspErr.status || 500) : 500, {
-            error: finalSuspMsg,
-            _pathResults: suspPathResults
+          var suspResult = await mbFetch('/client/suspendcontract', {
+            method: 'POST',
+            body: JSON.stringify(suspendBody)
+          });
+          console.log('[mb-contracts] Suspend SUCCESS:', JSON.stringify(suspResult).substring(0, 300));
+          return jsonResponse(200, {
+            success: true,
+            action: 'suspend',
+            suspendDate: body.startDate,
+            resumeDate: body.endDate,
+            durationDays: durationDays
           });
         }
 
