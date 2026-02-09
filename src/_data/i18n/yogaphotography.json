@@ -42,7 +42,11 @@
     "faq6_a": "Ja, vi fotograferer både i København og on-location efter aftale.",
     "cta_title": "Book Din Yogafotosession",
     "cta_text": "Skriv til os for at booke din session eller stille spørgsmål.",
-    "cta_btn": "Book / Spørg Os"
+    "cta_btn": "Book / Spørg Os",
+    "hero_tagline": "Yoga Bible · Fotografi",
+    "hero_trust1": "Professionel Session",
+    "hero_trust2": "København & On-Location",
+    "hero_trust3": "Høj Opløsning"
   },
   "en": {
     "hero_badge": "YOGA PHOTOGRAPHY",
@@ -87,6 +91,10 @@
     "faq6_a": "Yes, we photograph both in Copenhagen and on-location by arrangement.",
     "cta_title": "Book Your Yoga Photo Session",
     "cta_text": "Write to us to book your session or ask questions.",
-    "cta_btn": "Book / Ask Us"
+    "cta_btn": "Book / Ask Us",
+    "hero_tagline": "Yoga Bible · Photography",
+    "hero_trust1": "Professional Session",
+    "hero_trust2": "Copenhagen & On-Location",
+    "hero_trust3": "High Resolution"
   }
 }

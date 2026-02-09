@@ -1,15 +1,27 @@
 {% set t = i18n.yogaphotography[lang or "da"] %}
 
 <!-- Hero -->
-<section class="program-hero">
-  <div class="container">
-    <div class="program-hero__badge">{{ t.hero_badge }}</div>
-    <h1 class="program-hero__title">{{ t.hero_title }}</h1>
-    <p class="program-hero__subtitle">{{ t.hero_subtitle }}</p>
-
-    <div class="program-hero__cta">
-      <a href="mailto:info@yogabible.dk?subject=Yoga%20Fotosession%20-%20Foresp%C3%B8rgsel&body=Hej%20Yoga%20Bible%2C%0A%0AJeg%20vil%20gerne%20h%C3%B8re%20mere%20om%20jeres%20yogafotosession.%0A%0AMvh" class="btn btn--large btn--primary">{{ t.hero_cta }}</a>
+<section class="yb-hero">
+  <div class="yb-hero__glow"></div>
+  <div class="yb-hero__content">
+    <p class="yb-hero__tagline">{{ t.hero_tagline }}</p>
+    <h1 class="yb-hero__title">{{ t.hero_title }}</h1>
+    <p class="yb-hero__subtitle">{{ t.hero_subtitle }}</p>
+    <div class="yb-hero__line"></div>
+    <div class="yb-hero__ctas">
+      <a href="mailto:info@yogabible.dk?subject=Yoga%20Fotosession%20-%20Foresp%C3%B8rgsel&body=Hej%20Yoga%20Bible%2C%0A%0AJeg%20vil%20gerne%20h%C3%B8re%20mere%20om%20jeres%20yogafotosession.%0A%0AMvh" class="yb-btn yb-btn--primary yb-btn--large">{{ t.hero_cta }}</a>
     </div>
+    <div class="yb-hero__trust">
+      <span>{{ t.hero_trust1 }}</span>
+      <span class="yb-hero__trust-dot"></span>
+      <span>{{ t.hero_trust2 }}</span>
+      <span class="yb-hero__trust-dot"></span>
+      <span>{{ t.hero_trust3 }}</span>
+    </div>
+  </div>
+  <div class="yb-hero__scroll">
+    <span>Scroll</span>
+    <div class="yb-hero__scroll-line"></div>
   </div>
 </section>
 
