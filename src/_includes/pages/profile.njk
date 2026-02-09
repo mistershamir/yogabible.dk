@@ -257,87 +257,99 @@
               <!-- Selected service summary -->
               <div class="yb-store__checkout-item" id="yb-store-checkout-item"></div>
 
-              <!-- Liability waiver gate (shown in checkout if waiver not yet signed) -->
-              <div id="yb-checkout-waiver-section" class="yb-checkout-terms" hidden>
-                <h4 class="yb-checkout-terms__title">{{ t.waiver_title }}</h4>
-                <div id="yb-checkout-waiver-text" class="yb-checkout-terms__text"></div>
-                <label class="yb-waiver__agree">
-                  <input type="checkbox" id="yb-checkout-waiver-agree">
-                  <span>{{ t.waiver_agree_label }}</span>
-                </label>
-                <p class="yb-waiver__sign-label">{{ t.waiver_sign_label }}</p>
-                <div class="yb-signature-pad" id="yb-checkout-waiver-sigpad">
-                  <canvas id="yb-checkout-waiver-canvas" width="400" height="160"></canvas>
-                  <button type="button" class="yb-signature-pad__clear" id="yb-checkout-waiver-sig-clear">{{ t.signature_clear }}</button>
+              <!-- Two-column grid: left = waiver/terms, right = payment -->
+              <div class="yb-checkout__grid" id="yb-checkout-grid">
+
+                <!-- Left column: Waiver + Contract Terms -->
+                <div class="yb-checkout__col-left" id="yb-checkout-col-left">
+                  <!-- Liability waiver gate (shown if waiver not yet signed) -->
+                  <div id="yb-checkout-waiver-section" class="yb-checkout-terms" hidden>
+                    <h4 class="yb-checkout-terms__title">{{ t.waiver_title }}</h4>
+                    <div id="yb-checkout-waiver-text" class="yb-checkout-terms__text"></div>
+                    <label class="yb-waiver__agree">
+                      <input type="checkbox" id="yb-checkout-waiver-agree">
+                      <span>{{ t.waiver_agree_label }}</span>
+                    </label>
+                    <p class="yb-waiver__sign-label">{{ t.waiver_sign_label }}</p>
+                    <div class="yb-signature-pad" id="yb-checkout-waiver-sigpad">
+                      <canvas id="yb-checkout-waiver-canvas" width="400" height="160"></canvas>
+                      <button type="button" class="yb-signature-pad__clear" id="yb-checkout-waiver-sig-clear">{{ t.signature_clear }}</button>
+                    </div>
+                  </div>
+
+                  <!-- Contract terms + signature (shown for contracts with AgreementTerms) -->
+                  <div id="yb-checkout-terms-section" class="yb-checkout-terms" hidden>
+                    <h4 class="yb-checkout-terms__title">{{ t.contract_terms_title }}</h4>
+                    <div id="yb-checkout-terms-text" class="yb-checkout-terms__text"></div>
+                    <label class="yb-waiver__agree">
+                      <input type="checkbox" id="yb-checkout-terms-agree" required>
+                      <span>{{ t.contract_terms_agree }}</span>
+                    </label>
+                    <p class="yb-waiver__sign-label">{{ t.contract_sign_label }}</p>
+                    <div class="yb-signature-pad" id="yb-checkout-sigpad">
+                      <canvas id="yb-checkout-canvas" width="400" height="160"></canvas>
+                      <button type="button" class="yb-signature-pad__clear" id="yb-checkout-sig-clear">{{ t.signature_clear }}</button>
+                    </div>
+                  </div>
                 </div>
+
+                <!-- Right column: Payment form -->
+                <div class="yb-checkout__col-right">
+                  <h4 class="yb-checkout__payment-title">{{ t.checkout_payment_title }}</h4>
+                  <form id="yb-store-checkout-form" class="yb-profile__form" novalidate>
+                    <div class="yb-auth-field">
+                      <label for="yb-store-cardholder">{{ t.checkout_cardholder }}</label>
+                      <input type="text" id="yb-store-cardholder" required autocomplete="cc-name">
+                    </div>
+                    <div class="yb-auth-field">
+                      <label for="yb-store-cardnumber">{{ t.checkout_card_number }}</label>
+                      <input type="text" id="yb-store-cardnumber" required autocomplete="cc-number" placeholder="1234 5678 9012 3456" inputmode="numeric" maxlength="19">
+                    </div>
+                    <div class="yb-profile__form-row yb-profile__form-row--3">
+                      <div class="yb-auth-field">
+                        <label for="yb-store-expiry">{{ t.checkout_expiry }}</label>
+                        <input type="text" id="yb-store-expiry" required placeholder="MM/YY" inputmode="numeric" maxlength="5">
+                      </div>
+                      <div class="yb-auth-field">
+                        <label for="yb-store-cvv">{{ t.checkout_cvv }}</label>
+                        <input type="text" id="yb-store-cvv" required autocomplete="cc-csc" placeholder="123" inputmode="numeric" maxlength="4">
+                      </div>
+                    </div>
+                    <div class="yb-auth-field">
+                      <label for="yb-store-address">{{ t.checkout_address }}</label>
+                      <input type="text" id="yb-store-address" autocomplete="street-address">
+                    </div>
+                    <div class="yb-profile__form-row">
+                      <div class="yb-auth-field">
+                        <label for="yb-store-city">{{ t.checkout_city }}</label>
+                        <input type="text" id="yb-store-city" autocomplete="address-level2">
+                      </div>
+                      <div class="yb-auth-field">
+                        <label for="yb-store-zip">{{ t.checkout_zip }}</label>
+                        <input type="text" id="yb-store-zip" autocomplete="postal-code">
+                      </div>
+                    </div>
+
+                    <div class="yb-auth-error" id="yb-store-error" hidden role="alert"></div>
+
+                    <label class="yb-store__save-card">
+                      <input type="checkbox" id="yb-store-save-card" checked>
+                      <span>{{ t.checkout_save_card }}</span>
+                    </label>
+
+                    <div class="yb-store__checkout-actions">
+                      <button type="submit" class="yb-auth-submit" id="yb-store-pay-btn">{{ t.checkout_pay }}</button>
+                      <button type="button" class="yb-btn yb-btn--outline" id="yb-store-cancel-btn">{{ t.checkout_cancel }}</button>
+                    </div>
+
+                    <div class="yb-store__secure">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                      {{ t.checkout_secure }}
+                    </div>
+                  </form>
+                </div>
+
               </div>
-
-              <!-- Contract terms + signature (shown for contracts with AgreementTerms) -->
-              <div id="yb-checkout-terms-section" class="yb-checkout-terms" hidden>
-                <h4 class="yb-checkout-terms__title">{{ t.contract_terms_title }}</h4>
-                <div id="yb-checkout-terms-text" class="yb-checkout-terms__text"></div>
-                <label class="yb-waiver__agree">
-                  <input type="checkbox" id="yb-checkout-terms-agree" required>
-                  <span>{{ t.contract_terms_agree }}</span>
-                </label>
-                <p class="yb-waiver__sign-label">{{ t.contract_sign_label }}</p>
-                <div class="yb-signature-pad" id="yb-checkout-sigpad">
-                  <canvas id="yb-checkout-canvas" width="400" height="160"></canvas>
-                  <button type="button" class="yb-signature-pad__clear" id="yb-checkout-sig-clear">{{ t.signature_clear }}</button>
-                </div>
-              </div>
-
-              <form id="yb-store-checkout-form" class="yb-profile__form" novalidate>
-                <div class="yb-auth-field">
-                  <label for="yb-store-cardholder">{{ t.checkout_cardholder }}</label>
-                  <input type="text" id="yb-store-cardholder" required autocomplete="cc-name">
-                </div>
-                <div class="yb-auth-field">
-                  <label for="yb-store-cardnumber">{{ t.checkout_card_number }}</label>
-                  <input type="text" id="yb-store-cardnumber" required autocomplete="cc-number" placeholder="1234 5678 9012 3456" inputmode="numeric" maxlength="19">
-                </div>
-                <div class="yb-profile__form-row yb-profile__form-row--3">
-                  <div class="yb-auth-field">
-                    <label for="yb-store-expiry">{{ t.checkout_expiry }}</label>
-                    <input type="text" id="yb-store-expiry" required placeholder="MM/YY" inputmode="numeric" maxlength="5">
-                  </div>
-                  <div class="yb-auth-field">
-                    <label for="yb-store-cvv">{{ t.checkout_cvv }}</label>
-                    <input type="text" id="yb-store-cvv" required autocomplete="cc-csc" placeholder="123" inputmode="numeric" maxlength="4">
-                  </div>
-                </div>
-                <div class="yb-auth-field">
-                  <label for="yb-store-address">{{ t.checkout_address }}</label>
-                  <input type="text" id="yb-store-address" autocomplete="street-address">
-                </div>
-                <div class="yb-profile__form-row">
-                  <div class="yb-auth-field">
-                    <label for="yb-store-city">{{ t.checkout_city }}</label>
-                    <input type="text" id="yb-store-city" autocomplete="address-level2">
-                  </div>
-                  <div class="yb-auth-field">
-                    <label for="yb-store-zip">{{ t.checkout_zip }}</label>
-                    <input type="text" id="yb-store-zip" autocomplete="postal-code">
-                  </div>
-                </div>
-
-                <div class="yb-auth-error" id="yb-store-error" hidden role="alert"></div>
-
-                <label class="yb-store__save-card">
-                  <input type="checkbox" id="yb-store-save-card" checked>
-                  <span>{{ t.checkout_save_card }}</span>
-                </label>
-
-                <div class="yb-store__checkout-actions">
-                  <button type="submit" class="yb-auth-submit" id="yb-store-pay-btn">{{ t.checkout_pay }}</button>
-                  <button type="button" class="yb-btn yb-btn--outline" id="yb-store-cancel-btn">{{ t.checkout_cancel }}</button>
-                </div>
-
-                <div class="yb-store__secure">
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-                  {{ t.checkout_secure }}
-                </div>
-              </form>
             </div>
           </div>
 

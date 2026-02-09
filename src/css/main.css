@@ -6932,7 +6932,7 @@ section {
   border: 1.5px solid #E8E4E0;
   border-radius: 12px;
   padding: 2rem;
-  max-width: 520px;
+  max-width: 900px;
 }
 
 .yb-store__checkout-title {
@@ -6952,6 +6952,50 @@ section {
   border-radius: 8px;
   padding: 1rem 1.25rem;
   margin-bottom: 1.5rem;
+}
+
+/* Two-column checkout grid */
+.yb-checkout__grid {
+  /* Default: single column — payment form fills width */
+}
+
+.yb-checkout__grid--split {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2rem;
+  align-items: start;
+}
+
+.yb-checkout__col-left {
+  display: none;
+}
+
+.yb-checkout__grid--split .yb-checkout__col-left {
+  display: block;
+}
+
+.yb-checkout__col-left .yb-checkout-terms {
+  margin-bottom: 0;
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.yb-checkout__col-left .yb-checkout-terms + .yb-checkout-terms:not([hidden]) {
+  margin-top: 1.5rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid #E8E4E0;
+}
+
+.yb-checkout__payment-title {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #0F0F0F;
+  margin: 0 0 1rem;
+  display: none;
+}
+
+.yb-checkout__grid--split .yb-checkout__payment-title {
+  display: block;
 }
 
 .yb-store__checkout-item-name {
@@ -7036,6 +7080,12 @@ section {
 
   .yb-store__checkout-inner {
     padding: 1.5rem;
+    max-width: 100%;
+  }
+
+  .yb-checkout__grid--split {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
   }
 
   .yb-store__checkout-actions {
