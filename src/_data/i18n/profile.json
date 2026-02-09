@@ -62,6 +62,7 @@
     "checkout_cancel": "Annuller",
     "checkout_success_title": "Betaling gennemført!",
     "checkout_success_text": "Du modtager en bekræftelse på email.",
+    "checkout_success_book": "Book et hold",
     "checkout_success_close": "Luk",
     "checkout_error": "Betalingen fejlede. Prøv igen.",
     "checkout_secure": "Sikker betaling",
@@ -209,6 +210,9 @@
     "contract_sign_label": "Elektronisk underskrift:",
     "contract_terms_error_agree": "Du skal acceptere kontraktvilkårene.",
     "contract_terms_error_sign": "Tegn venligst din underskrift.",
+    "checkout_sign_label": "Din underskrift:",
+    "checkout_agree_waiver": "Jeg har læst og accepterer ansvarsfrihedserklæringen",
+    "checkout_agree_waiver_and_terms": "Jeg har læst og accepterer ansvarsfrihedserklæringen og kontraktvilkårene",
     "store_items": [100078, 100203]
   },
   "en": {
@@ -274,6 +278,7 @@
     "checkout_cancel": "Cancel",
     "checkout_success_title": "Payment complete!",
     "checkout_success_text": "You'll receive a confirmation email.",
+    "checkout_success_book": "Book a class",
     "checkout_success_close": "Close",
     "checkout_error": "Payment failed. Please try again.",
     "checkout_secure": "Secure payment",
@@ -421,6 +426,9 @@
     "contract_sign_label": "Electronic signature:",
     "contract_terms_error_agree": "You must accept the contract terms.",
     "contract_terms_error_sign": "Please draw your signature.",
+    "checkout_sign_label": "Your signature:",
+    "checkout_agree_waiver": "I have read and accept the liability waiver",
+    "checkout_agree_waiver_and_terms": "I have read and accept the liability waiver and contract terms",
     "store_items": [100078, 100203]
   }
 }

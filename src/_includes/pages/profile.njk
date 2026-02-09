@@ -259,37 +259,40 @@
               <!-- Two-column grid: left = waiver/terms, right = payment -->
               <div class="yb-checkout__grid" id="yb-checkout-grid">
 
-                <!-- Left column: Waiver + Contract Terms -->
+                <!-- Left column: Waiver + Contract Terms (unified single signature) -->
                 <div class="yb-checkout__col-left" id="yb-checkout-col-left">
-                  <!-- Liability waiver gate (shown if waiver not yet signed) -->
-                  <div id="yb-checkout-waiver-section" class="yb-checkout-terms" hidden>
-                    <h4 class="yb-checkout-terms__title">{{ t.waiver_title }}</h4>
-                    <div id="yb-checkout-waiver-text" class="yb-checkout-terms__text"></div>
-                    <label class="yb-waiver__agree">
-                      <input type="checkbox" id="yb-checkout-waiver-agree">
-                      <span>{{ t.waiver_agree_label }}</span>
-                    </label>
-                    <p class="yb-waiver__sign-label">{{ t.waiver_sign_label }}</p>
-                    <div class="yb-signature-pad" id="yb-checkout-waiver-sigpad">
-                      <canvas id="yb-checkout-waiver-canvas" width="400" height="160"></canvas>
-                      <button type="button" class="yb-signature-pad__clear" id="yb-checkout-waiver-sig-clear">{{ t.signature_clear }}</button>
-                    </div>
+
+                  <!-- Collapsible: Liability waiver (shown if waiver not yet signed) -->
+                  <div id="yb-checkout-waiver-section" class="yb-checkout-doc" hidden>
+                    <button type="button" class="yb-checkout-doc__toggle" id="yb-checkout-waiver-toggle">
+                      <span class="yb-checkout-doc__toggle-title">{{ t.waiver_title }}</span>
+                      <svg class="yb-checkout-doc__chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+                    </button>
+                    <div id="yb-checkout-waiver-text" class="yb-checkout-doc__content" hidden></div>
                   </div>
 
-                  <!-- Contract terms + signature (shown for contracts with AgreementTerms) -->
-                  <div id="yb-checkout-terms-section" class="yb-checkout-terms" hidden>
-                    <h4 class="yb-checkout-terms__title">{{ t.contract_terms_title }}</h4>
-                    <div id="yb-checkout-terms-text" class="yb-checkout-terms__text"></div>
+                  <!-- Collapsible: Contract terms (shown for contracts with AgreementTerms) -->
+                  <div id="yb-checkout-terms-section" class="yb-checkout-doc" hidden>
+                    <button type="button" class="yb-checkout-doc__toggle" id="yb-checkout-terms-toggle">
+                      <span class="yb-checkout-doc__toggle-title">{{ t.contract_terms_title }}</span>
+                      <svg class="yb-checkout-doc__chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+                    </button>
+                    <div id="yb-checkout-terms-text" class="yb-checkout-doc__content" hidden></div>
+                  </div>
+
+                  <!-- Unified agreement + single signature -->
+                  <div id="yb-checkout-agree-section" class="yb-checkout-agree" hidden>
                     <label class="yb-waiver__agree">
-                      <input type="checkbox" id="yb-checkout-terms-agree" required>
-                      <span>{{ t.contract_terms_agree }}</span>
+                      <input type="checkbox" id="yb-checkout-agree-check">
+                      <span id="yb-checkout-agree-label">{{ t.waiver_agree_label }}</span>
                     </label>
-                    <p class="yb-waiver__sign-label">{{ t.contract_sign_label }}</p>
+                    <p class="yb-waiver__sign-label">{{ t.checkout_sign_label }}</p>
                     <div class="yb-signature-pad" id="yb-checkout-sigpad">
                       <canvas id="yb-checkout-canvas" width="400" height="160"></canvas>
                       <button type="button" class="yb-signature-pad__clear" id="yb-checkout-sig-clear">{{ t.signature_clear }}</button>
                     </div>
                   </div>
+
                 </div>
 
                 <!-- Right column: Payment form -->
@@ -358,7 +361,10 @@
               <div class="yb-checkout-success__icon">&#10003;</div>
               <h3>{{ t.checkout_success_title }}</h3>
               <p>{{ t.checkout_success_text }}</p>
-              <button class="yb-btn yb-btn--primary" type="button" id="yb-store-success-close">{{ t.checkout_success_close }}</button>
+              <div class="yb-store__success-actions">
+                <button class="yb-btn yb-btn--primary" type="button" id="yb-store-success-book">{{ t.checkout_success_book }}</button>
+                <button class="yb-btn yb-btn--outline" type="button" id="yb-store-success-close">{{ t.checkout_success_close }}</button>
+              </div>
             </div>
           </div>
         </div>
