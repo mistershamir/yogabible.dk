@@ -95,69 +95,60 @@ exports.handler = async function(event) {
 
       var ccId = Number(body.clientContractId);
 
-      // Try /contract/ path first (confirmed to return JSON, not 404 HTML like /sale/).
-      // Then /client/ as fallback. Max 4 sequential API calls.
-      var suspendPaths = ['/contract/suspendcontract', '/client/suspendcontract'];
-      var suspendBodies = [
-        // Primary: with ClientId, Duration as int, "Days" plural
-        { label: 'A', data: { ClientId: body.clientId, ClientContractId: ccId, SuspendDate: body.startDate, Duration: durationDays, DurationUnit: 'Days' } },
-        // Alt: singular "Day"
-        { label: 'B', data: { ClientId: body.clientId, ClientContractId: ccId, SuspendDate: body.startDate, Duration: durationDays, DurationUnit: 'Day' } },
-      ];
+      // /client/suspendcontract is the confirmed active endpoint (returns JSON).
+      // /sale/ and /contract/ both return 404 HTML.
+      var suspendPath = '/client/suspendcontract';
+      var suspendBody = {
+        ClientId: body.clientId,
+        ClientContractId: ccId,
+        SuspendDate: body.startDate,
+        Duration: durationDays,
+        DurationUnit: 'Days'
+      };
 
-      var allResults = [];
+      console.log('[mb-contract-manage] Suspend on ' + suspendPath + ':', JSON.stringify(suspendBody));
 
-      for (var sp = 0; sp < suspendPaths.length; sp++) {
-        var spath = suspendPaths[sp];
-        for (var sb = 0; sb < suspendBodies.length; sb++) {
-          var svariant = suspendBodies[sb];
-          try {
-            console.log('[mb-contract-manage] Suspend ' + svariant.label + ' on ' + spath + ':', JSON.stringify(svariant.data));
-            var suspResult = await mbFetch(spath, {
-              method: 'POST',
-              body: JSON.stringify(svariant.data)
-            });
+      try {
+        var suspResult = await mbFetch(suspendPath, {
+          method: 'POST',
+          body: JSON.stringify(suspendBody)
+        });
 
-            console.log('[mb-contract-manage] SUCCESS:', JSON.stringify(suspResult).substring(0, 300));
-            return jsonResponse(200, {
-              success: true,
-              action: 'suspend',
-              suspendDate: body.startDate,
-              resumeDate: body.endDate,
-              durationDays: durationDays,
-              endpointUsed: spath,
-              bodyVariant: svariant.label,
-              message: 'Contract suspension scheduled'
-            });
-          } catch (suspErr) {
-            var suspMsg = (suspErr.message || '').toLowerCase();
-            var errDetail = {
-              variant: svariant.label,
-              path: spath,
-              status: suspErr.status,
-              message: suspErr.message,
-              fullData: suspErr.data ? JSON.stringify(suspErr.data).substring(0, 500) : null
-            };
-            console.log('[mb-contract-manage] Failed ' + svariant.label + ':', JSON.stringify(errDetail));
-            allResults.push(errDetail);
+        console.log('[mb-contract-manage] SUCCESS:', JSON.stringify(suspResult).substring(0, 500));
+        return jsonResponse(200, {
+          success: true,
+          action: 'suspend',
+          suspendDate: body.startDate,
+          resumeDate: body.endDate,
+          durationDays: durationDays,
+          endpointUsed: suspendPath,
+          message: 'Contract suspension scheduled'
+        });
+      } catch (suspErr) {
+        // Extract the FULL error from MB — check all possible fields
+        var mbData = suspErr.data || {};
+        var mbErrorMsg = suspErr.message || 'Unknown error';
+        var mbFullResponse = JSON.stringify(mbData);
 
-            // If this path returns 404/HTML, skip remaining variants on it
-            if (suspErr.status === 404 || suspErr.status === 405 || suspMsg.indexOf('non-json') > -1) {
-              console.log('[mb-contract-manage] Path ' + spath + ' does not exist, skipping...');
-              break;
-            }
-          }
-        }
+        // MB can put errors in various places
+        if (mbData.Message) mbErrorMsg = mbData.Message;
+        if (mbData.Error && mbData.Error.Message) mbErrorMsg = mbData.Error.Message;
+        if (mbData.Errors && mbData.Errors.length) mbErrorMsg = mbData.Errors.map(function(e) { return e.Message || e.message || JSON.stringify(e); }).join('; ');
+        if (mbData.error) mbErrorMsg = typeof mbData.error === 'string' ? mbData.error : JSON.stringify(mbData.error);
+
+        console.error('[mb-contract-manage] Suspend FAILED. Status:', suspErr.status);
+        console.error('[mb-contract-manage] Error message:', mbErrorMsg);
+        console.error('[mb-contract-manage] Full MB response:', mbFullResponse.substring(0, 1000));
+
+        // Return EVERYTHING to the frontend for diagnosis
+        return jsonResponse(suspErr.status || 400, {
+          error: mbErrorMsg,
+          _mbStatus: suspErr.status,
+          _mbFullResponse: mbFullResponse.substring(0, 800),
+          _sentBody: suspendBody,
+          _path: suspendPath
+        });
       }
-
-      // All attempts failed — return full diagnostic data
-      console.error('[mb-contract-manage] All suspend attempts failed:', JSON.stringify(allResults));
-      var lastRes = allResults[allResults.length - 1] || {};
-      return jsonResponse(400, {
-        error: lastRes.message || 'All suspend attempts failed',
-        _attempts: allResults,
-        _hint: 'Tried ' + allResults.length + ' combos. Check _attempts for full error data from MB.'
-      });
     }
 
     return jsonResponse(400, { error: 'Invalid action. Use "terminate" or "suspend".' });
