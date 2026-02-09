@@ -890,27 +890,36 @@
     if (!contentEl) return;
     if (loadingEl) loadingEl.hidden = false;
 
-    fetch('/.netlify/functions/mb-client-services?clientId=' + clientId)
-      .then(function(r) { return r.json(); })
-      .then(function(data) {
+    // Fetch MB data and Firestore pause data in parallel
+    var mbPromise = fetch('/.netlify/functions/mb-client-services?clientId=' + clientId)
+      .then(function(r) { return r.json(); });
+
+    var fsPromise = new Promise(function(resolve) { loadPausesFromFirestore(resolve); });
+
+    Promise.all([mbPromise, fsPromise]).then(function(results) {
+      var data = results[0];
+      var firestorePauses = results[1];
+      return { data: data, pauses: firestorePauses };
+    })
+      .then(function(combined) {
+        var data = combined.data;
+        var firestorePauses = combined.pauses;
         try {
-          // Preserve locally-set pause state if server doesn't reflect it yet
-          // (MB IsSuspended=false for future-dated pauses, notes may not be saved yet)
-          if (clientPassData && clientPassData.activeContracts) {
-            clientPassData.activeContracts.forEach(function(localC) {
-              if (localC.isSuspended && localC.pauseStartDate) {
-                // Find matching server contract and merge pause data
-                var serverC = (data.activeContracts || []).find(function(sc) {
-                  return String(sc.id) === String(localC.id);
-                });
-                if (serverC && !serverC.isSuspended && !serverC.pauseStartDate) {
-                  serverC.isSuspended = true;
-                  serverC.pauseStartDate = localC.pauseStartDate;
-                  serverC.pauseEndDate = localC.pauseEndDate;
-                }
-              }
-            });
-          }
+          // Merge Firestore pause data into MB contracts
+          var now = new Date().toISOString().split('T')[0];
+          (data.activeContracts || []).forEach(function(c) {
+            var key = 'pause_' + c.id;
+            var fsPause = firestorePauses[key];
+            if (fsPause && fsPause.endDate >= now && !c.isSuspended && !c.pauseStartDate) {
+              c.isSuspended = true;
+              c.pauseStartDate = fsPause.startDate;
+              c.pauseEndDate = fsPause.endDate;
+            }
+            // Clean up expired pauses from Firestore
+            if (fsPause && fsPause.endDate < now) {
+              removePauseFromFirestore(c.id);
+            }
+          });
           clientPassData = data;
           renderMembershipDetails(contentEl, data);
 
@@ -1225,6 +1234,47 @@
         break;
       }
     }
+    // Also persist to Firestore
+    savePauseToFirestore(contractId, startDate, endDate);
+  }
+
+  // ── Firestore pause persistence ──
+  // Saves/reads pause data from Firestore (reliable, cross-browser, cross-session)
+  function savePauseToFirestore(contractId, startDate, endDate) {
+    if (!currentUser || !currentDb) return;
+    var key = 'pause_' + contractId;
+    var update = {};
+    update['pausedContracts.' + key] = {
+      contractId: String(contractId),
+      startDate: startDate,
+      endDate: endDate,
+      savedAt: new Date().toISOString()
+    };
+    currentDb.collection('users').doc(currentUser.uid).update(update).catch(function(err) {
+      console.warn('[Pause] Firestore save failed:', err.message);
+    });
+  }
+
+  function removePauseFromFirestore(contractId) {
+    if (!currentUser || !currentDb) return;
+    var key = 'pause_' + contractId;
+    var update = {};
+    update['pausedContracts.' + key] = firebase.firestore.FieldValue.delete();
+    currentDb.collection('users').doc(currentUser.uid).update(update).catch(function(err) {
+      console.warn('[Pause] Firestore delete failed:', err.message);
+    });
+  }
+
+  function loadPausesFromFirestore(callback) {
+    if (!currentUser || !currentDb) { callback({}); return; }
+    currentDb.collection('users').doc(currentUser.uid).get().then(function(doc) {
+      if (!doc.exists) { callback({}); return; }
+      var data = doc.data();
+      callback(data.pausedContracts || {});
+    }).catch(function(err) {
+      console.warn('[Pause] Firestore read failed:', err.message);
+      callback({});
+    });
   }
 
   function bindMembershipManageEvents(container, data) {
@@ -1233,6 +1283,7 @@
     var dateOpts = { day: 'numeric', month: 'long', year: 'numeric' };
     var activeContractId = null;
     var activeContract = null;
+    var activePauseStart = null; // Track current pause start for extend
 
     // Sections to show/hide
     var allSections = container.querySelectorAll('.yb-membership__section');
@@ -1445,6 +1496,7 @@
 
         var pauseStart = this.getAttribute('data-pause-start');
         var pauseEnd = this.getAttribute('data-pause-end');
+        activePauseStart = pauseStart; // Save for confirm handler
 
         hideSections();
         extendPanel.hidden = false;
@@ -1518,6 +1570,7 @@
             action: 'extend',
             clientId: clientId,
             clientContractId: Number(activeContractId),
+            currentStartDate: activePauseStart,
             newEndDate: endInput.value
           })
         })
@@ -1530,19 +1583,11 @@
         })
         .then(function(res) {
           if (res.ok && res.data.success) {
+            // Update local + Firestore
+            markContractPaused(activeContractId, activePauseStart, endInput.value);
             showSections();
-            // Update local data
-            if (clientPassData && clientPassData.activeContracts) {
-              for (var ci = 0; ci < clientPassData.activeContracts.length; ci++) {
-                if (String(clientPassData.activeContracts[ci].id) === String(activeContractId)) {
-                  clientPassData.activeContracts[ci].pauseEndDate = endInput.value;
-                  break;
-                }
-              }
-            }
             renderMembershipDetails(container, clientPassData);
             bindMembershipManageEvents(container, clientPassData);
-            setTimeout(function() { loadMembershipDetails(); }, 3000);
             showMembershipToast(t('membership_extend_success'), 'success', 15000);
           } else {
             if (errorEl) {
@@ -1709,53 +1754,11 @@
     }
 
     // ── Resume (cancel pause early) buttons ──
+    // MB Public API v6 has no resume/unsuspend endpoint — show contact info directly
     var resumeBtns = container.querySelectorAll('[data-manage-resume]');
     for (var rm = 0; rm < resumeBtns.length; rm++) {
       resumeBtns[rm].addEventListener('click', function() {
-        var contractIdToResume = this.getAttribute('data-manage-resume');
-        if (!contractIdToResume || !clientId) return;
-
-        var btn = this;
-        btn.disabled = true;
-        btn.textContent = t('membership_pause_confirming');
-
-        fetch('/.netlify/functions/mb-contract-manage', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            action: 'resume',
-            clientId: clientId,
-            clientContractId: Number(contractIdToResume)
-          })
-        })
-        .then(function(r) {
-          var ct = r.headers.get('content-type') || '';
-          if (ct.indexOf('application/json') === -1) {
-            throw new Error('Server returned non-JSON');
-          }
-          return r.json().then(function(d) { return { ok: r.ok, data: d }; });
-        })
-        .then(function(res) {
-          if (res.ok && res.data.success) {
-            loadMembershipDetails();
-            showMembershipToast(t('membership_resume_success'), 'success', 10000);
-          } else {
-            // Resume not available via API — show contact message
-            if (res.data.error === 'resume_not_available') {
-              showMembershipToast(t('membership_resume_contact'), 'info', 10000);
-            } else {
-              showMembershipToast(res.data.message || t('membership_pause_error'), 'error', 8000);
-            }
-          }
-          btn.disabled = false;
-          btn.textContent = t('membership_resume_btn');
-        })
-        .catch(function(err) {
-          console.error('[Membership] Resume error:', err);
-          showMembershipToast(t('membership_resume_contact'), 'info', 10000);
-          btn.disabled = false;
-          btn.textContent = t('membership_resume_btn');
-        });
+        showMembershipToast(t('membership_resume_contact'), 'info', 12000);
       });
     }
 
