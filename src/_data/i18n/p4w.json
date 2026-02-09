@@ -1,8 +1,11 @@
 {
   "da": {
-    "hero_badge": "200-TIMER YOGALÆRERUDDANNELSE",
-    "hero_title": "4 Ugers Intensivt Program",
-    "hero_subtitle": "Kompakt uddannelse på fuld tid",
+    "hero_tagline": "200-Timer Yogalæreruddannelse",
+    "hero_title": "4 Ugers Intensivt<br>Program",
+    "hero_subtitle": "4 ugers intensiv certificering i hjertet af Skandinavien — lille hold, store oplevelser, en karriere der venter",
+    "hero_trust1": "April & Juli 2026",
+    "hero_trust2": "Fuld tid · Max 12",
+    "hero_trust3": "Yoga Alliance RYT-200",
     "meta_start_label": "Start:",
     "meta_start_val": "April & Juli 2026",
     "meta_format_label": "Format:",
@@ -90,9 +93,12 @@
     "final_cta_button": "Få Skema & Ansøg Nu"
   },
   "en": {
-    "hero_badge": "200-HOUR YOGA TEACHER TRAINING",
-    "hero_title": "4-Week Intensive Program",
-    "hero_subtitle": "Compact full-time education",
+    "hero_tagline": "200-Hour Yoga Teacher Training",
+    "hero_title": "4-Week Intensive<br>Program",
+    "hero_subtitle": "4 weeks of intensive certification in the heart of Scandinavia — small group, big experiences, a career waiting",
+    "hero_trust1": "April & July 2026",
+    "hero_trust2": "Full time · Max 12",
+    "hero_trust3": "Yoga Alliance RYT-200",
     "meta_start_label": "Start:",
     "meta_start_val": "April & July 2026",
     "meta_format_label": "Format:",

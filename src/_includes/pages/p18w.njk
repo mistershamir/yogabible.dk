@@ -1,37 +1,30 @@
 {% set t = i18n.p18w[lang or "da"] %}
 
 <!-- ═══════════════════════════════════════
-     1. HERO — Dark Cinematic with Video-Ready BG
+     1. HERO — Primary Dark Cinematic
      ═══════════════════════════════════════ -->
-<section class="p18-hero">
-  <div class="p18-hero__bg">
-    <!-- Video slot: add <video> here when ready -->
+<section class="yb-hero">
+  <div class="yb-hero__glow"></div>
+  <div class="yb-hero__content">
+    <p class="yb-hero__tagline">{{ t.hero_tagline }}</p>
+    <h1 class="yb-hero__title">{{ t.hero_title | safe }}</h1>
+    <p class="yb-hero__subtitle">{{ t.hero_subtitle }}</p>
+    <div class="yb-hero__line"></div>
+    <div class="yb-hero__ctas">
+      <button onclick="openYBScheduleModal('18w')" class="yb-btn yb-btn--primary yb-btn--large">{{ t.hero_cta_schedule }}</button>
+      <a href="#program-overview" class="yb-btn yb-btn--outline-white yb-btn--large">{{ t.hero_cta_more }}</a>
+    </div>
+    <div class="yb-hero__trust">
+      <span>{{ t.hero_trust1 }}</span>
+      <span class="yb-hero__trust-dot"></span>
+      <span>{{ t.hero_trust2 }}</span>
+      <span class="yb-hero__trust-dot"></span>
+      <span>{{ t.hero_trust3 }}</span>
+    </div>
   </div>
-  <div class="p18-hero__overlay"></div>
-
-  <div class="container p18-hero__inner">
-    <span class="p18-hero__eyebrow">{{ t.hero_eyebrow }}</span>
-    <h1 class="p18-hero__title">{{ t.hero_title | safe }}</h1>
-    <p class="p18-hero__subtitle">{{ t.hero_subtitle }}</p>
-
-    <div class="p18-hero__meta">
-      <div class="p18-hero__meta-item">
-        <strong>{{ t.hero_meta_next_label }}</strong> {{ t.hero_meta_next_val }}
-      </div>
-      <div class="p18-hero__meta-item">
-        <strong>{{ t.hero_meta_format_label }}</strong> {{ t.hero_meta_format_val }}
-      </div>
-      <div class="p18-hero__meta-item">
-        <strong>{{ t.hero_meta_cert_label }}</strong> {{ t.hero_meta_cert_val }}
-      </div>
-    </div>
-
-    <p class="p18-hero__styles">{{ t.hero_styles }}</p>
-
-    <div class="p18-hero__cta">
-      <button onclick="openYBScheduleModal('18w')" class="btn btn--primary btn--large">{{ t.hero_cta_schedule }}</button>
-      <a href="#program-overview" class="btn btn--secondary btn--large">{{ t.hero_cta_more }}</a>
-    </div>
+  <div class="yb-hero__scroll">
+    <span>Scroll</span>
+    <div class="yb-hero__scroll-line"></div>
   </div>
 </section>
 
