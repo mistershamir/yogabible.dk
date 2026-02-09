@@ -8,9 +8,10 @@
   <div class="yb-hero__glow"></div>
 
   <div class="yb-hero__content">
-    <p class="yb-hero__tagline">{{ t.hero_flag }}</p>
+    <span class="yb-hero__badge">{{ t.hero_flag }}</span>
     <h1 class="yb-hero__title">{{ t.hero_title | safe }}</h1>
     <p class="yb-hero__subtitle">{{ t.hero_lead }}</p>
+    <div class="yb-hero__line"></div>
     <div class="yb-hero__ctas">
       <a href="{% if lang == 'en' %}/en/apply{% else %}/apply{% endif %}" class="yb-btn yb-btn--primary yb-btn--large">{{ t.hero_cta1 }}</a>
       <a href="{% if lang == 'en' %}/en/sammenlign-yogalreruddannelser{% else %}/sammenlign-yogalreruddannelser{% endif %}" class="yb-btn yb-btn--outline-white yb-btn--large">{{ t.hero_cta2 }}</a>

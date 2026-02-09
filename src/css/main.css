@@ -3454,34 +3454,31 @@ section {
   padding: 0 24px;
 }
 
-.yb-hero__tagline {
-  display: inline-flex;
-  align-items: center;
-  gap: 12px;
-  font-size: 0.7rem;
+/* Orange pill badge eyebrow */
+.yb-hero__badge {
+  display: inline-block;
+  background: var(--yb-brand);
+  color: #fff;
+  padding: 8px 24px;
+  border-radius: 20px;
+  font-size: 12px;
   font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.3em;
-  opacity: 0.7;
+  letter-spacing: 0.15em;
   margin-bottom: 28px;
 }
 
-.yb-hero__tagline::before,
-.yb-hero__tagline::after {
-  content: "";
-  width: 40px;
-  height: 1px;
-  background: rgba(255, 255, 255, 0.4);
-}
-
+/* Gradient title: warm white → light orange → brand orange */
 .yb-hero__title {
   font-size: clamp(2.8rem, 7vw, 5.5rem);
   font-weight: 700;
   line-height: 1.05;
   margin: 0 0 24px;
-  text-shadow: 0 4px 40px rgba(0, 0, 0, 0.3);
   letter-spacing: -0.02em;
-  color: #fff;
+  background: linear-gradient(135deg, #FDFBF7 0%, #ff9966 50%, var(--yb-brand) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
 
 .yb-hero__subtitle {
@@ -3489,8 +3486,17 @@ section {
   font-weight: 400;
   opacity: 0.85;
   max-width: 650px;
-  margin: 0 auto 44px;
+  margin: 0 auto 0;
   line-height: 1.7;
+}
+
+/* Thin separator line below subtitle */
+.yb-hero__line {
+  width: 100%;
+  max-width: 650px;
+  height: 1px;
+  background: rgba(253, 251, 247, 0.1);
+  margin: 40px auto 44px;
 }
 
 .yb-hero__ctas {
