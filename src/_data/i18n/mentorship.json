@@ -41,7 +41,7 @@
     "intake_success_p1": "Vi har modtaget din forespørgsel og vender tilbage hurtigst muligt.",
     "intake_success_p2": "Imens er du velkommen til at ringe på <a href=\"tel:+4553881209\">+45 53 88 12 09</a> eller skrive til <a href=\"mailto:info@yogabible.dk\">info@yogabible.dk</a>.",
     "intake_error_required": "Udfyld venligst alle påkrævede felter.",
-    "intake_js_sending": "Sender\u2026",
+    "intake_js_sending": "Sender…",
     "faq_title": "FAQ",
     "faq1_q": "Hvem passer privatundervisning til?",
     "faq1_a": "Til både begyndere og øvede. For begyndere skaber vi en solid base. For øvede går vi målrettet efter dine mål — fx dybere stillinger, bedre kontrol eller mere frihed i kroppen.",
@@ -55,7 +55,11 @@
     "faq5_a": "Ja. Online fungerer godt til teknik, alignment, styrke/mobilitet-plan og tydelige cues. Hvis du vil have hands-on, anbefaler vi studio.",
     "cta_title": "Klar til at tage næste skridt?",
     "cta_text": "Book en samtale — så finder vi det rette forløb til dig.",
-    "cta_btn": "Book en Samtale"
+    "cta_btn": "Book en Samtale",
+    "hero_tagline": "Yoga Bible · 1:1",
+    "hero_trust1": "Praksis & Teknik",
+    "hero_trust2": "Undervisning & Mentorship",
+    "hero_trust3": "Skræddersyet til Dig"
   },
   "en": {
     "hero_badge": "YOGA BIBLE · 1:1",
@@ -99,7 +103,7 @@
     "intake_success_p1": "We have received your inquiry and will get back to you as soon as possible.",
     "intake_success_p2": "In the meantime, feel free to call <a href=\"tel:+4553881209\">+45 53 88 12 09</a> or email <a href=\"mailto:info@yogabible.dk\">info@yogabible.dk</a>.",
     "intake_error_required": "Please fill in all required fields.",
-    "intake_js_sending": "Sending\u2026",
+    "intake_js_sending": "Sending…",
     "faq_title": "FAQ",
     "faq1_q": "Who is private training for?",
     "faq1_a": "For both beginners and experienced practitioners. For beginners, we build a solid foundation. For experienced yogis, we target your specific goals — deeper poses, better control, or more freedom in your body.",
@@ -113,6 +117,10 @@
     "faq5_a": "Yes. Online works well for technique, alignment, strength/mobility plans, and clear cues. If you want hands-on, we recommend the studio.",
     "cta_title": "Ready to take the next step?",
     "cta_text": "Book a consultation — and we will find the right path for you.",
-    "cta_btn": "Book a Consultation"
+    "cta_btn": "Book a Consultation",
+    "hero_tagline": "Yoga Bible · 1:1",
+    "hero_trust1": "Practice & Technique",
+    "hero_trust2": "Teaching & Mentorship",
+    "hero_trust3": "Tailored to You"
   }
 }

@@ -3479,8 +3479,9 @@ section {
 .yb-hero__title {
   font-size: clamp(2.8rem, 7vw, 5.5rem);
   font-weight: 700;
-  line-height: 1.05;
+  line-height: 1.1;
   margin: 0 0 24px;
+  padding-bottom: 0.05em;
   letter-spacing: -0.02em;
   background: linear-gradient(135deg, #FDFBF7 0%, #ff9966 50%, var(--yb-brand) 100%);
   -webkit-background-clip: text;
