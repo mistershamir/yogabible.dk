@@ -637,11 +637,11 @@
     var submitBtn = document.getElementById('yb-waiver-submit');
     var sigPad = waiverSigPad;
 
-    // If called from checkout, use checkout elements
+    // If called from checkout, use unified checkout elements
     if (source === 'checkout') {
-      agreeCheck = document.getElementById('yb-checkout-waiver-agree');
+      agreeCheck = document.getElementById('yb-checkout-agree-check');
       errorEl = document.getElementById('yb-store-error');
-      sigPad = checkoutWaiverSigPad;
+      sigPad = checkoutSigPad; // unified single signature pad
     }
 
     if (!agreeCheck || !agreeCheck.checked) {
@@ -1363,12 +1363,13 @@
       var list = document.getElementById('yb-store-list');
       if (el) el.hidden = true;
       if (list) list.style.display = '';
-      // Reset waiver and contract terms sections
+      // Reset checkout left column sections
       var waiverSect = document.getElementById('yb-checkout-waiver-section');
       if (waiverSect) waiverSect.hidden = true;
-      if (checkoutWaiverSigPad) checkoutWaiverSigPad.clear();
       var termsSection = document.getElementById('yb-checkout-terms-section');
       if (termsSection) termsSection.hidden = true;
+      var agreeSection = document.getElementById('yb-checkout-agree-section');
+      if (agreeSection) agreeSection.hidden = true;
       if (checkoutSigPad) checkoutSigPad.clear();
     });
     if (successCloseBtn) successCloseBtn.addEventListener('click', function() {
@@ -1376,6 +1377,16 @@
       var list = document.getElementById('yb-store-list');
       if (el) el.hidden = true;
       if (list) list.style.display = '';
+    });
+    var successBookBtn = document.getElementById('yb-store-success-book');
+    if (successBookBtn) successBookBtn.addEventListener('click', function() {
+      var el = document.getElementById('yb-store-success');
+      var list = document.getElementById('yb-store-list');
+      if (el) el.hidden = true;
+      if (list) list.style.display = '';
+      // Switch to Schedule tab
+      var scheduleBtn = document.querySelector('[data-yb-tab="schedule"]');
+      if (scheduleBtn) scheduleBtn.click();
     });
     if (checkoutForm) checkoutForm.addEventListener('submit', function(e) { e.preventDefault(); processCheckout(); });
 
@@ -1700,51 +1711,83 @@
     var errEl = document.getElementById('yb-store-error');
     if (errEl) errEl.hidden = true;
 
-    // 1. Determine section visibility first (before initializing canvases)
+    // 1. Determine what documents to show
     var waiverSection = document.getElementById('yb-checkout-waiver-section');
+    var termsSection = document.getElementById('yb-checkout-terms-section');
+    var agreeSection = document.getElementById('yb-checkout-agree-section');
     var showWaiver = !waiverSigned;
+    var showTerms = !!(isContract && service.agreementTerms);
+    var hasLeftContent = showWaiver || showTerms;
+
+    // 2. Populate collapsible document sections
     if (waiverSection) {
       waiverSection.hidden = !showWaiver;
       if (showWaiver) {
         var waiverTextEl = document.getElementById('yb-checkout-waiver-text');
         if (waiverTextEl) {
           waiverTextEl.innerHTML = waiverTextCache || ('<p>' + t('waiver_fallback') + '</p>');
+          waiverTextEl.hidden = true; // collapsed by default
         }
-        var waiverAgree = document.getElementById('yb-checkout-waiver-agree');
-        if (waiverAgree) waiverAgree.checked = false;
       }
     }
-
-    var termsSection = document.getElementById('yb-checkout-terms-section');
-    var termsTextEl = document.getElementById('yb-checkout-terms-text');
-    var termsAgreeEl = document.getElementById('yb-checkout-terms-agree');
-    var showTerms = isContract && service.agreementTerms;
     if (termsSection) {
       termsSection.hidden = !showTerms;
       if (showTerms) {
-        if (termsTextEl) termsTextEl.innerHTML = service.agreementTerms;
-        if (termsAgreeEl) termsAgreeEl.checked = false;
+        var termsTextEl = document.getElementById('yb-checkout-terms-text');
+        if (termsTextEl) {
+          termsTextEl.innerHTML = service.agreementTerms;
+          termsTextEl.hidden = true; // collapsed by default
+        }
       }
     }
 
-    // 2. Toggle two-column grid BEFORE initializing signature pads
-    //    so the left column is display:block and canvases get correct dimensions
+    // 3. Show unified agree checkbox + single signature pad
+    if (agreeSection) {
+      agreeSection.hidden = !hasLeftContent;
+      if (hasLeftContent) {
+        var agreeCheck = document.getElementById('yb-checkout-agree-check');
+        if (agreeCheck) agreeCheck.checked = false;
+        // Dynamic label: waiver-only vs waiver+terms
+        var agreeLabel = document.getElementById('yb-checkout-agree-label');
+        if (agreeLabel) {
+          agreeLabel.textContent = (showWaiver && showTerms)
+            ? t('checkout_agree_waiver_and_terms')
+            : showTerms ? t('contract_terms_agree') : t('checkout_agree_waiver');
+        }
+      }
+    }
+
+    // 4. Wire up collapsible toggles
+    var waiverToggle = document.getElementById('yb-checkout-waiver-toggle');
+    if (waiverToggle && !waiverToggle._bound) {
+      waiverToggle._bound = true;
+      waiverToggle.addEventListener('click', function() {
+        var content = document.getElementById('yb-checkout-waiver-text');
+        if (content) {
+          content.hidden = !content.hidden;
+          waiverToggle.classList.toggle('is-open', !content.hidden);
+        }
+      });
+    }
+    var termsToggle = document.getElementById('yb-checkout-terms-toggle');
+    if (termsToggle && !termsToggle._bound) {
+      termsToggle._bound = true;
+      termsToggle.addEventListener('click', function() {
+        var content = document.getElementById('yb-checkout-terms-text');
+        if (content) {
+          content.hidden = !content.hidden;
+          termsToggle.classList.toggle('is-open', !content.hidden);
+        }
+      });
+    }
+
+    // 5. Toggle two-column grid and init single signature pad
     var checkoutGrid = document.getElementById('yb-checkout-grid');
-    var hasLeftContent = showWaiver || showTerms;
     if (checkoutGrid) {
       checkoutGrid.classList.toggle('yb-checkout__grid--split', hasLeftContent);
     }
-
-    // 3. Force reflow so canvases have correct parent dimensions, then init/reset pads
     if (hasLeftContent && checkoutGrid) checkoutGrid.offsetHeight; // force reflow
-    if (showWaiver) {
-      if (!checkoutWaiverSigPad) {
-        checkoutWaiverSigPad = SignaturePad('yb-checkout-waiver-canvas', 'yb-checkout-waiver-sig-clear');
-      } else {
-        checkoutWaiverSigPad.clear();
-      }
-    }
-    if (showTerms) {
+    if (hasLeftContent) {
       if (!checkoutSigPad) {
         checkoutSigPad = SignaturePad('yb-checkout-canvas', 'yb-checkout-sig-clear');
       } else {
@@ -1756,7 +1799,6 @@
   }
 
   var checkoutSigPad = null;
-  var checkoutWaiverSigPad = null;
 
   function processCheckout() {
     if (!currentUser) return;
@@ -1775,26 +1817,12 @@
     var payBtn = document.getElementById('yb-store-pay-btn');
     var payBtnText = payBtn.textContent;
 
-    // Validate waiver if shown in checkout
-    var waiverSection = document.getElementById('yb-checkout-waiver-section');
-    if (waiverSection && !waiverSection.hidden) {
-      var waiverAgree = document.getElementById('yb-checkout-waiver-agree');
-      if (!waiverAgree || !waiverAgree.checked) {
-        showSimpleError(errorEl, isDa() ? 'Du skal acceptere ansvarsfrihedserklæringen.' : 'You must accept the liability waiver.');
-        return;
-      }
-      if (checkoutWaiverSigPad && checkoutWaiverSigPad.isEmpty()) {
-        showSimpleError(errorEl, isDa() ? 'Tegn venligst din underskrift for ansvarsfrihedserklæringen.' : 'Please draw your signature for the liability waiver.');
-        return;
-      }
-    }
-
-    // Validate contract terms + signature if visible
-    var termsSection = document.getElementById('yb-checkout-terms-section');
-    if (termsSection && !termsSection.hidden) {
-      var termsAgree = document.getElementById('yb-checkout-terms-agree');
-      if (!termsAgree || !termsAgree.checked) {
-        showSimpleError(errorEl, isDa() ? 'Du skal acceptere kontraktvilkårene.' : 'You must accept the contract terms.');
+    // Validate unified agree checkbox + signature (if waiver/terms are shown)
+    var agreeSection = document.getElementById('yb-checkout-agree-section');
+    if (agreeSection && !agreeSection.hidden) {
+      var agreeCheck = document.getElementById('yb-checkout-agree-check');
+      if (!agreeCheck || !agreeCheck.checked) {
+        showSimpleError(errorEl, isDa() ? 'Du skal acceptere vilkårene for at fortsætte.' : 'You must accept the terms to continue.');
         return;
       }
       if (checkoutSigPad && checkoutSigPad.isEmpty()) {
@@ -1836,8 +1864,9 @@
       payBtn.disabled = false; payBtn.textContent = payBtnText; return;
     }
 
-    // Submit waiver silently first if shown in checkout
+    // Submit waiver silently first if waiver is shown in checkout
     var waiverPromise = Promise.resolve(true);
+    var waiverSection = document.getElementById('yb-checkout-waiver-section');
     if (waiverSection && !waiverSection.hidden && !waiverSigned && clientId) {
       waiverPromise = submitLiabilityWaiver(clientId, 'checkout');
     }
@@ -1892,9 +1921,13 @@
         .then(function(data) {
           if (data.success) {
             checkoutEl.hidden = true;
-            // Hide waiver section after successful purchase
+            // Reset left column sections after successful purchase
             var wvs = document.getElementById('yb-checkout-waiver-section');
             if (wvs) wvs.hidden = true;
+            var tss = document.getElementById('yb-checkout-terms-section');
+            if (tss) tss.hidden = true;
+            var ags = document.getElementById('yb-checkout-agree-section');
+            if (ags) ags.hidden = true;
             var sEl = document.getElementById('yb-store-success');
             if (sEl) sEl.hidden = false;
             document.getElementById('yb-store-checkout-form').reset();
