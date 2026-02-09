@@ -26,6 +26,30 @@
     <!-- Logged in state -->
     <div id="yb-profile-user" class="yb-profile__content" style="display:none">
 
+      <!-- Mandatory onboarding overlay (phone + DOB) -->
+      <div id="yb-onboarding-overlay" class="yb-onboarding" hidden>
+        <div class="yb-onboarding__card">
+          <div class="yb-onboarding__icon">
+            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#f75c03" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/><path d="M12 14l2 2 4-4" opacity="0.5"/></svg>
+          </div>
+          <h2 class="yb-onboarding__title">{{ t.onboarding_title }}</h2>
+          <p class="yb-onboarding__desc">{{ t.onboarding_desc }}</p>
+          <form id="yb-onboarding-form" class="yb-onboarding__form" novalidate>
+            <div class="yb-auth-field">
+              <label for="yb-onboarding-phone">{{ t.label_phone }} <span class="yb-onboarding__required">*</span></label>
+              <input type="tel" id="yb-onboarding-phone" autocomplete="tel" placeholder="{{ t.placeholder_phone }}" required>
+            </div>
+            <div class="yb-auth-field">
+              <label for="yb-onboarding-dob">{{ t.label_dob }} <span class="yb-onboarding__required">*</span></label>
+              <input type="date" id="yb-onboarding-dob" required>
+            </div>
+            <div class="yb-auth-error" id="yb-onboarding-error" hidden role="alert"></div>
+            <button type="submit" class="yb-auth-submit yb-onboarding__submit">{{ t.onboarding_submit }}</button>
+          </form>
+          <p class="yb-onboarding__note">{{ t.onboarding_note }}</p>
+        </div>
+      </div>
+
       <!-- Tab navigation -->
       <div class="yb-profile__tabs">
         <button class="yb-profile__tab is-active" type="button" data-yb-tab="profile">{{ t.tab_profile }}</button>
