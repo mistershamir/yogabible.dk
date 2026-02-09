@@ -82,6 +82,23 @@ exports.handler = async function(event) {
         if (next) nextBillingDate = next.ChargeDate || next.ScheduleDate;
       }
 
+      // Log ALL raw contract fields to discover suspension-related data.
+      // MB API may use field names we haven't tried yet.
+      var suspectFields = {};
+      Object.keys(c).forEach(function(k) {
+        var kl = k.toLowerCase();
+        if (kl.indexOf('suspend') > -1 || kl.indexOf('pause') > -1 ||
+            kl.indexOf('resume') > -1 || kl.indexOf('freeze') > -1 ||
+            kl.indexOf('hold') > -1) {
+          suspectFields[k] = c[k];
+        }
+      });
+      console.log('[mb-client-services] Contract', c.Id, c.ContractName,
+        'IsSuspended:', c.IsSuspended,
+        'suspectFields:', JSON.stringify(suspectFields),
+        'allKeys:', Object.keys(c).join(',')
+      );
+
       // Use ONLY MB's own fields for pause detection.
       // IsSuspended = true only for currently active pauses (not future-dated).
       // SuspendDate/ResumeDate may be present for scheduled pauses.
@@ -89,12 +106,6 @@ exports.handler = async function(event) {
       var pauseStartDate = c.SuspendDate || c.SuspensionDate || null;
       var pauseEndDate = c.ResumeDate || c.ResumptionDate || null;
       var isPaused = c.IsSuspended || !!(pauseStartDate && pauseEndDate);
-
-      console.log('[mb-client-services] Contract', c.Id, c.ContractName,
-        'IsSuspended:', c.IsSuspended,
-        'SuspendDate:', c.SuspendDate, 'SuspensionDate:', c.SuspensionDate,
-        'ResumeDate:', c.ResumeDate, 'ResumptionDate:', c.ResumptionDate
-      );
 
       return {
         id: c.Id,

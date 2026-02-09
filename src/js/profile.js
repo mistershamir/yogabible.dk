@@ -922,12 +922,12 @@
               }
             } else if (fsPause && fsPause.endDate >= now) {
               // MB says NOT paused, but Firestore has an unexpired pause.
-              // Trust Firestore only if saved recently (within 5 min).
-              // After 5 min, MB should have caught up — if it hasn't,
+              // Trust Firestore only if saved recently (within 90 seconds).
+              // After 90s, MB should have caught up — if it hasn't,
               // admin likely deleted the suspension.
               var savedAt = fsPause.savedAt ? new Date(fsPause.savedAt).getTime() : 0;
               var ageMs = Date.now() - savedAt;
-              if (ageMs < 300000) {
+              if (ageMs < 90000) {
                 c.isSuspended = true;
                 c.pauseStartDate = fsPause.startDate;
                 c.pauseEndDate = fsPause.endDate;

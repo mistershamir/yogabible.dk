@@ -171,19 +171,10 @@ exports.handler = async function(event) {
         console.warn('[mb-contract-manage] Could not check MB suspension status:', checkErr.message);
       }
 
-      // Also check our pause notes (catches future-dated pauses MB doesn't flag yet)
-      var pauseNotes = await getPauseNotes(body.clientId);
-      var now = new Date().toISOString().split('T')[0];
-      existingPause = pauseNotes.find(function(p) {
-        return p.contractId === ccId && p.endDate >= now;
-      });
-      if (existingPause) {
-        return jsonResponse(409, {
-          error: 'already_suspended',
-          message: 'This membership already has a pause scheduled (' + existingPause.startDate + ' to ' + existingPause.endDate + ').',
-          existingPause: existingPause
-        });
-      }
+      // NOTE: We no longer check MB notes for duplicate detection.
+      // Notes persist even after admin deletes a suspension, causing false blocks.
+      // Frontend checks isSuspended flag before showing the pause button.
+      // MB itself will return "exceeded maximum iterations" if already at max pauses.
 
       // CONFIRMED WORKING FORMAT (2026-02-09):
       var suspendBody = {
@@ -211,8 +202,6 @@ exports.handler = async function(event) {
         // MB returns this when contract already has max suspensions
         if (combined.indexOf('exceeded') > -1 || combined.indexOf('maximum iterations') > -1 || combined.indexOf('already suspended') > -1) {
           console.log('[mb-contract-manage] Contract already at max suspensions — treating as already_suspended');
-          // Save a retroactive pause note so next page load shows PAUSED
-          await savePauseNote(body.clientId, ccId, body.startDate, body.endDate);
           return jsonResponse(409, {
             error: 'already_suspended',
             message: 'This membership has already been paused. You cannot add another pause.',
@@ -223,10 +212,7 @@ exports.handler = async function(event) {
         throw suspErr; // Re-throw other errors
       }
 
-      console.log('[mb-contract-manage] Suspend SUCCESS:', JSON.stringify(suspResult).substring(0, 300));
-
-      // Save pause marker note for cross-session persistence
-      var noteSaved = await savePauseNote(body.clientId, ccId, body.startDate, body.endDate);
+      console.log('[mb-contract-manage] Suspend SUCCESS:', JSON.stringify(suspResult).substring(0, 500));
 
       return jsonResponse(200, {
         success: true,
@@ -234,7 +220,7 @@ exports.handler = async function(event) {
         suspendDate: body.startDate,
         resumeDate: body.endDate,
         durationDays: durationDays,
-        noteSaved: noteSaved,
+        mbResponse: suspResult,
         message: 'Contract suspension scheduled'
       });
     }
