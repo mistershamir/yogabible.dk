@@ -26,61 +26,7 @@
     <!-- Logged in state -->
     <div id="yb-profile-user" class="yb-profile__content" style="display:none">
 
-      <!-- Mandatory onboarding overlay (phone + DOB) -->
-      <div id="yb-onboarding-overlay" class="yb-onboarding" hidden>
-        <div class="yb-onboarding__card">
-          <div class="yb-onboarding__icon">
-            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#f75c03" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/><path d="M12 14l2 2 4-4" opacity="0.5"/></svg>
-          </div>
-          <h2 class="yb-onboarding__title">{{ t.onboarding_title }}</h2>
-          <p class="yb-onboarding__desc">{{ t.onboarding_desc }}</p>
-          <form id="yb-onboarding-form" class="yb-onboarding__form" novalidate>
-            <div class="yb-auth-field">
-              <label for="yb-onboarding-phone">{{ t.label_phone }} <span class="yb-onboarding__required">*</span></label>
-              <input type="tel" id="yb-onboarding-phone" autocomplete="tel" placeholder="{{ t.placeholder_phone }}" required>
-            </div>
-            <div class="yb-auth-field">
-              <label for="yb-onboarding-dob">{{ t.label_dob }} <span class="yb-onboarding__required">*</span></label>
-              <input type="date" id="yb-onboarding-dob" required>
-            </div>
-            <div class="yb-auth-error" id="yb-onboarding-error" hidden role="alert"></div>
-            <button type="submit" class="yb-auth-submit yb-onboarding__submit">{{ t.onboarding_submit }}</button>
-          </form>
-          <p class="yb-onboarding__note">{{ t.onboarding_note }}</p>
-        </div>
-      </div>
-
-      <!-- Liability waiver overlay (shown if MB waiver not yet signed) -->
-      <div id="yb-waiver-overlay" class="yb-onboarding" hidden>
-        <div class="yb-onboarding__card yb-waiver__card">
-          <div class="yb-onboarding__icon">
-            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#f75c03" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
-          </div>
-          <h2 class="yb-onboarding__title">{{ t.waiver_title }}</h2>
-          <p class="yb-onboarding__desc">{{ t.waiver_desc }}</p>
-          <div id="yb-waiver-text" class="yb-waiver__text">
-            <div class="yb-store__loading">
-              <div class="yb-mb-spinner"></div>
-              <span>{{ t.waiver_loading }}</span>
-            </div>
-          </div>
-          <div class="yb-waiver__sign-section">
-            <label class="yb-waiver__agree">
-              <input type="checkbox" id="yb-waiver-agree-check" required>
-              <span>{{ t.waiver_agree_label }}</span>
-            </label>
-            <p class="yb-waiver__sign-label">{{ t.waiver_sign_label }}</p>
-            <div class="yb-signature-pad" id="yb-waiver-sigpad">
-              <canvas id="yb-waiver-canvas" width="400" height="160"></canvas>
-              <button type="button" class="yb-signature-pad__clear" id="yb-waiver-sig-clear">{{ t.signature_clear }}</button>
-            </div>
-          </div>
-          <div class="yb-auth-error" id="yb-waiver-error" hidden role="alert"></div>
-          <button type="button" class="yb-auth-submit yb-onboarding__submit" id="yb-waiver-submit">{{ t.waiver_submit }}</button>
-        </div>
-      </div>
-
-      <!-- Tab navigation -->
+      <!-- Tab navigation (tabs greyed out until phone+DOB filled) -->
       <div class="yb-profile__tabs">
         <button class="yb-profile__tab is-active" type="button" data-yb-tab="profile">{{ t.tab_profile }}</button>
         <button class="yb-profile__tab" type="button" data-yb-tab="schedule">{{ t.tab_schedule }}</button>
@@ -93,6 +39,40 @@
 
       {# ═══════ TAB: Profile ═══════ #}
       <div class="yb-profile__tab-panel is-active" data-yb-panel="profile">
+
+        <!-- Inline onboarding card (shown until phone+DOB are filled) -->
+        <div id="yb-onboarding-inline" class="yb-onboarding-inline" hidden>
+          <div class="yb-onboarding-inline__card">
+            <div class="yb-onboarding-inline__header">
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#f75c03" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+              <div>
+                <h3 class="yb-onboarding-inline__title">{{ t.onboarding_title }}</h3>
+                <p class="yb-onboarding-inline__desc">{{ t.onboarding_desc }}</p>
+              </div>
+            </div>
+            <form id="yb-onboarding-form" class="yb-onboarding-inline__form" novalidate>
+              <div class="yb-profile__form-row">
+                <div class="yb-auth-field">
+                  <label for="yb-onboarding-phone">{{ t.label_phone }} <span style="color:#f75c03">*</span></label>
+                  <input type="tel" id="yb-onboarding-phone" autocomplete="tel" placeholder="{{ t.placeholder_phone }}" required>
+                </div>
+                <div class="yb-auth-field">
+                  <label for="yb-onboarding-dob">{{ t.label_dob }} <span style="color:#f75c03">*</span></label>
+                  <input type="date" id="yb-onboarding-dob" required>
+                </div>
+              </div>
+              <div class="yb-auth-error" id="yb-onboarding-error" hidden role="alert"></div>
+              <button type="submit" class="yb-btn yb-btn--primary">{{ t.onboarding_submit }}</button>
+            </form>
+          </div>
+        </div>
+
+        <!-- Onboarding success message (shown after phone+DOB saved) -->
+        <div id="yb-onboarding-success" class="yb-onboarding-success" hidden>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#16a34a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+          <span>{{ t.onboarding_success }}</span>
+        </div>
+
         <div class="yb-profile__grid">
 
           <!-- Left: avatar + member info -->
@@ -277,6 +257,21 @@
               <!-- Selected service summary -->
               <div class="yb-store__checkout-item" id="yb-store-checkout-item"></div>
 
+              <!-- Liability waiver gate (shown in checkout if waiver not yet signed) -->
+              <div id="yb-checkout-waiver-section" class="yb-checkout-terms" hidden>
+                <h4 class="yb-checkout-terms__title">{{ t.waiver_title }}</h4>
+                <div id="yb-checkout-waiver-text" class="yb-checkout-terms__text"></div>
+                <label class="yb-waiver__agree">
+                  <input type="checkbox" id="yb-checkout-waiver-agree">
+                  <span>{{ t.waiver_agree_label }}</span>
+                </label>
+                <p class="yb-waiver__sign-label">{{ t.waiver_sign_label }}</p>
+                <div class="yb-signature-pad" id="yb-checkout-waiver-sigpad">
+                  <canvas id="yb-checkout-waiver-canvas" width="400" height="160"></canvas>
+                  <button type="button" class="yb-signature-pad__clear" id="yb-checkout-waiver-sig-clear">{{ t.signature_clear }}</button>
+                </div>
+              </div>
+
               <!-- Contract terms + signature (shown for contracts with AgreementTerms) -->
               <div id="yb-checkout-terms-section" class="yb-checkout-terms" hidden>
                 <h4 class="yb-checkout-terms__title">{{ t.contract_terms_title }}</h4>
@@ -395,6 +390,43 @@
           <div class="yb-membership-tab__header">
             <h2 class="yb-membership-tab__title">{{ t.tab_passes }}</h2>
           </div>
+
+          <!-- Liability waiver status card -->
+          <div id="yb-waiver-card" class="yb-waiver-card" hidden>
+            <!-- Collapsed state (when signed) -->
+            <div id="yb-waiver-card-signed" class="yb-waiver-card__signed" hidden>
+              <div class="yb-waiver-card__signed-row">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#16a34a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                <span class="yb-waiver-card__signed-text">{{ t.waiver_signed_label }}</span>
+                <span class="yb-waiver-card__signed-date" id="yb-waiver-signed-date"></span>
+                <button type="button" class="yb-waiver-card__toggle" id="yb-waiver-toggle-btn">{{ t.waiver_view_details }}</button>
+              </div>
+            </div>
+            <!-- Expanded state (unsigned or expanded) -->
+            <div id="yb-waiver-card-body" class="yb-waiver-card__body" hidden>
+              <h3 class="yb-waiver-card__title">{{ t.waiver_title }}</h3>
+              <div id="yb-waiver-text" class="yb-waiver__text">
+                <div class="yb-store__loading">
+                  <div class="yb-mb-spinner"></div>
+                  <span>{{ t.waiver_loading }}</span>
+                </div>
+              </div>
+              <div class="yb-waiver__sign-section" id="yb-waiver-sign-section" hidden>
+                <label class="yb-waiver__agree">
+                  <input type="checkbox" id="yb-waiver-agree-check">
+                  <span>{{ t.waiver_agree_label }}</span>
+                </label>
+                <p class="yb-waiver__sign-label">{{ t.waiver_sign_label }}</p>
+                <div class="yb-signature-pad" id="yb-waiver-sigpad">
+                  <canvas id="yb-waiver-canvas" width="400" height="160"></canvas>
+                  <button type="button" class="yb-signature-pad__clear" id="yb-waiver-sig-clear">{{ t.signature_clear }}</button>
+                </div>
+                <div class="yb-auth-error" id="yb-waiver-error" hidden role="alert"></div>
+                <button type="button" class="yb-btn yb-btn--primary" id="yb-waiver-submit">{{ t.waiver_submit }}</button>
+              </div>
+            </div>
+          </div>
+
           <div id="yb-membership-details" class="yb-membership">
             <div class="yb-store__loading yb-membership__loading" id="yb-membership-loading" hidden>
               <div class="yb-mb-spinner"></div>

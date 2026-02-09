@@ -7905,7 +7905,161 @@ section {
 }
 
 /* ═══════════════════════════════════════
-   ONBOARDING OVERLAY (mandatory phone + DOB)
+   LOCKED TAB STYLES
+   ═══════════════════════════════════════ */
+.yb-profile__tab.is-locked {
+  opacity: 0.38;
+  cursor: not-allowed;
+  position: relative;
+}
+.yb-profile__tab.is-locked::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+}
+.yb-tab-locked-toast {
+  background: #0F0F0F;
+  color: #fff;
+  font-size: 0.85rem;
+  padding: 0.75rem 1.25rem;
+  border-radius: 10px;
+  text-align: center;
+  margin: 0.75rem auto;
+  max-width: 480px;
+  opacity: 0;
+  transform: translateY(-8px);
+  transition: opacity 0.3s, transform 0.3s;
+}
+.yb-tab-locked-toast.is-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* ═══════════════════════════════════════
+   INLINE ONBOARDING (inside Profile tab)
+   ═══════════════════════════════════════ */
+.yb-onboarding-inline {
+  margin-bottom: 1.5rem;
+}
+.yb-onboarding-inline__card {
+  background: #FFF8F0;
+  border: 1.5px solid #f75c03;
+  border-radius: 14px;
+  padding: 1.5rem 1.75rem;
+}
+.yb-onboarding-inline__header {
+  display: flex;
+  gap: 0.75rem;
+  align-items: flex-start;
+  margin-bottom: 1.25rem;
+}
+.yb-onboarding-inline__header svg {
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+.yb-onboarding-inline__title {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #0F0F0F;
+  margin: 0 0 0.25rem;
+}
+.yb-onboarding-inline__desc {
+  font-size: 0.88rem;
+  color: #6F6A66;
+  line-height: 1.5;
+  margin: 0;
+}
+.yb-onboarding-inline__form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+.yb-onboarding-inline__form .yb-profile__form-row {
+  gap: 0.75rem;
+}
+.yb-onboarding-inline__form .yb-btn {
+  align-self: flex-start;
+  margin-top: 0.25rem;
+}
+@media (max-width: 520px) {
+  .yb-onboarding-inline__card {
+    padding: 1.25rem 1rem;
+  }
+  .yb-onboarding-inline__form .yb-btn {
+    width: 100%;
+  }
+}
+
+/* Onboarding success message */
+.yb-onboarding-success {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  border-radius: 10px;
+  padding: 0.75rem 1.25rem;
+  margin-bottom: 1.25rem;
+  font-size: 0.88rem;
+  color: #166534;
+  animation: yb-fadein 0.3s ease;
+}
+@keyframes yb-fadein {
+  from { opacity: 0; transform: translateY(-6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* ═══════════════════════════════════════
+   WAIVER STATUS CARD (My Passes tab)
+   ═══════════════════════════════════════ */
+.yb-waiver-card {
+  margin-bottom: 1.5rem;
+  border: 1.5px solid #E8E4E0;
+  border-radius: 12px;
+  overflow: hidden;
+}
+.yb-waiver-card__signed {
+  padding: 0.85rem 1.25rem;
+  background: #f0fdf4;
+}
+.yb-waiver-card__signed-row {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+}
+.yb-waiver-card__signed-text {
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: #166534;
+}
+.yb-waiver-card__signed-date {
+  font-size: 0.82rem;
+  color: #6F6A66;
+}
+.yb-waiver-card__toggle {
+  margin-left: auto;
+  background: none;
+  border: none;
+  color: #f75c03;
+  font-size: 0.82rem;
+  cursor: pointer;
+  padding: 0;
+  text-decoration: underline;
+}
+.yb-waiver-card__body {
+  padding: 1.25rem;
+  background: #FFFCF9;
+}
+.yb-waiver-card__title {
+  font-size: 1rem;
+  font-weight: 700;
+  margin: 0 0 0.75rem;
+  color: #0F0F0F;
+}
+
+/* ═══════════════════════════════════════
+   OLD ONBOARDING OVERLAY (kept for backwards compat)
    ═══════════════════════════════════════ */
 .yb-onboarding {
   display: flex;

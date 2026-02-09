@@ -190,17 +190,16 @@
           if (nameEl) nameEl.textContent = fullName;
           if (avatarEl && !avatarEl.classList.contains('has-photo')) avatarEl.textContent = getInitials(fullName);
 
-          // Hide reminder + onboarding if now complete
+          // Hide onboarding card + unlock tabs if now complete
           if (phone && dob) {
             var reminderEl = document.getElementById('yb-profile-reminder');
             if (reminderEl) reminderEl.hidden = true;
-            var onboardingOverlay = document.getElementById('yb-onboarding-overlay');
-            if (onboardingOverlay && !onboardingOverlay.hidden) {
-              onboardingOverlay.hidden = true;
-              var tabsEl = document.querySelector('.yb-profile__tabs');
-              var panelsEl = document.querySelectorAll('.yb-profile__tab-panel');
-              if (tabsEl) tabsEl.style.display = '';
-              panelsEl.forEach(function(p) { p.style.display = ''; });
+            var onboardingInline = document.getElementById('yb-onboarding-inline');
+            if (onboardingInline && !onboardingInline.hidden) {
+              onboardingInline.hidden = true;
+              var successMsg = document.getElementById('yb-onboarding-success');
+              if (successMsg) { successMsg.hidden = false; setTimeout(function() { successMsg.hidden = true; }, 5000); }
+              setTabsLocked(false);
             }
           }
 
@@ -321,13 +320,15 @@
             setTimeout(function() { clearInterval(pushInterval); }, 15000);
           }
 
-          // Dismiss onboarding overlay and show tabs
-          var onboardingOverlay = document.getElementById('yb-onboarding-overlay');
-          var tabsEl = document.querySelector('.yb-profile__tabs');
-          var panelsEl = document.querySelectorAll('.yb-profile__tab-panel');
-          if (onboardingOverlay) onboardingOverlay.hidden = true;
-          if (tabsEl) tabsEl.style.display = '';
-          panelsEl.forEach(function(p) { p.style.display = ''; });
+          // Hide onboarding card, show success, unlock tabs
+          var onboardingInline = document.getElementById('yb-onboarding-inline');
+          if (onboardingInline) onboardingInline.hidden = true;
+          var successEl2 = document.getElementById('yb-onboarding-success');
+          if (successEl2) {
+            successEl2.hidden = false;
+            setTimeout(function() { successEl2.hidden = true; }, 5000);
+          }
+          setTabsLocked(false);
         }).catch(function(err) {
           if (errorEl) { errorEl.textContent = err.message; errorEl.hidden = false; }
         }).finally(function() {
@@ -342,11 +343,34 @@
   // TABS
   // ══════════════════════════════════════
   var tabLoaded = {};
+  var tabsLocked = false;
+
+  function setTabsLocked(locked) {
+    tabsLocked = locked;
+    document.querySelectorAll('[data-yb-tab]').forEach(function(btn) {
+      var tabName = btn.getAttribute('data-yb-tab');
+      if (tabName === 'profile') return; // Profile tab always accessible
+      if (locked) {
+        btn.classList.add('is-locked');
+        btn.setAttribute('aria-disabled', 'true');
+      } else {
+        btn.classList.remove('is-locked');
+        btn.removeAttribute('aria-disabled');
+      }
+    });
+  }
 
   function initTabs() {
     document.querySelectorAll('[data-yb-tab]').forEach(function(btn) {
       btn.addEventListener('click', function() {
         var tabName = btn.getAttribute('data-yb-tab');
+
+        // Block locked tabs (except profile)
+        if (tabsLocked && tabName !== 'profile') {
+          showTabLockedToast();
+          return;
+        }
+
         document.querySelectorAll('[data-yb-tab]').forEach(function(b) { b.classList.remove('is-active'); });
         btn.classList.add('is-active');
         document.querySelectorAll('[data-yb-panel]').forEach(function(p) { p.classList.remove('is-active'); });
@@ -365,6 +389,23 @@
         }
       });
     });
+  }
+
+  function showTabLockedToast() {
+    var msg = isDa()
+      ? 'Udfyld venligst telefon og fødselsdato under Profil-fanen først.'
+      : 'Please fill in your phone and date of birth in the Profile tab first.';
+    // Use schedule toast mechanism or create temporary notification
+    var existing = document.getElementById('yb-tab-locked-toast');
+    if (existing) { existing.remove(); }
+    var toast = document.createElement('div');
+    toast.id = 'yb-tab-locked-toast';
+    toast.className = 'yb-tab-locked-toast';
+    toast.textContent = msg;
+    var tabsEl = document.querySelector('.yb-profile__tabs');
+    if (tabsEl) tabsEl.parentElement.insertBefore(toast, tabsEl.nextSibling);
+    setTimeout(function() { toast.classList.add('is-visible'); }, 10);
+    setTimeout(function() { toast.classList.remove('is-visible'); setTimeout(function() { toast.remove(); }, 300); }, 3500);
   }
 
   // ══════════════════════════════════════
@@ -417,31 +458,27 @@
         avatarEl.classList.add('has-photo');
       }
 
-      // Show soft reminder if phone or DOB missing (inside profile form)
-      var reminderEl = document.getElementById('yb-profile-reminder');
-      if (reminderEl && (!d.phone || !d.dateOfBirth)) {
-        reminderEl.hidden = false;
+      // Inline onboarding — show card + disable non-profile tabs until phone+DOB filled
+      var onboardingInline = document.getElementById('yb-onboarding-inline');
+      var profileIncomplete = !d.phone || !d.dateOfBirth;
+      if (onboardingInline) {
+        if (profileIncomplete) {
+          onboardingInline.hidden = false;
+          setTabsLocked(true);
+          // Pre-fill if we have partial data
+          var obPhone = document.getElementById('yb-onboarding-phone');
+          var obDob = document.getElementById('yb-onboarding-dob');
+          if (obPhone && d.phone) obPhone.value = d.phone;
+          if (obDob && d.dateOfBirth) obDob.value = d.dateOfBirth;
+        } else {
+          onboardingInline.hidden = true;
+          setTabsLocked(false);
+        }
       }
 
-      // Mandatory onboarding overlay — blocks all tabs until phone + DOB are filled
-      var onboardingOverlay = document.getElementById('yb-onboarding-overlay');
-      var tabsEl = document.querySelector('.yb-profile__tabs');
-      var panelsEl = document.querySelectorAll('.yb-profile__tab-panel');
-      if (onboardingOverlay && (!d.phone || !d.dateOfBirth)) {
-        onboardingOverlay.hidden = false;
-        if (tabsEl) tabsEl.style.display = 'none';
-        panelsEl.forEach(function(p) { p.style.display = 'none'; });
-        // Pre-fill if we have partial data
-        var obPhone = document.getElementById('yb-onboarding-phone');
-        var obDob = document.getElementById('yb-onboarding-dob');
-        if (obPhone && d.phone) obPhone.value = d.phone;
-        if (obDob && d.dateOfBirth) obDob.value = d.dateOfBirth;
-      } else if (onboardingOverlay) {
-        onboardingOverlay.hidden = true;
-        // Onboarding done — check liability waiver status (only if we have a MB client)
-        if (d.mindbodyClientId) {
-          checkLiabilityWaiver(d.mindbodyClientId, tabsEl, panelsEl);
-        }
+      // Silently fetch waiver status (no blocking — used for gates later)
+      if (d.mindbodyClientId) {
+        fetchWaiverStatus(d.mindbodyClientId);
       }
 
       var sinceEl = document.getElementById('yb-profile-member-since');
@@ -497,91 +534,130 @@
   // LIABILITY WAIVER
   // ══════════════════════════════════════
   var waiverSigPad = null;
+  var waiverTextCache = null;
+  var waiverAgreementDate = null;
 
-  function checkLiabilityWaiver(mbClientId, tabsEl, panelsEl) {
+  // Silent fetch — just caches status, no blocking
+  function fetchWaiverStatus(mbClientId) {
     fetch('/.netlify/functions/mb-waiver?clientId=' + encodeURIComponent(mbClientId))
       .then(function(r) { return r.json(); })
       .then(function(data) {
-        if (data.clientSigned) {
-          waiverSigned = true;
-          var overlay = document.getElementById('yb-waiver-overlay');
-          if (overlay) overlay.hidden = true;
-          return;
-        }
-        // Waiver not signed — show overlay, block tabs
-        waiverSigned = false;
-        var overlay = document.getElementById('yb-waiver-overlay');
-        if (!overlay) return;
-        overlay.hidden = false;
-        if (tabsEl) tabsEl.style.display = 'none';
-        if (panelsEl) panelsEl.forEach(function(p) { p.style.display = 'none'; });
-
-        // Display waiver text
-        var textEl = document.getElementById('yb-waiver-text');
-        if (textEl) {
-          if (data.waiverText) {
-            textEl.innerHTML = data.waiverText;
-          } else {
-            // Fallback waiver text (from translations)
-            textEl.innerHTML = '<p>' + (isDa()
-              ? t('waiver_fallback')
-              : t('waiver_fallback')
-            ) + '</p>';
-          }
-        }
-
-        // Init signature pad
-        if (!waiverSigPad) {
-          waiverSigPad = SignaturePad('yb-waiver-canvas', 'yb-waiver-sig-clear');
-        }
-
-        // Submit handler
-        var submitBtn = document.getElementById('yb-waiver-submit');
-        if (submitBtn && !submitBtn._bound) {
-          submitBtn._bound = true;
-          submitBtn.addEventListener('click', function() {
-            submitLiabilityWaiver(mbClientId, tabsEl, panelsEl);
-          });
-        }
+        waiverSigned = !!data.clientSigned;
+        waiverAgreementDate = data.agreementDate || null;
+        waiverTextCache = data.waiverText || null;
+        // Update waiver card in My Passes if it's already rendered
+        renderWaiverCard();
       })
       .catch(function(err) {
         console.warn('Could not check waiver status:', err);
-        // Don't block the user if waiver check fails
-        waiverSigned = true;
+        waiverSigned = false;
       });
   }
 
-  function submitLiabilityWaiver(mbClientId, tabsEl, panelsEl) {
+  // Render the waiver status card in My Passes tab
+  function renderWaiverCard() {
+    var card = document.getElementById('yb-waiver-card');
+    if (!card) return;
+    card.hidden = false;
+
+    var signedEl = document.getElementById('yb-waiver-card-signed');
+    var bodyEl = document.getElementById('yb-waiver-card-body');
+    var signSection = document.getElementById('yb-waiver-sign-section');
+    var textEl = document.getElementById('yb-waiver-text');
+
+    if (waiverSigned) {
+      // Collapsed state — just show green checkmark + date
+      if (signedEl) signedEl.hidden = false;
+      if (bodyEl) bodyEl.hidden = true;
+      var dateEl = document.getElementById('yb-waiver-signed-date');
+      if (dateEl && waiverAgreementDate) {
+        var d = new Date(waiverAgreementDate);
+        dateEl.textContent = d.toLocaleDateString(isDa() ? 'da-DK' : 'en-GB', { year: 'numeric', month: 'short', day: 'numeric' });
+      }
+      // Toggle button expands/collapses the waiver text
+      var toggleBtn = document.getElementById('yb-waiver-toggle-btn');
+      if (toggleBtn && !toggleBtn._bound) {
+        toggleBtn._bound = true;
+        toggleBtn.addEventListener('click', function() {
+          if (bodyEl.hidden) {
+            bodyEl.hidden = false;
+            if (signSection) signSection.hidden = true; // hide sign section when just viewing
+            loadWaiverText(textEl);
+            toggleBtn.textContent = isDa() ? 'Skjul' : 'Hide';
+          } else {
+            bodyEl.hidden = true;
+            toggleBtn.textContent = isDa() ? 'Vis detaljer' : 'View details';
+          }
+        });
+      }
+    } else {
+      // Unsigned — show full card with sign form
+      if (signedEl) signedEl.hidden = true;
+      if (bodyEl) bodyEl.hidden = false;
+      if (signSection) signSection.hidden = false;
+      loadWaiverText(textEl);
+      initWaiverSignForm();
+    }
+  }
+
+  function loadWaiverText(textEl) {
+    if (!textEl) return;
+    if (waiverTextCache) {
+      textEl.innerHTML = waiverTextCache;
+    } else {
+      textEl.innerHTML = '<p>' + t('waiver_fallback') + '</p>';
+    }
+  }
+
+  function initWaiverSignForm() {
+    if (!waiverSigPad) {
+      waiverSigPad = SignaturePad('yb-waiver-canvas', 'yb-waiver-sig-clear');
+    }
+    var submitBtn = document.getElementById('yb-waiver-submit');
+    if (submitBtn && !submitBtn._bound) {
+      submitBtn._bound = true;
+      submitBtn.addEventListener('click', function() {
+        submitLiabilityWaiver(clientId, 'passes_card');
+      });
+    }
+  }
+
+  function submitLiabilityWaiver(mbClientId, source) {
     var agreeCheck = document.getElementById('yb-waiver-agree-check');
     var errorEl = document.getElementById('yb-waiver-error');
     var submitBtn = document.getElementById('yb-waiver-submit');
+    var sigPad = waiverSigPad;
+
+    // If called from checkout, use checkout elements
+    if (source === 'checkout') {
+      agreeCheck = document.getElementById('yb-checkout-waiver-agree');
+      errorEl = document.getElementById('yb-store-error');
+      sigPad = checkoutWaiverSigPad;
+    }
 
     if (!agreeCheck || !agreeCheck.checked) {
-      if (errorEl) {
-        errorEl.textContent = isDa() ? 'Du skal acceptere ansvarsfrihedserklæringen.' : 'You must accept the liability waiver.';
-        errorEl.hidden = false;
-      }
-      return;
+      var msg = isDa() ? 'Du skal acceptere ansvarsfrihedserklæringen.' : 'You must accept the liability waiver.';
+      if (errorEl) { errorEl.textContent = msg; errorEl.hidden = false; }
+      return false;
     }
-    if (waiverSigPad && waiverSigPad.isEmpty()) {
-      if (errorEl) {
-        errorEl.textContent = isDa() ? 'Tegn venligst din underskrift.' : 'Please draw your signature.';
-        errorEl.hidden = false;
-      }
-      return;
+    if (sigPad && sigPad.isEmpty()) {
+      var msg2 = isDa() ? 'Tegn venligst din underskrift.' : 'Please draw your signature.';
+      if (errorEl) { errorEl.textContent = msg2; errorEl.hidden = false; }
+      return false;
     }
 
     if (errorEl) errorEl.hidden = true;
-    var btnText = submitBtn.textContent;
-    submitBtn.disabled = true;
-    submitBtn.textContent = isDa() ? 'Gemmer...' : 'Saving...';
-
-    var postBody = { clientId: mbClientId };
-    if (waiverSigPad) {
-      postBody.signatureImage = waiverSigPad.toDataURL();
+    if (submitBtn && source !== 'checkout') {
+      submitBtn.disabled = true;
+      submitBtn.textContent = isDa() ? 'Gemmer...' : 'Saving...';
     }
 
-    fetch('/.netlify/functions/mb-waiver', {
+    var postBody = { clientId: mbClientId };
+    if (sigPad && !sigPad.isEmpty()) {
+      postBody.signatureImage = sigPad.toDataURL();
+    }
+
+    return fetch('/.netlify/functions/mb-waiver', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(postBody)
@@ -589,12 +665,10 @@
       .then(function(data) {
         if (data.success) {
           waiverSigned = true;
-          var overlay = document.getElementById('yb-waiver-overlay');
-          if (overlay) overlay.hidden = true;
-          if (tabsEl) tabsEl.style.display = '';
-          if (panelsEl) panelsEl.forEach(function(p) { p.style.display = ''; });
+          waiverAgreementDate = data.agreementDate || new Date().toISOString();
+          renderWaiverCard(); // Re-render as signed
 
-          // Also store waiver consent in Firestore audit trail
+          // Firestore audit trail
           if (currentUser && currentDb) {
             currentDb.collection('consents').add({
               userId: currentUser.uid,
@@ -606,27 +680,26 @@
               version: '2026-02-09',
               userAgent: navigator.userAgent,
               locale: navigator.language,
-              source: 'profile_waiver_overlay',
+              source: source || 'passes_card',
               mindbodyClientId: mbClientId,
               createdAt: firebase.firestore.FieldValue.serverTimestamp()
             }).catch(function() {});
           }
+          return true;
         } else {
-          if (errorEl) {
-            errorEl.textContent = data.error || (isDa() ? 'Fejl — prøv igen.' : 'Error — please try again.');
-            errorEl.hidden = false;
-          }
+          if (errorEl) { errorEl.textContent = data.error || (isDa() ? 'Fejl — prøv igen.' : 'Error — please try again.'); errorEl.hidden = false; }
+          return false;
         }
       })
       .catch(function(err) {
-        if (errorEl) {
-          errorEl.textContent = err.message || (isDa() ? 'Fejl — prøv igen.' : 'Error — please try again.');
-          errorEl.hidden = false;
-        }
+        if (errorEl) { errorEl.textContent = err.message; errorEl.hidden = false; }
+        return false;
       })
       .finally(function() {
-        submitBtn.disabled = false;
-        submitBtn.textContent = btnText;
+        if (submitBtn && source !== 'checkout') {
+          submitBtn.disabled = false;
+          submitBtn.textContent = isDa() ? 'Accepter og fortsæt' : 'Accept and continue';
+        }
       });
   }
 
@@ -1281,7 +1354,10 @@
       var list = document.getElementById('yb-store-list');
       if (el) el.hidden = true;
       if (list) list.style.display = '';
-      // Reset contract terms section
+      // Reset waiver and contract terms sections
+      var waiverSect = document.getElementById('yb-checkout-waiver-section');
+      if (waiverSect) waiverSect.hidden = true;
+      if (checkoutWaiverSigPad) checkoutWaiverSigPad.clear();
       var termsSection = document.getElementById('yb-checkout-terms-section');
       if (termsSection) termsSection.hidden = true;
       if (checkoutSigPad) checkoutSigPad.clear();
@@ -1615,6 +1691,27 @@
     var errEl = document.getElementById('yb-store-error');
     if (errEl) errEl.hidden = true;
 
+    // Show liability waiver in checkout if not yet signed (all purchases)
+    var waiverSection = document.getElementById('yb-checkout-waiver-section');
+    if (waiverSection) {
+      if (!waiverSigned) {
+        waiverSection.hidden = false;
+        var waiverTextEl = document.getElementById('yb-checkout-waiver-text');
+        if (waiverTextEl) {
+          waiverTextEl.innerHTML = waiverTextCache || ('<p>' + t('waiver_fallback') + '</p>');
+        }
+        var waiverAgree = document.getElementById('yb-checkout-waiver-agree');
+        if (waiverAgree) waiverAgree.checked = false;
+        if (!checkoutWaiverSigPad) {
+          checkoutWaiverSigPad = SignaturePad('yb-checkout-waiver-canvas', 'yb-checkout-waiver-sig-clear');
+        } else {
+          checkoutWaiverSigPad.clear();
+        }
+      } else {
+        waiverSection.hidden = true;
+      }
+    }
+
     // Show contract terms + signature if contract has AgreementTerms
     var termsSection = document.getElementById('yb-checkout-terms-section');
     var termsTextEl = document.getElementById('yb-checkout-terms-text');
@@ -1623,7 +1720,6 @@
       termsSection.hidden = false;
       if (termsTextEl) termsTextEl.innerHTML = service.agreementTerms;
       if (termsAgreeEl) termsAgreeEl.checked = false;
-      // Init checkout signature pad
       if (!checkoutSigPad) {
         checkoutSigPad = SignaturePad('yb-checkout-canvas', 'yb-checkout-sig-clear');
       } else {
@@ -1637,6 +1733,7 @@
   }
 
   var checkoutSigPad = null;
+  var checkoutWaiverSigPad = null;
 
   function processCheckout() {
     if (!currentUser) return;
@@ -1654,6 +1751,20 @@
     var errorEl = document.getElementById('yb-store-error');
     var payBtn = document.getElementById('yb-store-pay-btn');
     var payBtnText = payBtn.textContent;
+
+    // Validate waiver if shown in checkout
+    var waiverSection = document.getElementById('yb-checkout-waiver-section');
+    if (waiverSection && !waiverSection.hidden) {
+      var waiverAgree = document.getElementById('yb-checkout-waiver-agree');
+      if (!waiverAgree || !waiverAgree.checked) {
+        showSimpleError(errorEl, isDa() ? 'Du skal acceptere ansvarsfrihedserklæringen.' : 'You must accept the liability waiver.');
+        return;
+      }
+      if (checkoutWaiverSigPad && checkoutWaiverSigPad.isEmpty()) {
+        showSimpleError(errorEl, isDa() ? 'Tegn venligst din underskrift for ansvarsfrihedserklæringen.' : 'Please draw your signature for the liability waiver.');
+        return;
+      }
+    }
 
     // Validate contract terms + signature if visible
     var termsSection = document.getElementById('yb-checkout-terms-section');
@@ -1702,6 +1813,12 @@
       payBtn.disabled = false; payBtn.textContent = payBtnText; return;
     }
 
+    // Submit waiver silently first if shown in checkout
+    var waiverPromise = Promise.resolve(true);
+    if (waiverSection && !waiverSection.hidden && !waiverSigned && clientId) {
+      waiverPromise = submitLiabilityWaiver(clientId, 'checkout');
+    }
+
     var itemType = checkoutEl.getAttribute('data-item-type') || 'service';
     var paymentInfo = {
       cardNumber: cardNumber, expMonth: expParts[0], expYear: expParts[1] ? '20' + expParts[1] : '',
@@ -1741,28 +1858,36 @@
       };
     }
 
-    fetch(fetchUrl, {
-      method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(fetchBody)
-    }).then(function(r) { return r.json(); })
-      .then(function(data) {
-        if (data.success) {
-          checkoutEl.hidden = true;
-          var sEl = document.getElementById('yb-store-success');
-          if (sEl) sEl.hidden = false;
-          document.getElementById('yb-store-checkout-form').reset();
-          // Refresh membership data after purchase
-          clientPassData = null;
-          loadMembershipDetails();
-        } else if (data.requiresSCA) {
-          showSimpleError(errorEl, isDa() ? 'Dit kort kræver yderligere godkendelse.' : 'Your card requires additional authentication.');
-        } else {
-          console.error('[Checkout] Error:', data.error, data.details, 'fn_v:', data._v);
-          showSimpleError(errorEl, data.error || t('checkout_error'));
-        }
-      }).catch(function(err) {
-        showSimpleError(errorEl, err.message || t('checkout_error'));
-      }).finally(function() { payBtn.disabled = false; payBtn.textContent = payBtnText; });
+    // Wait for waiver submission (if applicable) before purchase
+    waiverPromise.then(function(waiverOk) {
+      if (waiverOk === false) { payBtn.disabled = false; payBtn.textContent = payBtnText; return; }
+
+      fetch(fetchUrl, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(fetchBody)
+      }).then(function(r) { return r.json(); })
+        .then(function(data) {
+          if (data.success) {
+            checkoutEl.hidden = true;
+            // Hide waiver section after successful purchase
+            var wvs = document.getElementById('yb-checkout-waiver-section');
+            if (wvs) wvs.hidden = true;
+            var sEl = document.getElementById('yb-store-success');
+            if (sEl) sEl.hidden = false;
+            document.getElementById('yb-store-checkout-form').reset();
+            // Refresh membership data after purchase
+            clientPassData = null;
+            loadMembershipDetails();
+          } else if (data.requiresSCA) {
+            showSimpleError(errorEl, isDa() ? 'Dit kort kræver yderligere godkendelse.' : 'Your card requires additional authentication.');
+          } else {
+            console.error('[Checkout] Error:', data.error, data.details, 'fn_v:', data._v);
+            showSimpleError(errorEl, data.error || t('checkout_error'));
+          }
+        }).catch(function(err) {
+          showSimpleError(errorEl, err.message || t('checkout_error'));
+        }).finally(function() { payBtn.disabled = false; payBtn.textContent = payBtnText; });
+    });
   }
 
   // ══════════════════════════════════════
@@ -2182,6 +2307,15 @@
       showScheduleToast(isDa() ? 'Køb et pas først i Butik-fanen.' : 'Buy a pass first in the Store tab.', 'error');
       var noPassEl = document.getElementById('yb-schedule-no-pass');
       if (noPassEl) noPassEl.hidden = false;
+      return;
+    }
+
+    // Check waiver before booking
+    if (!waiverSigned) {
+      showScheduleToast(isDa() ? 'Du skal acceptere ansvarsfrihedserklæringen først. Gå til Mine Pas-fanen.' : 'You must accept the liability waiver first. Go to the My Passes tab.', 'error');
+      // Navigate to My Passes tab
+      var passesBtn = document.querySelector('[data-yb-tab="passes"]');
+      if (passesBtn) setTimeout(function() { passesBtn.click(); }, 2000);
       return;
     }
 
