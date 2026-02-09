@@ -3454,18 +3454,25 @@ section {
   padding: 0 24px;
 }
 
-/* Orange pill badge eyebrow */
-.yb-hero__badge {
-  display: inline-block;
-  background: var(--yb-brand);
-  color: #fff;
-  padding: 8px 24px;
-  border-radius: 20px;
-  font-size: 12px;
+/* Flanking-lines tagline eyebrow */
+.yb-hero__tagline {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 0.7rem;
   font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.15em;
+  letter-spacing: 0.3em;
+  opacity: 0.7;
   margin-bottom: 28px;
+}
+
+.yb-hero__tagline::before,
+.yb-hero__tagline::after {
+  content: "";
+  width: 40px;
+  height: 1px;
+  background: rgba(255, 255, 255, 0.4);
 }
 
 /* Gradient title: warm white → light orange → brand orange */
@@ -3518,6 +3525,12 @@ section {
   color: rgba(255, 255, 255, 0.6);
   text-transform: uppercase;
   letter-spacing: 0.06em;
+  filter: blur(8px);
+  transition: filter 0.5s ease;
+}
+
+.yb-hero__trust:hover {
+  filter: blur(0);
 }
 
 .yb-hero__trust-dot {
