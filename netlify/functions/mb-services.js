@@ -73,6 +73,7 @@ exports.handler = async function(event) {
         price: s.Price,
         onlinePrice: s.OnlinePrice,
         count: s.Count,
+        description: s.Description || '',
         programId: s.Program ? s.Program.Id : null,
         programName: s.Program ? s.Program.Name : null
       };

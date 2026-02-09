@@ -916,6 +916,7 @@
   // ══════════════════════════════════════
   var storeServices = [];
   var storeActiveCategory = 'all';
+  var storeSearchQuery = '';
 
   // Store category config — maps to Mindbody programs/categories
   var storeCategories = [
@@ -994,6 +995,7 @@
         // Normalize contract shape to match service display
         c._itemType = 'contract';
         c.name = c.name || '';
+        c.description = c.description || c.onlineDescription || '';
         // Price: use the recurring payment (what they pay each cycle), fallback to first payment or total
         var recurringAmt = c.recurringPaymentAmount || 0;
         var firstAmt = c.firstPaymentAmount || 0;
@@ -1008,6 +1010,20 @@
         } else if (recurringAmt) {
           c._recurringInfo = recurringAmt + ' kr ' + (isDa() ? 'pr. periode' : 'per period');
         }
+        // Build contract terms summary for display
+        var terms = [];
+        if (c.firstMonthFree) {
+          terms.push(isDa() ? 'Første måned gratis' : 'First month free');
+        } else if (firstAmt && recurringAmt && firstAmt !== recurringAmt) {
+          terms.push((isDa() ? 'Første betaling: ' : 'First payment: ') + formatDKK(firstAmt));
+        }
+        if (c.duration && c.durationUnit) {
+          terms.push(c.duration + ' ' + c.durationUnit);
+        }
+        if (c.numberOfAutopays) {
+          terms.push(c.numberOfAutopays + (isDa() ? ' betalinger' : ' payments'));
+        }
+        c._terms = terms;
         return c;
       });
 
@@ -1050,10 +1066,18 @@
       s._category = categorizeService(s);
     });
 
-    // Build category tabs
-    var html = '<div class="yb-store__categories">';
+    // ── Search bar ──
+    var html = '<div class="yb-store__search-wrap">';
+    html += '<svg class="yb-store__search-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#6F6A66" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>';
+    html += '<input type="text" class="yb-store__search" placeholder="' + (isDa() ? 'Søg efter pakker, medlemskaber...' : 'Search for packages, memberships...') + '" value="' + esc(storeSearchQuery) + '">';
+    if (storeSearchQuery) {
+      html += '<button type="button" class="yb-store__search-clear" aria-label="Clear">&times;</button>';
+    }
+    html += '</div>';
+
+    // ── Category tabs ──
+    html += '<div class="yb-store__categories">';
     storeCategories.forEach(function(cat) {
-      // Count items in category
       var count = cat.id === 'all'
         ? storeServices.length
         : storeServices.filter(function(s) { return s._category === cat.id; }).length;
@@ -1066,41 +1090,110 @@
     });
     html += '</div>';
 
-    // Filter services
+    // ── Filter by category + search ──
     var filtered = storeActiveCategory === 'all'
       ? storeServices
       : storeServices.filter(function(s) { return s._category === storeActiveCategory; });
 
-    // Grid
+    if (storeSearchQuery) {
+      var q = storeSearchQuery.toLowerCase();
+      filtered = filtered.filter(function(s) {
+        return (s.name || '').toLowerCase().indexOf(q) !== -1
+            || (s.description || '').toLowerCase().indexOf(q) !== -1;
+      });
+    }
+
+    // ── Results count ──
+    html += '<div class="yb-store__results-count">';
+    html += filtered.length + ' ' + (isDa() ? (filtered.length === 1 ? 'resultat' : 'resultater') : (filtered.length === 1 ? 'result' : 'results'));
+    html += '</div>';
+
+    // ── Item grid ──
     html += '<div class="yb-store__grid">';
     filtered.forEach(function(s) {
       var price = s.onlinePrice || s.price || 0;
       var isContract = s._itemType === 'contract';
+
       html += '<div class="yb-store__item' + (isContract ? ' yb-store__item--contract' : '') + '">';
-      html += '  <div class="yb-store__item-info">';
-      html += '    <h3 class="yb-store__item-name">' + esc(s.name) + '</h3>';
+
+      // Badges row
+      var badges = [];
+      if (isContract && s.firstMonthFree) {
+        badges.push('<span class="yb-store__badge yb-store__badge--free">' + (isDa() ? 'Første måned gratis' : 'First month free') + '</span>');
+      }
+      if (isContract) {
+        badges.push('<span class="yb-store__badge yb-store__badge--membership">' + (isDa() ? 'Medlemskab' : 'Membership') + '</span>');
+      }
+      if (badges.length) {
+        html += '<div class="yb-store__item-badges">' + badges.join('') + '</div>';
+      }
+
+      html += '<div class="yb-store__item-info">';
+      html += '  <h3 class="yb-store__item-name">' + esc(s.name) + '</h3>';
+
+      // Description (truncated)
+      if (s.description) {
+        var desc = s.description.length > 120 ? s.description.substring(0, 120) + '...' : s.description;
+        html += '  <p class="yb-store__item-desc">' + esc(desc) + '</p>';
+      }
+
+      // Pricing section
+      html += '  <div class="yb-store__item-pricing">';
+      html += '    <span class="yb-store__item-price">' + formatDKK(price) + '</span>';
       if (isContract && s._recurringInfo) {
         html += '    <span class="yb-store__item-recurring">' + esc(s._recurringInfo) + '</span>';
       } else if (s.count && s.count < 9999) {
-        // Hide 99999/999999 — that's MB's "unlimited" placeholder
         html += '    <span class="yb-store__item-count">' + s.count + ' ' + (isDa() ? 'klip' : 'sessions') + '</span>';
       }
-      if (isContract && s.duration && s.durationUnit) {
-        html += '    <span class="yb-store__item-duration">' + s.duration + ' ' + esc(s.durationUnit) + '</span>';
-      }
-      html += '    <span class="yb-store__item-price">' + formatDKK(price) + '</span>';
       html += '  </div>';
-      html += '  <button class="yb-btn yb-btn--primary yb-store__item-btn" type="button" data-store-buy="' + s.id + '" data-item-type="' + (s._itemType || 'service') + '">' + t('store_buy') + '</button>';
-      html += '</div>';
+
+      // Contract terms (bullet list of key terms)
+      if (isContract && s._terms && s._terms.length) {
+        html += '  <ul class="yb-store__item-terms">';
+        s._terms.forEach(function(term) {
+          html += '    <li>' + esc(term) + '</li>';
+        });
+        // Always link to T&C
+        html += '    <li><a href="' + (isDa() ? '/terms-conditions/' : '/en/terms-conditions/') + '" target="_blank" rel="noopener">' + (isDa() ? 'Se handelsbetingelser' : 'View terms & conditions') + '</a></li>';
+        html += '  </ul>';
+      }
+
+      html += '</div>'; // item-info
+
+      html += '<button class="yb-btn yb-btn--primary yb-store__item-btn" type="button" data-store-buy="' + s.id + '" data-item-type="' + (s._itemType || 'service') + '">' + t('store_buy') + '</button>';
+      html += '</div>'; // item
     });
     if (!filtered.length) {
-      html += '<p class="yb-store__empty">' + t('store_empty') + '</p>';
+      html += '<p class="yb-store__empty">' + (storeSearchQuery
+        ? (isDa() ? 'Ingen resultater for "' + esc(storeSearchQuery) + '"' : 'No results for "' + esc(storeSearchQuery) + '"')
+        : t('store_empty')) + '</p>';
     }
     html += '</div>';
 
     container.innerHTML = html;
 
-    // Attach category tab handlers
+    // ── Attach search handler ──
+    var searchInput = container.querySelector('.yb-store__search');
+    if (searchInput) {
+      searchInput.addEventListener('input', function() {
+        storeSearchQuery = this.value;
+        renderStoreItems(container);
+      });
+      // Keep focus after re-render
+      if (storeSearchQuery) {
+        searchInput.focus();
+        searchInput.setSelectionRange(storeSearchQuery.length, storeSearchQuery.length);
+      }
+    }
+    var clearBtn = container.querySelector('.yb-store__search-clear');
+    if (clearBtn) {
+      clearBtn.addEventListener('click', function() {
+        storeSearchQuery = '';
+        renderStoreItems(container);
+      });
+    }
+
+    // ── Attach category tab handlers ──
     container.querySelectorAll('[data-store-cat]').forEach(function(btn) {
       btn.addEventListener('click', function() {
         storeActiveCategory = btn.getAttribute('data-store-cat');
@@ -1108,7 +1201,7 @@
       });
     });
 
-    // Attach buy handlers
+    // ── Attach buy handlers ──
     container.querySelectorAll('[data-store-buy]').forEach(function(btn) {
       btn.addEventListener('click', function() { openCheckout(btn.getAttribute('data-store-buy'), btn.getAttribute('data-item-type') || 'service'); });
     });
@@ -1123,10 +1216,18 @@
     if (listEl) listEl.style.display = 'none';
     if (checkoutEl) checkoutEl.hidden = false;
     var price = service.onlinePrice || service.price || 0;
-    var itemHtml = '<span class="yb-store__checkout-item-name">' + esc(service.name) + '</span>';
-    if (service._itemType === 'contract' && service._recurringInfo) {
+    var isContract = service._itemType === 'contract';
+    var itemHtml = '<div class="yb-store__checkout-item-details">';
+    itemHtml += '<span class="yb-store__checkout-item-name">' + esc(service.name) + '</span>';
+    if (isContract && service._recurringInfo) {
       itemHtml += '<span class="yb-store__checkout-item-recurring">' + esc(service._recurringInfo) + '</span>';
     }
+    if (isContract && service._terms && service._terms.length) {
+      itemHtml += '<ul class="yb-store__checkout-terms">';
+      service._terms.forEach(function(term) { itemHtml += '<li>' + esc(term) + '</li>'; });
+      itemHtml += '</ul>';
+    }
+    itemHtml += '</div>';
     itemHtml += '<span class="yb-store__checkout-item-price">' + formatDKK(price) + '</span>';
     if (itemEl) itemEl.innerHTML = itemHtml;
     checkoutEl.setAttribute('data-service-id', service.id);

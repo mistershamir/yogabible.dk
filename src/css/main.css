@@ -6870,7 +6870,8 @@ section {
 .yb-store__checkout-item {
   display: flex;
   justify-content: space-between;
-  align-items: center;
+  align-items: flex-start;
+  gap: 1rem;
   background: #F5F3F0;
   border-radius: 8px;
   padding: 1rem 1.25rem;
@@ -7590,6 +7591,159 @@ section {
   color: #f75c03;
   font-weight: 700;
   margin-top: 0.15rem;
+}
+
+/* ── Store Search Bar ── */
+.yb-store__search-wrap {
+  position: relative;
+  margin-bottom: 1rem;
+}
+.yb-store__search-icon {
+  position: absolute;
+  left: 1rem;
+  top: 50%;
+  transform: translateY(-50%);
+  pointer-events: none;
+}
+.yb-store__search {
+  width: 100%;
+  padding: 0.75rem 2.5rem 0.75rem 2.75rem;
+  border: 1.5px solid #E8E4E0;
+  border-radius: 12px;
+  font-size: 0.9rem;
+  font-family: inherit;
+  color: #0F0F0F;
+  background: #FFFCF9;
+  transition: border-color 0.2s;
+  box-sizing: border-box;
+}
+.yb-store__search:focus {
+  outline: none;
+  border-color: #f75c03;
+}
+.yb-store__search::placeholder {
+  color: #B0AAA4;
+}
+.yb-store__search-clear {
+  position: absolute;
+  right: 0.75rem;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  font-size: 1.3rem;
+  color: #6F6A66;
+  cursor: pointer;
+  padding: 0 0.25rem;
+  line-height: 1;
+}
+.yb-store__search-clear:hover {
+  color: #f75c03;
+}
+
+/* ── Store Results Count ── */
+.yb-store__results-count {
+  font-size: 0.78rem;
+  color: #6F6A66;
+  margin-bottom: 0.75rem;
+}
+
+/* ── Store Item Badges ── */
+.yb-store__item-badges {
+  display: flex;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+}
+.yb-store__badge {
+  display: inline-block;
+  font-size: 0.68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: 0.2rem 0.6rem;
+  border-radius: 6px;
+}
+.yb-store__badge--membership {
+  background: #F5F3F0;
+  color: #6F6A66;
+  border: 1px solid #E8E4E0;
+}
+.yb-store__badge--free {
+  background: #FFF5EE;
+  color: #f75c03;
+  border: 1px solid #f75c03;
+}
+
+/* ── Store Item Description ── */
+.yb-store__item-desc {
+  font-size: 0.82rem;
+  color: #6F6A66;
+  line-height: 1.45;
+  margin: 0.35rem 0 0.5rem;
+}
+
+/* ── Store Item Pricing ── */
+.yb-store__item-pricing {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  margin-top: 0.25rem;
+}
+
+/* ── Store Item Terms ── */
+.yb-store__item-terms {
+  list-style: none;
+  padding: 0;
+  margin: 0.5rem 0 0;
+}
+.yb-store__item-terms li {
+  font-size: 0.78rem;
+  color: #6F6A66;
+  padding: 0.15rem 0 0.15rem 1.2rem;
+  position: relative;
+}
+.yb-store__item-terms li::before {
+  content: '✓';
+  position: absolute;
+  left: 0;
+  color: #f75c03;
+  font-weight: 700;
+}
+.yb-store__item-terms li:last-child::before {
+  content: '→';
+}
+.yb-store__item-terms a {
+  color: #f75c03;
+  text-decoration: underline;
+  font-size: 0.75rem;
+}
+.yb-store__item-terms a:hover {
+  color: #d94f02;
+}
+
+/* ── Checkout Terms ── */
+.yb-store__checkout-item-details {
+  flex: 1;
+  min-width: 0;
+}
+.yb-store__checkout-terms {
+  list-style: none;
+  padding: 0;
+  margin: 0.35rem 0 0;
+}
+.yb-store__checkout-terms li {
+  font-size: 0.75rem;
+  color: #6F6A66;
+  padding: 0.1rem 0 0.1rem 1rem;
+  position: relative;
+}
+.yb-store__checkout-terms li::before {
+  content: '✓';
+  position: absolute;
+  left: 0;
+  color: #f75c03;
+  font-weight: 600;
 }
 
 /* ═══════════════════════════════════════
