@@ -176,17 +176,28 @@ exports.handler = async function(event) {
       // Frontend checks isSuspended flag before showing the pause button.
       // MB itself will return "exceeded maximum iterations" if already at max pauses.
 
-      // CONFIRMED WORKING FORMAT (2026-02-09):
+      // FIX (2026-02-09): MB treats SuspendDate as the END date, not start.
+      // Evidence: sending SuspendDate="2026-03-09" + Duration=14 resulted in
+      // MB registering Start=Feb10(today), End=Mar9(our SuspendDate value).
+      // So SuspendDate = "suspend through" date. Duration is ignored when SuspendDate given.
+      //
+      // Correct mapping:
+      //   SuspendDate = body.endDate (the end/through date of the suspension)
+      //
+      // We also try ResumeDate as explicit end param in case MB supports it.
+      // MB ignores unknown params, so adding extra fields is safe.
       var suspendBody = {
         ClientId: body.clientId,
         ClientContractId: ccId,
-        SuspendDate: body.startDate,
+        SuspendDate: body.endDate,
+        ResumeDate: body.endDate,
         Duration: durationDays,
         DurationUnit: 'Day',
         SuspensionType: 'Vacation'
       };
 
-      console.log('[mb-contract-manage] Suspending contract:', JSON.stringify(suspendBody));
+      console.log('[mb-contract-manage] Suspending contract:', JSON.stringify(suspendBody),
+        'USER selected start:', body.startDate, 'end:', body.endDate, 'duration:', durationDays, 'days');
 
       var suspResult;
       try {
