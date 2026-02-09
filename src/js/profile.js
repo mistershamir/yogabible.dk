@@ -1274,6 +1274,10 @@
               errorEl.textContent = res.data.error || t('membership_pause_error');
               errorEl.hidden = false;
             }
+            // Log diagnostic details for debugging
+            if (res.data._attempts) {
+              console.warn('[Membership] Suspend attempts:', JSON.stringify(res.data._attempts, null, 2));
+            }
           }
           pauseConfirmBtn.disabled = false;
           pauseConfirmBtn.textContent = t('membership_pause_confirm');
