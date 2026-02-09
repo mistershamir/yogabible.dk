@@ -95,60 +95,70 @@ exports.handler = async function(event) {
 
       var ccId = Number(body.clientContractId);
 
-      // /client/suspendcontract is the confirmed active endpoint (returns JSON).
-      // /sale/ and /contract/ both return 404 HTML.
-      var suspendPath = '/client/suspendcontract';
-      var suspendBody = {
-        ClientId: body.clientId,
-        ClientContractId: ccId,
-        SuspendDate: body.startDate,
-        Duration: durationDays,
-        DurationUnit: 'Days'
-      };
+      // /client/suspendcontract is the confirmed active endpoint.
+      // MB says "Duration and DurationUnit are required" even when sent in body.
+      // Try: 1) query params, 2) body-only, 3) both combined
+      var basePath = '/client/suspendcontract';
+      var qp = '?ClientContractId=' + ccId
+        + '&SuspendDate=' + encodeURIComponent(body.startDate)
+        + '&Duration=' + durationDays
+        + '&DurationUnit=Days';
 
-      console.log('[mb-contract-manage] Suspend on ' + suspendPath + ':', JSON.stringify(suspendBody));
+      var attempts = [
+        // 1: All fields as query params (empty body)
+        { label: 'query-params', path: basePath + qp, body: {} },
+        // 2: Query params + body together
+        { label: 'query+body', path: basePath + qp, body: { ClientId: body.clientId, ClientContractId: ccId, SuspendDate: body.startDate, Duration: durationDays, DurationUnit: 'Days' } },
+        // 3: Body only (original approach)
+        { label: 'body-only', path: basePath, body: { ClientId: body.clientId, ClientContractId: ccId, SuspendDate: body.startDate, Duration: durationDays, DurationUnit: 'Days' } },
+      ];
 
-      try {
-        var suspResult = await mbFetch(suspendPath, {
-          method: 'POST',
-          body: JSON.stringify(suspendBody)
-        });
+      var allResults = [];
+      for (var ai = 0; ai < attempts.length; ai++) {
+        var attempt = attempts[ai];
+        try {
+          console.log('[mb-contract-manage] Attempt ' + attempt.label + ': POST ' + attempt.path);
+          console.log('[mb-contract-manage] Body:', JSON.stringify(attempt.body));
+          var suspResult = await mbFetch(attempt.path, {
+            method: 'POST',
+            body: JSON.stringify(attempt.body)
+          });
 
-        console.log('[mb-contract-manage] SUCCESS:', JSON.stringify(suspResult).substring(0, 500));
-        return jsonResponse(200, {
-          success: true,
-          action: 'suspend',
-          suspendDate: body.startDate,
-          resumeDate: body.endDate,
-          durationDays: durationDays,
-          endpointUsed: suspendPath,
-          message: 'Contract suspension scheduled'
-        });
-      } catch (suspErr) {
-        // Extract the FULL error from MB — check all possible fields
-        var mbData = suspErr.data || {};
-        var mbErrorMsg = suspErr.message || 'Unknown error';
-        var mbFullResponse = JSON.stringify(mbData);
+          console.log('[mb-contract-manage] SUCCESS (' + attempt.label + '):', JSON.stringify(suspResult).substring(0, 500));
+          return jsonResponse(200, {
+            success: true,
+            action: 'suspend',
+            suspendDate: body.startDate,
+            resumeDate: body.endDate,
+            durationDays: durationDays,
+            endpointUsed: attempt.path,
+            method: attempt.label,
+            message: 'Contract suspension scheduled'
+          });
+        } catch (suspErr) {
+          var mbData = suspErr.data || {};
+          var mbErrorMsg = suspErr.message || 'Unknown error';
+          if (mbData.Message) mbErrorMsg = mbData.Message;
+          if (mbData.Error && mbData.Error.Message) mbErrorMsg = mbData.Error.Message;
+          if (mbData.Errors && mbData.Errors.length) mbErrorMsg = mbData.Errors.map(function(e) { return e.Message || e.message || JSON.stringify(e); }).join('; ');
 
-        // MB can put errors in various places
-        if (mbData.Message) mbErrorMsg = mbData.Message;
-        if (mbData.Error && mbData.Error.Message) mbErrorMsg = mbData.Error.Message;
-        if (mbData.Errors && mbData.Errors.length) mbErrorMsg = mbData.Errors.map(function(e) { return e.Message || e.message || JSON.stringify(e); }).join('; ');
-        if (mbData.error) mbErrorMsg = typeof mbData.error === 'string' ? mbData.error : JSON.stringify(mbData.error);
-
-        console.error('[mb-contract-manage] Suspend FAILED. Status:', suspErr.status);
-        console.error('[mb-contract-manage] Error message:', mbErrorMsg);
-        console.error('[mb-contract-manage] Full MB response:', mbFullResponse.substring(0, 1000));
-
-        // Return EVERYTHING to the frontend for diagnosis
-        return jsonResponse(suspErr.status || 400, {
-          error: mbErrorMsg,
-          _mbStatus: suspErr.status,
-          _mbFullResponse: mbFullResponse.substring(0, 800),
-          _sentBody: suspendBody,
-          _path: suspendPath
-        });
+          var errInfo = {
+            label: attempt.label,
+            status: suspErr.status,
+            message: mbErrorMsg,
+            fullResponse: JSON.stringify(mbData).substring(0, 500)
+          };
+          console.error('[mb-contract-manage] Failed ' + attempt.label + ':', JSON.stringify(errInfo));
+          allResults.push(errInfo);
+        }
       }
+
+      // All failed — return diagnostic data
+      var lastErr = allResults[allResults.length - 1] || {};
+      return jsonResponse(400, {
+        error: lastErr.message || 'All suspend attempts failed',
+        _attempts: allResults
+      });
     }
 
     return jsonResponse(400, { error: 'Invalid action. Use "terminate" or "suspend".' });
