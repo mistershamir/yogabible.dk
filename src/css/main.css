@@ -3520,19 +3520,20 @@ section {
   justify-content: center;
   gap: 12px;
   flex-wrap: wrap;
-  font-size: 0.8rem;
-  font-weight: 600;
-  color: rgba(255, 255, 255, 0.6);
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: #fff;
   text-transform: uppercase;
   letter-spacing: 0.06em;
   filter: blur(12px);
-  transition: filter 0.5s ease;
+  transition: filter 0.5s ease, color 0.5s ease;
   cursor: pointer;
   animation: yb-trust-pulse 3s ease-in-out infinite;
 }
 
 .yb-hero__trust:hover {
   filter: blur(0);
+  color: rgba(255, 255, 255, 0.6);
   animation: none;
 }
 
