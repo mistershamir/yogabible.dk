@@ -240,11 +240,13 @@ exports.handler = async function(event) {
     }
 
     // ── EXTEND PAUSE ──
+    // IMPORTANT: Do NOT call suspendcontract again — each call creates a NEW
+    // suspension in MB (no "update/extend" API exists). Firestore is the source
+    // of truth for extended dates. The original MB suspension stands.
     if (body.action === 'extend') {
       if (!body.newEndDate || !body.currentStartDate) {
         return jsonResponse(400, { error: 'newEndDate and currentStartDate are required for extension' });
       }
-      var extCcId = Number(body.clientContractId);
 
       var extStart = new Date(body.currentStartDate);
       var extEnd = new Date(body.newEndDate);
@@ -257,29 +259,7 @@ exports.handler = async function(event) {
         return jsonResponse(400, { error: 'Total pause cannot exceed 3 months (93 days)' });
       }
 
-      // Try to re-suspend with the new duration (MB may reject if already at max)
-      var extSuspendBody = {
-        ClientId: body.clientId,
-        ClientContractId: extCcId,
-        SuspendDate: body.currentStartDate,
-        Duration: extDays,
-        DurationUnit: 'Day',
-        SuspensionType: 'Vacation'
-      };
-
-      console.log('[mb-contract-manage] Extending pause:', JSON.stringify(extSuspendBody));
-
-      try {
-        await mbFetch('/client/suspendcontract', {
-          method: 'POST',
-          body: JSON.stringify(extSuspendBody)
-        });
-      } catch (extErr) {
-        console.warn('[mb-contract-manage] Extend suspend call failed:', extErr.message, '(non-fatal, Firestore is primary record)');
-      }
-
-      // Also save updated note as backup
-      await savePauseNote(body.clientId, extCcId, body.currentStartDate, body.newEndDate);
+      console.log('[mb-contract-manage] Extend pause (Firestore only):', body.currentStartDate, '->', body.newEndDate, '(' + extDays + ' days)');
 
       return jsonResponse(200, {
         success: true,
@@ -292,59 +272,13 @@ exports.handler = async function(event) {
     }
 
     // ── RESUME (CANCEL PAUSE EARLY) ──
+    // MB Public API v6 has NO resume/unsuspend endpoint. All paths tested, none work.
+    // Do NOT probe endpoints — they may cause side effects (duplicate suspensions).
+    // This action is handled entirely on the frontend (contact message).
     if (body.action === 'resume') {
-      var resumeCcId = Number(body.clientContractId);
-
-      // Try known endpoint paths for resuming/removing suspension
-      var resumePaths = [
-        '/client/resumecontract',
-        '/sale/resumecontract',
-        '/contract/resumecontract',
-        '/client/removecontractsuspension',
-        '/sale/removecontractsuspension'
-      ];
-
-      var resumeBody = {
-        ClientId: body.clientId,
-        ClientContractId: resumeCcId
-      };
-
-      console.log('[mb-contract-manage] Attempting to resume contract:', JSON.stringify(resumeBody));
-
-      var lastResumeErr = null;
-      var resumeResults = [];
-
-      for (var ri = 0; ri < resumePaths.length; ri++) {
-        try {
-          var resumeResult = await mbFetch(resumePaths[ri], {
-            method: 'POST',
-            body: JSON.stringify(resumeBody)
-          });
-          console.log('[mb-contract-manage] Resume SUCCESS on ' + resumePaths[ri]);
-          return jsonResponse(200, {
-            success: true,
-            action: 'resume',
-            endpointUsed: resumePaths[ri],
-            message: 'Contract suspension cancelled — membership resumed'
-          });
-        } catch (resumeErr) {
-          var rMsg = resumeErr.message || '';
-          var isNotFound = rMsg.indexOf('non-JSON') > -1 || resumeErr.status === 404;
-          resumeResults.push({ path: resumePaths[ri], status: resumeErr.status || 'error', message: rMsg.substring(0, 100) });
-          lastResumeErr = resumeErr;
-          if (!isNotFound) {
-            // Got a real JSON error — endpoint exists but rejected. Log and continue.
-            console.log('[mb-contract-manage] Resume path ' + resumePaths[ri] + ' returned:', rMsg.substring(0, 200));
-          }
-        }
-      }
-
-      // All paths failed — resume is not available via API
-      console.error('[mb-contract-manage] All resume paths failed:', JSON.stringify(resumeResults));
       return jsonResponse(400, {
         error: 'resume_not_available',
-        message: 'Automatic resume is not available. Please contact the studio to cancel your pause early.',
-        _pathResults: resumeResults
+        message: 'Automatic resume is not available via the Mindbody API. Please contact the studio.'
       });
     }
 
