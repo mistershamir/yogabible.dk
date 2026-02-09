@@ -34,6 +34,7 @@
 19. **Contract `ClientContractId` vs `ContractId`** — `ContractId` is the template, `ClientContractId` is the specific client's instance. Terminate/suspend need `ClientContractId`
 20. **`BirthDate` returns `0001-01-01T00:00:00` for unset** — Mindbody's placeholder. Filter this out before storing in Firestore. Extract `YYYY-MM-DD` from ISO string.
 21. **`addclient` returns 400 for duplicate email** — Not 409. Map to 409 in our function, then look up the existing client to link accounts.
+22. **BirthDate format is always ISO `YYYY-MM-DD`** — `<input type="date">` returns ISO regardless of locale display. Mindbody returns ISO datetime, we strip the time part. Danish users see dd/mm/yyyy in their browser, US sees mm/dd/yyyy, but the actual value is always `YYYY-MM-DD`. If a DOB looks wrong in Mindbody admin, it's a display issue on MB's side, not a data issue.
 
 ## Endpoint Reference
 
@@ -305,3 +306,4 @@ After extensive debugging, the correct paths are under the **Sale** category:
 | 44 | `addclient` returns 400 for duplicate email | Handle as 409 → look up existing client | `createMindbodyClient()` must catch 409 and call `linkExistingMindbodyClient()` to auto-link |
 | 45 | Mindbody `BirthDate` returns `0001-01-01T00:00:00` for unset | Filter out `0001-01-01` | When pulling DOB from MB, check `bd !== '0001-01-01'` before storing in Firestore |
 | 46 | `updateclient` doesn't accept `BirthDate` | It DOES — use PascalCase `BirthDate` in body | `mb-client.js` PUT now supports `birthDate` → mapped to `BirthDate` |
+| 47 | Date format conflict: dd/mm/yyyy (DK) vs mm/dd/yyyy (US/MB) | **No conflict** — all dates use ISO `YYYY-MM-DD` end-to-end | `<input type="date">` always returns `YYYY-MM-DD` regardless of browser locale display. Mindbody returns `YYYY-MM-DDTHH:MM:SS` → we extract `YYYY-MM-DD`. Firestore stores `YYYY-MM-DD`. **If DOB looks wrong in MB admin**, check: (1) was it sent as `YYYY-MM-DD`? (2) does MB display interpret it as mm/dd or dd/mm? The API always uses ISO but the MB admin UI may display in US format |

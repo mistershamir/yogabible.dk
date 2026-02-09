@@ -164,8 +164,9 @@
               updates.phone = data.client.phone;
             }
             // Pull birthDate from Mindbody if user hasn't set one yet
+            // MB returns ISO datetime (e.g. 1990-03-15T00:00:00) — we extract YYYY-MM-DD
+            // No dd/mm vs mm/dd conflict: both systems use ISO internally
             if (!d.dateOfBirth && data.client.birthDate) {
-              // Mindbody returns ISO date — extract YYYY-MM-DD
               var bd = data.client.birthDate;
               if (bd && bd.indexOf('T') !== -1) bd = bd.split('T')[0];
               if (bd && bd !== '0001-01-01') updates.dateOfBirth = bd;

@@ -118,6 +118,7 @@
           }
 
           // Sync to backend silently
+          // Date format: dob is always YYYY-MM-DD (ISO) from <input type="date"> — no dd/mm vs mm/dd conflict
           if (clientId) {
             var mbData = { clientId: clientId, firstName: firstName, lastName: lastName, phone: phone, email: user.email };
             if (dob) mbData.birthDate = dob;
@@ -210,6 +211,7 @@
           if (reminderEl) reminderEl.hidden = true;
 
           // Push to Mindbody in background
+          // Note: dob is always YYYY-MM-DD from <input type="date"> — safe for MB API (ISO format)
           if (clientId) {
             fetch('/.netlify/functions/mb-client', {
               method: 'PUT',
