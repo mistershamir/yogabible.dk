@@ -32,7 +32,11 @@
     "faq5_a": "Ja, med modulære avanceringsmuligheder kan du bygge videre på din eksisterende certificering.",
     "cta_title": "Udforsk Vores Uddannelser",
     "cta_text": "Se vores 200-timers yogalæreruddannelse og find det format, der passer dig.",
-    "cta_btn": "Se Uddannelser"
+    "cta_btn": "Se Uddannelser",
+    "hero_tagline": "Yoga Bible · Vores Rejse",
+    "hero_trust1": "Grundlagt 2014",
+    "hero_trust2": "København, Danmark",
+    "hero_trust3": "Yoga Alliance RYS"
   },
   "en": {
     "hero_badge": "OUR STORY",
@@ -67,6 +71,10 @@
     "faq5_a": "Yes, with modular advancement options you can build on your existing certification.",
     "cta_title": "Explore Our Trainings",
     "cta_text": "See our 200-hour yoga teacher training and find the format that suits you.",
-    "cta_btn": "See Trainings"
+    "cta_btn": "See Trainings",
+    "hero_tagline": "Yoga Bible · Our Journey",
+    "hero_trust1": "Founded 2014",
+    "hero_trust2": "Copenhagen, Denmark",
+    "hero_trust3": "Yoga Alliance RYS"
   }
 }

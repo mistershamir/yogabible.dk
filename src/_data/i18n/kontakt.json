@@ -27,7 +27,8 @@
     "findus_title": "Find Os",
     "js_antispam_error": "Udfyld venligst anti-spam korrekt (skriv: NAMASTE).",
     "js_wait_error": "Vent venligst et øjeblik og prøv igen.",
-    "js_sending": "Sender\u2026"
+    "js_sending": "Sender…",
+    "hero_tagline": "Yoga Bible · Kontakt"
   },
   "en": {
     "hero_title": "Contact Yoga Bible",
@@ -57,6 +58,7 @@
     "findus_title": "Find Us",
     "js_antispam_error": "Please enter the anti-spam word correctly (type: NAMASTE).",
     "js_wait_error": "Please wait a moment and try again.",
-    "js_sending": "Sending\u2026"
+    "js_sending": "Sending…",
+    "hero_tagline": "Yoga Bible · Contact"
   }
 }

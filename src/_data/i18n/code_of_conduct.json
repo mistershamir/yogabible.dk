@@ -3,20 +3,16 @@
     "hero_title": "Code of Conduct",
     "hero_subtitle": "Hot Yoga Copenhagen ApS · CVR: 41295252",
     "last_updated": "Sidst opdateret: 11. januar 2026",
-
     "intro": "Yoga Bible er et professionelt lærings- og praksismiljø. Denne Code of Conduct beskriver de standarder, vi forventer af deltagere, studerende, kunder, undervisere, medarbejdere, freelancere og samarbejdspartnere — både i studio og online.",
     "applies_to": "Gælder for: YogaBible.dk + underbrands (Hot Yoga Copenhagen, Vibro Yoga, Namaste Studios, Namaste Online, Yoga Bible International).",
-
     "standard_title": "Vores Standard",
     "standard_ahimsa": "<strong>Ahimsa:</strong> Ingen skade (fysisk eller psykisk)",
     "standard_satya": "<strong>Satya:</strong> Ærlighed og tydelig kommunikation",
     "standard_saucha": "<strong>Saucha:</strong> Renhed, orden, respekt for rummet",
     "standard_professionalism": "<strong>Professionalisme:</strong> Vi behandler hinanden som voksne og seriøse praktikere",
     "standard_privacy": "<strong>Privatliv:</strong> Ingen deling af andres data uden samtykke",
-
     "s1_title": "1. Grundprincipper",
     "s1_text": "Adfærd i overensstemmelse med lov, etik og yogiske værdier. Forventninger: respektfuld kommunikation selv ved uenighed; nultolerance for chikane, mobning, diskrimination, intimidering; ærlighed og ingen manipulation; personligt ansvar for kropbevidsthed og instruktionsfølgning; beskyttelse af andres privatliv og data.",
-
     "s2_title": "2. Respekt, Inklusion og Tryghed",
     "s2_intro": "Yoga Bible er et inkluderet rum. Ikke acceptabelt:",
     "s2_sexual": "Uønsket seksuel opmærksomhed, kommentarer eller berøring",
@@ -25,61 +21,49 @@
     "s2_pressure": "At presse andre til at dele personlige oplysninger eller krydse grænser",
     "s2_unsafe": "At skabe utrygge miljøer gennem gentagne forstyrrelser eller manglende respekt",
     "s2_quote": "<em>\"Nej\" er en komplet sætning. Respekt for personlige grænser er ikke til forhandling.</em>",
-
     "s3_title": "3. Sikkerhed i Praksis",
     "s3_text": "Lyt til din krop; stop ved svimmelhed, smerte eller ubehag. Informer undervisere om graviditet, skader, sygdom eller særlige behov. Ingen deltagelse under påvirkning af alkohol eller stoffer. Mobil på lydløs; ingen høj snak under instruktion.",
     "s3_adjustments_title": "Hands-On Justeringer",
     "s3_adjustments_text": "Undervisere kan bruge hands-on justeringer. Du kan altid fravælge det. Afvisning respekteres øjeblikkeligt. Kommuniker tydeligt. Opt-out system (diskret kort/markering ved måtten) kan implementeres.",
     "s3_minors_title": "Mindreårige (under 18)",
     "s3_minors_text": "Skriftligt forældresamtykke kræves; forælder/værge skal være til stede; værge ansvarlig for adfærd, sikkerhed og kommunikation.",
-
     "s4_title": "4. Hygiejne, Orden og Respekt for Faciliteter",
     "s4_text": "Ankom ren med passende påklædning; brug udstyr korrekt og sæt det pænt på plads; smid affald ud; rapporter skader eller sikkerhedsproblemer med det samme.",
-
     "s5_title": "5. Uddannelser, Kurser og Læringsmiljø",
     "s5_integrity": "<strong>Akademisk/professionel integritet:</strong> Ingen plagiering; ingen deling af manualer, PDF'er eller undervisningsmaterialer; studerende kan ikke optage undervisning eller fotografere materialer. Feedback gives professionelt uden udskamning.",
     "s5_boundaries": "<strong>Professionelle grænser:</strong> Klare grænser mellem undervisere og studerende; ingen flirt, pres eller favorisering i uddannelsessettings.",
-
     "s6_title": "6. Online Adfærd",
     "s6_text": "Skal afspejle studiostandarder i kommentarer, DM'er, grupper, e-mails og platforme. Ingen chikane, angribende tone, udskamning, spam, trusler, doxxing eller uautoriseret deling af links/logins/optagelser.",
-
     "s7_title": "7. Optagelser, Foto, IP & Materialebrug",
     "s7_text": "Alt indhold er beskyttet af copyright. Deltagere/studerende kan ikke optage klasser/kurser eller fotografere materialer. Yoga Bible kan optage under undervisning og events til undervisning og markedsføring.",
-
     "s8_title": "8. Samarbejde, Karriere, Fortrolighed & Non-Solicit",
     "s8_confidentiality": "<strong>Fortrolighed:</strong> Kundelister, interne systemer, undervisningsdesign, priser, strategi og materialer er fortrolige — også efter samarbejdet ophører.",
     "s8_nonsolicit": "<strong>Non-Solicit:</strong> Ingen elev-poaching eller kunde/elev-omdirigering. Standard: 24-måneders non-solicit periode.",
-
     "s9_title": "9. Rapportering af Bekymringer",
     "s9_email": "E-mail: <a href=\"mailto:info@yogabible.dk\">info@yogabible.dk</a>",
     "s9_phone": "Telefon: <a href=\"tel:+4553881209\">+45 53 88 12 09</a>",
     "s9_studio": "I studiet: Fortæl underviser eller reception, følg op via e-mail",
     "s9_details": "Oplys: Hvad skete, hvornår, hvor; hvem var involveret; screenshots/dokumentation hvis relevant; hvilket resultat ønskes.",
     "s9_emergency": "<strong>Ved akut fare ring 112.</strong>",
-
     "s10_title": "10. Konsekvenser ved Brud",
     "s10_text": "Proportionale, case-by-case vurderinger. Mulige handlinger: vejledning og advarsel; midlertidig pause eller adgangsbegrænsning; øjeblikkelig fjernelse fra session; lukning af digital adgang; samarbejds-/kontraktophør; politianmeldelse ved alvorlige sager.",
-
-    "closing": "<em>Tak fordi du bidrager til et stærkt og trygt miljø.</em>"
+    "closing": "<em>Tak fordi du bidrager til et stærkt og trygt miljø.</em>",
+    "hero_tagline": "Yoga Bible · Etik"
   },
   "en": {
     "hero_title": "Code of Conduct",
     "hero_subtitle": "Hot Yoga Copenhagen ApS · CVR: 41295252",
     "last_updated": "Last updated: January 11, 2026",
-
     "intro": "Yoga Bible is a professional learning and practice environment. This Code of Conduct describes the standards we expect from participants, students, clients, teachers, staff, freelancers, and collaborators — both in the studio and online.",
     "applies_to": "Applies to: YogaBible.dk + sub-brands (Hot Yoga Copenhagen, Vibro Yoga, Namaste Studios, Namaste Online, Yoga Bible International).",
-
     "standard_title": "Our Standard",
     "standard_ahimsa": "<strong>Ahimsa:</strong> No harm (physical or psychological)",
     "standard_satya": "<strong>Satya:</strong> Honesty and clear communication",
     "standard_saucha": "<strong>Saucha:</strong> Cleanliness, order, respect for the space",
     "standard_professionalism": "<strong>Professionalism:</strong> We treat each other as adults and serious practitioners",
     "standard_privacy": "<strong>Privacy:</strong> No sharing of others' data without consent",
-
     "s1_title": "1. Core Principles",
     "s1_text": "Conduct in accordance with law, ethics, and yogic values. Expectations: respectful communication even in disagreement; zero tolerance for harassment, bullying, discrimination, intimidation; honesty and no manipulation; personal responsibility for body awareness and following instructions; protection of others' privacy and data.",
-
     "s2_title": "2. Respect, Inclusion & Safety",
     "s2_intro": "Yoga Bible is an inclusive space. Not acceptable:",
     "s2_sexual": "Unwanted sexual attention, comments, or touch",
@@ -88,41 +72,33 @@
     "s2_pressure": "Pressuring others to share personal information or cross boundaries",
     "s2_unsafe": "Creating unsafe environments through repeated disruption or lack of respect",
     "s2_quote": "<em>\"No\" is a complete sentence. Respect for personal boundaries is non-negotiable.</em>",
-
     "s3_title": "3. Safety in Practice",
     "s3_text": "Listen to your body; stop if you feel dizziness, pain, or discomfort. Inform teachers about pregnancy, injuries, illness, or special needs. No participation under the influence of alcohol or drugs. Phone on silent; no loud talking during instruction.",
     "s3_adjustments_title": "Hands-On Adjustments",
     "s3_adjustments_text": "Teachers may use hands-on adjustments. You can always opt out. Refusal is respected immediately. Communicate clearly. An opt-out system (discreet card/marker by your mat) may be implemented.",
     "s3_minors_title": "Minors (Under 18)",
     "s3_minors_text": "Written parental consent required; parent/guardian must be present; guardian responsible for behavior, safety, and communication.",
-
     "s4_title": "4. Hygiene, Tidiness & Respect for Facilities",
     "s4_text": "Arrive clean with appropriate clothing; use equipment correctly and return it neatly; dispose of waste; report damage or safety issues immediately.",
-
     "s5_title": "5. Training, Courses & Learning Environment",
     "s5_integrity": "<strong>Academic/professional integrity:</strong> No plagiarism; no sharing of manuals, PDFs, or teaching materials; students may not record classes or photograph materials. Feedback is given professionally without shaming.",
     "s5_boundaries": "<strong>Professional boundaries:</strong> Clear boundaries between teachers and students; no flirting, pressure, or favoritism in training settings.",
-
     "s6_title": "6. Online Conduct",
     "s6_text": "Must reflect studio standards in comments, DMs, groups, emails, and platforms. No harassment, aggressive tone, shaming, spam, threats, doxxing, or unauthorized sharing of links/logins/recordings.",
-
     "s7_title": "7. Recordings, Photos, IP & Material Use",
     "s7_text": "All content is protected by copyright. Participants/students may not record classes/courses or photograph materials. Yoga Bible may record during classes and events for teaching and marketing purposes.",
-
     "s8_title": "8. Collaboration, Careers, Confidentiality & Non-Solicit",
     "s8_confidentiality": "<strong>Confidentiality:</strong> Client lists, internal systems, teaching designs, pricing, strategy, and materials are confidential — even after the collaboration ends.",
     "s8_nonsolicit": "<strong>Non-Solicit:</strong> No student poaching or client/student redirection. Standard: 24-month non-solicit period.",
-
     "s9_title": "9. Reporting Concerns",
     "s9_email": "Email: <a href=\"mailto:info@yogabible.dk\">info@yogabible.dk</a>",
     "s9_phone": "Phone: <a href=\"tel:+4553881209\">+45 53 88 12 09</a>",
     "s9_studio": "In the studio: Tell a teacher or reception, follow up via email",
     "s9_details": "Include: What happened, when, where; who was involved; screenshots/documentation if relevant; desired outcome.",
     "s9_emergency": "<strong>In case of immediate danger, call 112.</strong>",
-
     "s10_title": "10. Consequences for Violations",
     "s10_text": "Proportional, case-by-case assessments. Possible actions: guidance and warning; temporary suspension or access restriction; immediate removal from session; revocation of digital access; termination of collaboration/contract; police report for serious cases.",
-
-    "closing": "<em>Thank you for contributing to a strong and safe environment.</em>"
+    "closing": "<em>Thank you for contributing to a strong and safe environment.</em>",
+    "hero_tagline": "Yoga Bible · Ethics"
   }
 }

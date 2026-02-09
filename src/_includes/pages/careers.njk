@@ -1,6 +1,34 @@
 {% set t = i18n.careers[lang or "da"] %}
 
-<!-- ===================== SECTION 1 — HERO ===================== -->
+<!-- ═══════════════════════════════════════════════════════════════
+     PRIMARY HERO — Dark Cinematic with Breathing Glow
+     ═══════════════════════════════════════════════════════════════ -->
+<section class="yb-hero">
+  <div class="yb-hero__glow"></div>
+  <div class="yb-hero__content">
+    <p class="yb-hero__tagline">{{ t.hero_tagline }}</p>
+    <h1 class="yb-hero__title">{{ t.hero_title | safe }}</h1>
+    <p class="yb-hero__subtitle">{{ t.hero_lead }}</p>
+    <div class="yb-hero__line"></div>
+    <div class="yb-hero__ctas">
+      <a href="#" data-ybcar-open="careers" class="yb-btn yb-btn--primary yb-btn--large">{{ t.hero_cta_apply }}</a>
+      <a href="#yb-careers-need" class="yb-btn yb-btn--outline-white yb-btn--large">{{ t.hero_cta_options }}</a>
+    </div>
+    <div class="yb-hero__trust">
+      <span>{{ t.hero_trust1 }}</span>
+      <span class="yb-hero__trust-dot"></span>
+      <span>{{ t.hero_trust2 }}</span>
+      <span class="yb-hero__trust-dot"></span>
+      <span>{{ t.hero_trust3 }}</span>
+    </div>
+  </div>
+  <div class="yb-hero__scroll">
+    <span>Scroll</span>
+    <div class="yb-hero__scroll-line"></div>
+  </div>
+</section>
+
+<!-- ===================== SECTION 2 — DETAILED HERO ===================== -->
 <section id="yb-careers-hero" class="yb-careers-scope" aria-label="Careers hero">
   <div class="yb-careers-hero__inner">
     <div class="yb-careers-hero__grid">

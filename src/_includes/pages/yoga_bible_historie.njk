@@ -1,11 +1,24 @@
 {% set t = i18n.yoga_bible_historie[lang or "da"] %}
 
 <!-- Hero -->
-<section class="program-hero">
-  <div class="container">
-    <div class="program-hero__badge">{{ t.hero_badge }}</div>
-    <h1 class="program-hero__title">{{ t.hero_title }}</h1>
-    <p class="program-hero__subtitle">{{ t.hero_subtitle }}</p>
+<section class="yb-hero">
+  <div class="yb-hero__glow"></div>
+  <div class="yb-hero__content">
+    <p class="yb-hero__tagline">{{ t.hero_tagline }}</p>
+    <h1 class="yb-hero__title">{{ t.hero_title }}</h1>
+    <p class="yb-hero__subtitle">{{ t.hero_subtitle }}</p>
+    <div class="yb-hero__line"></div>
+    <div class="yb-hero__trust">
+      <span>{{ t.hero_trust1 }}</span>
+      <span class="yb-hero__trust-dot"></span>
+      <span>{{ t.hero_trust2 }}</span>
+      <span class="yb-hero__trust-dot"></span>
+      <span>{{ t.hero_trust3 }}</span>
+    </div>
+  </div>
+  <div class="yb-hero__scroll">
+    <span>Scroll</span>
+    <div class="yb-hero__scroll-line"></div>
   </div>
 </section>
 
