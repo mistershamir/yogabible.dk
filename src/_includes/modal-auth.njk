@@ -80,6 +80,18 @@
           <label for="yb-register-password" data-yj-en hidden>Password</label>
           <input type="password" id="yb-register-password" required autocomplete="new-password" placeholder="Mindst 6 tegn">
         </div>
+        <div class="yb-auth-consent">
+          <label class="yb-auth-consent__item">
+            <input type="checkbox" id="yb-register-terms" required>
+            <span data-yj-da>Jeg accepterer <a href="/terms-conditions/" target="_blank" rel="noopener">Handelsbetingelser</a> og <a href="/privacy-policy/" target="_blank" rel="noopener">Privatlivspolitik</a></span>
+            <span data-yj-en hidden>I agree to the <a href="/en/terms-conditions/" target="_blank" rel="noopener">Terms &amp; Conditions</a> and <a href="/en/privacy-policy/" target="_blank" rel="noopener">Privacy Policy</a></span>
+          </label>
+          <label class="yb-auth-consent__item">
+            <input type="checkbox" id="yb-register-conduct" required>
+            <span data-yj-da>Jeg accepterer <a href="/code-of-conduct/" target="_blank" rel="noopener">Code of Conduct</a></span>
+            <span data-yj-en hidden>I agree to the <a href="/en/code-of-conduct/" target="_blank" rel="noopener">Code of Conduct</a></span>
+          </label>
+        </div>
         <div class="yb-auth-error" id="yb-register-error" hidden role="alert"></div>
         <button type="submit" class="yb-auth-submit" data-yj-da>Opret konto</button>
         <button type="submit" class="yb-auth-submit" data-yj-en hidden>Create account</button>
