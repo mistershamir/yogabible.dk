@@ -1,21 +1,21 @@
 # Profile Page Architecture — Frontend Reference
 
-> Frontend architecture for the member area profile page (`src/js/profile.js`, ~2336 lines).
-> Adapt for each brand's design system. **Last updated: 2026-02-08** — reflects final working state.
+> Frontend architecture for the member area profile page (`src/js/profile.js`, ~2500 lines).
+> Adapt for each brand's design system. **Last updated: 2026-02-09** — reflects store redesign, My Passes tab, retention card, and all session fixes.
 
 ## Overview
 
-Single-page profile dashboard with 6 tabs. Each tab lazy-loads data on first click. All data comes from Netlify Functions (Mindbody proxy) except Profile (Firestore) and Courses (Firestore).
+Single-page profile dashboard with 7 tabs. Each tab lazy-loads data on first click. All data comes from Netlify Functions (Mindbody proxy) except Profile (Firestore) and Courses (Firestore).
 
 ```
-┌──────────────────────────────────────────────────┐
-│  Header: Avatar | Name | Email | Tier Badge       │
-│  Reminder Banner (if phone/DOB missing)           │
-├──────────────────────────────────────────────────┤
-│  [Profil] [Skema] [Butik] [Besøg] [Kvit] [Kurs] │
-├──────────────────────────────────────────────────┤
-│  Tab Content (lazy-loaded on first click)          │
-└──────────────────────────────────────────────────┘
+┌─────────────────────────────────────────────────────────────┐
+│  Header: Avatar | Name | Email | Tier Badge                  │
+│  Reminder Banner (if phone/DOB missing)                     │
+├─────────────────────────────────────────────────────────────┤
+│  [Profil] [Skema] [Butik] [Mine Pas] [Besøg] [Kvit] [Kurs] │
+├─────────────────────────────────────────────────────────────┤
+│  Tab Content (lazy-loaded on first click)                     │
+└─────────────────────────────────────────────────────────────┘
 ```
 
 ## Init Flow
@@ -42,6 +42,7 @@ var scheduleWeekOffset = 0;    // Week navigation: 0 = current, -1 = last, 1 = n
 var allVisits = [];            // Cached visits for client-side filtering
 var activeVisitFilter = 'all'; // Visit filter: all|upcoming|attended|lateCancelled|noshow
 var storeActiveCategory = 'all'; // Store category filter
+var storeSearchQuery = '';     // Store search bar text (real-time filtering)
 var visitsPeriod = '90';       // Visit history lookback (days)
 var receiptsPeriod = '365';    // Receipts lookback (days)
 var storeServices = [];        // Combined services + contracts for store display
@@ -68,39 +69,9 @@ var storeServices = [];        // Combined services + contracts for store displa
 4. Silently sync to Mindbody via `PUT /.netlify/functions/mb-client`
 5. Hide reminder banner if phone + DOB now complete
 
-**Membership details section:**
-- Fetches from `mb-client-services` on profile load
-- Renders: active passes (with remaining clips), active contracts (with manage buttons), past passes
-- Tier badge: `'Månedligt Medlemskab'` if active contracts, `'Klippekort'` if active services, `'Intet aktivt pas'` otherwise
-
-**Membership management (Pause/Cancel):**
-- Pause and Cancel buttons shown only for active, non-suspended, non-terminating autopay contracts
-- Each opens a dedicated panel (hides other sections)
-- **Pause (suspend):** Date picker with constraints:
-  - Earliest start: after next billing date (or tomorrow as fallback)
-  - Minimum duration: 14 days
-  - Maximum duration: 3 months (93 days)
-  - Resume date shown dynamically as dates change
-- **Cancel (terminate):** Shows calculated dates:
-  - Last payment date = next billing date
-  - Use until date = next billing date + 1 month - 1 day
-  - Warning updated: "You can revoke the cancellation until then"
-- **Revoke (activate):** Shown on terminated contracts:
-  - Confirm dialog before proceeding
-  - POSTs `action: 'activate'` to `mb-contracts`
-  - On success: reloads membership, shows success toast (8s)
-  - On API failure: shows "contact us" message (graceful degradation)
-- All three POST to `/.netlify/functions/mb-contracts` with `action: 'suspend'|'terminate'|'activate'`
-- On success: reloads membership details, shows toast (8s for cancel farewell, 5s for others)
-
-**Termination date calculation:**
-```
-nextBillingDate = March 8, 2026
-lastPaymentDate = March 8 (the next billing)
-useUntilDate    = April 7 (March 8 + 1 month - 1 day)
-terminationDate = useUntilDate (sent to Mindbody API)
-```
-If `nextBillingDate` is in the past, use today as the base date.
+**Simplified to:**
+- Tier badge + Mindbody Client ID display only
+- Membership details moved to dedicated "My Passes" tab (see section 3.5)
 
 ### 2. Schedule Tab (Skema)
 
@@ -184,7 +155,17 @@ Promise.all([
 - Price: `recurringPaymentAmount || firstPaymentAmount || totalContractAmount`
 - `_recurringInfo` string: e.g. "799 kr / Monthly"
 - `autopaySchedule` handled as both string and object (extract `FrequencyType` if object)
+- `description` pulled from MB contract Description or OnlineDescription fields
+- `firstMonthFree` flag (true when `firstPaymentAmount === 0`)
+- `_terms` array built with: first-month-free notice, first payment if different from recurring, duration, number of autopays
 - All contracts categorized as `'memberships'`
+
+**Search bar:**
+- Real-time text filtering by item name and description
+- `storeSearchQuery` state variable persisted across re-renders
+- Clear button (×) shown when search active
+- Results count displayed below category tabs (e.g. "5 results")
+- Empty state shows "No results for {query}" when search finds nothing
 
 **Category system (`categorizeService()`):**
 | Category | Keywords | Notes |
@@ -200,6 +181,14 @@ Promise.all([
 
 - Categories with 0 items are hidden (except "All")
 - Each category tab shows item count badge (pill buttons with active styling)
+- Search and category filter work together (category first, then search within)
+
+**Enhanced item cards:**
+- **Badges row:** "First month free" (orange border) + "Membership" (muted) for contracts
+- **Description:** Truncated to 120 chars, shown below name in muted text
+- **Pricing section:** Price + recurring info inline
+- **Terms list:** Checkmark list showing key contract terms + T&C link (opens in new tab)
+- **Buy button:** Full-width primary CTA
 
 **Unlimited clips display:**
 - Mindbody uses 99999/999999 as "unlimited" placeholder
@@ -214,9 +203,11 @@ Promise.all([
   ```json
   { "clientId": "X", "contractId": 456, "locationId": 1, "startDate": "2026-02-08", "payment": {...} }
   ```
+- **Checkout item panel:** Shows contract terms summary (checkmark list) alongside name and price
 - Payment info shape: `{ cardNumber, expMonth, expYear, cvv, cardHolder, billingAddress, billingCity, billingPostalCode, saveCard }`
 - Card number input: auto-formats with spaces every 4 digits
 - Expiry input: auto-formats as MM/YY
+- Promo code support: `data-promo-code` attribute on checkout element, passed as `promoCode` in contract purchase body
 - SCA handling: if `requiresSCA` in response, shows "card requires additional authentication" message
 - No clientId? → tries to sync account first via `mb-sync`, then asks to retry
 
@@ -224,6 +215,59 @@ Promise.all([
 - Hides checkout, shows success panel
 - Resets form
 - Clears `clientPassData` cache and reloads membership details
+
+### 3.5. My Passes Tab (Mine Pas)
+
+**Data source:** `mb-client-services` (same as membership details)
+
+**Lazy loaded:** Fetches data on first tab click via `loadMembershipDetails()`
+
+**Sections displayed:**
+1. **Active passes** — service name, remaining clips (or "Unlimited"), expiration date, active badge
+2. **Active contracts** — contract name, autopay info, billing date, status badge, manage buttons
+3. **Past passes** — expired services listed below active ones
+
+**Contract status display:**
+- **Active:** Green badge, shows "Next billing {date}", Pause + Cancel buttons
+- **Paused/Suspended:** Amber badge
+- **Terminated (before date):** "Membership Terminated" red badge, "Last billing {date}", "Active until {date}", notice period note with T&C link, retention card
+- **Terminated (after date):** "Membership Terminated" red badge, "Become a member again" button
+
+**Membership management (Pause/Cancel):**
+- Pause and Cancel buttons shown only for active, non-suspended, non-terminating autopay contracts
+- Each opens a dedicated panel (hides other sections)
+- **Pause (suspend):** Date picker with constraints:
+  - Earliest start: after next billing date (or tomorrow as fallback)
+  - Minimum duration: 14 days
+  - Maximum duration: 3 months (93 days)
+  - Resume date shown dynamically as dates change
+- **Cancel (terminate):** Shows calculated dates:
+  - Last payment date = next billing date
+  - Use until date = next billing date + 1 month - 1 day
+  - Notice period note: "1 full month notification period per Terms & Conditions" (links to T&C page, opens in new tab)
+- All management POSTs to `/.netlify/functions/mb-contract-manage` with `action: 'suspend'|'terminate'`
+- On success: reloads membership details, shows toast (8s for cancel farewell, 5s for others)
+
+**Retention card (terminated contracts, before termination date):**
+- Heart icon, "We already miss you!" title
+- "Reactivate before {date} and save the registration fee"
+- Checkmark perks: "No new registration fee", "First month free"
+- "Reactivate — first month free" CTA button
+- CTA navigates to Store tab → Memberships category → auto-opens matching contract checkout
+- Contract matching: first by template ID (`contractId`), fallback by name match in `storeServices[]`
+
+**Rejoin CTA (terminated contracts, after termination date):**
+- Simple full-width "Become a member again" / "Bliv medlem igen" button
+- Navigates to Store tab → Memberships category
+
+**Termination date calculation:**
+```
+nextBillingDate = March 8, 2026
+lastPaymentDate = March 8 (the next billing)
+useUntilDate    = April 7 (March 8 + 1 month - 1 day)
+terminationDate = useUntilDate (sent to Mindbody API)
+```
+If `nextBillingDate` is in the past, use today as the base date.
 
 ### 4. Visit History Tab (Besøgshistorik)
 
@@ -280,8 +324,8 @@ Torvegade 66, 1400, København K
 - Generated as Blob → `URL.createObjectURL()` → triggers `<a>` download
 - Filename: `kvittering-{saleId}.txt`
 
-### Membership Management (within Profile Tab)
-Active autopay contracts show Pause and Cancel buttons directly in the membership section.
+### Membership Management (within My Passes Tab)
+Active autopay contracts show Pause and Cancel buttons directly in the My Passes tab.
 
 **Pause (Suspend) flow:**
 1. Click "Pause" → shows pause panel with date pickers
@@ -297,13 +341,18 @@ Active autopay contracts show Pause and Cancel buttons directly in the membershi
    - **Use until:** next billing + 1 month - 1 day (end of that billing cycle)
    - Example: next billing Mar 8 → last payment Mar 8 → use until Apr 7
 3. Confirm → POST to `mb-contract-manage` with `action: 'terminate'`
-4. Success → reload membership details, show toast
+4. Success → shows "Membership Terminated" badge, "Last billing" date, notice period note, and retention card
 
 **Status badges:**
-- Active: green badge
+- Active: green badge, "Next billing {date}"
 - Paused/Suspended: amber badge
-- Terminating: red badge
+- Membership Terminated: red badge, "Last billing {date}", "Active until {date}", notice period note with T&C link
 - Pause/Cancel buttons only shown for active, non-suspended, non-terminating autopay contracts
+
+**Post-termination UX:**
+- **Before termination date:** Retention card (heart icon, perks, "Reactivate — first month free" CTA)
+- **After termination date:** "Become a member again" button → Store memberships
+- Revoke cancellation is NOT possible via Mindbody API (`activatecontract` doesn't exist)
 
 **Date formatting:**
 - All dates use `formatDateDK()` for consistent Danish-style display
@@ -336,7 +385,7 @@ function isDa() { return window.location.pathname.indexOf('/en/') !== 0; }
 **Translation function `t(key)`:**
 - Returns DA or EN string based on `isDa()` result
 - **Hardcoded JS map** inside profile.js — does NOT read from `profile.json` at runtime
-- ~80+ translation keys covering all tabs, including membership management (pause/cancel/badges/toasts)
+- ~90+ translation keys covering all tabs, including membership management, retention card, store search, and notice period
 - When adding new features, you must add translation keys to BOTH:
   1. `src/_data/i18n/profile.json` (for template-level translations)
   2. The `t()` map in `src/js/profile.js` (for JS-generated UI)
@@ -377,7 +426,8 @@ bookClass(btn)                     — Pass validation + booking
 cancelClass(btn)                   — Cancel with late-cancel retry
 loadReceipts(periodDays?)          — Purchase history with period filter
 loadVisitHistory(periodDays?)      — Visit data + filters + status counts
-loadStore()                        — Services + contracts (parallel fetch) with category tabs
+loadStore()                        — Services + contracts (parallel fetch) with search + category tabs
+renderStoreItems(container)        — Build store HTML: search bar, categories, item grid, badges, terms
 categorizeService(s)               — Heuristic name→category mapping
 downloadReceipt(purchase)          — Generate + download text receipt
 
@@ -479,7 +529,7 @@ All profile-related CSS classes use these prefixes:
 - `yb-store__` — Store tab elements (also used for loading/empty states in other tabs)
 - `yb-visits__` — Visit history elements
 - `yb-receipts__` — Receipts elements
-- `yb-membership__` — Membership section in Profile tab
+- `yb-membership__` — Membership/passes section in My Passes tab (includes retention card, manage panels)
 - `yb-mb-spinner` — Loading spinner
 - `yb-btn` / `yb-btn--primary` / `yb-btn--outline` — Button styles
 - `is-active` — Active state for tabs, filters, categories
@@ -490,7 +540,7 @@ All profile-related CSS classes use these prefixes:
 ### Toast Notifications
 - Normal success/error: 3.5s timeout, plain text
 - Late cancel warning: 6s timeout, rich HTML with wellness note
-- Membership actions: 5s timeout, shown in membership section
+- Membership actions: 5s default, 8s for cancel farewell. `showMembershipToast(message, type, duration)` supports optional duration parameter
 
 ### Loading States
 - All tabs show spinner + localized text while fetching
@@ -554,6 +604,8 @@ When porting this system to a new brand (e.g., Hot Yoga CPH):
 5. **Update category heuristics:** Adjust `categorizeService()` keywords if services have different naming
 6. **Termination rules:** Adjust `calcTerminationDates()` — notice period, billing cycle logic may differ per brand's T&C
 7. **Pause rules:** Adjust min/max duration in `mb-contract-manage.js` (currently 14 days min, 93 days max)
-8. **Adapt CSS:** Keep class naming convention, update brand colors — all classes prefixed `yb-` for Yoga Bible
-9. **Template:** Create profile page template with required DOM IDs (see element IDs in init functions)
-10. **Share Mindbody functions:** All `mb-*.js` files are brand-agnostic — same Site ID (5748831), use LocationId to filter per studio if needed
+8. **Retention card messaging:** Update `membership_retention_*` translations for brand-specific perks and reactivation offer
+9. **Notice period text:** Update `membership_notice_period` translation — different brands may have different T&C URLs and notice periods
+10. **Adapt CSS:** Keep class naming convention, update brand colors — all classes prefixed `yb-` for Yoga Bible
+11. **Template:** Create profile page template with required DOM IDs (see element IDs in init functions). Must include 7 tab panels: profile, schedule, store, passes, visits, receipts, courses
+12. **Share Mindbody functions:** All `mb-*.js` files are brand-agnostic — same Site ID (5748831), use LocationId to filter per studio if needed

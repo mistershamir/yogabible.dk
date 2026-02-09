@@ -1,7 +1,7 @@
 # Mindbody API v6 — Integration Reference & Debug Trail
 
 > This is the living reference document. Update it every time you debug a new issue.
-> Copy this to every new brand project. **Last updated: 2026-02-08.**
+> Copy this to every new brand project. **Last updated: 2026-02-09.**
 
 ## Credentials & Auth
 
@@ -69,15 +69,15 @@
 | `/sale/purchasecontract` | POST | Body: `ClientId`, `ContractId`, `LocationId`, `StartDate`, `CreditCardInfo`, `PromotionCode` | `ClientContractId` | Buy membership |
 | `/sale/returnsale` | POST | Body: `Id`, `Test` | `Sale` | Refund. Admin-level — needs auth guard |
 
-### Contract Management Endpoints (AMBIGUOUS PATH)
+### Contract Management Endpoints (RESOLVED — use `/sale/`)
 
-These endpoints exist in Mindbody v6 but the exact category path is unclear from docs.
-Our code tries paths in order: `/contract/`, `/sale/`, `/client/`.
+After extensive debugging, the **correct** category is `/sale/`. Our code tries paths in order: `/sale/`, `/contract/`, `/client/`.
 
 | Endpoint | Method | Body | Notes |
 |----------|--------|------|-------|
-| `/{category}/terminatecontract` | POST | `ClientId`, `ClientContractId`, `TerminationDate`, `SendNotifications`, `TerminationCode?` | If code-related error, retry without `TerminationCode` |
-| `/{category}/suspendcontract` | POST | `ClientId`, `ClientContractId`, `SuspendDate`, `ResumeDate`, `SendNotifications` | Duration: 14-93 days |
+| `/sale/terminatecontract` | POST | `ClientId`, `ClientContractId`, `TerminationDate`, `SendNotifications` | **CONFIRMED WORKING.** `/contract/` returns permission error. `/client/` returns HTML 404 |
+| `/sale/suspendcontract` | POST | `ClientId`, `ClientContractId`, `SuspendDate`, `ResumeDate`, `SendNotifications` | Duration: 14-93 days |
+| `/sale/activatecontract` | POST | `ClientId`, `ClientContractId` | **DOES NOT EXIST** — all 3 paths return HTML 404. Revoke cancellation is not possible via API |
 
 ### Site & Staff Endpoints
 
@@ -95,7 +95,7 @@ Our code tries paths in order: `/contract/`, `/sale/`, `/client/`.
 | `/staff/staff` | GET | `StaffIds`, `Limit` | `StaffMembers[]` | Teacher details + bio + photo |
 | `/usertoken/issue` | POST | Body: `Username`, `Password` | `AccessToken` | Auth token. Cache 6 hours |
 
-**Note on Contract Management:** The preferred endpoint category is `/contract/` (i.e., `/contract/terminatecontract` and `/contract/suspendcontract`), NOT `/sale/` or `/client/`. The MB v6 docs are ambiguous on this. If `/contract/` fails, the function retries without TerminationCode (some sites don't have codes configured). See the "Contract Management Endpoints (AMBIGUOUS PATH)" section above for full details.
+**Note on Contract Management:** The preferred endpoint category is **`/sale/`** (i.e., `/sale/terminatecontract` and `/sale/suspendcontract`). Despite the docs being ambiguous, `/contract/` has a **different permission model** and returns "User does not have permission" even when the same staff token works on `/sale/`. `/client/` doesn't exist for these endpoints (returns HTML 404). Code tries all 3 paths with fallback but `/sale/` should always be first. `activatecontract` (revoke termination) **does not exist** in the API — all paths return 404.
 
 ## Checkout Payment Format (WORKING)
 
@@ -230,22 +230,28 @@ If `nextBillingDate` is in the past (edge case), use today as base.
 
 After extensive debugging, the correct paths are under the **Sale** category:
 
-| Action | Correct Path | Body Fields |
-|--------|-------------|-------------|
-| Terminate | `POST /sale/terminatecontract` | `ClientId`, `ClientContractId`, `TerminationDate`, `SendNotifications` |
-| Suspend | `POST /sale/suspendcontract` | `ClientId`, `ClientContractId`, `SuspendDate`, `ResumeDate`, `SendNotifications` |
-| Activate (revoke) | `POST /sale/activatecontract` | `ClientId`, `ClientContractId` |
+| Action | Correct Path | Body Fields | Status |
+|--------|-------------|-------------|--------|
+| Terminate | `POST /sale/terminatecontract` | `ClientId`, `ClientContractId`, `TerminationDate`, `SendNotifications` | **WORKING** |
+| Suspend | `POST /sale/suspendcontract` | `ClientId`, `ClientContractId`, `SuspendDate`, `ResumeDate`, `SendNotifications` | **WORKING** |
+| Activate (revoke) | N/A | N/A | **DOES NOT EXIST** |
 
 **Key findings:**
 - `/contract/terminatecontract` exists but has **different permission model** — returns "User does not have permission" even when the same staff user succeeds via `/sale/`
 - `/client/terminatecontract` does NOT exist — returns HTML 404
-- The code tries all 3 paths (`/sale/`, `/contract/`, `/client/`) with fallback, but `/sale/` should be first
-- `activatecontract` (revoke termination) — endpoint path is undocumented. Same multi-path trial strategy used.
-- Staff token must be **fresh** for contract management — code clears token cache before these operations
+- The code tries all 3 paths (`/sale/`, `/contract/`, `/client/`) with fallback, but `/sale/` **must be first**
+- **Permission errors now trigger fallback** — if a path returns a permission error, the code continues to the next path
+- `activatecontract` (revoke termination) — **does not exist in the API**. All 3 paths (`/sale/`, `/contract/`, `/client/`) return HTML 404. Frontend replaced revoke button with retention card + new contract purchase flow
+- Staff token must be **fresh** for contract management — `clearTokenCache()` clears in-memory token before these operations
+- Diagnostic trail: all management responses include `_pathResults` array showing which paths were tried and each response
 
-## Revoke Cancellation (Activate Contract)
+## Revoke Cancellation — NOT POSSIBLE VIA API
 
-Users can revoke a pending termination before the termination date. Frontend shows a "Revoke cancellation" button on terminated contracts. The backend tries `/sale/activatecontract` first. If the API path doesn't exist, falls back gracefully with a "contact studio" message.
+`activatecontract` does **not exist** in Mindbody API v6. All 3 path attempts (`/sale/`, `/contract/`, `/client/`) return HTML 404. This means:
+- **There is no API endpoint to revoke a pending contract termination**
+- The backend returns `{ error: 'not_available' }` when the activate action is attempted
+- **Frontend solution:** Instead of a revoke button, terminated contracts show a **retention card** with reactivation incentives. The CTA navigates to the Store tab to purchase a new contract (first month free is automatic on all contracts).
+- After the termination date passes, the retention card is replaced with a simple "Become a member again" button linking to Store → Memberships.
 
 ## Error Debugging Trail
 
@@ -271,7 +277,7 @@ Users can revoke a pending termination before the termination date. Frontend sho
 | 18 | Single error toast for late cancel | Rich HTML toast with wellness note | 6s timeout, explain fee purpose |
 | 19 | PUT method to Netlify Functions | POST with action field | PUT returns HTML 404 on Netlify |
 | 20 | `res.json()` on MB API response | Parse as text first, try JSON | HTML 404 pages crash JSON parse. `shared/mb-api.js` reads text→JSON to catch HTML responses gracefully |
-| 21 | `/contract/terminatecontract` | Try `/contract/`, `/sale/`, `/client/` | Endpoint category is ambiguous in docs. Preferred path is `/contract/` |
+| 21 | `/contract/terminatecontract` first | Try `/sale/`, `/contract/`, `/client/` — `/sale/` must be first | `/contract/` has different permission model → returns "User does not have permission". `/sale/` works with same staff token |
 | 22 | `/sale/contracts?sellOnline=true` | No filter, fetch all | MB contracts endpoint may not support sellOnline |
 | 23 | `/sale/contracts` without LocationId | Retry with `LocationId=1` on 400 | Single-location sites may require it |
 | 24 | `autopaySchedule` as string | Could be object `{FrequencyType: "Monthly"}` — extract `FrequencyType` | Was showing `[object Object]` in UI |
@@ -288,3 +294,9 @@ Users can revoke a pending termination before the termination date. Frontend sho
 | 35 | `/sale/purchasecontract` without LocationId | Must include `LocationId` | Returns "LocationID provided is not valid" |
 | 36 | `isDa` in serverless function | Variable doesn't exist server-side | Only use language detection in frontend JS, not in Netlify functions |
 | 37 | Terminate with TerminationCode always | Some sites don't have codes configured | Retry without TerminationCode if first attempt fails |
+| 38 | Permission error stops path fallback | Permission errors should try next path | "User does not have permission" from `/contract/` shouldn't stop trying `/sale/` |
+| 39 | Stale staff token for management ops | Call `clearTokenCache()` before terminate/suspend | 6-hour cached token may have stale permissions after admin changes |
+| 40 | `activatecontract` exists in MB API | It does NOT exist — all paths return HTML 404 | No API to revoke pending contract termination. Use retention card + new purchase flow |
+| 41 | Frontend calls `mb-contract-manage` | Should call `mb-contracts` with action field | Old code referenced wrong function endpoint — caused 401 errors on deployed site |
+| 42 | `c.contractId` in client-services = template ID | `c.Id` is instance, `c.ContractId` is template | Must return both: `id` (instance for manage) + `contractId` (template for store matching) |
+| 43 | `FirstPaymentAmountSubtotal` of 0 | Means first month is free | Check `firstMonthFree: firstPaymentRaw === 0` — useful for retention card messaging |

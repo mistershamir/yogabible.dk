@@ -2,7 +2,7 @@
 
 > Reusable reference for building member areas on Yoga Bible DK, Hot Yoga CPH, and future brand sites.
 > All brands share the same Mindbody Site ID and Firebase project (yoga-bible-dk-com).
-> **Last updated: 2026-02-08** — reflects all debugging from the full build session.
+> **Last updated: 2026-02-09** — reflects store redesign, retention card, My Passes tab, and all debugging.
 
 ## What This System Does
 
@@ -10,8 +10,8 @@ A complete self-service member area powered by Firebase Auth + Mindbody API v6:
 
 - **Profile & Auth** — Firebase login, Firestore profiles, Mindbody client sync, avatar upload
 - **Class Schedule** — Weekly view, book/cancel, waitlist, teacher bios, pass validation
-- **Online Store** — Sell services AND contracts (recurring memberships) from Mindbody, categorized with heuristic tabs
-- **Membership Management** — Pause (suspend) and cancel (terminate) autopay contracts directly from profile
+- **Online Store** — Sell services AND contracts (recurring memberships) from Mindbody, with search bar, category tabs, descriptions, contract terms, and T&C links
+- **My Passes** — Active passes, contract management (pause/suspend/cancel/terminate), retention card with reactivation CTA
 - **Visit History** — Filterable past + upcoming visits with status badges
 - **Receipts** — Purchase history with downloadable text receipts
 - **Courses** — Custom course system via Firestore (separate from Mindbody)
@@ -35,10 +35,11 @@ Browser (Client-Side)
 ├── firebase-auth.js ── Firebase Auth (login/register/reset)
 │                        └── Auto-creates Mindbody client on signup
 │                        └── Syncs membershipTier to Firestore
-├── profile.js ───────── 6-tab member dashboard
-│   ├── Profile tab ──── Firestore profile + MB client sync
+├── profile.js ───────── 7-tab member dashboard
+│   ├── Profile tab ──── Firestore profile + MB client sync + tier badge
 │   ├── Schedule tab ─── Classes + booking + pass validation
-│   ├── Store tab ────── Services + contracts (parallel fetch)
+│   ├── Store tab ────── Services + contracts with search, descriptions, terms
+│   ├── My Passes tab ── Active passes + contract management + retention card
 │   ├── Visits tab ───── Visit history with status filters
 │   ├── Receipts tab ─── Purchase history with download
 │   └── Courses tab ──── Firestore-only (not connected to MB)
@@ -75,6 +76,9 @@ External Services
 - **Backend validation** — Staff tokens also bypass payment/pass validation, so we must always validate pass-to-program match server-side before booking.
 - **Text-first JSON parsing** — `shared/mb-api.js` reads responses as text first, then parses JSON. This prevents cryptic `Unexpected token '<'` errors when Mindbody returns HTML error pages.
 - **Dedicated manage function** — Contract management (pause/cancel) uses a separate `mb-contract-manage.js` function to avoid routing ambiguity with the purchase endpoint.
+- **Fresh token for management** — `clearTokenCache()` forces a fresh staff token before terminate/suspend/activate operations to avoid stale permission errors.
+- **Retention over revoke** — Mindbody's `activatecontract` endpoint doesn't exist (HTML 404 on all paths). Instead, terminated contracts show a retention card with "first month free" reactivation CTA that navigates to the Store for a new contract purchase.
+- **My Passes tab** — Membership details moved from Profile tab to dedicated "My Passes" tab for cleaner UX.
 
 ## Environment Variables (Netlify)
 
@@ -131,11 +135,14 @@ MB_STAFF_PASSWORD=<staff-password-for-token>
 5. Handle SCA (3D Secure) redirect if needed
 
 ### Membership Management (Pause/Cancel)
-1. Profile tab shows active contracts with Pause/Cancel buttons
+1. My Passes tab shows active contracts with Pause/Cancel buttons
 2. **Pause**: Date picker (14-93 days), starts after next billing cycle
 3. **Cancel**: Calculates termination date (next billing + 1 month - 1 day)
 4. POST to `mb-contracts` with `action: 'suspend'` or `action: 'terminate'`
-5. Server tries multiple Mindbody endpoint paths with fallback
+5. Server tries endpoint paths in order: `/sale/` first, then `/contract/`, `/client/`
+6. Shows "Membership Terminated" badge, "Last billing" date, notice period note with T&C link
+7. **Before termination date**: Retention card with perks + "Reactivate — first month free" CTA
+8. **After termination date**: Simple "Become a member again" CTA linking to Store memberships
 
 ## See Also
 

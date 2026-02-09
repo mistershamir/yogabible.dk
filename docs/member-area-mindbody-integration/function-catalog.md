@@ -1,7 +1,7 @@
 # Netlify Functions — Mindbody Integration Catalog
 
 > All functions live in `netlify/functions/` and share `netlify/functions/shared/mb-api.js`
-> **Last updated: 2026-02-08** — reflects final working state after all debugging.
+> **Last updated: 2026-02-09** — reflects store redesign, description fields, firstMonthFree flag, clearTokenCache.
 
 ## Shared Module
 
@@ -10,6 +10,7 @@
 - **`jsonResponse(status, body)`** — CORS-enabled JSON response helper
 - **`corsHeaders`** — Standard CORS headers (`GET, POST, PUT, DELETE, OPTIONS`)
 - **`getStaffToken()`** — Token acquisition + 6-hour in-memory caching
+- **`clearTokenCache()`** — Resets `cachedToken` and `tokenExpiry` to force fresh token on next call. Called before contract management operations (terminate/suspend/activate) to avoid stale permission errors.
 - **`getBaseHeaders()`** — API key + SiteId headers
 - **`MB_BASE`** — `https://api.mindbodyonline.com/public/v6`
 
@@ -76,8 +77,9 @@
 - **Service "current" logic:** `Current` flag OR (activeDate ≤ now AND expirationDate ≥ now)
 - **Contract billing:** Extracts `nextBillingDate` from `UpcomingAutopayEvents` (sorted, first future event)
 - **Returns:** `{ services[], contracts[], activeServices[], activeContracts[], hasActivePass }`
-- **Enriched contract fields:** `isAutopay`, `autopayStatus`, `nextBillingDate`, `autopayAmount`, `isSuspended`, `terminationDate`, `agreementDate`
+- **Enriched contract fields:** `id` (instance), `contractId` (template ID for store matching), `locationId`, `isAutopay`, `autopayStatus`, `nextBillingDate`, `autopayAmount`, `isSuspended`, `terminationDate`, `agreementDate`
 - **Calculates** `nextBillingDate` from `UpcomingAutopayEvents` array
+- **Note:** `contractId` (template ID) is different from `id` (instance ID). The template ID matches store items for reactivation CTA. Instance ID is used for terminate/suspend operations
 
 ### mb-visits.js
 - **Method:** GET
@@ -104,6 +106,8 @@
   - `GET /sale/services?Limit=200` with repeated `ServiceIds=X&ServiceIds=Y`
   - `GET /sale/products?Limit=200`
   - `GET /sale/servicecategories`
+- **Returns per service:** `id`, `name`, `price`, `onlinePrice`, `count`, `description`, `programId`, `programName`
+- **Returns per product:** `id`, `name`, `price`, `onlinePrice`, `description` (ShortDescription || LongDescription), `categoryId`, `subCategoryId`
 - **Note:** Multiple ServiceIds use repeated params, NOT comma-separated
 
 ### mb-checkout.js
@@ -132,7 +136,7 @@
 - **Token:** Forces fresh token (clears cache) for all management actions
 - **Diagnostics:** Returns `_pathResults` array showing which paths were tried and what each returned
 - **Returns:** GET: `{ contracts[], total }` | POST: `{ success, endpointUsed?, _pathResults, ... }`
-- **Each contract:** `id`, `name`, `description`, `price`, `recurringPaymentAmount`, `autopaySchedule` (object with `FrequencyType`), `locationId`, `durationMonths`, `autopay`, `onlineDescription`
+- **Each contract:** `id`, `name`, `description`, `onlineDescription`, `firstPaymentAmount`, `firstMonthFree` (boolean, true when first payment is 0), `recurringPaymentAmount`, `totalContractAmount`, `autopaySchedule` (extracted FrequencyType string), `numberOfAutopays`, `duration`, `durationUnit`, `locationId`, `soldOnline`, `assignsMembershipId`, `assignsMembershipName`, `contractItems[]`, `programIds[]`, `membershipTypeRestrictions[]`
 - **POST Note:** `LocationId` is REQUIRED for purchase — defaults to 1 if not provided
 
 ### mb-contract-manage.js
