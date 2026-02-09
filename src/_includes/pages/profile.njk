@@ -32,6 +32,7 @@
         <button class="yb-profile__tab" type="button" data-yb-tab="schedule">{{ t.tab_schedule }}</button>
         <button class="yb-profile__tab" type="button" data-yb-tab="store">{{ t.tab_store }}</button>
         <button class="yb-profile__tab" type="button" data-yb-tab="visits">{{ t.tab_visits }}</button>
+        <button class="yb-profile__tab" type="button" data-yb-tab="passes">{{ t.tab_passes }}</button>
         <button class="yb-profile__tab" type="button" data-yb-tab="receipts">{{ t.tab_receipts }}</button>
         <button class="yb-profile__tab" type="button" data-yb-tab="courses">{{ t.tab_courses }}</button>
       </div>
@@ -88,6 +89,26 @@
                     <input type="date" id="yb-profile-dob">
                   </div>
                 </div>
+                <div class="yb-profile__form-row">
+                  <div class="yb-auth-field">
+                    <label for="yb-profile-yoga-level">{{ t.label_yoga_level }}</label>
+                    <select id="yb-profile-yoga-level" class="yb-auth-field__select">
+                      <option value="">{{ t.yoga_level_placeholder }}</option>
+                      <option value="beginner">{{ t.yoga_level_beginner }}</option>
+                      <option value="intermediate">{{ t.yoga_level_intermediate }}</option>
+                      <option value="advanced">{{ t.yoga_level_advanced }}</option>
+                    </select>
+                  </div>
+                  <div class="yb-auth-field">
+                    <label for="yb-profile-practice-freq">{{ t.label_practice_freq }}</label>
+                    <select id="yb-profile-practice-freq" class="yb-auth-field__select">
+                      <option value="">{{ t.practice_freq_placeholder }}</option>
+                      <option value="occasional">{{ t.practice_freq_occasional }}</option>
+                      <option value="regular">{{ t.practice_freq_regular }}</option>
+                      <option value="dedicated">{{ t.practice_freq_dedicated }}</option>
+                    </select>
+                  </div>
+                </div>
                 <!-- Soft reminder for missing phone/DOB -->
                 <div class="yb-profile__reminder" id="yb-profile-reminder" hidden>
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#f75c03" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
@@ -119,7 +140,7 @@
               </form>
             </div>
 
-            <!-- Membership -->
+            <!-- Membership summary (details in My Passes tab) -->
             <div class="yb-profile__card">
               <h2 class="yb-profile__card-title">{{ t.section_membership }}</h2>
               <div class="yb-profile__info-grid">
@@ -127,14 +148,10 @@
                   <span class="yb-profile__info-label">{{ t.label_tier }}</span>
                   <span class="yb-profile__info-value" id="yb-profile-tier">&mdash;</span>
                 </div>
-              </div>
-              <!-- Active passes loaded via JS -->
-              <div id="yb-membership-details" class="yb-membership">
-                <div class="yb-store__loading yb-membership__loading" id="yb-membership-loading" hidden>
-                  <div class="yb-mb-spinner"></div>
-                  <span>{{ t.membership_loading }}</span>
+                <div class="yb-profile__info-item" id="yb-profile-client-id-wrap" hidden>
+                  <span class="yb-profile__info-label">{{ t.label_client_id }}</span>
+                  <span class="yb-profile__info-value yb-profile__info-value--muted" id="yb-profile-client-id">&mdash;</span>
                 </div>
-                <div id="yb-membership-content"></div>
               </div>
             </div>
 
@@ -146,21 +163,8 @@
       <div class="yb-profile__tab-panel" data-yb-panel="schedule">
         <div class="yb-schedule">
           <div class="yb-schedule__header">
-            <div>
-              <h2 class="yb-schedule__title">{{ t.schedule_title }}</h2>
-              <p class="yb-schedule__subtitle">{{ t.schedule_subtitle }}</p>
-            </div>
-            <div class="yb-schedule__nav">
-              <button class="yb-btn yb-btn--outline yb-schedule__nav-btn" type="button" id="yb-schedule-prev">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
-                <span class="yb-schedule__nav-label">{{ t.schedule_prev_week }}</span>
-              </button>
-              <span class="yb-schedule__week-label" id="yb-schedule-week-label"></span>
-              <button class="yb-btn yb-btn--outline yb-schedule__nav-btn" type="button" id="yb-schedule-next">
-                <span class="yb-schedule__nav-label">{{ t.schedule_next_week }}</span>
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
-              </button>
-            </div>
+            <h2 class="yb-schedule__title">{{ t.schedule_title }}</h2>
+            <p class="yb-schedule__subtitle">{{ t.schedule_subtitle }}</p>
           </div>
 
           <!-- Pass info or no-pass prompt (toggled by JS) -->
@@ -168,6 +172,18 @@
           <div id="yb-schedule-no-pass" class="yb-schedule__no-pass" hidden>
             <p>{{ t.schedule_no_pass }}</p>
             <button class="yb-btn yb-btn--primary" type="button" id="yb-schedule-buy-pass">{{ t.schedule_buy_pass }}</button>
+          </div>
+
+          <div class="yb-schedule__nav">
+            <button class="yb-schedule__nav-btn" type="button" id="yb-schedule-prev">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+              <span class="yb-schedule__nav-label">{{ t.schedule_prev_week }}</span>
+            </button>
+            <span class="yb-schedule__week-label" id="yb-schedule-week-label"></span>
+            <button class="yb-schedule__nav-btn" type="button" id="yb-schedule-next">
+              <span class="yb-schedule__nav-label">{{ t.schedule_next_week }}</span>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+            </button>
           </div>
 
           <!-- Schedule list (loaded via JS) -->
@@ -280,11 +296,20 @@
             <h2 class="yb-visits__title">{{ t.visits_title }}</h2>
             <p class="yb-visits__subtitle">{{ t.visits_subtitle }}</p>
           </div>
-          <div class="yb-visits__filters">
-            <button class="yb-visits__filter is-active" type="button" data-visit-filter="all">{{ t.visits_filter_all }}</button>
-            <button class="yb-visits__filter" type="button" data-visit-filter="upcoming">{{ t.visits_filter_upcoming }}</button>
-            <button class="yb-visits__filter" type="button" data-visit-filter="attended">{{ t.visits_filter_attended }}</button>
-            <button class="yb-visits__filter" type="button" data-visit-filter="noshow">{{ t.visits_filter_noshow }}</button>
+          <div class="yb-visits__controls">
+            <div class="yb-visits__filters">
+              <button class="yb-visits__filter is-active" type="button" data-visit-filter="all">{{ t.visits_filter_all }}</button>
+              <button class="yb-visits__filter" type="button" data-visit-filter="upcoming">{{ t.visits_filter_upcoming }}</button>
+              <button class="yb-visits__filter" type="button" data-visit-filter="attended">{{ t.visits_filter_attended }}</button>
+              <button class="yb-visits__filter" type="button" data-visit-filter="lateCancelled">{% if lang == 'en' %}Late Cancel{% else %}Sen afmelding{% endif %}</button>
+              <button class="yb-visits__filter" type="button" data-visit-filter="noshow">{{ t.visits_filter_noshow }}</button>
+            </div>
+            <select class="yb-visits__period" id="yb-visits-period">
+              <option value="30">{% if lang == 'en' %}Last 30 days{% else %}Sidste 30 dage{% endif %}</option>
+              <option value="90" selected>{% if lang == 'en' %}Last 90 days{% else %}Sidste 90 dage{% endif %}</option>
+              <option value="180">{% if lang == 'en' %}Last 6 months{% else %}Sidste 6 måneder{% endif %}</option>
+              <option value="365">{% if lang == 'en' %}Last year{% else %}Sidste år{% endif %}</option>
+            </select>
           </div>
           <div id="yb-visits-list" class="yb-visits__list">
             <div class="yb-store__loading">
@@ -295,12 +320,36 @@
         </div>
       </div>
 
+      {# ═══════ TAB: My Passes ═══════ #}
+      <div class="yb-profile__tab-panel" data-yb-panel="passes">
+        <div class="yb-membership-tab">
+          <div class="yb-membership-tab__header">
+            <h2 class="yb-membership-tab__title">{{ t.tab_passes }}</h2>
+          </div>
+          <div id="yb-membership-details" class="yb-membership">
+            <div class="yb-store__loading yb-membership__loading" id="yb-membership-loading" hidden>
+              <div class="yb-mb-spinner"></div>
+              <span>{{ t.membership_loading }}</span>
+            </div>
+            <div id="yb-membership-content"></div>
+          </div>
+        </div>
+      </div>
+
       {# ═══════ TAB: Receipts ═══════ #}
       <div class="yb-profile__tab-panel" data-yb-panel="receipts">
         <div class="yb-receipts">
           <div class="yb-receipts__header">
-            <h2 class="yb-receipts__title">{{ t.receipts_title }}</h2>
-            <p class="yb-receipts__subtitle">{{ t.receipts_subtitle }}</p>
+            <div>
+              <h2 class="yb-receipts__title">{{ t.receipts_title }}</h2>
+              <p class="yb-receipts__subtitle">{{ t.receipts_subtitle }}</p>
+            </div>
+            <select class="yb-receipts__period" id="yb-receipts-period">
+              <option value="90">{% if lang == 'en' %}Last 90 days{% else %}Sidste 90 dage{% endif %}</option>
+              <option value="180">{% if lang == 'en' %}Last 6 months{% else %}Sidste 6 måneder{% endif %}</option>
+              <option value="365" selected>{% if lang == 'en' %}Last year{% else %}Sidste år{% endif %}</option>
+              <option value="730">{% if lang == 'en' %}Last 2 years{% else %}Sidste 2 år{% endif %}</option>
+            </select>
           </div>
           <div id="yb-receipts-list" class="yb-receipts__list">
             <div class="yb-store__loading">

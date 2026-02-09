@@ -1,0 +1,560 @@
+{% set t = i18n.concepts[lang or "da"] %}
+{% set lp = "/en" if lang == "en" else "" %}
+
+{# ═══════════════════════════════════════════
+   HERO — Dark Cinematic
+   ═══════════════════════════════════════════ #}
+<section class="yb-k-hero">
+  <div class="yb-k-hero__bg">
+    <img src="/assets/images/concepts/hero-bg.jpg" alt="" loading="eager" />
+    <div class="yb-k-hero__overlay"></div>
+  </div>
+  <div class="container">
+    <div class="yb-k-hero__badge">{{ t.hero_badge }}</div>
+    <h1 class="yb-k-hero__title">{{ t.hero_title }}</h1>
+    <p class="yb-k-hero__subtitle">{{ t.hero_subtitle }}</p>
+    <div class="yb-k-hero__stats">
+      <div class="yb-k-hero__stat">
+        <span class="yb-k-hero__stat-num">{{ t.stat1_num }}</span>
+        <span class="yb-k-hero__stat-label">{{ t.stat1_label }}</span>
+      </div>
+      <div class="yb-k-hero__stat">
+        <span class="yb-k-hero__stat-num">{{ t.stat2_num }}</span>
+        <span class="yb-k-hero__stat-label">{{ t.stat2_label }}</span>
+      </div>
+      <div class="yb-k-hero__stat">
+        <span class="yb-k-hero__stat-num">{{ t.stat3_num }}</span>
+        <span class="yb-k-hero__stat-label">{{ t.stat3_label }}</span>
+      </div>
+      <div class="yb-k-hero__stat">
+        <span class="yb-k-hero__stat-num">{{ t.stat4_num }}</span>
+        <span class="yb-k-hero__stat-label">{{ t.stat4_label }}</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+{# ═══════════════════════════════════════════
+   INTRO
+   ═══════════════════════════════════════════ #}
+<section class="yb-k-intro">
+  <div class="container">
+    <p class="yb-k-intro__text">{{ t.intro_text }}</p>
+    <p class="yb-k-intro__text yb-k-intro__text--secondary">{{ t.intro_text2 }}</p>
+  </div>
+</section>
+
+{# ═══════════════════════════════════════════════════════
+   BRAND 1: HOT YOGA COPENHAGEN
+   Orange primary + #3f99a5 teal accent
+   ═══════════════════════════════════════════════════════ #}
+
+{# ── Hot Yoga: Brand Hero ── #}
+<section class="yb-k-brand-hero yb-k-brand-hero--hy" id="hotyoga">
+  <div class="container">
+    <div class="yb-k-brand-hero__inner">
+      <div class="yb-k-brand-hero__content">
+        <div class="yb-k-brand-hero__badge yb-k-brand-hero__badge--hy">{{ t.hy_badge }}</div>
+        <h2 class="yb-k-brand-hero__title">{{ t.hy_title }}</h2>
+        <p class="yb-k-brand-hero__subtitle">{{ t.hy_subtitle }}</p>
+        <p class="yb-k-brand-hero__text">{{ t.hy_intro }}</p>
+        <p class="yb-k-brand-hero__text">{{ t.hy_intro2 }}</p>
+      </div>
+      <div class="yb-k-brand-hero__image">
+        <img src="/assets/images/concepts/hotyoga-hero.jpg" alt="Hot Yoga Copenhagen" width="800" height="600" loading="lazy" />
+      </div>
+    </div>
+    <div class="yb-k-stats yb-k-stats--hy">
+      <div class="yb-k-stats__item">
+        <span class="yb-k-stats__num">{{ t.hy_stat1_num }}</span>
+        <span class="yb-k-stats__label">{{ t.hy_stat1_label }}</span>
+      </div>
+      <div class="yb-k-stats__item">
+        <span class="yb-k-stats__num">{{ t.hy_stat2_num }}</span>
+        <span class="yb-k-stats__label">{{ t.hy_stat2_label }}</span>
+      </div>
+      <div class="yb-k-stats__item">
+        <span class="yb-k-stats__num">{{ t.hy_stat3_num }}</span>
+        <span class="yb-k-stats__label">{{ t.hy_stat3_label }}</span>
+      </div>
+      <div class="yb-k-stats__item">
+        <span class="yb-k-stats__num">{{ t.hy_stat4_num }}</span>
+        <span class="yb-k-stats__label">{{ t.hy_stat4_label }}</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+{# ── Hot Yoga: Infrared Technology ── #}
+<section class="yb-k-split yb-k-split--hy">
+  <div class="container">
+    <div class="yb-k-split__inner yb-k-split__inner--reverse">
+      <div class="yb-k-split__media">
+        <img src="/assets/images/concepts/hotyoga-infrared.jpg" alt="Infrared Technology" width="700" height="500" loading="lazy" />
+      </div>
+      <div class="yb-k-split__content">
+        <h3 class="yb-k-split__title yb-k-split__title--hy">{{ t.hy_ir_title }}</h3>
+        <p class="yb-k-split__text">{{ t.hy_ir_desc }}</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+{# ── Hot Yoga: Pioneering Rituals ── #}
+<section class="yb-k-ritual">
+  <div class="container">
+    <h3 class="section-title">{{ t.hy_ritual_title }}</h3>
+    <p class="section-subtitle">{{ t.hy_ritual_subtitle }}</p>
+    <div class="yb-k-ritual__grid">
+      <div class="yb-k-ritual__card">
+        <div class="yb-k-ritual__img">
+          <img src="/assets/images/concepts/hotyoga-frozen-towel.jpg" alt="Frozen Towel Shavasana" width="600" height="340" loading="lazy" />
+        </div>
+        <div class="yb-k-ritual__body">
+          <h4>{{ t.hy_rit1_title }}</h4>
+          <p>{{ t.hy_rit1_desc }}</p>
+        </div>
+      </div>
+      <div class="yb-k-ritual__card">
+        <div class="yb-k-ritual__img">
+          <img src="/assets/images/concepts/hotyoga-sonic-shavasana.jpg" alt="Sonic Shavasana" width="600" height="340" loading="lazy" />
+        </div>
+        <div class="yb-k-ritual__body">
+          <h4>{{ t.hy_rit2_title }}</h4>
+          <p>{{ t.hy_rit2_desc }}</p>
+        </div>
+      </div>
+      <div class="yb-k-ritual__card">
+        <div class="yb-k-ritual__img">
+          <img src="/assets/images/concepts/hotyoga-ginger-shots.jpg" alt="Ginger Shots &amp; Recovery" width="600" height="340" loading="lazy" />
+        </div>
+        <div class="yb-k-ritual__body">
+          <h4>{{ t.hy_rit3_title }}</h4>
+          <p>{{ t.hy_rit3_desc }}</p>
+        </div>
+      </div>
+      <div class="yb-k-ritual__card">
+        <div class="yb-k-ritual__img">
+          <img src="/assets/images/concepts/hotyoga-herbal-tea.jpg" alt="Signature Herbal Tea" width="600" height="340" loading="lazy" />
+        </div>
+        <div class="yb-k-ritual__body">
+          <h4>{{ t.hy_rit4_title }}</h4>
+          <p>{{ t.hy_rit4_desc }}</p>
+        </div>
+      </div>
+      <div class="yb-k-ritual__card">
+        <div class="yb-k-ritual__img">
+          <img src="/assets/images/concepts/hotyoga-premium.jpg" alt="Premium Memberships" width="600" height="340" loading="lazy" />
+        </div>
+        <div class="yb-k-ritual__body">
+          <h4>{{ t.hy_rit5_title }}</h4>
+          <p>{{ t.hy_rit5_desc }}</p>
+        </div>
+      </div>
+      <div class="yb-k-ritual__card">
+        <div class="yb-k-ritual__img">
+          <img src="/assets/images/concepts/hotyoga-music.jpg" alt="Curated Soundscapes" width="600" height="340" loading="lazy" />
+        </div>
+        <div class="yb-k-ritual__body">
+          <h4>{{ t.hy_rit6_title }}</h4>
+          <p>{{ t.hy_rit6_desc }}</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+{# ── Hot Yoga: Features Grid ── #}
+<section class="yb-k-features">
+  <div class="container">
+    <h3 class="section-title">{{ t.hy_feat_title }}</h3>
+    <div class="yb-k-features__grid">
+      <div class="yb-k-features__card yb-k-features__card--hy">
+        <div class="yb-k-features__icon">
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="3"/><path d="M3 9h18M9 3v18"/></svg>
+        </div>
+        <h4>{{ t.hy_feat1_title }}</h4>
+        <p>{{ t.hy_feat1_desc }}</p>
+      </div>
+      <div class="yb-k-features__card yb-k-features__card--hy">
+        <div class="yb-k-features__icon">
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+        </div>
+        <h4>{{ t.hy_feat2_title }}</h4>
+        <p>{{ t.hy_feat2_desc }}</p>
+      </div>
+      <div class="yb-k-features__card yb-k-features__card--hy">
+        <div class="yb-k-features__icon">
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+        </div>
+        <h4>{{ t.hy_feat3_title }}</h4>
+        <p>{{ t.hy_feat3_desc }}</p>
+      </div>
+      <div class="yb-k-features__card yb-k-features__card--hy">
+        <div class="yb-k-features__icon">
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c0 1.1 2.7 3 6 3s6-1.9 6-3v-5"/></svg>
+        </div>
+        <h4>{{ t.hy_feat4_title }}</h4>
+        <p>{{ t.hy_feat4_desc }}</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+{# ── Hot Yoga: Video + CTA ── #}
+<section class="yb-k-video">
+  <div class="container">
+    <div class="yb-k-video__wrap yb-k-video__wrap--hy">
+      <video controls playsinline preload="metadata" poster="/assets/images/concepts/hotyoga-hero.jpg">
+        <source src="/assets/images/concepts/hotyoga-video.mp4" type="video/mp4" />
+      </video>
+    </div>
+    <div class="yb-k-video__cta">
+      <a href="https://www.hotyogacph.dk" target="_blank" rel="noopener" class="btn btn--large yb-k-btn--hy">{{ t.hy_visit }}</a>
+    </div>
+  </div>
+</section>
+
+{# ── Brand Divider ── #}
+<div class="yb-k-divider">
+  <div class="yb-k-divider__line"></div>
+</div>
+
+{# ═══════════════════════════════════════════════════════
+   BRAND 2: NAMASTÉ ONLINE
+   Uses brand orange accent
+   ═══════════════════════════════════════════════════════ #}
+
+{# ── Namasté: Brand Hero ── #}
+<section class="yb-k-brand-hero yb-k-brand-hero--no" id="namaste">
+  <div class="container">
+    <div class="yb-k-brand-hero__inner">
+      <div class="yb-k-brand-hero__content">
+        <div class="yb-k-brand-hero__badge">{{ t.no_badge }}</div>
+        <h2 class="yb-k-brand-hero__title">{{ t.no_title }}</h2>
+        <p class="yb-k-brand-hero__subtitle">{{ t.no_subtitle }}</p>
+        <p class="yb-k-brand-hero__text">{{ t.no_intro }}</p>
+        <p class="yb-k-brand-hero__text">{{ t.no_intro2 }}</p>
+      </div>
+      <div class="yb-k-brand-hero__image">
+        <img src="/assets/images/concepts/namaste-hero.jpg" alt="Namasté Online" width="800" height="600" loading="lazy" />
+      </div>
+    </div>
+  </div>
+</section>
+
+{# ── Namasté: Two Brands Bridge ── #}
+<section class="yb-k-bridge">
+  <div class="container">
+    <h3 class="section-title">{{ t.no_bridge_title }}</h3>
+    <div class="yb-k-bridge__grid">
+      <div class="yb-k-bridge__card">
+        <div class="yb-k-bridge__logo">
+          <img src="/assets/images/concepts/namaste-studios-logo.png" alt="Namasté Studios" width="400" height="200" loading="lazy" />
+        </div>
+        <h4>{{ t.no_bridge_studios_title }}</h4>
+        <p>{{ t.no_bridge_studios_desc }}</p>
+      </div>
+      <div class="yb-k-bridge__connector">
+        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="var(--yb-brand)" stroke-width="2"><path d="M8 4l8 8-8 8"/></svg>
+      </div>
+      <div class="yb-k-bridge__card">
+        <div class="yb-k-bridge__logo">
+          <img src="/assets/images/concepts/namaste-online-logo.png" alt="Namasté Online" width="400" height="200" loading="lazy" />
+        </div>
+        <h4>{{ t.no_bridge_online_title }}</h4>
+        <p>{{ t.no_bridge_online_desc }}</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+{# ── Namasté: Live Only Philosophy ── #}
+<section class="yb-k-statement yb-k-statement--dark">
+  <div class="container">
+    <div class="yb-k-statement__inner">
+      <h3 class="yb-k-statement__title" style="color:#FDFBF7">{{ t.no_liveonly_title }}</h3>
+      <p class="yb-k-statement__text" style="color:rgba(253,251,247,0.85)">{{ t.no_liveonly_text }}</p>
+    </div>
+  </div>
+</section>
+
+{# ── Namasté: Vision Grid ── #}
+<section class="yb-k-features yb-k-features--light">
+  <div class="container">
+    <h3 class="section-title">{{ t.no_feat_title }}</h3>
+    <div class="yb-k-features__grid yb-k-features__grid--3col">
+      <div class="yb-k-features__card">
+        <div class="yb-k-features__icon">
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        </div>
+        <h4>{{ t.no_feat1_title }}</h4>
+        <p>{{ t.no_feat1_desc }}</p>
+      </div>
+      <div class="yb-k-features__card">
+        <div class="yb-k-features__icon">
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+        </div>
+        <h4>{{ t.no_feat2_title }}</h4>
+        <p>{{ t.no_feat2_desc }}</p>
+      </div>
+      <div class="yb-k-features__card">
+        <div class="yb-k-features__icon">
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>
+        </div>
+        <h4>{{ t.no_feat3_title }}</h4>
+        <p>{{ t.no_feat3_desc }}</p>
+      </div>
+      <div class="yb-k-features__card">
+        <div class="yb-k-features__icon">
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        </div>
+        <h4>{{ t.no_feat4_title }}</h4>
+        <p>{{ t.no_feat4_desc }}</p>
+      </div>
+      <div class="yb-k-features__card">
+        <div class="yb-k-features__icon">
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+        </div>
+        <h4>{{ t.no_feat5_title }}</h4>
+        <p>{{ t.no_feat5_desc }}</p>
+      </div>
+      <div class="yb-k-features__card">
+        <div class="yb-k-features__icon">
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+        </div>
+        <h4>{{ t.no_feat6_title }}</h4>
+        <p>{{ t.no_feat6_desc }}</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+{# ── Namasté: Ambition Statement ── #}
+<section class="yb-k-statement">
+  <div class="container">
+    <div class="yb-k-statement__inner">
+      <h3 class="yb-k-statement__title">{{ t.no_ambition_title }}</h3>
+      <p class="yb-k-statement__text">{{ t.no_ambition_text }}</p>
+    </div>
+  </div>
+</section>
+
+{# ── Namasté: Image Band ── #}
+<section class="yb-k-imageband">
+  <div class="yb-k-imageband__grid">
+    <img src="/assets/images/concepts/namaste-class-1.jpg" alt="Live class" width="600" height="400" loading="lazy" />
+    <img src="/assets/images/concepts/namaste-class-2.jpg" alt="Teacher streaming" width="600" height="400" loading="lazy" />
+    <img src="/assets/images/concepts/namaste-class-3.jpg" alt="At-home practitioner" width="600" height="400" loading="lazy" />
+  </div>
+</section>
+
+{# ── Namasté: Video ── #}
+<section class="yb-k-video">
+  <div class="container">
+    <div class="yb-k-video__wrap">
+      <video controls playsinline preload="metadata" poster="/assets/images/concepts/namaste-hero.jpg">
+        <source src="/assets/images/concepts/namaste-video.mp4" type="video/mp4" />
+      </video>
+    </div>
+  </div>
+</section>
+
+{# ── Brand Divider ── #}
+<div class="yb-k-divider">
+  <div class="yb-k-divider__line"></div>
+</div>
+
+{# ═══════════════════════════════════════════════════════
+   BRAND 3: VIBRO YOGA
+   Uses brand orange accent
+   ═══════════════════════════════════════════════════════ #}
+
+{# ── Vibro: Brand Hero ── #}
+<section class="yb-k-brand-hero yb-k-brand-hero--vy" id="vibroyoga">
+  <div class="container">
+    <div class="yb-k-brand-hero__inner">
+      <div class="yb-k-brand-hero__content">
+        <div class="yb-k-brand-hero__badge">{{ t.vy_badge }}</div>
+        <h2 class="yb-k-brand-hero__title">{{ t.vy_title }}</h2>
+        <p class="yb-k-brand-hero__subtitle">{{ t.vy_subtitle }}</p>
+        <p class="yb-k-brand-hero__text">{{ t.vy_intro }}</p>
+        <p class="yb-k-brand-hero__text">{{ t.vy_intro2 }}</p>
+      </div>
+      <div class="yb-k-brand-hero__image">
+        <img src="/assets/images/concepts/vibro-hero.jpg" alt="Vibro Yoga" width="800" height="600" loading="lazy" />
+      </div>
+    </div>
+    <div class="yb-k-stats">
+      <div class="yb-k-stats__item">
+        <span class="yb-k-stats__num">{{ t.vy_stat1_num }}</span>
+        <span class="yb-k-stats__label">{{ t.vy_stat1_label }}</span>
+      </div>
+      <div class="yb-k-stats__item">
+        <span class="yb-k-stats__num">{{ t.vy_stat2_num }}</span>
+        <span class="yb-k-stats__label">{{ t.vy_stat2_label }}</span>
+      </div>
+      <div class="yb-k-stats__item">
+        <span class="yb-k-stats__num">{{ t.vy_stat3_num }}</span>
+        <span class="yb-k-stats__label">{{ t.vy_stat3_label }}</span>
+      </div>
+      <div class="yb-k-stats__item">
+        <span class="yb-k-stats__num">{{ t.vy_stat4_num }}</span>
+        <span class="yb-k-stats__label">{{ t.vy_stat4_label }}</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+{# ── Vibro: Science Section ── #}
+<section class="yb-k-science">
+  <div class="container">
+    <h3 class="section-title">{{ t.vy_science_title }}</h3>
+    <p class="section-subtitle">{{ t.vy_science_intro }}</p>
+    <div class="yb-k-features__grid">
+      <div class="yb-k-features__card">
+        <div class="yb-k-features__icon">
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+        </div>
+        <h4>{{ t.vy_sci1_title }}</h4>
+        <p>{{ t.vy_sci1_desc }}</p>
+      </div>
+      <div class="yb-k-features__card">
+        <div class="yb-k-features__icon">
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>
+        </div>
+        <h4>{{ t.vy_sci2_title }}</h4>
+        <p>{{ t.vy_sci2_desc }}</p>
+      </div>
+      <div class="yb-k-features__card">
+        <div class="yb-k-features__icon">
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+        </div>
+        <h4>{{ t.vy_sci3_title }}</h4>
+        <p>{{ t.vy_sci3_desc }}</p>
+      </div>
+      <div class="yb-k-features__card">
+        <div class="yb-k-features__icon">
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+        </div>
+        <h4>{{ t.vy_sci4_title }}</h4>
+        <p>{{ t.vy_sci4_desc }}</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+{# ── Vibro: Multiple Experiences ── #}
+<section class="yb-k-sessions">
+  <div class="container">
+    <h3 class="section-title" style="color:#FDFBF7">{{ t.vy_sessions_title }}</h3>
+    <div class="yb-k-sessions__track">
+      <div class="yb-k-sessions__card">
+        <div class="yb-k-sessions__number">01</div>
+        <h4>{{ t.vy_sess1_title }}</h4>
+        <p>{{ t.vy_sess1_desc }}</p>
+      </div>
+      <div class="yb-k-sessions__card">
+        <div class="yb-k-sessions__number">02</div>
+        <h4>{{ t.vy_sess2_title }}</h4>
+        <p>{{ t.vy_sess2_desc }}</p>
+      </div>
+      <div class="yb-k-sessions__card">
+        <div class="yb-k-sessions__number">03</div>
+        <h4>{{ t.vy_sess3_title }}</h4>
+        <p>{{ t.vy_sess3_desc }}</p>
+      </div>
+      <div class="yb-k-sessions__card">
+        <div class="yb-k-sessions__number">04</div>
+        <h4>{{ t.vy_sess4_title }}</h4>
+        <p>{{ t.vy_sess4_desc }}</p>
+      </div>
+      <div class="yb-k-sessions__card">
+        <div class="yb-k-sessions__number">05</div>
+        <h4>{{ t.vy_sess5_title }}</h4>
+        <p>{{ t.vy_sess5_desc }}</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+{# ── Vibro: Reviews Carousel ── #}
+<section class="yb-k-reviews">
+  <div class="container">
+    <h3 class="section-title">{{ t.vy_reviews_title }}</h3>
+    <div class="yb-k-reviews__track">
+      <div class="yb-k-reviews__card">
+        <div class="yb-k-reviews__stars">★★★★★</div>
+        <p class="yb-k-reviews__text">{{ t.vy_review1_text }}</p>
+        <span class="yb-k-reviews__author">{{ t.vy_review1_author }}</span>
+      </div>
+      <div class="yb-k-reviews__card">
+        <div class="yb-k-reviews__stars">★★★★★</div>
+        <p class="yb-k-reviews__text">{{ t.vy_review2_text }}</p>
+        <span class="yb-k-reviews__author">{{ t.vy_review2_author }}</span>
+      </div>
+      <div class="yb-k-reviews__card">
+        <div class="yb-k-reviews__stars">★★★★★</div>
+        <p class="yb-k-reviews__text">{{ t.vy_review3_text }}</p>
+        <span class="yb-k-reviews__author">{{ t.vy_review3_author }}</span>
+      </div>
+      <div class="yb-k-reviews__card">
+        <div class="yb-k-reviews__stars">★★★★★</div>
+        <p class="yb-k-reviews__text">{{ t.vy_review4_text }}</p>
+        <span class="yb-k-reviews__author">{{ t.vy_review4_author }}</span>
+      </div>
+      <div class="yb-k-reviews__card">
+        <div class="yb-k-reviews__stars">★★★★★</div>
+        <p class="yb-k-reviews__text">{{ t.vy_review5_text }}</p>
+        <span class="yb-k-reviews__author">{{ t.vy_review5_author }}</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+{# ── Vibro: Franchise Statement ── #}
+<section class="yb-k-statement yb-k-statement--dark">
+  <div class="container">
+    <div class="yb-k-statement__inner">
+      <h3 class="yb-k-statement__title" style="color:#FDFBF7">{{ t.vy_franchise_title }}</h3>
+      <p class="yb-k-statement__text" style="color:rgba(253,251,247,0.85)">{{ t.vy_franchise_text }}</p>
+    </div>
+  </div>
+</section>
+
+{# ── Vibro: Image Band ── #}
+<section class="yb-k-imageband">
+  <div class="yb-k-imageband__grid">
+    <img src="/assets/images/concepts/vibro-studio-1.jpg" alt="Vibro Yoga studio" width="600" height="400" loading="lazy" />
+    <img src="/assets/images/concepts/vibro-session-1.jpg" alt="Vibro Yin session" width="600" height="400" loading="lazy" />
+    <img src="/assets/images/concepts/vibro-shower-1.jpg" alt="Vibration Shower" width="600" height="400" loading="lazy" />
+  </div>
+</section>
+
+{# ── Vibro: Video + CTA ── #}
+<section class="yb-k-video">
+  <div class="container">
+    <div class="yb-k-video__wrap">
+      <video controls playsinline preload="metadata" poster="/assets/images/concepts/vibro-hero.jpg">
+        <source src="/assets/images/concepts/vibro-video.mp4" type="video/mp4" />
+      </video>
+    </div>
+    <div class="yb-k-video__cta">
+      <a href="https://en.vibroyoga.dk" target="_blank" rel="noopener" class="btn btn--large btn--primary">{{ t.vy_visit }}</a>
+    </div>
+  </div>
+</section>
+
+{# ═══════════════════════════════════════════
+   CTA — Partnership / Investment
+   ═══════════════════════════════════════════ #}
+<section class="yb-k-cta">
+  <div class="container">
+    <h2 class="yb-k-cta__title">{{ t.cta_title }}</h2>
+    <p class="yb-k-cta__text">{{ t.cta_text }}</p>
+    <div class="yb-k-cta__buttons">
+      <a href="{{ lp }}/kontakt" class="btn btn--large btn--outline-light">{{ t.cta_btn }}</a>
+      <a href="{{ lp }}/om-200hrs-yogalreruddannelser" class="btn btn--large btn--primary">{{ t.cta_btn2 }}</a>
+    </div>
+  </div>
+</section>

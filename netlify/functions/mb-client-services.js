@@ -65,14 +65,35 @@ exports.handler = async function(event) {
       var isActive = startDate && startDate <= now && (!endDate || endDate >= now);
       var isAutopay = c.IsAutoRenewing || (c.AutopayStatus && c.AutopayStatus !== 'Inactive');
 
+      // Calculate next billing date from UpcomingAutopayEvents or autopay schedule
+      var nextBillingDate = null;
+      if (c.UpcomingAutopayEvents && c.UpcomingAutopayEvents.length > 0) {
+        // Sort by date, pick the next one
+        var sorted = c.UpcomingAutopayEvents.sort(function(a, b) {
+          return new Date(a.ChargeDate || a.ScheduleDate) - new Date(b.ChargeDate || b.ScheduleDate);
+        });
+        var next = sorted.find(function(e) {
+          var d = new Date(e.ChargeDate || e.ScheduleDate);
+          return d >= now;
+        });
+        if (next) nextBillingDate = next.ChargeDate || next.ScheduleDate;
+      }
+
       return {
         id: c.Id,
+        contractId: c.ContractId || null,
+        locationId: c.LocationId || null,
         name: c.ContractName || '',
         startDate: c.StartDate,
         endDate: c.EndDate,
         isActive: isActive,
         isAutopay: isAutopay,
-        autopayStatus: c.AutopayStatus || ''
+        autopayStatus: c.AutopayStatus || '',
+        agreementDate: c.AgreementDate || null,
+        nextBillingDate: nextBillingDate,
+        autopayAmount: c.AutopayAmount || 0,
+        isSuspended: c.IsSuspended || false,
+        terminationDate: c.TerminationDate || null
       };
     });
 

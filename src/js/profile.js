@@ -9,6 +9,7 @@
   var currentDb = null;
   var clientId = null; // Mindbody client ID from Firestore
   var clientPassData = null; // Cached pass/service data
+  var staffCache = {}; // Cache staff bios by ID
 
   var checkInterval = setInterval(function() {
     if (typeof firebase !== 'undefined' && firebase.apps && firebase.apps.length) {
@@ -75,6 +76,10 @@
         var phone = document.getElementById('yb-profile-phone').value.trim();
         var dobInput = document.getElementById('yb-profile-dob');
         var dob = dobInput ? dobInput.value : '';
+        var yogaLevelEl = document.getElementById('yb-profile-yoga-level');
+        var practiceFreqEl = document.getElementById('yb-profile-practice-freq');
+        var yogaLevel = yogaLevelEl ? yogaLevelEl.value : '';
+        var practiceFrequency = practiceFreqEl ? practiceFreqEl.value : '';
         var errorEl = document.getElementById('yb-profile-error');
         var successEl = document.getElementById('yb-profile-success');
         var btn = profileForm.querySelector('button[type="submit"]');
@@ -91,6 +96,7 @@
 
         var updateData = {
           firstName: firstName, lastName: lastName, name: fullName, phone: phone,
+          yogaLevel: yogaLevel, practiceFrequency: practiceFrequency,
           updatedAt: firebase.firestore.FieldValue.serverTimestamp()
         };
         if (dob) updateData.dateOfBirth = dob;
@@ -178,6 +184,7 @@
           if (tabName === 'store') loadStore();
           if (tabName === 'schedule') loadSchedule();
           if (tabName === 'visits') loadVisits();
+          if (tabName === 'passes') loadMembershipDetails();
           if (tabName === 'receipts') loadReceipts();
           if (tabName === 'courses') loadMyCourses();
         }
@@ -211,8 +218,19 @@
       if (phEl) phEl.value = d.phone || '';
       if (dobEl) dobEl.value = d.dateOfBirth || '';
 
+      // Yoga level & practice frequency
+      var levelEl = document.getElementById('yb-profile-yoga-level');
+      var freqEl = document.getElementById('yb-profile-practice-freq');
+      if (levelEl) levelEl.value = d.yogaLevel || '';
+      if (freqEl) freqEl.value = d.practiceFrequency || '';
+
       if (d.mindbodyClientId) {
         clientId = d.mindbodyClientId;
+        // Show Client ID in profile
+        var cidWrap = document.getElementById('yb-profile-client-id-wrap');
+        var cidEl = document.getElementById('yb-profile-client-id');
+        if (cidWrap) cidWrap.hidden = false;
+        if (cidEl) cidEl.textContent = clientId;
         // Load membership details
         loadMembershipDetails();
       }
@@ -236,12 +254,9 @@
         sinceEl.textContent = (isDa() ? 'Medlem siden ' : 'Member since ') + date.toLocaleDateString(isDa() ? 'da-DK' : 'en-GB', { year: 'numeric', month: 'long' });
       }
 
+      // Tier is set by loadMembershipDetails after fetching pass data
       var tierEl = document.getElementById('yb-profile-tier');
-      if (tierEl) {
-        var tier = d.membershipTier || 'free';
-        tierEl.textContent = tier === 'free' ? (isDa() ? 'Gratis' : 'Free') : (isDa() ? 'Medlem' : 'Member');
-        tierEl.className = 'yb-profile__info-value ' + (tier === 'free' ? 'yb-profile__info-value--muted' : 'yb-profile__info-value--success');
-      }
+      if (tierEl) tierEl.textContent = '—';
     }).catch(function(err) { console.warn('Could not load profile:', err); });
   }
 
@@ -352,26 +367,42 @@
     fetch('/.netlify/functions/mb-client-services?clientId=' + clientId)
       .then(function(r) { return r.json(); })
       .then(function(data) {
-        if (loadingEl) loadingEl.hidden = true;
-        clientPassData = data;
-        renderMembershipDetails(contentEl, data);
+        try {
+          clientPassData = data;
+          renderMembershipDetails(contentEl, data);
 
-        // Update tier if they have active passes
-        if (data.hasActivePass) {
+          // Show pass type in tier field
+          var hasAutopayContract = data.activeContracts && data.activeContracts.length > 0;
+          var hasActiveService = data.activeServices && data.activeServices.length > 0;
           var tierEl = document.getElementById('yb-profile-tier');
           if (tierEl) {
-            tierEl.textContent = isDa() ? 'Medlem' : 'Member';
-            tierEl.className = 'yb-profile__info-value yb-profile__info-value--success';
+            if (hasAutopayContract) {
+              tierEl.textContent = isDa() ? 'Månedligt Medlemskab' : 'Monthly Membership';
+              tierEl.className = 'yb-profile__info-value yb-profile__info-value--success';
+            } else if (hasActiveService) {
+              tierEl.textContent = isDa() ? 'Klippekort' : 'Clip Card';
+              tierEl.className = 'yb-profile__info-value yb-profile__info-value--success';
+            } else {
+              tierEl.textContent = isDa() ? 'Intet aktivt pas' : 'No active pass';
+              tierEl.className = 'yb-profile__info-value yb-profile__info-value--muted';
+            }
           }
+        } catch (renderErr) {
+          console.error('[Membership] Render error:', renderErr);
+        } finally {
+          if (loadingEl) loadingEl.hidden = true;
         }
       })
-      .catch(function() {
+      .catch(function(err) {
+        console.error('[Membership] Load error:', err);
         if (loadingEl) loadingEl.hidden = true;
       });
   }
 
   function renderMembershipDetails(container, data) {
     var html = '';
+    var locale = isDa() ? 'da-DK' : 'en-GB';
+    var dateOpts = { day: 'numeric', month: 'short', year: 'numeric' };
 
     // Active passes
     var active = data.activeServices || [];
@@ -389,8 +420,7 @@
         }
         html += '</div>';
         if (s.expirationDate) {
-          var expDate = new Date(s.expirationDate);
-          html += '<span class="yb-membership__pass-expiry">' + t('membership_expires') + ' ' + expDate.toLocaleDateString(isDa() ? 'da-DK' : 'en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) + '</span>';
+          html += '<span class="yb-membership__pass-expiry">' + t('membership_expires') + ' ' + formatDateDK(s.expirationDate) + '</span>';
         }
         html += '<span class="yb-membership__badge yb-membership__badge--active">' + t('membership_status_active') + '</span>';
         html += '</div>';
@@ -400,24 +430,71 @@
     }
     html += '</div>';
 
-    // Active contracts (subscriptions)
+    // Active contracts (subscriptions) with manage buttons
     var contracts = data.activeContracts || [];
     if (contracts.length) {
       html += '<div class="yb-membership__section">';
       html += '<h3 class="yb-membership__section-title">' + t('membership_contracts') + '</h3>';
       contracts.forEach(function(c) {
-        html += '<div class="yb-membership__pass">';
+        html += '<div class="yb-membership__pass yb-membership__contract-card" data-contract-id="' + c.id + '">';
         html += '<div class="yb-membership__pass-info">';
         html += '<span class="yb-membership__pass-name">' + esc(c.name) + '</span>';
-        if (c.isAutopay) {
+        if (c.isAutopay && c.autopayAmount) {
+          html += '<span class="yb-membership__pass-remaining">' + t('membership_autopay') + ' &middot; ' + c.autopayAmount + ' kr ' + t('membership_autopay_amount') + '</span>';
+        } else if (c.isAutopay) {
           html += '<span class="yb-membership__pass-remaining">' + t('membership_autopay') + '</span>';
         }
         html += '</div>';
-        if (c.endDate) {
-          var endDate = new Date(c.endDate);
-          html += '<span class="yb-membership__pass-expiry">' + t('membership_expires') + ' ' + endDate.toLocaleDateString(isDa() ? 'da-DK' : 'en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) + '</span>';
+        // Show billing date — "Last billing" for terminated, "Next billing" otherwise
+        if (c.terminationDate && !c.isSuspended) {
+          if (c.nextBillingDate) {
+            html += '<span class="yb-membership__pass-expiry">' + t('membership_last_billing') + ' ' + formatDateDK(c.nextBillingDate) + '</span>';
+          }
+        } else if (c.nextBillingDate) {
+          html += '<span class="yb-membership__pass-expiry">' + t('membership_next_billing') + ' ' + formatDateDK(c.nextBillingDate) + '</span>';
+        } else if (c.endDate) {
+          html += '<span class="yb-membership__pass-expiry">' + t('membership_expires') + ' ' + formatDateDK(c.endDate) + '</span>';
         }
-        html += '<span class="yb-membership__badge yb-membership__badge--active">' + t('membership_status_active') + '</span>';
+        // Status badge + termination info
+        if (c.isSuspended) {
+          html += '<span class="yb-membership__badge yb-membership__badge--paused">' + t('membership_paused_badge') + '</span>';
+        } else if (c.terminationDate) {
+          html += '<span class="yb-membership__badge yb-membership__badge--terminating">' + t('membership_terminated_badge') + '</span>';
+          html += '<span class="yb-membership__pass-expiry yb-membership__active-until">' + t('membership_active_until') + ' ' + formatDateDK(c.terminationDate) + '</span>';
+          html += '<span class="yb-membership__notice-period">' + t('membership_notice_period') + '</span>';
+        } else {
+          html += '<span class="yb-membership__badge yb-membership__badge--active">' + t('membership_status_active') + '</span>';
+        }
+        // Manage buttons
+        if (!c.isSuspended && !c.terminationDate && c.isAutopay) {
+          html += '<div class="yb-membership__manage-btns">';
+          html += '<button type="button" class="yb-membership__manage-btn yb-membership__manage-btn--pause" data-manage-pause="' + c.id + '">' + t('membership_pause_btn') + '</button>';
+          html += '<button type="button" class="yb-membership__manage-btn yb-membership__manage-btn--cancel" data-manage-cancel="' + c.id + '">' + t('membership_cancel_btn') + '</button>';
+          html += '</div>';
+        }
+        // Retention card or rejoin CTA depending on whether termination date has passed
+        if (c.terminationDate && !c.isSuspended) {
+          var termDate = new Date(c.terminationDate);
+          var now = new Date();
+          if (termDate > now) {
+            // Still within notice period — show retention card
+            html += '<div class="yb-membership__retention-card">';
+            html += '<div class="yb-membership__retention-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#f75c03" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg></div>';
+            html += '<p class="yb-membership__retention-title">' + t('membership_retention_title') + '</p>';
+            html += '<p class="yb-membership__retention-desc">' + t('membership_retention_desc').replace('{date}', formatDateDK(c.terminationDate)) + '</p>';
+            html += '<ul class="yb-membership__retention-perks">';
+            html += '<li>' + t('membership_retention_perk1') + '</li>';
+            html += '<li>' + t('membership_retention_perk2') + '</li>';
+            html += '</ul>';
+            html += '<button type="button" class="yb-btn yb-btn--primary yb-membership__retention-btn" data-reactivate="' + (c.contractId || '') + '" data-contract-name="' + esc(c.name) + '" data-location-id="' + (c.locationId || '1') + '">' + t('membership_retention_cta') + '</button>';
+            html += '</div>';
+          } else {
+            // Termination date passed — show simple rejoin CTA
+            html += '<div class="yb-membership__rejoin">';
+            html += '<button type="button" class="yb-btn yb-btn--primary yb-membership__rejoin-btn" data-rejoin="1">' + t('membership_rejoin_cta') + '</button>';
+            html += '</div>';
+          }
+        }
         html += '</div>';
       });
       html += '</div>';
@@ -437,21 +514,429 @@
         }
         html += '</div>';
         if (s.expirationDate) {
-          var expDate = new Date(s.expirationDate);
-          html += '<span class="yb-membership__pass-expiry">' + t('membership_expires') + ' ' + expDate.toLocaleDateString(isDa() ? 'da-DK' : 'en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) + '</span>';
+          html += '<span class="yb-membership__pass-expiry">' + t('membership_expires') + ' ' + formatDateDK(s.expirationDate) + '</span>';
         }
         html += '</div>';
       });
       html += '</div>';
     }
 
+    // Pause panel (hidden by default, shown when user clicks Pause)
+    html += '<div id="yb-membership-pause-panel" class="yb-membership__manage-panel" hidden>';
+    html += '<div class="yb-membership__manage-header">';
+    html += '<button type="button" class="yb-membership__back-btn" data-manage-back>&larr; ' + t('membership_back') + '</button>';
+    html += '<h3 class="yb-membership__manage-title">' + t('membership_pause_title') + '</h3>';
+    html += '</div>';
+    html += '<p class="yb-membership__manage-desc">' + t('membership_pause_desc') + '</p>';
+    html += '<div class="yb-membership__manage-form">';
+    html += '<div class="yb-membership__manage-field">';
+    html += '<label>' + t('membership_pause_start') + '</label>';
+    html += '<input type="date" id="yb-pause-start" class="yb-membership__date-input" />';
+    html += '<span class="yb-membership__field-hint" id="yb-pause-start-hint"></span>';
+    html += '</div>';
+    html += '<div class="yb-membership__manage-field">';
+    html += '<label>' + t('membership_pause_end') + '</label>';
+    html += '<input type="date" id="yb-pause-end" class="yb-membership__date-input" />';
+    html += '<span class="yb-membership__field-hint">' + t('membership_pause_min') + ' · ' + t('membership_pause_max') + '</span>';
+    html += '</div>';
+    html += '<p class="yb-membership__resume-info" id="yb-pause-resume-info" hidden></p>';
+    html += '</div>';
+    html += '<div class="yb-auth-error" id="yb-pause-error" hidden role="alert"></div>';
+    html += '<button type="button" class="yb-membership__confirm-btn yb-membership__confirm-btn--pause" id="yb-pause-confirm">' + t('membership_pause_confirm') + '</button>';
+    html += '</div>';
+
+    // Cancel panel (hidden by default, shown when user clicks Cancel)
+    html += '<div id="yb-membership-cancel-panel" class="yb-membership__manage-panel" hidden>';
+    html += '<div class="yb-membership__manage-header">';
+    html += '<button type="button" class="yb-membership__back-btn" data-manage-back>&larr; ' + t('membership_back') + '</button>';
+    html += '<h3 class="yb-membership__manage-title">' + t('membership_cancel_title') + '</h3>';
+    html += '</div>';
+    html += '<p class="yb-membership__manage-desc">' + t('membership_cancel_desc') + '</p>';
+    html += '<div class="yb-membership__manage-info">';
+    html += '<div class="yb-membership__info-row"><span class="yb-membership__info-label">' + t('membership_cancel_earliest') + ':</span> <strong id="yb-cancel-earliest-date"></strong></div>';
+    html += '<div class="yb-membership__info-row"><span class="yb-membership__info-label">' + t('membership_cancel_use_until') + ':</span> <strong id="yb-cancel-use-until"></strong></div>';
+    html += '</div>';
+    html += '<div class="yb-membership__cancel-warning">' + t('membership_cancel_warning') + '</div>';
+    html += '<div class="yb-auth-error" id="yb-cancel-error" hidden role="alert"></div>';
+    html += '<button type="button" class="yb-membership__confirm-btn yb-membership__confirm-btn--cancel" id="yb-cancel-confirm">' + t('membership_cancel_confirm') + '</button>';
+    html += '</div>';
+
     container.innerHTML = html;
+
+    // Bind manage button event listeners
+    bindMembershipManageEvents(container, data);
+  }
+
+  // ── Calculate earliest termination date: 1 month + running days ──
+  // T&C: 1 month + running days notice.
+  // Next billing = last payment taken. Use membership until end of that cycle.
+  // Example: next billing Mar 8 → last payment Mar 8 → use until Apr 7 (day before next cycle)
+  // Returns { lastPaymentDate, useUntilDate }
+  function calcTerminationDates(nextBillingDate) {
+    var now = new Date();
+    var base = nextBillingDate ? new Date(nextBillingDate) : now;
+    if (base < now) base = now;
+
+    // Last payment = next billing date
+    var lastPayment = new Date(base);
+
+    // Use until = end of that billing cycle = 1 month later minus 1 day
+    var useUntil = new Date(base);
+    useUntil.setMonth(useUntil.getMonth() + 1);
+    useUntil.setDate(useUntil.getDate() - 1);
+
+    return { lastPaymentDate: lastPayment, useUntilDate: useUntil };
+  }
+
+  // ── Calculate earliest pause start date (after next billing cycle) ──
+  function calcEarliestPauseStart(nextBillingDate) {
+    var now = new Date();
+    if (nextBillingDate) {
+      var nbd = new Date(nextBillingDate);
+      // Must start after next billing (not during current paid period)
+      if (nbd > now) return nbd;
+    }
+    // Fallback: tomorrow
+    var tomorrow = new Date(now);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    return tomorrow;
+  }
+
+  function bindMembershipManageEvents(container, data) {
+    var contracts = data.activeContracts || [];
+    var locale = isDa() ? 'da-DK' : 'en-GB';
+    var dateOpts = { day: 'numeric', month: 'long', year: 'numeric' };
+    var activeContractId = null;
+    var activeContract = null;
+
+    // Sections to show/hide
+    var allSections = container.querySelectorAll('.yb-membership__section');
+    var pausePanel = document.getElementById('yb-membership-pause-panel');
+    var cancelPanel = document.getElementById('yb-membership-cancel-panel');
+
+    function showSections() {
+      for (var i = 0; i < allSections.length; i++) allSections[i].hidden = false;
+      if (pausePanel) pausePanel.hidden = true;
+      if (cancelPanel) cancelPanel.hidden = true;
+    }
+
+    function hideSections() {
+      for (var i = 0; i < allSections.length; i++) allSections[i].hidden = true;
+    }
+
+    // Back buttons
+    var backBtns = container.querySelectorAll('[data-manage-back]');
+    for (var b = 0; b < backBtns.length; b++) {
+      backBtns[b].addEventListener('click', showSections);
+    }
+
+    // ── Pause buttons ──
+    var pauseBtns = container.querySelectorAll('[data-manage-pause]');
+    for (var p = 0; p < pauseBtns.length; p++) {
+      pauseBtns[p].addEventListener('click', function() {
+        activeContractId = this.getAttribute('data-manage-pause');
+        activeContract = contracts.find(function(c) { return String(c.id) === String(activeContractId); });
+        if (!activeContract || !pausePanel) return;
+
+        hideSections();
+        pausePanel.hidden = false;
+
+        // Set min date for pause start (after next billing cycle)
+        var earliestStart = calcEarliestPauseStart(activeContract.nextBillingDate);
+        var startInput = document.getElementById('yb-pause-start');
+        var endInput = document.getElementById('yb-pause-end');
+        var hintEl = document.getElementById('yb-pause-start-hint');
+        var resumeInfoEl = document.getElementById('yb-pause-resume-info');
+        var errorEl = document.getElementById('yb-pause-error');
+
+        if (startInput) {
+          startInput.min = earliestStart.toISOString().split('T')[0];
+          startInput.value = earliestStart.toISOString().split('T')[0];
+        }
+        if (hintEl) {
+          hintEl.textContent = t('membership_pause_next_billing') + ': ' + formatDateDK(earliestStart);
+        }
+
+        // Set default end date (14 days after start)
+        if (endInput && startInput) {
+          var defaultEnd = new Date(earliestStart);
+          defaultEnd.setDate(defaultEnd.getDate() + 14);
+          endInput.min = defaultEnd.toISOString().split('T')[0];
+          var maxEnd = new Date(earliestStart);
+          maxEnd.setMonth(maxEnd.getMonth() + 3);
+          endInput.max = maxEnd.toISOString().split('T')[0];
+          endInput.value = defaultEnd.toISOString().split('T')[0];
+        }
+
+        // Update resume info when dates change
+        function updateResumeInfo() {
+          if (!resumeInfoEl || !endInput) return;
+          if (endInput.value) {
+            var resumeDate = new Date(endInput.value);
+            resumeInfoEl.textContent = t('membership_pause_resume') + ' ' + formatDateDK(resumeDate);
+            resumeInfoEl.hidden = false;
+          } else {
+            resumeInfoEl.hidden = true;
+          }
+        }
+
+        // Update end date constraints when start changes
+        function onStartChange() {
+          if (!endInput || !startInput || !startInput.value) return;
+          var sd = new Date(startInput.value);
+          var minEnd = new Date(sd);
+          minEnd.setDate(minEnd.getDate() + 14);
+          var maxEnd = new Date(sd);
+          maxEnd.setMonth(maxEnd.getMonth() + 3);
+          endInput.min = minEnd.toISOString().split('T')[0];
+          endInput.max = maxEnd.toISOString().split('T')[0];
+          // Reset end if out of range
+          if (endInput.value < endInput.min) endInput.value = endInput.min;
+          if (endInput.value > endInput.max) endInput.value = endInput.max;
+          updateResumeInfo();
+        }
+
+        if (startInput) startInput.addEventListener('change', onStartChange);
+        if (endInput) endInput.addEventListener('change', updateResumeInfo);
+        updateResumeInfo();
+
+        if (errorEl) errorEl.hidden = true;
+      });
+    }
+
+    // ── Pause confirm button ──
+    var pauseConfirmBtn = document.getElementById('yb-pause-confirm');
+    if (pauseConfirmBtn) {
+      pauseConfirmBtn.addEventListener('click', function() {
+        if (!activeContractId || !clientId) return;
+        var startInput = document.getElementById('yb-pause-start');
+        var endInput = document.getElementById('yb-pause-end');
+        var errorEl = document.getElementById('yb-pause-error');
+
+        if (!startInput || !startInput.value || !endInput || !endInput.value) return;
+
+        pauseConfirmBtn.disabled = true;
+        pauseConfirmBtn.textContent = t('membership_pause_confirming');
+        if (errorEl) errorEl.hidden = true;
+
+        fetch('/.netlify/functions/mb-contract-manage', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            action: 'suspend',
+            clientId: clientId,
+            clientContractId: Number(activeContractId),
+            startDate: startInput.value,
+            endDate: endInput.value
+          })
+        })
+        .then(function(r) {
+          var ct = r.headers.get('content-type') || '';
+          if (ct.indexOf('application/json') === -1) {
+            throw new Error('Server returned non-JSON (status ' + r.status + ')');
+          }
+          return r.json().then(function(d) { return { ok: r.ok, data: d }; });
+        })
+        .then(function(res) {
+          if (res.ok && res.data.success) {
+            showSections();
+            loadMembershipDetails();
+            showMembershipToast(t('membership_pause_success'), 'success');
+          } else {
+            if (errorEl) {
+              errorEl.textContent = res.data.error || t('membership_pause_error');
+              errorEl.hidden = false;
+            }
+          }
+          pauseConfirmBtn.disabled = false;
+          pauseConfirmBtn.textContent = t('membership_pause_confirm');
+        })
+        .catch(function(err) {
+          console.error('[Membership] Pause error:', err);
+          if (errorEl) {
+            errorEl.textContent = err.message || t('membership_pause_error');
+            errorEl.hidden = false;
+          }
+          pauseConfirmBtn.disabled = false;
+          pauseConfirmBtn.textContent = t('membership_pause_confirm');
+        });
+      });
+    }
+
+    // ── Cancel buttons ──
+    var cancelBtns = container.querySelectorAll('[data-manage-cancel]');
+    for (var c = 0; c < cancelBtns.length; c++) {
+      cancelBtns[c].addEventListener('click', function() {
+        activeContractId = this.getAttribute('data-manage-cancel');
+        activeContract = contracts.find(function(ct) { return String(ct.id) === String(activeContractId); });
+        if (!activeContract || !cancelPanel) return;
+
+        hideSections();
+        cancelPanel.hidden = false;
+
+        var errorEl = document.getElementById('yb-cancel-error');
+        if (errorEl) errorEl.hidden = true;
+
+        // Calculate termination dates
+        var termDates = calcTerminationDates(activeContract.nextBillingDate);
+        var earliestEl = document.getElementById('yb-cancel-earliest-date');
+        if (earliestEl) earliestEl.textContent = formatDateDK(termDates.lastPaymentDate);
+
+        // "Use until" = end of that billing cycle (day before next would-be billing)
+        var useUntilEl = document.getElementById('yb-cancel-use-until');
+        if (useUntilEl) useUntilEl.textContent = formatDateDK(termDates.useUntilDate);
+      });
+    }
+
+    // ── Cancel confirm button ──
+    var cancelConfirmBtn = document.getElementById('yb-cancel-confirm');
+    if (cancelConfirmBtn) {
+      cancelConfirmBtn.addEventListener('click', function() {
+        if (!activeContractId || !clientId) return;
+        var errorEl = document.getElementById('yb-cancel-error');
+
+        var termDates = calcTerminationDates(activeContract ? activeContract.nextBillingDate : null);
+        var terminationDate = termDates.useUntilDate.toISOString().split('T')[0];
+
+        cancelConfirmBtn.disabled = true;
+        cancelConfirmBtn.textContent = t('membership_cancel_confirming');
+        if (errorEl) errorEl.hidden = true;
+
+        fetch('/.netlify/functions/mb-contract-manage', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            action: 'terminate',
+            clientId: clientId,
+            clientContractId: Number(activeContractId),
+            terminationDate: terminationDate
+          })
+        })
+        .then(function(r) {
+          var ct = r.headers.get('content-type') || '';
+          if (ct.indexOf('application/json') === -1) {
+            throw new Error('Server returned non-JSON (status ' + r.status + ')');
+          }
+          return r.json().then(function(d) { return { ok: r.ok, data: d }; });
+        })
+        .then(function(res) {
+          if (res.ok && res.data.success) {
+            showSections();
+            loadMembershipDetails();
+            showMembershipToast(t('membership_cancel_farewell'), 'success', 8000);
+          } else {
+            if (errorEl) {
+              var errMsg = res.data.error || t('membership_cancel_error');
+              errorEl.textContent = errMsg;
+              errorEl.hidden = false;
+            }
+            if (res.data._pathResults) {
+              console.log('[Cancel] Path results:', JSON.stringify(res.data._pathResults, null, 2));
+            }
+          }
+          cancelConfirmBtn.disabled = false;
+          cancelConfirmBtn.textContent = t('membership_cancel_confirm');
+        })
+        .catch(function(err) {
+          console.error('[Membership] Cancel error:', err);
+          if (errorEl) {
+            errorEl.textContent = err.message || t('membership_cancel_error');
+            errorEl.hidden = false;
+          }
+          cancelConfirmBtn.disabled = false;
+          cancelConfirmBtn.textContent = t('membership_cancel_confirm');
+        });
+      });
+    }
+
+    // ── Reactivate (retention) buttons ──
+    // First month free is already set on all contracts in Mindbody,
+    // so no promo code needed — just navigate to the store checkout.
+    var reactivateBtns = container.querySelectorAll('[data-reactivate]');
+    for (var r = 0; r < reactivateBtns.length; r++) {
+      reactivateBtns[r].addEventListener('click', function() {
+        var contractId = this.getAttribute('data-reactivate');
+        var contractName = this.getAttribute('data-contract-name') || '';
+        console.log('[Reactivate] Looking for contract template ID:', contractId, 'name:', contractName);
+        // Switch to Store tab and auto-open checkout for the matching contract
+        var storeBtn = document.querySelector('[data-yb-tab="store"]');
+        if (storeBtn) {
+          storeBtn.click();
+          // First show memberships category, then find the contract
+          setTimeout(function() {
+            var memCat = document.querySelector('[data-store-cat="memberships"]');
+            if (memCat) memCat.click();
+            // Wait for re-render after category switch
+            setTimeout(function() {
+              var buyBtn = document.querySelector('[data-store-buy="' + contractId + '"]');
+              if (buyBtn) {
+                console.log('[Reactivate] Found contract by ID, opening checkout');
+                buyBtn.click();
+              } else if (contractName) {
+                // Fallback: match by name in storeServices array
+                var match = storeServices.find(function(s) {
+                  return s._itemType === 'contract' && s.name === contractName;
+                });
+                if (match) {
+                  console.log('[Reactivate] Found contract by name match, ID:', match.id);
+                  var nameBtn = document.querySelector('[data-store-buy="' + match.id + '"]');
+                  if (nameBtn) nameBtn.click();
+                } else {
+                  console.log('[Reactivate] No match found. Store contracts:', storeServices.filter(function(s) { return s._itemType === 'contract'; }).map(function(s) { return s.id + ':' + s.name; }));
+                }
+              }
+            }, 300);
+          }, 800);
+        }
+      });
+    }
+
+    // ── Rejoin buttons (after termination date has passed) ──
+    var rejoinBtns = container.querySelectorAll('[data-rejoin]');
+    for (var j = 0; j < rejoinBtns.length; j++) {
+      rejoinBtns[j].addEventListener('click', function() {
+        var storeBtn = document.querySelector('[data-yb-tab="store"]');
+        if (storeBtn) {
+          storeBtn.click();
+          setTimeout(function() {
+            var memCat = document.querySelector('[data-store-cat="memberships"]');
+            if (memCat) memCat.click();
+          }, 800);
+        }
+      });
+    }
+  }
+
+  function showMembershipToast(message, type, duration) {
+    var existing = document.querySelector('.yb-membership__toast');
+    if (existing) existing.remove();
+    var toast = document.createElement('div');
+    toast.className = 'yb-membership__toast yb-membership__toast--' + (type || 'info');
+    toast.textContent = message;
+    var container = document.getElementById('yb-membership-content');
+    if (container) container.insertBefore(toast, container.firstChild);
+    setTimeout(function() { toast.remove(); }, duration || 5000);
   }
 
   // ══════════════════════════════════════
   // STORE TAB
   // ══════════════════════════════════════
   var storeServices = [];
+  var storeActiveCategory = 'all';
+  var storeSearchQuery = '';
+
+  // Store category config — maps to Mindbody programs/categories
+  var storeCategories = [
+    { id: 'all', da: 'Alle', en: 'All' },
+    { id: 'trials', da: 'Prøvekort', en: 'Trials' },
+    { id: 'tourist', da: 'Turistpas', en: 'Tourist Pass' },
+    { id: 'memberships', da: 'Medlemskaber', en: 'Memberships' },
+    { id: 'clips', da: 'Klippekort', en: 'Clip Cards' },
+    { id: 'timebased', da: 'Tidsbegrænsede Pas', en: 'Time-based Passes' },
+    { id: 'teacher', da: 'Yogalæreruddannelser', en: 'Teacher Trainings' },
+    { id: 'courses', da: 'Kurser', en: 'Courses' },
+    { id: 'private', da: 'Privattimer', en: 'Private Sessions' }
+  ];
 
   function initStoreForm() {
     var checkoutForm = document.getElementById('yb-store-checkout-form');
@@ -488,40 +973,248 @@
   function loadStore() {
     var listEl = document.getElementById('yb-store-list');
     if (!listEl) return;
-    var storePanel = document.querySelector('[data-yb-panel="store"]');
-    var itemIds = storePanel ? storePanel.getAttribute('data-store-items') : '';
-    if (!itemIds) { listEl.innerHTML = '<p class="yb-store__empty">' + t('store_empty') + '</p>'; return; }
 
-    fetch('/.netlify/functions/mb-services?serviceIds=' + itemIds)
-      .then(function(r) { return r.json(); })
-      .then(function(data) {
-        storeServices = data.services || [];
-        if (!storeServices.length) { listEl.innerHTML = '<p class="yb-store__empty">' + t('store_empty') + '</p>'; return; }
-        renderStoreItems(listEl);
-      })
-      .catch(function() { listEl.innerHTML = '<p class="yb-store__error">' + t('store_error') + '</p>'; });
+    listEl.innerHTML = '<div class="yb-store__loading"><div class="yb-mb-spinner"></div><span>' + (isDa() ? 'Henter pakker...' : 'Loading packages...') + '</span></div>';
+
+    // Fetch both services and contracts in parallel
+    // Contracts: no sellOnline filter — MB /sale/contracts may not support it
+    var servicesUrl = '/.netlify/functions/mb-services?sellOnline=true';
+    var contractsUrl = '/.netlify/functions/mb-contracts';
+
+    Promise.all([
+      fetch(servicesUrl).then(function(r) { return r.json(); }),
+      fetch(contractsUrl).then(function(r) {
+        console.log('[Store] Contracts HTTP status:', r.status);
+        return r.json();
+      }).catch(function(err) { console.error('[Store] Contracts fetch FAILED:', err); return { contracts: [], _error: String(err) }; })
+    ]).then(function(results) {
+      var services = (results[0].services || []).map(function(s) {
+        s._itemType = 'service';
+        return s;
+      });
+
+      console.log('[Store] Services loaded:', services.length);
+      console.log('[Store] Contracts full response:', results[1]);
+      if (results[1]._error) console.error('[Store] Contracts had error:', results[1]._error);
+      if (results[1].error) console.error('[Store] Contracts API error:', results[1].error);
+
+      var contracts = (results[1].contracts || []).map(function(c) {
+        // Normalize contract shape to match service display
+        c._itemType = 'contract';
+        c.name = c.name || '';
+        c.description = c.description || c.onlineDescription || '';
+        // Price: use the recurring payment (what they pay each cycle), fallback to first payment or total
+        var recurringAmt = c.recurringPaymentAmount || 0;
+        var firstAmt = c.firstPaymentAmount || 0;
+        c.price = recurringAmt || firstAmt || c.totalContractAmount || 0;
+        c.onlinePrice = c.price;
+        c.count = null;
+        // Build recurring info string (e.g. "799 kr / Monthly")
+        var scheduleStr = c.autopaySchedule || '';
+        if (typeof scheduleStr === 'object') scheduleStr = scheduleStr.FrequencyType || '';
+        if (recurringAmt && scheduleStr) {
+          c._recurringInfo = recurringAmt + ' kr / ' + scheduleStr;
+        } else if (recurringAmt) {
+          c._recurringInfo = recurringAmt + ' kr ' + (isDa() ? 'pr. periode' : 'per period');
+        }
+        // Build contract terms summary for display
+        var terms = [];
+        if (c.firstMonthFree) {
+          terms.push(isDa() ? 'Første måned gratis' : 'First month free');
+        } else if (firstAmt && recurringAmt && firstAmt !== recurringAmt) {
+          terms.push((isDa() ? 'Første betaling: ' : 'First payment: ') + formatDKK(firstAmt));
+        }
+        if (c.duration && c.durationUnit) {
+          terms.push(c.duration + ' ' + c.durationUnit);
+        }
+        if (c.numberOfAutopays) {
+          terms.push(c.numberOfAutopays + (isDa() ? ' betalinger' : ' payments'));
+        }
+        c._terms = terms;
+        return c;
+      });
+
+      console.log('[Store] Contracts loaded:', contracts.length, contracts.map(function(c) { return c.name; }));
+
+      storeServices = services.concat(contracts);
+      if (!storeServices.length) { listEl.innerHTML = '<p class="yb-store__empty">' + t('store_empty') + '</p>'; return; }
+      renderStoreItems(listEl);
+    }).catch(function(err) { console.error('[Store] Load error:', err); listEl.innerHTML = '<p class="yb-store__error">' + t('store_error') + '</p>'; });
+  }
+
+  /**
+   * Categorize a store item by type and name heuristics.
+   * Contracts are always 'memberships'. Services are categorized by name.
+   */
+  function categorizeService(s) {
+    // All contracts go under memberships
+    if (s._itemType === 'contract') return 'memberships';
+
+    var name = (s.name || '').toLowerCase();
+    var hasTimePeriod = name.indexOf('day') !== -1 || name.indexOf('dag') !== -1 || name.indexOf('month') !== -1 || name.indexOf('måned') !== -1 || name.indexOf('week') !== -1 || name.indexOf('uge') !== -1;
+
+    if (name.indexOf('trial') !== -1 || name.indexOf('prøv') !== -1 || name.indexOf('intro') !== -1) return 'trials';
+    if (name.indexOf('tourist') !== -1 || name.indexOf('turist') !== -1 || name.indexOf('drop-in') !== -1 || name.indexOf('drop in') !== -1) return 'tourist';
+    // Time-based passes: "14 Days Unlimited", "3 Months Unlimited" etc. — these have a time period in the name
+    if (hasTimePeriod && (name.indexOf('unlimited') !== -1 || name.indexOf('non-contract') !== -1 || name.indexOf('non-binding') !== -1)) return 'timebased';
+    // True memberships: only "membership" or "medlems" keywords, or autopay without a time period
+    if (name.indexOf('membership') !== -1 || name.indexOf('medlems') !== -1 || name.indexOf('autopay') !== -1) return 'memberships';
+    if (name.indexOf('clip') !== -1 || name.indexOf('klip') !== -1 || name.indexOf('punch') !== -1 || name.indexOf('pack') !== -1 || name.indexOf('class') !== -1) return 'clips';
+    if (hasTimePeriod) return 'timebased';
+    if (name.indexOf('teacher') !== -1 || name.indexOf('lærer') !== -1 || name.indexOf('training') !== -1 || name.indexOf('uddannelse') !== -1 || name.indexOf('200') !== -1 || name.indexOf('300') !== -1) return 'teacher';
+    if (name.indexOf('course') !== -1 || name.indexOf('kursus') !== -1 || name.indexOf('workshop') !== -1) return 'courses';
+    if (name.indexOf('private') !== -1 || name.indexOf('privat') !== -1 || name.indexOf('1-on-1') !== -1 || name.indexOf('personal') !== -1) return 'private';
+    return 'all';
   }
 
   function renderStoreItems(container) {
-    var html = '<div class="yb-store__grid">';
+    // Categorize services
     storeServices.forEach(function(s) {
-      var price = s.onlinePrice || s.price || 0;
-      html += '<div class="yb-store__item">';
-      html += '  <div class="yb-store__item-info">';
-      html += '    <h3 class="yb-store__item-name">' + esc(s.name) + '</h3>';
-      html += '    <span class="yb-store__item-price">' + formatDKK(price) + '</span>';
-      html += '  </div>';
-      html += '  <button class="yb-btn yb-btn--primary yb-store__item-btn" type="button" data-store-buy="' + s.id + '">' + t('store_buy') + '</button>';
-      html += '</div>';
+      s._category = categorizeService(s);
+    });
+
+    // ── Search bar ──
+    var html = '<div class="yb-store__search-wrap">';
+    html += '<svg class="yb-store__search-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#6F6A66" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>';
+    html += '<input type="text" class="yb-store__search" placeholder="' + (isDa() ? 'Søg efter pakker, medlemskaber...' : 'Search for packages, memberships...') + '" value="' + esc(storeSearchQuery) + '">';
+    if (storeSearchQuery) {
+      html += '<button type="button" class="yb-store__search-clear" aria-label="Clear">&times;</button>';
+    }
+    html += '</div>';
+
+    // ── Category tabs ──
+    html += '<div class="yb-store__categories">';
+    storeCategories.forEach(function(cat) {
+      var count = cat.id === 'all'
+        ? storeServices.length
+        : storeServices.filter(function(s) { return s._category === cat.id; }).length;
+      if (count === 0 && cat.id !== 'all') return;
+      var isActive = storeActiveCategory === cat.id;
+      html += '<button class="yb-store__cat-btn' + (isActive ? ' is-active' : '') + '" type="button" data-store-cat="' + cat.id + '">';
+      html += (isDa() ? cat.da : cat.en);
+      if (cat.id !== 'all') html += ' <span class="yb-store__cat-count">' + count + '</span>';
+      html += '</button>';
     });
     html += '</div>';
+
+    // ── Filter by category + search ──
+    var filtered = storeActiveCategory === 'all'
+      ? storeServices
+      : storeServices.filter(function(s) { return s._category === storeActiveCategory; });
+
+    if (storeSearchQuery) {
+      var q = storeSearchQuery.toLowerCase();
+      filtered = filtered.filter(function(s) {
+        return (s.name || '').toLowerCase().indexOf(q) !== -1
+            || (s.description || '').toLowerCase().indexOf(q) !== -1;
+      });
+    }
+
+    // ── Results count ──
+    html += '<div class="yb-store__results-count">';
+    html += filtered.length + ' ' + (isDa() ? (filtered.length === 1 ? 'resultat' : 'resultater') : (filtered.length === 1 ? 'result' : 'results'));
+    html += '</div>';
+
+    // ── Item grid ──
+    html += '<div class="yb-store__grid">';
+    filtered.forEach(function(s) {
+      var price = s.onlinePrice || s.price || 0;
+      var isContract = s._itemType === 'contract';
+
+      html += '<div class="yb-store__item' + (isContract ? ' yb-store__item--contract' : '') + '">';
+
+      // Badges row
+      var badges = [];
+      if (isContract && s.firstMonthFree) {
+        badges.push('<span class="yb-store__badge yb-store__badge--free">' + (isDa() ? 'Første måned gratis' : 'First month free') + '</span>');
+      }
+      if (isContract) {
+        badges.push('<span class="yb-store__badge yb-store__badge--membership">' + (isDa() ? 'Medlemskab' : 'Membership') + '</span>');
+      }
+      if (badges.length) {
+        html += '<div class="yb-store__item-badges">' + badges.join('') + '</div>';
+      }
+
+      html += '<div class="yb-store__item-info">';
+      html += '  <h3 class="yb-store__item-name">' + esc(s.name) + '</h3>';
+
+      // Description (truncated)
+      if (s.description) {
+        var desc = s.description.length > 120 ? s.description.substring(0, 120) + '...' : s.description;
+        html += '  <p class="yb-store__item-desc">' + esc(desc) + '</p>';
+      }
+
+      // Pricing section
+      html += '  <div class="yb-store__item-pricing">';
+      html += '    <span class="yb-store__item-price">' + formatDKK(price) + '</span>';
+      if (isContract && s._recurringInfo) {
+        html += '    <span class="yb-store__item-recurring">' + esc(s._recurringInfo) + '</span>';
+      } else if (s.count && s.count < 9999) {
+        html += '    <span class="yb-store__item-count">' + s.count + ' ' + (isDa() ? 'klip' : 'sessions') + '</span>';
+      }
+      html += '  </div>';
+
+      // Contract terms (bullet list of key terms)
+      if (isContract && s._terms && s._terms.length) {
+        html += '  <ul class="yb-store__item-terms">';
+        s._terms.forEach(function(term) {
+          html += '    <li>' + esc(term) + '</li>';
+        });
+        // Always link to T&C
+        html += '    <li><a href="' + (isDa() ? '/terms-conditions/' : '/en/terms-conditions/') + '" target="_blank" rel="noopener">' + (isDa() ? 'Se handelsbetingelser' : 'View terms & conditions') + '</a></li>';
+        html += '  </ul>';
+      }
+
+      html += '</div>'; // item-info
+
+      html += '<button class="yb-btn yb-btn--primary yb-store__item-btn" type="button" data-store-buy="' + s.id + '" data-item-type="' + (s._itemType || 'service') + '">' + t('store_buy') + '</button>';
+      html += '</div>'; // item
+    });
+    if (!filtered.length) {
+      html += '<p class="yb-store__empty">' + (storeSearchQuery
+        ? (isDa() ? 'Ingen resultater for "' + esc(storeSearchQuery) + '"' : 'No results for "' + esc(storeSearchQuery) + '"')
+        : t('store_empty')) + '</p>';
+    }
+    html += '</div>';
+
     container.innerHTML = html;
+
+    // ── Attach search handler ──
+    var searchInput = container.querySelector('.yb-store__search');
+    if (searchInput) {
+      searchInput.addEventListener('input', function() {
+        storeSearchQuery = this.value;
+        renderStoreItems(container);
+      });
+      // Keep focus after re-render
+      if (storeSearchQuery) {
+        searchInput.focus();
+        searchInput.setSelectionRange(storeSearchQuery.length, storeSearchQuery.length);
+      }
+    }
+    var clearBtn = container.querySelector('.yb-store__search-clear');
+    if (clearBtn) {
+      clearBtn.addEventListener('click', function() {
+        storeSearchQuery = '';
+        renderStoreItems(container);
+      });
+    }
+
+    // ── Attach category tab handlers ──
+    container.querySelectorAll('[data-store-cat]').forEach(function(btn) {
+      btn.addEventListener('click', function() {
+        storeActiveCategory = btn.getAttribute('data-store-cat');
+        renderStoreItems(container);
+      });
+    });
+
+    // ── Attach buy handlers ──
     container.querySelectorAll('[data-store-buy]').forEach(function(btn) {
-      btn.addEventListener('click', function() { openCheckout(btn.getAttribute('data-store-buy')); });
+      btn.addEventListener('click', function() { openCheckout(btn.getAttribute('data-store-buy'), btn.getAttribute('data-item-type') || 'service'); });
     });
   }
 
-  function openCheckout(serviceId) {
+  function openCheckout(serviceId, itemType) {
     var service = storeServices.find(function(s) { return String(s.id) === String(serviceId); });
     if (!service) return;
     var listEl = document.getElementById('yb-store-list');
@@ -530,9 +1223,24 @@
     if (listEl) listEl.style.display = 'none';
     if (checkoutEl) checkoutEl.hidden = false;
     var price = service.onlinePrice || service.price || 0;
-    if (itemEl) itemEl.innerHTML = '<span class="yb-store__checkout-item-name">' + esc(service.name) + '</span><span class="yb-store__checkout-item-price">' + formatDKK(price) + '</span>';
+    var isContract = service._itemType === 'contract';
+    var itemHtml = '<div class="yb-store__checkout-item-details">';
+    itemHtml += '<span class="yb-store__checkout-item-name">' + esc(service.name) + '</span>';
+    if (isContract && service._recurringInfo) {
+      itemHtml += '<span class="yb-store__checkout-item-recurring">' + esc(service._recurringInfo) + '</span>';
+    }
+    if (isContract && service._terms && service._terms.length) {
+      itemHtml += '<ul class="yb-store__checkout-terms">';
+      service._terms.forEach(function(term) { itemHtml += '<li>' + esc(term) + '</li>'; });
+      itemHtml += '</ul>';
+    }
+    itemHtml += '</div>';
+    itemHtml += '<span class="yb-store__checkout-item-price">' + formatDKK(price) + '</span>';
+    if (itemEl) itemEl.innerHTML = itemHtml;
     checkoutEl.setAttribute('data-service-id', service.id);
     checkoutEl.setAttribute('data-service-price', price);
+    checkoutEl.setAttribute('data-item-type', itemType || service._itemType || 'service');
+    if (service.locationId) checkoutEl.setAttribute('data-location-id', service.locationId);
     var holderInput = document.getElementById('yb-store-cardholder');
     if (holderInput && currentUser && currentUser.displayName) holderInput.value = currentUser.displayName;
     var errEl = document.getElementById('yb-store-error');
@@ -565,20 +1273,69 @@
     payBtn.disabled = true;
     payBtn.textContent = isDa() ? 'Behandler betaling...' : 'Processing payment...';
 
-    if (!clientId) { showSimpleError(errorEl, isDa() ? 'Din konto er ikke klar endnu.' : 'Your account is not ready yet.'); payBtn.disabled = false; payBtn.textContent = payBtnText; return; }
+    if (!clientId) {
+      // Try to sync account first, then retry
+      showSimpleError(errorEl, isDa() ? 'Vent venligst — vi opretter din konto...' : 'Please wait — setting up your account...');
+      var syncUser = firebase.auth().currentUser;
+      if (syncUser && currentDb) {
+        var fn = (syncUser.displayName || '').split(' ')[0] || '';
+        var ln = (syncUser.displayName || '').split(' ').slice(1).join(' ') || '';
+        fetch('/.netlify/functions/mb-sync', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email: syncUser.email, firstName: fn, lastName: ln })
+        }).then(function(r) { return r.json(); }).then(function(syncData) {
+          if (syncData.clientId) {
+            clientId = String(syncData.clientId);
+            currentDb.collection('users').doc(syncUser.uid).update({ mindbodyClientId: clientId });
+            showSimpleError(errorEl, isDa() ? 'Konto oprettet! Prøv igen.' : 'Account ready! Please try again.');
+          } else {
+            showSimpleError(errorEl, isDa() ? 'Kunne ikke oprette konto. Kontakt os.' : 'Could not set up account. Contact us.');
+          }
+        }).catch(function() {
+          showSimpleError(errorEl, isDa() ? 'Kunne ikke oprette konto. Kontakt os.' : 'Could not set up account. Contact us.');
+        });
+      }
+      payBtn.disabled = false; payBtn.textContent = payBtnText; return;
+    }
 
-    fetch('/.netlify/functions/mb-checkout', {
-      method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
+    var itemType = checkoutEl.getAttribute('data-item-type') || 'service';
+    var paymentInfo = {
+      cardNumber: cardNumber, expMonth: expParts[0], expYear: expParts[1] ? '20' + expParts[1] : '',
+      cvv: cvv, cardHolder: cardHolder, billingAddress: address, billingCity: city, billingPostalCode: zip,
+      saveCard: saveCard ? saveCard.checked : false
+    };
+
+    var fetchUrl, fetchBody;
+    if (itemType === 'contract') {
+      // Contract purchase uses /sale/purchasecontract via mb-contracts POST
+      var locationId = checkoutEl.getAttribute('data-location-id');
+      var promoCode = checkoutEl.getAttribute('data-promo-code') || '';
+      fetchUrl = '/.netlify/functions/mb-contracts';
+      fetchBody = {
+        clientId: clientId,
+        contractId: Number(serviceId),
+        locationId: locationId ? Number(locationId) : 1,
+        startDate: new Date().toISOString().split('T')[0],
+        payment: paymentInfo
+      };
+      if (promoCode) {
+        fetchBody.promoCode = promoCode;
+        console.log('[Checkout] Applying promo code:', promoCode);
+      }
+    } else {
+      // Service purchase uses /sale/cartcheckout via mb-checkout POST
+      fetchUrl = '/.netlify/functions/mb-checkout';
+      fetchBody = {
         clientId: clientId,
         items: [{ type: 'Service', id: Number(serviceId), quantity: 1 }],
         amount: amount,
-        payment: {
-          cardNumber: cardNumber, expMonth: expParts[0], expYear: expParts[1] ? '20' + expParts[1] : '',
-          cvv: cvv, cardHolder: cardHolder, billingAddress: address, billingCity: city, billingPostalCode: zip,
-          saveCard: saveCard ? saveCard.checked : false
-        }
-      })
+        payment: paymentInfo
+      };
+    }
+
+    fetch(fetchUrl, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(fetchBody)
     }).then(function(r) { return r.json(); })
       .then(function(data) {
         if (data.success) {
@@ -671,11 +1428,36 @@
     // Also load pass info for the schedule banner
     loadSchedulePassInfo();
 
-    fetch(url)
-      .then(function(r) { return r.json(); })
-      .then(function(data) {
-        var classes = data.classes || [];
+    // Fetch classes and visits in parallel to detect already-booked classes
+    var classesPromise = fetch(url).then(function(r) { return r.json(); });
+    var visitsPromise = clientId
+      ? fetch('/.netlify/functions/mb-visits?clientId=' + clientId + '&startDate=' + startStr + '&endDate=' + endStr)
+          .then(function(r) { return r.json(); })
+          .catch(function() { return { visits: [] }; })
+      : Promise.resolve({ visits: [] });
+
+    Promise.all([classesPromise, visitsPromise])
+      .then(function(results) {
+        var classes = results[0].classes || [];
+        var visits = results[1].visits || [];
+
         if (!classes.length) { listEl.innerHTML = '<p class="yb-store__empty">' + t('schedule_empty') + '</p>'; return; }
+
+        // Build set of booked class IDs from future visits
+        var bookedClassIds = {};
+        visits.forEach(function(v) {
+          if (v.classId && v.isFuture && !v.lateCancelled) {
+            bookedClassIds[v.classId] = true;
+          }
+        });
+
+        // Mark classes as booked if found in visits
+        classes.forEach(function(cls) {
+          if (bookedClassIds[cls.id]) {
+            cls.isBooked = true;
+          }
+        });
+
         renderSchedule(listEl, classes, start);
       })
       .catch(function() { listEl.innerHTML = '<p class="yb-store__error">' + t('schedule_error') + '</p>'; });
@@ -703,13 +1485,21 @@
   }
 
   function renderSchedulePassInfo(passInfoEl, noPassEl, data) {
-    if (data.hasActivePass) {
-      // Show pass info, hide "buy pass"
+    var activeServices = data.activeServices || [];
+    var activeContracts = data.activeContracts || [];
+    var hasMembership = activeContracts.length > 0;
+
+    var hasAnyActivePass = (data.activeServices && data.activeServices.length > 0) || (data.activeContracts && data.activeContracts.length > 0);
+
+    if (hasAnyActivePass) {
+      // Always hide buy-pass banner for active pass holders
       if (noPassEl) noPassEl.hidden = true;
-      var active = data.activeServices || [];
-      if (active.length) {
-        var s = active[0]; // Show primary active pass
-        var html = '<div class="yb-schedule__pass-detail">';
+
+      var html = '';
+
+      // Show each active pass/clip card
+      activeServices.forEach(function(s) {
+        html += '<div class="yb-schedule__pass-detail">';
         html += '<div class="yb-schedule__pass-detail-info">';
         html += '<span class="yb-schedule__pass-detail-label">' + t('schedule_pass_info') + '</span>';
         html += '<span class="yb-schedule__pass-detail-name">' + esc(s.name) + '</span>';
@@ -717,6 +1507,11 @@
         html += '<div class="yb-schedule__pass-detail-stats">';
         if (s.remaining != null) {
           html += '<span class="yb-schedule__pass-stat"><strong>' + s.remaining + '</strong> ' + t('schedule_remaining') + '</span>';
+          // Show low-clip warning when below 3
+          if (s.remaining > 0 && s.remaining < 3) {
+            html += '<span class="yb-schedule__pass-stat yb-schedule__pass-stat--low">' +
+              (isDa() ? 'Snart opbrugt — overvej at fylde op' : 'Running low — consider topping up') + '</span>';
+          }
         }
         if (s.expirationDate) {
           var expDate = new Date(s.expirationDate);
@@ -724,11 +1519,33 @@
         }
         html += '</div>';
         html += '</div>';
+      });
+
+      // Show membership info (no buy-pass prompt for members)
+      activeContracts.forEach(function(c) {
+        html += '<div class="yb-schedule__pass-detail yb-schedule__pass-detail--membership">';
+        html += '<div class="yb-schedule__pass-detail-info">';
+        html += '<span class="yb-schedule__pass-detail-label">' + (isDa() ? 'Medlemskab' : 'Membership') + '</span>';
+        html += '<span class="yb-schedule__pass-detail-name">' + esc(c.name) + '</span>';
+        html += '</div>';
+        if (c.endDate) {
+          html += '<div class="yb-schedule__pass-detail-stats">';
+          var endDate = new Date(c.endDate);
+          html += '<span class="yb-schedule__pass-stat">' + (isDa() ? 'Fornyes' : 'Renews') + ' ' + endDate.toLocaleDateString(isDa() ? 'da-DK' : 'en-GB', { day: 'numeric', month: 'short' }) + '</span>';
+          html += '</div>';
+        }
+        html += '</div>';
+      });
+
+      if (html) {
         passInfoEl.innerHTML = html;
         passInfoEl.hidden = false;
       }
+    } else {
+      // No active pass — show the buy-pass banner
+      if (passInfoEl) passInfoEl.hidden = true;
+      if (noPassEl) noPassEl.hidden = false;
     }
-    // Don't show no-pass by default — only show after a booking fails
   }
 
   function renderSchedule(container, classes, weekStart) {
@@ -765,13 +1582,18 @@
         var isPast = new Date(cls.startDateTime) < new Date();
         var descId = 'yb-desc-' + cls.id;
 
-        html += '<div class="yb-schedule__class' + (cls.isCanceled ? ' is-cancelled' : '') + (isPast ? ' is-past' : '') + '">';
+        html += '<div class="yb-schedule__class' + (cls.isCanceled ? ' is-cancelled' : '') + (isPast ? ' is-past' : '') + '"' + (cls.programId ? ' data-program-id="' + cls.programId + '"' : '') + '>';
         html += '  <div class="yb-schedule__class-time">' + startTime + ' – ' + endTime + '</div>';
         html += '  <div class="yb-schedule__class-info">';
         html += '    <span class="yb-schedule__class-name">' + esc(cls.name) + '</span>';
-        html += '    <span class="yb-schedule__class-instructor">' + esc(cls.instructor) + '</span>';
-        if (cls.spotsLeft !== null && cls.spotsLeft > 0 && !cls.isCanceled && !isPast) {
-          html += '    <span class="yb-schedule__class-spots">' + cls.spotsLeft + ' ' + t('schedule_spots_left') + '</span>';
+        var bioId = 'yb-bio-' + cls.id;
+        if (cls.instructorId && cls.instructor !== 'TBA') {
+          html += '    <span class="yb-schedule__class-instructor yb-schedule__class-instructor--clickable" data-toggle-bio="' + bioId + '" data-staff-id="' + cls.instructorId + '">' + esc(cls.instructor) + '</span>';
+        } else {
+          html += '    <span class="yb-schedule__class-instructor">' + esc(cls.instructor) + '</span>';
+        }
+        if (cls.spotsLeft !== null && cls.spotsLeft > 0 && cls.spotsLeft <= 7 && !cls.isCanceled && !isPast) {
+          html += '    <span class="yb-schedule__class-spots">' + (isDa() ? 'Få pladser tilbage' : 'Few spots left') + '</span>';
         }
         // Class description toggle
         if (cls.description) {
@@ -787,7 +1609,7 @@
         } else if (cls.isBooked) {
           html += '<button class="yb-btn yb-btn--outline yb-schedule__cancel-btn" type="button" data-schedule-cancel="' + cls.id + '">' + t('schedule_cancel') + '</button>';
         } else if (cls.spotsLeft === 0) {
-          html += '<span class="yb-schedule__badge yb-schedule__badge--full">' + t('schedule_full') + '</span>';
+          html += '<button class="yb-btn yb-btn--outline yb-schedule__waitlist-btn" type="button" data-schedule-waitlist="' + cls.id + '">' + (isDa() ? 'Skriv op' : 'Join Waitlist') + '</button>';
         } else {
           // Always show Book for available future classes — let backend validate
           html += '<button class="yb-btn yb-btn--primary yb-schedule__book-btn" type="button" data-schedule-book="' + cls.id + '">' + t('schedule_book') + '</button>';
@@ -795,6 +1617,11 @@
 
         html += '  </div>';
         html += '</div>';
+
+        // Teacher bio (loaded on demand)
+        if (cls.instructorId && cls.instructor !== 'TBA') {
+          html += '<div class="yb-schedule__teacher-bio" id="' + bioId + '" hidden></div>';
+        }
 
         // Expandable description (render HTML from Mindbody)
         if (cls.description) {
@@ -816,6 +1643,38 @@
     container.querySelectorAll('[data-schedule-cancel]').forEach(function(btn) {
       btn.addEventListener('click', function() { cancelClass(btn); });
     });
+    // Attach waitlist handlers
+    container.querySelectorAll('[data-schedule-waitlist]').forEach(function(btn) {
+      btn.addEventListener('click', function() {
+        if (!clientId) {
+          showScheduleToast(isDa() ? 'Køb et pas først i Butik-fanen.' : 'Buy a pass first in the Store tab.', 'error');
+          return;
+        }
+        var classId = btn.getAttribute('data-schedule-waitlist');
+        btn.disabled = true;
+        btn.textContent = isDa() ? 'Tilmelder...' : 'Joining...';
+        fetch('/.netlify/functions/mb-waitlist', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ clientId: clientId, classScheduleId: Number(classId) })
+        }).then(function(r) { return r.json(); })
+          .then(function(data) {
+            if (data.success || data.WaitlistEntry) {
+              showScheduleToast(isDa() ? 'Du er på ventelisten!' : "You're on the waiting list!", 'success');
+              btn.textContent = isDa() ? 'På venteliste' : 'On waitlist';
+              btn.disabled = true;
+            } else {
+              showScheduleToast(data.error || (isDa() ? 'Kunne ikke tilmelde venteliste.' : 'Could not join waitlist.'), 'error');
+              btn.textContent = isDa() ? 'Skriv op' : 'Join Waitlist';
+              btn.disabled = false;
+            }
+          })
+          .catch(function() {
+            showScheduleToast(isDa() ? 'Fejl. Prøv igen.' : 'Error. Try again.', 'error');
+            btn.textContent = isDa() ? 'Skriv op' : 'Join Waitlist';
+            btn.disabled = false;
+          });
+      });
+    });
     // Attach description toggle handlers
     container.querySelectorAll('[data-toggle-desc]').forEach(function(btn) {
       btn.addEventListener('click', function() {
@@ -827,13 +1686,112 @@
         }
       });
     });
+
+    // Attach teacher bio toggle handlers
+    container.querySelectorAll('[data-toggle-bio]').forEach(function(el) {
+      el.addEventListener('click', function() {
+        var bioEl = document.getElementById(el.getAttribute('data-toggle-bio'));
+        if (!bioEl) return;
+
+        if (!bioEl.hidden) {
+          bioEl.hidden = true;
+          return;
+        }
+
+        var staffId = el.getAttribute('data-staff-id');
+
+        // Check cache first
+        if (staffCache[staffId]) {
+          renderTeacherBio(bioEl, staffCache[staffId]);
+          bioEl.hidden = false;
+          return;
+        }
+
+        // Fetch staff details
+        bioEl.innerHTML = '<p class="yb-schedule__teacher-bio-text">' + (isDa() ? 'Henter...' : 'Loading...') + '</p>';
+        bioEl.hidden = false;
+
+        fetch('/.netlify/functions/mb-staff?staffId=' + staffId)
+          .then(function(r) { return r.json(); })
+          .then(function(data) {
+            var staff = (data.staff || [])[0];
+            if (staff) {
+              staffCache[staffId] = staff;
+              renderTeacherBio(bioEl, staff);
+            } else {
+              bioEl.innerHTML = '<p class="yb-schedule__teacher-bio-text">' + (isDa() ? 'Ingen info tilgængelig.' : 'No info available.') + '</p>';
+            }
+          })
+          .catch(function() {
+            bioEl.innerHTML = '<p class="yb-schedule__teacher-bio-text">' + (isDa() ? 'Kunne ikke hente info.' : 'Could not load info.') + '</p>';
+          });
+      });
+    });
+  }
+
+  function renderTeacherBio(container, staff) {
+    var html = '';
+    if (staff.imageUrl) {
+      html += '<img class="yb-schedule__teacher-photo" src="' + esc(staff.imageUrl) + '" alt="' + esc(staff.name) + '">';
+    }
+    html += '<div class="yb-schedule__teacher-info">';
+    html += '<p class="yb-schedule__teacher-name">' + esc(staff.name) + '</p>';
+    if (staff.bio) {
+      html += '<p class="yb-schedule__teacher-bio-text">' + staff.bio + '</p>';
+    } else {
+      html += '<p class="yb-schedule__teacher-bio-text">' + (isDa() ? 'Ingen biografi tilgængelig.' : 'No biography available.') + '</p>';
+    }
+    html += '</div>';
+    container.innerHTML = html;
+  }
+
+  /**
+   * Check if the client's active passes cover this class's program.
+   * Returns true if they have a matching service or an active contract (membership).
+   */
+  function clientCanBook(programId) {
+    if (!clientPassData) return true; // If pass data not loaded, let backend decide
+    if (!programId) return true; // If class has no program info, let backend decide
+
+    // Active contracts (memberships) typically cover all classes
+    if (clientPassData.activeContracts && clientPassData.activeContracts.length > 0) {
+      return true;
+    }
+
+    // Check if any active service covers this program
+    var activeServices = clientPassData.activeServices || [];
+    for (var i = 0; i < activeServices.length; i++) {
+      if (activeServices[i].programId === programId) {
+        return true;
+      }
+    }
+    return false;
   }
 
   function bookClass(btn) {
     var classId = btn.getAttribute('data-schedule-book');
     if (!clientId) {
+      showScheduleToast(isDa() ? 'Køb et pas først i Butik-fanen.' : 'Buy a pass first in the Store tab.', 'error');
       var noPassEl = document.getElementById('yb-schedule-no-pass');
       if (noPassEl) noPassEl.hidden = false;
+      return;
+    }
+
+    // Check if client has ANY active pass
+    var hasAnyPass = clientPassData && ((clientPassData.activeServices && clientPassData.activeServices.length > 0) || (clientPassData.activeContracts && clientPassData.activeContracts.length > 0));
+    if (!hasAnyPass) {
+      showScheduleToast(isDa() ? 'Køb et pas først i Butik-fanen.' : 'Buy a pass first in the Store tab.', 'error');
+      var noPassEl = document.getElementById('yb-schedule-no-pass');
+      if (noPassEl) noPassEl.hidden = false;
+      return;
+    }
+
+    // Check if client's pass covers this class's program BEFORE sending request
+    var classRow = btn.closest('.yb-schedule__class');
+    var programId = classRow ? Number(classRow.getAttribute('data-program-id')) : null;
+
+    if (!clientCanBook(programId)) {
+      showScheduleToast(isDa() ? 'Dit pas dækker ikke denne type klasse.' : "Your pass doesn't cover this class type.", 'error');
       return;
     }
 
@@ -895,7 +1853,13 @@
     }).then(function(r) { return r.json(); })
       .then(function(data) {
         if (data.success) {
-          showScheduleToast(isDa() ? 'Booking annulleret.' : 'Booking cancelled.', 'success');
+          if (data.lateCancel) {
+            showScheduleToast(isDa()
+              ? 'Sen annullering — kan medføre gebyr.'
+              : 'Late cancellation — may incur fees.', 'warning');
+          } else {
+            showScheduleToast(isDa() ? 'Booking annulleret.' : 'Booking cancelled.', 'success');
+          }
           // Switch button back to Book
           btn.textContent = isDa() ? 'Book' : 'Book';
           btn.className = 'yb-btn yb-btn--primary yb-schedule__book-btn';
@@ -921,10 +1885,22 @@
   function showScheduleToast(msg, type) {
     var el = document.getElementById('yb-schedule-toast');
     if (!el) return;
-    el.textContent = msg;
     el.className = 'yb-schedule__toast yb-schedule__toast--' + type;
+
+    // For late cancel, show rich HTML with wellness note
+    if (type === 'warning' && msg.indexOf('late') !== -1 || msg.indexOf('Sen') !== -1) {
+      el.innerHTML = '<div class="yb-schedule__toast-main">' + esc(msg) + '</div>' +
+        '<div class="yb-schedule__toast-note">' +
+        (isDa()
+          ? 'Gebyrer for sen afmelding og udeblivelse går til ekstra wellness: ingefærshots, urtete, frosne ansigtshåndklæder og rene håndklæder til alle besøg.'
+          : 'Late cancellation and no-show fees go towards extra wellness: ginger shots, herbal tea, frozen face towels, and clean hand towels on every visit.') +
+        '</div>';
+    } else {
+      el.textContent = msg;
+    }
+
     el.hidden = false;
-    setTimeout(function() { el.hidden = true; }, 3500);
+    setTimeout(function() { el.hidden = true; }, type === 'warning' ? 6000 : 3500);
   }
 
   // ══════════════════════════════════════
@@ -945,27 +1921,56 @@
         }
       });
     });
+
+    // Time period selector for visits
+    var visitsPeriodEl = document.getElementById('yb-visits-period');
+    if (visitsPeriodEl) {
+      visitsPeriodEl.addEventListener('change', function() {
+        loadVisits(this.value);
+      });
+    }
+
+    // Time period selector for receipts
+    var receiptsPeriodEl = document.getElementById('yb-receipts-period');
+    if (receiptsPeriodEl) {
+      receiptsPeriodEl.addEventListener('change', function() {
+        loadReceipts(this.value);
+      });
+    }
   }
 
   function filterVisits(visits) {
     if (activeVisitFilter === 'all') return visits;
     var now = new Date();
     return visits.filter(function(v) {
-      if (activeVisitFilter === 'upcoming') return v.isFuture || new Date(v.startDateTime) > now;
+      var classTime = new Date(v.startDateTime);
+      var isUpcoming = classTime > now; // Compare datetime, not just date
+      if (activeVisitFilter === 'upcoming') return isUpcoming && !v.lateCancelled;
       if (activeVisitFilter === 'attended') return v.signedIn;
-      if (activeVisitFilter === 'noshow') return !v.signedIn && !v.lateCancelled && !v.isFuture && new Date(v.startDateTime) <= now;
+      if (activeVisitFilter === 'lateCancelled') return v.lateCancelled;
+      if (activeVisitFilter === 'noshow') return !v.signedIn && !v.lateCancelled && !isUpcoming;
       return true;
     });
   }
 
-  function loadVisits() {
+  var visitsPeriod = '90'; // default 90 days
+
+  function loadVisits(period) {
     var listEl = document.getElementById('yb-visits-list');
     if (!listEl || !clientId) {
       if (listEl) listEl.innerHTML = '<p class="yb-store__empty">' + t('visits_empty') + '</p>';
       return;
     }
 
-    fetch('/.netlify/functions/mb-visits?clientId=' + clientId)
+    if (period) visitsPeriod = period;
+
+    listEl.innerHTML = '<div class="yb-store__loading"><div class="yb-mb-spinner"></div><span>' + (isDa() ? 'Henter besøg...' : 'Loading visits...') + '</span></div>';
+
+    var now = new Date();
+    var startDate = new Date(now.getTime() - Number(visitsPeriod) * 86400000).toISOString().split('T')[0];
+    var endDate = new Date(now.getTime() + 30 * 86400000).toISOString().split('T')[0];
+
+    fetch('/.netlify/functions/mb-visits?clientId=' + clientId + '&startDate=' + startDate + '&endDate=' + endDate)
       .then(function(r) { return r.json(); })
       .then(function(data) {
         allVisits = data.visits || [];
@@ -976,15 +1981,45 @@
   }
 
   function renderVisits(container, visits) {
-    // Sort newest first
-    visits.sort(function(a, b) { return new Date(b.startDateTime) - new Date(a.startDateTime); });
+    // Sort: upcoming first (by date asc), then past (by date desc)
+    var now = new Date();
+    visits.sort(function(a, b) {
+      var aTime = new Date(a.startDateTime);
+      var bTime = new Date(b.startDateTime);
+      var aUp = aTime > now;
+      var bUp = bTime > now;
+      if (aUp && bUp) return aTime - bTime;
+      if (!aUp && !bUp) return bTime - aTime;
+      return aUp ? -1 : 1;
+    });
 
     if (!visits.length) {
       container.innerHTML = '<p class="yb-store__empty">' + t('visits_empty') + '</p>';
       return;
     }
 
-    var html = '<div class="yb-visits__table">';
+    // Count statuses from ALL visits (not just filtered)
+    var counts = { upcoming: 0, attended: 0, lateCancelled: 0, noshow: 0, total: allVisits.length };
+    allVisits.forEach(function(v) {
+      var classTime = new Date(v.startDateTime);
+      if (v.lateCancelled) counts.lateCancelled++;
+      else if (classTime > now) counts.upcoming++;
+      else if (v.signedIn) counts.attended++;
+      else counts.noshow++;
+    });
+
+    var html = '';
+
+    // Status summary bar
+    html += '<div class="yb-visits__summary">';
+    html += '<div class="yb-visits__summary-item"><strong>' + counts.upcoming + '</strong><span>' + (isDa() ? 'Kommende' : 'Upcoming') + '</span></div>';
+    html += '<div class="yb-visits__summary-item"><strong>' + counts.attended + '</strong><span>' + (isDa() ? 'Deltaget' : 'Attended') + '</span></div>';
+    html += '<div class="yb-visits__summary-item yb-visits__summary-item--warn"><strong>' + counts.lateCancelled + '</strong><span>' + (isDa() ? 'Sen afmelding' : 'Late Cancel') + '</span></div>';
+    html += '<div class="yb-visits__summary-item yb-visits__summary-item--danger"><strong>' + counts.noshow + '</strong><span>' + (isDa() ? 'Udeblivelse' : 'No-show') + '</span></div>';
+    html += '</div>';
+
+    // Table
+    html += '<div class="yb-visits__table">';
     html += '<div class="yb-visits__row yb-visits__row--header">';
     html += '<span>' + (isDa() ? 'Dato' : 'Date') + '</span>';
     html += '<span>' + (isDa() ? 'Hold' : 'Class') + '</span>';
@@ -992,20 +2027,18 @@
     html += '<span>' + (isDa() ? 'Status' : 'Status') + '</span>';
     html += '</div>';
 
-    var now = new Date();
-
     visits.forEach(function(v) {
       var d = new Date(v.startDateTime);
       var dateStr = d.toLocaleDateString(isDa() ? 'da-DK' : 'en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
       var timeStr = formatTime(v.startDateTime);
-      var isFuture = v.isFuture || d > now;
+      var isUpcoming = d > now; // Use full datetime comparison
 
       var status = '';
       var statusClass = '';
       if (v.lateCancelled) {
         status = t('visits_late_cancel');
         statusClass = 'yb-visits__status--late';
-      } else if (isFuture) {
+      } else if (isUpcoming) {
         status = t('visits_booked');
         statusClass = 'yb-visits__status--booked';
       } else if (v.signedIn) {
@@ -1016,7 +2049,7 @@
         statusClass = 'yb-visits__status--noshow';
       }
 
-      html += '<div class="yb-visits__row' + (isFuture ? ' yb-visits__row--future' : '') + '">';
+      html += '<div class="yb-visits__row' + (isUpcoming ? ' yb-visits__row--future' : '') + '">';
       html += '<span class="yb-visits__date">' + dateStr + '<br><small>' + timeStr + '</small></span>';
       html += '<span class="yb-visits__name">' + esc(v.name) + '</span>';
       html += '<span class="yb-visits__instructor">' + esc(v.instructor) + '</span>';
@@ -1031,21 +2064,36 @@
   // ══════════════════════════════════════
   // RECEIPTS TAB
   // ══════════════════════════════════════
-  function loadReceipts() {
+  var receiptsPeriod = '365'; // default 1 year
+
+  function loadReceipts(period) {
     var listEl = document.getElementById('yb-receipts-list');
     if (!listEl || !clientId) {
       if (listEl) listEl.innerHTML = '<p class="yb-store__empty">' + t('receipts_empty') + '</p>';
       return;
     }
 
-    fetch('/.netlify/functions/mb-purchases?clientId=' + clientId)
+    if (period) receiptsPeriod = period;
+
+    listEl.innerHTML = '<div class="yb-store__loading"><div class="yb-mb-spinner"></div><span>' + (isDa() ? 'Henter kvitteringer...' : 'Loading receipts...') + '</span></div>';
+
+    var now = new Date();
+    var startDate = new Date(now.getTime() - Number(receiptsPeriod) * 86400000).toISOString().split('T')[0];
+    var endDate = now.toISOString().split('T')[0];
+
+    console.log('Receipts: fetching for clientId=' + clientId + ' range=' + startDate + ' to ' + endDate);
+    fetch('/.netlify/functions/mb-purchases?clientId=' + clientId + '&startDate=' + startDate + '&endDate=' + endDate)
       .then(function(r) { return r.json(); })
       .then(function(data) {
+        console.log('Receipts response:', data);
         var purchases = data.purchases || [];
         if (!purchases.length) { listEl.innerHTML = '<p class="yb-store__empty">' + t('receipts_empty') + '</p>'; return; }
         renderReceipts(listEl, purchases);
       })
-      .catch(function() { listEl.innerHTML = '<p class="yb-store__error">' + t('receipts_error') + '</p>'; });
+      .catch(function(err) {
+        console.error('Receipts error:', err);
+        listEl.innerHTML = '<p class="yb-store__error">' + t('receipts_error') + '</p>';
+      });
   }
 
   function renderReceipts(container, purchases) {
@@ -1054,38 +2102,199 @@
 
     var html = '<div class="yb-receipts__list-inner">';
 
-    purchases.forEach(function(p) {
+    purchases.forEach(function(p, idx) {
       var d = new Date(p.saleDate);
       var dateStr = d.toLocaleDateString(isDa() ? 'da-DK' : 'en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
       var name = p.serviceName || p.description || '—';
-      var paymentDisplay = p.paymentMethod || '—';
-      if (p.paymentLast4) paymentDisplay += ' ****' + p.paymentLast4;
+      var amount = p.amountPaid || p.price || 0;
 
-      html += '<div class="yb-receipts__card' + (p.returned ? ' yb-receipts__card--returned' : '') + '">';
+      // Build type badge
+      var typeBadge = '';
+      if (p.type === 'contract') {
+        typeBadge = '<span class="yb-receipts__badge yb-receipts__badge--contract">' + (isDa() ? 'Medlemskab' : 'Membership') + '</span>';
+      } else if (p.type === 'service') {
+        typeBadge = '<span class="yb-receipts__badge yb-receipts__badge--service">' + (isDa() ? 'Klippekort' : 'Pass') + '</span>';
+      } else if (p.type === 'sale') {
+        typeBadge = '<span class="yb-receipts__badge yb-receipts__badge--sale">' + (isDa() ? 'Køb' : 'Purchase') + '</span>';
+      }
+
+      html += '<div class="yb-receipts__card' + (p.returned ? ' yb-receipts__card--returned' : '') + '" data-receipt-idx="' + idx + '">';
+
+      // Header: date + badges
       html += '<div class="yb-receipts__card-header">';
       html += '<span class="yb-receipts__card-date">' + dateStr + '</span>';
+      html += '<div class="yb-receipts__card-badges">';
+      html += typeBadge;
       if (p.returned) {
-        html += '<span class="yb-receipts__card-badge yb-receipts__card-badge--returned">' + (isDa() ? 'Refunderet' : 'Refunded') + '</span>';
+        html += '<span class="yb-receipts__badge yb-receipts__badge--returned">' + (isDa() ? 'Refunderet' : 'Refunded') + '</span>';
+      }
+      if (p.current) {
+        html += '<span class="yb-receipts__badge yb-receipts__badge--active">' + (isDa() ? 'Aktiv' : 'Active') + '</span>';
       }
       html += '</div>';
+      html += '</div>';
+
+      // Body: name
       html += '<div class="yb-receipts__card-body">';
       html += '<span class="yb-receipts__card-name">' + esc(name) + '</span>';
+      if (p.programName) {
+        html += '<span class="yb-receipts__card-program">' + esc(p.programName) + '</span>';
+      }
+      html += '</div>';
+
+      // Details grid
+      html += '<div class="yb-receipts__card-details">';
+
+      // Amount
+      html += '<div class="yb-receipts__detail">';
+      html += '<span class="yb-receipts__detail-label">' + (isDa() ? 'Beløb' : 'Amount') + '</span>';
+      html += '<span class="yb-receipts__detail-value">' + (amount > 0 ? formatDKK(amount) : (isDa() ? 'Inkluderet' : 'Included')) + '</span>';
+      html += '</div>';
+
+      // Payment method
+      if (p.paymentMethod) {
+        var paymentDisplay = p.paymentMethod;
+        if (p.paymentLast4) paymentDisplay += ' ****' + p.paymentLast4;
+        html += '<div class="yb-receipts__detail">';
+        html += '<span class="yb-receipts__detail-label">' + (isDa() ? 'Betaling' : 'Payment') + '</span>';
+        html += '<span class="yb-receipts__detail-value">' + esc(paymentDisplay) + '</span>';
+        html += '</div>';
+      }
+
+      // Quantity
       if (p.quantity > 1) {
-        html += '<span class="yb-receipts__card-qty">' + (isDa() ? 'Antal' : 'Qty') + ': ' + p.quantity + '</span>';
+        html += '<div class="yb-receipts__detail">';
+        html += '<span class="yb-receipts__detail-label">' + (isDa() ? 'Antal' : 'Qty') + '</span>';
+        html += '<span class="yb-receipts__detail-value">' + p.quantity + '</span>';
+        html += '</div>';
       }
-      html += '</div>';
-      html += '<div class="yb-receipts__card-footer">';
-      html += '<span class="yb-receipts__card-amount">' + formatDKK(p.amountPaid || p.price) + '</span>';
-      html += '<span class="yb-receipts__card-payment">' + esc(paymentDisplay) + '</span>';
-      html += '</div>';
+
+      // Remaining (for services)
+      if (typeof p.remaining === 'number' && p.count) {
+        html += '<div class="yb-receipts__detail">';
+        html += '<span class="yb-receipts__detail-label">' + (isDa() ? 'Klip brugt' : 'Sessions used') + '</span>';
+        html += '<span class="yb-receipts__detail-value">' + (p.count - p.remaining) + ' / ' + p.count + '</span>';
+        html += '</div>';
+      }
+
+      // Expiration
+      if (p.expirationDate) {
+        var expDate = new Date(p.expirationDate);
+        var expStr = expDate.toLocaleDateString(isDa() ? 'da-DK' : 'en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
+        html += '<div class="yb-receipts__detail">';
+        html += '<span class="yb-receipts__detail-label">' + (isDa() ? 'Udløber' : 'Expires') + '</span>';
+        html += '<span class="yb-receipts__detail-value">' + expStr + '</span>';
+        html += '</div>';
+      }
+
+      // Contract end date
+      if (p.contractEndDate) {
+        var endDate = new Date(p.contractEndDate);
+        var endStr = endDate.toLocaleDateString(isDa() ? 'da-DK' : 'en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
+        html += '<div class="yb-receipts__detail">';
+        html += '<span class="yb-receipts__detail-label">' + (isDa() ? 'Slutdato' : 'End date') + '</span>';
+        html += '<span class="yb-receipts__detail-value">' + endStr + '</span>';
+        html += '</div>';
+      }
+
+      // Autopay info
+      if (p.autopayAmount > 0) {
+        html += '<div class="yb-receipts__detail">';
+        html += '<span class="yb-receipts__detail-label">' + (isDa() ? 'Autopay' : 'Auto-pay') + '</span>';
+        html += '<span class="yb-receipts__detail-value">' + formatDKK(p.autopayAmount) + (isDa() ? '/md' : '/mo') + '</span>';
+        html += '</div>';
+      }
+
+      // Discount
       if (p.discount > 0) {
-        html += '<div class="yb-receipts__card-discount">' + (isDa() ? 'Rabat' : 'Discount') + ': -' + formatDKK(p.discount) + '</div>';
+        html += '<div class="yb-receipts__detail">';
+        html += '<span class="yb-receipts__detail-label">' + (isDa() ? 'Rabat' : 'Discount') + '</span>';
+        html += '<span class="yb-receipts__detail-value yb-receipts__detail-value--discount">-' + formatDKK(p.discount) + '</span>';
+        html += '</div>';
       }
+
+      // Tax
+      if (p.tax > 0) {
+        html += '<div class="yb-receipts__detail">';
+        html += '<span class="yb-receipts__detail-label">' + (isDa() ? 'Moms' : 'Tax') + '</span>';
+        html += '<span class="yb-receipts__detail-value">' + formatDKK(p.tax) + '</span>';
+        html += '</div>';
+      }
+
+      // Location
+      if (p.locationName) {
+        html += '<div class="yb-receipts__detail">';
+        html += '<span class="yb-receipts__detail-label">' + (isDa() ? 'Lokation' : 'Location') + '</span>';
+        html += '<span class="yb-receipts__detail-value">' + esc(p.locationName) + '</span>';
+        html += '</div>';
+      }
+
+      html += '</div>'; // end details grid
+
+      // Reference + download
+      html += '<div class="yb-receipts__card-actions">';
+      html += '<span class="yb-receipts__card-ref">#' + (p.saleId || p.id) + '</span>';
+      html += '<button class="yb-receipts__download-btn" type="button" data-receipt-download="' + idx + '">';
+      html += '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>';
+      html += (isDa() ? 'Download kvittering' : 'Download receipt');
+      html += '</button>';
       html += '</div>';
+
+      html += '</div>'; // end card
     });
 
     html += '</div>';
     container.innerHTML = html;
+
+    // Attach download handlers
+    container.querySelectorAll('[data-receipt-download]').forEach(function(btn) {
+      btn.addEventListener('click', function() {
+        var idx = parseInt(btn.getAttribute('data-receipt-download'), 10);
+        var p = purchases[idx];
+        if (!p) return;
+
+        var d = new Date(p.saleDate);
+        var dateStr = d.toLocaleDateString(isDa() ? 'da-DK' : 'en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
+        var name = p.serviceName || p.description || '—';
+        var amount = p.amountPaid || p.price || 0;
+
+        var txt = '═══════════════════════════════════\n';
+        txt += '       YOGA BIBLE — KVITTERING\n';
+        txt += '═══════════════════════════════════\n\n';
+        txt += (isDa() ? 'Dato: ' : 'Date: ') + dateStr + '\n';
+        txt += (isDa() ? 'Vare: ' : 'Item: ') + name + '\n';
+        if (p.programName) txt += (isDa() ? 'Program: ' : 'Program: ') + p.programName + '\n';
+        txt += (isDa() ? 'Beløb: ' : 'Amount: ') + (amount > 0 ? formatDKK(amount) : (isDa() ? 'Inkluderet' : 'Included')) + '\n';
+        if (p.paymentMethod) txt += (isDa() ? 'Betaling: ' : 'Payment: ') + p.paymentMethod + (p.paymentLast4 ? ' ****' + p.paymentLast4 : '') + '\n';
+        if (p.quantity > 1) txt += (isDa() ? 'Antal: ' : 'Qty: ') + p.quantity + '\n';
+        if (typeof p.remaining === 'number' && p.count) txt += (isDa() ? 'Klip brugt: ' : 'Sessions used: ') + (p.count - p.remaining) + ' / ' + p.count + '\n';
+        if (p.expirationDate) txt += (isDa() ? 'Udløber: ' : 'Expires: ') + new Date(p.expirationDate).toLocaleDateString(isDa() ? 'da-DK' : 'en-GB') + '\n';
+        if (p.discount > 0) txt += (isDa() ? 'Rabat: -' : 'Discount: -') + formatDKK(p.discount) + '\n';
+        if (p.tax > 0) txt += (isDa() ? 'Moms: ' : 'Tax: ') + formatDKK(p.tax) + '\n';
+        if (p.locationName) txt += (isDa() ? 'Lokation: ' : 'Location: ') + p.locationName + '\n';
+        txt += (isDa() ? 'Reference: #' : 'Reference: #') + (p.saleId || p.id) + '\n\n';
+        txt += '═══════════════════════════════════\n';
+        txt += 'Yoga Bible DK | yogabible.dk\n';
+        txt += 'Torvegade 66, 1400, København K\n';
+
+        var blob = new Blob([txt], { type: 'text/plain' });
+        var url = URL.createObjectURL(blob);
+        var a = document.createElement('a');
+        a.href = url;
+        a.download = 'kvittering-' + (p.saleId || p.id) + '.txt';
+        a.click();
+        URL.revokeObjectURL(url);
+      });
+    });
+  }
+
+  // ══════════════════════════════════════
+  // DATE FORMATTING
+  // ══════════════════════════════════════
+  function formatDateDK(date) {
+    if (!date) return '';
+    var d = new Date(date);
+    return d.toLocaleDateString(isDa() ? 'da-DK' : 'en-GB', { day: 'numeric', month: 'long', year: 'numeric' });
   }
 
   // ══════════════════════════════════════
@@ -1136,7 +2345,53 @@
       membership_autopay: isDa() ? 'Automatisk betaling' : 'Auto-pay',
       membership_status_active: isDa() ? 'Aktiv' : 'Active',
       membership_past_passes: isDa() ? 'Tidligere Klippekort' : 'Past Passes',
-      membership_no_past: isDa() ? 'Ingen tidligere klippekort.' : 'No past passes.'
+      membership_no_past: isDa() ? 'Ingen tidligere klippekort.' : 'No past passes.',
+      membership_manage_title: isDa() ? 'Administrer Abonnement' : 'Manage Subscription',
+      membership_pause_btn: isDa() ? 'Sæt på pause' : 'Pause',
+      membership_cancel_btn: isDa() ? 'Opsig abonnement' : 'Cancel membership',
+      membership_paused_badge: isDa() ? 'På pause' : 'Paused',
+      membership_terminating_badge: isDa() ? 'Opsagt' : 'Cancelled',
+      membership_terminated_badge: isDa() ? 'Medlemskab Opsagt' : 'Membership Terminated',
+      membership_last_billing: isDa() ? 'Sidste fakturering' : 'Last billing',
+      membership_notice_period: isDa()
+        ? '1 hel måneds opsigelsesvarsel jf. <a href="/terms-conditions/" target="_blank" rel="noopener">Handelsbetingelser</a>'
+        : '1 full month notification period per <a href="/en/terms-conditions/" target="_blank" rel="noopener">Terms &amp; Conditions</a>',
+      membership_active_until: isDa() ? 'Aktiv til' : 'Active until',
+      membership_revoke_btn: isDa() ? 'Fortryd opsigelse' : 'Revoke cancellation',
+      membership_revoke_confirming: isDa() ? 'Behandler...' : 'Processing...',
+      membership_revoke_success: isDa() ? 'Din opsigelse er fortrudt! Dit abonnement er aktivt igen.' : 'Your cancellation has been revoked! Your membership is active again.',
+      membership_revoke_error: isDa() ? 'Kunne ikke fortryde opsigelse. Kontakt os venligst.' : 'Could not revoke cancellation. Please contact us.',
+      membership_cancel_farewell: isDa() ? 'Vi er kede af at se dig gå. Dit abonnement er nu opsagt — du kan stadig bruge det indtil udgangen af den betalte periode.' : 'Sorry to see you go. Your membership has been cancelled — you can still use it until the end of the paid period.',
+      membership_retention_title: isDa() ? 'Vi savner dig allerede!' : 'We already miss you!',
+      membership_retention_desc: isDa() ? 'Genaktiver dit abonnement inden {date} og spar tilmeldingsgebyret.' : 'Reactivate your membership before {date} and save the registration fee.',
+      membership_retention_perk1: isDa() ? 'Ingen nyt tilmeldingsgebyr' : 'No new registration fee',
+      membership_retention_perk2: isDa() ? 'Første måned gratis' : 'First month free',
+      membership_retention_cta: isDa() ? 'Genaktiver — første måned gratis' : 'Reactivate — first month free',
+      membership_rejoin_cta: isDa() ? 'Bliv medlem igen' : 'Become a member again',
+      membership_pause_title: isDa() ? 'Sæt abonnement på pause' : 'Pause membership',
+      membership_pause_desc: isDa() ? 'Du kan sætte dit abonnement på pause i 14 dage til 3 måneder. Pausen starter efter din næste faktureringscyklus.' : 'You can pause your membership for 14 days to 3 months. The pause starts after your next billing cycle.',
+      membership_pause_start: isDa() ? 'Pause starter' : 'Pause starts',
+      membership_pause_end: isDa() ? 'Pause slutter' : 'Pause ends',
+      membership_pause_min: isDa() ? 'Minimum 14 dage' : 'Minimum 14 days',
+      membership_pause_max: isDa() ? 'Maksimum 3 måneder' : 'Maximum 3 months',
+      membership_pause_resume: isDa() ? 'Dit abonnement genoptages automatisk den' : 'Your membership will resume automatically on',
+      membership_pause_next_billing: isDa() ? 'Tidligste startdato (efter næste fakturering)' : 'Earliest start date (after next billing)',
+      membership_pause_confirm: isDa() ? 'Bekræft pause' : 'Confirm pause',
+      membership_pause_confirming: isDa() ? 'Behandler...' : 'Processing...',
+      membership_pause_success: isDa() ? 'Dit abonnement er sat på pause.' : 'Your membership has been paused.',
+      membership_pause_error: isDa() ? 'Kunne ikke sætte abonnement på pause. Prøv igen.' : 'Could not pause membership. Please try again.',
+      membership_cancel_title: isDa() ? 'Opsig abonnement' : 'Cancel membership',
+      membership_cancel_desc: isDa() ? 'Opsigelse følger vores vilkår: 1 måned + løbende dage. Du kan bruge dit abonnement indtil udgangen af den betalte periode.' : 'Cancellation follows our terms: 1 month + running days notice. You can use your membership until the end of the paid period.',
+      membership_cancel_earliest: isDa() ? 'Sidste betaling (næste fakturering)' : 'Last payment (next billing)',
+      membership_cancel_use_until: isDa() ? 'Brug dit abonnement til og med' : 'Use your membership until',
+      membership_cancel_confirm: isDa() ? 'Bekræft opsigelse' : 'Confirm cancellation',
+      membership_cancel_confirming: isDa() ? 'Behandler...' : 'Processing...',
+      membership_cancel_success: isDa() ? 'Dit abonnement er opsagt.' : 'Your membership has been cancelled.',
+      membership_cancel_error: isDa() ? 'Kunne ikke opsige abonnement. Prøv igen.' : 'Could not cancel membership. Please try again.',
+      membership_cancel_warning: isDa() ? 'Dit abonnement opsiges ved udgangen af den betalte periode. Du kan fortryde opsigelsen indtil da.' : 'Your membership will end at the end of the paid period. You can revoke the cancellation until then.',
+      membership_next_billing: isDa() ? 'Næste fakturering' : 'Next billing',
+      membership_autopay_amount: isDa() ? 'pr. periode' : 'per period',
+      membership_back: isDa() ? 'Tilbage' : 'Back'
     };
     return map[key] || key;
   }
