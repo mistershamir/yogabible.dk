@@ -79,28 +79,34 @@ exports.handler = async function(event) {
         return jsonResponse(400, { error: 'clientId is required' });
       }
 
-      // 1. Set LiabilityRelease = true on the client
-      var updateBody = {
-        Client: {
-          ClientId: body.clientId,
-          LiabilityRelease: true
-        },
-        CrossRegionalUpdate: false
-      };
+      // 1. Try to set LiabilityRelease = true on the client (best-effort)
+      //    The actual consent record is stored in Firestore on the frontend.
+      //    MB may reject this call (e.g. LiabilityRelease not writable) — that's OK.
+      var liability = {};
+      try {
+        var updateBody = {
+          Client: {
+            ClientId: body.clientId,
+            LiabilityRelease: true
+          },
+          CrossRegionalUpdate: false
+        };
 
-      var data = await mbFetch('/client/updateclient', {
-        method: 'POST',
-        body: JSON.stringify(updateBody)
-      });
+        var data = await mbFetch('/client/updateclient', {
+          method: 'POST',
+          body: JSON.stringify(updateBody)
+        });
 
-      var updated = data.Client || {};
-      var liability = updated.Liability || {};
+        var updated = data.Client || {};
+        liability = updated.Liability || {};
+      } catch (updateErr) {
+        console.warn('[mb-waiver] Could not set LiabilityRelease on client (non-critical):', updateErr.message);
+      }
 
-      // 2. If signature image provided, upload as client document
+      // 2. If signature image provided, upload as client document (best-effort)
       if (body.signatureImage) {
         try {
           var sigFileName = 'liability-waiver-signature-' + body.clientId + '-' + new Date().toISOString().split('T')[0] + '.png';
-          // Remove data:image/png;base64, prefix if present
           var base64Data = body.signatureImage.replace(/^data:image\/png;base64,/, '');
 
           await mbFetch('/client/uploadclientdocument', {
@@ -115,11 +121,11 @@ exports.handler = async function(event) {
             })
           });
         } catch (uploadErr) {
-          // Signature upload is non-critical — waiver is still accepted
-          console.warn('[mb-waiver] Could not upload signature image:', uploadErr.message);
+          console.warn('[mb-waiver] Could not upload signature image (non-critical):', uploadErr.message);
         }
       }
 
+      // Always return success — consent is recorded in Firestore on the frontend
       return jsonResponse(200, {
         success: true,
         clientId: body.clientId,
