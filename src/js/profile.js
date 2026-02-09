@@ -894,6 +894,23 @@
       .then(function(r) { return r.json(); })
       .then(function(data) {
         try {
+          // Preserve locally-set pause state if server doesn't reflect it yet
+          // (MB IsSuspended=false for future-dated pauses, notes may not be saved yet)
+          if (clientPassData && clientPassData.activeContracts) {
+            clientPassData.activeContracts.forEach(function(localC) {
+              if (localC.isSuspended && localC.pauseStartDate) {
+                // Find matching server contract and merge pause data
+                var serverC = (data.activeContracts || []).find(function(sc) {
+                  return String(sc.id) === String(localC.id);
+                });
+                if (serverC && !serverC.isSuspended && !serverC.pauseStartDate) {
+                  serverC.isSuspended = true;
+                  serverC.pauseStartDate = localC.pauseStartDate;
+                  serverC.pauseEndDate = localC.pauseEndDate;
+                }
+              }
+            });
+          }
           clientPassData = data;
           renderMembershipDetails(contentEl, data);
 
@@ -1197,6 +1214,19 @@
     return tomorrow;
   }
 
+  // Helper: mark a contract as paused in local clientPassData
+  function markContractPaused(contractId, startDate, endDate) {
+    if (!clientPassData || !clientPassData.activeContracts) return;
+    for (var ci = 0; ci < clientPassData.activeContracts.length; ci++) {
+      if (String(clientPassData.activeContracts[ci].id) === String(contractId)) {
+        clientPassData.activeContracts[ci].isSuspended = true;
+        clientPassData.activeContracts[ci].pauseStartDate = startDate;
+        clientPassData.activeContracts[ci].pauseEndDate = endDate;
+        break;
+      }
+    }
+  }
+
   function bindMembershipManageEvents(container, data) {
     var contracts = data.activeContracts || [];
     var locale = isDa() ? 'da-DK' : 'en-GB';
@@ -1368,37 +1398,25 @@
         })
         .then(function(res) {
           if (res.ok && res.data.success) {
+            // Mark contract as suspended in local data
+            markContractPaused(activeContractId, startInput.value, endInput.value);
             showSections();
-            // Immediately mark contract as suspended in local data so UI shows pause state
-            // (MB may not reflect IsSuspended=true until the actual start date arrives)
-            if (clientPassData && clientPassData.activeContracts) {
-              for (var ci = 0; ci < clientPassData.activeContracts.length; ci++) {
-                if (String(clientPassData.activeContracts[ci].id) === String(activeContractId)) {
-                  clientPassData.activeContracts[ci].isSuspended = true;
-                  clientPassData.activeContracts[ci].pauseStartDate = startInput.value;
-                  clientPassData.activeContracts[ci].pauseEndDate = endInput.value;
-                  break;
-                }
-              }
-            }
             renderMembershipDetails(container, clientPassData);
             bindMembershipManageEvents(container, clientPassData);
-            // Also reload from server (background, may overwrite if MB not yet updated)
-            setTimeout(function() { loadMembershipDetails(); }, 3000);
-            // Show persistent success toast
             showMembershipToast(t('membership_pause_success'), 'success', 15000);
+          } else if (res.data.error === 'already_suspended') {
+            // Contract is already paused — show PAUSED state
+            var pStart = res.data.suspendDate || startInput.value;
+            var pEnd = res.data.resumeDate || endInput.value;
+            markContractPaused(activeContractId, pStart, pEnd);
+            showSections();
+            renderMembershipDetails(container, clientPassData);
+            bindMembershipManageEvents(container, clientPassData);
+            showMembershipToast(t('membership_already_paused'), 'info', 8000);
           } else {
-            // Handle "already paused" specifically
-            if (res.data.error === 'already_suspended') {
-              if (errorEl) {
-                errorEl.textContent = t('membership_already_paused');
-                errorEl.hidden = false;
-              }
-            } else {
-              if (errorEl) {
-                errorEl.textContent = res.data.error || t('membership_pause_error');
-                errorEl.hidden = false;
-              }
+            if (errorEl) {
+              errorEl.textContent = res.data.error || t('membership_pause_error');
+              errorEl.hidden = false;
             }
             console.warn('[Membership] Suspend error:', JSON.stringify(res.data, null, 2));
           }

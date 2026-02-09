@@ -197,10 +197,31 @@ exports.handler = async function(event) {
 
       console.log('[mb-contract-manage] Suspending contract:', JSON.stringify(suspendBody));
 
-      var suspResult = await mbFetch('/client/suspendcontract', {
-        method: 'POST',
-        body: JSON.stringify(suspendBody)
-      });
+      var suspResult;
+      try {
+        suspResult = await mbFetch('/client/suspendcontract', {
+          method: 'POST',
+          body: JSON.stringify(suspendBody)
+        });
+      } catch (suspErr) {
+        var suspErrMsg = (suspErr.message || '').toLowerCase();
+        var suspErrData = suspErr.data && suspErr.data.Error ? suspErr.data.Error.Message || '' : '';
+        var combined = suspErrMsg + ' ' + suspErrData.toLowerCase();
+
+        // MB returns this when contract already has max suspensions
+        if (combined.indexOf('exceeded') > -1 || combined.indexOf('maximum iterations') > -1 || combined.indexOf('already suspended') > -1) {
+          console.log('[mb-contract-manage] Contract already at max suspensions — treating as already_suspended');
+          // Save a retroactive pause note so next page load shows PAUSED
+          await savePauseNote(body.clientId, ccId, body.startDate, body.endDate);
+          return jsonResponse(409, {
+            error: 'already_suspended',
+            message: 'This membership has already been paused. You cannot add another pause.',
+            suspendDate: body.startDate,
+            resumeDate: body.endDate
+          });
+        }
+        throw suspErr; // Re-throw other errors
+      }
 
       console.log('[mb-contract-manage] Suspend SUCCESS:', JSON.stringify(suspResult).substring(0, 300));
 
