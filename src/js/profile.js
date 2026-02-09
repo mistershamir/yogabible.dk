@@ -1425,6 +1425,12 @@
           return;
         }
 
+        // Check if already paused locally (prevents calling MB again)
+        if (activeContract && activeContract.isSuspended) {
+          if (errorEl) { errorEl.textContent = t('membership_already_paused'); errorEl.hidden = false; }
+          return;
+        }
+
         pauseConfirmBtn.disabled = true;
         pauseConfirmBtn.textContent = t('membership_pause_confirming');
         if (errorEl) errorEl.hidden = true;
