@@ -135,6 +135,9 @@ exports.handler = async function(event) {
       var end = new Date(body.endDate);
       var durationDays = Math.round((end - start) / 86400000);
 
+      if (isNaN(durationDays) || durationDays < 1) {
+        return jsonResponse(400, { error: 'Invalid dates — could not calculate duration' });
+      }
       if (durationDays < 14) {
         return jsonResponse(400, { error: 'Suspension must be at least 14 days' });
       }
@@ -144,30 +147,25 @@ exports.handler = async function(event) {
 
       var suspendBody = {
         ClientId: body.clientId,
-        ClientContractId: body.clientContractId,
+        ClientContractId: Number(body.clientContractId),
         SuspendDate: body.startDate,
         Duration: durationDays,
-        DurationUnit: 'Days',
-        SendNotifications: true
+        DurationUnit: 'Days'
       };
 
-      console.log('[mb-contract-manage] Suspending contract:', JSON.stringify({
-        ClientId: suspendBody.ClientId,
-        ClientContractId: suspendBody.ClientContractId,
-        SuspendDate: suspendBody.SuspendDate,
-        Duration: suspendBody.Duration,
-        DurationUnit: suspendBody.DurationUnit
-      }));
+      console.log('[mb-contract-manage] Suspending contract — full body:', JSON.stringify(suspendBody));
 
       var lastSuspErr = null;
 
       for (var si = 0; si < SUSPEND_PATHS.length; si++) {
         try {
           console.log('[mb-contract-manage] Trying: ' + SUSPEND_PATHS[si]);
-          await mbFetch(SUSPEND_PATHS[si], {
+          var suspResult = await mbFetch(SUSPEND_PATHS[si], {
             method: 'POST',
             body: JSON.stringify(suspendBody)
           });
+
+          console.log('[mb-contract-manage] Success on ' + SUSPEND_PATHS[si] + ':', JSON.stringify(suspResult).substring(0, 300));
 
           return jsonResponse(200, {
             success: true,
@@ -179,16 +177,9 @@ exports.handler = async function(event) {
             message: 'Contract suspension scheduled'
           });
         } catch (suspErr) {
-          var suspMsg = (suspErr.message || '').toLowerCase();
-          if (suspMsg.indexOf('non-json') > -1 || suspMsg.indexOf('not exist') > -1 || suspErr.status === 404 || suspErr.status === 405) {
-            console.log('[mb-contract-manage] Path ' + SUSPEND_PATHS[si] + ' failed (' + (suspErr.status || 'unknown') + '), trying next...');
-            lastSuspErr = suspErr;
-          } else if (suspMsg.indexOf('permission') > -1) {
-            console.log('[mb-contract-manage] Permission denied on ' + SUSPEND_PATHS[si] + ', trying next path...');
-            lastSuspErr = suspErr;
-          } else {
-            throw suspErr;
-          }
+          console.log('[mb-contract-manage] Path ' + SUSPEND_PATHS[si] + ' failed (' + (suspErr.status || 'unknown') + '): ' + suspErr.message);
+          lastSuspErr = suspErr;
+          // Always try the next path — different endpoints may accept different formats
         }
       }
 

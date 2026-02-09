@@ -232,6 +232,9 @@ exports.handler = async function(event) {
           var end = new Date(body.endDate);
           var durationDays = Math.round((end - start) / 86400000);
 
+          if (isNaN(durationDays) || durationDays < 1) {
+            return jsonResponse(400, { error: 'Invalid dates — could not calculate duration' });
+          }
           if (durationDays < 14) {
             return jsonResponse(400, { error: 'Suspension must be at least 14 days' });
           }
@@ -241,20 +244,13 @@ exports.handler = async function(event) {
 
           var suspendBody = {
             ClientId: body.clientId,
-            ClientContractId: body.clientContractId,
+            ClientContractId: Number(body.clientContractId),
             SuspendDate: body.startDate,
             Duration: durationDays,
-            DurationUnit: 'Days',
-            SendNotifications: true
+            DurationUnit: 'Days'
           };
 
-          console.log('[mb-contracts] Suspending:', JSON.stringify({
-            ClientId: suspendBody.ClientId,
-            ClientContractId: suspendBody.ClientContractId,
-            SuspendDate: suspendBody.SuspendDate,
-            Duration: suspendBody.Duration,
-            DurationUnit: suspendBody.DurationUnit
-          }));
+          console.log('[mb-contracts] Suspending — full body:', JSON.stringify(suspendBody));
 
           // Try endpoint paths in order — MB v6 docs put this under Sale category
           var suspendPaths = ['/sale/suspendcontract', '/contract/suspendcontract', '/client/suspendcontract'];
@@ -264,11 +260,12 @@ exports.handler = async function(event) {
           for (var si = 0; si < suspendPaths.length; si++) {
             try {
               console.log('[mb-contracts] Trying suspend path: ' + suspendPaths[si]);
-              await mbFetch(suspendPaths[si], {
+              var suspResult = await mbFetch(suspendPaths[si], {
                 method: 'POST',
                 body: JSON.stringify(suspendBody)
               });
               suspPathResults.push({ path: suspendPaths[si], status: 'success' });
+              console.log('[mb-contracts] Success on ' + suspendPaths[si] + ':', JSON.stringify(suspResult).substring(0, 300));
               return jsonResponse(200, {
                 success: true,
                 action: 'suspend',
@@ -279,20 +276,10 @@ exports.handler = async function(event) {
                 _pathResults: suspPathResults
               });
             } catch (suspErr) {
-              var suspMsg = (suspErr.message || '').toLowerCase();
+              console.log('[mb-contracts] Path ' + suspendPaths[si] + ' failed (' + (suspErr.status || 'unknown') + '): ' + suspErr.message);
               suspPathResults.push({ path: suspendPaths[si], status: suspErr.status || 'error', error: suspErr.message });
-              if (suspMsg.indexOf('non-json') > -1 || suspMsg.indexOf('not exist') > -1 || suspErr.status === 404 || suspErr.status === 405) {
-                console.log('[mb-contracts] Path ' + suspendPaths[si] + ' failed (' + (suspErr.status || 'unknown') + '), trying next...');
-                lastSuspErr = suspErr;
-              } else if (suspMsg.indexOf('permission') > -1) {
-                console.log('[mb-contracts] Permission denied on ' + suspendPaths[si] + ', trying next path...');
-                lastSuspErr = suspErr;
-              } else {
-                return jsonResponse(suspErr.status || 500, {
-                  error: suspErr.message,
-                  _pathResults: suspPathResults
-                });
-              }
+              lastSuspErr = suspErr;
+              // Always try the next path
             }
           }
 

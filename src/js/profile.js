@@ -11,7 +11,8 @@
   var clientPassData = null; // Cached pass/service data
   var staffCache = {}; // Cache staff bios by ID
 
-  var waiverSigned = false; // Track if liability waiver is signed in Mindbody
+  var waiverSigned = false; // Track if liability waiver is signed
+  var waiverStatusLoaded = false; // True once we know the actual status
 
   // ── Simple canvas signature pad ──
   function SignaturePad(canvasId, clearBtnId) {
@@ -539,20 +540,79 @@
   var waiverTextCache = null;
   var waiverAgreementDate = null;
 
-  // Silent fetch — just caches status, no blocking
+  function getWaiverCacheKey() {
+    return currentUser ? 'yb_waiver_signed_' + currentUser.uid : null;
+  }
+
+  // Check waiver status: localStorage (instant) → Firestore → MB API
   function fetchWaiverStatus(mbClientId) {
+    // 1. Instant check: localStorage
+    var cacheKey = getWaiverCacheKey();
+    if (cacheKey) {
+      try {
+        var cached = localStorage.getItem(cacheKey);
+        if (cached === 'true') {
+          waiverSigned = true;
+          waiverStatusLoaded = true;
+          var cachedDate = localStorage.getItem(cacheKey + '_date');
+          if (cachedDate) waiverAgreementDate = cachedDate;
+          renderWaiverCard();
+        }
+      } catch (e) { /* localStorage may be unavailable */ }
+    }
+
+    // 2. Check Firestore consents collection (reliable audit trail)
+    if (!waiverSigned && currentUser && currentDb) {
+      currentDb.collection('consents')
+        .where('userId', '==', currentUser.uid)
+        .where('document', '==', 'liability_waiver')
+        .where('accepted', '==', true)
+        .limit(1)
+        .get()
+        .then(function(snapshot) {
+          if (!snapshot.empty) {
+            waiverSigned = true;
+            waiverStatusLoaded = true;
+            var doc = snapshot.docs[0].data();
+            waiverAgreementDate = doc.timestamp || doc.createdAt || null;
+            // Cache for next load
+            if (cacheKey) {
+              try {
+                localStorage.setItem(cacheKey, 'true');
+                if (waiverAgreementDate) localStorage.setItem(cacheKey + '_date', waiverAgreementDate);
+              } catch (e) {}
+            }
+            renderWaiverCard();
+          }
+        })
+        .catch(function(err) {
+          console.warn('Could not check Firestore consents:', err);
+        });
+    }
+
+    // 3. Also check MB API (may discover waiver signed externally)
     fetch('/.netlify/functions/mb-waiver?clientId=' + encodeURIComponent(mbClientId))
       .then(function(r) { return r.json(); })
       .then(function(data) {
-        waiverSigned = !!data.clientSigned;
-        waiverAgreementDate = data.agreementDate || null;
         waiverTextCache = data.waiverText || null;
-        // Update waiver card in My Passes if it's already rendered
+        // Only upgrade to signed, never downgrade
+        if (data.clientSigned && !waiverSigned) {
+          waiverSigned = true;
+          waiverAgreementDate = data.agreementDate || null;
+          if (cacheKey) {
+            try {
+              localStorage.setItem(cacheKey, 'true');
+              if (waiverAgreementDate) localStorage.setItem(cacheKey + '_date', waiverAgreementDate);
+            } catch (e) {}
+          }
+        }
+        waiverStatusLoaded = true;
         renderWaiverCard();
       })
       .catch(function(err) {
         console.warn('Could not check waiver status:', err);
-        waiverSigned = false;
+        waiverStatusLoaded = true;
+        renderWaiverCard();
       });
   }
 
@@ -560,6 +620,8 @@
   function renderWaiverCard() {
     var card = document.getElementById('yb-waiver-card');
     if (!card) return;
+    // Don't show card until we know the actual status (prevents flash of unsigned form)
+    if (!waiverStatusLoaded) return;
     card.hidden = false;
 
     var signedEl = document.getElementById('yb-waiver-card-signed');
@@ -667,7 +729,16 @@
       .then(function(data) {
         if (data.success) {
           waiverSigned = true;
+          waiverStatusLoaded = true;
           waiverAgreementDate = data.agreementDate || new Date().toISOString();
+          // Cache in localStorage for instant load next time
+          var cacheKey = getWaiverCacheKey();
+          if (cacheKey) {
+            try {
+              localStorage.setItem(cacheKey, 'true');
+              if (waiverAgreementDate) localStorage.setItem(cacheKey + '_date', waiverAgreementDate);
+            } catch (e) {}
+          }
           renderWaiverCard(); // Re-render as signed
 
           // Firestore audit trail
