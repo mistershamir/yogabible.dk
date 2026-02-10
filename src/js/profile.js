@@ -2693,7 +2693,10 @@
       var d = new Date(p.saleDate);
       var dateStr = d.toLocaleDateString(isDa() ? 'da-DK' : 'en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
       var name = p.description || '—';
-      var totalPaid = p.totalPaid || p.subtotal || 0;
+      var totalPaid = Number(p.totalPaid) || Number(p.subtotal) || 0;
+
+      // Debug: log first purchase to find price fields
+      if (idx === 0) console.log('[Receipts] First purchase data:', JSON.stringify(p).substring(0, 1500));
 
       // Determine type from items
       var hasItems = p.items && p.items.length > 0;
@@ -2982,55 +2985,20 @@
 
     invoiceHTML += '</body></html>';
 
-    // Render invoice into a hidden iframe for proper CSS isolation, then PDF
-    var tempFrame = document.createElement('iframe');
-    tempFrame.style.position = 'fixed';
-    tempFrame.style.left = '-9999px';
-    tempFrame.style.top = '0';
-    tempFrame.style.width = '800px';
-    tempFrame.style.height = '1200px';
-    tempFrame.style.border = 'none';
-    document.body.appendChild(tempFrame);
-    tempFrame.contentDocument.open();
-    tempFrame.contentDocument.write(invoiceHTML);
-    tempFrame.contentDocument.close();
-    var tempDiv = tempFrame.contentDocument.body;
-    document.body.appendChild(tempDiv);
-
-    // Load html2pdf.js on demand if not cached
-    var pdfFileName = 'faktura-' + (p.saleId || 'unknown') + '.pdf';
-
-    function doPdfGenerate() {
-      // eslint-disable-next-line no-undef
-      html2pdf().set({
-        margin: [10, 10, 10, 10],
-        filename: pdfFileName,
-        image: { type: 'jpeg', quality: 0.98 },
-        html2canvas: { scale: 2, useCORS: true },
-        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
-      }).from(tempDiv).save().then(function() {
-        document.body.removeChild(tempFrame);
-      }).catch(function() {
-        document.body.removeChild(tempFrame);
-        // Fallback: open as printable HTML
-        var w = window.open('', '_blank');
-        if (w) { w.document.write(invoiceHTML); w.document.close(); }
-      });
-    }
-
-    if (window.html2pdf) {
-      doPdfGenerate();
+    // Open invoice in new window — user can Print > Save as PDF
+    var w = window.open('', '_blank');
+    if (w) {
+      w.document.write(invoiceHTML);
+      w.document.close();
     } else {
-      var script = document.createElement('script');
-      script.src = 'https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.2/html2pdf.bundle.min.js';
-      script.onload = doPdfGenerate;
-      script.onerror = function() {
-        document.body.removeChild(tempFrame);
-        // Fallback if CDN fails: open as printable HTML
-        var w = window.open('', '_blank');
-        if (w) { w.document.write(invoiceHTML); w.document.close(); }
-      };
-      document.head.appendChild(script);
+      // Popup blocked — download as HTML file
+      var blob = new Blob([invoiceHTML], { type: 'text/html' });
+      var url = URL.createObjectURL(blob);
+      var a = document.createElement('a');
+      a.href = url;
+      a.download = 'faktura-' + (p.saleId || 'unknown') + '.html';
+      a.click();
+      URL.revokeObjectURL(url);
     }
   }
 
