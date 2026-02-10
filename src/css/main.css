@@ -9223,6 +9223,34 @@ section {
   color: #6F6A66;
 }
 
+.yb-receipts__card-body {
+  margin-bottom: 0.5rem;
+}
+
+.yb-receipts__card-name {
+  font-weight: 600;
+  font-size: 0.95rem;
+  color: #0F0F0F;
+}
+
+.yb-receipts__card-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  padding: 0.15rem 0;
+}
+
+.yb-receipts__card-item-price {
+  font-size: 0.85rem;
+  color: #6F6A66;
+  white-space: nowrap;
+}
+
+.yb-receipts__detail-value--total {
+  font-weight: 700;
+  color: #0F0F0F;
+}
+
 /* ═══════════════════════════════════════════
    PROFILE — MY COURSES CARDS
    ═══════════════════════════════════════════ */

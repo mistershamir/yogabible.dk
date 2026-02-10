@@ -2651,7 +2651,7 @@
   // ══════════════════════════════════════
   // RECEIPTS TAB
   // ══════════════════════════════════════
-  var receiptsPeriod = '365'; // default 1 year
+  var receiptsPeriod = '730'; // default 2 years — show past purchases for existing clients
 
   function loadReceipts(period) {
     var listEl = document.getElementById('yb-receipts-list');
@@ -2692,103 +2692,64 @@
     purchases.forEach(function(p, idx) {
       var d = new Date(p.saleDate);
       var dateStr = d.toLocaleDateString(isDa() ? 'da-DK' : 'en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
-      var name = p.serviceName || p.description || '—';
-      var amount = p.amountPaid || p.price || 0;
+      var name = p.description || '—';
+      var totalPaid = p.totalPaid || p.subtotal || 0;
 
-      // Build type badge
-      var typeBadge = '';
-      if (p.type === 'contract') {
-        typeBadge = '<span class="yb-receipts__badge yb-receipts__badge--contract">' + (isDa() ? 'Medlemskab' : 'Membership') + '</span>';
-      } else if (p.type === 'service') {
-        typeBadge = '<span class="yb-receipts__badge yb-receipts__badge--service">' + (isDa() ? 'Klippekort' : 'Pass') + '</span>';
-      } else if (p.type === 'sale') {
-        typeBadge = '<span class="yb-receipts__badge yb-receipts__badge--sale">' + (isDa() ? 'Køb' : 'Purchase') + '</span>';
-      }
+      // Determine type from items
+      var hasItems = p.items && p.items.length > 0;
+      var isReturned = p.returned;
 
-      html += '<div class="yb-receipts__card' + (p.returned ? ' yb-receipts__card--returned' : '') + '" data-receipt-idx="' + idx + '">';
+      html += '<div class="yb-receipts__card' + (isReturned ? ' yb-receipts__card--returned' : '') + '" data-receipt-idx="' + idx + '">';
 
-      // Header: date + badges
+      // Header: date + sale ID
       html += '<div class="yb-receipts__card-header">';
       html += '<span class="yb-receipts__card-date">' + dateStr + '</span>';
       html += '<div class="yb-receipts__card-badges">';
-      html += typeBadge;
-      if (p.returned) {
+      if (isReturned) {
         html += '<span class="yb-receipts__badge yb-receipts__badge--returned">' + (isDa() ? 'Refunderet' : 'Refunded') + '</span>';
       }
-      if (p.current) {
-        html += '<span class="yb-receipts__badge yb-receipts__badge--active">' + (isDa() ? 'Aktiv' : 'Active') + '</span>';
-      }
+      html += '<span class="yb-receipts__card-ref">#' + (p.saleId || '') + '</span>';
       html += '</div>';
       html += '</div>';
 
-      // Body: name
+      // Body: item descriptions
       html += '<div class="yb-receipts__card-body">';
-      html += '<span class="yb-receipts__card-name">' + esc(name) + '</span>';
-      if (p.programName) {
-        html += '<span class="yb-receipts__card-program">' + esc(p.programName) + '</span>';
+      if (hasItems && p.items.length > 1) {
+        p.items.forEach(function(item) {
+          html += '<div class="yb-receipts__card-item">';
+          html += '<span class="yb-receipts__card-name">' + esc(item.description) + '</span>';
+          html += '<span class="yb-receipts__card-item-price">' + formatDKK(item.amountPaid || item.unitPrice || 0) + '</span>';
+          html += '</div>';
+        });
+      } else {
+        html += '<span class="yb-receipts__card-name">' + esc(name) + '</span>';
       }
       html += '</div>';
 
       // Details grid
       html += '<div class="yb-receipts__card-details">';
 
-      // Amount
+      // Total amount
       html += '<div class="yb-receipts__detail">';
-      html += '<span class="yb-receipts__detail-label">' + (isDa() ? 'Beløb' : 'Amount') + '</span>';
-      html += '<span class="yb-receipts__detail-value">' + (amount > 0 ? formatDKK(amount) : (isDa() ? 'Inkluderet' : 'Included')) + '</span>';
+      html += '<span class="yb-receipts__detail-label">' + (isDa() ? 'Total' : 'Total') + '</span>';
+      html += '<span class="yb-receipts__detail-value yb-receipts__detail-value--total">' + (totalPaid > 0 ? formatDKK(totalPaid) : (isDa() ? 'Gratis' : 'Free')) + '</span>';
       html += '</div>';
 
-      // Payment method
+      // Payment method + card
       if (p.paymentMethod) {
         var paymentDisplay = p.paymentMethod;
-        if (p.paymentLast4) paymentDisplay += ' ****' + p.paymentLast4;
+        if (p.paymentLast4) paymentDisplay += ' ***' + p.paymentLast4;
         html += '<div class="yb-receipts__detail">';
         html += '<span class="yb-receipts__detail-label">' + (isDa() ? 'Betaling' : 'Payment') + '</span>';
         html += '<span class="yb-receipts__detail-value">' + esc(paymentDisplay) + '</span>';
         html += '</div>';
       }
 
-      // Quantity
-      if (p.quantity > 1) {
+      // Tax
+      if (p.tax > 0) {
         html += '<div class="yb-receipts__detail">';
-        html += '<span class="yb-receipts__detail-label">' + (isDa() ? 'Antal' : 'Qty') + '</span>';
-        html += '<span class="yb-receipts__detail-value">' + p.quantity + '</span>';
-        html += '</div>';
-      }
-
-      // Remaining (for services)
-      if (typeof p.remaining === 'number' && p.count) {
-        html += '<div class="yb-receipts__detail">';
-        html += '<span class="yb-receipts__detail-label">' + (isDa() ? 'Klip brugt' : 'Sessions used') + '</span>';
-        html += '<span class="yb-receipts__detail-value">' + (p.count - p.remaining) + ' / ' + p.count + '</span>';
-        html += '</div>';
-      }
-
-      // Expiration
-      if (p.expirationDate) {
-        var expDate = new Date(p.expirationDate);
-        var expStr = expDate.toLocaleDateString(isDa() ? 'da-DK' : 'en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
-        html += '<div class="yb-receipts__detail">';
-        html += '<span class="yb-receipts__detail-label">' + (isDa() ? 'Udløber' : 'Expires') + '</span>';
-        html += '<span class="yb-receipts__detail-value">' + expStr + '</span>';
-        html += '</div>';
-      }
-
-      // Contract end date
-      if (p.contractEndDate) {
-        var endDate = new Date(p.contractEndDate);
-        var endStr = endDate.toLocaleDateString(isDa() ? 'da-DK' : 'en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
-        html += '<div class="yb-receipts__detail">';
-        html += '<span class="yb-receipts__detail-label">' + (isDa() ? 'Slutdato' : 'End date') + '</span>';
-        html += '<span class="yb-receipts__detail-value">' + endStr + '</span>';
-        html += '</div>';
-      }
-
-      // Autopay info
-      if (p.autopayAmount > 0) {
-        html += '<div class="yb-receipts__detail">';
-        html += '<span class="yb-receipts__detail-label">' + (isDa() ? 'Autopay' : 'Auto-pay') + '</span>';
-        html += '<span class="yb-receipts__detail-value">' + formatDKK(p.autopayAmount) + (isDa() ? '/md' : '/mo') + '</span>';
+        html += '<span class="yb-receipts__detail-label">' + (isDa() ? 'Heraf moms' : 'Incl. VAT') + '</span>';
+        html += '<span class="yb-receipts__detail-value">' + formatDKK(p.tax) + '</span>';
         html += '</div>';
       }
 
@@ -2797,14 +2758,6 @@
         html += '<div class="yb-receipts__detail">';
         html += '<span class="yb-receipts__detail-label">' + (isDa() ? 'Rabat' : 'Discount') + '</span>';
         html += '<span class="yb-receipts__detail-value yb-receipts__detail-value--discount">-' + formatDKK(p.discount) + '</span>';
-        html += '</div>';
-      }
-
-      // Tax
-      if (p.tax > 0) {
-        html += '<div class="yb-receipts__detail">';
-        html += '<span class="yb-receipts__detail-label">' + (isDa() ? 'Moms' : 'Tax') + '</span>';
-        html += '<span class="yb-receipts__detail-value">' + formatDKK(p.tax) + '</span>';
         html += '</div>';
       }
 
@@ -2818,12 +2771,11 @@
 
       html += '</div>'; // end details grid
 
-      // Reference + download
+      // Download invoice button
       html += '<div class="yb-receipts__card-actions">';
-      html += '<span class="yb-receipts__card-ref">#' + (p.saleId || p.id) + '</span>';
       html += '<button class="yb-receipts__download-btn" type="button" data-receipt-download="' + idx + '">';
       html += '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>';
-      html += (isDa() ? 'Download kvittering' : 'Download receipt');
+      html += (isDa() ? 'Download faktura' : 'Download invoice');
       html += '</button>';
       html += '</div>';
 
@@ -2833,46 +2785,253 @@
     html += '</div>';
     container.innerHTML = html;
 
-    // Attach download handlers
+    // Attach download handlers — generates HTML invoice
     container.querySelectorAll('[data-receipt-download]').forEach(function(btn) {
       btn.addEventListener('click', function() {
         var idx = parseInt(btn.getAttribute('data-receipt-download'), 10);
         var p = purchases[idx];
         if (!p) return;
-
-        var d = new Date(p.saleDate);
-        var dateStr = d.toLocaleDateString(isDa() ? 'da-DK' : 'en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
-        var name = p.serviceName || p.description || '—';
-        var amount = p.amountPaid || p.price || 0;
-
-        var txt = '═══════════════════════════════════\n';
-        txt += '       YOGA BIBLE — KVITTERING\n';
-        txt += '═══════════════════════════════════\n\n';
-        txt += (isDa() ? 'Dato: ' : 'Date: ') + dateStr + '\n';
-        txt += (isDa() ? 'Vare: ' : 'Item: ') + name + '\n';
-        if (p.programName) txt += (isDa() ? 'Program: ' : 'Program: ') + p.programName + '\n';
-        txt += (isDa() ? 'Beløb: ' : 'Amount: ') + (amount > 0 ? formatDKK(amount) : (isDa() ? 'Inkluderet' : 'Included')) + '\n';
-        if (p.paymentMethod) txt += (isDa() ? 'Betaling: ' : 'Payment: ') + p.paymentMethod + (p.paymentLast4 ? ' ****' + p.paymentLast4 : '') + '\n';
-        if (p.quantity > 1) txt += (isDa() ? 'Antal: ' : 'Qty: ') + p.quantity + '\n';
-        if (typeof p.remaining === 'number' && p.count) txt += (isDa() ? 'Klip brugt: ' : 'Sessions used: ') + (p.count - p.remaining) + ' / ' + p.count + '\n';
-        if (p.expirationDate) txt += (isDa() ? 'Udløber: ' : 'Expires: ') + new Date(p.expirationDate).toLocaleDateString(isDa() ? 'da-DK' : 'en-GB') + '\n';
-        if (p.discount > 0) txt += (isDa() ? 'Rabat: -' : 'Discount: -') + formatDKK(p.discount) + '\n';
-        if (p.tax > 0) txt += (isDa() ? 'Moms: ' : 'Tax: ') + formatDKK(p.tax) + '\n';
-        if (p.locationName) txt += (isDa() ? 'Lokation: ' : 'Location: ') + p.locationName + '\n';
-        txt += (isDa() ? 'Reference: #' : 'Reference: #') + (p.saleId || p.id) + '\n\n';
-        txt += '═══════════════════════════════════\n';
-        txt += 'Yoga Bible DK | yogabible.dk\n';
-        txt += 'Torvegade 66, 1400, København K\n';
-
-        var blob = new Blob([txt], { type: 'text/plain' });
-        var url = URL.createObjectURL(blob);
-        var a = document.createElement('a');
-        a.href = url;
-        a.download = 'kvittering-' + (p.saleId || p.id) + '.txt';
-        a.click();
-        URL.revokeObjectURL(url);
+        generateInvoiceHTML(p);
       });
     });
+  }
+
+  /**
+   * Generate a proper HTML invoice and trigger download.
+   * Matches the Mindbody invoice style: business header, bill to,
+   * line items table with VAT, payment details, totals.
+   */
+  function generateInvoiceHTML(p) {
+    var d = new Date(p.saleDate);
+    var dateStr = d.toLocaleDateString('da-DK', { day: '2-digit', month: '2-digit', year: 'numeric' });
+    var customerName = (currentUser && currentUser.displayName) || '';
+    var items = p.items || [{ description: p.description || '—', quantity: 1, unitPrice: p.totalPaid || 0, amountPaid: p.totalPaid || 0, discount: 0, tax: 0 }];
+    var saleId = p.saleId || '';
+
+    // Calculate totals
+    var subtotal = 0;
+    var totalTax = 0;
+    var totalDiscount = 0;
+    items.forEach(function(item) {
+      subtotal += (item.unitPrice || 0) * (item.quantity || 1);
+      totalTax += item.tax || 0;
+      totalDiscount += item.discount || 0;
+    });
+    var invoiceTotal = (p.totalPaid || subtotal - totalDiscount);
+
+    // Build payment adjustment info
+    var paymentInfo = '';
+    if (p.payments && p.payments.length > 0) {
+      p.payments.forEach(function(pay) {
+        paymentInfo += '<div class="inv-adj">';
+        paymentInfo += '<strong>' + (isDa() ? 'Betaling' : 'Payment') + '</strong><br>';
+        paymentInfo += dateStr + '<br>';
+        if (pay.method) paymentInfo += (isDa() ? 'Betalt med ' : 'Payment made with ') + pay.method;
+        if (pay.last4) paymentInfo += ' ***' + pay.last4;
+        paymentInfo += '<br>';
+        if (pay.notes) paymentInfo += pay.notes + '<br>';
+        paymentInfo += '<strong>(' + formatDKK(pay.amount || invoiceTotal) + ')</strong>';
+        paymentInfo += '</div>';
+      });
+    } else if (p.paymentMethod) {
+      paymentInfo += '<div class="inv-adj">';
+      paymentInfo += '<strong>' + (isDa() ? 'Betaling' : 'Payment') + '</strong><br>';
+      paymentInfo += dateStr + '<br>';
+      paymentInfo += p.paymentMethod;
+      if (p.paymentLast4) paymentInfo += ' ***' + p.paymentLast4;
+      paymentInfo += '<br><strong>(' + formatDKK(invoiceTotal) + ')</strong>';
+      paymentInfo += '</div>';
+    }
+
+    // Build line items rows
+    var itemsHTML = '';
+    items.forEach(function(item, i) {
+      var qty = item.quantity || 1;
+      var unitPrice = item.unitPrice || item.amountPaid || 0;
+      var itemTax = item.tax || 0;
+      var vatPct = (unitPrice > 0 && itemTax > 0) ? Math.round((itemTax / unitPrice) * 100) : 0;
+      var lineTotal = item.amountPaid || (unitPrice * qty);
+
+      itemsHTML += '<tr>';
+      itemsHTML += '<td class="inv-row-num">' + (i + 1) + '</td>';
+      itemsHTML += '<td class="inv-desc"><strong>' + esc(item.description || '—') + '</strong></td>';
+      itemsHTML += '<td class="inv-qty">' + qty + '</td>';
+      itemsHTML += '<td class="inv-price">' + formatDKK(unitPrice) + '</td>';
+      itemsHTML += '<td class="inv-vat-pct">' + vatPct + '%</td>';
+      itemsHTML += '<td class="inv-vat">' + formatDKK(itemTax) + '</td>';
+      itemsHTML += '<td class="inv-amount">' + formatDKK(lineTotal) + '</td>';
+      itemsHTML += '</tr>';
+    });
+
+    var amountDue = Math.max(0, invoiceTotal - (p.totalPaid || invoiceTotal));
+    var isPaid = amountDue <= 0;
+
+    var invoiceHTML = '<!DOCTYPE html><html><head><meta charset="utf-8"><title>' +
+      (isDa() ? 'Faktura' : 'Invoice') + ' #' + saleId + '</title>' +
+      '<style>' +
+      '* { margin: 0; padding: 0; box-sizing: border-box; }' +
+      'body { font-family: "Helvetica Neue", Helvetica, Arial, sans-serif; font-size: 13px; color: #333; padding: 40px; max-width: 800px; margin: 0 auto; }' +
+      '.inv-header { display: flex; justify-content: space-between; margin-bottom: 30px; }' +
+      '.inv-company { font-size: 13px; line-height: 1.6; }' +
+      '.inv-company-name { font-size: 18px; font-weight: 700; margin-bottom: 4px; }' +
+      '.inv-contact { text-align: right; font-size: 12px; color: #666; }' +
+      '.inv-billto { margin-bottom: 20px; }' +
+      '.inv-billto-label { font-weight: 700; font-size: 12px; text-transform: uppercase; color: #666; margin-bottom: 4px; }' +
+      '.inv-meta { display: flex; gap: 20px; align-items: center; margin-bottom: 20px; border: 1px solid #ddd; border-radius: 4px; padding: 10px 14px; }' +
+      '.inv-meta-block { font-size: 12px; }' +
+      '.inv-meta-block strong { display: block; font-size: 11px; color: #666; text-transform: uppercase; margin-bottom: 2px; }' +
+      '.inv-amount-due-box { background: #222; color: #fff; padding: 8px 16px; border-radius: 4px; text-align: center; }' +
+      '.inv-amount-due-box strong { display: block; font-size: 11px; text-transform: uppercase; margin-bottom: 2px; }' +
+      '.inv-amount-due-box .inv-due-val { font-size: 18px; font-weight: 700; }' +
+      '.inv-paid-label { display: inline-block; margin-left: 12px; font-weight: 700; font-size: 13px; }' +
+      'table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }' +
+      'thead th { background: #f5f5f5; font-size: 11px; font-weight: 700; text-transform: uppercase; color: #666; padding: 8px 10px; text-align: left; border-bottom: 2px solid #ddd; }' +
+      'thead th:first-child { width: 30px; }' +
+      'tbody td { padding: 10px; border-bottom: 1px solid #eee; vertical-align: top; }' +
+      '.inv-row-num { color: #999; text-align: center; }' +
+      '.inv-desc strong { font-weight: 600; }' +
+      '.inv-qty, .inv-price, .inv-vat-pct, .inv-vat, .inv-amount { text-align: right; white-space: nowrap; }' +
+      '.inv-totals { display: flex; justify-content: flex-end; }' +
+      '.inv-totals-table { width: 300px; }' +
+      '.inv-totals-table td { padding: 6px 10px; }' +
+      '.inv-totals-table td:first-child { text-align: left; font-weight: 600; }' +
+      '.inv-totals-table td:last-child { text-align: right; }' +
+      '.inv-totals-table .inv-total-row { border-top: 2px solid #333; font-weight: 700; font-size: 14px; }' +
+      '.inv-totals-table .inv-due-row { background: #222; color: #fff; font-weight: 700; font-size: 15px; }' +
+      '.inv-totals-table .inv-due-row td { padding: 10px; }' +
+      '.inv-adj { font-size: 12px; line-height: 1.5; margin-bottom: 8px; color: #555; }' +
+      '.inv-paid-stamp { font-weight: 700; font-size: 14px; margin: 10px 0; text-decoration: underline; }' +
+      '.inv-footer { margin-top: 30px; padding-top: 20px; border-top: 1px solid #ddd; font-size: 11px; color: #888; line-height: 1.6; }' +
+      '.inv-footer-note { font-style: italic; margin-bottom: 12px; }' +
+      '@media print { body { padding: 20px; } .inv-no-print { display: none; } }' +
+      '</style></head><body>';
+
+    // Print button
+    invoiceHTML += '<div class="inv-no-print" style="margin-bottom:20px;text-align:right;">' +
+      '<button onclick="window.print()" style="padding:8px 20px;background:#f75c03;color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:13px;font-weight:600;">' +
+      (isDa() ? 'Print / Gem som PDF' : 'Print / Save as PDF') + '</button></div>';
+
+    // Header: company info
+    invoiceHTML += '<div class="inv-header">' +
+      '<div class="inv-company">' +
+      '<div class="inv-company-name">Yoga Bible</div>' +
+      '66 Torvegade<br>1400 K\u00f8benhavn<br>DENMARK<br>' +
+      'VAT ID Cvr. 41295252 Hot Yoga Copenhagen Aps' +
+      '</div>' +
+      '<div class="inv-contact">4553881209<br>info@hotyogacph.dk</div>' +
+      '</div>';
+
+    // Bill to
+    invoiceHTML += '<div class="inv-billto">' +
+      '<div class="inv-billto-label">BILL TO</div>' +
+      '<strong>' + esc(customerName) + '</strong><br>' +
+      (clientId ? clientId : '') +
+      '</div>';
+
+    // Meta row: invoice number, dates, amount due
+    invoiceHTML += '<div class="inv-meta">' +
+      '<div class="inv-meta-block"><strong>' + (isDa() ? 'Faktura' : 'Invoice') + '</strong>Aps-' + String(saleId).padStart(8, '0') + '<br>Sale ID ' + saleId + '</div>' +
+      '<div class="inv-meta-block"><strong>' + (isDa() ? 'Fakturadato' : 'Invoice date') + '</strong>' + dateStr + '<br>' + (isDa() ? 'Salgsdato ' : 'Sale date ') + dateStr + '</div>' +
+      '<div class="inv-amount-due-box"><strong>' + (isDa() ? 'Skyldig bel\u00f8b' : 'Amount due') + '</strong><div class="inv-due-val">' + formatDKK(amountDue) + '</div></div>' +
+      (isPaid ? '<span class="inv-paid-label">' + (isDa() ? 'Betalt' : 'Paid') + '</span>' : '') +
+      '</div>';
+
+    // Items table
+    invoiceHTML += '<table><thead><tr>' +
+      '<th></th>' +
+      '<th>' + (isDa() ? 'BESKRIVELSE' : 'DESCRIPTION') + '</th>' +
+      '<th style="text-align:right">' + (isDa() ? 'ANTAL' : 'QTY') + '</th>' +
+      '<th style="text-align:right">' + (isDa() ? 'ENHEDSPRIS' : 'UNIT PRICE') + '</th>' +
+      '<th style="text-align:right">' + (isDa() ? 'MOMS%' : 'VAT%') + '</th>' +
+      '<th style="text-align:right">' + (isDa() ? 'MOMS' : 'VAT') + '</th>' +
+      '<th style="text-align:right">' + (isDa() ? 'BEL\u00d8B' : 'AMOUNT') + '</th>' +
+      '</tr></thead><tbody>' + itemsHTML + '</tbody></table>';
+
+    // Totals
+    invoiceHTML += '<div class="inv-totals"><table class="inv-totals-table">' +
+      '<tr><td>' + (isDa() ? 'Subtotal' : 'Subtotal') + '</td><td>' + formatDKK(subtotal) + '</td></tr>';
+    if (totalDiscount > 0) {
+      invoiceHTML += '<tr><td>' + (isDa() ? 'Rabat' : 'Discount') + '</td><td>-' + formatDKK(totalDiscount) + '</td></tr>';
+    }
+    invoiceHTML += '<tr><td>' + (isDa() ? 'Moms' : 'VAT') + '</td><td>' + formatDKK(totalTax) + '</td></tr>' +
+      '<tr class="inv-total-row"><td>' + (isDa() ? 'Faktura total' : 'Invoice total') + '</td><td>' + formatDKK(invoiceTotal) + '</td></tr>';
+
+    // Payment adjustment
+    if (paymentInfo) {
+      invoiceHTML += '<tr><td colspan="2" style="padding-top:12px;">' + paymentInfo + '</td></tr>';
+    }
+
+    invoiceHTML += '<tr class="inv-due-row"><td>' + (isDa() ? 'Skyldig bel\u00f8b' : 'Amount due') + '</td><td>' + formatDKK(amountDue) + '</td></tr>' +
+      '</table></div>';
+
+    // Paid stamp
+    if (isPaid) {
+      invoiceHTML += '<div class="inv-paid-stamp">' + (isDa() ? 'Betalt' : 'Paid') + '</div>';
+    }
+
+    // Footer
+    invoiceHTML += '<div class="inv-footer">' +
+      '<div class="inv-footer-note">' + (isDa() ? 'Betal venligst bel\u00f8bet, hvis det allerede er ubetalt, til nedenst\u00e5ende kontooplysninger:' : 'Please pay amount, if already unpaid to account information below:') + '</div>' +
+      'Hot Yoga Copenhagen<br>' +
+      'Reg. 3409<br>' +
+      'Acc. 13011206<br>' +
+      'Danske Bank<br><br>' +
+      'BIC: DABADKKK<br>' +
+      'IBAN: DK7430000013011206' +
+      '</div>';
+
+    invoiceHTML += '</body></html>';
+
+    // Render invoice into a hidden iframe for proper CSS isolation, then PDF
+    var tempFrame = document.createElement('iframe');
+    tempFrame.style.position = 'fixed';
+    tempFrame.style.left = '-9999px';
+    tempFrame.style.top = '0';
+    tempFrame.style.width = '800px';
+    tempFrame.style.height = '1200px';
+    tempFrame.style.border = 'none';
+    document.body.appendChild(tempFrame);
+    tempFrame.contentDocument.open();
+    tempFrame.contentDocument.write(invoiceHTML);
+    tempFrame.contentDocument.close();
+    var tempDiv = tempFrame.contentDocument.body;
+    document.body.appendChild(tempDiv);
+
+    // Load html2pdf.js on demand if not cached
+    var pdfFileName = 'faktura-' + (p.saleId || 'unknown') + '.pdf';
+
+    function doPdfGenerate() {
+      // eslint-disable-next-line no-undef
+      html2pdf().set({
+        margin: [10, 10, 10, 10],
+        filename: pdfFileName,
+        image: { type: 'jpeg', quality: 0.98 },
+        html2canvas: { scale: 2, useCORS: true },
+        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+      }).from(tempDiv).save().then(function() {
+        document.body.removeChild(tempFrame);
+      }).catch(function() {
+        document.body.removeChild(tempFrame);
+        // Fallback: open as printable HTML
+        var w = window.open('', '_blank');
+        if (w) { w.document.write(invoiceHTML); w.document.close(); }
+      });
+    }
+
+    if (window.html2pdf) {
+      doPdfGenerate();
+    } else {
+      var script = document.createElement('script');
+      script.src = 'https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.2/html2pdf.bundle.min.js';
+      script.onload = doPdfGenerate;
+      script.onerror = function() {
+        document.body.removeChild(tempFrame);
+        // Fallback if CDN fails: open as printable HTML
+        var w = window.open('', '_blank');
+        if (w) { w.document.write(invoiceHTML); w.document.close(); }
+      };
+      document.head.appendChild(script);
+    }
   }
 
   // ══════════════════════════════════════
