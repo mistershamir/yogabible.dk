@@ -2696,7 +2696,15 @@
       var totalPaid = Number(p.totalPaid) || Number(p.subtotal) || 0;
 
       // Debug: log first purchase to find price fields
-      if (idx === 0) console.log('[Receipts] First purchase data:', JSON.stringify(p).substring(0, 1500));
+      if (idx === 0) {
+        console.log('[Receipts] First purchase:', JSON.stringify(p).substring(0, 2000));
+        if (p._debug) {
+          console.log('[Receipts] DEBUG sale keys:', p._debug.saleKeys);
+          console.log('[Receipts] DEBUG sale price fields:', JSON.stringify(p._debug.salePriceFields));
+          console.log('[Receipts] DEBUG first raw item:', JSON.stringify(p._debug.firstItemRaw));
+          console.log('[Receipts] DEBUG first raw payment:', JSON.stringify(p._debug.firstPaymentRaw));
+        }
+      }
 
       // Determine type from items
       var hasItems = p.items && p.items.length > 0;
