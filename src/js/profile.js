@@ -2004,14 +2004,32 @@
   // SCHEDULE TAB
   // ══════════════════════════════════════
   var scheduleWeekOffset = 0;
+  var scheduleClassFilter = 'all'; // Active class type filter
+
+  var scheduleClassFilters = [
+    { id: 'all', da: 'Alle', en: 'All', keywords: [] },
+    { id: 'bikram', da: 'Bikram Yoga', en: 'Bikram Yoga', keywords: ['bikram', 'hot triangle', 'hot 26'] },
+    { id: 'vinyasa', da: 'Vinyasa Yoga', en: 'Vinyasa Yoga', keywords: ['vinyasa', 'flow'] },
+    { id: 'yin', da: 'Yin Yoga', en: 'Yin Yoga', keywords: ['yin'] },
+    { id: 'gentle', da: 'Blid Yoga', en: 'Gentle Yoga', keywords: ['gentle', 'blid', 'restorative', 'restorativ'] },
+    { id: 'combo', da: 'Kombiklasser', en: 'Combo Classes', keywords: ['combo', 'kombi', 'splits', 'strength', 'flexibility', 'backbend'] }
+  ];
+
+  function matchesClassFilter(className) {
+    if (scheduleClassFilter === 'all') return true;
+    var filter = scheduleClassFilters.find(function(f) { return f.id === scheduleClassFilter; });
+    if (!filter || !filter.keywords.length) return true;
+    var nameLower = (className || '').toLowerCase();
+    return filter.keywords.some(function(kw) { return nameLower.indexOf(kw) !== -1; });
+  }
 
   function initScheduleNav() {
     var prevBtn = document.getElementById('yb-schedule-prev');
     var nextBtn = document.getElementById('yb-schedule-next');
     var buyPassBtn = document.getElementById('yb-schedule-buy-pass');
 
-    if (prevBtn) prevBtn.addEventListener('click', function() { scheduleWeekOffset--; loadSchedule(); });
-    if (nextBtn) nextBtn.addEventListener('click', function() { scheduleWeekOffset++; loadSchedule(); });
+    if (prevBtn) prevBtn.addEventListener('click', function() { scheduleWeekOffset--; scheduleShowAllDays = false; loadSchedule(); });
+    if (nextBtn) nextBtn.addEventListener('click', function() { scheduleWeekOffset++; scheduleShowAllDays = false; loadSchedule(); });
     if (buyPassBtn) buyPassBtn.addEventListener('click', function() {
       // Switch to store tab
       var storeBtn = document.querySelector('[data-yb-tab="store"]');
@@ -2130,7 +2148,6 @@
   function renderSchedulePassInfo(passInfoEl, noPassEl, data) {
     var activeServices = data.activeServices || [];
     var activeContracts = data.activeContracts || [];
-    var hasMembership = activeContracts.length > 0;
 
     var hasAnyActivePass = (data.activeServices && data.activeServices.length > 0) || (data.activeContracts && data.activeContracts.length > 0);
 
@@ -2138,7 +2155,27 @@
       // Always hide buy-pass banner for active pass holders
       if (noPassEl) noPassEl.hidden = true;
 
-      var html = '';
+      var totalPasses = activeServices.length + activeContracts.length;
+
+      // Build summary for the dropdown header
+      var summaryParts = [];
+      if (activeContracts.length > 0) {
+        summaryParts.push(activeContracts.length + ' ' + (isDa() ? (activeContracts.length === 1 ? 'medlemskab' : 'medlemskaber') : (activeContracts.length === 1 ? 'membership' : 'memberships')));
+      }
+      if (activeServices.length > 0) {
+        summaryParts.push(activeServices.length + ' ' + (isDa() ? (activeServices.length === 1 ? 'klippekort' : 'klippekort') : (activeServices.length === 1 ? 'pass' : 'passes')));
+      }
+      var summaryText = summaryParts.join(' + ');
+
+      var html = '<div class="yb-schedule__pass-dropdown">';
+      html += '<button class="yb-schedule__pass-dropdown-toggle" type="button">';
+      html += '<div class="yb-schedule__pass-dropdown-summary">';
+      html += '<span class="yb-schedule__pass-dropdown-label">' + (isDa() ? 'Dine aktive pas' : 'Your active passes') + '</span>';
+      html += '<span class="yb-schedule__pass-dropdown-count">' + summaryText + '</span>';
+      html += '</div>';
+      html += '<svg class="yb-schedule__pass-dropdown-chevron" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>';
+      html += '</button>';
+      html += '<div class="yb-schedule__pass-dropdown-body" hidden>';
 
       // Show each active pass/clip card
       activeServices.forEach(function(s) {
@@ -2150,7 +2187,6 @@
         html += '<div class="yb-schedule__pass-detail-stats">';
         if (s.remaining != null) {
           html += '<span class="yb-schedule__pass-stat"><strong>' + s.remaining + '</strong> ' + t('schedule_remaining') + '</span>';
-          // Show low-clip warning when below 3
           if (s.remaining > 0 && s.remaining < 3) {
             html += '<span class="yb-schedule__pass-stat yb-schedule__pass-stat--low">' +
               (isDa() ? 'Snart opbrugt — overvej at fylde op' : 'Running low — consider topping up') + '</span>';
@@ -2164,7 +2200,7 @@
         html += '</div>';
       });
 
-      // Show membership info (no buy-pass prompt for members)
+      // Show membership info
       activeContracts.forEach(function(c) {
         html += '<div class="yb-schedule__pass-detail yb-schedule__pass-detail--membership">';
         html += '<div class="yb-schedule__pass-detail-info">';
@@ -2180,9 +2216,20 @@
         html += '</div>';
       });
 
-      if (html) {
-        passInfoEl.innerHTML = html;
-        passInfoEl.hidden = false;
+      html += '</div></div>';
+
+      passInfoEl.innerHTML = html;
+      passInfoEl.hidden = false;
+
+      // Toggle dropdown
+      var toggleBtn = passInfoEl.querySelector('.yb-schedule__pass-dropdown-toggle');
+      var body = passInfoEl.querySelector('.yb-schedule__pass-dropdown-body');
+      if (toggleBtn && body) {
+        toggleBtn.addEventListener('click', function() {
+          var isOpen = !body.hidden;
+          body.hidden = isOpen;
+          toggleBtn.classList.toggle('is-open', !isOpen);
+        });
       }
     } else {
       // No active pass — show the buy-pass banner
@@ -2191,21 +2238,60 @@
     }
   }
 
+  var scheduleShowAllDays = false; // Track whether user clicked "Show more"
+  var scheduleAllClasses = []; // Cache all classes for filter re-renders
+  var scheduleWeekStart = null;
+
   function renderSchedule(container, classes, weekStart) {
+    // Cache for filter re-renders
+    scheduleAllClasses = classes;
+    scheduleWeekStart = weekStart;
+
+    // Apply class type filter
+    var filteredClasses = classes.filter(function(cls) {
+      return matchesClassFilter(cls.name);
+    });
+
     var days = {};
     var dayNames = isDa()
       ? ['Søndag', 'Mandag', 'Tirsdag', 'Onsdag', 'Torsdag', 'Fredag', 'Lørdag']
       : ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 
-    classes.forEach(function(cls) {
+    filteredClasses.forEach(function(cls) {
       var d = new Date(cls.startDateTime);
       var key = toDateStr(d);
       if (!days[key]) days[key] = { date: d, classes: [] };
       days[key].classes.push(cls);
     });
 
-    var html = '';
+    // ── Class type filter buttons ──
+    var html = '<div class="yb-schedule__filters">';
+    scheduleClassFilters.forEach(function(f) {
+      var isActive = scheduleClassFilter === f.id;
+      // Count matching classes
+      var count = f.id === 'all' ? classes.length : classes.filter(function(cls) {
+        var nameLower = (cls.name || '').toLowerCase();
+        return f.keywords.some(function(kw) { return nameLower.indexOf(kw) !== -1; });
+      }).length;
+      if (count === 0 && f.id !== 'all') return;
+      html += '<button class="yb-schedule__filter-btn' + (isActive ? ' is-active' : '') + '" type="button" data-schedule-filter="' + f.id + '">';
+      html += (isDa() ? f.da : f.en);
+      html += '</button>';
+    });
+    html += '</div>';
+
     var sortedKeys = Object.keys(days).sort();
+    var initialDaysToShow = 3;
+    var hasMoreDays = sortedKeys.length > initialDaysToShow && !scheduleShowAllDays;
+
+    // Check if last day in range is Sunday (day 0)
+    var lastDayIsSunday = false;
+    if (sortedKeys.length > 0) {
+      var lastDateObj = days[sortedKeys[sortedKeys.length - 1]].date;
+      lastDayIsSunday = lastDateObj.getDay() === 0;
+    }
+
+    var dayIndex = 0;
     sortedKeys.forEach(function(key) {
       var day = days[key];
       // Sort classes within each day by start time
@@ -2216,7 +2302,10 @@
       var dayName = dayNames[dateObj.getDay()];
       var dateLabel = dateObj.toLocaleDateString(isDa() ? 'da-DK' : 'en-GB', { day: 'numeric', month: 'long' });
 
-      html += '<div class="yb-schedule__day">';
+      // Hide days beyond initial 3 unless expanded
+      var isHidden = hasMoreDays && dayIndex >= initialDaysToShow;
+
+      html += '<div class="yb-schedule__day' + (isHidden ? ' yb-schedule__day--hidden' : '') + '">';
       html += '<h3 class="yb-schedule__day-label">' + dayName + ' <span>' + dateLabel + '</span></h3>';
 
       day.classes.forEach(function(cls) {
@@ -2275,9 +2364,55 @@
       });
 
       html += '</div>';
+      dayIndex++;
     });
 
+    // No results for this filter
+    if (sortedKeys.length === 0 && scheduleClassFilter !== 'all') {
+      html += '<p class="yb-schedule__filter-empty">' + (isDa() ? 'Ingen klasser af denne type denne uge.' : 'No classes of this type this week.') + '</p>';
+    }
+
+    // "Show more" / "Show next week" button
+    if (hasMoreDays) {
+      var remainingCount = sortedKeys.length - initialDaysToShow;
+      var btnLabel = lastDayIsSunday
+        ? (isDa() ? 'Vis næste uge' : 'Show next week')
+        : (isDa() ? 'Vis resten af ugen (' + remainingCount + ' ' + (remainingCount === 1 ? 'dag' : 'dage') + ')' : 'Show more (' + remainingCount + ' ' + (remainingCount === 1 ? 'day' : 'days') + ')');
+      html += '<div class="yb-schedule__show-more-wrap">';
+      html += '<button class="yb-btn yb-btn--outline yb-schedule__show-more-btn" type="button" id="yb-schedule-show-more">' + btnLabel + '</button>';
+      html += '</div>';
+    }
+
     container.innerHTML = html;
+
+    // "Show more" button handler
+    var showMoreBtn = document.getElementById('yb-schedule-show-more');
+    if (showMoreBtn) {
+      showMoreBtn.addEventListener('click', function() {
+        if (lastDayIsSunday) {
+          // Go to next week
+          scheduleWeekOffset++;
+          scheduleShowAllDays = false;
+          loadSchedule();
+        } else {
+          // Reveal hidden days
+          scheduleShowAllDays = true;
+          container.querySelectorAll('.yb-schedule__day--hidden').forEach(function(el) {
+            el.classList.remove('yb-schedule__day--hidden');
+          });
+          showMoreBtn.parentElement.remove();
+        }
+      });
+    }
+
+    // Attach class type filter handlers
+    container.querySelectorAll('[data-schedule-filter]').forEach(function(btn) {
+      btn.addEventListener('click', function() {
+        scheduleClassFilter = btn.getAttribute('data-schedule-filter');
+        scheduleShowAllDays = false;
+        renderSchedule(container, scheduleAllClasses, scheduleWeekStart);
+      });
+    });
 
     // Attach book/cancel handlers
     container.querySelectorAll('[data-schedule-book]').forEach(function(btn) {
