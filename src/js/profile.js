@@ -2004,23 +2004,34 @@
   // SCHEDULE TAB
   // ══════════════════════════════════════
   var scheduleWeekOffset = 0;
-  var scheduleClassFilter = 'all'; // Active class type filter
+  var scheduleClassFilter = 'all'; // Active class type filter (session type name or 'all')
 
-  var scheduleClassFilters = [
-    { id: 'all', da: 'Alle', en: 'All', keywords: [] },
-    { id: 'bikram', da: 'Bikram Yoga', en: 'Bikram Yoga', keywords: ['bikram', 'hot triangle', 'hot 26'] },
-    { id: 'vinyasa', da: 'Vinyasa Yoga', en: 'Vinyasa Yoga', keywords: ['vinyasa', 'flow'] },
-    { id: 'yin', da: 'Yin Yoga', en: 'Yin Yoga', keywords: ['yin'] },
-    { id: 'gentle', da: 'Blid Yoga', en: 'Gentle Yoga', keywords: ['gentle', 'blid', 'restorative', 'restorativ'] },
-    { id: 'combo', da: 'Kombiklasser', en: 'Combo Classes', keywords: ['combo', 'kombi', 'splits', 'strength', 'flexibility', 'backbend'] }
-  ];
-
-  function matchesClassFilter(className) {
+  function matchesClassFilter(cls) {
     if (scheduleClassFilter === 'all') return true;
-    var filter = scheduleClassFilters.find(function(f) { return f.id === scheduleClassFilter; });
-    if (!filter || !filter.keywords.length) return true;
-    var nameLower = (className || '').toLowerCase();
-    return filter.keywords.some(function(kw) { return nameLower.indexOf(kw) !== -1; });
+    return (cls.sessionTypeName || '') === scheduleClassFilter;
+  }
+
+  /**
+   * Build filter list dynamically from the session types present in this week's classes.
+   * Returns [{id: 'all', label: 'All'}, {id: 'Yin Yoga (Passive/Static)', label: 'Yin Yoga (Passive/Static)'}, ...]
+   */
+  function buildScheduleFilters(classes) {
+    var seen = {};
+    var filters = [{ id: 'all', label: isDa() ? 'Alle' : 'All' }];
+    classes.forEach(function(cls) {
+      var st = cls.sessionTypeName;
+      if (st && !seen[st]) {
+        seen[st] = true;
+        filters.push({ id: st, label: st });
+      }
+    });
+    // Sort filters alphabetically (after "All")
+    filters.sort(function(a, b) {
+      if (a.id === 'all') return -1;
+      if (b.id === 'all') return 1;
+      return a.label.localeCompare(b.label);
+    });
+    return filters;
   }
 
   function initScheduleNav() {
@@ -2249,7 +2260,7 @@
 
     // Apply class type filter
     var filteredClasses = classes.filter(function(cls) {
-      return matchesClassFilter(cls.name);
+      return matchesClassFilter(cls);
     });
 
     var days = {};
@@ -2264,18 +2275,13 @@
       days[key].classes.push(cls);
     });
 
-    // ── Class type filter buttons ──
+    // ── Class type filter buttons (built dynamically from session types) ──
+    var dynamicFilters = buildScheduleFilters(classes);
     var html = '<div class="yb-schedule__filters">';
-    scheduleClassFilters.forEach(function(f) {
+    dynamicFilters.forEach(function(f) {
       var isActive = scheduleClassFilter === f.id;
-      // Count matching classes
-      var count = f.id === 'all' ? classes.length : classes.filter(function(cls) {
-        var nameLower = (cls.name || '').toLowerCase();
-        return f.keywords.some(function(kw) { return nameLower.indexOf(kw) !== -1; });
-      }).length;
-      if (count === 0 && f.id !== 'all') return;
-      html += '<button class="yb-schedule__filter-btn' + (isActive ? ' is-active' : '') + '" type="button" data-schedule-filter="' + f.id + '">';
-      html += (isDa() ? f.da : f.en);
+      html += '<button class="yb-schedule__filter-btn' + (isActive ? ' is-active' : '') + '" type="button" data-schedule-filter="' + esc(f.id) + '">';
+      html += esc(f.label);
       html += '</button>';
     });
     html += '</div>';
@@ -2372,36 +2378,50 @@
       html += '<p class="yb-schedule__filter-empty">' + (isDa() ? 'Ingen klasser af denne type denne uge.' : 'No classes of this type this week.') + '</p>';
     }
 
-    // "Show more" / "Show next week" button
+    // Button logic:
+    // - If collapsed (more days hidden): "Show More"
+    // - If expanded or all days visible and Sunday reached: "Show Next Week"
+    var showNextWeek = scheduleShowAllDays || sortedKeys.length <= initialDaysToShow;
     if (hasMoreDays) {
-      var remainingCount = sortedKeys.length - initialDaysToShow;
-      var btnLabel = lastDayIsSunday
-        ? (isDa() ? 'Vis næste uge' : 'Show next week')
-        : (isDa() ? 'Vis resten af ugen (' + remainingCount + ' ' + (remainingCount === 1 ? 'dag' : 'dage') + ')' : 'Show more (' + remainingCount + ' ' + (remainingCount === 1 ? 'day' : 'days') + ')');
+      // Still collapsed — show "Show More"
       html += '<div class="yb-schedule__show-more-wrap">';
-      html += '<button class="yb-btn yb-btn--outline yb-schedule__show-more-btn" type="button" id="yb-schedule-show-more">' + btnLabel + '</button>';
+      html += '<button class="yb-btn yb-btn--outline yb-schedule__show-more-btn" type="button" id="yb-schedule-show-more">' + (isDa() ? 'Vis mere' : 'Show more') + '</button>';
+      html += '</div>';
+    } else if (showNextWeek && sortedKeys.length > 0) {
+      // All days visible — show "Show Next Week"
+      html += '<div class="yb-schedule__show-more-wrap">';
+      html += '<button class="yb-btn yb-btn--outline yb-schedule__show-more-btn" type="button" id="yb-schedule-next-week">' + (isDa() ? 'Vis næste uge' : 'Show next week') + '</button>';
       html += '</div>';
     }
 
     container.innerHTML = html;
 
-    // "Show more" button handler
+    // "Show More" — reveal hidden days, then swap to "Show Next Week"
     var showMoreBtn = document.getElementById('yb-schedule-show-more');
     if (showMoreBtn) {
       showMoreBtn.addEventListener('click', function() {
-        if (lastDayIsSunday) {
-          // Go to next week
+        scheduleShowAllDays = true;
+        container.querySelectorAll('.yb-schedule__day--hidden').forEach(function(el) {
+          el.classList.remove('yb-schedule__day--hidden');
+        });
+        // Replace this button with "Show Next Week"
+        var wrap = showMoreBtn.parentElement;
+        wrap.innerHTML = '<button class="yb-btn yb-btn--outline yb-schedule__show-more-btn" type="button" id="yb-schedule-next-week">' + (isDa() ? 'Vis næste uge' : 'Show next week') + '</button>';
+        document.getElementById('yb-schedule-next-week').addEventListener('click', function() {
           scheduleWeekOffset++;
           scheduleShowAllDays = false;
           loadSchedule();
-        } else {
-          // Reveal hidden days
-          scheduleShowAllDays = true;
-          container.querySelectorAll('.yb-schedule__day--hidden').forEach(function(el) {
-            el.classList.remove('yb-schedule__day--hidden');
-          });
-          showMoreBtn.parentElement.remove();
-        }
+        });
+      });
+    }
+
+    // "Show Next Week" (when directly visible)
+    var nextWeekBtn = document.getElementById('yb-schedule-next-week');
+    if (nextWeekBtn && !showMoreBtn) {
+      nextWeekBtn.addEventListener('click', function() {
+        scheduleWeekOffset++;
+        scheduleShowAllDays = false;
+        loadSchedule();
       });
     }
 

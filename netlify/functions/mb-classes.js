@@ -73,7 +73,9 @@ exports.handler = async function(event) {
         substituteTeacher: cls.Substitute || false,
         classDescriptionId: cls.ClassDescription ? cls.ClassDescription.Id : null,
         programId: cls.ClassDescription && cls.ClassDescription.Program ? cls.ClassDescription.Program.Id : null,
-        programName: cls.ClassDescription && cls.ClassDescription.Program ? cls.ClassDescription.Program.Name : ''
+        programName: cls.ClassDescription && cls.ClassDescription.Program ? cls.ClassDescription.Program.Name : '',
+        sessionTypeId: cls.ClassDescription && cls.ClassDescription.SessionType ? cls.ClassDescription.SessionType.Id : null,
+        sessionTypeName: cls.ClassDescription && cls.ClassDescription.SessionType ? cls.ClassDescription.SessionType.Name : ''
       };
     });
 
