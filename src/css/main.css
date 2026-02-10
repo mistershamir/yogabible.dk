@@ -11402,3 +11402,61 @@ section {
     padding: 14px 16px;
   }
 }
+
+/* ── SoundCloud Embed ── */
+.yb-link__embed {
+  border-radius: 12px;
+  overflow: hidden;
+  background: rgba(253, 251, 247, 0.05);
+  border: 1px solid rgba(253, 251, 247, 0.08);
+}
+
+.yb-link__embed iframe {
+  display: block;
+  border: 0;
+}
+
+/* ── Share Button ── */
+.yb-link__share {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  padding: 12px 20px;
+  margin-top: 8px;
+  background: transparent;
+  border: 1px dashed rgba(253, 251, 247, 0.15);
+  border-radius: 12px;
+  color: rgba(253, 251, 247, 0.4);
+  font-family: var(--font-primary);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  cursor: pointer;
+  transition: color 0.2s ease, border-color 0.2s ease, background 0.2s ease;
+}
+
+.yb-link__share:hover {
+  color: rgba(253, 251, 247, 0.7);
+  border-color: rgba(253, 251, 247, 0.25);
+  background: rgba(253, 251, 247, 0.03);
+}
+
+.yb-link__share--copied {
+  color: var(--yb-brand);
+  border-color: rgba(247, 92, 3, 0.4);
+  border-style: solid;
+}
+
+/* ── Fade-Up Entrance Animation ── */
+.yb-link__fade {
+  opacity: 0;
+  transform: translateY(16px);
+  transition: opacity 0.5s ease, transform 0.5s ease;
+}
+
+.yb-link__fade--visible {
+  opacity: 1;
+  transform: translateY(0);
+}

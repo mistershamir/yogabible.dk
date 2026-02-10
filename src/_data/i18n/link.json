@@ -53,6 +53,12 @@
     "connect_email": "Send os en email",
     "connect_phone": "Ring til os",
 
+    "section_listen": "LYT MED",
+    "listen_label": "Yoga Bible playlister på SoundCloud",
+
+    "share_button": "Del dette link",
+    "share_copied": "Kopieret!",
+
     "footer_tagline": "Namaste fra København"
   },
   "en": {
@@ -108,6 +114,12 @@
     "connect_app_android": "Download App (Android)",
     "connect_email": "Send us an email",
     "connect_phone": "Call us",
+
+    "section_listen": "LISTEN",
+    "listen_label": "Yoga Bible playlists on SoundCloud",
+
+    "share_button": "Share this link",
+    "share_copied": "Copied!",
 
     "footer_tagline": "Namaste from Copenhagen"
   }
