@@ -264,25 +264,19 @@ Promise.all([
 3. **Past passes** — expired services listed below active ones
 
 **Contract status display:**
-- **Active:** Green badge, shows "Next billing {date}", Pause + Cancel buttons
-- **Paused/Suspended:** Amber badge
+- **Active:** Green badge, shows "Next billing {date}", info box with contact instructions for pause/cancel
+- **Paused/Suspended:** Amber badge, pause dates, auto-resume message, contact info for changes
 - **Terminated (before date):** "Membership Terminated" red badge, "Last billing {date}", "Active until {date}", notice period note with T&C link, retention card
 - **Terminated (after date):** "Membership Terminated" red badge, "Become a member again" button
 
-**Membership management (Pause/Cancel):**
-- Pause and Cancel buttons shown only for active, non-suspended, non-terminating autopay contracts
-- Each opens a dedicated panel (hides other sections)
-- **Pause (suspend):** Date picker with constraints:
-  - Earliest start: after next billing date (or tomorrow as fallback)
-  - Minimum duration: 14 days
-  - Maximum duration: 3 months (93 days)
-  - Resume date shown dynamically as dates change
-- **Cancel (terminate):** Shows calculated dates:
-  - Last payment date = next billing date
-  - Use until date = next billing date + 1 month - 1 day
-  - Notice period note: "1 full month notification period per Terms & Conditions" (links to T&C page, opens in new tab)
-- All management POSTs to `/.netlify/functions/mb-contract-manage` with `action: 'suspend'|'terminate'`
-- On success: reloads membership details, shows toast (8s for cancel farewell, 5s for others)
+**Membership management (Contact-based, updated 2026-02-10):**
+- Pause and Cancel buttons have been **removed** from the user profile
+- Replaced with an info box directing users to email `info@yogabible.dk`
+- Info box text explains: pause (14 days – 3 months, special circumstances) or cancel (1 month notice per T&C)
+- **Reason:** Unresolved Mindbody API issues — `SuspendDate` interpreted as end date (not start), no API to delete suspension or cancel termination
+- **Awaiting** Mindbody Developer Support response (email drafted in `docs/email-mindbody-support.md`)
+- Status displays remain: paused badge, terminated badge, billing info, retention card, contact hints
+- Backend `mb-contract-manage.js` still functional for suspend/terminate actions (can be re-enabled when API issues are resolved)
 
 **Retention card (terminated contracts, before termination date):**
 - Heart icon, "We already miss you!" title
@@ -360,39 +354,48 @@ Torvegade 66, 1400, København K
 - Generated as Blob → `URL.createObjectURL()` → triggers `<a>` download
 - Filename: `kvittering-{saleId}.txt`
 
-### Membership Management (within My Passes Tab)
-Active autopay contracts show Pause and Cancel buttons directly in the My Passes tab.
+### Membership Management (within My Passes Tab) — Updated 2026-02-10
 
-**Pause (Suspend) flow:**
-1. Click "Pause" → shows pause panel with date pickers
-2. Start date defaults to after next billing cycle (`calcEarliestPauseStart()`)
-3. End date: min 14 days, max 3 months from start
-4. Confirm → POST to `mb-contract-manage` with `action: 'suspend'`
-5. Success → reload membership details, show toast
+**Current state:** Pause and Cancel buttons have been **removed** from the user profile. Users are directed to email `info@yogabible.dk` to request pause or cancellation.
 
-**Cancel (Terminate) flow:**
-1. Click "Cancel" → shows cancel panel with calculated dates
-2. `calcTerminationDates(nextBillingDate)` calculates:
-   - **Last payment:** next billing date (the final charge)
-   - **Use until:** next billing + 1 month - 1 day (end of that billing cycle)
-   - Example: next billing Mar 8 → last payment Mar 8 → use until Apr 7
-3. Confirm → POST to `mb-contract-manage` with `action: 'terminate'`
-4. Success → shows "Membership Terminated" badge, "Last billing" date, notice period note, and retention card
+**Info box (active contracts):**
+- Shown for active, non-suspended, non-terminating autopay contracts
+- Contains styled text with orange left border accent explaining:
+  - Pause options: 14 days – 3 months, special circumstances
+  - Cancel: 1 month notice per terms & conditions
+  - Contact: email `info@yogabible.dk`
 
-**Status badges:**
-- Active: green badge, "Next billing {date}"
-- Paused/Suspended: amber badge
-- Membership Terminated: red badge, "Last billing {date}", "Active until {date}", notice period note with T&C link
-- Pause/Cancel buttons only shown for active, non-suspended, non-terminating autopay contracts
+**Paused contract display:**
+- Amber "Paused" badge
+- Pause period dates (from/to)
+- Auto-resume message
+- Contact info: "Want to cancel the pause? Contact us at info@yogabible.dk"
 
-**Post-termination UX:**
+**Post-termination UX (unchanged):**
 - **Before termination date:** Retention card (heart icon, perks, "Reactivate — first month free" CTA)
 - **After termination date:** "Become a member again" button → Store memberships
 - Revoke cancellation is NOT possible via Mindbody API (`activatecontract` doesn't exist)
+- "Want to cancel the termination? Contact us at info@yogabible.dk" hint shown
+
+**Backend (ready for re-activation):**
+- `mb-contract-manage.js` still supports `action: 'suspend'|'terminate'`
+- Can re-enable buttons once Mindbody clarifies SuspendDate semantics
+- Business rules remain in code: min 14 days, max 93 days, earliest start after next billing
+
+**Pause persistence (Firestore bridge):**
+- After user pauses, Firestore `users/{uid}.pausedContracts` stores pause info with `savedAt` timestamp
+- MB `IsSuspended` is ONLY true for currently active pauses (false for future-dated)
+- 90-second grace period: trust Firestore for 90s after save, then defer to MB as authority
+- If MB never confirms (admin deleted suspension), Firestore record auto-removed after 90s
 
 **Date formatting:**
 - All dates use `formatDateDK()` for consistent Danish-style display
-- Date picker inputs use browser native `<input type="date">`
+
+**Why buttons were removed (2026-02-10):**
+1. `SuspendDate` treated by MB as end date, not start — can't schedule future-dated pause starts
+2. No API to delete/cancel an existing suspension — only available in MB admin UI
+3. No API to revoke/cancel a pending termination — only available in MB admin UI
+4. Email sent to Mindbody Developer Support requesting clarification (see `docs/email-mindbody-support.md`)
 
 ### 6. Courses Tab (Mine Kurser)
 

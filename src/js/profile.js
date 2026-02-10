@@ -1036,12 +1036,11 @@
           html += '<p class="yb-membership__pause-contact">' + t('membership_resume_contact') + '</p>';
         }
 
-        // ── ACTIVE STATE: Manage buttons ──
-        var showActiveButtons = !isPaused && !c.terminationDate && c.isAutopay;
-        if (showActiveButtons) {
-          html += '<div class="yb-membership__manage-btns">';
-          html += '<button type="button" class="yb-membership__manage-btn yb-membership__manage-btn--pause" data-manage-pause="' + c.id + '">' + t('membership_pause_btn') + '</button>';
-          html += '<button type="button" class="yb-membership__manage-btn yb-membership__manage-btn--cancel" data-manage-cancel="' + c.id + '">' + t('membership_cancel_btn') + '</button>';
+        // ── ACTIVE STATE: Manage info (contact-based) ──
+        var showActiveInfo = !isPaused && !c.terminationDate && c.isAutopay;
+        if (showActiveInfo) {
+          html += '<div class="yb-membership__manage-info-box">';
+          html += '<p class="yb-membership__manage-info-text">' + t('membership_manage_info') + '</p>';
           html += '</div>';
         }
 
@@ -1127,47 +1126,6 @@
     if (!contracts.length && !active.length) {
       html += '<p class="yb-membership__empty">' + t('membership_no_active') + '</p>';
     }
-
-    // Pause panel (hidden by default, shown when user clicks Pause)
-    html += '<div id="yb-membership-pause-panel" class="yb-membership__manage-panel" hidden>';
-    html += '<div class="yb-membership__manage-header">';
-    html += '<button type="button" class="yb-membership__back-btn" data-manage-back>&larr; ' + t('membership_back') + '</button>';
-    html += '<h3 class="yb-membership__manage-title">' + t('membership_pause_title') + '</h3>';
-    html += '</div>';
-    html += '<p class="yb-membership__manage-desc">' + t('membership_pause_desc') + '</p>';
-    html += '<div class="yb-membership__manage-form">';
-    html += '<div class="yb-membership__manage-field">';
-    html += '<label>' + t('membership_pause_start') + '</label>';
-    html += '<input type="date" id="yb-pause-start" class="yb-membership__date-input" />';
-    html += '<span class="yb-membership__field-hint" id="yb-pause-start-hint"></span>';
-    html += '</div>';
-    html += '<div class="yb-membership__manage-field">';
-    html += '<label>' + t('membership_pause_end') + '</label>';
-    html += '<input type="date" id="yb-pause-end" class="yb-membership__date-input" />';
-    html += '<span class="yb-membership__field-hint">' + t('membership_pause_min') + ' · ' + t('membership_pause_max') + '</span>';
-    html += '</div>';
-    html += '<p class="yb-membership__resume-info" id="yb-pause-resume-info" hidden></p>';
-    html += '</div>';
-    html += '<p class="yb-membership__special-note">' + t('membership_pause_special') + '</p>';
-    html += '<div class="yb-auth-error" id="yb-pause-error" hidden role="alert"></div>';
-    html += '<button type="button" class="yb-membership__confirm-btn yb-membership__confirm-btn--pause" id="yb-pause-confirm">' + t('membership_pause_confirm') + '</button>';
-    html += '</div>';
-
-    // Cancel panel (hidden by default, shown when user clicks Cancel)
-    html += '<div id="yb-membership-cancel-panel" class="yb-membership__manage-panel" hidden>';
-    html += '<div class="yb-membership__manage-header">';
-    html += '<button type="button" class="yb-membership__back-btn" data-manage-back>&larr; ' + t('membership_back') + '</button>';
-    html += '<h3 class="yb-membership__manage-title">' + t('membership_cancel_title') + '</h3>';
-    html += '</div>';
-    html += '<p class="yb-membership__manage-desc">' + t('membership_cancel_desc') + '</p>';
-    html += '<div class="yb-membership__manage-info">';
-    html += '<div class="yb-membership__info-row"><span class="yb-membership__info-label">' + t('membership_cancel_earliest') + ':</span> <strong id="yb-cancel-earliest-date"></strong></div>';
-    html += '<div class="yb-membership__info-row"><span class="yb-membership__info-label">' + t('membership_cancel_use_until') + ':</span> <strong id="yb-cancel-use-until"></strong></div>';
-    html += '</div>';
-    html += '<div class="yb-membership__cancel-warning">' + t('membership_cancel_warning') + '</div>';
-    html += '<div class="yb-auth-error" id="yb-cancel-error" hidden role="alert"></div>';
-    html += '<button type="button" class="yb-membership__confirm-btn yb-membership__confirm-btn--cancel" id="yb-cancel-confirm">' + t('membership_cancel_confirm') + '</button>';
-    html += '</div>';
 
     container.innerHTML = html;
 
@@ -1274,300 +1232,15 @@
 
   function bindMembershipManageEvents(container, data) {
     var contracts = data.activeContracts || [];
-    var locale = isDa() ? 'da-DK' : 'en-GB';
-    var dateOpts = { day: 'numeric', month: 'long', year: 'numeric' };
-    var activeContractId = null;
-    var activeContract = null;
-    // Sections to show/hide
-    var allSections = container.querySelectorAll('.yb-membership__section');
-    var pausePanel = document.getElementById('yb-membership-pause-panel');
-    var cancelPanel = document.getElementById('yb-membership-cancel-panel');
 
-    function showSections() {
-      for (var i = 0; i < allSections.length; i++) allSections[i].hidden = false;
-      if (pausePanel) pausePanel.hidden = true;
-      if (cancelPanel) cancelPanel.hidden = true;
-    }
+    // NOTE: Pause and Cancel buttons have been removed from the UI.
+    // These actions are now handled via email to info@yogabible.dk.
+    // The pause/termination STATUS display and retention card remain.
 
-    function hideSections() {
-      for (var i = 0; i < allSections.length; i++) allSections[i].hidden = true;
-    }
-
-    // Back buttons
-    var backBtns = container.querySelectorAll('[data-manage-back]');
-    for (var b = 0; b < backBtns.length; b++) {
-      backBtns[b].addEventListener('click', showSections);
-    }
-
-    // ── Pause buttons ──
-    var pauseBtns = container.querySelectorAll('[data-manage-pause]');
-    for (var p = 0; p < pauseBtns.length; p++) {
-      pauseBtns[p].addEventListener('click', function() {
-        activeContractId = this.getAttribute('data-manage-pause');
-        activeContract = contracts.find(function(c) { return String(c.id) === String(activeContractId); });
-        if (!activeContract || !pausePanel) return;
-
-        hideSections();
-        pausePanel.hidden = false;
-
-        // Set min date for pause start (after next billing cycle)
-        var earliestStart = calcEarliestPauseStart(activeContract.nextBillingDate);
-        var startInput = document.getElementById('yb-pause-start');
-        var endInput = document.getElementById('yb-pause-end');
-        var hintEl = document.getElementById('yb-pause-start-hint');
-        var resumeInfoEl = document.getElementById('yb-pause-resume-info');
-        var errorEl = document.getElementById('yb-pause-error');
-
-        if (startInput) {
-          startInput.min = toLocalDateStr(earliestStart);
-          startInput.value = toLocalDateStr(earliestStart);
-        }
-        if (hintEl) {
-          hintEl.textContent = t('membership_pause_next_billing') + ': ' + formatDateDK(earliestStart);
-        }
-
-        // Set default end date (14 days after start)
-        if (endInput && startInput) {
-          var defaultEnd = new Date(earliestStart);
-          defaultEnd.setDate(defaultEnd.getDate() + 14);
-          endInput.min = toLocalDateStr(defaultEnd);
-          var maxEnd = new Date(earliestStart);
-          maxEnd.setMonth(maxEnd.getMonth() + 3);
-          endInput.max = toLocalDateStr(maxEnd);
-          endInput.value = toLocalDateStr(defaultEnd);
-        }
-
-        // Update resume info + duration feedback
-        function updateResumeInfo() {
-          if (!resumeInfoEl || !endInput || !startInput) return;
-          if (endInput.value && startInput.value) {
-            var sd = new Date(startInput.value);
-            var ed = new Date(endInput.value);
-            var days = Math.round((ed - sd) / 86400000);
-            var resumeDate = new Date(endInput.value);
-            var durationLabel = isDa() ? (days + ' dage') : (days + ' days');
-            resumeInfoEl.textContent = t('membership_pause_resume') + ' ' + formatDateDK(resumeDate) + ' (' + durationLabel + ')';
-            resumeInfoEl.hidden = false;
-          } else {
-            resumeInfoEl.hidden = true;
-          }
-          // Clear any previous errors when dates change
-          if (errorEl) errorEl.hidden = true;
-        }
-
-        // Enforce start date cannot be before earliest
-        function onStartChange() {
-          if (!endInput || !startInput || !startInput.value) return;
-          // Prevent picking before next billing
-          if (startInput.min && startInput.value < startInput.min) {
-            startInput.value = startInput.min;
-          }
-          var sd = new Date(startInput.value);
-          var minEnd = new Date(sd);
-          minEnd.setDate(minEnd.getDate() + 14);
-          var maxEnd = new Date(sd);
-          maxEnd.setMonth(maxEnd.getMonth() + 3);
-          endInput.min = toLocalDateStr(minEnd);
-          endInput.max = toLocalDateStr(maxEnd);
-          // Reset end if out of range
-          if (endInput.value < endInput.min) endInput.value = endInput.min;
-          if (endInput.value > endInput.max) endInput.value = endInput.max;
-          updateResumeInfo();
-        }
-
-        if (startInput) startInput.addEventListener('change', onStartChange);
-        if (endInput) endInput.addEventListener('change', updateResumeInfo);
-        updateResumeInfo();
-
-        if (errorEl) errorEl.hidden = true;
-      });
-    }
-
-    // ── Pause confirm button ──
-    var pauseConfirmBtn = document.getElementById('yb-pause-confirm');
-    if (pauseConfirmBtn) {
-      pauseConfirmBtn.addEventListener('click', function() {
-        if (!activeContractId || !clientId) return;
-        var startInput = document.getElementById('yb-pause-start');
-        var endInput = document.getElementById('yb-pause-end');
-        var errorEl = document.getElementById('yb-pause-error');
-
-        if (!startInput || !startInput.value || !endInput || !endInput.value) {
-          if (errorEl) { errorEl.textContent = isDa() ? 'Vælg venligst start- og slutdato.' : 'Please select start and end dates.'; errorEl.hidden = false; }
-          return;
-        }
-
-        // Validate: start must be >= next billing (min attribute)
-        if (startInput.min && startInput.value < startInput.min) {
-          if (errorEl) { errorEl.textContent = isDa() ? 'Startdato kan tidligst være efter næste faktureringsperiode.' : 'Start date cannot be before your next billing cycle.'; errorEl.hidden = false; }
-          return;
-        }
-
-        // Validate duration
-        var sd = new Date(startInput.value);
-        var ed = new Date(endInput.value);
-        var days = Math.round((ed - sd) / 86400000);
-        if (days < 14) {
-          if (errorEl) { errorEl.textContent = isDa() ? 'Pause skal være mindst 14 dage.' : 'Pause must be at least 14 days.'; errorEl.hidden = false; }
-          return;
-        }
-        if (days > 93) {
-          if (errorEl) { errorEl.textContent = isDa() ? 'Pause kan højst være 3 måneder. Ved særlige omstændigheder (skade, graviditet, rejse mv.) kontakt os.' : 'Pause cannot exceed 3 months. For special circumstances (injury, pregnancy, travel etc.) please contact us.'; errorEl.hidden = false; }
-          return;
-        }
-
-        // Check if already paused locally (prevents calling MB again)
-        if (activeContract && activeContract.isSuspended) {
-          if (errorEl) { errorEl.textContent = t('membership_already_paused'); errorEl.hidden = false; }
-          return;
-        }
-
-        pauseConfirmBtn.disabled = true;
-        pauseConfirmBtn.textContent = t('membership_pause_confirming');
-        if (errorEl) errorEl.hidden = true;
-
-        fetch('/.netlify/functions/mb-contract-manage', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            action: 'suspend',
-            clientId: clientId,
-            clientContractId: Number(activeContractId),
-            startDate: startInput.value,
-            endDate: endInput.value
-          })
-        })
-        .then(function(r) {
-          var ct = r.headers.get('content-type') || '';
-          if (ct.indexOf('application/json') === -1) {
-            throw new Error('Server returned non-JSON (status ' + r.status + ')');
-          }
-          return r.json().then(function(d) { return { ok: r.ok, data: d }; });
-        })
-        .then(function(res) {
-          if (res.ok && res.data.success) {
-            // Mark contract as suspended in local data
-            markContractPaused(activeContractId, startInput.value, endInput.value);
-            showSections();
-            renderMembershipDetails(container, clientPassData);
-            bindMembershipManageEvents(container, clientPassData);
-            showMembershipToast(t('membership_pause_success'), 'success', 15000);
-          } else if (res.data.error === 'already_suspended') {
-            // Contract is already paused — show PAUSED state
-            var pStart = res.data.suspendDate || startInput.value;
-            var pEnd = res.data.resumeDate || endInput.value;
-            markContractPaused(activeContractId, pStart, pEnd);
-            showSections();
-            renderMembershipDetails(container, clientPassData);
-            bindMembershipManageEvents(container, clientPassData);
-            showMembershipToast(t('membership_already_paused'), 'info', 8000);
-          } else {
-            if (errorEl) {
-              errorEl.textContent = res.data.error || t('membership_pause_error');
-              errorEl.hidden = false;
-            }
-            console.warn('[Membership] Suspend error:', JSON.stringify(res.data, null, 2));
-          }
-          pauseConfirmBtn.disabled = false;
-          pauseConfirmBtn.textContent = t('membership_pause_confirm');
-        })
-        .catch(function(err) {
-          console.error('[Membership] Pause error:', err);
-          if (errorEl) {
-            errorEl.textContent = err.message || t('membership_pause_error');
-            errorEl.hidden = false;
-          }
-          pauseConfirmBtn.disabled = false;
-          pauseConfirmBtn.textContent = t('membership_pause_confirm');
-        });
-      });
-    }
-
-    // ── Cancel buttons ──
-    var cancelBtns = container.querySelectorAll('[data-manage-cancel]');
-    for (var c = 0; c < cancelBtns.length; c++) {
-      cancelBtns[c].addEventListener('click', function() {
-        activeContractId = this.getAttribute('data-manage-cancel');
-        activeContract = contracts.find(function(ct) { return String(ct.id) === String(activeContractId); });
-        if (!activeContract || !cancelPanel) return;
-
-        hideSections();
-        cancelPanel.hidden = false;
-
-        var errorEl = document.getElementById('yb-cancel-error');
-        if (errorEl) errorEl.hidden = true;
-
-        // Calculate termination dates
-        var termDates = calcTerminationDates(activeContract.nextBillingDate);
-        var earliestEl = document.getElementById('yb-cancel-earliest-date');
-        if (earliestEl) earliestEl.textContent = formatDateDK(termDates.lastPaymentDate);
-
-        // "Use until" = end of that billing cycle (day before next would-be billing)
-        var useUntilEl = document.getElementById('yb-cancel-use-until');
-        if (useUntilEl) useUntilEl.textContent = formatDateDK(termDates.useUntilDate);
-      });
-    }
-
-    // ── Cancel confirm button ──
-    var cancelConfirmBtn = document.getElementById('yb-cancel-confirm');
-    if (cancelConfirmBtn) {
-      cancelConfirmBtn.addEventListener('click', function() {
-        if (!activeContractId || !clientId) return;
-        var errorEl = document.getElementById('yb-cancel-error');
-
-        var termDates = calcTerminationDates(activeContract ? activeContract.nextBillingDate : null);
-        var terminationDate = toLocalDateStr(termDates.useUntilDate);
-
-        cancelConfirmBtn.disabled = true;
-        cancelConfirmBtn.textContent = t('membership_cancel_confirming');
-        if (errorEl) errorEl.hidden = true;
-
-        fetch('/.netlify/functions/mb-contract-manage', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            action: 'terminate',
-            clientId: clientId,
-            clientContractId: Number(activeContractId),
-            terminationDate: terminationDate
-          })
-        })
-        .then(function(r) {
-          var ct = r.headers.get('content-type') || '';
-          if (ct.indexOf('application/json') === -1) {
-            throw new Error('Server returned non-JSON (status ' + r.status + ')');
-          }
-          return r.json().then(function(d) { return { ok: r.ok, data: d }; });
-        })
-        .then(function(res) {
-          if (res.ok && res.data.success) {
-            showSections();
-            loadMembershipDetails();
-            showMembershipToast(t('membership_cancel_farewell'), 'success', 8000);
-          } else {
-            if (errorEl) {
-              var errMsg = res.data.error || t('membership_cancel_error');
-              errorEl.textContent = errMsg;
-              errorEl.hidden = false;
-            }
-            if (res.data._pathResults) {
-              console.log('[Cancel] Path results:', JSON.stringify(res.data._pathResults, null, 2));
-            }
-          }
-          cancelConfirmBtn.disabled = false;
-          cancelConfirmBtn.textContent = t('membership_cancel_confirm');
-        })
-        .catch(function(err) {
-          console.error('[Membership] Cancel error:', err);
-          if (errorEl) {
-            errorEl.textContent = err.message || t('membership_cancel_error');
-            errorEl.hidden = false;
-          }
-          cancelConfirmBtn.disabled = false;
-          cancelConfirmBtn.textContent = t('membership_cancel_confirm');
-        });
-      });
-    }
+    // NOTE: Pause and Cancel buttons removed from UI.
+    // Pending Mindbody API clarification on SuspendDate semantics
+    // and missing delete-suspension / cancel-termination endpoints.
+    // Users are directed to email info@yogabible.dk instead.
 
     // ── Reactivate (retention) buttons ──
     // First month free is already set on all contracts in Mindbody,
@@ -3313,6 +2986,9 @@
       membership_next_billing: isDa() ? 'Næste fakturering' : 'Next billing',
       membership_autopay_amount: isDa() ? 'pr. periode' : 'per period',
       membership_back: isDa() ? 'Tilbage' : 'Back',
+      membership_manage_info: isDa()
+        ? 'Vil du <strong>sætte dit abonnement på pause</strong> (14 dage – 3 måneder, særlige omstændigheder) eller <strong>opsige dit medlemskab</strong> (1 måneds opsigelsesvarsel jf. handelsbetingelser)? Skriv til os på <a href="mailto:info@yogabible.dk">info@yogabible.dk</a>'
+        : 'Want to <strong>pause your membership</strong> (14 days – 3 months, special circumstances) or <strong>cancel your membership</strong> (1 month notice per terms &amp; conditions)? Email us at <a href="mailto:info@yogabible.dk">info@yogabible.dk</a>',
       membership_cancel_termination_hint: isDa()
         ? 'Vil du annullere opsigelsen? Kontakt os på <a href="mailto:info@yogabible.dk">info@yogabible.dk</a>'
         : 'Want to cancel the termination? Contact us at <a href="mailto:info@yogabible.dk">info@yogabible.dk</a>',
