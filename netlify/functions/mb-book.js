@@ -164,7 +164,8 @@ exports.handler = async function(event) {
         return jsonResponse(403, {
           error: 'no_pass',
           message: passCheck.reason || 'Client does not have a valid pass for this class',
-          programName: passCheck.classProgramName || null
+          programName: passCheck.classProgramName || null,
+          programId: passCheck.classProgramId || null
         });
       }
 
