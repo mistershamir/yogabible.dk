@@ -41,9 +41,10 @@ exports.handler = async function(event) {
     // Fetch ALL data sources in parallel
     // ══════════════════════════════════════
 
-    var salesPromise = fetchSales(startDate, endDate, clientId);
-    var servicesPromise = fetchClientServices(clientId, startDate, endDate);
-    var contractsPromise = fetchClientContracts(clientId, startDate, endDate);
+    var debugLog = [];
+    var salesPromise = fetchSales(startDate, endDate, clientId, debugLog);
+    var servicesPromise = fetchClientServices(clientId, startDate, endDate, debugLog);
+    var contractsPromise = fetchClientContracts(clientId, startDate, endDate, debugLog);
 
     var results = await Promise.all([salesPromise, servicesPromise, contractsPromise]);
     var salesPurchases = results[0];
@@ -86,7 +87,11 @@ exports.handler = async function(event) {
     purchases.sort(function(a, b) { return new Date(b.saleDate) - new Date(a.saleDate); });
 
     console.log('[mb-purchases] Returning', purchases.length, 'total purchases for clientId', clientId);
-    return jsonResponse(200, { purchases: purchases, total: purchases.length });
+    return jsonResponse(200, {
+      purchases: purchases,
+      total: purchases.length,
+      _debug: debugLog
+    });
   } catch (err) {
     console.error('[mb-purchases] Fatal error:', err);
     return jsonResponse(err.status || 500, { error: err.message });
@@ -97,7 +102,7 @@ exports.handler = async function(event) {
 // ══════════════════════════════════════
 // Data source 1: /sale/sales (rich invoice data)
 // ══════════════════════════════════════
-async function fetchSales(startDate, endDate, clientId) {
+async function fetchSales(startDate, endDate, clientId, debugLog) {
   var purchases = [];
   try {
     var offset = 0;
@@ -105,8 +110,6 @@ async function fetchSales(startDate, endDate, clientId) {
     var hasMore = true;
     var totalSales = 0;
     var matchedSales = 0;
-
-    // Log all unique ClientIds we see (first page only) to debug matching
     var seenClientIds = {};
 
     while (hasMore) {
@@ -118,25 +121,23 @@ async function fetchSales(startDate, endDate, clientId) {
       var salesData = await mbFetch(salesUrl);
       var batch = salesData.Sales || [];
       totalSales += batch.length;
-      console.log('[mb-purchases] /sale/sales returned', batch.length, 'sales (offset=' + offset + ')');
 
-      // On first page, log sample data and all unique ClientIds
       if (offset === 0) {
         if (batch.length > 0) {
-          console.log('[mb-purchases] FIRST SALE KEYS:', Object.keys(batch[0]).join(', '));
-          console.log('[mb-purchases] FIRST SALE FULL:', JSON.stringify(batch[0]).substring(0, 2000));
+          debugLog.push({ type: 'FIRST_SALE', keys: Object.keys(batch[0]), data: JSON.parse(JSON.stringify(batch[0])) });
 
           var items = batch[0].PurchasedItems || batch[0].Items || [];
           if (items.length > 0) {
-            console.log('[mb-purchases] FIRST ITEM FULL:', JSON.stringify(items[0]));
+            debugLog.push({ type: 'FIRST_SALE_ITEM', keys: Object.keys(items[0]), data: items[0] });
           }
           var payments = batch[0].Payments || [];
           if (payments.length > 0) {
-            console.log('[mb-purchases] FIRST PAYMENT FULL:', JSON.stringify(payments[0]));
+            debugLog.push({ type: 'FIRST_SALE_PAYMENT', keys: Object.keys(payments[0]), data: payments[0] });
           }
+        } else {
+          debugLog.push({ type: 'SALES_EMPTY', message: 'No sales returned from /sale/sales', url: salesUrl });
         }
 
-        // Collect unique ClientIds from first batch
         batch.forEach(function(s) {
           var cid = String(s.ClientId || '');
           if (!seenClientIds[cid]) seenClientIds[cid] = 0;
@@ -144,7 +145,6 @@ async function fetchSales(startDate, endDate, clientId) {
         });
       }
 
-      // Filter by ClientId server-side
       batch.forEach(function(sale) {
         var saleClientId = String(sale.ClientId || '');
         if (saleClientId === String(clientId)) {
@@ -158,15 +158,16 @@ async function fetchSales(startDate, endDate, clientId) {
       offset += limit;
 
       if (batch.length < limit || offset >= totalResults) hasMore = false;
-      if (offset >= 1000) { console.log('[mb-purchases] Safety limit 1000'); hasMore = false; }
+      if (offset >= 1000) hasMore = false;
     }
 
-    console.log('[mb-purchases] /sale/sales SUMMARY: total=' + totalSales +
-      ', matched clientId ' + clientId + '=' + matchedSales +
-      ', uniqueClientIds=' + JSON.stringify(seenClientIds));
+    var summary = 'total=' + totalSales + ', matched=' + matchedSales + ', clientIds=' + JSON.stringify(seenClientIds);
+    console.log('[mb-purchases] /sale/sales SUMMARY:', summary);
+    debugLog.push({ type: 'SALES_SUMMARY', totalSales: totalSales, matchedSales: matchedSales, uniqueClientIds: seenClientIds });
 
   } catch (err) {
-    console.error('[mb-purchases] /sale/sales FAILED:', err.message, err.status || '');
+    console.error('[mb-purchases] /sale/sales FAILED:', err.message);
+    debugLog.push({ type: 'SALES_ERROR', error: err.message, status: err.status || null });
   }
   return purchases;
 }
@@ -242,17 +243,14 @@ function mapSaleToPurchase(sale) {
 // ══════════════════════════════════════
 // Data source 2: /client/clientservices
 // ══════════════════════════════════════
-async function fetchClientServices(clientId, startDate, endDate) {
+async function fetchClientServices(clientId, startDate, endDate, debugLog) {
   var purchases = [];
   try {
     var svcData = await mbFetch('/client/clientservices?ClientId=' + clientId + '&CrossRegionalLookup=false');
     var services = svcData.ClientServices || [];
-    console.log('[mb-purchases] clientservices: found', services.length, 'services');
 
-    // Log FULL first service to discover price field names
     if (services.length > 0) {
-      console.log('[mb-purchases] FIRST SERVICE FULL:', JSON.stringify(services[0]));
-      console.log('[mb-purchases] FIRST SERVICE KEYS:', Object.keys(services[0]).join(', '));
+      debugLog.push({ type: 'FIRST_SERVICE', keys: Object.keys(services[0]), data: JSON.parse(JSON.stringify(services[0])) });
     }
 
     services.forEach(function(svc) {
@@ -303,16 +301,14 @@ async function fetchClientServices(clientId, startDate, endDate) {
 // ══════════════════════════════════════
 // Data source 3: /client/clientcontracts
 // ══════════════════════════════════════
-async function fetchClientContracts(clientId, startDate, endDate) {
+async function fetchClientContracts(clientId, startDate, endDate, debugLog) {
   var purchases = [];
   try {
     var contractData = await mbFetch('/client/clientcontracts?ClientId=' + clientId);
     var contracts = contractData.Contracts || [];
-    console.log('[mb-purchases] clientcontracts: found', contracts.length, 'contracts');
 
-    // Log FULL first contract to discover price fields
     if (contracts.length > 0) {
-      console.log('[mb-purchases] FIRST CONTRACT FULL:', JSON.stringify(contracts[0]).substring(0, 1000));
+      debugLog.push({ type: 'FIRST_CONTRACT', keys: Object.keys(contracts[0]), data: JSON.parse(JSON.stringify(contracts[0])) });
     }
 
     contracts.forEach(function(c) {
