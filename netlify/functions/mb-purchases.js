@@ -193,7 +193,23 @@ exports.handler = async function(event) {
         discount: totalDiscount,
         totalPaid: saleTotalPaid,
         returned: anyReturned,
-        quantity: lineItems.length
+        quantity: lineItems.length,
+        // DEBUG: raw sale-level keys and values for price discovery
+        _debug: {
+          saleKeys: Object.keys(sale).join(','),
+          salePriceFields: (function() {
+            var pf = {};
+            Object.keys(sale).forEach(function(k) {
+              var v = sale[k];
+              if (typeof v === 'number' || (typeof v === 'string' && !isNaN(v) && v.length < 20 && v !== '')) {
+                pf[k] = v;
+              }
+            });
+            return pf;
+          })(),
+          firstItemRaw: items.length > 0 ? items[0] : null,
+          firstPaymentRaw: payments.length > 0 ? payments[0] : null
+        }
       });
     });
 
