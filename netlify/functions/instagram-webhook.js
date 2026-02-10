@@ -300,7 +300,17 @@ exports.handler = async function (event) {
     }
 
     console.warn('[ig-webhook] Verification failed — token mismatch');
-    return jsonResponse(403, { error: 'Verification failed' });
+    console.warn('[ig-webhook] DEBUG: mode=' + mode + ', tokenLen=' + (token || '').length + ', envLen=' + (process.env.META_VERIFY_TOKEN || '').length + ', envSet=' + !!process.env.META_VERIFY_TOKEN);
+    return jsonResponse(403, {
+      error: 'Verification failed',
+      debug: {
+        mode,
+        tokenReceived: token ? token.substring(0, 4) + '...' : null,
+        tokenLength: (token || '').length,
+        envTokenSet: !!process.env.META_VERIFY_TOKEN,
+        envTokenLength: (process.env.META_VERIFY_TOKEN || '').length
+      }
+    });
   }
 
   // ----- POST: Incoming webhook events -----
