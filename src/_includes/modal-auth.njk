@@ -2,8 +2,19 @@
 <div id="yb-auth-modal" class="yb-auth-modal" aria-hidden="true" role="dialog" aria-modal="true" aria-label="Log ind / Opret konto">
   <div class="yb-auth-modal__overlay" data-yb-auth-close></div>
 
-  <div class="yb-auth-modal__box">
+  <div class="yb-auth-modal__box" data-view="login">
     <button class="yb-auth-modal__close" type="button" data-yb-auth-close aria-label="Luk">&#10005;</button>
+
+    <!-- Visual panel (visible only in register view) -->
+    <div class="yb-auth-modal__visual">
+      <img class="yb-auth-modal__visual-img" src="/assets/images/member/register-hero.jpg" alt="" loading="lazy">
+      <div class="yb-auth-modal__visual-overlay"></div>
+      <div class="yb-auth-modal__visual-dots"><span></span><span></span><span></span></div>
+      <h3 class="yb-auth-modal__visual-title" data-yj-da>Start din<br>yoga-rejse</h3>
+      <h3 class="yb-auth-modal__visual-title" data-yj-en hidden>Begin your<br>yoga journey</h3>
+      <p class="yb-auth-modal__visual-sub" data-yj-da>Opret en konto og f&aring; adgang til alle vores klasser og tilbud.</p>
+      <p class="yb-auth-modal__visual-sub" data-yj-en hidden>Create an account and get access to all our classes and offers.</p>
+    </div>
 
     <!-- LOGIN VIEW -->
     <div id="yb-auth-login" class="yb-auth-view">
@@ -11,10 +22,10 @@
         <div class="yb-auth-modal__logo">
           <img src="/assets/images/brand/logo-orange-on-transparent.png" alt="Yoga Bible" loading="lazy" />
         </div>
-        <h2 class="yb-auth-modal__title" data-yj-da>Log ind</h2>
-        <h2 class="yb-auth-modal__title" data-yj-en hidden>Sign in</h2>
-        <p class="yb-auth-modal__subtitle" data-yj-da>Velkommen tilbage til Yoga Bible</p>
-        <p class="yb-auth-modal__subtitle" data-yj-en hidden>Welcome back to Yoga Bible</p>
+        <h2 class="yb-auth-modal__title" data-yj-da>Velkommen tilbage</h2>
+        <h2 class="yb-auth-modal__title" data-yj-en hidden>Welcome back</h2>
+        <p class="yb-auth-modal__subtitle" data-yj-da>Log ind for at se dit skema og medlemskab</p>
+        <p class="yb-auth-modal__subtitle" data-yj-en hidden>Sign in to view your schedule and membership</p>
       </div>
 
       <form id="yb-auth-login-form" class="yb-auth-form" novalidate>
@@ -26,7 +37,7 @@
         <div class="yb-auth-field">
           <label for="yb-login-password" data-yj-da>Adgangskode</label>
           <label for="yb-login-password" data-yj-en hidden>Password</label>
-          <input type="password" id="yb-login-password" required autocomplete="current-password" placeholder="••••••••">
+          <input type="password" id="yb-login-password" required autocomplete="current-password" placeholder="&#8226;&#8226;&#8226;&#8226;&#8226;&#8226;&#8226;&#8226;">
         </div>
         <div class="yb-auth-error" id="yb-login-error" hidden role="alert"></div>
         <button type="submit" class="yb-auth-submit" data-yj-da>Log ind</button>
@@ -48,13 +59,10 @@
     <!-- REGISTER VIEW -->
     <div id="yb-auth-register" class="yb-auth-view" hidden>
       <div class="yb-auth-modal__header">
-        <div class="yb-auth-modal__logo">
-          <img src="/assets/images/brand/logo-orange-on-transparent.png" alt="Yoga Bible" loading="lazy" />
-        </div>
         <h2 class="yb-auth-modal__title" data-yj-da>Opret konto</h2>
         <h2 class="yb-auth-modal__title" data-yj-en hidden>Create account</h2>
-        <p class="yb-auth-modal__subtitle" data-yj-da>Bliv en del af Yoga Bible</p>
-        <p class="yb-auth-modal__subtitle" data-yj-en hidden>Join the Yoga Bible community</p>
+        <p class="yb-auth-modal__subtitle" data-yj-da>Det tager kun et minut</p>
+        <p class="yb-auth-modal__subtitle" data-yj-en hidden>It only takes a minute</p>
       </div>
 
       <form id="yb-auth-register-form" class="yb-auth-form" novalidate>
@@ -113,7 +121,7 @@
         </div>
         <h2 class="yb-auth-modal__title" data-yj-da>Nulstil adgangskode</h2>
         <h2 class="yb-auth-modal__title" data-yj-en hidden>Reset password</h2>
-        <p class="yb-auth-modal__subtitle" data-yj-da>Indtast din email, så sender vi dig et link</p>
+        <p class="yb-auth-modal__subtitle" data-yj-da>Indtast din email, s&aring; sender vi dig et link</p>
         <p class="yb-auth-modal__subtitle" data-yj-en hidden>Enter your email and we'll send you a reset link</p>
       </div>
 

@@ -500,6 +500,8 @@
       // Tier is set by loadMembershipDetails after fetching pass data
       var tierEl = document.getElementById('yb-profile-tier');
       if (tierEl) tierEl.textContent = '—';
+      var tierDetailEl = document.getElementById('yb-profile-tier-detail');
+      if (tierDetailEl) tierDetailEl.textContent = '—';
     }).catch(function(err) { console.warn('Could not load profile:', err); });
   }
 
@@ -945,22 +947,24 @@
           clientPassData = data;
           renderMembershipDetails(contentEl, data);
 
-          // Show pass type in tier field
+          // Show pass type in tier fields (hero badge + membership card detail)
           var hasAutopayContract = data.activeContracts && data.activeContracts.length > 0;
           var hasActiveService = data.activeServices && data.activeServices.length > 0;
           var tierEl = document.getElementById('yb-profile-tier');
-          if (tierEl) {
-            if (hasAutopayContract) {
-              tierEl.textContent = isDa() ? 'Månedligt Medlemskab' : 'Monthly Membership';
-              tierEl.className = 'yb-profile__info-value yb-profile__info-value--success';
-            } else if (hasActiveService) {
-              tierEl.textContent = isDa() ? 'Klippekort' : 'Clip Card';
-              tierEl.className = 'yb-profile__info-value yb-profile__info-value--success';
-            } else {
-              tierEl.textContent = isDa() ? 'Intet aktivt pas' : 'No active pass';
-              tierEl.className = 'yb-profile__info-value yb-profile__info-value--muted';
-            }
+          var tierDetailEl = document.getElementById('yb-profile-tier-detail');
+          var tierText, tierClass;
+          if (hasAutopayContract) {
+            tierText = isDa() ? 'Månedligt Medlemskab' : 'Monthly Membership';
+            tierClass = 'yb-profile__info-value yb-profile__info-value--success';
+          } else if (hasActiveService) {
+            tierText = isDa() ? 'Klippekort' : 'Clip Card';
+            tierClass = 'yb-profile__info-value yb-profile__info-value--success';
+          } else {
+            tierText = isDa() ? 'Intet aktivt pas' : 'No active pass';
+            tierClass = 'yb-profile__info-value yb-profile__info-value--muted';
           }
+          if (tierEl) tierEl.textContent = tierText;
+          if (tierDetailEl) { tierDetailEl.textContent = tierText; tierDetailEl.className = tierClass; }
         } catch (renderErr) {
           console.error('[Membership] Render error:', renderErr);
         } finally {

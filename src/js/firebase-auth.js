@@ -333,6 +333,9 @@
     modal.querySelectorAll('.yb-auth-view').forEach(function(v) {
       v.hidden = v.id !== 'yb-auth-' + viewName;
     });
+    // Toggle data-view on modal box for split layout (register = wider with image panel)
+    var box = modal.querySelector('.yb-auth-modal__box');
+    if (box) box.setAttribute('data-view', viewName);
   }
 
   // Expose globally
