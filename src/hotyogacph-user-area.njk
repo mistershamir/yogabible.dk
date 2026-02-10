@@ -1,0 +1,328 @@
+---
+layout: base.njk
+lang: da
+title: "Min Profil | Hot Yoga Copenhagen"
+description: "Administrer din Hot Yoga Copenhagen konto, opdater dine oplysninger og se dit medlemskab."
+noindex: true
+bodyClass: hyc-page
+---
+
+{#
+  HYC standalone user area — test page
+  Reuses the YB profile template + auth infrastructure.
+  CSS overrides rebrand orange → teal and apply dark variant B hero.
+  Hidden from search engines via noindex meta tag.
+#}
+
+<style>
+/* ═══════════════════════════════════════════════════════════════
+   HOT YOGA CPH — BRAND OVERRIDE
+   Scoped to body.hyc-page so it doesn't affect other YB pages.
+   Teal: #3f99a5 | Dark: #357f89 | Light: #5bb8c4
+   Orange ecosystem accent: #f75c03 (kept for ecosystem dot only)
+   ═══════════════════════════════════════════════════════════════ */
+
+/* ── CSS Custom Property Override ── */
+body.hyc-page {
+  --yb-brand: #3f99a5;
+  --yb-brand-rgb: 63, 153, 165;
+}
+
+/* ── Profile Hero: Dark Cinematic ── */
+body.hyc-page .yb-profile__hero {
+  background: linear-gradient(135deg, #1a1a1a 0%, #0f0f0f 100%);
+  position: relative;
+}
+body.hyc-page .yb-profile__hero::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, #f75c03, #3f99a5);
+  border-radius: 14px 14px 0 0;
+}
+body.hyc-page .yb-profile__hero::after {
+  content: '';
+  position: absolute;
+  bottom: 0; right: 0;
+  width: 200px; height: 200px;
+  background: radial-gradient(circle, rgba(63,153,165,.12) 0%, transparent 70%);
+  pointer-events: none;
+}
+
+/* ── Profile Hero Logo ── */
+body.hyc-page .yb-profile__hero-logo {
+  font-size: 0.9rem;
+  letter-spacing: 0.04em;
+}
+
+/* ── Profile Tabs: Pill Style ── */
+body.hyc-page .yb-profile__tabs {
+  border-bottom: none;
+  padding: 14px 32px;
+  gap: 6px;
+  background: #FFFCF9;
+}
+body.hyc-page .yb-profile__tab {
+  border: 1.5px solid #E8E4E0;
+  border-radius: 999px;
+  padding: 9px 18px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  margin-bottom: 0;
+}
+body.hyc-page .yb-profile__tab:hover {
+  border-color: #3f99a5;
+  color: #3f99a5;
+}
+body.hyc-page .yb-profile__tab.is-active {
+  background: #3f99a5;
+  border-color: #3f99a5;
+  color: #fff;
+  border-bottom-color: #3f99a5;
+}
+body.hyc-page .yb-profile__tab.is-locked {
+  border-color: #E8E4E0;
+}
+
+/* ── Profile Member Badge: Pill ── */
+body.hyc-page .yb-profile__member-badge {
+  border-radius: 999px;
+}
+
+/* ── Profile Avatar Edit ── */
+body.hyc-page .yb-profile__avatar-edit {
+  color: #3f99a5;
+}
+body.hyc-page .yb-profile__avatar-edit:hover {
+  background: #e8f4f6;
+}
+
+/* ── Profile Wrap Border ── */
+body.hyc-page .yb-profile__wrap {
+  border-color: #d5d0cc;
+}
+
+/* ── Buttons: Primary ── */
+body.hyc-page .yb-btn--primary {
+  background: #3f99a5;
+  border-color: #3f99a5;
+  border-radius: 999px;
+}
+body.hyc-page .yb-btn--primary:hover {
+  background: #357f89;
+  border-color: #357f89;
+  box-shadow: 0 6px 20px rgba(63, 153, 165, 0.3);
+}
+
+/* ── Buttons: Outline ── */
+body.hyc-page .yb-btn--outline {
+  border-radius: 999px;
+}
+body.hyc-page .yb-btn--outline:hover {
+  border-color: #3f99a5;
+  color: #3f99a5;
+}
+
+/* ── Auth Modal: Submit Button ── */
+body.hyc-page .yb-auth-submit {
+  background: #3f99a5;
+  border-radius: 999px;
+}
+body.hyc-page .yb-auth-submit:hover {
+  background: #357f89;
+}
+
+/* ── Auth Modal: Input Focus ── */
+body.hyc-page .yb-auth-field input:focus {
+  border-color: #3f99a5;
+  box-shadow: 0 0 0 3px rgba(63, 153, 165, 0.12);
+}
+
+/* ── Auth Modal: Links ── */
+body.hyc-page .yb-auth-links a,
+body.hyc-page .yb-auth-divider a {
+  color: #3f99a5;
+}
+body.hyc-page .yb-auth-divider a:hover {
+  color: #357f89;
+}
+
+/* ── Auth Modal: Visual Panel ── */
+body.hyc-page .yb-auth-modal__visual-overlay {
+  background: linear-gradient(135deg, rgba(63,153,165,.85), rgba(15,15,15,.9));
+}
+
+/* ── Auth Modal: Consent Checkboxes ── */
+body.hyc-page .yb-auth-consent a {
+  color: #3f99a5;
+}
+
+/* ── Profile Content: Form Inputs Focus ── */
+body.hyc-page .yb-profile__content-area input:focus,
+body.hyc-page .yb-profile__content-area select:focus,
+body.hyc-page .yb-profile__content-area textarea:focus {
+  border-color: #3f99a5;
+  box-shadow: 0 0 0 3px rgba(63, 153, 165, 0.12);
+}
+
+/* ── Profile: Save/Action Buttons ── */
+body.hyc-page .yb-btn--full {
+  background: #3f99a5;
+  border-radius: 999px;
+}
+body.hyc-page .yb-btn--full:hover {
+  background: #357f89;
+}
+
+/* ── Onboarding Inline Accent ── */
+body.hyc-page .yb-onboarding-inline__header svg {
+  stroke: #3f99a5;
+}
+
+/* ── Profile Links / Accent Text ── */
+body.hyc-page .yb-profile__content-area a {
+  color: #3f99a5;
+}
+body.hyc-page .yb-profile__content-area a:hover {
+  color: #357f89;
+}
+
+/* ── Schedule Tab Accents ── */
+body.hyc-page .yb-schedule__day-btn.is-active {
+  background: #3f99a5;
+  border-color: #3f99a5;
+}
+body.hyc-page .yb-schedule__day-btn:hover {
+  border-color: #3f99a5;
+  color: #3f99a5;
+}
+body.hyc-page .yb-schedule__class-book {
+  background: #3f99a5;
+  border-color: #3f99a5;
+  border-radius: 999px;
+}
+body.hyc-page .yb-schedule__class-book:hover {
+  background: #357f89;
+  border-color: #357f89;
+}
+body.hyc-page .yb-schedule__class-type {
+  color: #3f99a5;
+}
+
+/* ── Store Tab Accents ── */
+body.hyc-page .yb-store__item-price {
+  color: #3f99a5;
+}
+body.hyc-page .yb-store__item-buy {
+  background: #3f99a5;
+  border-color: #3f99a5;
+  border-radius: 999px;
+}
+body.hyc-page .yb-store__item-buy:hover {
+  background: #357f89;
+  border-color: #357f89;
+}
+body.hyc-page .yb-store__checkout-actions .yb-auth-submit {
+  background: #3f99a5;
+  border-radius: 999px;
+}
+
+/* ── Passes Tab Accents ── */
+body.hyc-page .yb-pass__name {
+  color: #3f99a5;
+}
+body.hyc-page .yb-pass__remaining {
+  color: #3f99a5;
+}
+body.hyc-page .yb-pass__bar-fill {
+  background: #3f99a5;
+}
+
+/* ── Visits Tab Accents ── */
+body.hyc-page .yb-visit__class-name {
+  color: #3f99a5;
+}
+
+/* ── Receipts Tab Accents ── */
+body.hyc-page .yb-receipt__amount {
+  color: #3f99a5;
+}
+body.hyc-page .yb-receipt__download {
+  color: #3f99a5;
+}
+body.hyc-page .yb-receipt__download:hover {
+  color: #357f89;
+}
+
+/* ── Password Section ── */
+body.hyc-page .yb-profile__pwd-btn {
+  background: #3f99a5;
+  border-color: #3f99a5;
+  border-radius: 999px;
+}
+body.hyc-page .yb-profile__pwd-btn:hover {
+  background: #357f89;
+  border-color: #357f89;
+}
+
+/* ── Checkbox Accent ── */
+body.hyc-page input[type="checkbox"]:checked {
+  accent-color: #3f99a5;
+}
+
+/* ── Waiver / Agreement Links ── */
+body.hyc-page .yb-waiver__agree a {
+  color: #3f99a5;
+}
+
+/* ── Generic Orange Overrides for Profile Scope ── */
+body.hyc-page .yb-profile a:not(.yb-profile__hero-logout) {
+  color: #3f99a5;
+}
+body.hyc-page .yb-profile a:not(.yb-profile__hero-logout):hover {
+  color: #357f89;
+}
+
+/* ── Pagination / Load More ── */
+body.hyc-page .yb-pagination__btn {
+  border-radius: 999px;
+}
+body.hyc-page .yb-pagination__btn.is-active {
+  background: #3f99a5;
+  border-color: #3f99a5;
+}
+
+/* ── Lang Toggle in Hero: Pill Style ── */
+body.hyc-page .yb-profile__hero-lang button {
+  border-radius: 999px;
+  padding: 4px 12px;
+}
+
+/* ── Logout Button: Pill Style ── */
+body.hyc-page .yb-profile__hero-logout {
+  border-radius: 999px;
+  padding: 5px 16px;
+}
+
+/* ── Guest State Buttons: Pill ── */
+body.hyc-page .yb-profile__guest-actions .yb-btn {
+  border-radius: 999px;
+}
+
+/* ── Mobile Responsive ── */
+@media (max-width: 640px) {
+  body.hyc-page .yb-profile__tabs {
+    padding: 10px 16px;
+    gap: 5px;
+  }
+  body.hyc-page .yb-profile__tab {
+    padding: 7px 14px;
+    font-size: 0.72rem;
+  }
+}
+</style>
+
+{% include "pages/profile.njk" %}

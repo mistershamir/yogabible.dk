@@ -2,6 +2,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 
+{% if noindex %}<meta name="robots" content="noindex, nofollow">{% endif %}
+
 <!-- SEO Meta Tags -->
 <title>{{ title | default("YOGA BIBLE - Denmark") }}</title>
 <meta name="description" content="{{ description | default("Yoga Bible er din platform for yogalæreruddannelser, fordybelse og professionelle yogaklasser. Uanset om du vil undervise, lære mere eller finde dit fællesskab – vi er her.") }}">
