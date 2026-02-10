@@ -46,10 +46,9 @@ exports.handler = async function(event) {
     // Fetch ALL data sources in parallel
     // ══════════════════════════════════════
 
-    var debugLog = [];
-    var salesPromise = fetchSales(salesStartDate, endDate, clientId, debugLog);
-    var servicesPromise = fetchClientServices(clientId, startDate, endDate, debugLog);
-    var contractsPromise = fetchClientContracts(clientId, startDate, endDate, debugLog);
+    var salesPromise = fetchSales(salesStartDate, endDate, clientId);
+    var servicesPromise = fetchClientServices(clientId, startDate, endDate);
+    var contractsPromise = fetchClientContracts(clientId, startDate, endDate);
 
     var results = await Promise.all([salesPromise, servicesPromise, contractsPromise]);
     var salesPurchases = results[0];
@@ -94,8 +93,7 @@ exports.handler = async function(event) {
     console.log('[mb-purchases] Returning', purchases.length, 'total purchases for clientId', clientId);
     return jsonResponse(200, {
       purchases: purchases,
-      total: purchases.length,
-      _debug: debugLog
+      total: purchases.length
     });
   } catch (err) {
     console.error('[mb-purchases] Fatal error:', err);
@@ -107,7 +105,7 @@ exports.handler = async function(event) {
 // ══════════════════════════════════════
 // Data source 1: /sale/sales (rich invoice data)
 // ══════════════════════════════════════
-async function fetchSales(startDate, endDate, clientId, debugLog) {
+async function fetchSales(startDate, endDate, clientId) {
   var purchases = [];
   try {
     var offset = 0;
@@ -125,20 +123,6 @@ async function fetchSales(startDate, endDate, clientId, debugLog) {
       var salesData = await mbFetch(salesUrl);
       var batch = salesData.Sales || [];
       totalSales += batch.length;
-
-      // Debug: log first batch info
-      if (offset === 0 && batch.length > 0) {
-        debugLog.push({ type: 'FIRST_SALE', keys: Object.keys(batch[0]), clientId: batch[0].ClientId, recipientClientId: batch[0].RecipientClientId });
-
-        var items = batch[0].PurchasedItems || batch[0].Items || [];
-        if (items.length > 0) {
-          debugLog.push({ type: 'FIRST_SALE_ITEM', keys: Object.keys(items[0]) });
-        }
-        var payments = batch[0].Payments || [];
-        if (payments.length > 0) {
-          debugLog.push({ type: 'FIRST_SALE_PAYMENT', keys: Object.keys(payments[0]) });
-        }
-      }
 
       batch.forEach(function(sale) {
         // Match by BOTH ClientId AND RecipientClientId (MB uses them inconsistently)
@@ -162,11 +146,9 @@ async function fetchSales(startDate, endDate, clientId, debugLog) {
     }
 
     console.log('[mb-purchases] /sale/sales SUMMARY: total=' + totalSales + ', matched=' + matchedSales);
-    debugLog.push({ type: 'SALES_SUMMARY', totalSales: totalSales, matchedSales: matchedSales });
 
   } catch (err) {
     console.error('[mb-purchases] /sale/sales FAILED:', err.message);
-    debugLog.push({ type: 'SALES_ERROR', error: err.message, status: err.status || null });
   }
   return purchases;
 }
@@ -257,15 +239,11 @@ function mapSaleToPurchase(sale) {
 // Data source 2: /client/clientservices
 // NOTE: ClientServices have NO price field — prices come from cross-referencing with sales
 // ══════════════════════════════════════
-async function fetchClientServices(clientId, startDate, endDate, debugLog) {
+async function fetchClientServices(clientId, startDate, endDate) {
   var purchases = [];
   try {
     var svcData = await mbFetch('/client/clientservices?ClientId=' + clientId + '&CrossRegionalLookup=false');
     var services = svcData.ClientServices || [];
-
-    if (services.length > 0) {
-      debugLog.push({ type: 'FIRST_SERVICE', keys: Object.keys(services[0]), name: services[0].Name, productId: services[0].ProductId });
-    }
 
     services.forEach(function(svc) {
       var activeDate = svc.ActiveDate || svc.SaleDate || '';
@@ -314,23 +292,11 @@ async function fetchClientServices(clientId, startDate, endDate, debugLog) {
 // Data source 3: /client/clientcontracts
 // Price is in UpcomingAutopayEvents[0].ChargeAmount (not top-level fields)
 // ══════════════════════════════════════
-async function fetchClientContracts(clientId, startDate, endDate, debugLog) {
+async function fetchClientContracts(clientId, startDate, endDate) {
   var purchases = [];
   try {
     var contractData = await mbFetch('/client/clientcontracts?ClientId=' + clientId);
     var contracts = contractData.Contracts || [];
-
-    if (contracts.length > 0) {
-      var first = contracts[0];
-      var firstEvents = first.UpcomingAutopayEvents || [];
-      debugLog.push({
-        type: 'FIRST_CONTRACT',
-        name: first.Name,
-        agreementDate: first.AgreementDate,
-        autopayEventsCount: firstEvents.length,
-        firstEvent: firstEvents.length > 0 ? firstEvents[0] : null
-      });
-    }
 
     contracts.forEach(function(c) {
       var cDate = c.AgreementDate || c.StartDate || '';

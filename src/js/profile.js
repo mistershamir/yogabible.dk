@@ -2333,7 +2333,7 @@
    * corresponding services in MB. This correctly gates workshops/special passes.
    */
   function clientCanBook(programId) {
-    if (!clientPassData) return true; // If pass data not loaded, let backend decide
+    if (!clientPassData) return false; // If pass data not loaded, block until loaded
     if (!programId) return true; // If class has no program info, let backend decide
 
     // Check if any active service covers this program
@@ -2672,11 +2672,6 @@
     fetch('/.netlify/functions/mb-purchases?clientId=' + clientId + '&startDate=' + startDate + '&endDate=' + endDate)
       .then(function(r) { return r.json(); })
       .then(function(data) {
-        console.log('Receipts response:', data);
-        if (data._debug) {
-          console.log('%c[Receipts] SERVER DEBUG:', 'color: #f75c03; font-weight: bold;');
-          data._debug.forEach(function(d) { console.log('  ' + d.type + ':', JSON.stringify(d)); });
-        }
         var purchases = data.purchases || [];
         if (!purchases.length) { listEl.innerHTML = '<p class="yb-store__empty">' + t('receipts_empty') + '</p>'; return; }
         renderReceipts(listEl, purchases);
@@ -2698,17 +2693,6 @@
       var dateStr = d.toLocaleDateString(isDa() ? 'da-DK' : 'en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
       var name = p.description || '—';
       var totalPaid = Number(p.totalPaid) || Number(p.subtotal) || 0;
-
-      // Debug: log first purchase to find price fields
-      if (idx === 0) {
-        console.log('[Receipts] First purchase:', JSON.stringify(p).substring(0, 2000));
-        if (p._debug) {
-          console.log('[Receipts] DEBUG sale keys:', p._debug.saleKeys);
-          console.log('[Receipts] DEBUG sale price fields:', JSON.stringify(p._debug.salePriceFields));
-          console.log('[Receipts] DEBUG first raw item:', JSON.stringify(p._debug.firstItemRaw));
-          console.log('[Receipts] DEBUG first raw payment:', JSON.stringify(p._debug.firstPaymentRaw));
-        }
-      }
 
       // Determine type from items
       var hasItems = p.items && p.items.length > 0;
