@@ -2673,6 +2673,10 @@
       .then(function(r) { return r.json(); })
       .then(function(data) {
         console.log('Receipts response:', data);
+        if (data._debug) {
+          console.log('%c[Receipts] SERVER DEBUG:', 'color: #f75c03; font-weight: bold;');
+          data._debug.forEach(function(d) { console.log('  ' + d.type + ':', JSON.stringify(d)); });
+        }
         var purchases = data.purchases || [];
         if (!purchases.length) { listEl.innerHTML = '<p class="yb-store__empty">' + t('receipts_empty') + '</p>'; return; }
         renderReceipts(listEl, purchases);
