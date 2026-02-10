@@ -1332,6 +1332,7 @@
   var storeServices = [];
   var storeActiveCategory = 'all';
   var storeSearchQuery = '';
+  var storeFilterProgramId = null; // Set by booking redirect to highlight matching passes
 
   // Store category config — maps to Mindbody programs/categories
   var storeCategories = [
@@ -1550,10 +1551,23 @@
     });
     html += '</div>';
 
-    // ── Filter by category + search ──
-    var filtered = storeActiveCategory === 'all'
-      ? storeServices
-      : storeServices.filter(function(s) { return s._category === storeActiveCategory; });
+    // ── Filter by program (from booking redirect), category, and search ──
+    var filtered;
+    if (storeFilterProgramId) {
+      // Booking redirect: show only passes matching the required program
+      filtered = storeServices.filter(function(s) {
+        return s.programId && Number(s.programId) === Number(storeFilterProgramId);
+      });
+      // Add a clear filter banner
+      html += '<div class="yb-store__program-filter">';
+      html += '<span>' + (isDa() ? 'Filtreret: pas der dækker denne klassetype' : 'Filtered: passes that cover this class type') + '</span>';
+      html += '<button type="button" class="yb-store__program-filter-clear">' + (isDa() ? 'Vis alle' : 'Show all') + '</button>';
+      html += '</div>';
+    } else {
+      filtered = storeActiveCategory === 'all'
+        ? storeServices
+        : storeServices.filter(function(s) { return s._category === storeActiveCategory; });
+    }
 
     if (storeSearchQuery) {
       var q = storeSearchQuery.toLowerCase();
@@ -1658,9 +1672,19 @@
       });
     }
 
+    // ── Attach program filter clear handler ──
+    var progFilterClear = container.querySelector('.yb-store__program-filter-clear');
+    if (progFilterClear) {
+      progFilterClear.addEventListener('click', function() {
+        storeFilterProgramId = null;
+        renderStoreItems(container);
+      });
+    }
+
     // ── Attach category tab handlers ──
     container.querySelectorAll('[data-store-cat]').forEach(function(btn) {
       btn.addEventListener('click', function() {
+        storeFilterProgramId = null; // Clear program filter when changing category
         storeActiveCategory = btn.getAttribute('data-store-cat');
         renderStoreItems(container);
       });
@@ -1670,6 +1694,39 @@
     container.querySelectorAll('[data-store-buy]').forEach(function(btn) {
       btn.addEventListener('click', function() { openCheckout(btn.getAttribute('data-store-buy'), btn.getAttribute('data-item-type') || 'service'); });
     });
+  }
+
+  /**
+   * Filter the Store to show only passes that match the given programId.
+   * Called when a booking fails with no_pass — redirects user to buy the right pass.
+   */
+  function filterStoreByProgram(programId, programName) {
+    if (!storeServices.length || !programId) return;
+
+    // Find services matching this program
+    var matching = storeServices.filter(function(s) {
+      return s.programId && Number(s.programId) === Number(programId);
+    });
+
+    if (matching.length > 0) {
+      // Set filter and re-render — show "all" category but filtered
+      storeFilterProgramId = Number(programId);
+      storeActiveCategory = 'all';
+      storeSearchQuery = '';
+      var storeContainer = document.getElementById('yb-store-list');
+      if (storeContainer) renderStoreItems(storeContainer);
+
+      // Show a helpful banner
+      showScheduleToast(isDa()
+        ? 'Viser ' + matching.length + ' pas der dækker ' + (programName || 'denne klassetype')
+        : 'Showing ' + matching.length + ' pass' + (matching.length > 1 ? 'es' : '') + ' that cover ' + (programName || 'this class type'), 'info');
+    } else {
+      // No matching passes found — show all and explain
+      storeFilterProgramId = null;
+      showScheduleToast(isDa()
+        ? 'Ingen pas fundet for ' + (programName || 'denne klassetype') + '. Kontakt os for hjælp.'
+        : 'No passes found for ' + (programName || 'this class type') + '. Contact us for help.', 'error');
+    }
   }
 
   function openCheckout(serviceId, itemType) {
@@ -2410,10 +2467,30 @@
           if (data.error === 'no_pass') {
             var noPassEl = document.getElementById('yb-schedule-no-pass');
             if (noPassEl) noPassEl.hidden = false;
-            // Hide pass info banner if it was shown
             var passInfoEl = document.getElementById('yb-schedule-pass-info');
             if (passInfoEl) passInfoEl.hidden = true;
-            showScheduleToast(isDa() ? 'Du har brug for et klippekort eller medlemskab.' : 'You need a class pass or membership.', 'error');
+
+            // Build a helpful message with link to the correct passes
+            var progName = data.programName || '';
+            var toastMsg = isDa()
+              ? 'Dit pas dækker ikke denne klasse' + (progName ? ' (' + progName + ')' : '') + '. Se de rette pas i butikken.'
+              : "Your pass doesn't cover this class" + (progName ? ' (' + progName + ')' : '') + '. See matching passes in the Store.';
+            showScheduleToast(toastMsg, 'error');
+
+            // After a short delay, switch to Store tab filtered to matching passes
+            var bookingProgramId = data.programId || null;
+            setTimeout(function() {
+              var storeBtn = document.querySelector('[data-yb-tab="store"]');
+              if (storeBtn) {
+                storeBtn.click();
+                // Once store loads, filter to passes matching this program
+                if (bookingProgramId) {
+                  setTimeout(function() {
+                    filterStoreByProgram(bookingProgramId, progName);
+                  }, 600);
+                }
+              }
+            }, 1500);
           } else {
             showScheduleToast(data.error || (isDa() ? 'Booking fejlede.' : 'Booking failed.'), 'error');
           }

@@ -6396,13 +6396,13 @@ document.addEventListener('DOMContentLoaded', function() {
 
 
 <!-- ═══════════════════════════════════════════════════════════════ -->
-<!--  35. YOGA BIBLE — Member Area & Auth Design Options            -->
+<!--  35. YOGA BIBLE — Member Area & Auth (Final Design)             -->
 <!-- ═══════════════════════════════════════════════════════════════ -->
 
   <section class="ds-section" id="s35-yb-auth-profile">
     <div class="ds-section__header">
       <h2 class="ds-section__title" data-number="35">Yoga Bible — Member Area & Auth</h2>
-      <p class="ds-section__desc">Auth modals + profile layouts for <code>yogabible.dk</code>. Brand orange <code>#f75c03</code>. Pick one auth modal + one profile layout to combine.</p>
+      <p class="ds-section__desc">Final design for <code>yogabible.dk</code> member area. <strong>Login:</strong> Warm Minimal modal. <strong>Register:</strong> Split Visual with image panel. <strong>Profile:</strong> Hero Header + Underline Tabs (inspired by HYC C, branded YB orange).</p>
     </div>
 
     <style>
@@ -6410,7 +6410,7 @@ document.addEventListener('DOMContentLoaded', function() {
     .yba { --yba: #f75c03; --yba-dark: #d94f02; --yba-light: #ff9966; --yba-pale: #fff3ec; --yba-glow: rgba(247,92,3,.12); --yba-black: #0F0F0F; --yba-muted: #6F6A66; --yba-border: #E8E4E0; --yba-bg: #F5F3F0; --yba-white: #FFFCF9; --yba-radius: 14px; --yba-font: 'Abacaxi', 'Helvetica Neue', Helvetica, Arial, system-ui, sans-serif; }
     .yba * { box-sizing: border-box; }
 
-    /* ── AUTH MODAL A: Warm Minimal ── */
+    /* ── LOGIN MODAL: Warm Minimal ── */
     .yba-auth-a { background: var(--yba-white); border-radius: 20px; padding: 48px 40px; max-width: 420px; margin: 0 auto 48px; position: relative; overflow: hidden; box-shadow: 0 20px 60px rgba(0,0,0,.06); border: 1px solid var(--yba-border); }
     .yba-auth-a::before { content: ''; position: absolute; top: -60px; right: -60px; width: 180px; height: 180px; background: radial-gradient(circle, var(--yba-glow) 0%, transparent 70%); pointer-events: none; }
     .yba-auth-a__logo { width: 52px; height: 52px; background: var(--yba); border-radius: 14px; display: flex; align-items: center; justify-content: center; color: #fff; font-weight: 700; font-size: 1.1rem; margin-bottom: 24px; font-family: var(--yba-font); }
@@ -6438,40 +6438,17 @@ document.addEventListener('DOMContentLoaded', function() {
     .yba-auth-a__divider::before, .yba-auth-a__divider::after { content: ''; flex: 1; height: 1px; background: var(--yba-border); }
     .yba-auth-a__error { font-family: var(--yba-font); font-size: .85rem; color: #d32f2f; background: #fdecea; padding: 10px 14px; border-radius: 8px; margin-bottom: 12px; }
 
-    /* ── AUTH MODAL B: Dark Cinematic ── */
-    .yba-auth-b { background: linear-gradient(145deg, #1a0e05 0%, #2a1508 50%, #1f1005 100%); border-radius: 20px; padding: 48px 40px; max-width: 420px; margin: 0 auto 48px; position: relative; overflow: hidden; }
-    .yba-auth-b::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; background: linear-gradient(90deg, var(--yba), var(--yba-light), var(--yba)); }
-    .yba-auth-b::after { content: ''; position: absolute; bottom: -100px; left: 50%; transform: translateX(-50%); width: 300px; height: 200px; background: radial-gradient(circle, rgba(247,92,3,.06) 0%, transparent 60%); pointer-events: none; }
-    .yba-auth-b__logo { width: 48px; height: 48px; border: 2px solid var(--yba); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: var(--yba); font-weight: 700; font-size: 1rem; margin-bottom: 24px; font-family: var(--yba-font); }
-    .yba-auth-b__title { font-family: var(--yba-font); font-size: 1.6rem; font-weight: 700; color: #fff; margin: 0 0 6px; }
-    .yba-auth-b__sub { font-family: var(--yba-font); font-size: .9rem; color: rgba(255,255,255,.45); margin: 0 0 28px; }
-    .yba-auth-b__field { margin-bottom: 16px; }
-    .yba-auth-b__field label { display: block; font-family: var(--yba-font); font-size: .8rem; font-weight: 700; color: rgba(255,255,255,.35); text-transform: uppercase; letter-spacing: .04em; margin-bottom: 6px; }
-    .yba-auth-b__field input { width: 100%; padding: 12px 16px; border: 1.5px solid rgba(255,255,255,.1); border-radius: 12px; font-family: var(--yba-font); font-size: .95rem; background: rgba(255,255,255,.05); color: #fff; transition: border-color .2s; outline: none; }
-    .yba-auth-b__field input:focus { border-color: var(--yba); box-shadow: 0 0 0 3px rgba(247,92,3,.15); }
-    .yba-auth-b__field input::placeholder { color: rgba(255,255,255,.2); }
-    .yba-auth-b__row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-    .yba-auth-b__btn { width: 100%; padding: 14px; background: var(--yba); color: #fff; border: none; border-radius: 12px; font-family: var(--yba-font); font-size: 1rem; font-weight: 700; cursor: pointer; transition: background .2s; margin-top: 8px; }
-    .yba-auth-b__btn:hover { background: var(--yba-light); }
-    .yba-auth-b__consent { display: flex; align-items: flex-start; gap: 10px; margin-bottom: 12px; font-family: var(--yba-font); font-size: .82rem; color: rgba(255,255,255,.4); line-height: 1.4; }
-    .yba-auth-b__consent input[type="checkbox"] { appearance: none; -webkit-appearance: none; width: 18px; height: 18px; min-width: 18px; border: 1.5px solid rgba(255,255,255,.2); border-radius: 4px; cursor: pointer; position: relative; margin-top: 1px; background: transparent; transition: border-color .15s, background .15s; }
-    .yba-auth-b__consent input[type="checkbox"]:checked { background: var(--yba); border-color: var(--yba); }
-    .yba-auth-b__consent input[type="checkbox"]:checked::after { content: ''; position: absolute; left: 5px; top: 1px; width: 5px; height: 10px; border: solid #fff; border-width: 0 2px 2px 0; transform: rotate(45deg); }
-    .yba-auth-b__consent a { color: var(--yba-light); text-decoration: none; font-weight: 600; }
-    .yba-auth-b__link { display: block; text-align: center; margin-top: 16px; font-family: var(--yba-font); font-size: .85rem; color: rgba(255,255,255,.35); }
-    .yba-auth-b__link a { color: var(--yba-light); text-decoration: none; font-weight: 700; }
-    .yba-auth-b__forgot { text-align: right; margin: -8px 0 12px; }
-    .yba-auth-b__forgot a { font-family: var(--yba-font); font-size: .8rem; color: var(--yba-light); text-decoration: none; }
-
-    /* ── AUTH MODAL C: Split Visual ── */
+    /* ── REGISTER MODAL: Split Visual ── */
     .yba-auth-c { display: grid; grid-template-columns: 1fr 1fr; max-width: 780px; margin: 0 auto 48px; border-radius: 20px; overflow: hidden; background: var(--yba-white); box-shadow: 0 24px 64px rgba(0,0,0,.08); }
     .yba-auth-c__visual { background: linear-gradient(160deg, #c44800 0%, var(--yba) 50%, var(--yba-light) 100%); padding: 48px 32px; display: flex; flex-direction: column; justify-content: flex-end; position: relative; min-height: 480px; }
-    .yba-auth-c__visual-title { font-family: var(--yba-font); font-size: 1.8rem; font-weight: 700; color: #fff; margin: 0 0 8px; line-height: 1.2; }
-    .yba-auth-c__visual-sub { font-family: var(--yba-font); font-size: .9rem; color: rgba(255,255,255,.75); margin: 0; }
-    .yba-auth-c__visual-dots { position: absolute; top: 32px; left: 32px; display: flex; gap: 6px; }
+    .yba-auth-c__visual-img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+    .yba-auth-c__visual-overlay { position: absolute; inset: 0; background: linear-gradient(160deg, rgba(196,72,0,.85) 0%, rgba(247,92,3,.7) 50%, rgba(255,153,102,.6) 100%); }
+    .yba-auth-c__visual-title { font-family: var(--yba-font); font-size: 1.8rem; font-weight: 700; color: #fff; margin: 0 0 8px; line-height: 1.2; position: relative; z-index: 1; }
+    .yba-auth-c__visual-sub { font-family: var(--yba-font); font-size: .9rem; color: rgba(255,255,255,.75); margin: 0; position: relative; z-index: 1; }
+    .yba-auth-c__visual-dots { position: absolute; top: 32px; left: 32px; display: flex; gap: 6px; z-index: 1; }
     .yba-auth-c__visual-dots span { width: 8px; height: 8px; border-radius: 50%; background: rgba(255,255,255,.3); }
     .yba-auth-c__visual-dots span:first-child { background: #fff; }
-    .yba-auth-c__visual-icon { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -60%); width: 80px; height: 80px; border: 2px solid rgba(255,255,255,.2); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 2rem; color: rgba(255,255,255,.4); }
+    .yba-auth-c__visual-icon { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -60%); width: 80px; height: 80px; border: 2px solid rgba(255,255,255,.2); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 2rem; color: rgba(255,255,255,.4); z-index: 1; }
     .yba-auth-c__form { padding: 48px 36px; display: flex; flex-direction: column; justify-content: center; }
     .yba-auth-c__title { font-family: var(--yba-font); font-size: 1.4rem; font-weight: 700; color: var(--yba-black); margin: 0 0 4px; }
     .yba-auth-c__sub { font-family: var(--yba-font); font-size: .85rem; color: var(--yba-muted); margin: 0 0 24px; }
@@ -6491,63 +6468,21 @@ document.addEventListener('DOMContentLoaded', function() {
     .yba-auth-c__link a { color: var(--yba); text-decoration: none; font-weight: 700; }
     @media (max-width: 640px) { .yba-auth-c { grid-template-columns: 1fr; } .yba-auth-c__visual { min-height: 160px; padding: 32px 24px; } }
 
-    /* ── PROFILE LAYOUT A: Clean Cards + Pill Tabs ── */
-    .yba-prof-a { max-width: 900px; margin: 0 auto 48px; font-family: var(--yba-font); }
-    .yba-prof-a__header { display: flex; align-items: center; gap: 20px; padding: 28px 32px; background: var(--yba-white); border: 1.5px solid var(--yba-border); border-radius: var(--yba-radius); margin-bottom: 20px; }
-    .yba-prof-a__avatar { width: 64px; height: 64px; border-radius: 50%; background: var(--yba); color: #fff; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 1.3rem; flex-shrink: 0; }
-    .yba-prof-a__name { font-size: 1.2rem; font-weight: 700; color: var(--yba-black); margin: 0 0 2px; }
-    .yba-prof-a__email { font-size: .85rem; color: var(--yba-muted); margin: 0; }
-    .yba-prof-a__badge { margin-left: auto; padding: 6px 14px; background: var(--yba-pale); color: var(--yba-dark); border-radius: 20px; font-size: .78rem; font-weight: 700; }
-    .yba-prof-a__lang { margin-left: 12px; display: flex; border: 1.5px solid var(--yba-border); border-radius: 8px; overflow: hidden; }
-    .yba-prof-a__lang button { background: none; border: none; padding: 6px 12px; font-family: var(--yba-font); font-size: .78rem; font-weight: 700; color: var(--yba-muted); cursor: pointer; transition: all .2s; }
-    .yba-prof-a__lang button.is-active { background: var(--yba); color: #fff; }
-    .yba-prof-a__tabs { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 20px; }
-    .yba-prof-a__tab { padding: 10px 20px; border-radius: 12px; background: none; border: 1.5px solid var(--yba-border); font-family: var(--yba-font); font-size: .88rem; font-weight: 600; color: var(--yba-muted); cursor: pointer; transition: all .2s; }
-    .yba-prof-a__tab.is-active { background: var(--yba); color: #fff; border-color: var(--yba); }
-    .yba-prof-a__tab:hover:not(.is-active) { border-color: var(--yba-light); color: var(--yba-black); }
-    .yba-prof-a__card { background: var(--yba-white); border: 1.5px solid var(--yba-border); border-radius: var(--yba-radius); padding: 28px 32px; margin-bottom: 16px; }
-    .yba-prof-a__card-title { font-size: 1.1rem; font-weight: 700; color: var(--yba-black); margin: 0 0 20px; padding-bottom: 14px; border-bottom: 1px solid var(--yba-border); }
-    .yba-prof-a__form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
-    .yba-prof-a__form-grid label { display: grid; gap: 6px; }
-    .yba-prof-a__form-grid label span { font-size: .82rem; font-weight: 700; color: var(--yba-muted); text-transform: uppercase; letter-spacing: .04em; }
-    .yba-prof-a__form-grid input { padding: 12px 16px; border: 1.5px solid var(--yba-border); border-radius: 12px; font-family: var(--yba-font); font-size: .95rem; outline: none; transition: border-color .2s; }
-    .yba-prof-a__form-grid input:focus { border-color: var(--yba); box-shadow: 0 0 0 3px var(--yba-glow); }
-    .yba-prof-a__save { padding: 12px 32px; background: var(--yba); color: #fff; border: none; border-radius: 12px; font-family: var(--yba-font); font-size: .95rem; font-weight: 700; cursor: pointer; margin-top: 20px; transition: background .2s; }
-    .yba-prof-a__save:hover { background: var(--yba-dark); }
-
-    /* ── PROFILE LAYOUT B: Sidebar + Content ── */
-    .yba-prof-b { display: grid; grid-template-columns: 260px 1fr; gap: 24px; max-width: 960px; margin: 0 auto 48px; font-family: var(--yba-font); }
-    .yba-prof-b__sidebar { background: var(--yba-black); border-radius: var(--yba-radius); padding: 32px 24px; text-align: center; color: #fff; }
-    .yba-prof-b__avatar { width: 72px; height: 72px; border-radius: 50%; border: 3px solid var(--yba); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 1.4rem; margin: 0 auto 16px; color: #fff; }
-    .yba-prof-b__name { font-size: 1.1rem; font-weight: 700; margin: 0 0 4px; }
-    .yba-prof-b__email { font-size: .82rem; color: rgba(255,255,255,.4); margin: 0 0 4px; }
-    .yba-prof-b__tier { display: inline-block; padding: 4px 12px; background: var(--yba); border-radius: 16px; font-size: .72rem; font-weight: 700; margin: 8px 0 24px; text-transform: uppercase; letter-spacing: .04em; }
-    .yba-prof-b__nav { list-style: none; padding: 0; margin: 0; }
-    .yba-prof-b__nav li { margin-bottom: 2px; }
-    .yba-prof-b__nav a { display: flex; align-items: center; gap: 10px; padding: 10px 14px; border-radius: 10px; font-size: .9rem; color: rgba(255,255,255,.5); text-decoration: none; transition: all .2s; }
-    .yba-prof-b__nav a:hover { background: rgba(247,92,3,.1); color: var(--yba-light); }
-    .yba-prof-b__nav a.is-active { background: rgba(247,92,3,.15); color: var(--yba-light); font-weight: 700; }
-    .yba-prof-b__nav a svg { width: 18px; height: 18px; stroke: currentColor; fill: none; stroke-width: 2; flex-shrink: 0; }
-    .yba-prof-b__logout { display: block; width: 100%; padding: 10px; margin-top: 24px; background: none; border: 1.5px solid rgba(255,255,255,.15); border-radius: 10px; color: rgba(255,255,255,.4); font-family: var(--yba-font); font-size: .85rem; cursor: pointer; transition: all .2s; }
-    .yba-prof-b__logout:hover { border-color: var(--yba); color: var(--yba-light); }
-    .yba-prof-b__main { background: var(--yba-white); border: 1.5px solid var(--yba-border); border-radius: var(--yba-radius); padding: 32px; }
-    .yba-prof-b__section-title { font-size: 1.1rem; font-weight: 700; color: var(--yba-black); margin: 0 0 20px; padding-bottom: 14px; border-bottom: 1px solid var(--yba-border); }
-    .yba-prof-b__form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
-    .yba-prof-b__form-grid label { display: grid; gap: 6px; }
-    .yba-prof-b__form-grid label span { font-size: .82rem; font-weight: 700; color: var(--yba-muted); text-transform: uppercase; letter-spacing: .04em; }
-    .yba-prof-b__form-grid input { padding: 12px 16px; border: 1.5px solid var(--yba-border); border-radius: 12px; font-family: var(--yba-font); font-size: .95rem; outline: none; transition: border-color .2s; }
-    .yba-prof-b__form-grid input:focus { border-color: var(--yba); box-shadow: 0 0 0 3px var(--yba-glow); }
-    @media (max-width: 768px) { .yba-prof-b { grid-template-columns: 1fr; } }
-
-    /* ── PROFILE LAYOUT C: Hero Header + Underline Tabs ── */
+    /* ── PROFILE: Hero Header + Underline Tabs ── */
     .yba-prof-c { max-width: 960px; margin: 0 auto 48px; font-family: var(--yba-font); border-radius: var(--yba-radius); overflow: hidden; border: 1.5px solid var(--yba-border); }
-    .yba-prof-c__hero { background: linear-gradient(135deg, #c44800 0%, var(--yba) 40%, var(--yba-light) 100%); padding: 36px 36px 28px; display: flex; align-items: center; gap: 20px; }
-    .yba-prof-c__avatar { width: 68px; height: 68px; border-radius: 50%; border: 3px solid rgba(255,255,255,.3); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 1.4rem; color: #fff; flex-shrink: 0; }
+    .yba-prof-c__hero { background: linear-gradient(135deg, #c44800 0%, var(--yba) 40%, var(--yba-light) 100%); padding: 24px 36px 28px; }
+    .yba-prof-c__hero-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; }
+    .yba-prof-c__logo { font-family: var(--yba-font); font-size: .85rem; font-weight: 700; color: rgba(255,255,255,.7); letter-spacing: .05em; }
+    .yba-prof-c__lang-hero { display: flex; gap: 4px; }
+    .yba-prof-c__lang-hero button { padding: 4px 10px; border-radius: 6px; background: rgba(255,255,255,.1); border: none; color: rgba(255,255,255,.5); font-family: var(--yba-font); font-size: .72rem; font-weight: 700; cursor: pointer; transition: all .2s; }
+    .yba-prof-c__lang-hero button.is-active { background: rgba(255,255,255,.25); color: #fff; }
+    .yba-prof-c__user { display: flex; align-items: center; gap: 16px; }
+    .yba-prof-c__avatar { width: 68px; height: 68px; border-radius: 50%; border: 3px solid rgba(255,255,255,.3); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 1.4rem; color: #fff; flex-shrink: 0; background: rgba(255,255,255,.1); }
     .yba-prof-c__name { font-size: 1.3rem; font-weight: 700; color: #fff; margin: 0 0 4px; }
-    .yba-prof-c__email { font-size: .85rem; color: rgba(255,255,255,.65); margin: 0; }
-    .yba-prof-c__badge { margin-left: auto; padding: 6px 16px; background: rgba(255,255,255,.2); backdrop-filter: blur(8px); border-radius: 20px; font-size: .78rem; font-weight: 700; color: #fff; }
-    .yba-prof-c__tabs { display: flex; gap: 0; background: var(--yba-white); border-bottom: 1.5px solid var(--yba-border); padding: 0 32px; }
-    .yba-prof-c__tab { padding: 14px 20px; border: none; border-bottom: 2.5px solid transparent; background: none; font-family: var(--yba-font); font-size: .92rem; color: var(--yba-muted); cursor: pointer; transition: all .2s; margin-bottom: -1.5px; }
+    .yba-prof-c__meta { font-size: .85rem; color: rgba(255,255,255,.65); margin: 0; }
+    .yba-prof-c__meta .yba-badge { display: inline-block; padding: 3px 10px; background: rgba(255,255,255,.2); backdrop-filter: blur(8px); border-radius: 12px; font-size: .72rem; font-weight: 700; color: #fff; margin-left: 8px; vertical-align: middle; }
+    .yba-prof-c__tabs { display: flex; gap: 0; background: var(--yba-white); border-bottom: 1.5px solid var(--yba-border); padding: 0 32px; overflow-x: auto; }
+    .yba-prof-c__tab { padding: 14px 20px; border: none; border-bottom: 2.5px solid transparent; background: none; font-family: var(--yba-font); font-size: .92rem; color: var(--yba-muted); cursor: pointer; transition: all .2s; margin-bottom: -1.5px; white-space: nowrap; }
     .yba-prof-c__tab.is-active { color: var(--yba-black); border-bottom-color: var(--yba); font-weight: 700; }
     .yba-prof-c__tab:hover:not(.is-active) { color: var(--yba-black); }
     .yba-prof-c__content { padding: 32px; background: var(--yba-white); }
@@ -6557,16 +6492,17 @@ document.addEventListener('DOMContentLoaded', function() {
     .yba-prof-c__form-grid label span { font-size: .82rem; font-weight: 700; color: var(--yba-muted); text-transform: uppercase; letter-spacing: .04em; }
     .yba-prof-c__form-grid input { padding: 12px 16px; border: 1.5px solid var(--yba-border); border-radius: 12px; font-family: var(--yba-font); font-size: .95rem; outline: none; transition: border-color .2s; }
     .yba-prof-c__form-grid input:focus { border-color: var(--yba); box-shadow: 0 0 0 3px var(--yba-glow); }
+    .yba-prof-c__save { padding: 12px 32px; background: var(--yba); color: #fff; border: none; border-radius: 12px; font-family: var(--yba-font); font-size: .95rem; font-weight: 700; cursor: pointer; margin-top: 20px; transition: background .2s; }
+    .yba-prof-c__save:hover { background: var(--yba-dark); }
+    @media (max-width: 640px) { .yba-prof-c__form-grid { grid-template-columns: 1fr; } .yba-prof-c__tabs { padding: 0 16px; } .yba-prof-c__content { padding: 24px 16px; } .yba-prof-c__hero { padding: 20px 16px 24px; } }
     </style>
-
-    <!-- ── Sub-header: Auth Modals ── -->
-    <h3 class="ds-subsection" style="font-size:1.2rem;font-weight:700;margin:32px 0 16px;color:#0F0F0F;font-family:'Abacaxi',system-ui,sans-serif">A. Auth Modal Variations</h3>
-    <p style="font-size:.9rem;color:#6F6A66;margin-bottom:32px;font-family:'Abacaxi',system-ui,sans-serif">Three login/signup modal styles. Each shown in both <strong>Login</strong> and <strong>Register</strong> states. Pick one.</p>
 
     <div class="yba">
 
-      <!-- ── A1: Warm Minimal — LOGIN ── -->
-      <p style="font-family:'Abacaxi',system-ui,sans-serif;font-size:.85rem;font-weight:700;color:#6F6A66;text-transform:uppercase;letter-spacing:.06em;margin-bottom:12px">A1 — Warm Minimal (Login)</p>
+      <!-- ── Login Modal ── -->
+      <h3 class="ds-subsection" style="font-size:1.1rem;font-weight:700;margin:32px 0 12px;color:#0F0F0F;font-family:'Abacaxi',system-ui,sans-serif">Login Modal</h3>
+      <p style="font-size:.88rem;color:#6F6A66;margin-bottom:24px;font-family:'Abacaxi',system-ui,sans-serif">Warm minimal card with orange glow accent. Clean single-column layout.</p>
+
       <div class="yba-auth-a">
         <div class="yba-auth-a__logo">YB</div>
         <h3 class="yba-auth-a__title">Velkommen tilbage</h3>
@@ -6584,130 +6520,16 @@ document.addEventListener('DOMContentLoaded', function() {
         <p class="yba-auth-a__link">Har du ikke en konto? <a href="#">Opret konto</a></p>
       </div>
 
-      <!-- ── A1: Warm Minimal — REGISTER ── -->
-      <p style="font-family:'Abacaxi',system-ui,sans-serif;font-size:.85rem;font-weight:700;color:#6F6A66;text-transform:uppercase;letter-spacing:.06em;margin-bottom:12px">A1 — Warm Minimal (Register)</p>
-      <div class="yba-auth-a">
-        <div class="yba-auth-a__logo">YB</div>
-        <h3 class="yba-auth-a__title">Opret din konto</h3>
-        <p class="yba-auth-a__sub">Bliv en del af Yoga Bible fællesskabet</p>
-        <div class="yba-auth-a__row">
-          <div class="yba-auth-a__field">
-            <label>FORNAVN</label>
-            <input type="text" placeholder="Fornavn">
-          </div>
-          <div class="yba-auth-a__field">
-            <label>EFTERNAVN</label>
-            <input type="text" placeholder="Efternavn">
-          </div>
-        </div>
-        <div class="yba-auth-a__field">
-          <label>EMAIL</label>
-          <input type="email" placeholder="din@email.dk">
-        </div>
-        <div class="yba-auth-a__field">
-          <label>ADGANGSKODE</label>
-          <input type="password" placeholder="Min. 8 tegn">
-        </div>
-        <div class="yba-auth-a__consent">
-          <input type="checkbox">
-          <span>Jeg accepterer <a href="#">Handelsbetingelser</a> og <a href="#">Privatlivspolitik</a></span>
-        </div>
-        <div class="yba-auth-a__consent">
-          <input type="checkbox">
-          <span>Jeg har læst og accepterer <a href="#">Code of Conduct</a></span>
-        </div>
-        <button class="yba-auth-a__btn">Opret konto</button>
-        <p class="yba-auth-a__link">Har du allerede en konto? <a href="#">Log ind</a></p>
-      </div>
+      <!-- ── Register Modal ── -->
+      <h3 class="ds-subsection" style="font-size:1.1rem;font-weight:700;margin:48px 0 12px;color:#0F0F0F;font-family:'Abacaxi',system-ui,sans-serif">Register Modal</h3>
+      <p style="font-size:.88rem;color:#6F6A66;margin-bottom:24px;font-family:'Abacaxi',system-ui,sans-serif">Split layout with image/gradient panel on the left and form on the right. Supports custom images via <code>&lt;img&gt;</code> in the visual panel.</p>
 
-      <!-- ── A2: Dark Cinematic — LOGIN ── -->
-      <p style="font-family:'Abacaxi',system-ui,sans-serif;font-size:.85rem;font-weight:700;color:#6F6A66;text-transform:uppercase;letter-spacing:.06em;margin-bottom:12px">A2 — Dark Cinematic (Login)</p>
-      <div class="yba-auth-b">
-        <div class="yba-auth-b__logo">YB</div>
-        <h3 class="yba-auth-b__title">Velkommen tilbage</h3>
-        <p class="yba-auth-b__sub">Din yoga-rejse fortsætter her</p>
-        <div class="yba-auth-b__field">
-          <label>EMAIL</label>
-          <input type="email" placeholder="din@email.dk">
-        </div>
-        <div class="yba-auth-b__field">
-          <label>ADGANGSKODE</label>
-          <input type="password" placeholder="Indtast adgangskode">
-        </div>
-        <div class="yba-auth-b__forgot"><a href="#">Glemt adgangskode?</a></div>
-        <button class="yba-auth-b__btn">Log ind</button>
-        <p class="yba-auth-b__link">Ny her? <a href="#">Opret konto</a></p>
-      </div>
-
-      <!-- ── A2: Dark Cinematic — REGISTER ── -->
-      <p style="font-family:'Abacaxi',system-ui,sans-serif;font-size:.85rem;font-weight:700;color:#6F6A66;text-transform:uppercase;letter-spacing:.06em;margin-bottom:12px">A2 — Dark Cinematic (Register)</p>
-      <div class="yba-auth-b">
-        <div class="yba-auth-b__logo">YB</div>
-        <h3 class="yba-auth-b__title">Opret din konto</h3>
-        <p class="yba-auth-b__sub">Start din transformation i dag</p>
-        <div class="yba-auth-b__row">
-          <div class="yba-auth-b__field">
-            <label>FORNAVN</label>
-            <input type="text" placeholder="Fornavn">
-          </div>
-          <div class="yba-auth-b__field">
-            <label>EFTERNAVN</label>
-            <input type="text" placeholder="Efternavn">
-          </div>
-        </div>
-        <div class="yba-auth-b__field">
-          <label>EMAIL</label>
-          <input type="email" placeholder="din@email.dk">
-        </div>
-        <div class="yba-auth-b__field">
-          <label>ADGANGSKODE</label>
-          <input type="password" placeholder="Min. 8 tegn">
-        </div>
-        <div class="yba-auth-b__consent">
-          <input type="checkbox">
-          <span>Jeg accepterer <a href="#">Handelsbetingelser</a> og <a href="#">Privatlivspolitik</a></span>
-        </div>
-        <div class="yba-auth-b__consent">
-          <input type="checkbox">
-          <span>Jeg har læst og accepterer <a href="#">Code of Conduct</a></span>
-        </div>
-        <button class="yba-auth-b__btn">Opret konto</button>
-        <p class="yba-auth-b__link">Har du allerede en konto? <a href="#">Log ind</a></p>
-      </div>
-
-      <!-- ── A3: Split Visual — LOGIN ── -->
-      <p style="font-family:'Abacaxi',system-ui,sans-serif;font-size:.85rem;font-weight:700;color:#6F6A66;text-transform:uppercase;letter-spacing:.06em;margin-bottom:12px">A3 — Split Visual (Login)</p>
-      <div class="yba-auth-c">
-        <div class="yba-auth-c__visual">
-          <div class="yba-auth-c__visual-dots"><span></span><span></span><span></span></div>
-          <div class="yba-auth-c__visual-icon">&#x1F9D8;</div>
-          <h3 class="yba-auth-c__visual-title">Find din<br>indre balance</h3>
-          <p class="yba-auth-c__visual-sub">Book klasser, se dit skema, og administrer dit medlemskab.</p>
-        </div>
-        <div class="yba-auth-c__form">
-          <h3 class="yba-auth-c__title">Log ind</h3>
-          <p class="yba-auth-c__sub">Velkommen tilbage til Yoga Bible</p>
-          <div class="yba-auth-c__field">
-            <label>EMAIL</label>
-            <input type="email" placeholder="din@email.dk">
-          </div>
-          <div class="yba-auth-c__field">
-            <label>ADGANGSKODE</label>
-            <input type="password" placeholder="Adgangskode">
-          </div>
-          <button class="yba-auth-c__btn">Log ind</button>
-          <p class="yba-auth-c__link">Ny her? <a href="#">Opret konto</a></p>
-        </div>
-      </div>
-
-      <!-- ── A3: Split Visual — REGISTER ── -->
-      <p style="font-family:'Abacaxi',system-ui,sans-serif;font-size:.85rem;font-weight:700;color:#6F6A66;text-transform:uppercase;letter-spacing:.06em;margin-bottom:12px">A3 — Split Visual (Register)</p>
       <div class="yba-auth-c">
         <div class="yba-auth-c__visual">
           <div class="yba-auth-c__visual-dots"><span></span><span></span><span></span></div>
           <div class="yba-auth-c__visual-icon">&#x2728;</div>
           <h3 class="yba-auth-c__visual-title">Start din<br>yoga-rejse</h3>
-          <p class="yba-auth-c__visual-sub">Opret en konto og få adgang til alle vores klasser og tilbud.</p>
+          <p class="yba-auth-c__visual-sub">Opret en konto og f&aring; adgang til alle vores klasser og tilbud.</p>
         </div>
         <div class="yba-auth-c__form">
           <h3 class="yba-auth-c__title">Opret konto</h3>
@@ -6732,7 +6554,7 @@ document.addEventListener('DOMContentLoaded', function() {
           </div>
           <div class="yba-auth-c__consent">
             <input type="checkbox">
-            <span>Jeg accepterer <a href="#">Vilkår</a> og <a href="#">Privatlivspolitik</a></span>
+            <span>Jeg accepterer <a href="#">Vilk&aring;r</a> og <a href="#">Privatlivspolitik</a></span>
           </div>
           <div class="yba-auth-c__consent">
             <input type="checkbox">
@@ -6743,94 +6565,33 @@ document.addEventListener('DOMContentLoaded', function() {
         </div>
       </div>
 
-      <!-- ── Sub-header: Profile Layouts ── -->
-      <h3 class="ds-subsection" style="font-size:1.2rem;font-weight:700;margin:48px 0 16px;color:#0F0F0F;font-family:'Abacaxi',system-ui,sans-serif">B. Profile / User Area Layouts</h3>
-      <p style="font-size:.9rem;color:#6F6A66;margin-bottom:32px;font-family:'Abacaxi',system-ui,sans-serif">Three profile layouts showing the <strong>Profile</strong> tab with personal details form. Pick one.</p>
+      <!-- ── Profile Layout ── -->
+      <h3 class="ds-subsection" style="font-size:1.1rem;font-weight:700;margin:48px 0 12px;color:#0F0F0F;font-family:'Abacaxi',system-ui,sans-serif">Profile / Member Area</h3>
+      <p style="font-size:.88rem;color:#6F6A66;margin-bottom:24px;font-family:'Abacaxi',system-ui,sans-serif">Orange gradient hero with logo bar, user info, and membership badge. Underline tab navigation below. White content area with form cards.</p>
 
-      <!-- ── B1: Clean Cards + Pill Tabs ── -->
-      <p style="font-family:'Abacaxi',system-ui,sans-serif;font-size:.85rem;font-weight:700;color:#6F6A66;text-transform:uppercase;letter-spacing:.06em;margin-bottom:12px">B1 — Clean Cards + Pill Tabs</p>
-      <div class="yba-prof-a">
-        <div class="yba-prof-a__header">
-          <div class="yba-prof-a__avatar">SJ</div>
-          <div>
-            <p class="yba-prof-a__name">Sarah Jensen</p>
-            <p class="yba-prof-a__email">sarah@yogabible.dk</p>
-          </div>
-          <span class="yba-prof-a__badge">Unlimited Medlem</span>
-          <div class="yba-prof-a__lang">
-            <button class="is-active">DA</button>
-            <button>EN</button>
-          </div>
-        </div>
-        <div class="yba-prof-a__tabs">
-          <button class="yba-prof-a__tab is-active">Profil</button>
-          <button class="yba-prof-a__tab">Skema</button>
-          <button class="yba-prof-a__tab">Butik</button>
-          <button class="yba-prof-a__tab">Mine Pas</button>
-          <button class="yba-prof-a__tab">Besøg</button>
-          <button class="yba-prof-a__tab">Kvitteringer</button>
-        </div>
-        <div class="yba-prof-a__card">
-          <h3 class="yba-prof-a__card-title">Personlige Oplysninger</h3>
-          <div class="yba-prof-a__form-grid">
-            <label><span>FORNAVN</span><input type="text" value="Sarah"></label>
-            <label><span>EFTERNAVN</span><input type="text" value="Jensen"></label>
-            <label><span>EMAIL</span><input type="email" value="sarah@yogabible.dk"></label>
-            <label><span>TELEFON</span><input type="tel" value="+45 20 12 34 56"></label>
-            <label><span>FØDSELSDATO</span><input type="date" value="1990-03-15"></label>
-          </div>
-          <button class="yba-prof-a__save">Gem ændringer</button>
-        </div>
-      </div>
-
-      <!-- ── B2: Dark Sidebar + Content ── -->
-      <p style="font-family:'Abacaxi',system-ui,sans-serif;font-size:.85rem;font-weight:700;color:#6F6A66;text-transform:uppercase;letter-spacing:.06em;margin-bottom:12px">B2 — Dark Sidebar + Content</p>
-      <div class="yba-prof-b">
-        <div class="yba-prof-b__sidebar">
-          <div class="yba-prof-b__avatar">SJ</div>
-          <p class="yba-prof-b__name">Sarah Jensen</p>
-          <p class="yba-prof-b__email">sarah@yogabible.dk</p>
-          <span class="yba-prof-b__tier">Unlimited</span>
-          <ul class="yba-prof-b__nav">
-            <li><a href="#" class="is-active"><svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>Profil</a></li>
-            <li><a href="#"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>Skema</a></li>
-            <li><a href="#"><svg viewBox="0 0 24 24"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>Butik</a></li>
-            <li><a href="#"><svg viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>Mine Pas</a></li>
-            <li><a href="#"><svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>Besøg</a></li>
-            <li><a href="#"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>Kvitteringer</a></li>
-          </ul>
-          <button class="yba-prof-b__logout">Log ud</button>
-        </div>
-        <div class="yba-prof-b__main">
-          <h3 class="yba-prof-b__section-title">Personlige Oplysninger</h3>
-          <div class="yba-prof-b__form-grid">
-            <label><span>FORNAVN</span><input type="text" value="Sarah"></label>
-            <label><span>EFTERNAVN</span><input type="text" value="Jensen"></label>
-            <label><span>EMAIL</span><input type="email" value="sarah@yogabible.dk"></label>
-            <label><span>TELEFON</span><input type="tel" value="+45 20 12 34 56"></label>
-            <label><span>FØDSELSDATO</span><input type="date" value="1990-03-15"></label>
-          </div>
-          <button class="yba-prof-a__save" style="margin-top:20px">Gem ændringer</button>
-        </div>
-      </div>
-
-      <!-- ── B3: Hero Header + Underline Tabs ── -->
-      <p style="font-family:'Abacaxi',system-ui,sans-serif;font-size:.85rem;font-weight:700;color:#6F6A66;text-transform:uppercase;letter-spacing:.06em;margin-bottom:12px">B3 — Hero Header + Underline Tabs</p>
       <div class="yba-prof-c">
         <div class="yba-prof-c__hero">
-          <div class="yba-prof-c__avatar">SJ</div>
-          <div>
-            <p class="yba-prof-c__name">Sarah Jensen</p>
-            <p class="yba-prof-c__email">sarah@yogabible.dk</p>
+          <div class="yba-prof-c__hero-top">
+            <span class="yba-prof-c__logo">YOGA BIBLE</span>
+            <div class="yba-prof-c__lang-hero">
+              <button class="is-active">DA</button>
+              <button>EN</button>
+            </div>
           </div>
-          <span class="yba-prof-c__badge">Unlimited Medlem</span>
+          <div class="yba-prof-c__user">
+            <div class="yba-prof-c__avatar">SJ</div>
+            <div>
+              <p class="yba-prof-c__name">Sarah Jensen</p>
+              <p class="yba-prof-c__meta">sarah@yogabible.dk <span class="yba-badge">Unlimited Medlem</span></p>
+            </div>
+          </div>
         </div>
         <div class="yba-prof-c__tabs">
           <button class="yba-prof-c__tab is-active">Profil</button>
           <button class="yba-prof-c__tab">Skema</button>
           <button class="yba-prof-c__tab">Butik</button>
           <button class="yba-prof-c__tab">Mine Pas</button>
-          <button class="yba-prof-c__tab">Besøg</button>
+          <button class="yba-prof-c__tab">Bes&oslash;g</button>
           <button class="yba-prof-c__tab">Kvitteringer</button>
         </div>
         <div class="yba-prof-c__content">
@@ -6838,11 +6599,11 @@ document.addEventListener('DOMContentLoaded', function() {
           <div class="yba-prof-c__form-grid">
             <label><span>FORNAVN</span><input type="text" value="Sarah"></label>
             <label><span>EFTERNAVN</span><input type="text" value="Jensen"></label>
-            <label><span>EMAIL</span><input type="email" value="sarah@yogabible.dk"></label>
+            <label><span>EMAIL</span><input type="email" value="sarah@yogabible.dk" disabled style="opacity:.6"></label>
             <label><span>TELEFON</span><input type="tel" value="+45 20 12 34 56"></label>
-            <label><span>FØDSELSDATO</span><input type="date" value="1990-03-15"></label>
+            <label><span>F&Oslash;DSELSDATO</span><input type="date" value="1990-03-15"></label>
           </div>
-          <button class="yba-prof-a__save" style="margin-top:20px">Gem ændringer</button>
+          <button class="yba-prof-c__save">Gem &aelig;ndringer</button>
         </div>
       </div>
 

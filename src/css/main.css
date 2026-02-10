@@ -7770,6 +7770,33 @@ section {
   color: #f75c03;
 }
 
+/* ── Store Program Filter Banner (from booking redirect) ── */
+.yb-store__program-filter {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 16px;
+  background: #fff3ec;
+  border: 1px solid #f75c03;
+  border-radius: 10px;
+  margin-bottom: 16px;
+  font-size: 0.88rem;
+  color: #0F0F0F;
+}
+.yb-store__program-filter-clear {
+  background: none;
+  border: none;
+  color: #f75c03;
+  font-weight: 700;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 0.85rem;
+  padding: 4px 8px;
+}
+.yb-store__program-filter-clear:hover {
+  text-decoration: underline;
+}
+
 /* ── Store Results Count ── */
 .yb-store__results-count {
   font-size: 0.78rem;
