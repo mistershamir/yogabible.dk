@@ -134,25 +134,31 @@
   - `GET /sale/contracts` (with LocationId=1 retry)
   - `POST /sale/purchasecontract` (with CreditCardInfo in PascalCase)
   - `POST /sale/terminatecontract` (primary — also tries `/contract/`, `/client/` as fallback)
-  - `POST /sale/suspendcontract` (primary — also tries `/contract/`, `/client/` as fallback)
-  - `POST /sale/activatecontract` (revoke termination — also tries fallback paths)
-- **Actions:** `terminate`, `suspend`, `activate` (via `body.action`)
+  - `POST /client/suspendcontract` (ONLY working path — `/sale/` returns HTML 404)
+  - `POST /sale/activatecontract` — **DOES NOT EXIST** (all 3 paths return HTML 404)
+- **Actions:** `terminate`, `suspend` (via `body.action`). `activate` kept in code but non-functional
 - **Token:** Forces fresh token (clears cache) for all management actions
 - **Diagnostics:** Returns `_pathResults` array showing which paths were tried and what each returned
 - **Returns:** GET: `{ contracts[], total }` | POST: `{ success, endpointUsed?, _pathResults, ... }`
 - **Each contract:** `id`, `name`, `description`, `onlineDescription`, `firstPaymentAmount`, `firstMonthFree` (boolean, true when first payment is 0), `recurringPaymentAmount`, `totalContractAmount`, `autopaySchedule` (extracted FrequencyType string), `numberOfAutopays`, `duration`, `durationUnit`, `locationId`, `soldOnline`, `assignsMembershipId`, `assignsMembershipName`, `contractItems[]`, `programIds[]`, `membershipTypeRestrictions[]`
 - **POST Note:** `LocationId` is REQUIRED for purchase — defaults to 1 if not provided
 
-### mb-contract-manage.js
+### mb-contract-manage.js (Updated 2026-02-10)
 - **Method:** POST
-- **Purpose:** Standalone terminate/suspend function (same logic as mb-contracts manage routes, kept as backup)
+- **Purpose:** Dedicated contract management: terminate, suspend (pause), or resume
+- **UI Status:** Pause/Cancel buttons removed from user profile (2026-02-10) — backend still functional, can be re-enabled
 - **Body (terminate):** `{ action: 'terminate', clientId, clientContractId, terminationDate, terminationCode? }`
 - **Body (suspend):** `{ action: 'suspend', clientId, clientContractId, startDate, endDate }`
-- **API Path:** Tries `/sale/` first, then `/contract/`, `/client/` (same order as mb-contracts)
-- **Token:** Forces fresh token (clears cache)
+- **Body (resume):** `{ action: 'resume', ... }` → Returns error: no MB API endpoint exists
+- **API Paths:**
+  - Terminate: tries `/sale/`, `/contract/`, `/client/` (fallback order — `/sale/` is correct)
+  - Suspend: `POST /client/suspendcontract` only (the ONLY working path)
+- **Suspend body sent to MB:** `{ ClientId, ClientContractId, SuspendDate: endDate, ResumeDate: endDate, Duration, DurationUnit: "Day", SuspensionType: "Vacation" }`
+- **IMPORTANT:** `SuspendDate` = end date ("suspend through"), NOT start date. MB starts suspension from today.
 - **Suspension validation:** 14 days minimum, 93 days maximum
+- **Duplicate detection:** Uses MB `IsSuspended` field (not notes). MB returns "exceeded maximum iterations" if at max pauses
 - **Fallback:** If terminate fails with TerminationCode, retries without it
-- **Returns:** `{ success, action, terminationDate|suspendDate, endpointUsed, message }`
+- **Returns:** `{ success, action, suspendDate, resumeDate, durationDays, mbResponse }`
 
 ### mb-purchases.js
 - **Method:** GET

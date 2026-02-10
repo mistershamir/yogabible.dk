@@ -124,7 +124,12 @@
 | `/staff/staff` | GET | `StaffIds`, `Limit` | `StaffMembers[]` | Teacher details + bio + photo |
 | `/usertoken/issue` | POST | Body: `Username`, `Password` | `AccessToken` | Auth token. Cache 6 hours |
 
-**Note on Contract Management:** The preferred endpoint category is **`/sale/`** (i.e., `/sale/terminatecontract` and `/sale/suspendcontract`). Despite the docs being ambiguous, `/contract/` has a **different permission model** and returns "User does not have permission" even when the same staff token works on `/sale/`. `/client/` doesn't exist for these endpoints (returns HTML 404). Code tries all 3 paths with fallback but `/sale/` should always be first. `activatecontract` (revoke termination) **does not exist** in the API — all paths return 404.
+**Note on Contract Management:** Terminate and Suspend use **different** endpoint categories:
+- **Terminate:** `POST /sale/terminatecontract` — `/sale/` is the working path
+- **Suspend:** `POST /client/suspendcontract` — `/client/` is the ONLY working path (`/sale/suspendcontract` returns HTML 404)
+- `/contract/` has a **different permission model** and returns "User does not have permission"
+- `activatecontract` (revoke termination) **does not exist** in the API — all paths return 404
+- `resumecontract`, `unsuspendcontract`, `removecontractsuspension` — **none exist**. Cancel/delete pause requires MB admin UI
 
 ## Checkout Payment Format (WORKING)
 
@@ -188,21 +193,37 @@
 - Staff token bypasses payment — no credit card info needed for staff-authenticated purchases
 - Response returns `ClientContractId` — store this for future manage operations
 
-## Contract Suspend Format (WORKING)
+## Contract Suspend Format (UPDATED 2026-02-10)
+
+**Endpoint:** `POST /client/suspendcontract` (NOT `/sale/` — returns 404)
 
 ```json
 {
+  "ClientId": "100000037",
   "ClientContractId": 12345,
-  "SuspendDate": "2025-04-08",
-  "ResumeDate": "2025-05-08",
-  "SendNotifications": true
+  "SuspendDate": "2026-03-23",
+  "Duration": 14,
+  "DurationUnit": "Day",
+  "SuspensionType": "Vacation"
 }
 ```
+
+**CRITICAL — SuspendDate semantics (discovered 2026-02-10):**
+- `SuspendDate` is the **END date** ("suspend through"), NOT the start date
+- The suspension **always starts from TODAY** (the date the API call is made)
+- You **cannot schedule a future-dated suspension start** via the API
+- `Duration` appears to be **ignored** when `SuspendDate` is provided
+- Example: calling API on Feb 10 with `SuspendDate: "2026-03-09"` → MB registers Start=Feb 10, End=Mar 9
+- **Awaiting Mindbody Developer Support clarification** on: whether future-dated starts are possible, and whether Duration + SuspendDate interact
+
+**Required fields:** `ClientId`, `ClientContractId`, `SuspendDate`, `Duration`, `DurationUnit`, `SuspensionType`
 
 **Business rules (configurable per brand):**
 - Minimum suspension: 14 days
 - Maximum suspension: 3 months (93 days)
-- Start date must be after next billing cycle (can't pause mid-cycle)
+- `SuspensionType` REQUIRED — valid values: `"Vacation"`, `"Illness"`, `"Injury"`
+- Without `SuspensionType`, misleading error: "Duration and DurationUnit are required"
+- With `SuspensionType: "None"` → **500 server crash**
 
 ## Contract Terminate Format (WORKING)
 
@@ -335,3 +356,8 @@ If `nextBillingDate` is in the past (edge case), use today as base.
 | 45 | Mindbody `BirthDate` returns `0001-01-01T00:00:00` for unset | Filter out `0001-01-01` | When pulling DOB from MB, check `bd !== '0001-01-01'` before storing in Firestore |
 | 46 | `updateclient` doesn't accept `BirthDate` | It DOES — use PascalCase `BirthDate` in body | `mb-client.js` PUT now supports `birthDate` → mapped to `BirthDate` |
 | 47 | Date format conflict: dd/mm/yyyy (DK) vs mm/dd/yyyy (US/MB) | **No conflict** — all dates use ISO `YYYY-MM-DD` end-to-end | `<input type="date">` always returns `YYYY-MM-DD` regardless of browser locale display. Mindbody returns `YYYY-MM-DDTHH:MM:SS` → we extract `YYYY-MM-DD`. Firestore stores `YYYY-MM-DD`. **If DOB looks wrong in MB admin**, check: (1) was it sent as `YYYY-MM-DD`? (2) does MB display interpret it as mm/dd or dd/mm? The API always uses ISO but the MB admin UI may display in US format |
+| 48 | `SuspendDate` = start date of suspension | `SuspendDate` = END/"suspend through" date | Discovered 2026-02-10: sending `SuspendDate: "2026-03-09"` → MB registers Start=Feb10(today), End=Mar9. Suspension always starts from today. Cannot schedule future-dated start. |
+| 49 | MB client notes persist pause state reliably | Notes persist even after admin deletes suspension | `addclientnote` notes are PERMANENT — never use for pause state detection. Admin deleting suspension does NOT delete the associated note. Use MB `IsSuspended` field + Firestore bridge |
+| 50 | MB `IsSuspended` works for future-dated pauses | `IsSuspended` is ONLY true for currently active pauses | Future-dated pauses show `IsSuspended: false`. Use Firestore `pausedContracts` as 90-second bridge after user action, then trust MB |
+| 51 | Pause/Cancel buttons in user profile | Replaced with contact messaging (2026-02-10) | Due to unresolved SuspendDate semantics and missing delete-suspension/cancel-termination APIs. Users email info@yogabible.dk. Status badges, retention cards, and billing info remain visible |
+| 52 | `/sale/sales` for per-client purchase history | Use `/client/clientservices` + `/client/clientcontracts` | `/sale/sales` ignores `ClientId` filter entirely — returns ALL sales. Combine services + contracts for per-client receipts |

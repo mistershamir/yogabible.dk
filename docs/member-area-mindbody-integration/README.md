@@ -147,15 +147,17 @@ MB_STAFF_PASSWORD=<staff-password-for-token>
 4. **Contracts** → POST to `mb-contracts` (uses `/sale/purchasecontract`)
 5. Handle SCA (3D Secure) redirect if needed
 
-### Membership Management (Pause/Cancel)
-1. My Passes tab shows active contracts with Pause/Cancel buttons
-2. **Pause**: Date picker (14-93 days), starts after next billing cycle
-3. **Cancel**: Calculates termination date (next billing + 1 month - 1 day)
-4. POST to `mb-contracts` with `action: 'suspend'` or `action: 'terminate'`
-5. Server tries endpoint paths in order: `/sale/` first, then `/contract/`, `/client/`
-6. Shows "Membership Terminated" badge, "Last billing" date, notice period note with T&C link
-7. **Before termination date**: Retention card with perks + "Reactivate — first month free" CTA
-8. **After termination date**: Simple "Become a member again" CTA linking to Store memberships
+### Membership Management (Updated 2026-02-10)
+1. My Passes tab shows active contracts with **info box** directing users to email `info@yogabible.dk`
+2. **Pause/Cancel buttons removed** — pending Mindbody API clarification (see `docs/email-mindbody-support.md`)
+3. **Status displays remain**: paused badge, terminated badge, billing info, retention card
+4. Backend `mb-contract-manage.js` still supports suspend/terminate (can be re-enabled)
+5. **Terminate**: POST to `/sale/terminatecontract` — WORKING
+6. **Suspend**: POST to `/client/suspendcontract` — WORKING but `SuspendDate` = end date, not start
+7. **Resume/Delete pause**: NO API endpoint exists — requires MB admin UI
+8. **Revoke termination**: NO API endpoint exists — retention card + new purchase flow instead
+9. **Before termination date**: Retention card with perks + "Reactivate — first month free" CTA
+10. **After termination date**: Simple "Become a member again" CTA linking to Store memberships
 
 ## See Also
 
