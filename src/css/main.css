@@ -6747,8 +6747,8 @@ section {
 
 /* ── Hero Header ── */
 .yb-profile__hero {
-  background: linear-gradient(135deg, #c44800 0%, #f75c03 40%, #ff9966 100%);
-  padding: 24px 36px 28px;
+  background: linear-gradient(135deg, #c44800 0%, #f75c03 50%, #e86820 100%);
+  padding: 32px 36px 28px;
   border-radius: 14px 14px 0 0;
 }
 
@@ -6763,7 +6763,7 @@ section {
   font-family: var(--font-primary);
   font-size: 0.85rem;
   font-weight: 700;
-  color: rgba(255,255,255,.7);
+  color: rgba(255,255,255,.9);
   letter-spacing: 0.05em;
 }
 
@@ -6880,7 +6880,7 @@ section {
 
 .yb-profile__member-meta {
   font-size: 0.85rem;
-  color: rgba(255,255,255,.65);
+  color: rgba(255,255,255,.9);
   margin: 0;
 }
 
@@ -6899,10 +6899,7 @@ section {
 }
 
 .yb-profile__member-since {
-  display: block;
-  font-size: 0.72rem;
-  color: rgba(255,255,255,.45);
-  margin-top: 4px;
+  display: none;
 }
 
 /* ── Profile Container ── */
@@ -7044,7 +7041,7 @@ section {
     grid-template-columns: 1fr;
   }
   .yb-profile__hero {
-    padding: 20px 16px 24px;
+    padding: 28px 16px 24px;
   }
   .yb-profile__tabs {
     padding: 0 16px;
@@ -7856,11 +7853,9 @@ section {
 
 .yb-store__categories {
   display: flex;
+  flex-wrap: wrap;
   gap: 0.5rem;
   margin-bottom: 1.5rem;
-  overflow-x: auto;
-  padding-bottom: 0.5rem;
-  -webkit-overflow-scrolling: touch;
 }
 
 .yb-store__cat-btn {
@@ -8657,6 +8652,68 @@ section {
   margin-bottom: 1.5rem;
 }
 
+/* ── Pass Dropdown (collapsible) ── */
+.yb-schedule__pass-dropdown {
+  border: 1.5px solid #E8E4E0;
+  border-radius: 12px;
+  background: #FFFCF9;
+  overflow: hidden;
+}
+
+.yb-schedule__pass-dropdown-toggle {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.85rem 1.25rem;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-family: inherit;
+  transition: background 0.2s;
+}
+
+.yb-schedule__pass-dropdown-toggle:hover {
+  background: #F5F3F0;
+}
+
+.yb-schedule__pass-dropdown-summary {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+}
+
+.yb-schedule__pass-dropdown-label {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #0F0F0F;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.yb-schedule__pass-dropdown-count {
+  font-size: 0.8rem;
+  color: #6F6A66;
+}
+
+.yb-schedule__pass-dropdown-chevron {
+  color: #6F6A66;
+  transition: transform 0.25s;
+  flex-shrink: 0;
+}
+
+.yb-schedule__pass-dropdown-toggle.is-open .yb-schedule__pass-dropdown-chevron {
+  transform: rotate(180deg);
+}
+
+.yb-schedule__pass-dropdown-body {
+  padding: 0 1.25rem 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
 .yb-schedule__pass-detail {
   background: linear-gradient(135deg, #FFF8F0, #FFFCF9);
   border: 1.5px solid #f75c03;
@@ -8698,6 +8755,59 @@ section {
 .yb-schedule__pass-stat strong {
   color: #f75c03;
   font-size: 1.1rem;
+}
+
+/* ── Schedule: Class Type Filters ── */
+.yb-schedule__filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin-bottom: 1.25rem;
+}
+
+.yb-schedule__filter-btn {
+  background: #F5F3F0;
+  border: 1.5px solid #E8E4E0;
+  border-radius: 20px;
+  padding: 0.35rem 0.9rem;
+  font-size: 0.78rem;
+  font-family: inherit;
+  font-weight: 600;
+  color: #6F6A66;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.yb-schedule__filter-btn:hover {
+  border-color: #f75c03;
+  color: #f75c03;
+}
+
+.yb-schedule__filter-btn.is-active {
+  background: #f75c03;
+  border-color: #f75c03;
+  color: #fff;
+}
+
+.yb-schedule__filter-empty {
+  text-align: center;
+  color: #6F6A66;
+  padding: 2rem 0;
+  font-size: 0.9rem;
+}
+
+/* ── Schedule: Show More Button ── */
+.yb-schedule__day--hidden {
+  display: none;
+}
+
+.yb-schedule__show-more-wrap {
+  text-align: center;
+  padding: 1.25rem 0 0.5rem;
+}
+
+.yb-schedule__show-more-btn {
+  min-width: 200px;
 }
 
 /* ═══════════════════════════════════════
