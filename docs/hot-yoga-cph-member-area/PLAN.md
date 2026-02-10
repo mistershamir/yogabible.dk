@@ -1,8 +1,8 @@
 # Hot Yoga Copenhagen — Member Area Plan
 
 > Standalone member area at `profile.hotyogacph.dk`, adapted from Yoga Bible DK's member system.
-> **Status: WAITING** — Do not build until Yoga Bible DK user area is fully debugged and stable.
-> **Created: 2026-02-08**
+> **Status: INFRASTRUCTURE READY** — Netlify + Firebase + DNS configured. Waiting for YB user area to stabilize before building frontend.
+> **Created: 2026-02-08** | **Updated: 2026-02-10**
 
 ## Overview
 
@@ -14,9 +14,10 @@ The main Hot Yoga CPH website stays on Framer. The member area lives on `profile
 
 | Decision | Choice | Rationale |
 |----------|--------|-----------|
-| Domain | `profile.hotyogacph.dk` | Clear, professional subdomain |
-| Hosting | Netlify (free tier, separate site) | 125k function invocations/month is plenty. Independent from yogabible.dk |
-| Firebase | Separate project | Clean separation for potential future sale. Same email = same Mindbody client regardless |
+| Domain | `profile.hotyogacph.dk` | Clear, professional subdomain. CNAME → `hotyogacph.netlify.app` |
+| Hosting | Netlify (free tier, separate site) | Site name: `hotyogacph`. Base dir: `hot-yoga-cph`. 125k function invocations/month is plenty |
+| Firebase | Separate project (`hot-yoga-copenhagen-3a104`) | Clean separation for potential future sale. Same email = same Mindbody client regardless |
+| Framer integration | iframe overlay on Framer site | User clicks "Min Profil" → full-screen modal with iframe to `profile.hotyogacph.dk`. Never leaves Framer site |
 | Mindbody | Same Site ID (5748831) | Both brands share Mindbody. Use `LocationId` to filter per studio |
 | Language | In-app toggle (DA/EN) | Framer has its own i18n for main site. Profile uses localStorage-based toggle |
 | Branding | Teal `#3f99a5` with sage-green gradient feel | Matches Hot Yoga CPH brand identity |
@@ -83,6 +84,64 @@ External Services
 ├── Mindbody API v6 ──── Same Site ID as Yoga Bible
 ├── Firebase Auth ────── SEPARATE project (hot-yoga-cph or similar)
 └── Firestore ────────── SEPARATE — users/{uid} profiles only (no courses)
+```
+
+## Infrastructure (Completed 2026-02-10)
+
+### Netlify Site
+- **Site name**: `hotyogacph`
+- **URL**: `hotyogacph.netlify.app`
+- **Custom domain**: `profile.hotyogacph.dk` (CNAME configured, SSL auto-provisioned)
+- **Base directory**: `hot-yoga-cph`
+- **Publish directory**: `public` (relative to base)
+- **Functions directory**: `../netlify/functions` (shared with Yoga Bible)
+- **Config**: `hot-yoga-cph/netlify.toml` (separate from root `netlify.toml`)
+- **X-Frame-Options**: `ALLOWALL` (required for iframe embed on Framer)
+
+### Netlify Environment Variables
+| Key | Value | Notes |
+|-----|-------|-------|
+| `MB_API_KEY` | *(same as Yoga Bible)* | Shared across brands |
+| `MB_SITE_ID` | `5748831` | Same studio system |
+| `MB_STAFF_USERNAME` | `info@hotyogacph.dk` | HYC-specific staff account |
+| `MB_STAFF_PASSWORD` | `HotYogaCph1234%` | HYC-specific staff password |
+| `FIREBASE_API_KEY` | `AIzaSyAwqILw1UKVxS0LOnJEGS9fZ5DYeRCwrfY` | HYC Firebase project |
+| `FIREBASE_AUTH_DOMAIN` | `hot-yoga-copenhagen-3a104.firebaseapp.com` | |
+| `FIREBASE_PROJECT_ID` | `hot-yoga-copenhagen-3a104` | |
+
+### Firebase Project
+- **Project name**: Hot Yoga Copenhagen
+- **Project ID**: `hot-yoga-copenhagen-3a104`
+- **Project number**: `854520211869`
+- **Auth method**: Email/Password (enabled)
+- **Firestore**: To be set up (users collection)
+
+### Firebase Config (for frontend)
+```javascript
+const firebaseConfig = {
+  apiKey: "AIzaSyAwqILw1UKVxS0LOnJEGS9fZ5DYeRCwrfY",
+  authDomain: "hot-yoga-copenhagen-3a104.firebaseapp.com",
+  projectId: "hot-yoga-copenhagen-3a104",
+  storageBucket: "hot-yoga-copenhagen-3a104.firebasestorage.app",
+  messagingSenderId: "854520211869",
+  appId: "1:854520211869:web:eec44a1be7b1c843cba774",
+  measurementId: "G-92YEVG2RLY"
+};
+```
+
+### Monorepo Structure
+Both Netlify sites deploy from the same `main` branch of `yogabible.dk` repo:
+```
+yogabible.dk/
+├── netlify.toml ────────── Yoga Bible build config
+├── netlify/functions/ ──── Shared backend (both sites use this)
+├── src/ ────────────────── Yoga Bible frontend (Eleventy)
+├── hot-yoga-cph/
+│   ├── netlify.toml ────── HYC build config (no build, static files)
+│   └── public/
+│       └── index.html ──── Currently "Kommer snart" placeholder
+└── docs/hot-yoga-cph-member-area/
+    └── PLAN.md ─────────── This file
 ```
 
 ## Firebase Strategy — Separate but Shareable
@@ -164,12 +223,12 @@ function setLang(lang) {
 ## Adaptation Checklist (When Ready to Build)
 
 ### Phase 1: Project Setup
-- [ ] Create new Netlify site
-- [ ] Create new Firebase project (hot-yoga-cph)
-- [ ] Set up Firebase Auth (email/password)
-- [ ] Set up Firestore (users collection)
-- [ ] Configure DNS: `profile.hotyogacph.dk` → Netlify
-- [ ] Set Netlify env vars (MB_API_KEY, MB_SITE_ID, MB_STAFF_USERNAME, MB_STAFF_PASSWORD)
+- [x] Create new Netlify site (`hotyogacph`, base dir: `hot-yoga-cph`)
+- [x] Create new Firebase project (`hot-yoga-copenhagen-3a104`)
+- [x] Set up Firebase Auth (email/password enabled)
+- [ ] Set up Firestore (users collection + security rules)
+- [x] Configure DNS: `profile.hotyogacph.dk` → `hotyogacph.netlify.app` (CNAME)
+- [x] Set Netlify env vars (MB_API_KEY, MB_SITE_ID, MB_STAFF_USERNAME, MB_STAFF_PASSWORD, FIREBASE_*)
 
 ### Phase 2: Copy & Adapt Backend
 - [ ] Copy all `netlify/functions/mb-*.js` and `shared/`
