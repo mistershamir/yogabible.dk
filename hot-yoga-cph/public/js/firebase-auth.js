@@ -7,14 +7,14 @@
 (function() {
   'use strict';
 
-  // Firebase config
+  // Firebase config — injected at build time from Netlify env vars
   var firebaseConfig = {
-    apiKey: "AIzaSyAwqILw1UKVxS0LOnJEGS9fZ5DYeRCwrfY",
-    authDomain: "hot-yoga-copenhagen-3a104.firebaseapp.com",
-    projectId: "hot-yoga-copenhagen-3a104",
-    storageBucket: "hot-yoga-copenhagen-3a104.firebasestorage.app",
-    messagingSenderId: "854520211869",
-    appId: "1:854520211869:web:eec44a1be7b1c843cba774"
+    apiKey: "__FIREBASE_API_KEY__",
+    authDomain: "__FIREBASE_AUTH_DOMAIN__",
+    projectId: "__FIREBASE_PROJECT_ID__",
+    storageBucket: "__FIREBASE_STORAGE_BUCKET__",
+    messagingSenderId: "__FIREBASE_MESSAGING_SENDER_ID__",
+    appId: "__FIREBASE_APP_ID__"
   };
 
   // Initialize Firebase (compat SDK loaded via CDN)
