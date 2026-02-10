@@ -83,15 +83,18 @@ exports.handler = async function(event) {
 
       console.log('[mb-purchases] Found', sales.length, 'sales for clientId', clientId);
 
-      // Log first sale for debugging
+      // Log first sale FULLY for debugging
       if (sales.length > 0) {
+        console.log('[mb-purchases] FULL first sale:', JSON.stringify(sales[0]).substring(0, 2000));
         console.log('[mb-purchases] Sample sale keys:', Object.keys(sales[0]).join(', '));
         var firstItems = sales[0].PurchasedItems || sales[0].Items || [];
         if (firstItems.length > 0) {
+          console.log('[mb-purchases] FULL first item:', JSON.stringify(firstItems[0]));
           console.log('[mb-purchases] Sample item keys:', Object.keys(firstItems[0]).join(', '));
         }
         var firstPayments = sales[0].Payments || [];
         if (firstPayments.length > 0) {
+          console.log('[mb-purchases] FULL first payment:', JSON.stringify(firstPayments[0]));
           console.log('[mb-purchases] Sample payment keys:', Object.keys(firstPayments[0]).join(', '));
         }
       }
@@ -125,19 +128,26 @@ exports.handler = async function(event) {
       // Primary payment for summary
       var primaryPayment = paymentDetails[0] || {};
 
-      // Build line items
+      // Build line items — try every known field name variant
       var lineItems = items.map(function(item) {
+        // Price: try every possible field
+        var unitPrice = item.Price || item.UnitPrice || item.AmountPaid || item.Amount || item.RetailPrice || 0;
+        var amountPaid = item.AmountPaid || item.Amount || item.Price || item.TotalAmount || 0;
+        var discount = item.AmountDiscounted || item.Discount || item.DiscountAmount || 0;
+        var tax = item.Tax || item.TaxAmount || item.TaxRate || 0;
+
         return {
           id: item.Id || item.ItemId || 0,
-          description: item.Description || item.Name || '',
-          quantity: item.Quantity || 1,
-          unitPrice: item.Price || 0,
-          amountPaid: item.AmountPaid || item.Price || 0,
-          discount: item.AmountDiscounted || item.Discount || 0,
-          tax: item.Tax || 0,
-          returned: item.Returned || false,
-          type: item.Type || '',
-          isService: item.IsService || false
+          description: item.Description || item.Name || item.ItemName || '',
+          quantity: item.Quantity || item.Qty || 1,
+          unitPrice: unitPrice,
+          amountPaid: amountPaid,
+          discount: discount,
+          tax: tax,
+          returned: item.Returned || item.IsReturned || false,
+          type: item.Type || item.ItemType || '',
+          isService: item.IsService || false,
+          _raw: item  // pass through raw for debugging
         };
       });
 
@@ -156,8 +166,8 @@ exports.handler = async function(event) {
         if (li.returned) anyReturned = true;
       });
 
-      // Use sale-level total if available
-      var saleTotalPaid = sale.TotalAmountPaid || totalPaid;
+      // Use sale-level total — try every possible field name
+      var saleTotalPaid = sale.TotalAmountPaid || sale.TotalAmount || sale.AmountPaid || sale.Total || totalPaid;
 
       purchases.push({
         saleId: saleId,
@@ -254,6 +264,11 @@ exports.handler = async function(event) {
 
     // Sort newest first
     purchases.sort(function(a, b) { return new Date(b.saleDate) - new Date(a.saleDate); });
+
+    // Log first purchase to debug field mapping
+    if (purchases.length > 0) {
+      console.log('[mb-purchases] First purchase output:', JSON.stringify(purchases[0]).substring(0, 1000));
+    }
 
     console.log('[mb-purchases] Returning', purchases.length, 'purchases for clientId', clientId);
     return jsonResponse(200, { purchases: purchases, total: purchases.length });
