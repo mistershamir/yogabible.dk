@@ -2333,7 +2333,7 @@
    * corresponding services in MB. This correctly gates workshops/special passes.
    */
   function clientCanBook(programId) {
-    if (!clientPassData) return true; // If pass data not loaded, let backend decide
+    if (!clientPassData) return false; // If pass data not loaded, block until loaded
     if (!programId) return true; // If class has no program info, let backend decide
 
     // Check if any active service covers this program
