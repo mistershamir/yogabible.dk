@@ -4,7 +4,7 @@
   {% include "head.njk" %}
 </head>
 
-<body>
+<body{% if bodyClass %} class="{{ bodyClass }}"{% endif %}>
   <!-- GTM noscript — injected by consent manager when accepted -->
   <noscript id="yb-gtm-noscript"></noscript>
 
