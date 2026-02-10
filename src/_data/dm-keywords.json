@@ -1,0 +1,199 @@
+{
+  "keywords": {
+    "200HR": {
+      "aliases": ["200HR", "UDDANNELSE", "200TIMER", "200HOURS", "TRAINING", "YTT"],
+      "da": {
+        "text": "🧘 200-timers Yogalæreruddannelse hos Yoga Bible\n\nVi tilbyder Yoga Alliance-certificerede 200HR uddannelser i hjertet af København — vælg mellem 3 formater:\n\n⚡ 4 uger intensiv\n📅 8 uger semi-intensiv\n🌿 18 uger fleksibel\n\nSend '4UGER', '8UGER' eller '18UGER' for detaljer om hvert format.\n\nEller se det fulde overblik her 👇",
+        "cta_text": "Se uddannelser",
+        "cta_url": "https://yogabible.dk/link/"
+      },
+      "en": {
+        "text": "🧘 200-Hour Yoga Teacher Training at Yoga Bible\n\nWe offer Yoga Alliance-certified 200HR trainings in the heart of Copenhagen — choose from 3 formats:\n\n⚡ 4-week intensive\n📅 8-week semi-intensive\n🌿 18-week flexible\n\nSend '4WEEKS', '8WEEKS' or '18WEEKS' for details on each format.\n\nOr see the full overview here 👇",
+        "cta_text": "View trainings",
+        "cta_url": "https://yogabible.dk/en/link/"
+      }
+    },
+    "4UGER": {
+      "aliases": ["4UGER", "4WEEKS", "4WEEK", "INTENSIVE", "INTENSIV"],
+      "da": {
+        "text": "⚡ 4 Ugers Intensiv Yogalæreruddannelse\n\nVores mest fokuserede format — fuld immersion over 4 uger i København.\n\n✅ 200HR Yoga Alliance-certificeret\n✅ Daglig undervisning mandag–fredag\n✅ Lille holdstørrelse\n✅ Perfekt til dig der vil fordybe dig 100%\n\nNæste hold starter snart — se datoer og priser 👇",
+        "cta_text": "4 ugers program",
+        "cta_url": "https://yogabible.dk/200-hours-4-weeks-intensive-programs"
+      },
+      "en": {
+        "text": "⚡ 4-Week Intensive Yoga Teacher Training\n\nOur most focused format — full immersion over 4 weeks in Copenhagen.\n\n✅ 200HR Yoga Alliance certified\n✅ Daily classes Monday–Friday\n✅ Small group sizes\n✅ Perfect if you want 100% dedication\n\nNext cohort starting soon — see dates and pricing 👇",
+        "cta_text": "4-week program",
+        "cta_url": "https://yogabible.dk/en/200-hours-4-weeks-intensive-programs"
+      }
+    },
+    "8UGER": {
+      "aliases": ["8UGER", "8WEEKS", "8WEEK", "SEMI-INTENSIVE", "SEMIINTENSIV"],
+      "da": {
+        "text": "📅 8 Ugers Semi-Intensiv Yogalæreruddannelse\n\nDen perfekte balance mellem fordybelse og fleksibilitet — 8 uger i København.\n\n✅ 200HR Yoga Alliance-certificeret\n✅ Undervisning på udvalgte dage\n✅ Tid til integration mellem moduler\n✅ Ideel hvis du arbejder ved siden af\n\nSe datoer og priser 👇",
+        "cta_text": "8 ugers program",
+        "cta_url": "https://yogabible.dk/200-hours-8-weeks-semi-intensive-programs"
+      },
+      "en": {
+        "text": "📅 8-Week Semi-Intensive Yoga Teacher Training\n\nThe perfect balance between immersion and flexibility — 8 weeks in Copenhagen.\n\n✅ 200HR Yoga Alliance certified\n✅ Classes on selected days\n✅ Time for integration between modules\n✅ Ideal if you're working alongside\n\nSee dates and pricing 👇",
+        "cta_text": "8-week program",
+        "cta_url": "https://yogabible.dk/en/200-hours-8-weeks-semi-intensive-programs"
+      }
+    },
+    "18UGER": {
+      "aliases": ["18UGER", "18WEEKS", "18WEEK", "FLEKSIBEL", "FLEXIBLE"],
+      "da": {
+        "text": "🌿 18 Ugers Fleksibel Yogalæreruddannelse\n\nVores mest fleksible format — uddannelsen over 18 uger med plads til dit liv.\n\n✅ 200HR Yoga Alliance-certificeret\n✅ Weekendundervisning\n✅ Masser af tid til praksis og integration\n✅ Perfekt til dig med job og familie\n\nSe datoer og priser 👇",
+        "cta_text": "18 ugers program",
+        "cta_url": "https://yogabible.dk/200-hours-18-weeks-flexible-programs"
+      },
+      "en": {
+        "text": "🌿 18-Week Flexible Yoga Teacher Training\n\nOur most flexible format — training over 18 weeks with room for your life.\n\n✅ 200HR Yoga Alliance certified\n✅ Weekend classes\n✅ Plenty of time for practice and integration\n✅ Perfect if you have work and family\n\nSee dates and pricing 👇",
+        "cta_text": "18-week program",
+        "cta_url": "https://yogabible.dk/en/200-hours-18-weeks-flexible-programs"
+      }
+    },
+    "300HR": {
+      "aliases": ["300HR", "300TIMER", "300HOURS", "ADVANCED", "AVANCERET"],
+      "da": {
+        "text": "🔥 300-Timers Avanceret Yogalæreruddannelse\n\nTag din praksis og undervisning til næste niveau med vores 300HR uddannelse.\n\n✅ Yoga Alliance 300HR certificeret\n✅ Bygger videre på din 200HR\n✅ Avanceret anatomi, filosofi og undervisningsmetoder\n✅ Bliv RYT-500 certificeret\n\nLæs mere 👇",
+        "cta_text": "300HR uddannelse",
+        "cta_url": "https://yogabible.dk/300-hours-advanced-training"
+      },
+      "en": {
+        "text": "🔥 300-Hour Advanced Yoga Teacher Training\n\nTake your practice and teaching to the next level with our 300HR training.\n\n✅ Yoga Alliance 300HR certified\n✅ Builds on your 200HR foundation\n✅ Advanced anatomy, philosophy and teaching methods\n✅ Become RYT-500 certified\n\nLearn more 👇",
+        "cta_text": "300HR training",
+        "cta_url": "https://yogabible.dk/en/300-hours-advanced-training"
+      }
+    },
+    "KURSER": {
+      "aliases": ["KURSER", "COURSES", "COURSE", "WORKSHOPS", "WORKSHOP", "KURSUS"],
+      "da": {
+        "text": "✨ Kurser & Workshops hos Yoga Bible\n\nUdover vores uddannelser tilbyder vi specialiserede kurser:\n\n🤸 Inversions — Håndstand, headstand, armbalancer\n🌈 Backbends — Dybe bagoverbøjninger og hjerteåbnere\n🧘 Splits — Fleksibilitet og spagat\n\nSend 'INVERSIONS', 'BACKBENDS' eller 'SPLITS' for detaljer.\n\nEller se alle kurser 👇",
+        "cta_text": "Se kurser",
+        "cta_url": "https://yogabible.dk/kurser"
+      },
+      "en": {
+        "text": "✨ Courses & Workshops at Yoga Bible\n\nBeyond our trainings, we offer specialized courses:\n\n🤸 Inversions — Handstands, headstands, arm balances\n🌈 Backbends — Deep backbends and heart openers\n🧘 Splits — Flexibility and splits training\n\nSend 'INVERSIONS', 'BACKBENDS' or 'SPLITS' for details.\n\nOr see all courses 👇",
+        "cta_text": "View courses",
+        "cta_url": "https://yogabible.dk/en/kurser"
+      }
+    },
+    "INVERSIONS": {
+      "aliases": ["INVERSIONS", "INVERSION", "HANDSTAND", "HEADSTAND", "HÅNDSTAND"],
+      "da": {
+        "text": "🤸 Inversions Kursus\n\nLær håndstand, headstand og armbalancer i et trygt og progressivt miljø.\n\n✅ Trin-for-trin progression\n✅ Styrke- og teknikopbygning\n✅ Velegnet for alle niveauer\n✅ Lille holdstørrelse\n\nSe næste kursusstart 👇",
+        "cta_text": "Inversions kursus",
+        "cta_url": "https://yogabible.dk/kurser"
+      },
+      "en": {
+        "text": "🤸 Inversions Course\n\nLearn handstands, headstands and arm balances in a safe, progressive environment.\n\n✅ Step-by-step progression\n✅ Strength and technique building\n✅ Suitable for all levels\n✅ Small group sizes\n\nSee next course start 👇",
+        "cta_text": "Inversions course",
+        "cta_url": "https://yogabible.dk/en/kurser"
+      }
+    },
+    "BACKBENDS": {
+      "aliases": ["BACKBENDS", "BACKBEND", "BAGOVERBØJNING", "BAGOVERBØJNINGER"],
+      "da": {
+        "text": "🌈 Backbends Kursus\n\nFordyb dig i bagoverbøjninger — fra bridge til fuld wheel og videre.\n\n✅ Sikker progression\n✅ Åbn bryst og skuldre\n✅ Styrk ryggens fleksibilitet\n✅ Alle niveauer velkomne\n\nSe næste kursusstart 👇",
+        "cta_text": "Backbends kursus",
+        "cta_url": "https://yogabible.dk/kurser"
+      },
+      "en": {
+        "text": "🌈 Backbends Course\n\nDive deep into backbends — from bridge to full wheel and beyond.\n\n✅ Safe progression\n✅ Open chest and shoulders\n✅ Strengthen spinal flexibility\n✅ All levels welcome\n\nSee next course start 👇",
+        "cta_text": "Backbends course",
+        "cta_url": "https://yogabible.dk/en/kurser"
+      }
+    },
+    "SPLITS": {
+      "aliases": ["SPLITS", "SPLIT", "SPAGAT", "FLEXIBILITY", "FLEKSIBILITET"],
+      "da": {
+        "text": "🧘 Splits & Fleksibilitet Kursus\n\nSystematisk fleksibilitetstræning med fokus på spagat og dybe stræk.\n\n✅ Progressiv tilgang\n✅ Aktiv og passiv fleksibilitet\n✅ Forebyg skader\n✅ Alle niveauer\n\nSe næste kursusstart 👇",
+        "cta_text": "Splits kursus",
+        "cta_url": "https://yogabible.dk/kurser"
+      },
+      "en": {
+        "text": "🧘 Splits & Flexibility Course\n\nSystematic flexibility training focused on splits and deep stretches.\n\n✅ Progressive approach\n✅ Active and passive flexibility\n✅ Injury prevention\n✅ All levels\n\nSee next course start 👇",
+        "cta_text": "Splits course",
+        "cta_url": "https://yogabible.dk/en/kurser"
+      }
+    },
+    "MENTORSHIP": {
+      "aliases": ["MENTORSHIP", "MENTOR", "PRIVAT", "PRIVATE", "PRIVATUNDERVISNING", "PRIVATETRÆNING"],
+      "da": {
+        "text": "🌟 Mentorship & Privat Træning\n\nSkræddersyet en-til-en undervisning med Yoga Bibles erfarne lærere.\n\n✅ Personligt tilpasset program\n✅ Fleksibel planlægning\n✅ Fordybelse i dit fokusområde\n✅ Online eller i studiet\n\nLæs mere om mulighederne 👇",
+        "cta_text": "Mentorship info",
+        "cta_url": "https://yogabible.dk/mentorship-private-training"
+      },
+      "en": {
+        "text": "🌟 Mentorship & Private Training\n\nTailored one-on-one instruction with Yoga Bible's experienced teachers.\n\n✅ Personally customized program\n✅ Flexible scheduling\n✅ Deep dive into your focus area\n✅ Online or in-studio\n\nLearn more about the options 👇",
+        "cta_text": "Mentorship info",
+        "cta_url": "https://yogabible.dk/en/mentorship-private-training"
+      }
+    },
+    "SCHEDULE": {
+      "aliases": ["SCHEDULE", "SKEMA", "TIMEPLAN", "KLASSER", "CLASSES", "CLASS"],
+      "da": {
+        "text": "📋 Ugentligt Skema\n\nSe vores aktuelle holdoversigt med alle klasser i studiet på Torvegade 66, København.\n\nBook direkte via vores hjemmeside 👇",
+        "cta_text": "Se skema",
+        "cta_url": "https://yogabible.dk/skema"
+      },
+      "en": {
+        "text": "📋 Weekly Schedule\n\nSee our current class schedule at the studio on Torvegade 66, Copenhagen.\n\nBook directly through our website 👇",
+        "cta_text": "View schedule",
+        "cta_url": "https://yogabible.dk/en/skema"
+      }
+    },
+    "MUSIC": {
+      "aliases": ["MUSIC", "MUSIK", "PLAYLIST", "SOUNDCLOUD", "PLAYLISTE"],
+      "da": {
+        "text": "🎵 Yoga Bible Playlister\n\nLyt til vores kuraterede yoga-playlister på SoundCloud — perfekte til din praksis derhjemme.\n\n🎧 Flow, Yin, Meditation og mere…",
+        "cta_text": "Lyt på SoundCloud",
+        "cta_url": "https://soundcloud.com/yogabible"
+      },
+      "en": {
+        "text": "🎵 Yoga Bible Playlists\n\nListen to our curated yoga playlists on SoundCloud — perfect for your home practice.\n\n🎧 Flow, Yin, Meditation and more…",
+        "cta_text": "Listen on SoundCloud",
+        "cta_url": "https://soundcloud.com/yogabible"
+      }
+    },
+    "APPLY": {
+      "aliases": ["APPLY", "ANSØG", "ANSØGNING", "TILMELD", "SIGNUP", "TILMELDING", "ENROLL"],
+      "da": {
+        "text": "📝 Ansøg til Yoga Bible\n\nKlar til at starte din yogarejse? Udfyld vores ansøgningsformular — det tager kun 2 minutter.\n\nVi vender tilbage inden for 24 timer 🙏",
+        "cta_text": "Ansøg nu",
+        "cta_url": "https://yogabible.dk/apply"
+      },
+      "en": {
+        "text": "📝 Apply to Yoga Bible\n\nReady to start your yoga journey? Fill out our application form — it only takes 2 minutes.\n\nWe'll get back to you within 24 hours 🙏",
+        "cta_text": "Apply now",
+        "cta_url": "https://yogabible.dk/en/apply"
+      }
+    },
+    "PRIS": {
+      "aliases": ["PRIS", "PRICE", "PRICING", "PRISER", "COST", "COSTS", "HVAD KOSTER"],
+      "da": {
+        "text": "💰 Priser & Sammenligning\n\nSe priser for alle vores uddannelsesformater og sammenlign dem side om side.\n\n🔹 4 uger intensiv\n🔹 8 uger semi-intensiv\n🔹 18 uger fleksibel\n\nVi tilbyder også ratebetaling 👇",
+        "cta_text": "Se priser",
+        "cta_url": "https://yogabible.dk/sammenlign-yogalreruddannelser"
+      },
+      "en": {
+        "text": "💰 Pricing & Comparison\n\nSee prices for all our training formats and compare them side by side.\n\n🔹 4-week intensive\n🔹 8-week semi-intensive\n🔹 18-week flexible\n\nWe also offer payment plans 👇",
+        "cta_text": "View pricing",
+        "cta_url": "https://yogabible.dk/en/sammenlign-yogalreruddannelser"
+      }
+    },
+    "HEJ": {
+      "aliases": ["HEJ", "HI", "HELLO", "HEJSA", "GODDAG", "HEY", "HOLA", "NAMASTE"],
+      "da": {
+        "text": "🙏 Hej og velkommen til Yoga Bible!\n\nVi er en yogalæreruddannelsesskole i hjertet af København. Her er hvad du kan skrive for at få info:\n\n🧘 '200HR' — Yogalæreruddannelse\n⚡ '4UGER' — 4 ugers intensiv\n📅 '8UGER' — 8 ugers semi-intensiv\n🌿 '18UGER' — 18 ugers fleksibel\n🔥 '300HR' — Avanceret uddannelse\n✨ 'KURSER' — Workshops & kurser\n🌟 'MENTORSHIP' — Privat træning\n📋 'SKEMA' — Klasseoversigt\n💰 'PRIS' — Priser\n📝 'ANSØG' — Ansøg nu\n🎵 'MUSIK' — Playlister\n\nHvad kan vi hjælpe med? 😊",
+        "cta_text": "Besøg yogabible.dk",
+        "cta_url": "https://yogabible.dk/link/"
+      },
+      "en": {
+        "text": "🙏 Hi and welcome to Yoga Bible!\n\nWe're a yoga teacher training school in the heart of Copenhagen. Here's what you can type to get info:\n\n🧘 '200HR' — Yoga teacher training\n⚡ '4WEEKS' — 4-week intensive\n📅 '8WEEKS' — 8-week semi-intensive\n🌿 '18WEEKS' — 18-week flexible\n🔥 '300HR' — Advanced training\n✨ 'COURSES' — Workshops & courses\n🌟 'MENTORSHIP' — Private training\n📋 'SCHEDULE' — Class schedule\n💰 'PRICE' — Pricing\n📝 'APPLY' — Apply now\n🎵 'MUSIC' — Playlists\n\nHow can we help? 😊",
+        "cta_text": "Visit yogabible.dk",
+        "cta_url": "https://yogabible.dk/en/link/"
+      }
+    }
+  }
+}
