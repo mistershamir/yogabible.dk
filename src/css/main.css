@@ -8812,6 +8812,33 @@ section {
   line-height: 1.5;
 }
 
+/* Manage info box (contact-based pause/cancel messaging) */
+.yb-membership__manage-info-box {
+  margin: 1rem 0 0;
+  padding: 1rem 1.25rem;
+  background: #FFFCF9;
+  border: 1px solid #E8E4E0;
+  border-left: 3px solid #f75c03;
+  border-radius: 8px;
+}
+
+.yb-membership__manage-info-text {
+  margin: 0;
+  font-size: 0.88rem;
+  color: #0F0F0F;
+  line-height: 1.6;
+}
+
+.yb-membership__manage-info-text strong {
+  color: #0F0F0F;
+  font-weight: 700;
+}
+
+.yb-membership__manage-info-text a {
+  color: #f75c03;
+  text-decoration: underline;
+}
+
 /* Toast info variant */
 .yb-membership__toast--info {
   background: #e3f2fd;
