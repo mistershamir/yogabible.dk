@@ -513,7 +513,12 @@
     db.collection('users').doc(user.uid).get().then(function(doc) {
       if (!doc.exists) return;
       var d = doc.data();
-      if (d.mindbodyClientId) { clientId = d.mindbodyClientId; return; }
+      if (d.mindbodyClientId) {
+        clientId = d.mindbodyClientId;
+        // Trigger waiver check if it wasn't done during loadProfile
+        if (!waiverStatusLoaded) fetchWaiverStatus(clientId);
+        return;
+      }
 
       var firstName = d.firstName || (user.displayName || '').split(' ')[0] || '';
       var lastName = d.lastName || (user.displayName || '').split(' ').slice(1).join(' ') || '';
@@ -523,6 +528,8 @@
         .then(function(data) {
           if (data.found && data.client && data.client.id) {
             clientId = String(data.client.id);
+            // Trigger waiver check now that we have a client ID
+            if (!waiverStatusLoaded) fetchWaiverStatus(clientId);
             return db.collection('users').doc(user.uid).update({
               mindbodyClientId: clientId, updatedAt: firebase.firestore.FieldValue.serverTimestamp()
             });
@@ -534,6 +541,8 @@
             .then(function(cd) {
               if (cd.client && cd.client.id) {
                 clientId = String(cd.client.id);
+                // Trigger waiver check for newly created client
+                if (!waiverStatusLoaded) fetchWaiverStatus(clientId);
                 return db.collection('users').doc(user.uid).update({
                   mindbodyClientId: clientId, updatedAt: firebase.firestore.FieldValue.serverTimestamp()
                 });
@@ -2454,7 +2463,7 @@
         btn.textContent = isDa() ? 'Tilmelder...' : 'Joining...';
         fetch('/.netlify/functions/mb-waitlist', {
           method: 'POST', headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ clientId: clientId, classScheduleId: Number(classId) })
+          body: JSON.stringify({ clientId: clientId, classId: Number(classId) })
         }).then(function(r) { return r.json(); })
           .then(function(data) {
             if (data.success || data.WaitlistEntry) {
