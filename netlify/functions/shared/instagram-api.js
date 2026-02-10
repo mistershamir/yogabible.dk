@@ -311,6 +311,70 @@ async function createFirestoreJwt(serviceAccount) {
 }
 
 // ---------------------------------------------------------------------------
+// User profile fetching — get name, username from Instagram Graph API
+// ---------------------------------------------------------------------------
+async function getUserProfile(userId) {
+  const accessToken = process.env.META_ACCESS_TOKEN;
+  if (!accessToken || !userId) return null;
+
+  try {
+    const res = await fetch(
+      `${IG_API_BASE}/${userId}?fields=name,username&access_token=${accessToken}`
+    );
+    const data = await res.json();
+
+    if (!res.ok) {
+      console.log('[ig-api] Profile fetch failed for', userId, ':', data.error?.message || res.status);
+      return null;
+    }
+
+    console.log('[ig-api] Profile fetched:', data.username || userId, '— name:', data.name || '(none)');
+    return {
+      name: data.name || null,
+      username: data.username || null,
+      firstName: data.name ? data.name.split(' ')[0] : null
+    };
+  } catch (err) {
+    console.log('[ig-api] Profile fetch error:', err.message);
+    return null;
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Conversation state — in-memory per warm container
+// Tracks where each user is in a conversation flow.
+// Key: senderId, Value: { step, lang, interest, timestamp }
+// Auto-expires after 24 hours.
+// ---------------------------------------------------------------------------
+const conversationState = new Map();
+const CONVO_TTL = 24 * 60 * 60 * 1000; // 24 hours
+
+function getConvoState(senderId) {
+  const state = conversationState.get(senderId);
+  if (!state) return null;
+  if (Date.now() - state.timestamp > CONVO_TTL) {
+    conversationState.delete(senderId);
+    return null;
+  }
+  return state;
+}
+
+function setConvoState(senderId, state) {
+  // Prune old entries (keep map small)
+  const now = Date.now();
+  if (conversationState.size > 500) {
+    for (const [id, s] of conversationState) {
+      if (now - s.timestamp > CONVO_TTL) conversationState.delete(id);
+    }
+  }
+  conversationState.set(senderId, { ...state, timestamp: now });
+}
+
+function clearConvoState(senderId) {
+  conversationState.delete(senderId);
+}
+
+// ---------------------------------------------------------------------------
 // CORS + JSON response helpers (match mb-api.js pattern)
 // ---------------------------------------------------------------------------
 const corsHeaders = {
@@ -338,6 +402,10 @@ module.exports = {
   sendTextThenCta,
   logInteraction,
   isRateLimited,
+  getUserProfile,
+  getConvoState,
+  setConvoState,
+  clearConvoState,
   corsHeaders,
   jsonResponse
 };

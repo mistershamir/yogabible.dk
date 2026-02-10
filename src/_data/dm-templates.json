@@ -1,13 +1,65 @@
 {
   "welcome_new_follower": {
     "da": {
-      "text": "🙏 Velkommen til Yoga Bible!\n\nTak fordi du følger os — vi er en yogalæreruddannelsesskole i København med Yoga Alliance-certificerede 200HR og 300HR uddannelser.\n\n📍 Torvegade 66, 1400 København K\n\nDu kan altid skrive et af disse ord til os for at få info:\n\n🧘 '200HR' — Uddannelsesoverblik\n✨ 'KURSER' — Workshops\n📋 'SKEMA' — Holdoversigt\n💰 'PRIS' — Priser\n📝 'ANSØG' — Ansøg\n\nVi glæder os til at høre fra dig! 🧡",
-      "cta_text": "Besøg yogabible.dk",
+      "text": "🙏 Hej {{name}}! Velkommen til Yoga Bible!\n\nSå fedt at du følger os — du er her helt sikkert fordi du er interesseret i yoga 🧘\n\nMå jeg spørge — hvad interesserer dig mest?\n\n1️⃣ Skriv 'PRAKSIS' — Jeg vil fordybe min yogapraksis\n2️⃣ Skriv 'LÆRER' — Jeg overvejer at blive yogalærer\n3️⃣ Skriv 'BEGGE' — Begge dele!\n\nEller skriv 'HEJ' for at se alt vi tilbyder 😊"
+    },
+    "en": {
+      "text": "🙏 Hey {{name}}! Welcome to Yoga Bible!\n\nSo great that you're following us — you're obviously here because you're into yoga 🧘\n\nMay I ask — what interests you most?\n\n1️⃣ Type 'PRACTICE' — I want to deepen my yoga practice\n2️⃣ Type 'TEACHER' — I'm considering becoming a yoga teacher\n3️⃣ Type 'BOTH' — Both!\n\nOr type 'HI' to see everything we offer 😊"
+    }
+  },
+  "welcome_fallback": {
+    "da": {
+      "text": "🙏 Hej! Velkommen til Yoga Bible!\n\nSå fedt at du følger os — du er her helt sikkert fordi du er interesseret i yoga 🧘\n\nMå jeg spørge — hvad interesserer dig mest?\n\n1️⃣ Skriv 'PRAKSIS' — Jeg vil fordybe min yogapraksis\n2️⃣ Skriv 'LÆRER' — Jeg overvejer at blive yogalærer\n3️⃣ Skriv 'BEGGE' — Begge dele!\n\nEller skriv 'HEJ' for at se alt vi tilbyder 😊"
+    },
+    "en": {
+      "text": "🙏 Hey! Welcome to Yoga Bible!\n\nSo great that you're following us — you're obviously here because you're into yoga 🧘\n\nMay I ask — what interests you most?\n\n1️⃣ Type 'PRACTICE' — I want to deepen my yoga practice\n2️⃣ Type 'TEACHER' — I'm considering becoming a yoga teacher\n3️⃣ Type 'BOTH' — Both!\n\nOr type 'HI' to see everything we offer 😊"
+    }
+  },
+  "interest_practice": {
+    "da": {
+      "text": "🧘 Fantastisk — vi elsker dedikerede yogier!\n\nHos Yoga Bible tilbyder vi:\n\n✨ Kurser & workshops (inversions, backbends, splits)\n📋 Daglige klasser i vores studie i København\n🎵 Kuraterede yoga-playlister\n\nEr du baseret i København, eller praktiserer du online/internationalt?\n\n🇩🇰 Skriv 'LOKAL' — Jeg er i/nær København\n🌍 Skriv 'INTERNATIONAL' — Jeg er et andet sted"
+    },
+    "en": {
+      "text": "🧘 Amazing — we love dedicated yogis!\n\nAt Yoga Bible we offer:\n\n✨ Courses & workshops (inversions, backbends, splits)\n📋 Daily classes at our Copenhagen studio\n🎵 Curated yoga playlists\n\nAre you based in Copenhagen, or do you practice online/internationally?\n\n🇩🇰 Type 'LOCAL' — I'm in/near Copenhagen\n🌍 Type 'INTERNATIONAL' — I'm somewhere else"
+    }
+  },
+  "interest_teacher": {
+    "da": {
+      "text": "🔥 Fedt at du overvejer at blive yogalærer!\n\nYoga Bible er en Yoga Alliance-certificeret skole med 200HR og 300HR uddannelser — lige her i København.\n\nVi har 3 formater:\n⚡ 4 uger intensiv\n📅 8 uger semi-intensiv\n🌿 18 uger fleksibel\n\nEr du baseret i København, eller søger du en uddannelse at rejse til?\n\n🇩🇰 Skriv 'LOKAL' — Jeg er i/nær København\n🌍 Skriv 'INTERNATIONAL' — Jeg vil rejse til KBH for uddannelsen"
+    },
+    "en": {
+      "text": "🔥 Great that you're considering becoming a yoga teacher!\n\nYoga Bible is a Yoga Alliance-certified school offering 200HR and 300HR trainings — right here in Copenhagen.\n\nWe have 3 formats:\n⚡ 4-week intensive\n📅 8-week semi-intensive\n🌿 18-week flexible\n\nAre you based in Copenhagen, or looking for a training to travel to?\n\n🇩🇰 Type 'LOCAL' — I'm in/near Copenhagen\n🌍 Type 'INTERNATIONAL' — I'd travel to CPH for the training"
+    }
+  },
+  "interest_both": {
+    "da": {
+      "text": "🙌 En sand yogi — både praksis og undervisning!\n\nVi har det hele:\n\n🧘 200HR & 300HR yogalæreruddannelser\n✨ Specialiserede kurser (inversions, backbends, splits)\n📋 Daglige klasser i studiet\n🌟 Mentorship & privat træning\n\nEr du baseret i København?\n\n🇩🇰 Skriv 'LOKAL' — Jeg er i/nær København\n🌍 Skriv 'INTERNATIONAL' — Jeg er et andet sted"
+    },
+    "en": {
+      "text": "🙌 A true yogi — both practice and teaching!\n\nWe have it all:\n\n🧘 200HR & 300HR yoga teacher trainings\n✨ Specialized courses (inversions, backbends, splits)\n📋 Daily classes at the studio\n🌟 Mentorship & private training\n\nAre you based in Copenhagen?\n\n🇩🇰 Type 'LOCAL' — I'm in/near Copenhagen\n🌍 Type 'INTERNATIONAL' — I'm somewhere else"
+    }
+  },
+  "location_local": {
+    "da": {
+      "text": "🇩🇰 Perfekt — så er du tæt på!\n\nVores studie ligger på Torvegade 66, 1400 København K — kom forbi og mærk energien.\n\nHer er hvad du kan gøre nu:\n\n📋 Skriv 'SKEMA' — Se vores holdoversigt\n💰 Skriv 'PRIS' — Se priser\n📝 Skriv 'ANSØG' — Ansøg til en uddannelse\n✨ Skriv 'KURSER' — Se kurser og workshops\n\nVi glæder os til at se dig i studiet! 🧡",
+      "cta_text": "yogabible.dk",
       "cta_url": "https://yogabible.dk/link/"
     },
     "en": {
-      "text": "🙏 Welcome to Yoga Bible!\n\nThanks for following us — we're a yoga teacher training school in Copenhagen offering Yoga Alliance-certified 200HR and 300HR programs.\n\n📍 Torvegade 66, 1400 Copenhagen K\n\nYou can always send us one of these keywords for info:\n\n🧘 '200HR' — Training overview\n✨ 'COURSES' — Workshops\n📋 'SCHEDULE' — Class schedule\n💰 'PRICE' — Pricing\n📝 'APPLY' — Apply now\n\nLooking forward to hearing from you! 🧡",
-      "cta_text": "Visit yogabible.dk",
+      "text": "🇩🇰 Perfect — you're close by!\n\nOur studio is at Torvegade 66, 1400 Copenhagen K — come by and feel the energy.\n\nHere's what you can do now:\n\n📋 Type 'SCHEDULE' — See our class schedule\n💰 Type 'PRICE' — See pricing\n📝 Type 'APPLY' — Apply for a training\n✨ Type 'COURSES' — See courses and workshops\n\nLooking forward to seeing you at the studio! 🧡",
+      "cta_text": "yogabible.dk",
+      "cta_url": "https://yogabible.dk/en/link/"
+    }
+  },
+  "location_international": {
+    "da": {
+      "text": "🌍 Fedt — København er en fantastisk by at tage sin yogauddannelse i!\n\nVi har studerende fra hele verden. Vores 4-ugers intensive format er især populært for internationale studerende.\n\nHer er hvad du kan gøre:\n\n⚡ Skriv '4UGER' — 4 ugers intensiv (perfekt for rejsende)\n💰 Skriv 'PRIS' — Se priser\n📝 Skriv 'ANSØG' — Start din ansøgning\n🏙️ Skriv 'KBH' — Læs om København\n\nVi hjælper gerne med alt omkring dit ophold! 🧡",
+      "cta_text": "yogabible.dk",
+      "cta_url": "https://yogabible.dk/link/"
+    },
+    "en": {
+      "text": "🌍 Amazing — Copenhagen is a wonderful city to do your yoga training in!\n\nWe have students from all over the world. Our 4-week intensive format is especially popular with international students.\n\nHere's what you can do:\n\n⚡ Type '4WEEKS' — 4-week intensive (perfect for travelers)\n💰 Type 'PRICE' — See pricing\n📝 Type 'APPLY' — Start your application\n🏙️ Type 'CPH' — Read about Copenhagen\n\nWe're happy to help with everything about your stay! 🧡",
+      "cta_text": "yogabible.dk",
       "cta_url": "https://yogabible.dk/en/link/"
     }
   },

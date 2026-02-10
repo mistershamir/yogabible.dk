@@ -19,7 +19,7 @@
  *   - All interactions are logged to Firestore for analytics
  */
 
-const { verifySignature, sendTextThenCta, logInteraction, jsonResponse } = require('./shared/instagram-api');
+const { verifySignature, sendTextThenCta, logInteraction, jsonResponse, getUserProfile, getConvoState, setConvoState, clearConvoState } = require('./shared/instagram-api');
 
 // Load keyword and template data (bundled at deploy time)
 const dmKeywords = require('../../src/_data/dm-keywords.json');
@@ -113,19 +113,98 @@ function detectLanguage(text) {
 }
 
 // ---------------------------------------------------------------------------
+// Conversation flow keywords — these trigger the onboarding flow steps
+// ---------------------------------------------------------------------------
+const INTEREST_PRACTICE = ['PRAKSIS', 'PRACTICE', 'PRAKTIK', 'DEEPEN', 'FORDYBE', '1'];
+const INTEREST_TEACHER = ['LÆRER', 'TEACHER', 'UNDERVISER', 'TEACHING', 'YOGALÆRER', '2'];
+const INTEREST_BOTH = ['BEGGE', 'BOTH', 'ALLE', 'ALL', '3'];
+const LOCATION_LOCAL = ['LOKAL', 'LOCAL', 'KØBENHAVN', 'COPENHAGEN', 'CPH', 'KBH'];
+const LOCATION_INTL = ['INTERNATIONAL', 'INTL', 'ABROAD', 'UDLAND', 'TRAVEL', 'REJSE'];
+
+/**
+ * Detect if a username/name looks Scandinavian (heuristic for language default).
+ */
+function looksScandinavian(name) {
+  if (!name) return false;
+  return /[æøåäöü]/i.test(name) || /sen$|sson$|ström$|dahl$|berg$/i.test(name);
+}
+
+// ---------------------------------------------------------------------------
 // Event handlers
 // ---------------------------------------------------------------------------
 
 /**
- * Handle incoming DM message — keyword matching + auto-reply
+ * Handle incoming DM message — conversation flow + keyword matching
  */
 async function handleMessage(senderId, message) {
   const text = message.text || '';
-  const keywordKey = matchKeyword(text);
+  const normalized = text.trim().toUpperCase();
   const lang = detectLanguage(text);
 
+  // --- Check if user is in a conversation flow ---
+  const convo = getConvoState(senderId);
+
+  if (convo && convo.step === 'awaiting_interest') {
+    // User is responding to "what interests you?" question
+    const convoLang = convo.lang || lang;
+
+    if (INTEREST_PRACTICE.includes(normalized) || INTEREST_PRACTICE.some(k => normalized.includes(k))) {
+      const template = dmTemplates.interest_practice[convoLang] || dmTemplates.interest_practice.da;
+      await sendTextThenCta(senderId, template.text);
+      setConvoState(senderId, { step: 'awaiting_location', lang: convoLang, interest: 'practice' });
+      await logInteraction({ type: 'convo_interest', senderId, keyword: 'practice', language: convoLang, response: 'interest_practice', source: 'dm' });
+      return;
+    }
+
+    if (INTEREST_TEACHER.includes(normalized) || INTEREST_TEACHER.some(k => normalized.includes(k))) {
+      const template = dmTemplates.interest_teacher[convoLang] || dmTemplates.interest_teacher.da;
+      await sendTextThenCta(senderId, template.text);
+      setConvoState(senderId, { step: 'awaiting_location', lang: convoLang, interest: 'teacher' });
+      await logInteraction({ type: 'convo_interest', senderId, keyword: 'teacher', language: convoLang, response: 'interest_teacher', source: 'dm' });
+      return;
+    }
+
+    if (INTEREST_BOTH.includes(normalized) || INTEREST_BOTH.some(k => normalized.includes(k))) {
+      const template = dmTemplates.interest_both[convoLang] || dmTemplates.interest_both.da;
+      await sendTextThenCta(senderId, template.text);
+      setConvoState(senderId, { step: 'awaiting_location', lang: convoLang, interest: 'both' });
+      await logInteraction({ type: 'convo_interest', senderId, keyword: 'both', language: convoLang, response: 'interest_both', source: 'dm' });
+      return;
+    }
+
+    // Didn't match an interest — fall through to normal keyword matching
+    // (user might type "200HR" instead of answering the question)
+  }
+
+  if (convo && convo.step === 'awaiting_location') {
+    // User is responding to "are you local or international?" question
+    const convoLang = convo.lang || lang;
+
+    if (LOCATION_LOCAL.includes(normalized) || LOCATION_LOCAL.some(k => normalized.includes(k))) {
+      const template = dmTemplates.location_local[convoLang] || dmTemplates.location_local.da;
+      await sendTextThenCta(senderId, template.text, template.cta_text, template.cta_url);
+      clearConvoState(senderId);
+      await logInteraction({ type: 'convo_location', senderId, keyword: 'local', language: convoLang, response: 'location_local', source: 'dm' });
+      return;
+    }
+
+    if (LOCATION_INTL.includes(normalized) || LOCATION_INTL.some(k => normalized.includes(k))) {
+      const template = dmTemplates.location_international[convoLang] || dmTemplates.location_international.da;
+      await sendTextThenCta(senderId, template.text, template.cta_text, template.cta_url);
+      clearConvoState(senderId);
+      await logInteraction({ type: 'convo_location', senderId, keyword: 'international', language: convoLang, response: 'location_international', source: 'dm' });
+      return;
+    }
+
+    // Didn't match a location — fall through to normal keyword matching
+  }
+
+  // --- Normal keyword matching (works whether in convo flow or not) ---
+  const keywordKey = matchKeyword(text);
+
   if (keywordKey) {
-    // Matched a keyword — send the configured response
+    // Matched a keyword — clear any conversation state and send response
+    clearConvoState(senderId);
     const keywordConfig = dmKeywords.keywords[keywordKey];
     const response = keywordConfig[lang] || keywordConfig.da;
 
@@ -239,23 +318,46 @@ async function handleStoryReply(senderId, replyText) {
 }
 
 /**
- * Handle new follower — send welcome DM after delay.
- * Note: Netlify Functions are stateless, so we send immediately.
- * For a true delay, use a scheduled function or external queue.
+ * Handle new follower — personalized welcome DM with conversation starter.
+ * 1. Fetch user profile to get their real name
+ * 2. Detect likely language from name/username
+ * 3. Send personalized greeting asking about their interest
+ * 4. Set conversation state to track the flow
  */
 async function handleNewFollower(senderId) {
-  const lang = 'da'; // Default to Danish for new followers
-  const template = dmTemplates.welcome_new_follower[lang];
+  // Fetch user profile for personalization
+  const profile = await getUserProfile(senderId);
+  const firstName = profile?.firstName || null;
+  const name = profile?.name || null;
+  const username = profile?.username || null;
 
-  await sendTextThenCta(senderId, template.text, template.cta_text, template.cta_url);
+  // Detect language: Scandinavian names → Danish, otherwise English
+  const lang = looksScandinavian(name) || looksScandinavian(username) ? 'da' : 'en';
+
+  // Choose template and personalize with name
+  let template;
+  if (firstName) {
+    template = dmTemplates.welcome_new_follower[lang] || dmTemplates.welcome_new_follower.da;
+  } else {
+    // No name available — use fallback without {{name}}
+    template = dmTemplates.welcome_fallback[lang] || dmTemplates.welcome_fallback.da;
+  }
+
+  const text = template.text.replace('{{name}}', firstName || '');
+
+  await sendTextThenCta(senderId, text);
+
+  // Set conversation state — awaiting interest response
+  setConvoState(senderId, { step: 'awaiting_interest', lang });
 
   await logInteraction({
     type: 'new_follower',
     senderId,
     keyword: '',
     language: lang,
-    response: 'welcome',
-    source: 'follow'
+    response: 'welcome_convo',
+    source: 'follow',
+    name: firstName || username || ''
   });
 }
 
