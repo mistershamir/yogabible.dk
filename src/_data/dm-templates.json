@@ -1,18 +1,26 @@
 {
   "welcome_new_follower": {
     "da": {
-      "text": "🙏 Hej {{name}}! Velkommen til Yoga Bible!\n\nSå fedt at du følger os — du er her helt sikkert fordi du er interesseret i yoga 🧘\n\nMå jeg spørge — hvad interesserer dig mest?\n\n1️⃣ Skriv 'PRAKSIS' — Jeg vil fordybe min yogapraksis\n2️⃣ Skriv 'LÆRER' — Jeg overvejer at blive yogalærer\n3️⃣ Skriv 'BEGGE' — Begge dele!\n\nEller skriv 'HEJ' for at se alt vi tilbyder 😊"
+      "text": "🙏 Hej {{name}}! Tak fordi du følger Yoga Bible!\n\nVi er en yogalæreruddannelsesskole i hjertet af København med Yoga Alliance-certificerede uddannelser og kurser.\n\n📍 Torvegade 66, 1400 København K\n\nHar du spørgsmål om vores uddannelser, kurser eller klasser? Bare skriv — vi er her! 🧡",
+      "cta_text": "Besøg yogabible.dk",
+      "cta_url": "https://yogabible.dk/link/"
     },
     "en": {
-      "text": "🙏 Hey {{name}}! Welcome to Yoga Bible!\n\nSo great that you're following us — you're obviously here because you're into yoga 🧘\n\nMay I ask — what interests you most?\n\n1️⃣ Type 'PRACTICE' — I want to deepen my yoga practice\n2️⃣ Type 'TEACHER' — I'm considering becoming a yoga teacher\n3️⃣ Type 'BOTH' — Both!\n\nOr type 'HI' to see everything we offer 😊"
+      "text": "🙏 Hey {{name}}! Thanks for following Yoga Bible!\n\nWe're a yoga teacher training school in the heart of Copenhagen offering Yoga Alliance-certified trainings and courses.\n\n📍 Torvegade 66, 1400 Copenhagen K\n\nHave questions about our trainings, courses or classes? Just write — we're here! 🧡",
+      "cta_text": "Visit yogabible.dk",
+      "cta_url": "https://yogabible.dk/en/link/"
     }
   },
   "welcome_fallback": {
     "da": {
-      "text": "🙏 Hej! Velkommen til Yoga Bible!\n\nSå fedt at du følger os — du er her helt sikkert fordi du er interesseret i yoga 🧘\n\nMå jeg spørge — hvad interesserer dig mest?\n\n1️⃣ Skriv 'PRAKSIS' — Jeg vil fordybe min yogapraksis\n2️⃣ Skriv 'LÆRER' — Jeg overvejer at blive yogalærer\n3️⃣ Skriv 'BEGGE' — Begge dele!\n\nEller skriv 'HEJ' for at se alt vi tilbyder 😊"
+      "text": "🙏 Hej! Tak fordi du følger Yoga Bible!\n\nVi er en yogalæreruddannelsesskole i hjertet af København med Yoga Alliance-certificerede uddannelser og kurser.\n\n📍 Torvegade 66, 1400 København K\n\nHar du spørgsmål om vores uddannelser, kurser eller klasser? Bare skriv — vi er her! 🧡",
+      "cta_text": "Besøg yogabible.dk",
+      "cta_url": "https://yogabible.dk/link/"
     },
     "en": {
-      "text": "🙏 Hey! Welcome to Yoga Bible!\n\nSo great that you're following us — you're obviously here because you're into yoga 🧘\n\nMay I ask — what interests you most?\n\n1️⃣ Type 'PRACTICE' — I want to deepen my yoga practice\n2️⃣ Type 'TEACHER' — I'm considering becoming a yoga teacher\n3️⃣ Type 'BOTH' — Both!\n\nOr type 'HI' to see everything we offer 😊"
+      "text": "🙏 Hey! Thanks for following Yoga Bible!\n\nWe're a yoga teacher training school in the heart of Copenhagen offering Yoga Alliance-certified trainings and courses.\n\n📍 Torvegade 66, 1400 Copenhagen K\n\nHave questions about our trainings, courses or classes? Just write — we're here! 🧡",
+      "cta_text": "Visit yogabible.dk",
+      "cta_url": "https://yogabible.dk/en/link/"
     }
   },
   "interest_practice": {
