@@ -2,7 +2,7 @@
 
 > Reusable reference for building member areas on Yoga Bible DK, Hot Yoga CPH, and future brand sites.
 > All brands share the same Mindbody Site ID and Firebase project (yoga-bible-dk-com).
-> **Last updated: 2026-02-09** — reflects store redesign, retention card, My Passes tab, consent/audit trail, mandatory onboarding, bidirectional MB sync, and all debugging.
+> **Last updated: 2026-02-10** — reflects invoice/receipt rewrite with 3-source merge, correct MB field mappings, HTML invoice generation.
 
 ## What This System Does
 
@@ -13,7 +13,7 @@ A complete self-service member area powered by Firebase Auth + Mindbody API v6:
 - **Online Store** — Sell services AND contracts (recurring memberships) from Mindbody, with search bar, category tabs, descriptions, contract terms, and T&C links
 - **My Passes** — Active passes, contract management (pause/suspend/cancel/terminate), retention card with reactivation CTA
 - **Visit History** — Filterable past + upcoming visits with status badges
-- **Receipts** — Purchase history with downloadable text receipts
+- **Receipts** — Purchase history from 3 MB sources with downloadable HTML invoices (company header, line items, VAT, bank details)
 - **Courses** — Custom course system via Firestore (separate from Mindbody)
 
 ## Quick Start for New Brand

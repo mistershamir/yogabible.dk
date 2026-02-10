@@ -1,7 +1,7 @@
 # Netlify Functions — Mindbody Integration Catalog
 
 > All functions live in `netlify/functions/` and share `netlify/functions/shared/mb-api.js`
-> **Last updated: 2026-02-09** — reflects store redesign, description fields, firstMonthFree flag, clearTokenCache, BirthDate support.
+> **Last updated: 2026-02-10** — reflects invoice/receipt rewrite with correct MB field mappings, cross-reference enrichment, and 3-source merge strategy.
 
 ## Shared Module
 
@@ -160,15 +160,21 @@
 - **Fallback:** If terminate fails with TerminationCode, retries without it
 - **Returns:** `{ success, action, suspendDate, resumeDate, durationDays, mbResponse }`
 
-### mb-purchases.js
+### mb-purchases.js (Updated 2026-02-10)
 - **Method:** GET
-- **Purpose:** Fetch client purchase/receipt history
-- **Params:** `clientId`, `startDate?`, `endDate?`
-- **MB Endpoints:** (with graceful fallback)
-  - `GET /client/clientservices?ClientId=X` — purchased passes
-  - `GET /client/clientcontracts?ClientId=X` — purchased memberships
-- **Note:** `/sale/sales` was removed — it ignores ClientId filter and floods results
-- **Returns:** `{ purchases[], total }` — includes type, amount, paymentMethod, remaining, etc.
+- **Purpose:** Fetch client purchase/receipt history with full invoice data
+- **Params:** `clientId`, `startDate?` (default 730 days), `endDate?`
+- **Strategy:** Fetches ALL 3 data sources in parallel, merges, deduplicates:
+  1. `GET /sale/sales` — rich data (line items, payments, tax, discounts). Uses narrower 365-day window to avoid pagination limits. Matches by BOTH `ClientId` AND `RecipientClientId` (MB uses them inconsistently)
+  2. `GET /client/clientservices?ClientId=X` — purchased passes. Has NO price field — enriched by cross-referencing with sales data by description match
+  3. `GET /client/clientcontracts?ClientId=X` — memberships. Price extracted from `UpcomingAutopayEvents[0].ChargeAmount` (NOT top-level fields which are 0)
+- **Cross-reference:** `enrichServicesWithSaleData()` matches services with sales by description to copy price/payment data
+- **Deduplication:** Sales added first (rich data), then services/contracts only if no matching sale exists (by description + date)
+- **Correct MB field mapping:**
+  - Sale items: `UnitPrice`, `TotalAmount`, `TaxAmount` (+ Tax1-Tax5 fallback), `DiscountAmount`, `DiscountPercent`, `Quantity`
+  - Sale payments: `Amount`, `Type`, `Last4`, `TransactionId`
+  - Contract prices: `UpcomingAutopayEvents[0].ChargeAmount` / `.Subtotal` / `.Tax` / `.PaymentMethod`
+- **Returns:** `{ purchases[], total }` — each purchase has `items[]`, `payments[]`, `subtotal`, `tax`, `discount`, `totalPaid`, `source` ('sale'|'clientservice'|'clientcontract')
 
 ### mb-return-sale.js
 - **Method:** POST
