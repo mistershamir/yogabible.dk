@@ -123,24 +123,53 @@
   }
 
   function createMindbodyClient(firstName, lastName, email) {
-    fetch('/.netlify/functions/mb-client', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ firstName: firstName, lastName: lastName, email: email })
-    }).then(function(res) {
-      if (res.status === 409) {
-        // Duplicate — existing Mindbody client. Look them up and link.
-        return linkExistingMindbodyClient(email);
-      }
-      return res.json().then(function(data) {
-        if (data.client && data.client.Id) {
-          storeMindbodyClientId(String(data.client.Id));
-          console.log('Mindbody client created:', data.client.Id);
+    // ALWAYS check if client exists first to prevent duplicates
+    fetch('/.netlify/functions/mb-client?email=' + encodeURIComponent(email))
+      .then(function(res) { return res.json(); })
+      .then(function(data) {
+        if (data.found && data.client && data.client.id) {
+          // Client already exists in Mindbody — link, don't create duplicate
+          var mbId = String(data.client.id);
+          storeMindbodyClientId(mbId);
+          console.log('Mindbody client found (existing):', mbId);
+
+          // Pull name/phone/DOB from existing MB profile into Firestore
+          var user = auth.currentUser;
+          if (user) {
+            var updates = {
+              mindbodyClientId: mbId,
+              updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+            };
+            if (data.client.firstName && data.client.lastName) {
+              updates.firstName = data.client.firstName;
+              updates.lastName = data.client.lastName;
+              updates.name = data.client.firstName + ' ' + data.client.lastName;
+              user.updateProfile({ displayName: data.client.firstName + ' ' + data.client.lastName });
+            }
+            if (data.client.phone) updates.phone = data.client.phone;
+            if (data.client.birthDate) updates.dateOfBirth = data.client.birthDate;
+            db.collection('users').doc(user.uid).update(updates);
+          }
+          return;
         }
+
+        // No existing client — create new one
+        return fetch('/.netlify/functions/mb-client', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ firstName: firstName, lastName: lastName, email: email })
+        }).then(function(res) {
+          return res.json().then(function(createData) {
+            if (createData.client && (createData.client.id || createData.client.Id)) {
+              var newId = String(createData.client.id || createData.client.Id);
+              storeMindbodyClientId(newId);
+              console.log('Mindbody client created:', newId);
+            }
+          });
+        });
+      }).catch(function(err) {
+        console.warn('Mindbody client sync failed:', err);
       });
-    }).catch(function(err) {
-      console.warn('Mindbody client sync failed:', err);
-    });
   }
 
   function linkExistingMindbodyClient(email) {
