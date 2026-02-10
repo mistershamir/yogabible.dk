@@ -2395,6 +2395,97 @@ eleventyExcludeFromCollections: true
   color: var(--ds-text-muted);
 }
 
+/* Hero E: Primary — Dark Cinematic with Glow (site-wide primary) */
+.ds-hero-e {
+  position: relative;
+  min-height: 500px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #1C1C1C;
+  color: #fff;
+  text-align: center;
+  overflow: hidden;
+  border-radius: 12px;
+  padding: 80px 24px;
+}
+.ds-hero-e__glow {
+  position: absolute;
+  width: 600px;
+  height: 600px;
+  background: radial-gradient(circle, rgba(247,92,3,0.15) 0%, transparent 60%);
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  animation: ds-hero-breathe 10s ease-in-out infinite;
+  pointer-events: none;
+}
+@keyframes ds-hero-breathe {
+  0%, 100% { transform: translate(-50%, -50%) scale(1); opacity: 0.5; }
+  50% { transform: translate(-50%, -50%) scale(1.15); opacity: 0.8; }
+}
+.ds-hero-e__content { position: relative; z-index: 2; max-width: 800px; }
+.ds-hero-e__tagline {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.3em;
+  opacity: 0.7;
+  margin-bottom: 28px;
+}
+.ds-hero-e__tagline::before,
+.ds-hero-e__tagline::after {
+  content: "";
+  width: 40px;
+  height: 1px;
+  background: rgba(255,255,255,0.4);
+}
+.ds-hero-e__title {
+  font-size: clamp(2.4rem, 6vw, 4rem);
+  font-weight: 700;
+  line-height: 1.05;
+  margin-bottom: 24px;
+  background: linear-gradient(135deg, #FDFBF7 0%, #ff9966 50%, var(--yb-brand) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+.ds-hero-e__subtitle {
+  font-size: 1.15rem;
+  opacity: 0.85;
+  max-width: 600px;
+  margin: 0 auto 0;
+  line-height: 1.7;
+}
+.ds-hero-e__line {
+  width: 100%;
+  max-width: 600px;
+  height: 1px;
+  background: rgba(253,251,247,0.1);
+  margin: 36px auto 36px;
+}
+.ds-hero-e__trust {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: rgba(255,255,255,0.6);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+.ds-hero-e__trust-dot {
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: var(--yb-brand);
+}
+
 @media (max-width: 900px) {
   .ds-hero-b { grid-template-columns: 1fr; }
   .ds-hero-d__main { grid-template-columns: 1fr; }
@@ -4367,6 +4458,31 @@ eleventyExcludeFromCollections: true
         </div>
       </div>
     </div>
+
+    <div class="ds-sub">
+      <h3 class="ds-sub__title">Hero E — Primary (Dark Cinematic with Glow)</h3>
+      <p class="ds-sub__desc">The site-wide primary hero. Dark #1C1C1C background with breathing orange glow, gradient title, flanking-lines tagline, thin separator, pill CTAs, and trust indicators. Supports optional video/image background. Used on homepage, concepts, and all program pages.</p>
+      <div class="ds-hero-e">
+        <div class="ds-hero-e__glow"></div>
+        <div class="ds-hero-e__content">
+          <p class="ds-hero-e__tagline">Professionel Yogaskole · Kobenhavn</p>
+          <h1 class="ds-hero-e__title">Et sted.<br>To veje.</h1>
+          <p class="ds-hero-e__subtitle">Yoga Bible er for dig, der vil videre. Bliv certificeret yogalaerer — eller fordyb dig i din egen praksis.</p>
+          <div class="ds-hero-e__line"></div>
+          <div style="display:flex;gap:12px;justify-content:center;margin-bottom:36px">
+            <button class="ds-btn ds-btn--primary ds-btn--large" style="border-radius:999px">Ansog Nu</button>
+            <button class="ds-btn ds-btn--outline-light ds-btn--large" style="border-radius:999px">Sammenlign</button>
+          </div>
+          <div class="ds-hero-e__trust">
+            <span>Siden 2014</span>
+            <span class="ds-hero-e__trust-dot"></span>
+            <span>500+ uddannede</span>
+            <span class="ds-hero-e__trust-dot"></span>
+            <span>4.8★ · 700+ anmeldelser</span>
+          </div>
+        </div>
+      </div>
+    </div>
   </section>
 
   <!-- ═══════════════════════════════════════════════════════════════
@@ -5760,326 +5876,440 @@ eleventyExcludeFromCollections: true
   </section>
 
   <!-- ═══════════════════════════════════════════════════════════════
-       Section 34: Hot Yoga CPH — Profile & Auth (Refined v2)
-       Combines Auth A (glass minimal) + C (split with photos) + orange YB ecosystem
-       Profile based on C (hero header) — two variations to choose from
+       Section 34: Hot Yoga CPH — Profile & Auth Design Samples v3
+       Matching hotyogacph.dk pill style. A+C auth combo. Profile C base.
+       Orange ecosystem accents to show Yoga Bible multi-brand connection.
        ═══════════════════════════════════════════════════════════════ -->
   <section class="ds-section" id="s34-hyc-profile">
     <div class="ds-section__header">
-      <h2 class="ds-section__title" data-number="34">Hot Yoga CPH — Profile & Auth (v2)</h2>
-      <p class="ds-section__desc">Refined designs for <code>profile.hotyogacph.dk</code>. Teal <code>#3f99a5</code> primary, orange <code>#f75c03</code> accent for Yoga Bible ecosystem. Two auth + two profile options.</p>
+      <h2 class="ds-section__title" data-number="34">Hot Yoga CPH — Profile & Auth v3</h2>
+      <p class="ds-section__desc">Two design alternatives for <code>profile.hotyogacph.dk</code>. Both combine clean minimal form (Auth A) with split visual panel (Auth C). Pills match <code>hotyogacph.dk</code> style. Subtle orange <code>#f75c03</code> ecosystem touches link back to Yoga Bible.</p>
     </div>
 
     <style>
-    /* ── Section 34 v2: Design Tokens ── */
-    .hyc2 { --hyc: #3f99a5; --hyc-dark: #357f89; --hyc-light: #5bb8c4; --hyc-pale: #e8f4f6; --hyc-glow: rgba(63,153,165,.15); --yb-orange: #f75c03; --yb-orange-light: #ff9966; --hyc-black: #0F0F0F; --hyc-muted: #6F6A66; --hyc-border: #E8E4E0; --hyc-bg: #F5F3F0; --hyc-white: #FFFCF9; --hyc-radius: 14px; --hyc-font: 'Abacaxi', 'Helvetica Neue', Helvetica, Arial, system-ui, sans-serif; }
-    .hyc2 * { box-sizing: border-box; font-family: var(--hyc-font); }
+    /* ── Section 34 v3: HYC Design Tokens ── */
+    .hyc3 { --hyc: #3f99a5; --hyc-dark: #357f89; --hyc-light: #5bb8c4; --hyc-pale: #e8f4f6; --hyc-glow: rgba(63,153,165,.15); --hyc-black: #0F0F0F; --hyc-muted: #6F6A66; --hyc-border: #E8E4E0; --hyc-bg: #F5F3F0; --hyc-white: #FFFCF9; --hyc-radius: 16px; --hyc-font: 'Abacaxi', 'Helvetica Neue', Helvetica, Arial, system-ui, sans-serif; --yb-orange: #f75c03; --yb-orange-light: #ff9966; }
+    .hyc3 * { box-sizing: border-box; }
 
-    /* ── AUTH V2-A: Glass Minimal with Photo Strip ── */
-    .hyc2-auth-a { max-width: 440px; margin: 0 auto 40px; }
-    .hyc2-auth-a__photos { display: flex; gap: 8px; margin-bottom: 16px; border-radius: 16px 16px 0 0; overflow: hidden; }
-    .hyc2-auth-a__photo { flex: 1; height: 120px; object-fit: cover; background-size: cover; background-position: center; }
-    .hyc2-auth-a__photo:first-child { border-radius: 16px 0 0 0; }
-    .hyc2-auth-a__photo:last-child { border-radius: 0 16px 0 0; }
-    .hyc2-auth-a__body { background: var(--hyc-white); border: 1.5px solid var(--hyc-border); border-top: none; border-radius: 0 0 16px 16px; padding: 36px 36px 32px; }
-    .hyc2-auth-a__brand { display: flex; align-items: center; gap: 10px; margin-bottom: 20px; }
-    .hyc2-auth-a__logo { width: 36px; height: 36px; background: var(--hyc); border-radius: 10px; display: flex; align-items: center; justify-content: center; color: #fff; font-weight: 700; font-size: .85rem; flex-shrink: 0; }
-    .hyc2-auth-a__brand-text { font-size: .72rem; color: var(--hyc-muted); line-height: 1.3; }
-    .hyc2-auth-a__brand-text strong { color: var(--hyc-black); display: block; font-size: .8rem; }
-    .hyc2-auth-a__title { font-size: 1.5rem; font-weight: 700; color: var(--hyc-black); margin: 0 0 4px; }
-    .hyc2-auth-a__sub { font-size: .88rem; color: var(--hyc-muted); margin: 0 0 24px; }
-    .hyc2-auth-a__field { margin-bottom: 14px; }
-    .hyc2-auth-a__field label { display: block; font-size: .76rem; font-weight: 700; color: var(--hyc-muted); text-transform: uppercase; letter-spacing: .04em; margin-bottom: 5px; }
-    .hyc2-auth-a__field input { width: 100%; padding: 12px 16px; border: 1.5px solid var(--hyc-border); border-radius: 10px; font-size: .92rem; background: #fff; outline: none; transition: border-color .2s; }
-    .hyc2-auth-a__field input:focus { border-color: var(--hyc); box-shadow: 0 0 0 3px var(--hyc-glow); }
-    .hyc2-auth-a__row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-    .hyc2-auth-a__btn { width: 100%; padding: 13px; background: var(--hyc); color: #fff; border: none; border-radius: 10px; font-size: .95rem; font-weight: 700; cursor: pointer; margin-top: 6px; transition: background .2s; }
-    .hyc2-auth-a__btn:hover { background: var(--hyc-dark); }
-    .hyc2-auth-a__forgot { text-align: right; margin: -6px 0 10px; }
-    .hyc2-auth-a__forgot a { font-size: .78rem; color: var(--hyc); text-decoration: none; }
-    .hyc2-auth-a__divider { text-align: center; margin-top: 18px; font-size: .83rem; color: var(--hyc-muted); }
-    .hyc2-auth-a__divider a { color: var(--hyc); text-decoration: none; font-weight: 700; }
-    .hyc2-auth-a__ecosystem { display: flex; align-items: center; justify-content: center; gap: 6px; margin-top: 20px; padding-top: 16px; border-top: 1px solid var(--hyc-border); font-size: .72rem; color: var(--hyc-muted); }
-    .hyc2-auth-a__ecosystem-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--yb-orange); }
+       Section 34: Hot Yoga CPH — Profile & Auth Design Samples v3
+       Matching hotyogacph.dk pill style. A+C auth combo. Profile C base.
+       Orange ecosystem accents to show Yoga Bible multi-brand connection.
+       ═══════════════════════════════════════════════════════════════ -->
+  <section class="ds-section" id="s34-hyc-profile">
+    <div class="ds-section__header">
+      <h2 class="ds-section__title" data-number="34">Hot Yoga CPH — Profile & Auth v3</h2>
+      <p class="ds-section__desc">Two design alternatives for <code>profile.hotyogacph.dk</code>. Both combine clean minimal form (Auth A) with split visual panel (Auth C). Pills match <code>hotyogacph.dk</code> style. Subtle orange <code>#f75c03</code> ecosystem touches link back to Yoga Bible.</p>
+    </div>
 
-    /* ── AUTH V2-B: Split Photo + Form ── */
-    .hyc2-auth-b { display: grid; grid-template-columns: 1fr 1fr; max-width: 820px; margin: 0 auto 40px; border-radius: 18px; overflow: hidden; background: #fff; box-shadow: 0 16px 48px rgba(0,0,0,.07); }
-    .hyc2-auth-b__visual { position: relative; overflow: hidden; min-height: 380px; }
-    .hyc2-auth-b__visual-img { position: absolute; inset: 0; background-size: cover; background-position: center; }
-    .hyc2-auth-b__visual-overlay { position: absolute; inset: 0; background: linear-gradient(180deg, rgba(15,38,40,.2) 0%, rgba(15,38,40,.85) 100%); }
-    .hyc2-auth-b__visual-content { position: absolute; bottom: 0; left: 0; right: 0; padding: 32px; }
-    .hyc2-auth-b__visual-title { font-size: 1.7rem; font-weight: 700; color: #fff; margin: 0 0 6px; line-height: 1.15; }
-    .hyc2-auth-b__visual-sub { font-size: .85rem; color: rgba(255,255,255,.65); margin: 0 0 14px; }
-    .hyc2-auth-b__visual-pills { display: flex; gap: 6px; flex-wrap: wrap; }
-    .hyc2-auth-b__pill { padding: 4px 12px; border-radius: 20px; font-size: .7rem; font-weight: 700; border: 1px solid rgba(255,255,255,.2); color: rgba(255,255,255,.7); background: rgba(255,255,255,.06); }
-    .hyc2-auth-b__pill--active { border-color: var(--hyc); color: var(--hyc-light); background: rgba(63,153,165,.15); }
-    .hyc2-auth-b__form { padding: 40px 36px; display: flex; flex-direction: column; justify-content: center; }
-    .hyc2-auth-b__brand { display: flex; align-items: center; gap: 8px; margin-bottom: 20px; }
-    .hyc2-auth-b__logo { width: 32px; height: 32px; background: var(--hyc); border-radius: 8px; display: flex; align-items: center; justify-content: center; color: #fff; font-weight: 700; font-size: .75rem; flex-shrink: 0; }
-    .hyc2-auth-b__logo-yb { width: 32px; height: 32px; background: var(--yb-orange); border-radius: 8px; display: flex; align-items: center; justify-content: center; color: #fff; font-weight: 700; font-size: .75rem; flex-shrink: 0; margin-left: -4px; }
-    .hyc2-auth-b__title { font-size: 1.35rem; font-weight: 700; color: var(--hyc-black); margin: 0 0 3px; }
-    .hyc2-auth-b__sub { font-size: .83rem; color: var(--hyc-muted); margin: 0 0 22px; }
-    .hyc2-auth-b__field { margin-bottom: 13px; }
-    .hyc2-auth-b__field label { display: block; font-size: .74rem; font-weight: 700; color: var(--hyc-muted); text-transform: uppercase; letter-spacing: .04em; margin-bottom: 5px; }
-    .hyc2-auth-b__field input { width: 100%; padding: 11px 14px; border: 1.5px solid var(--hyc-border); border-radius: 10px; font-size: .9rem; background: #fff; outline: none; transition: border-color .2s; }
-    .hyc2-auth-b__field input:focus { border-color: var(--hyc); box-shadow: 0 0 0 3px var(--hyc-glow); }
-    .hyc2-auth-b__row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-    .hyc2-auth-b__btn { width: 100%; padding: 12px; background: var(--hyc); color: #fff; border: none; border-radius: 10px; font-size: .92rem; font-weight: 700; cursor: pointer; margin-top: 4px; transition: background .2s; }
-    .hyc2-auth-b__btn:hover { background: var(--hyc-dark); }
-    .hyc2-auth-b__forgot { text-align: right; margin: -5px 0 8px; }
-    .hyc2-auth-b__forgot a { font-size: .76rem; color: var(--hyc); text-decoration: none; }
-    .hyc2-auth-b__divider { text-align: center; margin-top: 16px; font-size: .82rem; color: var(--hyc-muted); }
-    .hyc2-auth-b__divider a { color: var(--hyc); text-decoration: none; font-weight: 700; }
-    @media (max-width: 680px) { .hyc2-auth-b { grid-template-columns: 1fr; } .hyc2-auth-b__visual { min-height: 180px; } }
+    <style>
+    /* ── Section 34 v3: HYC Design Tokens ── */
+    .hyc3 { --hyc: #3f99a5; --hyc-dark: #357f89; --hyc-light: #5bb8c4; --hyc-pale: #e8f4f6; --hyc-glow: rgba(63,153,165,.15); --hyc-black: #0F0F0F; --hyc-muted: #6F6A66; --hyc-border: #E8E4E0; --hyc-bg: #F5F3F0; --hyc-white: #FFFCF9; --hyc-radius: 16px; --hyc-font: 'Abacaxi', 'Helvetica Neue', Helvetica, Arial, system-ui, sans-serif; --yb-orange: #f75c03; --yb-orange-light: #ff9966; }
+    .hyc3 * { box-sizing: border-box; }
 
-    /* ── PROFILE V2-A: Hero + Underline Tabs ── */
-    .hyc2-prof { max-width: 920px; margin: 0 auto 40px; }
-    .hyc2-prof__hero { background: linear-gradient(135deg, #2d7a84 0%, var(--hyc) 45%, var(--hyc-light) 100%); border-radius: 16px 16px 0 0; padding: 32px 36px 48px; position: relative; overflow: hidden; }
-    .hyc2-prof__hero::after { content: ''; position: absolute; top: -40px; right: -40px; width: 200px; height: 200px; background: radial-gradient(circle, rgba(255,255,255,.06) 0%, transparent 60%); pointer-events: none; }
-    .hyc2-prof__hero-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; }
-    .hyc2-prof__logo-row { display: flex; align-items: center; gap: 8px; }
-    .hyc2-prof__logo { font-size: .82rem; font-weight: 700; color: rgba(255,255,255,.75); letter-spacing: .04em; }
-    .hyc2-prof__logo-dot { width: 4px; height: 4px; border-radius: 50%; background: var(--yb-orange); }
-    .hyc2-prof__logo-yb { font-size: .68rem; font-weight: 700; color: var(--yb-orange-light); opacity: .7; }
-    .hyc2-prof__controls { display: flex; align-items: center; gap: 10px; }
-    .hyc2-prof__lang { display: flex; gap: 2px; background: rgba(255,255,255,.1); border-radius: 8px; padding: 2px; }
-    .hyc2-prof__lang button { padding: 4px 10px; border-radius: 6px; background: none; border: none; color: rgba(255,255,255,.45); font-size: .72rem; font-weight: 700; cursor: pointer; transition: all .15s; }
-    .hyc2-prof__lang button.is-active { background: rgba(255,255,255,.2); color: #fff; }
-    .hyc2-prof__logout { padding: 5px 14px; border-radius: 8px; background: rgba(255,255,255,.08); border: 1px solid rgba(255,255,255,.12); color: rgba(255,255,255,.5); font-size: .72rem; font-weight: 700; cursor: pointer; }
-    .hyc2-prof__user { display: flex; align-items: center; gap: 16px; }
-    .hyc2-prof__avatar { width: 64px; height: 64px; border-radius: 50%; background: rgba(255,255,255,.12); border: 2.5px solid rgba(255,255,255,.25); color: #fff; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 1.3rem; flex-shrink: 0; position: relative; }
-    .hyc2-prof__avatar-edit { position: absolute; bottom: -2px; right: -2px; width: 22px; height: 22px; border-radius: 50%; background: var(--hyc-dark); border: 2px solid var(--hyc); color: #fff; font-size: .6rem; display: flex; align-items: center; justify-content: center; cursor: pointer; }
-    .hyc2-prof__name { font-size: 1.25rem; font-weight: 700; color: #fff; margin: 0 0 3px; }
-    .hyc2-prof__meta { font-size: .83rem; color: rgba(255,255,255,.55); margin: 0; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
-    .hyc2-prof__badge { padding: 3px 10px; background: rgba(255,255,255,.12); border-radius: 12px; font-size: .7rem; font-weight: 700; color: #fff; }
-    .hyc2-prof__badge--orange { background: rgba(247,92,3,.2); color: var(--yb-orange-light); }
-    .hyc2-prof__body { background: var(--hyc-white); border: 1.5px solid var(--hyc-border); border-top: none; border-radius: 0 0 16px 16px; }
-    .hyc2-prof__tabs { display: flex; border-bottom: 1.5px solid var(--hyc-border); overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
-    .hyc2-prof__tabs::-webkit-scrollbar { display: none; }
-    .hyc2-prof__tab { padding: 13px 20px; background: none; border: none; border-bottom: 2.5px solid transparent; font-size: .84rem; font-weight: 700; color: var(--hyc-muted); cursor: pointer; white-space: nowrap; transition: all .2s; margin-bottom: -1.5px; }
-    .hyc2-prof__tab:hover { color: var(--hyc); }
-    .hyc2-prof__tab.is-active { color: var(--hyc); border-bottom-color: var(--hyc); }
-    .hyc2-prof__content { padding: 28px 36px; }
-    .hyc2-prof__section-title { font-size: 1.05rem; font-weight: 700; color: var(--hyc-black); margin: 0 0 20px; }
-    .hyc2-prof__form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
-    .hyc2-prof__field label { display: block; font-size: .76rem; font-weight: 700; color: var(--hyc-muted); text-transform: uppercase; letter-spacing: .04em; margin-bottom: 5px; }
-    .hyc2-prof__field input, .hyc2-prof__field select { width: 100%; padding: 11px 14px; border: 1.5px solid var(--hyc-border); border-radius: 10px; font-size: .9rem; background: #fff; outline: none; transition: border-color .2s; font-family: var(--hyc-font); }
-    .hyc2-prof__field input:focus, .hyc2-prof__field select:focus { border-color: var(--hyc); box-shadow: 0 0 0 3px var(--hyc-glow); }
-    .hyc2-prof__save { padding: 12px 32px; background: var(--hyc); color: #fff; border: none; border-radius: 10px; font-size: .9rem; font-weight: 700; cursor: pointer; margin-top: 20px; transition: background .2s; }
-    .hyc2-prof__save:hover { background: var(--hyc-dark); }
+    /* ── HYC Pill Button (matches hotyogacph.dk) ── */
+    .hyc3-pill { display: inline-flex; align-items: center; gap: 10px; padding: 13px 28px; background: var(--hyc); color: #fff; border: none; border-radius: 999px; font-family: var(--hyc-font); font-size: .82rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; cursor: pointer; transition: background .2s, transform .1s; }
+    .hyc3-pill::after { content: ''; width: 6px; height: 6px; border-radius: 50%; background: rgba(255,255,255,.5); flex-shrink: 0; }
+    .hyc3-pill:hover { background: var(--hyc-dark); }
+    .hyc3-pill:active { transform: scale(.97); }
+    .hyc3-pill--sm { padding: 9px 20px; font-size: .75rem; }
+    .hyc3-pill--outline { background: transparent; border: 1.5px solid var(--hyc); color: var(--hyc); }
+    .hyc3-pill--outline::after { background: var(--hyc); opacity: .4; }
+    .hyc3-pill--outline:hover { background: var(--hyc); color: #fff; }
+    .hyc3-pill--outline:hover::after { background: rgba(255,255,255,.5); opacity: 1; }
 
-    /* ── PROFILE V2-B: Compact Flat ── */
-    .hyc2-prof-b { max-width: 920px; margin: 0 auto 40px; background: var(--hyc-white); border: 1.5px solid var(--hyc-border); border-radius: 16px; overflow: hidden; }
-    .hyc2-prof-b__header { display: flex; align-items: center; gap: 16px; padding: 24px 32px; border-bottom: 1.5px solid var(--hyc-border); }
-    .hyc2-prof-b__avatar { width: 52px; height: 52px; border-radius: 50%; background: var(--hyc); color: #fff; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 1.15rem; flex-shrink: 0; }
-    .hyc2-prof-b__info { flex: 1; }
-    .hyc2-prof-b__name { font-size: 1.1rem; font-weight: 700; color: var(--hyc-black); margin: 0 0 2px; }
-    .hyc2-prof-b__email { font-size: .82rem; color: var(--hyc-muted); margin: 0; }
-    .hyc2-prof-b__header-right { display: flex; align-items: center; gap: 8px; }
-    .hyc2-prof-b__badge { padding: 5px 14px; background: var(--hyc-pale); color: var(--hyc-dark); border-radius: 20px; font-size: .75rem; font-weight: 700; }
-    .hyc2-prof-b__lang { display: flex; gap: 2px; background: var(--hyc-bg); border-radius: 8px; padding: 2px; }
-    .hyc2-prof-b__lang button { padding: 5px 11px; border-radius: 6px; background: none; border: none; font-size: .72rem; font-weight: 700; color: var(--hyc-muted); cursor: pointer; transition: all .15s; }
-    .hyc2-prof-b__lang button.is-active { background: var(--hyc); color: #fff; }
-    .hyc2-prof-b__tabs { display: flex; border-bottom: 1.5px solid var(--hyc-border); overflow-x: auto; padding: 0 8px; }
-    .hyc2-prof-b__tab { padding: 12px 18px; background: none; border: none; border-bottom: 2.5px solid transparent; font-size: .82rem; font-weight: 700; color: var(--hyc-muted); cursor: pointer; white-space: nowrap; margin-bottom: -1.5px; transition: all .15s; }
-    .hyc2-prof-b__tab:hover { color: var(--hyc); }
-    .hyc2-prof-b__tab.is-active { color: var(--hyc); border-bottom-color: var(--hyc); }
-    .hyc2-prof-b__content { padding: 28px 32px; }
-    .hyc2-prof-b__ecosystem { display: flex; align-items: center; gap: 8px; padding: 12px 32px; background: var(--hyc-bg); border-top: 1px solid var(--hyc-border); font-size: .72rem; color: var(--hyc-muted); }
-    .hyc2-prof-b__ecosystem-logos { display: flex; gap: 4px; }
-    .hyc2-prof-b__ecosystem-logo { width: 20px; height: 20px; border-radius: 5px; display: flex; align-items: center; justify-content: center; color: #fff; font-size: .55rem; font-weight: 700; }
+    /* ── AUTH VARIANT A: Clean Split — Light & Airy ── */
+    .hyc3-auth-a { display: grid; grid-template-columns: 1fr 1fr; max-width: 820px; margin: 0 auto 48px; border-radius: 20px; overflow: hidden; background: var(--hyc-white); box-shadow: 0 24px 64px rgba(0,0,0,.07); }
+    .hyc3-auth-a__visual { background: linear-gradient(160deg, #2d7a84 0%, var(--hyc) 50%, var(--hyc-light) 100%); padding: 44px 32px; display: flex; flex-direction: column; justify-content: space-between; position: relative; min-height: 480px; }
+    .hyc3-auth-a__visual-logo { font-family: var(--hyc-font); font-size: .72rem; font-weight: 700; color: rgba(255,255,255,.6); letter-spacing: .1em; text-transform: uppercase; }
+    .hyc3-auth-a__visual-bottom { margin-top: auto; }
+    .hyc3-auth-a__visual-title { font-family: var(--hyc-font); font-size: 1.9rem; font-weight: 700; color: #fff; margin: 0 0 8px; line-height: 1.15; }
+    .hyc3-auth-a__visual-sub { font-family: var(--hyc-font); font-size: .88rem; color: rgba(255,255,255,.7); margin: 0 0 20px; }
+    .hyc3-auth-a__cards { display: flex; gap: 10px; }
+    .hyc3-auth-a__card { flex: 1; background: rgba(255,255,255,.12); backdrop-filter: blur(8px); border-radius: 12px; overflow: hidden; }
+    .hyc3-auth-a__card-img { width: 100%; height: 72px; object-fit: cover; display: block; opacity: .85; }
+    .hyc3-auth-a__card-text { padding: 10px; font-family: var(--hyc-font); font-size: .68rem; font-weight: 600; color: rgba(255,255,255,.85); text-align: center; }
+    .hyc3-auth-a__ecosystem { display: flex; align-items: center; gap: 6px; position: absolute; top: 44px; right: 32px; }
+    .hyc3-auth-a__ecosystem-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--yb-orange); }
+    .hyc3-auth-a__ecosystem-text { font-family: var(--hyc-font); font-size: .62rem; font-weight: 700; color: rgba(255,255,255,.45); letter-spacing: .06em; text-transform: uppercase; }
+    .hyc3-auth-a__form { padding: 44px 36px; display: flex; flex-direction: column; justify-content: center; }
+    .hyc3-auth-a__icon { width: 44px; height: 44px; border-radius: 50%; background: var(--hyc-pale); display: flex; align-items: center; justify-content: center; margin-bottom: 20px; }
+    .hyc3-auth-a__icon svg { width: 22px; height: 22px; color: var(--hyc); }
+    .hyc3-auth-a__title { font-family: var(--hyc-font); font-size: 1.5rem; font-weight: 700; color: var(--hyc-black); margin: 0 0 4px; }
+    .hyc3-auth-a__sub { font-family: var(--hyc-font); font-size: .85rem; color: var(--hyc-muted); margin: 0 0 24px; }
+    .hyc3-auth-a__field { margin-bottom: 14px; }
+    .hyc3-auth-a__field label { display: block; font-family: var(--hyc-font); font-size: .75rem; font-weight: 700; color: var(--hyc-muted); text-transform: uppercase; letter-spacing: .06em; margin-bottom: 6px; }
+    .hyc3-auth-a__field input { width: 100%; padding: 12px 16px; border: 1.5px solid var(--hyc-border); border-radius: 12px; font-family: var(--hyc-font); font-size: .92rem; background: #fff; outline: none; transition: border-color .2s; color: var(--hyc-black); }
+    .hyc3-auth-a__field input:focus { border-color: var(--hyc); box-shadow: 0 0 0 3px var(--hyc-glow); }
+    .hyc3-auth-a__field input::placeholder { color: #c5c0bb; }
+    .hyc3-auth-a__row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .hyc3-auth-a__forgot { text-align: right; margin: -6px 0 10px; }
+    .hyc3-auth-a__forgot a { font-family: var(--hyc-font); font-size: .78rem; color: var(--hyc); text-decoration: none; font-weight: 600; }
+    .hyc3-auth-a__forgot a:hover { text-decoration: underline; }
+    .hyc3-auth-a__consent { display: flex; align-items: flex-start; gap: 8px; margin-bottom: 10px; font-family: var(--hyc-font); font-size: .76rem; color: var(--hyc-muted); line-height: 1.4; }
+    .hyc3-auth-a__consent input[type="checkbox"] { appearance: none; -webkit-appearance: none; width: 16px; height: 16px; min-width: 16px; border: 1.5px solid var(--hyc-border); border-radius: 4px; cursor: pointer; position: relative; margin-top: 1px; transition: all .15s; }
+    .hyc3-auth-a__consent input[type="checkbox"]:checked { background: var(--hyc); border-color: var(--hyc); }
+    .hyc3-auth-a__consent input[type="checkbox"]:checked::after { content: ''; position: absolute; left: 4px; top: 1px; width: 5px; height: 9px; border: solid #fff; border-width: 0 2px 2px 0; transform: rotate(45deg); }
+    .hyc3-auth-a__consent a { color: var(--hyc); text-decoration: none; font-weight: 600; }
+    .hyc3-auth-a__link { display: block; text-align: center; margin-top: 16px; font-family: var(--hyc-font); font-size: .82rem; color: var(--hyc-muted); }
+    .hyc3-auth-a__link a { color: var(--hyc); text-decoration: none; font-weight: 700; }
+    .hyc3-auth-a__link a:hover { text-decoration: underline; }
+    @media (max-width: 640px) { .hyc3-auth-a { grid-template-columns: 1fr; } .hyc3-auth-a__visual { min-height: 200px; padding: 28px 24px; } .hyc3-auth-a__cards { display: none; } }
+
+    /* ── AUTH VARIANT B: Warm Split — Dark Visual Panel ── */
+    .hyc3-auth-b { display: grid; grid-template-columns: 1fr 1fr; max-width: 820px; margin: 0 auto 48px; border-radius: 20px; overflow: hidden; background: var(--hyc-white); box-shadow: 0 24px 64px rgba(0,0,0,.1); }
+    .hyc3-auth-b__visual { background: linear-gradient(160deg, #0a1a1c 0%, #122d30 40%, #1a3d42 100%); padding: 44px 32px; display: flex; flex-direction: column; justify-content: space-between; position: relative; min-height: 480px; }
+    .hyc3-auth-b__visual::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; background: linear-gradient(90deg, var(--yb-orange), var(--hyc), var(--hyc-light)); }
+    .hyc3-auth-b__visual-logo { font-family: var(--hyc-font); font-size: .72rem; font-weight: 700; color: rgba(255,255,255,.4); letter-spacing: .1em; text-transform: uppercase; }
+    .hyc3-auth-b__visual-bottom { margin-top: auto; }
+    .hyc3-auth-b__visual-title { font-family: var(--hyc-font); font-size: 1.9rem; font-weight: 700; color: #fff; margin: 0 0 8px; line-height: 1.15; }
+    .hyc3-auth-b__visual-sub { font-family: var(--hyc-font); font-size: .88rem; color: rgba(255,255,255,.5); margin: 0 0 20px; }
+    .hyc3-auth-b__cards { display: flex; gap: 10px; }
+    .hyc3-auth-b__card { flex: 1; background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.08); border-radius: 12px; overflow: hidden; }
+    .hyc3-auth-b__card-img { width: 100%; height: 72px; object-fit: cover; display: block; opacity: .6; }
+    .hyc3-auth-b__card-text { padding: 10px; font-family: var(--hyc-font); font-size: .68rem; font-weight: 600; color: rgba(255,255,255,.6); text-align: center; }
+    .hyc3-auth-b__ecosystem { display: flex; align-items: center; gap: 6px; position: absolute; top: 52px; right: 32px; }
+    .hyc3-auth-b__ecosystem-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--yb-orange); box-shadow: 0 0 8px rgba(247,92,3,.4); }
+    .hyc3-auth-b__ecosystem-text { font-family: var(--hyc-font); font-size: .62rem; font-weight: 700; color: rgba(255,255,255,.3); letter-spacing: .06em; text-transform: uppercase; }
+    .hyc3-auth-b__form { padding: 44px 36px; display: flex; flex-direction: column; justify-content: center; }
+    .hyc3-auth-b__icon { width: 44px; height: 44px; border-radius: 50%; border: 2px solid var(--hyc); display: flex; align-items: center; justify-content: center; margin-bottom: 20px; }
+    .hyc3-auth-b__icon svg { width: 20px; height: 20px; color: var(--hyc); }
+    .hyc3-auth-b__title { font-family: var(--hyc-font); font-size: 1.5rem; font-weight: 700; color: var(--hyc-black); margin: 0 0 4px; }
+    .hyc3-auth-b__sub { font-family: var(--hyc-font); font-size: .85rem; color: var(--hyc-muted); margin: 0 0 24px; }
+    .hyc3-auth-b__field { margin-bottom: 14px; }
+    .hyc3-auth-b__field label { display: block; font-family: var(--hyc-font); font-size: .75rem; font-weight: 700; color: var(--hyc-muted); text-transform: uppercase; letter-spacing: .06em; margin-bottom: 6px; }
+    .hyc3-auth-b__field input { width: 100%; padding: 12px 16px; border: 1.5px solid var(--hyc-border); border-radius: 12px; font-family: var(--hyc-font); font-size: .92rem; background: #fff; outline: none; transition: border-color .2s; color: var(--hyc-black); }
+    .hyc3-auth-b__field input:focus { border-color: var(--hyc); box-shadow: 0 0 0 3px var(--hyc-glow); }
+    .hyc3-auth-b__field input::placeholder { color: #c5c0bb; }
+    .hyc3-auth-b__row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .hyc3-auth-b__forgot { text-align: right; margin: -6px 0 10px; }
+    .hyc3-auth-b__forgot a { font-family: var(--hyc-font); font-size: .78rem; color: var(--hyc); text-decoration: none; font-weight: 600; }
+    .hyc3-auth-b__consent { display: flex; align-items: flex-start; gap: 8px; margin-bottom: 10px; font-family: var(--hyc-font); font-size: .76rem; color: var(--hyc-muted); line-height: 1.4; }
+    .hyc3-auth-b__consent input[type="checkbox"] { appearance: none; -webkit-appearance: none; width: 16px; height: 16px; min-width: 16px; border: 1.5px solid var(--hyc-border); border-radius: 4px; cursor: pointer; position: relative; margin-top: 1px; transition: all .15s; }
+    .hyc3-auth-b__consent input[type="checkbox"]:checked { background: var(--hyc); border-color: var(--hyc); }
+    .hyc3-auth-b__consent input[type="checkbox"]:checked::after { content: ''; position: absolute; left: 4px; top: 1px; width: 5px; height: 9px; border: solid #fff; border-width: 0 2px 2px 0; transform: rotate(45deg); }
+    .hyc3-auth-b__consent a { color: var(--hyc); text-decoration: none; font-weight: 600; }
+    .hyc3-auth-b__link { display: block; text-align: center; margin-top: 16px; font-family: var(--hyc-font); font-size: .82rem; color: var(--hyc-muted); }
+    .hyc3-auth-b__link a { color: var(--hyc); text-decoration: none; font-weight: 700; }
+    @media (max-width: 640px) { .hyc3-auth-b { grid-template-columns: 1fr; } .hyc3-auth-b__visual { min-height: 200px; padding: 28px 24px; } .hyc3-auth-b__cards { display: none; } }
+
+    /* ── PROFILE: Hero Header + Pill Tabs (matches both auth variants) ── */
+    .hyc3-prof { max-width: 940px; margin: 0 auto 48px; font-family: var(--hyc-font); border-radius: var(--hyc-radius); overflow: hidden; box-shadow: 0 20px 60px rgba(0,0,0,.06); }
+    .hyc3-prof__hero { padding: 28px 36px 32px; position: relative; }
+    .hyc3-prof__hero--light { background: linear-gradient(135deg, #2d7a84 0%, var(--hyc) 40%, var(--hyc-light) 100%); }
+    .hyc3-prof__hero--dark { background: linear-gradient(135deg, #0a1a1c 0%, #122d30 40%, #1a3d42 100%); }
+    .hyc3-prof__hero--dark::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; background: linear-gradient(90deg, var(--yb-orange), var(--hyc), var(--hyc-light)); }
+    .hyc3-prof__hero-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; }
+    .hyc3-prof__logo { font-family: var(--hyc-font); font-size: .78rem; font-weight: 700; color: rgba(255,255,255,.6); letter-spacing: .08em; text-transform: uppercase; }
+    .hyc3-prof__hero-right { display: flex; align-items: center; gap: 12px; }
+    .hyc3-prof__ecosystem { display: flex; align-items: center; gap: 5px; }
+    .hyc3-prof__ecosystem-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--yb-orange); }
+    .hyc3-prof__ecosystem-text { font-family: var(--hyc-font); font-size: .58rem; font-weight: 700; color: rgba(255,255,255,.35); letter-spacing: .06em; text-transform: uppercase; }
+    .hyc3-prof__lang { display: flex; gap: 3px; }
+    .hyc3-prof__lang button { padding: 5px 10px; border-radius: 999px; background: rgba(255,255,255,.08); border: none; color: rgba(255,255,255,.4); font-family: var(--hyc-font); font-size: .7rem; font-weight: 700; cursor: pointer; transition: all .2s; letter-spacing: .04em; }
+    .hyc3-prof__lang button.is-active { background: rgba(255,255,255,.2); color: #fff; }
+    .hyc3-prof__user { display: flex; align-items: center; gap: 16px; }
+    .hyc3-prof__avatar { width: 64px; height: 64px; border-radius: 50%; background: rgba(255,255,255,.12); border: 2.5px solid rgba(255,255,255,.25); color: #fff; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 1.3rem; flex-shrink: 0; }
+    .hyc3-prof__name { font-size: 1.3rem; font-weight: 700; color: #fff; margin: 0 0 4px; }
+    .hyc3-prof__meta { font-size: .85rem; color: rgba(255,255,255,.55); margin: 0; }
+    .hyc3-prof__badge { display: inline-flex; align-items: center; gap: 5px; padding: 3px 12px; background: rgba(255,255,255,.12); border-radius: 999px; font-size: .7rem; font-weight: 700; color: #fff; margin-left: 8px; letter-spacing: .04em; }
+    .hyc3-prof__badge::before { content: ''; width: 5px; height: 5px; border-radius: 50%; background: var(--hyc-light); }
+    .hyc3-prof__tabs { display: flex; gap: 6px; padding: 16px 36px; background: var(--hyc-white); border-bottom: 1.5px solid var(--hyc-border); overflow-x: auto; }
+    .hyc3-prof__tab { padding: 9px 20px; border-radius: 999px; background: none; border: 1.5px solid var(--hyc-border); font-family: var(--hyc-font); font-size: .78rem; font-weight: 700; color: var(--hyc-muted); cursor: pointer; white-space: nowrap; transition: all .2s; letter-spacing: .03em; text-transform: uppercase; }
+    .hyc3-prof__tab:hover { border-color: var(--hyc); color: var(--hyc); }
+    .hyc3-prof__tab.is-active { background: var(--hyc); border-color: var(--hyc); color: #fff; }
+    .hyc3-prof__content { padding: 32px 36px; background: var(--hyc-white); }
+    .hyc3-prof__card-title { font-size: 1.05rem; font-weight: 700; color: var(--hyc-black); margin: 0 0 20px; padding-bottom: 14px; border-bottom: 1px solid var(--hyc-border); }
+    .hyc3-prof__form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .hyc3-prof__form-grid label { display: grid; gap: 6px; }
+    .hyc3-prof__form-grid label span { font-size: .75rem; font-weight: 700; color: var(--hyc-muted); text-transform: uppercase; letter-spacing: .06em; }
+    .hyc3-prof__form-grid input { padding: 12px 16px; border: 1.5px solid var(--hyc-border); border-radius: 12px; font-family: var(--hyc-font); font-size: .92rem; outline: none; transition: border-color .2s; color: var(--hyc-black); }
+    .hyc3-prof__form-grid input:focus { border-color: var(--hyc); box-shadow: 0 0 0 3px var(--hyc-glow); }
+    @media (max-width: 640px) { .hyc3-prof__form-grid { grid-template-columns: 1fr; } .hyc3-prof__tabs { padding: 12px 16px; } .hyc3-prof__content { padding: 24px 16px; } .hyc3-prof__hero { padding: 20px 16px 24px; } }
     </style>
 
-    <!-- ─── Auth Option A: Glass Minimal + Photo Strip ─── -->
+    <!-- ════════════════════════════════════════════════════════════ -->
+    <!--  VARIANT A: Light & Airy — Teal gradient visual panel     -->
+    <!-- ════════════════════════════════════════════════════════════ -->
     <div class="ds-sub">
-      <h3 class="ds-sub__title">A. Auth — Glass Minimal + Photo Strip</h3>
-      <p class="ds-sub__desc">Auth A refined: 3 yoga photos across the top (placeholder gradients). Clean light form. Orange Yoga Bible ecosystem badge at bottom. Login + Register views.</p>
-      <div class="ds-demo" style="background:var(--hyc-bg, #F5F3F0);padding:40px 20px;border-radius:16px;display:grid;grid-template-columns:1fr 1fr;gap:32px;">
-        <div class="hyc2 hyc2-auth-a">
-          <div class="hyc2-auth-a__photos">
-            <div class="hyc2-auth-a__photo" style="background:linear-gradient(135deg,#2d7a84,#5bb8c4)"></div>
-            <div class="hyc2-auth-a__photo" style="background:linear-gradient(135deg,#3f99a5,#357f89)"></div>
-            <div class="hyc2-auth-a__photo" style="background:linear-gradient(135deg,#5bb8c4,#2d7a84)"></div>
-          </div>
-          <div class="hyc2-auth-a__body">
-            <div class="hyc2-auth-a__brand"><div class="hyc2-auth-a__logo">HY</div><div class="hyc2-auth-a__brand-text"><strong>Hot Yoga Copenhagen</strong>Infrared Boutique Studio</div></div>
-            <h2 class="hyc2-auth-a__title">Log ind</h2>
-            <p class="hyc2-auth-a__sub">Velkommen tilbage</p>
-            <div class="hyc2-auth-a__field"><label>EMAIL</label><input type="email" placeholder="din@email.dk" /></div>
-            <div class="hyc2-auth-a__field"><label>ADGANGSKODE</label><input type="password" placeholder="••••••••" /></div>
-            <div class="hyc2-auth-a__forgot"><a href="#">Glemt adgangskode?</a></div>
-            <button class="hyc2-auth-a__btn">Log ind</button>
-            <div class="hyc2-auth-a__divider">Har du ikke en konto? <a href="#">Opret konto</a></div>
-            <div class="hyc2-auth-a__ecosystem"><span class="hyc2-auth-a__ecosystem-dot"></span> En del af Yoga Bible</div>
-          </div>
-        </div>
-        <div class="hyc2 hyc2-auth-a">
-          <div class="hyc2-auth-a__photos">
-            <div class="hyc2-auth-a__photo" style="background:linear-gradient(135deg,#357f89,#5bb8c4)"></div>
-            <div class="hyc2-auth-a__photo" style="background:linear-gradient(135deg,#5bb8c4,#3f99a5)"></div>
-            <div class="hyc2-auth-a__photo" style="background:linear-gradient(135deg,#2d7a84,#357f89)"></div>
-          </div>
-          <div class="hyc2-auth-a__body">
-            <div class="hyc2-auth-a__brand"><div class="hyc2-auth-a__logo">HY</div><div class="hyc2-auth-a__brand-text"><strong>Hot Yoga Copenhagen</strong>Infrared Boutique Studio</div></div>
-            <h2 class="hyc2-auth-a__title">Opret konto</h2>
-            <p class="hyc2-auth-a__sub">Bliv en del af Hot Yoga Copenhagen</p>
-            <div class="hyc2-auth-a__row">
-              <div class="hyc2-auth-a__field"><label>FORNAVN</label><input type="text" placeholder="Fornavn" /></div>
-              <div class="hyc2-auth-a__field"><label>EFTERNAVN</label><input type="text" placeholder="Efternavn" /></div>
-            </div>
-            <div class="hyc2-auth-a__field"><label>EMAIL</label><input type="email" placeholder="din@email.dk" /></div>
-            <div class="hyc2-auth-a__field"><label>ADGANGSKODE</label><input type="password" placeholder="Mindst 6 tegn" /></div>
-            <button class="hyc2-auth-a__btn">Opret konto</button>
-            <div class="hyc2-auth-a__divider">Har du en konto? <a href="#">Log ind</a></div>
-            <div class="hyc2-auth-a__ecosystem"><span class="hyc2-auth-a__ecosystem-dot"></span> En del af Yoga Bible</div>
-          </div>
-        </div>
-      </div>
-    </div>
+      <h3 class="ds-sub__title">A. Auth — Light Split (Teal Gradient + Image Cards)</h3>
+      <p class="ds-sub__desc">Teal gradient left panel with 3 image cards (classes/studio/community). Clean form right. Orange dot ecosystem badge top-right of panel. HYC pill buttons. Login + Register shown.</p>
+      <div class="ds-demo" style="background:rgba(0,0,0,.03);padding:40px 20px;border-radius:16px;">
 
-    <!-- ─── Auth Option B: Split Photo + Form ─── -->
-    <div class="ds-sub">
-      <h3 class="ds-sub__title">B. Auth — Split Photo + Form</h3>
-      <p class="ds-sub__desc">Auth C refined: full photo on left with overlay text + feature pills. Form on right with dual-logo brand row (HYC teal + YB orange). Login + Register views.</p>
-      <div class="ds-demo" style="background:var(--hyc-bg, #F5F3F0);padding:40px 20px;border-radius:16px;">
-        <div class="hyc2 hyc2-auth-b" style="margin-bottom:28px">
-          <div class="hyc2-auth-b__visual">
-            <div class="hyc2-auth-b__visual-img" style="background:linear-gradient(160deg,#1a3d42 0%,#2d7a84 40%,#5bb8c4 100%)"></div>
-            <div class="hyc2-auth-b__visual-overlay"></div>
-            <div class="hyc2-auth-b__visual-content">
-              <h2 class="hyc2-auth-b__visual-title">Find din<br>varme</h2>
-              <p class="hyc2-auth-b__visual-sub">Infrared hot yoga i hjertet af K&oslash;benhavn</p>
-              <div class="hyc2-auth-b__visual-pills">
-                <span class="hyc2-auth-b__pill hyc2-auth-b__pill--active">Hot Yoga</span>
-                <span class="hyc2-auth-b__pill">Yin Yoga</span>
-                <span class="hyc2-auth-b__pill">Meditation</span>
-                <span class="hyc2-auth-b__pill">30-38&deg;C</span>
+        <!-- Login -->
+        <div class="hyc3 hyc3-auth-a" style="margin-bottom:24px">
+          <div class="hyc3-auth-a__visual">
+            <div>
+              <div class="hyc3-auth-a__visual-logo">Hot Yoga Copenhagen</div>
+              <div class="hyc3-auth-a__ecosystem"><span class="hyc3-auth-a__ecosystem-dot"></span><span class="hyc3-auth-a__ecosystem-text">Yoga Bible ecosystem</span></div>
+            </div>
+            <div class="hyc3-auth-a__visual-bottom">
+              <h2 class="hyc3-auth-a__visual-title">Velkommen<br>tilbage</h2>
+              <p class="hyc3-auth-a__visual-sub">Find din varme. Find dig selv.</p>
+              <div class="hyc3-auth-a__cards">
+                <div class="hyc3-auth-a__card">
+                  <div style="width:100%;height:72px;background:linear-gradient(135deg,rgba(63,153,165,.3),rgba(63,153,165,.1));display:flex;align-items:center;justify-content:center;font-size:1.4rem">&#x1F9D8;</div>
+                  <div class="hyc3-auth-a__card-text">Hot Yoga</div>
+                </div>
+                <div class="hyc3-auth-a__card">
+                  <div style="width:100%;height:72px;background:linear-gradient(135deg,rgba(255,255,255,.15),rgba(255,255,255,.05));display:flex;align-items:center;justify-content:center;font-size:1.4rem">&#x1F3E0;</div>
+                  <div class="hyc3-auth-a__card-text">Studiet</div>
+                </div>
+                <div class="hyc3-auth-a__card">
+                  <div style="width:100%;height:72px;background:linear-gradient(135deg,rgba(91,184,196,.2),rgba(91,184,196,.05));display:flex;align-items:center;justify-content:center;font-size:1.4rem">&#x1F91D;</div>
+                  <div class="hyc3-auth-a__card-text">Community</div>
+                </div>
               </div>
             </div>
           </div>
-          <div class="hyc2-auth-b__form">
-            <div class="hyc2-auth-b__brand"><div class="hyc2-auth-b__logo">HY</div><div class="hyc2-auth-b__logo-yb">YB</div></div>
-            <h2 class="hyc2-auth-b__title">Log ind</h2>
-            <p class="hyc2-auth-b__sub">Log ind p&aring; din Hot Yoga konto</p>
-            <div class="hyc2-auth-b__field"><label>EMAIL</label><input type="email" placeholder="din@email.dk" /></div>
-            <div class="hyc2-auth-b__field"><label>ADGANGSKODE</label><input type="password" placeholder="••••••••" /></div>
-            <div class="hyc2-auth-b__forgot"><a href="#">Glemt adgangskode?</a></div>
-            <button class="hyc2-auth-b__btn">Log ind</button>
-            <div class="hyc2-auth-b__divider">Ny her? <a href="#">Opret konto</a></div>
+          <div class="hyc3-auth-a__form">
+            <div class="hyc3-auth-a__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg></div>
+            <h2 class="hyc3-auth-a__title">Log ind</h2>
+            <p class="hyc3-auth-a__sub">Log ind p&aring; din Hot Yoga konto</p>
+            <div class="hyc3-auth-a__field"><label>EMAIL</label><input type="email" placeholder="din@email.dk" /></div>
+            <div class="hyc3-auth-a__field"><label>ADGANGSKODE</label><input type="password" placeholder="Indtast adgangskode" /></div>
+            <div class="hyc3-auth-a__forgot"><a href="#">Glemt adgangskode?</a></div>
+            <button class="hyc3-pill" style="width:100%;justify-content:center;margin-top:4px">Log ind</button>
+            <div class="hyc3-auth-a__link">Har du ikke en konto? <a href="#">Opret konto</a></div>
           </div>
         </div>
-        <div class="hyc2 hyc2-auth-b">
-          <div class="hyc2-auth-b__visual">
-            <div class="hyc2-auth-b__visual-img" style="background:linear-gradient(160deg,#0f2628 0%,#2d7a84 50%,#3f99a5 100%)"></div>
-            <div class="hyc2-auth-b__visual-overlay"></div>
-            <div class="hyc2-auth-b__visual-content">
-              <h2 class="hyc2-auth-b__visual-title">Bliv en del<br>af varmen</h2>
-              <p class="hyc2-auth-b__visual-sub">Hot Yoga Copenhagen &mdash; Christianshavn</p>
-              <div class="hyc2-auth-b__visual-pills">
-                <span class="hyc2-auth-b__pill hyc2-auth-b__pill--active">Alle niveauer</span>
-                <span class="hyc2-auth-b__pill">Sm&aring; hold</span>
-                <span class="hyc2-auth-b__pill">Wellness</span>
+
+        <!-- Register -->
+        <div class="hyc3 hyc3-auth-a">
+          <div class="hyc3-auth-a__visual">
+            <div>
+              <div class="hyc3-auth-a__visual-logo">Hot Yoga Copenhagen</div>
+              <div class="hyc3-auth-a__ecosystem"><span class="hyc3-auth-a__ecosystem-dot"></span><span class="hyc3-auth-a__ecosystem-text">Yoga Bible ecosystem</span></div>
+            </div>
+            <div class="hyc3-auth-a__visual-bottom">
+              <h2 class="hyc3-auth-a__visual-title">Bliv en del<br>af varmen</h2>
+              <p class="hyc3-auth-a__visual-sub">Hot Yoga Copenhagen &mdash; Est. 2020</p>
+              <div class="hyc3-auth-a__cards">
+                <div class="hyc3-auth-a__card">
+                  <div style="width:100%;height:72px;background:linear-gradient(135deg,rgba(63,153,165,.3),rgba(63,153,165,.1));display:flex;align-items:center;justify-content:center;font-size:1.4rem">&#x1F525;</div>
+                  <div class="hyc3-auth-a__card-text">26 klasser</div>
+                </div>
+                <div class="hyc3-auth-a__card">
+                  <div style="width:100%;height:72px;background:linear-gradient(135deg,rgba(255,255,255,.15),rgba(255,255,255,.05));display:flex;align-items:center;justify-content:center;font-size:1.4rem">&#x2728;</div>
+                  <div class="hyc3-auth-a__card-text">Premium</div>
+                </div>
+                <div class="hyc3-auth-a__card">
+                  <div style="width:100%;height:72px;background:linear-gradient(135deg,rgba(91,184,196,.2),rgba(91,184,196,.05));display:flex;align-items:center;justify-content:center;font-size:1.4rem">&#x1F4AA;</div>
+                  <div class="hyc3-auth-a__card-text">Book nu</div>
+                </div>
               </div>
             </div>
           </div>
-          <div class="hyc2-auth-b__form">
-            <div class="hyc2-auth-b__brand"><div class="hyc2-auth-b__logo">HY</div><div class="hyc2-auth-b__logo-yb">YB</div></div>
-            <h2 class="hyc2-auth-b__title">Opret konto</h2>
-            <p class="hyc2-auth-b__sub">Start din Hot Yoga rejse</p>
-            <div class="hyc2-auth-b__row">
-              <div class="hyc2-auth-b__field"><label>FORNAVN</label><input type="text" placeholder="Fornavn" /></div>
-              <div class="hyc2-auth-b__field"><label>EFTERNAVN</label><input type="text" placeholder="Efternavn" /></div>
+          <div class="hyc3-auth-a__form">
+            <div class="hyc3-auth-a__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="16" y1="11" x2="22" y2="11"/></svg></div>
+            <h2 class="hyc3-auth-a__title">Opret konto</h2>
+            <p class="hyc3-auth-a__sub">Det tager kun et minut</p>
+            <div class="hyc3-auth-a__row">
+              <div class="hyc3-auth-a__field"><label>FORNAVN</label><input type="text" placeholder="Fornavn" /></div>
+              <div class="hyc3-auth-a__field"><label>EFTERNAVN</label><input type="text" placeholder="Efternavn" /></div>
             </div>
-            <div class="hyc2-auth-b__field"><label>EMAIL</label><input type="email" placeholder="din@email.dk" /></div>
-            <div class="hyc2-auth-b__field"><label>ADGANGSKODE</label><input type="password" placeholder="Mindst 6 tegn" /></div>
-            <button class="hyc2-auth-b__btn">Opret konto</button>
-            <div class="hyc2-auth-b__divider">Har du en konto? <a href="#">Log ind</a></div>
+            <div class="hyc3-auth-a__field"><label>EMAIL</label><input type="email" placeholder="din@email.dk" /></div>
+            <div class="hyc3-auth-a__field"><label>ADGANGSKODE</label><input type="password" placeholder="Min. 8 tegn" /></div>
+            <div class="hyc3-auth-a__consent"><input type="checkbox"><span>Jeg accepterer <a href="#">Vilk&aring;r</a> og <a href="#">Privatlivspolitik</a></span></div>
+            <button class="hyc3-pill" style="width:100%;justify-content:center;margin-top:4px">Opret konto</button>
+            <div class="hyc3-auth-a__link">Har du allerede en konto? <a href="#">Log ind</a></div>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- ─── Profile Option A: Hero Header + Underline Tabs ─── -->
+    <!-- ════════════════════════════════════════════════════════════ -->
+    <!--  VARIANT B: Dark & Premium — Dark cinematic visual panel   -->
+    <!-- ════════════════════════════════════════════════════════════ -->
     <div class="ds-sub">
-      <h3 class="ds-sub__title">A. Profile — Hero Header + Underline Tabs</h3>
-      <p class="ds-sub__desc">Teal gradient hero with user info, avatar edit, orange YB ecosystem dot in logo row. DA/EN toggle + logout in top bar. Underline tabs below.</p>
-      <div class="ds-demo" style="background:var(--hyc-bg, #F5F3F0);padding:40px 20px;border-radius:16px;">
-        <div class="hyc2 hyc2-prof">
-          <div class="hyc2-prof__hero">
-            <div class="hyc2-prof__hero-top">
-              <div class="hyc2-prof__logo-row"><span class="hyc2-prof__logo">HOT YOGA COPENHAGEN</span><span class="hyc2-prof__logo-dot"></span><span class="hyc2-prof__logo-yb">Yoga Bible</span></div>
-              <div class="hyc2-prof__controls"><div class="hyc2-prof__lang"><button class="is-active">DA</button><button>EN</button></div><button class="hyc2-prof__logout">Log ud</button></div>
+      <h3 class="ds-sub__title">B. Auth — Dark Split (Cinematic Panel + Image Cards)</h3>
+      <p class="ds-sub__desc">Dark cinematic left panel with orange-to-teal gradient top bar, 3 image cards, ambient glow. Clean form right. Same pill buttons. More premium/moody feel.</p>
+      <div class="ds-demo" style="background:#0a0a0a;padding:40px 20px;border-radius:16px;">
+
+        <!-- Login -->
+        <div class="hyc3 hyc3-auth-b" style="margin-bottom:24px">
+          <div class="hyc3-auth-b__visual">
+            <div>
+              <div class="hyc3-auth-b__visual-logo">Hot Yoga Copenhagen</div>
+              <div class="hyc3-auth-b__ecosystem"><span class="hyc3-auth-b__ecosystem-dot"></span><span class="hyc3-auth-b__ecosystem-text">Yoga Bible ecosystem</span></div>
             </div>
-            <div class="hyc2-prof__user">
-              <div class="hyc2-prof__avatar">SJ<span class="hyc2-prof__avatar-edit">&#9998;</span></div>
-              <div><p class="hyc2-prof__name">Sarah Jensen</p><p class="hyc2-prof__meta">sarah@email.dk <span class="hyc2-prof__badge">Medlem</span> <span class="hyc2-prof__badge hyc2-prof__badge--orange">YB</span></p></div>
-            </div>
-          </div>
-          <div class="hyc2-prof__body">
-            <div class="hyc2-prof__tabs">
-              <button class="hyc2-prof__tab is-active">Profil</button><button class="hyc2-prof__tab">Mine Pas</button><button class="hyc2-prof__tab">Skema</button><button class="hyc2-prof__tab">Butik</button><button class="hyc2-prof__tab">Bes&oslash;g</button><button class="hyc2-prof__tab">Kvitteringer</button>
-            </div>
-            <div class="hyc2-prof__content">
-              <h3 class="hyc2-prof__section-title">Personlige Oplysninger</h3>
-              <div class="hyc2-prof__form-grid">
-                <div class="hyc2-prof__field"><label>FORNAVN</label><input value="Sarah" /></div>
-                <div class="hyc2-prof__field"><label>EFTERNAVN</label><input value="Jensen" /></div>
-                <div class="hyc2-prof__field"><label>EMAIL</label><input value="sarah@email.dk" disabled style="opacity:.55" /></div>
-                <div class="hyc2-prof__field"><label>TELEFON</label><input value="+45 12 34 56 78" /></div>
-                <div class="hyc2-prof__field"><label>F&Oslash;DSELSDATO</label><input type="date" value="1992-03-15" /></div>
-                <div class="hyc2-prof__field"><label>YOGANIVEAU</label><select><option>Mellem</option></select></div>
+            <div class="hyc3-auth-b__visual-bottom">
+              <h2 class="hyc3-auth-b__visual-title">Velkommen<br>tilbage</h2>
+              <p class="hyc3-auth-b__visual-sub">Find din varme. Find dig selv.</p>
+              <div class="hyc3-auth-b__cards">
+                <div class="hyc3-auth-b__card">
+                  <div style="width:100%;height:72px;background:linear-gradient(135deg,rgba(63,153,165,.15),rgba(63,153,165,.05));display:flex;align-items:center;justify-content:center;font-size:1.4rem">&#x1F9D8;</div>
+                  <div class="hyc3-auth-b__card-text">Hot Yoga</div>
+                </div>
+                <div class="hyc3-auth-b__card">
+                  <div style="width:100%;height:72px;background:linear-gradient(135deg,rgba(255,255,255,.06),rgba(255,255,255,.02));display:flex;align-items:center;justify-content:center;font-size:1.4rem">&#x1F3E0;</div>
+                  <div class="hyc3-auth-b__card-text">Studiet</div>
+                </div>
+                <div class="hyc3-auth-b__card">
+                  <div style="width:100%;height:72px;background:linear-gradient(135deg,rgba(91,184,196,.1),rgba(91,184,196,.03));display:flex;align-items:center;justify-content:center;font-size:1.4rem">&#x1F91D;</div>
+                  <div class="hyc3-auth-b__card-text">Community</div>
+                </div>
               </div>
-              <button class="hyc2-prof__save">Gem &aelig;ndringer</button>
             </div>
+          </div>
+          <div class="hyc3-auth-b__form">
+            <div class="hyc3-auth-b__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg></div>
+            <h2 class="hyc3-auth-b__title">Log ind</h2>
+            <p class="hyc3-auth-b__sub">Log ind p&aring; din Hot Yoga konto</p>
+            <div class="hyc3-auth-b__field"><label>EMAIL</label><input type="email" placeholder="din@email.dk" /></div>
+            <div class="hyc3-auth-b__field"><label>ADGANGSKODE</label><input type="password" placeholder="Indtast adgangskode" /></div>
+            <div class="hyc3-auth-b__forgot"><a href="#">Glemt adgangskode?</a></div>
+            <button class="hyc3-pill" style="width:100%;justify-content:center;margin-top:4px">Log ind</button>
+            <div class="hyc3-auth-b__link">Har du ikke en konto? <a href="#">Opret konto</a></div>
+          </div>
+        </div>
+
+        <!-- Register -->
+        <div class="hyc3 hyc3-auth-b">
+          <div class="hyc3-auth-b__visual">
+            <div>
+              <div class="hyc3-auth-b__visual-logo">Hot Yoga Copenhagen</div>
+              <div class="hyc3-auth-b__ecosystem"><span class="hyc3-auth-b__ecosystem-dot"></span><span class="hyc3-auth-b__ecosystem-text">Yoga Bible ecosystem</span></div>
+            </div>
+            <div class="hyc3-auth-b__visual-bottom">
+              <h2 class="hyc3-auth-b__visual-title">Bliv en del<br>af varmen</h2>
+              <p class="hyc3-auth-b__visual-sub">Hot Yoga Copenhagen &mdash; Est. 2020</p>
+              <div class="hyc3-auth-b__cards">
+                <div class="hyc3-auth-b__card">
+                  <div style="width:100%;height:72px;background:linear-gradient(135deg,rgba(63,153,165,.15),rgba(63,153,165,.05));display:flex;align-items:center;justify-content:center;font-size:1.4rem">&#x1F525;</div>
+                  <div class="hyc3-auth-b__card-text">26 klasser</div>
+                </div>
+                <div class="hyc3-auth-b__card">
+                  <div style="width:100%;height:72px;background:linear-gradient(135deg,rgba(255,255,255,.06),rgba(255,255,255,.02));display:flex;align-items:center;justify-content:center;font-size:1.4rem">&#x2728;</div>
+                  <div class="hyc3-auth-b__card-text">Premium</div>
+                </div>
+                <div class="hyc3-auth-b__card">
+                  <div style="width:100%;height:72px;background:linear-gradient(135deg,rgba(91,184,196,.1),rgba(91,184,196,.03));display:flex;align-items:center;justify-content:center;font-size:1.4rem">&#x1F4AA;</div>
+                  <div class="hyc3-auth-b__card-text">Book nu</div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="hyc3-auth-b__form">
+            <div class="hyc3-auth-b__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="16" y1="11" x2="22" y2="11"/></svg></div>
+            <h2 class="hyc3-auth-b__title">Opret konto</h2>
+            <p class="hyc3-auth-b__sub">Det tager kun et minut</p>
+            <div class="hyc3-auth-b__row">
+              <div class="hyc3-auth-b__field"><label>FORNAVN</label><input type="text" placeholder="Fornavn" /></div>
+              <div class="hyc3-auth-b__field"><label>EFTERNAVN</label><input type="text" placeholder="Efternavn" /></div>
+            </div>
+            <div class="hyc3-auth-b__field"><label>EMAIL</label><input type="email" placeholder="din@email.dk" /></div>
+            <div class="hyc3-auth-b__field"><label>ADGANGSKODE</label><input type="password" placeholder="Min. 8 tegn" /></div>
+            <div class="hyc3-auth-b__consent"><input type="checkbox"><span>Jeg accepterer <a href="#">Vilk&aring;r</a> og <a href="#">Privatlivspolitik</a></span></div>
+            <button class="hyc3-pill" style="width:100%;justify-content:center;margin-top:4px">Opret konto</button>
+            <div class="hyc3-auth-b__link">Har du allerede en konto? <a href="#">Log ind</a></div>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- ─── Profile Option B: Compact Flat (No Hero) ─── -->
+    <!-- ════════════════════════════════════════════════════════════ -->
+    <!--  PROFILE A: Light Hero (pairs with Auth Variant A)        -->
+    <!-- ════════════════════════════════════════════════════════════ -->
     <div class="ds-sub">
-      <h3 class="ds-sub__title">B. Profile — Compact Flat (No Hero)</h3>
-      <p class="ds-sub__desc">No hero gradient — cleaner, flatter. Avatar + name in compact header row. Underline tabs. Ecosystem footer bar with both brand logos.</p>
-      <div class="ds-demo" style="background:var(--hyc-bg, #F5F3F0);padding:40px 20px;border-radius:16px;">
-        <div class="hyc2 hyc2-prof-b">
-          <div class="hyc2-prof-b__header">
-            <div class="hyc2-prof-b__avatar">SJ</div>
-            <div class="hyc2-prof-b__info"><p class="hyc2-prof-b__name">Sarah Jensen</p><p class="hyc2-prof-b__email">sarah@email.dk</p></div>
-            <div class="hyc2-prof-b__header-right"><span class="hyc2-prof-b__badge">Medlem</span><div class="hyc2-prof-b__lang"><button class="is-active">DA</button><button>EN</button></div></div>
-          </div>
-          <div class="hyc2-prof-b__tabs">
-            <button class="hyc2-prof-b__tab is-active">Profil</button><button class="hyc2-prof-b__tab">Mine Pas</button><button class="hyc2-prof-b__tab">Skema</button><button class="hyc2-prof-b__tab">Butik</button><button class="hyc2-prof-b__tab">Bes&oslash;g</button><button class="hyc2-prof-b__tab">Kvitteringer</button>
-          </div>
-          <div class="hyc2-prof-b__content">
-            <h3 class="hyc2-prof__section-title">Personlige Oplysninger</h3>
-            <div class="hyc2-prof__form-grid">
-              <div class="hyc2-prof__field"><label>FORNAVN</label><input value="Sarah" /></div>
-              <div class="hyc2-prof__field"><label>EFTERNAVN</label><input value="Jensen" /></div>
-              <div class="hyc2-prof__field"><label>EMAIL</label><input value="sarah@email.dk" disabled style="opacity:.55" /></div>
-              <div class="hyc2-prof__field"><label>TELEFON</label><input value="+45 12 34 56 78" /></div>
-              <div class="hyc2-prof__field"><label>F&Oslash;DSELSDATO</label><input type="date" value="1992-03-15" /></div>
-              <div class="hyc2-prof__field"><label>YOGANIVEAU</label><select><option>Mellem</option></select></div>
+      <h3 class="ds-sub__title">A. Profile — Light Hero + Pill Tabs</h3>
+      <p class="ds-sub__desc">Teal gradient hero matching Auth A. HYC pill-style tab bar. Orange ecosystem dot in header. Clean white content area.</p>
+      <div class="ds-demo" style="background:#F5F3F0;padding:40px 20px;border-radius:16px;">
+        <div class="hyc3 hyc3-prof">
+          <div class="hyc3-prof__hero hyc3-prof__hero--light">
+            <div class="hyc3-prof__hero-top">
+              <span class="hyc3-prof__logo">Hot Yoga Copenhagen</span>
+              <div class="hyc3-prof__hero-right">
+                <div class="hyc3-prof__ecosystem"><span class="hyc3-prof__ecosystem-dot"></span><span class="hyc3-prof__ecosystem-text">Yoga Bible</span></div>
+                <div class="hyc3-prof__lang"><button class="is-active">DA</button><button>EN</button></div>
+              </div>
             </div>
-            <button class="hyc2-prof__save">Gem &aelig;ndringer</button>
+            <div class="hyc3-prof__user">
+              <div class="hyc3-prof__avatar">SJ</div>
+              <div>
+                <p class="hyc3-prof__name">Sarah Jensen</p>
+                <p class="hyc3-prof__meta">sarah@email.dk <span class="hyc3-prof__badge">10 Klasser</span></p>
+              </div>
+            </div>
           </div>
-          <div class="hyc2-prof-b__ecosystem">
-            <div class="hyc2-prof-b__ecosystem-logos"><span class="hyc2-prof-b__ecosystem-logo" style="background:#3f99a5">HY</span><span class="hyc2-prof-b__ecosystem-logo" style="background:#f75c03">YB</span></div>
-            Hot Yoga Copenhagen &mdash; en del af Yoga Bible
+          <div class="hyc3-prof__tabs">
+            <button class="hyc3-prof__tab is-active">Profil</button>
+            <button class="hyc3-prof__tab">Skema</button>
+            <button class="hyc3-prof__tab">Butik</button>
+            <button class="hyc3-prof__tab">Mine Pas</button>
+            <button class="hyc3-prof__tab">Bes&oslash;g</button>
+            <button class="hyc3-prof__tab">Kvitteringer</button>
+          </div>
+          <div class="hyc3-prof__content">
+            <h3 class="hyc3-prof__card-title">Personlige Oplysninger</h3>
+            <div class="hyc3-prof__form-grid">
+              <label><span>FORNAVN</span><input type="text" value="Sarah"></label>
+              <label><span>EFTERNAVN</span><input type="text" value="Jensen"></label>
+              <label><span>EMAIL</span><input type="email" value="sarah@email.dk" disabled style="opacity:.6"></label>
+              <label><span>TELEFON</span><input type="tel" value="+45 20 12 34 56"></label>
+              <label><span>F&Oslash;DSELSDATO</span><input type="date" value="1992-03-15"></label>
+            </div>
+            <button class="hyc3-pill" style="margin-top:24px">Gem &aelig;ndringer</button>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- Reference -->
-    <div class="ds-demo" style="background:var(--hyc-pale, #e8f4f6);padding:24px 28px;border-radius:12px;border:1.5px solid rgba(63,153,165,.2)">
-      <h4 style="font-weight:700;margin:0 0 12px;font-size:.95rem;color:#357f89">How to Reference (Section 34 v2)</h4>
+    <!-- ════════════════════════════════════════════════════════════ -->
+    <!--  PROFILE B: Dark Hero (pairs with Auth Variant B)         -->
+    <!-- ════════════════════════════════════════════════════════════ -->
+    <div class="ds-sub">
+      <h3 class="ds-sub__title">B. Profile — Dark Hero + Pill Tabs</h3>
+      <p class="ds-sub__desc">Dark cinematic hero matching Auth B. Orange-to-teal gradient top accent. Same pill tabs and form. Premium/moody header.</p>
+      <div class="ds-demo" style="background:#0a0a0a;padding:40px 20px;border-radius:16px;">
+        <div class="hyc3 hyc3-prof">
+          <div class="hyc3-prof__hero hyc3-prof__hero--dark">
+            <div class="hyc3-prof__hero-top">
+              <span class="hyc3-prof__logo">Hot Yoga Copenhagen</span>
+              <div class="hyc3-prof__hero-right">
+                <div class="hyc3-prof__ecosystem"><span class="hyc3-prof__ecosystem-dot"></span><span class="hyc3-prof__ecosystem-text">Yoga Bible</span></div>
+                <div class="hyc3-prof__lang"><button class="is-active">DA</button><button>EN</button></div>
+              </div>
+            </div>
+            <div class="hyc3-prof__user">
+              <div class="hyc3-prof__avatar">SJ</div>
+              <div>
+                <p class="hyc3-prof__name">Sarah Jensen</p>
+                <p class="hyc3-prof__meta">sarah@email.dk <span class="hyc3-prof__badge">Unlimited</span></p>
+              </div>
+            </div>
+          </div>
+          <div class="hyc3-prof__tabs">
+            <button class="hyc3-prof__tab is-active">Profil</button>
+            <button class="hyc3-prof__tab">Skema</button>
+            <button class="hyc3-prof__tab">Butik</button>
+            <button class="hyc3-prof__tab">Mine Pas</button>
+            <button class="hyc3-prof__tab">Bes&oslash;g</button>
+            <button class="hyc3-prof__tab">Kvitteringer</button>
+          </div>
+          <div class="hyc3-prof__content">
+            <h3 class="hyc3-prof__card-title">Personlige Oplysninger</h3>
+            <div class="hyc3-prof__form-grid">
+              <label><span>FORNAVN</span><input type="text" value="Sarah"></label>
+              <label><span>EFTERNAVN</span><input type="text" value="Jensen"></label>
+              <label><span>EMAIL</span><input type="email" value="sarah@email.dk" disabled style="opacity:.6"></label>
+              <label><span>TELEFON</span><input type="tel" value="+45 20 12 34 56"></label>
+              <label><span>F&Oslash;DSELSDATO</span><input type="date" value="1992-03-15"></label>
+            </div>
+            <button class="hyc3-pill" style="margin-top:24px">Gem &aelig;ndringer</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Reference Guide -->
+    <div class="ds-demo" style="background:var(--hyc-pale, #e8f4f6);padding:24px 28px;border-radius:12px;border:1.5px solid rgba(63,153,165,.2);margin-top:32px">
+      <h4 style="font-weight:700;margin:0 0 12px;font-size:.95rem;color:#357f89;font-family:'Abacaxi',system-ui,sans-serif">How to Reference (Section 34 v3)</h4>
       <ul class="ds-list ds-list--arrows" style="margin:0;font-size:.88rem">
-        <li>"Use <strong>HYC Auth A (glass + photo strip)</strong> from section 34"</li>
-        <li>"Use <strong>HYC Auth B (split photo + form)</strong> from section 34"</li>
-        <li>"Use <strong>HYC Profile A (hero header + underline tabs)</strong> from section 34"</li>
-        <li>"Use <strong>HYC Profile B (compact flat)</strong> from section 34"</li>
-        <li>Mix: e.g. Auth B + Profile A, or Auth A + Profile B</li>
-        <li>Photo placeholders shown as gradients — replace with actual studio photos</li>
+        <li>"Use <strong>HYC Auth A (light split)</strong> + <strong>Profile A (light hero)</strong> for a bright, airy member area"</li>
+        <li>"Use <strong>HYC Auth B (dark split)</strong> + <strong>Profile B (dark hero)</strong> for a premium, cinematic member area"</li>
+        <li>Both variants share: HYC pill buttons, 3 image cards, orange ecosystem badge, pill-style tab bar</li>
+        <li>Orange ecosystem touches: dot badge (<code>#f75c03</code>), gradient top bar (B variant), "Yoga Bible" label</li>
+        <li>Pill design matches <code>hotyogacph.dk</code>: <code>border-radius: 999px</code>, uppercase, letter-spacing, trailing dot</li>
       </ul>
     </div>
   </section>
@@ -6188,3 +6418,219 @@ document.addEventListener('DOMContentLoaded', function() {
   });
 });
 </script>
+
+
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<!--  35. YOGA BIBLE — Member Area & Auth (Final Design)             -->
+<!-- ═══════════════════════════════════════════════════════════════ -->
+
+  <section class="ds-section" id="s35-yb-auth-profile">
+    <div class="ds-section__header">
+      <h2 class="ds-section__title" data-number="35">Yoga Bible — Member Area & Auth</h2>
+      <p class="ds-section__desc">Final design for <code>yogabible.dk</code> member area. <strong>Login:</strong> Warm Minimal modal. <strong>Register:</strong> Split Visual with image panel. <strong>Profile:</strong> Hero Header + Underline Tabs (inspired by HYC C, branded YB orange).</p>
+    </div>
+
+    <style>
+    /* ── Section 35: Yoga Bible Design Tokens ── */
+    .yba { --yba: #f75c03; --yba-dark: #d94f02; --yba-light: #ff9966; --yba-pale: #fff3ec; --yba-glow: rgba(247,92,3,.12); --yba-black: #0F0F0F; --yba-muted: #6F6A66; --yba-border: #E8E4E0; --yba-bg: #F5F3F0; --yba-white: #FFFCF9; --yba-radius: 14px; --yba-font: 'Abacaxi', 'Helvetica Neue', Helvetica, Arial, system-ui, sans-serif; }
+    .yba * { box-sizing: border-box; }
+
+    /* ── LOGIN MODAL: Warm Minimal ── */
+    .yba-auth-a { background: var(--yba-white); border-radius: 20px; padding: 48px 40px; max-width: 420px; margin: 0 auto 48px; position: relative; overflow: hidden; box-shadow: 0 20px 60px rgba(0,0,0,.06); border: 1px solid var(--yba-border); }
+    .yba-auth-a::before { content: ''; position: absolute; top: -60px; right: -60px; width: 180px; height: 180px; background: radial-gradient(circle, var(--yba-glow) 0%, transparent 70%); pointer-events: none; }
+    .yba-auth-a__logo { width: 52px; height: 52px; background: var(--yba); border-radius: 14px; display: flex; align-items: center; justify-content: center; color: #fff; font-weight: 700; font-size: 1.1rem; margin-bottom: 24px; font-family: var(--yba-font); }
+    .yba-auth-a__title { font-family: var(--yba-font); font-size: 1.6rem; font-weight: 700; color: var(--yba-black); margin: 0 0 6px; }
+    .yba-auth-a__sub { font-family: var(--yba-font); font-size: .9rem; color: var(--yba-muted); margin: 0 0 28px; }
+    .yba-auth-a__field { margin-bottom: 16px; }
+    .yba-auth-a__field label { display: block; font-family: var(--yba-font); font-size: .8rem; font-weight: 700; color: var(--yba-muted); text-transform: uppercase; letter-spacing: .04em; margin-bottom: 6px; }
+    .yba-auth-a__field input { width: 100%; padding: 12px 16px; border: 1.5px solid var(--yba-border); border-radius: 12px; font-family: var(--yba-font); font-size: .95rem; background: #fff; transition: border-color .2s, box-shadow .2s; outline: none; color: var(--yba-black); }
+    .yba-auth-a__field input:focus { border-color: var(--yba); box-shadow: 0 0 0 3px var(--yba-glow); }
+    .yba-auth-a__row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .yba-auth-a__btn { width: 100%; padding: 14px; background: var(--yba); color: #fff; border: none; border-radius: 12px; font-family: var(--yba-font); font-size: 1rem; font-weight: 700; cursor: pointer; transition: background .2s, transform .1s; margin-top: 8px; }
+    .yba-auth-a__btn:hover { background: var(--yba-dark); }
+    .yba-auth-a__btn:active { transform: scale(.98); }
+    .yba-auth-a__consent { display: flex; align-items: flex-start; gap: 10px; margin-bottom: 12px; font-family: var(--yba-font); font-size: .82rem; color: var(--yba-muted); line-height: 1.4; }
+    .yba-auth-a__consent input[type="checkbox"] { appearance: none; -webkit-appearance: none; width: 18px; height: 18px; min-width: 18px; border: 1.5px solid var(--yba-border); border-radius: 4px; cursor: pointer; position: relative; margin-top: 1px; transition: border-color .15s, background .15s; }
+    .yba-auth-a__consent input[type="checkbox"]:checked { background: var(--yba); border-color: var(--yba); }
+    .yba-auth-a__consent input[type="checkbox"]:checked::after { content: ''; position: absolute; left: 5px; top: 1px; width: 5px; height: 10px; border: solid #fff; border-width: 0 2px 2px 0; transform: rotate(45deg); }
+    .yba-auth-a__consent a { color: var(--yba); text-decoration: none; font-weight: 600; }
+    .yba-auth-a__link { display: block; text-align: center; margin-top: 16px; font-family: var(--yba-font); font-size: .85rem; color: var(--yba-muted); }
+    .yba-auth-a__link a { color: var(--yba); text-decoration: none; font-weight: 700; }
+    .yba-auth-a__link a:hover { text-decoration: underline; }
+    .yba-auth-a__forgot { text-align: right; margin: -8px 0 12px; }
+    .yba-auth-a__forgot a { font-family: var(--yba-font); font-size: .8rem; color: var(--yba); text-decoration: none; }
+    .yba-auth-a__divider { display: flex; align-items: center; gap: 12px; margin: 20px 0; font-family: var(--yba-font); font-size: .78rem; color: var(--yba-muted); text-transform: uppercase; letter-spacing: .06em; }
+    .yba-auth-a__divider::before, .yba-auth-a__divider::after { content: ''; flex: 1; height: 1px; background: var(--yba-border); }
+    .yba-auth-a__error { font-family: var(--yba-font); font-size: .85rem; color: #d32f2f; background: #fdecea; padding: 10px 14px; border-radius: 8px; margin-bottom: 12px; }
+
+    /* ── REGISTER MODAL: Split Visual ── */
+    .yba-auth-c { display: grid; grid-template-columns: 1fr 1fr; max-width: 780px; margin: 0 auto 48px; border-radius: 20px; overflow: hidden; background: var(--yba-white); box-shadow: 0 24px 64px rgba(0,0,0,.08); }
+    .yba-auth-c__visual { background: linear-gradient(160deg, #c44800 0%, var(--yba) 50%, var(--yba-light) 100%); padding: 48px 32px; display: flex; flex-direction: column; justify-content: flex-end; position: relative; min-height: 480px; }
+    .yba-auth-c__visual-img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+    .yba-auth-c__visual-overlay { position: absolute; inset: 0; background: linear-gradient(160deg, rgba(196,72,0,.85) 0%, rgba(247,92,3,.7) 50%, rgba(255,153,102,.6) 100%); }
+    .yba-auth-c__visual-title { font-family: var(--yba-font); font-size: 1.8rem; font-weight: 700; color: #fff; margin: 0 0 8px; line-height: 1.2; position: relative; z-index: 1; }
+    .yba-auth-c__visual-sub { font-family: var(--yba-font); font-size: .9rem; color: rgba(255,255,255,.75); margin: 0; position: relative; z-index: 1; }
+    .yba-auth-c__visual-dots { position: absolute; top: 32px; left: 32px; display: flex; gap: 6px; z-index: 1; }
+    .yba-auth-c__visual-dots span { width: 8px; height: 8px; border-radius: 50%; background: rgba(255,255,255,.3); }
+    .yba-auth-c__visual-dots span:first-child { background: #fff; }
+    .yba-auth-c__visual-icon { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -60%); width: 80px; height: 80px; border: 2px solid rgba(255,255,255,.2); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 2rem; color: rgba(255,255,255,.4); z-index: 1; }
+    .yba-auth-c__form { padding: 48px 36px; display: flex; flex-direction: column; justify-content: center; }
+    .yba-auth-c__title { font-family: var(--yba-font); font-size: 1.4rem; font-weight: 700; color: var(--yba-black); margin: 0 0 4px; }
+    .yba-auth-c__sub { font-family: var(--yba-font); font-size: .85rem; color: var(--yba-muted); margin: 0 0 24px; }
+    .yba-auth-c__field { margin-bottom: 14px; }
+    .yba-auth-c__field label { display: block; font-family: var(--yba-font); font-size: .78rem; font-weight: 700; color: var(--yba-muted); text-transform: uppercase; letter-spacing: .04em; margin-bottom: 5px; }
+    .yba-auth-c__field input { width: 100%; padding: 11px 14px; border: 1.5px solid var(--yba-border); border-radius: 12px; font-family: var(--yba-font); font-size: .92rem; background: #fff; outline: none; transition: border-color .2s; }
+    .yba-auth-c__field input:focus { border-color: var(--yba); box-shadow: 0 0 0 3px var(--yba-glow); }
+    .yba-auth-c__row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .yba-auth-c__btn { width: 100%; padding: 13px; background: var(--yba); color: #fff; border: none; border-radius: 12px; font-family: var(--yba-font); font-size: .95rem; font-weight: 700; cursor: pointer; margin-top: 6px; transition: background .2s; }
+    .yba-auth-c__btn:hover { background: var(--yba-dark); }
+    .yba-auth-c__consent { display: flex; align-items: flex-start; gap: 8px; margin-bottom: 10px; font-family: var(--yba-font); font-size: .78rem; color: var(--yba-muted); line-height: 1.4; }
+    .yba-auth-c__consent input[type="checkbox"] { appearance: none; -webkit-appearance: none; width: 16px; height: 16px; min-width: 16px; border: 1.5px solid var(--yba-border); border-radius: 3px; cursor: pointer; position: relative; margin-top: 1px; transition: border-color .15s, background .15s; }
+    .yba-auth-c__consent input[type="checkbox"]:checked { background: var(--yba); border-color: var(--yba); }
+    .yba-auth-c__consent input[type="checkbox"]:checked::after { content: ''; position: absolute; left: 4px; top: 0px; width: 5px; height: 9px; border: solid #fff; border-width: 0 2px 2px 0; transform: rotate(45deg); }
+    .yba-auth-c__consent a { color: var(--yba); text-decoration: none; font-weight: 600; }
+    .yba-auth-c__link { display: block; text-align: center; margin-top: 14px; font-family: var(--yba-font); font-size: .83rem; color: var(--yba-muted); }
+    .yba-auth-c__link a { color: var(--yba); text-decoration: none; font-weight: 700; }
+    @media (max-width: 640px) { .yba-auth-c { grid-template-columns: 1fr; } .yba-auth-c__visual { min-height: 160px; padding: 32px 24px; } }
+
+    /* ── PROFILE: Hero Header + Underline Tabs ── */
+    .yba-prof-c { max-width: 960px; margin: 0 auto 48px; font-family: var(--yba-font); border-radius: var(--yba-radius); overflow: hidden; border: 1.5px solid var(--yba-border); }
+    .yba-prof-c__hero { background: linear-gradient(135deg, #c44800 0%, var(--yba) 40%, var(--yba-light) 100%); padding: 24px 36px 28px; }
+    .yba-prof-c__hero-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; }
+    .yba-prof-c__logo { font-family: var(--yba-font); font-size: .85rem; font-weight: 700; color: rgba(255,255,255,.7); letter-spacing: .05em; }
+    .yba-prof-c__lang-hero { display: flex; gap: 4px; }
+    .yba-prof-c__lang-hero button { padding: 4px 10px; border-radius: 6px; background: rgba(255,255,255,.1); border: none; color: rgba(255,255,255,.5); font-family: var(--yba-font); font-size: .72rem; font-weight: 700; cursor: pointer; transition: all .2s; }
+    .yba-prof-c__lang-hero button.is-active { background: rgba(255,255,255,.25); color: #fff; }
+    .yba-prof-c__user { display: flex; align-items: center; gap: 16px; }
+    .yba-prof-c__avatar { width: 68px; height: 68px; border-radius: 50%; border: 3px solid rgba(255,255,255,.3); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 1.4rem; color: #fff; flex-shrink: 0; background: rgba(255,255,255,.1); }
+    .yba-prof-c__name { font-size: 1.3rem; font-weight: 700; color: #fff; margin: 0 0 4px; }
+    .yba-prof-c__meta { font-size: .85rem; color: rgba(255,255,255,.65); margin: 0; }
+    .yba-prof-c__meta .yba-badge { display: inline-block; padding: 3px 10px; background: rgba(255,255,255,.2); backdrop-filter: blur(8px); border-radius: 12px; font-size: .72rem; font-weight: 700; color: #fff; margin-left: 8px; vertical-align: middle; }
+    .yba-prof-c__tabs { display: flex; gap: 0; background: var(--yba-white); border-bottom: 1.5px solid var(--yba-border); padding: 0 32px; overflow-x: auto; }
+    .yba-prof-c__tab { padding: 14px 20px; border: none; border-bottom: 2.5px solid transparent; background: none; font-family: var(--yba-font); font-size: .92rem; color: var(--yba-muted); cursor: pointer; transition: all .2s; margin-bottom: -1.5px; white-space: nowrap; }
+    .yba-prof-c__tab.is-active { color: var(--yba-black); border-bottom-color: var(--yba); font-weight: 700; }
+    .yba-prof-c__tab:hover:not(.is-active) { color: var(--yba-black); }
+    .yba-prof-c__content { padding: 32px; background: var(--yba-white); }
+    .yba-prof-c__card-title { font-size: 1.05rem; font-weight: 700; color: var(--yba-black); margin: 0 0 20px; padding-bottom: 14px; border-bottom: 1px solid var(--yba-border); }
+    .yba-prof-c__form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .yba-prof-c__form-grid label { display: grid; gap: 6px; }
+    .yba-prof-c__form-grid label span { font-size: .82rem; font-weight: 700; color: var(--yba-muted); text-transform: uppercase; letter-spacing: .04em; }
+    .yba-prof-c__form-grid input { padding: 12px 16px; border: 1.5px solid var(--yba-border); border-radius: 12px; font-family: var(--yba-font); font-size: .95rem; outline: none; transition: border-color .2s; }
+    .yba-prof-c__form-grid input:focus { border-color: var(--yba); box-shadow: 0 0 0 3px var(--yba-glow); }
+    .yba-prof-c__save { padding: 12px 32px; background: var(--yba); color: #fff; border: none; border-radius: 12px; font-family: var(--yba-font); font-size: .95rem; font-weight: 700; cursor: pointer; margin-top: 20px; transition: background .2s; }
+    .yba-prof-c__save:hover { background: var(--yba-dark); }
+    @media (max-width: 640px) { .yba-prof-c__form-grid { grid-template-columns: 1fr; } .yba-prof-c__tabs { padding: 0 16px; } .yba-prof-c__content { padding: 24px 16px; } .yba-prof-c__hero { padding: 20px 16px 24px; } }
+    </style>
+
+    <div class="yba">
+
+      <!-- ── Login Modal ── -->
+      <h3 class="ds-subsection" style="font-size:1.1rem;font-weight:700;margin:32px 0 12px;color:#0F0F0F;font-family:'Abacaxi',system-ui,sans-serif">Login Modal</h3>
+      <p style="font-size:.88rem;color:#6F6A66;margin-bottom:24px;font-family:'Abacaxi',system-ui,sans-serif">Warm minimal card with orange glow accent. Clean single-column layout.</p>
+
+      <div class="yba-auth-a">
+        <div class="yba-auth-a__logo">YB</div>
+        <h3 class="yba-auth-a__title">Velkommen tilbage</h3>
+        <p class="yba-auth-a__sub">Log ind for at se dit skema og medlemskab</p>
+        <div class="yba-auth-a__field">
+          <label>EMAIL</label>
+          <input type="email" placeholder="din@email.dk">
+        </div>
+        <div class="yba-auth-a__field">
+          <label>ADGANGSKODE</label>
+          <input type="password" placeholder="Indtast adgangskode">
+        </div>
+        <div class="yba-auth-a__forgot"><a href="#">Glemt adgangskode?</a></div>
+        <button class="yba-auth-a__btn">Log ind</button>
+        <p class="yba-auth-a__link">Har du ikke en konto? <a href="#">Opret konto</a></p>
+      </div>
+
+      <!-- ── Register Modal ── -->
+      <h3 class="ds-subsection" style="font-size:1.1rem;font-weight:700;margin:48px 0 12px;color:#0F0F0F;font-family:'Abacaxi',system-ui,sans-serif">Register Modal</h3>
+      <p style="font-size:.88rem;color:#6F6A66;margin-bottom:24px;font-family:'Abacaxi',system-ui,sans-serif">Split layout with image/gradient panel on the left and form on the right. Supports custom images via <code>&lt;img&gt;</code> in the visual panel.</p>
+
+      <div class="yba-auth-c">
+        <div class="yba-auth-c__visual">
+          <div class="yba-auth-c__visual-dots"><span></span><span></span><span></span></div>
+          <div class="yba-auth-c__visual-icon">&#x2728;</div>
+          <h3 class="yba-auth-c__visual-title">Start din<br>yoga-rejse</h3>
+          <p class="yba-auth-c__visual-sub">Opret en konto og f&aring; adgang til alle vores klasser og tilbud.</p>
+        </div>
+        <div class="yba-auth-c__form">
+          <h3 class="yba-auth-c__title">Opret konto</h3>
+          <p class="yba-auth-c__sub">Det tager kun et minut</p>
+          <div class="yba-auth-c__row">
+            <div class="yba-auth-c__field">
+              <label>FORNAVN</label>
+              <input type="text" placeholder="Fornavn">
+            </div>
+            <div class="yba-auth-c__field">
+              <label>EFTERNAVN</label>
+              <input type="text" placeholder="Efternavn">
+            </div>
+          </div>
+          <div class="yba-auth-c__field">
+            <label>EMAIL</label>
+            <input type="email" placeholder="din@email.dk">
+          </div>
+          <div class="yba-auth-c__field">
+            <label>ADGANGSKODE</label>
+            <input type="password" placeholder="Min. 8 tegn">
+          </div>
+          <div class="yba-auth-c__consent">
+            <input type="checkbox">
+            <span>Jeg accepterer <a href="#">Vilk&aring;r</a> og <a href="#">Privatlivspolitik</a></span>
+          </div>
+          <div class="yba-auth-c__consent">
+            <input type="checkbox">
+            <span>Jeg accepterer <a href="#">Code of Conduct</a></span>
+          </div>
+          <button class="yba-auth-c__btn">Opret konto</button>
+          <p class="yba-auth-c__link">Har du allerede en konto? <a href="#">Log ind</a></p>
+        </div>
+      </div>
+
+      <!-- ── Profile Layout ── -->
+      <h3 class="ds-subsection" style="font-size:1.1rem;font-weight:700;margin:48px 0 12px;color:#0F0F0F;font-family:'Abacaxi',system-ui,sans-serif">Profile / Member Area</h3>
+      <p style="font-size:.88rem;color:#6F6A66;margin-bottom:24px;font-family:'Abacaxi',system-ui,sans-serif">Orange gradient hero with logo bar, user info, and membership badge. Underline tab navigation below. White content area with form cards.</p>
+
+      <div class="yba-prof-c">
+        <div class="yba-prof-c__hero">
+          <div class="yba-prof-c__hero-top">
+            <span class="yba-prof-c__logo">YOGA BIBLE</span>
+            <div class="yba-prof-c__lang-hero">
+              <button class="is-active">DA</button>
+              <button>EN</button>
+            </div>
+          </div>
+          <div class="yba-prof-c__user">
+            <div class="yba-prof-c__avatar">SJ</div>
+            <div>
+              <p class="yba-prof-c__name">Sarah Jensen</p>
+              <p class="yba-prof-c__meta">sarah@yogabible.dk <span class="yba-badge">Unlimited Medlem</span></p>
+            </div>
+          </div>
+        </div>
+        <div class="yba-prof-c__tabs">
+          <button class="yba-prof-c__tab is-active">Profil</button>
+          <button class="yba-prof-c__tab">Skema</button>
+          <button class="yba-prof-c__tab">Butik</button>
+          <button class="yba-prof-c__tab">Mine Pas</button>
+          <button class="yba-prof-c__tab">Bes&oslash;g</button>
+          <button class="yba-prof-c__tab">Kvitteringer</button>
+        </div>
+        <div class="yba-prof-c__content">
+          <h3 class="yba-prof-c__card-title">Personlige Oplysninger</h3>
+          <div class="yba-prof-c__form-grid">
+            <label><span>FORNAVN</span><input type="text" value="Sarah"></label>
+            <label><span>EFTERNAVN</span><input type="text" value="Jensen"></label>
+            <label><span>EMAIL</span><input type="email" value="sarah@yogabible.dk" disabled style="opacity:.6"></label>
+            <label><span>TELEFON</span><input type="tel" value="+45 20 12 34 56"></label>
+            <label><span>F&Oslash;DSELSDATO</span><input type="date" value="1990-03-15"></label>
+          </div>
+          <button class="yba-prof-c__save">Gem &aelig;ndringer</button>
+        </div>
+      </div>
+
+    </div><!-- end .yba -->
+  </section>

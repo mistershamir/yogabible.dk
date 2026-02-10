@@ -68,10 +68,21 @@ exports.handler = async function(event) {
       }
 
       var contracts = (data.Contracts || []).map(function(c) {
+        // Extract autopay frequency details
+        var scheduleObj = c.AutopaySchedule || {};
+        var freqType = '';
+        if (typeof scheduleObj === 'object') {
+          freqType = scheduleObj.FrequencyType || scheduleObj.Description || JSON.stringify(scheduleObj);
+        } else {
+          freqType = scheduleObj;
+        }
+        // First payment of 0 means first period is free
+        var firstPaymentRaw = c.FirstPaymentAmountSubtotal || 0;
         return {
           id: c.Id,
           name: c.Name || '',
           description: c.Description || '',
+          onlineDescription: c.OnlineDescription || '',
           assignsMembershipId: c.AssignsMembershipId || null,
           assignsMembershipName: c.AssignsMembershipName || '',
           contractItems: (c.ContractItems || []).map(function(ci) {
@@ -86,19 +97,20 @@ exports.handler = async function(event) {
             };
           }),
           soldOnline: c.SoldOnline || false,
-          firstPaymentAmount: c.FirstPaymentAmountSubtotal || null,
+          firstPaymentAmount: firstPaymentRaw,
           firstPaymentTax: c.FirstPaymentTaxAmount || null,
+          firstMonthFree: firstPaymentRaw === 0,
           recurringPaymentAmount: c.RecurringPaymentAmountSubtotal || null,
           totalContractAmount: c.TotalContractAmountSubtotal || null,
           duration: c.Duration || null,
           durationUnit: c.DurationUnit || '',
-          autopaySchedule: (c.AutopaySchedule && typeof c.AutopaySchedule === 'object')
-            ? (c.AutopaySchedule.FrequencyType || c.AutopaySchedule.Description || JSON.stringify(c.AutopaySchedule))
-            : (c.AutopaySchedule || ''),
+          autopaySchedule: freqType,
           numberOfAutopays: c.NumberOfAutopays || null,
           locationId: c.LocationId || null,
           programIds: c.ProgramIds || [],
-          membershipTypeRestrictions: c.MembershipTypeRestrictions || []
+          membershipTypeRestrictions: c.MembershipTypeRestrictions || [],
+          agreementTerms: c.AgreementTerms || '',
+          requiresElectronicConfirmation: c.RequiresElectronicConfirmation || false
         };
       });
 
@@ -127,8 +139,8 @@ exports.handler = async function(event) {
       var body = JSON.parse(event.body || '{}');
       console.log('[mb-contracts] POST action:', body.action || 'purchase', 'clientId:', body.clientId);
 
-      // ── Route: manage actions (terminate / suspend) ──
-      if (body.action === 'terminate' || body.action === 'suspend') {
+      // ── Route: manage actions (terminate / suspend / activate) ──
+      if (body.action === 'terminate' || body.action === 'suspend' || body.action === 'activate') {
         // Force fresh token for contract management (staff permissions may have changed)
         clearTokenCache();
 
@@ -220,6 +232,9 @@ exports.handler = async function(event) {
           var end = new Date(body.endDate);
           var durationDays = Math.round((end - start) / 86400000);
 
+          if (isNaN(durationDays) || durationDays < 1) {
+            return jsonResponse(400, { error: 'Invalid dates — could not calculate duration' });
+          }
           if (durationDays < 14) {
             return jsonResponse(400, { error: 'Suspension must be at least 14 days' });
           }
@@ -227,68 +242,85 @@ exports.handler = async function(event) {
             return jsonResponse(400, { error: 'Suspension cannot exceed 3 months (93 days)' });
           }
 
+          var ccId = Number(body.clientContractId);
+
+          // CONFIRMED WORKING (2026-02-09):
+          // POST /client/suspendcontract with SuspensionType:"Vacation", DurationUnit:"Day"
           var suspendBody = {
             ClientId: body.clientId,
-            ClientContractId: body.clientContractId,
+            ClientContractId: ccId,
             SuspendDate: body.startDate,
-            ResumeDate: body.endDate,
-            SendNotifications: true
+            Duration: durationDays,
+            DurationUnit: 'Day',
+            SuspensionType: 'Vacation'
           };
 
-          console.log('[mb-contracts] Suspending:', JSON.stringify({
-            ClientId: suspendBody.ClientId,
-            ClientContractId: suspendBody.ClientContractId,
-            SuspendDate: suspendBody.SuspendDate,
-            ResumeDate: suspendBody.ResumeDate,
-            DurationDays: durationDays
-          }));
+          console.log('[mb-contracts] Suspending — body:', JSON.stringify(suspendBody));
 
-          // Try endpoint paths in order — MB v6 docs put this under Sale category
-          var suspendPaths = ['/sale/suspendcontract', '/contract/suspendcontract', '/client/suspendcontract'];
-          var lastSuspErr = null;
-          var suspPathResults = [];
+          var suspResult = await mbFetch('/client/suspendcontract', {
+            method: 'POST',
+            body: JSON.stringify(suspendBody)
+          });
+          console.log('[mb-contracts] Suspend SUCCESS:', JSON.stringify(suspResult).substring(0, 300));
+          return jsonResponse(200, {
+            success: true,
+            action: 'suspend',
+            suspendDate: body.startDate,
+            resumeDate: body.endDate,
+            durationDays: durationDays
+          });
+        }
 
-          for (var si = 0; si < suspendPaths.length; si++) {
+        if (body.action === 'activate') {
+          var activateBody = {
+            ClientId: body.clientId,
+            ClientContractId: body.clientContractId
+          };
+
+          console.log('[mb-contracts] Activating (revoking termination):', JSON.stringify(activateBody));
+
+          // Try multiple endpoint paths — no documented endpoint, so we try common patterns
+          var activatePaths = ['/sale/activatecontract', '/contract/activatecontract', '/client/activatecontract'];
+          var lastActErr = null;
+          var actPathResults = [];
+
+          for (var ai = 0; ai < activatePaths.length; ai++) {
             try {
-              console.log('[mb-contracts] Trying suspend path: ' + suspendPaths[si]);
-              await mbFetch(suspendPaths[si], {
+              console.log('[mb-contracts] Trying activate path: ' + activatePaths[ai]);
+              await mbFetch(activatePaths[ai], {
                 method: 'POST',
-                body: JSON.stringify(suspendBody)
+                body: JSON.stringify(activateBody)
               });
-              suspPathResults.push({ path: suspendPaths[si], status: 'success' });
+              actPathResults.push({ path: activatePaths[ai], status: 'success' });
               return jsonResponse(200, {
                 success: true,
-                action: 'suspend',
-                suspendDate: body.startDate,
-                resumeDate: body.endDate,
-                durationDays: durationDays,
-                endpointUsed: suspendPaths[si],
-                _pathResults: suspPathResults
+                action: 'activate',
+                endpointUsed: activatePaths[ai],
+                _pathResults: actPathResults
               });
-            } catch (suspErr) {
-              var suspMsg = (suspErr.message || '').toLowerCase();
-              suspPathResults.push({ path: suspendPaths[si], status: suspErr.status || 'error', error: suspErr.message });
-              if (suspMsg.indexOf('non-json') > -1 || suspMsg.indexOf('not exist') > -1 || suspErr.status === 404 || suspErr.status === 405) {
-                console.log('[mb-contracts] Path ' + suspendPaths[si] + ' failed (' + (suspErr.status || 'unknown') + '), trying next...');
-                lastSuspErr = suspErr;
-              } else if (suspMsg.indexOf('permission') > -1) {
-                console.log('[mb-contracts] Permission denied on ' + suspendPaths[si] + ', trying next path...');
-                lastSuspErr = suspErr;
+            } catch (actErr) {
+              var actMsg = (actErr.message || '').toLowerCase();
+              actPathResults.push({ path: activatePaths[ai], status: actErr.status || 'error', error: actErr.message });
+              if (actMsg.indexOf('non-json') > -1 || actMsg.indexOf('not exist') > -1 || actErr.status === 404 || actErr.status === 405) {
+                console.log('[mb-contracts] Path ' + activatePaths[ai] + ' failed (' + (actErr.status || 'unknown') + '), trying next...');
+                lastActErr = actErr;
+              } else if (actMsg.indexOf('permission') > -1) {
+                console.log('[mb-contracts] Permission denied on ' + activatePaths[ai] + ', trying next path...');
+                lastActErr = actErr;
               } else {
-                return jsonResponse(suspErr.status || 500, {
-                  error: suspErr.message,
-                  _pathResults: suspPathResults
+                return jsonResponse(actErr.status || 500, {
+                  error: actErr.message,
+                  _pathResults: actPathResults
                 });
               }
             }
           }
 
-          var finalSuspMsg = lastSuspErr ? lastSuspErr.message : 'All suspend paths failed';
-          console.error('[mb-contracts] All suspend paths failed:', JSON.stringify(suspPathResults));
-          return jsonResponse(lastSuspErr ? (lastSuspErr.status || 500) : 500, {
-            error: finalSuspMsg,
-            _pathResults: suspPathResults,
-            _hint: 'All 3 endpoint paths failed. Check Mindbody staff permissions for the API user.'
+          console.error('[mb-contracts] All activate paths failed:', JSON.stringify(actPathResults));
+          return jsonResponse(404, {
+            error: 'not_available',
+            _pathResults: actPathResults,
+            _hint: 'Contract reactivation is not available via the Mindbody API. Reactivate from Mindbody admin or contact support.'
           });
         }
       }
@@ -309,6 +341,11 @@ exports.handler = async function(event) {
 
       if (body.promoCode) {
         purchaseBody.PromotionCode = body.promoCode;
+      }
+
+      // Electronic signature (Base64 PNG) — Mindbody auto-files under Client Documents
+      if (body.clientSignature) {
+        purchaseBody.ClientSignature = body.clientSignature.replace(/^data:image\/png;base64,/, '');
       }
 
       // Add payment if provided

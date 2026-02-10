@@ -45,9 +45,15 @@ exports.handler = async function(event) {
             lastName: client.LastName,
             email: client.Email,
             phone: client.MobilePhone || client.HomePhone || '',
+            birthDate: client.BirthDate || null,
             status: client.Status,
             active: client.Active,
-            membershipName: client.MembershipIcon ? client.MembershipIcon.Name : null
+            membershipName: client.MembershipIcon ? client.MembershipIcon.Name : null,
+            liability: client.Liability ? {
+              isReleased: client.Liability.IsReleased || false,
+              agreementDate: client.Liability.AgreementDate || null,
+              releasedBy: client.Liability.ReleasedBy
+            } : { isReleased: false, agreementDate: null, releasedBy: null }
           }
         });
       }
@@ -77,6 +83,9 @@ exports.handler = async function(event) {
 
       if (body.phone) {
         newClient.MobilePhone = body.phone;
+      }
+      if (body.birthDate) {
+        newClient.BirthDate = body.birthDate;
       }
 
       var data = await mbFetch('/client/addclient', {
@@ -121,6 +130,7 @@ exports.handler = async function(event) {
       if (body.lastName) updateData.LastName = body.lastName;
       if (body.email) updateData.Email = body.email;
       if (body.phone) updateData.MobilePhone = body.phone;
+      if (body.birthDate) updateData.BirthDate = body.birthDate;
 
       var data = await mbFetch('/client/updateclient', {
         method: 'POST',
@@ -135,7 +145,8 @@ exports.handler = async function(event) {
           firstName: updated.FirstName,
           lastName: updated.LastName,
           email: updated.Email,
-          phone: updated.MobilePhone || ''
+          phone: updated.MobilePhone || '',
+          birthDate: updated.BirthDate || null
         }
       });
     } catch (err) {

@@ -1,110 +1,84 @@
 {
   "da": {
-    "hero_title": "Handelsbetingelser",
-    "hero_subtitle": "Hot Yoga Copenhagen ApS · CVR: 41295252",
+    "hero_title": "Handelsbetingelser & Vilkår",
+    "hero_subtitle": "Gennemsigtighed og tillid er fundamentet for alt, hvad vi gør. Her finder du de vilkår, der gælder når du køber, deltager eller bruger vores ydelser.",
     "last_updated": "Sidst opdateret: 11. januar 2026",
     "company_info": "<strong>Hot Yoga Copenhagen ApS</strong><br>CVR: 41295252 · VAT: DK41295252<br>Torvegade 66, 1400 København K, Danmark<br>Telefon: <a href=\"tel:+4553881209\">+45 53 88 12 09</a> · E-mail: <a href=\"mailto:info@yogabible.dk\">info@yogabible.dk</a>",
     "subbrands": "Underbrands: Yoga Bible, Hot Yoga Copenhagen, Vibro Yoga, Namaste Studios, Namaste Online, Yoga Bible International.",
-
     "s1_title": "1. Omfang",
     "s1_text": "Disse betingelser gælder for alle køb, deltagelse og brug af services på tværs af websites, e-mails og platforme. Både B2C (forbruger) og B2B (erhverv) er dækket.",
-
     "s2_title": "2. Bestilling, Betaling & Afdragsordninger",
     "s2_text": "Standardvaluta er DKK. Bestillingen er bindende, når bekræftelse er modtaget. Afdragsordninger kan inkludere forsinkelsesgebyr (ca. 150 kr.). Certificering udstedes typisk ved fuld betaling.",
-
     "s3_title": "3. Aflysninger, Ombooking & Refusion",
     "s3_courses": "<strong>Kurser:</strong> Fuld refusion ved aflysning 30+ dage før start; ingen refusion ved &lt;30 dage",
     "s3_workshops": "<strong>Workshops:</strong> 59 kr. no-show gebyr; booking/klip forbruges",
     "s3_illness": "<strong>Sygdom:</strong> Generelt ingen refusion, men overflytning til fremtidigt hold kan aftales",
     "s3_org_cancel": "Fuld refusion hvis organisationen aflyser",
-
     "s4_title": "4. Fortrydelsesret (B2C)",
     "s4_text": "Forbrugere har ca. 14 dages fortrydelsesret ved fjernsalg. Øjeblikkelig servicelevering kan betyde, at fortrydelsesretten bortfalder.",
-
     "s5_title": "5. Momsregler",
     "s5_physical": "Fysisk træning i Danmark: 25% moms fra 1. januar 2026",
     "s5_education": "Uddannelsesprogrammer kan kvalificere til momsfritagelse under specifikke betingelser",
     "s5_international": "Internationale B2C virtuelle services kan have moms i kundens land",
-
     "s6_title": "6. YTT/Uddannelsesprogrammer",
     "s6_text": "Depositum er ikke-refunderbart. Der kræves 90+ dages skriftlig opsigelse for at undgå fuld betalingsforpligtelse. Certificering udstedes ved komplet betaling. Fuld refusion hvis organisationen aflyser.",
-
     "s7_title": "7. Mentorship & Privat Træning",
     "s7_text": "48+ timers varsel kræves for ombooking. Under 48 timer: Fuld betaling tilbageholdes, ingen refusion.",
-
     "s8_title": "8. Digitale Services & Namaste Online",
     "s8_text": "Øjeblikkelig adgang ved køb. Live-only sessioner inkluderer typisk ikke optagelser. Deltagere accepterer potentiel synlighed i livestreams.",
-
     "s9_title": "9. Optagelser, Fotos & Materialebrug",
     "s9_text": "Organisationen kan optage deltagere til undervisning, dokumentation og markedsføring. Deltagere kan anmode om kamerafri placering (24 timers varsel foretrukket). Fuld udelukkelse kan ikke garanteres i gruppesettings.",
-
     "s10_title": "10. Materialer, Copyright & Delingsforbud",
     "s10_text": "Materialer tilhører Yoga Bible / Hot Yoga Copenhagen ApS. Forbudte aktiviteter: kopiering, deling, optagelse, fotografering eller kommerciel brug uden skriftlig tilladelse. Overtrædelser medfører øjeblikkelig udelukkelse uden refusion.",
-
     "s11_title": "11. Ansvar & Sundhedsansvarsfraskrivelse",
     "s11_text": "Yoga indebærer skaderisiko. Deltagere påtager sig ansvar og skal følge instruktioner. Undervisning erstatter ikke lægelig vurdering.",
-
     "s12_title": "12. Adfærd & Fællesskabsstandarder",
     "s12_text": "Professionelt læringsmiljø. Chikane, diskrimination, trusler eller sikkerhedsovertrædelser kan medføre ophør og udelukkelse.",
-
     "s13_title": "13. Karriere/Samarbejde",
     "s13_text": "24-måneders non-solicitation periode efter arbejdsforhold ophører. Streng fortrolighed vedrørende elevdata, processer, priser og materialer. Al kundekontakt håndteres gennem officielle kanaler.",
-
     "s14_title": "14. Klager, Lovvalg & Ændringer",
-    "s14_text": "Kontakt <a href=\"mailto:info@yogabible.dk\">info@yogabible.dk</a> ved tvister. Dansk lovgivning gælder; værneting er Københavns Byret. Betingelser kan opdateres; den version der var gældende ved køb, er styrende."
+    "s14_text": "Kontakt <a href=\"mailto:info@yogabible.dk\">info@yogabible.dk</a> ved tvister. Dansk lovgivning gælder; værneting er Københavns Byret. Betingelser kan opdateres; den version der var gældende ved køb, er styrende.",
+    "hero_tagline": "Yoga Bible · Juridisk"
   },
   "en": {
     "hero_title": "Terms & Conditions",
-    "hero_subtitle": "Hot Yoga Copenhagen ApS · CVR: 41295252",
+    "hero_subtitle": "Transparency and trust are the foundation of everything we do. Here you will find the terms that apply when you purchase, participate in, or use our services.",
     "last_updated": "Last updated: January 11, 2026",
     "company_info": "<strong>Hot Yoga Copenhagen ApS</strong><br>CVR: 41295252 · VAT: DK41295252<br>Torvegade 66, 1400 København K, Denmark<br>Phone: <a href=\"tel:+4553881209\">+45 53 88 12 09</a> · Email: <a href=\"mailto:info@yogabible.dk\">info@yogabible.dk</a>",
     "subbrands": "Sub-brands: Yoga Bible, Hot Yoga Copenhagen, Vibro Yoga, Namaste Studios, Namaste Online, Yoga Bible International.",
-
     "s1_title": "1. Scope",
     "s1_text": "These terms apply to all purchases, participation, and use of services across websites, emails, and platforms. Both B2C (consumer) and B2B (business) are covered.",
-
     "s2_title": "2. Orders, Payment & Installment Plans",
     "s2_text": "Default currency is DKK. The order is binding once confirmation is received. Installment plans may include a late fee (approx. 150 DKK). Certification is typically issued upon full payment.",
-
     "s3_title": "3. Cancellations, Rebooking & Refunds",
     "s3_courses": "<strong>Courses:</strong> Full refund if cancelled 30+ days before start; no refund at &lt;30 days",
     "s3_workshops": "<strong>Workshops:</strong> 59 DKK no-show fee; booking/credits are consumed",
     "s3_illness": "<strong>Illness:</strong> Generally no refund, but transfer to a future cohort may be arranged",
     "s3_org_cancel": "Full refund if the organization cancels",
-
     "s4_title": "4. Right of Withdrawal (B2C)",
     "s4_text": "Consumers have approximately 14 days right of withdrawal for distance sales. Immediate service delivery may mean the right of withdrawal lapses.",
-
     "s5_title": "5. VAT Rules",
     "s5_physical": "Physical training in Denmark: 25% VAT from January 1, 2026",
     "s5_education": "Training programs may qualify for VAT exemption under specific conditions",
     "s5_international": "International B2C virtual services may be subject to VAT in the customer's country",
-
     "s6_title": "6. YTT/Training Programs",
     "s6_text": "Deposits are non-refundable. 90+ days written notice is required to avoid full payment obligation. Certification is issued upon complete payment. Full refund if the organization cancels.",
-
     "s7_title": "7. Mentorship & Private Training",
     "s7_text": "48+ hours notice is required for rebooking. Less than 48 hours: Full payment is retained, no refund.",
-
     "s8_title": "8. Digital Services & Namaste Online",
     "s8_text": "Immediate access upon purchase. Live-only sessions typically do not include recordings. Participants accept potential visibility in livestreams.",
-
     "s9_title": "9. Recordings, Photos & Material Use",
     "s9_text": "The organization may record participants for teaching, documentation, and marketing purposes. Participants can request camera-free placement (24 hours notice preferred). Full exclusion cannot be guaranteed in group settings.",
-
     "s10_title": "10. Materials, Copyright & Sharing Prohibition",
     "s10_text": "Materials belong to Yoga Bible / Hot Yoga Copenhagen ApS. Prohibited activities: copying, sharing, recording, photographing, or commercial use without written permission. Violations result in immediate exclusion without refund.",
-
     "s11_title": "11. Liability & Health Disclaimer",
     "s11_text": "Yoga involves risk of injury. Participants assume responsibility and must follow instructions. Teaching does not replace medical assessment.",
-
     "s12_title": "12. Conduct & Community Standards",
     "s12_text": "Professional learning environment. Harassment, discrimination, threats, or safety violations may result in termination and exclusion.",
-
     "s13_title": "13. Careers/Collaboration",
     "s13_text": "24-month non-solicitation period after the working relationship ends. Strict confidentiality regarding student data, processes, pricing, and materials. All client contact is handled through official channels.",
-
     "s14_title": "14. Complaints, Governing Law & Changes",
-    "s14_text": "Contact <a href=\"mailto:info@yogabible.dk\">info@yogabible.dk</a> for disputes. Danish law applies; venue is the Copenhagen City Court. Terms may be updated; the version in effect at the time of purchase governs."
+    "s14_text": "Contact <a href=\"mailto:info@yogabible.dk\">info@yogabible.dk</a> for disputes. Danish law applies; venue is the Copenhagen City Court. Terms may be updated; the version in effect at the time of purchase governs.",
+    "hero_tagline": "Yoga Bible · Legal"
   }
 }

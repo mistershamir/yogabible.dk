@@ -38,7 +38,7 @@ async function validateClientPass(clientId, classId) {
       ? cls.ClassDescription.Program.Id : null;
 
     if (!classProgramId) {
-      return { allowed: true }; // No program info, let booking proceed
+      return { allowed: true, classProgramId: null }; // No program info, let booking proceed
     }
 
     // Fetch client's active services and contracts
@@ -53,20 +53,9 @@ async function validateClientPass(clientId, classId) {
 
     var now = new Date();
 
-    // Active contracts (memberships) typically cover all classes
-    var contracts = contractsData.Contracts || [];
-    for (var i = 0; i < contracts.length; i++) {
-      var c = contracts[i];
-      var startDate = c.StartDate ? new Date(c.StartDate) : null;
-      var endDate = c.EndDate ? new Date(c.EndDate) : null;
-      var isActive = startDate && startDate <= now && (!endDate || endDate >= now);
-      if (isActive) {
-        console.log('mb-book: Client has active contract:', c.ContractName || c.Id, '— allowing booking');
-        return { allowed: true };
-      }
-    }
-
     // Check if any active service covers this class's program
+    // NOTE: Contracts (memberships) create corresponding services in MB,
+    // so we match services only — this correctly gates workshop/special passes
     var services = servicesData.ClientServices || [];
     for (var j = 0; j < services.length; j++) {
       var s = services[j];
@@ -80,29 +69,37 @@ async function validateClientPass(clientId, classId) {
           continue; // This pass is used up, check others
         }
         console.log('mb-book: Client has matching service:', s.Name, 'program:', s.Program.Id, '— allowing booking');
-        return { allowed: true };
+        return { allowed: true, classProgramId: classProgramId };
       }
     }
 
     var classProgramName = cls.ClassDescription.Program.Name || 'this class type';
     console.log('mb-book: No matching pass for program', classProgramId, '(' + classProgramName + ') — denying booking');
-    return { allowed: false, reason: 'No valid pass for ' + classProgramName };
+    return { allowed: false, reason: 'No valid pass for ' + classProgramName, classProgramId: classProgramId, classProgramName: classProgramName };
   } catch (err) {
-    console.warn('mb-book: Pass validation error:', err.message, '— allowing booking as fallback');
-    return { allowed: true }; // On error, let booking proceed (fail open)
+    console.error('mb-book: Pass validation error:', err.message, '— BLOCKING booking (fail closed)');
+    return { allowed: false, reason: 'Could not validate pass — please try again' };
   }
 }
 
 /**
- * Check if client has an active autopay contract (recurring membership).
- * This is ONLY needed for the special case: booking past billing cycle.
+ * Check if client has an active autopay contract that covers the given program.
+ * If classProgramId is null, checks for ANY active autopay (backward compat).
+ * This is ONLY needed for the special case: booking past billing cycle where
+ * the service expired between cycles but the membership is still active.
  */
-async function hasAutopayContract(clientId) {
+async function hasAutopayContractForProgram(clientId, classProgramId) {
   try {
-    var contractData = await mbFetch('/client/clientcontracts?ClientId=' + clientId);
-    var contracts = contractData.Contracts || [];
+    var results = await Promise.all([
+      mbFetch('/client/clientcontracts?ClientId=' + clientId),
+      classProgramId ? mbFetch('/client/clientservices?ClientId=' + clientId + '&Limit=200') : Promise.resolve({ ClientServices: [] })
+    ]);
+    var contracts = results[0].Contracts || [];
+    var services = results[1].ClientServices || [];
     var now = new Date();
 
+    // Find active autopay contracts
+    var activeContractIds = [];
     for (var i = 0; i < contracts.length; i++) {
       var c = contracts[i];
       var startDate = c.StartDate ? new Date(c.StartDate) : null;
@@ -111,12 +108,37 @@ async function hasAutopayContract(clientId) {
       var isAutopay = c.IsAutoRenewing || (c.AutopayStatus && c.AutopayStatus !== 'Inactive');
 
       if (isActive && isAutopay) {
-        console.log('mb-book: Client', clientId, 'has active autopay contract:', c.ContractName || c.Id);
-        return true;
+        activeContractIds.push(c.Id);
+        // If no program filter, any active autopay is fine
+        if (!classProgramId) {
+          console.log('mb-book: Client', clientId, 'has active autopay contract:', c.ContractName || c.Id);
+          return true;
+        }
       }
     }
+
+    if (!activeContractIds.length) return false;
+
+    // If we need program matching: check if any service from these contracts
+    // (even expired ones within last 30 days) covers the class's program.
+    // This handles billing-gap edge case where service expired between cycles.
+    var cutoff = new Date(now.getTime() - 30 * 86400000);
+    for (var j = 0; j < services.length; j++) {
+      var s = services[j];
+      if (s.Program && Number(s.Program.Id) === Number(classProgramId)) {
+        var sExpiry = s.ExpirationDate ? new Date(s.ExpirationDate) : null;
+        // Service matches program AND is recent (within 30 days of expiry — billing gap)
+        if (!sExpiry || sExpiry >= cutoff) {
+          console.log('mb-book: Client', clientId, 'has autopay + matching program service:', s.Name, 'program:', s.Program.Id);
+          return true;
+        }
+      }
+    }
+
+    console.log('mb-book: Client', clientId, 'has autopay but NO service matching program', classProgramId);
+    return false;
   } catch (err) {
-    console.warn('mb-book: Could not check contracts:', err.message);
+    console.warn('mb-book: Could not check contracts for program match:', err.message);
   }
   return false;
 }
@@ -141,7 +163,9 @@ exports.handler = async function(event) {
       if (!passCheck.allowed) {
         return jsonResponse(403, {
           error: 'no_pass',
-          message: passCheck.reason || 'Client does not have a valid pass for this class'
+          message: passCheck.reason || 'Client does not have a valid pass for this class',
+          programName: passCheck.classProgramName || null,
+          programId: passCheck.classProgramId || null
         });
       }
 
@@ -189,12 +213,12 @@ exports.handler = async function(event) {
         || err.status === 412;
 
       if (isPaymentError) {
-        // Check if client has autopay membership — if so, they should be allowed
-        var hasAutopay = await hasAutopayContract(body.clientId);
+        // Check if client has autopay membership for THIS PROGRAM — if so, likely a billing gap
+        var hasAutopay = await hasAutopayContractForProgram(body.clientId, passCheck.classProgramId || null);
         if (hasAutopay) {
           // Retry — this time Mindbody should allow it via staff token
           // The staff user needs "Make Unpaid Reservation" permission in Mindbody
-          console.log('mb-book: Autopay member — retrying booking');
+          console.log('mb-book: Autopay member with matching program — retrying booking');
           try {
             const retryData = await mbFetch('/class/addclienttoclass', {
               method: 'POST',

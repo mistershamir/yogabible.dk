@@ -30,7 +30,11 @@
     "creators_title": "Meet The Creators",
     "creators_desc": "Vores musik er skabt af undervisere, DJ's og producere, der forstår at sound design er en essentiel del af yogaoplevelsen. Hver kunstner bringer deres unikke perspektiv for at skabe rejser, der healer, energiserer og transformerer.",
     "cta_title": "Try It Yourself",
-    "cta_text": "Lyt til vores kuraterede sets og oplev forskellen."
+    "cta_text": "Lyt til vores kuraterede sets og oplev forskellen.",
+    "hero_tagline": "Yoga Bible · Musik",
+    "hero_trust1": "Originale Playlists",
+    "hero_trust2": "SoundCloud & Spotify",
+    "hero_trust3": "Skabt til Praksis"
   },
   "en": {
     "hero_badge": "MUSIC",
@@ -63,6 +67,10 @@
     "creators_title": "Meet The Creators",
     "creators_desc": "Our music is created by instructors, DJs, and producers who understand that sound design is an essential part of the yoga experience. Each artist brings their unique perspective to create journeys that heal, energize, and transform.",
     "cta_title": "Try It Yourself",
-    "cta_text": "Listen to our curated sets and experience the difference."
+    "cta_text": "Listen to our curated sets and experience the difference.",
+    "hero_tagline": "Yoga Bible · Music",
+    "hero_trust1": "Original Playlists",
+    "hero_trust2": "SoundCloud & Spotify",
+    "hero_trust3": "Made for Practice"
   }
 }

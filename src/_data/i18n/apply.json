@@ -10,7 +10,6 @@
     "hero_stat3_value": "Yoga Alliance",
     "hero_stat3_label": "Registreret (RYS)",
     "hero_cta": "Start ansøgning",
-
     "intro_eyebrow": "Yoga Bible",
     "intro_title": "Ansøgning & ændringer",
     "intro_kicker": "Et valg der kan ændre din hverdag",
@@ -21,16 +20,13 @@
     "intro_bullet3": "Et fællesskab, der støtter din udvikling",
     "intro_img_alt": "Yoga Bible — uddannelser og kurser",
     "intro_note": "Vælg først om du vil ansøge om <strong>Yoga læreruddannelse (YTT)</strong> og/eller <strong>Kursus</strong>. Betaling håndteres <strong>separat</strong> for hver del (så vi kan matche korrekt). Hvis du <strong>ikke allerede har betalt</strong>, og ansøgning er åben, kan du betale via link og derefter indsende ansøgningen.",
-
     "form_title": "Ny ansøgning",
     "form_sub": "Vælg dit forløb nedenfor.",
     "form_section_label": "Ny ansøgning",
-
     "builder_legend": "Hvad vil du ansøge om?",
     "builder_ytt": "Yoga læreruddannelse (YTT)",
     "builder_course": "Kursus",
     "builder_mentorship": "Mentorship — privat træning",
-
     "ytt_section_label": "Yoga læreruddannelse",
     "ytt_title": "Yoga læreruddannelse (YTT)",
     "ytt_sub": "Vælg program, periode — og evt. spor.",
@@ -45,7 +41,6 @@
     "ytt_pay_btn": "Betal — YTT",
     "ytt_pay_meta": "Åbner i nyt faneblad",
     "ytt_paid_confirm": "Jeg bekræfter, at jeg har gennemført YTT-betalingen",
-
     "course_section_label": "Kursus",
     "course_title": "Kursus",
     "course_sub": "Vælg kursus, periode — eller en kursuspakke (bundle).",
@@ -60,7 +55,6 @@
     "course_pay_btn": "Betal fuld betaling — Kursus",
     "course_pay_meta": "Åbner i nyt faneblad",
     "course_paid_confirm": "Jeg bekræfter, at jeg har gennemført kursus-betalingen",
-
     "accom_section_label": "Overnatning",
     "accom_title": "Overnatning",
     "accom_sub": "Har du brug for overnatning i 2026? (Feb–Jun)",
@@ -78,7 +72,6 @@
     "accom_pay_btn": "Åbn overnatningsside",
     "accom_pay_meta": "Åbner i nyt faneblad",
     "accom_paid_confirm": "Jeg bekræfter, at jeg har gennemført overnatningsbetalingen",
-
     "field_firstname": "Fornavn *",
     "field_lastname": "Efternavn *",
     "field_email": "E-mail *",
@@ -97,11 +90,9 @@
     "antispam_placeholder": "Skriv ordet: YOGA",
     "antispam_hint": "Et lille yogisk tjek for at holde formularen ren",
     "consent_text": "Jeg accepterer, at Yoga Bible gemmer mine oplysninger for at administrere ansøgningen.",
-
     "validation_head": "Udfyld disse felter for at sende:",
     "submit_btn": "Send ansøgning",
     "submit_hint": "Alle felter markeret med * skal udfyldes.",
-
     "success_title": "Tak for din ansøgning!",
     "success_body": "Vi har modtaget din ansøgning og vender tilbage snarest.",
     "success_id_label": "Dit ansøgnings-ID:",
@@ -111,7 +102,6 @@
     "success_step3": "Vi kontakter dig med næste skridt",
     "success_again": "Ansøg igen",
     "success_contact": "Spørgsmål? Skriv til",
-
     "process_title": "Sådan foregår ansøgningen",
     "process_sub": "Fra ansøgning til din første dag — i fire enkle trin.",
     "process_step1_title": "Udfyld formularen",
@@ -122,7 +112,6 @@
     "process_step3_text": "Vi gennemgår din ansøgning og sender en bekræftelse på e-mail inden for 1–2 hverdage.",
     "process_step4_title": "Velkommen!",
     "process_step4_text": "Du modtager en velkomstpakke med alt du skal vide før din første dag — skema, forberedelse og praktisk info.",
-
     "faq_title": "Ofte stillede spørgsmål",
     "faq1_q": "Kan jeg ansøge til både YTT og kursus samtidig?",
     "faq1_a": "Ja. Du kan vælge både Yoga læreruddannelse (YTT) og et eller flere kurser i samme ansøgning. Betaling håndteres separat for hver del.",
@@ -136,7 +125,6 @@
     "faq5_a": "Vi modtager stadig din ansøgning og placerer dig på venteliste. Du får besked så snart der åbner en plads.",
     "faq6_q": "Tilbyder I overnatning?",
     "faq6_a": "Ja. Du kan tilvælge overnatning i ansøgningsformularen (februar–juni 2026). Betaling for overnatning håndteres separat.",
-
     "contact_title": "Har du spørgsmål?",
     "contact_body": "Vi er altid klar til at hjælpe. Skriv til os eller ring — vi svarer normalt inden for én hverdag.",
     "trust_ya_title": "Yoga Alliance",
@@ -145,12 +133,10 @@
     "trust_loc_sub": "København, Danmark",
     "trust_since_title": "Siden 2014",
     "trust_since_sub": "Erfaren i yoga-uddannelse",
-
     "select_default": "Vælg...",
     "select_program_first": "Vælg program først...",
     "select_course_first": "Vælg kursus først...",
     "builder_grid_label": "Valgte moduler",
-
     "js_builder_hint_empty": "Vælg mindst én: Yoga læreruddannelse (YTT) og/eller Kursus.",
     "js_mentorship_hint": "Mentorship har sin egen tilmeldingsside:",
     "js_mentorship_link_text": "Åbn Mentorship",
@@ -187,7 +173,6 @@
     "js_submit_hint_default": "Alle felter markeret med * skal udfyldes.",
     "js_source": "Ansøgningsside",
     "js_period_default": "Periode",
-
     "js_val_select_ytt_or_course": "Vælg mindst YTT eller Kursus",
     "js_val_select_ytt_program": "Vælg YTT program",
     "js_val_select_ytt_period": "Vælg YTT periode",
@@ -210,19 +195,21 @@
     "js_val_hearother": "Udfyld 'Andet' feltet",
     "js_val_antispam": "Skriv YOGA i anti-spam feltet",
     "js_val_consent": "Acceptér vilkår",
-
     "bundle_opt_inv_back": "Inversions + Backbends",
     "bundle_opt_inv_splits": "Inversions + Splits",
     "bundle_opt_back_splits": "Backbends + Splits",
     "bundle_opt_allin": "All-in (Inversions + Backbends + Splits)",
-
     "js_mentorship_url": "/mentorship-private-training",
     "js_date_locale": "da-DK",
     "js_sort_locale": "da",
     "js_bundle_month_feb": "Februar 2026",
     "js_bundle_month_mar": "Marts 2026",
     "js_bundle_month_apr": "April 2026",
-    "js_bundle_month_maj": "Maj 2026"
+    "js_bundle_month_maj": "Maj 2026",
+    "hero_tagline": "Yoga Bible · Ansøgning",
+    "hero_trust1": "200+ Uddannede Yogalærere",
+    "hero_trust2": "Siden 2014",
+    "hero_trust3": "Yoga Alliance RYS"
   },
   "en": {
     "hero_badge": "Applications open",
@@ -235,7 +222,6 @@
     "hero_stat3_value": "Yoga Alliance",
     "hero_stat3_label": "Registered (RYS)",
     "hero_cta": "Start application",
-
     "intro_eyebrow": "Yoga Bible",
     "intro_title": "Application & changes",
     "intro_kicker": "A choice that can transform your everyday life",
@@ -246,16 +232,13 @@
     "intro_bullet3": "A community that supports your growth",
     "intro_img_alt": "Yoga Bible — trainings and courses",
     "intro_note": "First, choose whether you want to apply for <strong>Yoga Teacher Training (YTT)</strong> and/or a <strong>Course</strong>. Payment is handled <strong>separately</strong> for each part (so we can match correctly). If you <strong>have not already paid</strong> and applications are open, you can pay via a link and then submit your application.",
-
     "form_title": "New application",
     "form_sub": "Choose your program below.",
     "form_section_label": "New application",
-
     "builder_legend": "What would you like to apply for?",
     "builder_ytt": "Yoga Teacher Training (YTT)",
     "builder_course": "Course",
     "builder_mentorship": "Mentorship — private training",
-
     "ytt_section_label": "Yoga Teacher Training",
     "ytt_title": "Yoga Teacher Training (YTT)",
     "ytt_sub": "Choose program, period — and optionally a track.",
@@ -270,7 +253,6 @@
     "ytt_pay_btn": "Pay — YTT",
     "ytt_pay_meta": "Opens in a new tab",
     "ytt_paid_confirm": "I confirm that I have completed the YTT payment",
-
     "course_section_label": "Course",
     "course_title": "Course",
     "course_sub": "Choose a course, period — or a course bundle.",
@@ -285,7 +267,6 @@
     "course_pay_btn": "Pay full amount — Course",
     "course_pay_meta": "Opens in a new tab",
     "course_paid_confirm": "I confirm that I have completed the course payment",
-
     "accom_section_label": "Accommodation",
     "accom_title": "Accommodation",
     "accom_sub": "Do you need accommodation in 2026? (Feb–Jun)",
@@ -303,7 +284,6 @@
     "accom_pay_btn": "Open accommodation page",
     "accom_pay_meta": "Opens in a new tab",
     "accom_paid_confirm": "I confirm that I have completed the accommodation payment",
-
     "field_firstname": "First name *",
     "field_lastname": "Last name *",
     "field_email": "Email *",
@@ -322,11 +302,9 @@
     "antispam_placeholder": "Type the word: YOGA",
     "antispam_hint": "A small yogic check to keep the form clean",
     "consent_text": "I agree that Yoga Bible may store my information to process my application.",
-
     "validation_head": "Complete these fields to submit:",
     "submit_btn": "Submit application",
     "submit_hint": "All fields marked with * are required.",
-
     "success_title": "Thank you for your application!",
     "success_body": "We have received your application and will get back to you shortly.",
     "success_id_label": "Your application ID:",
@@ -336,7 +314,6 @@
     "success_step3": "We will contact you with the next steps",
     "success_again": "Apply again",
     "success_contact": "Questions? Write to",
-
     "process_title": "How the application process works",
     "process_sub": "From application to your first day — in four simple steps.",
     "process_step1_title": "Fill in the form",
@@ -347,7 +324,6 @@
     "process_step3_text": "We review your application and send a confirmation email within 1–2 business days.",
     "process_step4_title": "Welcome!",
     "process_step4_text": "You will receive a welcome pack with everything you need to know before your first day — schedule, preparation, and practical info.",
-
     "faq_title": "Frequently asked questions",
     "faq1_q": "Can I apply for both YTT and a course at the same time?",
     "faq1_a": "Yes. You can choose both Yoga Teacher Training (YTT) and one or more courses in the same application. Payment is handled separately for each part.",
@@ -361,7 +337,6 @@
     "faq5_a": "We will still receive your application and place you on the waiting list. You will be notified as soon as a spot opens up.",
     "faq6_q": "Do you offer accommodation?",
     "faq6_a": "Yes. You can add accommodation in the application form (February–June 2026). Payment for accommodation is handled separately.",
-
     "contact_title": "Have questions?",
     "contact_body": "We are always happy to help. Write to us or call — we typically respond within one business day.",
     "trust_ya_title": "Yoga Alliance",
@@ -370,12 +345,10 @@
     "trust_loc_sub": "Copenhagen, Denmark",
     "trust_since_title": "Since 2014",
     "trust_since_sub": "Experienced in yoga education",
-
     "select_default": "Choose...",
     "select_program_first": "Choose program first...",
     "select_course_first": "Choose course first...",
     "builder_grid_label": "Selected modules",
-
     "js_builder_hint_empty": "Select at least one: Yoga Teacher Training (YTT) and/or Course.",
     "js_mentorship_hint": "Mentorship has its own registration page:",
     "js_mentorship_link_text": "Open Mentorship",
@@ -412,7 +385,6 @@
     "js_submit_hint_default": "All fields marked with * are required.",
     "js_source": "Application page",
     "js_period_default": "Period",
-
     "js_val_select_ytt_or_course": "Select at least YTT or Course",
     "js_val_select_ytt_program": "Select YTT program",
     "js_val_select_ytt_period": "Select YTT period",
@@ -435,18 +407,20 @@
     "js_val_hearother": "Fill in the 'Other' field",
     "js_val_antispam": "Type YOGA in the anti-spam field",
     "js_val_consent": "Accept the terms",
-
     "bundle_opt_inv_back": "Inversions + Backbends",
     "bundle_opt_inv_splits": "Inversions + Splits",
     "bundle_opt_back_splits": "Backbends + Splits",
     "bundle_opt_allin": "All-in (Inversions + Backbends + Splits)",
-
     "js_mentorship_url": "/en/mentorship-private-training",
     "js_date_locale": "en-US",
     "js_sort_locale": "en",
     "js_bundle_month_feb": "February 2026",
     "js_bundle_month_mar": "March 2026",
     "js_bundle_month_apr": "April 2026",
-    "js_bundle_month_maj": "May 2026"
+    "js_bundle_month_maj": "May 2026",
+    "hero_tagline": "Yoga Bible · Application",
+    "hero_trust1": "200+ Trained Yoga Teachers",
+    "hero_trust2": "Since 2014",
+    "hero_trust3": "Yoga Alliance RYS"
   }
 }

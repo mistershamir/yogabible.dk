@@ -1,28 +1,72 @@
 /**
  * Netlify Function: POST /.netlify/functions/mb-contract-manage
- * Manages client contracts: terminate or suspend (pause).
+ * Manages client contracts: terminate, suspend (pause), or resume.
  *
- * POST body:
- *   action (string) - 'terminate' or 'suspend'
- *   clientId (string) - Mindbody client ID
- *   clientContractId (number) - The client's specific contract instance ID
- *
- *   For terminate:
- *     terminationDate (string, YYYY-MM-DD) - When the termination takes effect
- *     terminationCode (string, optional) - Mindbody termination code
- *
- *   For suspend:
- *     startDate (string, YYYY-MM-DD) - When suspension begins
- *     endDate (string, YYYY-MM-DD) - When suspension ends
+ * CONFIRMED WORKING (2026-02-09):
+ *   Endpoint: POST /client/suspendcontract
+ *   Required fields: ClientId, ClientContractId, SuspendDate, Duration, DurationUnit, SuspensionType
+ *   Working values: SuspensionType:"Vacation", DurationUnit:"Day"
  */
 
-const { mbFetch, clearTokenCache, jsonResponse, corsHeaders } = require('./shared/mb-api');
+const { mbFetch, getStaffToken, jsonResponse, corsHeaders } = require('./shared/mb-api');
 
-// MB v6 docs are ambiguous on the category for contract management endpoints.
-// Try these paths in order until one returns a JSON response.
-// MB v6 docs put these under Sale category — try /sale/ first
 var TERMINATE_PATHS = ['/sale/terminatecontract', '/contract/terminatecontract', '/client/terminatecontract'];
-var SUSPEND_PATHS = ['/sale/suspendcontract', '/contract/suspendcontract', '/client/suspendcontract'];
+var PAUSE_MARKER = 'CONTRACT_PAUSED';
+
+// Read pause notes for a client from MB client notes
+async function getPauseNotes(clientId) {
+  try {
+    var notesData = await mbFetch('/client/clientnotes?ClientId=' + clientId + '&Limit=100');
+    var notes = notesData.Notes || notesData.ClientNotes || [];
+    console.log('[mb-contract-manage] getPauseNotes: keys:', Object.keys(notesData), 'count:', notes.length);
+    var pauses = [];
+    for (var i = 0; i < notes.length; i++) {
+      var text = notes[i].Text || notes[i].Note || notes[i].Body || '';
+      if (text.indexOf(PAUSE_MARKER) === 0) {
+        // Format: CONTRACT_PAUSED|contractId|startDate|endDate
+        var parts = text.split('|');
+        if (parts.length >= 4) {
+          pauses.push({
+            noteId: notes[i].Id,
+            contractId: Number(parts[1]),
+            startDate: parts[2],
+            endDate: parts[3],
+            noteDate: notes[i].DateTime || notes[i].CreatedDateTime || null
+          });
+        }
+      }
+    }
+    return pauses;
+  } catch (err) {
+    console.warn('[mb-contract-manage] Could not read pause notes:', err.message);
+    return [];
+  }
+}
+
+// Save a pause marker note — try multiple MB API body formats
+async function savePauseNote(clientId, contractId, startDate, endDate) {
+  var noteText = PAUSE_MARKER + '|' + contractId + '|' + startDate + '|' + endDate;
+  var formats = [
+    { ClientId: String(clientId), Note: { Text: noteText, Type: { Id: 1 } } },
+    { ClientId: String(clientId), Body: noteText },
+    { ClientId: String(clientId), Text: noteText },
+    { ClientId: String(clientId), Note: noteText }
+  ];
+  for (var i = 0; i < formats.length; i++) {
+    try {
+      var result = await mbFetch('/client/addclientnote', {
+        method: 'POST',
+        body: JSON.stringify(formats[i])
+      });
+      console.log('[mb-contract-manage] Saved pause note (format ' + i + '):', noteText, 'result:', JSON.stringify(result).substring(0, 200));
+      return true;
+    } catch (err) {
+      console.warn('[mb-contract-manage] Note format ' + i + ' failed:', err.message);
+    }
+  }
+  console.error('[mb-contract-manage] ALL note formats failed for:', noteText);
+  return false;
+}
 
 exports.handler = async function(event) {
   if (event.httpMethod === 'OPTIONS') {
@@ -36,12 +80,12 @@ exports.handler = async function(event) {
   try {
     var body = JSON.parse(event.body || '{}');
 
-    // Force fresh token for contract management (staff permissions may have changed)
-    clearTokenCache();
-
     if (!body.clientId || !body.clientContractId || !body.action) {
       return jsonResponse(400, { error: 'clientId, clientContractId, and action are required' });
     }
+
+    // Ensure auth token is cached before making API calls
+    await getStaffToken();
 
     // ── TERMINATE ──
     if (body.action === 'terminate') {
@@ -63,66 +107,31 @@ exports.handler = async function(event) {
       console.log('[mb-contract-manage] Terminating contract:', JSON.stringify({
         ClientId: terminateBody.ClientId,
         ClientContractId: terminateBody.ClientContractId,
-        TerminationDate: terminateBody.TerminationDate,
-        HasTerminationCode: !!terminateBody.TerminationCode
+        TerminationDate: terminateBody.TerminationDate
       }));
 
       var lastTermErr = null;
 
       for (var ti = 0; ti < TERMINATE_PATHS.length; ti++) {
         try {
-          console.log('[mb-contract-manage] Trying: ' + TERMINATE_PATHS[ti]);
-          await mbFetch(TERMINATE_PATHS[ti], {
-            method: 'POST',
-            body: JSON.stringify(terminateBody)
-          });
-
-          return jsonResponse(200, {
-            success: true,
-            action: 'terminate',
-            terminationDate: body.terminationDate,
-            endpointUsed: TERMINATE_PATHS[ti],
-            message: 'Contract termination scheduled'
-          });
+          await mbFetch(TERMINATE_PATHS[ti], { method: 'POST', body: JSON.stringify(terminateBody) });
+          return jsonResponse(200, { success: true, action: 'terminate', terminationDate: body.terminationDate, endpointUsed: TERMINATE_PATHS[ti] });
         } catch (termErr) {
           var errMsg = (termErr.message || '').toLowerCase();
-
-          // If error is about termination code, retry without it on same path
           if (errMsg.indexOf('termination') > -1 || errMsg.indexOf('code') > -1) {
-            console.log('[mb-contract-manage] Retrying without termination code on ' + TERMINATE_PATHS[ti]);
             delete terminateBody.TerminationCode;
             try {
-              await mbFetch(TERMINATE_PATHS[ti], {
-                method: 'POST',
-                body: JSON.stringify(terminateBody)
-              });
-
-              return jsonResponse(200, {
-                success: true,
-                action: 'terminate',
-                terminationDate: body.terminationDate,
-                endpointUsed: TERMINATE_PATHS[ti],
-                message: 'Contract termination scheduled'
-              });
-            } catch (retryErr) {
-              lastTermErr = retryErr;
-            }
-          } else if (errMsg.indexOf('non-json') > -1 || errMsg.indexOf('not exist') > -1 || termErr.status === 404 || termErr.status === 405) {
-            console.log('[mb-contract-manage] Path ' + TERMINATE_PATHS[ti] + ' failed (' + (termErr.status || 'unknown') + '), trying next...');
-            lastTermErr = termErr;
-          } else if (errMsg.indexOf('permission') > -1) {
-            console.log('[mb-contract-manage] Permission denied on ' + TERMINATE_PATHS[ti] + ', trying next path...');
+              await mbFetch(TERMINATE_PATHS[ti], { method: 'POST', body: JSON.stringify(terminateBody) });
+              return jsonResponse(200, { success: true, action: 'terminate', terminationDate: body.terminationDate, endpointUsed: TERMINATE_PATHS[ti] });
+            } catch (retryErr) { lastTermErr = retryErr; }
+          } else if (errMsg.indexOf('non-json') > -1 || termErr.status === 404 || termErr.status === 405) {
             lastTermErr = termErr;
           } else {
-            // Real API error — don't try other paths
             throw termErr;
           }
         }
       }
-
-      if (lastTermErr) {
-        throw lastTermErr;
-      }
+      if (lastTermErr) throw lastTermErr;
     }
 
     // ── SUSPEND (PAUSE) ──
@@ -135,6 +144,9 @@ exports.handler = async function(event) {
       var end = new Date(body.endDate);
       var durationDays = Math.round((end - start) / 86400000);
 
+      if (isNaN(durationDays) || durationDays < 1) {
+        return jsonResponse(400, { error: 'Invalid dates — could not calculate duration' });
+      }
       if (durationDays < 14) {
         return jsonResponse(400, { error: 'Suspension must be at least 14 days' });
       }
@@ -142,61 +154,100 @@ exports.handler = async function(event) {
         return jsonResponse(400, { error: 'Suspension cannot exceed 3 months (93 days)' });
       }
 
+      var ccId = Number(body.clientContractId);
+
+      // Check if contract is already suspended (MB field + our notes)
+      var existingPause = null;
+      try {
+        var contractsData = await mbFetch('/client/clientcontracts?ClientId=' + body.clientId);
+        var targetContract = (contractsData.Contracts || []).find(function(c) { return c.Id === ccId; });
+        if (targetContract && targetContract.IsSuspended) {
+          return jsonResponse(409, {
+            error: 'already_suspended',
+            message: 'This membership is already paused. You cannot add another pause while one is active.'
+          });
+        }
+      } catch (checkErr) {
+        console.warn('[mb-contract-manage] Could not check MB suspension status:', checkErr.message);
+      }
+
+      // NOTE: We no longer check MB notes for duplicate detection.
+      // Notes persist even after admin deletes a suspension, causing false blocks.
+      // Frontend checks isSuspended flag before showing the pause button.
+      // MB itself will return "exceeded maximum iterations" if already at max pauses.
+
+      // FIX (2026-02-09): MB treats SuspendDate as the END date, not start.
+      // Evidence: sending SuspendDate="2026-03-09" + Duration=14 resulted in
+      // MB registering Start=Feb10(today), End=Mar9(our SuspendDate value).
+      // So SuspendDate = "suspend through" date. Duration is ignored when SuspendDate given.
+      //
+      // Correct mapping:
+      //   SuspendDate = body.endDate (the end/through date of the suspension)
+      //
+      // We also try ResumeDate as explicit end param in case MB supports it.
+      // MB ignores unknown params, so adding extra fields is safe.
       var suspendBody = {
         ClientId: body.clientId,
-        ClientContractId: body.clientContractId,
-        SuspendDate: body.startDate,
+        ClientContractId: ccId,
+        SuspendDate: body.endDate,
         ResumeDate: body.endDate,
-        SendNotifications: true
+        Duration: durationDays,
+        DurationUnit: 'Day',
+        SuspensionType: 'Vacation'
       };
 
-      console.log('[mb-contract-manage] Suspending contract:', JSON.stringify({
-        ClientId: suspendBody.ClientId,
-        ClientContractId: suspendBody.ClientContractId,
-        SuspendDate: suspendBody.SuspendDate,
-        ResumeDate: suspendBody.ResumeDate,
-        DurationDays: durationDays
-      }));
+      console.log('[mb-contract-manage] Suspending contract:', JSON.stringify(suspendBody),
+        'USER selected start:', body.startDate, 'end:', body.endDate, 'duration:', durationDays, 'days');
 
-      var lastSuspErr = null;
+      var suspResult;
+      try {
+        suspResult = await mbFetch('/client/suspendcontract', {
+          method: 'POST',
+          body: JSON.stringify(suspendBody)
+        });
+      } catch (suspErr) {
+        var suspErrMsg = (suspErr.message || '').toLowerCase();
+        var suspErrData = suspErr.data && suspErr.data.Error ? suspErr.data.Error.Message || '' : '';
+        var combined = suspErrMsg + ' ' + suspErrData.toLowerCase();
 
-      for (var si = 0; si < SUSPEND_PATHS.length; si++) {
-        try {
-          console.log('[mb-contract-manage] Trying: ' + SUSPEND_PATHS[si]);
-          await mbFetch(SUSPEND_PATHS[si], {
-            method: 'POST',
-            body: JSON.stringify(suspendBody)
-          });
-
-          return jsonResponse(200, {
-            success: true,
-            action: 'suspend',
+        // MB returns this when contract already has max suspensions
+        if (combined.indexOf('exceeded') > -1 || combined.indexOf('maximum iterations') > -1 || combined.indexOf('already suspended') > -1) {
+          console.log('[mb-contract-manage] Contract already at max suspensions — treating as already_suspended');
+          return jsonResponse(409, {
+            error: 'already_suspended',
+            message: 'This membership has already been paused. You cannot add another pause.',
             suspendDate: body.startDate,
-            resumeDate: body.endDate,
-            durationDays: durationDays,
-            endpointUsed: SUSPEND_PATHS[si],
-            message: 'Contract suspension scheduled'
+            resumeDate: body.endDate
           });
-        } catch (suspErr) {
-          var suspMsg = (suspErr.message || '').toLowerCase();
-          if (suspMsg.indexOf('non-json') > -1 || suspMsg.indexOf('not exist') > -1 || suspErr.status === 404 || suspErr.status === 405) {
-            console.log('[mb-contract-manage] Path ' + SUSPEND_PATHS[si] + ' failed (' + (suspErr.status || 'unknown') + '), trying next...');
-            lastSuspErr = suspErr;
-          } else if (suspMsg.indexOf('permission') > -1) {
-            console.log('[mb-contract-manage] Permission denied on ' + SUSPEND_PATHS[si] + ', trying next path...');
-            lastSuspErr = suspErr;
-          } else {
-            throw suspErr;
-          }
         }
+        throw suspErr; // Re-throw other errors
       }
 
-      if (lastSuspErr) {
-        throw lastSuspErr;
-      }
+      console.log('[mb-contract-manage] Suspend SUCCESS:', JSON.stringify(suspResult).substring(0, 500));
+
+      return jsonResponse(200, {
+        success: true,
+        action: 'suspend',
+        suspendDate: body.startDate,
+        resumeDate: body.endDate,
+        durationDays: durationDays,
+        mbResponse: suspResult,
+        message: 'Contract suspension scheduled'
+      });
     }
 
-    return jsonResponse(400, { error: 'Invalid action. Use "terminate" or "suspend".' });
+    // ── RESUME (CANCEL PAUSE EARLY) ──
+    // MB Public API v6 has NO resume/unsuspend endpoint. All paths tested, none work.
+    // Do NOT probe endpoints — they may cause side effects (duplicate suspensions).
+    // This action is handled entirely on the frontend (contact message).
+    if (body.action === 'resume') {
+      return jsonResponse(400, {
+        error: 'resume_not_available',
+        message: 'Automatic resume is not available via the Mindbody API. Please contact the studio.'
+      });
+    }
+
+    return jsonResponse(400, { error: 'Invalid action. Use "terminate", "suspend", or "resume".' });
 
   } catch (err) {
     console.error('[mb-contract-manage] Error:', err.message, err.data ? JSON.stringify(err.data) : '');

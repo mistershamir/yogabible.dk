@@ -79,22 +79,30 @@
 
 
 <!-- ═══════════════════════════════════════════════════════════
-     SECTION 1 — HERO (Centered Clean — matches site pattern)
+     HERO — Dark Cinematic with Breathing Glow
      ═══════════════════════════════════════════════════════════ -->
-<section class="program-hero">
-  <div class="container">
-    <div class="program-hero__badge">{{ t.hero_badge }}</div>
-    <h1 class="program-hero__title">{{ t.hero_title }}</h1>
-    <p class="program-hero__subtitle">{{ t.hero_subtitle }}</p>
-    <div class="program-hero__meta">
-      <div class="program-hero__meta-item"><strong>{{ t.hero_meta_from }}</strong> {{ t.hero_meta_price }}</div>
-      <div class="program-hero__meta-item"><strong>{{ t.hero_meta_distance_label }}</strong> {{ t.hero_meta_distance_val }}</div>
-      <div class="program-hero__meta-item"><strong>{{ t.hero_meta_incl_label }}</strong> {{ t.hero_meta_incl_val }}</div>
+<section class="yb-hero">
+  <div class="yb-hero__glow"></div>
+  <div class="yb-hero__content">
+    <p class="yb-hero__tagline">{{ t.hero_tagline }}</p>
+    <h1 class="yb-hero__title">{{ t.hero_title }}</h1>
+    <p class="yb-hero__subtitle">{{ t.hero_subtitle }}</p>
+    <div class="yb-hero__line"></div>
+    <div class="yb-hero__ctas">
+      <a href="#roomoptions" class="yb-btn yb-btn--primary yb-btn--large">{{ t.hero_cta_rooms }}</a>
+      <a href="mailto:info@yogabible.dk?subject=Accommodation%20inquiry" class="yb-btn yb-btn--outline-white yb-btn--large">{{ t.hero_cta_contact }}</a>
     </div>
-    <div class="program-hero__cta">
-      <a href="#roomoptions" class="btn btn--large btn--primary">{{ t.hero_cta_rooms }}</a>
-      <a href="mailto:info@yogabible.dk?subject=Accommodation%20inquiry" class="btn btn--large btn--secondary">{{ t.hero_cta_contact }}</a>
+    <div class="yb-hero__trust">
+      <span>{{ t.hero_trust1 }}</span>
+      <span class="yb-hero__trust-dot"></span>
+      <span>{{ t.hero_trust2 }}</span>
+      <span class="yb-hero__trust-dot"></span>
+      <span>{{ t.hero_trust3 }}</span>
     </div>
+  </div>
+  <div class="yb-hero__scroll">
+    <span>Scroll</span>
+    <div class="yb-hero__scroll-line"></div>
   </div>
 </section>
 

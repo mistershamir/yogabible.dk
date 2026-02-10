@@ -1,7 +1,7 @@
 # Netlify Functions — Mindbody Integration Catalog
 
 > All functions live in `netlify/functions/` and share `netlify/functions/shared/mb-api.js`
-> **Last updated: 2026-02-08** — reflects final working state after all debugging.
+> **Last updated: 2026-02-10** — reflects invoice/receipt rewrite with correct MB field mappings, cross-reference enrichment, and 3-source merge strategy.
 
 ## Shared Module
 
@@ -10,6 +10,7 @@
 - **`jsonResponse(status, body)`** — CORS-enabled JSON response helper
 - **`corsHeaders`** — Standard CORS headers (`GET, POST, PUT, DELETE, OPTIONS`)
 - **`getStaffToken()`** — Token acquisition + 6-hour in-memory caching
+- **`clearTokenCache()`** — Resets `cachedToken` and `tokenExpiry` to force fresh token on next call. Called before contract management operations (terminate/suspend/activate) to avoid stale permission errors.
 - **`getBaseHeaders()`** — API key + SiteId headers
 - **`MB_BASE`** — `https://api.mindbodyonline.com/public/v6`
 
@@ -47,13 +48,17 @@
 - **Method:** GET (find) / POST (create) / PUT (update)
 - **Purpose:** Find, create, or update a Mindbody client
 - **GET Params:** `email` — searches by email, filters to exact match client-side
-- **POST Body:** `{ firstName, lastName, email, phone? }`
-- **PUT Body:** `{ clientId, firstName?, lastName?, email?, phone? }`
+- **POST Body:** `{ firstName, lastName, email, phone?, birthDate? }`
+- **PUT Body:** `{ clientId, firstName?, lastName?, email?, phone?, birthDate? }`
 - **MB Endpoints:**
   - `GET /client/clients?searchText=X&limit=10`
   - `POST /client/addclient` (returns 400 for duplicates → mapped to 409)
   - `POST /client/updateclient` with `CrossRegionalUpdate: true`
-- **Returns:** GET: `{ found, client }` | POST/PUT: `{ success, client }`
+- **GET client fields:** `id`, `firstName`, `lastName`, `email`, `phone`, `birthDate`, `status`, `active`, `membershipName`
+- **PUT client fields:** `id`, `firstName`, `lastName`, `email`, `phone`, `birthDate`
+- **Returns:** GET: `{ found, client }` | POST: `{ success, client }` | PUT: `{ success, client }`
+- **BirthDate:** Mapped to Mindbody's `BirthDate` field (PascalCase). Returns ISO date from GET, accepts YYYY-MM-DD for POST/PUT. Mindbody returns `0001-01-01T00:00:00` for unset — filter this out client-side.
+- **Duplicate handling:** POST returns 409 when email exists. Frontend `createMindbodyClient()` catches this and calls `linkExistingMindbodyClient()` to auto-link.
 
 ### mb-sync.js
 - **Method:** POST
@@ -76,8 +81,9 @@
 - **Service "current" logic:** `Current` flag OR (activeDate ≤ now AND expirationDate ≥ now)
 - **Contract billing:** Extracts `nextBillingDate` from `UpcomingAutopayEvents` (sorted, first future event)
 - **Returns:** `{ services[], contracts[], activeServices[], activeContracts[], hasActivePass }`
-- **Enriched contract fields:** `isAutopay`, `autopayStatus`, `nextBillingDate`, `autopayAmount`, `isSuspended`, `terminationDate`, `agreementDate`
+- **Enriched contract fields:** `id` (instance), `contractId` (template ID for store matching), `locationId`, `isAutopay`, `autopayStatus`, `nextBillingDate`, `autopayAmount`, `isSuspended`, `terminationDate`, `agreementDate`
 - **Calculates** `nextBillingDate` from `UpcomingAutopayEvents` array
+- **Note:** `contractId` (template ID) is different from `id` (instance ID). The template ID matches store items for reactivation CTA. Instance ID is used for terminate/suspend operations
 
 ### mb-visits.js
 - **Method:** GET
@@ -104,6 +110,8 @@
   - `GET /sale/services?Limit=200` with repeated `ServiceIds=X&ServiceIds=Y`
   - `GET /sale/products?Limit=200`
   - `GET /sale/servicecategories`
+- **Returns per service:** `id`, `name`, `price`, `onlinePrice`, `count`, `description`, `programId`, `programName`
+- **Returns per product:** `id`, `name`, `price`, `onlinePrice`, `description` (ShortDescription || LongDescription), `categoryId`, `subCategoryId`
 - **Note:** Multiple ServiceIds use repeated params, NOT comma-separated
 
 ### mb-checkout.js
@@ -125,31 +133,48 @@
 - **MB Endpoints:**
   - `GET /sale/contracts` (with LocationId=1 retry)
   - `POST /sale/purchasecontract` (with CreditCardInfo in PascalCase)
-  - `POST /{category}/terminatecontract` (tries `/contract/`, `/sale/`, `/client/`)
-  - `POST /{category}/suspendcontract` (tries `/contract/`, `/sale/`, `/client/`)
-- **Returns:** GET: `{ contracts[], total }` | POST: `{ success, endpointUsed?, clientContractId?, ... }`
-- **Each contract:** `id`, `name`, `description`, `price`, `recurringPaymentAmount`, `autopaySchedule` (object with `FrequencyType`), `locationId`, `durationMonths`, `autopay`, `onlineDescription`
+  - `POST /sale/terminatecontract` (primary — also tries `/contract/`, `/client/` as fallback)
+  - `POST /client/suspendcontract` (ONLY working path — `/sale/` returns HTML 404)
+  - `POST /sale/activatecontract` — **DOES NOT EXIST** (all 3 paths return HTML 404)
+- **Actions:** `terminate`, `suspend` (via `body.action`). `activate` kept in code but non-functional
+- **Token:** Forces fresh token (clears cache) for all management actions
+- **Diagnostics:** Returns `_pathResults` array showing which paths were tried and what each returned
+- **Returns:** GET: `{ contracts[], total }` | POST: `{ success, endpointUsed?, _pathResults, ... }`
+- **Each contract:** `id`, `name`, `description`, `onlineDescription`, `firstPaymentAmount`, `firstMonthFree` (boolean, true when first payment is 0), `recurringPaymentAmount`, `totalContractAmount`, `autopaySchedule` (extracted FrequencyType string), `numberOfAutopays`, `duration`, `durationUnit`, `locationId`, `soldOnline`, `assignsMembershipId`, `assignsMembershipName`, `contractItems[]`, `programIds[]`, `membershipTypeRestrictions[]`
 - **POST Note:** `LocationId` is REQUIRED for purchase — defaults to 1 if not provided
 
-### mb-contract-manage.js
+### mb-contract-manage.js (Updated 2026-02-10)
 - **Method:** POST
-- **Purpose:** Standalone terminate/suspend function (avoids routing ambiguity with mb-contracts purchase endpoint)
+- **Purpose:** Dedicated contract management: terminate, suspend (pause), or resume
+- **UI Status:** Pause/Cancel buttons removed from user profile (2026-02-10) — backend still functional, can be re-enabled
 - **Body (terminate):** `{ action: 'terminate', clientId, clientContractId, terminationDate, terminationCode? }`
 - **Body (suspend):** `{ action: 'suspend', clientId, clientContractId, startDate, endDate }`
-- **API Path:** Uses `/contract/terminatecontract` and `/contract/suspendcontract` (with fallback to `/sale/`, `/client/`)
+- **Body (resume):** `{ action: 'resume', ... }` → Returns error: no MB API endpoint exists
+- **API Paths:**
+  - Terminate: tries `/sale/`, `/contract/`, `/client/` (fallback order — `/sale/` is correct)
+  - Suspend: `POST /client/suspendcontract` only (the ONLY working path)
+- **Suspend body sent to MB:** `{ ClientId, ClientContractId, SuspendDate: endDate, ResumeDate: endDate, Duration, DurationUnit: "Day", SuspensionType: "Vacation" }`
+- **IMPORTANT:** `SuspendDate` = end date ("suspend through"), NOT start date. MB starts suspension from today.
 - **Suspension validation:** 14 days minimum, 93 days maximum
+- **Duplicate detection:** Uses MB `IsSuspended` field (not notes). MB returns "exceeded maximum iterations" if at max pauses
 - **Fallback:** If terminate fails with TerminationCode, retries without it
-- **Returns:** `{ success, action, terminationDate|suspendDate, message }`
+- **Returns:** `{ success, action, suspendDate, resumeDate, durationDays, mbResponse }`
 
-### mb-purchases.js
+### mb-purchases.js (Updated 2026-02-10)
 - **Method:** GET
-- **Purpose:** Fetch client purchase/receipt history
-- **Params:** `clientId`, `startDate?`, `endDate?`
-- **MB Endpoints:** (with graceful fallback)
-  - `GET /client/clientservices?ClientId=X` — purchased passes
-  - `GET /client/clientcontracts?ClientId=X` — purchased memberships
-- **Note:** `/sale/sales` was removed — it ignores ClientId filter and floods results
-- **Returns:** `{ purchases[], total }` — includes type, amount, paymentMethod, remaining, etc.
+- **Purpose:** Fetch client purchase/receipt history with full invoice data
+- **Params:** `clientId`, `startDate?` (default 730 days), `endDate?`
+- **Strategy:** Fetches ALL 3 data sources in parallel, merges, deduplicates:
+  1. `GET /sale/sales` — rich data (line items, payments, tax, discounts). Uses narrower 365-day window to avoid pagination limits. Matches by BOTH `ClientId` AND `RecipientClientId` (MB uses them inconsistently)
+  2. `GET /client/clientservices?ClientId=X` — purchased passes. Has NO price field — enriched by cross-referencing with sales data by description match
+  3. `GET /client/clientcontracts?ClientId=X` — memberships. Price extracted from `UpcomingAutopayEvents[0].ChargeAmount` (NOT top-level fields which are 0)
+- **Cross-reference:** `enrichServicesWithSaleData()` matches services with sales by description to copy price/payment data
+- **Deduplication:** Sales added first (rich data), then services/contracts only if no matching sale exists (by description + date)
+- **Correct MB field mapping:**
+  - Sale items: `UnitPrice`, `TotalAmount`, `TaxAmount` (+ Tax1-Tax5 fallback), `DiscountAmount`, `DiscountPercent`, `Quantity`
+  - Sale payments: `Amount`, `Type`, `Last4`, `TransactionId`
+  - Contract prices: `UpcomingAutopayEvents[0].ChargeAmount` / `.Subtotal` / `.Tax` / `.PaymentMethod`
+- **Returns:** `{ purchases[], total }` — each purchase has `items[]`, `payments[]`, `subtotal`, `tax`, `discount`, `totalPaid`, `source` ('sale'|'clientservice'|'clientcontract')
 
 ### mb-return-sale.js
 - **Method:** POST

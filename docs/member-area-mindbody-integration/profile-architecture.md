@@ -1,33 +1,44 @@
 # Profile Page Architecture — Frontend Reference
 
-> Frontend architecture for the member area profile page (`src/js/profile.js`, ~2336 lines).
-> Adapt for each brand's design system. **Last updated: 2026-02-08** — reflects final working state.
+> Frontend architecture for the member area profile page (`src/js/profile.js`, ~2600 lines).
+> Adapt for each brand's design system. **Last updated: 2026-02-10** — reflects invoice/receipt rewrite with HTML invoice generation, 3-source merge, correct MB field mappings.
 
 ## Overview
 
-Single-page profile dashboard with 6 tabs. Each tab lazy-loads data on first click. All data comes from Netlify Functions (Mindbody proxy) except Profile (Firestore) and Courses (Firestore).
+Single-page profile dashboard with 7 tabs. Each tab lazy-loads data on first click. All data comes from Netlify Functions (Mindbody proxy) except Profile (Firestore) and Courses (Firestore).
 
 ```
-┌──────────────────────────────────────────────────┐
-│  Header: Avatar | Name | Email | Tier Badge       │
-│  Reminder Banner (if phone/DOB missing)           │
-├──────────────────────────────────────────────────┤
-│  [Profil] [Skema] [Butik] [Besøg] [Kvit] [Kurs] │
-├──────────────────────────────────────────────────┤
-│  Tab Content (lazy-loaded on first click)          │
-└──────────────────────────────────────────────────┘
+┌─────────────────────────────────────────────────────────────┐
+│  Header: Avatar | Name | Email | Tier Badge                  │
+│                                                               │
+│  ┌─ ONBOARDING OVERLAY (blocks everything below) ──────────┐ │
+│  │  "Welcome! Let's complete your profile"                   │ │
+│  │  [Phone*] [Date of Birth*]                                │ │
+│  │  [Save and continue]                                      │ │
+│  └──────────────────────────────────────────────────────────┘ │
+│                                                               │
+│  Reminder Banner (soft — if phone/DOB missing, hidden if      │
+│  onboarding overlay is shown instead)                         │
+├─────────────────────────────────────────────────────────────┤
+│  [Profil] [Skema] [Butik] [Mine Pas] [Besøg] [Kvit] [Kurs] │
+├─────────────────────────────────────────────────────────────┤
+│  Tab Content (lazy-loaded on first click)                     │
+└─────────────────────────────────────────────────────────────┘
 ```
 
 ## Init Flow
 
 ```
 1. Poll for Firebase SDK readiness (setInterval 100ms)
-2. init() — attach tab handlers, store form, schedule nav, avatar upload, visit filters
+2. init() — attach tab handlers, store form, schedule nav, avatar upload, visit filters, onboarding form
 3. onAuthStateChanged → if logged in:
    a. loadProfile(user, db) — populate form from Firestore
+      → If phone or DOB missing: show onboarding overlay, hide tabs
+      → If both present: hide overlay, show tabs normally
    b. ensureBackendClient(user, db) — find-or-create Mindbody client
    c. Deep-link to courses tab via #mine-kurser / #my-courses hash
-4. First tab click triggers lazy data fetch
+4. Onboarding form submit → save to Firestore + push to MB → dismiss overlay → show tabs
+5. First tab click triggers lazy data fetch
 ```
 
 ## Global State Variables
@@ -42,6 +53,7 @@ var scheduleWeekOffset = 0;    // Week navigation: 0 = current, -1 = last, 1 = n
 var allVisits = [];            // Cached visits for client-side filtering
 var activeVisitFilter = 'all'; // Visit filter: all|upcoming|attended|lateCancelled|noshow
 var storeActiveCategory = 'all'; // Store category filter
+var storeSearchQuery = '';     // Store search bar text (real-time filtering)
 var visitsPeriod = '90';       // Visit history lookback (days)
 var receiptsPeriod = '365';    // Receipts lookback (days)
 var storeServices = [];        // Combined services + contracts for store display
@@ -64,38 +76,38 @@ var storeServices = [];        // Combined services + contracts for store displa
 **Profile save flow:**
 1. Validate first + last name required
 2. Update Firebase Auth `displayName`
-3. Update Firestore `users/{uid}` (firstName, lastName, phone, yogaLevel, practiceFrequency, etc.)
-4. Silently sync to Mindbody via `PUT /.netlify/functions/mb-client`
-5. Hide reminder banner if phone + DOB now complete
+3. Update Firestore `users/{uid}` (firstName, lastName, phone, dateOfBirth, yogaLevel, practiceFrequency, etc.)
+4. Silently sync to Mindbody via `PUT /.netlify/functions/mb-client` (includes phone + birthDate)
+5. Hide reminder banner + dismiss onboarding overlay if phone + DOB now complete
 
-**Membership details section:**
-- Fetches from `mb-client-services` on profile load
-- Renders: active passes (with remaining clips), active contracts (with manage buttons), past passes
-- Tier badge: `'Månedligt Medlemskab'` if active contracts, `'Klippekort'` if active services, `'Intet aktivt pas'` otherwise
+**Simplified to:**
+- Tier badge + Mindbody Client ID display only
+- Membership details moved to dedicated "My Passes" tab (see section 3.5)
 
-**Membership management (Pause/Cancel):**
-- Pause and Cancel buttons shown only for active, non-suspended, non-terminating autopay contracts
-- Each opens a dedicated panel (hides other sections)
-- **Pause (suspend):** Date picker with constraints:
-  - Earliest start: after next billing date (or tomorrow as fallback)
-  - Minimum duration: 14 days
-  - Maximum duration: 3 months (93 days)
-  - Resume date shown dynamically as dates change
-- **Cancel (terminate):** Shows calculated dates:
-  - Last payment date = next billing date
-  - Use until date = next billing date + 1 month - 1 day
-  - Warning: "This action cannot be undone"
-- Both POST to `/.netlify/functions/mb-contracts` with `action: 'suspend'` or `action: 'terminate'`
-- On success: reloads membership details, shows toast
+### 0. Mandatory Onboarding Overlay
 
-**Termination date calculation:**
-```
-nextBillingDate = March 8, 2026
-lastPaymentDate = March 8 (the next billing)
-useUntilDate    = April 7 (March 8 + 1 month - 1 day)
-terminationDate = useUntilDate (sent to Mindbody API)
-```
-If `nextBillingDate` is in the past, use today as the base date.
+**Trigger:** Shown when `loadProfile()` finds phone OR dateOfBirth missing in Firestore.
+
+**Behavior:**
+- Hides all tab buttons + tab panels (`display: none`)
+- Shows centered card with phone + DOB form (both required, marked with `*`)
+- User cannot interact with any tab until form is submitted
+- Pre-fills any existing partial data (e.g., phone exists but DOB is missing)
+
+**Submit flow:**
+1. Validate phone is not empty
+2. Validate DOB is not empty
+3. Update Firestore `users/{uid}` with `phone` + `dateOfBirth`
+4. Push to Mindbody via `PUT /.netlify/functions/mb-client` with `phone` + `birthDate`
+5. If `clientId` isn't ready yet (async), poll every 1s for up to 15s before pushing
+6. Hide onboarding overlay, restore tab display
+7. Also hides the soft reminder banner
+
+**Translations:** `onboarding_title`, `onboarding_desc`, `onboarding_submit`, `onboarding_note`, `onboarding_error_phone`, `onboarding_error_dob`, `onboarding_saving` — in both `profile.json` and `t()` map.
+
+**HTML location:** `profile.njk` → `#yb-onboarding-overlay` div inside `#yb-profile-user`, before the tab navigation.
+
+**CSS:** `.yb-onboarding` (flex center), `.yb-onboarding__card` (warm white card, 440px max-width, 16px border-radius, light shadow).
 
 ### 2. Schedule Tab (Skema)
 
@@ -179,7 +191,17 @@ Promise.all([
 - Price: `recurringPaymentAmount || firstPaymentAmount || totalContractAmount`
 - `_recurringInfo` string: e.g. "799 kr / Monthly"
 - `autopaySchedule` handled as both string and object (extract `FrequencyType` if object)
+- `description` pulled from MB contract Description or OnlineDescription fields
+- `firstMonthFree` flag (true when `firstPaymentAmount === 0`)
+- `_terms` array built with: first-month-free notice, first payment if different from recurring, duration, number of autopays
 - All contracts categorized as `'memberships'`
+
+**Search bar:**
+- Real-time text filtering by item name and description
+- `storeSearchQuery` state variable persisted across re-renders
+- Clear button (×) shown when search active
+- Results count displayed below category tabs (e.g. "5 results")
+- Empty state shows "No results for {query}" when search finds nothing
 
 **Category system (`categorizeService()`):**
 | Category | Keywords | Notes |
@@ -195,6 +217,14 @@ Promise.all([
 
 - Categories with 0 items are hidden (except "All")
 - Each category tab shows item count badge (pill buttons with active styling)
+- Search and category filter work together (category first, then search within)
+
+**Enhanced item cards:**
+- **Badges row:** "First month free" (orange border) + "Membership" (muted) for contracts
+- **Description:** Truncated to 120 chars, shown below name in muted text
+- **Pricing section:** Price + recurring info inline
+- **Terms list:** Checkmark list showing key contract terms + T&C link (opens in new tab)
+- **Buy button:** Full-width primary CTA
 
 **Unlimited clips display:**
 - Mindbody uses 99999/999999 as "unlimited" placeholder
@@ -209,9 +239,11 @@ Promise.all([
   ```json
   { "clientId": "X", "contractId": 456, "locationId": 1, "startDate": "2026-02-08", "payment": {...} }
   ```
+- **Checkout item panel:** Shows contract terms summary (checkmark list) alongside name and price
 - Payment info shape: `{ cardNumber, expMonth, expYear, cvv, cardHolder, billingAddress, billingCity, billingPostalCode, saveCard }`
 - Card number input: auto-formats with spaces every 4 digits
 - Expiry input: auto-formats as MM/YY
+- Promo code support: `data-promo-code` attribute on checkout element, passed as `promoCode` in contract purchase body
 - SCA handling: if `requiresSCA` in response, shows "card requires additional authentication" message
 - No clientId? → tries to sync account first via `mb-sync`, then asks to retry
 
@@ -219,6 +251,53 @@ Promise.all([
 - Hides checkout, shows success panel
 - Resets form
 - Clears `clientPassData` cache and reloads membership details
+
+### 3.5. My Passes Tab (Mine Pas)
+
+**Data source:** `mb-client-services` (same as membership details)
+
+**Lazy loaded:** Fetches data on first tab click via `loadMembershipDetails()`
+
+**Sections displayed:**
+1. **Active passes** — service name, remaining clips (or "Unlimited"), expiration date, active badge
+2. **Active contracts** — contract name, autopay info, billing date, status badge, manage buttons
+3. **Past passes** — expired services listed below active ones
+
+**Contract status display:**
+- **Active:** Green badge, shows "Next billing {date}", info box with contact instructions for pause/cancel
+- **Paused/Suspended:** Amber badge, pause dates, auto-resume message, contact info for changes
+- **Terminated (before date):** "Membership Terminated" red badge, "Last billing {date}", "Active until {date}", notice period note with T&C link, retention card
+- **Terminated (after date):** "Membership Terminated" red badge, "Become a member again" button
+
+**Membership management (Contact-based, updated 2026-02-10):**
+- Pause and Cancel buttons have been **removed** from the user profile
+- Replaced with an info box directing users to email `info@yogabible.dk`
+- Info box text explains: pause (14 days – 3 months, special circumstances) or cancel (1 month notice per T&C)
+- **Reason:** Unresolved Mindbody API issues — `SuspendDate` interpreted as end date (not start), no API to delete suspension or cancel termination
+- **Awaiting** Mindbody Developer Support response (email drafted in `docs/email-mindbody-support.md`)
+- Status displays remain: paused badge, terminated badge, billing info, retention card, contact hints
+- Backend `mb-contract-manage.js` still functional for suspend/terminate actions (can be re-enabled when API issues are resolved)
+
+**Retention card (terminated contracts, before termination date):**
+- Heart icon, "We already miss you!" title
+- "Reactivate before {date} and save the registration fee"
+- Checkmark perks: "No new registration fee", "First month free"
+- "Reactivate — first month free" CTA button
+- CTA navigates to Store tab → Memberships category → auto-opens matching contract checkout
+- Contract matching: first by template ID (`contractId`), fallback by name match in `storeServices[]`
+
+**Rejoin CTA (terminated contracts, after termination date):**
+- Simple full-width "Become a member again" / "Bliv medlem igen" button
+- Navigates to Store tab → Memberships category
+
+**Termination date calculation:**
+```
+nextBillingDate = March 8, 2026
+lastPaymentDate = March 8 (the next billing)
+useUntilDate    = April 7 (March 8 + 1 month - 1 day)
+terminationDate = useUntilDate (sent to Mindbody API)
+```
+If `nextBillingDate` is in the past, use today as the base date.
 
 ### 4. Visit History Tab (Besøgshistorik)
 
@@ -244,65 +323,78 @@ else                         → No-show (red)
 **Sorting:** Upcoming first (ascending by date), then past (descending by date)
 - Two-pass sort: upcoming items sorted earliest-first, past items sorted newest-first
 
-### 5. Receipts Tab (Kvitteringer)
+### 5. Receipts Tab (Kvitteringer) — Updated 2026-02-10
 
-**Data source:** `mb-purchases`
-- Fetches from `clientservices` + `clientcontracts` (NOT `/sale/sales` — that endpoint ignores ClientId filter)
+**Data source:** `mb-purchases` — fetches ALL 3 Mindbody sources in parallel:
+1. `/sale/sales` (365-day window) — rich invoice data with line items, payments, tax
+2. `/client/clientservices` — passes (no price field, enriched via cross-reference)
+3. `/client/clientcontracts` — memberships (price from `UpcomingAutopayEvents`)
 
-**Time period picker:** 90, 180, 365, 730 days (select dropdown)
+**Time period picker:** 90, 180, 365, 730 days (select dropdown, default 730)
 
 **Receipt card displays:**
-- Date, item name, program name
-- Type badge: Membership (contract), Pass (service), Purchase (sale)
-- Status badges: Active, Refunded
-- Details grid: Amount, Payment method (with last 4 digits), Quantity, Sessions used (X/Y), Expiration, End date, Autopay amount, Discount, Tax, Location
+- Date, item description, sale reference number
+- Refunded badge (if returned)
+- Multi-item support: shows each line item with individual price
+- Details grid: Total amount (DKK), Payment method, VAT/tax, Discount, Location
 
-**Download receipt (TXT):**
-```
-═══════════════════════════════════
-       YOGA BIBLE — KVITTERING
-═══════════════════════════════════
+**Download invoice (HTML → PDF):**
+- `generateInvoiceHTML(purchase)` creates a full professional invoice
+- Opens in new browser window — user prints/saves as PDF
+- Falls back to HTML file download if popup is blocked
+- Invoice includes:
+  - **Business header:** Yoga Bible, 66 Torvegade, 1400 København, CVR 41295252
+  - **Bill To:** Customer name + Mindbody client ID
+  - **Invoice meta:** Invoice number (Aps-XXXXXXXX), Sale ID, dates
+  - **Line items table:** Description, Qty, Unit Price, VAT%, VAT, Amount
+  - **Totals:** Subtotal, Discount, VAT, Invoice Total
+  - **Payment adjustment:** Method, date, amount (with negative notation)
+  - **Amount Due** box + "Paid" stamp when fully paid
+  - **Footer:** Bank details (Reg 3409, Acc 13011206, Danske Bank, IBAN DK7430000013011206)
+- Print button styled with brand orange, hidden on print via `@media print`
 
-Dato: 8. feb. 2026
-Vare: 10-klippekort
-Beløb: 1.200 kr.
-Reference: #12345
+### Membership Management (within My Passes Tab) — Updated 2026-02-10
 
-═══════════════════════════════════
-Yoga Bible DK | yogabible.dk
-Torvegade 66, 1400, København K
-```
-- Generated as Blob → `URL.createObjectURL()` → triggers `<a>` download
-- Filename: `kvittering-{saleId}.txt`
+**Current state:** Pause and Cancel buttons have been **removed** from the user profile. Users are directed to email `info@yogabible.dk` to request pause or cancellation.
 
-### Membership Management (within Profile Tab)
-Active autopay contracts show Pause and Cancel buttons directly in the membership section.
+**Info box (active contracts):**
+- Shown for active, non-suspended, non-terminating autopay contracts
+- Contains styled text with orange left border accent explaining:
+  - Pause options: 14 days – 3 months, special circumstances
+  - Cancel: 1 month notice per terms & conditions
+  - Contact: email `info@yogabible.dk`
 
-**Pause (Suspend) flow:**
-1. Click "Pause" → shows pause panel with date pickers
-2. Start date defaults to after next billing cycle (`calcEarliestPauseStart()`)
-3. End date: min 14 days, max 3 months from start
-4. Confirm → POST to `mb-contract-manage` with `action: 'suspend'`
-5. Success → reload membership details, show toast
+**Paused contract display:**
+- Amber "Paused" badge
+- Pause period dates (from/to)
+- Auto-resume message
+- Contact info: "Want to cancel the pause? Contact us at info@yogabible.dk"
 
-**Cancel (Terminate) flow:**
-1. Click "Cancel" → shows cancel panel with calculated dates
-2. `calcTerminationDates(nextBillingDate)` calculates:
-   - **Last payment:** next billing date (the final charge)
-   - **Use until:** next billing + 1 month - 1 day (end of that billing cycle)
-   - Example: next billing Mar 8 → last payment Mar 8 → use until Apr 7
-3. Confirm → POST to `mb-contract-manage` with `action: 'terminate'`
-4. Success → reload membership details, show toast
+**Post-termination UX (unchanged):**
+- **Before termination date:** Retention card (heart icon, perks, "Reactivate — first month free" CTA)
+- **After termination date:** "Become a member again" button → Store memberships
+- Revoke cancellation is NOT possible via Mindbody API (`activatecontract` doesn't exist)
+- "Want to cancel the termination? Contact us at info@yogabible.dk" hint shown
 
-**Status badges:**
-- Active: green badge
-- Paused/Suspended: amber badge
-- Terminating: red badge
-- Pause/Cancel buttons only shown for active, non-suspended, non-terminating autopay contracts
+**Backend (ready for re-activation):**
+- `mb-contract-manage.js` still supports `action: 'suspend'|'terminate'`
+- Can re-enable buttons once Mindbody clarifies SuspendDate semantics
+- Business rules remain in code: min 14 days, max 93 days, earliest start after next billing
+
+**Pause persistence (Firestore bridge):**
+- After user pauses, Firestore `users/{uid}.pausedContracts` stores pause info with `savedAt` timestamp
+- MB `IsSuspended` is ONLY true for currently active pauses (false for future-dated)
+- 90-second grace period: trust Firestore for 90s after save, then defer to MB as authority
+- If MB never confirms (admin deleted suspension), Firestore record auto-removed after 90s
 
 **Date formatting:**
 - All dates use `formatDateDK()` for consistent Danish-style display
-- Date picker inputs use browser native `<input type="date">`
+
+**Why buttons were removed (2026-02-10):**
+1. `SuspendDate` treated by MB as end date, not start — can't schedule future-dated pause starts
+2. No API to delete/cancel an existing suspension — only available in MB admin UI
+3. No API to revoke/cancel a pending termination — only available in MB admin UI
+4. Email sent to Mindbody Developer Support requesting clarification (see `docs/email-mindbody-support.md`)
 
 ### 6. Courses Tab (Mine Kurser)
 
@@ -331,7 +423,7 @@ function isDa() { return window.location.pathname.indexOf('/en/') !== 0; }
 **Translation function `t(key)`:**
 - Returns DA or EN string based on `isDa()` result
 - **Hardcoded JS map** inside profile.js — does NOT read from `profile.json` at runtime
-- ~80+ translation keys covering all tabs, including membership management (pause/cancel/badges/toasts)
+- ~90+ translation keys covering all tabs, including membership management, retention card, store search, and notice period
 - When adding new features, you must add translation keys to BOTH:
   1. `src/_data/i18n/profile.json` (for template-level translations)
   2. The `t()` map in `src/js/profile.js` (for JS-generated UI)
@@ -370,11 +462,14 @@ renderSchedulePassInfo()           — Smart pass banner (clips, membership, low
 clientCanBook(programId)           — Frontend pass-to-program validation
 bookClass(btn)                     — Pass validation + booking
 cancelClass(btn)                   — Cancel with late-cancel retry
-loadReceipts(periodDays?)          — Purchase history with period filter
+loadReceipts(periodDays?)          — Purchase history with period filter (3-source merge)
+renderReceipts(container, purchases) — Receipt cards with price, tax, download button
+generateInvoiceHTML(purchase)      — Full HTML invoice (opens in new window for Print/PDF)
 loadVisitHistory(periodDays?)      — Visit data + filters + status counts
-loadStore()                        — Services + contracts (parallel fetch) with category tabs
+loadStore()                        — Services + contracts (parallel fetch) with search + category tabs
+renderStoreItems(container)        — Build store HTML: search bar, categories, item grid, badges, terms
 categorizeService(s)               — Heuristic name→category mapping
-downloadReceipt(purchase)          — Generate + download text receipt
+formatDKK(num)                     — Danish Krone formatting (e.g. "1.200 kr.")
 
 // ─── Membership Management Functions ───
 loadMembershipDetails()            — Fetch passes/contracts, render, set tier badge
@@ -418,9 +513,27 @@ users/{uid}:
   yogabibleComLinked: boolean
   locale: string
   role: string ('user')
+  consents: {                              // Set on registration, serves as quick reference
+    termsAndConditions: { accepted: true, timestamp: string (ISO), version: string }
+    privacyPolicy: { accepted: true, timestamp: string (ISO), version: string }
+    codeOfConduct: { accepted: true, timestamp: string (ISO), version: string }
+  }
   createdAt: timestamp
   updatedAt: timestamp
   lastLogin: timestamp
+
+consents/{auto-id}:                        // Audit trail — one doc per document per user
+  userId: string (uid)
+  email: string
+  document: string ('termsAndConditions' | 'privacyPolicy' | 'codeOfConduct')
+  documentLabel: string ('Terms & Conditions' | 'Privacy Policy' | 'Code of Conduct')
+  accepted: boolean (true)
+  timestamp: string (ISO)                  // When the user clicked accept
+  version: string                          // Document version date (e.g. '2026-02-09')
+  userAgent: string                        // Browser UA string
+  locale: string ('da' | 'en')
+  source: string ('registration')          // Where consent was collected
+  createdAt: timestamp                     // Server timestamp
 
 enrollments/{id}:
   userId: string (uid)
@@ -452,11 +565,27 @@ On every login, silently ensures user has a Mindbody client:
 
 **Registration flow:**
 1. User submits signup form (firstName, lastName, email, password)
-2. Firebase creates auth account + sets `displayName`
-3. `window._ybRegistration` stores name parts temporarily
-4. `ensureUserProfile()` creates Firestore doc at `users/{uid}`
-5. `createMindbodyClient()` calls `mb-client` POST in background
-6. `window.syncMindbodyClient()` called if available → checks membership tier
+2. User must check two consent checkboxes: T&C + Privacy Policy, and Code of Conduct
+3. Consent validation: both must be checked, otherwise error shown
+4. Firebase creates auth account + sets `displayName`
+5. `window._ybRegistration` stores name parts + consent data (document, timestamp, version) temporarily
+6. `ensureUserProfile()` creates Firestore doc at `users/{uid}` including `consents` object
+7. `storeConsentAuditTrail()` writes 3 individual records to `consents` collection (one per policy document) with userId, email, timestamp, version, userAgent, locale, source
+8. `createMindbodyClient()` calls `mb-client` POST in background
+9. If 409 (duplicate email) → `linkExistingMindbodyClient()` looks up existing MB client, stores `mindbodyClientId`, pulls phone/DOB from MB profile into Firestore
+10. `window.syncMindbodyClient()` called if available → checks membership tier
+
+**Bidirectional Mindbody sync:**
+- **Website → MB:** On registration, `createMindbodyClient()` creates new MB client
+- **MB → Website:** If MB client already exists (409), `linkExistingMindbodyClient()` looks up by email, stores `mindbodyClientId`, and pulls phone + DOB from MB into Firestore (if user hasn't set them locally)
+- **On login (existing user):** `ensureUserProfile()` checks if `mindbodyClientId` is missing, calls `linkExistingMindbodyClient()` to auto-link
+- **BirthDate filtering:** Mindbody returns `0001-01-01T00:00:00` for unset DOB — filtered out before storing
+
+**Consent audit trail:**
+- Each consent record stored individually in `consents` Firestore collection
+- Fields: `userId`, `email`, `document` (type), `documentLabel`, `accepted`, `timestamp`, `version`, `userAgent`, `locale`, `source`, `createdAt`
+- Queryable by userId or email for legal proof of consent
+- Consent summary also stored on user profile for quick reference
 
 **Content gating:**
 - `handleContentGating(user)` — shows/hides gated content based on auth state
@@ -474,7 +603,9 @@ All profile-related CSS classes use these prefixes:
 - `yb-store__` — Store tab elements (also used for loading/empty states in other tabs)
 - `yb-visits__` — Visit history elements
 - `yb-receipts__` — Receipts elements
-- `yb-membership__` — Membership section in Profile tab
+- `yb-membership__` — Membership/passes section in My Passes tab (includes retention card, manage panels)
+- `yb-onboarding__` — Mandatory onboarding overlay (phone + DOB form)
+- `yb-auth-consent__` — Consent checkboxes in registration form
 - `yb-mb-spinner` — Loading spinner
 - `yb-btn` / `yb-btn--primary` / `yb-btn--outline` — Button styles
 - `is-active` — Active state for tabs, filters, categories
@@ -485,7 +616,7 @@ All profile-related CSS classes use these prefixes:
 ### Toast Notifications
 - Normal success/error: 3.5s timeout, plain text
 - Late cancel warning: 6s timeout, rich HTML with wellness note
-- Membership actions: 5s timeout, shown in membership section
+- Membership actions: 5s default, 8s for cancel farewell. `showMembershipToast(message, type, duration)` supports optional duration parameter
 
 ### Loading States
 - All tabs show spinner + localized text while fetching
@@ -498,8 +629,17 @@ All profile-related CSS classes use these prefixes:
 - `staffCache` never cleared (bios don't change during session)
 - `tabLoaded` tracks which tabs have been loaded (prevents re-fetch on tab switch)
 
-### Profile Reminder Banner
-- Shows when phone OR dateOfBirth is missing
+### Mandatory Onboarding Overlay
+- Shown when phone OR dateOfBirth is missing in Firestore on login
+- **Blocks all tab navigation** — tabs and panels set to `display: none`
+- Centered card with phone + DOB form (both required)
+- On save: updates Firestore + pushes to Mindbody + dismisses overlay + shows tabs
+- If `clientId` not yet available (async MB sync), polls every 1s for up to 15s before MB push
+- Existing partial data is pre-filled
+
+### Profile Reminder Banner (soft)
+- Shows inside profile form when phone OR dateOfBirth is missing
+- Hidden when onboarding overlay is shown (overlay takes priority)
 - Hidden after successful profile save if both are now filled
 
 ### Avatar Upload
@@ -544,11 +684,16 @@ When porting this system to a new brand (e.g., Hot Yoga CPH):
 
 1. **Copy files:** `src/js/profile.js`, `src/js/firebase-auth.js`, `src/js/mindbody.js`
 2. **Update translations:** Modify `t()` function map and `storeCategories` array, add brand-specific keys to both `t()` map and `profile.json`
-3. **Update receipt footer:** Change studio name/address in `downloadReceipt()`
+3. **Update invoice template:** Change company name/address/CVR/bank details in `generateInvoiceHTML()`
 4. **Update Firebase config:** Change `firebaseConfig` in `firebase-auth.js` (can share same project yoga-bible-dk-com or use separate)
 5. **Update category heuristics:** Adjust `categorizeService()` keywords if services have different naming
 6. **Termination rules:** Adjust `calcTerminationDates()` — notice period, billing cycle logic may differ per brand's T&C
 7. **Pause rules:** Adjust min/max duration in `mb-contract-manage.js` (currently 14 days min, 93 days max)
-8. **Adapt CSS:** Keep class naming convention, update brand colors — all classes prefixed `yb-` for Yoga Bible
-9. **Template:** Create profile page template with required DOM IDs (see element IDs in init functions)
-10. **Share Mindbody functions:** All `mb-*.js` files are brand-agnostic — same Site ID (5748831), use LocationId to filter per studio if needed
+8. **Retention card messaging:** Update `membership_retention_*` translations for brand-specific perks and reactivation offer
+9. **Notice period text:** Update `membership_notice_period` translation — different brands may have different T&C URLs and notice periods
+10. **Adapt CSS:** Keep class naming convention, update brand colors — all classes prefixed `yb-` for Yoga Bible
+11. **Template:** Create profile page template with required DOM IDs (see element IDs in init functions). Must include 7 tab panels: profile, schedule, store, passes, visits, receipts, courses. Include `#yb-onboarding-overlay` div and consent checkboxes in auth modal
+12. **Consent checkbox links:** Update links in `modal-auth.njk` consent checkboxes to point to new brand's Terms & Conditions, Privacy Policy, and Code of Conduct pages
+13. **Consent version:** Update the `version` string in `firebase-auth.js` registration handler whenever policy documents change
+14. **Firestore rules:** Set up security rules for `consents` collection — write-only from clients, admin-read for legal queries
+15. **Share Mindbody functions:** All `mb-*.js` files are brand-agnostic — same Site ID (5748831), use LocationId to filter per studio if needed

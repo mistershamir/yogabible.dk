@@ -58,9 +58,10 @@
       if (!doc.exists) {
         var firstName = reg.firstName || nameParts[0] || '';
         var lastName = reg.lastName || nameParts.slice(1).join(' ') || '';
+        var consents = reg.consents || null;
 
         // Create new Firestore profile
-        userRef.set({
+        var profileData = {
           uid: user.uid,
           email: user.email,
           firstName: firstName,
@@ -77,7 +78,19 @@
           photoUrl: '',
           createdAt: firebase.firestore.FieldValue.serverTimestamp(),
           updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-        });
+        };
+
+        // Store consent summary on user profile
+        if (consents) {
+          profileData.consents = consents;
+        }
+
+        userRef.set(profileData);
+
+        // Write audit trail records to separate consents collection
+        if (consents) {
+          storeConsentAuditTrail(user.uid, user.email, consents);
+        }
 
         // Create Mindbody client in background
         createMindbodyClient(firstName, lastName, user.email);
@@ -98,6 +111,10 @@
           updates.updatedAt = firebase.firestore.FieldValue.serverTimestamp();
           userRef.update(updates);
         }
+        // If no Mindbody client ID yet, try to link existing MB client
+        if (!data.mindbodyClientId) {
+          linkExistingMindbodyClient(user.email);
+        }
       }
     }).catch(function(err) {
       console.warn('Could not sync user profile:', err);
@@ -109,22 +126,100 @@
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ firstName: firstName, lastName: lastName, email: email })
-    }).then(function(res) { return res.json(); })
-      .then(function(data) {
+    }).then(function(res) {
+      if (res.status === 409) {
+        // Duplicate — existing Mindbody client. Look them up and link.
+        return linkExistingMindbodyClient(email);
+      }
+      return res.json().then(function(data) {
         if (data.client && data.client.Id) {
-          // Store Mindbody client ID in Firestore
-          var user = auth.currentUser;
-          if (user) {
-            db.collection('users').doc(user.uid).update({
-              mindbodyClientId: String(data.client.Id),
-              updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-            });
-          }
-          console.log('Mindbody client created/found:', data.client.Id);
+          storeMindbodyClientId(String(data.client.Id));
+          console.log('Mindbody client created:', data.client.Id);
         }
-      }).catch(function(err) {
-        console.warn('Mindbody client sync failed:', err);
       });
+    }).catch(function(err) {
+      console.warn('Mindbody client sync failed:', err);
+    });
+  }
+
+  function linkExistingMindbodyClient(email) {
+    return fetch('/.netlify/functions/mb-client?email=' + encodeURIComponent(email))
+      .then(function(res) { return res.json(); })
+      .then(function(data) {
+        if (data.found && data.client && data.client.id) {
+          var mbId = String(data.client.id);
+          var user = auth.currentUser;
+          if (!user) return;
+
+          // Store MB client ID + pull phone/DOB if available and missing locally
+          var updates = {
+            mindbodyClientId: mbId,
+            updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+          };
+
+          db.collection('users').doc(user.uid).get().then(function(doc) {
+            var d = doc.exists ? doc.data() : {};
+            // Pull phone from Mindbody if user hasn't set one yet
+            if (!d.phone && data.client.phone) {
+              updates.phone = data.client.phone;
+            }
+            // Pull birthDate from Mindbody if user hasn't set one yet
+            // MB returns ISO datetime (e.g. 1990-03-15T00:00:00) — we extract YYYY-MM-DD
+            // No dd/mm vs mm/dd conflict: both systems use ISO internally
+            if (!d.dateOfBirth && data.client.birthDate) {
+              var bd = data.client.birthDate;
+              if (bd && bd.indexOf('T') !== -1) bd = bd.split('T')[0];
+              if (bd && bd !== '0001-01-01') updates.dateOfBirth = bd;
+            }
+            return db.collection('users').doc(user.uid).update(updates);
+          });
+
+          console.log('Linked existing Mindbody client:', mbId);
+        }
+      });
+  }
+
+  function storeMindbodyClientId(mbId) {
+    var user = auth.currentUser;
+    if (user) {
+      db.collection('users').doc(user.uid).update({
+        mindbodyClientId: mbId,
+        updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+      });
+    }
+  }
+
+  /**
+   * Writes individual consent records to Firestore `consents` collection.
+   * Each record is a separate document — serves as legal proof that the user agreed.
+   */
+  function storeConsentAuditTrail(uid, email, consents) {
+    var documents = ['termsAndConditions', 'privacyPolicy', 'codeOfConduct'];
+    var docLabels = {
+      termsAndConditions: 'Terms & Conditions',
+      privacyPolicy: 'Privacy Policy',
+      codeOfConduct: 'Code of Conduct'
+    };
+
+    documents.forEach(function(docType) {
+      if (consents[docType] && consents[docType].accepted) {
+        db.collection('consents').add({
+          userId: uid,
+          email: email,
+          document: docType,
+          documentLabel: docLabels[docType] || docType,
+          accepted: true,
+          timestamp: consents[docType].timestamp,
+          version: consents[docType].version,
+          userAgent: navigator.userAgent,
+          locale: detectLocale(),
+          source: 'registration',
+          createdAt: firebase.firestore.FieldValue.serverTimestamp()
+        }).catch(function(err) {
+          console.warn('Could not store consent record for ' + docType + ':', err);
+        });
+      }
+    });
   }
 
   function detectLocale() {
@@ -238,6 +333,9 @@
     modal.querySelectorAll('.yb-auth-view').forEach(function(v) {
       v.hidden = v.id !== 'yb-auth-' + viewName;
     });
+    // Toggle data-view on modal box for split layout (register = wider with image panel)
+    var box = modal.querySelector('.yb-auth-modal__box');
+    if (box) box.setAttribute('data-view', viewName);
   }
 
   // Expose globally
@@ -319,6 +417,8 @@
       var lastName = document.getElementById('yb-register-lastname').value.trim();
       var email = document.getElementById('yb-register-email').value.trim();
       var password = document.getElementById('yb-register-password').value;
+      var termsChecked = document.getElementById('yb-register-terms').checked;
+      var conductChecked = document.getElementById('yb-register-conduct').checked;
       var errorEl = document.getElementById('yb-register-error');
       var submitBtn = registerForm.querySelector('button[type="submit"]');
 
@@ -332,15 +432,31 @@
         return;
       }
 
+      if (!termsChecked || !conductChecked) {
+        showError(errorEl, detectLocale() === 'da'
+          ? 'Du skal acceptere vores vilkår, privatlivspolitik og code of conduct.'
+          : 'You must agree to our terms, privacy policy and code of conduct.');
+        return;
+      }
+
       submitBtn.disabled = true;
       submitBtn.textContent = detectLocale() === 'da' ? 'Opretter...' : 'Creating account...';
 
       var fullName = firstName + ' ' + lastName;
+      var consentTimestamp = new Date().toISOString();
 
       auth.createUserWithEmailAndPassword(email, password)
         .then(function(result) {
-          // Store first/last name for Mindbody sync
-          window._ybRegistration = { firstName: firstName, lastName: lastName };
+          // Store first/last name + consent data for profile creation
+          window._ybRegistration = {
+            firstName: firstName,
+            lastName: lastName,
+            consents: {
+              termsAndConditions: { accepted: true, timestamp: consentTimestamp, version: '2026-02-09' },
+              privacyPolicy: { accepted: true, timestamp: consentTimestamp, version: '2026-02-09' },
+              codeOfConduct: { accepted: true, timestamp: consentTimestamp, version: '2026-02-09' }
+            }
+          };
           return result.user.updateProfile({ displayName: fullName });
         })
         .then(function() {

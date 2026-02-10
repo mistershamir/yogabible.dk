@@ -24,7 +24,10 @@ exports.handler = async function(event) {
       return jsonResponse(400, { error: 'clientId is required' });
     }
 
-    // Fetch both client services and contracts in parallel
+    // Fetch client services and contracts in parallel
+    // NOTE: We no longer use MB notes for pause detection — notes persist
+    // even after admin deletes a suspension, causing false "paused" states.
+    // Firestore is the reliable pause persistence layer for future-dated pauses.
     var [servicesData, contractsData] = await Promise.all([
       mbFetch('/client/clientservices?ClientId=' + params.clientId + '&Limit=200').catch(function(e) {
         console.warn('mb-client-services: services fetch failed:', e.message);
@@ -79,8 +82,35 @@ exports.handler = async function(event) {
         if (next) nextBillingDate = next.ChargeDate || next.ScheduleDate;
       }
 
+      // Log ALL raw contract fields to discover suspension-related data.
+      // MB API may use field names we haven't tried yet.
+      var suspectFields = {};
+      Object.keys(c).forEach(function(k) {
+        var kl = k.toLowerCase();
+        if (kl.indexOf('suspend') > -1 || kl.indexOf('pause') > -1 ||
+            kl.indexOf('resume') > -1 || kl.indexOf('freeze') > -1 ||
+            kl.indexOf('hold') > -1) {
+          suspectFields[k] = c[k];
+        }
+      });
+      console.log('[mb-client-services] Contract', c.Id, c.ContractName,
+        'IsSuspended:', c.IsSuspended,
+        'suspectFields:', JSON.stringify(suspectFields),
+        'allKeys:', Object.keys(c).join(',')
+      );
+
+      // Use ONLY MB's own fields for pause detection.
+      // IsSuspended = true only for currently active pauses (not future-dated).
+      // SuspendDate/ResumeDate may be present for scheduled pauses.
+      // Frontend merges with Firestore for future-dated pause persistence.
+      var pauseStartDate = c.SuspendDate || c.SuspensionDate || null;
+      var pauseEndDate = c.ResumeDate || c.ResumptionDate || null;
+      var isPaused = c.IsSuspended || !!(pauseStartDate && pauseEndDate);
+
       return {
         id: c.Id,
+        contractId: c.ContractId || null,
+        locationId: c.LocationId || null,
         name: c.ContractName || '',
         startDate: c.StartDate,
         endDate: c.EndDate,
@@ -90,7 +120,9 @@ exports.handler = async function(event) {
         agreementDate: c.AgreementDate || null,
         nextBillingDate: nextBillingDate,
         autopayAmount: c.AutopayAmount || 0,
-        isSuspended: c.IsSuspended || false,
+        isSuspended: isPaused,
+        pauseStartDate: pauseStartDate,
+        pauseEndDate: pauseEndDate,
         terminationDate: c.TerminationDate || null
       };
     });

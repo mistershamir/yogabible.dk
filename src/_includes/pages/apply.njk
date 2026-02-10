@@ -1,36 +1,27 @@
 {% set t = i18n.apply[lang or "da"] %}
 
-<!-- =========================================================
-  YogaBible.dk — Apply Page: Hero
-========================================================= -->
-<section id="yb-apply-hero" class="yb-apply-hero" lang="da">
-  <div class="yb-apply-hero__bg" aria-hidden="true"></div>
-  <div class="yb-apply-hero__wrap">
-    <div class="yb-apply-hero__content">
-      <span class="yb-apply-hero__badge">{{ t.hero_badge }}</span>
-      <h1 class="yb-apply-hero__title">{{ t.hero_title }}</h1>
-      <p class="yb-apply-hero__sub">{{ t.hero_sub }}</p>
-      <div class="yb-apply-hero__stats">
-        <div class="yb-apply-hero__stat">
-          <strong>{{ t.hero_stat1_value }}</strong>
-          <span>{{ t.hero_stat1_label }}</span>
-        </div>
-        <div class="yb-apply-hero__divider" aria-hidden="true"></div>
-        <div class="yb-apply-hero__stat">
-          <strong>{{ t.hero_stat2_value }}</strong>
-          <span>{{ t.hero_stat2_label }}</span>
-        </div>
-        <div class="yb-apply-hero__divider" aria-hidden="true"></div>
-        <div class="yb-apply-hero__stat">
-          <strong>{{ t.hero_stat3_value }}</strong>
-          <span>{{ t.hero_stat3_label }}</span>
-        </div>
-      </div>
-      <a href="#yb-apply-form" class="yb-apply-hero__cta">
-        {{ t.hero_cta }}
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14"/><path d="m19 12-7 7-7-7"/></svg>
-      </a>
+<!-- Hero -->
+<section class="yb-hero">
+  <div class="yb-hero__glow"></div>
+  <div class="yb-hero__content">
+    <p class="yb-hero__tagline">{{ t.hero_tagline }}</p>
+    <h1 class="yb-hero__title">{{ t.hero_title }}</h1>
+    <p class="yb-hero__subtitle">{{ t.hero_sub }}</p>
+    <div class="yb-hero__line"></div>
+    <div class="yb-hero__ctas">
+      <a href="#yb-apply-form" class="yb-btn yb-btn--primary yb-btn--large">{{ t.hero_cta }}</a>
     </div>
+    <div class="yb-hero__trust">
+      <span>{{ t.hero_trust1 }}</span>
+      <span class="yb-hero__trust-dot"></span>
+      <span>{{ t.hero_trust2 }}</span>
+      <span class="yb-hero__trust-dot"></span>
+      <span>{{ t.hero_trust3 }}</span>
+    </div>
+  </div>
+  <div class="yb-hero__scroll">
+    <span>Scroll</span>
+    <div class="yb-hero__scroll-line"></div>
   </div>
 </section>
 
