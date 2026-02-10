@@ -10,8 +10,10 @@
  * Strategy:
  *   1. Fetch /sale/sales (rich data: payments, tax, line items)
  *      - ClientId filter is broken, so fetch all + filter server-side
+ *      - Must match BOTH ClientId AND RecipientClientId
  *   2. ALSO fetch /client/clientservices + /client/clientcontracts
  *   3. Merge: use /sale/sales data when available, supplement with services/contracts
+ *   4. Cross-reference services with sales to get price data (services have no price field)
  */
 
 const { mbFetch, jsonResponse, corsHeaders } = require('./shared/mb-api');
@@ -37,12 +39,15 @@ exports.handler = async function(event) {
     var startDate = params.startDate || new Date(now.getTime() - 730 * 86400000).toISOString().split('T')[0];
     var endDate = params.endDate || now.toISOString().split('T')[0];
 
+    // For /sale/sales, use narrower window (last 365 days) to avoid pagination limits
+    var salesStartDate = params.startDate || new Date(now.getTime() - 365 * 86400000).toISOString().split('T')[0];
+
     // ══════════════════════════════════════
     // Fetch ALL data sources in parallel
     // ══════════════════════════════════════
 
     var debugLog = [];
-    var salesPromise = fetchSales(startDate, endDate, clientId, debugLog);
+    var salesPromise = fetchSales(salesStartDate, endDate, clientId, debugLog);
     var servicesPromise = fetchClientServices(clientId, startDate, endDate, debugLog);
     var contractsPromise = fetchClientContracts(clientId, startDate, endDate, debugLog);
 
@@ -56,30 +61,30 @@ exports.handler = async function(event) {
       ', contracts=' + contractsPurchases.length);
 
     // ══════════════════════════════════════
+    // Cross-reference: enrich services with sale price data
+    // ══════════════════════════════════════
+    enrichServicesWithSaleData(servicesPurchases, salesPurchases);
+
+    // ══════════════════════════════════════
     // Merge: prefer /sale/sales (has payment data), supplement with services/contracts
     // ══════════════════════════════════════
 
     var purchases = [];
-    var seenIds = {};
+    var seenDescDates = {};
 
     // First: add all sale-based purchases (rich data)
     salesPurchases.forEach(function(p) {
       purchases.push(p);
-      seenIds['sale-' + p.saleId] = true;
+      var key = (p.description || '').toLowerCase() + '|' + (p.saleDate || '').split('T')[0];
+      seenDescDates[key] = true;
     });
 
     // Then: add services/contracts not already covered by sales
     servicesPurchases.concat(contractsPurchases).forEach(function(p) {
-      // Avoid duplicates — check by description + date match
-      var isDup = false;
-      purchases.forEach(function(existing) {
-        if (existing.description === p.description &&
-            existing.saleDate.split('T')[0] === p.saleDate.split('T')[0]) {
-          isDup = true;
-        }
-      });
-      if (!isDup) {
+      var key = (p.description || '').toLowerCase() + '|' + (p.saleDate || '').split('T')[0];
+      if (!seenDescDates[key]) {
         purchases.push(p);
+        seenDescDates[key] = true;
       }
     });
 
@@ -110,7 +115,6 @@ async function fetchSales(startDate, endDate, clientId, debugLog) {
     var hasMore = true;
     var totalSales = 0;
     var matchedSales = 0;
-    var seenClientIds = {};
 
     while (hasMore) {
       var salesUrl = '/sale/sales?StartSaleDateTime=' + startDate +
@@ -122,32 +126,27 @@ async function fetchSales(startDate, endDate, clientId, debugLog) {
       var batch = salesData.Sales || [];
       totalSales += batch.length;
 
-      if (offset === 0) {
-        if (batch.length > 0) {
-          debugLog.push({ type: 'FIRST_SALE', keys: Object.keys(batch[0]), data: JSON.parse(JSON.stringify(batch[0])) });
+      // Debug: log first batch info
+      if (offset === 0 && batch.length > 0) {
+        debugLog.push({ type: 'FIRST_SALE', keys: Object.keys(batch[0]), clientId: batch[0].ClientId, recipientClientId: batch[0].RecipientClientId });
 
-          var items = batch[0].PurchasedItems || batch[0].Items || [];
-          if (items.length > 0) {
-            debugLog.push({ type: 'FIRST_SALE_ITEM', keys: Object.keys(items[0]), data: items[0] });
-          }
-          var payments = batch[0].Payments || [];
-          if (payments.length > 0) {
-            debugLog.push({ type: 'FIRST_SALE_PAYMENT', keys: Object.keys(payments[0]), data: payments[0] });
-          }
-        } else {
-          debugLog.push({ type: 'SALES_EMPTY', message: 'No sales returned from /sale/sales', url: salesUrl });
+        var items = batch[0].PurchasedItems || batch[0].Items || [];
+        if (items.length > 0) {
+          debugLog.push({ type: 'FIRST_SALE_ITEM', keys: Object.keys(items[0]) });
         }
-
-        batch.forEach(function(s) {
-          var cid = String(s.ClientId || '');
-          if (!seenClientIds[cid]) seenClientIds[cid] = 0;
-          seenClientIds[cid]++;
-        });
+        var payments = batch[0].Payments || [];
+        if (payments.length > 0) {
+          debugLog.push({ type: 'FIRST_SALE_PAYMENT', keys: Object.keys(payments[0]) });
+        }
       }
 
       batch.forEach(function(sale) {
+        // Match by BOTH ClientId AND RecipientClientId (MB uses them inconsistently)
         var saleClientId = String(sale.ClientId || '');
-        if (saleClientId === String(clientId)) {
+        var recipientId = String(sale.RecipientClientId || '');
+        var targetId = String(clientId);
+
+        if (saleClientId === targetId || recipientId === targetId) {
           matchedSales++;
           purchases.push(mapSaleToPurchase(sale));
         }
@@ -158,12 +157,12 @@ async function fetchSales(startDate, endDate, clientId, debugLog) {
       offset += limit;
 
       if (batch.length < limit || offset >= totalResults) hasMore = false;
-      if (offset >= 1000) hasMore = false;
+      // Increase limit to 2000 to catch more recent sales
+      if (offset >= 2000) hasMore = false;
     }
 
-    var summary = 'total=' + totalSales + ', matched=' + matchedSales + ', clientIds=' + JSON.stringify(seenClientIds);
-    console.log('[mb-purchases] /sale/sales SUMMARY:', summary);
-    debugLog.push({ type: 'SALES_SUMMARY', totalSales: totalSales, matchedSales: matchedSales, uniqueClientIds: seenClientIds });
+    console.log('[mb-purchases] /sale/sales SUMMARY: total=' + totalSales + ', matched=' + matchedSales);
+    debugLog.push({ type: 'SALES_SUMMARY', totalSales: totalSales, matchedSales: matchedSales });
 
   } catch (err) {
     console.error('[mb-purchases] /sale/sales FAILED:', err.message);
@@ -173,34 +172,45 @@ async function fetchSales(startDate, endDate, clientId, debugLog) {
 }
 
 function mapSaleToPurchase(sale) {
-  var saleId = sale.SaleId || sale.Id;
+  var saleId = sale.Id || sale.SaleId;
   var items = sale.PurchasedItems || sale.Items || [];
   var payments = sale.Payments || [];
   var saleDate = sale.SaleDateTime || sale.SaleDate || '';
 
+  // Map payments — confirmed field names from debug: Amount, Type, Method, TransactionId, Last4
   var paymentDetails = payments.map(function(p) {
     return {
-      method: p.PaymentMethodName || p.Type || '',
-      last4: p.PaymentLastFour || p.LastFour || '',
-      amount: p.PaymentAmountPaid || p.Amount || 0,
-      notes: p.PaymentNotes || p.Notes || ''
+      method: p.Type || p.PaymentMethodName || '',
+      last4: p.Last4 || p.PaymentLastFour || '',
+      amount: Number(p.Amount) || Number(p.PaymentAmountPaid) || 0,
+      transactionId: p.TransactionId || null,
+      notes: p.Notes || p.PaymentNotes || ''
     };
   });
 
   var primaryPayment = paymentDetails[0] || {};
 
+  // Map line items — confirmed field names from debug: UnitPrice, TotalAmount, TaxAmount, DiscountAmount, Quantity
   var lineItems = items.map(function(item) {
-    var unitPrice = item.Price || item.UnitPrice || item.AmountPaid || item.Amount || item.RetailPrice || 0;
-    var amountPaid = item.AmountPaid || item.Amount || item.Price || item.TotalAmount || 0;
+    var unitPrice = Number(item.UnitPrice) || Number(item.Price) || Number(item.RetailPrice) || 0;
+    var totalAmount = Number(item.TotalAmount) || Number(item.AmountPaid) || Number(item.Amount) || unitPrice;
+    var taxAmount = Number(item.TaxAmount) || Number(item.Tax) || 0;
+    // Also sum Tax1-Tax5 if TaxAmount is zero
+    if (taxAmount === 0) {
+      taxAmount = (Number(item.Tax1) || 0) + (Number(item.Tax2) || 0) +
+        (Number(item.Tax3) || 0) + (Number(item.Tax4) || 0) + (Number(item.Tax5) || 0);
+    }
+    var discountAmount = Number(item.DiscountAmount) || Number(item.AmountDiscounted) || Number(item.Discount) || 0;
 
     return {
       id: item.Id || item.ItemId || 0,
       description: item.Description || item.Name || '',
-      quantity: item.Quantity || 1,
+      quantity: Number(item.Quantity) || 1,
       unitPrice: unitPrice,
-      amountPaid: amountPaid,
-      discount: item.AmountDiscounted || item.Discount || 0,
-      tax: item.Tax || item.TaxAmount || 0,
+      amountPaid: totalAmount,
+      discount: discountAmount,
+      discountPercent: Number(item.DiscountPercent) || 0,
+      tax: taxAmount,
       returned: item.Returned || false,
       type: item.Type || ''
     };
@@ -215,7 +225,10 @@ function mapSaleToPurchase(sale) {
     if (li.returned) anyReturned = true;
   });
 
-  var saleTotalPaid = sale.TotalAmountPaid || sale.TotalAmount || sale.AmountPaid || sale.Total || totalPaid;
+  // Use the total from payments if available, otherwise from items
+  var paymentTotal = 0;
+  paymentDetails.forEach(function(pd) { paymentTotal += pd.amount; });
+  var saleTotalPaid = paymentTotal > 0 ? paymentTotal : (totalPaid || subtotal);
 
   return {
     saleId: saleId,
@@ -242,6 +255,7 @@ function mapSaleToPurchase(sale) {
 
 // ══════════════════════════════════════
 // Data source 2: /client/clientservices
+// NOTE: ClientServices have NO price field — prices come from cross-referencing with sales
 // ══════════════════════════════════════
 async function fetchClientServices(clientId, startDate, endDate, debugLog) {
   var purchases = [];
@@ -250,7 +264,7 @@ async function fetchClientServices(clientId, startDate, endDate, debugLog) {
     var services = svcData.ClientServices || [];
 
     if (services.length > 0) {
-      debugLog.push({ type: 'FIRST_SERVICE', keys: Object.keys(services[0]), data: JSON.parse(JSON.stringify(services[0])) });
+      debugLog.push({ type: 'FIRST_SERVICE', keys: Object.keys(services[0]), name: services[0].Name, productId: services[0].ProductId });
     }
 
     services.forEach(function(svc) {
@@ -259,30 +273,28 @@ async function fetchClientServices(clientId, startDate, endDate, debugLog) {
       var svcDate = activeDate.split('T')[0];
       if (svcDate < startDate || svcDate > endDate) return;
 
-      // Try every known price field
-      var price = svc.Price || svc.OnlinePrice || svc.RetailPrice || svc.Cost || svc.Amount || svc.AmountPaid || svc.TotalAmount || 0;
-
       purchases.push({
         saleId: svc.Id,
         saleDate: activeDate,
         description: svc.Name || '',
+        productId: svc.ProductId || null,
         items: [{
           description: svc.Name || '',
           quantity: 1,
-          unitPrice: price,
-          amountPaid: price,
+          unitPrice: 0,
+          amountPaid: 0,
           discount: 0,
           tax: 0,
-          returned: false
+          returned: svc.Returned || false
         }],
         payments: [],
         paymentMethod: '',
         paymentLast4: '',
-        subtotal: price,
+        subtotal: 0,
         tax: 0,
         discount: 0,
-        totalPaid: price,
-        returned: false,
+        totalPaid: 0,
+        returned: svc.Returned || false,
         remaining: typeof svc.Remaining === 'number' ? svc.Remaining : null,
         count: svc.Count || null,
         current: svc.Current || false,
@@ -300,6 +312,7 @@ async function fetchClientServices(clientId, startDate, endDate, debugLog) {
 
 // ══════════════════════════════════════
 // Data source 3: /client/clientcontracts
+// Price is in UpcomingAutopayEvents[0].ChargeAmount (not top-level fields)
 // ══════════════════════════════════════
 async function fetchClientContracts(clientId, startDate, endDate, debugLog) {
   var purchases = [];
@@ -308,7 +321,15 @@ async function fetchClientContracts(clientId, startDate, endDate, debugLog) {
     var contracts = contractData.Contracts || [];
 
     if (contracts.length > 0) {
-      debugLog.push({ type: 'FIRST_CONTRACT', keys: Object.keys(contracts[0]), data: JSON.parse(JSON.stringify(contracts[0])) });
+      var first = contracts[0];
+      var firstEvents = first.UpcomingAutopayEvents || [];
+      debugLog.push({
+        type: 'FIRST_CONTRACT',
+        name: first.Name,
+        agreementDate: first.AgreementDate,
+        autopayEventsCount: firstEvents.length,
+        firstEvent: firstEvents.length > 0 ? firstEvents[0] : null
+      });
     }
 
     contracts.forEach(function(c) {
@@ -317,7 +338,17 @@ async function fetchClientContracts(clientId, startDate, endDate, debugLog) {
       var contractDate = cDate.split('T')[0];
       if (contractDate < startDate || contractDate > endDate) return;
 
-      var price = c.TotalAmount || c.AutopayAmount || c.ContractPrice || c.Price || c.Amount || 0;
+      // Extract price from UpcomingAutopayEvents (confirmed working from debug)
+      var events = c.UpcomingAutopayEvents || [];
+      var firstEvent = events[0] || {};
+      var price = Number(firstEvent.ChargeAmount) || Number(firstEvent.Subtotal) || 0;
+      var tax = Number(firstEvent.Tax) || 0;
+      var payMethod = firstEvent.PaymentMethod || '';
+
+      // Fallback to top-level fields if events are empty
+      if (price === 0) {
+        price = Number(c.TotalAmount) || Number(c.AutopayAmount) || Number(c.ContractPrice) || 0;
+      }
 
       purchases.push({
         saleId: c.Id,
@@ -327,21 +358,21 @@ async function fetchClientContracts(clientId, startDate, endDate, debugLog) {
           description: c.Name || c.ContractName || '',
           quantity: 1,
           unitPrice: price,
-          amountPaid: price,
+          amountPaid: price + tax,
           discount: 0,
-          tax: 0,
+          tax: tax,
           returned: false
         }],
-        payments: [],
-        paymentMethod: c.AutopayStatus === 'Active' ? 'Autopay' : '',
+        payments: payMethod ? [{ method: payMethod, last4: '', amount: price + tax, notes: '' }] : [],
+        paymentMethod: payMethod || (c.AutopayStatus === 'Active' ? 'Autopay' : ''),
         paymentLast4: '',
         subtotal: price,
-        tax: 0,
+        tax: tax,
         discount: 0,
-        totalPaid: price,
+        totalPaid: price + tax,
         returned: false,
         contractEndDate: c.EndDate || null,
-        autopayAmount: c.AutopayAmount || 0,
+        autopayAmount: Number(c.AutopayAmount) || 0,
         source: 'clientcontract'
       });
     });
@@ -349,4 +380,54 @@ async function fetchClientContracts(clientId, startDate, endDate, debugLog) {
     console.warn('[mb-purchases] clientcontracts failed:', e.message);
   }
   return purchases;
+}
+
+
+// ══════════════════════════════════════
+// Cross-reference: enrich services with price data from matching sales
+// Services have ProductId but no price — sales have both
+// ══════════════════════════════════════
+function enrichServicesWithSaleData(services, sales) {
+  if (!sales.length) return;
+
+  // Build a lookup: description (lowercase) + date → sale data
+  var saleLookup = {};
+  sales.forEach(function(sale) {
+    if (!sale.items) return;
+    sale.items.forEach(function(item) {
+      var key = (item.description || '').toLowerCase();
+      if (!saleLookup[key]) {
+        saleLookup[key] = {
+          unitPrice: item.unitPrice,
+          amountPaid: item.amountPaid,
+          tax: item.tax,
+          discount: item.discount,
+          payments: sale.payments,
+          paymentMethod: sale.paymentMethod,
+          totalPaid: sale.totalPaid
+        };
+      }
+    });
+  });
+
+  // Enrich services that have 0 price
+  services.forEach(function(svc) {
+    if (svc.totalPaid > 0) return; // Already has price
+
+    var key = (svc.description || '').toLowerCase();
+    var match = saleLookup[key];
+    if (match) {
+      svc.items[0].unitPrice = match.unitPrice;
+      svc.items[0].amountPaid = match.amountPaid;
+      svc.items[0].tax = match.tax;
+      svc.items[0].discount = match.discount;
+      svc.subtotal = match.unitPrice;
+      svc.tax = match.tax;
+      svc.discount = match.discount;
+      svc.totalPaid = match.amountPaid;
+      svc.payments = match.payments || [];
+      svc.paymentMethod = match.paymentMethod || '';
+      svc.priceSource = 'cross-ref-sale';
+    }
+  });
 }
