@@ -20,62 +20,82 @@
 const { mbFetch, jsonResponse, corsHeaders } = require('./shared/mb-api');
 
 /**
- * Validate that the client has a service/pass covering this class's program.
+ * Validate that the client has a service/pass covering this class.
  * Staff token bypasses Mindbody's built-in payment validation, so we do it manually.
+ *
+ * Uses GET /sale/services?ClassId=X to ask Mindbody which pricing options (and
+ * therefore which Programs/service categories) are valid for the class. This
+ * respects Service Category Relationships configured in the business settings,
+ * so cross-category passes work automatically.
  *
  * Returns { allowed: true } or { allowed: false, reason: '...' }
  */
 async function validateClientPass(clientId, classId) {
   try {
-    // Fetch the class to get its program
-    var classData = await mbFetch('/class/classes?ClassIds=' + classId + '&Limit=1');
+    // 1. Fetch class info (for program name in error messages) AND
+    //    the valid services for this class (includes cross-category) in parallel
+    var [classData, validServicesData, clientServicesData] = await Promise.all([
+      mbFetch('/class/classes?ClassIds=' + classId + '&Limit=1'),
+      mbFetch('/sale/services?ClassId=' + classId + '&Limit=200'),
+      mbFetch('/client/clientservices?ClientId=' + clientId + '&Limit=200').catch(function() {
+        return { ClientServices: [] };
+      })
+    ]);
+
     var classes = classData.Classes || [];
     if (!classes.length) {
-      return { allowed: true }; // Can't determine program, let booking proceed
+      return { allowed: true }; // Can't determine class, let booking proceed
     }
     var cls = classes[0];
     var classProgramId = cls.ClassDescription && cls.ClassDescription.Program
       ? cls.ClassDescription.Program.Id : null;
+    var classProgramName = (cls.ClassDescription && cls.ClassDescription.Program)
+      ? cls.ClassDescription.Program.Name : 'this class type';
 
-    if (!classProgramId) {
-      return { allowed: true, classProgramId: null }; // No program info, let booking proceed
+    // 2. Build set of valid Program IDs from the services Mindbody says cover this class
+    var validServices = validServicesData.Services || [];
+    var validProgramIds = {};
+    for (var i = 0; i < validServices.length; i++) {
+      if (validServices[i].Program && validServices[i].Program.Id != null) {
+        validProgramIds[validServices[i].Program.Id] = validServices[i].Program.Name || '';
+      }
+    }
+    // Always include the class's own program as valid
+    if (classProgramId) {
+      validProgramIds[classProgramId] = classProgramName;
     }
 
-    // Fetch client's active services and contracts
-    var [servicesData, contractsData] = await Promise.all([
-      mbFetch('/client/clientservices?ClientId=' + clientId + '&Limit=200').catch(function() {
-        return { ClientServices: [] };
-      }),
-      mbFetch('/client/clientcontracts?ClientId=' + clientId).catch(function() {
-        return { Contracts: [] };
-      })
-    ]);
+    var validIds = Object.keys(validProgramIds).map(Number);
+    console.log('mb-book: Class', classId, 'program:', classProgramId,
+      '— valid programs (incl. cross-category):', validIds.join(', '));
 
+    if (!validIds.length) {
+      return { allowed: true, classProgramId: classProgramId, validProgramIds: validIds }; // No program info, let booking proceed
+    }
+
+    // 3. Check if any of the client's active services match a valid program
     var now = new Date();
-
-    // Check if any active service covers this class's program
-    // NOTE: Contracts (memberships) create corresponding services in MB,
-    // so we match services only — this correctly gates workshop/special passes
-    var services = servicesData.ClientServices || [];
+    var services = clientServicesData.ClientServices || [];
     for (var j = 0; j < services.length; j++) {
       var s = services[j];
       var sActive = s.ActiveDate ? new Date(s.ActiveDate) : null;
       var sExpiry = s.ExpirationDate ? new Date(s.ExpirationDate) : null;
       var isCurrent = s.Current || (sActive && sActive <= now && (!sExpiry || sExpiry >= now));
 
-      if (isCurrent && s.Program && s.Program.Id === classProgramId) {
+      if (isCurrent && s.Program && validIds.indexOf(Number(s.Program.Id)) !== -1) {
         // Check remaining uses
         if (s.Remaining != null && s.Remaining <= 0) {
           continue; // This pass is used up, check others
         }
-        console.log('mb-book: Client has matching service:', s.Name, 'program:', s.Program.Id, '— allowing booking');
-        return { allowed: true, classProgramId: classProgramId };
+        console.log('mb-book: Client has matching service:', s.Name,
+          'program:', s.Program.Id, '(class program:', classProgramId, ') — allowing booking');
+        return { allowed: true, classProgramId: classProgramId, validProgramIds: validIds };
       }
     }
 
-    var classProgramName = cls.ClassDescription.Program.Name || 'this class type';
-    console.log('mb-book: No matching pass for program', classProgramId, '(' + classProgramName + ') — denying booking');
-    return { allowed: false, reason: 'No valid pass for ' + classProgramName, classProgramId: classProgramId, classProgramName: classProgramName };
+    console.log('mb-book: No matching pass for class', classId, 'program', classProgramId,
+      '(' + classProgramName + ') — denying booking');
+    return { allowed: false, reason: 'No valid pass for ' + classProgramName, classProgramId: classProgramId, classProgramName: classProgramName, validProgramIds: validIds };
   } catch (err) {
     console.error('mb-book: Pass validation error:', err.message, '— BLOCKING booking (fail closed)');
     return { allowed: false, reason: 'Could not validate pass — please try again' };
@@ -83,16 +103,21 @@ async function validateClientPass(clientId, classId) {
 }
 
 /**
- * Check if client has an active autopay contract that covers the given program.
- * If classProgramId is null, checks for ANY active autopay (backward compat).
+ * Check if client has an active autopay contract that covers the given class.
+ * If validProgramIds is null/empty, checks for ANY active autopay (backward compat).
  * This is ONLY needed for the special case: booking past billing cycle where
  * the service expired between cycles but the membership is still active.
+ *
+ * @param {string} clientId
+ * @param {number|null} classProgramId - the class's own program ID (for logging)
+ * @param {number[]} validProgramIds - all valid program IDs for this class (incl. cross-category)
  */
-async function hasAutopayContractForProgram(clientId, classProgramId) {
+async function hasAutopayContractForProgram(clientId, classProgramId, validProgramIds) {
   try {
+    var hasPrograms = validProgramIds && validProgramIds.length > 0;
     var results = await Promise.all([
       mbFetch('/client/clientcontracts?ClientId=' + clientId),
-      classProgramId ? mbFetch('/client/clientservices?ClientId=' + clientId + '&Limit=200') : Promise.resolve({ ClientServices: [] })
+      hasPrograms ? mbFetch('/client/clientservices?ClientId=' + clientId + '&Limit=200') : Promise.resolve({ ClientServices: [] })
     ]);
     var contracts = results[0].Contracts || [];
     var services = results[1].ClientServices || [];
@@ -110,7 +135,7 @@ async function hasAutopayContractForProgram(clientId, classProgramId) {
       if (isActive && isAutopay) {
         activeContractIds.push(c.Id);
         // If no program filter, any active autopay is fine
-        if (!classProgramId) {
+        if (!hasPrograms) {
           console.log('mb-book: Client', clientId, 'has active autopay contract:', c.ContractName || c.Id);
           return true;
         }
@@ -120,14 +145,14 @@ async function hasAutopayContractForProgram(clientId, classProgramId) {
     if (!activeContractIds.length) return false;
 
     // If we need program matching: check if any service from these contracts
-    // (even expired ones within last 30 days) covers the class's program.
+    // (even expired ones within last 30 days) covers a valid program for this class.
     // This handles billing-gap edge case where service expired between cycles.
     var cutoff = new Date(now.getTime() - 30 * 86400000);
     for (var j = 0; j < services.length; j++) {
       var s = services[j];
-      if (s.Program && Number(s.Program.Id) === Number(classProgramId)) {
+      if (s.Program && validProgramIds.indexOf(Number(s.Program.Id)) !== -1) {
         var sExpiry = s.ExpirationDate ? new Date(s.ExpirationDate) : null;
-        // Service matches program AND is recent (within 30 days of expiry — billing gap)
+        // Service matches a valid program AND is recent (within 30 days of expiry — billing gap)
         if (!sExpiry || sExpiry >= cutoff) {
           console.log('mb-book: Client', clientId, 'has autopay + matching program service:', s.Name, 'program:', s.Program.Id);
           return true;
@@ -135,7 +160,7 @@ async function hasAutopayContractForProgram(clientId, classProgramId) {
       }
     }
 
-    console.log('mb-book: Client', clientId, 'has autopay but NO service matching program', classProgramId);
+    console.log('mb-book: Client', clientId, 'has autopay but NO service matching programs', validProgramIds.join(','));
     return false;
   } catch (err) {
     console.warn('mb-book: Could not check contracts for program match:', err.message);
@@ -213,8 +238,8 @@ exports.handler = async function(event) {
         || err.status === 412;
 
       if (isPaymentError) {
-        // Check if client has autopay membership for THIS PROGRAM — if so, likely a billing gap
-        var hasAutopay = await hasAutopayContractForProgram(body.clientId, passCheck.classProgramId || null);
+        // Check if client has autopay membership for a valid program — if so, likely a billing gap
+        var hasAutopay = await hasAutopayContractForProgram(body.clientId, passCheck.classProgramId || null, passCheck.validProgramIds || []);
         if (hasAutopay) {
           // Retry — this time Mindbody should allow it via staff token
           // The staff user needs "Make Unpaid Reservation" permission in Mindbody
