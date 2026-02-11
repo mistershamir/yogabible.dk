@@ -2222,9 +2222,17 @@
         var formEl = document.getElementById('yb-giftcard-form');
         if (formEl) {
           formEl.hidden = false;
-          // Update selected price in form
+          // Update selected price in form (hide for custom amount cards)
           var priceEl = formEl.querySelector('.yb-giftcards__form-price');
-          if (priceEl) priceEl.textContent = formatDKK(selectedGiftCard.salePrice || selectedGiftCard.value);
+          if (priceEl) {
+            if (selectedGiftCard.editableByConsumer) {
+              priceEl.textContent = '';
+              priceEl.hidden = true;
+            } else {
+              priceEl.textContent = formatDKK(selectedGiftCard.salePrice || selectedGiftCard.value);
+              priceEl.hidden = false;
+            }
+          }
           // Show/hide custom amount field
           var customAmountField = document.getElementById('yb-gc-custom-amount-field');
           if (customAmountField) {

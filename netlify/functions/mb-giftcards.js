@@ -52,7 +52,7 @@ exports.handler = async (event) => {
       const purchaseData = {
         LocationId: parseInt(locationId || '1', 10),
         GiftCardId: parseInt(giftCardId, 10),
-        ClientId: String(clientId),
+        PurchaserClientId: String(clientId),
         RecipientEmail: recipientEmail,
         RecipientName: recipientName,
         Title: title || 'Gift Card',
@@ -77,8 +77,6 @@ exports.handler = async (event) => {
       if (message) purchaseData.GiftMessage = message;
       if (deliveryDate) purchaseData.DeliveryDate = deliveryDate;
       if (layoutId) purchaseData.LayoutId = parseInt(layoutId, 10);
-      // Custom amount for EditableByConsumer gift cards
-      if (customAmount) purchaseData.CardValue = parseFloat(customAmount);
 
       console.log('[mb-giftcards] Purchasing gift card:', JSON.stringify(purchaseData));
 
