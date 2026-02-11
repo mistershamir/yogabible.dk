@@ -130,7 +130,12 @@ exports.handler = async function(event) {
       if (body.lastName) updateData.LastName = body.lastName;
       if (body.email) updateData.Email = body.email;
       if (body.phone) updateData.MobilePhone = body.phone;
-      if (body.birthDate) updateData.BirthDate = body.birthDate;
+      if (body.birthDate) {
+        // MB API expects full ISO datetime for BirthDate
+        var bd = body.birthDate;
+        if (bd.length === 10) bd = bd + 'T00:00:00';
+        updateData.BirthDate = bd;
+      }
 
       console.log('[mb-client] PUT updateData:', JSON.stringify(updateData));
 
@@ -152,8 +157,10 @@ exports.handler = async function(event) {
         }
       });
     } catch (err) {
-      console.error('mb-client PUT error:', err);
-      return jsonResponse(err.status || 500, { error: err.message });
+      console.error('mb-client PUT error:', err.message, err.data ? JSON.stringify(err.data) : '');
+      var errMsg = err.message || 'Update failed';
+      if (err.data && err.data.Error && err.data.Error.Message) errMsg = err.data.Error.Message;
+      return jsonResponse(err.status || 500, { error: errMsg, _debug: err.data || null });
     }
   }
 
