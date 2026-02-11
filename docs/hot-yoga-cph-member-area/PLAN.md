@@ -102,30 +102,30 @@ External Services
 | Key | Value | Notes |
 |-----|-------|-------|
 | `MB_API_KEY` | *(same as Yoga Bible)* | Shared across brands |
-| `MB_SITE_ID` | `5748831` | Same studio system |
-| `MB_STAFF_USERNAME` | `info@hotyogacph.dk` | HYC-specific staff account |
-| `MB_STAFF_PASSWORD` | `HotYogaCph1234%` | HYC-specific staff password |
-| `FIREBASE_API_KEY` | `AIzaSyAwqILw1UKVxS0LOnJEGS9fZ5DYeRCwrfY` | HYC Firebase project |
-| `FIREBASE_AUTH_DOMAIN` | `hot-yoga-copenhagen-3a104.firebaseapp.com` | |
-| `FIREBASE_PROJECT_ID` | `hot-yoga-copenhagen-3a104` | |
+| `MB_SITE_ID` | *(set in Netlify env)* | Same studio system |
+| `MB_STAFF_USERNAME` | *(set in Netlify env)* | HYC-specific staff account |
+| `MB_STAFF_PASSWORD` | *(set in Netlify env)* | HYC-specific staff password |
+| `FIREBASE_API_KEY` | *(set in Netlify env)* | HYC Firebase project |
+| `FIREBASE_AUTH_DOMAIN` | *(set in Netlify env)* | |
+| `FIREBASE_PROJECT_ID` | *(set in Netlify env)* | |
 
 ### Firebase Project
 - **Project name**: Hot Yoga Copenhagen
-- **Project ID**: `hot-yoga-copenhagen-3a104`
-- **Project number**: `854520211869`
+- **Project ID**: *(see Netlify env vars)*
 - **Auth method**: Email/Password (enabled)
 - **Firestore**: To be set up (users collection)
 
 ### Firebase Config (for frontend)
 ```javascript
+// All values injected at build time from Netlify env vars
 const firebaseConfig = {
-  apiKey: "AIzaSyAwqILw1UKVxS0LOnJEGS9fZ5DYeRCwrfY",
-  authDomain: "hot-yoga-copenhagen-3a104.firebaseapp.com",
-  projectId: "hot-yoga-copenhagen-3a104",
-  storageBucket: "hot-yoga-copenhagen-3a104.firebasestorage.app",
-  messagingSenderId: "854520211869",
-  appId: "1:854520211869:web:eec44a1be7b1c843cba774",
-  measurementId: "G-92YEVG2RLY"
+  apiKey: "__FIREBASE_API_KEY__",
+  authDomain: "__FIREBASE_AUTH_DOMAIN__",
+  projectId: "__FIREBASE_PROJECT_ID__",
+  storageBucket: "__FIREBASE_STORAGE_BUCKET__",
+  messagingSenderId: "__FIREBASE_MESSAGING_SENDER_ID__",
+  appId: "__FIREBASE_APP_ID__",
+  measurementId: "__FIREBASE_MEASUREMENT_ID__"
 };
 ```
 
