@@ -2279,6 +2279,124 @@ body {
   color: #357f89;
 }
 
+/* -- Store: Features List (memberships) -- */
+.yb-store__item-features {
+  list-style: none;
+  padding: 0;
+  margin: 0.75rem 0 0;
+}
+.yb-store__item-features li {
+  font-size: 0.8rem;
+  color: #0F0F0F;
+  padding: 0.25rem 0 0.25rem 1.4rem;
+  position: relative;
+  line-height: 1.45;
+}
+.yb-store__item-features li::before {
+  content: '\2713';
+  position: absolute;
+  left: 0;
+  color: #3f99a5;
+  font-weight: 700;
+  font-size: 0.85rem;
+}
+
+/* -- Store: Validity -- */
+.yb-store__item-validity {
+  font-size: 0.8rem;
+  color: #6F6A66;
+  margin: 0.35rem 0 0;
+}
+
+/* -- Store: Sharing Info -- */
+.yb-store__item-sharing {
+  font-size: 0.8rem;
+  color: #3f99a5;
+  font-weight: 600;
+  margin: 0.4rem 0 0;
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+.yb-store__item-sharing svg {
+  flex-shrink: 0;
+}
+
+/* -- Store: Saving Info (time-based) -- */
+.yb-store__item-saving {
+  font-size: 0.78rem;
+  color: #27ae60;
+  font-weight: 600;
+  margin: 0.4rem 0 0;
+  display: flex;
+  align-items: flex-start;
+  gap: 0.35rem;
+  line-height: 1.4;
+}
+.yb-store__item-saving svg {
+  flex-shrink: 0;
+  color: #27ae60;
+  margin-top: 0.1rem;
+}
+
+/* -- Store: VAT Info -- */
+.yb-store__item-vat {
+  font-size: 0.72rem;
+  color: #6F6A66;
+  margin: 0.3rem 0 0;
+}
+.yb-store__item-vat--zero {
+  color: #27ae60;
+  font-weight: 600;
+}
+
+/* -- Store: Popular / Best Deal badges -- */
+.yb-store__badge--popular {
+  background: #e8f4f6;
+  color: #3f99a5;
+  border: 1px solid #3f99a5;
+}
+.yb-store__badge--best {
+  background: #e8f8e8;
+  color: #27ae60;
+  border: 1px solid #27ae60;
+}
+.yb-store__badge--cph {
+  background: #F5F3F0;
+  color: #6F6A66;
+  border: 1px solid #E8E4E0;
+}
+
+/* -- Store: Popular card highlight -- */
+.yb-store__item--popular {
+  border-color: #3f99a5;
+  box-shadow: 0 0 0 1px rgba(63, 153, 165, 0.15);
+}
+.yb-store__item--best {
+  border-color: #27ae60;
+  box-shadow: 0 0 0 1px rgba(39, 174, 96, 0.15);
+}
+
+/* -- Store: Item Footer (price + button) -- */
+.yb-store__item-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-top: auto;
+  padding-top: 0.75rem;
+  border-top: 1px solid #E8E4E0;
+}
+.yb-store__item-footer .yb-store__item-btn {
+  width: auto;
+  white-space: nowrap;
+}
+.yb-store__item-recurring {
+  font-size: 0.78rem;
+  color: #6F6A66;
+  font-weight: 400;
+}
+
 /* -- Checkout Terms -- */
 .yb-store__checkout-item-details {
   flex: 1;
@@ -2301,6 +2419,100 @@ body {
   left: 0;
   color: #3f99a5;
   font-weight: 600;
+}
+
+/* -- Sharing Dropdown (60/100/200 clip cards) -- */
+.yb-store__sharing-how {
+  margin: 0.5rem 0 0;
+}
+.yb-store__sharing-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  background: none;
+  border: none;
+  padding: 0.3rem 0;
+  font-family: inherit;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: #3f99a5;
+  cursor: pointer;
+  transition: color 0.2s;
+}
+.yb-store__sharing-toggle:hover {
+  color: #357f89;
+}
+.yb-store__sharing-toggle svg {
+  transition: transform 0.25s ease;
+}
+.yb-store__sharing-toggle.is-open svg {
+  transform: rotate(180deg);
+}
+.yb-store__sharing-details {
+  margin: 0.4rem 0 0;
+  padding: 0.75rem 1rem;
+  background: #F5F3F0;
+  border-radius: 10px;
+  border: 1px solid #E8E4E0;
+}
+.yb-store__sharing-details ol {
+  margin: 0;
+  padding: 0 0 0 1.3rem;
+}
+.yb-store__sharing-details li {
+  font-size: 0.78rem;
+  color: #0F0F0F;
+  padding: 0.2rem 0;
+  line-height: 1.45;
+}
+.yb-store__sharing-details li::marker {
+  color: #3f99a5;
+  font-weight: 700;
+}
+.yb-store__sharing-note {
+  font-size: 0.72rem;
+  color: #6F6A66;
+  font-style: italic;
+  margin: 0.5rem 0 0;
+  padding-top: 0.4rem;
+  border-top: 1px dashed #E8E4E0;
+}
+
+/* -- Saving Text & Breakdown (time-based items) -- */
+.yb-store__saving-text {
+  font-weight: 700;
+  color: #27ae60;
+  font-size: 0.78rem;
+}
+.yb-store__saving-breakdown {
+  font-weight: 400;
+  color: #6F6A66;
+  font-size: 0.72rem;
+  margin-top: 0.15rem;
+}
+
+/* -- Checkout Saving (first month free / savings) -- */
+.yb-store__checkout-saving {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  margin: 0.35rem 0 0;
+  font-size: 0.8rem;
+}
+.yb-store__checkout-saving svg {
+  flex-shrink: 0;
+}
+.yb-store__checkout-price-old {
+  color: #6F6A66;
+  font-size: 0.82rem;
+}
+.yb-store__checkout-price-old s {
+  text-decoration: line-through;
+}
+.yb-store__checkout-price-free {
+  font-weight: 700;
+  color: #27ae60;
+  font-size: 0.85rem;
 }
 
 /* ========================================
