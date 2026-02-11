@@ -1263,6 +1263,31 @@ body {
     flex-direction: column;
   }
 
+  .yb-store__top-cat {
+    padding: 1rem 1.25rem;
+    gap: 0.75rem;
+  }
+  .yb-store__top-cat-icon {
+    width: 40px;
+    height: 40px;
+  }
+  .yb-store__top-cat-icon svg {
+    width: 22px;
+    height: 22px;
+  }
+  .yb-store__subcats {
+    gap: 0.35rem;
+  }
+  .yb-store__sub-btn {
+    padding: 0.4rem 0.75rem;
+  }
+  .yb-store__sub-name {
+    font-size: 0.75rem;
+  }
+  .yb-store__sub-desc {
+    font-size: 0.62rem;
+  }
+
   .yb-profile__form-row--3 {
     grid-template-columns: 1fr;
   }
@@ -1961,6 +1986,207 @@ body {
 }
 .yb-store__program-filter-clear:hover {
   text-decoration: underline;
+}
+
+/* -- Store: Top-level Category Cards -- */
+.yb-store__top-cats {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.yb-store__top-cat {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  width: 100%;
+  padding: 1.25rem 1.5rem;
+  background: #FFFCF9;
+  border: 1.5px solid #E8E4E0;
+  border-radius: 14px;
+  cursor: pointer;
+  font-family: inherit;
+  text-align: left;
+  transition: all 0.2s ease;
+}
+.yb-store__top-cat:hover {
+  border-color: #3f99a5;
+  box-shadow: 0 2px 12px rgba(63,153,165,0.10);
+}
+.yb-store__top-cat-icon {
+  flex-shrink: 0;
+  width: 48px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #e8f4f6;
+  border-radius: 12px;
+  color: #3f99a5;
+}
+.yb-store__top-cat-text {
+  flex: 1;
+  min-width: 0;
+}
+.yb-store__top-cat-name {
+  display: block;
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #0F0F0F;
+  line-height: 1.3;
+}
+.yb-store__top-cat-desc {
+  display: block;
+  font-size: 0.82rem;
+  color: #6F6A66;
+  margin-top: 0.15rem;
+  line-height: 1.35;
+}
+.yb-store__top-cat-count {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 26px;
+  height: 26px;
+  background: #F5F3F0;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #6F6A66;
+  padding: 0 0.5rem;
+}
+.yb-store__top-cat-arrow {
+  flex-shrink: 0;
+  color: #B0AAA4;
+  transition: transform 0.15s;
+}
+.yb-store__top-cat:hover .yb-store__top-cat-arrow {
+  transform: translateX(3px);
+  color: #3f99a5;
+}
+
+/* -- Store: Back Button -- */
+.yb-store__back-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: #3f99a5;
+  padding: 0.25rem 0;
+  margin-bottom: 0.75rem;
+  transition: color 0.15s;
+}
+.yb-store__back-btn:hover {
+  color: #357f89;
+}
+
+/* -- Store: Category Heading -- */
+.yb-store__cat-heading {
+  margin-bottom: 1rem;
+}
+.yb-store__cat-title {
+  font-family: 'Abacaxi', sans-serif;
+  font-size: 1.35rem;
+  font-weight: 700;
+  color: #0F0F0F;
+  margin: 0;
+}
+
+/* -- Store: Subcategory Pills (Daily Classes) -- */
+.yb-store__subcats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 1.25rem;
+}
+.yb-store__sub-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.1rem;
+  background: #F5F3F0;
+  border: 1.5px solid #E8E4E0;
+  border-radius: 12px;
+  padding: 0.5rem 1rem;
+  font-family: inherit;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.2s;
+  text-align: center;
+  min-width: 0;
+}
+.yb-store__sub-btn:hover {
+  border-color: #3f99a5;
+}
+.yb-store__sub-btn.is-active {
+  background: #3f99a5;
+  border-color: #3f99a5;
+}
+.yb-store__sub-name {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: #0F0F0F;
+  line-height: 1.3;
+}
+.yb-store__sub-btn.is-active .yb-store__sub-name {
+  color: #fff;
+}
+.yb-store__sub-desc {
+  font-size: 0.68rem;
+  color: #6F6A66;
+  font-weight: 400;
+  line-height: 1.2;
+}
+.yb-store__sub-btn.is-active .yb-store__sub-desc {
+  color: rgba(255,255,255,0.8);
+}
+.yb-store__sub-count {
+  font-size: 0.65rem;
+  font-weight: 700;
+  color: #B0AAA4;
+  line-height: 1;
+}
+.yb-store__sub-btn.is-active .yb-store__sub-count {
+  color: rgba(255,255,255,0.7);
+}
+
+/* -- Store: Info Note (Tourist Pass) -- */
+.yb-store__note {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.6rem;
+  background: #e8f4f6;
+  border: 1px solid #3f99a5;
+  border-radius: 10px;
+  padding: 0.75rem 1rem;
+  font-size: 0.82rem;
+  color: #0F0F0F;
+  margin-bottom: 1rem;
+  line-height: 1.4;
+}
+.yb-store__note svg {
+  flex-shrink: 0;
+  color: #3f99a5;
+  margin-top: 0.1rem;
+}
+
+/* -- Store: Tourist Badge -- */
+.yb-store__badge--tourist {
+  background: #fff3e0;
+  color: #e67e22;
+  border: 1px solid #f0c27a;
+}
+
+/* -- Store: Contract Card Variant -- */
+.yb-store__item--contract {
+  border-color: #3f99a5;
+  border-width: 1.5px;
 }
 
 /* -- Store Results Count -- */

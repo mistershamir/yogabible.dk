@@ -11,6 +11,7 @@
   var clientId = null; // Mindbody client ID from Firestore
   var clientPassData = null; // Cached pass/service data
   var staffCache = {}; // Cache staff bios by ID
+  var bgRefreshInterval = null; // Background refresh timer
 
   var waiverSigned = false; // Track if liability waiver is signed
   var waiverStatusLoaded = false; // True once we know the actual status
@@ -131,6 +132,7 @@
         userEl.style.display = 'block';
         loadProfile(user, db);
         ensureBackendClient(user, db);
+        startBackgroundRefresh();
 
         // [HYC] Courses tab not used — deep-link code commented out
         // var hash = window.location.hash;
@@ -148,6 +150,7 @@
         currentUser = null;
         clientId = null;
         clientPassData = null;
+        stopBackgroundRefresh();
         guestEl.style.display = '';
         userEl.style.display = 'none';
       }
@@ -1344,21 +1347,56 @@
   // STORE TAB
   // ══════════════════════════════════════
   var storeServices = [];
-  var storeActiveCategory = 'all';
+  var storeView = 'categories'; // 'categories' (top-level cards) or 'items' (listing)
+  var storeTopCategory = null;  // 'daily', 'teacher', 'courses', 'private'
+  var storeSubCategory = 'all'; // subcategory within daily
   var storeSearchQuery = '';
   var storeFilterProgramId = null; // Set by booking redirect to highlight matching passes
 
-  // Store category config — maps to Mindbody programs/categories
-  var storeCategories = [
-    { id: 'all', da: 'Alle', en: 'All' },
-    { id: 'trials', da: 'Prøvekort', en: 'Trials' },
-    { id: 'tourist', da: 'Turistpas', en: 'Tourist Pass' },
-    { id: 'memberships', da: 'Medlemskaber', en: 'Memberships' },
-    { id: 'clips', da: 'Klippekort', en: 'Clip Cards' },
-    { id: 'timebased', da: 'Tidsbegrænsede Pas', en: 'Time-based Passes' },
-    { id: 'teacher', da: 'Yogalæreruddannelser', en: 'Teacher Trainings' },
-    { id: 'courses', da: 'Kurser', en: 'Courses' },
-    { id: 'private', da: 'Privattimer', en: 'Private Sessions' }
+  // Top-level store categories
+  var storeTopCategories = [
+    {
+      id: 'daily',
+      da: 'Daglige Klasser',
+      en: 'Daily Classes',
+      desc_da: 'Medlemskaber, klippekort, prøvekort og meget mere',
+      desc_en: 'Memberships, clip cards, trial passes and more',
+      icon: '<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>'
+    },
+    {
+      id: 'teacher',
+      da: 'Yogalæreruddannelse',
+      en: 'Yoga Teacher Training',
+      desc_da: 'Depositum og tilmelding til uddannelse',
+      desc_en: 'Deposits and training enrollment',
+      icon: '<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>'
+    },
+    {
+      id: 'courses',
+      da: 'Kurser',
+      en: 'Courses',
+      desc_da: 'Inversions, backbends, splits og mere',
+      desc_en: 'Inversions, backbends, splits and more',
+      icon: '<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>'
+    },
+    {
+      id: 'private',
+      da: 'Privattimer',
+      en: 'Private Classes',
+      desc_da: '1-til-1 yoga tilpasset dig',
+      desc_en: '1-on-1 yoga tailored to you',
+      icon: '<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>'
+    }
+  ];
+
+  // Subcategories for Daily Classes
+  var storeDailySubs = [
+    { id: 'all', da: 'Alle', en: 'All', desc_da: '', desc_en: '' },
+    { id: 'memberships', da: 'Medlemskab', en: 'Membership', desc_da: 'Fast praksis', desc_en: 'Regular practice' },
+    { id: 'clips', da: 'Klippekort', en: 'Clip Cards', desc_da: 'Fleksible besøg', desc_en: 'Occasional visits' },
+    { id: 'trials', da: 'Prøvekort', en: 'Trial Passes', desc_da: 'Prøv os', desc_en: 'Try us' },
+    { id: 'tourist', da: 'Turistpas', en: 'Tourist Pass', desc_da: 'Inkl. måtte & håndklæde', desc_en: 'Incl. mat & towel' },
+    { id: 'timebased', da: 'Tidsbegrænsede', en: 'Time-based', desc_da: 'Ubegrænset adgang', desc_en: 'Unlimited access' }
   ];
 
   function initStoreForm() {
@@ -1511,77 +1549,148 @@
   }
 
   /**
-   * Categorize a store item by type and name heuristics.
-   * Contracts are always 'memberships'. Services are categorized by name.
+   * Categorize a store item into top-level + subcategory.
+   * Sets s._topCategory (daily/teacher/courses/private) and s._subCategory (for daily items).
    */
   function categorizeService(s) {
-    // All contracts go under memberships
-    if (s._itemType === 'contract') return 'memberships';
-
     var name = (s.name || '').toLowerCase();
     var hasTimePeriod = name.indexOf('day') !== -1 || name.indexOf('dag') !== -1 || name.indexOf('month') !== -1 || name.indexOf('måned') !== -1 || name.indexOf('week') !== -1 || name.indexOf('uge') !== -1;
 
-    if (name.indexOf('trial') !== -1 || name.indexOf('prøv') !== -1 || name.indexOf('intro') !== -1) return 'trials';
-    if (name.indexOf('tourist') !== -1 || name.indexOf('turist') !== -1 || name.indexOf('drop-in') !== -1 || name.indexOf('drop in') !== -1) return 'tourist';
-    // Time-based passes: "14 Days Unlimited", "3 Months Unlimited" etc. — these have a time period in the name
-    if (hasTimePeriod && (name.indexOf('unlimited') !== -1 || name.indexOf('non-contract') !== -1 || name.indexOf('non-binding') !== -1)) return 'timebased';
-    // True memberships: only "membership" or "medlems" keywords, or autopay without a time period
-    if (name.indexOf('membership') !== -1 || name.indexOf('medlems') !== -1 || name.indexOf('autopay') !== -1) return 'memberships';
-    if (name.indexOf('clip') !== -1 || name.indexOf('klip') !== -1 || name.indexOf('punch') !== -1 || name.indexOf('pack') !== -1 || name.indexOf('class') !== -1) return 'clips';
-    if (hasTimePeriod) return 'timebased';
-    if (name.indexOf('teacher') !== -1 || name.indexOf('lærer') !== -1 || name.indexOf('training') !== -1 || name.indexOf('uddannelse') !== -1 || name.indexOf('200') !== -1 || name.indexOf('300') !== -1) return 'teacher';
-    if (name.indexOf('course') !== -1 || name.indexOf('kursus') !== -1 || name.indexOf('workshop') !== -1) return 'courses';
-    if (name.indexOf('private') !== -1 || name.indexOf('privat') !== -1 || name.indexOf('1-on-1') !== -1 || name.indexOf('personal') !== -1) return 'private';
-    return 'all';
+    // Teacher training
+    if (name.indexOf('teacher') !== -1 || name.indexOf('lærer') !== -1 || name.indexOf('training') !== -1 || name.indexOf('uddannelse') !== -1 || name.indexOf('200') !== -1 || name.indexOf('300') !== -1 || name.indexOf('deposit') !== -1) {
+      s._topCategory = 'teacher';
+      s._subCategory = 'all';
+      return;
+    }
+    // Courses (inversions, backbends, splits, workshops)
+    if (name.indexOf('course') !== -1 || name.indexOf('kursus') !== -1 || name.indexOf('workshop') !== -1 || name.indexOf('inversion') !== -1 || name.indexOf('backbend') !== -1 || name.indexOf('split') !== -1) {
+      s._topCategory = 'courses';
+      s._subCategory = 'all';
+      return;
+    }
+    // Private sessions
+    if (name.indexOf('private') !== -1 || name.indexOf('privat') !== -1 || name.indexOf('1-on-1') !== -1 || name.indexOf('personal') !== -1) {
+      s._topCategory = 'private';
+      s._subCategory = 'all';
+      return;
+    }
+
+    // Everything else → Daily Classes with subcategories
+    s._topCategory = 'daily';
+
+    // All contracts = memberships
+    if (s._itemType === 'contract') { s._subCategory = 'memberships'; return; }
+
+    if (name.indexOf('trial') !== -1 || name.indexOf('prøv') !== -1 || name.indexOf('intro') !== -1) { s._subCategory = 'trials'; return; }
+    if (name.indexOf('tourist') !== -1 || name.indexOf('turist') !== -1 || name.indexOf('drop-in') !== -1 || name.indexOf('drop in') !== -1) { s._subCategory = 'tourist'; return; }
+    if (hasTimePeriod && (name.indexOf('unlimited') !== -1 || name.indexOf('non-contract') !== -1 || name.indexOf('non-binding') !== -1)) { s._subCategory = 'timebased'; return; }
+    if (name.indexOf('membership') !== -1 || name.indexOf('medlems') !== -1 || name.indexOf('autopay') !== -1) { s._subCategory = 'memberships'; return; }
+    if (name.indexOf('clip') !== -1 || name.indexOf('klip') !== -1 || name.indexOf('punch') !== -1 || name.indexOf('pack') !== -1 || name.indexOf('class') !== -1) { s._subCategory = 'clips'; return; }
+    if (hasTimePeriod) { s._subCategory = 'timebased'; return; }
+    s._subCategory = 'clips'; // Default daily items to clips
   }
 
   function renderStoreItems(container) {
-    // Categorize services
+    // Categorize all services
     storeServices.forEach(function(s) {
-      s._category = categorizeService(s);
+      categorizeService(s);
     });
 
-    // ── Search bar ──
-    var html = '<div class="yb-store__search-wrap">';
+    var html = '';
+
+    // ── Program filter override (from booking redirect) ──
+    if (storeFilterProgramId) {
+      html += renderStoreItemList(container, storeServices.filter(function(s) {
+        return s.programId && Number(s.programId) === Number(storeFilterProgramId);
+      }), true);
+      container.innerHTML = html;
+      attachStoreHandlers(container);
+      return;
+    }
+
+    // ── Top-level category cards view ──
+    if (storeView === 'categories') {
+      html += '<div class="yb-store__top-cats">';
+      storeTopCategories.forEach(function(cat) {
+        var count = storeServices.filter(function(s) { return s._topCategory === cat.id; }).length;
+        if (count === 0) return;
+        html += '<button class="yb-store__top-cat" type="button" data-store-top="' + cat.id + '">';
+        html += '  <div class="yb-store__top-cat-icon">' + cat.icon + '</div>';
+        html += '  <div class="yb-store__top-cat-text">';
+        html += '    <span class="yb-store__top-cat-name">' + (isDa() ? cat.da : cat.en) + '</span>';
+        html += '    <span class="yb-store__top-cat-desc">' + (isDa() ? cat.desc_da : cat.desc_en) + '</span>';
+        html += '  </div>';
+        html += '  <span class="yb-store__top-cat-count">' + count + '</span>';
+        html += '  <svg class="yb-store__top-cat-arrow" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>';
+        html += '</button>';
+      });
+      html += '</div>';
+
+      container.innerHTML = html;
+
+      // Attach top-level handlers
+      container.querySelectorAll('[data-store-top]').forEach(function(btn) {
+        btn.addEventListener('click', function() {
+          storeTopCategory = btn.getAttribute('data-store-top');
+          storeSubCategory = 'all';
+          storeView = 'items';
+          storeSearchQuery = '';
+          renderStoreItems(container);
+        });
+      });
+      return;
+    }
+
+    // ── Items view (inside a category) ──
+    var topCat = storeTopCategories.find(function(c) { return c.id === storeTopCategory; });
+
+    // Back button
+    html += '<button class="yb-store__back-btn" type="button" data-store-back>';
+    html += '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>';
+    html += (isDa() ? 'Alle kategorier' : 'All categories');
+    html += '</button>';
+
+    // Category heading
+    if (topCat) {
+      html += '<div class="yb-store__cat-heading">';
+      html += '<h3 class="yb-store__cat-title">' + (isDa() ? topCat.da : topCat.en) + '</h3>';
+      html += '</div>';
+    }
+
+    // Subcategory pills (only for Daily Classes)
+    if (storeTopCategory === 'daily') {
+      html += '<div class="yb-store__subcats">';
+      storeDailySubs.forEach(function(sub) {
+        var count = sub.id === 'all'
+          ? storeServices.filter(function(s) { return s._topCategory === 'daily'; }).length
+          : storeServices.filter(function(s) { return s._topCategory === 'daily' && s._subCategory === sub.id; }).length;
+        if (count === 0 && sub.id !== 'all') return;
+        var isActive = storeSubCategory === sub.id;
+        html += '<button class="yb-store__sub-btn' + (isActive ? ' is-active' : '') + '" type="button" data-store-sub="' + sub.id + '">';
+        html += '<span class="yb-store__sub-name">' + (isDa() ? sub.da : sub.en) + '</span>';
+        if (sub.desc_da) {
+          html += '<span class="yb-store__sub-desc">' + (isDa() ? sub.desc_da : sub.desc_en) + '</span>';
+        }
+        if (sub.id !== 'all') html += '<span class="yb-store__sub-count">' + count + '</span>';
+        html += '</button>';
+      });
+      html += '</div>';
+    }
+
+    // Filter items for this view
+    var filtered = storeServices.filter(function(s) { return s._topCategory === storeTopCategory; });
+    if (storeTopCategory === 'daily' && storeSubCategory !== 'all') {
+      filtered = filtered.filter(function(s) { return s._subCategory === storeSubCategory; });
+    }
+
+    // Search
+    html += '<div class="yb-store__search-wrap">';
     html += '<svg class="yb-store__search-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#6F6A66" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>';
-    html += '<input type="text" class="yb-store__search" placeholder="' + (isDa() ? 'Søg efter pakker, medlemskaber...' : 'Search for packages, memberships...') + '" value="' + esc(storeSearchQuery) + '">';
+    html += '<input type="text" class="yb-store__search" placeholder="' + (isDa() ? 'Søg...' : 'Search...') + '" value="' + esc(storeSearchQuery) + '">';
     if (storeSearchQuery) {
       html += '<button type="button" class="yb-store__search-clear" aria-label="Clear">&times;</button>';
     }
     html += '</div>';
-
-    // ── Category tabs ──
-    html += '<div class="yb-store__categories">';
-    storeCategories.forEach(function(cat) {
-      var count = cat.id === 'all'
-        ? storeServices.length
-        : storeServices.filter(function(s) { return s._category === cat.id; }).length;
-      if (count === 0 && cat.id !== 'all') return;
-      var isActive = storeActiveCategory === cat.id;
-      html += '<button class="yb-store__cat-btn' + (isActive ? ' is-active' : '') + '" type="button" data-store-cat="' + cat.id + '">';
-      html += (isDa() ? cat.da : cat.en);
-      if (cat.id !== 'all') html += ' <span class="yb-store__cat-count">' + count + '</span>';
-      html += '</button>';
-    });
-    html += '</div>';
-
-    // ── Filter by program (from booking redirect), category, and search ──
-    var filtered;
-    if (storeFilterProgramId) {
-      // Booking redirect: show only passes matching the required program
-      filtered = storeServices.filter(function(s) {
-        return s.programId && Number(s.programId) === Number(storeFilterProgramId);
-      });
-      // Add a clear filter banner
-      html += '<div class="yb-store__program-filter">';
-      html += '<span>' + (isDa() ? 'Filtreret: pas der dækker denne klassetype' : 'Filtered: passes that cover this class type') + '</span>';
-      html += '<button type="button" class="yb-store__program-filter-clear">' + (isDa() ? 'Vis alle' : 'Show all') + '</button>';
-      html += '</div>';
-    } else {
-      filtered = storeActiveCategory === 'all'
-        ? storeServices
-        : storeServices.filter(function(s) { return s._category === storeActiveCategory; });
-    }
 
     if (storeSearchQuery) {
       var q = storeSearchQuery.toLowerCase();
@@ -1591,12 +1700,37 @@
       });
     }
 
-    // ── Results count ──
-    html += '<div class="yb-store__results-count">';
-    html += filtered.length + ' ' + (isDa() ? (filtered.length === 1 ? 'resultat' : 'resultater') : (filtered.length === 1 ? 'result' : 'results'));
-    html += '</div>';
+    // Tourist pass note
+    if (storeTopCategory === 'daily' && storeSubCategory === 'tourist') {
+      html += '<div class="yb-store__note">';
+      html += '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>';
+      html += '<span>' + (isDa() ? 'Alle turistpas inkluderer måtte og håndklæde ved hvert besøg.' : 'All tourist passes include mat and towel on each visit.') + '</span>';
+      html += '</div>';
+    }
 
-    // ── Item grid ──
+    // Item grid
+    html += renderStoreCardGrid(filtered);
+
+    container.innerHTML = html;
+    attachStoreHandlers(container);
+  }
+
+  /** Render a program-filtered item list (from booking redirect) */
+  function renderStoreItemList(container, filtered, showBanner) {
+    var html = '';
+    if (showBanner) {
+      html += '<div class="yb-store__program-filter">';
+      html += '<span>' + (isDa() ? 'Filtreret: pas der dækker denne klassetype' : 'Filtered: passes that cover this class type') + '</span>';
+      html += '<button type="button" class="yb-store__program-filter-clear">' + (isDa() ? 'Vis alle' : 'Show all') + '</button>';
+      html += '</div>';
+    }
+    html += renderStoreCardGrid(filtered);
+    return html;
+  }
+
+  /** Render the card grid HTML for an array of services */
+  function renderStoreCardGrid(filtered) {
+    var html = '';
     html += '<div class="yb-store__grid">';
     filtered.forEach(function(s) {
       var price = s.onlinePrice || s.price || 0;
@@ -1604,13 +1738,16 @@
 
       html += '<div class="yb-store__item' + (isContract ? ' yb-store__item--contract' : '') + '">';
 
-      // Badges row
+      // Badges
       var badges = [];
       if (isContract && s.firstMonthFree) {
         badges.push('<span class="yb-store__badge yb-store__badge--free">' + (isDa() ? 'Første måned gratis' : 'First month free') + '</span>');
       }
       if (isContract) {
         badges.push('<span class="yb-store__badge yb-store__badge--membership">' + (isDa() ? 'Medlemskab' : 'Membership') + '</span>');
+      }
+      if (s._subCategory === 'tourist') {
+        badges.push('<span class="yb-store__badge yb-store__badge--tourist">' + (isDa() ? 'Inkl. måtte & håndklæde' : 'Incl. mat & towel') + '</span>');
       }
       if (badges.length) {
         html += '<div class="yb-store__item-badges">' + badges.join('') + '</div>';
@@ -1619,13 +1756,11 @@
       html += '<div class="yb-store__item-info">';
       html += '  <h3 class="yb-store__item-name">' + esc(s.name) + '</h3>';
 
-      // Description (truncated)
       if (s.description) {
         var desc = s.description.length > 120 ? s.description.substring(0, 120) + '...' : s.description;
         html += '  <p class="yb-store__item-desc">' + esc(desc) + '</p>';
       }
 
-      // Pricing section
       html += '  <div class="yb-store__item-pricing">';
       html += '    <span class="yb-store__item-price">' + formatDKK(price) + '</span>';
       if (isContract && s._recurringInfo) {
@@ -1635,26 +1770,22 @@
       }
       html += '  </div>';
 
-      // Per-class cost breakdown
       if (isContract && s._perClassInfo) {
         html += '  <p class="yb-store__item-per-class">' + esc(s._perClassInfo) + '</p>';
       }
 
-      // Contract terms (bullet list of key terms)
       if (isContract && s._terms && s._terms.length) {
         html += '  <ul class="yb-store__item-terms">';
         s._terms.forEach(function(term) {
           html += '    <li>' + esc(term) + '</li>';
         });
-        // Always link to T&C
         html += '    <li><a href="' + (isDa() ? '/terms-conditions/' : '/en/terms-conditions/') + '" target="_blank" rel="noopener">' + (isDa() ? 'Se handelsbetingelser' : 'View terms & conditions') + '</a></li>';
         html += '  </ul>';
       }
 
-      html += '</div>'; // item-info
-
+      html += '</div>';
       html += '<button class="yb-btn yb-btn--primary yb-store__item-btn" type="button" data-store-buy="' + s.id + '" data-item-type="' + (s._itemType || 'service') + '">' + t('store_buy') + '</button>';
-      html += '</div>'; // item
+      html += '</div>';
     });
     if (!filtered.length) {
       html += '<p class="yb-store__empty">' + (storeSearchQuery
@@ -1662,17 +1793,18 @@
         : t('store_empty')) + '</p>';
     }
     html += '</div>';
+    return html;
+  }
 
-    container.innerHTML = html;
-
-    // ── Attach search handler ──
+  /** Attach all store event handlers after rendering */
+  function attachStoreHandlers(container) {
+    // Search
     var searchInput = container.querySelector('.yb-store__search');
     if (searchInput) {
       searchInput.addEventListener('input', function() {
         storeSearchQuery = this.value;
         renderStoreItems(container);
       });
-      // Keep focus after re-render
       if (storeSearchQuery) {
         searchInput.focus();
         searchInput.setSelectionRange(storeSearchQuery.length, storeSearchQuery.length);
@@ -1686,25 +1818,38 @@
       });
     }
 
-    // ── Attach program filter clear handler ──
+    // Program filter clear
     var progFilterClear = container.querySelector('.yb-store__program-filter-clear');
     if (progFilterClear) {
       progFilterClear.addEventListener('click', function() {
         storeFilterProgramId = null;
+        storeView = 'categories';
         renderStoreItems(container);
       });
     }
 
-    // ── Attach category tab handlers ──
-    container.querySelectorAll('[data-store-cat]').forEach(function(btn) {
+    // Back to categories
+    var backBtn = container.querySelector('[data-store-back]');
+    if (backBtn) {
+      backBtn.addEventListener('click', function() {
+        storeView = 'categories';
+        storeTopCategory = null;
+        storeSubCategory = 'all';
+        storeSearchQuery = '';
+        renderStoreItems(container);
+      });
+    }
+
+    // Subcategory tabs
+    container.querySelectorAll('[data-store-sub]').forEach(function(btn) {
       btn.addEventListener('click', function() {
-        storeFilterProgramId = null; // Clear program filter when changing category
-        storeActiveCategory = btn.getAttribute('data-store-cat');
+        storeSubCategory = btn.getAttribute('data-store-sub');
+        storeSearchQuery = '';
         renderStoreItems(container);
       });
     });
 
-    // ── Attach buy handlers ──
+    // Buy buttons
     container.querySelectorAll('[data-store-buy]').forEach(function(btn) {
       btn.addEventListener('click', function() { openCheckout(btn.getAttribute('data-store-buy'), btn.getAttribute('data-item-type') || 'service'); });
     });
@@ -1725,7 +1870,7 @@
     if (matching.length > 0) {
       // Set filter and re-render — show "all" category but filtered
       storeFilterProgramId = Number(programId);
-      storeActiveCategory = 'all';
+      storeView = 'items';
       storeSearchQuery = '';
       var storeContainer = document.getElementById('yb-store-list');
       if (storeContainer) renderStoreItems(storeContainer);
@@ -2722,6 +2867,33 @@
 
   /** Refresh pass data with a delay to let Mindbody update, then refresh again */
   var passRefreshTimer = null;
+  /**
+   * Background refresh: silently re-fetch pass info, schedule, visits, and receipts
+   * every 60 seconds so the UI feels live and data stays fresh.
+   */
+  function startBackgroundRefresh() {
+    stopBackgroundRefresh();
+    bgRefreshInterval = setInterval(function() {
+      if (!clientId) return;
+      // Refresh pass info (shown on schedule tab)
+      clientPassData = null;
+      loadSchedulePassInfo();
+      // Refresh schedule if already loaded
+      if (tabLoaded['schedule']) loadSchedule();
+      // Refresh visits/receipts only if those tabs have been opened
+      if (tabLoaded['visits']) loadVisits();
+      if (tabLoaded['receipts']) loadReceipts();
+      if (tabLoaded['passes']) loadMembershipDetails();
+    }, 60000); // 60 seconds
+  }
+
+  function stopBackgroundRefresh() {
+    if (bgRefreshInterval) {
+      clearInterval(bgRefreshInterval);
+      bgRefreshInterval = null;
+    }
+  }
+
   function scheduleDelayedPassRefresh() {
     // Clear any pending refresh
     if (passRefreshTimer) clearTimeout(passRefreshTimer);
