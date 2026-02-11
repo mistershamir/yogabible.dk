@@ -35,10 +35,14 @@ exports.handler = async (event) => {
     // POST — purchase a gift card
     if (event.httpMethod === 'POST') {
       const body = JSON.parse(event.body || '{}');
-      const { giftCardId, clientId, recipientEmail, recipientName, title, message, deliveryDate, layoutId, locationId } = body;
+      const { giftCardId, clientId, recipientEmail, recipientName, title, message, deliveryDate, layoutId, locationId, payment } = body;
 
       if (!giftCardId || !clientId || !recipientEmail || !recipientName) {
         return jsonResponse(400, { error: 'Missing required fields: giftCardId, clientId, recipientEmail, recipientName' });
+      }
+
+      if (!payment || !payment.cardNumber) {
+        return jsonResponse(400, { error: 'Payment information is required' });
       }
 
       const purchaseData = {
@@ -49,7 +53,15 @@ exports.handler = async (event) => {
         RecipientName: recipientName,
         Title: title || 'Gift Card',
         SendEmailReceipt: true,
-        Test: false
+        Test: false,
+        PaymentInfo: {
+          Type: 'CreditCard',
+          CreditCardNumber: payment.cardNumber,
+          ExpMonth: payment.expMonth,
+          ExpYear: payment.expYear,
+          CVV: payment.cvv,
+          BillingName: payment.cardHolder || recipientName
+        }
       };
 
       if (message) purchaseData.GiftMessage = message;

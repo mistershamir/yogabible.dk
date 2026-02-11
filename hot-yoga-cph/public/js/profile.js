@@ -127,6 +127,20 @@
     initAvatarUpload(db);
     initVisitFilters();
 
+    // Re-render dynamic content when language changes
+    window.addEventListener('hycph-lang-change', function() {
+      if (tabLoaded['store']) {
+        storeServices = buildStoreFromCatalog();
+        var listEl = document.getElementById('yb-store-list');
+        if (listEl && storeServices.length) renderStoreItems(listEl);
+      }
+      if (tabLoaded['passes']) loadMembershipDetails();
+      if (tabLoaded['giftcards']) {
+        var gcList = document.getElementById('yb-giftcards-list');
+        if (gcList && giftCardsData) renderGiftCards(gcList);
+      }
+    });
+
     auth.onAuthStateChanged(function(user) {
       if (user) {
         currentUser = user;
@@ -397,18 +411,17 @@
         var panel = document.querySelector('[data-yb-panel="' + tabName + '"]');
         if (panel) panel.classList.add('is-active');
 
-        // Lazy-load tab content
-        if (!tabLoaded[tabName]) {
+        // Load tab content — store loads once (local catalog), others always refresh from API
+        if (!tabLoaded[tabName] && tabName === 'store') {
           tabLoaded[tabName] = true;
-          if (tabName === 'store') loadStore();
-          if (tabName === 'schedule') loadSchedule();
-          if (tabName === 'visits') loadVisits();
-          if (tabName === 'passes') loadMembershipDetails();
-          if (tabName === 'receipts') loadReceipts();
-          if (tabName === 'giftcards') loadGiftCards();
-          // [HYC] Courses tab not used — commented out
-          // if (tabName === 'courses') loadMyCourses();
+          loadStore();
         }
+        tabLoaded[tabName] = true;
+        if (tabName === 'schedule') loadSchedule();
+        if (tabName === 'visits') loadVisits();
+        if (tabName === 'passes') loadMembershipDetails();
+        if (tabName === 'receipts') loadReceipts();
+        if (tabName === 'giftcards') loadGiftCards();
       });
     });
   }
@@ -999,6 +1012,15 @@
       });
   }
 
+  /** Look up a membership from hardcoded catalog by Mindbody contract/prodId */
+  function findCatalogMembership(contractId) {
+    var all = (storeCatalog.memberships.over30 || []).concat(storeCatalog.memberships.under30 || []);
+    for (var i = 0; i < all.length; i++) {
+      if (String(all[i].prodId) === String(contractId)) return all[i];
+    }
+    return null;
+  }
+
   function renderMembershipDetails(container, data) {
     var html = '';
 
@@ -1011,7 +1033,9 @@
 
         html += '<div class="yb-membership__pass yb-membership__contract-card" data-contract-id="' + c.id + '">';
         html += '<div class="yb-membership__pass-info">';
-        html += '<span class="yb-membership__pass-name">' + esc(c.name) + '</span>';
+        var _catMatch = findCatalogMembership(c.id);
+        var _displayName = _catMatch ? (isDa() ? _catMatch.name_da : _catMatch.name_en) : c.name;
+        html += '<span class="yb-membership__pass-name">' + esc(_displayName) + '</span>';
 
         // Status badge
         if (isPaused) {
@@ -1971,12 +1995,7 @@
           html += '<p class="yb-store__sharing-note">' + (da ? sharingHow.note_da : sharingHow.note_en) + '</p>';
           html += '</div></div>';
         }
-        // VAT for clips
-        if (cat.vat && cat.vat > 0) {
-          html += '<p class="yb-store__item-vat">' + (da ? 'Heraf moms: ' : 'Incl. VAT: ') + formatDKK(cat.vat) + '</p>';
-        } else if (cat.vat === 0) {
-          html += '<p class="yb-store__item-vat yb-store__item-vat--zero">' + (da ? 'Momsfrit (under 30)' : 'VAT exempt (under 30)') + '</p>';
-        }
+        // VAT moved to footer (under price)
       }
 
       // ── Membership details ──
@@ -2022,13 +2041,7 @@
           }
           html += '</div></div>';
         }
-        // VAT for time-based
-        if (cat.vat_pct > 0) {
-          var vatAmt = Math.round(price * cat.vat_pct / (100 + cat.vat_pct));
-          html += '<p class="yb-store__item-vat">' + (da ? 'Inkl. ' + formatDKK(vatAmt) + ' moms (25%)' : 'Incl. ' + formatDKK(vatAmt) + ' VAT (25%)') + '</p>';
-        } else if (cat.vat_pct === 0) {
-          html += '<p class="yb-store__item-vat yb-store__item-vat--zero">' + (da ? 'Momsfrit (under 30)' : 'VAT exempt (under 30)') + '</p>';
-        }
+        // VAT moved to footer (under price)
       }
 
       // ── Trial / Tourist custom descriptions ──
@@ -2040,12 +2053,7 @@
           html += (da ? 'Gyldighed: ' : 'Valid for: ') + cat.validity + ' ' + (da ? 'fra første booking' : 'from first booking');
           html += '</p>';
         }
-        if (cat.vat_pct > 0) {
-          var vatAmtTr = Math.round(price * cat.vat_pct / (100 + cat.vat_pct));
-          html += '<p class="yb-store__item-vat">' + (da ? 'Inkl. ' + formatDKK(vatAmtTr) + ' moms (25%)' : 'Incl. ' + formatDKK(vatAmtTr) + ' VAT (25%)') + '</p>';
-        } else if (cat.vat_pct === 0) {
-          html += '<p class="yb-store__item-vat yb-store__item-vat--zero">' + (da ? 'Momsfrit (under 30)' : 'VAT exempt (under 30)') + '</p>';
-        }
+        // VAT moved to footer (under price)
       }
 
       html += '</div>'; // .yb-store__item-info
@@ -2055,6 +2063,21 @@
       html += '<div class="yb-store__item-pricing">';
       html += '<span class="yb-store__item-price">' + formatDKK(price) + '</span>';
       if (isContract) html += '<span class="yb-store__item-recurring">' + (da ? 'pr. måned' : 'per month') + '</span>';
+      // Unified VAT note right under price (all categories)
+      var _vatAmt = 0;
+      var _vatZero = false;
+      if (isClipLike && cat.vat !== undefined) {
+        if (cat.vat > 0) _vatAmt = cat.vat;
+        else _vatZero = true;
+      } else if (cat.vat_pct !== undefined) {
+        if (cat.vat_pct > 0) _vatAmt = Math.round(price * cat.vat_pct / (100 + cat.vat_pct));
+        else _vatZero = true;
+      }
+      if (_vatAmt > 0) {
+        html += '<span class="yb-store__item-vat">' + (da ? 'Inkl. ' + formatDKK(_vatAmt) + ' moms (25%)' : 'Incl. ' + formatDKK(_vatAmt) + ' VAT (25%)') + '</span>';
+      } else if (_vatZero) {
+        html += '<span class="yb-store__item-vat yb-store__item-vat--zero">' + (da ? 'Momsfrit (under 30)' : 'VAT exempt (under 30)') + '</span>';
+      }
       html += '</div>';
       html += '<button class="yb-btn yb-btn--primary yb-store__item-btn" type="button" data-store-buy="' + s._uid + '" data-item-type="' + (s._itemType || 'service') + '">' + t('store_buy') + '</button>';
       html += '</div>';
@@ -2197,6 +2220,9 @@
           // Update selected price in form
           var priceEl = formEl.querySelector('.yb-giftcards__form-price');
           if (priceEl) priceEl.textContent = formatDKK(selectedGiftCard.salePrice || selectedGiftCard.value);
+          // Pre-fill cardholder
+          var gcHolder = document.getElementById('yb-gc-cardholder');
+          if (gcHolder && currentUser && currentUser.displayName && !gcHolder.value) gcHolder.value = currentUser.displayName;
           formEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
         }
       });
@@ -2219,15 +2245,36 @@
       var title = (document.getElementById('yb-gc-title') || {}).value || '';
       var message = (document.getElementById('yb-gc-message') || {}).value || '';
       var deliveryDate = (document.getElementById('yb-gc-delivery-date') || {}).value || '';
+      var gcCardNumber = (document.getElementById('yb-gc-cardnumber') || {}).value || '';
+      var gcExpiry = (document.getElementById('yb-gc-expiry') || {}).value || '';
+      var gcCvv = (document.getElementById('yb-gc-cvv') || {}).value || '';
+      var gcCardHolder = (document.getElementById('yb-gc-cardholder') || {}).value || '';
+      var errEl = document.getElementById('yb-gc-error');
 
       if (!recipientName.trim() || !recipientEmail.trim()) {
-        var errEl = document.getElementById('yb-gc-error');
         if (errEl) { errEl.textContent = isDa() ? 'Udfyld modtagers navn og email.' : 'Please enter recipient name and email.'; errEl.hidden = false; }
         return;
       }
 
+      gcCardNumber = gcCardNumber.replace(/\s/g, '');
+      if (!gcCardNumber || gcCardNumber.length < 13) {
+        if (errEl) { errEl.textContent = isDa() ? 'Indtast et gyldigt kortnummer.' : 'Enter a valid card number.'; errEl.hidden = false; }
+        return;
+      }
+      if (!gcExpiry || gcExpiry.length < 4) {
+        if (errEl) { errEl.textContent = isDa() ? 'Indtast udløbsdato.' : 'Enter expiry date.'; errEl.hidden = false; }
+        return;
+      }
+      if (!gcCvv || gcCvv.length < 3) {
+        if (errEl) { errEl.textContent = isDa() ? 'Indtast CVV.' : 'Enter CVV.'; errEl.hidden = false; }
+        return;
+      }
+
+      var gcExpParts = gcExpiry.split('/');
+
       buyBtn.disabled = true;
       buyBtn.textContent = isDa() ? 'Behandler...' : 'Processing...';
+      if (errEl) errEl.hidden = true;
 
       fetch('/.netlify/functions/mb-giftcards', {
         method: 'POST',
@@ -2240,7 +2287,14 @@
           title: title.trim() || (isDa() ? 'Gavekort' : 'Gift Card'),
           message: message.trim(),
           deliveryDate: deliveryDate || undefined,
-          layoutId: selectedGiftCard.layouts && selectedGiftCard.layouts.length ? selectedGiftCard.layouts[0].id : 0
+          layoutId: selectedGiftCard.layouts && selectedGiftCard.layouts.length ? selectedGiftCard.layouts[0].id : 0,
+          payment: {
+            cardNumber: gcCardNumber,
+            expMonth: gcExpParts[0],
+            expYear: gcExpParts[1] ? '20' + gcExpParts[1] : '',
+            cvv: gcCvv,
+            cardHolder: gcCardHolder.trim()
+          }
         })
       })
       .then(function(r) { return r.json(); })
@@ -2293,6 +2347,13 @@
       itemHtml += '<span class="yb-store__checkout-price-old"><s>' + formatDKK(price) + '</s></span> ';
       itemHtml += '<span class="yb-store__checkout-price-free">' + (da ? '0 kr første måned' : '0 kr first month') + '</span>';
       itemHtml += '</div>';
+      if (cat.regFee) {
+        itemHtml += '<div class="yb-store__checkout-due">';
+        itemHtml += '<span class="yb-store__checkout-due-label">' + (da ? 'Beløb at betale nu:' : 'Amount due now:') + '</span> ';
+        itemHtml += '<strong class="yb-store__checkout-due-amount">' + formatDKK(cat.regFee) + '</strong>';
+        itemHtml += '<span class="yb-store__checkout-due-note">' + (da ? ' (registreringsgebyr)' : ' (registration fee)') + '</span>';
+        itemHtml += '</div>';
+      }
     }
     if (isContract && service._terms && service._terms.length) {
       itemHtml += '<ul class="yb-store__checkout-terms">';
