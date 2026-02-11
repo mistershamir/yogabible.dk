@@ -1608,58 +1608,48 @@
   };
 
   /**
-   * Filter store services by age bracket.
-   * Checks BOTH programName (Service Category) and item name for age labels.
-   * Patterns matched: "30+ Years Old", "30 Years Old+", "Under 30 Years Old", "Under 30"
-   * Also strips the age label from display names for clean UI.
+   * Filter store services by age bracket based on Service Category (programName) ONLY.
+   * Item names stay clean — age labels live only in Service Category names.
+   * Patterns: "(30+ Years Old)", "(Under 30 Years Old)", "30 Years Old+"
    */
   function filterAndCleanByAge(services) {
     var age = getUserAge();
 
-    console.log('[Store] Age filter — DOB:', userDateOfBirth, 'Age:', age, 'Total items:', services.length);
-
-    // Check both programName and item name for age markers
-    function is30Plus(s) {
-      var combined = ((s.programName || '') + ' ' + (s.name || '')).toLowerCase();
-      return combined.indexOf('30+ years old') !== -1
-          || combined.indexOf('30 years old+') !== -1
-          || combined.indexOf('(30+)') !== -1;
-    }
-    function isUnder30(s) {
-      var combined = ((s.programName || '') + ' ' + (s.name || '')).toLowerCase();
-      return combined.indexOf('under 30 years old') !== -1
-          || combined.indexOf('under 30') !== -1;
-    }
+    // Log unique Service Categories for debugging
+    var pNames = {};
+    services.forEach(function(s) { if (s.programName) pNames[s.programName] = true; });
+    console.log('[Store] Age filter — DOB:', userDateOfBirth, 'Age:', age, 'Total:', services.length);
+    console.log('[Store] Service Categories:', Object.keys(pNames));
 
     var filtered = services.filter(function(s) {
+      var pName = (s.programName || '').toLowerCase();
+      var is30Plus = pName.indexOf('30+ years old') !== -1 || pName.indexOf('30 years old+') !== -1 || pName.indexOf('(30+)') !== -1;
+      var isUnder30 = pName.indexOf('under 30') !== -1;
+
       if (age !== null) {
-        if (age >= 30 && isUnder30(s)) return false;
-        if (age < 30 && is30Plus(s)) return false;
+        if (age >= 30 && isUnder30) return false;
+        if (age < 30 && is30Plus) return false;
       }
       return true;
     });
 
-    console.log('[Store] Age filter — After filtering:', filtered.length, 'items (removed', services.length - filtered.length, ')');
+    console.log('[Store] After age filter:', filtered.length, '(removed', services.length - filtered.length, ')');
 
-    // Strip age labels from display names
+    // Strip age labels from Service Category display only — item names untouched
     var agePatterns = [
       /\s*\(30\+ Years Old\)/gi,
       /\s*\(30 Years Old\+\)/gi,
       /\s*\(Under 30 Years Old\)/gi,
-      /\s*- 30 Years Old\+/gi,
-      /\s*- Under 30 Years Old/gi,
       /\s*\(30\+\)/g,
       /\s*\(Under 30\)/g
     ];
 
     return filtered.map(function(s) {
-      var cleanName = s.name || '';
+      s._displayName = s.name || '';
       var cleanProgram = s.programName || '';
       agePatterns.forEach(function(pat) {
-        cleanName = cleanName.replace(pat, '');
         cleanProgram = cleanProgram.replace(pat, '');
       });
-      s._displayName = cleanName.replace(/\s{2,}/g, ' ').trim();
       s._displayProgram = cleanProgram.replace(/\s{2,}/g, ' ').trim();
       return s;
     });
