@@ -1892,6 +1892,16 @@
       filtered = filtered.filter(function(s) { return (s.name || '').toLowerCase().indexOf(q) !== -1; });
     }
 
+    // Time-based pass consolidated description (same for all cards)
+    if (storeTopCategory === 'daily' && storeSubCategory === 'timebased') {
+      html += '<div class="yb-store__note yb-store__note--timebased">';
+      html += '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>';
+      html += '<span>' + (isDa()
+        ? 'Ubegrænset booking fra første bookingdato. Ingen binding, ingen registreringsgebyr. Kan ikke sættes på pause.'
+        : 'Unlimited booking from first booking date. No commitment, no registration fee. Cannot be paused.') + '</span>';
+      html += '</div>';
+    }
+
     // Tourist rental note
     if (storeTopCategory === 'daily' && storeSubCategory === 'tourist') {
       html += '<div class="yb-store__note">';
@@ -1992,13 +2002,11 @@
 
       // ── Time-based details ──
       if (sub === 'timebased' && !isClipLike) {
-        if (cat.desc_da) {
-          html += '<p class="yb-store__item-desc">' + (da ? cat.desc_da : cat.desc_en) + '</p>';
-        }
+        // Description shown once as consolidated banner above the grid
         if (cat.validity) {
           html += '<p class="yb-store__item-validity">';
           html += '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> ';
-          html += (da ? 'Ubegrænset adgang i ' : 'Unlimited access for ') + cat.validity;
+          html += (da ? 'Ubegrænset adgang i ' : 'Unlimited access for ') + cat.validity + ' ' + (da ? 'fra første booking' : 'from first booking');
           html += '</p>';
         }
         if (cat.perMonth) {
@@ -2016,7 +2024,8 @@
         }
         // VAT for time-based
         if (cat.vat_pct > 0) {
-          html += '<p class="yb-store__item-vat">' + (da ? 'Inkl. 25% moms' : 'Incl. 25% VAT') + '</p>';
+          var vatAmt = Math.round(price * cat.vat_pct / (100 + cat.vat_pct));
+          html += '<p class="yb-store__item-vat">' + (da ? 'Inkl. ' + formatDKK(vatAmt) + ' moms (25%)' : 'Incl. ' + formatDKK(vatAmt) + ' VAT (25%)') + '</p>';
         } else if (cat.vat_pct === 0) {
           html += '<p class="yb-store__item-vat yb-store__item-vat--zero">' + (da ? 'Momsfrit (under 30)' : 'VAT exempt (under 30)') + '</p>';
         }
@@ -2028,11 +2037,12 @@
         if (cat.validity) {
           html += '<p class="yb-store__item-validity">';
           html += '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> ';
-          html += (da ? 'Gyldighed: ' : 'Valid for: ') + cat.validity;
+          html += (da ? 'Gyldighed: ' : 'Valid for: ') + cat.validity + ' ' + (da ? 'fra første booking' : 'from first booking');
           html += '</p>';
         }
         if (cat.vat_pct > 0) {
-          html += '<p class="yb-store__item-vat">' + (da ? 'Inkl. 25% moms' : 'Incl. 25% VAT') + '</p>';
+          var vatAmtTr = Math.round(price * cat.vat_pct / (100 + cat.vat_pct));
+          html += '<p class="yb-store__item-vat">' + (da ? 'Inkl. ' + formatDKK(vatAmtTr) + ' moms (25%)' : 'Incl. ' + formatDKK(vatAmtTr) + ' VAT (25%)') + '</p>';
         } else if (cat.vat_pct === 0) {
           html += '<p class="yb-store__item-vat yb-store__item-vat--zero">' + (da ? 'Momsfrit (under 30)' : 'VAT exempt (under 30)') + '</p>';
         }
@@ -2125,45 +2135,69 @@
     fetch('/.netlify/functions/mb-giftcards')
       .then(function(r) { return r.json(); })
       .then(function(data) {
-        giftCardsData = data.giftCards || [];
+        if (data.error) {
+          console.error('[GiftCards] API error:', data.error);
+          giftCardsData = [];
+        } else {
+          giftCardsData = data.giftCards || [];
+        }
         console.log('[GiftCards] Loaded:', giftCardsData.length);
         renderGiftCards(listEl);
       })
       .catch(function(err) {
         console.error('[GiftCards] Load error:', err);
-        listEl.innerHTML = '<p class="yb-store__error">' + (isDa() ? 'Kunne ikke hente gavekort.' : 'Could not load gift cards.') + '</p>';
+        giftCardsData = [];
+        renderGiftCards(listEl);
       });
   }
 
   function renderGiftCards(container) {
+    var da = isDa();
+
+    // No gift cards available (API error or none configured) — show contact fallback
     if (!giftCardsData || !giftCardsData.length) {
-      container.innerHTML = '<p class="yb-store__empty">' + t('giftcard_empty') + '</p>';
+      var html = '<div class="yb-giftcards__empty">';
+      html += '<svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#E8E4E0" stroke-width="1"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a4 4 0 0 0-8 0v2"/><line x1="12" y1="11" x2="12" y2="17"/><line x1="9" y1="14" x2="15" y2="14"/></svg>';
+      html += '<p class="yb-giftcards__empty-title">' + (da ? 'Gavekort' : 'Gift Cards') + '</p>';
+      html += '<p class="yb-giftcards__empty-text">' + (da
+        ? 'Kontakt os for at købe et gavekort til en du holder af.'
+        : 'Contact us to purchase a gift card for someone you love.') + '</p>';
+      html += '<a href="mailto:info@hotyogacph.dk" class="yb-btn yb-btn--primary">' + (da ? 'Kontakt os' : 'Contact us') + '</a>';
+      html += '</div>';
+      container.innerHTML = html;
       return;
     }
-    var da = isDa();
-    var html = '<div class="yb-giftcards__grid">';
+
+    // Render gift card options as clean minimal list
+    var html = '';
     giftCardsData.forEach(function(gc) {
-      html += '<div class="yb-giftcards__card" data-gc-id="' + gc.id + '">';
-      html += '<div class="yb-giftcards__card-icon">';
-      html += '<svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#f75c03" stroke-width="1.5"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a4 4 0 0 0-8 0v2"/><line x1="12" y1="11" x2="12" y2="17"/><line x1="9" y1="14" x2="15" y2="14"/></svg>';
+      var isSelected = selectedGiftCard && String(selectedGiftCard.id) === String(gc.id);
+      html += '<div class="yb-giftcards__option' + (isSelected ? ' is-selected' : '') + '" data-gc-id="' + gc.id + '">';
+      html += '<div class="yb-giftcards__option-left">';
+      html += '<span class="yb-giftcards__option-name">' + esc(gc.description || (da ? 'Gavekort' : 'Gift Card')) + '</span>';
+      if (gc.terms) html += '<span class="yb-giftcards__option-terms">' + esc(gc.terms) + '</span>';
       html += '</div>';
-      html += '<div class="yb-giftcards__card-info">';
-      html += '<h3 class="yb-giftcards__card-name">' + esc(gc.description || (da ? 'Gavekort' : 'Gift Card')) + '</h3>';
-      html += '<span class="yb-giftcards__card-price">' + formatDKK(gc.salePrice || gc.value) + '</span>';
-      html += '</div>';
-      html += '<button class="yb-btn yb-btn--primary yb-giftcards__card-btn" type="button" data-gc-select="' + gc.id + '">' + t('giftcard_select') + '</button>';
+      html += '<span class="yb-giftcards__option-price">' + formatDKK(gc.salePrice || gc.value) + '</span>';
       html += '</div>';
     });
-    html += '</div>';
     container.innerHTML = html;
 
-    container.querySelectorAll('[data-gc-select]').forEach(function(btn) {
-      btn.addEventListener('click', function() {
-        var gcId = btn.getAttribute('data-gc-select');
+    // Click to select
+    container.querySelectorAll('[data-gc-id]').forEach(function(card) {
+      card.addEventListener('click', function() {
+        var gcId = card.getAttribute('data-gc-id');
         selectedGiftCard = giftCardsData.find(function(g) { return String(g.id) === gcId; });
-        if (selectedGiftCard) {
-          var formEl = document.getElementById('yb-giftcard-form');
-          if (formEl) { formEl.hidden = false; formEl.scrollIntoView({ behavior: 'smooth', block: 'start' }); }
+        // Update selection UI
+        container.querySelectorAll('.yb-giftcards__option').forEach(function(c) { c.classList.remove('is-selected'); });
+        card.classList.add('is-selected');
+        // Show form
+        var formEl = document.getElementById('yb-giftcard-form');
+        if (formEl) {
+          formEl.hidden = false;
+          // Update selected price in form
+          var priceEl = formEl.querySelector('.yb-giftcards__form-price');
+          if (priceEl) priceEl.textContent = formatDKK(selectedGiftCard.salePrice || selectedGiftCard.value);
+          formEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
         }
       });
     });
