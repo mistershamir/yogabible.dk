@@ -122,6 +122,7 @@
 
     initTabs();
     initStoreForm();
+    initGiftCards();
     initScheduleNav();
     initAvatarUpload(db);
     initVisitFilters();
@@ -404,6 +405,7 @@
           if (tabName === 'visits') loadVisits();
           if (tabName === 'passes') loadMembershipDetails();
           if (tabName === 'receipts') loadReceipts();
+          if (tabName === 'giftcards') loadGiftCards();
           // [HYC] Courses tab not used — commented out
           // if (tabName === 'courses') loadMyCourses();
         }
@@ -1351,59 +1353,61 @@
   }
 
   // ══════════════════════════════════════
-  // STORE TAB
+  // STORE TAB — Hardcoded Product Catalog
   // ══════════════════════════════════════
-  var storeServices = [];
-  var storeView = 'categories'; // 'categories' (top-level cards) or 'items' (listing)
-  var storeTopCategory = null;  // 'daily', 'teacher', 'courses', 'private'
-  var storeSubCategory = 'all'; // subcategory within daily
+  var storeServices = []; // kept for openCheckout compatibility
+  var storeView = 'categories'; // 'categories' | 'items'
+  var storeTopCategory = null;  // 'clips', 'memberships', 'timebased', 'trials', 'tourist'
+  var storeSubCategory = 'all';
   var storeSearchQuery = '';
-  var storeFilterProgramId = null; // Set by booking redirect to highlight matching passes
+  var storeFilterProgramId = null;
 
-  // Top-level store categories
+  // ── Top-level store categories ──
   var storeTopCategories = [
     {
-      id: 'daily',
-      da: 'Daglige Klasser',
-      en: 'Daily Classes',
-      desc_da: 'Medlemskaber, klippekort, prøvekort og meget mere',
-      desc_en: 'Memberships, clip cards, trial passes and more',
+      id: 'clips',
+      da: 'Klippekort',
+      en: 'Clip Cards',
+      desc_da: 'Fleksible klip — brug når det passer dig',
+      desc_en: 'Flexible clips — use when it suits you',
+      icon: '<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="4" width="20" height="16" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>'
+    },
+    {
+      id: 'memberships',
+      da: 'Medlemskab',
+      en: 'Memberships',
+      desc_da: 'Månedlig autopay — første måned gratis',
+      desc_en: 'Monthly autopay — first month free',
+      icon: '<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>'
+    },
+    {
+      id: 'timebased',
+      da: 'Tidsbegrænsede Pas',
+      en: 'Time-based Passes',
+      desc_da: 'Ubegrænset adgang i en fast periode',
+      desc_en: 'Unlimited access for a fixed period',
       icon: '<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>'
     },
     {
-      id: 'teacher',
-      da: 'Yogalæreruddannelse',
-      en: 'Yoga Teacher Training',
-      desc_da: 'Depositum og tilmelding til uddannelse',
-      desc_en: 'Deposits and training enrollment',
-      icon: '<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>'
-    },
-    {
-      id: 'courses',
-      da: 'Kurser',
-      en: 'Courses',
-      desc_da: 'Inversions, backbends, splits og mere',
-      desc_en: 'Inversions, backbends, splits and more',
+      id: 'trials',
+      da: 'Prøvekort',
+      en: 'Trial Passes',
+      desc_da: 'Prøv os — perfekt til nye yogier',
+      desc_en: 'Try us — perfect for new yogis',
       icon: '<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>'
     },
     {
-      id: 'private',
-      da: 'Privattimer',
-      en: 'Private Classes',
-      desc_da: '1-til-1 yoga tilpasset dig',
-      desc_en: '1-on-1 yoga tailored to you',
-      icon: '<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>'
+      id: 'tourist',
+      da: 'Turistpas',
+      en: 'Tourist Passes',
+      desc_da: 'Inkl. måtte & håndklæder — perfekt til besøgende',
+      desc_en: 'Incl. mat & towels — perfect for visitors',
+      icon: '<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="10" r="3"/><path d="M12 21.7C17.3 17 20 13 20 10a8 8 0 1 0-16 0c0 3 2.7 7 8 11.7z"/></svg>'
     }
   ];
 
-  // Subcategories for Daily Classes
-  var storeDailySubs = [
-    { id: 'memberships', da: 'Medlemskab', en: 'Membership', desc_da: 'Fast praksis', desc_en: 'Regular practice' },
-    { id: 'clips', da: 'Klippekort', en: 'Clip Cards', desc_da: 'Fleksible besøg', desc_en: 'Occasional visits' },
-    { id: 'trials', da: 'Prøvekort', en: 'Trial Passes', desc_da: 'Prøv os', desc_en: 'Try us' },
-    { id: 'tourist', da: 'Turistpas', en: 'Tourist Pass', desc_da: 'Inkl. måtte & håndklæde', desc_en: 'Incl. mat & towel' },
-    { id: 'timebased', da: 'Tidsbegrænsede', en: 'Time-based', desc_da: 'Ubegrænset adgang', desc_en: 'Unlimited access' }
-  ];
+  // No subcategory pills needed — each top category IS a subcategory now
+  var storeDailySubs = [];
 
   function initStoreForm() {
     var checkoutForm = document.getElementById('yb-store-checkout-form');
@@ -1455,149 +1459,8 @@
     });
   }
 
-  function loadStore() {
-    var listEl = document.getElementById('yb-store-list');
-    if (!listEl) return;
-
-    listEl.innerHTML = '<div class="yb-store__loading"><div class="yb-mb-spinner"></div><span>' + (isDa() ? 'Henter pakker...' : 'Loading packages...') + '</span></div>';
-
-    // Fetch services, contracts, AND service categories in parallel
-    var servicesUrl = '/.netlify/functions/mb-services?sellOnline=true';
-    var contractsUrl = '/.netlify/functions/mb-contracts';
-    var categoriesUrl = '/.netlify/functions/mb-services?type=categories';
-
-    Promise.all([
-      fetch(servicesUrl).then(function(r) { return r.json(); }),
-      fetch(contractsUrl).then(function(r) {
-        console.log('[Store] Contracts HTTP status:', r.status);
-        return r.json();
-      }).catch(function(err) { console.error('[Store] Contracts fetch FAILED:', err); return { contracts: [], _error: String(err) }; }),
-      fetch(categoriesUrl).then(function(r) { return r.json(); }).catch(function() { return { categories: [] }; })
-    ]).then(function(results) {
-      // Build category ID → name lookup from service categories
-      var categoryMap = {};
-      (results[2].categories || []).forEach(function(cat) {
-        categoryMap[cat.id] = cat.name;
-      });
-      console.log('[Store] Service Category map:', categoryMap);
-
-      var services = (results[0].services || []).map(function(s) {
-        s._itemType = 'service';
-        if (s.description) s.description = stripHtml(s.description);
-        // Enrich with category name if programName missing but programId exists
-        if (!s.programName && s.programId && categoryMap[s.programId]) {
-          s.programName = categoryMap[s.programId];
-        }
-        return s;
-      });
-
-      console.log('[Store] Services loaded:', services.length);
-      console.log('[Store] Contracts full response:', results[1]);
-      if (results[1]._error) console.error('[Store] Contracts had error:', results[1]._error);
-      if (results[1].error) console.error('[Store] Contracts API error:', results[1].error);
-
-      var contracts = (results[1].contracts || []).map(function(c) {
-        // Normalize contract shape to match service display
-        c._itemType = 'contract';
-        c.name = c.name || '';
-        // Strip HTML from Mindbody descriptions (they contain inline styles)
-        c.description = stripHtml(c.description || c.onlineDescription || '');
-        // Price: use the recurring payment (what they pay each cycle), fallback to first payment or total
-        var recurringAmt = c.recurringPaymentAmount || 0;
-        var firstAmt = c.firstPaymentAmount || 0;
-        c.price = recurringAmt || firstAmt || c.totalContractAmount || 0;
-        c.onlinePrice = c.price;
-        c.count = null;
-        // Map schedule string to friendly text
-        var scheduleStr = c.autopaySchedule || '';
-        if (typeof scheduleStr === 'object') scheduleStr = scheduleStr.FrequencyType || '';
-        // Clean up raw MB values like "SetNumberOfAutopays" or technical strings
-        var friendlySchedule = '';
-        var sLower = scheduleStr.toLowerCase();
-        if (sLower.indexOf('month') !== -1 || sLower === 'setnumberofautopays') {
-          friendlySchedule = isDa() ? 'pr. måned' : 'per month';
-        } else if (sLower.indexOf('week') !== -1) {
-          friendlySchedule = isDa() ? 'pr. uge' : 'per week';
-        } else if (sLower.indexOf('year') !== -1) {
-          friendlySchedule = isDa() ? 'pr. år' : 'per year';
-        } else if (scheduleStr) {
-          friendlySchedule = scheduleStr;
-        }
-        if (recurringAmt && friendlySchedule) {
-          c._recurringInfo = formatDKK(recurringAmt) + ' ' + friendlySchedule;
-        } else if (recurringAmt) {
-          c._recurringInfo = formatDKK(recurringAmt) + ' ' + (isDa() ? 'pr. periode' : 'per period');
-        }
-        // Extract class count from name for per-class cost calc
-        var nameClasses = (c.name || '').match(/(\d+)\s*class/i) || (c.name || '').match(/(\d+)\s*klasse/i);
-        var classCount = nameClasses ? parseInt(nameClasses[1], 10) : 0;
-        // Check for "unlimited" in name
-        var isUnlimited = /unlimited|ubegrænset/i.test(c.name || '');
-        // Per-class cost info
-        c._perClassInfo = '';
-        if (classCount > 0 && recurringAmt > 0) {
-          var perClass = Math.round(recurringAmt / classCount);
-          c._perClassInfo = isDa()
-            ? classCount + ' klasser — kun ' + formatDKK(perClass) + ' pr. gang'
-            : classCount + ' classes — only ' + formatDKK(perClass) + ' per class';
-        } else if (isUnlimited && recurringAmt > 0) {
-          var approxPerClass = Math.round(recurringAmt / 20);
-          c._perClassInfo = isDa()
-            ? 'Ubegrænset yoga — ca. ' + formatDKK(approxPerClass) + ' pr. gang (ved ~20 klasser/md.)'
-            : 'Unlimited yoga — approx. ' + formatDKK(approxPerClass) + ' per class (at ~20 classes/mo.)';
-        }
-        // Build contract terms summary for display
-        var terms = [];
-        if (c.firstMonthFree) {
-          terms.push(isDa() ? 'Første måned gratis' : 'First month free');
-        } else if (firstAmt && recurringAmt && firstAmt !== recurringAmt) {
-          terms.push((isDa() ? 'Første betaling: ' : 'First payment: ') + formatDKK(firstAmt));
-        }
-        terms.push(isDa() ? 'Løbende månedligt — opsig eller pause når som helst' : 'Month-to-month — cancel or pause anytime');
-        c._terms = terms;
-        return c;
-      });
-
-      console.log('[Store] Contracts loaded:', contracts.length, contracts.map(function(c) { return c.name; }));
-
-      // Enrich contracts with programName from the category map
-      contracts.forEach(function(c) {
-        if (c.programIds && c.programIds.length) {
-          c.programId = c.programIds[0];
-          // Use categoryMap first, then try service lookup as fallback
-          c.programName = categoryMap[c.programIds[0]] || '';
-          if (!c.programName) {
-            // Fallback: try matching from services
-            var match = services.find(function(s) { return s.programId === c.programIds[0]; });
-            if (match) c.programName = match.programName || '';
-          }
-        }
-      });
-
-      // Whitelist: only show approved contracts
-      // Keep: 10 Classes/Month, Unlimited, Premium Unlimited, Mat Storage, Test
-      contracts = contracts.filter(function(c) {
-        var n = (c.name || '').toLowerCase();
-        if (n.indexOf('10 classes') !== -1) return true;
-        if (n.indexOf('unlimited') !== -1) return true;
-        if (n.indexOf('premium') !== -1) return true;
-        if (n.indexOf('mat storage') !== -1 || n.indexOf('måtte') !== -1) return true;
-        if (n.indexOf('test') !== -1) return true;
-        return false; // hide everything else (5 Classes, Namaste, etc.)
-      });
-      console.log('[Store] Contracts after whitelist:', contracts.length, contracts.map(function(c) { return c.name; }));
-
-      storeServices = services.concat(contracts);
-      if (!storeServices.length) { listEl.innerHTML = '<p class="yb-store__empty">' + t('store_empty') + '</p>'; return; }
-      renderStoreItems(listEl);
-    }).catch(function(err) { console.error('[Store] Load error:', err); listEl.innerHTML = '<p class="yb-store__error">' + t('store_error') + '</p>'; });
-  }
-
-  /**
-   * Calculate user's age from DOB string (YYYY-MM-DD).
-   * Returns null if no DOB available.
-   */
-  var _ageOverride = null; // TEMP: for testing age-based filtering — remove later
+  // ── Age detection ──
+  var _ageOverride = null;
   function getUserAge() {
     if (_ageOverride !== null) return _ageOverride;
     if (!userDateOfBirth) return null;
@@ -1606,409 +1469,742 @@
     var birth = new Date(Number(parts[0]), Number(parts[1]) - 1, Number(parts[2]));
     var today = new Date();
     var age = today.getFullYear() - birth.getFullYear();
-    var monthDiff = today.getMonth() - birth.getMonth();
-    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birth.getDate())) {
-      age--;
-    }
+    var m = today.getMonth() - birth.getMonth();
+    if (m < 0 || (m === 0 && today.getDate() < birth.getDate())) age--;
     return age;
   }
-  // TEMP: Expose age override for testing — call window.setAge(25) or window.setAge(35) in console, then refresh store
-  window.setAge = function(age) {
-    _ageOverride = (age === null || age === undefined) ? null : Number(age);
-    console.log('[Store] Age override set to:', _ageOverride === null ? 'real DOB' : _ageOverride);
-    var storeContainer = document.getElementById('yb-store-list');
-    if (storeContainer && storeServices.length) renderStoreItems(storeContainer);
+  function getAgeBracket() {
+    var age = getUserAge();
+    if (age === null) return 'over30'; // default to 30+ if unknown
+    return age >= 30 ? 'over30' : 'under30';
+  }
+  window.setAge = function(a) {
+    _ageOverride = (a === null || a === undefined) ? null : Number(a);
+    console.log('[Store] Age override:', _ageOverride === null ? 'real DOB' : _ageOverride);
+    var c = document.getElementById('yb-store-list');
+    if (c) renderStoreItems(c);
   };
 
-  /**
-   * Filter store services by age bracket based on Service Category (programName) ONLY.
-   * Item names stay clean — age labels live only in Service Category names.
-   * Patterns: "(30+ Years Old)", "(Under 30 Years Old)", "30 Years Old+"
-   */
-  function filterAndCleanByAge(services) {
+  // ── Sharing dropdown text ──
+  var sharingInfo = {
+    da: '<strong>Sådan deler du klip:</strong><br>1. Køb passet<br>2. Bed din partner om at oprette en profil på vores hjemmeside<br>3. Kontakt os på <a href="mailto:info@hotyogacph.dk">info@hotyogacph.dk</a> med jeres oplysninger — vi gør dine klip delbare.<br><em>I kan booke og træne sammen eller på forskellige tidspunkter/klasser.</em>',
+    en: '<strong>How sharing works:</strong><br>1. Buy the pass<br>2. Ask your companion to create a profile on our website<br>3. Contact us at <a href="mailto:info@hotyogacph.dk">info@hotyogacph.dk</a> with your and your companion\'s details — we\'ll make your clips shareable.<br><em>You can book and practice either together or at different times/classes.</em>'
+  };
+
+  // ══════════════════════════════════════════════
+  // HARDCODED PRODUCT CATALOG
+  // ══════════════════════════════════════════════
+  var STORE_CATALOG = {
+    clips: {
+      over30: [
+        { classes: 1, price: 299, perClass: 299, vat: 60, validity: null, label_da: 'Prøv En', label_en: 'Try One', sharing: null, prodId: '100174', sTG: '50' },
+        { classes: 2, price: 549, perClass: 274, vat: 110, validity: '10 days', label_da: 'God Start', label_en: 'Great Start', sharing: null, prodId: '100175', sTG: '50' },
+        { classes: 3, price: 749, perClass: 249, vat: 150, validity: '20 days', label_da: 'Mærk Resultater', label_en: 'Feel Results', sharing: null, prodId: '100176', sTG: '50' },
+        { classes: 5, price: 1199, perClass: 239, vat: 240, validity: '30 days', label_da: 'Populært Valg', label_en: 'Popular Choice', sharing: null, prodId: '100177', sTG: '50' },
+        { classes: 10, price: 1999, perClass: 199, vat: 400, validity: '50 days', label_da: 'Spar Mere', label_en: 'Save More', sharing: null, prodId: '100178', sTG: '50' },
+        { classes: 20, price: 3599, perClass: 179, vat: 720, validity: '90 days', label_da: 'Smart Tilbud', label_en: 'Smart Deal', sharing: null, prodId: '100179', sTG: '50' },
+        { classes: 30, price: 4799, perClass: 159, vat: 960, validity: '4 months', label_da: 'Dedikeret Yogi', label_en: 'Dedicated Yogi', sharing: null, prodId: '100180', sTG: '50' },
+        { classes: 60, price: 7799, perClass: 129, vat: 1560, validity: '9 months', label_da: 'Yoga Partner', label_en: 'Yoga Partner', sharing: { persons: 1 }, prodId: '100181', sTG: '50' },
+        { classes: 100, price: 9999, perClass: 99, vat: 2000, validity: '12 months', label_da: 'Bedste Værdi', label_en: 'Best Value', sharing: { persons: 2 }, prodId: '100182', sTG: '50' },
+        { classes: 200, price: 17999, perClass: 89, vat: 3600, validity: '18 months', label_da: 'Familieplan', label_en: 'Family Plan', sharing: { persons: 3 }, prodId: '100183', sTG: '50' }
+      ],
+      under30: [
+        { classes: 1, price: 275, perClass: 275, vat: 0, validity: null, label_da: 'Prøv En', label_en: 'Try One', sharing: null, prodId: '100017', sTG: '28' },
+        { classes: 2, price: 495, perClass: 248, vat: 0, validity: '10 days', label_da: 'God Start', label_en: 'Great Start', sharing: null, prodId: '100016', sTG: '28' },
+        { classes: 3, price: 645, perClass: 215, vat: 0, validity: '20 days', label_da: 'Mærk Resultater', label_en: 'Feel Results', sharing: null, prodId: '100018', sTG: '28' },
+        { classes: 5, price: 975, perClass: 195, vat: 0, validity: '30 days', label_da: 'Populært Valg', label_en: 'Popular Choice', sharing: null, prodId: '100019', sTG: '28' },
+        { classes: 10, price: 1750, perClass: 175, vat: 0, validity: '50 days', label_da: 'Spar Mere', label_en: 'Save More', sharing: null, prodId: '100020', sTG: '28' },
+        { classes: 20, price: 2900, perClass: 145, vat: 0, validity: '90 days', label_da: 'Smart Tilbud', label_en: 'Smart Deal', sharing: null, prodId: '100021', sTG: '28' },
+        { classes: 30, price: 3750, perClass: 125, vat: 0, validity: '4 months', label_da: 'Dedikeret Yogi', label_en: 'Dedicated Yogi', sharing: null, prodId: '100022', sTG: '28' },
+        { classes: 60, price: 5950, perClass: 99, vat: 0, validity: '9 months', label_da: 'Yoga Partner', label_en: 'Yoga Partner', sharing: { persons: 1 }, prodId: '100023', sTG: '28' },
+        { classes: 100, price: 8900, perClass: 89, vat: 0, validity: '12 months', label_da: 'Bedste Værdi', label_en: 'Best Value', sharing: { persons: 2 }, prodId: '100024', sTG: '28' },
+        { classes: 200, price: 15800, perClass: 79, vat: 0, validity: '18 months', label_da: 'Familieplan', label_en: 'Family Plan', sharing: { persons: 3 }, prodId: '100068', sTG: '28' }
+      ]
+    },
+    memberships: {
+      over30: [
+        { id: 'mem-10-30', name_da: '10 Klasser / Måned', name_en: '10 Classes / Month', price: 999, perClass: 99, vatPct: 25, regFee: 299, firstFree: true, popular: true, prodId: '101', stype: '40',
+          features_da: ['Ideel til moderat praksis — 1-3 gange om ugen', 'Adgang til alle klassetyper og tider i åbningstiden', 'Medlems-events og rabatter', 'Wellness-fordele: håndklæder, brusebad, urtete & snacks', 'Book op til 21 dage frem'],
+          features_en: ['Ideal for moderate practice — 1-3 times per week', 'Access to all class types and times during opening hours', 'Member-only events & discounts', 'Wellness perks: towels, showers, herbal tea & treats', 'Book up to 21 days ahead']
+        },
+        { id: 'mem-unl-30', name_da: 'Ubegrænset / Måned', name_en: 'Unlimited / Month', price: 1249, perClass: 62, perClassNote_da: 'ca. 62 kr/klasse ved 20 klasser/md.', perClassNote_en: '~62 kr/class at 20 classes/mo.', vatPct: 25, regFee: 299, firstFree: true, popular: false, prodId: '102', stype: '40',
+          features_da: ['Ideel til regelmæssig praksis', 'Ubegrænset adgang til alle klassetyper og tider', 'Medlems-events og rabatter', 'Wellness-fordele: håndklæder, brusebad, urtete & snacks', 'Book op til 21 dage frem'],
+          features_en: ['Ideal for regular practice', 'Unlimited access to all class types and times', 'Member-only events & discounts', 'Wellness perks: towels, showers, herbal tea & treats', 'Book up to 21 days ahead']
+        },
+        { id: 'mem-prem-30', name_da: 'Premium Ubegrænset / Måned', name_en: 'Premium Unlimited / Month', price: 1649, perClass: 82, perClassNote_da: 'ca. 82 kr/klasse ved 20 klasser/md.', perClassNote_en: '~82 kr/class at 20 classes/mo.', vatPct: 25, regFee: 299, firstFree: true, popular: false, prodId: '103', stype: '40',
+          features_da: ['Top-tier med fuld komfort og prioritet', 'Ubegrænset prioritetsadgang — alle klasser, ventelister, events', 'Alt-inklusiv: måtteopbevaring, håndklæder, vaskeservice, personlig opbevaring', 'Fleksibelt — opsig med en måneds varsel, pausemuligheder inkl.', 'Book op til 31 dage frem'],
+          features_en: ['Top-tier with full comfort and priority', 'Unlimited priority access — all classes, waitlists, events', 'All-inclusive: mat storage, towels, laundry service, personal storage', 'Flexible — cancel with one-month notice, pause options included', 'Book up to 31 days ahead']
+        }
+      ],
+      under30: [
+        { id: 'mem-10-u30', name_da: '10 Klasser / Måned', name_en: '10 Classes / Month', price: 799, perClass: 79, vatPct: 0, regFee: 275, firstFree: true, popular: true, prodId: '109', stype: '40',
+          features_da: ['Ideel til moderat praksis — 1-3 gange om ugen', 'Adgang til alle klassetyper og tider i åbningstiden', 'Medlems-events og rabatter', 'Wellness-fordele: håndklæder, brusebad, urtete & snacks', 'Book op til 21 dage frem'],
+          features_en: ['Ideal for moderate practice — 1-3 times per week', 'Access to all class types and times during opening hours', 'Member-only events & discounts', 'Wellness perks: towels, showers, herbal tea & treats', 'Book up to 21 days ahead']
+        },
+        { id: 'mem-unl-u30', name_da: 'Ubegrænset / Måned', name_en: 'Unlimited / Month', price: 999, perClass: 49, perClassNote_da: 'ca. 49 kr/klasse ved 20 klasser/md.', perClassNote_en: '~49 kr/class at 20 classes/mo.', vatPct: 0, regFee: 275, firstFree: true, popular: false, prodId: '111', stype: '40',
+          features_da: ['Ideel til regelmæssig praksis', 'Ubegrænset adgang til alle klassetyper og tider', 'Medlems-events og rabatter', 'Wellness-fordele: håndklæder, brusebad, urtete & snacks', 'Book op til 21 dage frem'],
+          features_en: ['Ideal for regular practice', 'Unlimited access to all class types and times', 'Member-only events & discounts', 'Wellness perks: towels, showers, herbal tea & treats', 'Book up to 21 days ahead']
+        },
+        { id: 'mem-prem-u30', name_da: 'Premium Ubegrænset / Måned', name_en: 'Unlimited / Month', price: 1499, perClass: 74, perClassNote_da: 'ca. 74 kr/klasse ved 20 klasser/md.', perClassNote_en: '~74 kr/class at 20 classes/mo.', vatPct: 0, regFee: 275, firstFree: true, popular: false, prodId: '112', stype: '40',
+          features_da: ['Top-tier med fuld komfort og prioritet', 'Ubegrænset prioritetsadgang — alle klasser, ventelister, events', 'Alt-inklusiv: måtteopbevaring, håndklæder, vaskeservice, personlig opbevaring', 'Fleksibelt — opsig med en måneds varsel, pausemuligheder inkl.', 'Book op til 31 dage frem'],
+          features_en: ['Top-tier with full comfort and priority', 'Unlimited priority access — all classes, waitlists, events', 'All-inclusive: mat storage, towels, laundry service, personal storage', 'Flexible — cancel with one-month notice, pause options included', 'Book up to 31 days ahead']
+        }
+      ]
+    },
+    timebased: {
+      over30: [
+        { id: 'tb-14d-30', name_da: '14 Dage Ubegrænset', name_en: '14 Days Unlimited', price: 799, vatPct: 25, validity_da: '14 dage', validity_en: '14 days', saving: null, prodId: '100186', sTG: '51', stype: '41' },
+        { id: 'tb-21d-30', name_da: '21 Dage Ubegrænset', name_en: '21 Days Unlimited', price: 899, vatPct: 25, validity_da: '21 dage', validity_en: '21 days', saving: null, prodId: '100187', sTG: '51', stype: '41' },
+        { id: 'tb-1m-30', name_da: '1 Måned Ubegrænset', name_en: '1 Month Unlimited', price: 1499, vatPct: 25, validity_da: '1 måned', validity_en: '1 month', saving: null, prodId: '100189', sTG: '52', stype: '41' },
+        { id: 'tb-3m-30', name_da: '3 Måneder Ubegrænset', name_en: '3 Months Unlimited', price: 3749, perMonth: 1249, vatPct: 25, validity_da: '3 måneder', validity_en: '3 months', saving_da: 'Samme pris som Unlimited medlemskab — uden registreringsgebyr (299 kr)', saving_en: 'Same price as Unlimited membership — no registration fee (299 kr)', prodId: '100190', sTG: '52', stype: '41' },
+        { id: 'tb-6m-30', name_da: '6 Måneder Ubegrænset', name_en: '6 Months Unlimited', price: 6899, perMonth: 1149, vatPct: 25, validity_da: '6 måneder', validity_en: '6 months', popular: true, saving_da: '100 kr billigere/md. end Unlimited + ingen reg.gebyr (299 kr)', saving_en: '100 kr cheaper/mo. than Unlimited + no reg. fee (299 kr)', prodId: '100191', sTG: '52', stype: '41' },
+        { id: 'tb-12m-30', name_da: '12+1 Måneder Ubegrænset', name_en: '12+1 Months Unlimited', price: 12599, perMonth: 969, vatPct: 25, validity_da: '13 måneder', validity_en: '13 months', bestDeal: true, saving_da: 'Spar 2.688 kr vs. 12 mdr. Unlimited medlemskab (280 kr billigere/md. + ingen reg.gebyr)', saving_en: 'Save 2,688 kr vs. 12 mo. Unlimited membership (280 kr cheaper/mo. + no reg. fee)', prodId: '100192', sTG: '52', stype: '41' }
+      ],
+      under30: [
+        { id: 'tb-14d-u30', name_da: '14 Dage Ubegrænset', name_en: '14 Days Unlimited', price: 649, vatPct: 0, validity_da: '14 dage', validity_en: '14 days', saving: null, prodId: '100043', sTG: '32', stype: '41' },
+        { id: 'tb-21d-u30', name_da: '21 Dage Ubegrænset', name_en: '21 Days Unlimited', price: 749, vatPct: 0, validity_da: '21 dage', validity_en: '21 days', saving: null, prodId: '100044', sTG: '32', stype: '41' },
+        { id: 'tb-1m-u30', name_da: '1 Måned Ubegrænset', name_en: '1 Month Unlimited', price: 1399, vatPct: 0, validity_da: '1 måned', validity_en: '1 month', saving: null, prodId: '100037', sTG: '29', stype: '41' },
+        { id: 'tb-3m-u30', name_da: '3 Måneder Ubegrænset', name_en: '3 Months Unlimited', price: 2999, perMonth: 999, vatPct: 0, validity_da: '3 måneder', validity_en: '3 months', saving_da: 'Samme pris som Unlimited medlemskab — uden registreringsgebyr (275 kr)', saving_en: 'Same price as Unlimited membership — no registration fee (275 kr)', prodId: '100038', sTG: '29', stype: '41' },
+        { id: 'tb-6m-u30', name_da: '6 Måneder Ubegrænset', name_en: '6 Months Unlimited', price: 5399, perMonth: 899, vatPct: 0, validity_da: '6 måneder', validity_en: '6 months', popular: true, saving_da: '100 kr billigere/md. end Unlimited + ingen reg.gebyr (275 kr)', saving_en: '100 kr cheaper/mo. than Unlimited + no reg. fee (275 kr)', prodId: '100039', sTG: '29', stype: '41' },
+        { id: 'tb-12m-u30', name_da: '12+1 Måneder Ubegrænset', name_en: '12+1 Months Unlimited', price: 9599, perMonth: 738, vatPct: 0, validity_da: '13 måneder', validity_en: '13 months', bestDeal: true, saving_da: 'Spar 2.664 kr vs. 12 mdr. Unlimited medlemskab (261 kr billigere/md. + ingen reg.gebyr)', saving_en: 'Save 2,664 kr vs. 12 mo. Unlimited membership (261 kr cheaper/mo. + no reg. fee)', prodId: '100040', sTG: '29', stype: '41' }
+      ]
+    },
+    trials: {
+      over30: [
+        { id: 'tr-1-30', refClip: 0 },
+        { id: 'tr-14d-30', name_da: '14 Dage Ubegrænset', name_en: '14 Days Unlimited', price: 649, vatPct: 25, validity_da: '14 dage', validity_en: '14 days', prodId: '100186', sTG: '51', stype: '41' },
+        { id: 'tr-21d-30', name_da: '21 Dage Ubegrænset', name_en: '21 Days Unlimited', price: 749, vatPct: 25, validity_da: '21 dage', validity_en: '21 days', prodId: '100187', sTG: '51', stype: '41' },
+        { id: 'tr-kick-30', name_da: 'KickStarter', name_en: 'KickStarter', price: 599, vatPct: 25, classes: 10, validity_da: '3 uger', validity_en: '3 weeks', cphOnly: true, desc_da: 'Kun for Københavns-beboere. 10 klasser inden for 3 uger fra din første bookede klasse.', desc_en: 'Only for Copenhagen residents. 10 classes within 3 weeks from your first booked class.', prodId: '100185', sTG: '51', stype: '41' }
+      ],
+      under30: [
+        { id: 'tr-1-u30', refClip: 0 },
+        { id: 'tr-14d-u30', name_da: '14 Dage Ubegrænset', name_en: '14 Days Unlimited', price: 649, vatPct: 0, validity_da: '14 dage', validity_en: '14 days', prodId: '100043', sTG: '32', stype: '41' },
+        { id: 'tr-21d-u30', name_da: '21 Dage Ubegrænset', name_en: '21 Days Unlimited', price: 749, vatPct: 0, validity_da: '21 dage', validity_en: '21 days', prodId: '100044', sTG: '32', stype: '41' },
+        { id: 'tr-kick-u30', name_da: 'KickStarter', name_en: 'KickStarter', price: 475, vatPct: 0, classes: 10, validity_da: '3 uger', validity_en: '3 weeks', cphOnly: true, desc_da: 'Kun for Københavns-beboere. 10 klasser inden for 3 uger fra din første bookede klasse.', desc_en: 'Only for Copenhagen residents. 10 classes within 3 weeks from your first booked class.', prodId: '100185', sTG: '51', stype: '41' }
+      ]
+    },
+    tourist: {
+      over30: [
+        { id: 'tour-1-30', refClip: 0 },
+        { id: 'tour-7d-30', name_da: '7 Dage Ubegrænset', name_en: '7 Days Unlimited', price: 895, vatPct: 25, validity_da: '7 dage', validity_en: '7 days', inclMat: true, prodId: '100199', stype: '43', desc_da: '7 dages ubegrænset inkl. måtte + 2 håndklæder (spar 110 kr/gang på leje)', desc_en: '7 days unlimited incl. mat + 2 towels (saving 110 kr/visit on rental)' }
+      ],
+      under30: [
+        { id: 'tour-1-u30', refClip: 0 },
+        { id: 'tour-2-u30', refClip: 1 },
+        { id: 'tour-7d-u30', name_da: '7 Dage Ubegrænset', name_en: '7 Days Unlimited', price: 750, vatPct: 0, validity_da: '7 dage', validity_en: '7 days', inclMat: true, prodId: '100051', sTG: '35', stype: '41', desc_da: '7 dages ubegrænset inkl. måtte + 2 håndklæder (spar 110 kr/gang på leje)', desc_en: '7 days unlimited incl. mat + 2 towels (saving 110 kr/visit on rental)' }
+      ],
+      rentalNote_da: 'Medbring eget udstyr eller: Måtteleje 40 kr · Træningshåndklæde 40 kr · Brusehåndklæde 40 kr (betal i studiet ved ankomst)',
+      rentalNote_en: 'Bring your own or: Mat rental 40 kr · Practice towel 40 kr · Shower towel 40 kr (pay at studio upon arrival)'
+    }
+  };
+
+  /** Resolve refClip references: items that point to a clip card */
+  function resolveProduct(item, category, bracket) {
+    if (typeof item.refClip === 'number') {
+      var src = STORE_CATALOG.clips[bracket][item.refClip];
+      if (!src) return null;
+      var resolved = {};
+      for (var k in src) resolved[k] = src[k];
+      resolved.id = item.id;
+      resolved._refFrom = category;
+      return resolved;
+    }
+    return item;
+  }
+
+  /** Get products for a category, resolved and ready */
+  function getProducts(category) {
+    var bracket = getAgeBracket();
+    var items = STORE_CATALOG[category] && STORE_CATALOG[category][bracket];
+    if (!items) return [];
+    return items.map(function(item) { return resolveProduct(item, category, bracket); }).filter(Boolean);
+  }
+
+  /** Build MB checkout URL for a product */
+  function buildMbUrl(p) {
+    var base = 'https://clients.mindbodyonline.com/classic/ws?studioid=5748831';
+    var stype = p.stype || '41';
+    var url = base + '&stype=' + stype;
+    if (p.sTG) url += '&sTG=' + p.sTG;
+    url += '&prodId=' + p.prodId;
+    return url;
+  }
+
+  // ── loadStore: now renders instantly from hardcoded catalog ──
+  function loadStore() {
+    var listEl = document.getElementById('yb-store-list');
+    if (!listEl) return;
+    var bracket = getAgeBracket();
     var age = getUserAge();
+    console.log('[Store] Loading — bracket:', bracket, 'age:', age, 'DOB:', userDateOfBirth);
 
-    // Log unique Service Categories for debugging
-    var pNames = {};
-    services.forEach(function(s) { if (s.programName) pNames[s.programName] = true; });
-    console.log('[Store] Age filter — DOB:', userDateOfBirth, 'Age:', age, 'Total:', services.length);
-    console.log('[Store] Service Categories:', Object.keys(pNames));
+    // Age info banner
+    var ageBanner = '';
+    if (age !== null) {
+      var isOver = bracket === 'over30';
+      ageBanner = '<div class="yb-store__age-banner' + (isOver ? ' yb-store__age-banner--vat' : '') + '">';
+      ageBanner += '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>';
+      ageBanner += '<span>' + (isDa()
+        ? (isOver ? 'Priser inkl. 25% moms (30+ år)' : 'Priser uden moms (under 30 år)')
+        : (isOver ? 'Prices incl. 25% VAT (30+ years)' : 'Prices without VAT (under 30 years)')) + '</span>';
+      ageBanner += '</div>';
+    }
 
-    var filtered = services.filter(function(s) {
-      var pName = (s.programName || '').toLowerCase();
-      var is30Plus = pName.indexOf('30+ years old') !== -1 || pName.indexOf('30 years old+') !== -1 || pName.indexOf('(30+)') !== -1;
-      var isUnder30 = pName.indexOf('under 30') !== -1;
-
-      if (age !== null) {
-        if (age >= 30 && isUnder30) return false;
-        if (age < 30 && is30Plus) return false;
-      }
-      return true;
-    });
-
-    console.log('[Store] After age filter:', filtered.length, '(removed', services.length - filtered.length, ')');
-
-    // Strip age labels from Service Category display only — item names untouched
-    var agePatterns = [
-      /\s*\(30\+ Years Old\)/gi,
-      /\s*\(30 Years Old\+\)/gi,
-      /\s*\(Under 30 Years Old\)/gi,
-      /\s*\(30\+\)/g,
-      /\s*\(Under 30\)/g
-    ];
-
-    return filtered.map(function(s) {
-      s._displayName = s.name || '';
-      var cleanProgram = s.programName || '';
-      agePatterns.forEach(function(pat) {
-        cleanProgram = cleanProgram.replace(pat, '');
-      });
-      s._displayProgram = cleanProgram.replace(/\s{2,}/g, ' ').trim();
-      return s;
-    });
+    renderStoreItems(listEl, ageBanner);
   }
 
-  /**
-   * Categorize a store item into top-level + subcategory.
-   * Sets s._topCategory (daily/teacher/courses/private) and s._subCategory (for daily items).
-   */
-  function categorizeService(s) {
-    var name = (s._displayName || s.name || '').toLowerCase();
-    var progName = (s._displayProgram || s.programName || '').toLowerCase();
-    var combined = name + ' ' + progName;
-    var hasTimePeriod = name.indexOf('day') !== -1 || name.indexOf('dag') !== -1 || name.indexOf('month') !== -1 || name.indexOf('måned') !== -1 || name.indexOf('week') !== -1 || name.indexOf('uge') !== -1;
-
-    // Teacher training
-    if (combined.indexOf('teacher') !== -1 || combined.indexOf('lærer') !== -1 || combined.indexOf('training') !== -1 || combined.indexOf('uddannelse') !== -1 || combined.indexOf('deposit') !== -1) {
-      s._topCategory = 'teacher';
-      s._subCategory = 'all';
-      return;
-    }
-    // Courses (inversions, backbends, splits, workshops)
-    if (combined.indexOf('course') !== -1 || combined.indexOf('kursus') !== -1 || combined.indexOf('workshop') !== -1 || combined.indexOf('inversion') !== -1 || combined.indexOf('backbend') !== -1 || combined.indexOf('split') !== -1) {
-      s._topCategory = 'courses';
-      s._subCategory = 'all';
-      return;
-    }
-    // Private sessions
-    if (combined.indexOf('private') !== -1 || combined.indexOf('privat') !== -1 || combined.indexOf('1-on-1') !== -1 || combined.indexOf('personal') !== -1) {
-      s._topCategory = 'private';
-      s._subCategory = 'all';
-      return;
-    }
-
-    // Everything else → Daily Classes with subcategories
-    s._topCategory = 'daily';
-
-    // All contracts = memberships
-    if (s._itemType === 'contract') { s._subCategory = 'memberships'; return; }
-
-    if (combined.indexOf('trial') !== -1 || combined.indexOf('prøv') !== -1 || combined.indexOf('intro') !== -1) { s._subCategory = 'trials'; return; }
-    if (combined.indexOf('tourist') !== -1 || combined.indexOf('turist') !== -1 || combined.indexOf('drop-in') !== -1 || combined.indexOf('drop in') !== -1) { s._subCategory = 'tourist'; return; }
-    if (hasTimePeriod && (combined.indexOf('unlimited') !== -1 || combined.indexOf('non-contract') !== -1 || combined.indexOf('non-binding') !== -1)) { s._subCategory = 'timebased'; return; }
-    if (combined.indexOf('membership') !== -1 || combined.indexOf('medlems') !== -1 || combined.indexOf('autopay') !== -1) { s._subCategory = 'memberships'; return; }
-    if (name.indexOf('clip') !== -1 || name.indexOf('klip') !== -1 || name.indexOf('punch') !== -1 || name.indexOf('pack') !== -1 || name.indexOf('class') !== -1) { s._subCategory = 'clips'; return; }
-    if (hasTimePeriod) { s._subCategory = 'timebased'; return; }
-    s._subCategory = 'clips'; // Default daily items to clips
-  }
-
-  function renderStoreItems(container) {
-    // Filter by age bracket and clean display names, then categorize
-    var filtered = filterAndCleanByAge(storeServices);
-    filtered.forEach(function(s) {
-      categorizeService(s);
-    });
-    // Use filtered list for all rendering below
-    var visibleServices = filtered;
-
+  // ── Main render ──
+  function renderStoreItems(container, ageBanner) {
+    ageBanner = ageBanner || '';
+    var da = isDa();
     var html = '';
 
-    // ── Program filter override (from booking redirect) ──
-    if (storeFilterProgramId) {
-      html += renderStoreItemList(container, visibleServices.filter(function(s) {
-        return s.programId && Number(s.programId) === Number(storeFilterProgramId);
-      }), true);
-      container.innerHTML = html;
-      attachStoreHandlers(container);
-      return;
-    }
-
-    // ── Top-level category cards view ──
+    // ── Top-level category cards ──
     if (storeView === 'categories') {
+      html += ageBanner;
       html += '<div class="yb-store__top-cats">';
       storeTopCategories.forEach(function(cat) {
-        var count = visibleServices.filter(function(s) { return s._topCategory === cat.id; }).length;
-        if (count === 0) return;
+        var products = getProducts(cat.id);
         html += '<button class="yb-store__top-cat" type="button" data-store-top="' + cat.id + '">';
-        html += '  <div class="yb-store__top-cat-icon">' + cat.icon + '</div>';
-        html += '  <div class="yb-store__top-cat-text">';
-        html += '    <span class="yb-store__top-cat-name">' + (isDa() ? cat.da : cat.en) + '</span>';
-        html += '    <span class="yb-store__top-cat-desc">' + (isDa() ? cat.desc_da : cat.desc_en) + '</span>';
-        html += '  </div>';
-        html += '  <span class="yb-store__top-cat-count">' + count + '</span>';
-        html += '  <svg class="yb-store__top-cat-arrow" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>';
+        html += '<div class="yb-store__top-cat-icon">' + cat.icon + '</div>';
+        html += '<div class="yb-store__top-cat-text">';
+        html += '<span class="yb-store__top-cat-name">' + (da ? cat.da : cat.en) + '</span>';
+        html += '<span class="yb-store__top-cat-desc">' + (da ? cat.desc_da : cat.desc_en) + '</span>';
+        html += '</div>';
+        html += '<span class="yb-store__top-cat-count">' + products.length + '</span>';
+        html += '<svg class="yb-store__top-cat-arrow" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>';
         html += '</button>';
       });
       html += '</div>';
-
       container.innerHTML = html;
 
-      // Attach top-level handlers
       container.querySelectorAll('[data-store-top]').forEach(function(btn) {
         btn.addEventListener('click', function() {
           storeTopCategory = btn.getAttribute('data-store-top');
-          storeSubCategory = 'all';
           storeView = 'items';
-          storeSearchQuery = '';
-          renderStoreItems(container);
+          renderStoreItems(container, ageBanner);
         });
       });
       return;
     }
 
-    // ── Items view (inside a category) ──
+    // ── Items view ──
     var topCat = storeTopCategories.find(function(c) { return c.id === storeTopCategory; });
+    var products = getProducts(storeTopCategory);
 
-    // Back button
+    // Back
     html += '<button class="yb-store__back-btn" type="button" data-store-back>';
     html += '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>';
-    html += (isDa() ? 'Alle kategorier' : 'All categories');
+    html += (da ? 'Alle kategorier' : 'All categories');
     html += '</button>';
 
-    // Category heading
+    html += ageBanner;
+
     if (topCat) {
       html += '<div class="yb-store__cat-heading">';
-      html += '<h3 class="yb-store__cat-title">' + (isDa() ? topCat.da : topCat.en) + '</h3>';
+      html += '<h3 class="yb-store__cat-title">' + (da ? topCat.da : topCat.en) + '</h3>';
       html += '</div>';
     }
 
-    // Subcategory pills (only for Daily Classes)
-    if (storeTopCategory === 'daily') {
-      html += '<div class="yb-store__subcats">';
-      storeDailySubs.forEach(function(sub) {
-        var count = visibleServices.filter(function(s) { return s._topCategory === 'daily' && s._subCategory === sub.id; }).length;
-        if (count === 0) return;
-        var isActive = storeSubCategory === sub.id;
-        html += '<button class="yb-store__sub-btn' + (isActive ? ' is-active' : '') + '" type="button" data-store-sub="' + sub.id + '">';
-        html += '<span class="yb-store__sub-name">' + (isDa() ? sub.da : sub.en) + '</span>';
-        if (sub.desc_da) {
-          html += '<span class="yb-store__sub-desc">' + (isDa() ? sub.desc_da : sub.desc_en) + '</span>';
-        }
-        html += '<span class="yb-store__sub-count">' + count + '</span>';
-        html += '</button>';
-      });
-      html += '</div>';
+    // Render based on category type
+    if (storeTopCategory === 'clips') {
+      html += renderClipCards(products, da);
+    } else if (storeTopCategory === 'memberships') {
+      html += renderMembershipCards(products, da);
+    } else if (storeTopCategory === 'timebased') {
+      html += renderTimebasedCards(products, da);
+    } else if (storeTopCategory === 'trials') {
+      html += renderTrialCards(products, da);
+    } else if (storeTopCategory === 'tourist') {
+      html += renderTouristCards(products, da);
     }
-
-    // Filter items for this view
-    var filtered = visibleServices.filter(function(s) { return s._topCategory === storeTopCategory; });
-    if (storeTopCategory === 'daily' && storeSubCategory !== 'all') {
-      filtered = filtered.filter(function(s) { return s._subCategory === storeSubCategory; });
-    }
-
-    // Search
-    html += '<div class="yb-store__search-wrap">';
-    html += '<svg class="yb-store__search-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#6F6A66" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>';
-    html += '<input type="text" class="yb-store__search" placeholder="' + (isDa() ? 'Søg...' : 'Search...') + '" value="' + esc(storeSearchQuery) + '">';
-    if (storeSearchQuery) {
-      html += '<button type="button" class="yb-store__search-clear" aria-label="Clear">&times;</button>';
-    }
-    html += '</div>';
-
-    if (storeSearchQuery) {
-      var q = storeSearchQuery.toLowerCase();
-      filtered = filtered.filter(function(s) {
-        return (s.name || '').toLowerCase().indexOf(q) !== -1
-            || (s.description || '').toLowerCase().indexOf(q) !== -1;
-      });
-    }
-
-    // Tourist pass note
-    if (storeTopCategory === 'daily' && storeSubCategory === 'tourist') {
-      html += '<div class="yb-store__note">';
-      html += '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>';
-      html += '<span>' + (isDa() ? 'Alle turistpas inkluderer måtte og håndklæde ved hvert besøg.' : 'All tourist passes include mat and towel on each visit.') + '</span>';
-      html += '</div>';
-    }
-
-    // Item grid
-    html += renderStoreCardGrid(filtered);
 
     container.innerHTML = html;
-    attachStoreHandlers(container);
+    attachStoreHandlers(container, ageBanner);
   }
 
-  /** Render a program-filtered item list (from booking redirect) */
-  function renderStoreItemList(container, filtered, showBanner) {
-    var html = '';
-    if (showBanner) {
-      html += '<div class="yb-store__program-filter">';
-      html += '<span>' + (isDa() ? 'Filtreret: pas der dækker denne klassetype' : 'Filtered: passes that cover this class type') + '</span>';
-      html += '<button type="button" class="yb-store__program-filter-clear">' + (isDa() ? 'Vis alle' : 'Show all') + '</button>';
-      html += '</div>';
-    }
-    html += renderStoreCardGrid(filtered);
-    return html;
-  }
+  // ══════════════════════════════════════
+  // CARD RENDERERS — one per category
+  // ══════════════════════════════════════
 
-  /** Render the card grid HTML for an array of services */
-  function renderStoreCardGrid(filtered) {
-    var html = '';
-    html += '<div class="yb-store__grid">';
-    filtered.forEach(function(s) {
-      var price = s.onlinePrice || s.price || 0;
-      var isContract = s._itemType === 'contract';
+  /** Clip Cards — graduated value display */
+  function renderClipCards(products, da) {
+    var html = '<div class="yb-store__grid yb-store__grid--clips">';
+    var maxClasses = products.length ? products[products.length - 1].classes : 1;
 
-      html += '<div class="yb-store__item' + (isContract ? ' yb-store__item--contract' : '') + '">';
+    products.forEach(function(p, i) {
+      var pctSaved = p.classes > 1 ? Math.round((1 - p.perClass / products[0].perClass) * 100) : 0;
+      var isPopular = (p.classes === 5);
+      var isBest = (p.classes >= 100);
+
+      html += '<div class="yb-store__card yb-store__card--clip' +
+        (isPopular ? ' yb-store__card--popular' : '') +
+        (isBest ? ' yb-store__card--best' : '') +
+        (p.sharing ? ' yb-store__card--sharing' : '') + '">';
 
       // Badges
-      var badges = [];
-      if (isContract && s.firstMonthFree) {
-        badges.push('<span class="yb-store__badge yb-store__badge--free">' + (isDa() ? 'Første måned gratis' : 'First month free') + '</span>');
-      }
-      if (isContract) {
-        badges.push('<span class="yb-store__badge yb-store__badge--membership">' + (isDa() ? 'Medlemskab' : 'Membership') + '</span>');
-      }
-      if (s._subCategory === 'tourist') {
-        badges.push('<span class="yb-store__badge yb-store__badge--tourist">' + (isDa() ? 'Inkl. måtte & håndklæde' : 'Incl. mat & towel') + '</span>');
-      }
-      if (badges.length) {
-        html += '<div class="yb-store__item-badges">' + badges.join('') + '</div>';
-      }
-
-      html += '<div class="yb-store__item-info">';
-      html += '  <h3 class="yb-store__item-name">' + esc(s._displayName || s.name) + '</h3>';
-
-      if (s.description) {
-        var desc = s.description.length > 120 ? s.description.substring(0, 120) + '...' : s.description;
-        html += '  <p class="yb-store__item-desc">' + esc(desc) + '</p>';
-      }
-
-      html += '  <div class="yb-store__item-pricing">';
-      html += '    <span class="yb-store__item-price">' + formatDKK(price) + '</span>';
-      if (isContract && s._recurringInfo) {
-        html += '    <span class="yb-store__item-recurring">' + esc(s._recurringInfo) + '</span>';
-      } else if (s.count && s.count < 9999) {
-        html += '    <span class="yb-store__item-count">' + s.count + ' ' + (isDa() ? 'klip' : 'sessions') + '</span>';
-      }
-      html += '  </div>';
-
-      if (isContract && s._perClassInfo) {
-        html += '  <p class="yb-store__item-per-class">' + esc(s._perClassInfo) + '</p>';
-      }
-
-      if (isContract && s._terms && s._terms.length) {
-        html += '  <ul class="yb-store__item-terms">';
-        s._terms.forEach(function(term) {
-          html += '    <li>' + esc(term) + '</li>';
-        });
-        html += '    <li><a href="' + (isDa() ? '/terms-conditions/' : '/en/terms-conditions/') + '" target="_blank" rel="noopener">' + (isDa() ? 'Se handelsbetingelser' : 'View terms & conditions') + '</a></li>';
-        html += '  </ul>';
-      }
-
+      html += '<div class="yb-store__card-badges">';
+      if (isPopular) html += '<span class="yb-store__badge yb-store__badge--popular">' + (da ? 'Populært Valg' : 'Popular Choice') + '</span>';
+      if (isBest) html += '<span class="yb-store__badge yb-store__badge--best">' + (da ? 'Bedste Værdi' : 'Best Value') + '</span>';
+      if (pctSaved >= 10) html += '<span class="yb-store__badge yb-store__badge--save">' + (da ? 'Spar ' + pctSaved + '%' : 'Save ' + pctSaved + '%') + '</span>';
       html += '</div>';
-      html += '<button class="yb-btn yb-btn--primary yb-store__item-btn" type="button" data-store-buy="' + s.id + '" data-item-type="' + (s._itemType || 'service') + '">' + t('store_buy') + '</button>';
+
+      // Header: class count + label
+      html += '<div class="yb-store__card-header">';
+      html += '<span class="yb-store__card-classes">' + p.classes + '</span>';
+      html += '<span class="yb-store__card-classes-label">' + (da ? (p.classes === 1 ? 'klasse' : 'klasser') : (p.classes === 1 ? 'class' : 'classes')) + '</span>';
+      html += '<span class="yb-store__card-label">' + (da ? p.label_da : p.label_en) + '</span>';
+      html += '</div>';
+
+      // Price
+      html += '<div class="yb-store__card-price-block">';
+      html += '<span class="yb-store__card-price">' + formatDKK(p.price) + '</span>';
+      if (p.classes > 1) {
+        html += '<span class="yb-store__card-per-class">' + formatDKK(p.perClass) + ' / ' + (da ? 'klasse' : 'class') + '</span>';
+      }
+      if (p.vat > 0) {
+        html += '<span class="yb-store__card-vat">' + (da ? 'Inkl. ca. ' : 'Incl. approx. ') + formatDKK(p.vat) + ' ' + (da ? 'moms' : 'VAT') + '</span>';
+      }
+      html += '</div>';
+
+      // Validity
+      if (p.validity) {
+        html += '<p class="yb-store__card-validity">';
+        html += '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>';
+        html += (da ? 'Gyldighed: ' : 'Valid: ') + p.validity + (da ? ' fra første booking' : ' from first booking');
+        html += '</p>';
+      }
+
+      // Value bar (visual indicator of deal quality)
+      if (p.classes > 1) {
+        var barPct = Math.min(100, Math.round((pctSaved / 70) * 100));
+        html += '<div class="yb-store__card-value-bar">';
+        html += '<div class="yb-store__card-value-fill" style="width:' + Math.max(8, barPct) + '%"></div>';
+        html += '</div>';
+      }
+
+      // Sharing info
+      if (p.sharing) {
+        html += '<div class="yb-store__card-sharing">';
+        html += '<span class="yb-store__card-sharing-label">';
+        html += '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>';
+        html += (da ? 'Del med ' + p.sharing.persons + (p.sharing.persons === 1 ? ' person' : ' personer') : 'Share with ' + p.sharing.persons + (p.sharing.persons === 1 ? ' person' : ' people'));
+        html += '</span>';
+        html += '<details class="yb-store__card-sharing-details">';
+        html += '<summary>' + (da ? 'Hvordan deling virker' : 'How sharing works') + '</summary>';
+        html += '<div class="yb-store__card-sharing-content">' + (da ? sharingInfo.da : sharingInfo.en) + '</div>';
+        html += '</details>';
+        html += '</div>';
+      }
+
+      // Buy button
+      html += '<a href="' + buildMbUrl(p) + '" target="_blank" rel="noopener" class="yb-btn yb-btn--primary yb-store__card-btn">' + (da ? 'Køb nu' : 'Buy now') + '</a>';
       html += '</div>';
     });
-    if (!filtered.length) {
-      html += '<p class="yb-store__empty">' + (storeSearchQuery
-        ? (isDa() ? 'Ingen resultater for "' + esc(storeSearchQuery) + '"' : 'No results for "' + esc(storeSearchQuery) + '"')
-        : t('store_empty')) + '</p>';
-    }
     html += '</div>';
     return html;
   }
 
-  /** Attach all store event handlers after rendering */
-  function attachStoreHandlers(container) {
-    // Search
-    var searchInput = container.querySelector('.yb-store__search');
-    if (searchInput) {
-      searchInput.addEventListener('input', function() {
-        storeSearchQuery = this.value;
-        renderStoreItems(container);
-      });
-      if (storeSearchQuery) {
-        searchInput.focus();
-        searchInput.setSelectionRange(storeSearchQuery.length, storeSearchQuery.length);
+  /** Membership Cards — feature-rich comparison cards */
+  function renderMembershipCards(products, da) {
+    var html = '<div class="yb-store__grid yb-store__grid--memberships">';
+    products.forEach(function(p) {
+      html += '<div class="yb-store__card yb-store__card--membership' + (p.popular ? ' yb-store__card--popular' : '') + '">';
+
+      // Badges
+      html += '<div class="yb-store__card-badges">';
+      if (p.popular) html += '<span class="yb-store__badge yb-store__badge--popular">' + (da ? 'Mest Populær' : 'Most Popular') + '</span>';
+      if (p.firstFree) html += '<span class="yb-store__badge yb-store__badge--free">' + (da ? 'Første måned gratis' : 'First month free') + '</span>';
+      html += '</div>';
+
+      // Name
+      html += '<h3 class="yb-store__card-name">' + (da ? p.name_da : p.name_en) + '</h3>';
+
+      // Price block
+      html += '<div class="yb-store__card-price-block">';
+      if (p.firstFree) {
+        html += '<span class="yb-store__card-price-striked">' + formatDKK(p.price) + '</span>';
+        html += '<span class="yb-store__card-price">' + formatDKK(0) + '</span>';
+        html += '<span class="yb-store__card-price-note">' + (da ? 'første måned' : 'first month') + '</span>';
+        html += '<span class="yb-store__card-price-then">' + (da ? 'Derefter ' : 'Then ') + formatDKK(p.price) + (da ? '/md.' : '/mo.') + '</span>';
+      } else {
+        html += '<span class="yb-store__card-price">' + formatDKK(p.price) + '</span>';
+        html += '<span class="yb-store__card-price-note">' + (da ? 'pr. måned' : 'per month') + '</span>';
       }
-    }
-    var clearBtn = container.querySelector('.yb-store__search-clear');
-    if (clearBtn) {
-      clearBtn.addEventListener('click', function() {
-        storeSearchQuery = '';
-        renderStoreItems(container);
-      });
-    }
+      html += '<span class="yb-store__card-per-class">' + formatDKK(p.perClass) + ' / ' + (da ? 'klasse' : 'class') + '</span>';
+      if (p.vatPct > 0) {
+        html += '<span class="yb-store__card-vat">' + (da ? 'Inkl. 25% moms' : 'Incl. 25% VAT') + '</span>';
+      }
+      html += '</div>';
 
-    // Program filter clear
-    var progFilterClear = container.querySelector('.yb-store__program-filter-clear');
-    if (progFilterClear) {
-      progFilterClear.addEventListener('click', function() {
-        storeFilterProgramId = null;
-        storeView = 'categories';
-        renderStoreItems(container);
-      });
-    }
+      // Features list
+      var features = da ? p.features_da : p.features_en;
+      if (features && features.length) {
+        html += '<ul class="yb-store__card-features">';
+        features.forEach(function(f) {
+          html += '<li><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#3f99a5" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>' + esc(f) + '</li>';
+        });
+        html += '</ul>';
+      }
 
+      // Registration fee
+      html += '<p class="yb-store__card-regfee">' + (da ? 'Engangs registreringsgebyr: ' : 'One-time registration fee: ') + formatDKK(p.regFee) + '</p>';
+
+      // Buy button
+      var url = 'https://clients.mindbodyonline.com/classic/ws?studioid=5748831&stype=' + p.stype + '&prodId=' + p.prodId;
+      html += '<a href="' + url + '" target="_blank" rel="noopener" class="yb-btn yb-btn--primary yb-store__card-btn">' + (da ? 'Bliv medlem' : 'Join now') + '</a>';
+      html += '</div>';
+    });
+    html += '</div>';
+    return html;
+  }
+
+  /** Time-based Passes — savings-focused cards */
+  function renderTimebasedCards(products, da) {
+    var html = '';
+    // Info banner
+    html += '<div class="yb-store__note">';
+    html += '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>';
+    html += '<span>' + (da ? 'Ubegrænset booking. Starter fra første booking. Ingen binding, ingen registreringsgebyr. Kan ikke sættes på pause.' : 'Unlimited booking. Starts from first booking. No binding, no registration fee. Cannot be paused.') + '</span>';
+    html += '</div>';
+
+    html += '<div class="yb-store__grid yb-store__grid--timebased">';
+    products.forEach(function(p) {
+      html += '<div class="yb-store__card yb-store__card--timebased' +
+        (p.popular ? ' yb-store__card--popular' : '') +
+        (p.bestDeal ? ' yb-store__card--best' : '') + '">';
+
+      // Badges
+      html += '<div class="yb-store__card-badges">';
+      if (p.bestDeal) html += '<span class="yb-store__badge yb-store__badge--best">' + (da ? 'Bedste Tilbud' : 'Best Deal') + '</span>';
+      if (p.popular) html += '<span class="yb-store__badge yb-store__badge--popular">' + (da ? 'Populær' : 'Popular') + '</span>';
+      html += '</div>';
+
+      // Name
+      html += '<h3 class="yb-store__card-name">' + (da ? p.name_da : p.name_en) + '</h3>';
+
+      // Price
+      html += '<div class="yb-store__card-price-block">';
+      html += '<span class="yb-store__card-price">' + formatDKK(p.price) + '</span>';
+      if (p.perMonth) {
+        html += '<span class="yb-store__card-per-class">' + formatDKK(p.perMonth) + ' / ' + (da ? 'md.' : 'mo.') + '</span>';
+      }
+      html += '<span class="yb-store__card-validity-label">' + (da ? p.validity_da : p.validity_en) + '</span>';
+      if (p.vatPct > 0) {
+        html += '<span class="yb-store__card-vat">' + (da ? 'Inkl. 25% moms' : 'Incl. 25% VAT') + '</span>';
+      }
+      html += '</div>';
+
+      // Saving breakdown
+      var savingText = da ? p.saving_da : p.saving_en;
+      if (savingText) {
+        html += '<div class="yb-store__card-saving">';
+        html += '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#3f99a5" stroke-width="2"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>';
+        html += '<span>' + savingText + '</span>';
+        html += '</div>';
+      }
+
+      // Buy button
+      html += '<a href="' + buildMbUrl(p) + '" target="_blank" rel="noopener" class="yb-btn yb-btn--primary yb-store__card-btn">' + (da ? 'Køb nu' : 'Buy now') + '</a>';
+      html += '</div>';
+    });
+    html += '</div>';
+    return html;
+  }
+
+  /** Trial Passes */
+  function renderTrialCards(products, da) {
+    var html = '';
+    html += '<div class="yb-store__note">';
+    html += '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>';
+    html += '<span>' + (da ? 'Perfekt til at prøve os — ingen binding.' : 'Perfect for trying us out — no commitment.') + '</span>';
+    html += '</div>';
+
+    html += '<div class="yb-store__grid yb-store__grid--trials">';
+    products.forEach(function(p) {
+      html += '<div class="yb-store__card yb-store__card--trial' + (p.cphOnly ? ' yb-store__card--cph' : '') + '">';
+
+      // Badges
+      html += '<div class="yb-store__card-badges">';
+      if (p.cphOnly) html += '<span class="yb-store__badge yb-store__badge--cph">' + (da ? 'Kun København' : 'CPH Only') + '</span>';
+      html += '</div>';
+
+      // Name
+      var name = p.name_da ? (da ? p.name_da : p.name_en) : (p.classes + ' ' + (da ? (p.classes === 1 ? 'Klasse' : 'Klasser') : (p.classes === 1 ? 'Class' : 'Classes')));
+      html += '<h3 class="yb-store__card-name">' + esc(name) + '</h3>';
+
+      // Label
+      if (p.label_da) {
+        html += '<span class="yb-store__card-label">' + (da ? p.label_da : p.label_en) + '</span>';
+      }
+
+      // Price
+      html += '<div class="yb-store__card-price-block">';
+      html += '<span class="yb-store__card-price">' + formatDKK(p.price) + '</span>';
+      if (p.perClass && p.classes > 1) {
+        html += '<span class="yb-store__card-per-class">' + formatDKK(p.perClass) + ' / ' + (da ? 'klasse' : 'class') + '</span>';
+      }
+      if (p.vatPct > 0) {
+        html += '<span class="yb-store__card-vat">' + (da ? 'Inkl. 25% moms' : 'Incl. 25% VAT') + '</span>';
+      }
+      html += '</div>';
+
+      // Validity
+      var val = p.validity_da ? (da ? p.validity_da : p.validity_en) : p.validity;
+      if (val) {
+        html += '<p class="yb-store__card-validity">';
+        html += '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>';
+        html += (da ? 'Gyldighed: ' : 'Valid: ') + val;
+        html += '</p>';
+      }
+
+      // Description
+      var desc = p.desc_da ? (da ? p.desc_da : p.desc_en) : null;
+      if (desc) {
+        html += '<p class="yb-store__card-desc">' + esc(desc) + '</p>';
+      }
+
+      // Buy
+      html += '<a href="' + buildMbUrl(p) + '" target="_blank" rel="noopener" class="yb-btn yb-btn--primary yb-store__card-btn">' + (da ? 'Køb nu' : 'Buy now') + '</a>';
+      html += '</div>';
+    });
+    html += '</div>';
+    return html;
+  }
+
+  /** Tourist Passes */
+  function renderTouristCards(products, da) {
+    var html = '';
+    // Tourist banner
+    html += '<div class="yb-store__note yb-store__note--tourist">';
+    html += '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="10" r="3"/><path d="M12 21.7C17.3 17 20 13 20 10a8 8 0 1 0-16 0c0 3 2.7 7 8 11.7z"/></svg>';
+    html += '<span>' + (da ? 'Alle turistpas inkluderer måtte og håndklæder.' : 'All tourist passes include mat and towels.') + '</span>';
+    html += '</div>';
+
+    html += '<div class="yb-store__grid yb-store__grid--tourist">';
+    products.forEach(function(p) {
+      html += '<div class="yb-store__card yb-store__card--tourist' + (p.inclMat ? ' yb-store__card--inclmat' : '') + '">';
+
+      // Badges
+      html += '<div class="yb-store__card-badges">';
+      if (p.inclMat) html += '<span class="yb-store__badge yb-store__badge--tourist">' + (da ? 'Inkl. måtte & håndklæder' : 'Incl. mat & towels') + '</span>';
+      html += '</div>';
+
+      // Name
+      var name = p.name_da ? (da ? p.name_da : p.name_en) : (p.classes + ' ' + (da ? (p.classes === 1 ? 'Klasse' : 'Klasser') : (p.classes === 1 ? 'Class' : 'Classes')));
+      html += '<h3 class="yb-store__card-name">' + esc(name) + '</h3>';
+
+      if (p.label_da) html += '<span class="yb-store__card-label">' + (da ? p.label_da : p.label_en) + '</span>';
+
+      // Price
+      html += '<div class="yb-store__card-price-block">';
+      html += '<span class="yb-store__card-price">' + formatDKK(p.price) + '</span>';
+      if (p.perClass && p.classes > 1) {
+        html += '<span class="yb-store__card-per-class">' + formatDKK(p.perClass) + ' / ' + (da ? 'klasse' : 'class') + '</span>';
+      }
+      if (p.vatPct > 0) {
+        html += '<span class="yb-store__card-vat">' + (da ? 'Inkl. 25% moms' : 'Incl. 25% VAT') + '</span>';
+      }
+      html += '</div>';
+
+      // Validity
+      var val = p.validity_da ? (da ? p.validity_da : p.validity_en) : p.validity;
+      if (val) {
+        html += '<p class="yb-store__card-validity">';
+        html += '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>';
+        html += val;
+        html += '</p>';
+      }
+
+      // Description
+      var desc = p.desc_da ? (da ? p.desc_da : p.desc_en) : null;
+      if (desc) html += '<p class="yb-store__card-desc">' + esc(desc) + '</p>';
+
+      // Buy
+      html += '<a href="' + buildMbUrl(p) + '" target="_blank" rel="noopener" class="yb-btn yb-btn--primary yb-store__card-btn">' + (da ? 'Køb nu' : 'Buy now') + '</a>';
+      html += '</div>';
+    });
+    html += '</div>';
+
+    // Rental note
+    var catalog = STORE_CATALOG.tourist;
+    html += '<div class="yb-store__rental-note">';
+    html += '<p>' + (da ? catalog.rentalNote_da : catalog.rentalNote_en) + '</p>';
+    html += '</div>';
+
+    return html;
+  }
+
+  /** Attach all store event handlers */
+  function attachStoreHandlers(container, ageBanner) {
     // Back to categories
     var backBtn = container.querySelector('[data-store-back]');
     if (backBtn) {
       backBtn.addEventListener('click', function() {
         storeView = 'categories';
         storeTopCategory = null;
-        storeSubCategory = 'all';
-        storeSearchQuery = '';
-        renderStoreItems(container);
+        renderStoreItems(container, ageBanner);
       });
     }
 
-    // Subcategory tabs
-    container.querySelectorAll('[data-store-sub]').forEach(function(btn) {
-      btn.addEventListener('click', function() {
-        storeSubCategory = btn.getAttribute('data-store-sub');
-        storeSearchQuery = '';
-        renderStoreItems(container);
-      });
-    });
-
-    // Buy buttons
-    container.querySelectorAll('[data-store-buy]').forEach(function(btn) {
-      btn.addEventListener('click', function() { openCheckout(btn.getAttribute('data-store-buy'), btn.getAttribute('data-item-type') || 'service'); });
-    });
+    // Sharing details toggle (already native <details>, but attach analytics if needed)
   }
 
   /**
    * Filter the Store to show only passes that match the given programId.
    * Called when a booking fails with no_pass — redirects user to buy the right pass.
    */
+  /** When booking fails with no_pass, direct user to clip cards */
   function filterStoreByProgram(programId, programName) {
-    if (!storeServices.length || !programId) return;
+    storeTopCategory = 'clips';
+    storeView = 'items';
+    var storeContainer = document.getElementById('yb-store-list');
+    if (storeContainer) renderStoreItems(storeContainer);
+    showScheduleToast(isDa()
+      ? 'Du har brug for et pas — se klippekort nedenfor'
+      : 'You need a pass — see clip cards below', 'info');
+  }
 
-    // Find services matching this program
-    var matching = storeServices.filter(function(s) {
-      return s.programId && Number(s.programId) === Number(programId);
-    });
+  // ══════════════════════════════════════
+  // GIFT CARDS TAB
+  // ══════════════════════════════════════
+  var giftCardsData = null;
+  var selectedGiftCard = null;
 
-    if (matching.length > 0) {
-      // Set filter and re-render — show "all" category but filtered
-      storeFilterProgramId = Number(programId);
-      storeView = 'items';
-      storeSearchQuery = '';
-      var storeContainer = document.getElementById('yb-store-list');
-      if (storeContainer) renderStoreItems(storeContainer);
+  function loadGiftCards() {
+    var listEl = document.getElementById('yb-giftcards-list');
+    if (!listEl) return;
+    if (giftCardsData) { renderGiftCards(listEl); return; }
 
-      // Show a helpful banner
-      showScheduleToast(isDa()
-        ? 'Viser ' + matching.length + ' pas der dækker ' + (programName || 'denne klassetype')
-        : 'Showing ' + matching.length + ' pass' + (matching.length > 1 ? 'es' : '') + ' that cover ' + (programName || 'this class type'), 'info');
-    } else {
-      // No matching passes found — show all and explain
-      storeFilterProgramId = null;
-      showScheduleToast(isDa()
-        ? 'Ingen pas fundet for ' + (programName || 'denne klassetype') + '. Kontakt os for hjælp.'
-        : 'No passes found for ' + (programName || 'this class type') + '. Contact us for help.', 'error');
+    listEl.innerHTML = '<div class="yb-store__loading"><div class="yb-mb-spinner"></div><span>' + t('giftcards_loading') + '</span></div>';
+
+    fetch('/.netlify/functions/mb-giftcards')
+      .then(function(r) { return r.json(); })
+      .then(function(data) {
+        giftCardsData = data.giftCards || [];
+        console.log('[GiftCards] Loaded:', giftCardsData.length);
+        renderGiftCards(listEl);
+      })
+      .catch(function(err) {
+        console.error('[GiftCards] Load error:', err);
+        listEl.innerHTML = '<p class="yb-store__error">' + (isDa() ? 'Kunne ikke hente gavekort.' : 'Could not load gift cards.') + '</p>';
+      });
+  }
+
+  function renderGiftCards(container) {
+    if (!giftCardsData || !giftCardsData.length) {
+      container.innerHTML = '<p class="yb-store__empty">' + t('giftcard_empty') + '</p>';
+      return;
     }
+
+    var da = isDa();
+    var html = '<div class="yb-giftcards__grid">';
+    giftCardsData.forEach(function(gc) {
+      html += '<div class="yb-giftcards__card" data-gc-id="' + gc.id + '">';
+      html += '<div class="yb-giftcards__card-icon">';
+      html += '<svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#3f99a5" stroke-width="1.5"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a4 4 0 0 0-8 0v2"/><line x1="12" y1="11" x2="12" y2="17"/><line x1="9" y1="14" x2="15" y2="14"/></svg>';
+      html += '</div>';
+      html += '<div class="yb-giftcards__card-info">';
+      html += '<h3 class="yb-giftcards__card-name">' + esc(gc.description || (da ? 'Gavekort' : 'Gift Card')) + '</h3>';
+      html += '<span class="yb-giftcards__card-price">' + formatDKK(gc.salePrice || gc.value) + '</span>';
+      if (gc.value !== gc.salePrice && gc.salePrice) {
+        html += '<span class="yb-giftcards__card-original">' + formatDKK(gc.value) + '</span>';
+      }
+      html += '</div>';
+      html += '<button class="yb-btn yb-btn--primary yb-giftcards__card-btn" type="button" data-gc-select="' + gc.id + '">' + t('giftcard_select') + '</button>';
+      html += '</div>';
+    });
+    html += '</div>';
+
+    container.innerHTML = html;
+
+    // Attach handlers
+    container.querySelectorAll('[data-gc-select]').forEach(function(btn) {
+      btn.addEventListener('click', function() {
+        var gcId = btn.getAttribute('data-gc-select');
+        selectedGiftCard = giftCardsData.find(function(g) { return String(g.id) === gcId; });
+        if (selectedGiftCard) showGiftCardForm();
+      });
+    });
+  }
+
+  function showGiftCardForm() {
+    var formEl = document.getElementById('yb-giftcard-form');
+    if (formEl) formEl.hidden = false;
+    var errEl = document.getElementById('yb-gc-error');
+    if (errEl) errEl.hidden = true;
+    formEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
+  function hideGiftCardForm() {
+    var formEl = document.getElementById('yb-giftcard-form');
+    if (formEl) formEl.hidden = true;
+    selectedGiftCard = null;
+  }
+
+  function initGiftCards() {
+    var cancelBtn = document.getElementById('yb-gc-cancel-btn');
+    if (cancelBtn) cancelBtn.addEventListener('click', hideGiftCardForm);
+
+    var buyBtn = document.getElementById('yb-gc-buy-btn');
+    if (buyBtn) buyBtn.addEventListener('click', function() {
+      if (!selectedGiftCard || !clientId) return;
+
+      var recipientName = (document.getElementById('yb-gc-recipient-name') || {}).value || '';
+      var recipientEmail = (document.getElementById('yb-gc-recipient-email') || {}).value || '';
+      var title = (document.getElementById('yb-gc-title') || {}).value || '';
+      var message = (document.getElementById('yb-gc-message') || {}).value || '';
+      var deliveryDate = (document.getElementById('yb-gc-delivery-date') || {}).value || '';
+
+      if (!recipientName.trim() || !recipientEmail.trim()) {
+        var errEl = document.getElementById('yb-gc-error');
+        if (errEl) { errEl.textContent = isDa() ? 'Udfyld modtagers navn og email.' : 'Please enter recipient name and email.'; errEl.hidden = false; }
+        return;
+      }
+
+      buyBtn.disabled = true;
+      buyBtn.textContent = isDa() ? 'Behandler...' : 'Processing...';
+
+      var layoutId = selectedGiftCard.layouts && selectedGiftCard.layouts.length ? selectedGiftCard.layouts[0].id : 0;
+
+      fetch('/.netlify/functions/mb-giftcards', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          giftCardId: selectedGiftCard.id,
+          clientId: clientId,
+          recipientEmail: recipientEmail.trim(),
+          recipientName: recipientName.trim(),
+          title: title.trim() || (isDa() ? 'Gavekort' : 'Gift Card'),
+          message: message.trim(),
+          deliveryDate: deliveryDate || undefined,
+          layoutId: layoutId
+        })
+      })
+      .then(function(r) { return r.json(); })
+      .then(function(data) {
+        buyBtn.disabled = false;
+        buyBtn.textContent = t('giftcard_buy');
+
+        if (data.error) {
+          var errEl = document.getElementById('yb-gc-error');
+          if (errEl) { errEl.textContent = data.error; errEl.hidden = false; }
+          return;
+        }
+
+        hideGiftCardForm();
+        showScheduleToast(isDa()
+          ? 'Gavekort sendt til ' + recipientEmail.trim() + '!'
+          : 'Gift card sent to ' + recipientEmail.trim() + '!', 'success');
+      })
+      .catch(function(err) {
+        buyBtn.disabled = false;
+        buyBtn.textContent = t('giftcard_buy');
+        console.error('[GiftCards] Purchase error:', err);
+        var errEl = document.getElementById('yb-gc-error');
+        if (errEl) { errEl.textContent = isDa() ? 'Noget gik galt. Prøv igen.' : 'Something went wrong. Please try again.'; errEl.hidden = false; }
+      });
+    });
   }
 
   function openCheckout(serviceId, itemType) {
