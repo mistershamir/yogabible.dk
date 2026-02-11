@@ -25,16 +25,24 @@ exports.handler = async function(event) {
     var params = event.queryStringParameters || {};
     var type = params.type || 'services';
 
-    // Return service categories
+    // Return service categories (programs)
     if (type === 'categories') {
-      var catData = await mbFetch('/sale/servicecategories');
-      var categories = (catData.ServiceCategories || []).map(function(c) {
-        return {
-          id: c.Id,
-          name: c.Name
-        };
-      });
-      return jsonResponse(200, { categories, total: categories.length });
+      // Try /site/programs first (standard MB API), fallback to /sale/servicecategories
+      var catData;
+      try {
+        catData = await mbFetch('/site/programs');
+        var programs = (catData.Programs || []).map(function(p) {
+          return { id: p.Id, name: p.Name, scheduleType: p.ScheduleType || '' };
+        });
+        return jsonResponse(200, { categories: programs, total: programs.length });
+      } catch (e1) {
+        console.log('[mb-services] /site/programs failed:', e1.message, '— trying /sale/servicecategories');
+        catData = await mbFetch('/sale/servicecategories');
+        var categories = (catData.ServiceCategories || []).map(function(c) {
+          return { id: c.Id, name: c.Name };
+        });
+        return jsonResponse(200, { categories, total: categories.length });
+      }
     }
 
     if (type === 'products') {

@@ -142,7 +142,7 @@ exports.handler = async function(event) {
 
       var data = await mbFetch('/client/updateclient', {
         method: 'POST',
-        body: JSON.stringify({ Client: updateData, CrossRegionalUpdate: true })
+        body: JSON.stringify({ Client: updateData })
       });
 
       var updated = data.Client || {};
