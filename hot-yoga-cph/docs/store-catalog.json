@@ -1,0 +1,115 @@
+{
+  "clips": {
+    "over30": [
+      { "classes": 1, "price": 299, "perClass": 299, "vat": 60, "validity": null, "label_da": "Prøv En", "label_en": "Try One", "sharing": null, "prodId": "100174", "sTG": "50" },
+      { "classes": 2, "price": 549, "perClass": 274, "vat": 110, "validity": "10 days", "label_da": "God Start", "label_en": "Great Start", "sharing": null, "prodId": "100175", "sTG": "50" },
+      { "classes": 3, "price": 749, "perClass": 249, "vat": 150, "validity": "20 days", "label_da": "Mærk Resultater", "label_en": "Feel Results", "sharing": null, "prodId": "100176", "sTG": "50" },
+      { "classes": 5, "price": 1199, "perClass": 239, "vat": 240, "validity": "30 days", "label_da": "Populært Valg", "label_en": "Popular Choice", "sharing": null, "prodId": "100177", "sTG": "50" },
+      { "classes": 10, "price": 1999, "perClass": 199, "vat": 400, "validity": "50 days", "label_da": "Spar Mere", "label_en": "Save More", "sharing": null, "prodId": "100178", "sTG": "50" },
+      { "classes": 20, "price": 3599, "perClass": 179, "vat": 720, "validity": "90 days", "label_da": "Smart Tilbud", "label_en": "Smart Deal", "sharing": null, "prodId": "100179", "sTG": "50" },
+      { "classes": 30, "price": 4799, "perClass": 159, "vat": 960, "validity": "4 months", "label_da": "Dedikeret Yogi", "label_en": "Dedicated Yogi", "sharing": null, "prodId": "100180", "sTG": "50" },
+      { "classes": 60, "price": 7799, "perClass": 129, "vat": 1560, "validity": "9 months", "label_da": "Yoga Partner", "label_en": "Yoga Partner", "sharing": { "persons": 1, "total": 2 }, "prodId": "100181", "sTG": "50" },
+      { "classes": 100, "price": 9999, "perClass": 99, "vat": 2000, "validity": "12 months", "label_da": "Bedste Værdi", "label_en": "Best Value", "sharing": { "persons": 2, "total": 3 }, "prodId": "100182", "sTG": "50" },
+      { "classes": 200, "price": 17999, "perClass": 89, "vat": 3600, "validity": "18 months", "label_da": "Familieplan", "label_en": "Family Plan", "sharing": { "persons": 3, "total": 4 }, "prodId": "100183", "sTG": "50" }
+    ],
+    "under30": [
+      { "classes": 1, "price": 275, "perClass": 275, "vat": 0, "validity": null, "label_da": "Prøv En", "label_en": "Try One", "sharing": null, "prodId": "100017", "sTG": "28" },
+      { "classes": 2, "price": 495, "perClass": 248, "vat": 0, "validity": "10 days", "label_da": "God Start", "label_en": "Great Start", "sharing": null, "prodId": "100016", "sTG": "28" },
+      { "classes": 3, "price": 645, "perClass": 215, "vat": 0, "validity": "20 days", "label_da": "Mærk Resultater", "label_en": "Feel Results", "sharing": null, "prodId": "100018", "sTG": "28" },
+      { "classes": 5, "price": 975, "perClass": 195, "vat": 0, "validity": "30 days", "label_da": "Populært Valg", "label_en": "Popular Choice", "sharing": null, "prodId": "100019", "sTG": "28" },
+      { "classes": 10, "price": 1750, "perClass": 175, "vat": 0, "validity": "50 days", "label_da": "Spar Mere", "label_en": "Save More", "sharing": null, "prodId": "100020", "sTG": "28" },
+      { "classes": 20, "price": 2900, "perClass": 145, "vat": 0, "validity": "90 days", "label_da": "Smart Tilbud", "label_en": "Smart Deal", "sharing": null, "prodId": "100021", "sTG": "28" },
+      { "classes": 30, "price": 3750, "perClass": 125, "vat": 0, "validity": "4 months", "label_da": "Dedikeret Yogi", "label_en": "Dedicated Yogi", "sharing": null, "prodId": "100022", "sTG": "28" },
+      { "classes": 60, "price": 5950, "perClass": 99, "vat": 0, "validity": "9 months", "label_da": "Yoga Partner", "label_en": "Yoga Partner", "sharing": { "persons": 1, "total": 2 }, "prodId": "100023", "sTG": "28" },
+      { "classes": 100, "price": 8900, "perClass": 89, "vat": 0, "validity": "12 months", "label_da": "Bedste Værdi", "label_en": "Best Value", "sharing": { "persons": 2, "total": 3 }, "prodId": "100024", "sTG": "28" },
+      { "classes": 200, "price": 15800, "perClass": 79, "vat": 0, "validity": "18 months", "label_da": "Familieplan", "label_en": "Family Plan", "sharing": { "persons": 3, "total": 4 }, "prodId": "100068", "sTG": "28" }
+    ]
+  },
+  "memberships": {
+    "over30": [
+      { "id": "mem-10-30", "name_da": "10 Klasser / Måned", "name_en": "10 Classes / Month", "price": 999, "perClass": 99, "vat_pct": 25, "regFee": 299, "firstMonthFree": true, "popular": true, "prodId": "101", "stype": "40",
+        "features_da": ["Ideel til moderat praksis", "Perfekt hvis du kan lide et fast antal klasser og træner ca. 1-3 gange om ugen", "Adgang til alle klassetyper og tider i åbningstiden", "Adgang til medlems-events og rabatter", "Wellness-fordele inkl. — håndklæder, brusebad, urtete og snacks efter klassen", "Book op til 21 dage frem"],
+        "features_en": ["Ideal for moderate practice", "Perfect if you like a fixed number of classes and practise about 1-3 times per week", "Access to all class types and times during opening hours", "Access to member-only events & discounts", "Wellness perks included — towels, showers, herbal tea & post-class treats", "Book up to 21 days ahead"]
+      },
+      { "id": "mem-unl-30", "name_da": "Ubegrænset / Måned", "name_en": "Unlimited / Month", "price": 1249, "perClass": 62, "perClassNote_da": "ca. 62 kr/klasse ved 20 klasser/md.", "perClassNote_en": "approx. 62 kr/class at 20 classes/mo.", "vat_pct": 25, "regFee": 299, "firstMonthFree": true, "popular": false, "prodId": "102", "stype": "40",
+        "features_da": ["Ideel til regelmæssig praksis", "Perfekt hvis du træner ofte eller vil have friheden til at komme så tit du vil", "Ubegrænset adgang til alle klassetyper og tider", "Adgang til medlems-events og rabatter", "Wellness-fordele inkl. — håndklæder, brusebad, urtete og snacks efter klassen", "Book op til 21 dage frem"],
+        "features_en": ["Ideal for regular practice", "Perfect if you practise frequently or like the freedom to come as often as you want", "Unlimited access to all class types and times", "Access to member-only events & discounts", "Wellness perks included — towels, showers, herbal tea & post-class treats", "Book up to 21 days ahead"]
+      },
+      { "id": "mem-prem-30", "name_da": "Premium Ubegrænset / Måned", "name_en": "Premium Unlimited / Month", "price": 1649, "perClass": 82, "perClassNote_da": "ca. 82 kr/klasse ved 20 klasser/md.", "perClassNote_en": "approx. 82 kr/class at 20 classes/mo.", "vat_pct": 25, "regFee": 299, "firstMonthFree": true, "popular": false, "prodId": "103", "stype": "40",
+        "features_da": ["Vores top-tier medlemskab med fuld komfort og prioritet", "Ubegrænset prioritetsadgang til alle klasser, tider, ventelister og medlems-events og rabatter", "Alt-inklusiv studio-komfort — måtteopbevaring, håndklæder, vaskeservice og personlig opbevaring", "Fleksibelt medlemskab — opsig når som helst med en måneds varsel, pausemuligheder inkl.", "Book op til 31 dage frem"],
+        "features_en": ["Our top-tier membership with full comfort and priority", "Unlimited, priority access to all classes, times, waitlists, and member-only events & discounts", "All-inclusive studio comfort — mat storage, towels, laundry service & personal item storage", "Flexible membership — cancel anytime with one-month notice, pause options included", "Book up to 31 days ahead"]
+      }
+    ],
+    "under30": [
+      { "id": "mem-10-u30", "name_da": "10 Klasser / Måned", "name_en": "10 Classes / Month", "price": 799, "perClass": 79, "vat_pct": 0, "regFee": 275, "firstMonthFree": true, "popular": true, "prodId": "109", "stype": "40",
+        "features_da": ["Ideel til moderat praksis", "Perfekt hvis du kan lide et fast antal klasser og træner ca. 1-3 gange om ugen", "Adgang til alle klassetyper og tider i åbningstiden", "Adgang til medlems-events og rabatter", "Wellness-fordele inkl. — håndklæder, brusebad, urtete og snacks efter klassen", "Book op til 21 dage frem"],
+        "features_en": ["Ideal for moderate practice", "Perfect if you like a fixed number of classes and practise about 1-3 times per week", "Access to all class types and times during opening hours", "Access to member-only events & discounts", "Wellness perks included — towels, showers, herbal tea & post-class treats", "Book up to 21 days ahead"]
+      },
+      { "id": "mem-unl-u30", "name_da": "Ubegrænset / Måned", "name_en": "Unlimited / Month", "price": 999, "perClass": 49, "perClassNote_da": "ca. 49 kr/klasse ved 20 klasser/md.", "perClassNote_en": "approx. 49 kr/class at 20 classes/mo.", "vat_pct": 0, "regFee": 275, "firstMonthFree": true, "popular": false, "prodId": "111", "stype": "40",
+        "features_da": ["Ideel til regelmæssig praksis", "Perfekt hvis du træner ofte eller vil have friheden til at komme så tit du vil", "Ubegrænset adgang til alle klassetyper og tider", "Adgang til medlems-events og rabatter", "Wellness-fordele inkl. — håndklæder, brusebad, urtete og snacks efter klassen", "Book op til 21 dage frem"],
+        "features_en": ["Ideal for regular practice", "Perfect if you practise frequently or like the freedom to come as often as you want", "Unlimited access to all class types and times", "Access to member-only events & discounts", "Wellness perks included — towels, showers, herbal tea & post-class treats", "Book up to 21 days ahead"]
+      },
+      { "id": "mem-prem-u30", "name_da": "Premium Ubegrænset / Måned", "name_en": "Premium Unlimited / Month", "price": 1499, "perClass": 74, "perClassNote_da": "ca. 74 kr/klasse ved 20 klasser/md.", "perClassNote_en": "approx. 74 kr/class at 20 classes/mo.", "vat_pct": 0, "regFee": 275, "firstMonthFree": true, "popular": false, "prodId": "112", "stype": "40",
+        "features_da": ["Vores top-tier medlemskab med fuld komfort og prioritet", "Ubegrænset prioritetsadgang til alle klasser, tider, ventelister og medlems-events og rabatter", "Alt-inklusiv studio-komfort — måtteopbevaring, håndklæder, vaskeservice og personlig opbevaring", "Fleksibelt medlemskab — opsig når som helst med en måneds varsel, pausemuligheder inkl.", "Book op til 31 dage frem"],
+        "features_en": ["Our top-tier membership with full comfort and priority", "Unlimited, priority access to all classes, times, waitlists, and member-only events & discounts", "All-inclusive studio comfort — mat storage, towels, laundry service & personal item storage", "Flexible membership — cancel anytime with one-month notice, pause options included", "Book up to 31 days ahead"]
+      }
+    ]
+  },
+  "timebased": {
+    "over30": [
+      { "id": "tb-14d-30", "name_da": "14 Dage Ubegrænset", "name_en": "14 Days Unlimited", "price": 799, "vat_pct": 25, "validity": "14 days", "saving": null, "prodId": "100186", "sTG": "51", "stype": "41" },
+      { "id": "tb-21d-30", "name_da": "21 Dage Ubegrænset", "name_en": "21 Days Unlimited", "price": 899, "vat_pct": 25, "validity": "21 days", "saving": null, "prodId": "100187", "sTG": "51", "stype": "41" },
+      { "id": "tb-1m-30", "name_da": "1 Måned Ubegrænset", "name_en": "1 Month Unlimited", "price": 1499, "vat_pct": 25, "validity": "1 month", "saving": null, "prodId": "100189", "sTG": "52", "stype": "41" },
+      { "id": "tb-3m-30", "name_da": "3 Måneder Ubegrænset", "name_en": "3 Months Unlimited", "price": 3749, "perMonth": 1249, "vat_pct": 25, "validity": "3 months", "saving": { "vs": "Unlimited membership", "regFee": 299, "detail_da": "Samme pris som månedligt medlemskab — men uden registreringsgebyr", "detail_en": "Same price as monthly membership — but no registration fee" }, "prodId": "100190", "sTG": "52", "stype": "41" },
+      { "id": "tb-6m-30", "name_da": "6 Måneder Ubegrænset", "name_en": "6 Months Unlimited", "price": 6899, "perMonth": 1149, "vat_pct": 25, "validity": "6 months", "popular": true, "saving": { "vs": "Unlimited membership", "monthlyDiff": 100, "regFee": 299, "detail_da": "100 kr billigere pr. måned end Unlimited medlemskab + ingen registreringsgebyr (299 kr)", "detail_en": "100 kr cheaper per month than Unlimited membership + no registration fee (299 kr)" }, "prodId": "100191", "sTG": "52", "stype": "41" },
+      { "id": "tb-12m-30", "name_da": "12+1 Måneder Ubegrænset", "name_en": "12+1 Months Unlimited", "price": 12599, "perMonth": 969, "vat_pct": 25, "validity": "13 months", "bestDeal": true, "saving": { "vs": "Unlimited membership", "monthlyDiff": 280, "regFee": 299, "totalMembership": 15287, "totalSaved": 2688, "detail_da": "280 kr billigere pr. måned + ingen registreringsgebyr. Spar 2.688 kr vs. 12 mdr. medlemskab", "detail_en": "280 kr cheaper per month + no registration fee. Save 2,688 kr vs. 12 mo. membership" }, "prodId": "100192", "sTG": "52", "stype": "41" }
+    ],
+    "under30": [
+      { "id": "tb-14d-u30", "name_da": "14 Dage Ubegrænset", "name_en": "14 Days Unlimited", "price": 649, "vat_pct": 0, "validity": "14 days", "saving": null, "prodId": "100043", "sTG": "32", "stype": "41" },
+      { "id": "tb-21d-u30", "name_da": "21 Dage Ubegrænset", "name_en": "21 Days Unlimited", "price": 749, "vat_pct": 0, "validity": "21 days", "saving": null, "prodId": "100044", "sTG": "32", "stype": "41" },
+      { "id": "tb-1m-u30", "name_da": "1 Måned Ubegrænset", "name_en": "1 Month Unlimited", "price": 1399, "vat_pct": 0, "validity": "1 month", "saving": null, "prodId": "100037", "sTG": "29", "stype": "41" },
+      { "id": "tb-3m-u30", "name_da": "3 Måneder Ubegrænset", "name_en": "3 Months Unlimited", "price": 2999, "perMonth": 999, "vat_pct": 0, "validity": "3 months", "saving": { "vs": "Unlimited membership", "regFee": 275, "detail_da": "Samme pris som månedligt medlemskab — men uden registreringsgebyr", "detail_en": "Same price as monthly membership — but no registration fee" }, "prodId": "100038", "sTG": "29", "stype": "41" },
+      { "id": "tb-6m-u30", "name_da": "6 Måneder Ubegrænset", "name_en": "6 Months Unlimited", "price": 5399, "perMonth": 899, "vat_pct": 0, "validity": "6 months", "popular": true, "saving": { "vs": "Unlimited membership", "monthlyDiff": 100, "regFee": 275, "detail_da": "100 kr billigere pr. måned end Unlimited medlemskab + ingen registreringsgebyr (275 kr)", "detail_en": "100 kr cheaper per month than Unlimited membership + no registration fee (275 kr)" }, "prodId": "100039", "sTG": "29", "stype": "41" },
+      { "id": "tb-12m-u30", "name_da": "12+1 Måneder Ubegrænset", "name_en": "12+1 Months Unlimited", "price": 9599, "perMonth": 738, "vat_pct": 0, "validity": "13 months", "bestDeal": true, "saving": { "vs": "Unlimited membership", "monthlyDiff": 261, "regFee": 275, "totalMembership": 12263, "totalSaved": 2664, "detail_da": "261 kr billigere pr. måned + ingen registreringsgebyr. Spar 2.664 kr vs. 12 mdr. medlemskab", "detail_en": "261 kr cheaper per month + no registration fee. Save 2,664 kr vs. 12 mo. membership" }, "prodId": "100040", "sTG": "29", "stype": "41" }
+    ]
+  },
+  "trials": {
+    "over30": [
+      { "id": "tr-1-30", "type": "ref", "ref_category": "clips", "ref_index": 0 },
+      { "id": "tr-14d-30", "name_da": "14 Dage Ubegrænset", "name_en": "14 Days Unlimited", "price": 649, "vat_pct": 25, "validity": "14 days", "prodId": "100186", "sTG": "51", "stype": "41" },
+      { "id": "tr-21d-30", "name_da": "21 Dage Ubegrænset", "name_en": "21 Days Unlimited", "price": 749, "vat_pct": 25, "validity": "21 days", "prodId": "100187", "sTG": "51", "stype": "41" },
+      { "id": "tr-kick-30", "name_da": "KickStarter", "name_en": "KickStarter", "price": 599, "vat_pct": 25, "validity": "3 weeks", "prodId": "100185", "sTG": "51", "stype": "41", "classes": 10, "cphOnly": true,
+        "desc_da": "Kun for Københavns-beboere. 10 klasser inden for 3 uger fra din første bookede klasse.",
+        "desc_en": "Only for Copenhagen residents. 10 classes to be used within 3 weeks from your first booked class."
+      }
+    ],
+    "under30": [
+      { "id": "tr-1-u30", "type": "ref", "ref_category": "clips", "ref_index": 0 },
+      { "id": "tr-14d-u30", "name_da": "14 Dage Ubegrænset", "name_en": "14 Days Unlimited", "price": 649, "vat_pct": 0, "validity": "14 days", "prodId": "100043", "sTG": "32", "stype": "41" },
+      { "id": "tr-21d-u30", "name_da": "21 Dage Ubegrænset", "name_en": "21 Days Unlimited", "price": 749, "vat_pct": 0, "validity": "21 days", "prodId": "100044", "sTG": "32", "stype": "41" },
+      { "id": "tr-kick-u30", "name_da": "KickStarter", "name_en": "KickStarter", "price": 475, "vat_pct": 0, "validity": "3 weeks", "prodId": "100185", "sTG": "51", "stype": "41", "classes": 10, "cphOnly": true,
+        "desc_da": "Kun for Københavns-beboere. 10 klasser inden for 3 uger fra din første bookede klasse.",
+        "desc_en": "Only for Copenhagen residents. 10 classes to be used within 3 weeks from your first booked class."
+      }
+    ]
+  },
+  "tourist": {
+    "over30": [
+      { "id": "tour-1-30", "type": "ref", "ref_category": "clips", "ref_index": 0 },
+      { "id": "tour-7d-30", "name_da": "7 Dage Ubegrænset", "name_en": "7 Days Unlimited", "price": 895, "vat_pct": 25, "validity": "7 days", "prodId": "100199", "stype": "43", "inclMat": true,
+        "desc_da": "7 dages ubegrænset pas inkl. måtte + 2 håndklæder: 1 træningshåndklæde & 1 brusehåndklæde (spar 110 kr per gang på leje)",
+        "desc_en": "7 days unlimited pass including mat + 2 towels: 1 practice towel & 1 shower towel (saving 110 kr per visit on rental)"
+      }
+    ],
+    "under30": [
+      { "id": "tour-1-u30", "type": "ref", "ref_category": "clips", "ref_index": 0 },
+      { "id": "tour-2-u30", "type": "ref", "ref_category": "clips", "ref_index": 1 },
+      { "id": "tour-7d-u30", "name_da": "7 Dage Ubegrænset", "name_en": "7 Days Unlimited", "price": 750, "vat_pct": 0, "validity": "7 days", "prodId": "100051", "sTG": "35", "stype": "41", "inclMat": true,
+        "desc_da": "7 dages ubegrænset pas inkl. måtte + 2 håndklæder: 1 træningshåndklæde & 1 brusehåndklæde (spar 110 kr per gang på leje)",
+        "desc_en": "7 days unlimited pass including mat + 2 towels: 1 practice towel & 1 shower towel (saving 110 kr per visit on rental)"
+      }
+    ],
+    "rental_note_da": "Medbring eget udstyr eller: Måtteleje 40 kr · Træningshåndklæde 40 kr · Brusehåndklæde 40 kr (ingen online betaling — betal i studiet ved ankomst)",
+    "rental_note_en": "Bring your own or: Mat rental 40 kr · Practice towel 40 kr · Shower towel 40 kr (no online payment — pay at studio upon arrival)"
+  }
+}
