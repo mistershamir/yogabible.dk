@@ -34,6 +34,12 @@
   --yb-brand-rgb: 63, 153, 165;
   --yb-accent: #3f99a5;
 
+  /* Yoga Bible Orange — warm accent */
+  --yb-orange: #f75c03;
+  --yb-orange-dark: #d94f02;
+  --yb-orange-light: #ff9966;
+  --yb-orange-rgb: 247, 92, 3;
+
   /* Header Colors (dark theme) */
   --yb-bg: #1C1C1C;
   --yb-text: #FDFBF7;
@@ -4375,5 +4381,308 @@ body.hyc-page .yb-visits__filter:hover {
 
   .yb-giftcards__grid {
     grid-template-columns: 1fr;
+  }
+}
+
+/* ========================================
+   ORANGE WARMTH — Yoga Bible accent layer
+   Teal stays primary; orange adds warmth
+   ======================================== */
+
+/* Subtle flowing background pattern on content area */
+.yb-profile__content-area {
+  position: relative;
+}
+
+.yb-profile__content-area::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.04;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='800' height='600' fill='none'%3E%3Cpath d='M-20 300C60 200 160 350 280 280S440 100 560 200S700 350 820 250' stroke='%23f75c03' stroke-width='1.5' fill='none'/%3E%3Cpath d='M-20 400C80 300 200 450 320 380S480 200 600 300S740 450 860 350' stroke='%23f75c03' stroke-width='1' fill='none'/%3E%3Cpath d='M-20 180C100 80 220 220 340 160S500 40 620 140S760 280 880 180' stroke='%23f75c03' stroke-width='1.2' fill='none'/%3E%3C/svg%3E");
+  background-size: 800px 600px;
+  background-repeat: repeat;
+  z-index: 0;
+}
+
+.yb-profile__content-area > * {
+  position: relative;
+  z-index: 1;
+}
+
+/* Orange accent on hero top bar */
+body.hyc-page .yb-profile__hero::before {
+  background: linear-gradient(90deg, var(--yb-orange), var(--yb-brand), var(--yb-orange-light));
+}
+
+/* Orange accent for card title borders */
+.yb-profile__card-title {
+  border-bottom-color: rgba(247, 92, 3, 0.15);
+}
+
+/* Section headings with orange eyebrow dot */
+.yb-store__cat-title::before {
+  content: '';
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--yb-orange);
+  margin-right: 10px;
+  vertical-align: middle;
+}
+
+/* Orange accent on active subcategory pill */
+.yb-store__sub-btn.is-active {
+  border-color: var(--yb-brand) !important;
+  position: relative;
+}
+
+.yb-store__sub-btn.is-active::after {
+  content: '';
+  position: absolute;
+  bottom: -1px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 24px;
+  height: 3px;
+  border-radius: 2px;
+  background: var(--yb-orange);
+}
+
+/* Orange highlight on popular/best deal badges */
+.yb-store__badge--popular {
+  background: rgba(247, 92, 3, 0.1) !important;
+  color: var(--yb-orange) !important;
+  border: 1px solid rgba(247, 92, 3, 0.2) !important;
+}
+
+.yb-store__badge--best {
+  background: var(--yb-orange) !important;
+  color: #fff !important;
+}
+
+.yb-store__badge--free {
+  background: rgba(247, 92, 3, 0.08) !important;
+  color: var(--yb-orange-dark) !important;
+  border: 1px solid rgba(247, 92, 3, 0.15) !important;
+}
+
+/* Orange accent on saving indicators */
+.yb-store__item-saving svg {
+  color: var(--yb-orange);
+  stroke: var(--yb-orange);
+}
+
+/* Store top category — orange icon accent on hover */
+.yb-store__top-cat:hover .yb-store__top-cat-icon {
+  color: var(--yb-orange);
+}
+
+/* Coming soon category styling */
+.yb-store__top-cat--soon {
+  opacity: 0.75;
+  border-style: dashed;
+}
+
+.yb-store__top-cat--soon:hover {
+  opacity: 1;
+}
+
+.yb-store__top-cat-soon {
+  display: inline-block;
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--yb-orange);
+  margin-top: 4px;
+}
+
+/* ========================================
+   GIFT CARDS — Fixed CSS (matching JS classes)
+   ======================================== */
+
+/* Card grid rendered by renderGiftCards() */
+.yb-giftcards__card {
+  background: #fff;
+  border: 1.5px solid #E8E4E0;
+  border-radius: 14px;
+  padding: 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.yb-giftcards__card:hover {
+  border-color: var(--yb-brand);
+  box-shadow: 0 4px 16px rgba(63, 153, 165, 0.1);
+}
+
+.yb-giftcards__card-icon {
+  flex-shrink: 0;
+  width: 52px;
+  height: 52px;
+  border-radius: 12px;
+  background: rgba(247, 92, 3, 0.06);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.yb-giftcards__card-icon svg {
+  stroke: var(--yb-orange);
+}
+
+.yb-giftcards__card-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.yb-giftcards__card-name {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #0F0F0F;
+  margin: 0 0 4px;
+}
+
+.yb-giftcards__card-price {
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--yb-brand);
+}
+
+.yb-giftcards__card-btn {
+  flex-shrink: 0;
+  padding: 10px 24px !important;
+  font-size: 0.85rem !important;
+}
+
+/* Gift card form (rendered in HTML) */
+.yb-giftcards__header {
+  margin-bottom: 1.5rem;
+}
+
+.yb-giftcards__title {
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: #0F0F0F;
+  margin: 0 0 6px;
+}
+
+.yb-giftcards__subtitle {
+  font-size: 0.92rem;
+  color: #6F6A66;
+  margin: 0;
+}
+
+.yb-giftcards__form {
+  background: #FFFCF9;
+  border: 1.5px solid rgba(247, 92, 3, 0.15);
+  border-radius: 14px;
+  padding: 1.75rem;
+  margin-top: 1.5rem;
+}
+
+.yb-giftcards__form-title {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #0F0F0F;
+  margin: 0 0 1.25rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid rgba(247, 92, 3, 0.1);
+}
+
+.yb-giftcards__form-inner {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.yb-giftcards__form-inner .yb-auth-field {
+  margin-bottom: 1rem;
+}
+
+.yb-giftcards__form-inner .yb-auth-field label {
+  display: block;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #0F0F0F;
+  margin-bottom: 6px;
+}
+
+.yb-giftcards__form-inner .yb-auth-field input,
+.yb-giftcards__form-inner .yb-auth-field textarea {
+  width: 100%;
+  padding: 0.65rem 0.85rem;
+  border: 1.5px solid #E8E4E0;
+  border-radius: 10px;
+  font-family: inherit;
+  font-size: 0.9rem;
+  background: #fff;
+  transition: border-color 0.2s;
+}
+
+.yb-giftcards__form-inner .yb-auth-field input:focus,
+.yb-giftcards__form-inner .yb-auth-field textarea:focus {
+  outline: none;
+  border-color: var(--yb-orange);
+  box-shadow: 0 0 0 3px rgba(247, 92, 3, 0.08);
+}
+
+.yb-giftcards__form-inner .yb-auth-field textarea {
+  resize: vertical;
+  min-height: 80px;
+}
+
+.yb-giftcards__form-actions {
+  display: flex;
+  gap: 0.75rem;
+  margin-top: 0.5rem;
+  align-items: center;
+}
+
+.yb-giftcards__form-actions .yb-btn--primary {
+  background: var(--yb-orange);
+  border-color: var(--yb-orange);
+}
+
+.yb-giftcards__form-actions .yb-btn--primary:hover {
+  background: var(--yb-orange-dark);
+  border-color: var(--yb-orange-dark);
+}
+
+/* Secure payment note */
+.yb-giftcards__form .yb-store__secure {
+  margin-top: 1rem;
+  color: #6F6A66;
+  font-size: 0.8rem;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+@media (max-width: 600px) {
+  .yb-giftcards__card {
+    flex-direction: column;
+    text-align: center;
+  }
+
+  .yb-giftcards__card-btn {
+    width: 100%;
+  }
+
+  .yb-giftcards__form {
+    padding: 1.25rem;
+  }
+
+  .yb-giftcards__form-actions {
+    flex-direction: column;
+  }
+
+  .yb-giftcards__form-actions .yb-btn {
+    width: 100%;
   }
 }
