@@ -47,8 +47,10 @@ exports.handler = async (event) => {
       }
 
       // Determine the payment amount (custom amount or default card value)
-      const paymentAmount = customAmount ? parseFloat(customAmount) : null;
+      const paymentAmount = customAmount ? parseFloat(customAmount) : (salePrice ? parseFloat(salePrice) : 0);
 
+      // Mindbody v6 uses Metadata dictionary (all string values) for CreditCard payment
+      // Must match the format used by /sale/checkoutshoppingcart (see mb-checkout.js)
       const purchaseData = {
         LocationId: parseInt(locationId || '1', 10),
         GiftCardId: parseInt(giftCardId, 10),
@@ -60,22 +62,24 @@ exports.handler = async (event) => {
         Test: false,
         PaymentInfo: {
           Type: 'CreditCard',
-          CreditCardNumber: payment.cardNumber,
-          ExpMonth: payment.expMonth,
-          ExpYear: payment.expYear,
-          CVV: payment.cvv,
-          BillingName: payment.cardHolder || recipientName
+          Metadata: {
+            amount: String(paymentAmount),
+            creditCardNumber: String(payment.cardNumber),
+            expMonth: String(payment.expMonth),
+            expYear: String(payment.expYear),
+            cvv: String(payment.cvv),
+            billingName: String(payment.cardHolder || recipientName),
+            billingAddress: String(payment.billingAddress || ''),
+            billingCity: String(payment.billingCity || ''),
+            billingPostalCode: String(payment.billingPostalCode || ''),
+            saveInfo: String(payment.saveCard || false)
+          }
         }
       };
 
-      // Always set Amount on PaymentInfo — MB requires it
-      if (paymentAmount && paymentAmount > 0) {
-        // Custom-amount gift card
+      // For custom-amount gift cards, set the card value
+      if (customAmount && paymentAmount > 0) {
         purchaseData.CardValue = paymentAmount;
-        purchaseData.PaymentInfo.Amount = String(paymentAmount);
-      } else if (salePrice) {
-        // Fixed-price gift card — use the card's sale price
-        purchaseData.PaymentInfo.Amount = String(parseFloat(salePrice));
       }
 
       if (message) purchaseData.GiftMessage = message;
