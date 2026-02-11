@@ -222,10 +222,15 @@
           if (clientId) {
             var mbData = { clientId: clientId, firstName: firstName, lastName: lastName, phone: phone, email: user.email };
             if (dob) mbData.birthDate = dob;
+            console.log('[Profile] Syncing to MB:', JSON.stringify(mbData));
             fetch('/.netlify/functions/mb-client', {
               method: 'PUT', headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify(mbData)
-            }).catch(function() {});
+            }).then(function(r) {
+              return r.json().then(function(data) {
+                console.log('[Profile] MB sync response:', data);
+              });
+            }).catch(function(err) { console.error('[Profile] MB sync error:', err); });
           }
         }).catch(function(err) {
           showMsg(errorEl, successEl, err.message, true);
@@ -1393,7 +1398,6 @@
 
   // Subcategories for Daily Classes
   var storeDailySubs = [
-    { id: 'all', da: 'Alle', en: 'All', desc_da: '', desc_en: '' },
     { id: 'memberships', da: 'Medlemskab', en: 'Membership', desc_da: 'Fast praksis', desc_en: 'Regular practice' },
     { id: 'clips', da: 'Klippekort', en: 'Clip Cards', desc_da: 'Fleksible besøg', desc_en: 'Occasional visits' },
     { id: 'trials', da: 'Prøvekort', en: 'Trial Passes', desc_da: 'Prøv os', desc_en: 'Try us' },
@@ -1544,6 +1548,27 @@
 
       console.log('[Store] Contracts loaded:', contracts.length, contracts.map(function(c) { return c.name; }));
 
+      // Build programId→name lookup from services (services have programName, contracts don't)
+      var programNameMap = {};
+      services.forEach(function(s) {
+        if (s.programId && s.programName) programNameMap[s.programId] = s.programName;
+      });
+      // Enrich contracts with programName from the lookup
+      contracts.forEach(function(c) {
+        if (!c.programName && c.programIds && c.programIds.length) {
+          c.programId = c.programIds[0];
+          c.programName = programNameMap[c.programIds[0]] || '';
+        }
+      });
+
+      // Hide unwanted contracts by name
+      contracts = contracts.filter(function(c) {
+        var n = (c.name || '').toLowerCase();
+        if (n.indexOf('5 classes') !== -1 && n.indexOf('month') !== -1) return false; // 5 Classes Per Month
+        if (n.indexOf('namaste') !== -1) return false; // Namaste passes
+        return true;
+      });
+
       storeServices = services.concat(contracts);
       if (!storeServices.length) { listEl.innerHTML = '<p class="yb-store__empty">' + t('store_empty') + '</p>'; return; }
       renderStoreItems(listEl);
@@ -1588,7 +1613,9 @@
     var ageLabel30Plus = '(30+ Years Old)';
     var ageLabel30Minus = '(Under 30 Years Old)';
 
-    return services.filter(function(s) {
+    console.log('[Store] Age filter — DOB:', userDateOfBirth, 'Age:', age, 'Total items:', services.length);
+
+    var filtered = services.filter(function(s) {
       var pName = s.programName || '';
       var is30Plus = pName.indexOf('30+') !== -1 || pName.indexOf('30+ Years') !== -1;
       var isUnder30 = pName.indexOf('Under 30') !== -1;
@@ -1600,7 +1627,11 @@
       }
       // If DOB unknown, show everything (they'll see both — safe fallback)
       return true;
-    }).map(function(s) {
+    });
+
+    console.log('[Store] Age filter — After filtering:', filtered.length, 'items (removed', services.length - filtered.length, ')');
+
+    return filtered.map(function(s) {
       // Strip age labels from display names
       s._displayName = (s.name || '')
         .replace(ageLabel30Plus, '').replace(ageLabel30Minus, '')
@@ -1730,17 +1761,15 @@
     if (storeTopCategory === 'daily') {
       html += '<div class="yb-store__subcats">';
       storeDailySubs.forEach(function(sub) {
-        var count = sub.id === 'all'
-          ? visibleServices.filter(function(s) { return s._topCategory === 'daily'; }).length
-          : visibleServices.filter(function(s) { return s._topCategory === 'daily' && s._subCategory === sub.id; }).length;
-        if (count === 0 && sub.id !== 'all') return;
+        var count = visibleServices.filter(function(s) { return s._topCategory === 'daily' && s._subCategory === sub.id; }).length;
+        if (count === 0) return;
         var isActive = storeSubCategory === sub.id;
         html += '<button class="yb-store__sub-btn' + (isActive ? ' is-active' : '') + '" type="button" data-store-sub="' + sub.id + '">';
         html += '<span class="yb-store__sub-name">' + (isDa() ? sub.da : sub.en) + '</span>';
         if (sub.desc_da) {
           html += '<span class="yb-store__sub-desc">' + (isDa() ? sub.desc_da : sub.desc_en) + '</span>';
         }
-        if (sub.id !== 'all') html += '<span class="yb-store__sub-count">' + count + '</span>';
+        html += '<span class="yb-store__sub-count">' + count + '</span>';
         html += '</button>';
       });
       html += '</div>';

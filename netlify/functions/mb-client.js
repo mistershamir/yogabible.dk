@@ -132,6 +132,8 @@ exports.handler = async function(event) {
       if (body.phone) updateData.MobilePhone = body.phone;
       if (body.birthDate) updateData.BirthDate = body.birthDate;
 
+      console.log('[mb-client] PUT updateData:', JSON.stringify(updateData));
+
       var data = await mbFetch('/client/updateclient', {
         method: 'POST',
         body: JSON.stringify({ Client: updateData, CrossRegionalUpdate: true })
