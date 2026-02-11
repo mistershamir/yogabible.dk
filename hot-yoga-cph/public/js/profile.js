@@ -1455,39 +1455,36 @@
     });
   }
 
+  // ── Hardcoded Service Category (Program) ID → age bracket mapping ──
+  // From Mindbody: each Service Category has an ID. Services/contracts under
+  // that category inherit its age bracket. User provides IDs after renaming categories.
+  // 'over30' = 30+ Years Old (VAT applies), 'under30' = Under 30 (no VAT)
+  // IDs not listed here are shown to everyone (no age filtering).
+  var programAgeBracket = {
+    // TODO: User will provide IDs — example:
+    // 30: 'over30',   // Daily Classes (30+ Years Old)
+    // 31: 'under30',  // Daily Classes (Under 30 Years Old)
+  };
+
   function loadStore() {
     var listEl = document.getElementById('yb-store-list');
     if (!listEl) return;
 
     listEl.innerHTML = '<div class="yb-store__loading"><div class="yb-mb-spinner"></div><span>' + (isDa() ? 'Henter pakker...' : 'Loading packages...') + '</span></div>';
 
-    // Fetch services, contracts, AND service categories in parallel
+    // Fetch services and contracts in parallel
     var servicesUrl = '/.netlify/functions/mb-services?sellOnline=true';
     var contractsUrl = '/.netlify/functions/mb-contracts';
-    var categoriesUrl = '/.netlify/functions/mb-services?type=categories';
 
     Promise.all([
       fetch(servicesUrl).then(function(r) { return r.json(); }),
       fetch(contractsUrl).then(function(r) {
-        console.log('[Store] Contracts HTTP status:', r.status);
         return r.json();
-      }).catch(function(err) { console.error('[Store] Contracts fetch FAILED:', err); return { contracts: [], _error: String(err) }; }),
-      fetch(categoriesUrl).then(function(r) { return r.json(); }).catch(function() { return { categories: [] }; })
+      }).catch(function(err) { console.error('[Store] Contracts fetch FAILED:', err); return { contracts: [], _error: String(err) }; })
     ]).then(function(results) {
-      // Build category ID → name lookup from service categories
-      var categoryMap = {};
-      (results[2].categories || []).forEach(function(cat) {
-        categoryMap[cat.id] = cat.name;
-      });
-      console.log('[Store] Service Category map:', categoryMap);
-
       var services = (results[0].services || []).map(function(s) {
         s._itemType = 'service';
         if (s.description) s.description = stripHtml(s.description);
-        // Enrich with category name if programName missing but programId exists
-        if (!s.programName && s.programId && categoryMap[s.programId]) {
-          s.programName = categoryMap[s.programId];
-        }
         return s;
       });
 
@@ -1558,19 +1555,12 @@
         return c;
       });
 
-      console.log('[Store] Contracts loaded:', contracts.length, contracts.map(function(c) { return c.name; }));
+      console.log('[Store] Contracts loaded:', contracts.length, contracts.map(function(c) { return c.name + ' (programIds:' + (c.programIds || []).join(',') + ')'; }));
 
-      // Enrich contracts with programName from the category map
+      // Set programId on contracts from their programIds array
       contracts.forEach(function(c) {
         if (c.programIds && c.programIds.length) {
           c.programId = c.programIds[0];
-          // Use categoryMap first, then try service lookup as fallback
-          c.programName = categoryMap[c.programIds[0]] || '';
-          if (!c.programName) {
-            // Fallback: try matching from services
-            var match = services.find(function(s) { return s.programId === c.programIds[0]; });
-            if (match) c.programName = match.programName || '';
-          }
         }
       });
 
@@ -1621,49 +1611,28 @@
   };
 
   /**
-   * Filter store services by age bracket based on Service Category (programName) ONLY.
-   * Item names stay clean — age labels live only in Service Category names.
-   * Patterns: "(30+ Years Old)", "(Under 30 Years Old)", "30 Years Old+"
+   * Filter store services by age bracket using hardcoded programAgeBracket map.
+   * Each service/contract has a programId — we look it up in the map.
+   * 'over30' items hidden for under-30 users, 'under30' items hidden for 30+ users.
+   * Items with no mapping are shown to everyone.
    */
   function filterAndCleanByAge(services) {
     var age = getUserAge();
-
-    // Log unique Service Categories for debugging
-    var pNames = {};
-    services.forEach(function(s) { if (s.programName) pNames[s.programName] = true; });
     console.log('[Store] Age filter — DOB:', userDateOfBirth, 'Age:', age, 'Total:', services.length);
-    console.log('[Store] Service Categories:', Object.keys(pNames));
 
     var filtered = services.filter(function(s) {
-      var pName = (s.programName || '').toLowerCase();
-      var is30Plus = pName.indexOf('30+ years old') !== -1 || pName.indexOf('30 years old+') !== -1 || pName.indexOf('(30+)') !== -1;
-      var isUnder30 = pName.indexOf('under 30') !== -1;
-
-      if (age !== null) {
-        if (age >= 30 && isUnder30) return false;
-        if (age < 30 && is30Plus) return false;
+      var bracket = programAgeBracket[s.programId] || null;
+      if (age !== null && bracket) {
+        if (age >= 30 && bracket === 'under30') return false;
+        if (age < 30 && bracket === 'over30') return false;
       }
       return true;
     });
 
     console.log('[Store] After age filter:', filtered.length, '(removed', services.length - filtered.length, ')');
 
-    // Strip age labels from Service Category display only — item names untouched
-    var agePatterns = [
-      /\s*\(30\+ Years Old\)/gi,
-      /\s*\(30 Years Old\+\)/gi,
-      /\s*\(Under 30 Years Old\)/gi,
-      /\s*\(30\+\)/g,
-      /\s*\(Under 30\)/g
-    ];
-
     return filtered.map(function(s) {
       s._displayName = s.name || '';
-      var cleanProgram = s.programName || '';
-      agePatterns.forEach(function(pat) {
-        cleanProgram = cleanProgram.replace(pat, '');
-      });
-      s._displayProgram = cleanProgram.replace(/\s{2,}/g, ' ').trim();
       return s;
     });
   }
