@@ -19,7 +19,9 @@ bodyClass: hyc-page
    HOT YOGA CPH — BRAND OVERRIDE
    Scoped to body.hyc-page so it doesn't affect other YB pages.
    Teal: #3f99a5 | Dark: #357f89 | Light: #5bb8c4
-   Orange ecosystem accent: #f75c03 (kept for ecosystem dot only)
+   YB Orange ecosystem accent: #f75c03 / #d94f02
+   Philosophy: Teal dominates (HYC identity), orange appears on
+   secondary actions & small details to show the YB ecosystem.
    ═══════════════════════════════════════════════════════════════ */
 
 /* ── CSS Custom Property Override ── */
@@ -49,6 +51,15 @@ body.hyc-page .yb-profile__hero::after {
   background: radial-gradient(circle, rgba(63,153,165,.12) 0%, transparent 70%);
   pointer-events: none;
 }
+/* Subtle YB orange glow — bottom-left of hero */
+body.hyc-page .yb-profile__hero .yb-profile__hero-inner::after {
+  content: '';
+  position: absolute;
+  bottom: -20px; left: 40px;
+  width: 140px; height: 140px;
+  background: radial-gradient(circle, rgba(247,92,3,.08) 0%, transparent 70%);
+  pointer-events: none;
+}
 
 /* ── Profile Hero Logo ── */
 body.hyc-page .yb-profile__hero-logo {
@@ -74,8 +85,8 @@ body.hyc-page .yb-profile__tab {
   margin-bottom: 0;
 }
 body.hyc-page .yb-profile__tab:hover {
-  border-color: #3f99a5;
-  color: #3f99a5;
+  border-color: #f75c03;
+  color: #f75c03;
 }
 body.hyc-page .yb-profile__tab.is-active {
   background: #3f99a5;
@@ -92,17 +103,18 @@ body.hyc-page .yb-profile__member-badge {
   border-radius: 999px;
 }
 
-/* ── Profile Avatar Edit ── */
+/* ── Profile Avatar Edit (YB orange — ecosystem touch) ── */
 body.hyc-page .yb-profile__avatar-edit {
-  color: #3f99a5;
+  color: #f75c03;
 }
 body.hyc-page .yb-profile__avatar-edit:hover {
-  background: #e8f4f6;
+  background: #fff3ec;
 }
 
-/* ── Profile Wrap Border ── */
+/* ── Profile Wrap Border + ecosystem bottom accent ── */
 body.hyc-page .yb-profile__wrap {
   border-color: #d5d0cc;
+  border-bottom: 2px solid #f75c03;
 }
 
 /* ── Buttons: Primary ── */
@@ -122,8 +134,8 @@ body.hyc-page .yb-btn--outline {
   border-radius: 999px;
 }
 body.hyc-page .yb-btn--outline:hover {
-  border-color: #3f99a5;
-  color: #3f99a5;
+  border-color: #f75c03;
+  color: #f75c03;
 }
 
 /* ── Auth Modal: Submit Button ── */
@@ -155,9 +167,12 @@ body.hyc-page .yb-auth-modal__visual-overlay {
   background: linear-gradient(135deg, rgba(63,153,165,.85), rgba(15,15,15,.9));
 }
 
-/* ── Auth Modal: Consent Checkboxes ── */
+/* ── Auth Modal: Consent Checkboxes (YB orange — these link to YB pages) ── */
 body.hyc-page .yb-auth-consent a {
-  color: #3f99a5;
+  color: #f75c03;
+}
+body.hyc-page .yb-auth-consent a:hover {
+  color: #d94f02;
 }
 
 /* ── Profile Content: Form Inputs Focus ── */
@@ -177,9 +192,9 @@ body.hyc-page .yb-btn--full:hover {
   background: #357f89;
 }
 
-/* ── Onboarding Inline Accent ── */
+/* ── Onboarding Inline Accent (YB orange — ecosystem nudge) ── */
 body.hyc-page .yb-onboarding-inline__header svg {
-  stroke: #3f99a5;
+  stroke: #f75c03;
 }
 
 /* ── Profile Links / Accent Text ── */
@@ -196,8 +211,8 @@ body.hyc-page .yb-schedule__day-btn.is-active {
   border-color: #3f99a5;
 }
 body.hyc-page .yb-schedule__day-btn:hover {
-  border-color: #3f99a5;
-  color: #3f99a5;
+  border-color: #f75c03;
+  color: #f75c03;
 }
 body.hyc-page .yb-schedule__class-book {
   background: #3f99a5;
@@ -238,7 +253,7 @@ body.hyc-page .yb-pass__remaining {
   color: #3f99a5;
 }
 body.hyc-page .yb-pass__bar-fill {
-  background: #3f99a5;
+  background: linear-gradient(90deg, #3f99a5, #f75c03);
 }
 
 /* ── Visits Tab Accents ── */
@@ -251,31 +266,36 @@ body.hyc-page .yb-receipt__amount {
   color: #3f99a5;
 }
 body.hyc-page .yb-receipt__download {
-  color: #3f99a5;
+  color: #f75c03;
 }
 body.hyc-page .yb-receipt__download:hover {
-  color: #357f89;
+  color: #d94f02;
 }
 
-/* ── Password Section ── */
+/* ── Password Section (secondary action — YB orange) ── */
 body.hyc-page .yb-profile__pwd-btn {
-  background: #3f99a5;
-  border-color: #3f99a5;
+  background: transparent;
+  border: 1.5px solid #f75c03;
+  color: #f75c03;
   border-radius: 999px;
 }
 body.hyc-page .yb-profile__pwd-btn:hover {
-  background: #357f89;
-  border-color: #357f89;
+  background: #f75c03;
+  border-color: #f75c03;
+  color: #fff;
 }
 
-/* ── Checkbox Accent ── */
+/* ── Checkbox Accent (YB orange — parent brand) ── */
 body.hyc-page input[type="checkbox"]:checked {
-  accent-color: #3f99a5;
+  accent-color: #f75c03;
 }
 
-/* ── Waiver / Agreement Links ── */
+/* ── Waiver / Agreement Links (YB orange — ecosystem link) ── */
 body.hyc-page .yb-waiver__agree a {
-  color: #3f99a5;
+  color: #f75c03;
+}
+body.hyc-page .yb-waiver__agree a:hover {
+  color: #d94f02;
 }
 
 /* ── Generic Orange Overrides for Profile Scope ── */
@@ -289,6 +309,10 @@ body.hyc-page .yb-profile a:not(.yb-profile__hero-logout):hover {
 /* ── Pagination / Load More ── */
 body.hyc-page .yb-pagination__btn {
   border-radius: 999px;
+}
+body.hyc-page .yb-pagination__btn:hover {
+  border-color: #f75c03;
+  color: #f75c03;
 }
 body.hyc-page .yb-pagination__btn.is-active {
   background: #3f99a5;
