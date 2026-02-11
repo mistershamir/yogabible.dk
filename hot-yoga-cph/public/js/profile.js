@@ -2569,9 +2569,10 @@
   var scheduleActionLock = false;
 
   function bookClass(btn) {
-    if (scheduleActionLock) return; // Prevent double-clicks
+    console.log('[bookClass] called, lock:', scheduleActionLock, 'classId:', btn.getAttribute('data-schedule-book'), 'clientId:', clientId, 'waiver:', waiverSigned);
+    if (scheduleActionLock) { console.log('[bookClass] BLOCKED by lock'); return; }
     var classId = btn.getAttribute('data-schedule-book');
-    if (!classId) return; // Button was already toggled to cancel
+    if (!classId) { console.log('[bookClass] BLOCKED no classId'); return; }
     if (!clientId) {
       showScheduleToast(isDa() ? 'Køb et pas først i Butik-fanen.' : 'Buy a pass first in the Store tab.', 'error');
       var noPassEl = document.getElementById('yb-schedule-no-pass');
@@ -2590,6 +2591,7 @@
 
     // Check if client has ANY active pass
     var hasAnyPass = clientPassData && ((clientPassData.activeServices && clientPassData.activeServices.length > 0) || (clientPassData.activeContracts && clientPassData.activeContracts.length > 0));
+    console.log('[bookClass] hasAnyPass:', hasAnyPass, 'services:', clientPassData ? (clientPassData.activeServices || []).length : 'N/A');
     if (!hasAnyPass) {
       showScheduleToast(isDa() ? 'Køb et pas først i Butik-fanen.' : 'Buy a pass first in the Store tab.', 'error');
       var noPassEl = document.getElementById('yb-schedule-no-pass');
@@ -2597,15 +2599,8 @@
       return;
     }
 
-    // Check if client's pass covers this class's program BEFORE sending request
-    var classRow = btn.closest('.yb-schedule__class');
-    var programId = classRow ? Number(classRow.getAttribute('data-program-id')) : null;
-
-    if (!clientCanBook(programId)) {
-      showScheduleToast(isDa() ? 'Dit pas dækker ikke denne type klasse. Køb det rette pas i Butik-fanen.' : "Your pass doesn't cover this class type. Purchase the required pass in the Store tab.", 'error');
-      return;
-    }
-
+    // Backend handles cross-category program validation — no client-side program check needed
+    console.log('[bookClass] sending to backend, classId:', classId);
     scheduleActionLock = true;
     btn.disabled = true;
     btn.textContent = isDa() ? 'Booker...' : 'Booking...';
