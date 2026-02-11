@@ -2304,501 +2304,6 @@ body {
 }
 
 /* ========================================
-   STORE — NEW HARDCODED CARD STYLES
-   ======================================== */
-
-/* Age info banner */
-.yb-store__age-banner {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.6rem 1rem;
-  border-radius: 10px;
-  font-size: 0.82rem;
-  font-weight: 600;
-  margin-bottom: 1rem;
-  background: #e8f4f6;
-  color: #3f99a5;
-  border: 1px solid #b8dce2;
-}
-.yb-store__age-banner--vat {
-  background: #fff3e0;
-  color: #b87333;
-  border-color: #f0c27a;
-}
-
-/* Card base */
-.yb-store__card {
-  background: #FFFCF9;
-  border: 1.5px solid #E8E4E0;
-  border-radius: 16px;
-  padding: 1.25rem;
-  display: flex;
-  flex-direction: column;
-  transition: border-color 0.2s, box-shadow 0.2s, transform 0.2s;
-  position: relative;
-}
-.yb-store__card:hover {
-  border-color: #3f99a5;
-  box-shadow: 0 4px 20px rgba(63, 153, 165, 0.12);
-  transform: translateY(-2px);
-}
-
-/* Popular card highlight */
-.yb-store__card--popular {
-  border-color: #3f99a5;
-  box-shadow: 0 2px 12px rgba(63, 153, 165, 0.1);
-}
-
-/* Best deal card highlight */
-.yb-store__card--best {
-  border-color: #3f99a5;
-  background: linear-gradient(135deg, #FFFCF9 0%, #e8f4f6 100%);
-}
-
-/* Badges */
-.yb-store__card-badges {
-  display: flex;
-  gap: 0.35rem;
-  flex-wrap: wrap;
-  margin-bottom: 0.5rem;
-  min-height: 1.4rem;
-}
-.yb-store__badge--popular {
-  background: #3f99a5;
-  color: #fff;
-  border: none;
-}
-.yb-store__badge--best {
-  background: linear-gradient(135deg, #3f99a5, #357f89);
-  color: #fff;
-  border: none;
-}
-.yb-store__badge--save {
-  background: #e8f4f6;
-  color: #3f99a5;
-  border: 1px solid #b8dce2;
-}
-.yb-store__badge--cph {
-  background: #f0f0f0;
-  color: #6F6A66;
-  border: 1px solid #E8E4E0;
-}
-
-/* Card header (clip cards) */
-.yb-store__card-header {
-  text-align: center;
-  margin-bottom: 0.5rem;
-}
-.yb-store__card-classes {
-  display: block;
-  font-size: 2.2rem;
-  font-weight: 700;
-  color: #0F0F0F;
-  line-height: 1;
-}
-.yb-store__card-classes-label {
-  display: block;
-  font-size: 0.72rem;
-  color: #6F6A66;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  margin-top: 0.1rem;
-}
-.yb-store__card-label {
-  display: block;
-  font-size: 0.78rem;
-  font-weight: 600;
-  color: #3f99a5;
-  margin-top: 0.35rem;
-}
-
-/* Card name (memberships, timebased, etc.) */
-.yb-store__card-name {
-  font-size: 1.05rem;
-  font-weight: 700;
-  color: #0F0F0F;
-  margin: 0 0 0.5rem;
-  line-height: 1.3;
-}
-
-/* Price block */
-.yb-store__card-price-block {
-  text-align: center;
-  margin-bottom: 0.75rem;
-  padding: 0.5rem 0;
-}
-.yb-store__card-price {
-  display: block;
-  font-size: 1.6rem;
-  font-weight: 700;
-  color: #3f99a5;
-  line-height: 1.1;
-}
-.yb-store__card-price-striked {
-  display: block;
-  font-size: 0.9rem;
-  color: #6F6A66;
-  text-decoration: line-through;
-  margin-bottom: 0.15rem;
-}
-.yb-store__card-price-note {
-  display: block;
-  font-size: 0.72rem;
-  color: #6F6A66;
-  margin-top: 0.1rem;
-}
-.yb-store__card-price-then {
-  display: block;
-  font-size: 0.78rem;
-  color: #0F0F0F;
-  font-weight: 600;
-  margin-top: 0.25rem;
-}
-.yb-store__card-per-class {
-  display: block;
-  font-size: 0.82rem;
-  font-weight: 600;
-  color: #357f89;
-  margin-top: 0.2rem;
-}
-.yb-store__card-vat {
-  display: block;
-  font-size: 0.68rem;
-  color: #b87333;
-  margin-top: 0.15rem;
-}
-.yb-store__card-validity-label {
-  display: block;
-  font-size: 0.78rem;
-  color: #6F6A66;
-  margin-top: 0.15rem;
-}
-
-/* Validity line */
-.yb-store__card-validity {
-  display: flex;
-  align-items: center;
-  gap: 0.35rem;
-  font-size: 0.78rem;
-  color: #6F6A66;
-  margin: 0 0 0.5rem;
-}
-.yb-store__card-validity svg {
-  flex-shrink: 0;
-  stroke: #6F6A66;
-}
-
-/* Value bar (clip cards — visual deal quality) */
-.yb-store__card-value-bar {
-  height: 4px;
-  background: #E8E4E0;
-  border-radius: 2px;
-  overflow: hidden;
-  margin: 0.35rem 0 0.5rem;
-}
-.yb-store__card-value-fill {
-  height: 100%;
-  background: linear-gradient(90deg, #5bb8c4, #3f99a5);
-  border-radius: 2px;
-  transition: width 0.3s ease;
-}
-
-/* Description */
-.yb-store__card-desc {
-  font-size: 0.78rem;
-  color: #6F6A66;
-  line-height: 1.45;
-  margin: 0 0 0.5rem;
-}
-
-/* Features list (memberships) */
-.yb-store__card-features {
-  list-style: none;
-  padding: 0;
-  margin: 0 0 0.75rem;
-  flex: 1;
-}
-.yb-store__card-features li {
-  display: flex;
-  align-items: flex-start;
-  gap: 0.45rem;
-  font-size: 0.78rem;
-  color: #0F0F0F;
-  padding: 0.25rem 0;
-  line-height: 1.4;
-}
-.yb-store__card-features li svg {
-  flex-shrink: 0;
-  margin-top: 0.1rem;
-}
-
-/* Registration fee */
-.yb-store__card-regfee {
-  font-size: 0.72rem;
-  color: #6F6A66;
-  margin: 0 0 0.75rem;
-  padding-top: 0.5rem;
-  border-top: 1px solid #E8E4E0;
-}
-
-/* Saving callout (timebased) */
-.yb-store__card-saving {
-  display: flex;
-  align-items: flex-start;
-  gap: 0.4rem;
-  background: #e8f4f6;
-  border: 1px solid #b8dce2;
-  border-radius: 8px;
-  padding: 0.5rem 0.65rem;
-  margin-bottom: 0.75rem;
-  font-size: 0.75rem;
-  color: #357f89;
-  font-weight: 500;
-  line-height: 1.4;
-}
-.yb-store__card-saving svg {
-  flex-shrink: 0;
-  margin-top: 0.1rem;
-}
-
-/* Sharing section (clip cards 60+) */
-.yb-store__card-sharing {
-  background: #f5f8f9;
-  border: 1px solid #d5e8eb;
-  border-radius: 10px;
-  padding: 0.6rem 0.75rem;
-  margin-bottom: 0.75rem;
-}
-.yb-store__card-sharing-label {
-  display: flex;
-  align-items: center;
-  gap: 0.35rem;
-  font-size: 0.82rem;
-  font-weight: 600;
-  color: #3f99a5;
-  margin-bottom: 0.35rem;
-}
-.yb-store__card-sharing-label svg {
-  stroke: #3f99a5;
-}
-.yb-store__card-sharing-details summary {
-  font-size: 0.72rem;
-  color: #6F6A66;
-  cursor: pointer;
-  user-select: none;
-}
-.yb-store__card-sharing-details summary:hover {
-  color: #3f99a5;
-}
-.yb-store__card-sharing-content {
-  font-size: 0.72rem;
-  color: #6F6A66;
-  line-height: 1.5;
-  margin-top: 0.35rem;
-  padding-top: 0.35rem;
-  border-top: 1px solid #d5e8eb;
-}
-.yb-store__card-sharing-content a {
-  color: #3f99a5;
-}
-
-/* Buy button */
-.yb-store__card-btn {
-  margin-top: auto;
-  text-align: center;
-  display: block;
-  width: 100%;
-  text-decoration: none;
-  padding: 0.7rem 1rem;
-  border-radius: 10px;
-}
-
-/* Grid layouts per category */
-.yb-store__grid--clips {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-  gap: 1rem;
-}
-.yb-store__grid--memberships {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-  gap: 1.25rem;
-}
-.yb-store__grid--timebased {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-  gap: 1rem;
-}
-.yb-store__grid--trials {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
-  gap: 1rem;
-}
-.yb-store__grid--tourist {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
-  gap: 1rem;
-}
-
-/* Rental note (tourist) */
-.yb-store__rental-note {
-  margin-top: 1rem;
-  padding: 0.65rem 0.85rem;
-  background: #F5F3F0;
-  border-radius: 10px;
-  font-size: 0.75rem;
-  color: #6F6A66;
-  line-height: 1.5;
-}
-.yb-store__rental-note p { margin: 0; }
-
-/* Tourist note variant */
-.yb-store__note--tourist {
-  background: #fff3e0;
-  border: 1px solid #f0c27a;
-  color: #b87333;
-}
-.yb-store__note--tourist svg { stroke: #e67e22; }
-
-/* Tourist mat include badge */
-.yb-store__card--inclmat {
-  border-color: #e67e22;
-}
-
-/* Responsive: stack on mobile */
-@media (max-width: 600px) {
-  .yb-store__grid--clips,
-  .yb-store__grid--memberships,
-  .yb-store__grid--timebased,
-  .yb-store__grid--trials,
-  .yb-store__grid--tourist {
-    grid-template-columns: 1fr;
-  }
-  .yb-store__card {
-    padding: 1rem;
-  }
-  .yb-store__card-classes {
-    font-size: 1.8rem;
-  }
-  .yb-store__card-price {
-    font-size: 1.4rem;
-  }
-}
-
-/* ========================================
-   GIFT CARDS TAB
-   ======================================== */
-.yb-giftcards__header {
-  margin-bottom: 1.5rem;
-}
-.yb-giftcards__title {
-  font-size: 1.5rem;
-  font-weight: 700;
-  color: #0F0F0F;
-  margin: 0 0 0.25rem;
-}
-.yb-giftcards__subtitle {
-  font-size: 0.88rem;
-  color: #6F6A66;
-  margin: 0;
-}
-.yb-giftcards__grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-  gap: 1rem;
-}
-.yb-giftcards__card {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  background: #FFFCF9;
-  border: 1.5px solid #E8E4E0;
-  border-radius: 14px;
-  padding: 1rem 1.25rem;
-  transition: border-color 0.2s, box-shadow 0.2s;
-}
-.yb-giftcards__card:hover {
-  border-color: #3f99a5;
-  box-shadow: 0 2px 12px rgba(63, 153, 165, 0.1);
-}
-.yb-giftcards__card-icon {
-  width: 52px;
-  height: 52px;
-  background: #e8f4f6;
-  border-radius: 12px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-}
-.yb-giftcards__card-info {
-  flex: 1;
-  min-width: 0;
-}
-.yb-giftcards__card-name {
-  font-size: 0.95rem;
-  font-weight: 700;
-  color: #0F0F0F;
-  margin: 0 0 0.2rem;
-}
-.yb-giftcards__card-price {
-  font-size: 1.1rem;
-  font-weight: 700;
-  color: #3f99a5;
-}
-.yb-giftcards__card-original {
-  font-size: 0.8rem;
-  color: #6F6A66;
-  text-decoration: line-through;
-  margin-left: 0.4rem;
-}
-.yb-giftcards__card-btn {
-  flex-shrink: 0;
-  padding: 0.5rem 1rem;
-  border-radius: 10px;
-  font-size: 0.85rem;
-}
-.yb-giftcards__form {
-  margin-top: 1.5rem;
-  background: #FFFCF9;
-  border: 1.5px solid #3f99a5;
-  border-radius: 16px;
-  padding: 1.5rem;
-}
-.yb-giftcards__form-title {
-  font-size: 1.1rem;
-  font-weight: 700;
-  color: #0F0F0F;
-  margin: 0 0 1rem;
-}
-.yb-giftcards__form-inner {
-  max-width: 480px;
-}
-.yb-giftcards__form-inner textarea {
-  width: 100%;
-  padding: 0.6rem 0.75rem;
-  border: 1px solid #E8E4E0;
-  border-radius: 10px;
-  font-family: inherit;
-  font-size: 0.88rem;
-  resize: vertical;
-}
-.yb-giftcards__form-inner textarea:focus {
-  border-color: #3f99a5;
-  outline: none;
-}
-.yb-giftcards__form-actions {
-  display: flex;
-  gap: 0.75rem;
-  margin-top: 1rem;
-}
-@media (max-width: 600px) {
-  .yb-giftcards__grid { grid-template-columns: 1fr; }
-  .yb-giftcards__form { padding: 1rem; }
-}
-
-/* ========================================
    SCHEDULE TOAST - RICH MESSAGES
    ======================================== */
 
@@ -4493,5 +3998,170 @@ body.hyc-page .yb-visits__filter:hover {
   body.hyc-page .yb-profile__tab {
     padding: 6px 14px;
     font-size: 0.75rem;
+  }
+}
+
+/* ===== Gift Cards Tab ===== */
+.yb-giftcards__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.yb-giftcard-item {
+  background: #fff;
+  border: 1px solid #E8E4E0;
+  border-radius: 12px;
+  padding: 1.25rem;
+  cursor: pointer;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.yb-giftcard-item:hover {
+  border-color: #3f99a5;
+}
+
+.yb-giftcard-item.is-selected {
+  border-color: #3f99a5;
+  box-shadow: 0 0 0 2px rgba(63, 153, 165, 0.25);
+}
+
+.yb-giftcard-item__desc {
+  font-weight: 600;
+  font-size: 1rem;
+  margin-bottom: 0.5rem;
+  color: #0F0F0F;
+}
+
+.yb-giftcard-item__price {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #3f99a5;
+}
+
+.yb-giftcard-item__terms {
+  font-size: 0.8rem;
+  color: #6F6A66;
+  margin-top: 0.5rem;
+}
+
+.yb-giftcard-form {
+  background: #F5F3F0;
+  border-radius: 12px;
+  padding: 1.5rem;
+  display: none;
+}
+
+.yb-giftcard-form.is-visible {
+  display: block;
+}
+
+.yb-giftcard-form__title {
+  font-size: 1.1rem;
+  font-weight: 700;
+  margin-bottom: 1rem;
+  color: #0F0F0F;
+}
+
+.yb-giftcard-form__row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.yb-giftcard-form__field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.yb-giftcard-form__field.full-width {
+  grid-column: 1 / -1;
+}
+
+.yb-giftcard-form__field label {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #0F0F0F;
+}
+
+.yb-giftcard-form__field input,
+.yb-giftcard-form__field textarea {
+  padding: 0.6rem 0.75rem;
+  border: 1px solid #E8E4E0;
+  border-radius: 8px;
+  font-family: inherit;
+  font-size: 0.9rem;
+  background: #fff;
+  transition: border-color 0.2s;
+}
+
+.yb-giftcard-form__field input:focus,
+.yb-giftcard-form__field textarea:focus {
+  outline: none;
+  border-color: #3f99a5;
+}
+
+.yb-giftcard-form__field textarea {
+  resize: vertical;
+  min-height: 80px;
+}
+
+.yb-giftcard-form__actions {
+  display: flex;
+  gap: 0.75rem;
+  margin-top: 1rem;
+}
+
+.yb-giftcard-form__actions button {
+  padding: 0.6rem 1.5rem;
+  border-radius: 999px;
+  font-weight: 600;
+  font-size: 0.9rem;
+  cursor: pointer;
+  border: none;
+  transition: background 0.2s, opacity 0.2s;
+}
+
+.yb-giftcard__buy-btn {
+  background: #3f99a5;
+  color: #fff;
+}
+
+.yb-giftcard__buy-btn:hover {
+  background: #357f89;
+}
+
+.yb-giftcard__buy-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.yb-giftcard__cancel-btn {
+  background: transparent;
+  color: #6F6A66;
+  border: 1px solid #E8E4E0 !important;
+}
+
+.yb-giftcard__cancel-btn:hover {
+  border-color: #6F6A66 !important;
+}
+
+.yb-giftcard__loading,
+.yb-giftcard__empty {
+  text-align: center;
+  padding: 2rem;
+  color: #6F6A66;
+}
+
+@media (max-width: 600px) {
+  .yb-giftcard-form__row {
+    grid-template-columns: 1fr;
+  }
+
+  .yb-giftcards__grid {
+    grid-template-columns: 1fr;
   }
 }
