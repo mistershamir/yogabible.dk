@@ -1561,13 +1561,18 @@
         }
       });
 
-      // Hide unwanted contracts by name
+      // Whitelist: only show approved contracts
+      // Keep: 10 Classes/Month, Unlimited, Premium Unlimited, Mat Storage, Test
       contracts = contracts.filter(function(c) {
         var n = (c.name || '').toLowerCase();
-        if (n.indexOf('5 classes') !== -1 && n.indexOf('month') !== -1) return false; // 5 Classes Per Month
-        if (n.indexOf('namaste') !== -1) return false; // Namaste passes
-        return true;
+        if (n.indexOf('10 classes') !== -1) return true;
+        if (n.indexOf('unlimited') !== -1) return true;
+        if (n.indexOf('premium') !== -1) return true;
+        if (n.indexOf('mat storage') !== -1 || n.indexOf('måtte') !== -1) return true;
+        if (n.indexOf('test') !== -1) return true;
+        return false; // hide everything else (5 Classes, Namaste, etc.)
       });
+      console.log('[Store] Contracts after whitelist:', contracts.length, contracts.map(function(c) { return c.name; }));
 
       storeServices = services.concat(contracts);
       if (!storeServices.length) { listEl.innerHTML = '<p class="yb-store__empty">' + t('store_empty') + '</p>'; return; }
@@ -1603,44 +1608,49 @@
   };
 
   /**
-   * Filter store services by age bracket based on Service Category (programName).
-   * Categories containing "(30+ Years Old)" are hidden for under-30 users.
-   * Categories containing "(Under 30 Years Old)" are hidden for 30+ users.
-   * Also strips the age label from service name and programName for clean display.
+   * Filter store services by age bracket based on Service Category (programName) ONLY.
+   * Item names stay clean — age labels live only in Service Category names.
+   * Patterns: "(30+ Years Old)", "(Under 30 Years Old)", "30 Years Old+"
    */
   function filterAndCleanByAge(services) {
     var age = getUserAge();
-    var ageLabel30Plus = '(30+ Years Old)';
-    var ageLabel30Minus = '(Under 30 Years Old)';
 
-    console.log('[Store] Age filter — DOB:', userDateOfBirth, 'Age:', age, 'Total items:', services.length);
+    // Log unique Service Categories for debugging
+    var pNames = {};
+    services.forEach(function(s) { if (s.programName) pNames[s.programName] = true; });
+    console.log('[Store] Age filter — DOB:', userDateOfBirth, 'Age:', age, 'Total:', services.length);
+    console.log('[Store] Service Categories:', Object.keys(pNames));
 
     var filtered = services.filter(function(s) {
-      var pName = s.programName || '';
-      var is30Plus = pName.indexOf('30+') !== -1 || pName.indexOf('30+ Years') !== -1;
-      var isUnder30 = pName.indexOf('Under 30') !== -1;
+      var pName = (s.programName || '').toLowerCase();
+      var is30Plus = pName.indexOf('30+ years old') !== -1 || pName.indexOf('30 years old+') !== -1 || pName.indexOf('(30+)') !== -1;
+      var isUnder30 = pName.indexOf('under 30') !== -1;
 
-      // If we know the user's age, filter out the wrong bracket
       if (age !== null) {
         if (age >= 30 && isUnder30) return false;
         if (age < 30 && is30Plus) return false;
       }
-      // If DOB unknown, show everything (they'll see both — safe fallback)
       return true;
     });
 
-    console.log('[Store] Age filter — After filtering:', filtered.length, 'items (removed', services.length - filtered.length, ')');
+    console.log('[Store] After age filter:', filtered.length, '(removed', services.length - filtered.length, ')');
+
+    // Strip age labels from Service Category display only — item names untouched
+    var agePatterns = [
+      /\s*\(30\+ Years Old\)/gi,
+      /\s*\(30 Years Old\+\)/gi,
+      /\s*\(Under 30 Years Old\)/gi,
+      /\s*\(30\+\)/g,
+      /\s*\(Under 30\)/g
+    ];
 
     return filtered.map(function(s) {
-      // Strip age labels from display names
-      s._displayName = (s.name || '')
-        .replace(ageLabel30Plus, '').replace(ageLabel30Minus, '')
-        .replace('(30+)', '').replace('(Under 30)', '')
-        .replace(/\s{2,}/g, ' ').trim();
-      s._displayProgram = (s.programName || '')
-        .replace(ageLabel30Plus, '').replace(ageLabel30Minus, '')
-        .replace('(30+)', '').replace('(Under 30)', '')
-        .replace(/\s{2,}/g, ' ').trim();
+      s._displayName = s.name || '';
+      var cleanProgram = s.programName || '';
+      agePatterns.forEach(function(pat) {
+        cleanProgram = cleanProgram.replace(pat, '');
+      });
+      s._displayProgram = cleanProgram.replace(/\s{2,}/g, ' ').trim();
       return s;
     });
   }
@@ -1650,23 +1660,25 @@
    * Sets s._topCategory (daily/teacher/courses/private) and s._subCategory (for daily items).
    */
   function categorizeService(s) {
-    var name = (s.name || '').toLowerCase();
+    var name = (s._displayName || s.name || '').toLowerCase();
+    var progName = (s._displayProgram || s.programName || '').toLowerCase();
+    var combined = name + ' ' + progName;
     var hasTimePeriod = name.indexOf('day') !== -1 || name.indexOf('dag') !== -1 || name.indexOf('month') !== -1 || name.indexOf('måned') !== -1 || name.indexOf('week') !== -1 || name.indexOf('uge') !== -1;
 
     // Teacher training
-    if (name.indexOf('teacher') !== -1 || name.indexOf('lærer') !== -1 || name.indexOf('training') !== -1 || name.indexOf('uddannelse') !== -1 || name.indexOf('200') !== -1 || name.indexOf('300') !== -1 || name.indexOf('deposit') !== -1) {
+    if (combined.indexOf('teacher') !== -1 || combined.indexOf('lærer') !== -1 || combined.indexOf('training') !== -1 || combined.indexOf('uddannelse') !== -1 || combined.indexOf('deposit') !== -1) {
       s._topCategory = 'teacher';
       s._subCategory = 'all';
       return;
     }
     // Courses (inversions, backbends, splits, workshops)
-    if (name.indexOf('course') !== -1 || name.indexOf('kursus') !== -1 || name.indexOf('workshop') !== -1 || name.indexOf('inversion') !== -1 || name.indexOf('backbend') !== -1 || name.indexOf('split') !== -1) {
+    if (combined.indexOf('course') !== -1 || combined.indexOf('kursus') !== -1 || combined.indexOf('workshop') !== -1 || combined.indexOf('inversion') !== -1 || combined.indexOf('backbend') !== -1 || combined.indexOf('split') !== -1) {
       s._topCategory = 'courses';
       s._subCategory = 'all';
       return;
     }
     // Private sessions
-    if (name.indexOf('private') !== -1 || name.indexOf('privat') !== -1 || name.indexOf('1-on-1') !== -1 || name.indexOf('personal') !== -1) {
+    if (combined.indexOf('private') !== -1 || combined.indexOf('privat') !== -1 || combined.indexOf('1-on-1') !== -1 || combined.indexOf('personal') !== -1) {
       s._topCategory = 'private';
       s._subCategory = 'all';
       return;
@@ -1678,10 +1690,10 @@
     // All contracts = memberships
     if (s._itemType === 'contract') { s._subCategory = 'memberships'; return; }
 
-    if (name.indexOf('trial') !== -1 || name.indexOf('prøv') !== -1 || name.indexOf('intro') !== -1) { s._subCategory = 'trials'; return; }
-    if (name.indexOf('tourist') !== -1 || name.indexOf('turist') !== -1 || name.indexOf('drop-in') !== -1 || name.indexOf('drop in') !== -1) { s._subCategory = 'tourist'; return; }
-    if (hasTimePeriod && (name.indexOf('unlimited') !== -1 || name.indexOf('non-contract') !== -1 || name.indexOf('non-binding') !== -1)) { s._subCategory = 'timebased'; return; }
-    if (name.indexOf('membership') !== -1 || name.indexOf('medlems') !== -1 || name.indexOf('autopay') !== -1) { s._subCategory = 'memberships'; return; }
+    if (combined.indexOf('trial') !== -1 || combined.indexOf('prøv') !== -1 || combined.indexOf('intro') !== -1) { s._subCategory = 'trials'; return; }
+    if (combined.indexOf('tourist') !== -1 || combined.indexOf('turist') !== -1 || combined.indexOf('drop-in') !== -1 || combined.indexOf('drop in') !== -1) { s._subCategory = 'tourist'; return; }
+    if (hasTimePeriod && (combined.indexOf('unlimited') !== -1 || combined.indexOf('non-contract') !== -1 || combined.indexOf('non-binding') !== -1)) { s._subCategory = 'timebased'; return; }
+    if (combined.indexOf('membership') !== -1 || combined.indexOf('medlems') !== -1 || combined.indexOf('autopay') !== -1) { s._subCategory = 'memberships'; return; }
     if (name.indexOf('clip') !== -1 || name.indexOf('klip') !== -1 || name.indexOf('punch') !== -1 || name.indexOf('pack') !== -1 || name.indexOf('class') !== -1) { s._subCategory = 'clips'; return; }
     if (hasTimePeriod) { s._subCategory = 'timebased'; return; }
     s._subCategory = 'clips'; // Default daily items to clips
