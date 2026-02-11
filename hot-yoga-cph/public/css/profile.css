@@ -2248,10 +2248,19 @@ body {
 /* -- Store Item Pricing -- */
 .yb-store__item-pricing {
   display: flex;
-  align-items: baseline;
-  gap: 0.5rem;
-  flex-wrap: wrap;
+  flex-direction: column;
+  gap: 0.15rem;
   margin-top: 0.25rem;
+}
+.yb-store__item-pricing .yb-store__item-price {
+  font-size: 1.15rem;
+}
+.yb-store__item-pricing .yb-store__item-recurring {
+  font-size: 0.78rem;
+  color: #6F6A66;
+}
+.yb-store__item-pricing .yb-store__item-vat {
+  margin: 0;
 }
 
 /* -- Store Item Terms -- */
@@ -2519,6 +2528,40 @@ body {
   font-weight: 700;
   color: #27ae60;
   font-size: 0.85rem;
+}
+
+/* -- Checkout: Amount Due (e.g. registration fee) -- */
+.yb-store__checkout-due {
+  margin: 0.5rem 0 0;
+  padding: 0.5rem 0.75rem;
+  background: #FFF7ED;
+  border: 1px solid #f75c03;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  display: flex;
+  align-items: baseline;
+  gap: 0.3rem;
+  flex-wrap: wrap;
+}
+.yb-store__checkout-due-label {
+  color: #6F6A66;
+}
+.yb-store__checkout-due-amount {
+  color: #f75c03;
+  font-size: 1rem;
+}
+.yb-store__checkout-due-note {
+  color: #6F6A66;
+  font-size: 0.78rem;
+}
+
+/* -- Gift Card: Payment section title -- */
+.yb-giftcards__payment-title {
+  font-size: 0.95rem;
+  font-weight: 700;
+  margin: 1.25rem 0 0.5rem;
+  padding-top: 1rem;
+  border-top: 1px solid #E8E4E0;
 }
 
 /* ========================================

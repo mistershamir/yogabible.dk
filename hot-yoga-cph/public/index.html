@@ -695,6 +695,26 @@
                   <label for="yb-gc-delivery-date" data-t="giftcard_delivery_date">Leveringsdato (valgfrit)</label>
                   <input type="date" id="yb-gc-delivery-date">
                 </div>
+                <!-- Payment details -->
+                <h4 class="yb-giftcards__payment-title" data-t="checkout_payment_title">Betalingsoplysninger</h4>
+                <div class="yb-auth-field">
+                  <label for="yb-gc-cardholder" data-t="checkout_cardholder">Kortholders navn</label>
+                  <input type="text" id="yb-gc-cardholder" required autocomplete="cc-name">
+                </div>
+                <div class="yb-auth-field">
+                  <label for="yb-gc-cardnumber" data-t="checkout_card_number">Kortnummer</label>
+                  <input type="text" id="yb-gc-cardnumber" required autocomplete="cc-number" placeholder="1234 5678 9012 3456" inputmode="numeric" maxlength="19">
+                </div>
+                <div class="yb-profile__form-row yb-profile__form-row--3">
+                  <div class="yb-auth-field">
+                    <label for="yb-gc-expiry" data-t="checkout_expiry">Udl&oslash;bsdato</label>
+                    <input type="text" id="yb-gc-expiry" required placeholder="MM/YY" inputmode="numeric" maxlength="5">
+                  </div>
+                  <div class="yb-auth-field">
+                    <label for="yb-gc-cvv" data-t="checkout_cvv">CVV</label>
+                    <input type="text" id="yb-gc-cvv" required autocomplete="cc-csc" placeholder="123" inputmode="numeric" maxlength="4">
+                  </div>
+                </div>
                 <div class="yb-auth-error" id="yb-gc-error" hidden role="alert"></div>
                 <div class="yb-giftcards__form-actions">
                   <button type="button" class="yb-btn yb-btn--primary" id="yb-gc-buy-btn" data-t="giftcard_buy">K&oslash;b gavekort</button>
@@ -965,6 +985,8 @@ window.HYC_I18N = {
   window.setHycLang = function(lang) {
     localStorage.setItem('hycph-lang', lang);
     applyTranslations();
+    // Notify dynamic content (store, passes, etc.) to re-render
+    window.dispatchEvent(new Event('hycph-lang-change'));
     // Update lang toggle buttons
     var daBtn = document.getElementById('hyc-lang-da');
     var enBtn = document.getElementById('hyc-lang-en');
