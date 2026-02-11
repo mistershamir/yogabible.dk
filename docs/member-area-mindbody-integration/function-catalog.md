@@ -31,13 +31,15 @@
 - **POST Body:** `{ clientId, classId, test? }`
 - **DELETE Body:** `{ clientId, classId, lateCancel? }`
 - **MB Endpoints:**
-  - `GET /class/classes?ClassIds=X` — fetch class program
-  - `GET /client/clientservices?ClientId=X` — fetch passes (parallel)
-  - `GET /client/clientcontracts?ClientId=X` — fetch memberships (parallel)
+  - `GET /class/classes?ClassIds=X` — fetch class info (program name for errors)
+  - `GET /client/clientservices?ClientId=X&ClassId=Y` — **cross-category aware** pass validation (returns only passes valid for this class, respecting Service Category Relationships)
+  - `GET /client/clientservices?ClientId=X` — fallback pass check (exact program match)
+  - `GET /client/clientcontracts?ClientId=X` — autopay billing-gap check
   - `POST /class/addclienttoclass` — book
   - `POST /class/removeclientfromclass` — cancel
+- **Cross-Category Support:** Uses `ClassId` filter on `/client/clientservices` to let Mindbody determine which passes are valid for a class, including passes from related service categories. See `docs/namaste-online-handoff/CROSS-CATEGORY-PASS-VALIDATION.md` for details.
 - **Retry Logic:**
-  - Pass validation: `validateClientPass()` checks program match, fails open on error
+  - Pass validation: `validateClientPass()` uses ClassId-filtered clientservices, fails closed on error
   - "Already booked" detection: keywords "already", "enrolled", "signed up" → success
   - Payment error + autopay → retry with `RequirePayment: false`
   - Cancel window error → retry with `LateCancel: true`
