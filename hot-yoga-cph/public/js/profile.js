@@ -1400,11 +1400,11 @@
 
   // Subcategories for Daily Classes
   var storeDailySubs = [
-    { id: 'memberships', da: 'Medlemskab', en: 'Membership', desc_da: 'Fast praksis', desc_en: 'Regular practice' },
-    { id: 'clips', da: 'Klippekort', en: 'Clip Cards', desc_da: 'Fleksible besøg', desc_en: 'Occasional visits' },
+    { id: 'memberships', da: 'Medlemskab', en: 'Memberships', desc_da: 'Fast praksis', desc_en: 'Regular practice' },
+    { id: 'timebased', da: 'Tidsbegrænsede pas', en: 'Time-based Passes', desc_da: 'Ubegrænset adgang', desc_en: 'Unlimited pass' },
+    { id: 'clips', da: 'Klippekort', en: 'Clip Cards', desc_da: 'Lejlighedsvise besøg', desc_en: 'Occasional visits' },
     { id: 'trials', da: 'Prøvekort', en: 'Trial Passes', desc_da: 'Prøv os', desc_en: 'Try us' },
-    { id: 'tourist', da: 'Turistpas', en: 'Tourist Pass', desc_da: 'Inkl. måtte & håndklæde', desc_en: 'Incl. mat & towel' },
-    { id: 'timebased', da: 'Tidsbegrænsede', en: 'Time-based', desc_da: 'Ubegrænset adgang', desc_en: 'Unlimited access' }
+    { id: 'tourist', da: 'Turistpas', en: 'Tourist Pass', desc_da: 'Inkl. måtte & håndklæde', desc_en: 'Incl. mat & towel' }
   ];
 
   // ── Hardcoded Product Catalog ──
@@ -1413,24 +1413,24 @@
   var storeCatalog = {
     clips: {
       over30: [
-        { classes: 1, price: 299, perClass: 299, vat: 60, validity: null, label_da: 'Prøv En', label_en: 'Try One', sharing: null, prodId: '100174' },
-        { classes: 2, price: 549, perClass: 274, vat: 110, validity: '10 days', label_da: 'God Start', label_en: 'Great Start', sharing: null, prodId: '100175' },
-        { classes: 3, price: 749, perClass: 249, vat: 150, validity: '20 days', label_da: 'Mærk Resultater', label_en: 'Feel Results', sharing: null, prodId: '100176' },
-        { classes: 5, price: 1199, perClass: 239, vat: 240, validity: '30 days', label_da: 'Populært Valg', label_en: 'Popular Choice', sharing: null, prodId: '100177' },
-        { classes: 10, price: 1999, perClass: 199, vat: 400, validity: '50 days', label_da: 'Spar Mere', label_en: 'Save More', sharing: null, prodId: '100178' },
-        { classes: 20, price: 3599, perClass: 179, vat: 720, validity: '90 days', label_da: 'Smart Tilbud', label_en: 'Smart Deal', sharing: null, prodId: '100179' },
+        { classes: 1, price: 299, perClass: 299, vat: 60, validity: '10 days', label_da: 'Prøv En', label_en: 'Try One', sharing: null, prodId: '100174' },
+        { classes: 2, price: 549, perClass: 274, vat: 110, validity: '20 days', label_da: 'God Start', label_en: 'Great Start', sharing: null, prodId: '100175' },
+        { classes: 3, price: 749, perClass: 249, vat: 150, validity: '30 days', label_da: 'Mærk Resultater', label_en: 'Feel Results', sharing: null, prodId: '100176' },
+        { classes: 5, price: 1199, perClass: 239, vat: 240, validity: '50 days', label_da: 'Populært Valg', label_en: 'Popular Choice', sharing: null, prodId: '100177' },
+        { classes: 10, price: 1999, perClass: 199, vat: 400, validity: '90 days', label_da: 'Spar Mere', label_en: 'Save More', sharing: null, prodId: '100178' },
+        { classes: 20, price: 3599, perClass: 179, vat: 720, validity: '4 months', label_da: 'Smart Tilbud', label_en: 'Smart Deal', sharing: null, prodId: '100179' },
         { classes: 30, price: 4799, perClass: 159, vat: 960, validity: '4 months', label_da: 'Dedikeret Yogi', label_en: 'Dedicated Yogi', sharing: null, prodId: '100180' },
         { classes: 60, price: 7799, perClass: 129, vat: 1560, validity: '9 months', label_da: 'Yoga Partner', label_en: 'Yoga Partner', sharing: { persons: 1, total: 2 }, prodId: '100181' },
         { classes: 100, price: 9999, perClass: 99, vat: 2000, validity: '12 months', label_da: 'Bedste Værdi', label_en: 'Best Value', sharing: { persons: 2, total: 3 }, prodId: '100182' },
         { classes: 200, price: 17999, perClass: 89, vat: 3600, validity: '18 months', label_da: 'Familieplan', label_en: 'Family Plan', sharing: { persons: 3, total: 4 }, prodId: '100183' }
       ],
       under30: [
-        { classes: 1, price: 275, perClass: 275, vat: 0, validity: null, label_da: 'Prøv En', label_en: 'Try One', sharing: null, prodId: '100017' },
-        { classes: 2, price: 495, perClass: 248, vat: 0, validity: '10 days', label_da: 'God Start', label_en: 'Great Start', sharing: null, prodId: '100016' },
-        { classes: 3, price: 645, perClass: 215, vat: 0, validity: '20 days', label_da: 'Mærk Resultater', label_en: 'Feel Results', sharing: null, prodId: '100018' },
-        { classes: 5, price: 975, perClass: 195, vat: 0, validity: '30 days', label_da: 'Populært Valg', label_en: 'Popular Choice', sharing: null, prodId: '100019' },
-        { classes: 10, price: 1750, perClass: 175, vat: 0, validity: '50 days', label_da: 'Spar Mere', label_en: 'Save More', sharing: null, prodId: '100020' },
-        { classes: 20, price: 2900, perClass: 145, vat: 0, validity: '90 days', label_da: 'Smart Tilbud', label_en: 'Smart Deal', sharing: null, prodId: '100021' },
+        { classes: 1, price: 275, perClass: 275, vat: 0, validity: '10 days', label_da: 'Prøv En', label_en: 'Try One', sharing: null, prodId: '100017' },
+        { classes: 2, price: 495, perClass: 248, vat: 0, validity: '20 days', label_da: 'God Start', label_en: 'Great Start', sharing: null, prodId: '100016' },
+        { classes: 3, price: 645, perClass: 215, vat: 0, validity: '30 days', label_da: 'Mærk Resultater', label_en: 'Feel Results', sharing: null, prodId: '100018' },
+        { classes: 5, price: 975, perClass: 195, vat: 0, validity: '50 days', label_da: 'Populært Valg', label_en: 'Popular Choice', sharing: null, prodId: '100019' },
+        { classes: 10, price: 1750, perClass: 175, vat: 0, validity: '90 days', label_da: 'Spar Mere', label_en: 'Save More', sharing: null, prodId: '100020' },
+        { classes: 20, price: 2900, perClass: 145, vat: 0, validity: '4 months', label_da: 'Smart Tilbud', label_en: 'Smart Deal', sharing: null, prodId: '100021' },
         { classes: 30, price: 3750, perClass: 125, vat: 0, validity: '4 months', label_da: 'Dedikeret Yogi', label_en: 'Dedicated Yogi', sharing: null, prodId: '100022' },
         { classes: 60, price: 5950, perClass: 99, vat: 0, validity: '9 months', label_da: 'Yoga Partner', label_en: 'Yoga Partner', sharing: { persons: 1, total: 2 }, prodId: '100023' },
         { classes: 100, price: 8900, perClass: 89, vat: 0, validity: '12 months', label_da: 'Bedste Værdi', label_en: 'Best Value', sharing: { persons: 2, total: 3 }, prodId: '100024' },
@@ -1806,14 +1806,16 @@
       html += '<div class="yb-store__top-cats">';
       storeTopCategories.forEach(function(cat) {
         var count = visibleServices.filter(function(s) { return s._topCategory === cat.id; }).length;
-        if (count === 0) return;
-        html += '<button class="yb-store__top-cat" type="button" data-store-top="' + cat.id + '">';
+        var hasItems = count > 0;
+        var comingSoon = !hasItems && (cat.id === 'teacher' || cat.id === 'courses' || cat.id === 'private');
+        html += '<button class="yb-store__top-cat' + (comingSoon ? ' yb-store__top-cat--soon' : '') + '" type="button" data-store-top="' + cat.id + '"' + (comingSoon ? ' data-store-soon' : '') + '>';
         html += '<div class="yb-store__top-cat-icon">' + cat.icon + '</div>';
         html += '<div class="yb-store__top-cat-text">';
         html += '<span class="yb-store__top-cat-name">' + (isDa() ? cat.da : cat.en) + '</span>';
         html += '<span class="yb-store__top-cat-desc">' + (isDa() ? cat.desc_da : cat.desc_en) + '</span>';
+        if (comingSoon) html += '<span class="yb-store__top-cat-soon">' + (isDa() ? 'Kommer snart' : 'Coming soon') + '</span>';
         html += '</div>';
-        html += '<span class="yb-store__top-cat-count">' + count + '</span>';
+        if (hasItems) html += '<span class="yb-store__top-cat-count">' + count + '</span>';
         html += '<svg class="yb-store__top-cat-arrow" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>';
         html += '</button>';
       });
@@ -1821,8 +1823,21 @@
       container.innerHTML = html;
       container.querySelectorAll('[data-store-top]').forEach(function(btn) {
         btn.addEventListener('click', function() {
+          // "Coming soon" categories show contact info instead of items
+          if (btn.hasAttribute('data-store-soon')) {
+            var catId = btn.getAttribute('data-store-top');
+            var da = isDa();
+            var msgs = {
+              teacher: { da: 'Yogalæreruddannelse — kontakt os for info og tilmelding.', en: 'Yoga Teacher Training — contact us for info and enrollment.' },
+              courses: { da: 'Kurser — nye kurser annonceres snart. Hold øje!', en: 'Courses — new courses will be announced soon. Stay tuned!' },
+              private: { da: 'Privattimer — kontakt os for at booke.', en: 'Private Classes — contact us to book.' }
+            };
+            var msg = msgs[catId] ? (da ? msgs[catId].da : msgs[catId].en) : '';
+            showScheduleToast(msg, 'info');
+            return;
+          }
           storeTopCategory = btn.getAttribute('data-store-top');
-          storeSubCategory = 'all';
+          storeSubCategory = (storeTopCategory === 'daily') ? 'memberships' : 'all';
           storeView = 'items';
           storeSearchQuery = '';
           renderStoreItems(container);
@@ -1855,7 +1870,6 @@
         html += '<button class="yb-store__sub-btn' + (isActive ? ' is-active' : '') + '" type="button" data-store-sub="' + sub.id + '">';
         html += '<span class="yb-store__sub-name">' + (isDa() ? sub.da : sub.en) + '</span>';
         if (sub.desc_da) html += '<span class="yb-store__sub-desc">' + (isDa() ? sub.desc_da : sub.desc_en) + '</span>';
-        html += '<span class="yb-store__sub-count">' + count + '</span>';
         html += '</button>';
       });
       html += '</div>';
@@ -2131,7 +2145,7 @@
     giftCardsData.forEach(function(gc) {
       html += '<div class="yb-giftcards__card" data-gc-id="' + gc.id + '">';
       html += '<div class="yb-giftcards__card-icon">';
-      html += '<svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#3f99a5" stroke-width="1.5"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a4 4 0 0 0-8 0v2"/><line x1="12" y1="11" x2="12" y2="17"/><line x1="9" y1="14" x2="15" y2="14"/></svg>';
+      html += '<svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#f75c03" stroke-width="1.5"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a4 4 0 0 0-8 0v2"/><line x1="12" y1="11" x2="12" y2="17"/><line x1="9" y1="14" x2="15" y2="14"/></svg>';
       html += '</div>';
       html += '<div class="yb-giftcards__card-info">';
       html += '<h3 class="yb-giftcards__card-name">' + esc(gc.description || (da ? 'Gavekort' : 'Gift Card')) + '</h3>';
@@ -3908,7 +3922,11 @@
         : 'Want to cancel the termination? Contact us at <a href="mailto:info@hotyogacph.dk">info@hotyogacph.dk</a>',
       waiver_fallback: isDa()
         ? 'Ved at acceptere denne erklæring bekræfter jeg, at jeg deltager i yogahold hos Hot Yoga Copenhagen på eget ansvar. Jeg er opmærksom på, at yoga indebærer fysisk aktivitet, der kan medføre skader. Jeg bekræfter, at jeg er rask nok til at deltage, og at jeg vil informere underviseren om eventuelle helbredsproblemer eller begrænsninger inden holdet. Hot Yoga Copenhagen er ikke ansvarlig for skader der måtte opstå under eller som følge af undervisningen.'
-        : 'By accepting this waiver, I confirm that I participate in yoga classes at Hot Yoga Copenhagen at my own risk. I am aware that yoga involves physical activity that may result in injury. I confirm that I am healthy enough to participate and that I will inform the instructor of any health issues or limitations before class. Hot Yoga Copenhagen is not liable for injuries that may occur during or as a result of instruction.'
+        : 'By accepting this waiver, I confirm that I participate in yoga classes at Hot Yoga Copenhagen at my own risk. I am aware that yoga involves physical activity that may result in injury. I confirm that I am healthy enough to participate and that I will inform the instructor of any health issues or limitations before class. Hot Yoga Copenhagen is not liable for injuries that may occur during or as a result of instruction.',
+      giftcards_loading: isDa() ? 'Henter gavekort...' : 'Loading gift cards...',
+      giftcard_empty: isDa() ? 'Ingen gavekort tilgængelige.' : 'No gift cards available.',
+      giftcard_select: isDa() ? 'Vælg' : 'Select',
+      giftcard_buy: isDa() ? 'Køb gavekort' : 'Buy gift card'
     };
     return map[key] || key;
   }
