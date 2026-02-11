@@ -2444,12 +2444,12 @@
       });
     });
 
-    // Attach book/cancel handlers
+    // Attach book/cancel handlers (use onclick= so toggles can replace cleanly)
     container.querySelectorAll('[data-schedule-book]').forEach(function(btn) {
-      btn.addEventListener('click', function() { bookClass(btn); });
+      btn.onclick = function() { bookClass(btn); };
     });
     container.querySelectorAll('[data-schedule-cancel]').forEach(function(btn) {
-      btn.addEventListener('click', function() { cancelClass(btn); });
+      btn.onclick = function() { cancelClass(btn); };
     });
     // Attach waitlist handlers
     container.querySelectorAll('[data-schedule-waitlist]').forEach(function(btn) {
@@ -2554,22 +2554,15 @@
   }
 
   /**
-   * Check if the client's active passes cover this class's program.
-   * Only checks services (not contracts directly), because memberships create
-   * corresponding services in MB. This correctly gates workshops/special passes.
+   * Check if the client's active passes could cover this class.
+   * This is a quick client-side pre-check only — the backend (mb-book) does
+   * the authoritative validation including cross-category relationships.
+   * Client-side just checks if the user has ANY active pass at all.
    */
   function clientCanBook(programId) {
     if (!clientPassData) return false; // If pass data not loaded, block until loaded
-    if (!programId) return true; // If class has no program info, let backend decide
-
-    // Check if any active service covers this program
-    var activeServices = clientPassData.activeServices || [];
-    for (var i = 0; i < activeServices.length; i++) {
-      if (activeServices[i].programId === programId) {
-        return true;
-      }
-    }
-    return false;
+    // Let the backend handle program matching (it checks cross-category relationships)
+    return true;
   }
 
   function bookClass(btn) {
@@ -2626,8 +2619,8 @@
           btn.removeAttribute('data-schedule-book');
           btn.setAttribute('data-schedule-cancel', classId);
           btn.disabled = false;
-          // Re-attach as cancel handler
-          btn.addEventListener('click', function() { cancelClass(btn); });
+          // Replace handler (onclick= replaces, addEventListener stacks)
+          btn.onclick = function() { cancelClass(btn); };
           // Refresh pass data (booking uses a clip)
           clientPassData = null;
           loadSchedulePassInfo();
@@ -2699,7 +2692,8 @@
           btn.removeAttribute('data-schedule-cancel');
           btn.setAttribute('data-schedule-book', classId);
           btn.disabled = false;
-          btn.addEventListener('click', function() { bookClass(btn); });
+          // Replace handler (onclick= replaces, addEventListener stacks)
+          btn.onclick = function() { bookClass(btn); };
           // Refresh pass data (cancel returns a clip)
           clientPassData = null;
           loadSchedulePassInfo();
