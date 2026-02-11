@@ -2313,6 +2313,8 @@
         }
       };
       if (gcCustomAmount) gcPostBody.customAmount = Number(gcCustomAmount);
+      // Always send the card's salePrice so the backend can set PaymentInfo.Amount
+      gcPostBody.salePrice = selectedGiftCard.salePrice || selectedGiftCard.value || 0;
 
       fetch('/.netlify/functions/mb-giftcards', {
         method: 'POST',

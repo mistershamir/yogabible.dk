@@ -36,7 +36,7 @@ exports.handler = async (event) => {
     // POST — purchase a gift card
     if (event.httpMethod === 'POST') {
       const body = JSON.parse(event.body || '{}');
-      const { giftCardId, clientId, recipientEmail, recipientName, title, message, deliveryDate, layoutId, locationId, payment, customAmount } = body;
+      const { giftCardId, clientId, recipientEmail, recipientName, title, message, deliveryDate, layoutId, locationId, payment, customAmount, salePrice } = body;
 
       if (!giftCardId || !clientId || !recipientEmail || !recipientName) {
         return jsonResponse(400, { error: 'Missing required fields: giftCardId, clientId, recipientEmail, recipientName' });
@@ -68,10 +68,14 @@ exports.handler = async (event) => {
         }
       };
 
-      // For custom-amount gift cards, set the value
+      // Always set Amount on PaymentInfo — MB requires it
       if (paymentAmount && paymentAmount > 0) {
+        // Custom-amount gift card
         purchaseData.CardValue = paymentAmount;
         purchaseData.PaymentInfo.Amount = String(paymentAmount);
+      } else if (salePrice) {
+        // Fixed-price gift card — use the card's sale price
+        purchaseData.PaymentInfo.Amount = String(parseFloat(salePrice));
       }
 
       if (message) purchaseData.GiftMessage = message;
