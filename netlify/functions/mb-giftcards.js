@@ -46,10 +46,13 @@ exports.handler = async (event) => {
         return jsonResponse(400, { error: 'Payment information is required' });
       }
 
+      // Determine the payment amount (custom amount or default card value)
+      const paymentAmount = customAmount ? parseFloat(customAmount) : null;
+
       const purchaseData = {
         LocationId: parseInt(locationId || '1', 10),
         GiftCardId: parseInt(giftCardId, 10),
-        PurchaserClientId: String(clientId),
+        ClientId: String(clientId),
         RecipientEmail: recipientEmail,
         RecipientName: recipientName,
         Title: title || 'Gift Card',
@@ -64,6 +67,12 @@ exports.handler = async (event) => {
           BillingName: payment.cardHolder || recipientName
         }
       };
+
+      // For custom-amount gift cards, set the value
+      if (paymentAmount && paymentAmount > 0) {
+        purchaseData.CardValue = paymentAmount;
+        purchaseData.PaymentInfo.Amount = String(paymentAmount);
+      }
 
       if (message) purchaseData.GiftMessage = message;
       if (deliveryDate) purchaseData.DeliveryDate = deliveryDate;
@@ -91,8 +100,14 @@ exports.handler = async (event) => {
     return jsonResponse(405, { error: 'Method not allowed' });
   } catch (err) {
     console.error('[mb-giftcards] Error:', err.message, err.data ? JSON.stringify(err.data) : '');
+    // Extract detailed error message from Mindbody response
+    let errorMsg = err.message || 'Gift card operation failed';
+    if (err.data) {
+      if (err.data.Error && err.data.Error.Message) errorMsg = err.data.Error.Message;
+      else if (err.data.Message) errorMsg = err.data.Message;
+    }
     return jsonResponse(err.status || 500, {
-      error: err.message || 'Gift card operation failed',
+      error: errorMsg,
       _debug: err.data || null
     });
   }

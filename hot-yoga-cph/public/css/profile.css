@@ -4591,6 +4591,15 @@ body.hyc-page .yb-profile__hero::before {
   white-space: nowrap;
 }
 
+.yb-giftcards__option-price--custom {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--yb-orange);
+  background: rgba(247, 92, 3, 0.08);
+  padding: 0.25rem 0.65rem;
+  border-radius: 20px;
+}
+
 /* Empty state / fallback */
 .yb-giftcards__empty {
   text-align: center;

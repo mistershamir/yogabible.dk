@@ -2195,12 +2195,17 @@
     var html = '';
     giftCardsData.forEach(function(gc) {
       var isSelected = selectedGiftCard && String(selectedGiftCard.id) === String(gc.id);
-      html += '<div class="yb-giftcards__option' + (isSelected ? ' is-selected' : '') + '" data-gc-id="' + gc.id + '">';
+      var isCustom = gc.editableByConsumer;
+      html += '<div class="yb-giftcards__option' + (isSelected ? ' is-selected' : '') + (isCustom ? ' yb-giftcards__option--custom' : '') + '" data-gc-id="' + gc.id + '">';
       html += '<div class="yb-giftcards__option-left">';
       html += '<span class="yb-giftcards__option-name">' + esc(gc.description || (da ? 'Gavekort' : 'Gift Card')) + '</span>';
       if (gc.terms) html += '<span class="yb-giftcards__option-terms">' + esc(gc.terms) + '</span>';
       html += '</div>';
-      html += '<span class="yb-giftcards__option-price">' + formatDKK(gc.salePrice || gc.value) + '</span>';
+      if (isCustom) {
+        html += '<span class="yb-giftcards__option-price yb-giftcards__option-price--custom">' + (da ? 'Valgfrit beløb' : 'Custom amount') + '</span>';
+      } else {
+        html += '<span class="yb-giftcards__option-price">' + formatDKK(gc.salePrice || gc.value) + '</span>';
+      }
       html += '</div>';
     });
     container.innerHTML = html;
@@ -2224,10 +2229,6 @@
           var customAmountField = document.getElementById('yb-gc-custom-amount-field');
           if (customAmountField) {
             customAmountField.hidden = !selectedGiftCard.editableByConsumer;
-            if (selectedGiftCard.editableByConsumer) {
-              var amtInput = document.getElementById('yb-gc-custom-amount');
-              if (amtInput && !amtInput.value) amtInput.value = selectedGiftCard.salePrice || selectedGiftCard.value || '';
-            }
           }
           // Pre-fill cardholder
           var gcHolder = document.getElementById('yb-gc-cardholder');
