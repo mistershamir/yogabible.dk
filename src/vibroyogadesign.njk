@@ -1,706 +1,1018 @@
 ---
 layout: false
-title: "Vibro Yoga — Feel the Frequency"
-description: "Vibro Yoga combines whole-body vibration technology with traditional yoga for a transformative mind-body experience. Premium infrared studio in Copenhagen."
 permalink: /vibroyogadesign/
 eleventyExcludeFromCollections: true
+noindex: true
 ---
 <!DOCTYPE html>
-<html lang="en">
+<html lang="da">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>{{ title }}</title>
-  <meta name="description" content="{{ description }}">
   <meta name="robots" content="noindex, nofollow">
+  <title>Vibro Yoga Design Playground</title>
 
-  <!-- Fonts (Abacaxi from main project) -->
-  <link rel="preload" href="/assets/fonts/AbacaxiLatinWeb-Regular.woff2" as="font" type="font/woff2" crossorigin>
-  <link rel="preload" href="/assets/fonts/AbacaxiLatinWeb-Bold.woff2" as="font" type="font/woff2" crossorigin>
+  <!-- Font Face Declarations -->
   <style>
     @font-face {
       font-family: 'Abacaxi';
-      src: url('/assets/fonts/AbacaxiLatinWeb-Regular.woff2') format('woff2'),
-           url('/assets/fonts/AbacaxiLatinWeb-Regular.woff') format('woff');
-      font-weight: 400; font-style: normal; font-display: swap;
+      src: url('/assets/fonts/AbacaxiLatinWeb-Regular.woff2') format('woff2');
+      font-weight: 400;
+      font-style: normal;
+      font-display: swap;
     }
     @font-face {
       font-family: 'Abacaxi';
-      src: url('/assets/fonts/AbacaxiLatinWeb-Bold.woff2') format('woff2'),
-           url('/assets/fonts/AbacaxiLatinWeb-Bold.woff') format('woff');
-      font-weight: 700; font-style: normal; font-display: swap;
+      src: url('/assets/fonts/AbacaxiLatinWeb-Bold.woff2') format('woff2');
+      font-weight: 700;
+      font-style: normal;
+      font-display: swap;
     }
-    html { scroll-behavior: smooth; }
-    body { margin: 0; padding: 0; background: #0a0a0a; overflow-x: hidden; }
   </style>
+
   <link rel="stylesheet" href="/css/vibroyoga.css">
 </head>
 <body>
 
-<!-- Progress Bar -->
-<div class="vy-progress-bar" style="position:fixed;top:0;left:0;height:3px;width:0;background:linear-gradient(90deg,#3f99a5,#5ab8c4);z-index:999;transition:width 0.1s;"></div>
-
-<div class="vy">
-
-<!-- ═══════════════════════════════════════════════════════
-     NAVIGATION
-     ═══════════════════════════════════════════════════════ -->
-<nav class="vy-nav" role="navigation">
-  <div class="vy-nav__inner">
-    <a href="#" class="vy-nav__logo">
-      <span class="vy-nav__logo-icon">V</span>
-      Vibro Yoga
-    </a>
-    <ul class="vy-nav__links">
-      <li><a href="#about">About</a></li>
-      <li><a href="#classes">Classes</a></li>
-      <li><a href="#pricing">Pricing</a></li>
-      <li><a href="#reviews">Reviews</a></li>
-      <li><a href="#book" class="vy-nav__cta">Book a Class</a></li>
-    </ul>
-    <button class="vy-nav__toggle" aria-label="Open menu">
-      <span></span><span></span><span></span>
-    </button>
-  </div>
-</nav>
-
-<!-- Mobile Nav Drawer -->
-<div class="vy-mobile-nav__overlay"></div>
-<div class="vy-mobile-nav">
-  <button class="vy-mobile-nav__close" aria-label="Close menu">&times;</button>
-  <ul class="vy-mobile-nav__links">
-    <li><a href="#about">About</a></li>
-    <li><a href="#classes">Classes</a></li>
-    <li><a href="#pricing">Pricing</a></li>
-    <li><a href="#reviews">Reviews</a></li>
-    <li><a href="#book" class="vy-btn vy-btn--primary vy-btn--full" style="margin-top:16px;">Book a Class</a></li>
-  </ul>
-</div>
-
-
-<!-- ═══════════════════════════════════════════════════════
-     HERO — Full-Screen Cinematic
-     ═══════════════════════════════════════════════════════ -->
-<section class="vy-hero">
-  <div class="vy-hero__bg">
-    <img src="https://images.unsplash.com/photo-1545389336-cf090694435e?w=1920&q=80&auto=format&fit=crop"
-         alt="Vibro Yoga class in infrared studio"
-         loading="eager">
-  </div>
-  <div class="vy-hero__glow"></div>
-  <div class="vy-hero__content">
-    <p class="vy-hero__eyebrow">Copenhagen's First Vibro Studio</p>
-    <h1 class="vy-hero__title">Feel the<br><em>Frequency</em></h1>
-    <p class="vy-hero__subtitle">
-      Vibro Yoga fuses whole-body vibration technology with yoga &amp; meditation.
-      Deeper stretches. Faster recovery. A practice unlike anything you've tried.
-    </p>
-    <div class="vy-hero__ctas">
-      <a href="#book" class="vy-btn vy-btn--primary vy-btn--large">Book Your First Class</a>
-      <a href="#about" class="vy-btn vy-btn--outline vy-btn--large">Learn More</a>
+  <!-- Design Switcher Nav -->
+  <nav class="vyd-switcher">
+    <div class="vyd-switcher__inner">
+      <button class="vyd-btn vyd-btn--active" data-design="1">Design 1</button>
+      <button class="vyd-btn" data-design="2">Design 2</button>
+      <button class="vyd-btn" data-design="3">Design 3</button>
+      <button class="vyd-btn" data-design="4">Design 4</button>
+      <button class="vyd-btn" data-design="5">Design 5</button>
+      <button class="vyd-btn" data-design="6">Design 6</button>
+      <button class="vyd-btn" data-design="7">Design 7</button>
     </div>
-  </div>
-  <div class="vy-hero__scroll">
-    <span>Scroll</span>
-    <div class="vy-hero__scroll-line"></div>
-  </div>
-</section>
+  </nav>
 
+  <!-- ========================================
+       DESIGN 1: DARK CINEMATIC
+       ======================================== -->
+  <div class="vyd-panel" data-panel="1">
+    <div class="vy">
 
-<!-- ═══════════════════════════════════════════════════════
-     TRUST BAR — Key Stats
-     ═══════════════════════════════════════════════════════ -->
-<section class="vy-trust">
-  <div class="vy-trust__inner vy-reveal">
-    <div class="vy-trust__item">
-      <span class="vy-trust__number" data-vy-count="500" data-vy-suffix="+">0</span>
-      <span class="vy-trust__label">5-Star Reviews</span>
-    </div>
-    <div class="vy-trust__item">
-      <span class="vy-trust__number" data-vy-count="10" data-vy-suffix=" yrs">0</span>
-      <span class="vy-trust__label">Since 2014</span>
-    </div>
-    <div class="vy-trust__item">
-      <span class="vy-trust__number" data-vy-count="45" data-vy-suffix="+">0</span>
-      <span class="vy-trust__label">Classes / Week</span>
-    </div>
-    <div class="vy-trust__item">
-      <span class="vy-trust__number" data-vy-count="18" data-vy-suffix=" max">0</span>
-      <span class="vy-trust__label">Students / Class</span>
-    </div>
-  </div>
-</section>
+      <!-- Navigation -->
+      <nav class="vy-nav">
+        <div class="vy-nav__inner">
+          <a href="#" class="vy-nav__logo">Vibro Yoga</a>
+          <div class="vy-nav__links">
+            <a href="#about" class="vy-nav__link">About</a>
+            <a href="#classes" class="vy-nav__link">Classes</a>
+            <a href="#pricing" class="vy-nav__link">Pricing</a>
+            <a href="#reviews" class="vy-nav__link">Reviews</a>
+            <a href="#book" class="vy-nav__btn">Book a Class</a>
+          </div>
+          <button class="vy-nav__toggle" aria-label="Toggle menu">
+            <span></span>
+            <span></span>
+            <span></span>
+          </button>
+        </div>
+      </nav>
 
-
-<!-- ═══════════════════════════════════════════════════════
-     MARQUEE — Brand Energy
-     ═══════════════════════════════════════════════════════ -->
-<section class="vy-section--dark">
-  <div class="vy-marquee">
-    <div class="vy-marquee__track">
-      <span class="vy-marquee__item">Vibro Yoga</span>
-      <span class="vy-marquee__item">Hot Yoga</span>
-      <span class="vy-marquee__item">Vinyasa Flow</span>
-      <span class="vy-marquee__item">Yin Yoga</span>
-      <span class="vy-marquee__item">Meditation</span>
-      <span class="vy-marquee__item">Infrared Heat</span>
-      <span class="vy-marquee__item">Christianshavn</span>
-      <span class="vy-marquee__item">Copenhagen</span>
-      <!-- Duplicate for seamless loop -->
-      <span class="vy-marquee__item">Vibro Yoga</span>
-      <span class="vy-marquee__item">Hot Yoga</span>
-      <span class="vy-marquee__item">Vinyasa Flow</span>
-      <span class="vy-marquee__item">Yin Yoga</span>
-      <span class="vy-marquee__item">Meditation</span>
-      <span class="vy-marquee__item">Infrared Heat</span>
-      <span class="vy-marquee__item">Christianshavn</span>
-      <span class="vy-marquee__item">Copenhagen</span>
-    </div>
-  </div>
-</section>
-
-
-<!-- ═══════════════════════════════════════════════════════
-     WHAT IS VIBRO YOGA — Split Section
-     ═══════════════════════════════════════════════════════ -->
-<section class="vy-section vy-section--dark" id="about">
-  <div class="vy-container">
-    <div class="vy-split">
-      <div class="vy-split__media vy-reveal-left">
-        <img src="https://images.unsplash.com/photo-1506126613408-eca07ce68773?w=800&q=80&auto=format&fit=crop"
-             alt="Yoga practitioner on vibration platform"
-             loading="lazy">
-        <div class="vy-split__media-accent"></div>
-      </div>
-      <div class="vy-split__content vy-reveal-right">
-        <p class="vy-section__eyebrow">What is Vibro Yoga?</p>
-        <h2 class="vy-split__title">Innovation in Relaxation &amp; Restorative Practice</h2>
-        <p class="vy-split__text">
-          Vibro Yoga is a pioneering wellness practice that combines whole-body vibration platforms
-          with carefully sequenced yoga postures. The gentle vibrations activate deep muscle fibres,
-          improve circulation, and enhance flexibility — letting you go deeper into every pose.
-        </p>
-        <p class="vy-split__text">
-          Practised in our state-of-the-art infrared studio at 30–35°C, the warmth works with
-          the vibrations to release tension, reduce stress hormones, and create a profoundly
-          meditative experience. It's yoga, amplified.
-        </p>
-        <a href="#classes" class="vy-btn vy-btn--dark">Explore Our Classes →</a>
-      </div>
-    </div>
-  </div>
-</section>
-
-
-<!-- ═══════════════════════════════════════════════════════
-     BENEFITS — Feature Cards
-     ═══════════════════════════════════════════════════════ -->
-<section class="vy-section vy-section--surface">
-  <div class="vy-container">
-    <div class="vy-section__header vy-reveal">
-      <p class="vy-section__eyebrow">Benefits</p>
-      <h2 class="vy-section__title">Why Your Body Will Thank You</h2>
-      <p class="vy-section__subtitle">
-        Vibro Yoga delivers results you can feel from your very first session.
-        Here's what the science and our 500+ members say.
-      </p>
-    </div>
-    <div class="vy-features vy-stagger vy-reveal">
-      <div class="vy-feature">
-        <div class="vy-feature__icon">🔥</div>
-        <h3 class="vy-feature__title">Deeper Stretches</h3>
-        <p class="vy-feature__text">
-          Vibration platforms relax muscle spindles, allowing you to safely push 20–30% deeper into each posture
-          from the very first class.
-        </p>
-      </div>
-      <div class="vy-feature">
-        <div class="vy-feature__icon">⚡</div>
-        <h3 class="vy-feature__title">Faster Recovery</h3>
-        <p class="vy-feature__text">
-          Increased blood flow and lymphatic drainage accelerate post-workout recovery.
-          Athletes and office workers alike feel the difference.
-        </p>
-      </div>
-      <div class="vy-feature">
-        <div class="vy-feature__icon">🧘</div>
-        <h3 class="vy-feature__title">Stress Relief</h3>
-        <p class="vy-feature__text">
-          The vibration frequency stimulates the parasympathetic nervous system, lowering cortisol
-          and promoting deep relaxation within minutes.
-        </p>
-      </div>
-      <div class="vy-feature">
-        <div class="vy-feature__icon">💪</div>
-        <h3 class="vy-feature__title">Core Activation</h3>
-        <p class="vy-feature__text">
-          Unstable surface training engages stabiliser muscles you didn't know you had.
-          Even simple poses become a full-body workout.
-        </p>
-      </div>
-      <div class="vy-feature">
-        <div class="vy-feature__icon">🦴</div>
-        <h3 class="vy-feature__title">Bone Density</h3>
-        <p class="vy-feature__text">
-          Whole-body vibration is clinically shown to stimulate osteoblast activity,
-          supporting bone health — especially important as we age.
-        </p>
-      </div>
-      <div class="vy-feature">
-        <div class="vy-feature__icon">🌙</div>
-        <h3 class="vy-feature__title">Better Sleep</h3>
-        <p class="vy-feature__text">
-          Members consistently report improved sleep quality. The combination of heat,
-          vibration, and mindful movement resets your nervous system.
-        </p>
-      </div>
-    </div>
-  </div>
-</section>
-
-
-<!-- ═══════════════════════════════════════════════════════
-     HOW IT WORKS — Steps
-     ═══════════════════════════════════════════════════════ -->
-<section class="vy-section vy-section--dark">
-  <div class="vy-container">
-    <div class="vy-section__header vy-reveal">
-      <p class="vy-section__eyebrow">Your First Visit</p>
-      <h2 class="vy-section__title">How It Works</h2>
-      <p class="vy-section__subtitle">
-        We make your first time effortless. Everything you need is here.
-      </p>
-    </div>
-    <div class="vy-steps vy-stagger vy-reveal">
-      <div class="vy-step">
-        <div class="vy-step__number">01</div>
-        <h3 class="vy-step__title">Book Online</h3>
-        <p class="vy-step__text">
-          Choose your class and time. We recommend our Vibro Yin or Vibro Hatha for first-timers.
-          Arrive 10–15 minutes early for a studio tour.
-        </p>
-      </div>
-      <div class="vy-step">
-        <div class="vy-step__number">02</div>
-        <h3 class="vy-step__title">Settle In</h3>
-        <p class="vy-step__text">
-          We provide the vibration platform. Bring your mat and towel, or rent ours.
-          The infrared heat gently warms you as the instructor guides the session.
-        </p>
-      </div>
-      <div class="vy-step">
-        <div class="vy-step__number">03</div>
-        <h3 class="vy-step__title">Feel the Difference</h3>
-        <p class="vy-step__text">
-          After class, enjoy our complimentary herbal tea and a chilled essential oil towel.
-          Most people are hooked after just one session.
-        </p>
-      </div>
-    </div>
-  </div>
-</section>
-
-
-<!-- ═══════════════════════════════════════════════════════
-     SPLIT SECTION — The Studio
-     ═══════════════════════════════════════════════════════ -->
-<section class="vy-section vy-section--surface">
-  <div class="vy-container">
-    <div class="vy-split vy-split--reverse">
-      <div class="vy-split__media vy-reveal-right">
-        <img src="https://images.unsplash.com/photo-1600618528240-fb9fc964b853?w=800&q=80&auto=format&fit=crop"
-             alt="Premium yoga studio interior with infrared panels"
-             loading="lazy">
-      </div>
-      <div class="vy-split__content vy-reveal-left">
-        <p class="vy-section__eyebrow">The Studio</p>
-        <h2 class="vy-split__title">Christianshavn's Premium Yoga Studio</h2>
-        <p class="vy-split__text">
-          Located at Torvegade 66, steps from Christianshavn Metro, our intimate studio
-          accommodates just 18 students per class — ensuring personal attention and space to breathe.
-        </p>
-        <p class="vy-split__text">
-          Two state-of-the-art studios feature advanced infrared heating, humidity control, and
-          air conditioning. Every detail is designed for your comfort and practice.
-        </p>
-        <div style="display:flex;gap:12px;flex-wrap:wrap;">
-          <a href="#book" class="vy-btn vy-btn--primary">Visit Us</a>
-          <a href="#" class="vy-btn vy-btn--dark">Virtual Tour →</a>
+      <!-- Mobile Nav Drawer -->
+      <div class="vy-nav-drawer">
+        <div class="vy-nav-drawer__inner">
+          <button class="vy-nav-drawer__close" aria-label="Close menu">&times;</button>
+          <a href="#about" class="vy-nav-drawer__link">About</a>
+          <a href="#classes" class="vy-nav-drawer__link">Classes</a>
+          <a href="#pricing" class="vy-nav-drawer__link">Pricing</a>
+          <a href="#reviews" class="vy-nav-drawer__link">Reviews</a>
+          <a href="#book" class="vy-nav-drawer__btn">Book a Class</a>
         </div>
       </div>
-    </div>
-  </div>
-</section>
 
-
-<!-- ═══════════════════════════════════════════════════════
-     CLASSES — Horizontal Scroll
-     ═══════════════════════════════════════════════════════ -->
-<section class="vy-section vy-section--dark" id="classes">
-  <div class="vy-container">
-    <div class="vy-section__header vy-reveal">
-      <p class="vy-section__eyebrow">Our Classes</p>
-      <h2 class="vy-section__title">A Class for Every Body</h2>
-      <p class="vy-section__subtitle">
-        All classes are taught in English. All levels welcome.
-        Capacity limited to 18 students for an intimate experience.
-      </p>
-    </div>
-  </div>
-  <div class="vy-container" style="max-width:none;padding-left:clamp(20px,4vw,48px);">
-    <div class="vy-classes-scroll vy-reveal">
-      <!-- Vibro Yin -->
-      <article class="vy-class-card">
-        <img class="vy-class-card__img"
-             src="https://images.unsplash.com/photo-1552196563-55cd4e45efb3?w=640&q=80&auto=format&fit=crop"
-             alt="Yin yoga class" loading="lazy">
-        <div class="vy-class-card__body">
-          <span class="vy-class-card__badge">Vibro</span>
-          <h3 class="vy-class-card__title">Vibro Yin</h3>
-          <p class="vy-class-card__text">
-            Long-held postures on the vibration platform. Deep fascial release, profound
-            relaxation. The ultimate restorative experience.
-          </p>
-          <div class="vy-class-card__meta">
-            <span>🕐 60 min</span>
-            <span>🌡️ 30°C</span>
-            <span>All levels</span>
+      <!-- Hero Section -->
+      <section class="vy-hero">
+        <div class="vy-hero__bg" style="background-image: url('https://images.unsplash.com/photo-1545389336-cf090694435e?w=1920&q=80');"></div>
+        <div class="vy-hero__glow"></div>
+        <div class="vy-hero__content">
+          <h1 class="vy-hero__title vy-reveal">
+            Feel the <em>Frequency</em>
+          </h1>
+          <p class="vy-hero__subtitle vy-reveal">Experience yoga amplified by vibration technology in the heart of Christianshavn</p>
+          <div class="vy-hero__actions vy-reveal">
+            <a href="#book" class="vy-btn vy-btn--primary">Book Your First Class</a>
+            <a href="#about" class="vy-btn vy-btn--ghost">Learn More</a>
           </div>
         </div>
-      </article>
+        <div class="vy-hero__scroll">
+          <span>Scroll to explore</span>
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+            <path d="M12 5v14m0 0l7-7m-7 7l-7-7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div>
+      </section>
 
-      <!-- Vibro Hatha -->
-      <article class="vy-class-card">
-        <img class="vy-class-card__img"
-             src="https://images.unsplash.com/photo-1599901860904-17e6ed7083a0?w=640&q=80&auto=format&fit=crop"
-             alt="Hatha yoga class" loading="lazy">
-        <div class="vy-class-card__body">
-          <span class="vy-class-card__badge">Vibro</span>
-          <h3 class="vy-class-card__title">Vibro Hatha</h3>
-          <p class="vy-class-card__text">
-            Traditional Hatha postures enhanced with vibration. Build strength
-            and flexibility with the added challenge of an unstable surface.
-          </p>
-          <div class="vy-class-card__meta">
-            <span>🕐 60 min</span>
-            <span>🌡️ 33°C</span>
-            <span>All levels</span>
+      <!-- Trust Bar -->
+      <section class="vy-trust">
+        <div class="vy-trust__inner">
+          <div class="vy-trust__item vy-reveal">
+            <div class="vy-trust__number" data-vy-count="500">0</div>
+            <div class="vy-trust__label">Happy Students</div>
+          </div>
+          <div class="vy-trust__item vy-reveal">
+            <div class="vy-trust__number" data-vy-count="10">0</div>
+            <div class="vy-trust__label">Years in CPH</div>
+          </div>
+          <div class="vy-trust__item vy-reveal">
+            <div class="vy-trust__number" data-vy-count="45">0</div>
+            <div class="vy-trust__label">Classes per Week</div>
+          </div>
+          <div class="vy-trust__item vy-reveal">
+            <div class="vy-trust__number" data-vy-count="18">0</div>
+            <div class="vy-trust__label">Max Class Size</div>
           </div>
         </div>
-      </article>
+      </section>
 
-      <!-- Hot Vinyasa -->
-      <article class="vy-class-card">
-        <img class="vy-class-card__img"
-             src="https://images.unsplash.com/photo-1518611012118-696072aa579a?w=640&q=80&auto=format&fit=crop"
-             alt="Vinyasa flow class" loading="lazy">
-        <div class="vy-class-card__body">
-          <span class="vy-class-card__badge">Hot</span>
-          <h3 class="vy-class-card__title">Hot Vinyasa</h3>
-          <p class="vy-class-card__text">
-            Flowing sequences linked with breath in infrared heat.
-            Build strength, flexibility, and endurance in one dynamic practice.
-          </p>
-          <div class="vy-class-card__meta">
-            <span>🕐 60 min</span>
-            <span>🌡️ 35°C</span>
-            <span>All levels</span>
+      <!-- Marquee Ticker -->
+      <div class="vy-marquee">
+        <div class="vy-marquee__track">
+          <span class="vy-marquee__item">Vibro Yoga</span>
+          <span class="vy-marquee__item">Hot Yoga</span>
+          <span class="vy-marquee__item">Vinyasa Flow</span>
+          <span class="vy-marquee__item">Yin Yoga</span>
+          <span class="vy-marquee__item">Hatha Yoga</span>
+          <span class="vy-marquee__item">Vibro Yoga</span>
+          <span class="vy-marquee__item">Hot Yoga</span>
+          <span class="vy-marquee__item">Vinyasa Flow</span>
+          <span class="vy-marquee__item">Yin Yoga</span>
+          <span class="vy-marquee__item">Hatha Yoga</span>
+        </div>
+      </div>
+
+      <!-- About Section -->
+      <section id="about" class="vy-section">
+        <div class="vy-split">
+          <div class="vy-split__image vy-reveal-left">
+            <img src="https://images.unsplash.com/photo-1506126613408-eca07ce68773?w=800&q=80" alt="Vibro Yoga Platform">
+          </div>
+          <div class="vy-split__content vy-reveal-right">
+            <div class="vy-eyebrow">About Vibro Yoga</div>
+            <h2 class="vy-heading">Your Practice, <em>Amplified</em></h2>
+            <p>Vibro Yoga combines traditional yoga poses with gentle vibration technology. Our custom platforms send controlled vibrations through your body as you hold each pose, activating deeper muscle layers and enhancing your practice.</p>
+            <p>The result? Faster flexibility gains, improved circulation, and a full-body experience that goes beyond traditional yoga. Whether you're a beginner or experienced yogi, vibration adds a new dimension to your practice.</p>
+            <a href="#classes" class="vy-link">Explore our classes →</a>
           </div>
         </div>
-      </article>
+      </section>
 
-      <!-- Hot Hatha -->
-      <article class="vy-class-card">
-        <img class="vy-class-card__img"
-             src="https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?w=640&q=80&auto=format&fit=crop"
-             alt="Hot Hatha yoga" loading="lazy">
-        <div class="vy-class-card__body">
-          <span class="vy-class-card__badge">Hot</span>
-          <h3 class="vy-class-card__title">Hot Hatha</h3>
-          <p class="vy-class-card__text">
-            Classical Hatha postures held with precision in the heat.
-            Perfect for building a solid foundation and deep body awareness.
-          </p>
-          <div class="vy-class-card__meta">
-            <span>🕐 60 min</span>
-            <span>🌡️ 35°C</span>
-            <span>All levels</span>
+      <!-- Benefits Section -->
+      <section class="vy-section vy-section--dark">
+        <div class="vy-section__inner">
+          <div class="vy-section__header vy-reveal">
+            <div class="vy-eyebrow vy-eyebrow--light">Why Vibro Yoga</div>
+            <h2 class="vy-heading vy-heading--light">Backed by Science, <em>Felt by You</em></h2>
+          </div>
+          <div class="vy-features vy-stagger">
+            <div class="vy-feature vy-reveal-scale">
+              <div class="vy-feature__icon">🧘‍♀️</div>
+              <h3 class="vy-feature__title">Deeper Stretches</h3>
+              <p class="vy-feature__text">Vibration relaxes muscles faster, allowing you to safely reach deeper into each pose.</p>
+            </div>
+            <div class="vy-feature vy-reveal-scale">
+              <div class="vy-feature__icon">⚡</div>
+              <h3 class="vy-feature__title">Faster Recovery</h3>
+              <p class="vy-feature__text">Improved blood flow helps your body recover quicker between sessions.</p>
+            </div>
+            <div class="vy-feature vy-reveal-scale">
+              <div class="vy-feature__icon">🌊</div>
+              <h3 class="vy-feature__title">Stress Relief</h3>
+              <p class="vy-feature__text">The gentle vibrations trigger your parasympathetic nervous system, promoting deep relaxation.</p>
+            </div>
+            <div class="vy-feature vy-reveal-scale">
+              <div class="vy-feature__icon">💪</div>
+              <h3 class="vy-feature__title">Core Activation</h3>
+              <p class="vy-feature__text">Constant micro-adjustments engage stabilizer muscles throughout your practice.</p>
+            </div>
+            <div class="vy-feature vy-reveal-scale">
+              <div class="vy-feature__icon">🦴</div>
+              <h3 class="vy-feature__title">Bone Density</h3>
+              <p class="vy-feature__text">Regular vibration training has been shown to support healthy bone density.</p>
+            </div>
+            <div class="vy-feature vy-reveal-scale">
+              <div class="vy-feature__icon">😴</div>
+              <h3 class="vy-feature__title">Better Sleep</h3>
+              <p class="vy-feature__text">Students report improved sleep quality after regular Vibro Yoga sessions.</p>
+            </div>
           </div>
         </div>
-      </article>
+      </section>
 
-      <!-- Yin Yoga -->
-      <article class="vy-class-card">
-        <img class="vy-class-card__img"
-             src="https://images.unsplash.com/photo-1510894347713-fc3ed6fdf539?w=640&q=80&auto=format&fit=crop"
-             alt="Yin yoga meditation" loading="lazy">
-        <div class="vy-class-card__body">
-          <span class="vy-class-card__badge">Non-Heated</span>
-          <h3 class="vy-class-card__title">Yin Yoga</h3>
-          <p class="vy-class-card__text">
-            Slow-paced, meditative practice with postures held 3–5 minutes.
-            Deep connective tissue release and nervous system reset.
-          </p>
-          <div class="vy-class-card__meta">
-            <span>🕐 75 min</span>
-            <span>🌡️ Room temp</span>
-            <span>All levels</span>
+      <!-- How It Works -->
+      <section class="vy-section">
+        <div class="vy-section__inner">
+          <div class="vy-section__header vy-reveal">
+            <div class="vy-eyebrow">How It Works</div>
+            <h2 class="vy-heading">Simple to Start, <em>Profound to Experience</em></h2>
+          </div>
+          <div class="vy-steps vy-stagger">
+            <div class="vy-step vy-reveal">
+              <div class="vy-step__number">01</div>
+              <h3 class="vy-step__title">Book Online</h3>
+              <p class="vy-step__text">Choose your class time and secure your spot on our vibration platform.</p>
+            </div>
+            <div class="vy-step vy-reveal">
+              <div class="vy-step__number">02</div>
+              <h3 class="vy-step__title">Settle In</h3>
+              <p class="vy-step__text">Arrive 10 minutes early. Our instructors will guide you through the setup.</p>
+            </div>
+            <div class="vy-step vy-reveal">
+              <div class="vy-step__number">03</div>
+              <h3 class="vy-step__title">Feel the Difference</h3>
+              <p class="vy-step__text">Flow through poses as gentle vibrations amplify your practice from within.</p>
+            </div>
           </div>
         </div>
-      </article>
+      </section>
 
-      <!-- Combo Class -->
-      <article class="vy-class-card">
-        <img class="vy-class-card__img"
-             src="https://images.unsplash.com/photo-1588286840104-8957b019727f?w=640&q=80&auto=format&fit=crop"
-             alt="Combo yoga class" loading="lazy">
-        <div class="vy-class-card__body">
-          <span class="vy-class-card__badge">Combo</span>
-          <h3 class="vy-class-card__title">Vinyasa + Yin</h3>
-          <p class="vy-class-card__text">
-            The best of both worlds. 30 minutes of energising Vinyasa flow
-            followed by 30 minutes of restorative Yin. Our #1 recommended starter class.
-          </p>
-          <div class="vy-class-card__meta">
-            <span>🕐 60 min</span>
-            <span>🌡️ 33°C</span>
-            <span>Beginners</span>
+      <!-- Studio Section -->
+      <section class="vy-section vy-section--light">
+        <div class="vy-split vy-split--reverse">
+          <div class="vy-split__image vy-reveal-right">
+            <img src="https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?w=800&q=80" alt="Vibro Yoga Studio">
+          </div>
+          <div class="vy-split__content vy-reveal-left">
+            <div class="vy-eyebrow">Our Studio</div>
+            <h2 class="vy-heading">Modern Space, <em>Ancient Practice</em></h2>
+            <p>Located in the heart of Christianshavn, our boutique studio features state-of-the-art vibration platforms, infrared heating, and a serene atmosphere designed for deep practice.</p>
+            <p>With a maximum of 18 students per class, you'll receive personalized attention while experiencing the transformative power of Vibro Yoga in an intimate setting.</p>
+            <ul class="vy-checklist">
+              <li>18 custom vibration platforms</li>
+              <li>Infrared heating system</li>
+              <li>Premium changing facilities</li>
+              <li>Mats & towels provided</li>
+            </ul>
           </div>
         </div>
-      </article>
+      </section>
+
+      <!-- Classes Section -->
+      <section id="classes" class="vy-section vy-section--dark">
+        <div class="vy-section__header vy-reveal">
+          <div class="vy-eyebrow vy-eyebrow--light">Class Schedule</div>
+          <h2 class="vy-heading vy-heading--light">Find Your <em>Flow</em></h2>
+          <p class="vy-section__intro">From gentle restoration to challenging flows, we offer classes for every level and intention.</p>
+        </div>
+        <div class="vy-classes-scroll">
+          <div class="vy-classes-track">
+            <div class="vy-class-card vy-reveal-scale">
+              <div class="vy-class-card__badge">Most Popular</div>
+              <div class="vy-class-card__image" style="background-image: url('https://images.unsplash.com/photo-1506126613408-eca07ce68773?w=600&q=80');"></div>
+              <div class="vy-class-card__content">
+                <h3 class="vy-class-card__title">Vibro Yin Yoga</h3>
+                <div class="vy-class-card__meta">
+                  <span>60 min</span>
+                  <span>All Levels</span>
+                  <span>25°C</span>
+                </div>
+                <p class="vy-class-card__text">Deep, passive stretches held for 3-5 minutes on vibrating platforms. Perfect for flexibility and relaxation.</p>
+              </div>
+            </div>
+            <div class="vy-class-card vy-reveal-scale">
+              <div class="vy-class-card__image" style="background-image: url('https://images.unsplash.com/photo-1545389336-cf090694435e?w=600&q=80');"></div>
+              <div class="vy-class-card__content">
+                <h3 class="vy-class-card__title">Vibro Hatha</h3>
+                <div class="vy-class-card__meta">
+                  <span>75 min</span>
+                  <span>Beginner+</span>
+                  <span>27°C</span>
+                </div>
+                <p class="vy-class-card__text">Classical poses with vibration enhancement. Build strength and flexibility with longer holds.</p>
+              </div>
+            </div>
+            <div class="vy-class-card vy-reveal-scale">
+              <div class="vy-class-card__badge">Challenge</div>
+              <div class="vy-class-card__image" style="background-image: url('https://images.unsplash.com/photo-1599901860904-17e6ed7083a0?w=600&q=80');"></div>
+              <div class="vy-class-card__content">
+                <h3 class="vy-class-card__title">Hot Vinyasa Flow</h3>
+                <div class="vy-class-card__meta">
+                  <span>60 min</span>
+                  <span>Intermediate</span>
+                  <span>38°C</span>
+                </div>
+                <p class="vy-class-card__text">Dynamic flow in a heated room. Build heat, strength, and endurance with continuous movement.</p>
+              </div>
+            </div>
+            <div class="vy-class-card vy-reveal-scale">
+              <div class="vy-class-card__image" style="background-image: url('https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?w=600&q=80');"></div>
+              <div class="vy-class-card__content">
+                <h3 class="vy-class-card__title">Hot Hatha</h3>
+                <div class="vy-class-card__meta">
+                  <span>90 min</span>
+                  <span>All Levels</span>
+                  <span>40°C</span>
+                </div>
+                <p class="vy-class-card__text">Traditional 26-pose sequence in high heat. Our signature hot yoga experience.</p>
+              </div>
+            </div>
+            <div class="vy-class-card vy-reveal-scale">
+              <div class="vy-class-card__image" style="background-image: url('https://images.unsplash.com/photo-1506126613408-eca07ce68773?w=600&q=80');"></div>
+              <div class="vy-class-card__content">
+                <h3 class="vy-class-card__title">Yin Yoga</h3>
+                <div class="vy-class-card__meta">
+                  <span>75 min</span>
+                  <span>All Levels</span>
+                  <span>25°C</span>
+                </div>
+                <p class="vy-class-card__text">Pure yin practice without vibration. Meditative, floor-based poses for deep release.</p>
+              </div>
+            </div>
+            <div class="vy-class-card vy-reveal-scale">
+              <div class="vy-class-card__badge">Weekend Special</div>
+              <div class="vy-class-card__image" style="background-image: url('https://images.unsplash.com/photo-1545389336-cf090694435e?w=600&q=80');"></div>
+              <div class="vy-class-card__content">
+                <h3 class="vy-class-card__title">Vinyasa + Yin Combo</h3>
+                <div class="vy-class-card__meta">
+                  <span>90 min</span>
+                  <span>All Levels</span>
+                  <span>28°C</span>
+                </div>
+                <p class="vy-class-card__text">45 minutes of energizing flow followed by 45 minutes of restorative yin. The best of both worlds.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Pricing Section -->
+      <section id="pricing" class="vy-section">
+        <div class="vy-section__inner">
+          <div class="vy-section__header vy-reveal">
+            <div class="vy-eyebrow">Pricing</div>
+            <h2 class="vy-heading">Flexible Plans for <em>Your Schedule</em></h2>
+            <p class="vy-section__intro">No signup fees. Cancel or pause anytime. First class is always free.</p>
+          </div>
+          <div class="vy-pricing">
+            <div class="vy-pricing-card vy-reveal-scale">
+              <h3 class="vy-pricing-card__title">Essentials</h3>
+              <div class="vy-pricing-card__price">
+                <span class="vy-pricing-card__amount">799</span>
+                <span class="vy-pricing-card__currency">kr/måned</span>
+              </div>
+              <ul class="vy-pricing-card__features">
+                <li>8 classes per month</li>
+                <li>Valid 30 days</li>
+                <li>Rollover 2 unused classes</li>
+                <li>Book 7 days ahead</li>
+              </ul>
+              <a href="#book" class="vy-btn vy-btn--outline">Choose Plan</a>
+            </div>
+            <div class="vy-pricing-card vy-pricing-card--featured vy-reveal-scale">
+              <div class="vy-pricing-card__badge">Most Popular</div>
+              <h3 class="vy-pricing-card__title">Unlimited</h3>
+              <div class="vy-pricing-card__price">
+                <span class="vy-pricing-card__amount">999</span>
+                <span class="vy-pricing-card__currency">kr/måned</span>
+              </div>
+              <ul class="vy-pricing-card__features">
+                <li>Unlimited classes</li>
+                <li>Book 14 days ahead</li>
+                <li>Bring a friend once/month</li>
+                <li>10% off workshops</li>
+                <li>Priority booking</li>
+              </ul>
+              <a href="#book" class="vy-btn vy-btn--primary">Choose Plan</a>
+            </div>
+            <div class="vy-pricing-card vy-reveal-scale">
+              <h3 class="vy-pricing-card__title">Premium</h3>
+              <div class="vy-pricing-card__price">
+                <span class="vy-pricing-card__amount">1499</span>
+                <span class="vy-pricing-card__currency">kr/måned</span>
+              </div>
+              <ul class="vy-pricing-card__features">
+                <li>Everything in Unlimited</li>
+                <li>2 private sessions/month</li>
+                <li>Personalized program</li>
+                <li>Nutrition guidance</li>
+                <li>VIP events access</li>
+              </ul>
+              <a href="#book" class="vy-btn vy-btn--outline">Choose Plan</a>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Testimonials Section -->
+      <section id="reviews" class="vy-section vy-section--light">
+        <div class="vy-section__inner">
+          <div class="vy-section__header vy-reveal">
+            <div class="vy-eyebrow">Student Stories</div>
+            <h2 class="vy-heading">What Our <em>Community</em> Says</h2>
+          </div>
+          <div class="vy-testimonials">
+            <div class="vy-testimonial vy-reveal-scale">
+              <div class="vy-testimonial__stars">★★★★★</div>
+              <p class="vy-testimonial__text">"I was skeptical about the vibration aspect, but after my first Vibro Yin class, I was sold. My flexibility improved noticeably within weeks, and I leave every class feeling completely relaxed."</p>
+              <div class="vy-testimonial__author">
+                <div class="vy-testimonial__avatar" style="background-image: url('https://i.pravatar.cc/100?img=47');"></div>
+                <div>
+                  <div class="vy-testimonial__name">Maria K.</div>
+                  <div class="vy-testimonial__role">Member since 2023</div>
+                </div>
+              </div>
+            </div>
+            <div class="vy-testimonial vy-reveal-scale">
+              <div class="vy-testimonial__stars">★★★★★</div>
+              <p class="vy-testimonial__text">"As a runner, I was looking for something to help with recovery and flexibility. Vibro Yoga has become my secret weapon. My muscles recover faster, and I've avoided injuries all season."</p>
+              <div class="vy-testimonial__author">
+                <div class="vy-testimonial__avatar" style="background-image: url('https://i.pravatar.cc/100?img=12');"></div>
+                <div>
+                  <div class="vy-testimonial__name">Thomas N.</div>
+                  <div class="vy-testimonial__role">Member since 2022</div>
+                </div>
+              </div>
+            </div>
+            <div class="vy-testimonial vy-reveal-scale">
+              <div class="vy-testimonial__stars">★★★★★</div>
+              <p class="vy-testimonial__text">"The studio is beautiful, the instructors are knowledgeable, and the vibration technology adds something truly special to the practice. I've tried yoga at many places, but this is different."</p>
+              <div class="vy-testimonial__author">
+                <div class="vy-testimonial__avatar" style="background-image: url('https://i.pravatar.cc/100?img=32');"></div>
+                <div>
+                  <div class="vy-testimonial__name">Sarah L.</div>
+                  <div class="vy-testimonial__role">Member since 2024</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- CTA Section -->
+      <section id="book" class="vy-cta-section">
+        <div class="vy-cta__inner vy-reveal">
+          <h2 class="vy-cta__title">Ready to Feel the <em>Frequency</em>?</h2>
+          <p class="vy-cta__text">Your first class is free. No experience necessary. Just bring an open mind.</p>
+          <a href="#" class="vy-btn vy-btn--primary vy-btn--large">Book Your Free Class</a>
+        </div>
+      </section>
+
+      <!-- Footer -->
+      <footer class="vy-footer">
+        <div class="vy-footer__inner">
+          <div class="vy-footer__col">
+            <h3 class="vy-footer__logo">Vibro Yoga</h3>
+            <p class="vy-footer__text">Experience yoga amplified by vibration technology in Christianshavn, Copenhagen.</p>
+          </div>
+          <div class="vy-footer__col">
+            <h4 class="vy-footer__heading">Studio</h4>
+            <ul class="vy-footer__links">
+              <li><a href="#about">About</a></li>
+              <li><a href="#classes">Classes</a></li>
+              <li><a href="#pricing">Pricing</a></li>
+              <li><a href="#">Schedule</a></li>
+            </ul>
+          </div>
+          <div class="vy-footer__col">
+            <h4 class="vy-footer__heading">Visit</h4>
+            <address class="vy-footer__text">
+              Torvegade 45<br>
+              1400 København K<br>
+              Denmark
+            </address>
+          </div>
+          <div class="vy-footer__col">
+            <h4 class="vy-footer__heading">Connect</h4>
+            <ul class="vy-footer__links">
+              <li><a href="mailto:hello@vibroyoga.dk">hello@vibroyoga.dk</a></li>
+              <li><a href="tel:+4512345678">+45 12 34 56 78</a></li>
+              <li><a href="#">Instagram</a></li>
+              <li><a href="#">Facebook</a></li>
+            </ul>
+          </div>
+        </div>
+        <div class="vy-footer__bottom">
+          <p>&copy; 2024 Vibro Yoga. All rights reserved.</p>
+        </div>
+      </footer>
+
     </div>
   </div>
-</section>
 
+  <!-- ========================================
+       DESIGN 2: LIGHT MINIMALIST
+       ======================================== -->
+  <div class="vyd-panel" data-panel="2" style="display:none">
+    <div class="vy2">
 
-<!-- ═══════════════════════════════════════════════════════
-     PRICING
-     ═══════════════════════════════════════════════════════ -->
-<section class="vy-section vy-section--surface" id="pricing">
-  <div class="vy-container">
-    <div class="vy-section__header vy-reveal">
-      <p class="vy-section__eyebrow">Pricing</p>
-      <h2 class="vy-section__title">Invest in Your Practice</h2>
-      <p class="vy-section__subtitle">
-        First month free on all memberships. Start any date. Cancel anytime with 1 month notice.
-        All options include full access to every class type.
-      </p>
-    </div>
-    <div class="vy-pricing vy-stagger vy-reveal">
-      <!-- Essentials -->
-      <div class="vy-price-card">
-        <h3 class="vy-price-card__name">Essentials</h3>
-        <p class="vy-price-card__desc">Ideal for regular practice. 1–3 classes per week.</p>
-        <div class="vy-price-card__price">
-          <span class="vy-price-card__amount">799 DKK</span>
-          <span class="vy-price-card__period"> / month</span>
+      <!-- Hero -->
+      <section class="vy2-hero">
+        <div class="vy2-hero__inner">
+          <h1 class="vy2-hero__title">The Art of Stillness</h1>
+          <div class="vy2-hero__accent"></div>
+          <p class="vy2-hero__subtitle">Yoga refined by vibration</p>
+          <a href="#" class="vy2-btn">Begin Practice</a>
         </div>
-        <p class="vy-price-card__note">First month free</p>
-        <div class="vy-price-card__divider"></div>
-        <ul class="vy-price-card__features">
-          <li>All class types — Hot, Vibro, Non-heated</li>
-          <li>Book during all opening hours</li>
-          <li>Herbal tea &amp; post-class treats</li>
-          <li>Showers &amp; changing rooms</li>
-          <li>Cancel anytime, 1 month notice</li>
-        </ul>
-        <a href="#book" class="vy-btn vy-btn--dark vy-btn--full">Get Started</a>
-      </div>
+      </section>
 
-      <!-- Unlimited (Featured) -->
-      <div class="vy-price-card vy-price-card--featured">
-        <span class="vy-price-card__popular">Most Popular</span>
-        <h3 class="vy-price-card__name">Unlimited</h3>
-        <p class="vy-price-card__desc">Come as often as you want. Full freedom.</p>
-        <div class="vy-price-card__price">
-          <span class="vy-price-card__amount">999 DKK</span>
-          <span class="vy-price-card__period"> / month</span>
-        </div>
-        <p class="vy-price-card__note">First month free</p>
-        <div class="vy-price-card__divider"></div>
-        <ul class="vy-price-card__features">
-          <li>Unlimited classes per month</li>
-          <li>All class types &amp; all time slots</li>
-          <li>Herbal tea &amp; post-class treats</li>
-          <li>Showers, towels &amp; changing rooms</li>
-          <li>Priority booking for popular classes</li>
-          <li>Cancel anytime, 1 month notice</li>
-        </ul>
-        <a href="#book" class="vy-btn vy-btn--primary vy-btn--full">Get Started</a>
-      </div>
-
-      <!-- Premium -->
-      <div class="vy-price-card">
-        <h3 class="vy-price-card__name">Premium</h3>
-        <p class="vy-price-card__desc">Full comfort and priority. The ultimate experience.</p>
-        <div class="vy-price-card__price">
-          <span class="vy-price-card__amount">1,499 DKK</span>
-          <span class="vy-price-card__period"> / month</span>
-        </div>
-        <p class="vy-price-card__note">First month free</p>
-        <div class="vy-price-card__divider"></div>
-        <ul class="vy-price-card__features">
-          <li>Everything in Unlimited</li>
-          <li>Premium mat &amp; towel service</li>
-          <li>Guest passes (2 / month)</li>
-          <li>Early access to workshops</li>
-          <li>Exclusive member events</li>
-          <li>Pause up to 3 months, no fee</li>
-        </ul>
-        <a href="#book" class="vy-btn vy-btn--dark vy-btn--full">Get Started</a>
-      </div>
-    </div>
-
-    <p style="text-align:center;margin-top:32px;font-size:0.82rem;color:#999;">
-      Under 30 — VAT-free prices. 30+ — prices include VAT per Danish tax law effective Jan 2026.<br>
-      One-time registration fee of 275 DKK on all memberships. Clip cards &amp; gift cards also available.
-    </p>
-  </div>
-</section>
-
-
-<!-- ═══════════════════════════════════════════════════════
-     TESTIMONIALS
-     ═══════════════════════════════════════════════════════ -->
-<section class="vy-section vy-section--dark" id="reviews">
-  <div class="vy-container">
-    <div class="vy-section__header vy-reveal">
-      <p class="vy-section__eyebrow">Reviews</p>
-      <h2 class="vy-section__title">Trusted by 500+ Happy Yogis</h2>
-      <p class="vy-section__subtitle">
-        Rated 4.9/5 across 500+ reviews. Here's what our community says.
-      </p>
-    </div>
-    <div class="vy-testimonials vy-stagger vy-reveal">
-      <div class="vy-testimonial">
-        <div class="vy-testimonial__stars">★★★★★</div>
-        <p class="vy-testimonial__text">
-          "The Vibro Yin class completely changed my recovery game. I'm a runner and after
-          just three sessions my hip flexibility improved dramatically. The studio is impeccable
-          and the teachers are truly world-class."
-        </p>
-        <div class="vy-testimonial__author">
-          <div class="vy-testimonial__avatar">MK</div>
-          <div>
-            <div class="vy-testimonial__name">Maria K.</div>
-            <div class="vy-testimonial__role">Member since 2022</div>
+      <!-- About -->
+      <section class="vy2-section">
+        <div class="vy2-about">
+          <div class="vy2-about__col">
+            <p>Vibro Yoga is the intersection of ancient practice and modern technology. We've spent years refining our approach—gentle vibrations that enhance, never distract.</p>
+            <p>Each platform is calibrated to match your body's natural frequencies, creating resonance that deepens every pose.</p>
+          </div>
+          <div class="vy2-about__divider"></div>
+          <div class="vy2-about__col">
+            <p>The result is immediate: muscles release faster, joints open more freely, and your mind settles into a state of calm alertness.</p>
+            <p>This is yoga as it was meant to be felt—pure, powerful, transformative.</p>
           </div>
         </div>
-      </div>
-      <div class="vy-testimonial">
-        <div class="vy-testimonial__stars">★★★★★</div>
-        <p class="vy-testimonial__text">
-          "I was sceptical about the vibration platforms but after my first class I was
-          completely hooked. The frozen face towel with essential oils at the end is such
-          a beautiful touch. Best yoga studio in Copenhagen, hands down."
-        </p>
-        <div class="vy-testimonial__author">
-          <div class="vy-testimonial__avatar">TN</div>
-          <div>
-            <div class="vy-testimonial__name">Thomas N.</div>
-            <div class="vy-testimonial__role">Member since 2023</div>
+      </section>
+
+      <!-- Features -->
+      <section class="vy2-section vy2-section--gray">
+        <div class="vy2-features">
+          <div class="vy2-feature">
+            <div class="vy2-feature__accent"></div>
+            <h3 class="vy2-feature__title">Deeper Practice</h3>
+            <p class="vy2-feature__text">Vibration technology allows you to access poses and depths previously unavailable. Your practice evolves naturally, without force.</p>
+          </div>
+          <div class="vy2-feature">
+            <div class="vy2-feature__accent"></div>
+            <h3 class="vy2-feature__title">Scientific Foundation</h3>
+            <p class="vy2-feature__text">Our approach is backed by research in neuromuscular activation, fascia release, and parasympathetic response. Every session is optimized.</p>
+          </div>
+          <div class="vy2-feature">
+            <div class="vy2-feature__accent"></div>
+            <h3 class="vy2-feature__title">Intimate Studio</h3>
+            <p class="vy2-feature__text">Maximum 18 students. Every detail considered. From lighting to acoustics, the space supports your journey inward.</p>
           </div>
         </div>
-      </div>
-      <div class="vy-testimonial">
-        <div class="vy-testimonial__stars">★★★★★</div>
-        <p class="vy-testimonial__text">
-          "The intimate class size (max 18) makes all the difference. Every teacher knows your
-          name and adjusts poses for your body. I've tried every studio in CPH — this one is
-          on another level. The hot Vinyasa + Yin combo is pure magic."
-        </p>
-        <div class="vy-testimonial__author">
-          <div class="vy-testimonial__avatar">SL</div>
-          <div>
-            <div class="vy-testimonial__name">Sarah L.</div>
-            <div class="vy-testimonial__role">Member since 2021</div>
+      </section>
+
+      <!-- CTA -->
+      <section class="vy2-cta">
+        <div class="vy2-cta__inner">
+          <h2 class="vy2-cta__title">Begin your practice</h2>
+          <a href="#" class="vy2-btn vy2-btn--outline">Book First Class</a>
+        </div>
+      </section>
+
+      <!-- Footer -->
+      <footer class="vy2-footer">
+        <div class="vy2-footer__inner">
+          <p>Vibro Yoga — Christianshavn, Copenhagen</p>
+          <p><a href="mailto:hello@vibroyoga.dk">hello@vibroyoga.dk</a></p>
+        </div>
+      </footer>
+
+    </div>
+  </div>
+
+  <!-- ========================================
+       DESIGN 3: BOLD SPLIT-SCREEN
+       ======================================== -->
+  <div class="vyd-panel" data-panel="3" style="display:none">
+    <div class="vy3">
+
+      <!-- Hero -->
+      <section class="vy3-hero">
+        <div class="vy3-hero__left">
+          <h1 class="vy3-hero__title">VIBRO<br>YOGA</h1>
+          <p class="vy3-hero__subtitle">Technology meets tradition</p>
+          <a href="#" class="vy3-btn">BOOK NOW</a>
+        </div>
+        <div class="vy3-hero__right" style="background-image: url('https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?w=1200&q=80');"></div>
+      </section>
+
+      <!-- Stats Bar -->
+      <section class="vy3-stats">
+        <div class="vy3-stats__inner">
+          <div class="vy3-stat">
+            <div class="vy3-stat__number">500+</div>
+            <div class="vy3-stat__label">ACTIVE MEMBERS</div>
+          </div>
+          <div class="vy3-stat">
+            <div class="vy3-stat__number">10</div>
+            <div class="vy3-stat__label">YEARS IN CPH</div>
+          </div>
+          <div class="vy3-stat">
+            <div class="vy3-stat__number">45</div>
+            <div class="vy3-stat__label">WEEKLY CLASSES</div>
+          </div>
+          <div class="vy3-stat">
+            <div class="vy3-stat__number">18</div>
+            <div class="vy3-stat__label">MAX CAPACITY</div>
           </div>
         </div>
-      </div>
-    </div>
-  </div>
-</section>
+      </section>
 
-
-<!-- ═══════════════════════════════════════════════════════
-     CTA — Full-Width Teal Band
-     ═══════════════════════════════════════════════════════ -->
-<section class="vy-cta-section" id="book">
-  <div class="vy-container vy-reveal-scale">
-    <h2 class="vy-cta-section__title">Ready to Feel the Frequency?</h2>
-    <p class="vy-cta-section__text">
-      Book your first class today. First month free on all memberships.
-      No experience needed — just bring an open mind.
-    </p>
-    <div style="display:flex;gap:16px;justify-content:center;flex-wrap:wrap;">
-      <a href="#" class="vy-btn vy-btn--white vy-btn--large">Book a Class</a>
-      <a href="#pricing" class="vy-btn vy-btn--outline vy-btn--large" style="border-color:rgba(255,255,255,0.4);">View Pricing</a>
-    </div>
-  </div>
-</section>
-
-
-<!-- ═══════════════════════════════════════════════════════
-     FOOTER
-     ═══════════════════════════════════════════════════════ -->
-<footer class="vy-footer">
-  <div class="vy-container">
-    <div class="vy-footer__grid">
-      <div>
-        <div class="vy-footer__brand-name">
-          <span class="vy-nav__logo-icon" style="width:30px;height:30px;font-size:0.75rem;">V</span>
-          Vibro Yoga
+      <!-- Content Block 1 -->
+      <section class="vy3-block vy3-block--dark">
+        <div class="vy3-block__inner">
+          <div class="vy3-block__content">
+            <h2 class="vy3-block__title">THE VIBRATION DIFFERENCE</h2>
+            <p class="vy3-block__text">Our custom platforms send controlled vibrations through your body as you hold each pose. This activates deeper muscle layers, increases blood flow, and allows you to safely reach new depths in your practice.</p>
+            <p class="vy3-block__text">Backed by sports science. Refined by 10 years of teaching. Felt immediately.</p>
+          </div>
         </div>
-        <p class="vy-footer__brand-desc">
-          Copenhagen's first Vibro Yoga studio. Whole-body vibration meets traditional yoga
-          in an intimate infrared setting. Since 2014.
-        </p>
-      </div>
-      <div>
-        <h4 class="vy-footer__heading">Studio</h4>
-        <ul class="vy-footer__links">
-          <li><a href="#about">About Us</a></li>
-          <li><a href="#classes">Classes</a></li>
-          <li><a href="#">Schedule</a></li>
-          <li><a href="#">Teachers</a></li>
-          <li><a href="#">First Timers</a></li>
-        </ul>
-      </div>
-      <div>
-        <h4 class="vy-footer__heading">Memberships</h4>
-        <ul class="vy-footer__links">
-          <li><a href="#pricing">Pricing</a></li>
-          <li><a href="#">Clip Cards</a></li>
-          <li><a href="#">Gift Cards</a></li>
-          <li><a href="#">Private Classes</a></li>
-          <li><a href="#">Teacher Training</a></li>
-        </ul>
-      </div>
-      <div>
-        <h4 class="vy-footer__heading">Visit Us</h4>
-        <ul class="vy-footer__links">
-          <li><a href="#">Torvegade 66</a></li>
-          <li><a href="#">1400 København K</a></li>
-          <li><a href="#">Christianshavn</a></li>
-          <li><a href="mailto:info@vibroyoga.dk">info@vibroyoga.dk</a></li>
-          <li><a href="tel:+4553881209">+45 53 88 12 09</a></li>
-        </ul>
-      </div>
-    </div>
+      </section>
 
-    <div class="vy-footer__bottom">
-      <span>&copy; 2026 Vibro Yoga. All rights reserved.</span>
-      <div class="vy-footer__social">
-        <a href="#" aria-label="Instagram">📷</a>
-        <a href="#" aria-label="Facebook">📘</a>
-        <a href="#" aria-label="TikTok">🎵</a>
-      </div>
+      <!-- Content Block 2 -->
+      <section class="vy3-block vy3-block--light">
+        <div class="vy3-block__inner">
+          <div class="vy3-block__split">
+            <div class="vy3-block__image" style="background-image: url('https://images.unsplash.com/photo-1506126613408-eca07ce68773?w=800&q=80');"></div>
+            <div class="vy3-block__content">
+              <h2 class="vy3-block__title">CHRISTIANSHAVN STUDIO</h2>
+              <p class="vy3-block__text">Located in the heart of Copenhagen's creative district. 18 state-of-the-art vibration platforms. Infrared heating. Premium facilities.</p>
+              <p class="vy3-block__text">A space designed for transformation.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- CTA -->
+      <section class="vy3-cta">
+        <div class="vy3-cta__inner">
+          <h2 class="vy3-cta__title">YOUR MAT IS WAITING</h2>
+          <a href="#" class="vy3-btn vy3-btn--outline">BOOK FIRST CLASS FREE</a>
+        </div>
+      </section>
+
     </div>
   </div>
-</footer>
 
-</div><!-- /.vy -->
+  <!-- ========================================
+       DESIGN 4: WARM ORGANIC
+       ======================================== -->
+  <div class="vyd-panel" data-panel="4" style="display:none">
+    <div class="vy4">
 
-<script src="/js/vibroyoga.js"></script>
+      <!-- Hero -->
+      <section class="vy4-hero">
+        <div class="vy4-hero__inner">
+          <div class="vy4-hero__image">
+            <img src="https://images.unsplash.com/photo-1506126613408-eca07ce68773?w=1000&q=80" alt="Vibro Yoga">
+          </div>
+          <div class="vy4-hero__card">
+            <h1 class="vy4-hero__title">Find Your Flow</h1>
+            <p class="vy4-hero__text">Experience the gentle power of Vibro Yoga in our intimate Christianshavn studio</p>
+            <a href="#" class="vy4-btn">Start Your Journey</a>
+          </div>
+        </div>
+      </section>
+
+      <!-- Benefits -->
+      <section class="vy4-section">
+        <div class="vy4-section__inner">
+          <h2 class="vy4-section__title">Why Students Love Vibro Yoga</h2>
+          <div class="vy4-benefits">
+            <div class="vy4-benefit">
+              <div class="vy4-benefit__icon">🌱</div>
+              <h3 class="vy4-benefit__title">Gentle on Joints</h3>
+              <p class="vy4-benefit__text">Vibration reduces the effort needed to deepen poses, making yoga accessible for all bodies and ages.</p>
+            </div>
+            <div class="vy4-benefit">
+              <div class="vy4-benefit__icon">✨</div>
+              <h3 class="vy4-benefit__title">Feel It Immediately</h3>
+              <p class="vy4-benefit__text">Most students notice improved flexibility and relaxation after their very first session.</p>
+            </div>
+            <div class="vy4-benefit">
+              <div class="vy4-benefit__icon">💆‍♀️</div>
+              <h3 class="vy4-benefit__title">Deep Relaxation</h3>
+              <p class="vy4-benefit__text">The vibrations naturally calm your nervous system, creating profound states of rest and recovery.</p>
+            </div>
+            <div class="vy4-benefit">
+              <div class="vy4-benefit__icon">🏡</div>
+              <h3 class="vy4-benefit__title">Warm Community</h3>
+              <p class="vy4-benefit__text">Small class sizes and welcoming instructors make our studio feel like a second home.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Quote -->
+      <section class="vy4-quote">
+        <div class="vy4-quote__inner">
+          <p class="vy4-quote__text">"I never knew yoga could feel this good. The vibration makes everything easier and more effective at the same time."</p>
+          <p class="vy4-quote__author">— Emma, student since 2022</p>
+        </div>
+      </section>
+
+      <!-- CTA -->
+      <section class="vy4-cta">
+        <div class="vy4-cta__inner">
+          <h2 class="vy4-cta__title">Ready to experience the difference?</h2>
+          <p class="vy4-cta__text">Your first class is free. No experience needed.</p>
+          <a href="#" class="vy4-btn">Book Your Free Class</a>
+        </div>
+      </section>
+
+      <!-- Footer -->
+      <footer class="vy4-footer">
+        <div class="vy4-footer__inner">
+          <p>Vibro Yoga &middot; Torvegade 45, Christianshavn</p>
+          <p>hello@vibroyoga.dk &middot; +45 12 34 56 78</p>
+        </div>
+      </footer>
+
+    </div>
+  </div>
+
+  <!-- ========================================
+       DESIGN 5: EDITORIAL MAGAZINE
+       ======================================== -->
+  <div class="vyd-panel" data-panel="5" style="display:none">
+    <div class="vy5">
+
+      <!-- Hero -->
+      <section class="vy5-hero" style="background-image: url('https://images.unsplash.com/photo-1600618528240-fb9fc964b853?w=1600&q=80');">
+        <div class="vy5-hero__number">01</div>
+        <div class="vy5-hero__content">
+          <h1 class="vy5-hero__title">Vibro Yoga</h1>
+          <p class="vy5-hero__subtitle">Where technology enhances tradition</p>
+        </div>
+      </section>
+
+      <!-- Grid Section -->
+      <section class="vy5-section">
+        <div class="vy5-grid">
+          <div class="vy5-grid__large">
+            <img src="https://images.unsplash.com/photo-1506126613408-eca07ce68773?w=900&q=80" alt="Yoga Practice">
+          </div>
+          <div class="vy5-grid__stack">
+            <div class="vy5-grid__text">
+              <h2 class="vy5-grid__title">The Science of Vibration</h2>
+              <p>For thousands of years, practitioners have sought ways to deepen their yoga practice. At Vibro Yoga, we've found a tool that honors tradition while embracing innovation.</p>
+              <p>Controlled vibrations—gentle, precise, scientifically calibrated—activate muscles and fascia in ways static poses cannot. The result is faster progress, deeper relaxation, and a practice that feels both ancient and utterly modern.</p>
+            </div>
+            <div class="vy5-grid__small">
+              <img src="https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?w=600&q=80" alt="Studio">
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Pull Quote -->
+      <section class="vy5-quote">
+        <div class="vy5-quote__inner">
+          <p class="vy5-quote__text">In stillness, we find movement. In vibration, we find peace.</p>
+        </div>
+      </section>
+
+      <!-- About -->
+      <section class="vy5-section">
+        <div class="vy5-about">
+          <div class="vy5-about__content">
+            <h3 class="vy5-about__label">STUDIO</h3>
+            <h2 class="vy5-about__title">Christianshavn</h2>
+            <p>Our studio sits in the heart of Copenhagen's most creative neighborhood. Eighteen custom vibration platforms. Natural light. A community of practitioners who support each other's growth.</p>
+            <p>Classes range from gentle Yin sessions to challenging Hot Vinyasa flows. Every instructor is trained not just in yoga, but in the specific techniques required for vibration-enhanced practice.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- CTA -->
+      <section class="vy5-cta">
+        <div class="vy5-cta__inner">
+          <p class="vy5-cta__text">EXPERIENCE VIBRO YOGA</p>
+          <a href="#" class="vy5-cta__link">Book your first class</a>
+        </div>
+      </section>
+
+      <!-- Footer -->
+      <footer class="vy5-footer">
+        <div class="vy5-footer__inner">
+          <div class="vy5-footer__col">
+            <p>Vibro Yoga</p>
+            <p>Torvegade 45</p>
+            <p>1400 København K</p>
+          </div>
+          <div class="vy5-footer__col">
+            <p>hello@vibroyoga.dk</p>
+            <p>+45 12 34 56 78</p>
+          </div>
+        </div>
+      </footer>
+
+    </div>
+  </div>
+
+  <!-- ========================================
+       DESIGN 6: VIBRO — SCROLL FREQUENCY
+       ======================================== -->
+  <div class="vyd-panel" data-panel="6" style="display:none">
+    <div class="vy6">
+
+      <!-- Hero with Wave Canvas -->
+      <section class="vy6-hero">
+        <canvas class="vy6-wave-canvas"></canvas>
+        <div class="vy6-hero__content">
+          <h1 class="vy6-hero__title">
+            <span class="vy6-vibrate-letter">F</span><span class="vy6-vibrate-letter">E</span><span class="vy6-vibrate-letter">E</span><span class="vy6-vibrate-letter">L</span>
+            <span class="vy6-vibrate-letter"> </span>
+            <span class="vy6-vibrate-letter">T</span><span class="vy6-vibrate-letter">H</span><span class="vy6-vibrate-letter">E</span>
+            <br>
+            <span class="vy6-vibrate-letter">V</span><span class="vy6-vibrate-letter">I</span><span class="vy6-vibrate-letter">B</span><span class="vy6-vibrate-letter">R</span><span class="vy6-vibrate-letter">A</span><span class="vy6-vibrate-letter">T</span><span class="vy6-vibrate-letter">I</span><span class="vy6-vibrate-letter">O</span><span class="vy6-vibrate-letter">N</span>
+          </h1>
+          <p class="vy6-hero__subtitle">Your body is an instrument. We help you find its frequency.</p>
+        </div>
+      </section>
+
+      <!-- Frequency Bars Section -->
+      <section class="vy6-section">
+        <div class="vy6-section__inner">
+          <div class="vy6-freq-bars">
+            <div class="vy6-freq-bar"></div>
+            <div class="vy6-freq-bar"></div>
+            <div class="vy6-freq-bar"></div>
+            <div class="vy6-freq-bar"></div>
+            <div class="vy6-freq-bar"></div>
+            <div class="vy6-freq-bar"></div>
+            <div class="vy6-freq-bar"></div>
+            <div class="vy6-freq-bar"></div>
+            <div class="vy6-freq-bar"></div>
+            <div class="vy6-freq-bar"></div>
+            <div class="vy6-freq-bar"></div>
+            <div class="vy6-freq-bar"></div>
+            <div class="vy6-freq-bar"></div>
+            <div class="vy6-freq-bar"></div>
+            <div class="vy6-freq-bar"></div>
+            <div class="vy6-freq-bar"></div>
+            <div class="vy6-freq-bar"></div>
+            <div class="vy6-freq-bar"></div>
+            <div class="vy6-freq-bar"></div>
+            <div class="vy6-freq-bar"></div>
+            <div class="vy6-freq-bar"></div>
+            <div class="vy6-freq-bar"></div>
+            <div class="vy6-freq-bar"></div>
+            <div class="vy6-freq-bar"></div>
+            <div class="vy6-freq-bar"></div>
+            <div class="vy6-freq-bar"></div>
+            <div class="vy6-freq-bar"></div>
+            <div class="vy6-freq-bar"></div>
+            <div class="vy6-freq-bar"></div>
+            <div class="vy6-freq-bar"></div>
+            <div class="vy6-freq-bar"></div>
+            <div class="vy6-freq-bar"></div>
+            <div class="vy6-freq-bar"></div>
+            <div class="vy6-freq-bar"></div>
+            <div class="vy6-freq-bar"></div>
+            <div class="vy6-freq-bar"></div>
+            <div class="vy6-freq-bar"></div>
+            <div class="vy6-freq-bar"></div>
+            <div class="vy6-freq-bar"></div>
+            <div class="vy6-freq-bar"></div>
+          </div>
+          <div class="vy6-section__content">
+            <h2 class="vy6-section__title">The Technology</h2>
+            <p class="vy6-section__text">Our platforms generate precise vibrations between 10-50Hz. This range matches your body's natural frequencies—the rhythm of muscle contractions, the oscillation of fascia, the pulse of blood through vessels.</p>
+            <p class="vy6-section__text">When external vibration resonates with internal rhythms, transformation happens. Muscles release. Joints open. The nervous system settles into parasympathetic calm.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- Wave Divider -->
+      <div class="vy6-wave-divider">
+        <svg viewBox="0 0 1440 60" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M0 30 C 120 10, 240 10, 360 30 S 600 50, 720 30 S 960 10, 1080 30 S 1320 50, 1440 30 V 60 H 0 Z" fill="rgba(63, 153, 165, 0.1)"/>
+        </svg>
+      </div>
+
+      <!-- Resonance Cards -->
+      <section class="vy6-section vy6-section--dark">
+        <div class="vy6-section__inner">
+          <h2 class="vy6-section__title vy6-section__title--center">Resonance</h2>
+          <div class="vy6-resonance-cards">
+            <div class="vy6-resonance-card">
+              <h3 class="vy6-resonance-card__title">Muscle Activation</h3>
+              <p class="vy6-resonance-card__text">Vibration triggers involuntary muscle contractions, activating deep stabilizers and core muscles that are difficult to engage consciously.</p>
+            </div>
+            <div class="vy6-resonance-card">
+              <h3 class="vy6-resonance-card__title">Fascia Release</h3>
+              <p class="vy6-resonance-card__text">High-frequency oscillations help break up fascial adhesions and increase tissue hydration, improving mobility and reducing pain.</p>
+            </div>
+            <div class="vy6-resonance-card">
+              <h3 class="vy6-resonance-card__title">Nervous System</h3>
+              <p class="vy6-resonance-card__text">The rhythmic input signals safety to your nervous system, triggering a parasympathetic response and deep relaxation.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Wave Divider -->
+      <div class="vy6-wave-divider">
+        <svg viewBox="0 0 1440 60" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M0 30 C 120 50, 240 50, 360 30 S 600 10, 720 30 S 960 50, 1080 30 S 1320 10, 1440 30 V 0 H 0 Z" fill="rgba(63, 153, 165, 0.1)"/>
+        </svg>
+      </div>
+
+      <!-- CTA -->
+      <section class="vy6-cta">
+        <div class="vy6-cta__inner">
+          <h2 class="vy6-cta__title">Tune Into Your Body</h2>
+          <p class="vy6-cta__text">Experience the frequency that transforms practice into transformation.</p>
+          <a href="#" class="vy6-btn">Book Your First Session</a>
+        </div>
+      </section>
+
+    </div>
+  </div>
+
+  <!-- ========================================
+       DESIGN 7: VIBRO — CURSOR FIELD
+       ======================================== -->
+  <div class="vyd-panel" data-panel="7" style="display:none">
+    <div class="vy7">
+
+      <!-- Hero with Particle Canvas -->
+      <section class="vy7-hero">
+        <canvas class="vy7-particle-canvas"></canvas>
+        <div class="vy7-hero__content">
+          <h1 class="vy7-hero__title" data-vy7-magnetic>MOVE. FEEL. VIBRATE.</h1>
+          <p class="vy7-hero__subtitle">Interact with this page. Feel the energy respond.</p>
+        </div>
+      </section>
+
+      <!-- Interactive Proximity Cards -->
+      <section class="vy7-section">
+        <div class="vy7-section__inner">
+          <h2 class="vy7-section__title">The Vibro Yoga Experience</h2>
+          <div class="vy7-cards">
+            <div class="vy7-proximity-card" data-vy7-hover>
+              <h3 class="vy7-proximity-card__title">Deeper Stretches</h3>
+              <p class="vy7-proximity-card__text">Vibration relaxes muscle tissue, allowing you to safely reach deeper into poses.</p>
+            </div>
+            <div class="vy7-proximity-card" data-vy7-hover>
+              <h3 class="vy7-proximity-card__title">Enhanced Recovery</h3>
+              <p class="vy7-proximity-card__text">Increased blood flow accelerates healing and reduces post-practice soreness.</p>
+            </div>
+            <div class="vy7-proximity-card" data-vy7-hover>
+              <h3 class="vy7-proximity-card__title">Core Activation</h3>
+              <p class="vy7-proximity-card__text">Constant micro-adjustments engage stabilizer muscles throughout practice.</p>
+            </div>
+            <div class="vy7-proximity-card" data-vy7-hover>
+              <h3 class="vy7-proximity-card__title">Stress Relief</h3>
+              <p class="vy7-proximity-card__text">Vibrations trigger parasympathetic response, promoting deep relaxation.</p>
+            </div>
+            <div class="vy7-proximity-card" data-vy7-hover>
+              <h3 class="vy7-proximity-card__title">Bone Density</h3>
+              <p class="vy7-proximity-card__text">Regular vibration training supports healthy bone density and strength.</p>
+            </div>
+            <div class="vy7-proximity-card" data-vy7-hover>
+              <h3 class="vy7-proximity-card__title">Better Sleep</h3>
+              <p class="vy7-proximity-card__text">Students consistently report improved sleep quality and duration.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Ripple Zone -->
+      <section class="vy7-ripple-zone">
+        <div class="vy7-ripple-zone__inner">
+          <p class="vy7-ripple-zone__text">Every touch creates a wave</p>
+          <p class="vy7-ripple-zone__hint">Click anywhere in this space</p>
+        </div>
+      </section>
+
+      <!-- Frequency String -->
+      <section class="vy7-section vy7-section--dark">
+        <div class="vy7-section__inner">
+          <div class="vy7-string-wrapper">
+            <svg class="vy7-string" viewBox="0 0 800 200" preserveAspectRatio="xMidYMid meet">
+              <line class="vy7-string-line" x1="0" y1="100" x2="800" y2="100" stroke="#3f99a5" stroke-width="2"/>
+            </svg>
+          </div>
+          <div class="vy7-section__content">
+            <h2 class="vy7-section__title">Your frequency. Your practice.</h2>
+            <p class="vy7-section__text">Hover over the string above. Feel how responsive our platforms are to your movement. This is the sensitivity you'll experience on the mat—technology that responds to you, not the other way around.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- CTA -->
+      <section class="vy7-cta">
+        <div class="vy7-cta__inner">
+          <h2 class="vy7-cta__title">Begin Your Vibration</h2>
+          <p class="vy7-cta__text">First class free. Experience the difference yourself.</p>
+          <a href="#" class="vy7-btn">Book Now</a>
+        </div>
+      </section>
+
+      <!-- Footer -->
+      <footer class="vy7-footer">
+        <div class="vy7-footer__inner">
+          <div class="vy7-footer__col">
+            <h3 class="vy7-footer__title">Vibro Yoga</h3>
+            <p>Torvegade 45, Christianshavn</p>
+            <p>1400 København K</p>
+          </div>
+          <div class="vy7-footer__col">
+            <p>hello@vibroyoga.dk</p>
+            <p>+45 12 34 56 78</p>
+            <p>@vibroyoga</p>
+          </div>
+        </div>
+      </footer>
+
+    </div>
+  </div>
+
+  <script src="/js/vibroyoga.js"></script>
 </body>
 </html>
