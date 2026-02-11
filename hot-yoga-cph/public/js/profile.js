@@ -2565,8 +2565,13 @@
     return true;
   }
 
+  // Global lock to prevent overlapping book/cancel requests
+  var scheduleActionLock = false;
+
   function bookClass(btn) {
+    if (scheduleActionLock) return; // Prevent double-clicks
     var classId = btn.getAttribute('data-schedule-book');
+    if (!classId) return; // Button was already toggled to cancel
     if (!clientId) {
       showScheduleToast(isDa() ? 'Køb et pas først i Butik-fanen.' : 'Buy a pass first in the Store tab.', 'error');
       var noPassEl = document.getElementById('yb-schedule-no-pass');
@@ -2601,6 +2606,7 @@
       return;
     }
 
+    scheduleActionLock = true;
     btn.disabled = true;
     btn.textContent = isDa() ? 'Booker...' : 'Booking...';
 
@@ -2614,16 +2620,9 @@
             ? (isDa() ? 'Du er allerede booket!' : "You're already booked!")
             : (isDa() ? 'Du er booket!' : "You're booked!"), 'success');
           // Switch button to Cancel
-          btn.textContent = isDa() ? 'Annuller' : 'Cancel';
-          btn.className = 'yb-btn yb-btn--outline yb-schedule__cancel-btn';
-          btn.removeAttribute('data-schedule-book');
-          btn.setAttribute('data-schedule-cancel', classId);
-          btn.disabled = false;
-          // Replace handler (onclick= replaces, addEventListener stacks)
-          btn.onclick = function() { cancelClass(btn); };
-          // Refresh pass data (booking uses a clip)
-          clientPassData = null;
-          loadSchedulePassInfo();
+          switchBtnToCancel(btn, classId);
+          // Refresh pass data after a short delay (give MB time to update)
+          scheduleDelayedPassRefresh();
         } else {
           // No active membership or pass
           if (data.error === 'no_pass') {
@@ -2663,13 +2662,18 @@
         showScheduleToast(err.message || (isDa() ? 'Booking fejlede.' : 'Booking failed.'), 'error');
         btn.disabled = false;
         btn.textContent = isDa() ? 'Book' : 'Book';
+      }).finally(function() {
+        scheduleActionLock = false;
       });
   }
 
   function cancelClass(btn) {
+    if (scheduleActionLock) return; // Prevent double-clicks
     var classId = btn.getAttribute('data-schedule-cancel');
+    if (!classId) return; // Button was already toggled to book
     if (!clientId) return;
 
+    scheduleActionLock = true;
     btn.disabled = true;
     btn.textContent = isDa() ? 'Annullerer...' : 'Cancelling...';
 
@@ -2687,16 +2691,9 @@
             showScheduleToast(isDa() ? 'Booking annulleret.' : 'Booking cancelled.', 'success');
           }
           // Switch button back to Book
-          btn.textContent = isDa() ? 'Book' : 'Book';
-          btn.className = 'yb-btn yb-btn--primary yb-schedule__book-btn';
-          btn.removeAttribute('data-schedule-cancel');
-          btn.setAttribute('data-schedule-book', classId);
-          btn.disabled = false;
-          // Replace handler (onclick= replaces, addEventListener stacks)
-          btn.onclick = function() { bookClass(btn); };
-          // Refresh pass data (cancel returns a clip)
-          clientPassData = null;
-          loadSchedulePassInfo();
+          switchBtnToBook(btn, classId);
+          // Refresh pass data after a short delay (give MB time to update)
+          scheduleDelayedPassRefresh();
         } else {
           showScheduleToast(data.error || (isDa() ? 'Annullering fejlede.' : 'Cancellation failed.'), 'error');
           btn.disabled = false;
@@ -2706,7 +2703,46 @@
         showScheduleToast(err.message || (isDa() ? 'Annullering fejlede.' : 'Cancellation failed.'), 'error');
         btn.disabled = false;
         btn.textContent = isDa() ? 'Annuller' : 'Cancel';
+      }).finally(function() {
+        scheduleActionLock = false;
       });
+  }
+
+  /** Switch a button to Cancel state */
+  function switchBtnToCancel(btn, classId) {
+    btn.textContent = isDa() ? 'Annuller' : 'Cancel';
+    btn.className = 'yb-btn yb-btn--outline yb-schedule__cancel-btn';
+    btn.removeAttribute('data-schedule-book');
+    btn.setAttribute('data-schedule-cancel', classId);
+    btn.disabled = false;
+    btn.onclick = function() { cancelClass(btn); };
+  }
+
+  /** Switch a button to Book state */
+  function switchBtnToBook(btn, classId) {
+    btn.textContent = isDa() ? 'Book' : 'Book';
+    btn.className = 'yb-btn yb-btn--primary yb-schedule__book-btn';
+    btn.removeAttribute('data-schedule-cancel');
+    btn.setAttribute('data-schedule-book', classId);
+    btn.disabled = false;
+    btn.onclick = function() { bookClass(btn); };
+  }
+
+  /** Refresh pass data with a delay to let Mindbody update, then refresh again */
+  var passRefreshTimer = null;
+  function scheduleDelayedPassRefresh() {
+    // Clear any pending refresh
+    if (passRefreshTimer) clearTimeout(passRefreshTimer);
+    // Quick refresh after 1s
+    passRefreshTimer = setTimeout(function() {
+      clientPassData = null;
+      loadSchedulePassInfo();
+      // Second refresh after 5s for Mindbody to fully process
+      passRefreshTimer = setTimeout(function() {
+        clientPassData = null;
+        loadSchedulePassInfo();
+      }, 4000);
+    }, 1000);
   }
 
   function showScheduleToast(msg, type) {
