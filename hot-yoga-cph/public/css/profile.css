@@ -2687,6 +2687,118 @@ body {
 }
 
 /* ========================================
+   GIFT CARDS TAB
+   ======================================== */
+.yb-giftcards__header {
+  margin-bottom: 1.5rem;
+}
+.yb-giftcards__title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #0F0F0F;
+  margin: 0 0 0.25rem;
+}
+.yb-giftcards__subtitle {
+  font-size: 0.88rem;
+  color: #6F6A66;
+  margin: 0;
+}
+.yb-giftcards__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 1rem;
+}
+.yb-giftcards__card {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  background: #FFFCF9;
+  border: 1.5px solid #E8E4E0;
+  border-radius: 14px;
+  padding: 1rem 1.25rem;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+.yb-giftcards__card:hover {
+  border-color: #3f99a5;
+  box-shadow: 0 2px 12px rgba(63, 153, 165, 0.1);
+}
+.yb-giftcards__card-icon {
+  width: 52px;
+  height: 52px;
+  background: #e8f4f6;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.yb-giftcards__card-info {
+  flex: 1;
+  min-width: 0;
+}
+.yb-giftcards__card-name {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #0F0F0F;
+  margin: 0 0 0.2rem;
+}
+.yb-giftcards__card-price {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #3f99a5;
+}
+.yb-giftcards__card-original {
+  font-size: 0.8rem;
+  color: #6F6A66;
+  text-decoration: line-through;
+  margin-left: 0.4rem;
+}
+.yb-giftcards__card-btn {
+  flex-shrink: 0;
+  padding: 0.5rem 1rem;
+  border-radius: 10px;
+  font-size: 0.85rem;
+}
+.yb-giftcards__form {
+  margin-top: 1.5rem;
+  background: #FFFCF9;
+  border: 1.5px solid #3f99a5;
+  border-radius: 16px;
+  padding: 1.5rem;
+}
+.yb-giftcards__form-title {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #0F0F0F;
+  margin: 0 0 1rem;
+}
+.yb-giftcards__form-inner {
+  max-width: 480px;
+}
+.yb-giftcards__form-inner textarea {
+  width: 100%;
+  padding: 0.6rem 0.75rem;
+  border: 1px solid #E8E4E0;
+  border-radius: 10px;
+  font-family: inherit;
+  font-size: 0.88rem;
+  resize: vertical;
+}
+.yb-giftcards__form-inner textarea:focus {
+  border-color: #3f99a5;
+  outline: none;
+}
+.yb-giftcards__form-actions {
+  display: flex;
+  gap: 0.75rem;
+  margin-top: 1rem;
+}
+@media (max-width: 600px) {
+  .yb-giftcards__grid { grid-template-columns: 1fr; }
+  .yb-giftcards__form { padding: 1rem; }
+}
+
+/* ========================================
    SCHEDULE TOAST - RICH MESSAGES
    ======================================== */
 

@@ -122,6 +122,7 @@
 
     initTabs();
     initStoreForm();
+    initGiftCards();
     initScheduleNav();
     initAvatarUpload(db);
     initVisitFilters();
@@ -404,6 +405,7 @@
           if (tabName === 'visits') loadVisits();
           if (tabName === 'passes') loadMembershipDetails();
           if (tabName === 'receipts') loadReceipts();
+          if (tabName === 'giftcards') loadGiftCards();
           // [HYC] Courses tab not used — commented out
           // if (tabName === 'courses') loadMyCourses();
         }
@@ -2061,6 +2063,148 @@
     showScheduleToast(isDa()
       ? 'Du har brug for et pas — se klippekort nedenfor'
       : 'You need a pass — see clip cards below', 'info');
+  }
+
+  // ══════════════════════════════════════
+  // GIFT CARDS TAB
+  // ══════════════════════════════════════
+  var giftCardsData = null;
+  var selectedGiftCard = null;
+
+  function loadGiftCards() {
+    var listEl = document.getElementById('yb-giftcards-list');
+    if (!listEl) return;
+    if (giftCardsData) { renderGiftCards(listEl); return; }
+
+    listEl.innerHTML = '<div class="yb-store__loading"><div class="yb-mb-spinner"></div><span>' + t('giftcards_loading') + '</span></div>';
+
+    fetch('/.netlify/functions/mb-giftcards')
+      .then(function(r) { return r.json(); })
+      .then(function(data) {
+        giftCardsData = data.giftCards || [];
+        console.log('[GiftCards] Loaded:', giftCardsData.length);
+        renderGiftCards(listEl);
+      })
+      .catch(function(err) {
+        console.error('[GiftCards] Load error:', err);
+        listEl.innerHTML = '<p class="yb-store__error">' + (isDa() ? 'Kunne ikke hente gavekort.' : 'Could not load gift cards.') + '</p>';
+      });
+  }
+
+  function renderGiftCards(container) {
+    if (!giftCardsData || !giftCardsData.length) {
+      container.innerHTML = '<p class="yb-store__empty">' + t('giftcard_empty') + '</p>';
+      return;
+    }
+
+    var da = isDa();
+    var html = '<div class="yb-giftcards__grid">';
+    giftCardsData.forEach(function(gc) {
+      html += '<div class="yb-giftcards__card" data-gc-id="' + gc.id + '">';
+      html += '<div class="yb-giftcards__card-icon">';
+      html += '<svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#3f99a5" stroke-width="1.5"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a4 4 0 0 0-8 0v2"/><line x1="12" y1="11" x2="12" y2="17"/><line x1="9" y1="14" x2="15" y2="14"/></svg>';
+      html += '</div>';
+      html += '<div class="yb-giftcards__card-info">';
+      html += '<h3 class="yb-giftcards__card-name">' + esc(gc.description || (da ? 'Gavekort' : 'Gift Card')) + '</h3>';
+      html += '<span class="yb-giftcards__card-price">' + formatDKK(gc.salePrice || gc.value) + '</span>';
+      if (gc.value !== gc.salePrice && gc.salePrice) {
+        html += '<span class="yb-giftcards__card-original">' + formatDKK(gc.value) + '</span>';
+      }
+      html += '</div>';
+      html += '<button class="yb-btn yb-btn--primary yb-giftcards__card-btn" type="button" data-gc-select="' + gc.id + '">' + t('giftcard_select') + '</button>';
+      html += '</div>';
+    });
+    html += '</div>';
+
+    container.innerHTML = html;
+
+    // Attach handlers
+    container.querySelectorAll('[data-gc-select]').forEach(function(btn) {
+      btn.addEventListener('click', function() {
+        var gcId = btn.getAttribute('data-gc-select');
+        selectedGiftCard = giftCardsData.find(function(g) { return String(g.id) === gcId; });
+        if (selectedGiftCard) showGiftCardForm();
+      });
+    });
+  }
+
+  function showGiftCardForm() {
+    var formEl = document.getElementById('yb-giftcard-form');
+    if (formEl) formEl.hidden = false;
+    var errEl = document.getElementById('yb-gc-error');
+    if (errEl) errEl.hidden = true;
+    formEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
+  function hideGiftCardForm() {
+    var formEl = document.getElementById('yb-giftcard-form');
+    if (formEl) formEl.hidden = true;
+    selectedGiftCard = null;
+  }
+
+  function initGiftCards() {
+    var cancelBtn = document.getElementById('yb-gc-cancel-btn');
+    if (cancelBtn) cancelBtn.addEventListener('click', hideGiftCardForm);
+
+    var buyBtn = document.getElementById('yb-gc-buy-btn');
+    if (buyBtn) buyBtn.addEventListener('click', function() {
+      if (!selectedGiftCard || !clientId) return;
+
+      var recipientName = (document.getElementById('yb-gc-recipient-name') || {}).value || '';
+      var recipientEmail = (document.getElementById('yb-gc-recipient-email') || {}).value || '';
+      var title = (document.getElementById('yb-gc-title') || {}).value || '';
+      var message = (document.getElementById('yb-gc-message') || {}).value || '';
+      var deliveryDate = (document.getElementById('yb-gc-delivery-date') || {}).value || '';
+
+      if (!recipientName.trim() || !recipientEmail.trim()) {
+        var errEl = document.getElementById('yb-gc-error');
+        if (errEl) { errEl.textContent = isDa() ? 'Udfyld modtagers navn og email.' : 'Please enter recipient name and email.'; errEl.hidden = false; }
+        return;
+      }
+
+      buyBtn.disabled = true;
+      buyBtn.textContent = isDa() ? 'Behandler...' : 'Processing...';
+
+      var layoutId = selectedGiftCard.layouts && selectedGiftCard.layouts.length ? selectedGiftCard.layouts[0].id : 0;
+
+      fetch('/.netlify/functions/mb-giftcards', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          giftCardId: selectedGiftCard.id,
+          clientId: clientId,
+          recipientEmail: recipientEmail.trim(),
+          recipientName: recipientName.trim(),
+          title: title.trim() || (isDa() ? 'Gavekort' : 'Gift Card'),
+          message: message.trim(),
+          deliveryDate: deliveryDate || undefined,
+          layoutId: layoutId
+        })
+      })
+      .then(function(r) { return r.json(); })
+      .then(function(data) {
+        buyBtn.disabled = false;
+        buyBtn.textContent = t('giftcard_buy');
+
+        if (data.error) {
+          var errEl = document.getElementById('yb-gc-error');
+          if (errEl) { errEl.textContent = data.error; errEl.hidden = false; }
+          return;
+        }
+
+        hideGiftCardForm();
+        showScheduleToast(isDa()
+          ? 'Gavekort sendt til ' + recipientEmail.trim() + '!'
+          : 'Gift card sent to ' + recipientEmail.trim() + '!', 'success');
+      })
+      .catch(function(err) {
+        buyBtn.disabled = false;
+        buyBtn.textContent = t('giftcard_buy');
+        console.error('[GiftCards] Purchase error:', err);
+        var errEl = document.getElementById('yb-gc-error');
+        if (errEl) { errEl.textContent = isDa() ? 'Noget gik galt. Prøv igen.' : 'Something went wrong. Please try again.'; errEl.hidden = false; }
+      });
+    });
   }
 
   function openCheckout(serviceId, itemType) {
