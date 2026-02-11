@@ -32,11 +32,9 @@ const { mbFetch, jsonResponse, corsHeaders } = require('./shared/mb-api');
  */
 async function validateClientPass(clientId, classId) {
   try {
-    // 1. Fetch class info (for program name in error messages) AND
-    //    the valid services for this class (includes cross-category) in parallel
-    var [classData, validServicesData, clientServicesData] = await Promise.all([
+    // 1. Fetch the class to get its program ID
+    var [classData, clientServicesData] = await Promise.all([
       mbFetch('/class/classes?ClassIds=' + classId + '&Limit=1'),
-      mbFetch('/sale/services?ClassId=' + classId + '&Limit=200'),
       mbFetch('/client/clientservices?ClientId=' + clientId + '&Limit=200').catch(function() {
         return { ClientServices: [] };
       })
@@ -52,17 +50,28 @@ async function validateClientPass(clientId, classId) {
     var classProgramName = (cls.ClassDescription && cls.ClassDescription.Program)
       ? cls.ClassDescription.Program.Name : 'this class type';
 
-    // 2. Build set of valid Program IDs from the services Mindbody says cover this class
-    var validServices = validServicesData.Services || [];
+    // 2. Query valid services using ProgramIds + HideRelatedPrograms=false
+    //    This explicitly asks Mindbody to include cross-category pricing options
     var validProgramIds = {};
-    for (var i = 0; i < validServices.length; i++) {
-      if (validServices[i].Program && validServices[i].Program.Id != null) {
-        validProgramIds[validServices[i].Program.Id] = validServices[i].Program.Name || '';
-      }
-    }
-    // Always include the class's own program as valid
     if (classProgramId) {
       validProgramIds[classProgramId] = classProgramName;
+
+      try {
+        var validServicesData = await mbFetch(
+          '/sale/services?ProgramIds=' + classProgramId + '&HideRelatedPrograms=false&Limit=200'
+        );
+        var validServices = validServicesData.Services || [];
+        for (var i = 0; i < validServices.length; i++) {
+          if (validServices[i].Program && validServices[i].Program.Id != null) {
+            validProgramIds[validServices[i].Program.Id] = validServices[i].Program.Name || '';
+          }
+        }
+        console.log('mb-book: /sale/services returned', validServices.length,
+          'services for program', classProgramId);
+      } catch (svcErr) {
+        console.warn('mb-book: Could not fetch valid services for cross-category check:', svcErr.message);
+        // Fall through — validProgramIds still has the class's own program
+      }
     }
 
     var validIds = Object.keys(validProgramIds).map(Number);
@@ -76,6 +85,18 @@ async function validateClientPass(clientId, classId) {
     // 3. Check if any of the client's active services match a valid program
     var now = new Date();
     var services = clientServicesData.ClientServices || [];
+
+    // Log all client services for debugging
+    console.log('mb-book: Client has', services.length, 'total services:');
+    for (var k = 0; k < services.length; k++) {
+      var svc = services[k];
+      var svcActive = svc.ActiveDate ? new Date(svc.ActiveDate) : null;
+      var svcExpiry = svc.ExpirationDate ? new Date(svc.ExpirationDate) : null;
+      var svcCurrent = svc.Current || (svcActive && svcActive <= now && (!svcExpiry || svcExpiry >= now));
+      console.log('  -', svc.Name, '| program:', svc.Program ? svc.Program.Id + ' (' + svc.Program.Name + ')' : 'none',
+        '| current:', svcCurrent, '| remaining:', svc.Remaining, '| expires:', svc.ExpirationDate || 'never');
+    }
+
     for (var j = 0; j < services.length; j++) {
       var s = services[j];
       var sActive = s.ActiveDate ? new Date(s.ActiveDate) : null;
