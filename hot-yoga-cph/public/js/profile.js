@@ -1461,21 +1461,33 @@
 
     listEl.innerHTML = '<div class="yb-store__loading"><div class="yb-mb-spinner"></div><span>' + (isDa() ? 'Henter pakker...' : 'Loading packages...') + '</span></div>';
 
-    // Fetch both services and contracts in parallel
-    // Contracts: no sellOnline filter — MB /sale/contracts may not support it
+    // Fetch services, contracts, AND service categories in parallel
     var servicesUrl = '/.netlify/functions/mb-services?sellOnline=true';
     var contractsUrl = '/.netlify/functions/mb-contracts';
+    var categoriesUrl = '/.netlify/functions/mb-services?type=categories';
 
     Promise.all([
       fetch(servicesUrl).then(function(r) { return r.json(); }),
       fetch(contractsUrl).then(function(r) {
         console.log('[Store] Contracts HTTP status:', r.status);
         return r.json();
-      }).catch(function(err) { console.error('[Store] Contracts fetch FAILED:', err); return { contracts: [], _error: String(err) }; })
+      }).catch(function(err) { console.error('[Store] Contracts fetch FAILED:', err); return { contracts: [], _error: String(err) }; }),
+      fetch(categoriesUrl).then(function(r) { return r.json(); }).catch(function() { return { categories: [] }; })
     ]).then(function(results) {
+      // Build category ID → name lookup from service categories
+      var categoryMap = {};
+      (results[2].categories || []).forEach(function(cat) {
+        categoryMap[cat.id] = cat.name;
+      });
+      console.log('[Store] Service Category map:', categoryMap);
+
       var services = (results[0].services || []).map(function(s) {
         s._itemType = 'service';
         if (s.description) s.description = stripHtml(s.description);
+        // Enrich with category name if programName missing but programId exists
+        if (!s.programName && s.programId && categoryMap[s.programId]) {
+          s.programName = categoryMap[s.programId];
+        }
         return s;
       });
 
@@ -1548,16 +1560,17 @@
 
       console.log('[Store] Contracts loaded:', contracts.length, contracts.map(function(c) { return c.name; }));
 
-      // Build programId→name lookup from services (services have programName, contracts don't)
-      var programNameMap = {};
-      services.forEach(function(s) {
-        if (s.programId && s.programName) programNameMap[s.programId] = s.programName;
-      });
-      // Enrich contracts with programName from the lookup
+      // Enrich contracts with programName from the category map
       contracts.forEach(function(c) {
-        if (!c.programName && c.programIds && c.programIds.length) {
+        if (c.programIds && c.programIds.length) {
           c.programId = c.programIds[0];
-          c.programName = programNameMap[c.programIds[0]] || '';
+          // Use categoryMap first, then try service lookup as fallback
+          c.programName = categoryMap[c.programIds[0]] || '';
+          if (!c.programName) {
+            // Fallback: try matching from services
+            var match = services.find(function(s) { return s.programId === c.programIds[0]; });
+            if (match) c.programName = match.programName || '';
+          }
         }
       });
 
