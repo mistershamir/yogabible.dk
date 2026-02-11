@@ -2557,11 +2557,12 @@ body {
 
 /* -- Gift Card: Payment section title -- */
 .yb-giftcards__payment-title {
-  font-size: 0.95rem;
+  font-size: 1.05rem;
   font-weight: 700;
-  margin: 1.25rem 0 0.5rem;
-  padding-top: 1rem;
-  border-top: 1px solid #E8E4E0;
+  color: #0F0F0F;
+  margin: 0 0 1rem;
+  padding-bottom: 0.6rem;
+  border-bottom: 1px solid rgba(247, 92, 3, 0.1);
 }
 
 /* ========================================
@@ -4640,26 +4641,41 @@ body.hyc-page .yb-profile__hero::before {
 }
 
 .yb-giftcards__form {
-  background: #FFFCF9;
-  border: 1.5px solid rgba(247, 92, 3, 0.15);
-  border-radius: 14px;
-  padding: 1.75rem;
   margin-top: 1.5rem;
 }
 
+.yb-giftcards__checkout-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+  align-items: start;
+}
+
+.yb-giftcards__checkout-left,
+.yb-giftcards__checkout-right {
+  background: #FFFCF9;
+  border: 1.5px solid #E8E4E0;
+  border-radius: 14px;
+  padding: 1.5rem;
+}
+
+.yb-giftcards__checkout-right {
+  border-color: rgba(247, 92, 3, 0.2);
+}
+
 .yb-giftcards__form-title {
-  font-size: 1.1rem;
+  font-size: 1.05rem;
   font-weight: 700;
   color: #0F0F0F;
-  margin: 0 0 1.25rem;
-  padding-bottom: 0.75rem;
+  margin: 0 0 1rem;
+  padding-bottom: 0.6rem;
   border-bottom: 1px solid rgba(247, 92, 3, 0.1);
 }
 
-.yb-giftcards__form-inner {
-  display: flex;
-  flex-direction: column;
-  gap: 0;
+.yb-giftcards__custom-amount input {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--yb-orange);
 }
 
 .yb-giftcards__form-inner .yb-auth-field {
@@ -4725,12 +4741,19 @@ body.hyc-page .yb-profile__hero::before {
   gap: 6px;
 }
 
+@media (max-width: 768px) {
+  .yb-giftcards__checkout-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
 @media (max-width: 600px) {
   .yb-giftcards__option {
     padding: 0.85rem 1rem;
   }
 
-  .yb-giftcards__form {
+  .yb-giftcards__checkout-left,
+  .yb-giftcards__checkout-right {
     padding: 1.25rem;
   }
 

@@ -21,6 +21,7 @@ exports.handler = async (event) => {
         value: gc.CardValue || 0,
         salePrice: gc.SalePrice || gc.CardValue || 0,
         soldOnline: gc.SoldOnline,
+        editableByConsumer: gc.EditableByConsumer || false,
         terms: gc.GiftCardTerms || '',
         contactInfo: gc.ContactInfo || '',
         displayLogo: gc.DisplayLogo || false,
@@ -35,7 +36,7 @@ exports.handler = async (event) => {
     // POST — purchase a gift card
     if (event.httpMethod === 'POST') {
       const body = JSON.parse(event.body || '{}');
-      const { giftCardId, clientId, recipientEmail, recipientName, title, message, deliveryDate, layoutId, locationId, payment } = body;
+      const { giftCardId, clientId, recipientEmail, recipientName, title, message, deliveryDate, layoutId, locationId, payment, customAmount } = body;
 
       if (!giftCardId || !clientId || !recipientEmail || !recipientName) {
         return jsonResponse(400, { error: 'Missing required fields: giftCardId, clientId, recipientEmail, recipientName' });
@@ -67,6 +68,8 @@ exports.handler = async (event) => {
       if (message) purchaseData.GiftMessage = message;
       if (deliveryDate) purchaseData.DeliveryDate = deliveryDate;
       if (layoutId) purchaseData.LayoutId = parseInt(layoutId, 10);
+      // Custom amount for EditableByConsumer gift cards
+      if (customAmount) purchaseData.CardValue = parseFloat(customAmount);
 
       console.log('[mb-giftcards] Purchasing gift card:', JSON.stringify(purchaseData));
 

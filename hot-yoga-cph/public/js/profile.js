@@ -2220,6 +2220,15 @@
           // Update selected price in form
           var priceEl = formEl.querySelector('.yb-giftcards__form-price');
           if (priceEl) priceEl.textContent = formatDKK(selectedGiftCard.salePrice || selectedGiftCard.value);
+          // Show/hide custom amount field
+          var customAmountField = document.getElementById('yb-gc-custom-amount-field');
+          if (customAmountField) {
+            customAmountField.hidden = !selectedGiftCard.editableByConsumer;
+            if (selectedGiftCard.editableByConsumer) {
+              var amtInput = document.getElementById('yb-gc-custom-amount');
+              if (amtInput && !amtInput.value) amtInput.value = selectedGiftCard.salePrice || selectedGiftCard.value || '';
+            }
+          }
           // Pre-fill cardholder
           var gcHolder = document.getElementById('yb-gc-cardholder');
           if (gcHolder && currentUser && currentUser.displayName && !gcHolder.value) gcHolder.value = currentUser.displayName;
@@ -2271,31 +2280,35 @@
       }
 
       var gcExpParts = gcExpiry.split('/');
+      var gcCustomAmount = selectedGiftCard.editableByConsumer ? ((document.getElementById('yb-gc-custom-amount') || {}).value || '') : '';
 
       buyBtn.disabled = true;
       buyBtn.textContent = isDa() ? 'Behandler...' : 'Processing...';
       if (errEl) errEl.hidden = true;
 
+      var gcPostBody = {
+        giftCardId: selectedGiftCard.id,
+        clientId: clientId,
+        recipientEmail: recipientEmail.trim(),
+        recipientName: recipientName.trim(),
+        title: title.trim() || (isDa() ? 'Gavekort' : 'Gift Card'),
+        message: message.trim(),
+        deliveryDate: deliveryDate || undefined,
+        layoutId: selectedGiftCard.layouts && selectedGiftCard.layouts.length ? selectedGiftCard.layouts[0].id : 0,
+        payment: {
+          cardNumber: gcCardNumber,
+          expMonth: gcExpParts[0],
+          expYear: gcExpParts[1] ? '20' + gcExpParts[1] : '',
+          cvv: gcCvv,
+          cardHolder: gcCardHolder.trim()
+        }
+      };
+      if (gcCustomAmount) gcPostBody.customAmount = Number(gcCustomAmount);
+
       fetch('/.netlify/functions/mb-giftcards', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          giftCardId: selectedGiftCard.id,
-          clientId: clientId,
-          recipientEmail: recipientEmail.trim(),
-          recipientName: recipientName.trim(),
-          title: title.trim() || (isDa() ? 'Gavekort' : 'Gift Card'),
-          message: message.trim(),
-          deliveryDate: deliveryDate || undefined,
-          layoutId: selectedGiftCard.layouts && selectedGiftCard.layouts.length ? selectedGiftCard.layouts[0].id : 0,
-          payment: {
-            cardNumber: gcCardNumber,
-            expMonth: gcExpParts[0],
-            expYear: gcExpParts[1] ? '20' + gcExpParts[1] : '',
-            cvv: gcCvv,
-            cardHolder: gcCardHolder.trim()
-          }
-        })
+        body: JSON.stringify(gcPostBody)
       })
       .then(function(r) { return r.json(); })
       .then(function(data) {
@@ -2385,7 +2398,8 @@
     var termsSection = document.getElementById('yb-checkout-terms-section');
     var agreeSection = document.getElementById('yb-checkout-agree-section');
     var showWaiver = !waiverSigned;
-    var showTerms = !!(isContract && service.agreementTerms);
+    // Always show terms + signature for contracts (required by Mindbody)
+    var showTerms = !!isContract;
     var hasLeftContent = showWaiver || showTerms;
 
     // 2. Populate collapsible document sections
@@ -2404,7 +2418,8 @@
       if (showTerms) {
         var termsTextEl = document.getElementById('yb-checkout-terms-text');
         if (termsTextEl) {
-          termsTextEl.innerHTML = service.agreementTerms;
+          // Use Mindbody agreement terms if available, otherwise show default membership terms
+          termsTextEl.innerHTML = service.agreementTerms || t('contract_default_terms');
           termsTextEl.hidden = true; // collapsed by default
         }
       }
@@ -4021,7 +4036,13 @@
       giftcards_loading: isDa() ? 'Henter gavekort...' : 'Loading gift cards...',
       giftcard_empty: isDa() ? 'Ingen gavekort tilgængelige.' : 'No gift cards available.',
       giftcard_select: isDa() ? 'Vælg' : 'Select',
-      giftcard_buy: isDa() ? 'Køb gavekort' : 'Buy gift card'
+      giftcard_buy: isDa() ? 'Køb gavekort' : 'Buy gift card',
+      contract_default_terms: isDa()
+        ? '<p><strong>Medlemskabsvilkår</strong></p><p>Dette er et løbende månedligt medlemskab. Betaling opkræves automatisk hver måned. Du kan opsige med 1 måneds varsel jf. vores <a href="/terms-conditions/" target="_blank" rel="noopener">handelsbetingelser</a>. Medlemskabet kan sættes på pause i 14 dage til 3 måneder ved særlige omstændigheder. Ved at underskrive nedenfor bekræfter du, at du accepterer disse vilkår.</p>'
+        : '<p><strong>Membership Terms</strong></p><p>This is a recurring monthly membership. Payment is charged automatically each month. You can cancel with 1 month notice per our <a href="/en/terms-conditions/" target="_blank" rel="noopener">terms &amp; conditions</a>. The membership can be paused for 14 days to 3 months under special circumstances. By signing below you confirm that you accept these terms.</p>',
+      contract_terms_agree: isDa() ? 'Jeg har læst og accepterer kontraktvilkårene' : 'I have read and accept the contract terms',
+      checkout_agree_waiver: isDa() ? 'Jeg har læst og accepterer ansvarsfrihedserklæringen' : 'I have read and accept the liability waiver',
+      checkout_agree_waiver_and_terms: isDa() ? 'Jeg har læst og accepterer ansvarsfrihedserklæringen og kontraktvilkårene' : 'I have read and accept the liability waiver and contract terms'
     };
     return map[key] || key;
   }
