@@ -66,6 +66,15 @@ exports.handler = async function(event) {
     if (params.programIds) svcPath += '&ProgramIds=' + params.programIds;
 
     var svcData = await mbFetch(svcPath);
+
+    // Debug: log first service raw structure to see if Program exists
+    if ((svcData.Services || []).length > 0) {
+      var sample = svcData.Services[0];
+      console.log('[mb-services] Sample raw service keys:', Object.keys(sample));
+      console.log('[mb-services] Sample Program:', JSON.stringify(sample.Program));
+      console.log('[mb-services] Sample ServiceCategory:', JSON.stringify(sample.ServiceCategory));
+    }
+
     var services = (svcData.Services || []).map(function(s) {
       return {
         id: s.Id,
@@ -74,8 +83,8 @@ exports.handler = async function(event) {
         onlinePrice: s.OnlinePrice,
         count: s.Count,
         description: s.Description || '',
-        programId: s.Program ? s.Program.Id : null,
-        programName: s.Program ? s.Program.Name : null
+        programId: s.Program ? s.Program.Id : (s.ServiceCategoryId || null),
+        programName: s.Program ? s.Program.Name : (s.ServiceCategoryName || null)
       };
     });
 

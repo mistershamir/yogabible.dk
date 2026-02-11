@@ -125,7 +125,8 @@ exports.handler = async function(event) {
         return jsonResponse(400, { error: 'clientId is required' });
       }
 
-      var updateData = { ClientId: body.clientId };
+      // MB updateclient uses "Id" (numeric), NOT "ClientId" (which is the Custom ID field)
+      var updateData = { Id: body.clientId };
       if (body.firstName) updateData.FirstName = body.firstName;
       if (body.lastName) updateData.LastName = body.lastName;
       if (body.email) updateData.Email = body.email;
