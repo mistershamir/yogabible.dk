@@ -12,6 +12,7 @@
   var clientPassData = null; // Cached pass/service data
   var staffCache = {}; // Cache staff bios by ID
   var bgRefreshInterval = null; // Background refresh timer
+  var userDateOfBirth = null; // YYYY-MM-DD from Firestore, used for age-based store filtering
 
   var waiverSigned = false; // Track if liability waiver is signed
   var waiverStatusLoaded = false; // True once we know the actual status
@@ -221,10 +222,15 @@
           if (clientId) {
             var mbData = { clientId: clientId, firstName: firstName, lastName: lastName, phone: phone, email: user.email };
             if (dob) mbData.birthDate = dob;
+            console.log('[Profile] Syncing to MB:', JSON.stringify(mbData));
             fetch('/.netlify/functions/mb-client', {
               method: 'PUT', headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify(mbData)
-            }).catch(function() {});
+            }).then(function(r) {
+              return r.json().then(function(data) {
+                console.log('[Profile] MB sync response:', data);
+              });
+            }).catch(function(err) { console.error('[Profile] MB sync error:', err); });
           }
         }).catch(function(err) {
           showMsg(errorEl, successEl, err.message, true);
@@ -447,6 +453,7 @@
       if (lnEl) lnEl.value = d.lastName || '';
       if (phEl) phEl.value = d.phone || '';
       if (dobEl) dobEl.value = d.dateOfBirth || '';
+      userDateOfBirth = d.dateOfBirth || null;
 
       // Yoga level & practice frequency
       var levelEl = document.getElementById('yb-profile-yoga-level');
@@ -1391,7 +1398,6 @@
 
   // Subcategories for Daily Classes
   var storeDailySubs = [
-    { id: 'all', da: 'Alle', en: 'All', desc_da: '', desc_en: '' },
     { id: 'memberships', da: 'Medlemskab', en: 'Membership', desc_da: 'Fast praksis', desc_en: 'Regular practice' },
     { id: 'clips', da: 'Klippekort', en: 'Clip Cards', desc_da: 'Fleksible besøg', desc_en: 'Occasional visits' },
     { id: 'trials', da: 'Prøvekort', en: 'Trial Passes', desc_da: 'Prøv os', desc_en: 'Try us' },
@@ -1542,10 +1548,101 @@
 
       console.log('[Store] Contracts loaded:', contracts.length, contracts.map(function(c) { return c.name; }));
 
+      // Build programId→name lookup from services (services have programName, contracts don't)
+      var programNameMap = {};
+      services.forEach(function(s) {
+        if (s.programId && s.programName) programNameMap[s.programId] = s.programName;
+      });
+      // Enrich contracts with programName from the lookup
+      contracts.forEach(function(c) {
+        if (!c.programName && c.programIds && c.programIds.length) {
+          c.programId = c.programIds[0];
+          c.programName = programNameMap[c.programIds[0]] || '';
+        }
+      });
+
+      // Hide unwanted contracts by name
+      contracts = contracts.filter(function(c) {
+        var n = (c.name || '').toLowerCase();
+        if (n.indexOf('5 classes') !== -1 && n.indexOf('month') !== -1) return false; // 5 Classes Per Month
+        if (n.indexOf('namaste') !== -1) return false; // Namaste passes
+        return true;
+      });
+
       storeServices = services.concat(contracts);
       if (!storeServices.length) { listEl.innerHTML = '<p class="yb-store__empty">' + t('store_empty') + '</p>'; return; }
       renderStoreItems(listEl);
     }).catch(function(err) { console.error('[Store] Load error:', err); listEl.innerHTML = '<p class="yb-store__error">' + t('store_error') + '</p>'; });
+  }
+
+  /**
+   * Calculate user's age from DOB string (YYYY-MM-DD).
+   * Returns null if no DOB available.
+   */
+  var _ageOverride = null; // TEMP: for testing age-based filtering — remove later
+  function getUserAge() {
+    if (_ageOverride !== null) return _ageOverride;
+    if (!userDateOfBirth) return null;
+    var parts = userDateOfBirth.split('-');
+    if (parts.length !== 3) return null;
+    var birth = new Date(Number(parts[0]), Number(parts[1]) - 1, Number(parts[2]));
+    var today = new Date();
+    var age = today.getFullYear() - birth.getFullYear();
+    var monthDiff = today.getMonth() - birth.getMonth();
+    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birth.getDate())) {
+      age--;
+    }
+    return age;
+  }
+  // TEMP: Expose age override for testing — call window.setAge(25) or window.setAge(35) in console, then refresh store
+  window.setAge = function(age) {
+    _ageOverride = (age === null || age === undefined) ? null : Number(age);
+    console.log('[Store] Age override set to:', _ageOverride === null ? 'real DOB' : _ageOverride);
+    var storeContainer = document.getElementById('yb-store-list');
+    if (storeContainer && storeServices.length) renderStoreItems(storeContainer);
+  };
+
+  /**
+   * Filter store services by age bracket based on Service Category (programName).
+   * Categories containing "(30+ Years Old)" are hidden for under-30 users.
+   * Categories containing "(Under 30 Years Old)" are hidden for 30+ users.
+   * Also strips the age label from service name and programName for clean display.
+   */
+  function filterAndCleanByAge(services) {
+    var age = getUserAge();
+    var ageLabel30Plus = '(30+ Years Old)';
+    var ageLabel30Minus = '(Under 30 Years Old)';
+
+    console.log('[Store] Age filter — DOB:', userDateOfBirth, 'Age:', age, 'Total items:', services.length);
+
+    var filtered = services.filter(function(s) {
+      var pName = s.programName || '';
+      var is30Plus = pName.indexOf('30+') !== -1 || pName.indexOf('30+ Years') !== -1;
+      var isUnder30 = pName.indexOf('Under 30') !== -1;
+
+      // If we know the user's age, filter out the wrong bracket
+      if (age !== null) {
+        if (age >= 30 && isUnder30) return false;
+        if (age < 30 && is30Plus) return false;
+      }
+      // If DOB unknown, show everything (they'll see both — safe fallback)
+      return true;
+    });
+
+    console.log('[Store] Age filter — After filtering:', filtered.length, 'items (removed', services.length - filtered.length, ')');
+
+    return filtered.map(function(s) {
+      // Strip age labels from display names
+      s._displayName = (s.name || '')
+        .replace(ageLabel30Plus, '').replace(ageLabel30Minus, '')
+        .replace('(30+)', '').replace('(Under 30)', '')
+        .replace(/\s{2,}/g, ' ').trim();
+      s._displayProgram = (s.programName || '')
+        .replace(ageLabel30Plus, '').replace(ageLabel30Minus, '')
+        .replace('(30+)', '').replace('(Under 30)', '')
+        .replace(/\s{2,}/g, ' ').trim();
+      return s;
+    });
   }
 
   /**
@@ -1591,16 +1688,19 @@
   }
 
   function renderStoreItems(container) {
-    // Categorize all services
-    storeServices.forEach(function(s) {
+    // Filter by age bracket and clean display names, then categorize
+    var filtered = filterAndCleanByAge(storeServices);
+    filtered.forEach(function(s) {
       categorizeService(s);
     });
+    // Use filtered list for all rendering below
+    var visibleServices = filtered;
 
     var html = '';
 
     // ── Program filter override (from booking redirect) ──
     if (storeFilterProgramId) {
-      html += renderStoreItemList(container, storeServices.filter(function(s) {
+      html += renderStoreItemList(container, visibleServices.filter(function(s) {
         return s.programId && Number(s.programId) === Number(storeFilterProgramId);
       }), true);
       container.innerHTML = html;
@@ -1612,7 +1712,7 @@
     if (storeView === 'categories') {
       html += '<div class="yb-store__top-cats">';
       storeTopCategories.forEach(function(cat) {
-        var count = storeServices.filter(function(s) { return s._topCategory === cat.id; }).length;
+        var count = visibleServices.filter(function(s) { return s._topCategory === cat.id; }).length;
         if (count === 0) return;
         html += '<button class="yb-store__top-cat" type="button" data-store-top="' + cat.id + '">';
         html += '  <div class="yb-store__top-cat-icon">' + cat.icon + '</div>';
@@ -1661,24 +1761,22 @@
     if (storeTopCategory === 'daily') {
       html += '<div class="yb-store__subcats">';
       storeDailySubs.forEach(function(sub) {
-        var count = sub.id === 'all'
-          ? storeServices.filter(function(s) { return s._topCategory === 'daily'; }).length
-          : storeServices.filter(function(s) { return s._topCategory === 'daily' && s._subCategory === sub.id; }).length;
-        if (count === 0 && sub.id !== 'all') return;
+        var count = visibleServices.filter(function(s) { return s._topCategory === 'daily' && s._subCategory === sub.id; }).length;
+        if (count === 0) return;
         var isActive = storeSubCategory === sub.id;
         html += '<button class="yb-store__sub-btn' + (isActive ? ' is-active' : '') + '" type="button" data-store-sub="' + sub.id + '">';
         html += '<span class="yb-store__sub-name">' + (isDa() ? sub.da : sub.en) + '</span>';
         if (sub.desc_da) {
           html += '<span class="yb-store__sub-desc">' + (isDa() ? sub.desc_da : sub.desc_en) + '</span>';
         }
-        if (sub.id !== 'all') html += '<span class="yb-store__sub-count">' + count + '</span>';
+        html += '<span class="yb-store__sub-count">' + count + '</span>';
         html += '</button>';
       });
       html += '</div>';
     }
 
     // Filter items for this view
-    var filtered = storeServices.filter(function(s) { return s._topCategory === storeTopCategory; });
+    var filtered = visibleServices.filter(function(s) { return s._topCategory === storeTopCategory; });
     if (storeTopCategory === 'daily' && storeSubCategory !== 'all') {
       filtered = filtered.filter(function(s) { return s._subCategory === storeSubCategory; });
     }
@@ -1754,7 +1852,7 @@
       }
 
       html += '<div class="yb-store__item-info">';
-      html += '  <h3 class="yb-store__item-name">' + esc(s.name) + '</h3>';
+      html += '  <h3 class="yb-store__item-name">' + esc(s._displayName || s.name) + '</h3>';
 
       if (s.description) {
         var desc = s.description.length > 120 ? s.description.substring(0, 120) + '...' : s.description;
