@@ -2083,13 +2083,13 @@ body {
   font-family: inherit;
   font-size: 0.88rem;
   font-weight: 600;
-  color: #3f99a5;
+  color: var(--yb-orange);
   padding: 0.25rem 0;
   margin-bottom: 0.75rem;
   transition: color 0.15s;
 }
 .yb-store__back-btn:hover {
-  color: #357f89;
+  color: var(--yb-orange-dark);
 }
 
 /* -- Store: Category Heading -- */
@@ -4207,6 +4207,13 @@ body.hyc-page .yb-visits__filter:hover {
   color: #3f99a5;
 }
 
+/* Prevent hover from hiding text on active buttons (same color as bg) */
+body.hyc-page .yb-store__cat-btn.is-active:hover,
+body.hyc-page .yb-schedule__filter-btn.is-active:hover,
+body.hyc-page .yb-visits__filter.is-active:hover {
+  color: #fff;
+}
+
 @media (max-width: 768px) {
   body.hyc-page .yb-profile__tabs {
     padding: 8px 16px;
@@ -4433,22 +4440,9 @@ body.hyc-page .yb-profile__hero::before {
   vertical-align: middle;
 }
 
-/* Orange accent on active subcategory pill */
+/* Active subcategory pill */
 .yb-store__sub-btn.is-active {
   border-color: var(--yb-brand) !important;
-  position: relative;
-}
-
-.yb-store__sub-btn.is-active::after {
-  content: '';
-  position: absolute;
-  bottom: -1px;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 24px;
-  height: 3px;
-  border-radius: 2px;
-  background: var(--yb-orange);
 }
 
 /* Orange highlight on popular/best deal badges */
@@ -4504,60 +4498,84 @@ body.hyc-page .yb-profile__hero::before {
    GIFT CARDS — Fixed CSS (matching JS classes)
    ======================================== */
 
-/* Card grid rendered by renderGiftCards() */
-.yb-giftcards__card {
+/* Gift card option rows (minimal design) */
+.yb-giftcards__option {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 1.25rem;
   background: #fff;
   border: 1.5px solid #E8E4E0;
-  border-radius: 14px;
-  padding: 1.5rem;
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  transition: border-color 0.2s, box-shadow 0.2s;
-}
-
-.yb-giftcards__card:hover {
-  border-color: var(--yb-brand);
-  box-shadow: 0 4px 16px rgba(63, 153, 165, 0.1);
-}
-
-.yb-giftcards__card-icon {
-  flex-shrink: 0;
-  width: 52px;
-  height: 52px;
   border-radius: 12px;
-  background: rgba(247, 92, 3, 0.06);
+  margin-bottom: 0.5rem;
+  cursor: pointer;
+  transition: border-color 0.2s, background 0.2s;
+}
+
+.yb-giftcards__option:hover {
+  border-color: var(--yb-brand);
+  background: #FAFAFA;
+}
+
+.yb-giftcards__option.is-selected {
+  border-color: var(--yb-orange);
+  background: rgba(247, 92, 3, 0.03);
+  box-shadow: 0 0 0 1px var(--yb-orange);
+}
+
+.yb-giftcards__option-left {
   display: flex;
-  align-items: center;
-  justify-content: center;
+  flex-direction: column;
+  gap: 2px;
 }
 
-.yb-giftcards__card-icon svg {
-  stroke: var(--yb-orange);
-}
-
-.yb-giftcards__card-info {
-  flex: 1;
-  min-width: 0;
-}
-
-.yb-giftcards__card-name {
-  font-size: 1rem;
-  font-weight: 700;
+.yb-giftcards__option-name {
+  font-size: 0.95rem;
+  font-weight: 600;
   color: #0F0F0F;
-  margin: 0 0 4px;
 }
 
-.yb-giftcards__card-price {
-  font-size: 1.15rem;
+.yb-giftcards__option-terms {
+  font-size: 0.78rem;
+  color: #6F6A66;
+}
+
+.yb-giftcards__option-price {
+  font-size: 1.1rem;
   font-weight: 700;
   color: var(--yb-brand);
+  white-space: nowrap;
 }
 
-.yb-giftcards__card-btn {
-  flex-shrink: 0;
-  padding: 10px 24px !important;
-  font-size: 0.85rem !important;
+/* Empty state / fallback */
+.yb-giftcards__empty {
+  text-align: center;
+  padding: 3rem 2rem;
+}
+
+.yb-giftcards__empty svg {
+  margin-bottom: 1rem;
+}
+
+.yb-giftcards__empty-title {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #0F0F0F;
+  margin: 0 0 0.5rem;
+}
+
+.yb-giftcards__empty-text {
+  font-size: 0.92rem;
+  color: #6F6A66;
+  margin: 0 0 1.25rem;
+}
+
+.yb-giftcards__form-price {
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: var(--yb-orange);
+  margin-bottom: 1rem;
+  display: block;
 }
 
 /* Gift card form (rendered in HTML) */
@@ -4665,13 +4683,8 @@ body.hyc-page .yb-profile__hero::before {
 }
 
 @media (max-width: 600px) {
-  .yb-giftcards__card {
-    flex-direction: column;
-    text-align: center;
-  }
-
-  .yb-giftcards__card-btn {
-    width: 100%;
+  .yb-giftcards__option {
+    padding: 0.85rem 1rem;
   }
 
   .yb-giftcards__form {
