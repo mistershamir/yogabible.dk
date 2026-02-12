@@ -92,10 +92,32 @@ exports.handler = async function(event) {
     }
   }
 
-  // POST: Create new client
+  // POST: Create new client OR update stored card
   if (event.httpMethod === 'POST') {
     try {
       var body = JSON.parse(event.body || '{}');
+
+      // Action: updateCard — save/replace stored credit card on client
+      if (body.action === 'updateCard' && body.clientId && body.card) {
+        var cardData = {
+          CreditCardNumber: String(body.card.cardNumber),
+          ExpMonth: String(body.card.expMonth),
+          ExpYear: String(body.card.expYear),
+          BillingName: String(body.card.cardHolder || '')
+        };
+        console.log('[mb-client] updateCard for client:', body.clientId);
+        var updateResult = await mbFetch('/client/updateclient', {
+          method: 'POST',
+          body: JSON.stringify({ Client: { Id: body.clientId, ClientCreditCard: cardData } })
+        });
+        var updatedClient = updateResult.Client || {};
+        var updatedCC = updatedClient.ClientCreditCard || {};
+        return jsonResponse(200, {
+          success: true,
+          cardType: updatedCC.CardType || '',
+          lastFour: updatedCC.LastFour || body.card.cardNumber.slice(-4)
+        });
+      }
 
       if (!body.firstName || !body.lastName || !body.email) {
         return jsonResponse(400, { error: 'firstName, lastName, and email are required' });

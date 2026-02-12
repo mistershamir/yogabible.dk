@@ -379,6 +379,35 @@
               <div id="yb-stored-card-empty" hidden>
                 <p class="yb-stored-card__empty-text" data-t="stored_card_empty">Intet kort gemt. Dit kort gemmes automatisk ved dit næste køb.</p>
               </div>
+              <!-- Inline change-card form (hidden by default) -->
+              <div id="yb-stored-card-form" class="yb-stored-card__form" hidden>
+                <h3 class="yb-stored-card__form-title" data-t="stored_card_new_title">Tilføj nyt kort</h3>
+                <form id="yb-stored-card-form-inner" class="yb-profile__form" novalidate autocomplete="on">
+                  <div class="yb-auth-field">
+                    <label for="yb-sc-cardholder" data-t="checkout_cardholder">Kortholders navn</label>
+                    <input type="text" id="yb-sc-cardholder" name="ccname" required autocomplete="cc-name">
+                  </div>
+                  <div class="yb-auth-field">
+                    <label for="yb-sc-cardnumber" data-t="checkout_card_number">Kortnummer</label>
+                    <input type="text" id="yb-sc-cardnumber" name="cardnumber" required autocomplete="cc-number" placeholder="1234 5678 9012 3456" inputmode="numeric" maxlength="19">
+                  </div>
+                  <div class="yb-profile__form-row yb-profile__form-row--3">
+                    <div class="yb-auth-field">
+                      <label for="yb-sc-expiry" data-t="checkout_expiry">Udl&oslash;bsdato</label>
+                      <input type="text" id="yb-sc-expiry" name="cc-exp" required placeholder="MM/YY" autocomplete="cc-exp" inputmode="numeric" maxlength="5">
+                    </div>
+                    <div class="yb-auth-field">
+                      <label for="yb-sc-cvv" data-t="checkout_cvv">CVV</label>
+                      <input type="text" id="yb-sc-cvv" name="cvc" required autocomplete="cc-csc" placeholder="123" inputmode="numeric" maxlength="4">
+                    </div>
+                  </div>
+                  <div class="yb-auth-error" id="yb-sc-error" hidden role="alert"></div>
+                  <div class="yb-stored-card__form-actions">
+                    <button type="submit" class="yb-btn yb-btn--primary yb-btn--sm" id="yb-sc-save-btn" data-t="stored_card_save">Gem kort</button>
+                    <button type="button" class="yb-btn yb-btn--outline yb-btn--sm" id="yb-sc-cancel-btn" data-t="stored_card_cancel">Annuller</button>
+                  </div>
+                </form>
+              </div>
             </div>
 
             <!-- Membership summary -->
@@ -493,7 +522,20 @@
                 <!-- Right: Payment form -->
                 <div class="yb-checkout__col-right">
                   <h4 class="yb-checkout__payment-title" data-t="checkout_payment_title">Betalingsoplysninger</h4>
+                  <!-- Stored card toggle (shown only when user has a stored card) -->
+                  <div id="yb-store-stored-card" class="yb-checkout-stored-card" hidden>
+                    <label class="yb-checkout-stored-card__option yb-checkout-stored-card__option--active" id="yb-store-use-stored">
+                      <input type="radio" name="yb-store-payment-method" value="stored" checked>
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+                      <span id="yb-store-stored-label"></span>
+                    </label>
+                    <label class="yb-checkout-stored-card__option" id="yb-store-use-new">
+                      <input type="radio" name="yb-store-payment-method" value="new">
+                      <span data-t="checkout_use_new_card">Brug nyt kort</span>
+                    </label>
+                  </div>
                   <form id="yb-store-checkout-form" class="yb-profile__form" novalidate autocomplete="on">
+                    <div id="yb-store-card-fields">
                     <div class="yb-auth-field">
                       <label for="yb-store-cardholder" data-t="checkout_cardholder">Kortholders navn</label>
                       <input type="text" id="yb-store-cardholder" name="ccname" required autocomplete="cc-name">
@@ -531,6 +573,7 @@
                       <input type="checkbox" id="yb-store-save-card" checked>
                       <span data-t="checkout_save_card">Gem kort til fremtidige k&oslash;b</span>
                     </label>
+                    </div><!-- end #yb-store-card-fields -->
                     <div class="yb-store__checkout-actions">
                       <button type="submit" class="yb-auth-submit" id="yb-store-pay-btn" data-t="checkout_pay">Betal</button>
                       <button type="button" class="yb-btn yb-btn--outline" id="yb-store-cancel-btn" data-t="checkout_cancel">Annuller</button>
@@ -734,7 +777,20 @@
                 <!-- Right: Payment -->
                 <div class="yb-giftcards__checkout-right">
                   <h3 class="yb-giftcards__payment-title" data-t="checkout_payment_title">Betalingsoplysninger</h3>
+                  <!-- Stored card toggle (shown only when user has a stored card) -->
+                  <div id="yb-gc-stored-card" class="yb-checkout-stored-card" hidden>
+                    <label class="yb-checkout-stored-card__option yb-checkout-stored-card__option--active" id="yb-gc-use-stored">
+                      <input type="radio" name="yb-gc-payment-method" value="stored" checked>
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+                      <span id="yb-gc-stored-label"></span>
+                    </label>
+                    <label class="yb-checkout-stored-card__option" id="yb-gc-use-new">
+                      <input type="radio" name="yb-gc-payment-method" value="new">
+                      <span data-t="checkout_use_new_card">Brug nyt kort</span>
+                    </label>
+                  </div>
                   <form id="yb-gc-payment-form" class="yb-profile__form" novalidate autocomplete="on">
+                    <div id="yb-gc-card-fields">
                     <div class="yb-auth-field">
                       <label for="yb-gc-cardholder" data-t="checkout_cardholder">Kortholders navn</label>
                       <input type="text" id="yb-gc-cardholder" name="ccname" required autocomplete="cc-name">
@@ -752,6 +808,7 @@
                         <label for="yb-gc-cvv" data-t="checkout_cvv">CVV</label>
                         <input type="text" id="yb-gc-cvv" name="cvc" required autocomplete="cc-csc" placeholder="123" inputmode="numeric" maxlength="4">
                       </div>
+                    </div>
                     </div>
                     <div class="yb-auth-error" id="yb-gc-error" hidden role="alert"></div>
                     <div class="yb-giftcards__form-actions">
@@ -825,6 +882,12 @@ window.HYC_I18N = {
     "stored_card_loading": "Henter kortoplysninger...",
     "stored_card_change": "Skift kort",
     "stored_card_empty": "Intet kort gemt. Dit kort gemmes automatisk ved dit næste køb.",
+    "stored_card_new_title": "Tilf\u00f8j nyt kort",
+    "stored_card_save": "Gem kort",
+    "stored_card_cancel": "Annuller",
+    "stored_card_saving": "Gemmer...",
+    "stored_card_saved": "Kort gemt!",
+    "checkout_use_new_card": "Brug nyt kort",
     "section_membership": "Medlemskab",
     "label_tier": "Medlemskabsniveau",
     "label_client_id": "Klient-ID",
@@ -938,6 +1001,12 @@ window.HYC_I18N = {
     "stored_card_loading": "Fetching card details...",
     "stored_card_change": "Change card",
     "stored_card_empty": "No card stored. Your card will be saved automatically with your next purchase.",
+    "stored_card_new_title": "Add new card",
+    "stored_card_save": "Save card",
+    "stored_card_cancel": "Cancel",
+    "stored_card_saving": "Saving...",
+    "stored_card_saved": "Card saved!",
+    "checkout_use_new_card": "Use new card",
     "section_membership": "Membership",
     "label_tier": "Membership Tier",
     "label_client_id": "Client ID",

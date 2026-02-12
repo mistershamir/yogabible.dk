@@ -4835,3 +4835,61 @@ body.hyc-page .yb-profile__hero::before {
   color: #6F6A66;
   font-size: 0.9rem;
 }
+
+/* Inline change-card form */
+.yb-stored-card__form {
+  margin-top: 1rem;
+  padding: 1.25rem;
+  background: #F5F3F0;
+  border-radius: 12px;
+}
+
+.yb-stored-card__form-title {
+  font-size: 0.95rem;
+  font-weight: 700;
+  margin: 0 0 1rem;
+}
+
+.yb-stored-card__form-actions {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+}
+
+/* Checkout stored-card radio toggle */
+.yb-checkout-stored-card {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.yb-checkout-stored-card__option {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.6rem 1rem;
+  border: 1.5px solid #E8E4E0;
+  border-radius: 10px;
+  cursor: pointer;
+  font-size: 0.85rem;
+  transition: border-color 0.15s, background 0.15s;
+  flex: 1;
+}
+
+.yb-checkout-stored-card__option input[type="radio"] {
+  display: none;
+}
+
+.yb-checkout-stored-card__option--active {
+  border-color: #3f99a5;
+  background: rgba(63, 153, 165, 0.06);
+}
+
+.yb-checkout-stored-card__option svg {
+  flex-shrink: 0;
+  color: #6F6A66;
+}
+
+.yb-checkout-stored-card__option--active svg {
+  color: #3f99a5;
+}

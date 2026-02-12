@@ -123,12 +123,7 @@
 
     initTabs();
     initStoreForm();
-    // "Change card" button — navigate to store tab
-    var changeCardBtn = document.getElementById('yb-stored-card-change');
-    if (changeCardBtn) changeCardBtn.addEventListener('click', function() {
-      var storeTab = document.querySelector('[data-yb-tab="store"]');
-      if (storeTab) storeTab.click();
-    });
+    initStoredCardForm();
     initGiftCards();
     initScheduleNav();
     initAvatarUpload(db);
@@ -746,6 +741,144 @@
         console.warn('Could not fetch stored card from MB:', err);
         if (!storedCardData) renderStoredCardUI(null);
       });
+  }
+
+  /**
+   * Inline "change card" form on the Profile tab.
+   * Also used to save a new card when no card is stored.
+   */
+  function initStoredCardForm() {
+    var changeBtn = document.getElementById('yb-stored-card-change');
+    var formWrap = document.getElementById('yb-stored-card-form');
+    var cancelBtn = document.getElementById('yb-sc-cancel-btn');
+    var formInner = document.getElementById('yb-stored-card-form-inner');
+
+    // Card number formatting
+    var scCardInput = document.getElementById('yb-sc-cardnumber');
+    if (scCardInput) scCardInput.addEventListener('input', function() {
+      var v = this.value.replace(/\D/g, '').substring(0, 16);
+      this.value = v.replace(/(.{4})/g, '$1 ').trim();
+    });
+    var scExpInput = document.getElementById('yb-sc-expiry');
+    if (scExpInput) scExpInput.addEventListener('input', function() {
+      var v = this.value.replace(/\D/g, '').substring(0, 4);
+      if (v.length >= 3) v = v.substring(0, 2) + '/' + v.substring(2);
+      this.value = v;
+    });
+
+    // Toggle form open
+    if (changeBtn && formWrap) {
+      changeBtn.addEventListener('click', function() {
+        formWrap.hidden = !formWrap.hidden;
+      });
+    }
+    // Cancel
+    if (cancelBtn && formWrap) {
+      cancelBtn.addEventListener('click', function() {
+        formWrap.hidden = true;
+      });
+    }
+    // Save card via MB checkout endpoint (zero-amount tokenization)
+    if (formInner) formInner.addEventListener('submit', function(e) {
+      e.preventDefault();
+      if (!clientId) return;
+      var cardNumber = (document.getElementById('yb-sc-cardnumber').value || '').replace(/\s/g, '');
+      var expiry = document.getElementById('yb-sc-expiry').value || '';
+      var cvv = document.getElementById('yb-sc-cvv').value || '';
+      var cardHolder = (document.getElementById('yb-sc-cardholder').value || '').trim();
+      var errEl = document.getElementById('yb-sc-error');
+      var saveBtn = document.getElementById('yb-sc-save-btn');
+
+      if (!cardNumber || cardNumber.length < 13) { if (errEl) { errEl.textContent = isDa() ? 'Indtast et gyldigt kortnummer.' : 'Enter a valid card number.'; errEl.hidden = false; } return; }
+      if (!expiry || expiry.length < 4) { if (errEl) { errEl.textContent = isDa() ? 'Indtast udløbsdato.' : 'Enter expiry date.'; errEl.hidden = false; } return; }
+      if (!cvv || cvv.length < 3) { if (errEl) { errEl.textContent = isDa() ? 'Indtast CVV.' : 'Enter CVV.'; errEl.hidden = false; } return; }
+
+      var expParts = expiry.split('/');
+      saveBtn.disabled = true;
+      saveBtn.textContent = t('stored_card_saving');
+      if (errEl) errEl.hidden = true;
+
+      // Save card to Mindbody via mb-client
+      fetch('/.netlify/functions/mb-client', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'updateCard',
+          clientId: clientId,
+          card: {
+            cardNumber: cardNumber,
+            expMonth: expParts[0],
+            expYear: expParts[1] ? '20' + expParts[1] : '',
+            cvv: cvv,
+            cardHolder: cardHolder
+          }
+        })
+      })
+      .then(function(r) { return r.json(); })
+      .then(function(data) {
+        saveBtn.disabled = false;
+        saveBtn.textContent = t('stored_card_save');
+        if (data.error) {
+          if (errEl) { errEl.textContent = data.error; errEl.hidden = false; }
+          return;
+        }
+        // Update the stored card display
+        var lastFour = cardNumber.slice(-4);
+        var newCard = { lastFour: lastFour, cardType: data.cardType || detectCardType(cardNumber), cardHolder: cardHolder, expMonth: expParts[0], expYear: expParts[1] ? '20' + expParts[1] : '' };
+        storedCardData = newCard;
+        renderStoredCardUI(newCard);
+        if (currentUser && currentDb) {
+          currentDb.collection('users').doc(currentUser.uid).update({ storedCard: newCard }).catch(function() {});
+        }
+        if (formWrap) formWrap.hidden = true;
+        formInner.reset();
+        showScheduleToast(t('stored_card_saved'), 'success');
+      })
+      .catch(function(err) {
+        saveBtn.disabled = false;
+        saveBtn.textContent = t('stored_card_save');
+        if (errEl) { errEl.textContent = isDa() ? 'Noget gik galt. Prøv igen.' : 'Something went wrong. Please try again.'; errEl.hidden = false; }
+      });
+    });
+  }
+
+  function detectCardType(num) {
+    if (/^4/.test(num)) return 'Visa';
+    if (/^5[1-5]/.test(num)) return 'Mastercard';
+    if (/^3[47]/.test(num)) return 'Amex';
+    if (/^6(?:011|5)/.test(num)) return 'Discover';
+    return 'Card';
+  }
+
+  /**
+   * Initialize stored-card radio toggle in a checkout context (store or gift card).
+   * prefix = 'yb-store' or 'yb-gc'
+   */
+  function initCheckoutStoredCard(prefix) {
+    var section = document.getElementById(prefix + '-stored-card');
+    var cardFields = document.getElementById(prefix + '-card-fields');
+    if (!section) return;
+
+    if (storedCardData && storedCardData.lastFour) {
+      section.hidden = false;
+      var label = document.getElementById(prefix + '-stored-label');
+      if (label) label.textContent = (storedCardData.cardType || 'Card') + ' •••• ' + storedCardData.lastFour;
+      // Default to stored card — hide new card fields
+      if (cardFields) cardFields.hidden = true;
+
+      var radios = section.querySelectorAll('input[type="radio"]');
+      radios.forEach(function(r) {
+        r.addEventListener('change', function() {
+          var useStored = r.value === 'stored';
+          if (cardFields) cardFields.hidden = useStored;
+          document.getElementById(prefix + '-use-stored').classList.toggle('yb-checkout-stored-card__option--active', useStored);
+          document.getElementById(prefix + '-use-new').classList.toggle('yb-checkout-stored-card__option--active', !useStored);
+        });
+      });
+    } else {
+      section.hidden = true;
+      if (cardFields) cardFields.hidden = false;
+    }
   }
 
   // Bind the "Read full waiver" toggle handler (shared between signed/unsigned views)
@@ -2356,6 +2489,8 @@
           // Pre-fill cardholder
           var gcHolder = document.getElementById('yb-gc-cardholder');
           if (gcHolder && currentUser && currentUser.displayName && !gcHolder.value) gcHolder.value = currentUser.displayName;
+          // Show stored card toggle if user has one
+          initCheckoutStoredCard('yb-gc');
           formEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
         }
       });
@@ -2378,10 +2513,6 @@
       var title = (document.getElementById('yb-gc-title') || {}).value || '';
       var message = (document.getElementById('yb-gc-message') || {}).value || '';
       var deliveryDate = (document.getElementById('yb-gc-delivery-date') || {}).value || '';
-      var gcCardNumber = (document.getElementById('yb-gc-cardnumber') || {}).value || '';
-      var gcExpiry = (document.getElementById('yb-gc-expiry') || {}).value || '';
-      var gcCvv = (document.getElementById('yb-gc-cvv') || {}).value || '';
-      var gcCardHolder = (document.getElementById('yb-gc-cardholder') || {}).value || '';
       var errEl = document.getElementById('yb-gc-error');
 
       if (!recipientName.trim() || !recipientEmail.trim()) {
@@ -2389,21 +2520,42 @@
         return;
       }
 
-      gcCardNumber = gcCardNumber.replace(/\s/g, '');
-      if (!gcCardNumber || gcCardNumber.length < 13) {
-        if (errEl) { errEl.textContent = isDa() ? 'Indtast et gyldigt kortnummer.' : 'Enter a valid card number.'; errEl.hidden = false; }
-        return;
-      }
-      if (!gcExpiry || gcExpiry.length < 4) {
-        if (errEl) { errEl.textContent = isDa() ? 'Indtast udløbsdato.' : 'Enter expiry date.'; errEl.hidden = false; }
-        return;
-      }
-      if (!gcCvv || gcCvv.length < 3) {
-        if (errEl) { errEl.textContent = isDa() ? 'Indtast CVV.' : 'Enter CVV.'; errEl.hidden = false; }
-        return;
+      // Check if using stored card
+      var gcStoredRadio = document.querySelector('input[name="yb-gc-payment-method"][value="stored"]');
+      var useStoredCard = gcStoredRadio && gcStoredRadio.checked && storedCardData && storedCardData.lastFour;
+      var gcPayment;
+
+      if (useStoredCard) {
+        gcPayment = { useStoredCard: true, lastFour: storedCardData.lastFour };
+      } else {
+        var gcCardNumber = (document.getElementById('yb-gc-cardnumber') || {}).value || '';
+        var gcExpiry = (document.getElementById('yb-gc-expiry') || {}).value || '';
+        var gcCvv = (document.getElementById('yb-gc-cvv') || {}).value || '';
+        var gcCardHolder = (document.getElementById('yb-gc-cardholder') || {}).value || '';
+
+        gcCardNumber = gcCardNumber.replace(/\s/g, '');
+        if (!gcCardNumber || gcCardNumber.length < 13) {
+          if (errEl) { errEl.textContent = isDa() ? 'Indtast et gyldigt kortnummer.' : 'Enter a valid card number.'; errEl.hidden = false; }
+          return;
+        }
+        if (!gcExpiry || gcExpiry.length < 4) {
+          if (errEl) { errEl.textContent = isDa() ? 'Indtast udløbsdato.' : 'Enter expiry date.'; errEl.hidden = false; }
+          return;
+        }
+        if (!gcCvv || gcCvv.length < 3) {
+          if (errEl) { errEl.textContent = isDa() ? 'Indtast CVV.' : 'Enter CVV.'; errEl.hidden = false; }
+          return;
+        }
+        var gcExpParts = gcExpiry.split('/');
+        gcPayment = {
+          cardNumber: gcCardNumber,
+          expMonth: gcExpParts[0],
+          expYear: gcExpParts[1] ? '20' + gcExpParts[1] : '',
+          cvv: gcCvv,
+          cardHolder: gcCardHolder.trim()
+        };
       }
 
-      var gcExpParts = gcExpiry.split('/');
       var gcCustomAmount = selectedGiftCard.editableByConsumer ? ((document.getElementById('yb-gc-custom-amount') || {}).value || '') : '';
 
       buyBtn.disabled = true;
@@ -2419,13 +2571,7 @@
         message: message.trim(),
         deliveryDate: deliveryDate || undefined,
         layoutId: selectedGiftCard.layouts && selectedGiftCard.layouts.length ? selectedGiftCard.layouts[0].id : 0,
-        payment: {
-          cardNumber: gcCardNumber,
-          expMonth: gcExpParts[0],
-          expYear: gcExpParts[1] ? '20' + gcExpParts[1] : '',
-          cvv: gcCvv,
-          cardHolder: gcCardHolder.trim()
-        }
+        payment: gcPayment
       };
       if (gcCustomAmount) gcPostBody.customAmount = Number(gcCustomAmount);
       // Always send the card's salePrice so the backend can set PaymentInfo.Amount
@@ -2518,6 +2664,8 @@
     if (holderInput && currentUser && currentUser.displayName) holderInput.value = currentUser.displayName;
     var errEl = document.getElementById('yb-store-error');
     if (errEl) errEl.hidden = true;
+    // Show stored card toggle if user has one
+    initCheckoutStoredCard('yb-store');
 
     // 1. Determine what documents to show
     var waiverSection = document.getElementById('yb-checkout-waiver-section');
@@ -2615,14 +2763,6 @@
     var checkoutEl = document.getElementById('yb-store-checkout');
     var serviceId = checkoutEl.getAttribute('data-service-id');
     var amount = parseFloat(checkoutEl.getAttribute('data-service-price'));
-    var cardNumber = document.getElementById('yb-store-cardnumber').value.replace(/\s/g, '');
-    var expiry = document.getElementById('yb-store-expiry').value;
-    var cvv = document.getElementById('yb-store-cvv').value;
-    var cardHolder = document.getElementById('yb-store-cardholder').value.trim();
-    var address = document.getElementById('yb-store-address').value.trim();
-    var city = document.getElementById('yb-store-city').value.trim();
-    var zip = document.getElementById('yb-store-zip').value.trim();
-    var saveCard = document.getElementById('yb-store-save-card');
     var errorEl = document.getElementById('yb-store-error');
     var payBtn = document.getElementById('yb-store-pay-btn');
     var payBtnText = payBtn.textContent;
@@ -2641,11 +2781,19 @@
       }
     }
 
-    if (!cardNumber || cardNumber.length < 13) { showSimpleError(errorEl, isDa() ? 'Indtast et gyldigt kortnummer.' : 'Enter a valid card number.'); return; }
-    if (!expiry || expiry.length < 4) { showSimpleError(errorEl, isDa() ? 'Indtast udløbsdato.' : 'Enter expiry date.'); return; }
-    if (!cvv || cvv.length < 3) { showSimpleError(errorEl, isDa() ? 'Indtast CVV.' : 'Enter CVV.'); return; }
+    // Check if using stored card
+    var storeStoredRadio = document.querySelector('input[name="yb-store-payment-method"][value="stored"]');
+    var useStoredCard = storeStoredRadio && storeStoredRadio.checked && storedCardData && storedCardData.lastFour;
 
-    var expParts = expiry.split('/');
+    if (!useStoredCard) {
+      var cardNumber = document.getElementById('yb-store-cardnumber').value.replace(/\s/g, '');
+      var expiry = document.getElementById('yb-store-expiry').value;
+      var cvv = document.getElementById('yb-store-cvv').value;
+      if (!cardNumber || cardNumber.length < 13) { showSimpleError(errorEl, isDa() ? 'Indtast et gyldigt kortnummer.' : 'Enter a valid card number.'); return; }
+      if (!expiry || expiry.length < 4) { showSimpleError(errorEl, isDa() ? 'Indtast udløbsdato.' : 'Enter expiry date.'); return; }
+      if (!cvv || cvv.length < 3) { showSimpleError(errorEl, isDa() ? 'Indtast CVV.' : 'Enter CVV.'); return; }
+    }
+
     payBtn.disabled = true;
     payBtn.textContent = isDa() ? 'Behandler betaling...' : 'Processing payment...';
 
@@ -2682,11 +2830,22 @@
     }
 
     var itemType = checkoutEl.getAttribute('data-item-type') || 'service';
-    var paymentInfo = {
-      cardNumber: cardNumber, expMonth: expParts[0], expYear: expParts[1] ? '20' + expParts[1] : '',
-      cvv: cvv, cardHolder: cardHolder, billingAddress: address, billingCity: city, billingPostalCode: zip,
-      saveCard: saveCard ? saveCard.checked : false
-    };
+    var paymentInfo;
+    if (useStoredCard) {
+      paymentInfo = { useStoredCard: true, lastFour: storedCardData.lastFour };
+    } else {
+      var cardHolder = document.getElementById('yb-store-cardholder').value.trim();
+      var address = document.getElementById('yb-store-address').value.trim();
+      var city = document.getElementById('yb-store-city').value.trim();
+      var zip = document.getElementById('yb-store-zip').value.trim();
+      var saveCard = document.getElementById('yb-store-save-card');
+      var expParts = expiry.split('/');
+      paymentInfo = {
+        cardNumber: cardNumber, expMonth: expParts[0], expYear: expParts[1] ? '20' + expParts[1] : '',
+        cvv: cvv, cardHolder: cardHolder, billingAddress: address, billingCity: city, billingPostalCode: zip,
+        saveCard: saveCard ? saveCard.checked : false
+      };
+    }
 
     var fetchUrl, fetchBody;
     if (itemType === 'contract') {
