@@ -4774,3 +4774,64 @@ body.hyc-page .yb-profile__hero::before {
     width: 100%;
   }
 }
+
+/* ── Stored Card (Profile) ── */
+.yb-stored-card__loading {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0;
+}
+
+.yb-stored-card {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem 1.25rem;
+  background: #FFFCF9;
+  border: 1.5px solid #E8E4E0;
+  border-radius: 12px;
+  flex-wrap: wrap;
+}
+
+.yb-stored-card__info {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex: 1;
+  min-width: 150px;
+}
+
+.yb-stored-card__icon {
+  color: #6F6A66;
+  flex-shrink: 0;
+}
+
+.yb-stored-card__type {
+  font-size: 0.8rem;
+  color: #6F6A66;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  display: block;
+}
+
+.yb-stored-card__number {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #0F0F0F;
+  letter-spacing: 0.08em;
+  display: block;
+}
+
+.yb-stored-card__meta {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  font-size: 0.85rem;
+  color: #6F6A66;
+}
+
+.yb-stored-card__empty-text {
+  color: #6F6A66;
+  font-size: 0.9rem;
+}

@@ -16,6 +16,7 @@
 
   var waiverSigned = false; // Track if liability waiver is signed
   var waiverStatusLoaded = false; // True once we know the actual status
+  var storedCardData = null; // Cached stored credit card from Mindbody
 
   // ── Simple canvas signature pad ──
   function SignaturePad(canvasId, clearBtnId) {
@@ -122,6 +123,12 @@
 
     initTabs();
     initStoreForm();
+    // "Change card" button — navigate to store tab
+    var changeCardBtn = document.getElementById('yb-stored-card-change');
+    if (changeCardBtn) changeCardBtn.addEventListener('click', function() {
+      var storeTab = document.querySelector('[data-yb-tab="store"]');
+      if (storeTab) storeTab.click();
+    });
     initGiftCards();
     initScheduleNav();
     initAvatarUpload(db);
@@ -512,9 +519,13 @@
         }
       }
 
-      // Silently fetch waiver status (no blocking — used for gates later)
+      // Silently fetch waiver status and stored card info
       if (d.mindbodyClientId) {
         fetchWaiverStatus(d.mindbodyClientId);
+        fetchStoredCard(d.mindbodyClientId);
+      } else {
+        // No MB link — show empty card state
+        renderStoredCardUI(null);
       }
 
       var sinceEl = document.getElementById('yb-profile-member-since');
@@ -528,7 +539,11 @@
       if (tierEl) tierEl.textContent = '—';
       var tierDetailEl = document.getElementById('yb-profile-tier-detail');
       if (tierDetailEl) tierDetailEl.textContent = '—';
-    }).catch(function(err) { console.warn('Could not load profile:', err); });
+    }).catch(function(err) {
+      console.warn('Could not load profile:', err);
+      // If profile load fails, stop the stored card loading spinner
+      renderStoredCardUI(null);
+    });
   }
 
   // ══════════════════════════════════════
@@ -671,6 +686,65 @@
         console.warn('Could not check waiver status:', err);
         waiverStatusLoaded = true;
         renderWaiverCard();
+      });
+  }
+
+  // ══════════════════════════════════════
+  // STORED CREDIT CARD
+  // ══════════════════════════════════════
+  function renderStoredCardUI(card) {
+    var loadingEl = document.getElementById('yb-stored-card-loading');
+    var displayEl = document.getElementById('yb-stored-card-display');
+    var emptyEl = document.getElementById('yb-stored-card-empty');
+    if (loadingEl) loadingEl.hidden = true;
+    if (card && card.lastFour) {
+      storedCardData = card;
+      if (displayEl) displayEl.hidden = false;
+      if (emptyEl) emptyEl.hidden = true;
+      var typeEl = document.getElementById('yb-stored-card-type');
+      var numEl = document.getElementById('yb-stored-card-number');
+      var holderEl = document.getElementById('yb-stored-card-holder');
+      var expEl = document.getElementById('yb-stored-card-exp');
+      if (typeEl) typeEl.textContent = card.cardType || 'Card';
+      if (numEl) numEl.textContent = '•••• ' + card.lastFour;
+      if (holderEl) holderEl.textContent = card.cardHolder || '';
+      if (expEl && card.expMonth && card.expYear) {
+        expEl.textContent = (isDa() ? 'Udløber ' : 'Expires ') + card.expMonth + '/' + card.expYear;
+      }
+    } else {
+      storedCardData = null;
+      if (displayEl) displayEl.hidden = true;
+      if (emptyEl) emptyEl.hidden = false;
+    }
+  }
+
+  function fetchStoredCard(mbClientId) {
+    // 1. Instant: check Firestore for locally saved card info
+    if (currentUser && currentDb) {
+      currentDb.collection('users').doc(currentUser.uid).get().then(function(doc) {
+        if (doc.exists && doc.data().storedCard && doc.data().storedCard.lastFour) {
+          renderStoredCardUI(doc.data().storedCard);
+        }
+      }).catch(function() {});
+    }
+
+    // 2. Fetch from Mindbody (authoritative source, overwrites Firestore data)
+    fetch('/.netlify/functions/mb-client?action=storedCard&clientId=' + encodeURIComponent(mbClientId))
+      .then(function(r) { return r.json(); })
+      .then(function(data) {
+        if (data.hasStoredCard && data.storedCard && data.storedCard.lastFour) {
+          renderStoredCardUI(data.storedCard);
+          // Save to Firestore as cache
+          if (currentUser && currentDb) {
+            currentDb.collection('users').doc(currentUser.uid).update({ storedCard: data.storedCard }).catch(function() {});
+          }
+        } else if (!storedCardData) {
+          renderStoredCardUI(null);
+        }
+      })
+      .catch(function(err) {
+        console.warn('Could not fetch stored card from MB:', err);
+        if (!storedCardData) renderStoredCardUI(null);
       });
   }
 
@@ -1428,7 +1502,8 @@
     { id: 'timebased', da: 'Tidsbegrænsede pas', en: 'Time-based Passes', desc_da: 'Ubegrænset adgang', desc_en: 'Unlimited pass' },
     { id: 'clips', da: 'Klippekort', en: 'Clip Cards', desc_da: 'Lejlighedsvise besøg', desc_en: 'Occasional visits' },
     { id: 'trials', da: 'Prøvekort', en: 'Trial Passes', desc_da: 'Prøv os', desc_en: 'Try us' },
-    { id: 'tourist', da: 'Turistpas', en: 'Tourist Pass', desc_da: 'Inkl. måtte & håndklæde', desc_en: 'Incl. mat & towel' }
+    { id: 'tourist', da: 'Turistpas', en: 'Tourist Pass', desc_da: 'Inkl. måtte & håndklæde', desc_en: 'Incl. mat & towel' },
+    { id: 'test', da: 'Test', en: 'Test', desc_da: 'Kun til test', desc_en: 'Testing only' }
   ];
 
   // ── Hardcoded Product Catalog ──
@@ -1580,6 +1655,23 @@
       ],
       rental_note_da: 'Medbring eget udstyr eller: Måtteleje 40 kr \u00b7 Træningshåndklæde 40 kr \u00b7 Brusehåndklæde 40 kr (betal i studiet ved ankomst)',
       rental_note_en: 'Bring your own or: Mat rental 40 kr \u00b7 Practice towel 40 kr \u00b7 Shower towel 40 kr (pay at studio upon arrival)'
+    },
+    // ── Test items (temporary — remove after testing) ──
+    test: {
+      over30: [
+        { id: 'test-clip', name_da: 'Test Klippekort', name_en: 'Test Clip Card', price: 1, vat_pct: 25, classes: 1, validity: '1 day', prodId: '100203',
+          desc_da: 'Test klippekort — kun til testbrug', desc_en: 'Test clip card — for testing only' },
+        { id: 'test-mem', name_da: 'Test Medlemskab', name_en: 'Test Membership', price: 1, vat_pct: 25, regFee: 0, firstMonthFree: false, prodId: '129', _itemType: 'contract',
+          desc_da: 'Test medlemskab — kun til testbrug', desc_en: 'Test membership — for testing only',
+          features_da: ['Testmedlemskab'], features_en: ['Test membership'] }
+      ],
+      under30: [
+        { id: 'test-clip-u30', name_da: 'Test Klippekort', name_en: 'Test Clip Card', price: 1, vat_pct: 0, classes: 1, validity: '1 day', prodId: '100203',
+          desc_da: 'Test klippekort — kun til testbrug', desc_en: 'Test clip card — for testing only' },
+        { id: 'test-mem-u30', name_da: 'Test Medlemskab', name_en: 'Test Membership', price: 1, vat_pct: 0, regFee: 0, firstMonthFree: false, prodId: '129', _itemType: 'contract',
+          desc_da: 'Test medlemskab — kun til testbrug', desc_en: 'Test membership — for testing only',
+          features_da: ['Testmedlemskab'], features_en: ['Test membership'] }
+      ]
     }
   };
 
@@ -1804,6 +1896,29 @@
         _subCategory: 'tourist',
         _catalog: resolved
       });
+    });
+
+    // ── Test items (temporary) ──
+    var testItems = storeCatalog.test ? (storeCatalog.test[bracket] || []) : [];
+    testItems.forEach(function(t) {
+      var isContract = t._itemType === 'contract';
+      var item = {
+        _uid: 'test-' + t.prodId,
+        prodId: t.prodId,
+        name: da ? t.name_da : t.name_en,
+        price: t.price,
+        onlinePrice: t.price,
+        _itemType: isContract ? 'contract' : 'service',
+        _topCategory: 'daily',
+        _subCategory: 'test',
+        _catalog: t
+      };
+      if (isContract) {
+        item._recurringInfo = formatDKK(t.price) + ' ' + (da ? 'pr. måned' : 'per month');
+        item.firstMonthFree = t.firstMonthFree;
+        item._terms = [da ? 'Kun til testbrug' : 'Testing only'];
+      }
+      items.push(item);
     });
 
     console.log('[Store] Built', items.length, 'items from catalog (bracket:', bracket, ')');
