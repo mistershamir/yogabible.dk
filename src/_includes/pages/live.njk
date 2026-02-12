@@ -1,0 +1,294 @@
+{% set t = i18n.live[lang or "da"] %}
+{% set lp = "/en" if lang == "en" else "" %}
+
+<style>
+  .yb-live {
+    background: #0F0F0F;
+    min-height: 100vh;
+    padding: 0;
+  }
+
+  .yb-live-hero {
+    text-align: center;
+    padding: 4rem 1.5rem 2rem;
+  }
+
+  .yb-live-hero__tagline {
+    font-size: 0.85rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: #6F6A66;
+    margin-bottom: 1rem;
+  }
+
+  .yb-live-hero__title {
+    font-size: clamp(2rem, 5vw, 3.5rem);
+    color: #FFFCF9;
+    margin: 0 0 1rem;
+    line-height: 1.1;
+  }
+
+  .yb-live-hero__subtitle {
+    font-size: 1.05rem;
+    color: #6F6A66;
+    max-width: 600px;
+    margin: 0 auto;
+    line-height: 1.6;
+  }
+
+  .yb-live-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: rgba(247, 92, 3, 0.12);
+    border: 1px solid #f75c03;
+    color: #f75c03;
+    padding: 0.35rem 1rem;
+    border-radius: 2rem;
+    font-size: 0.8rem;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    margin-bottom: 1.5rem;
+    opacity: 0;
+    transition: opacity 0.4s ease;
+  }
+
+  .yb-live-badge--visible {
+    opacity: 1;
+  }
+
+  .yb-live-badge__dot {
+    width: 8px;
+    height: 8px;
+    background: #f75c03;
+    border-radius: 50%;
+    animation: yb-live-pulse 1.5s ease-in-out infinite;
+  }
+
+  @keyframes yb-live-pulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.4; transform: scale(0.7); }
+  }
+
+  .yb-live-player {
+    max-width: 960px;
+    margin: 0 auto;
+    padding: 0 1.5rem;
+  }
+
+  .yb-live-player__wrap {
+    border-radius: 12px;
+    overflow: hidden;
+    background: #1a1a1a;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+    position: relative;
+  }
+
+  mux-player {
+    display: block;
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    --media-object-fit: contain;
+  }
+
+  mux-player::part(gesture-layer) {
+    display: none;
+  }
+
+  .yb-live-player__checking {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background: #1a1a1a;
+    color: #6F6A66;
+    font-size: 0.95rem;
+    gap: 1rem;
+    z-index: 2;
+    transition: opacity 0.4s ease;
+  }
+
+  .yb-live-player__checking--hidden {
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  .yb-live-spinner {
+    width: 32px;
+    height: 32px;
+    border: 3px solid #333;
+    border-top-color: #f75c03;
+    border-radius: 50%;
+    animation: yb-live-spin 0.8s linear infinite;
+  }
+
+  @keyframes yb-live-spin {
+    to { transform: rotate(360deg); }
+  }
+
+  .yb-live-offline {
+    max-width: 960px;
+    margin: 0 auto;
+    padding: 0 1.5rem;
+    display: none;
+  }
+
+  .yb-live-offline__card {
+    border-radius: 12px;
+    background: #1a1a1a;
+    padding: 4rem 2rem;
+    text-align: center;
+    aspect-ratio: 16 / 9;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+  }
+
+  .yb-live-offline__icon {
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    background: rgba(111, 106, 102, 0.15);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 1.5rem;
+  }
+
+  .yb-live-offline__title {
+    font-size: clamp(1.3rem, 3vw, 1.8rem);
+    color: #FFFCF9;
+    margin: 0 0 0.75rem;
+  }
+
+  .yb-live-offline__text {
+    color: #6F6A66;
+    max-width: 420px;
+    margin: 0 auto;
+    line-height: 1.6;
+    font-size: 0.95rem;
+  }
+
+  .yb-live-offline__retry {
+    margin-top: 1.5rem;
+    background: transparent;
+    border: 1px solid #333;
+    color: #FFFCF9;
+    padding: 0.6rem 1.5rem;
+    border-radius: 2rem;
+    cursor: pointer;
+    font-family: inherit;
+    font-size: 0.85rem;
+    transition: border-color 0.3s ease, color 0.3s ease;
+  }
+
+  .yb-live-offline__retry:hover {
+    border-color: #f75c03;
+    color: #f75c03;
+  }
+
+  .yb-live-footer {
+    text-align: center;
+    padding: 3rem 1.5rem 4rem;
+  }
+
+  .yb-live-footer__line {
+    width: 40px;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, #f75c03, transparent);
+    margin: 0 auto 1.5rem;
+  }
+
+  .yb-live-footer__text {
+    color: #6F6A66;
+    font-size: 0.85rem;
+  }
+
+  .yb-live-footer__text a {
+    color: #f75c03;
+    text-decoration: none;
+  }
+
+  .yb-live-footer__text a:hover {
+    text-decoration: underline;
+  }
+
+  @media (max-width: 640px) {
+    .yb-live-hero {
+      padding: 3rem 1rem 1.5rem;
+    }
+
+    .yb-live-player,
+    .yb-live-offline {
+      padding: 0 0.75rem;
+    }
+
+    .yb-live-offline__card {
+      padding: 3rem 1.5rem;
+    }
+  }
+</style>
+
+<div class="yb-live" id="yb-live" data-playback-id="{{ mux.playback_id }}" data-env-key="{{ mux.env_key }}">
+
+  <div class="yb-live-hero">
+    <p class="yb-live-hero__tagline">{{ t.hero_tagline }}</p>
+    <div class="yb-live-badge" id="yb-live-badge">
+      <span class="yb-live-badge__dot"></span>
+      {{ t.live_badge }}
+    </div>
+    <h1 class="yb-live-hero__title">{{ t.hero_title }}</h1>
+    <p class="yb-live-hero__subtitle">{{ t.hero_subtitle }}</p>
+  </div>
+
+  <div class="yb-live-player" id="yb-live-player-section">
+    <div class="yb-live-player__wrap">
+      <div class="yb-live-player__checking" id="yb-live-checking">
+        <div class="yb-live-spinner"></div>
+        <span>{{ t.checking_text }}</span>
+      </div>
+      <mux-player
+        id="yb-mux-player"
+        stream-type="live"
+        playback-id="{{ mux.playback_id }}"
+        env-key="{{ mux.env_key }}"
+        metadata-video-title="{{ t.stream_title }}"
+        accent-color="#f75c03"
+        primary-color="#FFFCF9"
+        secondary-color="#0F0F0F"
+        default-hidden-captions
+      ></mux-player>
+    </div>
+  </div>
+
+  <div class="yb-live-offline" id="yb-live-offline">
+    <div class="yb-live-offline__card">
+      <div class="yb-live-offline__icon">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#6F6A66" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="10"/>
+          <line x1="12" y1="8" x2="12" y2="12"/>
+          <line x1="12" y1="16" x2="12.01" y2="16"/>
+        </svg>
+      </div>
+      <h2 class="yb-live-offline__title">{{ t.offline_title }}</h2>
+      <p class="yb-live-offline__text">{{ t.offline_text }}</p>
+      <button class="yb-live-offline__retry" id="yb-live-retry">{{ t.retry_btn }}</button>
+    </div>
+  </div>
+
+  <div class="yb-live-footer">
+    <div class="yb-live-footer__line"></div>
+    <p class="yb-live-footer__text">
+      <a href="{{ lp }}/">Yoga Bible</a> · Christianshavn, København
+    </p>
+  </div>
+
+</div>
+
+<script type="module" src="https://cdn.jsdelivr.net/npm/@mux/mux-player@3/dist/mux-player.mjs"></script>
+<script src="/js/live.js"></script>
