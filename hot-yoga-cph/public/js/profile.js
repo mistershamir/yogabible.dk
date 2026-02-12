@@ -2627,9 +2627,17 @@
         var formEl = document.getElementById('yb-giftcard-form');
         if (formEl) formEl.hidden = true;
         selectedGiftCard = null;
-        showScheduleToast(isDa()
-          ? 'Gavekort sendt til ' + recipientEmail.trim() + '!'
-          : 'Gift card sent to ' + recipientEmail.trim() + '!', 'success');
+        var toastMsg;
+        if (data.emailSent) {
+          toastMsg = isDa()
+            ? 'Gavekort sendt til ' + recipientEmail.trim() + '!'
+            : 'Gift card sent to ' + recipientEmail.trim() + '!';
+        } else {
+          toastMsg = isDa()
+            ? 'Gavekort købt! Email kunne ikke sendes — kontakt os for levering.'
+            : 'Gift card purchased! Email could not be sent — contact us for delivery.';
+        }
+        showScheduleToast(toastMsg, 'success');
       })
       .catch(function(err) {
         buyBtn.disabled = false;

@@ -15,6 +15,10 @@ exports.handler = async (event) => {
     if (event.httpMethod === 'GET') {
       const locationId = event.queryStringParameters?.locationId || '1';
       const data = await mbFetch(`/sale/giftcards?LocationId=${locationId}&SoldOnline=true`);
+      // Log layouts for debugging email delivery issues
+      (data.GiftCards || []).forEach(gc => {
+        console.log(`[mb-giftcards] Card "${gc.Description}" (ID:${gc.Id}): Layouts=${JSON.stringify(gc.Layouts || [])}, EditableByConsumer=${gc.EditableByConsumer}`);
+      });
       const cards = (data.GiftCards || []).map(gc => ({
         id: gc.Id,
         description: gc.Description || '',
@@ -104,7 +108,28 @@ exports.handler = async (event) => {
 
       if (message) purchaseData.GiftMessage = message;
       if (deliveryDate) purchaseData.DeliveryDate = deliveryDate;
-      if (layoutId) purchaseData.LayoutId = parseInt(layoutId, 10);
+
+      // LayoutId is REQUIRED for Mindbody to send the gift card email to the recipient.
+      // Use provided layoutId if it's a positive number, otherwise auto-resolve from API.
+      if (layoutId && parseInt(layoutId, 10) > 0) {
+        purchaseData.LayoutId = parseInt(layoutId, 10);
+      }
+
+      // If no valid LayoutId yet (frontend sent 0 or none), fetch layouts from the API
+      if (!purchaseData.LayoutId) {
+        try {
+          const gcData = await mbFetch(`/sale/giftcards?LocationId=${purchaseData.LocationId}&SoldOnline=true`);
+          const matchingCard = (gcData.GiftCards || []).find(gc => gc.Id === parseInt(giftCardId, 10));
+          if (matchingCard && matchingCard.Layouts && matchingCard.Layouts.length > 0) {
+            purchaseData.LayoutId = matchingCard.Layouts[0].LayoutId;
+            console.log('[mb-giftcards] Auto-resolved LayoutId:', purchaseData.LayoutId);
+          } else {
+            console.warn('[mb-giftcards] WARNING: No layouts found for gift card', giftCardId, '— recipient email will NOT be sent by Mindbody');
+          }
+        } catch (layoutErr) {
+          console.warn('[mb-giftcards] Could not fetch layouts:', layoutErr.message);
+        }
+      }
 
       console.log('[mb-giftcards] Purchasing gift card:', JSON.stringify(purchaseData));
 
@@ -113,13 +138,16 @@ exports.handler = async (event) => {
         body: JSON.stringify(purchaseData)
       });
 
+      console.log('[mb-giftcards] Purchase response:', JSON.stringify(result));
+
       return jsonResponse(200, {
         success: true,
         barcodeId: result.BarcodeId,
         value: result.Value,
         amountPaid: result.AmountPaid,
         saleId: result.SaleId,
-        recipientEmail: result.RecipientEmail
+        recipientEmail: result.RecipientEmail,
+        emailSent: !!purchaseData.LayoutId
       });
     }
 
