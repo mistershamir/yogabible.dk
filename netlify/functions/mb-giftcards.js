@@ -50,13 +50,20 @@ exports.handler = async (event) => {
         return jsonResponse(400, { error: 'Payment information is required' });
       }
 
-      // Determine the payment amount (custom amount or default card value)
-      const paymentAmount = customAmount ? parseFloat(customAmount) : (salePrice ? parseFloat(salePrice) : 0);
+      // Determine the payment amount and card value
+      const cardValue = customAmount ? parseFloat(customAmount) : (salePrice ? parseFloat(salePrice) : 0);
+      const isCustomAmount = !!customAmount;
 
       // Validate: custom amount gift cards must have a positive amount
-      if (customAmount !== undefined && paymentAmount <= 0) {
+      if (isCustomAmount && cardValue <= 0) {
         return jsonResponse(400, { error: 'Custom amount must be greater than 0' });
       }
+
+      // For custom-amount gift cards (base price = 0 in Mindbody), the payment amount
+      // must be "0" to avoid "Staff does not have permission to edit price" error.
+      // CardValue tells Mindbody the actual value to charge.
+      // For fixed-price gift cards, the payment amount matches the sale price.
+      const paymentAmount = isCustomAmount ? 0 : cardValue;
 
       // Build PaymentInfo — StoredCard (last four only) or new CreditCard
       let paymentInfo;
@@ -101,9 +108,9 @@ exports.handler = async (event) => {
         PaymentInfo: paymentInfo
       };
 
-      // For custom-amount gift cards, set the card value
-      if (customAmount && paymentAmount > 0) {
-        purchaseData.CardValue = paymentAmount;
+      // For custom-amount gift cards, set CardValue so Mindbody knows the gift card worth
+      if (isCustomAmount && cardValue > 0) {
+        purchaseData.CardValue = cardValue;
       }
 
       if (message) purchaseData.GiftMessage = message;
