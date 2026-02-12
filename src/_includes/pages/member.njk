@@ -275,23 +275,4 @@
   }
 </style>
 
-<script>
-(function() {
-  'use strict';
-  var guest = document.getElementById('yb-member-guest');
-  var user = document.getElementById('yb-member-user');
-  var nameEl = document.getElementById('yb-member-name');
-  if (!guest || !user) return;
-
-  firebase.auth().onAuthStateChanged(function(u) {
-    if (u) {
-      guest.style.display = 'none';
-      user.style.display = '';
-      if (nameEl) nameEl.textContent = (u.displayName || u.email.split('@')[0]).split(' ')[0];
-    } else {
-      guest.style.display = '';
-      user.style.display = 'none';
-    }
-  });
-})();
-</script>
+<script src="/js/member.js"></script>
