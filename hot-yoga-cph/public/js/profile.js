@@ -514,6 +514,22 @@
         }
       }
 
+      // Check waiver flag on user doc (fastest, most reliable)
+      if (d.waiverSigned && !waiverSigned) {
+        waiverSigned = true;
+        waiverStatusLoaded = true;
+        waiverAgreementDate = d.waiverSignedDate || null;
+        // Also cache in localStorage for instant load
+        var wCacheKey = getWaiverCacheKey();
+        if (wCacheKey) {
+          try {
+            localStorage.setItem(wCacheKey, 'true');
+            if (waiverAgreementDate) localStorage.setItem(wCacheKey + '_date', waiverAgreementDate);
+          } catch (e) {}
+        }
+        renderWaiverCard();
+      }
+
       // Silently fetch waiver status and stored card info
       if (d.mindbodyClientId) {
         fetchWaiverStatus(d.mindbodyClientId);
@@ -1032,7 +1048,15 @@
           }
           renderWaiverCard(); // Re-render as signed
 
-          // Firestore audit trail
+          // Save waiver flag on user doc (reliable — same doc we already read)
+          if (currentUser && currentDb) {
+            currentDb.collection('users').doc(currentUser.uid).update({
+              waiverSigned: true,
+              waiverSignedDate: waiverAgreementDate || new Date().toISOString()
+            }).catch(function() {});
+          }
+
+          // Firestore audit trail (consents collection)
           if (currentUser && currentDb) {
             currentDb.collection('consents').add({
               userId: currentUser.uid,
