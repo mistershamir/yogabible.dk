@@ -489,8 +489,11 @@
 
       // Silently fetch waiver status and stored card info
       if (d.mindbodyClientId) {
+        console.log('[Profile] Has mindbodyClientId:', d.mindbodyClientId, '— fetching waiver + stored card');
         fetchWaiverStatus(d.mindbodyClientId);
         fetchStoredCard(d.mindbodyClientId);
+      } else {
+        console.warn('[Profile] NO mindbodyClientId — stored card section will not load');
       }
 
       var sinceEl = document.getElementById('yb-profile-member-since');
@@ -586,19 +589,24 @@
   }
 
   function fetchStoredCard(mbClientId) {
+    console.log('[StoredCard] Fetching for MB client:', mbClientId);
     // 1. Instant: check Firestore for locally saved card info
     if (currentUser && currentDb) {
       currentDb.collection('users').doc(currentUser.uid).get().then(function(doc) {
         if (doc.exists && doc.data().storedCard && doc.data().storedCard.lastFour) {
+          console.log('[StoredCard] Found in Firestore:', doc.data().storedCard.lastFour);
           renderStoredCardUI(doc.data().storedCard);
+        } else {
+          console.log('[StoredCard] Not in Firestore');
         }
-      }).catch(function() {});
+      }).catch(function(e) { console.warn('[StoredCard] Firestore read error:', e); });
     }
 
     // 2. Fetch from Mindbody (authoritative source, overwrites Firestore data)
     fetch('/.netlify/functions/mb-client?action=storedCard&clientId=' + encodeURIComponent(mbClientId))
-      .then(function(r) { return r.json(); })
+      .then(function(r) { console.log('[StoredCard] MB response status:', r.status); return r.json(); })
       .then(function(data) {
+        console.log('[StoredCard] MB response:', JSON.stringify(data).substring(0, 300));
         if (data.hasStoredCard && data.storedCard && data.storedCard.lastFour) {
           renderStoredCardUI(data.storedCard);
           // Save to Firestore as cache
@@ -611,7 +619,7 @@
         }
       })
       .catch(function(err) {
-        console.warn('Could not fetch stored card from MB:', err);
+        console.warn('[StoredCard] MB fetch error:', err);
         // If Firestore didn't provide data either, show empty
         if (!storedCardData) renderStoredCardUI(null);
       });
@@ -1606,6 +1614,10 @@
 
       console.log('[Store] Contracts loaded:', contracts.length, contracts.map(function(c) { return c.name; }));
 
+      // Debug: log all IDs to verify test items (100203, 129) are in the response
+      console.log('[Store] Service IDs:', services.map(function(s) { return s.id + ':' + s.name; }));
+      console.log('[Store] Contract IDs:', contracts.map(function(c) { return c.id + ':' + c.name; }));
+
       storeServices = services.concat(contracts);
       if (!storeServices.length) { listEl.innerHTML = '<p class="yb-store__empty">' + t('store_empty') + '</p>'; return; }
       renderStoreItems(listEl);
@@ -1646,6 +1658,12 @@
     // Categorize services
     storeServices.forEach(function(s) {
       s._category = categorizeService(s);
+    });
+    // Debug: show categorization of test items
+    storeServices.forEach(function(s) {
+      if (String(s.id) === '100203' || String(s.id) === '129') {
+        console.log('[Store] TEST ITEM:', s.id, s.name, '→ category:', s._category, 'type:', s._itemType);
+      }
     });
 
     // ── Search bar ──
