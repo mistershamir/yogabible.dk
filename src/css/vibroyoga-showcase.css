@@ -1,30 +1,33 @@
-/* ============================================
-   Vibro Yoga Showcase — Complete Stylesheet
-   ============================================ */
+/* ═══════════════════════════════════════════════════════════
+   Vibro Yoga Showcase — 30 Vibration Experiments
+   Complete CSS for dark-themed interactive showcase
+   ═══════════════════════════════════════════════════════════ */
 
-/* ── Design Tokens ── */
+/* ── Root Variables ── */
 :root {
   --vs-font: 'Abacaxi', "Helvetica Neue", Helvetica, Arial, system-ui, sans-serif;
   --vs-radius: 16px;
   --vs-transition: cubic-bezier(0.25, 0.46, 0.45, 0.94);
 }
 
-/* ── Reset / Base ── */
-*, *::before, *::after {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-}
-
+/* ── Body Reset ── */
 body {
   margin: 0;
   font-family: var(--vs-font);
   background: #0a0a0a;
-  color: #fafafa;
-  overflow-x: hidden;
+  color: #fff;
+  -webkit-font-smoothing: antialiased;
 }
 
-/* ── Sticky Navigation ── */
+* {
+  box-sizing: border-box;
+}
+
+
+/* ═══════════════════════════════════════════════════════════
+   Sticky Navigation (.vs-nav)
+   ═══════════════════════════════════════════════════════════ */
+
 .vs-nav {
   position: fixed;
   top: 0;
@@ -35,86 +38,101 @@ body {
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
   border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-  padding: 10px 0;
+  padding: 8px 0;
 }
 
 .vs-nav__inner {
-  max-width: 1200px;
-  margin: auto;
-  padding: 0 20px;
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 0 16px;
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: 12px;
 }
 
 .vs-nav__back {
   font-size: 1.2rem;
-  color: rgba(255, 255, 255, 0.5);
+  color: #fff;
   text-decoration: none;
-  flex-shrink: 0;
+  opacity: 0.5;
+  padding: 4px 8px;
+  transition: opacity 0.2s;
 }
 
 .vs-nav__back:hover {
-  color: #fff;
+  opacity: 1;
+}
+
+.vs-nav__group {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.vs-nav__label {
+  font-size: 0.6rem;
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  color: rgba(255, 255, 255, 0.3);
+  font-weight: 700;
+  white-space: nowrap;
 }
 
 .vs-nav__links {
   display: flex;
-  gap: 6px;
-  overflow-x: auto;
-  scrollbar-width: none;
-  -ms-overflow-style: none;
-  flex: 1;
-}
-
-.vs-nav__links::-webkit-scrollbar {
-  display: none;
+  gap: 3px;
+  flex-wrap: nowrap;
 }
 
 .vs-nav__link {
   font-family: var(--vs-font);
-  font-size: 0.72rem;
+  font-size: 0.65rem;
   font-weight: 700;
-  padding: 6px 14px;
-  border-radius: 50px;
-  border: 1.5px solid rgba(255, 255, 255, 0.1);
-  background: transparent;
-  color: rgba(255, 255, 255, 0.4);
+  padding: 4px 8px;
+  border-radius: 4px;
+  color: rgba(255, 255, 255, 0.35);
   text-decoration: none;
+  transition: all 0.2s;
   white-space: nowrap;
-  transition: all 0.3s;
 }
 
 .vs-nav__link:hover {
-  border-color: rgba(255, 255, 255, 0.3);
   color: rgba(255, 255, 255, 0.7);
+  background: rgba(255, 255, 255, 0.05);
 }
 
 .vs-nav__link.is-active {
   background: rgba(255, 255, 255, 0.12);
-  border-color: rgba(255, 255, 255, 0.3);
   color: #fff;
 }
 
-/* ── Progress Bar ── */
+
+/* ═══════════════════════════════════════════════════════════
+   Progress Bar (.vs-progress)
+   ═══════════════════════════════════════════════════════════ */
+
 .vs-progress {
   position: fixed;
-  top: 0;
+  top: 40px;
   left: 0;
   right: 0;
   height: 2px;
-  z-index: 10000;
+  z-index: 9998;
   background: transparent;
 }
 
 .vs-progress__bar {
   height: 100%;
   width: 0%;
-  background: linear-gradient(90deg, #7c5cff, #cc4400, #d4a54a, #00bfa5, #3f99a5, #3f99a5, #e8dcc8, #e05555, #4488cc, #55cc88);
+  background: linear-gradient(90deg, #3f99a5, #7c5cff, #cc4400, #55cc88);
   transition: width 0.1s;
 }
 
-/* ── Sections ── */
+
+/* ═══════════════════════════════════════════════════════════
+   Section Base (.vs-section)
+   ═══════════════════════════════════════════════════════════ */
+
 .vs-section {
   position: relative;
   min-height: 100vh;
@@ -123,9 +141,13 @@ body {
   align-items: center;
   justify-content: center;
   overflow: hidden;
-  padding: 80px 24px 60px;
-  transition: background-color 0.5s;
+  padding: 60px 24px;
 }
+
+
+/* ═══════════════════════════════════════════════════════════
+   Canvas (.vs-canvas)
+   ═══════════════════════════════════════════════════════════ */
 
 .vs-canvas {
   position: absolute;
@@ -135,228 +157,148 @@ body {
   z-index: 1;
 }
 
+
+/* ═══════════════════════════════════════════════════════════
+   Overlay (.vs-section__overlay)
+   ═══════════════════════════════════════════════════════════ */
+
 .vs-section__overlay {
   position: relative;
   z-index: 2;
   text-align: center;
-  max-width: 800px;
   pointer-events: none;
+  padding: 0 24px;
 }
 
+
+/* ═══════════════════════════════════════════════════════════
+   Section Number (.vs-section__number)
+   ═══════════════════════════════════════════════════════════ */
+
 .vs-section__number {
-  display: block;
   font-size: 0.7rem;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.3em;
   opacity: 0.25;
+  display: block;
+  margin-bottom: 12px;
+}
+
+
+/* ═══════════════════════════════════════════════════════════
+   Section Title (.vs-section__title)
+   ═══════════════════════════════════════════════════════════ */
+
+.vs-section__title {
+  font-size: clamp(2.5rem, 6vw, 5rem);
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: -0.02em;
   margin-bottom: 16px;
 }
 
-.vs-section__title {
-  font-size: clamp(3rem, 8vw, 7rem);
-  font-weight: 700;
-  line-height: 0.95;
-  letter-spacing: 0.05em;
-  margin-bottom: 20px;
-  color: #fff;
-}
+
+/* ═══════════════════════════════════════════════════════════
+   Section Subtitle (.vs-section__subtitle)
+   ═══════════════════════════════════════════════════════════ */
 
 .vs-section__subtitle {
-  font-size: 1rem;
+  font-size: clamp(0.9rem, 1.5vw, 1.1rem);
   color: rgba(255, 255, 255, 0.4);
   max-width: 500px;
   margin: 0 auto;
+  line-height: 1.6;
 }
 
-/* ── Per-Section Backgrounds ── */
-.vs-section--oscilloscope {
-  background: #0d0a1a;
-}
 
-.vs-section--seismic {
-  background: #0f0806;
-}
+/* ═══════════════════════════════════════════════════════════
+   Cards (.vs-section__cards)
+   ═══════════════════════════════════════════════════════════ */
 
-.vs-section--resonance {
-  background: #080810;
-}
-
-.vs-section--molecular {
-  background: #061515;
-}
-
-.vs-section--frequency {
-  background: #050508;
-}
-
-.vs-section--cursor {
-  background: #030306;
-}
-
-.vs-section--cymatics {
-  background: #060608;
-}
-
-.vs-section--strings {
-  background: #120808;
-}
-
-.vs-section--ripple {
-  background: #060a14;
-}
-
-.vs-section--pendulum {
-  background: #061008;
-}
-
-/* ── Section Cards ── */
 .vs-section__cards {
   position: relative;
   z-index: 2;
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 16px;
-  max-width: 1000px;
+  max-width: 900px;
   width: 100%;
-  margin-top: 60px;
-  padding: 0 24px;
+  margin-top: 40px;
 }
 
 .vs-section__cards--cascade {
   grid-template-columns: repeat(3, 1fr);
-  grid-template-rows: repeat(2, 1fr);
 }
+
+
+/* ═══════════════════════════════════════════════════════════
+   Card (.vs-card)
+   ═══════════════════════════════════════════════════════════ */
 
 .vs-card {
   background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: var(--vs-radius);
-  padding: 24px;
-  transition: all 0.3s var(--vs-transition);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 12px;
+  padding: 20px;
+  transition: all 0.3s;
 }
 
 .vs-card:hover {
-  transform: translateY(-4px);
-}
-
-/* Card Variants */
-.vs-card--oscilloscope:hover {
-  border-color: rgba(124, 92, 255, 0.4);
-}
-
-.vs-card--seismic:hover {
-  border-color: rgba(204, 68, 0, 0.4);
-}
-
-.vs-card--seismic.is-shaking {
-  animation: vs-shake 0.15s ease-in-out infinite;
-  border-color: rgba(204, 68, 0, 0.5);
-}
-
-.vs-card--resonance {
-  cursor: pointer;
-}
-
-.vs-card--resonance.is-cascading {
-  animation: vs-cascade-buzz 0.12s ease-in-out 4;
-  border-color: rgba(212, 165, 74, 0.6);
-  box-shadow: 0 0 25px rgba(212, 165, 74, 0.1);
-}
-
-/* Card Inner Elements */
-.vs-card__freq {
-  font-size: 1.8rem;
-  font-weight: 700;
-  color: #7c5cff;
-  margin-bottom: 8px;
+  border-color: var(--accent, rgba(255, 255, 255, 0.2));
+  transform: translateY(-3px);
 }
 
 .vs-card__title {
   font-size: 1rem;
   font-weight: 700;
-  color: #fff;
   margin-bottom: 6px;
+  color: var(--accent, #fff);
 }
 
 .vs-card__text {
-  font-size: 0.85rem;
+  font-size: 0.8rem;
   line-height: 1.6;
-  color: #888;
+  color: rgba(255, 255, 255, 0.4);
 }
 
-/* ── Seismic Section Specifics ── */
+
+/* ═══════════════════════════════════════════════════════════
+   Seismic Readout (.vs-seismic-readout)
+   ═══════════════════════════════════════════════════════════ */
+
 .vs-seismic-readout {
   position: relative;
   z-index: 2;
   width: 100%;
   max-width: 900px;
-  margin-top: 40px;
 }
 
 .vs-seismic-canvas {
   width: 100%;
   display: block;
-  border: 1px solid rgba(204, 68, 0, 0.15);
   border-radius: 8px;
-  margin-bottom: 20px;
-}
-
-.vs-seismic-metrics {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 0;
-}
-
-.vs-seismic-metric {
-  text-align: center;
-  padding: 16px;
   border: 1px solid rgba(204, 68, 0, 0.15);
 }
 
-.vs-seismic-metric__value {
-  font-size: 2rem;
-  font-weight: 700;
-  color: #cc4400;
-  display: block;
-}
 
-.vs-seismic-metric__label {
-  font-size: 0.65rem;
-  text-transform: uppercase;
-  letter-spacing: 0.15em;
-  color: #888;
-}
+/* ═══════════════════════════════════════════════════════════
+   Resonance Rings (.vs-resonance-rings)
+   ═══════════════════════════════════════════════════════════ */
 
-/* ── Tremor Animation (Seismic Title) ── */
-[data-vs-tremor] {
-  display: inline-block;
-  animation: vs-tremor 0.3s infinite;
-}
-
-@keyframes vs-tremor {
-  0%, 100% { transform: translate(0, 0); }
-  10% { transform: translate(0.5px, -0.5px); }
-  30% { transform: translate(-0.5px, 0.5px); }
-  50% { transform: translate(0.5px, 0); }
-  70% { transform: translate(-0.5px, -0.5px); }
-  90% { transform: translate(0.5px, 0.5px); }
-}
-
-/* ── Resonance Rings ── */
 .vs-resonance-rings {
   position: absolute;
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
   pointer-events: none;
-  z-index: 0;
+  z-index: 1;
 }
 
 .vs-resonance-ring {
   position: absolute;
   border-radius: 50%;
-  border: 1px solid rgba(212, 165, 74, 0.15);
+  border: 1px solid rgba(212, 165, 74, 0.12);
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
@@ -365,57 +307,56 @@ body {
 .vs-resonance-ring:nth-child(1) {
   width: 200px;
   height: 200px;
-  animation: vs-ring-pulse 4s ease-in-out infinite;
+  animation: vs-ring-pulse 3s ease-in-out infinite;
   animation-delay: 0s;
 }
 
 .vs-resonance-ring:nth-child(2) {
   width: 350px;
   height: 350px;
-  animation: vs-ring-pulse 4s ease-in-out infinite;
-  animation-delay: 0.5s;
+  animation: vs-ring-pulse 3s ease-in-out infinite;
+  animation-delay: 0.3s;
 }
 
 .vs-resonance-ring:nth-child(3) {
   width: 500px;
   height: 500px;
-  animation: vs-ring-pulse 4s ease-in-out infinite;
-  animation-delay: 1s;
+  animation: vs-ring-pulse 3s ease-in-out infinite;
+  animation-delay: 0.6s;
 }
 
 .vs-resonance-ring:nth-child(4) {
   width: 650px;
   height: 650px;
-  animation: vs-ring-pulse 4s ease-in-out infinite;
-  animation-delay: 1.5s;
+  animation: vs-ring-pulse 3s ease-in-out infinite;
+  animation-delay: 0.9s;
 }
 
 .vs-resonance-ring:nth-child(5) {
   width: 800px;
   height: 800px;
-  animation: vs-ring-pulse 4s ease-in-out infinite;
-  animation-delay: 2s;
+  animation: vs-ring-pulse 3s ease-in-out infinite;
+  animation-delay: 1.2s;
 }
 
-@keyframes vs-ring-pulse {
-  0%, 100% { opacity: 0.15; transform: translate(-50%, -50%) scale(1); }
-  50% { opacity: 0.4; transform: translate(-50%, -50%) scale(1.05); }
-}
 
-/* ── Temperature Meter (Molecular) ── */
+/* ═══════════════════════════════════════════════════════════
+   Temperature Meter (.vs-temp-meter)
+   ═══════════════════════════════════════════════════════════ */
+
 .vs-temp-meter {
   position: relative;
   z-index: 2;
   text-align: center;
-  margin-top: 40px;
+  margin-top: 32px;
 }
 
 .vs-temp-meter__track {
   width: 200px;
-  height: 8px;
+  height: 6px;
   background: rgba(255, 255, 255, 0.06);
-  border-radius: 4px;
-  margin: 0 auto 12px;
+  border-radius: 3px;
+  margin: 0 auto 8px;
   overflow: hidden;
 }
 
@@ -423,22 +364,25 @@ body {
   height: 100%;
   width: 10%;
   background: linear-gradient(90deg, #00bfa5, #00e5c3);
-  border-radius: 4px;
-  transition: width 0.3s ease-out;
+  border-radius: 3px;
+  transition: width 0.3s;
 }
 
 .vs-temp-meter__label {
-  font-size: 0.75rem;
-  color: #666;
+  font-size: 0.7rem;
+  color: rgba(255, 255, 255, 0.25);
   text-transform: uppercase;
   letter-spacing: 0.15em;
 }
 
-/* ── Frequency Section ── */
+
+/* ═══════════════════════════════════════════════════════════
+   Vibrating Letters (.vs-vibrate-letter)
+   ═══════════════════════════════════════════════════════════ */
+
 .vs-vibrate-letter {
   display: inline-block;
   animation: vs-letter-vibrate calc(0.15s / var(--vibrate-intensity, 1)) infinite;
-  will-change: transform;
 }
 
 .vs-vibrate-letter:nth-child(odd) {
@@ -449,12 +393,10 @@ body {
   animation-delay: -0.1s;
 }
 
-@keyframes vs-letter-vibrate {
-  0%, 100% { transform: translate(0, 0); }
-  25% { transform: translate(calc(1px * var(--vibrate-intensity, 1)), calc(-1px * var(--vibrate-intensity, 1))); }
-  50% { transform: translate(calc(-1px * var(--vibrate-intensity, 1)), calc(1px * var(--vibrate-intensity, 1))); }
-  75% { transform: translate(calc(1px * var(--vibrate-intensity, 1)), calc(0.5px * var(--vibrate-intensity, 1))); }
-}
+
+/* ═══════════════════════════════════════════════════════════
+   Frequency Bars (.vs-freq-bars)
+   ═══════════════════════════════════════════════════════════ */
 
 .vs-freq-bars {
   position: relative;
@@ -462,160 +404,246 @@ body {
   display: flex;
   gap: 3px;
   align-items: flex-end;
-  height: 120px;
+  height: 80px;
   justify-content: center;
-  margin-top: 40px;
-  width: 100%;
-  max-width: 600px;
+  margin-top: 32px;
 }
 
 .vs-freq-bar {
   width: 5px;
   height: 8px;
   background: linear-gradient(0deg, #337f89, #5ab8c4);
-  border-radius: 3px;
-  transition: height 0.15s ease-out;
-  opacity: 0.7;
+  border-radius: 2px;
+  transition: height 0.12s;
 }
 
-.vs-freq-bar:nth-child(even) {
-  opacity: 0.9;
-}
 
-/* ── Cymatics Mandala ── */
-.vs-mandala {
-  position: relative;
-  z-index: 2;
-  text-align: center;
-  margin-top: 40px;
-}
+/* ═══════════════════════════════════════════════════════════
+   Strings Container (.vs-strings-container)
+   ═══════════════════════════════════════════════════════════ */
 
-.vs-mandala__svg {
-  width: 200px;
-  height: 200px;
-  animation: vs-rotate 30s linear infinite;
-}
-
-@keyframes vs-rotate {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
-}
-
-/* ── String Resonance Section ── */
 .vs-strings-container {
   position: relative;
   z-index: 2;
-  width: 100%;
   max-width: 800px;
+  width: 100%;
   margin-top: 40px;
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 20px;
 }
+
+
+/* ═══════════════════════════════════════════════════════════
+   String SVG (.vs-string-svg)
+   ═══════════════════════════════════════════════════════════ */
 
 .vs-string-svg {
   width: 100%;
-  height: 40px;
+  height: 50px;
   cursor: pointer;
-  transition: all 0.3s;
+  transition: filter 0.3s;
 }
 
 .vs-string-svg:hover {
-  filter: brightness(1.5);
+  filter: brightness(1.3);
 }
 
 .vs-string-svg.is-plucked {
-  filter: drop-shadow(0 0 8px #e05555);
+  animation: vs-string-pluck 0.5s ease-out;
 }
 
 @keyframes vs-string-pluck {
-  0% { d: path('M 0 25 Q 250 5, 500 25 Q 750 45, 1000 25'); stroke-width: 3; }
-  15% { d: path('M 0 25 Q 250 38, 500 25 Q 750 12, 1000 25'); }
-  30% { d: path('M 0 25 Q 250 15, 500 25 Q 750 35, 1000 25'); }
-  45% { d: path('M 0 25 Q 250 32, 500 25 Q 750 18, 1000 25'); }
-  60% { d: path('M 0 25 Q 250 20, 500 25 Q 750 30, 1000 25'); }
-  80% { d: path('M 0 25 Q 250 27, 500 25 Q 750 23, 1000 25'); }
-  100% { d: path('M 0 25 Q 250 25, 500 25 Q 750 25, 1000 25'); stroke-width: 2; }
+  0% {
+    transform: scaleY(3);
+  }
+  30% {
+    transform: scaleY(0.4);
+  }
+  50% {
+    transform: scaleY(1.8);
+  }
+  70% {
+    transform: scaleY(0.7);
+  }
+  100% {
+    transform: scaleY(1);
+  }
 }
 
-.vs-string-svg.is-plucked line {
-  animation: vs-string-pluck 0.7s ease-out;
-}
 
-.vs-string-labels {
-  position: relative;
-  z-index: 2;
-  display: flex;
-  justify-content: space-between;
-  max-width: 800px;
-  width: 100%;
-  padding: 0 8px;
-  margin-top: 4px;
-}
+/* ═══════════════════════════════════════════════════════════
+   Ripple Counter (.vs-ripple-counter)
+   ═══════════════════════════════════════════════════════════ */
 
-.vs-string-labels span {
-  font-size: 0.7rem;
-  color: rgba(224, 85, 85, 0.4);
-  letter-spacing: 0.1em;
-}
-
-/* ── Ripple Section ── */
 .vs-ripple-counter {
   position: relative;
   z-index: 2;
-  margin-top: 40px;
-  font-size: 0.8rem;
+  margin-top: 20px;
+  font-size: 0.75rem;
   color: rgba(68, 136, 204, 0.5);
-  text-transform: uppercase;
-  letter-spacing: 0.15em;
+  letter-spacing: 0.1em;
 }
 
-/* ── Pendulum Section ── */
+
+/* ═══════════════════════════════════════════════════════════
+   Control Button (.vs-ctrl-btn)
+   ═══════════════════════════════════════════════════════════ */
+
+.vs-ctrl-btn {
+  position: relative;
+  z-index: 2;
+  font-family: var(--vs-font);
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 8px 20px;
+  border-radius: 50px;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  background: transparent;
+  color: rgba(255, 255, 255, 0.5);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.vs-ctrl-btn:hover {
+  border-color: rgba(255, 255, 255, 0.3);
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.vs-ctrl-btn.is-active {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.3);
+  color: #fff;
+}
+
+
+/* ═══════════════════════════════════════════════════════════
+   Wave Controls (.vs-wave-controls)
+   ═══════════════════════════════════════════════════════════ */
+
+.vs-wave-controls {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+  margin-top: 24px;
+}
+
+
+/* ═══════════════════════════════════════════════════════════
+   Pendulum Controls (.vs-pendulum-controls)
+   ═══════════════════════════════════════════════════════════ */
+
 .vs-pendulum-controls {
   position: relative;
   z-index: 2;
-  margin-top: 40px;
+  margin-top: 20px;
 }
 
-.vs-pendulum-btn {
-  font-family: var(--vs-font);
-  font-size: 0.8rem;
+
+/* ═══════════════════════════════════════════════════════════
+   Breath Guide (.vs-breath-guide)
+   ═══════════════════════════════════════════════════════════ */
+
+.vs-breath-guide {
+  position: relative;
+  z-index: 2;
+  margin-top: 24px;
+  font-size: 1rem;
+  color: rgba(102, 170, 204, 0.6);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
   font-weight: 700;
-  padding: 10px 28px;
-  background: transparent;
-  color: #55cc88;
-  border: 1.5px solid rgba(85, 204, 136, 0.3);
-  border-radius: 50px;
-  cursor: pointer;
-  transition: all 0.3s;
 }
 
-.vs-pendulum-btn:hover {
-  background: rgba(85, 204, 136, 0.1);
-  border-color: #55cc88;
+
+/* ═══════════════════════════════════════════════════════════
+   Card Shake Animation
+   ═══════════════════════════════════════════════════════════ */
+
+[data-vs-shake].is-shaking {
+  animation: vs-shake 0.15s infinite;
 }
 
-/* ── Shake & Cascade Keyframes ── */
 @keyframes vs-shake {
-  0%, 100% { transform: translate(0, 0); }
-  25% { transform: translate(1px, -1px); }
-  50% { transform: translate(-1px, 1px); }
-  75% { transform: translate(1px, 0.5px); }
+  0%, 100% {
+    transform: translate(0, 0);
+  }
+  25% {
+    transform: translate(1px, -1px);
+  }
+  50% {
+    transform: translate(-1px, 1px);
+  }
+  75% {
+    transform: translate(1px, 0.5px);
+  }
+}
+
+
+/* ═══════════════════════════════════════════════════════════
+   Cascade Animation
+   ═══════════════════════════════════════════════════════════ */
+
+[data-vs-cascade].is-cascading {
+  animation: vs-cascade-buzz 0.12s ease-in-out 4;
+  border-color: var(--accent);
 }
 
 @keyframes vs-cascade-buzz {
-  0%, 100% { transform: translate(0, 0); }
-  25% { transform: translate(1px, -1px); }
-  50% { transform: translate(-1px, 1px); }
-  75% { transform: translate(1px, 0.5px); }
+  0%, 100% {
+    transform: translate(0, 0);
+  }
+  25% {
+    transform: translate(1px, -1px);
+  }
+  50% {
+    transform: translate(-1px, 1px);
+  }
+  75% {
+    transform: translate(1px, 0.5px);
+  }
 }
 
-/* ── Footer ── */
+
+/* ═══════════════════════════════════════════════════════════
+   Tremor Animation
+   ═══════════════════════════════════════════════════════════ */
+
+[data-vs-tremor] {
+  display: inline-block;
+  animation: vs-tremor 0.3s infinite;
+}
+
+@keyframes vs-tremor {
+  0%, 100% {
+    transform: translate(0, 0);
+  }
+  20% {
+    transform: translate(-0.5px, 0.5px);
+  }
+  40% {
+    transform: translate(0.5px, -0.5px);
+  }
+  60% {
+    transform: translate(-0.5px, -0.5px);
+  }
+  80% {
+    transform: translate(0.5px, 0.5px);
+  }
+}
+
+
+/* ═══════════════════════════════════════════════════════════
+   Footer (.vs-footer)
+   ═══════════════════════════════════════════════════════════ */
+
 .vs-footer {
+  background: #050505;
   padding: 60px 24px;
-  border-top: 1px solid rgba(255, 255, 255, 0.06);
   text-align: center;
-  background: #0a0a0a;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
 }
 
 .vs-footer__inner {
@@ -624,31 +652,73 @@ body {
 }
 
 .vs-footer__logo {
-  font-size: 1.4rem;
+  font-size: 1.3rem;
   font-weight: 700;
   margin-bottom: 8px;
 }
 
 .vs-footer__text {
   font-size: 0.85rem;
-  color: #888;
-  margin-bottom: 16px;
+  color: rgba(255, 255, 255, 0.3);
+  margin-bottom: 4px;
 }
 
 .vs-footer__link {
-  font-size: 0.85rem;
-  color: #3f99a5;
+  color: rgba(255, 255, 255, 0.4);
   text-decoration: none;
+  font-size: 0.85rem;
+  display: inline-block;
+  margin-top: 16px;
+  transition: color 0.3s;
 }
 
 .vs-footer__link:hover {
-  text-decoration: underline;
+  color: #fff;
 }
 
-/* ── Responsive: 1024px ── */
+
+/* ═══════════════════════════════════════════════════════════
+   Keyframes
+   ═══════════════════════════════════════════════════════════ */
+
+@keyframes vs-letter-vibrate {
+  0%, 100% {
+    transform: translate(0, 0);
+  }
+  25% {
+    transform: translate(calc(1px * var(--vibrate-intensity, 1)), calc(-1px * var(--vibrate-intensity, 1)));
+  }
+  50% {
+    transform: translate(calc(-1px * var(--vibrate-intensity, 1)), calc(1px * var(--vibrate-intensity, 1)));
+  }
+  75% {
+    transform: translate(calc(1px * var(--vibrate-intensity, 1)), calc(0.5px * var(--vibrate-intensity, 1)));
+  }
+}
+
+@keyframes vs-ring-pulse {
+  0%, 100% {
+    opacity: 0.12;
+    transform: translate(-50%, -50%) scale(1);
+  }
+  50% {
+    opacity: 0.3;
+    transform: translate(-50%, -50%) scale(1.05);
+  }
+}
+
+
+/* ═══════════════════════════════════════════════════════════
+   Responsive — 1024px (Tablet Landscape)
+   ═══════════════════════════════════════════════════════════ */
+
 @media (max-width: 1024px) {
+  .vs-nav__links {
+    gap: 2px;
+  }
+
   .vs-section__cards {
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: 1fr;
   }
 
   .vs-section__cards--cascade {
@@ -656,43 +726,84 @@ body {
   }
 }
 
-/* ── Responsive: 768px ── */
+
+/* ═══════════════════════════════════════════════════════════
+   Responsive — 768px (Tablet Portrait)
+   ═══════════════════════════════════════════════════════════ */
+
 @media (max-width: 768px) {
+  .vs-nav__label {
+    display: none;
+  }
+
   .vs-nav__link {
-    font-size: 0.65rem;
-    padding: 5px 10px;
+    font-size: 0.55rem;
+    padding: 3px 6px;
+  }
+
+  .vs-section {
+    min-height: 80vh;
+  }
+
+  .vs-section__title {
+    font-size: clamp(1.8rem, 5vw, 3.5rem);
   }
 
   .vs-section__cards {
     grid-template-columns: 1fr;
-    max-width: 400px;
   }
 
   .vs-section__cards--cascade {
     grid-template-columns: 1fr;
   }
+}
 
-  .vs-seismic-metrics {
-    grid-template-columns: repeat(2, 1fr);
+
+/* ═══════════════════════════════════════════════════════════
+   Responsive — 480px (Mobile)
+   ═══════════════════════════════════════════════════════════ */
+
+@media (max-width: 480px) {
+  .vs-nav__inner {
+    gap: 6px;
+    padding: 0 8px;
+  }
+
+  .vs-nav__link {
+    font-size: 0.5rem;
+    padding: 2px 4px;
+  }
+
+  .vs-nav__back {
+    font-size: 1rem;
+    padding: 2px 4px;
+  }
+
+  .vs-nav__links {
+    gap: 1px;
+  }
+
+  .vs-section {
+    padding: 40px 16px;
+  }
+
+  .vs-section__title {
+    font-size: clamp(1.5rem, 8vw, 2.5rem);
+  }
+
+  .vs-section__subtitle {
+    font-size: 0.85rem;
+  }
+
+  .vs-wave-controls {
+    flex-wrap: wrap;
   }
 
   .vs-strings-container {
-    gap: 8px;
+    gap: 12px;
   }
 
   .vs-freq-bars {
-    height: 80px;
-  }
-}
-
-/* ── Responsive: 480px ── */
-@media (max-width: 480px) {
-  .vs-nav__links {
-    gap: 4px;
-  }
-
-  .vs-nav__link {
-    font-size: 0.6rem;
-    padding: 4px 8px;
+    height: 60px;
   }
 }
