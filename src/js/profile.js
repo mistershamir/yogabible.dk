@@ -1606,6 +1606,10 @@
 
       console.log('[Store] Contracts loaded:', contracts.length, contracts.map(function(c) { return c.name; }));
 
+      // Debug: log all IDs to verify test items (100203, 129) are in the response
+      console.log('[Store] Service IDs:', services.map(function(s) { return s.id + ':' + s.name; }));
+      console.log('[Store] Contract IDs:', contracts.map(function(c) { return c.id + ':' + c.name; }));
+
       storeServices = services.concat(contracts);
       if (!storeServices.length) { listEl.innerHTML = '<p class="yb-store__empty">' + t('store_empty') + '</p>'; return; }
       renderStoreItems(listEl);
@@ -1646,6 +1650,12 @@
     // Categorize services
     storeServices.forEach(function(s) {
       s._category = categorizeService(s);
+    });
+    // Debug: show categorization of test items
+    storeServices.forEach(function(s) {
+      if (String(s.id) === '100203' || String(s.id) === '129') {
+        console.log('[Store] TEST ITEM:', s.id, s.name, '→ category:', s._category, 'type:', s._itemType);
+      }
     });
 
     // ── Search bar ──
