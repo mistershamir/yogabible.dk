@@ -559,34 +559,87 @@
   // ══════════════════════════════════════
   // STORED CREDIT CARD
   // ══════════════════════════════════════
+  function renderStoredCardUI(card) {
+    var loadingEl = document.getElementById('yb-stored-card-loading');
+    var displayEl = document.getElementById('yb-stored-card-display');
+    var emptyEl = document.getElementById('yb-stored-card-empty');
+    if (loadingEl) loadingEl.hidden = true;
+    if (card && card.lastFour) {
+      storedCardData = card;
+      if (displayEl) displayEl.hidden = false;
+      if (emptyEl) emptyEl.hidden = true;
+      var typeEl = document.getElementById('yb-stored-card-type');
+      var numEl = document.getElementById('yb-stored-card-number');
+      var holderEl = document.getElementById('yb-stored-card-holder');
+      var expEl = document.getElementById('yb-stored-card-exp');
+      if (typeEl) typeEl.textContent = card.cardType || 'Card';
+      if (numEl) numEl.textContent = '•••• ' + card.lastFour;
+      if (holderEl) holderEl.textContent = card.cardHolder || '';
+      if (expEl && card.expMonth && card.expYear) {
+        expEl.textContent = (isDa() ? 'Udløber ' : 'Expires ') + card.expMonth + '/' + card.expYear;
+      }
+    } else {
+      storedCardData = null;
+      if (displayEl) displayEl.hidden = true;
+      if (emptyEl) emptyEl.hidden = false;
+    }
+  }
+
   function fetchStoredCard(mbClientId) {
+    // 1. Instant: check Firestore for locally saved card info
+    if (currentUser && currentDb) {
+      currentDb.collection('users').doc(currentUser.uid).get().then(function(doc) {
+        if (doc.exists && doc.data().storedCard && doc.data().storedCard.lastFour) {
+          renderStoredCardUI(doc.data().storedCard);
+        }
+      }).catch(function() {});
+    }
+
+    // 2. Fetch from Mindbody (authoritative source, overwrites Firestore data)
     fetch('/.netlify/functions/mb-client?action=storedCard&clientId=' + encodeURIComponent(mbClientId))
       .then(function(r) { return r.json(); })
       .then(function(data) {
-        var section = document.getElementById('yb-stored-card-section');
-        if (!section) return;
-        section.hidden = false;
         if (data.hasStoredCard && data.storedCard && data.storedCard.lastFour) {
-          storedCardData = data.storedCard;
-          document.getElementById('yb-stored-card-display').hidden = false;
-          document.getElementById('yb-stored-card-empty').hidden = true;
-          var typeEl = document.getElementById('yb-stored-card-type');
-          var numEl = document.getElementById('yb-stored-card-number');
-          var holderEl = document.getElementById('yb-stored-card-holder');
-          var expEl = document.getElementById('yb-stored-card-exp');
-          if (typeEl) typeEl.textContent = data.storedCard.cardType || 'Card';
-          if (numEl) numEl.textContent = '•••• ' + data.storedCard.lastFour;
-          if (holderEl) holderEl.textContent = data.storedCard.cardHolder || '';
-          if (expEl && data.storedCard.expMonth && data.storedCard.expYear) {
-            expEl.textContent = (isDa() ? 'Udløber ' : 'Expires ') + data.storedCard.expMonth + '/' + data.storedCard.expYear;
+          renderStoredCardUI(data.storedCard);
+          // Save to Firestore as cache
+          if (currentUser && currentDb) {
+            currentDb.collection('users').doc(currentUser.uid).update({ storedCard: data.storedCard }).catch(function() {});
           }
-        } else {
-          storedCardData = null;
-          document.getElementById('yb-stored-card-display').hidden = true;
-          document.getElementById('yb-stored-card-empty').hidden = false;
+        } else if (!storedCardData) {
+          // Only show empty if Firestore didn't already have data
+          renderStoredCardUI(null);
         }
       })
-      .catch(function(err) { console.warn('Could not fetch stored card:', err); });
+      .catch(function(err) {
+        console.warn('Could not fetch stored card from MB:', err);
+        // If Firestore didn't provide data either, show empty
+        if (!storedCardData) renderStoredCardUI(null);
+      });
+  }
+
+  // Save card summary to Firestore after a successful checkout with saveCard=true
+  function saveCardInfoLocally(paymentInfo) {
+    if (!currentUser || !currentDb || !paymentInfo.cardNumber) return;
+    var lastFour = paymentInfo.cardNumber.slice(-4);
+    var cardData = {
+      lastFour: lastFour,
+      cardType: detectCardType(paymentInfo.cardNumber),
+      cardHolder: paymentInfo.cardHolder || '',
+      expMonth: paymentInfo.expMonth || '',
+      expYear: paymentInfo.expYear || ''
+    };
+    storedCardData = cardData;
+    renderStoredCardUI(cardData);
+    currentDb.collection('users').doc(currentUser.uid).update({ storedCard: cardData }).catch(function() {});
+  }
+
+  function detectCardType(num) {
+    if (!num) return '';
+    if (num.charAt(0) === '4') return 'Visa';
+    if (/^5[1-5]/.test(num) || /^2[2-7]/.test(num)) return 'Mastercard';
+    if (/^3[47]/.test(num)) return 'Amex';
+    if (/^6(?:011|5)/.test(num)) return 'Discover';
+    return 'Card';
   }
 
   function initStoredCardCheckoutToggle() {
@@ -2064,6 +2117,10 @@
         .then(function(data) {
           if (data.success) {
             checkoutEl.hidden = true;
+            // Save card info locally if user checked "save card"
+            if (!useStored && paymentInfo.saveCard && paymentInfo.cardNumber) {
+              saveCardInfoLocally(paymentInfo);
+            }
             // Reset left column sections after successful purchase
             var wvs = document.getElementById('yb-checkout-waiver-section');
             if (wvs) wvs.hidden = true;

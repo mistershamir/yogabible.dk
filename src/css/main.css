@@ -7259,6 +7259,13 @@ section {
 }
 
 /* ── Stored Card (Profile) ── */
+.yb-stored-card__loading {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0;
+}
+
 .yb-stored-card {
   display: flex;
   align-items: center;
