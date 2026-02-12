@@ -10,7 +10,11 @@
     d6Freq: null,
     d7Particles: null,
     d1Parallax: null,
-    d1Progress: null
+    d1Progress: null,
+    d2Scope: null,
+    d3Seismo: null,
+    d5Molecules: null,
+    d8Cymatics: null
   };
   var observers = {
     reveal: null
@@ -25,22 +29,27 @@
     mouseY: 0,
     isActive: false
   };
+  var d2State = { mouseY: 0.5, isActive: false };
+  var d3State = { scrollX: 0, isActive: false };
+  var d5State = { particles: [], temperature: 0.1, isActive: false };
+  var d8State = { dots: [], phase: 0, isActive: false };
 
   /* ══════════════════════════════════════════════════
      DESIGN SWITCHER
      ══════════════════════════════════════════════════ */
   var designBackgrounds = {
     1: '#0a0a0a',
-    2: '#FFFCF9',
-    3: '#000',
-    4: '#F5F0EB',
-    5: '#f8f7f5',
+    2: '#0d0a1a',
+    3: '#0f0806',
+    4: '#080810',
+    5: '#061515',
     6: '#050508',
-    7: '#030306'
+    7: '#030306',
+    8: '#060608'
   };
 
   function switchDesign(designNumber) {
-    if (designNumber < 1 || designNumber > 7) return;
+    if (designNumber < 1 || designNumber > 8) return;
 
     currentDesign = designNumber;
 
@@ -79,10 +88,20 @@
     // Initialize design-specific features
     if (designNumber === 1) {
       initDesign1();
+    } else if (designNumber === 2) {
+      initDesign2();
+    } else if (designNumber === 3) {
+      initDesign3();
+    } else if (designNumber === 4) {
+      initDesign4();
+    } else if (designNumber === 5) {
+      initDesign5();
     } else if (designNumber === 6) {
       initDesign6();
     } else if (designNumber === 7) {
       initDesign7();
+    } else if (designNumber === 8) {
+      initDesign8();
     }
 
     // Re-initialize scroll reveals for visible panel
@@ -120,10 +139,30 @@
       cancelAnimationFrame(animationFrames.d1Progress);
       animationFrames.d1Progress = null;
     }
+    if (animationFrames.d2Scope) {
+      cancelAnimationFrame(animationFrames.d2Scope);
+      animationFrames.d2Scope = null;
+    }
+    if (animationFrames.d3Seismo) {
+      cancelAnimationFrame(animationFrames.d3Seismo);
+      animationFrames.d3Seismo = null;
+    }
+    if (animationFrames.d5Molecules) {
+      cancelAnimationFrame(animationFrames.d5Molecules);
+      animationFrames.d5Molecules = null;
+    }
+    if (animationFrames.d8Cymatics) {
+      cancelAnimationFrame(animationFrames.d8Cymatics);
+      animationFrames.d8Cymatics = null;
+    }
 
     // Reset states
     d6State.isActive = false;
     d7State.isActive = false;
+    d2State.isActive = false;
+    d3State.isActive = false;
+    d5State.isActive = false;
+    d8State.isActive = false;
   }
 
   /* ══════════════════════════════════════════════════
@@ -705,6 +744,383 @@
   }
 
   /* ══════════════════════════════════════════════════
+     DESIGN 2: Oscilloscope — Wave Canvas + Spectrum + Sound Burst
+     ══════════════════════════════════════════════════ */
+  function initDesign2() {
+    d2State.isActive = true;
+    var panel = document.querySelector('.vyd-panel[data-panel="2"]');
+    if (!panel) return;
+
+    // Create spectrum bars if not exist
+    var spectrum = panel.querySelector('.vy2-spectrum');
+    if (spectrum && spectrum.children.length === 0) {
+      for (var i = 0; i < 60; i++) {
+        var bar = document.createElement('div');
+        bar.className = 'vy2-spectrum__bar';
+        spectrum.appendChild(bar);
+      }
+    }
+
+    // Canvas oscilloscope
+    var canvas = panel.querySelector('.vy2-scope-canvas');
+    if (canvas) {
+      var ctx = canvas.getContext('2d');
+      var parent = canvas.parentElement;
+      function resize() {
+        canvas.width = parent.clientWidth;
+        canvas.height = parent.clientHeight;
+      }
+      resize();
+      window.addEventListener('resize', resize);
+
+      // Track mouse Y position
+      parent.addEventListener('mousemove', function(e) {
+        d2State.mouseY = e.clientY / window.innerHeight;
+      });
+
+      var phase = 0;
+      function animate() {
+        if (!d2State.isActive) return;
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        var centerY = canvas.height / 2;
+
+        // Draw 3 waves with different params affected by mouseY
+        var waves = [
+          { amp: 20 + d2State.mouseY * 60, freq: 0.015, speed: 0.02, opacity: 0.15, color: '124, 92, 255' },
+          { amp: 30 + d2State.mouseY * 40, freq: 0.02, speed: 0.015, opacity: 0.3, color: '124, 92, 255' },
+          { amp: 15 + d2State.mouseY * 30, freq: 0.025, speed: 0.025, opacity: 0.5, color: '150, 120, 255' }
+        ];
+
+        waves.forEach(function(w) {
+          ctx.beginPath();
+          ctx.strokeStyle = 'rgba(' + w.color + ', ' + w.opacity + ')';
+          ctx.lineWidth = 1.5;
+          for (var x = 0; x < canvas.width; x++) {
+            var y = centerY + Math.sin(x * w.freq + phase * w.speed) * w.amp;
+            if (x === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+          }
+          ctx.stroke();
+        });
+
+        phase += 2;
+        animationFrames.d2Scope = requestAnimationFrame(animate);
+      }
+      animate();
+    }
+
+    // Spectrum bars on scroll
+    var spectrumBars = panel.querySelectorAll('.vy2-spectrum__bar');
+    if (spectrumBars.length > 0) {
+      var barsArr = Array.prototype.slice.call(spectrumBars);
+      var updateSpectrum = function() {
+        if (!d2State.isActive) return;
+        var scrollPercent = window.scrollY / (document.documentElement.scrollHeight - window.innerHeight);
+        barsArr.forEach(function(bar, i) {
+          var height = 8 + 80 * Math.abs(Math.sin(i * 0.25 + scrollPercent * Math.PI * 6));
+          bar.style.height = height + 'px';
+        });
+      };
+      window.addEventListener('scroll', updateSpectrum, { passive: true });
+      updateSpectrum();
+    }
+
+    // Sound burst on click in sound zone
+    var soundZone = panel.querySelector('.vy2-sound-zone');
+    if (soundZone) {
+      soundZone.addEventListener('click', function(e) {
+        var rect = soundZone.getBoundingClientRect();
+        var x = e.clientX - rect.left;
+        var y = e.clientY - rect.top;
+        var burst = document.createElement('div');
+        burst.className = 'vy2-sound-burst';
+        burst.style.left = x + 'px';
+        burst.style.top = y + 'px';
+        soundZone.appendChild(burst);
+        setTimeout(function() {
+          if (burst.parentElement) burst.parentElement.removeChild(burst);
+        }, 1000);
+      });
+    }
+  }
+
+  /* ══════════════════════════════════════════════════
+     DESIGN 3: Seismic — Seismograph Canvas + Shake Cards
+     ══════════════════════════════════════════════════ */
+  function initDesign3() {
+    d3State.isActive = true;
+    d3State.scrollX = 0;
+    var panel = document.querySelector('.vyd-panel[data-panel="3"]');
+    if (!panel) return;
+
+    // Seismograph canvas
+    var canvas = panel.querySelector('.vy3-seismo-canvas');
+    if (canvas) {
+      var ctx = canvas.getContext('2d');
+      canvas.width = canvas.parentElement.clientWidth;
+      var height = 120;
+      canvas.height = height;
+      var data = [];
+      var maxPoints = canvas.width;
+
+      function addPoint() {
+        if (!d3State.isActive) return;
+        var scrollPercent = window.scrollY / (document.documentElement.scrollHeight - window.innerHeight);
+        var intensity = scrollPercent * 3;
+        var value = (Math.random() - 0.5) * intensity * 40;
+        data.push(height / 2 + value);
+        if (data.length > maxPoints) data.shift();
+
+        ctx.clearRect(0, 0, canvas.width, height);
+        ctx.beginPath();
+        ctx.strokeStyle = '#cc4400';
+        ctx.lineWidth = 1.5;
+        for (var i = 0; i < data.length; i++) {
+          if (i === 0) ctx.moveTo(i, data[i]);
+          else ctx.lineTo(i, data[i]);
+        }
+        ctx.stroke();
+
+        // Draw center baseline
+        ctx.beginPath();
+        ctx.strokeStyle = 'rgba(204, 68, 0, 0.15)';
+        ctx.lineWidth = 0.5;
+        ctx.moveTo(0, height / 2);
+        ctx.lineTo(canvas.width, height / 2);
+        ctx.stroke();
+
+        animationFrames.d3Seismo = requestAnimationFrame(addPoint);
+      }
+      addPoint();
+    }
+
+    // Shake cards on hover
+    var shakeCards = panel.querySelectorAll('[data-vy3-shake]');
+    for (var i = 0; i < shakeCards.length; i++) {
+      (function(card) {
+        card.addEventListener('mouseenter', function() {
+          card.classList.add('is-shaking');
+        });
+        card.addEventListener('mouseleave', function() {
+          card.classList.remove('is-shaking');
+        });
+      })(shakeCards[i]);
+    }
+  }
+
+  /* ══════════════════════════════════════════════════
+     DESIGN 4: Resonance Cascade — Card Cascade Effect
+     ══════════════════════════════════════════════════ */
+  function initDesign4() {
+    var panel = document.querySelector('.vyd-panel[data-panel="4"]');
+    if (!panel) return;
+
+    var cards = panel.querySelectorAll('.vy4-cascade-card');
+    var cardsArr = Array.prototype.slice.call(cards);
+
+    cardsArr.forEach(function(card) {
+      card.addEventListener('mouseenter', function() {
+        var index = parseInt(card.getAttribute('data-vy4-cascade'), 10);
+        // Cascade: trigger nearby cards with increasing delay
+        cardsArr.forEach(function(otherCard) {
+          var otherIndex = parseInt(otherCard.getAttribute('data-vy4-cascade'), 10);
+          var distance = Math.abs(otherIndex - index);
+          if (distance === 0) return;
+
+          setTimeout(function() {
+            otherCard.classList.add('is-cascading');
+            setTimeout(function() {
+              otherCard.classList.remove('is-cascading');
+            }, 600);
+          }, distance * 150);
+        });
+
+        // Also trigger self
+        card.classList.add('is-cascading');
+        setTimeout(function() {
+          card.classList.remove('is-cascading');
+        }, 600);
+      });
+    });
+  }
+
+  /* ══════════════════════════════════════════════════
+     DESIGN 5: Molecular — Brownian Particles + Temperature
+     ══════════════════════════════════════════════════ */
+  function initDesign5() {
+    d5State.isActive = true;
+    d5State.temperature = 0.1;
+    var panel = document.querySelector('.vyd-panel[data-panel="5"]');
+    if (!panel) return;
+
+    var canvas = panel.querySelector('.vy5-molecule-canvas');
+    if (canvas) {
+      var ctx = canvas.getContext('2d');
+      var parent = canvas.parentElement;
+
+      function resize() {
+        canvas.width = parent.clientWidth;
+        canvas.height = parent.clientHeight;
+        initParticles();
+      }
+
+      function initParticles() {
+        d5State.particles = [];
+        for (var i = 0; i < 120; i++) {
+          d5State.particles.push({
+            x: Math.random() * canvas.width,
+            y: Math.random() * canvas.height,
+            vx: (Math.random() - 0.5) * 0.3,
+            vy: (Math.random() - 0.5) * 0.3,
+            radius: 1 + Math.random() * 1.5,
+            opacity: 0.2 + Math.random() * 0.3
+          });
+        }
+      }
+
+      resize();
+      window.addEventListener('resize', resize);
+
+      // Temperature from scroll
+      var updateTemp = function() {
+        var scrollPercent = window.scrollY / (document.documentElement.scrollHeight - window.innerHeight);
+        d5State.temperature = 0.1 + scrollPercent * 2.5;
+
+        // Update temp meter fill
+        var fill = panel.querySelector('.vy5-temp__fill');
+        if (fill) {
+          fill.style.width = Math.min(100, (scrollPercent * 100)) + '%';
+        }
+      };
+      window.addEventListener('scroll', updateTemp, { passive: true });
+      updateTemp();
+
+      function animate() {
+        if (!d5State.isActive) return;
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        var speed = d5State.temperature;
+
+        d5State.particles.forEach(function(p) {
+          // Random Brownian jitter scaled by temperature
+          p.vx += (Math.random() - 0.5) * speed * 0.5;
+          p.vy += (Math.random() - 0.5) * speed * 0.5;
+
+          // Damping
+          p.vx *= 0.95;
+          p.vy *= 0.95;
+
+          p.x += p.vx;
+          p.y += p.vy;
+
+          // Bounce
+          if (p.x < 0 || p.x > canvas.width) p.vx *= -1;
+          if (p.y < 0 || p.y > canvas.height) p.vy *= -1;
+          p.x = Math.max(0, Math.min(canvas.width, p.x));
+          p.y = Math.max(0, Math.min(canvas.height, p.y));
+
+          // Draw particle
+          ctx.beginPath();
+          ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+          ctx.fillStyle = 'rgba(0, 191, 165, ' + p.opacity + ')';
+          ctx.fill();
+        });
+
+        // Draw bonds between close particles
+        for (var i = 0; i < d5State.particles.length; i++) {
+          for (var j = i + 1; j < d5State.particles.length; j++) {
+            var p1 = d5State.particles[i];
+            var p2 = d5State.particles[j];
+            var dx = p1.x - p2.x;
+            var dy = p1.y - p2.y;
+            var dist = Math.sqrt(dx * dx + dy * dy);
+            if (dist < 60) {
+              var opacity = (1 - dist / 60) * 0.2;
+              ctx.beginPath();
+              ctx.moveTo(p1.x, p1.y);
+              ctx.lineTo(p2.x, p2.y);
+              ctx.strokeStyle = 'rgba(0, 191, 165, ' + opacity + ')';
+              ctx.lineWidth = 0.5;
+              ctx.stroke();
+            }
+          }
+        }
+
+        animationFrames.d5Molecules = requestAnimationFrame(animate);
+      }
+      animate();
+    }
+  }
+
+  /* ══════════════════════════════════════════════════
+     DESIGN 8: Cymatics — Dot Grid + Wave Displacement
+     ══════════════════════════════════════════════════ */
+  function initDesign8() {
+    d8State.isActive = true;
+    d8State.phase = 0;
+    var panel = document.querySelector('.vyd-panel[data-panel="8"]');
+    if (!panel) return;
+
+    var canvas = panel.querySelector('.vy8-cymatics-canvas');
+    if (canvas) {
+      var ctx = canvas.getContext('2d');
+      var parent = canvas.parentElement;
+
+      function resize() {
+        canvas.width = parent.clientWidth;
+        canvas.height = parent.clientHeight;
+      }
+      resize();
+      window.addEventListener('resize', resize);
+
+      // Initialize dots in a grid
+      d8State.dots = [];
+      var spacing = 20;
+      var cols = Math.ceil(800 / spacing);
+      var rows = Math.ceil(800 / spacing);
+      for (var r = 0; r < rows; r++) {
+        for (var c = 0; c < cols; c++) {
+          d8State.dots.push({
+            baseX: c * spacing - 400 + spacing / 2,
+            baseY: r * spacing - 400 + spacing / 2,
+            x: 0, y: 0
+          });
+        }
+      }
+
+      function animate() {
+        if (!d8State.isActive) return;
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        var centerX = canvas.width / 2;
+        var centerY = canvas.height / 2;
+        var scrollPercent = window.scrollY / (document.documentElement.scrollHeight - window.innerHeight);
+        var freq = 0.02 + scrollPercent * 0.04;
+
+        d8State.dots.forEach(function(dot) {
+          var dist = Math.sqrt(dot.baseX * dot.baseX + dot.baseY * dot.baseY);
+          var displacement = Math.sin(dist * freq - d8State.phase * 0.02) * 8;
+          var angle = Math.atan2(dot.baseY, dot.baseX);
+
+          dot.x = centerX + dot.baseX + Math.cos(angle) * displacement;
+          dot.y = centerY + dot.baseY + Math.sin(angle) * displacement;
+
+          var intensity = Math.abs(Math.sin(dist * freq - d8State.phase * 0.02));
+          var opacity = 0.05 + intensity * 0.3;
+          var size = 0.5 + intensity * 1.5;
+
+          ctx.beginPath();
+          ctx.arc(dot.x, dot.y, size, 0, Math.PI * 2);
+          ctx.fillStyle = 'rgba(232, 220, 200, ' + opacity + ')';
+          ctx.fill();
+        });
+
+        d8State.phase++;
+        animationFrames.d8Cymatics = requestAnimationFrame(animate);
+      }
+      animate();
+    }
+  }
+
+  /* ══════════════════════════════════════════════════
      INITIALIZATION
      ══════════════════════════════════════════════════ */
   function init() {
@@ -724,7 +1140,7 @@
     var initialDesign = 1;
     if (hash && hash.indexOf('design-') === 1) {
       var num = parseInt(hash.replace('#design-', ''), 10);
-      if (num >= 1 && num <= 7) {
+      if (num >= 1 && num <= 8) {
         initialDesign = num;
       }
     }
@@ -737,7 +1153,7 @@
       var hash = window.location.hash;
       if (hash && hash.indexOf('design-') === 1) {
         var num = parseInt(hash.replace('#design-', ''), 10);
-        if (num >= 1 && num <= 7 && num !== currentDesign) {
+        if (num >= 1 && num <= 8 && num !== currentDesign) {
           switchDesign(num);
         }
       }
