@@ -49,8 +49,8 @@ exports.handler = async (event) => {
       // Determine the payment amount (custom amount or default card value)
       const paymentAmount = customAmount ? parseFloat(customAmount) : (salePrice ? parseFloat(salePrice) : 0);
 
-      // Mindbody v6 uses Metadata dictionary (all string values) for CreditCard payment
-      // Must match the format used by /sale/checkoutshoppingcart (see mb-checkout.js)
+      // Mindbody v6 PurchaseGiftCard uses CheckoutPaymentInfo with Metadata dict
+      // Keys use PascalCase to match CreditCardInfo field names
       const purchaseData = {
         LocationId: parseInt(locationId || '1', 10),
         GiftCardId: parseInt(giftCardId, 10),
@@ -63,16 +63,16 @@ exports.handler = async (event) => {
         PaymentInfo: {
           Type: 'CreditCard',
           Metadata: {
-            amount: String(paymentAmount),
-            creditCardNumber: String(payment.cardNumber),
-            expMonth: String(payment.expMonth),
-            expYear: String(payment.expYear),
-            cvv: String(payment.cvv),
-            billingName: String(payment.cardHolder || recipientName),
-            billingAddress: String(payment.billingAddress || ''),
-            billingCity: String(payment.billingCity || ''),
-            billingPostalCode: String(payment.billingPostalCode || ''),
-            saveInfo: String(payment.saveCard || false)
+            Amount: String(paymentAmount),
+            CreditCardNumber: String(payment.cardNumber),
+            ExpMonth: String(payment.expMonth),
+            ExpYear: String(payment.expYear),
+            CVV: String(payment.cvv),
+            BillingName: String(payment.cardHolder || recipientName),
+            BillingAddress: String(payment.billingAddress || ''),
+            BillingCity: String(payment.billingCity || ''),
+            BillingPostalCode: String(payment.billingPostalCode || ''),
+            SaveInfo: String(payment.saveCard || false)
           }
         }
       };
