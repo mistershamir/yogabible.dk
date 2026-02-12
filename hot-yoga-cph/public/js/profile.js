@@ -2610,6 +2610,8 @@
       // Always send the card's salePrice so the backend can set PaymentInfo.Amount
       gcPostBody.salePrice = selectedGiftCard.salePrice || selectedGiftCard.value || 0;
 
+      console.log('[GiftCards] Purchase payload:', JSON.stringify(gcPostBody));
+
       fetch('/.netlify/functions/mb-giftcards', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },

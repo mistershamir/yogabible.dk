@@ -109,9 +109,12 @@ exports.handler = async (event) => {
         ConsumerPresent: true
       };
 
-      // For custom-amount gift cards, include CardValue in case Mindbody uses it
+      // For custom-amount gift cards, explicitly set the value so Mindbody
+      // knows the desired price (the card's configured SalePrice is 0).
+      // ConsumerPresent + CardValue tells Mindbody to use our amount instead.
       if (isCustomAmount && cardValue > 0) {
         purchaseData.CardValue = cardValue;
+        purchaseData.SalePrice = cardValue;
       }
 
       if (message) purchaseData.GiftMessage = message;
