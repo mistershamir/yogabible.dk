@@ -13,6 +13,7 @@
 
   var waiverSigned = false; // Track if liability waiver is signed
   var waiverStatusLoaded = false; // True once we know the actual status
+  var storedCardData = null; // Cached stored credit card from Mindbody
 
   // ── Simple canvas signature pad ──
   function SignaturePad(canvasId, clearBtnId) {
@@ -486,9 +487,10 @@
         }
       }
 
-      // Silently fetch waiver status (no blocking — used for gates later)
+      // Silently fetch waiver status and stored card info
       if (d.mindbodyClientId) {
         fetchWaiverStatus(d.mindbodyClientId);
+        fetchStoredCard(d.mindbodyClientId);
       }
 
       var sinceEl = document.getElementById('yb-profile-member-since');
@@ -554,6 +556,56 @@
   }
 
   // Check waiver status: localStorage (instant) → Firestore → MB API
+  // ══════════════════════════════════════
+  // STORED CREDIT CARD
+  // ══════════════════════════════════════
+  function fetchStoredCard(mbClientId) {
+    fetch('/.netlify/functions/mb-client?action=storedCard&clientId=' + encodeURIComponent(mbClientId))
+      .then(function(r) { return r.json(); })
+      .then(function(data) {
+        var section = document.getElementById('yb-stored-card-section');
+        if (!section) return;
+        section.hidden = false;
+        if (data.hasStoredCard && data.storedCard && data.storedCard.lastFour) {
+          storedCardData = data.storedCard;
+          document.getElementById('yb-stored-card-display').hidden = false;
+          document.getElementById('yb-stored-card-empty').hidden = true;
+          var typeEl = document.getElementById('yb-stored-card-type');
+          var numEl = document.getElementById('yb-stored-card-number');
+          var holderEl = document.getElementById('yb-stored-card-holder');
+          var expEl = document.getElementById('yb-stored-card-exp');
+          if (typeEl) typeEl.textContent = data.storedCard.cardType || 'Card';
+          if (numEl) numEl.textContent = '•••• ' + data.storedCard.lastFour;
+          if (holderEl) holderEl.textContent = data.storedCard.cardHolder || '';
+          if (expEl && data.storedCard.expMonth && data.storedCard.expYear) {
+            expEl.textContent = (isDa() ? 'Udløber ' : 'Expires ') + data.storedCard.expMonth + '/' + data.storedCard.expYear;
+          }
+        } else {
+          storedCardData = null;
+          document.getElementById('yb-stored-card-display').hidden = true;
+          document.getElementById('yb-stored-card-empty').hidden = false;
+        }
+      })
+      .catch(function(err) { console.warn('Could not fetch stored card:', err); });
+  }
+
+  function initStoredCardCheckoutToggle() {
+    var storedSection = document.getElementById('yb-checkout-stored-card');
+    var cardFields = document.getElementById('yb-checkout-card-fields');
+    var radios = document.querySelectorAll('input[name="yb-payment-method"]');
+    if (!storedSection || !cardFields || !radios.length) return;
+
+    radios.forEach(function(radio) {
+      radio.addEventListener('change', function() {
+        var useStored = this.value === 'stored';
+        cardFields.hidden = useStored;
+        // Toggle active class on parent labels
+        document.getElementById('yb-checkout-use-stored').classList.toggle('yb-checkout-stored-card__option--active', useStored);
+        document.getElementById('yb-checkout-use-new').classList.toggle('yb-checkout-stored-card__option--active', !useStored);
+      });
+    });
+  }
+
   function fetchWaiverStatus(mbClientId) {
     // 1. Instant check: localStorage
     var cacheKey = getWaiverCacheKey();
@@ -1356,6 +1408,13 @@
     var cancelBtn = document.getElementById('yb-store-cancel-btn');
     var successCloseBtn = document.getElementById('yb-store-success-close');
 
+    // "Change card" button in profile — switch to Store tab to use a different card
+    var changeCardBtn = document.getElementById('yb-stored-card-change');
+    if (changeCardBtn) changeCardBtn.addEventListener('click', function() {
+      var storeTab = document.querySelector('[data-yb-tab="store"]');
+      if (storeTab) storeTab.click();
+    });
+
     if (cancelBtn) cancelBtn.addEventListener('click', function() {
       var el = document.getElementById('yb-store-checkout');
       var list = document.getElementById('yb-store-list');
@@ -1765,6 +1824,25 @@
     var errEl = document.getElementById('yb-store-error');
     if (errEl) errEl.hidden = true;
 
+    // Show stored card option if available
+    var storedCardSection = document.getElementById('yb-checkout-stored-card');
+    var cardFieldsWrap = document.getElementById('yb-checkout-card-fields');
+    if (storedCardSection && storedCardData && storedCardData.lastFour) {
+      storedCardSection.hidden = false;
+      var storedLabel = document.getElementById('yb-checkout-stored-label');
+      if (storedLabel) storedLabel.textContent = (storedCardData.cardType || 'Card') + ' •••• ' + storedCardData.lastFour;
+      // Default to stored card
+      var storedRadio = storedCardSection.querySelector('input[value="stored"]');
+      if (storedRadio) storedRadio.checked = true;
+      if (cardFieldsWrap) cardFieldsWrap.hidden = true;
+      document.getElementById('yb-checkout-use-stored').classList.add('yb-checkout-stored-card__option--active');
+      document.getElementById('yb-checkout-use-new').classList.remove('yb-checkout-stored-card__option--active');
+      initStoredCardCheckoutToggle();
+    } else {
+      if (storedCardSection) storedCardSection.hidden = true;
+      if (cardFieldsWrap) cardFieldsWrap.hidden = false;
+    }
+
     // 1. Determine what documents to show
     var waiverSection = document.getElementById('yb-checkout-waiver-section');
     var termsSection = document.getElementById('yb-checkout-terms-section');
@@ -1885,11 +1963,17 @@
       }
     }
 
-    if (!cardNumber || cardNumber.length < 13) { showSimpleError(errorEl, isDa() ? 'Indtast et gyldigt kortnummer.' : 'Enter a valid card number.'); return; }
-    if (!expiry || expiry.length < 4) { showSimpleError(errorEl, isDa() ? 'Indtast udløbsdato.' : 'Enter expiry date.'); return; }
-    if (!cvv || cvv.length < 3) { showSimpleError(errorEl, isDa() ? 'Indtast CVV.' : 'Enter CVV.'); return; }
+    // Check if using stored card
+    var storedRadio = document.querySelector('input[name="yb-payment-method"][value="stored"]');
+    var useStored = storedRadio && storedRadio.checked && storedCardData && storedCardData.lastFour;
 
-    var expParts = expiry.split('/');
+    if (!useStored) {
+      if (!cardNumber || cardNumber.length < 13) { showSimpleError(errorEl, isDa() ? 'Indtast et gyldigt kortnummer.' : 'Enter a valid card number.'); return; }
+      if (!expiry || expiry.length < 4) { showSimpleError(errorEl, isDa() ? 'Indtast udløbsdato.' : 'Enter expiry date.'); return; }
+      if (!cvv || cvv.length < 3) { showSimpleError(errorEl, isDa() ? 'Indtast CVV.' : 'Enter CVV.'); return; }
+    }
+
+    var expParts = expiry ? expiry.split('/') : [];
     payBtn.disabled = true;
     payBtn.textContent = isDa() ? 'Behandler betaling...' : 'Processing payment...';
 
@@ -1926,11 +2010,16 @@
     }
 
     var itemType = checkoutEl.getAttribute('data-item-type') || 'service';
-    var paymentInfo = {
-      cardNumber: cardNumber, expMonth: expParts[0], expYear: expParts[1] ? '20' + expParts[1] : '',
-      cvv: cvv, cardHolder: cardHolder, billingAddress: address, billingCity: city, billingPostalCode: zip,
-      saveCard: saveCard ? saveCard.checked : false
-    };
+    var paymentInfo;
+    if (useStored) {
+      paymentInfo = { useStoredCard: true, lastFour: storedCardData.lastFour };
+    } else {
+      paymentInfo = {
+        cardNumber: cardNumber, expMonth: expParts[0], expYear: expParts[1] ? '20' + expParts[1] : '',
+        cvv: cvv, cardHolder: cardHolder, billingAddress: address, billingCity: city, billingPostalCode: zip,
+        saveCard: saveCard ? saveCard.checked : false
+      };
+    }
 
     var fetchUrl, fetchBody;
     if (itemType === 'contract') {

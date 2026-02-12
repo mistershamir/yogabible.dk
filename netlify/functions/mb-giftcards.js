@@ -42,29 +42,43 @@ exports.handler = async (event) => {
         return jsonResponse(400, { error: 'Missing required fields: giftCardId, clientId, recipientEmail, recipientName' });
       }
 
-      if (!payment || !payment.cardNumber) {
+      if (!payment) {
         return jsonResponse(400, { error: 'Payment information is required' });
       }
 
       // Determine the payment amount (custom amount or default card value)
       const paymentAmount = customAmount ? parseFloat(customAmount) : (salePrice ? parseFloat(salePrice) : 0);
 
-      // Use exact same payment format as the working mb-checkout.js (camelCase Metadata keys)
-      const paymentInfo = {
-        Type: 'CreditCard',
-        Metadata: {
-          amount: String(paymentAmount),
-          creditCardNumber: String(payment.cardNumber),
-          expMonth: String(payment.expMonth),
-          expYear: String(payment.expYear),
-          cvv: String(payment.cvv),
-          billingName: String(payment.cardHolder || recipientName),
-          billingAddress: String(payment.billingAddress || ''),
-          billingCity: String(payment.billingCity || ''),
-          billingPostalCode: String(payment.billingPostalCode || ''),
-          saveInfo: String(payment.saveCard || false)
+      // Build PaymentInfo — StoredCard (last four only) or new CreditCard
+      let paymentInfo;
+      if (payment.useStoredCard && payment.lastFour) {
+        paymentInfo = {
+          Type: 'StoredCard',
+          Metadata: {
+            LastFour: String(payment.lastFour),
+            Amount: String(paymentAmount)
+          }
+        };
+      } else {
+        if (!payment.cardNumber) {
+          return jsonResponse(400, { error: 'Card number is required' });
         }
-      };
+        paymentInfo = {
+          Type: 'CreditCard',
+          Metadata: {
+            amount: String(paymentAmount),
+            creditCardNumber: String(payment.cardNumber),
+            expMonth: String(payment.expMonth),
+            expYear: String(payment.expYear),
+            cvv: String(payment.cvv),
+            billingName: String(payment.cardHolder || recipientName),
+            billingAddress: String(payment.billingAddress || ''),
+            billingCity: String(payment.billingCity || ''),
+            billingPostalCode: String(payment.billingPostalCode || ''),
+            saveInfo: String(payment.saveCard || false)
+          }
+        };
+      }
 
       const purchaseData = {
         LocationId: parseInt(locationId || '1', 10),
@@ -75,7 +89,6 @@ exports.handler = async (event) => {
         Title: title || 'Gift Card',
         SendEmailReceipt: true,
         Test: false,
-        Payments: [paymentInfo],
         PaymentInfo: paymentInfo
       };
 

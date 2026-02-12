@@ -15,10 +15,31 @@ exports.handler = async function(event) {
     return { statusCode: 204, headers: corsHeaders, body: '' };
   }
 
-  // GET: Find client by email
+  // GET: Find client by email, or fetch stored credit card by clientId
   if (event.httpMethod === 'GET') {
     try {
       const params = event.queryStringParameters || {};
+
+      // GET ?action=storedCard&clientId=... — fetch stored credit card
+      if (params.action === 'storedCard' && params.clientId) {
+        const data = await mbFetch(`/client/clients?ClientIds=${params.clientId}&Fields=ClientCreditCard`);
+        var clients = data.Clients || [];
+        if (clients.length > 0 && clients[0].ClientCreditCard) {
+          var cc = clients[0].ClientCreditCard;
+          return jsonResponse(200, {
+            hasStoredCard: true,
+            storedCard: {
+              lastFour: cc.LastFour || '',
+              cardType: cc.CardType || '',
+              cardHolder: cc.CardHolder || '',
+              expMonth: cc.ExpMonth || '',
+              expYear: cc.ExpYear || ''
+            }
+          });
+        }
+        return jsonResponse(200, { hasStoredCard: false, storedCard: null });
+      }
+
       if (!params.email) {
         return jsonResponse(400, { error: 'email parameter is required' });
       }
