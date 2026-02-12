@@ -59,11 +59,8 @@ exports.handler = async (event) => {
         return jsonResponse(400, { error: 'Custom amount must be greater than 0' });
       }
 
-      // For custom-amount gift cards (base price = 0 in Mindbody), the payment amount
-      // must be "0" to avoid "Staff does not have permission to edit price" error.
-      // CardValue tells Mindbody the actual value to charge.
-      // For fixed-price gift cards, the payment amount matches the sale price.
-      const paymentAmount = isCustomAmount ? 0 : cardValue;
+      // Payment amount = the custom amount or the card's sale price
+      const paymentAmount = cardValue;
 
       // Build PaymentInfo — StoredCard (last four only) or new CreditCard
       let paymentInfo;
@@ -105,10 +102,14 @@ exports.handler = async (event) => {
         Title: title || 'Gift Card',
         SendEmailReceipt: true,
         Test: false,
-        PaymentInfo: paymentInfo
+        PaymentInfo: paymentInfo,
+        // ConsumerPresent=true tells Mindbody this is a consumer-driven purchase.
+        // For EditableByConsumer gift cards, this should allow the consumer to set
+        // the price/value without needing staff "edit price" permission.
+        ConsumerPresent: true
       };
 
-      // For custom-amount gift cards, set CardValue so Mindbody knows the gift card worth
+      // For custom-amount gift cards, include CardValue in case Mindbody uses it
       if (isCustomAmount && cardValue > 0) {
         purchaseData.CardValue = cardValue;
       }
