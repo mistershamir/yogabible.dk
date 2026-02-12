@@ -1617,6 +1617,11 @@
    * Contracts are always 'memberships'. Services are categorized by name.
    */
   function categorizeService(s) {
+    // Explicit overrides by product ID
+    var id = String(s.id || '');
+    if (id === '100203') return 'clips';
+    if (id === '129') return 'memberships';
+
     // All contracts go under memberships
     if (s._itemType === 'contract') return 'memberships';
 
