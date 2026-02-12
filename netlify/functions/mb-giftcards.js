@@ -49,6 +49,11 @@ exports.handler = async (event) => {
       // Determine the payment amount (custom amount or default card value)
       const paymentAmount = customAmount ? parseFloat(customAmount) : (salePrice ? parseFloat(salePrice) : 0);
 
+      // Validate: custom amount gift cards must have a positive amount
+      if (customAmount !== undefined && paymentAmount <= 0) {
+        return jsonResponse(400, { error: 'Custom amount must be greater than 0' });
+      }
+
       // Build PaymentInfo — StoredCard (last four only) or new CreditCard
       let paymentInfo;
       if (payment.useStoredCard && payment.lastFour) {

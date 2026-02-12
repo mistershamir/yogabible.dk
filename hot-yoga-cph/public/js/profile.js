@@ -2582,6 +2582,15 @@
 
       var gcCustomAmount = selectedGiftCard.editableByConsumer ? ((document.getElementById('yb-gc-custom-amount') || {}).value || '') : '';
 
+      // Validate custom amount for editable gift cards
+      if (selectedGiftCard.editableByConsumer) {
+        var amt = Number(gcCustomAmount);
+        if (!gcCustomAmount || !amt || amt < 50) {
+          if (errEl) { errEl.textContent = isDa() ? 'Indtast et beløb (min. 50 kr).' : 'Enter an amount (min. 50 kr).'; errEl.hidden = false; }
+          return;
+        }
+      }
+
       buyBtn.disabled = true;
       buyBtn.textContent = isDa() ? 'Behandler...' : 'Processing...';
       if (errEl) errEl.hidden = true;
