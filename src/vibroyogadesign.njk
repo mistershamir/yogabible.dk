@@ -37,13 +37,14 @@ noindex: true
   <!-- Design Switcher Nav -->
   <nav class="vyd-switcher">
     <div class="vyd-switcher__inner">
-      <button class="vyd-btn vyd-btn--active" data-design="1">Design 1</button>
-      <button class="vyd-btn" data-design="2">Design 2</button>
-      <button class="vyd-btn" data-design="3">Design 3</button>
-      <button class="vyd-btn" data-design="4">Design 4</button>
-      <button class="vyd-btn" data-design="5">Design 5</button>
-      <button class="vyd-btn" data-design="6">Design 6</button>
-      <button class="vyd-btn" data-design="7">Design 7</button>
+      <button class="vyd-btn vyd-btn--active" data-design="1">Cinematic</button>
+      <button class="vyd-btn" data-design="2">Oscilloscope</button>
+      <button class="vyd-btn" data-design="3">Seismic</button>
+      <button class="vyd-btn" data-design="4">Resonance</button>
+      <button class="vyd-btn" data-design="5">Molecular</button>
+      <button class="vyd-btn" data-design="6">Frequency</button>
+      <button class="vyd-btn" data-design="7">Cursor Field</button>
+      <button class="vyd-btn" data-design="8">Cymatics</button>
     </div>
   </nav>
 
@@ -493,303 +494,272 @@ noindex: true
   </div>
 
   <!-- ========================================
-       DESIGN 2: LIGHT MINIMALIST
+       DESIGN 2: OSCILLOSCOPE
        ======================================== -->
   <div class="vyd-panel" data-panel="2" style="display:none">
     <div class="vy2">
-
-      <!-- Hero -->
       <section class="vy2-hero">
-        <div class="vy2-hero__inner">
-          <h1 class="vy2-hero__title">The Art of Stillness</h1>
-          <div class="vy2-hero__accent"></div>
-          <p class="vy2-hero__subtitle">Yoga refined by vibration</p>
-          <a href="#" class="vy2-btn">Begin Practice</a>
+        <canvas class="vy2-scope-canvas"></canvas>
+        <div class="vy2-hero__content">
+          <h1 class="vy2-hero__title">OSCILLATE</h1>
+          <p class="vy2-hero__subtitle">Move your cursor up and down. Change the waveform.</p>
         </div>
       </section>
 
-      <!-- About -->
       <section class="vy2-section">
-        <div class="vy2-about">
-          <div class="vy2-about__col">
-            <p>Vibro Yoga is the intersection of ancient practice and modern technology. We've spent years refining our approach—gentle vibrations that enhance, never distract.</p>
-            <p>Each platform is calibrated to match your body's natural frequencies, creating resonance that deepens every pose.</p>
-          </div>
-          <div class="vy2-about__divider"></div>
-          <div class="vy2-about__col">
-            <p>The result is immediate: muscles release faster, joints open more freely, and your mind settles into a state of calm alertness.</p>
-            <p>This is yoga as it was meant to be felt—pure, powerful, transformative.</p>
+        <div class="vy2-section__inner">
+          <div class="vy2-spectrum"></div>
+          <div class="vy2-section__content">
+            <h2 class="vy2-section__title">Your Body's Waveform</h2>
+            <p class="vy2-section__text">Every movement creates a signal. Every breath is a frequency. At Vibro Yoga, we tune into these natural rhythms and amplify them through precisely calibrated vibration platforms.</p>
+            <p class="vy2-section__text">The result is a practice that resonates with your body's own oscillations—deeper stretches, faster recovery, and a meditative state that's felt, not forced.</p>
           </div>
         </div>
       </section>
 
-      <!-- Features -->
-      <section class="vy2-section vy2-section--gray">
-        <div class="vy2-features">
-          <div class="vy2-feature">
-            <div class="vy2-feature__accent"></div>
-            <h3 class="vy2-feature__title">Deeper Practice</h3>
-            <p class="vy2-feature__text">Vibration technology allows you to access poses and depths previously unavailable. Your practice evolves naturally, without force.</p>
-          </div>
-          <div class="vy2-feature">
-            <div class="vy2-feature__accent"></div>
-            <h3 class="vy2-feature__title">Scientific Foundation</h3>
-            <p class="vy2-feature__text">Our approach is backed by research in neuromuscular activation, fascia release, and parasympathetic response. Every session is optimized.</p>
-          </div>
-          <div class="vy2-feature">
-            <div class="vy2-feature__accent"></div>
-            <h3 class="vy2-feature__title">Intimate Studio</h3>
-            <p class="vy2-feature__text">Maximum 18 students. Every detail considered. From lighting to acoustics, the space supports your journey inward.</p>
+      <section class="vy2-sound-zone">
+        <div class="vy2-sound-zone__inner">
+          <p class="vy2-sound-zone__text">Send a pulse</p>
+          <p class="vy2-sound-zone__hint">Click anywhere in this space</p>
+        </div>
+      </section>
+
+      <section class="vy2-section">
+        <div class="vy2-section__inner">
+          <h2 class="vy2-section__title vy2-section__title--center">Signal Processing</h2>
+          <div class="vy2-wave-cards">
+            <div class="vy2-wave-card vy2-reveal">
+              <div class="vy2-wave-card__freq">10 Hz</div>
+              <h3 class="vy2-wave-card__title">Low Frequency</h3>
+              <p class="vy2-wave-card__text">Deep, slow waves that penetrate muscle tissue. Used in our Yin and Restorative classes for maximum release.</p>
+            </div>
+            <div class="vy2-wave-card vy2-reveal">
+              <div class="vy2-wave-card__freq">30 Hz</div>
+              <h3 class="vy2-wave-card__title">Mid Frequency</h3>
+              <p class="vy2-wave-card__text">The sweet spot for neuromuscular activation. Engages stabilizers and core muscles involuntarily.</p>
+            </div>
+            <div class="vy2-wave-card vy2-reveal">
+              <div class="vy2-wave-card__freq">50 Hz</div>
+              <h3 class="vy2-wave-card__title">High Frequency</h3>
+              <p class="vy2-wave-card__text">Rapid micro-vibrations that boost circulation and warm tissues from within. Perfect for dynamic flows.</p>
+            </div>
           </div>
         </div>
       </section>
 
-      <!-- CTA -->
       <section class="vy2-cta">
         <div class="vy2-cta__inner">
-          <h2 class="vy2-cta__title">Begin your practice</h2>
-          <a href="#" class="vy2-btn vy2-btn--outline">Book First Class</a>
+          <h2 class="vy2-cta__title">Tune Into Your Practice</h2>
+          <p class="vy2-cta__text">Experience vibration-enhanced yoga. First class free.</p>
+          <a href="#" class="vy2-btn">Start Oscillating</a>
         </div>
       </section>
 
-      <!-- Footer -->
       <footer class="vy2-footer">
-        <div class="vy2-footer__inner">
-          <p>Vibro Yoga — Christianshavn, Copenhagen</p>
-          <p><a href="mailto:hello@vibroyoga.dk">hello@vibroyoga.dk</a></p>
-        </div>
+        <p>Vibro Yoga — Christianshavn, Copenhagen</p>
       </footer>
-
     </div>
   </div>
 
   <!-- ========================================
-       DESIGN 3: BOLD SPLIT-SCREEN
+       DESIGN 3: SEISMIC
        ======================================== -->
   <div class="vyd-panel" data-panel="3" style="display:none">
     <div class="vy3">
-
-      <!-- Hero -->
       <section class="vy3-hero">
-        <div class="vy3-hero__left">
-          <h1 class="vy3-hero__title">VIBRO<br>YOGA</h1>
-          <p class="vy3-hero__subtitle">Technology meets tradition</p>
-          <a href="#" class="vy3-btn">BOOK NOW</a>
-        </div>
-        <div class="vy3-hero__right" style="background-image: url('https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?w=1200&q=80');"></div>
-      </section>
-
-      <!-- Stats Bar -->
-      <section class="vy3-stats">
-        <div class="vy3-stats__inner">
-          <div class="vy3-stat">
-            <div class="vy3-stat__number">500+</div>
-            <div class="vy3-stat__label">ACTIVE MEMBERS</div>
-          </div>
-          <div class="vy3-stat">
-            <div class="vy3-stat__number">10</div>
-            <div class="vy3-stat__label">YEARS IN CPH</div>
-          </div>
-          <div class="vy3-stat">
-            <div class="vy3-stat__number">45</div>
-            <div class="vy3-stat__label">WEEKLY CLASSES</div>
-          </div>
-          <div class="vy3-stat">
-            <div class="vy3-stat__number">18</div>
-            <div class="vy3-stat__label">MAX CAPACITY</div>
-          </div>
+        <div class="vy3-hero__content">
+          <h1 class="vy3-hero__title" data-vy3-tremor>GROUND<br>FORCE</h1>
+          <p class="vy3-hero__subtitle">Feel the earth move beneath you</p>
         </div>
       </section>
 
-      <!-- Content Block 1 -->
-      <section class="vy3-block vy3-block--dark">
-        <div class="vy3-block__inner">
-          <div class="vy3-block__content">
-            <h2 class="vy3-block__title">THE VIBRATION DIFFERENCE</h2>
-            <p class="vy3-block__text">Our custom platforms send controlled vibrations through your body as you hold each pose. This activates deeper muscle layers, increases blood flow, and allows you to safely reach new depths in your practice.</p>
-            <p class="vy3-block__text">Backed by sports science. Refined by 10 years of teaching. Felt immediately.</p>
+      <section class="vy3-section">
+        <div class="vy3-section__inner">
+          <div class="vy3-richter">
+            <div class="vy3-richter__item">
+              <span class="vy3-richter__value">10</span>
+              <span class="vy3-richter__label">Hz Base</span>
+            </div>
+            <div class="vy3-richter__item">
+              <span class="vy3-richter__value">50</span>
+              <span class="vy3-richter__label">Hz Peak</span>
+            </div>
+            <div class="vy3-richter__item">
+              <span class="vy3-richter__value">3×</span>
+              <span class="vy3-richter__label">Deeper</span>
+            </div>
+            <div class="vy3-richter__item">
+              <span class="vy3-richter__value">35%</span>
+              <span class="vy3-richter__label">More Flow</span>
+            </div>
           </div>
+          <canvas class="vy3-seismo-canvas" height="120"></canvas>
         </div>
       </section>
 
-      <!-- Content Block 2 -->
-      <section class="vy3-block vy3-block--light">
-        <div class="vy3-block__inner">
-          <div class="vy3-block__split">
-            <div class="vy3-block__image" style="background-image: url('https://images.unsplash.com/photo-1506126613408-eca07ce68773?w=800&q=80');"></div>
-            <div class="vy3-block__content">
-              <h2 class="vy3-block__title">CHRISTIANSHAVN STUDIO</h2>
-              <p class="vy3-block__text">Located in the heart of Copenhagen's creative district. 18 state-of-the-art vibration platforms. Infrared heating. Premium facilities.</p>
-              <p class="vy3-block__text">A space designed for transformation.</p>
+      <div class="vy3-fault-line"></div>
+
+      <section class="vy3-section">
+        <div class="vy3-section__inner">
+          <h2 class="vy3-section__title">Tectonic Practice</h2>
+          <div class="vy3-quake-cards">
+            <div class="vy3-quake-card" data-vy3-shake>
+              <h3 class="vy3-quake-card__title">Foundation</h3>
+              <p class="vy3-quake-card__text">Build strength through instability. Vibration challenges your base, making still poses profoundly powerful.</p>
+            </div>
+            <div class="vy3-quake-card" data-vy3-shake>
+              <h3 class="vy3-quake-card__title">Aftershock</h3>
+              <p class="vy3-quake-card__text">The benefits ripple outward. Better balance, deeper sleep, reduced tension—effects that last long after class.</p>
+            </div>
+            <div class="vy3-quake-card" data-vy3-shake>
+              <h3 class="vy3-quake-card__title">Release</h3>
+              <p class="vy3-quake-card__text">Like tectonic pressure finding its outlet, vibration helps your body release stored tension in muscles and fascia.</p>
             </div>
           </div>
         </div>
       </section>
 
-      <!-- CTA -->
+      <div class="vy3-fault-line"></div>
+
       <section class="vy3-cta">
         <div class="vy3-cta__inner">
-          <h2 class="vy3-cta__title">YOUR MAT IS WAITING</h2>
-          <a href="#" class="vy3-btn vy3-btn--outline">BOOK FIRST CLASS FREE</a>
+          <h2 class="vy3-cta__title">Shake Your Practice</h2>
+          <p class="vy3-cta__text">First class free. Feel the tremor.</p>
+          <a href="#" class="vy3-btn">Book Now</a>
         </div>
       </section>
 
+      <footer class="vy3-footer">
+        <p>Vibro Yoga — Christianshavn, Copenhagen</p>
+      </footer>
     </div>
   </div>
 
   <!-- ========================================
-       DESIGN 4: WARM ORGANIC
+       DESIGN 4: RESONANCE CASCADE
        ======================================== -->
   <div class="vyd-panel" data-panel="4" style="display:none">
     <div class="vy4">
-
-      <!-- Hero -->
       <section class="vy4-hero">
-        <div class="vy4-hero__inner">
-          <div class="vy4-hero__image">
-            <img src="https://images.unsplash.com/photo-1506126613408-eca07ce68773?w=1000&q=80" alt="Vibro Yoga">
-          </div>
-          <div class="vy4-hero__card">
-            <h1 class="vy4-hero__title">Find Your Flow</h1>
-            <p class="vy4-hero__text">Experience the gentle power of Vibro Yoga in our intimate Christianshavn studio</p>
-            <a href="#" class="vy4-btn">Start Your Journey</a>
-          </div>
+        <div class="vy4-rings">
+          <div class="vy4-ring"></div>
+          <div class="vy4-ring"></div>
+          <div class="vy4-ring"></div>
+          <div class="vy4-ring"></div>
+          <div class="vy4-ring"></div>
+        </div>
+        <div class="vy4-hero__content">
+          <h1 class="vy4-hero__title">RESONANCE</h1>
+          <p class="vy4-hero__subtitle">One vibration. Infinite harmonics.</p>
         </div>
       </section>
 
-      <!-- Benefits -->
       <section class="vy4-section">
         <div class="vy4-section__inner">
-          <h2 class="vy4-section__title">Why Students Love Vibro Yoga</h2>
-          <div class="vy4-benefits">
-            <div class="vy4-benefit">
-              <div class="vy4-benefit__icon">🌱</div>
-              <h3 class="vy4-benefit__title">Gentle on Joints</h3>
-              <p class="vy4-benefit__text">Vibration reduces the effort needed to deepen poses, making yoga accessible for all bodies and ages.</p>
+          <h2 class="vy4-section__title">Cascade Effect</h2>
+          <p class="vy4-section__subtitle">Hover a card. Watch the vibration spread.</p>
+          <div class="vy4-cascade-cards">
+            <div class="vy4-cascade-card" data-vy4-cascade="0">
+              <h3 class="vy4-cascade-card__title">Touch</h3>
+              <p class="vy4-cascade-card__text">The vibration begins at the point of contact—your feet on the platform, your palms on the mat.</p>
             </div>
-            <div class="vy4-benefit">
-              <div class="vy4-benefit__icon">✨</div>
-              <h3 class="vy4-benefit__title">Feel It Immediately</h3>
-              <p class="vy4-benefit__text">Most students notice improved flexibility and relaxation after their very first session.</p>
+            <div class="vy4-cascade-card" data-vy4-cascade="1">
+              <h3 class="vy4-cascade-card__title">Travel</h3>
+              <p class="vy4-cascade-card__text">It travels through muscle, tendon, and bone—reaching places manual stretching cannot access.</p>
             </div>
-            <div class="vy4-benefit">
-              <div class="vy4-benefit__icon">💆‍♀️</div>
-              <h3 class="vy4-benefit__title">Deep Relaxation</h3>
-              <p class="vy4-benefit__text">The vibrations naturally calm your nervous system, creating profound states of rest and recovery.</p>
+            <div class="vy4-cascade-card" data-vy4-cascade="2">
+              <h3 class="vy4-cascade-card__title">Resonate</h3>
+              <p class="vy4-cascade-card__text">When external frequency meets your body's natural frequency, resonance amplifies the effect.</p>
             </div>
-            <div class="vy4-benefit">
-              <div class="vy4-benefit__icon">🏡</div>
-              <h3 class="vy4-benefit__title">Warm Community</h3>
-              <p class="vy4-benefit__text">Small class sizes and welcoming instructors make our studio feel like a second home.</p>
+            <div class="vy4-cascade-card" data-vy4-cascade="3">
+              <h3 class="vy4-cascade-card__title">Release</h3>
+              <p class="vy4-cascade-card__text">Tension dissolves. Fascia softens. Your nervous system shifts into deep rest and repair.</p>
+            </div>
+            <div class="vy4-cascade-card" data-vy4-cascade="4">
+              <h3 class="vy4-cascade-card__title">Transform</h3>
+              <p class="vy4-cascade-card__text">Each session compounds. Flexibility increases. Strength builds. Your body deepens its capacity.</p>
+            </div>
+            <div class="vy4-cascade-card" data-vy4-cascade="5">
+              <h3 class="vy4-cascade-card__title">Radiate</h3>
+              <p class="vy4-cascade-card__text">The benefits extend beyond the mat. Better sleep, reduced stress—waves reaching every part of life.</p>
             </div>
           </div>
         </div>
       </section>
 
-      <!-- Quote -->
-      <section class="vy4-quote">
-        <div class="vy4-quote__inner">
-          <p class="vy4-quote__text">"I never knew yoga could feel this good. The vibration makes everything easier and more effective at the same time."</p>
-          <p class="vy4-quote__author">— Emma, student since 2022</p>
-        </div>
-      </section>
-
-      <!-- CTA -->
       <section class="vy4-cta">
         <div class="vy4-cta__inner">
-          <h2 class="vy4-cta__title">Ready to experience the difference?</h2>
-          <p class="vy4-cta__text">Your first class is free. No experience needed.</p>
-          <a href="#" class="vy4-btn">Book Your Free Class</a>
+          <h2 class="vy4-cta__title">Start the Cascade</h2>
+          <p class="vy4-cta__text">One class is all it takes to feel the resonance.</p>
+          <a href="#" class="vy4-btn">Book Free Class</a>
         </div>
       </section>
 
-      <!-- Footer -->
       <footer class="vy4-footer">
-        <div class="vy4-footer__inner">
-          <p>Vibro Yoga &middot; Torvegade 45, Christianshavn</p>
-          <p>hello@vibroyoga.dk &middot; +45 12 34 56 78</p>
-        </div>
+        <p>Vibro Yoga — Christianshavn, Copenhagen</p>
       </footer>
-
     </div>
   </div>
 
   <!-- ========================================
-       DESIGN 5: EDITORIAL MAGAZINE
+       DESIGN 5: MOLECULAR
        ======================================== -->
   <div class="vyd-panel" data-panel="5" style="display:none">
     <div class="vy5">
-
-      <!-- Hero -->
-      <section class="vy5-hero" style="background-image: url('https://images.unsplash.com/photo-1600618528240-fb9fc964b853?w=1600&q=80');">
-        <div class="vy5-hero__number">01</div>
+      <section class="vy5-hero">
+        <canvas class="vy5-molecule-canvas"></canvas>
         <div class="vy5-hero__content">
-          <h1 class="vy5-hero__title">Vibro Yoga</h1>
-          <p class="vy5-hero__subtitle">Where technology enhances tradition</p>
+          <h1 class="vy5-hero__title">MICRO<br>MOTION</h1>
+          <p class="vy5-hero__subtitle">At the molecular level, everything vibrates.</p>
         </div>
       </section>
 
-      <!-- Grid Section -->
       <section class="vy5-section">
-        <div class="vy5-grid">
-          <div class="vy5-grid__large">
-            <img src="https://images.unsplash.com/photo-1506126613408-eca07ce68773?w=900&q=80" alt="Yoga Practice">
-          </div>
-          <div class="vy5-grid__stack">
-            <div class="vy5-grid__text">
-              <h2 class="vy5-grid__title">The Science of Vibration</h2>
-              <p>For thousands of years, practitioners have sought ways to deepen their yoga practice. At Vibro Yoga, we've found a tool that honors tradition while embracing innovation.</p>
-              <p>Controlled vibrations—gentle, precise, scientifically calibrated—activate muscles and fascia in ways static poses cannot. The result is faster progress, deeper relaxation, and a practice that feels both ancient and utterly modern.</p>
+        <div class="vy5-section__inner">
+          <div class="vy5-temp">
+            <div class="vy5-temp__meter">
+              <div class="vy5-temp__fill"></div>
             </div>
-            <div class="vy5-grid__small">
-              <img src="https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?w=600&q=80" alt="Studio">
+            <div class="vy5-temp__label">Scroll to increase energy</div>
+          </div>
+          <div class="vy5-section__content">
+            <h2 class="vy5-section__title">Thermal Activation</h2>
+            <p class="vy5-section__text">Like molecules gaining energy from heat, your body responds to vibration with increased motion at the cellular level. Blood flows faster. Fascia hydrates. Muscles warm from the inside out.</p>
+          </div>
+        </div>
+      </section>
+
+      <section class="vy5-section vy5-section--dark">
+        <div class="vy5-section__inner">
+          <h2 class="vy5-section__title vy5-section__title--center">Molecular Benefits</h2>
+          <div class="vy5-bond-cards">
+            <div class="vy5-bond-card vy5-reveal">
+              <h3 class="vy5-bond-card__title">Circulation</h3>
+              <p class="vy5-bond-card__text">Micro-vibrations increase blood flow by up to 35%, delivering oxygen and nutrients to every cell.</p>
+            </div>
+            <div class="vy5-bond-card vy5-reveal">
+              <h3 class="vy5-bond-card__title">Hydration</h3>
+              <p class="vy5-bond-card__text">Vibration drives water into fascial tissues, restoring elasticity and reducing stiffness at the molecular level.</p>
+            </div>
+            <div class="vy5-bond-card vy5-reveal">
+              <h3 class="vy5-bond-card__title">Repair</h3>
+              <p class="vy5-bond-card__text">Enhanced cellular signaling accelerates the body's natural repair processes, from micro-tears to inflammation.</p>
             </div>
           </div>
         </div>
       </section>
 
-      <!-- Pull Quote -->
-      <section class="vy5-quote">
-        <div class="vy5-quote__inner">
-          <p class="vy5-quote__text">In stillness, we find movement. In vibration, we find peace.</p>
-        </div>
-      </section>
-
-      <!-- About -->
-      <section class="vy5-section">
-        <div class="vy5-about">
-          <div class="vy5-about__content">
-            <h3 class="vy5-about__label">STUDIO</h3>
-            <h2 class="vy5-about__title">Christianshavn</h2>
-            <p>Our studio sits in the heart of Copenhagen's most creative neighborhood. Eighteen custom vibration platforms. Natural light. A community of practitioners who support each other's growth.</p>
-            <p>Classes range from gentle Yin sessions to challenging Hot Vinyasa flows. Every instructor is trained not just in yoga, but in the specific techniques required for vibration-enhanced practice.</p>
-          </div>
-        </div>
-      </section>
-
-      <!-- CTA -->
       <section class="vy5-cta">
         <div class="vy5-cta__inner">
-          <p class="vy5-cta__text">EXPERIENCE VIBRO YOGA</p>
-          <a href="#" class="vy5-cta__link">Book your first class</a>
+          <h2 class="vy5-cta__title">Activate Every Cell</h2>
+          <p class="vy5-cta__text">Experience vibration at the deepest level.</p>
+          <a href="#" class="vy5-btn">Book Your Session</a>
         </div>
       </section>
 
-      <!-- Footer -->
       <footer class="vy5-footer">
-        <div class="vy5-footer__inner">
-          <div class="vy5-footer__col">
-            <p>Vibro Yoga</p>
-            <p>Torvegade 45</p>
-            <p>1400 København K</p>
-          </div>
-          <div class="vy5-footer__col">
-            <p>hello@vibroyoga.dk</p>
-            <p>+45 12 34 56 78</p>
-          </div>
-        </div>
+        <p>Vibro Yoga — Christianshavn, Copenhagen</p>
       </footer>
-
     </div>
   </div>
 
@@ -1010,6 +980,74 @@ noindex: true
         </div>
       </footer>
 
+    </div>
+  </div>
+
+  <!-- ========================================
+       DESIGN 8: CYMATICS
+       ======================================== -->
+  <div class="vyd-panel" data-panel="8" style="display:none">
+    <div class="vy8">
+      <section class="vy8-hero">
+        <canvas class="vy8-cymatics-canvas"></canvas>
+        <div class="vy8-hero__content">
+          <h1 class="vy8-hero__title">CYMATICS</h1>
+          <p class="vy8-hero__subtitle">When vibration creates form</p>
+        </div>
+      </section>
+
+      <section class="vy8-section">
+        <div class="vy8-section__inner">
+          <div class="vy8-mandala">
+            <svg class="vy8-mandala__svg" viewBox="0 0 400 400">
+              <circle cx="200" cy="200" r="60" fill="none" stroke="#e8dcc8" stroke-width="0.5" opacity="0.3"/>
+              <circle cx="200" cy="200" r="100" fill="none" stroke="#e8dcc8" stroke-width="0.5" opacity="0.25"/>
+              <circle cx="200" cy="200" r="140" fill="none" stroke="#e8dcc8" stroke-width="0.5" opacity="0.2"/>
+              <circle cx="200" cy="200" r="180" fill="none" stroke="#e8dcc8" stroke-width="0.5" opacity="0.15"/>
+            </svg>
+          </div>
+          <div class="vy8-section__content">
+            <h2 class="vy8-section__title">Vibration Creates Pattern</h2>
+            <p class="vy8-section__text">Cymatics reveals a fundamental truth: vibration isn't chaos—it's the architect of order. Sand on a vibrating plate arranges itself into breathtaking geometric patterns. Your body responds the same way.</p>
+            <p class="vy8-section__text">When we introduce the right frequencies, your body's tissues don't scatter—they organize. Muscles find alignment. Fascia restructures. Even your brainwaves synchronize into coherent patterns.</p>
+          </div>
+        </div>
+      </section>
+
+      <section class="vy8-section vy8-section--dark">
+        <div class="vy8-section__inner">
+          <h2 class="vy8-section__title vy8-section__title--center">Sacred Geometry of Movement</h2>
+          <div class="vy8-geo-cards">
+            <div class="vy8-geo-card vy8-reveal">
+              <div class="vy8-geo-card__pattern">&#9671;</div>
+              <h3 class="vy8-geo-card__title">Structure</h3>
+              <p class="vy8-geo-card__text">Like crystals forming from solution, vibration helps your body find its optimal structural alignment.</p>
+            </div>
+            <div class="vy8-geo-card vy8-reveal">
+              <div class="vy8-geo-card__pattern">&#9675;</div>
+              <h3 class="vy8-geo-card__title">Harmony</h3>
+              <p class="vy8-geo-card__text">When frequency matches resonance, muscles work together in perfect coordination.</p>
+            </div>
+            <div class="vy8-geo-card vy8-reveal">
+              <div class="vy8-geo-card__pattern">&#9651;</div>
+              <h3 class="vy8-geo-card__title">Emergence</h3>
+              <p class="vy8-geo-card__text">Complex patterns emerge from simple vibrations. Profound transformation arises from the simplest practice.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="vy8-cta">
+        <div class="vy8-cta__inner">
+          <h2 class="vy8-cta__title">Find Your Pattern</h2>
+          <p class="vy8-cta__text">Let vibration reveal the geometry of your practice.</p>
+          <a href="#" class="vy8-btn">Begin Your Practice</a>
+        </div>
+      </section>
+
+      <footer class="vy8-footer">
+        <p>Vibro Yoga — Christianshavn, Copenhagen</p>
+      </footer>
     </div>
   </div>
 
