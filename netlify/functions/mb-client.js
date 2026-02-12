@@ -15,10 +15,37 @@ exports.handler = async function(event) {
     return { statusCode: 204, headers: corsHeaders, body: '' };
   }
 
-  // GET: Find client by email
+  // GET: Find client by email, or fetch stored credit card by clientId
   if (event.httpMethod === 'GET') {
     try {
       const params = event.queryStringParameters || {};
+
+      // GET ?action=storedCard&clientId=... — fetch stored credit card
+      if (params.action === 'storedCard' && params.clientId) {
+        // V6 API returns ClientCreditCard as part of the full Client object
+        // No Fields param needed (doesn't exist in V6); use request.clientIDs
+        const data = await mbFetch(`/client/clients?request.clientIDs=${params.clientId}`);
+        console.log('[mb-client] storedCard response for', params.clientId, ':', JSON.stringify((data.Clients || []).map(c => ({ Id: c.Id, CC: c.ClientCreditCard }))));
+        var clients = data.Clients || [];
+        if (clients.length > 0 && clients[0].ClientCreditCard) {
+          var cc = clients[0].ClientCreditCard;
+          // Only consider it "stored" if we actually have a LastFour
+          if (cc.LastFour) {
+            return jsonResponse(200, {
+              hasStoredCard: true,
+              storedCard: {
+                lastFour: cc.LastFour,
+                cardType: cc.CardType || '',
+                cardHolder: cc.CardHolder || '',
+                expMonth: cc.ExpMonth || '',
+                expYear: cc.ExpYear || ''
+              }
+            });
+          }
+        }
+        return jsonResponse(200, { hasStoredCard: false, storedCard: null });
+      }
+
       if (!params.email) {
         return jsonResponse(400, { error: 'email parameter is required' });
       }

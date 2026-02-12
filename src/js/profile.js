@@ -13,6 +13,7 @@
 
   var waiverSigned = false; // Track if liability waiver is signed
   var waiverStatusLoaded = false; // True once we know the actual status
+  var storedCardData = null; // Cached stored credit card from Mindbody
 
   // ── Simple canvas signature pad ──
   function SignaturePad(canvasId, clearBtnId) {
@@ -486,9 +487,10 @@
         }
       }
 
-      // Silently fetch waiver status (no blocking — used for gates later)
+      // Silently fetch waiver status and stored card info
       if (d.mindbodyClientId) {
         fetchWaiverStatus(d.mindbodyClientId);
+        fetchStoredCard(d.mindbodyClientId);
       }
 
       var sinceEl = document.getElementById('yb-profile-member-since');
@@ -554,6 +556,109 @@
   }
 
   // Check waiver status: localStorage (instant) → Firestore → MB API
+  // ══════════════════════════════════════
+  // STORED CREDIT CARD
+  // ══════════════════════════════════════
+  function renderStoredCardUI(card) {
+    var loadingEl = document.getElementById('yb-stored-card-loading');
+    var displayEl = document.getElementById('yb-stored-card-display');
+    var emptyEl = document.getElementById('yb-stored-card-empty');
+    if (loadingEl) loadingEl.hidden = true;
+    if (card && card.lastFour) {
+      storedCardData = card;
+      if (displayEl) displayEl.hidden = false;
+      if (emptyEl) emptyEl.hidden = true;
+      var typeEl = document.getElementById('yb-stored-card-type');
+      var numEl = document.getElementById('yb-stored-card-number');
+      var holderEl = document.getElementById('yb-stored-card-holder');
+      var expEl = document.getElementById('yb-stored-card-exp');
+      if (typeEl) typeEl.textContent = card.cardType || 'Card';
+      if (numEl) numEl.textContent = '•••• ' + card.lastFour;
+      if (holderEl) holderEl.textContent = card.cardHolder || '';
+      if (expEl && card.expMonth && card.expYear) {
+        expEl.textContent = (isDa() ? 'Udløber ' : 'Expires ') + card.expMonth + '/' + card.expYear;
+      }
+    } else {
+      storedCardData = null;
+      if (displayEl) displayEl.hidden = true;
+      if (emptyEl) emptyEl.hidden = false;
+    }
+  }
+
+  function fetchStoredCard(mbClientId) {
+    // 1. Instant: check Firestore for locally saved card info
+    if (currentUser && currentDb) {
+      currentDb.collection('users').doc(currentUser.uid).get().then(function(doc) {
+        if (doc.exists && doc.data().storedCard && doc.data().storedCard.lastFour) {
+          renderStoredCardUI(doc.data().storedCard);
+        }
+      }).catch(function() {});
+    }
+
+    // 2. Fetch from Mindbody (authoritative source, overwrites Firestore data)
+    fetch('/.netlify/functions/mb-client?action=storedCard&clientId=' + encodeURIComponent(mbClientId))
+      .then(function(r) { return r.json(); })
+      .then(function(data) {
+        if (data.hasStoredCard && data.storedCard && data.storedCard.lastFour) {
+          renderStoredCardUI(data.storedCard);
+          // Save to Firestore as cache
+          if (currentUser && currentDb) {
+            currentDb.collection('users').doc(currentUser.uid).update({ storedCard: data.storedCard }).catch(function() {});
+          }
+        } else if (!storedCardData) {
+          // Only show empty if Firestore didn't already have data
+          renderStoredCardUI(null);
+        }
+      })
+      .catch(function(err) {
+        console.warn('Could not fetch stored card from MB:', err);
+        // If Firestore didn't provide data either, show empty
+        if (!storedCardData) renderStoredCardUI(null);
+      });
+  }
+
+  // Save card summary to Firestore after a successful checkout with saveCard=true
+  function saveCardInfoLocally(paymentInfo) {
+    if (!currentUser || !currentDb || !paymentInfo.cardNumber) return;
+    var lastFour = paymentInfo.cardNumber.slice(-4);
+    var cardData = {
+      lastFour: lastFour,
+      cardType: detectCardType(paymentInfo.cardNumber),
+      cardHolder: paymentInfo.cardHolder || '',
+      expMonth: paymentInfo.expMonth || '',
+      expYear: paymentInfo.expYear || ''
+    };
+    storedCardData = cardData;
+    renderStoredCardUI(cardData);
+    currentDb.collection('users').doc(currentUser.uid).update({ storedCard: cardData }).catch(function() {});
+  }
+
+  function detectCardType(num) {
+    if (!num) return '';
+    if (num.charAt(0) === '4') return 'Visa';
+    if (/^5[1-5]/.test(num) || /^2[2-7]/.test(num)) return 'Mastercard';
+    if (/^3[47]/.test(num)) return 'Amex';
+    if (/^6(?:011|5)/.test(num)) return 'Discover';
+    return 'Card';
+  }
+
+  function initStoredCardCheckoutToggle() {
+    var storedSection = document.getElementById('yb-checkout-stored-card');
+    var cardFields = document.getElementById('yb-checkout-card-fields');
+    var radios = document.querySelectorAll('input[name="yb-payment-method"]');
+    if (!storedSection || !cardFields || !radios.length) return;
+
+    radios.forEach(function(radio) {
+      radio.addEventListener('change', function() {
+        var useStored = this.value === 'stored';
+        cardFields.hidden = useStored;
+        // Toggle active class on parent labels
+        document.getElementById('yb-checkout-use-stored').classList.toggle('yb-checkout-stored-card__option--active', useStored);
+        document.getElementById('yb-checkout-use-new').classList.toggle('yb-checkout-stored-card__option--active', !useStored);
+      });
+    });
+  }
+
   function fetchWaiverStatus(mbClientId) {
     // 1. Instant check: localStorage
     var cacheKey = getWaiverCacheKey();
@@ -1356,6 +1461,13 @@
     var cancelBtn = document.getElementById('yb-store-cancel-btn');
     var successCloseBtn = document.getElementById('yb-store-success-close');
 
+    // "Change card" button in profile — switch to Store tab to use a different card
+    var changeCardBtn = document.getElementById('yb-stored-card-change');
+    if (changeCardBtn) changeCardBtn.addEventListener('click', function() {
+      var storeTab = document.querySelector('[data-yb-tab="store"]');
+      if (storeTab) storeTab.click();
+    });
+
     if (cancelBtn) cancelBtn.addEventListener('click', function() {
       var el = document.getElementById('yb-store-checkout');
       var list = document.getElementById('yb-store-list');
@@ -1765,6 +1877,25 @@
     var errEl = document.getElementById('yb-store-error');
     if (errEl) errEl.hidden = true;
 
+    // Show stored card option if available
+    var storedCardSection = document.getElementById('yb-checkout-stored-card');
+    var cardFieldsWrap = document.getElementById('yb-checkout-card-fields');
+    if (storedCardSection && storedCardData && storedCardData.lastFour) {
+      storedCardSection.hidden = false;
+      var storedLabel = document.getElementById('yb-checkout-stored-label');
+      if (storedLabel) storedLabel.textContent = (storedCardData.cardType || 'Card') + ' •••• ' + storedCardData.lastFour;
+      // Default to stored card
+      var storedRadio = storedCardSection.querySelector('input[value="stored"]');
+      if (storedRadio) storedRadio.checked = true;
+      if (cardFieldsWrap) cardFieldsWrap.hidden = true;
+      document.getElementById('yb-checkout-use-stored').classList.add('yb-checkout-stored-card__option--active');
+      document.getElementById('yb-checkout-use-new').classList.remove('yb-checkout-stored-card__option--active');
+      initStoredCardCheckoutToggle();
+    } else {
+      if (storedCardSection) storedCardSection.hidden = true;
+      if (cardFieldsWrap) cardFieldsWrap.hidden = false;
+    }
+
     // 1. Determine what documents to show
     var waiverSection = document.getElementById('yb-checkout-waiver-section');
     var termsSection = document.getElementById('yb-checkout-terms-section');
@@ -1885,11 +2016,17 @@
       }
     }
 
-    if (!cardNumber || cardNumber.length < 13) { showSimpleError(errorEl, isDa() ? 'Indtast et gyldigt kortnummer.' : 'Enter a valid card number.'); return; }
-    if (!expiry || expiry.length < 4) { showSimpleError(errorEl, isDa() ? 'Indtast udløbsdato.' : 'Enter expiry date.'); return; }
-    if (!cvv || cvv.length < 3) { showSimpleError(errorEl, isDa() ? 'Indtast CVV.' : 'Enter CVV.'); return; }
+    // Check if using stored card
+    var storedRadio = document.querySelector('input[name="yb-payment-method"][value="stored"]');
+    var useStored = storedRadio && storedRadio.checked && storedCardData && storedCardData.lastFour;
 
-    var expParts = expiry.split('/');
+    if (!useStored) {
+      if (!cardNumber || cardNumber.length < 13) { showSimpleError(errorEl, isDa() ? 'Indtast et gyldigt kortnummer.' : 'Enter a valid card number.'); return; }
+      if (!expiry || expiry.length < 4) { showSimpleError(errorEl, isDa() ? 'Indtast udløbsdato.' : 'Enter expiry date.'); return; }
+      if (!cvv || cvv.length < 3) { showSimpleError(errorEl, isDa() ? 'Indtast CVV.' : 'Enter CVV.'); return; }
+    }
+
+    var expParts = expiry ? expiry.split('/') : [];
     payBtn.disabled = true;
     payBtn.textContent = isDa() ? 'Behandler betaling...' : 'Processing payment...';
 
@@ -1926,11 +2063,16 @@
     }
 
     var itemType = checkoutEl.getAttribute('data-item-type') || 'service';
-    var paymentInfo = {
-      cardNumber: cardNumber, expMonth: expParts[0], expYear: expParts[1] ? '20' + expParts[1] : '',
-      cvv: cvv, cardHolder: cardHolder, billingAddress: address, billingCity: city, billingPostalCode: zip,
-      saveCard: saveCard ? saveCard.checked : false
-    };
+    var paymentInfo;
+    if (useStored) {
+      paymentInfo = { useStoredCard: true, lastFour: storedCardData.lastFour };
+    } else {
+      paymentInfo = {
+        cardNumber: cardNumber, expMonth: expParts[0], expYear: expParts[1] ? '20' + expParts[1] : '',
+        cvv: cvv, cardHolder: cardHolder, billingAddress: address, billingCity: city, billingPostalCode: zip,
+        saveCard: saveCard ? saveCard.checked : false
+      };
+    }
 
     var fetchUrl, fetchBody;
     if (itemType === 'contract') {
@@ -1975,6 +2117,10 @@
         .then(function(data) {
           if (data.success) {
             checkoutEl.hidden = true;
+            // Save card info locally if user checked "save card"
+            if (!useStored && paymentInfo.saveCard && paymentInfo.cardNumber) {
+              saveCardInfoLocally(paymentInfo);
+            }
             // Reset left column sections after successful purchase
             var wvs = document.getElementById('yb-checkout-waiver-section');
             if (wvs) wvs.hidden = true;

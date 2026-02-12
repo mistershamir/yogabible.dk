@@ -42,15 +42,44 @@ exports.handler = async (event) => {
         return jsonResponse(400, { error: 'Missing required fields: giftCardId, clientId, recipientEmail, recipientName' });
       }
 
-      if (!payment || !payment.cardNumber) {
+      if (!payment) {
         return jsonResponse(400, { error: 'Payment information is required' });
       }
 
       // Determine the payment amount (custom amount or default card value)
       const paymentAmount = customAmount ? parseFloat(customAmount) : (salePrice ? parseFloat(salePrice) : 0);
 
-      // Mindbody v6 PurchaseGiftCard uses CheckoutPaymentInfo with Metadata dict
-      // Keys use PascalCase to match CreditCardInfo field names
+      // Build PaymentInfo — StoredCard (last four only) or new CreditCard
+      let paymentInfo;
+      if (payment.useStoredCard && payment.lastFour) {
+        paymentInfo = {
+          Type: 'StoredCard',
+          Metadata: {
+            LastFour: String(payment.lastFour),
+            Amount: String(paymentAmount)
+          }
+        };
+      } else {
+        if (!payment.cardNumber) {
+          return jsonResponse(400, { error: 'Card number is required' });
+        }
+        paymentInfo = {
+          Type: 'CreditCard',
+          Metadata: {
+            amount: String(paymentAmount),
+            creditCardNumber: String(payment.cardNumber),
+            expMonth: String(payment.expMonth),
+            expYear: String(payment.expYear),
+            cvv: String(payment.cvv),
+            billingName: String(payment.cardHolder || recipientName),
+            billingAddress: String(payment.billingAddress || ''),
+            billingCity: String(payment.billingCity || ''),
+            billingPostalCode: String(payment.billingPostalCode || ''),
+            saveInfo: String(payment.saveCard || false)
+          }
+        };
+      }
+
       const purchaseData = {
         LocationId: parseInt(locationId || '1', 10),
         GiftCardId: parseInt(giftCardId, 10),
@@ -60,21 +89,7 @@ exports.handler = async (event) => {
         Title: title || 'Gift Card',
         SendEmailReceipt: true,
         Test: false,
-        PaymentInfo: {
-          Type: 'CreditCard',
-          Metadata: {
-            Amount: String(paymentAmount),
-            CreditCardNumber: String(payment.cardNumber),
-            ExpMonth: String(payment.expMonth),
-            ExpYear: String(payment.expYear),
-            CVV: String(payment.cvv),
-            BillingName: String(payment.cardHolder || recipientName),
-            BillingAddress: String(payment.billingAddress || ''),
-            BillingCity: String(payment.billingCity || ''),
-            BillingPostalCode: String(payment.billingPostalCode || ''),
-            SaveInfo: String(payment.saveCard || false)
-          }
-        }
+        PaymentInfo: paymentInfo
       };
 
       // For custom-amount gift cards, set the card value

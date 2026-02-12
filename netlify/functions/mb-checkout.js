@@ -34,8 +34,8 @@ exports.handler = async function(event) {
     if (!body.items || !body.items.length) {
       return jsonResponse(400, { error: 'At least one item is required' });
     }
-    if (!body.payment || !body.payment.cardNumber) {
-      return jsonResponse(400, { error: 'Payment card details are required' });
+    if (!body.payment) {
+      return jsonResponse(400, { error: 'Payment details are required' });
     }
 
     // Build cart items for Mindbody API
@@ -57,23 +57,38 @@ exports.handler = async function(event) {
       return cartItem;
     });
 
-    // Build payment info — Mindbody v6 Metadata is Dictionary<string, string>
-    // ALL values MUST be strings, not numbers or booleans
-    var paymentInfo = {
-      Type: 'CreditCard',
-      Metadata: {
-        amount: String(body.amount || 0),
-        creditCardNumber: String(body.payment.cardNumber),
-        expMonth: String(body.payment.expMonth),
-        expYear: String(body.payment.expYear),
-        cvv: String(body.payment.cvv),
-        billingName: String(body.payment.cardHolder || ''),
-        billingAddress: String(body.payment.billingAddress || ''),
-        billingCity: String(body.payment.billingCity || ''),
-        billingPostalCode: String(body.payment.billingPostalCode || ''),
-        saveInfo: String(body.payment.saveCard || false)
+    // Build payment info — StoredCard (last four only) or new CreditCard
+    var paymentInfo;
+    if (body.payment.useStoredCard && body.payment.lastFour) {
+      paymentInfo = {
+        Type: 'StoredCard',
+        Metadata: {
+          LastFour: String(body.payment.lastFour),
+          Amount: String(body.amount || 0)
+        }
+      };
+    } else {
+      if (!body.payment.cardNumber) {
+        return jsonResponse(400, { error: 'Card number is required' });
       }
-    };
+      // Mindbody v6 Metadata is Dictionary<string, string>
+      // ALL values MUST be strings, not numbers or booleans
+      paymentInfo = {
+        Type: 'CreditCard',
+        Metadata: {
+          amount: String(body.amount || 0),
+          creditCardNumber: String(body.payment.cardNumber),
+          expMonth: String(body.payment.expMonth),
+          expYear: String(body.payment.expYear),
+          cvv: String(body.payment.cvv),
+          billingName: String(body.payment.cardHolder || ''),
+          billingAddress: String(body.payment.billingAddress || ''),
+          billingCity: String(body.payment.billingCity || ''),
+          billingPostalCode: String(body.payment.billingPostalCode || ''),
+          saveInfo: String(body.payment.saveCard || false)
+        }
+      };
+    }
 
     var checkoutData = {
       ClientId: body.clientId,

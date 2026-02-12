@@ -348,19 +348,25 @@ exports.handler = async function(event) {
         purchaseBody.ClientSignature = body.clientSignature.replace(/^data:image\/png;base64,/, '');
       }
 
-      // Add payment if provided
-      if (body.payment && body.payment.cardNumber) {
-        purchaseBody.CreditCardInfo = {
-          CreditCardNumber: String(body.payment.cardNumber),
-          ExpMonth: String(body.payment.expMonth),
-          ExpYear: String(body.payment.expYear),
-          CVV: String(body.payment.cvv),
-          BillingName: String(body.payment.cardHolder || ''),
-          BillingAddress: String(body.payment.billingAddress || ''),
-          BillingCity: String(body.payment.billingCity || ''),
-          BillingPostalCode: String(body.payment.billingPostalCode || ''),
-          SaveInfo: body.payment.saveCard ? true : false
-        };
+      // Add payment if provided — StoredCard or new CreditCard
+      if (body.payment) {
+        if (body.payment.useStoredCard && body.payment.lastFour) {
+          purchaseBody.StoredCardInfo = {
+            LastFour: String(body.payment.lastFour)
+          };
+        } else if (body.payment.cardNumber) {
+          purchaseBody.CreditCardInfo = {
+            CreditCardNumber: String(body.payment.cardNumber),
+            ExpMonth: String(body.payment.expMonth),
+            ExpYear: String(body.payment.expYear),
+            CVV: String(body.payment.cvv),
+            BillingName: String(body.payment.cardHolder || ''),
+            BillingAddress: String(body.payment.billingAddress || ''),
+            BillingCity: String(body.payment.billingCity || ''),
+            BillingPostalCode: String(body.payment.billingPostalCode || ''),
+            SaveInfo: body.payment.saveCard ? true : false
+          };
+        }
       }
 
       console.log('mb-contracts POST:', JSON.stringify({
