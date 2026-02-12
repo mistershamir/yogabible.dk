@@ -2513,16 +2513,8 @@
           // Pre-fill cardholder
           var gcHolder = document.getElementById('yb-gc-cardholder');
           if (gcHolder && currentUser && currentUser.displayName && !gcHolder.value) gcHolder.value = currentUser.displayName;
-          // Stored cards don't work for custom-amount gift cards (MindBody uses the
-          // card's configured price — which is 0 for editable cards — ignoring metadata).
-          if (selectedGiftCard.editableByConsumer) {
-            var gcStoredSection = document.getElementById('yb-gc-stored-card');
-            var gcCardFields = document.getElementById('yb-gc-card-fields');
-            if (gcStoredSection) gcStoredSection.hidden = true;
-            if (gcCardFields) gcCardFields.hidden = false;
-          } else {
-            initCheckoutStoredCard('yb-gc');
-          }
+          // Show stored card toggle if user has one
+          initCheckoutStoredCard('yb-gc');
           formEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
         }
       });

@@ -62,15 +62,6 @@ exports.handler = async (event) => {
       // Payment amount = the custom amount or the card's sale price
       const paymentAmount = cardValue;
 
-      // Stored cards cannot be used for custom-amount gift cards.
-      // MindBody determines the stored-card charge from the gift card's configured
-      // SalePrice (which is 0 for editable/custom cards), ignoring the Amount metadata.
-      if (isCustomAmount && payment.useStoredCard) {
-        return jsonResponse(400, {
-          error: 'Stored cards cannot be used for custom amount gift cards. Please enter card details manually.'
-        });
-      }
-
       // Build PaymentInfo — StoredCard (last four only) or new CreditCard
       let paymentInfo;
       if (payment.useStoredCard && payment.lastFour) {
