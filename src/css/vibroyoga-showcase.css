@@ -1,0 +1,698 @@
+/* ============================================
+   Vibro Yoga Showcase — Complete Stylesheet
+   ============================================ */
+
+/* ── Design Tokens ── */
+:root {
+  --vs-font: 'Abacaxi', "Helvetica Neue", Helvetica, Arial, system-ui, sans-serif;
+  --vs-radius: 16px;
+  --vs-transition: cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+/* ── Reset / Base ── */
+*, *::before, *::after {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: var(--vs-font);
+  background: #0a0a0a;
+  color: #fafafa;
+  overflow-x: hidden;
+}
+
+/* ── Sticky Navigation ── */
+.vs-nav {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 9999;
+  background: rgba(10, 10, 10, 0.92);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  padding: 10px 0;
+}
+
+.vs-nav__inner {
+  max-width: 1200px;
+  margin: auto;
+  padding: 0 20px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.vs-nav__back {
+  font-size: 1.2rem;
+  color: rgba(255, 255, 255, 0.5);
+  text-decoration: none;
+  flex-shrink: 0;
+}
+
+.vs-nav__back:hover {
+  color: #fff;
+}
+
+.vs-nav__links {
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  flex: 1;
+}
+
+.vs-nav__links::-webkit-scrollbar {
+  display: none;
+}
+
+.vs-nav__link {
+  font-family: var(--vs-font);
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 6px 14px;
+  border-radius: 50px;
+  border: 1.5px solid rgba(255, 255, 255, 0.1);
+  background: transparent;
+  color: rgba(255, 255, 255, 0.4);
+  text-decoration: none;
+  white-space: nowrap;
+  transition: all 0.3s;
+}
+
+.vs-nav__link:hover {
+  border-color: rgba(255, 255, 255, 0.3);
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.vs-nav__link.is-active {
+  background: rgba(255, 255, 255, 0.12);
+  border-color: rgba(255, 255, 255, 0.3);
+  color: #fff;
+}
+
+/* ── Progress Bar ── */
+.vs-progress {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  z-index: 10000;
+  background: transparent;
+}
+
+.vs-progress__bar {
+  height: 100%;
+  width: 0%;
+  background: linear-gradient(90deg, #7c5cff, #cc4400, #d4a54a, #00bfa5, #3f99a5, #3f99a5, #e8dcc8, #e05555, #4488cc, #55cc88);
+  transition: width 0.1s;
+}
+
+/* ── Sections ── */
+.vs-section {
+  position: relative;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  padding: 80px 24px 60px;
+  transition: background-color 0.5s;
+}
+
+.vs-canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 1;
+}
+
+.vs-section__overlay {
+  position: relative;
+  z-index: 2;
+  text-align: center;
+  max-width: 800px;
+  pointer-events: none;
+}
+
+.vs-section__number {
+  display: block;
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.3em;
+  opacity: 0.25;
+  margin-bottom: 16px;
+}
+
+.vs-section__title {
+  font-size: clamp(3rem, 8vw, 7rem);
+  font-weight: 700;
+  line-height: 0.95;
+  letter-spacing: 0.05em;
+  margin-bottom: 20px;
+  color: #fff;
+}
+
+.vs-section__subtitle {
+  font-size: 1rem;
+  color: rgba(255, 255, 255, 0.4);
+  max-width: 500px;
+  margin: 0 auto;
+}
+
+/* ── Per-Section Backgrounds ── */
+.vs-section--oscilloscope {
+  background: #0d0a1a;
+}
+
+.vs-section--seismic {
+  background: #0f0806;
+}
+
+.vs-section--resonance {
+  background: #080810;
+}
+
+.vs-section--molecular {
+  background: #061515;
+}
+
+.vs-section--frequency {
+  background: #050508;
+}
+
+.vs-section--cursor {
+  background: #030306;
+}
+
+.vs-section--cymatics {
+  background: #060608;
+}
+
+.vs-section--strings {
+  background: #120808;
+}
+
+.vs-section--ripple {
+  background: #060a14;
+}
+
+.vs-section--pendulum {
+  background: #061008;
+}
+
+/* ── Section Cards ── */
+.vs-section__cards {
+  position: relative;
+  z-index: 2;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+  max-width: 1000px;
+  width: 100%;
+  margin-top: 60px;
+  padding: 0 24px;
+}
+
+.vs-section__cards--cascade {
+  grid-template-columns: repeat(3, 1fr);
+  grid-template-rows: repeat(2, 1fr);
+}
+
+.vs-card {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: var(--vs-radius);
+  padding: 24px;
+  transition: all 0.3s var(--vs-transition);
+}
+
+.vs-card:hover {
+  transform: translateY(-4px);
+}
+
+/* Card Variants */
+.vs-card--oscilloscope:hover {
+  border-color: rgba(124, 92, 255, 0.4);
+}
+
+.vs-card--seismic:hover {
+  border-color: rgba(204, 68, 0, 0.4);
+}
+
+.vs-card--seismic.is-shaking {
+  animation: vs-shake 0.15s ease-in-out infinite;
+  border-color: rgba(204, 68, 0, 0.5);
+}
+
+.vs-card--resonance {
+  cursor: pointer;
+}
+
+.vs-card--resonance.is-cascading {
+  animation: vs-cascade-buzz 0.12s ease-in-out 4;
+  border-color: rgba(212, 165, 74, 0.6);
+  box-shadow: 0 0 25px rgba(212, 165, 74, 0.1);
+}
+
+/* Card Inner Elements */
+.vs-card__freq {
+  font-size: 1.8rem;
+  font-weight: 700;
+  color: #7c5cff;
+  margin-bottom: 8px;
+}
+
+.vs-card__title {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #fff;
+  margin-bottom: 6px;
+}
+
+.vs-card__text {
+  font-size: 0.85rem;
+  line-height: 1.6;
+  color: #888;
+}
+
+/* ── Seismic Section Specifics ── */
+.vs-seismic-readout {
+  position: relative;
+  z-index: 2;
+  width: 100%;
+  max-width: 900px;
+  margin-top: 40px;
+}
+
+.vs-seismic-canvas {
+  width: 100%;
+  display: block;
+  border: 1px solid rgba(204, 68, 0, 0.15);
+  border-radius: 8px;
+  margin-bottom: 20px;
+}
+
+.vs-seismic-metrics {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0;
+}
+
+.vs-seismic-metric {
+  text-align: center;
+  padding: 16px;
+  border: 1px solid rgba(204, 68, 0, 0.15);
+}
+
+.vs-seismic-metric__value {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #cc4400;
+  display: block;
+}
+
+.vs-seismic-metric__label {
+  font-size: 0.65rem;
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  color: #888;
+}
+
+/* ── Tremor Animation (Seismic Title) ── */
+[data-vs-tremor] {
+  display: inline-block;
+  animation: vs-tremor 0.3s infinite;
+}
+
+@keyframes vs-tremor {
+  0%, 100% { transform: translate(0, 0); }
+  10% { transform: translate(0.5px, -0.5px); }
+  30% { transform: translate(-0.5px, 0.5px); }
+  50% { transform: translate(0.5px, 0); }
+  70% { transform: translate(-0.5px, -0.5px); }
+  90% { transform: translate(0.5px, 0.5px); }
+}
+
+/* ── Resonance Rings ── */
+.vs-resonance-rings {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.vs-resonance-ring {
+  position: absolute;
+  border-radius: 50%;
+  border: 1px solid rgba(212, 165, 74, 0.15);
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.vs-resonance-ring:nth-child(1) {
+  width: 200px;
+  height: 200px;
+  animation: vs-ring-pulse 4s ease-in-out infinite;
+  animation-delay: 0s;
+}
+
+.vs-resonance-ring:nth-child(2) {
+  width: 350px;
+  height: 350px;
+  animation: vs-ring-pulse 4s ease-in-out infinite;
+  animation-delay: 0.5s;
+}
+
+.vs-resonance-ring:nth-child(3) {
+  width: 500px;
+  height: 500px;
+  animation: vs-ring-pulse 4s ease-in-out infinite;
+  animation-delay: 1s;
+}
+
+.vs-resonance-ring:nth-child(4) {
+  width: 650px;
+  height: 650px;
+  animation: vs-ring-pulse 4s ease-in-out infinite;
+  animation-delay: 1.5s;
+}
+
+.vs-resonance-ring:nth-child(5) {
+  width: 800px;
+  height: 800px;
+  animation: vs-ring-pulse 4s ease-in-out infinite;
+  animation-delay: 2s;
+}
+
+@keyframes vs-ring-pulse {
+  0%, 100% { opacity: 0.15; transform: translate(-50%, -50%) scale(1); }
+  50% { opacity: 0.4; transform: translate(-50%, -50%) scale(1.05); }
+}
+
+/* ── Temperature Meter (Molecular) ── */
+.vs-temp-meter {
+  position: relative;
+  z-index: 2;
+  text-align: center;
+  margin-top: 40px;
+}
+
+.vs-temp-meter__track {
+  width: 200px;
+  height: 8px;
+  background: rgba(255, 255, 255, 0.06);
+  border-radius: 4px;
+  margin: 0 auto 12px;
+  overflow: hidden;
+}
+
+.vs-temp-meter__fill {
+  height: 100%;
+  width: 10%;
+  background: linear-gradient(90deg, #00bfa5, #00e5c3);
+  border-radius: 4px;
+  transition: width 0.3s ease-out;
+}
+
+.vs-temp-meter__label {
+  font-size: 0.75rem;
+  color: #666;
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+}
+
+/* ── Frequency Section ── */
+.vs-vibrate-letter {
+  display: inline-block;
+  animation: vs-letter-vibrate calc(0.15s / var(--vibrate-intensity, 1)) infinite;
+  will-change: transform;
+}
+
+.vs-vibrate-letter:nth-child(odd) {
+  animation-delay: -0.05s;
+}
+
+.vs-vibrate-letter:nth-child(3n) {
+  animation-delay: -0.1s;
+}
+
+@keyframes vs-letter-vibrate {
+  0%, 100% { transform: translate(0, 0); }
+  25% { transform: translate(calc(1px * var(--vibrate-intensity, 1)), calc(-1px * var(--vibrate-intensity, 1))); }
+  50% { transform: translate(calc(-1px * var(--vibrate-intensity, 1)), calc(1px * var(--vibrate-intensity, 1))); }
+  75% { transform: translate(calc(1px * var(--vibrate-intensity, 1)), calc(0.5px * var(--vibrate-intensity, 1))); }
+}
+
+.vs-freq-bars {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  gap: 3px;
+  align-items: flex-end;
+  height: 120px;
+  justify-content: center;
+  margin-top: 40px;
+  width: 100%;
+  max-width: 600px;
+}
+
+.vs-freq-bar {
+  width: 5px;
+  height: 8px;
+  background: linear-gradient(0deg, #337f89, #5ab8c4);
+  border-radius: 3px;
+  transition: height 0.15s ease-out;
+  opacity: 0.7;
+}
+
+.vs-freq-bar:nth-child(even) {
+  opacity: 0.9;
+}
+
+/* ── Cymatics Mandala ── */
+.vs-mandala {
+  position: relative;
+  z-index: 2;
+  text-align: center;
+  margin-top: 40px;
+}
+
+.vs-mandala__svg {
+  width: 200px;
+  height: 200px;
+  animation: vs-rotate 30s linear infinite;
+}
+
+@keyframes vs-rotate {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* ── String Resonance Section ── */
+.vs-strings-container {
+  position: relative;
+  z-index: 2;
+  width: 100%;
+  max-width: 800px;
+  margin-top: 40px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.vs-string-svg {
+  width: 100%;
+  height: 40px;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.vs-string-svg:hover {
+  filter: brightness(1.5);
+}
+
+.vs-string-svg.is-plucked {
+  filter: drop-shadow(0 0 8px #e05555);
+}
+
+@keyframes vs-string-pluck {
+  0% { d: path('M 0 25 Q 250 5, 500 25 Q 750 45, 1000 25'); stroke-width: 3; }
+  15% { d: path('M 0 25 Q 250 38, 500 25 Q 750 12, 1000 25'); }
+  30% { d: path('M 0 25 Q 250 15, 500 25 Q 750 35, 1000 25'); }
+  45% { d: path('M 0 25 Q 250 32, 500 25 Q 750 18, 1000 25'); }
+  60% { d: path('M 0 25 Q 250 20, 500 25 Q 750 30, 1000 25'); }
+  80% { d: path('M 0 25 Q 250 27, 500 25 Q 750 23, 1000 25'); }
+  100% { d: path('M 0 25 Q 250 25, 500 25 Q 750 25, 1000 25'); stroke-width: 2; }
+}
+
+.vs-string-svg.is-plucked line {
+  animation: vs-string-pluck 0.7s ease-out;
+}
+
+.vs-string-labels {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  justify-content: space-between;
+  max-width: 800px;
+  width: 100%;
+  padding: 0 8px;
+  margin-top: 4px;
+}
+
+.vs-string-labels span {
+  font-size: 0.7rem;
+  color: rgba(224, 85, 85, 0.4);
+  letter-spacing: 0.1em;
+}
+
+/* ── Ripple Section ── */
+.vs-ripple-counter {
+  position: relative;
+  z-index: 2;
+  margin-top: 40px;
+  font-size: 0.8rem;
+  color: rgba(68, 136, 204, 0.5);
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+}
+
+/* ── Pendulum Section ── */
+.vs-pendulum-controls {
+  position: relative;
+  z-index: 2;
+  margin-top: 40px;
+}
+
+.vs-pendulum-btn {
+  font-family: var(--vs-font);
+  font-size: 0.8rem;
+  font-weight: 700;
+  padding: 10px 28px;
+  background: transparent;
+  color: #55cc88;
+  border: 1.5px solid rgba(85, 204, 136, 0.3);
+  border-radius: 50px;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.vs-pendulum-btn:hover {
+  background: rgba(85, 204, 136, 0.1);
+  border-color: #55cc88;
+}
+
+/* ── Shake & Cascade Keyframes ── */
+@keyframes vs-shake {
+  0%, 100% { transform: translate(0, 0); }
+  25% { transform: translate(1px, -1px); }
+  50% { transform: translate(-1px, 1px); }
+  75% { transform: translate(1px, 0.5px); }
+}
+
+@keyframes vs-cascade-buzz {
+  0%, 100% { transform: translate(0, 0); }
+  25% { transform: translate(1px, -1px); }
+  50% { transform: translate(-1px, 1px); }
+  75% { transform: translate(1px, 0.5px); }
+}
+
+/* ── Footer ── */
+.vs-footer {
+  padding: 60px 24px;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  text-align: center;
+  background: #0a0a0a;
+}
+
+.vs-footer__inner {
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.vs-footer__logo {
+  font-size: 1.4rem;
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+
+.vs-footer__text {
+  font-size: 0.85rem;
+  color: #888;
+  margin-bottom: 16px;
+}
+
+.vs-footer__link {
+  font-size: 0.85rem;
+  color: #3f99a5;
+  text-decoration: none;
+}
+
+.vs-footer__link:hover {
+  text-decoration: underline;
+}
+
+/* ── Responsive: 1024px ── */
+@media (max-width: 1024px) {
+  .vs-section__cards {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .vs-section__cards--cascade {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+/* ── Responsive: 768px ── */
+@media (max-width: 768px) {
+  .vs-nav__link {
+    font-size: 0.65rem;
+    padding: 5px 10px;
+  }
+
+  .vs-section__cards {
+    grid-template-columns: 1fr;
+    max-width: 400px;
+  }
+
+  .vs-section__cards--cascade {
+    grid-template-columns: 1fr;
+  }
+
+  .vs-seismic-metrics {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .vs-strings-container {
+    gap: 8px;
+  }
+
+  .vs-freq-bars {
+    height: 80px;
+  }
+}
+
+/* ── Responsive: 480px ── */
+@media (max-width: 480px) {
+  .vs-nav__links {
+    gap: 4px;
+  }
+
+  .vs-nav__link {
+    font-size: 0.6rem;
+    padding: 4px 8px;
+  }
+}
