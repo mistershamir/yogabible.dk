@@ -35,6 +35,7 @@
       <div class="yb-profile__tabs">
         <button class="yb-profile__tab is-active" type="button" data-yb-admin-tab="courses">{{ t.tab_courses }}</button>
         <button class="yb-profile__tab" type="button" data-yb-admin-tab="blog">{{ t.tab_blog }}</button>
+        <button class="yb-profile__tab" type="button" data-yb-admin-tab="users">{{ t.tab_users }}</button>
         <button class="yb-profile__tab" type="button" data-yb-admin-tab="analytics">{{ t.tab_analytics }}</button>
       </div>
 
@@ -252,22 +253,98 @@
       </div>{# end courses tab panel #}
 
       {# ═══════════════════════════════════
-         TAB: Blog / Journal
+         TAB: Blog / Journal (Decap CMS embedded)
          ═══════════════════════════════════ #}
       <div class="yb-admin__tab-panel" data-yb-admin-panel="blog">
-        <div style="max-width:560px;margin:2rem auto;text-align:center">
-          <div style="margin-bottom:1.5rem">
-            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="var(--yb-brand, #f75c03)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
-          </div>
-          <h2 style="margin:0 0 0.5rem">{{ t.blog_title }}</h2>
-          <p style="color:var(--yb-muted, #6F6A66);margin:0 0 2rem;line-height:1.6">{{ t.blog_subtitle }}</p>
-          <a href="/decap-cms/" target="_blank" rel="noopener" class="yb-btn yb-btn--primary" style="display:inline-flex;align-items:center;gap:0.5rem">
+        <div class="yb-admin__blog-toolbar">
+          <span style="font-size:0.85rem;color:var(--yb-muted, #6F6A66)">{{ t.blog_hint }}</span>
+          <a href="/decap-cms/" target="_blank" rel="noopener" class="yb-btn yb-btn--outline yb-btn--sm" style="display:inline-flex;align-items:center;gap:0.35rem">
             {{ t.blog_open_cms }}
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
           </a>
-          <p style="color:var(--yb-muted, #6F6A66);font-size:0.85rem;margin:1.5rem 0 0">{{ t.blog_hint }}</p>
         </div>
+        <iframe id="yb-admin-blog-iframe" src="" class="yb-admin__blog-iframe" title="Blog CMS"></iframe>
       </div>{# end blog tab panel #}
+
+      {# ═══════════════════════════════════
+         TAB: Users
+         ═══════════════════════════════════ #}
+      <div class="yb-admin__tab-panel" data-yb-admin-panel="users">
+
+        {# User List View #}
+        <div id="yb-admin-v-user-list">
+          <div class="yb-admin__view-head">
+            <h2>{{ t.users_title }}</h2>
+          </div>
+
+          {# Search + Filter bar #}
+          <div class="yb-admin__user-toolbar">
+            <form id="yb-admin-user-search-form" class="yb-admin__user-search">
+              <input type="text" id="yb-admin-user-search-input" placeholder="{{ t.users_search_placeholder }}" class="yb-admin__user-search-input">
+              <button type="submit" class="yb-btn yb-btn--primary">{{ t.users_search_btn }}</button>
+            </form>
+            <select id="yb-admin-user-role-filter" class="yb-admin__select">
+              <option value="">{{ t.users_all_roles }}</option>
+              <option value="member">Member</option>
+              <option value="trainee">Trainee</option>
+              <option value="student">Student</option>
+              <option value="teacher">Teacher</option>
+              <option value="marketing">Marketing</option>
+              <option value="admin">Admin</option>
+            </select>
+            <button type="button" class="yb-btn yb-btn--outline yb-btn--sm" data-action="users-browse">{{ t.users_browse_btn }}</button>
+          </div>
+
+          {# Stat cards #}
+          <div class="yb-admin__stats-grid" id="yb-admin-user-stats" style="margin-bottom:1.5rem"></div>
+
+          {# User list table #}
+          <div id="yb-admin-user-table-wrap"></div>
+        </div>
+
+        {# User Detail View #}
+        <div id="yb-admin-v-user-detail" hidden>
+          <div class="yb-admin__view-head">
+            <button class="yb-admin__back-btn" data-action="back-users">&larr; {{ t.back }}</button>
+            <h2 id="yb-admin-user-detail-heading">{{ t.users_detail_title }}</h2>
+          </div>
+
+          {# Profile card #}
+          <div id="yb-admin-user-profile-card"></div>
+
+          {# Role editor #}
+          <div class="yb-admin__section-divider"></div>
+          <h3 style="font-size:0.95rem;font-weight:700;margin-bottom:0.75rem">{{ t.role_title }}</h3>
+          <div id="yb-admin-user-role-editor"></div>
+
+          {# Enrollments #}
+          <div class="yb-admin__section-divider"></div>
+          <div class="yb-admin__view-head">
+            <h3 style="font-size:0.95rem;font-weight:700">{{ t.users_enrollments }}</h3>
+            <button class="yb-btn yb-btn--primary yb-btn--sm" data-action="user-enroll-toggle">+ {{ t.users_enroll_course }}</button>
+          </div>
+          <div id="yb-admin-user-enroll-form-wrap" hidden>
+            <div class="yb-admin__enroll-form" style="margin-bottom:1rem">
+              <select id="yb-admin-user-enroll-course" class="yb-admin__select">
+                <option value="">{{ t.users_enroll_select }}</option>
+              </select>
+              <button type="button" class="yb-btn yb-btn--primary" data-action="user-enroll-save">{{ t.enroll_btn }}</button>
+            </div>
+          </div>
+          <div id="yb-admin-user-enrollments"></div>
+
+          {# Progress #}
+          <div class="yb-admin__section-divider"></div>
+          <h3 style="font-size:0.95rem;font-weight:700;margin-bottom:0.75rem">{{ t.users_progress_title }}</h3>
+          <div id="yb-admin-user-progress"></div>
+
+          {# Consents #}
+          <div class="yb-admin__section-divider"></div>
+          <h3 style="font-size:0.95rem;font-weight:700;margin-bottom:0.75rem">{{ t.users_consents_title }}</h3>
+          <div id="yb-admin-user-consents"></div>
+        </div>
+
+      </div>{# end users tab panel #}
 
       {# ═══════════════════════════════════
          TAB: Analytics
@@ -314,19 +391,6 @@
         </div>
 
       </div>{# end analytics tab panel #}
-
-      {# ═══════════════════════════════════
-         VIEW: User Lookup (always visible below tabs)
-         ═══════════════════════════════════ #}
-      <div class="yb-admin__section-divider"></div>
-      <div class="yb-admin__view-head">
-        <h2>{{ t.user_lookup_title }}</h2>
-      </div>
-      <form id="yb-admin-user-lookup-form" class="yb-admin__enroll-form">
-        <input type="email" id="yb-admin-user-lookup-input" placeholder="{{ t.user_lookup_placeholder }}" required>
-        <button type="submit" class="yb-btn yb-btn--primary">{{ t.user_lookup_btn }}</button>
-      </form>
-      <div id="yb-admin-user-lookup-result"></div>
 
     </div>{# end yb-admin-panel #}
 

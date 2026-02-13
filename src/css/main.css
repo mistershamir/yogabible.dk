@@ -10613,12 +10613,75 @@ section {
 .yb-admin__badge--draft { background: #fef3c7; color: #92400e; }
 .yb-admin__badge--published { background: #dcfce7; color: #166534; }
 
+/* ── Blog Tab (Decap CMS iframe) ── */
+.yb-admin__blog-toolbar {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0.75rem 1rem; background: #F5F3F0; border-radius: 12px 12px 0 0;
+  border: 1px solid #E8E4E0; border-bottom: none; gap: 1rem;
+}
+.yb-admin__blog-iframe {
+  width: 100%; height: 70vh; border: 1px solid #E8E4E0; border-radius: 0 0 12px 12px;
+  background: #FFFCF9;
+}
+
+/* ── Users Tab ── */
+.yb-admin__user-toolbar {
+  display: flex; align-items: center; gap: 0.75rem; margin-bottom: 1.5rem; flex-wrap: wrap;
+}
+.yb-admin__user-search {
+  display: flex; gap: 0.5rem; flex: 1; min-width: 200px;
+}
+.yb-admin__user-search-input {
+  flex: 1; padding: 0.6rem 0.75rem; border: 1px solid #f75c03; border-radius: 12px;
+  font-family: inherit; font-size: 0.9rem; outline: none; background: #FFFCF9;
+  transition: box-shadow 0.15s;
+}
+.yb-admin__user-search-input:focus { box-shadow: 0 0 0 3px rgba(247,92,3,0.12); }
+
+/* ── User Avatar ── */
+.yb-admin__user-avatar {
+  width: 56px; height: 56px; border-radius: 50%; background: #f75c03; color: white;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.25rem; font-weight: 700; flex-shrink: 0;
+}
+
+/* ── User Meta Grid (profile details) ── */
+.yb-admin__user-meta {
+  display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.5rem 1.5rem;
+  padding: 0.75rem 0 0; margin-top: 0.75rem; border-top: 1px solid #E8E4E0;
+  width: 100%;
+}
+.yb-admin__user-meta-item { font-size: 0.8rem; color: #0F0F0F; }
+.yb-admin__user-meta-label {
+  display: block; font-weight: 600; color: #6F6A66; font-size: 0.72rem;
+  text-transform: uppercase; letter-spacing: 0.03em;
+}
+
+/* ── Admin Table ── */
+.yb-admin__table-wrap { overflow-x: auto; }
+.yb-admin__table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+.yb-admin__table th {
+  text-align: left; padding: 0.6rem 0.75rem; font-size: 0.75rem;
+  font-weight: 600; color: #6F6A66; text-transform: uppercase;
+  letter-spacing: 0.03em; border-bottom: 2px solid #E8E4E0;
+}
+.yb-admin__table td {
+  padding: 0.6rem 0.75rem; border-bottom: 1px solid #E8E4E0; color: #0F0F0F;
+}
+.yb-admin__table tbody tr { transition: background 0.12s; }
+.yb-admin__table tbody tr:hover { background: #F5F3F0; }
+
 /* ── Responsive for new components ── */
 @media (max-width: 768px) {
   .yb-admin__stats-grid { grid-template-columns: repeat(2, 1fr); }
   .yb-admin__student-row { flex-wrap: wrap; }
   .yb-admin__student-bar { width: 100%; }
   .yb-admin__toolbar { gap: 0.15rem; }
+  .yb-admin__user-toolbar { flex-direction: column; }
+  .yb-admin__user-search { width: 100%; }
+  .yb-admin__user-meta { grid-template-columns: 1fr; }
+  .yb-admin__table { font-size: 0.8rem; }
+  .yb-admin__blog-iframe { height: 50vh; }
 }
 @media (max-width: 480px) {
   .yb-admin__stats-grid { grid-template-columns: 1fr; }
