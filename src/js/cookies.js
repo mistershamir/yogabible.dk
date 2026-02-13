@@ -95,6 +95,13 @@
   // ============================================
 
   var gtmLoaded = false;
+  var clarityLoaded = false;
+  var trackingLoaded = false;
+
+  var CLARITY_ID = (function () {
+    var el = document.querySelector('meta[name="yb-clarity-id"]');
+    return el ? el.getAttribute('content') : '';
+  })();
 
   function loadGTM() {
     if (gtmLoaded || !GTM_ID) return;
@@ -119,6 +126,29 @@
     }
   }
 
+  /** Microsoft Clarity — heatmaps & session recordings (statistics category) */
+  function loadClarity() {
+    if (clarityLoaded || !CLARITY_ID) return;
+    clarityLoaded = true;
+
+    (function (c, l, a, r, i, t, y) {
+      c[a] = c[a] || function () { (c[a].q = c[a].q || []).push(arguments); };
+      t = l.createElement(r); t.async = 1; t.src = 'https://www.clarity.ms/tag/' + i;
+      y = l.getElementsByTagName(r)[0]; y.parentNode.insertBefore(t, y);
+    })(window, document, 'clarity', 'script', CLARITY_ID);
+  }
+
+  /** Load tracking.js — dataLayer events + Meta CAPI relay */
+  function loadTracking() {
+    if (trackingLoaded) return;
+    trackingLoaded = true;
+
+    var script = document.createElement('script');
+    script.async = true;
+    script.src = '/js/tracking.js';
+    document.body.appendChild(script);
+  }
+
   function updateGTMConsent() {
     window.dataLayer = window.dataLayer || [];
     window.dataLayer.push({
@@ -133,6 +163,10 @@
     if (!consent) return;
     if (consent.statistics || consent.marketing) {
       loadGTM();
+      loadTracking();
+    }
+    if (consent.statistics) {
+      loadClarity();
     }
     if (gtmLoaded) {
       updateGTMConsent();
