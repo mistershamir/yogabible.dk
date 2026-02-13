@@ -1,74 +1,85 @@
-# Email to Mindbody Developer Support
+# Mindbody API Support — Contract Suspension & Termination
 
-**To:** Mindbody API Support (via Developer Portal contact form)
-**Subject:** Clarification on SuspendContract parameters + missing endpoints (Public API V6)
+**Status:** RESOLVED (2026-02-13) — Response from Mindbody Support (Rachel)
 
 ---
 
-Dear Mindbody Developer Support,
+## 1. SuspendContract — Correct Parameter: `SuspensionStart`
 
-We are integrating the Mindbody Public API V6 into our yoga studio management platform and have encountered several questions regarding contract suspension and termination endpoints. We would greatly appreciate your guidance on the following:
+### Our original bug
+We were using `SuspendDate` which Mindbody treated as the end/through date.
+Suspensions always started immediately regardless of the date we passed.
 
-## 1. SuspendContract — SuspendDate parameter semantics
+### Mindbody's confirmed answer
+The correct parameter is **`SuspensionStart`** (NOT `SuspendDate`).
 
-We are using `POST /client/suspendcontract` with the following request body:
+**Parameters:**
+- `SuspensionStart` (optional) — Start date of suspension. Defaults to today if omitted.
+- `Duration` — How long the suspension lasts (number).
+- `DurationUnit` — Unit for duration (e.g., `"Day"`).
+- `OpenEnded` — If `true`, Duration/DurationUnit are ignored.
+- `SuspensionType` — e.g., `"Vacation"`. May auto-apply Duration/Fee from site config.
+- `SuspensionFee` — Optional fee for suspension.
+- `SuspensionNotes` — Optional notes.
 
+**Formula:** `SuspensionStart + Duration(DurationUnit) = Resume date`
+
+**Correct request example:**
 ```json
 {
   "ClientId": "12345",
   "ClientContractId": 678,
-  "SuspendDate": "2026-03-09",
+  "SuspensionStart": "2026-03-09T00:00:00",
   "Duration": 14,
   "DurationUnit": "Day",
   "SuspensionType": "Vacation"
 }
 ```
+Result: Start March 9, End March 23.
 
-Our intention was for `SuspendDate` to represent the **start date** of the suspension (March 9). However, the resulting suspension in Mindbody shows:
+**Future-dated suspensions:** YES, supported via `SuspensionStart` as a future DateTime.
 
-- **Start:** February 10 (the date the API call was made)
-- **End:** March 9 (the value we passed as `SuspendDate`)
+### Why our original code failed
+We sent `SuspendDate` which is not the correct parameter name. Mindbody likely
+ignored it (unrecognized param) and defaulted to starting today. The "end date"
+we saw was probably the Duration calculation from today's date.
 
-It appears that `SuspendDate` is being interpreted as the **end date** (or "suspend through" date) rather than the start date, and the suspension always begins from the current date. The `Duration` parameter also appears to be ignored when `SuspendDate` is provided.
-
-**Could you please clarify:**
-- What does `SuspendDate` represent — the suspension start date or end date?
-- Is `Duration` ignored when `SuspendDate` is provided, or do they work together?
-- Is it possible to schedule a future-dated suspension start via the API (e.g., start on March 9, end on March 23)? If so, what is the correct parameter combination?
-- Are there additional parameters such as `StartDate`, `ResumeDate`, or `EndDate` that we may be missing?
+---
 
 ## 2. Delete / Cancel a Suspension
 
-The Mindbody admin UI provides a **"Delete"** button to remove an existing contract suspension. However, we have been unable to find a corresponding Public API V6 endpoint to programmatically delete or cancel a suspension.
+**Answer: NO API endpoint exists.**
 
-We have tested the following paths without success:
-- `POST /client/unsuspendcontract`
-- `POST /client/resumecontract`
-- `DELETE /client/suspendcontract`
-- `POST /sale/unsuspendcontract`
+- Admin UI supports deleting suspensions.
+- Public API v6 has NO endpoint to delete or remove an existing suspension.
+- No `unsuspendcontract`, `resumecontract`, or delete suspension endpoint.
 
-**Is there a Public API V6 endpoint to delete or cancel an existing contract suspension?** If not, is this functionality planned for a future release?
+---
 
 ## 3. Cancel / Revoke a Contract Termination
 
-Similarly, the Mindbody admin UI allows staff to **cancel (revoke) a pending termination** on a contract. We have successfully used `POST /sale/terminatecontract` to terminate contracts, but we cannot find an endpoint to reverse/cancel that termination.
+**Answer: NO API endpoint exists.**
 
-**Is there a Public API V6 endpoint to cancel or revoke a pending contract termination?** For example, an `ActivateContract`, `RevokeTermination`, or similar endpoint?
+- `POST /sale/terminatecontract` — supported for terminating.
+- No API endpoint exists to reverse or revoke a pending termination.
+- Admin UI supports it, Public API does not.
 
-## Summary of Requested Endpoints
+---
 
-| Action | Admin UI Available? | Public API V6 Endpoint? |
-|--------|-------------------|------------------------|
-| Suspend contract | Yes | Yes (`POST /client/suspendcontract`) |
-| Delete/cancel suspension | Yes (Delete button) | **Unknown — requesting clarification** |
+## Summary
+
+| Action | Admin UI | Public API V6 |
+|--------|----------|---------------|
+| Suspend contract | Yes | Yes (`POST /client/suspendcontract` with `SuspensionStart`) |
+| Delete/cancel suspension | Yes | **No** |
 | Terminate contract | Yes | Yes (`POST /sale/terminatecontract`) |
-| Cancel/revoke termination | Yes | **Unknown — requesting clarification** |
+| Cancel/revoke termination | Yes | **No** |
 
-Any guidance on these questions would be extremely helpful for our integration. We are happy to provide additional details, API logs, or request/response examples if needed.
+---
 
-Thank you for your time and support.
+## Impact on our implementation
 
-Best regards,
-Yoga Bible / Vibro Yoga
-info@yogabible.dk
-Site ID: [YOUR_SITE_ID]
+1. **Pause (suspend):** Now works correctly with `SuspensionStart` + `Duration` + `DurationUnit`.
+   Future-dated pauses are supported.
+2. **Cancel pause:** Users must contact the studio (email). Cannot be done via API.
+3. **Cancel termination:** Users must contact the studio (email). Cannot be done via API.

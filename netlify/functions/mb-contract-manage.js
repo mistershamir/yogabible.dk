@@ -2,10 +2,13 @@
  * Netlify Function: POST /.netlify/functions/mb-contract-manage
  * Manages client contracts: terminate, suspend (pause), or resume.
  *
- * CONFIRMED WORKING (2026-02-09):
+ * CONFIRMED BY MINDBODY SUPPORT (2026-02-13):
  *   Endpoint: POST /client/suspendcontract
- *   Required fields: ClientId, ClientContractId, SuspendDate, Duration, DurationUnit, SuspensionType
+ *   Required fields: ClientId, ClientContractId, SuspensionStart, Duration, DurationUnit, SuspensionType
  *   Working values: SuspensionType:"Vacation", DurationUnit:"Day"
+ *   SuspensionStart = start date (defaults to today if omitted)
+ *   Resume date = SuspensionStart + Duration(DurationUnit)
+ *   Future-dated starts ARE supported via SuspensionStart.
  */
 
 const { mbFetch, getStaffToken, jsonResponse, corsHeaders } = require('./shared/mb-api');
@@ -176,21 +179,16 @@ exports.handler = async function(event) {
       // Frontend checks isSuspended flag before showing the pause button.
       // MB itself will return "exceeded maximum iterations" if already at max pauses.
 
-      // FIX (2026-02-09): MB treats SuspendDate as the END date, not start.
-      // Evidence: sending SuspendDate="2026-03-09" + Duration=14 resulted in
-      // MB registering Start=Feb10(today), End=Mar9(our SuspendDate value).
-      // So SuspendDate = "suspend through" date. Duration is ignored when SuspendDate given.
-      //
-      // Correct mapping:
-      //   SuspendDate = body.endDate (the end/through date of the suspension)
-      //
-      // We also try ResumeDate as explicit end param in case MB supports it.
-      // MB ignores unknown params, so adding extra fields is safe.
+      // CONFIRMED BY MINDBODY SUPPORT (2026-02-13):
+      // The correct parameter is SuspensionStart (NOT SuspendDate).
+      // SuspensionStart = the start date of the suspension.
+      // Duration + DurationUnit determine how long the suspension lasts.
+      // Resume date = SuspensionStart + Duration(DurationUnit).
+      // Future-dated starts are supported via SuspensionStart.
       var suspendBody = {
         ClientId: body.clientId,
         ClientContractId: ccId,
-        SuspendDate: body.endDate,
-        ResumeDate: body.endDate,
+        SuspensionStart: body.startDate,
         Duration: durationDays,
         DurationUnit: 'Day',
         SuspensionType: 'Vacation'

@@ -269,14 +269,14 @@ Promise.all([
 - **Terminated (before date):** "Membership Terminated" red badge, "Last billing {date}", "Active until {date}", notice period note with T&C link, retention card
 - **Terminated (after date):** "Membership Terminated" red badge, "Become a member again" button
 
-**Membership management (Contact-based, updated 2026-02-10):**
+**Membership management (Contact-based, updated 2026-02-13):**
 - Pause and Cancel buttons have been **removed** from the user profile
 - Replaced with an info box directing users to email `info@yogabible.dk`
 - Info box text explains: pause (14 days – 3 months, special circumstances) or cancel (1 month notice per T&C)
-- **Reason:** Unresolved Mindbody API issues — `SuspendDate` interpreted as end date (not start), no API to delete suspension or cancel termination
-- **Awaiting** Mindbody Developer Support response (email drafted in `docs/email-mindbody-support.md`)
+- **Suspend API fixed (2026-02-13):** Correct parameter is `SuspensionStart` (NOT `SuspendDate`). Future-dated starts supported. Duration + DurationUnit calculate resume date. See `docs/email-mindbody-support.md` for full details.
+- **Still no API for:** delete/cancel suspension, cancel/revoke termination (admin UI only)
 - Status displays remain: paused badge, terminated badge, billing info, retention card, contact hints
-- Backend `mb-contract-manage.js` still functional for suspend/terminate actions (can be re-enabled when API issues are resolved)
+- Backend `mb-contract-manage.js` now uses correct `SuspensionStart` parameter — pause button can be re-enabled
 
 **Retention card (terminated contracts, before termination date):**
 - Heart icon, "We already miss you!" title
@@ -376,9 +376,9 @@ else                         → No-show (red)
 - Revoke cancellation is NOT possible via Mindbody API (`activatecontract` doesn't exist)
 - "Want to cancel the termination? Contact us at info@yogabible.dk" hint shown
 
-**Backend (ready for re-activation):**
-- `mb-contract-manage.js` still supports `action: 'suspend'|'terminate'`
-- Can re-enable buttons once Mindbody clarifies SuspendDate semantics
+**Backend (fixed and working):**
+- `mb-contract-manage.js` supports `action: 'suspend'|'terminate'`
+- Now uses correct `SuspensionStart` parameter (fixed 2026-02-13)
 - Business rules remain in code: min 14 days, max 93 days, earliest start after next billing
 
 **Pause persistence (Firestore bridge):**
@@ -390,11 +390,11 @@ else                         → No-show (red)
 **Date formatting:**
 - All dates use `formatDateDK()` for consistent Danish-style display
 
-**Why buttons were removed (2026-02-10):**
-1. `SuspendDate` treated by MB as end date, not start — can't schedule future-dated pause starts
-2. No API to delete/cancel an existing suspension — only available in MB admin UI
-3. No API to revoke/cancel a pending termination — only available in MB admin UI
-4. Email sent to Mindbody Developer Support requesting clarification (see `docs/email-mindbody-support.md`)
+**Why buttons were originally removed (2026-02-10) and current status:**
+1. ~~`SuspendDate` treated by MB as end date, not start~~ — **FIXED (2026-02-13):** Correct param is `SuspensionStart`
+2. No API to delete/cancel an existing suspension — **still no API** (admin UI only)
+3. No API to revoke/cancel a pending termination — **still no API** (admin UI only)
+4. Suspend API now works correctly — pause buttons can be re-enabled. Cancel pause/termination still requires contacting studio.
 
 ### 6. Courses Tab (Mine Kurser)
 
