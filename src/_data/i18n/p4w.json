@@ -1,13 +1,13 @@
 {
   "da": {
-    "hero_eyebrow": "200-Timer Yogalæreruddannelse",
+    "hero_tagline": "200-Timer Yogalæreruddannelse",
     "hero_title": "Bliv Yogalærer<br>i København",
     "hero_subtitle": "4 ugers intensiv certificering i hjertet af Skandinavien — lille hold, store oplevelser, en karriere der venter",
-    "hero_meta": "April 2026 · Fuldtid · Max 12 studerende",
-    "hero_cert": "Yoga Alliance RYT-200",
-    "hero_styles": "Hatha · Vinyasa · Yin · Hot Yoga & Meditation",
-    "hero_cta_schedule": "Få Skema",
-    "hero_cta_why": "Hvorfor København?",
+    "hero_trust1": "April 2026",
+    "hero_trust2": "Fuldtid · Max 12 studerende",
+    "hero_trust3": "Yoga Alliance RYT-200",
+    "hero_cta_schedule": "Få Skema & Ansøg",
+    "hero_cta_more": "Hvorfor København?",
 
     "video_eyebrow": "Oplev det selv",
     "video_title": "Hør fra en, der har gjort det",
@@ -232,14 +232,14 @@
   },
 
   "en": {
-    "hero_eyebrow": "200-Hour Yoga Teacher Training",
+    "hero_tagline": "200-Hour Yoga Teacher Training",
     "hero_title": "Become a Yoga Teacher<br>in Copenhagen",
     "hero_subtitle": "4-week intensive certification in the heart of Scandinavia — small group, big experiences, a career waiting for you",
-    "hero_meta": "April 2026 · Full Time · Max 12 Students",
-    "hero_cert": "Yoga Alliance RYT-200",
-    "hero_styles": "Hatha · Vinyasa · Yin · Hot Yoga & Meditation",
-    "hero_cta_schedule": "Get Schedule",
-    "hero_cta_why": "Why Copenhagen?",
+    "hero_trust1": "April 2026",
+    "hero_trust2": "Full Time · Max 12 Students",
+    "hero_trust3": "Yoga Alliance RYT-200",
+    "hero_cta_schedule": "Get Schedule & Apply",
+    "hero_cta_more": "Why Copenhagen?",
 
     "video_eyebrow": "Experience it yourself",
     "video_title": "Hear from someone who did it",

@@ -2,29 +2,30 @@
 {% set lp = "/en" if lang == "en" else "" %}
 
 <!-- ═══════════════════════════════════════
-     1. HERO — Copenhagen Dream + Certification
+     1. HERO — Primary Dark Cinematic
      ═══════════════════════════════════════ -->
-<section class="p18-hero">
-  <div class="p18-hero__bg">
-    <!-- Video slot: add <video> here when ready -->
-  </div>
-  <div class="p18-hero__overlay"></div>
-
-  <div class="container p18-hero__inner">
-    <span class="p18-hero__eyebrow">{{ t.hero_eyebrow }}</span>
-    <h1 class="p18-hero__title">{{ t.hero_title | safe }}</h1>
-    <p class="p18-hero__subtitle">{{ t.hero_subtitle }}</p>
-
-    <p class="p18-hero__meta-line">{{ t.hero_meta }}</p>
-
-    <p class="p18-hero__cert-badge">{{ t.hero_cert }}</p>
-
-    <p class="p18-hero__styles">{{ t.hero_styles }}</p>
-
-    <div class="p18-hero__cta">
-      <button onclick="openYBScheduleModal('4w')" class="btn btn--primary btn--large">{{ t.hero_cta_schedule }}</button>
-      <a href="#why-copenhagen" class="btn btn--secondary btn--large">{{ t.hero_cta_why }}</a>
+<section class="yb-hero">
+  <div class="yb-hero__glow"></div>
+  <div class="yb-hero__content">
+    <p class="yb-hero__tagline">{{ t.hero_tagline }}</p>
+    <h1 class="yb-hero__title">{{ t.hero_title | safe }}</h1>
+    <p class="yb-hero__subtitle">{{ t.hero_subtitle }}</p>
+    <div class="yb-hero__line"></div>
+    <div class="yb-hero__ctas">
+      <button onclick="openYBScheduleModal('4w')" class="yb-btn yb-btn--primary yb-btn--large">{{ t.hero_cta_schedule }}</button>
+      <a href="#why-copenhagen" class="yb-btn yb-btn--outline-white yb-btn--large">{{ t.hero_cta_more }}</a>
     </div>
+    <div class="yb-hero__trust">
+      <span>{{ t.hero_trust1 }}</span>
+      <span class="yb-hero__trust-dot"></span>
+      <span>{{ t.hero_trust2 }}</span>
+      <span class="yb-hero__trust-dot"></span>
+      <span>{{ t.hero_trust3 }}</span>
+    </div>
+  </div>
+  <div class="yb-hero__scroll">
+    <span>Scroll</span>
+    <div class="yb-hero__scroll-line"></div>
   </div>
 </section>
 
