@@ -244,12 +244,12 @@ exports.handler = async function(event) {
 
           var ccId = Number(body.clientContractId);
 
-          // CONFIRMED WORKING (2026-02-09):
-          // POST /client/suspendcontract with SuspensionType:"Vacation", DurationUnit:"Day"
+          // CONFIRMED BY MINDBODY SUPPORT (2026-02-13):
+          // SuspensionStart = start date, Resume = SuspensionStart + Duration(DurationUnit)
           var suspendBody = {
             ClientId: body.clientId,
             ClientContractId: ccId,
-            SuspendDate: body.startDate,
+            SuspensionStart: body.startDate,
             Duration: durationDays,
             DurationUnit: 'Day',
             SuspensionType: 'Vacation'
