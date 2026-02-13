@@ -5,7 +5,8 @@
  * CONFIRMED BY MINDBODY SUPPORT (2026-02-13):
  *   Endpoint: POST /client/suspendcontract
  *   Required fields: ClientId, ClientContractId, SuspensionStart, Duration, DurationUnit, SuspensionType
- *   Working values: SuspensionType:"Vacation", DurationUnit:"Day"
+ *   Working values: SuspensionType:"None" (flexible duration), DurationUnit:"Day"
+ *   Note: "Vacation" type forces 1-month minimum. "None" allows custom durations (e.g. 14 days).
  *   SuspensionStart = start date (defaults to today if omitted)
  *   Resume date = SuspensionStart + Duration(DurationUnit)
  *   Future-dated starts ARE supported via SuspensionStart.
@@ -191,7 +192,7 @@ exports.handler = async function(event) {
         SuspensionStart: body.startDate,
         Duration: durationDays,
         DurationUnit: 'Day',
-        SuspensionType: 'Vacation'
+        SuspensionType: 'None'
       };
 
       console.log('[mb-contract-manage] Suspending contract:', JSON.stringify(suspendBody),
@@ -223,11 +224,27 @@ exports.handler = async function(event) {
 
       console.log('[mb-contract-manage] Suspend SUCCESS:', JSON.stringify(suspResult).substring(0, 500));
 
+      // Extract actual dates from MB response (MB may override our duration)
+      var mbStart = body.startDate;
+      var mbEnd = body.endDate;
+      if (suspResult) {
+        // Try to find MB's actual dates in the response
+        var sr = suspResult.Contract || suspResult;
+        if (sr.SuspensionStart) mbStart = sr.SuspensionStart.split('T')[0];
+        if (sr.ResumeDate || sr.ResumptionDate) {
+          mbEnd = (sr.ResumeDate || sr.ResumptionDate).split('T')[0];
+        }
+      }
+
+      // Save a pause note so we can detect future-dated pauses on refresh
+      // (MB's IsSuspended is false until the pause date arrives)
+      await savePauseNote(body.clientId, ccId, mbStart, mbEnd);
+
       return jsonResponse(200, {
         success: true,
         action: 'suspend',
-        suspendDate: body.startDate,
-        resumeDate: body.endDate,
+        suspendDate: mbStart,
+        resumeDate: mbEnd,
         durationDays: durationDays,
         mbResponse: suspResult,
         message: 'Contract suspension scheduled'
