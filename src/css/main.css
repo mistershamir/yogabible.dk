@@ -6902,6 +6902,20 @@ section {
   display: none;
 }
 
+.yb-profile__role-badge {
+  display: inline-block;
+  padding: 3px 10px;
+  border: 1.5px solid #f75c03;
+  border-radius: 12px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: #f75c03;
+  margin-left: 8px;
+  vertical-align: middle;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
 /* ── Profile Container ── */
 .yb-profile__wrap {
   max-width: 960px;
@@ -9938,6 +9952,14 @@ section {
 }
 .yb-admin__field input:focus,
 .yb-admin__field textarea:focus { box-shadow: 0 0 0 3px rgba(247,92,3,0.12); }
+.yb-admin__field select,
+.yb-admin__select {
+  padding: 0.6rem 0.75rem; border: 1px solid #f75c03; border-radius: 12px;
+  font-family: inherit; font-size: 0.9rem; outline: none; background: #FFFCF9;
+  transition: box-shadow 0.15s; cursor: pointer;
+}
+.yb-admin__field select:focus,
+.yb-admin__select:focus { box-shadow: 0 0 0 3px rgba(247,92,3,0.12); }
 .yb-admin__form-actions { display: flex; gap: 0.75rem; margin-top: 0.5rem; }
 
 /* Empty state */

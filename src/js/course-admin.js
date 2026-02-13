@@ -899,7 +899,14 @@
               html += '<p class="yb-admin__empty">' + t('no_enrollments') + '</p>';
             }
 
+            // Append role editor
+            html += renderRoleEditor(uid, u);
+
             resultEl.innerHTML = html;
+
+            // Bind role form submit
+            var roleForm = $('yb-admin-role-form');
+            if (roleForm) roleForm.addEventListener('submit', saveUserRole);
           });
       })
       .catch(function (err) {
@@ -1181,6 +1188,132 @@
   }
 
   /* ═══════════════════════════════════════
+     USER ROLE MANAGEMENT
+     ═══════════════════════════════════════ */
+
+  /**
+   * Renders the role management form for a user found via lookup.
+   * Appended to the user lookup result area.
+   */
+  function renderRoleEditor(uid, userData) {
+    var R = window.YBRoles;
+    if (!R) return '';
+
+    var currentRole = userData.role || 'member';
+    // Map legacy 'user' role to 'member'
+    if (currentRole === 'user') currentRole = 'member';
+    var currentDetails = userData.roleDetails || {};
+
+    var html = '<div class="yb-admin__section-divider" style="margin:1.5rem 0"></div>';
+    html += '<h3 style="font-size:0.95rem;font-weight:700;margin-bottom:0.75rem">' + t('role_title') + '</h3>';
+    html += '<form id="yb-admin-role-form" data-uid="' + uid + '">';
+    html += '<div class="yb-admin__form-row">';
+
+    // Role select
+    html += '<div class="yb-admin__field" style="flex:1">';
+    html += '<label for="yb-admin-role-select">' + t('role_label') + '</label>';
+    html += '<select id="yb-admin-role-select" class="yb-admin__select">';
+    var roles = ['member', 'trainee', 'student', 'teacher', 'marketing', 'admin'];
+    roles.forEach(function(r) {
+      var label = R.getRoleLabel(r, lang);
+      html += '<option value="' + r + '"' + (r === currentRole ? ' selected' : '') + '>' + label + '</option>';
+    });
+    html += '</select>';
+    html += '</div>';
+
+    // Trainee program select (shown conditionally)
+    html += '<div class="yb-admin__field" id="yb-admin-role-trainee-fields" style="flex:1;display:' + (currentRole === 'trainee' ? '' : 'none') + '">';
+    html += '<label for="yb-admin-role-program">' + t('role_program') + '</label>';
+    html += '<select id="yb-admin-role-program" class="yb-admin__select">';
+    html += '<option value="">—</option>';
+    Object.keys(R.TRAINEE_PROGRAMS).forEach(function(k) {
+      var prog = R.TRAINEE_PROGRAMS[k];
+      html += '<option value="' + k + '"' + (currentDetails.program === k ? ' selected' : '') + '>' + (prog['label_' + lang] || prog.label_da) + '</option>';
+    });
+    html += '</select>';
+    html += '</div>';
+
+    // Teacher type select (shown conditionally)
+    html += '<div class="yb-admin__field" id="yb-admin-role-teacher-fields" style="flex:1;display:' + (currentRole === 'teacher' ? '' : 'none') + '">';
+    html += '<label for="yb-admin-role-teacher-type">' + t('role_teacher_type') + '</label>';
+    html += '<select id="yb-admin-role-teacher-type" class="yb-admin__select">';
+    html += '<option value="">—</option>';
+    Object.keys(R.TEACHER_TYPES).forEach(function(k) {
+      var tt = R.TEACHER_TYPES[k];
+      html += '<option value="' + k + '"' + (currentDetails.teacherType === k ? ' selected' : '') + '>' + (tt['label_' + lang] || tt.label_da) + '</option>';
+    });
+    html += '</select>';
+    html += '</div>';
+
+    html += '</div>'; // end form-row
+
+    // Trainee cohort (shown conditionally)
+    html += '<div id="yb-admin-role-cohort-wrap" style="display:' + (currentRole === 'trainee' ? '' : 'none') + '">';
+    html += '<div class="yb-admin__field" style="max-width:220px">';
+    html += '<label for="yb-admin-role-cohort">' + t('role_cohort') + '</label>';
+    html += '<input type="text" id="yb-admin-role-cohort" placeholder="2026-spring" value="' + esc(currentDetails.cohort || '') + '">';
+    html += '</div>';
+    html += '</div>';
+
+    html += '<div class="yb-admin__form-actions" style="margin-top:1rem">';
+    html += '<button type="submit" class="yb-btn yb-btn--primary">' + t('role_save') + '</button>';
+    html += '</div>';
+    html += '</form>';
+
+    return html;
+  }
+
+  function saveUserRole(e) {
+    e.preventDefault();
+    var form = $('yb-admin-role-form');
+    if (!form) return;
+    var uid = form.getAttribute('data-uid');
+    if (!uid) return;
+
+    var roleSelect = $('yb-admin-role-select');
+    var programSelect = $('yb-admin-role-program');
+    var teacherTypeSelect = $('yb-admin-role-teacher-type');
+    var cohortInput = $('yb-admin-role-cohort');
+
+    var newRole = roleSelect ? roleSelect.value : 'member';
+    var roleDetails = {};
+
+    if (newRole === 'trainee') {
+      if (programSelect && programSelect.value) roleDetails.program = programSelect.value;
+      if (cohortInput && cohortInput.value.trim()) roleDetails.cohort = cohortInput.value.trim();
+    }
+    if (newRole === 'teacher') {
+      if (teacherTypeSelect && teacherTypeSelect.value) roleDetails.teacherType = teacherTypeSelect.value;
+    }
+
+    toast(t('saving'));
+    db.collection('users').doc(uid).update({
+      role: newRole,
+      roleDetails: roleDetails,
+      updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+    }).then(function() {
+      toast(t('role_saved'));
+    }).catch(function(err) {
+      console.error('Role save error:', err);
+      toast(err.message || t('error_save'), true);
+    });
+  }
+
+  function bindRoleFormEvents() {
+    // Toggle conditional fields when role changes
+    document.addEventListener('change', function(e) {
+      if (e.target.id !== 'yb-admin-role-select') return;
+      var role = e.target.value;
+      var traineeFields = $('yb-admin-role-trainee-fields');
+      var teacherFields = $('yb-admin-role-teacher-fields');
+      var cohortWrap = $('yb-admin-role-cohort-wrap');
+      if (traineeFields) traineeFields.style.display = role === 'trainee' ? '' : 'none';
+      if (teacherFields) teacherFields.style.display = role === 'teacher' ? '' : 'none';
+      if (cohortWrap) cohortWrap.style.display = role === 'trainee' ? '' : 'none';
+    });
+  }
+
+  /* ═══════════════════════════════════════
      EVENT BINDING
      ═══════════════════════════════════════ */
   function bindEvents() {
@@ -1280,6 +1413,7 @@
     db = firebase.firestore();
 
     bindEvents();
+    bindRoleFormEvents();
     initTabs();
 
     var gateEl = $('yb-admin-gate');

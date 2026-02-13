@@ -6,7 +6,7 @@ module.exports = function(eleventyConfig) {
   eleventyConfig.addPassthroughCopy("src/css");
   eleventyConfig.addPassthroughCopy("src/js");
   eleventyConfig.addPassthroughCopy("src/assets");
-  eleventyConfig.addPassthroughCopy("src/admin");
+  eleventyConfig.addPassthroughCopy("src/decap-cms");
 
   // Pass through root files (favicons, etc.)
   eleventyConfig.addPassthroughCopy({ "src/favicon.ico": "favicon.ico" });
