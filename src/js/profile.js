@@ -132,7 +132,7 @@
         loadProfile(user, db);
         ensureBackendClient(user, db);
 
-        // Deep-link to courses tab via hash
+        // Deep-link to tab via hash
         var hash = window.location.hash;
         if (hash === '#mine-kurser' || hash === '#my-courses' || hash.indexOf('#course=') === 0) {
           var coursesTab = document.querySelector('[data-yb-tab="courses"]');
@@ -144,6 +144,11 @@
               openCourseViewer(deepCourseId, null, null);
             }, 500);
           }
+        } else if (hash && hash.length > 1) {
+          // Generic hash-to-tab routing (e.g. #schedule, #store, #passes)
+          var tabName = hash.slice(1);
+          var genericTab = document.querySelector('[data-yb-tab="' + tabName + '"]');
+          if (genericTab) genericTab.click();
         }
       } else {
         currentUser = null;

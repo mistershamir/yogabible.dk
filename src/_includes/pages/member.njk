@@ -166,7 +166,7 @@
           <p class="yb-ma-header__sub">{{ t.user_greeting }}, <span id="yb-member-name" style="color:var(--yb-brand, #f75c03)"></span></p>
           <div id="yb-member-role-badge" class="yb-ma-role-badge" style="display:none"></div>
         </div>
-        <a href="{{ lp }}/profile" class="yb-ma-header__profile-link">
+        <a href="#profile" class="yb-ma-header__profile-link" data-yb-panel="profile">
           <span class="yb-ma-header__avatar" id="yb-member-avatar">YB</span>
         </a>
       </div>
@@ -174,12 +174,12 @@
   </section>
 
   {# ── Hub grid ── #}
-  <section class="yb-ma-hub">
+  <section class="yb-ma-hub" id="yb-ma-hub">
     <div class="container">
       <div class="yb-ma-hub__grid">
 
         {# ── PRIMARY: My Courses (large card, spans 2 cols) ── #}
-        <a href="{{ lp }}/profile#courses" class="yb-ma-hub__card yb-ma-hub__card--primary">
+        <a href="#courses" class="yb-ma-hub__card yb-ma-hub__card--primary" data-yb-panel="courses">
           <div class="yb-ma-hub__card-top">
             <span class="yb-ma-hub__badge">{{ t.hub_courses_badge }}</span>
           </div>
@@ -191,21 +191,8 @@
           <span class="yb-ma-hub__card-arrow">&rarr;</span>
         </a>
 
-        {# ── PRIMARY: Live & Recordings (large card, spans 2 cols) ── #}
-        <a href="{{ lp }}/member#live" class="yb-ma-hub__card yb-ma-hub__card--primary yb-ma-hub__card--dark">
-          <div class="yb-ma-hub__card-top">
-            <span class="yb-ma-hub__badge yb-ma-hub__badge--dark">{{ t.hub_live_badge }}</span>
-          </div>
-          <div class="yb-ma-hub__card-icon">
-            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>
-          </div>
-          <h2 class="yb-ma-hub__card-title">{{ t.hub_live_title }}</h2>
-          <p class="yb-ma-hub__card-desc">{{ t.hub_live_desc }}</p>
-          <span class="yb-ma-hub__card-arrow">&rarr;</span>
-        </a>
-
         {# ── SECONDARY: Class Schedule ── #}
-        <a href="{{ lp }}/profile#schedule" class="yb-ma-hub__card">
+        <a href="#schedule" class="yb-ma-hub__card" data-yb-panel="schedule">
           <div class="yb-ma-hub__card-top">
             <span class="yb-ma-hub__badge">{{ t.hub_schedule_badge }}</span>
           </div>
@@ -218,7 +205,7 @@
         </a>
 
         {# ── SECONDARY: Yoga Glossary ── #}
-        <a href="{{ lp }}/yoga-glossary" class="yb-ma-hub__card">
+        <a href="#glossary" class="yb-ma-hub__card" data-yb-panel="glossary">
           <div class="yb-ma-hub__card-top">
             <span class="yb-ma-hub__badge">{{ t.hub_glossary_badge }}</span>
           </div>
@@ -231,7 +218,7 @@
         </a>
 
         {# ── SECONDARY: Yoga Journal ── #}
-        <a href="{{ lp }}/yoga-journal" class="yb-ma-hub__card">
+        <a href="#journal" class="yb-ma-hub__card" data-yb-panel="journal">
           <div class="yb-ma-hub__card-top">
             <span class="yb-ma-hub__badge">{{ t.hub_journal_badge }}</span>
           </div>
@@ -243,7 +230,33 @@
           <span class="yb-ma-hub__card-arrow">&rarr;</span>
         </a>
 
-        {# ── SECONDARY: Events ── #}
+        {# ── SECONDARY: My Profile ── #}
+        <a href="#profile" class="yb-ma-hub__card" data-yb-panel="profile">
+          <div class="yb-ma-hub__card-top">
+            <span class="yb-ma-hub__badge yb-ma-hub__badge--muted">{{ t.hub_profile_badge }}</span>
+          </div>
+          <div class="yb-ma-hub__card-icon">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+          </div>
+          <h3 class="yb-ma-hub__card-title">{{ t.hub_profile_title }}</h3>
+          <p class="yb-ma-hub__card-desc">{{ t.hub_profile_desc }}</p>
+          <span class="yb-ma-hub__card-arrow">&rarr;</span>
+        </a>
+
+        {# ── COMING SOON: Live & Recordings ── #}
+        <div class="yb-ma-hub__card yb-ma-hub__card--soon">
+          <div class="yb-ma-hub__card-top">
+            <span class="yb-ma-hub__badge yb-ma-hub__badge--muted">{{ t.hub_live_badge }}</span>
+            <span class="yb-ma-hub__soon-tag">{{ t.hub_coming_soon }}</span>
+          </div>
+          <div class="yb-ma-hub__card-icon">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>
+          </div>
+          <h3 class="yb-ma-hub__card-title">{{ t.hub_live_title }}</h3>
+          <p class="yb-ma-hub__card-desc">{{ t.hub_live_desc }}</p>
+        </div>
+
+        {# ── COMING SOON: Events ── #}
         <div class="yb-ma-hub__card yb-ma-hub__card--soon">
           <div class="yb-ma-hub__card-top">
             <span class="yb-ma-hub__badge yb-ma-hub__badge--muted">{{ t.hub_events_badge }}</span>
@@ -256,7 +269,7 @@
           <p class="yb-ma-hub__card-desc">{{ t.hub_events_desc }}</p>
         </div>
 
-        {# ── SECONDARY: Forum ── #}
+        {# ── COMING SOON: Forum ── #}
         <div class="yb-ma-hub__card yb-ma-hub__card--soon">
           <div class="yb-ma-hub__card-top">
             <span class="yb-ma-hub__badge yb-ma-hub__badge--muted">{{ t.hub_forum_badge }}</span>
@@ -268,19 +281,6 @@
           <h3 class="yb-ma-hub__card-title">{{ t.hub_forum_title }}</h3>
           <p class="yb-ma-hub__card-desc">{{ t.hub_forum_desc }}</p>
         </div>
-
-        {# ── SECONDARY: My Profile ── #}
-        <a href="{{ lp }}/profile" class="yb-ma-hub__card">
-          <div class="yb-ma-hub__card-top">
-            <span class="yb-ma-hub__badge yb-ma-hub__badge--muted">{{ t.hub_profile_badge }}</span>
-          </div>
-          <div class="yb-ma-hub__card-icon">
-            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-          </div>
-          <h3 class="yb-ma-hub__card-title">{{ t.hub_profile_title }}</h3>
-          <p class="yb-ma-hub__card-desc">{{ t.hub_profile_desc }}</p>
-          <span class="yb-ma-hub__card-arrow">&rarr;</span>
-        </a>
 
       </div>
     </div>
@@ -295,7 +295,7 @@
         <p style="color:#6F6A66;max-width:560px;margin:0.5rem auto 0">{{ t.user_materials_subtitle }}</p>
       </div>
       <div class="yb-ma-grid yb-ma-grid--3">
-        <a href="{{ lp }}/profile#courses" data-yb-requires="gated-content" class="yb-ma-card yb-ma-card--link" style="display:none">
+        <a href="#courses" data-yb-requires="gated-content" data-yb-panel="courses" class="yb-ma-card yb-ma-card--link" style="display:none">
           <div class="yb-ma-card__icon">
             <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#f75c03" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
           </div>
@@ -353,6 +353,85 @@
       </div>
     </div>
   </section>
+
+  {# ══════════════════════════════════════════════════════════════
+     PANELS — open inside the member area
+     ══════════════════════════════════════════════════════════════ #}
+
+  {# ── Panel: Yoga Glossary (full embedded content) ── #}
+  <div id="yb-ma-panel-glossary" class="yb-ma-panel" hidden>
+    <div class="container">
+      <div class="yb-ma-panel__header">
+        <button class="yb-ma-panel__back" type="button" data-yb-back>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+          {{ t.panel_back }}
+        </button>
+      </div>
+    </div>
+    <div class="yb-ma-panel__body">
+      {% include "pages/yoga-glossary.njk" %}
+    </div>
+  </div>
+
+  {# ── Panel: Yoga Journal (full embedded content) ── #}
+  <div id="yb-ma-panel-journal" class="yb-ma-panel" hidden>
+    <div class="container">
+      <div class="yb-ma-panel__header">
+        <button class="yb-ma-panel__back" type="button" data-yb-back>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+          {{ t.panel_back }}
+        </button>
+      </div>
+    </div>
+    <div class="yb-ma-panel__body">
+      {% include "pages/yoga-journal-content.njk" %}
+    </div>
+  </div>
+
+  {# ── Panel: My Courses (iframe) ── #}
+  <div id="yb-ma-panel-courses" class="yb-ma-panel" hidden>
+    <div class="container">
+      <div class="yb-ma-panel__header">
+        <button class="yb-ma-panel__back" type="button" data-yb-back>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+          {{ t.panel_back }}
+        </button>
+      </div>
+    </div>
+    <div class="yb-ma-panel__body">
+      <iframe class="yb-ma-panel__iframe" data-src="{{ lp }}/profile?minimal=1#mine-kurser" title="{{ t.hub_courses_title }}"></iframe>
+    </div>
+  </div>
+
+  {# ── Panel: Class Schedule (iframe) ── #}
+  <div id="yb-ma-panel-schedule" class="yb-ma-panel" hidden>
+    <div class="container">
+      <div class="yb-ma-panel__header">
+        <button class="yb-ma-panel__back" type="button" data-yb-back>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+          {{ t.panel_back }}
+        </button>
+      </div>
+    </div>
+    <div class="yb-ma-panel__body">
+      <iframe class="yb-ma-panel__iframe" data-src="{{ lp }}/profile?minimal=1#schedule" title="{{ t.hub_schedule_title }}"></iframe>
+    </div>
+  </div>
+
+  {# ── Panel: My Profile (iframe — full profile view) ── #}
+  <div id="yb-ma-panel-profile" class="yb-ma-panel" hidden>
+    <div class="container">
+      <div class="yb-ma-panel__header">
+        <button class="yb-ma-panel__back" type="button" data-yb-back>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+          {{ t.panel_back }}
+        </button>
+      </div>
+    </div>
+    <div class="yb-ma-panel__body">
+      <iframe class="yb-ma-panel__iframe yb-ma-panel__iframe--full" data-src="{{ lp }}/profile" title="{{ t.hub_profile_title }}"></iframe>
+    </div>
+  </div>
 
 </div>
 
@@ -657,6 +736,61 @@
     color: #6F6A66;
     letter-spacing: 0.05em;
     text-transform: uppercase;
+  }
+
+  /* ══════════════════════════════════════
+     PANEL SYSTEM
+     ══════════════════════════════════════ */
+  .yb-ma-panel[hidden] { display: none; }
+
+  .yb-ma-panel__header {
+    display: flex;
+    align-items: center;
+    padding: 1.25rem 0;
+    border-bottom: 1px solid var(--yb-border, #E8E4E0);
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    background: var(--yb-warm-white, #FFFCF9);
+  }
+
+  .yb-ma-panel__back {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-family: inherit;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--yb-muted, #6F6A66);
+    padding: 0.5rem 0;
+    transition: color 0.2s ease;
+  }
+  .yb-ma-panel__back:hover {
+    color: var(--yb-brand, #f75c03);
+  }
+  .yb-ma-panel__back svg {
+    transition: transform 0.2s ease;
+  }
+  .yb-ma-panel__back:hover svg {
+    transform: translateX(-3px);
+  }
+
+  /* Hide heroes and CTAs in embedded panels */
+  .yb-ma-panel__body > .yb-hero,
+  .yb-ma-panel__body > .cta-section { display: none !important; }
+
+  /* Iframe panels */
+  .yb-ma-panel__iframe {
+    display: block;
+    width: 100%;
+    border: none;
+    min-height: 80vh;
+  }
+  .yb-ma-panel__iframe--full {
+    min-height: 100vh;
   }
 </style>
 

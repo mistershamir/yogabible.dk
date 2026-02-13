@@ -111,7 +111,11 @@
     "role_badge_student": "Kursusdeltager",
     "role_badge_teacher": "Yogalærer",
     "role_badge_marketing": "Marketing",
-    "role_badge_admin": "Administrator"
+    "role_badge_admin": "Administrator",
+
+    "panel_back": "Tilbage",
+    "coming_soon_title": "Kommer snart",
+    "coming_soon_text": "Denne funktion er under udvikling og vil snart være tilgængelig i Member Area."
   },
   "en": {
     "meta_title": "Member Area | YOGA BIBLE",
@@ -225,6 +229,10 @@
     "role_badge_student": "Course Student",
     "role_badge_teacher": "Teacher",
     "role_badge_marketing": "Marketing",
-    "role_badge_admin": "Administrator"
+    "role_badge_admin": "Administrator",
+
+    "panel_back": "Back",
+    "coming_soon_title": "Coming soon",
+    "coming_soon_text": "This feature is under development and will soon be available in Member Area."
   }
 }
