@@ -23,8 +23,14 @@
     chapters: [],
     chapterId: null,
     enrollments: [],
-    bulkChapters: []
+    bulkChapters: [],
+    users: [],
+    userDetailUid: null,
+    userDetail: null
   };
+
+  var blogIframeLoaded = false;
+  var usersLoaded = false;
 
   /* ═══════════════════════════════════════
      HELPERS
@@ -62,6 +68,18 @@
         document.querySelectorAll('[data-yb-admin-panel]').forEach(function (p) { p.classList.remove('is-active'); });
         var panel = document.querySelector('[data-yb-admin-panel="' + tabName + '"]');
         if (panel) panel.classList.add('is-active');
+
+        // Lazy-load blog iframe
+        if (tabName === 'blog' && !blogIframeLoaded) {
+          var iframe = $('yb-admin-blog-iframe');
+          if (iframe) { iframe.src = '/decap-cms/'; blogIframeLoaded = true; }
+        }
+
+        // Load users on first visit
+        if (tabName === 'users' && !usersLoaded) {
+          loadAllUsers();
+          usersLoaded = true;
+        }
 
         // Load analytics when analytics tab is clicked
         if (tabName === 'analytics') {
@@ -899,7 +917,14 @@
               html += '<p class="yb-admin__empty">' + t('no_enrollments') + '</p>';
             }
 
+            // Append role editor
+            html += renderRoleEditor(uid, u);
+
             resultEl.innerHTML = html;
+
+            // Bind role form submit
+            var roleForm = $('yb-admin-role-form');
+            if (roleForm) roleForm.addEventListener('submit', saveUserRole);
           });
       })
       .catch(function (err) {
@@ -1181,6 +1206,570 @@
   }
 
   /* ═══════════════════════════════════════
+     USER ROLE MANAGEMENT
+     ═══════════════════════════════════════ */
+
+  /**
+   * Renders the role management form for a user found via lookup.
+   * Appended to the user lookup result area.
+   */
+  function renderRoleEditor(uid, userData) {
+    var R = window.YBRoles;
+    if (!R) return '';
+
+    var currentRole = userData.role || 'member';
+    // Map legacy 'user' role to 'member'
+    if (currentRole === 'user') currentRole = 'member';
+    var currentDetails = userData.roleDetails || {};
+
+    var html = '<div class="yb-admin__section-divider" style="margin:1.5rem 0"></div>';
+    html += '<h3 style="font-size:0.95rem;font-weight:700;margin-bottom:0.75rem">' + t('role_title') + '</h3>';
+    html += '<form id="yb-admin-role-form" data-uid="' + uid + '">';
+    html += '<div class="yb-admin__form-row">';
+
+    // Role select
+    html += '<div class="yb-admin__field" style="flex:1">';
+    html += '<label for="yb-admin-role-select">' + t('role_label') + '</label>';
+    html += '<select id="yb-admin-role-select" class="yb-admin__select">';
+    var roles = ['member', 'trainee', 'student', 'teacher', 'marketing', 'admin'];
+    roles.forEach(function(r) {
+      var label = R.getRoleLabel(r, lang);
+      html += '<option value="' + r + '"' + (r === currentRole ? ' selected' : '') + '>' + label + '</option>';
+    });
+    html += '</select>';
+    html += '</div>';
+
+    // Trainee program select (shown conditionally)
+    html += '<div class="yb-admin__field" id="yb-admin-role-trainee-fields" style="flex:1;display:' + (currentRole === 'trainee' ? '' : 'none') + '">';
+    html += '<label for="yb-admin-role-program">' + t('role_program') + '</label>';
+    html += '<select id="yb-admin-role-program" class="yb-admin__select">';
+    html += '<option value="">—</option>';
+    Object.keys(R.TRAINEE_PROGRAMS).forEach(function(k) {
+      var prog = R.TRAINEE_PROGRAMS[k];
+      html += '<option value="' + k + '"' + (currentDetails.program === k ? ' selected' : '') + '>' + (prog['label_' + lang] || prog.label_da) + '</option>';
+    });
+    html += '</select>';
+    html += '</div>';
+
+    // Teacher type select (shown conditionally)
+    html += '<div class="yb-admin__field" id="yb-admin-role-teacher-fields" style="flex:1;display:' + (currentRole === 'teacher' ? '' : 'none') + '">';
+    html += '<label for="yb-admin-role-teacher-type">' + t('role_teacher_type') + '</label>';
+    html += '<select id="yb-admin-role-teacher-type" class="yb-admin__select">';
+    html += '<option value="">—</option>';
+    Object.keys(R.TEACHER_TYPES).forEach(function(k) {
+      var tt = R.TEACHER_TYPES[k];
+      html += '<option value="' + k + '"' + (currentDetails.teacherType === k ? ' selected' : '') + '>' + (tt['label_' + lang] || tt.label_da) + '</option>';
+    });
+    html += '</select>';
+    html += '</div>';
+
+    html += '</div>'; // end form-row
+
+    // Trainee cohort (shown conditionally)
+    html += '<div id="yb-admin-role-cohort-wrap" style="display:' + (currentRole === 'trainee' ? '' : 'none') + '">';
+    html += '<div class="yb-admin__field" style="max-width:220px">';
+    html += '<label for="yb-admin-role-cohort">' + t('role_cohort') + '</label>';
+    html += '<input type="text" id="yb-admin-role-cohort" placeholder="2026-spring" value="' + esc(currentDetails.cohort || '') + '">';
+    html += '</div>';
+    html += '</div>';
+
+    html += '<div class="yb-admin__form-actions" style="margin-top:1rem">';
+    html += '<button type="submit" class="yb-btn yb-btn--primary">' + t('role_save') + '</button>';
+    html += '</div>';
+    html += '</form>';
+
+    return html;
+  }
+
+  function saveUserRole(e) {
+    e.preventDefault();
+    var form = $('yb-admin-role-form');
+    if (!form) return;
+    var uid = form.getAttribute('data-uid');
+    if (!uid) return;
+
+    var roleSelect = $('yb-admin-role-select');
+    var programSelect = $('yb-admin-role-program');
+    var teacherTypeSelect = $('yb-admin-role-teacher-type');
+    var cohortInput = $('yb-admin-role-cohort');
+
+    var newRole = roleSelect ? roleSelect.value : 'member';
+    var roleDetails = {};
+
+    if (newRole === 'trainee') {
+      if (programSelect && programSelect.value) roleDetails.program = programSelect.value;
+      if (cohortInput && cohortInput.value.trim()) roleDetails.cohort = cohortInput.value.trim();
+    }
+    if (newRole === 'teacher') {
+      if (teacherTypeSelect && teacherTypeSelect.value) roleDetails.teacherType = teacherTypeSelect.value;
+    }
+
+    toast(t('saving'));
+    db.collection('users').doc(uid).update({
+      role: newRole,
+      roleDetails: roleDetails,
+      updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+    }).then(function() {
+      toast(t('role_saved'));
+    }).catch(function(err) {
+      console.error('Role save error:', err);
+      toast(err.message || t('error_save'), true);
+    });
+  }
+
+  function bindRoleFormEvents() {
+    // Toggle conditional fields when role changes
+    document.addEventListener('change', function(e) {
+      if (e.target.id !== 'yb-admin-role-select') return;
+      var role = e.target.value;
+      var traineeFields = $('yb-admin-role-trainee-fields');
+      var teacherFields = $('yb-admin-role-teacher-fields');
+      var cohortWrap = $('yb-admin-role-cohort-wrap');
+      if (traineeFields) traineeFields.style.display = role === 'trainee' ? '' : 'none';
+      if (teacherFields) teacherFields.style.display = role === 'teacher' ? '' : 'none';
+      if (cohortWrap) cohortWrap.style.display = role === 'trainee' ? '' : 'none';
+    });
+  }
+
+  /* ═══════════════════════════════════════
+     USER MANAGEMENT (Users tab)
+     ═══════════════════════════════════════ */
+  function loadAllUsers() {
+    var wrap = $('yb-admin-user-table-wrap');
+    if (wrap) wrap.innerHTML = '<p class="yb-admin__empty">' + t('loading') + '</p>';
+
+    db.collection('users').orderBy('createdAt', 'desc').limit(100).get()
+      .then(function (snap) {
+        state.users = [];
+        snap.forEach(function (doc) { state.users.push(Object.assign({ id: doc.id }, doc.data())); });
+        renderUserStats(state.users);
+        renderUserList(state.users);
+      })
+      .catch(function () {
+        // Fallback: createdAt index may not exist
+        db.collection('users').limit(100).get()
+          .then(function (snap) {
+            state.users = [];
+            snap.forEach(function (doc) { state.users.push(Object.assign({ id: doc.id }, doc.data())); });
+            renderUserStats(state.users);
+            renderUserList(state.users);
+          })
+          .catch(function (err) {
+            console.error(err);
+            if (wrap) wrap.innerHTML = '<p class="yb-admin__empty" style="color:#dc2626">' + t('error_load') + '</p>';
+          });
+      });
+  }
+
+  function searchUsers(e) {
+    e.preventDefault();
+    var query = $('yb-admin-user-search-input').value.trim();
+    if (!query) return;
+
+    var wrap = $('yb-admin-user-table-wrap');
+    if (wrap) wrap.innerHTML = '<p class="yb-admin__empty">' + t('loading') + '</p>';
+
+    if (query.indexOf('@') > -1) {
+      // Exact email match
+      db.collection('users').where('email', '==', query).limit(10).get()
+        .then(function (snap) {
+          var results = [];
+          snap.forEach(function (doc) { results.push(Object.assign({ id: doc.id }, doc.data())); });
+          if (results.length) {
+            renderUserList(results);
+          } else {
+            if (wrap) wrap.innerHTML = '<p class="yb-admin__empty">' + t('users_no_results') + '</p>';
+          }
+        })
+        .catch(function (err) { console.error(err); toast(t('error_load'), true); });
+    } else {
+      // Client-side filter from cached users
+      var q = query.toLowerCase();
+      var filtered = state.users.filter(function (u) {
+        var name = (u.name || ((u.firstName || '') + ' ' + (u.lastName || '')).trim() || '').toLowerCase();
+        var email = (u.email || '').toLowerCase();
+        return name.indexOf(q) > -1 || email.indexOf(q) > -1;
+      });
+      if (filtered.length) {
+        renderUserList(filtered);
+      } else {
+        // Try Firestore prefix search on email
+        db.collection('users').orderBy('email').startAt(query).endAt(query + '\uf8ff').limit(20).get()
+          .then(function (snap) {
+            var results = [];
+            snap.forEach(function (doc) { results.push(Object.assign({ id: doc.id }, doc.data())); });
+            if (results.length) {
+              renderUserList(results);
+            } else {
+              if (wrap) wrap.innerHTML = '<p class="yb-admin__empty">' + t('users_no_results') + '</p>';
+            }
+          })
+          .catch(function () {
+            if (wrap) wrap.innerHTML = '<p class="yb-admin__empty">' + t('users_no_results') + '</p>';
+          });
+      }
+    }
+  }
+
+  function filterUsersByRole() {
+    var role = $('yb-admin-user-role-filter').value;
+    if (!role) { renderUserList(state.users); return; }
+    var filtered = state.users.filter(function (u) {
+      var r = u.role || 'member';
+      if (r === 'user') r = 'member';
+      return r === role;
+    });
+    renderUserList(filtered);
+  }
+
+  function renderUserStats(users) {
+    var el = $('yb-admin-user-stats');
+    if (!el) return;
+
+    var total = users.length;
+    var trainees = 0, teachers = 0, admins = 0;
+    users.forEach(function (u) {
+      var r = u.role || 'member';
+      if (r === 'trainee') trainees++;
+      else if (r === 'teacher') teachers++;
+      else if (r === 'admin') admins++;
+    });
+
+    el.innerHTML =
+      '<div class="yb-admin__stat-card"><span class="yb-admin__stat-value">' + total + '</span><span class="yb-admin__stat-label">' + t('users_stat_total') + '</span></div>' +
+      '<div class="yb-admin__stat-card"><span class="yb-admin__stat-value">' + trainees + '</span><span class="yb-admin__stat-label">' + t('users_stat_trainees') + '</span></div>' +
+      '<div class="yb-admin__stat-card"><span class="yb-admin__stat-value">' + teachers + '</span><span class="yb-admin__stat-label">' + t('users_stat_teachers') + '</span></div>' +
+      '<div class="yb-admin__stat-card"><span class="yb-admin__stat-value">' + admins + '</span><span class="yb-admin__stat-label">' + t('users_stat_admins') + '</span></div>';
+  }
+
+  function renderUserList(users) {
+    var el = $('yb-admin-user-table-wrap');
+    if (!el) return;
+
+    if (!users.length) {
+      el.innerHTML = '<p class="yb-admin__empty">' + t('users_empty') + '</p>';
+      return;
+    }
+
+    var R = window.YBRoles;
+
+    var html = '<table class="yb-admin__table"><thead><tr>' +
+      '<th>' + t('users_col_name') + '</th>' +
+      '<th>' + t('users_col_email') + '</th>' +
+      '<th>' + t('users_col_role') + '</th>' +
+      '<th>' + t('users_col_joined') + '</th>' +
+      '<th></th>' +
+      '</tr></thead><tbody>';
+
+    users.forEach(function (u) {
+      var name = u.name || ((u.firstName || '') + ' ' + (u.lastName || '')).trim() || '—';
+      var email = u.email || '—';
+      var role = u.role || 'member';
+      if (role === 'user') role = 'member';
+      var roleLabel = R ? R.getRoleLabel(role, lang) : role;
+      var joined = '';
+      if (u.createdAt) {
+        var d = u.createdAt.toDate ? u.createdAt.toDate() : new Date(u.createdAt);
+        joined = d.toLocaleDateString(lang === 'da' ? 'da-DK' : 'en-US', { year: 'numeric', month: 'short', day: 'numeric' });
+      }
+
+      html += '<tr>' +
+        '<td>' + esc(name) + '</td>' +
+        '<td style="font-size:0.8rem;color:#6F6A66">' + esc(email) + '</td>' +
+        '<td><span class="yb-admin__badge">' + esc(roleLabel) + '</span></td>' +
+        '<td style="font-size:0.8rem;color:#6F6A66">' + esc(joined) + '</td>' +
+        '<td><button class="yb-btn yb-btn--outline yb-btn--sm" data-action="view-user" data-id="' + u.id + '">' + t('users_view') + '</button></td>' +
+        '</tr>';
+    });
+
+    html += '</tbody></table>';
+    el.innerHTML = html;
+  }
+
+  function showUserDetail(uid) {
+    state.userDetailUid = uid;
+
+    var listView = $('yb-admin-v-user-list');
+    var detailView = $('yb-admin-v-user-detail');
+    if (listView) listView.hidden = true;
+    if (detailView) detailView.hidden = false;
+
+    var profileCard = $('yb-admin-user-profile-card');
+    var roleEditor = $('yb-admin-user-role-editor');
+    var enrollments = $('yb-admin-user-enrollments');
+    var progress = $('yb-admin-user-progress');
+    var consents = $('yb-admin-user-consents');
+
+    if (profileCard) profileCard.innerHTML = '<p class="yb-admin__empty">' + t('loading') + '</p>';
+
+    db.collection('users').doc(uid).get()
+      .then(function (doc) {
+        if (!doc.exists) {
+          if (profileCard) profileCard.innerHTML = '<p class="yb-admin__empty">' + t('users_empty') + '</p>';
+          return;
+        }
+        var u = doc.data();
+        state.userDetail = u;
+
+        renderUserProfile(uid, u, profileCard);
+        renderUserRoleEditorDetail(uid, u, roleEditor);
+        loadUserEnrollments(uid, enrollments);
+        loadUserProgress(uid, progress);
+        loadUserConsents(uid, consents);
+        populateEnrollCourseDropdown();
+
+        var heading = $('yb-admin-user-detail-heading');
+        var name = u.name || ((u.firstName || '') + ' ' + (u.lastName || '')).trim() || u.email || '';
+        if (heading) heading.textContent = name || t('users_detail_title');
+      })
+      .catch(function (err) {
+        console.error(err);
+        if (profileCard) profileCard.innerHTML = '<p class="yb-admin__empty" style="color:#dc2626">' + (err.message || t('error_load')) + '</p>';
+      });
+  }
+
+  function renderUserProfile(uid, u, el) {
+    if (!el) return;
+
+    var R = window.YBRoles;
+    var name = u.name || ((u.firstName || '') + ' ' + (u.lastName || '')).trim() || '';
+    var email = u.email || '';
+    var role = u.role || 'member';
+    if (role === 'user') role = 'member';
+    var roleLabel = R ? R.getRoleLabel(role, lang) : role;
+
+    var initials = '';
+    if (name) {
+      var parts = name.trim().split(/\s+/);
+      initials = parts.length > 1 ? (parts[0][0] + parts[parts.length - 1][0]).toUpperCase() : name.substring(0, 2).toUpperCase();
+    } else {
+      initials = email.substring(0, 2).toUpperCase();
+    }
+
+    var html = '<div class="yb-admin__card" style="flex-wrap:wrap">' +
+      '<div class="yb-admin__user-avatar">' + esc(initials) + '</div>' +
+      '<div class="yb-admin__card-body">' +
+        '<h3>' + esc(name || email) + '</h3>' +
+        '<p style="font-size:0.85rem;color:#6F6A66;margin:0">' + esc(email) + ' &middot; <small>' + esc(uid) + '</small></p>' +
+        '<span class="yb-admin__badge" style="margin-top:0.35rem">' + esc(roleLabel) + '</span>' +
+      '</div>' +
+      '<div class="yb-admin__user-meta">';
+
+    if (u.phone) html += '<div class="yb-admin__user-meta-item"><span class="yb-admin__user-meta-label">' + t('users_profile_phone') + '</span><span>' + esc(u.phone) + '</span></div>';
+    if (u.dateOfBirth) html += '<div class="yb-admin__user-meta-item"><span class="yb-admin__user-meta-label">' + t('users_profile_dob') + '</span><span>' + esc(u.dateOfBirth) + '</span></div>';
+    if (u.yogaLevel) html += '<div class="yb-admin__user-meta-item"><span class="yb-admin__user-meta-label">' + t('users_profile_level') + '</span><span>' + esc(u.yogaLevel) + '</span></div>';
+    if (u.practiceFrequency) html += '<div class="yb-admin__user-meta-item"><span class="yb-admin__user-meta-label">' + t('users_profile_frequency') + '</span><span>' + esc(u.practiceFrequency) + '</span></div>';
+    if (u.tier) html += '<div class="yb-admin__user-meta-item"><span class="yb-admin__user-meta-label">' + t('users_profile_tier') + '</span><span>' + esc(u.tier) + '</span></div>';
+    if (u.createdAt) {
+      var d = u.createdAt.toDate ? u.createdAt.toDate() : new Date(u.createdAt);
+      var dateStr = d.toLocaleDateString(lang === 'da' ? 'da-DK' : 'en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+      html += '<div class="yb-admin__user-meta-item"><span class="yb-admin__user-meta-label">' + t('users_profile_created') + '</span><span>' + esc(dateStr) + '</span></div>';
+    }
+    html += '<div class="yb-admin__user-meta-item"><span class="yb-admin__user-meta-label">' + t('users_profile_mindbody') + '</span><span>' + (u.mindbodyId ? t('users_profile_linked') : t('users_profile_not_linked')) + '</span></div>';
+
+    html += '</div></div>';
+    el.innerHTML = html;
+  }
+
+  function renderUserRoleEditorDetail(uid, u, el) {
+    if (!el) return;
+    el.innerHTML = renderRoleEditor(uid, u);
+    var roleForm = $('yb-admin-role-form');
+    if (roleForm) {
+      roleForm.addEventListener('submit', function (e) {
+        saveUserRole(e);
+        setTimeout(function () { showUserDetail(uid); }, 1200);
+      });
+    }
+  }
+
+  function loadUserEnrollments(uid, el) {
+    if (!el) return;
+    el.innerHTML = '<p class="yb-admin__empty">' + t('loading') + '</p>';
+
+    db.collection('enrollments').where('userId', '==', uid).get()
+      .then(function (snap) {
+        if (snap.empty) {
+          el.innerHTML = '<p class="yb-admin__empty">' + t('users_no_enrollments') + '</p>';
+          return;
+        }
+        var enrollments = [];
+        snap.forEach(function (doc) { enrollments.push(Object.assign({ id: doc.id }, doc.data())); });
+
+        el.innerHTML = enrollments.map(function (en) {
+          var course = state.courses.find(function (c) { return c.id === en.courseId; });
+          var courseName = course ? (course.title_en || course.title_da) : en.courseId;
+          var courseIcon = course ? (course.icon || '📚') : '📚';
+          var statusClass = en.status === 'active' ? 'yb-admin__badge--ok' : 'yb-admin__badge--muted';
+          var statusLabel = en.status === 'active' ? t('status_active') : t('status_revoked');
+          return '<div class="yb-admin__enroll-row">' +
+            '<span>' + courseIcon + ' ' + esc(courseName) + '</span>' +
+            '<span class="yb-admin__badge ' + statusClass + '">' + statusLabel + '</span>' +
+            (en.status === 'active'
+              ? '<button class="yb-admin__sm-btn yb-admin__sm-btn--danger" data-action="revoke-user-enroll" data-id="' + en.id + '">' + t('revoke_btn') + '</button>'
+              : '<button class="yb-admin__sm-btn" data-action="activate-user-enroll" data-id="' + en.id + '">' + t('enroll_btn') + '</button>') +
+          '</div>';
+        }).join('');
+      })
+      .catch(function (err) {
+        console.error(err);
+        el.innerHTML = '<p class="yb-admin__empty" style="color:#dc2626">' + t('error_load') + '</p>';
+      });
+  }
+
+  function loadUserProgress(uid, el) {
+    if (!el) return;
+    el.innerHTML = '<p class="yb-admin__empty">' + t('loading') + '</p>';
+
+    // Try userId field first, fall back to doc ID pattern
+    db.collection('courseProgress').where('userId', '==', uid).get()
+      .then(function (snap) {
+        if (snap.empty) {
+          el.innerHTML = '<p class="yb-admin__empty">' + t('users_no_progress') + '</p>';
+          return;
+        }
+        var progressDocs = [];
+        snap.forEach(function (doc) { progressDocs.push(Object.assign({ id: doc.id }, doc.data())); });
+
+        el.innerHTML = progressDocs.map(function (p) {
+          var courseId = p.courseId || (p.id.indexOf('_') > -1 ? p.id.split('_').slice(1).join('_') : p.id);
+          var course = state.courses.find(function (c) { return c.id === courseId; });
+          var courseName = course ? (course.title_en || course.title_da) : courseId;
+
+          var viewed = p.viewed || {};
+          var keys = Object.keys(viewed);
+          var total = keys.length;
+          var done = 0;
+          keys.forEach(function (k) { if (viewed[k]) done++; });
+          var pct = total > 0 ? Math.round((done / total) * 100) : 0;
+
+          return '<div class="yb-admin__student-row">' +
+            '<div class="yb-admin__student-info" style="flex:1"><strong>' + esc(courseName) + '</strong></div>' +
+            '<div class="yb-admin__student-bar-wrap" style="flex:0 0 100px"><div class="yb-admin__student-bar" style="width:' + pct + '%"></div></div>' +
+            '<div class="yb-admin__student-stats"><span>' + done + '/' + total + ' ' + t('student_progress_chapters_read') + '</span> <span>' + pct + '%</span></div>' +
+          '</div>';
+        }).join('');
+      })
+      .catch(function () {
+        el.innerHTML = '<p class="yb-admin__empty">' + t('users_no_progress') + '</p>';
+      });
+  }
+
+  function loadUserConsents(uid, el) {
+    if (!el) return;
+    el.innerHTML = '<p class="yb-admin__empty">' + t('loading') + '</p>';
+
+    db.collection('consents').doc(uid).get()
+      .then(function (doc) {
+        if (!doc.exists) {
+          el.innerHTML = '<p class="yb-admin__empty">' + t('users_no_consents') + '</p>';
+          return;
+        }
+        var c = doc.data();
+
+        var items = [
+          { label: t('users_consent_terms'), val: c.terms },
+          { label: t('users_consent_privacy'), val: c.privacy },
+          { label: t('users_consent_code'), val: c.codeOfConduct }
+        ];
+
+        el.innerHTML = items.map(function (item) {
+          var accepted = !!item.val;
+          var statusClass = accepted ? 'yb-admin__badge--ok' : 'yb-admin__badge--muted';
+          var statusLabel = accepted ? t('users_consent_accepted') : t('users_consent_pending');
+          var dateStr = '';
+          if (item.val && item.val.toDate) {
+            dateStr = item.val.toDate().toLocaleDateString(lang === 'da' ? 'da-DK' : 'en-US', { year: 'numeric', month: 'short', day: 'numeric' });
+          }
+          return '<div class="yb-admin__enroll-row">' +
+            '<span style="flex:1">' + item.label + '</span>' +
+            '<span class="yb-admin__badge ' + statusClass + '">' + statusLabel + '</span>' +
+            (dateStr ? '<small style="color:#6F6A66">' + esc(dateStr) + '</small>' : '') +
+          '</div>';
+        }).join('');
+      })
+      .catch(function () {
+        el.innerHTML = '<p class="yb-admin__empty">' + t('users_no_consents') + '</p>';
+      });
+  }
+
+  function populateEnrollCourseDropdown() {
+    var select = $('yb-admin-user-enroll-course');
+    if (!select) return;
+
+    if (!state.courses.length) {
+      db.collection('courses').get().then(function (snap) {
+        state.courses = [];
+        snap.forEach(function (doc) { state.courses.push(Object.assign({ id: doc.id }, doc.data())); });
+        fillCourseDropdown(select);
+      });
+    } else {
+      fillCourseDropdown(select);
+    }
+  }
+
+  function fillCourseDropdown(select) {
+    var html = '<option value="">' + t('users_enroll_select') + '</option>';
+    state.courses.forEach(function (c) {
+      html += '<option value="' + c.id + '">' + (c.icon || '📚') + ' ' + esc(c.title_en || c.title_da) + '</option>';
+    });
+    select.innerHTML = html;
+  }
+
+  function enrollUserFromDetail() {
+    var select = $('yb-admin-user-enroll-course');
+    var uid = state.userDetailUid;
+    if (!select || !uid || !select.value) return;
+
+    var courseId = select.value;
+    var u = state.userDetail || {};
+    var name = u.name || ((u.firstName || '') + ' ' + (u.lastName || '')).trim() || '';
+    var email = u.email || '';
+
+    var docId = uid + '_' + courseId;
+    toast(t('saving'));
+
+    db.collection('enrollments').doc(docId).set({
+      userId: uid,
+      userName: name,
+      userEmail: email,
+      courseId: courseId,
+      enrolledAt: firebase.firestore.FieldValue.serverTimestamp(),
+      enrolledBy: 'admin',
+      status: 'active'
+    }).then(function () {
+      toast(t('saved'));
+      select.value = '';
+      var formWrap = $('yb-admin-user-enroll-form-wrap');
+      if (formWrap) formWrap.hidden = true;
+      loadUserEnrollments(uid, $('yb-admin-user-enrollments'));
+    }).catch(function (err) {
+      console.error(err);
+      toast(err.message || t('error_save'), true);
+    });
+  }
+
+  function toggleUserEnrollment(enrollId, newStatus) {
+    db.collection('enrollments').doc(enrollId).update({ status: newStatus })
+      .then(function () {
+        toast(t('saved'));
+        if (state.userDetailUid) {
+          loadUserEnrollments(state.userDetailUid, $('yb-admin-user-enrollments'));
+        }
+      })
+      .catch(function (err) { console.error(err); toast(t('error_save'), true); });
+  }
+
+  function backToUserList() {
+    var listView = $('yb-admin-v-user-list');
+    var detailView = $('yb-admin-v-user-detail');
+    if (listView) listView.hidden = false;
+    if (detailView) detailView.hidden = true;
+    state.userDetailUid = null;
+    state.userDetail = null;
+  }
+
+  /* ═══════════════════════════════════════
      EVENT BINDING
      ═══════════════════════════════════════ */
   function bindEvents() {
@@ -1223,6 +1812,18 @@
         case 'revoke-enroll': toggleEnrollment(id, 'revoked'); break;
         case 'activate-enroll': toggleEnrollment(id, 'active'); break;
 
+        // User management actions
+        case 'users-browse': loadAllUsers(); break;
+        case 'view-user': showUserDetail(id); break;
+        case 'back-users': backToUserList(); break;
+        case 'user-enroll-toggle':
+          var enrollWrap = $('yb-admin-user-enroll-form-wrap');
+          if (enrollWrap) enrollWrap.hidden = !enrollWrap.hidden;
+          break;
+        case 'user-enroll-save': enrollUserFromDetail(); break;
+        case 'revoke-user-enroll': toggleUserEnrollment(id, 'revoked'); break;
+        case 'activate-user-enroll': toggleUserEnrollment(id, 'active'); break;
+
         // Rich text toolbar actions
         case 'toolbar-bold': insertTag('bold'); break;
         case 'toolbar-italic': insertTag('italic'); break;
@@ -1244,8 +1845,11 @@
     if (chapterForm) chapterForm.addEventListener('submit', saveChapter);
     var enrollForm = $('yb-admin-enroll-form');
     if (enrollForm) enrollForm.addEventListener('submit', enrollUser);
-    var lookupForm = $('yb-admin-user-lookup-form');
-    if (lookupForm) lookupForm.addEventListener('submit', lookupUser);
+    // User search + filter
+    var userSearchForm = $('yb-admin-user-search-form');
+    if (userSearchForm) userSearchForm.addEventListener('submit', searchUsers);
+    var userRoleFilter = $('yb-admin-user-role-filter');
+    if (userRoleFilter) userRoleFilter.addEventListener('change', filterUsersByRole);
 
     // Bulk buttons
     var bulkPreview = $('yb-admin-bulk-preview-btn');
@@ -1280,6 +1884,7 @@
     db = firebase.firestore();
 
     bindEvents();
+    bindRoleFormEvents();
     initTabs();
 
     var gateEl = $('yb-admin-gate');

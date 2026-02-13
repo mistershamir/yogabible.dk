@@ -1,7 +1,7 @@
 # Mindbody API v6 — Integration Reference & Debug Trail
 
 > This is the living reference document. Update it every time you debug a new issue.
-> Copy this to every new brand project. **Last updated: 2026-02-09.**
+> Copy this to every new brand project. **Last updated: 2026-02-10.**
 
 ## Credentials & Auth
 
@@ -29,7 +29,7 @@
 14. **Mindbody may return HTML 404 for wrong endpoint paths** — `res.json()` will crash with "Unexpected token '<'". Always parse as text first, then try JSON
 15. **TerminateContract/SuspendContract endpoint path is ambiguous** — docs are unclear on category. Try `/contract/`, `/sale/`, `/client/` with fallback. Response includes `endpointUsed` to identify correct path
 16. **`ReferredBy` is read-only in public API v6** — must set referrals in Mindbody admin panel
-17. **`/sale/sales` silently ignores ClientId filter** — may return ALL studio sales or empty. Use `/client/clientservices` + `/client/clientcontracts` as receipt data source
+17. **`/sale/sales` silently ignores ClientId filter** — returns ALL studio sales. Must match by BOTH `ClientId` AND `RecipientClientId` server-side. Use narrower date range (365 days) to avoid pagination limits
 18. **Mindbody clips with 99999/999999 remaining = unlimited** — hide these counts in UI
 19. **Contract `ClientContractId` vs `ContractId`** — `ContractId` is the template, `ClientContractId` is the specific client's instance. Terminate/suspend need `ClientContractId`
 20. **`BirthDate` returns `0001-01-01T00:00:00` for unset** — Mindbody's placeholder. Filter this out before storing in Firestore. Extract `YYYY-MM-DD` from ISO string.
@@ -361,3 +361,8 @@ If `nextBillingDate` is in the past (edge case), use today as base.
 | 50 | MB `IsSuspended` works for future-dated pauses | `IsSuspended` is ONLY true for currently active pauses | Future-dated pauses show `IsSuspended: false`. Use Firestore `pausedContracts` as 90-second bridge after user action, then trust MB |
 | 51 | Pause/Cancel buttons in user profile | Replaced with contact messaging (2026-02-10) | Due to unresolved SuspendDate semantics and missing delete-suspension/cancel-termination APIs. Users email info@yogabible.dk. Status badges, retention cards, and billing info remain visible |
 | 52 | `/sale/sales` for per-client purchase history | Use `/client/clientservices` + `/client/clientcontracts` | `/sale/sales` ignores `ClientId` filter entirely — returns ALL sales. Combine services + contracts for per-client receipts |
+| 53 | `sale.ClientId` matches our client ID | Must check BOTH `ClientId` AND `RecipientClientId` | `ClientId` is the purchaser account ID (string like `"20251012011624671"`), `RecipientClientId` is the actual client (number like `100000037`). Always compare both as strings |
+| 54 | `item.Price` / `item.AmountPaid` for sale items | `item.UnitPrice` / `item.TotalAmount` | Also: `item.TaxAmount` (not `Tax`), `item.DiscountAmount` (not `AmountDiscounted`). Tax1-Tax5 fields exist as fallback. `item.DiscountPercent` also available |
+| 55 | `payment.PaymentAmountPaid` / `payment.PaymentMethodName` | `payment.Amount` / `payment.Type` | Payment `Type` is a string like `"Comp/Guest"`, `Method` is a number. `TransactionId` and `Last4` also available |
+| 56 | `contract.AutopayAmount` / `contract.ContractPrice` for price | `contract.UpcomingAutopayEvents[0].ChargeAmount` | Top-level fields `FirstAutoPay`, `LastAutoPay`, `NormalAutoPay` are all 0. Actual price lives in `UpcomingAutopayEvents[0].ChargeAmount` / `.Subtotal` / `.Tax` / `.PaymentMethod` |
+| 57 | `ClientServices` has price data | `ClientServices` has NO price field at all | Only has: ActivationType, ActiveDate, Count, Current, ExpirationDate, Id, ProductId, Name, PaymentDate, Program, Remaining, SiteId, Action, ClientID, Returned. Must cross-reference with `/sale/sales` by description match to get prices |

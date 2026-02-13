@@ -15,10 +15,37 @@ exports.handler = async function(event) {
     return { statusCode: 204, headers: corsHeaders, body: '' };
   }
 
-  // GET: Find client by email
+  // GET: Find client by email, or fetch stored credit card by clientId
   if (event.httpMethod === 'GET') {
     try {
       const params = event.queryStringParameters || {};
+
+      // GET ?action=storedCard&clientId=... — fetch stored credit card
+      if (params.action === 'storedCard' && params.clientId) {
+        // V6 API returns ClientCreditCard as part of the full Client object
+        // No Fields param needed (doesn't exist in V6); use request.clientIDs
+        const data = await mbFetch(`/client/clients?request.clientIDs=${params.clientId}`);
+        console.log('[mb-client] storedCard response for', params.clientId, ':', JSON.stringify((data.Clients || []).map(c => ({ Id: c.Id, CC: c.ClientCreditCard }))));
+        var clients = data.Clients || [];
+        if (clients.length > 0 && clients[0].ClientCreditCard) {
+          var cc = clients[0].ClientCreditCard;
+          // Only consider it "stored" if we actually have a LastFour
+          if (cc.LastFour) {
+            return jsonResponse(200, {
+              hasStoredCard: true,
+              storedCard: {
+                lastFour: cc.LastFour,
+                cardType: cc.CardType || '',
+                cardHolder: cc.CardHolder || '',
+                expMonth: cc.ExpMonth || '',
+                expYear: cc.ExpYear || ''
+              }
+            });
+          }
+        }
+        return jsonResponse(200, { hasStoredCard: false, storedCard: null });
+      }
+
       if (!params.email) {
         return jsonResponse(400, { error: 'email parameter is required' });
       }
@@ -65,10 +92,32 @@ exports.handler = async function(event) {
     }
   }
 
-  // POST: Create new client
+  // POST: Create new client OR update stored card
   if (event.httpMethod === 'POST') {
     try {
       var body = JSON.parse(event.body || '{}');
+
+      // Action: updateCard — save/replace stored credit card on client
+      if (body.action === 'updateCard' && body.clientId && body.card) {
+        var cardData = {
+          CreditCardNumber: String(body.card.cardNumber),
+          ExpMonth: String(body.card.expMonth),
+          ExpYear: String(body.card.expYear),
+          BillingName: String(body.card.cardHolder || '')
+        };
+        console.log('[mb-client] updateCard for client:', body.clientId);
+        var updateResult = await mbFetch('/client/updateclient', {
+          method: 'POST',
+          body: JSON.stringify({ Client: { Id: body.clientId, ClientCreditCard: cardData } })
+        });
+        var updatedClient = updateResult.Client || {};
+        var updatedCC = updatedClient.ClientCreditCard || {};
+        return jsonResponse(200, {
+          success: true,
+          cardType: updatedCC.CardType || '',
+          lastFour: updatedCC.LastFour || body.card.cardNumber.slice(-4)
+        });
+      }
 
       if (!body.firstName || !body.lastName || !body.email) {
         return jsonResponse(400, { error: 'firstName, lastName, and email are required' });
@@ -125,16 +174,24 @@ exports.handler = async function(event) {
         return jsonResponse(400, { error: 'clientId is required' });
       }
 
-      var updateData = { ClientId: body.clientId };
+      // MB updateclient uses "Id" (numeric), NOT "ClientId" (which is the Custom ID field)
+      var updateData = { Id: body.clientId };
       if (body.firstName) updateData.FirstName = body.firstName;
       if (body.lastName) updateData.LastName = body.lastName;
       if (body.email) updateData.Email = body.email;
       if (body.phone) updateData.MobilePhone = body.phone;
-      if (body.birthDate) updateData.BirthDate = body.birthDate;
+      if (body.birthDate) {
+        // MB API expects full ISO datetime for BirthDate
+        var bd = body.birthDate;
+        if (bd.length === 10) bd = bd + 'T00:00:00';
+        updateData.BirthDate = bd;
+      }
+
+      console.log('[mb-client] PUT updateData:', JSON.stringify(updateData));
 
       var data = await mbFetch('/client/updateclient', {
         method: 'POST',
-        body: JSON.stringify({ Client: updateData, CrossRegionalUpdate: true })
+        body: JSON.stringify({ Client: updateData })
       });
 
       var updated = data.Client || {};
@@ -150,8 +207,10 @@ exports.handler = async function(event) {
         }
       });
     } catch (err) {
-      console.error('mb-client PUT error:', err);
-      return jsonResponse(err.status || 500, { error: err.message });
+      console.error('mb-client PUT error:', err.message, err.data ? JSON.stringify(err.data) : '');
+      var errMsg = err.message || 'Update failed';
+      if (err.data && err.data.Error && err.data.Error.Message) errMsg = err.data.Error.Message;
+      return jsonResponse(err.status || 500, { error: errMsg, _debug: err.data || null });
     }
   }
 

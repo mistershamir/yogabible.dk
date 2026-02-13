@@ -30,6 +30,9 @@
 
   var currentUser = null;
 
+  // Global user state (role, permissions, profile data)
+  window._ybUser = null;
+
   auth.onAuthStateChanged(function(user) {
     currentUser = user;
     updateHeaderUI(user);
@@ -37,12 +40,66 @@
 
     if (user) {
       ensureUserProfile(user);
+      loadUserRoleAndPermissions(user);
       // Sync with Mindbody to check membership status
       if (window.syncMindbodyClient) {
         window.syncMindbodyClient(user);
       }
+    } else {
+      window._ybUser = null;
+      // Clear permission-gated elements
+      if (window.YBRoles) {
+        window.YBRoles.applyPermissions([]);
+        window.YBRoles.applyRole('');
+      }
+      document.dispatchEvent(new CustomEvent('yb:user-loaded', { detail: null }));
     }
   });
+
+  // ============================================
+  // FIRESTORE USER PROFILE
+  // ============================================
+
+  // ============================================
+  // ROLE & PERMISSION LOADING
+  // ============================================
+
+  function loadUserRoleAndPermissions(user) {
+    db.collection('users').doc(user.uid).get().then(function(doc) {
+      if (!doc.exists) return;
+      var d = doc.data();
+      var role = d.role || 'member';
+      // Map legacy 'user' role to 'member'
+      if (role === 'user') role = 'member';
+      var roleDetails = d.roleDetails || {};
+      var permissions = [];
+
+      if (window.YBRoles) {
+        permissions = window.YBRoles.computePermissions(role, roleDetails);
+      }
+
+      window._ybUser = {
+        uid: user.uid,
+        email: user.email,
+        displayName: user.displayName,
+        role: role,
+        roleDetails: roleDetails,
+        permissions: permissions,
+        membershipTier: d.membershipTier || 'free'
+      };
+
+      // Apply to DOM
+      if (window.YBRoles) {
+        window.YBRoles.applyPermissions(permissions);
+        window.YBRoles.applyRole(role);
+      }
+
+      // Notify other scripts
+      document.dispatchEvent(new CustomEvent('yb:user-loaded', { detail: window._ybUser }));
+    }).catch(function(err) {
+      console.warn('Could not load user role:', err);
+    });
+  }
 
   // ============================================
   // FIRESTORE USER PROFILE
@@ -68,7 +125,8 @@
           lastName: lastName,
           name: displayName,
           phone: '',
-          role: 'user',
+          role: 'member',
+          roleDetails: {},
           membershipTier: 'free',
           membershipExpiresAt: null,
           mindbodyClientId: null,
@@ -333,6 +391,9 @@
     modal.querySelectorAll('.yb-auth-view').forEach(function(v) {
       v.hidden = v.id !== 'yb-auth-' + viewName;
     });
+    // Toggle data-view on modal box for split layout (register = wider with image panel)
+    var box = modal.querySelector('.yb-auth-modal__box');
+    if (box) box.setAttribute('data-view', viewName);
   }
 
   // Expose globally

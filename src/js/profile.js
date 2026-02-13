@@ -13,6 +13,7 @@
 
   var waiverSigned = false; // Track if liability waiver is signed
   var waiverStatusLoaded = false; // True once we know the actual status
+  var storedCardData = null; // Cached stored credit card from Mindbody
 
   // ── Simple canvas signature pad ──
   function SignaturePad(canvasId, clearBtnId) {
@@ -486,9 +487,13 @@
         }
       }
 
-      // Silently fetch waiver status (no blocking — used for gates later)
+      // Silently fetch waiver status and stored card info
       if (d.mindbodyClientId) {
+        console.log('[Profile] Has mindbodyClientId:', d.mindbodyClientId, '— fetching waiver + stored card');
         fetchWaiverStatus(d.mindbodyClientId);
+        fetchStoredCard(d.mindbodyClientId);
+      } else {
+        console.warn('[Profile] NO mindbodyClientId — stored card section will not load');
       }
 
       var sinceEl = document.getElementById('yb-profile-member-since');
@@ -500,6 +505,22 @@
       // Tier is set by loadMembershipDetails after fetching pass data
       var tierEl = document.getElementById('yb-profile-tier');
       if (tierEl) tierEl.textContent = '—';
+      var tierDetailEl = document.getElementById('yb-profile-tier-detail');
+      if (tierDetailEl) tierDetailEl.textContent = '—';
+
+      // Role badge
+      var roleBadgeEl = document.getElementById('yb-profile-role-badge');
+      if (roleBadgeEl && window.YBRoles) {
+        var role = d.role || 'member';
+        if (role === 'user') role = 'member';
+        var roleLabel = window.YBRoles.getRoleLabel(role, isDa() ? 'da' : 'en');
+        var roleDetail = window.YBRoles.getRoleDetail(role, d.roleDetails || {}, isDa() ? 'da' : 'en');
+        var roleColor = (window.YBRoles.ROLES[role] || {}).color || '#6F6A66';
+        roleBadgeEl.textContent = roleLabel + (roleDetail ? ' — ' + roleDetail : '');
+        roleBadgeEl.style.borderColor = roleColor;
+        roleBadgeEl.style.color = roleColor;
+        roleBadgeEl.style.display = '';
+      }
     }).catch(function(err) { console.warn('Could not load profile:', err); });
   }
 
@@ -552,6 +573,114 @@
   }
 
   // Check waiver status: localStorage (instant) → Firestore → MB API
+  // ══════════════════════════════════════
+  // STORED CREDIT CARD
+  // ══════════════════════════════════════
+  function renderStoredCardUI(card) {
+    var loadingEl = document.getElementById('yb-stored-card-loading');
+    var displayEl = document.getElementById('yb-stored-card-display');
+    var emptyEl = document.getElementById('yb-stored-card-empty');
+    if (loadingEl) loadingEl.hidden = true;
+    if (card && card.lastFour) {
+      storedCardData = card;
+      if (displayEl) displayEl.hidden = false;
+      if (emptyEl) emptyEl.hidden = true;
+      var typeEl = document.getElementById('yb-stored-card-type');
+      var numEl = document.getElementById('yb-stored-card-number');
+      var holderEl = document.getElementById('yb-stored-card-holder');
+      var expEl = document.getElementById('yb-stored-card-exp');
+      if (typeEl) typeEl.textContent = card.cardType || 'Card';
+      if (numEl) numEl.textContent = '•••• ' + card.lastFour;
+      if (holderEl) holderEl.textContent = card.cardHolder || '';
+      if (expEl && card.expMonth && card.expYear) {
+        expEl.textContent = (isDa() ? 'Udløber ' : 'Expires ') + card.expMonth + '/' + card.expYear;
+      }
+    } else {
+      storedCardData = null;
+      if (displayEl) displayEl.hidden = true;
+      if (emptyEl) emptyEl.hidden = false;
+    }
+  }
+
+  function fetchStoredCard(mbClientId) {
+    console.log('[StoredCard] Fetching for MB client:', mbClientId);
+    // 1. Instant: check Firestore for locally saved card info
+    if (currentUser && currentDb) {
+      currentDb.collection('users').doc(currentUser.uid).get().then(function(doc) {
+        if (doc.exists && doc.data().storedCard && doc.data().storedCard.lastFour) {
+          console.log('[StoredCard] Found in Firestore:', doc.data().storedCard.lastFour);
+          renderStoredCardUI(doc.data().storedCard);
+        } else {
+          console.log('[StoredCard] Not in Firestore');
+        }
+      }).catch(function(e) { console.warn('[StoredCard] Firestore read error:', e); });
+    }
+
+    // 2. Fetch from Mindbody (authoritative source, overwrites Firestore data)
+    fetch('/.netlify/functions/mb-client?action=storedCard&clientId=' + encodeURIComponent(mbClientId))
+      .then(function(r) { console.log('[StoredCard] MB response status:', r.status); return r.json(); })
+      .then(function(data) {
+        console.log('[StoredCard] MB response:', JSON.stringify(data).substring(0, 300));
+        if (data.hasStoredCard && data.storedCard && data.storedCard.lastFour) {
+          renderStoredCardUI(data.storedCard);
+          // Save to Firestore as cache
+          if (currentUser && currentDb) {
+            currentDb.collection('users').doc(currentUser.uid).update({ storedCard: data.storedCard }).catch(function() {});
+          }
+        } else if (!storedCardData) {
+          // Only show empty if Firestore didn't already have data
+          renderStoredCardUI(null);
+        }
+      })
+      .catch(function(err) {
+        console.warn('[StoredCard] MB fetch error:', err);
+        // If Firestore didn't provide data either, show empty
+        if (!storedCardData) renderStoredCardUI(null);
+      });
+  }
+
+  // Save card summary to Firestore after a successful checkout with saveCard=true
+  function saveCardInfoLocally(paymentInfo) {
+    if (!currentUser || !currentDb || !paymentInfo.cardNumber) return;
+    var lastFour = paymentInfo.cardNumber.slice(-4);
+    var cardData = {
+      lastFour: lastFour,
+      cardType: detectCardType(paymentInfo.cardNumber),
+      cardHolder: paymentInfo.cardHolder || '',
+      expMonth: paymentInfo.expMonth || '',
+      expYear: paymentInfo.expYear || ''
+    };
+    storedCardData = cardData;
+    renderStoredCardUI(cardData);
+    currentDb.collection('users').doc(currentUser.uid).update({ storedCard: cardData }).catch(function() {});
+  }
+
+  function detectCardType(num) {
+    if (!num) return '';
+    if (num.charAt(0) === '4') return 'Visa';
+    if (/^5[1-5]/.test(num) || /^2[2-7]/.test(num)) return 'Mastercard';
+    if (/^3[47]/.test(num)) return 'Amex';
+    if (/^6(?:011|5)/.test(num)) return 'Discover';
+    return 'Card';
+  }
+
+  function initStoredCardCheckoutToggle() {
+    var storedSection = document.getElementById('yb-checkout-stored-card');
+    var cardFields = document.getElementById('yb-checkout-card-fields');
+    var radios = document.querySelectorAll('input[name="yb-payment-method"]');
+    if (!storedSection || !cardFields || !radios.length) return;
+
+    radios.forEach(function(radio) {
+      radio.addEventListener('change', function() {
+        var useStored = this.value === 'stored';
+        cardFields.hidden = useStored;
+        // Toggle active class on parent labels
+        document.getElementById('yb-checkout-use-stored').classList.toggle('yb-checkout-stored-card__option--active', useStored);
+        document.getElementById('yb-checkout-use-new').classList.toggle('yb-checkout-stored-card__option--active', !useStored);
+      });
+    });
+  }
+
   function fetchWaiverStatus(mbClientId) {
     // 1. Instant check: localStorage
     var cacheKey = getWaiverCacheKey();
@@ -945,22 +1074,24 @@
           clientPassData = data;
           renderMembershipDetails(contentEl, data);
 
-          // Show pass type in tier field
+          // Show pass type in tier fields (hero badge + membership card detail)
           var hasAutopayContract = data.activeContracts && data.activeContracts.length > 0;
           var hasActiveService = data.activeServices && data.activeServices.length > 0;
           var tierEl = document.getElementById('yb-profile-tier');
-          if (tierEl) {
-            if (hasAutopayContract) {
-              tierEl.textContent = isDa() ? 'Månedligt Medlemskab' : 'Monthly Membership';
-              tierEl.className = 'yb-profile__info-value yb-profile__info-value--success';
-            } else if (hasActiveService) {
-              tierEl.textContent = isDa() ? 'Klippekort' : 'Clip Card';
-              tierEl.className = 'yb-profile__info-value yb-profile__info-value--success';
-            } else {
-              tierEl.textContent = isDa() ? 'Intet aktivt pas' : 'No active pass';
-              tierEl.className = 'yb-profile__info-value yb-profile__info-value--muted';
-            }
+          var tierDetailEl = document.getElementById('yb-profile-tier-detail');
+          var tierText, tierClass;
+          if (hasAutopayContract) {
+            tierText = isDa() ? 'Månedligt Medlemskab' : 'Monthly Membership';
+            tierClass = 'yb-profile__info-value yb-profile__info-value--success';
+          } else if (hasActiveService) {
+            tierText = isDa() ? 'Klippekort' : 'Clip Card';
+            tierClass = 'yb-profile__info-value yb-profile__info-value--success';
+          } else {
+            tierText = isDa() ? 'Intet aktivt pas' : 'No active pass';
+            tierClass = 'yb-profile__info-value yb-profile__info-value--muted';
           }
+          if (tierEl) tierEl.textContent = tierText;
+          if (tierDetailEl) { tierDetailEl.textContent = tierText; tierDetailEl.className = tierClass; }
         } catch (renderErr) {
           console.error('[Membership] Render error:', renderErr);
         } finally {
@@ -1036,11 +1167,59 @@
           html += '<p class="yb-membership__pause-contact">' + t('membership_resume_contact') + '</p>';
         }
 
-        // ── ACTIVE STATE: Manage info (contact-based) ──
+        // ── ACTIVE STATE: Pause button + cancel info ──
         var showActiveInfo = !isPaused && !c.terminationDate && c.isAutopay;
         if (showActiveInfo) {
-          html += '<div class="yb-membership__manage-info-box">';
-          html += '<p class="yb-membership__manage-info-text">' + t('membership_manage_info') + '</p>';
+          // Pause button
+          html += '<div class="yb-membership__manage-btns">';
+          html += '<button class="yb-membership__manage-btn yb-membership__manage-btn--pause" type="button" data-pause-contract="' + c.id + '" data-next-billing="' + (c.nextBillingDate || '') + '">' + t('membership_pause_btn') + '</button>';
+          html += '</div>';
+
+          // Expandable pause form (hidden until button clicked)
+          var earliestStart = calcEarliestPauseStart(c.nextBillingDate);
+          var earliestStr = toLocalDateStr(earliestStart);
+          var maxStartDate = new Date(earliestStart);
+          maxStartDate.setMonth(maxStartDate.getMonth() + 3);
+          var maxStartStr = toLocalDateStr(maxStartDate);
+
+          html += '<div class="yb-membership__manage-info" data-pause-form="' + c.id + '" hidden>';
+          html += '<h4 style="margin:0 0 0.5rem;font-size:0.95rem;font-weight:700">' + t('membership_pause_title') + '</h4>';
+          html += '<p style="font-size:0.85rem;color:#6F6A66;margin:0 0 0.75rem">' + t('membership_pause_desc') + '</p>';
+
+          // Start date
+          html += '<div class="yb-membership__info-row">';
+          html += '<span class="yb-membership__info-label">' + t('membership_pause_start') + '</span><br>';
+          html += '<input type="date" data-pause-start="' + c.id + '" min="' + earliestStr + '" max="' + maxStartStr + '" value="' + earliestStr + '" style="font-family:Abacaxi,sans-serif;font-size:0.9rem;padding:0.4rem 0.6rem;border:1.5px solid #E8E4E0;border-radius:8px;width:100%;margin-top:0.25rem">';
+          html += '<span style="font-size:0.78rem;color:#6F6A66;font-style:italic">' + t('membership_pause_next_billing') + ': ' + formatDateDK(c.nextBillingDate) + '</span>';
+          html += '</div>';
+
+          // End date
+          var minEndDate = new Date(earliestStart);
+          minEndDate.setDate(minEndDate.getDate() + 14);
+          var maxEndDate = new Date(earliestStart);
+          maxEndDate.setDate(maxEndDate.getDate() + 93);
+          html += '<div class="yb-membership__info-row" style="margin-top:0.5rem">';
+          html += '<span class="yb-membership__info-label">' + t('membership_pause_end') + '</span><br>';
+          html += '<input type="date" data-pause-end="' + c.id + '" min="' + toLocalDateStr(minEndDate) + '" max="' + toLocalDateStr(maxEndDate) + '" value="' + toLocalDateStr(minEndDate) + '" style="font-family:Abacaxi,sans-serif;font-size:0.9rem;padding:0.4rem 0.6rem;border:1.5px solid #E8E4E0;border-radius:8px;width:100%;margin-top:0.25rem">';
+          html += '<span style="font-size:0.78rem;color:#6F6A66;font-style:italic">' + t('membership_pause_min') + ' · ' + t('membership_pause_max') + '</span>';
+          html += '</div>';
+
+          // Resume preview
+          html += '<p class="yb-membership__resume-info" data-pause-resume="' + c.id + '" style="margin-top:0.75rem">' + t('membership_pause_resume') + ' ' + formatDateDK(toLocalDateStr(minEndDate)) + '</p>';
+
+          // Error
+          html += '<div class="yb-auth-error" data-pause-error="' + c.id + '" hidden style="margin-top:0.5rem"></div>';
+
+          // Actions
+          html += '<button class="yb-membership__confirm-btn yb-membership__confirm-btn--pause" data-pause-confirm="' + c.id + '" style="margin-top:0.75rem">' + t('membership_pause_confirm') + '</button>';
+
+          // Special note
+          html += '<p class="yb-membership__special-note">' + t('membership_pause_special') + '</p>';
+          html += '</div>';
+
+          // Cancel by email info
+          html += '<div class="yb-membership__manage-info-box" style="margin-top:0.5rem">';
+          html += '<p class="yb-membership__manage-info-text">' + t('membership_cancel_info') + '</p>';
           html += '</div>';
         }
 
@@ -1233,14 +1412,112 @@
   function bindMembershipManageEvents(container, data) {
     var contracts = data.activeContracts || [];
 
-    // NOTE: Pause and Cancel buttons have been removed from the UI.
-    // These actions are now handled via email to info@yogabible.dk.
-    // The pause/termination STATUS display and retention card remain.
+    // ── Pause buttons: toggle the pause form ──
+    var pauseBtns = container.querySelectorAll('[data-pause-contract]');
+    for (var p = 0; p < pauseBtns.length; p++) {
+      pauseBtns[p].addEventListener('click', function() {
+        var cId = this.getAttribute('data-pause-contract');
+        var formEl = container.querySelector('[data-pause-form="' + cId + '"]');
+        if (formEl) {
+          formEl.hidden = !formEl.hidden;
+          if (!formEl.hidden) formEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+      });
+    }
 
-    // NOTE: Pause and Cancel buttons removed from UI.
-    // Pending Mindbody API clarification on SuspendDate semantics
-    // and missing delete-suspension / cancel-termination endpoints.
-    // Users are directed to email info@yogabible.dk instead.
+    // ── Pause date change: update end date min/max and resume preview ──
+    var pauseStartInputs = container.querySelectorAll('[data-pause-start]');
+    for (var ps = 0; ps < pauseStartInputs.length; ps++) {
+      pauseStartInputs[ps].addEventListener('change', function() {
+        var cId = this.getAttribute('data-pause-start');
+        var endInput = container.querySelector('[data-pause-end="' + cId + '"]');
+        var resumeEl = container.querySelector('[data-pause-resume="' + cId + '"]');
+        if (endInput && this.value) {
+          var startD = new Date(this.value);
+          var minEnd = new Date(startD);
+          minEnd.setDate(minEnd.getDate() + 14);
+          var maxEnd = new Date(startD);
+          maxEnd.setDate(maxEnd.getDate() + 93);
+          endInput.min = toLocalDateStr(minEnd);
+          endInput.max = toLocalDateStr(maxEnd);
+          // If current end is out of new range, reset it
+          if (endInput.value < endInput.min) endInput.value = endInput.min;
+          if (endInput.value > endInput.max) endInput.value = endInput.max;
+        }
+        if (resumeEl && endInput) {
+          resumeEl.textContent = t('membership_pause_resume') + ' ' + formatDateDK(endInput.value);
+        }
+      });
+    }
+
+    var pauseEndInputs = container.querySelectorAll('[data-pause-end]');
+    for (var pe = 0; pe < pauseEndInputs.length; pe++) {
+      pauseEndInputs[pe].addEventListener('change', function() {
+        var cId = this.getAttribute('data-pause-end');
+        var resumeEl = container.querySelector('[data-pause-resume="' + cId + '"]');
+        if (resumeEl && this.value) {
+          resumeEl.textContent = t('membership_pause_resume') + ' ' + formatDateDK(this.value);
+        }
+      });
+    }
+
+    // ── Pause confirm button ──
+    var pauseConfirmBtns = container.querySelectorAll('[data-pause-confirm]');
+    for (var pc = 0; pc < pauseConfirmBtns.length; pc++) {
+      pauseConfirmBtns[pc].addEventListener('click', function() {
+        var cId = this.getAttribute('data-pause-confirm');
+        var startInput = container.querySelector('[data-pause-start="' + cId + '"]');
+        var endInput = container.querySelector('[data-pause-end="' + cId + '"]');
+        var errorEl = container.querySelector('[data-pause-error="' + cId + '"]');
+        var btn = this;
+
+        if (!startInput || !endInput || !startInput.value || !endInput.value) {
+          if (errorEl) { errorEl.textContent = isDa() ? 'Vælg start- og slutdato.' : 'Select start and end dates.'; errorEl.hidden = false; }
+          return;
+        }
+
+        btn.disabled = true;
+        btn.textContent = t('membership_pause_confirming');
+        if (errorEl) errorEl.hidden = true;
+
+        fetch('/.netlify/functions/mb-contract-manage', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            clientId: clientId,
+            clientContractId: Number(cId),
+            action: 'suspend',
+            startDate: startInput.value,
+            endDate: endInput.value
+          })
+        })
+        .then(function(r) { return r.json(); })
+        .then(function(result) {
+          btn.disabled = false;
+          btn.textContent = t('membership_pause_confirm');
+
+          if (result.error === 'already_suspended') {
+            if (errorEl) { errorEl.textContent = t('membership_already_paused'); errorEl.hidden = false; }
+            return;
+          }
+          if (result.error) {
+            if (errorEl) { errorEl.textContent = result.error; errorEl.hidden = false; }
+            return;
+          }
+
+          // Success — update local state and re-render
+          markContractPaused(cId, startInput.value, endInput.value);
+          showMembershipToast(t('membership_pause_success'), 'success');
+          var membershipEl = document.getElementById('yb-membership-content');
+          if (membershipEl && clientPassData) renderMembershipDetails(membershipEl, clientPassData);
+        })
+        .catch(function() {
+          btn.disabled = false;
+          btn.textContent = t('membership_pause_confirm');
+          if (errorEl) { errorEl.textContent = t('membership_pause_error'); errorEl.hidden = false; }
+        });
+      });
+    }
 
     // ── Reactivate (retention) buttons ──
     // First month free is already set on all contracts in Mindbody,
@@ -1332,6 +1609,7 @@
   var storeServices = [];
   var storeActiveCategory = 'all';
   var storeSearchQuery = '';
+  var storeFilterProgramId = null; // Set by booking redirect to highlight matching passes
 
   // Store category config — maps to Mindbody programs/categories
   var storeCategories = [
@@ -1350,6 +1628,13 @@
     var checkoutForm = document.getElementById('yb-store-checkout-form');
     var cancelBtn = document.getElementById('yb-store-cancel-btn');
     var successCloseBtn = document.getElementById('yb-store-success-close');
+
+    // "Change card" button in profile — switch to Store tab to use a different card
+    var changeCardBtn = document.getElementById('yb-stored-card-change');
+    if (changeCardBtn) changeCardBtn.addEventListener('click', function() {
+      var storeTab = document.querySelector('[data-yb-tab="store"]');
+      if (storeTab) storeTab.click();
+    });
 
     if (cancelBtn) cancelBtn.addEventListener('click', function() {
       var el = document.getElementById('yb-store-checkout');
@@ -1489,6 +1774,10 @@
 
       console.log('[Store] Contracts loaded:', contracts.length, contracts.map(function(c) { return c.name; }));
 
+      // Debug: log all IDs to verify test items (100203, 129) are in the response
+      console.log('[Store] Service IDs:', services.map(function(s) { return s.id + ':' + s.name; }));
+      console.log('[Store] Contract IDs:', contracts.map(function(c) { return c.id + ':' + c.name; }));
+
       storeServices = services.concat(contracts);
       if (!storeServices.length) { listEl.innerHTML = '<p class="yb-store__empty">' + t('store_empty') + '</p>'; return; }
       renderStoreItems(listEl);
@@ -1500,6 +1789,11 @@
    * Contracts are always 'memberships'. Services are categorized by name.
    */
   function categorizeService(s) {
+    // Explicit overrides by product ID
+    var id = String(s.id || '');
+    if (id === '100203') return 'clips';
+    if (id === '129') return 'memberships';
+
     // All contracts go under memberships
     if (s._itemType === 'contract') return 'memberships';
 
@@ -1524,6 +1818,12 @@
     // Categorize services
     storeServices.forEach(function(s) {
       s._category = categorizeService(s);
+    });
+    // Debug: show categorization of test items
+    storeServices.forEach(function(s) {
+      if (String(s.id) === '100203' || String(s.id) === '129') {
+        console.log('[Store] TEST ITEM:', s.id, s.name, '→ category:', s._category, 'type:', s._itemType);
+      }
     });
 
     // ── Search bar ──
@@ -1550,10 +1850,23 @@
     });
     html += '</div>';
 
-    // ── Filter by category + search ──
-    var filtered = storeActiveCategory === 'all'
-      ? storeServices
-      : storeServices.filter(function(s) { return s._category === storeActiveCategory; });
+    // ── Filter by program (from booking redirect), category, and search ──
+    var filtered;
+    if (storeFilterProgramId) {
+      // Booking redirect: show only passes matching the required program
+      filtered = storeServices.filter(function(s) {
+        return s.programId && Number(s.programId) === Number(storeFilterProgramId);
+      });
+      // Add a clear filter banner
+      html += '<div class="yb-store__program-filter">';
+      html += '<span>' + (isDa() ? 'Filtreret: pas der dækker denne klassetype' : 'Filtered: passes that cover this class type') + '</span>';
+      html += '<button type="button" class="yb-store__program-filter-clear">' + (isDa() ? 'Vis alle' : 'Show all') + '</button>';
+      html += '</div>';
+    } else {
+      filtered = storeActiveCategory === 'all'
+        ? storeServices
+        : storeServices.filter(function(s) { return s._category === storeActiveCategory; });
+    }
 
     if (storeSearchQuery) {
       var q = storeSearchQuery.toLowerCase();
@@ -1658,9 +1971,19 @@
       });
     }
 
+    // ── Attach program filter clear handler ──
+    var progFilterClear = container.querySelector('.yb-store__program-filter-clear');
+    if (progFilterClear) {
+      progFilterClear.addEventListener('click', function() {
+        storeFilterProgramId = null;
+        renderStoreItems(container);
+      });
+    }
+
     // ── Attach category tab handlers ──
     container.querySelectorAll('[data-store-cat]').forEach(function(btn) {
       btn.addEventListener('click', function() {
+        storeFilterProgramId = null; // Clear program filter when changing category
         storeActiveCategory = btn.getAttribute('data-store-cat');
         renderStoreItems(container);
       });
@@ -1670,6 +1993,39 @@
     container.querySelectorAll('[data-store-buy]').forEach(function(btn) {
       btn.addEventListener('click', function() { openCheckout(btn.getAttribute('data-store-buy'), btn.getAttribute('data-item-type') || 'service'); });
     });
+  }
+
+  /**
+   * Filter the Store to show only passes that match the given programId.
+   * Called when a booking fails with no_pass — redirects user to buy the right pass.
+   */
+  function filterStoreByProgram(programId, programName) {
+    if (!storeServices.length || !programId) return;
+
+    // Find services matching this program
+    var matching = storeServices.filter(function(s) {
+      return s.programId && Number(s.programId) === Number(programId);
+    });
+
+    if (matching.length > 0) {
+      // Set filter and re-render — show "all" category but filtered
+      storeFilterProgramId = Number(programId);
+      storeActiveCategory = 'all';
+      storeSearchQuery = '';
+      var storeContainer = document.getElementById('yb-store-list');
+      if (storeContainer) renderStoreItems(storeContainer);
+
+      // Show a helpful banner
+      showScheduleToast(isDa()
+        ? 'Viser ' + matching.length + ' pas der dækker ' + (programName || 'denne klassetype')
+        : 'Showing ' + matching.length + ' pass' + (matching.length > 1 ? 'es' : '') + ' that cover ' + (programName || 'this class type'), 'info');
+    } else {
+      // No matching passes found — show all and explain
+      storeFilterProgramId = null;
+      showScheduleToast(isDa()
+        ? 'Ingen pas fundet for ' + (programName || 'denne klassetype') + '. Kontakt os for hjælp.'
+        : 'No passes found for ' + (programName || 'this class type') + '. Contact us for help.', 'error');
+    }
   }
 
   function openCheckout(serviceId, itemType) {
@@ -1703,6 +2059,25 @@
     if (holderInput && currentUser && currentUser.displayName) holderInput.value = currentUser.displayName;
     var errEl = document.getElementById('yb-store-error');
     if (errEl) errEl.hidden = true;
+
+    // Show stored card option if available
+    var storedCardSection = document.getElementById('yb-checkout-stored-card');
+    var cardFieldsWrap = document.getElementById('yb-checkout-card-fields');
+    if (storedCardSection && storedCardData && storedCardData.lastFour) {
+      storedCardSection.hidden = false;
+      var storedLabel = document.getElementById('yb-checkout-stored-label');
+      if (storedLabel) storedLabel.textContent = (storedCardData.cardType || 'Card') + ' •••• ' + storedCardData.lastFour;
+      // Default to stored card
+      var storedRadio = storedCardSection.querySelector('input[value="stored"]');
+      if (storedRadio) storedRadio.checked = true;
+      if (cardFieldsWrap) cardFieldsWrap.hidden = true;
+      document.getElementById('yb-checkout-use-stored').classList.add('yb-checkout-stored-card__option--active');
+      document.getElementById('yb-checkout-use-new').classList.remove('yb-checkout-stored-card__option--active');
+      initStoredCardCheckoutToggle();
+    } else {
+      if (storedCardSection) storedCardSection.hidden = true;
+      if (cardFieldsWrap) cardFieldsWrap.hidden = false;
+    }
 
     // 1. Determine what documents to show
     var waiverSection = document.getElementById('yb-checkout-waiver-section');
@@ -1824,11 +2199,17 @@
       }
     }
 
-    if (!cardNumber || cardNumber.length < 13) { showSimpleError(errorEl, isDa() ? 'Indtast et gyldigt kortnummer.' : 'Enter a valid card number.'); return; }
-    if (!expiry || expiry.length < 4) { showSimpleError(errorEl, isDa() ? 'Indtast udløbsdato.' : 'Enter expiry date.'); return; }
-    if (!cvv || cvv.length < 3) { showSimpleError(errorEl, isDa() ? 'Indtast CVV.' : 'Enter CVV.'); return; }
+    // Check if using stored card
+    var storedRadio = document.querySelector('input[name="yb-payment-method"][value="stored"]');
+    var useStored = storedRadio && storedRadio.checked && storedCardData && storedCardData.lastFour;
 
-    var expParts = expiry.split('/');
+    if (!useStored) {
+      if (!cardNumber || cardNumber.length < 13) { showSimpleError(errorEl, isDa() ? 'Indtast et gyldigt kortnummer.' : 'Enter a valid card number.'); return; }
+      if (!expiry || expiry.length < 4) { showSimpleError(errorEl, isDa() ? 'Indtast udløbsdato.' : 'Enter expiry date.'); return; }
+      if (!cvv || cvv.length < 3) { showSimpleError(errorEl, isDa() ? 'Indtast CVV.' : 'Enter CVV.'); return; }
+    }
+
+    var expParts = expiry ? expiry.split('/') : [];
     payBtn.disabled = true;
     payBtn.textContent = isDa() ? 'Behandler betaling...' : 'Processing payment...';
 
@@ -1865,11 +2246,16 @@
     }
 
     var itemType = checkoutEl.getAttribute('data-item-type') || 'service';
-    var paymentInfo = {
-      cardNumber: cardNumber, expMonth: expParts[0], expYear: expParts[1] ? '20' + expParts[1] : '',
-      cvv: cvv, cardHolder: cardHolder, billingAddress: address, billingCity: city, billingPostalCode: zip,
-      saveCard: saveCard ? saveCard.checked : false
-    };
+    var paymentInfo;
+    if (useStored) {
+      paymentInfo = { useStoredCard: true, lastFour: storedCardData.lastFour };
+    } else {
+      paymentInfo = {
+        cardNumber: cardNumber, expMonth: expParts[0], expYear: expParts[1] ? '20' + expParts[1] : '',
+        cvv: cvv, cardHolder: cardHolder, billingAddress: address, billingCity: city, billingPostalCode: zip,
+        saveCard: saveCard ? saveCard.checked : false
+      };
+    }
 
     var fetchUrl, fetchBody;
     if (itemType === 'contract') {
@@ -1914,6 +2300,10 @@
         .then(function(data) {
           if (data.success) {
             checkoutEl.hidden = true;
+            // Save card info locally if user checked "save card"
+            if (!useStored && paymentInfo.saveCard && paymentInfo.cardNumber) {
+              saveCardInfoLocally(paymentInfo);
+            }
             // Reset left column sections after successful purchase
             var wvs = document.getElementById('yb-checkout-waiver-section');
             if (wvs) wvs.hidden = true;
@@ -1943,14 +2333,43 @@
   // SCHEDULE TAB
   // ══════════════════════════════════════
   var scheduleWeekOffset = 0;
+  var scheduleClassFilter = 'all'; // Active class type filter (session type name or 'all')
+
+  function matchesClassFilter(cls) {
+    if (scheduleClassFilter === 'all') return true;
+    return (cls.sessionTypeName || '') === scheduleClassFilter;
+  }
+
+  /**
+   * Build filter list dynamically from the session types present in this week's classes.
+   * Returns [{id: 'all', label: 'All'}, {id: 'Yin Yoga (Passive/Static)', label: 'Yin Yoga (Passive/Static)'}, ...]
+   */
+  function buildScheduleFilters(classes) {
+    var seen = {};
+    var filters = [{ id: 'all', label: isDa() ? 'Alle' : 'All' }];
+    classes.forEach(function(cls) {
+      var st = cls.sessionTypeName;
+      if (st && !seen[st]) {
+        seen[st] = true;
+        filters.push({ id: st, label: st });
+      }
+    });
+    // Sort filters alphabetically (after "All")
+    filters.sort(function(a, b) {
+      if (a.id === 'all') return -1;
+      if (b.id === 'all') return 1;
+      return a.label.localeCompare(b.label);
+    });
+    return filters;
+  }
 
   function initScheduleNav() {
     var prevBtn = document.getElementById('yb-schedule-prev');
     var nextBtn = document.getElementById('yb-schedule-next');
     var buyPassBtn = document.getElementById('yb-schedule-buy-pass');
 
-    if (prevBtn) prevBtn.addEventListener('click', function() { scheduleWeekOffset--; loadSchedule(); });
-    if (nextBtn) nextBtn.addEventListener('click', function() { scheduleWeekOffset++; loadSchedule(); });
+    if (prevBtn) prevBtn.addEventListener('click', function() { scheduleWeekOffset--; scheduleShowAllDays = false; loadSchedule(); });
+    if (nextBtn) nextBtn.addEventListener('click', function() { scheduleWeekOffset++; scheduleShowAllDays = false; loadSchedule(); });
     if (buyPassBtn) buyPassBtn.addEventListener('click', function() {
       // Switch to store tab
       var storeBtn = document.querySelector('[data-yb-tab="store"]');
@@ -2069,7 +2488,6 @@
   function renderSchedulePassInfo(passInfoEl, noPassEl, data) {
     var activeServices = data.activeServices || [];
     var activeContracts = data.activeContracts || [];
-    var hasMembership = activeContracts.length > 0;
 
     var hasAnyActivePass = (data.activeServices && data.activeServices.length > 0) || (data.activeContracts && data.activeContracts.length > 0);
 
@@ -2077,7 +2495,27 @@
       // Always hide buy-pass banner for active pass holders
       if (noPassEl) noPassEl.hidden = true;
 
-      var html = '';
+      var totalPasses = activeServices.length + activeContracts.length;
+
+      // Build summary for the dropdown header
+      var summaryParts = [];
+      if (activeContracts.length > 0) {
+        summaryParts.push(activeContracts.length + ' ' + (isDa() ? (activeContracts.length === 1 ? 'medlemskab' : 'medlemskaber') : (activeContracts.length === 1 ? 'membership' : 'memberships')));
+      }
+      if (activeServices.length > 0) {
+        summaryParts.push(activeServices.length + ' ' + (isDa() ? (activeServices.length === 1 ? 'klippekort' : 'klippekort') : (activeServices.length === 1 ? 'pass' : 'passes')));
+      }
+      var summaryText = summaryParts.join(' + ');
+
+      var html = '<div class="yb-schedule__pass-dropdown">';
+      html += '<button class="yb-schedule__pass-dropdown-toggle" type="button">';
+      html += '<div class="yb-schedule__pass-dropdown-summary">';
+      html += '<span class="yb-schedule__pass-dropdown-label">' + (isDa() ? 'Dine aktive pas' : 'Your active passes') + '</span>';
+      html += '<span class="yb-schedule__pass-dropdown-count">' + summaryText + '</span>';
+      html += '</div>';
+      html += '<svg class="yb-schedule__pass-dropdown-chevron" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>';
+      html += '</button>';
+      html += '<div class="yb-schedule__pass-dropdown-body" hidden>';
 
       // Show each active pass/clip card
       activeServices.forEach(function(s) {
@@ -2089,7 +2527,6 @@
         html += '<div class="yb-schedule__pass-detail-stats">';
         if (s.remaining != null) {
           html += '<span class="yb-schedule__pass-stat"><strong>' + s.remaining + '</strong> ' + t('schedule_remaining') + '</span>';
-          // Show low-clip warning when below 3
           if (s.remaining > 0 && s.remaining < 3) {
             html += '<span class="yb-schedule__pass-stat yb-schedule__pass-stat--low">' +
               (isDa() ? 'Snart opbrugt — overvej at fylde op' : 'Running low — consider topping up') + '</span>';
@@ -2103,7 +2540,7 @@
         html += '</div>';
       });
 
-      // Show membership info (no buy-pass prompt for members)
+      // Show membership info
       activeContracts.forEach(function(c) {
         html += '<div class="yb-schedule__pass-detail yb-schedule__pass-detail--membership">';
         html += '<div class="yb-schedule__pass-detail-info">';
@@ -2119,9 +2556,20 @@
         html += '</div>';
       });
 
-      if (html) {
-        passInfoEl.innerHTML = html;
-        passInfoEl.hidden = false;
+      html += '</div></div>';
+
+      passInfoEl.innerHTML = html;
+      passInfoEl.hidden = false;
+
+      // Toggle dropdown
+      var toggleBtn = passInfoEl.querySelector('.yb-schedule__pass-dropdown-toggle');
+      var body = passInfoEl.querySelector('.yb-schedule__pass-dropdown-body');
+      if (toggleBtn && body) {
+        toggleBtn.addEventListener('click', function() {
+          var isOpen = !body.hidden;
+          body.hidden = isOpen;
+          toggleBtn.classList.toggle('is-open', !isOpen);
+        });
       }
     } else {
       // No active pass — show the buy-pass banner
@@ -2130,21 +2578,55 @@
     }
   }
 
+  var scheduleShowAllDays = false; // Track whether user clicked "Show more"
+  var scheduleAllClasses = []; // Cache all classes for filter re-renders
+  var scheduleWeekStart = null;
+
   function renderSchedule(container, classes, weekStart) {
+    // Cache for filter re-renders
+    scheduleAllClasses = classes;
+    scheduleWeekStart = weekStart;
+
+    // Apply class type filter
+    var filteredClasses = classes.filter(function(cls) {
+      return matchesClassFilter(cls);
+    });
+
     var days = {};
     var dayNames = isDa()
       ? ['Søndag', 'Mandag', 'Tirsdag', 'Onsdag', 'Torsdag', 'Fredag', 'Lørdag']
       : ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 
-    classes.forEach(function(cls) {
+    filteredClasses.forEach(function(cls) {
       var d = new Date(cls.startDateTime);
       var key = toDateStr(d);
       if (!days[key]) days[key] = { date: d, classes: [] };
       days[key].classes.push(cls);
     });
 
-    var html = '';
+    // ── Class type filter buttons (built dynamically from session types) ──
+    var dynamicFilters = buildScheduleFilters(classes);
+    var html = '<div class="yb-schedule__filters">';
+    dynamicFilters.forEach(function(f) {
+      var isActive = scheduleClassFilter === f.id;
+      html += '<button class="yb-schedule__filter-btn' + (isActive ? ' is-active' : '') + '" type="button" data-schedule-filter="' + esc(f.id) + '">';
+      html += esc(f.label);
+      html += '</button>';
+    });
+    html += '</div>';
+
     var sortedKeys = Object.keys(days).sort();
+    var initialDaysToShow = 3;
+    var hasMoreDays = sortedKeys.length > initialDaysToShow && !scheduleShowAllDays;
+
+    // Check if last day in range is Sunday (day 0)
+    var lastDayIsSunday = false;
+    if (sortedKeys.length > 0) {
+      var lastDateObj = days[sortedKeys[sortedKeys.length - 1]].date;
+      lastDayIsSunday = lastDateObj.getDay() === 0;
+    }
+
+    var dayIndex = 0;
     sortedKeys.forEach(function(key) {
       var day = days[key];
       // Sort classes within each day by start time
@@ -2155,7 +2637,10 @@
       var dayName = dayNames[dateObj.getDay()];
       var dateLabel = dateObj.toLocaleDateString(isDa() ? 'da-DK' : 'en-GB', { day: 'numeric', month: 'long' });
 
-      html += '<div class="yb-schedule__day">';
+      // Hide days beyond initial 3 unless expanded
+      var isHidden = hasMoreDays && dayIndex >= initialDaysToShow;
+
+      html += '<div class="yb-schedule__day' + (isHidden ? ' yb-schedule__day--hidden' : '') + '">';
       html += '<h3 class="yb-schedule__day-label">' + dayName + ' <span>' + dateLabel + '</span></h3>';
 
       day.classes.forEach(function(cls) {
@@ -2214,9 +2699,69 @@
       });
 
       html += '</div>';
+      dayIndex++;
     });
 
+    // No results for this filter
+    if (sortedKeys.length === 0 && scheduleClassFilter !== 'all') {
+      html += '<p class="yb-schedule__filter-empty">' + (isDa() ? 'Ingen klasser af denne type denne uge.' : 'No classes of this type this week.') + '</p>';
+    }
+
+    // Button logic:
+    // - If collapsed (more days hidden): "Show More"
+    // - If expanded or all days visible and Sunday reached: "Show Next Week"
+    var showNextWeek = scheduleShowAllDays || sortedKeys.length <= initialDaysToShow;
+    if (hasMoreDays) {
+      // Still collapsed — show "Show More"
+      html += '<div class="yb-schedule__show-more-wrap">';
+      html += '<button class="yb-btn yb-btn--outline yb-schedule__show-more-btn" type="button" id="yb-schedule-show-more">' + (isDa() ? 'Vis mere' : 'Show more') + '</button>';
+      html += '</div>';
+    } else if (showNextWeek && sortedKeys.length > 0) {
+      // All days visible — show "Show Next Week"
+      html += '<div class="yb-schedule__show-more-wrap">';
+      html += '<button class="yb-btn yb-btn--outline yb-schedule__show-more-btn" type="button" id="yb-schedule-next-week">' + (isDa() ? 'Vis næste uge' : 'Show next week') + '</button>';
+      html += '</div>';
+    }
+
     container.innerHTML = html;
+
+    // "Show More" — reveal hidden days, then swap to "Show Next Week"
+    var showMoreBtn = document.getElementById('yb-schedule-show-more');
+    if (showMoreBtn) {
+      showMoreBtn.addEventListener('click', function() {
+        scheduleShowAllDays = true;
+        container.querySelectorAll('.yb-schedule__day--hidden').forEach(function(el) {
+          el.classList.remove('yb-schedule__day--hidden');
+        });
+        // Replace this button with "Show Next Week"
+        var wrap = showMoreBtn.parentElement;
+        wrap.innerHTML = '<button class="yb-btn yb-btn--outline yb-schedule__show-more-btn" type="button" id="yb-schedule-next-week">' + (isDa() ? 'Vis næste uge' : 'Show next week') + '</button>';
+        document.getElementById('yb-schedule-next-week').addEventListener('click', function() {
+          scheduleWeekOffset++;
+          scheduleShowAllDays = false;
+          loadSchedule();
+        });
+      });
+    }
+
+    // "Show Next Week" (when directly visible)
+    var nextWeekBtn = document.getElementById('yb-schedule-next-week');
+    if (nextWeekBtn && !showMoreBtn) {
+      nextWeekBtn.addEventListener('click', function() {
+        scheduleWeekOffset++;
+        scheduleShowAllDays = false;
+        loadSchedule();
+      });
+    }
+
+    // Attach class type filter handlers
+    container.querySelectorAll('[data-schedule-filter]').forEach(function(btn) {
+      btn.addEventListener('click', function() {
+        scheduleClassFilter = btn.getAttribute('data-schedule-filter');
+        scheduleShowAllDays = false;
+        renderSchedule(container, scheduleAllClasses, scheduleWeekStart);
+      });
+    });
 
     // Attach book/cancel handlers
     container.querySelectorAll('[data-schedule-book]').forEach(function(btn) {
@@ -2333,7 +2878,7 @@
    * corresponding services in MB. This correctly gates workshops/special passes.
    */
   function clientCanBook(programId) {
-    if (!clientPassData) return true; // If pass data not loaded, let backend decide
+    if (!clientPassData) return false; // If pass data not loaded, block until loaded
     if (!programId) return true; // If class has no program info, let backend decide
 
     // Check if any active service covers this program
@@ -2410,10 +2955,30 @@
           if (data.error === 'no_pass') {
             var noPassEl = document.getElementById('yb-schedule-no-pass');
             if (noPassEl) noPassEl.hidden = false;
-            // Hide pass info banner if it was shown
             var passInfoEl = document.getElementById('yb-schedule-pass-info');
             if (passInfoEl) passInfoEl.hidden = true;
-            showScheduleToast(isDa() ? 'Du har brug for et klippekort eller medlemskab.' : 'You need a class pass or membership.', 'error');
+
+            // Build a helpful message with link to the correct passes
+            var progName = data.programName || '';
+            var toastMsg = isDa()
+              ? 'Dit pas dækker ikke denne klasse' + (progName ? ' (' + progName + ')' : '') + '. Se de rette pas i butikken.'
+              : "Your pass doesn't cover this class" + (progName ? ' (' + progName + ')' : '') + '. See matching passes in the Store.';
+            showScheduleToast(toastMsg, 'error');
+
+            // After a short delay, switch to Store tab filtered to matching passes
+            var bookingProgramId = data.programId || null;
+            setTimeout(function() {
+              var storeBtn = document.querySelector('[data-yb-tab="store"]');
+              if (storeBtn) {
+                storeBtn.click();
+                // Once store loads, filter to passes matching this program
+                if (bookingProgramId) {
+                  setTimeout(function() {
+                    filterStoreByProgram(bookingProgramId, progName);
+                  }, 600);
+                }
+              }
+            }, 1500);
           } else {
             showScheduleToast(data.error || (isDa() ? 'Booking fejlede.' : 'Booking failed.'), 'error');
           }
@@ -2651,7 +3216,7 @@
   // ══════════════════════════════════════
   // RECEIPTS TAB
   // ══════════════════════════════════════
-  var receiptsPeriod = '365'; // default 1 year
+  var receiptsPeriod = '730'; // default 2 years — show past purchases for existing clients
 
   function loadReceipts(period) {
     var listEl = document.getElementById('yb-receipts-list');
@@ -2672,7 +3237,6 @@
     fetch('/.netlify/functions/mb-purchases?clientId=' + clientId + '&startDate=' + startDate + '&endDate=' + endDate)
       .then(function(r) { return r.json(); })
       .then(function(data) {
-        console.log('Receipts response:', data);
         var purchases = data.purchases || [];
         if (!purchases.length) { listEl.innerHTML = '<p class="yb-store__empty">' + t('receipts_empty') + '</p>'; return; }
         renderReceipts(listEl, purchases);
@@ -2692,103 +3256,64 @@
     purchases.forEach(function(p, idx) {
       var d = new Date(p.saleDate);
       var dateStr = d.toLocaleDateString(isDa() ? 'da-DK' : 'en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
-      var name = p.serviceName || p.description || '—';
-      var amount = p.amountPaid || p.price || 0;
+      var name = p.description || '—';
+      var totalPaid = Number(p.totalPaid) || Number(p.subtotal) || 0;
 
-      // Build type badge
-      var typeBadge = '';
-      if (p.type === 'contract') {
-        typeBadge = '<span class="yb-receipts__badge yb-receipts__badge--contract">' + (isDa() ? 'Medlemskab' : 'Membership') + '</span>';
-      } else if (p.type === 'service') {
-        typeBadge = '<span class="yb-receipts__badge yb-receipts__badge--service">' + (isDa() ? 'Klippekort' : 'Pass') + '</span>';
-      } else if (p.type === 'sale') {
-        typeBadge = '<span class="yb-receipts__badge yb-receipts__badge--sale">' + (isDa() ? 'Køb' : 'Purchase') + '</span>';
-      }
+      // Determine type from items
+      var hasItems = p.items && p.items.length > 0;
+      var isReturned = p.returned;
 
-      html += '<div class="yb-receipts__card' + (p.returned ? ' yb-receipts__card--returned' : '') + '" data-receipt-idx="' + idx + '">';
+      html += '<div class="yb-receipts__card' + (isReturned ? ' yb-receipts__card--returned' : '') + '" data-receipt-idx="' + idx + '">';
 
-      // Header: date + badges
+      // Header: date + sale ID
       html += '<div class="yb-receipts__card-header">';
       html += '<span class="yb-receipts__card-date">' + dateStr + '</span>';
       html += '<div class="yb-receipts__card-badges">';
-      html += typeBadge;
-      if (p.returned) {
+      if (isReturned) {
         html += '<span class="yb-receipts__badge yb-receipts__badge--returned">' + (isDa() ? 'Refunderet' : 'Refunded') + '</span>';
       }
-      if (p.current) {
-        html += '<span class="yb-receipts__badge yb-receipts__badge--active">' + (isDa() ? 'Aktiv' : 'Active') + '</span>';
-      }
+      html += '<span class="yb-receipts__card-ref">#' + (p.saleId || '') + '</span>';
       html += '</div>';
       html += '</div>';
 
-      // Body: name
+      // Body: item descriptions
       html += '<div class="yb-receipts__card-body">';
-      html += '<span class="yb-receipts__card-name">' + esc(name) + '</span>';
-      if (p.programName) {
-        html += '<span class="yb-receipts__card-program">' + esc(p.programName) + '</span>';
+      if (hasItems && p.items.length > 1) {
+        p.items.forEach(function(item) {
+          html += '<div class="yb-receipts__card-item">';
+          html += '<span class="yb-receipts__card-name">' + esc(item.description) + '</span>';
+          html += '<span class="yb-receipts__card-item-price">' + formatDKK(item.amountPaid || item.unitPrice || 0) + '</span>';
+          html += '</div>';
+        });
+      } else {
+        html += '<span class="yb-receipts__card-name">' + esc(name) + '</span>';
       }
       html += '</div>';
 
       // Details grid
       html += '<div class="yb-receipts__card-details">';
 
-      // Amount
+      // Total amount
       html += '<div class="yb-receipts__detail">';
-      html += '<span class="yb-receipts__detail-label">' + (isDa() ? 'Beløb' : 'Amount') + '</span>';
-      html += '<span class="yb-receipts__detail-value">' + (amount > 0 ? formatDKK(amount) : (isDa() ? 'Inkluderet' : 'Included')) + '</span>';
+      html += '<span class="yb-receipts__detail-label">' + (isDa() ? 'Total' : 'Total') + '</span>';
+      html += '<span class="yb-receipts__detail-value yb-receipts__detail-value--total">' + (totalPaid > 0 ? formatDKK(totalPaid) : (isDa() ? 'Gratis' : 'Free')) + '</span>';
       html += '</div>';
 
-      // Payment method
+      // Payment method + card
       if (p.paymentMethod) {
         var paymentDisplay = p.paymentMethod;
-        if (p.paymentLast4) paymentDisplay += ' ****' + p.paymentLast4;
+        if (p.paymentLast4) paymentDisplay += ' ***' + p.paymentLast4;
         html += '<div class="yb-receipts__detail">';
         html += '<span class="yb-receipts__detail-label">' + (isDa() ? 'Betaling' : 'Payment') + '</span>';
         html += '<span class="yb-receipts__detail-value">' + esc(paymentDisplay) + '</span>';
         html += '</div>';
       }
 
-      // Quantity
-      if (p.quantity > 1) {
+      // Tax
+      if (p.tax > 0) {
         html += '<div class="yb-receipts__detail">';
-        html += '<span class="yb-receipts__detail-label">' + (isDa() ? 'Antal' : 'Qty') + '</span>';
-        html += '<span class="yb-receipts__detail-value">' + p.quantity + '</span>';
-        html += '</div>';
-      }
-
-      // Remaining (for services)
-      if (typeof p.remaining === 'number' && p.count) {
-        html += '<div class="yb-receipts__detail">';
-        html += '<span class="yb-receipts__detail-label">' + (isDa() ? 'Klip brugt' : 'Sessions used') + '</span>';
-        html += '<span class="yb-receipts__detail-value">' + (p.count - p.remaining) + ' / ' + p.count + '</span>';
-        html += '</div>';
-      }
-
-      // Expiration
-      if (p.expirationDate) {
-        var expDate = new Date(p.expirationDate);
-        var expStr = expDate.toLocaleDateString(isDa() ? 'da-DK' : 'en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
-        html += '<div class="yb-receipts__detail">';
-        html += '<span class="yb-receipts__detail-label">' + (isDa() ? 'Udløber' : 'Expires') + '</span>';
-        html += '<span class="yb-receipts__detail-value">' + expStr + '</span>';
-        html += '</div>';
-      }
-
-      // Contract end date
-      if (p.contractEndDate) {
-        var endDate = new Date(p.contractEndDate);
-        var endStr = endDate.toLocaleDateString(isDa() ? 'da-DK' : 'en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
-        html += '<div class="yb-receipts__detail">';
-        html += '<span class="yb-receipts__detail-label">' + (isDa() ? 'Slutdato' : 'End date') + '</span>';
-        html += '<span class="yb-receipts__detail-value">' + endStr + '</span>';
-        html += '</div>';
-      }
-
-      // Autopay info
-      if (p.autopayAmount > 0) {
-        html += '<div class="yb-receipts__detail">';
-        html += '<span class="yb-receipts__detail-label">' + (isDa() ? 'Autopay' : 'Auto-pay') + '</span>';
-        html += '<span class="yb-receipts__detail-value">' + formatDKK(p.autopayAmount) + (isDa() ? '/md' : '/mo') + '</span>';
+        html += '<span class="yb-receipts__detail-label">' + (isDa() ? 'Heraf moms' : 'Incl. VAT') + '</span>';
+        html += '<span class="yb-receipts__detail-value">' + formatDKK(p.tax) + '</span>';
         html += '</div>';
       }
 
@@ -2797,14 +3322,6 @@
         html += '<div class="yb-receipts__detail">';
         html += '<span class="yb-receipts__detail-label">' + (isDa() ? 'Rabat' : 'Discount') + '</span>';
         html += '<span class="yb-receipts__detail-value yb-receipts__detail-value--discount">-' + formatDKK(p.discount) + '</span>';
-        html += '</div>';
-      }
-
-      // Tax
-      if (p.tax > 0) {
-        html += '<div class="yb-receipts__detail">';
-        html += '<span class="yb-receipts__detail-label">' + (isDa() ? 'Moms' : 'Tax') + '</span>';
-        html += '<span class="yb-receipts__detail-value">' + formatDKK(p.tax) + '</span>';
         html += '</div>';
       }
 
@@ -2818,12 +3335,11 @@
 
       html += '</div>'; // end details grid
 
-      // Reference + download
+      // Download invoice button
       html += '<div class="yb-receipts__card-actions">';
-      html += '<span class="yb-receipts__card-ref">#' + (p.saleId || p.id) + '</span>';
       html += '<button class="yb-receipts__download-btn" type="button" data-receipt-download="' + idx + '">';
       html += '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>';
-      html += (isDa() ? 'Download kvittering' : 'Download receipt');
+      html += (isDa() ? 'Download faktura' : 'Download invoice');
       html += '</button>';
       html += '</div>';
 
@@ -2833,46 +3349,218 @@
     html += '</div>';
     container.innerHTML = html;
 
-    // Attach download handlers
+    // Attach download handlers — generates HTML invoice
     container.querySelectorAll('[data-receipt-download]').forEach(function(btn) {
       btn.addEventListener('click', function() {
         var idx = parseInt(btn.getAttribute('data-receipt-download'), 10);
         var p = purchases[idx];
         if (!p) return;
-
-        var d = new Date(p.saleDate);
-        var dateStr = d.toLocaleDateString(isDa() ? 'da-DK' : 'en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
-        var name = p.serviceName || p.description || '—';
-        var amount = p.amountPaid || p.price || 0;
-
-        var txt = '═══════════════════════════════════\n';
-        txt += '       YOGA BIBLE — KVITTERING\n';
-        txt += '═══════════════════════════════════\n\n';
-        txt += (isDa() ? 'Dato: ' : 'Date: ') + dateStr + '\n';
-        txt += (isDa() ? 'Vare: ' : 'Item: ') + name + '\n';
-        if (p.programName) txt += (isDa() ? 'Program: ' : 'Program: ') + p.programName + '\n';
-        txt += (isDa() ? 'Beløb: ' : 'Amount: ') + (amount > 0 ? formatDKK(amount) : (isDa() ? 'Inkluderet' : 'Included')) + '\n';
-        if (p.paymentMethod) txt += (isDa() ? 'Betaling: ' : 'Payment: ') + p.paymentMethod + (p.paymentLast4 ? ' ****' + p.paymentLast4 : '') + '\n';
-        if (p.quantity > 1) txt += (isDa() ? 'Antal: ' : 'Qty: ') + p.quantity + '\n';
-        if (typeof p.remaining === 'number' && p.count) txt += (isDa() ? 'Klip brugt: ' : 'Sessions used: ') + (p.count - p.remaining) + ' / ' + p.count + '\n';
-        if (p.expirationDate) txt += (isDa() ? 'Udløber: ' : 'Expires: ') + new Date(p.expirationDate).toLocaleDateString(isDa() ? 'da-DK' : 'en-GB') + '\n';
-        if (p.discount > 0) txt += (isDa() ? 'Rabat: -' : 'Discount: -') + formatDKK(p.discount) + '\n';
-        if (p.tax > 0) txt += (isDa() ? 'Moms: ' : 'Tax: ') + formatDKK(p.tax) + '\n';
-        if (p.locationName) txt += (isDa() ? 'Lokation: ' : 'Location: ') + p.locationName + '\n';
-        txt += (isDa() ? 'Reference: #' : 'Reference: #') + (p.saleId || p.id) + '\n\n';
-        txt += '═══════════════════════════════════\n';
-        txt += 'Yoga Bible DK | yogabible.dk\n';
-        txt += 'Torvegade 66, 1400, København K\n';
-
-        var blob = new Blob([txt], { type: 'text/plain' });
-        var url = URL.createObjectURL(blob);
-        var a = document.createElement('a');
-        a.href = url;
-        a.download = 'kvittering-' + (p.saleId || p.id) + '.txt';
-        a.click();
-        URL.revokeObjectURL(url);
+        generateInvoiceHTML(p);
       });
     });
+  }
+
+  /**
+   * Generate a proper HTML invoice and trigger download.
+   * Matches the Mindbody invoice style: business header, bill to,
+   * line items table with VAT, payment details, totals.
+   */
+  function generateInvoiceHTML(p) {
+    var d = new Date(p.saleDate);
+    var dateStr = d.toLocaleDateString('da-DK', { day: '2-digit', month: '2-digit', year: 'numeric' });
+    var customerName = (currentUser && currentUser.displayName) || '';
+    var items = p.items || [{ description: p.description || '—', quantity: 1, unitPrice: p.totalPaid || 0, amountPaid: p.totalPaid || 0, discount: 0, tax: 0 }];
+    var saleId = p.saleId || '';
+
+    // Calculate totals
+    var subtotal = 0;
+    var totalTax = 0;
+    var totalDiscount = 0;
+    items.forEach(function(item) {
+      subtotal += (item.unitPrice || 0) * (item.quantity || 1);
+      totalTax += item.tax || 0;
+      totalDiscount += item.discount || 0;
+    });
+    var invoiceTotal = (p.totalPaid || subtotal - totalDiscount);
+
+    // Build payment adjustment info
+    var paymentInfo = '';
+    if (p.payments && p.payments.length > 0) {
+      p.payments.forEach(function(pay) {
+        paymentInfo += '<div class="inv-adj">';
+        paymentInfo += '<strong>' + (isDa() ? 'Betaling' : 'Payment') + '</strong><br>';
+        paymentInfo += dateStr + '<br>';
+        if (pay.method) paymentInfo += (isDa() ? 'Betalt med ' : 'Payment made with ') + pay.method;
+        if (pay.last4) paymentInfo += ' ***' + pay.last4;
+        paymentInfo += '<br>';
+        if (pay.notes) paymentInfo += pay.notes + '<br>';
+        paymentInfo += '<strong>(' + formatDKK(pay.amount || invoiceTotal) + ')</strong>';
+        paymentInfo += '</div>';
+      });
+    } else if (p.paymentMethod) {
+      paymentInfo += '<div class="inv-adj">';
+      paymentInfo += '<strong>' + (isDa() ? 'Betaling' : 'Payment') + '</strong><br>';
+      paymentInfo += dateStr + '<br>';
+      paymentInfo += p.paymentMethod;
+      if (p.paymentLast4) paymentInfo += ' ***' + p.paymentLast4;
+      paymentInfo += '<br><strong>(' + formatDKK(invoiceTotal) + ')</strong>';
+      paymentInfo += '</div>';
+    }
+
+    // Build line items rows
+    var itemsHTML = '';
+    items.forEach(function(item, i) {
+      var qty = item.quantity || 1;
+      var unitPrice = item.unitPrice || item.amountPaid || 0;
+      var itemTax = item.tax || 0;
+      var vatPct = (unitPrice > 0 && itemTax > 0) ? Math.round((itemTax / unitPrice) * 100) : 0;
+      var lineTotal = item.amountPaid || (unitPrice * qty);
+
+      itemsHTML += '<tr>';
+      itemsHTML += '<td class="inv-row-num">' + (i + 1) + '</td>';
+      itemsHTML += '<td class="inv-desc"><strong>' + esc(item.description || '—') + '</strong></td>';
+      itemsHTML += '<td class="inv-qty">' + qty + '</td>';
+      itemsHTML += '<td class="inv-price">' + formatDKK(unitPrice) + '</td>';
+      itemsHTML += '<td class="inv-vat-pct">' + vatPct + '%</td>';
+      itemsHTML += '<td class="inv-vat">' + formatDKK(itemTax) + '</td>';
+      itemsHTML += '<td class="inv-amount">' + formatDKK(lineTotal) + '</td>';
+      itemsHTML += '</tr>';
+    });
+
+    var amountDue = Math.max(0, invoiceTotal - (p.totalPaid || invoiceTotal));
+    var isPaid = amountDue <= 0;
+
+    var invoiceHTML = '<!DOCTYPE html><html><head><meta charset="utf-8"><title>' +
+      (isDa() ? 'Faktura' : 'Invoice') + ' #' + saleId + '</title>' +
+      '<style>' +
+      '* { margin: 0; padding: 0; box-sizing: border-box; }' +
+      'body { font-family: "Helvetica Neue", Helvetica, Arial, sans-serif; font-size: 13px; color: #333; padding: 40px; max-width: 800px; margin: 0 auto; }' +
+      '.inv-header { display: flex; justify-content: space-between; margin-bottom: 30px; }' +
+      '.inv-company { font-size: 13px; line-height: 1.6; }' +
+      '.inv-company-name { font-size: 18px; font-weight: 700; margin-bottom: 4px; }' +
+      '.inv-contact { text-align: right; font-size: 12px; color: #666; }' +
+      '.inv-billto { margin-bottom: 20px; }' +
+      '.inv-billto-label { font-weight: 700; font-size: 12px; text-transform: uppercase; color: #666; margin-bottom: 4px; }' +
+      '.inv-meta { display: flex; gap: 20px; align-items: center; margin-bottom: 20px; border: 1px solid #ddd; border-radius: 4px; padding: 10px 14px; }' +
+      '.inv-meta-block { font-size: 12px; }' +
+      '.inv-meta-block strong { display: block; font-size: 11px; color: #666; text-transform: uppercase; margin-bottom: 2px; }' +
+      '.inv-amount-due-box { background: #222; color: #fff; padding: 8px 16px; border-radius: 4px; text-align: center; }' +
+      '.inv-amount-due-box strong { display: block; font-size: 11px; text-transform: uppercase; margin-bottom: 2px; }' +
+      '.inv-amount-due-box .inv-due-val { font-size: 18px; font-weight: 700; }' +
+      '.inv-paid-label { display: inline-block; margin-left: 12px; font-weight: 700; font-size: 13px; }' +
+      'table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }' +
+      'thead th { background: #f5f5f5; font-size: 11px; font-weight: 700; text-transform: uppercase; color: #666; padding: 8px 10px; text-align: left; border-bottom: 2px solid #ddd; }' +
+      'thead th:first-child { width: 30px; }' +
+      'tbody td { padding: 10px; border-bottom: 1px solid #eee; vertical-align: top; }' +
+      '.inv-row-num { color: #999; text-align: center; }' +
+      '.inv-desc strong { font-weight: 600; }' +
+      '.inv-qty, .inv-price, .inv-vat-pct, .inv-vat, .inv-amount { text-align: right; white-space: nowrap; }' +
+      '.inv-totals { display: flex; justify-content: flex-end; }' +
+      '.inv-totals-table { width: 300px; }' +
+      '.inv-totals-table td { padding: 6px 10px; }' +
+      '.inv-totals-table td:first-child { text-align: left; font-weight: 600; }' +
+      '.inv-totals-table td:last-child { text-align: right; }' +
+      '.inv-totals-table .inv-total-row { border-top: 2px solid #333; font-weight: 700; font-size: 14px; }' +
+      '.inv-totals-table .inv-due-row { background: #222; color: #fff; font-weight: 700; font-size: 15px; }' +
+      '.inv-totals-table .inv-due-row td { padding: 10px; }' +
+      '.inv-adj { font-size: 12px; line-height: 1.5; margin-bottom: 8px; color: #555; }' +
+      '.inv-paid-stamp { font-weight: 700; font-size: 14px; margin: 10px 0; text-decoration: underline; }' +
+      '.inv-footer { margin-top: 30px; padding-top: 20px; border-top: 1px solid #ddd; font-size: 11px; color: #888; line-height: 1.6; }' +
+      '.inv-footer-note { font-style: italic; margin-bottom: 12px; }' +
+      '@media print { body { padding: 20px; } .inv-no-print { display: none; } }' +
+      '</style></head><body>';
+
+    // Print button
+    invoiceHTML += '<div class="inv-no-print" style="margin-bottom:20px;text-align:right;">' +
+      '<button onclick="window.print()" style="padding:8px 20px;background:#f75c03;color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:13px;font-weight:600;">' +
+      (isDa() ? 'Print / Gem som PDF' : 'Print / Save as PDF') + '</button></div>';
+
+    // Header: company info
+    invoiceHTML += '<div class="inv-header">' +
+      '<div class="inv-company">' +
+      '<div class="inv-company-name">Yoga Bible</div>' +
+      '66 Torvegade<br>1400 K\u00f8benhavn<br>DENMARK<br>' +
+      'VAT ID Cvr. 41295252 Hot Yoga Copenhagen Aps' +
+      '</div>' +
+      '<div class="inv-contact">4553881209<br>info@hotyogacph.dk</div>' +
+      '</div>';
+
+    // Bill to
+    invoiceHTML += '<div class="inv-billto">' +
+      '<div class="inv-billto-label">BILL TO</div>' +
+      '<strong>' + esc(customerName) + '</strong><br>' +
+      (clientId ? clientId : '') +
+      '</div>';
+
+    // Meta row: invoice number, dates, amount due
+    invoiceHTML += '<div class="inv-meta">' +
+      '<div class="inv-meta-block"><strong>' + (isDa() ? 'Faktura' : 'Invoice') + '</strong>Aps-' + String(saleId).padStart(8, '0') + '<br>Sale ID ' + saleId + '</div>' +
+      '<div class="inv-meta-block"><strong>' + (isDa() ? 'Fakturadato' : 'Invoice date') + '</strong>' + dateStr + '<br>' + (isDa() ? 'Salgsdato ' : 'Sale date ') + dateStr + '</div>' +
+      '<div class="inv-amount-due-box"><strong>' + (isDa() ? 'Skyldig bel\u00f8b' : 'Amount due') + '</strong><div class="inv-due-val">' + formatDKK(amountDue) + '</div></div>' +
+      (isPaid ? '<span class="inv-paid-label">' + (isDa() ? 'Betalt' : 'Paid') + '</span>' : '') +
+      '</div>';
+
+    // Items table
+    invoiceHTML += '<table><thead><tr>' +
+      '<th></th>' +
+      '<th>' + (isDa() ? 'BESKRIVELSE' : 'DESCRIPTION') + '</th>' +
+      '<th style="text-align:right">' + (isDa() ? 'ANTAL' : 'QTY') + '</th>' +
+      '<th style="text-align:right">' + (isDa() ? 'ENHEDSPRIS' : 'UNIT PRICE') + '</th>' +
+      '<th style="text-align:right">' + (isDa() ? 'MOMS%' : 'VAT%') + '</th>' +
+      '<th style="text-align:right">' + (isDa() ? 'MOMS' : 'VAT') + '</th>' +
+      '<th style="text-align:right">' + (isDa() ? 'BEL\u00d8B' : 'AMOUNT') + '</th>' +
+      '</tr></thead><tbody>' + itemsHTML + '</tbody></table>';
+
+    // Totals
+    invoiceHTML += '<div class="inv-totals"><table class="inv-totals-table">' +
+      '<tr><td>' + (isDa() ? 'Subtotal' : 'Subtotal') + '</td><td>' + formatDKK(subtotal) + '</td></tr>';
+    if (totalDiscount > 0) {
+      invoiceHTML += '<tr><td>' + (isDa() ? 'Rabat' : 'Discount') + '</td><td>-' + formatDKK(totalDiscount) + '</td></tr>';
+    }
+    invoiceHTML += '<tr><td>' + (isDa() ? 'Moms' : 'VAT') + '</td><td>' + formatDKK(totalTax) + '</td></tr>' +
+      '<tr class="inv-total-row"><td>' + (isDa() ? 'Faktura total' : 'Invoice total') + '</td><td>' + formatDKK(invoiceTotal) + '</td></tr>';
+
+    // Payment adjustment
+    if (paymentInfo) {
+      invoiceHTML += '<tr><td colspan="2" style="padding-top:12px;">' + paymentInfo + '</td></tr>';
+    }
+
+    invoiceHTML += '<tr class="inv-due-row"><td>' + (isDa() ? 'Skyldig bel\u00f8b' : 'Amount due') + '</td><td>' + formatDKK(amountDue) + '</td></tr>' +
+      '</table></div>';
+
+    // Paid stamp
+    if (isPaid) {
+      invoiceHTML += '<div class="inv-paid-stamp">' + (isDa() ? 'Betalt' : 'Paid') + '</div>';
+    }
+
+    // Footer
+    invoiceHTML += '<div class="inv-footer">' +
+      '<div class="inv-footer-note">' + (isDa() ? 'Betal venligst bel\u00f8bet, hvis det allerede er ubetalt, til nedenst\u00e5ende kontooplysninger:' : 'Please pay amount, if already unpaid to account information below:') + '</div>' +
+      'Hot Yoga Copenhagen<br>' +
+      'Reg. 3409<br>' +
+      'Acc. 13011206<br>' +
+      'Danske Bank<br><br>' +
+      'BIC: DABADKKK<br>' +
+      'IBAN: DK7430000013011206' +
+      '</div>';
+
+    invoiceHTML += '</body></html>';
+
+    // Open invoice in new window — user can Print > Save as PDF
+    var w = window.open('', '_blank');
+    if (w) {
+      w.document.write(invoiceHTML);
+      w.document.close();
+    } else {
+      // Popup blocked — download as HTML file
+      var blob = new Blob([invoiceHTML], { type: 'text/html' });
+      var url = URL.createObjectURL(blob);
+      var a = document.createElement('a');
+      a.href = url;
+      a.download = 'faktura-' + (p.saleId || 'unknown') + '.html';
+      a.click();
+      URL.revokeObjectURL(url);
+    }
   }
 
   // ══════════════════════════════════════
@@ -2989,6 +3677,9 @@
       membership_manage_info: isDa()
         ? 'Vil du <strong>sætte dit abonnement på pause</strong> (14 dage – 3 måneder, særlige omstændigheder) eller <strong>opsige dit medlemskab</strong> (1 måneds opsigelsesvarsel jf. handelsbetingelser)? Skriv til os på <a href="mailto:info@yogabible.dk">info@yogabible.dk</a>'
         : 'Want to <strong>pause your membership</strong> (14 days – 3 months, special circumstances) or <strong>cancel your membership</strong> (1 month notice per terms &amp; conditions)? Email us at <a href="mailto:info@yogabible.dk">info@yogabible.dk</a>',
+      membership_cancel_info: isDa()
+        ? 'Vil du <strong>opsige dit medlemskab</strong>? Skriv til os på <a href="mailto:info@yogabible.dk">info@yogabible.dk</a> (1 måneds opsigelsesvarsel jf. handelsbetingelser)'
+        : 'Want to <strong>cancel your membership</strong>? Email us at <a href="mailto:info@yogabible.dk">info@yogabible.dk</a> (1 month notice per terms &amp; conditions)',
       membership_cancel_termination_hint: isDa()
         ? 'Vil du annullere opsigelsen? Kontakt os på <a href="mailto:info@yogabible.dk">info@yogabible.dk</a>'
         : 'Want to cancel the termination? Contact us at <a href="mailto:info@yogabible.dk">info@yogabible.dk</a>',

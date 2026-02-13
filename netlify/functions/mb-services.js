@@ -25,16 +25,24 @@ exports.handler = async function(event) {
     var params = event.queryStringParameters || {};
     var type = params.type || 'services';
 
-    // Return service categories
+    // Return service categories (programs)
     if (type === 'categories') {
-      var catData = await mbFetch('/sale/servicecategories');
-      var categories = (catData.ServiceCategories || []).map(function(c) {
-        return {
-          id: c.Id,
-          name: c.Name
-        };
-      });
-      return jsonResponse(200, { categories, total: categories.length });
+      // Try /site/programs first (standard MB API), fallback to /sale/servicecategories
+      var catData;
+      try {
+        catData = await mbFetch('/site/programs');
+        var programs = (catData.Programs || []).map(function(p) {
+          return { id: p.Id, name: p.Name, scheduleType: p.ScheduleType || '' };
+        });
+        return jsonResponse(200, { categories: programs, total: programs.length });
+      } catch (e1) {
+        console.log('[mb-services] /site/programs failed:', e1.message, '— trying /sale/servicecategories');
+        catData = await mbFetch('/sale/servicecategories');
+        var categories = (catData.ServiceCategories || []).map(function(c) {
+          return { id: c.Id, name: c.Name };
+        });
+        return jsonResponse(200, { categories, total: categories.length });
+      }
     }
 
     if (type === 'products') {
@@ -66,6 +74,15 @@ exports.handler = async function(event) {
     if (params.programIds) svcPath += '&ProgramIds=' + params.programIds;
 
     var svcData = await mbFetch(svcPath);
+
+    // Debug: log first service raw structure to see if Program exists
+    if ((svcData.Services || []).length > 0) {
+      var sample = svcData.Services[0];
+      console.log('[mb-services] Sample raw service keys:', Object.keys(sample));
+      console.log('[mb-services] Sample Program:', JSON.stringify(sample.Program));
+      console.log('[mb-services] Sample ServiceCategory:', JSON.stringify(sample.ServiceCategory));
+    }
+
     var services = (svcData.Services || []).map(function(s) {
       return {
         id: s.Id,
@@ -74,8 +91,8 @@ exports.handler = async function(event) {
         onlinePrice: s.OnlinePrice,
         count: s.Count,
         description: s.Description || '',
-        programId: s.Program ? s.Program.Id : null,
-        programName: s.Program ? s.Program.Name : null
+        programId: s.Program ? s.Program.Id : (s.ServiceCategoryId || null),
+        programName: s.Program ? s.Program.Name : (s.ServiceCategoryName || null)
       };
     });
 

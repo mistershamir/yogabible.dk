@@ -64,21 +64,30 @@ exports.handler = async function(event) {
     try {
       var body = JSON.parse(event.body || '{}');
 
-      if (!body.clientId || !body.classScheduleId) {
-        return jsonResponse(400, { error: 'clientId and classScheduleId are required' });
+      if (!body.clientId || (!body.classScheduleId && !body.classId)) {
+        return jsonResponse(400, { error: 'clientId and classScheduleId (or classId) are required' });
       }
 
-      var data = await mbFetch('/class/addclienttowaitlist', {
+      // Mindbody v6 has no separate waitlist endpoint —
+      // addclienttoclass auto-adds to waitlist when the class is full
+      var requestBody = {
+        ClientId: body.clientId,
+        Waitlist: true
+      };
+      if (body.classId) {
+        requestBody.ClassId = body.classId;
+      } else {
+        requestBody.ClassScheduleId = body.classScheduleId;
+      }
+
+      var data = await mbFetch('/class/addclienttoclass', {
         method: 'POST',
-        body: JSON.stringify({
-          ClientId: body.clientId,
-          ClassScheduleId: body.classScheduleId
-        })
+        body: JSON.stringify(requestBody)
       });
 
       return jsonResponse(200, {
         success: true,
-        waitlistEntry: data.WaitlistEntry || null,
+        waitlistEntry: data.WaitlistEntry || data.Visit || null,
         message: 'Added to waitlist'
       });
     } catch (err) {

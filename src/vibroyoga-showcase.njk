@@ -1,0 +1,439 @@
+---
+layout: false
+permalink: /vibroyoga-showcase/
+eleventyExcludeFromCollections: true
+noindex: true
+---
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Vibro Yoga — 30 Vibration Experiments</title>
+  <style>
+    @font-face { font-family:'Abacaxi'; src:url('/assets/fonts/AbacaxiLatinWeb-Regular.woff2') format('woff2'); font-weight:400; font-style:normal; font-display:swap; }
+    @font-face { font-family:'Abacaxi'; src:url('/assets/fonts/AbacaxiLatinWeb-Bold.woff2') format('woff2'); font-weight:700; font-style:normal; font-display:swap; }
+  </style>
+  <link rel="stylesheet" href="/css/vibroyoga-showcase.css">
+</head>
+<body>
+
+  <!-- ── Sticky Navigation ── -->
+  <nav class="vs-nav" id="vs-nav">
+    <div class="vs-nav__inner">
+      <a href="/vibroyogadesign/" class="vs-nav__back" title="Back">&larr;</a>
+      <div class="vs-nav__group">
+        <span class="vs-nav__label">Sound</span>
+        <div class="vs-nav__links">
+          <a href="#oscilloscope" class="vs-nav__link is-active" data-section="0">01</a>
+          <a href="#seismic" class="vs-nav__link" data-section="1">02</a>
+          <a href="#resonance" class="vs-nav__link" data-section="2">03</a>
+          <a href="#molecular" class="vs-nav__link" data-section="3">04</a>
+          <a href="#frequency" class="vs-nav__link" data-section="4">05</a>
+          <a href="#cursor-field" class="vs-nav__link" data-section="5">06</a>
+          <a href="#cymatics" class="vs-nav__link" data-section="6">07</a>
+          <a href="#strings" class="vs-nav__link" data-section="7">08</a>
+          <a href="#ripple" class="vs-nav__link" data-section="8">09</a>
+          <a href="#pendulum" class="vs-nav__link" data-section="9">10</a>
+          <a href="#waveform" class="vs-nav__link" data-section="10">11</a>
+          <a href="#standing" class="vs-nav__link" data-section="11">12</a>
+          <a href="#chladni" class="vs-nav__link" data-section="12">13</a>
+          <a href="#harmonics" class="vs-nav__link" data-section="13">14</a>
+          <a href="#pressure" class="vs-nav__link" data-section="14">15</a>
+          <a href="#doppler" class="vs-nav__link" data-section="15">16</a>
+          <a href="#tuning-fork" class="vs-nav__link" data-section="16">17</a>
+          <a href="#binaural" class="vs-nav__link" data-section="17">18</a>
+        </div>
+      </div>
+      <div class="vs-nav__group">
+        <span class="vs-nav__label">Yoga</span>
+        <div class="vs-nav__links">
+          <a href="#pranayama" class="vs-nav__link" data-section="18">19</a>
+          <a href="#fascia" class="vs-nav__link" data-section="19">20</a>
+          <a href="#spine" class="vs-nav__link" data-section="20">21</a>
+          <a href="#chakra" class="vs-nav__link" data-section="21">22</a>
+          <a href="#lotus" class="vs-nav__link" data-section="22">23</a>
+          <a href="#meditation" class="vs-nav__link" data-section="23">24</a>
+          <a href="#muscle" class="vs-nav__link" data-section="24">25</a>
+          <a href="#focus" class="vs-nav__link" data-section="25">26</a>
+          <a href="#heartbeat" class="vs-nav__link" data-section="26">27</a>
+          <a href="#neural" class="vs-nav__link" data-section="27">28</a>
+          <a href="#flow" class="vs-nav__link" data-section="28">29</a>
+          <a href="#kundalini" class="vs-nav__link" data-section="29">30</a>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <!-- ── Progress Bar ── -->
+  <div class="vs-progress"><div class="vs-progress__bar" id="vs-progress-bar"></div></div>
+
+  <!-- ══════════════════════════════════════════
+       SOUND & VIBRATION SECTIONS (1-18)
+       ══════════════════════════════════════════ -->
+
+  <!-- 01: OSCILLOSCOPE -->
+  <section class="vs-section" id="oscilloscope" data-vs-idx="0" data-vs-bg="#0d0a1a" data-vs-accent="#7c5cff">
+    <canvas class="vs-canvas" data-vs-type="oscilloscope"></canvas>
+    <div class="vs-section__overlay">
+      <span class="vs-section__number">01</span>
+      <h2 class="vs-section__title">Oscilloscope</h2>
+      <p class="vs-section__subtitle">Move your cursor up and down to change waveform amplitude</p>
+    </div>
+  </section>
+
+  <!-- 02: SEISMIC -->
+  <section class="vs-section" id="seismic" data-vs-idx="1" data-vs-bg="#0f0806" data-vs-accent="#cc4400">
+    <div class="vs-section__overlay">
+      <span class="vs-section__number">02</span>
+      <h2 class="vs-section__title" data-vs-tremor>Seismic</h2>
+      <p class="vs-section__subtitle">Scroll to increase seismograph intensity — hover cards to shake them</p>
+    </div>
+    <div class="vs-seismic-readout">
+      <canvas class="vs-seismic-canvas" height="120"></canvas>
+    </div>
+    <div class="vs-section__cards">
+      <div class="vs-card" data-vs-shake style="--accent:#cc4400">
+        <h3 class="vs-card__title">Foundation</h3>
+        <p class="vs-card__text">Vibration challenges your base, making still poses powerful.</p>
+      </div>
+      <div class="vs-card" data-vs-shake style="--accent:#cc4400">
+        <h3 class="vs-card__title">Aftershock</h3>
+        <p class="vs-card__text">Benefits ripple outward — better balance, deeper sleep.</p>
+      </div>
+      <div class="vs-card" data-vs-shake style="--accent:#cc4400">
+        <h3 class="vs-card__title">Release</h3>
+        <p class="vs-card__text">Your body releases stored tension in muscles and fascia.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 03: RESONANCE CASCADE -->
+  <section class="vs-section" id="resonance" data-vs-idx="2" data-vs-bg="#080810" data-vs-accent="#d4a54a">
+    <div class="vs-resonance-rings">
+      <div class="vs-resonance-ring"></div><div class="vs-resonance-ring"></div><div class="vs-resonance-ring"></div><div class="vs-resonance-ring"></div><div class="vs-resonance-ring"></div>
+    </div>
+    <div class="vs-section__overlay">
+      <span class="vs-section__number">03</span>
+      <h2 class="vs-section__title">Resonance Cascade</h2>
+      <p class="vs-section__subtitle">Hover a card — watch vibration spread to the others</p>
+    </div>
+    <div class="vs-section__cards vs-section__cards--cascade">
+      <div class="vs-card" data-vs-cascade="0" style="--accent:#d4a54a"><h3 class="vs-card__title">Touch</h3><p class="vs-card__text">Vibration begins at the point of contact.</p></div>
+      <div class="vs-card" data-vs-cascade="1" style="--accent:#d4a54a"><h3 class="vs-card__title">Travel</h3><p class="vs-card__text">It moves through muscle, tendon, and bone.</p></div>
+      <div class="vs-card" data-vs-cascade="2" style="--accent:#d4a54a"><h3 class="vs-card__title">Resonate</h3><p class="vs-card__text">External frequency meets your natural frequency.</p></div>
+      <div class="vs-card" data-vs-cascade="3" style="--accent:#d4a54a"><h3 class="vs-card__title">Release</h3><p class="vs-card__text">Tension dissolves. Fascia softens.</p></div>
+      <div class="vs-card" data-vs-cascade="4" style="--accent:#d4a54a"><h3 class="vs-card__title">Transform</h3><p class="vs-card__text">Each session compounds your capacity.</p></div>
+      <div class="vs-card" data-vs-cascade="5" style="--accent:#d4a54a"><h3 class="vs-card__title">Radiate</h3><p class="vs-card__text">Benefits extend beyond the mat.</p></div>
+    </div>
+  </section>
+
+  <!-- 04: MOLECULAR -->
+  <section class="vs-section" id="molecular" data-vs-idx="3" data-vs-bg="#061515" data-vs-accent="#00bfa5">
+    <canvas class="vs-canvas" data-vs-type="molecular"></canvas>
+    <div class="vs-section__overlay">
+      <span class="vs-section__number">04</span>
+      <h2 class="vs-section__title">Molecular</h2>
+      <p class="vs-section__subtitle">Scroll to increase molecular energy — watch particles accelerate</p>
+    </div>
+    <div class="vs-temp-meter">
+      <div class="vs-temp-meter__track"><div class="vs-temp-meter__fill" data-vs-temp-fill></div></div>
+      <span class="vs-temp-meter__label">Energy Level</span>
+    </div>
+  </section>
+
+  <!-- 05: FREQUENCY -->
+  <section class="vs-section" id="frequency" data-vs-idx="4" data-vs-bg="#050508" data-vs-accent="#3f99a5">
+    <canvas class="vs-canvas" data-vs-type="frequency"></canvas>
+    <div class="vs-section__overlay">
+      <span class="vs-section__number">05</span>
+      <h2 class="vs-section__title"><span class="vs-vibrate-letter">F</span><span class="vs-vibrate-letter">R</span><span class="vs-vibrate-letter">E</span><span class="vs-vibrate-letter">Q</span><span class="vs-vibrate-letter">U</span><span class="vs-vibrate-letter">E</span><span class="vs-vibrate-letter">N</span><span class="vs-vibrate-letter">C</span><span class="vs-vibrate-letter">Y</span></h2>
+      <p class="vs-section__subtitle">Your body is an instrument — scroll to find its frequency</p>
+    </div>
+    <div class="vs-freq-bars" data-vs-freq-bars></div>
+  </section>
+
+  <!-- 06: CURSOR FIELD -->
+  <section class="vs-section" id="cursor-field" data-vs-idx="5" data-vs-bg="#030306" data-vs-accent="#3f99a5">
+    <canvas class="vs-canvas" data-vs-type="cursor-field"></canvas>
+    <div class="vs-section__overlay">
+      <span class="vs-section__number">06</span>
+      <h2 class="vs-section__title" data-vs-magnetic>Cursor Field</h2>
+      <p class="vs-section__subtitle">Move your cursor — particles react to your presence</p>
+    </div>
+  </section>
+
+  <!-- 07: CYMATICS -->
+  <section class="vs-section" id="cymatics" data-vs-idx="6" data-vs-bg="#060608" data-vs-accent="#e8dcc8">
+    <canvas class="vs-canvas" data-vs-type="cymatics"></canvas>
+    <div class="vs-section__overlay">
+      <span class="vs-section__number">07</span>
+      <h2 class="vs-section__title">Cymatics</h2>
+      <p class="vs-section__subtitle">When vibration creates form — scroll to change wave frequency</p>
+    </div>
+  </section>
+
+  <!-- 08: STRING RESONANCE -->
+  <section class="vs-section" id="strings" data-vs-idx="7" data-vs-bg="#120808" data-vs-accent="#e05555">
+    <div class="vs-section__overlay">
+      <span class="vs-section__number">08</span>
+      <h2 class="vs-section__title">String Resonance</h2>
+      <p class="vs-section__subtitle">Hover over the strings to pluck them</p>
+    </div>
+    <div class="vs-strings-container">
+      <svg class="vs-string-svg" viewBox="0 0 1000 50" preserveAspectRatio="none" data-vs-string="0"><line x1="0" y1="25" x2="1000" y2="25" stroke="#e05555" stroke-width="2.5"/></svg>
+      <svg class="vs-string-svg" viewBox="0 0 1000 50" preserveAspectRatio="none" data-vs-string="1"><line x1="0" y1="25" x2="1000" y2="25" stroke="#e06666" stroke-width="2.1"/></svg>
+      <svg class="vs-string-svg" viewBox="0 0 1000 50" preserveAspectRatio="none" data-vs-string="2"><line x1="0" y1="25" x2="1000" y2="25" stroke="#e07777" stroke-width="1.7"/></svg>
+      <svg class="vs-string-svg" viewBox="0 0 1000 50" preserveAspectRatio="none" data-vs-string="3"><line x1="0" y1="25" x2="1000" y2="25" stroke="#e08888" stroke-width="1.3"/></svg>
+      <svg class="vs-string-svg" viewBox="0 0 1000 50" preserveAspectRatio="none" data-vs-string="4"><line x1="0" y1="25" x2="1000" y2="25" stroke="#e09999" stroke-width="1.0"/></svg>
+      <svg class="vs-string-svg" viewBox="0 0 1000 50" preserveAspectRatio="none" data-vs-string="5"><line x1="0" y1="25" x2="1000" y2="25" stroke="#e0aaaa" stroke-width="0.8"/></svg>
+    </div>
+  </section>
+
+  <!-- 09: RIPPLE INTERFERENCE -->
+  <section class="vs-section" id="ripple" data-vs-idx="8" data-vs-bg="#060a14" data-vs-accent="#4488cc">
+    <canvas class="vs-canvas" data-vs-type="ripple"></canvas>
+    <div class="vs-section__overlay">
+      <span class="vs-section__number">09</span>
+      <h2 class="vs-section__title">Ripple Interference</h2>
+      <p class="vs-section__subtitle">Click anywhere to create wave sources — watch interference patterns</p>
+    </div>
+    <div class="vs-ripple-counter"><span data-vs-ripple-count>0</span> sources</div>
+  </section>
+
+  <!-- 10: PENDULUM WAVE -->
+  <section class="vs-section" id="pendulum" data-vs-idx="9" data-vs-bg="#061008" data-vs-accent="#55cc88">
+    <canvas class="vs-canvas" data-vs-type="pendulum"></canvas>
+    <div class="vs-section__overlay">
+      <span class="vs-section__number">10</span>
+      <h2 class="vs-section__title">Pendulum Wave</h2>
+      <p class="vs-section__subtitle">15 pendulums of different lengths create wave patterns</p>
+    </div>
+    <div class="vs-pendulum-controls"><button class="vs-ctrl-btn" data-vs-pendulum-reset>Reset Wave</button></div>
+  </section>
+
+  <!-- 11: WAVEFORM SYNTH -->
+  <section class="vs-section" id="waveform" data-vs-idx="10" data-vs-bg="#0a1a0a" data-vs-accent="#66ff66">
+    <canvas class="vs-canvas" data-vs-type="waveform"></canvas>
+    <div class="vs-section__overlay">
+      <span class="vs-section__number">11</span>
+      <h2 class="vs-section__title">Waveform Synth</h2>
+      <p class="vs-section__subtitle">Switch between wave types — each shape has a different sonic character</p>
+    </div>
+    <div class="vs-wave-controls">
+      <button class="vs-ctrl-btn is-active" data-vs-wave="sine">Sine</button>
+      <button class="vs-ctrl-btn" data-vs-wave="square">Square</button>
+      <button class="vs-ctrl-btn" data-vs-wave="sawtooth">Sawtooth</button>
+      <button class="vs-ctrl-btn" data-vs-wave="triangle">Triangle</button>
+    </div>
+  </section>
+
+  <!-- 12: STANDING WAVES -->
+  <section class="vs-section" id="standing" data-vs-idx="11" data-vs-bg="#0a0a1a" data-vs-accent="#6666ff">
+    <canvas class="vs-canvas" data-vs-type="standing"></canvas>
+    <div class="vs-section__overlay">
+      <span class="vs-section__number">12</span>
+      <h2 class="vs-section__title">Standing Waves</h2>
+      <p class="vs-section__subtitle">Two opposing waves create stationary nodes — scroll to add harmonics</p>
+    </div>
+  </section>
+
+  <!-- 13: CHLADNI PATTERNS -->
+  <section class="vs-section" id="chladni" data-vs-idx="12" data-vs-bg="#0a0808" data-vs-accent="#cc8844">
+    <canvas class="vs-canvas" data-vs-type="chladni"></canvas>
+    <div class="vs-section__overlay">
+      <span class="vs-section__number">13</span>
+      <h2 class="vs-section__title">Chladni Patterns</h2>
+      <p class="vs-section__subtitle">Sand on a vibrating plate — scroll to change the frequency mode</p>
+    </div>
+  </section>
+
+  <!-- 14: HARMONIC SERIES -->
+  <section class="vs-section" id="harmonics" data-vs-idx="13" data-vs-bg="#0a0a0a" data-vs-accent="#ffffff">
+    <canvas class="vs-canvas" data-vs-type="harmonics"></canvas>
+    <div class="vs-section__overlay">
+      <span class="vs-section__number">14</span>
+      <h2 class="vs-section__title">Harmonic Series</h2>
+      <p class="vs-section__subtitle">The fundamental frequency and its overtones stacked</p>
+    </div>
+  </section>
+
+  <!-- 15: SOUND PRESSURE -->
+  <section class="vs-section" id="pressure" data-vs-idx="14" data-vs-bg="#100a08" data-vs-accent="#cc8833">
+    <canvas class="vs-canvas" data-vs-type="pressure"></canvas>
+    <div class="vs-section__overlay">
+      <span class="vs-section__number">15</span>
+      <h2 class="vs-section__title">Sound Pressure</h2>
+      <p class="vs-section__subtitle">Longitudinal compression waves — how sound actually travels</p>
+    </div>
+  </section>
+
+  <!-- 16: DOPPLER SHIFT -->
+  <section class="vs-section" id="doppler" data-vs-idx="15" data-vs-bg="#08080f" data-vs-accent="#cc66cc">
+    <canvas class="vs-canvas" data-vs-type="doppler"></canvas>
+    <div class="vs-section__overlay">
+      <span class="vs-section__number">16</span>
+      <h2 class="vs-section__title">Doppler Shift</h2>
+      <p class="vs-section__subtitle">A moving source compresses waves ahead, stretches them behind</p>
+    </div>
+  </section>
+
+  <!-- 17: TUNING FORK -->
+  <section class="vs-section" id="tuning-fork" data-vs-idx="16" data-vs-bg="#0a0a0e" data-vs-accent="#aaaacc">
+    <canvas class="vs-canvas" data-vs-type="tuning-fork"></canvas>
+    <div class="vs-section__overlay">
+      <span class="vs-section__number">17</span>
+      <h2 class="vs-section__title">Tuning Fork</h2>
+      <p class="vs-section__subtitle">Click to strike — concentric sound waves radiate outward</p>
+    </div>
+  </section>
+
+  <!-- 18: BINAURAL BEATS -->
+  <section class="vs-section" id="binaural" data-vs-idx="17" data-vs-bg="#0a060a" data-vs-accent="#cc44cc">
+    <canvas class="vs-canvas" data-vs-type="binaural"></canvas>
+    <div class="vs-section__overlay">
+      <span class="vs-section__number">18</span>
+      <h2 class="vs-section__title">Binaural Beats</h2>
+      <p class="vs-section__subtitle">Two slightly different frequencies create a third perceived rhythm</p>
+    </div>
+  </section>
+
+  <!-- ══════════════════════════════════════════
+       YOGA & BODY SECTIONS (19-30)
+       ══════════════════════════════════════════ -->
+
+  <!-- 19: PRANAYAMA -->
+  <section class="vs-section" id="pranayama" data-vs-idx="18" data-vs-bg="#080a10" data-vs-accent="#66aacc">
+    <canvas class="vs-canvas" data-vs-type="pranayama"></canvas>
+    <div class="vs-section__overlay">
+      <span class="vs-section__number">19</span>
+      <h2 class="vs-section__title">Pranayama</h2>
+      <p class="vs-section__subtitle">Follow the breath — 4 seconds in, 7 hold, 8 out</p>
+    </div>
+    <div class="vs-breath-guide"><span data-vs-breath-text>Breathe In</span></div>
+  </section>
+
+  <!-- 20: FASCIA WEB -->
+  <section class="vs-section" id="fascia" data-vs-idx="19" data-vs-bg="#0a0808" data-vs-accent="#cc7766">
+    <canvas class="vs-canvas" data-vs-type="fascia"></canvas>
+    <div class="vs-section__overlay">
+      <span class="vs-section__number">20</span>
+      <h2 class="vs-section__title">Fascia Web</h2>
+      <p class="vs-section__subtitle">Move your cursor — the connective tissue stretches and springs back</p>
+    </div>
+  </section>
+
+  <!-- 21: SPINE WAVE -->
+  <section class="vs-section" id="spine" data-vs-idx="20" data-vs-bg="#08080a" data-vs-accent="#ddccbb">
+    <canvas class="vs-canvas" data-vs-type="spine"></canvas>
+    <div class="vs-section__overlay">
+      <span class="vs-section__number">21</span>
+      <h2 class="vs-section__title">Spine Wave</h2>
+      <p class="vs-section__subtitle">A wave of movement flows through 24 vertebrae</p>
+    </div>
+  </section>
+
+  <!-- 22: CHAKRA ENERGY -->
+  <section class="vs-section" id="chakra" data-vs-idx="21" data-vs-bg="#050508" data-vs-accent="#aa66cc">
+    <canvas class="vs-canvas" data-vs-type="chakra"></canvas>
+    <div class="vs-section__overlay">
+      <span class="vs-section__number">22</span>
+      <h2 class="vs-section__title">Chakra Energy</h2>
+      <p class="vs-section__subtitle">7 energy centers — scroll to activate from root to crown</p>
+    </div>
+  </section>
+
+  <!-- 23: LOTUS BLOOM -->
+  <section class="vs-section" id="lotus" data-vs-idx="22" data-vs-bg="#080808" data-vs-accent="#dd88aa">
+    <canvas class="vs-canvas" data-vs-type="lotus"></canvas>
+    <div class="vs-section__overlay">
+      <span class="vs-section__number">23</span>
+      <h2 class="vs-section__title">Lotus Bloom</h2>
+      <p class="vs-section__subtitle">Scroll to unfurl the petals — from bud to full bloom</p>
+    </div>
+  </section>
+
+  <!-- 24: MEDITATION STILLNESS -->
+  <section class="vs-section" id="meditation" data-vs-idx="23" data-vs-bg="#050505" data-vs-accent="#999999">
+    <canvas class="vs-canvas" data-vs-type="meditation"></canvas>
+    <div class="vs-section__overlay">
+      <span class="vs-section__number">24</span>
+      <h2 class="vs-section__title">Meditation</h2>
+      <p class="vs-section__subtitle">Scroll down — chaos becomes stillness, noise becomes silence</p>
+    </div>
+  </section>
+
+  <!-- 25: MUSCLE FIBER -->
+  <section class="vs-section" id="muscle" data-vs-idx="24" data-vs-bg="#0a0606" data-vs-accent="#cc6644">
+    <canvas class="vs-canvas" data-vs-type="muscle"></canvas>
+    <div class="vs-section__overlay">
+      <span class="vs-section__number">25</span>
+      <h2 class="vs-section__title">Muscle Fiber</h2>
+      <p class="vs-section__subtitle">Hover to contract — leave to release. Tension and surrender.</p>
+    </div>
+  </section>
+
+  <!-- 26: FOCUS POINT -->
+  <section class="vs-section" id="focus" data-vs-idx="25" data-vs-bg="#060608" data-vs-accent="#ffffff">
+    <canvas class="vs-canvas" data-vs-type="focus"></canvas>
+    <div class="vs-section__overlay">
+      <span class="vs-section__number">26</span>
+      <h2 class="vs-section__title">Focus</h2>
+      <p class="vs-section__subtitle">Hold your cursor still — particles converge. Drishti: the yogic gaze.</p>
+    </div>
+  </section>
+
+  <!-- 27: HEARTBEAT -->
+  <section class="vs-section" id="heartbeat" data-vs-idx="26" data-vs-bg="#0a0608" data-vs-accent="#cc3333">
+    <canvas class="vs-canvas" data-vs-type="heartbeat"></canvas>
+    <div class="vs-section__overlay">
+      <span class="vs-section__number">27</span>
+      <h2 class="vs-section__title">Heartbeat</h2>
+      <p class="vs-section__subtitle">Scroll to slow your heart rate — from active to resting</p>
+    </div>
+  </section>
+
+  <!-- 28: NEURAL FIRE -->
+  <section class="vs-section" id="neural" data-vs-idx="27" data-vs-bg="#060610" data-vs-accent="#3388ff">
+    <canvas class="vs-canvas" data-vs-type="neural"></canvas>
+    <div class="vs-section__overlay">
+      <span class="vs-section__number">28</span>
+      <h2 class="vs-section__title">Neural Fire</h2>
+      <p class="vs-section__subtitle">Neurons firing in chain reaction — scroll to increase the rate</p>
+    </div>
+  </section>
+
+  <!-- 29: FLOW STATE -->
+  <section class="vs-section" id="flow" data-vs-idx="28" data-vs-bg="#080a08" data-vs-accent="#88cc88">
+    <canvas class="vs-canvas" data-vs-type="flow"></canvas>
+    <div class="vs-section__overlay">
+      <span class="vs-section__number">29</span>
+      <h2 class="vs-section__title">Flow State</h2>
+      <p class="vs-section__subtitle">Particles follow smooth bezier paths — the effortless state of yoga</p>
+    </div>
+  </section>
+
+  <!-- 30: KUNDALINI SPIRAL -->
+  <section class="vs-section" id="kundalini" data-vs-idx="29" data-vs-bg="#080608" data-vs-accent="#ff8844">
+    <canvas class="vs-canvas" data-vs-type="kundalini"></canvas>
+    <div class="vs-section__overlay">
+      <span class="vs-section__number">30</span>
+      <h2 class="vs-section__title">Kundalini Spiral</h2>
+      <p class="vs-section__subtitle">Energy spiraling upward through the spine — scroll to rise</p>
+    </div>
+  </section>
+
+  <!-- ── Footer ── -->
+  <footer class="vs-footer">
+    <div class="vs-footer__inner">
+      <p class="vs-footer__logo">Vibro Yoga</p>
+      <p class="vs-footer__text">30 ways to visualize vibration, sound, and the yoga body</p>
+      <p class="vs-footer__text">Christianshavn, Copenhagen</p>
+      <a href="/vibroyogadesign/" class="vs-footer__link">&larr; Back to Design Playground</a>
+    </div>
+  </footer>
+
+  <script src="/js/vibroyoga-showcase.js"></script>
+</body>
+</html>

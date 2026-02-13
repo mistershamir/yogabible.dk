@@ -101,9 +101,9 @@ exports.handler = async function(event) {
 
       // Use ONLY MB's own fields for pause detection.
       // IsSuspended = true only for currently active pauses (not future-dated).
-      // SuspendDate/ResumeDate may be present for scheduled pauses.
+      // MB may return suspension dates under various field names.
       // Frontend merges with Firestore for future-dated pause persistence.
-      var pauseStartDate = c.SuspendDate || c.SuspensionDate || null;
+      var pauseStartDate = c.SuspensionStart || c.SuspendDate || c.SuspensionDate || null;
       var pauseEndDate = c.ResumeDate || c.ResumptionDate || null;
       var isPaused = c.IsSuspended || !!(pauseStartDate && pauseEndDate);
 

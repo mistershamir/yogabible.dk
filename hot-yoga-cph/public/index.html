@@ -1,0 +1,1147 @@
+<!DOCTYPE html>
+<html lang="da">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <title>Min Profil | Hot Yoga Copenhagen</title>
+  <meta name="description" content="Administrer din Hot Yoga Copenhagen konto, opdater dine oplysninger og se dit medlemskab.">
+
+  <!-- Preconnect -->
+  <link rel="preconnect" href="https://www.gstatic.com" crossorigin>
+
+  <!-- Styles -->
+  <link rel="stylesheet" href="/css/profile.css">
+
+  <!-- Favicon (placeholder) -->
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🧘</text></svg>">
+</head>
+
+<body class="hyc-page">
+
+<!-- ═══════════════════════════════════════════════════════════════
+     AUTH MODAL — Login / Register / Reset Password
+     Same structure as Yoga Bible, same element IDs so firebase-auth.js works
+     ═══════════════════════════════════════════════════════════════ -->
+<div id="yb-auth-modal" class="yb-auth-modal" aria-hidden="true" role="dialog" aria-modal="true" aria-label="Log ind / Opret konto">
+  <div class="yb-auth-modal__overlay" data-yb-auth-close></div>
+
+  <div class="yb-auth-modal__box" data-view="login">
+    <button class="yb-auth-modal__close" type="button" data-yb-auth-close aria-label="Luk">&#10005;</button>
+
+    <!-- Visual panel (visible only in register view) -->
+    <div class="yb-auth-modal__visual">
+      <div class="yb-auth-modal__visual-overlay"></div>
+      <div class="yb-auth-modal__visual-dots"><span></span><span></span><span></span></div>
+      <h3 class="yb-auth-modal__visual-title" data-hyc-da>Bliv en del<br>af varmen</h3>
+      <h3 class="yb-auth-modal__visual-title" data-hyc-en hidden>Become part<br>of the warmth</h3>
+      <p class="yb-auth-modal__visual-sub" data-hyc-da>Opret en konto og f&aring; adgang til alle vores klasser og tilbud.</p>
+      <p class="yb-auth-modal__visual-sub" data-hyc-en hidden>Create an account and get access to all our classes and offers.</p>
+    </div>
+
+    <!-- LOGIN VIEW -->
+    <div id="yb-auth-login" class="yb-auth-view">
+      <div class="yb-auth-modal__header">
+        <div class="yb-auth-modal__logo">
+          <span style="font-family:'Abacaxi',system-ui,sans-serif;font-size:1.1rem;font-weight:700;color:#3f99a5;letter-spacing:.02em">Hot Yoga Copenhagen</span>
+        </div>
+        <h2 class="yb-auth-modal__title" data-hyc-da>Velkommen tilbage</h2>
+        <h2 class="yb-auth-modal__title" data-hyc-en hidden>Welcome back</h2>
+        <p class="yb-auth-modal__subtitle" data-hyc-da>Log ind for at se dit skema og medlemskab</p>
+        <p class="yb-auth-modal__subtitle" data-hyc-en hidden>Sign in to view your schedule and membership</p>
+      </div>
+
+      <form id="yb-auth-login-form" class="yb-auth-form" novalidate>
+        <div class="yb-auth-field">
+          <label for="yb-login-email" data-hyc-da>Email</label>
+          <label for="yb-login-email" data-hyc-en hidden>Email</label>
+          <input type="email" id="yb-login-email" required autocomplete="email" placeholder="din@email.dk">
+        </div>
+        <div class="yb-auth-field">
+          <label for="yb-login-password" data-hyc-da>Adgangskode</label>
+          <label for="yb-login-password" data-hyc-en hidden>Password</label>
+          <input type="password" id="yb-login-password" required autocomplete="current-password" placeholder="&#8226;&#8226;&#8226;&#8226;&#8226;&#8226;&#8226;&#8226;">
+        </div>
+        <div class="yb-auth-error" id="yb-login-error" hidden role="alert"></div>
+        <button type="submit" class="yb-auth-submit" data-hyc-da>Log ind</button>
+        <button type="submit" class="yb-auth-submit" data-hyc-en hidden>Sign in</button>
+      </form>
+
+      <div class="yb-auth-links">
+        <a href="#" data-yb-auth-switch="reset" data-hyc-da>Glemt adgangskode?</a>
+        <a href="#" data-yb-auth-switch="reset" data-hyc-en hidden>Forgot password?</a>
+      </div>
+      <div class="yb-auth-divider">
+        <span data-hyc-da>Har du ikke en konto?</span>
+        <span data-hyc-en hidden>Don't have an account?</span>
+        <a href="#" data-yb-auth-switch="register" data-hyc-da>Opret konto</a>
+        <a href="#" data-yb-auth-switch="register" data-hyc-en hidden>Create account</a>
+      </div>
+    </div>
+
+    <!-- REGISTER VIEW -->
+    <div id="yb-auth-register" class="yb-auth-view" hidden>
+      <div class="yb-auth-modal__header">
+        <h2 class="yb-auth-modal__title" data-hyc-da>Opret konto</h2>
+        <h2 class="yb-auth-modal__title" data-hyc-en hidden>Create account</h2>
+        <p class="yb-auth-modal__subtitle" data-hyc-da>Det tager kun et minut</p>
+        <p class="yb-auth-modal__subtitle" data-hyc-en hidden>It only takes a minute</p>
+      </div>
+
+      <form id="yb-auth-register-form" class="yb-auth-form" novalidate>
+        <div class="yb-auth-row">
+          <div class="yb-auth-field">
+            <label for="yb-register-firstname" data-hyc-da>Fornavn</label>
+            <label for="yb-register-firstname" data-hyc-en hidden>First name</label>
+            <input type="text" id="yb-register-firstname" required autocomplete="given-name" placeholder="Fornavn">
+          </div>
+          <div class="yb-auth-field">
+            <label for="yb-register-lastname" data-hyc-da>Efternavn</label>
+            <label for="yb-register-lastname" data-hyc-en hidden>Last name</label>
+            <input type="text" id="yb-register-lastname" required autocomplete="family-name" placeholder="Efternavn">
+          </div>
+        </div>
+        <div class="yb-auth-field">
+          <label for="yb-register-email" data-hyc-da>Email</label>
+          <label for="yb-register-email" data-hyc-en hidden>Email</label>
+          <input type="email" id="yb-register-email" required autocomplete="email" placeholder="din@email.dk">
+        </div>
+        <div class="yb-auth-field">
+          <label for="yb-register-password" data-hyc-da>Adgangskode</label>
+          <label for="yb-register-password" data-hyc-en hidden>Password</label>
+          <input type="password" id="yb-register-password" required autocomplete="new-password" placeholder="Mindst 6 tegn">
+        </div>
+        <div class="yb-auth-consent">
+          <label class="yb-auth-consent__item">
+            <input type="checkbox" id="yb-register-terms" required>
+            <span data-hyc-da>Jeg accepterer <a href="https://hotyogacph.dk/terms" target="_blank" rel="noopener">Handelsbetingelser</a> og <a href="https://hotyogacph.dk/privacy" target="_blank" rel="noopener">Privatlivspolitik</a></span>
+            <span data-hyc-en hidden>I agree to the <a href="https://hotyogacph.dk/terms" target="_blank" rel="noopener">Terms &amp; Conditions</a> and <a href="https://hotyogacph.dk/privacy" target="_blank" rel="noopener">Privacy Policy</a></span>
+          </label>
+          <label class="yb-auth-consent__item">
+            <input type="checkbox" id="yb-register-conduct" required>
+            <span data-hyc-da>Jeg accepterer <a href="https://hotyogacph.dk/code-of-conduct" target="_blank" rel="noopener">Code of Conduct</a></span>
+            <span data-hyc-en hidden>I agree to the <a href="https://hotyogacph.dk/code-of-conduct" target="_blank" rel="noopener">Code of Conduct</a></span>
+          </label>
+        </div>
+        <div class="yb-auth-error" id="yb-register-error" hidden role="alert"></div>
+        <button type="submit" class="yb-auth-submit" data-hyc-da>Opret konto</button>
+        <button type="submit" class="yb-auth-submit" data-hyc-en hidden>Create account</button>
+      </form>
+
+      <div class="yb-auth-divider">
+        <span data-hyc-da>Har du allerede en konto?</span>
+        <span data-hyc-en hidden>Already have an account?</span>
+        <a href="#" data-yb-auth-switch="login" data-hyc-da>Log ind</a>
+        <a href="#" data-yb-auth-switch="login" data-hyc-en hidden>Sign in</a>
+      </div>
+    </div>
+
+    <!-- RESET PASSWORD VIEW -->
+    <div id="yb-auth-reset" class="yb-auth-view" hidden>
+      <div class="yb-auth-modal__header">
+        <div class="yb-auth-modal__logo">
+          <span style="font-family:'Abacaxi',system-ui,sans-serif;font-size:1.1rem;font-weight:700;color:#3f99a5;letter-spacing:.02em">Hot Yoga Copenhagen</span>
+        </div>
+        <h2 class="yb-auth-modal__title" data-hyc-da>Nulstil adgangskode</h2>
+        <h2 class="yb-auth-modal__title" data-hyc-en hidden>Reset password</h2>
+        <p class="yb-auth-modal__subtitle" data-hyc-da>Indtast din email, s&aring; sender vi dig et link</p>
+        <p class="yb-auth-modal__subtitle" data-hyc-en hidden>Enter your email and we'll send you a reset link</p>
+      </div>
+
+      <form id="yb-auth-reset-form" class="yb-auth-form" novalidate>
+        <div class="yb-auth-field">
+          <label for="yb-reset-email" data-hyc-da>Email</label>
+          <label for="yb-reset-email" data-hyc-en hidden>Email</label>
+          <input type="email" id="yb-reset-email" required autocomplete="email" placeholder="din@email.dk">
+        </div>
+        <div class="yb-auth-error" id="yb-reset-error" hidden role="alert"></div>
+        <div class="yb-auth-success" id="yb-reset-success" hidden role="status"></div>
+        <button type="submit" class="yb-auth-submit" data-hyc-da>Send nulstillingslink</button>
+        <button type="submit" class="yb-auth-submit" data-hyc-en hidden>Send reset link</button>
+      </form>
+
+      <div class="yb-auth-divider">
+        <a href="#" data-yb-auth-switch="login" data-hyc-da>&larr; Tilbage til log ind</a>
+        <a href="#" data-yb-auth-switch="login" data-hyc-en hidden>&larr; Back to sign in</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ═══════════════════════════════════════════════════════════════
+     MAIN CONTENT — Profile Dashboard
+     Same element IDs as Yoga Bible so profile.js works unmodified
+     ═══════════════════════════════════════════════════════════════ -->
+<section class="yb-profile">
+  <div class="container">
+
+    <!-- Not logged in state -->
+    <div id="yb-profile-guest" class="yb-profile__guest">
+      <div class="yb-profile__guest-inner">
+        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#6F6A66" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        <h2 class="yb-profile__guest-title" data-t="not_logged_in_title">Du er ikke logget ind</h2>
+        <p class="yb-profile__guest-text" data-t="not_logged_in_text">Log ind eller opret en konto for at se din profil.</p>
+        <div class="yb-profile__guest-actions">
+          <button class="yb-btn yb-btn--primary" type="button" data-yb-auth-open="login" data-t="login_btn">Log ind</button>
+          <button class="yb-btn yb-btn--outline" type="button" data-yb-auth-open="register" data-t="register_btn">Opret konto</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Logged in state -->
+    <div id="yb-profile-user" style="display:none">
+      <div class="yb-profile__wrap">
+
+        <!-- Hero header — Dark cinematic (variant B) -->
+        <div class="yb-profile__hero">
+          <div class="yb-profile__hero-top">
+            <span class="yb-profile__hero-logo">Hot Yoga Copenhagen</span>
+            <div class="yb-profile__hero-actions">
+              <div class="hyc-ecosystem">
+                <span class="hyc-ecosystem__dot"></span>
+                <span class="hyc-ecosystem__text">Yoga Bible ecosystem</span>
+              </div>
+              <div class="yb-profile__hero-lang">
+                <button class="is-active" id="hyc-lang-da" onclick="setHycLang('da')">DA</button>
+                <button id="hyc-lang-en" onclick="setHycLang('en')">EN</button>
+              </div>
+              <button class="yb-profile__hero-logout" type="button" data-yb-auth-logout data-t="btn_logout">Log ud</button>
+            </div>
+          </div>
+          <div class="yb-profile__hero-user">
+            <div class="yb-profile__avatar-wrap">
+              <div class="yb-profile__avatar" id="yb-profile-avatar">HC</div>
+              <button class="yb-profile__avatar-edit" type="button" id="yb-profile-avatar-btn" title="Skift profilbillede">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+              </button>
+              <input type="file" id="yb-profile-avatar-input" accept="image/*" hidden>
+            </div>
+            <div>
+              <span class="yb-profile__member-name" id="yb-profile-display-name"></span>
+              <p class="yb-profile__member-meta">
+                <span id="yb-profile-display-email"></span>
+                <span class="yb-profile__member-badge" id="yb-profile-tier">&mdash;</span>
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tab navigation (6 tabs — no Courses for HYC) -->
+        <div class="yb-profile__tabs">
+          <button class="yb-profile__tab is-active" type="button" data-yb-tab="profile" data-t="tab_profile">Profil</button>
+          <button class="yb-profile__tab" type="button" data-yb-tab="schedule" data-t="tab_schedule">Skema</button>
+          <button class="yb-profile__tab" type="button" data-yb-tab="store" data-t="tab_store">Butik</button>
+          <button class="yb-profile__tab" type="button" data-yb-tab="visits" data-t="tab_visits">Bes&oslash;gshistorik</button>
+          <button class="yb-profile__tab" type="button" data-yb-tab="passes" data-t="tab_passes">Mine Pas</button>
+          <button class="yb-profile__tab" type="button" data-yb-tab="receipts" data-t="tab_receipts">Kvitteringer</button>
+          <button class="yb-profile__tab" type="button" data-yb-tab="giftcards" data-t="tab_giftcards">Gavekort</button>
+        </div>
+
+        <!-- ═══════ TAB: Profile ═══════ -->
+        <div class="yb-profile__tab-panel is-active" data-yb-panel="profile">
+          <div class="yb-profile__content-area">
+
+            <!-- Inline onboarding card -->
+            <div id="yb-onboarding-inline" class="yb-onboarding-inline" hidden>
+              <div class="yb-onboarding-inline__card">
+                <div class="yb-onboarding-inline__header">
+                  <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#3f99a5" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                  <div>
+                    <h3 class="yb-onboarding-inline__title" data-t="onboarding_title">Fuldf&oslash;r din profil</h3>
+                    <p class="yb-onboarding-inline__desc" data-t="onboarding_desc">Vi har brug for dit telefonnummer og din f&oslash;dselsdato.</p>
+                  </div>
+                </div>
+                <form id="yb-onboarding-form" class="yb-onboarding-inline__form" novalidate>
+                  <div class="yb-profile__form-row">
+                    <div class="yb-auth-field">
+                      <label for="yb-onboarding-phone" data-t="label_phone">Telefon</label> <span style="color:#3f99a5">*</span>
+                      <input type="tel" id="yb-onboarding-phone" autocomplete="tel" placeholder="+45 12 34 56 78" required>
+                    </div>
+                    <div class="yb-auth-field">
+                      <label for="yb-onboarding-dob" data-t="label_dob">F&oslash;dselsdato</label> <span style="color:#3f99a5">*</span>
+                      <input type="date" id="yb-onboarding-dob" required>
+                    </div>
+                  </div>
+                  <div class="yb-auth-error" id="yb-onboarding-error" hidden role="alert"></div>
+                  <button type="submit" class="yb-btn yb-btn--primary" data-t="onboarding_submit">Gem oplysninger</button>
+                </form>
+              </div>
+            </div>
+
+            <!-- Onboarding success -->
+            <div id="yb-onboarding-success" class="yb-onboarding-success" hidden>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#16a34a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+              <span data-t="onboarding_success">Tak! Din profil er nu komplet.</span>
+            </div>
+
+            <!-- Personal details -->
+            <div class="yb-profile__card">
+              <h2 class="yb-profile__card-title" data-t="section_personal">Personlige Oplysninger</h2>
+              <form id="yb-profile-form" class="yb-profile__form" novalidate>
+                <div class="yb-profile__form-row">
+                  <div class="yb-auth-field">
+                    <label for="yb-profile-firstname" data-t="label_firstname">Fornavn</label>
+                    <input type="text" id="yb-profile-firstname" autocomplete="given-name">
+                  </div>
+                  <div class="yb-auth-field">
+                    <label for="yb-profile-lastname" data-t="label_lastname">Efternavn</label>
+                    <input type="text" id="yb-profile-lastname" autocomplete="family-name">
+                  </div>
+                </div>
+                <div class="yb-auth-field">
+                  <label for="yb-profile-email" data-t="label_email">Email</label>
+                  <input type="email" id="yb-profile-email" disabled>
+                </div>
+                <div class="yb-profile__form-row">
+                  <div class="yb-auth-field">
+                    <label for="yb-profile-phone" data-t="label_phone">Telefon</label>
+                    <input type="tel" id="yb-profile-phone" autocomplete="tel" placeholder="+45 12 34 56 78">
+                  </div>
+                  <div class="yb-auth-field">
+                    <label for="yb-profile-dob" data-t="label_dob">F&oslash;dselsdato</label>
+                    <input type="date" id="yb-profile-dob">
+                  </div>
+                </div>
+                <div class="yb-profile__form-row">
+                  <div class="yb-auth-field">
+                    <label for="yb-profile-yoga-level" data-t="label_yoga_level">Yoganiveau</label>
+                    <select id="yb-profile-yoga-level" class="yb-auth-field__select">
+                      <option value="" data-t="yoga_level_placeholder">V&aelig;lg dit niveau</option>
+                      <option value="beginner" data-t="yoga_level_beginner">Begynder</option>
+                      <option value="intermediate" data-t="yoga_level_intermediate">&Oslash;vet</option>
+                      <option value="advanced" data-t="yoga_level_advanced">Avanceret</option>
+                    </select>
+                  </div>
+                  <div class="yb-auth-field">
+                    <label for="yb-profile-practice-freq" data-t="label_practice_freq">Praksis-hyppighed</label>
+                    <select id="yb-profile-practice-freq" class="yb-auth-field__select">
+                      <option value="" data-t="practice_freq_placeholder">V&aelig;lg hyppighed</option>
+                      <option value="occasional" data-t="practice_freq_occasional">Lejlighedsvis</option>
+                      <option value="regular" data-t="practice_freq_regular">Regelm&aelig;ssig</option>
+                      <option value="dedicated" data-t="practice_freq_dedicated">Dedikeret</option>
+                    </select>
+                  </div>
+                </div>
+                <div class="yb-profile__reminder" id="yb-profile-reminder" hidden>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#3f99a5" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                  <span data-t="profile_reminder">Tilf&oslash;j venligst dit telefonnummer og din f&oslash;dselsdato.</span>
+                </div>
+                <div class="yb-auth-error" id="yb-profile-error" hidden role="alert"></div>
+                <div class="yb-auth-success" id="yb-profile-success" hidden role="status"></div>
+                <button type="submit" class="yb-auth-submit" data-t="btn_save">Gem &aelig;ndringer</button>
+              </form>
+            </div>
+
+            <!-- Change password -->
+            <div class="yb-profile__card">
+              <h2 class="yb-profile__card-title" data-t="section_password">Skift Adgangskode</h2>
+              <form id="yb-profile-password-form" class="yb-profile__form" novalidate>
+                <div class="yb-profile__form-row">
+                  <div class="yb-auth-field">
+                    <label for="yb-profile-new-password" data-t="label_new_password">Ny adgangskode</label>
+                    <input type="password" id="yb-profile-new-password" autocomplete="new-password" placeholder="Mindst 6 tegn">
+                  </div>
+                  <div class="yb-auth-field">
+                    <label for="yb-profile-confirm-password" data-t="label_confirm_password">Bekr&aelig;ft adgangskode</label>
+                    <input type="password" id="yb-profile-confirm-password" autocomplete="new-password" placeholder="Mindst 6 tegn">
+                  </div>
+                </div>
+                <div class="yb-auth-error" id="yb-profile-pw-error" hidden role="alert"></div>
+                <div class="yb-auth-success" id="yb-profile-pw-success" hidden role="status"></div>
+                <button type="submit" class="yb-auth-submit" data-t="btn_change_password">Skift adgangskode</button>
+              </form>
+            </div>
+
+            <!-- Stored Credit Card -->
+            <div class="yb-profile__card" id="yb-stored-card-section">
+              <h2 class="yb-profile__card-title" data-t="section_payment">Betalingsmetode</h2>
+              <div id="yb-stored-card-loading" class="yb-stored-card__loading">
+                <div class="yb-mb-spinner" style="width:18px;height:18px"></div>
+                <span style="color:#6F6A66;font-size:0.9rem" data-t="stored_card_loading">Henter kortoplysninger...</span>
+              </div>
+              <div id="yb-stored-card-display" hidden>
+                <div class="yb-stored-card">
+                  <div class="yb-stored-card__info">
+                    <svg class="yb-stored-card__icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+                    <div>
+                      <span class="yb-stored-card__type" id="yb-stored-card-type"></span>
+                      <span class="yb-stored-card__number" id="yb-stored-card-number"></span>
+                    </div>
+                  </div>
+                  <div class="yb-stored-card__meta">
+                    <span class="yb-stored-card__holder" id="yb-stored-card-holder"></span>
+                    <span class="yb-stored-card__exp" id="yb-stored-card-exp"></span>
+                  </div>
+                  <button type="button" class="yb-btn yb-btn--outline yb-btn--sm" id="yb-stored-card-change" data-t="stored_card_change">Skift kort</button>
+                </div>
+              </div>
+              <div id="yb-stored-card-empty" hidden>
+                <p class="yb-stored-card__empty-text" data-t="stored_card_empty">Intet kort gemt. Dit kort gemmes automatisk ved dit næste køb.</p>
+              </div>
+              <!-- Inline change-card form (hidden by default) -->
+              <div id="yb-stored-card-form" class="yb-stored-card__form" hidden>
+                <h3 class="yb-stored-card__form-title" data-t="stored_card_new_title">Tilføj nyt kort</h3>
+                <form id="yb-stored-card-form-inner" class="yb-profile__form" novalidate autocomplete="on">
+                  <div class="yb-auth-field">
+                    <label for="yb-sc-cardholder" data-t="checkout_cardholder">Kortholders navn</label>
+                    <input type="text" id="yb-sc-cardholder" name="ccname" required autocomplete="cc-name">
+                  </div>
+                  <div class="yb-auth-field">
+                    <label for="yb-sc-cardnumber" data-t="checkout_card_number">Kortnummer</label>
+                    <input type="text" id="yb-sc-cardnumber" name="cardnumber" required autocomplete="cc-number" placeholder="1234 5678 9012 3456" inputmode="numeric" maxlength="19">
+                  </div>
+                  <div class="yb-profile__form-row yb-profile__form-row--3">
+                    <div class="yb-auth-field">
+                      <label for="yb-sc-expiry" data-t="checkout_expiry">Udl&oslash;bsdato</label>
+                      <input type="text" id="yb-sc-expiry" name="cc-exp" required placeholder="MM/YY" autocomplete="cc-exp" inputmode="numeric" maxlength="5">
+                    </div>
+                    <div class="yb-auth-field">
+                      <label for="yb-sc-cvv" data-t="checkout_cvv">CVV</label>
+                      <input type="text" id="yb-sc-cvv" name="cvc" required autocomplete="cc-csc" placeholder="123" inputmode="numeric" maxlength="4">
+                    </div>
+                  </div>
+                  <div class="yb-auth-error" id="yb-sc-error" hidden role="alert"></div>
+                  <div class="yb-stored-card__form-actions">
+                    <button type="submit" class="yb-btn yb-btn--primary yb-btn--sm" id="yb-sc-save-btn" data-t="stored_card_save">Gem kort</button>
+                    <button type="button" class="yb-btn yb-btn--outline yb-btn--sm" id="yb-sc-cancel-btn" data-t="stored_card_cancel">Annuller</button>
+                  </div>
+                </form>
+              </div>
+            </div>
+
+            <!-- Membership summary -->
+            <div class="yb-profile__card">
+              <h2 class="yb-profile__card-title" data-t="section_membership">Medlemskab</h2>
+              <div class="yb-profile__info-grid">
+                <div class="yb-profile__info-item">
+                  <span class="yb-profile__info-label" data-t="label_tier">Medlemskabsniveau</span>
+                  <span class="yb-profile__info-value" id="yb-profile-tier-detail">&mdash;</span>
+                </div>
+                <div class="yb-profile__info-item" id="yb-profile-client-id-wrap" hidden>
+                  <span class="yb-profile__info-label" data-t="label_client_id">Klient-ID</span>
+                  <span class="yb-profile__info-value yb-profile__info-value--muted" id="yb-profile-client-id">&mdash;</span>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- ═══════ TAB: Schedule ═══════ -->
+        <div class="yb-profile__tab-panel" data-yb-panel="schedule">
+          <div class="yb-profile__content-area">
+          <div class="yb-schedule">
+          <div class="yb-schedule__header">
+            <h2 class="yb-schedule__title" data-t="schedule_title">Ugentligt Skema</h2>
+            <p class="yb-schedule__subtitle" data-t="schedule_subtitle">Book dine yogahold direkte her.</p>
+          </div>
+
+          <div id="yb-schedule-pass-info" class="yb-schedule__pass-info" hidden></div>
+          <div id="yb-schedule-no-pass" class="yb-schedule__no-pass" hidden>
+            <p data-t="schedule_no_pass">Du har brug for et pas for at booke klasser.</p>
+            <button class="yb-btn yb-btn--primary" type="button" id="yb-schedule-buy-pass">Forts&aelig;t din praksis</button>
+          </div>
+
+          <div class="yb-schedule__nav">
+            <button class="yb-schedule__nav-btn" type="button" id="yb-schedule-prev">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+              <span class="yb-schedule__nav-label" data-t="schedule_prev_week">Forrige uge</span>
+            </button>
+            <span class="yb-schedule__week-label" id="yb-schedule-week-label"></span>
+            <button class="yb-schedule__nav-btn" type="button" id="yb-schedule-next">
+              <span class="yb-schedule__nav-label" data-t="schedule_next_week">N&aelig;ste uge</span>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+            </button>
+          </div>
+
+          <div id="yb-schedule-list" class="yb-schedule__list">
+            <div class="yb-store__loading">
+              <div class="yb-mb-spinner"></div>
+              <span data-t="schedule_loading">Henter hold...</span>
+            </div>
+          </div>
+
+          <div id="yb-schedule-toast" class="yb-schedule__toast" hidden></div>
+          </div>
+          </div>
+        </div>
+
+        <!-- ═══════ TAB: Store ═══════ -->
+        <div class="yb-profile__tab-panel" data-yb-panel="store" data-store-items="">
+          <div class="yb-profile__content-area">
+          <div class="yb-store">
+          <div class="yb-store__header">
+            <h2 class="yb-store__title" data-t="store_title">Butik</h2>
+            <p class="yb-store__subtitle" data-t="store_subtitle">K&oslash;b klippekort, pakker og medlemskab direkte her.</p>
+          </div>
+
+          <div id="yb-store-list" class="yb-store__list">
+            <div class="yb-store__loading">
+              <div class="yb-mb-spinner"></div>
+              <span data-t="store_loading">Henter tilg&aelig;ngelige pakker...</span>
+            </div>
+          </div>
+
+          <!-- Checkout overlay -->
+          <div id="yb-store-checkout" class="yb-store__checkout" hidden>
+            <div class="yb-store__checkout-inner">
+              <h3 class="yb-store__checkout-title" data-t="checkout_title">Betal</h3>
+              <div class="yb-store__checkout-item" id="yb-store-checkout-item"></div>
+
+              <div class="yb-checkout__grid" id="yb-checkout-grid">
+                <!-- Left: Waiver + Contract Terms -->
+                <div class="yb-checkout__col-left" id="yb-checkout-col-left">
+                  <div id="yb-checkout-waiver-section" class="yb-checkout-doc" hidden>
+                    <button type="button" class="yb-checkout-doc__toggle" id="yb-checkout-waiver-toggle">
+                      <span class="yb-checkout-doc__toggle-title" data-t="waiver_title">Ansvarsfrihedserkl&aelig;ring</span>
+                      <svg class="yb-checkout-doc__chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+                    </button>
+                    <div id="yb-checkout-waiver-text" class="yb-checkout-doc__content" hidden></div>
+                  </div>
+                  <div id="yb-checkout-terms-section" class="yb-checkout-doc" hidden>
+                    <button type="button" class="yb-checkout-doc__toggle" id="yb-checkout-terms-toggle">
+                      <span class="yb-checkout-doc__toggle-title" data-t="contract_terms_title">Kontraktvilk&aring;r</span>
+                      <svg class="yb-checkout-doc__chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+                    </button>
+                    <div id="yb-checkout-terms-text" class="yb-checkout-doc__content" hidden></div>
+                  </div>
+                  <div id="yb-checkout-agree-section" class="yb-checkout-agree" hidden>
+                    <label class="yb-waiver__agree">
+                      <input type="checkbox" id="yb-checkout-agree-check">
+                      <span id="yb-checkout-agree-label" data-t="waiver_agree_label">Jeg har l&aelig;st og accepterer ovenstående</span>
+                    </label>
+                    <p class="yb-waiver__sign-label" data-t="checkout_sign_label">Din underskrift:</p>
+                    <div class="yb-signature-pad" id="yb-checkout-sigpad">
+                      <canvas id="yb-checkout-canvas" width="400" height="160"></canvas>
+                      <button type="button" class="yb-signature-pad__clear" id="yb-checkout-sig-clear" data-t="signature_clear">Ryd</button>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Right: Payment form -->
+                <div class="yb-checkout__col-right">
+                  <h4 class="yb-checkout__payment-title" data-t="checkout_payment_title">Betalingsoplysninger</h4>
+                  <!-- Stored card toggle (shown only when user has a stored card) -->
+                  <div id="yb-store-stored-card" class="yb-checkout-stored-card" hidden>
+                    <label class="yb-checkout-stored-card__option yb-checkout-stored-card__option--active" id="yb-store-use-stored">
+                      <input type="radio" name="yb-store-payment-method" value="stored" checked>
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+                      <span id="yb-store-stored-label"></span>
+                    </label>
+                    <label class="yb-checkout-stored-card__option" id="yb-store-use-new">
+                      <input type="radio" name="yb-store-payment-method" value="new">
+                      <span data-t="checkout_use_new_card">Brug nyt kort</span>
+                    </label>
+                  </div>
+                  <form id="yb-store-checkout-form" class="yb-profile__form" novalidate autocomplete="on">
+                    <div id="yb-store-card-fields">
+                    <div class="yb-auth-field">
+                      <label for="yb-store-cardholder" data-t="checkout_cardholder">Kortholders navn</label>
+                      <input type="text" id="yb-store-cardholder" name="ccname" required autocomplete="cc-name">
+                    </div>
+                    <div class="yb-auth-field">
+                      <label for="yb-store-cardnumber" data-t="checkout_card_number">Kortnummer</label>
+                      <input type="text" id="yb-store-cardnumber" name="cardnumber" required autocomplete="cc-number" placeholder="1234 5678 9012 3456" inputmode="numeric" maxlength="19">
+                    </div>
+                    <div class="yb-profile__form-row yb-profile__form-row--3">
+                      <div class="yb-auth-field">
+                        <label for="yb-store-expiry" data-t="checkout_expiry">Udl&oslash;bsdato</label>
+                        <input type="text" id="yb-store-expiry" required placeholder="MM/YY" inputmode="numeric" maxlength="5">
+                      </div>
+                      <div class="yb-auth-field">
+                        <label for="yb-store-cvv" data-t="checkout_cvv">CVV</label>
+                        <input type="text" id="yb-store-cvv" required autocomplete="cc-csc" placeholder="123" inputmode="numeric" maxlength="4">
+                      </div>
+                    </div>
+                    <div class="yb-auth-field">
+                      <label for="yb-store-address" data-t="checkout_address">Faktureringsadresse</label>
+                      <input type="text" id="yb-store-address" autocomplete="street-address">
+                    </div>
+                    <div class="yb-profile__form-row">
+                      <div class="yb-auth-field">
+                        <label for="yb-store-city" data-t="checkout_city">By</label>
+                        <input type="text" id="yb-store-city" autocomplete="address-level2">
+                      </div>
+                      <div class="yb-auth-field">
+                        <label for="yb-store-zip" data-t="checkout_zip">Postnummer</label>
+                        <input type="text" id="yb-store-zip" autocomplete="postal-code">
+                      </div>
+                    </div>
+                    <div class="yb-auth-error" id="yb-store-error" hidden role="alert"></div>
+                    <label class="yb-store__save-card">
+                      <input type="checkbox" id="yb-store-save-card" checked>
+                      <span data-t="checkout_save_card">Gem kort til fremtidige k&oslash;b</span>
+                    </label>
+                    </div><!-- end #yb-store-card-fields -->
+                    <div class="yb-store__checkout-actions">
+                      <button type="submit" class="yb-auth-submit" id="yb-store-pay-btn" data-t="checkout_pay">Betal</button>
+                      <button type="button" class="yb-btn yb-btn--outline" id="yb-store-cancel-btn" data-t="checkout_cancel">Annuller</button>
+                    </div>
+                    <div class="yb-store__secure">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                      <span data-t="checkout_secure">Sikker betaling</span>
+                    </div>
+                  </form>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Success state -->
+          <div id="yb-store-success" class="yb-store__success" hidden>
+            <div class="yb-store__success-inner">
+              <div class="yb-checkout-success__icon">&#10003;</div>
+              <h3 data-t="checkout_success_title">Betaling gennemf&oslash;rt!</h3>
+              <p data-t="checkout_success_text">Du modtager en bekr&aelig;ftelse p&aring; email.</p>
+              <div class="yb-store__success-actions">
+                <button class="yb-btn yb-btn--primary" type="button" id="yb-store-success-book" data-t="checkout_success_book">Book et hold</button>
+                <button class="yb-btn yb-btn--outline" type="button" id="yb-store-success-close" data-t="checkout_success_close">Luk</button>
+              </div>
+            </div>
+          </div>
+          </div>
+          </div>
+        </div>
+
+        <!-- ═══════ TAB: Visit History ═══════ -->
+        <div class="yb-profile__tab-panel" data-yb-panel="visits">
+          <div class="yb-profile__content-area">
+          <div class="yb-visits">
+          <div class="yb-visits__header">
+            <h2 class="yb-visits__title" data-t="visits_title">Bes&oslash;gshistorik</h2>
+            <p class="yb-visits__subtitle" data-t="visits_subtitle">Dine seneste yogahold og bes&oslash;g.</p>
+          </div>
+          <div class="yb-visits__controls">
+            <div class="yb-visits__filters">
+              <button class="yb-visits__filter is-active" type="button" data-visit-filter="all" data-t="visits_filter_all">Alle</button>
+              <button class="yb-visits__filter" type="button" data-visit-filter="upcoming" data-t="visits_filter_upcoming">Kommende</button>
+              <button class="yb-visits__filter" type="button" data-visit-filter="attended" data-t="visits_filter_attended">Deltaget</button>
+              <button class="yb-visits__filter" type="button" data-visit-filter="lateCancelled" data-hyc-da>Sen afmelding</button>
+              <button class="yb-visits__filter" type="button" data-visit-filter="lateCancelled" data-hyc-en hidden>Late Cancel</button>
+              <button class="yb-visits__filter" type="button" data-visit-filter="noshow" data-t="visits_filter_noshow">Udeblivelse</button>
+            </div>
+            <select class="yb-visits__period" id="yb-visits-period">
+              <option value="30" data-hyc-da>Sidste 30 dage</option>
+              <option value="90" selected data-hyc-da>Sidste 90 dage</option>
+              <option value="180" data-hyc-da>Sidste 6 m&aring;neder</option>
+              <option value="365" data-hyc-da>Sidste &aring;r</option>
+            </select>
+          </div>
+          <div id="yb-visits-list" class="yb-visits__list">
+            <div class="yb-store__loading">
+              <div class="yb-mb-spinner"></div>
+              <span data-t="visits_loading">Henter bes&oslash;gshistorik...</span>
+            </div>
+          </div>
+          </div>
+          </div>
+        </div>
+
+        <!-- ═══════ TAB: My Passes ═══════ -->
+        <div class="yb-profile__tab-panel" data-yb-panel="passes">
+          <div class="yb-profile__content-area">
+          <div class="yb-membership-tab">
+          <div class="yb-membership-tab__header">
+            <h2 class="yb-membership-tab__title" data-t="tab_passes">Mine Pas</h2>
+          </div>
+
+          <!-- Liability waiver status card -->
+          <div id="yb-waiver-card" class="yb-waiver-card" hidden>
+            <div id="yb-waiver-card-signed" class="yb-waiver-card__signed" hidden>
+              <div class="yb-waiver-card__signed-row">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#16a34a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                <span class="yb-waiver-card__signed-text" data-t="waiver_signed_label">Ansvarsfrihedserkl&aelig;ring accepteret</span>
+                <span class="yb-waiver-card__signed-date" id="yb-waiver-signed-date"></span>
+                <button type="button" class="yb-waiver-card__toggle" id="yb-waiver-toggle-btn" data-t="waiver_view_details">Vis detaljer</button>
+              </div>
+            </div>
+            <div id="yb-waiver-card-body" class="yb-waiver-card__body" hidden>
+              <div class="yb-waiver-card__header-row">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#3f99a5" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+                <div>
+                  <h3 class="yb-waiver-card__title" data-t="waiver_title">Ansvarsfrihedserkl&aelig;ring</h3>
+                  <p class="yb-waiver-card__desc" data-t="waiver_desc">L&aelig;s venligst og accepter vores ansvarsfrihedserkl&aelig;ring.</p>
+                </div>
+              </div>
+              <button type="button" class="yb-waiver__read-toggle" id="yb-waiver-read-toggle">
+                <span data-t="waiver_read_toggle">L&aelig;s fuld erkl&aelig;ring</span>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+              </button>
+              <div id="yb-waiver-text" class="yb-waiver__text" hidden>
+                <div class="yb-store__loading">
+                  <div class="yb-mb-spinner"></div>
+                  <span data-t="waiver_loading">Henter ansvarsfrihedserkl&aelig;ring...</span>
+                </div>
+              </div>
+              <div class="yb-waiver__sign-section" id="yb-waiver-sign-section" hidden>
+                <label class="yb-waiver__agree">
+                  <input type="checkbox" id="yb-waiver-agree-check">
+                  <span data-t="waiver_agree_label">Jeg har l&aelig;st og accepterer</span>
+                </label>
+                <p class="yb-waiver__sign-label" data-t="waiver_sign_label">Tegn din underskrift nedenfor:</p>
+                <div class="yb-signature-pad" id="yb-waiver-sigpad">
+                  <canvas id="yb-waiver-canvas" width="360" height="120"></canvas>
+                  <button type="button" class="yb-signature-pad__clear" id="yb-waiver-sig-clear" data-t="signature_clear">Ryd</button>
+                </div>
+                <div class="yb-auth-error" id="yb-waiver-error" hidden role="alert"></div>
+                <button type="button" class="yb-btn yb-btn--primary" id="yb-waiver-submit" data-t="waiver_submit">Accepter og forts&aelig;t</button>
+              </div>
+            </div>
+          </div>
+
+          <div id="yb-membership-details" class="yb-membership">
+            <div class="yb-store__loading yb-membership__loading" id="yb-membership-loading" hidden>
+              <div class="yb-mb-spinner"></div>
+              <span data-t="membership_loading">Henter medlemskabsoplysninger...</span>
+            </div>
+            <div id="yb-membership-content"></div>
+          </div>
+          </div>
+          </div>
+        </div>
+
+        <!-- ═══════ TAB: Receipts ═══════ -->
+        <div class="yb-profile__tab-panel" data-yb-panel="receipts">
+          <div class="yb-profile__content-area">
+          <div class="yb-receipts">
+          <div class="yb-receipts__header">
+            <div>
+              <h2 class="yb-receipts__title" data-t="receipts_title">Kvitteringer</h2>
+              <p class="yb-receipts__subtitle" data-t="receipts_subtitle">Dine betalinger og k&oslash;b.</p>
+            </div>
+            <select class="yb-receipts__period" id="yb-receipts-period">
+              <option value="90" data-hyc-da>Sidste 90 dage</option>
+              <option value="180" data-hyc-da>Sidste 6 m&aring;neder</option>
+              <option value="365" data-hyc-da>Sidste &aring;r</option>
+              <option value="730" selected data-hyc-da>Sidste 2 &aring;r</option>
+            </select>
+          </div>
+          <div id="yb-receipts-list" class="yb-receipts__list">
+            <div class="yb-store__loading">
+              <div class="yb-mb-spinner"></div>
+              <span data-t="receipts_loading">Henter kvitteringer...</span>
+            </div>
+          </div>
+          </div>
+          </div>
+        </div>
+
+        <!-- ═══════ TAB: Gift Cards ═══════ -->
+        <div class="yb-profile__tab-panel" data-yb-panel="giftcards">
+          <div class="yb-profile__content-area">
+          <div class="yb-giftcards">
+            <div class="yb-giftcards__header">
+              <h2 class="yb-giftcards__title" data-t="giftcards_title">Gavekort</h2>
+              <p class="yb-giftcards__subtitle" data-t="giftcards_subtitle">K&oslash;b et gavekort til en du holder af.</p>
+            </div>
+            <div id="yb-giftcards-list" class="yb-giftcards__list">
+              <div class="yb-store__loading">
+                <div class="yb-mb-spinner"></div>
+                <span data-t="giftcards_loading">Henter gavekort...</span>
+              </div>
+            </div>
+            <!-- Purchase form (hidden until a gift card is selected) -->
+            <div id="yb-giftcard-form" class="yb-giftcards__form" hidden>
+              <div class="yb-giftcards__checkout-grid">
+                <!-- Left: Build gift card -->
+                <div class="yb-giftcards__checkout-left">
+                  <h3 class="yb-giftcards__form-title" data-t="giftcard_send_title">Send gavekort</h3>
+                  <span class="yb-giftcards__form-price"></span>
+                  <div class="yb-auth-field">
+                    <label for="yb-gc-recipient-name" data-t="giftcard_recipient_name">Modtagers navn</label>
+                    <input type="text" id="yb-gc-recipient-name" required maxlength="20" placeholder="Fx Maria">
+                  </div>
+                  <div class="yb-auth-field">
+                    <label for="yb-gc-recipient-email" data-t="giftcard_recipient_email">Modtagers email</label>
+                    <input type="email" id="yb-gc-recipient-email" required maxlength="100" placeholder="maria@example.com">
+                  </div>
+                  <div class="yb-auth-field">
+                    <label for="yb-gc-title" data-t="giftcard_card_title">Titel p&aring; kortet</label>
+                    <input type="text" id="yb-gc-title" maxlength="20" placeholder="Tillykke med f&oslash;dselsdagen!">
+                  </div>
+                  <div class="yb-auth-field">
+                    <label for="yb-gc-message" data-t="giftcard_message">Personlig besked (valgfrit)</label>
+                    <textarea id="yb-gc-message" maxlength="300" rows="3" placeholder="Skriv en personlig hilsen..."></textarea>
+                  </div>
+                  <div class="yb-auth-field">
+                    <label for="yb-gc-delivery-date" data-t="giftcard_delivery_date">Leveringsdato (valgfrit)</label>
+                    <input type="date" id="yb-gc-delivery-date">
+                  </div>
+                </div>
+                <!-- Right: Payment -->
+                <div class="yb-giftcards__checkout-right">
+                  <h3 class="yb-giftcards__payment-title" data-t="checkout_payment_title">Betalingsoplysninger</h3>
+                  <!-- Stored card toggle (shown only when user has a stored card) -->
+                  <div id="yb-gc-stored-card" class="yb-checkout-stored-card" hidden>
+                    <label class="yb-checkout-stored-card__option yb-checkout-stored-card__option--active" id="yb-gc-use-stored">
+                      <input type="radio" name="yb-gc-payment-method" value="stored" checked>
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+                      <span id="yb-gc-stored-label"></span>
+                    </label>
+                    <label class="yb-checkout-stored-card__option" id="yb-gc-use-new">
+                      <input type="radio" name="yb-gc-payment-method" value="new">
+                      <span data-t="checkout_use_new_card">Brug nyt kort</span>
+                    </label>
+                  </div>
+                  <form id="yb-gc-payment-form" class="yb-profile__form" novalidate autocomplete="on">
+                    <div id="yb-gc-card-fields">
+                    <div class="yb-auth-field">
+                      <label for="yb-gc-cardholder" data-t="checkout_cardholder">Kortholders navn</label>
+                      <input type="text" id="yb-gc-cardholder" name="ccname" required autocomplete="cc-name">
+                    </div>
+                    <div class="yb-auth-field">
+                      <label for="yb-gc-cardnumber" data-t="checkout_card_number">Kortnummer</label>
+                      <input type="text" id="yb-gc-cardnumber" name="cardnumber" required autocomplete="cc-number" placeholder="1234 5678 9012 3456" inputmode="numeric" maxlength="19">
+                    </div>
+                    <div class="yb-profile__form-row yb-profile__form-row--3">
+                      <div class="yb-auth-field">
+                        <label for="yb-gc-expiry" data-t="checkout_expiry">Udl&oslash;bsdato</label>
+                        <input type="text" id="yb-gc-expiry" name="cc-exp" required placeholder="MM/YY" autocomplete="cc-exp" inputmode="numeric" maxlength="5">
+                      </div>
+                      <div class="yb-auth-field">
+                        <label for="yb-gc-cvv" data-t="checkout_cvv">CVV</label>
+                        <input type="text" id="yb-gc-cvv" name="cvc" required autocomplete="cc-csc" placeholder="123" inputmode="numeric" maxlength="4">
+                      </div>
+                    </div>
+                    </div>
+                    <div class="yb-auth-error" id="yb-gc-error" hidden role="alert"></div>
+                    <div class="yb-giftcards__form-actions">
+                      <button type="button" class="yb-btn yb-btn--primary" id="yb-gc-buy-btn" data-t="giftcard_buy">K&oslash;b gavekort</button>
+                      <button type="button" class="yb-btn yb-btn--outline" id="yb-gc-cancel-btn" data-t="giftcard_cancel">Annuller</button>
+                    </div>
+                    <div class="yb-store__secure">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                      <span data-t="giftcard_secure">Sikker betaling</span>
+                    </div>
+                  </form>
+                </div>
+              </div>
+            </div>
+          </div>
+          </div>
+        </div>
+
+      </div><!-- end .yb-profile__wrap -->
+    </div><!-- end #yb-profile-user -->
+  </div>
+</section>
+
+
+<!-- ═══════════════════════════════════════════════════════════════
+     TRANSLATIONS — Embedded i18n JSON for runtime language toggle
+     ═══════════════════════════════════════════════════════════════ -->
+<script>
+window.HYC_I18N = {
+  "da": {
+    "not_logged_in_title": "Du er ikke logget ind",
+    "not_logged_in_text": "Log ind eller opret en konto for at se din profil.",
+    "login_btn": "Log ind",
+    "register_btn": "Opret konto",
+    "tab_profile": "Profil",
+    "tab_store": "Butik",
+    "tab_schedule": "Skema",
+    "tab_visits": "Bes\u00f8gshistorik",
+    "tab_passes": "Mine Pas",
+    "tab_receipts": "Kvitteringer",
+    "tab_giftcards": "Gavekort",
+    "giftcards_title": "Gavekort",
+    "giftcards_subtitle": "K\u00f8b et gavekort til en du holder af.",
+    "giftcards_loading": "Henter gavekort...",
+    "giftcard_send_title": "Send gavekort",
+    "giftcard_recipient_name": "Modtagers navn",
+    "giftcard_recipient_email": "Modtagers email",
+    "giftcard_card_title": "Titel p\u00e5 kortet",
+    "giftcard_message": "Personlig besked (valgfrit)",
+    "giftcard_delivery_date": "Leveringsdato (valgfrit)",
+    "giftcard_buy": "K\u00f8b gavekort",
+    "giftcard_cancel": "Annuller",
+    "giftcard_secure": "Sikker betaling",
+    "giftcard_select": "V\u00e6lg",
+    "giftcard_empty": "Ingen gavekort tilg\u00e6ngelige.",
+    "giftcard_success_title": "Gavekort sendt!",
+    "giftcard_success_text": "Modtageren f\u00e5r gavekortet p\u00e5 email.",
+    "section_personal": "Personlige Oplysninger",
+    "label_firstname": "Fornavn",
+    "label_lastname": "Efternavn",
+    "label_email": "Email",
+    "label_phone": "Telefon",
+    "label_dob": "F\u00f8dselsdato",
+    "btn_save": "Gem \u00e6ndringer",
+    "btn_logout": "Log ud",
+    "section_password": "Skift Adgangskode",
+    "label_new_password": "Ny adgangskode",
+    "label_confirm_password": "Bekr\u00e6ft adgangskode",
+    "btn_change_password": "Skift adgangskode",
+    "section_payment": "Betalingsmetode",
+    "stored_card_loading": "Henter kortoplysninger...",
+    "stored_card_change": "Skift kort",
+    "stored_card_empty": "Intet kort gemt. Dit kort gemmes automatisk ved dit næste køb.",
+    "stored_card_new_title": "Tilf\u00f8j nyt kort",
+    "stored_card_save": "Gem kort",
+    "stored_card_cancel": "Annuller",
+    "stored_card_saving": "Gemmer...",
+    "stored_card_saved": "Kort gemt!",
+    "checkout_use_new_card": "Brug nyt kort",
+    "section_membership": "Medlemskab",
+    "label_tier": "Medlemskabsniveau",
+    "label_client_id": "Klient-ID",
+    "label_yoga_level": "Yoganiveau",
+    "yoga_level_placeholder": "V\u00e6lg dit niveau",
+    "yoga_level_beginner": "Begynder",
+    "yoga_level_intermediate": "\u00d8vet",
+    "yoga_level_advanced": "Avanceret",
+    "label_practice_freq": "Praksis-hyppighed",
+    "practice_freq_placeholder": "V\u00e6lg hyppighed",
+    "practice_freq_occasional": "Lejlighedsvis",
+    "practice_freq_regular": "Regelm\u00e6ssig",
+    "practice_freq_dedicated": "Dedikeret",
+    "onboarding_title": "Fuldf\u00f8r din profil",
+    "onboarding_desc": "Vi har brug for dit telefonnummer og din f\u00f8dselsdato.",
+    "onboarding_submit": "Gem oplysninger",
+    "onboarding_success": "Tak! Din profil er nu komplet \u2014 du kan nu navigere frit.",
+    "profile_reminder": "Tilf\u00f8j venligst dit telefonnummer og din f\u00f8dselsdato.",
+    "store_title": "Butik",
+    "store_subtitle": "K\u00f8b klippekort, pakker og medlemskab direkte her.",
+    "store_loading": "Henter tilg\u00e6ngelige pakker...",
+    "schedule_title": "Ugentligt Skema",
+    "schedule_subtitle": "Book dine yogahold direkte her.",
+    "schedule_loading": "Henter hold...",
+    "schedule_no_pass": "Du har brug for et klippekort for at booke.",
+    "schedule_buy_pass": "K\u00f8b klippekort",
+    "schedule_prev_week": "Forrige uge",
+    "schedule_next_week": "N\u00e6ste uge",
+    "visits_title": "Bes\u00f8gshistorik",
+    "visits_subtitle": "Dine seneste yogahold og bes\u00f8g.",
+    "visits_loading": "Henter bes\u00f8gshistorik...",
+    "visits_filter_all": "Alle",
+    "visits_filter_upcoming": "Kommende",
+    "visits_filter_attended": "Deltaget",
+    "visits_filter_noshow": "Udeblivelse",
+    "receipts_title": "Kvitteringer",
+    "receipts_subtitle": "Dine betalinger og k\u00f8b.",
+    "receipts_loading": "Henter kvitteringer...",
+    "checkout_title": "Betal",
+    "checkout_payment_title": "Betalingsoplysninger",
+    "checkout_cardholder": "Kortholders navn",
+    "checkout_card_number": "Kortnummer",
+    "checkout_expiry": "Udl\u00f8bsdato",
+    "checkout_cvv": "CVV",
+    "checkout_address": "Faktureringsadresse",
+    "checkout_city": "By",
+    "checkout_zip": "Postnummer",
+    "checkout_pay": "Betal",
+    "checkout_cancel": "Annuller",
+    "checkout_save_card": "Gem kort til fremtidige k\u00f8b",
+    "checkout_secure": "Sikker betaling",
+    "checkout_success_title": "Betaling gennemf\u00f8rt!",
+    "checkout_success_text": "Du modtager en bekr\u00e6ftelse p\u00e5 email.",
+    "checkout_success_book": "Book et hold",
+    "checkout_success_close": "Luk",
+    "waiver_title": "Ansvarsfrihedserkl\u00e6ring",
+    "waiver_desc": "L\u00e6s venligst og accepter vores ansvarsfrihedserkl\u00e6ring.",
+    "waiver_signed_label": "Ansvarsfrihedserkl\u00e6ring accepteret",
+    "waiver_view_details": "Vis detaljer",
+    "waiver_read_toggle": "L\u00e6s fuld erkl\u00e6ring",
+    "waiver_loading": "Henter ansvarsfrihedserkl\u00e6ring...",
+    "waiver_agree_label": "Jeg har l\u00e6st og accepterer",
+    "waiver_sign_label": "Tegn din underskrift nedenfor:",
+    "waiver_submit": "Accepter og forts\u00e6t",
+    "signature_clear": "Ryd",
+    "contract_terms_title": "Kontraktvilk\u00e5r",
+    "checkout_sign_label": "Din underskrift:",
+    "membership_loading": "Henter medlemskabsoplysninger..."
+  },
+  "en": {
+    "not_logged_in_title": "You're not signed in",
+    "not_logged_in_text": "Sign in or create an account to view your profile.",
+    "login_btn": "Sign in",
+    "register_btn": "Create account",
+    "tab_profile": "Profile",
+    "tab_store": "Store",
+    "tab_schedule": "Schedule",
+    "tab_visits": "Visit History",
+    "tab_passes": "My Passes",
+    "tab_receipts": "Receipts",
+    "tab_giftcards": "Gift Cards",
+    "giftcards_title": "Gift Cards",
+    "giftcards_subtitle": "Buy a gift card for someone you care about.",
+    "giftcards_loading": "Loading gift cards...",
+    "giftcard_send_title": "Send gift card",
+    "giftcard_recipient_name": "Recipient name",
+    "giftcard_recipient_email": "Recipient email",
+    "giftcard_card_title": "Card title",
+    "giftcard_message": "Personal message (optional)",
+    "giftcard_delivery_date": "Delivery date (optional)",
+    "giftcard_buy": "Buy gift card",
+    "giftcard_cancel": "Cancel",
+    "giftcard_secure": "Secure payment",
+    "giftcard_select": "Select",
+    "giftcard_empty": "No gift cards available.",
+    "giftcard_success_title": "Gift card sent!",
+    "giftcard_success_text": "The recipient will receive the gift card by email.",
+    "section_personal": "Personal Details",
+    "label_firstname": "First Name",
+    "label_lastname": "Last Name",
+    "label_email": "Email",
+    "label_phone": "Phone",
+    "label_dob": "Date of Birth",
+    "btn_save": "Save changes",
+    "btn_logout": "Sign out",
+    "section_password": "Change Password",
+    "label_new_password": "New password",
+    "label_confirm_password": "Confirm password",
+    "btn_change_password": "Change password",
+    "section_payment": "Payment Method",
+    "stored_card_loading": "Fetching card details...",
+    "stored_card_change": "Change card",
+    "stored_card_empty": "No card stored. Your card will be saved automatically with your next purchase.",
+    "stored_card_new_title": "Add new card",
+    "stored_card_save": "Save card",
+    "stored_card_cancel": "Cancel",
+    "stored_card_saving": "Saving...",
+    "stored_card_saved": "Card saved!",
+    "checkout_use_new_card": "Use new card",
+    "section_membership": "Membership",
+    "label_tier": "Membership Tier",
+    "label_client_id": "Client ID",
+    "label_yoga_level": "Yoga Level",
+    "yoga_level_placeholder": "Select your level",
+    "yoga_level_beginner": "Beginner",
+    "yoga_level_intermediate": "Intermediate",
+    "yoga_level_advanced": "Advanced",
+    "label_practice_freq": "Practice Frequency",
+    "practice_freq_placeholder": "Select frequency",
+    "practice_freq_occasional": "Occasional",
+    "practice_freq_regular": "Regular",
+    "practice_freq_dedicated": "Dedicated",
+    "onboarding_title": "Complete your profile",
+    "onboarding_desc": "We need your phone number and date of birth.",
+    "onboarding_submit": "Save details",
+    "onboarding_success": "Thanks! Your profile is now complete \u2014 you can navigate freely.",
+    "profile_reminder": "Please add your phone number and date of birth.",
+    "store_title": "Store",
+    "store_subtitle": "Buy class passes, packages and memberships directly here.",
+    "store_loading": "Loading available packages...",
+    "schedule_title": "Weekly Schedule",
+    "schedule_subtitle": "Book your yoga classes directly here.",
+    "schedule_loading": "Loading classes...",
+    "schedule_no_pass": "You need a class pass to book.",
+    "schedule_buy_pass": "Buy a pass",
+    "schedule_prev_week": "Previous week",
+    "schedule_next_week": "Next week",
+    "visits_title": "Visit History",
+    "visits_subtitle": "Your recent yoga classes and visits.",
+    "visits_loading": "Loading visit history...",
+    "visits_filter_all": "All",
+    "visits_filter_upcoming": "Upcoming",
+    "visits_filter_attended": "Attended",
+    "visits_filter_noshow": "No show",
+    "receipts_title": "Receipts",
+    "receipts_subtitle": "Your payments and purchases.",
+    "receipts_loading": "Loading receipts...",
+    "checkout_title": "Payment",
+    "checkout_payment_title": "Payment details",
+    "checkout_cardholder": "Cardholder name",
+    "checkout_card_number": "Card number",
+    "checkout_expiry": "Expiry date",
+    "checkout_cvv": "CVV",
+    "checkout_address": "Billing address",
+    "checkout_city": "City",
+    "checkout_zip": "Postal code",
+    "checkout_pay": "Pay",
+    "checkout_cancel": "Cancel",
+    "checkout_save_card": "Save card for future purchases",
+    "checkout_secure": "Secure payment",
+    "checkout_success_title": "Payment complete!",
+    "checkout_success_text": "You'll receive a confirmation email.",
+    "checkout_success_book": "Book a class",
+    "checkout_success_close": "Close",
+    "waiver_title": "Liability Waiver",
+    "waiver_desc": "Please read and accept our liability waiver.",
+    "waiver_signed_label": "Liability waiver accepted",
+    "waiver_view_details": "View details",
+    "waiver_read_toggle": "Read full waiver",
+    "waiver_loading": "Loading liability waiver...",
+    "waiver_agree_label": "I have read and accept",
+    "waiver_sign_label": "Draw your signature below:",
+    "waiver_submit": "Accept and continue",
+    "signature_clear": "Clear",
+    "contract_terms_title": "Contract Terms",
+    "checkout_sign_label": "Your signature:",
+    "membership_loading": "Loading membership details..."
+  }
+};
+</script>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     SCRIPTS
+     ═══════════════════════════════════════════════════════════════ -->
+
+<!-- Firebase SDK (compat v10.14.1) -->
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
+
+<!-- App scripts -->
+<script src="/js/firebase-auth.js"></script>
+<script src="/js/mindbody.js"></script>
+<script src="/js/profile.js"></script>
+
+<!-- Language toggle + translation engine -->
+<script>
+(function() {
+  'use strict';
+
+  // Language toggle function (called from hero DA/EN buttons)
+  window.setHycLang = function(lang) {
+    localStorage.setItem('hycph-lang', lang);
+    applyTranslations();
+    // Notify dynamic content (store, passes, etc.) to re-render
+    window.dispatchEvent(new Event('hycph-lang-change'));
+    // Update lang toggle buttons
+    var daBtn = document.getElementById('hyc-lang-da');
+    var enBtn = document.getElementById('hyc-lang-en');
+    if (daBtn) daBtn.className = lang === 'da' ? 'is-active' : '';
+    if (enBtn) enBtn.className = lang === 'en' ? 'is-active' : '';
+    // Update HTML lang attribute
+    document.documentElement.lang = lang === 'en' ? 'en' : 'da';
+    // Update page title
+    document.title = lang === 'en' ? 'My Profile | Hot Yoga Copenhagen' : 'Min Profil | Hot Yoga Copenhagen';
+  };
+
+  function applyTranslations() {
+    var lang = localStorage.getItem('hycph-lang') === 'en' ? 'en' : 'da';
+    var i18n = window.HYC_I18N;
+    if (!i18n) return;
+    var t = i18n[lang];
+    if (!t) return;
+
+    // Update [data-t] elements
+    var els = document.querySelectorAll('[data-t]');
+    for (var i = 0; i < els.length; i++) {
+      var key = els[i].getAttribute('data-t');
+      if (t[key]) els[i].textContent = t[key];
+    }
+
+    // Toggle [data-hyc-da] / [data-hyc-en] elements
+    var daEls = document.querySelectorAll('[data-hyc-da]');
+    var enEls = document.querySelectorAll('[data-hyc-en]');
+    for (var j = 0; j < daEls.length; j++) {
+      daEls[j].hidden = lang !== 'da';
+    }
+    for (var k = 0; k < enEls.length; k++) {
+      enEls[k].hidden = lang !== 'en';
+    }
+  }
+
+  // Apply on load
+  var currentLang = localStorage.getItem('hycph-lang') || 'da';
+  if (currentLang === 'en') {
+    window.setHycLang('en');
+  }
+})();
+</script>
+
+</body>
+</html>

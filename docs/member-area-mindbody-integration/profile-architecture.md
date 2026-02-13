@@ -1,7 +1,7 @@
 # Profile Page Architecture — Frontend Reference
 
 > Frontend architecture for the member area profile page (`src/js/profile.js`, ~2600 lines).
-> Adapt for each brand's design system. **Last updated: 2026-02-09** — reflects store redesign, My Passes tab, retention card, consent/audit trail, mandatory onboarding, bidirectional MB sync.
+> Adapt for each brand's design system. **Last updated: 2026-02-10** — reflects invoice/receipt rewrite with HTML invoice generation, 3-source merge, correct MB field mappings.
 
 ## Overview
 
@@ -269,14 +269,14 @@ Promise.all([
 - **Terminated (before date):** "Membership Terminated" red badge, "Last billing {date}", "Active until {date}", notice period note with T&C link, retention card
 - **Terminated (after date):** "Membership Terminated" red badge, "Become a member again" button
 
-**Membership management (Contact-based, updated 2026-02-10):**
+**Membership management (Contact-based, updated 2026-02-13):**
 - Pause and Cancel buttons have been **removed** from the user profile
 - Replaced with an info box directing users to email `info@yogabible.dk`
 - Info box text explains: pause (14 days – 3 months, special circumstances) or cancel (1 month notice per T&C)
-- **Reason:** Unresolved Mindbody API issues — `SuspendDate` interpreted as end date (not start), no API to delete suspension or cancel termination
-- **Awaiting** Mindbody Developer Support response (email drafted in `docs/email-mindbody-support.md`)
+- **Suspend API fixed (2026-02-13):** Correct parameter is `SuspensionStart` (NOT `SuspendDate`). Future-dated starts supported. Duration + DurationUnit calculate resume date. See `docs/email-mindbody-support.md` for full details.
+- **Still no API for:** delete/cancel suspension, cancel/revoke termination (admin UI only)
 - Status displays remain: paused badge, terminated badge, billing info, retention card, contact hints
-- Backend `mb-contract-manage.js` still functional for suspend/terminate actions (can be re-enabled when API issues are resolved)
+- Backend `mb-contract-manage.js` now uses correct `SuspensionStart` parameter — pause button can be re-enabled
 
 **Retention card (terminated contracts, before termination date):**
 - Heart icon, "We already miss you!" title
@@ -323,36 +323,35 @@ else                         → No-show (red)
 **Sorting:** Upcoming first (ascending by date), then past (descending by date)
 - Two-pass sort: upcoming items sorted earliest-first, past items sorted newest-first
 
-### 5. Receipts Tab (Kvitteringer)
+### 5. Receipts Tab (Kvitteringer) — Updated 2026-02-10
 
-**Data source:** `mb-purchases`
-- Fetches from `clientservices` + `clientcontracts` (NOT `/sale/sales` — that endpoint ignores ClientId filter)
+**Data source:** `mb-purchases` — fetches ALL 3 Mindbody sources in parallel:
+1. `/sale/sales` (365-day window) — rich invoice data with line items, payments, tax
+2. `/client/clientservices` — passes (no price field, enriched via cross-reference)
+3. `/client/clientcontracts` — memberships (price from `UpcomingAutopayEvents`)
 
-**Time period picker:** 90, 180, 365, 730 days (select dropdown)
+**Time period picker:** 90, 180, 365, 730 days (select dropdown, default 730)
 
 **Receipt card displays:**
-- Date, item name, program name
-- Type badge: Membership (contract), Pass (service), Purchase (sale)
-- Status badges: Active, Refunded
-- Details grid: Amount, Payment method (with last 4 digits), Quantity, Sessions used (X/Y), Expiration, End date, Autopay amount, Discount, Tax, Location
+- Date, item description, sale reference number
+- Refunded badge (if returned)
+- Multi-item support: shows each line item with individual price
+- Details grid: Total amount (DKK), Payment method, VAT/tax, Discount, Location
 
-**Download receipt (TXT):**
-```
-═══════════════════════════════════
-       YOGA BIBLE — KVITTERING
-═══════════════════════════════════
-
-Dato: 8. feb. 2026
-Vare: 10-klippekort
-Beløb: 1.200 kr.
-Reference: #12345
-
-═══════════════════════════════════
-Yoga Bible DK | yogabible.dk
-Torvegade 66, 1400, København K
-```
-- Generated as Blob → `URL.createObjectURL()` → triggers `<a>` download
-- Filename: `kvittering-{saleId}.txt`
+**Download invoice (HTML → PDF):**
+- `generateInvoiceHTML(purchase)` creates a full professional invoice
+- Opens in new browser window — user prints/saves as PDF
+- Falls back to HTML file download if popup is blocked
+- Invoice includes:
+  - **Business header:** Yoga Bible, 66 Torvegade, 1400 København, CVR 41295252
+  - **Bill To:** Customer name + Mindbody client ID
+  - **Invoice meta:** Invoice number (Aps-XXXXXXXX), Sale ID, dates
+  - **Line items table:** Description, Qty, Unit Price, VAT%, VAT, Amount
+  - **Totals:** Subtotal, Discount, VAT, Invoice Total
+  - **Payment adjustment:** Method, date, amount (with negative notation)
+  - **Amount Due** box + "Paid" stamp when fully paid
+  - **Footer:** Bank details (Reg 3409, Acc 13011206, Danske Bank, IBAN DK7430000013011206)
+- Print button styled with brand orange, hidden on print via `@media print`
 
 ### Membership Management (within My Passes Tab) — Updated 2026-02-10
 
@@ -377,9 +376,9 @@ Torvegade 66, 1400, København K
 - Revoke cancellation is NOT possible via Mindbody API (`activatecontract` doesn't exist)
 - "Want to cancel the termination? Contact us at info@yogabible.dk" hint shown
 
-**Backend (ready for re-activation):**
-- `mb-contract-manage.js` still supports `action: 'suspend'|'terminate'`
-- Can re-enable buttons once Mindbody clarifies SuspendDate semantics
+**Backend (fixed and working):**
+- `mb-contract-manage.js` supports `action: 'suspend'|'terminate'`
+- Now uses correct `SuspensionStart` parameter (fixed 2026-02-13)
 - Business rules remain in code: min 14 days, max 93 days, earliest start after next billing
 
 **Pause persistence (Firestore bridge):**
@@ -391,11 +390,11 @@ Torvegade 66, 1400, København K
 **Date formatting:**
 - All dates use `formatDateDK()` for consistent Danish-style display
 
-**Why buttons were removed (2026-02-10):**
-1. `SuspendDate` treated by MB as end date, not start — can't schedule future-dated pause starts
-2. No API to delete/cancel an existing suspension — only available in MB admin UI
-3. No API to revoke/cancel a pending termination — only available in MB admin UI
-4. Email sent to Mindbody Developer Support requesting clarification (see `docs/email-mindbody-support.md`)
+**Why buttons were originally removed (2026-02-10) and current status:**
+1. ~~`SuspendDate` treated by MB as end date, not start~~ — **FIXED (2026-02-13):** Correct param is `SuspensionStart`
+2. No API to delete/cancel an existing suspension — **still no API** (admin UI only)
+3. No API to revoke/cancel a pending termination — **still no API** (admin UI only)
+4. Suspend API now works correctly — pause buttons can be re-enabled. Cancel pause/termination still requires contacting studio.
 
 ### 6. Courses Tab (Mine Kurser)
 
@@ -463,12 +462,14 @@ renderSchedulePassInfo()           — Smart pass banner (clips, membership, low
 clientCanBook(programId)           — Frontend pass-to-program validation
 bookClass(btn)                     — Pass validation + booking
 cancelClass(btn)                   — Cancel with late-cancel retry
-loadReceipts(periodDays?)          — Purchase history with period filter
+loadReceipts(periodDays?)          — Purchase history with period filter (3-source merge)
+renderReceipts(container, purchases) — Receipt cards with price, tax, download button
+generateInvoiceHTML(purchase)      — Full HTML invoice (opens in new window for Print/PDF)
 loadVisitHistory(periodDays?)      — Visit data + filters + status counts
 loadStore()                        — Services + contracts (parallel fetch) with search + category tabs
 renderStoreItems(container)        — Build store HTML: search bar, categories, item grid, badges, terms
 categorizeService(s)               — Heuristic name→category mapping
-downloadReceipt(purchase)          — Generate + download text receipt
+formatDKK(num)                     — Danish Krone formatting (e.g. "1.200 kr.")
 
 // ─── Membership Management Functions ───
 loadMembershipDetails()            — Fetch passes/contracts, render, set tier badge
@@ -683,7 +684,7 @@ When porting this system to a new brand (e.g., Hot Yoga CPH):
 
 1. **Copy files:** `src/js/profile.js`, `src/js/firebase-auth.js`, `src/js/mindbody.js`
 2. **Update translations:** Modify `t()` function map and `storeCategories` array, add brand-specific keys to both `t()` map and `profile.json`
-3. **Update receipt footer:** Change studio name/address in `downloadReceipt()`
+3. **Update invoice template:** Change company name/address/CVR/bank details in `generateInvoiceHTML()`
 4. **Update Firebase config:** Change `firebaseConfig` in `firebase-auth.js` (can share same project yoga-bible-dk-com or use separate)
 5. **Update category heuristics:** Adjust `categorizeService()` keywords if services have different naming
 6. **Termination rules:** Adjust `calcTerminationDates()` — notice period, billing cycle logic may differ per brand's T&C

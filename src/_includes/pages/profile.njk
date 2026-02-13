@@ -4,11 +4,6 @@
 
 <section class="yb-profile">
   <div class="container">
-    <div class="yb-profile__header">
-      <p class="yb-profile__eyebrow">{{ t.page_eyebrow }}</p>
-      <h1 class="yb-profile__title">{{ t.page_title }}</h1>
-      <p class="yb-profile__subtitle">{{ t.page_subtitle }}</p>
-    </div>
 
     <!-- Not logged in state -->
     <div id="yb-profile-guest" class="yb-profile__guest">
@@ -24,76 +19,88 @@
     </div>
 
     <!-- Logged in state -->
-    <div id="yb-profile-user" class="yb-profile__content" style="display:none">
+    <div id="yb-profile-user" style="display:none">
+      <div class="yb-profile__wrap">
 
-      <!-- Tab navigation (tabs greyed out until phone+DOB filled) -->
-      <div class="yb-profile__tabs">
-        <button class="yb-profile__tab is-active" type="button" data-yb-tab="profile">{{ t.tab_profile }}</button>
-        <button class="yb-profile__tab" type="button" data-yb-tab="schedule">{{ t.tab_schedule }}</button>
-        <button class="yb-profile__tab" type="button" data-yb-tab="store">{{ t.tab_store }}</button>
-        <button class="yb-profile__tab" type="button" data-yb-tab="visits">{{ t.tab_visits }}</button>
-        <button class="yb-profile__tab" type="button" data-yb-tab="passes">{{ t.tab_passes }}</button>
-        <button class="yb-profile__tab" type="button" data-yb-tab="receipts">{{ t.tab_receipts }}</button>
-        <button class="yb-profile__tab" type="button" data-yb-tab="courses">{{ t.tab_courses }}</button>
-      </div>
-
-      {# ═══════ TAB: Profile ═══════ #}
-      <div class="yb-profile__tab-panel is-active" data-yb-panel="profile">
-
-        <!-- Inline onboarding card (shown until phone+DOB are filled) -->
-        <div id="yb-onboarding-inline" class="yb-onboarding-inline" hidden>
-          <div class="yb-onboarding-inline__card">
-            <div class="yb-onboarding-inline__header">
-              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#f75c03" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-              <div>
-                <h3 class="yb-onboarding-inline__title">{{ t.onboarding_title }}</h3>
-                <p class="yb-onboarding-inline__desc">{{ t.onboarding_desc }}</p>
+        <!-- Hero header -->
+        <div class="yb-profile__hero">
+          <div class="yb-profile__hero-top">
+            <span class="yb-profile__hero-logo">YOGA BIBLE</span>
+            <div class="yb-profile__hero-actions">
+              <div class="yb-profile__hero-lang">
+                <button{% if lang != "en" %} class="is-active"{% endif %} onclick="window.location.href='{{ lp }}/profile/'">DA</button>
+                <button{% if lang == "en" %} class="is-active"{% endif %} onclick="window.location.href='{% if lang == 'en' %}/profile/{% else %}/en/profile/{% endif %}'">EN</button>
               </div>
+              <button class="yb-profile__hero-logout" type="button" data-yb-auth-logout>{{ t.btn_logout }}</button>
             </div>
-            <form id="yb-onboarding-form" class="yb-onboarding-inline__form" novalidate>
-              <div class="yb-profile__form-row">
-                <div class="yb-auth-field">
-                  <label for="yb-onboarding-phone">{{ t.label_phone }} <span style="color:#f75c03">*</span></label>
-                  <input type="tel" id="yb-onboarding-phone" autocomplete="tel" placeholder="{{ t.placeholder_phone }}" required>
-                </div>
-                <div class="yb-auth-field">
-                  <label for="yb-onboarding-dob">{{ t.label_dob }} <span style="color:#f75c03">*</span></label>
-                  <input type="date" id="yb-onboarding-dob" required>
-                </div>
-              </div>
-              <div class="yb-auth-error" id="yb-onboarding-error" hidden role="alert"></div>
-              <button type="submit" class="yb-btn yb-btn--primary">{{ t.onboarding_submit }}</button>
-            </form>
           </div>
-        </div>
-
-        <!-- Onboarding success message (shown after phone+DOB saved) -->
-        <div id="yb-onboarding-success" class="yb-onboarding-success" hidden>
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#16a34a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
-          <span>{{ t.onboarding_success }}</span>
-        </div>
-
-        <div class="yb-profile__grid">
-
-          <!-- Left: avatar + member info -->
-          <aside class="yb-profile__sidebar">
+          <div class="yb-profile__hero-user">
             <div class="yb-profile__avatar-wrap">
               <div class="yb-profile__avatar" id="yb-profile-avatar">YB</div>
               <button class="yb-profile__avatar-edit" type="button" id="yb-profile-avatar-btn" title="{{ t.avatar_change }}">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
               </button>
               <input type="file" id="yb-profile-avatar-input" accept="image/*" hidden>
             </div>
-            <div class="yb-profile__member-info">
+            <div>
               <span class="yb-profile__member-name" id="yb-profile-display-name"></span>
-              <span class="yb-profile__member-email" id="yb-profile-display-email"></span>
-              <span class="yb-profile__member-since" id="yb-profile-member-since"></span>
+              <p class="yb-profile__member-meta">
+                <span id="yb-profile-display-email"></span>
+                <span class="yb-profile__member-badge" id="yb-profile-tier">&mdash;</span>
+                <span class="yb-profile__role-badge" id="yb-profile-role-badge" style="display:none"></span>
+              </p>
+              {# Member since hidden for now #}
             </div>
-            <button class="yb-btn yb-btn--outline yb-btn--full" type="button" data-yb-auth-logout>{{ t.btn_logout }}</button>
-          </aside>
+          </div>
+        </div>
 
-          <!-- Right: forms -->
-          <div class="yb-profile__main">
+        <!-- Tab navigation -->
+        <div class="yb-profile__tabs">
+          <button class="yb-profile__tab is-active" type="button" data-yb-tab="profile">{{ t.tab_profile }}</button>
+          <button class="yb-profile__tab" type="button" data-yb-tab="schedule">{{ t.tab_schedule }}</button>
+          <button class="yb-profile__tab" type="button" data-yb-tab="store">{{ t.tab_store }}</button>
+          <button class="yb-profile__tab" type="button" data-yb-tab="visits">{{ t.tab_visits }}</button>
+          <button class="yb-profile__tab" type="button" data-yb-tab="passes">{{ t.tab_passes }}</button>
+          <button class="yb-profile__tab" type="button" data-yb-tab="receipts">{{ t.tab_receipts }}</button>
+          <button class="yb-profile__tab" type="button" data-yb-tab="courses">{{ t.tab_courses }}</button>
+        </div>
+
+        {# ═══════ TAB: Profile ═══════ #}
+        <div class="yb-profile__tab-panel is-active" data-yb-panel="profile">
+          <div class="yb-profile__content-area">
+
+            <!-- Inline onboarding card (shown until phone+DOB are filled) -->
+            <div id="yb-onboarding-inline" class="yb-onboarding-inline" hidden>
+              <div class="yb-onboarding-inline__card">
+                <div class="yb-onboarding-inline__header">
+                  <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#f75c03" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                  <div>
+                    <h3 class="yb-onboarding-inline__title">{{ t.onboarding_title }}</h3>
+                    <p class="yb-onboarding-inline__desc">{{ t.onboarding_desc }}</p>
+                  </div>
+                </div>
+                <form id="yb-onboarding-form" class="yb-onboarding-inline__form" novalidate>
+                  <div class="yb-profile__form-row">
+                    <div class="yb-auth-field">
+                      <label for="yb-onboarding-phone">{{ t.label_phone }} <span style="color:#f75c03">*</span></label>
+                      <input type="tel" id="yb-onboarding-phone" autocomplete="tel" placeholder="{{ t.placeholder_phone }}" required>
+                    </div>
+                    <div class="yb-auth-field">
+                      <label for="yb-onboarding-dob">{{ t.label_dob }} <span style="color:#f75c03">*</span></label>
+                      <input type="date" id="yb-onboarding-dob" required>
+                    </div>
+                  </div>
+                  <div class="yb-auth-error" id="yb-onboarding-error" hidden role="alert"></div>
+                  <button type="submit" class="yb-btn yb-btn--primary">{{ t.onboarding_submit }}</button>
+                </form>
+              </div>
+            </div>
+
+            <!-- Onboarding success message (shown after phone+DOB saved) -->
+            <div id="yb-onboarding-success" class="yb-onboarding-success" hidden>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#16a34a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+              <span>{{ t.onboarding_success }}</span>
+            </div>
 
             <!-- Personal details -->
             <div class="yb-profile__card">
@@ -174,13 +181,41 @@
               </form>
             </div>
 
+            <!-- Stored Credit Card -->
+            <div class="yb-profile__card" id="yb-stored-card-section">
+              <h2 class="yb-profile__card-title">{{ t.section_payment }}</h2>
+              <div id="yb-stored-card-loading" class="yb-stored-card__loading">
+                <div class="yb-mb-spinner" style="width:18px;height:18px"></div>
+                <span style="color:#6F6A66;font-size:0.9rem">{{ t.stored_card_loading }}</span>
+              </div>
+              <div id="yb-stored-card-display" hidden>
+                <div class="yb-stored-card">
+                  <div class="yb-stored-card__info">
+                    <svg class="yb-stored-card__icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+                    <div>
+                      <span class="yb-stored-card__type" id="yb-stored-card-type"></span>
+                      <span class="yb-stored-card__number" id="yb-stored-card-number"></span>
+                    </div>
+                  </div>
+                  <div class="yb-stored-card__meta">
+                    <span class="yb-stored-card__holder" id="yb-stored-card-holder"></span>
+                    <span class="yb-stored-card__exp" id="yb-stored-card-exp"></span>
+                  </div>
+                  <button type="button" class="yb-btn yb-btn--outline yb-btn--sm" id="yb-stored-card-change">{{ t.stored_card_change }}</button>
+                </div>
+              </div>
+              <div id="yb-stored-card-empty" hidden>
+                <p class="yb-stored-card__empty-text">{{ t.stored_card_empty }}</p>
+              </div>
+            </div>
+
             <!-- Membership summary (details in My Passes tab) -->
             <div class="yb-profile__card">
               <h2 class="yb-profile__card-title">{{ t.section_membership }}</h2>
               <div class="yb-profile__info-grid">
                 <div class="yb-profile__info-item">
                   <span class="yb-profile__info-label">{{ t.label_tier }}</span>
-                  <span class="yb-profile__info-value" id="yb-profile-tier">&mdash;</span>
+                  <span class="yb-profile__info-value" id="yb-profile-tier-detail">&mdash;</span>
                 </div>
                 <div class="yb-profile__info-item" id="yb-profile-client-id-wrap" hidden>
                   <span class="yb-profile__info-label">{{ t.label_client_id }}</span>
@@ -191,11 +226,11 @@
 
           </div>
         </div>
-      </div>
 
-      {# ═══════ TAB: Schedule ═══════ #}
-      <div class="yb-profile__tab-panel" data-yb-panel="schedule">
-        <div class="yb-schedule">
+        {# ═══════ TAB: Schedule ═══════ #}
+        <div class="yb-profile__tab-panel" data-yb-panel="schedule">
+          <div class="yb-profile__content-area">
+          <div class="yb-schedule">
           <div class="yb-schedule__header">
             <h2 class="yb-schedule__title">{{ t.schedule_title }}</h2>
             <p class="yb-schedule__subtitle">{{ t.schedule_subtitle }}</p>
@@ -230,12 +265,14 @@
 
           <!-- Toast notification -->
           <div id="yb-schedule-toast" class="yb-schedule__toast" hidden></div>
+          </div>
+          </div>
         </div>
-      </div>
 
-      {# ═══════ TAB: Store ═══════ #}
-      <div class="yb-profile__tab-panel" data-yb-panel="store" data-store-items="{{ t.store_items | join(',') }}">
-        <div class="yb-store">
+        {# ═══════ TAB: Store ═══════ #}
+        <div class="yb-profile__tab-panel" data-yb-panel="store" data-store-items="{{ t.store_items | join(',') }}">
+          <div class="yb-profile__content-area">
+          <div class="yb-store">
           <div class="yb-store__header">
             <h2 class="yb-store__title">{{ t.store_title }}</h2>
             <p class="yb-store__subtitle">{{ t.store_subtitle }}</p>
@@ -300,6 +337,19 @@
                 <div class="yb-checkout__col-right">
                   <h4 class="yb-checkout__payment-title">{{ t.checkout_payment_title }}</h4>
                   <form id="yb-store-checkout-form" class="yb-profile__form" novalidate>
+                    <!-- Stored card option (shown when user has a saved card) -->
+                    <div id="yb-checkout-stored-card" class="yb-checkout-stored-card" hidden>
+                      <label class="yb-checkout-stored-card__option yb-checkout-stored-card__option--active" id="yb-checkout-use-stored">
+                        <input type="radio" name="yb-payment-method" value="stored" checked>
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+                        <span id="yb-checkout-stored-label"></span>
+                      </label>
+                      <label class="yb-checkout-stored-card__option" id="yb-checkout-use-new">
+                        <input type="radio" name="yb-payment-method" value="new">
+                        <span>{{ t.checkout_new_card }}</span>
+                      </label>
+                    </div>
+                    <div id="yb-checkout-card-fields">
                     <div class="yb-auth-field">
                       <label for="yb-store-cardholder">{{ t.checkout_cardholder }}</label>
                       <input type="text" id="yb-store-cardholder" required autocomplete="cc-name">
@@ -333,12 +383,13 @@
                       </div>
                     </div>
 
-                    <div class="yb-auth-error" id="yb-store-error" hidden role="alert"></div>
-
                     <label class="yb-store__save-card">
                       <input type="checkbox" id="yb-store-save-card" checked>
                       <span>{{ t.checkout_save_card }}</span>
                     </label>
+                    </div>{# end yb-checkout-card-fields #}
+
+                    <div class="yb-auth-error" id="yb-store-error" hidden role="alert"></div>
 
                     <div class="yb-store__checkout-actions">
                       <button type="submit" class="yb-auth-submit" id="yb-store-pay-btn">{{ t.checkout_pay }}</button>
@@ -368,12 +419,14 @@
               </div>
             </div>
           </div>
+          </div>
+          </div>
         </div>
-      </div>
 
-      {# ═══════ TAB: Visit History ═══════ #}
-      <div class="yb-profile__tab-panel" data-yb-panel="visits">
-        <div class="yb-visits">
+        {# ═══════ TAB: Visit History ═══════ #}
+        <div class="yb-profile__tab-panel" data-yb-panel="visits">
+          <div class="yb-profile__content-area">
+          <div class="yb-visits">
           <div class="yb-visits__header">
             <h2 class="yb-visits__title">{{ t.visits_title }}</h2>
             <p class="yb-visits__subtitle">{{ t.visits_subtitle }}</p>
@@ -399,12 +452,14 @@
               <span>{{ t.visits_loading }}</span>
             </div>
           </div>
+          </div>
+          </div>
         </div>
-      </div>
 
-      {# ═══════ TAB: My Passes ═══════ #}
-      <div class="yb-profile__tab-panel" data-yb-panel="passes">
-        <div class="yb-membership-tab">
+        {# ═══════ TAB: My Passes ═══════ #}
+        <div class="yb-profile__tab-panel" data-yb-panel="passes">
+          <div class="yb-profile__content-area">
+          <div class="yb-membership-tab">
           <div class="yb-membership-tab__header">
             <h2 class="yb-membership-tab__title">{{ t.tab_passes }}</h2>
           </div>
@@ -462,12 +517,14 @@
             </div>
             <div id="yb-membership-content"></div>
           </div>
+          </div>
+          </div>
         </div>
-      </div>
 
-      {# ═══════ TAB: Receipts ═══════ #}
-      <div class="yb-profile__tab-panel" data-yb-panel="receipts">
-        <div class="yb-receipts">
+        {# ═══════ TAB: Receipts ═══════ #}
+        <div class="yb-profile__tab-panel" data-yb-panel="receipts">
+          <div class="yb-profile__content-area">
+          <div class="yb-receipts">
           <div class="yb-receipts__header">
             <div>
               <h2 class="yb-receipts__title">{{ t.receipts_title }}</h2>
@@ -476,8 +533,8 @@
             <select class="yb-receipts__period" id="yb-receipts-period">
               <option value="90">{% if lang == 'en' %}Last 90 days{% else %}Sidste 90 dage{% endif %}</option>
               <option value="180">{% if lang == 'en' %}Last 6 months{% else %}Sidste 6 måneder{% endif %}</option>
-              <option value="365" selected>{% if lang == 'en' %}Last year{% else %}Sidste år{% endif %}</option>
-              <option value="730">{% if lang == 'en' %}Last 2 years{% else %}Sidste 2 år{% endif %}</option>
+              <option value="365">{% if lang == 'en' %}Last year{% else %}Sidste år{% endif %}</option>
+              <option value="730" selected>{% if lang == 'en' %}Last 2 years{% else %}Sidste 2 år{% endif %}</option>
             </select>
           </div>
           <div id="yb-receipts-list" class="yb-receipts__list">
@@ -486,11 +543,13 @@
               <span>{{ t.receipts_loading }}</span>
             </div>
           </div>
+          </div>
+          </div>
         </div>
-      </div>
 
-      {# ═══════ TAB: My Courses ═══════ #}
-      <div class="yb-profile__tab-panel" data-yb-panel="courses">
+        {# ═══════ TAB: My Courses ═══════ #}
+        <div class="yb-profile__tab-panel" data-yb-panel="courses">
+          <div class="yb-profile__content-area">
 
         {# ── View 1: Course List ── #}
         <div id="yb-profile-courses-list">
@@ -721,9 +780,11 @@
           </section>
         </div>
 
-      </div>
+          </div>
+        </div>
 
-    </div>
+      </div><!-- end .yb-profile__wrap -->
+    </div><!-- end #yb-profile-user -->
   </div>
 </section>
 

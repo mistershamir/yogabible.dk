@@ -1,0 +1,809 @@
+/* ═══════════════════════════════════════════════════════════
+   Vibro Yoga Showcase — 30 Vibration Experiments
+   Complete CSS for dark-themed interactive showcase
+   ═══════════════════════════════════════════════════════════ */
+
+/* ── Root Variables ── */
+:root {
+  --vs-font: 'Abacaxi', "Helvetica Neue", Helvetica, Arial, system-ui, sans-serif;
+  --vs-radius: 16px;
+  --vs-transition: cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+/* ── Body Reset ── */
+body {
+  margin: 0;
+  font-family: var(--vs-font);
+  background: #0a0a0a;
+  color: #fff;
+  -webkit-font-smoothing: antialiased;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+
+/* ═══════════════════════════════════════════════════════════
+   Sticky Navigation (.vs-nav)
+   ═══════════════════════════════════════════════════════════ */
+
+.vs-nav {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 9999;
+  background: rgba(10, 10, 10, 0.92);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  padding: 8px 0;
+}
+
+.vs-nav__inner {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 0 16px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.vs-nav__back {
+  font-size: 1.2rem;
+  color: #fff;
+  text-decoration: none;
+  opacity: 0.5;
+  padding: 4px 8px;
+  transition: opacity 0.2s;
+}
+
+.vs-nav__back:hover {
+  opacity: 1;
+}
+
+.vs-nav__group {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.vs-nav__label {
+  font-size: 0.6rem;
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  color: rgba(255, 255, 255, 0.3);
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.vs-nav__links {
+  display: flex;
+  gap: 3px;
+  flex-wrap: nowrap;
+}
+
+.vs-nav__link {
+  font-family: var(--vs-font);
+  font-size: 0.65rem;
+  font-weight: 700;
+  padding: 4px 8px;
+  border-radius: 4px;
+  color: rgba(255, 255, 255, 0.35);
+  text-decoration: none;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+
+.vs-nav__link:hover {
+  color: rgba(255, 255, 255, 0.7);
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.vs-nav__link.is-active {
+  background: rgba(255, 255, 255, 0.12);
+  color: #fff;
+}
+
+
+/* ═══════════════════════════════════════════════════════════
+   Progress Bar (.vs-progress)
+   ═══════════════════════════════════════════════════════════ */
+
+.vs-progress {
+  position: fixed;
+  top: 40px;
+  left: 0;
+  right: 0;
+  height: 2px;
+  z-index: 9998;
+  background: transparent;
+}
+
+.vs-progress__bar {
+  height: 100%;
+  width: 0%;
+  background: linear-gradient(90deg, #3f99a5, #7c5cff, #cc4400, #55cc88);
+  transition: width 0.1s;
+}
+
+
+/* ═══════════════════════════════════════════════════════════
+   Section Base (.vs-section)
+   ═══════════════════════════════════════════════════════════ */
+
+.vs-section {
+  position: relative;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  padding: 60px 24px;
+}
+
+
+/* ═══════════════════════════════════════════════════════════
+   Canvas (.vs-canvas)
+   ═══════════════════════════════════════════════════════════ */
+
+.vs-canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 1;
+}
+
+
+/* ═══════════════════════════════════════════════════════════
+   Overlay (.vs-section__overlay)
+   ═══════════════════════════════════════════════════════════ */
+
+.vs-section__overlay {
+  position: relative;
+  z-index: 2;
+  text-align: center;
+  pointer-events: none;
+  padding: 0 24px;
+}
+
+
+/* ═══════════════════════════════════════════════════════════
+   Section Number (.vs-section__number)
+   ═══════════════════════════════════════════════════════════ */
+
+.vs-section__number {
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.3em;
+  opacity: 0.25;
+  display: block;
+  margin-bottom: 12px;
+}
+
+
+/* ═══════════════════════════════════════════════════════════
+   Section Title (.vs-section__title)
+   ═══════════════════════════════════════════════════════════ */
+
+.vs-section__title {
+  font-size: clamp(2.5rem, 6vw, 5rem);
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: -0.02em;
+  margin-bottom: 16px;
+}
+
+
+/* ═══════════════════════════════════════════════════════════
+   Section Subtitle (.vs-section__subtitle)
+   ═══════════════════════════════════════════════════════════ */
+
+.vs-section__subtitle {
+  font-size: clamp(0.9rem, 1.5vw, 1.1rem);
+  color: rgba(255, 255, 255, 0.4);
+  max-width: 500px;
+  margin: 0 auto;
+  line-height: 1.6;
+}
+
+
+/* ═══════════════════════════════════════════════════════════
+   Cards (.vs-section__cards)
+   ═══════════════════════════════════════════════════════════ */
+
+.vs-section__cards {
+  position: relative;
+  z-index: 2;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+  max-width: 900px;
+  width: 100%;
+  margin-top: 40px;
+}
+
+.vs-section__cards--cascade {
+  grid-template-columns: repeat(3, 1fr);
+}
+
+
+/* ═══════════════════════════════════════════════════════════
+   Card (.vs-card)
+   ═══════════════════════════════════════════════════════════ */
+
+.vs-card {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 12px;
+  padding: 20px;
+  transition: all 0.3s;
+}
+
+.vs-card:hover {
+  border-color: var(--accent, rgba(255, 255, 255, 0.2));
+  transform: translateY(-3px);
+}
+
+.vs-card__title {
+  font-size: 1rem;
+  font-weight: 700;
+  margin-bottom: 6px;
+  color: var(--accent, #fff);
+}
+
+.vs-card__text {
+  font-size: 0.8rem;
+  line-height: 1.6;
+  color: rgba(255, 255, 255, 0.4);
+}
+
+
+/* ═══════════════════════════════════════════════════════════
+   Seismic Readout (.vs-seismic-readout)
+   ═══════════════════════════════════════════════════════════ */
+
+.vs-seismic-readout {
+  position: relative;
+  z-index: 2;
+  width: 100%;
+  max-width: 900px;
+}
+
+.vs-seismic-canvas {
+  width: 100%;
+  display: block;
+  border-radius: 8px;
+  border: 1px solid rgba(204, 68, 0, 0.15);
+}
+
+
+/* ═══════════════════════════════════════════════════════════
+   Resonance Rings (.vs-resonance-rings)
+   ═══════════════════════════════════════════════════════════ */
+
+.vs-resonance-rings {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  z-index: 1;
+}
+
+.vs-resonance-ring {
+  position: absolute;
+  border-radius: 50%;
+  border: 1px solid rgba(212, 165, 74, 0.12);
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.vs-resonance-ring:nth-child(1) {
+  width: 200px;
+  height: 200px;
+  animation: vs-ring-pulse 3s ease-in-out infinite;
+  animation-delay: 0s;
+}
+
+.vs-resonance-ring:nth-child(2) {
+  width: 350px;
+  height: 350px;
+  animation: vs-ring-pulse 3s ease-in-out infinite;
+  animation-delay: 0.3s;
+}
+
+.vs-resonance-ring:nth-child(3) {
+  width: 500px;
+  height: 500px;
+  animation: vs-ring-pulse 3s ease-in-out infinite;
+  animation-delay: 0.6s;
+}
+
+.vs-resonance-ring:nth-child(4) {
+  width: 650px;
+  height: 650px;
+  animation: vs-ring-pulse 3s ease-in-out infinite;
+  animation-delay: 0.9s;
+}
+
+.vs-resonance-ring:nth-child(5) {
+  width: 800px;
+  height: 800px;
+  animation: vs-ring-pulse 3s ease-in-out infinite;
+  animation-delay: 1.2s;
+}
+
+
+/* ═══════════════════════════════════════════════════════════
+   Temperature Meter (.vs-temp-meter)
+   ═══════════════════════════════════════════════════════════ */
+
+.vs-temp-meter {
+  position: relative;
+  z-index: 2;
+  text-align: center;
+  margin-top: 32px;
+}
+
+.vs-temp-meter__track {
+  width: 200px;
+  height: 6px;
+  background: rgba(255, 255, 255, 0.06);
+  border-radius: 3px;
+  margin: 0 auto 8px;
+  overflow: hidden;
+}
+
+.vs-temp-meter__fill {
+  height: 100%;
+  width: 10%;
+  background: linear-gradient(90deg, #00bfa5, #00e5c3);
+  border-radius: 3px;
+  transition: width 0.3s;
+}
+
+.vs-temp-meter__label {
+  font-size: 0.7rem;
+  color: rgba(255, 255, 255, 0.25);
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+}
+
+
+/* ═══════════════════════════════════════════════════════════
+   Vibrating Letters (.vs-vibrate-letter)
+   ═══════════════════════════════════════════════════════════ */
+
+.vs-vibrate-letter {
+  display: inline-block;
+  animation: vs-letter-vibrate calc(0.15s / var(--vibrate-intensity, 1)) infinite;
+}
+
+.vs-vibrate-letter:nth-child(odd) {
+  animation-delay: -0.05s;
+}
+
+.vs-vibrate-letter:nth-child(3n) {
+  animation-delay: -0.1s;
+}
+
+
+/* ═══════════════════════════════════════════════════════════
+   Frequency Bars (.vs-freq-bars)
+   ═══════════════════════════════════════════════════════════ */
+
+.vs-freq-bars {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  gap: 3px;
+  align-items: flex-end;
+  height: 80px;
+  justify-content: center;
+  margin-top: 32px;
+}
+
+.vs-freq-bar {
+  width: 5px;
+  height: 8px;
+  background: linear-gradient(0deg, #337f89, #5ab8c4);
+  border-radius: 2px;
+  transition: height 0.12s;
+}
+
+
+/* ═══════════════════════════════════════════════════════════
+   Strings Container (.vs-strings-container)
+   ═══════════════════════════════════════════════════════════ */
+
+.vs-strings-container {
+  position: relative;
+  z-index: 2;
+  max-width: 800px;
+  width: 100%;
+  margin-top: 40px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+
+/* ═══════════════════════════════════════════════════════════
+   String SVG (.vs-string-svg)
+   ═══════════════════════════════════════════════════════════ */
+
+.vs-string-svg {
+  width: 100%;
+  height: 50px;
+  cursor: pointer;
+  transition: filter 0.3s;
+}
+
+.vs-string-svg:hover {
+  filter: brightness(1.3);
+}
+
+.vs-string-svg.is-plucked {
+  animation: vs-string-pluck 0.5s ease-out;
+}
+
+@keyframes vs-string-pluck {
+  0% {
+    transform: scaleY(3);
+  }
+  30% {
+    transform: scaleY(0.4);
+  }
+  50% {
+    transform: scaleY(1.8);
+  }
+  70% {
+    transform: scaleY(0.7);
+  }
+  100% {
+    transform: scaleY(1);
+  }
+}
+
+
+/* ═══════════════════════════════════════════════════════════
+   Ripple Counter (.vs-ripple-counter)
+   ═══════════════════════════════════════════════════════════ */
+
+.vs-ripple-counter {
+  position: relative;
+  z-index: 2;
+  margin-top: 20px;
+  font-size: 0.75rem;
+  color: rgba(68, 136, 204, 0.5);
+  letter-spacing: 0.1em;
+}
+
+
+/* ═══════════════════════════════════════════════════════════
+   Control Button (.vs-ctrl-btn)
+   ═══════════════════════════════════════════════════════════ */
+
+.vs-ctrl-btn {
+  position: relative;
+  z-index: 2;
+  font-family: var(--vs-font);
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 8px 20px;
+  border-radius: 50px;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  background: transparent;
+  color: rgba(255, 255, 255, 0.5);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.vs-ctrl-btn:hover {
+  border-color: rgba(255, 255, 255, 0.3);
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.vs-ctrl-btn.is-active {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.3);
+  color: #fff;
+}
+
+
+/* ═══════════════════════════════════════════════════════════
+   Wave Controls (.vs-wave-controls)
+   ═══════════════════════════════════════════════════════════ */
+
+.vs-wave-controls {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+  margin-top: 24px;
+}
+
+
+/* ═══════════════════════════════════════════════════════════
+   Pendulum Controls (.vs-pendulum-controls)
+   ═══════════════════════════════════════════════════════════ */
+
+.vs-pendulum-controls {
+  position: relative;
+  z-index: 2;
+  margin-top: 20px;
+}
+
+
+/* ═══════════════════════════════════════════════════════════
+   Breath Guide (.vs-breath-guide)
+   ═══════════════════════════════════════════════════════════ */
+
+.vs-breath-guide {
+  position: relative;
+  z-index: 2;
+  margin-top: 24px;
+  font-size: 1rem;
+  color: rgba(102, 170, 204, 0.6);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  font-weight: 700;
+}
+
+
+/* ═══════════════════════════════════════════════════════════
+   Card Shake Animation
+   ═══════════════════════════════════════════════════════════ */
+
+[data-vs-shake].is-shaking {
+  animation: vs-shake 0.15s infinite;
+}
+
+@keyframes vs-shake {
+  0%, 100% {
+    transform: translate(0, 0);
+  }
+  25% {
+    transform: translate(1px, -1px);
+  }
+  50% {
+    transform: translate(-1px, 1px);
+  }
+  75% {
+    transform: translate(1px, 0.5px);
+  }
+}
+
+
+/* ═══════════════════════════════════════════════════════════
+   Cascade Animation
+   ═══════════════════════════════════════════════════════════ */
+
+[data-vs-cascade].is-cascading {
+  animation: vs-cascade-buzz 0.12s ease-in-out 4;
+  border-color: var(--accent);
+}
+
+@keyframes vs-cascade-buzz {
+  0%, 100% {
+    transform: translate(0, 0);
+  }
+  25% {
+    transform: translate(1px, -1px);
+  }
+  50% {
+    transform: translate(-1px, 1px);
+  }
+  75% {
+    transform: translate(1px, 0.5px);
+  }
+}
+
+
+/* ═══════════════════════════════════════════════════════════
+   Tremor Animation
+   ═══════════════════════════════════════════════════════════ */
+
+[data-vs-tremor] {
+  display: inline-block;
+  animation: vs-tremor 0.3s infinite;
+}
+
+@keyframes vs-tremor {
+  0%, 100% {
+    transform: translate(0, 0);
+  }
+  20% {
+    transform: translate(-0.5px, 0.5px);
+  }
+  40% {
+    transform: translate(0.5px, -0.5px);
+  }
+  60% {
+    transform: translate(-0.5px, -0.5px);
+  }
+  80% {
+    transform: translate(0.5px, 0.5px);
+  }
+}
+
+
+/* ═══════════════════════════════════════════════════════════
+   Footer (.vs-footer)
+   ═══════════════════════════════════════════════════════════ */
+
+.vs-footer {
+  background: #050505;
+  padding: 60px 24px;
+  text-align: center;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.vs-footer__inner {
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.vs-footer__logo {
+  font-size: 1.3rem;
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+
+.vs-footer__text {
+  font-size: 0.85rem;
+  color: rgba(255, 255, 255, 0.3);
+  margin-bottom: 4px;
+}
+
+.vs-footer__link {
+  color: rgba(255, 255, 255, 0.4);
+  text-decoration: none;
+  font-size: 0.85rem;
+  display: inline-block;
+  margin-top: 16px;
+  transition: color 0.3s;
+}
+
+.vs-footer__link:hover {
+  color: #fff;
+}
+
+
+/* ═══════════════════════════════════════════════════════════
+   Keyframes
+   ═══════════════════════════════════════════════════════════ */
+
+@keyframes vs-letter-vibrate {
+  0%, 100% {
+    transform: translate(0, 0);
+  }
+  25% {
+    transform: translate(calc(1px * var(--vibrate-intensity, 1)), calc(-1px * var(--vibrate-intensity, 1)));
+  }
+  50% {
+    transform: translate(calc(-1px * var(--vibrate-intensity, 1)), calc(1px * var(--vibrate-intensity, 1)));
+  }
+  75% {
+    transform: translate(calc(1px * var(--vibrate-intensity, 1)), calc(0.5px * var(--vibrate-intensity, 1)));
+  }
+}
+
+@keyframes vs-ring-pulse {
+  0%, 100% {
+    opacity: 0.12;
+    transform: translate(-50%, -50%) scale(1);
+  }
+  50% {
+    opacity: 0.3;
+    transform: translate(-50%, -50%) scale(1.05);
+  }
+}
+
+
+/* ═══════════════════════════════════════════════════════════
+   Responsive — 1024px (Tablet Landscape)
+   ═══════════════════════════════════════════════════════════ */
+
+@media (max-width: 1024px) {
+  .vs-nav__links {
+    gap: 2px;
+  }
+
+  .vs-section__cards {
+    grid-template-columns: 1fr;
+  }
+
+  .vs-section__cards--cascade {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+
+/* ═══════════════════════════════════════════════════════════
+   Responsive — 768px (Tablet Portrait)
+   ═══════════════════════════════════════════════════════════ */
+
+@media (max-width: 768px) {
+  .vs-nav__label {
+    display: none;
+  }
+
+  .vs-nav__link {
+    font-size: 0.55rem;
+    padding: 3px 6px;
+  }
+
+  .vs-section {
+    min-height: 80vh;
+  }
+
+  .vs-section__title {
+    font-size: clamp(1.8rem, 5vw, 3.5rem);
+  }
+
+  .vs-section__cards {
+    grid-template-columns: 1fr;
+  }
+
+  .vs-section__cards--cascade {
+    grid-template-columns: 1fr;
+  }
+}
+
+
+/* ═══════════════════════════════════════════════════════════
+   Responsive — 480px (Mobile)
+   ═══════════════════════════════════════════════════════════ */
+
+@media (max-width: 480px) {
+  .vs-nav__inner {
+    gap: 6px;
+    padding: 0 8px;
+  }
+
+  .vs-nav__link {
+    font-size: 0.5rem;
+    padding: 2px 4px;
+  }
+
+  .vs-nav__back {
+    font-size: 1rem;
+    padding: 2px 4px;
+  }
+
+  .vs-nav__links {
+    gap: 1px;
+  }
+
+  .vs-section {
+    padding: 40px 16px;
+  }
+
+  .vs-section__title {
+    font-size: clamp(1.5rem, 8vw, 2.5rem);
+  }
+
+  .vs-section__subtitle {
+    font-size: 0.85rem;
+  }
+
+  .vs-wave-controls {
+    flex-wrap: wrap;
+  }
+
+  .vs-strings-container {
+    gap: 12px;
+  }
+
+  .vs-freq-bars {
+    height: 60px;
+  }
+}
