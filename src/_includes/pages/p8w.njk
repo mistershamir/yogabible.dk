@@ -1,84 +1,39 @@
 {% set t = i18n.p8w[lang or "da"] %}
+{% set lp = "/en" if lang == "en" else "" %}
 
 <!-- ═══════════════════════════════════════
-     1. HERO — Primary Dark Cinematic
+     1. HERO — Semi-Intensive + Certification
      ═══════════════════════════════════════ -->
-<section class="yb-hero">
-  <div class="yb-hero__glow"></div>
-  <div class="yb-hero__content">
-    <p class="yb-hero__tagline">{{ t.hero_tagline }}</p>
-    <h1 class="yb-hero__title">{{ t.hero_title | safe }}</h1>
-    <p class="yb-hero__subtitle">{{ t.hero_subtitle }}</p>
-    <div class="yb-hero__line"></div>
-    <div class="yb-hero__ctas">
-      <button onclick="openYBScheduleModal('8w')" class="yb-btn yb-btn--primary yb-btn--large">{{ t.hero_cta_schedule }}</button>
-      <a href="{% if lang == 'en' %}/en/accommodation{% else %}/accommodation{% endif %}" class="yb-btn yb-btn--outline-white yb-btn--large">{{ t.hero_cta_accommodation }}</a>
-    </div>
-    <div class="yb-hero__trust">
-      <span>{{ t.hero_trust1 }}</span>
-      <span class="yb-hero__trust-dot"></span>
-      <span>{{ t.hero_trust2 }}</span>
-      <span class="yb-hero__trust-dot"></span>
-      <span>{{ t.hero_trust3 }}</span>
-    </div>
+<section class="p18-hero">
+  <div class="p18-hero__bg">
+    <!-- Video slot: add <video> here when ready -->
   </div>
-  <div class="yb-hero__scroll">
-    <span>Scroll</span>
-    <div class="yb-hero__scroll-line"></div>
+  <div class="p18-hero__overlay"></div>
+
+  <div class="container p18-hero__inner">
+    <span class="p18-hero__eyebrow">{{ t.hero_eyebrow }}</span>
+    <h1 class="p18-hero__title">{{ t.hero_title | safe }}</h1>
+    <p class="p18-hero__subtitle">{{ t.hero_subtitle }}</p>
+
+    <p class="p18-hero__meta-line">{{ t.hero_meta }}</p>
+
+    <p class="p18-hero__cert-badge">{{ t.hero_cert }}</p>
+
+    <p class="p18-hero__styles">{{ t.hero_styles }}</p>
+
+    <div class="p18-hero__cta">
+      <button onclick="openYBScheduleModal('8w')" class="btn btn--primary btn--large">{{ t.hero_cta_schedule }}</button>
+      <a href="#why-copenhagen" class="btn btn--secondary btn--large">{{ t.hero_cta_why }}</a>
+    </div>
+
+    <p class="p18-hero__read-more">
+      <a href="{{ lp }}/om-200hrs-yogalreruddannelser" class="p18-hero__read-more-link">{{ t.hero_cta_read_more }}</a>
+    </p>
   </div>
 </section>
 
 <!-- ═══════════════════════════════════════
-     2. WHAT YOU LEARN — Lifting Cards
-     ═══════════════════════════════════════ -->
-<section class="p18-curriculum" id="program-overview">
-  <div class="container">
-    <span class="p18-eyebrow">{{ t.curr_eyebrow }}</span>
-    <h2 class="p18-section-title">{{ t.curr_title }}</h2>
-    <p class="p18-section-sub">{{ t.curr_subtitle }}</p>
-
-    <div class="p18-curr-grid">
-      <div class="p18-curr-card">
-        <div class="p18-curr-card__accent"></div>
-        <h3>{{ t.curr1_title }}</h3>
-        <p>{{ t.curr1_desc }}</p>
-      </div>
-
-      <div class="p18-curr-card">
-        <div class="p18-curr-card__accent"></div>
-        <h3>{{ t.curr2_title }}</h3>
-        <p>{{ t.curr2_desc }}</p>
-      </div>
-
-      <div class="p18-curr-card">
-        <div class="p18-curr-card__accent"></div>
-        <h3>{{ t.curr3_title }}</h3>
-        <p>{{ t.curr3_desc }}</p>
-      </div>
-
-      <div class="p18-curr-card">
-        <div class="p18-curr-card__accent"></div>
-        <h3>{{ t.curr4_title }}</h3>
-        <p>{{ t.curr4_desc }}</p>
-      </div>
-
-      <div class="p18-curr-card">
-        <div class="p18-curr-card__accent"></div>
-        <h3>{{ t.curr5_title }}</h3>
-        <p>{{ t.curr5_desc }}</p>
-      </div>
-
-      <div class="p18-curr-card">
-        <div class="p18-curr-card__accent"></div>
-        <h3>{{ t.curr6_title }}</h3>
-        <p>{{ t.curr6_desc }}</p>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- ═══════════════════════════════════════
-     3. TRAINEE INTERVIEW — Video with Sound
+     2. TRAINEE INTERVIEW — Social Proof First
      ═══════════════════════════════════════ -->
 <section class="p18-video-interview">
   <div class="container">
@@ -99,7 +54,7 @@
 </section>
 
 <!-- ═══════════════════════════════════════
-     4. CERTIFICATION — Yoga Alliance RYT-200
+     3. CERTIFICATION — Yoga Alliance RYT-200
      ═══════════════════════════════════════ -->
 <section class="p18-certification">
   <div class="container">
@@ -111,70 +66,30 @@
 
       <!-- Left: Yoga styles you master -->
       <div>
-        <h3 class="p18-cert-subtitle">{{ t.cert_styles_title }}</h3>
+        <h3 class="p18-cert-subtitle">{% if lang == "en" %}Yoga styles you'll master{% else %}Yogastile du mestrer{% endif %}</h3>
         <div class="p18-cert-style-cards">
+          {% for i in [1, 2, 3, 4, 5] %}
           <div class="p18-cert-style">
-            <div class="p18-cert-style__icon">🧘</div>
+            <div class="p18-cert-style__icon">{{ t["cert_style" + i + "_icon"] }}</div>
             <div class="p18-cert-style__text">
-              <h4>{{ t.cert_style1_title }}</h4>
-              <p>{{ t.cert_style1_desc }}</p>
+              <h4>{{ t["cert_style" + i + "_title"] }}</h4>
+              <p>{{ t["cert_style" + i + "_desc"] }}</p>
             </div>
           </div>
-          <div class="p18-cert-style">
-            <div class="p18-cert-style__icon">🌊</div>
-            <div class="p18-cert-style__text">
-              <h4>{{ t.cert_style2_title }}</h4>
-              <p>{{ t.cert_style2_desc }}</p>
-            </div>
-          </div>
-          <div class="p18-cert-style">
-            <div class="p18-cert-style__icon">🌙</div>
-            <div class="p18-cert-style__text">
-              <h4>{{ t.cert_style3_title }}</h4>
-              <p>{{ t.cert_style3_desc }}</p>
-            </div>
-          </div>
-          <div class="p18-cert-style">
-            <div class="p18-cert-style__icon">🔥</div>
-            <div class="p18-cert-style__text">
-              <h4>{{ t.cert_style4_title }}</h4>
-              <p>{{ t.cert_style4_desc }}</p>
-            </div>
-          </div>
-          <div class="p18-cert-style">
-            <div class="p18-cert-style__icon">🧠</div>
-            <div class="p18-cert-style__text">
-              <h4>{{ t.cert_style5_title }}</h4>
-              <p>{{ t.cert_style5_desc }}</p>
-            </div>
-          </div>
+          {% endfor %}
         </div>
       </div>
 
       <!-- Right: What it opens for you -->
       <div>
-        <h3 class="p18-cert-subtitle">{{ t.cert_doors_title }}</h3>
+        <h3 class="p18-cert-subtitle">{% if lang == "en" %}Career & opportunities{% else %}Karriere & muligheder{% endif %}</h3>
         <ul class="p18-cert-list">
+          {% for i in [1, 2, 3, 4, 5] %}
           <li>
-            <span class="p18-cert-check" aria-hidden="true">✓</span>
-            <span>{{ t.cert_door1 | safe }}</span>
+            <span class="p18-cert-check" aria-hidden="true">&#x2713;</span>
+            <span><strong>{{ t["cert_career" + i + "_bold"] }}</strong> — {{ t["cert_career" + i + "_text"] }}</span>
           </li>
-          <li>
-            <span class="p18-cert-check" aria-hidden="true">✓</span>
-            <span>{{ t.cert_door2 | safe }}</span>
-          </li>
-          <li>
-            <span class="p18-cert-check" aria-hidden="true">✓</span>
-            <span>{{ t.cert_door3 | safe }}</span>
-          </li>
-          <li>
-            <span class="p18-cert-check" aria-hidden="true">✓</span>
-            <span>{{ t.cert_door4 | safe }}</span>
-          </li>
-          <li>
-            <span class="p18-cert-check" aria-hidden="true">✓</span>
-            <span>{{ t.cert_door5 | safe }}</span>
-          </li>
+          {% endfor %}
         </ul>
       </div>
 
@@ -183,14 +98,323 @@
     <p class="p18-cert-closing">{{ t.cert_closing }}</p>
 
     <div class="p18-cert-cta">
-      <a href="{% if lang == 'en' %}/en/om-200hrs-yogalreruddannelser{% else %}/om-200hrs-yogalreruddannelser{% endif %}" class="btn btn--primary btn--large">{{ t.cert_cta }}</a>
+      <a href="{{ lp }}/om-200hrs-yogalreruddannelser" class="btn btn--primary btn--large">{{ t.cert_cta_text }}</a>
     </div>
   </div>
 </section>
 
 <!-- ═══════════════════════════════════════
-     5. PROGRAM FORMAT — Semi-Intensive Schedule
-     (with scroll-draw vine accent)
+     4. CERTIFICATION VALUE — Why RYT-200 Matters
+     ═══════════════════════════════════════ -->
+<section class="p4w-certval">
+  <div class="container">
+    <span class="p18-eyebrow">{{ t.certval_eyebrow }}</span>
+    <h2 class="p18-section-title">{{ t.certval_title }}</h2>
+    <p class="p18-section-sub">{{ t.certval_intro }}</p>
+
+    <div class="p4w-certval__grid">
+
+      <!-- Left: Content -->
+      <div class="p4w-certval__content">
+
+        <h3 class="p4w-certval__heading">{{ t.certval_learn_title }}</h3>
+        <ul class="p4w-certval__list">
+          {% for i in [1, 2, 3, 4, 5] %}
+          <li>
+            <span class="p4w-certval__check" aria-hidden="true">&#x2713;</span>
+            <span>{{ t["certval_learn" + i] }}</span>
+          </li>
+          {% endfor %}
+        </ul>
+
+        <h3 class="p4w-certval__heading">{{ t.certval_upgrade_title }}</h3>
+        <p class="p4w-certval__text">{{ t.certval_upgrade_text | safe }}</p>
+
+        <h3 class="p4w-certval__heading">{{ t.certval_exam_title }}</h3>
+        <p class="p4w-certval__text">{{ t.certval_exam_text }}</p>
+
+      </div>
+
+      <!-- Right: Certificate image placeholder -->
+      <div class="p4w-certval__media">
+        <div class="p4w-certval__image-placeholder">
+          <img
+            src="/assets/images/p4w/yoga-alliance-ryt200-certificate-sample.jpg"
+            alt="{{ t.certval_image_alt }}"
+            loading="lazy"
+          >
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════
+     5. WHY COPENHAGEN — Comparison Table + Approach
+     ═══════════════════════════════════════ -->
+<section class="p18-compare" id="why-copenhagen">
+  <div class="container">
+    <span class="p18-eyebrow">{{ t.compare_eyebrow }}</span>
+    <h2 class="p18-section-title">{{ t.compare_title }}</h2>
+    <p class="p18-section-sub">{{ t.compare_subtitle }}</p>
+
+    <!-- Comparison table -->
+    <div class="p18-compare__table">
+      <div class="p18-compare__header">
+        <div></div>
+        <div class="p18-compare__col--cph">{{ t.compare_col_cph }}</div>
+        <div>{{ t.compare_col_bali }}</div>
+        <div>{{ t.compare_col_india }}</div>
+      </div>
+
+      {% for i in [1, 2, 3, 4, 5, 6, 7, 8] %}
+      <div class="p18-compare__row">
+        <div>{{ t["compare_r" + i + "_label"] }}</div>
+        <div>{{ t["compare_r" + i + "_cph"] }}</div>
+        <div>{{ t["compare_r" + i + "_bali"] }}</div>
+        <div>{{ t["compare_r" + i + "_india"] }}</div>
+      </div>
+      {% endfor %}
+    </div>
+
+    <!-- Approach cards -->
+    <h3 class="p18-compare__approach-title">{{ t.compare_approach_title }}</h3>
+    <div class="p18-compare__cards">
+      {% for i in [1, 2, 3, 4, 5, 6, 7, 8] %}
+      <div class="p18-compare__card">
+        <div class="p18-compare__card-icon">{{ t["approach" + i + "_icon"] }}</div>
+        <h4>{{ t["approach" + i + "_title"] }}</h4>
+        <p>{{ t["approach" + i + "_desc"] }}</p>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════
+     6. COPENHAGEN SHOWCASE — Training Environment & City
+     ═══════════════════════════════════════ -->
+<section class="p18-cph">
+  <div class="container">
+    <span class="p18-eyebrow">{{ t.cph_eyebrow }}</span>
+    <h2 class="p18-section-title">{{ t.cph_title }}</h2>
+    <p class="p18-section-sub">{{ t.cph_subtitle }}</p>
+
+    <!-- Image slider -->
+    <div class="p18-cph__slider">
+      <div class="p18-cph__viewport">
+        <div class="p18-cph__track" id="cph-track">
+          <figure class="p18-cph__slide">
+            <img src="https://www.yogabible.dk/s/Yoga_Bible_Studio_Torvegade_66_Christianshavn" alt="Yoga Bible {% if lang == 'en' %}studio in Christianshavn{% else %}studie i Christianshavn{% endif %}" loading="lazy">
+          </figure>
+          <figure class="p18-cph__slide">
+            <img src="https://www.yogabible.dk/s/Christianshavn_Yoga_Bible_Central_Location.jpg" alt="Christianshavn {% if lang == 'en' %}canal with colourful houses{% else %}kanal med farverige huse{% endif %}" loading="lazy">
+          </figure>
+          <figure class="p18-cph__slide">
+            <img src="https://www.yogabible.dk/s/christianshavn_metro_Station_studio_central_Yoga_Bible_Hot_Yoga_Copenhagen_02.jpeg" alt="Christianshavn Metro — {% if lang == 'en' %}2 min from the studio{% else %}2 min fra studiet{% endif %}" loading="lazy">
+          </figure>
+          <figure class="p18-cph__slide">
+            <img src="https://www.yogabible.dk/s/Yoga_bible_studio_Kbenhavn_Hot_Yoga_Copenhagen01" alt="Hot Yoga {% if lang == 'en' %}studio in Copenhagen{% else %}studio i København{% endif %}" loading="lazy">
+          </figure>
+          <figure class="p18-cph__slide">
+            <img src="https://www.yogabible.dk/s/Yoga_bible_studio_Kbenhavn_Hot_Yoga_Copenhagen01_Yoga_Teacher_Training_space02" alt="{% if lang == 'en' %}Training room with daylight and plants{% else %}Træningsrum med dagslys og planter{% endif %}" loading="lazy">
+          </figure>
+          <figure class="p18-cph__slide">
+            <img src="https://www.yogabible.dk/s/christianshavn_metro_Station_studio_central_Yoga_Bible_Hot_Yoga_Copenhagen.jpeg" alt="{% if lang == 'en' %}Copenhagen by night near the studio{% else %}København by night nær studiet{% endif %}" loading="lazy">
+          </figure>
+        </div>
+      </div>
+
+      <div class="p18-cph__nav">
+        <button class="p18-cph__arrow" type="button" aria-label="{% if lang == 'en' %}Previous image{% else %}Forrige billede{% endif %}" data-dir="-1">&#10094;</button>
+        <button class="p18-cph__arrow" type="button" aria-label="{% if lang == 'en' %}Next image{% else %}Næste billede{% endif %}" data-dir="1">&#10095;</button>
+      </div>
+    </div>
+
+    <!-- Feature grid -->
+    <div class="p18-cph__features">
+      {% for i in [1, 2, 3, 4, 5, 6] %}
+      <div class="p18-cph__feature">
+        <span class="p18-cph__feature-icon">{{ t["cph_feat" + i + "_icon"] }}</span>
+        <h3>{{ t["cph_feat" + i + "_title"] }}</h3>
+        <p>{{ t["cph_feat" + i + "_desc"] }}</p>
+      </div>
+      {% endfor %}
+    </div>
+
+    <!-- Studio location -->
+    <div class="p18-cph__studio">
+      <div class="p18-cph__studio-text">
+        <h3>{{ t.cph_studio_title }}</h3>
+        <p>{{ t.cph_studio_desc }}</p>
+        <ul class="p18-cph__studio-details">
+          <li><span>&#x1F687;</span> <span>{{ t.cph_studio_detail1 }}</span></li>
+          <li><span>&#x1F333;</span> <span>{{ t.cph_studio_detail2 }}</span></li>
+          <li><span>&#x1F9D8;</span> <span>{{ t.cph_studio_detail3 }}</span></li>
+          <li><span>&#x1F6D2;</span> <span>{{ t.cph_studio_detail4 }}</span></li>
+        </ul>
+      </div>
+      <div class="p18-cph__studio-img">
+        <img src="https://www.yogabible.dk/s/Yoga_Bible_Studio_Torvegade_66_Christianshavn" alt="Yoga Bible {% if lang == 'en' %}studio, Torvegade 66, Christianshavn{% else %}studie, Torvegade 66, Christianshavn{% endif %}" loading="lazy">
+      </div>
+    </div>
+
+    <!-- Experience strip -->
+    <div class="p18-cph__strip">
+      <span>&#x1F9D6; {% if lang == "en" %}Sauna{% else %}Sauna{% endif %}</span>
+      <span>&#x1F3CA; Cold Dips</span>
+      <span>&#x2615; Specialty Coffee</span>
+      <span>&#x1F6B2; {% if lang == "en" %}Cycling Culture{% else %}Cykelkultur{% endif %}</span>
+      <span>&#x1F37D;&#xFE0F; New Nordic</span>
+      <span>&#x1F3B6; {% if lang == "en" %}Nightlife{% else %}Natteliv{% endif %}</span>
+      <span>&#x1F33F; {% if lang == "en" %}Parks{% else %}Parker{% endif %}</span>
+      <span>&#x1F3DB;&#xFE0F; {% if lang == "en" %}Architecture{% else %}Arkitektur{% endif %}</span>
+    </div>
+
+    <div class="p18-cph__cta">
+      <a href="{{ lp }}/about-copenhagen" class="yb-btn yb-btn--cta">{{ t.cph_cta_text }}</a>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════
+     7. VISIT STUDIO — Gallery + Calendly Booking
+     ═══════════════════════════════════════ -->
+<section class="yb-visit" id="yb-visit">
+  <div class="yb-visit__wrap container">
+
+    <div class="yb-visit__copy">
+      <p class="yb-visit__kicker">{{ t.visit_kicker }}</p>
+      <h2 class="yb-visit__title">{{ t.visit_title }}</h2>
+
+      <p class="yb-visit__lead">{{ t.visit_lead | safe }}</p>
+
+      <ul class="yb-visit__list" role="list">
+        {% for i in [1, 2, 3] %}
+        <li>
+          <span class="yb-visit__check" aria-hidden="true">&#x2713;</span>
+          <span>{{ t["visit_list" + i] }}</span>
+        </li>
+        {% endfor %}
+      </ul>
+
+      <p class="yb-visit__note">{{ t.visit_note | safe }}</p>
+
+      <button class="yb-btn yb-btn--cta" type="button" data-open="visit-modal">
+        {{ t.visit_cta_text }}
+      </button>
+    </div>
+
+    <div class="yb-visit__media">
+      <div class="yb-visit__slider">
+        <div class="yb-visit__viewport">
+          <div class="yb-visit__track" id="visit-track">
+            <figure class="yb-visit__slide">
+              <img src="https://www.yogabible.dk/s/Yoga_bible_studio_Kbenhavn_Hot_Yoga_Copenhagen01" alt="{% if lang == 'en' %}Yoga room with warm wooden floor{% else %}Yogasal med varmt trægulv{% endif %}" loading="lazy">
+            </figure>
+            <figure class="yb-visit__slide">
+              <img src="https://www.yogabible.dk/s/Yoga_bible_studio_Kbenhavn_Hot_Yoga_Copenhagen01_Yoga_Teacher_Training_space02" alt="{% if lang == 'en' %}Bright yoga room and props{% else %}Lyst yogarum og rekvisitter{% endif %}" loading="lazy">
+            </figure>
+            <figure class="yb-visit__slide">
+              <img src="https://www.yogabible.dk/s/Yoga_Bible_Studio_Torvegade_66_Christianshavn" alt="{% if lang == 'en' %}Reception and lounge area{% else %}Reception og loungeområde{% endif %}" loading="lazy">
+            </figure>
+            <figure class="yb-visit__slide">
+              <img src="https://www.yogabible.dk/s/Yoga_bible_shower_facilities" alt="{% if lang == 'en' %}Showers & facilities{% else %}Brus & faciliteter{% endif %}" loading="lazy">
+            </figure>
+            <figure class="yb-visit__slide">
+              <img src="https://www.yogabible.dk/s/Christianshavn_Yoga_Bible_Central_Location.jpg" alt="{% if lang == 'en' %}Central location in Christianshavn{% else %}Central placering i Christianshavn{% endif %}" loading="lazy">
+            </figure>
+            <figure class="yb-visit__slide">
+              <img src="https://www.yogabible.dk/s/christianshavn_metro_Station_studio_central_Yoga_Bible_Hot_Yoga_Copenhagen_02.jpeg" alt="{% if lang == 'en' %}Metro near the studio{% else %}Metro ved studiet{% endif %}" loading="lazy">
+            </figure>
+            <figure class="yb-visit__slide">
+              <img src="https://www.yogabible.dk/s/christianshavn_metro_Station_studio_central_Yoga_Bible_Hot_Yoga_Copenhagen.jpeg" alt="{% if lang == 'en' %}Metro near the studio{% else %}Metro ved studiet{% endif %}" loading="lazy">
+            </figure>
+          </div>
+        </div>
+
+        <div class="yb-visit__nav">
+          <button class="yb-visit__arrow" type="button" aria-label="{% if lang == 'en' %}Previous image{% else %}Forrige billede{% endif %}" data-dir="-1">&#10094;</button>
+          <button class="yb-visit__arrow" type="button" aria-label="{% if lang == 'en' %}Next image{% else %}Næste billede{% endif %}" data-dir="1">&#10095;</button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- Calendly Visit Modal -->
+<section class="yb-modal-visit" id="visit-modal" aria-hidden="true">
+  <div class="yb-modal-visit__overlay" data-close></div>
+
+  <div class="yb-modal-visit__box" role="dialog" aria-modal="true" aria-label="{{ t.visit_modal_title }}">
+    <button class="yb-modal-visit__close" type="button" data-close aria-label="{% if lang == 'en' %}Close{% else %}Luk{% endif %}">&#215;</button>
+
+    <div class="yb-modal-visit__header">
+      <h3 class="yb-modal-visit__title">{{ t.visit_modal_title }}</h3>
+      <p class="yb-modal-visit__subtitle">{{ t.visit_modal_subtitle }}</p>
+    </div>
+
+    <link href="https://assets.calendly.com/assets/external/widget.css" rel="stylesheet">
+    <div class="calendly-inline-widget"
+         data-url="https://calendly.com/yogabible/studio-tour-consultation-yoga-teacher-training"
+         style="min-width:320px;height:680px;"></div>
+    <script src="https://assets.calendly.com/assets/external/widget.js" type="text/javascript" async></script>
+
+    <p class="yb-modal-visit__fallback">
+      {{ t.visit_modal_fallback }} <a href="https://calendly.com/yogabible/studio-tour-consultation-yoga-teacher-training" target="_blank" rel="noopener">{{ t.visit_modal_fallback_link }}</a>
+    </p>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════
+     8. REVIEWS — Google Reviews Carousel
+     ═══════════════════════════════════════ -->
+<section class="yb-reviews" id="yb-reviews-section" aria-labelledby="yb-reviews-title">
+  <div class="yb-reviews__inner container">
+    <p class="yb-reviews__kicker">{{ t.reviews_kicker }}</p>
+    <h2 id="yb-reviews-title" class="yb-reviews__title">{{ t.reviews_title }}</h2>
+
+    <p class="yb-reviews__lead">{{ t.reviews_lead | safe }}</p>
+
+    <div class="yb-reviews__carousel">
+      <button class="yb-reviews__nav yb-reviews__nav--prev" aria-label="{{ t.reviews_prev }}" data-prev type="button">&#10094;</button>
+
+      <div class="yb-reviews__viewport" data-viewport>
+        <div class="yb-reviews__track" data-track></div>
+      </div>
+
+      <button class="yb-reviews__nav yb-reviews__nav--next" aria-label="{{ t.reviews_next }}" data-next type="button">&#10095;</button>
+    </div>
+
+    <div class="yb-reviews__footer">
+      <div class="yb-reviews__rating">
+        <span class="yb-reviews__stars" aria-hidden="true">&#9733;&#9733;&#9733;&#9733;&#9733;</span>
+        <span class="yb-reviews__score">{{ t.reviews_rating }}</span>
+      </div>
+      <a class="yb-reviews__link" target="_blank" rel="noopener"
+         href="https://search.google.com/local/reviews?placeid=ChIJpQHE13BTUkYRY6oGEONORHM">
+        {{ t.reviews_link_text }}
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════
+     9. DARK CINEMATIC QUOTE
+     ═══════════════════════════════════════ -->
+<section class="p18-quote-dark">
+  <div class="container">
+    <p class="p18-quote-dark__quote">{{ t.quote_text }}</p>
+    <p class="p18-quote-dark__attribution">
+      — <strong>{{ t.quote_attribution }}</strong> {{ t.quote_attribution_suffix }}
+    </p>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════
+     10. PROGRAM FORMAT — Semi-Intensive Schedule
      ═══════════════════════════════════════ -->
 <section class="p18-flexibility">
   <div class="p18-flexibility__vine" data-p18-scroll-draw>
@@ -205,321 +429,232 @@
   </div>
 
   <div class="container">
-    <span class="p18-eyebrow">{{ t.flex_eyebrow }}</span>
-    <h2 class="p18-section-title">{{ t.flex_title }}</h2>
-    <p class="p18-section-sub">{{ t.flex_subtitle }}</p>
+    <span class="p18-eyebrow">{{ t.format_eyebrow }}</span>
+    <h2 class="p18-section-title">{{ t.format_title }}</h2>
+    <p class="p18-section-sub">{{ t.format_subtitle }}</p>
 
     <div class="p18-flex-grid">
+      {% for i in [1, 2, 3] %}
       <div class="p18-flex-card">
-        <div class="p18-flex-card__icon">📅</div>
-        <h3>{{ t.flex1_title }}</h3>
-        <p>{{ t.flex1_desc }}</p>
+        <div class="p18-flex-card__icon">{{ t["format_card" + i + "_icon"] }}</div>
+        <h3>{{ t["format_card" + i + "_title"] }}</h3>
+        <p>{{ t["format_card" + i + "_desc"] }}</p>
       </div>
-      <div class="p18-flex-card">
-        <div class="p18-flex-card__icon">🗓</div>
-        <h3>{{ t.flex2_title }}</h3>
-        <p>{{ t.flex2_desc }}</p>
-      </div>
-      <div class="p18-flex-card">
-        <div class="p18-flex-card__icon">⚖️</div>
-        <h3>{{ t.flex3_title }}</h3>
-        <p>{{ t.flex3_desc }}</p>
-      </div>
-    </div>
-
-    <div class="p18-8w-schedule-details">
-      <div class="p18-8w-detail-card">
-        <div class="p18-8w-detail-card__icon">⏱</div>
-        <div class="p18-8w-detail-card__content">
-          <h4>{{ t.detail1_title }}</h4>
-          <p>{{ t.detail1_desc }}</p>
-        </div>
-      </div>
-      <div class="p18-8w-detail-card">
-        <div class="p18-8w-detail-card__icon">📋</div>
-        <div class="p18-8w-detail-card__content">
-          <h4>{{ t.detail2_title }}</h4>
-          <p>{{ t.detail2_desc }}</p>
-        </div>
-      </div>
-      <div class="p18-8w-detail-card">
-        <div class="p18-8w-detail-card__icon">🌍</div>
-        <div class="p18-8w-detail-card__content">
-          <h4>{{ t.detail3_title }}</h4>
-          <p>{{ t.detail3_desc | safe }}</p>
-        </div>
-      </div>
-    </div>
-
-    <div style="text-align:center;margin-top:2rem;">
-      <button onclick="openYBScheduleModal('8w')" class="yb-btn yb-btn--cta">{{ t.flex_cta }}</button>
+      {% endfor %}
     </div>
   </div>
 </section>
 
 <!-- ═══════════════════════════════════════
-     6. VERTICAL VIDEO + GRADUATION QUOTE
+     11. CHOOSE YOUR COHORT — Maj & Juni
      ═══════════════════════════════════════ -->
-<section class="p18-testimonial-video">
-  <div class="container">
-    <div class="p18-testimonial-video__grid">
-      <div class="p18-testimonial-video__media">
-        <video autoplay muted loop playsinline preload="metadata">
-          <source src="/assets/video/yoga-practice-loop.mp4" type="video/mp4">
-        </video>
+<section class="yb-tracks" aria-labelledby="cohort-title">
+  <div class="yb-tracks__inner container">
+    <p class="yb-tracks__kicker">{{ t.cohort_kicker }}</p>
+    <h2 id="cohort-title" class="yb-tracks__title">{{ t.cohort_title }}</h2>
+    <p class="yb-tracks__subtitle">{{ t.cohort_subtitle }}</p>
+
+    <p class="yb-tracks__lead">{{ t.cohort_lead | safe }}</p>
+
+    <!-- Cards -->
+    <div class="yb-tracks__cards">
+      <article class="yb-track-card">
+        <div class="yb-track-card__icon">{{ t.may_icon }}</div>
+        <div class="yb-track-card__content">
+          <h3 class="yb-track-card__title">{{ t.may_title }}</h3>
+          <p class="yb-track-card__time">{{ t.may_time }}</p>
+          <p class="yb-track-card__text">{{ t.may_desc }}</p>
+        </div>
+      </article>
+
+      <article class="yb-track-card">
+        <div class="yb-track-card__icon">{{ t.june_icon }}</div>
+        <div class="yb-track-card__content">
+          <h3 class="yb-track-card__title">{{ t.june_title }}</h3>
+          <p class="yb-track-card__time">{{ t.june_time }}</p>
+          <p class="yb-track-card__text">{{ t.june_desc }}</p>
+        </div>
+      </article>
+
+      <article class="yb-track-card yb-track-card--highlight">
+        <div class="yb-track-card__icon">{{ t.week_icon }}</div>
+        <div class="yb-track-card__content">
+          <h3 class="yb-track-card__title">{{ t.week_title }}</h3>
+          <p class="yb-track-card__time">{{ t.week_time }}</p>
+          <p class="yb-track-card__text">{{ t.week_desc }}</p>
+        </div>
+      </article>
+    </div>
+
+    <!-- Key points -->
+    <ul class="yb-tracks__points">
+      {% for i in [1, 2, 3] %}
+      <li>
+        <span class="yb-point-icon">&#x2713;</span>
+        <span>{{ t["cohort_point" + i] }}</span>
+      </li>
+      {% endfor %}
+    </ul>
+
+    <!-- Scenarios -->
+    <div class="yb-scenarios">
+      <div class="yb-scenario">
+        <h4 class="yb-scenario__title">{{ t.cohort_scenario1_title }}</h4>
+        <p class="yb-scenario__text">{{ t.cohort_scenario1_text }}</p>
       </div>
-      <div class="p18-testimonial-video__content">
-        <p class="p18-testimonial-video__quote">{{ t.testimonial_quote }}</p>
-        <p class="p18-testimonial-video__attribution">
-          <strong>{{ t.testimonial_attribution }}</strong>
-        </p>
+      <div class="yb-scenario">
+        <h4 class="yb-scenario__title">{{ t.cohort_scenario2_title }}</h4>
+        <p class="yb-scenario__text">{{ t.cohort_scenario2_text }}</p>
       </div>
+    </div>
+
+    <!-- CTA -->
+    <div class="yb-tracks__cta">
+      <p class="yb-tracks__cta-hint">{{ t.cohort_cta_hint }}</p>
+      <button onclick="openYBScheduleModal('8w')" class="yb-btn yb-btn--cta">{{ t.cohort_cta_text }}</button>
     </div>
   </div>
 </section>
 
 <!-- ═══════════════════════════════════════
-     7. INVESTMENT — 25.500 DKK
+     12. ROOM OPTIONS — Accommodation
+     ═══════════════════════════════════════ -->
+<section class="p18-rooms">
+  <div class="container">
+    <span class="p18-eyebrow">{{ t.rooms_eyebrow }}</span>
+    <h2 class="p18-section-title">{{ t.rooms_title }}</h2>
+    <p class="p18-section-sub">{{ t.rooms_subtitle }}</p>
+
+    <div class="p18-rooms__grid">
+
+      <!-- Room 1: Studio Apartment -->
+      <div class="p18-rooms__card">
+        <div class="p18-rooms__gallery">
+          <div class="p18-rooms__gallery-track" data-room-track>
+            <img src="/assets/images/p4w/studio-apartment-christianshavn-copenhagen.jpg" alt="{% if lang == 'en' %}Private studio apartment in Christianshavn{% else %}Privat studio apartment i Christianshavn{% endif %}" loading="lazy">
+            <img src="/assets/images/p4w/studio-apartment-kitchenette-copenhagen.jpg" alt="{% if lang == 'en' %}Studio apartment with kitchenette{% else %}Studio apartment med tekøkken{% endif %}" loading="lazy">
+          </div>
+          <div class="p18-rooms__gallery-nav">
+            <button class="p18-rooms__gallery-arrow" type="button" aria-label="{% if lang == 'en' %}Previous{% else %}Forrige{% endif %}" data-dir="-1">&#10094;</button>
+            <button class="p18-rooms__gallery-arrow" type="button" aria-label="{% if lang == 'en' %}Next{% else %}Næste{% endif %}" data-dir="1">&#10095;</button>
+          </div>
+        </div>
+        <div class="p18-rooms__body">
+          <h3>{{ t.room1_title }}</h3>
+          <p>{{ t.room1_desc }}</p>
+          <a href="#" class="yb-btn yb-btn--cta" style="width:100%">{{ t.room1_cta }}</a>
+        </div>
+      </div>
+
+      <!-- Room 2: Shared Apartment -->
+      <div class="p18-rooms__card">
+        <div class="p18-rooms__gallery">
+          <div class="p18-rooms__gallery-track" data-room-track>
+            <img src="/assets/images/p4w/shared-apartment-private-room-copenhagen.jpg" alt="{% if lang == 'en' %}Private room in shared apartment{% else %}Privat værelse i delt lejlighed{% endif %}" loading="lazy">
+            <img src="/assets/images/p4w/shared-apartment-common-area-copenhagen.jpg" alt="{% if lang == 'en' %}Shared kitchen and living area{% else %}Fælles køkken og opholdsrum{% endif %}" loading="lazy">
+          </div>
+          <div class="p18-rooms__gallery-nav">
+            <button class="p18-rooms__gallery-arrow" type="button" aria-label="{% if lang == 'en' %}Previous{% else %}Forrige{% endif %}" data-dir="-1">&#10094;</button>
+            <button class="p18-rooms__gallery-arrow" type="button" aria-label="{% if lang == 'en' %}Next{% else %}Næste{% endif %}" data-dir="1">&#10095;</button>
+          </div>
+        </div>
+        <div class="p18-rooms__body">
+          <h3>{{ t.room2_title }}</h3>
+          <p>{{ t.room2_desc }}</p>
+          <a href="#" class="yb-btn yb-btn--cta" style="width:100%">{{ t.room2_cta }}</a>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="p18-rooms__cta-row">
+      <a href="{{ lp }}/about-copenhagen" class="p18-rooms__cta-link">{{ t.rooms_cta_text }}</a>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════
+     13. COMBINED INVESTMENT + EARLY DEPOSIT
      ═══════════════════════════════════════ -->
 <section class="p18-investment">
   <div class="container">
     <span class="p18-eyebrow">{{ t.invest_eyebrow }}</span>
     <h2 class="p18-section-title">{{ t.invest_title }}</h2>
 
-    <div class="p18-invest-box">
-      <div class="p18-invest-price">
-        <span class="p18-invest-price__amount">{{ t.invest_amount }}</span>
-        <span class="p18-invest-price__label">{{ t.invest_label }}</span>
+    <div class="p4w-invest-combined">
+
+      <!-- Left: Pricing card -->
+      <div class="p18-invest-box">
+        <div class="p18-invest-price">
+          <span class="p18-invest-price__amount">{{ t.invest_amount }}</span>
+          <span class="p18-invest-price__label">{{ t.invest_label }}</span>
+        </div>
+
+        <div class="p18-invest-includes">
+          <h4>{{ t.invest_includes_title }}</h4>
+          <ul>
+            {% for i in [1, 2, 3, 4, 5, 6, 7] %}
+            <li>{{ t["invest_include" + i] }}</li>
+            {% endfor %}
+          </ul>
+        </div>
+
+        <div class="p18-invest-divider"></div>
+
+        <div class="p18-invest-payment">
+          <h4>{{ t.invest_payment_title }}</h4>
+          <p class="p18-invest-note">{{ t.invest_payment_note }}</p>
+          <div class="p18-invest-options">
+            <div class="p18-invest-option">
+              <span class="p18-invest-option__label">{{ t.invest_option1_label }}</span>
+              <span class="p18-invest-option__value">{{ t.invest_option1_value }}</span>
+            </div>
+            <div class="p18-invest-option">
+              <span class="p18-invest-option__label">{{ t.invest_option2_label }}</span>
+              <span class="p18-invest-option__value">{{ t.invest_option2_value }}</span>
+            </div>
+            <div class="p18-invest-option">
+              <span class="p18-invest-option__label">{{ t.invest_option3_label }}</span>
+              <span class="p18-invest-option__value">{{ t.invest_option3_value }}</span>
+            </div>
+          </div>
+          <p class="p18-invest-note" style="margin-top:14px;font-style:italic;">{{ t.invest_ya_note }}</p>
+        </div>
+
+        <button onclick="openYBScheduleModal('8w')" class="btn btn--primary btn--large" style="width:100%;margin-top:1.5rem">{{ t.invest_cta_text }}</button>
       </div>
 
-      <div class="p18-invest-includes">
-        <h4>{{ t.invest_incl_title }}</h4>
-        <ul>
-          <li>{{ t.invest_incl1 }}</li>
-          <li>{{ t.invest_incl2 }}</li>
-          <li>{{ t.invest_incl3 }}</li>
-          <li>{{ t.invest_incl4 }}</li>
-          <li>{{ t.invest_incl5 }}</li>
-          <li>{{ t.invest_incl6 }}</li>
+      <!-- Right: Early deposit benefits -->
+      <div class="p4w-early-card">
+        <h3 class="p4w-early-card__title">{{ t.early_title }}</h3>
+        <p class="p4w-early-card__subtitle">{{ t.early_subtitle }}</p>
+
+        <ul class="p4w-early-card__list">
+          {% for i in [1, 2, 3, 4] %}
+          <li>
+            <span class="p4w-early-card__check" aria-hidden="true">&#x2713;</span>
+            <span>{{ t["early_list" + i] }}</span>
+          </li>
+          {% endfor %}
         </ul>
-      </div>
 
-      <div class="p18-invest-divider"></div>
-
-      <div class="p18-invest-payment">
-        <h4>{{ t.invest_pay_title }}</h4>
-        <p style="font-size:13px;color:#6F6A66;margin:0 0 12px;">{{ t.invest_deposit_note }}</p>
-        <div class="p18-invest-options">
-          <div class="p18-invest-option">
-            <span class="p18-invest-option__label">{{ t.invest_pay1_label }}</span>
-            <span class="p18-invest-option__value">{{ t.invest_pay1_value }}</span>
-          </div>
-          <div class="p18-invest-option">
-            <span class="p18-invest-option__label">{{ t.invest_pay2_label }}</span>
-            <span class="p18-invest-option__value">{{ t.invest_pay2_value }}</span>
-          </div>
-          <div class="p18-invest-option">
-            <span class="p18-invest-option__label">{{ t.invest_pay3_label }}</span>
-            <span class="p18-invest-option__value">{{ t.invest_pay3_value }}</span>
+        <div class="p4w-early-card__cta">
+          <a class="yb-btn yb-btn--cta"
+             href="https://clients.mindbodyonline.com/classic/ws?studioid=5748831&stype=41&sTG=46&prodId=100078"
+             target="_blank" rel="noopener">{{ t.early_cta_text }}</a>
+          <div class="p4w-early-card__pricing">
+            <span class="p4w-early-card__deposit">{{ t.early_deposit_label }}</span>
+            <span class="p4w-early-card__remainder">{{ t.early_remainder_label }}</span>
           </div>
         </div>
       </div>
 
-      <button onclick="openYBScheduleModal('8w')" class="btn btn--primary btn--large" style="width:100%;margin-top:1.5rem">{{ t.invest_cta }}</button>
     </div>
   </div>
 </section>
 
 <!-- ═══════════════════════════════════════
-     8. EARLY DEPOSIT — Get Studio Access Now
-     ═══════════════════════════════════════ -->
-<section class="yb-early" aria-label="{{ t.early_kicker }}">
-  <div class="yb-early-wrap container">
-    <figure class="yb-early-media">
-      <img
-        src="https://www.yogabible.dk/s/Start_with_Hot_Yoga_Copenhagen.jpg"
-        alt="{{ t.early_img_alt }}"
-        loading="lazy"
-        decoding="async"
-      />
-    </figure>
-
-    <div class="yb-early-copy">
-      <p class="yb-early-kicker">{{ t.early_kicker }}</p>
-      <h2 class="yb-early-title">{{ t.early_title }}</h2>
-
-      <div class="yb-early-meta">
-        <span class="yb-meta-item">
-          <span class="yb-meta-icon">📍</span>
-          {{ t.early_location }}
-        </span>
-        <span class="yb-meta-divider">•</span>
-        <span class="yb-meta-item">{{ t.early_classes }}</span>
-      </div>
-
-      <p class="yb-early-styles">{{ t.early_styles }}</p>
-
-      <ul class="yb-early-list" role="list">
-        <li>
-          <span class="yb-check" aria-hidden="true">✓</span>
-          <span>{{ t.early1 }}</span>
-        </li>
-        <li>
-          <span class="yb-check" aria-hidden="true">✓</span>
-          <span>{{ t.early2 }}</span>
-        </li>
-        <li>
-          <span class="yb-check" aria-hidden="true">✓</span>
-          <span>{{ t.early3 }}</span>
-        </li>
-        <li>
-          <span class="yb-check" aria-hidden="true">✓</span>
-          <span>{{ t.early4 }}</span>
-        </li>
-      </ul>
-
-      <div class="yb-early-cta">
-        <a class="yb-btn yb-btn--cta"
-           href="https://clients.mindbodyonline.com/classic/ws?studioid=5748831&stype=41&sTG=46&prodId=100078"
-           target="_blank" rel="noopener">{{ t.early_cta }}</a>
-        <div class="yb-early-pricing">
-          <span class="yb-deposit">{{ t.early_deposit }}</span>
-          <span class="yb-installment">{{ t.early_installment }}</span>
-        </div>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- ═══════════════════════════════════════
-     9. REVIEWS — Google Reviews Carousel
-     ═══════════════════════════════════════ -->
-<section class="yb-reviews" id="yb-reviews-section" aria-labelledby="yb-reviews-title">
-  <div class="yb-reviews__inner container">
-    <p class="yb-reviews__kicker">{{ t.reviews_kicker }}</p>
-    <h2 id="yb-reviews-title" class="yb-reviews__title">{{ t.reviews_title }}</h2>
-
-    <p class="yb-reviews__lead">{{ t.reviews_lead | safe }}</p>
-
-    <div class="yb-reviews__carousel">
-      <button class="yb-reviews__nav yb-reviews__nav--prev" aria-label="{{ t.reviews_prev_aria }}" data-prev type="button">❮</button>
-
-      <div class="yb-reviews__viewport" data-viewport>
-        <div class="yb-reviews__track" data-track></div>
-      </div>
-
-      <button class="yb-reviews__nav yb-reviews__nav--next" aria-label="{{ t.reviews_next_aria }}" data-next type="button">❯</button>
-    </div>
-
-    <div class="yb-reviews__footer">
-      <div class="yb-reviews__rating">
-        <span class="yb-reviews__stars" aria-hidden="true">★★★★★</span>
-        <span class="yb-reviews__score">{{ t.reviews_rating }}</span>
-      </div>
-      <a class="yb-reviews__link" target="_blank" rel="noopener"
-         href="https://search.google.com/local/reviews?placeid=ChIJpQHE13BTUkYRY6oGEONORHM">
-        {{ t.reviews_link }}
-      </a>
-    </div>
-  </div>
-</section>
-
-<!-- ═══════════════════════════════════════
-     10. VISIT STUDIO — Gallery + Calendly Booking
-     ═══════════════════════════════════════ -->
-<section class="yb-visit" id="yb-visit">
-  <div class="yb-visit__wrap container">
-
-    <div class="yb-visit__copy">
-      <p class="yb-visit__kicker">{{ t.visit_kicker }}</p>
-      <h2 class="yb-visit__title">{{ t.visit_title }}</h2>
-
-      <p class="yb-visit__lead">{{ t.visit_lead | safe }}</p>
-
-      <ul class="yb-visit__list" role="list">
-        <li>
-          <span class="yb-visit__check" aria-hidden="true">✓</span>
-          <span>{{ t.visit1 }}</span>
-        </li>
-        <li>
-          <span class="yb-visit__check" aria-hidden="true">✓</span>
-          <span>{{ t.visit2 }}</span>
-        </li>
-        <li>
-          <span class="yb-visit__check" aria-hidden="true">✓</span>
-          <span>{{ t.visit3 }}</span>
-        </li>
-      </ul>
-
-      <p class="yb-visit__note">{{ t.visit_note | safe }}</p>
-
-      <button class="yb-btn yb-btn--cta" type="button" data-open="visit-modal">
-        {{ t.visit_cta }}
-      </button>
-    </div>
-
-    <div class="yb-visit__media">
-      <div class="yb-visit__slider">
-        <div class="yb-visit__viewport">
-          <div class="yb-visit__track" id="visit-track">
-            <figure class="yb-visit__slide">
-              <img src="https://www.yogabible.dk/s/Yoga_bible_studio_Kbenhavn_Hot_Yoga_Copenhagen01" alt="{{ t.visit_img1_alt }}" loading="lazy">
-            </figure>
-            <figure class="yb-visit__slide">
-              <img src="https://www.yogabible.dk/s/Yoga_bible_studio_Kbenhavn_Hot_Yoga_Copenhagen01_Yoga_Teacher_Training_space02" alt="{{ t.visit_img2_alt }}" loading="lazy">
-            </figure>
-            <figure class="yb-visit__slide">
-              <img src="https://www.yogabible.dk/s/Yoga_Bible_Studio_Torvegade_66_Christianshavn" alt="{{ t.visit_img3_alt }}" loading="lazy">
-            </figure>
-            <figure class="yb-visit__slide">
-              <img src="https://www.yogabible.dk/s/Yoga_bible_shower_facilities" alt="{{ t.visit_img4_alt }}" loading="lazy">
-            </figure>
-            <figure class="yb-visit__slide">
-              <img src="https://www.yogabible.dk/s/Christianshavn_Yoga_Bible_Central_Location.jpg" alt="{{ t.visit_img5_alt }}" loading="lazy">
-            </figure>
-            <figure class="yb-visit__slide">
-              <img src="https://www.yogabible.dk/s/christianshavn_metro_Station_studio_central_Yoga_Bible_Hot_Yoga_Copenhagen_02.jpeg" alt="{{ t.visit_img6_alt }}" loading="lazy">
-            </figure>
-            <figure class="yb-visit__slide">
-              <img src="https://www.yogabible.dk/s/christianshavn_metro_Station_studio_central_Yoga_Bible_Hot_Yoga_Copenhagen.jpeg" alt="{{ t.visit_img7_alt }}" loading="lazy">
-            </figure>
-          </div>
-        </div>
-
-        <div class="yb-visit__nav">
-          <button class="yb-visit__arrow" type="button" aria-label="{{ t.visit_prev_aria }}" data-dir="-1">❮</button>
-          <button class="yb-visit__arrow" type="button" aria-label="{{ t.visit_next_aria }}" data-dir="1">❯</button>
-        </div>
-      </div>
-    </div>
-
-  </div>
-</section>
-
-<!-- Calendly Visit Modal -->
-<section class="yb-modal-visit" id="visit-modal" aria-hidden="true">
-  <div class="yb-modal-visit__overlay" data-close></div>
-
-  <div class="yb-modal-visit__box" role="dialog" aria-modal="true" aria-label="{{ t.visit_modal_aria }}">
-    <button class="yb-modal-visit__close" type="button" data-close aria-label="{{ t.visit_modal_close_aria }}">×</button>
-
-    <div class="yb-modal-visit__header">
-      <h3 class="yb-modal-visit__title">{{ t.visit_modal_title }}</h3>
-      <p class="yb-modal-visit__subtitle">{{ t.visit_modal_subtitle }}</p>
-    </div>
-
-    <link href="https://assets.calendly.com/assets/external/widget.css" rel="stylesheet">
-    <div class="calendly-inline-widget"
-         data-url="https://calendly.com/yogabible/studio-tour-consultation-yoga-teacher-training"
-         style="min-width:320px;height:680px;"></div>
-    <script src="https://assets.calendly.com/assets/external/widget.js" type="text/javascript" async></script>
-
-    <p class="yb-modal-visit__fallback">{{ t.visit_modal_fallback | safe }}</p>
-  </div>
-</section>
-
-<!-- ═══════════════════════════════════════
-     11. FAQ — Accordions
+     14. FAQ
      ═══════════════════════════════════════ -->
 <section class="p18-faq">
   <div class="container">
@@ -527,46 +662,18 @@
     <h2 class="p18-section-title">{{ t.faq_title }}</h2>
 
     <div class="p18-faq-list">
+      {% for i in [1, 2, 3, 4, 5, 6, 7, 8, 9] %}
       <details class="p18-faq-item">
-        <summary>{{ t.faq1_q }}</summary>
-        <p>{{ t.faq1_a }}</p>
+        <summary>{{ t["faq" + i + "_q"] }}</summary>
+        <p>{{ t["faq" + i + "_a"] | safe }}{% if t["faq" + i + "_link_text"] %} <a href="{{ lp }}/about-copenhagen" style="color:#F65D04;">{{ t["faq" + i + "_link_text"] }}</a>{% endif %}</p>
       </details>
-
-      <details class="p18-faq-item">
-        <summary>{{ t.faq2_q }}</summary>
-        <p>{{ t.faq2_a }}</p>
-      </details>
-
-      <details class="p18-faq-item">
-        <summary>{{ t.faq3_q }}</summary>
-        <p>{{ t.faq3_a }}</p>
-      </details>
-
-      <details class="p18-faq-item">
-        <summary>{{ t.faq4_q }}</summary>
-        <p>{{ t.faq4_a | safe }}</p>
-      </details>
-
-      <details class="p18-faq-item">
-        <summary>{{ t.faq5_q }}</summary>
-        <p>{{ t.faq5_a }}</p>
-      </details>
-
-      <details class="p18-faq-item">
-        <summary>{{ t.faq6_q }}</summary>
-        <p>{{ t.faq6_a }}</p>
-      </details>
-
-      <details class="p18-faq-item">
-        <summary>{{ t.faq7_q }}</summary>
-        <p>{{ t.faq7_a }}</p>
-      </details>
+      {% endfor %}
     </div>
   </div>
 </section>
 
 <!-- ═══════════════════════════════════════
-     12. FINAL CTA
+     15. FINAL CTA
      ═══════════════════════════════════════ -->
 <section class="p18-final-cta">
   <div class="container">
@@ -577,7 +684,7 @@
 </section>
 
 <!-- ═══════════════════════════════════════
-     13. EXPLORE MORE — Other Programs & Courses
+     16. EXPLORE MORE — Other Programs & Courses
      ═══════════════════════════════════════ -->
 <section class="yb-more" aria-labelledby="yb-more-title">
   <div class="yb-more__inner container">
@@ -595,59 +702,50 @@
         <figure class="yb-more-card__image">
           <img id="ybCourseImg"
                src="https://www.yogabible.dk/s/Inversions_Course_Copenhagen.jpg?format=1500w"
-               alt="{{ t.course_inv_alt }}"
+               alt="Inversions {% if lang == 'en' %}course{% else %}kursus{% endif %}"
                loading="lazy">
-          <span class="yb-more-card__badge yb-more-card__badge--soft">{{ t.more_courses_badge }}</span>
+          <span class="yb-more-card__badge yb-more-card__badge--soft">{{ t.courses_badge }}</span>
         </figure>
 
         <div class="yb-more-card__body">
-          <h3 class="yb-more-card__title">{{ t.more_courses_title }}</h3>
-          <p class="yb-more-card__text">{{ t.more_courses_text | safe }}</p>
+          <h3 class="yb-more-card__title">{{ t.courses_title }}</h3>
+          <p class="yb-more-card__text">{{ t.courses_desc | safe }}</p>
 
-          <div class="yb-more-card__pills" role="tablist" aria-label="{{ t.more_courses_tab_aria }}">
+          <div class="yb-more-card__pills" role="tablist" aria-label="{% if lang == 'en' %}Select course{% else %}Vælg kursus{% endif %}">
             <button class="yb-pill is-active" role="tab" aria-selected="true" data-course="inv">Inversions</button>
             <button class="yb-pill" role="tab" aria-selected="false" data-course="spl">Splits</button>
             <button class="yb-pill" role="tab" aria-selected="false" data-course="bb">Backbends</button>
           </div>
 
-          <p id="ybCourseBlurb" class="yb-more-card__blurb">{{ t.course_inv_blurb }}</p>
+          <p id="ybCourseBlurb" class="yb-more-card__blurb"></p>
 
-          <a id="ybCourseCta" class="yb-btn yb-btn--outline" href="{% if lang == 'en' %}/en/inversions{% else %}/inversions{% endif %}">
-            {{ t.course_inv_label }} →
-          </a>
+          <a id="ybCourseCta" class="yb-btn yb-btn--outline" href="{{ lp }}/inversions"></a>
         </div>
       </article>
 
-      <!-- Programs Card (18-Week + 4-Week with pill switching) -->
+      <!-- Programs Card (18w / 4w with pill switching) -->
       <article class="yb-more-card">
         <figure class="yb-more-card__image">
           <img id="ybProgramImg"
                src="https://www.yogabible.dk/s/200timer-Yoga-Education-Kbenhavn.png?format=1500w"
-               alt="{{ t.prog18w_alt }}"
+               alt=""
                loading="lazy">
-          <span id="ybProgramBadge" class="yb-more-card__badge yb-more-card__badge--primary">{{ t.prog18w_badge }}</span>
-          <span class="yb-more-card__badge yb-more-card__badge--soft yb-more-card__badge--right">{{ t.more_programs_badge_housing }}</span>
+          <span id="ybProgramBadge" class="yb-more-card__badge yb-more-card__badge--primary">{{ t.programs_badge_flex }}</span>
         </figure>
 
         <div class="yb-more-card__body">
-          <h3 id="ybProgramTitle" class="yb-more-card__title">{{ t.prog18w_title }}</h3>
+          <h3 id="ybProgramTitle" class="yb-more-card__title"></h3>
 
-          <div class="yb-more-card__pills" role="tablist" aria-label="{{ t.more_programs_tab_aria }}">
+          <div class="yb-more-card__pills" role="tablist" aria-label="{% if lang == 'en' %}Select program{% else %}Vælg program{% endif %}">
             <button class="yb-pill is-active" role="tab" aria-selected="true" data-program="18w">18 Weeks Flexible</button>
             <button class="yb-pill" role="tab" aria-selected="false" data-program="4w">4 Weeks Intensive</button>
           </div>
 
-          <p id="ybProgramBlurb" class="yb-more-card__blurb">{{ t.prog18w_blurb | safe }}</p>
+          <p id="ybProgramBlurb" class="yb-more-card__blurb"></p>
 
-          <ul id="ybProgramList" class="yb-more-card__list">
-            <li>{{ t.prog18w_list1 }}</li>
-            <li>{{ t.prog18w_list2 }}</li>
-            <li>{{ t.prog18w_list3 | safe }}</li>
-          </ul>
+          <ul id="ybProgramList" class="yb-more-card__list"></ul>
 
-          <a id="ybProgramCta" class="yb-btn yb-btn--cta" href="{% if lang == 'en' %}/en/200-hours-18-weeks-flexible-programs{% else %}/200-hours-18-weeks-flexible-programs{% endif %}">
-            {{ t.prog18w_cta }}
-          </a>
+          <a id="ybProgramCta" class="yb-btn yb-btn--cta" href=""></a>
         </div>
       </article>
 
@@ -658,6 +756,8 @@
 <!-- Page-specific JS -->
 <script>
 (function() {
+  var isEN = (document.documentElement.lang === 'en') || (window.location.pathname.indexOf('/en/') === 0);
+
   /* ── Scroll-Draw Vine ── */
   var vineWrap = document.querySelector('[data-p18-scroll-draw]');
   if (vineWrap) {
@@ -688,7 +788,7 @@
   }
 
   /* ── Scroll-triggered fade-up ── */
-  var fadeEls = document.querySelectorAll('.p18-curr-card, .p18-flex-card');
+  var fadeEls = document.querySelectorAll('.p18-flex-card');
   if (fadeEls.length && 'IntersectionObserver' in window) {
     var obs = new IntersectionObserver(function(entries) {
       entries.forEach(function(e) {
@@ -700,6 +800,80 @@
     }, { threshold: 0.15 });
     fadeEls.forEach(function(el) { obs.observe(el); });
   }
+
+  /* ── Copenhagen Slider ── */
+  var cphTrack = document.getElementById('cph-track');
+  if (cphTrack) {
+    var cphSlides = Array.from(cphTrack.children);
+    var cphArrows = document.querySelectorAll('.p18-cph__arrow');
+
+    if (cphSlides.length > 1) {
+      var cphIdx = 0;
+      var cphTotal = cphSlides.length;
+
+      var cphGoTo = function(i) {
+        if (i >= cphTotal) cphIdx = 0;
+        else if (i < 0) cphIdx = cphTotal - 1;
+        else cphIdx = i;
+        cphTrack.style.transform = 'translateX(-' + (cphIdx * 100) + '%)';
+      };
+
+      var cphAutoInterval = setInterval(function() { cphGoTo(cphIdx + 1); }, 5000);
+      var cphResetAuto = function() {
+        clearInterval(cphAutoInterval);
+        cphAutoInterval = setInterval(function() { cphGoTo(cphIdx + 1); }, 5000);
+      };
+
+      cphArrows.forEach(function(btn) {
+        btn.addEventListener('click', function() {
+          cphGoTo(cphIdx + Number(btn.getAttribute('data-dir')));
+          cphResetAuto();
+        });
+      });
+
+      var cphStartX = 0;
+      var cphDeltaX = 0;
+      cphTrack.addEventListener('touchstart', function(e) {
+        cphStartX = e.touches[0].clientX;
+      }, { passive: true });
+      cphTrack.addEventListener('touchmove', function(e) {
+        cphDeltaX = e.touches[0].clientX - cphStartX;
+      }, { passive: true });
+      cphTrack.addEventListener('touchend', function() {
+        if (Math.abs(cphDeltaX) > 50) {
+          cphGoTo(cphIdx + (cphDeltaX < 0 ? 1 : -1));
+        }
+        cphDeltaX = 0;
+        cphResetAuto();
+      });
+    }
+  }
+
+  /* ── Room Gallery Sliders ── */
+  var roomTracks = document.querySelectorAll('[data-room-track]');
+  roomTracks.forEach(function(track) {
+    var imgs = Array.from(track.children);
+    if (imgs.length <= 1) return;
+
+    var idx = 0;
+    var total = imgs.length;
+    var nav = track.parentElement.querySelector('.p18-rooms__gallery-nav');
+    if (!nav) return;
+    var arrows = nav.querySelectorAll('.p18-rooms__gallery-arrow');
+
+    var goTo = function(i) {
+      if (i >= total) idx = 0;
+      else if (i < 0) idx = total - 1;
+      else idx = i;
+      track.style.transform = 'translateX(-' + (idx * 100) + '%)';
+    };
+
+    arrows.forEach(function(btn) {
+      btn.addEventListener('click', function() {
+        goTo(idx + Number(btn.getAttribute('data-dir')));
+      });
+    });
+  });
 
   /* ── Visit Gallery Slider ── */
   var visitTrack = document.getElementById('visit-track');
@@ -731,7 +905,6 @@
         });
       });
 
-      /* Swipe support */
       var visitStartX = 0;
       var visitDeltaX = 0;
       visitTrack.addEventListener('touchstart', function(e) {
@@ -780,8 +953,24 @@
   /* ── Reviews Carousel ── */
   var reviewsSection = document.getElementById('yb-reviews-section');
   if (reviewsSection) {
-    var REVIEWS = {{ t.reviews | dump | safe }};
-    var reviewAriaPrefix = {{ t.reviews_card_aria_prefix | dump | safe }};
+    var REVIEWS = [
+      {name:"Tanja E.",when:isEN?"4 months ago":"for 4 mdr. siden",text:isEN?"Warm, friendly environment and competent teachers. Good balance between practice and philosophy – strong understanding of anatomy.":"Varmt, venligt miljø og kompetente lærere. God balance mellem praksis og den filosofiske del – stærk forståelse for anatomi."},
+      {name:"Sara Gerlee",when:isEN?"4 months ago":"for 4 mdr. siden",text:isEN?"The 200-hour program was transformative. Knowledgeable and supportive team – the studio feels like a second home, for both new and experienced practitioners.":"200-timers forløb var transformerende. Vidende og støttende team – studiet føles som et andet hjem, for både nye og erfarne."},
+      {name:"Clara Aagaard",when:isEN?"5 months ago":"for 5 mdr. siden",text:isEN?"Holistic learning environment with room for questions and practical focus. Skilled teachers and useful tools for class management.":"Holistisk læringsmiljø med plads til spørgsmål og praksisfokus. Dygtige undervisere og anvendelige værktøjer til klasseledelse."},
+      {name:"Liza Westh",when:isEN?"9 months ago":"for 9 mdr. siden",text:isEN?"My warmest recommendation. 200 hours of class management, anatomy and practice – I felt optimally prepared as a yoga teacher.":"Min varmeste anbefaling. 200 timer i class management, anatomi og praksis – følte mig optimalt forberedt som yogalærer."},
+      {name:"Signe Schmidt",when:isEN?"1 year ago":"for 1 år siden",text:isEN?"Effective 18-week training in anatomy, philosophy and practice (yin, vinyasa, hatha) – in a beautiful room with daylight and green plants.":"Effektiv 18-ugers uddannelse i anatomi, filosofi og praksis (yin, vinyasa, hatha) – i en smuk sal med dagslys og grønne planter."},
+      {name:"Meg Ellis",when:isEN?"10 months ago":"for 10 mdr. siden",text:isEN?"Extraordinary studio and teaching team. The 200h program prepares you fully — perfect for both deepening practice and teaching.":"Ekstraordinært studie og lærerteam. 200t forløb forbereder dig fuldt — perfekt til både fordybelse og undervisning."},
+      {name:"Kama Krystel",when:isEN?"1 year ago":"for 1 år siden",text:isEN?"Well-structured intensive program that blends theory and practice. Personal feedback and supportive community – highly recommended.":"Velstruktureret intensivt forløb, der blander teori og praksis. Personlig feedback og støttende community – kan varmt anbefales."},
+      {name:"Giorgianna G.",when:isEN?"1 year ago":"for 1 år siden",text:isEN?"Challenging and rewarding. Unique focus on class management. Five stars for the skilled teachers and preparation to teach.":"Udfordrende og belønnende. Unikt fokus på class management. Fem stjerner for de dygtige lærere og forberedelse til at undervise."},
+      {name:"Helena Bend...",when:isEN?"1 year ago":"for 1 år siden",text:isEN?"Highly recommend the training – 5 educational months. I feel well equipped to continue as a yoga teacher.":"Kan virkelig anbefale uddannelsen – 5 lærerige måneder. Jeg føler mig godt klædt på til at fortsætte som yogalærer."},
+      {name:"Tonje Follum",when:isEN?"1 year ago":"for 1 år siden",text:isEN?"Inspiration, great attention to detail and warm environment. Fantastic atmosphere with plants, light and music – my favourite yoga community.":"Inspiration, stor detaljegrad og varmt miljø. Fantastisk atmosfære med planter, lys og musik – mit yndlings-yogafællesskab."},
+      {name:"Ping Li",when:isEN?"1 year ago":"for 1 år siden",text:isEN?"Just completed my 200h – great mental & physical development. Deeply professional team. Very happy with my journey here.":"Afsluttede netop min 200t – stor mental & fysisk udvikling. Dybt professionelt team. Meget glad for min rejse her."},
+      {name:"Camilla Rend...",when:isEN?"1 year ago":"for 1 år siden",text:isEN?"Newly certified instructor – I feel ready in hatha, vinyasa and yin. Hard work, but worth it. Recommended for both practitioners and aspiring instructors.":"Nyuddannet instruktør – føler mig klar i hatha, vinyasa og yin. Hårdt arbejde, men det værd. Anbefales til både udøvere og kommende instruktører."},
+      {name:"Dagmar Eliza...",when:isEN?"1 year ago":"for 1 år siden",text:isEN?"Wide range of classes + opportunity for YTT. Skilled teachers in anatomy & philosophy. Learned a lot and found a strong community.":"Bredt udbud af klasser + mulighed for YTT. Dygtige undervisere i anatomi & filosofi. Lærte meget og fandt et stærkt fællesskab."},
+      {name:"Yasmine Olof...",when:isEN?"1 year ago":"for 1 år siden",text:isEN?"Fantastic training! I feel ready to lead my own classes. Warm, professional teachers and cosy studio.":"Fantastisk uddannelse! Føler mig klar til at lede egne klasser. Varme, professionelle undervisere og hyggeligt studie."},
+      {name:"Anastasia Se...",when:isEN?"1 year ago":"for 1 år siden",text:isEN?"Wonderful place to practice. The 5-month YTT was informative and professional – the teachers support you all the way.":"Vidunderligt sted at praktisere. 5-måneders YTT var informativt og professionelt – lærerne støtter dig hele vejen."},
+      {name:"Maja Pedersen",when:isEN?"10 months ago":"for 10 mdr. siden",text:isEN?"Pragmatic approach – you develop quickly. Super teachers with great experience in Hatha/Vinyasa, anatomy and yoga philosophy.":"Pragmatisk tilgang – man udvikler sig hurtigt. Super undervisere med stor erfaring i Hatha/Vinyasa, anatomi og yogafilosofi."}
+    ];
 
     var revTrack = reviewsSection.querySelector('[data-track]');
     var revViewport = reviewsSection.querySelector('[data-viewport]');
@@ -792,14 +981,14 @@
       REVIEWS.forEach(function(review) {
         var card = document.createElement('article');
         card.className = 'yb-reviews__card';
-        card.setAttribute('aria-label', reviewAriaPrefix + ' ' + review.name);
+        card.setAttribute('aria-label', (isEN ? 'Review from ' : 'Anmeldelse fra ') + review.name);
         card.innerHTML =
           '<div class="yb-reviews__card-header">' +
             '<div class="yb-reviews__card-info">' +
               '<h3 class="yb-reviews__name">' + review.name + '</h3>' +
               '<p class="yb-reviews__when">' + review.when + '</p>' +
             '</div>' +
-            '<span class="yb-reviews__card-stars" aria-hidden="true">★★★★★</span>' +
+            '<span class="yb-reviews__card-stars" aria-hidden="true">\u2605\u2605\u2605\u2605\u2605</span>' +
           '</div>' +
           '<p class="yb-reviews__text">' + review.text + '</p>';
         revTrack.appendChild(card);
@@ -847,24 +1036,24 @@
   var COURSE_DATA = {
     inv: {
       image: 'https://www.yogabible.dk/s/Inversions_Course_Copenhagen.jpg?format=1500w',
-      blurb: {{ t.course_inv_blurb | dump | safe }},
-      href: '{% if lang == "en" %}/en/inversions{% else %}/inversions{% endif %}',
-      label: {{ t.course_inv_label | dump | safe }},
-      alt: {{ t.course_inv_alt | dump | safe }}
+      blurb: isEN ? 'Learn to work safely with handstands, forearm balances, and headstands – technique, strength, and courage.' : 'Lær at arbejde sikkert med håndstande, underarmsbalancer og hovedstande – teknik, styrke og mod.',
+      href: (isEN ? '/en' : '') + '/inversions',
+      label: isEN ? 'Learn more about Inversions' : 'Læs mere om Inversions',
+      alt: isEN ? 'Inversions course' : 'Inversions kursus'
     },
     spl: {
       image: 'https://www.yogabible.dk/s/Splits_Course_Kursus_Kbenhavn_Copenhagen.jpg?format=1500w',
-      blurb: {{ t.course_spl_blurb | dump | safe }},
-      href: '{% if lang == "en" %}/en/splits{% else %}/splits{% endif %}',
-      label: {{ t.course_spl_label | dump | safe }},
-      alt: {{ t.course_spl_alt | dump | safe }}
+      blurb: isEN ? 'Flexibility with structure – hip openers, hamstrings, and technique for front & middle splits without forcing the body.' : 'Smidighed med system – hofteåbnere, baglår og teknik til front & middle splits uden at presse kroppen.',
+      href: (isEN ? '/en' : '') + '/splits',
+      label: isEN ? 'Learn more about Splits' : 'Læs mere om Splits',
+      alt: isEN ? 'Splits course' : 'Splits kursus'
     },
     bb: {
       image: 'https://www.yogabible.dk/s/professional-backbend-yoga-training-copenhagen.jpg?format=1500w',
-      blurb: {{ t.course_bb_blurb | dump | safe }},
-      href: '{% if lang == "en" %}/en/backbends{% else %}/backbends{% endif %}',
-      label: {{ t.course_bb_label | dump | safe }},
-      alt: {{ t.course_bb_alt | dump | safe }}
+      blurb: isEN ? 'Healthy backbends with focus on breath, stability, and gradual mobility in the thoracic spine and hips.' : 'Sunde bagoverbøjninger med fokus på åndedræt, stabilitet og gradvis mobilitet i brystryg og hofter.',
+      href: (isEN ? '/en' : '') + '/backbends',
+      label: isEN ? 'Learn more about Backbends' : 'Læs mere om Backbends',
+      alt: isEN ? 'Backbends course' : 'Backbends kursus'
     }
   };
 
@@ -897,30 +1086,38 @@
   /* ── yb-more: Program pills (18w / 4w) ── */
   var PROGRAM_DATA = {
     '18w': {
-      title: {{ t.prog18w_title | dump | safe }},
-      badge: {{ t.prog18w_badge | dump | safe }},
-      blurb: {{ t.prog18w_blurb | dump | safe }},
-      list: [
-        {{ t.prog18w_list1 | dump | safe }},
-        {{ t.prog18w_list2 | dump | safe }},
-        {{ t.prog18w_list3 | dump | safe }}
+      title: isEN ? '200 hours – 18-week flexible program' : '200 timer – 18 ugers fleksibelt program',
+      badge: isEN ? 'Flexible' : 'Fleksibelt',
+      blurb: isEN ? 'The same <strong>Yoga Alliance-certified</strong> training – spread over <strong>18 weeks</strong> with maximum flexibility. Perfect alongside a job, studies, or family life.' : 'Samme <strong>Yoga Alliance–certificerede</strong> uddannelse – fordelt over <strong>18 uger</strong> med maksimal fleksibilitet. Perfekt ved siden af job, studie eller familieliv.',
+      list: isEN ? [
+        'Weekday or weekend track — switch freely',
+        'Approx. 12 hours per week incl. homework',
+        'Can be combined with full-time work'
+      ] : [
+        'Hverdags- eller weekendforløb — skift frit',
+        'Ca. 12 timer om ugen inkl. hjemmeopgaver',
+        'Kan kombineres med fuldtidsarbejde'
       ],
-      href: '{% if lang == "en" %}/en/200-hours-18-weeks-flexible-programs{% else %}/200-hours-18-weeks-flexible-programs{% endif %}',
-      ctaLabel: {{ t.prog18w_cta | dump | safe }},
-      alt: {{ t.prog18w_alt | dump | safe }}
+      href: (isEN ? '/en' : '') + '/200-hours-18-weeks-flexible-programs',
+      ctaLabel: isEN ? 'Go to 18-week flexible training \u2192' : 'Gå til 18-ugers fleksibel uddannelse \u2192',
+      alt: isEN ? '200-hour – 18-week flexible program' : '200-timers – 18 ugers fleksibelt program'
     },
     '4w': {
-      title: {{ t.prog4w_title | dump | safe }},
-      badge: {{ t.prog4w_badge | dump | safe }},
-      blurb: {{ t.prog4w_blurb | dump | safe }},
-      list: [
-        {{ t.prog4w_list1 | dump | safe }},
-        {{ t.prog4w_list2 | dump | safe }},
-        {{ t.prog4w_list3 | dump | safe }}
+      title: isEN ? '200 hours – 4-week intensive program' : '200 timer – 4 ugers intensivt program',
+      badge: isEN ? 'Intensive' : 'Intensivt',
+      blurb: isEN ? 'The same <strong>Yoga Alliance-certified</strong> training – compressed into <strong>4 weeks</strong> for those who want to complete quickly and have the time to immerse themselves daily.' : 'Samme <strong>Yoga Alliance–certificerede</strong> uddannelse – komprimeret til <strong>4 uger</strong> for dig, der vil gennemføre hurtigt og har tiden til at fordybe dig hver dag.',
+      list: isEN ? [
+        'Daily training and theory in a focused program',
+        'Strong focus on technique, teaching craft & practice',
+        '<strong>Accommodation option</strong> during the program'
+      ] : [
+        'Daglig træning og teori i et fokuseret forløb',
+        'Stærkt fokus på teknik, undervisningshåndværk & praksis',
+        '<strong>Mulighed for indkvartering</strong> under forløbet'
       ],
-      href: '{% if lang == "en" %}/en/200-hours-4-weeks-intensive-programs{% else %}/200-hours-4-weeks-intensive-programs{% endif %}',
-      ctaLabel: {{ t.prog4w_cta | dump | safe }},
-      alt: {{ t.prog4w_alt | dump | safe }}
+      href: (isEN ? '/en' : '') + '/200-hours-4-weeks-intensive-programs',
+      ctaLabel: isEN ? 'Go to 4-week intensive training \u2192' : 'Gå til 4-ugers intensiv uddannelse \u2192',
+      alt: isEN ? '200-hour – 4-week intensive program' : '200-timers – 4 ugers intensivt program'
     }
   };
 

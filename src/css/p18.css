@@ -3058,6 +3058,21 @@
   margin-bottom: 20px;
 }
 
+.p18-hero__read-more {
+  margin-top: 18px;
+}
+.p18-hero__read-more-link {
+  font-size: clamp(13px, 1.6vw, 15px);
+  font-weight: 600;
+  color: rgba(253, 251, 247, 0.7);
+  text-decoration: none;
+  letter-spacing: 0.02em;
+  transition: color 0.2s ease;
+}
+.p18-hero__read-more-link:hover {
+  color: #F65D04;
+}
+
 /* =============================================
    P4W-CERTVAL — Certification Value Section
    ============================================= */
