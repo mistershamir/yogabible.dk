@@ -46,6 +46,13 @@
     return document.documentElement.lang === 'en' ? 'en' : 'da';
   }
 
+  /** Safe fbq wrapper — only fires if Meta Pixel was loaded by cookie consent */
+  function pixelTrack(eventName, params, eid) {
+    if (typeof fbq !== 'function') return;
+    var opts = eid ? { eventID: eid } : {};
+    fbq('track', eventName, params || {}, opts);
+  }
+
   /** Check if marketing consent was granted (for CAPI calls) */
   function hasMarketingConsent() {
     try {
@@ -121,6 +128,8 @@
     page_referrer: document.referrer
   });
 
+  pixelTrack('PageView', {}, pvId);
+
   sendCAPI('PageView', pvId, {
     content_name: document.title
   });
@@ -149,6 +158,12 @@
       course_name: document.title,
       course_url: window.location.pathname
     });
+
+    pixelTrack('ViewContent', {
+      content_name: document.title,
+      content_category: 'yoga_course',
+      content_type: 'product'
+    }, vcId);
 
     sendCAPI('ViewContent', vcId, {
       content_name: document.title,
@@ -312,6 +327,11 @@
         has_accommodation: (document.getElementById('ybuAccommodation') || {}).value || 'No'
       });
 
+      pixelTrack('Lead', {
+        content_name: 'Schedule Request',
+        content_category: formats.join(',')
+      }, eid);
+
       sendCAPI('Lead', eid, {
         content_name: 'Schedule Request',
         content_category: formats.join(',')
@@ -332,6 +352,10 @@
         event_id: eid,
         form_name: 'course_enquiry'
       });
+
+      pixelTrack('Lead', {
+        content_name: 'Course Enquiry'
+      }, eid);
 
       sendCAPI('Lead', eid, {
         content_name: 'Course Enquiry'
@@ -354,6 +378,11 @@
         event_id: eid,
         form_name: 'user_registration'
       });
+
+      pixelTrack('CompleteRegistration', {
+        content_name: 'User Registration',
+        status: 'submitted'
+      }, eid);
 
       sendCAPI('CompleteRegistration', eid, {
         content_name: 'User Registration',
@@ -408,6 +437,12 @@
         service_price: servicePrice
       });
 
+      pixelTrack('InitiateCheckout', {
+        content_name: serviceName,
+        value: parseFloat(servicePrice) || 0,
+        currency: 'DKK'
+      }, eid);
+
       sendCAPI('InitiateCheckout', eid, {
         content_name: serviceName,
         value: parseFloat(servicePrice) || 0,
@@ -437,6 +472,12 @@
             service_price: servicePrice,
             currency: 'DKK'
           });
+
+          pixelTrack('Purchase', {
+            content_name: serviceName.trim(),
+            value: parseFloat(servicePrice) || 0,
+            currency: 'DKK'
+          }, eid);
 
           sendCAPI('Purchase', eid, {
             content_name: serviceName.trim(),
@@ -487,6 +528,11 @@
         form_id: form.id || 'unknown',
         page_path: window.location.pathname
       });
+
+      pixelTrack('Lead', {
+        content_name: 'Newsletter Signup',
+        content_category: 'email'
+      }, eid);
 
       sendCAPI('Lead', eid, {
         content_name: 'Newsletter Signup',
