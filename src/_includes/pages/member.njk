@@ -173,8 +173,11 @@
     </div>
   </section>
 
+  {# ── Hub view (everything visible on the dashboard, hidden when a panel is open) ── #}
+  <div id="yb-ma-hub">
+
   {# ── Hub grid ── #}
-  <section class="yb-ma-hub" id="yb-ma-hub">
+  <section class="yb-ma-hub">
     <div class="container">
       <div class="yb-ma-hub__grid">
 
@@ -286,7 +289,7 @@
     </div>
   </section>
 
-  {# ── Education materials — gated by permission ── #}
+  {# ── Education materials (still inside hub wrapper) — gated by permission ── #}
   <section data-yb-requires="gated-content,live-streaming,recordings" style="display:none;padding:5rem 0;background:#FFFCF9">
     <div class="container" style="max-width:960px">
       <div style="text-align:center;margin-bottom:3rem">
@@ -353,6 +356,8 @@
       </div>
     </div>
   </section>
+
+  </div>{# /yb-ma-hub wrapper #}
 
   {# ══════════════════════════════════════════════════════════════
      PANELS — open inside the member area
