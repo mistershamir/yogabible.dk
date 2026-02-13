@@ -49,23 +49,42 @@
     "cta_login_note": "Har du allerede en konto?",
     "cta_login": "Log ind",
 
-    "user_eyebrow": "Member Area",
-    "user_title": "Velkommen tilbage",
-    "user_subtitle": "Dit personlige dashboard hos Yoga Bible",
-    "user_quick_title": "Hurtig adgang",
-    "user_quick_subtitle": "Alt hvad du har brug for, samlet ét sted.",
-    "user_card_profile_title": "Min Profil",
-    "user_card_profile_desc": "Opdater personlige oplysninger og indstillinger",
-    "user_card_schedule_title": "Klasseskema",
-    "user_card_schedule_desc": "Book dine yogahold for den kommende uge",
-    "user_card_store_title": "Butik",
-    "user_card_store_desc": "Køb klippekort, pakker og depositum",
-    "user_card_courses_title": "Mine Kurser",
-    "user_card_courses_desc": "Adgang til kursusmaterialer og fremgang",
-    "user_card_journal_title": "Yoga Journal",
-    "user_card_journal_desc": "Artikler og eksklusivt medlemsindhold",
-    "user_card_glossary_title": "Yoga Ordbog",
-    "user_card_glossary_desc": "Komplet opslagsværk — begreber, sanskrit og filosofi"
+    "user_title": "Member Area",
+    "user_greeting": "Velkommen",
+
+    "hub_courses_title": "Mine Kurser",
+    "hub_courses_desc": "Kursusmaterialer, moduler, fremgang og noter",
+    "hub_courses_badge": "Uddannelse",
+
+    "hub_live_title": "Live & Optagelser",
+    "hub_live_desc": "Live workshops, optagelser og sessioner du kan søge i",
+    "hub_live_badge": "Streaming",
+
+    "hub_schedule_title": "Klasseskema",
+    "hub_schedule_desc": "Book og administrer dine kommende yogahold",
+    "hub_schedule_badge": "Booking",
+
+    "hub_glossary_title": "Yoga Ordbog",
+    "hub_glossary_desc": "Komplet opslagsværk — begreber, sanskrit og filosofi",
+    "hub_glossary_badge": "Reference",
+
+    "hub_journal_title": "Yoga Journal",
+    "hub_journal_desc": "Artikler, guides og eksklusivt medlemsindhold",
+    "hub_journal_badge": "Læsning",
+
+    "hub_events_title": "Events",
+    "hub_events_desc": "Kommende workshops, retreats og særlige arrangementer",
+    "hub_events_badge": "Kalender",
+
+    "hub_forum_title": "Forum",
+    "hub_forum_desc": "Deltag i samtaler og forbind dig med fællesskabet",
+    "hub_forum_badge": "Fællesskab",
+
+    "hub_profile_title": "Min Profil",
+    "hub_profile_desc": "Personlige oplysninger, passes, kvitteringer og indstillinger",
+    "hub_profile_badge": "Konto",
+
+    "hub_coming_soon": "Kommer snart"
   },
   "en": {
     "meta_title": "Member Area | YOGA BIBLE",
@@ -117,22 +136,41 @@
     "cta_login_note": "Already have an account?",
     "cta_login": "Sign in",
 
-    "user_eyebrow": "Member Area",
-    "user_title": "Welcome back",
-    "user_subtitle": "Your personal dashboard at Yoga Bible",
-    "user_quick_title": "Quick access",
-    "user_quick_subtitle": "Everything you need, all in one place.",
-    "user_card_profile_title": "My Profile",
-    "user_card_profile_desc": "Update personal details and settings",
-    "user_card_schedule_title": "Class Schedule",
-    "user_card_schedule_desc": "Book your yoga classes for the week ahead",
-    "user_card_store_title": "Store",
-    "user_card_store_desc": "Buy class passes, packages and deposits",
-    "user_card_courses_title": "My Courses",
-    "user_card_courses_desc": "Access course materials and track progress",
-    "user_card_journal_title": "Yoga Journal",
-    "user_card_journal_desc": "Articles and exclusive member content",
-    "user_card_glossary_title": "Yoga Glossary",
-    "user_card_glossary_desc": "Complete reference — terms, Sanskrit and philosophy"
+    "user_title": "Member Area",
+    "user_greeting": "Welcome",
+
+    "hub_courses_title": "My Courses",
+    "hub_courses_desc": "Course materials, modules, progress and notes",
+    "hub_courses_badge": "Education",
+
+    "hub_live_title": "Live & Recordings",
+    "hub_live_desc": "Live workshops, recordings and searchable sessions",
+    "hub_live_badge": "Streaming",
+
+    "hub_schedule_title": "Class Schedule",
+    "hub_schedule_desc": "Book and manage your upcoming yoga classes",
+    "hub_schedule_badge": "Booking",
+
+    "hub_glossary_title": "Yoga Glossary",
+    "hub_glossary_desc": "Complete reference — terms, Sanskrit and philosophy",
+    "hub_glossary_badge": "Reference",
+
+    "hub_journal_title": "Yoga Journal",
+    "hub_journal_desc": "Articles, guides and exclusive member content",
+    "hub_journal_badge": "Reading",
+
+    "hub_events_title": "Events",
+    "hub_events_desc": "Upcoming workshops, retreats and special gatherings",
+    "hub_events_badge": "Calendar",
+
+    "hub_forum_title": "Forum",
+    "hub_forum_desc": "Join conversations and connect with the community",
+    "hub_forum_badge": "Community",
+
+    "hub_profile_title": "My Profile",
+    "hub_profile_desc": "Personal details, passes, receipts and settings",
+    "hub_profile_badge": "Account",
+
+    "hub_coming_soon": "Coming soon"
   }
 }
