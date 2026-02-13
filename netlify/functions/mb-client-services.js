@@ -24,9 +24,11 @@ exports.handler = async function(event) {
       return jsonResponse(400, { error: 'clientId is required' });
     }
 
-    // Fetch client services, contracts, and pause notes in parallel.
-    // Pause notes are needed because MB's IsSuspended is false for future-dated pauses.
-    var [servicesData, contractsData, pauseNotes] = await Promise.all([
+    // Fetch client services and contracts in parallel.
+    // NOTE: Do NOT use MB notes for pause detection — notes persist even after
+    // admin deletes a suspension, causing false "paused" states. Pause persistence
+    // for future-dated pauses is handled by frontend Firestore layer instead.
+    var [servicesData, contractsData] = await Promise.all([
       mbFetch('/client/clientservices?ClientId=' + params.clientId + '&Limit=200').catch(function(e) {
         console.warn('mb-client-services: services fetch failed:', e.message);
         return { ClientServices: [] };
@@ -34,29 +36,6 @@ exports.handler = async function(event) {
       mbFetch('/client/clientcontracts?ClientId=' + params.clientId).catch(function(e) {
         console.warn('mb-client-services: contracts fetch failed:', e.message);
         return { Contracts: [] };
-      }),
-      // Read pause marker notes (CONTRACT_PAUSED|contractId|startDate|endDate)
-      mbFetch('/client/clientnotes?ClientId=' + params.clientId + '&Limit=100').then(function(notesData) {
-        var notes = notesData.Notes || notesData.ClientNotes || [];
-        var pauses = {};
-        for (var i = 0; i < notes.length; i++) {
-          var text = notes[i].Text || notes[i].Note || notes[i].Body || '';
-          if (text.indexOf('CONTRACT_PAUSED') === 0) {
-            var parts = text.split('|');
-            if (parts.length >= 4) {
-              var cId = Number(parts[1]);
-              var endD = new Date(parts[3]);
-              // Only use notes where the pause end date is still in the future
-              if (endD >= now) {
-                pauses[cId] = { startDate: parts[2], endDate: parts[3] };
-              }
-            }
-          }
-        }
-        return pauses;
-      }).catch(function(e) {
-        console.warn('mb-client-services: notes fetch failed:', e.message);
-        return {};
       })
     ]);
 
@@ -120,20 +99,12 @@ exports.handler = async function(event) {
         'allKeys:', Object.keys(c).join(',')
       );
 
-      // Pause detection: check MB fields first, then fall back to our pause notes.
+      // Use ONLY MB's own fields for pause detection.
       // IsSuspended = true only for currently active pauses (not future-dated).
-      // For future-dated pauses, we rely on our CONTRACT_PAUSED notes.
+      // Frontend Firestore layer handles future-dated pause persistence.
       var pauseStartDate = c.SuspensionStart || c.SuspendDate || c.SuspensionDate || null;
       var pauseEndDate = c.ResumeDate || c.ResumptionDate || null;
       var isPaused = c.IsSuspended || !!(pauseStartDate && pauseEndDate);
-
-      // Check our pause notes for future-dated pauses MB doesn't flag
-      if (!isPaused && pauseNotes[c.Id]) {
-        pauseStartDate = pauseNotes[c.Id].startDate;
-        pauseEndDate = pauseNotes[c.Id].endDate;
-        isPaused = true;
-        console.log('[mb-client-services] Contract', c.Id, 'detected as paused via note:', pauseStartDate, '→', pauseEndDate);
-      }
 
       return {
         id: c.Id,
