@@ -507,6 +507,20 @@
       if (tierEl) tierEl.textContent = '—';
       var tierDetailEl = document.getElementById('yb-profile-tier-detail');
       if (tierDetailEl) tierDetailEl.textContent = '—';
+
+      // Role badge
+      var roleBadgeEl = document.getElementById('yb-profile-role-badge');
+      if (roleBadgeEl && window.YBRoles) {
+        var role = d.role || 'member';
+        if (role === 'user') role = 'member';
+        var roleLabel = window.YBRoles.getRoleLabel(role, isDa() ? 'da' : 'en');
+        var roleDetail = window.YBRoles.getRoleDetail(role, d.roleDetails || {}, isDa() ? 'da' : 'en');
+        var roleColor = (window.YBRoles.ROLES[role] || {}).color || '#6F6A66';
+        roleBadgeEl.textContent = roleLabel + (roleDetail ? ' — ' + roleDetail : '');
+        roleBadgeEl.style.borderColor = roleColor;
+        roleBadgeEl.style.color = roleColor;
+        roleBadgeEl.style.display = '';
+      }
     }).catch(function(err) { console.warn('Could not load profile:', err); });
   }
 

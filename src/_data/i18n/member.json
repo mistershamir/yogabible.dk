@@ -84,7 +84,34 @@
     "hub_profile_desc": "Personlige oplysninger, passes, kvitteringer og indstillinger",
     "hub_profile_badge": "Konto",
 
-    "hub_coming_soon": "Kommer snart"
+    "hub_coming_soon": "Kommer snart",
+
+    "user_materials_eyebrow": "Uddannelse",
+    "user_materials_title": "Dine materialer",
+    "user_materials_subtitle": "Adgang til kursusmaterialer, manualer og ressourcer tilknyttet dit program.",
+    "user_card_materials_title": "Kursusmaterialer",
+    "user_card_materials_desc": "Dokumenter, manualer og læsestof til dit program",
+    "user_card_livestream_title": "Live Streaming",
+    "user_card_livestream_desc": "Deltag live i workshops og undervisning",
+    "user_card_recordings_title": "Optagelser",
+    "user_card_recordings_desc": "Gense alle workshops og sessioner",
+
+    "user_admin_eyebrow": "Administration",
+    "user_admin_title": "Administrationsværktøjer",
+    "user_admin_subtitle": "Administrer indhold, kurser og brugere.",
+    "user_card_admin_courses_title": "Kursus Admin",
+    "user_card_admin_courses_desc": "Administrer kurser, moduler og kapitler",
+    "user_card_admin_content_title": "Indhold",
+    "user_card_admin_content_desc": "Rediger sider, journal og indhold",
+    "user_card_admin_users_title": "Brugeradministration",
+    "user_card_admin_users_desc": "Administrer roller og tilladelser",
+
+    "role_badge_member": "Medlem",
+    "role_badge_trainee": "Yogalærer-studerende",
+    "role_badge_student": "Kursusdeltager",
+    "role_badge_teacher": "Yogalærer",
+    "role_badge_marketing": "Marketing",
+    "role_badge_admin": "Administrator"
   },
   "en": {
     "meta_title": "Member Area | YOGA BIBLE",
@@ -171,6 +198,33 @@
     "hub_profile_desc": "Personal details, passes, receipts and settings",
     "hub_profile_badge": "Account",
 
-    "hub_coming_soon": "Coming soon"
+    "hub_coming_soon": "Coming soon",
+
+    "user_materials_eyebrow": "Education",
+    "user_materials_title": "Your materials",
+    "user_materials_subtitle": "Access course materials, manuals, and resources for your program.",
+    "user_card_materials_title": "Course Materials",
+    "user_card_materials_desc": "Documents, manuals, and reading for your program",
+    "user_card_livestream_title": "Live Streaming",
+    "user_card_livestream_desc": "Join workshops and classes live",
+    "user_card_recordings_title": "Recordings",
+    "user_card_recordings_desc": "Revisit all workshops and sessions",
+
+    "user_admin_eyebrow": "Administration",
+    "user_admin_title": "Admin tools",
+    "user_admin_subtitle": "Manage content, courses, and users.",
+    "user_card_admin_courses_title": "Course Admin",
+    "user_card_admin_courses_desc": "Manage courses, modules, and chapters",
+    "user_card_admin_content_title": "Content",
+    "user_card_admin_content_desc": "Edit pages, journal, and content",
+    "user_card_admin_users_title": "User Management",
+    "user_card_admin_users_desc": "Manage roles and permissions",
+
+    "role_badge_member": "Member",
+    "role_badge_trainee": "Teacher Trainee",
+    "role_badge_student": "Course Student",
+    "role_badge_teacher": "Teacher",
+    "role_badge_marketing": "Marketing",
+    "role_badge_admin": "Administrator"
   }
 }

@@ -87,7 +87,19 @@
     "toolbar_ul": "Punktliste",
     "toolbar_ol": "Nummereret liste",
     "toolbar_quote": "Citat",
-    "toolbar_link": "Link"
+    "toolbar_link": "Link",
+
+    "role_title": "Brugerrolle",
+    "role_label": "Rolle",
+    "role_program": "Program",
+    "role_teacher_type": "Undervisertype",
+    "role_cohort": "Hold/årgang",
+    "role_save": "Gem rolle",
+    "role_saved": "Rolle gemt!",
+    "set_draft": "Sæt som kladde",
+    "set_published": "Publicer",
+    "status_published": "Publiceret",
+    "status_draft": "Kladde"
   },
   "en": {
     "page_title": "Course Administration",
@@ -177,6 +189,18 @@
     "toolbar_ul": "Bullet list",
     "toolbar_ol": "Numbered list",
     "toolbar_quote": "Quote",
-    "toolbar_link": "Link"
+    "toolbar_link": "Link",
+
+    "role_title": "User Role",
+    "role_label": "Role",
+    "role_program": "Program",
+    "role_teacher_type": "Teacher Type",
+    "role_cohort": "Cohort",
+    "role_save": "Save Role",
+    "role_saved": "Role saved!",
+    "set_draft": "Set as Draft",
+    "set_published": "Publish",
+    "status_published": "Published",
+    "status_draft": "Draft"
   }
 }

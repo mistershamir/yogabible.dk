@@ -88,10 +88,28 @@ service cloud.firestore {
         && get(/databases/$(database)/documents/enrollments/$(request.auth.uid + '_' + courseId)).data.status == 'active';
     }
 
-    // User profiles — admin can read all (for enrollment email lookup)
+    // Helper: check if user has a specific role
+    function hasRole(role) {
+      return request.auth != null
+        && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == role;
+    }
+
+    // Helper: check if user is teacher or admin
+    function isTeacherOrAdmin() {
+      let role = get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role;
+      return request.auth != null && (role == 'admin' || role == 'teacher');
+    }
+
+    // User profiles — admin can read all (for enrollment/role management)
+    // Users can only update their own profile (NOT the role/roleDetails fields — those are admin-only)
     match /users/{userId} {
       allow read: if request.auth != null && (request.auth.uid == userId || isAdmin());
-      allow write: if request.auth != null && request.auth.uid == userId;
+      allow create: if request.auth != null && request.auth.uid == userId;
+      allow update: if request.auth != null && (
+        (request.auth.uid == userId
+          && !request.resource.data.diff(resource.data).affectedKeys().hasAny(['role', 'roleDetails']))
+        || isAdmin()
+      );
     }
 
     // Courses: readable by any authenticated user, writable by admin
@@ -153,6 +171,80 @@ service cloud.firestore {
 1. Go to Firestore → `users` collection → find your document (your UID)
 2. Add a field: `role` (string) = `admin`
 3. Then re-publish the security rules above
+
+## User Roles & Permissions
+
+### Available Roles
+
+| Role | Key | Description |
+|------|-----|-------------|
+| **Member** | `member` | Default role. Free account with access to glossary, journal, community. |
+| **Teacher Trainee** | `trainee` | Enrolled in a yoga teacher training program (100h, 200h, 300h, 500h). |
+| **Course Student** | `student` | Enrolled in a specific course (Inversions, Splits, etc.). |
+| **Teacher** | `teacher` | Certified yoga teacher. Gets access to all training materials. |
+| **Marketing** | `marketing` | Marketing team member. Gets content admin access. |
+| **Administrator** | `admin` | Full access to everything. |
+
+### User Document Fields
+
+```
+users/{uid}
+  ├── role: "member" | "trainee" | "student" | "teacher" | "marketing" | "admin"
+  ├── roleDetails: {
+  │     program: "200h"          (trainee only — "100h", "200h", "300h", "500h")
+  │     cohort: "2026-spring"    (trainee only — optional)
+  │     teacherType: "vinyasa"   (teacher only — vinyasa, yin, hot, ashtanga, etc.)
+  │   }
+  └── ... (existing fields unchanged)
+```
+
+### Assigning Roles
+
+1. Go to `/admin/` → User Lookup section
+2. Search for a user by email
+3. Set their role from the dropdown
+4. Fill in role-specific fields (program, teacher type, etc.)
+5. Click "Save Role"
+
+### Permission-Based Content Gating
+
+In templates, use `data-yb-requires` to gate elements:
+
+```html
+<!-- Shown if user has ANY of the listed permissions -->
+<div data-yb-requires="live-streaming" style="display:none">
+  Live streaming content here
+</div>
+
+<!-- Shown if user has ANY of these permissions -->
+<div data-yb-requires="admin:courses,admin:users" style="display:none">
+  Admin tools here
+</div>
+```
+
+Use `data-yb-role` for role-specific visibility:
+
+```html
+<!-- Only visible to trainees and teachers -->
+<div data-yb-role="trainee,teacher" style="display:none">
+  Training content
+</div>
+```
+
+### Default Permissions Per Role
+
+| Permission | member | trainee | student | teacher | marketing | admin |
+|-----------|--------|---------|---------|---------|-----------|-------|
+| `gated-content` | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
+| `live-streaming` | | ✓ | | ✓ | | ✓ |
+| `recordings` | | ✓ | | ✓ | | ✓ |
+| `materials:{program}` | | ✓* | | ✓** | | ✓** |
+| `admin:content` | | | | | ✓ | ✓ |
+| `admin:courses` | | | | | | ✓ |
+| `admin:users` | | | | | | ✓ |
+
+\* Trainee gets access to their specific program only (e.g., `materials:200h`)
+\** Teacher and Admin get access to all programs
 
 ## Composite Indexes Required
 
