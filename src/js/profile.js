@@ -1167,11 +1167,59 @@
           html += '<p class="yb-membership__pause-contact">' + t('membership_resume_contact') + '</p>';
         }
 
-        // ── ACTIVE STATE: Manage info (contact-based) ──
+        // ── ACTIVE STATE: Pause button + cancel info ──
         var showActiveInfo = !isPaused && !c.terminationDate && c.isAutopay;
         if (showActiveInfo) {
-          html += '<div class="yb-membership__manage-info-box">';
-          html += '<p class="yb-membership__manage-info-text">' + t('membership_manage_info') + '</p>';
+          // Pause button
+          html += '<div class="yb-membership__manage-btns">';
+          html += '<button class="yb-membership__manage-btn yb-membership__manage-btn--pause" type="button" data-pause-contract="' + c.id + '" data-next-billing="' + (c.nextBillingDate || '') + '">' + t('membership_pause_btn') + '</button>';
+          html += '</div>';
+
+          // Expandable pause form (hidden until button clicked)
+          var earliestStart = calcEarliestPauseStart(c.nextBillingDate);
+          var earliestStr = toLocalDateStr(earliestStart);
+          var maxStartDate = new Date(earliestStart);
+          maxStartDate.setMonth(maxStartDate.getMonth() + 3);
+          var maxStartStr = toLocalDateStr(maxStartDate);
+
+          html += '<div class="yb-membership__manage-info" data-pause-form="' + c.id + '" hidden>';
+          html += '<h4 style="margin:0 0 0.5rem;font-size:0.95rem;font-weight:700">' + t('membership_pause_title') + '</h4>';
+          html += '<p style="font-size:0.85rem;color:#6F6A66;margin:0 0 0.75rem">' + t('membership_pause_desc') + '</p>';
+
+          // Start date
+          html += '<div class="yb-membership__info-row">';
+          html += '<span class="yb-membership__info-label">' + t('membership_pause_start') + '</span><br>';
+          html += '<input type="date" data-pause-start="' + c.id + '" min="' + earliestStr + '" max="' + maxStartStr + '" value="' + earliestStr + '" style="font-family:Abacaxi,sans-serif;font-size:0.9rem;padding:0.4rem 0.6rem;border:1.5px solid #E8E4E0;border-radius:8px;width:100%;margin-top:0.25rem">';
+          html += '<span style="font-size:0.78rem;color:#6F6A66;font-style:italic">' + t('membership_pause_next_billing') + ': ' + formatDateDK(c.nextBillingDate) + '</span>';
+          html += '</div>';
+
+          // End date
+          var minEndDate = new Date(earliestStart);
+          minEndDate.setDate(minEndDate.getDate() + 14);
+          var maxEndDate = new Date(earliestStart);
+          maxEndDate.setDate(maxEndDate.getDate() + 93);
+          html += '<div class="yb-membership__info-row" style="margin-top:0.5rem">';
+          html += '<span class="yb-membership__info-label">' + t('membership_pause_end') + '</span><br>';
+          html += '<input type="date" data-pause-end="' + c.id + '" min="' + toLocalDateStr(minEndDate) + '" max="' + toLocalDateStr(maxEndDate) + '" value="' + toLocalDateStr(minEndDate) + '" style="font-family:Abacaxi,sans-serif;font-size:0.9rem;padding:0.4rem 0.6rem;border:1.5px solid #E8E4E0;border-radius:8px;width:100%;margin-top:0.25rem">';
+          html += '<span style="font-size:0.78rem;color:#6F6A66;font-style:italic">' + t('membership_pause_min') + ' · ' + t('membership_pause_max') + '</span>';
+          html += '</div>';
+
+          // Resume preview
+          html += '<p class="yb-membership__resume-info" data-pause-resume="' + c.id + '" style="margin-top:0.75rem">' + t('membership_pause_resume') + ' ' + formatDateDK(toLocalDateStr(minEndDate)) + '</p>';
+
+          // Error
+          html += '<div class="yb-auth-error" data-pause-error="' + c.id + '" hidden style="margin-top:0.5rem"></div>';
+
+          // Actions
+          html += '<button class="yb-membership__confirm-btn yb-membership__confirm-btn--pause" data-pause-confirm="' + c.id + '" style="margin-top:0.75rem">' + t('membership_pause_confirm') + '</button>';
+
+          // Special note
+          html += '<p class="yb-membership__special-note">' + t('membership_pause_special') + '</p>';
+          html += '</div>';
+
+          // Cancel by email info
+          html += '<div class="yb-membership__manage-info-box" style="margin-top:0.5rem">';
+          html += '<p class="yb-membership__manage-info-text">' + t('membership_cancel_info') + '</p>';
           html += '</div>';
         }
 
@@ -1364,14 +1412,112 @@
   function bindMembershipManageEvents(container, data) {
     var contracts = data.activeContracts || [];
 
-    // NOTE: Pause and Cancel buttons have been removed from the UI.
-    // These actions are now handled via email to info@yogabible.dk.
-    // The pause/termination STATUS display and retention card remain.
+    // ── Pause buttons: toggle the pause form ──
+    var pauseBtns = container.querySelectorAll('[data-pause-contract]');
+    for (var p = 0; p < pauseBtns.length; p++) {
+      pauseBtns[p].addEventListener('click', function() {
+        var cId = this.getAttribute('data-pause-contract');
+        var formEl = container.querySelector('[data-pause-form="' + cId + '"]');
+        if (formEl) {
+          formEl.hidden = !formEl.hidden;
+          if (!formEl.hidden) formEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+      });
+    }
 
-    // NOTE: Pause and Cancel buttons removed from UI.
-    // Pending Mindbody API clarification on SuspendDate semantics
-    // and missing delete-suspension / cancel-termination endpoints.
-    // Users are directed to email info@yogabible.dk instead.
+    // ── Pause date change: update end date min/max and resume preview ──
+    var pauseStartInputs = container.querySelectorAll('[data-pause-start]');
+    for (var ps = 0; ps < pauseStartInputs.length; ps++) {
+      pauseStartInputs[ps].addEventListener('change', function() {
+        var cId = this.getAttribute('data-pause-start');
+        var endInput = container.querySelector('[data-pause-end="' + cId + '"]');
+        var resumeEl = container.querySelector('[data-pause-resume="' + cId + '"]');
+        if (endInput && this.value) {
+          var startD = new Date(this.value);
+          var minEnd = new Date(startD);
+          minEnd.setDate(minEnd.getDate() + 14);
+          var maxEnd = new Date(startD);
+          maxEnd.setDate(maxEnd.getDate() + 93);
+          endInput.min = toLocalDateStr(minEnd);
+          endInput.max = toLocalDateStr(maxEnd);
+          // If current end is out of new range, reset it
+          if (endInput.value < endInput.min) endInput.value = endInput.min;
+          if (endInput.value > endInput.max) endInput.value = endInput.max;
+        }
+        if (resumeEl && endInput) {
+          resumeEl.textContent = t('membership_pause_resume') + ' ' + formatDateDK(endInput.value);
+        }
+      });
+    }
+
+    var pauseEndInputs = container.querySelectorAll('[data-pause-end]');
+    for (var pe = 0; pe < pauseEndInputs.length; pe++) {
+      pauseEndInputs[pe].addEventListener('change', function() {
+        var cId = this.getAttribute('data-pause-end');
+        var resumeEl = container.querySelector('[data-pause-resume="' + cId + '"]');
+        if (resumeEl && this.value) {
+          resumeEl.textContent = t('membership_pause_resume') + ' ' + formatDateDK(this.value);
+        }
+      });
+    }
+
+    // ── Pause confirm button ──
+    var pauseConfirmBtns = container.querySelectorAll('[data-pause-confirm]');
+    for (var pc = 0; pc < pauseConfirmBtns.length; pc++) {
+      pauseConfirmBtns[pc].addEventListener('click', function() {
+        var cId = this.getAttribute('data-pause-confirm');
+        var startInput = container.querySelector('[data-pause-start="' + cId + '"]');
+        var endInput = container.querySelector('[data-pause-end="' + cId + '"]');
+        var errorEl = container.querySelector('[data-pause-error="' + cId + '"]');
+        var btn = this;
+
+        if (!startInput || !endInput || !startInput.value || !endInput.value) {
+          if (errorEl) { errorEl.textContent = isDa() ? 'Vælg start- og slutdato.' : 'Select start and end dates.'; errorEl.hidden = false; }
+          return;
+        }
+
+        btn.disabled = true;
+        btn.textContent = t('membership_pause_confirming');
+        if (errorEl) errorEl.hidden = true;
+
+        fetch('/.netlify/functions/mb-contract-manage', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            clientId: clientId,
+            clientContractId: Number(cId),
+            action: 'suspend',
+            startDate: startInput.value,
+            endDate: endInput.value
+          })
+        })
+        .then(function(r) { return r.json(); })
+        .then(function(result) {
+          btn.disabled = false;
+          btn.textContent = t('membership_pause_confirm');
+
+          if (result.error === 'already_suspended') {
+            if (errorEl) { errorEl.textContent = t('membership_already_paused'); errorEl.hidden = false; }
+            return;
+          }
+          if (result.error) {
+            if (errorEl) { errorEl.textContent = result.error; errorEl.hidden = false; }
+            return;
+          }
+
+          // Success — update local state and re-render
+          markContractPaused(cId, startInput.value, endInput.value);
+          showMembershipToast(t('membership_pause_success'), 'success');
+          var membershipEl = document.getElementById('yb-membership-content');
+          if (membershipEl && clientPassData) renderMembershipDetails(membershipEl, clientPassData);
+        })
+        .catch(function() {
+          btn.disabled = false;
+          btn.textContent = t('membership_pause_confirm');
+          if (errorEl) { errorEl.textContent = t('membership_pause_error'); errorEl.hidden = false; }
+        });
+      });
+    }
 
     // ── Reactivate (retention) buttons ──
     // First month free is already set on all contracts in Mindbody,
@@ -3531,6 +3677,9 @@
       membership_manage_info: isDa()
         ? 'Vil du <strong>sætte dit abonnement på pause</strong> (14 dage – 3 måneder, særlige omstændigheder) eller <strong>opsige dit medlemskab</strong> (1 måneds opsigelsesvarsel jf. handelsbetingelser)? Skriv til os på <a href="mailto:info@yogabible.dk">info@yogabible.dk</a>'
         : 'Want to <strong>pause your membership</strong> (14 days – 3 months, special circumstances) or <strong>cancel your membership</strong> (1 month notice per terms &amp; conditions)? Email us at <a href="mailto:info@yogabible.dk">info@yogabible.dk</a>',
+      membership_cancel_info: isDa()
+        ? 'Vil du <strong>opsige dit medlemskab</strong>? Skriv til os på <a href="mailto:info@yogabible.dk">info@yogabible.dk</a> (1 måneds opsigelsesvarsel jf. handelsbetingelser)'
+        : 'Want to <strong>cancel your membership</strong>? Email us at <a href="mailto:info@yogabible.dk">info@yogabible.dk</a> (1 month notice per terms &amp; conditions)',
       membership_cancel_termination_hint: isDa()
         ? 'Vil du annullere opsigelsen? Kontakt os på <a href="mailto:info@yogabible.dk">info@yogabible.dk</a>'
         : 'Want to cancel the termination? Contact us at <a href="mailto:info@yogabible.dk">info@yogabible.dk</a>',
