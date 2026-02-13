@@ -1850,11 +1850,11 @@ section {
 
 @media (max-width: 768px) {
   .yb-footer-inner {
-    padding: 30px 16px 22px;
+    padding: 20px 16px 16px;
   }
 
   .yb-footer-top {
-    margin-bottom: 26px;
+    margin-bottom: 16px;
   }
 
   .yb-columns {
@@ -1862,6 +1862,8 @@ section {
   }
 
   .yb-col {
+    margin: 0;
+    padding: 0;
     border-top: 1px solid rgba(0, 0, 0, 0.15);
   }
 
@@ -1870,8 +1872,9 @@ section {
   }
 
   .yb-col-header {
-    padding: 12px 0;
+    padding: 11px 0;
     cursor: pointer;
+    font-size: 12px;
   }
 
   .yb-col-toggle {
@@ -1887,17 +1890,21 @@ section {
 
   .yb-col.yb-col--open .yb-col-body {
     max-height: 500px;
-    padding-bottom: 10px;
+    padding-bottom: 8px;
   }
 
   .yb-col.yb-col--open .yb-col-toggle {
     transform: rotate(180deg);
   }
 
+  .yb-footer-bottom {
+    gap: 14px;
+  }
+
   .yb-footer-meta {
     font-size: 10px;
     flex-wrap: wrap;
-    row-gap: 6px;
+    row-gap: 4px;
   }
 
   .yb-footer-logo {
