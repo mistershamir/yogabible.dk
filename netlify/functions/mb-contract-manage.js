@@ -2,75 +2,15 @@
  * Netlify Function: POST /.netlify/functions/mb-contract-manage
  * Manages client contracts: terminate, suspend (pause), or resume.
  *
- * CONFIRMED BY MINDBODY SUPPORT (2026-02-13):
- *   Endpoint: POST /client/suspendcontract
- *   Required fields: ClientId, ClientContractId, SuspensionStart, Duration, DurationUnit, SuspensionType
- *   Working values: SuspensionType:"None" (flexible duration), DurationUnit:"Day"
- *   Note: "Vacation" type forces 1-month minimum. "None" allows custom durations (e.g. 14 days).
- *   SuspensionStart = start date (defaults to today if omitted)
- *   Resume date = SuspensionStart + Duration(DurationUnit)
- *   Future-dated starts ARE supported via SuspensionStart.
+ * Suspend uses MB suspension type "Self-suspending" (configured in MB Settings):
+ *   - Min 1 month, max 3 months
+ *   - DurationUnit: "Month", Duration: 1/2/3
+ *   - SuspensionStart = start date (future-dated supported)
  */
 
 const { mbFetch, getStaffToken, jsonResponse, corsHeaders } = require('./shared/mb-api');
 
 var TERMINATE_PATHS = ['/sale/terminatecontract', '/contract/terminatecontract', '/client/terminatecontract'];
-var PAUSE_MARKER = 'CONTRACT_PAUSED';
-
-// Read pause notes for a client from MB client notes
-async function getPauseNotes(clientId) {
-  try {
-    var notesData = await mbFetch('/client/clientnotes?ClientId=' + clientId + '&Limit=100');
-    var notes = notesData.Notes || notesData.ClientNotes || [];
-    console.log('[mb-contract-manage] getPauseNotes: keys:', Object.keys(notesData), 'count:', notes.length);
-    var pauses = [];
-    for (var i = 0; i < notes.length; i++) {
-      var text = notes[i].Text || notes[i].Note || notes[i].Body || '';
-      if (text.indexOf(PAUSE_MARKER) === 0) {
-        // Format: CONTRACT_PAUSED|contractId|startDate|endDate
-        var parts = text.split('|');
-        if (parts.length >= 4) {
-          pauses.push({
-            noteId: notes[i].Id,
-            contractId: Number(parts[1]),
-            startDate: parts[2],
-            endDate: parts[3],
-            noteDate: notes[i].DateTime || notes[i].CreatedDateTime || null
-          });
-        }
-      }
-    }
-    return pauses;
-  } catch (err) {
-    console.warn('[mb-contract-manage] Could not read pause notes:', err.message);
-    return [];
-  }
-}
-
-// Save a pause marker note — try multiple MB API body formats
-async function savePauseNote(clientId, contractId, startDate, endDate) {
-  var noteText = PAUSE_MARKER + '|' + contractId + '|' + startDate + '|' + endDate;
-  var formats = [
-    { ClientId: String(clientId), Note: { Text: noteText, Type: { Id: 1 } } },
-    { ClientId: String(clientId), Body: noteText },
-    { ClientId: String(clientId), Text: noteText },
-    { ClientId: String(clientId), Note: noteText }
-  ];
-  for (var i = 0; i < formats.length; i++) {
-    try {
-      var result = await mbFetch('/client/addclientnote', {
-        method: 'POST',
-        body: JSON.stringify(formats[i])
-      });
-      console.log('[mb-contract-manage] Saved pause note (format ' + i + '):', noteText, 'result:', JSON.stringify(result).substring(0, 200));
-      return true;
-    } catch (err) {
-      console.warn('[mb-contract-manage] Note format ' + i + ' failed:', err.message);
-    }
-  }
-  console.error('[mb-contract-manage] ALL note formats failed for:', noteText);
-  return false;
-}
 
 exports.handler = async function(event) {
   if (event.httpMethod === 'OPTIONS') {
@@ -140,28 +80,24 @@ exports.handler = async function(event) {
 
     // ── SUSPEND (PAUSE) ──
     if (body.action === 'suspend') {
-      if (!body.startDate || !body.endDate) {
-        return jsonResponse(400, { error: 'startDate and endDate are required for suspension' });
+      if (!body.startDate) {
+        return jsonResponse(400, { error: 'startDate is required for suspension' });
       }
 
+      var months = Number(body.months);
+      if (!months || months < 1 || months > 3) {
+        return jsonResponse(400, { error: 'months must be 1, 2, or 3' });
+      }
+
+      // Calculate end date (start + N months) for the response
       var start = new Date(body.startDate);
-      var end = new Date(body.endDate);
-      var durationDays = Math.round((end - start) / 86400000);
-
-      if (isNaN(durationDays) || durationDays < 1) {
-        return jsonResponse(400, { error: 'Invalid dates — could not calculate duration' });
-      }
-      if (durationDays < 14) {
-        return jsonResponse(400, { error: 'Suspension must be at least 14 days' });
-      }
-      if (durationDays > 93) {
-        return jsonResponse(400, { error: 'Suspension cannot exceed 3 months (93 days)' });
-      }
+      var endDate = new Date(start);
+      endDate.setMonth(endDate.getMonth() + months);
+      var endDateStr = endDate.toISOString().split('T')[0];
 
       var ccId = Number(body.clientContractId);
 
-      // Check if contract is already suspended (MB field + our notes)
-      var existingPause = null;
+      // Check if contract is already suspended
       try {
         var contractsData = await mbFetch('/client/clientcontracts?ClientId=' + body.clientId);
         var targetContract = (contractsData.Contracts || []).find(function(c) { return c.Id === ccId; });
@@ -175,29 +111,17 @@ exports.handler = async function(event) {
         console.warn('[mb-contract-manage] Could not check MB suspension status:', checkErr.message);
       }
 
-      // NOTE: We no longer check MB notes for duplicate detection.
-      // Notes persist even after admin deletes a suspension, causing false blocks.
-      // Frontend checks isSuspended flag before showing the pause button.
-      // MB itself will return "exceeded maximum iterations" if already at max pauses.
-
-      // CONFIRMED BY MINDBODY SUPPORT (2026-02-13):
-      // The correct parameter is SuspensionStart (NOT SuspendDate).
-      // SuspensionStart = the start date of the suspension.
-      // Duration + DurationUnit determine how long the suspension lasts.
-      // Resume date = SuspensionStart + Duration(DurationUnit).
-      // Future-dated starts are supported via SuspensionStart.
       var suspendBody = {
         ClientId: body.clientId,
         ClientContractId: ccId,
         SuspensionStart: body.startDate,
-        Duration: durationDays,
-        DurationUnit: 'Day'
-        // SuspensionType omitted — "None" and "Vacation" both force 1-month min.
-        // Omitting lets MB use default which may respect our Duration.
+        Duration: months,
+        DurationUnit: 'Month',
+        SuspensionType: 'Self-suspending'
       };
 
       console.log('[mb-contract-manage] Suspending contract:', JSON.stringify(suspendBody),
-        'USER selected start:', body.startDate, 'end:', body.endDate, 'duration:', durationDays, 'days');
+        'months:', months, 'calculated end:', endDateStr);
 
       var suspResult;
       try {
@@ -210,31 +134,26 @@ exports.handler = async function(event) {
         var suspErrData = suspErr.data && suspErr.data.Error ? suspErr.data.Error.Message || '' : '';
         var combined = suspErrMsg + ' ' + suspErrData.toLowerCase();
 
-        // MB returns this when contract already has max suspensions
         if (combined.indexOf('exceeded') > -1 || combined.indexOf('maximum iterations') > -1 || combined.indexOf('already suspended') > -1) {
           console.log('[mb-contract-manage] Contract already at max suspensions — treating as already_suspended');
           return jsonResponse(409, {
             error: 'already_suspended',
             message: 'This membership has already been paused. You cannot add another pause.',
             suspendDate: body.startDate,
-            resumeDate: body.endDate
+            resumeDate: endDateStr
           });
         }
-        throw suspErr; // Re-throw other errors
+        throw suspErr;
       }
 
       console.log('[mb-contract-manage] Suspend SUCCESS:', JSON.stringify(suspResult).substring(0, 500));
-
-      // NOTE: Do NOT save MB notes for pause detection — they persist after
-      // admin deletes suspensions, causing false "paused" states. Frontend
-      // Firestore layer handles future-dated pause persistence instead.
 
       return jsonResponse(200, {
         success: true,
         action: 'suspend',
         suspendDate: body.startDate,
-        resumeDate: body.endDate,
-        durationDays: durationDays,
+        resumeDate: endDateStr,
+        months: months,
         mbResponse: suspResult,
         message: 'Contract suspension scheduled'
       });

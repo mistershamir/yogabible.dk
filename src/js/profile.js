@@ -1183,6 +1183,10 @@
           maxStartDate.setMonth(maxStartDate.getMonth() + 3);
           var maxStartStr = toLocalDateStr(maxStartDate);
 
+          // Default resume date: earliest start + 1 month
+          var defaultResume = new Date(earliestStart);
+          defaultResume.setMonth(defaultResume.getMonth() + 1);
+
           html += '<div class="yb-membership__manage-info" data-pause-form="' + c.id + '" hidden>';
           html += '<h4 style="margin:0 0 0.5rem;font-size:0.95rem;font-weight:700">' + t('membership_pause_title') + '</h4>';
           html += '<p style="font-size:0.85rem;color:#6F6A66;margin:0 0 0.75rem">' + t('membership_pause_desc') + '</p>';
@@ -1194,19 +1198,20 @@
           html += '<span style="font-size:0.78rem;color:#6F6A66;font-style:italic">' + t('membership_pause_next_billing') + ': ' + formatDateDK(c.nextBillingDate) + '</span>';
           html += '</div>';
 
-          // End date
-          var minEndDate = new Date(earliestStart);
-          minEndDate.setDate(minEndDate.getDate() + 14);
-          var maxEndDate = new Date(earliestStart);
-          maxEndDate.setDate(maxEndDate.getDate() + 93);
+          // Duration: 1 / 2 / 3 months
           html += '<div class="yb-membership__info-row" style="margin-top:0.5rem">';
-          html += '<span class="yb-membership__info-label">' + t('membership_pause_end') + '</span><br>';
-          html += '<input type="date" data-pause-end="' + c.id + '" min="' + toLocalDateStr(minEndDate) + '" max="' + toLocalDateStr(maxEndDate) + '" value="' + toLocalDateStr(minEndDate) + '" style="font-family:Abacaxi,sans-serif;font-size:0.9rem;padding:0.4rem 0.6rem;border:1.5px solid #E8E4E0;border-radius:8px;width:100%;margin-top:0.25rem">';
-          html += '<span style="font-size:0.78rem;color:#6F6A66;font-style:italic">' + t('membership_pause_min') + ' · ' + t('membership_pause_max') + '</span>';
+          html += '<span class="yb-membership__info-label">' + t('membership_pause_duration') + '</span>';
+          html += '<div style="display:flex;gap:0.5rem;margin-top:0.35rem">';
+          for (var mi = 1; mi <= 3; mi++) {
+            var isDefault = mi === 1 ? ' yb-membership__month-btn--active' : '';
+            var label = mi + ' ' + (mi === 1 ? t('membership_pause_month_single') : t('membership_pause_month_plural'));
+            html += '<button type="button" class="yb-membership__month-btn' + isDefault + '" data-pause-months="' + c.id + '" data-months="' + mi + '" style="flex:1;padding:0.5rem 0.25rem;font-family:Abacaxi,sans-serif;font-size:0.85rem;font-weight:700;border:1.5px solid #E8E4E0;border-radius:8px;background:#fff;cursor:pointer;transition:all 0.15s">' + label + '</button>';
+          }
+          html += '</div>';
           html += '</div>';
 
           // Resume preview
-          html += '<p class="yb-membership__resume-info" data-pause-resume="' + c.id + '" style="margin-top:0.75rem">' + t('membership_pause_resume') + ' ' + formatDateDK(toLocalDateStr(minEndDate)) + '</p>';
+          html += '<p class="yb-membership__resume-info" data-pause-resume="' + c.id + '" style="margin-top:0.75rem">' + t('membership_pause_resume') + ' ' + formatDateDK(toLocalDateStr(defaultResume)) + '</p>';
 
           // Error
           html += '<div class="yb-auth-error" data-pause-error="' + c.id + '" hidden style="margin-top:0.5rem"></div>';
@@ -1426,39 +1431,41 @@
       });
     }
 
-    // ── Pause date change: update end date min/max and resume preview ──
+    // ── Pause: helper to get selected months for a contract ──
+    function getSelectedMonths(cId) {
+      var activeBtn = container.querySelector('[data-pause-months="' + cId + '"].yb-membership__month-btn--active');
+      return activeBtn ? Number(activeBtn.getAttribute('data-months')) : 1;
+    }
+
+    // ── Pause: helper to update resume preview from start + months ──
+    function updatePauseResume(cId) {
+      var startInput = container.querySelector('[data-pause-start="' + cId + '"]');
+      var resumeEl = container.querySelector('[data-pause-resume="' + cId + '"]');
+      if (!startInput || !resumeEl || !startInput.value) return;
+      var months = getSelectedMonths(cId);
+      var resumeDate = new Date(startInput.value);
+      resumeDate.setMonth(resumeDate.getMonth() + months);
+      resumeEl.textContent = t('membership_pause_resume') + ' ' + formatDateDK(toLocalDateStr(resumeDate));
+    }
+
+    // ── Pause: start date change → update resume preview ──
     var pauseStartInputs = container.querySelectorAll('[data-pause-start]');
     for (var ps = 0; ps < pauseStartInputs.length; ps++) {
       pauseStartInputs[ps].addEventListener('change', function() {
-        var cId = this.getAttribute('data-pause-start');
-        var endInput = container.querySelector('[data-pause-end="' + cId + '"]');
-        var resumeEl = container.querySelector('[data-pause-resume="' + cId + '"]');
-        if (endInput && this.value) {
-          var startD = new Date(this.value);
-          var minEnd = new Date(startD);
-          minEnd.setDate(minEnd.getDate() + 14);
-          var maxEnd = new Date(startD);
-          maxEnd.setDate(maxEnd.getDate() + 93);
-          endInput.min = toLocalDateStr(minEnd);
-          endInput.max = toLocalDateStr(maxEnd);
-          // If current end is out of new range, reset it
-          if (endInput.value < endInput.min) endInput.value = endInput.min;
-          if (endInput.value > endInput.max) endInput.value = endInput.max;
-        }
-        if (resumeEl && endInput) {
-          resumeEl.textContent = t('membership_pause_resume') + ' ' + formatDateDK(endInput.value);
-        }
+        updatePauseResume(this.getAttribute('data-pause-start'));
       });
     }
 
-    var pauseEndInputs = container.querySelectorAll('[data-pause-end]');
-    for (var pe = 0; pe < pauseEndInputs.length; pe++) {
-      pauseEndInputs[pe].addEventListener('change', function() {
-        var cId = this.getAttribute('data-pause-end');
-        var resumeEl = container.querySelector('[data-pause-resume="' + cId + '"]');
-        if (resumeEl && this.value) {
-          resumeEl.textContent = t('membership_pause_resume') + ' ' + formatDateDK(this.value);
-        }
+    // ── Pause: month buttons ──
+    var monthBtns = container.querySelectorAll('[data-pause-months]');
+    for (var mb = 0; mb < monthBtns.length; mb++) {
+      monthBtns[mb].addEventListener('click', function() {
+        var cId = this.getAttribute('data-pause-months');
+        // Toggle active state
+        var siblings = container.querySelectorAll('[data-pause-months="' + cId + '"]');
+        for (var s = 0; s < siblings.length; s++) siblings[s].classList.remove('yb-membership__month-btn--active');
+        this.classList.add('yb-membership__month-btn--active');
+        updatePauseResume(cId);
       });
     }
 
@@ -1468,14 +1475,19 @@
       pauseConfirmBtns[pc].addEventListener('click', function() {
         var cId = this.getAttribute('data-pause-confirm');
         var startInput = container.querySelector('[data-pause-start="' + cId + '"]');
-        var endInput = container.querySelector('[data-pause-end="' + cId + '"]');
         var errorEl = container.querySelector('[data-pause-error="' + cId + '"]');
         var btn = this;
+        var months = getSelectedMonths(cId);
 
-        if (!startInput || !endInput || !startInput.value || !endInput.value) {
-          if (errorEl) { errorEl.textContent = isDa() ? 'Vælg start- og slutdato.' : 'Select start and end dates.'; errorEl.hidden = false; }
+        if (!startInput || !startInput.value) {
+          if (errorEl) { errorEl.textContent = isDa() ? 'Vælg en startdato.' : 'Select a start date.'; errorEl.hidden = false; }
           return;
         }
+
+        // Calculate end date for local state
+        var endDate = new Date(startInput.value);
+        endDate.setMonth(endDate.getMonth() + months);
+        var endDateStr = toLocalDateStr(endDate);
 
         btn.disabled = true;
         btn.textContent = t('membership_pause_confirming');
@@ -1489,7 +1501,7 @@
             clientContractId: Number(cId),
             action: 'suspend',
             startDate: startInput.value,
-            endDate: endInput.value
+            months: months
           })
         })
         .then(function(r) { return r.json(); })
@@ -1507,7 +1519,7 @@
           }
 
           // Success — update local state and re-render
-          markContractPaused(cId, startInput.value, endInput.value);
+          markContractPaused(cId, startInput.value, endDateStr);
           showMembershipToast(t('membership_pause_success'), 'success');
           var membershipEl = document.getElementById('yb-membership-content');
           if (membershipEl && clientPassData) renderMembershipDetails(membershipEl, clientPassData);
@@ -3645,11 +3657,11 @@
       membership_retention_cta: isDa() ? 'Genaktiver — første måned gratis' : 'Reactivate — first month free',
       membership_rejoin_cta: isDa() ? 'Bliv medlem igen' : 'Become a member again',
       membership_pause_title: isDa() ? 'Sæt abonnement på pause' : 'Pause membership',
-      membership_pause_desc: isDa() ? 'Du kan sætte dit abonnement på pause i 14 dage til 3 måneder. Pausen starter efter din næste faktureringscyklus.' : 'You can pause your membership for 14 days to 3 months. The pause starts after your next billing cycle.',
+      membership_pause_desc: isDa() ? 'Du kan sætte dit abonnement på pause i 1\u20133 måneder. Pausen starter efter din næste faktureringscyklus.' : 'You can pause your membership for 1\u20133 months. The pause starts after your next billing cycle.',
       membership_pause_start: isDa() ? 'Pause starter' : 'Pause starts',
-      membership_pause_end: isDa() ? 'Pause slutter' : 'Pause ends',
-      membership_pause_min: isDa() ? 'Minimum 14 dage' : 'Minimum 14 days',
-      membership_pause_max: isDa() ? 'Maksimum 3 måneder' : 'Maximum 3 months',
+      membership_pause_duration: isDa() ? 'Varighed' : 'Duration',
+      membership_pause_month_single: isDa() ? 'måned' : 'month',
+      membership_pause_month_plural: isDa() ? 'måneder' : 'months',
       membership_pause_resume: isDa() ? 'Dit abonnement genoptages automatisk den' : 'Your membership will resume automatically on',
       membership_pause_next_billing: isDa() ? 'Tidligste startdato (efter næste fakturering)' : 'Earliest start date (after next billing)',
       membership_pause_confirm: isDa() ? 'Bekræft pause' : 'Confirm pause',
