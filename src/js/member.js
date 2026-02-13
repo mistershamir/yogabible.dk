@@ -31,25 +31,33 @@
     var lang = window.location.pathname.indexOf('/en/') === 0 ? 'en' : 'da';
 
     auth.onAuthStateChanged(function(u) {
-      if (u) {
-        guest.style.display = 'none';
-        user.style.display = '';
-        var displayName = u.displayName || u.email.split('@')[0];
-        if (nameEl) nameEl.textContent = displayName.split(' ')[0];
-        if (avatarEl) avatarEl.textContent = getInitials(displayName);
-        // Check hash after auth resolves
-        routeFromHash();
-      } else {
-        guest.style.display = '';
-        user.style.display = 'none';
+      try {
+        if (u) {
+          guest.style.display = 'none';
+          user.style.display = '';
+          var displayName = u.displayName || (u.email ? u.email.split('@')[0] : '');
+          if (nameEl) nameEl.textContent = displayName.split(' ')[0] || '';
+          if (avatarEl) avatarEl.textContent = displayName ? getInitials(displayName) : '';
+          // Check hash after auth resolves
+          routeFromHash();
+        } else {
+          guest.style.display = '';
+          user.style.display = 'none';
+        }
+      } catch (e) {
+        console.error('Member page auth state error:', e);
       }
     });
 
     // Listen for role/permissions data from firebase-auth.js
     document.addEventListener('yb:user-loaded', function(e) {
-      var detail = e.detail;
-      if (!detail) return;
-      renderRoleBadge(detail.role, detail.roleDetails, lang);
+      try {
+        var detail = e.detail;
+        if (!detail) return;
+        renderRoleBadge(detail.role, detail.roleDetails, lang);
+      } catch (e2) {
+        console.error('Member page role badge error:', e2);
+      }
     });
 
     initPanelNav();
