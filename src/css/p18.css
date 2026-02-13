@@ -54,6 +54,26 @@
   margin-bottom: 16px;
 }
 
+.p18-hero__spots {
+  display: inline-block;
+  padding: 6px 16px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  background: rgba(246, 93, 4, 0.15);
+  color: #F65D04;
+  border: 1px solid rgba(246, 93, 4, 0.3);
+  margin-bottom: 16px;
+  animation: p18-pulse 2.5s ease-in-out infinite;
+}
+
+@keyframes p18-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.6; }
+}
+
 .p18-hero__title {
   font-size: clamp(30px, 5vw, 54px);
   font-weight: 700;
@@ -1084,7 +1104,8 @@
 }
 
 .p18-invest-includes h4,
-.p18-invest-payment h4 {
+.p18-invest-payment h4,
+.p18-invest-early h4 {
   font-size: 15px;
   font-weight: 700;
   color: #1C1C1C;
@@ -1142,6 +1163,58 @@
   font-size: 14px;
   font-weight: 700;
   color: #1C1C1C;
+}
+
+/* Early deposit subsection inside investment box */
+.p18-invest-early__desc {
+  font-size: 14px;
+  color: #6F6A66;
+  line-height: 1.6;
+  margin: 0 0 16px;
+}
+
+.p18-invest-early__perks {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  gap: 10px;
+}
+
+.p18-invest-early__perks li {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  font-size: 14px;
+  color: #1C1C1C;
+  line-height: 1.5;
+}
+
+.p18-invest-early__check {
+  flex-shrink: 0;
+  width: 20px;
+  height: 20px;
+  border-radius: 999px;
+  background: #F65D04;
+  color: #fff;
+  font-size: 11px;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 1px;
+}
+
+.p18-invest-ctas {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 28px;
+}
+
+.p18-invest-cta-btn {
+  width: 100%;
+  text-align: center;
 }
 
 /* =============================================
