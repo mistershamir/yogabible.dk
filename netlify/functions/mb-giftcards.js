@@ -19,28 +19,31 @@ exports.handler = async (event) => {
       (data.GiftCards || []).forEach(gc => {
         console.log(`[mb-giftcards] Card "${gc.Description}" (ID:${gc.Id}): Layouts=${JSON.stringify(gc.Layouts || [])}, EditableByConsumer=${gc.EditableByConsumer}`);
       });
-      const cards = (data.GiftCards || []).map(gc => ({
-        id: gc.Id,
-        description: gc.Description || '',
-        value: gc.CardValue || 0,
-        salePrice: gc.SalePrice || gc.CardValue || 0,
-        soldOnline: gc.SoldOnline,
-        editableByConsumer: gc.EditableByConsumer || false,
-        terms: gc.GiftCardTerms || '',
-        contactInfo: gc.ContactInfo || '',
-        displayLogo: gc.DisplayLogo || false,
-        layouts: (gc.Layouts || []).map(l => ({
-          id: l.LayoutId,
-          name: l.LayoutName || ''
-        }))
-      }));
+      // Filter out EditableByConsumer (custom-amount) cards — the Mindbody
+      // Public API does not support purchasing them (only fixed-price cards).
+      const cards = (data.GiftCards || [])
+        .filter(gc => !gc.EditableByConsumer)
+        .map(gc => ({
+          id: gc.Id,
+          description: gc.Description || '',
+          value: gc.CardValue || 0,
+          salePrice: gc.SalePrice || gc.CardValue || 0,
+          soldOnline: gc.SoldOnline,
+          terms: gc.GiftCardTerms || '',
+          contactInfo: gc.ContactInfo || '',
+          displayLogo: gc.DisplayLogo || false,
+          layouts: (gc.Layouts || []).map(l => ({
+            id: l.LayoutId,
+            name: l.LayoutName || ''
+          }))
+        }));
       return jsonResponse(200, { giftCards: cards });
     }
 
     // POST — purchase a gift card
     if (event.httpMethod === 'POST') {
       const body = JSON.parse(event.body || '{}');
-      const { giftCardId, clientId, recipientEmail, recipientName, title, message, deliveryDate, layoutId, locationId, payment, customAmount, salePrice } = body;
+      const { giftCardId, clientId, recipientEmail, recipientName, title, message, deliveryDate, layoutId, locationId, payment, salePrice } = body;
 
       if (!giftCardId || !clientId || !recipientEmail || !recipientName) {
         return jsonResponse(400, { error: 'Missing required fields: giftCardId, clientId, recipientEmail, recipientName' });
@@ -50,17 +53,8 @@ exports.handler = async (event) => {
         return jsonResponse(400, { error: 'Payment information is required' });
       }
 
-      // Determine the payment amount and card value
-      const cardValue = customAmount ? parseFloat(customAmount) : (salePrice ? parseFloat(salePrice) : 0);
-      const isCustomAmount = !!customAmount;
-
-      // Validate: custom amount gift cards must have a positive amount
-      if (isCustomAmount && cardValue <= 0) {
-        return jsonResponse(400, { error: 'Custom amount must be greater than 0' });
-      }
-
-      // Payment amount = the custom amount or the card's sale price
-      const paymentAmount = cardValue;
+      // Payment amount from the card's fixed sale price
+      const paymentAmount = salePrice ? parseFloat(salePrice) : 0;
 
       // Build PaymentInfo — StoredCard (last four only) or new CreditCard
       let paymentInfo;
@@ -102,20 +96,8 @@ exports.handler = async (event) => {
         Title: title || 'Gift Card',
         SendEmailReceipt: true,
         Test: false,
-        PaymentInfo: paymentInfo,
-        // ConsumerPresent=true tells Mindbody this is a consumer-driven purchase.
-        // For EditableByConsumer gift cards, this should allow the consumer to set
-        // the price/value without needing staff "edit price" permission.
-        ConsumerPresent: true
+        PaymentInfo: paymentInfo
       };
-
-      // For custom-amount gift cards, explicitly set the value so Mindbody
-      // knows the desired price (the card's configured SalePrice is 0).
-      // ConsumerPresent + CardValue tells Mindbody to use our amount instead.
-      if (isCustomAmount && cardValue > 0) {
-        purchaseData.CardValue = cardValue;
-        purchaseData.SalePrice = cardValue;
-      }
 
       if (message) purchaseData.GiftMessage = message;
       if (deliveryDate) purchaseData.DeliveryDate = deliveryDate;
