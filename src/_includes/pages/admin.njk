@@ -16,8 +16,8 @@
       <p class="yb-profile__subtitle">{{ t.page_subtitle }}</p>
     </div>
 
-    {# ── Gate: not logged in ── #}
-    <div class="yb-admin__gate" id="yb-admin-gate" style="display:none">
+    {# ── Gate: not logged in (visible by default, JS hides when authenticated) ── #}
+    <div class="yb-admin__gate" id="yb-admin-gate">
       <div class="yb-profile__guest-inner">
         <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#6F6A66" stroke-width="1.5"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
         <h2 class="yb-profile__guest-title">{{ t.not_logged_in_title }}</h2>
