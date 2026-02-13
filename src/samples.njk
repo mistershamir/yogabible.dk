@@ -2395,6 +2395,97 @@ eleventyExcludeFromCollections: true
   color: var(--ds-text-muted);
 }
 
+/* Hero E: Primary — Dark Cinematic with Glow (site-wide primary) */
+.ds-hero-e {
+  position: relative;
+  min-height: 500px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #1C1C1C;
+  color: #fff;
+  text-align: center;
+  overflow: hidden;
+  border-radius: 12px;
+  padding: 80px 24px;
+}
+.ds-hero-e__glow {
+  position: absolute;
+  width: 600px;
+  height: 600px;
+  background: radial-gradient(circle, rgba(247,92,3,0.15) 0%, transparent 60%);
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  animation: ds-hero-breathe 10s ease-in-out infinite;
+  pointer-events: none;
+}
+@keyframes ds-hero-breathe {
+  0%, 100% { transform: translate(-50%, -50%) scale(1); opacity: 0.5; }
+  50% { transform: translate(-50%, -50%) scale(1.15); opacity: 0.8; }
+}
+.ds-hero-e__content { position: relative; z-index: 2; max-width: 800px; }
+.ds-hero-e__tagline {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.3em;
+  opacity: 0.7;
+  margin-bottom: 28px;
+}
+.ds-hero-e__tagline::before,
+.ds-hero-e__tagline::after {
+  content: "";
+  width: 40px;
+  height: 1px;
+  background: rgba(255,255,255,0.4);
+}
+.ds-hero-e__title {
+  font-size: clamp(2.4rem, 6vw, 4rem);
+  font-weight: 700;
+  line-height: 1.05;
+  margin-bottom: 24px;
+  background: linear-gradient(135deg, #FDFBF7 0%, #ff9966 50%, var(--yb-brand) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+.ds-hero-e__subtitle {
+  font-size: 1.15rem;
+  opacity: 0.85;
+  max-width: 600px;
+  margin: 0 auto 0;
+  line-height: 1.7;
+}
+.ds-hero-e__line {
+  width: 100%;
+  max-width: 600px;
+  height: 1px;
+  background: rgba(253,251,247,0.1);
+  margin: 36px auto 36px;
+}
+.ds-hero-e__trust {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: rgba(255,255,255,0.6);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+.ds-hero-e__trust-dot {
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: var(--yb-brand);
+}
+
 @media (max-width: 900px) {
   .ds-hero-b { grid-template-columns: 1fr; }
   .ds-hero-d__main { grid-template-columns: 1fr; }
@@ -2505,6 +2596,334 @@ eleventyExcludeFromCollections: true
 }
 .ds-vine-leaf:not(.ds-leaf--visible) {
   transform: scale(0);
+}
+
+/* ================================================================
+   31. PHOTOGRAPHY PAGE LAYOUTS
+   ================================================================ */
+/* Hero — full-bleed image with text overlay */
+.ds-photo-hero {
+  position: relative;
+  height: 85vh;
+  min-height: 500px;
+  overflow: hidden;
+  border-radius: 12px;
+  background: #0F0F0F;
+}
+.ds-photo-hero__img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0.6;
+}
+.ds-photo-hero__content {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  height: 100%;
+  padding: 60px;
+  color: #fff;
+}
+.ds-photo-hero__eyebrow {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 3px;
+  color: #f75c03;
+  margin-bottom: 16px;
+}
+.ds-photo-hero__title {
+  font-size: clamp(2.5rem, 6vw, 5rem);
+  font-weight: 700;
+  line-height: 1.05;
+  margin-bottom: 16px;
+}
+.ds-photo-hero__sub {
+  font-size: 1.1rem;
+  color: rgba(255,255,255,0.7);
+  max-width: 500px;
+  line-height: 1.6;
+}
+
+/* Big Picture + Text split */
+.ds-photo-split {
+  display: grid;
+  grid-template-columns: 1.2fr 1fr;
+  gap: 0;
+  min-height: 500px;
+  border-radius: 12px;
+  overflow: hidden;
+  background: #0F0F0F;
+}
+.ds-photo-split__image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  min-height: 500px;
+}
+.ds-photo-split__text {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 60px 50px;
+  color: #fff;
+}
+
+/* Art Grid — rule-breaking creative photo layouts */
+.ds-photo-art {
+  display: grid;
+  gap: 8px;
+  border-radius: 12px;
+  overflow: hidden;
+}
+.ds-photo-art--bleed-right {
+  grid-template-columns: 1fr 1fr 1.5fr;
+  grid-template-rows: 280px 280px;
+}
+.ds-photo-art--bleed-right .ds-photo-art__item:nth-child(1) {
+  grid-row: 1 / 3;
+}
+.ds-photo-art--bleed-right .ds-photo-art__item:nth-child(4) {
+  grid-column: 2 / 4;
+}
+.ds-photo-art--overlap {
+  grid-template-columns: 2fr 1fr 1fr;
+  grid-template-rows: 250px 250px;
+  position: relative;
+}
+.ds-photo-art--overlap .ds-photo-art__item:nth-child(1) {
+  grid-row: 1 / 3;
+  grid-column: 1 / 2;
+}
+.ds-photo-art--overlap .ds-photo-art__item:nth-child(2) {
+  grid-column: 2 / 4;
+}
+.ds-photo-art--diagonal {
+  grid-template-columns: 1.5fr 1fr 1fr;
+  grid-template-rows: 300px 200px;
+}
+.ds-photo-art--diagonal .ds-photo-art__item:nth-child(1) {
+  grid-column: 1 / 3;
+}
+.ds-photo-art--diagonal .ds-photo-art__item:nth-child(4) {
+  grid-column: 2 / 4;
+}
+.ds-photo-art__item {
+  overflow: hidden;
+  border-radius: 4px;
+  background: var(--ds-light);
+  position: relative;
+}
+.ds-photo-art__item img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.5s ease;
+}
+.ds-photo-art__item:hover img {
+  transform: scale(1.04);
+}
+
+/* ================================================================
+   32. MODEL / PHOTOGRAPHER SHOWCASE — Loose, Editorial Style
+   Photos are offset, varied sizes, with breathing room. Not rigid grids.
+   ================================================================ */
+.ds-model-showcase {
+  border-radius: 16px;
+  overflow: hidden;
+  background: #0F0F0F;
+  padding: 60px 50px;
+}
+.ds-model__intro {
+  display: flex;
+  gap: 40px;
+  align-items: flex-start;
+  margin-bottom: 50px;
+}
+.ds-model__portrait {
+  width: 280px;
+  min-width: 280px;
+  height: 360px;
+  border-radius: 12px;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+.ds-model__portrait img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.ds-model__info {
+  padding-top: 20px;
+  color: #fff;
+}
+.ds-model__eyebrow {
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 2.5px;
+  color: #f75c03;
+  margin-bottom: 10px;
+}
+.ds-model__name {
+  font-size: clamp(2rem, 3.5vw, 3rem);
+  font-weight: 700;
+  line-height: 1.1;
+  margin-bottom: 16px;
+  color: #fff;
+}
+.ds-model__bio {
+  color: rgba(255,255,255,0.6);
+  line-height: 1.7;
+  font-size: 0.95rem;
+  margin-bottom: 20px;
+  max-width: 450px;
+}
+.ds-model__links {
+  display: flex;
+  gap: 16px;
+}
+.ds-model__links a {
+  color: #f75c03;
+  text-decoration: none;
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  transition: opacity 0.2s;
+}
+.ds-model__links a:hover { opacity: 0.7; }
+
+/* Loose photo gallery — offset, varied sizes, breathing room */
+.ds-model__gallery {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+  align-items: flex-start;
+}
+.ds-model__photo {
+  border-radius: 10px;
+  overflow: hidden;
+  position: relative;
+}
+.ds-model__photo img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.6s ease;
+}
+.ds-model__photo:hover img {
+  transform: scale(1.03);
+}
+
+/* Variation A: portrait left intro, photos loosely scattered below
+   1 horizontal wide, 2 portraits offset */
+.ds-model-a .ds-model__gallery {
+  padding-left: 30px;
+}
+.ds-model-a .ds-model__photo--h {
+  width: 58%;
+  height: 280px;
+}
+.ds-model-a .ds-model__photo--v1 {
+  width: 36%;
+  height: 340px;
+  margin-top: -40px;
+}
+.ds-model-a .ds-model__photo--v2 {
+  width: 40%;
+  height: 300px;
+  margin-left: 10%;
+  margin-top: -20px;
+}
+
+/* Variation B: hero portrait intro, photos: 1 portrait, 2 horizontal, 1 vertical
+   Staggered rows with offsets */
+.ds-model-b .ds-model__intro {
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+.ds-model-b .ds-model__portrait {
+  width: 100%;
+  max-width: 700px;
+  height: 320px;
+  border-radius: 12px;
+}
+.ds-model-b .ds-model__bio {
+  max-width: 550px;
+  margin: 0 auto 20px;
+}
+.ds-model-b .ds-model__gallery {
+  justify-content: center;
+}
+.ds-model-b .ds-model__photo--p {
+  width: 30%;
+  height: 320px;
+  margin-top: 20px;
+}
+.ds-model-b .ds-model__photo--h1 {
+  width: 42%;
+  height: 260px;
+}
+.ds-model-b .ds-model__photo--h2 {
+  width: 55%;
+  height: 240px;
+  margin-top: -30px;
+}
+.ds-model-b .ds-model__photo--v {
+  width: 35%;
+  height: 300px;
+  margin-top: -50px;
+}
+
+/* Variation C: portrait + info side by side, gallery below with editorial offsets
+   Mixed: portrait overlapping, wide shot, and detail shot */
+.ds-model-c .ds-model__gallery {
+  align-items: center;
+  justify-content: space-between;
+}
+.ds-model-c .ds-model__photo--wide {
+  width: 100%;
+  height: 300px;
+  margin-bottom: -30px;
+}
+.ds-model-c .ds-model__photo--offset-left {
+  width: 45%;
+  height: 340px;
+  margin-left: -20px;
+  transform: rotate(-1.5deg);
+  z-index: 2;
+}
+.ds-model-c .ds-model__photo--offset-right {
+  width: 48%;
+  height: 280px;
+  margin-right: -10px;
+  margin-top: 30px;
+  transform: rotate(1deg);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .ds-model__intro { flex-direction: column; }
+  .ds-model__portrait { width: 100%; min-width: auto; }
+  .ds-model-showcase { padding: 30px 20px; }
+  .ds-model__gallery { flex-direction: column; }
+  .ds-model__photo { width: 100% !important; margin: 0 !important; transform: none !important; }
+  .ds-photo-split { grid-template-columns: 1fr; }
+  .ds-photo-art--bleed-right,
+  .ds-photo-art--overlap,
+  .ds-photo-art--diagonal { grid-template-columns: 1fr 1fr; grid-template-rows: auto; }
+  .ds-photo-art--bleed-right .ds-photo-art__item:nth-child(1),
+  .ds-photo-art--bleed-right .ds-photo-art__item:nth-child(4),
+  .ds-photo-art--overlap .ds-photo-art__item:nth-child(1),
+  .ds-photo-art--overlap .ds-photo-art__item:nth-child(2),
+  .ds-photo-art--diagonal .ds-photo-art__item:nth-child(1),
+  .ds-photo-art--diagonal .ds-photo-art__item:nth-child(4) {
+    grid-column: auto;
+    grid-row: auto;
+  }
 }
 </style>
 
@@ -4039,6 +4458,31 @@ eleventyExcludeFromCollections: true
         </div>
       </div>
     </div>
+
+    <div class="ds-sub">
+      <h3 class="ds-sub__title">Hero E — Primary (Dark Cinematic with Glow)</h3>
+      <p class="ds-sub__desc">The site-wide primary hero. Dark #1C1C1C background with breathing orange glow, gradient title, flanking-lines tagline, thin separator, pill CTAs, and trust indicators. Supports optional video/image background. Used on homepage, concepts, and all program pages.</p>
+      <div class="ds-hero-e">
+        <div class="ds-hero-e__glow"></div>
+        <div class="ds-hero-e__content">
+          <p class="ds-hero-e__tagline">Professionel Yogaskole · Kobenhavn</p>
+          <h1 class="ds-hero-e__title">Et sted.<br>To veje.</h1>
+          <p class="ds-hero-e__subtitle">Yoga Bible er for dig, der vil videre. Bliv certificeret yogalaerer — eller fordyb dig i din egen praksis.</p>
+          <div class="ds-hero-e__line"></div>
+          <div style="display:flex;gap:12px;justify-content:center;margin-bottom:36px">
+            <button class="ds-btn ds-btn--primary ds-btn--large" style="border-radius:999px">Ansog Nu</button>
+            <button class="ds-btn ds-btn--outline-light ds-btn--large" style="border-radius:999px">Sammenlign</button>
+          </div>
+          <div class="ds-hero-e__trust">
+            <span>Siden 2014</span>
+            <span class="ds-hero-e__trust-dot"></span>
+            <span>500+ uddannede</span>
+            <span class="ds-hero-e__trust-dot"></span>
+            <span>4.8★ · 700+ anmeldelser</span>
+          </div>
+        </div>
+      </div>
+    </div>
   </section>
 
   <!-- ═══════════════════════════════════════════════════════════════
@@ -4075,26 +4519,53 @@ eleventyExcludeFromCollections: true
     </div>
 
     <div class="ds-sub">
-      <h3 class="ds-sub__title">Variation B — Clean Vine (No Shadow)</h3>
-      <p class="ds-sub__desc">Just the orange line — clean and minimal. A spiraling branch with no shadow trail. Great for subtle page decoration.</p>
+      <h3 class="ds-sub__title">Variation B — Keyword-Touching Vine</h3>
+      <p class="ds-sub__desc">The vine flows down and curves toward important content — touching keywords and headings as it passes. Design the path coordinates to land near your key text elements on each page.</p>
       <div class="ds-draw-preview" data-scroll-draw>
         <svg viewBox="0 0 800 1200" preserveAspectRatio="xMidYMid meet" fill="none">
+          <!-- Vine starts top-center, swoops right to first keyword, left to second, right to third -->
           <path class="ds-draw-path" fill="none"
-                d="M 250,20 C 300,90 500,120 520,210 C 540,300 400,350 360,430 C 320,510 240,490 220,560 C 190,660 380,650 440,590 C 500,530 530,460 560,530 C 590,600 500,680 460,760 C 420,840 540,900 580,1000 C 620,1100 490,1130 450,1180"
+                d="M 400,20 C 420,60 580,80 620,120 C 660,160 640,190 580,200
+                   C 500,215 350,230 300,280 C 250,330 200,380 180,420
+                   C 160,460 200,490 280,480 C 360,470 550,440 620,480
+                   C 690,520 680,570 620,600 C 560,630 400,640 350,680
+                   C 300,720 280,770 320,820 C 360,870 500,880 560,900
+                   C 620,920 640,960 600,1000 C 560,1040 420,1060 380,1100
+                   C 340,1140 360,1170 400,1180"
                 stroke="#f75c03" stroke-width="2.5" stroke-linecap="round" />
+          <!-- Small dots where vine touches keywords -->
+          <circle cx="580" cy="200" r="4" fill="#f75c03" opacity="0.3" />
+          <circle cx="180" cy="420" r="4" fill="#f75c03" opacity="0.3" />
+          <circle cx="620" cy="600" r="4" fill="#f75c03" opacity="0.3" />
+          <circle cx="320" cy="820" r="4" fill="#f75c03" opacity="0.3" />
+          <circle cx="600" cy="1000" r="4" fill="#f75c03" opacity="0.3" />
         </svg>
         <div class="ds-draw-content">
-          <div style="text-align:right;max-width:350px;margin-left:auto">
-            <p class="ds-eyebrow ds-eyebrow--brand ds-eyebrow--dot" style="margin-bottom:12px;justify-content:flex-end">Din rejse</p>
-            <h2 style="font-size:2rem;font-weight:700;margin-bottom:12px">Fra ansogning<br>til certificering</h2>
-            <p style="color:var(--ds-text-muted);line-height:1.6">Vi guider dig hele vejen.</p>
+          <!-- Keyword positioned right — vine touches here -->
+          <div style="text-align:right;max-width:300px;margin-left:auto">
+            <p class="ds-eyebrow ds-eyebrow--brand ds-eyebrow--dot" style="margin-bottom:8px;justify-content:flex-end">Uddannelse</p>
+            <h2 style="font-size:1.8rem;font-weight:700;margin-bottom:8px">RYT-200 Certificering</h2>
+            <p style="color:var(--ds-text-muted);line-height:1.5;font-size:0.95rem">Internationalt anerkendt.</p>
           </div>
-          <div style="height:400px"></div>
-          <div style="max-width:350px">
-            <h3 style="font-size:1.3rem;font-weight:700;margin-bottom:8px">Bliv certificeret</h3>
-            <p style="color:var(--ds-text-muted);line-height:1.6">Modtag din Yoga Alliance RYT-200.</p>
+          <div style="height:160px"></div>
+          <!-- Keyword positioned left — vine swoops here -->
+          <div style="max-width:280px">
+            <h3 style="font-size:1.4rem;font-weight:700;margin-bottom:8px">Personlig vejledning</h3>
+            <p style="color:var(--ds-text-muted);line-height:1.5;font-size:0.95rem">En-til-en mentoring gennem hele forlobet.</p>
           </div>
-          <div style="height:200px"></div>
+          <div style="height:160px"></div>
+          <!-- Keyword positioned right again -->
+          <div style="text-align:right;max-width:280px;margin-left:auto">
+            <h3 style="font-size:1.4rem;font-weight:700;margin-bottom:8px">Fuldtid & deltid</h3>
+            <p style="color:var(--ds-text-muted);line-height:1.5;font-size:0.95rem">Flexibel uddannelse der passer dit liv.</p>
+          </div>
+          <div style="height:160px"></div>
+          <!-- Bottom keyword left -->
+          <div style="max-width:300px">
+            <h3 style="font-size:1.4rem;font-weight:700;margin-bottom:8px">Kobenhavn studio</h3>
+            <p style="color:var(--ds-text-muted);line-height:1.5;font-size:0.95rem">I hjertet af byen.</p>
+          </div>
+          <div style="height:100px"></div>
         </div>
       </div>
     </div>
@@ -4201,6 +4672,1164 @@ eleventyExcludeFromCollections: true
   </section>
 
   <!-- ═══════════════════════════════════════════════════════════════
+       31. PHOTOGRAPHY PAGE LAYOUTS
+       ═══════════════════════════════════════════════════════════════ -->
+  <section class="ds-section">
+    <div class="ds-section__header">
+      <h2 class="ds-section__title" data-number="31">Photography Page Layouts</h2>
+      <p class="ds-section__desc">Layouts designed for the Yoga Photography page — cinematic hero, big-picture storytelling, and creative art grids that break conventional rules.</p>
+    </div>
+
+    <!-- 31A: Dark Cinematic Hero -->
+    <div class="ds-sub">
+      <h3 class="ds-sub__title">A — Dark Cinematic Photo Hero</h3>
+      <p class="ds-sub__desc">Full-bleed image with dark overlay. Text positioned bottom-left. The image does the talking — text is minimal and elegant.</p>
+      <div class="ds-demo" style="padding:0;overflow:hidden;border-radius:12px">
+        <div class="ds-photo-hero">
+          <div style="position:absolute;inset:0;background:linear-gradient(135deg, #1a1a1a 0%, #333 40%, #555 70%, #444 100%);opacity:0.9"></div>
+          <div style="position:absolute;inset:0;background:radial-gradient(ellipse at 60% 40%, rgba(247,92,3,0.08) 0%, transparent 70%)"></div>
+          <div class="ds-photo-hero__content">
+            <p class="ds-photo-hero__eyebrow">Yoga Bible Photography</p>
+            <h1 class="ds-photo-hero__title">Capturing the<br>Art of Movement</h1>
+            <p class="ds-photo-hero__sub">Professionel yogafotografering der fanger styrke, balance og ro i hvert billede.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 31B: Big Picture + Text Split -->
+    <div class="ds-sub">
+      <h3 class="ds-sub__title">B — Big Picture + Text Split</h3>
+      <p class="ds-sub__desc">Dominant image (60%) with text on dark background. The image is the star — text supports it.</p>
+      <div class="ds-demo" style="padding:0;overflow:hidden;border-radius:12px">
+        <div class="ds-photo-split">
+          <div style="background:linear-gradient(180deg, #444 0%, #666 50%, #555 100%);min-height:500px;display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,0.15);font-size:3rem;font-weight:700">
+            PHOTO
+          </div>
+          <div class="ds-photo-split__text">
+            <p style="font-size:0.75rem;text-transform:uppercase;letter-spacing:3px;color:#f75c03;margin-bottom:16px">Bag kameraet</p>
+            <h2 style="font-size:clamp(1.8rem,3vw,2.8rem);font-weight:700;line-height:1.1;margin-bottom:20px">Hvor bevægelse<br>møder lyset</h2>
+            <p style="color:rgba(255,255,255,0.6);line-height:1.7;margin-bottom:30px;font-size:0.95rem">Vi arbejder med naturligt lys og bevægelse for at skabe billeder der fortæller en historie. Hvert shoot er unikt — tilpasset modellen og øjeblikket.</p>
+            <a href="#" style="display:inline-flex;align-items:center;gap:8px;color:#f75c03;font-weight:700;text-decoration:none;font-size:0.9rem">Se galleri →</a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 31C: Art Grid — Bleed Right -->
+    <div class="ds-sub">
+      <h3 class="ds-sub__title">C — Art Grid: Bleed Right</h3>
+      <p class="ds-sub__desc">Photos extend toward the right edge — one tall portrait on the left, smaller images stacked right. Breaks the grid intentionally. "Art mode."</p>
+      <div class="ds-demo" style="padding:0;overflow:hidden;border-radius:12px">
+        <div class="ds-photo-art ds-photo-art--bleed-right">
+          <div class="ds-photo-art__item" style="background:linear-gradient(135deg,#3a3a3a,#555)">
+            <div style="height:100%;display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,0.12);font-size:1.2rem;font-weight:700">PORTRAIT</div>
+          </div>
+          <div class="ds-photo-art__item" style="background:linear-gradient(135deg,#4a4a4a,#666)">
+            <div style="height:100%;display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,0.12);font-size:1rem;font-weight:700">SQUARE</div>
+          </div>
+          <div class="ds-photo-art__item" style="background:linear-gradient(135deg,#555,#777)">
+            <div style="height:100%;display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,0.12);font-size:1rem;font-weight:700">WIDE</div>
+          </div>
+          <div class="ds-photo-art__item" style="background:linear-gradient(135deg,#3d3d3d,#5a5a5a)">
+            <div style="height:100%;display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,0.12);font-size:1rem;font-weight:700">PANORAMIC</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 31D: Art Grid — Overlap Style -->
+    <div class="ds-sub">
+      <h3 class="ds-sub__title">D — Art Grid: Overlap</h3>
+      <p class="ds-sub__desc">Large hero image on the left with overlapping smaller images right. Feels layered and editorial.</p>
+      <div class="ds-demo" style="padding:0;overflow:hidden;border-radius:12px">
+        <div class="ds-photo-art ds-photo-art--overlap">
+          <div class="ds-photo-art__item" style="background:linear-gradient(180deg,#3a3a3a,#555)">
+            <div style="height:100%;display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,0.12);font-size:1.5rem;font-weight:700">HERO SHOT</div>
+          </div>
+          <div class="ds-photo-art__item" style="background:linear-gradient(135deg,#4a4a4a,#666)">
+            <div style="height:100%;display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,0.12);font-size:1rem;font-weight:700">HORIZONTAL</div>
+          </div>
+          <div class="ds-photo-art__item" style="background:linear-gradient(135deg,#555,#777)">
+            <div style="height:100%;display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,0.12);font-size:0.9rem;font-weight:700">DETAIL</div>
+          </div>
+          <div class="ds-photo-art__item" style="background:linear-gradient(135deg,#3d3d3d,#5a5a5a)">
+            <div style="height:100%;display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,0.12);font-size:0.9rem;font-weight:700">DETAIL</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 31E: Art Grid — Diagonal Flow -->
+    <div class="ds-sub">
+      <h3 class="ds-sub__title">E — Art Grid: Diagonal Flow</h3>
+      <p class="ds-sub__desc">Images flow diagonally across the grid — the eye moves from top-left to bottom-right naturally. Creative, editorial feel.</p>
+      <div class="ds-demo" style="padding:0;overflow:hidden;border-radius:12px">
+        <div class="ds-photo-art ds-photo-art--diagonal">
+          <div class="ds-photo-art__item" style="background:linear-gradient(135deg,#3a3a3a,#555)">
+            <div style="height:100%;display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,0.12);font-size:1.2rem;font-weight:700">WIDE SHOT</div>
+          </div>
+          <div class="ds-photo-art__item" style="background:linear-gradient(135deg,#4a4a4a,#666)">
+            <div style="height:100%;display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,0.12);font-size:0.9rem;font-weight:700">SQUARE</div>
+          </div>
+          <div class="ds-photo-art__item" style="background:linear-gradient(135deg,#555,#777)">
+            <div style="height:100%;display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,0.12);font-size:0.9rem;font-weight:700">DETAIL</div>
+          </div>
+          <div class="ds-photo-art__item" style="background:linear-gradient(135deg,#3d3d3d,#5a5a5a)">
+            <div style="height:100%;display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,0.12);font-size:1.2rem;font-weight:700">BOTTOM PANORAMIC</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════════════════════════════
+       32. MODEL / PHOTOGRAPHER SHOWCASE
+       Loose, editorial style — photos offset with breathing room,
+       not rigid grids. Dark backgrounds. Magazine feel.
+       ═══════════════════════════════════════════════════════════════ -->
+  <section class="ds-section">
+    <div class="ds-section__header">
+      <h2 class="ds-section__title" data-number="32">Model Showcase</h2>
+      <p class="ds-section__desc">Loose, editorial model profiles — arty photo layouts with offsets, varied sizes, and breathing room. Each includes: name, bio, social links, 1 portrait + featured yoga photos. Dark background, magazine feel.</p>
+    </div>
+
+    <!-- 32A: Portrait left intro → 1 horizontal + 2 portrait loosely placed below -->
+    <div class="ds-sub">
+      <h3 class="ds-sub__title">Variation A — Portrait + Scattered Gallery</h3>
+      <p class="ds-sub__desc">Portrait photo and bio side-by-side at top. Below: photos placed loosely — one wide horizontal, two portraits at different heights with offsets. Organic, breathing layout.</p>
+      <div class="ds-demo" style="padding:0;overflow:hidden;border-radius:12px">
+        <div class="ds-model-showcase ds-model-a">
+          <div class="ds-model__intro">
+            <div class="ds-model__portrait" style="background:linear-gradient(180deg,#333,#555);display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,0.08);font-size:1rem;font-weight:700">
+              PORTRAIT
+            </div>
+            <div class="ds-model__info">
+              <p class="ds-model__eyebrow">Yoga Model</p>
+              <h3 class="ds-model__name">Sofia Andersen</h3>
+              <p class="ds-model__bio">Certificeret Vinyasa-instruktør med 8 års erfaring. Sofia kombinerer kraft og elegance i sin praksis og bringer en unik æstetik til hvert shoot.</p>
+              <div class="ds-model__links">
+                <a href="#">◎ Instagram</a>
+                <a href="#">◇ Website</a>
+              </div>
+            </div>
+          </div>
+          <div class="ds-model__gallery">
+            <div class="ds-model__photo ds-model__photo--h" style="background:linear-gradient(135deg,#3a3a3a,#555);display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,0.06);font-size:0.85rem;font-weight:700">HORIZONTAL</div>
+            <div class="ds-model__photo ds-model__photo--v1" style="background:linear-gradient(135deg,#444,#666);display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,0.06);font-size:0.85rem;font-weight:700">PORTRAIT</div>
+            <div class="ds-model__photo ds-model__photo--v2" style="background:linear-gradient(135deg,#383838,#5a5a5a);display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,0.06);font-size:0.85rem;font-weight:700">PORTRAIT</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 32B: Wide hero portrait → info centered → 1 portrait, 2 horizontal, 1 vertical staggered -->
+    <div class="ds-sub">
+      <h3 class="ds-sub__title">Variation B — Hero Portrait + Staggered Photos</h3>
+      <p class="ds-sub__desc">Wide cinematic portrait at top with centered name. Info below. Photos staggered in two rows with different heights and negative margins for overlap feel. Bold, editorial.</p>
+      <div class="ds-demo" style="padding:0;overflow:hidden;border-radius:12px">
+        <div class="ds-model-showcase ds-model-b">
+          <div class="ds-model__intro">
+            <div class="ds-model__portrait" style="background:linear-gradient(180deg,#333,#4a4a4a);display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,0.06);font-size:1.5rem;font-weight:700">
+              HERO PORTRAIT
+            </div>
+            <div class="ds-model__info">
+              <p class="ds-model__eyebrow">Yoga Model</p>
+              <h3 class="ds-model__name">Mie Kristensen</h3>
+              <p class="ds-model__bio">Yin yoga-specialist og meditationsguide. Mie skaber stille rum hvor kameraet finder ro i bevægelsen. Hendes praksis er rolig, dyb og visuelt meditativ.</p>
+              <div class="ds-model__links">
+                <a href="#">◎ Instagram</a>
+                <a href="#">◇ Website</a>
+              </div>
+            </div>
+          </div>
+          <div class="ds-model__gallery">
+            <div class="ds-model__photo ds-model__photo--p" style="background:linear-gradient(135deg,#444,#666);display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,0.06);font-size:0.85rem;font-weight:700">PORTRAIT</div>
+            <div class="ds-model__photo ds-model__photo--h1" style="background:linear-gradient(135deg,#3a3a3a,#555);display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,0.06);font-size:0.85rem;font-weight:700">HORIZONTAL</div>
+            <div class="ds-model__photo ds-model__photo--h2" style="background:linear-gradient(135deg,#383838,#5a5a5a);display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,0.06);font-size:0.85rem;font-weight:700">HORIZONTAL</div>
+            <div class="ds-model__photo ds-model__photo--v" style="background:linear-gradient(135deg,#404040,#606060);display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,0.06);font-size:0.85rem;font-weight:700">VERTICAL</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 32C: Portrait + info side by side → wide shot below → 2 offset photos with slight rotation -->
+    <div class="ds-sub">
+      <h3 class="ds-sub__title">Variation C — Editorial with Rotated Offsets</h3>
+      <p class="ds-sub__desc">Portrait and bio side-by-side. Below: one full-width wide shot, then two photos slightly rotated and overlapping — like photos casually placed on a table. Most artistic variation.</p>
+      <div class="ds-demo" style="padding:0;overflow:hidden;border-radius:12px">
+        <div class="ds-model-showcase ds-model-c">
+          <div class="ds-model__intro">
+            <div class="ds-model__portrait" style="background:linear-gradient(180deg,#333,#555);display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,0.08);font-size:1rem;font-weight:700">
+              PORTRAIT
+            </div>
+            <div class="ds-model__info">
+              <p class="ds-model__eyebrow">Yoga Model</p>
+              <h3 class="ds-model__name">Emilie Storm</h3>
+              <p class="ds-model__bio">Ashtanga-praktiker og performancekunstner. Hendes praksis er rå, kraftfuld og visuelt fængende. Emilie bryder grænser mellem yoga og scenekunst.</p>
+              <div class="ds-model__links">
+                <a href="#">◎ Instagram</a>
+                <a href="#">◇ Portfolio</a>
+              </div>
+            </div>
+          </div>
+          <div class="ds-model__gallery">
+            <div class="ds-model__photo ds-model__photo--wide" style="background:linear-gradient(135deg,#3a3a3a,#555);display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,0.06);font-size:0.9rem;font-weight:700">WIDE SHOT</div>
+            <div class="ds-model__photo ds-model__photo--offset-left" style="background:linear-gradient(135deg,#444,#666);display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,0.06);font-size:0.85rem;font-weight:700">PORTRAIT</div>
+            <div class="ds-model__photo ds-model__photo--offset-right" style="background:linear-gradient(135deg,#383838,#5a5a5a);display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,0.06);font-size:0.85rem;font-weight:700">LANDSCAPE</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+<!-- ═══════════════════════════════════════════════════════════════
+       33. HEADER DESIGN — VARIATION 2 OPTIONS
+       ═══════════════════════════════════════════════════════════════ -->
+  <section class="ds-section">
+    <div class="ds-section__header">
+      <h2 class="ds-section__title" data-number="33">Header Design — Variation 2 Options</h2>
+      <p class="ds-section__desc">Centered logo, orange utility bar, underline nav with mega dropdown. Desktop variations + mobile (Menu B style with lang switcher, app badges). Only real existing pages shown.</p>
+    </div>
+
+    <style>
+    /* ── Section 33: Header Previews ── */
+    .ds-hdr-preview { border: 1px solid var(--ds-border); border-radius: 16px; overflow: hidden; margin-bottom: 40px; }
+    .ds-hdr-preview__label { padding: 14px 20px; background: #F5F3F0; font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ds-text-muted); font-weight: 700; border-bottom: 1px solid var(--ds-border); display: flex; align-items: center; gap: 8px; }
+    .ds-hdr-preview__dot { width: 8px; height: 8px; border-radius: 50%; }
+    .ds-hdr-preview__dot--dk { background: #0F0F0F; }
+    .ds-hdr-preview__dot--tb { background: var(--yb-brand); }
+    .ds-hdr-preview__dot--mb { background: #3f99a5; }
+    .ds-hdr-wrap { overflow-x: auto; }
+    .ds-hdr-frame { min-width: fit-content; }
+    .ds-hdr-frame--desktop { width: 1280px; }
+    .ds-hdr-frame--tablet { width: 768px; }
+    .ds-hdr-frame--mobile { width: 375px; }
+    .ds-hdr-frame * { box-sizing: border-box; margin: 0; padding: 0; }
+    .ds-hdr-frame a { text-decoration: none; color: inherit; }
+
+    /* ═══ Orange Utility Bar ═══ */
+    .hv2-util {
+      background: #f75c03;
+      font-family: 'Abacaxi', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    }
+    .hv2-util__inner {
+      max-width: 1280px; margin: 0 auto;
+      padding: 7px clamp(16px,3vw,30px);
+      display: flex; align-items: center; justify-content: space-between;
+      font-size: 10px; letter-spacing: 0.09em; text-transform: uppercase;
+      color: rgba(255,255,255,0.85);
+    }
+    .hv2-util__left, .hv2-util__right { display: flex; align-items: center; gap: 14px; }
+    .hv2-util a { color: rgba(255,255,255,0.85); transition: color 0.15s; }
+    .hv2-util a:hover { color: #fff; }
+    .hv2-util__sep { width: 1px; height: 12px; background: rgba(255,255,255,0.25); }
+    .hv2-util__social { display: flex; gap: 8px; align-items: center; }
+    .hv2-util__social-ico {
+      width: 24px; height: 24px; border-radius: 50%;
+      border: 1px solid rgba(255,255,255,0.3);
+      display: inline-flex; align-items: center; justify-content: center;
+      font-size: 9px; color: rgba(255,255,255,0.85);
+      transition: background 0.15s, color 0.15s;
+    }
+    .hv2-util__social-ico:hover { background: rgba(255,255,255,0.15); color: #fff; }
+    .hv2-util__flags { display: flex; gap: 6px; align-items: center; }
+    .hv2-util__flag { font-size: 13px; cursor: pointer; opacity: 0.6; transition: opacity 0.15s; }
+    .hv2-util__flag.is-active { opacity: 1; }
+
+    /* ═══ Main Header Bar ═══ */
+    .hv2 {
+      background: #FFFCF9;
+      font-family: 'Abacaxi', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+      color: #0F0F0F;
+      border-bottom: 1px solid #E8E4E0;
+    }
+    .hv2-inner {
+      max-width: 1280px; margin: 0 auto;
+      padding: 0 clamp(16px,3vw,30px);
+    }
+    .hv2-main {
+      display: grid; grid-template-columns: 1fr auto 1fr;
+      align-items: center; padding: 18px 0; gap: 24px;
+    }
+    .hv2-navL, .hv2-navR { display: flex; align-items: center; gap: 26px; }
+    .hv2-navL { justify-self: start; }
+    .hv2-navR { justify-self: end; }
+    .hv2-navL a, .hv2-navL button, .hv2-navR a, .hv2-navR button {
+      font-size: 12px; letter-spacing: 0.06em; text-transform: uppercase;
+      color: #0F0F0F; background: none; border: none;
+      cursor: pointer; font-family: inherit; padding: 8px 0;
+      position: relative; transition: color 0.15s; white-space: nowrap;
+    }
+    .hv2-navL a:hover, .hv2-navL button:hover,
+    .hv2-navR a:hover, .hv2-navR button:hover { color: #f75c03; }
+    .hv2-navL a::after, .hv2-navL button::after,
+    .hv2-navR a::after, .hv2-navR button::after {
+      content: ''; position: absolute; bottom: 4px; left: 0; width: 0; height: 1.5px;
+      background: #f75c03; transition: width 0.2s;
+    }
+    .hv2-navL a:hover::after, .hv2-navL button:hover::after,
+    .hv2-navR a:hover::after, .hv2-navR button:hover::after { width: 100%; }
+    .hv2-caret { color: #f75c03; font-size: 13px; margin-left: 2px; }
+    .hv2-logo { display: inline-flex; justify-self: center; }
+    .hv2-logo img { height: 44px; display: block; }
+    .hv2-cta {
+      display: inline-flex; padding: 9px 20px; border-radius: 999px;
+      background: #f75c03; color: #fff;
+      font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase;
+      border: none; cursor: pointer; font-family: inherit; font-weight: 700;
+      transition: transform 0.15s, filter 0.15s;
+    }
+    .hv2-cta:hover { transform: translateY(-1px); filter: brightness(1.08); }
+
+    /* ═══ Mega Dropdown ═══ */
+    .hv2-mega {
+      background: #FFFCF9; border-top: 1px solid #E8E4E0;
+      border-bottom: 2px solid #f75c03;
+      padding: 28px clamp(16px,3vw,30px) 24px;
+    }
+    .hv2-mega__inner {
+      max-width: 1280px; margin: 0 auto;
+      display: grid; gap: 32px;
+    }
+    .hv2-mega__inner--2col { grid-template-columns: 1fr 1fr; }
+    .hv2-mega__inner--3col { grid-template-columns: repeat(3, 1fr); }
+    .hv2-mega__inner--4col { grid-template-columns: repeat(4, 1fr); }
+    .hv2-mega__title {
+      font-size: 13px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase;
+      color: #f75c03; margin-bottom: 12px; padding-bottom: 8px;
+      border-bottom: 1px solid #E8E4E0;
+    }
+    .hv2-mega__subtitle {
+      font-size: 10px; color: #6F6A66; letter-spacing: 0.08em; text-transform: uppercase;
+      margin-bottom: 4px;
+    }
+    .hv2-mega__link {
+      display: block; font-size: 12px; letter-spacing: 0.04em; text-transform: uppercase;
+      color: #0F0F0F; padding: 6px 0; transition: color 0.15s;
+    }
+    .hv2-mega__link:hover { color: #f75c03; }
+    .hv2-mega__sub {
+      font-size: 10px; color: #6F6A66; letter-spacing: 0.05em; text-transform: uppercase;
+      padding: 4px 0 4px 12px; display: block;
+      border-left: 1.5px solid #E8E4E0; margin-left: 4px;
+      transition: color 0.15s, border-color 0.15s;
+    }
+    .hv2-mega__sub:hover { color: #f75c03; border-color: #f75c03; }
+
+    /* ═══ Dark Variant ═══ */
+    .hv2--dark { background: #0F0F0F; color: #FDFBF7; border-bottom: 1px solid rgba(253,251,247,0.06); }
+    .hv2--dark .hv2-navL a, .hv2--dark .hv2-navL button,
+    .hv2--dark .hv2-navR a, .hv2--dark .hv2-navR button { color: rgba(253,251,247,0.8); }
+    .hv2--dark .hv2-navL a:hover, .hv2--dark .hv2-navL button:hover,
+    .hv2--dark .hv2-navR a:hover, .hv2--dark .hv2-navR button:hover { color: #f75c03; }
+    .hv2-cta--outline {
+      background: transparent; border: 1.5px solid #f75c03; color: #f75c03;
+      transition: background 0.2s, color 0.2s, transform 0.15s;
+    }
+    .hv2-cta--outline:hover { background: #f75c03; color: #fff; transform: translateY(-1px); filter: none; }
+    .hv2-mega--dark {
+      background: #161616; border-top: 1px solid rgba(253,251,247,0.06);
+      border-bottom: 2px solid #f75c03;
+    }
+    .hv2-mega--dark .hv2-mega__title { color: #f75c03; border-bottom-color: rgba(253,251,247,0.08); }
+    .hv2-mega--dark .hv2-mega__link { color: rgba(253,251,247,0.8); }
+    .hv2-mega--dark .hv2-mega__link:hover { color: #f75c03; }
+    .hv2-mega--dark .hv2-mega__sub { color: rgba(253,251,247,0.4); border-left-color: rgba(253,251,247,0.08); }
+    .hv2-mega--dark .hv2-mega__sub:hover { color: #f75c03; border-left-color: #f75c03; }
+    .hv2-mega--dark .hv2-mega__subtitle { color: rgba(253,251,247,0.35); }
+
+    /* ═══ Thick Border Variant ═══ */
+    .hv2--thick { border-bottom: 2.5px solid #0F0F0F; }
+
+    /* ═══ Mobile Header Bar ═══ */
+    .hv2m-bar {
+      background: #FFFCF9; font-family: 'Abacaxi', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+      border-bottom: 1px solid #E8E4E0;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 12px 16px;
+    }
+    .hv2m-bar__logo img { height: 34px; display: block; }
+    .hv2m-bar__right { display: flex; align-items: center; gap: 8px; }
+    .hv2m-bar__flag {
+      font-size: 15px; width: 34px; height: 34px;
+      display: inline-flex; align-items: center; justify-content: center;
+      border-radius: 10px; border: 1px solid #E8E4E0; cursor: pointer;
+      transition: border-color 0.15s;
+    }
+    .hv2m-bar__flag.is-active { border-color: #f75c03; }
+    .hv2m-burger {
+      width: 42px; height: 42px; border-radius: 999px;
+      border: 1.5px solid #f75c03; background: none; cursor: pointer;
+      display: inline-flex; align-items: center; justify-content: center;
+      flex-direction: column; gap: 4px;
+    }
+    .hv2m-burger span { display: block; width: 16px; height: 1.5px; background: #f75c03; border-radius: 2px; }
+
+    /* ═══ Mobile Menu (Menu B style) ═══ */
+    .hv2m {
+      background: #FFFCF9; font-family: 'Abacaxi', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+      color: #0F0F0F; min-height: 740px; display: flex; flex-direction: column;
+    }
+    .hv2m-top {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 14px 16px; border-bottom: 1px solid #E8E4E0;
+    }
+    .hv2m-top__logo img { height: 34px; display: block; }
+    .hv2m-close {
+      width: 42px; height: 42px; border-radius: 999px;
+      border: 1.5px solid #0F0F0F; background: none; cursor: pointer;
+      color: #0F0F0F; font-size: 18px;
+      display: flex; align-items: center; justify-content: center;
+      transition: background 0.15s, color 0.15s;
+    }
+    .hv2m-close:hover { background: #0F0F0F; color: #fff; }
+    .hv2m-body { flex: 1; padding: 14px 14px 10px; overflow: auto; }
+    .hv2m-card {
+      background: #fff; border: 1px solid #E8E4E0; border-radius: 16px;
+      margin-bottom: 8px; overflow: hidden; transition: border-color 0.15s;
+    }
+    .hv2m-card.is-open { border-color: #f75c03; }
+    .hv2m-card__head {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 13px 16px; cursor: pointer;
+    }
+    .hv2m-card__title { font-size: 13px; font-weight: 700; letter-spacing: 0.07em; text-transform: uppercase; }
+    .hv2m-card__badge {
+      font-size: 9px; background: #F5F3F0; color: #6F6A66;
+      padding: 3px 8px; border-radius: 999px; letter-spacing: 0.08em; text-transform: uppercase;
+    }
+    .hv2m-card__caret { color: #f75c03; font-size: 16px; transition: transform 0.2s; }
+    .hv2m-card.is-open .hv2m-card__caret { transform: rotate(180deg); }
+    .hv2m-card__body { padding: 0 16px 14px; border-top: 1px solid #E8E4E0; }
+    .hv2m-card__sub-title {
+      font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase;
+      color: #f75c03; font-weight: 700; padding: 12px 0 4px;
+    }
+    .hv2m-card__link {
+      display: block; font-size: 12px; letter-spacing: 0.05em; text-transform: uppercase;
+      color: #0F0F0F; padding: 8px 10px; border-radius: 10px;
+      transition: background 0.15s, color 0.15s;
+    }
+    .hv2m-card__link:hover { background: #f75c03; color: #fff; }
+    .hv2m-link {
+      display: block; padding: 13px 16px; border-radius: 16px;
+      border: 1px solid #E8E4E0; background: #fff;
+      color: #0F0F0F; font-size: 13px; font-weight: 700; letter-spacing: 0.07em; text-transform: uppercase;
+      margin-bottom: 8px; transition: border-color 0.15s;
+    }
+    .hv2m-link:hover { border-color: #f75c03; }
+    .hv2m-cta {
+      display: block; text-align: center; padding: 14px; border-radius: 999px;
+      background: #f75c03; color: #fff;
+      font-size: 13px; letter-spacing: 0.08em; text-transform: uppercase; font-weight: 700;
+      margin: 8px 0 14px; transition: filter 0.15s;
+    }
+    .hv2m-cta:hover { filter: brightness(1.08); }
+    .hv2m-footer {
+      padding: 14px 16px; border-top: 1px solid #E8E4E0;
+      display: flex; flex-direction: column; gap: 12px;
+    }
+    .hv2m-footer__row { display: flex; align-items: center; justify-content: space-between; }
+    .hv2m-footer__social { display: flex; gap: 8px; }
+    .hv2m-footer__ico {
+      width: 38px; height: 38px; border-radius: 50%;
+      border: 1px solid #E8E4E0;
+      display: inline-flex; align-items: center; justify-content: center;
+      font-size: 11px; color: #6F6A66; transition: border-color 0.15s, color 0.15s;
+    }
+    .hv2m-footer__ico:hover { border-color: #f75c03; color: #f75c03; }
+    .hv2m-footer__flags { display: flex; gap: 8px; }
+    .hv2m-footer__flag {
+      font-size: 18px; width: 38px; height: 38px;
+      display: inline-flex; align-items: center; justify-content: center;
+      border-radius: 50%; border: 1px solid #E8E4E0; cursor: pointer;
+      transition: border-color 0.15s;
+    }
+    .hv2m-footer__flag.is-active { border-color: #f75c03; }
+    .hv2m-footer__apps { display: flex; gap: 8px; }
+    .hv2m-footer__app {
+      flex: 1; display: flex; align-items: center; justify-content: center;
+      padding: 10px 12px; border-radius: 12px;
+      border: 1px solid #E8E4E0; background: #fff;
+      font-size: 10px; letter-spacing: 0.06em; text-transform: uppercase;
+      color: #6F6A66; transition: border-color 0.15s;
+    }
+    .hv2m-footer__app:hover { border-color: #f75c03; }
+    .hv2m-footer__app-icon { margin-right: 6px; font-size: 16px; }
+    </style>
+
+    <!-- ══════════════════════════════════════════════════════════════════
+         DESKTOP VARIATIONS
+         ══════════════════════════════════════════════════════════════════ -->
+    <h3 style="font-size:1.35rem;font-weight:700;margin-bottom:8px;color:#f75c03">Desktop Variations</h3>
+    <p style="color:var(--ds-text-muted);font-size:0.9rem;margin-bottom:32px">
+      All share: orange utility bar (IG, SoundCloud, language, contact) + centered logo + underline nav with mega dropdown.
+      Only existing pages shown. Variations explore styling options.
+    </p>
+
+    <!-- ── Option A: Light + Orange bar + thin border ── -->
+    <div style="margin-bottom:48px">
+      <h4 style="font-weight:700;margin-bottom:4px">Option A — Light + Orange Bar + Filled CTA</h4>
+      <p style="color:var(--ds-text-muted);font-size:0.85rem;margin-bottom:16px">
+        Warm white header, orange utility bar on top, thin bottom border. Filled orange CTA.
+      </p>
+      <div class="ds-hdr-preview">
+        <div class="ds-hdr-preview__label"><span class="ds-hdr-preview__dot ds-hdr-preview__dot--dk"></span> Desktop — 1280px</div>
+        <div class="ds-hdr-wrap">
+          <div class="ds-hdr-frame ds-hdr-frame--desktop">
+            <div class="hv2-util">
+              <div class="hv2-util__inner">
+                <div class="hv2-util__left">
+                  <a href="#">info@yogabible.dk</a>
+                  <span class="hv2-util__sep"></span>
+                  <a href="#">+45 53 88 12 09</a>
+                </div>
+                <div class="hv2-util__right">
+                  <div class="hv2-util__social">
+                    <a href="#" class="hv2-util__social-ico" aria-label="Instagram">IG</a>
+                    <a href="#" class="hv2-util__social-ico" aria-label="SoundCloud">SC</a>
+                  </div>
+                  <span class="hv2-util__sep"></span>
+                  <div class="hv2-util__flags">
+                    <span class="hv2-util__flag is-active">&#x1F1E9;&#x1F1F0;</span>
+                    <span class="hv2-util__flag">&#x1F1EC;&#x1F1E7;</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <header class="hv2">
+              <div class="hv2-inner">
+                <div class="hv2-main">
+                  <nav class="hv2-navL">
+                    <button>Uddannelser <span class="hv2-caret">&#x25BE;</span></button>
+                    <button>Kurser <span class="hv2-caret">&#x25BE;</span></button>
+                    <a href="#">Mentorship</a>
+                  </nav>
+                  <a href="#" class="hv2-logo">
+                    <img src="/assets/images/brand/logo-orange-on-transparent.png" alt="Yoga Bible" />
+                  </a>
+                  <nav class="hv2-navR">
+                    <button>Mere <span class="hv2-caret">&#x25BE;</span></button>
+                    <button>Yoga Bible <span class="hv2-caret">&#x25BE;</span></button>
+                    <a href="#" class="hv2-cta">Ansog</a>
+                  </nav>
+                </div>
+              </div>
+            </header>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Option B: Light + Orange bar + thick bottom border ── -->
+    <div style="margin-bottom:48px">
+      <h4 style="font-weight:700;margin-bottom:4px">Option B — Light + Orange Bar + Thick Black Border</h4>
+      <p style="color:var(--ds-text-muted);font-size:0.85rem;margin-bottom:16px">
+        Same as A but with a bold 2.5px black bottom border for a more editorial, magazine feel.
+      </p>
+      <div class="ds-hdr-preview">
+        <div class="ds-hdr-preview__label"><span class="ds-hdr-preview__dot ds-hdr-preview__dot--dk"></span> Desktop — 1280px</div>
+        <div class="ds-hdr-wrap">
+          <div class="ds-hdr-frame ds-hdr-frame--desktop">
+            <div class="hv2-util">
+              <div class="hv2-util__inner">
+                <div class="hv2-util__left">
+                  <a href="#">info@yogabible.dk</a>
+                  <span class="hv2-util__sep"></span>
+                  <a href="#">+45 53 88 12 09</a>
+                </div>
+                <div class="hv2-util__right">
+                  <div class="hv2-util__social">
+                    <a href="#" class="hv2-util__social-ico">IG</a>
+                    <a href="#" class="hv2-util__social-ico">SC</a>
+                  </div>
+                  <span class="hv2-util__sep"></span>
+                  <div class="hv2-util__flags">
+                    <span class="hv2-util__flag is-active">&#x1F1E9;&#x1F1F0;</span>
+                    <span class="hv2-util__flag">&#x1F1EC;&#x1F1E7;</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <header class="hv2 hv2--thick">
+              <div class="hv2-inner">
+                <div class="hv2-main">
+                  <nav class="hv2-navL">
+                    <button>Uddannelser <span class="hv2-caret">&#x25BE;</span></button>
+                    <button>Kurser <span class="hv2-caret">&#x25BE;</span></button>
+                    <a href="#">Mentorship</a>
+                  </nav>
+                  <a href="#" class="hv2-logo">
+                    <img src="/assets/images/brand/logo-orange-on-transparent.png" alt="Yoga Bible" />
+                  </a>
+                  <nav class="hv2-navR">
+                    <button>Mere <span class="hv2-caret">&#x25BE;</span></button>
+                    <button>Yoga Bible <span class="hv2-caret">&#x25BE;</span></button>
+                    <a href="#" class="hv2-cta">Ansog</a>
+                  </nav>
+                </div>
+              </div>
+            </header>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Option C: Dark header + Orange bar + Outline CTA ── -->
+    <div style="margin-bottom:48px">
+      <h4 style="font-weight:700;margin-bottom:4px">Option C — Dark Header + Orange Bar + Outline CTA</h4>
+      <p style="color:var(--ds-text-muted);font-size:0.85rem;margin-bottom:16px">
+        Dark header bar flowing from the orange utility bar. Outline CTA button. More dramatic / cinematic.
+      </p>
+      <div class="ds-hdr-preview">
+        <div class="ds-hdr-preview__label"><span class="ds-hdr-preview__dot ds-hdr-preview__dot--dk"></span> Desktop — 1280px</div>
+        <div class="ds-hdr-wrap">
+          <div class="ds-hdr-frame ds-hdr-frame--desktop">
+            <div class="hv2-util">
+              <div class="hv2-util__inner">
+                <div class="hv2-util__left">
+                  <a href="#">info@yogabible.dk</a>
+                  <span class="hv2-util__sep"></span>
+                  <a href="#">+45 53 88 12 09</a>
+                </div>
+                <div class="hv2-util__right">
+                  <div class="hv2-util__social">
+                    <a href="#" class="hv2-util__social-ico">IG</a>
+                    <a href="#" class="hv2-util__social-ico">SC</a>
+                  </div>
+                  <span class="hv2-util__sep"></span>
+                  <div class="hv2-util__flags">
+                    <span class="hv2-util__flag is-active">&#x1F1E9;&#x1F1F0;</span>
+                    <span class="hv2-util__flag">&#x1F1EC;&#x1F1E7;</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <header class="hv2 hv2--dark">
+              <div class="hv2-inner">
+                <div class="hv2-main">
+                  <nav class="hv2-navL">
+                    <button>Uddannelser <span class="hv2-caret">&#x25BE;</span></button>
+                    <button>Kurser <span class="hv2-caret">&#x25BE;</span></button>
+                    <a href="#">Mentorship</a>
+                  </nav>
+                  <a href="#" class="hv2-logo">
+                    <img src="/assets/images/brand/logo-orange-on-transparent.png" alt="Yoga Bible" />
+                  </a>
+                  <nav class="hv2-navR">
+                    <button>Mere <span class="hv2-caret">&#x25BE;</span></button>
+                    <button>Yoga Bible <span class="hv2-caret">&#x25BE;</span></button>
+                    <a href="#" class="hv2-cta hv2-cta--outline">Ansog</a>
+                  </nav>
+                </div>
+              </div>
+            </header>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════════════════════════════
+         MEGA MENU OPTIONS
+         ══════════════════════════════════════════════════════════════════ -->
+    <h3 style="font-size:1.35rem;font-weight:700;margin-bottom:8px;margin-top:60px;color:#f75c03">Mega Menu — Open State Options</h3>
+    <p style="color:var(--ds-text-muted);font-size:0.9rem;margin-bottom:32px">
+      What the mega dropdown looks like when hovering "Uddannelser". Only real programs (200hr + 300hr) shown now.
+      Columns will grow as you add 50hr, 100hr, 30hr programs.
+    </p>
+
+    <!-- ── Mega A: Light 2-Column ── -->
+    <div style="margin-bottom:48px">
+      <h4 style="font-weight:700;margin-bottom:4px">Mega A — Light, 2-Column (current programs)</h4>
+      <p style="color:var(--ds-text-muted);font-size:0.85rem;margin-bottom:16px">
+        Clean white mega panel. 200hr (All Levels) left, 300hr (Advanced) right. Sub-programs indented. Orange bottom accent border.
+      </p>
+      <div class="ds-hdr-preview">
+        <div class="ds-hdr-preview__label"><span class="ds-hdr-preview__dot ds-hdr-preview__dot--dk"></span> Desktop — Mega open on "Uddannelser"</div>
+        <div class="ds-hdr-wrap">
+          <div class="ds-hdr-frame ds-hdr-frame--desktop">
+            <div class="hv2-util">
+              <div class="hv2-util__inner">
+                <div class="hv2-util__left">
+                  <a href="#">info@yogabible.dk</a>
+                  <span class="hv2-util__sep"></span>
+                  <a href="#">+45 53 88 12 09</a>
+                </div>
+                <div class="hv2-util__right">
+                  <div class="hv2-util__social">
+                    <a href="#" class="hv2-util__social-ico">IG</a>
+                    <a href="#" class="hv2-util__social-ico">SC</a>
+                  </div>
+                  <span class="hv2-util__sep"></span>
+                  <div class="hv2-util__flags">
+                    <span class="hv2-util__flag is-active">&#x1F1E9;&#x1F1F0;</span>
+                    <span class="hv2-util__flag">&#x1F1EC;&#x1F1E7;</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <header class="hv2">
+              <div class="hv2-inner">
+                <div class="hv2-main">
+                  <nav class="hv2-navL">
+                    <button style="color:#f75c03">Uddannelser <span class="hv2-caret">&#x25B4;</span></button>
+                    <button>Kurser <span class="hv2-caret">&#x25BE;</span></button>
+                    <a href="#">Mentorship</a>
+                  </nav>
+                  <a href="#" class="hv2-logo">
+                    <img src="/assets/images/brand/logo-orange-on-transparent.png" alt="Yoga Bible" />
+                  </a>
+                  <nav class="hv2-navR">
+                    <button>Mere <span class="hv2-caret">&#x25BE;</span></button>
+                    <button>Yoga Bible <span class="hv2-caret">&#x25BE;</span></button>
+                    <a href="#" class="hv2-cta">Ansog</a>
+                  </nav>
+                </div>
+              </div>
+              <div class="hv2-mega">
+                <div class="hv2-mega__inner hv2-mega__inner--2col">
+                  <div>
+                    <div class="hv2-mega__title">200 Timer &mdash; All Levels</div>
+                    <a href="#" class="hv2-mega__link">Om 200-timers yogalreruddannelser</a>
+                    <a href="#" class="hv2-mega__sub">18 uger &mdash; fleksibel</a>
+                    <a href="#" class="hv2-mega__sub">8 uger &mdash; semi-intensiv</a>
+                    <a href="#" class="hv2-mega__sub">4 uger &mdash; intensiv</a>
+                    <a href="#" class="hv2-mega__link" style="margin-top:6px">Sammenlign uddannelser</a>
+                  </div>
+                  <div>
+                    <div class="hv2-mega__title">300 Timer &mdash; Advanced</div>
+                    <a href="#" class="hv2-mega__link">300-timers avanceret uddannelse</a>
+                  </div>
+                </div>
+              </div>
+            </header>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Mega B: Dark 2-Column ── -->
+    <div style="margin-bottom:48px">
+      <h4 style="font-weight:700;margin-bottom:4px">Mega B — Dark, 2-Column (current programs)</h4>
+      <p style="color:var(--ds-text-muted);font-size:0.85rem;margin-bottom:16px">
+        Same structure but with dark background. Pairs with Option C (dark header).
+      </p>
+      <div class="ds-hdr-preview">
+        <div class="ds-hdr-preview__label"><span class="ds-hdr-preview__dot ds-hdr-preview__dot--dk"></span> Desktop — Dark mega on "Uddannelser"</div>
+        <div class="ds-hdr-wrap">
+          <div class="ds-hdr-frame ds-hdr-frame--desktop">
+            <div class="hv2-util">
+              <div class="hv2-util__inner">
+                <div class="hv2-util__left">
+                  <a href="#">info@yogabible.dk</a>
+                  <span class="hv2-util__sep"></span>
+                  <a href="#">+45 53 88 12 09</a>
+                </div>
+                <div class="hv2-util__right">
+                  <div class="hv2-util__social">
+                    <a href="#" class="hv2-util__social-ico">IG</a>
+                    <a href="#" class="hv2-util__social-ico">SC</a>
+                  </div>
+                  <span class="hv2-util__sep"></span>
+                  <div class="hv2-util__flags">
+                    <span class="hv2-util__flag is-active">&#x1F1E9;&#x1F1F0;</span>
+                    <span class="hv2-util__flag">&#x1F1EC;&#x1F1E7;</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <header class="hv2 hv2--dark">
+              <div class="hv2-inner">
+                <div class="hv2-main">
+                  <nav class="hv2-navL">
+                    <button style="color:#f75c03">Uddannelser <span class="hv2-caret">&#x25B4;</span></button>
+                    <button>Kurser <span class="hv2-caret">&#x25BE;</span></button>
+                    <a href="#">Mentorship</a>
+                  </nav>
+                  <a href="#" class="hv2-logo">
+                    <img src="/assets/images/brand/logo-orange-on-transparent.png" alt="Yoga Bible" />
+                  </a>
+                  <nav class="hv2-navR">
+                    <button>Mere <span class="hv2-caret">&#x25BE;</span></button>
+                    <button>Yoga Bible <span class="hv2-caret">&#x25BE;</span></button>
+                    <a href="#" class="hv2-cta hv2-cta--outline">Ansog</a>
+                  </nav>
+                </div>
+              </div>
+              <div class="hv2-mega hv2-mega--dark">
+                <div class="hv2-mega__inner hv2-mega__inner--2col">
+                  <div>
+                    <div class="hv2-mega__title">200 Timer &mdash; All Levels</div>
+                    <a href="#" class="hv2-mega__link">Om 200-timers yogalreruddannelser</a>
+                    <a href="#" class="hv2-mega__sub">18 uger &mdash; fleksibel</a>
+                    <a href="#" class="hv2-mega__sub">8 uger &mdash; semi-intensiv</a>
+                    <a href="#" class="hv2-mega__sub">4 uger &mdash; intensiv</a>
+                    <a href="#" class="hv2-mega__link" style="margin-top:6px">Sammenlign uddannelser</a>
+                  </div>
+                  <div>
+                    <div class="hv2-mega__title">300 Timer &mdash; Advanced</div>
+                    <a href="#" class="hv2-mega__link">300-timers avanceret uddannelse</a>
+                  </div>
+                </div>
+              </div>
+            </header>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Mega C: Future-proof 4-Column ── -->
+    <div style="margin-bottom:48px">
+      <h4 style="font-weight:700;margin-bottom:4px">Mega C — Future Preview: 4-Column (when programs expand)</h4>
+      <p style="color:var(--ds-text-muted);font-size:0.85rem;margin-bottom:16px">
+        Preview of how the mega menu will scale once 50hr and 30hr programs are added. 4 columns, still clean.
+      </p>
+      <div class="ds-hdr-preview">
+        <div class="ds-hdr-preview__label"><span class="ds-hdr-preview__dot ds-hdr-preview__dot--dk"></span> Desktop — 4-column mega (future state)</div>
+        <div class="ds-hdr-wrap">
+          <div class="ds-hdr-frame ds-hdr-frame--desktop">
+            <div class="hv2-util">
+              <div class="hv2-util__inner">
+                <div class="hv2-util__left">
+                  <a href="#">info@yogabible.dk</a>
+                  <span class="hv2-util__sep"></span>
+                  <a href="#">+45 53 88 12 09</a>
+                </div>
+                <div class="hv2-util__right">
+                  <div class="hv2-util__social">
+                    <a href="#" class="hv2-util__social-ico">IG</a>
+                    <a href="#" class="hv2-util__social-ico">SC</a>
+                  </div>
+                  <span class="hv2-util__sep"></span>
+                  <div class="hv2-util__flags">
+                    <span class="hv2-util__flag is-active">&#x1F1E9;&#x1F1F0;</span>
+                    <span class="hv2-util__flag">&#x1F1EC;&#x1F1E7;</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <header class="hv2">
+              <div class="hv2-inner">
+                <div class="hv2-main">
+                  <nav class="hv2-navL">
+                    <button style="color:#f75c03">Uddannelser <span class="hv2-caret">&#x25B4;</span></button>
+                    <button>Kurser <span class="hv2-caret">&#x25BE;</span></button>
+                    <a href="#">Mentorship</a>
+                  </nav>
+                  <a href="#" class="hv2-logo">
+                    <img src="/assets/images/brand/logo-orange-on-transparent.png" alt="Yoga Bible" />
+                  </a>
+                  <nav class="hv2-navR">
+                    <button>Mere <span class="hv2-caret">&#x25BE;</span></button>
+                    <button>Yoga Bible <span class="hv2-caret">&#x25BE;</span></button>
+                    <a href="#" class="hv2-cta">Ansog</a>
+                  </nav>
+                </div>
+              </div>
+              <div class="hv2-mega">
+                <div class="hv2-mega__inner hv2-mega__inner--4col">
+                  <div>
+                    <div class="hv2-mega__title">200 Timer &mdash; All Levels</div>
+                    <a href="#" class="hv2-mega__link">Om 200-timers</a>
+                    <a href="#" class="hv2-mega__sub">18 uger &mdash; fleksibel</a>
+                    <a href="#" class="hv2-mega__sub">8 uger &mdash; semi-intensiv</a>
+                    <a href="#" class="hv2-mega__sub">4 uger &mdash; intensiv</a>
+                    <a href="#" class="hv2-mega__link" style="margin-top:6px">Sammenlign</a>
+                  </div>
+                  <div>
+                    <div class="hv2-mega__title">300 Timer &mdash; Advanced</div>
+                    <a href="#" class="hv2-mega__link">Om 300-timers</a>
+                    <a href="#" class="hv2-mega__sub">12 uger &mdash; fleksibel</a>
+                    <a href="#" class="hv2-mega__sub">6 uger &mdash; intensiv</a>
+                  </div>
+                  <div>
+                    <div class="hv2-mega__title">50 Timer &mdash; Specialisering</div>
+                    <a href="#" class="hv2-mega__link">Yin Yoga</a>
+                    <a href="#" class="hv2-mega__link">Vinyasa</a>
+                    <a href="#" class="hv2-mega__link">Ashtanga</a>
+                    <a href="#" class="hv2-mega__link">Prenatal</a>
+                  </div>
+                  <div>
+                    <div class="hv2-mega__title">30 Timer &mdash; Workshops</div>
+                    <a href="#" class="hv2-mega__link">Meditation</a>
+                    <a href="#" class="hv2-mega__link">Pranayama</a>
+                    <a href="#" class="hv2-mega__link">Yoga Nidra</a>
+                  </div>
+                </div>
+              </div>
+            </header>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════════════════════════════
+         MOBILE — CLOSED + OPEN STATE
+         ══════════════════════════════════════════════════════════════════ -->
+    <h3 style="font-size:1.35rem;font-weight:700;margin-bottom:8px;margin-top:60px;color:#f75c03">Mobile Views</h3>
+    <p style="color:var(--ds-text-muted);font-size:0.9rem;margin-bottom:32px">
+      Header bar with language flags next to burger. Menu B style with cards, app download badges in footer.
+    </p>
+
+    <!-- Mobile: Closed state -->
+    <div style="margin-bottom:48px">
+      <h4 style="font-weight:700;margin-bottom:4px">Mobile — Header Bar (closed)</h4>
+      <p style="color:var(--ds-text-muted);font-size:0.85rem;margin-bottom:16px">
+        Logo left, language flags + burger right. Clean and minimal.
+      </p>
+      <div class="ds-hdr-preview">
+        <div class="ds-hdr-preview__label"><span class="ds-hdr-preview__dot ds-hdr-preview__dot--mb"></span> Mobile — 375px (closed)</div>
+        <div class="ds-hdr-wrap">
+          <div class="ds-hdr-frame ds-hdr-frame--mobile">
+            <div class="hv2m-bar">
+              <a href="#" class="hv2m-bar__logo">
+                <img src="/assets/images/brand/logo-orange-on-transparent.png" alt="Yoga Bible" />
+              </a>
+              <div class="hv2m-bar__right">
+                <span class="hv2m-bar__flag is-active">&#x1F1E9;&#x1F1F0;</span>
+                <span class="hv2m-bar__flag">&#x1F1EC;&#x1F1E7;</span>
+                <button class="hv2m-burger" aria-label="Menu"><span></span><span></span><span></span></button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Mobile: Open state -->
+    <div style="margin-bottom:48px">
+      <h4 style="font-weight:700;margin-bottom:4px">Mobile — Menu Open (Card Drawer)</h4>
+      <p style="color:var(--ds-text-muted);font-size:0.85rem;margin-bottom:16px">
+        Light card-based drawer. Uddannelser expanded showing 200hr (All Levels) and 300hr (Advanced).
+        Orange CTA. Footer with social, language flags, and app download badges.
+      </p>
+      <div class="ds-hdr-preview">
+        <div class="ds-hdr-preview__label"><span class="ds-hdr-preview__dot ds-hdr-preview__dot--mb"></span> Mobile — 375px (menu open)</div>
+        <div class="ds-hdr-wrap">
+          <div class="ds-hdr-frame ds-hdr-frame--mobile">
+            <div class="hv2m">
+              <div class="hv2m-top">
+                <a href="#" class="hv2m-top__logo">
+                  <img src="/assets/images/brand/logo-orange-on-transparent.png" alt="Yoga Bible" />
+                </a>
+                <button class="hv2m-close" aria-label="Close">&#x2715;</button>
+              </div>
+              <div class="hv2m-body">
+                <!-- Uddannelser OPEN -->
+                <div class="hv2m-card is-open">
+                  <div class="hv2m-card__head">
+                    <span class="hv2m-card__title">Uddannelser</span>
+                    <span class="hv2m-card__caret">&#x25B4;</span>
+                  </div>
+                  <div class="hv2m-card__body">
+                    <div class="hv2m-card__sub-title">200 Timer &mdash; All Levels</div>
+                    <a href="#" class="hv2m-card__link">Om 200-timers uddannelser</a>
+                    <a href="#" class="hv2m-card__link">18 uger &mdash; fleksibel</a>
+                    <a href="#" class="hv2m-card__link">8 uger &mdash; semi-intensiv</a>
+                    <a href="#" class="hv2m-card__link">4 uger &mdash; intensiv</a>
+                    <a href="#" class="hv2m-card__link">Sammenlign uddannelser</a>
+                    <div class="hv2m-card__sub-title">300 Timer &mdash; Advanced</div>
+                    <a href="#" class="hv2m-card__link">300-timers avanceret uddannelse</a>
+                  </div>
+                </div>
+                <!-- Kurser collapsed -->
+                <div class="hv2m-card">
+                  <div class="hv2m-card__head">
+                    <span class="hv2m-card__title">Kurser</span>
+                    <div style="display:flex;align-items:center;gap:8px">
+                      <span class="hv2m-card__badge">4 kurser</span>
+                      <span class="hv2m-card__caret">&#x25BE;</span>
+                    </div>
+                  </div>
+                </div>
+                <a href="#" class="hv2m-link">Mentorship &amp; Privat Tr&aelig;ning</a>
+                <!-- Mere collapsed -->
+                <div class="hv2m-card">
+                  <div class="hv2m-card__head">
+                    <span class="hv2m-card__title">Mere</span>
+                    <span class="hv2m-card__caret">&#x25BE;</span>
+                  </div>
+                </div>
+                <div class="hv2m-card">
+                  <div class="hv2m-card__head">
+                    <span class="hv2m-card__title">Yoga Bible</span>
+                    <span class="hv2m-card__caret">&#x25BE;</span>
+                  </div>
+                </div>
+                <a href="#" class="hv2m-cta">Ansog Nu</a>
+              </div>
+              <div class="hv2m-footer">
+                <div class="hv2m-footer__row">
+                  <div class="hv2m-footer__social">
+                    <a href="#" class="hv2m-footer__ico">IG</a>
+                    <a href="#" class="hv2m-footer__ico">SC</a>
+                  </div>
+                  <div class="hv2m-footer__flags">
+                    <span class="hv2m-footer__flag is-active">&#x1F1E9;&#x1F1F0;</span>
+                    <span class="hv2m-footer__flag">&#x1F1EC;&#x1F1E7;</span>
+                  </div>
+                </div>
+                <div class="hv2m-footer__apps">
+                  <a href="#" class="hv2m-footer__app"><span class="hv2m-footer__app-icon">&#xF8FF;</span> App Store</a>
+                  <a href="#" class="hv2m-footer__app"><span class="hv2m-footer__app-icon">&#x25B6;</span> Google Play</a>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════════════════════════════
+         TABLET — CLOSED + OPEN STATE
+         ══════════════════════════════════════════════════════════════════ -->
+    <h3 style="font-size:1.35rem;font-weight:700;margin-bottom:8px;margin-top:60px;color:#f75c03">Tablet Views</h3>
+    <p style="color:var(--ds-text-muted);font-size:0.9rem;margin-bottom:32px">
+      On tablet the utility bar stays, main nav collapses to logo + key links + burger. Menu opens as a full-width panel.
+    </p>
+
+    <!-- Tablet: Closed -->
+    <div style="margin-bottom:48px">
+      <h4 style="font-weight:700;margin-bottom:4px">Tablet — Header Bar (closed)</h4>
+      <p style="color:var(--ds-text-muted);font-size:0.85rem;margin-bottom:16px">
+        Orange utility bar stays visible. Main bar: logo left, top-level links center, CTA + burger right.
+      </p>
+      <div class="ds-hdr-preview">
+        <div class="ds-hdr-preview__label"><span class="ds-hdr-preview__dot ds-hdr-preview__dot--tb"></span> Tablet — 768px (closed)</div>
+        <div class="ds-hdr-wrap">
+          <div class="ds-hdr-frame ds-hdr-frame--tablet">
+            <div class="hv2-util">
+              <div class="hv2-util__inner">
+                <div class="hv2-util__left">
+                  <a href="#">info@yogabible.dk</a>
+                  <span class="hv2-util__sep"></span>
+                  <a href="#">+45 53 88 12 09</a>
+                </div>
+                <div class="hv2-util__right">
+                  <div class="hv2-util__social">
+                    <a href="#" class="hv2-util__social-ico">IG</a>
+                    <a href="#" class="hv2-util__social-ico">SC</a>
+                  </div>
+                  <span class="hv2-util__sep"></span>
+                  <div class="hv2-util__flags">
+                    <span class="hv2-util__flag is-active">&#x1F1E9;&#x1F1F0;</span>
+                    <span class="hv2-util__flag">&#x1F1EC;&#x1F1E7;</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <header class="hv2">
+              <div class="hv2-inner">
+                <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 0">
+                  <a href="#" class="hv2-logo" style="justify-self:start">
+                    <img src="/assets/images/brand/logo-orange-on-transparent.png" alt="Yoga Bible" style="height:38px" />
+                  </a>
+                  <nav style="display:flex;align-items:center;gap:20px">
+                    <button style="font-size:11px;letter-spacing:0.06em;text-transform:uppercase;color:#0F0F0F;background:none;border:none;cursor:pointer;font-family:inherit">Uddannelser <span class="hv2-caret">&#x25BE;</span></button>
+                    <button style="font-size:11px;letter-spacing:0.06em;text-transform:uppercase;color:#0F0F0F;background:none;border:none;cursor:pointer;font-family:inherit">Kurser <span class="hv2-caret">&#x25BE;</span></button>
+                    <a href="#" style="font-size:11px;letter-spacing:0.06em;text-transform:uppercase;color:#0F0F0F">Mere <span class="hv2-caret">&#x25BE;</span></a>
+                  </nav>
+                  <div style="display:flex;align-items:center;gap:10px">
+                    <a href="#" class="hv2-cta" style="font-size:10px;padding:8px 16px">Ansog</a>
+                    <button class="hv2m-burger" aria-label="Menu"><span></span><span></span><span></span></button>
+                  </div>
+                </div>
+              </div>
+            </header>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tablet: Open state -->
+    <div style="margin-bottom:48px">
+      <h4 style="font-weight:700;margin-bottom:4px">Tablet — Menu Open (Full-Width Panel)</h4>
+      <p style="color:var(--ds-text-muted);font-size:0.85rem;margin-bottom:16px">
+        Same card-based layout as mobile but using 2 columns on tablet width. App badges in footer.
+      </p>
+      <div class="ds-hdr-preview">
+        <div class="ds-hdr-preview__label"><span class="ds-hdr-preview__dot ds-hdr-preview__dot--tb"></span> Tablet — 768px (menu open)</div>
+        <div class="ds-hdr-wrap">
+          <div class="ds-hdr-frame ds-hdr-frame--tablet">
+            <div style="background:#FFFCF9;font-family:'Abacaxi','Helvetica Neue',Helvetica,Arial,sans-serif;color:#0F0F0F">
+              <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 20px;border-bottom:1px solid #E8E4E0">
+                <a href="#"><img src="/assets/images/brand/logo-orange-on-transparent.png" alt="Yoga Bible" style="height:38px;display:block" /></a>
+                <button class="hv2m-close" aria-label="Close">&#x2715;</button>
+              </div>
+              <div style="padding:16px 20px;display:grid;grid-template-columns:1fr 1fr;gap:10px">
+                <!-- Uddannelser OPEN -->
+                <div class="hv2m-card is-open" style="grid-column:1/-1">
+                  <div class="hv2m-card__head">
+                    <span class="hv2m-card__title">Uddannelser</span>
+                    <span class="hv2m-card__caret">&#x25B4;</span>
+                  </div>
+                  <div class="hv2m-card__body" style="display:grid;grid-template-columns:1fr 1fr;gap:0 24px">
+                    <div>
+                      <div class="hv2m-card__sub-title">200 Timer &mdash; All Levels</div>
+                      <a href="#" class="hv2m-card__link">Om 200-timers uddannelser</a>
+                      <a href="#" class="hv2m-card__link">18 uger &mdash; fleksibel</a>
+                      <a href="#" class="hv2m-card__link">8 uger &mdash; semi-intensiv</a>
+                      <a href="#" class="hv2m-card__link">4 uger &mdash; intensiv</a>
+                      <a href="#" class="hv2m-card__link">Sammenlign uddannelser</a>
+                    </div>
+                    <div>
+                      <div class="hv2m-card__sub-title">300 Timer &mdash; Advanced</div>
+                      <a href="#" class="hv2m-card__link">300-timers avanceret uddannelse</a>
+                    </div>
+                  </div>
+                </div>
+                <!-- Kurser -->
+                <div class="hv2m-card">
+                  <div class="hv2m-card__head">
+                    <span class="hv2m-card__title">Kurser</span>
+                    <div style="display:flex;align-items:center;gap:8px">
+                      <span class="hv2m-card__badge">4 kurser</span>
+                      <span class="hv2m-card__caret">&#x25BE;</span>
+                    </div>
+                  </div>
+                </div>
+                <!-- Mere -->
+                <div class="hv2m-card">
+                  <div class="hv2m-card__head">
+                    <span class="hv2m-card__title">Mere</span>
+                    <span class="hv2m-card__caret">&#x25BE;</span>
+                  </div>
+                </div>
+                <a href="#" class="hv2m-link" style="grid-column:1/-1">Mentorship &amp; Privat Tr&aelig;ning</a>
+                <div class="hv2m-card" style="grid-column:1/-1">
+                  <div class="hv2m-card__head">
+                    <span class="hv2m-card__title">Yoga Bible</span>
+                    <span class="hv2m-card__caret">&#x25BE;</span>
+                  </div>
+                </div>
+                <a href="#" class="hv2m-cta" style="grid-column:1/-1">Ansog Nu</a>
+              </div>
+              <div class="hv2m-footer">
+                <div class="hv2m-footer__row">
+                  <div class="hv2m-footer__social">
+                    <a href="#" class="hv2m-footer__ico">IG</a>
+                    <a href="#" class="hv2m-footer__ico">SC</a>
+                  </div>
+                  <div class="hv2m-footer__flags">
+                    <span class="hv2m-footer__flag is-active">&#x1F1E9;&#x1F1F0;</span>
+                    <span class="hv2m-footer__flag">&#x1F1EC;&#x1F1E7;</span>
+                  </div>
+                </div>
+                <div class="hv2m-footer__apps">
+                  <a href="#" class="hv2m-footer__app"><span class="hv2m-footer__app-icon">&#xF8FF;</span> App Store</a>
+                  <a href="#" class="hv2m-footer__app"><span class="hv2m-footer__app-icon">&#x25B6;</span> Google Play</a>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </section>
+
+  <!-- ═══════════════════════════════════════════════════════════════
        HOW TO USE
        ═══════════════════════════════════════════════════════════════ -->
   <section class="ds-section" style="margin-top:60px;padding-top:60px;border-top:2px solid var(--ds-border)">
@@ -4229,8 +5858,282 @@ eleventyExcludeFromCollections: true
         <li>"Use <strong>Hero B (split)</strong> from section 29 for this page"</li>
         <li>"Use <strong>Hot Yoga CPH color #3f99a5</strong> for Hot Yoga CTAs and strokes"</li>
         <li>"Add <strong>scroll-draw vine with shadow</strong> from section 30 (variation A) as page decoration"</li>
-        <li>"Use <strong>clean scroll-draw vine</strong> from section 30 (variation B) — no shadow"</li>
+        <li>"Use <strong>keyword-touching vine</strong> from section 30 (variation B) — vine flows toward key text"</li>
         <li>"Add <strong>vine with growing leaves</strong> from section 30 (variation C) for organic feel"</li>
+        <li>"Use <strong>dark cinematic photo hero</strong> from section 31 (variation A) for photography page"</li>
+        <li>"Use <strong>big picture + text split</strong> from section 31 (variation B)"</li>
+        <li>"Add <strong>art grid bleed-right</strong> from section 31 (variation C) for creative photo layout"</li>
+        <li>"Use <strong>model showcase classic</strong> from section 32 (variation A) for model profiles"</li>
+        <li>"Use <strong>model hero-top layout</strong> from section 32 (variation B) — editorial feel"</li>
+        <li>"Use <strong>model side-by-side editorial</strong> from section 32 (variation C)"</li>
+        <li>"Use <strong>header Option A (light + filled CTA)</strong> from section 33"</li>
+        <li>"Use <strong>header Option B (light + thick border)</strong> from section 33"</li>
+        <li>"Use <strong>header Option C (dark + outline CTA)</strong> from section 33"</li>
+        <li>"Use <strong>mega A (light 2-col)</strong> or <strong>mega B (dark 2-col)</strong> from section 33"</li>
+        <li>"Use <strong>mega C (4-col future)</strong> from section 33 for expanded programs"</li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════════════════════════════
+       Section 34: Hot Yoga CPH — Profile & Auth Design Samples v3
+       Matching hotyogacph.dk pill style. A+C auth combo. Profile C base.
+       Orange ecosystem accents to show Yoga Bible multi-brand connection.
+       ═══════════════════════════════════════════════════════════════ -->
+  <section class="ds-section" id="s34-hyc-profile">
+    <div class="ds-section__header">
+      <h2 class="ds-section__title" data-number="34">Hot Yoga CPH — Profile & Auth (Final)</h2>
+      <p class="ds-section__desc">Final design for <code>profile.hotyogacph.dk</code>. Dark cinematic split auth with image cards + dark hero profile with pill tabs. Pills match <code>hotyogacph.dk</code> style. Orange <code>#f75c03</code> ecosystem accents.</p>
+    </div>
+
+    <style>
+    /* ── Section 34 v3: HYC Design Tokens ── */
+    .hyc3 { --hyc: #3f99a5; --hyc-dark: #357f89; --hyc-light: #5bb8c4; --hyc-pale: #e8f4f6; --hyc-glow: rgba(63,153,165,.15); --hyc-black: #0F0F0F; --hyc-muted: #6F6A66; --hyc-border: #E8E4E0; --hyc-bg: #F5F3F0; --hyc-white: #FFFCF9; --hyc-radius: 16px; --hyc-font: 'Abacaxi', 'Helvetica Neue', Helvetica, Arial, system-ui, sans-serif; --yb-orange: #f75c03; --yb-orange-light: #ff9966; }
+    .hyc3 * { box-sizing: border-box; }
+
+       Section 34: Hot Yoga CPH — Profile & Auth Design Samples v3
+       Matching hotyogacph.dk pill style. A+C auth combo. Profile C base.
+       Orange ecosystem accents to show Yoga Bible multi-brand connection.
+       ═══════════════════════════════════════════════════════════════ -->
+  <section class="ds-section" id="s34-hyc-profile">
+    <div class="ds-section__header">
+      <h2 class="ds-section__title" data-number="34">Hot Yoga CPH — Profile & Auth v3</h2>
+      <p class="ds-section__desc">Two design alternatives for <code>profile.hotyogacph.dk</code>. Both combine clean minimal form (Auth A) with split visual panel (Auth C). Pills match <code>hotyogacph.dk</code> style. Subtle orange <code>#f75c03</code> ecosystem touches link back to Yoga Bible.</p>
+    </div>
+
+    <style>
+    /* ── Section 34 v3: HYC Design Tokens ── */
+    .hyc3 { --hyc: #3f99a5; --hyc-dark: #357f89; --hyc-light: #5bb8c4; --hyc-pale: #e8f4f6; --hyc-glow: rgba(63,153,165,.15); --hyc-black: #0F0F0F; --hyc-muted: #6F6A66; --hyc-border: #E8E4E0; --hyc-bg: #F5F3F0; --hyc-white: #FFFCF9; --hyc-radius: 16px; --hyc-font: 'Abacaxi', 'Helvetica Neue', Helvetica, Arial, system-ui, sans-serif; --yb-orange: #f75c03; --yb-orange-light: #ff9966; }
+    .hyc3 * { box-sizing: border-box; }
+
+    /* ── HYC Pill Button (matches hotyogacph.dk) ── */
+    .hyc3-pill { display: inline-flex; align-items: center; gap: 10px; padding: 13px 28px; background: var(--hyc); color: #fff; border: none; border-radius: 999px; font-family: var(--hyc-font); font-size: .82rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; cursor: pointer; transition: background .2s, transform .1s; }
+    .hyc3-pill::after { content: ''; width: 6px; height: 6px; border-radius: 50%; background: rgba(255,255,255,.5); flex-shrink: 0; }
+    .hyc3-pill:hover { background: var(--hyc-dark); }
+    .hyc3-pill:active { transform: scale(.97); }
+    .hyc3-pill--sm { padding: 9px 20px; font-size: .75rem; }
+    .hyc3-pill--outline { background: transparent; border: 1.5px solid var(--hyc); color: var(--hyc); }
+    .hyc3-pill--outline::after { background: var(--hyc); opacity: .4; }
+    .hyc3-pill--outline:hover { background: var(--hyc); color: #fff; }
+    .hyc3-pill--outline:hover::after { background: rgba(255,255,255,.5); opacity: 1; }
+
+    /* ── AUTH: Warm Split — Dark Visual Panel ── */
+    .hyc3-auth-b { display: grid; grid-template-columns: 1fr 1fr; max-width: 820px; margin: 0 auto 48px; border-radius: 20px; overflow: hidden; background: var(--hyc-white); box-shadow: 0 24px 64px rgba(0,0,0,.1); }
+    .hyc3-auth-b__visual { background: linear-gradient(160deg, #0a1a1c 0%, #122d30 40%, #1a3d42 100%); padding: 44px 32px; display: flex; flex-direction: column; justify-content: space-between; position: relative; min-height: 480px; }
+    .hyc3-auth-b__visual::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; background: linear-gradient(90deg, var(--yb-orange), var(--hyc), var(--hyc-light)); }
+    .hyc3-auth-b__visual-logo { font-family: var(--hyc-font); font-size: .72rem; font-weight: 700; color: rgba(255,255,255,.4); letter-spacing: .1em; text-transform: uppercase; }
+    .hyc3-auth-b__visual-bottom { margin-top: auto; }
+    .hyc3-auth-b__visual-title { font-family: var(--hyc-font); font-size: 1.9rem; font-weight: 700; color: #fff; margin: 0 0 8px; line-height: 1.15; }
+    .hyc3-auth-b__visual-sub { font-family: var(--hyc-font); font-size: .88rem; color: rgba(255,255,255,.5); margin: 0 0 20px; }
+    .hyc3-auth-b__cards { display: flex; gap: 10px; }
+    .hyc3-auth-b__card { flex: 1; background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.08); border-radius: 12px; overflow: hidden; }
+    .hyc3-auth-b__card-img { width: 100%; height: 72px; object-fit: cover; display: block; opacity: .6; }
+    .hyc3-auth-b__card-text { padding: 10px; font-family: var(--hyc-font); font-size: .68rem; font-weight: 600; color: rgba(255,255,255,.6); text-align: center; }
+    .hyc3-auth-b__ecosystem { display: flex; align-items: center; gap: 6px; position: absolute; top: 52px; right: 32px; }
+    .hyc3-auth-b__ecosystem-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--yb-orange); box-shadow: 0 0 8px rgba(247,92,3,.4); }
+    .hyc3-auth-b__ecosystem-text { font-family: var(--hyc-font); font-size: .62rem; font-weight: 700; color: rgba(255,255,255,.3); letter-spacing: .06em; text-transform: uppercase; }
+    .hyc3-auth-b__form { padding: 44px 36px; display: flex; flex-direction: column; justify-content: center; }
+    .hyc3-auth-b__icon { width: 44px; height: 44px; border-radius: 50%; border: 2px solid var(--hyc); display: flex; align-items: center; justify-content: center; margin-bottom: 20px; }
+    .hyc3-auth-b__icon svg { width: 20px; height: 20px; color: var(--hyc); }
+    .hyc3-auth-b__title { font-family: var(--hyc-font); font-size: 1.5rem; font-weight: 700; color: var(--hyc-black); margin: 0 0 4px; }
+    .hyc3-auth-b__sub { font-family: var(--hyc-font); font-size: .85rem; color: var(--hyc-muted); margin: 0 0 24px; }
+    .hyc3-auth-b__field { margin-bottom: 14px; }
+    .hyc3-auth-b__field label { display: block; font-family: var(--hyc-font); font-size: .75rem; font-weight: 700; color: var(--hyc-muted); text-transform: uppercase; letter-spacing: .06em; margin-bottom: 6px; }
+    .hyc3-auth-b__field input { width: 100%; padding: 12px 16px; border: 1.5px solid var(--hyc-border); border-radius: 12px; font-family: var(--hyc-font); font-size: .92rem; background: #fff; outline: none; transition: border-color .2s; color: var(--hyc-black); }
+    .hyc3-auth-b__field input:focus { border-color: var(--hyc); box-shadow: 0 0 0 3px var(--hyc-glow); }
+    .hyc3-auth-b__field input::placeholder { color: #c5c0bb; }
+    .hyc3-auth-b__row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .hyc3-auth-b__forgot { text-align: right; margin: -6px 0 10px; }
+    .hyc3-auth-b__forgot a { font-family: var(--hyc-font); font-size: .78rem; color: var(--hyc); text-decoration: none; font-weight: 600; }
+    .hyc3-auth-b__consent { display: flex; align-items: flex-start; gap: 8px; margin-bottom: 10px; font-family: var(--hyc-font); font-size: .76rem; color: var(--hyc-muted); line-height: 1.4; }
+    .hyc3-auth-b__consent input[type="checkbox"] { appearance: none; -webkit-appearance: none; width: 16px; height: 16px; min-width: 16px; border: 1.5px solid var(--hyc-border); border-radius: 4px; cursor: pointer; position: relative; margin-top: 1px; transition: all .15s; }
+    .hyc3-auth-b__consent input[type="checkbox"]:checked { background: var(--hyc); border-color: var(--hyc); }
+    .hyc3-auth-b__consent input[type="checkbox"]:checked::after { content: ''; position: absolute; left: 4px; top: 1px; width: 5px; height: 9px; border: solid #fff; border-width: 0 2px 2px 0; transform: rotate(45deg); }
+    .hyc3-auth-b__consent a { color: var(--hyc); text-decoration: none; font-weight: 600; }
+    .hyc3-auth-b__link { display: block; text-align: center; margin-top: 16px; font-family: var(--hyc-font); font-size: .82rem; color: var(--hyc-muted); }
+    .hyc3-auth-b__link a { color: var(--hyc); text-decoration: none; font-weight: 700; }
+    @media (max-width: 640px) { .hyc3-auth-b { grid-template-columns: 1fr; } .hyc3-auth-b__visual { min-height: 200px; padding: 28px 24px; } .hyc3-auth-b__cards { display: none; } }
+
+    /* ── PROFILE: Hero Header + Pill Tabs (matches both auth variants) ── */
+    .hyc3-prof { max-width: 940px; margin: 0 auto 48px; font-family: var(--hyc-font); border-radius: var(--hyc-radius); overflow: hidden; box-shadow: 0 20px 60px rgba(0,0,0,.06); }
+    .hyc3-prof__hero { padding: 28px 36px 32px; position: relative; }
+    .hyc3-prof__hero--dark { background: linear-gradient(135deg, #0a1a1c 0%, #122d30 40%, #1a3d42 100%); }
+    .hyc3-prof__hero--dark::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; background: linear-gradient(90deg, var(--yb-orange), var(--hyc), var(--hyc-light)); }
+    .hyc3-prof__hero-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; }
+    .hyc3-prof__logo { font-family: var(--hyc-font); font-size: .78rem; font-weight: 700; color: rgba(255,255,255,.6); letter-spacing: .08em; text-transform: uppercase; }
+    .hyc3-prof__hero-right { display: flex; align-items: center; gap: 12px; }
+    .hyc3-prof__ecosystem { display: flex; align-items: center; gap: 5px; }
+    .hyc3-prof__ecosystem-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--yb-orange); }
+    .hyc3-prof__ecosystem-text { font-family: var(--hyc-font); font-size: .58rem; font-weight: 700; color: rgba(255,255,255,.35); letter-spacing: .06em; text-transform: uppercase; }
+    .hyc3-prof__lang { display: flex; gap: 3px; }
+    .hyc3-prof__lang button { padding: 5px 10px; border-radius: 999px; background: rgba(255,255,255,.08); border: none; color: rgba(255,255,255,.4); font-family: var(--hyc-font); font-size: .7rem; font-weight: 700; cursor: pointer; transition: all .2s; letter-spacing: .04em; }
+    .hyc3-prof__lang button.is-active { background: rgba(255,255,255,.2); color: #fff; }
+    .hyc3-prof__user { display: flex; align-items: center; gap: 16px; }
+    .hyc3-prof__avatar { width: 64px; height: 64px; border-radius: 50%; background: rgba(255,255,255,.12); border: 2.5px solid rgba(255,255,255,.25); color: #fff; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 1.3rem; flex-shrink: 0; }
+    .hyc3-prof__name { font-size: 1.3rem; font-weight: 700; color: #fff; margin: 0 0 4px; }
+    .hyc3-prof__meta { font-size: .85rem; color: rgba(255,255,255,.55); margin: 0; }
+    .hyc3-prof__badge { display: inline-flex; align-items: center; gap: 5px; padding: 3px 12px; background: rgba(255,255,255,.12); border-radius: 999px; font-size: .7rem; font-weight: 700; color: #fff; margin-left: 8px; letter-spacing: .04em; }
+    .hyc3-prof__badge::before { content: ''; width: 5px; height: 5px; border-radius: 50%; background: var(--hyc-light); }
+    .hyc3-prof__tabs { display: flex; gap: 6px; padding: 16px 36px; background: var(--hyc-white); border-bottom: 1.5px solid var(--hyc-border); overflow-x: auto; }
+    .hyc3-prof__tab { padding: 9px 20px; border-radius: 999px; background: none; border: 1.5px solid var(--hyc-border); font-family: var(--hyc-font); font-size: .78rem; font-weight: 700; color: var(--hyc-muted); cursor: pointer; white-space: nowrap; transition: all .2s; letter-spacing: .03em; text-transform: uppercase; }
+    .hyc3-prof__tab:hover { border-color: var(--hyc); color: var(--hyc); }
+    .hyc3-prof__tab.is-active { background: var(--hyc); border-color: var(--hyc); color: #fff; }
+    .hyc3-prof__content { padding: 32px 36px; background: var(--hyc-white); }
+    .hyc3-prof__card-title { font-size: 1.05rem; font-weight: 700; color: var(--hyc-black); margin: 0 0 20px; padding-bottom: 14px; border-bottom: 1px solid var(--hyc-border); }
+    .hyc3-prof__form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .hyc3-prof__form-grid label { display: grid; gap: 6px; }
+    .hyc3-prof__form-grid label span { font-size: .75rem; font-weight: 700; color: var(--hyc-muted); text-transform: uppercase; letter-spacing: .06em; }
+    .hyc3-prof__form-grid input { padding: 12px 16px; border: 1.5px solid var(--hyc-border); border-radius: 12px; font-family: var(--hyc-font); font-size: .92rem; outline: none; transition: border-color .2s; color: var(--hyc-black); }
+    .hyc3-prof__form-grid input:focus { border-color: var(--hyc); box-shadow: 0 0 0 3px var(--hyc-glow); }
+    @media (max-width: 640px) { .hyc3-prof__form-grid { grid-template-columns: 1fr; } .hyc3-prof__tabs { padding: 12px 16px; } .hyc3-prof__content { padding: 24px 16px; } .hyc3-prof__hero { padding: 20px 16px 24px; } }
+    </style>
+
+    <!-- ════════════════════════════════════════════════════════════ -->
+    <!--  AUTH: Dark & Premium — Dark cinematic visual panel        -->
+    <!-- ════════════════════════════════════════════════════════════ -->
+    <div class="ds-sub">
+      <h3 class="ds-sub__title">Auth — Dark Split (Cinematic Panel + Image Cards)</h3>
+      <p class="ds-sub__desc">Dark cinematic left panel with orange-to-teal gradient top bar, 3 image cards, ambient glow. Clean form right. HYC pill buttons. Premium/moody feel. Orange ecosystem badge.</p>
+      <div class="ds-demo" style="background:#0a0a0a;padding:40px 20px;border-radius:16px;">
+
+        <!-- Login -->
+        <div class="hyc3 hyc3-auth-b" style="margin-bottom:24px">
+          <div class="hyc3-auth-b__visual">
+            <div>
+              <div class="hyc3-auth-b__visual-logo">Hot Yoga Copenhagen</div>
+              <div class="hyc3-auth-b__ecosystem"><span class="hyc3-auth-b__ecosystem-dot"></span><span class="hyc3-auth-b__ecosystem-text">Yoga Bible ecosystem</span></div>
+            </div>
+            <div class="hyc3-auth-b__visual-bottom">
+              <h2 class="hyc3-auth-b__visual-title">Velkommen<br>tilbage</h2>
+              <p class="hyc3-auth-b__visual-sub">Find din varme. Find dig selv.</p>
+              <div class="hyc3-auth-b__cards">
+                <div class="hyc3-auth-b__card">
+                  <div style="width:100%;height:72px;background:linear-gradient(135deg,rgba(63,153,165,.15),rgba(63,153,165,.05));display:flex;align-items:center;justify-content:center;font-size:1.4rem">&#x1F9D8;</div>
+                  <div class="hyc3-auth-b__card-text">Hot Yoga</div>
+                </div>
+                <div class="hyc3-auth-b__card">
+                  <div style="width:100%;height:72px;background:linear-gradient(135deg,rgba(255,255,255,.06),rgba(255,255,255,.02));display:flex;align-items:center;justify-content:center;font-size:1.4rem">&#x1F3E0;</div>
+                  <div class="hyc3-auth-b__card-text">Studiet</div>
+                </div>
+                <div class="hyc3-auth-b__card">
+                  <div style="width:100%;height:72px;background:linear-gradient(135deg,rgba(91,184,196,.1),rgba(91,184,196,.03));display:flex;align-items:center;justify-content:center;font-size:1.4rem">&#x1F91D;</div>
+                  <div class="hyc3-auth-b__card-text">Community</div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="hyc3-auth-b__form">
+            <div class="hyc3-auth-b__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg></div>
+            <h2 class="hyc3-auth-b__title">Log ind</h2>
+            <p class="hyc3-auth-b__sub">Log ind p&aring; din Hot Yoga konto</p>
+            <div class="hyc3-auth-b__field"><label>EMAIL</label><input type="email" placeholder="din@email.dk" /></div>
+            <div class="hyc3-auth-b__field"><label>ADGANGSKODE</label><input type="password" placeholder="Indtast adgangskode" /></div>
+            <div class="hyc3-auth-b__forgot"><a href="#">Glemt adgangskode?</a></div>
+            <button class="hyc3-pill" style="width:100%;justify-content:center;margin-top:4px">Log ind</button>
+            <div class="hyc3-auth-b__link">Har du ikke en konto? <a href="#">Opret konto</a></div>
+          </div>
+        </div>
+
+        <!-- Register -->
+        <div class="hyc3 hyc3-auth-b">
+          <div class="hyc3-auth-b__visual">
+            <div>
+              <div class="hyc3-auth-b__visual-logo">Hot Yoga Copenhagen</div>
+              <div class="hyc3-auth-b__ecosystem"><span class="hyc3-auth-b__ecosystem-dot"></span><span class="hyc3-auth-b__ecosystem-text">Yoga Bible ecosystem</span></div>
+            </div>
+            <div class="hyc3-auth-b__visual-bottom">
+              <h2 class="hyc3-auth-b__visual-title">Bliv en del<br>af varmen</h2>
+              <p class="hyc3-auth-b__visual-sub">Hot Yoga Copenhagen &mdash; Est. 2020</p>
+              <div class="hyc3-auth-b__cards">
+                <div class="hyc3-auth-b__card">
+                  <div style="width:100%;height:72px;background:linear-gradient(135deg,rgba(63,153,165,.15),rgba(63,153,165,.05));display:flex;align-items:center;justify-content:center;font-size:1.4rem">&#x1F525;</div>
+                  <div class="hyc3-auth-b__card-text">26 klasser</div>
+                </div>
+                <div class="hyc3-auth-b__card">
+                  <div style="width:100%;height:72px;background:linear-gradient(135deg,rgba(255,255,255,.06),rgba(255,255,255,.02));display:flex;align-items:center;justify-content:center;font-size:1.4rem">&#x2728;</div>
+                  <div class="hyc3-auth-b__card-text">Premium</div>
+                </div>
+                <div class="hyc3-auth-b__card">
+                  <div style="width:100%;height:72px;background:linear-gradient(135deg,rgba(91,184,196,.1),rgba(91,184,196,.03));display:flex;align-items:center;justify-content:center;font-size:1.4rem">&#x1F4AA;</div>
+                  <div class="hyc3-auth-b__card-text">Book nu</div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="hyc3-auth-b__form">
+            <div class="hyc3-auth-b__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="16" y1="11" x2="22" y2="11"/></svg></div>
+            <h2 class="hyc3-auth-b__title">Opret konto</h2>
+            <p class="hyc3-auth-b__sub">Det tager kun et minut</p>
+            <div class="hyc3-auth-b__row">
+              <div class="hyc3-auth-b__field"><label>FORNAVN</label><input type="text" placeholder="Fornavn" /></div>
+              <div class="hyc3-auth-b__field"><label>EFTERNAVN</label><input type="text" placeholder="Efternavn" /></div>
+            </div>
+            <div class="hyc3-auth-b__field"><label>EMAIL</label><input type="email" placeholder="din@email.dk" /></div>
+            <div class="hyc3-auth-b__field"><label>ADGANGSKODE</label><input type="password" placeholder="Min. 8 tegn" /></div>
+            <div class="hyc3-auth-b__consent"><input type="checkbox"><span>Jeg accepterer <a href="#">Vilk&aring;r</a> og <a href="#">Privatlivspolitik</a></span></div>
+            <button class="hyc3-pill" style="width:100%;justify-content:center;margin-top:4px">Opret konto</button>
+            <div class="hyc3-auth-b__link">Har du allerede en konto? <a href="#">Log ind</a></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ════════════════════════════════════════════════════════════ -->
+    <!--  PROFILE: Dark Hero (matches Auth dark cinematic)          -->
+    <!-- ════════════════════════════════════════════════════════════ -->
+    <div class="ds-sub">
+      <h3 class="ds-sub__title">Profile — Dark Hero + Pill Tabs</h3>
+      <p class="ds-sub__desc">Dark cinematic hero matching Auth. Orange-to-teal gradient top accent. HYC pill-style tab bar. Premium/moody header. Orange ecosystem dot.</p>
+      <div class="ds-demo" style="background:#0a0a0a;padding:40px 20px;border-radius:16px;">
+        <div class="hyc3 hyc3-prof">
+          <div class="hyc3-prof__hero hyc3-prof__hero--dark">
+            <div class="hyc3-prof__hero-top">
+              <span class="hyc3-prof__logo">Hot Yoga Copenhagen</span>
+              <div class="hyc3-prof__hero-right">
+                <div class="hyc3-prof__ecosystem"><span class="hyc3-prof__ecosystem-dot"></span><span class="hyc3-prof__ecosystem-text">Yoga Bible</span></div>
+                <div class="hyc3-prof__lang"><button class="is-active">DA</button><button>EN</button></div>
+              </div>
+            </div>
+            <div class="hyc3-prof__user">
+              <div class="hyc3-prof__avatar">SJ</div>
+              <div>
+                <p class="hyc3-prof__name">Sarah Jensen</p>
+                <p class="hyc3-prof__meta">sarah@email.dk <span class="hyc3-prof__badge">Unlimited</span></p>
+              </div>
+            </div>
+          </div>
+          <div class="hyc3-prof__tabs">
+            <button class="hyc3-prof__tab is-active">Profil</button>
+            <button class="hyc3-prof__tab">Skema</button>
+            <button class="hyc3-prof__tab">Butik</button>
+            <button class="hyc3-prof__tab">Mine Pas</button>
+            <button class="hyc3-prof__tab">Bes&oslash;g</button>
+            <button class="hyc3-prof__tab">Kvitteringer</button>
+          </div>
+          <div class="hyc3-prof__content">
+            <h3 class="hyc3-prof__card-title">Personlige Oplysninger</h3>
+            <div class="hyc3-prof__form-grid">
+              <label><span>FORNAVN</span><input type="text" value="Sarah"></label>
+              <label><span>EFTERNAVN</span><input type="text" value="Jensen"></label>
+              <label><span>EMAIL</span><input type="email" value="sarah@email.dk" disabled style="opacity:.6"></label>
+              <label><span>TELEFON</span><input type="tel" value="+45 20 12 34 56"></label>
+              <label><span>F&Oslash;DSELSDATO</span><input type="date" value="1992-03-15"></label>
+            </div>
+            <button class="hyc3-pill" style="margin-top:24px">Gem &aelig;ndringer</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Reference Guide -->
+    <div class="ds-demo" style="background:var(--hyc-pale, #e8f4f6);padding:24px 28px;border-radius:12px;border:1.5px solid rgba(63,153,165,.2);margin-top:32px">
+      <h4 style="font-weight:700;margin:0 0 12px;font-size:.95rem;color:#357f89;font-family:'Abacaxi',system-ui,sans-serif">How to Reference (Section 34 — Final)</h4>
+      <ul class="ds-list ds-list--arrows" style="margin:0;font-size:.88rem">
+        <li>"Use <strong>HYC Auth (dark split)</strong> + <strong>HYC Profile (dark hero)</strong> for the Hot Yoga CPH member area"</li>
+        <li>Components: HYC pill buttons, 3 image cards, orange ecosystem badge, pill-style tab bar</li>
+        <li>Orange ecosystem touches: dot badge (<code>#f75c03</code>), gradient top bar, "Yoga Bible" label</li>
+        <li>Pill design matches <code>hotyogacph.dk</code>: <code>border-radius: 999px</code>, uppercase, letter-spacing, trailing dot</li>
+        <li>CSS prefix: <code>.hyc3-</code> — Brand teal: <code>#3f99a5</code> — Dark: <code>#357f89</code> — Light: <code>#5bb8c4</code></li>
       </ul>
     </div>
   </section>
@@ -4339,3 +6242,219 @@ document.addEventListener('DOMContentLoaded', function() {
   });
 });
 </script>
+
+
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<!--  35. YOGA BIBLE — Member Area & Auth (Final Design)             -->
+<!-- ═══════════════════════════════════════════════════════════════ -->
+
+  <section class="ds-section" id="s35-yb-auth-profile">
+    <div class="ds-section__header">
+      <h2 class="ds-section__title" data-number="35">Yoga Bible — Member Area & Auth</h2>
+      <p class="ds-section__desc">Final design for <code>yogabible.dk</code> member area. <strong>Login:</strong> Warm Minimal modal. <strong>Register:</strong> Split Visual with image panel. <strong>Profile:</strong> Hero Header + Underline Tabs (inspired by HYC C, branded YB orange).</p>
+    </div>
+
+    <style>
+    /* ── Section 35: Yoga Bible Design Tokens ── */
+    .yba { --yba: #f75c03; --yba-dark: #d94f02; --yba-light: #ff9966; --yba-pale: #fff3ec; --yba-glow: rgba(247,92,3,.12); --yba-black: #0F0F0F; --yba-muted: #6F6A66; --yba-border: #E8E4E0; --yba-bg: #F5F3F0; --yba-white: #FFFCF9; --yba-radius: 14px; --yba-font: 'Abacaxi', 'Helvetica Neue', Helvetica, Arial, system-ui, sans-serif; }
+    .yba * { box-sizing: border-box; }
+
+    /* ── LOGIN MODAL: Warm Minimal ── */
+    .yba-auth-a { background: var(--yba-white); border-radius: 20px; padding: 48px 40px; max-width: 420px; margin: 0 auto 48px; position: relative; overflow: hidden; box-shadow: 0 20px 60px rgba(0,0,0,.06); border: 1px solid var(--yba-border); }
+    .yba-auth-a::before { content: ''; position: absolute; top: -60px; right: -60px; width: 180px; height: 180px; background: radial-gradient(circle, var(--yba-glow) 0%, transparent 70%); pointer-events: none; }
+    .yba-auth-a__logo { width: 52px; height: 52px; background: var(--yba); border-radius: 14px; display: flex; align-items: center; justify-content: center; color: #fff; font-weight: 700; font-size: 1.1rem; margin-bottom: 24px; font-family: var(--yba-font); }
+    .yba-auth-a__title { font-family: var(--yba-font); font-size: 1.6rem; font-weight: 700; color: var(--yba-black); margin: 0 0 6px; }
+    .yba-auth-a__sub { font-family: var(--yba-font); font-size: .9rem; color: var(--yba-muted); margin: 0 0 28px; }
+    .yba-auth-a__field { margin-bottom: 16px; }
+    .yba-auth-a__field label { display: block; font-family: var(--yba-font); font-size: .8rem; font-weight: 700; color: var(--yba-muted); text-transform: uppercase; letter-spacing: .04em; margin-bottom: 6px; }
+    .yba-auth-a__field input { width: 100%; padding: 12px 16px; border: 1.5px solid var(--yba-border); border-radius: 12px; font-family: var(--yba-font); font-size: .95rem; background: #fff; transition: border-color .2s, box-shadow .2s; outline: none; color: var(--yba-black); }
+    .yba-auth-a__field input:focus { border-color: var(--yba); box-shadow: 0 0 0 3px var(--yba-glow); }
+    .yba-auth-a__row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .yba-auth-a__btn { width: 100%; padding: 14px; background: var(--yba); color: #fff; border: none; border-radius: 12px; font-family: var(--yba-font); font-size: 1rem; font-weight: 700; cursor: pointer; transition: background .2s, transform .1s; margin-top: 8px; }
+    .yba-auth-a__btn:hover { background: var(--yba-dark); }
+    .yba-auth-a__btn:active { transform: scale(.98); }
+    .yba-auth-a__consent { display: flex; align-items: flex-start; gap: 10px; margin-bottom: 12px; font-family: var(--yba-font); font-size: .82rem; color: var(--yba-muted); line-height: 1.4; }
+    .yba-auth-a__consent input[type="checkbox"] { appearance: none; -webkit-appearance: none; width: 18px; height: 18px; min-width: 18px; border: 1.5px solid var(--yba-border); border-radius: 4px; cursor: pointer; position: relative; margin-top: 1px; transition: border-color .15s, background .15s; }
+    .yba-auth-a__consent input[type="checkbox"]:checked { background: var(--yba); border-color: var(--yba); }
+    .yba-auth-a__consent input[type="checkbox"]:checked::after { content: ''; position: absolute; left: 5px; top: 1px; width: 5px; height: 10px; border: solid #fff; border-width: 0 2px 2px 0; transform: rotate(45deg); }
+    .yba-auth-a__consent a { color: var(--yba); text-decoration: none; font-weight: 600; }
+    .yba-auth-a__link { display: block; text-align: center; margin-top: 16px; font-family: var(--yba-font); font-size: .85rem; color: var(--yba-muted); }
+    .yba-auth-a__link a { color: var(--yba); text-decoration: none; font-weight: 700; }
+    .yba-auth-a__link a:hover { text-decoration: underline; }
+    .yba-auth-a__forgot { text-align: right; margin: -8px 0 12px; }
+    .yba-auth-a__forgot a { font-family: var(--yba-font); font-size: .8rem; color: var(--yba); text-decoration: none; }
+    .yba-auth-a__divider { display: flex; align-items: center; gap: 12px; margin: 20px 0; font-family: var(--yba-font); font-size: .78rem; color: var(--yba-muted); text-transform: uppercase; letter-spacing: .06em; }
+    .yba-auth-a__divider::before, .yba-auth-a__divider::after { content: ''; flex: 1; height: 1px; background: var(--yba-border); }
+    .yba-auth-a__error { font-family: var(--yba-font); font-size: .85rem; color: #d32f2f; background: #fdecea; padding: 10px 14px; border-radius: 8px; margin-bottom: 12px; }
+
+    /* ── REGISTER MODAL: Split Visual ── */
+    .yba-auth-c { display: grid; grid-template-columns: 1fr 1fr; max-width: 780px; margin: 0 auto 48px; border-radius: 20px; overflow: hidden; background: var(--yba-white); box-shadow: 0 24px 64px rgba(0,0,0,.08); }
+    .yba-auth-c__visual { background: linear-gradient(160deg, #c44800 0%, var(--yba) 50%, var(--yba-light) 100%); padding: 48px 32px; display: flex; flex-direction: column; justify-content: flex-end; position: relative; min-height: 480px; }
+    .yba-auth-c__visual-img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+    .yba-auth-c__visual-overlay { position: absolute; inset: 0; background: linear-gradient(160deg, rgba(196,72,0,.85) 0%, rgba(247,92,3,.7) 50%, rgba(255,153,102,.6) 100%); }
+    .yba-auth-c__visual-title { font-family: var(--yba-font); font-size: 1.8rem; font-weight: 700; color: #fff; margin: 0 0 8px; line-height: 1.2; position: relative; z-index: 1; }
+    .yba-auth-c__visual-sub { font-family: var(--yba-font); font-size: .9rem; color: rgba(255,255,255,.75); margin: 0; position: relative; z-index: 1; }
+    .yba-auth-c__visual-dots { position: absolute; top: 32px; left: 32px; display: flex; gap: 6px; z-index: 1; }
+    .yba-auth-c__visual-dots span { width: 8px; height: 8px; border-radius: 50%; background: rgba(255,255,255,.3); }
+    .yba-auth-c__visual-dots span:first-child { background: #fff; }
+    .yba-auth-c__visual-icon { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -60%); width: 80px; height: 80px; border: 2px solid rgba(255,255,255,.2); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 2rem; color: rgba(255,255,255,.4); z-index: 1; }
+    .yba-auth-c__form { padding: 48px 36px; display: flex; flex-direction: column; justify-content: center; }
+    .yba-auth-c__title { font-family: var(--yba-font); font-size: 1.4rem; font-weight: 700; color: var(--yba-black); margin: 0 0 4px; }
+    .yba-auth-c__sub { font-family: var(--yba-font); font-size: .85rem; color: var(--yba-muted); margin: 0 0 24px; }
+    .yba-auth-c__field { margin-bottom: 14px; }
+    .yba-auth-c__field label { display: block; font-family: var(--yba-font); font-size: .78rem; font-weight: 700; color: var(--yba-muted); text-transform: uppercase; letter-spacing: .04em; margin-bottom: 5px; }
+    .yba-auth-c__field input { width: 100%; padding: 11px 14px; border: 1.5px solid var(--yba-border); border-radius: 12px; font-family: var(--yba-font); font-size: .92rem; background: #fff; outline: none; transition: border-color .2s; }
+    .yba-auth-c__field input:focus { border-color: var(--yba); box-shadow: 0 0 0 3px var(--yba-glow); }
+    .yba-auth-c__row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .yba-auth-c__btn { width: 100%; padding: 13px; background: var(--yba); color: #fff; border: none; border-radius: 12px; font-family: var(--yba-font); font-size: .95rem; font-weight: 700; cursor: pointer; margin-top: 6px; transition: background .2s; }
+    .yba-auth-c__btn:hover { background: var(--yba-dark); }
+    .yba-auth-c__consent { display: flex; align-items: flex-start; gap: 8px; margin-bottom: 10px; font-family: var(--yba-font); font-size: .78rem; color: var(--yba-muted); line-height: 1.4; }
+    .yba-auth-c__consent input[type="checkbox"] { appearance: none; -webkit-appearance: none; width: 16px; height: 16px; min-width: 16px; border: 1.5px solid var(--yba-border); border-radius: 3px; cursor: pointer; position: relative; margin-top: 1px; transition: border-color .15s, background .15s; }
+    .yba-auth-c__consent input[type="checkbox"]:checked { background: var(--yba); border-color: var(--yba); }
+    .yba-auth-c__consent input[type="checkbox"]:checked::after { content: ''; position: absolute; left: 4px; top: 0px; width: 5px; height: 9px; border: solid #fff; border-width: 0 2px 2px 0; transform: rotate(45deg); }
+    .yba-auth-c__consent a { color: var(--yba); text-decoration: none; font-weight: 600; }
+    .yba-auth-c__link { display: block; text-align: center; margin-top: 14px; font-family: var(--yba-font); font-size: .83rem; color: var(--yba-muted); }
+    .yba-auth-c__link a { color: var(--yba); text-decoration: none; font-weight: 700; }
+    @media (max-width: 640px) { .yba-auth-c { grid-template-columns: 1fr; } .yba-auth-c__visual { min-height: 160px; padding: 32px 24px; } }
+
+    /* ── PROFILE: Hero Header + Underline Tabs ── */
+    .yba-prof-c { max-width: 960px; margin: 0 auto 48px; font-family: var(--yba-font); border-radius: var(--yba-radius); overflow: hidden; border: 1.5px solid var(--yba-border); }
+    .yba-prof-c__hero { background: linear-gradient(135deg, #c44800 0%, var(--yba) 40%, var(--yba-light) 100%); padding: 24px 36px 28px; }
+    .yba-prof-c__hero-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; }
+    .yba-prof-c__logo { font-family: var(--yba-font); font-size: .85rem; font-weight: 700; color: rgba(255,255,255,.7); letter-spacing: .05em; }
+    .yba-prof-c__lang-hero { display: flex; gap: 4px; }
+    .yba-prof-c__lang-hero button { padding: 4px 10px; border-radius: 6px; background: rgba(255,255,255,.1); border: none; color: rgba(255,255,255,.5); font-family: var(--yba-font); font-size: .72rem; font-weight: 700; cursor: pointer; transition: all .2s; }
+    .yba-prof-c__lang-hero button.is-active { background: rgba(255,255,255,.25); color: #fff; }
+    .yba-prof-c__user { display: flex; align-items: center; gap: 16px; }
+    .yba-prof-c__avatar { width: 68px; height: 68px; border-radius: 50%; border: 3px solid rgba(255,255,255,.3); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 1.4rem; color: #fff; flex-shrink: 0; background: rgba(255,255,255,.1); }
+    .yba-prof-c__name { font-size: 1.3rem; font-weight: 700; color: #fff; margin: 0 0 4px; }
+    .yba-prof-c__meta { font-size: .85rem; color: rgba(255,255,255,.65); margin: 0; }
+    .yba-prof-c__meta .yba-badge { display: inline-block; padding: 3px 10px; background: rgba(255,255,255,.2); backdrop-filter: blur(8px); border-radius: 12px; font-size: .72rem; font-weight: 700; color: #fff; margin-left: 8px; vertical-align: middle; }
+    .yba-prof-c__tabs { display: flex; gap: 0; background: var(--yba-white); border-bottom: 1.5px solid var(--yba-border); padding: 0 32px; overflow-x: auto; }
+    .yba-prof-c__tab { padding: 14px 20px; border: none; border-bottom: 2.5px solid transparent; background: none; font-family: var(--yba-font); font-size: .92rem; color: var(--yba-muted); cursor: pointer; transition: all .2s; margin-bottom: -1.5px; white-space: nowrap; }
+    .yba-prof-c__tab.is-active { color: var(--yba-black); border-bottom-color: var(--yba); font-weight: 700; }
+    .yba-prof-c__tab:hover:not(.is-active) { color: var(--yba-black); }
+    .yba-prof-c__content { padding: 32px; background: var(--yba-white); }
+    .yba-prof-c__card-title { font-size: 1.05rem; font-weight: 700; color: var(--yba-black); margin: 0 0 20px; padding-bottom: 14px; border-bottom: 1px solid var(--yba-border); }
+    .yba-prof-c__form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .yba-prof-c__form-grid label { display: grid; gap: 6px; }
+    .yba-prof-c__form-grid label span { font-size: .82rem; font-weight: 700; color: var(--yba-muted); text-transform: uppercase; letter-spacing: .04em; }
+    .yba-prof-c__form-grid input { padding: 12px 16px; border: 1.5px solid var(--yba-border); border-radius: 12px; font-family: var(--yba-font); font-size: .95rem; outline: none; transition: border-color .2s; }
+    .yba-prof-c__form-grid input:focus { border-color: var(--yba); box-shadow: 0 0 0 3px var(--yba-glow); }
+    .yba-prof-c__save { padding: 12px 32px; background: var(--yba); color: #fff; border: none; border-radius: 12px; font-family: var(--yba-font); font-size: .95rem; font-weight: 700; cursor: pointer; margin-top: 20px; transition: background .2s; }
+    .yba-prof-c__save:hover { background: var(--yba-dark); }
+    @media (max-width: 640px) { .yba-prof-c__form-grid { grid-template-columns: 1fr; } .yba-prof-c__tabs { padding: 0 16px; } .yba-prof-c__content { padding: 24px 16px; } .yba-prof-c__hero { padding: 20px 16px 24px; } }
+    </style>
+
+    <div class="yba">
+
+      <!-- ── Login Modal ── -->
+      <h3 class="ds-subsection" style="font-size:1.1rem;font-weight:700;margin:32px 0 12px;color:#0F0F0F;font-family:'Abacaxi',system-ui,sans-serif">Login Modal</h3>
+      <p style="font-size:.88rem;color:#6F6A66;margin-bottom:24px;font-family:'Abacaxi',system-ui,sans-serif">Warm minimal card with orange glow accent. Clean single-column layout.</p>
+
+      <div class="yba-auth-a">
+        <div class="yba-auth-a__logo">YB</div>
+        <h3 class="yba-auth-a__title">Velkommen tilbage</h3>
+        <p class="yba-auth-a__sub">Log ind for at se dit skema og medlemskab</p>
+        <div class="yba-auth-a__field">
+          <label>EMAIL</label>
+          <input type="email" placeholder="din@email.dk">
+        </div>
+        <div class="yba-auth-a__field">
+          <label>ADGANGSKODE</label>
+          <input type="password" placeholder="Indtast adgangskode">
+        </div>
+        <div class="yba-auth-a__forgot"><a href="#">Glemt adgangskode?</a></div>
+        <button class="yba-auth-a__btn">Log ind</button>
+        <p class="yba-auth-a__link">Har du ikke en konto? <a href="#">Opret konto</a></p>
+      </div>
+
+      <!-- ── Register Modal ── -->
+      <h3 class="ds-subsection" style="font-size:1.1rem;font-weight:700;margin:48px 0 12px;color:#0F0F0F;font-family:'Abacaxi',system-ui,sans-serif">Register Modal</h3>
+      <p style="font-size:.88rem;color:#6F6A66;margin-bottom:24px;font-family:'Abacaxi',system-ui,sans-serif">Split layout with image/gradient panel on the left and form on the right. Supports custom images via <code>&lt;img&gt;</code> in the visual panel.</p>
+
+      <div class="yba-auth-c">
+        <div class="yba-auth-c__visual">
+          <div class="yba-auth-c__visual-dots"><span></span><span></span><span></span></div>
+          <div class="yba-auth-c__visual-icon">&#x2728;</div>
+          <h3 class="yba-auth-c__visual-title">Start din<br>yoga-rejse</h3>
+          <p class="yba-auth-c__visual-sub">Opret en konto og f&aring; adgang til alle vores klasser og tilbud.</p>
+        </div>
+        <div class="yba-auth-c__form">
+          <h3 class="yba-auth-c__title">Opret konto</h3>
+          <p class="yba-auth-c__sub">Det tager kun et minut</p>
+          <div class="yba-auth-c__row">
+            <div class="yba-auth-c__field">
+              <label>FORNAVN</label>
+              <input type="text" placeholder="Fornavn">
+            </div>
+            <div class="yba-auth-c__field">
+              <label>EFTERNAVN</label>
+              <input type="text" placeholder="Efternavn">
+            </div>
+          </div>
+          <div class="yba-auth-c__field">
+            <label>EMAIL</label>
+            <input type="email" placeholder="din@email.dk">
+          </div>
+          <div class="yba-auth-c__field">
+            <label>ADGANGSKODE</label>
+            <input type="password" placeholder="Min. 8 tegn">
+          </div>
+          <div class="yba-auth-c__consent">
+            <input type="checkbox">
+            <span>Jeg accepterer <a href="#">Vilk&aring;r</a> og <a href="#">Privatlivspolitik</a></span>
+          </div>
+          <div class="yba-auth-c__consent">
+            <input type="checkbox">
+            <span>Jeg accepterer <a href="#">Code of Conduct</a></span>
+          </div>
+          <button class="yba-auth-c__btn">Opret konto</button>
+          <p class="yba-auth-c__link">Har du allerede en konto? <a href="#">Log ind</a></p>
+        </div>
+      </div>
+
+      <!-- ── Profile Layout ── -->
+      <h3 class="ds-subsection" style="font-size:1.1rem;font-weight:700;margin:48px 0 12px;color:#0F0F0F;font-family:'Abacaxi',system-ui,sans-serif">Profile / Member Area</h3>
+      <p style="font-size:.88rem;color:#6F6A66;margin-bottom:24px;font-family:'Abacaxi',system-ui,sans-serif">Orange gradient hero with logo bar, user info, and membership badge. Underline tab navigation below. White content area with form cards.</p>
+
+      <div class="yba-prof-c">
+        <div class="yba-prof-c__hero">
+          <div class="yba-prof-c__hero-top">
+            <span class="yba-prof-c__logo">YOGA BIBLE</span>
+            <div class="yba-prof-c__lang-hero">
+              <button class="is-active">DA</button>
+              <button>EN</button>
+            </div>
+          </div>
+          <div class="yba-prof-c__user">
+            <div class="yba-prof-c__avatar">SJ</div>
+            <div>
+              <p class="yba-prof-c__name">Sarah Jensen</p>
+              <p class="yba-prof-c__meta">sarah@yogabible.dk <span class="yba-badge">Unlimited Medlem</span></p>
+            </div>
+          </div>
+        </div>
+        <div class="yba-prof-c__tabs">
+          <button class="yba-prof-c__tab is-active">Profil</button>
+          <button class="yba-prof-c__tab">Skema</button>
+          <button class="yba-prof-c__tab">Butik</button>
+          <button class="yba-prof-c__tab">Mine Pas</button>
+          <button class="yba-prof-c__tab">Bes&oslash;g</button>
+          <button class="yba-prof-c__tab">Kvitteringer</button>
+        </div>
+        <div class="yba-prof-c__content">
+          <h3 class="yba-prof-c__card-title">Personlige Oplysninger</h3>
+          <div class="yba-prof-c__form-grid">
+            <label><span>FORNAVN</span><input type="text" value="Sarah"></label>
+            <label><span>EFTERNAVN</span><input type="text" value="Jensen"></label>
+            <label><span>EMAIL</span><input type="email" value="sarah@yogabible.dk" disabled style="opacity:.6"></label>
+            <label><span>TELEFON</span><input type="tel" value="+45 20 12 34 56"></label>
+            <label><span>F&Oslash;DSELSDATO</span><input type="date" value="1990-03-15"></label>
+          </div>
+          <button class="yba-prof-c__save">Gem &aelig;ndringer</button>
+        </div>
+      </div>
+
+    </div><!-- end .yba -->
+  </section>

@@ -1,0 +1,488 @@
+{% set t = i18n.code_of_conduct[lang or "da"] %}
+
+<!-- Hero — yb-hero unified design with yogic trust bar -->
+<section class="yb-hero">
+  <div class="yb-hero__glow"></div>
+  <div class="yb-hero__content">
+    <p class="yb-hero__tagline">{{ t.hero_tagline }}</p>
+    <h1 class="yb-hero__title">{{ t.hero_title }}</h1>
+    <p class="yb-hero__subtitle">{{ t.hero_subtitle }}</p>
+    <div class="yb-hero__line"></div>
+    <div class="yb-hero__ctas">
+      <a class="yb-btn yb-btn--primary yb-btn--large" href="#yb-coc">{{ t.hero_cta_read }}</a>
+      <a class="yb-btn yb-btn--outline-light yb-btn--large" href="mailto:info@yogabible.dk?subject=Code%20of%20Conduct%20%E2%80%94%20henvendelse">{{ t.hero_cta_contact }}</a>
+    </div>
+    <div class="yb-hero__trust">
+      <span>{{ t.hero_trust_ahimsa }}</span>
+      <span class="yb-hero__trust-dot"></span>
+      <span>{{ t.hero_trust_satya }}</span>
+      <span class="yb-hero__trust-dot"></span>
+      <span>{{ t.hero_trust_saucha }}</span>
+    </div>
+  </div>
+  <div class="yb-hero__scroll">
+    <span>Scroll</span>
+    <div class="yb-hero__scroll-line"></div>
+  </div>
+</section>
+
+<!-- Code of Conduct — Full v2 content -->
+<section id="yb-coc" class="yb-coc" aria-label="Code of Conduct">
+  <div class="yb-coc__inner">
+
+    <header class="yb-coc__head">
+      <p class="yb-coc__eyebrow">{{ t.eyebrow }}</p>
+      <h2 class="yb-coc__title">{{ t.section_title }}</h2>
+      <p class="yb-coc__lead">{{ t.lead }}</p>
+
+      <div class="yb-coc__meta">
+        <span class="yb-coc__metaItem"><strong>{{ t.meta_entity_label }}</strong> {{ t.meta_entity }}</span>
+        <span class="yb-coc__metaSep" aria-hidden="true">&bull;</span>
+        <span class="yb-coc__metaItem"><strong>{{ t.meta_cvr_label }}</strong> {{ t.meta_cvr }}</span>
+        <span class="yb-coc__metaSep" aria-hidden="true">&bull;</span>
+        <span class="yb-coc__metaItem"><strong>{{ t.meta_vat_label }}</strong> {{ t.meta_vat }}</span>
+      </div>
+
+      <div class="yb-coc__meta">
+        <span class="yb-coc__metaItem"><strong>{{ t.meta_address_label }}</strong> {{ t.meta_address }}</span>
+        <span class="yb-coc__metaSep" aria-hidden="true">&bull;</span>
+        <span class="yb-coc__metaItem"><strong>{{ t.meta_contact_label }}</strong> <a href="mailto:info@yogabible.dk">info@yogabible.dk</a> &bull; <a href="tel:+4553881209">+45 53 88 12 09</a></span>
+      </div>
+
+      <div class="yb-coc__meta">
+        <span class="yb-coc__metaItem"><strong>{{ t.meta_applies_label }}</strong> {{ t.meta_applies }}</span>
+      </div>
+
+      <div class="yb-coc__meta">
+        <span class="yb-coc__metaItem"><strong>{{ t.meta_updated_label }}</strong> <time datetime="{{ t.meta_updated_datetime }}">{{ t.meta_updated_date }}</time></span>
+      </div>
+
+      <div class="yb-coc__notice" role="note">
+        {{ t.notice | safe }}
+      </div>
+
+      <nav class="yb-coc__toc" aria-label="Table of contents">
+        <a class="yb-chip" href="#c1">{{ t.toc_1 }}</a>
+        <a class="yb-chip" href="#c2">{{ t.toc_2 }}</a>
+        <a class="yb-chip" href="#c3">{{ t.toc_3 }}</a>
+        <a class="yb-chip" href="#c4">{{ t.toc_4 }}</a>
+        <a class="yb-chip" href="#c5">{{ t.toc_5 }}</a>
+        <a class="yb-chip" href="#c6">{{ t.toc_6 }}</a>
+        <a class="yb-chip" href="#c7">{{ t.toc_7 }}</a>
+        <a class="yb-chip" href="#c8">{{ t.toc_8 }}</a>
+        <a class="yb-chip" href="#c9">{{ t.toc_9 }}</a>
+        <a class="yb-chip" href="#c10">{{ t.toc_10 }}</a>
+      </nav>
+    </header>
+
+    <div class="yb-coc__grid">
+
+      <!-- Sticky sidebar -->
+      <aside class="yb-coc__side" aria-label="Overview">
+        <div class="yb-coc-card">
+          <h2 class="yb-coc-card__title">{{ t.sidebar_title }}</h2>
+          <ul class="yb-coc-list">
+            <li>{{ t.sidebar_ahimsa | safe }}</li>
+            <li>{{ t.sidebar_satya | safe }}</li>
+            <li>{{ t.sidebar_saucha | safe }}</li>
+            <li>{{ t.sidebar_professionalism | safe }}</li>
+            <li>{{ t.sidebar_privacy | safe }}</li>
+          </ul>
+
+          <div class="yb-coc-divider" role="separator" aria-hidden="true"></div>
+
+          <h3 class="yb-coc-card__subtitle">{{ t.sidebar_concern_title }}</h3>
+          <p class="yb-coc-muted">{{ t.sidebar_concern_text }}</p>
+
+          <div class="yb-coc-actions">
+            <a class="yb-coc-btn yb-coc-btn--primary" href="mailto:info@yogabible.dk?subject=Code%20of%20Conduct%20%E2%80%94%20henvendelse">{{ t.sidebar_cta_contact }}</a>
+            <a class="yb-coc-btn yb-coc-btn--ghost" href="#c9">{{ t.sidebar_cta_report }}</a>
+          </div>
+
+          <div class="yb-coc-callout" style="margin-top:12px;">
+            {{ t.sidebar_emergency | safe }}
+          </div>
+        </div>
+      </aside>
+
+      <!-- Main accordion content -->
+      <div class="yb-coc__main" role="main" aria-label="Code of Conduct content">
+
+        {# --- Section 1: Principles --- #}
+        <details class="yb-coc-acc" id="c1">
+          <summary class="yb-coc-acc__sum">{{ t.s1_summary }}</summary>
+          <div class="yb-coc-acc__body">
+            <p>{{ t.s1_intro }}</p>
+            <ul class="yb-coc-list">
+              <li>{{ t.s1_respect | safe }}</li>
+              <li>{{ t.s1_safety | safe }}</li>
+              <li>{{ t.s1_integrity | safe }}</li>
+              <li>{{ t.s1_responsibility | safe }}</li>
+              <li>{{ t.s1_privacy | safe }}</li>
+            </ul>
+          </div>
+        </details>
+
+        {# --- Section 2: Respect & safety --- #}
+        <details class="yb-coc-acc" id="c2">
+          <summary class="yb-coc-acc__sum">{{ t.s2_summary }}</summary>
+          <div class="yb-coc-acc__body">
+            <p>{{ t.s2_intro }}</p>
+            <h3>{{ t.s2_heading }}</h3>
+            <ul class="yb-coc-list">
+              <li>{{ t.s2_sexual }}</li>
+              <li>{{ t.s2_threats }}</li>
+              <li>{{ t.s2_discrimination }}</li>
+              <li>{{ t.s2_pressure }}</li>
+              <li>{{ t.s2_unsafe }}</li>
+            </ul>
+            <div class="yb-coc-callout">{{ t.s2_callout | safe }}</div>
+          </div>
+        </details>
+
+        {# --- Section 3: Safety in practice --- #}
+        <details class="yb-coc-acc" id="c3">
+          <summary class="yb-coc-acc__sum">{{ t.s3_summary }}</summary>
+          <div class="yb-coc-acc__body">
+            <p>{{ t.s3_intro }}</p>
+
+            <h3>{{ t.s3_participants_heading }}</h3>
+            <ul class="yb-coc-list">
+              <li>{{ t.s3_listen | safe }}</li>
+              <li>{{ t.s3_inform | safe }}</li>
+              <li>{{ t.s3_sober | safe }}</li>
+              <li>{{ t.s3_quiet | safe }}</li>
+            </ul>
+
+            <h3>{{ t.s3_adjustments_heading }}</h3>
+            <p>{{ t.s3_adjustments_intro | safe }}</p>
+            <ul class="yb-coc-list">
+              <li>{{ t.s3_adjust_no | safe }}</li>
+              <li>{{ t.s3_adjust_respect | safe }}</li>
+              <li>{{ t.s3_adjust_communicate | safe }}</li>
+            </ul>
+            <div class="yb-coc-callout">{{ t.s3_adjust_callout | safe }}</div>
+
+            <h3>{{ t.s3_minors_heading }}</h3>
+            <p>{{ t.s3_minors_intro | safe }}</p>
+            <ul class="yb-coc-list">
+              <li>{{ t.s3_minors_consent | safe }}</li>
+              <li>{{ t.s3_minors_present | safe }}</li>
+              <li>{{ t.s3_minors_responsible | safe }}</li>
+              <li>{{ t.s3_minors_deny | safe }}</li>
+            </ul>
+          </div>
+        </details>
+
+        {# --- Section 4: Hygiene --- #}
+        <details class="yb-coc-acc" id="c4">
+          <summary class="yb-coc-acc__sum">{{ t.s4_summary }}</summary>
+          <div class="yb-coc-acc__body">
+            <p>{{ t.s4_intro }}</p>
+            <ul class="yb-coc-list">
+              <li>{{ t.s4_hygiene | safe }}</li>
+              <li>{{ t.s4_equipment | safe }}</li>
+              <li>{{ t.s4_waste | safe }}</li>
+              <li>{{ t.s4_damage | safe }}</li>
+            </ul>
+            <div class="yb-coc-callout">{{ t.s4_callout | safe }}</div>
+          </div>
+        </details>
+
+        {# --- Section 5: Education --- #}
+        <details class="yb-coc-acc" id="c5">
+          <summary class="yb-coc-acc__sum">{{ t.s5_summary }}</summary>
+          <div class="yb-coc-acc__body">
+            <p>{{ t.s5_intro }}</p>
+            <h3>{{ t.s5_academic_heading }}</h3>
+            <ul class="yb-coc-list">
+              <li>{{ t.s5_plagiarism | safe }}</li>
+              <li>{{ t.s5_sharing | safe }}</li>
+              <li>{{ t.s5_recording | safe }}</li>
+              <li>{{ t.s5_respect | safe }}</li>
+            </ul>
+            <h3>{{ t.s5_boundaries_heading }}</h3>
+            <p>{{ t.s5_boundaries_text }}</p>
+          </div>
+        </details>
+
+        {# --- Section 6: Online conduct --- #}
+        <details class="yb-coc-acc" id="c6">
+          <summary class="yb-coc-acc__sum">{{ t.s6_summary }}</summary>
+          <div class="yb-coc-acc__body">
+            <p>{{ t.s6_intro }}</p>
+            <ul class="yb-coc-list">
+              <li>{{ t.s6_harassment | safe }}</li>
+              <li>{{ t.s6_doxxing | safe }}</li>
+              <li>{{ t.s6_unauthorized | safe }}</li>
+              <li>{{ t.s6_brand | safe }}</li>
+            </ul>
+            <div class="yb-coc-callout">{{ t.s6_callout | safe }}</div>
+          </div>
+        </details>
+
+        {# --- Section 7: Recordings & IP --- #}
+        <details class="yb-coc-acc" id="c7">
+          <summary class="yb-coc-acc__sum">{{ t.s7_summary }}</summary>
+          <div class="yb-coc-acc__body">
+            <p>{{ t.s7_intro }}</p>
+            <h3>{{ t.s7_participants_heading }}</h3>
+            <ul class="yb-coc-list">
+              <li>{{ t.s7_no_recording | safe }}</li>
+              <li>{{ t.s7_no_sharing | safe }}</li>
+              <li>{{ t.s7_no_commercial | safe }}</li>
+            </ul>
+            <h3>{{ t.s7_yb_heading }}</h3>
+            <p>{{ t.s7_yb_text }}</p>
+            <div class="yb-coc-callout">{{ t.s7_callout | safe }}</div>
+          </div>
+        </details>
+
+        {# --- Section 8: Collaboration --- #}
+        <details class="yb-coc-acc" id="c8">
+          <summary class="yb-coc-acc__sum">{{ t.s8_summary }}</summary>
+          <div class="yb-coc-acc__body">
+            <p>{{ t.s8_intro }}</p>
+            <h3>{{ t.s8_confidentiality_heading }}</h3>
+            <ul class="yb-coc-list">
+              <li>{{ t.s8_confidentiality_1 }}</li>
+              <li>{{ t.s8_confidentiality_2 }}</li>
+            </ul>
+            <h3>{{ t.s8_nonsolicit_heading }}</h3>
+            <p>{{ t.s8_nonsolicit_text | safe }}</p>
+            <div class="yb-coc-callout">{{ t.s8_callout | safe }}</div>
+          </div>
+        </details>
+
+        {# --- Section 9: Reporting --- #}
+        <details class="yb-coc-acc" id="c9">
+          <summary class="yb-coc-acc__sum">{{ t.s9_summary }}</summary>
+          <div class="yb-coc-acc__body">
+            <p>{{ t.s9_intro }}</p>
+            <h3>{{ t.s9_how_heading }}</h3>
+            <ul class="yb-coc-list">
+              <li>{{ t.s9_email | safe }}</li>
+              <li>{{ t.s9_phone | safe }}</li>
+              <li>{{ t.s9_studio | safe }}</li>
+            </ul>
+            <h3>{{ t.s9_need_heading }}</h3>
+            <ul class="yb-coc-list">
+              <li>{{ t.s9_need_1 }}</li>
+              <li>{{ t.s9_need_2 }}</li>
+              <li>{{ t.s9_need_3 }}</li>
+              <li>{{ t.s9_need_4 }}</li>
+            </ul>
+            <div class="yb-coc-callout">{{ t.s9_callout | safe }}</div>
+          </div>
+        </details>
+
+        {# --- Section 10: Consequences --- #}
+        <details class="yb-coc-acc" id="c10">
+          <summary class="yb-coc-acc__sum">{{ t.s10_summary }}</summary>
+          <div class="yb-coc-acc__body">
+            <p>{{ t.s10_intro }}</p>
+            <h3>{{ t.s10_heading }}</h3>
+            <ul class="yb-coc-list">
+              <li>{{ t.s10_warning }}</li>
+              <li>{{ t.s10_pause }}</li>
+              <li>{{ t.s10_removal }}</li>
+              <li>{{ t.s10_digital }}</li>
+              <li>{{ t.s10_minors }}</li>
+              <li>{{ t.s10_contract }}</li>
+              <li>{{ t.s10_police }}</li>
+            </ul>
+            <div class="yb-coc-callout">{{ t.s10_callout | safe }}</div>
+          </div>
+        </details>
+
+        {# --- Bottom card --- #}
+        <div class="yb-coc__bottomCard">
+          <div class="yb-coc-card">
+            <h2 class="yb-coc-card__title">{{ t.bottom_title }}</h2>
+            <p class="yb-coc-muted">{{ t.bottom_text }}</p>
+            <div class="yb-coc-actions">
+              <a class="yb-coc-btn yb-coc-btn--primary" href="mailto:info@yogabible.dk?subject=Sp%C3%B8rgsm%C3%A5l%20til%20Code%20of%20Conduct">{{ t.bottom_cta_write }}</a>
+              <a class="yb-coc-btn yb-coc-btn--ghost" href="#c1">{{ t.bottom_cta_principles }}</a>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+  /* =========================================================
+     Code of Conduct v2 — scoped styles
+     ========================================================= */
+  #yb-coc {
+    --coc-accent: #f75c03;
+    --coc-bg: #FCFBF9;
+    --coc-card: #ffffff;
+    --coc-border: #EBE7E3;
+    --coc-text: #1A1A1A;
+    --coc-muted: #6B6B6B;
+    font-family: 'Abacaxi', "Helvetica Neue", Helvetica, Arial, system-ui, -apple-system, sans-serif;
+    color: var(--coc-text);
+    background: var(--coc-bg);
+    padding: 72px 20px;
+  }
+  #yb-coc, #yb-coc * { box-sizing: border-box; }
+  #yb-coc .yb-coc__inner { max-width: 1120px; margin: 0 auto; }
+
+  /* Header */
+  #yb-coc .yb-coc__eyebrow {
+    letter-spacing: .12em; text-transform: uppercase; font-size: 12px;
+    color: var(--coc-muted); margin: 0 0 10px;
+  }
+  #yb-coc .yb-coc__title {
+    margin: 0 0 10px; font-size: 44px; line-height: 1.08; letter-spacing: -.02em;
+  }
+  #yb-coc .yb-coc__lead {
+    margin: 0 0 16px; font-size: 16px; line-height: 1.65; color: #2a2a2a; max-width: 78ch;
+  }
+
+  /* Meta rows */
+  #yb-coc .yb-coc__meta {
+    display: flex; flex-wrap: wrap; gap: 10px; align-items: center;
+    color: var(--coc-muted); font-size: 13px; margin: 0 0 10px;
+  }
+  #yb-coc .yb-coc__metaSep { opacity: .65; }
+  #yb-coc .yb-coc__meta a {
+    color: var(--coc-accent);
+    text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 3px;
+  }
+
+  /* Notice */
+  #yb-coc .yb-coc__notice {
+    background: #fff; border: 1px solid var(--coc-border);
+    border-radius: 16px; padding: 14px 16px; line-height: 1.55; margin: 10px 0 18px;
+  }
+
+  /* TOC chips */
+  #yb-coc .yb-coc__toc { display: flex; flex-wrap: wrap; gap: 10px; margin: 14px 0 0; }
+  #yb-coc .yb-chip {
+    display: inline-flex; align-items: center;
+    border: 1px solid var(--coc-border); background: #fff;
+    border-radius: 999px; padding: 10px 12px; font-size: 13px;
+    color: var(--coc-text); text-decoration: none;
+    transition: transform .15s ease, box-shadow .15s ease, border-color .15s ease;
+  }
+  #yb-coc .yb-chip:hover {
+    border-color: rgba(247, 92, 3, .45);
+    box-shadow: 0 18px 60px rgba(0, 0, 0, .10);
+    transform: translateY(-1px);
+  }
+
+  /* Grid layout */
+  #yb-coc .yb-coc__grid { display: grid; gap: 18px; margin-top: 26px; }
+  @media (min-width: 980px) {
+    #yb-coc .yb-coc__grid { grid-template-columns: 360px minmax(0, 1fr); align-items: start; }
+    #yb-coc .yb-coc__side { position: sticky; top: 20px; }
+  }
+
+  /* Cards */
+  #yb-coc .yb-coc-card {
+    background: var(--coc-card); border: 1px solid var(--coc-border);
+    border-radius: 20px; padding: 18px;
+    box-shadow: 0 18px 60px rgba(0, 0, 0, .10);
+  }
+  #yb-coc .yb-coc-card__title { margin: 0 0 10px; font-size: 16px; letter-spacing: -.01em; }
+  #yb-coc .yb-coc-card__subtitle {
+    margin: 0 0 8px; font-size: 13px; color: var(--coc-muted);
+    text-transform: uppercase; letter-spacing: .10em;
+  }
+
+  /* Utility */
+  #yb-coc .yb-coc-divider { height: 1px; background: var(--coc-border); margin: 14px 0; }
+  #yb-coc .yb-coc-list { margin: 0; padding-left: 18px; color: #2a2a2a; line-height: 1.7; font-size: 14px; }
+  #yb-coc .yb-coc-muted { color: var(--coc-muted); line-height: 1.6; font-size: 14px; margin: 0; }
+
+  /* Accordions */
+  #yb-coc .yb-coc-acc {
+    border: 1px solid var(--coc-border); border-radius: 20px; background: #fff;
+    margin: 0 0 12px; overflow: hidden; scroll-margin-top: 18px;
+  }
+  #yb-coc .yb-coc-acc__sum {
+    list-style: none; cursor: pointer; padding: 16px; font-weight: 700;
+    letter-spacing: -.01em; display: flex; align-items: center;
+    justify-content: space-between; gap: 12px; outline: none;
+  }
+  #yb-coc details > summary::-webkit-details-marker { display: none; }
+  #yb-coc .yb-coc-acc__sum::after {
+    content: "\25BE"; color: var(--coc-muted); font-weight: 600;
+    transition: transform .15s ease;
+  }
+  #yb-coc details[open] .yb-coc-acc__sum::after { transform: rotate(180deg); }
+  #yb-coc .yb-coc-acc__sum:focus-visible {
+    box-shadow: 0 0 0 3px rgba(247, 92, 3, .22); border-radius: 14px; margin: 6px;
+  }
+  #yb-coc .yb-coc-acc__body {
+    padding: 0 16px 16px; line-height: 1.7; font-size: 14px; color: #2a2a2a;
+  }
+  #yb-coc .yb-coc-acc__body a {
+    color: var(--coc-accent); text-decoration: underline;
+    text-decoration-thickness: 1px; text-underline-offset: 3px;
+  }
+  #yb-coc .yb-coc-acc__body h3 { margin: 14px 0 8px; font-size: 14px; letter-spacing: -.01em; }
+
+  /* Callout */
+  #yb-coc .yb-coc-callout {
+    border: 1px solid rgba(247, 92, 3, .28); background: rgba(247, 92, 3, .06);
+    border-radius: 16px; padding: 12px; margin: 12px 0;
+  }
+
+  /* Bottom card + actions */
+  #yb-coc .yb-coc__bottomCard { margin-top: 10px; }
+  #yb-coc .yb-coc-actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 14px; }
+
+  /* Buttons (scoped) */
+  #yb-coc .yb-coc-btn {
+    display: inline-flex; align-items: center; justify-content: center;
+    border-radius: 999px; padding: 10px 14px; font-size: 13px;
+    text-decoration: none; border: 1px solid var(--coc-border);
+    transition: transform .15s ease, box-shadow .15s ease, filter .15s ease, background .15s ease, color .15s ease;
+    white-space: nowrap;
+  }
+  #yb-coc .yb-coc-btn--primary {
+    background: var(--coc-accent); border-color: var(--coc-accent);
+    color: #fff; box-shadow: 0 18px 60px rgba(0, 0, 0, .12);
+  }
+  #yb-coc .yb-coc-btn--primary:hover { filter: brightness(.98); transform: translateY(-1px); }
+  #yb-coc .yb-coc-btn--ghost {
+    background: #fff; color: var(--coc-accent); border-color: rgba(247, 92, 3, .45);
+  }
+  #yb-coc .yb-coc-btn--ghost:hover { background: rgba(247, 92, 3, .06); transform: translateY(-1px); }
+
+  @media (max-width: 520px) {
+    #yb-coc .yb-coc__title { font-size: 34px; }
+  }
+</style>
+
+<script>
+  (function () {
+    var root = document.getElementById('yb-coc');
+    if (!root) return;
+
+    var details = root.querySelectorAll('details.yb-coc-acc');
+    details.forEach(function (d) {
+      d.addEventListener('toggle', function () {
+        if (!d.open) return;
+        details.forEach(function (other) { if (other !== d) other.open = false; });
+      });
+    });
+
+    function openFromHash() {
+      var id = (window.location.hash || '').replace('#', '');
+      if (!id) return;
+      var target = root.querySelector('#' + CSS.escape(id));
+      if (target && target.tagName.toLowerCase() === 'details') {
+        target.open = true;
+        target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    }
+    window.addEventListener('hashchange', openFromHash);
+    setTimeout(openFromHash, 40);
+  })();
+</script>

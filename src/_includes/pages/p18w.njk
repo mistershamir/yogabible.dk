@@ -1,0 +1,1107 @@
+{% set t = i18n.p18w[lang or "da"] %}
+
+<!-- ═══════════════════════════════════════
+     1. HERO — Primary Dark Cinematic
+     ═══════════════════════════════════════ -->
+<section class="yb-hero">
+  <div class="yb-hero__glow"></div>
+  <div class="yb-hero__content">
+    <p class="yb-hero__tagline">{{ t.hero_tagline }}</p>
+    <h1 class="yb-hero__title">{{ t.hero_title | safe }}</h1>
+    <p class="yb-hero__subtitle">{{ t.hero_subtitle }}</p>
+    <div class="yb-hero__line"></div>
+    <div class="yb-hero__ctas">
+      <button onclick="openYBScheduleModal('18w')" class="yb-btn yb-btn--primary yb-btn--large">{{ t.hero_cta_schedule }}</button>
+      <a href="#program-overview" class="yb-btn yb-btn--outline-white yb-btn--large">{{ t.hero_cta_more }}</a>
+    </div>
+    <div class="yb-hero__trust">
+      <span>{{ t.hero_trust1 }}</span>
+      <span class="yb-hero__trust-dot"></span>
+      <span>{{ t.hero_trust2 }}</span>
+      <span class="yb-hero__trust-dot"></span>
+      <span>{{ t.hero_trust3 }}</span>
+    </div>
+  </div>
+  <div class="yb-hero__scroll">
+    <span>Scroll</span>
+    <div class="yb-hero__scroll-line"></div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════
+     2. WHAT YOU LEARN — Lifting Cards
+     ═══════════════════════════════════════ -->
+<section class="p18-curriculum" id="program-overview">
+  <div class="container">
+    <span class="p18-eyebrow">{{ t.curr_eyebrow }}</span>
+    <h2 class="p18-section-title">{{ t.curr_title }}</h2>
+    <p class="p18-section-sub">{{ t.curr_subtitle }}</p>
+
+    <div class="p18-curr-grid">
+      <div class="p18-curr-card">
+        <div class="p18-curr-card__accent"></div>
+        <h3>{{ t.curr1_title }}</h3>
+        <p>{{ t.curr1_desc }}</p>
+      </div>
+
+      <div class="p18-curr-card">
+        <div class="p18-curr-card__accent"></div>
+        <h3>{{ t.curr2_title }}</h3>
+        <p>{{ t.curr2_desc }}</p>
+      </div>
+
+      <div class="p18-curr-card">
+        <div class="p18-curr-card__accent"></div>
+        <h3>{{ t.curr3_title }}</h3>
+        <p>{{ t.curr3_desc }}</p>
+      </div>
+
+      <div class="p18-curr-card">
+        <div class="p18-curr-card__accent"></div>
+        <h3>{{ t.curr4_title }}</h3>
+        <p>{{ t.curr4_desc }}</p>
+      </div>
+
+      <div class="p18-curr-card">
+        <div class="p18-curr-card__accent"></div>
+        <h3>{{ t.curr5_title }}</h3>
+        <p>{{ t.curr5_desc }}</p>
+      </div>
+
+      <div class="p18-curr-card">
+        <div class="p18-curr-card__accent"></div>
+        <h3>{{ t.curr6_title }}</h3>
+        <p>{{ t.curr6_desc }}</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════
+     3. TRAINEE INTERVIEW — Video with Sound
+     ═══════════════════════════════════════ -->
+<section class="p18-video-interview">
+  <div class="container">
+    <span class="p18-eyebrow">{{ t.video_eyebrow }}</span>
+    <h2 class="p18-section-title">{{ t.video_title }}</h2>
+    <p class="p18-section-sub">{{ t.video_subtitle }}</p>
+
+    <div class="p18-video-interview__wrap">
+      <iframe
+        src="https://drive.google.com/file/d/1WWanYni0tZKJ656czw_N2Vf6thCKFwU8/preview?t=10"
+        allow="autoplay; encrypted-media"
+        allowfullscreen
+        loading="lazy"
+        style="width:100%;height:100%;border:none;">
+      </iframe>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════
+     4. CERTIFICATION — Yoga Alliance RYT-200
+     ═══════════════════════════════════════ -->
+<section class="p18-certification">
+  <div class="container">
+    <span class="p18-eyebrow">{{ t.cert_eyebrow }}</span>
+    <h2 class="p18-section-title">{{ t.cert_title }}</h2>
+    <p class="p18-section-sub">{{ t.cert_subtitle }}</p>
+
+    <div class="p18-cert-grid">
+
+      <!-- Left: Yoga styles you master -->
+      <div>
+        <h3 class="p18-cert-subtitle">{{ t.cert_styles_title }}</h3>
+        <div class="p18-cert-style-cards">
+          <div class="p18-cert-style">
+            <div class="p18-cert-style__icon">🧘</div>
+            <div class="p18-cert-style__text">
+              <h4>{{ t.cert_style1_title }}</h4>
+              <p>{{ t.cert_style1_desc }}</p>
+            </div>
+          </div>
+          <div class="p18-cert-style">
+            <div class="p18-cert-style__icon">🌊</div>
+            <div class="p18-cert-style__text">
+              <h4>{{ t.cert_style2_title }}</h4>
+              <p>{{ t.cert_style2_desc }}</p>
+            </div>
+          </div>
+          <div class="p18-cert-style">
+            <div class="p18-cert-style__icon">🌙</div>
+            <div class="p18-cert-style__text">
+              <h4>{{ t.cert_style3_title }}</h4>
+              <p>{{ t.cert_style3_desc }}</p>
+            </div>
+          </div>
+          <div class="p18-cert-style">
+            <div class="p18-cert-style__icon">🔥</div>
+            <div class="p18-cert-style__text">
+              <h4>{{ t.cert_style4_title }}</h4>
+              <p>{{ t.cert_style4_desc }}</p>
+            </div>
+          </div>
+          <div class="p18-cert-style">
+            <div class="p18-cert-style__icon">🧠</div>
+            <div class="p18-cert-style__text">
+              <h4>{{ t.cert_style5_title }}</h4>
+              <p>{{ t.cert_style5_desc }}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right: What it opens for you -->
+      <div>
+        <h3 class="p18-cert-subtitle">{{ t.cert_doors_title }}</h3>
+        <ul class="p18-cert-list">
+          <li>
+            <span class="p18-cert-check" aria-hidden="true">✓</span>
+            <span>{{ t.cert_door1 | safe }}</span>
+          </li>
+          <li>
+            <span class="p18-cert-check" aria-hidden="true">✓</span>
+            <span>{{ t.cert_door2 | safe }}</span>
+          </li>
+          <li>
+            <span class="p18-cert-check" aria-hidden="true">✓</span>
+            <span>{{ t.cert_door3 | safe }}</span>
+          </li>
+          <li>
+            <span class="p18-cert-check" aria-hidden="true">✓</span>
+            <span>{{ t.cert_door4 | safe }}</span>
+          </li>
+          <li>
+            <span class="p18-cert-check" aria-hidden="true">✓</span>
+            <span>{{ t.cert_door5 | safe }}</span>
+          </li>
+        </ul>
+      </div>
+
+    </div>
+
+    <p class="p18-cert-closing">{{ t.cert_closing }}</p>
+
+    <div class="p18-cert-cta">
+      <a href="{% if lang == 'en' %}/en/om-200hrs-yogalreruddannelser{% else %}/om-200hrs-yogalreruddannelser{% endif %}" class="btn btn--primary btn--large">{{ t.cert_cta }}</a>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════
+     5. SCHEDULE & FLEXIBILITY — Unique Dual Format
+     (with scroll-draw vine accent)
+     ═══════════════════════════════════════ -->
+<section class="p18-flexibility">
+  <div class="p18-flexibility__vine" data-p18-scroll-draw>
+    <svg viewBox="0 0 120 800" preserveAspectRatio="xMidYMid meet" fill="none">
+      <path class="p18-vine-shadow" fill="none"
+            d="M 60,0 C 80,80 100,120 80,200 C 60,280 40,300 50,380 C 60,460 90,500 70,580 C 50,660 60,720 60,800"
+            stroke="rgba(247,92,3,0.08)" stroke-width="1.5" stroke-linecap="round" />
+      <path class="p18-vine-path" fill="none"
+            d="M 60,0 C 80,80 100,120 80,200 C 60,280 40,300 50,380 C 60,460 90,500 70,580 C 50,660 60,720 60,800"
+            stroke="#f75c03" stroke-width="2" stroke-linecap="round" />
+    </svg>
+  </div>
+
+  <div class="container">
+    <span class="p18-eyebrow">{{ t.flex_eyebrow }}</span>
+    <h2 class="p18-section-title">{{ t.flex_title }}</h2>
+    <p class="p18-section-sub">{{ t.flex_subtitle }}</p>
+
+    <div class="p18-flex-grid">
+      <div class="p18-flex-card">
+        <div class="p18-flex-card__icon">⇄</div>
+        <h3>{{ t.flex1_title }}</h3>
+        <p>{{ t.flex1_desc }}</p>
+      </div>
+      <div class="p18-flex-card">
+        <div class="p18-flex-card__icon">⏱</div>
+        <h3>{{ t.flex2_title }}</h3>
+        <p>{{ t.flex2_desc }}</p>
+      </div>
+      <div class="p18-flex-card">
+        <div class="p18-flex-card__icon">✦</div>
+        <h3>{{ t.flex3_title }}</h3>
+        <p>{{ t.flex3_desc }}</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════
+     5b. PROGRAM FORMAT — Weekday / Weekend Tracks
+     ═══════════════════════════════════════ -->
+<section class="yb-tracks" aria-labelledby="tracks-title">
+  <div class="yb-tracks__inner container">
+    <p class="yb-tracks__kicker">{{ t.tracks_kicker }}</p>
+    <h2 id="tracks-title" class="yb-tracks__title">{{ t.tracks_title }}</h2>
+    <p class="yb-tracks__subtitle">{{ t.tracks_subtitle }}</p>
+
+    <p class="yb-tracks__lead">{{ t.tracks_lead | safe }}</p>
+
+    <!-- Cards -->
+    <div class="yb-tracks__cards">
+      <article class="yb-track-card">
+        <div class="yb-track-card__icon">☀️</div>
+        <div class="yb-track-card__content">
+          <h3 class="yb-track-card__title">{{ t.tracks_weekday_title }}</h3>
+          <p class="yb-track-card__time">{{ t.tracks_weekday_time }}</p>
+          <p class="yb-track-card__text">{{ t.tracks_weekday_desc }}</p>
+        </div>
+      </article>
+
+      <article class="yb-track-card">
+        <div class="yb-track-card__icon">🌙</div>
+        <div class="yb-track-card__content">
+          <h3 class="yb-track-card__title">{{ t.tracks_weekend_title }}</h3>
+          <p class="yb-track-card__time">{{ t.tracks_weekend_time }}</p>
+          <p class="yb-track-card__text">{{ t.tracks_weekend_desc }}</p>
+        </div>
+      </article>
+
+      <article class="yb-track-card yb-track-card--highlight">
+        <div class="yb-track-card__icon">↔️</div>
+        <div class="yb-track-card__content">
+          <h3 class="yb-track-card__title">{{ t.tracks_flex_title }}</h3>
+          <p class="yb-track-card__time">{{ t.tracks_flex_time }}</p>
+          <p class="yb-track-card__text">{{ t.tracks_flex_desc }}</p>
+        </div>
+      </article>
+    </div>
+
+    <!-- Mirror example -->
+    <div class="yb-mirror">
+      <p class="yb-mirror__label">{{ t.mirror_label }}</p>
+      <div class="yb-mirror__row">
+        <div class="yb-mirror__item">
+          <strong>Workshop 03</strong>
+          <span>{{ t.mirror_weekday }}</span>
+        </div>
+        <div class="yb-mirror__arrow">↔</div>
+        <div class="yb-mirror__item">
+          <strong>Workshop 03</strong>
+          <span>{{ t.mirror_weekend }}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Video -->
+    <figure class="yb-tracks__video">
+      <div class="yb-tracks__video-container">
+        <video id="tracksVideo" preload="metadata" playsinline>
+          <source src="https://www.yogabible.dk/s/Bliv-Yogalrer_-Tidligere-Elever-Deler-Deres-Erfaringer-fra-Vores-Yogauddannelse-i-Kbenhavn_Weekday_W.mp4" type="video/mp4">
+        </video>
+        <div class="yb-tracks__video-overlay" id="tracksVideoOverlay">
+          <button class="yb-tracks__video-btn" id="tracksVideoBtn" aria-label="{{ t.tracks_video_play_aria }}">
+            <span>▶</span>
+          </button>
+          <span class="yb-tracks__video-label">{{ t.tracks_video_label }}</span>
+        </div>
+      </div>
+      <figcaption class="yb-tracks__video-caption">{{ t.tracks_video_caption }}</figcaption>
+    </figure>
+
+    <!-- Key points -->
+    <ul class="yb-tracks__points">
+      <li>
+        <span class="yb-point-icon">✓</span>
+        <span>{{ t.tracks_point1 }}</span>
+      </li>
+      <li>
+        <span class="yb-point-icon">✓</span>
+        <span>{{ t.tracks_point2 }}</span>
+      </li>
+      <li>
+        <span class="yb-point-icon">✓</span>
+        <span>{{ t.tracks_point3 }}</span>
+      </li>
+    </ul>
+
+    <!-- Fallback option -->
+    <div class="yb-fallback">
+      <div class="yb-fallback__icon">🎥</div>
+      <div class="yb-fallback__content">
+        <p class="yb-fallback__title">{{ t.fallback_title }}</p>
+        <p class="yb-fallback__text">{{ t.fallback_text | safe }}</p>
+      </div>
+    </div>
+
+    <!-- Scenarios -->
+    <div class="yb-scenarios">
+      <div class="yb-scenario">
+        <h4 class="yb-scenario__title">{{ t.scenario1_title }}</h4>
+        <p class="yb-scenario__text">{{ t.scenario1_text }}</p>
+      </div>
+      <div class="yb-scenario">
+        <h4 class="yb-scenario__title">{{ t.scenario2_title }}</h4>
+        <p class="yb-scenario__text">{{ t.scenario2_text }}</p>
+      </div>
+    </div>
+
+    <!-- FAQ -->
+    <div class="yb-tracks__faq">
+      <details class="yb-faq-item">
+        <summary class="yb-faq-item__summary">{{ t.tracks_faq1_q }}</summary>
+        <p class="yb-faq-item__answer">{{ t.tracks_faq1_a }}</p>
+      </details>
+      <details class="yb-faq-item">
+        <summary class="yb-faq-item__summary">{{ t.tracks_faq2_q }}</summary>
+        <p class="yb-faq-item__answer">{{ t.tracks_faq2_a }}</p>
+      </details>
+      <details class="yb-faq-item">
+        <summary class="yb-faq-item__summary">{{ t.tracks_faq3_q }}</summary>
+        <p class="yb-faq-item__answer">{{ t.tracks_faq3_a }}</p>
+      </details>
+    </div>
+
+    <!-- CTA -->
+    <div class="yb-tracks__cta">
+      <p class="yb-tracks__cta-hint">{{ t.tracks_cta_hint }}</p>
+      <button onclick="openYBScheduleModal('18w')" class="yb-btn yb-btn--cta">{{ t.tracks_cta_button }}</button>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════
+     6. VERTICAL VIDEO + GRADUATION QUOTE
+     ═══════════════════════════════════════ -->
+<section class="p18-testimonial-video">
+  <div class="container">
+    <div class="p18-testimonial-video__grid">
+      <div class="p18-testimonial-video__media">
+        <video autoplay muted loop playsinline preload="metadata">
+          <source src="/assets/video/yoga-practice-loop.mp4" type="video/mp4">
+        </video>
+      </div>
+      <div class="p18-testimonial-video__content">
+        <p class="p18-testimonial-video__quote">{{ t.testimonial_quote }}</p>
+        <p class="p18-testimonial-video__attribution">
+          <strong>{{ t.testimonial_attribution }}</strong>
+        </p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════
+     7. INVESTMENT — 23.750 DKK
+     ═══════════════════════════════════════ -->
+<section class="p18-investment">
+  <div class="container">
+    <span class="p18-eyebrow">{{ t.invest_eyebrow }}</span>
+    <h2 class="p18-section-title">{{ t.invest_title }}</h2>
+
+    <div class="p18-invest-box">
+      <div class="p18-invest-price">
+        <span class="p18-invest-price__amount">{{ t.invest_amount }}</span>
+        <span class="p18-invest-price__label">{{ t.invest_label }}</span>
+      </div>
+
+      <div class="p18-invest-includes">
+        <h4>{{ t.invest_incl_title }}</h4>
+        <ul>
+          <li>{{ t.invest_incl1 }}</li>
+          <li>{{ t.invest_incl2 }}</li>
+          <li>{{ t.invest_incl3 }}</li>
+          <li>{{ t.invest_incl4 }}</li>
+          <li>{{ t.invest_incl5 }}</li>
+          <li>{{ t.invest_incl6 }}</li>
+        </ul>
+      </div>
+
+      <div class="p18-invest-divider"></div>
+
+      <div class="p18-invest-payment">
+        <h4>{{ t.invest_pay_title }}</h4>
+        <p style="font-size:13px;color:#6F6A66;margin:0 0 12px;">{{ t.invest_deposit_note }}</p>
+        <div class="p18-invest-options">
+          <div class="p18-invest-option">
+            <span class="p18-invest-option__label">{{ t.invest_pay1_label }}</span>
+            <span class="p18-invest-option__value">{{ t.invest_pay1_value }}</span>
+          </div>
+          <div class="p18-invest-option">
+            <span class="p18-invest-option__label">{{ t.invest_pay2_label }}</span>
+            <span class="p18-invest-option__value">{{ t.invest_pay2_value }}</span>
+          </div>
+          <div class="p18-invest-option">
+            <span class="p18-invest-option__label">{{ t.invest_pay3_label }}</span>
+            <span class="p18-invest-option__value">{{ t.invest_pay3_value }}</span>
+          </div>
+        </div>
+      </div>
+
+      <button onclick="openYBScheduleModal('18w')" class="btn btn--primary btn--large" style="width:100%;margin-top:1.5rem">{{ t.invest_cta }}</button>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════
+     8. EARLY DEPOSIT — Get Studio Access Now
+     ═══════════════════════════════════════ -->
+<section class="yb-early" aria-label="{{ t.early_kicker }}">
+  <div class="yb-early-wrap container">
+    <figure class="yb-early-media">
+      <img
+        src="https://www.yogabible.dk/s/Start_with_Hot_Yoga_Copenhagen.jpg"
+        alt="{{ t.early_img_alt }}"
+        loading="lazy"
+        decoding="async"
+      />
+    </figure>
+
+    <div class="yb-early-copy">
+      <p class="yb-early-kicker">{{ t.early_kicker }}</p>
+      <h2 class="yb-early-title">{{ t.early_title }}</h2>
+
+      <div class="yb-early-meta">
+        <span class="yb-meta-item">
+          <span class="yb-meta-icon">📍</span>
+          {{ t.early_location }}
+        </span>
+        <span class="yb-meta-divider">•</span>
+        <span class="yb-meta-item">{{ t.early_classes }}</span>
+      </div>
+
+      <p class="yb-early-styles">{{ t.early_styles }}</p>
+
+      <ul class="yb-early-list" role="list">
+        <li>
+          <span class="yb-check" aria-hidden="true">✓</span>
+          <span>{{ t.early1 }}</span>
+        </li>
+        <li>
+          <span class="yb-check" aria-hidden="true">✓</span>
+          <span>{{ t.early2 }}</span>
+        </li>
+        <li>
+          <span class="yb-check" aria-hidden="true">✓</span>
+          <span>{{ t.early3 }}</span>
+        </li>
+        <li>
+          <span class="yb-check" aria-hidden="true">✓</span>
+          <span>{{ t.early4 }}</span>
+        </li>
+      </ul>
+
+      <div class="yb-early-cta">
+        <a class="yb-btn yb-btn--cta"
+           href="https://clients.mindbodyonline.com/classic/ws?studioid=5748831&stype=41&sTG=46&prodId=100078"
+           target="_blank" rel="noopener">{{ t.early_cta }}</a>
+        <div class="yb-early-pricing">
+          <span class="yb-deposit">{{ t.early_deposit }}</span>
+          <span class="yb-installment">{{ t.early_installment }}</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════
+     9. REVIEWS — Google Reviews Carousel
+     ═══════════════════════════════════════ -->
+<section class="yb-reviews" id="yb-reviews-section" aria-labelledby="yb-reviews-title">
+  <div class="yb-reviews__inner container">
+    <p class="yb-reviews__kicker">{{ t.reviews_kicker }}</p>
+    <h2 id="yb-reviews-title" class="yb-reviews__title">{{ t.reviews_title }}</h2>
+
+    <p class="yb-reviews__lead">{{ t.reviews_lead | safe }}</p>
+
+    <div class="yb-reviews__carousel">
+      <button class="yb-reviews__nav yb-reviews__nav--prev" aria-label="{{ t.reviews_prev_aria }}" data-prev type="button">❮</button>
+
+      <div class="yb-reviews__viewport" data-viewport>
+        <div class="yb-reviews__track" data-track></div>
+      </div>
+
+      <button class="yb-reviews__nav yb-reviews__nav--next" aria-label="{{ t.reviews_next_aria }}" data-next type="button">❯</button>
+    </div>
+
+    <div class="yb-reviews__footer">
+      <div class="yb-reviews__rating">
+        <span class="yb-reviews__stars" aria-hidden="true">★★★★★</span>
+        <span class="yb-reviews__score">{{ t.reviews_rating }}</span>
+      </div>
+      <a class="yb-reviews__link" target="_blank" rel="noopener"
+         href="https://search.google.com/local/reviews?placeid=ChIJpQHE13BTUkYRY6oGEONORHM">
+        {{ t.reviews_link }}
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════
+     10. VISIT STUDIO — Gallery + Calendly Booking
+     ═══════════════════════════════════════ -->
+<section class="yb-visit" id="yb-visit">
+  <div class="yb-visit__wrap container">
+
+    <div class="yb-visit__copy">
+      <p class="yb-visit__kicker">{{ t.visit_kicker }}</p>
+      <h2 class="yb-visit__title">{{ t.visit_title }}</h2>
+
+      <p class="yb-visit__lead">{{ t.visit_lead | safe }}</p>
+
+      <ul class="yb-visit__list" role="list">
+        <li>
+          <span class="yb-visit__check" aria-hidden="true">✓</span>
+          <span>{{ t.visit1 }}</span>
+        </li>
+        <li>
+          <span class="yb-visit__check" aria-hidden="true">✓</span>
+          <span>{{ t.visit2 }}</span>
+        </li>
+        <li>
+          <span class="yb-visit__check" aria-hidden="true">✓</span>
+          <span>{{ t.visit3 }}</span>
+        </li>
+      </ul>
+
+      <p class="yb-visit__note">{{ t.visit_note | safe }}</p>
+
+      <button class="yb-btn yb-btn--cta" type="button" data-open="visit-modal">
+        {{ t.visit_cta }}
+      </button>
+    </div>
+
+    <div class="yb-visit__media">
+      <div class="yb-visit__slider">
+        <div class="yb-visit__viewport">
+          <div class="yb-visit__track" id="visit-track">
+            <figure class="yb-visit__slide">
+              <img src="https://www.yogabible.dk/s/Yoga_bible_studio_Kbenhavn_Hot_Yoga_Copenhagen01" alt="{{ t.visit_img1_alt }}" loading="lazy">
+            </figure>
+            <figure class="yb-visit__slide">
+              <img src="https://www.yogabible.dk/s/Yoga_bible_studio_Kbenhavn_Hot_Yoga_Copenhagen01_Yoga_Teacher_Training_space02" alt="{{ t.visit_img2_alt }}" loading="lazy">
+            </figure>
+            <figure class="yb-visit__slide">
+              <img src="https://www.yogabible.dk/s/Yoga_Bible_Studio_Torvegade_66_Christianshavn" alt="{{ t.visit_img3_alt }}" loading="lazy">
+            </figure>
+            <figure class="yb-visit__slide">
+              <img src="https://www.yogabible.dk/s/Yoga_bible_shower_facilities" alt="{{ t.visit_img4_alt }}" loading="lazy">
+            </figure>
+            <figure class="yb-visit__slide">
+              <img src="https://www.yogabible.dk/s/Christianshavn_Yoga_Bible_Central_Location.jpg" alt="{{ t.visit_img5_alt }}" loading="lazy">
+            </figure>
+            <figure class="yb-visit__slide">
+              <img src="https://www.yogabible.dk/s/christianshavn_metro_Station_studio_central_Yoga_Bible_Hot_Yoga_Copenhagen_02.jpeg" alt="{{ t.visit_img6_alt }}" loading="lazy">
+            </figure>
+            <figure class="yb-visit__slide">
+              <img src="https://www.yogabible.dk/s/christianshavn_metro_Station_studio_central_Yoga_Bible_Hot_Yoga_Copenhagen.jpeg" alt="{{ t.visit_img7_alt }}" loading="lazy">
+            </figure>
+          </div>
+        </div>
+
+        <div class="yb-visit__nav">
+          <button class="yb-visit__arrow" type="button" aria-label="{{ t.visit_prev_aria }}" data-dir="-1">❮</button>
+          <button class="yb-visit__arrow" type="button" aria-label="{{ t.visit_next_aria }}" data-dir="1">❯</button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- Calendly Visit Modal -->
+<section class="yb-modal-visit" id="visit-modal" aria-hidden="true">
+  <div class="yb-modal-visit__overlay" data-close></div>
+
+  <div class="yb-modal-visit__box" role="dialog" aria-modal="true" aria-label="{{ t.visit_modal_aria }}">
+    <button class="yb-modal-visit__close" type="button" data-close aria-label="{{ t.visit_modal_close_aria }}">×</button>
+
+    <div class="yb-modal-visit__header">
+      <h3 class="yb-modal-visit__title">{{ t.visit_modal_title }}</h3>
+      <p class="yb-modal-visit__subtitle">{{ t.visit_modal_subtitle }}</p>
+    </div>
+
+    <link href="https://assets.calendly.com/assets/external/widget.css" rel="stylesheet">
+    <div class="calendly-inline-widget"
+         data-url="https://calendly.com/yogabible/studio-tour-consultation-yoga-teacher-training"
+         style="min-width:320px;height:680px;"></div>
+    <script src="https://assets.calendly.com/assets/external/widget.js" type="text/javascript" async></script>
+
+    <p class="yb-modal-visit__fallback">{{ t.visit_modal_fallback | safe }}</p>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════
+     11. FAQ — Accordions
+     ═══════════════════════════════════════ -->
+<section class="p18-faq">
+  <div class="container">
+    <span class="p18-eyebrow">{{ t.faq_eyebrow }}</span>
+    <h2 class="p18-section-title">{{ t.faq_title }}</h2>
+
+    <div class="p18-faq-list">
+      <details class="p18-faq-item">
+        <summary>{{ t.faq1_q }}</summary>
+        <p>{{ t.faq1_a }}</p>
+      </details>
+
+      <details class="p18-faq-item">
+        <summary>{{ t.faq2_q }}</summary>
+        <p>{{ t.faq2_a }}</p>
+      </details>
+
+      <details class="p18-faq-item">
+        <summary>{{ t.faq3_q }}</summary>
+        <p>{{ t.faq3_a }}</p>
+      </details>
+
+      <details class="p18-faq-item">
+        <summary>{{ t.faq4_q }}</summary>
+        <p>{{ t.faq4_a }}</p>
+      </details>
+
+      <details class="p18-faq-item">
+        <summary>{{ t.faq5_q }}</summary>
+        <p>{{ t.faq5_a }}</p>
+      </details>
+
+      <details class="p18-faq-item">
+        <summary>{{ t.faq6_q }}</summary>
+        <p>{{ t.faq6_a }}</p>
+      </details>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════
+     12. FINAL CTA
+     ═══════════════════════════════════════ -->
+<section class="p18-final-cta">
+  <div class="container">
+    <h2 class="p18-final-cta__title">{{ t.final_title }}</h2>
+    <p class="p18-final-cta__text">{{ t.final_text }}</p>
+    <button onclick="openYBScheduleModal('18w')" class="btn btn--large btn--primary">{{ t.final_cta }}</button>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════
+     13. EXPLORE MORE — Other Programs & Courses
+     ═══════════════════════════════════════ -->
+<section class="yb-more" aria-labelledby="yb-more-title">
+  <div class="yb-more__inner container">
+
+    <header class="yb-more__header">
+      <p class="yb-more__kicker">{{ t.more_kicker }}</p>
+      <h2 id="yb-more-title" class="yb-more__title">{{ t.more_title }}</h2>
+      <p class="yb-more__lead">{{ t.more_lead | safe }}</p>
+    </header>
+
+    <div class="yb-more__grid">
+
+      <!-- Courses Card -->
+      <article class="yb-more-card">
+        <figure class="yb-more-card__image">
+          <img id="ybCourseImg"
+               src="https://www.yogabible.dk/s/Inversions_Course_Copenhagen.jpg?format=1500w"
+               alt="{{ t.course_inv_alt }}"
+               loading="lazy">
+          <span class="yb-more-card__badge yb-more-card__badge--soft">{{ t.more_courses_badge }}</span>
+        </figure>
+
+        <div class="yb-more-card__body">
+          <h3 class="yb-more-card__title">{{ t.more_courses_title }}</h3>
+          <p class="yb-more-card__text">{{ t.more_courses_text | safe }}</p>
+
+          <div class="yb-more-card__pills" role="tablist" aria-label="{{ t.more_courses_tab_aria }}">
+            <button class="yb-pill is-active" role="tab" aria-selected="true" data-course="inv">Inversions</button>
+            <button class="yb-pill" role="tab" aria-selected="false" data-course="spl">Splits</button>
+            <button class="yb-pill" role="tab" aria-selected="false" data-course="bb">Backbends</button>
+          </div>
+
+          <p id="ybCourseBlurb" class="yb-more-card__blurb">{{ t.course_inv_blurb }}</p>
+
+          <a id="ybCourseCta" class="yb-btn yb-btn--outline" href="{% if lang == 'en' %}/en/inversions{% else %}/inversions{% endif %}">
+            {{ t.course_inv_label }} →
+          </a>
+        </div>
+      </article>
+
+      <!-- Programs Card (4-Week + 8-Week with pill switching) -->
+      <article class="yb-more-card">
+        <figure class="yb-more-card__image">
+          <img id="ybProgramImg"
+               src="https://www.yogabible.dk/s/200timer-Yoga-Education-Kbenhavn.png?format=1500w"
+               alt="{{ t.prog4w_alt }}"
+               loading="lazy">
+          <span id="ybProgramBadge" class="yb-more-card__badge yb-more-card__badge--primary">{{ t.prog4w_badge }}</span>
+          <span class="yb-more-card__badge yb-more-card__badge--soft yb-more-card__badge--right">{{ t.more_programs_badge_housing }}</span>
+        </figure>
+
+        <div class="yb-more-card__body">
+          <h3 id="ybProgramTitle" class="yb-more-card__title">{{ t.prog4w_title }}</h3>
+
+          <div class="yb-more-card__pills" role="tablist" aria-label="{{ t.more_programs_tab_aria }}">
+            <button class="yb-pill is-active" role="tab" aria-selected="true" data-program="4w">4 Weeks Intensive</button>
+            <button class="yb-pill" role="tab" aria-selected="false" data-program="8w">8 Weeks Semi-Intensive</button>
+          </div>
+
+          <p id="ybProgramBlurb" class="yb-more-card__blurb">{{ t.prog4w_blurb | safe }}</p>
+
+          <ul id="ybProgramList" class="yb-more-card__list">
+            <li>{{ t.prog4w_list1 }}</li>
+            <li>{{ t.prog4w_list2 }}</li>
+            <li>{{ t.prog4w_list3 | safe }}</li>
+          </ul>
+
+          <a id="ybProgramCta" class="yb-btn yb-btn--cta" href="{% if lang == 'en' %}/en/200-hours-4-weeks-intensive-programs{% else %}/200-hours-4-weeks-intensive-programs{% endif %}">
+            {{ t.prog4w_cta }}
+          </a>
+        </div>
+      </article>
+
+    </div>
+  </div>
+</section>
+
+<!-- Page-specific JS -->
+<script>
+(function() {
+  /* ── Scroll-Draw Vine ── */
+  var vineWrap = document.querySelector('[data-p18-scroll-draw]');
+  if (vineWrap) {
+    var mainPath = vineWrap.querySelector('.p18-vine-path');
+    var shadowPath = vineWrap.querySelector('.p18-vine-shadow');
+    var allPaths = [mainPath, shadowPath].filter(Boolean);
+
+    allPaths.forEach(function(p) {
+      var len = p.getTotalLength();
+      p.style.strokeDasharray = len;
+      p.style.strokeDashoffset = len;
+    });
+
+    function drawVine() {
+      var rect = vineWrap.getBoundingClientRect();
+      var winH = window.innerHeight;
+      var start = winH;
+      var end = -rect.height;
+      var progress = Math.max(0, Math.min(1, (start - rect.top) / (start - end)));
+
+      allPaths.forEach(function(p) {
+        var len = p.getTotalLength();
+        p.style.strokeDashoffset = len - (progress * len);
+      });
+      requestAnimationFrame(drawVine);
+    }
+    drawVine();
+  }
+
+  /* ── Scroll-triggered fade-up ── */
+  var fadeEls = document.querySelectorAll('.p18-curr-card, .p18-flex-card');
+  if (fadeEls.length && 'IntersectionObserver' in window) {
+    var obs = new IntersectionObserver(function(entries) {
+      entries.forEach(function(e) {
+        if (e.isIntersecting) {
+          e.target.classList.add('p18-visible');
+          obs.unobserve(e.target);
+        }
+      });
+    }, { threshold: 0.15 });
+    fadeEls.forEach(function(el) { obs.observe(el); });
+  }
+
+  /* ── Tracks Video ── */
+  var tracksVideo = document.getElementById('tracksVideo');
+  var tracksOverlay = document.getElementById('tracksVideoOverlay');
+  var tracksPlayBtn = document.getElementById('tracksVideoBtn');
+
+  if (tracksVideo && tracksOverlay && tracksPlayBtn) {
+    tracksVideo.volume = 1.0;
+
+    var playVideo = function() {
+      tracksVideo.play().then(function() {
+        tracksOverlay.classList.add('is-playing');
+      }).catch(function(err) {
+        console.log('Video play failed:', err);
+      });
+    };
+
+    var pauseVideo = function() {
+      tracksVideo.pause();
+      tracksOverlay.classList.remove('is-playing');
+    };
+
+    var toggleVideo = function() {
+      if (tracksVideo.paused) { playVideo(); } else { pauseVideo(); }
+    };
+
+    tracksPlayBtn.addEventListener('click', function(e) {
+      e.stopPropagation();
+      toggleVideo();
+    });
+    tracksOverlay.addEventListener('click', toggleVideo);
+    tracksVideo.addEventListener('click', function() {
+      if (!tracksVideo.paused) pauseVideo();
+    });
+    tracksVideo.addEventListener('ended', function() {
+      tracksOverlay.classList.remove('is-playing');
+    });
+    tracksVideo.addEventListener('pause', function() {
+      tracksOverlay.classList.remove('is-playing');
+    });
+  }
+
+  /* ── Visit Gallery Slider ── */
+  var visitTrack = document.getElementById('visit-track');
+  if (visitTrack) {
+    var visitSlides = Array.from(visitTrack.children);
+    var visitArrows = document.querySelectorAll('.yb-visit__arrow');
+
+    if (visitSlides.length > 1) {
+      var visitIdx = 0;
+      var visitTotal = visitSlides.length;
+
+      var visitGoTo = function(i) {
+        if (i >= visitTotal) visitIdx = 0;
+        else if (i < 0) visitIdx = visitTotal - 1;
+        else visitIdx = i;
+        visitTrack.style.transform = 'translateX(-' + (visitIdx * 100) + '%)';
+      };
+
+      var visitAutoInterval = setInterval(function() { visitGoTo(visitIdx + 1); }, 5000);
+      var visitResetAuto = function() {
+        clearInterval(visitAutoInterval);
+        visitAutoInterval = setInterval(function() { visitGoTo(visitIdx + 1); }, 5000);
+      };
+
+      visitArrows.forEach(function(btn) {
+        btn.addEventListener('click', function() {
+          visitGoTo(visitIdx + Number(btn.getAttribute('data-dir')));
+          visitResetAuto();
+        });
+      });
+
+      /* Swipe support */
+      var visitStartX = 0;
+      var visitDeltaX = 0;
+      visitTrack.addEventListener('touchstart', function(e) {
+        visitStartX = e.touches[0].clientX;
+      }, { passive: true });
+      visitTrack.addEventListener('touchmove', function(e) {
+        visitDeltaX = e.touches[0].clientX - visitStartX;
+      }, { passive: true });
+      visitTrack.addEventListener('touchend', function() {
+        if (Math.abs(visitDeltaX) > 50) {
+          visitGoTo(visitIdx + (visitDeltaX < 0 ? 1 : -1));
+        }
+        visitDeltaX = 0;
+        visitResetAuto();
+      });
+    }
+  }
+
+  /* ── Visit Calendly Modal ── */
+  var visitModal = document.getElementById('visit-modal');
+  if (visitModal) {
+    var visitOpeners = document.querySelectorAll('[data-open="visit-modal"]');
+    var openVisitModal = function() {
+      visitModal.setAttribute('aria-hidden', 'false');
+      document.documentElement.style.overflow = 'hidden';
+      document.body.style.overflow = 'hidden';
+    };
+    var closeVisitModal = function() {
+      visitModal.setAttribute('aria-hidden', 'true');
+      document.documentElement.style.overflow = '';
+      document.body.style.overflow = '';
+    };
+    visitOpeners.forEach(function(btn) { btn.addEventListener('click', openVisitModal); });
+    visitModal.addEventListener('click', function(e) {
+      if (e.target.hasAttribute('data-close')) closeVisitModal();
+    });
+    var visitCloseBtn = visitModal.querySelector('.yb-modal-visit__close');
+    if (visitCloseBtn) visitCloseBtn.addEventListener('click', closeVisitModal);
+    document.addEventListener('keydown', function(e) {
+      if (e.key === 'Escape' && visitModal.getAttribute('aria-hidden') === 'false') {
+        closeVisitModal();
+      }
+    });
+  }
+
+  /* ── Reviews Carousel ── */
+  var reviewsSection = document.getElementById('yb-reviews-section');
+  if (reviewsSection) {
+    var REVIEWS = {{ t.reviews | dump | safe }};
+    var reviewAriaPrefix = {{ t.reviews_card_aria_prefix | dump | safe }};
+
+    var revTrack = reviewsSection.querySelector('[data-track]');
+    var revViewport = reviewsSection.querySelector('[data-viewport]');
+    var revPrev = reviewsSection.querySelector('[data-prev]');
+    var revNext = reviewsSection.querySelector('[data-next]');
+
+    if (revTrack && revViewport) {
+      REVIEWS.forEach(function(review) {
+        var card = document.createElement('article');
+        card.className = 'yb-reviews__card';
+        card.setAttribute('aria-label', reviewAriaPrefix + ' ' + review.name);
+        card.innerHTML =
+          '<div class="yb-reviews__card-header">' +
+            '<div class="yb-reviews__card-info">' +
+              '<h3 class="yb-reviews__name">' + review.name + '</h3>' +
+              '<p class="yb-reviews__when">' + review.when + '</p>' +
+            '</div>' +
+            '<span class="yb-reviews__card-stars" aria-hidden="true">★★★★★</span>' +
+          '</div>' +
+          '<p class="yb-reviews__text">' + review.text + '</p>';
+        revTrack.appendChild(card);
+      });
+
+      var getRevScrollAmount = function() {
+        var card = revTrack.querySelector('.yb-reviews__card');
+        if (!card) return 0;
+        var style = window.getComputedStyle(revTrack);
+        var gap = parseInt(style.gap) || 16;
+        return card.offsetWidth + gap;
+      };
+
+      var getRevVisibleCount = function() {
+        var w = window.innerWidth;
+        if (w >= 900) return 3;
+        if (w >= 600) return 2;
+        return 1;
+      };
+
+      var updateRevButtons = function() {
+        if (!revPrev || !revNext) return;
+        var scrollLeft = revViewport.scrollLeft;
+        var maxScroll = revViewport.scrollWidth - revViewport.clientWidth;
+        revPrev.disabled = scrollLeft <= 5;
+        revNext.disabled = scrollLeft >= maxScroll - 5;
+      };
+
+      var scrollRevByCards = function(direction) {
+        var amount = getRevScrollAmount() * getRevVisibleCount();
+        revViewport.scrollBy({ left: direction * amount, behavior: 'smooth' });
+      };
+
+      if (revPrev) revPrev.addEventListener('click', function() { scrollRevByCards(-1); });
+      if (revNext) revNext.addEventListener('click', function() { scrollRevByCards(1); });
+      revViewport.addEventListener('scroll', updateRevButtons, { passive: true });
+      window.addEventListener('resize', updateRevButtons, { passive: true });
+      requestAnimationFrame(function() {
+        requestAnimationFrame(updateRevButtons);
+      });
+    }
+  }
+
+  /* ── yb-more: Course pills ── */
+  var COURSE_DATA = {
+    inv: {
+      image: 'https://www.yogabible.dk/s/Inversions_Course_Copenhagen.jpg?format=1500w',
+      blurb: {{ t.course_inv_blurb | dump | safe }},
+      href: '{% if lang == "en" %}/en/inversions{% else %}/inversions{% endif %}',
+      label: {{ t.course_inv_label | dump | safe }},
+      alt: {{ t.course_inv_alt | dump | safe }}
+    },
+    spl: {
+      image: 'https://www.yogabible.dk/s/Splits_Course_Kursus_Kbenhavn_Copenhagen.jpg?format=1500w',
+      blurb: {{ t.course_spl_blurb | dump | safe }},
+      href: '{% if lang == "en" %}/en/splits{% else %}/splits{% endif %}',
+      label: {{ t.course_spl_label | dump | safe }},
+      alt: {{ t.course_spl_alt | dump | safe }}
+    },
+    bb: {
+      image: 'https://www.yogabible.dk/s/professional-backbend-yoga-training-copenhagen.jpg?format=1500w',
+      blurb: {{ t.course_bb_blurb | dump | safe }},
+      href: '{% if lang == "en" %}/en/backbends{% else %}/backbends{% endif %}',
+      label: {{ t.course_bb_label | dump | safe }},
+      alt: {{ t.course_bb_alt | dump | safe }}
+    }
+  };
+
+  var courseImg = document.getElementById('ybCourseImg');
+  var courseBlurb = document.getElementById('ybCourseBlurb');
+  var courseCta = document.getElementById('ybCourseCta');
+  var coursePills = document.querySelectorAll('.yb-more [data-course]');
+
+  if (courseImg && courseBlurb && courseCta && coursePills.length) {
+    var setCourse = function(key) {
+      var data = COURSE_DATA[key];
+      if (!data) return;
+      coursePills.forEach(function(p) {
+        var isActive = p.dataset.course === key;
+        p.classList.toggle('is-active', isActive);
+        p.setAttribute('aria-selected', isActive);
+      });
+      courseImg.src = data.image;
+      courseImg.alt = data.alt;
+      courseBlurb.textContent = data.blurb;
+      courseCta.href = data.href;
+      courseCta.textContent = data.label + ' \u2192';
+    };
+    coursePills.forEach(function(p) {
+      p.addEventListener('click', function() { setCourse(p.dataset.course); });
+    });
+    setCourse('inv');
+  }
+
+  /* ── yb-more: Program pills (4w / 8w) ── */
+  var PROGRAM_DATA = {
+    '4w': {
+      title: {{ t.prog4w_title | dump | safe }},
+      badge: {{ t.prog4w_badge | dump | safe }},
+      blurb: {{ t.prog4w_blurb | dump | safe }},
+      list: [
+        {{ t.prog4w_list1 | dump | safe }},
+        {{ t.prog4w_list2 | dump | safe }},
+        {{ t.prog4w_list3 | dump | safe }}
+      ],
+      href: '{% if lang == "en" %}/en/200-hours-4-weeks-intensive-programs{% else %}/200-hours-4-weeks-intensive-programs{% endif %}',
+      ctaLabel: {{ t.prog4w_cta | dump | safe }},
+      alt: {{ t.prog4w_alt | dump | safe }}
+    },
+    '8w': {
+      title: {{ t.prog8w_title | dump | safe }},
+      badge: {{ t.prog8w_badge | dump | safe }},
+      blurb: {{ t.prog8w_blurb | dump | safe }},
+      list: [
+        {{ t.prog8w_list1 | dump | safe }},
+        {{ t.prog8w_list2 | dump | safe }},
+        {{ t.prog8w_list3 | dump | safe }}
+      ],
+      href: '{% if lang == "en" %}/en/200-hours-8-weeks-semi-intensive-programs{% else %}/200-hours-8-weeks-semi-intensive-programs{% endif %}',
+      ctaLabel: {{ t.prog8w_cta | dump | safe }},
+      alt: {{ t.prog8w_alt | dump | safe }}
+    }
+  };
+
+  var programTitle = document.getElementById('ybProgramTitle');
+  var programBadge = document.getElementById('ybProgramBadge');
+  var programBlurb = document.getElementById('ybProgramBlurb');
+  var programList = document.getElementById('ybProgramList');
+  var programCta = document.getElementById('ybProgramCta');
+  var programImg = document.getElementById('ybProgramImg');
+  var programPills = document.querySelectorAll('.yb-more [data-program]');
+
+  if (programTitle && programBlurb && programCta && programPills.length) {
+    var setProgram = function(key) {
+      var data = PROGRAM_DATA[key];
+      if (!data) return;
+      programPills.forEach(function(p) {
+        var isActive = p.dataset.program === key;
+        p.classList.toggle('is-active', isActive);
+        p.setAttribute('aria-selected', isActive);
+      });
+      programTitle.textContent = data.title;
+      if (programBadge) programBadge.textContent = data.badge;
+      programBlurb.innerHTML = data.blurb;
+      if (programImg) programImg.alt = data.alt;
+      if (programList) {
+        programList.innerHTML = '';
+        data.list.forEach(function(item) {
+          var li = document.createElement('li');
+          li.innerHTML = item;
+          programList.appendChild(li);
+        });
+      }
+      programCta.href = data.href;
+      programCta.textContent = data.ctaLabel;
+    };
+    programPills.forEach(function(p) {
+      p.addEventListener('click', function() { setProgram(p.dataset.program); });
+    });
+    setProgram('4w');
+  }
+})();
+</script>

@@ -1,0 +1,296 @@
+{% set t = i18n.about_copenhagen[lang or "da"] %}
+
+<!-- Hero -->
+<section class="yb-hero">
+  <div class="yb-hero__glow"></div>
+  <div class="yb-hero__content">
+    <p class="yb-hero__tagline">{{ t.hero_tagline }}</p>
+    <h1 class="yb-hero__title">{{ t.hero_title }}</h1>
+    <p class="yb-hero__subtitle">{{ t.hero_subtitle }}</p>
+    <div class="yb-hero__line"></div>
+    <div class="yb-hero__ctas">
+      <a href="{% if lang == 'en' %}/en/apply{% else %}/apply{% endif %}" class="yb-btn yb-btn--primary yb-btn--large">{{ t.hero_cta_apply }}</a>
+      <a href="#life-in-copenhagen" class="yb-btn yb-btn--outline-white yb-btn--large">{{ t.hero_cta_explore }}</a>
+    </div>
+    <div class="yb-hero__trust">
+      <span>{{ t.hero_trust1 }}</span>
+      <span class="yb-hero__trust-dot"></span>
+      <span>{{ t.hero_trust2 }}</span>
+      <span class="yb-hero__trust-dot"></span>
+      <span>{{ t.hero_trust3 }}</span>
+    </div>
+  </div>
+  <div class="yb-hero__scroll">
+    <span>Scroll</span>
+    <div class="yb-hero__scroll-line"></div>
+  </div>
+</section>
+
+<!-- Hero Image -->
+<section class="program-overview" style="padding-top:0;">
+  <div class="container">
+    <img src="/assets/images/copenhagen/copenhagen-hero.jpg" alt="{{ t.hero_img_alt }}" style="width:100%; border-radius:12px; aspect-ratio:7/3; object-fit:cover; background:#f5f3f0;" loading="lazy">
+  </div>
+</section>
+
+<!-- Life in Copenhagen -->
+<section class="program-overview" id="life-in-copenhagen">
+  <div class="container">
+    <h2 class="section-title">{{ t.life_title }}</h2>
+    <p class="section-subtitle">{{ t.life_subtitle }}</p>
+
+    <div class="program-grid">
+      <div class="program-feature">
+        <div class="program-feature__icon">🚲</div>
+        <h3>{{ t.life1_title }}</h3>
+        <img src="/assets/images/copenhagen/bike-culture.jpg" alt="{{ t.life1_img_alt }}" style="width:100%; border-radius:8px; aspect-ratio:3/2; object-fit:cover; background:#f5f3f0; margin-bottom:12px;" loading="lazy">
+        <p>{{ t.life1_desc }}</p>
+      </div>
+
+      <div class="program-feature">
+        <div class="program-feature__icon">☕</div>
+        <h3>{{ t.life2_title }}</h3>
+        <img src="/assets/images/copenhagen/cafe-scene.jpg" alt="{{ t.life2_img_alt }}" style="width:100%; border-radius:8px; aspect-ratio:3/2; object-fit:cover; background:#f5f3f0; margin-bottom:12px;" loading="lazy">
+        <p>{{ t.life2_desc }}</p>
+      </div>
+
+      <div class="program-feature">
+        <div class="program-feature__icon">🧖</div>
+        <h3>{{ t.life3_title }}</h3>
+        <img src="/assets/images/copenhagen/saunagus.jpg" alt="{{ t.life3_img_alt }}" style="width:100%; border-radius:8px; aspect-ratio:3/2; object-fit:cover; background:#f5f3f0; margin-bottom:12px;" loading="lazy">
+        <p>{{ t.life3_desc }}</p>
+      </div>
+
+      <div class="program-feature">
+        <div class="program-feature__icon">🏊</div>
+        <h3>{{ t.life4_title }}</h3>
+        <img src="/assets/images/copenhagen/cold-dip.jpg" alt="{{ t.life4_img_alt }}" style="width:100%; border-radius:8px; aspect-ratio:3/2; object-fit:cover; background:#f5f3f0; margin-bottom:12px;" loading="lazy">
+        <p>{{ t.life4_desc }}</p>
+      </div>
+
+      <div class="program-feature">
+        <div class="program-feature__icon">🎶</div>
+        <h3>{{ t.life5_title }}</h3>
+        <img src="/assets/images/copenhagen/concerts.jpg" alt="{{ t.life5_img_alt }}" style="width:100%; border-radius:8px; aspect-ratio:3/2; object-fit:cover; background:#f5f3f0; margin-bottom:12px;" loading="lazy">
+        <p>{{ t.life5_desc }}</p>
+      </div>
+
+      <div class="program-feature">
+        <div class="program-feature__icon">🏛️</div>
+        <h3>{{ t.life6_title }}</h3>
+        <img src="/assets/images/copenhagen/scandinavian-design.jpg" alt="{{ t.life6_img_alt }}" style="width:100%; border-radius:8px; aspect-ratio:3/2; object-fit:cover; background:#f5f3f0; margin-bottom:12px;" loading="lazy">
+        <p>{{ t.life6_desc }}</p>
+      </div>
+
+      <div class="program-feature">
+        <div class="program-feature__icon">🌿</div>
+        <h3>{{ t.life7_title }}</h3>
+        <img src="/assets/images/copenhagen/green-spaces.jpg" alt="{{ t.life7_img_alt }}" style="width:100%; border-radius:8px; aspect-ratio:3/2; object-fit:cover; background:#f5f3f0; margin-bottom:12px;" loading="lazy">
+        <p>{{ t.life7_desc }}</p>
+      </div>
+
+      <div class="program-feature">
+        <div class="program-feature__icon">🍽️</div>
+        <h3>{{ t.life8_title }}</h3>
+        <img src="/assets/images/copenhagen/food-scene.jpg" alt="{{ t.life8_img_alt }}" style="width:100%; border-radius:8px; aspect-ratio:3/2; object-fit:cover; background:#f5f3f0; margin-bottom:12px;" loading="lazy">
+        <p>{{ t.life8_desc }}</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Our Location: Christianshavn -->
+<section class="program-schedule">
+  <div class="container">
+    <h2 class="section-title">{{ t.location_title }}</h2>
+    <p class="section-subtitle">
+      {{ t.location_subtitle }}
+    </p>
+
+    <img src="/assets/images/copenhagen/christianshavn-canal.jpg" alt="{{ t.location_img_alt }}" style="width:100%; border-radius:12px; aspect-ratio:12/5; object-fit:cover; background:#f5f3f0; margin-bottom:32px;" loading="lazy">
+
+    <div class="schedule-options">
+      <div class="schedule-card">
+        <h3>{{ t.loc_card1_title }}</h3>
+        <p>{{ t.loc_card1_desc }}</p>
+      </div>
+      <div class="schedule-card">
+        <h3>{{ t.loc_card2_title }}</h3>
+        <p>{{ t.loc_card2_desc }}</p>
+      </div>
+    </div>
+
+    <div class="program-grid" style="margin-top:32px;">
+      <div class="program-feature">
+        <div class="program-feature__icon">🏛️</div>
+        <h3>{{ t.loc_feat1_title }}</h3>
+        <p>{{ t.loc_feat1_desc }}</p>
+      </div>
+      <div class="program-feature">
+        <div class="program-feature__icon">🚇</div>
+        <h3>{{ t.loc_feat2_title }}</h3>
+        <p>{{ t.loc_feat2_desc }}</p>
+      </div>
+      <div class="program-feature">
+        <div class="program-feature__icon">🌳</div>
+        <h3>{{ t.loc_feat3_title }}</h3>
+        <p>{{ t.loc_feat3_desc }}</p>
+      </div>
+      <div class="program-feature">
+        <div class="program-feature__icon">🧘</div>
+        <h3>{{ t.loc_feat4_title }}</h3>
+        <p>{{ t.loc_feat4_desc }}</p>
+      </div>
+      <div class="program-feature">
+        <div class="program-feature__icon">🚲</div>
+        <h3>{{ t.loc_feat5_title }}</h3>
+        <p>{{ t.loc_feat5_desc }}</p>
+      </div>
+      <div class="program-feature">
+        <div class="program-feature__icon">🛒</div>
+        <h3>{{ t.loc_feat6_title }}</h3>
+        <p>{{ t.loc_feat6_desc }}</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- The Studio -->
+<section class="program-overview">
+  <div class="container">
+    <h2 class="section-title">{{ t.studio_title }}</h2>
+    <p class="section-subtitle">{{ t.studio_subtitle }}</p>
+
+    <div class="program-grid" style="max-width:800px; margin:0 auto;">
+      <div class="program-feature">
+        <img src="/assets/images/studio/studio-hot-room.jpg" alt="{{ t.studio_hot_img_alt }}" style="width:100%; border-radius:8px; aspect-ratio:3/2; object-fit:cover; background:#f5f3f0; margin-bottom:12px;" loading="lazy">
+        <h3>{{ t.studio_hot_title }}</h3>
+        <p>{{ t.studio_hot_desc }}</p>
+      </div>
+      <div class="program-feature">
+        <img src="/assets/images/studio/studio-main-room.jpg" alt="{{ t.studio_main_img_alt }}" style="width:100%; border-radius:8px; aspect-ratio:3/2; object-fit:cover; background:#f5f3f0; margin-bottom:12px;" loading="lazy">
+        <h3>{{ t.studio_main_title }}</h3>
+        <p>{{ t.studio_main_desc }}</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Why Copenhagen for YTT -->
+<section class="program-schedule">
+  <div class="container">
+    <h2 class="section-title">{{ t.why_title }}</h2>
+
+    <div class="program-grid">
+      <div class="program-feature">
+        <div class="program-feature__icon">📍</div>
+        <h3>{{ t.why1_title }}</h3>
+        <p>{{ t.why1_desc }}</p>
+      </div>
+      <div class="program-feature">
+        <div class="program-feature__icon">🧘</div>
+        <h3>{{ t.why2_title }}</h3>
+        <p>{{ t.why2_desc }}</p>
+      </div>
+      <div class="program-feature">
+        <div class="program-feature__icon">🏫</div>
+        <h3>{{ t.why3_title }}</h3>
+        <p>{{ t.why3_desc }}</p>
+      </div>
+      <div class="program-feature">
+        <div class="program-feature__icon">🌍</div>
+        <h3>{{ t.why4_title }}</h3>
+        <p>{{ t.why4_desc }}</p>
+      </div>
+      <div class="program-feature">
+        <div class="program-feature__icon">✈️</div>
+        <h3>{{ t.why5_title }}</h3>
+        <p>{{ t.why5_desc }}</p>
+      </div>
+      <div class="program-feature">
+        <div class="program-feature__icon">🔒</div>
+        <h3>{{ t.why6_title }}</h3>
+        <p>{{ t.why6_desc }}</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Practical Info -->
+<section class="program-overview">
+  <div class="container">
+    <h2 class="section-title">{{ t.practical_title }}</h2>
+
+    <div class="schedule-options">
+      <div class="schedule-card">
+        <h3>{{ t.prac_getting_here_title }}</h3>
+        <ul>
+          {% for item in t.prac_getting_here_items.split("|") %}
+          <li>{{ item | safe }}</li>
+          {% endfor %}
+        </ul>
+      </div>
+      <div class="schedule-card">
+        <h3>{{ t.prac_getting_around_title }}</h3>
+        <ul>
+          {% for item in t.prac_getting_around_items.split("|") %}
+          <li>{{ item | safe }}</li>
+          {% endfor %}
+        </ul>
+      </div>
+      <div class="schedule-card">
+        <h3>{{ t.prac_living_costs_title }}</h3>
+        <ul>
+          {% for item in t.prac_living_costs_items.split("|") %}
+          <li>{{ item | safe }}</li>
+          {% endfor %}
+        </ul>
+      </div>
+      <div class="schedule-card">
+        <h3>{{ t.prac_weather_title }}</h3>
+        <ul>
+          {% for item in t.prac_weather_items.split("|") %}
+          <li>{{ item | safe }}</li>
+          {% endfor %}
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Accommodation -->
+<section class="program-schedule">
+  <div class="container">
+    <h2 class="section-title">{{ t.accom_title }}</h2>
+    <p class="section-subtitle">{{ t.accom_subtitle }}</p>
+
+    <div class="schedule-options">
+      <div class="schedule-card">
+        <img src="/assets/images/accommodation/studio-apartment.jpg" alt="{{ t.accom_studio_img_alt }}" style="width:100%; border-radius:8px; aspect-ratio:3/2; object-fit:cover; background:#f5f3f0; margin-bottom:12px;" loading="lazy">
+        <h3>{{ t.accom_studio_title }}</h3>
+        <p>{{ t.accom_studio_desc }}</p>
+      </div>
+      <div class="schedule-card">
+        <img src="/assets/images/accommodation/shared-apartment.jpg" alt="{{ t.accom_shared_img_alt }}" style="width:100%; border-radius:8px; aspect-ratio:3/2; object-fit:cover; background:#f5f3f0; margin-bottom:12px;" loading="lazy">
+        <h3>{{ t.accom_shared_title }}</h3>
+        <p>{{ t.accom_shared_desc }}</p>
+      </div>
+    </div>
+
+    <div style="text-align:center; margin-top:24px;">
+      <a href="{% if lang == 'en' %}/en/kontakt{% else %}/kontakt{% endif %}" class="btn btn--primary">{{ t.accom_cta }}</a>
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+<section class="cta-section">
+  <div class="container">
+    <h2 class="cta-section__title">{{ t.cta_title }}</h2>
+    <p class="cta-section__text">{{ t.cta_text }}</p>
+    <div style="display:flex; gap:16px; justify-content:center; flex-wrap:wrap;">
+      <a href="{% if lang == 'en' %}/en/om-200hrs-yogalreruddannelser{% else %}/om-200hrs-yogalreruddannelser{% endif %}" class="btn btn--large btn--primary">{{ t.cta_programs }}</a>
+      <a href="{% if lang == 'en' %}/en/sammenlign-yogalreruddannelser{% else %}/sammenlign-yogalreruddannelser{% endif %}" class="btn btn--large btn--secondary">{{ t.cta_compare }}</a>
+    </div>
+  </div>
+</section>

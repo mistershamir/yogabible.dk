@@ -1,0 +1,98 @@
+<!-- Checkout Modal -->
+<div id="yb-checkout-modal" class="yb-auth-modal" aria-hidden="true" role="dialog" aria-modal="true" aria-label="Checkout">
+  <div class="yb-auth-modal__overlay" data-yb-checkout-close></div>
+
+  <div class="yb-auth-modal__box yb-auth-modal__box--wide">
+    <button class="yb-auth-modal__close" type="button" data-yb-checkout-close aria-label="Luk">&#10005;</button>
+
+    <!-- Form View -->
+    <div id="yb-checkout-form-view">
+      <div class="yb-auth-modal__header">
+        <div class="yb-auth-modal__logo">
+          <img src="/assets/images/brand/logo-orange-on-transparent.png" alt="Yoga Bible" loading="lazy" />
+        </div>
+        <h2 class="yb-auth-modal__title" data-yj-da>Betal deposit</h2>
+        <h2 class="yb-auth-modal__title" data-yj-en hidden>Pay deposit</h2>
+      </div>
+
+      <!-- Service info -->
+      <div class="yb-checkout-service">
+        <span id="yb-checkout-service-name" class="yb-checkout-service__name"></span>
+        <span id="yb-checkout-service-price" class="yb-checkout-service__price"></span>
+      </div>
+
+      <form id="yb-checkout-form" class="yb-auth-form" novalidate>
+        <input type="hidden" id="yb-checkout-service-id" value="">
+
+        <!-- Personal info -->
+        <div class="yb-auth-field">
+          <label for="yb-checkout-name" data-yj-da>Fulde navn *</label>
+          <label for="yb-checkout-name" data-yj-en hidden>Full name *</label>
+          <input type="text" id="yb-checkout-name" required autocomplete="name" placeholder="Dit fulde navn">
+        </div>
+
+        <div class="yb-checkout-row">
+          <div class="yb-auth-field">
+            <label for="yb-checkout-email" data-yj-da>Email *</label>
+            <label for="yb-checkout-email" data-yj-en hidden>Email *</label>
+            <input type="email" id="yb-checkout-email" required autocomplete="email" placeholder="din@email.dk">
+          </div>
+          <div class="yb-auth-field">
+            <label for="yb-checkout-phone" data-yj-da>Telefon</label>
+            <label for="yb-checkout-phone" data-yj-en hidden>Phone</label>
+            <input type="tel" id="yb-checkout-phone" autocomplete="tel" placeholder="+45 12 34 56 78">
+          </div>
+        </div>
+
+        <!-- Divider -->
+        <div class="yb-checkout-divider">
+          <span data-yj-da>Betalingsoplysninger</span>
+          <span data-yj-en hidden>Payment details</span>
+        </div>
+
+        <!-- Card info -->
+        <div class="yb-auth-field">
+          <label for="yb-checkout-card" data-yj-da>Kortnummer *</label>
+          <label for="yb-checkout-card" data-yj-en hidden>Card number *</label>
+          <input type="text" id="yb-checkout-card" required autocomplete="cc-number" inputmode="numeric" placeholder="1234 5678 9012 3456" maxlength="19">
+        </div>
+
+        <div class="yb-checkout-row">
+          <div class="yb-auth-field">
+            <label for="yb-checkout-expiry" data-yj-da>Udløb *</label>
+            <label for="yb-checkout-expiry" data-yj-en hidden>Expiry *</label>
+            <input type="text" id="yb-checkout-expiry" required autocomplete="cc-exp" inputmode="numeric" placeholder="MM/ÅÅ" maxlength="5">
+          </div>
+          <div class="yb-auth-field">
+            <label for="yb-checkout-cvv">CVV *</label>
+            <input type="text" id="yb-checkout-cvv" required autocomplete="cc-csc" inputmode="numeric" placeholder="123" maxlength="4">
+          </div>
+        </div>
+
+        <div class="yb-auth-error" id="yb-checkout-error" hidden role="alert"></div>
+
+        <button type="submit" class="yb-auth-submit" data-yj-da>Betal</button>
+        <button type="submit" class="yb-auth-submit" data-yj-en hidden>Pay</button>
+
+        <p class="yb-checkout-secure">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+          <span data-yj-da>Sikker betaling via Mindbody</span>
+          <span data-yj-en hidden>Secure payment via Mindbody</span>
+        </p>
+      </form>
+    </div>
+
+    <!-- Success View -->
+    <div id="yb-checkout-success" hidden>
+      <div class="yb-checkout-success__inner">
+        <div class="yb-checkout-success__icon">&#10003;</div>
+        <h2 class="yb-auth-modal__title" data-yj-da>Betaling gennemført!</h2>
+        <h2 class="yb-auth-modal__title" data-yj-en hidden>Payment successful!</h2>
+        <p class="yb-auth-modal__subtitle" data-yj-da>Du modtager en bekræftelse på email. Velkommen til Yoga Bible!</p>
+        <p class="yb-auth-modal__subtitle" data-yj-en hidden>You'll receive a confirmation email. Welcome to Yoga Bible!</p>
+        <button class="yb-auth-submit" type="button" data-yb-checkout-close data-yj-da>Luk</button>
+        <button class="yb-auth-submit" type="button" data-yb-checkout-close data-yj-en hidden>Close</button>
+      </div>
+    </div>
+  </div>
+</div>

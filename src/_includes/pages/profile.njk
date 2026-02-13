@@ -1,0 +1,792 @@
+{% set t = i18n.profile[lang or "da"] %}
+{% set tcv = i18n["course-viewer"][lang or "da"] %}
+{% set lp = "/en" if lang == "en" else "" %}
+
+<section class="yb-profile">
+  <div class="container">
+
+    <!-- Not logged in state -->
+    <div id="yb-profile-guest" class="yb-profile__guest">
+      <div class="yb-profile__guest-inner">
+        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#6F6A66" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        <h2 class="yb-profile__guest-title">{{ t.not_logged_in_title }}</h2>
+        <p class="yb-profile__guest-text">{{ t.not_logged_in_text }}</p>
+        <div class="yb-profile__guest-actions">
+          <button class="yb-btn yb-btn--primary" type="button" data-yb-auth-open="login">{{ t.login_btn }}</button>
+          <button class="yb-btn yb-btn--outline" type="button" data-yb-auth-open="register">{{ t.register_btn }}</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Logged in state -->
+    <div id="yb-profile-user" style="display:none">
+      <div class="yb-profile__wrap">
+
+        <!-- Hero header -->
+        <div class="yb-profile__hero">
+          <div class="yb-profile__hero-top">
+            <span class="yb-profile__hero-logo">YOGA BIBLE</span>
+            <div class="yb-profile__hero-actions">
+              <div class="yb-profile__hero-lang">
+                <button{% if lang != "en" %} class="is-active"{% endif %} onclick="window.location.href='{{ lp }}/profile/'">DA</button>
+                <button{% if lang == "en" %} class="is-active"{% endif %} onclick="window.location.href='{% if lang == 'en' %}/profile/{% else %}/en/profile/{% endif %}'">EN</button>
+              </div>
+              <button class="yb-profile__hero-logout" type="button" data-yb-auth-logout>{{ t.btn_logout }}</button>
+            </div>
+          </div>
+          <div class="yb-profile__hero-user">
+            <div class="yb-profile__avatar-wrap">
+              <div class="yb-profile__avatar" id="yb-profile-avatar">YB</div>
+              <button class="yb-profile__avatar-edit" type="button" id="yb-profile-avatar-btn" title="{{ t.avatar_change }}">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+              </button>
+              <input type="file" id="yb-profile-avatar-input" accept="image/*" hidden>
+            </div>
+            <div>
+              <span class="yb-profile__member-name" id="yb-profile-display-name"></span>
+              <p class="yb-profile__member-meta">
+                <span id="yb-profile-display-email"></span>
+                <span class="yb-profile__member-badge" id="yb-profile-tier">&mdash;</span>
+                <span class="yb-profile__role-badge" id="yb-profile-role-badge" style="display:none"></span>
+              </p>
+              {# Member since hidden for now #}
+            </div>
+          </div>
+        </div>
+
+        <!-- Tab navigation -->
+        <div class="yb-profile__tabs">
+          <button class="yb-profile__tab is-active" type="button" data-yb-tab="profile">{{ t.tab_profile }}</button>
+          <button class="yb-profile__tab" type="button" data-yb-tab="schedule">{{ t.tab_schedule }}</button>
+          <button class="yb-profile__tab" type="button" data-yb-tab="store">{{ t.tab_store }}</button>
+          <button class="yb-profile__tab" type="button" data-yb-tab="visits">{{ t.tab_visits }}</button>
+          <button class="yb-profile__tab" type="button" data-yb-tab="passes">{{ t.tab_passes }}</button>
+          <button class="yb-profile__tab" type="button" data-yb-tab="receipts">{{ t.tab_receipts }}</button>
+          <button class="yb-profile__tab" type="button" data-yb-tab="courses">{{ t.tab_courses }}</button>
+        </div>
+
+        {# ═══════ TAB: Profile ═══════ #}
+        <div class="yb-profile__tab-panel is-active" data-yb-panel="profile">
+          <div class="yb-profile__content-area">
+
+            <!-- Inline onboarding card (shown until phone+DOB are filled) -->
+            <div id="yb-onboarding-inline" class="yb-onboarding-inline" hidden>
+              <div class="yb-onboarding-inline__card">
+                <div class="yb-onboarding-inline__header">
+                  <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#f75c03" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                  <div>
+                    <h3 class="yb-onboarding-inline__title">{{ t.onboarding_title }}</h3>
+                    <p class="yb-onboarding-inline__desc">{{ t.onboarding_desc }}</p>
+                  </div>
+                </div>
+                <form id="yb-onboarding-form" class="yb-onboarding-inline__form" novalidate>
+                  <div class="yb-profile__form-row">
+                    <div class="yb-auth-field">
+                      <label for="yb-onboarding-phone">{{ t.label_phone }} <span style="color:#f75c03">*</span></label>
+                      <input type="tel" id="yb-onboarding-phone" autocomplete="tel" placeholder="{{ t.placeholder_phone }}" required>
+                    </div>
+                    <div class="yb-auth-field">
+                      <label for="yb-onboarding-dob">{{ t.label_dob }} <span style="color:#f75c03">*</span></label>
+                      <input type="date" id="yb-onboarding-dob" required>
+                    </div>
+                  </div>
+                  <div class="yb-auth-error" id="yb-onboarding-error" hidden role="alert"></div>
+                  <button type="submit" class="yb-btn yb-btn--primary">{{ t.onboarding_submit }}</button>
+                </form>
+              </div>
+            </div>
+
+            <!-- Onboarding success message (shown after phone+DOB saved) -->
+            <div id="yb-onboarding-success" class="yb-onboarding-success" hidden>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#16a34a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+              <span>{{ t.onboarding_success }}</span>
+            </div>
+
+            <!-- Personal details -->
+            <div class="yb-profile__card">
+              <h2 class="yb-profile__card-title">{{ t.section_personal }}</h2>
+              <form id="yb-profile-form" class="yb-profile__form" novalidate>
+                <div class="yb-profile__form-row">
+                  <div class="yb-auth-field">
+                    <label for="yb-profile-firstname">{{ t.label_firstname }}</label>
+                    <input type="text" id="yb-profile-firstname" autocomplete="given-name">
+                  </div>
+                  <div class="yb-auth-field">
+                    <label for="yb-profile-lastname">{{ t.label_lastname }}</label>
+                    <input type="text" id="yb-profile-lastname" autocomplete="family-name">
+                  </div>
+                </div>
+                <div class="yb-auth-field">
+                  <label for="yb-profile-email">{{ t.label_email }}</label>
+                  <input type="email" id="yb-profile-email" disabled>
+                </div>
+                <div class="yb-profile__form-row">
+                  <div class="yb-auth-field">
+                    <label for="yb-profile-phone">{{ t.label_phone }}</label>
+                    <input type="tel" id="yb-profile-phone" autocomplete="tel" placeholder="{{ t.placeholder_phone }}">
+                  </div>
+                  <div class="yb-auth-field">
+                    <label for="yb-profile-dob">{{ t.label_dob }}</label>
+                    <input type="date" id="yb-profile-dob">
+                  </div>
+                </div>
+                <div class="yb-profile__form-row">
+                  <div class="yb-auth-field">
+                    <label for="yb-profile-yoga-level">{{ t.label_yoga_level }}</label>
+                    <select id="yb-profile-yoga-level" class="yb-auth-field__select">
+                      <option value="">{{ t.yoga_level_placeholder }}</option>
+                      <option value="beginner">{{ t.yoga_level_beginner }}</option>
+                      <option value="intermediate">{{ t.yoga_level_intermediate }}</option>
+                      <option value="advanced">{{ t.yoga_level_advanced }}</option>
+                    </select>
+                  </div>
+                  <div class="yb-auth-field">
+                    <label for="yb-profile-practice-freq">{{ t.label_practice_freq }}</label>
+                    <select id="yb-profile-practice-freq" class="yb-auth-field__select">
+                      <option value="">{{ t.practice_freq_placeholder }}</option>
+                      <option value="occasional">{{ t.practice_freq_occasional }}</option>
+                      <option value="regular">{{ t.practice_freq_regular }}</option>
+                      <option value="dedicated">{{ t.practice_freq_dedicated }}</option>
+                    </select>
+                  </div>
+                </div>
+                <!-- Soft reminder for missing phone/DOB -->
+                <div class="yb-profile__reminder" id="yb-profile-reminder" hidden>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#f75c03" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                  <span>{{ t.profile_reminder }}</span>
+                </div>
+                <div class="yb-auth-error" id="yb-profile-error" hidden role="alert"></div>
+                <div class="yb-auth-success" id="yb-profile-success" hidden role="status"></div>
+                <button type="submit" class="yb-auth-submit">{{ t.btn_save }}</button>
+              </form>
+            </div>
+
+            <!-- Change password -->
+            <div class="yb-profile__card">
+              <h2 class="yb-profile__card-title">{{ t.section_password }}</h2>
+              <form id="yb-profile-password-form" class="yb-profile__form" novalidate>
+                <div class="yb-profile__form-row">
+                  <div class="yb-auth-field">
+                    <label for="yb-profile-new-password">{{ t.label_new_password }}</label>
+                    <input type="password" id="yb-profile-new-password" autocomplete="new-password" placeholder="{{ t.placeholder_password }}">
+                  </div>
+                  <div class="yb-auth-field">
+                    <label for="yb-profile-confirm-password">{{ t.label_confirm_password }}</label>
+                    <input type="password" id="yb-profile-confirm-password" autocomplete="new-password" placeholder="{{ t.placeholder_password }}">
+                  </div>
+                </div>
+                <div class="yb-auth-error" id="yb-profile-pw-error" hidden role="alert"></div>
+                <div class="yb-auth-success" id="yb-profile-pw-success" hidden role="status"></div>
+                <button type="submit" class="yb-auth-submit">{{ t.btn_change_password }}</button>
+              </form>
+            </div>
+
+            <!-- Stored Credit Card -->
+            <div class="yb-profile__card" id="yb-stored-card-section">
+              <h2 class="yb-profile__card-title">{{ t.section_payment }}</h2>
+              <div id="yb-stored-card-loading" class="yb-stored-card__loading">
+                <div class="yb-mb-spinner" style="width:18px;height:18px"></div>
+                <span style="color:#6F6A66;font-size:0.9rem">{{ t.stored_card_loading }}</span>
+              </div>
+              <div id="yb-stored-card-display" hidden>
+                <div class="yb-stored-card">
+                  <div class="yb-stored-card__info">
+                    <svg class="yb-stored-card__icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+                    <div>
+                      <span class="yb-stored-card__type" id="yb-stored-card-type"></span>
+                      <span class="yb-stored-card__number" id="yb-stored-card-number"></span>
+                    </div>
+                  </div>
+                  <div class="yb-stored-card__meta">
+                    <span class="yb-stored-card__holder" id="yb-stored-card-holder"></span>
+                    <span class="yb-stored-card__exp" id="yb-stored-card-exp"></span>
+                  </div>
+                  <button type="button" class="yb-btn yb-btn--outline yb-btn--sm" id="yb-stored-card-change">{{ t.stored_card_change }}</button>
+                </div>
+              </div>
+              <div id="yb-stored-card-empty" hidden>
+                <p class="yb-stored-card__empty-text">{{ t.stored_card_empty }}</p>
+              </div>
+            </div>
+
+            <!-- Membership summary (details in My Passes tab) -->
+            <div class="yb-profile__card">
+              <h2 class="yb-profile__card-title">{{ t.section_membership }}</h2>
+              <div class="yb-profile__info-grid">
+                <div class="yb-profile__info-item">
+                  <span class="yb-profile__info-label">{{ t.label_tier }}</span>
+                  <span class="yb-profile__info-value" id="yb-profile-tier-detail">&mdash;</span>
+                </div>
+                <div class="yb-profile__info-item" id="yb-profile-client-id-wrap" hidden>
+                  <span class="yb-profile__info-label">{{ t.label_client_id }}</span>
+                  <span class="yb-profile__info-value yb-profile__info-value--muted" id="yb-profile-client-id">&mdash;</span>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+        {# ═══════ TAB: Schedule ═══════ #}
+        <div class="yb-profile__tab-panel" data-yb-panel="schedule">
+          <div class="yb-profile__content-area">
+          <div class="yb-schedule">
+          <div class="yb-schedule__header">
+            <h2 class="yb-schedule__title">{{ t.schedule_title }}</h2>
+            <p class="yb-schedule__subtitle">{{ t.schedule_subtitle }}</p>
+          </div>
+
+          <!-- Pass info or no-pass prompt (toggled by JS) -->
+          <div id="yb-schedule-pass-info" class="yb-schedule__pass-info" hidden></div>
+          <div id="yb-schedule-no-pass" class="yb-schedule__no-pass" hidden>
+            <p>{{ t.schedule_no_pass }}</p>
+            <button class="yb-btn yb-btn--primary" type="button" id="yb-schedule-buy-pass">{{ t.schedule_buy_pass }}</button>
+          </div>
+
+          <div class="yb-schedule__nav">
+            <button class="yb-schedule__nav-btn" type="button" id="yb-schedule-prev">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+              <span class="yb-schedule__nav-label">{{ t.schedule_prev_week }}</span>
+            </button>
+            <span class="yb-schedule__week-label" id="yb-schedule-week-label"></span>
+            <button class="yb-schedule__nav-btn" type="button" id="yb-schedule-next">
+              <span class="yb-schedule__nav-label">{{ t.schedule_next_week }}</span>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+            </button>
+          </div>
+
+          <!-- Schedule list (loaded via JS) -->
+          <div id="yb-schedule-list" class="yb-schedule__list">
+            <div class="yb-store__loading">
+              <div class="yb-mb-spinner"></div>
+              <span>{{ t.schedule_loading }}</span>
+            </div>
+          </div>
+
+          <!-- Toast notification -->
+          <div id="yb-schedule-toast" class="yb-schedule__toast" hidden></div>
+          </div>
+          </div>
+        </div>
+
+        {# ═══════ TAB: Store ═══════ #}
+        <div class="yb-profile__tab-panel" data-yb-panel="store" data-store-items="{{ t.store_items | join(',') }}">
+          <div class="yb-profile__content-area">
+          <div class="yb-store">
+          <div class="yb-store__header">
+            <h2 class="yb-store__title">{{ t.store_title }}</h2>
+            <p class="yb-store__subtitle">{{ t.store_subtitle }}</p>
+          </div>
+
+          <!-- Services list (loaded via JS) -->
+          <div id="yb-store-list" class="yb-store__list">
+            <div class="yb-store__loading">
+              <div class="yb-mb-spinner"></div>
+              <span>{{ t.store_loading }}</span>
+            </div>
+          </div>
+
+          <!-- Checkout overlay (hidden by default) -->
+          <div id="yb-store-checkout" class="yb-store__checkout" hidden>
+            <div class="yb-store__checkout-inner">
+              <h3 class="yb-store__checkout-title">{{ t.checkout_title }}</h3>
+
+              <!-- Selected service summary -->
+              <div class="yb-store__checkout-item" id="yb-store-checkout-item"></div>
+
+              <!-- Two-column grid: left = waiver/terms, right = payment -->
+              <div class="yb-checkout__grid" id="yb-checkout-grid">
+
+                <!-- Left column: Waiver + Contract Terms (unified single signature) -->
+                <div class="yb-checkout__col-left" id="yb-checkout-col-left">
+
+                  <!-- Collapsible: Liability waiver (shown if waiver not yet signed) -->
+                  <div id="yb-checkout-waiver-section" class="yb-checkout-doc" hidden>
+                    <button type="button" class="yb-checkout-doc__toggle" id="yb-checkout-waiver-toggle">
+                      <span class="yb-checkout-doc__toggle-title">{{ t.waiver_title }}</span>
+                      <svg class="yb-checkout-doc__chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+                    </button>
+                    <div id="yb-checkout-waiver-text" class="yb-checkout-doc__content" hidden></div>
+                  </div>
+
+                  <!-- Collapsible: Contract terms (shown for contracts with AgreementTerms) -->
+                  <div id="yb-checkout-terms-section" class="yb-checkout-doc" hidden>
+                    <button type="button" class="yb-checkout-doc__toggle" id="yb-checkout-terms-toggle">
+                      <span class="yb-checkout-doc__toggle-title">{{ t.contract_terms_title }}</span>
+                      <svg class="yb-checkout-doc__chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+                    </button>
+                    <div id="yb-checkout-terms-text" class="yb-checkout-doc__content" hidden></div>
+                  </div>
+
+                  <!-- Unified agreement + single signature -->
+                  <div id="yb-checkout-agree-section" class="yb-checkout-agree" hidden>
+                    <label class="yb-waiver__agree">
+                      <input type="checkbox" id="yb-checkout-agree-check">
+                      <span id="yb-checkout-agree-label">{{ t.waiver_agree_label }}</span>
+                    </label>
+                    <p class="yb-waiver__sign-label">{{ t.checkout_sign_label }}</p>
+                    <div class="yb-signature-pad" id="yb-checkout-sigpad">
+                      <canvas id="yb-checkout-canvas" width="400" height="160"></canvas>
+                      <button type="button" class="yb-signature-pad__clear" id="yb-checkout-sig-clear">{{ t.signature_clear }}</button>
+                    </div>
+                  </div>
+
+                </div>
+
+                <!-- Right column: Payment form -->
+                <div class="yb-checkout__col-right">
+                  <h4 class="yb-checkout__payment-title">{{ t.checkout_payment_title }}</h4>
+                  <form id="yb-store-checkout-form" class="yb-profile__form" novalidate>
+                    <!-- Stored card option (shown when user has a saved card) -->
+                    <div id="yb-checkout-stored-card" class="yb-checkout-stored-card" hidden>
+                      <label class="yb-checkout-stored-card__option yb-checkout-stored-card__option--active" id="yb-checkout-use-stored">
+                        <input type="radio" name="yb-payment-method" value="stored" checked>
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+                        <span id="yb-checkout-stored-label"></span>
+                      </label>
+                      <label class="yb-checkout-stored-card__option" id="yb-checkout-use-new">
+                        <input type="radio" name="yb-payment-method" value="new">
+                        <span>{{ t.checkout_new_card }}</span>
+                      </label>
+                    </div>
+                    <div id="yb-checkout-card-fields">
+                    <div class="yb-auth-field">
+                      <label for="yb-store-cardholder">{{ t.checkout_cardholder }}</label>
+                      <input type="text" id="yb-store-cardholder" required autocomplete="cc-name">
+                    </div>
+                    <div class="yb-auth-field">
+                      <label for="yb-store-cardnumber">{{ t.checkout_card_number }}</label>
+                      <input type="text" id="yb-store-cardnumber" required autocomplete="cc-number" placeholder="1234 5678 9012 3456" inputmode="numeric" maxlength="19">
+                    </div>
+                    <div class="yb-profile__form-row yb-profile__form-row--3">
+                      <div class="yb-auth-field">
+                        <label for="yb-store-expiry">{{ t.checkout_expiry }}</label>
+                        <input type="text" id="yb-store-expiry" required placeholder="MM/YY" inputmode="numeric" maxlength="5">
+                      </div>
+                      <div class="yb-auth-field">
+                        <label for="yb-store-cvv">{{ t.checkout_cvv }}</label>
+                        <input type="text" id="yb-store-cvv" required autocomplete="cc-csc" placeholder="123" inputmode="numeric" maxlength="4">
+                      </div>
+                    </div>
+                    <div class="yb-auth-field">
+                      <label for="yb-store-address">{{ t.checkout_address }}</label>
+                      <input type="text" id="yb-store-address" autocomplete="street-address">
+                    </div>
+                    <div class="yb-profile__form-row">
+                      <div class="yb-auth-field">
+                        <label for="yb-store-city">{{ t.checkout_city }}</label>
+                        <input type="text" id="yb-store-city" autocomplete="address-level2">
+                      </div>
+                      <div class="yb-auth-field">
+                        <label for="yb-store-zip">{{ t.checkout_zip }}</label>
+                        <input type="text" id="yb-store-zip" autocomplete="postal-code">
+                      </div>
+                    </div>
+
+                    <label class="yb-store__save-card">
+                      <input type="checkbox" id="yb-store-save-card" checked>
+                      <span>{{ t.checkout_save_card }}</span>
+                    </label>
+                    </div>{# end yb-checkout-card-fields #}
+
+                    <div class="yb-auth-error" id="yb-store-error" hidden role="alert"></div>
+
+                    <div class="yb-store__checkout-actions">
+                      <button type="submit" class="yb-auth-submit" id="yb-store-pay-btn">{{ t.checkout_pay }}</button>
+                      <button type="button" class="yb-btn yb-btn--outline" id="yb-store-cancel-btn">{{ t.checkout_cancel }}</button>
+                    </div>
+
+                    <div class="yb-store__secure">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                      {{ t.checkout_secure }}
+                    </div>
+                  </form>
+                </div>
+
+              </div>
+            </div>
+          </div>
+
+          <!-- Success state -->
+          <div id="yb-store-success" class="yb-store__success" hidden>
+            <div class="yb-store__success-inner">
+              <div class="yb-checkout-success__icon">&#10003;</div>
+              <h3>{{ t.checkout_success_title }}</h3>
+              <p>{{ t.checkout_success_text }}</p>
+              <div class="yb-store__success-actions">
+                <button class="yb-btn yb-btn--primary" type="button" id="yb-store-success-book">{{ t.checkout_success_book }}</button>
+                <button class="yb-btn yb-btn--outline" type="button" id="yb-store-success-close">{{ t.checkout_success_close }}</button>
+              </div>
+            </div>
+          </div>
+          </div>
+          </div>
+        </div>
+
+        {# ═══════ TAB: Visit History ═══════ #}
+        <div class="yb-profile__tab-panel" data-yb-panel="visits">
+          <div class="yb-profile__content-area">
+          <div class="yb-visits">
+          <div class="yb-visits__header">
+            <h2 class="yb-visits__title">{{ t.visits_title }}</h2>
+            <p class="yb-visits__subtitle">{{ t.visits_subtitle }}</p>
+          </div>
+          <div class="yb-visits__controls">
+            <div class="yb-visits__filters">
+              <button class="yb-visits__filter is-active" type="button" data-visit-filter="all">{{ t.visits_filter_all }}</button>
+              <button class="yb-visits__filter" type="button" data-visit-filter="upcoming">{{ t.visits_filter_upcoming }}</button>
+              <button class="yb-visits__filter" type="button" data-visit-filter="attended">{{ t.visits_filter_attended }}</button>
+              <button class="yb-visits__filter" type="button" data-visit-filter="lateCancelled">{% if lang == 'en' %}Late Cancel{% else %}Sen afmelding{% endif %}</button>
+              <button class="yb-visits__filter" type="button" data-visit-filter="noshow">{{ t.visits_filter_noshow }}</button>
+            </div>
+            <select class="yb-visits__period" id="yb-visits-period">
+              <option value="30">{% if lang == 'en' %}Last 30 days{% else %}Sidste 30 dage{% endif %}</option>
+              <option value="90" selected>{% if lang == 'en' %}Last 90 days{% else %}Sidste 90 dage{% endif %}</option>
+              <option value="180">{% if lang == 'en' %}Last 6 months{% else %}Sidste 6 måneder{% endif %}</option>
+              <option value="365">{% if lang == 'en' %}Last year{% else %}Sidste år{% endif %}</option>
+            </select>
+          </div>
+          <div id="yb-visits-list" class="yb-visits__list">
+            <div class="yb-store__loading">
+              <div class="yb-mb-spinner"></div>
+              <span>{{ t.visits_loading }}</span>
+            </div>
+          </div>
+          </div>
+          </div>
+        </div>
+
+        {# ═══════ TAB: My Passes ═══════ #}
+        <div class="yb-profile__tab-panel" data-yb-panel="passes">
+          <div class="yb-profile__content-area">
+          <div class="yb-membership-tab">
+          <div class="yb-membership-tab__header">
+            <h2 class="yb-membership-tab__title">{{ t.tab_passes }}</h2>
+          </div>
+
+          <!-- Liability waiver status card -->
+          <div id="yb-waiver-card" class="yb-waiver-card" hidden>
+            <!-- Collapsed state (when signed) -->
+            <div id="yb-waiver-card-signed" class="yb-waiver-card__signed" hidden>
+              <div class="yb-waiver-card__signed-row">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#16a34a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                <span class="yb-waiver-card__signed-text">{{ t.waiver_signed_label }}</span>
+                <span class="yb-waiver-card__signed-date" id="yb-waiver-signed-date"></span>
+                <button type="button" class="yb-waiver-card__toggle" id="yb-waiver-toggle-btn">{{ t.waiver_view_details }}</button>
+              </div>
+            </div>
+            <!-- Expanded state (unsigned or expanded) -->
+            <div id="yb-waiver-card-body" class="yb-waiver-card__body" hidden>
+              <div class="yb-waiver-card__header-row">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#f75c03" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+                <div>
+                  <h3 class="yb-waiver-card__title">{{ t.waiver_title }}</h3>
+                  <p class="yb-waiver-card__desc">{{ t.waiver_desc }}</p>
+                </div>
+              </div>
+              <button type="button" class="yb-waiver__read-toggle" id="yb-waiver-read-toggle">
+                <span>{{ t.waiver_read_toggle }}</span>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+              </button>
+              <div id="yb-waiver-text" class="yb-waiver__text" hidden>
+                <div class="yb-store__loading">
+                  <div class="yb-mb-spinner"></div>
+                  <span>{{ t.waiver_loading }}</span>
+                </div>
+              </div>
+              <div class="yb-waiver__sign-section" id="yb-waiver-sign-section" hidden>
+                <label class="yb-waiver__agree">
+                  <input type="checkbox" id="yb-waiver-agree-check">
+                  <span>{{ t.waiver_agree_label }}</span>
+                </label>
+                <p class="yb-waiver__sign-label">{{ t.waiver_sign_label }}</p>
+                <div class="yb-signature-pad" id="yb-waiver-sigpad">
+                  <canvas id="yb-waiver-canvas" width="360" height="120"></canvas>
+                  <button type="button" class="yb-signature-pad__clear" id="yb-waiver-sig-clear">{{ t.signature_clear }}</button>
+                </div>
+                <div class="yb-auth-error" id="yb-waiver-error" hidden role="alert"></div>
+                <button type="button" class="yb-btn yb-btn--primary" id="yb-waiver-submit">{{ t.waiver_submit }}</button>
+              </div>
+            </div>
+          </div>
+
+          <div id="yb-membership-details" class="yb-membership">
+            <div class="yb-store__loading yb-membership__loading" id="yb-membership-loading" hidden>
+              <div class="yb-mb-spinner"></div>
+              <span>{{ t.membership_loading }}</span>
+            </div>
+            <div id="yb-membership-content"></div>
+          </div>
+          </div>
+          </div>
+        </div>
+
+        {# ═══════ TAB: Receipts ═══════ #}
+        <div class="yb-profile__tab-panel" data-yb-panel="receipts">
+          <div class="yb-profile__content-area">
+          <div class="yb-receipts">
+          <div class="yb-receipts__header">
+            <div>
+              <h2 class="yb-receipts__title">{{ t.receipts_title }}</h2>
+              <p class="yb-receipts__subtitle">{{ t.receipts_subtitle }}</p>
+            </div>
+            <select class="yb-receipts__period" id="yb-receipts-period">
+              <option value="90">{% if lang == 'en' %}Last 90 days{% else %}Sidste 90 dage{% endif %}</option>
+              <option value="180">{% if lang == 'en' %}Last 6 months{% else %}Sidste 6 måneder{% endif %}</option>
+              <option value="365">{% if lang == 'en' %}Last year{% else %}Sidste år{% endif %}</option>
+              <option value="730" selected>{% if lang == 'en' %}Last 2 years{% else %}Sidste 2 år{% endif %}</option>
+            </select>
+          </div>
+          <div id="yb-receipts-list" class="yb-receipts__list">
+            <div class="yb-store__loading">
+              <div class="yb-mb-spinner"></div>
+              <span>{{ t.receipts_loading }}</span>
+            </div>
+          </div>
+          </div>
+          </div>
+        </div>
+
+        {# ═══════ TAB: My Courses ═══════ #}
+        <div class="yb-profile__tab-panel" data-yb-panel="courses">
+          <div class="yb-profile__content-area">
+
+        {# ── View 1: Course List ── #}
+        <div id="yb-profile-courses-list">
+          <div class="yb-profile__courses-header">
+            <h2 class="yb-profile__courses-title">{{ t.courses_title }}</h2>
+            <p class="yb-profile__courses-subtitle">{{ t.courses_subtitle }}</p>
+          </div>
+          <div id="yb-profile-courses" class="yb-profile__courses-grid">
+            <div class="yb-store__loading">
+              <div class="yb-mb-spinner"></div>
+              <span>{{ t.courses_loading }}</span>
+            </div>
+          </div>
+          <div id="yb-profile-courses-empty" class="yb-profile__courses-empty" hidden>
+            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#6F6A66" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+            <h3>{{ t.courses_empty_title }}</h3>
+            <p>{{ t.courses_empty_text }}</p>
+          </div>
+        </div>
+
+        {# ── View 2: Inline Course Viewer (embedded) ── #}
+        <div id="yb-profile-course-viewer" hidden>
+
+          <script>
+            window._ybCVLang = '{{ lang or "da" }}';
+            window._ybCVTranslations = {{ i18n["course-viewer"][lang or "da"] | dump | safe }};
+          </script>
+
+          <section class="yb-cv yb-cv--embedded" id="yb-cv-wrapper">
+
+            {# Loading #}
+            <div class="yb-cv-loading" id="yb-cv-loading" hidden>
+              <div class="yb-cv-loading__spinner"></div>
+              <p class="yb-cv-loading__text">{{ tcv.loading }}</p>
+            </div>
+
+            {# Error #}
+            <div class="yb-cv-error-page" id="yb-cv-error-page" hidden>
+              <div class="yb-cv-error-page__inner">
+                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#6F6A66" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                <p class="yb-cv-error-page__msg" id="yb-cv-error-msg">{{ tcv.error_load_failed }}</p>
+                <button class="yb-btn yb-btn--outline" type="button" id="yb-cv-error-back">{{ tcv.back_to_courses }}</button>
+              </div>
+            </div>
+
+            {# Completion Celebration #}
+            <div class="yb-cv-completion" id="yb-cv-completion" hidden>
+              <div class="yb-cv-completion__inner">
+                <div class="yb-cv-completion__icon">🎉</div>
+                <h2 class="yb-cv-completion__title">{{ tcv.completion_title }}</h2>
+                <p class="yb-cv-completion__text">{{ tcv.completion_text }}</p>
+                <button class="yb-btn yb-btn--primary" type="button" id="yb-cv-completion-close">{{ tcv.completion_close }}</button>
+              </div>
+            </div>
+
+            {# Gate (enrollment only — login is handled by profile page) #}
+            <div class="yb-cv-gate" id="yb-cv-gate" hidden>
+              <div class="yb-cv-gate__inner">
+                <div class="yb-cv-gate__card">
+                  <div id="yb-cv-gate-login" hidden>
+                    <h2 class="yb-cv-gate__title">{{ tcv.gate_login_title }}</h2>
+                    <p class="yb-cv-gate__text">{{ tcv.gate_login_text }}</p>
+                  </div>
+                  <div id="yb-cv-gate-enroll" hidden>
+                    <svg class="yb-cv-gate__icon" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#6F6A66" stroke-width="1.5"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
+                    <h2 class="yb-cv-gate__title">{{ tcv.gate_enroll_title }}</h2>
+                    <p class="yb-cv-gate__text">{{ tcv.gate_enroll_text }}</p>
+                    <a href="{{ lp }}/kontakt" class="yb-btn yb-btn--primary">{{ tcv.gate_enroll_btn }}</a>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {# Course Viewer #}
+            <div class="yb-cv-viewer" id="yb-cv-viewer" hidden>
+
+              {# Top Bar #}
+              <div class="yb-cv-topbar">
+                <button class="yb-cv-topbar__back" type="button" id="yb-cv-back-link">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+                  {{ tcv.back_to_courses }}
+                </button>
+                <h1 class="yb-cv-topbar__title" id="yb-cv-course-title"></h1>
+                <div class="yb-cv-topbar__actions">
+                  <button class="yb-cv-topbar__btn" type="button" id="yb-cv-fontsize-toggle" title="{{ tcv.font_size }}">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 7V4h16v3"/><path d="M9 20h6"/><path d="M12 4v16"/></svg>
+                  </button>
+                  <button class="yb-cv-topbar__btn" type="button" id="yb-cv-toc-toggle" title="{{ tcv.toc_title }}">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+                  </button>
+                  <button class="yb-cv-topbar__btn" type="button" id="yb-cv-print-btn" title="{{ tcv.print_btn }}">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+                  </button>
+                  <button class="yb-cv-topbar__btn" type="button" id="yb-cv-search-toggle" aria-label="{{ tcv.search_btn }}">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                  </button>
+                  <button class="yb-cv-topbar__btn yb-cv-topbar__btn--sidebar" type="button" id="yb-cv-sidebar-toggle" aria-label="{{ tcv.sidebar_toggle }}">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+                  </button>
+                </div>
+              </div>
+
+              {# Font Size Popover #}
+              <div class="yb-cv-fontsize" id="yb-cv-fontsize" hidden>
+                <span class="yb-cv-fontsize__label">{{ tcv.font_size }}</span>
+                <button class="yb-cv-fontsize__btn" data-fontsize="small" type="button">A<small>-</small></button>
+                <button class="yb-cv-fontsize__btn yb-cv-fontsize__btn--active" data-fontsize="medium" type="button">A</button>
+                <button class="yb-cv-fontsize__btn" data-fontsize="large" type="button">A<small>+</small></button>
+              </div>
+
+              {# TOC Panel #}
+              <div class="yb-cv-toc" id="yb-cv-toc" hidden>
+                <div class="yb-cv-toc__header">
+                  <h3 class="yb-cv-toc__title">{{ tcv.toc_title }}</h3>
+                  <button class="yb-cv-toc__close" type="button" id="yb-cv-toc-close">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                  </button>
+                </div>
+                <nav class="yb-cv-toc__list" id="yb-cv-toc-list"></nav>
+              </div>
+
+              {# Search Panel #}
+              <div class="yb-cv-search" id="yb-cv-search" hidden>
+                <div class="yb-cv-search__inner">
+                  <div class="yb-cv-search__field">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#6F6A66" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                    <input type="search" id="yb-cv-search-input" class="yb-cv-search__input" placeholder="{{ tcv.search_placeholder }}" autocomplete="off">
+                    <button type="button" class="yb-cv-search__close" id="yb-cv-search-close">
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                    </button>
+                  </div>
+                  <div class="yb-cv-search__results" id="yb-cv-search-results"></div>
+                </div>
+              </div>
+
+              {# Main Layout #}
+              <div class="yb-cv-layout">
+                <div class="yb-cv-sidebar-overlay" id="yb-cv-sidebar-overlay"></div>
+
+                {# Sidebar #}
+                <aside class="yb-cv-sidebar" id="yb-cv-sidebar">
+                  <div class="yb-cv-sidebar__header">
+                    <div class="yb-cv-sidebar__progress">
+                      <div class="yb-cv-sidebar__progress-track">
+                        <div class="yb-cv-sidebar__progress-bar" id="yb-cv-progress-bar" style="width:0%"></div>
+                      </div>
+                      <span class="yb-cv-sidebar__progress-text" id="yb-cv-progress-text">0%</span>
+                    </div>
+                  </div>
+                  <nav class="yb-cv-sidebar__nav" id="yb-cv-sidebar-modules"></nav>
+                  <div class="yb-cv-sidebar__footer">
+                    <button class="yb-cv-sidebar__notes-btn" type="button" id="yb-cv-my-comments-btn">
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                      {{ tcv.my_comments_btn }}
+                    </button>
+                    <p class="yb-cv-sidebar__hint" id="yb-cv-keyboard-hint">{{ tcv.keyboard_hint }}</p>
+                  </div>
+                </aside>
+
+                {# Content Area #}
+                <main class="yb-cv-content" id="yb-cv-content">
+                  <article class="yb-cv-chapter" id="yb-cv-chapter" hidden>
+                    <div class="yb-cv-chapter__breadcrumb" id="yb-cv-chapter-breadcrumb"></div>
+                    <div class="yb-cv-chapter__header">
+                      <span class="yb-cv-chapter__eyebrow" id="yb-cv-chapter-eyebrow"></span>
+                      <h1 class="yb-cv-chapter__title" id="yb-cv-chapter-title"></h1>
+                      <div class="yb-cv-chapter__meta" id="yb-cv-chapter-meta">
+                        <span class="yb-cv-chapter__reading-time" id="yb-cv-reading-time"></span>
+                      </div>
+                    </div>
+                    <div class="yb-cv-chapter__body" id="yb-cv-chapter-content"></div>
+
+                    <div class="yb-cv-mark-complete" id="yb-cv-mark-complete">
+                      <label class="yb-cv-mark-complete__label">
+                        <input type="checkbox" id="yb-cv-complete-checkbox" class="yb-cv-mark-complete__checkbox">
+                        <span class="yb-cv-mark-complete__check"></span>
+                        <span class="yb-cv-mark-complete__text" id="yb-cv-complete-text">{{ tcv.mark_complete }}</span>
+                      </label>
+                    </div>
+
+                    <div class="yb-cv-notes" id="yb-cv-notes">
+                      <h3 class="yb-cv-notes__title">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                        {{ tcv.notes_title }}
+                      </h3>
+                      <textarea id="yb-cv-notes-input" class="yb-cv-notes__input" placeholder="{{ tcv.notes_placeholder }}" rows="3"></textarea>
+                      <div class="yb-cv-notes__actions">
+                        <button type="button" class="yb-btn yb-btn--outline yb-btn--sm" id="yb-cv-notes-save">{{ tcv.notes_save }}</button>
+                        <span class="yb-cv-notes__status" id="yb-cv-notes-status"></span>
+                      </div>
+                    </div>
+
+                    <div class="yb-cv-chapter-nav" id="yb-cv-chapter-nav">
+                      <button class="yb-cv-chapter-nav__btn yb-cv-chapter-nav__btn--prev" id="yb-cv-nav-prev" type="button" hidden>
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+                        <span id="yb-cv-nav-prev-label">{{ tcv.nav_previous }}</span>
+                      </button>
+                      <button class="yb-cv-chapter-nav__btn yb-cv-chapter-nav__btn--next" id="yb-cv-nav-next" type="button" hidden>
+                        <span id="yb-cv-nav-next-label">{{ tcv.nav_next }}</span>
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 6 15 12 9 18"/></svg>
+                      </button>
+                    </div>
+
+                    <div class="yb-cv-comments" id="yb-cv-comments">
+                      <h3 class="yb-cv-comments__title">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                        {{ tcv.comments_title }}
+                      </h3>
+                      <form class="yb-cv-comments__form" id="yb-cv-comment-form">
+                        <textarea id="yb-cv-comment-input" class="yb-cv-comments__input" placeholder="{{ tcv.comments_placeholder }}" rows="3"></textarea>
+                        <button type="submit" class="yb-btn yb-btn--primary yb-btn--sm">{{ tcv.comments_post }}</button>
+                      </form>
+                      <div class="yb-cv-comments__list" id="yb-cv-comments-list"></div>
+                    </div>
+                  </article>
+
+                  <div class="yb-cv-my-comments" id="yb-cv-my-comments" hidden>
+                    <div class="yb-cv-my-comments__header">
+                      <h2 class="yb-cv-my-comments__title">{{ tcv.my_comments_title }}</h2>
+                      <button class="yb-btn yb-btn--outline yb-btn--sm" type="button" id="yb-cv-my-comments-close">{{ tcv.close_btn }}</button>
+                    </div>
+                    <div class="yb-cv-my-comments__list" id="yb-cv-my-comments-list"></div>
+                  </div>
+                </main>
+              </div>
+            </div>
+
+          </section>
+        </div>
+
+          </div>
+        </div>
+
+      </div><!-- end .yb-profile__wrap -->
+    </div><!-- end #yb-profile-user -->
+  </div>
+</section>
+
+<script src="/js/profile.js"></script>
+<script src="/js/course-viewer.js"></script>

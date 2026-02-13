@@ -1,0 +1,197 @@
+{% set t = i18n.splits[lang or "da"] %}
+
+<!-- Hero -->
+<section class="yb-hero">
+  <div class="yb-hero__glow"></div>
+  <div class="yb-hero__content">
+    <p class="yb-hero__tagline">{{ t.hero_tagline }}</p>
+    <h1 class="yb-hero__title">{{ t.hero_title }}</h1>
+    <p class="yb-hero__subtitle">{{ t.hero_subtitle }}</p>
+    <div class="yb-hero__line"></div>
+    <div class="yb-hero__ctas">
+      <a href="#course-months" class="yb-btn yb-btn--primary yb-btn--large">{{ t.hero_cta_signup }}</a>
+      <a href="#course-details" class="yb-btn yb-btn--outline-white yb-btn--large">{{ t.hero_cta_more }}</a>
+    </div>
+    <div class="yb-hero__trust">
+      <span>{{ t.hero_trust1 }}</span>
+      <span class="yb-hero__trust-dot"></span>
+      <span>{{ t.hero_trust2 }}</span>
+      <span class="yb-hero__trust-dot"></span>
+      <span>{{ t.hero_trust3 }}</span>
+    </div>
+  </div>
+  <div class="yb-hero__scroll">
+    <span>Scroll</span>
+    <div class="yb-hero__scroll-line"></div>
+  </div>
+</section>
+
+<!-- Course Overview -->
+<section class="program-overview" id="course-details">
+  <div class="container">
+    <h2 class="section-title">{{ t.overview_title }}</h2>
+    <p class="section-subtitle">
+      {{ t.overview_subtitle }}
+    </p>
+
+    <div class="program-grid">
+      <div class="program-feature">
+        <div class="program-feature__icon">&#127959;&#65039;</div>
+        <h3>{{ t.feat1_title }}</h3>
+        <p>{{ t.feat1_desc }}</p>
+      </div>
+
+      <div class="program-feature">
+        <div class="program-feature__icon">&#128170;</div>
+        <h3>{{ t.feat2_title }}</h3>
+        <p>{{ t.feat2_desc }}</p>
+      </div>
+
+      <div class="program-feature">
+        <div class="program-feature__icon">&#127754;</div>
+        <h3>{{ t.feat3_title }}</h3>
+        <p>{{ t.feat3_desc }}</p>
+      </div>
+
+      <div class="program-feature">
+        <div class="program-feature__icon">&#128293;</div>
+        <h3>{{ t.feat4_title }}</h3>
+        <p>{{ t.feat4_desc }}</p>
+      </div>
+
+      <div class="program-feature">
+        <div class="program-feature__icon">&#129496;</div>
+        <h3>{{ t.feat5_title }}</h3>
+        <p>{{ t.feat5_desc }}</p>
+      </div>
+
+      <div class="program-feature">
+        <div class="program-feature__icon">&#129330;</div>
+        <h3>{{ t.feat6_title }}</h3>
+        <p>{{ t.feat6_desc }}</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Session Content -->
+<section class="program-schedule">
+  <div class="container">
+    <h2 class="section-title">{{ t.schedule_title }}</h2>
+    <p class="section-subtitle">{{ t.schedule_subtitle }}</p>
+
+    <div class="schedule-options">
+      <div class="schedule-card">
+        <h3>{{ t.schedule_card1_title }}</h3>
+        <ul>
+          <li>{{ t.schedule_card1_item1 }}</li>
+          <li>{{ t.schedule_card1_item2 }}</li>
+          <li>{{ t.schedule_card1_item3 }}</li>
+        </ul>
+      </div>
+      <div class="schedule-card">
+        <h3>{{ t.schedule_card2_title }}</h3>
+        <ul>
+          <li>{{ t.schedule_card2_item1 }}</li>
+          <li>{{ t.schedule_card2_item2 }}</li>
+          <li>{{ t.schedule_card2_item3 }}</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Month Selector & Pricing -->
+<section class="program-investment" id="course-months">
+  <div class="container">
+    <h2 class="section-title">{{ t.invest_title }}</h2>
+
+    <div class="investment-box">
+      <div class="investment-price">
+        <span class="investment-price__amount">{{ t.invest_price }}</span>
+        <span class="investment-price__label">{{ t.invest_price_label }}</span>
+      </div>
+
+      <div class="investment-includes">
+        <h4>{{ t.invest_includes_title }}</h4>
+        <ul>
+          <li>{{ t.invest_item1 }}</li>
+          <li>{{ t.invest_item2 }}</li>
+          <li>{{ t.invest_item3 }}</li>
+          <li>{{ t.invest_item4 }}</li>
+        </ul>
+        <p style="margin-top:12px; color: var(--yb-muted);">{{ t.invest_dropin }}</p>
+      </div>
+
+      <div class="investment-payment">
+        <p><strong>{{ t.invest_month_label }}</strong></p>
+        <div class="yb-month-chips" id="ybSplitsMonths">
+          <label class="yb-month-chip"><input type="radio" name="splitsMonth" value="feb" data-link="https://clients.mindbodyonline.com/classic/ws?studioid=5748831&stype=41&sTG=43&prodId=100147"><span>Februar 2026</span></label>
+          <label class="yb-month-chip"><input type="radio" name="splitsMonth" value="mar"><span>Marts 2026</span></label>
+          <label class="yb-month-chip"><input type="radio" name="splitsMonth" value="apr"><span>April 2026</span></label>
+          <label class="yb-month-chip"><input type="radio" name="splitsMonth" value="maj"><span>Maj 2026</span></label>
+        </div>
+      </div>
+
+      <a id="ybSplitsCta" class="btn btn--large btn--primary" href="https://clients.mindbodyonline.com/classic/ws?studioid=5748831&stype=41&sTG=43&prodId=100147" target="_blank" rel="noopener">{{ t.invest_cta }}</a>
+    </div>
+  </div>
+</section>
+
+<!-- FAQ -->
+<section class="program-faq">
+  <div class="container">
+    <h2 class="section-title">{{ t.faq_title }}</h2>
+
+    <div class="faq-list">
+      <details class="faq-item">
+        <summary>{{ t.faq1_q }}</summary>
+        <p>{{ t.faq1_a }}</p>
+      </details>
+
+      <details class="faq-item">
+        <summary>{{ t.faq2_q }}</summary>
+        <p>{{ t.faq2_a }}</p>
+      </details>
+
+      <details class="faq-item">
+        <summary>{{ t.faq3_q }}</summary>
+        <p>{{ t.faq3_a }}</p>
+      </details>
+
+      <details class="faq-item">
+        <summary>{{ t.faq4_q }}</summary>
+        <p>{{ t.faq4_a }}</p>
+      </details>
+
+      <details class="faq-item">
+        <summary>{{ t.faq5_q }}</summary>
+        <p>{{ t.faq5_a }}</p>
+      </details>
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+<section class="cta-section">
+  <div class="container">
+    <h2 class="cta-section__title">{{ t.cta_title }}</h2>
+    <p class="cta-section__text">{{ t.cta_text }}</p>
+    <a href="{% if lang == 'en' %}/en/course-bundles{% else %}/course-bundles{% endif %}" class="btn btn--large btn--primary">{{ t.cta_button }}</a>
+  </div>
+</section>
+
+<script>
+(function() {
+  var chips = document.querySelectorAll('#ybSplitsMonths input[type="radio"]');
+  var cta = document.getElementById('ybSplitsCta');
+  var ctaPrefix = {{ t.invest_cta | dump | safe }};
+  chips.forEach(function(chip) {
+    chip.addEventListener('change', function() {
+      var link = this.getAttribute('data-link');
+      if (link) { cta.href = link; }
+      cta.textContent = ctaPrefix;
+    });
+  });
+})();
+</script>

@@ -1,0 +1,521 @@
+{% set t = i18n.privacy_policy[lang or "da"] %}
+
+<!-- Hero — yb-hero unified design with trust bar -->
+<section class="yb-hero">
+  <div class="yb-hero__glow"></div>
+  <div class="yb-hero__content">
+    <p class="yb-hero__tagline">{{ t.hero_tagline }}</p>
+    <h1 class="yb-hero__title">{{ t.hero_title }}</h1>
+    <p class="yb-hero__subtitle">{{ t.hero_subtitle }}</p>
+    <div class="yb-hero__line"></div>
+    <div class="yb-hero__ctas">
+      <a class="yb-btn yb-btn--primary yb-btn--large" href="#yb-privacy">{{ t.hero_cta_read }}</a>
+      <a class="yb-btn yb-btn--outline-light yb-btn--large" href="mailto:info@yogabible.dk?subject=GDPR%20anmodning%20%E2%80%94%20Yoga%20Bible">{{ t.hero_cta_contact }}</a>
+    </div>
+    <div class="yb-hero__trust">
+      <span>{{ t.hero_trust_1 }}</span>
+      <span class="yb-hero__trust-dot"></span>
+      <span>{{ t.hero_trust_2 }}</span>
+      <span class="yb-hero__trust-dot"></span>
+      <span>{{ t.hero_trust_3 }}</span>
+    </div>
+  </div>
+  <div class="yb-hero__scroll">
+    <span>Scroll</span>
+    <div class="yb-hero__scroll-line"></div>
+  </div>
+</section>
+
+<!-- Privacy Policy — Full v2 content -->
+<section id="yb-privacy" class="yb-privacy" lang="{{ lang or 'da' }}" aria-label="{{ t.hero_title }}">
+  <div class="yb-privacy__inner">
+
+    <header class="yb-privacy__head">
+      <p class="yb-privacy__lead">{{ t.lead }}</p>
+
+      <div class="yb-privacy__meta">
+        <span class="yb-privacy__metaItem"><strong>{{ t.meta_entity_label }}</strong> {{ t.meta_entity }}</span>
+        <span class="yb-privacy__metaSep" aria-hidden="true">&bull;</span>
+        <span class="yb-privacy__metaItem"><strong>{{ t.meta_cvr_label }}</strong> {{ t.meta_cvr }}</span>
+        <span class="yb-privacy__metaSep" aria-hidden="true">&bull;</span>
+        <span class="yb-privacy__metaItem"><strong>{{ t.meta_vat_label }}</strong> {{ t.meta_vat }}</span>
+      </div>
+
+      <div class="yb-privacy__meta">
+        <span class="yb-privacy__metaItem"><strong>{{ t.meta_address_label }}</strong> {{ t.meta_address }}</span>
+        <span class="yb-privacy__metaSep" aria-hidden="true">&bull;</span>
+        <span class="yb-privacy__metaItem"><strong>{{ t.meta_phone_label }}</strong> <a href="tel:+4553881209">{{ t.meta_phone }}</a></span>
+        <span class="yb-privacy__metaSep" aria-hidden="true">&bull;</span>
+        <span class="yb-privacy__metaItem"><strong>{{ t.meta_email_label }}</strong> <a href="mailto:{{ t.meta_email }}">{{ t.meta_email }}</a></span>
+      </div>
+
+      <div class="yb-privacy__meta">
+        <span class="yb-privacy__metaItem"><strong>{{ t.meta_scope_label }}</strong> {{ t.meta_scope }}</span>
+      </div>
+
+      <div class="yb-privacy__meta">
+        <span class="yb-privacy__metaItem"><strong>{{ t.meta_updated_label }}</strong> <time datetime="{{ t.meta_updated_datetime }}">{{ t.meta_updated }}</time></span>
+      </div>
+
+      <div class="yb-privacy__notice" role="note">
+        {{ t.notice | safe }}
+      </div>
+
+      <nav class="yb-privacy__toc" aria-label="TOC">
+        <a class="yb-privacy-chip" href="#p1">{{ t.toc_1 }}</a>
+        <a class="yb-privacy-chip" href="#p2">{{ t.toc_2 }}</a>
+        <a class="yb-privacy-chip" href="#p3">{{ t.toc_3 }}</a>
+        <a class="yb-privacy-chip" href="#p4">{{ t.toc_4 }}</a>
+        <a class="yb-privacy-chip" href="#p5">{{ t.toc_5 }}</a>
+        <a class="yb-privacy-chip" href="#p6">{{ t.toc_6 }}</a>
+        <a class="yb-privacy-chip" href="#p7">{{ t.toc_7 }}</a>
+        <a class="yb-privacy-chip" href="#p8">{{ t.toc_8 }}</a>
+        <a class="yb-privacy-chip" href="#p9">{{ t.toc_9 }}</a>
+        <a class="yb-privacy-chip" href="#p10">{{ t.toc_10 }}</a>
+        <a class="yb-privacy-chip" href="#p11">{{ t.toc_11 }}</a>
+        <a class="yb-privacy-chip" href="#p12">{{ t.toc_12 }}</a>
+      </nav>
+    </header>
+
+    <div class="yb-privacy__grid">
+      <aside class="yb-privacy__side" aria-label="Overview">
+        <div class="yb-privacy-card">
+          <h2 class="yb-privacy-card__title">{{ t.sidebar_title }}</h2>
+          <ul class="yb-privacy-list">
+            <li>{{ t.sidebar_1 | safe }}</li>
+            <li>{{ t.sidebar_2 | safe }}</li>
+            <li>{{ t.sidebar_3 | safe }}</li>
+            <li>{{ t.sidebar_4 | safe }}</li>
+            <li>{{ t.sidebar_5 | safe }}</li>
+          </ul>
+
+          <div class="yb-privacy-divider" role="separator" aria-hidden="true"></div>
+
+          <h3 class="yb-privacy-card__subtitle">{{ t.sidebar_brands_title }}</h3>
+          <ul class="yb-privacy-list yb-privacy-list--compact">
+            <li>{{ t.sidebar_brand_1 }}</li>
+            <li>{{ t.sidebar_brand_2 }}</li>
+            <li>{{ t.sidebar_brand_3 }}</li>
+            <li>{{ t.sidebar_brand_4 }}</li>
+            <li>{{ t.sidebar_brand_5 }}</li>
+            <li>{{ t.sidebar_brand_6 }}</li>
+          </ul>
+        </div>
+      </aside>
+
+      <main class="yb-privacy__main" aria-label="{{ t.hero_title }}">
+
+        <!-- 1 -->
+        <details class="yb-privacy-acc" id="p1">
+          <summary class="yb-privacy-acc__sum">{{ t.s1_title }}</summary>
+          <div class="yb-privacy-acc__body">
+            <p>{{ t.s1_text }}</p>
+          </div>
+        </details>
+
+        <!-- 2 -->
+        <details class="yb-privacy-acc" id="p2">
+          <summary class="yb-privacy-acc__sum">{{ t.s2_title }}</summary>
+          <div class="yb-privacy-acc__body">
+            <p>{{ t.s2_text }}</p>
+            <p class="yb-privacy-muted">{{ t.s2_note }}</p>
+          </div>
+        </details>
+
+        <!-- 3 -->
+        <details class="yb-privacy-acc" id="p3">
+          <summary class="yb-privacy-acc__sum">{{ t.s3_title }}</summary>
+          <div class="yb-privacy-acc__body">
+            <h3>{{ t.s3_h_contact }}</h3>
+            <ul class="yb-privacy-list">
+              <li>{{ t.s3_contact_1 }}</li>
+              <li>{{ t.s3_contact_2 }}</li>
+              <li>{{ t.s3_contact_3 }}</li>
+            </ul>
+
+            <h3>{{ t.s3_h_purchase }}</h3>
+            <ul class="yb-privacy-list">
+              <li>{{ t.s3_purchase_1 }}</li>
+              <li>{{ t.s3_purchase_2 }}</li>
+            </ul>
+
+            <h3>{{ t.s3_h_education }}</h3>
+            <ul class="yb-privacy-list">
+              <li>{{ t.s3_education_1 }}</li>
+              <li>{{ t.s3_education_2 }}</li>
+              <li>{{ t.s3_education_3 }}</li>
+            </ul>
+
+            <h3>{{ t.s3_h_communication }}</h3>
+            <ul class="yb-privacy-list">
+              <li>{{ t.s3_communication_1 }}</li>
+              <li>{{ t.s3_communication_2 }}</li>
+            </ul>
+
+            <h3>{{ t.s3_h_media }}</h3>
+            <ul class="yb-privacy-list">
+              <li>{{ t.s3_media_1 }}</li>
+              <li>{{ t.s3_media_2 }}</li>
+            </ul>
+
+            <h3>{{ t.s3_h_technical }}</h3>
+            <ul class="yb-privacy-list">
+              <li>{{ t.s3_technical_1 }}</li>
+              <li>{{ t.s3_technical_2 }}</li>
+            </ul>
+
+            <div class="yb-privacy-callout">{{ t.s3_health_callout | safe }}</div>
+          </div>
+        </details>
+
+        <!-- 4 -->
+        <details class="yb-privacy-acc" id="p4">
+          <summary class="yb-privacy-acc__sum">{{ t.s4_title }}</summary>
+          <div class="yb-privacy-acc__body">
+            <h3>{{ t.s4_heading }}</h3>
+            <ul class="yb-privacy-list">
+              <li>{{ t.s4_1 | safe }}</li>
+              <li>{{ t.s4_2 | safe }}</li>
+              <li>{{ t.s4_3 | safe }}</li>
+              <li>{{ t.s4_4 | safe }}</li>
+              <li>{{ t.s4_5 | safe }}</li>
+              <li>{{ t.s4_6 | safe }}</li>
+              <li>{{ t.s4_7 | safe }}</li>
+              <li>{{ t.s4_8 | safe }}</li>
+            </ul>
+            <div class="yb-privacy-callout">{{ t.s4_callout | safe }}</div>
+          </div>
+        </details>
+
+        <!-- 5 -->
+        <details class="yb-privacy-acc" id="p5">
+          <summary class="yb-privacy-acc__sum">{{ t.s5_title }}</summary>
+          <div class="yb-privacy-acc__body">
+            <p>{{ t.s5_intro | safe }}</p>
+
+            <h3>{{ t.s5_h_why }}</h3>
+            <ul class="yb-privacy-list">
+              <li>{{ t.s5_why_1 }}</li>
+              <li>{{ t.s5_why_2 }}</li>
+              <li>{{ t.s5_why_3 }}</li>
+            </ul>
+
+            <h3>{{ t.s5_h_namaste }}</h3>
+            <ul class="yb-privacy-list">
+              <li>{{ t.s5_namaste_1 }}</li>
+              <li>{{ t.s5_namaste_2 }}</li>
+            </ul>
+
+            <h3>{{ t.s5_h_optout }}</h3>
+            <ul class="yb-privacy-list">
+              <li>{{ t.s5_optout_1 | safe }}</li>
+              <li>{{ t.s5_optout_2 | safe }}</li>
+              <li>{{ t.s5_optout_3 | safe }}</li>
+            </ul>
+
+            <div class="yb-privacy-callout">{{ t.s5_callout | safe }}</div>
+          </div>
+        </details>
+
+        <!-- 6 -->
+        <details class="yb-privacy-acc" id="p6">
+          <summary class="yb-privacy-acc__sum">{{ t.s6_title }}</summary>
+          <div class="yb-privacy-acc__body">
+            <p>{{ t.s6_intro }}</p>
+
+            <h3>{{ t.s6_heading }}</h3>
+            <ul class="yb-privacy-list">
+              <li>{{ t.s6_1 | safe }}</li>
+              <li>{{ t.s6_2 | safe }}</li>
+              <li>{{ t.s6_3 | safe }}</li>
+              <li>{{ t.s6_4 | safe }}</li>
+              <li>{{ t.s6_5 | safe }}</li>
+              <li>{{ t.s6_6 | safe }}</li>
+              <li>{{ t.s6_7 | safe }}</li>
+              <li>{{ t.s6_8 | safe }}</li>
+            </ul>
+
+            <div class="yb-privacy-callout">{{ t.s6_callout | safe }}</div>
+          </div>
+        </details>
+
+        <!-- 7 -->
+        <details class="yb-privacy-acc" id="p7">
+          <summary class="yb-privacy-acc__sum">{{ t.s7_title }}</summary>
+          <div class="yb-privacy-acc__body">
+            <p>{{ t.s7_text }}</p>
+          </div>
+        </details>
+
+        <!-- 8 -->
+        <details class="yb-privacy-acc" id="p8">
+          <summary class="yb-privacy-acc__sum">{{ t.s8_title }}</summary>
+          <div class="yb-privacy-acc__body">
+            <p>{{ t.s8_intro }}</p>
+
+            <h3>{{ t.s8_heading }}</h3>
+            <ul class="yb-privacy-list">
+              <li>{{ t.s8_1 | safe }}</li>
+              <li>{{ t.s8_2 | safe }}</li>
+              <li>{{ t.s8_3 | safe }}</li>
+              <li>{{ t.s8_4 | safe }}</li>
+              <li>{{ t.s8_5 | safe }}</li>
+              <li>{{ t.s8_6 | safe }}</li>
+            </ul>
+
+            <div class="yb-privacy-callout">{{ t.s8_callout | safe }}</div>
+          </div>
+        </details>
+
+        <!-- 9 -->
+        <details class="yb-privacy-acc" id="p9">
+          <summary class="yb-privacy-acc__sum">{{ t.s9_title }}</summary>
+          <div class="yb-privacy-acc__body">
+            <p>{{ t.s9_intro }}</p>
+            <ul class="yb-privacy-list">
+              <li>{{ t.s9_1 | safe }}</li>
+              <li>{{ t.s9_2 | safe }}</li>
+              <li>{{ t.s9_3 | safe }}</li>
+              <li>{{ t.s9_4 | safe }}</li>
+              <li>{{ t.s9_5 | safe }}</li>
+              <li>{{ t.s9_6 | safe }}</li>
+              <li>{{ t.s9_7 | safe }}</li>
+            </ul>
+            <p>{{ t.s9_contact | safe }}</p>
+          </div>
+        </details>
+
+        <!-- 10 -->
+        <details class="yb-privacy-acc" id="p10">
+          <summary class="yb-privacy-acc__sum">{{ t.s10_title }}</summary>
+          <div class="yb-privacy-acc__body">
+            <p>{{ t.s10_intro }}</p>
+
+            <h3>{{ t.s10_heading }}</h3>
+            <ul class="yb-privacy-list">
+              <li>{{ t.s10_1 | safe }}</li>
+              <li>{{ t.s10_2 | safe }}</li>
+              <li>{{ t.s10_3 | safe }}</li>
+              <li>{{ t.s10_4 | safe }}</li>
+            </ul>
+
+            <h3>{{ t.s10_h_consent }}</h3>
+            <p>{{ t.s10_consent_text }}</p>
+
+            <div class="yb-privacy-callout">{{ t.s10_callout | safe }}</div>
+          </div>
+        </details>
+
+        <!-- 11 -->
+        <details class="yb-privacy-acc" id="p11">
+          <summary class="yb-privacy-acc__sum">{{ t.s11_title }}</summary>
+          <div class="yb-privacy-acc__body">
+            <p>{{ t.s11_text }}</p>
+            <p class="yb-privacy-muted">{{ t.s11_note }}</p>
+          </div>
+        </details>
+
+        <!-- 12 -->
+        <details class="yb-privacy-acc" id="p12">
+          <summary class="yb-privacy-acc__sum">{{ t.s12_title }}</summary>
+          <div class="yb-privacy-acc__body">
+            <h3>{{ t.s12_h_contact }}</h3>
+            <ul class="yb-privacy-list">
+              <li><strong>{{ t.meta_email_label }}</strong> <a href="mailto:{{ t.s12_contact_email }}">{{ t.s12_contact_email }}</a></li>
+              <li><strong>{{ t.meta_phone_label }}</strong> <a href="tel:+4553881209">{{ t.s12_contact_phone }}</a></li>
+              <li><strong>{{ t.meta_address_label }}</strong> {{ t.s12_contact_address }}</li>
+            </ul>
+
+            <h3>{{ t.s12_h_complaint }}</h3>
+            <p>{{ t.s12_complaint_text }}</p>
+
+            <h3>{{ t.s12_h_changes }}</h3>
+            <p>{{ t.s12_changes_text }}</p>
+          </div>
+        </details>
+
+        <!-- Bottom CTA card -->
+        <div class="yb-privacy__bottomCard">
+          <div class="yb-privacy-card">
+            <h2 class="yb-privacy-card__title">{{ t.bottom_title }}</h2>
+            <p class="yb-privacy-muted">{{ t.bottom_text }}</p>
+            <div class="yb-privacy-actions">
+              <a class="yb-privacy-btn yb-privacy-btn--primary" href="mailto:info@yogabible.dk?subject=GDPR%20anmodning%20%E2%80%94%20Yoga%20Bible">{{ t.bottom_cta_primary }}</a>
+              <a class="yb-privacy-btn yb-privacy-btn--ghost" href="#p9">{{ t.bottom_cta_secondary }}</a>
+            </div>
+          </div>
+        </div>
+
+      </main>
+    </div>
+  </div>
+</section>
+
+<style>
+  /* =========================================================
+     Privacy Policy v2 — scoped styles
+     ========================================================= */
+  #yb-privacy {
+    --pp-accent: #f75c03;
+    --pp-bg: #FCFBF9;
+    --pp-card: #ffffff;
+    --pp-border: #EBE7E3;
+    --pp-text: #1A1A1A;
+    --pp-muted: #6B6B6B;
+    font-family: 'Abacaxi', "Helvetica Neue", Helvetica, Arial, system-ui, -apple-system, sans-serif;
+    color: var(--pp-text);
+    background: var(--pp-bg);
+    padding: 72px 20px;
+  }
+  #yb-privacy, #yb-privacy * { box-sizing: border-box; }
+  #yb-privacy .yb-privacy__inner { max-width: 1120px; margin: 0 auto; }
+
+  /* Header */
+  #yb-privacy .yb-privacy__lead {
+    margin: 0 0 16px; font-size: 16px; line-height: 1.65; color: #2a2a2a; max-width: 78ch;
+  }
+
+  /* Meta rows */
+  #yb-privacy .yb-privacy__meta {
+    display: flex; flex-wrap: wrap; gap: 10px; align-items: center;
+    color: var(--pp-muted); font-size: 13px; margin: 0 0 10px;
+  }
+  #yb-privacy .yb-privacy__metaSep { opacity: .65; }
+  #yb-privacy .yb-privacy__meta a {
+    color: var(--pp-accent);
+    text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 3px;
+  }
+
+  /* Notice */
+  #yb-privacy .yb-privacy__notice {
+    background: #fff; border: 1px solid var(--pp-border);
+    border-radius: 16px; padding: 14px 16px; line-height: 1.55; margin: 10px 0 18px;
+  }
+
+  /* TOC chips */
+  #yb-privacy .yb-privacy__toc { display: flex; flex-wrap: wrap; gap: 10px; margin: 14px 0 0; }
+  #yb-privacy .yb-privacy-chip {
+    display: inline-flex; align-items: center;
+    border: 1px solid var(--pp-border); background: #fff;
+    border-radius: 999px; padding: 10px 12px; font-size: 13px;
+    color: var(--pp-text); text-decoration: none;
+    transition: transform .15s ease, box-shadow .15s ease, border-color .15s ease;
+  }
+  #yb-privacy .yb-privacy-chip:hover {
+    border-color: rgba(247, 92, 3, .45);
+    box-shadow: 0 18px 60px rgba(0, 0, 0, .10);
+    transform: translateY(-1px);
+  }
+
+  /* Grid layout */
+  #yb-privacy .yb-privacy__grid { display: grid; gap: 18px; margin-top: 26px; }
+  @media (min-width: 980px) {
+    #yb-privacy .yb-privacy__grid { grid-template-columns: 360px minmax(0, 1fr); align-items: start; }
+    #yb-privacy .yb-privacy__side { position: sticky; top: 20px; }
+  }
+
+  /* Cards */
+  #yb-privacy .yb-privacy-card {
+    background: var(--pp-card); border: 1px solid var(--pp-border);
+    border-radius: 20px; padding: 18px;
+    box-shadow: 0 18px 60px rgba(0, 0, 0, .10);
+  }
+  #yb-privacy .yb-privacy-card__title { margin: 0 0 10px; font-size: 16px; letter-spacing: -.01em; }
+  #yb-privacy .yb-privacy-card__subtitle {
+    margin: 0 0 8px; font-size: 13px; color: var(--pp-muted);
+    text-transform: uppercase; letter-spacing: .10em;
+  }
+
+  /* Utility */
+  #yb-privacy .yb-privacy-divider { height: 1px; background: var(--pp-border); margin: 14px 0; }
+  #yb-privacy .yb-privacy-list { margin: 0; padding-left: 18px; color: #2a2a2a; line-height: 1.7; font-size: 14px; }
+  #yb-privacy .yb-privacy-list--compact { font-size: 13px; color: var(--pp-muted); }
+  #yb-privacy .yb-privacy-muted { color: var(--pp-muted); line-height: 1.6; font-size: 14px; margin: 0; }
+
+  /* Accordions */
+  #yb-privacy .yb-privacy-acc {
+    border: 1px solid var(--pp-border); border-radius: 20px; background: #fff;
+    margin: 0 0 12px; overflow: hidden; scroll-margin-top: 18px;
+  }
+  #yb-privacy .yb-privacy-acc__sum {
+    list-style: none; cursor: pointer; padding: 16px; font-weight: 700;
+    letter-spacing: -.01em; display: flex; align-items: center;
+    justify-content: space-between; gap: 12px; outline: none;
+  }
+  #yb-privacy details > summary::-webkit-details-marker { display: none; }
+  #yb-privacy .yb-privacy-acc__sum::after {
+    content: "\25BE"; color: var(--pp-muted); font-weight: 600;
+    transition: transform .15s ease;
+  }
+  #yb-privacy details[open] .yb-privacy-acc__sum::after { transform: rotate(180deg); }
+  #yb-privacy .yb-privacy-acc__sum:focus-visible {
+    box-shadow: 0 0 0 3px rgba(247, 92, 3, .22); border-radius: 14px; margin: 6px;
+  }
+  #yb-privacy .yb-privacy-acc__body {
+    padding: 0 16px 16px; line-height: 1.7; font-size: 14px; color: #2a2a2a;
+  }
+  #yb-privacy .yb-privacy-acc__body a {
+    color: var(--pp-accent); text-decoration: underline;
+    text-decoration-thickness: 1px; text-underline-offset: 3px;
+  }
+  #yb-privacy .yb-privacy-acc__body h3 { margin: 14px 0 8px; font-size: 14px; letter-spacing: -.01em; }
+
+  /* Callout */
+  #yb-privacy .yb-privacy-callout {
+    border: 1px solid rgba(247, 92, 3, .28); background: rgba(247, 92, 3, .06);
+    border-radius: 16px; padding: 12px; margin: 12px 0;
+  }
+
+  /* Bottom card + actions */
+  #yb-privacy .yb-privacy__bottomCard { margin-top: 10px; }
+  #yb-privacy .yb-privacy-actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 14px; }
+
+  /* Buttons (scoped) */
+  #yb-privacy .yb-privacy-btn {
+    display: inline-flex; align-items: center; justify-content: center;
+    border-radius: 999px; padding: 10px 14px; font-size: 13px;
+    text-decoration: none; border: 1px solid var(--pp-border);
+    transition: transform .15s ease, box-shadow .15s ease, filter .15s ease, background .15s ease, color .15s ease;
+    white-space: nowrap;
+  }
+  #yb-privacy .yb-privacy-btn--primary {
+    background: var(--pp-accent); border-color: var(--pp-accent);
+    color: #fff; box-shadow: 0 18px 60px rgba(0, 0, 0, .12);
+  }
+  #yb-privacy .yb-privacy-btn--primary:hover { filter: brightness(.98); transform: translateY(-1px); }
+  #yb-privacy .yb-privacy-btn--ghost {
+    background: #fff; color: var(--pp-accent); border-color: rgba(247, 92, 3, .45);
+  }
+  #yb-privacy .yb-privacy-btn--ghost:hover { background: rgba(247, 92, 3, .06); transform: translateY(-1px); }
+
+  @media (max-width: 520px) {
+    #yb-privacy { padding: 48px 16px; }
+  }
+</style>
+
+<script>
+  (function () {
+    var root = document.getElementById('yb-privacy');
+    if (!root) return;
+
+    var details = root.querySelectorAll('details.yb-privacy-acc');
+    details.forEach(function (d) {
+      d.addEventListener('toggle', function () {
+        if (!d.open) return;
+        details.forEach(function (other) { if (other !== d) other.open = false; });
+      });
+    });
+
+    function openFromHash() {
+      var id = (window.location.hash || '').replace('#', '');
+      if (!id) return;
+      var target = root.querySelector('#' + CSS.escape(id));
+      if (target && target.tagName.toLowerCase() === 'details') {
+        target.open = true;
+        target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    }
+    window.addEventListener('hashchange', openFromHash);
+    setTimeout(openFromHash, 40);
+  })();
+</script>

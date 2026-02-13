@@ -1,0 +1,146 @@
+{% set t = i18n.yogaphotography[lang or "da"] %}
+
+<!-- Hero -->
+<section class="yb-hero">
+  <div class="yb-hero__glow"></div>
+  <div class="yb-hero__content">
+    <p class="yb-hero__tagline">{{ t.hero_tagline }}</p>
+    <h1 class="yb-hero__title">{{ t.hero_title }}</h1>
+    <p class="yb-hero__subtitle">{{ t.hero_subtitle }}</p>
+    <div class="yb-hero__line"></div>
+    <div class="yb-hero__ctas">
+      <a href="mailto:info@yogabible.dk?subject=Yoga%20Fotosession%20-%20Foresp%C3%B8rgsel&body=Hej%20Yoga%20Bible%2C%0A%0AJeg%20vil%20gerne%20h%C3%B8re%20mere%20om%20jeres%20yogafotosession.%0A%0AMvh" class="yb-btn yb-btn--primary yb-btn--large">{{ t.hero_cta }}</a>
+    </div>
+    <div class="yb-hero__trust">
+      <span>{{ t.hero_trust1 }}</span>
+      <span class="yb-hero__trust-dot"></span>
+      <span>{{ t.hero_trust2 }}</span>
+      <span class="yb-hero__trust-dot"></span>
+      <span>{{ t.hero_trust3 }}</span>
+    </div>
+  </div>
+  <div class="yb-hero__scroll">
+    <span>Scroll</span>
+    <div class="yb-hero__scroll-line"></div>
+  </div>
+</section>
+
+<!-- What You Get -->
+<section class="program-overview">
+  <div class="container">
+    <h2 class="section-title">{{ t.session_title }}</h2>
+    <p class="section-subtitle">{{ t.session_subtitle }}</p>
+
+    <div class="program-grid">
+      <div class="program-feature">
+        <div class="program-feature__icon">📸</div>
+        <h3>{{ t.feat1_title }}</h3>
+        <p>{{ t.feat1_desc }}</p>
+      </div>
+
+      <div class="program-feature">
+        <div class="program-feature__icon">🖼️</div>
+        <h3>{{ t.feat2_title }}</h3>
+        <p>{{ t.feat2_desc }}</p>
+      </div>
+
+      <div class="program-feature">
+        <div class="program-feature__icon">🎨</div>
+        <h3>{{ t.feat3_title }}</h3>
+        <p>{{ t.feat3_desc }}</p>
+      </div>
+
+      <div class="program-feature">
+        <div class="program-feature__icon">🧘</div>
+        <h3>{{ t.feat4_title }}</h3>
+        <p>{{ t.feat4_desc }}</p>
+      </div>
+
+      <div class="program-feature">
+        <div class="program-feature__icon">💰</div>
+        <h3>{{ t.feat5_title }}</h3>
+        <p>{{ t.feat5_desc }}</p>
+      </div>
+
+      <div class="program-feature">
+        <div class="program-feature__icon">📍</div>
+        <h3>{{ t.feat6_title }}</h3>
+        <p>{{ t.feat6_desc }}</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Preparation Guide -->
+<section class="program-schedule">
+  <div class="container">
+    <h2 class="section-title">{{ t.prep_title }}</h2>
+
+    <div class="schedule-options">
+      <div class="schedule-card">
+        <h3>{{ t.prep_before_title }}</h3>
+        <ul>
+          <li>{{ t.prep_before_1 | safe }}</li>
+          <li>{{ t.prep_before_2 | safe }}</li>
+          <li>{{ t.prep_before_3 | safe }}</li>
+        </ul>
+      </div>
+      <div class="schedule-card">
+        <h3>{{ t.prep_studio_title }}</h3>
+        <ul>
+          <li>{{ t.prep_studio_1 | safe }}</li>
+          <li>{{ t.prep_studio_2 | safe }}</li>
+          <li>{{ t.prep_studio_3 | safe }}</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FAQ -->
+<section class="program-faq">
+  <div class="container">
+    <h2 class="section-title">{{ t.faq_title }}</h2>
+
+    <div class="faq-list">
+      <details class="faq-item">
+        <summary>{{ t.faq1_q }}</summary>
+        <p>{{ t.faq1_a }}</p>
+      </details>
+
+      <details class="faq-item">
+        <summary>{{ t.faq2_q }}</summary>
+        <p>{{ t.faq2_a }}</p>
+      </details>
+
+      <details class="faq-item">
+        <summary>{{ t.faq3_q }}</summary>
+        <p>{{ t.faq3_a }}</p>
+      </details>
+
+      <details class="faq-item">
+        <summary>{{ t.faq4_q }}</summary>
+        <p>{{ t.faq4_a }}</p>
+      </details>
+
+      <details class="faq-item">
+        <summary>{{ t.faq5_q }}</summary>
+        <p>{{ t.faq5_a }}</p>
+      </details>
+
+      <details class="faq-item">
+        <summary>{{ t.faq6_q }}</summary>
+        <p>{{ t.faq6_a }}</p>
+      </details>
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+<section class="cta-section">
+  <div class="container">
+    <h2 class="cta-section__title">{{ t.cta_title }}</h2>
+    <p class="cta-section__text">{{ t.cta_text }}</p>
+    <a href="mailto:info@yogabible.dk?subject=Yoga%20Fotosession%20-%20Foresp%C3%B8rgsel" class="btn btn--large btn--primary">{{ t.cta_btn }}</a>
+  </div>
+</section>

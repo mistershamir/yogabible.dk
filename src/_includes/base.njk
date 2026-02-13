@@ -1,12 +1,12 @@
 <!DOCTYPE html>
-<html lang="{{ site.lang }}">
+<html lang="{% if lang == 'en' %}en{% else %}da-DK{% endif %}">
 <head>
   {% include "head.njk" %}
 </head>
 
-<body>
-  <!-- Google Tag Manager (noscript) -->
-  <noscript><iframe src="https://www.googletagmanager.com/ns.html?id={{ site.gtmId }}" height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
+<body{% if bodyClass %} class="{{ bodyClass }}"{% endif %}>
+  <!-- GTM noscript — injected by consent manager when accepted -->
+  <noscript id="yb-gtm-noscript"></noscript>
 
   {% include "header.njk" %}
 
@@ -25,23 +25,45 @@
     <link rel="stylesheet" href="/css/p18.css">
   {% endif %}
 
+  {% if includeCoursesModal %}
+    {% include "modal-courses.njk" %}
+  {% endif %}
+
+  <!-- Auth Modal -->
+  {% include "modal-auth.njk" %}
+
+  <!-- Checkout Modal -->
+  {% include "modal-checkout.njk" %}
+
   <!-- Netlify Identity redirect (for CMS login flow) -->
   <script>
     if (window.netlifyIdentity) {
       window.netlifyIdentity.on("init", function(user) {
         if (!user) {
           window.netlifyIdentity.on("login", function() {
-            document.location.href = "/admin/";
+            document.location.href = "/decap-cms/";
           });
         }
       });
     }
   </script>
 
+  <!-- Cookie Consent -->
+  {% include "cookies.njk" %}
+  <script src="/js/cookies.js"></script>
+
+  <!-- Firebase SDK (compat for broad browser support) -->
+  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
+
   <!-- Scripts -->
   <script src="/js/header.js"></script>
   <script src="/js/main.js"></script>
   <script src="/js/footer.js"></script>
+  <script src="/js/roles-permissions.js"></script>
+  <script src="/js/firebase-auth.js"></script>
+  <script src="/js/mindbody.js"></script>
   {% if includeScheduleModal %}
     <script src="/js/modal.js"></script>
   {% endif %}

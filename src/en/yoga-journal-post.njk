@@ -1,0 +1,15 @@
+---
+pagination:
+  data: journals.entries
+  size: 1
+  alias: journal
+permalink: "/en/yoga-journal/{{ journal.slug }}/"
+layout: base.njk
+lang: en
+eleventyComputed:
+  title: "{{ journal.title_en }} | Yoga Journal — YOGA BIBLE"
+  description: "{{ journal.excerpt_en }}"
+  journalPost: true
+---
+
+{% include "pages/yoga-journal-post-content.njk" %}

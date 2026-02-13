@@ -1,76 +1,46 @@
 /**
  * YOGA BIBLE - JOURNAL FUNCTIONALITY
- * Handles language switching, search, filtering, progress bar, and sharing
+ * Handles bilingual content toggle, search, filtering, progress bar, and sharing
+ * Language is determined by the global site language switcher (hostname-based)
  */
 
 (function() {
   'use strict';
 
   // ============================================
-  // LANGUAGE DETECTION & STATE
+  // LANGUAGE DETECTION (from global switcher)
   // ============================================
 
-  var STORAGE_KEY = 'yb-journal-lang';
-  var host = window.location.hostname.toLowerCase();
-  var isENHost = host.indexOf('en.') === 0;
-
-  // Priority: localStorage > hostname > default (da)
-  var stored = null;
-  try { stored = localStorage.getItem(STORAGE_KEY); } catch(e) {}
-  var currentLang = stored || (isENHost ? 'en' : 'da');
+  var pathname = window.location.pathname || "/";
+  var currentLang = (pathname.indexOf('/en/') === 0 || pathname === '/en') ? 'en' : 'da';
 
   // ============================================
-  // LANGUAGE SWITCHING
+  // BILINGUAL CONTENT TOGGLE
   // ============================================
 
-  function applyLanguage(lang) {
-    currentLang = lang;
-    try { localStorage.setItem(STORAGE_KEY, lang); } catch(e) {}
-
-    // Toggle visibility of all data-yj-da and data-yj-en elements
+  function applyLanguage() {
     var daEls = document.querySelectorAll('[data-yj-da]');
     var enEls = document.querySelectorAll('[data-yj-en]');
 
     for (var i = 0; i < daEls.length; i++) {
-      daEls[i].hidden = lang !== 'da';
+      daEls[i].hidden = currentLang !== 'da';
     }
     for (var i = 0; i < enEls.length; i++) {
-      enEls[i].hidden = lang !== 'en';
-    }
-
-    // Update active state on language buttons
-    var langBtns = document.querySelectorAll('[data-yj-lang]');
-    for (var i = 0; i < langBtns.length; i++) {
-      var btn = langBtns[i];
-      if (btn.getAttribute('data-yj-lang') === lang) {
-        btn.classList.add('is-active');
-      } else {
-        btn.classList.remove('is-active');
-      }
+      enEls[i].hidden = currentLang !== 'en';
     }
 
     // Update search placeholder
     var searchInput = document.getElementById('yjSearch');
     if (searchInput) {
-      searchInput.placeholder = lang === 'da'
+      searchInput.placeholder = currentLang === 'da'
         ? (searchInput.getAttribute('data-yj-placeholder-da') || 'Søg...')
         : (searchInput.getAttribute('data-yj-placeholder-en') || 'Search...');
     }
 
-    // Update results count
     updateResultsCount();
   }
 
-  // Bind language toggle buttons
-  var langBtns = document.querySelectorAll('[data-yj-lang]');
-  for (var i = 0; i < langBtns.length; i++) {
-    langBtns[i].addEventListener('click', function() {
-      applyLanguage(this.getAttribute('data-yj-lang'));
-    });
-  }
-
-  // Apply initial language
-  applyLanguage(currentLang);
+  applyLanguage();
 
   // ============================================
   // SEARCH & FILTERING (Listing Page Only)
@@ -100,14 +70,11 @@
       var category = card.getAttribute('data-yj-category') || '';
       var tags = card.getAttribute('data-yj-tags') || '';
 
-      // Category filter
       var matchesFilter = activeFilter === 'all' || category === activeFilter;
 
-      // Search query
       var matchesSearch = true;
       if (searchQuery) {
         var q = normalizeText(searchQuery);
-        // Get all text content from the card for search
         var titleDa = card.querySelector('.yj-card__title [data-yj-da]');
         var titleEn = card.querySelector('.yj-card__title [data-yj-en]');
         var excerptDa = card.querySelector('.yj-card__excerpt [data-yj-da]');
@@ -129,7 +96,6 @@
       if (visible) visibleCount++;
     }
 
-    // Show/hide empty state
     if (emptyState) {
       emptyState.hidden = visibleCount > 0;
     }
@@ -142,7 +108,6 @@
     if (!countEl) return;
 
     if (typeof count === 'undefined') {
-      // Count visible cards
       count = 0;
       if (cards) {
         for (var i = 0; i < cards.length; i++) {
@@ -158,7 +123,6 @@
     }
   }
 
-  // Search input handler with debounce
   var searchTimer = null;
   if (searchInput) {
     searchInput.addEventListener('input', function() {
@@ -170,21 +134,17 @@
     });
   }
 
-  // Filter button handlers
   for (var i = 0; i < filterBtns.length; i++) {
     filterBtns[i].addEventListener('click', function() {
-      // Update active state
       for (var j = 0; j < filterBtns.length; j++) {
         filterBtns[j].classList.remove('is-active');
       }
       this.classList.add('is-active');
-
       activeFilter = this.getAttribute('data-yj-filter');
       filterAndSearch();
     });
   }
 
-  // Initial count (listing page only)
   if (grid) {
     filterAndSearch();
   }
@@ -206,7 +166,6 @@
       var windowHeight = window.innerHeight;
       var scrolled = window.pageYOffset;
 
-      // Calculate progress: 0 at top of content, 100 at bottom
       var start = contentTop - windowHeight * 0.3;
       var end = contentTop + contentHeight - windowHeight * 0.5;
       var progress = Math.min(Math.max((scrolled - start) / (end - start), 0), 1);
@@ -240,7 +199,6 @@
           showCopyFeedback(btn);
         });
       } else {
-        // Fallback for older browsers
         var input = document.createElement('input');
         input.value = url;
         input.style.position = 'fixed';

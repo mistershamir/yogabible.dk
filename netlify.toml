@@ -1,6 +1,7 @@
 [build]
   command = "npx @11ty/eleventy"
   publish = "_site"
+  functions = "netlify/functions"
 
 [build.environment]
   NODE_VERSION = "20"
@@ -9,6 +10,13 @@
 [[redirects]]
   from = "https://www.yogabible.dk/*"
   to = "https://yogabible.dk/:splat"
+  status = 301
+  force = true
+
+# Redirect old en subdomain to /en/ path prefix (301)
+[[redirects]]
+  from = "https://en.yogabible.dk/*"
+  to = "https://yogabible.dk/en/:splat"
   status = 301
   force = true
 

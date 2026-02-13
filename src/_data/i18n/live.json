@@ -1,0 +1,26 @@
+{
+  "da": {
+    "hero_tagline": "Yoga Bible · Live",
+    "hero_title": "Live fra København",
+    "hero_subtitle": "Følg med live når vi streamer yogaklasser, workshops og særlige events direkte fra vores studie i Christianshavn.",
+    "live_badge": "LIVE",
+    "offline_title": "Vi er ikke live lige nu",
+    "offline_text": "Kom tilbage senere for at se vores næste livestream. Følg os på sociale medier for at få besked, når vi går live.",
+    "stream_title": "Yoga Bible Live Stream",
+    "checking_text": "Tjekker livestream status…",
+    "error_text": "Kunne ikke indlæse stream. Prøv igen om lidt.",
+    "retry_btn": "Prøv igen"
+  },
+  "en": {
+    "hero_tagline": "Yoga Bible · Live",
+    "hero_title": "Live from Copenhagen",
+    "hero_subtitle": "Join us live as we stream yoga classes, workshops and special events directly from our studio in Christianshavn.",
+    "live_badge": "LIVE",
+    "offline_title": "We're not live right now",
+    "offline_text": "Check back later to catch our next livestream. Follow us on social media to get notified when we go live.",
+    "stream_title": "Yoga Bible Live Stream",
+    "checking_text": "Checking livestream status…",
+    "error_text": "Could not load stream. Please try again shortly.",
+    "retry_btn": "Try again"
+  }
+}

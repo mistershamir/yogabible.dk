@@ -1,0 +1,4895 @@
+/* Hot Yoga Copenhagen — Member Area Styles */
+/* Extracted from Yoga Bible's main.css and rebranded with HYC teal palette */
+/* Original: #f75c03 → #3f99a5 | #d94f02 → #357f89 | #ff9966 → #5bb8c4 */
+
+/* ========================================
+   ABACAXI FONT (Custom Brand Font)
+   ======================================== */
+
+@font-face {
+  font-family: 'Abacaxi';
+  src: url('/assets/fonts/AbacaxiLatinWeb-Regular.woff2') format('woff2'),
+       url('/assets/fonts/AbacaxiLatinWeb-Regular.woff') format('woff');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Abacaxi';
+  src: url('/assets/fonts/AbacaxiLatinWeb-Bold.woff2') format('woff2'),
+       url('/assets/fonts/AbacaxiLatinWeb-Bold.woff') format('woff');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* ========================================
+   CSS CUSTOM PROPERTIES (HYC Rebranded)
+   ======================================== */
+
+:root {
+  /* Brand Colors — Hot Yoga Copenhagen Teal */
+  --yb-brand: #3f99a5;
+  --yb-brand-rgb: 63, 153, 165;
+  --yb-accent: #3f99a5;
+
+  /* Yoga Bible Orange — warm accent */
+  --yb-orange: #f75c03;
+  --yb-orange-dark: #d94f02;
+  --yb-orange-light: #ff9966;
+  --yb-orange-rgb: 247, 92, 3;
+
+  /* Header Colors (dark theme) */
+  --yb-bg: #1C1C1C;
+  --yb-text: #FDFBF7;
+  --yb-muted: rgba(253, 251, 247, 0.74);
+  --yb-line: rgba(253, 251, 247, 0.12);
+
+  /* Typography */
+  --font-primary: 'Abacaxi', "Helvetica Neue", Helvetica, Arial, system-ui, -apple-system, sans-serif;
+
+  /* Spacing */
+  --header-height: 107px;
+  --max-width: 1280px;
+
+  /* Transitions */
+  --transition-fast: 0.12s ease;
+  --transition-medium: 0.18s ease;
+}
+
+/* Global: ensure [hidden] always works even when CSS sets explicit display */
+[hidden] { display: none !important; }
+
+/* ========================================
+   BASE STYLES
+   ======================================== */
+
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: var(--font-primary);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ========================================
+   CONTAINER
+   ======================================== */
+
+.container {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 0 clamp(20px, 4vw, 60px);
+}
+
+/* ========================================
+   BUTTONS
+   ======================================== */
+
+.yb-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 14px 32px;
+  border-radius: 999px;
+  font-family: var(--font-primary);
+  font-size: 0.9rem;
+  font-weight: 700;
+  text-decoration: none;
+  border: 2px solid transparent;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.yb-btn--primary {
+  background: var(--yb-brand);
+  color: #fff;
+  border-color: var(--yb-brand);
+}
+
+.yb-btn--primary:hover {
+  background: #357f89;
+  border-color: #357f89;
+  transform: translateY(-1px);
+  box-shadow: 0 6px 20px rgba(63, 153, 165, 0.3);
+}
+
+.yb-btn--white {
+  background: #fff;
+  color: var(--yb-brand);
+  border-color: #fff;
+}
+
+.yb-btn--white:hover {
+  background: #FFFCF9;
+  transform: translateY(-1px);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+}
+
+.yb-btn--outline-white {
+  background: transparent;
+  color: #fff;
+  border-color: rgba(255, 255, 255, 0.5);
+}
+
+.yb-btn--outline-white:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: #fff;
+}
+
+.yb-btn--outline-light {
+  background: transparent;
+  color: #fff;
+  border-color: rgba(255, 255, 255, 0.4);
+}
+
+.yb-btn--outline-light:hover {
+  background: #fff;
+  color: #0F0F0F;
+  border-color: #fff;
+}
+
+.yb-btn--large {
+  padding: 18px 40px;
+  font-size: 1rem;
+}
+
+.yb-btn--full {
+  width: 100%;
+}
+
+.yb-btn:focus-visible {
+  outline: 2px solid var(--yb-brand);
+  outline-offset: 2px;
+}
+
+.yb-link-arrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--yb-brand);
+  text-decoration: none;
+  transition: gap 0.2s ease;
+}
+
+.yb-link-arrow::after {
+  content: "\2192";
+  transition: transform 0.2s ease;
+}
+
+.yb-link-arrow:hover {
+  gap: 12px;
+}
+
+/* ========================================
+   AUTH MODAL
+   ======================================== */
+
+.yb-auth-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.yb-auth-modal[aria-hidden="true"] {
+  display: none;
+}
+
+.yb-auth-modal__overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.65);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+}
+
+.yb-auth-modal__box {
+  position: relative;
+  background: #FFFCF9;
+  border-radius: 20px;
+  width: 100%;
+  max-width: 420px;
+  max-height: 90vh;
+  overflow-y: auto;
+  padding: 48px 40px;
+  box-shadow: 0 24px 64px rgba(0, 0, 0, 0.12);
+  border: 1px solid #E8E4E0;
+  transition: max-width 0.3s ease;
+}
+
+/* Split layout for register view */
+.yb-auth-modal__box[data-view="register"] {
+  max-width: 780px;
+  padding: 0;
+  overflow: hidden;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: auto;
+  border: none;
+}
+
+.yb-auth-modal__box[data-view="register"]::before {
+  content: '';
+  position: absolute;
+  top: -60px;
+  right: -60px;
+  width: 180px;
+  height: 180px;
+  background: none;
+}
+
+/* Visual panel (only visible in register view) */
+.yb-auth-modal__visual {
+  display: none;
+  background: linear-gradient(160deg, #2d6b74 0%, #3f99a5 50%, #5bb8c4 100%);
+  padding: 48px 32px;
+  flex-direction: column;
+  justify-content: flex-end;
+  position: relative;
+  min-height: 480px;
+}
+
+.yb-auth-modal__box[data-view="register"] .yb-auth-modal__visual {
+  display: flex;
+  grid-column: 1;
+  grid-row: 1 / -1;
+}
+
+.yb-auth-modal__visual-img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.yb-auth-modal__visual-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(160deg, rgba(45,107,116,.82) 0%, rgba(63,153,165,.65) 50%, rgba(91,184,196,.55) 100%);
+}
+
+.yb-auth-modal__visual-dots {
+  position: absolute;
+  top: 32px;
+  left: 32px;
+  display: flex;
+  gap: 6px;
+  z-index: 1;
+}
+
+.yb-auth-modal__visual-dots span {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: rgba(255,255,255,.3);
+}
+
+.yb-auth-modal__visual-dots span:first-child {
+  background: #fff;
+}
+
+.yb-auth-modal__visual-title {
+  font-family: var(--font-primary);
+  font-size: 1.8rem;
+  font-weight: 700;
+  color: #fff;
+  margin: 0 0 8px;
+  line-height: 1.2;
+  position: relative;
+  z-index: 1;
+}
+
+.yb-auth-modal__visual-sub {
+  font-family: var(--font-primary);
+  font-size: 0.9rem;
+  color: rgba(255,255,255,.75);
+  margin: 0;
+  position: relative;
+  z-index: 1;
+}
+
+/* Close button for register split layout */
+.yb-auth-modal__box[data-view="register"] .yb-auth-modal__close {
+  z-index: 2;
+}
+
+/* Form panel in register split layout */
+.yb-auth-modal__box[data-view="register"] .yb-auth-view {
+  padding: 48px 36px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  grid-column: 2;
+  grid-row: 1;
+}
+
+.yb-auth-modal__box[data-view="register"] .yb-auth-view[hidden] {
+  display: none;
+}
+
+@media (max-width: 640px) {
+  .yb-auth-modal__box[data-view="register"] {
+    grid-template-columns: 1fr;
+    max-width: 420px;
+    padding: 0;
+  }
+  .yb-auth-modal__box[data-view="register"] .yb-auth-modal__visual {
+    min-height: 140px;
+    padding: 28px 24px;
+    grid-row: 1;
+  }
+  .yb-auth-modal__box[data-view="register"] .yb-auth-view {
+    grid-column: 1;
+    grid-row: 2;
+    padding: 32px 28px;
+  }
+}
+
+/* Warm glow accent on login/reset views */
+.yb-auth-modal__box::before {
+  content: '';
+  position: absolute;
+  top: -60px;
+  right: -60px;
+  width: 180px;
+  height: 180px;
+  background: radial-gradient(circle, rgba(63, 153, 165,.12) 0%, transparent 70%);
+  pointer-events: none;
+}
+
+.yb-auth-modal__close {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  background: none;
+  border: none;
+  font-size: 1.2rem;
+  color: #6F6A66;
+  cursor: pointer;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  z-index: 2;
+  transition: background var(--transition-fast), color var(--transition-fast);
+}
+
+.yb-auth-modal__close:hover {
+  background: #F5F3F0;
+  color: #0F0F0F;
+}
+
+.yb-auth-modal__header {
+  text-align: left;
+  margin-bottom: 28px;
+}
+
+.yb-auth-modal__logo {
+  margin-bottom: 20px;
+}
+
+.yb-auth-modal__logo img {
+  height: 36px;
+  width: auto;
+}
+
+.yb-auth-modal__title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #0F0F0F;
+  margin-bottom: 6px;
+}
+
+.yb-auth-modal__subtitle {
+  font-size: 0.9rem;
+  color: #6F6A66;
+}
+
+/* Auth Form */
+.yb-auth-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.yb-auth-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.yb-auth-field label {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: #0F0F0F;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.yb-auth-field input {
+  font-family: var(--font-primary);
+  font-size: 0.95rem;
+  padding: 12px 16px;
+  border: 1px solid var(--yb-brand);
+  border-radius: 12px;
+  background: #fff;
+  color: #0F0F0F;
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+  outline: none;
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+}
+
+.yb-auth-field input::placeholder {
+  color: #B5B0AB;
+}
+
+.yb-auth-field input:focus {
+  border-color: var(--yb-brand);
+  box-shadow: 0 0 0 3px rgba(63, 153, 165, 0.12);
+}
+
+.yb-auth-field__select {
+  font-family: var(--font-primary);
+  font-size: 0.95rem;
+  padding: 12px 16px;
+  border: 1px solid var(--yb-brand);
+  border-radius: 12px;
+  background: #fff;
+  color: #0F0F0F;
+  outline: none;
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+  cursor: pointer;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg width='12' height='8' viewBox='0 0 12 8' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1.5L6 6.5L11 1.5' stroke='%236F6A66' stroke-width='1.5' stroke-linecap='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 16px center;
+  padding-right: 40px;
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.yb-auth-field__select:focus {
+  border-color: var(--yb-brand);
+  box-shadow: 0 0 0 3px rgba(63, 153, 165, 0.12);
+}
+
+.yb-auth-submit {
+  font-family: var(--font-primary);
+  font-size: 1rem;
+  font-weight: 700;
+  padding: 14px 24px;
+  background: var(--yb-brand);
+  color: #fff;
+  border: none;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: background var(--transition-medium), transform var(--transition-fast);
+  margin-top: 4px;
+}
+
+.yb-auth-submit:hover {
+  background: #357f89;
+}
+
+.yb-auth-submit:active {
+  transform: scale(0.98);
+}
+
+.yb-auth-submit:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.yb-auth-error {
+  font-size: 0.85rem;
+  color: #d32f2f;
+  background: #fdecea;
+  padding: 10px 14px;
+  border-radius: 8px;
+}
+
+.yb-auth-success {
+  font-size: 0.85rem;
+  color: #2e7d32;
+  background: #edf7ed;
+  padding: 10px 14px;
+  border-radius: 8px;
+}
+
+.yb-auth-links {
+  text-align: center;
+  margin-top: 12px;
+}
+
+.yb-auth-links a {
+  font-size: 0.85rem;
+  color: var(--yb-brand);
+  text-decoration: none;
+}
+
+.yb-auth-links a:hover {
+  text-decoration: underline;
+}
+
+.yb-auth-divider {
+  text-align: center;
+  margin-top: 20px;
+  padding-top: 20px;
+  border-top: 1px solid #E8E4E0;
+  font-size: 0.85rem;
+  color: #6F6A66;
+}
+
+.yb-auth-divider a {
+  color: var(--yb-brand);
+  text-decoration: none;
+  font-weight: 700;
+  margin-left: 4px;
+}
+
+.yb-auth-divider a:hover {
+  text-decoration: underline;
+}
+
+/* Consent checkboxes in registration form */
+.yb-auth-consent {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 4px;
+  margin-bottom: 16px;
+}
+.yb-auth-consent__item {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  font-size: 0.82rem;
+  color: #0F0F0F;
+  line-height: 1.45;
+  cursor: pointer;
+}
+.yb-auth-consent__item input[type="checkbox"] {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 18px;
+  height: 18px;
+  min-width: 18px;
+  border: 1.5px solid #E8E4E0;
+  border-radius: 4px;
+  margin-top: 1px;
+  cursor: pointer;
+  position: relative;
+  transition: border-color 0.15s, background 0.15s;
+}
+.yb-auth-consent__item input[type="checkbox"]:checked {
+  background: var(--yb-brand);
+  border-color: var(--yb-brand);
+}
+.yb-auth-consent__item input[type="checkbox"]:checked::after {
+  content: '';
+  position: absolute;
+  left: 5px;
+  top: 1px;
+  width: 5px;
+  height: 10px;
+  border: solid #fff;
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
+}
+.yb-auth-consent__item input[type="checkbox"]:focus-visible {
+  box-shadow: 0 0 0 3px rgba(63, 153, 165, 0.12);
+}
+.yb-auth-consent__item a {
+  color: var(--yb-brand);
+  text-decoration: underline;
+  font-weight: 600;
+}
+.yb-auth-consent__item a:hover {
+  color: #357f89;
+}
+
+/* ========================================
+   AUTH: TWO-COLUMN NAME ROW
+   ======================================== */
+
+.yb-auth-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  overflow: hidden;
+}
+
+@media (max-width: 480px) {
+  .yb-auth-row {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ========================================
+   SPINNER
+   ======================================== */
+
+.yb-mb-spinner {
+  width: 24px;
+  height: 24px;
+  border: 3px solid #E8E4E0;
+  border-top-color: var(--yb-brand);
+  border-radius: 50%;
+  animation: yb-spin 0.7s linear infinite;
+}
+
+@keyframes yb-spin {
+  to { transform: rotate(360deg); }
+}
+
+.yb-mb-error,
+.yb-mb-empty {
+  padding: 48px 24px;
+  text-align: center;
+  color: #6F6A66;
+  font-size: 0.92rem;
+}
+
+/* ========================================
+   PROFILE PAGE
+   ======================================== */
+
+.yb-profile {
+  padding: 0 0 80px;
+}
+
+/* Guest state */
+.yb-profile__guest {
+  max-width: 480px;
+  margin: 60px auto 0;
+}
+
+.yb-profile__guest-inner {
+  text-align: center;
+  padding: 48px 32px;
+  background: #F5F3F0;
+  border-radius: 16px;
+  border: 1px solid #E8E4E0;
+}
+
+.yb-profile__guest-inner svg {
+  margin-bottom: 20px;
+  opacity: 0.6;
+}
+
+.yb-profile__guest-title {
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: #0F0F0F;
+  margin-bottom: 8px;
+}
+
+.yb-profile__guest-text {
+  font-size: 0.92rem;
+  color: #6F6A66;
+  margin-bottom: 24px;
+}
+
+.yb-profile__guest-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+/* -- Hero Header -- */
+.yb-profile__hero {
+  background: linear-gradient(135deg, #2d6b74 0%, #3f99a5 50%, #5bb8c4 100%);
+  padding: 32px 36px 28px;
+  border-radius: 14px 14px 0 0;
+}
+
+.yb-profile__hero-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20px;
+}
+
+.yb-profile__hero-logo {
+  font-family: var(--font-primary);
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: rgba(255,255,255,.9);
+  letter-spacing: 0.05em;
+}
+
+.yb-profile__hero-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.yb-profile__hero-lang {
+  display: flex;
+  gap: 4px;
+}
+
+.yb-profile__hero-lang button {
+  padding: 4px 10px;
+  border-radius: 6px;
+  background: rgba(255,255,255,.1);
+  border: none;
+  color: rgba(255,255,255,.5);
+  font-family: var(--font-primary);
+  font-size: 0.72rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.yb-profile__hero-lang button.is-active {
+  background: rgba(255,255,255,.25);
+  color: #fff;
+}
+
+.yb-profile__hero-logout {
+  padding: 5px 14px;
+  border-radius: 6px;
+  background: rgba(255,255,255,.1);
+  border: none;
+  color: rgba(255,255,255,.6);
+  font-family: var(--font-primary);
+  font-size: 0.72rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.yb-profile__hero-logout:hover {
+  background: rgba(255,255,255,.2);
+  color: #fff;
+}
+
+.yb-profile__hero-user {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+/* Avatar in hero */
+.yb-profile__avatar-wrap {
+  position: relative;
+  width: 68px;
+  flex-shrink: 0;
+}
+
+.yb-profile__avatar {
+  width: 68px;
+  height: 68px;
+  border-radius: 50%;
+  border: 3px solid rgba(255,255,255,.3);
+  background: rgba(255,255,255,.1);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.4rem;
+  font-weight: 700;
+  background-size: cover;
+  background-position: center;
+  overflow: hidden;
+}
+
+.yb-profile__avatar.has-photo {
+  background-color: rgba(255,255,255,.1);
+}
+
+.yb-profile__avatar-edit {
+  position: absolute;
+  bottom: 0;
+  right: -4px;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: #fff;
+  color: #3f99a5;
+  border: 2px solid rgba(255,255,255,.3);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  transition: background 0.2s;
+}
+
+.yb-profile__avatar-edit:hover {
+  background: #e8f4f6;
+}
+
+.yb-profile__member-name {
+  display: block;
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: #fff;
+  margin-bottom: 4px;
+}
+
+.yb-profile__member-meta {
+  font-size: 0.85rem;
+  color: rgba(255,255,255,.9);
+  margin: 0;
+}
+
+.yb-profile__member-badge {
+  display: inline-block;
+  padding: 3px 10px;
+  background: rgba(255,255,255,.2);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border-radius: 12px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: #fff;
+  margin-left: 8px;
+  vertical-align: middle;
+}
+
+.yb-profile__member-since {
+  display: none;
+}
+
+/* -- Profile Container -- */
+.yb-profile__wrap {
+  max-width: 960px;
+  margin: 0 auto;
+  border-radius: 14px;
+  overflow: hidden;
+  border: 1.5px solid #E8E4E0;
+  background: #FFFCF9;
+}
+
+/* -- Profile Tabs -- */
+.yb-profile__tabs {
+  display: flex;
+  gap: 0;
+  background: #FFFCF9;
+  border-bottom: 1.5px solid #E8E4E0;
+  padding: 0 32px;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.yb-profile__tab {
+  background: none;
+  border: none;
+  border-bottom: 2.5px solid transparent;
+  padding: 14px 20px;
+  font-family: var(--font-primary);
+  font-size: 0.92rem;
+  color: #6F6A66;
+  cursor: pointer;
+  transition: color 0.2s, border-color 0.2s;
+  margin-bottom: -1.5px;
+  white-space: nowrap;
+}
+
+.yb-profile__tab:hover {
+  color: #0F0F0F;
+}
+
+.yb-profile__tab.is-active {
+  color: #0F0F0F;
+  border-bottom-color: #3f99a5;
+  font-weight: 700;
+}
+
+.yb-profile__tab-panel {
+  display: none;
+}
+
+.yb-profile__tab-panel.is-active {
+  display: block;
+}
+
+/* -- Profile Content Area -- */
+.yb-profile__content-area {
+  padding: 32px;
+  background: #FFFCF9;
+}
+
+/* Cards */
+.yb-profile__card {
+  background: #fff;
+  border: 1px solid #E8E4E0;
+  border-radius: 14px;
+  padding: 28px;
+  margin-bottom: 20px;
+}
+
+.yb-profile__card-title {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #0F0F0F;
+  margin-bottom: 20px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid #E8E4E0;
+}
+
+.yb-profile__form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.yb-profile__form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+/* Info grid (membership, sites) */
+.yb-profile__info-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.yb-profile__info-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 0;
+  border-bottom: 1px solid #F5F3F0;
+}
+
+.yb-profile__info-item:last-child {
+  border-bottom: none;
+}
+
+.yb-profile__info-label {
+  font-size: 0.88rem;
+  color: #6F6A66;
+  font-weight: 700;
+}
+
+.yb-profile__info-value {
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: #0F0F0F;
+}
+
+.yb-profile__info-value--success {
+  color: #2e7d32;
+}
+
+.yb-profile__info-value--muted {
+  color: #B5B0AB;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .yb-profile__form-row {
+    grid-template-columns: 1fr;
+  }
+  .yb-profile__hero {
+    padding: 28px 16px 24px;
+  }
+  .yb-profile__tabs {
+    padding: 0 16px;
+  }
+  .yb-profile__content-area {
+    padding: 24px 16px;
+  }
+  .yb-profile__hero-user {
+    flex-wrap: wrap;
+  }
+}
+
+/* -- Profile Form 3-column row -- */
+.yb-profile__form-row--3 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+/* ========================================
+   ONLINE STORE
+   ======================================== */
+
+.yb-store__header {
+  margin-bottom: 2rem;
+}
+
+.yb-store__title {
+  font-family: 'Abacaxi', sans-serif;
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #0F0F0F;
+  margin: 0 0 0.5rem;
+}
+
+.yb-store__subtitle {
+  color: #6F6A66;
+  font-size: 0.95rem;
+  margin: 0;
+}
+
+.yb-store__loading {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  color: #6F6A66;
+  padding: 2rem 0;
+}
+
+.yb-store__empty,
+.yb-store__error {
+  color: #6F6A66;
+  padding: 2rem 0;
+  text-align: center;
+}
+
+.yb-store__error {
+  color: #c0392b;
+}
+
+.yb-store__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 1.25rem;
+}
+
+.yb-store__item {
+  background: #FFFCF9;
+  border: 1.5px solid #E8E4E0;
+  border-radius: 12px;
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  transition: border-color 0.2s;
+}
+
+.yb-store__item:hover {
+  border-color: #3f99a5;
+}
+
+.yb-store__item-info {
+  flex: 1;
+}
+
+.yb-store__item-name {
+  font-family: 'Abacaxi', sans-serif;
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #0F0F0F;
+  margin: 0 0 0.5rem;
+}
+
+.yb-store__item-price {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #3f99a5;
+}
+
+.yb-store__item-btn {
+  width: 100%;
+}
+
+/* -- Store Checkout -- */
+.yb-store__checkout-inner {
+  background: #FFFCF9;
+  border: 1.5px solid #E8E4E0;
+  border-radius: 12px;
+  padding: 2rem;
+  max-width: 900px;
+}
+
+.yb-store__checkout-title {
+  font-family: 'Abacaxi', sans-serif;
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: #0F0F0F;
+  margin: 0 0 1.5rem;
+}
+
+.yb-store__checkout-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+  background: #F5F3F0;
+  border-radius: 8px;
+  padding: 1rem 1.25rem;
+  margin-bottom: 1.5rem;
+}
+
+/* Two-column checkout grid */
+.yb-checkout__grid {
+  /* Default: single column — payment form fills width */
+}
+
+.yb-checkout__grid--split {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2rem;
+  align-items: start;
+}
+
+.yb-checkout__col-left {
+  display: none;
+}
+
+.yb-checkout__grid--split .yb-checkout__col-left {
+  display: block;
+}
+
+.yb-checkout__col-left .yb-checkout-doc:last-of-type {
+  margin-bottom: 0;
+}
+
+.yb-checkout__payment-title {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #0F0F0F;
+  margin: 0 0 1rem;
+  display: none;
+}
+
+.yb-checkout__grid--split .yb-checkout__payment-title {
+  display: block;
+}
+
+.yb-store__checkout-item-name {
+  font-weight: 700;
+  color: #0F0F0F;
+}
+
+.yb-store__checkout-item-price {
+  font-weight: 700;
+  color: #3f99a5;
+  font-size: 1.1rem;
+}
+
+.yb-store__checkout-actions {
+  display: flex;
+  gap: 0.75rem;
+  margin-top: 1rem;
+}
+
+.yb-store__checkout-actions .yb-auth-submit {
+  flex: 1;
+}
+
+.yb-store__checkout-actions .yb-btn--outline {
+  flex: 0 0 auto;
+}
+
+.yb-store__secure {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: #6F6A66;
+  font-size: 0.8rem;
+  margin-top: 1rem;
+  justify-content: center;
+}
+
+/* -- Save Card Checkbox -- */
+.yb-store__save-card {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+  font-size: 0.9rem;
+  color: #6F6A66;
+  margin-top: 0.5rem;
+}
+
+.yb-store__save-card input[type="checkbox"] {
+  accent-color: #3f99a5;
+  width: 16px;
+  height: 16px;
+}
+
+/* -- Store Success -- */
+.yb-store__success-inner {
+  text-align: center;
+  background: #FFFCF9;
+  border: 1.5px solid #E8E4E0;
+  border-radius: 12px;
+  padding: 3rem 2rem;
+  max-width: 480px;
+}
+
+.yb-store__success-inner h3 {
+  font-family: 'Abacaxi', sans-serif;
+  font-size: 1.3rem;
+  margin: 1rem 0 0.5rem;
+  color: #0F0F0F;
+}
+
+.yb-store__success-inner p {
+  color: #6F6A66;
+  margin-bottom: 1.5rem;
+}
+
+/* -- Store Responsive -- */
+@media (max-width: 768px) {
+  .yb-store__grid {
+    grid-template-columns: 1fr;
+  }
+
+  .yb-store__checkout-inner {
+    padding: 1.5rem;
+    max-width: 100%;
+  }
+
+  .yb-checkout__grid--split {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+  }
+
+  .yb-store__checkout-actions {
+    flex-direction: column;
+  }
+
+  .yb-store__top-cat {
+    padding: 1rem 1.25rem;
+    gap: 0.75rem;
+  }
+  .yb-store__top-cat-icon {
+    width: 40px;
+    height: 40px;
+  }
+  .yb-store__top-cat-icon svg {
+    width: 22px;
+    height: 22px;
+  }
+  .yb-store__subcats {
+    gap: 0.35rem;
+  }
+  .yb-store__sub-btn {
+    padding: 0.4rem 0.75rem;
+  }
+  .yb-store__sub-name {
+    font-size: 0.75rem;
+  }
+  .yb-store__sub-desc {
+    font-size: 0.62rem;
+  }
+
+  .yb-profile__form-row--3 {
+    grid-template-columns: 1fr;
+  }
+
+  .yb-profile__tabs {
+    gap: 0;
+  }
+
+  .yb-profile__tab {
+    padding: 0.6rem 0.75rem;
+    font-size: 0.8rem;
+  }
+
+  .yb-profile__tabs {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    flex-wrap: nowrap;
+  }
+}
+
+/* ========================================
+   SCHEDULE TAB
+   ======================================== */
+
+.yb-schedule__header {
+  text-align: center;
+  margin-bottom: 0.75rem;
+}
+
+.yb-schedule__title {
+  font-family: 'Abacaxi', sans-serif;
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #0F0F0F;
+  margin: 0 0 0.25rem;
+}
+
+.yb-schedule__subtitle {
+  color: #6F6A66;
+  font-size: 0.95rem;
+  margin: 0;
+}
+
+.yb-schedule__nav {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  margin-bottom: 1.25rem;
+}
+
+.yb-schedule__nav-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.5rem 0.75rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #0F0F0F;
+  background: none;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s;
+}
+
+.yb-schedule__nav-btn:hover {
+  background: #F5F3F0;
+  color: #3f99a5;
+}
+
+.yb-schedule__nav-btn svg {
+  color: #6F6A66;
+  transition: color 0.2s;
+}
+
+.yb-schedule__nav-btn:hover svg {
+  color: #3f99a5;
+}
+
+.yb-schedule__nav-label {
+  display: inline;
+}
+
+.yb-schedule__week-label {
+  font-weight: 700;
+  color: #0F0F0F;
+  min-width: 130px;
+  text-align: center;
+  font-size: 0.95rem;
+}
+
+.yb-schedule__no-pass {
+  background: #e8f4f6;
+  border: 1.5px solid #3f99a5;
+  border-radius: 12px;
+  padding: 1.25rem 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.yb-schedule__no-pass p {
+  margin: 0;
+  font-weight: 700;
+  color: #0F0F0F;
+}
+
+.yb-schedule__day {
+  margin-bottom: 1.5rem;
+}
+
+.yb-schedule__day-label {
+  font-family: 'Abacaxi', sans-serif;
+  font-size: 1rem;
+  font-weight: 700;
+  color: #0F0F0F;
+  padding-bottom: 0.5rem;
+  border-bottom: 1.5px solid #E8E4E0;
+  margin: 0 0 0.5rem;
+}
+
+.yb-schedule__day-label span {
+  font-weight: 400;
+  color: #6F6A66;
+}
+
+.yb-schedule__class {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.75rem 0;
+  border-bottom: 1px solid #F5F3F0;
+}
+
+.yb-schedule__class.is-cancelled {
+  opacity: 0.5;
+  text-decoration: line-through;
+}
+
+.yb-schedule__class.is-past {
+  opacity: 0.5;
+}
+
+.yb-schedule__class-time {
+  min-width: 110px;
+  font-weight: 700;
+  color: #0F0F0F;
+  font-size: 0.9rem;
+}
+
+.yb-schedule__class-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+}
+
+.yb-schedule__class-name {
+  font-weight: 700;
+  color: #0F0F0F;
+}
+
+.yb-schedule__class-instructor {
+  font-size: 0.85rem;
+  color: #6F6A66;
+}
+
+.yb-schedule__class-spots {
+  font-size: 0.8rem;
+  color: #3f99a5;
+}
+
+.yb-schedule__class-action {
+  min-width: 90px;
+  text-align: right;
+}
+
+.yb-schedule__book-btn,
+.yb-schedule__cancel-btn {
+  padding: 0.4rem 1rem;
+  font-size: 0.85rem;
+}
+
+.yb-schedule__badge {
+  display: inline-block;
+  padding: 0.25rem 0.75rem;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.yb-schedule__badge--cancelled {
+  background: #F5F3F0;
+  color: #6F6A66;
+}
+
+.yb-schedule__badge--full {
+  background: #FFF0E0;
+  color: #357f89;
+}
+
+.yb-schedule__toast {
+  position: fixed;
+  bottom: 2rem;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  font-weight: 700;
+  font-size: 0.9rem;
+  z-index: 1000;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+}
+
+.yb-schedule__toast--success {
+  background: #0F0F0F;
+  color: #fff;
+}
+
+.yb-schedule__toast--error {
+  background: #c0392b;
+  color: #fff;
+}
+
+.yb-schedule__toast--warning {
+  background: #e67e22;
+  color: #fff;
+}
+
+@media (max-width: 768px) {
+  .yb-schedule__nav-label {
+    display: none;
+  }
+
+  .yb-schedule__class {
+    flex-wrap: wrap;
+  }
+
+  .yb-schedule__class-time {
+    min-width: auto;
+  }
+
+  .yb-schedule__class-action {
+    width: 100%;
+    text-align: left;
+  }
+
+  .yb-schedule__no-pass {
+    flex-direction: column;
+    text-align: center;
+  }
+}
+
+/* ========================================
+   VISITS TAB
+   ======================================== */
+
+.yb-visits__header,
+.yb-receipts__header {
+  margin-bottom: 2rem;
+}
+
+.yb-visits__title,
+.yb-membership-tab__title,
+.yb-receipts__title {
+  font-family: 'Abacaxi', sans-serif;
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #0F0F0F;
+  margin: 0 0 0.25rem;
+}
+
+.yb-visits__subtitle,
+.yb-receipts__subtitle {
+  color: #6F6A66;
+  font-size: 0.95rem;
+  margin: 0;
+}
+
+.yb-visits__table,
+.yb-receipts__table {
+  border: 1.5px solid #E8E4E0;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.yb-visits__row,
+.yb-receipts__row {
+  display: grid;
+  grid-template-columns: 140px 1fr 120px 100px;
+  padding: 0.75rem 1.25rem;
+  border-bottom: 1px solid #F5F3F0;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.yb-visits__row:last-child,
+.yb-receipts__row:last-child {
+  border-bottom: none;
+}
+
+.yb-visits__row--header,
+.yb-receipts__row--header {
+  background: #F5F3F0;
+  font-weight: 700;
+  font-size: 0.85rem;
+  color: #6F6A66;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.yb-visits__date,
+.yb-receipts__date {
+  font-size: 0.9rem;
+}
+
+.yb-visits__date small,
+.yb-receipts__date small {
+  color: #6F6A66;
+}
+
+.yb-visits__name,
+.yb-receipts__name {
+  font-weight: 700;
+  color: #0F0F0F;
+}
+
+.yb-visits__instructor {
+  color: #6F6A66;
+  font-size: 0.9rem;
+}
+
+.yb-visits__status {
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
+.yb-visits__status--attended {
+  color: #2e7d32;
+}
+
+.yb-visits__status--noshow {
+  color: #B5B0AB;
+}
+
+.yb-visits__status--late {
+  color: #c0392b;
+}
+
+/* ========================================
+   VISITS SUMMARY BAR
+   ======================================== */
+
+.yb-visits__controls {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+  flex-wrap: wrap;
+}
+
+.yb-visits__period,
+.yb-receipts__period {
+  border: 1.5px solid #E8E4E0;
+  border-radius: 8px;
+  padding: 0.4rem 0.75rem;
+  font-family: inherit;
+  font-size: 0.8rem;
+  color: #6F6A66;
+  background: #fff;
+  cursor: pointer;
+}
+
+.yb-visits__period:focus,
+.yb-receipts__period:focus {
+  border-color: #3f99a5;
+  outline: none;
+}
+
+.yb-receipts__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.yb-visits__summary {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+  padding: 1rem;
+  background: #F5F3F0;
+  border-radius: 12px;
+  flex-wrap: wrap;
+}
+
+.yb-visits__summary-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex: 1;
+  min-width: 70px;
+}
+
+.yb-visits__summary-item strong {
+  font-size: 1.5rem;
+  color: #0F0F0F;
+}
+
+.yb-visits__summary-item span {
+  font-size: 0.75rem;
+  color: #6F6A66;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+
+.yb-visits__summary-item--warn strong { color: #e67e22; }
+.yb-visits__summary-item--danger strong { color: #c0392b; }
+
+/* ========================================
+   RECEIPTS -- ENRICHED CARDS
+   ======================================== */
+
+.yb-receipts__download-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  background: none;
+  border: none;
+  color: #3f99a5;
+  font-size: 0.8rem;
+  cursor: pointer;
+  padding: 0;
+  font-family: inherit;
+  font-weight: 600;
+}
+
+.yb-receipts__download-btn:hover {
+  color: #357f89;
+}
+
+.yb-receipts__card-badges {
+  display: flex;
+  gap: 0.4rem;
+  align-items: center;
+}
+
+.yb-receipts__badge {
+  font-size: 0.7rem;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.yb-receipts__badge--sale {
+  background: #F5F3F0;
+  color: #6F6A66;
+}
+
+.yb-receipts__badge--service {
+  background: rgba(63, 153, 165, 0.1);
+  color: #3f99a5;
+}
+
+.yb-receipts__badge--contract {
+  background: rgba(34, 139, 34, 0.1);
+  color: #228B22;
+}
+
+.yb-receipts__badge--active {
+  background: rgba(34, 139, 34, 0.1);
+  color: #228B22;
+}
+
+.yb-receipts__badge--returned {
+  background: rgba(220, 53, 69, 0.1);
+  color: #dc3545;
+}
+
+.yb-receipts__card-program {
+  display: block;
+  font-size: 0.8rem;
+  color: #6F6A66;
+  margin-top: 2px;
+}
+
+.yb-receipts__card-details {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.5rem 1.5rem;
+  padding: 0.75rem 0;
+  border-top: 1px solid #E8E4E0;
+  margin-top: 0.5rem;
+}
+
+.yb-receipts__detail {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.yb-receipts__detail-label {
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #6F6A66;
+}
+
+.yb-receipts__detail-value {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #0F0F0F;
+}
+
+.yb-receipts__detail-value--discount {
+  color: #228B22;
+}
+
+.yb-receipts__card-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-top: 1px solid #E8E4E0;
+  padding-top: 0.6rem;
+  margin-top: 0.5rem;
+}
+
+.yb-receipts__card-ref {
+  font-size: 0.75rem;
+  color: #B5B0AB;
+  font-weight: 600;
+}
+
+@media (max-width: 480px) {
+  .yb-receipts__card-details {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ========================================
+   STORE CATEGORY TABS
+   ======================================== */
+
+.yb-store__categories {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.yb-store__cat-btn {
+  background: #F5F3F0;
+  border: 1.5px solid #E8E4E0;
+  border-radius: 20px;
+  padding: 0.4rem 1rem;
+  font-size: 0.8rem;
+  font-family: inherit;
+  font-weight: 600;
+  color: #6F6A66;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.2s;
+}
+
+.yb-store__cat-btn:hover {
+  border-color: #3f99a5;
+  color: #3f99a5;
+}
+
+.yb-store__cat-btn.is-active {
+  background: #3f99a5;
+  border-color: #3f99a5;
+  color: #fff;
+}
+
+.yb-store__cat-count {
+  display: inline-block;
+  background: rgba(255,255,255,0.25);
+  border-radius: 10px;
+  padding: 0 0.4rem;
+  font-size: 0.7rem;
+  margin-left: 0.25rem;
+}
+
+.yb-store__cat-btn.is-active .yb-store__cat-count {
+  background: rgba(255,255,255,0.3);
+}
+
+.yb-store__item-count {
+  font-size: 0.8rem;
+  color: #6F6A66;
+  display: block;
+  margin: 0.15rem 0;
+}
+
+.yb-store__item-recurring {
+  font-size: 0.8rem;
+  color: #3f99a5;
+  font-weight: 700;
+  display: block;
+  margin: 0.15rem 0;
+}
+
+.yb-store__item-duration {
+  font-size: 0.75rem;
+  color: #6F6A66;
+  display: block;
+}
+
+.yb-store__checkout-item-recurring {
+  display: block;
+  font-size: 0.8rem;
+  color: #3f99a5;
+  font-weight: 700;
+  margin-top: 0.15rem;
+}
+
+/* -- Store Search Bar -- */
+.yb-store__search-wrap {
+  position: relative;
+  margin-bottom: 1rem;
+}
+.yb-store__search-icon {
+  position: absolute;
+  left: 1rem;
+  top: 50%;
+  transform: translateY(-50%);
+  pointer-events: none;
+}
+.yb-store__search {
+  width: 100%;
+  padding: 0.75rem 2.5rem 0.75rem 2.75rem;
+  border: 1.5px solid #E8E4E0;
+  border-radius: 12px;
+  font-size: 0.9rem;
+  font-family: inherit;
+  color: #0F0F0F;
+  background: #FFFCF9;
+  transition: border-color 0.2s;
+  box-sizing: border-box;
+}
+.yb-store__search:focus {
+  outline: none;
+  border-color: #3f99a5;
+}
+.yb-store__search::placeholder {
+  color: #B0AAA4;
+}
+.yb-store__search-clear {
+  position: absolute;
+  right: 0.75rem;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  font-size: 1.3rem;
+  color: #6F6A66;
+  cursor: pointer;
+  padding: 0 0.25rem;
+  line-height: 1;
+}
+.yb-store__search-clear:hover {
+  color: #3f99a5;
+}
+
+/* -- Store Program Filter Banner (from booking redirect) -- */
+.yb-store__program-filter {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 16px;
+  background: #e8f4f6;
+  border: 1px solid #3f99a5;
+  border-radius: 10px;
+  margin-bottom: 16px;
+  font-size: 0.88rem;
+  color: #0F0F0F;
+}
+.yb-store__program-filter-clear {
+  background: none;
+  border: none;
+  color: #3f99a5;
+  font-weight: 700;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 0.85rem;
+  padding: 4px 8px;
+}
+.yb-store__program-filter-clear:hover {
+  text-decoration: underline;
+}
+
+/* -- Store: Top-level Category Cards -- */
+.yb-store__top-cats {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.yb-store__top-cat {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  width: 100%;
+  padding: 1.25rem 1.5rem;
+  background: #FFFCF9;
+  border: 1.5px solid #E8E4E0;
+  border-radius: 14px;
+  cursor: pointer;
+  font-family: inherit;
+  text-align: left;
+  transition: all 0.2s ease;
+}
+.yb-store__top-cat:hover {
+  border-color: #3f99a5;
+  box-shadow: 0 2px 12px rgba(63,153,165,0.10);
+}
+.yb-store__top-cat-icon {
+  flex-shrink: 0;
+  width: 48px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #e8f4f6;
+  border-radius: 12px;
+  color: #3f99a5;
+}
+.yb-store__top-cat-text {
+  flex: 1;
+  min-width: 0;
+}
+.yb-store__top-cat-name {
+  display: block;
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #0F0F0F;
+  line-height: 1.3;
+}
+.yb-store__top-cat-desc {
+  display: block;
+  font-size: 0.82rem;
+  color: #6F6A66;
+  margin-top: 0.15rem;
+  line-height: 1.35;
+}
+.yb-store__top-cat-count {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 26px;
+  height: 26px;
+  background: #F5F3F0;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #6F6A66;
+  padding: 0 0.5rem;
+}
+.yb-store__top-cat-arrow {
+  flex-shrink: 0;
+  color: #B0AAA4;
+  transition: transform 0.15s;
+}
+.yb-store__top-cat:hover .yb-store__top-cat-arrow {
+  transform: translateX(3px);
+  color: #3f99a5;
+}
+
+/* -- Store: Back Button -- */
+.yb-store__back-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: var(--yb-orange);
+  padding: 0.25rem 0;
+  margin-bottom: 0.75rem;
+  transition: color 0.15s;
+}
+.yb-store__back-btn:hover {
+  color: var(--yb-orange-dark);
+}
+
+/* -- Store: Category Heading -- */
+.yb-store__cat-heading {
+  margin-bottom: 1rem;
+}
+.yb-store__cat-title {
+  font-family: 'Abacaxi', sans-serif;
+  font-size: 1.35rem;
+  font-weight: 700;
+  color: #0F0F0F;
+  margin: 0;
+}
+
+/* -- Store: Subcategory Pills (Daily Classes) -- */
+.yb-store__subcats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 1.25rem;
+}
+.yb-store__sub-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.1rem;
+  background: #F5F3F0;
+  border: 1.5px solid #E8E4E0;
+  border-radius: 12px;
+  padding: 0.5rem 1rem;
+  font-family: inherit;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.2s;
+  text-align: center;
+  min-width: 0;
+}
+.yb-store__sub-btn:hover {
+  border-color: #3f99a5;
+}
+.yb-store__sub-btn.is-active {
+  background: #3f99a5;
+  border-color: #3f99a5;
+}
+.yb-store__sub-name {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: #0F0F0F;
+  line-height: 1.3;
+}
+.yb-store__sub-btn.is-active .yb-store__sub-name {
+  color: #fff;
+}
+.yb-store__sub-desc {
+  font-size: 0.68rem;
+  color: #6F6A66;
+  font-weight: 400;
+  line-height: 1.2;
+}
+.yb-store__sub-btn.is-active .yb-store__sub-desc {
+  color: rgba(255,255,255,0.8);
+}
+.yb-store__sub-count {
+  font-size: 0.65rem;
+  font-weight: 700;
+  color: #B0AAA4;
+  line-height: 1;
+}
+.yb-store__sub-btn.is-active .yb-store__sub-count {
+  color: rgba(255,255,255,0.7);
+}
+
+/* -- Store: Info Note (Tourist Pass) -- */
+.yb-store__note {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.6rem;
+  background: #e8f4f6;
+  border: 1px solid #3f99a5;
+  border-radius: 10px;
+  padding: 0.75rem 1rem;
+  font-size: 0.82rem;
+  color: #0F0F0F;
+  margin-bottom: 1rem;
+  line-height: 1.4;
+}
+.yb-store__note svg {
+  flex-shrink: 0;
+  color: #3f99a5;
+  margin-top: 0.1rem;
+}
+
+/* -- Store: Tourist Badge -- */
+.yb-store__badge--tourist {
+  background: #fff3e0;
+  color: #e67e22;
+  border: 1px solid #f0c27a;
+}
+
+/* -- Store: Contract Card Variant -- */
+.yb-store__item--contract {
+  border-color: #3f99a5;
+  border-width: 1.5px;
+}
+
+/* -- Store Results Count -- */
+.yb-store__results-count {
+  font-size: 0.78rem;
+  color: #6F6A66;
+  margin-bottom: 0.75rem;
+}
+
+/* -- Store Item Badges -- */
+.yb-store__item-badges {
+  display: flex;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+}
+.yb-store__badge {
+  display: inline-block;
+  font-size: 0.68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: 0.2rem 0.6rem;
+  border-radius: 6px;
+}
+.yb-store__badge--membership {
+  background: #F5F3F0;
+  color: #6F6A66;
+  border: 1px solid #E8E4E0;
+}
+.yb-store__badge--free {
+  background: #e8f4f6;
+  color: #3f99a5;
+  border: 1px solid #3f99a5;
+}
+
+/* -- Store Item Description -- */
+.yb-store__item-desc {
+  font-size: 0.82rem;
+  color: #6F6A66;
+  line-height: 1.45;
+  margin: 0.35rem 0 0.5rem;
+}
+
+/* -- Store Per-Class Cost -- */
+.yb-store__item-per-class {
+  font-size: 0.78rem;
+  color: #6F6A66;
+  font-style: italic;
+  margin: 0.35rem 0 0;
+  line-height: 1.4;
+}
+
+/* -- Store Item Pricing -- */
+.yb-store__item-pricing {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  margin-top: 0.25rem;
+}
+.yb-store__item-pricing .yb-store__item-price {
+  font-size: 1.15rem;
+}
+.yb-store__item-pricing .yb-store__item-recurring {
+  font-size: 0.78rem;
+  color: #6F6A66;
+}
+.yb-store__item-pricing .yb-store__item-vat {
+  margin: 0;
+}
+
+/* -- Store Item Terms -- */
+.yb-store__item-terms {
+  list-style: none;
+  padding: 0;
+  margin: 0.5rem 0 0;
+}
+.yb-store__item-terms li {
+  font-size: 0.78rem;
+  color: #6F6A66;
+  padding: 0.15rem 0 0.15rem 1.2rem;
+  position: relative;
+}
+.yb-store__item-terms li::before {
+  content: '\2713';
+  position: absolute;
+  left: 0;
+  color: #3f99a5;
+  font-weight: 700;
+}
+.yb-store__item-terms li:last-child::before {
+  content: '\2192';
+}
+.yb-store__item-terms a {
+  color: #3f99a5;
+  text-decoration: underline;
+  font-size: 0.75rem;
+}
+.yb-store__item-terms a:hover {
+  color: #357f89;
+}
+
+/* -- Store: Features List (memberships) -- */
+.yb-store__item-features {
+  list-style: none;
+  padding: 0;
+  margin: 0.75rem 0 0;
+}
+.yb-store__item-features li {
+  font-size: 0.8rem;
+  color: #0F0F0F;
+  padding: 0.25rem 0 0.25rem 1.4rem;
+  position: relative;
+  line-height: 1.45;
+}
+.yb-store__item-features li::before {
+  content: '\2713';
+  position: absolute;
+  left: 0;
+  color: #3f99a5;
+  font-weight: 700;
+  font-size: 0.85rem;
+}
+
+/* -- Store: Validity -- */
+.yb-store__item-validity {
+  font-size: 0.8rem;
+  color: #6F6A66;
+  margin: 0.35rem 0 0;
+}
+
+/* -- Store: Sharing Info -- */
+.yb-store__item-sharing {
+  font-size: 0.8rem;
+  color: #3f99a5;
+  font-weight: 600;
+  margin: 0.4rem 0 0;
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+.yb-store__item-sharing svg {
+  flex-shrink: 0;
+}
+
+/* -- Store: Saving Info (time-based) -- */
+.yb-store__item-saving {
+  font-size: 0.78rem;
+  color: #27ae60;
+  font-weight: 600;
+  margin: 0.4rem 0 0;
+  display: flex;
+  align-items: flex-start;
+  gap: 0.35rem;
+  line-height: 1.4;
+}
+.yb-store__item-saving svg {
+  flex-shrink: 0;
+  color: #27ae60;
+  margin-top: 0.1rem;
+}
+
+/* -- Store: VAT Info -- */
+.yb-store__item-vat {
+  font-size: 0.72rem;
+  color: #6F6A66;
+  margin: 0.3rem 0 0;
+}
+.yb-store__item-vat--zero {
+  color: #27ae60;
+  font-weight: 600;
+}
+
+/* -- Store: Popular / Best Deal badges -- */
+.yb-store__badge--popular {
+  background: #e8f4f6;
+  color: #3f99a5;
+  border: 1px solid #3f99a5;
+}
+.yb-store__badge--best {
+  background: #e8f8e8;
+  color: #27ae60;
+  border: 1px solid #27ae60;
+}
+.yb-store__badge--cph {
+  background: #F5F3F0;
+  color: #6F6A66;
+  border: 1px solid #E8E4E0;
+}
+
+/* -- Store: Popular card highlight -- */
+.yb-store__item--popular {
+  border-color: #3f99a5;
+  box-shadow: 0 0 0 1px rgba(63, 153, 165, 0.15);
+}
+.yb-store__item--best {
+  border-color: #27ae60;
+  box-shadow: 0 0 0 1px rgba(39, 174, 96, 0.15);
+}
+
+/* -- Store: Item Footer (price + button) -- */
+.yb-store__item-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-top: auto;
+  padding-top: 0.75rem;
+  border-top: 1px solid #E8E4E0;
+}
+.yb-store__item-footer .yb-store__item-btn {
+  width: auto;
+  white-space: nowrap;
+}
+.yb-store__item-recurring {
+  font-size: 0.78rem;
+  color: #6F6A66;
+  font-weight: 400;
+}
+
+/* -- Checkout Terms -- */
+.yb-store__checkout-item-details {
+  flex: 1;
+  min-width: 0;
+}
+.yb-store__checkout-terms {
+  list-style: none;
+  padding: 0;
+  margin: 0.35rem 0 0;
+}
+.yb-store__checkout-terms li {
+  font-size: 0.75rem;
+  color: #6F6A66;
+  padding: 0.1rem 0 0.1rem 1rem;
+  position: relative;
+}
+.yb-store__checkout-terms li::before {
+  content: '\2713';
+  position: absolute;
+  left: 0;
+  color: #3f99a5;
+  font-weight: 600;
+}
+
+/* -- Sharing Dropdown (60/100/200 clip cards) -- */
+.yb-store__sharing-how {
+  margin: 0.5rem 0 0;
+}
+.yb-store__sharing-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  background: none;
+  border: none;
+  padding: 0.3rem 0;
+  font-family: inherit;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: #3f99a5;
+  cursor: pointer;
+  transition: color 0.2s;
+}
+.yb-store__sharing-toggle:hover {
+  color: #357f89;
+}
+.yb-store__sharing-toggle svg {
+  transition: transform 0.25s ease;
+}
+.yb-store__sharing-toggle.is-open svg {
+  transform: rotate(180deg);
+}
+.yb-store__sharing-details {
+  margin: 0.4rem 0 0;
+  padding: 0.75rem 1rem;
+  background: #F5F3F0;
+  border-radius: 10px;
+  border: 1px solid #E8E4E0;
+}
+.yb-store__sharing-details ol {
+  margin: 0;
+  padding: 0 0 0 1.3rem;
+}
+.yb-store__sharing-details li {
+  font-size: 0.78rem;
+  color: #0F0F0F;
+  padding: 0.2rem 0;
+  line-height: 1.45;
+}
+.yb-store__sharing-details li::marker {
+  color: #3f99a5;
+  font-weight: 700;
+}
+.yb-store__sharing-note {
+  font-size: 0.72rem;
+  color: #6F6A66;
+  font-style: italic;
+  margin: 0.5rem 0 0;
+  padding-top: 0.4rem;
+  border-top: 1px dashed #E8E4E0;
+}
+
+/* -- Saving Text & Breakdown (time-based items) -- */
+.yb-store__saving-text {
+  font-weight: 700;
+  color: #27ae60;
+  font-size: 0.78rem;
+}
+.yb-store__saving-breakdown {
+  font-weight: 400;
+  color: #6F6A66;
+  font-size: 0.72rem;
+  margin-top: 0.15rem;
+}
+
+/* -- Checkout Saving (first month free / savings) -- */
+.yb-store__checkout-saving {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  margin: 0.35rem 0 0;
+  font-size: 0.8rem;
+}
+.yb-store__checkout-saving svg {
+  flex-shrink: 0;
+}
+.yb-store__checkout-price-old {
+  color: #6F6A66;
+  font-size: 0.82rem;
+}
+.yb-store__checkout-price-old s {
+  text-decoration: line-through;
+}
+.yb-store__checkout-price-free {
+  font-weight: 700;
+  color: #27ae60;
+  font-size: 0.85rem;
+}
+
+/* -- Checkout: Amount Due (e.g. registration fee) -- */
+.yb-store__checkout-due {
+  margin: 0.5rem 0 0;
+  padding: 0.5rem 0.75rem;
+  background: #FFF7ED;
+  border: 1px solid #f75c03;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  display: flex;
+  align-items: baseline;
+  gap: 0.3rem;
+  flex-wrap: wrap;
+}
+.yb-store__checkout-due-label {
+  color: #6F6A66;
+}
+.yb-store__checkout-due-amount {
+  color: #f75c03;
+  font-size: 1rem;
+}
+.yb-store__checkout-due-note {
+  color: #6F6A66;
+  font-size: 0.78rem;
+}
+
+/* -- Gift Card: Payment section title -- */
+.yb-giftcards__payment-title {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #0F0F0F;
+  margin: 0 0 1rem;
+  padding-bottom: 0.6rem;
+  border-bottom: 1px solid rgba(247, 92, 3, 0.1);
+}
+
+/* ========================================
+   SCHEDULE TOAST - RICH MESSAGES
+   ======================================== */
+
+.yb-schedule__toast-main {
+  font-weight: 700;
+  margin-bottom: 0.35rem;
+}
+
+.yb-schedule__toast-note {
+  font-size: 0.75rem;
+  font-weight: 400;
+  opacity: 0.9;
+  line-height: 1.4;
+}
+
+/* ========================================
+   PASS INFO -- LOW CLIP WARNING + MEMBERSHIP
+   ======================================== */
+
+.yb-schedule__pass-stat--low {
+  color: #e67e22;
+  font-weight: 600;
+  font-size: 0.8rem;
+}
+
+.yb-schedule__pass-detail--membership {
+  border-left-color: #27ae60;
+}
+
+.yb-receipts__amount {
+  font-weight: 700;
+  color: #0F0F0F;
+}
+
+.yb-receipts__payment {
+  color: #6F6A66;
+  font-size: 0.85rem;
+}
+
+.yb-receipts__row--returned {
+  opacity: 0.5;
+  text-decoration: line-through;
+}
+
+@media (max-width: 768px) {
+  .yb-visits__row,
+  .yb-receipts__row {
+    grid-template-columns: 1fr 1fr;
+    gap: 0.25rem;
+  }
+
+  .yb-visits__row--header,
+  .yb-receipts__row--header {
+    display: none;
+  }
+}
+
+/* ========================================
+   PROFILE REMINDER (soft prompt)
+   ======================================== */
+
+.yb-profile__reminder {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: #e8f4f6;
+  border: 1px solid #3f99a5;
+  border-radius: 8px;
+  padding: 0.75rem 1rem;
+  font-size: 0.85rem;
+  color: #0F0F0F;
+  margin-bottom: 0.5rem;
+}
+
+.yb-profile__reminder svg {
+  flex-shrink: 0;
+}
+
+/* ========================================
+   LOCKED TAB STYLES
+   ======================================== */
+.yb-profile__tab.is-locked {
+  opacity: 0.38;
+  cursor: not-allowed;
+  position: relative;
+}
+.yb-profile__tab.is-locked::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+}
+.yb-tab-locked-toast {
+  background: #0F0F0F;
+  color: #fff;
+  font-size: 0.85rem;
+  padding: 0.75rem 1.25rem;
+  border-radius: 10px;
+  text-align: center;
+  margin: 0.75rem auto;
+  max-width: 480px;
+  opacity: 0;
+  transform: translateY(-8px);
+  transition: opacity 0.3s, transform 0.3s;
+}
+.yb-tab-locked-toast.is-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* ========================================
+   INLINE ONBOARDING (inside Profile tab)
+   ======================================== */
+.yb-onboarding-inline {
+  margin-bottom: 1.5rem;
+}
+.yb-onboarding-inline__card {
+  background: #e8f4f6;
+  border: 1.5px solid #3f99a5;
+  border-radius: 14px;
+  padding: 1.5rem 1.75rem;
+}
+.yb-onboarding-inline__header {
+  display: flex;
+  gap: 0.75rem;
+  align-items: flex-start;
+  margin-bottom: 1.25rem;
+}
+.yb-onboarding-inline__header svg {
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+.yb-onboarding-inline__title {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #0F0F0F;
+  margin: 0 0 0.25rem;
+}
+.yb-onboarding-inline__desc {
+  font-size: 0.88rem;
+  color: #6F6A66;
+  line-height: 1.5;
+  margin: 0;
+}
+.yb-onboarding-inline__form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+.yb-onboarding-inline__form .yb-profile__form-row {
+  gap: 0.75rem;
+}
+.yb-onboarding-inline__form .yb-btn {
+  align-self: flex-start;
+  margin-top: 0.25rem;
+}
+@media (max-width: 520px) {
+  .yb-onboarding-inline__card {
+    padding: 1.25rem 1rem;
+  }
+  .yb-onboarding-inline__form .yb-btn {
+    width: 100%;
+  }
+}
+
+/* Onboarding success message */
+.yb-onboarding-success {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  border-radius: 10px;
+  padding: 0.75rem 1.25rem;
+  margin-bottom: 1.25rem;
+  font-size: 0.88rem;
+  color: #166534;
+  animation: yb-fadein 0.3s ease;
+}
+@keyframes yb-fadein {
+  from { opacity: 0; transform: translateY(-6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* ========================================
+   WAIVER STATUS CARD (My Passes tab)
+   ======================================== */
+.yb-waiver-card {
+  margin-bottom: 1.25rem;
+  border: 1.5px solid #E8E4E0;
+  border-radius: 12px;
+  overflow: hidden;
+}
+.yb-waiver-card__signed {
+  padding: 0.65rem 1rem;
+  background: #f0fdf4;
+}
+.yb-waiver-card__signed-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+.yb-waiver-card__signed-text {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: #166534;
+}
+.yb-waiver-card__signed-date {
+  font-size: 0.78rem;
+  color: #6F6A66;
+}
+.yb-waiver-card__toggle {
+  margin-left: auto;
+  background: none;
+  border: none;
+  color: #3f99a5;
+  font-size: 0.78rem;
+  cursor: pointer;
+  padding: 0;
+  text-decoration: underline;
+}
+.yb-waiver-card__body {
+  padding: 1rem 1.25rem;
+  background: #FFFCF9;
+  border-left: 3px solid #3f99a5;
+}
+.yb-waiver-card__header-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
+}
+.yb-waiver-card__header-row svg {
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+.yb-waiver-card__title {
+  font-size: 0.95rem;
+  font-weight: 700;
+  margin: 0 0 0.2rem;
+  color: #0F0F0F;
+}
+.yb-waiver-card__desc {
+  font-size: 0.82rem;
+  color: #6F6A66;
+  margin: 0;
+  line-height: 1.4;
+}
+.yb-waiver__read-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  background: none;
+  border: none;
+  color: #3f99a5;
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 0.35rem 0;
+  margin-bottom: 0.5rem;
+}
+.yb-waiver__read-toggle svg {
+  transition: transform 0.2s;
+}
+.yb-waiver__read-toggle.is-expanded svg {
+  transform: rotate(180deg);
+}
+
+/* ========================================
+   OLD ONBOARDING OVERLAY (kept for backwards compat)
+   ======================================== */
+.yb-onboarding {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 50vh;
+  padding: 2rem 0;
+}
+.yb-onboarding__card {
+  background: #FFFCF9;
+  border: 1.5px solid #E8E4E0;
+  border-radius: 16px;
+  padding: 2.5rem 2rem;
+  max-width: 440px;
+  width: 100%;
+  text-align: center;
+  box-shadow: 0 4px 24px rgba(0,0,0,0.06);
+}
+.yb-onboarding__icon {
+  margin-bottom: 1rem;
+}
+.yb-onboarding__icon svg {
+  display: inline-block;
+}
+.yb-onboarding__title {
+  font-size: 1.35rem;
+  font-weight: 700;
+  color: #0F0F0F;
+  margin: 0 0 0.5rem;
+}
+.yb-onboarding__desc {
+  font-size: 0.9rem;
+  color: #6F6A66;
+  margin: 0 0 1.5rem;
+  line-height: 1.5;
+}
+.yb-onboarding__form {
+  text-align: left;
+}
+.yb-onboarding__form .yb-auth-field {
+  margin-bottom: 1rem;
+}
+.yb-onboarding__form .yb-auth-field label {
+  display: block;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #0F0F0F;
+  margin-bottom: 0.3rem;
+}
+.yb-onboarding__required {
+  color: #3f99a5;
+}
+.yb-onboarding__submit {
+  width: 100%;
+  margin-top: 0.5rem;
+}
+.yb-onboarding__note {
+  font-size: 0.78rem;
+  color: #6F6A66;
+  margin-top: 1rem;
+  text-align: center;
+}
+@media (max-width: 520px) {
+  .yb-onboarding__card {
+    padding: 1.5rem 1.25rem;
+    border-radius: 12px;
+  }
+  .yb-onboarding__title {
+    font-size: 1.15rem;
+  }
+}
+
+/* ========================================
+   LIABILITY WAIVER & SIGNATURE PAD
+   ======================================== */
+
+.yb-waiver__card {
+  max-width: 560px;
+}
+.yb-waiver__text {
+  max-height: 200px;
+  overflow-y: auto;
+  padding: 0.75rem 1rem;
+  background: #F5F3F0;
+  border-radius: 8px;
+  border: 1px solid #E8E4E0;
+  font-size: 0.82rem;
+  line-height: 1.55;
+  color: #0F0F0F;
+  margin-bottom: 0.75rem;
+}
+.yb-waiver__text p { margin: 0 0 0.75rem; }
+.yb-waiver__text p:last-child { margin-bottom: 0; }
+
+.yb-waiver__sign-section {
+  margin-top: 0.5rem;
+}
+.yb-waiver__agree {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.6rem;
+  cursor: pointer;
+  font-size: 0.88rem;
+  line-height: 1.4;
+  margin-bottom: 1rem;
+}
+.yb-waiver__agree input[type="checkbox"] {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  width: 20px;
+  height: 20px;
+  min-width: 20px;
+  border: 1.5px solid #3f99a5;
+  border-radius: 5px;
+  background: #fff;
+  cursor: pointer;
+  position: relative;
+  margin-top: 1px;
+  transition: background 0.2s;
+}
+.yb-waiver__agree input[type="checkbox"]:checked {
+  background: #3f99a5;
+}
+.yb-waiver__agree input[type="checkbox"]:checked::after {
+  content: '\2713';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  color: #fff;
+  font-size: 13px;
+  font-weight: 700;
+}
+.yb-waiver__agree input[type="checkbox"]:focus-visible {
+  outline: 2px solid #3f99a5;
+  outline-offset: 2px;
+}
+.yb-waiver__agree a { color: #3f99a5; text-decoration: underline; }
+
+.yb-waiver__sign-label {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #0F0F0F;
+  margin-bottom: 0.5rem;
+}
+
+/* Signature Pad */
+.yb-signature-pad {
+  position: relative;
+  border: 1.5px solid #E8E4E0;
+  border-radius: 10px;
+  background: #fff;
+  overflow: hidden;
+  margin-bottom: 1rem;
+}
+.yb-signature-pad canvas {
+  display: block;
+  width: 100%;
+  cursor: crosshair;
+  touch-action: none;
+}
+.yb-signature-pad__clear {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  background: rgba(15, 15, 15, 0.06);
+  border: none;
+  border-radius: 6px;
+  padding: 4px 12px;
+  font-size: 0.78rem;
+  color: #6F6A66;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.yb-signature-pad__clear:hover {
+  background: rgba(15, 15, 15, 0.12);
+  color: #0F0F0F;
+}
+
+/* Collapsible Document Sections in Checkout */
+.yb-checkout-doc {
+  margin-bottom: 0.75rem;
+}
+.yb-checkout-doc__toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 0.75rem 1rem;
+  background: #F5F3F0;
+  border: 1px solid #E8E4E0;
+  border-radius: 8px;
+  cursor: pointer;
+  font-family: 'Abacaxi', sans-serif;
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: #0F0F0F;
+  transition: background 0.15s;
+}
+.yb-checkout-doc__toggle:hover {
+  background: #eceae7;
+}
+.yb-checkout-doc__chevron {
+  transition: transform 0.2s;
+  flex-shrink: 0;
+  color: #6F6A66;
+}
+.yb-checkout-doc__toggle.is-open .yb-checkout-doc__chevron {
+  transform: rotate(180deg);
+}
+.yb-checkout-doc__toggle.is-open {
+  border-radius: 8px 8px 0 0;
+}
+.yb-checkout-doc__content {
+  max-height: 200px;
+  overflow-y: auto;
+  padding: 0.75rem 1rem;
+  background: #FFFCF9;
+  border: 1px solid #E8E4E0;
+  border-top: none;
+  border-radius: 0 0 8px 8px;
+  font-size: 0.85rem;
+  line-height: 1.6;
+  color: #0F0F0F;
+}
+.yb-checkout-doc__content p { margin: 0 0 0.5rem; }
+.yb-checkout-doc__content p:last-child { margin-bottom: 0; }
+
+/* Unified Agree + Signature Section */
+.yb-checkout-agree {
+  margin-top: 0.5rem;
+  padding-top: 1rem;
+  border-top: 1px solid #E8E4E0;
+}
+
+/* Success Actions */
+.yb-store__success-actions {
+  display: flex;
+  gap: 0.75rem;
+  justify-content: center;
+}
+
+@media (max-width: 520px) {
+  .yb-waiver__card {
+    max-width: 100%;
+  }
+  .yb-waiver__text {
+    max-height: 220px;
+    padding: 0.75rem 1rem;
+  }
+  .yb-checkout-doc__content {
+    max-height: 160px;
+  }
+  .yb-store__success-actions {
+    flex-direction: column;
+  }
+}
+
+/* ========================================
+   SCHEDULE: PASS INFO BANNER
+   ======================================== */
+
+.yb-schedule__pass-info {
+  margin-bottom: 1.5rem;
+}
+
+/* -- Pass Dropdown (collapsible) -- */
+.yb-schedule__pass-dropdown {
+  border: 1.5px solid #E8E4E0;
+  border-radius: 12px;
+  background: #FFFCF9;
+  overflow: hidden;
+}
+
+.yb-schedule__pass-dropdown-toggle {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.85rem 1.25rem;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-family: inherit;
+  transition: background 0.2s;
+}
+
+.yb-schedule__pass-dropdown-toggle:hover {
+  background: #F5F3F0;
+}
+
+.yb-schedule__pass-dropdown-summary {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+}
+
+.yb-schedule__pass-dropdown-label {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #0F0F0F;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.yb-schedule__pass-dropdown-count {
+  font-size: 0.8rem;
+  color: #6F6A66;
+}
+
+.yb-schedule__pass-dropdown-chevron {
+  color: #6F6A66;
+  transition: transform 0.25s;
+  flex-shrink: 0;
+}
+
+.yb-schedule__pass-dropdown-toggle.is-open .yb-schedule__pass-dropdown-chevron {
+  transform: rotate(180deg);
+}
+
+.yb-schedule__pass-dropdown-body {
+  padding: 0 1.25rem 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.yb-schedule__pass-detail {
+  background: linear-gradient(135deg, #e8f4f6, #FFFCF9);
+  border: 1.5px solid #3f99a5;
+  border-radius: 12px;
+  padding: 1rem 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.yb-schedule__pass-detail-label {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #6F6A66;
+  display: block;
+}
+
+.yb-schedule__pass-detail-name {
+  font-weight: 700;
+  color: #0F0F0F;
+  font-size: 1rem;
+  display: block;
+}
+
+.yb-schedule__pass-detail-stats {
+  display: flex;
+  gap: 1.5rem;
+  align-items: center;
+}
+
+.yb-schedule__pass-stat {
+  font-size: 0.85rem;
+  color: #6F6A66;
+}
+
+.yb-schedule__pass-stat strong {
+  color: #3f99a5;
+  font-size: 1.1rem;
+}
+
+/* -- Schedule: Class Type Filters -- */
+.yb-schedule__filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin-bottom: 1.25rem;
+}
+
+.yb-schedule__filter-btn {
+  background: #F5F3F0;
+  border: 1.5px solid #E8E4E0;
+  border-radius: 20px;
+  padding: 0.35rem 0.9rem;
+  font-size: 0.78rem;
+  font-family: inherit;
+  font-weight: 600;
+  color: #6F6A66;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.yb-schedule__filter-btn:hover {
+  border-color: #3f99a5;
+  color: #3f99a5;
+}
+
+.yb-schedule__filter-btn.is-active {
+  background: #3f99a5;
+  border-color: #3f99a5;
+  color: #fff;
+}
+
+.yb-schedule__filter-empty {
+  text-align: center;
+  color: #6F6A66;
+  padding: 2rem 0;
+  font-size: 0.9rem;
+}
+
+/* -- Schedule: Show More Button -- */
+.yb-schedule__day--hidden {
+  display: none;
+}
+
+.yb-schedule__show-more-wrap {
+  text-align: center;
+  padding: 1.25rem 0 0.5rem;
+}
+
+.yb-schedule__show-more-btn {
+  min-width: 200px;
+}
+
+/* ========================================
+   SCHEDULE: CLASS DESCRIPTION EXPANDABLE
+   ======================================== */
+
+.yb-schedule__desc-toggle {
+  background: none;
+  border: none;
+  color: #3f99a5;
+  font-size: 0.8rem;
+  cursor: pointer;
+  padding: 0;
+  font-family: inherit;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.yb-schedule__desc-toggle:hover {
+  color: #357f89;
+}
+
+.yb-schedule__desc {
+  background: #FFFCF9;
+  border: 1px solid #E8E4E0;
+  border-left: 3px solid #3f99a5;
+  border-radius: 0 8px 8px 0;
+  padding: 1rem 1.25rem;
+  margin: 0 0 0.75rem 0;
+}
+
+.yb-schedule__desc-content {
+  font-size: 0.8rem;
+  color: #6F6A66;
+  line-height: 1.6;
+}
+
+.yb-schedule__desc-content p {
+  margin: 0 0 0.5rem;
+  font-size: 0.8rem;
+  color: #6F6A66;
+  line-height: 1.6;
+}
+
+.yb-schedule__desc-content p:last-child {
+  margin-bottom: 0;
+}
+
+.yb-schedule__desc-content ul,
+.yb-schedule__desc-content ol {
+  margin: 0.25rem 0 0.5rem 1.25rem;
+  padding: 0;
+  font-size: 0.8rem;
+  color: #6F6A66;
+}
+
+.yb-schedule__desc-content li {
+  margin-bottom: 0.25rem;
+  line-height: 1.5;
+}
+
+.yb-schedule__desc-content li::marker {
+  color: #3f99a5;
+}
+
+.yb-schedule__desc-content strong {
+  color: #0F0F0F;
+  font-weight: 700;
+}
+
+.yb-schedule__desc-content em {
+  color: #3f99a5;
+  font-style: italic;
+}
+
+/* ========================================
+   SCHEDULE: TEACHER BIO EXPANDABLE
+   ======================================== */
+
+.yb-schedule__class-instructor--clickable {
+  cursor: pointer;
+  text-decoration: underline;
+  text-decoration-color: #E8E4E0;
+  text-underline-offset: 2px;
+  transition: color 0.2s;
+}
+
+.yb-schedule__class-instructor--clickable:hover {
+  color: #3f99a5;
+  text-decoration-color: #3f99a5;
+}
+
+.yb-schedule__teacher-bio {
+  background: #FFFCF9;
+  border: 1px solid #E8E4E0;
+  border-radius: 8px;
+  padding: 1rem 1.25rem;
+  margin: 0 0 0.75rem 0;
+  display: flex;
+  gap: 1rem;
+  align-items: flex-start;
+}
+
+.yb-schedule__teacher-photo {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid #3f99a5;
+  flex-shrink: 0;
+}
+
+.yb-schedule__teacher-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.yb-schedule__teacher-name {
+  font-weight: 700;
+  font-size: 0.9rem;
+  color: #0F0F0F;
+  margin: 0 0 0.25rem;
+}
+
+.yb-schedule__teacher-bio-text {
+  font-size: 0.8rem;
+  color: #6F6A66;
+  line-height: 1.5;
+  margin: 0;
+}
+
+/* ========================================
+   VISIT FILTERS
+   ======================================== */
+
+.yb-visits__filters {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1.5rem;
+  flex-wrap: wrap;
+}
+
+.yb-visits__filter {
+  background: #F5F3F0;
+  border: 1.5px solid transparent;
+  border-radius: 20px;
+  padding: 0.4rem 1rem;
+  font-size: 0.85rem;
+  font-weight: 700;
+  font-family: inherit;
+  color: #6F6A66;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.yb-visits__filter:hover {
+  border-color: #3f99a5;
+  color: #3f99a5;
+}
+
+.yb-visits__filter.is-active {
+  background: #3f99a5;
+  color: #fff;
+  border-color: #3f99a5;
+}
+
+/* Visit: Booked status (future bookings) */
+.yb-visits__status--booked {
+  color: #3f99a5;
+}
+
+.yb-visits__row--future {
+  background: #FFFCF9;
+}
+
+/* ========================================
+   MEMBERSHIP SECTION
+   ======================================== */
+
+.yb-membership {
+  margin-top: 1.5rem;
+}
+
+.yb-membership__loading {
+  padding: 1rem 0;
+}
+
+.yb-membership__section {
+  margin-bottom: 1rem;
+}
+
+.yb-membership__section-title {
+  font-family: 'Abacaxi', sans-serif;
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: #6F6A66;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin: 0 0 0.5rem;
+  padding-bottom: 0.35rem;
+  border-bottom: 1px solid #E8E4E0;
+}
+
+.yb-membership__pass {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.75rem 1rem;
+  border: 1.5px solid #E8E4E0;
+  border-radius: 10px;
+  margin-bottom: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.yb-membership__pass--expired {
+  opacity: 0.55;
+}
+
+.yb-membership__pass-info {
+  flex: 1;
+  min-width: 120px;
+}
+
+.yb-membership__pass-name {
+  display: block;
+  font-weight: 700;
+  color: #0F0F0F;
+  font-size: 0.95rem;
+}
+
+.yb-membership__pass-remaining {
+  display: block;
+  font-size: 0.8rem;
+  color: #3f99a5;
+  font-weight: 700;
+}
+
+.yb-membership__pass-expiry {
+  font-size: 0.8rem;
+  color: #6F6A66;
+}
+
+.yb-membership__badge {
+  display: inline-block;
+  padding: 0.2rem 0.6rem;
+  border-radius: 20px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.yb-membership__badge--active {
+  background: #e8f5e9;
+  color: #2e7d32;
+}
+
+.yb-membership__empty {
+  color: #6F6A66;
+  font-size: 0.9rem;
+  margin: 0;
+}
+
+/* Pass grid -- compact 2-column layout for clip cards */
+.yb-membership__pass-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.5rem;
+}
+.yb-membership__pass-grid .yb-membership__pass {
+  padding: 0.6rem 0.75rem;
+  margin-bottom: 0;
+}
+@media (max-width: 600px) {
+  .yb-membership__pass-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Past passes -- collapsed toggle */
+.yb-membership__section--collapsed {
+  margin-bottom: 0.5rem;
+}
+.yb-membership__section-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  background: none;
+  border: none;
+  border-bottom: 1px solid #E8E4E0;
+  padding: 0.5rem 0;
+  cursor: pointer;
+  color: #6F6A66;
+  font-family: 'Abacaxi', sans-serif;
+}
+.yb-membership__section-toggle:hover {
+  color: #0F0F0F;
+}
+.yb-membership__toggle-icon {
+  transition: transform 0.2s ease;
+  flex-shrink: 0;
+}
+.yb-membership__past-list {
+  padding-top: 0.5rem;
+}
+
+/* Paused contract status card */
+.yb-membership__pause-status {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  background: #fef2f2;
+  border: 1px solid #fca5a5;
+  border-radius: 10px;
+  padding: 0.75rem 1rem;
+  width: 100%;
+  box-sizing: border-box;
+}
+.yb-membership__pause-status-icon {
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+.yb-membership__pause-status-text {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+.yb-membership__pause-status-text strong {
+  font-size: 0.9rem;
+  color: #b91c1c;
+}
+.yb-membership__pause-status-text span {
+  font-size: 0.8rem;
+  color: #991b1b;
+}
+
+/* Pause contact info (shown instead of extend/reactivate buttons) */
+.yb-membership__pause-contact {
+  margin: 0.75rem 0 0;
+  padding: 0.75rem 1rem;
+  background: #FFFCF9;
+  border: 1px solid #E8E4E0;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  color: #6F6A66;
+  line-height: 1.5;
+}
+
+/* Manage info box (contact-based pause/cancel messaging) */
+.yb-membership__manage-info-box {
+  margin: 1rem 0 0;
+  padding: 1rem 1.25rem;
+  background: #FFFCF9;
+  border: 1px solid #E8E4E0;
+  border-left: 3px solid #3f99a5;
+  border-radius: 8px;
+}
+
+.yb-membership__manage-info-text {
+  margin: 0;
+  font-size: 0.88rem;
+  color: #0F0F0F;
+  line-height: 1.6;
+}
+
+.yb-membership__manage-info-text strong {
+  color: #0F0F0F;
+  font-weight: 700;
+}
+
+.yb-membership__manage-info-text a {
+  color: #3f99a5;
+  text-decoration: underline;
+}
+
+/* Toast info variant */
+.yb-membership__toast--info {
+  background: #e3f2fd;
+  color: #1565c0;
+}
+
+/* Contract card with manage buttons */
+.yb-membership__contract-card {
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.5rem;
+}
+
+.yb-membership__contract-card .yb-membership__pass-info {
+  width: 100%;
+}
+
+.yb-membership__manage-btns {
+  display: flex;
+  gap: 0.5rem;
+  width: 100%;
+  padding-top: 0.5rem;
+  border-top: 1px solid #E8E4E0;
+}
+
+.yb-membership__manage-btn {
+  font-family: 'Abacaxi', sans-serif;
+  font-size: 0.8rem;
+  font-weight: 700;
+  padding: 0.4rem 1rem;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.yb-membership__manage-btn--pause {
+  background: none;
+  border: 1.5px solid #E8E4E0;
+  color: #0F0F0F;
+}
+
+.yb-membership__manage-btn--pause:hover {
+  border-color: #3f99a5;
+  color: #3f99a5;
+}
+
+.yb-membership__manage-btn--cancel {
+  background: none;
+  border: 1.5px solid #E8E4E0;
+  color: #6F6A66;
+}
+
+.yb-membership__manage-btn--cancel:hover {
+  border-color: #c0392b;
+  color: #c0392b;
+}
+
+/* Badge variants */
+.yb-membership__badge--paused {
+  background: #fee2e2;
+  color: #b91c1c;
+}
+
+.yb-membership__badge--terminating {
+  background: #f8d7da;
+  color: #721c24;
+}
+
+.yb-membership__active-until {
+  display: block;
+  font-size: 0.82rem;
+  color: #6F6A66;
+  margin-top: 0.25rem;
+}
+.yb-membership__notice-period {
+  display: block;
+  font-size: 0.78rem;
+  color: #6F6A66;
+  margin-top: 0.35rem;
+  font-style: italic;
+}
+.yb-membership__notice-period a {
+  color: #3f99a5;
+  text-decoration: underline;
+}
+.yb-membership__notice-period a:hover {
+  color: #357f89;
+}
+.yb-membership__rejoin {
+  margin-top: 1rem;
+}
+.yb-membership__rejoin-btn {
+  width: 100%;
+}
+
+.yb-membership__retention-card {
+  margin-top: 0.75rem;
+  padding: 1rem;
+  background: linear-gradient(135deg, #FFFCF9 0%, #e8f4f6 100%);
+  border: 1.5px solid #3f99a5;
+  border-radius: 10px;
+}
+
+.yb-membership__retention-icon {
+  margin-bottom: 0.35rem;
+}
+
+.yb-membership__retention-title {
+  font-family: 'Abacaxi', sans-serif;
+  font-weight: 700;
+  font-size: 0.95rem;
+  color: #0F0F0F;
+  margin: 0 0 0.25rem;
+}
+
+.yb-membership__retention-desc {
+  color: #6F6A66;
+  font-size: 0.85rem;
+  margin: 0 0 0.5rem;
+  line-height: 1.45;
+}
+
+.yb-membership__retention-perks {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 0.75rem;
+}
+
+.yb-membership__retention-perks li {
+  position: relative;
+  padding-left: 1.35rem;
+  font-size: 0.85rem;
+  color: #0F0F0F;
+  margin-bottom: 0.3rem;
+}
+
+.yb-membership__retention-perks li::before {
+  content: '\2713';
+  position: absolute;
+  left: 0;
+  color: #3f99a5;
+  font-weight: 700;
+}
+
+.yb-membership__retention-btn {
+  width: 100%;
+}
+.yb-membership__cancel-term-hint {
+  font-size: 0.8rem;
+  color: #6F6A66;
+  text-align: center;
+  margin: 0.5rem 0 0;
+}
+.yb-membership__cancel-term-hint a {
+  color: #3f99a5;
+  text-decoration: underline;
+}
+
+/* -- Manage Panels (Pause / Cancel) -- */
+.yb-membership__manage-panel {
+  padding: 1rem 0;
+}
+
+.yb-membership__manage-header {
+  margin-bottom: 1rem;
+}
+
+.yb-membership__back-btn {
+  background: none;
+  border: none;
+  color: #3f99a5;
+  font-family: 'Abacaxi', sans-serif;
+  font-size: 0.85rem;
+  font-weight: 700;
+  cursor: pointer;
+  padding: 0;
+  margin-bottom: 0.5rem;
+}
+
+.yb-membership__back-btn:hover {
+  text-decoration: underline;
+}
+
+.yb-membership__manage-title {
+  font-family: 'Abacaxi', sans-serif;
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #0F0F0F;
+  margin: 0;
+}
+
+.yb-membership__manage-desc {
+  color: #6F6A66;
+  font-size: 0.9rem;
+  line-height: 1.5;
+  margin: 0 0 1.25rem;
+}
+
+.yb-membership__manage-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin-bottom: 1.25rem;
+}
+
+.yb-membership__manage-field label {
+  display: block;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #0F0F0F;
+  margin-bottom: 0.35rem;
+}
+
+.yb-membership__date-input {
+  width: 100%;
+  padding: 0.6rem 0.75rem;
+  border: 1px solid #3f99a5;
+  border-radius: 12px;
+  font-family: 'Abacaxi', sans-serif;
+  font-size: 0.9rem;
+  color: #0F0F0F;
+  background: #fff;
+  box-sizing: border-box;
+}
+
+.yb-membership__date-input:focus {
+  outline: none;
+  border-color: #357f89;
+  box-shadow: 0 0 0 2px rgba(63, 153, 165, 0.15);
+}
+
+.yb-membership__field-hint {
+  display: block;
+  font-size: 0.75rem;
+  color: #6F6A66;
+  margin-top: 0.3rem;
+}
+
+.yb-membership__resume-info {
+  background: #e8f5e9;
+  color: #2e7d32;
+  font-size: 0.85rem;
+  font-weight: 700;
+  padding: 0.6rem 0.75rem;
+  border-radius: 8px;
+  margin: 0;
+}
+
+.yb-membership__manage-info {
+  background: #F5F3F0;
+  border-radius: 10px;
+  padding: 1rem;
+  margin-bottom: 1rem;
+}
+
+.yb-membership__info-row {
+  font-size: 0.9rem;
+  color: #0F0F0F;
+  margin-bottom: 0.4rem;
+}
+
+.yb-membership__info-row:last-child {
+  margin-bottom: 0;
+}
+
+.yb-membership__info-label {
+  color: #6F6A66;
+}
+
+.yb-membership__cancel-warning {
+  background: #fff3cd;
+  color: #856404;
+  font-size: 0.85rem;
+  padding: 0.75rem 1rem;
+  border-radius: 8px;
+  margin-bottom: 1rem;
+  line-height: 1.4;
+}
+
+.yb-membership__special-note {
+  font-size: 0.8rem;
+  color: #6F6A66;
+  font-style: italic;
+  margin: 0.75rem 0 1rem;
+}
+
+.yb-membership__confirm-btn {
+  display: block;
+  width: 100%;
+  padding: 0.7rem 1.25rem;
+  border: none;
+  border-radius: 12px;
+  font-family: 'Abacaxi', sans-serif;
+  font-size: 0.95rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.yb-membership__confirm-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.yb-membership__confirm-btn--pause {
+  background: #3f99a5;
+  color: #fff;
+}
+
+.yb-membership__confirm-btn--pause:hover:not(:disabled) {
+  background: #357f89;
+}
+
+.yb-membership__confirm-btn--cancel {
+  background: #c0392b;
+  color: #fff;
+}
+
+.yb-membership__confirm-btn--cancel:hover:not(:disabled) {
+  background: #a93226;
+}
+
+/* Toast notification */
+.yb-membership__toast {
+  padding: 0.75rem 1rem;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  font-weight: 700;
+  margin-bottom: 1rem;
+  animation: yb-fade-in 0.3s ease;
+}
+
+.yb-membership__toast--success {
+  background: #e8f5e9;
+  color: #2e7d32;
+}
+
+.yb-membership__toast--error {
+  background: #fce4ec;
+  color: #c0392b;
+}
+
+@keyframes yb-fade-in {
+  from { opacity: 0; transform: translateY(-8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* ========================================
+   RECEIPTS CARDS (enhanced layout)
+   ======================================== */
+
+.yb-receipts__list-inner {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.yb-receipts__card {
+  border: 1.5px solid #E8E4E0;
+  border-radius: 12px;
+  padding: 1rem 1.25rem;
+  transition: border-color 0.15s ease;
+}
+
+.yb-receipts__card:hover {
+  border-color: #3f99a5;
+}
+
+.yb-receipts__card--returned {
+  opacity: 0.55;
+}
+
+.yb-receipts__card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+
+.yb-receipts__card-date {
+  font-size: 0.8rem;
+  color: #6F6A66;
+}
+
+.yb-receipts__card-body {
+  margin-bottom: 0.5rem;
+}
+
+.yb-receipts__card-name {
+  font-weight: 600;
+  font-size: 0.95rem;
+  color: #0F0F0F;
+}
+
+.yb-receipts__card-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  padding: 0.15rem 0;
+}
+
+.yb-receipts__card-item-price {
+  font-size: 0.85rem;
+  color: #6F6A66;
+  white-space: nowrap;
+}
+
+.yb-receipts__detail-value--total {
+  font-weight: 700;
+  color: #0F0F0F;
+}
+
+/* ========================================
+   PROFILE -- MY COURSES CARDS
+   ======================================== */
+
+.yb-profile__courses-header {
+  margin-bottom: 2rem;
+}
+
+.yb-profile__courses-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #0F0F0F;
+  margin: 0 0 0.25rem;
+}
+
+.yb-profile__courses-subtitle {
+  color: #6F6A66;
+  margin: 0;
+}
+
+.yb-profile__courses-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.yb-profile__course-card {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+  background: #FFFCF9;
+  border: 1px solid #E8E4E0;
+  border-radius: 12px;
+  padding: 1.25rem 1.5rem;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.yb-profile__course-card:hover {
+  border-color: #3f99a5;
+  box-shadow: 0 2px 12px rgba(63, 153, 165, 0.08);
+}
+
+.yb-profile__course-icon {
+  font-size: 2rem;
+  flex-shrink: 0;
+  width: 3rem;
+  height: 3rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #F5F3F0;
+  border-radius: 10px;
+}
+
+.yb-profile__course-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.yb-profile__course-name {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #0F0F0F;
+  margin: 0 0 0.25rem;
+}
+
+.yb-profile__course-desc {
+  font-size: 0.9rem;
+  color: #6F6A66;
+  margin: 0 0 0.35rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.yb-profile__course-meta {
+  font-size: 0.8rem;
+  color: #6F6A66;
+}
+
+.yb-profile__course-btn {
+  flex-shrink: 0;
+  text-decoration: none;
+}
+
+.yb-profile__courses-empty {
+  text-align: center;
+  padding: 3rem 1rem;
+  color: #6F6A66;
+}
+
+.yb-profile__courses-empty svg {
+  margin-bottom: 1rem;
+  opacity: 0.5;
+}
+
+.yb-profile__courses-empty h3 {
+  font-size: 1.15rem;
+  color: #0F0F0F;
+  margin: 0 0 0.5rem;
+}
+
+.yb-profile__courses-empty p {
+  margin: 0;
+  font-size: 0.95rem;
+}
+
+@media (max-width: 600px) {
+  .yb-profile__course-card {
+    flex-direction: column;
+    text-align: center;
+    padding: 1.25rem;
+  }
+  .yb-profile__course-desc {
+    white-space: normal;
+  }
+  .yb-profile__course-btn {
+    width: 100%;
+    text-align: center;
+  }
+}
+
+/* ========================================
+   HYC BRAND OVERRIDES (body.hyc-page)
+   Dark cinematic hero + pill tabs + teal active states
+   ======================================== */
+
+body.hyc-page .yb-profile__hero {
+  background: linear-gradient(135deg, #1a1a1a 0%, #0f0f0f 100%);
+  position: relative;
+}
+
+body.hyc-page .yb-profile__hero::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, #f75c03, #3f99a5);
+}
+
+/* Pill-style tabs */
+body.hyc-page .yb-profile__tabs {
+  gap: 0.5rem;
+  padding: 12px 32px;
+  border-bottom: 1.5px solid #E8E4E0;
+}
+
+body.hyc-page .yb-profile__tab {
+  border-bottom: none;
+  border-radius: 999px;
+  padding: 8px 20px;
+  font-size: 0.82rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 0;
+  transition: all 0.2s ease;
+}
+
+body.hyc-page .yb-profile__tab:hover {
+  background: #F5F3F0;
+  color: #0F0F0F;
+}
+
+body.hyc-page .yb-profile__tab.is-active {
+  background: #3f99a5;
+  color: #fff;
+  border-bottom-color: transparent;
+}
+
+/* All buttons pill shape */
+body.hyc-page .yb-btn {
+  border-radius: 999px;
+}
+
+body.hyc-page .yb-auth-submit {
+  border-radius: 999px;
+}
+
+body.hyc-page .yb-membership__confirm-btn {
+  border-radius: 999px;
+}
+
+body.hyc-page .yb-membership__manage-btn {
+  border-radius: 999px;
+}
+
+/* Active states use teal */
+body.hyc-page .yb-store__cat-btn.is-active,
+body.hyc-page .yb-schedule__filter-btn.is-active,
+body.hyc-page .yb-visits__filter.is-active {
+  background: #3f99a5;
+  border-color: #3f99a5;
+  color: #fff;
+}
+
+body.hyc-page .yb-store__cat-btn:hover,
+body.hyc-page .yb-schedule__filter-btn:hover,
+body.hyc-page .yb-visits__filter:hover {
+  border-color: #3f99a5;
+  color: #3f99a5;
+}
+
+/* Prevent hover from hiding text on active buttons (same color as bg) */
+body.hyc-page .yb-store__cat-btn.is-active:hover,
+body.hyc-page .yb-schedule__filter-btn.is-active:hover,
+body.hyc-page .yb-visits__filter.is-active:hover {
+  color: #fff;
+}
+
+@media (max-width: 768px) {
+  body.hyc-page .yb-profile__tabs {
+    padding: 8px 16px;
+    gap: 0.35rem;
+  }
+
+  body.hyc-page .yb-profile__tab {
+    padding: 6px 14px;
+    font-size: 0.75rem;
+  }
+}
+
+/* ===== Gift Cards Tab ===== */
+.yb-giftcards__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.yb-giftcard-item {
+  background: #fff;
+  border: 1px solid #E8E4E0;
+  border-radius: 12px;
+  padding: 1.25rem;
+  cursor: pointer;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.yb-giftcard-item:hover {
+  border-color: #3f99a5;
+}
+
+.yb-giftcard-item.is-selected {
+  border-color: #3f99a5;
+  box-shadow: 0 0 0 2px rgba(63, 153, 165, 0.25);
+}
+
+.yb-giftcard-item__desc {
+  font-weight: 600;
+  font-size: 1rem;
+  margin-bottom: 0.5rem;
+  color: #0F0F0F;
+}
+
+.yb-giftcard-item__price {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #3f99a5;
+}
+
+.yb-giftcard-item__terms {
+  font-size: 0.8rem;
+  color: #6F6A66;
+  margin-top: 0.5rem;
+}
+
+.yb-giftcard-form {
+  background: #F5F3F0;
+  border-radius: 12px;
+  padding: 1.5rem;
+  display: none;
+}
+
+.yb-giftcard-form.is-visible {
+  display: block;
+}
+
+.yb-giftcard-form__title {
+  font-size: 1.1rem;
+  font-weight: 700;
+  margin-bottom: 1rem;
+  color: #0F0F0F;
+}
+
+.yb-giftcard-form__row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.yb-giftcard-form__field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.yb-giftcard-form__field.full-width {
+  grid-column: 1 / -1;
+}
+
+.yb-giftcard-form__field label {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #0F0F0F;
+}
+
+.yb-giftcard-form__field input,
+.yb-giftcard-form__field textarea {
+  padding: 0.6rem 0.75rem;
+  border: 1px solid #E8E4E0;
+  border-radius: 8px;
+  font-family: inherit;
+  font-size: 0.9rem;
+  background: #fff;
+  transition: border-color 0.2s;
+}
+
+.yb-giftcard-form__field input:focus,
+.yb-giftcard-form__field textarea:focus {
+  outline: none;
+  border-color: #3f99a5;
+}
+
+.yb-giftcard-form__field textarea {
+  resize: vertical;
+  min-height: 80px;
+}
+
+.yb-giftcard-form__actions {
+  display: flex;
+  gap: 0.75rem;
+  margin-top: 1rem;
+}
+
+.yb-giftcard-form__actions button {
+  padding: 0.6rem 1.5rem;
+  border-radius: 999px;
+  font-weight: 600;
+  font-size: 0.9rem;
+  cursor: pointer;
+  border: none;
+  transition: background 0.2s, opacity 0.2s;
+}
+
+.yb-giftcard__buy-btn {
+  background: #3f99a5;
+  color: #fff;
+}
+
+.yb-giftcard__buy-btn:hover {
+  background: #357f89;
+}
+
+.yb-giftcard__buy-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.yb-giftcard__cancel-btn {
+  background: transparent;
+  color: #6F6A66;
+  border: 1px solid #E8E4E0 !important;
+}
+
+.yb-giftcard__cancel-btn:hover {
+  border-color: #6F6A66 !important;
+}
+
+.yb-giftcard__loading,
+.yb-giftcard__empty {
+  text-align: center;
+  padding: 2rem;
+  color: #6F6A66;
+}
+
+@media (max-width: 600px) {
+  .yb-giftcard-form__row {
+    grid-template-columns: 1fr;
+  }
+
+  .yb-giftcards__grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ========================================
+   ORANGE WARMTH — Yoga Bible accent layer
+   Teal stays primary; orange adds warmth
+   ======================================== */
+
+/* Subtle flowing background pattern on content area */
+.yb-profile__content-area {
+  position: relative;
+}
+
+.yb-profile__content-area::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.04;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='800' height='600' fill='none'%3E%3Cpath d='M-20 300C60 200 160 350 280 280S440 100 560 200S700 350 820 250' stroke='%23f75c03' stroke-width='1.5' fill='none'/%3E%3Cpath d='M-20 400C80 300 200 450 320 380S480 200 600 300S740 450 860 350' stroke='%23f75c03' stroke-width='1' fill='none'/%3E%3Cpath d='M-20 180C100 80 220 220 340 160S500 40 620 140S760 280 880 180' stroke='%23f75c03' stroke-width='1.2' fill='none'/%3E%3C/svg%3E");
+  background-size: 800px 600px;
+  background-repeat: repeat;
+  z-index: 0;
+}
+
+.yb-profile__content-area > * {
+  position: relative;
+  z-index: 1;
+}
+
+/* Orange accent on hero top bar */
+body.hyc-page .yb-profile__hero::before {
+  background: linear-gradient(90deg, var(--yb-orange), var(--yb-brand), var(--yb-orange-light));
+}
+
+/* Orange accent for card title borders */
+.yb-profile__card-title {
+  border-bottom-color: rgba(247, 92, 3, 0.15);
+}
+
+/* Section headings with orange eyebrow dot */
+.yb-store__cat-title::before {
+  content: '';
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--yb-orange);
+  margin-right: 10px;
+  vertical-align: middle;
+}
+
+/* Active subcategory pill */
+.yb-store__sub-btn.is-active {
+  border-color: var(--yb-brand) !important;
+}
+
+/* Orange highlight on popular/best deal badges */
+.yb-store__badge--popular {
+  background: rgba(247, 92, 3, 0.1) !important;
+  color: var(--yb-orange) !important;
+  border: 1px solid rgba(247, 92, 3, 0.2) !important;
+}
+
+.yb-store__badge--best {
+  background: var(--yb-orange) !important;
+  color: #fff !important;
+}
+
+.yb-store__badge--free {
+  background: rgba(247, 92, 3, 0.08) !important;
+  color: var(--yb-orange-dark) !important;
+  border: 1px solid rgba(247, 92, 3, 0.15) !important;
+}
+
+/* Orange accent on saving indicators */
+.yb-store__item-saving svg {
+  color: var(--yb-orange);
+  stroke: var(--yb-orange);
+}
+
+/* Store top category — orange icon accent on hover */
+.yb-store__top-cat:hover .yb-store__top-cat-icon {
+  color: var(--yb-orange);
+}
+
+/* Coming soon category styling */
+.yb-store__top-cat--soon {
+  opacity: 0.75;
+  border-style: dashed;
+}
+
+.yb-store__top-cat--soon:hover {
+  opacity: 1;
+}
+
+.yb-store__top-cat-soon {
+  display: inline-block;
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--yb-orange);
+  margin-top: 4px;
+}
+
+/* ========================================
+   GIFT CARDS — Fixed CSS (matching JS classes)
+   ======================================== */
+
+/* Gift card option rows (minimal design) */
+.yb-giftcards__option {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 1.25rem;
+  background: #fff;
+  border: 1.5px solid #E8E4E0;
+  border-radius: 12px;
+  margin-bottom: 0.5rem;
+  cursor: pointer;
+  transition: border-color 0.2s, background 0.2s;
+}
+
+.yb-giftcards__option:hover {
+  border-color: var(--yb-brand);
+  background: #FAFAFA;
+}
+
+.yb-giftcards__option.is-selected {
+  border-color: var(--yb-orange);
+  background: rgba(247, 92, 3, 0.03);
+  box-shadow: 0 0 0 1px var(--yb-orange);
+}
+
+.yb-giftcards__option-left {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.yb-giftcards__option-name {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #0F0F0F;
+}
+
+.yb-giftcards__option-terms {
+  font-size: 0.78rem;
+  color: #6F6A66;
+}
+
+.yb-giftcards__option-price {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--yb-brand);
+  white-space: nowrap;
+}
+
+.yb-giftcards__option-price--custom {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--yb-orange);
+  background: rgba(247, 92, 3, 0.08);
+  padding: 0.25rem 0.65rem;
+  border-radius: 20px;
+}
+
+/* Empty state / fallback */
+.yb-giftcards__empty {
+  text-align: center;
+  padding: 3rem 2rem;
+}
+
+.yb-giftcards__empty svg {
+  margin-bottom: 1rem;
+}
+
+.yb-giftcards__empty-title {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #0F0F0F;
+  margin: 0 0 0.5rem;
+}
+
+.yb-giftcards__empty-text {
+  font-size: 0.92rem;
+  color: #6F6A66;
+  margin: 0 0 1.25rem;
+}
+
+.yb-giftcards__form-price {
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: var(--yb-orange);
+  margin-bottom: 1rem;
+  display: block;
+}
+
+/* Gift card form (rendered in HTML) */
+.yb-giftcards__header {
+  margin-bottom: 1.5rem;
+}
+
+.yb-giftcards__title {
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: #0F0F0F;
+  margin: 0 0 6px;
+}
+
+.yb-giftcards__subtitle {
+  font-size: 0.92rem;
+  color: #6F6A66;
+  margin: 0;
+}
+
+.yb-giftcards__form {
+  margin-top: 1.5rem;
+}
+
+.yb-giftcards__checkout-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+  align-items: start;
+}
+
+.yb-giftcards__checkout-left,
+.yb-giftcards__checkout-right {
+  background: #FFFCF9;
+  border: 1.5px solid #E8E4E0;
+  border-radius: 14px;
+  padding: 1.5rem;
+}
+
+.yb-giftcards__checkout-right {
+  border-color: rgba(247, 92, 3, 0.2);
+}
+
+.yb-giftcards__form-title {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #0F0F0F;
+  margin: 0 0 1rem;
+  padding-bottom: 0.6rem;
+  border-bottom: 1px solid rgba(247, 92, 3, 0.1);
+}
+
+.yb-giftcards__custom-amount input {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--yb-orange);
+}
+
+.yb-giftcards__form-inner .yb-auth-field {
+  margin-bottom: 1rem;
+}
+
+.yb-giftcards__form-inner .yb-auth-field label {
+  display: block;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #0F0F0F;
+  margin-bottom: 6px;
+}
+
+.yb-giftcards__form-inner .yb-auth-field input,
+.yb-giftcards__form-inner .yb-auth-field textarea {
+  width: 100%;
+  padding: 0.65rem 0.85rem;
+  border: 1.5px solid #E8E4E0;
+  border-radius: 10px;
+  font-family: inherit;
+  font-size: 0.9rem;
+  background: #fff;
+  transition: border-color 0.2s;
+}
+
+.yb-giftcards__form-inner .yb-auth-field input:focus,
+.yb-giftcards__form-inner .yb-auth-field textarea:focus {
+  outline: none;
+  border-color: var(--yb-orange);
+  box-shadow: 0 0 0 3px rgba(247, 92, 3, 0.08);
+}
+
+.yb-giftcards__form-inner .yb-auth-field textarea {
+  resize: vertical;
+  min-height: 80px;
+}
+
+.yb-giftcards__form-actions {
+  display: flex;
+  gap: 0.75rem;
+  margin-top: 0.5rem;
+  align-items: center;
+}
+
+.yb-giftcards__form-actions .yb-btn--primary {
+  background: var(--yb-orange);
+  border-color: var(--yb-orange);
+}
+
+.yb-giftcards__form-actions .yb-btn--primary:hover {
+  background: var(--yb-orange-dark);
+  border-color: var(--yb-orange-dark);
+}
+
+/* Secure payment note */
+.yb-giftcards__form .yb-store__secure {
+  margin-top: 1rem;
+  color: #6F6A66;
+  font-size: 0.8rem;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+@media (max-width: 768px) {
+  .yb-giftcards__checkout-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 600px) {
+  .yb-giftcards__option {
+    padding: 0.85rem 1rem;
+  }
+
+  .yb-giftcards__checkout-left,
+  .yb-giftcards__checkout-right {
+    padding: 1.25rem;
+  }
+
+  .yb-giftcards__form-actions {
+    flex-direction: column;
+  }
+
+  .yb-giftcards__form-actions .yb-btn {
+    width: 100%;
+  }
+}
+
+/* ── Stored Card (Profile) ── */
+.yb-stored-card__loading {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0;
+}
+
+.yb-stored-card {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem 1.25rem;
+  background: #FFFCF9;
+  border: 1.5px solid #E8E4E0;
+  border-radius: 12px;
+  flex-wrap: wrap;
+}
+
+.yb-stored-card__info {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex: 1;
+  min-width: 150px;
+}
+
+.yb-stored-card__icon {
+  color: #6F6A66;
+  flex-shrink: 0;
+}
+
+.yb-stored-card__type {
+  font-size: 0.8rem;
+  color: #6F6A66;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  display: block;
+}
+
+.yb-stored-card__number {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #0F0F0F;
+  letter-spacing: 0.08em;
+  display: block;
+}
+
+.yb-stored-card__meta {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  font-size: 0.85rem;
+  color: #6F6A66;
+}
+
+.yb-stored-card__empty-text {
+  color: #6F6A66;
+  font-size: 0.9rem;
+}
+
+/* Inline change-card form */
+.yb-stored-card__form {
+  margin-top: 1rem;
+  padding: 1.25rem;
+  background: #F5F3F0;
+  border-radius: 12px;
+}
+
+.yb-stored-card__form-title {
+  font-size: 0.95rem;
+  font-weight: 700;
+  margin: 0 0 1rem;
+}
+
+.yb-stored-card__form-actions {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+}
+
+/* Checkout stored-card radio toggle */
+.yb-checkout-stored-card {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.yb-checkout-stored-card__option {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.6rem 1rem;
+  border: 1.5px solid #E8E4E0;
+  border-radius: 10px;
+  cursor: pointer;
+  font-size: 0.85rem;
+  transition: border-color 0.15s, background 0.15s;
+  flex: 1;
+}
+
+.yb-checkout-stored-card__option input[type="radio"] {
+  display: none;
+}
+
+.yb-checkout-stored-card__option--active {
+  border-color: #3f99a5;
+  background: rgba(63, 153, 165, 0.06);
+}
+
+.yb-checkout-stored-card__option svg {
+  flex-shrink: 0;
+  color: #6F6A66;
+}
+
+.yb-checkout-stored-card__option--active svg {
+  color: #3f99a5;
+}

@@ -61,12 +61,5 @@
     }
   });
 
-  // ============================================
-  // COOKIE CONSENT (Placeholder)
-  // ============================================
-
-  // Add your cookie consent logic here if needed
-  // This is a placeholder for future implementation
-
   console.log('✅ Main scripts initialized');
 })();

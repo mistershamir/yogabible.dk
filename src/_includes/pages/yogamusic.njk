@@ -1,0 +1,120 @@
+{% set t = i18n.yogamusic[lang or "da"] %}
+
+<!-- Hero -->
+<section class="yb-hero">
+  <div class="yb-hero__glow"></div>
+  <div class="yb-hero__content">
+    <p class="yb-hero__tagline">{{ t.hero_tagline }}</p>
+    <h1 class="yb-hero__title">{{ t.hero_title }}</h1>
+    <p class="yb-hero__subtitle">{{ t.hero_subtitle }}</p>
+    <div class="yb-hero__line"></div>
+    <div class="yb-hero__ctas">
+      <a href="https://on.soundcloud.com/N92LNtGPzJqwYbScA" target="_blank" rel="noopener" class="yb-btn yb-btn--primary yb-btn--large">{{ t.hero_cta_soundcloud }}</a>
+      <a href="https://open.spotify.com/user/31draywwpkwp4lljbv6onkmr6i5i" target="_blank" rel="noopener" class="yb-btn yb-btn--outline-white yb-btn--large">{{ t.hero_cta_spotify }}</a>
+    </div>
+    <div class="yb-hero__trust">
+      <span>{{ t.hero_trust1 }}</span>
+      <span class="yb-hero__trust-dot"></span>
+      <span>{{ t.hero_trust2 }}</span>
+      <span class="yb-hero__trust-dot"></span>
+      <span>{{ t.hero_trust3 }}</span>
+    </div>
+  </div>
+  <div class="yb-hero__scroll">
+    <span>Scroll</span>
+    <div class="yb-hero__scroll-line"></div>
+  </div>
+</section>
+
+<!-- Our Universe -->
+<section class="program-overview">
+  <div class="container">
+    <h2 class="section-title">{{ t.universe_title }}</h2>
+    <p class="section-subtitle">
+      {{ t.universe_desc }}
+    </p>
+  </div>
+</section>
+
+<!-- Behind The Music -->
+<section class="program-schedule">
+  <div class="container">
+    <h2 class="section-title">{{ t.behind_title }}</h2>
+    <p class="section-subtitle">
+      {{ t.behind_desc }}
+    </p>
+
+    <div class="schedule-options">
+      <div class="schedule-card">
+        <h3>{{ t.phase1_title }}</h3>
+        <div class="schedule-card__time">{{ t.phase1_bpm }}</div>
+        <p>{{ t.phase1_desc }}</p>
+      </div>
+      <div class="schedule-card">
+        <h3>{{ t.phase2_title }}</h3>
+        <div class="schedule-card__time">{{ t.phase2_bpm }}</div>
+        <p>{{ t.phase2_desc }}</p>
+      </div>
+      <div class="schedule-card">
+        <h3>{{ t.phase3_title }}</h3>
+        <div class="schedule-card__time">{{ t.phase3_bpm }}</div>
+        <p>{{ t.phase3_desc }}</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Design Principles -->
+<section class="program-overview">
+  <div class="container">
+    <h2 class="section-title">{{ t.principles_title }}</h2>
+
+    <div class="program-grid">
+      <div class="program-feature">
+        <div class="program-feature__icon">🎵</div>
+        <h3>{{ t.prin1_title }}</h3>
+        <p>{{ t.prin1_desc }}</p>
+      </div>
+
+      <div class="program-feature">
+        <div class="program-feature__icon">🔄</div>
+        <h3>{{ t.prin2_title }}</h3>
+        <p>{{ t.prin2_desc }}</p>
+      </div>
+
+      <div class="program-feature">
+        <div class="program-feature__icon">🌍</div>
+        <h3>{{ t.prin3_title }}</h3>
+        <p>{{ t.prin3_desc }}</p>
+      </div>
+
+      <div class="program-feature">
+        <div class="program-feature__icon">🧘</div>
+        <h3>{{ t.prin4_title }}</h3>
+        <p>{{ t.prin4_desc }}</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Meet The Creators -->
+<section class="program-schedule">
+  <div class="container">
+    <h2 class="section-title">{{ t.creators_title }}</h2>
+    <p class="section-subtitle">
+      {{ t.creators_desc }}
+    </p>
+  </div>
+</section>
+
+<!-- CTA -->
+<section class="cta-section">
+  <div class="container">
+    <h2 class="cta-section__title">{{ t.cta_title }}</h2>
+    <p class="cta-section__text">{{ t.cta_text }}</p>
+    <div style="display:flex; gap:16px; justify-content:center; flex-wrap:wrap;">
+      <a href="https://on.soundcloud.com/N92LNtGPzJqwYbScA" target="_blank" rel="noopener" class="btn btn--large btn--primary">SoundCloud</a>
+      <a href="https://open.spotify.com/user/31draywwpkwp4lljbv6onkmr6i5i" target="_blank" rel="noopener" class="btn btn--large btn--secondary">Spotify</a>
+    </div>
+  </div>
+</section>

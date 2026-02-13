@@ -1,0 +1,891 @@
+<!-- ═══════════════════════════════════════════════════════════════════════════════
+     COURSES MODAL (ybC) - FIXED VERSION
+     Inversions / Splits / Backbends Brochure Requests
+
+     Triggers: #ybC-openModal, data-ybc-open="brochure"
+═══════════════════════════════════════════════════════════════════════════════ -->
+
+<section class="yb-modals-courses">
+  <div class="yb-modal-courses" id="ybC-modal" aria-hidden="true">
+    <div class="yb-modal-courses__overlay" data-ybc-close></div>
+
+    <div id="ybC-box" class="yb-modal-courses__box" role="dialog" aria-modal="true" aria-labelledby="ybCTitle">
+      <button class="yb-modal-courses__close" type="button" data-ybc-close aria-label="Luk">×</button>
+
+      <!-- Form View -->
+      <div id="ybC-view-form">
+        <h3 id="ybCTitle">Få brochure på e-mail</h3>
+        <p class="yb-modal-courses__lead">Vælg de kurser du er interesseret i — vi sender praktisk info til din e-mail.</p>
+
+        <p id="ybCError" class="yb-modal-courses__error" hidden>
+          Kunne ikke sende lige nu. Prøv igen — eller skriv til
+          <a href="mailto:info@yogabible.dk">info@yogabible.dk</a>.
+          <span id="ybCErrorDetail" class="yb-modal-courses__error-detail"></span>
+        </p>
+
+        <form id="ybC-form" class="yb-modal-courses__form" novalidate>
+          <input type="hidden" id="ybC-source" value="Courses – landing page">
+
+          <div class="yb-modal-courses__grid">
+            <label class="yb-modal-courses__field">
+              <span>Fornavn *</span>
+              <input type="text" name="firstName" autocomplete="given-name" required>
+            </label>
+
+            <label class="yb-modal-courses__field">
+              <span>Efternavn *</span>
+              <input type="text" name="lastName" autocomplete="family-name" required>
+            </label>
+
+            <label class="yb-modal-courses__field">
+              <span>E-mail *</span>
+              <input type="email" name="email" autocomplete="email" required>
+            </label>
+
+            <label class="yb-modal-courses__field">
+              <span>Telefonnummer *</span>
+              <input type="tel" name="phone" autocomplete="tel" required>
+            </label>
+
+            <div class="yb-modal-courses__field yb-modal-courses__field--full">
+              <span>Hvilke kurser vil du have info om? *</span>
+              <div class="yb-modal-courses__courses" role="group" aria-label="Vælg kurser">
+                <label class="yb-modal-courses__course">
+                  <input type="checkbox" name="courses" value="Inversions">
+                  <span class="yb-checkbox"></span>
+                  <span class="yb-checkbox-label">Inversions</span>
+                </label>
+
+                <label class="yb-modal-courses__course">
+                  <input type="checkbox" name="courses" value="Splits">
+                  <span class="yb-checkbox"></span>
+                  <span class="yb-checkbox-label">Splits</span>
+                </label>
+
+                <label class="yb-modal-courses__course">
+                  <input type="checkbox" name="courses" value="Backbends">
+                  <span class="yb-checkbox"></span>
+                  <span class="yb-checkbox-label">Backbends</span>
+                </label>
+              </div>
+            </div>
+
+            <label class="yb-modal-courses__field yb-modal-courses__field--full">
+              <span>Hvilken måned passer dig bedst? *</span>
+              <select id="ybC-month" name="preferredMonth" required></select>
+            </label>
+
+            <label class="yb-modal-courses__field yb-modal-courses__field--full">
+              <span>Har du brug for overnatning? *</span>
+              <select id="ybC-housing" name="housing" required>
+                <option value="No" selected>Nej</option>
+                <option value="Yes">Ja</option>
+              </select>
+            </label>
+
+            <label id="ybC-originWrap" class="yb-modal-courses__field yb-modal-courses__field--full" hidden>
+              <span>Fra hvilken by/land kommer du? *</span>
+              <input type="text" name="origin" placeholder="Fx Berlin, Tyskland" autocomplete="off">
+            </label>
+
+            <div id="ybC-monthsWrap" class="yb-modal-courses__months" hidden>
+              <p class="yb-modal-courses__months-label">Vælg de måneder du har brug for bolig:</p>
+              <div id="ybC-housingMonths" class="yb-modal-courses__month-pills" aria-label="Vælg måneder"></div>
+              <p class="yb-modal-courses__months-note">Vælg én eller flere måneder (kun hvis du har brug for bolig).</p>
+            </div>
+          </div>
+
+          <label class="yb-modal-courses__consent">
+            <input type="checkbox" name="consent" value="Yes" required>
+            <span class="yb-checkbox"></span>
+            <span class="yb-checkbox-text">Jeg giver samtykke til at modtage e-mails om de valgte kurser (du kan altid afmelde dig).</span>
+          </label>
+
+          <button id="ybCSubmit" class="yb-btn yb-btn--cta" type="submit">
+            Send & få brochure
+          </button>
+
+          <p class="yb-modal-courses__fine">Ved at sende accepterer du, at vi må kontakte dig om din forespørgsel.</p>
+        </form>
+      </div>
+
+      <!-- Success View -->
+      <div id="ybC-view-success" class="yb-modal-courses__success" hidden role="status" aria-live="polite">
+        <div class="yb-modal-courses__success-icon">✓</div>
+        <h3>Tak for din tilmelding!</h3>
+        <p>Vi sender info og praktisk materiale til din e-mail om et øjeblik.</p>
+        <button class="yb-btn yb-btn--outline" type="button" data-ybc-close>Luk</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+/* Modal base reset */
+#ybC-modal,
+#ybC-modal * {
+  box-sizing: border-box !important;
+}
+
+#ybC-modal {
+  --yb-primary: #f75c03;
+  --yb-primary-dark: #e05402;
+  --yb-ink: #161616;
+  --yb-muted: #6F6A66;
+  --yb-border: #e5e0db;
+  --yb-surface: #FFFCF9;
+
+  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif !important;
+  color: var(--yb-ink);
+}
+
+/* Shell */
+#ybC-modal {
+  display: none;
+}
+
+#ybC-modal[aria-hidden="false"] {
+  position: fixed;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 1rem;
+  z-index: 2147483647 !important;
+}
+
+/* Overlay */
+#ybC-modal .yb-modal-courses__overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5) !important;
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  z-index: 0;
+}
+
+/* Box */
+#ybC-modal .yb-modal-courses__box {
+  position: relative;
+  width: min(560px, calc(100% - 2rem));
+  max-height: calc(100vh - 2rem);
+  max-height: calc(100dvh - 2rem);
+  overflow: auto;
+  overflow-x: hidden !important;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+  border-radius: 16px;
+  border: 1px solid var(--yb-border) !important;
+  background: #fff !important;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.2) !important;
+  padding: 1.5rem;
+  z-index: 1;
+}
+
+/* Close button */
+#ybC-modal .yb-modal-courses__close {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  width: 36px;
+  height: 36px;
+  border-radius: 999px;
+  border: 1px solid var(--yb-border) !important;
+  background: #fff !important;
+  cursor: pointer;
+  font-size: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--yb-ink) !important;
+  transition: all 0.15s ease;
+}
+
+#ybC-modal .yb-modal-courses__close:hover {
+  background: var(--yb-surface) !important;
+  border-color: var(--yb-primary) !important;
+  color: var(--yb-primary) !important;
+}
+
+#ybC-modal .yb-modal-courses__close:focus-visible {
+  outline: 3px solid var(--yb-primary);
+  outline-offset: 2px;
+}
+
+/* Title */
+#ybC-modal h3 {
+  margin: 0 0 0.5rem !important;
+  font-size: 1.25rem !important;
+  font-weight: 800 !important;
+  color: var(--yb-ink) !important;
+}
+
+#ybC-modal .yb-modal-courses__lead {
+  margin: 0 0 1.25rem !important;
+  color: #444 !important;
+  line-height: 1.6 !important;
+  font-size: 0.95rem !important;
+}
+
+/* Form layout */
+#ybC-modal .yb-modal-courses__form {
+  display: grid;
+  gap: 1rem;
+}
+
+#ybC-modal .yb-modal-courses__grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+#ybC-modal .yb-modal-courses__field {
+  display: grid;
+  gap: 0.5rem;
+  min-width: 0;
+}
+
+#ybC-modal .yb-modal-courses__field--full {
+  grid-column: 1 / -1;
+}
+
+#ybC-modal .yb-modal-courses__field[hidden] {
+  display: none !important;
+}
+
+#ybC-modal .yb-modal-courses__field > span {
+  font-size: 0.85rem !important;
+  font-weight: 600 !important;
+  color: var(--yb-muted) !important;
+}
+
+/* Inputs & Selects */
+#ybC-modal .yb-modal-courses__field input[type="text"],
+#ybC-modal .yb-modal-courses__field input[type="email"],
+#ybC-modal .yb-modal-courses__field input[type="tel"],
+#ybC-modal .yb-modal-courses__field select {
+  width: 100% !important;
+  max-width: 100% !important;
+  min-width: 0 !important;
+  height: 48px !important;
+  border: 1px solid var(--yb-border) !important;
+  border-radius: 12px !important;
+  padding: 0.75rem 1rem !important;
+  font-size: 16px !important;
+  background: #fff !important;
+  color: var(--yb-ink) !important;
+  outline: none !important;
+  box-shadow: none !important;
+  -webkit-appearance: none;
+  appearance: none;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+#ybC-modal .yb-modal-courses__field input:focus,
+#ybC-modal .yb-modal-courses__field select:focus {
+  border-color: var(--yb-primary) !important;
+  box-shadow: 0 0 0 3px rgba(247, 92, 3, 0.15) !important;
+}
+
+/* Chrome autofill fix */
+#ybC-modal input:-webkit-autofill,
+#ybC-modal input:-webkit-autofill:hover,
+#ybC-modal input:-webkit-autofill:focus,
+#ybC-modal select:-webkit-autofill {
+  -webkit-box-shadow: 0 0 0 1000px #fff inset !important;
+  box-shadow: 0 0 0 1000px #fff inset !important;
+  -webkit-text-fill-color: var(--yb-ink) !important;
+  border: 1px solid var(--yb-border) !important;
+  transition: background-color 9999s ease-in-out 0s;
+}
+
+/* ══════════════════════════════════════════════════════════════
+   CUSTOM CHECKBOX STYLING
+══════════════════════════════════════════════════════════════ */
+
+/* Hide native checkbox */
+#ybC-modal input[type="checkbox"] {
+  position: absolute !important;
+  opacity: 0 !important;
+  width: 0 !important;
+  height: 0 !important;
+  pointer-events: none !important;
+}
+
+/* Custom checkbox box */
+#ybC-modal .yb-checkbox {
+  position: relative;
+  flex-shrink: 0;
+  width: 22px;
+  height: 22px;
+  border: 2px solid var(--yb-border);
+  border-radius: 6px;
+  background: #fff;
+  transition: all 0.15s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Checkmark (hidden by default) */
+#ybC-modal .yb-checkbox::after {
+  content: '';
+  position: absolute;
+  width: 6px;
+  height: 10px;
+  border: solid #fff;
+  border-width: 0 2.5px 2.5px 0;
+  transform: rotate(45deg) scale(0);
+  transition: transform 0.15s ease;
+  margin-top: -2px;
+}
+
+/* Checked state */
+#ybC-modal input[type="checkbox"]:checked + .yb-checkbox {
+  background: var(--yb-primary) !important;
+  border-color: var(--yb-primary) !important;
+}
+
+#ybC-modal input[type="checkbox"]:checked + .yb-checkbox::after {
+  transform: rotate(45deg) scale(1);
+}
+
+/* Hover state */
+#ybC-modal label:hover .yb-checkbox {
+  border-color: var(--yb-primary);
+}
+
+/* Focus state */
+#ybC-modal input[type="checkbox"]:focus-visible + .yb-checkbox {
+  box-shadow: 0 0 0 3px rgba(247, 92, 3, 0.3);
+}
+
+/* ══════════════════════════════════════════════════════════════
+   COURSES LIST
+══════════════════════════════════════════════════════════════ */
+
+#ybC-modal .yb-modal-courses__courses {
+  display: grid;
+  gap: 0.5rem;
+  border: 1px solid var(--yb-border) !important;
+  border-radius: 12px;
+  background: var(--yb-surface) !important;
+  padding: 0.75rem;
+}
+
+#ybC-modal .yb-modal-courses__course {
+  position: relative;
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+  padding: 0.85rem 1rem;
+  border-radius: 10px;
+  border: 2px solid var(--yb-border) !important;
+  background: #fff !important;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+#ybC-modal .yb-modal-courses__course:hover {
+  border-color: rgba(247, 92, 3, 0.5) !important;
+}
+
+/* Selected course card */
+#ybC-modal .yb-modal-courses__course:has(input:checked) {
+  border-color: var(--yb-primary) !important;
+  background: rgba(247, 92, 3, 0.04) !important;
+}
+
+#ybC-modal .yb-modal-courses__course .yb-checkbox-label {
+  font-weight: 600 !important;
+  color: var(--yb-ink) !important;
+  line-height: 1.35 !important;
+  font-size: 0.95rem !important;
+}
+
+/* ══════════════════════════════════════════════════════════════
+   MONTHS BLOCK
+══════════════════════════════════════════════════════════════ */
+
+#ybC-modal .yb-modal-courses__months {
+  grid-column: 1 / -1;
+  border: 1px solid var(--yb-border) !important;
+  border-radius: 12px;
+  background: var(--yb-surface) !important;
+  padding: 1rem;
+}
+
+#ybC-modal .yb-modal-courses__months-label {
+  margin: 0 0 0.75rem !important;
+  font-weight: 700 !important;
+  font-size: 0.9rem !important;
+  color: var(--yb-ink) !important;
+}
+
+#ybC-modal .yb-modal-courses__month-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+#ybC-modal .yb-modal-courses__pill {
+  position: relative;
+  cursor: pointer;
+}
+
+#ybC-modal .yb-modal-courses__pill input {
+  position: absolute;
+  left: -9999px;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+}
+
+#ybC-modal .yb-modal-courses__pill span {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.5rem 1rem;
+  border-radius: 999px;
+  border: 1px solid var(--yb-border) !important;
+  background: #fff !important;
+  font-weight: 600 !important;
+  font-size: 0.9rem !important;
+  color: var(--yb-ink) !important;
+  transition: all 0.15s ease;
+}
+
+#ybC-modal .yb-modal-courses__pill:hover span {
+  border-color: var(--yb-primary) !important;
+  color: var(--yb-primary) !important;
+}
+
+#ybC-modal .yb-modal-courses__pill input:checked + span {
+  background: var(--yb-primary) !important;
+  color: #fff !important;
+  border-color: var(--yb-primary) !important;
+}
+
+#ybC-modal .yb-modal-courses__months-note {
+  margin: 0.75rem 0 0 !important;
+  color: var(--yb-muted) !important;
+  font-size: 0.85rem !important;
+  line-height: 1.5 !important;
+}
+
+/* ══════════════════════════════════════════════════════════════
+   CONSENT
+══════════════════════════════════════════════════════════════ */
+
+#ybC-modal .yb-modal-courses__consent {
+  display: flex;
+  gap: 0.75rem;
+  align-items: flex-start;
+  cursor: pointer;
+  padding: 0.75rem 1rem;
+  border-radius: 12px;
+  border: 1px solid var(--yb-border);
+  background: var(--yb-surface);
+  transition: all 0.15s ease;
+}
+
+#ybC-modal .yb-modal-courses__consent:hover {
+  border-color: rgba(247, 92, 3, 0.5);
+}
+
+#ybC-modal .yb-modal-courses__consent:has(input:checked) {
+  border-color: var(--yb-primary);
+  background: rgba(247, 92, 3, 0.04);
+}
+
+#ybC-modal .yb-modal-courses__consent .yb-checkbox {
+  margin-top: 2px;
+}
+
+#ybC-modal .yb-modal-courses__consent .yb-checkbox-text {
+  color: #444 !important;
+  line-height: 1.5 !important;
+  font-size: 0.9rem !important;
+}
+
+/* ══════════════════════════════════════════════════════════════
+   BUTTONS
+══════════════════════════════════════════════════════════════ */
+
+#ybC-modal .yb-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.85rem 1.6rem;
+  border-radius: 999px;
+  font-weight: 700;
+  font-size: 0.95rem;
+  text-decoration: none;
+  border: 2px solid transparent;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+#ybC-modal .yb-btn:focus-visible {
+  outline: 3px solid var(--yb-primary);
+  outline-offset: 2px;
+}
+
+#ybC-modal .yb-btn:active {
+  transform: scale(0.98);
+}
+
+#ybC-modal .yb-btn--cta {
+  background: var(--yb-primary) !important;
+  color: #fff !important;
+  border-color: var(--yb-primary) !important;
+  box-shadow: 0 4px 14px rgba(247, 92, 3, 0.25);
+  width: fit-content;
+}
+
+#ybC-modal .yb-btn--cta:hover {
+  background: var(--yb-primary-dark) !important;
+  border-color: var(--yb-primary-dark) !important;
+  box-shadow: 0 6px 20px rgba(247, 92, 3, 0.3);
+  transform: translateY(-1px);
+}
+
+#ybC-modal .yb-btn--cta[disabled] {
+  opacity: 0.6 !important;
+  cursor: not-allowed !important;
+  box-shadow: none !important;
+  transform: none !important;
+}
+
+#ybC-modal .yb-btn--outline {
+  background: #fff !important;
+  color: var(--yb-primary) !important;
+  border-color: var(--yb-primary) !important;
+}
+
+#ybC-modal .yb-btn--outline:hover {
+  background: var(--yb-primary) !important;
+  color: #fff !important;
+}
+
+/* Fine print */
+#ybC-modal .yb-modal-courses__fine {
+  margin: 0 !important;
+  color: var(--yb-muted) !important;
+  font-size: 0.8rem !important;
+  line-height: 1.5 !important;
+}
+
+/* Error */
+#ybC-modal .yb-modal-courses__error {
+  margin: 0 0 1rem !important;
+  padding: 0.75rem 1rem;
+  background: #FEF2F2;
+  border: 1px solid #FECACA;
+  border-radius: 12px;
+  font-size: 0.9rem !important;
+  color: #991B1B !important;
+  line-height: 1.5 !important;
+}
+
+#ybC-modal .yb-modal-courses__error a {
+  color: var(--yb-primary) !important;
+  text-decoration: underline !important;
+}
+
+#ybC-modal .yb-modal-courses__error-detail {
+  display: block;
+  margin-top: 0.5rem;
+  font-size: 0.85rem !important;
+  color: #7F1D1D !important;
+}
+
+/* Success */
+#ybC-modal .yb-modal-courses__success {
+  text-align: center;
+  padding: 1rem 0;
+}
+
+#ybC-modal .yb-modal-courses__success-icon {
+  width: 56px;
+  height: 56px;
+  border-radius: 999px;
+  background: var(--yb-primary);
+  color: #fff;
+  font-size: 1.5rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 1rem;
+}
+
+#ybC-modal .yb-modal-courses__success h3 {
+  margin: 0 0 0.5rem !important;
+  font-size: 1.25rem !important;
+}
+
+#ybC-modal .yb-modal-courses__success p {
+  margin: 0 0 1.25rem !important;
+  color: #444 !important;
+  line-height: 1.6 !important;
+}
+
+/* ══════════════════════════════════════════════════════════════
+   MOBILE
+══════════════════════════════════════════════════════════════ */
+
+@media (max-width: 599px) {
+  #ybC-modal[aria-hidden="false"] {
+    align-items: flex-start;
+    padding: 0.5rem;
+    padding-top: 1rem;
+  }
+
+  #ybC-modal .yb-modal-courses__grid {
+    grid-template-columns: 1fr;
+  }
+
+  #ybC-modal .yb-btn--cta {
+    width: 100%;
+  }
+}
+</style>
+
+<script>
+/* ===== Yoga Bible — COURSES (modal + submit) — ybC namespace ===== */
+(function(){
+  if (window.__ybC_Booted) return;
+  window.__ybC_Booted = true;
+
+  const GAS_URL = 'https://script.google.com/macros/s/AKfycbyhs4bfPcvcqaJRTmAlPTFf_uIOkFatZviKKO20nckBfGi78JqkNzy4FNpWztl7nQsSAA/exec';
+
+  const modal = document.getElementById('ybC-modal');
+  const box   = document.getElementById('ybC-box');
+  if(!modal || !box){ console.warn('[ybC] modal pieces missing'); return; }
+
+  try{ if (modal.parentElement !== document.body) document.body.appendChild(modal); }catch(e){}
+
+  const viewForm    = document.getElementById('ybC-view-form');
+  const viewSuccess = document.getElementById('ybC-view-success');
+  const errBox      = document.getElementById('ybCError');
+  const errDetail   = document.getElementById('ybCErrorDetail');
+  const submitBtn   = document.getElementById('ybCSubmit');
+  const form        = document.getElementById('ybC-form');
+
+  function closeModal() {
+    modal.setAttribute('aria-hidden', 'true');
+    document.documentElement.style.overflow = '';
+    document.body.style.overflow = '';
+  }
+
+  function openModal() {
+    modal.setAttribute('aria-hidden', 'false');
+    document.documentElement.style.overflow = 'hidden';
+    document.body.style.overflow = 'hidden';
+  }
+
+  function fillMonths(select, pillsWrap){
+    const months = [
+      'Ikke sikker endnu',
+      'Januar 2026','Februar 2026','Marts 2026','April 2026','Maj 2026','Juni 2026',
+      'Juli 2026','August 2026','September 2026','Oktober 2026','November 2026'
+    ];
+    if(select){
+      select.innerHTML = '';
+      months.forEach((m,i)=>{
+        const o = document.createElement('option');
+        o.value = (i===0 ? 'Not sure yet' : m);
+        o.textContent = m;
+        if(i===0) o.selected = true;
+        select.appendChild(o);
+      });
+    }
+    if(pillsWrap){
+      pillsWrap.innerHTML = '';
+      months.slice(1).forEach(m=>{
+        const label = document.createElement('label');
+        label.className = 'yb-modal-courses__pill';
+        label.innerHTML = `<input type="checkbox" name="months" value="${m}"><span>${m.split(' ')[0]}</span>`;
+        pillsWrap.appendChild(label);
+      });
+    }
+  }
+
+  function setupHousingToggle(){
+    const sel        = document.getElementById('ybC-housing');
+    const originWrap = document.getElementById('ybC-originWrap');
+    const monthsWrap = document.getElementById('ybC-monthsWrap');
+    const originInput= originWrap ? originWrap.querySelector('input[name="origin"]') : null;
+
+    const toggle = ()=>{
+      const yes = sel && sel.value === 'Yes';
+      if(originWrap && originInput){
+        originWrap.hidden = !yes;
+        originInput.required = !!yes;
+        if(!yes) originInput.value = '';
+      }
+      if(monthsWrap){
+        monthsWrap.hidden = !yes;
+        if(!yes) monthsWrap.querySelectorAll('input[name="months"]').forEach(cb=>cb.checked=false);
+      }
+    };
+
+    if(sel) {
+      sel.removeEventListener('change', sel._ybcToggle);
+      sel._ybcToggle = toggle;
+      sel.addEventListener('change', toggle);
+    }
+    toggle();
+  }
+
+  function resetView(){
+    try { form && form.reset(); } catch(e) {}
+
+    if (viewForm) viewForm.hidden = false;
+    if (viewSuccess) viewSuccess.hidden = true;
+
+    if (errBox) errBox.hidden = true;
+    if (errDetail) errDetail.textContent = '';
+
+    if (submitBtn) {
+      submitBtn.disabled = false;
+      submitBtn.textContent = 'Send & få brochure';
+    }
+
+    const originWrap = document.getElementById('ybC-originWrap');
+    const monthsWrap = document.getElementById('ybC-monthsWrap');
+    if (originWrap) originWrap.hidden = true;
+    if (monthsWrap) monthsWrap.hidden = true;
+
+    setupHousingToggle();
+  }
+
+  function setLoading(is){
+    if(!form) return;
+    try{
+      form.querySelectorAll('input,select,button,textarea').forEach(el=> el.disabled = is);
+      if(submitBtn){
+        if(is){ submitBtn.dataset.label = submitBtn.textContent; submitBtn.textContent='Sender…'; }
+        else { submitBtn.textContent = submitBtn.dataset.label || 'Send & få brochure'; }
+      }
+      form.setAttribute('aria-busy', is ? 'true' : 'false');
+    }catch(e){}
+  }
+
+  function showError(msg) {
+    if (errBox) errBox.hidden = false;
+    if (errDetail) errDetail.textContent = msg ? msg : '';
+  }
+
+  function showThanks(){
+    if (viewForm) viewForm.hidden = true;
+    if (viewSuccess) viewSuccess.hidden = false;
+  }
+
+  function applyOpenerMeta(openerEl){
+    const srcInput = document.getElementById('ybC-source');
+    const source = openerEl && openerEl.getAttribute('data-ybc-source');
+    if (srcInput) srcInput.value = source || 'Courses – landing page';
+
+    const course = openerEl && openerEl.getAttribute('data-ybc-course');
+    if (course){
+      const wanted = course.split(',').map(s=>s.trim()).filter(Boolean);
+      document.querySelectorAll('#ybC-form input[name="courses"]').forEach(cb=>{
+        cb.checked = wanted.includes(cb.value);
+      });
+    }
+  }
+
+  async function handleSubmit(e){
+    e.preventDefault();
+
+    if(!form) return;
+
+    const fd     = new FormData(form);
+    const source = (document.getElementById('ybC-source')?.value) || 'Courses – landing page';
+
+    if (errBox) errBox.hidden = true;
+    if (errDetail) errDetail.textContent = '';
+
+    const chosen = [];
+    form.querySelectorAll('input[name="courses"]:checked').forEach(cb=> chosen.push(cb.value));
+    if(!chosen.length){
+      alert('Vælg mindst ét kursus.');
+      return;
+    }
+
+    if(!fd.get('consent')){
+      alert('Du skal give samtykke for at modtage brochure og info.');
+      return;
+    }
+
+    const needs = (fd.get('housing') === 'Yes');
+    let months = [];
+    if(needs){
+      form.querySelectorAll('input[name="months"]:checked').forEach(cb=> months.push(cb.value));
+      if(!months.length){
+        alert('Vælg mindst én måned for bolig.');
+        return;
+      }
+    }
+
+    const params = new URLSearchParams();
+    params.set('firstName',   fd.get('firstName') || '');
+    params.set('lastName',    fd.get('lastName')  || '');
+    params.set('email',       fd.get('email')     || '');
+    params.set('phone',       fd.get('phone')     || '');
+    params.set('courses',     chosen.join(', '));
+    params.set('preferredMonth', fd.get('preferredMonth') || 'Not sure yet');
+    params.set('accommodation', needs ? 'Yes' : 'No');
+    params.set('cityCountry', fd.get('origin') || '');
+    params.set('housingMonths', months.join(', '));
+    params.set('consent', fd.get('consent') ? 'true' : 'false');
+    params.set('source', source);
+
+    setLoading(true);
+    try{
+      await fetch(GAS_URL, { method:'POST', body:params, mode:'no-cors' });
+      setLoading(false);
+      showThanks();
+    }catch(err){
+      setLoading(false);
+      console.error('[ybC] submit error:', err);
+      showError('Noget gik galt. Prøv igen.');
+    }
+  }
+
+  // ══════════════════════════════════════════════════════════════
+  // INITIALIZATION - Only runs ONCE
+  // ══════════════════════════════════════════════════════════════
+
+  fillMonths(document.getElementById('ybC-month'), document.getElementById('ybC-housingMonths'));
+
+  if(form) {
+    form.addEventListener('submit', handleSubmit);
+  }
+
+  document.addEventListener('click', (e)=>{
+    const opener = e.target.closest('#ybC-openModal, [data-ybc-open="brochure"]');
+    if (opener){
+      e.preventDefault();
+      resetView();
+      applyOpenerMeta(opener);
+      openModal();
+      return;
+    }
+
+    const closer = e.target.closest('[data-ybc-close]');
+    if (closer && modal.getAttribute('aria-hidden') === 'false'){
+      e.preventDefault();
+      closeModal();
+      return;
+    }
+  });
+
+  document.addEventListener('keydown', (e)=>{
+    if (e.key === 'Escape' && modal.getAttribute('aria-hidden') === 'false') closeModal();
+  });
+
+  closeModal();
+})();
+</script>

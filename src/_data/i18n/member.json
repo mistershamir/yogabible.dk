@@ -1,0 +1,230 @@
+{
+  "da": {
+    "meta_title": "Member Area | YOGA BIBLE",
+    "meta_desc": "Dit gratis medlemsområde hos Yoga Bible. Uddannelse, kurser, live workshops, yoga-ordbog, journal og meget mere — alt samlet ét sted.",
+
+    "hero_eyebrow": "Member Area",
+    "hero_title": "Alt din yoga, samlet ét sted",
+    "hero_subtitle": "Gratis adgang til uddannelse, kurser, live workshops, optagelser, Danmarks bedste yoga-ordbog, eksklusivt indhold og meget mere — organiseret og altid tilgængeligt.",
+    "hero_cta_register": "Opret gratis konto",
+    "hero_cta_login": "Log ind",
+
+    "intro_title": "Hvad er Member Area?",
+    "intro_text": "Vi har bygget Member Area, så alt hvad du har brug for som yogaudøver, studerende eller underviser findes samlet ét sted. Gratis og betalt uddannelse, kursusmaterialer, live workshops med optagelser du kan søge i — organiseret, overskueligt og altid tilgængeligt for dig.",
+
+    "free_eyebrow": "Gratis for alle",
+    "free_title": "Opret en konto og få adgang med det samme",
+    "free_subtitle": "Dit medlemskab er gratis. Opret et brugernavn, og lås op for hele Yoga Bibles univers.",
+    "free_1_title": "Danmarks bedste yoga-ordbog",
+    "free_1_desc": "Komplet opslagsværk med yogabegreber, sanskrit-termer og filosofi — alt forklaret på dansk.",
+    "free_2_title": "Yoga Journal",
+    "free_2_desc": "Dybdegående artikler, guides og eksklusive medlemsartikler om yoga, åndedræt og filosofi.",
+    "free_3_title": "Events & workshops",
+    "free_3_desc": "Få besked om kommende events, særlige workshops og eksklusive medlemsarrangementer.",
+    "free_4_title": "Forum & fællesskab",
+    "free_4_desc": "Deltag i samtaler, stil spørgsmål og vær en del af Yoga Bibles aktive fællesskab.",
+
+    "student_eyebrow": "For studerende & kursister",
+    "student_title": "Dit uddannelsescenter",
+    "student_subtitle": "Er du tilmeldt en yogalæreruddannelse eller kursusforløb? Så er Member Area dit primære værktøj.",
+    "student_1_title": "Kursusmaterialer samlet ét sted",
+    "student_1_desc": "Alle dine dokumenter, manualer, videoer og læsestof — overskueligt organiseret efter dit uddannelsesforløb.",
+    "student_2_title": "Live streaming af workshops",
+    "student_2_desc": "Deltag live i workshops og undervisning direkte fra dit dashboard — uanset hvor du er.",
+    "student_3_title": "Optagelser du kan søge i",
+    "student_3_desc": "Alle workshops og sessioner bliver optaget og organiseret, så du altid kan gense og søge i det du har brug for.",
+    "student_4_title": "Tilpasset adgang",
+    "student_4_desc": "Din adgang tilpasses automatisk efter din uddannelsestype — 200-timer, 300-timer eller specialkurser.",
+
+    "studio_eyebrow": "For yogastudier & virksomheder",
+    "studio_title": "Professionelle værktøjer til dit studio",
+    "studio_subtitle": "Driver du et yogastudie eller en yoga-relateret virksomhed? Tilmeld dig som business og få adgang til materialer og funktioner designet til professionelle.",
+    "studio_1": "Definer din virksomhed og bliv synlig i Yoga Bibles netværk",
+    "studio_2": "Adgang til ekstra undervisningsmaterialer og ressourcer",
+    "studio_3": "Værktøjer og indhold tilpasset professionelle yogaundervisere",
+
+    "cta_title": "Klar til at komme i gang?",
+    "cta_text": "Det tager 30 sekunder at oprette en konto. Det er gratis, og du får øjeblikkeligt adgang.",
+    "cta_register": "Opret gratis konto",
+    "cta_login_note": "Har du allerede en konto?",
+    "cta_login": "Log ind",
+
+    "user_title": "Member Area",
+    "user_greeting": "Velkommen",
+
+    "hub_courses_title": "Mine Kurser",
+    "hub_courses_desc": "Kursusmaterialer, moduler, fremgang og noter",
+    "hub_courses_badge": "Uddannelse",
+
+    "hub_live_title": "Live & Optagelser",
+    "hub_live_desc": "Live workshops, optagelser og sessioner du kan søge i",
+    "hub_live_badge": "Streaming",
+
+    "hub_schedule_title": "Klasseskema",
+    "hub_schedule_desc": "Book og administrer dine kommende yogahold",
+    "hub_schedule_badge": "Booking",
+
+    "hub_glossary_title": "Yoga Ordbog",
+    "hub_glossary_desc": "Komplet opslagsværk — begreber, sanskrit og filosofi",
+    "hub_glossary_badge": "Reference",
+
+    "hub_journal_title": "Yoga Journal",
+    "hub_journal_desc": "Artikler, guides og eksklusivt medlemsindhold",
+    "hub_journal_badge": "Læsning",
+
+    "hub_events_title": "Events",
+    "hub_events_desc": "Kommende workshops, retreats og særlige arrangementer",
+    "hub_events_badge": "Kalender",
+
+    "hub_forum_title": "Forum",
+    "hub_forum_desc": "Deltag i samtaler og forbind dig med fællesskabet",
+    "hub_forum_badge": "Fællesskab",
+
+    "hub_profile_title": "Min Profil",
+    "hub_profile_desc": "Personlige oplysninger, passes, kvitteringer og indstillinger",
+    "hub_profile_badge": "Konto",
+
+    "hub_coming_soon": "Kommer snart",
+
+    "user_materials_eyebrow": "Uddannelse",
+    "user_materials_title": "Dine materialer",
+    "user_materials_subtitle": "Adgang til kursusmaterialer, manualer og ressourcer tilknyttet dit program.",
+    "user_card_materials_title": "Kursusmaterialer",
+    "user_card_materials_desc": "Dokumenter, manualer og læsestof til dit program",
+    "user_card_livestream_title": "Live Streaming",
+    "user_card_livestream_desc": "Deltag live i workshops og undervisning",
+    "user_card_recordings_title": "Optagelser",
+    "user_card_recordings_desc": "Gense alle workshops og sessioner",
+
+    "user_admin_eyebrow": "Administration",
+    "user_admin_title": "Administrationsværktøjer",
+    "user_admin_subtitle": "Administrer indhold, kurser og brugere.",
+    "user_card_admin_courses_title": "Kursus Admin",
+    "user_card_admin_courses_desc": "Administrer kurser, moduler og kapitler",
+    "user_card_admin_content_title": "Indhold",
+    "user_card_admin_content_desc": "Rediger sider, journal og indhold",
+    "user_card_admin_users_title": "Brugeradministration",
+    "user_card_admin_users_desc": "Administrer roller og tilladelser",
+
+    "role_badge_member": "Medlem",
+    "role_badge_trainee": "Yogalærer-studerende",
+    "role_badge_student": "Kursusdeltager",
+    "role_badge_teacher": "Yogalærer",
+    "role_badge_marketing": "Marketing",
+    "role_badge_admin": "Administrator"
+  },
+  "en": {
+    "meta_title": "Member Area | YOGA BIBLE",
+    "meta_desc": "Your free member area at Yoga Bible. Education, courses, live workshops, yoga glossary, journal and more — all in one place.",
+
+    "hero_eyebrow": "Member Area",
+    "hero_title": "All your yoga, in one place",
+    "hero_subtitle": "Free access to education, courses, live workshops, recordings, Denmark's best yoga glossary, exclusive content and more — organized and always available.",
+    "hero_cta_register": "Create free account",
+    "hero_cta_login": "Sign in",
+
+    "intro_title": "What is Member Area?",
+    "intro_text": "We built Member Area so that everything you need as a yoga practitioner, student, or teacher lives in one place. Free and paid education, course materials, live workshops with searchable recordings — organized, clear, and always available to you.",
+
+    "free_eyebrow": "Free for everyone",
+    "free_title": "Create an account and get access instantly",
+    "free_subtitle": "Your membership is free. Create a username and unlock the full Yoga Bible universe.",
+    "free_1_title": "Denmark's best yoga glossary",
+    "free_1_desc": "A complete reference of yoga terms, Sanskrit terminology, and philosophy — all explained clearly.",
+    "free_2_title": "Yoga Journal",
+    "free_2_desc": "In-depth articles, guides, and exclusive member content on yoga, breathwork, and philosophy.",
+    "free_3_title": "Events & workshops",
+    "free_3_desc": "Stay informed about upcoming events, special workshops, and exclusive member gatherings.",
+    "free_4_title": "Forum & community",
+    "free_4_desc": "Join conversations, ask questions, and be part of the active Yoga Bible community.",
+
+    "student_eyebrow": "For students & trainees",
+    "student_title": "Your education hub",
+    "student_subtitle": "Enrolled in a yoga teacher training or course? Member Area is your primary tool.",
+    "student_1_title": "Course materials in one place",
+    "student_1_desc": "All your documents, manuals, videos, and reading — clearly organized by your training program.",
+    "student_2_title": "Live streaming workshops",
+    "student_2_desc": "Join workshops and classes live, directly from your dashboard — no matter where you are.",
+    "student_3_title": "Searchable recordings",
+    "student_3_desc": "All workshops and sessions are recorded and organized, so you can always revisit and search what you need.",
+    "student_4_title": "Tailored access",
+    "student_4_desc": "Your access adapts automatically to your training type — 200-hour, 300-hour, or specialty courses.",
+
+    "studio_eyebrow": "For yoga studios & businesses",
+    "studio_title": "Professional tools for your studio",
+    "studio_subtitle": "Running a yoga studio or yoga-related business? Sign up as a business and access materials and features designed for professionals.",
+    "studio_1": "Define your business and become visible in the Yoga Bible network",
+    "studio_2": "Access additional teaching materials and resources",
+    "studio_3": "Tools and content tailored for professional yoga teachers",
+
+    "cta_title": "Ready to get started?",
+    "cta_text": "It takes 30 seconds to create an account. It's free, and you get instant access.",
+    "cta_register": "Create free account",
+    "cta_login_note": "Already have an account?",
+    "cta_login": "Sign in",
+
+    "user_title": "Member Area",
+    "user_greeting": "Welcome",
+
+    "hub_courses_title": "My Courses",
+    "hub_courses_desc": "Course materials, modules, progress and notes",
+    "hub_courses_badge": "Education",
+
+    "hub_live_title": "Live & Recordings",
+    "hub_live_desc": "Live workshops, recordings and searchable sessions",
+    "hub_live_badge": "Streaming",
+
+    "hub_schedule_title": "Class Schedule",
+    "hub_schedule_desc": "Book and manage your upcoming yoga classes",
+    "hub_schedule_badge": "Booking",
+
+    "hub_glossary_title": "Yoga Glossary",
+    "hub_glossary_desc": "Complete reference — terms, Sanskrit and philosophy",
+    "hub_glossary_badge": "Reference",
+
+    "hub_journal_title": "Yoga Journal",
+    "hub_journal_desc": "Articles, guides and exclusive member content",
+    "hub_journal_badge": "Reading",
+
+    "hub_events_title": "Events",
+    "hub_events_desc": "Upcoming workshops, retreats and special gatherings",
+    "hub_events_badge": "Calendar",
+
+    "hub_forum_title": "Forum",
+    "hub_forum_desc": "Join conversations and connect with the community",
+    "hub_forum_badge": "Community",
+
+    "hub_profile_title": "My Profile",
+    "hub_profile_desc": "Personal details, passes, receipts and settings",
+    "hub_profile_badge": "Account",
+
+    "hub_coming_soon": "Coming soon",
+
+    "user_materials_eyebrow": "Education",
+    "user_materials_title": "Your materials",
+    "user_materials_subtitle": "Access course materials, manuals, and resources for your program.",
+    "user_card_materials_title": "Course Materials",
+    "user_card_materials_desc": "Documents, manuals, and reading for your program",
+    "user_card_livestream_title": "Live Streaming",
+    "user_card_livestream_desc": "Join workshops and classes live",
+    "user_card_recordings_title": "Recordings",
+    "user_card_recordings_desc": "Revisit all workshops and sessions",
+
+    "user_admin_eyebrow": "Administration",
+    "user_admin_title": "Admin tools",
+    "user_admin_subtitle": "Manage content, courses, and users.",
+    "user_card_admin_courses_title": "Course Admin",
+    "user_card_admin_courses_desc": "Manage courses, modules, and chapters",
+    "user_card_admin_content_title": "Content",
+    "user_card_admin_content_desc": "Edit pages, journal, and content",
+    "user_card_admin_users_title": "User Management",
+    "user_card_admin_users_desc": "Manage roles and permissions",
+
+    "role_badge_member": "Member",
+    "role_badge_trainee": "Teacher Trainee",
+    "role_badge_student": "Course Student",
+    "role_badge_teacher": "Teacher",
+    "role_badge_marketing": "Marketing",
+    "role_badge_admin": "Administrator"
+  }
+}

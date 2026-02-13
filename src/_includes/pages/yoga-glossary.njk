@@ -1,0 +1,87 @@
+{# ── Hero ── #}
+<section class="yb-hero">
+  <div class="yb-hero__glow"></div>
+  <div class="yb-hero__content">
+    <p class="yb-hero__tagline" data-glossary-i18n="hero_tagline">Yoga Bible · Ordbog</p>
+    <h1 class="yb-hero__title" data-glossary-i18n="hero_title">Yoga Glossary</h1>
+    <p class="yb-hero__subtitle" data-glossary-i18n="hero_subtitle">
+      Denne ordliste er udviklet af Yoga Bible i København som et fagligt opslagsværk til vores yogalæreruddannelser, studerende og nysgerrige udøvere. Her samler vi centrale begreber fra klassisk og moderne yoga — på sanskrit, dansk og engelsk.
+    </p>
+    <div class="yb-hero__line"></div>
+    <div class="yb-hero__trust">
+      <span data-glossary-i18n="hero_trust1">Sanskrit · Dansk · Engelsk</span>
+      <span class="yb-hero__trust-dot"></span>
+      <span data-glossary-i18n="hero_trust2">Klassisk & Moderne Yoga</span>
+      <span class="yb-hero__trust-dot"></span>
+      <span data-glossary-i18n="hero_trust3">Fagligt Opslagsværk</span>
+    </div>
+  </div>
+  <div class="yb-hero__scroll">
+    <span>Scroll</span>
+    <div class="yb-hero__scroll-line"></div>
+  </div>
+</section>
+
+{# ── Glossary Module ── #}
+<section class="program-overview">
+  <div class="container">
+    <div class="yb-glossary">
+
+      {# Scope toggle (language comes from global subdomain switcher) #}
+      <div class="yb-glossary__controls">
+        <div class="yb-glossary__scope" role="group" aria-label="Omfang">
+          <button class="yb-glossary__scope-btn active" data-scope="common" type="button">Mest brugte</button>
+          <button class="yb-glossary__scope-btn" data-scope="all" type="button">Komplet ordbog</button>
+        </div>
+      </div>
+
+      {# Search #}
+      <div class="yb-glossary__search">
+        <svg class="yb-glossary__search-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <input type="text" id="ybGlossarySearch" placeholder="Søg fx &quot;tadasana&quot;, &quot;pranayama&quot; eller &quot;vinyasa&quot;..." class="yb-glossary__input" autocomplete="off" spellcheck="false">
+      </div>
+
+      {# Category Filters #}
+      <div class="yb-glossary__filters" role="group" aria-label="Kategori">
+        <button class="yb-glossary__filter-btn active" data-filter="all" type="button">Alle</button>
+        {% for cat in glossary.categories %}
+        <button class="yb-glossary__filter-btn" data-filter="{{ cat.id }}" type="button">{{ cat.name_da }}</button>
+        {% endfor %}
+      </div>
+
+      {# Dynamic sub-filters (JS populates when a category with sub-filters is active) #}
+      <div id="ybGlossarySubFilters" class="yb-glossary__subfilters" hidden></div>
+
+      {# Toolbar: A-Z + count #}
+      <div class="yb-glossary__toolbar">
+        <nav class="yb-glossary__alpha" id="ybGlossaryAlpha" aria-label="A–Z"></nav>
+        <p class="yb-glossary__count" id="ybGlossaryCount" aria-live="polite"></p>
+      </div>
+
+      {# Results grid #}
+      <div id="ybGlossaryResults" class="yb-glossary__grid">
+        <p class="yb-glossary__loading">Ordlisten indlæses...</p>
+      </div>
+
+      <button id="ybGlossaryMore" class="btn btn--secondary yb-glossary__more-btn" type="button" style="display:none;">Vis flere begreber</button>
+    </div>
+  </div>
+</section>
+
+{# ── CTA ── #}
+<section class="cta-section">
+  <div class="container">
+    <h2 class="cta-section__title" data-glossary-i18n="cta_title">Vil du lære mere?</h2>
+    <p class="cta-section__text" data-glossary-i18n="cta_text">Vores 200-timers yogalæreruddannelse dækker alle disse begreber i dybden.</p>
+    <a href="{% if lang == 'en' %}/en/om-200hrs-yogalreruddannelser{% else %}/om-200hrs-yogalreruddannelser{% endif %}" class="btn btn--large btn--primary" data-glossary-i18n="cta_btn">Se Uddannelser</a>
+  </div>
+</section>
+
+{# ── Inject glossary data at build time ── #}
+<script>
+window.YB_GLOSSARY_DATA = {
+  terms: {{ allGlossaryTerms | dump | safe }},
+  categories: {{ glossary.categories | dump | safe }}
+};
+</script>
+<script src="/js/glossary.js"></script>

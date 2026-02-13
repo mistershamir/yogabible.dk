@@ -1,0 +1,124 @@
+{% set t = i18n.yoga_bible_historie[lang or "da"] %}
+
+<!-- Hero -->
+<section class="yb-hero">
+  <div class="yb-hero__glow"></div>
+  <div class="yb-hero__content">
+    <p class="yb-hero__tagline">{{ t.hero_tagline }}</p>
+    <h1 class="yb-hero__title">{{ t.hero_title }}</h1>
+    <p class="yb-hero__subtitle">{{ t.hero_subtitle }}</p>
+    <div class="yb-hero__line"></div>
+    <div class="yb-hero__trust">
+      <span>{{ t.hero_trust1 }}</span>
+      <span class="yb-hero__trust-dot"></span>
+      <span>{{ t.hero_trust2 }}</span>
+      <span class="yb-hero__trust-dot"></span>
+      <span>{{ t.hero_trust3 }}</span>
+    </div>
+  </div>
+  <div class="yb-hero__scroll">
+    <span>Scroll</span>
+    <div class="yb-hero__scroll-line"></div>
+  </div>
+</section>
+
+<!-- Introduction -->
+<section class="program-overview">
+  <div class="container">
+    <p class="section-subtitle">
+      {{ t.intro_p1 }}
+    </p>
+    <p class="section-subtitle" style="margin-top:16px;">
+      {{ t.intro_p2 }}
+    </p>
+  </div>
+</section>
+
+<!-- Timeline -->
+<section class="program-schedule">
+  <div class="container">
+    <h2 class="section-title">{{ t.timeline_title }}</h2>
+    <p class="section-subtitle">{{ t.timeline_subtitle }}</p>
+
+    <div class="schedule-options">
+      <div class="schedule-card">
+        <h3>{{ t.timeline1_title }}</h3>
+        <p>{{ t.timeline1_desc }}</p>
+      </div>
+      <div class="schedule-card">
+        <h3>{{ t.timeline2_title }}</h3>
+        <p>{{ t.timeline2_desc }}</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Essence -->
+<section class="program-overview">
+  <div class="container">
+    <h2 class="section-title">{{ t.essence_title }}</h2>
+
+    <div class="program-grid" style="max-width: 800px; margin: 0 auto;">
+      <div class="program-feature">
+        <div class="program-feature__icon">🧘</div>
+        <h3>{{ t.ess1_title }}</h3>
+        <p>{{ t.ess1_desc }}</p>
+      </div>
+      <div class="program-feature">
+        <div class="program-feature__icon">📚</div>
+        <h3>{{ t.ess2_title }}</h3>
+        <p>{{ t.ess2_desc }}</p>
+      </div>
+      <div class="program-feature">
+        <div class="program-feature__icon">🌍</div>
+        <h3>{{ t.ess3_title }}</h3>
+        <p>{{ t.ess3_desc }}</p>
+      </div>
+    </div>
+
+    <p class="section-subtitle" style="margin-top:32px; font-style:italic;">{{ t.essence_closing }}</p>
+  </div>
+</section>
+
+<!-- FAQ -->
+<section class="program-faq">
+  <div class="container">
+    <h2 class="section-title">{{ t.faq_title }}</h2>
+
+    <div class="faq-list">
+      <details class="faq-item">
+        <summary>{{ t.faq1_q }}</summary>
+        <p>{{ t.faq1_a }}</p>
+      </details>
+
+      <details class="faq-item">
+        <summary>{{ t.faq2_q }}</summary>
+        <p>{{ t.faq2_a }}</p>
+      </details>
+
+      <details class="faq-item">
+        <summary>{{ t.faq3_q }}</summary>
+        <p>{{ t.faq3_a }}</p>
+      </details>
+
+      <details class="faq-item">
+        <summary>{{ t.faq4_q }}</summary>
+        <p>{{ t.faq4_a }}</p>
+      </details>
+
+      <details class="faq-item">
+        <summary>{{ t.faq5_q }}</summary>
+        <p>{{ t.faq5_a }}</p>
+      </details>
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+<section class="cta-section">
+  <div class="container">
+    <h2 class="cta-section__title">{{ t.cta_title }}</h2>
+    <p class="cta-section__text">{{ t.cta_text }}</p>
+    <a href="{% if lang == 'en' %}/en/om-200hrs-yogalreruddannelser{% else %}/om-200hrs-yogalreruddannelser{% endif %}" class="btn btn--large btn--primary">{{ t.cta_btn }}</a>
+  </div>
+</section>

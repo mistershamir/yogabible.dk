@@ -2,6 +2,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 
+{% if noindex %}<meta name="robots" content="noindex, nofollow">{% endif %}
+
 <!-- SEO Meta Tags -->
 <title>{{ title | default("YOGA BIBLE - Denmark") }}</title>
 <meta name="description" content="{{ description | default("Yoga Bible er din platform for yogalæreruddannelser, fordybelse og professionelle yogaklasser. Uanset om du vil undervise, lære mere eller finde dit fællesskab – vi er her.") }}">
@@ -32,17 +34,21 @@
 <!-- Google Site Verification -->
 <meta name="google-site-verification" content="TwcY-eZVLkyfpXRQVox4jFESZT0sitKW9qkvkJLE0P0">
 
-<!-- Google Tag Manager -->
-<script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
-new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
-j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
-'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
-})(window,document,'script','dataLayer','{{ site.gtmId }}');</script>
+<!-- GTM ID — loaded conditionally by cookie consent manager -->
+<meta name="yb-gtm-id" content="{{ site.gtmId }}">
+<script>window.dataLayer = window.dataLayer || [];</script>
 
-<!-- hreflang: Danish is primary, English via subdomain -->
-<link rel="alternate" hreflang="da" href="{{ site.url }}{{ page.url }}">
-<link rel="alternate" hreflang="en" href="https://en.yogabible.dk{{ page.url }}">
-<link rel="alternate" hreflang="x-default" href="{{ site.url }}{{ page.url }}">
+<!-- hreflang: Danish is primary, English at /en/ prefix -->
+{% if lang == "en" %}
+{% set daPath = page.url | replace("/en/", "/") %}
+{% set enPath = page.url %}
+{% else %}
+{% set daPath = page.url %}
+{% set enPath = "/en" + page.url %}
+{% endif %}
+<link rel="alternate" hreflang="da" href="{{ site.url }}{{ daPath }}">
+<link rel="alternate" hreflang="en" href="{{ site.url }}{{ enPath }}">
+<link rel="alternate" hreflang="x-default" href="{{ site.url }}{{ daPath }}">
 
 <!-- JSON-LD: Organization (all pages) -->
 <script type="application/ld+json">
@@ -73,7 +79,7 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
 }
 </script>
 
-{% if page.url == "/" %}
+{% if page.url == "/" or page.url == "/en/" %}
 <!-- JSON-LD: WebSite with SearchAction (homepage only, AEO) -->
 <script type="application/ld+json">
 {
@@ -91,7 +97,9 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
 </script>
 {% endif %}
 
-{% if page.url == "/om-200hrs-yogalreruddannelser/" or page.url == "/200-hours-18-weeks-flexible-programs/" or page.url == "/200-hours-8-weeks-semi-intensive-programs/" or page.url == "/200-hours-4-weeks-intensive-programs/" %}
+{% set coursePages = ["/om-200hrs-yogalreruddannelser/", "/200-hours-18-weeks-flexible-programs/", "/200-hours-8-weeks-semi-intensive-programs/", "/200-hours-4-weeks-intensive-programs/"] %}
+{% set isCourse = page.url in coursePages or page.url | replace("/en/", "/") in coursePages %}
+{% if isCourse %}
 <!-- JSON-LD: Course (program pages) -->
 <script type="application/ld+json">
 {
@@ -140,7 +148,9 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
 </script>
 {% endif %}
 
-{% if page.url == "/inversions/" or page.url == "/splits/" or page.url == "/backbends/" %}
+{% set specPages = ["/inversions/", "/splits/", "/backbends/"] %}
+{% set isSpec = page.url in specPages or page.url | replace("/en/", "/") in specPages %}
+{% if isSpec %}
 <!-- JSON-LD: Course (specialty courses) -->
 <script type="application/ld+json">
 {
