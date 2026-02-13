@@ -225,27 +225,15 @@ exports.handler = async function(event) {
 
       console.log('[mb-contract-manage] Suspend SUCCESS:', JSON.stringify(suspResult).substring(0, 500));
 
-      // Extract actual dates from MB response (MB may override our duration)
-      var mbStart = body.startDate;
-      var mbEnd = body.endDate;
-      if (suspResult) {
-        // Try to find MB's actual dates in the response
-        var sr = suspResult.Contract || suspResult;
-        if (sr.SuspensionStart) mbStart = sr.SuspensionStart.split('T')[0];
-        if (sr.ResumeDate || sr.ResumptionDate) {
-          mbEnd = (sr.ResumeDate || sr.ResumptionDate).split('T')[0];
-        }
-      }
-
-      // Save a pause note so we can detect future-dated pauses on refresh
-      // (MB's IsSuspended is false until the pause date arrives)
-      await savePauseNote(body.clientId, ccId, mbStart, mbEnd);
+      // NOTE: Do NOT save MB notes for pause detection — they persist after
+      // admin deletes suspensions, causing false "paused" states. Frontend
+      // Firestore layer handles future-dated pause persistence instead.
 
       return jsonResponse(200, {
         success: true,
         action: 'suspend',
-        suspendDate: mbStart,
-        resumeDate: mbEnd,
+        suspendDate: body.startDate,
+        resumeDate: body.endDate,
         durationDays: durationDays,
         mbResponse: suspResult,
         message: 'Contract suspension scheduled'
