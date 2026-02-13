@@ -1,9 +1,26 @@
 /* ========================================
-   LINK IN BIO — Click Tracking, Share & Animations
+   LINK IN BIO — Video Fallback, Click Tracking, Share & Animations
    ======================================== */
 
 (function () {
   'use strict';
+
+  /* ── Hero Video → Image Fallback ── */
+  var video = document.querySelector('.yb-link__video');
+  if (video) {
+    video.addEventListener('error', function () {
+      // Video failed (e.g. .mp4 missing) — show poster as static image
+      var poster = video.getAttribute('poster');
+      if (poster) {
+        var img = document.createElement('img');
+        img.src = poster;
+        img.alt = 'Yoga Bible';
+        img.className = 'yb-link__video';
+        img.style.objectFit = 'cover';
+        video.parentNode.replaceChild(img, video);
+      }
+    });
+  }
 
   /* ── GTM Click Tracking ── */
   document.querySelectorAll('[data-yb-link]').forEach(function (el) {
