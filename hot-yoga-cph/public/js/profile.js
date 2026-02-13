@@ -2467,17 +2467,12 @@
     var html = '';
     giftCardsData.forEach(function(gc) {
       var isSelected = selectedGiftCard && String(selectedGiftCard.id) === String(gc.id);
-      var isCustom = gc.editableByConsumer;
-      html += '<div class="yb-giftcards__option' + (isSelected ? ' is-selected' : '') + (isCustom ? ' yb-giftcards__option--custom' : '') + '" data-gc-id="' + gc.id + '">';
+      html += '<div class="yb-giftcards__option' + (isSelected ? ' is-selected' : '') + '" data-gc-id="' + gc.id + '">';
       html += '<div class="yb-giftcards__option-left">';
       html += '<span class="yb-giftcards__option-name">' + esc(gc.description || (da ? 'Gavekort' : 'Gift Card')) + '</span>';
       if (gc.terms) html += '<span class="yb-giftcards__option-terms">' + esc(gc.terms) + '</span>';
       html += '</div>';
-      if (isCustom) {
-        html += '<span class="yb-giftcards__option-price yb-giftcards__option-price--custom">' + (da ? 'Valgfrit beløb' : 'Custom amount') + '</span>';
-      } else {
-        html += '<span class="yb-giftcards__option-price">' + formatDKK(gc.salePrice || gc.value) + '</span>';
-      }
+      html += '<span class="yb-giftcards__option-price">' + formatDKK(gc.salePrice || gc.value) + '</span>';
       html += '</div>';
     });
     container.innerHTML = html;
@@ -2494,21 +2489,11 @@
         var formEl = document.getElementById('yb-giftcard-form');
         if (formEl) {
           formEl.hidden = false;
-          // Update selected price in form (hide for custom amount cards)
+          // Update selected price in form
           var priceEl = formEl.querySelector('.yb-giftcards__form-price');
           if (priceEl) {
-            if (selectedGiftCard.editableByConsumer) {
-              priceEl.textContent = '';
-              priceEl.hidden = true;
-            } else {
-              priceEl.textContent = formatDKK(selectedGiftCard.salePrice || selectedGiftCard.value);
-              priceEl.hidden = false;
-            }
-          }
-          // Show/hide custom amount field
-          var customAmountField = document.getElementById('yb-gc-custom-amount-field');
-          if (customAmountField) {
-            customAmountField.hidden = !selectedGiftCard.editableByConsumer;
+            priceEl.textContent = formatDKK(selectedGiftCard.salePrice || selectedGiftCard.value);
+            priceEl.hidden = false;
           }
           // Pre-fill cardholder
           var gcHolder = document.getElementById('yb-gc-cardholder');
@@ -2580,17 +2565,6 @@
         };
       }
 
-      var gcCustomAmount = selectedGiftCard.editableByConsumer ? ((document.getElementById('yb-gc-custom-amount') || {}).value || '') : '';
-
-      // Validate custom amount for editable gift cards
-      if (selectedGiftCard.editableByConsumer) {
-        var amt = Number(gcCustomAmount);
-        if (!gcCustomAmount || !amt || amt < 50) {
-          if (errEl) { errEl.textContent = isDa() ? 'Indtast et beløb (min. 50 kr).' : 'Enter an amount (min. 50 kr).'; errEl.hidden = false; }
-          return;
-        }
-      }
-
       buyBtn.disabled = true;
       buyBtn.textContent = isDa() ? 'Behandler...' : 'Processing...';
       if (errEl) errEl.hidden = true;
@@ -2606,7 +2580,6 @@
         layoutId: selectedGiftCard.layouts && selectedGiftCard.layouts.length ? selectedGiftCard.layouts[0].id : 0,
         payment: gcPayment
       };
-      if (gcCustomAmount) gcPostBody.customAmount = Number(gcCustomAmount);
       // Always send the card's salePrice so the backend can set PaymentInfo.Amount
       gcPostBody.salePrice = selectedGiftCard.salePrice || selectedGiftCard.value || 0;
 
