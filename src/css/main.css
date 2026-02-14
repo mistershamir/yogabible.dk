@@ -9240,6 +9240,21 @@ a.yb-kontakt-detail__value:hover {
   padding-top: 0.75rem;
   border-top: 1px solid #E8E4E0;
 }
+.yb-store__item--deposit .yb-store__item-footer {
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0.6rem;
+}
+.yb-store__item--deposit .yb-store__item-footer .yb-store__item-pricing {
+  flex-direction: row;
+  align-items: baseline;
+  gap: 0.5rem;
+}
+.yb-store__item--deposit .yb-store__item-footer .yb-store__item-btn {
+  width: 100%;
+  white-space: normal;
+  text-align: center;
+}
 .yb-store__item-footer .yb-store__item-btn {
   width: auto;
   white-space: nowrap;
