@@ -426,4 +426,106 @@
       setTimeout(function () { test.src = ''; }, 6000);
     }
   }
+
+  /* ═══ 9. REVIEWS CAROUSEL (p18w pattern) ═══ */
+  var reviewsDataEl = document.getElementById('om2-reviews-data');
+  var reviewsAriaEl = document.getElementById('om2-reviews-aria');
+  var reviewsSection = document.getElementById('om2-reviews-section');
+
+  if (reviewsDataEl && reviewsSection) {
+    var REVIEWS = JSON.parse(reviewsDataEl.textContent);
+    var reviewAriaPrefix = reviewsAriaEl ? JSON.parse(reviewsAriaEl.textContent) : 'Review from';
+
+    var revTrack = reviewsSection.querySelector('[data-om2-rev-track]');
+    var revViewport = reviewsSection.querySelector('[data-om2-rev-viewport]');
+    var revPrev = reviewsSection.querySelector('[data-om2-rev-prev]');
+    var revNext = reviewsSection.querySelector('[data-om2-rev-next]');
+
+    if (revTrack && revViewport) {
+      REVIEWS.forEach(function (review) {
+        var card = document.createElement('article');
+        card.className = 'yb-reviews__card';
+        card.setAttribute('aria-label', reviewAriaPrefix + ' ' + review.name);
+        card.innerHTML =
+          '<div class="yb-reviews__card-header">' +
+            '<div class="yb-reviews__card-info">' +
+              '<h3 class="yb-reviews__name">' + review.name + '</h3>' +
+              '<p class="yb-reviews__when">' + review.when + '</p>' +
+            '</div>' +
+            '<span class="yb-reviews__card-stars" aria-hidden="true">★★★★★</span>' +
+          '</div>' +
+          '<p class="yb-reviews__text">' + review.text + '</p>';
+        revTrack.appendChild(card);
+      });
+
+      var getRevScrollAmount = function () {
+        var card = revTrack.querySelector('.yb-reviews__card');
+        if (!card) return 0;
+        var style = window.getComputedStyle(revTrack);
+        var gap = parseInt(style.gap) || 16;
+        return card.offsetWidth + gap;
+      };
+
+      var getRevVisibleCount = function () {
+        var w = window.innerWidth;
+        if (w >= 900) return 3;
+        if (w >= 600) return 2;
+        return 1;
+      };
+
+      var updateRevButtons = function () {
+        if (!revPrev || !revNext) return;
+        var scrollLeft = revViewport.scrollLeft;
+        var maxScroll = revViewport.scrollWidth - revViewport.clientWidth;
+        revPrev.disabled = scrollLeft <= 5;
+        revNext.disabled = scrollLeft >= maxScroll - 5;
+      };
+
+      var scrollRevByCards = function (direction) {
+        var amount = getRevScrollAmount() * getRevVisibleCount();
+        revViewport.scrollBy({ left: direction * amount, behavior: 'smooth' });
+      };
+
+      if (revPrev) revPrev.addEventListener('click', function () { scrollRevByCards(-1); });
+      if (revNext) revNext.addEventListener('click', function () { scrollRevByCards(1); });
+      revViewport.addEventListener('scroll', updateRevButtons, { passive: true });
+      window.addEventListener('resize', updateRevButtons, { passive: true });
+      requestAnimationFrame(function () {
+        requestAnimationFrame(updateRevButtons);
+      });
+    }
+  }
+
+  /* ═══ 10. BREAKDOWN VIDEO PLAYER (minimal controls, no fullscreen) ═══ */
+  var breakdownPlayBtn = document.querySelector('[data-om2-breakdown-play]');
+  if (breakdownPlayBtn) {
+    breakdownPlayBtn.addEventListener('click', function () {
+      var videoWrap = breakdownPlayBtn.closest('.om2-breakdown__video');
+      if (!videoWrap || videoWrap.dataset.loaded === 'true') return;
+
+      var playerDiv = document.createElement('div');
+      playerDiv.className = 'om2-breakdown__video-player';
+
+      var video = document.createElement('video');
+      video.controls = true;
+      video.playsInline = true;
+      video.setAttribute('playsinline', '');
+      video.setAttribute('controlsList', 'nodownload nofullscreen');
+      video.setAttribute('disablePictureInPicture', '');
+      video.preload = 'metadata';
+      video.style.cssText = 'width:100%;height:100%;border-radius:16px;';
+
+      /* Placeholder: replace src with actual video URL when available */
+      video.poster = '';
+
+      playerDiv.appendChild(video);
+
+      var card = videoWrap.querySelector('.om2-breakdown__video-card');
+      if (card) {
+        card.innerHTML = '';
+        card.appendChild(playerDiv);
+      }
+      videoWrap.dataset.loaded = 'true';
+    });
+  }
 })();
