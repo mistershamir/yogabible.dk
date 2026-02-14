@@ -9223,6 +9223,297 @@ a.yb-kontakt-detail__value:hover {
   font-size: 0.78rem;
 }
 
+/* ── Store: Teacher Training Info Banner ── */
+.yb-store__teacher-info {
+  display: flex;
+  gap: 0.75rem;
+  padding: 1rem 1.25rem;
+  background: linear-gradient(135deg, #FFFCF9 0%, #FFF7ED 100%);
+  border: 1.5px solid #f75c03;
+  border-radius: 12px;
+  margin-bottom: 1.25rem;
+}
+.yb-store__teacher-info-icon {
+  flex-shrink: 0;
+  color: #f75c03;
+  margin-top: 0.1rem;
+}
+.yb-store__teacher-info-text {
+  font-size: 0.85rem;
+  line-height: 1.5;
+  color: #0F0F0F;
+}
+.yb-store__teacher-info-text strong {
+  display: block;
+  font-size: 0.95rem;
+  margin-bottom: 0.35rem;
+  color: #0F0F0F;
+}
+.yb-store__teacher-info-text p {
+  margin: 0;
+  color: #6F6A66;
+  font-size: 0.82rem;
+}
+
+/* ── Store: Deposit Cards ── */
+.yb-store__item--deposit {
+  border-color: #f75c03;
+  background: linear-gradient(180deg, #FFFCF9 0%, #FFF9F3 100%);
+}
+.yb-store__item--deposit:hover {
+  box-shadow: 0 4px 16px rgba(247,92,3,0.12);
+}
+.yb-store__deposit-badge {
+  display: inline-block;
+  font-size: 0.68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #f75c03;
+  background: rgba(247,92,3,0.08);
+  border: 1px solid rgba(247,92,3,0.2);
+  border-radius: 6px;
+  padding: 0.15rem 0.5rem;
+  margin-bottom: 0.5rem;
+}
+.yb-store__deposit-period {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #0F0F0F;
+  margin: 0 0 0.25rem;
+}
+.yb-store__deposit-period svg {
+  color: #f75c03;
+  flex-shrink: 0;
+}
+.yb-store__deposit-format {
+  font-size: 0.78rem;
+  color: #6F6A66;
+  font-weight: 600;
+  margin: 0 0 0.4rem;
+}
+
+/* ── Store: Course Builder ── */
+.yb-store__course-intro {
+  margin-bottom: 1.25rem;
+}
+.yb-store__course-intro p {
+  font-size: 0.88rem;
+  color: #6F6A66;
+  line-height: 1.55;
+  margin: 0;
+}
+.yb-store__course-intro strong {
+  color: #f75c03;
+  font-weight: 700;
+}
+.yb-store__course-month {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin-bottom: 1rem;
+}
+.yb-store__course-month-label {
+  font-size: 0.78rem;
+  color: #6F6A66;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.yb-store__course-month-chip {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: #f75c03;
+  background: rgba(247,92,3,0.08);
+  border: 1px solid rgba(247,92,3,0.2);
+  border-radius: 20px;
+  padding: 0.3rem 0.85rem;
+}
+
+/* Course selection grid */
+.yb-store__course-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.75rem;
+  margin-bottom: 1.25rem;
+}
+@media (max-width: 640px) {
+  .yb-store__course-grid {
+    grid-template-columns: 1fr;
+  }
+}
+.yb-store__course-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 1.25rem 1rem;
+  background: #FFFCF9;
+  border: 1.5px solid #E8E4E0;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-family: 'Abacaxi', sans-serif;
+}
+.yb-store__course-card:hover {
+  border-color: #f75c03;
+  background: #FFF9F3;
+}
+.yb-store__course-card.is-selected {
+  border-color: #f75c03;
+  background: linear-gradient(180deg, #FFF7ED 0%, #FFF3E6 100%);
+  box-shadow: 0 0 0 2px rgba(247,92,3,0.15);
+}
+.yb-store__course-card-check {
+  position: absolute;
+  top: 0.6rem;
+  right: 0.6rem;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  border: 1.5px solid #E8E4E0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  background: #fff;
+}
+.yb-store__course-card-check svg {
+  opacity: 0;
+  transition: opacity 0.15s ease;
+  color: #fff;
+}
+.yb-store__course-card.is-selected .yb-store__course-card-check {
+  background: #f75c03;
+  border-color: #f75c03;
+}
+.yb-store__course-card.is-selected .yb-store__course-card-check svg {
+  opacity: 1;
+}
+.yb-store__course-card-icon {
+  color: #6F6A66;
+  margin-bottom: 0.5rem;
+}
+.yb-store__course-card.is-selected .yb-store__course-card-icon {
+  color: #f75c03;
+}
+.yb-store__course-card-name {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #0F0F0F;
+  margin-bottom: 0.35rem;
+}
+.yb-store__course-card-desc {
+  font-size: 0.75rem;
+  color: #6F6A66;
+  line-height: 1.4;
+  margin-bottom: 0.5rem;
+}
+.yb-store__course-card-price {
+  font-size: 0.92rem;
+  font-weight: 700;
+  color: #f75c03;
+  margin-bottom: 0.35rem;
+}
+.yb-store__course-card-link {
+  font-size: 0.72rem;
+  color: #f75c03;
+  text-decoration: underline;
+  font-weight: 600;
+}
+.yb-store__course-card-link:hover {
+  color: #d94f02;
+}
+
+/* Course summary */
+.yb-store__course-summary {
+  background: #F5F3F0;
+  border-radius: 12px;
+  padding: 1.25rem;
+  border: 1.5px solid #E8E4E0;
+  transition: border-color 0.2s ease;
+}
+.yb-store__course-summary.has-selection {
+  border-color: #f75c03;
+  background: linear-gradient(135deg, #FFFCF9 0%, #FFF7ED 100%);
+}
+.yb-store__course-summary-rows {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+.yb-store__course-summary-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 0.75rem;
+  font-size: 0.85rem;
+}
+.yb-store__course-summary-label {
+  color: #6F6A66;
+  font-weight: 600;
+  white-space: nowrap;
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+}
+.yb-store__course-summary-label svg {
+  flex-shrink: 0;
+}
+.yb-store__course-summary-value {
+  text-align: right;
+  color: #0F0F0F;
+  font-weight: 600;
+}
+.yb-store__course-summary-value em {
+  color: #6F6A66;
+  font-weight: 400;
+  font-style: italic;
+}
+.yb-store__course-summary-row--price .yb-store__course-summary-value strong {
+  font-size: 1.1rem;
+  color: #f75c03;
+}
+.yb-store__course-original {
+  text-decoration: line-through;
+  color: #6F6A66;
+  font-weight: 400;
+  font-size: 0.82rem;
+}
+.yb-store__course-savings {
+  font-size: 0.75rem;
+  color: #27ae60;
+  font-weight: 700;
+}
+.yb-store__course-summary-row--bonus {
+  background: rgba(247,92,3,0.06);
+  border-radius: 8px;
+  padding: 0.5rem 0.65rem;
+  margin-top: 0.15rem;
+}
+.yb-store__course-summary-row--bonus .yb-store__course-summary-label {
+  color: #f75c03;
+}
+.yb-store__course-summary-row--bonus .yb-store__course-summary-value {
+  font-size: 0.82rem;
+  color: #0F0F0F;
+}
+.yb-store__course-cta {
+  width: 100%;
+  padding: 0.85rem 1.5rem;
+  font-size: 1rem;
+  border-radius: 10px;
+}
+.yb-store__course-cta:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
 /* ═══════════════════════════════════════
    SCHEDULE TOAST - RICH MESSAGES
    ═══════════════════════════════════════ */
