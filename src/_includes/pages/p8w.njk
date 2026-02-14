@@ -2,34 +2,36 @@
 {% set lp = "/en" if lang == "en" else "" %}
 
 <!-- ═══════════════════════════════════════
-     1. HERO — Primary Dark Cinematic with Glow
+     1. HERO — Primary Cinematic with Breathing Glow
      ═══════════════════════════════════════ -->
-<section class="ds-hero-e ds-hero-e--full">
-  <div class="ds-hero-e__glow"></div>
-  <div class="ds-hero-e__content">
-    <p class="ds-hero-e__tagline">{{ t.hero_eyebrow }}</p>
-    <h1 class="ds-hero-e__title">{{ t.hero_title | safe }}</h1>
-    <p class="ds-hero-e__subtitle">{{ t.hero_subtitle }}</p>
-    <div class="ds-hero-e__line"></div>
+<section class="yb-hero">
+  <div class="yb-hero__glow"></div>
 
-    <div class="ds-hero-e__trust">
+  <div class="yb-hero__content">
+    <p class="yb-hero__tagline">{{ t.hero_eyebrow }}</p>
+    <h1 class="yb-hero__title">{{ t.hero_title | safe }}</h1>
+    <p class="yb-hero__subtitle">{{ t.hero_subtitle }}</p>
+    <p class="p8w-hero__styles">{{ t.hero_styles }}</p>
+    <div class="yb-hero__line"></div>
+    <div class="yb-hero__ctas">
+      <button onclick="openYBScheduleModal('8w')" class="yb-btn yb-btn--primary yb-btn--large">{{ t.hero_cta_schedule }}</button>
+      <a href="#why-copenhagen" class="yb-btn yb-btn--outline-white yb-btn--large">{{ t.hero_cta_why }}</a>
+    </div>
+    <p class="p8w-hero__read-more">
+      <a href="{{ lp }}/om-200hrs-yogalreruddannelser" target="_blank" rel="noopener" class="p8w-hero__read-more-link">{{ t.hero_cta_read_more }}</a>
+    </p>
+    <div class="yb-hero__trust">
       <span>{{ t.hero_trust1 }}</span>
-      <span class="ds-hero-e__trust-dot"></span>
+      <span class="yb-hero__trust-dot"></span>
       <span>{{ t.hero_trust2 }}</span>
-      <span class="ds-hero-e__trust-dot"></span>
+      <span class="yb-hero__trust-dot"></span>
       <span>{{ t.hero_trust3 }}</span>
     </div>
+  </div>
 
-    <p class="ds-hero-e__styles">{{ t.hero_styles }}</p>
-
-    <div class="ds-hero-e__cta">
-      <button onclick="openYBScheduleModal('8w')" class="ds-btn ds-btn--primary ds-btn--large" style="border-radius:999px">{{ t.hero_cta_schedule }}</button>
-      <a href="#why-copenhagen" class="ds-btn ds-btn--outline-light ds-btn--large" style="border-radius:999px">{{ t.hero_cta_why }}</a>
-    </div>
-
-    <p class="ds-hero-e__read-more">
-      <a href="{{ lp }}/om-200hrs-yogalreruddannelser" target="_blank" rel="noopener" class="ds-hero-e__read-more-link">{{ t.hero_cta_read_more }}</a>
-    </p>
+  <div class="yb-hero__scroll">
+    <span>{{ t.hero_scroll }}</span>
+    <div class="yb-hero__scroll-line"></div>
   </div>
 </section>
 
