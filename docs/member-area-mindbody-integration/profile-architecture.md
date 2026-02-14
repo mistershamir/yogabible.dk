@@ -242,10 +242,10 @@ storeCatalog = {
 ```
 
 **Teacher Training category (added 2026-02-14):**
-- 5 deposit cards, all 3,750 kr, VAT-exempt (education)
-- Info banner at top explains deposit benefits: class access, preparation, hours toward training
+- 5 Preparation Phase cards, all 3,750 kr, VAT-exempt (education)
+- Info banner at top explains Preparation Phase benefits: class access, preparation, hours toward training
 - Each card shows: program format, period (e.g., "Marts – Juni 2026"), description
-- "Betal depositum" / "Pay deposit" CTA button
+- "Start forberedelsesfasen" / "Start Preparation Phase" CTA button
 - Routed through standard `mb-checkout` as service purchase
 
 **Courses category — Course Builder (added 2026-02-14):**
@@ -272,13 +272,13 @@ storeCatalog = {
 - Empty state shows "No results for {query}" when search finds nothing
 
 **Enhanced item cards:**
-- **Badges row:** "First month free", "Popular", "Best deal", "Incl. mat & towel", "CPH only", "Membership", "Deposit"
+- **Badges row:** "First month free", "Popular", "Best deal", "Incl. mat & towel", "CPH only", "Membership", "Preparation Phase"
 - **Per-class pricing:** Shown for clip cards
 - **Validity period:** "30 days from first booking" etc.
 - **Sharing details:** For large clip cards (60+), persons + instructions collapsible
 - **Membership features:** Checkmark list + terms + T&C link
-- **Teacher deposits:** Calendar icon + period + format badge
-- **Buy button:** "Køb" (standard) / "Betal depositum" (deposits) / "Køb nu" (course builder)
+- **Teacher Preparation Phase:** Calendar icon + period + format badge
+- **Buy button:** "Køb" (standard) / "Start forberedelsesfasen" (Preparation Phase) / "Køb nu" (course builder)
 
 **Checkout overlay (two-column layout):**
 - **Left column** (conditionally shown):

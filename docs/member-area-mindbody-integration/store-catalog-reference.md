@@ -122,9 +122,9 @@ Rental note: Mat 40 kr, Practice towel 40 kr, Shower towel 40 kr (pay at studio)
 
 ---
 
-## 6. Teacher Training Deposits (Yogalæreruddannelse)
+## 6. Teacher Training — Preparation Phase (Yogalæreruddannelse)
 
-All deposits are **3,750 kr**, VAT-exempt (education). Same price regardless of age.
+All Preparation Phase fees are **3,750 kr**, VAT-exempt (education). Same price regardless of age.
 
 | Program | Period | Format | prodId |
 |---------|--------|--------|--------|
@@ -134,12 +134,12 @@ All deposits are **3,750 kr**, VAT-exempt (education). Same price regardless of 
 | 8-Week Semi-Intensive | May – June 2026 | 200-hour complete | `100209` |
 | 18-Week Flexible | August – December 2026 | 200-hour complete | `100210` |
 
-**Deposit benefits:**
+**Preparation Phase benefits:**
 - Secure your spot in the program
 - Start booking classes immediately (even before training begins)
 - Classes count toward training hour requirements
 - Prepare body and mind, join the community early
-- Save on separate membership — deposit provides class access
+- Save on separate membership — Preparation Phase provides class access
 
 ---
 

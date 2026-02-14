@@ -206,5 +206,5 @@ After user pauses a contract:
 | 2026-02-13 | Fix suspend API (SuspensionStart) | MB support confirmed correct parameter |
 | 2026-02-14 | Re-enable pause buttons | Suspend API now works correctly |
 | 2026-02-14 | Replace Courses tab with Gift Cards | Courses sold via store builder, not a separate tab |
-| 2026-02-14 | Add Teacher Training deposits | Direct purchase of YTT program deposits |
+| 2026-02-14 | Add Teacher Training Preparation Phase | Direct purchase of YTT Preparation Phase |
 | 2026-02-14 | Add Course Builder | Interactive selection with bundle discounts |
