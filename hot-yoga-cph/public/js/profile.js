@@ -1986,6 +1986,67 @@
       rental_note_en: 'Bring your own or: Mat rental 40 kr \u00b7 Practice towel 40 kr \u00b7 Shower towel 40 kr (pay at studio upon arrival)'
     },
     // ── Test items (temporary — remove after testing) ──
+    teacher: [
+      { id: 'ytt-flex-mar-jun26', prodId: '100078', price: 3750, vat_pct: 0,
+        name_da: '18 Ugers Fleksibelt Program', name_en: '18-Week Flexible Program',
+        period_da: 'Marts – Juni 2026', period_en: 'March – June 2026',
+        format_da: '200-timers komplet uddannelse', format_en: '200-hour complete education',
+        desc_da: 'Depositum for det 18-ugers fleksible yogalæreruddannelsesprogram. Start din rejse i dit eget tempo.',
+        desc_en: 'Deposit for the 18-week flexible yoga teacher training program. Start your journey at your own pace.' },
+      { id: 'ytt-4w-apr26', prodId: '100121', price: 3750, vat_pct: 0,
+        name_da: '4 Ugers Intensiv', name_en: '4-Week Intensive',
+        period_da: 'April 2026', period_en: 'April 2026',
+        format_da: '200-timers komplet uddannelse', format_en: '200-hour complete education',
+        desc_da: 'Depositum for det intensive 4-ugers program. Fuld fordybelse og hurtig transformation.',
+        desc_en: 'Deposit for the intensive 4-week program. Full immersion and rapid transformation.' },
+      { id: 'ytt-4w-jul26', prodId: '100211', price: 3750, vat_pct: 0,
+        name_da: '4 Ugers Intensiv', name_en: '4-Week Intensive',
+        period_da: 'Juli 2026', period_en: 'July 2026',
+        format_da: '200-timers komplet uddannelse', format_en: '200-hour complete education',
+        desc_da: 'Depositum for sommerens 4-ugers intensive program. Fordyb dig i yoga midt om sommeren.',
+        desc_en: 'Deposit for the summer 4-week intensive program. Immerse yourself in yoga this summer.' },
+      { id: 'ytt-8w-semi-may-jun26', prodId: '100209', price: 3750, vat_pct: 0,
+        name_da: '8 Ugers Semi-Intensiv', name_en: '8-Week Semi-Intensive',
+        period_da: 'Maj – Juni 2026', period_en: 'May – June 2026',
+        format_da: '200-timers komplet uddannelse', format_en: '200-hour complete education',
+        desc_da: 'Depositum for det 8-ugers semi-intensive program. Den perfekte balance mellem intensitet og fleksibilitet.',
+        desc_en: 'Deposit for the 8-week semi-intensive program. The perfect balance between intensity and flexibility.' },
+      { id: 'ytt-flex-aug-dec26', prodId: '100210', price: 3750, vat_pct: 0,
+        name_da: '18 Ugers Fleksibelt Program', name_en: '18-Week Flexible Program',
+        period_da: 'August – December 2026', period_en: 'August – December 2026',
+        format_da: '200-timers komplet uddannelse', format_en: '200-hour complete education',
+        desc_da: 'Depositum for efterårets 18-ugers fleksible program. Tag uddannelsen sideløbende med dit daglige liv.',
+        desc_en: 'Deposit for the autumn 18-week flexible program. Complete your training alongside daily life.' }
+    ],
+    courses: {
+      single_price: 2300,
+      discounts: { 2: 0.10, 3: 0.15 },
+      bonus_pass_value: 1249,
+      items: [
+        { id: 'inversions', prodId: '100145',
+          name_da: 'Inversions', name_en: 'Inversions',
+          desc_da: 'Mester armbalancer og omvendinger med sikker teknik og gradvis progression.',
+          desc_en: 'Master arm balances and inversions with safe technique and gradual progression.',
+          link: '/inversions', icon: '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 2v8m0 0l-3-3m3 3l3-3"/><circle cx="12" cy="18" r="4"/></svg>' },
+        { id: 'splits', prodId: '100150',
+          name_da: 'Splits', name_en: 'Splits',
+          desc_da: 'Opnå fuld splits med systematisk fleksibilitetstræning og sikre stræk.',
+          desc_en: 'Achieve full splits with systematic flexibility training and safe stretching.',
+          link: '/splits', icon: '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 20l8-8 8 8"/><circle cx="12" cy="6" r="3"/></svg>' },
+        { id: 'backbends', prodId: '100140',
+          name_da: 'Backbends', name_en: 'Backbends',
+          desc_da: 'Åbn brystkasse og rygsøjle med trygge, dybe bagoverbøjninger.',
+          desc_en: 'Open chest and spine with safe, deep backbending practice.',
+          link: '/backbends', icon: '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 16c0-6 4-10 8-10s8 4 8 10"/><circle cx="12" cy="20" r="2"/></svg>' }
+      ],
+      bundles: {
+        'backbends|inversions': { prodId: '119' },
+        'inversions|splits': { prodId: '120' },
+        'backbends|splits': { prodId: '121' },
+        'backbends|inversions|splits': { prodId: '127' }
+      },
+      month_da: 'April 2026', month_en: 'April 2026'
+    },
     test: {
       over30: [
         { id: 'test-clip', name_da: 'Test Klippekort', name_en: 'Test Clip Card', price: 1, vat_pct: 25, classes: 1, validity: '1 day', prodId: '100203',
@@ -2227,6 +2288,31 @@
       });
     });
 
+    // ── Teacher Training deposits ──
+    var teacherItems = storeCatalog.teacher || [];
+    teacherItems.forEach(function(tt) {
+      items.push({
+        _uid: 'teacher-' + tt.prodId,
+        prodId: tt.prodId,
+        name: da ? tt.name_da : tt.name_en,
+        price: tt.price, onlinePrice: tt.price,
+        _itemType: 'service', _topCategory: 'teacher', _subCategory: 'deposits', _catalog: tt
+      });
+    });
+
+    // ── Course individual items (for card rendering — bundles handled by builder UI) ──
+    var courseData = storeCatalog.courses || {};
+    var courseItems = courseData.items || [];
+    courseItems.forEach(function(ci) {
+      items.push({
+        _uid: 'course-' + ci.prodId,
+        prodId: ci.prodId,
+        name: da ? ci.name_da : ci.name_en,
+        price: courseData.single_price || 0, onlinePrice: courseData.single_price || 0,
+        _itemType: 'service', _topCategory: 'courses', _subCategory: 'individual', _catalog: ci
+      });
+    });
+
     // ── Test items (temporary) ──
     var testItems = storeCatalog.test ? (storeCatalog.test[bracket] || []) : [];
     testItems.forEach(function(t) {
@@ -2275,7 +2361,7 @@
       storeTopCategories.forEach(function(cat) {
         var count = visibleServices.filter(function(s) { return s._topCategory === cat.id; }).length;
         var hasItems = count > 0;
-        var comingSoon = !hasItems && (cat.id === 'teacher' || cat.id === 'courses' || cat.id === 'private');
+        var comingSoon = !hasItems && (cat.id === 'private');
         html += '<button class="yb-store__top-cat' + (comingSoon ? ' yb-store__top-cat--soon' : '') + '" type="button" data-store-top="' + cat.id + '"' + (comingSoon ? ' data-store-soon' : '') + '>';
         html += '<div class="yb-store__top-cat-icon">' + cat.icon + '</div>';
         html += '<div class="yb-store__top-cat-text">';
@@ -2296,8 +2382,6 @@
             var catId = btn.getAttribute('data-store-top');
             var da = isDa();
             var msgs = {
-              teacher: { da: 'Yogalæreruddannelse — kontakt os for info og tilmelding.', en: 'Yoga Teacher Training — contact us for info and enrollment.' },
-              courses: { da: 'Kurser — nye kurser annonceres snart. Hold øje!', en: 'Courses — new courses will be announced soon. Stay tuned!' },
               private: { da: 'Privattimer — kontakt os for at booke.', en: 'Private Classes — contact us to book.' }
             };
             var msg = msgs[catId] ? (da ? msgs[catId].da : msgs[catId].en) : '';
@@ -2378,6 +2462,27 @@
       html += '</div>';
     }
 
+    // ── Teacher Training deposit info ──
+    if (storeTopCategory === 'teacher') {
+      html += '<div class="yb-store__teacher-info">';
+      html += '<div class="yb-store__teacher-info-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg></div>';
+      html += '<div class="yb-store__teacher-info-text">';
+      html += '<strong>' + (isDa() ? 'Sikr din plads med et depositum på 3.750 kr' : 'Secure your spot with a 3,750 kr deposit') + '</strong>';
+      html += '<p>' + (isDa()
+        ? 'Når dit depositum er betalt, kan du allerede begynde at booke klasser — selv før uddannelsen starter. Du sikrer din plads, forbereder krop og sind, bliver en del af fællesskabet, og de timer du tager tæller med i uddannelseskravene. Depositummet giver dig adgang til klasser, så du sparer på et separat medlemskab.'
+        : 'Once your deposit is paid, you can start booking classes right away — even before the training begins. You secure your spot, prepare your body and mind, become part of the community, and the classes you take count toward your training requirements. The deposit gives you class access, saving you from a separate membership.') + '</p>';
+      html += '</div></div>';
+    }
+
+    // ── Courses builder UI ──
+    if (storeTopCategory === 'courses') {
+      html += renderCourseBuilder();
+      container.innerHTML = html;
+      attachStoreHandlers(container);
+      attachCourseBuilderHandlers(container);
+      return;
+    }
+
     html += renderStoreCardGrid(filtered);
     container.innerHTML = html;
     attachStoreHandlers(container);
@@ -2395,7 +2500,8 @@
       var sub = s._subCategory;
       var isClipLike = !!(cat.classes && cat.perClass);
 
-      html += '<div class="yb-store__item' + (isContract ? ' yb-store__item--contract' : '') + (cat.popular ? ' yb-store__item--popular' : '') + (cat.bestDeal ? ' yb-store__item--best' : '') + '">';
+      var isDeposit = sub === 'deposits';
+      html += '<div class="yb-store__item' + (isContract ? ' yb-store__item--contract' : '') + (cat.popular ? ' yb-store__item--popular' : '') + (cat.bestDeal ? ' yb-store__item--best' : '') + (isDeposit ? ' yb-store__item--deposit' : '') + '">';
 
       // Badges
       var badges = [];
@@ -2497,7 +2603,14 @@
           html += (da ? 'Gyldighed: ' : 'Valid for: ') + cat.validity + ' ' + (da ? 'fra første booking' : 'from first booking');
           html += '</p>';
         }
-        // VAT moved to footer (under price)
+      }
+
+      // ── Teacher Training deposit details ──
+      if (sub === 'deposits' && cat.period_da) {
+        html += '<span class="yb-store__deposit-badge">' + (da ? 'Depositum' : 'Deposit') + '</span>';
+        html += '<p class="yb-store__deposit-period"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg> ' + (da ? cat.period_da : cat.period_en) + '</p>';
+        html += '<p class="yb-store__deposit-format">' + (da ? cat.format_da : cat.format_en) + '</p>';
+        if (cat.desc_da) html += '<p class="yb-store__item-desc">' + (da ? cat.desc_da : cat.desc_en) + '</p>';
       }
 
       html += '</div>'; // .yb-store__item-info
@@ -2519,11 +2632,14 @@
       }
       if (_vatAmt > 0) {
         html += '<span class="yb-store__item-vat">' + (da ? 'Inkl. ' + formatDKK(_vatAmt) + ' moms (25%)' : 'Incl. ' + formatDKK(_vatAmt) + ' VAT (25%)') + '</span>';
+      } else if (_vatZero && isDeposit) {
+        html += '<span class="yb-store__item-vat yb-store__item-vat--zero">' + (da ? 'Momsfrit (uddannelse)' : 'VAT exempt (education)') + '</span>';
       } else if (_vatZero) {
         html += '<span class="yb-store__item-vat yb-store__item-vat--zero">' + (da ? 'Momsfrit (under 30)' : 'VAT exempt (under 30)') + '</span>';
       }
       html += '</div>';
-      html += '<button class="yb-btn yb-btn--primary yb-store__item-btn" type="button" data-store-buy="' + s._uid + '" data-item-type="' + (s._itemType || 'service') + '">' + t('store_buy') + '</button>';
+      var buyLabel = isDeposit ? (da ? 'Betal depositum' : 'Pay deposit') : t('store_buy');
+      html += '<button class="yb-btn yb-btn--primary yb-store__item-btn" type="button" data-store-buy="' + s._uid + '" data-item-type="' + (s._itemType || 'service') + '">' + buyLabel + '</button>';
       html += '</div>';
 
       html += '</div>'; // .yb-store__item
@@ -2570,6 +2686,168 @@
         if (details) { details.hidden = !details.hidden; btn.classList.toggle('is-open', !details.hidden); }
       });
     });
+  }
+
+  // ── Course builder state ──
+  var selectedCourses = [];
+
+  function renderCourseBuilder() {
+    var da = isDa();
+    var cd = storeCatalog.courses;
+    var items = cd.items || [];
+    var singlePrice = cd.single_price;
+    var html = '';
+
+    html += '<div class="yb-store__course-intro">';
+    html += '<p>' + (da
+      ? 'Vælg individuelle kurser eller byg en pakke og spar. Kombiner 2 kurser og få <strong>10% rabat</strong>, eller tag alle 3 og få <strong>15% rabat + 30 dages ubegrænset pas</strong> (værdi ' + formatDKK(cd.bonus_pass_value) + ').'
+      : 'Pick individual courses or build a bundle and save. Combine 2 courses for <strong>10% off</strong>, or take all 3 for <strong>15% off + a 30-day unlimited pass</strong> (value ' + formatDKK(cd.bonus_pass_value) + ').') + '</p>';
+    html += '</div>';
+
+    html += '<div class="yb-store__course-month">';
+    html += '<span class="yb-store__course-month-label">' + (da ? 'Periode' : 'Period') + '</span>';
+    html += '<span class="yb-store__course-month-chip">' + (da ? cd.month_da : cd.month_en) + '</span>';
+    html += '</div>';
+
+    html += '<div class="yb-store__course-grid">';
+    items.forEach(function(ci) {
+      var isSelected = selectedCourses.indexOf(ci.id) > -1;
+      html += '<button class="yb-store__course-card' + (isSelected ? ' is-selected' : '') + '" type="button" data-course-toggle="' + ci.id + '" aria-pressed="' + isSelected + '">';
+      html += '<div class="yb-store__course-card-check"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg></div>';
+      html += '<div class="yb-store__course-card-icon">' + ci.icon + '</div>';
+      html += '<span class="yb-store__course-card-name">' + (da ? ci.name_da : ci.name_en) + '</span>';
+      html += '<span class="yb-store__course-card-desc">' + (da ? ci.desc_da : ci.desc_en) + '</span>';
+      html += '<span class="yb-store__course-card-price">' + formatDKK(singlePrice) + '</span>';
+      html += '<a class="yb-store__course-card-link" href="' + ci.link + '" onclick="event.stopPropagation()">' + (da ? 'Læs mere' : 'Read more') + ' &rarr;</a>';
+      html += '</button>';
+    });
+    html += '</div>';
+
+    var count = selectedCourses.length;
+    var totalNormal = count * singlePrice;
+    var discount = cd.discounts[count] || 0;
+    var packPrice = count > 0 ? Math.round(totalNormal * (1 - discount)) : 0;
+    var savings = totalNormal - packPrice;
+    var showBonus = count >= 3;
+
+    html += '<div class="yb-store__course-summary' + (count > 0 ? ' has-selection' : '') + '">';
+    html += '<div class="yb-store__course-summary-rows">';
+
+    html += '<div class="yb-store__course-summary-row">';
+    html += '<span class="yb-store__course-summary-label">' + (da ? 'Valgt' : 'Selected') + '</span>';
+    html += '<span class="yb-store__course-summary-value" id="yb-course-picked">';
+    if (count === 0) {
+      html += '<em>' + (da ? 'Vælg kurser ovenfor' : 'Choose courses above') + '</em>';
+    } else {
+      var names = [];
+      selectedCourses.forEach(function(cid) {
+        var found = items.find(function(i) { return i.id === cid; });
+        if (found) names.push(da ? found.name_da : found.name_en);
+      });
+      html += names.join(' + ');
+    }
+    html += '</span></div>';
+
+    if (count > 0) {
+      var packageName = '';
+      if (count === 1) packageName = da ? 'Enkelt kursus' : 'Single course';
+      else if (count === 2) packageName = (da ? 'Pakke (2 kurser) — ' : 'Bundle (2 courses) — ') + Math.round(discount * 100) + '% ' + (da ? 'rabat' : 'off');
+      else packageName = (da ? 'All-In Pakke — ' : 'All-In Bundle — ') + Math.round(discount * 100) + '% ' + (da ? 'rabat' : 'off');
+
+      html += '<div class="yb-store__course-summary-row">';
+      html += '<span class="yb-store__course-summary-label">' + (da ? 'Pakke' : 'Package') + '</span>';
+      html += '<span class="yb-store__course-summary-value">' + packageName + '</span>';
+      html += '</div>';
+    }
+
+    html += '<div class="yb-store__course-summary-row yb-store__course-summary-row--price">';
+    html += '<span class="yb-store__course-summary-label">' + (da ? 'Pris' : 'Price') + '</span>';
+    html += '<span class="yb-store__course-summary-value">';
+    if (count > 0) {
+      if (savings > 0) html += '<span class="yb-store__course-original">' + formatDKK(totalNormal) + '</span> ';
+      html += '<strong>' + formatDKK(packPrice) + '</strong>';
+      if (savings > 0) html += ' <span class="yb-store__course-savings">' + (da ? 'spar ' : 'save ') + formatDKK(savings) + '</span>';
+    } else {
+      html += '—';
+    }
+    html += '</span></div>';
+
+    if (showBonus) {
+      html += '<div class="yb-store__course-summary-row yb-store__course-summary-row--bonus">';
+      html += '<span class="yb-store__course-summary-label"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 12v6a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-6"/><rect x="2" y="7" width="20" height="5" rx="2"/><line x1="12" y1="22" x2="12" y2="7"/><path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z"/><path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/></svg> ' + (da ? 'Bonus' : 'Bonus') + '</span>';
+      html += '<span class="yb-store__course-summary-value">' + (da ? '30 dages ubegrænset pas inkluderet' : '30-day unlimited pass included') + ' <em>(' + (da ? 'værdi ' : 'value ') + formatDKK(cd.bonus_pass_value) + ')</em></span>';
+      html += '</div>';
+    }
+
+    html += '</div>';
+
+    html += '<button class="yb-btn yb-btn--primary yb-store__course-cta" type="button" id="yb-course-buy-btn"' + (count === 0 ? ' disabled' : '') + '>';
+    html += (count === 0 ? (da ? 'Vælg kurser for at fortsætte' : 'Select courses to continue') : (da ? 'Køb nu' : 'Buy now'));
+    html += '</button>';
+
+    html += '</div>';
+    return html;
+  }
+
+  function getCourseCheckoutItem() {
+    var cd = storeCatalog.courses;
+    var count = selectedCourses.length;
+    if (count === 0) return null;
+
+    var da = isDa();
+    var singlePrice = cd.single_price;
+    var discount = cd.discounts[count] || 0;
+    var totalNormal = count * singlePrice;
+    var packPrice = Math.round(totalNormal * (1 - discount));
+
+    if (count === 1) {
+      var courseItem = cd.items.find(function(ci) { return ci.id === selectedCourses[0]; });
+      if (!courseItem) return null;
+      var svcItem = storeServices.find(function(s) { return s._uid === 'course-' + courseItem.prodId; });
+      return svcItem || null;
+    }
+
+    var key = selectedCourses.slice().sort().join('|');
+    var bundle = cd.bundles[key];
+    if (!bundle) return null;
+
+    var names = [];
+    selectedCourses.forEach(function(cid) {
+      var found = cd.items.find(function(i) { return i.id === cid; });
+      if (found) names.push(da ? found.name_da : found.name_en);
+    });
+
+    return {
+      _uid: 'bundle-' + bundle.prodId,
+      prodId: bundle.prodId,
+      name: (count >= 3 ? (da ? 'All-In Pakke: ' : 'All-In Bundle: ') : (da ? 'Kursuspakke: ' : 'Course Bundle: ')) + names.join(' + '),
+      price: packPrice, onlinePrice: packPrice,
+      _itemType: 'service', _topCategory: 'courses', _subCategory: 'bundle',
+      _catalog: { vat_pct: 0 }
+    };
+  }
+
+  function attachCourseBuilderHandlers(container) {
+    container.querySelectorAll('[data-course-toggle]').forEach(function(btn) {
+      btn.addEventListener('click', function() {
+        var courseId = btn.getAttribute('data-course-toggle');
+        var idx = selectedCourses.indexOf(courseId);
+        if (idx > -1) { selectedCourses.splice(idx, 1); } else { selectedCourses.push(courseId); }
+        renderStoreItems(container);
+      });
+    });
+
+    var buyBtn = container.querySelector('#yb-course-buy-btn');
+    if (buyBtn) {
+      buyBtn.addEventListener('click', function() {
+        var item = getCourseCheckoutItem();
+        if (!item) return;
+        if (!storeServices.find(function(s) { return s._uid === item._uid; })) {
+          storeServices.push(item);
+        }
+        openCheckout(item._uid, 'service');
+      });
+    }
   }
 
   /**
