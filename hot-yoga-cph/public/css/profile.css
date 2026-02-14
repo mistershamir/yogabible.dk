@@ -3939,6 +3939,20 @@ body {
   cursor: not-allowed;
 }
 
+.yb-membership__month-btn {
+  border: 1.5px solid #E8E4E0;
+  color: #0F0F0F;
+}
+.yb-membership__month-btn:hover {
+  border-color: #3f99a5;
+  color: #3f99a5;
+}
+.yb-membership__month-btn--active {
+  border-color: #3f99a5;
+  background: #3f99a5 !important;
+  color: #fff !important;
+}
+
 .yb-membership__confirm-btn--pause {
   background: #3f99a5;
   color: #fff;
