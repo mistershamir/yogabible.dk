@@ -9646,6 +9646,74 @@ section {
   background: #a93226;
 }
 
+/* ── Stored Card Form ── */
+.yb-stored-card__form {
+  margin-top: 1rem;
+  padding: 1rem;
+  background: #F5F3F0;
+  border-radius: 12px;
+}
+.yb-stored-card__form-title {
+  font-size: 0.95rem;
+  font-weight: 700;
+  margin: 0 0 0.75rem;
+}
+
+/* ── Gift Cards Tab ── */
+.yb-giftcards__header { margin-bottom: 1.5rem; }
+.yb-giftcards__title { font-size: 1.3rem; font-weight: 700; color: #0F0F0F; margin: 0 0 6px; }
+.yb-giftcards__subtitle { font-size: 0.92rem; color: #6F6A66; margin: 0; }
+
+.yb-giftcards__option {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 1rem 1.25rem; background: #fff; border: 1.5px solid #E8E4E0;
+  border-radius: 12px; margin-bottom: 0.5rem; cursor: pointer;
+  transition: border-color 0.2s, background 0.2s;
+}
+.yb-giftcards__option:hover { border-color: #f75c03; background: #FAFAFA; }
+.yb-giftcards__option.is-selected { border-color: #f75c03; background: rgba(247,92,3,0.03); box-shadow: 0 0 0 1px #f75c03; }
+.yb-giftcards__option-left { display: flex; flex-direction: column; gap: 2px; }
+.yb-giftcards__option-name { font-size: 0.95rem; font-weight: 600; color: #0F0F0F; }
+.yb-giftcards__option-terms { font-size: 0.78rem; color: #6F6A66; }
+.yb-giftcards__option-price { font-size: 1.1rem; font-weight: 700; color: #f75c03; white-space: nowrap; }
+
+.yb-giftcards__empty { text-align: center; padding: 3rem 2rem; }
+.yb-giftcards__empty svg { margin-bottom: 1rem; }
+.yb-giftcards__empty-title { font-size: 1.1rem; font-weight: 700; color: #0F0F0F; margin: 0 0 0.5rem; }
+.yb-giftcards__empty-text { font-size: 0.92rem; color: #6F6A66; margin: 0 0 1.25rem; }
+
+.yb-giftcards__form { margin-top: 1.5rem; }
+.yb-giftcards__checkout-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; align-items: start; }
+.yb-giftcards__checkout-left,
+.yb-giftcards__checkout-right { background: #FFFCF9; border: 1.5px solid #E8E4E0; border-radius: 14px; padding: 1.5rem; }
+.yb-giftcards__checkout-right { border-color: rgba(247,92,3,0.2); }
+.yb-giftcards__form-title,
+.yb-giftcards__payment-title { font-size: 1.05rem; font-weight: 700; color: #0F0F0F; margin: 0 0 1rem; padding-bottom: 0.6rem; border-bottom: 1px solid rgba(247,92,3,0.1); }
+
+.yb-giftcards__field { margin-bottom: 0.75rem; }
+.yb-giftcards__label { display: block; font-size: 0.85rem; font-weight: 600; color: #0F0F0F; margin-bottom: 6px; }
+.yb-giftcards__input,
+.yb-giftcards__textarea {
+  width: 100%; padding: 0.65rem 0.85rem; font-family: 'Abacaxi', sans-serif; font-size: 0.9rem;
+  border: 1.5px solid #E8E4E0; border-radius: 8px; background: #fff;
+  transition: border-color 0.2s;
+}
+.yb-giftcards__input:focus,
+.yb-giftcards__textarea:focus { border-color: #f75c03; outline: none; }
+.yb-giftcards__field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; margin-bottom: 0.75rem; }
+.yb-giftcards__save-card { display: flex; align-items: center; gap: 0.5rem; font-size: 0.85rem; color: #6F6A66; cursor: pointer; margin-top: 0.5rem; }
+.yb-giftcards__buy-btn { width: 100%; margin-top: 0.75rem; }
+.yb-giftcards__cancel-btn { width: 100%; margin-top: 0.5rem; }
+
+.yb-giftcards__success { text-align: center; padding: 3rem 2rem; }
+.yb-giftcards__success svg { margin-bottom: 1rem; }
+.yb-giftcards__success h3 { font-size: 1.2rem; margin: 0 0 0.5rem; }
+.yb-giftcards__success p { color: #6F6A66; margin: 0 0 1.25rem; }
+
+@media (max-width: 768px) {
+  .yb-giftcards__checkout-grid { grid-template-columns: 1fr; }
+}
+
 /* Toast notification */
 .yb-membership__toast {
   padding: 0.75rem 1rem;

@@ -14,6 +14,11 @@
   var waiverSigned = false; // Track if liability waiver is signed
   var waiverStatusLoaded = false; // True once we know the actual status
   var storedCardData = null; // Cached stored credit card from Mindbody
+  var bgRefreshInterval = null; // Background refresh interval
+  var passRefreshTimer = null; // Delayed pass refresh timer
+  var giftCardsData = null; // Cached gift cards from API
+  var selectedGiftCard = null; // Currently selected gift card
+  var userDateOfBirth = null; // User's DOB for age bracket
 
   // ── Simple canvas signature pad ──
   function SignaturePad(canvasId, clearBtnId) {
@@ -120,6 +125,8 @@
 
     initTabs();
     initStoreForm();
+    initStoredCardForm();
+    initGiftCards();
     initScheduleNav();
     initAvatarUpload(db);
     initVisitFilters();
@@ -131,20 +138,11 @@
         userEl.style.display = 'block';
         loadProfile(user, db);
         ensureBackendClient(user, db);
+        startBackgroundRefresh();
 
         // Deep-link to tab via hash
         var hash = window.location.hash;
-        if (hash === '#mine-kurser' || hash === '#my-courses' || hash.indexOf('#course=') === 0) {
-          var coursesTab = document.querySelector('[data-yb-tab="courses"]');
-          if (coursesTab) coursesTab.click();
-          // If deep-linking to a specific course, open it after courses load
-          if (hash.indexOf('#course=') === 0) {
-            var deepCourseId = hash.substring(8);
-            setTimeout(function() {
-              openCourseViewer(deepCourseId, null, null);
-            }, 500);
-          }
-        } else if (hash && hash.length > 1) {
+        if (hash && hash.length > 1) {
           // Generic hash-to-tab routing (e.g. #schedule, #store, #passes)
           var tabName = hash.slice(1);
           var genericTab = document.querySelector('[data-yb-tab="' + tabName + '"]');
@@ -154,6 +152,7 @@
         currentUser = null;
         clientId = null;
         clientPassData = null;
+        stopBackgroundRefresh();
         guestEl.style.display = '';
         userEl.style.display = 'none';
       }
@@ -401,7 +400,7 @@
           if (tabName === 'visits') loadVisits();
           if (tabName === 'passes') loadMembershipDetails();
           if (tabName === 'receipts') loadReceipts();
-          if (tabName === 'courses') loadMyCourses();
+          if (tabName === 'giftcards') loadGiftCards();
         }
       });
     });
@@ -449,6 +448,7 @@
       if (lnEl) lnEl.value = d.lastName || '';
       if (phEl) phEl.value = d.phone || '';
       if (dobEl) dobEl.value = d.dateOfBirth || '';
+      userDateOfBirth = d.dateOfBirth || null;
 
       // Yoga level & practice frequency
       var levelEl = document.getElementById('yb-profile-yoga-level');
@@ -669,21 +669,127 @@
     return 'Card';
   }
 
-  function initStoredCardCheckoutToggle() {
-    var storedSection = document.getElementById('yb-checkout-stored-card');
-    var cardFields = document.getElementById('yb-checkout-card-fields');
-    var radios = document.querySelectorAll('input[name="yb-payment-method"]');
-    if (!storedSection || !cardFields || !radios.length) return;
+  // ── Inline card-update form in Profile tab ──
+  function initStoredCardForm() {
+    var changeBtn = document.getElementById('yb-stored-card-change');
+    var formWrap = document.getElementById('yb-stored-card-form');
+    var cancelBtn = document.getElementById('yb-sc-cancel');
+    var formInner = document.getElementById('yb-stored-card-form-inner');
 
-    radios.forEach(function(radio) {
-      radio.addEventListener('change', function() {
-        var useStored = this.value === 'stored';
-        cardFields.hidden = useStored;
-        // Toggle active class on parent labels
-        document.getElementById('yb-checkout-use-stored').classList.toggle('yb-checkout-stored-card__option--active', useStored);
-        document.getElementById('yb-checkout-use-new').classList.toggle('yb-checkout-stored-card__option--active', !useStored);
+    // Card number formatting
+    var scCardInput = document.getElementById('yb-sc-card-number');
+    if (scCardInput) scCardInput.addEventListener('input', function() {
+      var v = this.value.replace(/\D/g, '').substring(0, 16);
+      this.value = v.replace(/(.{4})/g, '$1 ').trim();
+    });
+    var scExpInput = document.getElementById('yb-sc-card-expiry');
+    if (scExpInput) scExpInput.addEventListener('input', function() {
+      var v = this.value.replace(/\D/g, '').substring(0, 4);
+      if (v.length >= 3) v = v.substring(0, 2) + '/' + v.substring(2);
+      this.value = v;
+    });
+
+    // Toggle form open
+    if (changeBtn && formWrap) {
+      changeBtn.addEventListener('click', function() {
+        formWrap.hidden = !formWrap.hidden;
+      });
+    }
+    // Cancel
+    if (cancelBtn && formWrap) {
+      cancelBtn.addEventListener('click', function() {
+        formWrap.hidden = true;
+      });
+    }
+    // Save card via MB
+    if (formInner) formInner.addEventListener('submit', function(e) {
+      e.preventDefault();
+      if (!clientId) return;
+      var cardNumber = (document.getElementById('yb-sc-card-number').value || '').replace(/\s/g, '');
+      var expiry = document.getElementById('yb-sc-card-expiry').value || '';
+      var cvv = document.getElementById('yb-sc-card-cvv').value || '';
+      var cardHolder = (document.getElementById('yb-sc-card-name').value || '').trim();
+      var errEl = document.getElementById('yb-sc-error');
+      var saveBtn = formInner.querySelector('button[type="submit"]');
+
+      if (!cardNumber || cardNumber.length < 13) { if (errEl) { errEl.textContent = isDa() ? 'Indtast et gyldigt kortnummer.' : 'Enter a valid card number.'; errEl.hidden = false; } return; }
+      if (!expiry || expiry.length < 4) { if (errEl) { errEl.textContent = isDa() ? 'Indtast udløbsdato.' : 'Enter expiry date.'; errEl.hidden = false; } return; }
+      if (!cvv || cvv.length < 3) { if (errEl) { errEl.textContent = isDa() ? 'Indtast CVV.' : 'Enter CVV.'; errEl.hidden = false; } return; }
+
+      var expParts = expiry.split('/');
+      if (saveBtn) { saveBtn.disabled = true; saveBtn.textContent = isDa() ? 'Gemmer...' : 'Saving...'; }
+      if (errEl) errEl.hidden = true;
+
+      fetch('/.netlify/functions/mb-client', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'updateCard',
+          clientId: clientId,
+          card: {
+            cardNumber: cardNumber,
+            expMonth: expParts[0],
+            expYear: expParts[1] ? '20' + expParts[1] : '',
+            cvv: cvv,
+            cardHolder: cardHolder
+          }
+        })
+      })
+      .then(function(r) { return r.json(); })
+      .then(function(data) {
+        if (saveBtn) { saveBtn.disabled = false; saveBtn.textContent = isDa() ? 'Gem kort' : 'Save card'; }
+        if (data.error) {
+          if (errEl) { errEl.textContent = data.error; errEl.hidden = false; }
+          return;
+        }
+        var lastFour = cardNumber.slice(-4);
+        var newCard = { lastFour: lastFour, cardType: data.cardType || detectCardType(cardNumber), cardHolder: cardHolder, expMonth: expParts[0], expYear: expParts[1] ? '20' + expParts[1] : '' };
+        storedCardData = newCard;
+        renderStoredCardUI(newCard);
+        if (currentUser && currentDb) {
+          currentDb.collection('users').doc(currentUser.uid).update({ storedCard: newCard }).catch(function() {});
+        }
+        if (formWrap) formWrap.hidden = true;
+        formInner.reset();
+        showScheduleToast(isDa() ? 'Kort gemt.' : 'Card saved.', 'success');
+      })
+      .catch(function() {
+        if (saveBtn) { saveBtn.disabled = false; saveBtn.textContent = isDa() ? 'Gem kort' : 'Save card'; }
+        if (errEl) { errEl.textContent = isDa() ? 'Noget gik galt. Prøv igen.' : 'Something went wrong. Please try again.'; errEl.hidden = false; }
       });
     });
+  }
+
+  /**
+   * Initialize stored-card radio toggle in a checkout context.
+   * prefix = 'yb-store' or 'yb-gc'
+   */
+  function initCheckoutStoredCard(prefix) {
+    var section = document.getElementById(prefix + '-stored-card-section');
+    var cardFields = document.getElementById(prefix + '-card-fields');
+    if (!section) return;
+
+    if (storedCardData && storedCardData.lastFour) {
+      section.hidden = false;
+      var detailEl = document.getElementById(prefix + '-stored-card-detail');
+      if (detailEl) detailEl.textContent = (storedCardData.cardType || 'Card') + ' •••• ' + storedCardData.lastFour;
+      if (cardFields) cardFields.hidden = true;
+
+      var radios = section.querySelectorAll('input[type="radio"]');
+      radios.forEach(function(r) {
+        r.addEventListener('change', function() {
+          var useStored = r.value === 'stored';
+          if (cardFields) cardFields.hidden = useStored;
+          var storedLabel = document.getElementById(prefix + '-checkout-use-stored');
+          var newLabel = document.getElementById(prefix + '-checkout-use-new');
+          if (storedLabel) storedLabel.classList.toggle('yb-checkout-stored-card__option--active', useStored);
+          if (newLabel) newLabel.classList.toggle('yb-checkout-stored-card__option--active', !useStored);
+        });
+      });
+    } else {
+      section.hidden = true;
+      if (cardFields) cardFields.hidden = false;
+    }
   }
 
   function fetchWaiverStatus(mbClientId) {
@@ -1652,7 +1758,6 @@
     { id: 'clips', da: 'Klippekort', en: 'Clip Cards' },
     { id: 'timebased', da: 'Tidsbegrænsede Pas', en: 'Time-based Passes' },
     { id: 'teacher', da: 'Yogalæreruddannelser', en: 'Teacher Trainings' },
-    { id: 'courses', da: 'Kurser', en: 'Courses' },
     { id: 'private', da: 'Privattimer', en: 'Private Sessions' }
   ];
 
@@ -1841,7 +1946,6 @@
     if (name.indexOf('clip') !== -1 || name.indexOf('klip') !== -1 || name.indexOf('punch') !== -1 || name.indexOf('pack') !== -1 || name.indexOf('class') !== -1) return 'clips';
     if (hasTimePeriod) return 'timebased';
     if (name.indexOf('teacher') !== -1 || name.indexOf('lærer') !== -1 || name.indexOf('training') !== -1 || name.indexOf('uddannelse') !== -1 || name.indexOf('200') !== -1 || name.indexOf('300') !== -1) return 'teacher';
-    if (name.indexOf('course') !== -1 || name.indexOf('kursus') !== -1 || name.indexOf('workshop') !== -1) return 'courses';
     if (name.indexOf('private') !== -1 || name.indexOf('privat') !== -1 || name.indexOf('1-on-1') !== -1 || name.indexOf('personal') !== -1) return 'private';
     return 'all';
   }
@@ -2105,7 +2209,15 @@
       if (cardFieldsWrap) cardFieldsWrap.hidden = true;
       document.getElementById('yb-checkout-use-stored').classList.add('yb-checkout-stored-card__option--active');
       document.getElementById('yb-checkout-use-new').classList.remove('yb-checkout-stored-card__option--active');
-      initStoredCardCheckoutToggle();
+      // Bind radio toggle for stored vs new card
+      storedCardSection.querySelectorAll('input[type="radio"]').forEach(function(r) {
+        r.addEventListener('change', function() {
+          var useStored = r.value === 'stored';
+          if (cardFieldsWrap) cardFieldsWrap.hidden = useStored;
+          document.getElementById('yb-checkout-use-stored').classList.toggle('yb-checkout-stored-card__option--active', useStored);
+          document.getElementById('yb-checkout-use-new').classList.toggle('yb-checkout-stored-card__option--active', !useStored);
+        });
+      });
     } else {
       if (storedCardSection) storedCardSection.hidden = true;
       if (cardFieldsWrap) cardFieldsWrap.hidden = false;
@@ -3767,191 +3879,271 @@
   }
 
   // ══════════════════════════════════════
-  // MY COURSES TAB
+  // GIFT CARDS TAB
   // ══════════════════════════════════════
-  function loadMyCourses() {
-    if (!currentUser || !currentDb) return;
-    var container = document.getElementById('yb-profile-courses');
-    var emptyEl = document.getElementById('yb-profile-courses-empty');
-    if (!container) return;
+  function loadGiftCards() {
+    var listEl = document.getElementById('yb-giftcards-list');
+    if (!listEl) return;
+    if (giftCardsData) { renderGiftCards(listEl); return; }
 
-    var lang = isDa() ? 'da' : 'en';
-    var t = {
-      progress: isDa() ? 'fremgang' : 'progress',
-      continue_btn: isDa() ? 'Fortsæt' : 'Continue',
-      start_btn: 'Start',
-      open_btn: isDa() ? 'Åbn kursus' : 'Open course',
-      modules: isDa() ? 'moduler' : 'modules'
-    };
+    listEl.innerHTML = '<div class="yb-store__loading"><div class="yb-mb-spinner"></div><span>' + (isDa() ? 'Henter gavekort...' : 'Loading gift cards...') + '</span></div>';
 
-    // 1. Find enrollments for this user (single where to avoid composite index)
-    currentDb.collection('enrollments')
-      .where('userId', '==', currentUser.uid)
-      .get()
-      .then(function(snap) {
-        var courseIds = [];
-        snap.forEach(function(doc) {
-          var d = doc.data();
-          if (d.status === 'active') courseIds.push(d.courseId);
-        });
-        if (!courseIds.length) {
-          container.innerHTML = '';
-          if (emptyEl) emptyEl.hidden = false;
-          return;
+    fetch('/.netlify/functions/mb-giftcards')
+      .then(function(r) { return r.json(); })
+      .then(function(data) {
+        if (data.error) {
+          console.error('[GiftCards] API error:', data.error);
+          giftCardsData = [];
+        } else {
+          giftCardsData = data.giftCards || [];
         }
-        if (emptyEl) emptyEl.hidden = true;
-
-        // 2. Fetch each course — modules and progress are optional (may fail on rules)
-        var promises = courseIds.map(function(courseId) {
-          return currentDb.collection('courses').doc(courseId).get()
-            .then(function(courseDoc) {
-              if (!courseDoc.exists) return null;
-              // Try loading modules count (may fail for non-admin)
-              var modulesPromise = currentDb.collection('courses').doc(courseId)
-                .collection('modules').orderBy('order').get()
-                .then(function(snap) { return snap.size; })
-                .catch(function() { return 0; }); // silently fallback
-              // Try loading progress (may not exist yet)
-              var progressPromise = currentDb.collection('courseProgress')
-                .doc(currentUser.uid + '_' + courseId).get()
-                .then(function(doc) { return doc.exists ? doc.data() : null; })
-                .catch(function() { return null; }); // silently fallback
-              return Promise.all([modulesPromise, progressPromise])
-                .then(function(results) {
-                  return {
-                    id: courseId,
-                    course: courseDoc.data(),
-                    moduleCount: results[0],
-                    progress: results[1]
-                  };
-                });
-            }).catch(function(err) {
-              console.warn('Could not load course ' + courseId + ':', err);
-              return null;
-            });
-        });
-
-        return Promise.all(promises);
-      })
-      .then(function(courses) {
-        if (!courses) return;
-        courses = courses.filter(function(c) { return c !== null; });
-        if (!courses.length) {
-          container.innerHTML = '<p style="color:#6F6A66;text-align:center;padding:2rem;">' +
-            (isDa() ? 'Kurser fundet men kunne ikke indlæses. Tjek Firestore regler.' : 'Courses found but could not load. Check Firestore rules.') + '</p>';
-          return;
-        }
-        renderCourseCards(container, courses, lang, t);
+        renderGiftCards(listEl);
       })
       .catch(function(err) {
-        console.error('Error loading courses:', err);
-        var msg = err.message || '';
-        var hint = '';
-        if (msg.indexOf('ermission') > -1) hint = isDa() ? ' (Firestore regler mangler)' : ' (Firestore rules issue)';
-        if (msg.indexOf('index') > -1) hint = isDa() ? ' (Firestore index mangler)' : ' (Firestore index needed)';
-        container.innerHTML = '<p style="color:#6F6A66;text-align:center;padding:2rem;">' +
-          (isDa() ? 'Kunne ikke hente kurser.' : 'Could not load courses.') + hint + '</p>';
+        console.error('[GiftCards] Load error:', err);
+        giftCardsData = [];
+        renderGiftCards(listEl);
       });
   }
 
-  function renderCourseCards(container, courses, lang, t) {
-    if (!courses.length) {
-      container.innerHTML = '';
-      var emptyEl = document.getElementById('yb-profile-courses-empty');
-      if (emptyEl) emptyEl.hidden = false;
+  function renderGiftCards(container) {
+    var da = isDa();
+
+    if (!giftCardsData || !giftCardsData.length) {
+      var html = '<div class="yb-giftcards__empty">';
+      html += '<svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#E8E4E0" stroke-width="1"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a4 4 0 0 0-8 0v2"/><line x1="12" y1="11" x2="12" y2="17"/><line x1="9" y1="14" x2="15" y2="14"/></svg>';
+      html += '<p class="yb-giftcards__empty-title">' + (da ? 'Gavekort' : 'Gift Cards') + '</p>';
+      html += '<p class="yb-giftcards__empty-text">' + (da
+        ? 'Kontakt os for at købe et gavekort til en du holder af.'
+        : 'Contact us to purchase a gift card for someone you love.') + '</p>';
+      html += '<a href="mailto:info@yogabible.dk" class="yb-btn yb-btn--primary">' + (da ? 'Kontakt os' : 'Contact us') + '</a>';
+      html += '</div>';
+      container.innerHTML = html;
       return;
     }
 
-    var html = courses.map(function(item) {
-      var c = item.course;
-      var title = c['title_' + lang] || c.title_da || 'Course';
-      var desc = c['description_' + lang] || c.description_da || '';
-      var icon = c.icon || '📖';
-
-      // Calculate progress
-      var viewed = item.progress && item.progress.viewed ? Object.keys(item.progress.viewed).length : 0;
-      var hasProgress = viewed > 0;
-      var btnLabel = hasProgress ? t.continue_btn : t.start_btn;
-
-      // Build data attributes for inline course viewer
-      var dataAttrs = 'data-course-open="' + item.id + '"';
-      if (item.progress && item.progress.lastModule) {
-        dataAttrs += ' data-module="' + item.progress.lastModule + '"';
-      }
-      if (item.progress && item.progress.lastChapter) {
-        dataAttrs += ' data-chapter="' + item.progress.lastChapter + '"';
-      }
-
-      return '<div class="yb-profile__course-card">' +
-        '<div class="yb-profile__course-icon">' + icon + '</div>' +
-        '<div class="yb-profile__course-info">' +
-          '<h3 class="yb-profile__course-name">' + esc(title) + '</h3>' +
-          '<p class="yb-profile__course-desc">' + esc(desc) + '</p>' +
-          '<span class="yb-profile__course-meta">' + item.moduleCount + ' ' + t.modules +
-            (hasProgress ? ' · ' + viewed + ' ' + (isDa() ? 'kapitler læst' : 'chapters read') : '') +
-          '</span>' +
-        '</div>' +
-        '<button type="button" ' + dataAttrs + ' class="yb-btn yb-btn--primary yb-profile__course-btn">' + btnLabel + '</button>' +
-      '</div>';
-    }).join('');
-
+    var html = '';
+    giftCardsData.forEach(function(gc) {
+      var isSelected = selectedGiftCard && String(selectedGiftCard.id) === String(gc.id);
+      html += '<div class="yb-giftcards__option' + (isSelected ? ' is-selected' : '') + '" data-gc-id="' + gc.id + '">';
+      html += '<div class="yb-giftcards__option-left">';
+      html += '<span class="yb-giftcards__option-name">' + esc(gc.description || (da ? 'Gavekort' : 'Gift Card')) + '</span>';
+      if (gc.terms) html += '<span class="yb-giftcards__option-terms">' + esc(gc.terms) + '</span>';
+      html += '</div>';
+      html += '<span class="yb-giftcards__option-price">' + formatDKK(gc.salePrice || gc.value) + '</span>';
+      html += '</div>';
+    });
     container.innerHTML = html;
 
-    // Bind inline course viewer buttons
-    container.querySelectorAll('[data-course-open]').forEach(function(btn) {
-      btn.addEventListener('click', function() {
-        var courseId = btn.getAttribute('data-course-open');
-        var moduleId = btn.getAttribute('data-module') || null;
-        var chapterId = btn.getAttribute('data-chapter') || null;
-        openCourseViewer(courseId, moduleId, chapterId);
+    container.querySelectorAll('[data-gc-id]').forEach(function(card) {
+      card.addEventListener('click', function() {
+        var gcId = card.getAttribute('data-gc-id');
+        selectedGiftCard = giftCardsData.find(function(g) { return String(g.id) === gcId; });
+        container.querySelectorAll('.yb-giftcards__option').forEach(function(c) { c.classList.remove('is-selected'); });
+        card.classList.add('is-selected');
+        var formEl = document.getElementById('yb-giftcard-form');
+        if (formEl) {
+          formEl.hidden = false;
+          var gcHolder = document.getElementById('yb-gc-card-name');
+          if (gcHolder && currentUser && currentUser.displayName && !gcHolder.value) gcHolder.value = currentUser.displayName;
+          initCheckoutStoredCard('yb-gc');
+          formEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+      });
+    });
+  }
+
+  function initGiftCards() {
+    var cancelBtn = document.getElementById('yb-gc-cancel-btn');
+    if (cancelBtn) cancelBtn.addEventListener('click', function() {
+      var formEl = document.getElementById('yb-giftcard-form');
+      if (formEl) formEl.hidden = true;
+      selectedGiftCard = null;
+    });
+
+    var successCloseBtn = document.getElementById('yb-gc-success-close');
+    if (successCloseBtn) successCloseBtn.addEventListener('click', function() {
+      var successEl = document.getElementById('yb-giftcard-success');
+      if (successEl) successEl.hidden = true;
+    });
+
+    // Card number formatting in gift card form
+    var gcCardInput = document.getElementById('yb-gc-card-number');
+    if (gcCardInput) gcCardInput.addEventListener('input', function() {
+      var v = this.value.replace(/\D/g, '').substring(0, 16);
+      this.value = v.replace(/(.{4})/g, '$1 ').trim();
+    });
+    var gcExpInput = document.getElementById('yb-gc-card-expiry');
+    if (gcExpInput) gcExpInput.addEventListener('input', function() {
+      var v = this.value.replace(/\D/g, '').substring(0, 4);
+      if (v.length >= 3) v = v.substring(0, 2) + '/' + v.substring(2);
+      this.value = v;
+    });
+
+    var buyBtn = document.getElementById('yb-gc-buy-btn');
+    if (buyBtn) buyBtn.addEventListener('click', function() {
+      if (!selectedGiftCard || !clientId) return;
+      var recipientName = (document.getElementById('yb-gc-recipient-name') || {}).value || '';
+      var recipientEmail = (document.getElementById('yb-gc-recipient-email') || {}).value || '';
+      var title = (document.getElementById('yb-gc-title') || {}).value || '';
+      var message = (document.getElementById('yb-gc-message') || {}).value || '';
+      var deliveryDate = (document.getElementById('yb-gc-delivery-date') || {}).value || '';
+      var errEl = document.getElementById('yb-gc-error');
+
+      if (!recipientName.trim() || !recipientEmail.trim()) {
+        if (errEl) { errEl.textContent = isDa() ? 'Udfyld modtagers navn og email.' : 'Please enter recipient name and email.'; errEl.hidden = false; }
+        return;
+      }
+
+      // Check if using stored card
+      var gcStoredRadio = document.querySelector('input[name="yb-gc-payment-method"][value="stored"]');
+      var useStoredCard = gcStoredRadio && gcStoredRadio.checked && storedCardData && storedCardData.lastFour;
+      var gcPayment;
+
+      if (useStoredCard) {
+        gcPayment = { useStoredCard: true, lastFour: storedCardData.lastFour };
+      } else {
+        var gcCardNumber = (document.getElementById('yb-gc-card-number') || {}).value || '';
+        var gcExpiry = (document.getElementById('yb-gc-card-expiry') || {}).value || '';
+        var gcCvv = (document.getElementById('yb-gc-card-cvv') || {}).value || '';
+        var gcCardHolder = (document.getElementById('yb-gc-card-name') || {}).value || '';
+
+        gcCardNumber = gcCardNumber.replace(/\s/g, '');
+        if (!gcCardNumber || gcCardNumber.length < 13) {
+          if (errEl) { errEl.textContent = isDa() ? 'Indtast et gyldigt kortnummer.' : 'Enter a valid card number.'; errEl.hidden = false; }
+          return;
+        }
+        if (!gcExpiry || gcExpiry.length < 4) {
+          if (errEl) { errEl.textContent = isDa() ? 'Indtast udløbsdato.' : 'Enter expiry date.'; errEl.hidden = false; }
+          return;
+        }
+        if (!gcCvv || gcCvv.length < 3) {
+          if (errEl) { errEl.textContent = isDa() ? 'Indtast CVV.' : 'Enter CVV.'; errEl.hidden = false; }
+          return;
+        }
+        var gcExpParts = gcExpiry.split('/');
+        gcPayment = {
+          cardNumber: gcCardNumber,
+          expMonth: gcExpParts[0],
+          expYear: gcExpParts[1] ? '20' + gcExpParts[1] : '',
+          cvv: gcCvv,
+          cardHolder: gcCardHolder.trim()
+        };
+      }
+
+      buyBtn.disabled = true;
+      buyBtn.textContent = isDa() ? 'Behandler...' : 'Processing...';
+      if (errEl) errEl.hidden = true;
+
+      var gcPostBody = {
+        giftCardId: selectedGiftCard.id,
+        clientId: clientId,
+        recipientEmail: recipientEmail.trim(),
+        recipientName: recipientName.trim(),
+        title: title.trim() || (isDa() ? 'Gavekort' : 'Gift Card'),
+        message: message.trim(),
+        deliveryDate: deliveryDate || undefined,
+        layoutId: selectedGiftCard.layouts && selectedGiftCard.layouts.length ? selectedGiftCard.layouts[0].id : 0,
+        payment: gcPayment
+      };
+      gcPostBody.salePrice = selectedGiftCard.salePrice || selectedGiftCard.value || 0;
+
+      fetch('/.netlify/functions/mb-giftcards', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(gcPostBody)
+      })
+      .then(function(r) { return r.json(); })
+      .then(function(data) {
+        buyBtn.disabled = false;
+        buyBtn.textContent = isDa() ? 'Køb gavekort' : 'Buy gift card';
+        if (data.error) {
+          if (errEl) { errEl.textContent = data.error; errEl.hidden = false; }
+          return;
+        }
+        var formEl = document.getElementById('yb-giftcard-form');
+        if (formEl) formEl.hidden = true;
+        selectedGiftCard = null;
+        var successEl = document.getElementById('yb-giftcard-success');
+        if (successEl) successEl.hidden = false;
+        showScheduleToast(
+          data.emailSent
+            ? (isDa() ? 'Gavekort sendt til ' + recipientEmail.trim() + '!' : 'Gift card sent to ' + recipientEmail.trim() + '!')
+            : (isDa() ? 'Gavekort købt! Email kunne ikke sendes — kontakt os.' : 'Gift card purchased! Email could not be sent — contact us.'),
+          'success'
+        );
+      })
+      .catch(function() {
+        buyBtn.disabled = false;
+        buyBtn.textContent = isDa() ? 'Køb gavekort' : 'Buy gift card';
+        if (errEl) { errEl.textContent = isDa() ? 'Noget gik galt. Prøv igen.' : 'Something went wrong. Please try again.'; errEl.hidden = false; }
       });
     });
   }
 
   // ══════════════════════════════════════
-  // INLINE COURSE VIEWER
+  // BACKGROUND REFRESH
   // ══════════════════════════════════════
-  function openCourseViewer(courseId, moduleId, chapterId) {
-    var listEl = document.getElementById('yb-profile-courses-list');
-    var viewerEl = document.getElementById('yb-profile-course-viewer');
-    if (!listEl || !viewerEl) return;
+  function startBackgroundRefresh() {
+    stopBackgroundRefresh();
+    bgRefreshInterval = setInterval(function() {
+      if (!clientId) return;
+      clientPassData = null;
+      loadSchedulePassInfo();
+      if (tabLoaded['schedule']) loadSchedule();
+      if (tabLoaded['visits']) loadVisits();
+      if (tabLoaded['receipts']) loadReceipts();
+      if (tabLoaded['passes']) loadMembershipDetails();
+    }, 60000);
+  }
 
-    // Hide course list, show viewer
-    listEl.hidden = true;
-    viewerEl.hidden = false;
-
-    // Scroll to top of viewer
-    viewerEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
-
-    // Init the course viewer in embedded mode
-    if (window.YBCourseViewer) {
-      window.YBCourseViewer.init(courseId, {
-        embedded: true,
-        lang: isDa() ? 'da' : 'en',
-        module: moduleId,
-        chapter: chapterId,
-        onBack: function() {
-          closeCourseViewer();
-        }
-      });
+  function stopBackgroundRefresh() {
+    if (bgRefreshInterval) {
+      clearInterval(bgRefreshInterval);
+      bgRefreshInterval = null;
     }
   }
 
-  function closeCourseViewer() {
-    var listEl = document.getElementById('yb-profile-courses-list');
-    var viewerEl = document.getElementById('yb-profile-course-viewer');
-    if (!listEl || !viewerEl) return;
+  function scheduleDelayedPassRefresh() {
+    if (passRefreshTimer) clearTimeout(passRefreshTimer);
+    passRefreshTimer = setTimeout(function() {
+      clientPassData = null;
+      loadSchedulePassInfo();
+      passRefreshTimer = setTimeout(function() {
+        clientPassData = null;
+        loadSchedulePassInfo();
+      }, 4000);
+    }, 1000);
+  }
 
-    // Destroy the viewer and hide it
-    if (window.YBCourseViewer) {
-      window.YBCourseViewer.destroy();
+  // ══════════════════════════════════════
+  // AGE BRACKET (for store pricing)
+  // ══════════════════════════════════════
+  var _ageOverride = null;
+  function getUserAge() {
+    if (_ageOverride !== null) return _ageOverride;
+    if (!userDateOfBirth) return null;
+    var parts = userDateOfBirth.split('-');
+    if (parts.length !== 3) return null;
+    var birth = new Date(Number(parts[0]), Number(parts[1]) - 1, Number(parts[2]));
+    var today = new Date();
+    var age = today.getFullYear() - birth.getFullYear();
+    var monthDiff = today.getMonth() - birth.getMonth();
+    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birth.getDate())) {
+      age--;
     }
-    viewerEl.hidden = true;
-    listEl.hidden = false;
+    return age;
+  }
+  window.setAge = function(age) {
+    _ageOverride = (age === null || age === undefined) ? null : Number(age);
+    console.log('[Store] Age override set to:', _ageOverride === null ? 'real DOB' : _ageOverride);
+    storeServices = [];
+    loadStore();
+  };
 
-    // Re-load courses to refresh progress
-    tabLoaded['courses'] = false;
-    loadMyCourses();
+  function getAgeBracket() {
+    var age = getUserAge();
+    return (age !== null && age < 30) ? 'under30' : 'over30';
   }
 
 })();
