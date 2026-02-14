@@ -140,11 +140,87 @@ Every page follows this pattern — **no exceptions**:
 - **Listing:** `src/yoga-journal.njk` → `/yoga-journal/`
 - **Posts:** `src/yoga-journal-post.njk` (Eleventy pagination, size:1)
 - **JS:** `src/js/journal.js` — language switching, search, progress bar, share
-- **CSS:** `src/css/main.css` — all journal styles prefixed `yj-`
+- **CSS:** `src/css/main.css` — all journal styles prefixed `yj-`, all store/profile styles prefixed `yb-store__`
 - **CMS:** Decap CMS at `/admin/` with Netlify Identity
 - **i18n:** Build-time via JSON files in `src/_data/i18n/`, path-based (`/en/` prefix). Journal uses `data-yj-da`/`data-yj-en` attributes toggled by path detection.
 - **Deploy:** Netlify from `main` branch
 - **Design System:** `src/samples.njk` → `/samples/` — the single source of truth for all UI components
+- **Profile/Store:** `src/js/profile.js` — user profile, store catalog, checkout, waiver, schedule, membership
+- **Hot Yoga CPH:** `hot-yoga-cph/public/js/profile.js` + `hot-yoga-cph/public/css/profile.css` — mirrored store/profile for HYC site
+
+---
+
+## Store & Checkout System
+
+### Terminology (MANDATORY)
+
+**IMPORTANT:** The YTT initial payment is called **"Preparation Phase" / "Forberedelsesfasen"** — NEVER "deposit" or "depositum" in user-facing text. Internal code may still use `deposits` as a subcategory ID and `isDeposit` as a variable name, but all visible labels, descriptions, buttons, and info text must use the Preparation Phase terminology.
+
+| Context | Danish | English |
+|---------|--------|---------|
+| Badge on store card | Forberedelsesfasen | Preparation Phase |
+| Buy button | Start forberedelsesfasen | Start Preparation Phase |
+| Category description | Forberedelsesfasen og tilmelding til uddannelse | Preparation Phase and training enrollment |
+| Item descriptions | Start din forberedelsesfase for... | Begin your Preparation Phase for... |
+
+### Store Catalog Structure
+
+The store catalog lives in `src/js/profile.js` as the `storeCatalog` object with age-bracket pricing (`over30` / `under30`). Categories:
+
+| Top Category | Subcategories | Item Type |
+|-------------|---------------|-----------|
+| `daily` | `memberships`, `timebased`, `clips`, `trials`, `tourist` | `service` or `contract` |
+| `teacher` | `deposits` (internal ID) | `service` |
+| `courses` | `individual`, `bundle` | `service` |
+| `private` | — | `service` |
+
+Each catalog item can have: `name_da`, `name_en`, `desc_da`, `desc_en`, `features_da`, `features_en`, `period_da`, `period_en`, `format_da`, `format_en`, `price`, `prodId`, `vat_pct`.
+
+### Checkout Item Display
+
+When `openCheckout()` renders the checkout item, it shows contextual details based on product type:
+
+- **Teacher Training (Preparation Phase):** "Forberedelsesfasen" + period chip, format, description, benefits checklist (5 items), remaining payment info note
+- **Course Bundles:** Month chip, individual course descriptions, discount savings, bonus pass highlight (for 3-course All-In)
+- **Single Courses:** Month chip, course description
+- **Memberships:** Feature checklist, first-month-free savings, terms list
+- **Generic items:** Description text from `desc_da`/`desc_en`
+
+The **remaining payment note** for teacher training reads:
+- DA: *"Restbeløbet afregnes inden uddannelsesstart — enten som engangsbeløb eller i rater. Din uddannelsesleder vil kontakte dig med alle detaljer og næste skridt."*
+- EN: *"The remaining balance is settled before training starts — either in full or in instalments. Your course director will be in touch with all the details and next steps."*
+
+### Checkout CSS Classes
+
+| Class | Purpose |
+|-------|---------|
+| `.yb-store__checkout-meta` | Flex row for chips (period, phase label) |
+| `.yb-store__checkout-meta-chip` | Orange pill badge (e.g., "Forberedelsesfasen", "April 2026") |
+| `.yb-store__checkout-meta-format` | Muted format text (e.g., "200-timers komplet uddannelse") |
+| `.yb-store__checkout-desc` | Gray description paragraph |
+| `.yb-store__checkout-features` | Green-checkmark feature list |
+| `.yb-store__checkout-remaining` | Gray info note with icon (remaining payment) |
+| `.yb-store__checkout-bonus` | Orange bonus highlight (e.g., free pass) |
+| `.yb-store__checkout-saving` | Green savings badge |
+
+### Store Card Layout for Deposit Items
+
+Deposit/teacher training cards use `.yb-store__item--deposit` which stacks the footer vertically (price row + full-width button below) to accommodate the longer CTA text.
+
+### Waiver System
+
+The liability waiver check uses a 3-tier strategy:
+1. **localStorage** (synchronous, instant on page load)
+2. **Firestore consents collection** (async, reliable audit trail)
+3. **MindBody API** (async, external source of truth)
+
+`hideCheckoutWaiverIfSigned()` is called when async checks confirm the waiver is already signed — it auto-hides the waiver section in an already-open checkout, updates the agree label, and removes the split grid if no documents remain. This prevents the waiver from showing to users who have already signed it.
+
+### Dual-Site Parity
+
+All store/checkout changes must be applied to **both** sites:
+- **Yoga Bible:** `src/js/profile.js` + `src/css/main.css`
+- **Hot Yoga CPH:** `hot-yoga-cph/public/js/profile.js` + `hot-yoga-cph/public/css/profile.css`
 
 ---
 
