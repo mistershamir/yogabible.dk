@@ -830,6 +830,7 @@
               } catch (e) {}
             }
             renderWaiverCard();
+            hideCheckoutWaiverIfSigned();
           }
         })
         .catch(function(err) {
@@ -852,6 +853,7 @@
               if (waiverAgreementDate) localStorage.setItem(cacheKey + '_date', waiverAgreementDate);
             } catch (e) {}
           }
+          hideCheckoutWaiverIfSigned();
         }
         // SYNC: If signed locally (localStorage/Firestore) but MB doesn't know yet,
         // push the marker note to MB so other browsers can detect it
@@ -875,6 +877,32 @@
         waiverStatusLoaded = true;
         renderWaiverCard();
       });
+  }
+
+  // Hide checkout waiver section if waiver was confirmed signed after checkout opened
+  function hideCheckoutWaiverIfSigned() {
+    if (!waiverSigned) return;
+    var waiverSection = document.getElementById('yb-checkout-waiver-section');
+    if (waiverSection && !waiverSection.hidden) {
+      waiverSection.hidden = true;
+      // Update agree label if terms section is still visible
+      var termsSection = document.getElementById('yb-checkout-terms-section');
+      var agreeSection = document.getElementById('yb-checkout-agree-section');
+      var showTerms = termsSection && !termsSection.hidden;
+      if (agreeSection) {
+        if (!showTerms) {
+          // No waiver, no terms — hide agree section and remove split layout
+          agreeSection.hidden = true;
+          var checkoutGrid = document.getElementById('yb-checkout-grid');
+          if (checkoutGrid) checkoutGrid.classList.remove('yb-checkout__grid--split');
+        } else {
+          // Terms still showing — update label to terms-only
+          var agreeLabel = document.getElementById('yb-checkout-agree-label');
+          if (agreeLabel) agreeLabel.textContent = isDa() ? 'Jeg accepterer kontraktvilkårene' : 'I accept the contract terms';
+        }
+      }
+      console.log('[waiver] Auto-hidden checkout waiver section (already signed)');
+    }
   }
 
   // Bind the "Read full waiver" toggle handler (shared between signed/unsigned views)
@@ -2695,13 +2723,29 @@
       if (found) names.push(da ? found.name_da : found.name_en);
     });
 
+    // Collect course descriptions for checkout display
+    var descs = [];
+    selectedCourses.forEach(function(cid) {
+      var found = cd.items.find(function(i) { return i.id === cid; });
+      if (found) descs.push(da ? found.desc_da : found.desc_en);
+    });
+
     return {
       _uid: 'bundle-' + bundle.prodId,
       prodId: bundle.prodId,
       name: (count >= 3 ? (da ? 'All-In Pakke: ' : 'All-In Bundle: ') : (da ? 'Kursuspakke: ' : 'Course Bundle: ')) + names.join(' + '),
       price: packPrice, onlinePrice: packPrice,
       _itemType: 'service', _topCategory: 'courses', _subCategory: 'bundle',
-      _catalog: { vat_pct: 0 }
+      _catalog: {
+        vat_pct: 0,
+        _bundleCount: count,
+        _discount: discount,
+        _totalNormal: totalNormal,
+        _courseDescs: descs,
+        _bonusPass: count >= 3,
+        _bonusValue: cd.bonus_pass_value,
+        month_da: cd.month_da, month_en: cd.month_en
+      }
     };
   }
 
@@ -2768,6 +2812,69 @@
     if (isContract && service._recurringInfo) {
       itemHtml += '<span class="yb-store__checkout-item-recurring">' + esc(service._recurringInfo) + '</span>';
     }
+
+    // ── Teacher Training deposit details ──
+    if (service._topCategory === 'teacher' && cat.period_da) {
+      itemHtml += '<div class="yb-store__checkout-meta">';
+      itemHtml += '<span class="yb-store__checkout-meta-chip">' + esc(da ? cat.period_da : cat.period_en) + '</span>';
+      itemHtml += '<span class="yb-store__checkout-meta-format">' + esc(da ? cat.format_da : cat.format_en) + '</span>';
+      itemHtml += '</div>';
+      if (cat.desc_da) {
+        itemHtml += '<p class="yb-store__checkout-desc">' + esc(da ? cat.desc_da : cat.desc_en) + '</p>';
+      }
+      itemHtml += '<ul class="yb-store__checkout-features">';
+      var depositBenefits = da
+        ? ['Sikr din plads på programmet', 'Start booking af klasser med det samme', 'Klasser tæller med i dine træningstimer', 'Forbered krop og sind — bliv en del af fællesskabet', 'Spar på separat medlemskab — depositum giver klasseadgang']
+        : ['Secure your spot in the program', 'Start booking classes immediately', 'Classes count toward training hours', 'Prepare body and mind — join the community early', 'Save on separate membership — deposit provides class access'];
+      depositBenefits.forEach(function(b) { itemHtml += '<li>' + esc(b) + '</li>'; });
+      itemHtml += '</ul>';
+    }
+
+    // ── Course / Bundle details ──
+    else if (service._topCategory === 'courses') {
+      if (cat.month_da) {
+        itemHtml += '<div class="yb-store__checkout-meta">';
+        itemHtml += '<span class="yb-store__checkout-meta-chip">' + esc(da ? cat.month_da : cat.month_en) + '</span>';
+        itemHtml += '</div>';
+      }
+      // Single course description
+      if (cat.desc_da) {
+        itemHtml += '<p class="yb-store__checkout-desc">' + esc(da ? cat.desc_da : cat.desc_en) + '</p>';
+      }
+      // Bundle details
+      if (cat._bundleCount) {
+        if (cat._courseDescs && cat._courseDescs.length) {
+          itemHtml += '<ul class="yb-store__checkout-features">';
+          cat._courseDescs.forEach(function(d) { itemHtml += '<li>' + esc(d) + '</li>'; });
+          itemHtml += '</ul>';
+        }
+        if (cat._discount > 0) {
+          itemHtml += '<div class="yb-store__checkout-saving">';
+          itemHtml += '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#27ae60" stroke-width="2"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg> ';
+          itemHtml += '<span>' + Math.round(cat._discount * 100) + '% ' + (da ? 'rabat — spar ' : 'off — save ') + formatDKK(cat._totalNormal - price) + '</span>';
+          itemHtml += '</div>';
+        }
+        if (cat._bonusPass) {
+          itemHtml += '<div class="yb-store__checkout-bonus">';
+          itemHtml += '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#f75c03" stroke-width="2"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87L18.18 22 12 18.56 5.82 22 7 14.14l-5-4.87 6.91-1.01L12 2z"/></svg> ';
+          itemHtml += '<span>' + (da ? 'BONUS: Gratis 30-dages ubegrænset pas (værdi ' : 'BONUS: Free 30-day unlimited pass (value ') + formatDKK(cat._bonusValue) + ')</span>';
+          itemHtml += '</div>';
+        }
+      }
+    }
+
+    // ── Generic description (clips, time-based, tourist etc.) ──
+    else if (cat.desc_da && !isContract) {
+      itemHtml += '<p class="yb-store__checkout-desc">' + esc(da ? cat.desc_da : cat.desc_en) + '</p>';
+    }
+
+    // ── Membership features ──
+    if (cat.features_da && cat.features_da.length) {
+      itemHtml += '<ul class="yb-store__checkout-features">';
+      (da ? cat.features_da : cat.features_en).forEach(function(f) { itemHtml += '<li>' + esc(f) + '</li>'; });
+      itemHtml += '</ul>';
+    }
+
     // First month free: show crossed-out price
     if (isContract && cat.firstMonthFree) {
       itemHtml += '<div class="yb-store__checkout-saving">';

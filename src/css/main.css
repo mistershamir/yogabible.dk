@@ -8773,6 +8773,69 @@ a.yb-kontakt-detail__value:hover {
   font-weight: 600;
 }
 
+/* ── Checkout: Product Description & Features ── */
+.yb-store__checkout-meta {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  margin-top: 0.35rem;
+}
+.yb-store__checkout-meta-chip {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: #f75c03;
+  background: rgba(247,92,3,0.08);
+  border: 1px solid rgba(247,92,3,0.2);
+  border-radius: 20px;
+  padding: 0.2rem 0.65rem;
+}
+.yb-store__checkout-meta-format {
+  font-size: 0.75rem;
+  color: #6F6A66;
+  font-weight: 600;
+}
+.yb-store__checkout-desc {
+  font-size: 0.8rem;
+  color: #6F6A66;
+  line-height: 1.45;
+  margin: 0.4rem 0 0;
+}
+.yb-store__checkout-features {
+  list-style: none;
+  padding: 0;
+  margin: 0.5rem 0 0;
+}
+.yb-store__checkout-features li {
+  font-size: 0.75rem;
+  color: #0F0F0F;
+  padding: 0.15rem 0 0.15rem 1.1rem;
+  position: relative;
+  line-height: 1.4;
+}
+.yb-store__checkout-features li::before {
+  content: '✓';
+  position: absolute;
+  left: 0;
+  color: #27ae60;
+  font-weight: 700;
+  font-size: 0.72rem;
+}
+.yb-store__checkout-bonus {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  background: rgba(247,92,3,0.06);
+  border-radius: 8px;
+  padding: 0.4rem 0.6rem;
+  margin-top: 0.4rem;
+}
+.yb-store__checkout-bonus span {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #f75c03;
+}
+
 /* ── Store: Top-level Category Cards ── */
 .yb-store__top-cats {
   display: flex;
