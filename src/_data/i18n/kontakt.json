@@ -1,12 +1,22 @@
 {
   "da": {
+    "hero_tagline": "Yoga Bible · Kontakt",
     "hero_title": "Kontakt Yoga Bible",
-    "hero_subtitle": "Vi er altid her for at svare på dine spørgsmål. Vi er klar til samarbejder, vi inviterer nye undervisere ind i vores læreruddannelser, og vi co-faciliterer pro next-level kurser. Har du spørgsmål til vores uddannelser, kurser eller andre tilbud, hører vi meget gerne fra dig.",
-    "meta_phone_label": "Telefon:",
-    "meta_email_label": "E-mail:",
-    "meta_address_label": "Adresse:",
-    "overview_text": "Vores studie er indlejret i en over 400 år gammel bygning i hjertet af Christianshavn — et stille åndehul, hvor tradition møder nutid. Kig forbi til en yogatime, deltag i en af vores uddannelser, eller kom ind til en kop urtete eller et frisk ingefærshot.",
+    "hero_subtitle": "Vi er altid her for at svare på dine spørgsmål — om uddannelser, kurser, samarbejder eller bare en kop urtete.",
+
+    "intro_eyebrow": "Velkommen",
+    "intro_heading": "Vi Hører Gerne Fra Dig",
+    "intro_text": "Vi er klar til <strong>samarbejder</strong>, vi inviterer <strong>nye undervisere</strong> ind i vores læreruddannelser, og vi co-faciliterer <strong>pro next-level kurser</strong>. Har du spørgsmål til vores uddannelser, kurser eller andre tilbud, hører vi meget gerne fra dig.",
+    "intro_studio": "Vores studie er indlejret i en <strong>over 400 år gammel bygning</strong> i hjertet af Christianshavn — et stille åndehul, hvor tradition møder nutid. Kig forbi til en yogatime, deltag i en af vores uddannelser, eller kom ind til en kop urtete eller et frisk ingefærshot.",
+    "intro_phone_label": "Telefon",
+    "intro_email_label": "E-mail",
+    "intro_address_label": "Adresse",
+    "intro_address": "Torvegade 66, 1400 København K",
+    "intro_hours_label": "Åbningstider",
+    "intro_hours": "Man–Fre 07:00–21:00 · Lør–Søn 09:00–18:00",
+
     "form_title": "Skriv Til Os",
+    "form_subtitle": "Udfyld formularen, og vi vender tilbage snarest muligt.",
     "label_firstname": "Fornavn *",
     "label_lastname": "Efternavn *",
     "label_email": "E-mail *",
@@ -20,24 +30,40 @@
     "topic_job": "Jobansøgning",
     "label_antispam": "Anti-spam: Skriv NAMASTE *",
     "label_message": "Din besked *",
+    "message_placeholder": "Fortæl os gerne lidt om din henvendelse…",
     "required_note": "* Obligatoriske felter",
     "submit_btn": "Send henvendelse",
     "success_title": "Tak!",
     "success_message": "Vi har modtaget din besked og vender tilbage snarest.",
+
     "findus_title": "Find Os",
+    "findus_subtitle": "Besøg os i hjertet af Christianshavn, København.",
+    "findus_studio": "Yoga Bible Studio",
+    "findus_directions": "Åbn i kort",
+    "findus_directions_url": "https://maps.apple.com/?q=Torvegade%2066,%201400,%20K%C3%B8benhavn%20K",
+
     "js_antispam_error": "Udfyld venligst anti-spam korrekt (skriv: NAMASTE).",
     "js_wait_error": "Vent venligst et øjeblik og prøv igen.",
-    "js_sending": "Sender…",
-    "hero_tagline": "Yoga Bible · Kontakt"
+    "js_sending": "Sender…"
   },
   "en": {
+    "hero_tagline": "Yoga Bible · Contact",
     "hero_title": "Contact Yoga Bible",
-    "hero_subtitle": "We are always here to answer your questions. We welcome collaborations, invite new instructors into our teacher trainings, and co-facilitate pro next-level courses. If you have questions about our trainings, courses, or other offerings, we would love to hear from you.",
-    "meta_phone_label": "Phone:",
-    "meta_email_label": "Email:",
-    "meta_address_label": "Address:",
-    "overview_text": "Our studio is nestled in a building over 400 years old in the heart of Christianshavn — a quiet sanctuary where tradition meets the present. Stop by for a yoga class, join one of our trainings, or come in for a cup of herbal tea or a fresh ginger shot.",
+    "hero_subtitle": "We are always here to answer your questions — about trainings, courses, collaborations, or just a cup of herbal tea.",
+
+    "intro_eyebrow": "Welcome",
+    "intro_heading": "We Would Love to Hear From You",
+    "intro_text": "We welcome <strong>collaborations</strong>, we invite <strong>new instructors</strong> into our teacher trainings, and we co-facilitate <strong>pro next-level courses</strong>. If you have questions about our trainings, courses, or other offerings, we would love to hear from you.",
+    "intro_studio": "Our studio is nestled in a building <strong>over 400 years old</strong> in the heart of Christianshavn — a quiet sanctuary where tradition meets the present. Stop by for a yoga class, join one of our trainings, or come in for a cup of herbal tea or a fresh ginger shot.",
+    "intro_phone_label": "Phone",
+    "intro_email_label": "Email",
+    "intro_address_label": "Address",
+    "intro_address": "Torvegade 66, 1400 Copenhagen K",
+    "intro_hours_label": "Opening Hours",
+    "intro_hours": "Mon–Fri 07:00–21:00 · Sat–Sun 09:00–18:00",
+
     "form_title": "Get in Touch",
+    "form_subtitle": "Fill out the form and we will get back to you as soon as possible.",
     "label_firstname": "First Name *",
     "label_lastname": "Last Name *",
     "label_email": "Email *",
@@ -51,14 +77,20 @@
     "topic_job": "Job application",
     "label_antispam": "Anti-spam: Type NAMASTE *",
     "label_message": "Your message *",
+    "message_placeholder": "Tell us a little about your inquiry…",
     "required_note": "* Required fields",
     "submit_btn": "Send message",
     "success_title": "Thank you!",
     "success_message": "We have received your message and will get back to you shortly.",
+
     "findus_title": "Find Us",
+    "findus_subtitle": "Visit us in the heart of Christianshavn, Copenhagen.",
+    "findus_studio": "Yoga Bible Studio",
+    "findus_directions": "Open in maps",
+    "findus_directions_url": "https://maps.apple.com/?q=Torvegade%2066,%201400,%20K%C3%B8benhavn%20K",
+
     "js_antispam_error": "Please enter the anti-spam word correctly (type: NAMASTE).",
     "js_wait_error": "Please wait a moment and try again.",
-    "js_sending": "Sending…",
-    "hero_tagline": "Yoga Bible · Contact"
+    "js_sending": "Sending…"
   }
 }
