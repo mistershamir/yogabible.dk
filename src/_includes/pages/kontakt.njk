@@ -1,6 +1,8 @@
 {% set t = i18n.kontakt[lang or "da"] %}
 
-<!-- Hero -->
+<!-- ═══════════════════════════════════════════════════════════════
+     HERO — Dark Cinematic with Breathing Glow
+     ═══════════════════════════════════════════════════════════════ -->
 <section class="yb-hero">
   <div class="yb-hero__glow"></div>
   <div class="yb-hero__content">
@@ -9,9 +11,9 @@
     <p class="yb-hero__subtitle">{{ t.hero_subtitle }}</p>
     <div class="yb-hero__line"></div>
     <div class="yb-hero__trust">
-      <span>+45 53 88 12 09</span>
+      <span>{{ site.phone }}</span>
       <span class="yb-hero__trust-dot"></span>
-      <span>info@yogabible.dk</span>
+      <span>{{ site.email }}</span>
       <span class="yb-hero__trust-dot"></span>
       <span>Torvegade 66, København K</span>
     </div>
@@ -22,53 +24,183 @@
   </div>
 </section>
 
-<!-- Contact Info -->
-<section class="program-overview">
+<!-- ═══════════════════════════════════════════════════════════════
+     INTRO + CONTACT DETAILS — Split Layout (Image + Copy)
+     ═══════════════════════════════════════════════════════════════ -->
+<section class="yb-kontakt-intro">
   <div class="container">
-    <p class="section-subtitle">
-      {{ t.overview_text }}
-    </p>
+    <div class="yb-kontakt-split">
+      <!-- Left: Studio Photo -->
+      <figure class="yb-kontakt-photo yb-fade-in">
+        <img src="https://www.yogabible.dk/s/DSC_8528.jpg"
+             alt="Yoga Bible studio, Christianshavn"
+             loading="lazy" decoding="async"
+             width="600" height="800">
+      </figure>
+
+      <!-- Right: Intro Copy + Contact Details -->
+      <div class="yb-kontakt-copy yb-fade-in">
+        <p class="yb-kontakt-eyebrow">{{ t.intro_eyebrow }}</p>
+        <h2 class="yb-kontakt-heading">{{ t.intro_heading }}</h2>
+        <p class="yb-kontakt-text">{{ t.intro_text | safe }}</p>
+
+        <div class="yb-kontakt-details">
+          <div class="yb-kontakt-detail">
+            <span class="yb-kontakt-detail__label">{{ t.intro_phone_label }}</span>
+            <a href="tel:{{ site.phone | replace(' ', '') }}" class="yb-kontakt-detail__value">{{ site.phone }}</a>
+          </div>
+          <div class="yb-kontakt-detail">
+            <span class="yb-kontakt-detail__label">{{ t.intro_email_label }}</span>
+            <a href="mailto:{{ site.email }}" class="yb-kontakt-detail__value">{{ site.email }}</a>
+          </div>
+          <div class="yb-kontakt-detail">
+            <span class="yb-kontakt-detail__label">{{ t.intro_address_label }}</span>
+            <a href="{{ t.findus_directions_url }}" target="_blank" rel="noopener" class="yb-kontakt-detail__value">{{ t.intro_address }}</a>
+          </div>
+          <div class="yb-kontakt-detail">
+            <span class="yb-kontakt-detail__label">{{ t.intro_hours_label }}</span>
+            <span class="yb-kontakt-detail__value">{{ t.intro_hours }}</span>
+          </div>
+        </div>
+
+        <hr class="yb-kontakt-sep">
+
+        <p class="yb-kontakt-studio">{{ t.intro_studio | safe }}</p>
+      </div>
+    </div>
   </div>
 </section>
 
-<!-- Contact Form -->
-<section class="program-schedule">
+<!-- ═══════════════════════════════════════════════════════════════
+     OUR STUDIO — Video + Copy + Feature Cards + Image Gallery
+     ═══════════════════════════════════════════════════════════════ -->
+<section class="yb-kontakt-studio-section">
   <div class="container">
-    <h2 class="section-title">{{ t.form_title }}</h2>
+    <p class="yb-kontakt-eyebrow yb-fade-in" style="text-align:center">{{ t.studio_eyebrow }}</p>
+    <h2 class="section-title yb-fade-in">{{ t.studio_title }}</h2>
+    <p class="section-subtitle yb-fade-in">{{ t.studio_subtitle }}</p>
 
-    <div class="yb-contact-form-wrap">
-      <form id="ybForm" class="yb-contact-form" novalidate
+    <!-- Video + Copy split -->
+    <div class="yb-kontakt-studio-split yb-fade-in">
+      <div class="yb-kontakt-studio-media">
+        <div class="yb-kontakt-studio-video">
+          <video autoplay muted loop playsinline preload="metadata"
+                 poster="{{ t.studio_video_poster }}">
+            <source src="{{ t.studio_video_src }}" type="video/mp4">
+          </video>
+        </div>
+      </div>
+      <div class="yb-kontakt-studio-copy">
+        <p class="yb-kontakt-text">{{ t.studio_text | safe }}</p>
+        <div class="yb-kontakt-studio-features">
+          <div class="yb-kontakt-studio-feat">
+            <span class="yb-kontakt-studio-feat__icon">{{ t.studio_feat1_icon }}</span>
+            <div>
+              <strong>{{ t.studio_feat1_title }}</strong>
+              <span>{{ t.studio_feat1_desc }}</span>
+            </div>
+          </div>
+          <div class="yb-kontakt-studio-feat">
+            <span class="yb-kontakt-studio-feat__icon">{{ t.studio_feat2_icon }}</span>
+            <div>
+              <strong>{{ t.studio_feat2_title }}</strong>
+              <span>{{ t.studio_feat2_desc }}</span>
+            </div>
+          </div>
+          <div class="yb-kontakt-studio-feat">
+            <span class="yb-kontakt-studio-feat__icon">{{ t.studio_feat3_icon }}</span>
+            <div>
+              <strong>{{ t.studio_feat3_title }}</strong>
+              <span>{{ t.studio_feat3_desc }}</span>
+            </div>
+          </div>
+          <div class="yb-kontakt-studio-feat">
+            <span class="yb-kontakt-studio-feat__icon">{{ t.studio_feat4_icon }}</span>
+            <div>
+              <strong>{{ t.studio_feat4_title }}</strong>
+              <span>{{ t.studio_feat4_desc }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Horizontal scroll image gallery -->
+    <div class="yb-kontakt-gallery yb-fade-in">
+      <h3 class="yb-kontakt-gallery__title">{{ t.studio_gallery_title }}</h3>
+      <div class="yb-kontakt-gallery__track" id="ybStudioGallery">
+        <div class="yb-kontakt-gallery__slide">
+          <img src="/assets/images/studio/studio-hot-room.jpg" alt="{{ t.studio_img1_alt }}" loading="lazy" decoding="async">
+        </div>
+        <div class="yb-kontakt-gallery__slide">
+          <img src="/assets/images/studio/studio-main-room.jpg" alt="{{ t.studio_img2_alt }}" loading="lazy" decoding="async">
+        </div>
+        <div class="yb-kontakt-gallery__slide">
+          <img src="/assets/images/copenhagen/christianshavn-canal.jpg" alt="{{ t.studio_img3_alt }}" loading="lazy" decoding="async">
+        </div>
+        <div class="yb-kontakt-gallery__slide">
+          <img src="https://www.yogabible.dk/s/DSC_8528.jpg" alt="{{ t.studio_img4_alt }}" loading="lazy" decoding="async">
+        </div>
+        <div class="yb-kontakt-gallery__slide">
+          <img src="/assets/images/copenhagen/copenhagen-hero.jpg" alt="{{ t.studio_img5_alt }}" loading="lazy" decoding="async">
+        </div>
+      </div>
+      <!-- Navigation arrows -->
+      <div class="yb-kontakt-gallery__nav">
+        <button class="yb-kontakt-gallery__arrow yb-kontakt-gallery__arrow--prev" aria-label="Previous" type="button">&#8592;</button>
+        <button class="yb-kontakt-gallery__arrow yb-kontakt-gallery__arrow--next" aria-label="Next" type="button">&#8594;</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     CONTACT FORM
+     ═══════════════════════════════════════════════════════════════ -->
+<section class="yb-kontakt-form-section">
+  <div class="container">
+    <h2 class="section-title yb-fade-in">{{ t.form_title }}</h2>
+    <p class="section-subtitle yb-fade-in">{{ t.form_subtitle }}</p>
+
+    <div class="yb-kontakt-form-card yb-fade-in">
+      <form id="ybForm" class="yb-kontakt-form" novalidate
         data-msg-antispam="{{ t.js_antispam_error }}"
         data-msg-wait="{{ t.js_wait_error }}"
         data-msg-sending="{{ t.js_sending }}"
         data-msg-submit="{{ t.submit_btn }}">
-        <input class="yb-modal-u__hp" type="text" name="website" tabindex="-1" autocomplete="off" aria-hidden="true" style="position:absolute;left:-9999px">
+
+        <!-- Honeypot -->
+        <input class="yb-kontakt-hp" type="text" name="website" tabindex="-1" autocomplete="off" aria-hidden="true">
+        <!-- Timing -->
         <input type="hidden" name="yb_ts" id="ybTs">
         <input type="hidden" name="yb_elapsed" id="ybElapsed">
 
-        <div class="yb-modal-u__grid">
-          <label class="yb-modal-u__field">
+        <!-- Name row (2-col) -->
+        <div class="yb-kontakt-form__grid">
+          <label class="yb-kontakt-field">
             <span>{{ t.label_firstname }}</span>
             <input type="text" name="firstName" id="ybFirstName" required>
           </label>
-
-          <label class="yb-modal-u__field">
+          <label class="yb-kontakt-field">
             <span>{{ t.label_lastname }}</span>
             <input type="text" name="lastName" id="ybLastName" required>
           </label>
+        </div>
 
-          <label class="yb-modal-u__field">
+        <!-- Email + Phone row (2-col) -->
+        <div class="yb-kontakt-form__grid">
+          <label class="yb-kontakt-field">
             <span>{{ t.label_email }}</span>
-            <input type="email" name="email" id="ybEmail" required>
+            <input type="email" name="email" id="ybEmail" inputmode="email" required>
           </label>
-
-          <label class="yb-modal-u__field">
+          <label class="yb-kontakt-field">
             <span>{{ t.label_phone }}</span>
-            <input type="tel" name="phone" id="ybPhone" required>
+            <input type="tel" name="phone" id="ybPhone" inputmode="tel" required>
           </label>
         </div>
 
-        <label class="yb-modal-u__field">
+        <!-- Topic (full-width) -->
+        <label class="yb-kontakt-field">
           <span>{{ t.label_topic }}</span>
           <select name="topic" id="ybTopic" required>
             <option value="">{{ t.topic_placeholder }}</option>
@@ -80,25 +212,30 @@
           </select>
         </label>
 
-        <label class="yb-modal-u__field">
+        <!-- Anti-spam (full-width) -->
+        <label class="yb-kontakt-field">
           <span>{{ t.label_antispam }}</span>
-          <input type="text" name="antispam" id="ybAntispam" required autocomplete="off">
+          <input type="text" name="antispam" id="ybAntispam" required autocomplete="off" placeholder="NAMASTE">
         </label>
 
-        <label class="yb-modal-u__field">
+        <!-- Message (full-width) -->
+        <label class="yb-kontakt-field">
           <span>{{ t.label_message }}</span>
-          <textarea name="message" id="ybMessage" rows="5" required></textarea>
+          <textarea name="message" id="ybMessage" rows="6" required placeholder="{{ t.message_placeholder }}"></textarea>
         </label>
 
-        <p class="yb-modal-u__fine">{{ t.required_note }}</p>
+        <p class="yb-kontakt-fine">{{ t.required_note }}</p>
 
-        <p id="ybFormError" class="yb-modal-u__error" hidden></p>
+        <!-- Error -->
+        <p id="ybFormError" class="yb-kontakt-error" hidden role="alert" aria-live="polite"></p>
 
-        <button id="ybSubmitBtn" class="yb-btn yb-btn--cta" type="submit">{{ t.submit_btn }}</button>
+        <!-- Submit -->
+        <button id="ybSubmitBtn" class="yb-btn yb-btn--primary yb-btn--full" type="submit">{{ t.submit_btn }}</button>
       </form>
 
-      <div id="ybFormSuccess" class="yb-modal-u__success" hidden role="status" aria-live="polite">
-        <div class="yb-modal-u__success-icon">&#10003;</div>
+      <!-- Success -->
+      <div id="ybFormSuccess" class="yb-kontakt-success" hidden role="status" aria-live="polite">
+        <div class="yb-kontakt-success__icon">&#10003;</div>
         <h3>{{ t.success_title }}</h3>
         <p>{{ t.success_message }}</p>
       </div>
@@ -106,58 +243,80 @@
   </div>
 </section>
 
-<!-- Find Us -->
-<section class="program-overview">
+<!-- ═══════════════════════════════════════════════════════════════
+     FIND US — Location Card
+     ═══════════════════════════════════════════════════════════════ -->
+<section class="yb-kontakt-findus">
   <div class="container">
-    <h2 class="section-title">{{ t.findus_title }}</h2>
-    <div class="schedule-options">
-      <div class="schedule-card" style="text-align:center">
-        <h3>Yoga Bible</h3>
-        <p>
-          <a href="https://maps.apple.com/?q=Torvegade%2066,%201400,%20K%C3%B8benhavn%20K" target="_blank" rel="noopener">
-            Torvegade 66<br>1400 København K
-          </a>
-        </p>
-        <p><a href="tel:+4553881209">+45 53 88 12 09</a></p>
-        <p><a href="mailto:{{ site.email }}">{{ site.email }}</a></p>
+    <h2 class="section-title yb-fade-in">{{ t.findus_title }}</h2>
+    <p class="section-subtitle yb-fade-in">{{ t.findus_subtitle }}</p>
+
+    <div class="yb-kontakt-location yb-fade-in">
+      <div class="yb-kontakt-location__card">
+        <h3 class="yb-kontakt-location__name">{{ t.findus_studio }}</h3>
+        <div class="yb-kontakt-location__info">
+          <p>
+            <strong>{{ t.intro_address_label }}</strong><br>
+            {{ t.intro_address }}
+          </p>
+          <p>
+            <strong>{{ t.intro_phone_label }}</strong><br>
+            <a href="tel:{{ site.phone | replace(' ', '') }}">{{ site.phone }}</a>
+          </p>
+          <p>
+            <strong>{{ t.intro_email_label }}</strong><br>
+            <a href="mailto:{{ site.email }}">{{ site.email }}</a>
+          </p>
+          <p>
+            <strong>{{ t.intro_hours_label }}</strong><br>
+            {{ t.intro_hours }}
+          </p>
+        </div>
+        <a href="{{ t.findus_directions_url }}" target="_blank" rel="noopener" class="yb-btn yb-btn--primary">
+          {{ t.findus_directions }} →
+        </a>
       </div>
     </div>
   </div>
 </section>
 
+<!-- ═══════════════════════════════════════════════════════════════
+     KONTAKT FORM JS — Anti-spam, honeypot, time-trap
+     ═══════════════════════════════════════════════════════════════ -->
 <script>
 (function() {
   'use strict';
-  const FORM_URL = 'https://script.google.com/macros/s/AKfycbwQ1re_EuGYRKfa8yDsObFxIL2h9qXudpBZ477tT__CYxVBTgkuao-02iOtr0YvMdEu/exec';
-  const form = document.getElementById('ybForm');
-  const errBox = document.getElementById('ybFormError');
-  const successBox = document.getElementById('ybFormSuccess');
-  const submitBtn = document.getElementById('ybSubmitBtn');
-  const tsField = document.getElementById('ybTs');
-  const elField = document.getElementById('ybElapsed');
+  var FORM_URL = 'https://script.google.com/macros/s/AKfycbwQ1re_EuGYRKfa8yDsObFxIL2h9qXudpBZ477tT__CYxVBTgkuao-02iOtr0YvMdEu/exec';
+  var form = document.getElementById('ybForm');
+  var errBox = document.getElementById('ybFormError');
+  var successBox = document.getElementById('ybFormSuccess');
+  var submitBtn = document.getElementById('ybSubmitBtn');
+  var tsField = document.getElementById('ybTs');
+  var elField = document.getElementById('ybElapsed');
 
   if (!form) return;
 
   var MSG_ANTISPAM = form.getAttribute('data-msg-antispam') || 'Udfyld venligst anti-spam korrekt (skriv: NAMASTE).';
-  var MSG_WAIT = form.getAttribute('data-msg-wait') || 'Vent venligst et øjeblik og prøv igen.';
+  var MSG_WAIT = form.getAttribute('data-msg-wait') || 'Vent venligst et \u00f8jeblik og pr\u00f8v igen.';
   var MSG_SENDING = form.getAttribute('data-msg-sending') || 'Sender\u2026';
   var MSG_SUBMIT = form.getAttribute('data-msg-submit') || 'Send henvendelse';
 
-  const loadTime = Date.now();
+  var loadTime = Date.now();
   if (tsField) tsField.value = loadTime;
 
   form.addEventListener('submit', function(e) {
     e.preventDefault();
     if (errBox) errBox.hidden = true;
 
-    const elapsed = Date.now() - loadTime;
+    var elapsed = Date.now() - loadTime;
     if (elField) elField.value = elapsed;
 
     // Anti-spam check
-    const antispam = document.getElementById('ybAntispam').value.trim().toUpperCase();
-    if (antispam !== 'NAMASTE') {
+    var antispam = document.getElementById('ybAntispam');
+    if (!antispam || antispam.value.trim().toUpperCase() !== 'NAMASTE') {
       errBox.textContent = MSG_ANTISPAM;
       errBox.hidden = false;
+      if (antispam) antispam.focus();
       return;
     }
 
@@ -169,13 +328,16 @@
     }
 
     // Honeypot check
-    const hp = form.querySelector('[name="website"]');
+    var hp = form.querySelector('[name="website"]');
     if (hp && hp.value) return;
+
+    // Native validation
+    if (!form.reportValidity()) return;
 
     submitBtn.disabled = true;
     submitBtn.textContent = MSG_SENDING;
 
-    const data = new FormData(form);
+    var data = new FormData(form);
     data.append('action', 'contact');
 
     fetch(FORM_URL, {
@@ -188,7 +350,58 @@
       submitBtn.textContent = MSG_SUBMIT;
       form.hidden = true;
       successBox.hidden = false;
+
+      // Reset after 6 seconds
+      setTimeout(function() {
+        form.reset();
+        successBox.hidden = true;
+        if (tsField) tsField.value = Date.now();
+        form.hidden = false;
+      }, 6000);
     });
+  });
+})();
+</script>
+
+<!-- Studio gallery navigation -->
+<script>
+(function() {
+  var track = document.getElementById('ybStudioGallery');
+  if (!track) return;
+  var prevBtn = track.parentElement.querySelector('.yb-kontakt-gallery__arrow--prev');
+  var nextBtn = track.parentElement.querySelector('.yb-kontakt-gallery__arrow--next');
+  var scrollAmount = 340;
+
+  if (prevBtn) {
+    prevBtn.addEventListener('click', function() {
+      track.scrollBy({ left: -scrollAmount, behavior: 'smooth' });
+    });
+  }
+  if (nextBtn) {
+    nextBtn.addEventListener('click', function() {
+      track.scrollBy({ left: scrollAmount, behavior: 'smooth' });
+    });
+  }
+})();
+</script>
+
+<!-- Scroll-triggered fade-in observer -->
+<script>
+(function() {
+  if (!('IntersectionObserver' in window)) {
+    document.querySelectorAll('.yb-fade-in').forEach(function(el) { el.classList.add('yb-visible'); });
+    return;
+  }
+  var fadeObserver = new IntersectionObserver(function(entries) {
+    entries.forEach(function(entry) {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('yb-visible');
+        fadeObserver.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.1, rootMargin: '0px 0px -40px 0px' });
+  document.querySelectorAll('.yb-fade-in').forEach(function(el) {
+    fadeObserver.observe(el);
   });
 })();
 </script>

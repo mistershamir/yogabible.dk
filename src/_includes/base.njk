@@ -5,14 +5,6 @@
 </head>
 
 <body{% if bodyClass %} class="{{ bodyClass }}"{% endif %}>
-  <!-- Embed detection: hide chrome when loaded inside an iframe -->
-  <script>(function(){if(window.self!==window.top){document.documentElement.classList.add('yb-embed');var p=new URLSearchParams(window.location.search);if(p.get('minimal')==='1')document.documentElement.classList.add('yb-embed-minimal');}})();</script>
-  <style>
-    html.yb-embed .yb-header,html.yb-embed .yb-footer,html.yb-embed .yb-cookie,html.yb-embed #yb-cookie-banner{display:none!important}
-    html.yb-embed-minimal .yb-profile__hero,html.yb-embed-minimal .yb-profile__tabs{display:none!important}
-    html.yb-embed-minimal .yb-profile__guest{display:none!important}
-  </style>
-
   <!-- GTM noscript — injected by consent manager when accepted -->
   <noscript id="yb-gtm-noscript"></noscript>
 
@@ -36,6 +28,11 @@
   {% if includeOm200Styles %}
     <link rel="stylesheet" href="/css/om200.css">
     <script src="/js/om200.js" defer></script>
+  {% endif %}
+
+  {% if includeCBStyles %}
+    <link rel="stylesheet" href="/css/cb.css">
+    <script src="/js/cb.js" defer></script>
   {% endif %}
 
   {% if includeCoursesModal %}
