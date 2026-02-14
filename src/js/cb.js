@@ -40,7 +40,9 @@
      1. BUNDLE BUILDER
   ═══════════════════════════════════════════════ */
 
-  var selectedMonth = null;
+  /* Pre-select month from any chip that's already active in the HTML */
+  var preActiveChip = document.querySelector('.cb-chip[data-month].is-active');
+  var selectedMonth = preActiveChip ? preActiveChip.getAttribute('data-month') : null;
   var selectedCourses = [];
 
   /* DOM nodes */

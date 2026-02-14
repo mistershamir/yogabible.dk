@@ -2,23 +2,49 @@
 {% set lp = "/en" if lang == "en" else "" %}
 
 {# =========================================================
-   SECTION 1: HERO — Split with image + builder card
+   PRIMARY HERO — Dark Cinematic with Breathing Glow
+   (Matches inversions/splits/backbends hero pattern)
 ========================================================= #}
-<section class="cb-hero" id="coursebuilder" aria-label="{{ t.hero_title }}">
+<section class="yb-hero">
+  <div class="yb-hero__glow"></div>
+  <div class="yb-hero__content">
+    <p class="yb-hero__tagline">{{ t.hero_tagline }}</p>
+    <h1 class="yb-hero__title">{{ t.hero_title | safe }}</h1>
+    <p class="yb-hero__subtitle">{{ t.hero_subtitle }}</p>
+    <div class="yb-hero__line"></div>
+    <div class="yb-hero__ctas">
+      <a href="#coursebuilder" class="yb-btn yb-btn--primary yb-btn--large">{{ t.hero_cta_build }}</a>
+      <button type="button" data-ybc-open="brochure" data-ybc-course="Inversions, Splits, Backbends" data-ybc-source="Course Bundles – hero" class="yb-btn yb-btn--outline-white yb-btn--large">{{ t.hero_btn_schedule }}</button>
+    </div>
+    <div class="yb-hero__trust">
+      <span>{{ t.hero_trust1 }}</span>
+      <span class="yb-hero__trust-dot"></span>
+      <span>{{ t.hero_trust2 }}</span>
+      <span class="yb-hero__trust-dot"></span>
+      <span>{{ t.hero_trust3 }}</span>
+    </div>
+  </div>
+  <div class="yb-hero__scroll">
+    <span>Scroll</span>
+    <div class="yb-hero__scroll-line"></div>
+  </div>
+</section>
+
+{# =========================================================
+   SECTION 1: BUILDER — Bundle card + accommodation mini
+========================================================= #}
+<section class="cb-hero" id="coursebuilder" aria-label="{{ t.builder_section_eyebrow }}">
   <div class="cb-inner">
     <div class="cb-hero__top">
       {# LEFT: Copy #}
       <div class="cb-hero__content">
-        <p class="cb-eyebrow">{{ t.hero_eyebrow }}</p>
-        <h1 class="cb-hero__title">{{ t.hero_title }}</h1>
-        <p class="cb-hero__sub">{{ t.hero_sub }}</p>
-        <p class="cb-hero__kicker">{{ t.hero_kicker }}</p>
-        <p class="cb-hero__lead">{{ t.hero_lead | safe }}</p>
-        <p class="cb-hero__meta">{{ t.hero_meta | safe }}<br><span class="cb-hero__fine">{{ t.hero_meta_fine | safe }}</span></p>
+        <p class="cb-eyebrow">{{ t.builder_section_eyebrow }}</p>
+        <h2 class="cb-hero__title" style="font-size:clamp(2rem,5vw,3rem)">{{ t.builder_section_lead | safe }}</h2>
       </div>
       {# RIGHT: Media #}
       <figure class="cb-hero__media" aria-hidden="true">
-        <img src="/s/Course_Bundles_Inversion_Backbends_Splits_Kbenhavn_Copenhagen.jpg" alt="" loading="eager" decoding="async" width="640" height="520">
+        <img src="/assets/images/course-bundles/hero.jpg" alt="" loading="lazy" decoding="async" width="640" height="520"
+          onerror="this.src='/s/Course_Bundles_Inversion_Backbends_Splits_Kbenhavn_Copenhagen.jpg'">
         <span class="cb-hero__frame"></span>
       </figure>
     </div>
@@ -32,15 +58,11 @@
           <h3 class="cb-card__head-title">{{ t.builder_title }}</h3>
         </div>
         <div class="cb-card__body">
-          {# Months #}
+          {# Month — April only #}
           <div class="cb-block">
             <p class="cb-block__title">{{ t.builder_month_label }}</p>
             <div class="cb-chips" role="tablist" aria-label="{{ t.builder_month_label }}">
-              <button class="cb-chip" type="button" data-month="Februar 2026">Februar 2026</button>
-              <button class="cb-chip" type="button" data-month="Marts 2026">Marts 2026</button>
-              <button class="cb-chip" type="button" data-month="April 2026">April 2026</button>
-              <button class="cb-chip" type="button" data-month="Maj 2026">Maj 2026</button>
-              <button class="cb-chip cb-chip--muted" type="button" data-month="Ikke sikker endnu">{{ t.builder_month_unsure }}</button>
+              <button class="cb-chip is-active" type="button" data-month="April 2026">April 2026</button>
             </div>
           </div>
           {# Courses #}
