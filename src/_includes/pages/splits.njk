@@ -1,16 +1,19 @@
 {% set t = i18n.splits[lang or "da"] %}
+{% set lp = "/en" if lang == "en" else "" %}
 
-<!-- Hero -->
+<!-- ═══════════════════════════════════════════════════════════════
+     PRIMARY HERO — Dark Cinematic with Breathing Glow
+     ═══════════════════════════════════════════════════════════════ -->
 <section class="yb-hero">
   <div class="yb-hero__glow"></div>
   <div class="yb-hero__content">
     <p class="yb-hero__tagline">{{ t.hero_tagline }}</p>
-    <h1 class="yb-hero__title">{{ t.hero_title }}</h1>
-    <p class="yb-hero__subtitle">{{ t.hero_subtitle }}</p>
+    <h1 class="yb-hero__title">{{ t.hero_title | safe }}</h1>
+    <p class="yb-hero__subtitle">{{ t.hero_lead }}</p>
     <div class="yb-hero__line"></div>
     <div class="yb-hero__ctas">
-      <a href="#course-months" class="yb-btn yb-btn--primary yb-btn--large">{{ t.hero_cta_signup }}</a>
-      <a href="#course-details" class="yb-btn yb-btn--outline-white yb-btn--large">{{ t.hero_cta_more }}</a>
+      <a href="#course-months" class="yb-btn yb-btn--primary yb-btn--large">{{ t.hero_cta_prefix }} ›</a>
+      <button type="button" data-ybc-open="brochure" data-ybc-course="Splits" data-ybc-source="Splits – hero" class="yb-btn yb-btn--outline-white yb-btn--large">{{ t.hero_btn_schedule }}</button>
     </div>
     <div class="yb-hero__trust">
       <span>{{ t.hero_trust1 }}</span>
@@ -26,172 +29,936 @@
   </div>
 </section>
 
-<!-- Course Overview -->
-<section class="program-overview" id="course-details">
-  <div class="container">
-    <h2 class="section-title">{{ t.overview_title }}</h2>
-    <p class="section-subtitle">
-      {{ t.overview_subtitle }}
-    </p>
+<!-- ═══════════════════════════════════════════════════════════════
+     SECTION 1 — COURSE DETAILS HERO
+     ═══════════════════════════════════════════════════════════════ -->
+<section id="ybS-hero" class="ybS-hero" aria-label="{{ t.hero_aria_label }}">
+  <div class="ybS-hero__inner">
 
-    <div class="program-grid">
-      <div class="program-feature">
-        <div class="program-feature__icon">&#127959;&#65039;</div>
-        <h3>{{ t.feat1_title }}</h3>
-        <p>{{ t.feat1_desc }}</p>
-      </div>
+    <!-- LEFT: Text -->
+    <div class="ybS-hero__content">
+      <p class="ybS-eyebrow">{{ t.hero_eyebrow }}</p>
 
-      <div class="program-feature">
-        <div class="program-feature__icon">&#128170;</div>
-        <h3>{{ t.feat2_title }}</h3>
-        <p>{{ t.feat2_desc }}</p>
-      </div>
+      <h2 class="ybS-title">
+        {{ t.hero_title | safe }}
+      </h2>
 
-      <div class="program-feature">
-        <div class="program-feature__icon">&#127754;</div>
-        <h3>{{ t.feat3_title }}</h3>
-        <p>{{ t.feat3_desc }}</p>
-      </div>
+      <p class="ybS-sub">{{ t.hero_sub }}</p>
+      <p class="ybS-kicker">{{ t.hero_kicker }}</p>
 
-      <div class="program-feature">
-        <div class="program-feature__icon">&#128293;</div>
-        <h3>{{ t.feat4_title }}</h3>
-        <p>{{ t.feat4_desc }}</p>
-      </div>
+      <p class="ybS-lead">
+        {{ t.hero_lead }}
+      </p>
 
-      <div class="program-feature">
-        <div class="program-feature__icon">&#129496;</div>
-        <h3>{{ t.feat5_title }}</h3>
-        <p>{{ t.feat5_desc }}</p>
-      </div>
+      <p class="ybS-meta">
+        {{ t.hero_meta | safe }}
+      </p>
 
-      <div class="program-feature">
-        <div class="program-feature__icon">&#129330;</div>
-        <h3>{{ t.feat6_title }}</h3>
-        <p>{{ t.feat6_desc }}</p>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- Session Content -->
-<section class="program-schedule">
-  <div class="container">
-    <h2 class="section-title">{{ t.schedule_title }}</h2>
-    <p class="section-subtitle">{{ t.schedule_subtitle }}</p>
-
-    <div class="schedule-options">
-      <div class="schedule-card">
-        <h3>{{ t.schedule_card1_title }}</h3>
-        <ul>
-          <li>{{ t.schedule_card1_item1 }}</li>
-          <li>{{ t.schedule_card1_item2 }}</li>
-          <li>{{ t.schedule_card1_item3 }}</li>
-        </ul>
-      </div>
-      <div class="schedule-card">
-        <h3>{{ t.schedule_card2_title }}</h3>
-        <ul>
-          <li>{{ t.schedule_card2_item1 }}</li>
-          <li>{{ t.schedule_card2_item2 }}</li>
-          <li>{{ t.schedule_card2_item3 }}</li>
-        </ul>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- Month Selector & Pricing -->
-<section class="program-investment" id="course-months">
-  <div class="container">
-    <h2 class="section-title">{{ t.invest_title }}</h2>
-
-    <div class="investment-box">
-      <div class="investment-price">
-        <span class="investment-price__amount">{{ t.invest_price }}</span>
-        <span class="investment-price__label">{{ t.invest_price_label }}</span>
-      </div>
-
-      <div class="investment-includes">
-        <h4>{{ t.invest_includes_title }}</h4>
-        <ul>
-          <li>{{ t.invest_item1 }}</li>
-          <li>{{ t.invest_item2 }}</li>
-          <li>{{ t.invest_item3 }}</li>
-          <li>{{ t.invest_item4 }}</li>
-        </ul>
-        <p style="margin-top:12px; color: var(--yb-muted);">{{ t.invest_dropin }}</p>
-      </div>
-
-      <div class="investment-payment">
-        <p><strong>{{ t.invest_month_label }}</strong></p>
-        <div class="yb-month-chips" id="ybSplitsMonths">
-          <label class="yb-month-chip"><input type="radio" name="splitsMonth" value="feb" data-link="https://clients.mindbodyonline.com/classic/ws?studioid=5748831&stype=41&sTG=43&prodId=100147"><span>Februar 2026</span></label>
-          <label class="yb-month-chip"><input type="radio" name="splitsMonth" value="mar"><span>Marts 2026</span></label>
-          <label class="yb-month-chip"><input type="radio" name="splitsMonth" value="apr"><span>April 2026</span></label>
-          <label class="yb-month-chip"><input type="radio" name="splitsMonth" value="maj"><span>Maj 2026</span></label>
+      <!-- Pricing pill -->
+      <div class="ybS-price">
+        <div class="ybS-price__row">
+          <span class="ybS-price__label">{{ t.hero_price_label }}</span>
+          <span class="ybS-price__value">{{ t.hero_price_value }}</span>
+          <span class="ybS-price__hint">{{ t.hero_price_hint }}</span>
+        </div>
+        <div class="ybS-price__row">
+          <span class="ybS-price__label">{{ t.hero_dropin_label }}</span>
+          <span class="ybS-price__value">{{ t.hero_dropin_value }}</span>
         </div>
       </div>
 
-      <a id="ybSplitsCta" class="btn btn--large btn--primary" href="https://clients.mindbodyonline.com/classic/ws?studioid=5748831&stype=41&sTG=43&prodId=100147" target="_blank" rel="noopener">{{ t.invest_cta }}</a>
+      <!-- Month chip (April 2026 only) -->
+      <div class="ybS-months" id="course-months" role="tablist" aria-label="{{ t.hero_months_aria }}">
+        <button class="ybS-chip is-active" data-month="April 2026"
+                data-href="https://clients.mindbodyonline.com/classic/ws?studioid=5748831&stype=41&sTG=43&prodId=100150">April 2026</button>
+      </div>
+
+      <!-- CTAs -->
+      <div class="ybS-ctas">
+        <button
+          id="ybS-openModal"
+          class="ybS-btn ybS-btn--outline"
+          type="button"
+          data-ybc-open="brochure"
+          data-ybc-course="Splits"
+          data-ybc-source="Splits – landing page"
+        >{{ t.hero_btn_schedule }}</button>
+        <a id="ybS-ctaMain" class="ybS-btn"
+           href="https://clients.mindbodyonline.com/classic/ws?studioid=5748831&stype=41&sTG=43&prodId=100150"
+           target="_blank" rel="noopener noreferrer nofollow">
+          {{ t.hero_cta_prefix }} april 2026{{ t.hero_cta_suffix }}
+        </a>
+      </div>
+    </div>
+
+    <!-- RIGHT: Media -->
+    <figure class="ybS-hero__media" aria-hidden="true">
+      <img
+        src="https://www.yogabible.dk/s/Splits_Course_Kursus_Kbenhavn_Copenhagen_Yoga_Bible.jpg"
+        alt="{{ t.hero_img_alt }}"
+        loading="eager" decoding="async">
+      <span class="ybS-frame"></span>
+    </figure>
+  </div>
+</section>
+
+<style>
+  #ybS-hero{
+    --ybS-accent:#f75c03;
+    --ybS-accent-dark:#d64d00;
+    --ybS-ink:#0f0f0f;
+    --ybS-muted:#5b5f67;
+    --ybS-bg:#fff;
+    --ybS-ring:rgba(247,92,3,.30);
+    --ybS-radius:20px;
+    --ybS-gutter:clamp(18px,4vw,28px);
+  }
+  #ybS-hero.ybS-hero{
+    font-family:"Helvetica Neue",Helvetica,Arial,system-ui,-apple-system,sans-serif;
+    background:
+      radial-gradient(80% 60% at 20% 10%,rgba(247,92,3,.06),transparent 60%),
+      linear-gradient(#fff,#fff);
+    color:var(--ybS-ink);
+    padding-block:clamp(48px,6vw,96px);
+  }
+  #ybS-hero .ybS-hero__inner{
+    width:min(1120px,100%);
+    margin:0 auto;
+    padding-inline:var(--ybS-gutter);
+    display:grid;
+    grid-template-columns:1fr;
+    gap:clamp(22px,4vw,48px);
+    align-items:center;
+    box-sizing:border-box;
+  }
+  #ybS-hero .ybS-hero__content{max-width:640px;margin-inline:auto;}
+  @media(min-width:920px){
+    #ybS-hero .ybS-hero__inner{grid-template-columns:1.1fr 0.9fr;gap:clamp(32px,5vw,72px);}
+    #ybS-hero .ybS-hero__content{max-width:none;margin-inline:0;}
+  }
+  #ybS-hero .ybS-eyebrow{
+    margin:0 0 .35rem;text-transform:uppercase;letter-spacing:.12em;
+    font-size:.82rem;color:var(--ybS-accent);font-weight:800;
+  }
+  #ybS-hero .ybS-title{
+    margin:0;font-weight:900;letter-spacing:-.01em;line-height:1.02;
+    font-size:clamp(2.2rem,6.5vw,4.2rem);
+  }
+  #ybS-hero .hide-sm{display:none;}
+  @media(min-width:560px){ #ybS-hero .hide-sm{display:inline;} }
+  #ybS-hero .ybS-sub{
+    margin:.15rem 0 0;font-weight:800;letter-spacing:.08em;
+    font-size:clamp(.9rem,1.7vw,1rem);text-transform:uppercase;color:#1f242b;opacity:.95;
+  }
+  #ybS-hero .ybS-kicker{
+    margin:.25rem 0 .85rem;text-transform:uppercase;letter-spacing:.14em;
+    font-weight:750;font-size:.82rem;color:var(--ybS-muted);
+  }
+  #ybS-hero .ybS-lead{
+    margin:.2rem 0 .6rem;max-width:60ch;font-size:clamp(1rem,2.1vw,1.125rem);color:#222;
+  }
+  #ybS-hero .ybS-meta{margin:0 0 1rem;color:#333;opacity:.95;}
+  #ybS-hero .ybS-price{
+    display:inline-flex;flex-direction:column;gap:.25rem;
+    width:fit-content;background:#fff;border:1px solid #eff2f5;
+    border-radius:12px;box-shadow:0 6px 16px rgba(0,0,0,.05);
+    padding:.5rem .7rem;margin:.3rem 0 .9rem;
+    font-size:.94rem;line-height:1.35;
+  }
+  #ybS-hero .ybS-price__row{display:flex;flex-wrap:wrap;align-items:baseline;gap:.45rem .6rem;}
+  #ybS-hero .ybS-price__label{font-weight:700;color:#1f232a;}
+  #ybS-hero .ybS-price__value{font-weight:800;}
+  #ybS-hero .ybS-price__hint{
+    font-weight:700;color:#3a4250;background:#f6f7f9;border:1px solid #e9ecf0;
+    border-radius:999px;padding:.14rem .46rem;font-size:.8rem;white-space:nowrap;
+  }
+  #ybS-hero .ybS-months{display:flex;flex-wrap:wrap;gap:.5rem;margin:.1rem 0 1.1rem;}
+  #ybS-hero .ybS-chip{
+    appearance:none;border:1px solid rgba(247,92,3,.35);background:#fff;color:#111;
+    padding:.48rem .78rem;border-radius:999px;font-weight:800;font-size:.95rem;
+    cursor:pointer;
+    transition:background .18s ease,color .18s ease,border-color .18s ease,transform .06s ease,box-shadow .18s ease;
+  }
+  #ybS-hero .ybS-chip:hover{
+    background:#fff5ef;border-color:rgba(247,92,3,.6);
+    transform:translateY(-1px);box-shadow:0 10px 22px rgba(247,92,3,.10);
+  }
+  #ybS-hero .ybS-chip.is-active{
+    background:var(--ybS-accent);color:#fff;border-color:transparent;
+    box-shadow:0 10px 24px rgba(247,92,3,.18);
+  }
+  #ybS-hero .ybS-chip:focus-visible{outline:0;box-shadow:0 0 0 6px var(--ybS-ring);}
+  #ybS-hero .ybS-ctas{display:flex;flex-wrap:wrap;gap:.7rem;align-items:center;}
+  #ybS-hero .ybS-btn{
+    display:inline-block;white-space:nowrap;padding:.8rem 1.15rem;border-radius:14px;border:0;
+    text-decoration:none;font-weight:900;letter-spacing:.01em;font-size:.95rem;
+    background:var(--ybS-accent);color:#fff;box-shadow:0 12px 28px rgba(247,92,3,.22);
+    transition:transform .06s ease,box-shadow .2s ease,background .15s ease,border-color .2s ease,color .2s ease;
+    cursor:pointer;
+  }
+  #ybS-hero .ybS-btn:hover{
+    background:var(--ybS-accent-dark);transform:translateY(-1px);box-shadow:0 16px 36px rgba(247,92,3,.26);
+  }
+  #ybS-hero .ybS-btn:focus-visible{outline:0;box-shadow:0 0 0 6px var(--ybS-ring);}
+  #ybS-hero .ybS-btn--outline{
+    background:#fff;color:var(--ybS-accent);border:1px solid rgba(247,92,3,.6);box-shadow:none;
+  }
+  #ybS-hero .ybS-btn--outline:hover{
+    background:#fff5ef;border-color:var(--ybS-accent);color:var(--ybS-accent-dark);
+    transform:translateY(-1px);box-shadow:0 10px 26px rgba(247,92,3,.14);
+  }
+  #ybS-hero .ybS-hero__media{
+    position:relative;margin:0 auto;width:100%;
+    max-width:clamp(320px,36vw,560px);justify-self:center;
+    border-radius:var(--ybS-radius);overflow:hidden;
+    box-shadow:0 14px 50px rgba(0,0,0,.12);
+  }
+  #ybS-hero .ybS-hero__media img{width:100%;height:auto;display:block;object-fit:cover;background:#000;}
+  #ybS-hero .ybS-frame{
+    position:absolute;inset:0;border-radius:var(--ybS-radius);pointer-events:none;
+    box-shadow:inset 0 0 0 1px rgba(0,0,0,.06),inset 0 0 0 2px rgba(247,92,3,.10);
+  }
+  @media(max-width:919px){
+    #ybS-hero .ybS-hero__content{text-align:center;}
+    #ybS-hero .ybS-lead,
+    #ybS-hero .ybS-meta,
+    #ybS-hero .ybS-price{margin-left:auto;margin-right:auto;text-align:left;}
+    #ybS-hero .ybS-months{justify-content:center;}
+    #ybS-hero .ybS-ctas{justify-content:center;}
+  }
+</style>
+
+<script>
+(function(){
+  var root=document.getElementById('ybS-hero');
+  if(!root) return;
+  var chips=root.querySelectorAll('.ybS-chip');
+  var cta=root.querySelector('#ybS-ctaMain');
+  function setMonth(btn){
+    chips.forEach(function(b){b.classList.toggle('is-active',b===btn);});
+    var label=(btn.dataset.month||btn.textContent||'').trim();
+    var link=btn.dataset.href||'#';
+    if(cta){
+      cta.textContent={{ t.hero_cta_prefix | dump | safe }}+' '+label.toLowerCase()+{{ t.hero_cta_suffix | dump | safe }};
+      cta.setAttribute('href',link);
+      cta.setAttribute('target','_blank');
+      cta.setAttribute('rel','noopener noreferrer nofollow');
+    }
+  }
+  chips.forEach(function(btn){btn.addEventListener('click',function(){setMonth(btn);});});
+  var active=root.querySelector('.ybS-chip.is-active')||chips[0];
+  if(active) setMonth(active);
+})();
+</script>
+
+
+<!-- ═══════════════════════════════════════════════════════════════
+     SECTION 2 — 4-WEEK STRUCTURE + VIDEO + FAQ
+     ═══════════════════════════════════════════════════════════════ -->
+<section id="yb-splits-4weeks" class="yb-splits yb-splits--4weeks" aria-labelledby="yb-splits-4weeks-title">
+  <div class="yb-splits4__inner">
+    <div class="yb-splits4__grid">
+
+      <!-- LEFT: Text + FAQ -->
+      <div class="yb-splits4__col yb-splits4__text" id="yb-splits-left">
+        <p class="yb-splits4__eyebrow">{{ t.s2_eyebrow }}</p>
+        <h2 id="yb-splits-4weeks-title" class="yb-h2">{{ t.s2_title }}</h2>
+        <p class="yb-intro yb-splits4__lead">
+          {{ t.s2_lead | safe }}
+        </p>
+        <ul class="yb-splits4__list">
+          <li>{{ t.s2_list1_item1 }}</li>
+          <li>{{ t.s2_list1_item2 }}</li>
+          <li>{{ t.s2_list1_item3 }}</li>
+          <li>{{ t.s2_list1_item4 }}</li>
+        </ul>
+        <p class="yb-splits4__sub">
+          {{ t.s2_session_label | safe }}
+        </p>
+        <ul class="yb-splits4__list">
+          <li>{{ t.s2_list2_item1 | safe }}</li>
+          <li>{{ t.s2_list2_item2 }}</li>
+          <li>{{ t.s2_list2_item3 }}</li>
+          <li>{{ t.s2_list2_item4 | safe }}</li>
+        </ul>
+        <p class="yb-splits4__closing">
+          {{ t.s2_closing | safe }}
+        </p>
+
+        <!-- CTAs -->
+        <div class="yb-splits4__ctas">
+          <button
+            type="button"
+            class="yb-btn yb-btn--outline yb-splits4__cta-outline"
+            data-ybc-open="brochure"
+            data-ybc-course="Splits"
+            data-ybc-source="Splits – 4-week section"
+          >{{ t.s2_btn_schedule }}</button>
+          <a href="#course-months" class="yb-btn yb-btn--primary yb-splits4__cta">{{ t.s2_cta_signup }}</a>
+        </div>
+
+        <!-- FAQ (desktop: here; mobile: moved below video via JS) -->
+        <section id="yb-splits-faq" class="yb-faq yb-splits4__faq" aria-label="{{ t.s2_faq_aria }}">
+          <h3 class="yb-faq__title">{{ t.s2_faq_title }}</h3>
+
+          <div class="yb-faq__item">
+            <button class="yb-faq__toggle" type="button">
+              <span>{{ t.s2_faq1_q }}</span>
+              <span class="yb-faq__icon" aria-hidden="true"></span>
+            </button>
+            <div class="yb-faq__panel"><p>{{ t.s2_faq1_a }}</p></div>
+          </div>
+
+          <div class="yb-faq__item">
+            <button class="yb-faq__toggle" type="button">
+              <span>{{ t.s2_faq2_q }}</span>
+              <span class="yb-faq__icon" aria-hidden="true"></span>
+            </button>
+            <div class="yb-faq__panel"><p>{{ t.s2_faq2_a }}</p></div>
+          </div>
+
+          <div class="yb-faq__item">
+            <button class="yb-faq__toggle" type="button">
+              <span>{{ t.s2_faq3_q }}</span>
+              <span class="yb-faq__icon" aria-hidden="true"></span>
+            </button>
+            <div class="yb-faq__panel"><p>{{ t.s2_faq3_a }}</p></div>
+          </div>
+
+          <div class="yb-faq__item">
+            <button class="yb-faq__toggle" type="button">
+              <span>{{ t.s2_faq4_q }}</span>
+              <span class="yb-faq__icon" aria-hidden="true"></span>
+            </button>
+            <div class="yb-faq__panel"><p>{{ t.s2_faq4_a }}</p></div>
+          </div>
+
+          <div class="yb-faq__item">
+            <button class="yb-faq__toggle" type="button">
+              <span>{{ t.s2_faq5_q }}</span>
+              <span class="yb-faq__icon" aria-hidden="true"></span>
+            </button>
+            <div class="yb-faq__panel"><p>{{ t.s2_faq5_a }}</p></div>
+          </div>
+        </section>
+      </div>
+
+      <!-- RIGHT: Video -->
+      <div class="yb-splits4__col yb-splits4__media" id="yb-splits-right" aria-label="{{ t.s2_video_aria }}">
+        <div class="yb-splits4__video-wrap">
+          <button class="yb-video-poster" id="yb-splits-video-poster" aria-label="{{ t.s2_video_play }}">
+            <img src="https://www.yogabible.dk/s/Splits_Standing_Kursus_Course_Kbenhavn_Copenhagen_Standing_Balance_Sita.jpg" alt="" loading="eager" decoding="async">
+          </button>
+          <video id="yb-splits-video" class="yb-splits4__video" playsinline webkit-playsinline preload="auto" loop muted
+                 poster="https://www.yogabible.dk/s/Splits_Standing_Kursus_Course_Kbenhavn_Copenhagen_Standing_Balance_Sita.jpg">
+            <source src="https://www.yogabible.dk/s/Splits_reel.mp4" type="video/mp4">
+            {{ t.s2_video_nosupport }}
+          </video>
+          <button class="yb-video-toggle" type="button" aria-label="{{ t.s2_video_toggle }}" aria-pressed="false" aria-controls="yb-splits-video">
+            <span class="yb-video-icon" aria-hidden="true"></span>
+          </button>
+        </div>
+      </div>
     </div>
   </div>
 </section>
 
-<!-- FAQ -->
-<section class="program-faq">
-  <div class="container">
-    <h2 class="section-title">{{ t.faq_title }}</h2>
+<style>
+  #yb-splits-4weeks{
+    --yb-accent:#F65D04;
+    --yb-accent-dark:#D14F03;
+    --yb-ring:rgba(246,93,4,.30);
+    display:flex;justify-content:center;padding:4.5rem 1.5rem;width:100%;
+    background:
+      radial-gradient(circle at top left,rgba(246,93,4,0.09),transparent 55%),
+      #f9f4ee;
+    font-family:"Helvetica Neue",system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+    box-sizing:border-box;
+  }
+  .yb-splits4__inner{max-width:1120px;width:100%;margin:0 auto;}
+  .yb-splits4__grid{display:grid;grid-template-columns:minmax(0,1fr);gap:2.5rem;align-items:start;}
+  #yb-splits-4weeks .yb-h2{font-size:clamp(1.7rem,2.2vw,2.1rem);line-height:1.2;margin:0 0 1rem;}
+  #yb-splits-4weeks .yb-intro{font-size:.98rem;line-height:1.6;margin:0 0 1.2rem;}
+  .yb-splits4__eyebrow{text-transform:uppercase;letter-spacing:.12em;font-size:.75rem;color:var(--yb-accent);margin:0 0 .6rem;font-weight:600;}
+  .yb-splits4__sub{margin:.2rem 0 .5rem;font-size:.9rem;line-height:1.5;color:#3a322b;}
+  .yb-splits4__list{list-style:none;padding:0;margin:0 0 1.1rem;}
+  .yb-splits4__list li{position:relative;padding-left:1.3rem;margin-bottom:.45rem;font-size:.96rem;line-height:1.6;}
+  .yb-splits4__list li::before{content:"";position:absolute;left:0;top:.55em;width:.55rem;height:.55rem;border-radius:999px;background-color:var(--yb-accent);}
+  .yb-splits4__closing{margin:0 0 1.2rem;font-size:.96rem;line-height:1.6;color:#272425;}
+  .yb-splits4__ctas{display:flex;flex-wrap:wrap;gap:.7rem;align-items:center;margin:0 0 1.6rem;}
+  .yb-btn.yb-btn--primary.yb-splits4__cta{
+    display:inline-flex;align-items:center;justify-content:center;
+    padding:.8rem 1.6rem;border-radius:999px;border:none;
+    background:var(--yb-accent);color:#fff;font-size:.95rem;font-weight:600;text-decoration:none;
+    box-shadow:0 10px 22px rgba(0,0,0,.12);transition:.15s ease;white-space:nowrap;cursor:pointer;
+  }
+  .yb-btn.yb-btn--primary.yb-splits4__cta:hover{background:var(--yb-accent-dark);transform:translateY(-1px);box-shadow:0 14px 28px rgba(0,0,0,.16);}
+  .yb-btn.yb-btn--primary.yb-splits4__cta:active{transform:translateY(0);box-shadow:0 8px 18px rgba(0,0,0,.14);}
+  .yb-btn.yb-btn--outline.yb-splits4__cta-outline{
+    display:inline-flex;align-items:center;justify-content:center;
+    padding:.8rem 1.15rem;border-radius:999px;background:#fff;color:var(--yb-accent);
+    border:1px solid rgba(246,93,4,.6);font-weight:800;font-size:.95rem;cursor:pointer;
+    box-shadow:none;transition:transform .06s ease,box-shadow .2s ease,background .15s ease,border-color .2s ease,color .2s ease;
+    white-space:nowrap;
+  }
+  .yb-btn.yb-btn--outline.yb-splits4__cta-outline:hover{
+    background:#fff5ef;border-color:var(--yb-accent);color:var(--yb-accent-dark);
+    transform:translateY(-1px);box-shadow:0 10px 26px rgba(246,93,4,.14);
+  }
+  #yb-splits-4weeks .yb-btn:focus-visible{outline:0;box-shadow:0 0 0 6px var(--yb-ring);}
+  .yb-splits4__video-wrap{position:relative;border-radius:1.4rem;overflow:hidden;background:#000;box-shadow:0 18px 40px rgba(0,0,0,.22);}
+  .yb-splits4__video{display:block;width:100%;height:auto;aspect-ratio:9/16;object-fit:cover;}
+  .yb-video-poster{position:absolute;inset:0;z-index:3;display:flex;align-items:center;justify-content:center;cursor:pointer;border:none;background:transparent;padding:0;}
+  .yb-video-poster img{width:100%;height:100%;object-fit:cover;display:block;filter:saturate(1.02) contrast(1.03);}
+  .yb-video-poster::after{content:"";position:absolute;inset:0;background:linear-gradient(0deg,rgba(0,0,0,.18),rgba(0,0,0,.12));}
+  .yb-video-poster.is-hidden{opacity:0;visibility:hidden;pointer-events:none;transition:opacity .2s ease;}
+  #yb-splits-4weeks .yb-video-toggle{
+    position:absolute;width:64px;height:64px;border-radius:999px;border:none;
+    background:var(--yb-accent);color:#fff;cursor:pointer;
+    box-shadow:0 10px 26px rgba(0,0,0,.30);
+    display:inline-flex;align-items:center;justify-content:center;
+    transition:transform .18s ease,box-shadow .18s ease,background .15s ease,left .22s ease,bottom .22s ease,top .22s ease;
+    z-index:4;left:50%;top:50%;bottom:auto;transform:translate(-50%,-50%);
+  }
+  #yb-splits-4weeks .yb-video-toggle:hover{
+    background:var(--yb-accent-dark);transform:translate(-50%,-50%) scale(1.03);
+    box-shadow:0 14px 34px rgba(0,0,0,.36);
+  }
+  #yb-splits-4weeks .yb-video-toggle.is-playing{
+    width:48px;height:48px;left:1rem;bottom:1rem;top:auto;transform:none;
+    box-shadow:0 8px 20px rgba(0,0,0,.25);
+  }
+  #yb-splits-4weeks .yb-video-toggle.is-playing:hover{
+    background:var(--yb-accent-dark);transform:translateY(-1px);box-shadow:0 12px 26px rgba(0,0,0,.30);
+  }
+  #yb-splits-4weeks .yb-video-icon{position:relative;width:18px;height:18px;display:inline-block;}
+  #yb-splits-4weeks .yb-video-toggle:not(.is-playing) .yb-video-icon::before{
+    content:"";position:absolute;left:4px;top:2px;width:0;height:0;
+    border-left:14px solid #fff;border-top:9px solid transparent;border-bottom:9px solid transparent;
+  }
+  #yb-splits-4weeks .yb-video-toggle.is-playing .yb-video-icon::before,
+  #yb-splits-4weeks .yb-video-toggle.is-playing .yb-video-icon::after{
+    content:"";position:absolute;top:2px;width:4px;height:14px;background:#fff;
+  }
+  #yb-splits-4weeks .yb-video-toggle.is-playing .yb-video-icon::before{left:3px;}
+  #yb-splits-4weeks .yb-video-toggle.is-playing .yb-video-icon::after{right:3px;}
+  #yb-splits-4weeks .yb-faq{background:rgba(255,255,255,.9);border-radius:1.2rem;padding:1.3rem 1.2rem;box-shadow:0 12px 30px rgba(0,0,0,.06);margin-top:1.8rem;}
+  #yb-splits-4weeks .yb-faq__title{font-size:1rem;font-weight:700;text-transform:uppercase;letter-spacing:.12em;margin:0 0 .8rem;color:#6b5b4b;}
+  #yb-splits-4weeks .yb-faq__item+.yb-faq__item{border-top:1px solid rgba(0,0,0,.06);}
+  #yb-splits-4weeks .yb-faq__toggle{
+    width:100%;padding:.7rem 0;text-align:left;background:transparent;border:none;cursor:pointer;
+    display:flex;justify-content:space-between;align-items:flex-start;gap:.8rem;
+    font-size:.9rem;line-height:1.5;color:#2a2622;
+  }
+  #yb-splits-4weeks .yb-faq__toggle span:first-child{flex:1 1 auto;}
+  #yb-splits-4weeks .yb-faq__icon{
+    flex:0 0 auto;width:1.2rem;height:1.2rem;border-radius:999px;
+    border:1px solid rgba(0,0,0,.15);position:relative;margin-top:.1rem;
+  }
+  #yb-splits-4weeks .yb-faq__icon::before,
+  #yb-splits-4weeks .yb-faq__icon::after{
+    content:"";position:absolute;background:#7a6a5c;inset:50%;transform:translate(-50%,-50%);
+  }
+  #yb-splits-4weeks .yb-faq__icon::before{width:.7rem;height:1px;}
+  #yb-splits-4weeks .yb-faq__icon::after{width:1px;height:.7rem;transition:opacity .18s ease;}
+  #yb-splits-4weeks .yb-faq__item.is-open .yb-faq__icon::after{opacity:0;}
+  #yb-splits-4weeks .yb-faq__panel{max-height:0;overflow:hidden;transition:max-height .25s ease;}
+  #yb-splits-4weeks .yb-faq__panel p{font-size:.9rem;line-height:1.6;color:#51463a;padding:0 0 .6rem;margin:0;}
+  @media(min-width:880px){
+    .yb-splits4__grid{grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);gap:3rem;align-items:start;}
+    .yb-splits4__video{aspect-ratio:auto;height:100%;width:100%;object-fit:cover;}
+    .yb-splits4__video-wrap{height:auto;}
+  }
+  @media(min-width:1200px){ #yb-splits-4weeks{padding:5rem 1.5rem 5.2rem;} }
+  @media(max-width:720px){
+    .yb-splits4__cta-outline{width:100%;}
+    .yb-splits4__cta{width:100%;text-align:center;}
+  }
+</style>
 
-    <div class="faq-list">
-      <details class="faq-item">
-        <summary>{{ t.faq1_q }}</summary>
-        <p>{{ t.faq1_a }}</p>
-      </details>
+<script>
+(function(){
+  var root=document.getElementById('yb-splits-4weeks');
+  if(!root) return;
+  var grid=root.querySelector('.yb-splits4__grid');
+  var left=document.getElementById('yb-splits-left');
+  var right=document.getElementById('yb-splits-right');
+  var faq=document.getElementById('yb-splits-faq');
+  var rightWrap=right?right.querySelector('.yb-splits4__video-wrap'):null;
 
-      <details class="faq-item">
-        <summary>{{ t.faq2_q }}</summary>
-        <p>{{ t.faq2_a }}</p>
-      </details>
+  /* FAQ accordion */
+  var faqItems=root.querySelectorAll('.yb-faq__item');
+  function recalcHeight(){if(window.matchMedia('(min-width:880px)').matches) matchHeights();}
+  faqItems.forEach(function(item){
+    var btn=item.querySelector('.yb-faq__toggle');
+    var panel=item.querySelector('.yb-faq__panel');
+    if(!btn||!panel) return;
+    btn.addEventListener('click',function(){
+      var open=item.classList.contains('is-open');
+      if(open){
+        item.classList.remove('is-open');
+        panel.style.maxHeight='0px';
+      } else {
+        faqItems.forEach(function(o){
+          if(o!==item){o.classList.remove('is-open');var op=o.querySelector('.yb-faq__panel');if(op) op.style.maxHeight='0px';}
+        });
+        item.classList.add('is-open');
+        panel.style.maxHeight=panel.scrollHeight+'px';
+      }
+      setTimeout(recalcHeight,180);
+    });
+  });
 
-      <details class="faq-item">
-        <summary>{{ t.faq3_q }}</summary>
-        <p>{{ t.faq3_a }}</p>
-      </details>
+  /* Video play/pause + poster */
+  var video=document.getElementById('yb-splits-video');
+  var toggle=root.querySelector('.yb-video-toggle');
+  var posterBtn=document.getElementById('yb-splits-video-poster');
 
-      <details class="faq-item">
-        <summary>{{ t.faq4_q }}</summary>
-        <p>{{ t.faq4_a }}</p>
-      </details>
+  function setUI(playing){
+    if(toggle){toggle.classList.toggle('is-playing',playing);toggle.setAttribute('aria-pressed',playing?'true':'false');}
+    if(posterBtn){posterBtn.classList.toggle('is-hidden',playing);}
+  }
+  function tryPlay(resetToStart){
+    if(!video) return;
+    if(resetToStart){try{video.currentTime=0;}catch(e){}}
+    video.loop=true;
+    var p=video.play();
+    if(p&&p.catch){p.catch(function(){video.setAttribute('controls','');video.play().catch(function(){});});}
+  }
+  if(posterBtn){posterBtn.addEventListener('click',function(){tryPlay();});}
+  if(toggle){
+    toggle.addEventListener('click',function(){if(!video) return;if(video.paused){tryPlay();}else{video.pause();}});
+    toggle.addEventListener('keydown',function(e){if(e.key===' '||e.key==='Enter'){e.preventDefault();toggle.click();}});
+  }
+  if(video){
+    video.addEventListener('click',function(){if(video.paused){tryPlay();}else{video.pause();}});
+    video.addEventListener('play',function(){setUI(true);});
+    video.addEventListener('pause',function(){setUI(false);});
+    video.addEventListener('ended',function(){setUI(false);tryPlay(true);});
+  }
 
-      <details class="faq-item">
-        <summary>{{ t.faq5_q }}</summary>
-        <p>{{ t.faq5_a }}</p>
-      </details>
+  function matchHeights(){
+    if(!left||!rightWrap) return;
+    if(!window.matchMedia('(min-width:880px)').matches){rightWrap.style.height='auto';return;}
+    var h=left.offsetHeight;
+    rightWrap.style.height=Math.max(200,h-1)+'px';
+  }
+  function placeFAQ(){
+    if(!faq||!left||!right||!grid) return;
+    if(window.matchMedia('(max-width:879px)').matches){
+      if(faq.parentElement!==grid){grid.appendChild(faq);}
+    } else {
+      if(faq.parentElement!==left){left.appendChild(faq);}
+    }
+    matchHeights();
+  }
+  window.addEventListener('load',function(){placeFAQ();matchHeights();setUI(false);});
+  window.addEventListener('resize',function(){placeFAQ();});
+  setTimeout(function(){placeFAQ();},300);
+})();
+</script>
+
+
+<!-- ═══════════════════════════════════════════════════════════════
+     SECTION 3 — MEET THE TEACHER (Sita Bhuller)
+     ═══════════════════════════════════════════════════════════════ -->
+<section id="yb-splits-teacher" class="yb-meet" aria-labelledby="yb-splits-teacher-title">
+  <div class="yb-meet__inner">
+    <div class="yb-meet__grid">
+
+      <div class="yb-meet__col yb-meet__col--media">
+        <figure class="yb-meet__media--desktop" aria-label="{{ t.s3_portrait_aria }}">
+          <img src="https://www.yogabible.dk/s/Sita_Bio_Splits_Course_Lead_trainer_Kursus_Yogalrer_Kbenhavn_Uddannelse.jpg" alt="{{ t.s3_img_alt }}">
+        </figure>
+      </div>
+
+      <div class="yb-meet__col yb-meet__col--text">
+        <div class="yb-meet__content">
+          <span class="yb-meet__eyebrow">{{ t.s3_eyebrow }}</span>
+          <h2 id="yb-splits-teacher-title" class="yb-meet__title">{{ t.s3_name }}</h2>
+          <p class="yb-meet__subtitle">{{ t.s3_subtitle }}</p>
+
+          <div class="yb-meet__media--mobile" aria-hidden="false">
+            <figure>
+              <img src="https://www.yogabible.dk/s/Sita_Bio_Splits_Course_Lead_trainer_Kursus_Yogalrer_Kbenhavn_Uddannelse.jpg" alt="{{ t.s3_img_alt }}">
+            </figure>
+          </div>
+
+          <div class="yb-meet__text">
+            <p>{{ t.s3_text1 | safe }}</p>
+            <p>{{ t.s3_text2 | safe }}</p>
+            <p>{{ t.s3_text3 | safe }}</p>
+          </div>
+
+          <div class="yb-meet__ctaRow" role="group" aria-label="{{ t.s3_cta_group_aria }}">
+            <a class="yb-meet__cta yb-meet__cta--primary"
+               href="#course-months"
+               aria-label="{{ t.s3_cta_signup_aria }}">
+              <span class="dot" aria-hidden="true"></span>
+              {{ t.s3_cta_signup }}
+            </a>
+            <button class="yb-meet__cta yb-meet__cta--outline"
+               type="button"
+               data-ybc-open="brochure"
+               data-ybc-course="Splits"
+               data-ybc-source="Splits – teacher section"
+               aria-label="{{ t.s3_cta_schedule_aria }}">
+              <span class="dot" aria-hidden="true"></span>
+              {{ t.s3_cta_schedule }}
+            </button>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 </section>
 
-<!-- CTA -->
-<section class="cta-section">
-  <div class="container">
-    <h2 class="cta-section__title">{{ t.cta_title }}</h2>
-    <p class="cta-section__text">{{ t.cta_text }}</p>
-    <a href="{% if lang == 'en' %}/en/course-bundles{% else %}/course-bundles{% endif %}" class="btn btn--large btn--primary">{{ t.cta_button }}</a>
+<style>
+  #yb-splits-teacher{
+    --yb-accent:#F65D04;
+    --yb-accent-dark:#D14F03;
+    --yb-text:#0b0b0b;
+    --yb-muted:#666;
+    --yb-bg:#fff;
+    font-family:"Helvetica Neue",Helvetica,Arial,system-ui,-apple-system,sans-serif;
+    color:var(--yb-text);background:var(--yb-bg);
+  }
+  #yb-splits-teacher .yb-meet__inner{max-width:1120px;margin:0 auto;padding:clamp(48px,6vw,96px) clamp(18px,4vw,28px);}
+  #yb-splits-teacher .yb-meet__grid{display:grid;grid-template-columns:1fr;gap:28px;}
+  #yb-splits-teacher .yb-meet__content{max-width:560px;margin-inline:auto;padding-inline:0;}
+  #yb-splits-teacher .yb-meet__media--mobile{display:block;}
+  #yb-splits-teacher .yb-meet__media--mobile figure{
+    width:100%;margin:0 0 18px 0;border-radius:16px;overflow:hidden;
+    box-shadow:0 10px 26px rgba(0,0,0,.08);background:#f3f3f3;
+    height:clamp(440px,88vw,640px);aspect-ratio:2/3;
+  }
+  #yb-splits-teacher .yb-meet__media--mobile img{width:100%;height:100%;object-fit:cover;object-position:center 72%;display:block;}
+  #yb-splits-teacher .yb-meet__media--desktop{display:none;}
+  #yb-splits-teacher .yb-meet__eyebrow{
+    display:inline-block;font-size:13px;letter-spacing:.08em;text-transform:uppercase;
+    color:var(--yb-accent);font-weight:800;margin-bottom:10px;
+  }
+  #yb-splits-teacher .yb-meet__title{font-size:clamp(26px,3.2vw,36px);line-height:1.15;margin:0 0 10px;}
+  #yb-splits-teacher .yb-meet__subtitle{font-size:18px;color:var(--yb-muted);margin:0 0 18px;}
+  #yb-splits-teacher .yb-meet__text{position:relative;padding-left:12px;}
+  #yb-splits-teacher .yb-meet__text::before{
+    content:"";position:absolute;left:0;top:6px;bottom:6px;width:2px;border-radius:2px;
+    background:linear-gradient(180deg,var(--yb-accent),var(--yb-accent-dark));opacity:.75;
+  }
+  #yb-splits-teacher .yb-meet__text p{line-height:1.6;font-size:17px;margin:0 0 16px;}
+  #yb-splits-teacher .yb-meet__ctaRow{margin-top:18px;display:flex;gap:12px;flex-wrap:wrap;align-items:center;justify-content:center;}
+  #yb-splits-teacher .yb-meet__cta{
+    display:inline-flex;gap:8px;align-items:center;border-radius:999px;
+    padding:10px 16px;font-size:14px;font-weight:800;text-decoration:none;
+    border:0;cursor:pointer;
+    transition:transform .12s ease,box-shadow .2s ease,background .2s ease,color .2s ease,border-color .2s ease;
+    width:auto;user-select:none;-webkit-tap-highlight-color:transparent;
+  }
+  #yb-splits-teacher .yb-meet__cta .dot{width:7px;height:7px;border-radius:50%;opacity:.95;flex:0 0 auto;}
+  #yb-splits-teacher .yb-meet__cta--primary{background:var(--yb-accent);color:#fff;box-shadow:0 6px 18px rgba(246,93,4,.22);}
+  #yb-splits-teacher .yb-meet__cta--primary .dot{background:#fff;}
+  #yb-splits-teacher .yb-meet__cta--primary:hover{background:var(--yb-accent-dark);box-shadow:0 10px 26px rgba(246,93,4,.28);transform:translateY(-1px);}
+  #yb-splits-teacher .yb-meet__cta--primary:active{transform:translateY(0);box-shadow:0 6px 18px rgba(246,93,4,.18);}
+  #yb-splits-teacher .yb-meet__cta--outline{
+    background:transparent;color:var(--yb-accent);border:1.5px solid rgba(246,93,4,.55);box-shadow:none;
+  }
+  #yb-splits-teacher .yb-meet__cta--outline .dot{background:var(--yb-accent);}
+  #yb-splits-teacher .yb-meet__cta--outline:hover{background:rgba(246,93,4,.08);border-color:rgba(246,93,4,.75);transform:translateY(-1px);}
+  #yb-splits-teacher .yb-meet__cta--outline:active{transform:translateY(0);background:rgba(246,93,4,.10);}
+  #yb-splits-teacher .yb-meet__cta:focus-visible{outline:2px solid #000;outline-offset:2px;}
+  @media(max-width:360px){
+    #yb-splits-teacher .yb-meet__media--mobile figure{height:clamp(480px,102vw,700px);}
+    #yb-splits-teacher .yb-meet__media--mobile img{object-position:center 70%;}
+  }
+  @media(min-width:861px){
+    #yb-splits-teacher .yb-meet__grid{grid-template-columns:1.1fr 1fr;gap:48px;align-items:stretch;}
+    #yb-splits-teacher .yb-meet__content{max-width:none;margin-inline:0;}
+    #yb-splits-teacher .yb-meet__media--desktop{
+      display:block;border-radius:16px;overflow:hidden;
+      box-shadow:0 10px 26px rgba(0,0,0,.08);background:#f3f3f3;min-height:560px;height:100%;
+    }
+    #yb-splits-teacher .yb-meet__media--desktop img{width:100%;height:100%;object-fit:cover;object-position:center top;display:block;}
+    #yb-splits-teacher .yb-meet__media--mobile{display:none;}
+    #yb-splits-teacher .yb-meet__text{padding-left:18px;}
+    #yb-splits-teacher .yb-meet__text::before{width:3px;opacity:.85;}
+    #yb-splits-teacher .yb-meet__ctaRow{justify-content:flex-start;}
+    #yb-splits-teacher .yb-meet__cta{padding:12px 18px;font-size:15px;}
+  }
+</style>
+
+
+<!-- ═══════════════════════════════════════════════════════════════
+     SECTION 4 — HVAD ER SPLITS? (text + 6-image grid)
+     ═══════════════════════════════════════════════════════════════ -->
+<section class="yb-splits-what" id="hvad-er-splits">
+  <div class="yb-splits-what__intro">
+    <h2 class="yb-h2">{{ t.s4_title }}</h2>
+
+    <p class="yb-intro">
+      {{ t.s4_intro | safe }}
+    </p>
+
+    <p>
+      {{ t.s4_p2 | safe }}
+    </p>
+
+    <p class="yb-note">
+      {{ t.s4_note | safe }}
+    </p>
+
+    <p class="yb-meta">
+      {{ t.s4_closing | safe }}
+    </p>
+  </div>
+
+  <div class="yb-splits-what__grid" aria-label="{{ t.s4_grid_aria }}">
+    <figure class="yb-tile">
+      <img src="https://www.yogabible.dk/s/Splits_Course_Kursus_Kbenhavn_Danmark_Europe_EU_Hot_Yoga_Copenhagen_Yoga_Bible_Open_Hips.jpg"
+           alt="{{ t.s4_img1_alt }}" loading="lazy">
+    </figure>
+    <figure class="yb-tile">
+      <img src="https://www.yogabible.dk/s/Splits_Course_Kursus_Kbenhavn_Danmark_Europe_EU_Hot_Yoga_Copenhagen_Yoga_Bible_Open_Hips_02.jpg"
+           alt="{{ t.s4_img2_alt }}" loading="lazy">
+    </figure>
+    <figure class="yb-tile">
+      <img src="https://www.yogabible.dk/s/Splits_Course_Kursus_Kbenhavn_Danmark_Europe_EU_Hot_Yoga_Copenhagen_Yoga_Bible_Open_Hips_03.jpg"
+           alt="{{ t.s4_img3_alt }}" loading="lazy">
+    </figure>
+    <figure class="yb-tile">
+      <img src="https://www.yogabible.dk/s/Splits_Course_Kursus_Kbenhavn_Danmark_Europe_EU_Hot_Yoga_Copenhagen_Yoga_Bible_Open_Hips_04.jpg"
+           alt="{{ t.s4_img4_alt }}" loading="lazy">
+    </figure>
+    <figure class="yb-tile">
+      <img src="https://www.yogabible.dk/s/Splits_Course_Kursus_Kbenhavn_Danmark_Europe_EU_Hot_Yoga_Copenhagen_Yoga_Bible_Open_Hips_05.jpg"
+           alt="{{ t.s4_img5_alt }}" loading="lazy">
+    </figure>
+    <figure class="yb-tile">
+      <img src="https://www.yogabible.dk/s/Splits_Course_Kursus_Kbenhavn_Danmark_Europe_EU_Hot_Yoga_Copenhagen_Yoga_Bible_Open_Hips_06.jpg"
+           alt="{{ t.s4_img6_alt }}" loading="lazy">
+    </figure>
+  </div>
+</section>
+
+<style>
+  #hvad-er-splits{
+    --yb-brand:#f75c03;
+    --yb-ink:#0b0c0f;
+    --yb-muted:#6b7280;
+    --yb-radius:20px;
+    --yb-gutter:clamp(18px,4vw,28px);
+    font-family:"Helvetica Neue",Helvetica,Arial,system-ui,-apple-system,sans-serif;
+    color:var(--yb-ink);background:#fff;
+    padding:clamp(48px,6vw,96px) var(--yb-gutter);
+  }
+  #hvad-er-splits.yb-splits-what{
+    width:min(1120px,100%);margin:0 auto;
+    display:grid;gap:1.1rem;align-items:stretch;
+  }
+  #hvad-er-splits .yb-h2{font-size:clamp(1.6rem,4.5vw,2.25rem);line-height:1.1;margin:0 0 .5rem 0;font-weight:800;letter-spacing:-.01em;}
+  #hvad-er-splits .yb-splits-what__intro p{margin:.55rem 0;max-width:60ch;font-size:clamp(1rem,2.2vw,1.0625rem);line-height:1.6;}
+  #hvad-er-splits .yb-intro{font-weight:500;}
+  #hvad-er-splits .yb-note{border-left:4px solid var(--yb-brand);padding-left:.75rem;}
+  #hvad-er-splits .yb-meta{color:var(--yb-muted);font-size:.97em;}
+  #hvad-er-splits .hide-sm{display:none;}
+  @media(min-width:560px){ #hvad-er-splits .hide-sm{display:inline;} }
+  #hvad-er-splits .yb-splits-what__grid{display:grid;grid-template-columns:1fr 1fr;gap:.75rem;}
+  #hvad-er-splits .yb-tile{margin:0;border-radius:var(--yb-radius);overflow:hidden;background:#f7f7f7;box-shadow:0 6px 22px rgba(0,0,0,.06);}
+  #hvad-er-splits .yb-tile img{display:block;width:100%;height:100%;aspect-ratio:1/1;object-fit:cover;transform:scale(1);transition:transform .4s ease;}
+  #hvad-er-splits .yb-tile:hover img{transform:scale(1.03);}
+  @media(min-width:960px){
+    #hvad-er-splits.yb-splits-what{grid-template-columns:minmax(0,0.9fr) minmax(0,1.1fr);column-gap:clamp(20px,4vw,48px);row-gap:1.2rem;}
+    #hvad-er-splits .yb-splits-what__grid{grid-template-columns:repeat(3,minmax(0,1fr));gap:.9rem;margin-top:0;}
+  }
+  @media(max-width:719px){ #hvad-er-splits .yb-splits-what__grid{margin-top:.5rem;} }
+</style>
+
+
+<!-- ═══════════════════════════════════════════════════════════════
+     SECTION 5 — EXPLORE MORE (Courses + Teacher Training)
+     ═══════════════════════════════════════════════════════════════ -->
+<section id="yb-splits-more" class="yb-more" aria-labelledby="yb-splits-more-title">
+  <div class="yb-more__inner container">
+
+    <header class="yb-more__header">
+      <p class="yb-more__kicker">{{ t.s5_kicker }}</p>
+      <h2 id="yb-splits-more-title" class="yb-more__title">{{ t.s5_title }}</h2>
+      <p class="yb-more__lead">{{ t.s5_lead }}</p>
+    </header>
+
+    <div class="yb-more__grid">
+
+      <!-- Card 1: Other Courses (Inversions / Backbends) -->
+      <article class="yb-more-card">
+        <figure class="yb-more-card__image">
+          <img id="ybSplitsCourseImg"
+               src="https://www.yogabible.dk/s/Inversions_Course_Copenhagen.jpg?format=1500w"
+               alt="Inversions {% if lang == 'en' %}course{% else %}kursus{% endif %}"
+               loading="lazy">
+          <span class="yb-more-card__badge yb-more-card__badge--soft">{{ t.s5_courses_badge }}</span>
+        </figure>
+
+        <div class="yb-more-card__body">
+          <h3 class="yb-more-card__title">{{ t.s5_courses_title }}</h3>
+          <p class="yb-more-card__text">{{ t.s5_courses_desc }}</p>
+
+          <div class="yb-more-card__pills" role="tablist" aria-label="{% if lang == 'en' %}Select course{% else %}Vælg kursus{% endif %}">
+            <button class="yb-pill is-active" role="tab" aria-selected="true" data-splcourse="inv">Inversions</button>
+            <button class="yb-pill" role="tab" aria-selected="false" data-splcourse="bb">Backbends</button>
+          </div>
+
+          <p id="ybSplitsCourseBlurb" class="yb-more-card__blurb"></p>
+
+          <a id="ybSplitsCourseCta" class="yb-btn yb-btn--outline" href="{{ lp }}/inversions"></a>
+        </div>
+      </article>
+
+      <!-- Card 2: Teacher Training (18w / 4w) -->
+      <article class="yb-more-card">
+        <figure class="yb-more-card__image">
+          <img id="ybSplitsProgramImg"
+               src="https://www.yogabible.dk/s/200timer-Yoga-Education-Kbenhavn.png?format=1500w"
+               alt=""
+               loading="lazy">
+          <span id="ybSplitsProgramBadge" class="yb-more-card__badge yb-more-card__badge--primary">{{ t.s5_programs_badge_flex }}</span>
+        </figure>
+
+        <div class="yb-more-card__body">
+          <h3 id="ybSplitsProgramTitle" class="yb-more-card__title"></h3>
+
+          <div class="yb-more-card__pills" role="tablist" aria-label="{% if lang == 'en' %}Select program{% else %}Vælg program{% endif %}">
+            <button class="yb-pill is-active" role="tab" aria-selected="true" data-splprogram="18w">18 Weeks Flexible</button>
+            <button class="yb-pill" role="tab" aria-selected="false" data-splprogram="4w">4 Weeks Intensive</button>
+          </div>
+
+          <p id="ybSplitsProgramBlurb" class="yb-more-card__blurb"></p>
+          <ul id="ybSplitsProgramList" class="yb-more-card__list"></ul>
+          <a id="ybSplitsProgramCta" class="yb-btn yb-btn--cta" href=""></a>
+        </div>
+      </article>
+
+    </div>
   </div>
 </section>
 
 <script>
-(function() {
-  var chips = document.querySelectorAll('#ybSplitsMonths input[type="radio"]');
-  var cta = document.getElementById('ybSplitsCta');
-  var ctaPrefix = {{ t.invest_cta | dump | safe }};
-  chips.forEach(function(chip) {
-    chip.addEventListener('change', function() {
-      var link = this.getAttribute('data-link');
-      if (link) { cta.href = link; }
-      cta.textContent = ctaPrefix;
-    });
-  });
+(function(){
+  var isEN=(document.documentElement.lang==='en')||(window.location.pathname.indexOf('/en/')===0);
+  var lp=isEN?'/en':'';
+
+  /* ── Course pills (Inversions / Backbends) ── */
+  var COURSE_DATA={
+    inv:{
+      image:'https://www.yogabible.dk/s/Inversions_Course_Copenhagen.jpg?format=1500w',
+      blurb:isEN?'Learn to work safely with handstands, forearm balances, and headstands – technique, strength, and courage.':'Lær at arbejde sikkert med håndstande, underarmsbalancer og hovedstande – teknik, styrke og mod.',
+      href:lp+'/inversions',
+      label:isEN?'Learn more about Inversions':'Læs mere om Inversions',
+      alt:isEN?'Inversions course':'Inversions kursus'
+    },
+    bb:{
+      image:'https://www.yogabible.dk/s/professional-backbend-yoga-training-copenhagen.jpg?format=1500w',
+      blurb:isEN?'Healthy backbends with focus on breath, stability, and gradual mobility in the thoracic spine and hips.':'Sunde bagoverbøjninger med fokus på åndedræt, stabilitet og gradvis mobilitet i brystryg og hofter.',
+      href:lp+'/backbends',
+      label:isEN?'Learn more about Backbends':'Læs mere om Backbends',
+      alt:isEN?'Backbends course':'Backbends kursus'
+    }
+  };
+
+  var courseImg=document.getElementById('ybSplitsCourseImg');
+  var courseBlurb=document.getElementById('ybSplitsCourseBlurb');
+  var courseCta=document.getElementById('ybSplitsCourseCta');
+  var coursePills=document.querySelectorAll('#yb-splits-more [data-splcourse]');
+
+  if(courseImg&&courseBlurb&&courseCta&&coursePills.length){
+    var setCourse=function(key){
+      var data=COURSE_DATA[key];
+      if(!data) return;
+      coursePills.forEach(function(p){
+        var isActive=p.dataset.splcourse===key;
+        p.classList.toggle('is-active',isActive);
+        p.setAttribute('aria-selected',isActive);
+      });
+      courseImg.src=data.image;
+      courseImg.alt=data.alt;
+      courseBlurb.textContent=data.blurb;
+      courseCta.href=data.href;
+      courseCta.textContent=data.label+' \u2192';
+    };
+    coursePills.forEach(function(p){p.addEventListener('click',function(){setCourse(p.dataset.splcourse);});});
+    setCourse('inv');
+  }
+
+  /* ── Program pills (18w / 4w) ── */
+  var PROGRAM_DATA={
+    '18w':{
+      title:isEN?'200 hours – 18-week flexible program':'200 timer – 18 ugers fleksibelt program',
+      badge:isEN?'Flexible':'Fleksibelt',
+      blurb:isEN?'The same <strong>Yoga Alliance-certified</strong> training – spread over <strong>18 weeks</strong> with maximum flexibility. Perfect alongside a job, studies, or family life.':'Samme <strong>Yoga Alliance\u2013certificerede</strong> uddannelse – fordelt over <strong>18 uger</strong> med maksimal fleksibilitet. Perfekt ved siden af job, studie eller familieliv.',
+      list:isEN?[
+        'Weekday or weekend track \u2014 switch freely',
+        'Approx. 12 hours per week incl. homework',
+        'Can be combined with full-time work'
+      ]:[
+        'Hverdags- eller weekendforl\u00f8b \u2014 skift frit',
+        'Ca. 12 timer om ugen inkl. hjemmeopgaver',
+        'Kan kombineres med fuldtidsarbejde'
+      ],
+      href:lp+'/200-hours-18-weeks-flexible-programs',
+      ctaLabel:isEN?'Go to 18-week flexible training \u2192':'G\u00e5 til 18-ugers fleksibel uddannelse \u2192',
+      alt:isEN?'200-hour \u2013 18-week flexible program':'200-timers \u2013 18 ugers fleksibelt program'
+    },
+    '4w':{
+      title:isEN?'200 hours – 4-week intensive program':'200 timer – 4 ugers intensivt program',
+      badge:isEN?'Intensive':'Intensivt',
+      blurb:isEN?'The same <strong>Yoga Alliance-certified</strong> training – concentrated in <strong>4 weeks</strong> of full immersion. Ideal if you want to dive deep without interruption.':'Samme <strong>Yoga Alliance\u2013certificerede</strong> uddannelse – koncentreret i <strong>4 ugers</strong> fuld fordybelse. Ideelt hvis du vil dykke dybt uden afbrydelser.',
+      list:isEN?[
+        'Full-time for 4 weeks (Mon\u2013Sat)',
+        'Complete immersion in theory and practice',
+        '<strong>Accommodation option</strong> during the program'
+      ]:[
+        'Fuldtid i 4 uger (man\u2013l\u00f8r)',
+        'Total fordybelse i teori og praksis',
+        '<strong>Mulighed for indkvartering</strong> under forl\u00f8bet'
+      ],
+      href:lp+'/200-hours-4-weeks-intensive-programs',
+      ctaLabel:isEN?'Go to 4-week intensive training \u2192':'G\u00e5 til 4-ugers intensiv uddannelse \u2192',
+      alt:isEN?'200-hour \u2013 4-week intensive program':'200-timers \u2013 4 ugers intensivt program'
+    }
+  };
+
+  var programTitle=document.getElementById('ybSplitsProgramTitle');
+  var programBadge=document.getElementById('ybSplitsProgramBadge');
+  var programBlurb=document.getElementById('ybSplitsProgramBlurb');
+  var programList=document.getElementById('ybSplitsProgramList');
+  var programCta=document.getElementById('ybSplitsProgramCta');
+  var programImg=document.getElementById('ybSplitsProgramImg');
+  var programPills=document.querySelectorAll('#yb-splits-more [data-splprogram]');
+
+  if(programTitle&&programBlurb&&programCta&&programPills.length){
+    var setProgram=function(key){
+      var data=PROGRAM_DATA[key];
+      if(!data) return;
+      programPills.forEach(function(p){
+        var isActive=p.dataset.splprogram===key;
+        p.classList.toggle('is-active',isActive);
+        p.setAttribute('aria-selected',isActive);
+      });
+      programTitle.textContent=data.title;
+      if(programBadge) programBadge.textContent=data.badge;
+      programBlurb.innerHTML=data.blurb;
+      if(programImg) programImg.alt=data.alt;
+      if(programList){
+        programList.innerHTML='';
+        data.list.forEach(function(item){
+          var li=document.createElement('li');
+          li.innerHTML=item;
+          programList.appendChild(li);
+        });
+      }
+      programCta.href=data.href;
+      programCta.textContent=data.ctaLabel;
+    };
+    programPills.forEach(function(p){p.addEventListener('click',function(){setProgram(p.dataset.splprogram);});});
+    setProgram('18w');
+  }
 })();
 </script>
