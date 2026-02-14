@@ -242,6 +242,7 @@
     "checkout_sign_label": "Din underskrift:",
     "checkout_agree_waiver": "Jeg har læst og accepterer ansvarsfrihedserklæringen",
     "checkout_agree_waiver_and_terms": "Jeg har læst og accepterer ansvarsfrihedserklæringen og kontraktvilkårene",
+    "contract_default_terms": "<p><strong>Medlemskabsvilkår</strong></p><p>Dette er et løbende månedligt medlemskab. Betaling opkræves automatisk hver måned. Du kan opsige med 1 måneds varsel jf. vores <a href=\"/terms-conditions/\" target=\"_blank\" rel=\"noopener\">handelsbetingelser</a>. Medlemskabet kan sættes på pause i 14 dage til 3 måneder ved særlige omstændigheder. Ved at underskrive nedenfor bekræfter du, at du accepterer disse vilkår.</p>",
     "store_items": [100078, 100203]
   },
   "en": {
@@ -487,6 +488,7 @@
     "checkout_sign_label": "Your signature:",
     "checkout_agree_waiver": "I have read and accept the liability waiver",
     "checkout_agree_waiver_and_terms": "I have read and accept the liability waiver and contract terms",
+    "contract_default_terms": "<p><strong>Membership Terms</strong></p><p>This is a recurring monthly membership. Payment is charged automatically each month. You can cancel with 1 month notice per our <a href=\"/en/terms-conditions/\" target=\"_blank\" rel=\"noopener\">terms &amp; conditions</a>. The membership can be paused for 14 days to 3 months under special circumstances. By signing below you confirm that you accept these terms.</p>",
     "store_items": [100078, 100203]
   }
 }

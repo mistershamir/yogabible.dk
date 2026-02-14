@@ -8240,6 +8240,456 @@ section {
   font-weight: 600;
 }
 
+/* ── Store: Top-level Category Cards ── */
+.yb-store__top-cats {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+.yb-store__top-cat {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  width: 100%;
+  padding: 1.25rem 1.5rem;
+  background: #FFFCF9;
+  border: 1.5px solid #E8E4E0;
+  border-radius: 14px;
+  cursor: pointer;
+  font-family: inherit;
+  text-align: left;
+  transition: all 0.2s ease;
+}
+.yb-store__top-cat:hover {
+  border-color: #f75c03;
+  box-shadow: 0 2px 12px rgba(247,92,3,0.10);
+}
+.yb-store__top-cat-icon {
+  flex-shrink: 0;
+  width: 48px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(247,92,3,0.08);
+  border-radius: 12px;
+  color: #f75c03;
+}
+.yb-store__top-cat-text {
+  flex: 1;
+  min-width: 0;
+}
+.yb-store__top-cat-name {
+  display: block;
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #0F0F0F;
+  line-height: 1.3;
+}
+.yb-store__top-cat-desc {
+  display: block;
+  font-size: 0.82rem;
+  color: #6F6A66;
+  margin-top: 0.15rem;
+  line-height: 1.35;
+}
+.yb-store__top-cat-count {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 26px;
+  height: 26px;
+  background: #F5F3F0;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #6F6A66;
+  padding: 0 0.5rem;
+}
+.yb-store__top-cat-arrow {
+  flex-shrink: 0;
+  color: #B0AAA4;
+  transition: transform 0.15s;
+}
+.yb-store__top-cat:hover .yb-store__top-cat-arrow {
+  transform: translateX(3px);
+  color: #f75c03;
+}
+.yb-store__top-cat:hover .yb-store__top-cat-icon {
+  color: #f75c03;
+}
+.yb-store__top-cat--soon {
+  opacity: 0.75;
+  border-style: dashed;
+}
+.yb-store__top-cat--soon:hover {
+  opacity: 1;
+}
+.yb-store__top-cat-soon {
+  display: inline-block;
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #f75c03;
+  margin-top: 4px;
+}
+
+/* ── Store: Back Button ── */
+.yb-store__back-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: #f75c03;
+  padding: 0.25rem 0;
+  margin-bottom: 0.75rem;
+  transition: color 0.15s;
+}
+.yb-store__back-btn:hover {
+  color: #d94f02;
+}
+
+/* ── Store: Category Heading ── */
+.yb-store__cat-heading {
+  margin-bottom: 1rem;
+}
+.yb-store__cat-title {
+  font-family: 'Abacaxi', sans-serif;
+  font-size: 1.35rem;
+  font-weight: 700;
+  color: #0F0F0F;
+  margin: 0;
+}
+.yb-store__cat-title::before {
+  content: '';
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #f75c03;
+  margin-right: 10px;
+  vertical-align: middle;
+}
+
+/* ── Store: Subcategory Pills ── */
+.yb-store__subcats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 1.25rem;
+}
+.yb-store__sub-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.1rem;
+  background: #F5F3F0;
+  border: 1.5px solid #E8E4E0;
+  border-radius: 12px;
+  padding: 0.5rem 1rem;
+  font-family: inherit;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.2s;
+  text-align: center;
+}
+.yb-store__sub-btn:hover {
+  border-color: #f75c03;
+}
+.yb-store__sub-btn.is-active {
+  background: #f75c03;
+  border-color: #f75c03;
+}
+.yb-store__sub-name {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: #0F0F0F;
+  line-height: 1.3;
+}
+.yb-store__sub-btn.is-active .yb-store__sub-name {
+  color: #fff;
+}
+.yb-store__sub-desc {
+  font-size: 0.68rem;
+  color: #6F6A66;
+  font-weight: 400;
+  line-height: 1.2;
+}
+.yb-store__sub-btn.is-active .yb-store__sub-desc {
+  color: rgba(255,255,255,0.8);
+}
+
+/* ── Store: Info Note ── */
+.yb-store__note {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.6rem;
+  background: rgba(247,92,3,0.06);
+  border: 1px solid rgba(247,92,3,0.2);
+  border-radius: 10px;
+  padding: 0.75rem 1rem;
+  font-size: 0.82rem;
+  color: #0F0F0F;
+  margin-bottom: 1rem;
+  line-height: 1.4;
+}
+.yb-store__note svg {
+  flex-shrink: 0;
+  color: #f75c03;
+  margin-top: 0.1rem;
+}
+
+/* ── Store: Features List (memberships) ── */
+.yb-store__item-features {
+  list-style: none;
+  padding: 0;
+  margin: 0.75rem 0 0;
+}
+.yb-store__item-features li {
+  font-size: 0.8rem;
+  color: #0F0F0F;
+  padding: 0.25rem 0 0.25rem 1.4rem;
+  position: relative;
+  line-height: 1.45;
+}
+.yb-store__item-features li::before {
+  content: '\2713';
+  position: absolute;
+  left: 0;
+  color: #f75c03;
+  font-weight: 700;
+  font-size: 0.85rem;
+}
+
+/* ── Store: Validity ── */
+.yb-store__item-validity {
+  font-size: 0.8rem;
+  color: #6F6A66;
+  margin: 0.35rem 0 0;
+}
+
+/* ── Store: Sharing Info ── */
+.yb-store__item-sharing {
+  font-size: 0.8rem;
+  color: #f75c03;
+  font-weight: 600;
+  margin: 0.4rem 0 0;
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+.yb-store__item-sharing svg {
+  flex-shrink: 0;
+}
+.yb-store__sharing-how {
+  margin: 0.5rem 0 0;
+}
+.yb-store__sharing-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  background: none;
+  border: none;
+  padding: 0.3rem 0;
+  font-family: inherit;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: #f75c03;
+  cursor: pointer;
+  transition: color 0.2s;
+}
+.yb-store__sharing-toggle:hover {
+  color: #d94f02;
+}
+.yb-store__sharing-toggle svg {
+  transition: transform 0.25s ease;
+}
+.yb-store__sharing-toggle.is-open svg {
+  transform: rotate(180deg);
+}
+.yb-store__sharing-details {
+  margin: 0.4rem 0 0;
+  padding: 0.75rem 1rem;
+  background: #F5F3F0;
+  border-radius: 10px;
+  border: 1px solid #E8E4E0;
+}
+.yb-store__sharing-details ol {
+  margin: 0;
+  padding: 0 0 0 1.3rem;
+}
+.yb-store__sharing-details li {
+  font-size: 0.78rem;
+  color: #0F0F0F;
+  padding: 0.2rem 0;
+  line-height: 1.45;
+}
+.yb-store__sharing-details li::marker {
+  color: #f75c03;
+  font-weight: 700;
+}
+.yb-store__sharing-note {
+  font-size: 0.72rem;
+  color: #6F6A66;
+  font-style: italic;
+  margin: 0.5rem 0 0;
+  padding-top: 0.4rem;
+  border-top: 1px dashed #E8E4E0;
+}
+
+/* ── Store: Saving Info (time-based) ── */
+.yb-store__item-saving {
+  font-size: 0.78rem;
+  color: #27ae60;
+  font-weight: 600;
+  margin: 0.4rem 0 0;
+  display: flex;
+  align-items: flex-start;
+  gap: 0.35rem;
+  line-height: 1.4;
+}
+.yb-store__item-saving svg {
+  flex-shrink: 0;
+  color: #f75c03;
+  stroke: #f75c03;
+  margin-top: 0.1rem;
+}
+.yb-store__saving-text {
+  font-weight: 700;
+  color: #27ae60;
+  font-size: 0.78rem;
+}
+.yb-store__saving-breakdown {
+  font-weight: 400;
+  color: #6F6A66;
+  font-size: 0.72rem;
+  margin-top: 0.15rem;
+}
+
+/* ── Store: VAT Info ── */
+.yb-store__item-vat {
+  font-size: 0.72rem;
+  color: #6F6A66;
+  margin: 0.3rem 0 0;
+}
+.yb-store__item-vat--zero {
+  color: #27ae60;
+  font-weight: 600;
+}
+
+/* ── Store: Popular / Best Deal badges ── */
+.yb-store__badge--popular {
+  background: rgba(247,92,3,0.1);
+  color: #f75c03;
+  border: 1px solid rgba(247,92,3,0.2);
+}
+.yb-store__badge--best {
+  background: #f75c03;
+  color: #fff;
+}
+.yb-store__badge--tourist {
+  background: #fff3e0;
+  color: #e67e22;
+  border: 1px solid #f0c27a;
+}
+.yb-store__badge--cph {
+  background: #F5F3F0;
+  color: #6F6A66;
+  border: 1px solid #E8E4E0;
+}
+
+/* ── Store: Popular/Best card highlights ── */
+.yb-store__item--popular {
+  border-color: #f75c03;
+  box-shadow: 0 0 0 1px rgba(247,92,3,0.15);
+}
+.yb-store__item--best {
+  border-color: #27ae60;
+  box-shadow: 0 0 0 1px rgba(39,174,96,0.15);
+}
+
+/* ── Store: Item Footer (price + button) ── */
+.yb-store__item-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-top: auto;
+  padding-top: 0.75rem;
+  border-top: 1px solid #E8E4E0;
+}
+.yb-store__item-footer .yb-store__item-btn {
+  width: auto;
+  white-space: nowrap;
+}
+.yb-store__item-footer .yb-store__item-pricing {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+.yb-store__item-footer .yb-store__item-pricing .yb-store__item-price {
+  font-size: 1.15rem;
+}
+.yb-store__item-footer .yb-store__item-recurring {
+  font-size: 0.78rem;
+  color: #6F6A66;
+  font-weight: 400;
+}
+
+/* ── Store: Checkout Saving/Due ── */
+.yb-store__checkout-saving {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  margin: 0.35rem 0 0;
+  font-size: 0.8rem;
+}
+.yb-store__checkout-saving svg {
+  flex-shrink: 0;
+}
+.yb-store__checkout-price-old {
+  color: #6F6A66;
+  font-size: 0.82rem;
+}
+.yb-store__checkout-price-old s {
+  text-decoration: line-through;
+}
+.yb-store__checkout-price-free {
+  font-weight: 700;
+  color: #27ae60;
+  font-size: 0.85rem;
+}
+.yb-store__checkout-due {
+  margin: 0.5rem 0 0;
+  padding: 0.5rem 0.75rem;
+  background: #FFF7ED;
+  border: 1px solid #f75c03;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  display: flex;
+  align-items: baseline;
+  gap: 0.3rem;
+  flex-wrap: wrap;
+}
+.yb-store__checkout-due-label {
+  color: #6F6A66;
+}
+.yb-store__checkout-due-amount {
+  color: #f75c03;
+  font-size: 1rem;
+}
+.yb-store__checkout-due-note {
+  color: #6F6A66;
+  font-size: 0.78rem;
+}
+
 /* ═══════════════════════════════════════
    SCHEDULE TOAST - RICH MESSAGES
    ═══════════════════════════════════════ */

@@ -368,18 +368,18 @@
                   <h4 class="yb-checkout__payment-title">{{ t.checkout_payment_title }}</h4>
                   <form id="yb-store-checkout-form" class="yb-profile__form" novalidate>
                     <!-- Stored card option (shown when user has a saved card) -->
-                    <div id="yb-checkout-stored-card" class="yb-checkout-stored-card" hidden>
-                      <label class="yb-checkout-stored-card__option yb-checkout-stored-card__option--active" id="yb-checkout-use-stored">
-                        <input type="radio" name="yb-payment-method" value="stored" checked>
+                    <div id="yb-store-stored-card-section" class="yb-checkout-stored-card" hidden>
+                      <label class="yb-checkout-stored-card__option yb-checkout-stored-card__option--active" id="yb-store-checkout-use-stored">
+                        <input type="radio" name="yb-store-payment-method" value="stored" checked>
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
-                        <span id="yb-checkout-stored-label"></span>
+                        <span id="yb-store-stored-card-detail"></span>
                       </label>
-                      <label class="yb-checkout-stored-card__option" id="yb-checkout-use-new">
-                        <input type="radio" name="yb-payment-method" value="new">
+                      <label class="yb-checkout-stored-card__option" id="yb-store-checkout-use-new">
+                        <input type="radio" name="yb-store-payment-method" value="new">
                         <span>{{ t.checkout_new_card }}</span>
                       </label>
                     </div>
-                    <div id="yb-checkout-card-fields">
+                    <div id="yb-store-card-fields">
                     <div class="yb-auth-field">
                       <label for="yb-store-cardholder">{{ t.checkout_cardholder }}</label>
                       <input type="text" id="yb-store-cardholder" required autocomplete="cc-name">
@@ -417,7 +417,7 @@
                       <input type="checkbox" id="yb-store-save-card" checked>
                       <span>{{ t.checkout_save_card }}</span>
                     </label>
-                    </div>{# end yb-checkout-card-fields #}
+                    </div>{# end yb-store-card-fields #}
 
                     <div class="yb-auth-error" id="yb-store-error" hidden role="alert"></div>
 
