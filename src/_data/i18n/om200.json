@@ -401,8 +401,8 @@
     "benefits6_desc": "Lær at <strong>stå foran en gruppe</strong> med selvtillid, tydelighed og nærvær – en færdighed der rækker langt ud over yogamåtten.",
 
     "cta_title": "Klar til at starte din rejse?",
-    "cta_text": "Få skemaet og ansøg i dag. Næste hold starter snart.",
-    "cta_button": "Få Skema & Ansøg"
+    "cta_text": "Få skemaet i dag. Næste hold starter snart.",
+    "cta_button": "Få Skema"
   },
   "en": {
     "hero_tagline": "200-Hour Yoga Teacher Training",
@@ -806,7 +806,7 @@
     "benefits6_desc": "Learn to <strong>stand in front of a group</strong> with confidence, clarity and presence – a skill that extends far beyond the yoga mat.",
 
     "cta_title": "Ready to start your journey?",
-    "cta_text": "Get the schedule and apply today. Next cohort starts soon.",
-    "cta_button": "Get Schedule & Apply"
+    "cta_text": "Get the schedule today. Next cohort starts soon.",
+    "cta_button": "Get Schedule"
   }
 }
