@@ -521,9 +521,12 @@
 @media (min-width: 900px) {
   .om2-hours__grid {
     grid-template-columns: minmax(280px, 380px) 1fr;
-    align-items: stretch;
+    align-items: start;
   }
-  .om2-hours__viz { min-height: 100%; justify-content: flex-start; }
+  .om2-hours__viz {
+    position: sticky;
+    top: 24px;
+  }
   .om2-hours__modules { grid-template-columns: repeat(2, 1fr); }
 }
 @media (min-width: 1100px) { .om2-hours__grid { gap: 44px; } }
@@ -1162,15 +1165,26 @@
   margin: 0 auto;
   padding: clamp(32px, 6vw, 64px) clamp(16px, 4vw, 32px);
 }
-.om2-ya__grid {
+/* Top row: intro + badges side by side */
+.om2-ya__top {
   display: grid;
+  grid-template-columns: 1fr;
   gap: 24px;
-  grid-template-areas: "intro" "info" "badges" "details";
+  margin-bottom: 28px;
 }
-.om2-ya__intro { grid-area: intro; }
-.om2-ya__info { grid-area: info; }
-.om2-ya__badges { grid-area: badges; }
-.om2-ya__details { grid-area: details; }
+/* Content row: styles + doors side by side */
+.om2-ya__content-row {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 24px;
+  margin-bottom: 24px;
+}
+/* Footer: closing + CTA */
+.om2-ya__footer {
+  text-align: center;
+  padding-top: 20px;
+  border-top: 1px solid #E8E4E0;
+}
 
 /* Intro */
 .om2-ya__intro {
@@ -1431,12 +1445,16 @@
 }
 
 @media (min-width: 900px) {
-  .om2-ya__grid {
-    gap: 28px;
-    grid-template-columns: 1.05fr 0.95fr;
-    grid-template-areas: "intro info" "details badges";
+  .om2-ya__top {
+    grid-template-columns: 1.2fr 0.8fr;
+    gap: 32px;
+    align-items: start;
   }
-  .om2-ya__style-cards { grid-template-columns: 1fr 1fr; }
+  .om2-ya__content-row {
+    grid-template-columns: 1fr 1fr;
+    gap: 32px;
+  }
+  .om2-ya__style-cards { grid-template-columns: 1fr; }
   .om2-ya__badge-grid .om2-ya__tile { min-height: clamp(100px, 9vw, 130px); }
 }
 @media (max-width: 600px) {
@@ -1871,8 +1889,44 @@
 }
 
 /* ═══════════════════════════════════════════
-   SECTION: TESTIMONIALS / REVIEWS
+   SECTION: REVIEWS CAROUSEL OVERRIDE (om200)
+   Uses shared yb-reviews from p18.css
    ═══════════════════════════════════════════ */
+#om2-reviews-section {
+  background: #FFFCF9;
+  padding: clamp(32px, 6vw, 72px) 0;
+}
+#om2-reviews-section .yb-reviews__inner {
+  max-width: 1140px;
+  margin: 0 auto;
+  padding: 0 clamp(16px, 4vw, 32px);
+}
+/* Ensure carousel doesn't bleed */
+#om2-reviews-section .yb-reviews__viewport {
+  overflow-x: auto;
+  overflow-y: visible;
+}
+#om2-reviews-section .yb-reviews__track {
+  display: flex;
+  gap: 1rem;
+}
+#om2-reviews-section .yb-reviews__card {
+  flex: 0 0 calc(100% - 1rem);
+  scroll-snap-align: start;
+  min-height: 200px;
+}
+@media (min-width: 600px) {
+  #om2-reviews-section .yb-reviews__card {
+    flex: 0 0 calc(50% - 0.5rem);
+  }
+}
+@media (min-width: 900px) {
+  #om2-reviews-section .yb-reviews__card {
+    flex: 0 0 calc(33.333% - 0.667rem);
+  }
+}
+
+/* Old om2-reviews dead code — kept for reference but unused */
 .om2-reviews {
   background: #FFFCF9;
   padding: clamp(32px, 6vw, 72px) clamp(16px, 4vw, 32px);
