@@ -33,6 +33,11 @@
     <link rel="stylesheet" href="/css/p18.css">
   {% endif %}
 
+  {% if includeOm200Styles %}
+    <link rel="stylesheet" href="/css/om200.css">
+    <script src="/js/om200.js" defer></script>
+  {% endif %}
+
   {% if includeCoursesModal %}
     {% include "modal-courses.njk" %}
   {% endif %}
