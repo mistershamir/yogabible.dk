@@ -350,6 +350,7 @@
             <img src="https://www.yogabible.dk/s/Splits_Standing_Kursus_Course_Kbenhavn_Copenhagen_Standing_Balance_Sita.jpg" alt="" loading="eager" decoding="async">
           </button>
           <video id="yb-splits-video" class="yb-splits4__video" playsinline webkit-playsinline preload="auto" loop muted
+                 disablepictureinpicture controlslist="nodownload nofullscreen noremoteplayback"
                  poster="https://www.yogabible.dk/s/Splits_Standing_Kursus_Course_Kbenhavn_Copenhagen_Standing_Balance_Sita.jpg">
             <source src="https://www.yogabible.dk/s/Splits_reel.mp4" type="video/mp4">
             {{ t.s2_video_nosupport }}
@@ -357,6 +358,9 @@
           <button class="yb-video-toggle" type="button" aria-label="{{ t.s2_video_toggle }}" aria-pressed="false" aria-controls="yb-splits-video">
             <span class="yb-video-icon" aria-hidden="true"></span>
           </button>
+          <div class="yb-splits4__video-progress" id="yb-splits-progress">
+            <div class="yb-splits4__video-progress__bar" id="yb-splits-progress-bar"></div>
+          </div>
         </div>
       </div>
     </div>
@@ -408,6 +412,17 @@
   #yb-splits-4weeks .yb-btn:focus-visible{outline:0;box-shadow:0 0 0 6px var(--yb-ring);}
   .yb-splits4__video-wrap{position:relative;border-radius:1.4rem;overflow:hidden;background:#000;box-shadow:0 18px 40px rgba(0,0,0,.22);}
   .yb-splits4__video{display:block;width:100%;height:auto;aspect-ratio:9/16;object-fit:cover;}
+  .yb-splits4__video::-webkit-media-controls{display:none!important;}
+  .yb-splits4__video::-webkit-media-controls-enclosure{display:none!important;}
+  .yb-splits4__video::-webkit-media-controls-panel{display:none!important;}
+  .yb-splits4__video-progress{
+    position:absolute;bottom:0;left:0;width:100%;height:3px;z-index:5;
+    background:rgba(255,255,255,.15);cursor:pointer;
+  }
+  .yb-splits4__video-progress__bar{
+    height:100%;width:0%;background:var(--yb-accent);
+    transition:width .1s linear;border-radius:0 2px 2px 0;
+  }
   .yb-video-poster{position:absolute;inset:0;z-index:3;display:flex;align-items:center;justify-content:center;cursor:pointer;border:none;background:transparent;padding:0;}
   .yb-video-poster img{width:100%;height:100%;object-fit:cover;display:block;filter:saturate(1.02) contrast(1.03);}
   .yb-video-poster::after{content:"";position:absolute;inset:0;background:linear-gradient(0deg,rgba(0,0,0,.18),rgba(0,0,0,.12));}
@@ -523,18 +538,34 @@
     if(resetToStart){try{video.currentTime=0;}catch(e){}}
     video.loop=true;
     var p=video.play();
-    if(p&&p.catch){p.catch(function(){video.setAttribute('controls','');video.play().catch(function(){});});}
+    if(p&&p.catch){p.catch(function(){});}
   }
   if(posterBtn){posterBtn.addEventListener('click',function(){tryPlay();});}
   if(toggle){
     toggle.addEventListener('click',function(){if(!video) return;if(video.paused){tryPlay();}else{video.pause();}});
     toggle.addEventListener('keydown',function(e){if(e.key===' '||e.key==='Enter'){e.preventDefault();toggle.click();}});
   }
+  /* Progress bar */
+  var progressWrap=document.getElementById('yb-splits-progress');
+  var progressBar=document.getElementById('yb-splits-progress-bar');
+  function updateProgress(){
+    if(!video||!progressBar||!video.duration) return;
+    progressBar.style.width=(video.currentTime/video.duration*100)+'%';
+  }
+  if(progressWrap&&video){
+    progressWrap.addEventListener('click',function(e){
+      var rect=progressWrap.getBoundingClientRect();
+      var pct=(e.clientX-rect.left)/rect.width;
+      video.currentTime=pct*video.duration;
+    });
+  }
+
   if(video){
     video.addEventListener('click',function(){if(video.paused){tryPlay();}else{video.pause();}});
     video.addEventListener('play',function(){setUI(true);});
     video.addEventListener('pause',function(){setUI(false);});
     video.addEventListener('ended',function(){setUI(false);tryPlay(true);});
+    video.addEventListener('timeupdate',updateProgress);
   }
 
   function matchHeights(){
@@ -777,7 +808,39 @@
      SECTION 5 — EXPLORE MORE (Courses + Teacher Training)
      ═══════════════════════════════════════════════════════════════ -->
 <section id="yb-splits-more" class="yb-more" aria-labelledby="yb-splits-more-title">
-  <div class="yb-more__inner container">
+  <style>
+    #yb-splits-more{
+      background:#FFFCF9;
+      padding:80px 20px;
+      font-family:"Helvetica Neue",Helvetica,Arial,system-ui,-apple-system,sans-serif;
+    }
+    #yb-splits-more .yb-more__inner{max-width:1140px;margin:0 auto;padding:0;}
+    #yb-splits-more .yb-more__header{max-width:720px;margin-bottom:2rem;}
+    #yb-splits-more .yb-more__grid{display:grid;grid-template-columns:1fr;gap:1.5rem;}
+    @media(min-width:900px){ #yb-splits-more .yb-more__grid{grid-template-columns:1fr 1fr;gap:2rem;} }
+    #yb-splits-more .yb-more-card{
+      background:#fff;border:1px solid #E8E4E0;border-radius:16px;overflow:hidden;
+      display:flex;flex-direction:column;box-shadow:0 8px 24px rgba(0,0,0,.06);
+      transition:box-shadow .2s ease;
+    }
+    #yb-splits-more .yb-more-card:hover{box-shadow:0 12px 32px rgba(0,0,0,.1);}
+    #yb-splits-more .yb-more-card__image{
+      position:relative;margin:0;aspect-ratio:4/3;overflow:hidden;background:#f5f4f2;
+      flex-shrink:0;width:100%;display:block;
+    }
+    #yb-splits-more .yb-more-card__image img{display:block;width:100%;height:100%;object-fit:cover;object-position:center;}
+    #yb-splits-more .yb-more-card__body{padding:1.5rem;display:flex;flex-direction:column;flex-grow:1;}
+    #yb-splits-more .yb-more-card__blurb{margin:0 0 1.25rem;font-size:.9rem;color:#6F6A66;line-height:1.6;flex-grow:1;}
+    #yb-splits-more .yb-more-card__list{list-style:none;margin:0 0 1.25rem;padding:0;flex-grow:1;}
+    #yb-splits-more .yb-more-card__list li{position:relative;padding-left:1.5rem;margin:.5rem 0;font-size:.95rem;color:#1C1C1C;line-height:1.5;}
+    #yb-splits-more .yb-more-card__list li::before{content:"\2192";position:absolute;left:0;color:#F65D04;font-weight:700;}
+    @media(max-width:599px){
+      #yb-splits-more{padding:56px 20px;}
+      #yb-splits-more .yb-more-card__body{padding:1.25rem;}
+      #yb-splits-more .yb-btn{width:100%;text-align:center;}
+    }
+  </style>
+  <div class="yb-more__inner">
 
     <header class="yb-more__header">
       <p class="yb-more__kicker">{{ t.s5_kicker }}</p>
