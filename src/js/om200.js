@@ -320,7 +320,82 @@
     });
   }
 
-  /* ═══ 6. CREDENTIALS VIDEO ═══ */
+  /* ═══ 6. LOCATION GALLERY SLIDER ═══ */
+  var locSlider = document.querySelector('[data-om2-loc-slider]');
+  var locTrack = document.querySelector('[data-om2-loc-track]');
+  var locDotsContainer = document.querySelector('[data-om2-loc-dots]');
+  var locPrevBtn = document.querySelector('[data-om2-loc-prev]');
+  var locNextBtn = document.querySelector('[data-om2-loc-next]');
+
+  if (locSlider && locTrack) {
+    var locSlides = locTrack.children;
+    var locTotal = locSlides.length;
+    var locIndex = 0;
+    var locDots = [];
+
+    // Create dots
+    if (locDotsContainer) {
+      for (var li = 0; li < locTotal; li++) {
+        var locDot = document.createElement('button');
+        locDot.className = 'om2-location__slider-dot' + (li === 0 ? ' is-active' : '');
+        locDot.setAttribute('aria-label', 'Slide ' + (li + 1));
+        (function (idx) {
+          locDot.addEventListener('click', function () { goToLocSlide(idx); });
+        })(li);
+        locDotsContainer.appendChild(locDot);
+        locDots.push(locDot);
+      }
+    }
+
+    function updateLocDots() {
+      locDots.forEach(function (d, idx) {
+        d.classList.toggle('is-active', idx === locIndex);
+      });
+    }
+
+    function goToLocSlide(index) {
+      locIndex = Math.max(0, Math.min(index, locTotal - 1));
+      locTrack.style.transform = 'translateX(-' + (locIndex * 100) + '%)';
+      updateLocDots();
+    }
+
+    function locPageScroll(dir) {
+      var newIdx = locIndex + dir;
+      if (newIdx < 0) newIdx = locTotal - 1;
+      if (newIdx >= locTotal) newIdx = 0;
+      goToLocSlide(newIdx);
+    }
+
+    if (locPrevBtn) locPrevBtn.addEventListener('click', function () { locPageScroll(-1); });
+    if (locNextBtn) locNextBtn.addEventListener('click', function () { locPageScroll(1); });
+  }
+
+  /* ═══ 7. GENERAL FAQ ACCORDION ═══ */
+  var faqAcc = document.querySelector('[data-om2-faq-accordion]');
+  if (faqAcc) {
+    var faqBtns = faqAcc.querySelectorAll('.om2-faq__btn');
+    faqBtns.forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        var isOpen = btn.getAttribute('aria-expanded') === 'true';
+
+        // Close all others
+        faqBtns.forEach(function (b) {
+          if (b !== btn) {
+            b.setAttribute('aria-expanded', 'false');
+            var p = document.getElementById(b.getAttribute('aria-controls'));
+            if (p) p.hidden = true;
+          }
+        });
+
+        // Toggle current
+        btn.setAttribute('aria-expanded', String(!isOpen));
+        var panel = document.getElementById(btn.getAttribute('aria-controls'));
+        if (panel) panel.hidden = isOpen;
+      });
+    });
+  }
+
+  /* ═══ 8. CREDENTIALS VIDEO ═══ */
   var credVideo = document.querySelector('[data-om2-video-id]');
   if (credVideo) {
     var fileId = credVideo.getAttribute('data-om2-video-id');
