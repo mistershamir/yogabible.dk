@@ -1,26 +1,25 @@
 # Profile Page Architecture — Frontend Reference
 
-> Frontend architecture for the member area profile page (`src/js/profile.js`, ~2600 lines).
-> Adapt for each brand's design system. **Last updated: 2026-02-10** — reflects invoice/receipt rewrite with HTML invoice generation, 3-source merge, correct MB field mappings.
+> Frontend architecture for the member area profile page (`src/js/profile.js`, ~3700 lines).
+> Adapt for each brand's design system. **Last updated: 2026-02-14** — reflects catalog-based store rewrite, teacher training deposits, course builder, gift cards tab (replacing courses), pause button re-enablement (1/2/3 month selector), waiver management, and stored card system.
 
 ## Overview
 
-Single-page profile dashboard with 7 tabs. Each tab lazy-loads data on first click. All data comes from Netlify Functions (Mindbody proxy) except Profile (Firestore) and Courses (Firestore).
+Single-page profile dashboard with 7 tabs. Each tab lazy-loads data on first click. All data comes from Netlify Functions (Mindbody proxy) except Profile (Firestore).
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
 │  Header: Avatar | Name | Email | Tier Badge                  │
 │                                                               │
-│  ┌─ ONBOARDING OVERLAY (blocks everything below) ──────────┐ │
+│  ┌─ ONBOARDING CARD (shown until phone+DOB filled) ────────┐ │
 │  │  "Welcome! Let's complete your profile"                   │ │
 │  │  [Phone*] [Date of Birth*]                                │ │
 │  │  [Save and continue]                                      │ │
 │  └──────────────────────────────────────────────────────────┘ │
 │                                                               │
-│  Reminder Banner (soft — if phone/DOB missing, hidden if      │
-│  onboarding overlay is shown instead)                         │
+│  Reminder Banner (soft — if phone/DOB missing)                │
 ├─────────────────────────────────────────────────────────────┤
-│  [Profil] [Skema] [Butik] [Mine Pas] [Besøg] [Kvit] [Kurs] │
+│  [Profil] [Skema] [Butik] [Besøg] [Mine Pas] [Kvit] [Gavekort]│
 ├─────────────────────────────────────────────────────────────┤
 │  Tab Content (lazy-loaded on first click)                     │
 └─────────────────────────────────────────────────────────────┘
@@ -44,19 +43,41 @@ Single-page profile dashboard with 7 tabs. Each tab lazy-loads data on first cli
 ## Global State Variables
 
 ```javascript
-var currentUser = null;        // Firebase auth user
-var currentDb = null;          // Firestore instance
-var clientId = null;           // Mindbody client ID (from Firestore users/{uid})
-var clientPassData = null;     // Cached pass/service data (mb-client-services response)
-var staffCache = {};           // Teacher bios by staffId (session-persistent, never cleared)
-var scheduleWeekOffset = 0;    // Week navigation: 0 = current, -1 = last, 1 = next
-var allVisits = [];            // Cached visits for client-side filtering
-var activeVisitFilter = 'all'; // Visit filter: all|upcoming|attended|lateCancelled|noshow
-var storeActiveCategory = 'all'; // Store category filter
-var storeSearchQuery = '';     // Store search bar text (real-time filtering)
-var visitsPeriod = '90';       // Visit history lookback (days)
-var receiptsPeriod = '365';    // Receipts lookback (days)
-var storeServices = [];        // Combined services + contracts for store display
+// ── Auth & User ──
+var currentUser = null;          // Firebase auth user
+var currentDb = null;            // Firestore instance
+var clientId = null;             // Mindbody client ID (from Firestore users/{uid})
+var userDateOfBirth = null;      // DOB for age bracket pricing (under30/over30)
+
+// ── Cached Data ──
+var clientPassData = null;       // Cached pass/service data (mb-client-services response)
+var staffCache = {};             // Teacher bios by staffId (session-persistent, never cleared)
+var storedCardData = null;       // Cached stored credit card info { cardType, lastFour, holderName, ... }
+var tabLoaded = {};              // Track which tabs have been loaded (prevents re-fetch)
+
+// ── Schedule ──
+var scheduleWeekOffset = 0;      // Week navigation: 0 = current, -1 = last, 1 = next
+
+// ── Visits ──
+var allVisits = [];              // Cached visits for client-side filtering
+var activeVisitFilter = 'all';   // Visit filter: all|upcoming|attended|lateCancelled|noshow
+var visitsPeriod = '90';         // Visit history lookback (days)
+
+// ── Receipts ──
+var receiptsPeriod = '365';      // Receipts lookback (days)
+
+// ── Store (catalog-based since 2026-02-12) ──
+var storeServices = [];          // Normalized items built from storeCatalog (age-bracket aware)
+var storeView = 'categories';    // 'categories' (top-level) or 'items' (inside a category)
+var storeTopCategory = null;     // Active top category: 'daily'|'teacher'|'courses'|'private'
+var storeSubCategory = 'all';    // Active sub category: 'memberships'|'clips'|'timebased'|'trials'|'tourist'|'test'|'all'
+var storeSearchQuery = '';       // Store search bar text (real-time filtering)
+var selectedCourses = [];        // Course builder: selected course IDs for bundle calculation
+
+// ── Waiver ──
+var waiverSigned = false;        // Liability waiver sign status
+var waiverStatusLoaded = false;  // Has waiver status been checked (3-tier: localStorage → Firestore → MB)
+var checkoutSigPad = null;       // Signature pad instance for checkout/waiver
 ```
 
 ## Tab Details
@@ -171,64 +192,106 @@ Promise.all([
 - POST to `mb-waitlist` with `{ clientId, classScheduleId }`
 - On success: button changes to "På venteliste" (disabled)
 
-### 3. Store Tab (Butik)
+### 3. Store Tab (Butik) — Rewritten 2026-02-12, updated 2026-02-14
 
-**Data source:** `mb-services` + `mb-contracts` (parallel fetch)
+**Data source:** Hardcoded `storeCatalog` object in profile.js (NOT fetched from Mindbody API)
 
-**Parallel fetch strategy:**
+**Architecture change (2026-02-12):** The store was rewritten from API-fetch to a hardcoded catalog model. Products, pricing, and VAT are defined in `storeCatalog` and built into `storeServices[]` at runtime based on the user's age bracket (under30/over30). This ensures reliable display, correct pricing tiers, and eliminates dependency on Mindbody's inconsistent service listing.
+
+**Two-level navigation:**
+1. **Top-level categories** — 4 large card buttons: Daily Classes, Teacher Training, Courses, Private Classes
+2. **Inside a category** — subcategory pills (Daily only) + search + product cards
+
+**Top-level categories (`storeTopCategories`):**
+| ID | DA | EN | Status |
+|----|----|----|--------|
+| `daily` | Daglige Klasser | Daily Classes | Active — clips, memberships, timebased, trials, tourist, test |
+| `teacher` | Yogalæreruddannelse | Yoga Teacher Training | Active — 5 deposit cards |
+| `courses` | Kurser | Courses | Active — course builder with bundle discounts |
+| `private` | Privattimer | Private Classes | Coming soon — shows toast on click |
+
+**Daily Classes subcategories (`storeDailySubs`):**
+| ID | DA | EN |
+|----|----|----|
+| `memberships` | Medlemskab | Memberships |
+| `timebased` | Tidsbegrænsede pas | Time-based Passes |
+| `clips` | Klippekort | Clip Cards |
+| `trials` | Prøvekort | Trial Passes |
+| `tourist` | Turistpas | Tourist Pass |
+| `test` | Test | Test |
+
+**Age bracket pricing:**
+- Determined by `getAgeBracket()` which checks user's DOB vs 30-year threshold
+- Under-30: VAT-exempt (0%) for clips & time-based passes
+- Over-30: Standard 25% VAT
+- Teacher training: Always VAT-exempt (education, not age-based) — shows "Momsfrit (uddannelse)"
+- Courses: Always VAT-exempt
+
+**Store catalog structure (see `docs/store-catalog-reference.md` for full product list):**
 ```javascript
-Promise.all([
-  fetch('/.netlify/functions/mb-services?sellOnline=true'),
-  fetch('/.netlify/functions/mb-contracts')  // no sellOnline filter — MB may not support it
-])
+storeCatalog = {
+  clips:       { over30: [...], under30: [...] },      // 1-200 class clip cards
+  memberships: { over30: [...], under30: [...] },      // 10/Unlimited/Premium monthly contracts
+  timebased:   { over30: [...], under30: [...] },      // 14d to 12+1 month unlimited passes
+  trials:      { over30: [...], under30: [...] },      // Refs to clips/timebased + KickStarter
+  tourist:     { over30: [...], under30: [...] },      // 7-day pass incl. mat/towel
+  teacher:     [...],                                   // 5 YTT deposit items (non-age-bracketed)
+  courses:     { single_price, discounts, items, bundles }, // Course builder config
+  test:        { over30: [...], under30: [...] }       // Dev test items
+}
 ```
-- Contracts fetch has `.catch()` fallback → returns `{ contracts: [] }` on error
-- Both results merged into single `storeServices` array with `_itemType` marker
-- Each item stores `data-item-type` ('service' or 'contract') and `data-location-id`
-- Staff token bypass: can sell items not marked "Sell Online" in Mindbody admin
 
-**Contract normalization:**
-- Price: `recurringPaymentAmount || firstPaymentAmount || totalContractAmount`
-- `_recurringInfo` string: e.g. "799 kr / Monthly"
-- `autopaySchedule` handled as both string and object (extract `FrequencyType` if object)
-- `description` pulled from MB contract Description or OnlineDescription fields
-- `firstMonthFree` flag (true when `firstPaymentAmount === 0`)
-- `_terms` array built with: first-month-free notice, first payment if different from recurring, duration, number of autopays
-- All contracts categorized as `'memberships'`
+**Teacher Training category (added 2026-02-14):**
+- 5 deposit cards, all 3,750 kr, VAT-exempt (education)
+- Info banner at top explains deposit benefits: class access, preparation, hours toward training
+- Each card shows: program format, period (e.g., "Marts – Juni 2026"), description
+- "Betal depositum" / "Pay deposit" CTA button
+- Routed through standard `mb-checkout` as service purchase
+
+**Courses category — Course Builder (added 2026-02-14):**
+- Custom interactive UI (NOT standard card grid) with toggle-based course selection
+- 3 courses available: Inversions, Splits, Backbends (each 2,300 kr)
+- Bundle discount logic:
+  - 1 course: full price (2,300 kr)
+  - 2 courses: 10% off total (4,140 kr)
+  - 3 courses (All-In): 15% off total (5,865 kr) + FREE 30-day unlimited pass (value 1,249 kr)
+- Live pricing summary updates as user toggles courses
+- Maps to correct Mindbody prodIds based on selection:
+  - Singles: Inversions=100145, Splits=100150, Backbends=100140
+  - 2-course bundles: Inv+Back=119, Inv+Splits=120, Back+Splits=121
+  - All-In: 127
+- Bundle key format: sorted alphabetically, pipe-separated (e.g., `backbends|inversions|splits`)
+- "Read more" links to `/inversions`, `/splits`, `/backbends`
+- Course builder has its own `renderCourseBuilder()` and `attachCourseBuilderHandlers()` functions
+- `getCourseCheckoutItem()` creates temporary service objects for bundles and routes to `openCheckout()`
 
 **Search bar:**
-- Real-time text filtering by item name and description
+- Real-time text filtering by item name
 - `storeSearchQuery` state variable persisted across re-renders
 - Clear button (×) shown when search active
-- Results count displayed below category tabs (e.g. "5 results")
 - Empty state shows "No results for {query}" when search finds nothing
 
-**Category system (`categorizeService()`):**
-| Category | Keywords | Notes |
-|----------|----------|-------|
-| `trials` | trial, prøv, intro | |
-| `tourist` | tourist, turist, drop-in | |
-| `timebased` | day/month/week + unlimited/non-contract | Time period + unlimited keyword. "unlimited 1 month" is timebased NOT memberships |
-| `memberships` | membership, medlems, autopay | + ALL contracts regardless of name |
-| `clips` | clip, klip, punch, pack, class | |
-| `teacher` | teacher, lærer, training, 200, 300 | Teacher trainings |
-| `courses` | course, kursus, workshop | |
-| `private` | private, privat, 1-on-1, personal | |
-
-- Categories with 0 items are hidden (except "All")
-- Each category tab shows item count badge (pill buttons with active styling)
-- Search and category filter work together (category first, then search within)
-
 **Enhanced item cards:**
-- **Badges row:** "First month free" (orange border) + "Membership" (muted) for contracts
-- **Description:** Truncated to 120 chars, shown below name in muted text
-- **Pricing section:** Price + recurring info inline
-- **Terms list:** Checkmark list showing key contract terms + T&C link (opens in new tab)
-- **Buy button:** Full-width primary CTA
+- **Badges row:** "First month free", "Popular", "Best deal", "Incl. mat & towel", "CPH only", "Membership", "Deposit"
+- **Per-class pricing:** Shown for clip cards
+- **Validity period:** "30 days from first booking" etc.
+- **Sharing details:** For large clip cards (60+), persons + instructions collapsible
+- **Membership features:** Checkmark list + terms + T&C link
+- **Teacher deposits:** Calendar icon + period + format badge
+- **Buy button:** "Køb" (standard) / "Betal depositum" (deposits) / "Køb nu" (course builder)
 
-**Unlimited clips display:**
-- Mindbody uses 99999/999999 as "unlimited" placeholder
-- Hidden in UI: `if (s.count && s.count < 9999)` — only show real clip counts, show "Unlimited" text instead
+**Checkout overlay (two-column layout):**
+- **Left column** (conditionally shown):
+  - Liability Waiver section (if not already signed)
+  - Contract Terms section (if purchasing a contract/membership)
+  - Unified agree checkbox + signature pad (canvas)
+  - Grid switches to `yb-checkout__grid--split` when documents are shown
+- **Right column** (always shown):
+  - Stored card radio toggle (if user has saved card)
+  - Card input fields (cardholder, number, expiry, CVV)
+  - Address fields (address, city, zip)
+  - "Save card" checkbox
+  - Submit/Cancel buttons
 
 **Checkout flow (dual routing):**
 - **Service checkout:** POST to `/.netlify/functions/mb-checkout`
@@ -237,19 +300,18 @@ Promise.all([
   ```
 - **Contract checkout:** POST to `/.netlify/functions/mb-contracts` (routes to `/sale/purchasecontract`)
   ```json
-  { "clientId": "X", "contractId": 456, "locationId": 1, "startDate": "2026-02-08", "payment": {...} }
+  { "clientId": "X", "contractId": 456, "locationId": 1, "startDate": "2026-02-08", "payment": {...}, "promoCode": "...", "clientSignature": "data:image/png;..." }
   ```
-- **Checkout item panel:** Shows contract terms summary (checkmark list) alongside name and price
-- Payment info shape: `{ cardNumber, expMonth, expYear, cvv, cardHolder, billingAddress, billingCity, billingPostalCode, saveCard }`
-- Card number input: auto-formats with spaces every 4 digits
-- Expiry input: auto-formats as MM/YY
-- Promo code support: `data-promo-code` attribute on checkout element, passed as `promoCode` in contract purchase body
-- SCA handling: if `requiresSCA` in response, shows "card requires additional authentication" message
-- No clientId? → tries to sync account first via `mb-sync`, then asks to retry
+- Payment info shape: `{ cardNumber, expMonth, expYear, cvv, cardHolder, billingAddress, billingCity, billingPostalCode, saveCard }` OR `{ useStoredCard: true, lastFour: "1234" }`
+- Card formatting: auto-spaces every 4 digits, expiry auto-formats MM/YY
+- Promo code: passed as `promoCode` in contract purchase body
+- SCA: shows "card requires additional authentication" message
+- No clientId? → syncs via `mb-sync` first, then retry
 
 **After successful purchase:**
-- Hides checkout, shows success panel
-- Resets form
+- Hides checkout, shows success panel with "Book a class" → Schedule tab CTA
+- Resets form, clears left column sections
+- Saves card locally if "save card" checked
 - Clears `clientPassData` cache and reloads membership details
 
 ### 3.5. My Passes Tab (Mine Pas)
@@ -269,14 +331,16 @@ Promise.all([
 - **Terminated (before date):** "Membership Terminated" red badge, "Last billing {date}", "Active until {date}", notice period note with T&C link, retention card
 - **Terminated (after date):** "Membership Terminated" red badge, "Become a member again" button
 
-**Membership management (Contact-based, updated 2026-02-13):**
-- Pause and Cancel buttons have been **removed** from the user profile
-- Replaced with an info box directing users to email `info@yogabible.dk`
-- Info box text explains: pause (14 days – 3 months, special circumstances) or cancel (1 month notice per T&C)
-- **Suspend API fixed (2026-02-13):** Correct parameter is `SuspensionStart` (NOT `SuspendDate`). Future-dated starts supported. Duration + DurationUnit calculate resume date. See `docs/email-mindbody-support.md` for full details.
+**Membership management (updated 2026-02-14):**
+- **Pause button re-enabled** with 1/2/3 month duration selector (replaced date picker UX)
+- User clicks "Pause" → shown 3 pill buttons: 1 month, 2 months, 3 months
+- Calls `/.netlify/functions/mb-contract-manage` with `action: 'pause'`, `monthsToSuspend`
+- Pause persisted to Firestore `users/{uid}/pauses/pause_{contractId}` for cross-device sync
+- **Cancel** still contact-based — info box directs to `info@yogabible.dk` (no self-serve cancellation)
+- **Suspend API fixed (2026-02-13):** Correct parameter is `SuspensionStart` (NOT `SuspendDate`). Future-dated starts supported.
 - **Still no API for:** delete/cancel suspension, cancel/revoke termination (admin UI only)
-- Status displays remain: paused badge, terminated badge, billing info, retention card, contact hints
-- Backend `mb-contract-manage.js` now uses correct `SuspensionStart` parameter — pause button can be re-enabled
+- Paused contracts show: amber badge, pause period dates, auto-resume note, "Reactivate" button
+- Backend `mb-contract-manage.js` uses correct `SuspensionStart` parameter
 
 **Retention card (terminated contracts, before termination date):**
 - Heart icon, "We already miss you!" title
@@ -353,65 +417,75 @@ else                         → No-show (red)
   - **Footer:** Bank details (Reg 3409, Acc 13011206, Danske Bank, IBAN DK7430000013011206)
 - Print button styled with brand orange, hidden on print via `@media print`
 
-### Membership Management (within My Passes Tab) — Updated 2026-02-10
+### Membership Management (within My Passes Tab) — Updated 2026-02-14
 
-**Current state:** Pause and Cancel buttons have been **removed** from the user profile. Users are directed to email `info@yogabible.dk` to request pause or cancellation.
+**Current state:** Pause button **re-enabled** with 1/2/3 month duration selector. Cancel remains contact-based (email `info@yogabible.dk`).
 
-**Info box (active contracts):**
-- Shown for active, non-suspended, non-terminating autopay contracts
-- Contains styled text with orange left border accent explaining:
-  - Pause options: 14 days – 3 months, special circumstances
-  - Cancel: 1 month notice per terms & conditions
-  - Contact: email `info@yogabible.dk`
+**Pause UX (re-enabled 2026-02-14):**
+- "Pause" button shows on active, non-suspended contracts
+- Click reveals 3 pill buttons: 1 month, 2 months, 3 months
+- POST to `mb-contract-manage` with `action: 'pause'`, `monthsToSuspend`
+- On success: contract shows amber "Paused" badge with period dates + auto-resume note
+- "Reactivate" button searches store for matching contract and opens checkout
+
+**Cancel UX (contact-based):**
+- Info box directing users to email `info@yogabible.dk`
+- Explains: cancel requires 1 month notice per T&C
 
 **Paused contract display:**
 - Amber "Paused" badge
 - Pause period dates (from/to)
 - Auto-resume message
-- Contact info: "Want to cancel the pause? Contact us at info@yogabible.dk"
+- "Reactivate" button → searches store for matching contract
 
-**Post-termination UX (unchanged):**
+**Post-termination UX:**
 - **Before termination date:** Retention card (heart icon, perks, "Reactivate — first month free" CTA)
 - **After termination date:** "Become a member again" button → Store memberships
-- Revoke cancellation is NOT possible via Mindbody API (`activatecontract` doesn't exist)
-- "Want to cancel the termination? Contact us at info@yogabible.dk" hint shown
+- Revoke cancellation NOT possible via API → "Contact us" hint shown
 
-**Backend (fixed and working):**
+**Backend:**
 - `mb-contract-manage.js` supports `action: 'suspend'|'terminate'`
-- Now uses correct `SuspensionStart` parameter (fixed 2026-02-13)
-- Business rules remain in code: min 14 days, max 93 days, earliest start after next billing
+- Uses correct `SuspensionStart` parameter (fixed 2026-02-13)
+- Business rules: min 14 days, max 93 days, earliest start after next billing
 
 **Pause persistence (Firestore bridge):**
-- After user pauses, Firestore `users/{uid}.pausedContracts` stores pause info with `savedAt` timestamp
+- After pause, saves to Firestore `users/{uid}/pauses/pause_{contractId}`
+- Fields: `contractId`, `startDate`, `endDate`, `savedAt`
 - MB `IsSuspended` is ONLY true for currently active pauses (false for future-dated)
-- 90-second grace period: trust Firestore for 90s after save, then defer to MB as authority
-- If MB never confirms (admin deleted suspension), Firestore record auto-removed after 90s
+- 90-second grace period: trust Firestore for 90s, then defer to MB as authority
+- If MB never confirms (admin deleted suspension), Firestore record auto-removed
 
-**Date formatting:**
-- All dates use `formatDateDK()` for consistent Danish-style display
+**API limitations (still no API for):**
+- Delete/cancel an existing suspension (admin UI only)
+- Revoke/cancel a pending termination (admin UI only)
 
-**Why buttons were originally removed (2026-02-10) and current status:**
-1. ~~`SuspendDate` treated by MB as end date, not start~~ — **FIXED (2026-02-13):** Correct param is `SuspensionStart`
-2. No API to delete/cancel an existing suspension — **still no API** (admin UI only)
-3. No API to revoke/cancel a pending termination — **still no API** (admin UI only)
-4. Suspend API now works correctly — pause buttons can be re-enabled. Cancel pause/termination still requires contacting studio.
+### 6. Gift Cards Tab (Gavekort) — Replaced Courses Tab (2026-02-14)
 
-### 6. Courses Tab (Mine Kurser)
+**Data source:** `mb-giftcards` Netlify function
 
-**Data source:** Firestore only (not connected to Mindbody)
+**Note:** The original "Courses" (Mine Kurser) tab was replaced with "Gift Cards" (Gavekort). Course materials are accessed via the `/course-bundles` page and course-specific pages (`/inversions`, `/splits`, `/backbends`), not from the profile area.
 
-**Data fetch:**
-1. Query `enrollments` where `userId == currentUser.uid` and `status == 'active'`
-   - Uses single `.where()` to avoid composite Firestore indexes
-2. For each enrolled course: fetch `courses/{courseId}` + modules count + progress
-3. Modules and progress fetched with `.catch()` fallback (may fail on Firestore rules)
+**Gift card selection:**
+- API call: GET `/.netlify/functions/mb-giftcards` → returns available gift card types
+- Each option shown as a selectable card with: description, terms (if any), price
+- Clicking a card reveals the purchase form below
 
-**Course card displays:**
-- Icon, title (bilingual), description, module count
-- Progress: chapters read count
-- Deep-link to last chapter if progress exists
-- Button: "Start" (no progress) or "Fortsæt/Continue" (has progress)
-- Links to course viewer page: `/kursus-materiale/?course=X&module=Y&chapter=Z`
+**Purchase form (two-column):**
+- **Left — Gift details:**
+  - Recipient name + email (required)
+  - Gift title/message
+  - Personal message (textarea)
+  - Delivery date picker
+- **Right — Payment:**
+  - Stored card option (if available)
+  - Card input fields (name, number, expiry, CVV)
+  - Save card checkbox
+  - "Buy gift card" CTA
+
+**Checkout flow:**
+- POST to `/.netlify/functions/mb-giftcards` with gift details + payment info
+- On success: shows confirmation state with "Close" button
+- On error: inline error message
 
 ## Bilingual System
 
@@ -433,17 +507,21 @@ function isDa() { return window.location.pathname.indexOf('/en/') !== 0; }
 // For toast messages and dynamic text
 isDa() ? 'Du er booket!' : "You're booked!"
 
-// For store categories
-storeCategories = [
-  { id: 'all', da: 'Alle', en: 'All' },
-  { id: 'trials', da: 'Prøvekort', en: 'Trials' },
-  { id: 'tourist', da: 'Turistpas', en: 'Tourist Pass' },
-  { id: 'memberships', da: 'Medlemskaber', en: 'Memberships' },
-  { id: 'clips', da: 'Klippekort', en: 'Clip Cards' },
-  { id: 'timebased', da: 'Tidsbegrænsede Pas', en: 'Time-based Passes' },
-  { id: 'teacher', da: 'Yogalæreruddannelser', en: 'Teacher Trainings' },
+// For store top-level categories
+storeTopCategories = [
+  { id: 'daily', da: 'Daglige Klasser', en: 'Daily Classes' },
+  { id: 'teacher', da: 'Yogalæreruddannelse', en: 'Yoga Teacher Training' },
   { id: 'courses', da: 'Kurser', en: 'Courses' },
-  { id: 'private', da: 'Privattimer', en: 'Private Sessions' }
+  { id: 'private', da: 'Privattimer', en: 'Private Classes' }
+];
+// Daily Classes subcategories
+storeDailySubs = [
+  { id: 'memberships', da: 'Medlemskab', en: 'Memberships' },
+  { id: 'timebased', da: 'Tidsbegrænsede pas', en: 'Time-based Passes' },
+  { id: 'clips', da: 'Klippekort', en: 'Clip Cards' },
+  { id: 'trials', da: 'Prøvekort', en: 'Trial Passes' },
+  { id: 'tourist', da: 'Turistpas', en: 'Tourist Pass' },
+  { id: 'test', da: 'Test', en: 'Test' }
 ];
 ```
 
@@ -466,31 +544,56 @@ loadReceipts(periodDays?)          — Purchase history with period filter (3-so
 renderReceipts(container, purchases) — Receipt cards with price, tax, download button
 generateInvoiceHTML(purchase)      — Full HTML invoice (opens in new window for Print/PDF)
 loadVisitHistory(periodDays?)      — Visit data + filters + status counts
-loadStore()                        — Services + contracts (parallel fetch) with search + category tabs
-renderStoreItems(container)        — Build store HTML: search bar, categories, item grid, badges, terms
-categorizeService(s)               — Heuristic name→category mapping
 formatDKK(num)                     — Danish Krone formatting (e.g. "1.200 kr.")
 
-// ─── Membership Management Functions ───
-loadMembershipDetails()            — Fetch passes/contracts, render, set tier badge
-renderMembershipDetails(el, data)  — Build membership HTML (passes, contracts, panels)
-bindMembershipManageEvents(el, d)  — Wire up pause/cancel buttons + date pickers
-calcTerminationDates(nextBilling)  — Returns { lastPaymentDate, useUntilDate }
-calcEarliestPauseStart(nextBill)   — Returns earliest valid pause start date
-showMembershipToast(msg, type)     — Toast notification for manage actions
+// ─── Store Functions (catalog-based) ───
+buildStoreFromCatalog()            — Build storeServices[] from storeCatalog by age bracket
+loadStore()                        — Entry point: build catalog + render categories
+renderStoreItems(container)        — Two-mode renderer: categories view OR items view
+renderStoreCardGrid(filtered)      — Card HTML for standard items (clips, memberships, deposits, etc.)
+attachStoreHandlers(container)     — Wire search, back, subcategory, buy, sharing handlers
+renderCourseBuilder()              — Course builder HTML with toggle cards + pricing summary
+attachCourseBuilderHandlers(container) — Wire course toggle + buy button
+getCourseCheckoutItem()            — Map selected courses → correct prodId + price
+resolveCatalogRef(item, bracket)   — Resolve _ref items (trials/tourist → clips/timebased)
+getAgeBracket()                    — Returns 'over30' or 'under30' based on DOB
+filterStoreByProgram(programId)    — Auto-navigate to store from failed booking
 
 // ─── Store Checkout Functions ───
-openCheckout(item)                 — Open payment modal, store item-type + location-id
-processCheckout(formData)          — Route to mb-checkout (services) or mb-contracts (contracts)
+openCheckout(uid, itemType)        — Open checkout overlay, populate item + waiver/terms
+processCheckout()                  — Validate, submit waiver, route to mb-checkout or mb-contracts
+initStoreForm()                    — Wire checkout form handlers, card formatting, cancel/success
+
+// ─── Membership Management Functions ───
+loadMembershipDetails()            — Fetch passes/contracts, merge Firestore pauses, render
+renderMembershipDetails(el, data)  — Build membership HTML (passes, contracts, pause/resume panels)
+pauseContract(contractId, months)  — POST to mb-contract-manage + save pause to Firestore
+savePauseToFirestore()             — Persist pause info for cross-device sync
+removePauseFromFirestore()         — Clean up stale pause records
+
+// ─── Waiver Functions ───
+fetchWaiverStatus(mbClientId)      — 3-tier check: localStorage → Firestore → Mindbody API
+renderWaiverCard()                 — Show signed/unsigned waiver card in My Passes tab
+submitLiabilityWaiver(clientId, source) — Sign waiver + sync to Firestore + Mindbody
+
+// ─── Gift Card Functions ───
+loadGiftCards()                    — Fetch available gift cards from mb-giftcards
+purchaseGiftCard()                 — Submit gift card purchase with recipient + payment
+
+// ─── Stored Card Functions ───
+loadStoredCard()                   — Fetch saved card from mb-client?action=storedCard
+saveCardInfoLocally(paymentInfo)   — Save card summary to storedCardData + Firestore
+initializeStoredCardToggle(prefix) — Wire stored/new card radio toggle in checkout
 
 // ─── Helper Functions ───
-t(key)              — Translation lookup (hardcoded DA/EN map, ~80+ keys)
+t(key)              — Translation lookup (hardcoded DA/EN map, ~100+ keys)
 isDa()              — Language detection (path-based)
 esc(str)            — HTML escape
 formatTime(iso)     — Time formatting
 formatDKK(num)      — Danish Krone formatting
 formatDateDK(date)  — Danish date format (d. MMM yyyy)
 toDateStr(date)     — YYYY-MM-DD formatting
+toLocalDateStr(d)   — Local YYYY-MM-DD (used for contract startDate)
 ```
 
 ## Firestore Schema
@@ -535,7 +638,20 @@ consents/{auto-id}:                        // Audit trail — one doc per docume
   source: string ('registration')          // Where consent was collected
   createdAt: timestamp                     // Server timestamp
 
-enrollments/{id}:
+users/{uid}/documents/{docId}:     // Waiver + legal documents
+  document: string                   // "liability_waiver"
+  timestamp: timestamp
+  createdAt: timestamp
+  signature: string (base64 canvas data URL)
+  acceptedAt: timestamp
+
+users/{uid}/pauses/pause_{contractId}: // Membership pause bridge
+  contractId: string
+  startDate: string (YYYY-MM-DD)
+  endDate: string (YYYY-MM-DD)
+  savedAt: timestamp
+
+enrollments/{id}:                  // Course enrollments (legacy, for course viewer)
   userId: string (uid)
   courseId: string
   status: string ('active')
@@ -692,7 +808,7 @@ When porting this system to a new brand (e.g., Hot Yoga CPH):
 8. **Retention card messaging:** Update `membership_retention_*` translations for brand-specific perks and reactivation offer
 9. **Notice period text:** Update `membership_notice_period` translation — different brands may have different T&C URLs and notice periods
 10. **Adapt CSS:** Keep class naming convention, update brand colors — all classes prefixed `yb-` for Yoga Bible
-11. **Template:** Create profile page template with required DOM IDs (see element IDs in init functions). Must include 7 tab panels: profile, schedule, store, passes, visits, receipts, courses. Include `#yb-onboarding-overlay` div and consent checkboxes in auth modal
+11. **Template:** Create profile page template with required DOM IDs (see element IDs in init functions). Must include 7 tab panels: profile, schedule, store, visits, passes, receipts, giftcards. Include `#yb-onboarding-inline` div and consent checkboxes in auth modal
 12. **Consent checkbox links:** Update links in `modal-auth.njk` consent checkboxes to point to new brand's Terms & Conditions, Privacy Policy, and Code of Conduct pages
 13. **Consent version:** Update the `version` string in `firebase-auth.js` registration handler whenever policy documents change
 14. **Firestore rules:** Set up security rules for `consents` collection — write-only from clients, admin-read for legal queries
