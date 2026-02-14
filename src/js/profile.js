@@ -131,6 +131,100 @@
     initAvatarUpload(db);
     initVisitFilters();
 
+    // ══════════════════════════════════════
+    // CHECKOUT FUNNEL — Resume logic
+    // Navigates to Store → correct category → opens checkout for the target product
+    // ══════════════════════════════════════
+    function resumeCheckoutFunnel(profileData) {
+      if (!window.CheckoutFunnel) return;
+      var funnel = window.CheckoutFunnel.load();
+      if (!funnel || !funnel.prodId) return;
+
+      console.log('[Profile] Resuming checkout funnel for prodId:', funnel.prodId);
+
+      // Track profile_complete if we have profile data
+      if (profileData && profileData.firstName) {
+        window.CheckoutFunnel.trackProfileComplete({
+          firstName: profileData.firstName || '',
+          lastName: profileData.lastName || '',
+          phone: profileData.phone || ''
+        });
+      }
+
+      // GA tracking
+      window.CheckoutFunnel.pushDataLayer('checkout_funnel_profile_complete', {
+        funnel_stage: 'profile_complete',
+        product_id: funnel.prodId,
+        product_name: window.CheckoutFunnel.getProductName(funnel.prodId),
+        product_category: window.CheckoutFunnel.getProductCategory(funnel.prodId)
+      });
+
+      // Switch to Store tab
+      var storeTab = document.querySelector('[data-yb-tab="store"]');
+      if (storeTab) storeTab.click();
+
+      // Wait for store to render, then find and open the correct product checkout
+      setTimeout(function() {
+        var targetProdId = funnel.prodId;
+        var targetCategory = window.CheckoutFunnel.getProductCategory(targetProdId);
+
+        // Navigate to the correct store category
+        var catBtn = document.querySelector('[data-store-top="' + targetCategory + '"]');
+        if (catBtn) catBtn.click();
+
+        // Wait for items to render, then auto-open checkout
+        setTimeout(function() {
+          // Find the buy button for this specific product
+          var buyBtn = document.querySelector('[data-store-buy$="-' + targetProdId + '"]') ||
+                       document.querySelector('[data-store-buy="teacher-' + targetProdId + '"]') ||
+                       document.querySelector('[data-store-buy="clips-' + targetProdId + '"]') ||
+                       document.querySelector('[data-store-buy="mem-' + targetProdId + '"]') ||
+                       document.querySelector('[data-store-buy="time-' + targetProdId + '"]');
+
+          // Fallback: search all buy buttons for matching prodId suffix
+          if (!buyBtn) {
+            document.querySelectorAll('[data-store-buy]').forEach(function(btn) {
+              var uid = btn.getAttribute('data-store-buy');
+              if (uid && uid.indexOf(targetProdId) !== -1) buyBtn = btn;
+            });
+          }
+
+          if (buyBtn) {
+            console.log('[Profile] Auto-opening checkout for prodId:', targetProdId);
+            buyBtn.click();
+          } else {
+            console.warn('[Profile] Could not find buy button for prodId:', targetProdId, '— user needs to select manually');
+          }
+        }, 600);
+      }, 400);
+    }
+
+    // Listen for funnel resume event (dispatched when user is already on profile page)
+    window.addEventListener('checkout:funnel-resume', function() {
+      console.log('[Profile] Funnel resume event received');
+      if (currentUser) {
+        // Re-check profile completeness from Firestore
+        db.collection('users').doc(currentUser.uid).get().then(function(doc) {
+          if (!doc.exists) return;
+          var d = doc.data();
+          if (d.phone && d.dateOfBirth) {
+            resumeCheckoutFunnel(d);
+          } else {
+            // Profile incomplete — onboarding form will show; funnel resumes after onboarding
+            console.log('[Profile] Profile incomplete, waiting for onboarding');
+          }
+        });
+      }
+    });
+
+    // ── Checkout Abandonment: beforeunload when checkout is visible ──
+    window.addEventListener('beforeunload', function() {
+      var checkoutEl = document.getElementById('yb-store-checkout');
+      if (checkoutEl && !checkoutEl.hidden && window.CheckoutFunnel && window.CheckoutFunnel.load()) {
+        window.CheckoutFunnel.trackCheckoutAbandoned();
+      }
+    });
+
     auth.onAuthStateChanged(function(user) {
       if (user) {
         currentUser = user;
@@ -140,13 +234,23 @@
         ensureBackendClient(user, db);
         startBackgroundRefresh();
 
-        // Deep-link to tab via hash
-        var hash = window.location.hash;
-        if (hash && hash.length > 1) {
-          // Generic hash-to-tab routing (e.g. #schedule, #store, #passes)
-          var tabName = hash.slice(1);
-          var genericTab = document.querySelector('[data-yb-tab="' + tabName + '"]');
-          if (genericTab) genericTab.click();
+        // ── Checkout Funnel: check for pending funnel on login ──
+        var pendingFunnel = window.CheckoutFunnel && window.CheckoutFunnel.load();
+        if (pendingFunnel) {
+          console.log('[Profile] Checkout funnel pending for prodId:', pendingFunnel.prodId);
+          // Force store tab — funnel resume handled after loadProfile determines onboarding state
+          var storeTab = document.querySelector('[data-yb-tab="store"]');
+          if (storeTab) storeTab.click();
+        }
+        // Deep-link to tab via hash (only if no funnel pending)
+        else {
+          var hash = window.location.hash;
+          if (hash && hash.length > 1) {
+            // Generic hash-to-tab routing (e.g. #schedule, #store, #passes)
+            var tabName = hash.slice(1);
+            var genericTab = document.querySelector('[data-yb-tab="' + tabName + '"]');
+            if (genericTab) genericTab.click();
+          }
         }
       } else {
         currentUser = null;
@@ -344,6 +448,17 @@
             setTimeout(function() { successEl2.hidden = true; }, 5000);
           }
           setTabsLocked(false);
+
+          // ── Checkout Funnel: onboarding complete → track + resume ──
+          if (window.CheckoutFunnel && window.CheckoutFunnel.load()) {
+            window.CheckoutFunnel.trackProfileComplete({
+              firstName: (document.getElementById('yb-profile-firstname') || {}).value || '',
+              lastName: (document.getElementById('yb-profile-lastname') || {}).value || '',
+              phone: phone
+            });
+            // Small delay to let tabs unlock and store load
+            setTimeout(function() { resumeCheckoutFunnel(); }, 500);
+          }
         }).catch(function(err) {
           if (errorEl) { errorEl.textContent = err.message; errorEl.hidden = false; }
         }).finally(function() {
@@ -489,6 +604,9 @@
         } else {
           onboardingInline.hidden = true;
           setTabsLocked(false);
+
+          // ── Checkout Funnel: profile is complete → resume funnel ──
+          resumeCheckoutFunnel(d);
         }
       }
 
@@ -2084,6 +2202,14 @@
     });
 
     if (cancelBtn) cancelBtn.addEventListener('click', function() {
+      // ── Checkout Funnel: track checkout_abandoned on cancel ──
+      if (window.CheckoutFunnel && window.CheckoutFunnel.load()) {
+        window.CheckoutFunnel.trackCheckoutAbandoned();
+        window.CheckoutFunnel.pushDataLayer('checkout_funnel_abandoned', {
+          funnel_stage: 'checkout_abandoned',
+          abandon_reason: 'cancel_button'
+        });
+      }
       var el = document.getElementById('yb-store-checkout');
       var list = document.getElementById('yb-store-list');
       if (el) el.hidden = true;
@@ -2797,6 +2923,20 @@
     // Find by _uid (unique key), use prodId for the API
     var service = storeServices.find(function(s) { return s._uid === serviceUid; });
     if (!service) return;
+
+    // ── Checkout Funnel: track checkout_opened ──
+    if (window.CheckoutFunnel) {
+      var funnelData = window.CheckoutFunnel.load();
+      if (funnelData && funnelData.prodId === service.prodId) {
+        window.CheckoutFunnel.trackCheckoutOpened();
+        window.CheckoutFunnel.pushDataLayer('checkout_funnel_checkout_opened', {
+          funnel_stage: 'checkout_opened',
+          product_id: service.prodId,
+          product_name: service.name,
+          product_category: service._topCategory
+        });
+      }
+    }
     var listEl = document.getElementById('yb-store-list');
     var checkoutEl = document.getElementById('yb-store-checkout');
     var itemEl = document.getElementById('yb-store-checkout-item');
@@ -3151,6 +3291,16 @@
             // Refresh membership data after purchase
             clientPassData = null;
             loadMembershipDetails();
+
+            // ── Checkout Funnel: track purchased ──
+            if (window.CheckoutFunnel && window.CheckoutFunnel.load()) {
+              window.CheckoutFunnel.trackPurchased();
+              window.CheckoutFunnel.pushDataLayer('checkout_funnel_purchased', {
+                funnel_stage: 'purchased',
+                product_id: serviceId,
+                amount: amount
+              });
+            }
           } else if (data.requiresSCA) {
             showSimpleError(errorEl, isDa() ? 'Dit kort kræver yderligere godkendelse.' : 'Your card requires additional authentication.');
           } else {
