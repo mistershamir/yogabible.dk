@@ -1,261 +1,599 @@
 {% set t = i18n["course-bundles"][lang or "da"] %}
+{% set lp = "/en" if lang == "en" else "" %}
 
-<!-- Hero -->
-<section class="yb-hero">
-  <div class="yb-hero__glow"></div>
-  <div class="yb-hero__content">
-    <p class="yb-hero__tagline">{{ t.hero_tagline }}</p>
-    <h1 class="yb-hero__title">{{ t.hero_title }}</h1>
-    <p class="yb-hero__subtitle">{{ t.hero_subtitle }}</p>
-    <div class="yb-hero__line"></div>
-    <div class="yb-hero__ctas">
-      <a href="#bundle-builder" class="yb-btn yb-btn--primary yb-btn--large">{{ t.hero_cta }}</a>
-    </div>
-    <div class="yb-hero__trust">
-      <span>{{ t.hero_trust1 }}</span>
-      <span class="yb-hero__trust-dot"></span>
-      <span>{{ t.hero_trust2 }}</span>
-      <span class="yb-hero__trust-dot"></span>
-      <span>{{ t.hero_trust3 }}</span>
-    </div>
-  </div>
-  <div class="yb-hero__scroll">
-    <span>Scroll</span>
-    <div class="yb-hero__scroll-line"></div>
-  </div>
-</section>
-
-<!-- Pricing Overview -->
-<section class="program-overview">
-  <div class="container">
-    <h2 class="section-title">{{ t.pricing_title }}</h2>
-    <p class="section-subtitle">{{ t.pricing_subtitle }}</p>
-
-    <div class="program-grid">
-      <div class="program-feature">
-        <div class="program-feature__icon">1</div>
-        <h3>{{ t.price1_label }}</h3>
-        <p>{{ t.price1_detail | safe }}</p>
+{# =========================================================
+   SECTION 1: HERO — Split with image + builder card
+========================================================= #}
+<section class="cb-hero" id="coursebuilder" aria-label="{{ t.hero_title }}">
+  <div class="cb-inner">
+    <div class="cb-hero__top">
+      {# LEFT: Copy #}
+      <div class="cb-hero__content">
+        <p class="cb-eyebrow">{{ t.hero_eyebrow }}</p>
+        <h1 class="cb-hero__title">{{ t.hero_title }}</h1>
+        <p class="cb-hero__sub">{{ t.hero_sub }}</p>
+        <p class="cb-hero__kicker">{{ t.hero_kicker }}</p>
+        <p class="cb-hero__lead">{{ t.hero_lead | safe }}</p>
+        <p class="cb-hero__meta">{{ t.hero_meta | safe }}<br><span class="cb-hero__fine">{{ t.hero_meta_fine | safe }}</span></p>
       </div>
-      <div class="program-feature">
-        <div class="program-feature__icon">2</div>
-        <h3>{{ t.price2_label }}</h3>
-        <p>{{ t.price2_detail | safe }}</p>
-      </div>
-      <div class="program-feature">
-        <div class="program-feature__icon">3</div>
-        <h3>{{ t.price3_label }}</h3>
-        <p>{{ t.price3_detail | safe }}</p>
-      </div>
+      {# RIGHT: Media #}
+      <figure class="cb-hero__media" aria-hidden="true">
+        <img src="/s/Course_Bundles_Inversion_Backbends_Splits_Kbenhavn_Copenhagen.jpg" alt="" loading="eager" decoding="async" width="640" height="520">
+        <span class="cb-hero__frame"></span>
+      </figure>
     </div>
-  </div>
-</section>
 
-<!-- Bundle Builder -->
-<section class="program-schedule" id="bundle-builder">
-  <div class="container">
-    <h2 class="section-title">{{ t.builder_title }}</h2>
-
-    <div class="yb-bundle-builder">
-      <!-- Month Selection -->
-      <div class="yb-apply-section">
-        <h3 class="yb-apply-section__title">{{ t.builder_month_title }}</h3>
-        <div class="yb-month-chips" id="ybBundleMonths">
-          <label class="yb-month-chip"><input type="radio" name="bundleMonth" value="Februar 2026"><span>Februar 2026</span></label>
-          <label class="yb-month-chip"><input type="radio" name="bundleMonth" value="Marts 2026"><span>Marts 2026</span></label>
-          <label class="yb-month-chip"><input type="radio" name="bundleMonth" value="April 2026"><span>April 2026</span></label>
-          <label class="yb-month-chip"><input type="radio" name="bundleMonth" value="Maj 2026"><span>Maj 2026</span></label>
+    {# BOTTOM: Builder + Accommodation mini #}
+    <div class="cb-hero__bottom">
+      {# BUILDER CARD #}
+      <div class="cb-card cb-card--builder">
+        <div class="cb-card__head">
+          <p class="cb-card__head-eyebrow">{{ t.builder_eyebrow }}</p>
+          <h3 class="cb-card__head-title">{{ t.builder_title }}</h3>
+        </div>
+        <div class="cb-card__body">
+          {# Months #}
+          <div class="cb-block">
+            <p class="cb-block__title">{{ t.builder_month_label }}</p>
+            <div class="cb-chips" role="tablist" aria-label="{{ t.builder_month_label }}">
+              <button class="cb-chip" type="button" data-month="Februar 2026">Februar 2026</button>
+              <button class="cb-chip" type="button" data-month="Marts 2026">Marts 2026</button>
+              <button class="cb-chip" type="button" data-month="April 2026">April 2026</button>
+              <button class="cb-chip" type="button" data-month="Maj 2026">Maj 2026</button>
+              <button class="cb-chip cb-chip--muted" type="button" data-month="Ikke sikker endnu">{{ t.builder_month_unsure }}</button>
+            </div>
+          </div>
+          {# Courses #}
+          <div class="cb-block">
+            <p class="cb-block__title">{{ t.builder_courses_label }}</p>
+            <div class="cb-courses" role="group" aria-label="{{ t.builder_courses_label }}">
+              <button class="cb-course" type="button" data-course="Inversions" aria-pressed="false">
+                <span class="cb-course__name">{{ t.builder_inv_name }}</span>
+                <span class="cb-course__meta">{{ t.builder_inv_meta }}</span>
+              </button>
+              <button class="cb-course" type="button" data-course="Splits" aria-pressed="false">
+                <span class="cb-course__name">{{ t.builder_splits_name }}</span>
+                <span class="cb-course__meta">{{ t.builder_splits_meta }}</span>
+              </button>
+              <button class="cb-course" type="button" data-course="Backbends" aria-pressed="false">
+                <span class="cb-course__name">{{ t.builder_back_name }}</span>
+                <span class="cb-course__meta">{{ t.builder_back_meta }}</span>
+              </button>
+            </div>
+            <div class="cb-pill" style="margin-top:10px" aria-label="Discount info">
+              <span>{{ t.builder_deal_2 }} <strong>{{ t.builder_deal_2_val }}</strong></span>
+              <span class="dot" aria-hidden="true">&middot;</span>
+              <span>{{ t.builder_deal_3 }} <strong>{{ t.builder_deal_3_val }}</strong> {{ t.builder_deal_3_extra }}</span>
+            </div>
+          </div>
+          {# Summary #}
+          <div class="cb-summary" aria-live="polite">
+            <div class="cb-summary__row">
+              <span class="k">{{ t.builder_price_label }}</span>
+              <span class="v"><strong>{{ t.builder_price_value }}</strong></span>
+              <span class="hint">{{ t.builder_price_hint }}</span>
+            </div>
+            <div class="cb-summary__row">
+              <span class="k">{{ t.builder_picked_label }}</span>
+              <span class="v" id="cb-picked">&mdash;</span>
+            </div>
+            <div class="cb-summary__row">
+              <span class="k">{{ t.builder_pack_label }}</span>
+              <span class="v" id="cb-pack-price">&mdash;</span>
+              <span class="hint" id="cb-savings">&mdash;</span>
+            </div>
+          </div>
+        </div>
+        {# CTAs #}
+        <div class="cb-card__cta">
+          <button class="cb-btn cb-btn--outline" type="button" data-ybc-open="brochure" data-ybc-course="Inversions, Splits, Backbends" data-ybc-source="Course Bundles – landing page">{{ t.builder_cta_brochure }}</button>
+          <a id="cb-cta-main" class="cb-btn cb-btn--primary" href="#" aria-disabled="true" tabindex="-1">{{ t.builder_cta_default }}</a>
+          <p class="cb-card__foot">{{ t.builder_foot }}</p>
         </div>
       </div>
 
-      <!-- Course Selection -->
-      <div class="yb-apply-section" style="margin-top:24px">
-        <h3 class="yb-apply-section__title">{{ t.builder_courses_title }}</h3>
-        <div class="yb-apply-radio-group">
-          <label class="yb-apply-checkbox">
-            <input type="checkbox" name="bundleCourse" value="Inversions" id="ybBundleInv">
-            <span>{{ t.builder_inv_label | safe }}</span>
-          </label>
-          <label class="yb-apply-checkbox">
-            <input type="checkbox" name="bundleCourse" value="Splits" id="ybBundleSplits">
-            <span>{{ t.builder_splits_label | safe }}</span>
-          </label>
-          <label class="yb-apply-checkbox">
-            <input type="checkbox" name="bundleCourse" value="Backbends" id="ybBundleBack">
-            <span>{{ t.builder_back_label | safe }}</span>
-          </label>
+      {# ACCOMMODATION MINI CARD #}
+      <aside class="cb-card">
+        <div class="cb-card__head">
+          <p class="cb-card__head-eyebrow">{{ t.acco_mini_eyebrow }}</p>
+          <h3 class="cb-card__head-title">{{ t.acco_mini_title }}</h3>
         </div>
-      </div>
+        <div class="cb-card__body">
+          <p style="margin:0.2rem 0 0.7rem;color:#2a2a2a;line-height:1.6">{{ t.acco_mini_text }}</p>
+          <ul style="margin:0;padding-left:1.05rem;line-height:1.7;font-size:15px;font-weight:700;color:#434a54">
+            <li>{{ t.acco_mini_item1 }}</li>
+            <li>{{ t.acco_mini_item2 }}</li>
+            <li>{{ t.acco_mini_item3 }}</li>
+          </ul>
+        </div>
+        <div class="cb-card__cta">
+          <a class="cb-btn cb-btn--outline" href="{{ lp }}/accommodation">{{ t.acco_mini_cta }}</a>
+        </div>
+      </aside>
+    </div>
+  </div>
+</section>
 
-      <!-- Summary -->
-      <div class="yb-apply-card" id="ybBundleSummary" style="margin-top:24px">
-        <h3>{{ t.builder_summary_title }}</h3>
-        <p id="ybBundleInfo">{{ t.builder_summary_default }}</p>
-        <p id="ybBundlePrice" style="font-size:1.5rem; font-weight:700; color:var(--yb-brand); display:none;"></p>
-        <p id="ybBundleDiscount" style="color:var(--yb-brand); display:none;"></p>
-        <a id="ybBundleCta" class="btn btn--large btn--primary" href="#" target="_blank" rel="noopener" style="display:none; margin-top:16px;">{{ t.builder_cta }}</a>
+{# =========================================================
+   SECTION 2: HOW IT WORKS — Video + highlights
+========================================================= #}
+<section class="cb-how" aria-labelledby="cb-how-title">
+  <div class="cb-inner">
+    <div class="cb-how__grid">
+      {# LEFT: Video #}
+      <figure class="cb-how__media" aria-label="Scorpion pose video">
+        <video class="cb-how__video" autoplay muted loop playsinline preload="metadata">
+          <source src="/s/Scorpion_Pose_Yoga_Courses_Copenhagen_Kbenhavn_Danmark.mp4" type="video/mp4">
+        </video>
+        <span class="cb-hero__frame" aria-hidden="true"></span>
+      </figure>
+
+      {# RIGHT: Content #}
+      <div class="cb-how__content">
+        <p class="cb-eyebrow">{{ t.how_eyebrow }}</p>
+        <h2 id="cb-how-title" class="cb-section-title" style="font-size:clamp(24px,3.2vw,36px)">{{ t.how_title }}</h2>
+        <p class="cb-section-lead">{{ t.how_lead }}</p>
+
+        <div class="cb-how__items" role="list" aria-label="{{ t.how_eyebrow }}">
+          {% for i in [1, 2, 3, 4] %}
+          <div class="cb-how__item" role="listitem">
+            <span class="cb-how__item-kicker">{{ t["how_item" + i + "_kicker"] }}</span>
+            <span class="cb-how__item-value">{{ t["how_item" + i + "_value"] }}</span>
+            <span class="cb-how__item-hint">{{ t["how_item" + i + "_hint"] }}</span>
+          </div>
+          {% endfor %}
+        </div>
+
+        <div class="cb-how__ctas">
+          <a class="cb-btn cb-btn--outline" href="#coursebuilder">{{ t.how_cta_builder }}</a>
+          <button class="cb-btn cb-btn--primary" type="button" data-ybc-open="brochure" data-ybc-course="Inversions, Splits, Backbends" data-ybc-source="Course Bundles – how it works">{{ t.how_cta_brochure }}</button>
+        </div>
+        <p class="cb-how__fine">{{ t.how_fine | safe }}</p>
       </div>
     </div>
   </div>
 </section>
 
-<!-- Course Details -->
-<section class="program-overview">
-  <div class="container">
-    <h2 class="section-title">{{ t.courses_title }}</h2>
+{# =========================================================
+   SECTION 3: COURSES — 3-column card grid
+========================================================= #}
+<section class="cb-courses-section" aria-labelledby="cb-courses-title">
+  <div class="cb-inner">
+    <div class="cb-courses-section__head">
+      <p class="cb-eyebrow">{{ t.courses_eyebrow }}</p>
+      <h2 id="cb-courses-title" class="cb-section-title">{{ t.courses_title }}</h2>
+      <p class="cb-section-lead" style="margin-inline:auto">{{ t.courses_lead }}</p>
+    </div>
 
-    <div class="program-grid">
-      <div class="program-feature">
-        <div class="program-feature__icon">&#129336;</div>
-        <h3>{{ t.course_inv_title }}</h3>
-        <p>{{ t.course_inv_desc }}</p>
-        <a href="{% if lang == 'en' %}/en/inversions{% else %}/inversions{% endif %}" style="color:var(--yb-brand)">{{ t.course_inv_link }} &rarr;</a>
-      </div>
-      <div class="program-feature">
-        <div class="program-feature__icon">&#129496;</div>
-        <h3>{{ t.course_splits_title }}</h3>
-        <p>{{ t.course_splits_desc }}</p>
-        <a href="{% if lang == 'en' %}/en/splits{% else %}/splits{% endif %}" style="color:var(--yb-brand)">{{ t.course_splits_link }} &rarr;</a>
-      </div>
-      <div class="program-feature">
-        <div class="program-feature__icon">&#127769;</div>
-        <h3>{{ t.course_back_title }}</h3>
-        <p>{{ t.course_back_desc }}</p>
-        <a href="{% if lang == 'en' %}/en/backbends{% else %}/backbends{% endif %}" style="color:var(--yb-brand)">{{ t.course_back_link }} &rarr;</a>
-      </div>
+    <div class="cb-courses-grid">
+      {% set coursesList = [
+        { key: "inv", slug: "inversions" },
+        { key: "splits", slug: "splits" },
+        { key: "back", slug: "backbends" }
+      ] %}
+      {% for c in coursesList %}
+      <article class="cb-course-card">
+        <h3 class="cb-course-card__title">{{ t["course_" + c.key + "_title"] }}</h3>
+        <p class="cb-course-card__desc">{{ t["course_" + c.key + "_desc"] }}</p>
+        <p class="cb-course-card__tags">{{ t["course_" + c.key + "_tags"] }}</p>
+        <a class="cb-course-card__link" href="{{ lp }}/{{ c.slug }}">{{ t.course_link }} &rarr;</a>
+      </article>
+      {% endfor %}
     </div>
   </div>
 </section>
 
-<!-- Accommodation -->
-<section class="program-schedule">
-  <div class="container">
-    <h2 class="section-title">{{ t.accom_title }}</h2>
-    <p class="section-subtitle">{{ t.accom_subtitle }}</p>
+{# =========================================================
+   SECTION 4: WHY BUNDLES WORK — 3-column anatomy map
+========================================================= #}
+<section class="cb-why" aria-labelledby="cb-why-title">
+  <div class="cb-inner">
+    <div class="cb-why__head">
+      <p class="cb-eyebrow">{{ t.why_eyebrow }}</p>
+      <h2 id="cb-why-title" class="cb-section-title">{{ t.why_title }}</h2>
+      <p class="cb-section-lead" style="margin-inline:auto">{{ t.why_lead | safe }}</p>
+    </div>
 
-    <div class="schedule-options">
-      <div class="schedule-card">
-        <h3>{{ t.accom_card_title }}</h3>
-        <ul>
-          <li>{{ t.accom_item1 }}</li>
-          <li>{{ t.accom_item2 }}</li>
-          <li>{{ t.accom_item3 }}</li>
-          <li>{{ t.accom_item4 }}</li>
-          <li>{{ t.accom_item5 }}</li>
+    <div class="cb-why__grid" role="list">
+      {% set whyCols = [
+        { key: "inv", accent: false },
+        { key: "back", accent: true },
+        { key: "splits", accent: false }
+      ] %}
+      {% for col in whyCols %}
+      <article class="cb-map{% if col.accent %} cb-map--accent{% endif %}" role="listitem">
+        <div class="cb-map__top">
+          <h3 class="cb-map__title">{{ t["why_" + col.key + "_title"] }}</h3>
+          <p class="cb-map__sub">{{ t["why_" + col.key + "_sub"] }}</p>
+        </div>
+        <ul class="cb-map__list">
+          {% for item in t["why_" + col.key + "_items"] %}
+          <li>{{ item | safe }}</li>
+          {% endfor %}
         </ul>
-        <a href="{% if lang == 'en' %}/en/kontakt{% else %}/kontakt{% endif %}" class="btn btn--primary" style="margin-top:16px">{{ t.accom_cta }}</a>
+        <div class="cb-map__tags">
+          {% for tag in t["why_" + col.key + "_tags"] %}
+          <span class="cb-tag">{{ tag }}</span>
+          {% endfor %}
+        </div>
+      </article>
+      {% endfor %}
+    </div>
+
+    {# Bridge #}
+    <div class="cb-bridge" role="note" aria-label="{{ t.why_bridge_title }}">
+      <p class="cb-bridge__title">{{ t.why_bridge_title }}</p>
+      <p class="cb-bridge__text">{{ t.why_bridge_text | safe }}</p>
+      <div class="cb-bridge__ctas">
+        <a class="cb-btn cb-btn--primary" href="#coursebuilder">{{ t.why_cta_builder }}</a>
+        <button class="cb-btn cb-btn--outline" type="button" data-ybc-open="brochure" data-ybc-source="Course Bundles – why bundles work">{{ t.why_cta_brochure }}</button>
       </div>
     </div>
   </div>
 </section>
 
-<!-- CTA -->
-<section class="cta-section">
-  <div class="container">
-    <h2 class="cta-section__title">{{ t.cta_title }}</h2>
-    <p class="cta-section__text">{{ t.cta_text }}</p>
-    <a href="#bundle-builder" class="btn btn--large btn--primary">{{ t.cta_button }}</a>
+{# =========================================================
+   SECTION 5: PRICING — 3-tier cards
+========================================================= #}
+<section class="cb-pricing" aria-labelledby="cb-pricing-title">
+  <div class="cb-inner">
+    {# Top video #}
+    <figure class="cb-pricing__video-wrap" aria-label="Backbend video">
+      <video class="cb-pricing__video" autoplay muted loop playsinline preload="metadata">
+        <source src="/s/Backbend_Copenhagen_Yoga_Bible_Yogabible.mp4" type="video/mp4">
+      </video>
+      <span class="cb-hero__frame" aria-hidden="true"></span>
+    </figure>
+
+    <div class="cb-pricing__head">
+      <p class="cb-eyebrow">{{ t.pricing_eyebrow }}</p>
+      <h2 id="cb-pricing-title" class="cb-section-title">{{ t.pricing_title }}</h2>
+      <p class="cb-section-lead" style="margin-inline:auto">{{ t.pricing_lead | safe }}</p>
+    </div>
+
+    <div class="cb-pricing__cards" role="list">
+      {# 1 course #}
+      <article class="cb-price-card" role="listitem">
+        <div class="cb-price-card__top">
+          <h3 class="cb-price-card__title">{{ t.pricing1_title }}</h3>
+          <p class="cb-price-card__sub">{{ t.pricing1_sub }}</p>
+        </div>
+        <div class="cb-math">
+          <div class="cb-math__row">
+            <span>{{ t.pricing1_price_label }}</span>
+            <strong>{{ t.pricing1_price_value }}</strong>
+          </div>
+          <div class="cb-math__row cb-math__row--muted">
+            <span>{{ t.pricing1_unit_label }}</span>
+            <strong>{{ t.pricing1_unit_value }}</strong>
+          </div>
+        </div>
+        <div class="cb-price-card__ctas">
+          <a class="cb-btn cb-btn--primary" href="#coursebuilder">{{ t.pricing_cta }}</a>
+          <button class="cb-btn cb-btn--outline" type="button" data-ybc-open="brochure" data-ybc-source="Course Bundles – pricing section">{{ t.pricing_cta_brochure }}</button>
+        </div>
+      </article>
+
+      {# 2 courses #}
+      <article class="cb-price-card cb-price-card--accent" role="listitem">
+        <div class="cb-price-card__top">
+          <h3 class="cb-price-card__title">{{ t.pricing2_title }}</h3>
+          <p class="cb-price-card__sub">{{ t.pricing2_sub | safe }}</p>
+        </div>
+        <div class="cb-math">
+          <div class="cb-math__row cb-math__row--muted">
+            <span>{{ t.pricing2_normal_label }}</span>
+            <strong>{{ t.pricing2_normal_value }}</strong>
+          </div>
+          <div class="cb-math__row">
+            <span>{{ t.pricing2_pay_label }}</span>
+            <strong>{{ t.pricing2_pay_value }}</strong>
+          </div>
+          <div class="cb-save">
+            {{ t.pricing2_save | safe }}
+            <span class="cb-tag">{{ t.pricing2_unit }}</span>
+          </div>
+        </div>
+        <div class="cb-price-card__ctas">
+          <a class="cb-btn cb-btn--primary" href="#coursebuilder">{{ t.pricing_cta }}</a>
+          <button class="cb-btn cb-btn--outline" type="button" data-ybc-open="brochure" data-ybc-source="Course Bundles – pricing section">{{ t.pricing_cta_brochure }}</button>
+        </div>
+      </article>
+
+      {# 3 courses — All-in #}
+      <article class="cb-price-card cb-price-card--allin" role="listitem">
+        <div class="cb-ribbon" aria-hidden="true">{{ t.pricing3_ribbon }}</div>
+        <div class="cb-price-card__top">
+          <h3 class="cb-price-card__title">{{ t.pricing3_title }}</h3>
+          <p class="cb-price-card__sub">{{ t.pricing3_sub | safe }}</p>
+        </div>
+        <div class="cb-math">
+          <div class="cb-math__row cb-math__row--muted">
+            <span>{{ t.pricing3_normal_label }}</span>
+            <strong>{{ t.pricing3_normal_value }}</strong>
+          </div>
+          <div class="cb-math__row">
+            <span>{{ t.pricing3_pay_label }}</span>
+            <strong>{{ t.pricing3_pay_value }}</strong>
+          </div>
+          <div class="cb-save">
+            {{ t.pricing3_save | safe }}
+            <span class="cb-tag">{{ t.pricing3_unit }}</span>
+          </div>
+          <div class="cb-bonus">
+            <div class="cb-bonus__line">{{ t.pricing3_bonus_line | safe }}</div>
+            <div class="cb-bonus__links">
+              <a class="cb-bonus__link" href="https://www.hotyogacph.dk" target="_blank" rel="noopener noreferrer">{{ t.pricing3_bonus_hyc }}</a>
+              <span class="dot" aria-hidden="true">&middot;</span>
+              <a class="cb-bonus__link" href="https://www.vibroyoga.dk" target="_blank" rel="noopener noreferrer">{{ t.pricing3_bonus_vibro }}</a>
+            </div>
+            <p class="cb-bonus__note">{{ t.pricing3_bonus_note | safe }}</p>
+            <div class="cb-total">
+              {{ t.pricing3_total | safe }}
+              <span class="cb-total__fine">{{ t.pricing3_total_fine }}</span>
+            </div>
+          </div>
+        </div>
+        <div class="cb-price-card__ctas">
+          <a class="cb-btn cb-btn--primary" href="#coursebuilder">{{ t.pricing_cta }}</a>
+          <button class="cb-btn cb-btn--outline" type="button" data-ybc-open="brochure" data-ybc-source="Course Bundles – pricing section" data-ybc-course="Inversions,Splits,Backbends">{{ t.pricing_cta_brochure }}</button>
+        </div>
+      </article>
+    </div>
+
+    <p class="cb-pricing__fine">{{ t.pricing_fine | safe }}</p>
   </div>
 </section>
 
-<script>
-(function() {
-  'use strict';
-  var PRICE = 2300;
-  var PASS_VALUE = 1399;
-  var BASE = 'https://clients.mindbodyonline.com/app/business/classic/ws?studio=HotYogaCopenhagenHQ&stype=40&prodid=';
+{# =========================================================
+   SECTION 6: UNLIMITED MONTH
+========================================================= #}
+<section class="cb-unlimited" aria-labelledby="cb-unlimited-title">
+  <div class="cb-inner">
+    {# Top video #}
+    <figure class="cb-unlimited__video-wrap" aria-label="Recovery video">
+      <video class="cb-unlimited__video" autoplay muted loop playsinline preload="metadata">
+        <source src="/s/Yoga_for_men_recovery_copenhagen_yoga_education_kursus_beginner.mp4" type="video/mp4">
+      </video>
+      <span class="cb-hero__frame" aria-hidden="true"></span>
+    </figure>
 
-  var BUNDLE_URLS = {
-    'Februar 2026': { 'Backbends|Inversions': 113, 'Inversions|Splits': 114, 'Backbends|Splits': 115, 'ALL': 125 },
-    'Marts 2026':   { 'Backbends|Inversions': 116, 'Inversions|Splits': 117, 'Backbends|Splits': 118, 'ALL': 126 },
-    'April 2026':   { 'Backbends|Inversions': 119, 'Inversions|Splits': 120, 'Backbends|Splits': 121, 'ALL': 127 },
-    'Maj 2026':     { 'Backbends|Inversions': 122, 'Inversions|Splits': 123, 'Backbends|Splits': 124, 'ALL': 128 }
-  };
+    <div class="cb-unlimited__head">
+      <p class="cb-eyebrow">{{ t.unlimited_eyebrow }}</p>
+      <h2 id="cb-unlimited-title" class="cb-section-title">{{ t.unlimited_title }}</h2>
+      <p class="cb-section-lead" style="margin-inline:auto">{{ t.unlimited_lead | safe }}</p>
+    </div>
 
-  var langPrefix = {{ ("'" + (lang or "da") + "'") | safe }};
-  var SINGLE_PAGES = {
-    'Inversions': (langPrefix === 'en' ? '/en/inversions' : '/inversions'),
-    'Splits': (langPrefix === 'en' ? '/en/splits' : '/splits'),
-    'Backbends': (langPrefix === 'en' ? '/en/backbends' : '/backbends')
-  };
+    <div class="cb-unlimited__layout">
+      {# LEFT: Explainer cards #}
+      <div class="cb-unlimited__cards">
+        <article class="cb-unl-card">
+          <div>
+            <h3 class="cb-unl-card__title">{{ t.unlimited_card1_title }}</h3>
+            <p class="cb-unl-card__sub">{{ t.unlimited_card1_sub | safe }}</p>
+          </div>
+          <ul class="cb-unl-card__list">
+            {% for item in t.unlimited_card1_items %}<li>{{ item | safe }}</li>{% endfor %}
+          </ul>
+          <a class="cb-unl-card__link" href="https://www.hotyogacph.dk" target="_blank" rel="noopener noreferrer">{{ t.unlimited_card1_link }} &rarr;</a>
+        </article>
+        <article class="cb-unl-card cb-unl-card--soft">
+          <div>
+            <h3 class="cb-unl-card__title">{{ t.unlimited_card2_title }}</h3>
+            <p class="cb-unl-card__sub">{{ t.unlimited_card2_sub }}</p>
+          </div>
+          <ul class="cb-unl-card__list">
+            {% for item in t.unlimited_card2_items %}<li>{{ item | safe }}</li>{% endfor %}
+          </ul>
+          <a class="cb-unl-card__link" href="https://www.hotyogacph.dk" target="_blank" rel="noopener noreferrer">{{ t.unlimited_card2_link }} &rarr;</a>
+        </article>
+        <article class="cb-unl-card">
+          <div>
+            <h3 class="cb-unl-card__title">{{ t.unlimited_card3_title }}</h3>
+            <p class="cb-unl-card__sub">{{ t.unlimited_card3_sub }}</p>
+          </div>
+          <ul class="cb-unl-card__list">
+            {% for item in t.unlimited_card3_items %}<li>{{ item | safe }}</li>{% endfor %}
+          </ul>
+          <p class="cb-unl-card__note">{{ t.unlimited_card3_note }}</p>
+        </article>
+      </div>
 
-  var i18n = {
-    defaultInfo: {{ t.builder_summary_default | dump | safe }},
-    ctaBundle: {{ t.builder_cta | dump | safe }},
-    ctaAllin: {{ t.builder_cta_allin | dump | safe }},
-    ctaGoto: {{ t.builder_cta_goto | dump | safe }},
-    ctaCourseSuffix: {{ t.builder_cta_course_suffix | dump | safe }},
-    discount2: {{ t.builder_discount_2 | dump | safe }},
-    discount3: {{ t.builder_discount_3 | dump | safe }},
-    discountPass: {{ t.builder_discount_pass | dump | safe }},
-    kr: {{ t.builder_kr | dump | safe }}
-  };
+      {# RIGHT: Aside highlight #}
+      <aside class="cb-unlimited__aside" aria-label="{{ t.unlimited_aside_title }}">
+        <div class="cb-aside__badge">{{ t.unlimited_aside_badge }}</div>
+        <h3 class="cb-aside__title">{{ t.unlimited_aside_title }}</h3>
+        <p class="cb-aside__text">{{ t.unlimited_aside_text | safe }}</p>
+        <div class="cb-aside__dots">
+          <div class="cb-aside__dot-row">
+            <span class="cb-aside__dot" aria-hidden="true"></span>
+            <span>{{ t.unlimited_aside_prep | safe }}</span>
+          </div>
+          <div class="cb-aside__dot-row">
+            <span class="cb-aside__dot" aria-hidden="true"></span>
+            <span>{{ t.unlimited_aside_recovery | safe }}</span>
+          </div>
+          <div class="cb-aside__dot-row">
+            <span class="cb-aside__dot" aria-hidden="true"></span>
+            <span>{{ t.unlimited_aside_integration | safe }}</span>
+          </div>
+        </div>
+        <div class="cb-aside__ctas">
+          <a class="cb-btn cb-btn--primary" href="#coursebuilder">{{ t.unlimited_aside_cta }}</a>
+          <button class="cb-btn cb-btn--outline" type="button" data-ybc-open="brochure" data-ybc-source="Course Bundles – unlimited month">{{ t.unlimited_aside_brochure }}</button>
+        </div>
+        <p class="cb-aside__fine">{{ t.unlimited_aside_fine | safe }}</p>
+      </aside>
+    </div>
+  </div>
+</section>
 
-  var monthRadios = document.querySelectorAll('#ybBundleMonths input');
-  var courseChecks = document.querySelectorAll('input[name="bundleCourse"]');
-  var info = document.getElementById('ybBundleInfo');
-  var priceEl = document.getElementById('ybBundlePrice');
-  var discountEl = document.getElementById('ybBundleDiscount');
-  var cta = document.getElementById('ybBundleCta');
+{# =========================================================
+   SECTION 7: INSPIRATION
+========================================================= #}
+<section class="cb-inspire" aria-labelledby="cb-inspire-title">
+  <div class="cb-inner">
+    <div class="cb-inspire__card">
+      <p class="cb-eyebrow">{{ t.inspire_eyebrow }}</p>
+      <h2 id="cb-inspire-title" class="cb-section-title" style="font-size:clamp(24px,3.1vw,36px)">{{ t.inspire_title | safe }}</h2>
+      <p class="cb-section-lead">{{ t.inspire_lead | safe }}</p>
 
-  function comboKey(a, b) { return [a, b].sort().join('|'); }
+      <div class="cb-inspire__grid" role="list">
+        {% for i in [1, 2, 3, 4] %}
+        <div class="cb-inspire__item" role="listitem">
+          <span class="cb-inspire__kicker">{{ t["inspire_item" + i + "_kicker"] }}</span>
+          <span class="cb-inspire__text">{{ t["inspire_item" + i + "_text"] }}</span>
+        </div>
+        {% endfor %}
+      </div>
 
-  function update() {
-    var month = '';
-    monthRadios.forEach(function(r) { if (r.checked) month = r.value; });
-    var selected = [];
-    courseChecks.forEach(function(c) { if (c.checked) selected.push(c.value); });
+      <div class="cb-inspire__ctas">
+        <a class="cb-btn cb-btn--outline" href="#coursebuilder">{{ t.inspire_cta_builder }}</a>
+        <button class="cb-btn cb-btn--primary" type="button" data-ybc-open="brochure" data-ybc-course="Inversions, Splits, Backbends" data-ybc-source="Course Bundles – inspiration">{{ t.inspire_cta_brochure }}</button>
+      </div>
+      <p class="cb-inspire__fine">{{ t.inspire_fine }}</p>
+    </div>
+  </div>
+</section>
 
-    if (!month || selected.length === 0) {
-      info.textContent = i18n.defaultInfo;
-      priceEl.style.display = 'none';
-      discountEl.style.display = 'none';
-      cta.style.display = 'none';
-      return;
-    }
+{# =========================================================
+   SECTION 8: ACCOMMODATION
+========================================================= #}
+<section class="cb-accom" id="accommodation" aria-labelledby="cb-accom-title">
+  <div class="cb-inner">
+    <div class="cb-accom__head">
+      <p class="cb-eyebrow">{{ t.accom_eyebrow }}</p>
+      <h2 id="cb-accom-title" class="cb-section-title">{{ t.accom_title }}</h2>
+      <p class="cb-section-lead" style="margin-inline:auto">{{ t.accom_lead }}</p>
+      <div class="cb-accom__head-ctas">
+        <button class="cb-btn cb-btn--primary" type="button" data-ybc-open="brochure" data-ybc-source="Course Bundles – overnatning">{{ t.accom_cta_apply }}</button>
+        <a class="cb-btn cb-btn--outline" href="mailto:info@yogabible.dk?subject=Overnatning%20%E2%80%93%20Course%20Bundles">{{ t.accom_cta_contact }}</a>
+      </div>
+    </div>
 
-    var count = selected.length;
-    var total, discount, passBonus = false;
+    <div class="cb-accom__grid">
+      {# Single Studio #}
+      <article class="cb-accom-card" data-accom="single">
+        <div class="cb-gallery" aria-label="{{ t.accom_single_title }}">
+          <div class="cb-gallery__track">
+            <img src="/s/Yoga-Teacher-Training-Copenhagen-Accommodation-Single-Studio-Apartment.jpg" alt="{{ t.accom_single_title }} – 1" loading="lazy" decoding="async">
+            <img src="/s/Single-Studio-Apartment-01.jpg" alt="{{ t.accom_single_title }} – 2" loading="lazy" decoding="async">
+            <img src="/s/Single-Studio-Apartment-03.jpg" alt="{{ t.accom_single_title }} – 3" loading="lazy" decoding="async">
+            <img src="/s/Single-Studio-Apartment-02.jpg" alt="{{ t.accom_single_title }} – 4" loading="lazy" decoding="async">
+            <img src="/s/Single-Studio-Apartment-04.jpg" alt="{{ t.accom_single_title }} – 5" loading="lazy" decoding="async">
+          </div>
+          <button class="cb-gallery__nav cb-gallery__nav--prev" type="button" aria-label="Previous">&lsaquo;</button>
+          <button class="cb-gallery__nav cb-gallery__nav--next" type="button" aria-label="Next">&rsaquo;</button>
+          <div class="cb-gallery__dots"></div>
+          <span class="cb-hero__frame" aria-hidden="true"></span>
+        </div>
+        <header class="cb-accom-card__head">
+          <h3 class="cb-accom-card__title">{{ t.accom_single_title }}</h3>
+          <p class="cb-accom-card__tag">{{ t.accom_single_tag }}</p>
+        </header>
+        <div class="cb-accom-card__price">
+          <div class="cb-accom-card__price-main">
+            <span class="cb-accom-card__amount">{{ t.accom_single_price }}</span>
+            <span class="cb-accom-card__note">{{ t.accom_single_note }}</span>
+          </div>
+          <p class="cb-accom-card__fine">{{ t.accom_single_fine }}</p>
+        </div>
+        <ul class="cb-accom-card__list">
+          {% for i in [1, 2, 3, 4, 5, 6] %}<li>{{ t["accom_item" + i] | safe }}</li>{% endfor %}
+        </ul>
+        <div class="cb-accom-card__ctas">
+          <a class="cb-btn cb-btn--primary" href="{{ lp }}/accommodation">{{ t.accom_cta_see }}</a>
+          <a class="cb-accom-card__mini-link" href="#coursebuilder">{{ t.accom_cta_builder }}</a>
+        </div>
+      </article>
 
-    if (count === 1) {
-      total = PRICE;
-      discount = '';
-    } else if (count === 2) {
-      total = Math.round(PRICE * 2 * 0.90);
-      discount = i18n.discount2 + ' ' + (PRICE * 2 - total) + ' ' + i18n.kr;
-    } else {
-      total = Math.round(PRICE * 3 * 0.85);
-      discount = i18n.discount3 + ' ' + (PRICE * 3 - total) + ' ' + i18n.kr + ' ' + i18n.discountPass + ' ' + PASS_VALUE + ' ' + i18n.kr + ')';
-      passBonus = true;
-    }
+      {# Double Studio #}
+      <article class="cb-accom-card" data-accom="double">
+        <div class="cb-gallery" aria-label="{{ t.accom_double_title }}">
+          <div class="cb-gallery__track">
+            <img src="/s/Double-Private-Bedroom-03.jpg" alt="{{ t.accom_double_title }} – 1" loading="lazy" decoding="async">
+            <img src="/s/Double-Private-Bedroom-01.jpg" alt="{{ t.accom_double_title }} – 2" loading="lazy" decoding="async">
+            <img src="/s/Double-Private-Bedroom-07.jpg" alt="{{ t.accom_double_title }} – 3" loading="lazy" decoding="async">
+            <img src="/s/Double-Private-Bedroom-02.jpg" alt="{{ t.accom_double_title }} – 4" loading="lazy" decoding="async">
+            <img src="/s/Double-Private-Bedroom-04.jpg" alt="{{ t.accom_double_title }} – 5" loading="lazy" decoding="async">
+          </div>
+          <button class="cb-gallery__nav cb-gallery__nav--prev" type="button" aria-label="Previous">&lsaquo;</button>
+          <button class="cb-gallery__nav cb-gallery__nav--next" type="button" aria-label="Next">&rsaquo;</button>
+          <div class="cb-gallery__dots"></div>
+          <span class="cb-hero__frame" aria-hidden="true"></span>
+        </div>
+        <header class="cb-accom-card__head">
+          <h3 class="cb-accom-card__title">{{ t.accom_double_title }}</h3>
+          <p class="cb-accom-card__tag">{{ t.accom_double_tag }}</p>
+        </header>
+        <div class="cb-accom-card__price">
+          <div class="cb-accom-card__price-main">
+            <span class="cb-accom-card__amount">{{ t.accom_double_price }}</span>
+            <span class="cb-accom-card__note">{{ t.accom_double_note }}</span>
+          </div>
+          <p class="cb-accom-card__fine">{{ t.accom_double_fine }}</p>
+        </div>
+        <ul class="cb-accom-card__list">
+          {% for i in [1, 2, 3, 4, 5, 6] %}<li>{{ t["accom_item" + i] | safe }}</li>{% endfor %}
+        </ul>
+        <div class="cb-accom-card__ctas">
+          <a class="cb-btn cb-btn--primary" href="{{ lp }}/accommodation">{{ t.accom_cta_see }}</a>
+          <a class="cb-accom-card__mini-link" href="#coursebuilder">{{ t.accom_cta_builder }}</a>
+        </div>
+      </article>
+    </div>
 
-    info.textContent = selected.join(' + ') + ' \u2014 ' + month;
-    priceEl.textContent = total.toLocaleString('da-DK') + ' ' + i18n.kr;
-    priceEl.style.display = 'block';
-    discountEl.textContent = discount;
-    discountEl.style.display = discount ? 'block' : 'none';
+    <footer class="cb-accom__foot">
+      <p class="cb-accom__fine">{{ t.accom_fine }}</p>
+    </footer>
+  </div>
+</section>
 
-    // Set CTA link
-    var monthData = BUNDLE_URLS[month];
-    if (count === 1) {
-      cta.href = SINGLE_PAGES[selected[0]] + '#course-months';
-      cta.textContent = i18n.ctaGoto + ' ' + selected[0] + i18n.ctaCourseSuffix;
-      cta.removeAttribute('target');
-    } else if (count === 2 && monthData) {
-      var key = comboKey(selected[0], selected[1]);
-      var prodId = monthData[key];
-      cta.href = prodId ? BASE + prodId : '#';
-      cta.textContent = i18n.ctaBundle;
-      cta.setAttribute('target', '_blank');
-    } else if (count === 3 && monthData) {
-      cta.href = monthData['ALL'] ? BASE + monthData['ALL'] : '#';
-      cta.textContent = i18n.ctaAllin;
-      cta.setAttribute('target', '_blank');
-    }
-    cta.style.display = 'inline-block';
-  }
+{# =========================================================
+   SECTION 9: FAQ
+========================================================= #}
+<section class="cb-faq" aria-labelledby="cb-faq-title">
+  <div class="cb-inner">
+    <div class="cb-faq__head">
+      <p class="cb-eyebrow">{{ t.faq_eyebrow }}</p>
+      <h2 id="cb-faq-title" class="cb-section-title">{{ t.faq_title }}</h2>
+      <p class="cb-section-lead" style="margin-inline:auto">{{ t.faq_lead }}</p>
+    </div>
 
-  monthRadios.forEach(function(r) { r.addEventListener('change', update); });
-  courseChecks.forEach(function(c) { c.addEventListener('change', update); });
-})();
-</script>
+    <div class="cb-faq__list" data-cb-accordion>
+      {% for i in [1, 2, 3, 4, 5, 6] %}
+      <article class="cb-faq__item">
+        <h3 class="cb-faq__q">
+          <button class="cb-faq__btn" type="button" aria-expanded="false">
+            {{ t["faq_q" + i] }}
+            <span class="cb-faq__icon" aria-hidden="true"></span>
+          </button>
+        </h3>
+        <div class="cb-faq__a" hidden>
+          <div class="cb-faq__a-inner">
+            <p>{{ t["faq_a" + i] | safe }}</p>
+          </div>
+        </div>
+      </article>
+      {% endfor %}
+    </div>
+
+    <div class="cb-faq__contact">
+      <p>{{ t.faq_contact_text }} <a class="cb-faq__link" href="mailto:{{ t.faq_contact_email }}">{{ t.faq_contact_email }}</a></p>
+    </div>
+  </div>
+</section>
+
+{# =========================================================
+   SECTION 10: FINAL CTA
+========================================================= #}
+<section class="cb-final-cta">
+  <div class="cb-inner">
+    <h2 class="cb-final-cta__title">{{ t.cta_title }}</h2>
+    <p class="cb-final-cta__text">{{ t.cta_text }}</p>
+    <div class="cb-final-cta__buttons">
+      <a href="#coursebuilder" class="cb-btn cb-btn--primary" style="padding:18px 40px;font-size:16px">{{ t.cta_button }}</a>
+      <button class="cb-btn cb-btn--outline-light" style="padding:18px 40px;font-size:16px" type="button" data-ybc-open="brochure" data-ybc-course="Inversions, Splits, Backbends" data-ybc-source="Course Bundles – final CTA">{{ t.cta_brochure }}</button>
+    </div>
+  </div>
+</section>

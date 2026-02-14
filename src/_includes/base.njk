@@ -38,6 +38,11 @@
     <script src="/js/om200.js" defer></script>
   {% endif %}
 
+  {% if includeCBStyles %}
+    <link rel="stylesheet" href="/css/cb.css">
+    <script src="/js/cb.js" defer></script>
+  {% endif %}
+
   {% if includeCoursesModal %}
     {% include "modal-courses.njk" %}
   {% endif %}
