@@ -3,6 +3,187 @@
    Dedicated stylesheet (p18- prefix + yb- components)
    ======================================== */
 
+/* =============================================
+   DS-HERO-E — Primary Dark Cinematic with Glow
+   (from design system section 29, Hero E)
+   ============================================= */
+.ds-hero-e {
+  position: relative;
+  min-height: 500px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #1C1C1C;
+  color: #fff;
+  text-align: center;
+  overflow: hidden;
+  padding: 80px 24px;
+}
+.ds-hero-e--full {
+  border-radius: 0;
+  min-height: 600px;
+  padding: 120px 24px 80px;
+}
+.ds-hero-e__glow {
+  position: absolute;
+  width: 600px;
+  height: 600px;
+  background: radial-gradient(circle, rgba(247,92,3,0.15) 0%, transparent 60%);
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  animation: ds-hero-breathe 10s ease-in-out infinite;
+  pointer-events: none;
+}
+@keyframes ds-hero-breathe {
+  0%, 100% { transform: translate(-50%, -50%) scale(1); opacity: 0.5; }
+  50% { transform: translate(-50%, -50%) scale(1.15); opacity: 0.8; }
+}
+.ds-hero-e__content {
+  position: relative;
+  z-index: 2;
+  max-width: 800px;
+}
+.ds-hero-e__tagline {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.3em;
+  opacity: 0.7;
+  margin-bottom: 28px;
+}
+.ds-hero-e__tagline::before,
+.ds-hero-e__tagline::after {
+  content: "";
+  width: 40px;
+  height: 1px;
+  background: rgba(255,255,255,0.4);
+}
+.ds-hero-e__title {
+  font-size: clamp(2.4rem, 6vw, 4rem);
+  font-weight: 700;
+  line-height: 1.05;
+  margin-bottom: 24px;
+  background: linear-gradient(135deg, #FDFBF7 0%, #ff9966 50%, #f75c03 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+.ds-hero-e__subtitle {
+  font-size: 1.15rem;
+  opacity: 0.85;
+  max-width: 600px;
+  margin: 0 auto 0;
+  line-height: 1.7;
+}
+.ds-hero-e__line {
+  width: 100%;
+  max-width: 600px;
+  height: 1px;
+  background: rgba(253,251,247,0.1);
+  margin: 36px auto 36px;
+}
+.ds-hero-e__trust {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: rgba(255,255,255,0.6);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin-bottom: 20px;
+}
+.ds-hero-e__trust-dot {
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: #f75c03;
+}
+.ds-hero-e__styles {
+  font-size: clamp(12px, 1.5vw, 14px);
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: rgba(253, 251, 247, 0.45);
+  margin-bottom: 32px;
+}
+.ds-hero-e__cta {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  flex-wrap: wrap;
+  margin-bottom: 24px;
+}
+.ds-hero-e__read-more {
+  margin-top: 8px;
+}
+.ds-hero-e__read-more-link {
+  font-size: clamp(13px, 1.6vw, 15px);
+  font-weight: 600;
+  color: rgba(253, 251, 247, 0.55);
+  text-decoration: none;
+  letter-spacing: 0.02em;
+  transition: color 0.2s ease;
+}
+.ds-hero-e__read-more-link:hover {
+  color: #f75c03;
+}
+
+/* DS Button helpers (used in hero) */
+.ds-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 14px 32px;
+  font-size: 0.9rem;
+  font-weight: 700;
+  text-decoration: none;
+  border: none;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  font-family: inherit;
+}
+.ds-btn--primary {
+  background: #f75c03;
+  color: #fff;
+}
+.ds-btn--primary:hover {
+  background: #d94f02;
+  transform: translateY(-1px);
+}
+.ds-btn--outline-light {
+  background: transparent;
+  color: #fff;
+  border: 1.5px solid rgba(255,255,255,0.3);
+}
+.ds-btn--outline-light:hover {
+  border-color: rgba(255,255,255,0.6);
+  background: rgba(255,255,255,0.05);
+}
+.ds-btn--large {
+  padding: 16px 36px;
+  font-size: 1rem;
+}
+@media (max-width: 600px) {
+  .ds-hero-e--full {
+    min-height: auto;
+    padding: 100px 20px 60px;
+  }
+  .ds-hero-e__cta {
+    flex-direction: column;
+    align-items: center;
+  }
+  .ds-hero-e__cta .ds-btn {
+    width: 100%;
+    max-width: 320px;
+  }
+}
+
 /* -- Hero -- */
 .p18-hero {
   position: relative;
