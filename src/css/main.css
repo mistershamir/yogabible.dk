@@ -12470,3 +12470,249 @@ a.yb-kontakt-detail__value:hover {
     font-size: 13px;
   }
 }
+
+/* ========================================
+   MEET THE TEACHERS PAGE
+   ======================================== */
+
+/* ── Filter Tabs (Pills style) ── */
+.mt-filters {
+  padding: 0;
+}
+
+.mt-filters__bar {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.mt-filters__btn {
+  background: transparent;
+  border: 1.5px solid #E8E4E0;
+  border-radius: 999px;
+  padding: 10px 24px;
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #6F6A66;
+  cursor: pointer;
+  transition: all 0.25s ease;
+}
+
+.mt-filters__btn:hover {
+  border-color: #f75c03;
+  color: #f75c03;
+}
+
+.mt-filters__btn.is-active {
+  background: #f75c03;
+  border-color: #f75c03;
+  color: #fff;
+}
+
+/* ── Teacher Card Grid ── */
+.mt-grid-section {
+  padding-top: 40px;
+}
+
+.mt-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
+  gap: 32px;
+}
+
+/* ── Teacher Card ── */
+.mt-card {
+  background: #FFFCF9;
+  border: 1.5px solid #E8E4E0;
+  border-radius: 16px;
+  overflow: hidden;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.mt-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.08);
+}
+
+/* Media area (photo + video) */
+.mt-card__media {
+  position: relative;
+  aspect-ratio: 4 / 5;
+  background: #F5F3F0;
+  overflow: hidden;
+}
+
+.mt-card__media img,
+.mt-card__media video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.mt-card__media-toggle {
+  position: absolute;
+  bottom: 12px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 4px;
+  background: rgba(15, 15, 15, 0.7);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border-radius: 999px;
+  padding: 4px;
+}
+
+.mt-card__media-btn {
+  background: transparent;
+  border: none;
+  color: rgba(253, 251, 247, 0.6);
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  padding: 6px 16px;
+  border-radius: 999px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.mt-card__media-btn:hover {
+  color: #FDFBF7;
+}
+
+.mt-card__media-btn.is-active {
+  background: #f75c03;
+  color: #fff;
+}
+
+/* Card body */
+.mt-card__body {
+  padding: 28px 24px 24px;
+}
+
+.mt-card__role {
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #f75c03;
+  margin-bottom: 6px;
+}
+
+.mt-card__name {
+  font-size: clamp(22px, 3vw, 28px);
+  font-weight: 700;
+  color: #0F0F0F;
+  margin-bottom: 14px;
+  line-height: 1.2;
+}
+
+/* Specialty tags */
+.mt-card__tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 16px;
+}
+
+.mt-card__tag {
+  background: #F5F3F0;
+  border: 1px solid #E8E4E0;
+  border-radius: 999px;
+  padding: 4px 12px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #6F6A66;
+}
+
+/* Meta (experience + certs) */
+.mt-card__meta {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 14px;
+  color: #6F6A66;
+  margin-bottom: 16px;
+}
+
+.mt-card__meta strong {
+  color: #0F0F0F;
+}
+
+/* Quote */
+.mt-card__quote {
+  font-style: italic;
+  font-size: 15px;
+  color: #6F6A66;
+  border-left: 3px solid #f75c03;
+  padding-left: 16px;
+  margin: 16px 0;
+  line-height: 1.6;
+}
+
+/* Bio expand/collapse */
+.mt-card__bio-wrap {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.4s ease;
+}
+
+.mt-card__bio-wrap.is-open {
+  max-height: 400px;
+}
+
+.mt-card__bio {
+  font-size: 15px;
+  line-height: 1.7;
+  color: #6F6A66;
+  padding-top: 8px;
+}
+
+.mt-card__toggle {
+  background: none;
+  border: none;
+  color: #f75c03;
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  padding: 8px 0 0;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  transition: color 0.2s ease;
+}
+
+.mt-card__toggle:hover {
+  color: #d94f02;
+}
+
+/* ── Responsive ── */
+@media (max-width: 860px) {
+  .mt-grid {
+    grid-template-columns: 1fr;
+    max-width: 480px;
+    margin: 0 auto;
+  }
+}
+
+@media (max-width: 480px) {
+  .mt-filters__bar {
+    gap: 8px;
+  }
+
+  .mt-filters__btn {
+    padding: 8px 16px;
+    font-size: 12px;
+  }
+
+  .mt-card__body {
+    padding: 20px 16px 18px;
+  }
+}
