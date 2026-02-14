@@ -72,6 +72,89 @@
 </section>
 
 <!-- ═══════════════════════════════════════════════════════════════
+     OUR STUDIO — Video + Copy + Feature Cards + Image Gallery
+     ═══════════════════════════════════════════════════════════════ -->
+<section class="yb-kontakt-studio-section">
+  <div class="container">
+    <p class="yb-kontakt-eyebrow yb-fade-in" style="text-align:center">{{ t.studio_eyebrow }}</p>
+    <h2 class="section-title yb-fade-in">{{ t.studio_title }}</h2>
+    <p class="section-subtitle yb-fade-in">{{ t.studio_subtitle }}</p>
+
+    <!-- Video + Copy split -->
+    <div class="yb-kontakt-studio-split yb-fade-in">
+      <div class="yb-kontakt-studio-media">
+        <div class="yb-kontakt-studio-video">
+          <video autoplay muted loop playsinline preload="metadata"
+                 poster="{{ t.studio_video_poster }}">
+            <source src="{{ t.studio_video_src }}" type="video/mp4">
+          </video>
+        </div>
+      </div>
+      <div class="yb-kontakt-studio-copy">
+        <p class="yb-kontakt-text">{{ t.studio_text | safe }}</p>
+        <div class="yb-kontakt-studio-features">
+          <div class="yb-kontakt-studio-feat">
+            <span class="yb-kontakt-studio-feat__icon">{{ t.studio_feat1_icon }}</span>
+            <div>
+              <strong>{{ t.studio_feat1_title }}</strong>
+              <span>{{ t.studio_feat1_desc }}</span>
+            </div>
+          </div>
+          <div class="yb-kontakt-studio-feat">
+            <span class="yb-kontakt-studio-feat__icon">{{ t.studio_feat2_icon }}</span>
+            <div>
+              <strong>{{ t.studio_feat2_title }}</strong>
+              <span>{{ t.studio_feat2_desc }}</span>
+            </div>
+          </div>
+          <div class="yb-kontakt-studio-feat">
+            <span class="yb-kontakt-studio-feat__icon">{{ t.studio_feat3_icon }}</span>
+            <div>
+              <strong>{{ t.studio_feat3_title }}</strong>
+              <span>{{ t.studio_feat3_desc }}</span>
+            </div>
+          </div>
+          <div class="yb-kontakt-studio-feat">
+            <span class="yb-kontakt-studio-feat__icon">{{ t.studio_feat4_icon }}</span>
+            <div>
+              <strong>{{ t.studio_feat4_title }}</strong>
+              <span>{{ t.studio_feat4_desc }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Horizontal scroll image gallery -->
+    <div class="yb-kontakt-gallery yb-fade-in">
+      <h3 class="yb-kontakt-gallery__title">{{ t.studio_gallery_title }}</h3>
+      <div class="yb-kontakt-gallery__track" id="ybStudioGallery">
+        <div class="yb-kontakt-gallery__slide">
+          <img src="/assets/images/studio/studio-hot-room.jpg" alt="{{ t.studio_img1_alt }}" loading="lazy" decoding="async">
+        </div>
+        <div class="yb-kontakt-gallery__slide">
+          <img src="/assets/images/studio/studio-main-room.jpg" alt="{{ t.studio_img2_alt }}" loading="lazy" decoding="async">
+        </div>
+        <div class="yb-kontakt-gallery__slide">
+          <img src="/assets/images/copenhagen/christianshavn-canal.jpg" alt="{{ t.studio_img3_alt }}" loading="lazy" decoding="async">
+        </div>
+        <div class="yb-kontakt-gallery__slide">
+          <img src="https://www.yogabible.dk/s/DSC_8528.jpg" alt="{{ t.studio_img4_alt }}" loading="lazy" decoding="async">
+        </div>
+        <div class="yb-kontakt-gallery__slide">
+          <img src="/assets/images/copenhagen/copenhagen-hero.jpg" alt="{{ t.studio_img5_alt }}" loading="lazy" decoding="async">
+        </div>
+      </div>
+      <!-- Navigation arrows -->
+      <div class="yb-kontakt-gallery__nav">
+        <button class="yb-kontakt-gallery__arrow yb-kontakt-gallery__arrow--prev" aria-label="Previous" type="button">&#8592;</button>
+        <button class="yb-kontakt-gallery__arrow yb-kontakt-gallery__arrow--next" aria-label="Next" type="button">&#8594;</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════════
      CONTACT FORM
      ═══════════════════════════════════════════════════════════════ -->
 <section class="yb-kontakt-form-section">
@@ -277,6 +360,28 @@
       }, 6000);
     });
   });
+})();
+</script>
+
+<!-- Studio gallery navigation -->
+<script>
+(function() {
+  var track = document.getElementById('ybStudioGallery');
+  if (!track) return;
+  var prevBtn = track.parentElement.querySelector('.yb-kontakt-gallery__arrow--prev');
+  var nextBtn = track.parentElement.querySelector('.yb-kontakt-gallery__arrow--next');
+  var scrollAmount = 340;
+
+  if (prevBtn) {
+    prevBtn.addEventListener('click', function() {
+      track.scrollBy({ left: -scrollAmount, behavior: 'smooth' });
+    });
+  }
+  if (nextBtn) {
+    nextBtn.addEventListener('click', function() {
+      track.scrollBy({ left: scrollAmount, behavior: 'smooth' });
+    });
+  }
 })();
 </script>
 
