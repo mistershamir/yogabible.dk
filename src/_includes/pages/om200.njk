@@ -2,6 +2,34 @@
 {% set lp = "/en" if lang == "en" else "" %}
 
 {# ═══════════════════════════════════════════════════════════
+   PRIMARY HERO — Dark Cinematic (full-width)
+   ═══════════════════════════════════════════════════════════ #}
+<section class="yb-hero">
+  <div class="yb-hero__glow"></div>
+  <div class="yb-hero__content">
+    <p class="yb-hero__tagline">{{ t.hero_tagline }}</p>
+    <h1 class="yb-hero__title">{{ t.hero_title | safe }}</h1>
+    <p class="yb-hero__subtitle">{{ t.hero_subtitle }}</p>
+    <div class="yb-hero__line"></div>
+    <div class="yb-hero__ctas">
+      <a href="{{ lp }}/200-hours-18-weeks-flexible-programs" class="yb-btn yb-btn--primary yb-btn--large" target="_blank" rel="noopener">{{ t.hero_cta_apply }}</a>
+      <a href="#om2-hours" class="yb-btn yb-btn--outline-white yb-btn--large">{{ t.hero_cta_curriculum }}</a>
+    </div>
+    <div class="yb-hero__trust">
+      <span>{{ t.hero_trust1 }}</span>
+      <span class="yb-hero__trust-dot"></span>
+      <span>{{ t.hero_trust2 }}</span>
+      <span class="yb-hero__trust-dot"></span>
+      <span>{{ t.hero_trust3 }}</span>
+    </div>
+  </div>
+  <div class="yb-hero__scroll">
+    <span>Scroll</span>
+    <div class="yb-hero__scroll-line"></div>
+  </div>
+</section>
+
+{# ═══════════════════════════════════════════════════════════
    SECTION 1: HERO — Split layout (content + image carousel)
    ═══════════════════════════════════════════════════════════ #}
 <section class="om2-hero" id="om2-hero">
