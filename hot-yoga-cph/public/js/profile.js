@@ -1828,8 +1828,8 @@
       id: 'teacher',
       da: 'Yogalæreruddannelse',
       en: 'Yoga Teacher Training',
-      desc_da: 'Depositum og tilmelding til uddannelse',
-      desc_en: 'Deposits and training enrollment',
+      desc_da: 'Forberedelsesfasen og tilmelding til uddannelse',
+      desc_en: 'Preparation Phase and training enrollment',
       icon: '<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>'
     },
     {
@@ -2016,32 +2016,32 @@
         name_da: '18 Ugers Fleksibelt Program', name_en: '18-Week Flexible Program',
         period_da: 'Marts – Juni 2026', period_en: 'March – June 2026',
         format_da: '200-timers komplet uddannelse', format_en: '200-hour complete education',
-        desc_da: 'Depositum for det 18-ugers fleksible yogalæreruddannelsesprogram. Start din rejse i dit eget tempo.',
-        desc_en: 'Deposit for the 18-week flexible yoga teacher training program. Start your journey at your own pace.' },
+        desc_da: 'Start din forberedelsesfase for det 18-ugers fleksible yogalæreruddannelsesprogram. Begynd din rejse i dit eget tempo.',
+        desc_en: 'Begin your Preparation Phase for the 18-week flexible yoga teacher training program. Start your journey at your own pace.' },
       { id: 'ytt-4w-apr26', prodId: '100121', price: 3750, vat_pct: 0,
         name_da: '4 Ugers Intensiv', name_en: '4-Week Intensive',
         period_da: 'April 2026', period_en: 'April 2026',
         format_da: '200-timers komplet uddannelse', format_en: '200-hour complete education',
-        desc_da: 'Depositum for det intensive 4-ugers program. Fuld fordybelse og hurtig transformation.',
-        desc_en: 'Deposit for the intensive 4-week program. Full immersion and rapid transformation.' },
+        desc_da: 'Start din forberedelsesfase for det intensive 4-ugers program. Fuld fordybelse og hurtig transformation.',
+        desc_en: 'Begin your Preparation Phase for the intensive 4-week program. Full immersion and rapid transformation.' },
       { id: 'ytt-4w-jul26', prodId: '100211', price: 3750, vat_pct: 0,
         name_da: '4 Ugers Intensiv', name_en: '4-Week Intensive',
         period_da: 'Juli 2026', period_en: 'July 2026',
         format_da: '200-timers komplet uddannelse', format_en: '200-hour complete education',
-        desc_da: 'Depositum for sommerens 4-ugers intensive program. Fordyb dig i yoga midt om sommeren.',
-        desc_en: 'Deposit for the summer 4-week intensive program. Immerse yourself in yoga this summer.' },
+        desc_da: 'Start din forberedelsesfase for sommerens 4-ugers intensive program. Fordyb dig i yoga midt om sommeren.',
+        desc_en: 'Begin your Preparation Phase for the summer 4-week intensive program. Immerse yourself in yoga this summer.' },
       { id: 'ytt-8w-semi-may-jun26', prodId: '100209', price: 3750, vat_pct: 0,
         name_da: '8 Ugers Semi-Intensiv', name_en: '8-Week Semi-Intensive',
         period_da: 'Maj – Juni 2026', period_en: 'May – June 2026',
         format_da: '200-timers komplet uddannelse', format_en: '200-hour complete education',
-        desc_da: 'Depositum for det 8-ugers semi-intensive program. Den perfekte balance mellem intensitet og fleksibilitet.',
-        desc_en: 'Deposit for the 8-week semi-intensive program. The perfect balance between intensity and flexibility.' },
+        desc_da: 'Start din forberedelsesfase for det 8-ugers semi-intensive program. Den perfekte balance mellem intensitet og fleksibilitet.',
+        desc_en: 'Begin your Preparation Phase for the 8-week semi-intensive program. The perfect balance between intensity and flexibility.' },
       { id: 'ytt-flex-aug-dec26', prodId: '100210', price: 3750, vat_pct: 0,
         name_da: '18 Ugers Fleksibelt Program', name_en: '18-Week Flexible Program',
         period_da: 'August – December 2026', period_en: 'August – December 2026',
         format_da: '200-timers komplet uddannelse', format_en: '200-hour complete education',
-        desc_da: 'Depositum for efterårets 18-ugers fleksible program. Tag uddannelsen sideløbende med dit daglige liv.',
-        desc_en: 'Deposit for the autumn 18-week flexible program. Complete your training alongside daily life.' }
+        desc_da: 'Start din forberedelsesfase for efterårets 18-ugers fleksible program. Tag uddannelsen sideløbende med dit daglige liv.',
+        desc_en: 'Begin your Preparation Phase for the autumn 18-week flexible program. Complete your training alongside daily life.' }
     ],
     courses: {
       single_price: 2300,
@@ -2487,15 +2487,15 @@
       html += '</div>';
     }
 
-    // ── Teacher Training deposit info ──
+    // ── Teacher Training Preparation Phase info ──
     if (storeTopCategory === 'teacher') {
       html += '<div class="yb-store__teacher-info">';
       html += '<div class="yb-store__teacher-info-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg></div>';
       html += '<div class="yb-store__teacher-info-text">';
-      html += '<strong>' + (isDa() ? 'Sikr din plads med et depositum på 3.750 kr' : 'Secure your spot with a 3,750 kr deposit') + '</strong>';
+      html += '<strong>' + (isDa() ? 'Start din forberedelsesfase — sikr din plads med 3.750 kr' : 'Start your Preparation Phase — secure your spot with 3,750 kr') + '</strong>';
       html += '<p>' + (isDa()
-        ? 'Når dit depositum er betalt, kan du allerede begynde at booke klasser — selv før uddannelsen starter. Du sikrer din plads, forbereder krop og sind, bliver en del af fællesskabet, og de timer du tager tæller med i uddannelseskravene. Depositummet giver dig adgang til klasser, så du sparer på et separat medlemskab.'
-        : 'Once your deposit is paid, you can start booking classes right away — even before the training begins. You secure your spot, prepare your body and mind, become part of the community, and the classes you take count toward your training requirements. The deposit gives you class access, saving you from a separate membership.') + '</p>';
+        ? 'Når din forberedelsesfase er aktiveret, kan du allerede begynde at booke klasser — selv før uddannelsen starter. Du sikrer din plads, forbereder krop og sind, bliver en del af fællesskabet, og de timer du tager tæller med i uddannelseskravene. Forberedelsesfasen giver dig klasseadgang, så du sparer på et separat medlemskab. Restbeløbet afregnes inden uddannelsesstart — enten som engangsbeløb eller i rater. Din uddannelsesleder kontakter dig med alle detaljer og næste skridt.'
+        : 'Once your Preparation Phase is activated, you can start booking classes right away — even before the training begins. You secure your spot, prepare your body and mind, become part of the community, and the classes you take count toward your training requirements. The Preparation Phase includes class access, saving you from a separate membership. The remaining balance is settled before training starts — either in full or in instalments. Your course director will be in touch with all the details and next steps.') + '</p>';
       html += '</div></div>';
     }
 
@@ -2630,9 +2630,9 @@
         }
       }
 
-      // ── Teacher Training deposit details ──
+      // ── Teacher Training Preparation Phase details ──
       if (sub === 'deposits' && cat.period_da) {
-        html += '<span class="yb-store__deposit-badge">' + (da ? 'Depositum' : 'Deposit') + '</span>';
+        html += '<span class="yb-store__deposit-badge">' + (da ? 'Forberedelsesfasen' : 'Preparation Phase') + '</span>';
         html += '<p class="yb-store__deposit-period"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg> ' + (da ? cat.period_da : cat.period_en) + '</p>';
         html += '<p class="yb-store__deposit-format">' + (da ? cat.format_da : cat.format_en) + '</p>';
         if (cat.desc_da) html += '<p class="yb-store__item-desc">' + (da ? cat.desc_da : cat.desc_en) + '</p>';
@@ -2663,7 +2663,7 @@
         html += '<span class="yb-store__item-vat yb-store__item-vat--zero">' + (da ? 'Momsfrit (under 30)' : 'VAT exempt (under 30)') + '</span>';
       }
       html += '</div>';
-      var buyLabel = isDeposit ? (da ? 'Betal depositum' : 'Pay deposit') : t('store_buy');
+      var buyLabel = isDeposit ? (da ? 'Start forberedelsesfasen' : 'Start Preparation Phase') : t('store_buy');
       html += '<button class="yb-btn yb-btn--primary yb-store__item-btn" type="button" data-store-buy="' + s._uid + '" data-item-type="' + (s._itemType || 'service') + '">' + buyLabel + '</button>';
       html += '</div>';
 
@@ -3134,18 +3134,25 @@
     // ── Teacher Training deposit details ──
     if (service._topCategory === 'teacher' && cat.period_da) {
       itemHtml += '<div class="yb-store__checkout-meta">';
+      itemHtml += '<span class="yb-store__checkout-meta-chip">' + (da ? 'Forberedelsesfasen' : 'Preparation Phase') + '</span>';
       itemHtml += '<span class="yb-store__checkout-meta-chip">' + esc(da ? cat.period_da : cat.period_en) + '</span>';
-      itemHtml += '<span class="yb-store__checkout-meta-format">' + esc(da ? cat.format_da : cat.format_en) + '</span>';
       itemHtml += '</div>';
+      itemHtml += '<p class="yb-store__checkout-meta-format">' + esc(da ? cat.format_da : cat.format_en) + '</p>';
       if (cat.desc_da) {
         itemHtml += '<p class="yb-store__checkout-desc">' + esc(da ? cat.desc_da : cat.desc_en) + '</p>';
       }
       itemHtml += '<ul class="yb-store__checkout-features">';
-      var depositBenefits = da
-        ? ['Sikr din plads på programmet', 'Start booking af klasser med det samme', 'Klasser tæller med i dine træningstimer', 'Forbered krop og sind — bliv en del af fællesskabet', 'Spar på separat medlemskab — depositum giver klasseadgang']
-        : ['Secure your spot in the program', 'Start booking classes immediately', 'Classes count toward training hours', 'Prepare body and mind — join the community early', 'Save on separate membership — deposit provides class access'];
-      depositBenefits.forEach(function(b) { itemHtml += '<li>' + esc(b) + '</li>'; });
+      var prepBenefits = da
+        ? ['Sikr din plads på programmet', 'Start booking af klasser med det samme', 'Klasser tæller med i dine træningstimer', 'Forbered krop og sind — bliv en del af fællesskabet', 'Inkluderet klasseadgang — spar på separat medlemskab']
+        : ['Secure your spot in the program', 'Start booking classes immediately', 'Classes count toward your training hours', 'Prepare body and mind — join the community early', 'Class access included — save on a separate membership'];
+      prepBenefits.forEach(function(b) { itemHtml += '<li>' + esc(b) + '</li>'; });
       itemHtml += '</ul>';
+      itemHtml += '<div class="yb-store__checkout-remaining">';
+      itemHtml += '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>';
+      itemHtml += '<span>' + (da
+        ? 'Restbeløbet afregnes inden uddannelsesstart — enten som engangsbeløb eller i rater. Din uddannelsesleder vil kontakte dig med alle detaljer og næste skridt.'
+        : 'The remaining balance is settled before training starts — either in full or in instalments. Your course director will be in touch with all the details and next steps.') + '</span>';
+      itemHtml += '</div>';
     }
 
     // ── Course / Bundle details ──

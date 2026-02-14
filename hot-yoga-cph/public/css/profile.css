@@ -2056,6 +2056,25 @@ body {
   font-weight: 700;
   font-size: 0.72rem;
 }
+.yb-store__checkout-remaining {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.4rem;
+  background: #F5F3F0;
+  border-radius: 8px;
+  padding: 0.5rem 0.65rem;
+  margin-top: 0.5rem;
+}
+.yb-store__checkout-remaining svg {
+  flex-shrink: 0;
+  margin-top: 0.1rem;
+  stroke: #6F6A66;
+}
+.yb-store__checkout-remaining span {
+  font-size: 0.72rem;
+  color: #6F6A66;
+  line-height: 1.4;
+}
 .yb-store__checkout-bonus {
   display: flex;
   align-items: center;
