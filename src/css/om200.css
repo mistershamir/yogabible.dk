@@ -1448,14 +1448,23 @@
 
 @media (min-width: 768px) {
   .om2-teachers__grid {
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(2, 1fr);
     gap: 24px;
+  }
+}
+@media (min-width: 1024px) {
+  .om2-teachers__grid {
+    grid-template-columns: repeat(4, 1fr);
   }
 }
 @media (min-width: 900px) {
   .om2-teachers__card {
     grid-template-columns: 1fr;
   }
+}
+.om2-teachers__cta-wrap {
+  text-align: center;
+  margin-top: 32px;
 }
 
 /* ═══════════════════════════════════════════
@@ -1940,8 +1949,33 @@
 }
 .om2-formats__card-foot .yb-btn { width: 100%; justify-content: center; }
 
-@media (min-width: 768px) {
-  .om2-formats__cards { grid-template-columns: 1fr 1fr; }
+.om2-formats__same-note {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  color: var(--yb-brand);
+  font-weight: 700;
+  font-size: 0.88rem;
+  margin-bottom: 24px;
+}
+.om2-formats__same-note svg { flex-shrink: 0; }
+.om2-formats__card-price {
+  display: block;
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--yb-brand);
+  margin-bottom: 8px;
+}
+.om2-formats__suitable {
+  padding: 12px 24px;
+  color: #6F6A66;
+  font-size: 0.85rem;
+  font-weight: 700;
+  font-style: italic;
+}
+@media (min-width: 900px) {
+  .om2-formats__cards { grid-template-columns: repeat(3, 1fr); }
 }
 
 /* ═══════════════════════════════════════════
@@ -1952,6 +1986,7 @@
   padding: clamp(32px, 6vw, 72px) clamp(16px, 4vw, 32px);
 }
 .om2-pricing__inner { max-width: 1140px; margin: 0 auto; }
+.om2-pricing__header { margin-bottom: 24px; }
 .om2-pricing__grid {
   display: grid;
   grid-template-columns: 1fr;
@@ -2177,6 +2212,83 @@
 }
 
 /* ═══════════════════════════════════════════
+   SECTION: BENEFITS OF 200-HOUR YTT
+   ═══════════════════════════════════════════ */
+.om2-benefits {
+  background: #fff;
+  padding: clamp(32px, 6vw, 72px) clamp(16px, 4vw, 32px);
+}
+.om2-benefits__inner { max-width: 1140px; margin: 0 auto; }
+.om2-benefits__head { margin-bottom: 32px; max-width: 680px; text-align: center; margin-left: auto; margin-right: auto; }
+.om2-benefits__eyebrow {
+  color: var(--yb-brand);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-weight: 700;
+  font-size: 0.75rem;
+  margin-bottom: 8px;
+}
+.om2-benefits__title {
+  font-size: clamp(1.5rem, 3.5vw, 2.2rem);
+  font-weight: 700;
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+  color: #0F0F0F;
+  margin-bottom: 12px;
+}
+.om2-benefits__lead {
+  color: #444;
+  font-size: 1rem;
+  line-height: 1.6;
+}
+.om2-benefits__lead strong { font-weight: 700; color: #0F0F0F; }
+
+.om2-benefits__grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 20px;
+}
+.om2-benefits__card {
+  background: #FFFCF9;
+  border: 1px solid #E8E4E0;
+  border-radius: 16px;
+  padding: 24px;
+  transition: all 0.2s ease;
+}
+.om2-benefits__card:hover {
+  border-color: rgba(var(--yb-brand-rgb), 0.3);
+  box-shadow: 0 8px 28px rgba(var(--yb-brand-rgb), 0.08);
+  transform: translateY(-2px);
+}
+.om2-benefits__card-icon {
+  width: 48px; height: 48px;
+  display: flex; align-items: center; justify-content: center;
+  background: rgba(var(--yb-brand-rgb), 0.08);
+  border-radius: 12px;
+  color: var(--yb-brand);
+  margin-bottom: 14px;
+}
+.om2-benefits__card-title {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #0F0F0F;
+  margin-bottom: 8px;
+}
+.om2-benefits__card-desc {
+  color: #444;
+  font-size: 0.92rem;
+  line-height: 1.6;
+}
+.om2-benefits__card-desc strong { font-weight: 700; color: #0F0F0F; }
+
+@media (min-width: 768px) {
+  .om2-benefits__grid { grid-template-columns: repeat(2, 1fr); }
+}
+@media (min-width: 1024px) {
+  .om2-benefits__grid { grid-template-columns: repeat(3, 1fr); }
+}
+
+/* ═══════════════════════════════════════════
    FOCUS + REDUCED MOTION
    ═══════════════════════════════════════════ */
 .om2-hero__arrow:focus-visible,
@@ -2203,6 +2315,7 @@
   .om2-teachers__card,
   .om2-reviews__card,
   .om2-formats__card,
+  .om2-benefits__card,
   .om2-location__feature,
   .om2-location__slider-track {
     transition: none;
