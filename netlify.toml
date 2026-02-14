@@ -124,16 +124,16 @@
   [headers.values]
     Cache-Control = "public, max-age=31536000, immutable"
 
-# Cache: CSS/JS (1 year)
+# Cache: CSS/JS (revalidate on each visit, serve cached if unchanged)
 [[headers]]
   for = "/css/*"
   [headers.values]
-    Cache-Control = "public, max-age=31536000, immutable"
+    Cache-Control = "public, max-age=0, must-revalidate"
 
 [[headers]]
   for = "/js/*"
   [headers.values]
-    Cache-Control = "public, max-age=31536000, immutable"
+    Cache-Control = "public, max-age=0, must-revalidate"
 
 # Cache: favicons (1 year)
 [[headers]]
