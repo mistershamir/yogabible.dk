@@ -2,32 +2,33 @@
 {% set lp = "/en" if lang == "en" else "" %}
 
 <!-- ═══════════════════════════════════════
-     1. HERO — Semi-Intensive + Certification
+     1. HERO — Primary Dark Cinematic with Glow
      ═══════════════════════════════════════ -->
-<section class="p18-hero">
-  <div class="p18-hero__bg">
-    <!-- Video slot: add <video> here when ready -->
-  </div>
-  <div class="p18-hero__overlay"></div>
+<section class="ds-hero-e ds-hero-e--full">
+  <div class="ds-hero-e__glow"></div>
+  <div class="ds-hero-e__content">
+    <p class="ds-hero-e__tagline">{{ t.hero_eyebrow }}</p>
+    <h1 class="ds-hero-e__title">{{ t.hero_title | safe }}</h1>
+    <p class="ds-hero-e__subtitle">{{ t.hero_subtitle }}</p>
+    <div class="ds-hero-e__line"></div>
 
-  <div class="container p18-hero__inner">
-    <span class="p18-hero__eyebrow">{{ t.hero_eyebrow }}</span>
-    <h1 class="p18-hero__title">{{ t.hero_title | safe }}</h1>
-    <p class="p18-hero__subtitle">{{ t.hero_subtitle }}</p>
-
-    <p class="p18-hero__meta-line">{{ t.hero_meta }}</p>
-
-    <p class="p18-hero__cert-badge">{{ t.hero_cert }}</p>
-
-    <p class="p18-hero__styles">{{ t.hero_styles }}</p>
-
-    <div class="p18-hero__cta">
-      <button onclick="openYBScheduleModal('8w')" class="btn btn--primary btn--large">{{ t.hero_cta_schedule }}</button>
-      <a href="#why-copenhagen" class="btn btn--secondary btn--large">{{ t.hero_cta_why }}</a>
+    <div class="ds-hero-e__trust">
+      <span>{{ t.hero_trust1 }}</span>
+      <span class="ds-hero-e__trust-dot"></span>
+      <span>{{ t.hero_trust2 }}</span>
+      <span class="ds-hero-e__trust-dot"></span>
+      <span>{{ t.hero_trust3 }}</span>
     </div>
 
-    <p class="p18-hero__read-more">
-      <a href="{{ lp }}/om-200hrs-yogalreruddannelser" class="p18-hero__read-more-link">{{ t.hero_cta_read_more }}</a>
+    <p class="ds-hero-e__styles">{{ t.hero_styles }}</p>
+
+    <div class="ds-hero-e__cta">
+      <button onclick="openYBScheduleModal('8w')" class="ds-btn ds-btn--primary ds-btn--large" style="border-radius:999px">{{ t.hero_cta_schedule }}</button>
+      <a href="#why-copenhagen" class="ds-btn ds-btn--outline-light ds-btn--large" style="border-radius:999px">{{ t.hero_cta_why }}</a>
+    </div>
+
+    <p class="ds-hero-e__read-more">
+      <a href="{{ lp }}/om-200hrs-yogalreruddannelser" target="_blank" rel="noopener" class="ds-hero-e__read-more-link">{{ t.hero_cta_read_more }}</a>
     </p>
   </div>
 </section>
@@ -98,7 +99,7 @@
     <p class="p18-cert-closing">{{ t.cert_closing }}</p>
 
     <div class="p18-cert-cta">
-      <a href="{{ lp }}/om-200hrs-yogalreruddannelser" class="btn btn--primary btn--large">{{ t.cert_cta_text }}</a>
+      <a href="{{ lp }}/om-200hrs-yogalreruddannelser" target="_blank" rel="noopener" class="btn btn--primary btn--large">{{ t.cert_cta_text }}</a>
     </div>
   </div>
 </section>
@@ -273,7 +274,8 @@
     </div>
 
     <div class="p18-cph__cta">
-      <a href="{{ lp }}/about-copenhagen" class="yb-btn yb-btn--cta">{{ t.cph_cta_text }}</a>
+      <a href="{{ lp }}/about-copenhagen" target="_blank" rel="noopener" class="yb-btn yb-btn--cta">{{ t.cph_cta_text }}</a>
+      <a href="#accommodation" class="yb-btn yb-btn--outline" style="margin-left:12px">{{ t.cph_cta_accommodation }}</a>
     </div>
   </div>
 </section>
@@ -519,7 +521,7 @@
 <!-- ═══════════════════════════════════════
      12. ROOM OPTIONS — Accommodation
      ═══════════════════════════════════════ -->
-<section class="p18-rooms">
+<section class="p18-rooms" id="accommodation">
   <div class="container">
     <span class="p18-eyebrow">{{ t.rooms_eyebrow }}</span>
     <h2 class="p18-section-title">{{ t.rooms_title }}</h2>
@@ -542,7 +544,7 @@
         <div class="p18-rooms__body">
           <h3>{{ t.room1_title }}</h3>
           <p>{{ t.room1_desc }}</p>
-          <a href="#" class="yb-btn yb-btn--cta" style="width:100%">{{ t.room1_cta }}</a>
+          <a href="{{ lp }}/accommodation" target="_blank" rel="noopener" class="yb-btn yb-btn--cta" style="width:100%">{{ t.room1_cta }}</a>
         </div>
       </div>
 
@@ -561,14 +563,14 @@
         <div class="p18-rooms__body">
           <h3>{{ t.room2_title }}</h3>
           <p>{{ t.room2_desc }}</p>
-          <a href="#" class="yb-btn yb-btn--cta" style="width:100%">{{ t.room2_cta }}</a>
+          <a href="{{ lp }}/accommodation" target="_blank" rel="noopener" class="yb-btn yb-btn--cta" style="width:100%">{{ t.room2_cta }}</a>
         </div>
       </div>
 
     </div>
 
     <div class="p18-rooms__cta-row">
-      <a href="{{ lp }}/about-copenhagen" class="p18-rooms__cta-link">{{ t.rooms_cta_text }}</a>
+      <a href="{{ lp }}/accommodation" target="_blank" rel="noopener" class="p18-rooms__cta-link">{{ t.rooms_cta_text }}</a>
     </div>
   </div>
 </section>
@@ -665,7 +667,7 @@
       {% for i in [1, 2, 3, 4, 5, 6, 7, 8, 9] %}
       <details class="p18-faq-item">
         <summary>{{ t["faq" + i + "_q"] }}</summary>
-        <p>{{ t["faq" + i + "_a"] | safe }}{% if t["faq" + i + "_link_text"] %} <a href="{{ lp }}/about-copenhagen" style="color:#F65D04;">{{ t["faq" + i + "_link_text"] }}</a>{% endif %}</p>
+        <p>{{ t["faq" + i + "_a"] | safe }}{% if t["faq" + i + "_link_text"] %} <a href="{{ lp }}/accommodation" target="_blank" rel="noopener" style="color:#F65D04;">{{ t["faq" + i + "_link_text"] }}</a>{% endif %}</p>
       </details>
       {% endfor %}
     </div>
@@ -1075,6 +1077,8 @@
       courseImg.alt = data.alt;
       courseBlurb.textContent = data.blurb;
       courseCta.href = data.href;
+      courseCta.target = '_blank';
+      courseCta.rel = 'noopener';
       courseCta.textContent = data.label + ' \u2192';
     };
     coursePills.forEach(function(p) {
@@ -1151,6 +1155,8 @@
         });
       }
       programCta.href = data.href;
+      programCta.target = '_blank';
+      programCta.rel = 'noopener';
       programCta.textContent = data.ctaLabel;
     };
     programPills.forEach(function(p) {
