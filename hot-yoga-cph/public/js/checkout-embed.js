@@ -1342,6 +1342,102 @@
     openCheckoutFlow(prodId);
   }
 
-  // ── Part 5 continues: CTA binding, boot sequence, IIFE close ───────
+  // ── Part 5: Auth listener, CTA binding, boot, public API, IIFE close
 
-  // (IIFE intentionally left open — closed in Part 5)
+  // ── 5A: Firebase auth state listener ────────────────────────────────
+  // If the user is already signed in when the modal opens (e.g. they
+  // refreshed, or the embed page already has a Firebase session) we
+  // skip auth steps and go straight to checkout (Step 3).
+
+  function initAuthListener() {
+    waitForFirebase(function () {
+      firebase.auth().onAuthStateChanged(function (user) {
+        if (!user) return;
+
+        // If modal is not open, nothing to do yet — openCheckoutFlow
+        // will pick up the logged-in state on its own.
+        if (!modal || modal.getAttribute('aria-hidden') !== 'false') return;
+
+        // If we are still on login / register step, advance to checkout
+        var loginStep    = $('ycf-step-login');
+        var registerStep = $('ycf-step-register');
+        var loginVisible    = loginStep && loginStep.style.display !== 'none';
+        var registerVisible = registerStep && registerStep.style.display !== 'none';
+
+        if (loginVisible || registerVisible) {
+          console.log('[HYC Embed] Auth state changed while modal open — advancing to checkout');
+          mbClientId = null; // will be resolved in prepareCheckoutStep
+          prepareCheckoutStep();
+        }
+      });
+    });
+  }
+
+  // ── 5B: CTA button binding ──────────────────────────────────────────
+  // Attach click handlers to any element with data-checkout-product.
+  // Works for buttons injected dynamically (Framer, CMS, etc.) via
+  // a MutationObserver fallback.
+
+  function attachCTAButtons() {
+    var buttons = document.querySelectorAll('[data-checkout-product]');
+    buttons.forEach(function (btn) {
+      if (btn._ycfBound) return;
+      btn._ycfBound = true;
+      btn.addEventListener('click', function (e) {
+        e.preventDefault();
+        var prodId = btn.getAttribute('data-checkout-product');
+        startCheckoutEmbed(prodId);
+      });
+    });
+  }
+
+  // Re-scan for CTA buttons when the DOM changes (Framer lazy-loads)
+  function observeCTAButtons() {
+    if (typeof MutationObserver === 'undefined') return;
+    var observer = new MutationObserver(function () { attachCTAButtons(); });
+    observer.observe(document.body, { childList: true, subtree: true });
+  }
+
+  // ── 5C: Boot sequence ──────────────────────────────────────────────
+  // Runs once on DOMContentLoaded (or immediately if DOM is already ready).
+
+  function boot() {
+    injectCSS();
+    injectModalHTML();
+
+    // Cache the modal reference now that HTML is injected
+    modal = document.getElementById('ycf-modal');
+
+    wireAuthEvents();
+    wireCheckoutEvents();
+    wireCardFormatting();
+    attachCTAButtons();
+    observeCTAButtons();
+    initAuthListener();
+
+    console.log('[HYC Embed] Checkout embed booted — ' + Object.keys(PRODUCTS).length + ' products loaded');
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', boot);
+  } else {
+    boot();
+  }
+
+  // ── 5D: Public API ─────────────────────────────────────────────────
+  // Framer pages call: startCheckoutEmbed('100174')
+  // or use: <button data-checkout-product="100174">Buy</button>
+
+  window.startCheckoutEmbed = startCheckoutEmbed;
+  window.openCheckoutFlow   = openCheckoutFlow;
+
+  // Expose funnel helpers for external analytics / debugging
+  window.HYCCheckout = {
+    open:        openCheckoutFlow,
+    start:       startCheckoutEmbed,
+    loadFunnel:  loadFunnel,
+    clearFunnel: clearFunnel,
+    PRODUCTS:    PRODUCTS
+  };
+
+})();
