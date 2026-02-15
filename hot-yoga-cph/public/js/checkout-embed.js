@@ -820,10 +820,10 @@
     h +=     '<div class="yb-checkout-success__icon">&#10003;</div>';
     h +=     '<h2 class="yb-auth-modal__title" data-yj-da>Betaling gennemf\u00f8rt!</h2>';
     h +=     '<h2 class="yb-auth-modal__title" data-yj-en hidden>Payment successful!</h2>';
-    h +=     '<p class="yb-auth-modal__subtitle" data-yj-da>Du modtager en bekr\u00e6ftelse p\u00e5 email. N\u00e6ste skridt: underskriv din ansvarsfraskrivelse.</p>';
-    h +=     '<p class="yb-auth-modal__subtitle" data-yj-en hidden>You\'ll receive a confirmation email. Next step: sign your liability waiver.</p>';
-    h +=     '<button class="yb-auth-submit" type="button" id="ycf-go-profile" data-yj-da>G\u00e5 til din profil</button>';
-    h +=     '<button class="yb-auth-submit" type="button" id="ycf-go-profile-en" data-yj-en hidden>Go to your profile</button>';
+    h +=     '<p class="yb-auth-modal__subtitle" data-yj-da>Du modtager en bekr\u00e6ftelse p\u00e5 email. Tak for dit k\u00f8b!</p>';
+    h +=     '<p class="yb-auth-modal__subtitle" data-yj-en hidden>You\'ll receive a confirmation email. Thank you for your purchase!</p>';
+    h +=     '<button class="yb-auth-submit" type="button" id="ycf-go-profile" data-yj-da>Luk</button>';
+    h +=     '<button class="yb-auth-submit" type="button" id="ycf-go-profile-en" data-yj-en hidden>Close</button>';
     h +=   '</div>';
     h += '</div>'; // end step-success
 
@@ -1624,7 +1624,6 @@
       if (e.target.id === 'ycf-go-profile' || e.target.id === 'ycf-go-profile-en') {
         e.preventDefault();
         closeModal();
-        window.location.href = PROFILE_URL + '/profile#passes';
       }
     });
   }
