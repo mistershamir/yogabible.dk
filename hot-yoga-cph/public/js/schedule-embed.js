@@ -702,11 +702,13 @@
     var classId = btn.getAttribute('data-hycs-book');
     if (!classId) return;
 
-    // Not logged in → open login modal
+    // Not logged in → open login modal (with callback to stay on page)
     if (!scheduleUser) {
       if (typeof window.openLoginModal === 'function') {
-        window.openLoginModal();
-        showToast(t('Log ind for at booke.', 'Log in to book.'), 'success');
+        window.openLoginModal(function () {
+          // After login, schedule will auto-reload via onAuthStateChanged
+          showToast(t('Du er logget ind!', 'You are logged in!'), 'success');
+        });
       } else {
         window.location.href = PROFILE_URL + '/#schedule';
       }
