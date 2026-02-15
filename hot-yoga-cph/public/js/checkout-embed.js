@@ -54,7 +54,7 @@
   var PRODUCTS = {
 
     // ── Clips · Over 30 ──────────────────────────────────────────────
-    '100174': { price: 299,   name_da: '1 Klasse Klippekort',   name_en: '1 Class Clip Card',   label_da: 'Prøv En',          label_en: 'Try One',          validity: null,       classes: 1   },
+    '100174': { price: 299,   name_da: '1 Klasse Klippekort',   name_en: '1 Class Clip Card',   label_da: 'Prøv En',          label_en: 'Try One',          validity: '10 dage',  classes: 1,  desc_da: 'Prøv en enkelt klasse — gyldig i 10 dage fra køb. Ingen binding.', desc_en: 'Try a single class — valid for 10 days from purchase. No commitment.' },
     '100175': { price: 549,   name_da: '2 Klasse Klippekort',   name_en: '2 Class Clip Card',   label_da: 'God Start',         label_en: 'Great Start',      validity: '10 dage',  classes: 2   },
     '100176': { price: 749,   name_da: '3 Klasse Klippekort',   name_en: '3 Class Clip Card',   label_da: 'Mærk Resultater',   label_en: 'Feel Results',     validity: '20 dage',  classes: 3   },
     '100177': { price: 1199,  name_da: '5 Klasse Klippekort',   name_en: '5 Class Clip Card',   label_da: 'Populært Valg',     label_en: 'Popular Choice',   validity: '30 dage',  classes: 5   },
@@ -66,7 +66,7 @@
     '100183': { price: 17999, name_da: '200 Klasse Klippekort', name_en: '200 Class Clip Card', label_da: 'Familieplan',       label_en: 'Family Plan',      validity: '18 måneder', classes: 200 },
 
     // ── Clips · Under 30 ────────────────────────────────────────────
-    '100017': { price: 275,   name_da: '1 Klasse Klippekort',   name_en: '1 Class Clip Card',   label_da: 'Prøv En',          label_en: 'Try One',          validity: null,       classes: 1   },
+    '100017': { price: 275,   name_da: '1 Klasse Klippekort',   name_en: '1 Class Clip Card',   label_da: 'Prøv En',          label_en: 'Try One',          validity: '10 dage',  classes: 1,  desc_da: 'Prøv en enkelt klasse — gyldig i 10 dage fra køb. Ingen binding.', desc_en: 'Try a single class — valid for 10 days from purchase. No commitment.' },
     '100016': { price: 495,   name_da: '2 Klasse Klippekort',   name_en: '2 Class Clip Card',   label_da: 'God Start',         label_en: 'Great Start',      validity: '10 dage',  classes: 2   },
     '100018': { price: 645,   name_da: '3 Klasse Klippekort',   name_en: '3 Class Clip Card',   label_da: 'Mærk Resultater',   label_en: 'Feel Results',     validity: '20 dage',  classes: 3   },
     '100019': { price: 975,   name_da: '5 Klasse Klippekort',   name_en: '5 Class Clip Card',   label_da: 'Populært Valg',     label_en: 'Popular Choice',   validity: '30 dage',  classes: 5   },
@@ -101,8 +101,8 @@
 
     // ── Trials · Under 30 (variant pricing)
     // Under-30 14-day & 21-day trial prices match timebased — no variant needed.
-    // KickStarter under30 shares prodId 100185 but at 475 kr:
-    '100185_u30':   { price: 475,  realId: '100185', name_da: 'KickStarter',  name_en: 'KickStarter',  validity: '3 uger', classes: 10, desc_da: 'Kun for Københavns-beboere. 10 klasser inden for 3 uger.', desc_en: 'Copenhagen residents only. 10 classes within 3 weeks.' },
+    // KickStarter under30 has its own prodId 100153:
+    '100153':       { price: 475,  name_da: 'KickStarter',  name_en: 'KickStarter',  validity: '3 uger', classes: 10, desc_da: 'Kun for Københavns-beboere. 10 klasser inden for 3 uger.', desc_en: 'Copenhagen residents only. 10 classes within 3 weeks.' },
 
     // ── Tourist · Over 30 ───────────────────────────────────────────
     // Single-class tourist reuses clip prodId 100174 (already in catalog).
