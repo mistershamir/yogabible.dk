@@ -6781,6 +6781,182 @@ a.yb-kontakt-detail__value:hover {
 }
 
 /* ========================================
+   CHECKOUT FLOW MODAL (multi-step)
+   ======================================== */
+
+.ycf-box {
+  max-width: 460px;
+}
+
+/* Step indicator */
+.ycf-steps {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0;
+  margin-bottom: 28px;
+}
+
+.ycf-steps__dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #E8E4E0;
+  transition: background 0.3s ease, transform 0.3s ease;
+}
+
+.ycf-steps__dot--active {
+  background: var(--yb-brand);
+  transform: scale(1.15);
+}
+
+.ycf-steps__line {
+  width: 40px;
+  height: 2px;
+  background: #E8E4E0;
+}
+
+/* Step panels */
+.ycf-step {
+  animation: ycfFadeIn 0.25s ease;
+}
+
+@keyframes ycfFadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Product badge (shown on login step) */
+.ycf-product-badge {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 16px;
+  background: #F5F3F0;
+  border-radius: 10px;
+  margin-bottom: 20px;
+  border: 1px solid #E8E4E0;
+}
+
+.ycf-product-badge__name {
+  font-weight: 700;
+  font-size: 0.88rem;
+  color: #0F0F0F;
+}
+
+.ycf-product-badge__price {
+  font-weight: 700;
+  font-size: 0.95rem;
+  color: var(--yb-brand);
+}
+
+/* Product breakdown card (checkout step) */
+.ycf-product {
+  background: #F5F3F0;
+  border-radius: 12px;
+  padding: 20px;
+  margin-bottom: 20px;
+  border: 1px solid #E8E4E0;
+}
+
+.ycf-product__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 10px;
+}
+
+.ycf-product__name {
+  font-weight: 700;
+  font-size: 1.05rem;
+  color: #0F0F0F;
+}
+
+.ycf-product__price {
+  font-weight: 700;
+  font-size: 1.1rem;
+  color: var(--yb-brand);
+  white-space: nowrap;
+  margin-left: 12px;
+}
+
+.ycf-product__chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 10px;
+}
+
+.ycf-chip {
+  display: inline-block;
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: 20px;
+  background: #fff;
+  color: #0F0F0F;
+  border: 1px solid #E8E4E0;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.ycf-chip--brand {
+  background: var(--yb-brand);
+  color: #fff;
+  border-color: var(--yb-brand);
+}
+
+.ycf-chip--muted {
+  background: transparent;
+  color: #6F6A66;
+  border-color: transparent;
+  font-weight: 400;
+  text-transform: none;
+  padding-left: 0;
+}
+
+.ycf-product__desc {
+  font-size: 0.88rem;
+  color: #6F6A66;
+  line-height: 1.5;
+  margin: 0;
+}
+
+.ycf-product__note {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px solid #E8E4E0;
+  font-size: 0.82rem;
+  color: #6F6A66;
+  line-height: 1.45;
+}
+
+.ycf-product__note svg {
+  flex-shrink: 0;
+  margin-top: 1px;
+  color: #6F6A66;
+}
+
+/* Responsive */
+@media (max-width: 480px) {
+  .ycf-box {
+    padding: 36px 24px;
+  }
+
+  .ycf-product__header {
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .ycf-product__price {
+    margin-left: 0;
+  }
+}
+
+/* ========================================
    MINDBODY RESPONSIVE
    ======================================== */
 
