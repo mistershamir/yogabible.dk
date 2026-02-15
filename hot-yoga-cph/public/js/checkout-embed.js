@@ -532,6 +532,7 @@
   var authOriginStep = null;   // 'login' | 'register'
   var cameFromLoggedIn = false;
   var loginOnlyMode = false;   // true when opened via openLoginModal()
+  var loginOnlyCallback = null; // optional callback instead of redirect after login
   var modal = null;
   var scrollY = 0;
 
@@ -1275,8 +1276,9 @@
   // Opens the same modal at the login step, but without product badge
   // or step dots. After successful login/register, redirects to profile.
 
-  function openLoginModal() {
+  function openLoginModal(callback) {
     loginOnlyMode = true;
+    loginOnlyCallback = (typeof callback === 'function') ? callback : null;
     currentProdId = null;
     mbClientId = null;
     storedCard = null;
@@ -1323,12 +1325,18 @@
     openModal();
   }
 
-  // Helper: redirect to profile after login-only auth
+  // Helper: redirect to profile after login-only auth (or call callback)
   function loginOnlyRedirect() {
     loginOnlyMode = false;
     currentProdId = null;
     closeModal();
-    window.location.href = PROFILE_URL + '/#schedule';
+    if (typeof loginOnlyCallback === 'function') {
+      var cb = loginOnlyCallback;
+      loginOnlyCallback = null;
+      cb();
+    } else {
+      window.location.href = PROFILE_URL + '/#schedule';
+    }
   }
 
   // ── 3K: Wire up event handlers (auth forms, navigation) ────────────
