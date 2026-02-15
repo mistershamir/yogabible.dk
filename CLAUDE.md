@@ -256,6 +256,7 @@ The checkout flow modal replaces the old "auth modal → redirect to profile sto
 
 - **MB client created immediately after auth** (not at payment time) — this triggers the Mindbody welcome email for new users
 - **Stored card detection:** After auth, fetches `GET /.netlify/functions/mb-client?action=storedCard&clientId={id}`. If found, shows radio toggle; payment sends `{ useStoredCard: true, lastFour: '4242' }`
+- **Card saving:** New card payments always include `saveCard: true` in the payment payload, so Mindbody stores the card on the client's profile for future purchases. The backend (`mb-checkout.js`) passes this as `saveInfo: "true"` to the Mindbody API.
 - **Back navigation:** Register step has "Tilbage" → login. Checkout step has "Tilbage" → whichever auth step the user came from (`authOriginStep` state). Hidden when user was already logged in.
 - **ytt-funnel.js auth listener** checks if `ycf-modal` is open before redirecting — prevents conflict between the two systems
 - **Step indicator:** 3 dots connected by lines, progressively filled orange as user advances
