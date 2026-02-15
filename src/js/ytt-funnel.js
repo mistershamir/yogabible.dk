@@ -247,6 +247,18 @@
           var funnel = loadFunnel();
           if (!funnel) return;
 
+          // Only redirect once — if funnel already redirected, just clear it
+          if (funnel.redirected) {
+            // Already redirected on a previous page load — don't redirect again.
+            // Clear stale funnel so user can browse freely.
+            clearFunnel();
+            return;
+          }
+
+          // Mark as redirected so next page load won't redirect again
+          funnel.redirected = true;
+          saveFunnel(funnel);
+
           // User just logged in with a pending funnel
           console.log('[Checkout Funnel] Auth state changed, funnel pending for prodId:', funnel.prodId);
 
