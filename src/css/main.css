@@ -6985,6 +6985,45 @@ a.yb-kontakt-detail__value:hover {
   color: #6F6A66;
 }
 
+.ycf-product__refund {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 10px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: #16a34a;
+}
+
+.ycf-product__refund svg {
+  flex-shrink: 0;
+  color: #16a34a;
+}
+
+.ycf-product__benefits {
+  list-style: none;
+  padding: 0;
+  margin: 12px 0 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.ycf-product__benefits li {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  font-size: 0.82rem;
+  color: #0F0F0F;
+  line-height: 1.4;
+}
+
+.ycf-product__benefits svg {
+  flex-shrink: 0;
+  margin-top: 1px;
+  color: #f75c03;
+}
+
 /* Payment method selector (stored vs new card) */
 .ycf-payment-methods {
   display: flex;

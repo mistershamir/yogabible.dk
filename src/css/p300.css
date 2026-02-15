@@ -684,3 +684,503 @@
   .p300-location__features { grid-template-columns: 1fr; }
   .p300-location__gallery-grid { grid-template-columns: 1fr; }
 }
+
+/* ═══ BUTTON: Outline Brand (shared pattern from om200) ═══ */
+.yb-btn--outline-brand {
+  background: #fff;
+  color: var(--yb-brand, #f75c03);
+  border-color: var(--yb-brand, #f75c03);
+  box-shadow: 0 2px 8px rgba(247, 92, 3, 0.1);
+}
+.yb-btn--outline-brand:hover {
+  background: var(--yb-brand, #f75c03);
+  color: #fff;
+  box-shadow: 0 4px 14px rgba(247, 92, 3, 0.25);
+  transform: translateY(-1px);
+}
+.yb-btn--outline-brand:hover svg,
+.yb-btn--primary:hover svg {
+  transform: translateX(3px);
+}
+.yb-btn svg {
+  flex-shrink: 0;
+  transition: transform 0.2s ease;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   SCHEDULE MODAL — 300-Hour (mirrors #yb-schedule-modal styles)
+   ═══════════════════════════════════════════════════════════ */
+
+#yb-schedule-300-modal,
+#yb-schedule-300-modal * {
+  box-sizing: border-box !important;
+}
+
+#yb-schedule-300-modal {
+  --yb-primary: #f75c03;
+  --yb-primary-dark: #e05402;
+  --yb-ink: #161616;
+  --yb-muted: #6F6A66;
+  --yb-border: #e5e0db;
+  --yb-surface: #FFFCF9;
+  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif !important;
+  color: var(--yb-ink);
+}
+
+#yb-schedule-300-modal {
+  display: none;
+}
+
+#yb-schedule-300-modal[aria-hidden="false"] {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  z-index: 2147483647 !important;
+}
+
+#yb-schedule-300-modal .yb-modal-u__overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5) !important;
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  z-index: 0;
+}
+
+#yb-schedule-300-modal .yb-modal-u__box {
+  position: relative;
+  width: min(520px, calc(100% - 2rem));
+  max-height: calc(100vh - 2rem);
+  max-height: calc(100dvh - 2rem);
+  overflow-y: auto;
+  overflow-x: hidden !important;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+  border-radius: 16px;
+  border: 1px solid var(--yb-border) !important;
+  background: #fff !important;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.2) !important;
+  padding: 1.75rem;
+  z-index: 1;
+}
+
+#yb-schedule-300-modal .yb-modal-u__close {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  width: 36px;
+  height: 36px;
+  border-radius: 999px;
+  border: 1px solid var(--yb-border) !important;
+  background: #fff !important;
+  cursor: pointer;
+  font-size: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--yb-ink) !important;
+  transition: all 0.15s ease;
+  z-index: 10;
+  padding: 0;
+  margin: 0;
+}
+
+#yb-schedule-300-modal .yb-modal-u__close:hover {
+  background: var(--yb-surface) !important;
+  border-color: var(--yb-primary) !important;
+  color: var(--yb-primary) !important;
+}
+
+#yb-schedule-300-modal h3 {
+  margin: 0 0 0.5rem !important;
+  padding-right: 2.5rem;
+  font-size: 1.35rem !important;
+  font-weight: 800 !important;
+  color: var(--yb-ink) !important;
+}
+
+#yb-schedule-300-modal .yb-modal-u__lead {
+  margin: 0 0 1.5rem !important;
+  color: #444 !important;
+  line-height: 1.55 !important;
+  font-size: 0.95rem !important;
+}
+
+#yb-schedule-300-modal .yb-modal-u__hp {
+  position: absolute;
+  left: -9999px;
+  opacity: 0;
+  height: 0;
+}
+
+#yb-schedule-300-modal .yb-modal-u__form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+#yb-schedule-300-modal .yb-modal-u__grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+#yb-schedule-300-modal .yb-modal-u__field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+#yb-schedule-300-modal .yb-modal-u__field > span {
+  font-size: 0.85rem !important;
+  font-weight: 600 !important;
+  color: var(--yb-muted) !important;
+}
+
+#yb-schedule-300-modal .yb-modal-u__field input {
+  width: 100% !important;
+  height: 48px !important;
+  border: 1px solid var(--yb-border) !important;
+  border-radius: 12px !important;
+  padding: 0 1rem !important;
+  font-size: 16px !important;
+  background: #fff !important;
+  color: var(--yb-ink) !important;
+  outline: none !important;
+  -webkit-appearance: none;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+#yb-schedule-300-modal .yb-modal-u__field input:focus {
+  border-color: var(--yb-primary) !important;
+  box-shadow: 0 0 0 3px rgba(247, 92, 3, 0.12) !important;
+}
+
+#yb-schedule-300-modal .yb-modal-u__section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+#yb-schedule-300-modal .yb-modal-u__label {
+  font-size: 0.75rem !important;
+  font-weight: 800 !important;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--yb-primary) !important;
+}
+
+#yb-schedule-300-modal .yb-modal-u__formats {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+#yb-schedule-300-modal .yb-modal-u__format {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  padding: 1rem;
+  border: 2px solid var(--yb-border);
+  border-radius: 12px;
+  cursor: default;
+  background: #fff;
+}
+
+#yb-schedule-300-modal .yb-modal-u__format:has(input:checked) {
+  border-color: var(--yb-primary);
+  background: rgba(247, 92, 3, 0.04);
+}
+
+#yb-schedule-300-modal .yb-modal-u__format input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+#yb-schedule-300-modal .yb-modal-u__checkbox {
+  width: 22px;
+  height: 22px;
+  min-width: 22px;
+  border: 2px solid #ccc;
+  border-radius: 6px;
+  position: relative;
+  transition: all 0.15s ease;
+}
+
+#yb-schedule-300-modal .yb-modal-u__format:has(input:checked) .yb-modal-u__checkbox {
+  background: var(--yb-primary);
+  border-color: var(--yb-primary);
+}
+
+#yb-schedule-300-modal .yb-modal-u__format:has(input:checked) .yb-modal-u__checkbox::after {
+  content: '✓';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  color: #fff;
+  font-size: 13px;
+  font-weight: bold;
+}
+
+#yb-schedule-300-modal .yb-modal-u__format-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+#yb-schedule-300-modal .yb-modal-u__format-text strong {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--yb-ink);
+}
+
+#yb-schedule-300-modal .yb-modal-u__format-text small {
+  font-size: 0.82rem;
+  color: var(--yb-muted);
+}
+
+#yb-schedule-300-modal .yb-modal-u__acc-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  padding: 1rem;
+  border: 1px solid var(--yb-border);
+  border-radius: 12px;
+  background: #fff;
+}
+
+#yb-schedule-300-modal .yb-modal-u__acc-row > span {
+  font-size: 0.9rem;
+  color: var(--yb-ink);
+}
+
+#yb-schedule-300-modal .yb-modal-u__toggle {
+  display: flex;
+  gap: 0.4rem;
+}
+
+#yb-schedule-300-modal .yb-modal-u__toggle-btn {
+  padding: 0.45rem 1rem;
+  border-radius: 999px;
+  border: 1px solid var(--yb-border);
+  background: #fff;
+  font-size: 0.85rem;
+  font-weight: 700;
+  cursor: pointer;
+  color: #333;
+  transition: all 0.15s ease;
+}
+
+#yb-schedule-300-modal .yb-modal-u__toggle-btn.is-active {
+  background: var(--yb-primary);
+  border-color: var(--yb-primary);
+  color: #fff;
+}
+
+#yb-schedule-300-modal .yb-modal-u__city {
+  width: 100% !important;
+  height: 48px !important;
+  border: 1px solid var(--yb-border) !important;
+  border-radius: 12px !important;
+  padding: 0 1rem !important;
+  font-size: 16px !important;
+  background: #fff !important;
+  color: var(--yb-ink) !important;
+  outline: none !important;
+  margin-top: 0.5rem;
+  -webkit-appearance: none;
+}
+
+#yb-schedule-300-modal .yb-modal-u__city:focus {
+  border-color: var(--yb-primary) !important;
+  box-shadow: 0 0 0 3px rgba(247, 92, 3, 0.12) !important;
+}
+
+#yb-schedule-300-modal .yb-modal-u__city[hidden] {
+  display: none !important;
+}
+
+#yb-schedule-300-modal .yb-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.9rem 1.75rem;
+  min-height: 50px;
+  border-radius: 999px;
+  font-weight: 700;
+  font-size: 1rem;
+  border: 2px solid transparent;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+#yb-schedule-300-modal .yb-btn--primary {
+  background: var(--yb-primary) !important;
+  color: #fff !important;
+  border-color: var(--yb-primary) !important;
+  box-shadow: 0 4px 16px rgba(247, 92, 3, 0.3);
+  width: 100%;
+}
+
+#yb-schedule-300-modal .yb-btn--primary:hover {
+  background: var(--yb-primary-dark) !important;
+  border-color: var(--yb-primary-dark) !important;
+  transform: translateY(-1px);
+  box-shadow: 0 6px 20px rgba(247, 92, 3, 0.35);
+}
+
+#yb-schedule-300-modal .yb-btn--primary:disabled {
+  opacity: 0.6 !important;
+  cursor: not-allowed !important;
+  transform: none !important;
+}
+
+#yb-schedule-300-modal .yb-btn--outline {
+  background: #fff !important;
+  color: var(--yb-primary) !important;
+  border-color: var(--yb-primary) !important;
+}
+
+#yb-schedule-300-modal .yb-btn--outline:hover {
+  background: var(--yb-primary) !important;
+  color: #fff !important;
+}
+
+#yb-schedule-300-modal .yb-modal-u__fine {
+  margin: 0 !important;
+  color: var(--yb-muted) !important;
+  font-size: 0.78rem !important;
+  line-height: 1.5 !important;
+  text-align: center;
+}
+
+#yb-schedule-300-modal .yb-modal-u__fine a {
+  color: var(--yb-primary) !important;
+  text-decoration: none;
+}
+
+#yb-schedule-300-modal .yb-modal-u__error {
+  margin: 0 0 1rem !important;
+  padding: 0.85rem 1rem;
+  background: #FEF2F2;
+  border: 1px solid #FECACA;
+  border-radius: 12px;
+  font-size: 0.9rem !important;
+  color: #991B1B !important;
+  line-height: 1.5 !important;
+}
+
+#yb-schedule-300-modal .yb-modal-u__error a {
+  color: var(--yb-primary) !important;
+}
+
+#yb-schedule-300-modal .yb-modal-u__success {
+  text-align: center;
+  padding: 2rem 1rem;
+}
+
+#yb-schedule-300-modal .yb-modal-u__success-icon {
+  width: 60px;
+  height: 60px;
+  border-radius: 999px;
+  background: var(--yb-primary);
+  color: #fff;
+  font-size: 1.75rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 1.25rem;
+}
+
+#yb-schedule-300-modal .yb-modal-u__success h3 {
+  margin: 0 0 0.5rem !important;
+  font-size: 1.3rem !important;
+  padding-right: 0;
+}
+
+#yb-schedule-300-modal .yb-modal-u__success p {
+  margin: 0 0 1.5rem !important;
+  color: #444 !important;
+  line-height: 1.55 !important;
+}
+
+#yb-schedule-300-modal .yb-modal-u__success .yb-btn {
+  width: auto;
+  min-width: 140px;
+}
+
+@media (max-width: 599px) {
+  #yb-schedule-300-modal[aria-hidden="false"] {
+    padding: 0.75rem;
+    align-items: flex-start;
+    padding-top: 1rem;
+  }
+  #yb-schedule-300-modal .yb-modal-u__box {
+    width: calc(100% - 1rem);
+    max-height: calc(100vh - 1.5rem);
+    max-height: calc(100dvh - 1.5rem);
+    padding: 1.25rem;
+    border-radius: 14px;
+  }
+  #yb-schedule-300-modal .yb-modal-u__close {
+    top: 0.85rem;
+    right: 0.85rem;
+    width: 32px;
+    height: 32px;
+    font-size: 18px;
+  }
+  #yb-schedule-300-modal h3 {
+    font-size: 1.15rem !important;
+    padding-right: 2rem;
+  }
+  #yb-schedule-300-modal .yb-modal-u__lead {
+    font-size: 0.88rem !important;
+    margin-bottom: 1.25rem !important;
+  }
+  #yb-schedule-300-modal .yb-modal-u__grid {
+    grid-template-columns: 1fr;
+    gap: 0.85rem;
+  }
+  #yb-schedule-300-modal .yb-modal-u__form {
+    gap: 1rem;
+  }
+  #yb-schedule-300-modal .yb-modal-u__field > span {
+    font-size: 0.8rem !important;
+  }
+  #yb-schedule-300-modal .yb-modal-u__field input {
+    height: 46px !important;
+  }
+  #yb-schedule-300-modal .yb-modal-u__format {
+    padding: 0.85rem;
+  }
+  #yb-schedule-300-modal .yb-modal-u__format-text strong {
+    font-size: 0.88rem;
+  }
+  #yb-schedule-300-modal .yb-modal-u__format-text small {
+    font-size: 0.78rem;
+  }
+  #yb-schedule-300-modal .yb-modal-u__acc-row {
+    padding: 0.85rem;
+  }
+  #yb-schedule-300-modal .yb-modal-u__acc-row > span {
+    font-size: 0.85rem;
+  }
+  #yb-schedule-300-modal .yb-modal-u__city {
+    height: 46px !important;
+  }
+  #yb-schedule-300-modal .yb-btn {
+    min-height: 48px;
+    font-size: 0.95rem;
+  }
+  #yb-schedule-300-modal .yb-modal-u__fine {
+    font-size: 0.72rem !important;
+  }
+}
