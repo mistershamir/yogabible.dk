@@ -440,7 +440,8 @@
         expMonth: expMonth,
         expYear: expYear,
         cvv: cvv,
-        cardHolder: user.displayName || ''
+        cardHolder: user.displayName || '',
+        saveCard: true
       };
     }
 
