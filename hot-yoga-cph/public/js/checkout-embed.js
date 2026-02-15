@@ -4,7 +4,8 @@
 // Bundles: Firebase SDK loader · CSS · Modal HTML · Auth · Payment logic
 // Brand: #3f99a5 (HYC teal)
 // API:   https://profile.hotyogacph.dk/.netlify/functions
-// Phase 1 — service-type daily products only (no memberships/contracts)
+// All daily products: services (clips, time-based, trials, tourist)
+// + memberships (contracts). Includes lead funnel tracking (Firestore + GA).
 // =====================================================================
 (function () {
   'use strict';
@@ -38,8 +39,8 @@
   function t(da, en) { return isDa ? da : en; }
 
   // ── Product Catalog ─────────────────────────────────────────────────
-  // Phase 1: daily service-type items only (clips, time-based, trials,
-  // tourist). NO memberships (contract type — Phase 2).
+  // All daily products: clips, time-based, trials, tourist (service type)
+  // + memberships (contract type — uses mb-contracts API).
   //
   // For prodIds that appear at different prices (trial vs regular, or
   // over30 vs under30 on same prodId), variant keys use a suffix:
@@ -111,6 +112,18 @@
     // Single-class & 2-class tourist reuse clip prodIds (100017, 100016).
     '100051': { price: 750, name_da: '7 Dage Tourist Pas',  name_en: '7 Days Tourist Pass',  validity: '7 dage', desc_da: 'Ubegrænset adgang inkl. måtte + håndklæder.', desc_en: 'Unlimited access incl. mat + towels.' },
 
+    // ── Memberships · Over 30 (contract type) ────────────────────────
+    // Monthly autopay memberships — purchased via mb-contracts API.
+    // firstMonthFree: only regFee is charged initially.
+    '101':  { price: 999,  _itemType: 'contract', regFee: 299, firstMonthFree: true, name_da: '10 Klasser / Måned', name_en: '10 Classes / Month', desc_da: 'Ideel til moderat praksis – ca. 1-3 gange om ugen.', desc_en: 'Ideal for moderate practice – about 1-3 times per week.', features_da: ['Adgang til alle klassetyper og tider', 'Wellness-fordele inkl.', 'Book op til 21 dage frem'], features_en: ['Access to all class types and times', 'Wellness perks included', 'Book up to 21 days ahead'], terms_da: ['Første måned gratis', 'Engangs-registreringsgebyr: 299 kr', 'Løbende månedligt – opsig eller pause når som helst'], terms_en: ['First month free', 'One-time registration fee: 299 DKK', 'Month-to-month – cancel or pause anytime'] },
+    '102':  { price: 1249, _itemType: 'contract', regFee: 299, firstMonthFree: true, name_da: 'Ubegrænset / Måned', name_en: 'Unlimited / Month', desc_da: 'Ideel til regelmæssig praksis – kom så tit du vil.', desc_en: 'Ideal for regular practice – come as often as you like.', features_da: ['Ubegrænset adgang til alle klasser', 'Wellness-fordele inkl.', 'Book op til 21 dage frem'], features_en: ['Unlimited access to all classes', 'Wellness perks included', 'Book up to 21 days ahead'], terms_da: ['Første måned gratis', 'Engangs-registreringsgebyr: 299 kr', 'Løbende månedligt – opsig eller pause når som helst'], terms_en: ['First month free', 'One-time registration fee: 299 DKK', 'Month-to-month – cancel or pause anytime'] },
+    '103':  { price: 1649, _itemType: 'contract', regFee: 299, firstMonthFree: true, name_da: 'Premium Ubegrænset / Måned', name_en: 'Premium Unlimited / Month', desc_da: 'Top-tier medlemskab med fuld komfort og prioritet.', desc_en: 'Top-tier membership with full comfort and priority.', features_da: ['Ubegrænset prioritetsadgang', 'Måtteopbevaring, håndklæder, vaskeservice', 'Book op til 31 dage frem'], features_en: ['Unlimited priority access', 'Mat storage, towels, laundry service', 'Book up to 31 days ahead'], terms_da: ['Første måned gratis', 'Engangs-registreringsgebyr: 299 kr', 'Løbende månedligt – opsig eller pause når som helst'], terms_en: ['First month free', 'One-time registration fee: 299 DKK', 'Month-to-month – cancel or pause anytime'] },
+
+    // ── Memberships · Under 30 (contract type) ─────────────────────
+    '109':  { price: 799,  _itemType: 'contract', regFee: 275, firstMonthFree: true, name_da: '10 Klasser / Måned', name_en: '10 Classes / Month', desc_da: 'Ideel til moderat praksis – ca. 1-3 gange om ugen.', desc_en: 'Ideal for moderate practice – about 1-3 times per week.', features_da: ['Adgang til alle klassetyper og tider', 'Wellness-fordele inkl.', 'Book op til 21 dage frem'], features_en: ['Access to all class types and times', 'Wellness perks included', 'Book up to 21 days ahead'], terms_da: ['Første måned gratis', 'Engangs-registreringsgebyr: 275 kr', 'Løbende månedligt – opsig eller pause når som helst'], terms_en: ['First month free', 'One-time registration fee: 275 DKK', 'Month-to-month – cancel or pause anytime'] },
+    '111':  { price: 999,  _itemType: 'contract', regFee: 275, firstMonthFree: true, name_da: 'Ubegrænset / Måned', name_en: 'Unlimited / Month', desc_da: 'Ideel til regelmæssig praksis – kom så tit du vil.', desc_en: 'Ideal for regular practice – come as often as you like.', features_da: ['Ubegrænset adgang til alle klasser', 'Wellness-fordele inkl.', 'Book op til 21 dage frem'], features_en: ['Unlimited access to all classes', 'Wellness perks included', 'Book up to 21 days ahead'], terms_da: ['Første måned gratis', 'Engangs-registreringsgebyr: 275 kr', 'Løbende månedligt – opsig eller pause når som helst'], terms_en: ['First month free', 'One-time registration fee: 275 DKK', 'Month-to-month – cancel or pause anytime'] },
+    '112':  { price: 1499, _itemType: 'contract', regFee: 275, firstMonthFree: true, name_da: 'Premium Ubegrænset / Måned', name_en: 'Premium Unlimited / Month', desc_da: 'Top-tier medlemskab med fuld komfort og prioritet.', desc_en: 'Top-tier membership with full comfort and priority.', features_da: ['Ubegrænset prioritetsadgang', 'Måtteopbevaring, håndklæder, vaskeservice', 'Book op til 31 dage frem'], features_en: ['Unlimited priority access', 'Mat storage, towels, laundry service', 'Book up to 31 days ahead'], terms_da: ['Første måned gratis', 'Engangs-registreringsgebyr: 275 kr', 'Løbende månedligt – opsig eller pause når som helst'], terms_en: ['First month free', 'One-time registration fee: 275 DKK', 'Month-to-month – cancel or pause anytime'] },
+
     // ── Test Product (1 DKK — for end-to-end payment testing) ───────
     '100203': { price: 1, name_da: 'Test Klippekort', name_en: 'Test Clip Card', validity: null, desc_da: 'Testprodukt til betalingsflow — 1 kr.', desc_en: 'Test product for payment flow — 1 DKK.' }
   };
@@ -124,6 +137,158 @@
   function getRealProdId(prodId) {
     var p = getProduct(prodId);
     return (p && p.realId) ? p.realId : String(prodId).replace(/_.*$/, '');
+  }
+
+  // ── Product category helper ────────────────────────────────────────
+  function getProductCategory(prodId) {
+    var id = String(prodId);
+    if (id.indexOf('_trial') !== -1) return 'trials';
+    if (id.indexOf('_u30') !== -1) return 'trials';
+    var p = PRODUCTS[id];
+    if (!p) return 'unknown';
+    if (p._itemType === 'contract') return 'memberships';
+    if (id === '100199' || id === '100051') return 'tourist';
+    if (id === '100185') return 'trials';
+    var timebased = ['100186','100187','100189','100190','100191','100192','100043','100044','100037','100038','100039','100040'];
+    if (timebased.indexOf(id) !== -1) return 'timebased';
+    if (id === '100203') return 'test';
+    return 'clips';
+  }
+
+  function getProductName(prodId) {
+    var p = getProduct(prodId);
+    if (!p) return 'Product ' + prodId;
+    return isDa ? p.name_da : p.name_en;
+  }
+
+  function isContract(prodId) {
+    var p = getProduct(prodId);
+    return p && p._itemType === 'contract';
+  }
+
+  // ── Date helper for contract start date ────────────────────────────
+  function toLocalDateStr(d) {
+    var y = d.getFullYear();
+    var m = String(d.getMonth() + 1).padStart(2, '0');
+    var day = String(d.getDate()).padStart(2, '0');
+    return y + '-' + m + '-' + day;
+  }
+
+  function formatDKK(amount) {
+    return amount.toLocaleString('da-DK') + ' kr';
+  }
+
+  // ── Lead Funnel Tracking (Firestore + GA DataLayer) ────────────────
+  // Mirrors ytt-funnel.js — tracks 6 stages to lead_funnel collection.
+  var LEAD_COLLECTION = 'lead_funnel';
+
+  function trackFunnelStage(stage, extraData) {
+    var funnel = loadFunnel();
+    if (!funnel) return;
+
+    var db, user;
+    try {
+      db = firebase.firestore();
+      user = firebase.auth().currentUser;
+    } catch (e) { return; }
+    if (!user) return;
+
+    var docId = user.uid + '_' + funnel.prodId;
+    var now = firebase.firestore.FieldValue.serverTimestamp();
+
+    var docData = {
+      userId: user.uid,
+      email: user.email || '',
+      programId: funnel.prodId,
+      programName: getProductName(funnel.prodId),
+      productCategory: getProductCategory(funnel.prodId),
+      funnel_stage: stage,
+      sessionId: funnel.sessionId,
+      source_page: funnel.sourcePage || '',
+      source_site: 'hotyogacph.dk',
+      updatedAt: now
+    };
+
+    if (extraData && extraData.firstName) docData.firstName = extraData.firstName;
+    if (extraData && extraData.lastName) docData.lastName = extraData.lastName;
+    if (extraData && extraData.phone) docData.phone = extraData.phone;
+
+    var stageKey = stage.replace(/-/g, '_') + '_at';
+    docData[stageKey] = now;
+
+    var historyEntry = { stage: stage, timestamp: new Date().toISOString() };
+
+    db.collection(LEAD_COLLECTION).doc(docId).get().then(function (snap) {
+      if (snap.exists) {
+        var update = {
+          funnel_stage: stage,
+          updatedAt: now
+        };
+        update[stageKey] = now;
+        if (extraData && extraData.firstName) update.firstName = extraData.firstName;
+        if (extraData && extraData.lastName) update.lastName = extraData.lastName;
+        if (extraData && extraData.phone) update.phone = extraData.phone;
+        update.history = firebase.firestore.FieldValue.arrayUnion(historyEntry);
+        return db.collection(LEAD_COLLECTION).doc(docId).update(update);
+      } else {
+        docData.createdAt = now;
+        docData.cta_timestamp = funnel.startedAt || new Date().toISOString();
+        docData.history = [
+          { stage: 'cta_click', timestamp: funnel.startedAt || new Date().toISOString() },
+          historyEntry
+        ];
+        return db.collection(LEAD_COLLECTION).doc(docId).set(docData);
+      }
+    }).then(function () {
+      console.log('[HYC Embed] Tracked:', stage, 'for prodId', funnel.prodId);
+    }).catch(function (err) {
+      console.warn('[HYC Embed] Track error:', err.message);
+    });
+  }
+
+  // Convenience trackers
+  function trackAuthComplete(extraData) { trackFunnelStage('auth_complete', extraData); }
+  function trackCheckoutOpened() { trackFunnelStage('checkout_opened'); }
+  function trackPurchased() { trackFunnelStage('purchased'); clearFunnel(); }
+  function trackCheckoutAbandoned() { trackFunnelStage('checkout_abandoned'); }
+
+  // GA DataLayer push
+  function pushDataLayer(eventName, data) {
+    window.dataLayer = window.dataLayer || [];
+    var payload = { event: eventName };
+    if (data) {
+      for (var k in data) {
+        if (data.hasOwnProperty(k)) payload[k] = data[k];
+      }
+    }
+    window.dataLayer.push(payload);
+  }
+
+  // ── Firestore Profile Creation ─────────────────────────────────────
+  // Creates a user document in Firestore after registration.
+  function createFirestoreProfile(user, firstName, lastName, phone, consents) {
+    try {
+      var db = firebase.firestore();
+      db.collection('users').doc(user.uid).set({
+        uid: user.uid,
+        email: user.email || '',
+        firstName: firstName,
+        lastName: lastName,
+        phone: phone || '',
+        displayName: (firstName + ' ' + lastName).trim(),
+        consents: consents || {},
+        source: 'checkout-embed',
+        sourceSite: 'hotyogacph.dk',
+        createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+        updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+      }, { merge: true }).then(function () {
+        console.log('[HYC Embed] Firestore profile created for', user.uid);
+      }).catch(function (err) {
+        console.warn('[HYC Embed] Firestore profile error:', err.message);
+      });
+    } catch (e) {
+      console.warn('[HYC Embed] Firestore not ready for profile creation');
+    }
   }
 
   // ── Firebase SDK Dynamic Loader ─────────────────────────────────────
@@ -314,6 +479,24 @@
       // New card fields container
       '#ycf-new-card-fields{display:flex;flex-direction:column;gap:16px}',
       '#ycf-new-card-fields[hidden]{display:none}',
+
+      // Contract-specific: features, terms, savings, start date
+      '.ycf-product__features{list-style:none;padding:0;margin:10px 0 0;display:flex;flex-direction:column;gap:6px}',
+      '.ycf-product__features li{font-size:.82rem;color:#0F0F0F;padding-left:22px;position:relative;line-height:1.4}',
+      '.ycf-product__features li::before{content:"\\2713";position:absolute;left:0;color:#2e7d32;font-weight:700}',
+      '.ycf-product__terms{list-style:none;padding:0;margin:10px 0 0;display:flex;flex-direction:column;gap:4px}',
+      '.ycf-product__terms li{font-size:.78rem;color:#6F6A66;padding-left:16px;position:relative;line-height:1.4}',
+      '.ycf-product__terms li::before{content:"\\2022";position:absolute;left:4px;color:#B5B0AB}',
+      '.ycf-product__saving{display:inline-flex;align-items:center;gap:6px;margin-top:10px;font-size:.85rem}',
+      '.ycf-product__saving s{color:#6F6A66}',
+      '.ycf-product__saving .ycf-free{color:#2e7d32;font-weight:700}',
+      '.ycf-product__due{margin-top:8px;font-size:.85rem;color:#0F0F0F}',
+      '.ycf-product__due strong{color:' + BRAND + '}',
+      '.ycf-product__due .ycf-due-note{font-size:.78rem;color:#6F6A66}',
+      '#ycf-startdate-section{margin-bottom:16px}',
+      '#ycf-startdate-section[hidden]{display:none}',
+      '#ycf-startdate-section label{font-size:.82rem;font-weight:700;color:#0F0F0F;text-transform:uppercase;letter-spacing:.04em;display:block;margin-bottom:6px}',
+      '#ycf-start-date{font-family:inherit;font-size:.95rem;padding:12px 16px;border:1px solid ' + BRAND + ';border-radius:12px;background:#fff;color:#0F0F0F;outline:none;width:100%;box-sizing:border-box}',
 
       // ── Responsive ───────────────────────────────────────────────
       '@media(max-width:480px){',
@@ -567,6 +750,13 @@
     h +=     '</div>';
     h +=   '</div>';
 
+    // Start date picker (contracts only — shown/hidden by JS)
+    h +=   '<div id="ycf-startdate-section" hidden>';
+    h +=     '<label for="ycf-start-date" data-yj-da>Startdato for medlemskab</label>';
+    h +=     '<label for="ycf-start-date" data-yj-en hidden>Membership start date</label>';
+    h +=     '<input type="date" id="ycf-start-date">';
+    h +=   '</div>';
+
     // Payment form
     h +=   '<form id="ycf-checkout-form" class="yb-auth-form" novalidate>';
     h +=     '<div class="yb-checkout-divider">';
@@ -665,6 +855,16 @@
 
   function closeModal() {
     if (!modal) return;
+    // Track abandonment if user closes during checkout step
+    if (currentStep >= 3 && currentProdId) {
+      trackCheckoutAbandoned();
+      pushDataLayer('checkout_funnel_abandoned', {
+        funnel_stage: 'checkout_abandoned',
+        product_id: currentProdId,
+        product_name: getProductName(currentProdId),
+        product_category: getProductCategory(currentProdId)
+      });
+    }
     modal.setAttribute('aria-hidden', 'true');
     document.documentElement.style.overflow = '';
     document.body.style.overflow = '';
@@ -672,6 +872,12 @@
     document.body.style.width = '';
     document.body.style.top = '';
     window.scrollTo(0, scrollY);
+    // Clean up contract-specific elements appended to product card
+    var prodCard = $('ycf-product-info');
+    if (prodCard) {
+      var extras = prodCard.querySelectorAll('.ycf-product__features,.ycf-product__terms,.ycf-product__saving,.ycf-product__due');
+      for (var x = 0; x < extras.length; x++) extras[x].remove();
+    }
     currentProdId = null;
     mbClientId = null;
     storedCard = null;
@@ -743,19 +949,82 @@
     if (prodPrice) prodPrice.textContent = price;
     if (prodDesc) prodDesc.textContent = (isDa ? p.desc_da : p.desc_en) || '';
 
-    // Chips: validity + classes
+    // Chips: validity + classes (services) or /md (contracts)
     if (prodChips) {
       var chips = '';
-      if (p.validity) {
-        chips += '<span class="ycf-chip">' + p.validity + '</span>';
-      }
-      if (p.classes) {
-        chips += '<span class="ycf-chip">' + p.classes + t(' klasser', ' classes') + '</span>';
+      if (p._itemType === 'contract') {
+        chips += '<span class="ycf-chip ycf-chip--brand">' + t('Medlemskab', 'Membership') + '</span>';
+        chips += '<span class="ycf-chip">' + t('pr. måned', 'per month') + '</span>';
+      } else {
+        if (p.validity) chips += '<span class="ycf-chip">' + p.validity + '</span>';
+        if (p.classes) chips += '<span class="ycf-chip">' + p.classes + t(' klasser', ' classes') + '</span>';
       }
       prodChips.innerHTML = chips;
     }
 
-    // No remaining-payment note for service-type products (Phase 1)
+    // Contract-specific: features, terms, first-month-free
+    if (p._itemType === 'contract') {
+      var extraHtml = '';
+      // Features checklist
+      var features = isDa ? p.features_da : p.features_en;
+      if (features && features.length) {
+        extraHtml += '<ul class="ycf-product__features">';
+        for (var fi = 0; fi < features.length; fi++) extraHtml += '<li>' + features[fi] + '</li>';
+        extraHtml += '</ul>';
+      }
+      // First month free savings
+      if (p.firstMonthFree) {
+        extraHtml += '<div class="ycf-product__saving">';
+        extraHtml += '<s>' + formatDKK(p.price) + '</s> ';
+        extraHtml += '<span class="ycf-free">' + t('0 kr første måned', '0 kr first month') + '</span>';
+        extraHtml += '</div>';
+        if (p.regFee) {
+          extraHtml += '<div class="ycf-product__due">';
+          extraHtml += t('Beløb at betale nu: ', 'Amount due now: ');
+          extraHtml += '<strong>' + formatDKK(p.regFee) + '</strong> ';
+          extraHtml += '<span class="ycf-due-note">' + t('(registreringsgebyr)', '(registration fee)') + '</span>';
+          extraHtml += '</div>';
+        }
+      }
+      // Terms
+      var terms = isDa ? p.terms_da : p.terms_en;
+      if (terms && terms.length) {
+        extraHtml += '<ul class="ycf-product__terms">';
+        for (var ti = 0; ti < terms.length; ti++) extraHtml += '<li>' + terms[ti] + '</li>';
+        extraHtml += '</ul>';
+      }
+      // Append to product card
+      var prodCard = $('ycf-product-info');
+      if (prodCard && extraHtml) {
+        var extraDiv = document.createElement('div');
+        extraDiv.innerHTML = extraHtml;
+        while (extraDiv.firstChild) prodCard.appendChild(extraDiv.firstChild);
+      }
+      // Show start date picker
+      var startSection = $('ycf-startdate-section');
+      if (startSection) {
+        startSection.hidden = false;
+        var startInput = $('ycf-start-date');
+        if (startInput) {
+          var today = toLocalDateStr(new Date());
+          var maxDate = new Date();
+          maxDate.setDate(maxDate.getDate() + 60);
+          startInput.min = today;
+          startInput.max = toLocalDateStr(maxDate);
+          startInput.value = today;
+        }
+      }
+      // Update price display to show regFee as amount due
+      if (p.firstMonthFree && p.regFee && prodPrice) {
+        prodPrice.textContent = formatDKK(p.regFee);
+      }
+    } else {
+      // Service: hide start date
+      var startSectionEl = $('ycf-startdate-section');
+      if (startSectionEl) startSectionEl.hidden = true;
+    }
+
+    // Note section (hidden for services, could be used for contracts)
     if (prodNote) prodNote.hidden = true;
   }
 
@@ -771,17 +1040,20 @@
     firebase.auth().createUserWithEmailAndPassword(email, password)
       .then(function (cred) {
         var fullName = firstName + ' ' + lastName;
-        // Store registration data for Firestore profile creation
+        var consents = {
+          termsAndConditions: { accepted: true, timestamp: new Date().toISOString(), version: '2026-02-09' },
+          privacyPolicy:     { accepted: true, timestamp: new Date().toISOString(), version: '2026-02-09' },
+          codeOfConduct:     { accepted: true, timestamp: new Date().toISOString(), version: '2026-02-09' }
+        };
+        // Store for MB client creation
         window._ybRegistration = {
           firstName: firstName,
           lastName: lastName,
           phone: phone,
-          consents: {
-            termsAndConditions: { accepted: true, timestamp: new Date().toISOString(), version: '2026-02-09' },
-            privacyPolicy:     { accepted: true, timestamp: new Date().toISOString(), version: '2026-02-09' },
-            codeOfConduct:     { accepted: true, timestamp: new Date().toISOString(), version: '2026-02-09' }
-          }
+          consents: consents
         };
+        // Create Firestore user profile immediately
+        createFirestoreProfile(cred.user, firstName, lastName, phone, consents);
         return cred.user.updateProfile({ displayName: fullName });
       })
       .then(function () { callback(null); })
@@ -902,6 +1174,15 @@
         fetchStoredCard(clientId).then(function (card) {
           renderStoredCardUI(card);
           console.log('[HYC Embed] Stored card:', card ? ('\u2022\u2022\u2022\u2022 ' + card.lastFour) : 'none');
+        });
+
+        // Track checkout opened
+        trackCheckoutOpened();
+        pushDataLayer('checkout_funnel_checkout_opened', {
+          funnel_stage: 'checkout_opened',
+          product_id: currentProdId,
+          product_name: getProductName(currentProdId),
+          product_category: getProductCategory(currentProdId)
         });
 
         showStep('ycf-step-checkout');
@@ -1036,6 +1317,15 @@
           }
 
           authOriginStep = 'login';
+          // Track auth complete
+          trackAuthComplete();
+          pushDataLayer('checkout_funnel_auth_complete', {
+            funnel_stage: 'auth_complete',
+            product_id: currentProdId,
+            product_name: getProductName(currentProdId),
+            product_category: getProductCategory(currentProdId)
+          });
+
           var user = firebase.auth().currentUser;
           var displayName = (user && user.displayName) || '';
           var nameParts = displayName.split(' ');
@@ -1119,8 +1409,16 @@
             return;
           }
 
-          // Create MB client immediately (triggers welcome email) → checkout
+          // Track auth complete with profile data
           authOriginStep = 'register';
+          trackAuthComplete({ firstName: firstName, lastName: lastName, phone: phone });
+          pushDataLayer('checkout_funnel_auth_complete', {
+            funnel_stage: 'auth_complete',
+            product_id: currentProdId,
+            product_name: getProductName(currentProdId),
+            product_category: getProductCategory(currentProdId)
+          });
+          // Create MB client immediately (triggers welcome email) → checkout
           resolveClientAndAdvance(firstName, lastName, email, phone);
         });
       });
@@ -1216,23 +1514,43 @@
       clientPromise = findOrCreateClient(firstName, lastName, user.email || '', phone);
     }
 
-    // ── Send payment to mb-checkout ───────────────────────────────
+    // ── Send payment — contracts use mb-contracts, services use mb-checkout
     var realProdId = getRealProdId(currentProdId);
+    var isContractPurchase = product._itemType === 'contract';
 
     clientPromise
       .then(function (clientId) {
         mbClientId = clientId;
-        return fetch(API_BASE + '/mb-checkout', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            clientId: clientId,
-            items: [{ type: 'Service', id: parseInt(realProdId), quantity: 1 }],
-            amount: product.price,
-            payment: paymentInfo,
-            test: false
-          })
-        });
+
+        if (isContractPurchase) {
+          // Contract purchase via mb-contracts
+          var startDateInput = $('ycf-start-date');
+          var startDate = (startDateInput && startDateInput.value) || toLocalDateStr(new Date());
+          return fetch(API_BASE + '/mb-contracts', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              clientId: clientId,
+              contractId: Number(realProdId),
+              locationId: 1,
+              startDate: startDate,
+              payment: paymentInfo
+            })
+          });
+        } else {
+          // Service purchase via mb-checkout
+          return fetch(API_BASE + '/mb-checkout', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              clientId: clientId,
+              items: [{ type: 'Service', id: parseInt(realProdId), quantity: 1 }],
+              amount: product.price,
+              payment: paymentInfo,
+              test: false
+            })
+          });
+        }
       })
       .then(function (res) { return res.json(); })
       .then(function (result) {
@@ -1246,6 +1564,18 @@
 
         // ── Success ───────────────────────────────────────────────
         console.log('[HYC Embed] Payment successful for prodId:', currentProdId);
+
+        // Track purchase in Firestore + GA
+        trackPurchased();
+        pushDataLayer('checkout_funnel_purchased', {
+          funnel_stage: 'purchased',
+          product_id: currentProdId,
+          product_name: getProductName(currentProdId),
+          product_category: getProductCategory(currentProdId),
+          product_price: product.price,
+          product_type: isContractPurchase ? 'contract' : 'service'
+        });
+
         showStep('ycf-step-success');
       })
       .catch(function (err) {
@@ -1336,6 +1666,19 @@
     };
     saveFunnel(funnelData);
 
+    // GA tracking for CTA click
+    pushDataLayer('checkout_funnel_cta_click', {
+      funnel_stage: 'cta_click',
+      product_id: prodId,
+      product_name: getProductName(prodId),
+      product_category: getProductCategory(prodId),
+      source_page: window.location.pathname,
+      source_site: 'hotyogacph.dk'
+    });
+
+    // Track CTA click to Firestore (if user is already logged in)
+    trackFunnelStage('cta_click');
+
     console.log('[HYC Embed] Checkout started for prodId:', prodId);
 
     // Open the checkout flow modal
@@ -1350,27 +1693,39 @@
   // skip auth steps and go straight to checkout (Step 3).
 
   function initAuthListener() {
-    waitForFirebase(function () {
-      firebase.auth().onAuthStateChanged(function (user) {
-        if (!user) return;
+    // Poll for Firebase availability then listen for auth state
+    var checkInterval = setInterval(function () {
+      if (typeof firebase !== 'undefined' && firebase.auth) {
+        clearInterval(checkInterval);
+        firebase.auth().onAuthStateChanged(function (user) {
+          if (!user) return;
 
-        // If modal is not open, nothing to do yet — openCheckoutFlow
-        // will pick up the logged-in state on its own.
-        if (!modal || modal.getAttribute('aria-hidden') !== 'false') return;
+          // If modal is not open, nothing to do yet
+          if (!modal || modal.getAttribute('aria-hidden') !== 'false') return;
 
-        // If we are still on login / register step, advance to checkout
-        var loginStep    = $('ycf-step-login');
-        var registerStep = $('ycf-step-register');
-        var loginVisible    = loginStep && loginStep.style.display !== 'none';
-        var registerVisible = registerStep && registerStep.style.display !== 'none';
+          // If we are still on login / register step, advance to checkout
+          var loginStep    = $('ycf-step-login');
+          var registerStep = $('ycf-step-register');
+          var loginVisible    = loginStep && !loginStep.hidden;
+          var registerVisible = registerStep && !registerStep.hidden;
 
-        if (loginVisible || registerVisible) {
-          console.log('[HYC Embed] Auth state changed while modal open — advancing to checkout');
-          mbClientId = null; // will be resolved in prepareCheckoutStep
-          prepareCheckoutStep();
-        }
-      });
-    });
+          if (loginVisible || registerVisible) {
+            console.log('[HYC Embed] Auth state changed while modal open — advancing to checkout');
+            mbClientId = null;
+            var displayName = user.displayName || '';
+            var nameParts = displayName.split(' ');
+            resolveClientAndAdvance(
+              nameParts[0] || 'User',
+              nameParts.slice(1).join(' ') || '',
+              user.email || '',
+              ''
+            );
+          }
+        });
+      }
+    }, 100);
+    // Stop polling after 10s
+    setTimeout(function () { clearInterval(checkInterval); }, 10000);
   }
 
   // ── 5B: CTA button binding ──────────────────────────────────────────
@@ -1433,11 +1788,18 @@
 
   // Expose funnel helpers for external analytics / debugging
   window.HYCCheckout = {
-    open:        openCheckoutFlow,
-    start:       startCheckoutEmbed,
-    loadFunnel:  loadFunnel,
-    clearFunnel: clearFunnel,
-    PRODUCTS:    PRODUCTS
+    open:                  openCheckoutFlow,
+    start:                 startCheckoutEmbed,
+    loadFunnel:            loadFunnel,
+    clearFunnel:           clearFunnel,
+    trackAuthComplete:     trackAuthComplete,
+    trackCheckoutOpened:   trackCheckoutOpened,
+    trackPurchased:        trackPurchased,
+    trackCheckoutAbandoned: trackCheckoutAbandoned,
+    pushDataLayer:         pushDataLayer,
+    getProductName:        getProductName,
+    getProductCategory:    getProductCategory,
+    PRODUCTS:              PRODUCTS
   };
 
 })();
