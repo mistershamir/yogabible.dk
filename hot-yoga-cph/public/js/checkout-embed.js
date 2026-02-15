@@ -19,8 +19,8 @@
   var BRAND_DARK   = '#357f8a';
   var BRAND_RGBA12 = 'rgba(63,153,165,.12)';
   var BRAND_RGBA04 = 'rgba(63,153,165,.04)';
-  var API_BASE     = 'https://profile.hotyogacph.dk/.netlify/functions';
-  var PROFILE_URL  = 'https://profile.hotyogacph.dk';
+  var API_BASE     = 'https://hotyogacph.netlify.app/.netlify/functions';
+  var PROFILE_URL  = 'https://hotyogacph.netlify.app';
   var FIREBASE_VER = '10.14.1';
   var FIREBASE_CDN = 'https://www.gstatic.com/firebasejs/' + FIREBASE_VER;
 
