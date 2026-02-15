@@ -1792,6 +1792,9 @@
       if (typeof firebase !== 'undefined' && firebase.auth) {
         clearInterval(checkInterval);
         firebase.auth().onAuthStateChanged(function (user) {
+          // Re-scan login trigger buttons to update text/behavior
+          attachCTAButtons();
+
           if (!user) return;
 
           // If modal is not open, nothing to do yet
@@ -1848,14 +1851,36 @@
 
     // Login trigger buttons (e.g., nav LOGIN link)
     // Usage: <a href="#" data-login-trigger>LOGIN</a>
+    // When logged in: text changes to "MIN PROFIL" / "MY PROFILE" and click goes to profile.
+    // When logged out: text stays as-is and click opens the login modal.
     var loginBtns = document.querySelectorAll('[data-login-trigger]');
+    var currentUser = null;
+    try { currentUser = firebase.auth().currentUser; } catch (ex) { /* not ready yet */ }
+
     loginBtns.forEach(function (btn) {
+      // Update text based on auth state
+      if (currentUser) {
+        var isDa = window.location.pathname.indexOf('/en/') !== 0;
+        // Find the deepest text node or element to update
+        var textTarget = btn.querySelector('p, span, div') || btn;
+        textTarget.textContent = isDa ? 'MIN PROFIL' : 'MY PROFILE';
+      }
+
       if (btn._ycfLoginBound) return;
       btn._ycfLoginBound = true;
       btn.addEventListener('click', function (e) {
         e.preventDefault();
-        openLoginModal();
-      });
+        e.stopPropagation();
+        e.stopImmediatePropagation();
+        // Check auth at click time
+        var user = null;
+        try { user = firebase.auth().currentUser; } catch (ex) {}
+        if (user) {
+          window.location.href = PROFILE_URL + '/#schedule';
+        } else {
+          openLoginModal();
+        }
+      }, true);  // capture phase — fires before Framer's handlers
     });
   }
 
