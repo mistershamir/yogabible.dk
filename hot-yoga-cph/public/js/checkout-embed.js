@@ -170,7 +170,175 @@
     next(null);
   }
 
-  // ── Part 2 continues: CSS injection ─────────────────────────────────
+  // ── Part 2: CSS Injection ────────────────────────────────────────────
+  // All styles self-contained. Prefixed with `ycf-` (checkout flow) and
+  // `yb-auth-` (auth modal). Brand orange replaced with HYC teal.
+  // Injected once into <head> on first load.
+
+  function injectCSS() {
+    if (document.getElementById('hyc-checkout-css')) return;
+    var style = document.createElement('style');
+    style.id = 'hyc-checkout-css';
+    style.textContent = [
+
+      // ── Base: auth modal overlay + box ───────────────────────────
+      '.yb-auth-modal{position:fixed;inset:0;z-index:10000;display:flex;align-items:center;justify-content:center;padding:20px}',
+      '.yb-auth-modal[aria-hidden="true"]{display:none}',
+      '.yb-auth-modal__overlay{position:absolute;inset:0;background:rgba(0,0,0,.65);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px)}',
+      '.yb-auth-modal__box{position:relative;background:#FFFCF9;border-radius:20px;width:100%;max-width:420px;max-height:90vh;overflow-y:auto;padding:48px 40px;box-shadow:0 24px 64px rgba(0,0,0,.12);border:1px solid #E8E4E0;transition:max-width .3s ease}',
+      // Warm glow accent — teal instead of orange
+      '.yb-auth-modal__box::before{content:"";position:absolute;top:-60px;right:-60px;width:180px;height:180px;background:radial-gradient(circle,' + BRAND_RGBA12 + ' 0%,transparent 70%);pointer-events:none}',
+
+      // ── Close button ─────────────────────────────────────────────
+      '.yb-auth-modal__close{position:absolute;top:16px;right:16px;background:none;border:none;font-size:1.2rem;color:#6F6A66;cursor:pointer;width:32px;height:32px;display:flex;align-items:center;justify-content:center;border-radius:50%;z-index:2;transition:background .15s,color .15s}',
+      '.yb-auth-modal__close:hover{background:#F5F3F0;color:#0F0F0F}',
+
+      // ── Header ───────────────────────────────────────────────────
+      '.yb-auth-modal__header{text-align:left;margin-bottom:28px}',
+      '.yb-auth-modal__logo{margin-bottom:20px}',
+      '.yb-auth-modal__logo img{height:36px;width:auto}',
+      '.yb-auth-modal__title{font-size:1.5rem;font-weight:700;color:#0F0F0F;margin:0 0 6px}',
+      '.yb-auth-modal__subtitle{font-size:.9rem;color:#6F6A66;margin:0}',
+
+      // ── Form fields ──────────────────────────────────────────────
+      '.yb-auth-form{display:flex;flex-direction:column;gap:16px}',
+      '.yb-auth-field{display:flex;flex-direction:column;gap:6px}',
+      '.yb-auth-field label{font-size:.82rem;font-weight:700;color:#0F0F0F;text-transform:uppercase;letter-spacing:.04em}',
+      '.yb-auth-field input{font-family:inherit;font-size:.95rem;padding:12px 16px;border:1px solid ' + BRAND + ';border-radius:12px;background:#fff;color:#0F0F0F;transition:border-color .15s,box-shadow .15s;outline:none;width:100%;min-width:0;box-sizing:border-box}',
+      '.yb-auth-field input::placeholder{color:#B5B0AB}',
+      '.yb-auth-field input:focus{border-color:' + BRAND + ';box-shadow:0 0 0 3px ' + BRAND_RGBA12 + '}',
+      '.yb-auth-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;overflow:hidden}',
+
+      // ── Submit button — teal ─────────────────────────────────────
+      '.yb-auth-submit{font-family:inherit;font-size:1rem;font-weight:700;padding:14px 24px;background:' + BRAND + ';color:#fff;border:none;border-radius:12px;cursor:pointer;transition:background .2s,transform .15s;margin-top:4px}',
+      '.yb-auth-submit:hover{background:' + BRAND_DARK + '}',
+      '.yb-auth-submit:active{transform:scale(.98)}',
+      '.yb-auth-submit:disabled{opacity:.6;cursor:not-allowed}',
+
+      // ── Error / success ──────────────────────────────────────────
+      '.yb-auth-error{font-size:.85rem;color:#d32f2f;background:#fdecea;padding:10px 14px;border-radius:8px}',
+      '.yb-auth-success{font-size:.85rem;color:#2e7d32;background:#edf7ed;padding:10px 14px;border-radius:8px}',
+
+      // ── Links / dividers ─────────────────────────────────────────
+      '.yb-auth-links{text-align:center;margin-top:12px}',
+      '.yb-auth-links a{font-size:.85rem;color:' + BRAND + ';text-decoration:none}',
+      '.yb-auth-links a:hover{text-decoration:underline}',
+      '.yb-auth-divider{text-align:center;margin-top:20px;padding-top:20px;border-top:1px solid #E8E4E0;font-size:.85rem;color:#6F6A66}',
+      '.yb-auth-divider a{color:' + BRAND + ';text-decoration:none;font-weight:700;margin-left:4px}',
+      '.yb-auth-divider a:hover{text-decoration:underline}',
+
+      // ── Consent checkboxes ───────────────────────────────────────
+      '.yb-auth-consent{display:flex;flex-direction:column;gap:10px;margin-top:4px;margin-bottom:16px}',
+      '.yb-auth-consent__item{display:flex;align-items:flex-start;gap:10px;font-size:.82rem;color:#0F0F0F;line-height:1.45;cursor:pointer}',
+      '.yb-auth-consent__item input[type="checkbox"]{appearance:none;-webkit-appearance:none;width:18px;height:18px;min-width:18px;border:1.5px solid #E8E4E0;border-radius:4px;margin-top:1px;cursor:pointer;position:relative;transition:border-color .15s,background .15s}',
+      '.yb-auth-consent__item input[type="checkbox"]:checked{background:' + BRAND + ';border-color:' + BRAND + '}',
+      '.yb-auth-consent__item input[type="checkbox"]:checked::after{content:"";position:absolute;left:5px;top:1px;width:5px;height:10px;border:solid #fff;border-width:0 2px 2px 0;transform:rotate(45deg)}',
+      '.yb-auth-consent__item input[type="checkbox"]:focus-visible{box-shadow:0 0 0 3px ' + BRAND_RGBA12 + '}',
+      '.yb-auth-consent__item a{color:' + BRAND + ';text-decoration:underline;font-weight:600}',
+      '.yb-auth-consent__item a:hover{color:' + BRAND_DARK + '}',
+
+      // ── Checkout service row / row grid / divider / secure ──────
+      '.yb-checkout-service{display:flex;justify-content:space-between;align-items:center;padding:14px 16px;background:#F5F3F0;border-radius:10px;margin-bottom:20px}',
+      '.yb-checkout-service__name{font-weight:700;font-size:.92rem;color:#0F0F0F}',
+      '.yb-checkout-service__price{font-weight:700;font-size:1rem;color:' + BRAND + '}',
+      '.yb-checkout-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}',
+      '.yb-checkout-divider{text-align:center;padding:8px 0;font-size:.82rem;font-weight:700;color:#6F6A66;text-transform:uppercase;letter-spacing:.04em;border-top:1px solid #E8E4E0;margin-top:4px;padding-top:16px}',
+      '.yb-checkout-secure{display:flex;align-items:center;justify-content:center;gap:6px;font-size:.78rem;color:#6F6A66;margin-top:8px}',
+      '.yb-checkout-success__inner{text-align:center;padding:20px 0}',
+      '.yb-checkout-success__icon{width:64px;height:64px;border-radius:50%;background:#2e7d32;color:#fff;font-size:2rem;display:flex;align-items:center;justify-content:center;margin:0 auto 20px}',
+
+      // ══════════════════════════════════════════════════════════════
+      // CHECKOUT FLOW MODAL — ycf- prefix
+      // ══════════════════════════════════════════════════════════════
+
+      // Box override
+      '.ycf-box{max-width:460px}',
+
+      // Step indicator
+      '.ycf-steps{display:flex;align-items:center;justify-content:center;gap:0;margin-bottom:28px}',
+      '.ycf-steps__dot{width:10px;height:10px;border-radius:50%;background:#E8E4E0;transition:background .3s ease,transform .3s ease}',
+      '.ycf-steps__dot--active{background:' + BRAND + ';transform:scale(1.15)}',
+      '.ycf-steps__line{width:40px;height:2px;background:#E8E4E0}',
+
+      // Step panels
+      '.ycf-step{animation:ycfFadeIn .25s ease}',
+      '@keyframes ycfFadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}',
+
+      // Product badge (login step)
+      '.ycf-product-badge{display:flex;flex-direction:column;padding:12px 16px;background:#F5F3F0;border-radius:10px;margin-bottom:20px;border:1px solid #E8E4E0}',
+      '.ycf-product-badge__top{display:flex;justify-content:space-between;align-items:center}',
+      '.ycf-product-badge__name{font-weight:700;font-size:.88rem;color:#0F0F0F}',
+      '.ycf-product-badge__price{font-weight:700;font-size:.95rem;color:' + BRAND + '}',
+      '.ycf-product-badge__cohort{display:block;font-size:.78rem;font-weight:600;color:#6F6A66;margin-top:4px}',
+      '.ycf-product-badge__cohort[hidden]{display:none}',
+      '.ycf-product-badge__desc{font-size:.78rem;color:#6F6A66;margin:6px 0 0;line-height:1.4}',
+
+      // Back link
+      '.ycf-back{display:inline-flex;align-items:center;gap:4px;font-size:.82rem;font-weight:600;color:#6F6A66;text-decoration:none;margin-bottom:12px;transition:color .15s}',
+      '.ycf-back:hover{color:' + BRAND + '}',
+      '.ycf-back[hidden]{display:none}',
+
+      // Product breakdown card (checkout step)
+      '.ycf-product{background:#F5F3F0;border-radius:12px;padding:20px;margin-bottom:20px;border:1px solid #E8E4E0}',
+      '.ycf-product__header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px}',
+      '.ycf-product__name{font-weight:700;font-size:1.05rem;color:#0F0F0F}',
+      '.ycf-product__price{font-weight:700;font-size:1.1rem;color:' + BRAND + ';white-space:nowrap;margin-left:12px}',
+      '.ycf-product__chips{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px}',
+
+      // Chips
+      '.ycf-chip{display:inline-block;font-size:.72rem;font-weight:700;padding:4px 10px;border-radius:20px;background:#fff;color:#0F0F0F;border:1px solid #E8E4E0;text-transform:uppercase;letter-spacing:.03em}',
+      '.ycf-chip--brand{background:' + BRAND + ';color:#fff;border-color:' + BRAND + '}',
+      '.ycf-chip--muted{background:transparent;color:#6F6A66;border-color:transparent;font-weight:400;text-transform:none;padding-left:0}',
+
+      // Product description & note
+      '.ycf-product__desc{font-size:.88rem;color:#6F6A66;line-height:1.5;margin:0}',
+      '.ycf-product__note{display:flex;align-items:flex-start;gap:8px;margin-top:14px;padding-top:14px;border-top:1px solid #E8E4E0;font-size:.82rem;color:#6F6A66;line-height:1.45}',
+      '.ycf-product__note svg{flex-shrink:0;margin-top:1px;color:#6F6A66}',
+
+      // Payment method selector (stored vs new card)
+      '.ycf-payment-methods{display:flex;flex-direction:column;gap:8px;margin-bottom:16px}',
+      '.ycf-payment-option{display:flex;align-items:center;gap:10px;padding:12px 14px;border-radius:10px;border:1.5px solid #E8E4E0;cursor:pointer;transition:border-color .2s,background .2s}',
+      '.ycf-payment-option:hover{border-color:#B5B0AB}',
+      '.ycf-payment-option--active{border-color:' + BRAND + ';background:' + BRAND_RGBA04 + '}',
+
+      // Radio buttons — teal
+      '.ycf-payment-option input[type="radio"]{appearance:none;-webkit-appearance:none;width:18px;height:18px;min-width:18px;border:2px solid #E8E4E0;border-radius:50%;position:relative;cursor:pointer;transition:border-color .15s}',
+      '.ycf-payment-option input[type="radio"]:checked{border-color:' + BRAND + '}',
+      '.ycf-payment-option input[type="radio"]:checked::after{content:"";position:absolute;top:3px;left:3px;width:8px;height:8px;background:' + BRAND + ';border-radius:50%}',
+
+      // Payment option labels
+      '.ycf-payment-option__info{display:flex;flex-direction:column;gap:2px}',
+      '.ycf-payment-option__label{font-size:.88rem;font-weight:700;color:#0F0F0F}',
+      '.ycf-payment-option__card{font-size:.82rem;color:#6F6A66;font-weight:400;letter-spacing:.02em}',
+
+      // New card fields container
+      '#ycf-new-card-fields{display:flex;flex-direction:column;gap:16px}',
+      '#ycf-new-card-fields[hidden]{display:none}',
+
+      // ── Responsive ───────────────────────────────────────────────
+      '@media(max-width:480px){',
+      '  .ycf-box{padding:36px 24px}',
+      '  .ycf-product__header{flex-direction:column;gap:4px}',
+      '  .ycf-product__price{margin-left:0}',
+      '  .yb-auth-row{grid-template-columns:1fr}',
+      '  .yb-checkout-row{grid-template-columns:1fr}',
+      '}',
+
+      // ── Bilingual toggle — hide inactive language ────────────────
+      '[data-yj-da]{display:revert}',
+      '[data-yj-en]{display:none}',
+
+      ''
+    ].join('\n');
+
+    // If we're on an English page, flip the visibility
+    if (!isDa) {
+      style.textContent += '\n[data-yj-da]{display:none !important}\n[data-yj-en]{display:revert !important}\n';
+    }
+
+    document.head.appendChild(style);
+  }
+
   // ── Part 3 continues: Modal HTML injection ──────────────────────────
   // ── Part 4 continues: Checkout flow logic ───────────────────────────
   // ── Part 5 continues: Event handlers, funnel tracking, boot ─────────
