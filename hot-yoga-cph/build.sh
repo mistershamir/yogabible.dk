@@ -4,6 +4,10 @@
 
 set -e
 
+# Install root dependencies so Netlify function bundler can resolve
+# packages (googleapis etc.) used by ../netlify/functions/
+cd .. && npm install --production && cd hot-yoga-cph
+
 # Copy static files to dist
 rm -rf dist
 cp -r public dist
