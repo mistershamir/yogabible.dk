@@ -1966,7 +1966,7 @@
         { id: 'tr-1-u30', _ref: 'clips:0' },
         { id: 'tr-14d-u30', _ref: 'timebased:0' },
         { id: 'tr-21d-u30', _ref: 'timebased:1' },
-        { id: 'tr-kick-u30', name_da: 'KickStarter', name_en: 'KickStarter', price: 475, vat_pct: 0, validity: '3 weeks', classes: 10, prodId: '100185', cphOnly: true,
+        { id: 'tr-kick-u30', name_da: 'KickStarter', name_en: 'KickStarter', price: 475, vat_pct: 0, validity: '3 weeks', classes: 10, prodId: '100153', cphOnly: true,
           desc_da: 'Kun for Københavns-beboere. 10 klasser inden for 3 uger fra din første bookede klasse. Gyldighedsperioden starter fra din første bookede klasse.',
           desc_en: 'Only for Copenhagen residents. 10 classes to be used within 3 weeks from your first booked class. Validity period starts from your first booked class.'
         }
