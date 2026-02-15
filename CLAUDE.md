@@ -222,6 +222,84 @@ All store/checkout changes must be applied to **both** sites:
 - **Yoga Bible:** `src/js/profile.js` + `src/css/main.css`
 - **Hot Yoga CPH:** `hot-yoga-cph/public/js/profile.js` + `hot-yoga-cph/public/css/profile.css`
 
+### Checkout Flow Modal (Multi-Step Popup)
+
+The checkout flow modal replaces the old "auth modal → redirect to profile store" funnel with a single popup that handles everything: auth → registration → product breakdown → payment → success redirect.
+
+#### Architecture
+
+| File | Purpose |
+|------|---------|
+| `src/_includes/modal-checkout-flow.njk` | Modal HTML — 4 steps in one `<div>`, shown/hidden by JS |
+| `src/js/checkout-flow.js` | All modal logic: auth, MB client, stored card, payment, step navigation |
+| `src/js/ytt-funnel.js` | Entry point — `startCheckoutFunnel(prodId)` calls `openCheckoutFlow(prodId)` |
+| `src/css/main.css` | Styles prefixed `ycf-` (step dots, product badge, product card, payment radio, back link) |
+| `src/_includes/base.njk` | Includes the modal HTML + JS on every page (after `modal-checkout.njk`, before Firebase SDK) |
+
+#### How It Works — Step by Step
+
+1. **CTA button** anywhere on the site has `data-checkout-product="100121"` (or `onclick="startCheckoutFunnel('100121')"`)
+2. `ytt-funnel.js` intercepts → saves funnel data to sessionStorage → calls `window.openCheckoutFlow(prodId)`
+3. **checkout-flow.js** opens the modal:
+   - If user is **already logged in** → skip to Step 3 (checkout), resolve MB client + check stored card in background
+   - If user is **not logged in** → show Step 1 (login)
+
+**Step 1 — Login:** Login form + product preview badge (name, price, cohort, description). Links to "Create profile" (Step 2) and "Forgot password" (Step 1b).
+
+**Step 2 — Register:** First name, last name, email, phone, password + consent checkboxes. On submit: creates Firebase account → **immediately creates Mindbody client** (triggers welcome email) → advances to Step 3.
+
+**Step 3 — Checkout:** Product breakdown card (name, price, chips for phase/period/format, description, remaining payment note for YTT). If user has a stored card on file: radio toggle "Use saved card (Visa •••• 4242)" vs "Enter new card". Card fields hidden when stored card selected. Payment via `mb-checkout` API.
+
+**Step 4 — Success:** Confirmation message → "Go to your profile" button → redirects to `/profile#passes` where the unsigned waiver card is waiting.
+
+#### Key Behaviors
+
+- **MB client created immediately after auth** (not at payment time) — this triggers the Mindbody welcome email for new users
+- **Stored card detection:** After auth, fetches `GET /.netlify/functions/mb-client?action=storedCard&clientId={id}`. If found, shows radio toggle; payment sends `{ useStoredCard: true, lastFour: '4242' }`
+- **Back navigation:** Register step has "Tilbage" → login. Checkout step has "Tilbage" → whichever auth step the user came from (`authOriginStep` state). Hidden when user was already logged in.
+- **ytt-funnel.js auth listener** checks if `ycf-modal` is open before redirecting — prevents conflict between the two systems
+- **Step indicator:** 3 dots connected by lines, progressively filled orange as user advances
+
+#### Product Catalog
+
+The `PRODUCTS` object in `checkout-flow.js` contains all CTA-purchasable items with: `price`, `name_da/en`, `period_da/en`, `format_da/en`, `desc_da/en`, `category`. **This must be kept in sync with `storeCatalog` in `profile.js`** when products are added/changed.
+
+Current products:
+- **Teacher Training (5):** 100078, 100121, 100211, 100209, 100210 — all 3750 DKK
+- **Courses (3):** 100145, 100150, 100140 — all 2300 DKK
+
+#### CSS Class Prefix
+
+All checkout flow modal styles use the `ycf-` prefix:
+
+| Class | Purpose |
+|-------|---------|
+| `.ycf-box` | Modal box override (max-width: 460px) |
+| `.ycf-steps`, `.ycf-steps__dot`, `.ycf-steps__line` | Step indicator dots + connecting lines |
+| `.ycf-step` | Step panel (fade-in animation) |
+| `.ycf-product-badge` | Product preview card on login step (name, price, cohort, description) |
+| `.ycf-product` | Full product breakdown card on checkout step |
+| `.ycf-chip`, `.ycf-chip--brand`, `.ycf-chip--muted` | Small pill badges (phase, period, format) |
+| `.ycf-payment-methods`, `.ycf-payment-option` | Stored vs new card radio toggle |
+| `.ycf-back` | Back navigation link with arrow icon |
+
+#### Bilingual Pattern
+
+Uses the same `data-yj-da` / `data-yj-en` attribute pattern as the rest of the site. The JS uses `isDa = window.location.pathname.indexOf('/en/') !== 0` and a `t(da, en)` helper for dynamic text.
+
+#### Replicating for Hot Yoga CPH
+
+To build the same modal for the Hot Yoga CPH site:
+
+1. **Copy** `modal-checkout-flow.njk` to the HYC templates directory
+2. **Copy** `checkout-flow.js` to `hot-yoga-cph/public/js/checkout-flow.js`
+3. **Adapt the PRODUCTS object** — update prodIds, prices, names, periods to match HYC's catalog
+4. **Adapt the brand color** — replace `var(--yb-brand)` references with `#3f99a5` in the CSS (or use HYC's CSS variable)
+5. **Copy the `ycf-` CSS block** from `main.css` to `hot-yoga-cph/public/css/profile.css` (or wherever HYC styles live)
+6. **Include** the modal HTML + JS in HYC's base template
+7. **Wire up** `ytt-funnel.js` equivalent (or a simpler direct call to `openCheckoutFlow(prodId)`) on HYC CTA buttons
+8. **API endpoints** are the same (`/.netlify/functions/mb-*`) — just ensure the HYC site ID is configured in the backend
+
 ---
 
 ## Unified Design System (MANDATORY)
