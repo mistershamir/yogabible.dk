@@ -1858,6 +1858,8 @@
     var autoDetected = document.querySelectorAll('a, button, [role="button"]');
     var loginTexts = ['login', 'log ind'];
     autoDetected.forEach(function (el) {
+      // Skip elements inside the checkout/login modal itself
+      if (el.closest && el.closest('#ycf-modal')) return;
       var txt = (el.textContent || '').trim().toLowerCase();
       if (loginTexts.indexOf(txt) !== -1 && !el.hasAttribute('data-login-trigger')) {
         el.setAttribute('data-login-trigger', '');
