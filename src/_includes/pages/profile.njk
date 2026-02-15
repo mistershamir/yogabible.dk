@@ -212,28 +212,28 @@
                 <form id="yb-stored-card-form-inner" class="yb-profile__form" novalidate autocomplete="on">
                   <div class="yb-profile__form-grid" style="grid-template-columns:1fr">
                     <div class="yb-profile__field">
-                      <label class="yb-profile__label" for="yb-sc-card-name">{{ t.checkout_card_name }}</label>
-                      <input type="text" id="yb-sc-card-name" class="yb-profile__input" autocomplete="cc-name" required>
+                      <label class="yb-profile__label" for="yb-sc-cardholder">{{ t.checkout_card_name }}</label>
+                      <input type="text" id="yb-sc-cardholder" class="yb-profile__input" autocomplete="cc-name" required>
                     </div>
                     <div class="yb-profile__field">
-                      <label class="yb-profile__label" for="yb-sc-card-number">{{ t.checkout_card_number }}</label>
-                      <input type="text" id="yb-sc-card-number" class="yb-profile__input" inputmode="numeric" autocomplete="cc-number" maxlength="19" required>
+                      <label class="yb-profile__label" for="yb-sc-cardnumber">{{ t.checkout_card_number }}</label>
+                      <input type="text" id="yb-sc-cardnumber" class="yb-profile__input" inputmode="numeric" autocomplete="cc-number" maxlength="19" required>
                     </div>
                     <div class="yb-profile__form-grid" style="grid-template-columns:1fr 1fr">
                       <div class="yb-profile__field">
-                        <label class="yb-profile__label" for="yb-sc-card-expiry">{{ t.checkout_card_expiry }}</label>
-                        <input type="text" id="yb-sc-card-expiry" class="yb-profile__input" placeholder="MM/YY" inputmode="numeric" autocomplete="cc-exp" maxlength="5" required>
+                        <label class="yb-profile__label" for="yb-sc-expiry">{{ t.checkout_card_expiry }}</label>
+                        <input type="text" id="yb-sc-expiry" class="yb-profile__input" placeholder="MM/YY" inputmode="numeric" autocomplete="cc-exp" maxlength="5" required>
                       </div>
                       <div class="yb-profile__field">
-                        <label class="yb-profile__label" for="yb-sc-card-cvv">{{ t.checkout_card_cvv }}</label>
-                        <input type="text" id="yb-sc-card-cvv" class="yb-profile__input" inputmode="numeric" autocomplete="cc-csc" maxlength="4" required>
+                        <label class="yb-profile__label" for="yb-sc-cvv">{{ t.checkout_card_cvv }}</label>
+                        <input type="text" id="yb-sc-cvv" class="yb-profile__input" inputmode="numeric" autocomplete="cc-csc" maxlength="4" required>
                       </div>
                     </div>
                   </div>
                   <div class="yb-auth-error" id="yb-sc-error" hidden></div>
-                  <div style="display:flex;gap:0.5rem;margin-top:0.75rem">
-                    <button type="submit" class="yb-btn yb-btn--primary yb-btn--sm">{{ t.stored_card_save }}</button>
-                    <button type="button" class="yb-btn yb-btn--outline yb-btn--sm" id="yb-sc-cancel">{{ t.stored_card_cancel_form }}</button>
+                  <div class="yb-stored-card__form-actions">
+                    <button type="submit" class="yb-btn yb-btn--primary yb-btn--sm" id="yb-sc-save-btn">{{ t.stored_card_save }}</button>
+                    <button type="button" class="yb-btn yb-btn--outline yb-btn--sm" id="yb-sc-cancel-btn">{{ t.stored_card_cancel_form }}</button>
                   </div>
                 </form>
               </div>
@@ -324,6 +324,15 @@
               <!-- Selected service summary -->
               <div class="yb-store__checkout-item" id="yb-store-checkout-item"></div>
 
+              <!-- Start date picker (contracts/memberships only) -->
+              <div class="yb-store__checkout-startdate" id="yb-checkout-startdate" hidden>
+                <label for="yb-store-start-date">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                  <span id="yb-checkout-startdate-label">Startdato</span>
+                </label>
+                <input type="date" id="yb-store-start-date">
+              </div>
+
               <!-- Two-column grid: left = waiver/terms, right = payment -->
               <div class="yb-checkout__grid" id="yb-checkout-grid">
 
@@ -368,13 +377,13 @@
                   <h4 class="yb-checkout__payment-title">{{ t.checkout_payment_title }}</h4>
                   <form id="yb-store-checkout-form" class="yb-profile__form" novalidate>
                     <!-- Stored card option (shown when user has a saved card) -->
-                    <div id="yb-store-stored-card-section" class="yb-checkout-stored-card" hidden>
-                      <label class="yb-checkout-stored-card__option yb-checkout-stored-card__option--active" id="yb-store-checkout-use-stored">
+                    <div id="yb-store-stored-card" class="yb-checkout-stored-card" hidden>
+                      <label class="yb-checkout-stored-card__option yb-checkout-stored-card__option--active" id="yb-store-use-stored">
                         <input type="radio" name="yb-store-payment-method" value="stored" checked>
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
-                        <span id="yb-store-stored-card-detail"></span>
+                        <span id="yb-store-stored-label"></span>
                       </label>
-                      <label class="yb-checkout-stored-card__option" id="yb-store-checkout-use-new">
+                      <label class="yb-checkout-stored-card__option" id="yb-store-use-new">
                         <input type="radio" name="yb-store-payment-method" value="new">
                         <span>{{ t.checkout_new_card }}</span>
                       </label>
@@ -621,36 +630,34 @@
                 {# Right: Payment #}
                 <div class="yb-giftcards__checkout-right">
                   <h3 class="yb-giftcards__payment-title">{{ t.checkout_payment_title }}</h3>
-                  <div id="yb-gc-stored-card-section" hidden>
-                    <div class="yb-checkout-stored-card">
-                      <label class="yb-checkout-stored-card__option yb-checkout-stored-card__option--active" id="yb-gc-checkout-use-stored">
+                  <div id="yb-gc-stored-card" class="yb-checkout-stored-card" hidden>
+                      <label class="yb-checkout-stored-card__option yb-checkout-stored-card__option--active" id="yb-gc-use-stored">
                         <input type="radio" name="yb-gc-payment-method" value="stored" checked>
                         <span class="yb-checkout-stored-card__label">{{ t.checkout_use_stored }}</span>
-                        <span class="yb-checkout-stored-card__detail" id="yb-gc-stored-card-detail"></span>
+                        <span class="yb-checkout-stored-card__detail" id="yb-gc-stored-label"></span>
                       </label>
-                      <label class="yb-checkout-stored-card__option" id="yb-gc-checkout-use-new">
+                      <label class="yb-checkout-stored-card__option" id="yb-gc-use-new">
                         <input type="radio" name="yb-gc-payment-method" value="new">
                         <span class="yb-checkout-stored-card__label">{{ t.checkout_use_new }}</span>
                       </label>
-                    </div>
                   </div>
                   <div id="yb-gc-card-fields">
                     <div class="yb-giftcards__field">
                       <label class="yb-giftcards__label">{{ t.checkout_card_name }}</label>
-                      <input type="text" id="yb-gc-card-name" class="yb-giftcards__input" autocomplete="cc-name">
+                      <input type="text" id="yb-gc-cardholder" class="yb-giftcards__input" autocomplete="cc-name">
                     </div>
                     <div class="yb-giftcards__field">
                       <label class="yb-giftcards__label">{{ t.checkout_card_number }}</label>
-                      <input type="text" id="yb-gc-card-number" class="yb-giftcards__input" inputmode="numeric" autocomplete="cc-number" maxlength="19">
+                      <input type="text" id="yb-gc-cardnumber" class="yb-giftcards__input" inputmode="numeric" autocomplete="cc-number" maxlength="19">
                     </div>
                     <div class="yb-giftcards__field-row">
                       <div class="yb-giftcards__field">
                         <label class="yb-giftcards__label">{{ t.checkout_card_expiry }}</label>
-                        <input type="text" id="yb-gc-card-expiry" class="yb-giftcards__input" placeholder="MM/YY" inputmode="numeric" autocomplete="cc-exp" maxlength="5">
+                        <input type="text" id="yb-gc-expiry" class="yb-giftcards__input" placeholder="MM/YY" inputmode="numeric" autocomplete="cc-exp" maxlength="5">
                       </div>
                       <div class="yb-giftcards__field">
                         <label class="yb-giftcards__label">{{ t.checkout_card_cvv }}</label>
-                        <input type="text" id="yb-gc-card-cvv" class="yb-giftcards__input" inputmode="numeric" autocomplete="cc-csc" maxlength="4">
+                        <input type="text" id="yb-gc-cvv" class="yb-giftcards__input" inputmode="numeric" autocomplete="cc-csc" maxlength="4">
                       </div>
                     </div>
                     <label class="yb-giftcards__save-card">
