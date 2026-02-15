@@ -1153,6 +1153,40 @@ body {
   margin-bottom: 1.5rem;
 }
 
+/* Start date picker for contracts */
+.yb-store__checkout-startdate {
+  margin-bottom: 1.25rem;
+}
+.yb-store__checkout-startdate label {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: #0F0F0F;
+  margin-bottom: 0.35rem;
+}
+.yb-store__checkout-startdate label svg {
+  stroke: #f75c03;
+}
+.yb-store__checkout-startdate input[type="date"] {
+  width: 100%;
+  max-width: 220px;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid #f75c03;
+  border-radius: 12px;
+  font-family: inherit;
+  font-size: 0.85rem;
+  color: #0F0F0F;
+  background: #FFFCF9;
+  outline: none;
+  transition: border-color 0.2s;
+}
+.yb-store__checkout-startdate input[type="date"]:focus {
+  border-color: #d94f02;
+  box-shadow: 0 0 0 2px rgba(247,92,3,0.12);
+}
+
 /* Two-column checkout grid */
 .yb-checkout__grid {
   /* Default: single column — payment form fills width */
