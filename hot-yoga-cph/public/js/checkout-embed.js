@@ -1792,9 +1792,6 @@
       if (typeof firebase !== 'undefined' && firebase.auth) {
         clearInterval(checkInterval);
         firebase.auth().onAuthStateChanged(function (user) {
-          // Re-scan login trigger buttons to update text/behavior
-          attachCTAButtons();
-
           if (!user) return;
 
           // If modal is not open, nothing to do yet
@@ -1849,51 +1846,16 @@
       });
     });
 
-    // Login trigger buttons
-    // Supports: <a data-login-trigger>LOGIN</a>
-    // Auto-detect: also finds any element whose text is exactly "LOGIN" or "Log ind"
-    // When logged in: text → "MIN PROFIL" / "MY PROFILE", click → profile
-    // When logged out: click → login popup
+    // Login trigger buttons (e.g., nav LOGIN link)
+    // Usage: <a href="#" data-login-trigger>LOGIN</a>
     var loginBtns = document.querySelectorAll('[data-login-trigger]');
-    var autoDetected = document.querySelectorAll('a, button, [role="button"]');
-    var loginTexts = ['login', 'log ind'];
-    autoDetected.forEach(function (el) {
-      // Skip elements inside the checkout/login modal itself
-      if (el.closest && el.closest('#ycf-modal')) return;
-      var txt = (el.textContent || '').trim().toLowerCase();
-      if (loginTexts.indexOf(txt) !== -1 && !el.hasAttribute('data-login-trigger')) {
-        el.setAttribute('data-login-trigger', '');
-      }
-    });
-    // Re-query after auto-detect
-    loginBtns = document.querySelectorAll('[data-login-trigger]');
-
-    var currentUser = null;
-    try { currentUser = firebase.auth().currentUser; } catch (ex) { /* not ready yet */ }
-    var isDa = window.location.pathname.indexOf('/en/') !== 0;
-
     loginBtns.forEach(function (btn) {
-      // Update text based on auth state
-      var textTarget = btn.querySelector('p, span, div') || btn;
-      if (currentUser) {
-        textTarget.textContent = isDa ? 'MIN PROFIL' : 'MY PROFILE';
-      }
-
       if (btn._ycfLoginBound) return;
       btn._ycfLoginBound = true;
       btn.addEventListener('click', function (e) {
         e.preventDefault();
-        e.stopPropagation();
-        e.stopImmediatePropagation();
-        // Check auth at click time
-        var user = null;
-        try { user = firebase.auth().currentUser; } catch (ex) {}
-        if (user) {
-          window.location.href = PROFILE_URL + '/#schedule';
-        } else {
-          openLoginModal();
-        }
-      }, true);  // capture phase — fires before Framer's handlers
+        openLoginModal();
+      });
     });
   }
 
