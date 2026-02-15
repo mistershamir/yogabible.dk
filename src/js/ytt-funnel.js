@@ -200,17 +200,21 @@
     var user = null;
     try { user = firebase.auth().currentUser; } catch (e) { /* Firebase not ready yet */ }
 
-    if (user) {
-      // Already logged in — track cta_click + auth_complete, redirect to store
-      trackFunnelStage('cta_click');
+    // Track CTA click
+    trackFunnelStage('cta_click');
+
+    // Open unified checkout flow modal (handles auth + payment in one popup)
+    if (typeof window.openCheckoutFlow === 'function') {
+      window.openCheckoutFlow(prodId);
+    } else if (user) {
+      // Fallback: already logged in — redirect to store
       trackAuthComplete();
       navigateToProfileStore();
     } else {
-      // Not logged in — open auth modal
+      // Fallback: open auth modal
       if (typeof window.openYBAuthModal === 'function') {
         window.openYBAuthModal('register');
       } else {
-        // Fallback: redirect to profile page (auth modal will show for guests)
         window.location.href = getProfilePath() + '#store';
       }
     }
@@ -261,6 +265,13 @@
 
           // User just logged in with a pending funnel
           console.log('[Checkout Funnel] Auth state changed, funnel pending for prodId:', funnel.prodId);
+
+          // If the checkout flow modal is handling this, don't redirect
+          var ycfModal = document.getElementById('ycf-modal');
+          if (ycfModal && ycfModal.getAttribute('aria-hidden') === 'false') {
+            console.log('[Checkout Funnel] Checkout flow modal is active — skipping redirect');
+            return;
+          }
 
           // Track auth_complete (idempotent — Firestore upsert)
           trackAuthComplete();
