@@ -19,7 +19,9 @@
     // Courses
     '100145': { price: 2300, name_da: 'Inversions Kursus', name_en: 'Inversions Course', period_da: 'April 2026', period_en: 'April 2026', desc_da: 'Mester armbalancer og omvendinger med sikker teknik og gradvis progression.', desc_en: 'Master arm balances and inversions with safe technique and gradual progression.', category: 'courses' },
     '100150': { price: 2300, name_da: 'Splits Kursus', name_en: 'Splits Course', period_da: 'April 2026', period_en: 'April 2026', desc_da: 'Opnå fuld splits med systematisk fleksibilitetstræning og sikre stræk.', desc_en: 'Achieve full splits with systematic flexibility training and safe stretching.', category: 'courses' },
-    '100140': { price: 2300, name_da: 'Backbends Kursus', name_en: 'Backbends Course', period_da: 'April 2026', period_en: 'April 2026', desc_da: 'Åbn brystkasse og rygsøjle med trygge, dybe bagoverbøjninger.', desc_en: 'Open chest and spine with safe, deep backbending practice.', category: 'courses' }
+    '100140': { price: 2300, name_da: 'Backbends Kursus', name_en: 'Backbends Course', period_da: 'April 2026', period_en: 'April 2026', desc_da: 'Åbn brystkasse og rygsøjle med trygge, dybe bagoverbøjninger.', desc_en: 'Open chest and spine with safe, deep backbending practice.', category: 'courses' },
+    // Test product (1 DKK — for end-to-end payment testing, REMOVE before production)
+    '100203': { price: 1, name_da: 'Test Klippekort', name_en: 'Test Clip Card', period_da: 'Test', period_en: 'Test', desc_da: 'Testprodukt til betalingsflow — 1 kr.', desc_en: 'Test product for payment flow — 1 DKK.', category: 'test' }
   };
 
   // Remaining payment note (for teacher training)

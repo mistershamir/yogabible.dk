@@ -26,7 +26,9 @@
     '119':    { da: 'Inversions + Backbends Bundle', en: 'Inversions + Backbends Bundle', category: 'courses' },
     '120':    { da: 'Inversions + Splits Bundle', en: 'Inversions + Splits Bundle', category: 'courses' },
     '121':    { da: 'Backbends + Splits Bundle', en: 'Backbends + Splits Bundle', category: 'courses' },
-    '127':    { da: 'All-In Bundle (3 kurser)', en: 'All-In Bundle (3 courses)', category: 'courses' }
+    '127':    { da: 'All-In Bundle (3 kurser)', en: 'All-In Bundle (3 courses)', category: 'courses' },
+    // Test product (REMOVE before production)
+    '100203': { da: 'Test Klippekort', en: 'Test Clip Card', category: 'test' }
   };
 
   // ── Helpers ──
