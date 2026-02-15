@@ -820,10 +820,12 @@
     h +=     '<div class="yb-checkout-success__icon">&#10003;</div>';
     h +=     '<h2 class="yb-auth-modal__title" data-yj-da>Betaling gennemf\u00f8rt!</h2>';
     h +=     '<h2 class="yb-auth-modal__title" data-yj-en hidden>Payment successful!</h2>';
-    h +=     '<p class="yb-auth-modal__subtitle" data-yj-da>Du modtager en bekr\u00e6ftelse p\u00e5 email. Tak for dit k\u00f8b!</p>';
-    h +=     '<p class="yb-auth-modal__subtitle" data-yj-en hidden>You\'ll receive a confirmation email. Thank you for your purchase!</p>';
-    h +=     '<button class="yb-auth-submit" type="button" id="ycf-go-profile" data-yj-da>Luk</button>';
-    h +=     '<button class="yb-auth-submit" type="button" id="ycf-go-profile-en" data-yj-en hidden>Close</button>';
+    h +=     '<p class="yb-auth-modal__subtitle" data-yj-da>Du modtager en bekr\u00e6ftelse p\u00e5 email.</p>';
+    h +=     '<p class="yb-auth-modal__subtitle" data-yj-en hidden>You\'ll receive a confirmation email.</p>';
+    h +=     '<p class="yb-auth-modal__subtitle" style="margin-top:4px" data-yj-da>Log ind med dine oplysninger for at booke din f\u00f8rste klasse.</p>';
+    h +=     '<p class="yb-auth-modal__subtitle" style="margin-top:4px" data-yj-en hidden>Log in with your credentials to book your first class.</p>';
+    h +=     '<button class="yb-auth-submit" type="button" id="ycf-go-profile" data-yj-da>Book en klasse</button>';
+    h +=     '<button class="yb-auth-submit" type="button" id="ycf-go-profile-en" data-yj-en hidden>Book a class</button>';
     h +=   '</div>';
     h += '</div>'; // end step-success
 
@@ -1619,11 +1621,14 @@
       });
     }
 
-    // ── "Go to profile" buttons on success step ───────────────────
+    // ── "Book a class" buttons on success step — redirect to profile booking ──
     document.addEventListener('click', function (e) {
       if (e.target.id === 'ycf-go-profile' || e.target.id === 'ycf-go-profile-en') {
         e.preventDefault();
+        // Clear prodId before close so abandonment tracking is skipped
+        currentProdId = null;
         closeModal();
+        window.location.href = PROFILE_URL + '/#schedule';
       }
     });
   }
