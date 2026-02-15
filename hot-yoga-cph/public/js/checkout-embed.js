@@ -1763,14 +1763,17 @@
     // Cache the modal reference now that HTML is injected
     modal = document.getElementById('ycf-modal');
 
-    wireAuthEvents();
-    wireCheckoutEvents();
-    wireCardFormatting();
-    attachCTAButtons();
-    observeCTAButtons();
-    initAuthListener();
+    // Initialize Firebase before wiring events that depend on auth
+    loadFirebaseSDK(function () {
+      wireAuthEvents();
+      wireCheckoutEvents();
+      wireCardFormatting();
+      attachCTAButtons();
+      observeCTAButtons();
+      initAuthListener();
 
-    console.log('[HYC Embed] Checkout embed booted — ' + Object.keys(PRODUCTS).length + ' products loaded');
+      console.log('[HYC Embed] Checkout embed booted — ' + Object.keys(PRODUCTS).length + ' products loaded');
+    });
   }
 
   if (document.readyState === 'loading') {
