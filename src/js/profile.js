@@ -14,6 +14,7 @@
   var waiverSigned = false; // Track if liability waiver is signed
   var waiverStatusLoaded = false; // True once we know the actual status
   var storedCardData = null; // Cached stored credit card from Mindbody
+  var storedCardLoaded = false; // True once stored card fetch resolves
   var bgRefreshInterval = null; // Background refresh interval
   var passRefreshTimer = null; // Delayed pass refresh timer
   var giftCardsData = null; // Cached gift cards from API
@@ -172,7 +173,7 @@
         var catBtn = document.querySelector('[data-store-top="' + targetCategory + '"]');
         if (catBtn) catBtn.click();
 
-        // Wait for items to render, then auto-open checkout
+        // Wait for items to render, then wait for stored card + waiver data before opening checkout
         setTimeout(function() {
           // Find the buy button for this specific product
           var buyBtn = document.querySelector('[data-store-buy$="-' + targetProdId + '"]') ||
@@ -189,12 +190,29 @@
             });
           }
 
-          if (buyBtn) {
-            console.log('[Profile] Auto-opening checkout for prodId:', targetProdId);
-            buyBtn.click();
-          } else {
+          if (!buyBtn) {
             console.warn('[Profile] Could not find buy button for prodId:', targetProdId, '— user needs to select manually');
+            return;
           }
+
+          // Wait for stored card + waiver async data before opening checkout
+          // so that saved card and signed waiver are properly recognized
+          var pollCount = 0;
+          var maxPolls = 30; // 30 × 200ms = 6s max wait
+          function waitForAsyncData() {
+            if (storedCardLoaded && waiverStatusLoaded) {
+              console.log('[Profile] Async data ready — auto-opening checkout for prodId:', targetProdId);
+              buyBtn.click();
+            } else if (pollCount < maxPolls) {
+              pollCount++;
+              setTimeout(waitForAsyncData, 200);
+            } else {
+              // Fallback: open anyway after timeout (better than not opening at all)
+              console.warn('[Profile] Async data timeout — opening checkout anyway for prodId:', targetProdId);
+              buyBtn.click();
+            }
+          }
+          waitForAsyncData();
         }, 600);
       }, 400);
     }
@@ -617,6 +635,8 @@
         fetchStoredCard(d.mindbodyClientId);
       } else {
         console.warn('[Profile] NO mindbodyClientId — stored card section will not load');
+        storedCardLoaded = true;
+        waiverStatusLoaded = true;
       }
 
       var sinceEl = document.getElementById('yb-profile-member-since');
@@ -754,11 +774,13 @@
           // Only show empty if Firestore didn't already have data
           renderStoredCardUI(null);
         }
+        storedCardLoaded = true;
       })
       .catch(function(err) {
         console.warn('[StoredCard] MB fetch error:', err);
         // If Firestore didn't provide data either, show empty
         if (!storedCardData) renderStoredCardUI(null);
+        storedCardLoaded = true;
       });
   }
 
