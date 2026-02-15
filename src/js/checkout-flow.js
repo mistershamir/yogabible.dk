@@ -31,6 +31,8 @@
   // ── State ──
   var currentProdId = null;
   var currentStep = 1;
+  var mbClientId = null;      // Mindbody client ID (resolved after auth)
+  var storedCard = null;       // { lastFour, cardType, cardHolder, expMonth, expYear } or null
   var modal = null;
   var scrollY = 0;
 
@@ -77,6 +79,8 @@
     document.body.style.top = '';
     window.scrollTo(0, scrollY);
     currentProdId = null;
+    mbClientId = null;
+    storedCard = null;
   }
 
   // ── Step navigation ──
@@ -95,8 +99,8 @@
       });
       // Focus first input
       setTimeout(function () {
-        var firstInput = target.querySelector('input:not([type="hidden"]):not([type="checkbox"])');
-        if (firstInput) firstInput.focus();
+        var firstInput = target.querySelector('input:not([type="hidden"]):not([type="checkbox"]):not([type="radio"])');
+        if (firstInput && !firstInput.closest('[hidden]')) firstInput.focus();
       }, 80);
     }
   }
@@ -151,96 +155,10 @@
     }
   }
 
-  // ── Entry point: open the checkout flow ──
-  function openCheckoutFlow(prodId) {
-    if (!prodId) return;
-    currentProdId = prodId;
+  // =========================================================================
+  // MINDBODY CLIENT — find/create + stored card
+  // =========================================================================
 
-    modal = $('ycf-modal');
-    if (!modal) return;
-
-    // Reset all forms
-    modal.querySelectorAll('input').forEach(function (input) {
-      if (input.type === 'checkbox') input.checked = false;
-      else if (input.type !== 'hidden') input.value = '';
-    });
-    modal.querySelectorAll('.yb-auth-error, .yb-auth-success').forEach(function (el) {
-      el.textContent = '';
-      el.hidden = true;
-    });
-
-    // Populate product info
-    populateProduct(prodId);
-
-    // Check if user is already logged in → skip to checkout
-    var user = null;
-    try { user = firebase.auth().currentUser; } catch (e) { /* not ready */ }
-
-    if (user) {
-      showStep('ycf-step-checkout');
-    } else {
-      showStep('ycf-step-login');
-    }
-
-    openModal();
-  }
-
-  // ── Firebase auth helpers ──
-  function doLogin(email, password, callback) {
-    firebase.auth().signInWithEmailAndPassword(email, password)
-      .then(function () { callback(null); })
-      .catch(function (err) { callback(err); });
-  }
-
-  function doRegister(email, password, firstName, lastName, phone, callback) {
-    firebase.auth().createUserWithEmailAndPassword(email, password)
-      .then(function (cred) {
-        var fullName = firstName + ' ' + lastName;
-        // Store registration data for profile creation (firebase-auth.js picks this up)
-        window._ybRegistration = {
-          firstName: firstName,
-          lastName: lastName,
-          phone: phone,
-          consents: {
-            terms: true,
-            conduct: true,
-            timestamp: new Date().toISOString()
-          }
-        };
-        return cred.user.updateProfile({ displayName: fullName });
-      })
-      .then(function () { callback(null); })
-      .catch(function (err) { callback(err); });
-  }
-
-  function doForgotPassword(email, callback) {
-    firebase.auth().sendPasswordResetEmail(email)
-      .then(function () { callback(null); })
-      .catch(function (err) { callback(err); });
-  }
-
-  // ── Map Firebase error codes to friendly messages ──
-  function authErrorMsg(err) {
-    var code = err.code || '';
-    if (code === 'auth/user-not-found' || code === 'auth/wrong-password' || code === 'auth/invalid-credential') {
-      return t('Forkert email eller adgangskode.', 'Incorrect email or password.');
-    }
-    if (code === 'auth/email-already-in-use') {
-      return t('Denne email er allerede i brug.', 'This email is already in use.');
-    }
-    if (code === 'auth/weak-password') {
-      return t('Adgangskoden skal være mindst 6 tegn.', 'Password must be at least 6 characters.');
-    }
-    if (code === 'auth/invalid-email') {
-      return t('Ugyldig email-adresse.', 'Invalid email address.');
-    }
-    if (code === 'auth/too-many-requests') {
-      return t('For mange forsøg. Prøv igen senere.', 'Too many attempts. Please try again later.');
-    }
-    return err.message || t('Der opstod en fejl.', 'An error occurred.');
-  }
-
-  // ── Mindbody client lookup/create ──
   function findOrCreateClient(firstName, lastName, email, phone) {
     return fetch(API_BASE + '/mb-client?email=' + encodeURIComponent(email))
       .then(function (res) { return res.json(); })
@@ -264,7 +182,196 @@
       });
   }
 
-  // ── Process payment ──
+  function fetchStoredCard(clientId) {
+    return fetch(API_BASE + '/mb-client?action=storedCard&clientId=' + encodeURIComponent(clientId))
+      .then(function (res) { return res.json(); })
+      .then(function (data) {
+        if (data.hasStoredCard && data.storedCard && data.storedCard.lastFour) {
+          return data.storedCard;
+        }
+        return null;
+      })
+      .catch(function () { return null; });
+  }
+
+  // ── Render stored card UI in checkout step ──
+  function renderStoredCardUI(card) {
+    var section = $('ycf-stored-card-section');
+    var newCardFields = $('ycf-new-card-fields');
+    var cardInfo = $('ycf-stored-card-info');
+
+    if (!section || !newCardFields) return;
+
+    if (card && card.lastFour) {
+      storedCard = card;
+      // Show stored card option
+      var cardLabel = (card.cardType || 'Card') + ' •••• ' + card.lastFour;
+      if (card.expMonth && card.expYear) {
+        cardLabel += ' (' + card.expMonth + '/' + String(card.expYear).slice(-2) + ')';
+      }
+      if (cardInfo) cardInfo.textContent = cardLabel;
+      section.hidden = false;
+
+      // Default to stored card — hide new card fields
+      var storedRadio = section.querySelector('input[value="stored"]');
+      if (storedRadio) storedRadio.checked = true;
+      newCardFields.hidden = true;
+      updatePaymentOptionStyles();
+    } else {
+      storedCard = null;
+      section.hidden = true;
+      newCardFields.hidden = false;
+    }
+  }
+
+  function updatePaymentOptionStyles() {
+    var section = $('ycf-stored-card-section');
+    if (!section) return;
+    section.querySelectorAll('.ycf-payment-option').forEach(function (opt) {
+      var radio = opt.querySelector('input[type="radio"]');
+      opt.classList.toggle('ycf-payment-option--active', radio && radio.checked);
+    });
+  }
+
+  // =========================================================================
+  // POST-AUTH: Resolve MB client + check stored card → advance to checkout
+  // Called after both login and registration
+  // =========================================================================
+  function resolveClientAndAdvance(firstName, lastName, email, phone) {
+    console.log('[Checkout Flow] Resolving MB client for:', email);
+
+    findOrCreateClient(firstName, lastName, email, phone)
+      .then(function (clientId) {
+        mbClientId = clientId;
+        console.log('[Checkout Flow] MB client resolved:', clientId);
+
+        // Check for stored card (non-blocking — show checkout immediately, update UI when ready)
+        fetchStoredCard(clientId).then(function (card) {
+          renderStoredCardUI(card);
+          console.log('[Checkout Flow] Stored card:', card ? ('•••• ' + card.lastFour) : 'none');
+        });
+
+        // Track checkout opened
+        if (window.CheckoutFunnel) window.CheckoutFunnel.trackCheckoutOpened();
+
+        // Advance to checkout step
+        showStep('ycf-step-checkout');
+      })
+      .catch(function (err) {
+        console.warn('[Checkout Flow] MB client error:', err.message);
+        // Still advance — payment step will retry findOrCreateClient
+        showStep('ycf-step-checkout');
+      });
+  }
+
+  // =========================================================================
+  // ENTRY POINT
+  // =========================================================================
+  function openCheckoutFlow(prodId) {
+    if (!prodId) return;
+    currentProdId = prodId;
+    mbClientId = null;
+    storedCard = null;
+
+    modal = $('ycf-modal');
+    if (!modal) return;
+
+    // Reset all forms
+    modal.querySelectorAll('input').forEach(function (input) {
+      if (input.type === 'checkbox') input.checked = false;
+      else if (input.type === 'radio') { /* handled by renderStoredCardUI */ }
+      else if (input.type !== 'hidden') input.value = '';
+    });
+    modal.querySelectorAll('.yb-auth-error, .yb-auth-success').forEach(function (el) {
+      el.textContent = '';
+      el.hidden = true;
+    });
+
+    // Reset stored card UI
+    renderStoredCardUI(null);
+
+    // Populate product info
+    populateProduct(prodId);
+
+    // Check if user is already logged in → resolve client + skip to checkout
+    var user = null;
+    try { user = firebase.auth().currentUser; } catch (e) { /* not ready */ }
+
+    if (user) {
+      openModal();
+      // Show a brief loading state on checkout step
+      showStep('ycf-step-checkout');
+
+      var displayName = user.displayName || '';
+      var nameParts = displayName.split(' ');
+      var firstName = nameParts[0] || 'User';
+      var lastName = nameParts.slice(1).join(' ') || '';
+      resolveClientAndAdvance(firstName, lastName, user.email || '', '');
+    } else {
+      showStep('ycf-step-login');
+      openModal();
+    }
+  }
+
+  // =========================================================================
+  // FIREBASE AUTH
+  // =========================================================================
+
+  function doLogin(email, password, callback) {
+    firebase.auth().signInWithEmailAndPassword(email, password)
+      .then(function () { callback(null); })
+      .catch(function (err) { callback(err); });
+  }
+
+  function doRegister(email, password, firstName, lastName, phone, callback) {
+    firebase.auth().createUserWithEmailAndPassword(email, password)
+      .then(function (cred) {
+        var fullName = firstName + ' ' + lastName;
+        window._ybRegistration = {
+          firstName: firstName,
+          lastName: lastName,
+          phone: phone,
+          consents: {
+            terms: true,
+            conduct: true,
+            timestamp: new Date().toISOString()
+          }
+        };
+        return cred.user.updateProfile({ displayName: fullName });
+      })
+      .then(function () { callback(null); })
+      .catch(function (err) { callback(err); });
+  }
+
+  function doForgotPassword(email, callback) {
+    firebase.auth().sendPasswordResetEmail(email)
+      .then(function () { callback(null); })
+      .catch(function (err) { callback(err); });
+  }
+
+  function authErrorMsg(err) {
+    var code = err.code || '';
+    if (code === 'auth/user-not-found' || code === 'auth/wrong-password' || code === 'auth/invalid-credential') {
+      return t('Forkert email eller adgangskode.', 'Incorrect email or password.');
+    }
+    if (code === 'auth/email-already-in-use') {
+      return t('Denne email er allerede i brug.', 'This email is already in use.');
+    }
+    if (code === 'auth/weak-password') {
+      return t('Adgangskoden skal være mindst 6 tegn.', 'Password must be at least 6 characters.');
+    }
+    if (code === 'auth/invalid-email') {
+      return t('Ugyldig email-adresse.', 'Invalid email address.');
+    }
+    if (code === 'auth/too-many-requests') {
+      return t('For mange forsøg. Prøv igen senere.', 'Too many attempts. Please try again later.');
+    }
+    return err.message || t('Der opstod en fejl.', 'An error occurred.');
+  }
+
+  // =========================================================================
+  // PROCESS PAYMENT
+  // =========================================================================
   function processPayment() {
     var user = firebase.auth().currentUser;
     if (!user) return;
@@ -272,26 +379,46 @@
     var product = getProduct(currentProdId);
     if (!product) return;
 
-    var cardNumber = $('ycf-card').value.replace(/\s/g, '');
-    var expiry = $('ycf-expiry').value.trim();
-    var cvv = $('ycf-cvv').value.trim();
-
     hideError('ycf-checkout-error');
 
-    // Validate
-    if (!cardNumber || !expiry || !cvv) {
-      showError('ycf-checkout-error', t('Udfyld alle obligatoriske felter.', 'Please fill in all required fields.'));
-      return;
-    }
+    // Check which payment method is selected
+    var storedRadio = modal.querySelector('input[name="ycf-payment-method"][value="stored"]');
+    var useStored = storedRadio && storedRadio.checked && storedCard && storedCard.lastFour;
 
-    var expiryParts = expiry.split('/');
-    if (expiryParts.length !== 2) {
-      showError('ycf-checkout-error', t('Ugyldig udløbsdato (MM/ÅÅ).', 'Invalid expiry date (MM/YY).'));
-      return;
+    var paymentInfo;
+
+    if (useStored) {
+      paymentInfo = {
+        useStoredCard: true,
+        lastFour: storedCard.lastFour
+      };
+    } else {
+      var cardNumber = $('ycf-card').value.replace(/\s/g, '');
+      var expiry = $('ycf-expiry').value.trim();
+      var cvv = $('ycf-cvv').value.trim();
+
+      if (!cardNumber || !expiry || !cvv) {
+        showError('ycf-checkout-error', t('Udfyld alle obligatoriske felter.', 'Please fill in all required fields.'));
+        return;
+      }
+
+      var expiryParts = expiry.split('/');
+      if (expiryParts.length !== 2) {
+        showError('ycf-checkout-error', t('Ugyldig udløbsdato (MM/ÅÅ).', 'Invalid expiry date (MM/YY).'));
+        return;
+      }
+      var expMonth = expiryParts[0].trim();
+      var expYear = expiryParts[1].trim();
+      if (expYear.length === 2) expYear = '20' + expYear;
+
+      paymentInfo = {
+        cardNumber: cardNumber,
+        expMonth: expMonth,
+        expYear: expYear,
+        cvv: cvv,
+        cardHolder: user.displayName || ''
+      };
     }
-    var expMonth = expiryParts[0].trim();
-    var expYear = expiryParts[1].trim();
-    if (expYear.length === 2) expYear = '20' + expYear;
 
     // Disable button
     var payBtn = $('ycf-pay-btn');
@@ -299,18 +426,27 @@
     if (payBtn) { payBtn.disabled = true; payBtn.textContent = 'Behandler betaling...'; }
     if (payBtnEn) { payBtnEn.disabled = true; payBtnEn.textContent = 'Processing payment...'; }
 
-    var displayName = user.displayName || '';
-    var nameParts = displayName.split(' ');
-    var firstName = nameParts[0] || 'User';
-    var lastName = nameParts.slice(1).join(' ') || '';
-    var email = user.email || '';
-    var phone = (window._ybRegistration && window._ybRegistration.phone) || '';
+    function resetPayBtn() {
+      if (payBtn) { payBtn.disabled = false; payBtn.textContent = 'Betal'; }
+      if (payBtnEn) { payBtnEn.disabled = false; payBtnEn.textContent = 'Pay'; }
+    }
 
-    findOrCreateClient(firstName, lastName, email, phone)
+    // If we already have mbClientId, use it; otherwise resolve it now
+    var clientPromise;
+    if (mbClientId) {
+      clientPromise = Promise.resolve(mbClientId);
+    } else {
+      var displayName = user.displayName || '';
+      var nameParts = displayName.split(' ');
+      var firstName = nameParts[0] || 'User';
+      var lastName = nameParts.slice(1).join(' ') || '';
+      var phone = (window._ybRegistration && window._ybRegistration.phone) || '';
+      clientPromise = findOrCreateClient(firstName, lastName, user.email || '', phone);
+    }
+
+    clientPromise
       .then(function (clientId) {
-        // Track checkout opened
-        if (window.CheckoutFunnel) window.CheckoutFunnel.trackCheckoutOpened();
-
+        mbClientId = clientId;
         return fetch(API_BASE + '/mb-checkout', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -318,13 +454,7 @@
             clientId: clientId,
             items: [{ type: 'Service', id: parseInt(currentProdId), quantity: 1 }],
             amount: product.price,
-            payment: {
-              cardNumber: cardNumber,
-              expMonth: expMonth,
-              expYear: expYear,
-              cvv: cvv,
-              cardHolder: displayName
-            },
+            payment: paymentInfo,
             test: false
           })
         });
@@ -346,8 +476,7 @@
       })
       .catch(function (err) {
         showError('ycf-checkout-error', err.message || t('Betaling fejlede.', 'Payment failed.'));
-        if (payBtn) { payBtn.disabled = false; payBtn.textContent = 'Betal'; }
-        if (payBtnEn) { payBtnEn.disabled = false; payBtnEn.textContent = 'Pay'; }
+        resetPayBtn();
       });
   }
 
@@ -389,6 +518,15 @@
       if (action === 'back-login') showStep('ycf-step-login');
     });
 
+    // ── Payment method radio toggle ──
+    document.addEventListener('change', function (e) {
+      if (e.target.name !== 'ycf-payment-method') return;
+      var newCardFields = $('ycf-new-card-fields');
+      if (!newCardFields) return;
+      newCardFields.hidden = (e.target.value === 'stored');
+      updatePaymentOptionStyles();
+    });
+
     // ── Login form ──
     var loginForm = $('ycf-login-form');
     if (loginForm) {
@@ -408,16 +546,26 @@
         if (btn) { btn.disabled = true; btn.textContent = isDa ? 'Logger ind...' : 'Signing in...'; }
 
         doLogin(email, password, function (err) {
+          if (btn) { btn.disabled = false; btn.textContent = isDa ? 'Log ind' : 'Sign in'; }
+
           if (err) {
             showError('ycf-login-error', authErrorMsg(err));
-            if (btn) { btn.disabled = false; btn.textContent = isDa ? 'Log ind' : 'Sign in'; }
             return;
           }
+
           // Track auth
           if (window.CheckoutFunnel) window.CheckoutFunnel.trackAuthComplete();
-          // Advance to checkout
-          showStep('ycf-step-checkout');
-          if (btn) { btn.disabled = false; btn.textContent = isDa ? 'Log ind' : 'Sign in'; }
+
+          // Resolve MB client + check stored card → advance to checkout
+          var user = firebase.auth().currentUser;
+          var displayName = (user && user.displayName) || '';
+          var nameParts = displayName.split(' ');
+          resolveClientAndAdvance(
+            nameParts[0] || 'User',
+            nameParts.slice(1).join(' ') || '',
+            (user && user.email) || email,
+            ''
+          );
         });
       });
     }
@@ -485,9 +633,10 @@
         if (btn) { btn.disabled = true; btn.textContent = isDa ? 'Opretter profil...' : 'Creating profile...'; }
 
         doRegister(email, password, firstName, lastName, phone, function (err) {
+          if (btn) { btn.disabled = false; btn.textContent = isDa ? 'Opret profil & fortsæt' : 'Create profile & continue'; }
+
           if (err) {
             showError('ycf-register-error', authErrorMsg(err));
-            if (btn) { btn.disabled = false; btn.textContent = isDa ? 'Opret profil & fortsæt' : 'Create profile & continue'; }
             return;
           }
 
@@ -497,9 +646,8 @@
             window.CheckoutFunnel.trackProfileComplete({ firstName: firstName, lastName: lastName, phone: phone });
           }
 
-          // Advance to checkout
-          showStep('ycf-step-checkout');
-          if (btn) { btn.disabled = false; btn.textContent = isDa ? 'Opret profil & fortsæt' : 'Create profile & continue'; }
+          // Create MB client immediately (triggers welcome email) → advance to checkout
+          resolveClientAndAdvance(firstName, lastName, email, phone);
         });
       });
     }

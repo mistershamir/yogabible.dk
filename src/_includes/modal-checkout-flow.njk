@@ -180,21 +180,41 @@
           <span data-yj-en hidden>Payment details</span>
         </div>
 
-        <div class="yb-auth-field">
-          <label for="ycf-card" data-yj-da>Kortnummer *</label>
-          <label for="ycf-card" data-yj-en hidden>Card number *</label>
-          <input type="text" id="ycf-card" required autocomplete="cc-number" inputmode="numeric" placeholder="1234 5678 9012 3456" maxlength="19">
+        <!-- Stored card option (shown when user has a card on file) -->
+        <div id="ycf-stored-card-section" class="ycf-payment-methods" hidden>
+          <label class="ycf-payment-option ycf-payment-option--active" id="ycf-opt-stored">
+            <input type="radio" name="ycf-payment-method" value="stored" checked>
+            <div class="ycf-payment-option__info">
+              <span class="ycf-payment-option__label" data-yj-da>Brug gemt kort</span>
+              <span class="ycf-payment-option__label" data-yj-en hidden>Use saved card</span>
+              <span class="ycf-payment-option__card" id="ycf-stored-card-info"></span>
+            </div>
+          </label>
+          <label class="ycf-payment-option" id="ycf-opt-new">
+            <input type="radio" name="ycf-payment-method" value="new">
+            <span class="ycf-payment-option__label" data-yj-da>Brug nyt kort</span>
+            <span class="ycf-payment-option__label" data-yj-en hidden>Use new card</span>
+          </label>
         </div>
 
-        <div class="yb-checkout-row">
+        <!-- New card fields (hidden when using stored card) -->
+        <div id="ycf-new-card-fields">
           <div class="yb-auth-field">
-            <label for="ycf-expiry" data-yj-da>Udl&oslash;b *</label>
-            <label for="ycf-expiry" data-yj-en hidden>Expiry *</label>
-            <input type="text" id="ycf-expiry" required autocomplete="cc-exp" inputmode="numeric" placeholder="MM/&Aring;&Aring;" maxlength="5">
+            <label for="ycf-card" data-yj-da>Kortnummer *</label>
+            <label for="ycf-card" data-yj-en hidden>Card number *</label>
+            <input type="text" id="ycf-card" autocomplete="cc-number" inputmode="numeric" placeholder="1234 5678 9012 3456" maxlength="19">
           </div>
-          <div class="yb-auth-field">
-            <label for="ycf-cvv">CVV *</label>
-            <input type="text" id="ycf-cvv" required autocomplete="cc-csc" inputmode="numeric" placeholder="123" maxlength="4">
+
+          <div class="yb-checkout-row">
+            <div class="yb-auth-field">
+              <label for="ycf-expiry" data-yj-da>Udl&oslash;b *</label>
+              <label for="ycf-expiry" data-yj-en hidden>Expiry *</label>
+              <input type="text" id="ycf-expiry" autocomplete="cc-exp" inputmode="numeric" placeholder="MM/&Aring;&Aring;" maxlength="5">
+            </div>
+            <div class="yb-auth-field">
+              <label for="ycf-cvv">CVV *</label>
+              <input type="text" id="ycf-cvv" autocomplete="cc-csc" inputmode="numeric" placeholder="123" maxlength="4">
+            </div>
           </div>
         </div>
 
