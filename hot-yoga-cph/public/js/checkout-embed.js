@@ -304,11 +304,25 @@
   }
 
   function loadFirebaseSDK(callback) {
-    // If Firebase is already available (e.g. on profile subdomain), skip loading
+    // After Firebase is ready, set auth persistence to NONE (in-memory).
+    // This embed runs cross-origin on Framer — IndexedDB (the default LOCAL
+    // persistence) is silently blocked by browser storage partitioning
+    // (Chrome 115+, Safari 16.1+, Firefox 109+), which causes
+    // signInWithEmailAndPassword to hang forever (promise never settles).
+    function onFirebaseReady() {
+      if (typeof firebase !== 'undefined' && firebase.auth) {
+        firebase.auth().setPersistence(firebase.auth.Auth.Persistence.NONE)
+          .then(function () { callback(); })
+          .catch(function () { callback(); }); // proceed even if setPersistence fails
+      } else {
+        callback();
+      }
+    }
+
+    // If Firebase is already available (e.g. loaded by another script on page)
     if (typeof firebase !== 'undefined' && firebase.apps) {
-      console.log('[HYC Embed] Firebase already on page, apps:', firebase.apps.length, 'auth module:', typeof firebase.auth);
       if (!firebase.apps.length) firebase.initializeApp(FIREBASE_CONFIG);
-      return callback();
+      return onFirebaseReady();
     }
 
     var scripts = [
@@ -322,16 +336,13 @@
     function next(err) {
       if (err) { console.warn('[HYC Embed] Script load error:', err.message); }
       if (i >= scripts.length) {
-        // Initialize
         try {
           if (!firebase.apps.length) firebase.initializeApp(FIREBASE_CONFIG);
-          console.log('[HYC Embed] Firebase initialized — auth module:', typeof firebase.auth, 'config apiKey:', FIREBASE_CONFIG.apiKey.substring(0, 8) + '...');
         } catch (e) {
           console.warn('[HYC Embed] Firebase init error:', e.message);
         }
-        return callback();
+        return onFirebaseReady();
       }
-      console.log('[HYC Embed] Loading Firebase script ' + (i + 1) + '/' + scripts.length);
       loadScript(scripts[i++], next);
     }
     next(null);
@@ -1037,19 +1048,9 @@
   // ── 3G: Firebase Auth Functions ─────────────────────────────────────
 
   function doLogin(email, password, callback) {
-    console.log('[HYC Embed] doLogin called for:', email);
-    try {
-      var auth = firebase.auth();
-      console.log('[HYC Embed] firebase.auth() OK, typeof signIn:', typeof auth.signInWithEmailAndPassword, 'currentUser:', auth.currentUser ? auth.currentUser.email : 'none');
-      var promise = auth.signInWithEmailAndPassword(email, password);
-      console.log('[HYC Embed] signIn promise created, typeof:', typeof promise, 'then:', typeof promise.then);
-      promise
-        .then(function (cred) { console.log('[HYC Embed] signIn SUCCESS, user:', cred && cred.user ? cred.user.email : '?'); callback(null); })
-        .catch(function (err) { console.log('[HYC Embed] signIn ERROR:', err.code, err.message); callback(err); });
-    } catch (ex) {
-      console.error('[HYC Embed] doLogin EXCEPTION:', ex);
-      callback(ex);
-    }
+    firebase.auth().signInWithEmailAndPassword(email, password)
+      .then(function () { callback(null); })
+      .catch(function (err) { callback(err); });
   }
 
   function doRegister(email, password, firstName, lastName, phone, callback) {
@@ -1408,7 +1409,6 @@
         var btn = loginForm.querySelector('.yb-auth-submit');
         if (btn) { btn.disabled = true; btn.textContent = t('Logger ind...', 'Signing in...'); }
 
-        console.log('[HYC Embed] Login form submitted, email:', email, 'pwd length:', password.length);
         doLogin(email, password, function (err) {
           if (btn) { btn.disabled = false; btn.textContent = t('Log ind', 'Sign in'); }
 
