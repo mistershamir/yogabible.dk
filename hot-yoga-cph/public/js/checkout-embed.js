@@ -601,12 +601,12 @@
     h +=     '<div class="yb-auth-field">';
     h +=       '<label for="ycf-login-email" data-yj-da>Email</label>';
     h +=       '<label for="ycf-login-email" data-yj-en hidden>Email</label>';
-    h +=       '<input type="email" id="ycf-login-email" required autocomplete="email" placeholder="din@email.dk">';
+    h +=       '<input type="email" id="ycf-login-email" name="email" required autocomplete="email" placeholder="din@email.dk">';
     h +=     '</div>';
     h +=     '<div class="yb-auth-field">';
     h +=       '<label for="ycf-login-password" data-yj-da>Adgangskode</label>';
     h +=       '<label for="ycf-login-password" data-yj-en hidden>Password</label>';
-    h +=       '<input type="password" id="ycf-login-password" required autocomplete="current-password" placeholder="\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022">';
+    h +=       '<input type="password" id="ycf-login-password" name="password" required autocomplete="current-password" placeholder="\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022">';
     h +=     '</div>';
     h +=     '<div class="yb-auth-error" id="ycf-login-error" hidden role="alert"></div>';
     h +=     '<button type="submit" class="yb-auth-submit" id="ycf-login-btn" data-yj-da>Log ind</button>';
@@ -1404,6 +1404,9 @@
             return;
           }
 
+          // If onAuthStateChanged already handled this (closed modal / redirected), bail out
+          if (!modal || modal.getAttribute('aria-hidden') === 'true') return;
+
           authOriginStep = 'login';
           // Track auth complete
           trackAuthComplete();
@@ -1499,6 +1502,9 @@
             showError('ycf-register-error', authErrorMsg(err));
             return;
           }
+
+          // If onAuthStateChanged already handled this (closed modal / redirected), bail out
+          if (!modal || modal.getAttribute('aria-hidden') === 'true') return;
 
           // Track auth complete with profile data
           authOriginStep = 'register';
