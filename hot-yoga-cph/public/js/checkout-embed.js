@@ -339,8 +339,795 @@
     document.head.appendChild(style);
   }
 
-  // ── Part 3 continues: Modal HTML injection ──────────────────────────
-  // ── Part 4 continues: Checkout flow logic ───────────────────────────
-  // ── Part 5 continues: Event handlers, funnel tracking, boot ─────────
+  // ── Part 3: Modal HTML + Auth Logic + Step Navigation ────────────────
+
+  // ── 3A: State ───────────────────────────────────────────────────────
+  var currentProdId = null;
+  var currentStep = 1;
+  var mbClientId = null;
+  var storedCard = null;
+  var authOriginStep = null;   // 'login' | 'register'
+  var cameFromLoggedIn = false;
+  var modal = null;
+  var scrollY = 0;
+
+  // ── 3B: DOM helpers ─────────────────────────────────────────────────
+  function $(id) { return document.getElementById(id); }
+
+  function showError(elId, msg) {
+    var el = $(elId);
+    if (el) { el.textContent = msg; el.hidden = false; }
+  }
+
+  function hideError(elId) {
+    var el = $(elId);
+    if (el) { el.textContent = ''; el.hidden = true; }
+  }
+
+  // ── 3C: Modal HTML injection ────────────────────────────────────────
+  // Builds the 4-step checkout modal and appends it to <body>.
+  // Mirrors modal-checkout-flow.njk but self-contained (no image deps).
+
+  function injectModalHTML() {
+    if ($('ycf-modal')) return;
+
+    var TERMS_BASE = PROFILE_URL;
+    var h = '';
+
+    // ── Modal shell ───────────────────────────────────────────────
+    h += '<div id="ycf-modal" class="yb-auth-modal" aria-hidden="true" role="dialog" aria-modal="true" aria-label="Checkout">';
+    h +=   '<div class="yb-auth-modal__overlay" data-ycf-close></div>';
+    h +=   '<div class="yb-auth-modal__box ycf-box">';
+    h +=     '<button class="yb-auth-modal__close" type="button" data-ycf-close aria-label="Close">&#10005;</button>';
+
+    // ── Step indicator (3 dots) ───────────────────────────────────
+    h +=     '<div class="ycf-steps">';
+    h +=       '<div class="ycf-steps__dot ycf-steps__dot--active" data-ycf-step-dot="1"></div>';
+    h +=       '<div class="ycf-steps__line"></div>';
+    h +=       '<div class="ycf-steps__dot" data-ycf-step-dot="2"></div>';
+    h +=       '<div class="ycf-steps__line"></div>';
+    h +=       '<div class="ycf-steps__dot" data-ycf-step-dot="3"></div>';
+    h +=     '</div>';
+
+    // ═══════════════════════════════════════════════════════════════
+    // STEP 1 — LOGIN
+    // ═══════════════════════════════════════════════════════════════
+    h += '<div class="ycf-step" id="ycf-step-login" data-ycf-step="1">';
+    h +=   '<div class="yb-auth-modal__header">';
+    h +=     '<h2 class="yb-auth-modal__title" data-yj-da>Velkommen tilbage</h2>';
+    h +=     '<h2 class="yb-auth-modal__title" data-yj-en hidden>Welcome back</h2>';
+    h +=     '<p class="yb-auth-modal__subtitle" data-yj-da>Log ind for at forts\u00e6tte til betaling</p>';
+    h +=     '<p class="yb-auth-modal__subtitle" data-yj-en hidden>Sign in to continue to payment</p>';
+    h +=   '</div>';
+
+    // Product preview badge
+    h +=   '<div class="ycf-product-badge" id="ycf-product-badge">';
+    h +=     '<div class="ycf-product-badge__top">';
+    h +=       '<span class="ycf-product-badge__name" id="ycf-badge-name"></span>';
+    h +=       '<span class="ycf-product-badge__price" id="ycf-badge-price"></span>';
+    h +=     '</div>';
+    h +=     '<span class="ycf-product-badge__cohort" id="ycf-badge-cohort" hidden></span>';
+    h +=     '<p class="ycf-product-badge__desc" data-yj-da>Du f\u00e5r adgang til at booke klasser efter betaling</p>';
+    h +=     '<p class="ycf-product-badge__desc" data-yj-en hidden>You\'ll be able to start booking classes after payment</p>';
+    h +=   '</div>';
+
+    // Login form
+    h +=   '<form id="ycf-login-form" class="yb-auth-form" novalidate>';
+    h +=     '<div class="yb-auth-field">';
+    h +=       '<label for="ycf-login-email" data-yj-da>Email</label>';
+    h +=       '<label for="ycf-login-email" data-yj-en hidden>Email</label>';
+    h +=       '<input type="email" id="ycf-login-email" required autocomplete="email" placeholder="din@email.dk">';
+    h +=     '</div>';
+    h +=     '<div class="yb-auth-field">';
+    h +=       '<label for="ycf-login-password" data-yj-da>Adgangskode</label>';
+    h +=       '<label for="ycf-login-password" data-yj-en hidden>Password</label>';
+    h +=       '<input type="password" id="ycf-login-password" required autocomplete="current-password" placeholder="\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022">';
+    h +=     '</div>';
+    h +=     '<div class="yb-auth-error" id="ycf-login-error" hidden role="alert"></div>';
+    h +=     '<button type="submit" class="yb-auth-submit" id="ycf-login-btn" data-yj-da>Log ind</button>';
+    h +=     '<button type="submit" class="yb-auth-submit" id="ycf-login-btn-en" data-yj-en hidden>Sign in</button>';
+    h +=   '</form>';
+
+    h +=   '<div class="yb-auth-links">';
+    h +=     '<a href="#" data-ycf-action="forgot" data-yj-da>Glemt adgangskode?</a>';
+    h +=     '<a href="#" data-ycf-action="forgot" data-yj-en hidden>Forgot password?</a>';
+    h +=   '</div>';
+    h +=   '<div class="yb-auth-divider">';
+    h +=     '<span data-yj-da>Har du ikke en konto?</span>';
+    h +=     '<span data-yj-en hidden>Don\'t have an account?</span>';
+    h +=     '<a href="#" data-ycf-action="register" data-yj-da>Opret profil</a>';
+    h +=     '<a href="#" data-ycf-action="register" data-yj-en hidden>Create profile</a>';
+    h +=   '</div>';
+    h += '</div>'; // end step-login
+
+    // ═══════════════════════════════════════════════════════════════
+    // STEP 1b — FORGOT PASSWORD
+    // ═══════════════════════════════════════════════════════════════
+    h += '<div class="ycf-step" id="ycf-step-forgot" data-ycf-step="1" hidden>';
+    h +=   '<div class="yb-auth-modal__header">';
+    h +=     '<h2 class="yb-auth-modal__title" data-yj-da>Nulstil adgangskode</h2>';
+    h +=     '<h2 class="yb-auth-modal__title" data-yj-en hidden>Reset password</h2>';
+    h +=     '<p class="yb-auth-modal__subtitle" data-yj-da>Indtast din email, s\u00e5 sender vi dig et link</p>';
+    h +=     '<p class="yb-auth-modal__subtitle" data-yj-en hidden>Enter your email and we\'ll send you a reset link</p>';
+    h +=   '</div>';
+    h +=   '<form id="ycf-forgot-form" class="yb-auth-form" novalidate>';
+    h +=     '<div class="yb-auth-field">';
+    h +=       '<label for="ycf-forgot-email" data-yj-da>Email</label>';
+    h +=       '<label for="ycf-forgot-email" data-yj-en hidden>Email</label>';
+    h +=       '<input type="email" id="ycf-forgot-email" required autocomplete="email" placeholder="din@email.dk">';
+    h +=     '</div>';
+    h +=     '<div class="yb-auth-error" id="ycf-forgot-error" hidden role="alert"></div>';
+    h +=     '<div class="yb-auth-success" id="ycf-forgot-success" hidden role="status"></div>';
+    h +=     '<button type="submit" class="yb-auth-submit" data-yj-da>Send nulstillingslink</button>';
+    h +=     '<button type="submit" class="yb-auth-submit" data-yj-en hidden>Send reset link</button>';
+    h +=   '</form>';
+    h +=   '<div class="yb-auth-divider">';
+    h +=     '<a href="#" data-ycf-action="back-login" data-yj-da>&larr; Tilbage til log ind</a>';
+    h +=     '<a href="#" data-ycf-action="back-login" data-yj-en hidden>&larr; Back to sign in</a>';
+    h +=   '</div>';
+    h += '</div>'; // end step-forgot
+
+    // ═══════════════════════════════════════════════════════════════
+    // STEP 2 — REGISTER
+    // ═══════════════════════════════════════════════════════════════
+    h += '<div class="ycf-step" id="ycf-step-register" data-ycf-step="2" hidden>';
+    h +=   '<a href="#" class="ycf-back" data-ycf-action="back-login">';
+    h +=     '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5"/><path d="M12 19l-7-7 7-7"/></svg>';
+    h +=     '<span data-yj-da>Tilbage</span>';
+    h +=     '<span data-yj-en hidden>Back</span>';
+    h +=   '</a>';
+    h +=   '<div class="yb-auth-modal__header">';
+    h +=     '<h2 class="yb-auth-modal__title" data-yj-da>Opret din profil</h2>';
+    h +=     '<h2 class="yb-auth-modal__title" data-yj-en hidden>Create your profile</h2>';
+    h +=     '<p class="yb-auth-modal__subtitle" data-yj-da>Det tager kun et minut</p>';
+    h +=     '<p class="yb-auth-modal__subtitle" data-yj-en hidden>It only takes a minute</p>';
+    h +=   '</div>';
+
+    h +=   '<form id="ycf-register-form" class="yb-auth-form" novalidate>';
+    h +=     '<div class="yb-auth-row">';
+    h +=       '<div class="yb-auth-field">';
+    h +=         '<label for="ycf-reg-firstname" data-yj-da>Fornavn</label>';
+    h +=         '<label for="ycf-reg-firstname" data-yj-en hidden>First name</label>';
+    h +=         '<input type="text" id="ycf-reg-firstname" required autocomplete="given-name" placeholder="Fornavn">';
+    h +=       '</div>';
+    h +=       '<div class="yb-auth-field">';
+    h +=         '<label for="ycf-reg-lastname" data-yj-da>Efternavn</label>';
+    h +=         '<label for="ycf-reg-lastname" data-yj-en hidden>Last name</label>';
+    h +=         '<input type="text" id="ycf-reg-lastname" required autocomplete="family-name" placeholder="Efternavn">';
+    h +=       '</div>';
+    h +=     '</div>';
+    h +=     '<div class="yb-auth-field">';
+    h +=       '<label for="ycf-reg-email" data-yj-da>Email</label>';
+    h +=       '<label for="ycf-reg-email" data-yj-en hidden>Email</label>';
+    h +=       '<input type="email" id="ycf-reg-email" required autocomplete="email" placeholder="din@email.dk">';
+    h +=     '</div>';
+    h +=     '<div class="yb-auth-field">';
+    h +=       '<label for="ycf-reg-phone" data-yj-da>Telefon</label>';
+    h +=       '<label for="ycf-reg-phone" data-yj-en hidden>Phone</label>';
+    h +=       '<input type="tel" id="ycf-reg-phone" autocomplete="tel" placeholder="+45 12 34 56 78">';
+    h +=     '</div>';
+    h +=     '<div class="yb-auth-field">';
+    h +=       '<label for="ycf-reg-password" data-yj-da>Adgangskode</label>';
+    h +=       '<label for="ycf-reg-password" data-yj-en hidden>Password</label>';
+    h +=       '<input type="password" id="ycf-reg-password" required autocomplete="new-password" placeholder="Mindst 6 tegn">';
+    h +=     '</div>';
+
+    // Consent checkboxes — links point to profile subdomain
+    h +=     '<div class="yb-auth-consent">';
+    h +=       '<label class="yb-auth-consent__item">';
+    h +=         '<input type="checkbox" id="ycf-reg-terms" required>';
+    h +=         '<span data-yj-da>Jeg accepterer <a href="' + TERMS_BASE + '/terms-conditions/" target="_blank" rel="noopener">Handelsbetingelser</a> og <a href="' + TERMS_BASE + '/privacy-policy/" target="_blank" rel="noopener">Privatlivspolitik</a></span>';
+    h +=         '<span data-yj-en hidden>I agree to the <a href="' + TERMS_BASE + '/en/terms-conditions/" target="_blank" rel="noopener">Terms &amp; Conditions</a> and <a href="' + TERMS_BASE + '/en/privacy-policy/" target="_blank" rel="noopener">Privacy Policy</a></span>';
+    h +=       '</label>';
+    h +=       '<label class="yb-auth-consent__item">';
+    h +=         '<input type="checkbox" id="ycf-reg-conduct" required>';
+    h +=         '<span data-yj-da>Jeg accepterer <a href="' + TERMS_BASE + '/code-of-conduct/" target="_blank" rel="noopener">Code of Conduct</a></span>';
+    h +=         '<span data-yj-en hidden>I agree to the <a href="' + TERMS_BASE + '/en/code-of-conduct/" target="_blank" rel="noopener">Code of Conduct</a></span>';
+    h +=       '</label>';
+    h +=     '</div>';
+
+    h +=     '<div class="yb-auth-error" id="ycf-register-error" hidden role="alert"></div>';
+    h +=     '<button type="submit" class="yb-auth-submit" data-yj-da>Opret profil &amp; forts\u00e6t</button>';
+    h +=     '<button type="submit" class="yb-auth-submit" data-yj-en hidden>Create profile &amp; continue</button>';
+    h +=   '</form>';
+
+    h +=   '<div class="yb-auth-divider">';
+    h +=     '<span data-yj-da>Har du allerede en konto?</span>';
+    h +=     '<span data-yj-en hidden>Already have an account?</span>';
+    h +=     '<a href="#" data-ycf-action="back-login" data-yj-da>Log ind</a>';
+    h +=     '<a href="#" data-ycf-action="back-login" data-yj-en hidden>Sign in</a>';
+    h +=   '</div>';
+    h += '</div>'; // end step-register
+
+    // ═══════════════════════════════════════════════════════════════
+    // STEP 3 — CHECKOUT (payment form)
+    // ═══════════════════════════════════════════════════════════════
+    h += '<div class="ycf-step" id="ycf-step-checkout" data-ycf-step="3" hidden>';
+    h +=   '<a href="#" class="ycf-back" data-ycf-action="back-auth" id="ycf-back-from-checkout">';
+    h +=     '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5"/><path d="M12 19l-7-7 7-7"/></svg>';
+    h +=     '<span data-yj-da>Tilbage</span>';
+    h +=     '<span data-yj-en hidden>Back</span>';
+    h +=   '</a>';
+    h +=   '<div class="yb-auth-modal__header">';
+    h +=     '<h2 class="yb-auth-modal__title" data-yj-da>Gennemf\u00f8r k\u00f8b</h2>';
+    h +=     '<h2 class="yb-auth-modal__title" data-yj-en hidden>Complete purchase</h2>';
+    h +=   '</div>';
+
+    // Product breakdown card
+    h +=   '<div class="ycf-product" id="ycf-product-info">';
+    h +=     '<div class="ycf-product__header">';
+    h +=       '<span class="ycf-product__name" id="ycf-prod-name"></span>';
+    h +=       '<span class="ycf-product__price" id="ycf-prod-price"></span>';
+    h +=     '</div>';
+    h +=     '<div class="ycf-product__chips" id="ycf-prod-chips"></div>';
+    h +=     '<p class="ycf-product__desc" id="ycf-prod-desc"></p>';
+    h +=     '<div class="ycf-product__note" id="ycf-prod-note" hidden>';
+    h +=       '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>';
+    h +=       '<span id="ycf-prod-note-text"></span>';
+    h +=     '</div>';
+    h +=   '</div>';
+
+    // Payment form
+    h +=   '<form id="ycf-checkout-form" class="yb-auth-form" novalidate>';
+    h +=     '<div class="yb-checkout-divider">';
+    h +=       '<span data-yj-da>Betalingsoplysninger</span>';
+    h +=       '<span data-yj-en hidden>Payment details</span>';
+    h +=     '</div>';
+
+    // Stored card section (hidden by default)
+    h +=     '<div id="ycf-stored-card-section" class="ycf-payment-methods" hidden>';
+    h +=       '<label class="ycf-payment-option ycf-payment-option--active" id="ycf-opt-stored">';
+    h +=         '<input type="radio" name="ycf-payment-method" value="stored" checked>';
+    h +=         '<div class="ycf-payment-option__info">';
+    h +=           '<span class="ycf-payment-option__label" data-yj-da>Brug gemt kort</span>';
+    h +=           '<span class="ycf-payment-option__label" data-yj-en hidden>Use saved card</span>';
+    h +=           '<span class="ycf-payment-option__card" id="ycf-stored-card-info"></span>';
+    h +=         '</div>';
+    h +=       '</label>';
+    h +=       '<label class="ycf-payment-option" id="ycf-opt-new">';
+    h +=         '<input type="radio" name="ycf-payment-method" value="new">';
+    h +=         '<span class="ycf-payment-option__label" data-yj-da>Brug nyt kort</span>';
+    h +=         '<span class="ycf-payment-option__label" data-yj-en hidden>Use new card</span>';
+    h +=       '</label>';
+    h +=     '</div>';
+
+    // New card fields
+    h +=     '<div id="ycf-new-card-fields">';
+    h +=       '<div class="yb-auth-field">';
+    h +=         '<label for="ycf-card" data-yj-da>Kortnummer *</label>';
+    h +=         '<label for="ycf-card" data-yj-en hidden>Card number *</label>';
+    h +=         '<input type="text" id="ycf-card" autocomplete="cc-number" inputmode="numeric" placeholder="1234 5678 9012 3456" maxlength="19">';
+    h +=       '</div>';
+    h +=       '<div class="yb-checkout-row">';
+    h +=         '<div class="yb-auth-field">';
+    h +=           '<label for="ycf-expiry" data-yj-da>Udl\u00f8b *</label>';
+    h +=           '<label for="ycf-expiry" data-yj-en hidden>Expiry *</label>';
+    h +=           '<input type="text" id="ycf-expiry" autocomplete="cc-exp" inputmode="numeric" placeholder="MM/\u00c5\u00c5" maxlength="5">';
+    h +=         '</div>';
+    h +=         '<div class="yb-auth-field">';
+    h +=           '<label for="ycf-cvv">CVV *</label>';
+    h +=           '<input type="text" id="ycf-cvv" autocomplete="cc-csc" inputmode="numeric" placeholder="123" maxlength="4">';
+    h +=         '</div>';
+    h +=       '</div>';
+    h +=     '</div>';
+
+    h +=     '<div class="yb-auth-error" id="ycf-checkout-error" hidden role="alert"></div>';
+    h +=     '<button type="submit" class="yb-auth-submit" id="ycf-pay-btn" data-yj-da>Betal</button>';
+    h +=     '<button type="submit" class="yb-auth-submit" id="ycf-pay-btn-en" data-yj-en hidden>Pay</button>';
+    h +=     '<p class="yb-checkout-secure">';
+    h +=       '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>';
+    h +=       '<span data-yj-da>Sikker betaling via Mindbody</span>';
+    h +=       '<span data-yj-en hidden>Secure payment via Mindbody</span>';
+    h +=     '</p>';
+    h +=   '</form>';
+    h += '</div>'; // end step-checkout
+
+    // ═══════════════════════════════════════════════════════════════
+    // STEP 4 — SUCCESS
+    // ═══════════════════════════════════════════════════════════════
+    h += '<div class="ycf-step" id="ycf-step-success" data-ycf-step="3" hidden>';
+    h +=   '<div class="yb-checkout-success__inner">';
+    h +=     '<div class="yb-checkout-success__icon">&#10003;</div>';
+    h +=     '<h2 class="yb-auth-modal__title" data-yj-da>Betaling gennemf\u00f8rt!</h2>';
+    h +=     '<h2 class="yb-auth-modal__title" data-yj-en hidden>Payment successful!</h2>';
+    h +=     '<p class="yb-auth-modal__subtitle" data-yj-da>Du modtager en bekr\u00e6ftelse p\u00e5 email. N\u00e6ste skridt: underskriv din ansvarsfraskrivelse.</p>';
+    h +=     '<p class="yb-auth-modal__subtitle" data-yj-en hidden>You\'ll receive a confirmation email. Next step: sign your liability waiver.</p>';
+    h +=     '<button class="yb-auth-submit" type="button" id="ycf-go-profile" data-yj-da>G\u00e5 til din profil</button>';
+    h +=     '<button class="yb-auth-submit" type="button" id="ycf-go-profile-en" data-yj-en hidden>Go to your profile</button>';
+    h +=   '</div>';
+    h += '</div>'; // end step-success
+
+    // Close modal shell
+    h +=   '</div>'; // .yb-auth-modal__box
+    h += '</div>';   // #ycf-modal
+
+    var container = document.createElement('div');
+    container.innerHTML = h;
+    document.body.appendChild(container.firstChild);
+  }
+
+  // ── 3D: Modal open / close ──────────────────────────────────────────
+
+  function openModal() {
+    modal = $('ycf-modal');
+    if (!modal) return;
+
+    scrollY = window.scrollY;
+    document.documentElement.style.overflow = 'hidden';
+    document.body.style.overflow = 'hidden';
+    if (/iPhone|iPad|iPod/.test(navigator.userAgent)) {
+      document.body.style.position = 'fixed';
+      document.body.style.width = '100%';
+      document.body.style.top = '-' + scrollY + 'px';
+    }
+    modal.setAttribute('aria-hidden', 'false');
+  }
+
+  function closeModal() {
+    if (!modal) return;
+    modal.setAttribute('aria-hidden', 'true');
+    document.documentElement.style.overflow = '';
+    document.body.style.overflow = '';
+    document.body.style.position = '';
+    document.body.style.width = '';
+    document.body.style.top = '';
+    window.scrollTo(0, scrollY);
+    currentProdId = null;
+    mbClientId = null;
+    storedCard = null;
+  }
+
+  // ── 3E: Step navigation ─────────────────────────────────────────────
+
+  function showStep(stepId) {
+    if (!modal) return;
+    var steps = modal.querySelectorAll('.ycf-step');
+    for (var i = 0; i < steps.length; i++) steps[i].hidden = true;
+
+    var target = $(stepId);
+    if (!target) return;
+    target.hidden = false;
+
+    // Update step dots
+    var stepNum = parseInt(target.getAttribute('data-ycf-step')) || 1;
+    currentStep = stepNum;
+    var dots = modal.querySelectorAll('.ycf-steps__dot');
+    for (var d = 0; d < dots.length; d++) {
+      var dotStep = parseInt(dots[d].getAttribute('data-ycf-step-dot')) || 0;
+      if (dotStep <= stepNum) dots[d].classList.add('ycf-steps__dot--active');
+      else dots[d].classList.remove('ycf-steps__dot--active');
+    }
+
+    // Focus first input after transition
+    setTimeout(function () {
+      var firstInput = target.querySelector('input:not([type="hidden"]):not([type="checkbox"]):not([type="radio"])');
+      if (firstInput && !firstInput.closest('[hidden]')) firstInput.focus();
+    }, 80);
+  }
+
+  // ── 3F: Populate product info on badge + checkout card ──────────────
+
+  function populateProduct(prodId) {
+    var p = getProduct(prodId);
+    if (!p) return;
+
+    var name = isDa ? p.name_da : p.name_en;
+    var price = p.price.toLocaleString('da-DK') + ' DKK';
+
+    // Badge (login step)
+    var badgeName = $('ycf-badge-name');
+    var badgePrice = $('ycf-badge-price');
+    var badgeCohort = $('ycf-badge-cohort');
+    if (badgeName) badgeName.textContent = name;
+    if (badgePrice) badgePrice.textContent = price;
+
+    // Cohort line: label + validity + classes
+    if (badgeCohort) {
+      var parts = [];
+      var label = isDa ? p.label_da : p.label_en;
+      if (label) parts.push(label);
+      if (p.validity) parts.push(p.validity);
+      if (p.classes) parts.push(p.classes + t(' klasser', ' classes'));
+      badgeCohort.textContent = parts.join(' \u00b7 ');
+      badgeCohort.hidden = parts.length === 0;
+    }
+
+    // Checkout step product card
+    var prodName  = $('ycf-prod-name');
+    var prodPrice = $('ycf-prod-price');
+    var prodDesc  = $('ycf-prod-desc');
+    var prodChips = $('ycf-prod-chips');
+    var prodNote  = $('ycf-prod-note');
+
+    if (prodName) prodName.textContent = name;
+    if (prodPrice) prodPrice.textContent = price;
+    if (prodDesc) prodDesc.textContent = (isDa ? p.desc_da : p.desc_en) || '';
+
+    // Chips: validity + classes
+    if (prodChips) {
+      var chips = '';
+      if (p.validity) {
+        chips += '<span class="ycf-chip">' + p.validity + '</span>';
+      }
+      if (p.classes) {
+        chips += '<span class="ycf-chip">' + p.classes + t(' klasser', ' classes') + '</span>';
+      }
+      prodChips.innerHTML = chips;
+    }
+
+    // No remaining-payment note for service-type products (Phase 1)
+    if (prodNote) prodNote.hidden = true;
+  }
+
+  // ── 3G: Firebase Auth Functions ─────────────────────────────────────
+
+  function doLogin(email, password, callback) {
+    firebase.auth().signInWithEmailAndPassword(email, password)
+      .then(function () { callback(null); })
+      .catch(function (err) { callback(err); });
+  }
+
+  function doRegister(email, password, firstName, lastName, phone, callback) {
+    firebase.auth().createUserWithEmailAndPassword(email, password)
+      .then(function (cred) {
+        var fullName = firstName + ' ' + lastName;
+        // Store registration data for Firestore profile creation
+        window._ybRegistration = {
+          firstName: firstName,
+          lastName: lastName,
+          phone: phone,
+          consents: {
+            termsAndConditions: { accepted: true, timestamp: new Date().toISOString(), version: '2026-02-09' },
+            privacyPolicy:     { accepted: true, timestamp: new Date().toISOString(), version: '2026-02-09' },
+            codeOfConduct:     { accepted: true, timestamp: new Date().toISOString(), version: '2026-02-09' }
+          }
+        };
+        return cred.user.updateProfile({ displayName: fullName });
+      })
+      .then(function () { callback(null); })
+      .catch(function (err) { callback(err); });
+  }
+
+  function doForgotPassword(email, callback) {
+    firebase.auth().sendPasswordResetEmail(email)
+      .then(function () { callback(null); })
+      .catch(function (err) { callback(err); });
+  }
+
+  function authErrorMsg(err) {
+    var code = err.code || '';
+    if (code === 'auth/user-not-found' || code === 'auth/wrong-password' || code === 'auth/invalid-credential') {
+      return t('Forkert email eller adgangskode.', 'Incorrect email or password.');
+    }
+    if (code === 'auth/email-already-in-use') {
+      return t('Denne email er allerede i brug.', 'This email is already in use.');
+    }
+    if (code === 'auth/weak-password') {
+      return t('Adgangskoden skal v\u00e6re mindst 6 tegn.', 'Password must be at least 6 characters.');
+    }
+    if (code === 'auth/invalid-email') {
+      return t('Ugyldig email-adresse.', 'Invalid email address.');
+    }
+    if (code === 'auth/too-many-requests') {
+      return t('For mange fors\u00f8g. Pr\u00f8v igen senere.', 'Too many attempts. Please try again later.');
+    }
+    return err.message || t('Der opstod en fejl.', 'An error occurred.');
+  }
+
+  // ── 3H: Mindbody Client — find/create + stored card ─────────────────
+
+  function findOrCreateClient(firstName, lastName, email, phone) {
+    return fetch(API_BASE + '/mb-client?email=' + encodeURIComponent(email))
+      .then(function (res) { return res.json(); })
+      .then(function (data) {
+        if (data.found && data.client) return data.client.id;
+        // No existing client — create one (triggers MB welcome email)
+        return fetch(API_BASE + '/mb-client', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            firstName: firstName,
+            lastName: lastName || firstName,
+            email: email,
+            phone: phone || ''
+          })
+        })
+        .then(function (res) { return res.json(); })
+        .then(function (d) {
+          if (d.client) return d.client.id;
+          throw new Error(t('Kunne ikke oprette kundekonto.', 'Could not create client account.'));
+        });
+      });
+  }
+
+  function fetchStoredCard(clientId) {
+    return fetch(API_BASE + '/mb-client?action=storedCard&clientId=' + encodeURIComponent(clientId))
+      .then(function (res) { return res.json(); })
+      .then(function (data) {
+        if (data.hasStoredCard && data.storedCard && data.storedCard.lastFour) {
+          return data.storedCard;
+        }
+        return null;
+      })
+      .catch(function () { return null; });
+  }
+
+  function renderStoredCardUI(card) {
+    var section = $('ycf-stored-card-section');
+    var newCardFields = $('ycf-new-card-fields');
+    var cardInfo = $('ycf-stored-card-info');
+    if (!section || !newCardFields) return;
+
+    if (card && card.lastFour) {
+      storedCard = card;
+      var cardLabel = (card.cardType || 'Card') + ' \u2022\u2022\u2022\u2022 ' + card.lastFour;
+      if (card.expMonth && card.expYear) {
+        cardLabel += ' (' + card.expMonth + '/' + String(card.expYear).slice(-2) + ')';
+      }
+      if (cardInfo) cardInfo.textContent = cardLabel;
+      section.hidden = false;
+      var storedRadio = section.querySelector('input[value="stored"]');
+      if (storedRadio) storedRadio.checked = true;
+      newCardFields.hidden = true;
+      updatePaymentOptionStyles();
+    } else {
+      storedCard = null;
+      section.hidden = true;
+      newCardFields.hidden = false;
+    }
+  }
+
+  function updatePaymentOptionStyles() {
+    var section = $('ycf-stored-card-section');
+    if (!section) return;
+    var opts = section.querySelectorAll('.ycf-payment-option');
+    for (var i = 0; i < opts.length; i++) {
+      var radio = opts[i].querySelector('input[type="radio"]');
+      if (radio && radio.checked) opts[i].classList.add('ycf-payment-option--active');
+      else opts[i].classList.remove('ycf-payment-option--active');
+    }
+  }
+
+  // ── 3I: Post-auth — resolve MB client → advance to checkout ─────────
+
+  function resolveClientAndAdvance(firstName, lastName, email, phone) {
+    console.log('[HYC Embed] Resolving MB client for:', email);
+
+    findOrCreateClient(firstName, lastName, email, phone)
+      .then(function (clientId) {
+        mbClientId = clientId;
+        console.log('[HYC Embed] MB client resolved:', clientId);
+
+        // Non-blocking: check for stored card, update UI when ready
+        fetchStoredCard(clientId).then(function (card) {
+          renderStoredCardUI(card);
+          console.log('[HYC Embed] Stored card:', card ? ('\u2022\u2022\u2022\u2022 ' + card.lastFour) : 'none');
+        });
+
+        showStep('ycf-step-checkout');
+      })
+      .catch(function (err) {
+        console.warn('[HYC Embed] MB client error:', err.message);
+        // Still advance — payment step will retry
+        showStep('ycf-step-checkout');
+      });
+  }
+
+  // ── 3J: Entry point — open the checkout flow ────────────────────────
+
+  function openCheckoutFlow(prodId) {
+    if (!prodId) return;
+    currentProdId = String(prodId);
+    mbClientId = null;
+    storedCard = null;
+
+    modal = $('ycf-modal');
+    if (!modal) return;
+
+    // Reset all forms
+    var inputs = modal.querySelectorAll('input');
+    for (var i = 0; i < inputs.length; i++) {
+      if (inputs[i].type === 'checkbox') inputs[i].checked = false;
+      else if (inputs[i].type === 'radio') { /* handled by renderStoredCardUI */ }
+      else if (inputs[i].type !== 'hidden') inputs[i].value = '';
+    }
+    var errorEls = modal.querySelectorAll('.yb-auth-error, .yb-auth-success');
+    for (var e = 0; e < errorEls.length; e++) { errorEls[e].textContent = ''; errorEls[e].hidden = true; }
+
+    // Reset stored card UI
+    renderStoredCardUI(null);
+
+    // Populate product info
+    populateProduct(currentProdId);
+
+    // Check if already logged in
+    var user = null;
+    try { user = firebase.auth().currentUser; } catch (ex) { /* not ready */ }
+
+    var backFromCheckout = $('ycf-back-from-checkout');
+
+    if (user) {
+      cameFromLoggedIn = true;
+      authOriginStep = null;
+      if (backFromCheckout) backFromCheckout.hidden = true;
+
+      openModal();
+      showStep('ycf-step-checkout');
+
+      var displayName = user.displayName || '';
+      var nameParts = displayName.split(' ');
+      resolveClientAndAdvance(
+        nameParts[0] || 'User',
+        nameParts.slice(1).join(' ') || '',
+        user.email || '',
+        ''
+      );
+    } else {
+      cameFromLoggedIn = false;
+      if (backFromCheckout) backFromCheckout.hidden = false;
+      showStep('ycf-step-login');
+      openModal();
+    }
+  }
+
+  // ── 3K: Wire up event handlers (auth forms, navigation) ────────────
+
+  function wireAuthEvents() {
+    // ── Close handlers ─────────────────────────────────────────────
+    document.addEventListener('click', function (e) {
+      if (e.target.closest('[data-ycf-close]')) {
+        e.preventDefault();
+        closeModal();
+      }
+    });
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape' && modal && modal.getAttribute('aria-hidden') === 'false') {
+        closeModal();
+      }
+    });
+
+    // ── Action links (register, forgot, back-login, back-auth) ────
+    document.addEventListener('click', function (e) {
+      var el = e.target.closest('[data-ycf-action]');
+      if (!el) return;
+      e.preventDefault();
+      var action = el.getAttribute('data-ycf-action');
+      if (action === 'register') showStep('ycf-step-register');
+      if (action === 'forgot')   showStep('ycf-step-forgot');
+      if (action === 'back-login') showStep('ycf-step-login');
+      if (action === 'back-auth') {
+        if (authOriginStep === 'register') showStep('ycf-step-register');
+        else showStep('ycf-step-login');
+      }
+    });
+
+    // ── Payment method radio toggle ───────────────────────────────
+    document.addEventListener('change', function (e) {
+      if (e.target.name !== 'ycf-payment-method') return;
+      var newCardFields = $('ycf-new-card-fields');
+      if (newCardFields) newCardFields.hidden = (e.target.value === 'stored');
+      updatePaymentOptionStyles();
+    });
+
+    // ── Login form ────────────────────────────────────────────────
+    var loginForm = $('ycf-login-form');
+    if (loginForm) {
+      loginForm.addEventListener('submit', function (e) {
+        e.preventDefault();
+        hideError('ycf-login-error');
+
+        var email = $('ycf-login-email').value.trim();
+        var password = $('ycf-login-password').value;
+
+        if (!email || !password) {
+          showError('ycf-login-error', t('Udfyld alle felter.', 'Please fill in all fields.'));
+          return;
+        }
+
+        var btn = loginForm.querySelector('.yb-auth-submit');
+        if (btn) { btn.disabled = true; btn.textContent = t('Logger ind...', 'Signing in...'); }
+
+        doLogin(email, password, function (err) {
+          if (btn) { btn.disabled = false; btn.textContent = t('Log ind', 'Sign in'); }
+
+          if (err) {
+            showError('ycf-login-error', authErrorMsg(err));
+            return;
+          }
+
+          authOriginStep = 'login';
+          var user = firebase.auth().currentUser;
+          var displayName = (user && user.displayName) || '';
+          var nameParts = displayName.split(' ');
+          resolveClientAndAdvance(
+            nameParts[0] || 'User',
+            nameParts.slice(1).join(' ') || '',
+            (user && user.email) || email,
+            ''
+          );
+        });
+      });
+    }
+
+    // ── Forgot password form ──────────────────────────────────────
+    var forgotForm = $('ycf-forgot-form');
+    if (forgotForm) {
+      forgotForm.addEventListener('submit', function (e) {
+        e.preventDefault();
+        hideError('ycf-forgot-error');
+        var successEl = $('ycf-forgot-success');
+        if (successEl) successEl.hidden = true;
+
+        var email = $('ycf-forgot-email').value.trim();
+        if (!email) {
+          showError('ycf-forgot-error', t('Indtast din email.', 'Please enter your email.'));
+          return;
+        }
+
+        doForgotPassword(email, function (err) {
+          if (err) {
+            showError('ycf-forgot-error', authErrorMsg(err));
+            return;
+          }
+          if (successEl) {
+            successEl.textContent = t(
+              'Vi har sendt dig et link til at nulstille din adgangskode.',
+              'We\'ve sent you a link to reset your password.'
+            );
+            successEl.hidden = false;
+          }
+        });
+      });
+    }
+
+    // ── Register form ─────────────────────────────────────────────
+    var registerForm = $('ycf-register-form');
+    if (registerForm) {
+      registerForm.addEventListener('submit', function (e) {
+        e.preventDefault();
+        hideError('ycf-register-error');
+
+        var firstName = $('ycf-reg-firstname').value.trim();
+        var lastName  = $('ycf-reg-lastname').value.trim();
+        var email     = $('ycf-reg-email').value.trim();
+        var phone     = $('ycf-reg-phone').value.trim();
+        var password  = $('ycf-reg-password').value;
+        var terms     = $('ycf-reg-terms').checked;
+        var conduct   = $('ycf-reg-conduct').checked;
+
+        if (!firstName || !lastName || !email || !password) {
+          showError('ycf-register-error', t('Udfyld alle obligatoriske felter.', 'Please fill in all required fields.'));
+          return;
+        }
+        if (password.length < 6) {
+          showError('ycf-register-error', t('Adgangskoden skal v\u00e6re mindst 6 tegn.', 'Password must be at least 6 characters.'));
+          return;
+        }
+        if (!terms || !conduct) {
+          showError('ycf-register-error', t('Du skal acceptere betingelserne.', 'You must accept the terms.'));
+          return;
+        }
+
+        var btn = registerForm.querySelector('.yb-auth-submit');
+        if (btn) { btn.disabled = true; btn.textContent = t('Opretter profil...', 'Creating profile...'); }
+
+        doRegister(email, password, firstName, lastName, phone, function (err) {
+          if (btn) { btn.disabled = false; btn.textContent = t('Opret profil & forts\u00e6t', 'Create profile & continue'); }
+
+          if (err) {
+            showError('ycf-register-error', authErrorMsg(err));
+            return;
+          }
+
+          // Create MB client immediately (triggers welcome email) → checkout
+          authOriginStep = 'register';
+          resolveClientAndAdvance(firstName, lastName, email, phone);
+        });
+      });
+    }
+  }
+
+  // ── Part 4 continues: Checkout / payment logic ──────────────────────
+  // ── Part 5 continues: CTA binding, funnel tracking, boot, IIFE close
 
   // (IIFE intentionally left open — closed in Part 5)
