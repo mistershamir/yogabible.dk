@@ -33,6 +33,8 @@
   var currentStep = 1;
   var mbClientId = null;      // Mindbody client ID (resolved after auth)
   var storedCard = null;       // { lastFour, cardType, cardHolder, expMonth, expYear } or null
+  var authOriginStep = null;   // 'login' or 'register' — where the user came from before checkout
+  var cameFromLoggedIn = false; // true if user was already logged in when modal opened
   var modal = null;
   var scrollY = 0;
 
@@ -116,8 +118,19 @@
     // Badge (shown on login step)
     var badgeName = $('ycf-badge-name');
     var badgePrice = $('ycf-badge-price');
+    var badgeCohort = $('ycf-badge-cohort');
     if (badgeName) badgeName.textContent = name;
     if (badgePrice) badgePrice.textContent = price;
+
+    // Cohort / period chip
+    if (badgeCohort) {
+      var cohortParts = [];
+      if (p.category === 'teacher') cohortParts.push(t('Forberedelsesfasen', 'Preparation Phase'));
+      if (p.period_da) cohortParts.push(isDa ? p.period_da : p.period_en);
+      if (p.format_da) cohortParts.push(isDa ? p.format_da : p.format_en);
+      badgeCohort.textContent = cohortParts.join(' · ');
+      badgeCohort.hidden = cohortParts.length === 0;
+    }
 
     // Checkout step product card
     var prodName = $('ycf-prod-name');
@@ -297,9 +310,15 @@
     var user = null;
     try { user = firebase.auth().currentUser; } catch (e) { /* not ready */ }
 
+    // Hide/show back button on checkout step
+    var backFromCheckout = $('ycf-back-from-checkout');
+
     if (user) {
+      cameFromLoggedIn = true;
+      authOriginStep = null;
+      if (backFromCheckout) backFromCheckout.hidden = true;
+
       openModal();
-      // Show a brief loading state on checkout step
       showStep('ycf-step-checkout');
 
       var displayName = user.displayName || '';
@@ -308,6 +327,9 @@
       var lastName = nameParts.slice(1).join(' ') || '';
       resolveClientAndAdvance(firstName, lastName, user.email || '', '');
     } else {
+      cameFromLoggedIn = false;
+      if (backFromCheckout) backFromCheckout.hidden = false;
+
       showStep('ycf-step-login');
       openModal();
     }
@@ -516,6 +538,11 @@
       if (action === 'register') showStep('ycf-step-register');
       if (action === 'forgot') showStep('ycf-step-forgot');
       if (action === 'back-login') showStep('ycf-step-login');
+      if (action === 'back-auth') {
+        // Go back from checkout to whichever auth step the user came from
+        if (authOriginStep === 'register') showStep('ycf-step-register');
+        else showStep('ycf-step-login');
+      }
     });
 
     // ── Payment method radio toggle ──
@@ -555,6 +582,7 @@
 
           // Track auth
           if (window.CheckoutFunnel) window.CheckoutFunnel.trackAuthComplete();
+          authOriginStep = 'login';
 
           // Resolve MB client + check stored card → advance to checkout
           var user = firebase.auth().currentUser;
@@ -647,6 +675,7 @@
           }
 
           // Create MB client immediately (triggers welcome email) → advance to checkout
+          authOriginStep = 'register';
           resolveClientAndAdvance(firstName, lastName, email, phone);
         });
       });

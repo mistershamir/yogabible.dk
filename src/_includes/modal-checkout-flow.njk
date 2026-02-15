@@ -26,10 +26,15 @@
         <p class="yb-auth-modal__subtitle" data-yj-en hidden>Sign in to continue to payment</p>
       </div>
 
-      <!-- Product preview badge -->
+      <!-- Product preview card -->
       <div class="ycf-product-badge" id="ycf-product-badge">
-        <span class="ycf-product-badge__name" id="ycf-badge-name"></span>
-        <span class="ycf-product-badge__price" id="ycf-badge-price"></span>
+        <div class="ycf-product-badge__top">
+          <span class="ycf-product-badge__name" id="ycf-badge-name"></span>
+          <span class="ycf-product-badge__price" id="ycf-badge-price"></span>
+        </div>
+        <span class="ycf-product-badge__cohort" id="ycf-badge-cohort"></span>
+        <p class="ycf-product-badge__desc" data-yj-da>Du f&aring;r adgang til at booke klasser efter betaling</p>
+        <p class="ycf-product-badge__desc" data-yj-en hidden>You'll be able to start booking classes after payment</p>
       </div>
 
       <form id="ycf-login-form" class="yb-auth-form" novalidate>
@@ -92,6 +97,11 @@
 
     <!-- ─── STEP 2: REGISTER ─── -->
     <div class="ycf-step" id="ycf-step-register" data-ycf-step="2" hidden>
+      <a href="#" class="ycf-back" data-ycf-action="back-login">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5"/><path d="M12 19l-7-7 7-7"/></svg>
+        <span data-yj-da>Tilbage</span>
+        <span data-yj-en hidden>Back</span>
+      </a>
       <div class="yb-auth-modal__header">
         <h2 class="yb-auth-modal__title" data-yj-da>Opret din profil</h2>
         <h2 class="yb-auth-modal__title" data-yj-en hidden>Create your profile</h2>
@@ -154,6 +164,11 @@
 
     <!-- ─── STEP 3: CHECKOUT ─── -->
     <div class="ycf-step" id="ycf-step-checkout" data-ycf-step="3" hidden>
+      <a href="#" class="ycf-back" data-ycf-action="back-auth" id="ycf-back-from-checkout">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5"/><path d="M12 19l-7-7 7-7"/></svg>
+        <span data-yj-da>Tilbage</span>
+        <span data-yj-en hidden>Back</span>
+      </a>
       <div class="yb-auth-modal__header">
         <h2 class="yb-auth-modal__title" data-yj-da>Gennemf&oslash;r k&oslash;b</h2>
         <h2 class="yb-auth-modal__title" data-yj-en hidden>Complete purchase</h2>
