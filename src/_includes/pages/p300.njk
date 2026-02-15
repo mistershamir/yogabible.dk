@@ -1,224 +1,545 @@
 {% set t = i18n.p300[lang or "da"] %}
+{% set lp = "/en" if lang == "en" else "" %}
 
-<!-- Coming Soon Hero -->
-<section class="coming-soon-hero">
-  <div class="container">
-    <div class="coming-soon-badge">{{ t.hero_badge }}</div>
-    <h1 class="coming-soon-title">{{ t.hero_title | safe }}</h1>
-    <p class="coming-soon-subtitle">{{ t.hero_subtitle }}</p>
-
-    <div class="coming-soon-meta">
-      <div class="coming-soon-meta-item">
-        <strong>{{ t.meta_level_label }}</strong> {{ t.meta_level_val }}
-      </div>
-      <div class="coming-soon-meta-item">
-        <strong>{{ t.meta_cert_label }}</strong> {{ t.meta_cert_val }}
-      </div>
-      <div class="coming-soon-meta-item">
-        <strong>{{ t.meta_launch_label }}</strong> {{ t.meta_launch_val }}
-      </div>
+{# ═══════════════════════════════════════════════════════════
+   HERO — Primary Dark Cinematic (matches om200 hero)
+   ═══════════════════════════════════════════════════════════ #}
+<section class="yb-hero">
+  <div class="yb-hero__glow"></div>
+  <div class="yb-hero__content">
+    <p class="yb-hero__tagline">{{ t.hero_tagline }}</p>
+    <h1 class="yb-hero__title">{{ t.hero_title | safe }}</h1>
+    <p class="yb-hero__subtitle">{{ t.hero_subtitle }}</p>
+    <div class="yb-hero__line"></div>
+    <div class="yb-hero__ctas">
+      <button class="yb-btn yb-btn--primary yb-btn--large" data-checkout-product="100212">{{ t.hero_cta_prep }}</button>
+      <button class="yb-btn yb-btn--outline-white yb-btn--large" onclick="openP300ScheduleModal()">{{ t.hero_cta_schedule }}</button>
     </div>
-
-    <a href="#waitlist" class="btn btn--large btn--primary">{{ t.hero_cta }}</a>
+    <p class="p300-hero__refund">{{ t.hero_refund_note }}</p>
+    <div class="yb-hero__trust">
+      <span>{{ t.hero_trust1 }}</span>
+      <span class="yb-hero__trust-dot"></span>
+      <span>{{ t.hero_trust2 }}</span>
+      <span class="yb-hero__trust-dot"></span>
+      <span>{{ t.hero_trust3 }}</span>
+    </div>
+  </div>
+  <div class="yb-hero__scroll">
+    <span>Scroll</span>
+    <div class="yb-hero__scroll-line"></div>
   </div>
 </section>
 
-<!-- What to Expect -->
-<section class="program-overview">
-  <div class="container">
-    <h2 class="section-title">{{ t.expect_title }}</h2>
-    <p class="section-subtitle">{{ t.expect_subtitle }}</p>
+{# ═══════════════════════════════════════════════════════════
+   SECTION 1: PROGRAM SNAPSHOT — Stats + intro
+   ═══════════════════════════════════════════════════════════ #}
+<section class="p300-snap" id="p300-snap">
+  <div class="p300-snap__inner">
+    <header class="p300-snap__head">
+      <p class="p300-snap__eyebrow ds-eyebrow ds-eyebrow--brand ds-eyebrow--line">{{ t.snap_eyebrow }}</p>
+      <h2 class="p300-snap__title">{{ t.snap_title }}</h2>
+      <p class="p300-snap__lead">{{ t.snap_lead | safe }}</p>
+    </header>
 
-    <div class="program-grid">
-      <div class="program-feature">
-        <div class="program-feature__icon">🎓</div>
-        <h3>{{ t.expect1_title }}</h3>
-        <p>{{ t.expect1_desc }}</p>
+    <div class="p300-snap__stats">
+      {% for i in range(1, 5) %}
+      <div class="p300-snap__stat ds-card ds-card--stat">
+        <span class="p300-snap__stat-num">{{ t["snap_stat" + (i | string) + "_num"] }}</span>
+        <span class="p300-snap__stat-label">{{ t["snap_stat" + (i | string) + "_label"] }}</span>
       </div>
+      {% endfor %}
+    </div>
 
-      <div class="program-feature">
-        <div class="program-feature__icon">🧘</div>
-        <h3>{{ t.expect2_title }}</h3>
-        <p>{{ t.expect2_desc }}</p>
+    <div class="p300-snap__dates">
+      <div class="p300-snap__date-item">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+        <span>{{ t.snap_dates }}</span>
       </div>
-
-      <div class="program-feature">
-        <div class="program-feature__icon">📚</div>
-        <h3>{{ t.expect3_title }}</h3>
-        <p>{{ t.expect3_desc }}</p>
-      </div>
-
-      <div class="program-feature">
-        <div class="program-feature__icon">🎤</div>
-        <h3>{{ t.expect4_title }}</h3>
-        <p>{{ t.expect4_desc }}</p>
-      </div>
-
-      <div class="program-feature">
-        <div class="program-feature__icon">💼</div>
-        <h3>{{ t.expect5_title }}</h3>
-        <p>{{ t.expect5_desc }}</p>
-      </div>
-
-      <div class="program-feature">
-        <div class="program-feature__icon">🌍</div>
-        <h3>{{ t.expect6_title }}</h3>
-        <p>{{ t.expect6_desc }}</p>
+      <div class="p300-snap__date-item">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        <span>{{ t.snap_break }}</span>
       </div>
     </div>
+
+    <p class="p300-snap__text">{{ t.snap_text }}</p>
   </div>
 </section>
 
-<!-- Program Modules Preview -->
-<section class="program-curriculum">
-  <div class="container">
-    <h2 class="section-title">{{ t.modules_title }}</h2>
-    <p class="section-subtitle">{{ t.modules_subtitle }}</p>
+{# ═══════════════════════════════════════════════════════════
+   SECTION 2: THE EVOLUTION — 200 → 500 (Split Dark/Light)
+   ═══════════════════════════════════════════════════════════ #}
+<section class="p300-evo" id="p300-evo">
+  <div class="p300-evo__inner">
+    <header class="p300-evo__head">
+      <p class="p300-evo__eyebrow ds-eyebrow ds-eyebrow--brand ds-eyebrow--dot">{{ t.evo_eyebrow }}</p>
+      <h2 class="p300-evo__title">{{ t.evo_title }}</h2>
+      <p class="p300-evo__lead">{{ t.evo_lead | safe }}</p>
+    </header>
 
-    <div class="curriculum-grid">
-      <div class="curriculum-module">
-        <h3>{{ t.mod1_title }}</h3>
-        <p>{{ t.mod1_desc }}</p>
-      </div>
-
-      <div class="curriculum-module">
-        <h3>{{ t.mod2_title }}</h3>
-        <p>{{ t.mod2_desc }}</p>
-      </div>
-
-      <div class="curriculum-module">
-        <h3>{{ t.mod3_title }}</h3>
-        <p>{{ t.mod3_desc }}</p>
-      </div>
-
-      <div class="curriculum-module">
-        <h3>{{ t.mod4_title }}</h3>
-        <p>{{ t.mod4_desc }}</p>
-      </div>
-
-      <div class="curriculum-module">
-        <h3>{{ t.mod5_title }}</h3>
-        <p>{{ t.mod5_desc }}</p>
-      </div>
-
-      <div class="curriculum-module">
-        <h3>{{ t.mod6_title }}</h3>
-        <p>{{ t.mod6_desc }}</p>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- Prerequisites -->
-<section class="program-schedule">
-  <div class="container">
-    <h2 class="section-title">{{ t.prereq_title }}</h2>
-
-    <div class="schedule-options">
-      <div class="schedule-card">
-        <h3>{{ t.prereq_have_title }}</h3>
-        <ul>
-          <li>{{ t.prereq_have1 }}</li>
-          <li>{{ t.prereq_have2 }}</li>
-          <li>{{ t.prereq_have3 }}</li>
-          <li>{{ t.prereq_have4 }}</li>
+    <div class="p300-evo__grid">
+      {# LEFT: What 200H gave you #}
+      <div class="p300-evo__card p300-evo__card--200">
+        <h3 class="p300-evo__card-title">{{ t.evo_200_title }}</h3>
+        <ul class="ds-list ds-list--check">
+          {% for i in range(1, 6) %}
+          <li>{{ t["evo_200_item" + (i | string)] }}</li>
+          {% endfor %}
         </ul>
       </div>
 
-      <div class="schedule-card">
-        <h3>{{ t.prereq_look_title }}</h3>
-        <ul>
-          <li>{{ t.prereq_look1 }}</li>
-          <li>{{ t.prereq_look2 }}</li>
-          <li>{{ t.prereq_look3 }}</li>
-          <li>{{ t.prereq_look4 }}</li>
+      {# Arrow between cards #}
+      <div class="p300-evo__arrow" aria-hidden="true">
+        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="var(--yb-brand)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+      </div>
+
+      {# RIGHT: What 300H gives you #}
+      <div class="p300-evo__card p300-evo__card--300">
+        <h3 class="p300-evo__card-title">{{ t.evo_300_title }}</h3>
+        <ul class="ds-list ds-list--check">
+          {% for i in range(1, 6) %}
+          <li>{{ t["evo_300_item" + (i | string)] }}</li>
+          {% endfor %}
+        </ul>
+      </div>
+    </div>
+
+    <p class="p300-evo__closing">{{ t.evo_closing }}</p>
+  </div>
+</section>
+
+{# ═══════════════════════════════════════════════════════════
+   SECTION 3: CURRICULUM — 6 Advanced Module Cards
+   ═══════════════════════════════════════════════════════════ #}
+<section class="p300-curr" id="p300-curr">
+  <div class="p300-curr__inner">
+    <header class="p300-curr__head">
+      <p class="p300-curr__eyebrow ds-eyebrow ds-eyebrow--brand ds-eyebrow--line">{{ t.curr_eyebrow }}</p>
+      <h2 class="p300-curr__title">{{ t.curr_title }}</h2>
+      <p class="p300-curr__lead">{{ t.curr_lead }}</p>
+    </header>
+
+    <div class="p300-curr__grid">
+      {% for i in range(1, 7) %}
+      <article class="p300-curr__card ds-card ds-card--lift">
+        <div class="p300-curr__card-head">
+          <span class="p300-curr__card-icon">{{ t["curr" + (i | string) + "_icon"] }}</span>
+          <span class="p300-curr__card-hours ds-badge ds-badge--primary ds-badge--pill">{{ t["curr" + (i | string) + "_hours"] }}</span>
+        </div>
+        <h3 class="p300-curr__card-title">{{ t["curr" + (i | string) + "_title"] }}</h3>
+        <p class="p300-curr__card-desc">{{ t["curr" + (i | string) + "_desc"] }}</p>
+      </article>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+
+{# ═══════════════════════════════════════════════════════════
+   SECTION 4: HOURS BREAKDOWN — Accordion with detail
+   ═══════════════════════════════════════════════════════════ #}
+<section class="p300-hours" id="p300-hours">
+  <div class="p300-hours__inner">
+    <div class="p300-hours__grid">
+
+      {# LEFT: Header + intro #}
+      <div class="p300-hours__left">
+        <header>
+          <p class="p300-hours__eyebrow ds-eyebrow ds-eyebrow--brand ds-eyebrow--line">{{ t.hours_eyebrow }}</p>
+          <h2 class="p300-hours__title">{{ t.hours_title }}</h2>
+          <p class="p300-hours__lead">{{ t.hours_lead }}</p>
+        </header>
+
+        {# VIDEO PLACEHOLDER #}
+        <div class="p300-hours__video-placeholder">
+          <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" opacity="0.4">
+            <polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/>
+          </svg>
+          <span>Video placeholder · 16:9</span>
+        </div>
+      </div>
+
+      {# RIGHT: Total + accordion #}
+      <div class="p300-hours__right">
+        <div class="p300-hours__total">
+          <span class="p300-hours__total-num">{{ t.hours_total }}</span>
+          <span class="p300-hours__total-text">{{ t.hours_total_label }}</span>
+        </div>
+
+        <div class="p300-hours__accordion" data-p300-single-accordion>
+          {% for i in range(1, 10) %}
+          <details class="p300-hours__item"{% if i == 1 %} open{% endif %}>
+            <summary class="p300-hours__summary">
+              <span class="p300-hours__hours-pill">{{ t["hours_a" + (i | string) + "_hours"] }}</span>
+              <span class="p300-hours__label">{{ t["hours_a" + (i | string) + "_label"] }}</span>
+              <span class="p300-hours__chev" aria-hidden="true"></span>
+            </summary>
+            <div class="p300-hours__body">
+              {{ t["hours_a" + (i | string) + "_body"] | safe }}
+            </div>
+          </details>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+{# ═══════════════════════════════════════════════════════════
+   SECTION 5: TIMELINE — 24-Week Journey
+   ═══════════════════════════════════════════════════════════ #}
+<section class="p300-timeline" id="p300-timeline">
+  <div class="p300-timeline__inner">
+    <header class="p300-timeline__head">
+      <p class="p300-timeline__eyebrow ds-eyebrow ds-eyebrow--brand ds-eyebrow--dot">{{ t.timeline_eyebrow }}</p>
+      <h2 class="p300-timeline__title">{{ t.timeline_title }}</h2>
+      <p class="p300-timeline__lead">{{ t.timeline_lead }}</p>
+    </header>
+
+    <div class="p300-timeline__track">
+      {# Vertical line #}
+      <div class="p300-timeline__line" aria-hidden="true"></div>
+
+      {% for i in range(1, 8) %}
+      <div class="p300-timeline__step{% if t['timeline' + (i | string) + '_step'] == 'PAUSE' or t['timeline' + (i | string) + '_step'] == 'BREAK' %} p300-timeline__step--break{% endif %}">
+        <div class="p300-timeline__dot"></div>
+        <div class="p300-timeline__content">
+          <p class="p300-timeline__step-label">{{ t["timeline" + (i | string) + "_step"] }}</p>
+          <h3 class="p300-timeline__step-title">{{ t["timeline" + (i | string) + "_title"] }}</h3>
+          <p class="p300-timeline__step-desc">{{ t["timeline" + (i | string) + "_desc"] }}</p>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+
+{# ═══════════════════════════════════════════════════════════
+   SECTION 6: TEACHING MASTERY — Content + Video placeholder
+   ═══════════════════════════════════════════════════════════ #}
+<section class="p300-mastery" id="p300-mastery">
+  <div class="p300-mastery__inner">
+    <div class="p300-mastery__grid">
+
+      {# LEFT: Content #}
+      <div class="p300-mastery__content">
+        <p class="p300-mastery__eyebrow ds-eyebrow ds-eyebrow--brand ds-eyebrow--line">{{ t.mastery_eyebrow }}</p>
+        <h2 class="p300-mastery__title">{{ t.mastery_title }}</h2>
+        <p class="p300-mastery__lead">{{ t.mastery_lead }}</p>
+        <p class="p300-mastery__text">{{ t.mastery_text1 | safe }}</p>
+        <p class="p300-mastery__text">{{ t.mastery_text2 | safe }}</p>
+
+        <ul class="p300-mastery__checklist">
+          {% for i in range(1, 6) %}
+          <li>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+            <span>{{ t["mastery_check" + (i | string)] }}</span>
+          </li>
+          {% endfor %}
+        </ul>
+      </div>
+
+      {# RIGHT: Video placeholder #}
+      <div class="p300-mastery__media">
+        <div class="p300-mastery__video-placeholder">
+          <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" opacity="0.4">
+            <polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/>
+          </svg>
+          <span class="p300-mastery__video-label">{{ t.mastery_video_label }}</span>
+          <button class="p300-mastery__play-btn" type="button" aria-label="{{ t.mastery_video_play }}">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+            <span>{{ t.mastery_video_play }}</span>
+          </button>
+        </div>
+
+        {# IMAGE PLACEHOLDER #}
+        <div class="p300-mastery__img-placeholder">
+          <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" opacity="0.3">
+            <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+            <circle cx="8.5" cy="8.5" r="1.5"/>
+            <polyline points="21 15 16 10 5 21"/>
+          </svg>
+          <span>Image placeholder · 800 × 600 px</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+{# ═══════════════════════════════════════════════════════════
+   SECTION 7: TEACHERS — Team showcase
+   ═══════════════════════════════════════════════════════════ #}
+<section class="p300-teachers" id="p300-teachers">
+  <div class="p300-teachers__inner">
+    <header class="p300-teachers__head">
+      <p class="p300-teachers__eyebrow ds-eyebrow ds-eyebrow--brand ds-eyebrow--dot">{{ t.teachers_eyebrow }}</p>
+      <h2 class="p300-teachers__title">{{ t.teachers_title }}</h2>
+      <p class="p300-teachers__lead">{{ t.teachers_lead }}</p>
+    </header>
+
+    <div class="p300-teachers__grid">
+      {% for i in range(1, 5) %}
+      <article class="p300-teachers__card{% if i == 1 %} p300-teachers__card--lead{% endif %}">
+        <div class="p300-teachers__portrait">
+          <div class="p300-teachers__placeholder">
+            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" opacity="0.4">
+              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>
+            </svg>
+            <span class="p300-teachers__placeholder-dim">{{ t.teachers_img_dimensions }}</span>
+          </div>
+        </div>
+        <div class="p300-teachers__info">
+          <h3 class="p300-teachers__name">{{ t["teachers" + (i | string) + "_name"] }}</h3>
+          <p class="p300-teachers__role">{{ t["teachers" + (i | string) + "_role"] }}</p>
+          <p class="p300-teachers__bio">{{ t["teachers" + (i | string) + "_bio"] }}</p>
+          <div class="p300-teachers__specs">
+            {% for s in range(1, 4) %}
+            <span class="p300-teachers__spec">{{ t["teachers" + (i | string) + "_spec" + (s | string)] }}</span>
+            {% endfor %}
+          </div>
+        </div>
+      </article>
+      {% endfor %}
+    </div>
+
+    <div class="p300-teachers__cta-wrap">
+      <a class="yb-btn yb-btn--outline-brand" href="{{ lp }}{{ t.teachers_cta_link }}">
+        <span>{{ t.teachers_cta }}</span>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+      </a>
+    </div>
+  </div>
+</section>
+
+{# ═══════════════════════════════════════════════════════════
+   SECTION 8: PREREQUISITES — Requirements
+   ═══════════════════════════════════════════════════════════ #}
+<section class="p300-prereq" id="p300-prereq">
+  <div class="p300-prereq__inner">
+    <header class="p300-prereq__head">
+      <p class="p300-prereq__eyebrow ds-eyebrow ds-eyebrow--brand ds-eyebrow--line">{{ t.prereq_eyebrow }}</p>
+      <h2 class="p300-prereq__title">{{ t.prereq_title }}</h2>
+      <p class="p300-prereq__lead">{{ t.prereq_lead }}</p>
+    </header>
+
+    <div class="p300-prereq__grid">
+      <div class="p300-prereq__card">
+        <h3 class="p300-prereq__card-title">{{ t.prereq_have_title }}</h3>
+        <ul class="ds-list ds-list--check">
+          {% for i in range(1, 5) %}
+          <li>{{ t["prereq_have" + (i | string)] }}</li>
+          {% endfor %}
+        </ul>
+      </div>
+
+      <div class="p300-prereq__card">
+        <h3 class="p300-prereq__card-title">{{ t.prereq_look_title }}</h3>
+        <ul class="ds-list ds-list--arrows">
+          {% for i in range(1, 5) %}
+          <li>{{ t["prereq_look" + (i | string)] }}</li>
+          {% endfor %}
         </ul>
       </div>
     </div>
   </div>
 </section>
 
-<!-- Waitlist Form -->
-<section class="waitlist-section" id="waitlist">
-  <div class="container">
-    <h2 class="section-title">{{ t.waitlist_title }}</h2>
-    <p class="section-subtitle">{{ t.waitlist_subtitle }}</p>
+{# ═══════════════════════════════════════════════════════════
+   SECTION 9: LOCATION — Studio in Christianshavn
+   ═══════════════════════════════════════════════════════════ #}
+<section class="p300-location" id="p300-location">
+  <div class="p300-location__inner">
+    <div class="p300-location__header">
+      <p class="p300-location__eyebrow ds-eyebrow ds-eyebrow--brand ds-eyebrow--dot">{{ t.location_eyebrow }}</p>
+      <h2 class="p300-location__title">{{ t.location_title }}</h2>
+      <p class="p300-location__lead">{{ t.location_lead }}</p>
+    </div>
 
-    <form class="waitlist-form">
-      <div class="waitlist-form__grid">
-        <input type="text" placeholder="{{ t.form_firstname }}" required>
-        <input type="text" placeholder="{{ t.form_lastname }}" required>
-        <input type="email" placeholder="{{ t.form_email }}" required>
-        <input type="tel" placeholder="{{ t.form_phone }}" required>
+    <div class="p300-location__features">
+      {% set loc_icons = [
+        '<rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="21" x2="9" y2="9"/>',
+        '<polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/>',
+        '<path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/>',
+        '<path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>'
+      ] %}
+      {% for i in range(1, 5) %}
+      <div class="p300-location__feature">
+        <div class="p300-location__feature-icon">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">{{ loc_icons[i - 1] | safe }}</svg>
+        </div>
+        <div>
+          <h3 class="p300-location__feature-title">{{ t["location_feature" + (i | string) + "_title"] }}</h3>
+          <p class="p300-location__feature-desc">{{ t["location_feature" + (i | string) + "_desc"] }}</p>
+        </div>
       </div>
+      {% endfor %}
+    </div>
 
-      <div class="waitlist-form__field">
-        <label>{{ t.form_hours_label }}</label>
-        <select required>
-          <option value="">{{ t.form_hours_placeholder }}</option>
-          <option value="100-300">{{ t.form_hours_opt1 }}</option>
-          <option value="300-500">{{ t.form_hours_opt2 }}</option>
-          <option value="500-1000">{{ t.form_hours_opt3 }}</option>
-          <option value="1000+">{{ t.form_hours_opt4 }}</option>
-        </select>
+    {# GALLERY PLACEHOLDER #}
+    <div class="p300-location__gallery" aria-label="{{ t.location_gallery_label }}">
+      <div class="p300-location__gallery-grid">
+        {% for i in range(1, 5) %}
+        <div class="p300-location__img-placeholder">
+          <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" opacity="0.3">
+            <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+            <circle cx="8.5" cy="8.5" r="1.5"/>
+            <polyline points="21 15 16 10 5 21"/>
+          </svg>
+          <span>{{ t.location_img_placeholder }} {{ i }}</span>
+          <span class="p300-location__dim-label">{{ t.location_img_dimensions }}</span>
+        </div>
+        {% endfor %}
       </div>
-
-      <div class="waitlist-form__field">
-        <label>{{ t.form_specializations_label }}</label>
-        <textarea rows="3" placeholder="{{ t.form_specializations_placeholder }}"></textarea>
-      </div>
-
-      <button type="submit" class="btn btn--large btn--primary">{{ t.form_submit }}</button>
-
-      <p class="waitlist-form__fine">{{ t.form_privacy | safe }}</p>
-    </form>
-  </div>
-</section>
-
-<!-- FAQ -->
-<section class="program-faq">
-  <div class="container">
-    <h2 class="section-title">{{ t.faq_title }}</h2>
-
-    <div class="faq-list">
-      <details class="faq-item">
-        <summary>{{ t.faq1_q }}</summary>
-        <p>{{ t.faq1_a }}</p>
-      </details>
-
-      <details class="faq-item">
-        <summary>{{ t.faq2_q }}</summary>
-        <p>{{ t.faq2_a }}</p>
-      </details>
-
-      <details class="faq-item">
-        <summary>{{ t.faq3_q }}</summary>
-        <p>{{ t.faq3_a }}</p>
-      </details>
-
-      <details class="faq-item">
-        <summary>{{ t.faq4_q }}</summary>
-        <p>{{ t.faq4_a }}</p>
-      </details>
-
-      <details class="faq-item">
-        <summary>{{ t.faq5_q }}</summary>
-        <p>{{ t.faq5_a }}</p>
-      </details>
-
-      <details class="faq-item">
-        <summary>{{ t.faq6_q }}</summary>
-        <p>{{ t.faq6_a }}</p>
-      </details>
     </div>
   </div>
 </section>
 
-<!-- Final CTA -->
-<section class="cta-section">
-  <div class="container">
-    <h2 class="cta-section__title">{{ t.final_cta_title }}</h2>
-    <p class="cta-section__text">{{ t.final_cta_text }}</p>
-    <a href="#waitlist" class="btn btn--large btn--primary">{{ t.final_cta_button }}</a>
+{# ═══════════════════════════════════════════════════════════
+   SECTION 10: REVIEWS — Testimonials
+   ═══════════════════════════════════════════════════════════ #}
+<section class="p300-reviews" id="p300-reviews">
+  <div class="p300-reviews__inner">
+    <p class="p300-reviews__kicker ds-eyebrow ds-eyebrow--brand">{{ t.reviews_kicker }}</p>
+    <h2 class="p300-reviews__title">{{ t.reviews_title }}</h2>
+    <p class="p300-reviews__lead">{{ t.reviews_lead }}</p>
+
+    <div class="p300-reviews__grid">
+      {% for review in t.reviews %}
+      <article class="p300-reviews__card" aria-label="{{ t.reviews_card_aria_prefix }} {{ review.name }}">
+        <div class="p300-reviews__stars" aria-hidden="true">★★★★★</div>
+        <p class="p300-reviews__text">"{{ review.text }}"</p>
+        <div class="p300-reviews__author">
+          <div class="p300-reviews__avatar">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" opacity="0.5">
+              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>
+            </svg>
+          </div>
+          <div>
+            <span class="p300-reviews__name">{{ review.name }}</span>
+            <span class="p300-reviews__when">{{ review.when }}</span>
+          </div>
+        </div>
+      </article>
+      {% endfor %}
+    </div>
+
+    <div class="p300-reviews__footer">
+      <div class="p300-reviews__rating">
+        <span class="p300-reviews__stars-footer" aria-hidden="true">★★★★★</span>
+        <span class="p300-reviews__score">{{ t.reviews_rating }}</span>
+      </div>
+      <a class="p300-reviews__link" href="https://search.google.com/local/reviews?placeid=ChIJpQHE13BTUkYRY6oGEONORHM" target="_blank" rel="noopener">{{ t.reviews_link }}</a>
+    </div>
+  </div>
+</section>
+
+{# ═══════════════════════════════════════════════════════════
+   SECTION 11: PRICING — Investment Breakdown
+   ═══════════════════════════════════════════════════════════ #}
+<section class="p300-pricing" id="p300-pricing">
+  <div class="p300-pricing__inner">
+    <div class="p300-pricing__header">
+      <p class="p300-pricing__eyebrow ds-eyebrow ds-eyebrow--brand ds-eyebrow--line">{{ t.pricing_eyebrow }}</p>
+      <h2 class="p300-pricing__title">{{ t.pricing_title }}</h2>
+      <p class="p300-pricing__lead">{{ t.pricing_lead }}</p>
+    </div>
+
+    <div class="p300-pricing__grid">
+
+      {# LEFT: Breakdown rows #}
+      <div class="p300-pricing__breakdown">
+        <div class="p300-pricing__rows">
+          {% for r in range(1, 5) %}
+          <div class="p300-pricing__row">
+            <div class="p300-pricing__row-main">
+              <span class="p300-pricing__row-label">{{ t["pricing_row" + (r | string) + "_label"] }}</span>
+              <span class="p300-pricing__row-value">{{ t["pricing_row" + (r | string) + "_value"] }}</span>
+            </div>
+            <p class="p300-pricing__row-desc">{{ t["pricing_row" + (r | string) + "_desc"] }}</p>
+          </div>
+          {% endfor %}
+
+          <div class="p300-pricing__total-row">
+            <span class="p300-pricing__total-label">{{ t.pricing_total_label }}</span>
+            <span class="p300-pricing__total-value">{{ t.pricing_total }}</span>
+          </div>
+        </div>
+      </div>
+
+      {# RIGHT: Includes + payment split + CTA #}
+      <div class="p300-pricing__sidebar">
+        <div class="p300-pricing__includes">
+          <h3 class="p300-pricing__includes-title">{{ t.pricing_includes_title }}</h3>
+          <ul class="p300-pricing__includes-list">
+            {% for i in range(1, 7) %}
+            <li>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+              <span>{{ t["pricing_inc" + (i | string)] }}</span>
+            </li>
+            {% endfor %}
+          </ul>
+        </div>
+
+        <div class="p300-pricing__payment-split">
+          <div class="p300-pricing__payment-block p300-pricing__payment-block--prep">
+            <h4>{{ t.pricing_prep_title }}</h4>
+            <span class="p300-pricing__payment-amount">{{ t.pricing_prep_amount }}</span>
+            <p>{{ t.pricing_prep_desc }}</p>
+          </div>
+          <div class="p300-pricing__payment-block p300-pricing__payment-block--remaining">
+            <h4>{{ t.pricing_remaining_title }}</h4>
+            <span class="p300-pricing__payment-amount">{{ t.pricing_remaining_amount }}</span>
+            <p>{{ t.pricing_remaining_desc }}</p>
+          </div>
+        </div>
+
+        <div class="p300-pricing__ctas">
+          <button class="yb-btn yb-btn--cta" data-checkout-product="100212">{{ t.pricing_cta_prep }}</button>
+          <button class="yb-btn yb-btn--outline-brand" onclick="openP300ScheduleModal()">
+            <span>{{ t.pricing_cta_schedule }}</span>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+{# ═══════════════════════════════════════════════════════════
+   SECTION 12: FAQ — Accordion
+   ═══════════════════════════════════════════════════════════ #}
+<section class="p300-faq" id="p300-faq">
+  <div class="p300-faq__inner">
+    <h2 class="p300-faq__title">{{ t.faq_title }}</h2>
+
+    <div class="p300-faq__list" data-p300-single-accordion>
+      {% for i in range(1, 9) %}
+      <details class="p300-faq__item">
+        <summary class="p300-faq__question">
+          <span>{{ t["faq" + (i | string) + "_q"] }}</span>
+          <span class="p300-faq__icon" aria-hidden="true">
+            <span></span><span></span>
+          </span>
+        </summary>
+        <div class="p300-faq__answer">
+          <p>{{ t["faq" + (i | string) + "_a"] }}</p>
+        </div>
+      </details>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+
+{# ═══════════════════════════════════════════════════════════
+   SECTION 13: FINAL CTA — Dark section
+   ═══════════════════════════════════════════════════════════ #}
+<section class="p300-final" id="p300-final">
+  <div class="p300-final__glow"></div>
+  <div class="p300-final__inner">
+    <h2 class="p300-final__title">{{ t.final_cta_title }}</h2>
+    <p class="p300-final__text">{{ t.final_cta_text }}</p>
+    <div class="p300-final__ctas">
+      <button class="yb-btn yb-btn--primary yb-btn--large" data-checkout-product="100212">{{ t.final_cta_prep }}</button>
+      <button class="yb-btn yb-btn--outline-white yb-btn--large" onclick="openP300ScheduleModal()">{{ t.final_cta_schedule }}</button>
+    </div>
+    <p class="p300-final__refund">{{ t.final_cta_refund }}</p>
   </div>
 </section>

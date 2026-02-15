@@ -21,6 +21,15 @@
     {% include "modal-schedule.njk" %}
   {% endif %}
 
+  {% if includeScheduleModal300 %}
+    {% include "modal-schedule-300.njk" %}
+  {% endif %}
+
+  {% if includeP300Styles %}
+    <link rel="stylesheet" href="/css/p300.css">
+    <script src="/js/p300.js" defer></script>
+  {% endif %}
+
   {% if includeP18Styles %}
     <link rel="stylesheet" href="/css/p18.css">
   {% endif %}
@@ -81,6 +90,9 @@
   <script src="/js/mindbody.js"></script>
   {% if includeScheduleModal %}
     <script src="/js/modal.js"></script>
+  {% endif %}
+  {% if includeScheduleModal300 %}
+    <script src="/js/modal-300.js"></script>
   {% endif %}
 </body>
 </html>
