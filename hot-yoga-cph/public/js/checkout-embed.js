@@ -1127,7 +1127,221 @@
     }
   }
 
-  // ── Part 4 continues: Checkout / payment logic ──────────────────────
-  // ── Part 5 continues: CTA binding, funnel tracking, boot, IIFE close
+  // ── Part 4: Payment Processing + Card Formatting + Public API ───────
+
+  // ── 4A: Process payment ─────────────────────────────────────────────
+  // Collects card details (or stored-card flag), calls mb-checkout,
+  // handles SCA redirect, shows success or error.
+
+  function processPayment() {
+    var user;
+    try { user = firebase.auth().currentUser; } catch (ex) { /* noop */ }
+    if (!user) {
+      showError('ycf-checkout-error', t('Du skal v\u00e6re logget ind.', 'You must be signed in.'));
+      return;
+    }
+
+    var product = getProduct(currentProdId);
+    if (!product) {
+      showError('ycf-checkout-error', t('Ukendt produkt.', 'Unknown product.'));
+      return;
+    }
+
+    hideError('ycf-checkout-error');
+
+    // ── Determine payment method ──────────────────────────────────
+    var storedRadio = modal ? modal.querySelector('input[name="ycf-payment-method"][value="stored"]') : null;
+    var useStored = storedRadio && storedRadio.checked && storedCard && storedCard.lastFour;
+
+    var paymentInfo;
+
+    if (useStored) {
+      paymentInfo = {
+        useStoredCard: true,
+        lastFour: storedCard.lastFour
+      };
+    } else {
+      var cardEl    = $('ycf-card');
+      var expiryEl  = $('ycf-expiry');
+      var cvvEl     = $('ycf-cvv');
+      var cardNumber = cardEl ? cardEl.value.replace(/\s/g, '') : '';
+      var expiry     = expiryEl ? expiryEl.value.trim() : '';
+      var cvv        = cvvEl ? cvvEl.value.trim() : '';
+
+      if (!cardNumber || !expiry || !cvv) {
+        showError('ycf-checkout-error', t('Udfyld alle obligatoriske felter.', 'Please fill in all required fields.'));
+        return;
+      }
+
+      var expiryParts = expiry.split('/');
+      if (expiryParts.length !== 2) {
+        showError('ycf-checkout-error', t('Ugyldig udl\u00f8bsdato (MM/\u00c5\u00c5).', 'Invalid expiry date (MM/YY).'));
+        return;
+      }
+      var expMonth = expiryParts[0].trim();
+      var expYear  = expiryParts[1].trim();
+      if (expYear.length === 2) expYear = '20' + expYear;
+
+      paymentInfo = {
+        cardNumber: cardNumber,
+        expMonth: expMonth,
+        expYear: expYear,
+        cvv: cvv,
+        cardHolder: user.displayName || '',
+        saveCard: true
+      };
+    }
+
+    // ── Disable pay buttons ───────────────────────────────────────
+    var payBtn   = $('ycf-pay-btn');
+    var payBtnEn = $('ycf-pay-btn-en');
+    if (payBtn)   { payBtn.disabled = true;   payBtn.textContent = 'Behandler betaling...'; }
+    if (payBtnEn) { payBtnEn.disabled = true; payBtnEn.textContent = 'Processing payment...'; }
+
+    function resetPayBtn() {
+      if (payBtn)   { payBtn.disabled = false;   payBtn.textContent = 'Betal'; }
+      if (payBtnEn) { payBtnEn.disabled = false; payBtnEn.textContent = 'Pay'; }
+    }
+
+    // ── Resolve MB client if needed ───────────────────────────────
+    var clientPromise;
+    if (mbClientId) {
+      clientPromise = Promise.resolve(mbClientId);
+    } else {
+      var displayName = user.displayName || '';
+      var nameParts = displayName.split(' ');
+      var firstName = nameParts[0] || 'User';
+      var lastName  = nameParts.slice(1).join(' ') || '';
+      var phone     = (window._ybRegistration && window._ybRegistration.phone) || '';
+      clientPromise = findOrCreateClient(firstName, lastName, user.email || '', phone);
+    }
+
+    // ── Send payment to mb-checkout ───────────────────────────────
+    var realProdId = getRealProdId(currentProdId);
+
+    clientPromise
+      .then(function (clientId) {
+        mbClientId = clientId;
+        return fetch(API_BASE + '/mb-checkout', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            clientId: clientId,
+            items: [{ type: 'Service', id: parseInt(realProdId), quantity: 1 }],
+            amount: product.price,
+            payment: paymentInfo,
+            test: false
+          })
+        });
+      })
+      .then(function (res) { return res.json(); })
+      .then(function (result) {
+        if (result.error) throw new Error(result.error);
+
+        // ── SCA / 3D Secure redirect ──────────────────────────────
+        if (result.requiresSCA) {
+          window.location.href = result.authenticationUrl;
+          return;
+        }
+
+        // ── Success ───────────────────────────────────────────────
+        console.log('[HYC Embed] Payment successful for prodId:', currentProdId);
+        showStep('ycf-step-success');
+      })
+      .catch(function (err) {
+        console.warn('[HYC Embed] Payment error:', err.message);
+        showError('ycf-checkout-error', err.message || t('Betaling fejlede. Pr\u00f8v igen.', 'Payment failed. Please try again.'));
+        resetPayBtn();
+      });
+  }
+
+  // ── 4B: Card input formatting ───────────────────────────────────────
+  // Auto-space card numbers (4-4-4-4) and auto-slash expiry (MM/YY).
+
+  function wireCardFormatting() {
+    var cardInput = $('ycf-card');
+    if (cardInput) {
+      cardInput.addEventListener('input', function () {
+        var v = cardInput.value.replace(/\s/g, '').replace(/\D/g, '');
+        cardInput.value = v.replace(/(.{4})/g, '$1 ').trim();
+      });
+    }
+
+    var expiryInput = $('ycf-expiry');
+    if (expiryInput) {
+      expiryInput.addEventListener('input', function () {
+        var v = expiryInput.value.replace(/\D/g, '');
+        if (v.length >= 2) v = v.slice(0, 2) + '/' + v.slice(2);
+        expiryInput.value = v.slice(0, 5);
+      });
+    }
+  }
+
+  // ── 4C: Wire checkout form + success redirect ───────────────────────
+
+  function wireCheckoutEvents() {
+    // ── Checkout form submission ───────────────────────────────────
+    var checkoutForm = $('ycf-checkout-form');
+    if (checkoutForm) {
+      checkoutForm.addEventListener('submit', function (e) {
+        e.preventDefault();
+        processPayment();
+      });
+    }
+
+    // ── "Go to profile" buttons on success step ───────────────────
+    document.addEventListener('click', function (e) {
+      if (e.target.id === 'ycf-go-profile' || e.target.id === 'ycf-go-profile-en') {
+        e.preventDefault();
+        closeModal();
+        window.location.href = PROFILE_URL + '/profile#passes';
+      }
+    });
+  }
+
+  // ── 4D: Public entry point for external pages ───────────────────────
+  // Framer CTA buttons call: startCheckoutEmbed('100174')
+  // or use: <button data-checkout-product="100174">Buy</button>
+  //
+  // This is the HYC equivalent of startCheckoutFunnel() from ytt-funnel.js.
+  // It saves funnel data to sessionStorage, then opens the checkout flow.
+
+  var FUNNEL_KEY = 'hyc_checkout_funnel';
+
+  function saveFunnel(data) {
+    try { sessionStorage.setItem(FUNNEL_KEY, JSON.stringify(data)); } catch (e) { /* private browsing */ }
+  }
+
+  function loadFunnel() {
+    try {
+      var raw = sessionStorage.getItem(FUNNEL_KEY);
+      return raw ? JSON.parse(raw) : null;
+    } catch (e) { return null; }
+  }
+
+  function clearFunnel() {
+    try { sessionStorage.removeItem(FUNNEL_KEY); } catch (e) { /* noop */ }
+  }
+
+  function startCheckoutEmbed(prodId) {
+    if (!prodId) return;
+    prodId = String(prodId);
+
+    // Save funnel data for analytics / resumption
+    var funnelData = {
+      prodId: prodId,
+      sourcePage: window.location.pathname,
+      sessionId: 'hyc_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2, 8),
+      startedAt: new Date().toISOString()
+    };
+    saveFunnel(funnelData);
+
+    console.log('[HYC Embed] Checkout started for prodId:', prodId);
+
+    // Open the checkout flow modal
+    openCheckoutFlow(prodId);
+  }
+
+  // ── Part 5 continues: CTA binding, boot sequence, IIFE close ───────
 
   // (IIFE intentionally left open — closed in Part 5)
