@@ -136,11 +136,15 @@
     // CHECKOUT FUNNEL — Resume logic
     // Navigates to Store → correct category → opens checkout for the target product
     // ══════════════════════════════════════
+    var _funnelResumed = false; // Guard: prevent double-calling
+
     function resumeCheckoutFunnel(profileData) {
+      if (_funnelResumed) return; // Already resuming — skip duplicate call
       if (!window.CheckoutFunnel) return;
       var funnel = window.CheckoutFunnel.load();
       if (!funnel || !funnel.prodId) return;
 
+      _funnelResumed = true;
       console.log('[Profile] Resuming checkout funnel for prodId:', funnel.prodId);
 
       // Track profile_complete if we have profile data
@@ -160,66 +164,55 @@
         product_category: window.CheckoutFunnel.getProductCategory(funnel.prodId)
       });
 
-      // Switch to Store tab
+      // Switch to Store tab (triggers loadStore if not already loaded)
       var storeTab = document.querySelector('[data-yb-tab="store"]');
       if (storeTab) storeTab.click();
 
-      // Wait for store to render, then find and open the correct product checkout
-      setTimeout(function() {
-        var targetProdId = funnel.prodId;
-        var targetCategory = window.CheckoutFunnel.getProductCategory(targetProdId);
+      var targetProdId = funnel.prodId;
+      var targetCategory = window.CheckoutFunnel.getProductCategory(targetProdId);
 
-        // Navigate to the correct store category
-        var catBtn = document.querySelector('[data-store-top="' + targetCategory + '"]');
-        if (catBtn) catBtn.click();
+      // Poll until store is loaded, async data is ready, then open checkout directly
+      var pollCount = 0;
+      var maxPolls = 50; // 50 × 200ms = 10s max wait
+      function waitAndOpen() {
+        // Check all prerequisites:
+        // 1. storeServices must be populated (store loaded)
+        // 2. storedCardLoaded — MB stored card check complete
+        // 3. waiverStatusLoaded — waiver status check complete
+        var storeReady = storeServices && storeServices.length > 0;
+        var asyncReady = storedCardLoaded && waiverStatusLoaded;
 
-        // Wait for items to render, then wait for stored card + waiver data before opening checkout
-        setTimeout(function() {
-          // Find the buy button for this specific product
-          var buyBtn = document.querySelector('[data-store-buy$="-' + targetProdId + '"]') ||
-                       document.querySelector('[data-store-buy="teacher-' + targetProdId + '"]') ||
-                       document.querySelector('[data-store-buy="clips-' + targetProdId + '"]') ||
-                       document.querySelector('[data-store-buy="mem-' + targetProdId + '"]') ||
-                       document.querySelector('[data-store-buy="time-' + targetProdId + '"]');
+        if (storeReady && asyncReady) {
+          // Find the service by prodId in storeServices
+          var service = storeServices.find(function(s) { return s.prodId === targetProdId; });
+          if (service) {
+            // Navigate to the correct store category for visual context
+            var catBtn = document.querySelector('[data-store-top="' + targetCategory + '"]');
+            if (catBtn) catBtn.click();
 
-          // Fallback: search all buy buttons for matching prodId suffix
-          if (!buyBtn) {
-            document.querySelectorAll('[data-store-buy]').forEach(function(btn) {
-              var uid = btn.getAttribute('data-store-buy');
-              if (uid && uid.indexOf(targetProdId) !== -1) buyBtn = btn;
-            });
+            console.log('[Profile] Async data ready — opening checkout for prodId:', targetProdId, '(uid:', service._uid + ')');
+            // Call openCheckout directly — avoids DOM button race conditions
+            openCheckout(service._uid, service._itemType || 'service');
+          } else {
+            console.warn('[Profile] Could not find service for prodId:', targetProdId, 'in storeServices');
+            _funnelResumed = false;
           }
-
-          if (!buyBtn) {
-            console.warn('[Profile] Could not find buy button for prodId:', targetProdId, '— user needs to select manually');
-            return;
-          }
-
-          // Wait for stored card + waiver async data before opening checkout
-          // so that saved card and signed waiver are properly recognized
-          var pollCount = 0;
-          var maxPolls = 30; // 30 × 200ms = 6s max wait
-          function waitForAsyncData() {
-            if (storedCardLoaded && waiverStatusLoaded) {
-              console.log('[Profile] Async data ready — auto-opening checkout for prodId:', targetProdId);
-              buyBtn.click();
-            } else if (pollCount < maxPolls) {
-              pollCount++;
-              setTimeout(waitForAsyncData, 200);
-            } else {
-              // Fallback: open anyway after timeout (better than not opening at all)
-              console.warn('[Profile] Async data timeout — opening checkout anyway for prodId:', targetProdId);
-              buyBtn.click();
-            }
-          }
-          waitForAsyncData();
-        }, 600);
-      }, 400);
+        } else if (pollCount < maxPolls) {
+          pollCount++;
+          setTimeout(waitAndOpen, 200);
+        } else {
+          console.warn('[Profile] Funnel timeout — store:', storeReady, 'async:', asyncReady);
+          _funnelResumed = false;
+        }
+      }
+      // Small initial delay to let store tab click register
+      setTimeout(waitAndOpen, 300);
     }
 
     // Listen for funnel resume event (dispatched when user is already on profile page)
     window.addEventListener('checkout:funnel-resume', function() {
       console.log('[Profile] Funnel resume event received');
+      if (_funnelResumed) return; // Already handled by loadProfile
       if (currentUser) {
         // Re-check profile completeness from Firestore
         db.collection('users').doc(currentUser.uid).get().then(function(doc) {
@@ -228,7 +221,6 @@
           if (d.phone && d.dateOfBirth) {
             resumeCheckoutFunnel(d);
           } else {
-            // Profile incomplete — onboarding form will show; funnel resumes after onboarding
             console.log('[Profile] Profile incomplete, waiting for onboarding');
           }
         });
@@ -1221,6 +1213,14 @@
             } catch (e) {}
           }
           renderWaiverCard(); // Re-render as signed
+
+          // Save waiver flag on user doc (reliable — same doc we already read)
+          if (currentUser && currentDb) {
+            currentDb.collection('users').doc(currentUser.uid).update({
+              waiverSigned: true,
+              waiverSignedDate: waiverAgreementDate || new Date().toISOString()
+            }).catch(function() {});
+          }
 
           // Firestore audit trail
           if (currentUser && currentDb) {
