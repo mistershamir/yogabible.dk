@@ -7724,6 +7724,39 @@ a.yb-kontakt-detail__value:hover {
   margin-bottom: 1.5rem;
 }
 
+/* -- Checkout: Start Date picker (contracts) -- */
+.yb-store__checkout-startdate {
+  margin-bottom: 1.25rem;
+}
+.yb-store__checkout-startdate label {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: #0F0F0F;
+  margin-bottom: 0.35rem;
+}
+.yb-store__checkout-startdate label svg {
+  stroke: #f75c03;
+}
+.yb-store__checkout-startdate input[type="date"] {
+  width: 100%;
+  max-width: 220px;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid #f75c03;
+  border-radius: 12px;
+  font-family: inherit;
+  font-size: 0.85rem;
+  color: #0F0F0F;
+  background: #FFFCF9;
+  outline: none;
+}
+.yb-store__checkout-startdate input[type="date"]:focus {
+  border-color: #d94f02;
+  box-shadow: 0 0 0 2px rgba(247,92,3,0.12);
+}
+
 /* Two-column checkout grid */
 .yb-checkout__grid {
   /* Default: single column — payment form fills width */
@@ -7957,6 +7990,31 @@ a.yb-kontakt-detail__value:hover {
 
   .yb-store__checkout-actions {
     flex-direction: column;
+  }
+
+  .yb-store__top-cat {
+    padding: 1rem 1.25rem;
+    gap: 0.75rem;
+  }
+  .yb-store__top-cat-icon {
+    width: 40px;
+    height: 40px;
+  }
+  .yb-store__top-cat-icon svg {
+    width: 22px;
+    height: 22px;
+  }
+  .yb-store__subcats {
+    gap: 0.35rem;
+  }
+  .yb-store__sub-btn {
+    padding: 0.4rem 0.75rem;
+  }
+  .yb-store__sub-name {
+    font-size: 0.75rem;
+  }
+  .yb-store__sub-desc {
+    font-size: 0.62rem;
   }
 
   .yb-profile__form-row--3 {
@@ -9040,6 +9098,15 @@ a.yb-kontakt-detail__value:hover {
 .yb-store__sub-btn.is-active .yb-store__sub-desc {
   color: rgba(255,255,255,0.8);
 }
+.yb-store__sub-count {
+  font-size: 0.65rem;
+  font-weight: 700;
+  color: #B0AAA4;
+  line-height: 1;
+}
+.yb-store__sub-btn.is-active .yb-store__sub-count {
+  color: rgba(255,255,255,0.7);
+}
 
 /* ── Store: Info Note ── */
 .yb-store__note {
@@ -9350,6 +9417,12 @@ a.yb-kontakt-detail__value:hover {
   margin: 0;
   color: #6F6A66;
   font-size: 0.82rem;
+}
+
+/* ── Store: Contract card highlight ── */
+.yb-store__item--contract {
+  border-color: #f75c03;
+  border-width: 1.5px;
 }
 
 /* ── Store: Deposit Cards ── */
@@ -11029,6 +11102,11 @@ a.yb-kontakt-detail__value:hover {
   font-weight: 700;
   margin: 0 0 0.75rem;
 }
+.yb-stored-card__form-actions {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+}
 
 /* ── Gift Cards Tab ── */
 .yb-giftcards__header { margin-bottom: 1.5rem; }
@@ -11081,8 +11159,47 @@ a.yb-kontakt-detail__value:hover {
 .yb-giftcards__success h3 { font-size: 1.2rem; margin: 0 0 0.5rem; }
 .yb-giftcards__success p { color: #6F6A66; margin: 0 0 1.25rem; }
 
+.yb-giftcards__option-price--custom {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: #f75c03;
+  background: rgba(247, 92, 3, 0.08);
+  padding: 0.25rem 0.65rem;
+  border-radius: 20px;
+}
+.yb-giftcards__form-price {
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: #f75c03;
+  margin-bottom: 1rem;
+  display: block;
+}
+.yb-giftcards__custom-amount input {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #f75c03;
+}
+.yb-giftcards__form-inner .yb-auth-field { margin-bottom: 1rem; }
+.yb-giftcards__form-inner .yb-auth-field label { display: block; font-size: 0.85rem; font-weight: 600; color: #0F0F0F; margin-bottom: 6px; }
+.yb-giftcards__form-inner .yb-auth-field input,
+.yb-giftcards__form-inner .yb-auth-field textarea { width: 100%; padding: 0.65rem 0.85rem; border: 1.5px solid #E8E4E0; border-radius: 10px; font-family: inherit; font-size: 0.9rem; background: #fff; transition: border-color 0.2s; }
+.yb-giftcards__form-inner .yb-auth-field input:focus,
+.yb-giftcards__form-inner .yb-auth-field textarea:focus { outline: none; border-color: #f75c03; box-shadow: 0 0 0 3px rgba(247, 92, 3, 0.08); }
+.yb-giftcards__form-inner .yb-auth-field textarea { resize: vertical; min-height: 80px; }
+.yb-giftcards__form-actions { display: flex; gap: 0.75rem; margin-top: 0.5rem; align-items: center; }
+.yb-giftcards__form-actions .yb-btn--primary { background: #f75c03; border-color: #f75c03; }
+.yb-giftcards__form-actions .yb-btn--primary:hover { background: #d94f02; border-color: #d94f02; }
+.yb-giftcards__form .yb-store__secure { margin-top: 1rem; color: #6F6A66; font-size: 0.8rem; display: flex; align-items: center; gap: 6px; }
+
 @media (max-width: 768px) {
   .yb-giftcards__checkout-grid { grid-template-columns: 1fr; }
+}
+@media (max-width: 600px) {
+  .yb-giftcards__option { padding: 0.85rem 1rem; }
+  .yb-giftcards__checkout-left,
+  .yb-giftcards__checkout-right { padding: 1.25rem; }
+  .yb-giftcards__form-actions { flex-direction: column; }
+  .yb-giftcards__form-actions .yb-btn { width: 100%; }
 }
 
 /* Toast notification */
