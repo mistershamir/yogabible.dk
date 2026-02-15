@@ -351,6 +351,7 @@
     "pricing_deposit": "Forberedelsesfase: 3.750 kr ved tilmelding – giver øjeblikkelig adgang til alle klasser",
     "pricing_installment": "Afdragsordning tilgængelig – kontakt os",
     "pricing_cta": "Ansøg Nu",
+    "pricing_prep_cta": "Start Forberedelsesfasen — 3.750 kr",
 
     "faq_eyebrow": "Ofte Stillede Spørgsmål",
     "faq_title": "Har Du Spørgsmål?",
@@ -402,7 +403,8 @@
 
     "cta_title": "Klar til at starte din rejse?",
     "cta_text": "Få skemaet i dag. Næste hold starter snart.",
-    "cta_button": "Få Skema"
+    "cta_button": "Få Skema",
+    "cta_prep_button": "Start Forberedelsesfasen — 3.750 kr"
   },
   "en": {
     "hero_tagline": "200-Hour Yoga Teacher Training",
@@ -756,6 +758,7 @@
     "pricing_deposit": "Preparation Phase: 3,750 kr upon enrollment – gives immediate access to all classes",
     "pricing_installment": "Installment plan available – contact us",
     "pricing_cta": "Apply Now",
+    "pricing_prep_cta": "Start Preparation Phase — 3,750 DKK",
 
     "faq_eyebrow": "Frequently Asked Questions",
     "faq_title": "Have Questions?",
@@ -807,6 +810,7 @@
 
     "cta_title": "Ready to start your journey?",
     "cta_text": "Get the schedule today. Next cohort starts soon.",
-    "cta_button": "Get Schedule"
+    "cta_button": "Get Schedule",
+    "cta_prep_button": "Start Preparation Phase — 3,750 DKK"
   }
 }

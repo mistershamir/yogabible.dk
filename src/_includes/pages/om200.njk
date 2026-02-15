@@ -726,10 +726,13 @@
           <p class="om2-pricing__installment">{{ t.pricing_installment }}</p>
         </div>
 
-        <button onclick="openYBScheduleModal('18w')" class="yb-btn yb-btn--primary yb-btn--large om2-pricing__cta">
-          <span>{{ t.pricing_cta }}</span>
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
-        </button>
+        <div style="display:flex;flex-direction:column;gap:.75rem">
+          <button onclick="openYBScheduleModal('18w')" class="yb-btn yb-btn--primary yb-btn--large om2-pricing__cta">
+            <span>{{ t.pricing_cta }}</span>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+          </button>
+          <button class="yb-btn yb-btn--primary yb-btn--large" data-checkout-product="100078" style="width:100%">{{ t.pricing_prep_cta }}</button>
+        </div>
       </div>
     </div>
   </div>
@@ -886,6 +889,9 @@
   <div class="container">
     <h2 class="cta-section__title">{{ t.cta_title }}</h2>
     <p class="cta-section__text">{{ t.cta_text }}</p>
-    <button onclick="openYBScheduleModal('18w')" class="yb-btn yb-btn--primary yb-btn--large">{{ t.cta_button }}</button>
+    <div style="display:flex;flex-wrap:wrap;gap:1rem;justify-content:center">
+      <button onclick="openYBScheduleModal('18w')" class="yb-btn yb-btn--primary yb-btn--large">{{ t.cta_button }}</button>
+      <button class="yb-btn yb-btn--primary yb-btn--large" data-checkout-product="100078">{{ t.cta_prep_button }}</button>
+    </div>
   </div>
 </section>
