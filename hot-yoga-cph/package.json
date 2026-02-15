@@ -1,0 +1,9 @@
+{
+  "name": "hot-yoga-cph",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Hot Yoga Copenhagen member area",
+  "dependencies": {
+    "googleapis": "^171.4.0"
+  }
+}
