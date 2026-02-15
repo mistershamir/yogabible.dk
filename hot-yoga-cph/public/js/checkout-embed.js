@@ -531,6 +531,7 @@
   var storedCard = null;
   var authOriginStep = null;   // 'login' | 'register'
   var cameFromLoggedIn = false;
+  var loginOnlyMode = false;   // true when opened via openLoginModal()
   var modal = null;
   var scrollY = 0;
 
@@ -1200,12 +1201,29 @@
 
   function openCheckoutFlow(prodId) {
     if (!prodId) return;
+    loginOnlyMode = false;
     currentProdId = String(prodId);
     mbClientId = null;
     storedCard = null;
 
     modal = $('ycf-modal');
     if (!modal) return;
+
+    // Restore product badge + step dots (may have been hidden by login-only mode)
+    var badge = $('ycf-product-badge');
+    if (badge) badge.hidden = false;
+    var stepDots = modal.querySelector('.ycf-steps');
+    if (stepDots) stepDots.hidden = false;
+
+    // Restore login subtitle for checkout context
+    var loginStep = $('ycf-step-login');
+    if (loginStep) {
+      var subtitles = loginStep.querySelectorAll('.yb-auth-modal__subtitle');
+      for (var s = 0; s < subtitles.length; s++) {
+        if (subtitles[s].hasAttribute('data-yj-da')) subtitles[s].textContent = 'Log ind for at forts\u00e6tte til betaling';
+        if (subtitles[s].hasAttribute('data-yj-en')) subtitles[s].textContent = 'Sign in to continue to payment';
+      }
+    }
 
     // Reset all forms
     var inputs = modal.querySelectorAll('input');
@@ -1251,6 +1269,66 @@
       showStep('ycf-step-login');
       openModal();
     }
+  }
+
+  // ── 3J-b: Login-only modal (no product context) ────────────────────
+  // Opens the same modal at the login step, but without product badge
+  // or step dots. After successful login/register, redirects to profile.
+
+  function openLoginModal() {
+    loginOnlyMode = true;
+    currentProdId = null;
+    mbClientId = null;
+    storedCard = null;
+
+    modal = $('ycf-modal');
+    if (!modal) return;
+
+    // Check if already logged in — go straight to profile
+    var user = null;
+    try { user = firebase.auth().currentUser; } catch (ex) { /* not ready */ }
+    if (user) {
+      window.location.href = PROFILE_URL + '/#schedule';
+      return;
+    }
+
+    // Reset forms
+    var inputs = modal.querySelectorAll('input');
+    for (var i = 0; i < inputs.length; i++) {
+      if (inputs[i].type === 'checkbox') inputs[i].checked = false;
+      else if (inputs[i].type === 'radio') { /* skip */ }
+      else if (inputs[i].type !== 'hidden') inputs[i].value = '';
+    }
+    var errorEls = modal.querySelectorAll('.yb-auth-error, .yb-auth-success');
+    for (var e = 0; e < errorEls.length; e++) { errorEls[e].textContent = ''; errorEls[e].hidden = true; }
+
+    // Hide product badge + step dots (not relevant for login-only)
+    var badge = $('ycf-product-badge');
+    if (badge) badge.hidden = true;
+    var stepDots = modal.querySelector('.ycf-steps');
+    if (stepDots) stepDots.hidden = true;
+
+    // Update login subtitle for login-only context
+    var loginStep = $('ycf-step-login');
+    if (loginStep) {
+      var subtitles = loginStep.querySelectorAll('.yb-auth-modal__subtitle');
+      for (var s = 0; s < subtitles.length; s++) {
+        if (subtitles[s].hasAttribute('data-yj-da')) subtitles[s].textContent = 'Log ind for at se din profil og book klasser';
+        if (subtitles[s].hasAttribute('data-yj-en')) subtitles[s].textContent = 'Sign in to view your profile and book classes';
+      }
+    }
+
+    cameFromLoggedIn = false;
+    showStep('ycf-step-login');
+    openModal();
+  }
+
+  // Helper: redirect to profile after login-only auth
+  function loginOnlyRedirect() {
+    loginOnlyMode = false;
+    currentProdId = null;
+    closeModal();
+    window.location.href = PROFILE_URL + '/#schedule';
   }
 
   // ── 3K: Wire up event handlers (auth forms, navigation) ────────────
@@ -1327,6 +1405,9 @@
             product_name: getProductName(currentProdId),
             product_category: getProductCategory(currentProdId)
           });
+
+          // Login-only mode: redirect to profile instead of checkout
+          if (loginOnlyMode) { loginOnlyRedirect(); return; }
 
           var user = firebase.auth().currentUser;
           var displayName = (user && user.displayName) || '';
@@ -1420,6 +1501,15 @@
             product_name: getProductName(currentProdId),
             product_category: getProductCategory(currentProdId)
           });
+
+          // Login-only mode: create MB client then redirect to profile
+          if (loginOnlyMode) {
+            findOrCreateClient(firstName, lastName, email, phone)
+              .then(function () { loginOnlyRedirect(); })
+              .catch(function () { loginOnlyRedirect(); });
+            return;
+          }
+
           // Create MB client immediately (triggers welcome email) → checkout
           resolveClientAndAdvance(firstName, lastName, email, phone);
         });
@@ -1714,6 +1804,12 @@
           var registerVisible = registerStep && !registerStep.hidden;
 
           if (loginVisible || registerVisible) {
+            // Login-only mode: redirect to profile
+            if (loginOnlyMode) {
+              console.log('[HYC Embed] Auth state changed (login-only) — redirecting to profile');
+              loginOnlyRedirect();
+              return;
+            }
             console.log('[HYC Embed] Auth state changed while modal open — advancing to checkout');
             mbClientId = null;
             var displayName = user.displayName || '';
@@ -1738,6 +1834,7 @@
   // a MutationObserver fallback.
 
   function attachCTAButtons() {
+    // Checkout product buttons
     var buttons = document.querySelectorAll('[data-checkout-product]');
     buttons.forEach(function (btn) {
       if (btn._ycfBound) return;
@@ -1746,6 +1843,18 @@
         e.preventDefault();
         var prodId = btn.getAttribute('data-checkout-product');
         startCheckoutEmbed(prodId);
+      });
+    });
+
+    // Login trigger buttons (e.g., nav LOGIN link)
+    // Usage: <a href="#" data-login-trigger>LOGIN</a>
+    var loginBtns = document.querySelectorAll('[data-login-trigger]');
+    loginBtns.forEach(function (btn) {
+      if (btn._ycfLoginBound) return;
+      btn._ycfLoginBound = true;
+      btn.addEventListener('click', function (e) {
+        e.preventDefault();
+        openLoginModal();
       });
     });
   }
@@ -1792,11 +1901,13 @@
 
   window.startCheckoutEmbed = startCheckoutEmbed;
   window.openCheckoutFlow   = openCheckoutFlow;
+  window.openLoginModal     = openLoginModal;
 
   // Expose funnel helpers for external analytics / debugging
   window.HYCCheckout = {
     open:                  openCheckoutFlow,
     start:                 startCheckoutEmbed,
+    login:                 openLoginModal,
     loadFunnel:            loadFunnel,
     clearFunnel:           clearFunnel,
     trackAuthComplete:     trackAuthComplete,
