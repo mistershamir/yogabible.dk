@@ -628,6 +628,22 @@
         }
       }
 
+      // Check waiver flag on user doc (fastest, most reliable)
+      if (d.waiverSigned && !waiverSigned) {
+        waiverSigned = true;
+        waiverStatusLoaded = true;
+        waiverAgreementDate = d.waiverSignedDate || null;
+        // Also cache in localStorage for instant load
+        var wCacheKey = getWaiverCacheKey();
+        if (wCacheKey) {
+          try {
+            localStorage.setItem(wCacheKey, 'true');
+            if (waiverAgreementDate) localStorage.setItem(wCacheKey + '_date', waiverAgreementDate);
+          } catch (e) {}
+        }
+        renderWaiverCard();
+      }
+
       // Silently fetch waiver status and stored card info
       if (d.mindbodyClientId) {
         console.log('[Profile] Has mindbodyClientId:', d.mindbodyClientId, '— fetching waiver + stored card');
@@ -674,7 +690,12 @@
     db.collection('users').doc(user.uid).get().then(function(doc) {
       if (!doc.exists) return;
       var d = doc.data();
-      if (d.mindbodyClientId) { clientId = d.mindbodyClientId; return; }
+      if (d.mindbodyClientId) {
+        clientId = d.mindbodyClientId;
+        // Trigger waiver check if it wasn't done during loadProfile
+        if (!waiverStatusLoaded) fetchWaiverStatus(clientId);
+        return;
+      }
 
       var firstName = d.firstName || (user.displayName || '').split(' ')[0] || '';
       var lastName = d.lastName || (user.displayName || '').split(' ').slice(1).join(' ') || '';
@@ -737,6 +758,11 @@
       if (holderEl) holderEl.textContent = card.cardHolder || '';
       if (expEl && card.expMonth && card.expYear) {
         expEl.textContent = (isDa() ? 'Udløber ' : 'Expires ') + card.expMonth + '/' + card.expYear;
+      }
+      // If checkout is already open, update stored card section there too
+      var checkoutEl = document.getElementById('yb-store-checkout');
+      if (checkoutEl && !checkoutEl.hidden) {
+        initCheckoutStoredCard('yb-store');
       }
     } else {
       storedCardData = null;

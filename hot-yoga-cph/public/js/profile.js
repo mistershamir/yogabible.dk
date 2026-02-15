@@ -761,6 +761,11 @@
       if (expEl && card.expMonth && card.expYear) {
         expEl.textContent = (isDa() ? 'Udløber ' : 'Expires ') + card.expMonth + '/' + card.expYear;
       }
+      // If checkout is already open, update stored card section there too
+      var checkoutEl = document.getElementById('yb-store-checkout');
+      if (checkoutEl && !checkoutEl.hidden) {
+        initCheckoutStoredCard('yb-store');
+      }
     } else {
       storedCardData = null;
       if (displayEl) displayEl.hidden = true;
