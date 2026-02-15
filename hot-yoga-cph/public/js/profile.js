@@ -3239,6 +3239,25 @@
     // Show stored card toggle if user has one
     initCheckoutStoredCard('yb-store');
 
+    // Show start date picker for contracts (memberships)
+    var startDateSection = document.getElementById('yb-checkout-startdate');
+    if (startDateSection) {
+      startDateSection.hidden = !isContract;
+      if (isContract) {
+        var startDateInput = document.getElementById('yb-store-start-date');
+        var startDateLabel = document.getElementById('yb-checkout-startdate-label');
+        if (startDateLabel) startDateLabel.textContent = da ? 'Startdato for medlemskab' : 'Membership start date';
+        if (startDateInput) {
+          var today = toLocalDateStr(new Date());
+          var maxDate = new Date();
+          maxDate.setDate(maxDate.getDate() + 60);
+          startDateInput.min = today;
+          startDateInput.max = toLocalDateStr(maxDate);
+          startDateInput.value = today;
+        }
+      }
+    }
+
     // 1. Determine what documents to show
     var waiverSection = document.getElementById('yb-checkout-waiver-section');
     var termsSection = document.getElementById('yb-checkout-terms-section');
@@ -3429,7 +3448,7 @@
         clientId: clientId,
         contractId: Number(serviceId),
         locationId: locationId ? Number(locationId) : 1,
-        startDate: toLocalDateStr(new Date()),
+        startDate: (document.getElementById('yb-store-start-date') && document.getElementById('yb-store-start-date').value) || toLocalDateStr(new Date()),
         payment: paymentInfo
       };
       if (promoCode) {
