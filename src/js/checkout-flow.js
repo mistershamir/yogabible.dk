@@ -32,6 +32,30 @@
     en: 'The remaining balance is settled before training starts — either in full or in instalments. Your course director will be in touch with all the details and next steps.'
   };
 
+  // Refundable note (for teacher training prep phase)
+  var REFUND_NOTE = {
+    da: 'Fuldt refunderbar — ingen spørgsmål',
+    en: 'Fully refundable — no questions asked'
+  };
+
+  // Prep phase benefits (for teacher training)
+  var PREP_BENEFITS = {
+    da: [
+      'Sikrer din plads på holdet',
+      'Begynd din forberedelse med det samme',
+      'Mere tid til at opfylde praksis-krav',
+      'Spar på studiemedlemskaber',
+      'Adgang til velkomstmateriale og online-ressourcer'
+    ],
+    en: [
+      'Secures your spot on the cohort',
+      'Start preparing right away',
+      'More time to complete class practice requirements',
+      'Save on studio memberships',
+      'Access to welcome materials and online resources'
+    ]
+  };
+
   // ── State ──
   var currentProdId = null;
   var currentStep = 1;
@@ -161,6 +185,28 @@
         chips += '<span class="ycf-chip ycf-chip--muted">' + (isDa ? p.format_da : p.format_en) + '</span>';
       }
       prodChips.innerHTML = chips;
+    }
+
+    // Refundable note (teacher training only)
+    var prodRefund = $('ycf-prod-refund');
+    var prodRefundText = $('ycf-prod-refund-text');
+    if (prodRefund && prodRefundText && p.category === 'teacher') {
+      prodRefundText.textContent = isDa ? REFUND_NOTE.da : REFUND_NOTE.en;
+      prodRefund.hidden = false;
+    } else if (prodRefund) {
+      prodRefund.hidden = true;
+    }
+
+    // Prep phase benefits (teacher training only)
+    var prodBenefits = $('ycf-prod-benefits');
+    if (prodBenefits && p.category === 'teacher') {
+      var benefits = isDa ? PREP_BENEFITS.da : PREP_BENEFITS.en;
+      prodBenefits.innerHTML = benefits.map(function (b) {
+        return '<li><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg><span>' + b + '</span></li>';
+      }).join('');
+      prodBenefits.hidden = false;
+    } else if (prodBenefits) {
+      prodBenefits.hidden = true;
     }
 
     // Remaining payment note (teacher training only)
