@@ -702,12 +702,12 @@
     var classId = btn.getAttribute('data-hycs-book');
     if (!classId) return;
 
-    // Not logged in → open login modal (with callback to stay on page)
+    // Not logged in → open login modal (with callback to retry booking)
     if (!scheduleUser) {
       if (typeof window.openLoginModal === 'function') {
         window.openLoginModal(function () {
           // After login, schedule will auto-reload via onAuthStateChanged
-          showToast(t('Du er logget ind!', 'You are logged in!'), 'success');
+          showToast(t('Du er logget ind! Prøv at booke igen.', 'You are logged in! Try booking again.'), 'success');
         });
       } else {
         window.location.href = PROFILE_URL + '/#schedule';
@@ -715,32 +715,35 @@
       return;
     }
 
-    // No MB client ID yet
+    // No MB client ID yet — try to resolve from Firestore
     if (!scheduleMbClientId) {
-      showToast(t('Vent venligst, henter din profil...', 'Please wait, loading your profile...'), 'success');
+      btn.disabled = true;
+      btn.textContent = t('Henter profil...', 'Loading profile...');
+      var db = firebase.firestore();
+      db.collection('users').doc(scheduleUser.uid).get()
+        .then(function (doc) {
+          if (doc.exists && doc.data().mindbodyClientId) {
+            scheduleMbClientId = doc.data().mindbodyClientId;
+            btn.disabled = false;
+            btn.textContent = t('Book', 'Book');
+            bookClass(btn); // retry
+          } else {
+            showToast(t('Kunne ikke finde din profil. Kontakt os venligst.', 'Could not find your profile. Please contact us.'), 'error');
+            btn.disabled = false;
+            btn.textContent = t('Book', 'Book');
+          }
+        })
+        .catch(function () {
+          showToast(t('Kunne ikke hente din profil.', 'Could not load your profile.'), 'error');
+          btn.disabled = false;
+          btn.textContent = t('Book', 'Book');
+        });
       return;
     }
 
-    // Check waiver
-    if (!scheduleWaiverSigned) {
-      showToast(
-        t('Du skal acceptere ansvarsfrihedserklæringen først.', 'You must accept the liability waiver first.'),
-        'error',
-        '<div style="margin-top:8px"><a href="' + PROFILE_URL + '/#passes" target="_blank" style="color:#fff;text-decoration:underline;font-weight:400;font-size:0.85rem">' + t('Gå til profil →', 'Go to profile →') + '</a></div>'
-      );
-      return;
-    }
-
-    // Check active pass
-    var hasPass = schedulePassData && ((schedulePassData.activeServices && schedulePassData.activeServices.length > 0) || (schedulePassData.activeContracts && schedulePassData.activeContracts.length > 0));
-    if (!hasPass) {
-      showToast(t('Du har brug for et pas for at booke.', 'You need a pass to book.'), 'error');
-      var noPassEl = document.getElementById('hycs-no-pass');
-      if (noPassEl) noPassEl.hidden = false;
-      return;
-    }
-
-    // Book
+    // Proceed directly to booking — let the server handle pass/waiver validation.
+    // Client-side pre-checks were causing race conditions where async waiver/pass
+    // data hadn't loaded yet, silently blocking the user.
     actionLock = true;
     btn.disabled = true;
     btn.textContent = t('Booker...', 'Booking...');
@@ -781,6 +784,14 @@
           );
           var noPassEl = document.getElementById('hycs-no-pass');
           if (noPassEl) noPassEl.hidden = false;
+          btn.disabled = false;
+          btn.textContent = t('Book', 'Book');
+        } else if (data.error === 'waiver_required' || (data.error && data.error.indexOf('waiver') !== -1)) {
+          showToast(
+            t('Du skal acceptere ansvarsfrihedserklæringen først.', 'You must accept the liability waiver first.'),
+            'error',
+            '<div style="margin-top:8px"><a href="' + PROFILE_URL + '/#passes" target="_blank" style="color:#fff;text-decoration:underline;font-weight:400;font-size:0.85rem">' + t('Gå til profil →', 'Go to profile →') + '</a></div>'
+          );
           btn.disabled = false;
           btn.textContent = t('Book', 'Book');
         } else {
