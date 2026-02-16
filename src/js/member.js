@@ -1,8 +1,9 @@
 /**
  * YOGA BIBLE — MEMBER PAGE
  * Toggles guest/user view based on Firebase auth state.
- * Renders role badge, applies permission-based visibility,
- * and manages panel navigation with hash routing for glossary/journal.
+ * Renders role badge, manages tab navigation with hash routing,
+ * lazy-loads iframes for courses/schedule/profile tabs,
+ * and auto-resizes iframes to fit content.
  */
 (function() {
   'use strict';
@@ -59,7 +60,7 @@
       }
     });
 
-    initPanelNav();
+    initTabNav();
   }
 
   // ── Role Badge ──
@@ -84,28 +85,24 @@
     badgeEl.style.display = '';
   }
 
-  // ── Panel Navigation (glossary + journal only) ──
+  // ── Tab Navigation ──
 
-  var VALID_PANELS = ['glossary', 'journal'];
+  var VALID_TABS = ['hub', 'courses', 'schedule', 'glossary', 'journal', 'profile'];
+  var IFRAME_TABS = ['courses', 'schedule', 'profile'];
+  var loadedIframes = {};
+  var resizeTimers = {};
 
-  function initPanelNav() {
-    // Card click handlers for embedded panels
-    var cards = document.querySelectorAll('[data-yb-panel]');
-    cards.forEach(function(card) {
-      card.addEventListener('click', function(e) {
-        e.preventDefault();
-        var panel = this.getAttribute('data-yb-panel');
-        if (VALID_PANELS.indexOf(panel) !== -1) {
-          showPanel(panel);
+  function initTabNav() {
+    // Tab button clicks (in the tab bar)
+    var tabBtns = document.querySelectorAll('[data-yb-ma-tab]');
+    tabBtns.forEach(function(btn) {
+      btn.addEventListener('click', function(e) {
+        // Only prevent default for elements that are links (hub cards use <a>)
+        if (this.tagName === 'A') e.preventDefault();
+        var tab = this.getAttribute('data-yb-ma-tab');
+        if (VALID_TABS.indexOf(tab) !== -1) {
+          showTab(tab);
         }
-      });
-    });
-
-    // Back button handlers
-    var backBtns = document.querySelectorAll('[data-yb-back]');
-    backBtns.forEach(function(btn) {
-      btn.addEventListener('click', function() {
-        showHub();
       });
     });
 
@@ -117,42 +114,111 @@
 
   function routeFromHash() {
     var hash = window.location.hash.slice(1);
-    if (hash && VALID_PANELS.indexOf(hash) !== -1) {
-      showPanel(hash, true);
+    if (hash && VALID_TABS.indexOf(hash) !== -1) {
+      showTab(hash, true);
     } else {
-      showHub(true);
+      showTab('hub', true);
     }
   }
 
-  function showPanel(panel, skipPush) {
-    var hub = document.getElementById('yb-ma-hub');
-    var panelEl = document.getElementById('yb-ma-panel-' + panel);
-    if (!panelEl) return;
+  function showTab(tab, skipPush) {
+    if (VALID_TABS.indexOf(tab) === -1) tab = 'hub';
 
+    // Update URL hash
     if (!skipPush) {
-      history.pushState({ panel: panel }, '', '#' + panel);
+      if (tab === 'hub') {
+        history.pushState({}, '', window.location.pathname);
+      } else {
+        history.pushState({ tab: tab }, '', '#' + tab);
+      }
     }
 
-    if (hub) hub.hidden = true;
+    // Update tab buttons — mark active
+    var tabBtns = document.querySelectorAll('.yb-ma-tabs__btn[data-yb-ma-tab]');
+    tabBtns.forEach(function(btn) {
+      var btnTab = btn.getAttribute('data-yb-ma-tab');
+      if (btnTab === tab) {
+        btn.classList.add('is-active');
+      } else {
+        btn.classList.remove('is-active');
+      }
+    });
 
-    var allPanels = document.querySelectorAll('.yb-ma-panel');
-    allPanels.forEach(function(p) { p.hidden = true; });
+    // Show/hide tab panels
+    var panels = document.querySelectorAll('[data-yb-ma-panel]');
+    panels.forEach(function(panel) {
+      var panelTab = panel.getAttribute('data-yb-ma-panel');
+      if (panelTab === tab) {
+        panel.hidden = false;
+      } else {
+        panel.hidden = true;
+      }
+    });
 
-    panelEl.hidden = false;
-    window.scrollTo(0, 0);
+    // Lazy-load iframe if needed
+    if (IFRAME_TABS.indexOf(tab) !== -1 && !loadedIframes[tab]) {
+      var panel = document.getElementById('yb-ma-tp-' + tab);
+      if (panel) {
+        var iframe = panel.querySelector('iframe[data-src]');
+        if (iframe) {
+          iframe.src = iframe.getAttribute('data-src');
+          iframe.removeAttribute('data-src');
+          loadedIframes[tab] = true;
+
+          // Auto-resize iframe when it loads
+          iframe.addEventListener('load', function() {
+            autoResizeIframe(iframe, tab);
+          });
+        }
+      }
+    }
+
+    // Scroll tab bar to show active button
+    scrollTabIntoView(tab);
+
+    // Scroll page to top of tab content
+    var tabsBar = document.getElementById('yb-ma-tabs');
+    if (tabsBar) {
+      var rect = tabsBar.getBoundingClientRect();
+      if (rect.top < 0) {
+        tabsBar.scrollIntoView({ behavior: 'smooth' });
+      }
+    }
   }
 
-  function showHub(skipPush) {
-    var hub = document.getElementById('yb-ma-hub');
+  function scrollTabIntoView(tab) {
+    var btn = document.querySelector('.yb-ma-tabs__btn[data-yb-ma-tab="' + tab + '"]');
+    if (btn) {
+      btn.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+    }
+  }
 
-    if (!skipPush) {
-      history.pushState({}, '', window.location.pathname);
+  function autoResizeIframe(iframe, tab) {
+    function resize() {
+      try {
+        var doc = iframe.contentDocument || iframe.contentWindow.document;
+        var h = doc.documentElement.scrollHeight;
+        if (h > 100) {
+          iframe.style.height = h + 'px';
+        }
+      } catch (e) {
+        // Cross-origin — can't resize
+      }
     }
 
-    var allPanels = document.querySelectorAll('.yb-ma-panel');
-    allPanels.forEach(function(p) { p.hidden = true; });
+    // Initial resize
+    resize();
 
-    if (hub) hub.hidden = false;
-    window.scrollTo(0, 0);
+    // Poll for content changes (dynamic content loads in tabs)
+    if (resizeTimers[tab]) clearInterval(resizeTimers[tab]);
+    var count = 0;
+    resizeTimers[tab] = setInterval(function() {
+      resize();
+      count++;
+      // Stop polling after 30 seconds
+      if (count > 60) {
+        clearInterval(resizeTimers[tab]);
+      }
+    }, 500);
   }
 })();
