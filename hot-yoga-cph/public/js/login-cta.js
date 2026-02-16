@@ -1,11 +1,13 @@
 // =====================================================================
-// HOT YOGA COPENHAGEN — Login CTA + User Area Modal (self-contained)
+// HOT YOGA COPENHAGEN — Login CTA + User Area Modal (fully self-contained)
 // Drop into a Framer HTML Embed. Renders a login/profile button.
-// Logged out: "Log ind" → opens checkout-embed.js auth modal.
-// Logged in: user's name → opens a user-area popup with passes,
+// Logged out: "Log ind" → opens its OWN auth modal (login/register/reset).
+// Logged in: "Min profil" → opens user-area popup with passes,
 //            quick actions, and logout — all inside the Framer page.
 // Brand: #3f99a5 (HYC teal)
 // API:   https://profile.hotyogacph.dk/.netlify/functions
+// Embed: <div id="hyc-login-cta"></div>
+//        <script src="https://profile.hotyogacph.dk/js/login-cta.js"></script>
 // =====================================================================
 (function () {
   'use strict';
@@ -14,30 +16,46 @@
   window.__hyc_login_cta_loaded = true;
 
   // ── Config ──────────────────────────────────────────────────────────
-  var BRAND       = '#3f99a5';
-  var BRAND_DARK  = '#357f89';
-  var BRAND_LIGHT = '#e8f4f6';
-  var API_BASE    = 'https://profile.hotyogacph.dk/.netlify/functions';
-  var PROFILE_URL = 'https://profile.hotyogacph.dk';
+  var BRAND        = '#3f99a5';
+  var BRAND_DARK   = '#357f89';
+  var BRAND_LIGHT  = '#e8f4f6';
+  var BRAND_RGBA12 = 'rgba(63,153,165,.12)';
+  var API_BASE     = 'https://profile.hotyogacph.dk/.netlify/functions';
+  var PROFILE_URL  = 'https://profile.hotyogacph.dk';
+  var FIREBASE_VER = '10.14.1';
+  var FIREBASE_CDN = 'https://www.gstatic.com/firebasejs/' + FIREBASE_VER;
+
+  // Firebase config — placeholders replaced at Netlify build time
+  var FIREBASE_CONFIG = {
+    apiKey:            "__FIREBASE_API_KEY__",
+    authDomain:        "__FIREBASE_AUTH_DOMAIN__",
+    projectId:         "__FIREBASE_PROJECT_ID__",
+    storageBucket:     "__FIREBASE_STORAGE_BUCKET__",
+    messagingSenderId: "__FIREBASE_MESSAGING_SENDER_ID__",
+    appId:             "__FIREBASE_APP_ID__"
+  };
 
   // ── Language ────────────────────────────────────────────────────────
   var isDa = window.location.pathname.indexOf('/en/') !== 0;
   function t(da, en) { return isDa ? da : en; }
 
-  // ── State ───────────────────────────────────────────────────────────
+  // ── State ─────────────────────────────────────────────────────────
   var container = null;
   var currentUser = null;
   var mbClientId = null;
   var passData = null;
+  var firebaseReady = false;
+  var modalEl = null;
+  var modalMode = null; // 'auth-login' | 'auth-register' | 'auth-forgot' | 'user-area'
 
-  // ── Helpers ─────────────────────────────────────────────────────────
+  // ── Helpers ───────────────────────────────────────────────────────
   function esc(str) {
     var d = document.createElement('div');
     d.textContent = str || '';
     return d.innerHTML;
   }
 
-  // ── SVG Icons ───────────────────────────────────────────────────────
+  // ── SVG Icons ─────────────────────────────────────────────────────
   var ICON = {
     login:    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>',
     profile:  '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>',
@@ -45,13 +63,186 @@
     close:    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>',
     calendar: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>',
     cart:     '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>',
-    pass:     '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>',
     check:    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>',
     external: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>',
+    back:     '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5"/><path d="M12 19l-7-7 7-7"/></svg>',
     spinner:  '<div class="hyc-ua__spinner"></div>'
   };
 
-  // ── CSS Injection ───────────────────────────────────────────────────
+
+  // ═══════════════════════════════════════════════════════════════════
+  // FIREBASE SDK LOADER
+  // ═══════════════════════════════════════════════════════════════════
+
+  function loadScript(url, cb) {
+    var s = document.createElement('script');
+    s.src = url;
+    s.onload = function () { cb(null); };
+    s.onerror = function () { cb(new Error('Failed to load ' + url)); };
+    document.head.appendChild(s);
+  }
+
+  function loadFirebaseSDK(callback) {
+    // Set auth persistence to NONE (in-memory) for cross-origin embeds.
+    // IndexedDB is blocked by browser storage partitioning on cross-origin pages.
+    function onFirebaseReady() {
+      if (typeof firebase !== 'undefined' && firebase.auth) {
+        firebase.auth().setPersistence(firebase.auth.Auth.Persistence.NONE)
+          .then(function () { callback(); })
+          .catch(function () { callback(); });
+      } else {
+        callback();
+      }
+    }
+
+    // If Firebase is already loaded (e.g. by checkout-embed.js)
+    if (typeof firebase !== 'undefined' && firebase.apps) {
+      if (!firebase.apps.length) {
+        try { firebase.initializeApp(FIREBASE_CONFIG); } catch (e) { /* already init */ }
+      }
+      return onFirebaseReady();
+    }
+
+    var scripts = [
+      FIREBASE_CDN + '/firebase-app-compat.js',
+      FIREBASE_CDN + '/firebase-auth-compat.js',
+      FIREBASE_CDN + '/firebase-firestore-compat.js'
+    ];
+
+    var i = 0;
+    function next(err) {
+      if (err) console.warn('[HYC Login CTA] Script load error:', err.message);
+      if (i >= scripts.length) {
+        try {
+          if (!firebase.apps.length) firebase.initializeApp(FIREBASE_CONFIG);
+        } catch (e) {
+          console.warn('[HYC Login CTA] Firebase init error:', e.message);
+        }
+        return onFirebaseReady();
+      }
+      loadScript(scripts[i++], next);
+    }
+    next(null);
+  }
+
+
+  // ═══════════════════════════════════════════════════════════════════
+  // FIREBASE AUTH FUNCTIONS
+  // ═══════════════════════════════════════════════════════════════════
+
+  function doLogin(email, password, callback) {
+    firebase.auth().signInWithEmailAndPassword(email, password)
+      .then(function () { callback(null); })
+      .catch(function (err) { callback(err); });
+  }
+
+  function doRegister(email, password, firstName, lastName, phone, callback) {
+    firebase.auth().createUserWithEmailAndPassword(email, password)
+      .then(function (cred) {
+        var fullName = firstName + ' ' + lastName;
+        var consents = {
+          termsAndConditions: { accepted: true, timestamp: new Date().toISOString(), version: '2026-02-09' },
+          privacyPolicy:     { accepted: true, timestamp: new Date().toISOString(), version: '2026-02-09' },
+          codeOfConduct:     { accepted: true, timestamp: new Date().toISOString(), version: '2026-02-09' }
+        };
+        // Create Firestore user profile
+        createFirestoreProfile(cred.user, firstName, lastName, phone, consents);
+        // Create MB client (triggers welcome email)
+        findOrCreateClient(firstName, lastName, email, phone).catch(function () {});
+        return cred.user.updateProfile({ displayName: fullName });
+      })
+      .then(function () { callback(null); })
+      .catch(function (err) { callback(err); });
+  }
+
+  function doForgotPassword(email, callback) {
+    firebase.auth().sendPasswordResetEmail(email)
+      .then(function () { callback(null); })
+      .catch(function (err) { callback(err); });
+  }
+
+  function authErrorMsg(err) {
+    var code = err.code || '';
+    if (code === 'auth/user-not-found' || code === 'auth/wrong-password' || code === 'auth/invalid-credential') {
+      return t('Forkert email eller adgangskode.', 'Incorrect email or password.');
+    }
+    if (code === 'auth/email-already-in-use') {
+      return t('Denne email er allerede i brug.', 'This email is already in use.');
+    }
+    if (code === 'auth/weak-password') {
+      return t('Adgangskoden skal v\u00e6re mindst 6 tegn.', 'Password must be at least 6 characters.');
+    }
+    if (code === 'auth/invalid-email') {
+      return t('Ugyldig email-adresse.', 'Invalid email address.');
+    }
+    if (code === 'auth/too-many-requests') {
+      return t('For mange fors\u00f8g. Pr\u00f8v igen senere.', 'Too many attempts. Please try again later.');
+    }
+    return err.message || t('Der opstod en fejl.', 'An error occurred.');
+  }
+
+
+  // ═══════════════════════════════════════════════════════════════════
+  // FIRESTORE + MINDBODY CLIENT
+  // ═══════════════════════════════════════════════════════════════════
+
+  function createFirestoreProfile(user, firstName, lastName, phone, consents) {
+    try {
+      firebase.firestore().collection('users').doc(user.uid).set({
+        uid: user.uid,
+        email: user.email || '',
+        firstName: firstName,
+        lastName: lastName,
+        phone: phone || '',
+        displayName: (firstName + ' ' + lastName).trim(),
+        consents: consents || {},
+        source: 'login-cta',
+        sourceSite: 'hotyogacph.dk',
+        createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+        updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+      }, { merge: true }).catch(function () {});
+    } catch (e) { /* Firestore not ready */ }
+  }
+
+  function findOrCreateClient(firstName, lastName, email, phone) {
+    return fetch(API_BASE + '/mb-client?email=' + encodeURIComponent(email))
+      .then(function (res) { return res.json(); })
+      .then(function (data) {
+        if (data.found && data.client) return data.client.id;
+        return fetch(API_BASE + '/mb-client', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            firstName: firstName,
+            lastName: lastName || firstName,
+            email: email,
+            phone: phone || ''
+          })
+        })
+        .then(function (res) { return res.json(); })
+        .then(function (d) {
+          if (d.client) return d.client.id;
+          throw new Error('Could not create client');
+        });
+      });
+  }
+
+  function resolveMbClient(user) {
+    if (typeof firebase === 'undefined' || !firebase.firestore) return;
+    firebase.firestore().collection('users').doc(user.uid).get()
+      .then(function (doc) {
+        if (doc.exists && doc.data().mindbodyClientId) {
+          mbClientId = doc.data().mindbodyClientId;
+        }
+      })
+      .catch(function () {});
+  }
+
+
+  // ═══════════════════════════════════════════════════════════════════
+  // CSS INJECTION
+  // ═══════════════════════════════════════════════════════════════════
+
   function injectCSS() {
     if (document.getElementById('hyc-login-cta-css')) return;
     var s = document.createElement('style');
@@ -67,27 +258,29 @@
       '.hyc-cta__btn--user{background:#fff;color:' + BRAND + ';border-color:' + BRAND + '}',
       '.hyc-cta__btn--user:hover{background:' + BRAND_LIGHT + ';transform:translateY(-1px)}',
 
-      // ── Modal overlay ───────────────────────────────────────────
+      // ── Modal overlay ─────────────────────────────────────────
       '.hyc-ua{position:fixed;inset:0;z-index:10000;display:flex;align-items:center;justify-content:center;padding:16px}',
       '.hyc-ua[aria-hidden="true"]{display:none}',
       '.hyc-ua__overlay{position:absolute;inset:0;background:rgba(0,0,0,.6);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px)}',
 
-      // ── Modal box ───────────────────────────────────────────────
+      // ── Modal box ─────────────────────────────────────────────
       '.hyc-ua__box{position:relative;background:#FFFCF9;border-radius:20px;width:100%;max-width:420px;max-height:90vh;overflow-y:auto;padding:32px 28px 28px;box-shadow:0 24px 64px rgba(0,0,0,.15);border:1px solid #E8E4E0;animation:hyc-ua-in .25s ease}',
       '@keyframes hyc-ua-in{from{opacity:0;transform:translateY(12px) scale(.97)}to{opacity:1;transform:translateY(0) scale(1)}}',
+      // Warm glow accent
+      '.hyc-ua__box::before{content:"";position:absolute;top:-60px;right:-60px;width:180px;height:180px;background:radial-gradient(circle,' + BRAND_RGBA12 + ' 0%,transparent 70%);pointer-events:none}',
 
-      // ── Close button ────────────────────────────────────────────
+      // ── Close button ──────────────────────────────────────────
       '.hyc-ua__close{position:absolute;top:12px;right:12px;background:none;border:none;color:#6F6A66;cursor:pointer;width:36px;height:36px;display:flex;align-items:center;justify-content:center;border-radius:50%;z-index:2;transition:background .15s,color .15s}',
       '.hyc-ua__close:hover{background:#F5F3F0;color:#0F0F0F}',
       '.hyc-ua__close svg{width:20px;height:20px}',
 
-      // ── User header ─────────────────────────────────────────────
+      // ── User area: header ─────────────────────────────────────
       '.hyc-ua__header{display:flex;align-items:center;gap:14px;margin-bottom:24px}',
       '.hyc-ua__avatar{width:48px;height:48px;border-radius:50%;background:' + BRAND + ';color:#fff;display:flex;align-items:center;justify-content:center;font-size:1.2rem;font-weight:700;flex-shrink:0}',
       '.hyc-ua__greeting{font-size:0.82rem;color:#6F6A66;margin:0}',
       '.hyc-ua__name{font-size:1.15rem;font-weight:700;color:#0F0F0F;margin:2px 0 0}',
 
-      // ── Pass cards ──────────────────────────────────────────────
+      // ── User area: pass cards ─────────────────────────────────
       '.hyc-ua__section{margin-bottom:20px}',
       '.hyc-ua__section-label{font-size:0.7rem;font-weight:700;color:#6F6A66;text-transform:uppercase;letter-spacing:.06em;margin:0 0 8px}',
       '.hyc-ua__pass{background:linear-gradient(135deg,' + BRAND_LIGHT + ',#FFFCF9);border:1.5px solid ' + BRAND + ';border-radius:12px;padding:14px 16px;margin-bottom:8px}',
@@ -97,7 +290,7 @@
       '.hyc-ua__pass-stat--low{color:#c0392b}',
       '.hyc-ua__no-pass{background:#F5F3F0;border:1.5px dashed #E8E4E0;border-radius:12px;padding:20px;text-align:center;color:#6F6A66;font-size:0.88rem;line-height:1.5}',
 
-      // ── Quick actions ───────────────────────────────────────────
+      // ── User area: quick actions ──────────────────────────────
       '.hyc-ua__actions{display:flex;flex-direction:column;gap:8px;margin-bottom:20px}',
       '.hyc-ua__action{display:flex;align-items:center;gap:12px;padding:12px 16px;background:#fff;border:1.5px solid #E8E4E0;border-radius:12px;text-decoration:none;color:#0F0F0F;cursor:pointer;transition:all .15s;font-family:inherit;font-size:0.88rem;font-weight:600;width:100%;text-align:left}',
       '.hyc-ua__action:hover{border-color:' + BRAND + ';background:' + BRAND_LIGHT + ';color:' + BRAND + '}',
@@ -106,25 +299,69 @@
       '.hyc-ua__action-arrow{color:#E8E4E0;font-size:1.1rem;transition:color .15s}',
       '.hyc-ua__action:hover .hyc-ua__action-arrow{color:' + BRAND + '}',
 
-      // ── Divider ─────────────────────────────────────────────────
+      // ── User area: divider + logout ───────────────────────────
       '.hyc-ua__divider{border:none;border-top:1px solid #E8E4E0;margin:0 0 20px}',
-
-      // ── Logout button ───────────────────────────────────────────
       '.hyc-ua__logout{display:flex;align-items:center;justify-content:center;gap:6px;width:100%;padding:10px;background:none;border:1.5px solid #E8E4E0;border-radius:12px;color:#6F6A66;font-family:inherit;font-size:0.82rem;font-weight:600;cursor:pointer;transition:all .15s}',
       '.hyc-ua__logout:hover{color:#c0392b;border-color:#c0392b;background:#fef5f5}',
       '.hyc-ua__logout svg{width:16px;height:16px}',
 
-      // ── Loading spinner ─────────────────────────────────────────
+      // ── Spinner ───────────────────────────────────────────────
       '.hyc-ua__spinner{width:16px;height:16px;border:2px solid #E8E4E0;border-top-color:' + BRAND + ';border-radius:50%;animation:hyc-ua-spin .7s linear infinite;display:inline-block}',
       '@keyframes hyc-ua-spin{to{transform:rotate(360deg)}}',
       '.hyc-ua__loading{display:flex;align-items:center;justify-content:center;gap:8px;padding:24px 0;color:#6F6A66;font-size:0.85rem}',
 
-      // ── Profile link ────────────────────────────────────────────
-      '.hyc-ua__profile-link{display:block;text-align:center;margin-top:12px;font-size:0.78rem;color:#6F6A66}',
-      '.hyc-ua__profile-link a{color:' + BRAND + ';text-decoration:none;font-weight:600}',
-      '.hyc-ua__profile-link a:hover{text-decoration:underline}',
+      // ═════════════════════════════════════════════════════════
+      // AUTH FORM STYLES
+      // ═════════════════════════════════════════════════════════
 
-      // ── Responsive ──────────────────────────────────────────────
+      // ── Auth header ───────────────────────────────────────────
+      '.hyc-auth__header{text-align:left;margin-bottom:24px}',
+      '.hyc-auth__title{font-size:1.5rem;font-weight:700;color:#0F0F0F;margin:0 0 6px}',
+      '.hyc-auth__subtitle{font-size:.9rem;color:#6F6A66;margin:0}',
+
+      // ── Auth form fields ──────────────────────────────────────
+      '.hyc-auth__form{display:flex;flex-direction:column;gap:16px}',
+      '.hyc-auth__field{display:flex;flex-direction:column;gap:6px}',
+      '.hyc-auth__field label{font-size:.82rem;font-weight:700;color:#0F0F0F;text-transform:uppercase;letter-spacing:.04em}',
+      '.hyc-auth__field input{font-family:inherit;font-size:.95rem;padding:12px 16px;border:1px solid ' + BRAND + ';border-radius:12px;background:#fff;color:#0F0F0F;transition:border-color .15s,box-shadow .15s;outline:none;width:100%;min-width:0;box-sizing:border-box}',
+      '.hyc-auth__field input::placeholder{color:#B5B0AB}',
+      '.hyc-auth__field input:focus{border-color:' + BRAND + ';box-shadow:0 0 0 3px ' + BRAND_RGBA12 + '}',
+      '.hyc-auth__row{display:grid;grid-template-columns:1fr 1fr;gap:12px;overflow:hidden}',
+
+      // ── Submit button ─────────────────────────────────────────
+      '.hyc-auth__submit{font-family:inherit;font-size:1rem;font-weight:700;padding:14px 24px;background:' + BRAND + ';color:#fff;border:none;border-radius:12px;cursor:pointer;transition:background .2s,transform .15s;margin-top:4px}',
+      '.hyc-auth__submit:hover{background:' + BRAND_DARK + '}',
+      '.hyc-auth__submit:active{transform:scale(.98)}',
+      '.hyc-auth__submit:disabled{opacity:.6;cursor:not-allowed}',
+
+      // ── Error / success ───────────────────────────────────────
+      '.hyc-auth__error{font-size:.85rem;color:#d32f2f;background:#fdecea;padding:10px 14px;border-radius:8px;display:none}',
+      '.hyc-auth__error.is-visible{display:block}',
+      '.hyc-auth__success{font-size:.85rem;color:#2e7d32;background:#edf7ed;padding:10px 14px;border-radius:8px;display:none}',
+      '.hyc-auth__success.is-visible{display:block}',
+
+      // ── Links / dividers ──────────────────────────────────────
+      '.hyc-auth__links{text-align:center;margin-top:12px}',
+      '.hyc-auth__links a{font-size:.85rem;color:' + BRAND + ';text-decoration:none;cursor:pointer}',
+      '.hyc-auth__links a:hover{text-decoration:underline}',
+      '.hyc-auth__divider{text-align:center;margin-top:20px;padding-top:20px;border-top:1px solid #E8E4E0;font-size:.85rem;color:#6F6A66}',
+      '.hyc-auth__divider a{color:' + BRAND + ';text-decoration:none;font-weight:700;margin-left:4px;cursor:pointer}',
+      '.hyc-auth__divider a:hover{text-decoration:underline}',
+
+      // ── Back link ─────────────────────────────────────────────
+      '.hyc-auth__back{display:inline-flex;align-items:center;gap:4px;font-size:.82rem;font-weight:600;color:#6F6A66;text-decoration:none;margin-bottom:12px;cursor:pointer;transition:color .15s;background:none;border:none;padding:0;font-family:inherit}',
+      '.hyc-auth__back:hover{color:' + BRAND + '}',
+
+      // ── Consent checkboxes ────────────────────────────────────
+      '.hyc-auth__consent{display:flex;flex-direction:column;gap:10px;margin-top:4px;margin-bottom:16px}',
+      '.hyc-auth__consent-item{display:flex;align-items:flex-start;gap:10px;font-size:.82rem;color:#0F0F0F;line-height:1.45;cursor:pointer}',
+      '.hyc-auth__consent-item input[type="checkbox"]{appearance:none;-webkit-appearance:none;width:18px;height:18px;min-width:18px;border:1.5px solid #E8E4E0;border-radius:4px;margin-top:1px;cursor:pointer;position:relative;transition:border-color .15s,background .15s}',
+      '.hyc-auth__consent-item input[type="checkbox"]:checked{background:' + BRAND + ';border-color:' + BRAND + '}',
+      '.hyc-auth__consent-item input[type="checkbox"]:checked::after{content:"";position:absolute;left:5px;top:1px;width:5px;height:10px;border:solid #fff;border-width:0 2px 2px 0;transform:rotate(45deg)}',
+      '.hyc-auth__consent-item a{color:' + BRAND + ';text-decoration:underline;font-weight:600}',
+      '.hyc-auth__consent-item a:hover{color:' + BRAND_DARK + '}',
+
+      // ── Responsive ────────────────────────────────────────────
       '@media (max-width:480px){',
         '.hyc-cta__btn{font-size:0.82rem;padding:0.5rem 1rem}',
         '.hyc-ua__box{padding:24px 20px 20px;border-radius:16px;max-height:95vh}',
@@ -133,6 +370,7 @@
         '.hyc-ua__avatar{width:40px;height:40px;font-size:1rem}',
         '.hyc-ua__name{font-size:1.05rem}',
         '.hyc-ua__action{padding:10px 14px;font-size:0.82rem}',
+        '.hyc-auth__row{grid-template-columns:1fr}',
       '}',
       '@media (max-width:360px){',
         '.hyc-ua__box{padding:20px 16px 16px}',
@@ -144,8 +382,10 @@
     document.head.appendChild(s);
   }
 
-  // ── Modal management ────────────────────────────────────────────────
-  var modalEl = null;
+
+  // ═══════════════════════════════════════════════════════════════════
+  // MODAL MANAGEMENT
+  // ═══════════════════════════════════════════════════════════════════
 
   function createModal() {
     if (modalEl) return;
@@ -154,7 +394,6 @@
     modalEl.id = 'hyc-ua-modal';
     modalEl.setAttribute('aria-hidden', 'true');
     modalEl.setAttribute('role', 'dialog');
-    modalEl.setAttribute('aria-label', t('Brugerområde', 'User Area'));
     modalEl.innerHTML =
       '<div class="hyc-ua__overlay"></div>' +
       '<div class="hyc-ua__box">' +
@@ -163,11 +402,8 @@
       '</div>';
     document.body.appendChild(modalEl);
 
-    // Close on overlay click
     modalEl.querySelector('.hyc-ua__overlay').addEventListener('click', closeModal);
-    // Close on X click
     modalEl.querySelector('.hyc-ua__close').addEventListener('click', closeModal);
-    // Close on Escape
     document.addEventListener('keydown', function (e) {
       if (e.key === 'Escape' && modalEl && modalEl.getAttribute('aria-hidden') === 'false') {
         closeModal();
@@ -175,36 +411,332 @@
     });
   }
 
-  function openModal() {
+  function openModal(mode) {
     if (!modalEl) createModal();
+    modalMode = mode;
     modalEl.setAttribute('aria-hidden', 'false');
+    modalEl.setAttribute('aria-label', mode === 'user-area' ? t('Brugeromr\u00e5de', 'User Area') : t('Log ind', 'Sign in'));
     document.body.style.overflow = 'hidden';
-    renderUserArea();
+
+    var contentEl = document.getElementById('hyc-ua-content');
+    if (!contentEl) return;
+
+    if (mode === 'user-area') {
+      renderUserArea(contentEl);
+    } else if (mode === 'auth-login') {
+      renderAuthLogin(contentEl);
+    } else if (mode === 'auth-register') {
+      renderAuthRegister(contentEl);
+    } else if (mode === 'auth-forgot') {
+      renderAuthForgot(contentEl);
+    }
   }
 
   function closeModal() {
     if (!modalEl) return;
     modalEl.setAttribute('aria-hidden', 'true');
     document.body.style.overflow = '';
+    modalMode = null;
   }
 
-  // ── Render user area inside modal ───────────────────────────────────
-  function renderUserArea() {
-    var contentEl = document.getElementById('hyc-ua-content');
-    if (!contentEl || !currentUser) return;
+
+  // ═══════════════════════════════════════════════════════════════════
+  // AUTH MODAL: LOGIN
+  // ═══════════════════════════════════════════════════════════════════
+
+  function renderAuthLogin(contentEl) {
+    var html = '';
+    html += '<div class="hyc-auth__header">';
+    html +=   '<h2 class="hyc-auth__title">' + t('Velkommen tilbage', 'Welcome back') + '</h2>';
+    html +=   '<p class="hyc-auth__subtitle">' + t('Log ind for at se din profil og book klasser', 'Sign in to view your profile and book classes') + '</p>';
+    html += '</div>';
+
+    html += '<form id="hyc-auth-login-form" class="hyc-auth__form" novalidate>';
+    html +=   '<div class="hyc-auth__field">';
+    html +=     '<label for="hyc-auth-email">Email</label>';
+    html +=     '<input type="email" id="hyc-auth-email" required autocomplete="email" placeholder="din@email.dk">';
+    html +=   '</div>';
+    html +=   '<div class="hyc-auth__field">';
+    html +=     '<label for="hyc-auth-password">' + t('Adgangskode', 'Password') + '</label>';
+    html +=     '<input type="password" id="hyc-auth-password" required autocomplete="current-password" placeholder="\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022">';
+    html +=   '</div>';
+    html +=   '<div class="hyc-auth__error" id="hyc-auth-login-error"></div>';
+    html +=   '<button type="submit" class="hyc-auth__submit" id="hyc-auth-login-btn">' + t('Log ind', 'Sign in') + '</button>';
+    html += '</form>';
+
+    html += '<div class="hyc-auth__links">';
+    html +=   '<a id="hyc-auth-goto-forgot">' + t('Glemt adgangskode?', 'Forgot password?') + '</a>';
+    html += '</div>';
+
+    html += '<div class="hyc-auth__divider">';
+    html +=   t('Har du ikke en konto?', 'Don\'t have an account?');
+    html +=   '<a id="hyc-auth-goto-register">' + t('Opret profil', 'Create profile') + '</a>';
+    html += '</div>';
+
+    contentEl.innerHTML = html;
+
+    // Wire login form
+    var form = document.getElementById('hyc-auth-login-form');
+    form.addEventListener('submit', function (e) {
+      e.preventDefault();
+      var errorEl = document.getElementById('hyc-auth-login-error');
+      errorEl.classList.remove('is-visible');
+
+      var email = document.getElementById('hyc-auth-email').value.trim();
+      var password = document.getElementById('hyc-auth-password').value;
+
+      if (!email || !password) {
+        errorEl.textContent = t('Udfyld alle felter.', 'Please fill in all fields.');
+        errorEl.classList.add('is-visible');
+        return;
+      }
+
+      var btn = document.getElementById('hyc-auth-login-btn');
+      btn.disabled = true;
+      btn.textContent = t('Logger ind...', 'Signing in...');
+
+      doLogin(email, password, function (err) {
+        btn.disabled = false;
+        btn.textContent = t('Log ind', 'Sign in');
+        if (err) {
+          errorEl.textContent = authErrorMsg(err);
+          errorEl.classList.add('is-visible');
+          return;
+        }
+        // Auth state change will handle UI update and close modal
+        closeModal();
+      });
+    });
+
+    // Navigation links
+    document.getElementById('hyc-auth-goto-forgot').addEventListener('click', function (e) {
+      e.preventDefault();
+      openModal('auth-forgot');
+    });
+    document.getElementById('hyc-auth-goto-register').addEventListener('click', function (e) {
+      e.preventDefault();
+      openModal('auth-register');
+    });
+
+    // Focus first input
+    setTimeout(function () { document.getElementById('hyc-auth-email').focus(); }, 80);
+  }
+
+
+  // ═══════════════════════════════════════════════════════════════════
+  // AUTH MODAL: REGISTER
+  // ═══════════════════════════════════════════════════════════════════
+
+  function renderAuthRegister(contentEl) {
+    var html = '';
+
+    html += '<button type="button" class="hyc-auth__back" id="hyc-auth-back-login">';
+    html +=   ICON.back + ' ' + t('Tilbage', 'Back');
+    html += '</button>';
+
+    html += '<div class="hyc-auth__header">';
+    html +=   '<h2 class="hyc-auth__title">' + t('Opret din profil', 'Create your profile') + '</h2>';
+    html +=   '<p class="hyc-auth__subtitle">' + t('Det tager kun et minut', 'It only takes a minute') + '</p>';
+    html += '</div>';
+
+    html += '<form id="hyc-auth-reg-form" class="hyc-auth__form" novalidate>';
+    html +=   '<div class="hyc-auth__row">';
+    html +=     '<div class="hyc-auth__field">';
+    html +=       '<label for="hyc-reg-firstname">' + t('Fornavn', 'First name') + '</label>';
+    html +=       '<input type="text" id="hyc-reg-firstname" required autocomplete="given-name" placeholder="' + t('Fornavn', 'First name') + '">';
+    html +=     '</div>';
+    html +=     '<div class="hyc-auth__field">';
+    html +=       '<label for="hyc-reg-lastname">' + t('Efternavn', 'Last name') + '</label>';
+    html +=       '<input type="text" id="hyc-reg-lastname" required autocomplete="family-name" placeholder="' + t('Efternavn', 'Last name') + '">';
+    html +=     '</div>';
+    html +=   '</div>';
+    html +=   '<div class="hyc-auth__field">';
+    html +=     '<label for="hyc-reg-email">Email</label>';
+    html +=     '<input type="email" id="hyc-reg-email" required autocomplete="email" placeholder="din@email.dk">';
+    html +=   '</div>';
+    html +=   '<div class="hyc-auth__field">';
+    html +=     '<label for="hyc-reg-phone">' + t('Telefon', 'Phone') + '</label>';
+    html +=     '<input type="tel" id="hyc-reg-phone" autocomplete="tel" placeholder="+45 12 34 56 78">';
+    html +=   '</div>';
+    html +=   '<div class="hyc-auth__field">';
+    html +=     '<label for="hyc-reg-password">' + t('Adgangskode', 'Password') + '</label>';
+    html +=     '<input type="password" id="hyc-reg-password" required autocomplete="new-password" placeholder="' + t('Mindst 6 tegn', 'At least 6 characters') + '">';
+    html +=   '</div>';
+
+    // Consent checkboxes
+    html +=   '<div class="hyc-auth__consent">';
+    html +=     '<label class="hyc-auth__consent-item">';
+    html +=       '<input type="checkbox" id="hyc-reg-terms" required>';
+    html +=       '<span>' + t(
+                    'Jeg accepterer <a href="' + PROFILE_URL + '/terms-conditions/" target="_blank" rel="noopener">Handelsbetingelser</a> og <a href="' + PROFILE_URL + '/privacy-policy/" target="_blank" rel="noopener">Privatlivspolitik</a>',
+                    'I agree to the <a href="' + PROFILE_URL + '/en/terms-conditions/" target="_blank" rel="noopener">Terms &amp; Conditions</a> and <a href="' + PROFILE_URL + '/en/privacy-policy/" target="_blank" rel="noopener">Privacy Policy</a>'
+                  ) + '</span>';
+    html +=     '</label>';
+    html +=     '<label class="hyc-auth__consent-item">';
+    html +=       '<input type="checkbox" id="hyc-reg-conduct" required>';
+    html +=       '<span>' + t(
+                    'Jeg accepterer <a href="' + PROFILE_URL + '/code-of-conduct/" target="_blank" rel="noopener">Code of Conduct</a>',
+                    'I agree to the <a href="' + PROFILE_URL + '/en/code-of-conduct/" target="_blank" rel="noopener">Code of Conduct</a>'
+                  ) + '</span>';
+    html +=     '</label>';
+    html +=   '</div>';
+
+    html +=   '<div class="hyc-auth__error" id="hyc-auth-reg-error"></div>';
+    html +=   '<button type="submit" class="hyc-auth__submit" id="hyc-auth-reg-btn">' + t('Opret profil', 'Create profile') + '</button>';
+    html += '</form>';
+
+    html += '<div class="hyc-auth__divider">';
+    html +=   t('Har du allerede en konto?', 'Already have an account?');
+    html +=   '<a id="hyc-auth-goto-login-from-reg">' + t('Log ind', 'Sign in') + '</a>';
+    html += '</div>';
+
+    contentEl.innerHTML = html;
+
+    // Wire register form
+    var form = document.getElementById('hyc-auth-reg-form');
+    form.addEventListener('submit', function (e) {
+      e.preventDefault();
+      var errorEl = document.getElementById('hyc-auth-reg-error');
+      errorEl.classList.remove('is-visible');
+
+      var firstName = document.getElementById('hyc-reg-firstname').value.trim();
+      var lastName  = document.getElementById('hyc-reg-lastname').value.trim();
+      var email     = document.getElementById('hyc-reg-email').value.trim();
+      var phone     = document.getElementById('hyc-reg-phone').value.trim();
+      var password  = document.getElementById('hyc-reg-password').value;
+      var terms     = document.getElementById('hyc-reg-terms').checked;
+      var conduct   = document.getElementById('hyc-reg-conduct').checked;
+
+      if (!firstName || !lastName || !email || !password) {
+        errorEl.textContent = t('Udfyld alle obligatoriske felter.', 'Please fill in all required fields.');
+        errorEl.classList.add('is-visible');
+        return;
+      }
+      if (password.length < 6) {
+        errorEl.textContent = t('Adgangskoden skal v\u00e6re mindst 6 tegn.', 'Password must be at least 6 characters.');
+        errorEl.classList.add('is-visible');
+        return;
+      }
+      if (!terms || !conduct) {
+        errorEl.textContent = t('Du skal acceptere betingelserne.', 'You must accept the terms.');
+        errorEl.classList.add('is-visible');
+        return;
+      }
+
+      var btn = document.getElementById('hyc-auth-reg-btn');
+      btn.disabled = true;
+      btn.textContent = t('Opretter profil...', 'Creating profile...');
+
+      doRegister(email, password, firstName, lastName, phone, function (err) {
+        btn.disabled = false;
+        btn.textContent = t('Opret profil', 'Create profile');
+        if (err) {
+          errorEl.textContent = authErrorMsg(err);
+          errorEl.classList.add('is-visible');
+          return;
+        }
+        // Auth state change will handle UI update and close modal
+        closeModal();
+      });
+    });
+
+    // Navigation
+    document.getElementById('hyc-auth-back-login').addEventListener('click', function () {
+      openModal('auth-login');
+    });
+    document.getElementById('hyc-auth-goto-login-from-reg').addEventListener('click', function (e) {
+      e.preventDefault();
+      openModal('auth-login');
+    });
+
+    setTimeout(function () { document.getElementById('hyc-reg-firstname').focus(); }, 80);
+  }
+
+
+  // ═══════════════════════════════════════════════════════════════════
+  // AUTH MODAL: FORGOT PASSWORD
+  // ═══════════════════════════════════════════════════════════════════
+
+  function renderAuthForgot(contentEl) {
+    var html = '';
+
+    html += '<div class="hyc-auth__header">';
+    html +=   '<h2 class="hyc-auth__title">' + t('Nulstil adgangskode', 'Reset password') + '</h2>';
+    html +=   '<p class="hyc-auth__subtitle">' + t('Indtast din email, s\u00e5 sender vi dig et link', 'Enter your email and we\'ll send you a reset link') + '</p>';
+    html += '</div>';
+
+    html += '<form id="hyc-auth-forgot-form" class="hyc-auth__form" novalidate>';
+    html +=   '<div class="hyc-auth__field">';
+    html +=     '<label for="hyc-forgot-email">Email</label>';
+    html +=     '<input type="email" id="hyc-forgot-email" required autocomplete="email" placeholder="din@email.dk">';
+    html +=   '</div>';
+    html +=   '<div class="hyc-auth__error" id="hyc-auth-forgot-error"></div>';
+    html +=   '<div class="hyc-auth__success" id="hyc-auth-forgot-success"></div>';
+    html +=   '<button type="submit" class="hyc-auth__submit">' + t('Send nulstillingslink', 'Send reset link') + '</button>';
+    html += '</form>';
+
+    html += '<div class="hyc-auth__divider">';
+    html +=   '<a id="hyc-auth-back-from-forgot">' + t('\u2190 Tilbage til log ind', '\u2190 Back to sign in') + '</a>';
+    html += '</div>';
+
+    contentEl.innerHTML = html;
+
+    // Wire forgot form
+    var form = document.getElementById('hyc-auth-forgot-form');
+    form.addEventListener('submit', function (e) {
+      e.preventDefault();
+      var errorEl = document.getElementById('hyc-auth-forgot-error');
+      var successEl = document.getElementById('hyc-auth-forgot-success');
+      errorEl.classList.remove('is-visible');
+      successEl.classList.remove('is-visible');
+
+      var email = document.getElementById('hyc-forgot-email').value.trim();
+      if (!email) {
+        errorEl.textContent = t('Indtast din email.', 'Please enter your email.');
+        errorEl.classList.add('is-visible');
+        return;
+      }
+
+      doForgotPassword(email, function (err) {
+        if (err) {
+          errorEl.textContent = authErrorMsg(err);
+          errorEl.classList.add('is-visible');
+          return;
+        }
+        successEl.textContent = t(
+          'Vi har sendt dig et link til at nulstille din adgangskode.',
+          'We\'ve sent you a link to reset your password.'
+        );
+        successEl.classList.add('is-visible');
+      });
+    });
+
+    // Back to login
+    document.getElementById('hyc-auth-back-from-forgot').addEventListener('click', function (e) {
+      e.preventDefault();
+      openModal('auth-login');
+    });
+
+    setTimeout(function () { document.getElementById('hyc-forgot-email').focus(); }, 80);
+  }
+
+
+  // ═══════════════════════════════════════════════════════════════════
+  // USER AREA MODAL (logged in)
+  // ═══════════════════════════════════════════════════════════════════
+
+  function renderUserArea(contentEl) {
+    if (!currentUser) return;
 
     var firstName = '';
-    var fullName = '';
     if (currentUser.displayName) {
-      var parts = currentUser.displayName.split(' ');
-      firstName = parts[0];
-      fullName = currentUser.displayName;
+      firstName = currentUser.displayName.split(' ')[0];
     }
     var initial = (firstName || currentUser.email || '?')[0].toUpperCase();
 
     var html = '';
 
-    // ── Header with avatar + greeting
+    // Header
     html += '<div class="hyc-ua__header">';
     html += '<div class="hyc-ua__avatar">' + esc(initial) + '</div>';
     html += '<div>';
@@ -213,30 +745,27 @@
     html += '</div>';
     html += '</div>';
 
-    // ── Pass section (loading state initially)
+    // Passes (loading state)
     html += '<div class="hyc-ua__section" id="hyc-ua-passes">';
     html += '<p class="hyc-ua__section-label">' + t('Dine aktive pas', 'Your active passes') + '</p>';
     html += '<div class="hyc-ua__loading">' + ICON.spinner + ' ' + t('Henter pas...', 'Loading passes...') + '</div>';
     html += '</div>';
 
-    // ── Quick actions
+    // Quick actions
     html += '<div class="hyc-ua__actions">';
 
-    // Book classes — scroll to schedule on page
     html += '<button class="hyc-ua__action" type="button" id="hyc-ua-book">';
     html += ICON.calendar;
     html += '<span class="hyc-ua__action-text">' + t('Book klasser', 'Book classes') + '</span>';
     html += '<span class="hyc-ua__action-arrow">&rsaquo;</span>';
     html += '</button>';
 
-    // Buy pass — opens checkout
     html += '<button class="hyc-ua__action" type="button" id="hyc-ua-buy">';
     html += ICON.cart;
-    html += '<span class="hyc-ua__action-text">' + t('Køb pas', 'Buy a pass') + '</span>';
+    html += '<span class="hyc-ua__action-text">' + t('K\u00f8b pas', 'Buy a pass') + '</span>';
     html += '<span class="hyc-ua__action-arrow">&rsaquo;</span>';
     html += '</button>';
 
-    // Full profile — link to profile site
     html += '<a class="hyc-ua__action" href="' + PROFILE_URL + '/#passes" target="_blank">';
     html += ICON.external;
     html += '<span class="hyc-ua__action-text">' + t('Fuld profil & indstillinger', 'Full profile & settings') + '</span>';
@@ -245,7 +774,7 @@
 
     html += '</div>';
 
-    // ── Divider + Logout
+    // Divider + Logout
     html += '<hr class="hyc-ua__divider">';
     html += '<button class="hyc-ua__logout" type="button" id="hyc-ua-logout">';
     html += ICON.logout + ' ' + t('Log ud', 'Log out');
@@ -253,44 +782,38 @@
 
     contentEl.innerHTML = html;
 
-    // ── Wire actions
-    var bookBtn = document.getElementById('hyc-ua-book');
-    if (bookBtn) {
-      bookBtn.addEventListener('click', function () {
-        closeModal();
-        // Scroll to schedule embed on page
-        var scheduleEl = document.getElementById('hyc-schedule');
-        if (scheduleEl) {
-          scheduleEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        }
-      });
-    }
+    // Wire actions
+    document.getElementById('hyc-ua-book').addEventListener('click', function () {
+      closeModal();
+      var scheduleEl = document.getElementById('hyc-schedule');
+      if (scheduleEl) {
+        scheduleEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    });
 
-    var buyBtn = document.getElementById('hyc-ua-buy');
-    if (buyBtn) {
-      buyBtn.addEventListener('click', function () {
-        closeModal();
-        if (typeof window.openCheckoutFlow === 'function') {
-          window.openCheckoutFlow('100017'); // default 1-class clip
-        } else {
-          window.open(PROFILE_URL + '/#store', '_blank');
-        }
-      });
-    }
+    document.getElementById('hyc-ua-buy').addEventListener('click', function () {
+      closeModal();
+      if (typeof window.openCheckoutFlow === 'function') {
+        window.openCheckoutFlow('100017');
+      } else {
+        window.open(PROFILE_URL + '/#store', '_blank');
+      }
+    });
 
-    var logoutBtn = document.getElementById('hyc-ua-logout');
-    if (logoutBtn) {
-      logoutBtn.addEventListener('click', function () {
-        try { firebase.auth().signOut(); } catch (e) { /* ignore */ }
-        closeModal();
-      });
-    }
+    document.getElementById('hyc-ua-logout').addEventListener('click', function () {
+      try { firebase.auth().signOut(); } catch (e) { /* ignore */ }
+      closeModal();
+    });
 
-    // ── Load passes async
+    // Load passes async
     loadPasses();
   }
 
-  // ── Load passes from API ────────────────────────────────────────────
+
+  // ═══════════════════════════════════════════════════════════════════
+  // PASS LOADING
+  // ═══════════════════════════════════════════════════════════════════
+
   function loadPasses() {
     var passesEl = document.getElementById('hyc-ua-passes');
     if (!passesEl || !mbClientId) {
@@ -324,7 +847,7 @@
     if (!hasActive) {
       html += '<div class="hyc-ua__no-pass">';
       html += '<p style="margin:0 0 4px;font-weight:700;color:#0F0F0F">' + t('Ingen aktive pas', 'No active passes') + '</p>';
-      html += '<p style="margin:0;font-size:0.82rem">' + t('Køb et pas for at booke klasser.', 'Buy a pass to book classes.') + '</p>';
+      html += '<p style="margin:0;font-size:0.82rem">' + t('K\u00f8b et pas for at booke klasser.', 'Buy a pass to book classes.') + '</p>';
       html += '</div>';
       el.innerHTML = html;
       return;
@@ -340,7 +863,7 @@
       }
       if (s.expirationDate) {
         var exp = new Date(s.expirationDate);
-        html += '<span class="hyc-ua__pass-stat">' + t('Udløber', 'Expires') + ' ' + exp.toLocaleDateString(isDa ? 'da-DK' : 'en-GB', { day: 'numeric', month: 'short' }) + '</span>';
+        html += '<span class="hyc-ua__pass-stat">' + t('Udl\u00f8ber', 'Expires') + ' ' + exp.toLocaleDateString(isDa ? 'da-DK' : 'en-GB', { day: 'numeric', month: 'short' }) + '</span>';
       }
       html += '</div></div>';
     });
@@ -359,7 +882,11 @@
     el.innerHTML = html;
   }
 
-  // ── CTA button renders ──────────────────────────────────────────────
+
+  // ═══════════════════════════════════════════════════════════════════
+  // CTA BUTTON RENDERS
+  // ═══════════════════════════════════════════════════════════════════
+
   function renderLoggedOut() {
     if (!container) return;
     container.innerHTML =
@@ -368,81 +895,81 @@
       '</button>';
 
     document.getElementById('hyc-cta-login').addEventListener('click', function () {
-      if (typeof window.openLoginModal === 'function') {
-        window.openLoginModal(function () {
-          // callback after successful login — modal handles it
-        });
-      } else {
-        window.location.href = PROFILE_URL;
-      }
+      openModal('auth-login');
     });
   }
 
   function renderLoggedIn(user) {
     if (!container) return;
-
     container.innerHTML =
       '<button class="hyc-cta__btn hyc-cta__btn--user" type="button" id="hyc-cta-user">' +
         ICON.profile + t('Min profil', 'My Profile') +
       '</button>';
 
     document.getElementById('hyc-cta-user').addEventListener('click', function () {
-      openModal();
+      openModal('user-area');
     });
   }
 
-  // ── Auth listener ───────────────────────────────────────────────────
+
+  // ═══════════════════════════════════════════════════════════════════
+  // AUTH STATE LISTENER
+  // ═══════════════════════════════════════════════════════════════════
+
   function initAuth() {
-    var poll = setInterval(function () {
-      if (typeof firebase !== 'undefined' && firebase.auth) {
-        clearInterval(poll);
-        firebase.auth().onAuthStateChanged(function (user) {
-          currentUser = user;
-          if (user) {
-            // Resolve Mindbody client ID from Firestore
-            resolveMbClient(user);
-            renderLoggedIn(user);
-          } else {
-            mbClientId = null;
-            passData = null;
-            renderLoggedOut();
-            // Close user area modal if open
-            if (modalEl && modalEl.getAttribute('aria-hidden') === 'false') {
-              closeModal();
-            }
+    loadFirebaseSDK(function () {
+      firebaseReady = true;
+
+      firebase.auth().onAuthStateChanged(function (user) {
+        currentUser = user;
+        if (user) {
+          resolveMbClient(user);
+          renderLoggedIn(user);
+          // If auth modal is open, close it — user just logged in
+          if (modalMode && modalMode.indexOf('auth-') === 0) {
+            closeModal();
           }
-        });
-      }
-    }, 200);
-
-    // Timeout: if Firebase never loads, just show login
-    setTimeout(function () {
-      clearInterval(poll);
-      if (container && !container.querySelector('.hyc-cta__btn')) {
-        renderLoggedOut();
-      }
-    }, 5000);
-  }
-
-  function resolveMbClient(user) {
-    if (typeof firebase === 'undefined' || !firebase.firestore) return;
-    firebase.firestore().collection('users').doc(user.uid).get()
-      .then(function (doc) {
-        if (doc.exists && doc.data().mindbodyClientId) {
-          mbClientId = doc.data().mindbodyClientId;
+        } else {
+          mbClientId = null;
+          passData = null;
+          renderLoggedOut();
+          // Close user area modal if open
+          if (modalMode === 'user-area') {
+            closeModal();
+          }
         }
-      })
-      .catch(function () {});
+      });
+    });
   }
 
-  // ── Boot ────────────────────────────────────────────────────────────
+
+  // ═══════════════════════════════════════════════════════════════════
+  // PUBLIC API (for checkout-embed.js and schedule-embed.js)
+  // ═══════════════════════════════════════════════════════════════════
+
+  // Expose openLoginModal so other embeds can trigger login
+  window.openLoginModal = window.openLoginModal || function (callback) {
+    // If already logged in, redirect
+    if (currentUser) {
+      if (typeof callback === 'function') callback();
+      else window.location.href = PROFILE_URL + '/#schedule';
+      return;
+    }
+    openModal('auth-login');
+  };
+
+
+  // ═══════════════════════════════════════════════════════════════════
+  // BOOT
+  // ═══════════════════════════════════════════════════════════════════
+
   function boot() {
     injectCSS();
     container = document.getElementById('hyc-login-cta');
     if (!container) return;
     container.className = 'hyc-cta';
-    renderLoggedOut();
-    initAuth();
+    renderLoggedOut(); // Show login button immediately
+    initAuth();        // Load Firebase → listen for auth state
   }
 
   if (document.readyState === 'loading') {
