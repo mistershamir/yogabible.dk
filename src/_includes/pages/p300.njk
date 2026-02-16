@@ -10,6 +10,7 @@
     <p class="yb-hero__tagline">{{ t.hero_tagline }}</p>
     <h1 class="yb-hero__title">{{ t.hero_title | safe }}</h1>
     <p class="yb-hero__subtitle">{{ t.hero_subtitle }}</p>
+    <p class="p300-hero__styles">{{ t.hero_styles }}</p>
     <div class="yb-hero__line"></div>
     <div class="yb-hero__ctas">
       <button class="yb-btn yb-btn--primary yb-btn--large" data-checkout-product="100212">{{ t.hero_cta_prep }}</button>
@@ -175,6 +176,13 @@
     </div>
   </div>
 </section>
+
+{# ═══════════════════════════════════════════════════════════
+   STYLES INTRO — Above hours breakdown
+   ═══════════════════════════════════════════════════════════ #}
+<div class="p300-styles-intro">
+  <p class="p300-styles-intro__text">{{ t.styles_intro }}</p>
+</div>
 
 {# ═══════════════════════════════════════════════════════════
    SECTION 4: HOURS BREAKDOWN — Accordion with detail
