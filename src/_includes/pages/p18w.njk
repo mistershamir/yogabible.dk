@@ -1,5 +1,37 @@
 {% set t = i18n.p18w[lang or "da"] %}
 
+
+<!-- FAQPage Schema (AEO — featured snippets for AI search) -->
+<script type="application/ld+json">
+{%- set _faqs = [
+      [t.faq1_q, t.faq1_a],
+      [t.faq2_q, t.faq2_a],
+      [t.faq3_q, t.faq3_a],
+      [t.faq4_q, t.faq4_a],
+      [t.faq5_q, t.faq5_a],
+      [t.faq6_q, t.faq6_a],
+      [t.tracks_faq1_q, t.tracks_faq1_a],
+      [t.tracks_faq2_q, t.tracks_faq2_a],
+      [t.tracks_faq3_q, t.tracks_faq3_a]
+    ] -%}
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {% for faq in _faqs %}
+    {
+      "@type": "Question",
+      "name": {{ faq[0] | dump | safe }},
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": {{ faq[1] | dump | safe }}
+      }
+    }{% if not loop.last %},{% endif %}
+    {% endfor %}
+  ]
+}
+</script>
+
 <!-- ═══════════════════════════════════════
      1. HERO — Primary Dark Cinematic
      ═══════════════════════════════════════ -->

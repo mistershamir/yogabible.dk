@@ -1,5 +1,32 @@
 {% set t = i18n.careers[lang or "da"] %}
 
+
+<!-- FAQPage Schema (AEO — featured snippets for AI search) -->
+<script type="application/ld+json">
+{%- set _faqs = [
+      [t.faq1_q, t.faq1_a],
+      [t.faq2_q, t.faq2_a],
+      [t.faq3_q, t.faq3_a],
+      [t.faq4_q, t.faq4_a]
+    ] -%}
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {% for faq in _faqs %}
+    {
+      "@type": "Question",
+      "name": {{ faq[0] | dump | safe }},
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": {{ faq[1] | dump | safe }}
+      }
+    }{% if not loop.last %},{% endif %}
+    {% endfor %}
+  ]
+}
+</script>
+
 <!-- ═══════════════════════════════════════════════════════════════
      PRIMARY HERO — Dark Cinematic with Breathing Glow
      ═══════════════════════════════════════════════════════════════ -->
