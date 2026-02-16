@@ -16,10 +16,12 @@
   // ── Brand & Config ──────────────────────────────────────────────────
   var BRAND      = '#3f99a5';
   var BRAND_DARK = '#357f89';
+  var BRAND_LIGHT = '#e8f4f6';
   var API_BASE   = 'https://profile.hotyogacph.dk/.netlify/functions';
   var PROFILE_URL = 'https://profile.hotyogacph.dk';
 
   // ── Language ────────────────────────────────────────────────────────
+  // Default: detect from URL, can be toggled by user
   var isDa = window.location.pathname.indexOf('/en/') !== 0;
   function t(da, en) { return isDa ? da : en; }
 
@@ -38,6 +40,7 @@
   var passRefreshTimer = null;
   var firebaseReady = false;
   var container = null;
+  var INITIAL_DAYS = 2; // Show 2 days ahead by default
 
   // ── Helpers ─────────────────────────────────────────────────────────
   function esc(str) {
@@ -62,128 +65,148 @@
     style.id = 'hyc-schedule-css';
     style.textContent = [
 
-      // ── Container ───────────────────────────────────────────────
-      '.hycs{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;color:#0F0F0F;max-width:800px;margin:0 auto;padding:0 16px}',
+      // ── Reset & Container ──────────────────────────────────────────
+      '.hycs{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;color:#0F0F0F;max-width:720px;margin:0 auto;padding:0 16px;-webkit-font-smoothing:antialiased}',
+      '.hycs *,.hycs *::before,.hycs *::after{box-sizing:border-box}',
 
-      // ── Header ──────────────────────────────────────────────────
-      '.hycs__header{text-align:center;margin-bottom:0.75rem}',
-      '.hycs__title{font-size:1.5rem;font-weight:700;color:#0F0F0F;margin:0 0 0.25rem}',
-      '.hycs__subtitle{color:#6F6A66;font-size:0.95rem;margin:0}',
+      // ── Toolbar (nav + lang + filter in one row) ───────────────────
+      '.hycs__toolbar{display:flex;align-items:center;gap:0.5rem;margin-bottom:1rem;flex-wrap:wrap}',
+      '.hycs__nav{display:flex;align-items:center;gap:0.25rem;flex:1;min-width:0}',
+      '.hycs__nav-btn{display:flex;align-items:center;justify-content:center;width:32px;height:32px;padding:0;background:none;border:1.5px solid #E8E4E0;border-radius:8px;cursor:pointer;transition:all .2s;color:#6F6A66;flex-shrink:0}',
+      '.hycs__nav-btn:hover{border-color:' + BRAND + ';color:' + BRAND + ';background:' + BRAND_LIGHT + '}',
+      '.hycs__nav-btn svg{width:16px;height:16px}',
+      '.hycs__week-label{font-weight:700;color:#0F0F0F;text-align:center;font-size:0.9rem;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}',
 
-      // ── Navigation ──────────────────────────────────────────────
-      '.hycs__nav{display:flex;align-items:center;justify-content:center;gap:0.75rem;margin-bottom:1.25rem}',
-      '.hycs__nav-btn{display:flex;align-items:center;gap:0.35rem;padding:0.5rem 0.75rem;font-size:0.85rem;font-weight:600;color:#0F0F0F;background:none;border:none;border-radius:8px;cursor:pointer;transition:background .2s,color .2s;font-family:inherit}',
-      '.hycs__nav-btn:hover{background:#F5F3F0;color:' + BRAND + '}',
-      '.hycs__nav-btn svg{color:#6F6A66;transition:color .2s}',
-      '.hycs__nav-btn:hover svg{color:' + BRAND + '}',
-      '.hycs__nav-label{display:inline}',
-      '.hycs__week-label{font-weight:700;color:#0F0F0F;min-width:130px;text-align:center;font-size:0.95rem}',
+      // ── Language switcher ──────────────────────────────────────────
+      '.hycs__lang{display:flex;border:1.5px solid #E8E4E0;border-radius:8px;overflow:hidden;flex-shrink:0;height:32px}',
+      '.hycs__lang-btn{padding:0 10px;font-size:0.75rem;font-weight:700;font-family:inherit;border:none;cursor:pointer;transition:all .15s;background:#fff;color:#6F6A66;letter-spacing:.02em}',
+      '.hycs__lang-btn.is-active{background:' + BRAND + ';color:#fff}',
+      '.hycs__lang-btn:not(.is-active):hover{background:#F5F3F0;color:' + BRAND + '}',
 
-      // ── Filters ─────────────────────────────────────────────────
-      '.hycs__filters{display:flex;flex-wrap:wrap;gap:0.4rem;margin-bottom:1.25rem}',
-      '.hycs__filter-btn{background:#F5F3F0;border:1.5px solid #E8E4E0;border-radius:20px;padding:0.35rem 0.9rem;font-size:0.78rem;font-family:inherit;font-weight:600;color:#6F6A66;cursor:pointer;transition:all .2s}',
-      '.hycs__filter-btn:hover{border-color:' + BRAND + ';color:' + BRAND + '}',
-      '.hycs__filter-btn.is-active{background:' + BRAND + ';border-color:' + BRAND + ';color:#fff}',
-      '.hycs__filter-empty{text-align:center;color:#6F6A66;padding:2rem 0;font-size:0.9rem}',
+      // ── Filter dropdown ────────────────────────────────────────────
+      '.hycs__filter-wrap{position:relative;flex-shrink:0}',
+      '.hycs__filter-toggle{display:flex;align-items:center;gap:0.35rem;height:32px;padding:0 12px;font-size:0.8rem;font-weight:600;font-family:inherit;border:1.5px solid #E8E4E0;border-radius:8px;background:#fff;color:#0F0F0F;cursor:pointer;transition:all .2s;white-space:nowrap}',
+      '.hycs__filter-toggle:hover,.hycs__filter-toggle.is-open{border-color:' + BRAND + ';color:' + BRAND + '}',
+      '.hycs__filter-toggle svg{width:14px;height:14px;color:#6F6A66;transition:transform .2s,color .2s}',
+      '.hycs__filter-toggle.is-open svg{transform:rotate(180deg);color:' + BRAND + '}',
+      '.hycs__filter-toggle .hycs__filter-dot{width:6px;height:6px;border-radius:50%;background:' + BRAND + ';display:none}',
+      '.hycs__filter-toggle.has-filter .hycs__filter-dot{display:block}',
+      '.hycs__filter-dd{position:absolute;top:calc(100% + 4px);right:0;background:#fff;border:1.5px solid #E8E4E0;border-radius:10px;box-shadow:0 8px 24px rgba(0,0,0,.1);min-width:180px;z-index:100;padding:4px;display:none}',
+      '.hycs__filter-dd.is-open{display:block}',
+      '.hycs__filter-opt{display:block;width:100%;text-align:left;padding:0.5rem 0.75rem;font-size:0.82rem;font-weight:500;font-family:inherit;border:none;background:none;border-radius:6px;color:#0F0F0F;cursor:pointer;transition:background .15s}',
+      '.hycs__filter-opt:hover{background:#F5F3F0}',
+      '.hycs__filter-opt.is-active{background:' + BRAND_LIGHT + ';color:' + BRAND + ';font-weight:700}',
 
-      // ── No-pass banner ──────────────────────────────────────────
-      '.hycs__no-pass{background:#e8f4f6;border:1.5px solid ' + BRAND + ';border-radius:12px;padding:1.25rem 1.5rem;display:flex;align-items:center;justify-content:space-between;gap:1rem;margin-bottom:1.5rem}',
-      '.hycs__no-pass p{margin:0;font-weight:700;color:#0F0F0F;font-size:0.9rem}',
+      // ── No-pass banner ─────────────────────────────────────────────
+      '.hycs__no-pass{background:' + BRAND_LIGHT + ';border:1.5px solid ' + BRAND + ';border-radius:10px;padding:1rem 1.25rem;display:flex;align-items:center;justify-content:space-between;gap:1rem;margin-bottom:1rem}',
+      '.hycs__no-pass p{margin:0;font-weight:700;color:#0F0F0F;font-size:0.85rem}',
 
-      // ── Pass info dropdown ──────────────────────────────────────
-      '.hycs__pass-info{margin-bottom:1.25rem}',
-      '.hycs__pass-dd{border:1.5px solid #E8E4E0;border-radius:12px;background:#FFFCF9;overflow:hidden}',
-      '.hycs__pass-dd-toggle{width:100%;display:flex;align-items:center;justify-content:space-between;padding:0.85rem 1.25rem;background:none;border:none;cursor:pointer;font-family:inherit;transition:background .2s}',
+      // ── Pass info dropdown ─────────────────────────────────────────
+      '.hycs__pass-info{margin-bottom:1rem}',
+      '.hycs__pass-dd{border:1.5px solid #E8E4E0;border-radius:10px;background:#FFFCF9;overflow:hidden}',
+      '.hycs__pass-dd-toggle{width:100%;display:flex;align-items:center;justify-content:space-between;padding:0.75rem 1rem;background:none;border:none;cursor:pointer;font-family:inherit;transition:background .2s}',
       '.hycs__pass-dd-toggle:hover{background:#F5F3F0}',
-      '.hycs__pass-dd-summary{display:flex;flex-direction:column;align-items:flex-start;gap:2px}',
-      '.hycs__pass-dd-label{font-size:0.8rem;font-weight:700;color:#0F0F0F;text-transform:uppercase;letter-spacing:.03em}',
-      '.hycs__pass-dd-count{font-size:0.8rem;color:#6F6A66}',
+      '.hycs__pass-dd-summary{display:flex;flex-direction:column;align-items:flex-start;gap:1px}',
+      '.hycs__pass-dd-label{font-size:0.72rem;font-weight:700;color:#0F0F0F;text-transform:uppercase;letter-spacing:.04em}',
+      '.hycs__pass-dd-count{font-size:0.78rem;color:#6F6A66}',
       '.hycs__pass-dd-chevron{color:#6F6A66;transition:transform .25s;flex-shrink:0}',
       '.hycs__pass-dd-toggle.is-open .hycs__pass-dd-chevron{transform:rotate(180deg)}',
-      '.hycs__pass-dd-body{padding:0 1.25rem 1rem;display:flex;flex-direction:column;gap:0.75rem}',
-      '.hycs__pass-card{background:linear-gradient(135deg,#e8f4f6,#FFFCF9);border:1.5px solid ' + BRAND + ';border-radius:12px;padding:1rem 1.5rem;display:flex;align-items:center;justify-content:space-between;gap:1rem;flex-wrap:wrap}',
-      '.hycs__pass-label{font-size:0.75rem;text-transform:uppercase;letter-spacing:.05em;color:#6F6A66;display:block}',
-      '.hycs__pass-name{font-weight:700;color:#0F0F0F;font-size:1rem;display:block}',
-      '.hycs__pass-stats{display:flex;gap:1.5rem;align-items:center}',
-      '.hycs__pass-stat{font-size:0.85rem;color:#6F6A66}',
-      '.hycs__pass-stat strong{color:' + BRAND + ';font-size:1.1rem}',
+      '.hycs__pass-dd-body{padding:0 1rem 0.75rem;display:flex;flex-direction:column;gap:0.5rem}',
+      '.hycs__pass-card{background:linear-gradient(135deg,' + BRAND_LIGHT + ',#FFFCF9);border:1.5px solid ' + BRAND + ';border-radius:10px;padding:0.75rem 1rem;display:flex;align-items:center;justify-content:space-between;gap:0.75rem;flex-wrap:wrap}',
+      '.hycs__pass-label{font-size:0.68rem;text-transform:uppercase;letter-spacing:.05em;color:#6F6A66;display:block}',
+      '.hycs__pass-name{font-weight:700;color:#0F0F0F;font-size:0.9rem;display:block}',
+      '.hycs__pass-stats{display:flex;gap:1rem;align-items:center}',
+      '.hycs__pass-stat{font-size:0.8rem;color:#6F6A66}',
+      '.hycs__pass-stat strong{color:' + BRAND + ';font-size:1rem}',
       '.hycs__pass-stat--low{color:#c0392b}',
 
-      // ── Day groups ──────────────────────────────────────────────
-      '.hycs__day{margin-bottom:1.5rem}',
-      '.hycs__day-label{font-size:1rem;font-weight:700;color:#0F0F0F;padding-bottom:0.5rem;border-bottom:1.5px solid #E8E4E0;margin:0 0 0.5rem}',
-      '.hycs__day-label span{font-weight:400;color:#6F6A66}',
+      // ── Day groups ─────────────────────────────────────────────────
+      '.hycs__day{margin-bottom:0.25rem}',
+      '.hycs__day-label{font-size:0.82rem;font-weight:700;color:#0F0F0F;padding:0.6rem 0 0.4rem;border-bottom:1.5px solid #E8E4E0;margin:0;display:flex;align-items:baseline;gap:0.4rem}',
+      '.hycs__day-label span{font-weight:400;color:#6F6A66;font-size:0.8rem}',
       '.hycs__day--hidden{display:none}',
 
-      // ── Class rows ──────────────────────────────────────────────
-      '.hycs__class{display:flex;align-items:center;gap:1rem;padding:0.75rem 0;border-bottom:1px solid #F5F3F0}',
-      '.hycs__class.is-cancelled{opacity:0.5;text-decoration:line-through}',
-      '.hycs__class.is-past{opacity:0.5}',
-      '.hycs__class-time{min-width:110px;font-weight:700;color:#0F0F0F;font-size:0.9rem}',
-      '.hycs__class-info{flex:1;display:flex;flex-direction:column;gap:0.1rem}',
-      '.hycs__class-name{font-weight:700;color:#0F0F0F}',
-      '.hycs__class-instructor{font-size:0.85rem;color:#6F6A66}',
+      // ── Class cards ────────────────────────────────────────────────
+      '.hycs__class{display:flex;align-items:center;gap:0.75rem;padding:0.65rem 0.75rem;margin:0.35rem 0;border-radius:10px;background:#FFFCF9;border:1px solid #F0EDEA;transition:border-color .15s,box-shadow .15s}',
+      '.hycs__class:hover{border-color:#E0DDD9;box-shadow:0 1px 4px rgba(0,0,0,.04)}',
+      '.hycs__class.is-cancelled{opacity:0.45}',
+      '.hycs__class.is-past{opacity:0.4}',
+      '.hycs__class-time{font-weight:700;color:#0F0F0F;font-size:0.82rem;min-width:95px;white-space:nowrap}',
+      '.hycs__class-info{flex:1;display:flex;flex-direction:column;gap:0.05rem;min-width:0}',
+      '.hycs__class-name{font-weight:700;color:#0F0F0F;font-size:0.88rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}',
+      '.hycs__class-instructor{font-size:0.78rem;color:#6F6A66}',
       '.hycs__class-instructor--link{cursor:pointer;color:' + BRAND + ';text-decoration:underline;text-underline-offset:2px}',
       '.hycs__class-instructor--link:hover{color:' + BRAND_DARK + '}',
-      '.hycs__class-spots{font-size:0.8rem;color:' + BRAND + '}',
-      '.hycs__class-action{min-width:100px;text-align:right}',
+      '.hycs__class-spots{font-size:0.72rem;color:' + BRAND + ';font-weight:600}',
+      '.hycs__class-action{flex-shrink:0}',
 
-      // ── Description toggle ──────────────────────────────────────
-      '.hycs__desc-toggle{background:none;border:none;color:' + BRAND + ';font-size:0.8rem;cursor:pointer;padding:0;font-family:inherit;text-decoration:underline;text-underline-offset:2px}',
+      // ── Description toggle ─────────────────────────────────────────
+      '.hycs__desc-toggle{background:none;border:none;color:' + BRAND + ';font-size:0.75rem;cursor:pointer;padding:0;font-family:inherit;text-decoration:underline;text-underline-offset:2px}',
       '.hycs__desc-toggle:hover{color:' + BRAND_DARK + '}',
-      '.hycs__desc{background:#FFFCF9;border:1px solid #E8E4E0;border-radius:8px;margin:0.5rem 0;padding:1rem 1.25rem;font-size:0.9rem;color:#6F6A66;line-height:1.5}',
-      '.hycs__desc p{margin:0 0 0.5rem}',
+      '.hycs__desc{background:#FFFCF9;border:1px solid #E8E4E0;border-radius:8px;margin:0 0 0.35rem;padding:0.75rem 1rem;font-size:0.82rem;color:#6F6A66;line-height:1.5}',
+      '.hycs__desc p{margin:0 0 0.4rem}',
       '.hycs__desc p:last-child{margin-bottom:0}',
 
-      // ── Teacher bio ─────────────────────────────────────────────
-      '.hycs__teacher-bio{background:#FFFCF9;border:1px solid #E8E4E0;border-radius:12px;margin:0.5rem 0;padding:1.25rem;display:flex;gap:1rem;align-items:flex-start}',
-      '.hycs__teacher-photo{width:64px;height:64px;border-radius:50%;object-fit:cover;flex-shrink:0;border:2px solid #E8E4E0}',
-      '.hycs__teacher-name{font-weight:700;color:#0F0F0F;margin:0 0 0.25rem;font-size:0.95rem}',
-      '.hycs__teacher-bio-text{font-size:0.85rem;color:#6F6A66;line-height:1.5;margin:0}',
+      // ── Teacher bio ────────────────────────────────────────────────
+      '.hycs__teacher-bio{background:#FFFCF9;border:1px solid #E8E4E0;border-radius:10px;margin:0 0 0.35rem;padding:1rem;display:flex;gap:0.75rem;align-items:flex-start}',
+      '.hycs__teacher-photo{width:56px;height:56px;border-radius:50%;object-fit:cover;flex-shrink:0;border:2px solid #E8E4E0}',
+      '.hycs__teacher-name{font-weight:700;color:#0F0F0F;margin:0 0 0.2rem;font-size:0.88rem}',
+      '.hycs__teacher-bio-text{font-size:0.8rem;color:#6F6A66;line-height:1.5;margin:0}',
 
-      // ── Buttons ─────────────────────────────────────────────────
-      '.hycs-btn{display:inline-flex;align-items:center;justify-content:center;padding:0.4rem 1rem;border-radius:999px;font-family:inherit;font-size:0.85rem;font-weight:700;text-decoration:none;border:2px solid transparent;cursor:pointer;transition:all .2s;box-sizing:border-box}',
+      // ── Buttons ────────────────────────────────────────────────────
+      '.hycs-btn{display:inline-flex;align-items:center;justify-content:center;padding:0.35rem 0.9rem;border-radius:999px;font-family:inherit;font-size:0.8rem;font-weight:700;text-decoration:none;border:1.5px solid transparent;cursor:pointer;transition:all .2s;white-space:nowrap}',
       '.hycs-btn--primary{background:' + BRAND + ';color:#fff;border-color:' + BRAND + '}',
-      '.hycs-btn--primary:hover{background:' + BRAND_DARK + ';border-color:' + BRAND_DARK + ';transform:translateY(-1px);box-shadow:0 4px 12px rgba(63,153,165,.3)}',
+      '.hycs-btn--primary:hover{background:' + BRAND_DARK + ';border-color:' + BRAND_DARK + ';transform:translateY(-1px);box-shadow:0 3px 10px rgba(63,153,165,.25)}',
       '.hycs-btn--outline{background:transparent;color:#0F0F0F;border-color:#E8E4E0}',
       '.hycs-btn--outline:hover{border-color:' + BRAND + ';color:' + BRAND + '}',
-      '.hycs-btn--booked{background:#e8f4f6;color:' + BRAND + ';border-color:' + BRAND + ';cursor:default}',
-      '.hycs-btn--ghost{background:none;border:none;color:' + BRAND + ';padding:0.4rem 0.5rem;font-size:0.82rem;text-decoration:underline;text-underline-offset:2px}',
+      '.hycs-btn--booked{background:' + BRAND_LIGHT + ';color:' + BRAND + ';border-color:' + BRAND + ';position:relative}',
+      '.hycs-btn--booked:hover{background:#d4eef1}',
+      '.hycs-btn--cancel{background:#fff;color:#c0392b;border-color:#c0392b;font-size:0.75rem}',
+      '.hycs-btn--cancel:hover{background:#fdf0ed}',
+      '.hycs-btn--ghost{background:none;border:none;color:' + BRAND + ';padding:0.3rem 0.4rem;font-size:0.78rem;text-decoration:underline;text-underline-offset:2px}',
       '.hycs-btn--ghost:hover{color:' + BRAND_DARK + '}',
-      '.hycs-btn:disabled{opacity:0.6;cursor:not-allowed;transform:none;box-shadow:none}',
+      '.hycs-btn:disabled{opacity:0.5;cursor:not-allowed;transform:none;box-shadow:none}',
 
-      // ── Badge ───────────────────────────────────────────────────
-      '.hycs__badge{display:inline-block;padding:0.25rem 0.75rem;border-radius:20px;font-size:0.75rem;font-weight:700}',
+      // ── Cancel popover ─────────────────────────────────────────────
+      '.hycs__cancel-pop{position:absolute;top:calc(100% + 6px);right:0;background:#fff;border:1.5px solid #E8E4E0;border-radius:10px;box-shadow:0 8px 24px rgba(0,0,0,.12);padding:0.85rem 1rem;z-index:100;width:220px;text-align:center}',
+      '.hycs__cancel-pop-text{font-size:0.8rem;color:#0F0F0F;margin:0 0 0.6rem;line-height:1.4}',
+      '.hycs__cancel-pop-btns{display:flex;gap:0.5rem;justify-content:center}',
+
+      // ── Badge ──────────────────────────────────────────────────────
+      '.hycs__badge{display:inline-block;padding:0.2rem 0.6rem;border-radius:20px;font-size:0.7rem;font-weight:700}',
       '.hycs__badge--cancelled{background:#F5F3F0;color:#6F6A66}',
 
-      // ── Show more / next week ───────────────────────────────────
-      '.hycs__show-more-wrap{text-align:center;padding:1.25rem 0 0.5rem}',
-      '.hycs__show-more-btn{min-width:200px}',
+      // ── Show more ──────────────────────────────────────────────────
+      '.hycs__show-more-wrap{text-align:center;padding:0.75rem 0}',
+      '.hycs__show-more-btn{background:' + BRAND + ';color:#fff;border-color:' + BRAND + ';min-width:180px;font-size:0.82rem;padding:0.45rem 1.25rem}',
+      '.hycs__show-more-btn:hover{background:' + BRAND_DARK + ';border-color:' + BRAND_DARK + ';transform:translateY(-1px);box-shadow:0 3px 10px rgba(63,153,165,.25)}',
 
-      // ── Toast ───────────────────────────────────────────────────
-      '.hycs__toast{position:fixed;bottom:2rem;left:50%;transform:translateX(-50%);padding:0.75rem 1.5rem;border-radius:8px;font-weight:700;font-size:0.9rem;z-index:10001;box-shadow:0 4px 20px rgba(0,0,0,.15);font-family:inherit;max-width:90vw;text-align:center;opacity:0;transition:opacity .3s;pointer-events:none}',
+      // ── Toast ──────────────────────────────────────────────────────
+      '.hycs__toast{position:fixed;bottom:2rem;left:50%;transform:translateX(-50%);padding:0.65rem 1.25rem;border-radius:8px;font-weight:700;font-size:0.85rem;z-index:10001;box-shadow:0 4px 20px rgba(0,0,0,.15);font-family:inherit;max-width:90vw;text-align:center;opacity:0;transition:opacity .3s;pointer-events:none}',
       '.hycs__toast.is-visible{opacity:1;pointer-events:auto}',
       '.hycs__toast--success{background:#0F0F0F;color:#fff}',
       '.hycs__toast--error{background:#c0392b;color:#fff}',
       '.hycs__toast--warning{background:#e67e22;color:#fff}',
-      '.hycs__toast-note{font-weight:400;font-size:0.8rem;margin-top:0.5rem;opacity:0.85;line-height:1.4}',
+      '.hycs__toast-note{font-weight:400;font-size:0.78rem;margin-top:0.4rem;opacity:0.85;line-height:1.4}',
 
-      // ── Loading / Empty / Error ─────────────────────────────────
-      '.hycs__loading{display:flex;align-items:center;justify-content:center;gap:0.75rem;padding:3rem 0;color:#6F6A66}',
-      '.hycs__spinner{width:20px;height:20px;border:2.5px solid #E8E4E0;border-top-color:' + BRAND + ';border-radius:50%;animation:hycs-spin .8s linear infinite}',
+      // ── Loading / Empty / Error ────────────────────────────────────
+      '.hycs__loading{display:flex;align-items:center;justify-content:center;gap:0.6rem;padding:2.5rem 0;color:#6F6A66;font-size:0.85rem}',
+      '.hycs__spinner{width:18px;height:18px;border:2.5px solid #E8E4E0;border-top-color:' + BRAND + ';border-radius:50%;animation:hycs-spin .8s linear infinite}',
       '@keyframes hycs-spin{to{transform:rotate(360deg)}}',
-      '.hycs__empty{text-align:center;color:#6F6A66;padding:3rem 0}',
-      '.hycs__error{text-align:center;color:#c0392b;padding:3rem 0}',
+      '.hycs__empty{text-align:center;color:#6F6A66;padding:2.5rem 0;font-size:0.88rem}',
+      '.hycs__error{text-align:center;color:#c0392b;padding:2.5rem 0;font-size:0.88rem}',
 
-      // ── Mobile ──────────────────────────────────────────────────
+      // ── Mobile ─────────────────────────────────────────────────────
       '@media (max-width:640px){',
-        '.hycs__nav-label{display:none}',
-        '.hycs__class{flex-wrap:wrap}',
-        '.hycs__class-time{min-width:auto;width:100%}',
-        '.hycs__class-action{width:100%;text-align:left;margin-top:0.25rem}',
-        '.hycs__no-pass{flex-direction:column;text-align:center}',
+        '.hycs__toolbar{gap:0.35rem}',
+        '.hycs__class{flex-wrap:wrap;padding:0.55rem 0.6rem}',
+        '.hycs__class-time{min-width:auto;width:100%;font-size:0.78rem}',
+        '.hycs__class-action{width:100%;text-align:left;margin-top:0.15rem}',
+        '.hycs__no-pass{flex-direction:column;text-align:center;padding:0.85rem 1rem}',
         '.hycs__pass-card{flex-direction:column;align-items:flex-start}',
         '.hycs__teacher-bio{flex-direction:column;align-items:center;text-align:center}',
+        '.hycs__cancel-pop{right:auto;left:0}',
+        '.hycs__filter-dd{right:auto;left:0}',
       '}'
 
     ].join('\n');
@@ -197,17 +220,34 @@
 
     container.innerHTML =
       '<div class="hycs">' +
-        '<div class="hycs__nav">' +
-          '<button class="hycs__nav-btn" type="button" id="hycs-prev">' +
-            '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>' +
-            '<span class="hycs__nav-label">' + t('Forrige uge', 'Previous week') + '</span>' +
-          '</button>' +
-          '<span class="hycs__week-label" id="hycs-week-label"></span>' +
-          '<button class="hycs__nav-btn" type="button" id="hycs-next">' +
-            '<span class="hycs__nav-label">' + t('Næste uge', 'Next week') + '</span>' +
-            '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>' +
-          '</button>' +
+        // ── Toolbar: nav + lang + filter ────────────────────────────
+        '<div class="hycs__toolbar">' +
+          // Week nav
+          '<div class="hycs__nav">' +
+            '<button class="hycs__nav-btn" type="button" id="hycs-prev" title="' + t('Forrige uge', 'Previous week') + '">' +
+              '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>' +
+            '</button>' +
+            '<span class="hycs__week-label" id="hycs-week-label"></span>' +
+            '<button class="hycs__nav-btn" type="button" id="hycs-next" title="' + t('Næste uge', 'Next week') + '">' +
+              '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>' +
+            '</button>' +
+          '</div>' +
+          // Language switcher
+          '<div class="hycs__lang" id="hycs-lang">' +
+            '<button class="hycs__lang-btn' + (isDa ? ' is-active' : '') + '" type="button" data-hycs-lang="da">DA</button>' +
+            '<button class="hycs__lang-btn' + (!isDa ? ' is-active' : '') + '" type="button" data-hycs-lang="en">EN</button>' +
+          '</div>' +
+          // Filter dropdown
+          '<div class="hycs__filter-wrap" id="hycs-filter-wrap">' +
+            '<button class="hycs__filter-toggle" type="button" id="hycs-filter-toggle">' +
+              '<span class="hycs__filter-dot"></span>' +
+              '<span id="hycs-filter-label">' + t('Filter', 'Filter') + '</span>' +
+              '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>' +
+            '</button>' +
+            '<div class="hycs__filter-dd" id="hycs-filter-dd"></div>' +
+          '</div>' +
         '</div>' +
+        // ── Pass info / no-pass ─────────────────────────────────────
         '<div id="hycs-pass-info" class="hycs__pass-info" hidden></div>' +
         '<div id="hycs-no-pass" hidden>' +
           '<div class="hycs__no-pass">' +
@@ -215,6 +255,7 @@
             '<a class="hycs-btn hycs-btn--primary" href="' + PROFILE_URL + '/#store">' + t('Køb pas', 'Buy a pass') + '</a>' +
           '</div>' +
         '</div>' +
+        // ── Schedule list ───────────────────────────────────────────
         '<div id="hycs-list">' +
           '<div class="hycs__loading"><div class="hycs__spinner"></div><span>' + t('Henter hold...', 'Loading classes...') + '</span></div>' +
         '</div>' +
@@ -227,7 +268,81 @@
     if (prevBtn) prevBtn.addEventListener('click', function () { scheduleWeekOffset--; scheduleShowAllDays = false; loadSchedule(); });
     if (nextBtn) nextBtn.addEventListener('click', function () { scheduleWeekOffset++; scheduleShowAllDays = false; loadSchedule(); });
 
+    // Wire language switcher
+    var langWrap = document.getElementById('hycs-lang');
+    if (langWrap) {
+      langWrap.querySelectorAll('[data-hycs-lang]').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+          var newLang = btn.getAttribute('data-hycs-lang');
+          isDa = newLang === 'da';
+          // Update active state
+          langWrap.querySelectorAll('.hycs__lang-btn').forEach(function (b) {
+            b.classList.toggle('is-active', b.getAttribute('data-hycs-lang') === newLang);
+          });
+          // Re-render everything with new language
+          rebuildUI();
+        });
+      });
+    }
+
+    // Wire filter dropdown toggle
+    var filterToggle = document.getElementById('hycs-filter-toggle');
+    var filterDd = document.getElementById('hycs-filter-dd');
+    if (filterToggle && filterDd) {
+      filterToggle.addEventListener('click', function (e) {
+        e.stopPropagation();
+        var isOpen = filterDd.classList.contains('is-open');
+        filterDd.classList.toggle('is-open', !isOpen);
+        filterToggle.classList.toggle('is-open', !isOpen);
+      });
+      // Close on outside click
+      document.addEventListener('click', function (e) {
+        if (!e.target.closest('#hycs-filter-wrap')) {
+          filterDd.classList.remove('is-open');
+          filterToggle.classList.remove('is-open');
+        }
+      });
+    }
+
     return true;
+  }
+
+  // Full UI rebuild after language change
+  function rebuildUI() {
+    // Update filter label
+    var filterLabel = document.getElementById('hycs-filter-label');
+    if (filterLabel) filterLabel.textContent = scheduleClassFilter === 'all' ? t('Filter', 'Filter') : scheduleClassFilter;
+
+    // Update nav tooltips
+    var prevBtn = document.getElementById('hycs-prev');
+    var nextBtn = document.getElementById('hycs-next');
+    if (prevBtn) prevBtn.title = t('Forrige uge', 'Previous week');
+    if (nextBtn) nextBtn.title = t('Næste uge', 'Next week');
+
+    // Update no-pass banner
+    var noPassEl = document.getElementById('hycs-no-pass');
+    if (noPassEl) {
+      var inner = noPassEl.querySelector('.hycs__no-pass');
+      if (inner) {
+        inner.innerHTML =
+          '<p>' + t('Du har brug for et pas for at booke klasser.', 'You need a pass to book classes.') + '</p>' +
+          '<a class="hycs-btn hycs-btn--primary" href="' + PROFILE_URL + '/#store">' + t('Køb pas', 'Buy a pass') + '</a>';
+      }
+    }
+
+    // Reload pass info
+    if (scheduleMbClientId && schedulePassData) {
+      var passInfoEl = document.getElementById('hycs-pass-info');
+      if (passInfoEl) renderPassInfo(passInfoEl, schedulePassData);
+    }
+
+    // Re-render schedule list
+    var listEl = document.getElementById('hycs-list');
+    if (listEl && scheduleAllClasses.length > 0) {
+      renderSchedule(listEl, scheduleAllClasses, scheduleWeekStart);
+    } else {
+      loadSchedule();
+    }
   }
 
   // ── Toast ───────────────────────────────────────────────────────────
@@ -254,7 +369,7 @@
 
   function buildFilters(classes) {
     var seen = {};
-    var filters = [{ id: 'all', label: t('Alle', 'All') }];
+    var filters = [{ id: 'all', label: t('Alle hold', 'All classes') }];
     classes.forEach(function (cls) {
       var st = cls.sessionTypeName;
       if (st && !seen[st]) {
@@ -268,6 +383,42 @@
       return a.label.localeCompare(b.label);
     });
     return filters;
+  }
+
+  function renderFilterDropdown(classes) {
+    var ddEl = document.getElementById('hycs-filter-dd');
+    var toggleEl = document.getElementById('hycs-filter-toggle');
+    var labelEl = document.getElementById('hycs-filter-label');
+    if (!ddEl) return;
+
+    var filters = buildFilters(classes);
+    var html = '';
+    filters.forEach(function (f) {
+      var active = scheduleClassFilter === f.id;
+      html += '<button class="hycs__filter-opt' + (active ? ' is-active' : '') + '" type="button" data-hycs-filter="' + esc(f.id) + '">' + esc(f.label) + '</button>';
+    });
+    ddEl.innerHTML = html;
+
+    // Update toggle label & dot
+    if (labelEl) {
+      labelEl.textContent = scheduleClassFilter === 'all' ? t('Filter', 'Filter') : scheduleClassFilter;
+    }
+    if (toggleEl) {
+      toggleEl.classList.toggle('has-filter', scheduleClassFilter !== 'all');
+    }
+
+    // Wire filter options
+    ddEl.querySelectorAll('[data-hycs-filter]').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        scheduleClassFilter = btn.getAttribute('data-hycs-filter');
+        scheduleShowAllDays = false;
+        ddEl.classList.remove('is-open');
+        if (toggleEl) toggleEl.classList.remove('is-open');
+        renderFilterDropdown(scheduleAllClasses);
+        var listEl = document.getElementById('hycs-list');
+        if (listEl) renderSchedule(listEl, scheduleAllClasses, scheduleWeekStart);
+      });
+    });
   }
 
   // ── Load schedule ───────────────────────────────────────────────────
@@ -347,6 +498,7 @@
           if (bookedIds[cls.id]) cls.isBooked = true;
         });
 
+        renderFilterDropdown(classes);
         renderSchedule(listEl, classes, start);
       })
       .catch(function () {
@@ -373,18 +525,9 @@
       days[key].classes.push(cls);
     });
 
-    // Filter pills
-    var dynamicFilters = buildFilters(classes);
-    var html = '<div class="hycs__filters">';
-    dynamicFilters.forEach(function (f) {
-      var active = scheduleClassFilter === f.id;
-      html += '<button class="hycs__filter-btn' + (active ? ' is-active' : '') + '" type="button" data-hycs-filter="' + esc(f.id) + '">' + esc(f.label) + '</button>';
-    });
-    html += '</div>';
-
+    var html = '';
     var sortedKeys = Object.keys(days).sort();
-    var initialDays = 3;
-    var hasMore = sortedKeys.length > initialDays && !scheduleShowAllDays;
+    var hasMore = sortedKeys.length > INITIAL_DAYS && !scheduleShowAllDays;
     var dayIndex = 0;
 
     sortedKeys.forEach(function (key) {
@@ -393,7 +536,7 @@
       var dateObj = day.date;
       var dayName = dayNames[dateObj.getDay()];
       var dateLabel = dateObj.toLocaleDateString(isDa ? 'da-DK' : 'en-GB', { day: 'numeric', month: 'long' });
-      var isHidden = hasMore && dayIndex >= initialDays;
+      var isHidden = hasMore && dayIndex >= INITIAL_DAYS;
 
       html += '<div class="hycs__day' + (isHidden ? ' hycs__day--hidden' : '') + '">';
       html += '<h3 class="hycs__day-label">' + dayName + ' <span>' + dateLabel + '</span></h3>';
@@ -430,9 +573,11 @@
         if (cls.isCanceled) {
           html += '<span class="hycs__badge hycs__badge--cancelled">' + t('Aflyst', 'Cancelled') + '</span>';
         } else if (isPast) {
-          // No action
+          // No action for past classes
         } else if (cls.isBooked) {
+          html += '<div style="position:relative;display:inline-block">';
           html += '<button class="hycs-btn hycs-btn--booked" type="button" data-hycs-booked="' + cls.id + '">' + t('Booket ✓', 'Booked ✓') + '</button>';
+          html += '</div>';
         } else if (cls.spotsLeft === 0) {
           html += '<button class="hycs-btn hycs-btn--outline" type="button" data-hycs-waitlist="' + cls.id + '">' + t('Venteliste', 'Waitlist') + '</button>';
         } else {
@@ -459,69 +604,74 @@
 
     // No results for filter
     if (sortedKeys.length === 0 && scheduleClassFilter !== 'all') {
-      html += '<p class="hycs__filter-empty">' + t('Ingen klasser af denne type denne uge.', 'No classes of this type this week.') + '</p>';
+      html += '<p class="hycs__filter-empty" style="text-align:center;color:#6F6A66;padding:2rem 0;font-size:0.88rem">' + t('Ingen klasser af denne type.', 'No classes of this type.') + '</p>';
     }
 
-    // Show more / next week button
-    var showNextWeek = scheduleShowAllDays || sortedKeys.length <= initialDays;
+    // Show more button (teal filled) — shows remaining days
     if (hasMore) {
-      html += '<div class="hycs__show-more-wrap"><button class="hycs-btn hycs-btn--outline hycs__show-more-btn" type="button" id="hycs-show-more">' + t('Vis mere', 'Show more') + '</button></div>';
-    } else if (showNextWeek && sortedKeys.length > 0) {
-      html += '<div class="hycs__show-more-wrap"><button class="hycs-btn hycs-btn--outline hycs__show-more-btn" type="button" id="hycs-next-week">' + t('Vis næste uge', 'Show next week') + '</button></div>';
+      var hiddenCount = sortedKeys.length - INITIAL_DAYS;
+      html += '<div class="hycs__show-more-wrap"><button class="hycs-btn hycs__show-more-btn" type="button" id="hycs-show-more">' + t('Vis ' + hiddenCount + ' dage mere', 'Show ' + hiddenCount + ' more days') + '</button></div>';
     }
 
     listEl.innerHTML = html;
 
-    // ── Wire event handlers ───────────────────────────────────────
+    // ── Wire event handlers ─────────────────────────────────────────
 
-    // Show more → reveal hidden days, then swap to next week
+    // Show more → reveal hidden days
     var showMoreBtn = document.getElementById('hycs-show-more');
     if (showMoreBtn) {
       showMoreBtn.addEventListener('click', function () {
         scheduleShowAllDays = true;
         listEl.querySelectorAll('.hycs__day--hidden').forEach(function (el) { el.classList.remove('hycs__day--hidden'); });
-        var wrap = showMoreBtn.parentElement;
-        wrap.innerHTML = '<button class="hycs-btn hycs-btn--outline hycs__show-more-btn" type="button" id="hycs-next-week">' + t('Vis næste uge', 'Show next week') + '</button>';
-        document.getElementById('hycs-next-week').addEventListener('click', function () {
-          scheduleWeekOffset++;
-          scheduleShowAllDays = false;
-          loadSchedule();
-        });
+        showMoreBtn.parentElement.remove();
       });
     }
-
-    var nextWeekBtn = document.getElementById('hycs-next-week');
-    if (nextWeekBtn && !showMoreBtn) {
-      nextWeekBtn.addEventListener('click', function () {
-        scheduleWeekOffset++;
-        scheduleShowAllDays = false;
-        loadSchedule();
-      });
-    }
-
-    // Filters
-    listEl.querySelectorAll('[data-hycs-filter]').forEach(function (btn) {
-      btn.addEventListener('click', function () {
-        scheduleClassFilter = btn.getAttribute('data-hycs-filter');
-        scheduleShowAllDays = false;
-        renderSchedule(listEl, scheduleAllClasses, scheduleWeekStart);
-      });
-    });
 
     // Book buttons
     listEl.querySelectorAll('[data-hycs-book]').forEach(function (btn) {
       btn.onclick = function () { bookClass(btn); };
     });
 
-    // Booked buttons
+    // Booked buttons → toggle cancel popover
     listEl.querySelectorAll('[data-hycs-booked]').forEach(function (btn) {
-      btn.addEventListener('click', function () {
-        showToast(
-          t('Administrer dine bookinger via din profil.', 'Manage your bookings via your profile.'),
-          'success',
-          '<div style="margin-top:8px"><a href="' + PROFILE_URL + '/#schedule" target="_blank" style="color:#fff;text-decoration:underline;font-weight:400;font-size:0.85rem">' + t('Gå til profil →', 'Go to profile →') + '</a></div>'
-        );
+      btn.addEventListener('click', function (e) {
+        e.stopPropagation();
+        var wrapper = btn.parentElement;
+        // If popover already open, close it
+        var existing = wrapper.querySelector('.hycs__cancel-pop');
+        if (existing) {
+          existing.remove();
+          return;
+        }
+        // Close all other popovers
+        listEl.querySelectorAll('.hycs__cancel-pop').forEach(function (p) { p.remove(); });
+        // Create cancel popover
+        var classId = btn.getAttribute('data-hycs-booked');
+        var pop = document.createElement('div');
+        pop.className = 'hycs__cancel-pop';
+        pop.innerHTML =
+          '<p class="hycs__cancel-pop-text">' + t('Vil du annullere denne booking?', 'Cancel this booking?') + '</p>' +
+          '<div class="hycs__cancel-pop-btns">' +
+            '<button class="hycs-btn hycs-btn--cancel" type="button" data-hycs-confirm-cancel="' + classId + '">' + t('Annuller', 'Cancel') + '</button>' +
+            '<button class="hycs-btn hycs-btn--outline" type="button" data-hycs-dismiss-cancel>' + t('Behold', 'Keep') + '</button>' +
+          '</div>';
+        wrapper.appendChild(pop);
+        // Wire popover buttons
+        pop.querySelector('[data-hycs-confirm-cancel]').addEventListener('click', function (ev) {
+          ev.stopPropagation();
+          cancelBooking(btn, classId, pop);
+        });
+        pop.querySelector('[data-hycs-dismiss-cancel]').addEventListener('click', function (ev) {
+          ev.stopPropagation();
+          pop.remove();
+        });
       });
+    });
+
+    // Close cancel popovers on outside click
+    document.addEventListener('click', function () {
+      var pops = document.querySelectorAll('.hycs__cancel-pop');
+      pops.forEach(function (p) { p.remove(); });
     });
 
     // Waitlist buttons
@@ -588,7 +738,7 @@
     el.innerHTML = html;
   }
 
-  // ── Pass info ───────────────────────────────────────────────────────
+  // ── Pass info ─────────────────────────────────────────────────────
   function loadPassInfo() {
     if (!scheduleMbClientId) return;
     var passInfoEl = document.getElementById('hycs-pass-info');
@@ -631,7 +781,7 @@
       html += '<span class="hycs__pass-dd-label">' + t('Dine aktive pas', 'Your active passes') + '</span>';
       html += '<span class="hycs__pass-dd-count">' + summaryParts.join(' + ') + '</span>';
       html += '</div>';
-      html += '<svg class="hycs__pass-dd-chevron" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>';
+      html += '<svg class="hycs__pass-dd-chevron" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>';
       html += '</button>';
       html += '<div class="hycs__pass-dd-body" hidden>';
 
@@ -679,7 +829,6 @@
       }
     } else {
       passInfoEl.hidden = true;
-      // Only show no-pass banner if user is logged in
       if (noPassEl && scheduleUser) noPassEl.hidden = false;
     }
   }
@@ -706,7 +855,6 @@
     if (!scheduleUser) {
       if (typeof window.openLoginModal === 'function') {
         window.openLoginModal(function () {
-          // After login, schedule will auto-reload via onAuthStateChanged
           showToast(t('Du er logget ind! Prøv at booke igen.', 'You are logged in! Try booking again.'), 'success');
         });
       } else {
@@ -741,9 +889,7 @@
       return;
     }
 
-    // Proceed directly to booking — let the server handle pass/waiver validation.
-    // Client-side pre-checks were causing race conditions where async waiver/pass
-    // data hadn't loaded yet, silently blocking the user.
+    // Proceed directly to booking
     actionLock = true;
     btn.disabled = true;
     btn.textContent = t('Booker...', 'Booking...');
@@ -762,19 +908,14 @@
               : t('Du er booket!', "You're booked!"),
             'success'
           );
-          // Switch to booked state
           btn.textContent = t('Booket ✓', 'Booked ✓');
           btn.className = 'hycs-btn hycs-btn--booked';
           btn.removeAttribute('data-hycs-book');
           btn.setAttribute('data-hycs-booked', classId);
           btn.disabled = false;
-          btn.onclick = function () {
-            showToast(
-              t('Administrer dine bookinger via din profil.', 'Manage your bookings via your profile.'),
-              'success',
-              '<div style="margin-top:8px"><a href="' + PROFILE_URL + '/#schedule" target="_blank" style="color:#fff;text-decoration:underline;font-weight:400;font-size:0.85rem">' + t('Gå til profil →', 'Go to profile →') + '</a></div>'
-            );
-          };
+          // Re-render to get cancel popover wired properly
+          scheduleShowAllDays = true;
+          loadSchedule();
           delayedPassRefresh();
         } else if (data.error === 'no_pass') {
           var progName = data.programName || '';
@@ -804,6 +945,57 @@
         showToast(err.message || t('Booking fejlede.', 'Booking failed.'), 'error');
         btn.disabled = false;
         btn.textContent = t('Book', 'Book');
+      })
+      .finally(function () {
+        actionLock = false;
+      });
+  }
+
+  // ── Cancel booking ──────────────────────────────────────────────────
+  function cancelBooking(btn, classId, popEl) {
+    if (actionLock) return;
+    if (!scheduleMbClientId || !classId) return;
+
+    actionLock = true;
+    btn.disabled = true;
+    var confirmBtn = popEl.querySelector('[data-hycs-confirm-cancel]');
+    if (confirmBtn) {
+      confirmBtn.disabled = true;
+      confirmBtn.textContent = t('Annullerer...', 'Cancelling...');
+    }
+
+    fetch(API_BASE + '/mb-book', {
+      method: 'DELETE',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ clientId: scheduleMbClientId, classId: Number(classId) })
+    })
+      .then(function (r) { return r.json(); })
+      .then(function (data) {
+        if (data.success) {
+          showToast(
+            data.lateCancel
+              ? t('Sen annullering — der kan forekomme gebyr.', 'Late cancellation — fees may apply.')
+              : t('Booking annulleret.', 'Booking cancelled.'),
+            data.lateCancel ? 'warning' : 'success'
+          );
+          // Re-render schedule to reflect new state
+          scheduleShowAllDays = true;
+          loadSchedule();
+          delayedPassRefresh();
+        } else {
+          showToast(data.error || t('Kunne ikke annullere.', 'Could not cancel.'), 'error');
+          if (confirmBtn) {
+            confirmBtn.disabled = false;
+            confirmBtn.textContent = t('Annuller', 'Cancel');
+          }
+        }
+      })
+      .catch(function (err) {
+        showToast(err.message || t('Fejl ved annullering.', 'Cancellation error.'), 'error');
+        if (confirmBtn) {
+          confirmBtn.disabled = false;
+          confirmBtn.textContent = t('Annuller', 'Cancel');
+        }
       })
       .finally(function () {
         actionLock = false;
@@ -873,18 +1065,15 @@
     auth.onAuthStateChanged(function (user) {
       scheduleUser = user;
       if (user) {
-        // Resolve MB client ID from Firestore
         db.collection('users').doc(user.uid).get()
           .then(function (doc) {
             if (doc.exists) {
               var data = doc.data();
               scheduleMbClientId = data.mindbodyClientId || null;
             }
-            // Check waiver
             if (scheduleMbClientId) {
               checkWaiver();
             }
-            // Reload schedule with booking status
             loadSchedule();
           })
           .catch(function () {
@@ -907,16 +1096,14 @@
         scheduleWaiverSigned = !!data.clientSigned;
       })
       .catch(function () {
-        // Assume not signed if check fails
         scheduleWaiverSigned = false;
       });
   }
 
-  // ── Bootstrap ───────────────────────────────────────────────────────
+  // ── Bootstrap ─────────────────────────────────────────────────────
   function boot() {
     injectCSS();
     if (!injectHTML()) {
-      // Container not found — retry after DOM ready
       if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', function () {
           if (injectHTML()) startSchedule();
@@ -928,18 +1115,15 @@
   }
 
   function startSchedule() {
-    // Try to hook into Firebase (loaded by checkout-embed.js)
     if (typeof firebase !== 'undefined' && firebase.apps && firebase.apps.length) {
       initAuth();
     } else {
-      // Wait for checkout-embed to finish loading Firebase
       var firebaseWait = setInterval(function () {
         if (typeof firebase !== 'undefined' && firebase.apps && firebase.apps.length) {
           clearInterval(firebaseWait);
           initAuth();
         }
       }, 200);
-      // Timeout: load schedule without auth after 5s
       setTimeout(function () {
         if (!firebaseReady) {
           clearInterval(firebaseWait);
@@ -948,18 +1132,22 @@
       }, 5000);
     }
 
-    // If Firebase never loads, still show the schedule
+    // Show schedule immediately even without auth
     loadSchedule();
   }
 
-  // ── Public API ──────────────────────────────────────────────────────
+  // ── Public API ────────────────────────────────────────────────────
   window.HYCSchedule = {
     reload: loadSchedule,
     nextWeek: function () { scheduleWeekOffset++; scheduleShowAllDays = false; loadSchedule(); },
-    prevWeek: function () { scheduleWeekOffset--; scheduleShowAllDays = false; loadSchedule(); }
+    prevWeek: function () { scheduleWeekOffset--; scheduleShowAllDays = false; loadSchedule(); },
+    setLang: function (lang) {
+      isDa = lang === 'da';
+      rebuildUI();
+    }
   };
 
-  // ── Go ──────────────────────────────────────────────────────────────
+  // ── Go ────────────────────────────────────────────────────────────
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', boot);
   } else {
