@@ -266,11 +266,11 @@
   // ═══════════════════════════════════════════════════════════════════
 
   function injectCSS() {
-    // Inject into targetDoc (parent page if in iframe) so modal styles work
-    if (targetDoc.getElementById('hyc-login-cta-css')) return;
-    var s = targetDoc.createElement('style');
-    s.id = 'hyc-login-cta-css';
-    s.textContent = [
+    // Build CSS as a plain string first, then inject into both documents.
+    // The CTA button lives in the iframe document; the modal lives in the
+    // parent (targetDoc).  We inject into the iframe FIRST so the button
+    // is always styled, then additionally into the parent for the modal.
+    var css = [
 
       // ── CTA button ──────────────────────────────────────────────
       '.hyc-cta{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;display:inline-flex;align-items:center;gap:0.5rem;-webkit-font-smoothing:antialiased}',
@@ -402,14 +402,21 @@
       '}'
 
     ].join('\n');
-    targetDoc.head.appendChild(s);
 
-    // Also inject into iframe head if we're framed (for CTA button styles)
-    if (isFramed && targetDoc !== document && !document.getElementById('hyc-login-cta-css')) {
-      var s2 = document.createElement('style');
+    // 1. Always inject into the current document (iframe) for CTA button styles
+    if (!document.getElementById('hyc-login-cta-css')) {
+      var s = document.createElement('style');
+      s.id = 'hyc-login-cta-css';
+      s.textContent = css;
+      document.head.appendChild(s);
+    }
+
+    // 2. Also inject into the parent document (if framed) for modal styles
+    if (isFramed && targetDoc !== document && !targetDoc.getElementById('hyc-login-cta-css')) {
+      var s2 = targetDoc.createElement('style');
       s2.id = 'hyc-login-cta-css';
-      s2.textContent = s.textContent;
-      document.head.appendChild(s2);
+      s2.textContent = css;
+      targetDoc.head.appendChild(s2);
     }
   }
 
