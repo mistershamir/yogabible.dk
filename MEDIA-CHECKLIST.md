@@ -1,9 +1,139 @@
-# Cloudinary Media Upload Checklist
+# Cloudinary Media Checklist
 
 **Cloud:** `ddcynsa30` | **Root folder:** `yoga-bible-DK/`
 **Upload URL:** https://console.cloudinary.com/app/ddcynsa30/media_library
 
 Upload each file to the matching Cloudinary folder below. Naming convention: lowercase, hyphens, no extension needed (Cloudinary auto-detects format).
+
+---
+
+# PART 1 — Homepage Media (17 assets)
+
+Every media reference on the homepage (`src/_includes/pages/index.njk`), grouped by section.
+
+## Homepage Summary
+
+| Type | Count |
+|------|-------|
+| **Images** | 12 |
+| **Videos** | 2 |
+| **Journal images** | 3 (dynamic, from featured posts) |
+| **Total** | **17** |
+
+---
+
+### Section 1 — Hero (1 image + 1 video)
+
+| # | Cloudinary key | Upload as | Size | Type | Description |
+|---|----------------|-----------|------|------|-------------|
+| 1 | `media.homepage.studioPanorama` | `yoga-bible-DK/homepage/studio-panorama` | 1920x1080 | image | Static poster/fallback for hero video. Also used as studio section poster. Dark, cinematic studio interior. |
+| 2 | `media.homepage.heroVideo` | `yoga-bible-DK/homepage/hero-loop` | 1920x1080 | VIDEO | Auto-playing hero background loop. Silent, dark-toned yoga practice footage. 10-20s loop. |
+
+---
+
+### Section 3 — The Fork (2 images)
+
+| # | Cloudinary key | Upload as | Size | Type | Description |
+|---|----------------|-----------|------|------|-------------|
+| 3 | `media.courses.education200hr` | `yoga-bible-DK/courses/200-hour-yoga-education-copenhagen` | 1200x800 | image | Left panel: "Become a Yoga Teacher." Teacher + students in training. Cinematic feel, works under dark gradient overlay. |
+| 4 | `media.courses.inversionsPromo` | `yoga-bible-DK/courses/inversions-course-copenhagen-promo` | 1200x800 | image | Right panel: "Deepen Your Practice." Dynamic yoga pose (inversion/arm balance). Works under dark gradient overlay. |
+
+---
+
+### Section 6 — Specialty Courses Triptych (3 images)
+
+| # | Cloudinary key | Upload as | Size | Type | Description |
+|---|----------------|-----------|------|------|-------------|
+| 5 | `media.homepage.inversionsCard` | `yoga-bible-DK/homepage/inversions-card` | 800x900 | image | Portrait crop. Handstand or arm balance. Works under bottom-up dark gradient. Text overlays at bottom. |
+| 6 | `media.homepage.splitsCard` | `yoga-bible-DK/homepage/splits-card` | 800x900 | image | Portrait crop. Front or middle split. Works under bottom-up dark gradient. Text overlays at bottom. |
+| 7 | `media.homepage.backbendsCard` | `yoga-bible-DK/homepage/backbends-card` | 800x900 | image | Portrait crop. Wheel pose or deep backbend. Works under bottom-up dark gradient. Text overlays at bottom. |
+
+---
+
+### Section 7 — Studio & Community (1 video, reuses image #1)
+
+| # | Cloudinary key | Upload as | Size | Type | Description |
+|---|----------------|-----------|------|------|-------------|
+| 8 | `media.programs.practiceLoopVideo` | `yoga-bible-DK/programs/practice-loop` | 1920x1080 | VIDEO | Silent yoga class in progress. Background loop, 10-20s. Dark overlay will cover ~60% — doesn't need to be sharp. |
+| — | `media.homepage.studioPanorama` | *(reuses #1)* | — | — | Same poster image as hero, used as video fallback. |
+
+---
+
+### Section 10 — Copenhagen Cinema (6 images, 1 reused)
+
+Background image (full-bleed):
+
+| # | Cloudinary key | Upload as | Size | Type | Description |
+|---|----------------|-----------|------|------|-------------|
+| 9 | `media.copenhagen.canalPanorama` | `yoga-bible-DK/copenhagen/canal-panorama` | 1920x1080 | image | Christianshavn canal panorama. Wide, cinematic. Also used as thumbnail for "Kanaler & Arkitektur" highlight (auto-cropped to 120x120). |
+
+Highlight thumbnails (52x52 display, uploaded larger for quality):
+
+| # | Cloudinary key | Upload as | Min size | Description |
+|---|----------------|-----------|----------|-------------|
+| 10 | `media.copenhagen.bikeCulture` | `yoga-bible-DK/copenhagen/bike-culture` | 400x400 | Cyclists on Copenhagen streets. Served at 120x120, upload square or will be auto-cropped. |
+| 11 | `media.copenhagen.saunagus` | `yoga-bible-DK/copenhagen/saunagus` | 400x400 | Danish sauna / cold water culture. Winter swimming or saunagus ritual. |
+| 12 | `media.copenhagen.foodScene` | `yoga-bible-DK/copenhagen/food-scene` | 400x400 | New Nordic food — plated dish, street food, or market scene. |
+| 13 | `media.copenhagen.cafeScene` | `yoga-bible-DK/copenhagen/cafe-scene` | 400x400 | Hygge cafe — specialty coffee, ceramic cups, warm light. |
+| 14 | `media.copenhagen.greenSpaces` | `yoga-bible-DK/copenhagen/green-spaces` | 400x400 | Parks, harbour baths, botanical gardens, green spaces. |
+
+---
+
+### Section 11 — Journal Preview (up to 3 images, dynamic)
+
+Journal images come from `src/_data/journals.json` entries where `featured: true`. The 3 most recent featured posts are shown.
+
+| # | Cloudinary key | Upload as | Size | Description |
+|---|----------------|-----------|------|-------------|
+| 15 | `entry.cloudinaryImage` | `yoga-bible-DK/journal/{slug}` | 1200x630 | Featured image per blog post. Each post needs its own image named after the slug. |
+| 16 | *(2nd featured post)* | `yoga-bible-DK/journal/{slug}` | 1200x630 | Same pattern. |
+| 17 | *(3rd featured post)* | `yoga-bible-DK/journal/{slug}` | 1200x630 | Same pattern. |
+
+Current featured posts (check `journals.json` for latest):
+- `fordelene-ved-hot-yoga`
+- `guide-til-din-foerste-yogalaereruddannelse`
+- `yoga-og-mental-sundhed`
+
+---
+
+### Sections with NO media
+
+These homepage sections are text/CSS only — no images or videos needed:
+
+| Section | Name | Why no media |
+|---------|------|--------------|
+| 4 | Training Programs | Pure typography (large numbers 4/8/18) |
+| 5 | Dark Cinematic Quote | Text + CSS glow effect |
+| 8 | Testimonials | Text cards, stars, no avatars |
+| 9 | Why Us | Frosted glass cards, CSS watermarks |
+| 12 | Final CTA | Text + gradient background |
+
+---
+
+### Homepage Priority Upload Order
+
+1. **Hero video + poster** (#1, #2) — first thing visitors see
+2. **Fork images** (#3, #4) — immediately below hero
+3. **Triptych course images** (#5, #6, #7) — course showcase
+4. **Studio loop video** (#8) — community section
+5. **Copenhagen images** (#9–#14) — lifestyle showcase
+6. **Journal images** (#15–#17) — blog preview cards
+
+---
+
+### Image Guidelines
+
+- **Dark overlay images** (fork, triptych, CPH): subjects should be visible at 40-60% opacity overlay. Avoid bright whites or text in the image itself.
+- **Portrait crops** (triptych): 800x900 minimum. Vertical composition, subject centered or slightly off-center.
+- **Thumbnails** (CPH highlights): Upload at least 400x400. Cloudinary auto-crops to 120x120 `c_fill`.
+- **Videos**: MP4 format, H.264 codec. Keep under 10MB for fast loading. No audio needed (muted autoplay).
+- **All formats**: Cloudinary auto-converts to WebP/AVIF via `f_auto`. Upload as JPG or PNG.
+
+---
+
+# PART 2 — Full Site Media Catalog
+
+All Cloudinary folders and assets across the entire site.
 
 ---
 
@@ -25,9 +155,9 @@ Upload each file to the matching Cloudinary folder below. Naming convention: low
 |-----------|------|------|-------------|
 | `hero-video` | 1920x1080 | VIDEO | Auto-playing hero video loop — **EXISTS locally** at `src/assets/hero-loop.mp4` |
 | `studio-panorama` | 1920x1080 | image | Studio panorama — hero poster fallback + studio section bg (used 2x on homepage) |
-| `inversions-card` | 800x600 | image | Inversions course triptych card |
-| `splits-card` | 800x600 | image | Splits course triptych card |
-| `backbends-card` | 800x600 | image | Backbends course triptych card |
+| `inversions-card` | 800x900 | image | Inversions course triptych card (portrait) |
+| `splits-card` | 800x900 | image | Splits course triptych card (portrait) |
+| `backbends-card` | 800x900 | image | Backbends course triptych card (portrait) |
 
 > The live homepage also uses: `education-200hr` + `inversions-promo` from `yoga-bible-DK/courses/`, 6 images from `yoga-bible-DK/copenhagen/` (`canal-panorama`, `bike-culture`, `saunagus`, `food-scene`, `cafe-scene`, `green-spaces`), and `practice-loop` video from `yoga-bible-DK/programs/`.
 
@@ -63,8 +193,8 @@ Upload each file to the matching Cloudinary folder below. Naming convention: low
 | `splits-hero` | 800x600 | Splits/flexibility course promo card |
 | `backbends-hero` | 800x600 | Backbends course promo card |
 | `200-hour-hero` | 800x600 | 200-hour YTT promo card |
-| `education-200hr` | 800x600 | 200hr teacher training promo — homepage fork left panel |
-| `inversions-promo` | 800x600 | Inversions promo — homepage fork right panel |
+| `education-200hr` | 1200x800 | 200hr teacher training promo — homepage fork left panel |
+| `inversions-promo` | 1200x800 | Inversions promo — homepage fork right panel |
 
 ---
 
@@ -189,7 +319,7 @@ Upload each file to the matching Cloudinary folder below. Naming convention: low
 | `scandinavian-design` | 800x600 | Scandinavian interior design |
 | `green-spaces` | 800x600 | Parks and green spaces |
 | `food-scene` | 800x600 | New Nordic food scene |
-| `canal-panorama` | 1920x900 | Christianshavn canal wide view |
+| `canal-panorama` | 1920x1080 | Christianshavn canal wide view |
 
 ---
 
@@ -282,8 +412,8 @@ Upload each file to the matching Cloudinary folder below. Naming convention: low
 
 ## Priority Order (suggested)
 
-1. **Brand** — logo, OG images (needed for all social sharing)
-2. **Homepage** — hero video + images (first impression)
+1. **Homepage** — 17 assets (see Part 1 for exact list and priority)
+2. **Brand** — logo, OG images (needed for all social sharing)
 3. **Studio** — facility photos (used across multiple pages)
 4. **Courses** — course cards + inversions gallery (drives enrollment)
 5. **Concepts** — Hot Yoga, Namaste, Vibro (brand storytelling)
