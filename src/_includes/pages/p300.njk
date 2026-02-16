@@ -237,26 +237,20 @@
 {# ═══════════════════════════════════════════════════════════
    SECTION 5: TIMELINE — 24-Week Journey
    ═══════════════════════════════════════════════════════════ #}
-<section class="p300-timeline" id="p300-timeline">
-  <div class="p300-timeline__inner">
-    <header class="p300-timeline__head">
-      <p class="p300-timeline__eyebrow ds-eyebrow ds-eyebrow--brand ds-eyebrow--dot">{{ t.timeline_eyebrow }}</p>
-      <h2 class="p300-timeline__title">{{ t.timeline_title }}</h2>
-      <p class="p300-timeline__lead">{{ t.timeline_lead }}</p>
-    </header>
-
-    <div class="p300-timeline__track">
-      {# Vertical line #}
-      <div class="p300-timeline__line" aria-hidden="true"></div>
-
+<section class="yb-journey" id="p300-timeline">
+  <div class="yb-journey__inner">
+    <div class="yb-journey__header">
+      <p class="yb-journey__label">{{ t.timeline_eyebrow }}</p>
+      <h2 class="yb-journey__title">{{ t.timeline_title }}</h2>
+      <p class="yb-journey__desc">{{ t.timeline_lead }}</p>
+    </div>
+    <div class="yb-journey__timeline">
       {% for i in range(1, 8) %}
-      <div class="p300-timeline__step{% if t['timeline' + (i | string) + '_step'] == 'PAUSE' or t['timeline' + (i | string) + '_step'] == 'BREAK' %} p300-timeline__step--break{% endif %}">
-        <div class="p300-timeline__dot"></div>
-        <div class="p300-timeline__content">
-          <p class="p300-timeline__step-label">{{ t["timeline" + (i | string) + "_step"] }}</p>
-          <h3 class="p300-timeline__step-title">{{ t["timeline" + (i | string) + "_title"] }}</h3>
-          <p class="p300-timeline__step-desc">{{ t["timeline" + (i | string) + "_desc"] }}</p>
-        </div>
+      <div class="yb-journey__item{% if t['timeline' + (i | string) + '_step'] == 'PAUSE' or t['timeline' + (i | string) + '_step'] == 'BREAK' %} yb-journey__item--break{% endif %}">
+        <div class="yb-journey__dot"></div>
+        <p class="yb-journey__step">{{ t["timeline" + (i | string) + "_step"] }}</p>
+        <h4 class="yb-journey__item-title">{{ t["timeline" + (i | string) + "_title"] }}</h4>
+        <p class="yb-journey__item-desc">{{ t["timeline" + (i | string) + "_desc"] }}</p>
       </div>
       {% endfor %}
     </div>

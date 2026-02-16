@@ -373,6 +373,29 @@
 </section>
 
 {# ═══════════════════════════════════════════════════════════
+   SECTION 5c: JOURNEY TIMELINE — Application to Certification
+   ═══════════════════════════════════════════════════════════ #}
+<section class="yb-journey" id="om2-journey">
+  <div class="yb-journey__inner">
+    <div class="yb-journey__header">
+      <p class="yb-journey__label">{{ t.journey_label }}</p>
+      <h2 class="yb-journey__title">{{ t.journey_title }}</h2>
+      <p class="yb-journey__desc">{{ t.journey_desc }}</p>
+    </div>
+    <div class="yb-journey__timeline">
+      {% for i in range(1, 6) %}
+      <div class="yb-journey__item">
+        <div class="yb-journey__dot"></div>
+        <p class="yb-journey__step">{{ t["journey" + (i | string) + "_step"] }}</p>
+        <h4 class="yb-journey__item-title">{{ t["journey" + (i | string) + "_title"] }}</h4>
+        <p class="yb-journey__item-desc">{{ t["journey" + (i | string) + "_desc"] }}</p>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+
+{# ═══════════════════════════════════════════════════════════
    SECTION 6: DETAILED HOUR BREAKDOWN
    ═══════════════════════════════════════════════════════════ #}
 <section class="om2-breakdown" id="om2-breakdown" aria-labelledby="om2-breakdown-title">

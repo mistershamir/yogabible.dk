@@ -14277,3 +14277,105 @@ a.yb-kontakt-detail__value:hover {
     padding: 20px 16px 18px;
   }
 }
+
+/* ═══════════════════════════════════════════════════════════════════
+   JOURNEY TIMELINE — Reusable vertical timeline (yb-journey)
+   ═══════════════════════════════════════════════════════════════════ */
+.yb-journey {
+  padding: clamp(60px, 10vh, 120px) 24px;
+  background: #F9F7F4;
+}
+.yb-journey__inner {
+  max-width: 1000px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: clamp(32px, 6vw, 60px);
+}
+.yb-journey__header { text-align: center; }
+.yb-journey__label {
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.3em;
+  color: var(--yb-brand);
+  font-weight: 700;
+  margin-bottom: 12px;
+}
+.yb-journey__title {
+  font-size: clamp(1.8rem, 4vw, 2.6rem);
+  font-weight: 700;
+  color: #0F0F0F;
+  margin-bottom: 14px;
+  letter-spacing: -0.02em;
+}
+.yb-journey__desc {
+  font-size: 1.05rem;
+  line-height: 1.7;
+  color: #6F6A66;
+  max-width: 520px;
+  margin: 0 auto;
+}
+.yb-journey__timeline {
+  position: relative;
+  padding-left: 40px;
+}
+.yb-journey__timeline::before {
+  content: "";
+  position: absolute;
+  left: 8px;
+  top: 8px;
+  bottom: 8px;
+  width: 2px;
+  background: linear-gradient(to bottom, var(--yb-brand), #E8E4E0);
+  border-radius: 1px;
+}
+.yb-journey__item { position: relative; padding-bottom: 40px; }
+.yb-journey__item:last-child { padding-bottom: 0; }
+.yb-journey__item--break { opacity: 0.65; }
+.yb-journey__dot {
+  position: absolute;
+  left: -36px;
+  top: 6px;
+  width: 12px;
+  height: 12px;
+  background: var(--yb-brand);
+  border-radius: 50%;
+  box-shadow: 0 0 0 4px #F9F7F4, 0 0 0 6px rgba(247, 92, 3, 0.18);
+}
+.yb-journey__item--break .yb-journey__dot {
+  background: #E8E4E0;
+  box-shadow: 0 0 0 4px #F9F7F4, 0 0 0 6px rgba(111, 106, 102, 0.15);
+}
+.yb-journey__step {
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  color: var(--yb-brand);
+  font-weight: 700;
+  margin-bottom: 6px;
+}
+.yb-journey__item--break .yb-journey__step { color: #6F6A66; }
+.yb-journey__item-title {
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: #0F0F0F;
+  margin-bottom: 6px;
+}
+.yb-journey__item-desc {
+  font-size: 0.95rem;
+  line-height: 1.6;
+  color: #6F6A66;
+}
+
+@media (min-width: 900px) {
+  .yb-journey__inner {
+    grid-template-columns: 1fr 1.5fr;
+    align-items: start;
+  }
+  .yb-journey__header {
+    position: sticky;
+    top: 200px;
+    text-align: left;
+  }
+  .yb-journey__desc { margin: 0; }
+}
