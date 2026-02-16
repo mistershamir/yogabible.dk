@@ -517,6 +517,29 @@
 </section>
 
 <!-- ═══════════════════════════════════════
+     11b. JOURNEY TIMELINE — Week by week
+     ═══════════════════════════════════════ -->
+<section class="yb-journey" id="p4w-journey">
+  <div class="yb-journey__inner">
+    <div class="yb-journey__header">
+      <p class="yb-journey__label">{{ t.journey_label }}</p>
+      <h2 class="yb-journey__title">{{ t.journey_title }}</h2>
+      <p class="yb-journey__desc">{{ t.journey_desc }}</p>
+    </div>
+    <div class="yb-journey__timeline">
+      {% for i in range(1, 6) %}
+      <div class="yb-journey__item">
+        <div class="yb-journey__dot"></div>
+        <p class="yb-journey__step">{{ t["journey" + (i | string) + "_step"] }}</p>
+        <h4 class="yb-journey__item-title">{{ t["journey" + (i | string) + "_title"] }}</h4>
+        <p class="yb-journey__item-desc">{{ t["journey" + (i | string) + "_desc"] }}</p>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════
      12. ROOM OPTIONS — Accommodation (no month chips)
      ═══════════════════════════════════════ -->
 <section class="p18-rooms">
