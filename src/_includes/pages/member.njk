@@ -464,14 +464,49 @@
     </section>
   </div>
 
-  {# ── TAB: My Courses (iframe) ── #}
+  {% set tcv = i18n["course-viewer"][lang or "da"] %}
+  {% set tp = i18n.profile[lang or "da"] %}
+  {# ── TAB: My Courses (embedded directly — no iframe) ── #}
   <div class="yb-ma-tp" id="yb-ma-tp-courses" data-yb-ma-panel="courses" hidden>
-    <iframe class="yb-ma-iframe" data-src="{{ lp }}/profile?embed=1#mine-kurser" title="{{ t.hub_courses_title }}"></iframe>
+    <script>
+      window._ybMemberCoursesT = {
+        continue_btn: {{ tp.courses_continue | dump | safe }},
+        start_btn: {{ tp.courses_start | dump | safe }},
+        modules_label: {{ tp.courses_modules | dump | safe }},
+        chapters_label: {{ (tp.courses_progress or "chapters read") | dump | safe }}
+      };
+      window._ybCVLang = '{{ lang or "da" }}';
+      window._ybCVTranslations = {{ i18n["course-viewer"][lang or "da"] | dump | safe }};
+    </script>
+    <div id="yb-ma-courses-list-wrap">
+      <section style="padding:3rem 0 4rem;background:var(--yb-warm-white, #FFFCF9);min-height:50vh">
+        <div class="container" style="max-width:800px">
+          <div style="margin-bottom:2rem">
+            <h2 class="section-title" style="margin:0 0 0.5rem">{{ tp.courses_title }}</h2>
+            <p style="color:var(--yb-muted, #6F6A66);margin:0">{{ tp.courses_subtitle }}</p>
+          </div>
+          <div id="yb-ma-courses-loading" style="text-align:center;padding:3rem 0">
+            <div class="yb-mb-spinner" style="margin:0 auto 1rem"></div>
+            <span style="color:#6F6A66">{{ tp.courses_loading }}</span>
+          </div>
+          <div id="yb-ma-courses-list"></div>
+          <div id="yb-ma-courses-empty" hidden style="text-align:center;padding:4rem 0">
+            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#6F6A66" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+            <h3 style="margin:1rem 0 0.5rem;color:#0F0F0F">{{ tp.courses_empty_title }}</h3>
+            <p style="color:#6F6A66;margin:0">{{ tp.courses_empty_text }}</p>
+          </div>
+        </div>
+      </section>
+    </div>
+    <div id="yb-ma-course-viewer" hidden>
+      {% include "pages/course-viewer.njk" %}
+    </div>
   </div>
+  {% set t = i18n.member[lang or "da"] %}
 
-  {# ── TAB: Schedule (iframe) ── #}
+  {# ── TAB: Schedule (iframe — bare embed page, no site chrome) ── #}
   <div class="yb-ma-tp" id="yb-ma-tp-schedule" data-yb-ma-panel="schedule" hidden>
-    <iframe class="yb-ma-iframe" data-src="{{ lp }}/profile?embed=1#schedule" title="{{ t.hub_schedule_title }}"></iframe>
+    <iframe class="yb-ma-iframe" data-src="{{ lp }}/embed/schedule/#schedule" title="{{ t.hub_schedule_title }}"></iframe>
   </div>
 
   {# ── TAB: Glossary (embedded) ── #}
@@ -488,19 +523,26 @@
     </div>
   </div>
 
-  {# ── TAB: Live & Recordings (placeholder) ── #}
+  {# ── TAB: Live & Recordings (embedded — role-gated) ── #}
   <div class="yb-ma-tp" id="yb-ma-tp-live" data-yb-ma-panel="live" hidden>
-    <section style="padding:6rem 0;background:var(--yb-warm-white, #FFFCF9);text-align:center;min-height:60vh;display:flex;align-items:center">
-      <div class="container" style="max-width:600px">
-        <div style="margin-bottom:2rem">
-          <svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="var(--yb-brand, #f75c03)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>
+    {# Live player — shown only to users with live-streaming permission #}
+    <div data-yb-requires="live-streaming" style="display:none">
+      {% include "pages/live.njk" %}
+    </div>
+    {# No access message — shown to users without permission #}
+    <div id="yb-ma-live-noaccess" style="display:none">
+      <section style="padding:6rem 0;background:#0F0F0F;text-align:center;min-height:60vh;display:flex;align-items:center">
+        <div class="container" style="max-width:600px">
+          <div style="margin-bottom:2rem">
+            <svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="#6F6A66" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>
+          </div>
+          <h2 style="font-size:clamp(1.5rem,3.5vw,2.25rem);margin:0 0 1rem;color:#FFFCF9">{{ i18n.member[lang or "da"].live_noaccess_title }}</h2>
+          <p style="color:#6F6A66;font-size:1rem;line-height:1.7;margin:0">{{ i18n.member[lang or "da"].live_noaccess_text }}</p>
         </div>
-        <p class="yb-ma-eyebrow yb-ma-eyebrow--line">{{ t.live_placeholder_eyebrow }}</p>
-        <h2 class="section-title" style="margin:0.5rem 0 1rem">{{ t.live_placeholder_title }}</h2>
-        <p style="color:var(--yb-muted, #6F6A66);font-size:1rem;line-height:1.7;margin:0">{{ t.live_placeholder_text }}</p>
-      </div>
-    </section>
+      </section>
+    </div>
   </div>
+  {% set t = i18n.member[lang or "da"] %}
 
   {# ── TAB: Events (placeholder) ── #}
   <div class="yb-ma-tp" id="yb-ma-tp-events" data-yb-ma-panel="events" hidden>
@@ -516,9 +558,9 @@
     </section>
   </div>
 
-  {# ── TAB: Profile (iframe) ── #}
+  {# ── TAB: Profile (iframe — bare embed page, no site chrome) ── #}
   <div class="yb-ma-tp" id="yb-ma-tp-profile" data-yb-ma-panel="profile" hidden>
-    <iframe class="yb-ma-iframe" data-src="{{ lp }}/profile?embed=1#profile" title="{{ t.hub_profile_title }}"></iframe>
+    <iframe class="yb-ma-iframe" data-src="{{ lp }}/embed/profile/#profile" title="{{ t.hub_profile_title }}"></iframe>
   </div>
 
 </div>
@@ -938,6 +980,91 @@
     .yb-ma-grid--3 { grid-template-columns: 1fr; }
   }
 
+  /* ══════════════════════════════════════
+     MY COURSES — CARD LIST
+     ══════════════════════════════════════ */
+  .yb-ma-course-card {
+    display: flex;
+    align-items: center;
+    gap: 1.25rem;
+    background: var(--yb-warm-white, #FFFCF9);
+    border: 1px solid var(--yb-border, #E8E4E0);
+    border-radius: 12px;
+    padding: 1.25rem 1.5rem;
+    margin-bottom: 1rem;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  }
+  .yb-ma-course-card:hover {
+    border-color: var(--yb-brand, #f75c03);
+    box-shadow: 0 4px 16px rgba(0,0,0,0.06);
+  }
+  .yb-ma-course-card__icon {
+    font-size: 2rem;
+    flex-shrink: 0;
+    width: 48px;
+    height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--yb-light-bg, #F5F3F0);
+    border-radius: 12px;
+  }
+  .yb-ma-course-card__info {
+    flex: 1;
+    min-width: 0;
+  }
+  .yb-ma-course-card__title {
+    font-size: 1.05rem;
+    font-weight: 700;
+    margin: 0 0 0.25rem;
+    color: #0F0F0F;
+  }
+  .yb-ma-course-card__desc {
+    font-size: 0.85rem;
+    color: var(--yb-muted, #6F6A66);
+    margin: 0 0 0.375rem;
+    line-height: 1.45;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  .yb-ma-course-card__meta {
+    font-size: 0.75rem;
+    color: var(--yb-muted, #6F6A66);
+  }
+  .yb-ma-course-card__btn {
+    flex-shrink: 0;
+    white-space: nowrap;
+  }
+  @media (max-width: 600px) {
+    .yb-ma-course-card {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 0.75rem;
+    }
+    .yb-ma-course-card__btn {
+      align-self: stretch;
+      text-align: center;
+    }
+  }
+
+  /* ── Live tab embedded — override min-height for member area ── */
+  .yb-ma-tp .yb-live {
+    min-height: auto;
+  }
+
 </style>
 
 <script src="/js/member.js"></script>
+<script src="/js/member-courses.js"></script>
+<script>
+  // Show live no-access message for users without live-streaming permission
+  document.addEventListener('yb:user-loaded', function(e) {
+    var perms = (e.detail && e.detail.permissions) || [];
+    var noAccess = document.getElementById('yb-ma-live-noaccess');
+    if (noAccess && perms.indexOf('live-streaming') === -1) {
+      noAccess.style.display = '';
+    }
+  });
+</script>
