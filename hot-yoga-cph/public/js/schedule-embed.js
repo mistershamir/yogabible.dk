@@ -276,7 +276,7 @@
         '<div id="hycs-no-pass" hidden>' +
           '<div class="hycs__no-pass">' +
             '<p>' + t('Du har brug for et pas for at booke klasser.', 'You need a pass to book classes.') + '</p>' +
-            '<a class="hycs-btn hycs-btn--primary" href="' + PROFILE_URL + '/#store">' + t('Køb pas', 'Buy a pass') + '</a>' +
+            '<button class="hycs-btn hycs-btn--primary" type="button" id="hycs-buy-pass">' + t('Køb pas', 'Buy a pass') + '</button>' +
           '</div>' +
         '</div>' +
         // ── Schedule list ───────────────────────────────────────────
@@ -323,6 +323,18 @@
       });
     }
 
+    // Wire buy-pass button (opens checkout modal with default 1-class under30)
+    var buyPassBtn = document.getElementById('hycs-buy-pass');
+    if (buyPassBtn) {
+      buyPassBtn.addEventListener('click', function () {
+        if (typeof window.openCheckoutFlow === 'function') {
+          window.openCheckoutFlow('100017'); // 1-class clip under30
+        } else {
+          window.location.href = PROFILE_URL + '/#store';
+        }
+      });
+    }
+
     // Wire filter dropdown toggle
     var filterToggle = document.getElementById('hycs-filter-toggle');
     var filterDd = document.getElementById('hycs-filter-dd');
@@ -364,7 +376,18 @@
       if (inner) {
         inner.innerHTML =
           '<p>' + t('Du har brug for et pas for at booke klasser.', 'You need a pass to book classes.') + '</p>' +
-          '<a class="hycs-btn hycs-btn--primary" href="' + PROFILE_URL + '/#store">' + t('Køb pas', 'Buy a pass') + '</a>';
+          '<button class="hycs-btn hycs-btn--primary" type="button" id="hycs-buy-pass">' + t('Køb pas', 'Buy a pass') + '</button>';
+        // Re-wire buy-pass button after language rebuild
+        var btn = document.getElementById('hycs-buy-pass');
+        if (btn) {
+          btn.addEventListener('click', function () {
+            if (typeof window.openCheckoutFlow === 'function') {
+              window.openCheckoutFlow('100017');
+            } else {
+              window.location.href = PROFILE_URL + '/#store';
+            }
+          });
+        }
       }
     }
 

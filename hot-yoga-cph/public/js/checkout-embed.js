@@ -128,6 +128,58 @@
     '100203': { price: 1, name_da: 'Test Klippekort', name_en: 'Test Clip Card', validity: null, desc_da: 'Testprodukt til betalingsflow — 1 kr.', desc_en: 'Test product for payment flow — 1 DKK.' }
   };
 
+  // ── Age bracket pairs: over30 ↔ under30 ─────────────────────────
+  // Maps each prodId to its counterpart in the other age bracket.
+  // Format: { prodId: { pair: otherProdId, age: 'over30'|'under30' } }
+  var AGE_MAP = {
+    // Clips
+    '100174': { pair: '100017', age: 'over30' },  '100017': { pair: '100174', age: 'under30' },
+    '100175': { pair: '100016', age: 'over30' },  '100016': { pair: '100175', age: 'under30' },
+    '100176': { pair: '100018', age: 'over30' },  '100018': { pair: '100176', age: 'under30' },
+    '100177': { pair: '100019', age: 'over30' },  '100019': { pair: '100177', age: 'under30' },
+    '100178': { pair: '100020', age: 'over30' },  '100020': { pair: '100178', age: 'under30' },
+    '100179': { pair: '100021', age: 'over30' },  '100021': { pair: '100179', age: 'under30' },
+    '100180': { pair: '100022', age: 'over30' },  '100022': { pair: '100180', age: 'under30' },
+    '100181': { pair: '100023', age: 'over30' },  '100023': { pair: '100181', age: 'under30' },
+    '100182': { pair: '100024', age: 'over30' },  '100024': { pair: '100182', age: 'under30' },
+    '100183': { pair: '100068', age: 'over30' },  '100068': { pair: '100183', age: 'under30' },
+    // Time-based
+    '100186': { pair: '100043', age: 'over30' },  '100043': { pair: '100186', age: 'under30' },
+    '100187': { pair: '100044', age: 'over30' },  '100044': { pair: '100187', age: 'under30' },
+    '100189': { pair: '100037', age: 'over30' },  '100037': { pair: '100189', age: 'under30' },
+    '100190': { pair: '100038', age: 'over30' },  '100038': { pair: '100190', age: 'under30' },
+    '100191': { pair: '100039', age: 'over30' },  '100039': { pair: '100191', age: 'under30' },
+    '100192': { pair: '100040', age: 'over30' },  '100040': { pair: '100192', age: 'under30' },
+    // Trials
+    '100185': { pair: '100153', age: 'over30' },  '100153': { pair: '100185', age: 'under30' },
+    // Tourist
+    '100199': { pair: '100051', age: 'over30' },  '100051': { pair: '100199', age: 'under30' },
+    // Memberships
+    '101':  { pair: '109', age: 'over30' },   '109':  { pair: '101', age: 'under30' },
+    '102':  { pair: '111', age: 'over30' },   '111':  { pair: '102', age: 'under30' },
+    '103':  { pair: '112', age: 'over30' },   '112':  { pair: '103', age: 'under30' }
+  };
+
+  // Current age selection — default under30
+  var selectedAge = 'under30';
+
+  function getAgePair(prodId) {
+    return AGE_MAP[String(prodId)] || null;
+  }
+
+  // Given a prodId, return the equivalent in the target age bracket
+  function getProdForAge(prodId, targetAge) {
+    var info = getAgePair(prodId);
+    if (!info) return prodId; // no pair (e.g. teacher, courses) — keep as is
+    if (info.age === targetAge) return String(prodId); // already correct
+    return info.pair; // return the paired product
+  }
+
+  // Check if a product has age-based pricing
+  function hasAgePricing(prodId) {
+    return !!AGE_MAP[String(prodId)];
+  }
+
   // ── Product helper ──────────────────────────────────────────────────
   function getProduct(prodId) {
     return PRODUCTS[String(prodId)] || null;
@@ -473,6 +525,17 @@
       '.ycf-product__note{display:flex;align-items:flex-start;gap:8px;margin-top:14px;padding-top:14px;border-top:1px solid #E8E4E0;font-size:.82rem;color:#6F6A66;line-height:1.45}',
       '.ycf-product__note svg{flex-shrink:0;margin-top:1px;color:#6F6A66}',
 
+      // Age bracket toggle
+      '.ycf-age{display:flex;align-items:center;gap:10px;margin-bottom:16px}',
+      '.ycf-age[hidden]{display:none}',
+      '.ycf-age__label{font-size:.82rem;font-weight:700;color:#0F0F0F}',
+      '.ycf-age__toggle{display:flex;border:1.5px solid #E8E4E0;border-radius:8px;overflow:hidden;height:32px}',
+      '.ycf-age__btn{padding:0 14px;font-size:.78rem;font-weight:700;font-family:inherit;border:none;cursor:pointer;transition:all .15s;background:#fff;color:#6F6A66;letter-spacing:.02em;white-space:nowrap}',
+      '.ycf-age__btn.is-active{background:' + BRAND + ';color:#fff}',
+      '.ycf-age__btn:not(.is-active):hover{background:#F5F3F0;color:' + BRAND + '}',
+      '.ycf-age__vat{display:inline-block;font-size:.72rem;font-weight:600;color:#6F6A66;padding:4px 8px;background:#F5F3F0;border-radius:6px;margin-left:auto}',
+      '.ycf-age__vat[hidden]{display:none}',
+
       // Payment method selector (stored vs new card)
       '.ycf-payment-methods{display:flex;flex-direction:column;gap:8px;margin-bottom:16px}',
       '.ycf-payment-option{display:flex;align-items:center;gap:10px;padding:12px 14px;border-radius:10px;border:1.5px solid #E8E4E0;cursor:pointer;transition:border-color .2s,background .2s}',
@@ -751,6 +814,19 @@
     h +=     '<h2 class="yb-auth-modal__title" data-yj-en hidden>Complete purchase</h2>';
     h +=   '</div>';
 
+    // Age bracket toggle (shown only for products with age pricing)
+    h +=   '<div class="ycf-age" id="ycf-age-toggle" hidden>';
+    h +=     '<span class="ycf-age__label" data-yj-da>Alder:</span>';
+    h +=     '<span class="ycf-age__label" data-yj-en hidden>Age:</span>';
+    h +=     '<div class="ycf-age__toggle">';
+    h +=       '<button class="ycf-age__btn is-active" type="button" data-ycf-age="under30" data-yj-da>Under 30</button>';
+    h +=       '<button class="ycf-age__btn is-active" type="button" data-ycf-age="under30" data-yj-en hidden>Under 30</button>';
+    h +=       '<button class="ycf-age__btn" type="button" data-ycf-age="over30" data-yj-da>30+</button>';
+    h +=       '<button class="ycf-age__btn" type="button" data-ycf-age="over30" data-yj-en hidden>30+</button>';
+    h +=     '</div>';
+    h +=     '<span class="ycf-age__vat" id="ycf-age-vat" hidden></span>';
+    h +=   '</div>';
+
     // Product breakdown card
     h +=   '<div class="ycf-product" id="ycf-product-info">';
     h +=     '<div class="ycf-product__header">';
@@ -936,6 +1012,27 @@
 
     var name = isDa ? p.name_da : p.name_en;
     var price = p.price.toLocaleString('da-DK') + ' DKK';
+
+    // Show/hide age toggle + update VAT info
+    var ageToggle = $('ycf-age-toggle');
+    var ageVat = $('ycf-age-vat');
+    if (ageToggle) {
+      if (hasAgePricing(prodId)) {
+        ageToggle.hidden = false;
+        var ageInfo = getAgePair(prodId);
+        // Show VAT badge for over30 products
+        if (ageVat) {
+          if (ageInfo && ageInfo.age === 'over30') {
+            ageVat.textContent = t('Inkl. 25% moms', 'Incl. 25% VAT');
+            ageVat.hidden = false;
+          } else {
+            ageVat.hidden = true;
+          }
+        }
+      } else {
+        ageToggle.hidden = true;
+      }
+    }
 
     // Badge (login step)
     var badgeName = $('ycf-badge-name');
@@ -1223,6 +1320,20 @@
     modal = $('ycf-modal');
     if (!modal) return;
 
+    // Sync age bracket with the product being opened
+    var ageInfo = getAgePair(currentProdId);
+    if (ageInfo) {
+      selectedAge = ageInfo.age;
+    }
+    // Sync toggle button styles
+    var ageWrap = $('ycf-age-toggle');
+    if (ageWrap) {
+      var ageBtns = ageWrap.querySelectorAll('[data-ycf-age]');
+      for (var ab = 0; ab < ageBtns.length; ab++) {
+        ageBtns[ab].classList.toggle('is-active', ageBtns[ab].getAttribute('data-ycf-age') === selectedAge);
+      }
+    }
+
     // Restore product badge + step dots (may have been hidden by login-only mode)
     var badge = $('ycf-product-badge');
     if (badge) badge.hidden = false;
@@ -1380,6 +1491,41 @@
       if (action === 'back-auth') {
         if (authOriginStep === 'register') showStep('ycf-step-register');
         else showStep('ycf-step-login');
+      }
+    });
+
+    // ── Age bracket toggle ─────────────────────────────────────────
+    document.addEventListener('click', function (e) {
+      var btn = e.target.closest('[data-ycf-age]');
+      if (!btn) return;
+      e.preventDefault();
+      var targetAge = btn.getAttribute('data-ycf-age');
+      if (targetAge === selectedAge) return; // already selected
+
+      selectedAge = targetAge;
+
+      // Update toggle button styles
+      var ageWrap = $('ycf-age-toggle');
+      if (ageWrap) {
+        var ageBtns = ageWrap.querySelectorAll('[data-ycf-age]');
+        for (var ab = 0; ab < ageBtns.length; ab++) {
+          ageBtns[ab].classList.toggle('is-active', ageBtns[ab].getAttribute('data-ycf-age') === targetAge);
+        }
+      }
+
+      // Swap to the equivalent product in the new age bracket
+      if (currentProdId && hasAgePricing(currentProdId)) {
+        var newProdId = getProdForAge(currentProdId, targetAge);
+        currentProdId = newProdId;
+
+        // Clean contract extras before re-populating
+        var prodCard = $('ycf-product-info');
+        if (prodCard) {
+          var extras = prodCard.querySelectorAll('.ycf-product__features,.ycf-product__terms,.ycf-product__saving,.ycf-product__due');
+          for (var x = 0; x < extras.length; x++) extras[x].remove();
+        }
+
+        populateProduct(currentProdId);
       }
     });
 
