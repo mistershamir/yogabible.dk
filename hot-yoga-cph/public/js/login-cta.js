@@ -43,7 +43,7 @@
   var container = null;
   var currentUser = null;
   var mbClientId = null;
-  var passData = null;
+
   var firebaseReady = false;
   var modalEl = null;
   var modalMode = null; // 'auth-login' | 'auth-register' | 'auth-forgot' | 'user-area'
@@ -384,6 +384,17 @@
       '.hyc-auth__consent-item a{color:' + BRAND + ';text-decoration:underline;font-weight:600}',
       '.hyc-auth__consent-item a:hover{color:' + BRAND_DARK + '}',
 
+      // ── Fullscreen profile iframe modal ──────────────────────
+      '.hyc-ua__box--profile{max-width:960px;width:100%;height:90vh;max-height:90vh;padding:0;display:flex;flex-direction:column;overflow:hidden}',
+      '.hyc-ua__box--profile::before{display:none}',
+      '.hyc-ua__box--profile .hyc-ua__close{z-index:10;background:rgba(255,252,249,.92);box-shadow:0 2px 8px rgba(0,0,0,.1);border-radius:50%}',
+      '.hyc-ua__box--profile #hyc-ua-content{flex:1;min-height:0}',
+      '.hyc-ua__iframe-wrap{width:100%;height:100%;position:relative;overflow:hidden;border-radius:0 0 20px 20px}',
+      '.hyc-ua__iframe{width:100%;height:100%;border:none;display:block}',
+      '.hyc-ua__iframe-loader{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;background:#FFFCF9;z-index:1;transition:opacity .3s}',
+      '.hyc-ua__iframe-loader.is-hidden{opacity:0;pointer-events:none}',
+      '.hyc-ua__iframe-loader span{font-size:.9rem;color:#6F6A66}',
+
       // ── Responsive ────────────────────────────────────────────
       '@media (max-width:480px){',
         '.hyc-cta__btn{font-size:0.82rem;padding:0.5rem 1rem}',
@@ -394,6 +405,8 @@
         '.hyc-ua__name{font-size:1.05rem}',
         '.hyc-ua__action{padding:10px 14px;font-size:0.82rem}',
         '.hyc-auth__row{grid-template-columns:1fr}',
+        '.hyc-ua__box--profile{max-width:100%;height:100vh;max-height:100vh;border-radius:0}',
+        '.hyc-ua__iframe-wrap{border-radius:0}',
       '}',
       '@media (max-width:360px){',
         '.hyc-ua__box{padding:20px 16px 16px}',
@@ -458,20 +471,22 @@
     if (!modalEl) createModal();
     modalMode = mode;
     modalEl.setAttribute('aria-hidden', 'false');
-    modalEl.setAttribute('aria-label', mode === 'user-area' ? t('Brugeromr\u00e5de', 'User Area') : t('Log ind', 'Sign in'));
     targetDoc.body.style.overflow = 'hidden';
 
+    var box = modalEl.querySelector('.hyc-ua__box');
     var contentEl = targetDoc.getElementById('hyc-ua-content');
     if (!contentEl) return;
 
     if (mode === 'user-area') {
-      renderUserArea(contentEl);
-    } else if (mode === 'auth-login') {
-      renderAuthLogin(contentEl);
-    } else if (mode === 'auth-register') {
-      renderAuthRegister(contentEl);
-    } else if (mode === 'auth-forgot') {
-      renderAuthForgot(contentEl);
+      box.classList.add('hyc-ua__box--profile');
+      modalEl.setAttribute('aria-label', t('Min profil', 'My profile'));
+      renderProfileIframe(contentEl);
+    } else {
+      box.classList.remove('hyc-ua__box--profile');
+      modalEl.setAttribute('aria-label', t('Log ind', 'Sign in'));
+      if (mode === 'auth-login') renderAuthLogin(contentEl);
+      else if (mode === 'auth-register') renderAuthRegister(contentEl);
+      else if (mode === 'auth-forgot') renderAuthForgot(contentEl);
     }
   }
 
@@ -479,6 +494,13 @@
     if (!modalEl) return;
     modalEl.setAttribute('aria-hidden', 'true');
     targetDoc.body.style.overflow = '';
+
+    // Clean up profile iframe to free resources
+    var box = modalEl.querySelector('.hyc-ua__box');
+    if (box) box.classList.remove('hyc-ua__box--profile');
+    var iframe = targetDoc.getElementById('hyc-ua-iframe');
+    if (iframe) iframe.src = 'about:blank';
+
     modalMode = null;
   }
 
@@ -769,165 +791,47 @@
 
 
   // ═══════════════════════════════════════════════════════════════════
-  // USER AREA MODAL (logged in)
+  // PROFILE IFRAME MODAL (logged in)
   // ═══════════════════════════════════════════════════════════════════
 
-  function renderUserArea(contentEl) {
+  function renderProfileIframe(contentEl) {
     if (!currentUser) return;
 
-    var firstName = '';
-    if (currentUser.displayName) {
-      firstName = currentUser.displayName.split(' ')[0];
-    }
-    var initial = (firstName || currentUser.email || '?')[0].toUpperCase();
-
     var html = '';
-
-    // Header
-    html += '<div class="hyc-ua__header">';
-    html += '<div class="hyc-ua__avatar">' + esc(initial) + '</div>';
-    html += '<div>';
-    html += '<p class="hyc-ua__greeting">' + t('Velkommen tilbage', 'Welcome back') + '</p>';
-    html += '<p class="hyc-ua__name">' + esc(firstName || currentUser.email) + '</p>';
+    html += '<div class="hyc-ua__iframe-wrap">';
+    html += '<div class="hyc-ua__iframe-loader" id="hyc-ua-iframe-loader">';
+    html += '<div class="hyc-ua__spinner"></div>';
+    html += '<span>' + t('Henter din profil\u2026', 'Loading your profile\u2026') + '</span>';
     html += '</div>';
+    html += '<iframe class="hyc-ua__iframe" id="hyc-ua-iframe" src="' + PROFILE_URL + '/" allow="payment" title="' + t('Min profil', 'My profile') + '"></iframe>';
     html += '</div>';
-
-    // Passes (loading state)
-    html += '<div class="hyc-ua__section" id="hyc-ua-passes">';
-    html += '<p class="hyc-ua__section-label">' + t('Dine aktive pas', 'Your active passes') + '</p>';
-    html += '<div class="hyc-ua__loading">' + ICON.spinner + ' ' + t('Henter pas...', 'Loading passes...') + '</div>';
-    html += '</div>';
-
-    // Quick actions
-    html += '<div class="hyc-ua__actions">';
-
-    html += '<button class="hyc-ua__action" type="button" id="hyc-ua-book">';
-    html += ICON.calendar;
-    html += '<span class="hyc-ua__action-text">' + t('Book klasser', 'Book classes') + '</span>';
-    html += '<span class="hyc-ua__action-arrow">&rsaquo;</span>';
-    html += '</button>';
-
-    html += '<button class="hyc-ua__action" type="button" id="hyc-ua-buy">';
-    html += ICON.cart;
-    html += '<span class="hyc-ua__action-text">' + t('K\u00f8b pas', 'Buy a pass') + '</span>';
-    html += '<span class="hyc-ua__action-arrow">&rsaquo;</span>';
-    html += '</button>';
-
-    html += '<a class="hyc-ua__action" href="' + PROFILE_URL + '/#passes" target="_blank">';
-    html += ICON.external;
-    html += '<span class="hyc-ua__action-text">' + t('Fuld profil & indstillinger', 'Full profile & settings') + '</span>';
-    html += '<span class="hyc-ua__action-arrow">&rsaquo;</span>';
-    html += '</a>';
-
-    html += '</div>';
-
-    // Divider + Logout
-    html += '<hr class="hyc-ua__divider">';
-    html += '<button class="hyc-ua__logout" type="button" id="hyc-ua-logout">';
-    html += ICON.logout + ' ' + t('Log ud', 'Log out');
-    html += '</button>';
 
     contentEl.innerHTML = html;
 
-    // Wire actions
-    $t('hyc-ua-book').addEventListener('click', function () {
-      closeModal();
-      // Look for schedule in parent page
-      var scheduleEl = targetDoc.getElementById('hyc-schedule');
-      if (scheduleEl) {
-        scheduleEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      }
-    });
+    var iframe = $t('hyc-ua-iframe');
+    var loader = $t('hyc-ua-iframe-loader');
 
-    $t('hyc-ua-buy').addEventListener('click', function () {
-      closeModal();
-      if (typeof window.openCheckoutFlow === 'function') {
-        window.openCheckoutFlow('100017');
-      } else {
-        window.open(PROFILE_URL + '/#store', '_blank');
-      }
-    });
-
-    $t('hyc-ua-logout').addEventListener('click', function () {
-      try { firebase.auth().signOut(); } catch (e) { /* ignore */ }
-      closeModal();
-    });
-
-    // Load passes async
-    loadPasses();
-  }
-
-
-  // ═══════════════════════════════════════════════════════════════════
-  // PASS LOADING
-  // ═══════════════════════════════════════════════════════════════════
-
-  function loadPasses() {
-    var passesEl = $t('hyc-ua-passes');
-    if (!passesEl || !mbClientId) {
-      if (passesEl) renderPasses(passesEl, null);
-      return;
-    }
-
-    if (passData) {
-      renderPasses(passesEl, passData);
-      return;
-    }
-
-    fetch(API_BASE + '/mb-client-services?clientId=' + mbClientId)
-      .then(function (r) { return r.json(); })
-      .then(function (data) {
-        passData = data;
-        renderPasses(passesEl, data);
-      })
-      .catch(function () {
-        renderPasses(passesEl, null);
+    // Hide loader once iframe content is loaded
+    if (iframe) {
+      iframe.addEventListener('load', function () {
+        if (loader) loader.classList.add('is-hidden');
+        // Send auth token to iframe so it can auto-login
+        sendAuthToIframe(iframe);
       });
+    }
   }
 
-  function renderPasses(el, data) {
-    var services = (data && data.activeServices) || [];
-    var contracts = (data && data.activeContracts) || [];
-    var hasActive = services.length > 0 || contracts.length > 0;
+  function sendAuthToIframe(iframe) {
+    if (!currentUser || !iframe || !iframe.contentWindow) return;
 
-    var html = '<p class="hyc-ua__section-label">' + t('Dine aktive pas', 'Your active passes') + '</p>';
-
-    if (!hasActive) {
-      html += '<div class="hyc-ua__no-pass">';
-      html += '<p style="margin:0 0 4px;font-weight:700;color:#0F0F0F">' + t('Ingen aktive pas', 'No active passes') + '</p>';
-      html += '<p style="margin:0;font-size:0.82rem">' + t('K\u00f8b et pas for at booke klasser.', 'Buy a pass to book classes.') + '</p>';
-      html += '</div>';
-      el.innerHTML = html;
-      return;
-    }
-
-    services.forEach(function (s) {
-      html += '<div class="hyc-ua__pass">';
-      html += '<p class="hyc-ua__pass-name">' + esc(s.name) + '</p>';
-      html += '<div class="hyc-ua__pass-stats">';
-      if (s.remaining != null) {
-        var lowClass = (s.remaining > 0 && s.remaining < 3) ? ' hyc-ua__pass-stat--low' : '';
-        html += '<span class="hyc-ua__pass-stat' + lowClass + '"><strong>' + s.remaining + '</strong> ' + t('klip tilbage', 'sessions left') + '</span>';
-      }
-      if (s.expirationDate) {
-        var exp = new Date(s.expirationDate);
-        html += '<span class="hyc-ua__pass-stat">' + t('Udl\u00f8ber', 'Expires') + ' ' + exp.toLocaleDateString(isDa ? 'da-DK' : 'en-GB', { day: 'numeric', month: 'short' }) + '</span>';
-      }
-      html += '</div></div>';
+    currentUser.getIdToken().then(function (idToken) {
+      iframe.contentWindow.postMessage(
+        { type: 'hyc-auth-bridge', idToken: idToken },
+        PROFILE_URL
+      );
+    }).catch(function (err) {
+      console.warn('Could not send auth to profile iframe:', err);
     });
-
-    contracts.forEach(function (c) {
-      html += '<div class="hyc-ua__pass">';
-      html += '<p class="hyc-ua__pass-name">' + esc(c.name) + '</p>';
-      html += '<div class="hyc-ua__pass-stats">';
-      html += '<span class="hyc-ua__pass-stat">' + ICON.check + ' ' + t('Aktivt medlemskab', 'Active membership') + '</span>';
-      if (c.endDate) {
-        html += '<span class="hyc-ua__pass-stat">' + t('Fornyes', 'Renews') + ' ' + new Date(c.endDate).toLocaleDateString(isDa ? 'da-DK' : 'en-GB', { day: 'numeric', month: 'short' }) + '</span>';
-      }
-      html += '</div></div>';
-    });
-
-    el.innerHTML = html;
   }
 
 
@@ -979,7 +883,6 @@
           }
         } else {
           mbClientId = null;
-          passData = null;
           renderLoggedOut();
           // Close user area modal if open
           if (modalMode === 'user-area') {
