@@ -99,6 +99,9 @@ async function create(db, event, user) {
     message: data.message || '',
     source: data.source || 'Manual entry',
     status: data.status || 'New',
+    sub_status: data.sub_status || '',
+    priority: data.priority || '',
+    temperature: data.temperature || '',
     notes: data.notes || '',
     converted: false,
     converted_at: null,
@@ -135,7 +138,8 @@ async function update(db, event, user) {
     'first_name', 'last_name', 'phone', 'type', 'ytt_program_type',
     'program', 'course_id', 'cohort_label', 'preferred_month',
     'accommodation', 'city_country', 'housing_months', 'service',
-    'subcategories', 'message', 'source', 'status', 'notes',
+    'subcategories', 'message', 'source', 'status', 'sub_status',
+    'priority', 'temperature', 'notes',
     'converted', 'converted_at', 'application_id', 'unsubscribed',
     'call_attempts', 'sms_status', 'last_contact', 'followup_date'
   ];
