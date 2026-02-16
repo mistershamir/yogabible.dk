@@ -78,19 +78,6 @@
   <!-- Checkout Flow Modal (multi-step) -->
   {% include "modal-checkout-flow.njk" %}
 
-  <!-- Netlify Identity redirect (for CMS login flow) -->
-  <script>
-    if (window.netlifyIdentity) {
-      window.netlifyIdentity.on("init", function(user) {
-        if (!user) {
-          window.netlifyIdentity.on("login", function() {
-            document.location.href = "/decap-cms/";
-          });
-        }
-      });
-    }
-  </script>
-
   <!-- Cookie Consent -->
   {% include "cookies.njk" %}
   <script src="/js/cookies.js"></script>

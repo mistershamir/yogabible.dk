@@ -29,7 +29,6 @@
     userDetail: null
   };
 
-  var blogIframeLoaded = false;
   var usersLoaded = false;
 
   /* ═══════════════════════════════════════
@@ -68,12 +67,6 @@
         document.querySelectorAll('[data-yb-admin-panel]').forEach(function (p) { p.classList.remove('is-active'); });
         var panel = document.querySelector('[data-yb-admin-panel="' + tabName + '"]');
         if (panel) panel.classList.add('is-active');
-
-        // Lazy-load blog iframe
-        if (tabName === 'blog' && !blogIframeLoaded) {
-          var iframe = $('yb-admin-blog-iframe');
-          if (iframe) { iframe.src = '/decap-cms/'; blogIframeLoaded = true; }
-        }
 
         // Load users on first visit
         if (tabName === 'users' && !usersLoaded) {
