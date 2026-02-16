@@ -9,8 +9,6 @@ module.exports = function(eleventyConfig) {
   eleventyConfig.addPassthroughCopy("src/css");
   eleventyConfig.addPassthroughCopy("src/js");
   eleventyConfig.addPassthroughCopy("src/assets");
-  eleventyConfig.addPassthroughCopy("src/decap-cms");
-
   // ─── Cloudinary helpers ───────────────────────────────────────────
   // Usage in templates:
   //   {{ "yoga-bible/homepage/hero" | cloudimg }}
