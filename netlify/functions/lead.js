@@ -33,6 +33,7 @@ exports.handler = async (event) => {
 
     const action = detectAction(payload);
     if (!action || !(action.startsWith('lead_') || action === 'contact')) {
+      // NOTE: lead_meta is included via startsWith('lead_')
       return wrapCallback(callback, jsonResponse(400, { ok: false, error: 'Could not determine lead type' }));
     }
 
@@ -284,6 +285,47 @@ function processLead(payload, action) {
       };
     }
 
+    case 'lead_meta': {
+      // Meta (Facebook/Instagram) Lead Forms via Zapier webhook
+      // Meta provides: full_name, email, phone_number, city, and custom questions
+      const fullName = payload.full_name || payload.fullName || '';
+      const nameParts = fullName.trim().split(/\s+/);
+      const metaFirst = payload.firstName || payload.first_name || nameParts[0] || '';
+      const metaLast = payload.lastName || payload.last_name || nameParts.slice(1).join(' ') || '';
+      const metaPhone = payload.phone_number || payload.phone || '';
+      const metaEmail = (payload.email || '').toLowerCase().trim();
+      // Try to detect program interest from Meta form fields
+      const metaProgram = payload.program || payload.which_program || payload.interested_in || '';
+      const metaFormName = payload.form_name || payload.ad_name || payload.campaign_name || '';
+      const metaCity = payload.city || payload.cityCountry || '';
+
+      // Override base with Meta-specific values
+      base.email = metaEmail;
+      base.first_name = metaFirst;
+      base.last_name = metaLast;
+      base.phone = metaPhone;
+
+      return {
+        ...base,
+        type: 'ytt',
+        ytt_program_type: detectMetaYTTType(metaProgram, metaFormName),
+        program: metaProgram || metaFormName || 'Meta Lead Form',
+        course_id: '',
+        cohort_label: '',
+        preferred_month: '',
+        accommodation: normalizeYesNo(payload.housing || payload.accommodation || 'No'),
+        city_country: metaCity,
+        housing_months: '',
+        service: '',
+        subcategories: '',
+        message: payload.message || '',
+        source: `Meta Lead – ${payload.platform || 'Facebook'} – ${metaFormName || 'Ad'}`,
+        meta_form_id: payload.form_id || '',
+        meta_ad_id: payload.ad_id || '',
+        meta_campaign: payload.campaign_name || ''
+      };
+    }
+
     case 'contact':
       return {
         ...base,
@@ -340,6 +382,22 @@ async function getExistingApplicationId(email) {
  * - Admin notification email
  * - Welcome SMS to the lead
  */
+/**
+ * Detect YTT program type from Meta Lead Form fields
+ */
+function detectMetaYTTType(program, formName) {
+  const combined = `${program} ${formName}`.toLowerCase();
+  if (combined.includes('300')) return '300h';
+  if (combined.includes('50h') || combined.includes('50 hour')) return '50h';
+  if (combined.includes('30h') || combined.includes('30 hour')) return '30h';
+  if (combined.includes('18') || combined.includes('fleksib') || combined.includes('flexible')) return '18-week';
+  if (combined.includes('8') && (combined.includes('uge') || combined.includes('week') || combined.includes('semi'))) return '8-week';
+  if (combined.includes('4') && (combined.includes('uge') || combined.includes('week') || combined.includes('intensi'))) return '4-week';
+  if (combined.includes('course') || combined.includes('kursus')) return '';
+  // Default to general YTT interest
+  return '4-week';
+}
+
 async function triggerNotifications(leadData, leadDocId) {
   const promises = [];
 
