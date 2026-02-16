@@ -1,10 +1,10 @@
 /**
  * Shared Utilities — Yoga Bible
- * Migrated from Apps Script 02_Utils.gs
+ * Netlify Functions helpers
  */
 
 const crypto = require('crypto');
-const { CONFIG, YTT_PROGRAM_TYPES, SCHEDULE_MAPPING } = require('./config');
+const { CONFIG, YTT_PROGRAM_TYPES } = require('./config');
 
 // =========================================================================
 // CORS & Response Helpers
@@ -71,20 +71,6 @@ function generateApplicationId() {
   const d = String(now.getDate()).padStart(2, '0');
   const random = Math.floor(Math.random() * 9000) + 1000;
   return `YB-${y}${m}${d}-${random}`;
-}
-
-// =========================================================================
-// Schedule File Helper
-// =========================================================================
-
-function getScheduleFileId(programType, programString) {
-  const mapping = SCHEDULE_MAPPING[programType];
-  if (!mapping) return null;
-  const programLower = String(programString || '').toLowerCase();
-  for (const month in mapping) {
-    if (month !== 'default' && programLower.includes(month)) return mapping[month];
-  }
-  return mapping['default'] || null;
 }
 
 // =========================================================================
@@ -217,7 +203,6 @@ module.exports = {
   normalizeYesNo,
   normalizeToEnglish,
   generateApplicationId,
-  getScheduleFileId,
   detectYTTProgramType,
   getCoursePaymentUrl,
   getBundlePaymentUrl,

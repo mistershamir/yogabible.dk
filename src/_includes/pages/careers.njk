@@ -914,7 +914,7 @@
 
   window.addEventListener("message", function(event){
     var origin = String(event.origin || "");
-    var okOrigin = origin.indexOf("script.google.com") !== -1 || origin.indexOf("script.googleusercontent.com") !== -1 || origin === window.location.origin;
+    var okOrigin = origin === window.location.origin;
     if (!okOrigin) return;
 
     var data = event.data || {};
