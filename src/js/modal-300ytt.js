@@ -1,6 +1,6 @@
 // =========================================================================
-// modal-300.js — Schedule modal for 300-Hour Advanced Teacher Training
-// Mirrors modal.js pattern, sends to same Google Apps Script endpoint
+// modal-300ytt.js — Schedule modal for 300-Hour Advanced Teacher Training
+// Mirrors modal-200ytt.js pattern, sends to Netlify Functions lead endpoint
 // =========================================================================
 (function () {
   'use strict';
