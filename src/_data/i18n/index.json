@@ -141,10 +141,10 @@
     "journal_title": "Indsigt, guides og inspiration",
     "journal_cta": "Se alle artikler",
 
-    "cta_title": "Din rejse starter med ét skridt.",
-    "cta_text": "Forberedelsesfasen koster 3.750 kr og er fuldt refunderbar. Du får øjeblikkelig adgang til 30+ klasser om ugen — og de tæller med i din uddannelse.",
-    "cta_btn1": "Ansøg Nu",
-    "cta_btn2": "Tal Med Os Først",
+    "cta_title": "Dit næste skridt starter her.",
+    "cta_text": "Uanset om du drømmer om at undervise eller vil tage din praksis til næste niveau — vi har formatet, fællesskabet og fagligheden til at bringe dig derhen.",
+    "cta_btn1": "Start Din Rejse",
+    "cta_btn2": "Udforsk Dine Muligheder",
     "cta_next": "Næste holdstart: Marts 2026"
   },
   "en": {
@@ -289,10 +289,10 @@
     "journal_title": "Insights, guides, and inspiration",
     "journal_cta": "See all articles",
 
-    "cta_title": "Your journey starts with one step.",
-    "cta_text": "The Preparation Phase costs 3,750 DKK and is fully refundable. You get instant access to 30+ classes per week — and they count toward your training hours.",
-    "cta_btn1": "Apply Now",
-    "cta_btn2": "Talk to Us First",
+    "cta_title": "Your next step starts here.",
+    "cta_text": "Whether you dream of teaching or want to take your practice to the next level — we have the format, community, and expertise to get you there.",
+    "cta_btn1": "Start Your Journey",
+    "cta_btn2": "Explore Your Options",
     "cta_next": "Next cohort: March 2026"
   }
 }
