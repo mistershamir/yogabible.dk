@@ -69,7 +69,7 @@
       '.hycs{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;color:#0F0F0F;max-width:720px;margin:0 auto;padding:0 16px;-webkit-font-smoothing:antialiased}',
       '.hycs *,.hycs *::before,.hycs *::after{box-sizing:border-box}',
 
-      // ── Toolbar (nav + lang + filter in one row) ───────────────────
+      // ── Toolbar (nav + lang + filter + auth in one row) ────────────
       '.hycs__toolbar{display:flex;align-items:center;gap:0.5rem;margin-bottom:1rem;flex-wrap:wrap}',
       '.hycs__nav{display:flex;align-items:center;gap:0.25rem;flex:1;min-width:0}',
       '.hycs__nav-btn{display:flex;align-items:center;justify-content:center;width:32px;height:32px;padding:0;background:none;border:1.5px solid #E8E4E0;border-radius:8px;cursor:pointer;transition:all .2s;color:#6F6A66;flex-shrink:0}',
@@ -82,6 +82,16 @@
       '.hycs__lang-btn{padding:0 10px;font-size:0.75rem;font-weight:700;font-family:inherit;border:none;cursor:pointer;transition:all .15s;background:#fff;color:#6F6A66;letter-spacing:.02em}',
       '.hycs__lang-btn.is-active{background:' + BRAND + ';color:#fff}',
       '.hycs__lang-btn:not(.is-active):hover{background:#F5F3F0;color:' + BRAND + '}',
+
+      // ── Auth buttons (login/logout/profile) ────────────────────────
+      '.hycs__auth{display:flex;gap:0.35rem;flex-shrink:0}',
+      '.hycs__auth-btn{display:flex;align-items:center;gap:0.3rem;height:32px;padding:0 10px;font-size:0.75rem;font-weight:700;font-family:inherit;border:1.5px solid #E8E4E0;border-radius:8px;background:#fff;color:#0F0F0F;cursor:pointer;transition:all .15s;white-space:nowrap;text-decoration:none}',
+      '.hycs__auth-btn:hover{border-color:' + BRAND + ';color:' + BRAND + '}',
+      '.hycs__auth-btn--profile{color:' + BRAND + ';border-color:' + BRAND + '}',
+      '.hycs__auth-btn--profile:hover{background:' + BRAND_LIGHT + '}',
+      '.hycs__auth-btn--logout{color:#6F6A66;font-weight:600}',
+      '.hycs__auth-btn--logout:hover{color:#c0392b;border-color:#c0392b}',
+      '.hycs__auth-btn svg{width:14px;height:14px}',
 
       // ── Filter dropdown ────────────────────────────────────────────
       '.hycs__filter-wrap{position:relative;flex-shrink:0}',
@@ -121,14 +131,16 @@
       '.hycs__pass-stat--low{color:#c0392b}',
 
       // ── Day groups ─────────────────────────────────────────────────
-      '.hycs__day{margin-bottom:0.25rem}',
-      '.hycs__day-label{font-size:0.82rem;font-weight:700;color:#0F0F0F;padding:0.6rem 0 0.4rem;border-bottom:1.5px solid #E8E4E0;margin:0;display:flex;align-items:baseline;gap:0.4rem}',
+      '.hycs__day{margin-bottom:0}',
+      '.hycs__day+.hycs__day{border-top:2px solid #f75c03;margin-top:0.25rem;padding-top:0.25rem}',
+      '.hycs__day-label{font-size:0.82rem;font-weight:700;color:#0F0F0F;padding:0.4rem 0 0.3rem;margin:0;display:flex;align-items:baseline;gap:0.4rem}',
       '.hycs__day-label span{font-weight:400;color:#6F6A66;font-size:0.8rem}',
       '.hycs__day--hidden{display:none}',
 
-      // ── Class cards ────────────────────────────────────────────────
-      '.hycs__class{display:flex;align-items:center;gap:0.75rem;padding:0.65rem 0.75rem;margin:0.35rem 0;border-radius:10px;background:#FFFCF9;border:1px solid #F0EDEA;transition:border-color .15s,box-shadow .15s}',
-      '.hycs__class:hover{border-color:#E0DDD9;box-shadow:0 1px 4px rgba(0,0,0,.04)}',
+      // ── Class rows ─────────────────────────────────────────────────
+      '.hycs__class{display:flex;align-items:center;gap:0.75rem;padding:0.5rem 0.5rem;border-bottom:1px solid #F0EDEA;transition:background .15s}',
+      '.hycs__class:last-child{border-bottom:none}',
+      '.hycs__class:hover{background:#FAFAF8}',
       '.hycs__class.is-cancelled{opacity:0.45}',
       '.hycs__class.is-past{opacity:0.4}',
       '.hycs__class-time{font-weight:700;color:#0F0F0F;font-size:0.82rem;min-width:95px;white-space:nowrap}',
@@ -143,12 +155,14 @@
       // ── Description toggle ─────────────────────────────────────────
       '.hycs__desc-toggle{background:none;border:none;color:' + BRAND + ';font-size:0.75rem;cursor:pointer;padding:0;font-family:inherit;text-decoration:underline;text-underline-offset:2px}',
       '.hycs__desc-toggle:hover{color:' + BRAND_DARK + '}',
-      '.hycs__desc{background:#FFFCF9;border:1px solid #E8E4E0;border-radius:8px;margin:0 0 0.35rem;padding:0.75rem 1rem;font-size:0.82rem;color:#6F6A66;line-height:1.5}',
+      '.hycs__desc{background:#FFFCF9;border:1px solid #E8E4E0;border-radius:8px;margin:0.25rem 0;padding:0.75rem 1rem;font-size:0.82rem;color:#6F6A66;line-height:1.5}',
+      '.hycs__desc[hidden]{display:none!important}',
       '.hycs__desc p{margin:0 0 0.4rem}',
       '.hycs__desc p:last-child{margin-bottom:0}',
 
       // ── Teacher bio ────────────────────────────────────────────────
-      '.hycs__teacher-bio{background:#FFFCF9;border:1px solid #E8E4E0;border-radius:10px;margin:0 0 0.35rem;padding:1rem;display:flex;gap:0.75rem;align-items:flex-start}',
+      '.hycs__teacher-bio{background:#FFFCF9;border:1px solid #E8E4E0;border-radius:10px;margin:0.25rem 0;padding:1rem;display:flex;gap:0.75rem;align-items:flex-start}',
+      '.hycs__teacher-bio[hidden]{display:none!important;margin:0;padding:0;height:0;overflow:hidden}',
       '.hycs__teacher-photo{width:56px;height:56px;border-radius:50%;object-fit:cover;flex-shrink:0;border:2px solid #E8E4E0}',
       '.hycs__teacher-name{font-weight:700;color:#0F0F0F;margin:0 0 0.2rem;font-size:0.88rem}',
       '.hycs__teacher-bio-text{font-size:0.8rem;color:#6F6A66;line-height:1.5;margin:0}',
@@ -207,6 +221,8 @@
         '.hycs__teacher-bio{flex-direction:column;align-items:center;text-align:center}',
         '.hycs__cancel-pop{right:auto;left:0}',
         '.hycs__filter-dd{right:auto;left:0}',
+        '.hycs__auth-btn span{display:none}',
+        '.hycs__auth-btn{padding:0 8px}',
       '}'
 
     ].join('\n');
@@ -246,6 +262,13 @@
             '</button>' +
             '<div class="hycs__filter-dd" id="hycs-filter-dd"></div>' +
           '</div>' +
+          // Auth buttons (login/profile/logout)
+          '<div class="hycs__auth" id="hycs-auth">' +
+            '<button class="hycs__auth-btn" type="button" id="hycs-login-btn">' +
+              '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>' +
+              '<span>' + t('Log ind', 'Login') + '</span>' +
+            '</button>' +
+          '</div>' +
         '</div>' +
         // ── Pass info / no-pass ─────────────────────────────────────
         '<div id="hycs-pass-info" class="hycs__pass-info" hidden></div>' +
@@ -282,6 +305,20 @@
           // Re-render everything with new language
           rebuildUI();
         });
+      });
+    }
+
+    // Wire login button
+    var loginBtn = document.getElementById('hycs-login-btn');
+    if (loginBtn) {
+      loginBtn.addEventListener('click', function () {
+        if (typeof window.openLoginModal === 'function') {
+          window.openLoginModal(function () {
+            showToast(t('Du er logget ind!', 'You are logged in!'), 'success');
+          });
+        } else {
+          window.location.href = PROFILE_URL;
+        }
       });
     }
 
@@ -330,6 +367,9 @@
       }
     }
 
+    // Update auth buttons for new language
+    updateAuthButtons();
+
     // Reload pass info
     if (scheduleMbClientId && schedulePassData) {
       var passInfoEl = document.getElementById('hycs-pass-info');
@@ -342,6 +382,55 @@
       renderSchedule(listEl, scheduleAllClasses, scheduleWeekStart);
     } else {
       loadSchedule();
+    }
+  }
+
+  // ── Auth buttons update ───────────────────────────────────────────
+  function updateAuthButtons() {
+    var authEl = document.getElementById('hycs-auth');
+    if (!authEl) return;
+
+    if (scheduleUser) {
+      // Logged in: show My Profile + Logout
+      authEl.innerHTML =
+        '<a class="hycs__auth-btn hycs__auth-btn--profile" href="' + PROFILE_URL + '/#passes" target="_blank">' +
+          '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>' +
+          '<span>' + t('Min profil', 'My Profile') + '</span>' +
+        '</a>' +
+        '<button class="hycs__auth-btn hycs__auth-btn--logout" type="button" id="hycs-logout-btn">' +
+          '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>' +
+          '<span>' + t('Log ud', 'Logout') + '</span>' +
+        '</button>';
+      // Wire logout
+      var logoutBtn = document.getElementById('hycs-logout-btn');
+      if (logoutBtn) {
+        logoutBtn.addEventListener('click', function () {
+          if (typeof firebase !== 'undefined' && firebase.auth) {
+            firebase.auth().signOut().then(function () {
+              showToast(t('Du er logget ud.', 'You are logged out.'), 'success');
+            });
+          }
+        });
+      }
+    } else {
+      // Logged out: show Login
+      authEl.innerHTML =
+        '<button class="hycs__auth-btn" type="button" id="hycs-login-btn">' +
+          '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>' +
+          '<span>' + t('Log ind', 'Login') + '</span>' +
+        '</button>';
+      var loginBtn = document.getElementById('hycs-login-btn');
+      if (loginBtn) {
+        loginBtn.addEventListener('click', function () {
+          if (typeof window.openLoginModal === 'function') {
+            window.openLoginModal(function () {
+              showToast(t('Du er logget ind!', 'You are logged in!'), 'success');
+            });
+          } else {
+            window.location.href = PROFILE_URL;
+          }
+        });
+      }
     }
   }
 
@@ -817,15 +906,15 @@
       passInfoEl.innerHTML = html;
       passInfoEl.hidden = false;
 
-      // Toggle dropdown
+      // Toggle dropdown (use onclick= to avoid stacking duplicate listeners)
       var toggle = passInfoEl.querySelector('.hycs__pass-dd-toggle');
       var body = passInfoEl.querySelector('.hycs__pass-dd-body');
       if (toggle && body) {
-        toggle.addEventListener('click', function () {
+        toggle.onclick = function () {
           var isOpen = !body.hidden;
           body.hidden = isOpen;
           toggle.classList.toggle('is-open', !isOpen);
-        });
+        };
       }
     } else {
       passInfoEl.hidden = true;
@@ -1064,6 +1153,7 @@
 
     auth.onAuthStateChanged(function (user) {
       scheduleUser = user;
+      updateAuthButtons();
       if (user) {
         db.collection('users').doc(user.uid).get()
           .then(function (doc) {
