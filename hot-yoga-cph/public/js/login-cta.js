@@ -806,7 +806,7 @@
     html += '<div class="hyc-ua__iframe-wrap">';
     html += '<div class="hyc-ua__iframe-loader" id="hyc-ua-iframe-loader">';
     html += '<div class="hyc-ua__spinner"></div>';
-    html += '<span>' + t('Henter din profil\u2026', 'Loading your profile\u2026') + '</span>';
+    html += '<span id="hyc-ua-iframe-loader-text">' + t('Henter din profil\u2026', 'Loading your profile\u2026') + '</span>';
     html += '</div>';
     html += '<iframe class="hyc-ua__iframe" id="hyc-ua-iframe" src="' + PROFILE_URL + '/" allow="payment" title="' + t('Min profil', 'My profile') + '"></iframe>';
     html += '</div>';
@@ -815,14 +815,41 @@
 
     var iframe = $t('hyc-ua-iframe');
     var loader = $t('hyc-ua-iframe-loader');
+    var loaderText = $t('hyc-ua-iframe-loader-text');
 
-    // Hide loader once iframe content is loaded
     if (iframe) {
+      var authConfirmed = false;
+
+      // Listen for auth-ready confirmation from profile page
+      var onProfileMsg = function (e) {
+        if (e.data && e.data.type === 'hyc-profile-authenticated') {
+          authConfirmed = true;
+          if (loader) loader.classList.add('is-hidden');
+          window.removeEventListener('message', onProfileMsg);
+        }
+      };
+      window.addEventListener('message', onProfileMsg);
+
+      // Send auth token multiple times (profile page JS may not be ready on first attempt)
       iframe.addEventListener('load', function () {
-        if (loader) loader.classList.add('is-hidden');
-        // Send auth token to iframe so it can auto-login
         sendAuthToIframe(iframe);
+        setTimeout(function () { sendAuthToIframe(iframe); }, 800);
+        setTimeout(function () { sendAuthToIframe(iframe); }, 2000);
       });
+
+      // After 4s, hide loader regardless (profile page may not send confirmation)
+      setTimeout(function () {
+        if (loader) loader.classList.add('is-hidden');
+      }, 4000);
+
+      // After 7s, if still no auth confirmation, show a fallback link
+      setTimeout(function () {
+        if (!authConfirmed && loaderText) {
+          loaderText.innerHTML =
+            '<a href="' + PROFILE_URL + '/" target="_blank" rel="noopener" style="color:' + BRAND + ';text-decoration:underline">' +
+            t('\u00c5bn profil i ny fane', 'Open profile in new tab') + '</a>';
+        }
+      }, 7000);
     }
   }
 
@@ -864,9 +891,7 @@
       '</button>';
 
     document.getElementById('hyc-cta-user').addEventListener('click', function () {
-      // Navigate to profile page directly (iframe embed was unreliable)
-      try { window.top.location.href = PROFILE_URL + '/'; }
-      catch (e) { window.open(PROFILE_URL + '/', '_blank'); }
+      openModal('user-area');
     });
   }
 
