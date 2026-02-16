@@ -20,16 +20,22 @@
 }
 .p8w-hero__read-more-link,
 .yb-hero__read-more-link {
+  display: inline-block;
   font-size: clamp(13px, 1.6vw, 15px);
   font-weight: 600;
-  color: rgba(253, 251, 247, 0.55);
+  color: #f75c03;
   text-decoration: none;
   letter-spacing: 0.02em;
-  transition: color 0.2s ease;
+  padding: 10px 20px;
+  border: 1px solid rgba(247, 92, 3, 0.4);
+  border-radius: 80px;
+  transition: color 0.2s ease, background 0.2s ease, border-color 0.2s ease;
 }
 .p8w-hero__read-more-link:hover,
 .yb-hero__read-more-link:hover {
-  color: #f75c03;
+  color: #fff;
+  background: #f75c03;
+  border-color: #f75c03;
 }
 
 /* -- Hero -- */
