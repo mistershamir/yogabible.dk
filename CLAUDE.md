@@ -303,6 +303,138 @@ To build the same modal for the Hot Yoga CPH site:
 
 ---
 
+## Cloudinary Media Management (MANDATORY)
+
+**IMPORTANT:** All media assets are hosted on Cloudinary (`ddcynsa30`). When creating a new page, you MUST also create the corresponding Cloudinary folder. This is not optional.
+
+### Account Details
+
+- **Cloud Name:** `ddcynsa30`
+- **Base URL:** `https://res.cloudinary.com/ddcynsa30`
+- **API Key:** `617726211878669`
+- **API Secret:** `n90Ts-IUyUnxwNdtQd9i64d6Gtw`
+
+### Folder Structure
+
+All folders live under the root `yoga-bible-DK/`. The current structure:
+
+```
+yoga-bible-DK/
+├── brand/            ← logos, favicons, brand assets
+├── homepage/         ← homepage hero, sections
+├── studio/           ← studio facility photos (hot room, main room)
+├── location/         ← venue/location photos
+├── courses/          ← course hero images
+│   └── inversions/   ← inversions course specific
+├── programs/         ← program pages
+│   └── p4w/          ← 4-week program (accommodation, certificates)
+├── accommodation/    ← student housing photos
+├── concepts/         ← concept pages
+│   ├── hotyoga/      ← Hot Yoga CPH images & videos
+│   ├── namaste/      ← Namasté Online/Studios images & videos
+│   └── vibro/        ← Vibro Yoga images & videos
+├── copenhagen/       ← Copenhagen lifestyle & location photos
+├── careers/          ← career/team images
+├── apply/            ← application page images
+├── compare/          ← teacher comparison avatars
+├── mentorship/       ← mentorship page images
+├── link/             ← link page hero & video
+├── schedule/         ← schedule page images
+├── member/           ← member area images
+└── journal/          ← blog post featured images
+```
+
+### Auto-Create Cloudinary Folder for New Pages (MANDATORY)
+
+When creating a new page on this site, you MUST create a corresponding Cloudinary folder using this curl command:
+
+```bash
+curl -s -X POST "https://api.cloudinary.com/v1_1/ddcynsa30/folders/yoga-bible-DK/{page-name}" \
+  -u "617726211878669:n90Ts-IUyUnxwNdtQd9i64d6Gtw"
+```
+
+**For pages with sub-sections**, create nested folders:
+
+```bash
+# Parent folder
+curl -s -X POST "https://api.cloudinary.com/v1_1/ddcynsa30/folders/yoga-bible-DK/{page-name}" \
+  -u "617726211878669:n90Ts-IUyUnxwNdtQd9i64d6Gtw"
+
+# Sub-folder
+curl -s -X POST "https://api.cloudinary.com/v1_1/ddcynsa30/folders/yoga-bible-DK/{page-name}/{sub-section}" \
+  -u "617726211878669:n90Ts-IUyUnxwNdtQd9i64d6Gtw"
+```
+
+**Naming rules:**
+- Folder names: lowercase, hyphens for spaces (e.g., `teacher-training`)
+- Match the page slug used in the site URL
+- Nest sub-sections under the parent page folder
+
+### Using Cloudinary in Templates
+
+**Filters** (for URLs only — use inside `src`, `href`, `background-image`):
+
+```nunjucks
+{# Basic optimized image URL #}
+{{ "yoga-bible-DK/homepage/hero" | cloudimg }}
+
+{# With custom transforms #}
+{{ "yoga-bible-DK/homepage/hero" | cloudimg("w_800,h_600,c_fill") }}
+
+{# Video URL #}
+{{ "yoga-bible-DK/homepage/hero-loop" | cloudvid }}
+```
+
+**Shortcodes** (for full responsive `<img>` / `<video>` tags):
+
+```nunjucks
+{# Responsive image with srcset (1x + 2x DPR) #}
+{% cldimg "yoga-bible-DK/homepage/hero", "Alt text", "w_800,c_fill", "800", "600" %}
+
+{# Autoplay looping video with poster #}
+{% cldvid "yoga-bible-DK/courses/inversions-reel", "yoga-bible-DK/courses/inversions-poster", "w_1280" %}
+```
+
+**Common transform strings:**
+- `w_800,h_600,c_fill` — Crop to exact size
+- `w_1200,c_scale` — Scale to width, auto height
+- `w_600,ar_16:9,c_fill` — Fill to aspect ratio
+- `f_auto,q_auto` — Auto format + quality (applied by default)
+
+### Cloudinary Path Convention
+
+When referencing images in templates, always use the Cloudinary path (not local):
+
+| Local placeholder path | Cloudinary path |
+|----------------------|-----------------|
+| `/assets/images/brand/*` | `yoga-bible-DK/brand/*` |
+| `/assets/images/homepage/*` | `yoga-bible-DK/homepage/*` |
+| `/assets/images/studio/*` | `yoga-bible-DK/studio/*` |
+| `/assets/images/courses/*` | `yoga-bible-DK/courses/*` |
+| `/assets/images/concepts/hotyoga-*` | `yoga-bible-DK/concepts/hotyoga/*` |
+| `/assets/images/concepts/namaste-*` | `yoga-bible-DK/concepts/namaste/*` |
+| `/assets/images/concepts/vibro-*` | `yoga-bible-DK/concepts/vibro/*` |
+| `/assets/images/copenhagen/*` | `yoga-bible-DK/copenhagen/*` |
+| `/assets/images/accommodation/*` | `yoga-bible-DK/accommodation/*` |
+| `/assets/images/journal/*` | `yoga-bible-DK/journal/*` |
+| `/assets/images/p4w/*` | `yoga-bible-DK/programs/p4w/*` |
+
+### Workflow Checklist for New Pages
+
+When you create a new page, follow this order:
+
+1. Create Cloudinary folder(s) via curl (see above)
+2. Create the page files (i18n JSON, template, DA/EN wrappers)
+3. Use `cloudimg`/`cldimg` filters/shortcodes for all images in the template
+4. Use `cloudvid`/`cldvid` for any videos
+5. Add placeholder comments noting required image specs:
+   ```html
+   {# CLOUDINARY: yoga-bible-DK/pagename/hero.jpg — 1920x900, dark cinematic #}
+   ```
+6. Build with `npx @11ty/eleventy` to verify
+
+---
+
 ## Unified Design System (MANDATORY)
 
 **IMPORTANT:** When building or modifying ANY page on this site, you MUST use ONLY the approved components from `/samples/` (`src/samples.njk`). Do NOT invent new styles, patterns, or components. Reference the design system by section number and name.
