@@ -19,16 +19,14 @@ Upload each file to the matching Cloudinary folder below. Naming convention: low
 
 ---
 
-## yoga-bible-DK/homepage/ (5 images + 1 video)
+## yoga-bible-DK/homepage/ (1 image + 1 video)
 
 | Upload as | Size | Type | Description |
 |-----------|------|------|-------------|
-| `hero-loop` | 1920x1080 | VIDEO | Auto-playing hero video loop |
+| `hero-loop` | 1920x1080 | VIDEO | Auto-playing hero video loop — **EXISTS locally** at `src/assets/hero-loop.mp4` |
 | `hero-poster` | 1920x1080 | image | Static poster/fallback for hero video |
-| `studio-panorama` | 1920x900 | image | Wide panorama of studio at Torvegade 66 |
-| `teaching-scene` | 1200x800 | image | Teacher demonstrating to students |
-| `practice-scene` | 1200x800 | image | Students in flow/practice |
-| `hero-portrait` | 1080x1440 | image | Portrait-oriented hero (for mobile/alt layout) |
+
+> The live homepage also uses course images (`inversions-hero`, `splits-hero`, `backbends-hero`) from `yoga-bible-DK/courses/` and a studio image (`studio-wide`) from `yoga-bible-DK/studio/` — see those sections below.
 
 ---
 
@@ -272,10 +270,10 @@ Upload each file to the matching Cloudinary folder below. Naming convention: low
 
 | Type | Count |
 |------|-------|
-| **Images** | ~110 |
+| **Images** | ~106 |
 | **Videos** | ~14 |
-| **Already exist (upload as-is)** | 5 (2 logos, 2 concept logos, 1 journal image) |
-| **Need to create/source** | ~119 |
+| **Already exist (upload as-is)** | 6 (2 logos, 2 concept logos, 1 journal image, 1 hero video) |
+| **Need to create/source** | ~114 |
 
 ## Priority Order (suggested)
 
