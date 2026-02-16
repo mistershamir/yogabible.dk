@@ -652,8 +652,13 @@
     var data = event.data;
     if (!data || data.type !== 'hyc-auth-bridge' || !data.idToken) return;
 
-    // If already logged in, skip
-    if (auth.currentUser) return;
+    // If already logged in, notify parent and skip
+    if (auth.currentUser) {
+      if (window.parent !== window) {
+        window.parent.postMessage({ type: 'hyc-profile-authenticated' }, '*');
+      }
+      return;
+    }
 
     fetch('/.netlify/functions/auth-token', {
       method: 'POST',
@@ -664,6 +669,12 @@
       .then(function (result) {
         if (result.customToken) {
           return auth.signInWithCustomToken(result.customToken);
+        }
+      })
+      .then(function () {
+        // Tell parent iframe that auth succeeded — hides the loader
+        if (window.parent !== window) {
+          window.parent.postMessage({ type: 'hyc-profile-authenticated' }, '*');
         }
       })
       .catch(function (err) {
