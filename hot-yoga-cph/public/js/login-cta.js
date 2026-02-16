@@ -48,12 +48,34 @@
   var modalEl = null;
   var modalMode = null; // 'auth-login' | 'auth-register' | 'auth-forgot' | 'user-area'
 
+  // ── Target document (escape iframe if possible) ───────────────────
+  // Framer wraps navigation HTML embeds in an iframe. The modal must
+  // render in the TOP document so it covers the full viewport.
+  var targetDoc = document;
+  var isFramed = false;
+  try {
+    if (window.self !== window.top) {
+      isFramed = true;
+      // Try to access parent — works for same-origin / srcdoc iframes
+      var topDoc = window.top.document;
+      if (topDoc && topDoc.body) {
+        targetDoc = topDoc;
+      }
+    }
+  } catch (e) {
+    // Cross-origin iframe — cannot access parent document.
+    // Modal will render inside iframe (limited viewport).
+    isFramed = true;
+  }
+
   // ── Helpers ───────────────────────────────────────────────────────
   function esc(str) {
     var d = document.createElement('div');
     d.textContent = str || '';
     return d.innerHTML;
   }
+  // Shortcut: get element in the target document (parent page if framed)
+  function $t(id) { return targetDoc.getElementById(id); }
 
   // ── SVG Icons ─────────────────────────────────────────────────────
   var ICON = {
@@ -244,8 +266,9 @@
   // ═══════════════════════════════════════════════════════════════════
 
   function injectCSS() {
-    if (document.getElementById('hyc-login-cta-css')) return;
-    var s = document.createElement('style');
+    // Inject into targetDoc (parent page if in iframe) so modal styles work
+    if (targetDoc.getElementById('hyc-login-cta-css')) return;
+    var s = targetDoc.createElement('style');
     s.id = 'hyc-login-cta-css';
     s.textContent = [
 
@@ -379,7 +402,15 @@
       '}'
 
     ].join('\n');
-    document.head.appendChild(s);
+    targetDoc.head.appendChild(s);
+
+    // Also inject into iframe head if we're framed (for CTA button styles)
+    if (isFramed && targetDoc !== document && !document.getElementById('hyc-login-cta-css')) {
+      var s2 = document.createElement('style');
+      s2.id = 'hyc-login-cta-css';
+      s2.textContent = s.textContent;
+      document.head.appendChild(s2);
+    }
   }
 
 
@@ -389,7 +420,8 @@
 
   function createModal() {
     if (modalEl) return;
-    modalEl = document.createElement('div');
+    // Create in targetDoc (parent page if framed) so modal covers full viewport
+    modalEl = targetDoc.createElement('div');
     modalEl.className = 'hyc-ua';
     modalEl.id = 'hyc-ua-modal';
     modalEl.setAttribute('aria-hidden', 'true');
@@ -400,15 +432,19 @@
         '<button class="hyc-ua__close" type="button" aria-label="' + t('Luk', 'Close') + '">' + ICON.close + '</button>' +
         '<div id="hyc-ua-content"></div>' +
       '</div>';
-    document.body.appendChild(modalEl);
+    targetDoc.body.appendChild(modalEl);
 
     modalEl.querySelector('.hyc-ua__overlay').addEventListener('click', closeModal);
     modalEl.querySelector('.hyc-ua__close').addEventListener('click', closeModal);
-    document.addEventListener('keydown', function (e) {
-      if (e.key === 'Escape' && modalEl && modalEl.getAttribute('aria-hidden') === 'false') {
-        closeModal();
-      }
-    });
+    // Listen on both documents for Escape key
+    targetDoc.addEventListener('keydown', escHandler);
+    if (targetDoc !== document) document.addEventListener('keydown', escHandler);
+  }
+
+  function escHandler(e) {
+    if (e.key === 'Escape' && modalEl && modalEl.getAttribute('aria-hidden') === 'false') {
+      closeModal();
+    }
   }
 
   function openModal(mode) {
@@ -416,9 +452,9 @@
     modalMode = mode;
     modalEl.setAttribute('aria-hidden', 'false');
     modalEl.setAttribute('aria-label', mode === 'user-area' ? t('Brugeromr\u00e5de', 'User Area') : t('Log ind', 'Sign in'));
-    document.body.style.overflow = 'hidden';
+    targetDoc.body.style.overflow = 'hidden';
 
-    var contentEl = document.getElementById('hyc-ua-content');
+    var contentEl = targetDoc.getElementById('hyc-ua-content');
     if (!contentEl) return;
 
     if (mode === 'user-area') {
@@ -435,7 +471,7 @@
   function closeModal() {
     if (!modalEl) return;
     modalEl.setAttribute('aria-hidden', 'true');
-    document.body.style.overflow = '';
+    targetDoc.body.style.overflow = '';
     modalMode = null;
   }
 
@@ -476,14 +512,14 @@
     contentEl.innerHTML = html;
 
     // Wire login form
-    var form = document.getElementById('hyc-auth-login-form');
+    var form = $t('hyc-auth-login-form');
     form.addEventListener('submit', function (e) {
       e.preventDefault();
-      var errorEl = document.getElementById('hyc-auth-login-error');
+      var errorEl = $t('hyc-auth-login-error');
       errorEl.classList.remove('is-visible');
 
-      var email = document.getElementById('hyc-auth-email').value.trim();
-      var password = document.getElementById('hyc-auth-password').value;
+      var email = $t('hyc-auth-email').value.trim();
+      var password = $t('hyc-auth-password').value;
 
       if (!email || !password) {
         errorEl.textContent = t('Udfyld alle felter.', 'Please fill in all fields.');
@@ -491,7 +527,7 @@
         return;
       }
 
-      var btn = document.getElementById('hyc-auth-login-btn');
+      var btn = $t('hyc-auth-login-btn');
       btn.disabled = true;
       btn.textContent = t('Logger ind...', 'Signing in...');
 
@@ -509,17 +545,17 @@
     });
 
     // Navigation links
-    document.getElementById('hyc-auth-goto-forgot').addEventListener('click', function (e) {
+    $t('hyc-auth-goto-forgot').addEventListener('click', function (e) {
       e.preventDefault();
       openModal('auth-forgot');
     });
-    document.getElementById('hyc-auth-goto-register').addEventListener('click', function (e) {
+    $t('hyc-auth-goto-register').addEventListener('click', function (e) {
       e.preventDefault();
       openModal('auth-register');
     });
 
     // Focus first input
-    setTimeout(function () { document.getElementById('hyc-auth-email').focus(); }, 80);
+    setTimeout(function () { $t('hyc-auth-email').focus(); }, 80);
   }
 
 
@@ -593,19 +629,19 @@
     contentEl.innerHTML = html;
 
     // Wire register form
-    var form = document.getElementById('hyc-auth-reg-form');
+    var form = $t('hyc-auth-reg-form');
     form.addEventListener('submit', function (e) {
       e.preventDefault();
-      var errorEl = document.getElementById('hyc-auth-reg-error');
+      var errorEl = $t('hyc-auth-reg-error');
       errorEl.classList.remove('is-visible');
 
-      var firstName = document.getElementById('hyc-reg-firstname').value.trim();
-      var lastName  = document.getElementById('hyc-reg-lastname').value.trim();
-      var email     = document.getElementById('hyc-reg-email').value.trim();
-      var phone     = document.getElementById('hyc-reg-phone').value.trim();
-      var password  = document.getElementById('hyc-reg-password').value;
-      var terms     = document.getElementById('hyc-reg-terms').checked;
-      var conduct   = document.getElementById('hyc-reg-conduct').checked;
+      var firstName = $t('hyc-reg-firstname').value.trim();
+      var lastName  = $t('hyc-reg-lastname').value.trim();
+      var email     = $t('hyc-reg-email').value.trim();
+      var phone     = $t('hyc-reg-phone').value.trim();
+      var password  = $t('hyc-reg-password').value;
+      var terms     = $t('hyc-reg-terms').checked;
+      var conduct   = $t('hyc-reg-conduct').checked;
 
       if (!firstName || !lastName || !email || !password) {
         errorEl.textContent = t('Udfyld alle obligatoriske felter.', 'Please fill in all required fields.');
@@ -623,7 +659,7 @@
         return;
       }
 
-      var btn = document.getElementById('hyc-auth-reg-btn');
+      var btn = $t('hyc-auth-reg-btn');
       btn.disabled = true;
       btn.textContent = t('Opretter profil...', 'Creating profile...');
 
@@ -641,15 +677,15 @@
     });
 
     // Navigation
-    document.getElementById('hyc-auth-back-login').addEventListener('click', function () {
+    $t('hyc-auth-back-login').addEventListener('click', function () {
       openModal('auth-login');
     });
-    document.getElementById('hyc-auth-goto-login-from-reg').addEventListener('click', function (e) {
+    $t('hyc-auth-goto-login-from-reg').addEventListener('click', function (e) {
       e.preventDefault();
       openModal('auth-login');
     });
 
-    setTimeout(function () { document.getElementById('hyc-reg-firstname').focus(); }, 80);
+    setTimeout(function () { $t('hyc-reg-firstname').focus(); }, 80);
   }
 
 
@@ -682,15 +718,15 @@
     contentEl.innerHTML = html;
 
     // Wire forgot form
-    var form = document.getElementById('hyc-auth-forgot-form');
+    var form = $t('hyc-auth-forgot-form');
     form.addEventListener('submit', function (e) {
       e.preventDefault();
-      var errorEl = document.getElementById('hyc-auth-forgot-error');
-      var successEl = document.getElementById('hyc-auth-forgot-success');
+      var errorEl = $t('hyc-auth-forgot-error');
+      var successEl = $t('hyc-auth-forgot-success');
       errorEl.classList.remove('is-visible');
       successEl.classList.remove('is-visible');
 
-      var email = document.getElementById('hyc-forgot-email').value.trim();
+      var email = $t('hyc-forgot-email').value.trim();
       if (!email) {
         errorEl.textContent = t('Indtast din email.', 'Please enter your email.');
         errorEl.classList.add('is-visible');
@@ -712,12 +748,12 @@
     });
 
     // Back to login
-    document.getElementById('hyc-auth-back-from-forgot').addEventListener('click', function (e) {
+    $t('hyc-auth-back-from-forgot').addEventListener('click', function (e) {
       e.preventDefault();
       openModal('auth-login');
     });
 
-    setTimeout(function () { document.getElementById('hyc-forgot-email').focus(); }, 80);
+    setTimeout(function () { $t('hyc-forgot-email').focus(); }, 80);
   }
 
 
@@ -783,15 +819,16 @@
     contentEl.innerHTML = html;
 
     // Wire actions
-    document.getElementById('hyc-ua-book').addEventListener('click', function () {
+    $t('hyc-ua-book').addEventListener('click', function () {
       closeModal();
-      var scheduleEl = document.getElementById('hyc-schedule');
+      // Look for schedule in parent page
+      var scheduleEl = targetDoc.getElementById('hyc-schedule');
       if (scheduleEl) {
         scheduleEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
       }
     });
 
-    document.getElementById('hyc-ua-buy').addEventListener('click', function () {
+    $t('hyc-ua-buy').addEventListener('click', function () {
       closeModal();
       if (typeof window.openCheckoutFlow === 'function') {
         window.openCheckoutFlow('100017');
@@ -800,7 +837,7 @@
       }
     });
 
-    document.getElementById('hyc-ua-logout').addEventListener('click', function () {
+    $t('hyc-ua-logout').addEventListener('click', function () {
       try { firebase.auth().signOut(); } catch (e) { /* ignore */ }
       closeModal();
     });
@@ -815,7 +852,7 @@
   // ═══════════════════════════════════════════════════════════════════
 
   function loadPasses() {
-    var passesEl = document.getElementById('hyc-ua-passes');
+    var passesEl = $t('hyc-ua-passes');
     if (!passesEl || !mbClientId) {
       if (passesEl) renderPasses(passesEl, null);
       return;
