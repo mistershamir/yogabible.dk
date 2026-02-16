@@ -8,6 +8,24 @@
   <!-- GTM noscript — injected by consent manager when accepted -->
   <noscript id="yb-gtm-noscript"></noscript>
 
+  <!-- Embed detection: hide page chrome when loaded in iframe -->
+  <script>
+    if (window.self !== window.top) {
+      document.documentElement.classList.add('yb-embed');
+    }
+  </script>
+  <style>
+    .yb-embed .yb-header,
+    .yb-embed .yb-footer,
+    .yb-embed .yb-cookie,
+    .yb-embed #yb-cookie-banner,
+    .yb-embed .yb-profile__hero,
+    .yb-embed .yb-profile__tabs,
+    .yb-embed .yb-profile__guest { display: none !important; }
+    .yb-embed .yb-profile { padding-top: 0 !important; }
+    .yb-embed .yb-profile__wrap { padding-top: 1rem !important; }
+  </style>
+
   {% include "header.njk" %}
 
   <!-- Main Content -->

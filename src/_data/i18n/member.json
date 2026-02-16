@@ -113,6 +113,13 @@
     "role_badge_marketing": "Marketing",
     "role_badge_admin": "Administrator",
 
+    "tab_hub": "Overblik",
+    "tab_courses": "Mine Kurser",
+    "tab_schedule": "Skema",
+    "tab_glossary": "Ordbog",
+    "tab_journal": "Journal",
+    "tab_profile": "Profil",
+
     "panel_back": "Tilbage",
     "coming_soon_title": "Kommer snart",
     "coming_soon_text": "Denne funktion er under udvikling og vil snart være tilgængelig i Member Area."
@@ -230,6 +237,13 @@
     "role_badge_teacher": "Teacher",
     "role_badge_marketing": "Marketing",
     "role_badge_admin": "Administrator",
+
+    "tab_hub": "Overview",
+    "tab_courses": "My Courses",
+    "tab_schedule": "Schedule",
+    "tab_glossary": "Glossary",
+    "tab_journal": "Journal",
+    "tab_profile": "Profile",
 
     "panel_back": "Back",
     "coming_soon_title": "Coming soon",
