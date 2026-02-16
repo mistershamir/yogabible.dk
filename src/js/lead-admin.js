@@ -1,6 +1,6 @@
 /**
- * YOGA BIBLE — LEAD ADMIN (Enhanced)
- * Full-featured Lead Manager for the admin panel.
+ * YOGA BIBLE — LEAD ADMIN (Enhanced v2)
+ * Full-featured Lead + Application Manager for the admin panel.
  * Reads/writes directly to Firestore (client-side SDK).
  *
  * Features:
@@ -10,17 +10,26 @@
  *  - Follow-up scheduling with date picker
  *  - Call logging & attempt tracking
  *  - Inline SMS & email composers
+ *  - SMS conversation view (subcollection)
  *  - Bulk select + bulk actions (status, email, SMS)
  *  - Source / date range / accommodation filters
  *  - CSV export
- *  - Pipeline stats
+ *  - Pipeline stats with unread SMS badge
+ *  - Applications tab with full CRUD
+ *  - Cross-linking between leads and applications
+ *  - Marketing role detection (restricted delete)
  */
 (function () {
   'use strict';
 
-  /* ── state ── */
+  /* ══════════════════════════════════════════
+     STATE
+     ══════════════════════════════════════════ */
   var db;
   var T = {};
+  var currentUserRole = 'user';
+
+  // Lead state
   var leads = [];
   var leadsLoaded = false;
   var currentLeadId = null;
@@ -38,7 +47,18 @@
   var selectedIds = new Set();
   var selectAll = false;
 
-  /* ── helpers ── */
+  // Application state
+  var applications = [];
+  var appLoaded = false;
+  var currentAppId = null;
+  var currentApp = null;
+  var appSearchTerm = '';
+  var appFilterStatus = '';
+  var appFilterType = '';
+
+  /* ══════════════════════════════════════════
+     HELPERS
+     ══════════════════════════════════════════ */
   function t(k) { return T[k] || k; }
   function esc(s) { var d = document.createElement('div'); d.textContent = s || ''; return d.innerHTML; }
   function $(id) { return document.getElementById(id); }
@@ -90,13 +110,20 @@
     return fmtDate(d);
   }
 
+  function fmtTime(d) {
+    if (!d) return '';
+    var date = d.toDate ? d.toDate() : new Date(d);
+    if (isNaN(date.getTime())) return '';
+    return date.toLocaleTimeString('da-DK', { hour: '2-digit', minute: '2-digit' });
+  }
+
   function getAuthToken() {
     return firebase.auth().currentUser.getIdToken();
   }
 
-  /* ═══════════════════════════════════════
-     STATUS SYSTEM
-     ═══════════════════════════════════════ */
+  /* ══════════════════════════════════════════
+     STATUS SYSTEM — LEADS
+     ══════════════════════════════════════════ */
   var STATUSES = [
     { value: 'New', label: 'New', color: '#fff3cd', text: '#856404', icon: '\u2728' },
     { value: 'Contacted', label: 'Contacted', color: '#d1ecf1', text: '#0c5460', icon: '\ud83d\udce7' },
@@ -142,12 +169,39 @@
     { value: 'cold', label: 'Cold', icon: '\u2744\ufe0f', color: '#42A5F5' }
   ];
 
+  /* ══════════════════════════════════════════
+     STATUS SYSTEM — APPLICATIONS
+     ══════════════════════════════════════════ */
+  var APP_STATUSES = [
+    { value: 'Pending', label: 'Pending', color: '#fff3cd', text: '#856404', icon: '\u23f3' },
+    { value: 'Under Review', label: 'Under Review', color: '#d1ecf1', text: '#0c5460', icon: '\ud83d\udd0d' },
+    { value: 'Approved', label: 'Approved', color: '#d4edda', text: '#155724', icon: '\u2705' },
+    { value: 'Enrolled', label: 'Enrolled', color: '#cce5ff', text: '#004085', icon: '\ud83c\udf93' },
+    { value: 'Waitlisted', label: 'Waitlisted', color: '#FFE0B2', text: '#E65100', icon: '\ud83d\udccb' },
+    { value: 'Rejected', label: 'Rejected', color: '#f8d7da', text: '#721c24', icon: '\u274c' },
+    { value: 'Withdrawn', label: 'Withdrawn', color: '#ECEFF1', text: '#546E7F', icon: '\u21a9\ufe0f' },
+    { value: 'Completed', label: 'Completed', color: '#E8F5E9', text: '#2E7D32', icon: '\ud83c\udfc6' }
+  ];
+
+  /* ══════════════════════════════════════════
+     STATUS HELPERS
+     ══════════════════════════════════════════ */
   function getStatusMeta(status) {
     return STATUSES.find(function (s) { return s.value === status; }) || STATUSES[0];
   }
 
+  function getAppStatusMeta(status) {
+    return APP_STATUSES.find(function (s) { return s.value === status; }) || APP_STATUSES[0];
+  }
+
   function statusBadgeHtml(status) {
     var m = getStatusMeta(status || 'New');
+    return '<span class="yb-lead__badge" style="background:' + m.color + ';color:' + m.text + '">' +
+      m.icon + ' ' + esc(m.label) + '</span>';
+  }
+
+  function appStatusBadgeHtml(status) {
+    var m = getAppStatusMeta(status || 'Pending');
     return '<span class="yb-lead__badge" style="background:' + m.color + ';color:' + m.text + '">' +
       m.icon + ' ' + esc(m.label) + '</span>';
   }
@@ -159,9 +213,9 @@
   }
 
   function temperatureBadgeHtml(temp) {
-    var t = TEMPERATURES.find(function (x) { return x.value === temp; });
-    if (!t || !t.value) return '';
-    return '<span class="yb-lead__temp" title="' + t.label + '">' + t.icon + '</span>';
+    var ti = TEMPERATURES.find(function (x) { return x.value === temp; });
+    if (!ti || !ti.value) return '';
+    return '<span class="yb-lead__temp" title="' + ti.label + '">' + ti.icon + '</span>';
   }
 
   function typeBadge(type) {
@@ -169,9 +223,9 @@
     return labels[(type || '').toLowerCase()] || type || '\u2014';
   }
 
-  /* ═══════════════════════════════════════
+  /* ══════════════════════════════════════════
      LOAD LEADS
-     ═══════════════════════════════════════ */
+     ══════════════════════════════════════════ */
   function loadLeads(append) {
     if (!append) {
       leads = [];
@@ -208,9 +262,9 @@
     });
   }
 
-  /* ═══════════════════════════════════════
+  /* ══════════════════════════════════════════
      RENDER LEAD TABLE
-     ═══════════════════════════════════════ */
+     ══════════════════════════════════════════ */
   function getFilteredLeads() {
     var filtered = leads;
     if (searchTerm) {
@@ -242,8 +296,6 @@
       return;
     }
 
-    var selectAllChecked = selectAll ? ' checked' : '';
-
     // Update header checkbox
     var headerCb = $('yb-lead-select-all');
     if (headerCb) headerCb.checked = selectAll;
@@ -259,12 +311,19 @@
         else if (fDate <= new Date(today.getTime() + 86400000)) followupClass = ' yb-lead__row--due-today';
       }
 
+      // Unread SMS badge
+      var unreadBadge = '';
+      if (l.has_unread_sms === true) {
+        unreadBadge = ' <span class="yb-lead__sms-unread-icon" title="Unread SMS">\ud83d\udce9</span>';
+      }
+
       return '<tr class="yb-lead__row' + followupClass + (isSelected ? ' is-selected' : '') + '" data-id="' + l.id + '">' +
         '<td class="yb-lead__cell-cb"><input type="checkbox" class="yb-lead__cb" data-lead-id="' + l.id + '"' + (isSelected ? ' checked' : '') + '></td>' +
         '<td class="yb-lead__cell-date">' + relativeTime(l.created_at) + '</td>' +
         '<td class="yb-lead__cell-name">' +
           priorityBadgeHtml(l.priority) + temperatureBadgeHtml(l.temperature) +
           esc((l.first_name || '') + ' ' + (l.last_name || '')).trim() +
+          unreadBadge +
         '</td>' +
         '<td class="yb-lead__cell-contact">' +
           '<div class="yb-lead__cell-email-text">' + esc(l.email || '') + '</div>' +
@@ -286,9 +345,9 @@
     }).join('');
   }
 
-  /* ═══════════════════════════════════════
+  /* ══════════════════════════════════════════
      RENDER STATS (Pipeline)
-     ═══════════════════════════════════════ */
+     ══════════════════════════════════════════ */
   function renderLeadStats() {
     var el = $('yb-lead-stats');
     if (!el) return;
@@ -296,9 +355,11 @@
     var total = leads.length;
     var counts = {};
     STATUSES.forEach(function (s) { counts[s.value] = 0; });
+    var unreadSmsCount = 0;
     leads.forEach(function (l) {
       var st = l.status || 'New';
       if (counts[st] !== undefined) counts[st]++;
+      if (l.has_unread_sms === true) unreadSmsCount++;
     });
 
     // Pipeline funnel stats
@@ -342,6 +403,12 @@
         '<span class="yb-lead__stat-value">' + conversionRate + '%</span>' +
         '<span class="yb-lead__stat-label">' + t('leads_stat_conversion') + '</span>' +
       '</div>' +
+      (unreadSmsCount > 0 ?
+        '<div class="yb-lead__stat-card yb-lead__stat-card--sms">' +
+          '<span class="yb-lead__stat-value">' + unreadSmsCount + '</span>' +
+          '<span class="yb-lead__stat-label">\ud83d\udce9 Unread SMS</span>' +
+        '</div>'
+      : '') +
       (overdueCount + todayCount > 0 ?
         '<div class="yb-lead__stat-card yb-lead__stat-card--followup">' +
           '<span class="yb-lead__stat-value">' + (overdueCount + todayCount) + '</span>' +
@@ -353,9 +420,9 @@
       : '');
   }
 
-  /* ═══════════════════════════════════════
+  /* ══════════════════════════════════════════
      VIEW LEAD DETAIL
-     ═══════════════════════════════════════ */
+     ══════════════════════════════════════════ */
   function showLeadDetail(leadId) {
     currentLeadId = leadId;
     currentLead = leads.find(function (l) { return l.id === leadId; });
@@ -368,9 +435,15 @@
 
     renderLeadDetailCard();
     renderLeadQuickActions();
+    loadSMSConversation(leadId);
     populateStatusForm();
     renderLeadNotes();
     loadLeadActivity();
+
+    // Mark unread SMS as read
+    if (currentLead.has_unread_sms === true) {
+      markSMSRead(leadId);
+    }
   }
 
   function backToLeadList() {
@@ -381,6 +454,9 @@
     renderLeadTable(); // refresh in case changes were made
   }
 
+  /* ══════════════════════════════════════════
+     REDESIGNED LEAD DETAIL CARD
+     ══════════════════════════════════════════ */
   function renderLeadDetailCard() {
     var el = $('yb-lead-detail-card');
     if (!el || !currentLead) return;
@@ -388,86 +464,173 @@
 
     var statusMeta = getStatusMeta(l.status);
     var priorityMeta = PRIORITIES.find(function (p) { return p.value === l.priority; });
-    var tempMeta = TEMPERATURES.find(function (t) { return t.value === l.temperature; });
+    var tempMeta = TEMPERATURES.find(function (ti) { return ti.value === l.temperature; });
 
-    // Build two-column layout for detail info
-    var html = '<div class="yb-lead__detail-grid">';
+    var html = '<div class="yb-lead__detail-cards">';
 
-    // Left column — contact info
-    html += '<div class="yb-lead__detail-section">';
-    html += '<h4 class="yb-lead__detail-section-title">' + t('leads_contact_info') + '</h4>';
-    html += '<div class="yb-lead__detail-row"><span class="yb-lead__detail-label">' + t('users_col_email') + '</span>' +
-      '<a href="mailto:' + esc(l.email) + '" class="yb-lead__detail-link">' + esc(l.email) + '</a></div>';
-    html += '<div class="yb-lead__detail-row"><span class="yb-lead__detail-label">' + t('users_profile_phone') + '</span>' +
-      (l.phone ? '<a href="tel:' + esc(l.phone) + '" class="yb-lead__detail-link">' + esc(l.phone) + '</a>' : '\u2014') + '</div>';
-    html += '<div class="yb-lead__detail-row"><span class="yb-lead__detail-label">' + t('leads_source') + '</span>' + esc(l.source || '\u2014') + '</div>';
-    html += '<div class="yb-lead__detail-row"><span class="yb-lead__detail-label">' + t('leads_col_date') + '</span>' + fmtDateTime(l.created_at) + '</div>';
+    // Card 1: Contact Info
+    html += '<div class="yb-lead__section-card">';
+    html += '<h4 class="yb-lead__card-title">CONTACT INFO</h4>';
+    html += '<div class="yb-lead__card-row">' +
+      '<span class="yb-lead__card-label">' + t('users_col_email') + '</span>' +
+      '<a href="mailto:' + esc(l.email) + '" class="yb-lead__card-value yb-lead__card-link">' + esc(l.email || '\u2014') + '</a>' +
+    '</div>';
+    html += '<div class="yb-lead__card-row">' +
+      '<span class="yb-lead__card-label">' + t('users_profile_phone') + '</span>' +
+      (l.phone
+        ? '<a href="tel:' + esc(l.phone) + '" class="yb-lead__card-value yb-lead__card-link">' + esc(l.phone) + '</a>'
+        : '<span class="yb-lead__card-value">\u2014</span>') +
+    '</div>';
     if (l.city_country) {
-      html += '<div class="yb-lead__detail-row"><span class="yb-lead__detail-label">' + t('leads_city') + '</span>' + esc(l.city_country) + '</div>';
+      html += '<div class="yb-lead__card-row">' +
+        '<span class="yb-lead__card-label">' + t('leads_city') + '</span>' +
+        '<span class="yb-lead__card-value">' + esc(l.city_country) + '</span>' +
+      '</div>';
     }
-    html += '</div>';
+    html += '<div class="yb-lead__card-row">' +
+      '<span class="yb-lead__card-label">' + t('leads_source') + '</span>' +
+      '<span class="yb-lead__card-value">' + esc(l.source || '\u2014') + '</span>' +
+    '</div>';
+    html += '<div class="yb-lead__card-row">' +
+      '<span class="yb-lead__card-label">' + t('leads_col_date') + '</span>' +
+      '<span class="yb-lead__card-value">' + fmtDateTime(l.created_at) + '</span>' +
+    '</div>';
+    html += '</div>'; // end card 1
 
-    // Right column — program info
-    html += '<div class="yb-lead__detail-section">';
-    html += '<h4 class="yb-lead__detail-section-title">' + t('leads_program_info') + '</h4>';
-    html += '<div class="yb-lead__detail-row"><span class="yb-lead__detail-label">' + t('leads_col_type') + '</span>' +
-      '<span class="yb-lead__type-badge">' + typeBadge(l.type) + '</span></div>';
+    // Card 2: Program Details
+    html += '<div class="yb-lead__section-card">';
+    html += '<h4 class="yb-lead__card-title">PROGRAM DETAILS</h4>';
+    html += '<div class="yb-lead__card-row">' +
+      '<span class="yb-lead__card-label">' + t('leads_col_type') + '</span>' +
+      '<span class="yb-lead__card-value"><span class="yb-lead__type-badge">' + typeBadge(l.type) + '</span></span>' +
+    '</div>';
     if (l.program) {
-      html += '<div class="yb-lead__detail-row"><span class="yb-lead__detail-label">' + t('leads_col_program') + '</span>' + esc(l.program) + '</div>';
+      html += '<div class="yb-lead__card-row">' +
+        '<span class="yb-lead__card-label">' + t('leads_col_program') + '</span>' +
+        '<span class="yb-lead__card-value">' + esc(l.program) + '</span>' +
+      '</div>';
     }
     if (l.ytt_program_type) {
-      html += '<div class="yb-lead__detail-row"><span class="yb-lead__detail-label">YTT Format</span>' + esc(l.ytt_program_type) + '</div>';
+      html += '<div class="yb-lead__card-row">' +
+        '<span class="yb-lead__card-label">YTT Format</span>' +
+        '<span class="yb-lead__card-value">' + esc(l.ytt_program_type) + '</span>' +
+      '</div>';
     }
     if (l.cohort_label) {
-      html += '<div class="yb-lead__detail-row"><span class="yb-lead__detail-label">' + t('leads_cohort') + '</span>' + esc(l.cohort_label) + '</div>';
+      html += '<div class="yb-lead__card-row">' +
+        '<span class="yb-lead__card-label">' + t('leads_cohort') + '</span>' +
+        '<span class="yb-lead__card-value">' + esc(l.cohort_label) + '</span>' +
+      '</div>';
     }
     if (l.preferred_month) {
-      html += '<div class="yb-lead__detail-row"><span class="yb-lead__detail-label">' + t('leads_preferred_month') + '</span>' + esc(l.preferred_month) + '</div>';
+      html += '<div class="yb-lead__card-row">' +
+        '<span class="yb-lead__card-label">' + t('leads_preferred_month') + '</span>' +
+        '<span class="yb-lead__card-value">' + esc(l.preferred_month) + '</span>' +
+      '</div>';
     }
     if (l.accommodation && l.accommodation !== 'No') {
-      html += '<div class="yb-lead__detail-row"><span class="yb-lead__detail-label">' + t('leads_accommodation') + '</span>' +
-        '<span class="yb-lead__badge" style="background:#E8F5E9;color:#2E7D32">\ud83c\udfe0 ' + esc(l.accommodation) + '</span></div>';
+      html += '<div class="yb-lead__card-row">' +
+        '<span class="yb-lead__card-label">' + t('leads_accommodation') + '</span>' +
+        '<span class="yb-lead__card-value"><span class="yb-lead__badge" style="background:#E8F5E9;color:#2E7D32">\ud83c\udfe0 ' + esc(l.accommodation) + '</span></span>' +
+      '</div>';
     }
     if (l.housing_months) {
-      html += '<div class="yb-lead__detail-row"><span class="yb-lead__detail-label">' + t('leads_housing_months') + '</span>' + esc(l.housing_months) + '</div>';
+      html += '<div class="yb-lead__card-row">' +
+        '<span class="yb-lead__card-label">' + t('leads_housing_months') + '</span>' +
+        '<span class="yb-lead__card-value">' + esc(l.housing_months) + '</span>' +
+      '</div>';
     }
     if (l.service) {
-      html += '<div class="yb-lead__detail-row"><span class="yb-lead__detail-label">' + t('leads_service') + '</span>' + esc(l.service) + '</div>';
+      html += '<div class="yb-lead__card-row">' +
+        '<span class="yb-lead__card-label">' + t('leads_service') + '</span>' +
+        '<span class="yb-lead__card-value">' + esc(l.service) + '</span>' +
+      '</div>';
     }
     if (l.message) {
-      html += '<div class="yb-lead__detail-row yb-lead__detail-row--full"><span class="yb-lead__detail-label">' + t('leads_message') + '</span>' +
-        '<div class="yb-lead__detail-message">' + esc(l.message) + '</div></div>';
+      html += '<div class="yb-lead__card-row yb-lead__card-row--full">' +
+        '<span class="yb-lead__card-label">' + t('leads_message') + '</span>' +
+        '<div class="yb-lead__detail-message">' + esc(l.message) + '</div>' +
+      '</div>';
     }
-    html += '</div>';
+    html += '</div>'; // end card 2
 
-    // Status bar
-    html += '<div class="yb-lead__detail-status-bar">';
-    html += '<div class="yb-lead__detail-row"><span class="yb-lead__detail-label">' + t('leads_col_status') + '</span>' + statusBadgeHtml(l.status) +
-      (l.sub_status ? ' <span class="yb-lead__sub-status">' + esc(l.sub_status) + '</span>' : '') + '</div>';
+    // Card 3: Pipeline Status (full-width)
+    html += '<div class="yb-lead__section-card yb-lead__section-card--full">';
+    html += '<h4 class="yb-lead__card-title">PIPELINE STATUS</h4>';
+
+    // Status pill (large)
+    html += '<div class="yb-lead__card-row">' +
+      '<span class="yb-lead__card-label">' + t('leads_col_status') + '</span>' +
+      '<span class="yb-lead__card-value">' +
+        '<span class="yb-lead__badge yb-lead__badge--lg" style="background:' + statusMeta.color + ';color:' + statusMeta.text + '">' +
+          statusMeta.icon + ' ' + esc(statusMeta.label) +
+        '</span>' +
+        (l.sub_status ? ' <span class="yb-lead__sub-status">' + esc(l.sub_status) + '</span>' : '') +
+      '</span>' +
+    '</div>';
+
     if (l.priority) {
-      html += '<div class="yb-lead__detail-row"><span class="yb-lead__detail-label">' + t('leads_priority') + '</span>' + priorityBadgeHtml(l.priority) + ' ' + (priorityMeta ? priorityMeta.label : '') + '</div>';
+      html += '<div class="yb-lead__card-row">' +
+        '<span class="yb-lead__card-label">' + t('leads_priority') + '</span>' +
+        '<span class="yb-lead__card-value">' + priorityBadgeHtml(l.priority) + ' ' + (priorityMeta ? priorityMeta.label : '') + '</span>' +
+      '</div>';
     }
     if (l.temperature) {
-      html += '<div class="yb-lead__detail-row"><span class="yb-lead__detail-label">' + t('leads_temperature') + '</span>' + temperatureBadgeHtml(l.temperature) + ' ' + (tempMeta ? tempMeta.label : '') + '</div>';
+      html += '<div class="yb-lead__card-row">' +
+        '<span class="yb-lead__card-label">' + t('leads_temperature') + '</span>' +
+        '<span class="yb-lead__card-value">' + temperatureBadgeHtml(l.temperature) + ' ' + (tempMeta ? tempMeta.label : '') + '</span>' +
+      '</div>';
     }
-    html += '<div class="yb-lead__detail-row"><span class="yb-lead__detail-label">' + t('leads_last_contact') + '</span>' + fmtDateTime(l.last_contact) + '</div>';
-    html += '<div class="yb-lead__detail-row"><span class="yb-lead__detail-label">' + t('leads_followup') + '</span>' + fmtDate(l.followup_date) + '</div>';
-    html += '<div class="yb-lead__detail-row"><span class="yb-lead__detail-label">' + t('leads_call_attempts') + '</span>' + (l.call_attempts || 0) + '</div>';
-    html += '<div class="yb-lead__detail-row"><span class="yb-lead__detail-label">' + t('leads_sms_status') + '</span>' + esc(l.sms_status || '\u2014') + '</div>';
-    if (l.application_id) {
-      html += '<div class="yb-lead__detail-row"><span class="yb-lead__detail-label">' + t('leads_application_id') + '</span>' +
-        '<span class="yb-lead__badge" style="background:#d4edda;color:#155724">' + esc(l.application_id) + '</span></div>';
-    }
-    html += '</div>';
 
-    html += '</div>'; // end grid
+    // Follow-up date with urgency color
+    var followupHtml = '\u2014';
+    if (l.followup_date) {
+      var fDate = l.followup_date.toDate ? l.followup_date.toDate() : new Date(l.followup_date);
+      var nowDate = new Date();
+      nowDate.setHours(0, 0, 0, 0);
+      var fuColor = '#66BB6A'; // green (future)
+      if (fDate < nowDate) fuColor = '#EF5350'; // red (overdue)
+      else if (fDate < new Date(nowDate.getTime() + 86400000)) fuColor = '#FF9800'; // orange (today)
+      followupHtml = '<span style="color:' + fuColor + ';font-weight:600">' + fmtDate(l.followup_date) + '</span>';
+    }
+    html += '<div class="yb-lead__card-row">' +
+      '<span class="yb-lead__card-label">' + t('leads_followup') + '</span>' +
+      '<span class="yb-lead__card-value">' + followupHtml + '</span>' +
+    '</div>';
+
+    html += '<div class="yb-lead__card-row">' +
+      '<span class="yb-lead__card-label">' + t('leads_call_attempts') + '</span>' +
+      '<span class="yb-lead__card-value">' + (l.call_attempts || 0) + '</span>' +
+    '</div>';
+    html += '<div class="yb-lead__card-row">' +
+      '<span class="yb-lead__card-label">' + t('leads_sms_status') + '</span>' +
+      '<span class="yb-lead__card-value">' + esc(l.sms_status || '\u2014') + '</span>' +
+    '</div>';
+    html += '<div class="yb-lead__card-row">' +
+      '<span class="yb-lead__card-label">' + t('leads_last_contact') + '</span>' +
+      '<span class="yb-lead__card-value">' + fmtDateTime(l.last_contact) + '</span>' +
+    '</div>';
+
+    if (l.application_id) {
+      html += '<div class="yb-lead__card-row">' +
+        '<span class="yb-lead__card-label">' + t('leads_application_id') + '</span>' +
+        '<span class="yb-lead__card-value">' +
+          '<span class="yb-lead__badge" style="background:#d4edda;color:#155724">' + esc(l.application_id) + '</span> ' +
+          '<button class="yb-btn yb-btn--outline yb-btn--sm" data-action="view-linked-app" data-app-id="' + esc(l.application_id) + '">View Application \u2192</button>' +
+        '</span>' +
+      '</div>';
+    }
+
+    html += '</div>'; // end card 3
+
+    html += '</div>'; // end yb-lead__detail-cards wrapper
 
     el.innerHTML = html;
   }
 
-  /* ═══════════════════════════════════════
+  /* ══════════════════════════════════════════
      QUICK ACTIONS
-     ═══════════════════════════════════════ */
+     ══════════════════════════════════════════ */
   function renderLeadQuickActions() {
     var el = $('yb-lead-actions');
     if (!el || !currentLead) return;
@@ -475,18 +638,131 @@
     var phone = currentLead.phone || '';
     var email = currentLead.email || '';
 
-    el.innerHTML =
+    var html =
       (phone ? '<a href="tel:' + esc(phone) + '" class="yb-btn yb-btn--outline yb-btn--sm" data-action="log-call">\ud83d\udcde ' + t('leads_call') + '</a>' : '') +
       (phone ? '<button class="yb-btn yb-btn--outline yb-btn--sm" data-action="lead-sms">\ud83d\udcf1 ' + t('leads_sms') + '</button>' : '') +
       (phone ? '<a href="https://wa.me/' + esc(phone.replace(/[^0-9+]/g, '')) + '" target="_blank" class="yb-btn yb-btn--outline yb-btn--sm">\ud83d\udcac WhatsApp</a>' : '') +
       (email ? '<button class="yb-btn yb-btn--outline yb-btn--sm" data-action="lead-email">\u2709\ufe0f ' + t('leads_email') + '</button>' : '') +
-      '<button class="yb-btn yb-btn--outline yb-btn--sm" data-action="lead-add-note">\ud83d\udcdd ' + t('leads_add_note') + '</button>' +
-      '<button class="yb-btn yb-btn--outline yb-btn--sm yb-admin__icon-btn--danger" data-action="delete-lead" data-id="' + currentLeadId + '">\ud83d\uddd1 ' + t('delete') + '</button>';
+      '<button class="yb-btn yb-btn--outline yb-btn--sm" data-action="lead-add-note">\ud83d\udcdd ' + t('leads_add_note') + '</button>';
+
+    // Only show delete button for admins
+    if (currentUserRole === 'admin') {
+      html += '<button class="yb-btn yb-btn--outline yb-btn--sm yb-admin__icon-btn--danger" data-action="delete-lead" data-id="' + currentLeadId + '">\ud83d\uddd1 ' + t('delete') + '</button>';
+    }
+
+    el.innerHTML = html;
   }
 
-  /* ═══════════════════════════════════════
+  /* ══════════════════════════════════════════
+     SMS CONVERSATION (subcollection)
+     ══════════════════════════════════════════ */
+  function loadSMSConversation(leadId) {
+    var container = $('yb-lead-sms-conversation');
+    if (!container) return;
+
+    container.innerHTML = '<p class="yb-lead__empty-text">' + t('loading') + '</p>';
+
+    db.collection('leads').doc(leadId).collection('sms_messages')
+      .orderBy('timestamp', 'asc')
+      .get()
+      .then(function (snap) {
+        var messages = [];
+        snap.forEach(function (doc) {
+          messages.push(Object.assign({ id: doc.id }, doc.data()));
+        });
+        renderSMSConversation(messages, container);
+      })
+      .catch(function (err) {
+        console.error('[lead-admin] SMS conversation load error:', err);
+        container.innerHTML = '<p class="yb-lead__empty-text">Could not load SMS conversation.</p>';
+      });
+  }
+
+  function renderSMSConversation(messages, container) {
+    if (!container) container = $('yb-lead-sms-conversation');
+    if (!container) return;
+
+    var html = '<div class="yb-lead__sms-thread">';
+
+    if (!messages || messages.length === 0) {
+      html += '<p class="yb-lead__empty-text">No SMS messages yet.</p>';
+    } else {
+      html += messages.map(function (m) {
+        var dir = (m.direction === 'inbound') ? 'in' : 'out';
+        return '<div class="yb-lead__sms-bubble yb-lead__sms-bubble--' + dir + '">' +
+          '<div class="yb-lead__sms-bubble-text">' + esc(m.message || m.body || '') + '</div>' +
+          '<div class="yb-lead__sms-bubble-time">' + fmtDateTime(m.timestamp) + '</div>' +
+        '</div>';
+      }).join('');
+    }
+
+    html += '</div>';
+
+    // Reply input
+    if (currentLead && currentLead.phone) {
+      html += '<div class="yb-lead__sms-reply">' +
+        '<input type="text" id="yb-sms-reply-input" class="yb-admin__input" placeholder="Type a reply..." style="flex:1">' +
+        '<button class="yb-btn yb-btn--primary yb-btn--sm" data-action="sms-reply-send">\u27a4 Send</button>' +
+      '</div>';
+    }
+
+    container.innerHTML = html;
+
+    // Auto-scroll to bottom of thread
+    var thread = container.querySelector('.yb-lead__sms-thread');
+    if (thread) thread.scrollTop = thread.scrollHeight;
+  }
+
+  function sendSMSReply() {
+    var input = $('yb-sms-reply-input');
+    if (!input || !currentLead || !currentLead.phone) return;
+
+    var message = input.value.trim();
+    if (!message) { toast(t('leads_sms_empty'), true); return; }
+
+    input.disabled = true;
+
+    getAuthToken().then(function (token) {
+      return fetch('/.netlify/functions/send-sms', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+        body: JSON.stringify({ leadId: currentLeadId, message: message })
+      });
+    }).then(function (res) { return res.json(); })
+      .then(function (data) {
+        if (data.ok) {
+          toast(t('leads_sms_sent'));
+          input.value = '';
+          addNoteDirectly('SMS sent: ' + message.substring(0, 100), 'sms');
+          // Reload conversation
+          loadSMSConversation(currentLeadId);
+        } else {
+          toast(t('leads_sms_failed') + ': ' + (data.error || ''), true);
+        }
+      }).catch(function (err) {
+        toast(t('leads_sms_failed') + ': ' + err.message, true);
+      }).finally(function () {
+        if (input) input.disabled = false;
+      });
+  }
+
+  function markSMSRead(leadId) {
+    // Update the lead doc
+    db.collection('leads').doc(leadId).update({
+      has_unread_sms: false
+    }).then(function () {
+      // Update local state
+      if (currentLead) currentLead.has_unread_sms = false;
+      var idx = leads.findIndex(function (l) { return l.id === leadId; });
+      if (idx !== -1) leads[idx].has_unread_sms = false;
+    }).catch(function (err) {
+      console.error('[lead-admin] markSMSRead error:', err);
+    });
+  }
+
+  /* ══════════════════════════════════════════
      STATUS + SETTINGS FORM
-     ═══════════════════════════════════════ */
+     ══════════════════════════════════════════ */
   function populateStatusForm() {
     if (!currentLead) return;
 
@@ -570,9 +846,9 @@
     });
   }
 
-  /* ═══════════════════════════════════════
+  /* ══════════════════════════════════════════
      NOTES TIMELINE
-     ═══════════════════════════════════════ */
+     ══════════════════════════════════════════ */
   function renderLeadNotes() {
     var el = $('yb-lead-notes-timeline');
     if (!el || !currentLead) return;
@@ -581,7 +857,6 @@
 
     // Support old format (plain string) and new format (array of objects)
     if (typeof notes === 'string' && notes) {
-      // Old format — show as single note
       el.innerHTML = '<div class="yb-lead__note-item">' +
         '<div class="yb-lead__note-text">' + esc(notes) + '</div>' +
         '</div>';
@@ -696,10 +971,14 @@
     });
   }
 
-  /* ═══════════════════════════════════════
+  /* ══════════════════════════════════════════
      DELETE LEAD
-     ═══════════════════════════════════════ */
+     ══════════════════════════════════════════ */
   function deleteLead(leadId) {
+    if (currentUserRole !== 'admin') {
+      toast('Only admins can delete leads.', true);
+      return;
+    }
     if (!confirm(t('leads_confirm_delete'))) return;
 
     db.collection('leads').doc(leadId).delete().then(function () {
@@ -714,9 +993,9 @@
     });
   }
 
-  /* ═══════════════════════════════════════
+  /* ══════════════════════════════════════════
      ACTIVITY LOG (Email + SMS)
-     ═══════════════════════════════════════ */
+     ══════════════════════════════════════════ */
   function loadLeadActivity() {
     var el = $('yb-lead-activity');
     if (!el || !currentLead) return;
@@ -788,9 +1067,9 @@
     });
   }
 
-  /* ═══════════════════════════════════════
-     SMS COMPOSER
-     ═══════════════════════════════════════ */
+  /* ══════════════════════════════════════════
+     SMS COMPOSER (Modal)
+     ══════════════════════════════════════════ */
   function openSMSComposer(leadOrLeads) {
     var modal = $('yb-lead-sms-modal');
     if (!modal) return;
@@ -859,9 +1138,9 @@
       });
   }
 
-  /* ═══════════════════════════════════════
-     EMAIL COMPOSER
-     ═══════════════════════════════════════ */
+  /* ══════════════════════════════════════════
+     EMAIL COMPOSER (Modal)
+     ══════════════════════════════════════════ */
   function openEmailComposer(leadOrLeads) {
     var modal = $('yb-lead-email-modal');
     if (!modal) return;
@@ -933,7 +1212,7 @@
       });
   }
 
-  /* helper — add note without prompt */
+  /* helper - add note without prompt */
   function addNoteDirectly(text, type) {
     if (!currentLeadId || !currentLead) return;
     var newNote = {
@@ -961,9 +1240,9 @@
     }).catch(function () { /* silent */ });
   }
 
-  /* ═══════════════════════════════════════
+  /* ══════════════════════════════════════════
      BULK OPERATIONS
-     ═══════════════════════════════════════ */
+     ══════════════════════════════════════════ */
   function updateBulkBar() {
     var bar = $('yb-lead-bulk-bar');
     if (!bar) return;
@@ -1050,9 +1329,9 @@
     openEmailComposer(selected);
   }
 
-  /* ═══════════════════════════════════════
+  /* ══════════════════════════════════════════
      CSV EXPORT
-     ═══════════════════════════════════════ */
+     ══════════════════════════════════════════ */
   function exportCSV() {
     var filtered = getFilteredLeads();
     if (!filtered.length) { toast(t('leads_no_leads'), true); return; }
@@ -1090,9 +1369,9 @@
     toast(t('leads_exported'));
   }
 
-  /* ═══════════════════════════════════════
+  /* ══════════════════════════════════════════
      SORT
-     ═══════════════════════════════════════ */
+     ══════════════════════════════════════════ */
   function toggleSort(field) {
     if (sortField === field) {
       sortDir = sortDir === 'asc' ? 'desc' : 'asc';
@@ -1112,17 +1391,427 @@
     loadLeads();
   }
 
-  /* ═══════════════════════════════════════
+  /* ══════════════════════════════════════════
      SMS prompt (legacy fallback)
-     ═══════════════════════════════════════ */
+     ══════════════════════════════════════════ */
   function promptSendSMS() {
     if (!currentLead || !currentLead.phone) return;
     openSMSComposer();
   }
 
-  /* ═══════════════════════════════════════
+  /* ══════════════════════════════════════════════
+     ═══════════════════════════════════════════
+     APPLICATIONS TAB
+     ═══════════════════════════════════════════
+     ══════════════════════════════════════════════ */
+
+  /* ── Load Applications ── */
+  function loadApplications() {
+    applications = [];
+
+    var query = db.collection('applications').orderBy('created_at', 'desc');
+
+    if (appFilterStatus) query = query.where('status', '==', appFilterStatus);
+    if (appFilterType) query = query.where('program_type', '==', appFilterType);
+
+    query.limit(200).get().then(function (snap) {
+      snap.forEach(function (doc) {
+        applications.push(Object.assign({ id: doc.id }, doc.data()));
+      });
+
+      renderApplicationTable();
+      renderApplicationStats();
+    }).catch(function (err) {
+      console.error('[lead-admin] Applications load error:', err);
+      toast(t('error_load'), true);
+    });
+  }
+
+  /* ── Filter applications ── */
+  function getFilteredApps() {
+    var filtered = applications;
+    if (appSearchTerm) {
+      var s = appSearchTerm.toLowerCase();
+      filtered = applications.filter(function (a) {
+        return (a.email || '').toLowerCase().indexOf(s) !== -1 ||
+          (a.first_name || '').toLowerCase().indexOf(s) !== -1 ||
+          (a.last_name || '').toLowerCase().indexOf(s) !== -1 ||
+          (a.app_id || '').toLowerCase().indexOf(s) !== -1 ||
+          (a.program_type || '').toLowerCase().indexOf(s) !== -1 ||
+          (a.course_name || '').toLowerCase().indexOf(s) !== -1;
+      });
+    }
+    return filtered;
+  }
+
+  /* ── Render Application Table ── */
+  function renderApplicationTable() {
+    var tbody = $('yb-app-table-body');
+    if (!tbody) return;
+
+    var filtered = getFilteredApps();
+
+    var countEl = $('yb-app-count');
+    if (countEl) countEl.textContent = filtered.length + ' of ' + applications.length;
+
+    if (!filtered.length) {
+      tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;padding:2rem;color:var(--yb-muted)">No applications found.</td></tr>';
+      return;
+    }
+
+    tbody.innerHTML = filtered.map(function (a) {
+      return '<tr class="yb-lead__row" data-app-id="' + a.id + '">' +
+        '<td class="yb-lead__cell-date">' + esc(a.app_id || a.id.substring(0, 8)) + '</td>' +
+        '<td class="yb-lead__cell-name">' + esc((a.first_name || '') + ' ' + (a.last_name || '')).trim() + '</td>' +
+        '<td class="yb-lead__cell-contact"><div class="yb-lead__cell-email-text">' + esc(a.email || '') + '</div></td>' +
+        '<td><span class="yb-lead__type-badge">' + esc(a.program_type || '\u2014') + '</span></td>' +
+        '<td class="yb-lead__cell-program">' + esc((a.course_name || a.cohort || '').substring(0, 30)) + '</td>' +
+        '<td>' + esc(a.track || '\u2014') + '</td>' +
+        '<td>' + esc(a.payment_choice || '\u2014') + '</td>' +
+        '<td>' + appStatusBadgeHtml(a.status) + '</td>' +
+        '<td class="yb-lead__cell-date">' + relativeTime(a.created_at) + '</td>' +
+        '<td class="yb-lead__cell-actions">' +
+          '<button class="yb-admin__icon-btn" data-action="view-app" data-id="' + a.id + '" title="View">\u2192</button>' +
+        '</td>' +
+      '</tr>';
+    }).join('');
+  }
+
+  /* ── Render Application Stats ── */
+  function renderApplicationStats() {
+    var el = $('yb-app-stats');
+    if (!el) return;
+
+    var total = applications.length;
+    var counts = {};
+    APP_STATUSES.forEach(function (s) { counts[s.value] = 0; });
+    var typeCounts = {};
+    applications.forEach(function (a) {
+      var st = a.status || 'Pending';
+      if (counts[st] !== undefined) counts[st]++;
+      var pt = a.program_type || 'Other';
+      typeCounts[pt] = (typeCounts[pt] || 0) + 1;
+    });
+
+    var html =
+      '<div class="yb-lead__stat-card yb-lead__stat-card--total">' +
+        '<span class="yb-lead__stat-value">' + total + '</span>' +
+        '<span class="yb-lead__stat-label">Total</span>' +
+      '</div>' +
+      '<div class="yb-lead__stat-card yb-lead__stat-card--new">' +
+        '<span class="yb-lead__stat-value">' + (counts['Pending'] || 0) + '</span>' +
+        '<span class="yb-lead__stat-label">\u23f3 Pending</span>' +
+      '</div>' +
+      '<div class="yb-lead__stat-card yb-lead__stat-card--converted">' +
+        '<span class="yb-lead__stat-value">' + (counts['Approved'] || 0) + '</span>' +
+        '<span class="yb-lead__stat-label">\u2705 Approved</span>' +
+      '</div>' +
+      '<div class="yb-lead__stat-card yb-lead__stat-card--pipeline">' +
+        '<span class="yb-lead__stat-value">' + (counts['Enrolled'] || 0) + '</span>' +
+        '<span class="yb-lead__stat-label">\ud83c\udf93 Enrolled</span>' +
+      '</div>';
+
+    // By program type
+    Object.keys(typeCounts).forEach(function (pt) {
+      html += '<div class="yb-lead__stat-card">' +
+        '<span class="yb-lead__stat-value">' + typeCounts[pt] + '</span>' +
+        '<span class="yb-lead__stat-label">' + esc(pt) + '</span>' +
+      '</div>';
+    });
+
+    el.innerHTML = html;
+  }
+
+  /* ── Show Application Detail ── */
+  function showApplicationDetail(appId) {
+    currentAppId = appId;
+    currentApp = applications.find(function (a) { return a.id === appId; });
+    if (!currentApp) return;
+
+    var listView = $('yb-admin-v-app-list');
+    var detailView = $('yb-admin-v-app-detail');
+    if (listView) listView.hidden = true;
+    if (detailView) detailView.hidden = false;
+
+    var headingEl = $('yb-app-detail-heading');
+    if (headingEl) headingEl.textContent = (currentApp.first_name || '') + ' ' + (currentApp.last_name || '') + ' \u2014 ' + (currentApp.app_id || appId.substring(0, 8));
+
+    renderApplicationDetailCard();
+  }
+
+  function backToAppList() {
+    var listView = $('yb-admin-v-app-list');
+    var detailView = $('yb-admin-v-app-detail');
+    if (listView) listView.hidden = false;
+    if (detailView) detailView.hidden = true;
+    currentAppId = null;
+    currentApp = null;
+    renderApplicationTable();
+  }
+
+  /* ── Render Application Detail Card ── */
+  function renderApplicationDetailCard() {
+    var el = $('yb-app-detail-card');
+    if (!el || !currentApp) return;
+    var a = currentApp;
+    var statusMeta = getAppStatusMeta(a.status);
+
+    var html = '<div class="yb-lead__detail-cards">';
+
+    // Card 1: Personal Info
+    html += '<div class="yb-lead__section-card">';
+    html += '<h4 class="yb-lead__card-title">PERSONAL INFO</h4>';
+    html += '<div class="yb-lead__card-row">' +
+      '<span class="yb-lead__card-label">Name</span>' +
+      '<span class="yb-lead__card-value">' + esc((a.first_name || '') + ' ' + (a.last_name || '')) + '</span>' +
+    '</div>';
+    html += '<div class="yb-lead__card-row">' +
+      '<span class="yb-lead__card-label">Email</span>' +
+      '<a href="mailto:' + esc(a.email) + '" class="yb-lead__card-value yb-lead__card-link">' + esc(a.email || '\u2014') + '</a>' +
+    '</div>';
+    html += '<div class="yb-lead__card-row">' +
+      '<span class="yb-lead__card-label">Phone</span>' +
+      (a.phone
+        ? '<a href="tel:' + esc(a.phone) + '" class="yb-lead__card-value yb-lead__card-link">' + esc(a.phone) + '</a>'
+        : '<span class="yb-lead__card-value">\u2014</span>') +
+    '</div>';
+    if (a.dob) {
+      html += '<div class="yb-lead__card-row">' +
+        '<span class="yb-lead__card-label">Date of Birth</span>' +
+        '<span class="yb-lead__card-value">' + esc(a.dob) + '</span>' +
+      '</div>';
+    }
+    if (a.city_country) {
+      html += '<div class="yb-lead__card-row">' +
+        '<span class="yb-lead__card-label">Location</span>' +
+        '<span class="yb-lead__card-value">' + esc(a.city_country) + '</span>' +
+      '</div>';
+    }
+    html += '<div class="yb-lead__card-row">' +
+      '<span class="yb-lead__card-label">Applied</span>' +
+      '<span class="yb-lead__card-value">' + fmtDateTime(a.created_at) + '</span>' +
+    '</div>';
+    html += '</div>'; // end card 1
+
+    // Card 2: Program
+    html += '<div class="yb-lead__section-card">';
+    html += '<h4 class="yb-lead__card-title">PROGRAM</h4>';
+    html += '<div class="yb-lead__card-row">' +
+      '<span class="yb-lead__card-label">Program Type</span>' +
+      '<span class="yb-lead__card-value"><span class="yb-lead__type-badge">' + esc(a.program_type || '\u2014') + '</span></span>' +
+    '</div>';
+    if (a.course_name) {
+      html += '<div class="yb-lead__card-row">' +
+        '<span class="yb-lead__card-label">Course</span>' +
+        '<span class="yb-lead__card-value">' + esc(a.course_name) + '</span>' +
+      '</div>';
+    }
+    if (a.cohort) {
+      html += '<div class="yb-lead__card-row">' +
+        '<span class="yb-lead__card-label">Cohort</span>' +
+        '<span class="yb-lead__card-value">' + esc(a.cohort) + '</span>' +
+      '</div>';
+    }
+    if (a.track) {
+      html += '<div class="yb-lead__card-row">' +
+        '<span class="yb-lead__card-label">Track</span>' +
+        '<span class="yb-lead__card-value">' + esc(a.track) + '</span>' +
+      '</div>';
+    }
+    if (a.bundle) {
+      html += '<div class="yb-lead__card-row">' +
+        '<span class="yb-lead__card-label">Bundle</span>' +
+        '<span class="yb-lead__card-value">' + esc(a.bundle) + '</span>' +
+      '</div>';
+    }
+    if (a.hear_about) {
+      html += '<div class="yb-lead__card-row">' +
+        '<span class="yb-lead__card-label">How did you hear?</span>' +
+        '<span class="yb-lead__card-value">' + esc(a.hear_about) + '</span>' +
+      '</div>';
+    }
+    if (a.experience) {
+      html += '<div class="yb-lead__card-row yb-lead__card-row--full">' +
+        '<span class="yb-lead__card-label">Experience</span>' +
+        '<div class="yb-lead__detail-message">' + esc(a.experience) + '</div>' +
+      '</div>';
+    }
+    if (a.motivation) {
+      html += '<div class="yb-lead__card-row yb-lead__card-row--full">' +
+        '<span class="yb-lead__card-label">Motivation</span>' +
+        '<div class="yb-lead__detail-message">' + esc(a.motivation) + '</div>' +
+      '</div>';
+    }
+    html += '</div>'; // end card 2
+
+    // Card 3: Payment & Status (full-width)
+    html += '<div class="yb-lead__section-card yb-lead__section-card--full">';
+    html += '<h4 class="yb-lead__card-title">PAYMENT & STATUS</h4>';
+    if (a.payment_choice) {
+      html += '<div class="yb-lead__card-row">' +
+        '<span class="yb-lead__card-label">Payment Choice</span>' +
+        '<span class="yb-lead__card-value">' + esc(a.payment_choice) + '</span>' +
+      '</div>';
+    }
+    html += '<div class="yb-lead__card-row">' +
+      '<span class="yb-lead__card-label">Status</span>' +
+      '<span class="yb-lead__card-value">' +
+        '<span class="yb-lead__badge yb-lead__badge--lg" style="background:' + statusMeta.color + ';color:' + statusMeta.text + '">' +
+          statusMeta.icon + ' ' + esc(statusMeta.label) +
+        '</span>' +
+      '</span>' +
+    '</div>';
+
+    // Status selector
+    html += '<div class="yb-lead__card-row">' +
+      '<span class="yb-lead__card-label">Change Status</span>' +
+      '<span class="yb-lead__card-value">' +
+        '<select id="yb-app-status-select" class="yb-admin__select" style="display:inline-block;width:auto;margin-right:0.5rem">' +
+        APP_STATUSES.map(function (s) {
+          return '<option value="' + esc(s.value) + '"' + (a.status === s.value ? ' selected' : '') + '>' + s.icon + ' ' + esc(s.label) + '</option>';
+        }).join('') +
+        '</select>' +
+        '<button class="yb-btn yb-btn--primary yb-btn--sm" data-action="app-update-status">' + t('save') + '</button>' +
+      '</span>' +
+    '</div>';
+
+    if (a.app_id) {
+      html += '<div class="yb-lead__card-row">' +
+        '<span class="yb-lead__card-label">App ID</span>' +
+        '<span class="yb-lead__card-value"><code>' + esc(a.app_id) + '</code></span>' +
+      '</div>';
+    }
+    html += '</div>'; // end card 3
+
+    // Card 4: Linked Lead
+    html += '<div class="yb-lead__section-card yb-lead__section-card--full">';
+    html += '<h4 class="yb-lead__card-title">LINKED LEAD</h4>';
+    html += '<div class="yb-lead__card-row">' +
+      '<span class="yb-lead__card-label">Lead</span>' +
+      '<span class="yb-lead__card-value">' +
+        '<button class="yb-btn yb-btn--outline yb-btn--sm" data-action="view-linked-lead" data-app-id="' + esc(a.app_id || a.id) + '">\u2190 View Lead</button>' +
+      '</span>' +
+    '</div>';
+    html += '</div>'; // end card 4
+
+    html += '</div>'; // end yb-lead__detail-cards
+
+    el.innerHTML = html;
+  }
+
+  /* ── Update Application Status ── */
+  function updateAppStatus() {
+    if (!currentAppId || !currentApp) return;
+
+    var select = $('yb-app-status-select');
+    if (!select) return;
+
+    var newStatus = select.value;
+    if (newStatus === currentApp.status) return;
+
+    db.collection('applications').doc(currentAppId).update({
+      status: newStatus,
+      updated_at: firebase.firestore.FieldValue.serverTimestamp()
+    }).then(function () {
+      currentApp.status = newStatus;
+      var idx = applications.findIndex(function (a) { return a.id === currentAppId; });
+      if (idx !== -1) applications[idx].status = newStatus;
+
+      renderApplicationDetailCard();
+      renderApplicationStats();
+      toast(t('saved'));
+    }).catch(function (err) {
+      console.error('[lead-admin] App status update error:', err);
+      toast(t('error_save'), true);
+    });
+  }
+
+  /* ══════════════════════════════════════════
+     CROSS-LINKING
+     ══════════════════════════════════════════ */
+
+  /* Jump from lead to application */
+  function viewLinkedApplication(appId) {
+    // Switch to Applications tab
+    var appTabBtn = document.querySelector('[data-yb-admin-tab="applications"]');
+    if (appTabBtn) appTabBtn.click();
+
+    // Ensure applications are loaded
+    var doShow = function () {
+      // Find by app_id field or doc id
+      var app = applications.find(function (a) { return a.app_id === appId || a.id === appId; });
+      if (app) {
+        showApplicationDetail(app.id);
+      } else {
+        toast('Application not found: ' + appId, true);
+      }
+    };
+
+    if (!appLoaded) {
+      // Load first, then navigate
+      applications = [];
+      db.collection('applications').orderBy('created_at', 'desc').limit(200).get().then(function (snap) {
+        snap.forEach(function (doc) {
+          applications.push(Object.assign({ id: doc.id }, doc.data()));
+        });
+        appLoaded = true;
+        renderApplicationTable();
+        renderApplicationStats();
+        doShow();
+      }).catch(function (err) {
+        console.error('[lead-admin] App load error:', err);
+        toast(t('error_load'), true);
+      });
+    } else {
+      doShow();
+    }
+  }
+
+  /* Jump from application to lead */
+  function viewLinkedLead(appId) {
+    // Switch to Leads tab
+    var leadsTabBtn = document.querySelector('[data-yb-admin-tab="leads"]');
+    if (leadsTabBtn) leadsTabBtn.click();
+
+    // Ensure leads are loaded
+    var doShow = function () {
+      var lead = leads.find(function (l) { return l.application_id === appId; });
+      if (lead) {
+        showLeadDetail(lead.id);
+      } else {
+        // Try querying Firestore directly
+        db.collection('leads').where('application_id', '==', appId).limit(1).get().then(function (snap) {
+          if (!snap.empty) {
+            var doc = snap.docs[0];
+            var leadData = Object.assign({ id: doc.id }, doc.data());
+            // Add to local cache if not there
+            if (!leads.find(function (l) { return l.id === leadData.id; })) {
+              leads.push(leadData);
+            }
+            showLeadDetail(leadData.id);
+          } else {
+            toast('No lead found for application ' + appId, true);
+          }
+        }).catch(function (err) {
+          console.error('[lead-admin] Lead lookup error:', err);
+          toast('Could not find linked lead.', true);
+        });
+      }
+    };
+
+    if (!leadsLoaded) {
+      loadLeads();
+      leadsLoaded = true;
+      // Give it a moment to load, then try
+      setTimeout(doShow, 1500);
+    } else {
+      doShow();
+    }
+  }
+
+  /* ══════════════════════════════════════════
      EVENT BINDING
-     ═══════════════════════════════════════ */
+     ══════════════════════════════════════════ */
   function bindLeadEvents() {
     // Delegated click handler
     document.addEventListener('click', function (e) {
@@ -1132,6 +1821,7 @@
       var id = btn.getAttribute('data-id');
 
       switch (action) {
+        // Lead actions
         case 'view-lead': e.preventDefault(); showLeadDetail(id); break;
         case 'back-leads': backToLeadList(); break;
         case 'leads-refresh': loadLeads(); break;
@@ -1151,8 +1841,25 @@
         case 'sms-cancel': $('yb-lead-sms-modal').hidden = true; break;
         case 'email-send': sendEmailFromComposer(); break;
         case 'email-cancel': $('yb-lead-email-modal').hidden = true; break;
-        case 'lead-note-submit':
-          addNote('note');
+        case 'lead-note-submit': addNote('note'); break;
+
+        // SMS conversation reply
+        case 'sms-reply-send': sendSMSReply(); break;
+
+        // Application actions
+        case 'view-app': e.preventDefault(); showApplicationDetail(id); break;
+        case 'back-apps': backToAppList(); break;
+        case 'apps-refresh': loadApplications(); break;
+        case 'app-update-status': updateAppStatus(); break;
+
+        // Cross-linking
+        case 'view-linked-app':
+          var linkedAppId = btn.getAttribute('data-app-id');
+          if (linkedAppId) viewLinkedApplication(linkedAppId);
+          break;
+        case 'view-linked-lead':
+          var linkedLeadAppId = btn.getAttribute('data-app-id');
+          if (linkedLeadAppId) viewLinkedLead(linkedLeadAppId);
           break;
       }
     });
@@ -1167,7 +1874,7 @@
       }
     });
 
-    // Search form
+    // Search form — Leads
     var searchForm = $('yb-lead-search-form');
     if (searchForm) {
       searchForm.addEventListener('submit', function (e) {
@@ -1185,7 +1892,24 @@
       }
     }
 
-    // Filters
+    // Search form — Applications
+    var appSearchForm = $('yb-app-search-form');
+    if (appSearchForm) {
+      appSearchForm.addEventListener('submit', function (e) {
+        e.preventDefault();
+        appSearchTerm = ($('yb-app-search-input') || {}).value || '';
+        renderApplicationTable();
+      });
+      var appSearchInput = $('yb-app-search-input');
+      if (appSearchInput) {
+        appSearchInput.addEventListener('input', function () {
+          appSearchTerm = appSearchInput.value || '';
+          renderApplicationTable();
+        });
+      }
+    }
+
+    // Filters — Leads
     ['yb-lead-status-filter', 'yb-lead-type-filter', 'yb-lead-source-filter', 'yb-lead-priority-filter', 'yb-lead-temperature-filter'].forEach(function (filterId) {
       var el = $(filterId);
       if (el) {
@@ -1200,7 +1924,23 @@
       }
     });
 
-    // Status form
+    // Filters — Applications
+    var appStatusFilter = $('yb-app-status-filter');
+    if (appStatusFilter) {
+      appStatusFilter.addEventListener('change', function () {
+        appFilterStatus = appStatusFilter.value;
+        loadApplications();
+      });
+    }
+    var appTypeFilter = $('yb-app-type-filter');
+    if (appTypeFilter) {
+      appTypeFilter.addEventListener('change', function () {
+        appFilterType = appTypeFilter.value;
+        loadApplications();
+      });
+    }
+
+    // Status form — Leads
     var statusForm = $('yb-lead-status-form');
     if (statusForm) statusForm.addEventListener('submit', saveLeadStatus);
 
@@ -1217,7 +1957,7 @@
       });
     });
 
-    // Row click
+    // Row click — Leads
     var table = $('yb-lead-table');
     if (table) {
       table.addEventListener('click', function (e) {
@@ -1225,13 +1965,26 @@
         if (e.target.closest('input[type="checkbox"]') || e.target.closest('button')) return;
         var row = e.target.closest('.yb-lead__row');
         if (row) {
-          var id = row.getAttribute('data-id');
-          if (id) showLeadDetail(id);
+          var rowId = row.getAttribute('data-id');
+          if (rowId) showLeadDetail(rowId);
         }
       });
     }
 
-    // Stat card click → filter
+    // Row click — Applications
+    var appTable = $('yb-app-table');
+    if (appTable) {
+      appTable.addEventListener('click', function (e) {
+        if (e.target.closest('button')) return;
+        var row = e.target.closest('.yb-lead__row');
+        if (row) {
+          var rowAppId = row.getAttribute('data-app-id');
+          if (rowAppId) showApplicationDetail(rowAppId);
+        }
+      });
+    }
+
+    // Stat card click -> filter (Leads)
     document.addEventListener('click', function (e) {
       var card = e.target.closest('[data-filter-status]');
       if (card) {
@@ -1261,25 +2014,51 @@
         addNote('note');
       });
     }
+
+    // SMS reply — Enter key
+    document.addEventListener('keydown', function (e) {
+      if (e.target && e.target.id === 'yb-sms-reply-input' && e.key === 'Enter') {
+        e.preventDefault();
+        sendSMSReply();
+      }
+    });
   }
 
-  /* ═══════════════════════════════════════
+  /* ══════════════════════════════════════════
      INIT
-     ═══════════════════════════════════════ */
+     ══════════════════════════════════════════ */
   function initLeadAdmin() {
     T = window._ybAdminT || {};
 
     if (typeof firebase === 'undefined' || !firebase.apps || !firebase.apps.length) return;
     db = firebase.firestore();
 
+    // Detect user role
+    var user = firebase.auth().currentUser;
+    if (user) {
+      db.collection('users').doc(user.uid).get().then(function (doc) {
+        if (doc.exists) {
+          var data = doc.data();
+          currentUserRole = data.role || 'user';
+        }
+      }).catch(function (err) {
+        console.error('[lead-admin] Role fetch error:', err);
+      });
+    }
+
     bindLeadEvents();
 
-    // Hook into tab switching
+    // Hook into tab switching — Leads
     document.querySelectorAll('[data-yb-admin-tab]').forEach(function (btn) {
       btn.addEventListener('click', function () {
-        if (btn.getAttribute('data-yb-admin-tab') === 'leads' && !leadsLoaded) {
+        var tab = btn.getAttribute('data-yb-admin-tab');
+        if (tab === 'leads' && !leadsLoaded) {
           loadLeads();
           leadsLoaded = true;
+        }
+        if (tab === 'applications' && !appLoaded) {
+          loadApplications();
+          appLoaded = true;
         }
       });
     });

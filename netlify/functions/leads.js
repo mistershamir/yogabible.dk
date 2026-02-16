@@ -141,7 +141,8 @@ async function update(db, event, user) {
     'subcategories', 'message', 'source', 'status', 'sub_status',
     'priority', 'temperature', 'notes',
     'converted', 'converted_at', 'application_id', 'unsubscribed',
-    'call_attempts', 'sms_status', 'last_contact', 'followup_date'
+    'call_attempts', 'sms_status', 'last_contact', 'followup_date',
+    'has_unread_sms', 'last_sms_at'
   ];
 
   for (const key of allowed) {

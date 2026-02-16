@@ -141,6 +141,7 @@ async function sendWelcomeSMS(leadData, leadDocId) {
   if (result.success) {
     await updateLeadSMSStatus(leadDocId, 'sent');
     await logSMSToNotes(leadDocId, message.substring(0, 30) + '...', 'sent');
+    await logSMSToConversation(leadDocId, message, phone, 'outbound');
     console.log(`[sms] Welcome SMS sent to ${phone} for lead ${leadDocId}`);
   } else {
     await updateLeadSMSStatus(leadDocId, 'failed: ' + (result.error || 'unknown').substring(0, 50));
@@ -178,6 +179,8 @@ async function sendSMSToLead(leadDocId, message) {
   if (result.success) {
     await updateLeadSMSStatus(leadDocId, 'sent');
     await logSMSToNotes(leadDocId, personalizedMessage.substring(0, 30) + '...', 'sent');
+    // Also write to sms_messages subcollection for conversation UI
+    await logSMSToConversation(leadDocId, personalizedMessage, phone, 'outbound');
   }
 
   return result;
@@ -218,9 +221,26 @@ async function logSMSToNotes(leadDocId, messageSummary, status) {
   }
 }
 
+async function logSMSToConversation(leadDocId, message, phone, direction) {
+  try {
+    const db = getDb();
+    await db.collection('leads').doc(leadDocId)
+      .collection('sms_messages').add({
+        direction: direction,
+        message: message,
+        phone: phone,
+        timestamp: new Date(),
+        read: true
+      });
+  } catch (err) {
+    console.error('[sms] Failed to log SMS to conversation:', err.message);
+  }
+}
+
 module.exports = {
   sendSMS,
   sendWelcomeSMS,
   sendSMSToLead,
-  normalizePhone
+  normalizePhone,
+  logSMSToConversation
 };

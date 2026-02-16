@@ -46,6 +46,9 @@ async function getAll(db, params) {
 
   if (params.status) query = query.where('status', '==', params.status);
   if (params.type) query = query.where('type', '==', params.type);
+  if (params.ytt_program_type) query = query.where('ytt_program_type', '==', params.ytt_program_type);
+  if (params.course_id) query = query.where('course_id', '==', params.course_id);
+  if (params.payment_choice) query = query.where('payment_choice', '==', params.payment_choice);
 
   query = query.orderBy('created_at', 'desc');
 
