@@ -41,18 +41,18 @@
   // Prep phase benefits (for teacher training)
   var PREP_BENEFITS = {
     da: [
-      'Sikrer din plads på holdet',
-      'Start din praksis og forbered krop & sind med det samme',
-      'Mere tid til at opfylde praksis-krav',
-      'Spar på studiemedlemskaber',
-      'Adgang til velkomstmateriale og online-ressourcer'
+      'Sikr din plads på programmet',
+      'Start booking af klasser med det samme',
+      'Klasser tæller med i dine træningstimer',
+      'Forbered krop og sind — bliv en del af fællesskabet',
+      'Inkluderet klasseadgang — spar på separat medlemskab'
     ],
     en: [
-      'Secures your spot on the cohort',
-      'Start your practice and prepare body & mind right away',
-      'More time to complete class practice requirements',
-      'Save on studio memberships',
-      'Access to welcome materials and online resources'
+      'Secure your spot in the program',
+      'Start booking classes immediately',
+      'Classes count toward your training hours',
+      'Prepare body and mind — join the community early',
+      'Class access included — save on a separate membership'
     ]
   };
 
