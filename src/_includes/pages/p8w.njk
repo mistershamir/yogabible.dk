@@ -14,9 +14,7 @@
     <p class="p8w-hero__styles">{{ t.hero_styles }}</p>
     <div class="yb-hero__line"></div>
     <div class="yb-hero__ctas">
-      <a href="https://clients.mindbodyonline.com/classic/ws?studioid=5748831&stype=41&sTG=46&prodId=100209"
-         target="_blank" rel="noopener"
-         class="yb-btn yb-btn--primary yb-btn--large">{{ t.hero_cta_prep }}</a>
+      <button class="yb-btn yb-btn--primary yb-btn--large" data-checkout-product="100209">{{ t.hero_cta_prep }}</button>
       <button onclick="openYBScheduleModal('8w')" class="yb-btn yb-btn--outline-white yb-btn--large">{{ t.hero_cta_schedule }}</button>
     </div>
     <p class="yb-hero__read-more">
@@ -645,9 +643,7 @@
         </ul>
 
         <div class="p4w-early-card__cta">
-          <a class="yb-btn yb-btn--cta"
-             href="https://clients.mindbodyonline.com/classic/ws?studioid=5748831&stype=41&sTG=46&prodId=100078"
-             target="_blank" rel="noopener">{{ t.early_cta_text }}</a>
+          <button class="yb-btn yb-btn--cta" data-checkout-product="100209">{{ t.early_cta_text }}</button>
           <div class="p4w-early-card__pricing">
             <span class="p4w-early-card__deposit">{{ t.early_deposit_label }}</span>
             <span class="p4w-early-card__remainder">{{ t.early_remainder_label }}</span>
@@ -686,7 +682,10 @@
   <div class="container">
     <h2 class="p18-final-cta__title">{{ t.final_title }}</h2>
     <p class="p18-final-cta__text">{{ t.final_text }}</p>
-    <button onclick="openYBScheduleModal('8w')" class="btn btn--large btn--primary">{{ t.final_cta }}</button>
+    <div style="display:flex;flex-wrap:wrap;gap:1rem;justify-content:center">
+      <button onclick="openYBScheduleModal('8w')" class="btn btn--large btn--primary">{{ t.final_cta }}</button>
+      <button class="yb-btn yb-btn--primary yb-btn--large" data-checkout-product="100209">{{ t.final_prep_cta }}</button>
+    </div>
   </div>
 </section>
 

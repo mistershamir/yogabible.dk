@@ -761,6 +761,11 @@
       if (expEl && card.expMonth && card.expYear) {
         expEl.textContent = (isDa() ? 'Udløber ' : 'Expires ') + card.expMonth + '/' + card.expYear;
       }
+      // If checkout is already open, update stored card section there too
+      var checkoutEl = document.getElementById('yb-store-checkout');
+      if (checkoutEl && !checkoutEl.hidden) {
+        initCheckoutStoredCard('yb-store');
+      }
     } else {
       storedCardData = null;
       if (displayEl) displayEl.hidden = true;
@@ -1986,7 +1991,7 @@
         { id: 'tr-1-u30', _ref: 'clips:0' },
         { id: 'tr-14d-u30', _ref: 'timebased:0' },
         { id: 'tr-21d-u30', _ref: 'timebased:1' },
-        { id: 'tr-kick-u30', name_da: 'KickStarter', name_en: 'KickStarter', price: 475, vat_pct: 0, validity: '3 weeks', classes: 10, prodId: '100185', cphOnly: true,
+        { id: 'tr-kick-u30', name_da: 'KickStarter', name_en: 'KickStarter', price: 475, vat_pct: 0, validity: '3 weeks', classes: 10, prodId: '100153', cphOnly: true,
           desc_da: 'Kun for Københavns-beboere. 10 klasser inden for 3 uger fra din første bookede klasse. Gyldighedsperioden starter fra din første bookede klasse.',
           desc_en: 'Only for Copenhagen residents. 10 classes to be used within 3 weeks from your first booked class. Validity period starts from your first booked class.'
         }
@@ -3239,6 +3244,25 @@
     // Show stored card toggle if user has one
     initCheckoutStoredCard('yb-store');
 
+    // Show start date picker for contracts (memberships)
+    var startDateSection = document.getElementById('yb-checkout-startdate');
+    if (startDateSection) {
+      startDateSection.hidden = !isContract;
+      if (isContract) {
+        var startDateInput = document.getElementById('yb-store-start-date');
+        var startDateLabel = document.getElementById('yb-checkout-startdate-label');
+        if (startDateLabel) startDateLabel.textContent = da ? 'Startdato for medlemskab' : 'Membership start date';
+        if (startDateInput) {
+          var today = toLocalDateStr(new Date());
+          var maxDate = new Date();
+          maxDate.setDate(maxDate.getDate() + 60);
+          startDateInput.min = today;
+          startDateInput.max = toLocalDateStr(maxDate);
+          startDateInput.value = today;
+        }
+      }
+    }
+
     // 1. Determine what documents to show
     var waiverSection = document.getElementById('yb-checkout-waiver-section');
     var termsSection = document.getElementById('yb-checkout-terms-section');
@@ -3429,7 +3453,7 @@
         clientId: clientId,
         contractId: Number(serviceId),
         locationId: locationId ? Number(locationId) : 1,
-        startDate: toLocalDateStr(new Date()),
+        startDate: (document.getElementById('yb-store-start-date') && document.getElementById('yb-store-start-date').value) || toLocalDateStr(new Date()),
         payment: paymentInfo
       };
       if (promoCode) {

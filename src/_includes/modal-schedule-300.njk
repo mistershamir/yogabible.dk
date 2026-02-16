@@ -1,0 +1,107 @@
+<!-- Schedule Modal — 300-Hour Advanced Teacher Training -->
+<section class="yb-modals-unified">
+  <div class="yb-modal-u" id="yb-schedule-300-modal" aria-hidden="true">
+    <div class="yb-modal-u__overlay" data-ybu300-close></div>
+    <div class="yb-modal-u__box" role="dialog" aria-modal="true" aria-labelledby="ybu300ModalTitle">
+      <button class="yb-modal-u__close" type="button" data-ybu300-close aria-label="Luk">&times;</button>
+
+      <div id="ybu300-view-form">
+        <h3 id="ybu300ModalTitle" data-yj-da>Få skemaet på e-mail</h3>
+        <h3 id="ybu300ModalTitleEn" data-yj-en hidden>Get the schedule via email</h3>
+        <p class="yb-modal-u__lead" data-yj-da>Vi sender dig det fulde program og praktisk info for 300-timers uddannelsen.</p>
+        <p class="yb-modal-u__lead" data-yj-en hidden>We will send you the full program and practical info for the 300-hour training.</p>
+
+        <p id="ybu300Error" class="yb-modal-u__error" hidden>
+          <span data-yj-da>Kunne ikke sende lige nu. Prøv igen — eller skriv til <a href="mailto:info@yogabible.dk">info@yogabible.dk</a>.</span>
+          <span data-yj-en hidden>Could not send right now. Please try again — or email <a href="mailto:info@yogabible.dk">info@yogabible.dk</a>.</span>
+        </p>
+
+        <form id="ybu300Form" class="yb-modal-u__form" novalidate>
+          <input class="yb-modal-u__hp" type="text" name="ybu_hp" tabindex="-1" autocomplete="off" aria-hidden="true">
+
+          <div class="yb-modal-u__grid">
+            <label class="yb-modal-u__field">
+              <span data-yj-da>Fornavn *</span>
+              <span data-yj-en hidden>First name *</span>
+              <input type="text" name="firstName" id="ybu300FirstName" inputmode="text" autocomplete="given-name" required>
+            </label>
+
+            <label class="yb-modal-u__field">
+              <span data-yj-da>Efternavn *</span>
+              <span data-yj-en hidden>Last name *</span>
+              <input type="text" name="lastName" id="ybu300LastName" inputmode="text" autocomplete="family-name" required>
+            </label>
+
+            <label class="yb-modal-u__field">
+              <span data-yj-da>E-mail *</span>
+              <span data-yj-en hidden>Email *</span>
+              <input type="email" name="email" id="ybu300Email" inputmode="email" autocomplete="email" required>
+            </label>
+
+            <label class="yb-modal-u__field">
+              <span data-yj-da>Telefonnummer *</span>
+              <span data-yj-en hidden>Phone *</span>
+              <input type="tel" name="phone" id="ybu300Phone" inputmode="tel" autocomplete="tel" required>
+            </label>
+          </div>
+
+          <div class="yb-modal-u__section">
+            <span class="yb-modal-u__label" data-yj-da>Program</span>
+            <span class="yb-modal-u__label" data-yj-en hidden>Program</span>
+            <div class="yb-modal-u__formats">
+              <label class="yb-modal-u__format">
+                <input type="checkbox" name="format" value="300h" checked disabled>
+                <span class="yb-modal-u__checkbox"></span>
+                <span class="yb-modal-u__format-text">
+                  <strong data-yj-da>300-timer Advanced Teacher Training</strong>
+                  <strong data-yj-en hidden>300-Hour Advanced Teacher Training</strong>
+                  <small data-yj-da>Maj – December 2026 (24 uger)</small>
+                  <small data-yj-en hidden>May – December 2026 (24 weeks)</small>
+                </span>
+              </label>
+            </div>
+          </div>
+
+          <div class="yb-modal-u__section">
+            <span class="yb-modal-u__label" data-yj-da>Bolig</span>
+            <span class="yb-modal-u__label" data-yj-en hidden>Accommodation</span>
+            <div class="yb-modal-u__acc-row">
+              <span data-yj-da>Har du brug for bolig i København?</span>
+              <span data-yj-en hidden>Do you need accommodation in Copenhagen?</span>
+              <div class="yb-modal-u__toggle">
+                <button type="button" class="yb-modal-u__toggle-btn is-active" data-acc300="No" data-yj-da>Nej</button>
+                <button type="button" class="yb-modal-u__toggle-btn" data-acc300="No" data-yj-en hidden>No</button>
+                <button type="button" class="yb-modal-u__toggle-btn" data-acc300="Yes" data-yj-da>Ja</button>
+                <button type="button" class="yb-modal-u__toggle-btn" data-acc300="Yes" data-yj-en hidden>Yes</button>
+              </div>
+            </div>
+            <input type="hidden" name="accommodation" id="ybu300Accommodation" value="No">
+            <input type="text" name="cityCountry" id="ybu300City" class="yb-modal-u__city" placeholder="Hvor kommer du fra? (by, land)" hidden>
+          </div>
+
+          <button id="ybu300Submit" class="yb-btn yb-btn--primary" type="submit">
+            <span data-yj-da>Send & få skema</span>
+            <span data-yj-en hidden>Send & get schedule</span>
+          </button>
+
+          <p class="yb-modal-u__fine">
+            <span data-yj-da>Ved indsendelse accepterer du vores <a href="/privacy-policy">privatlivspolitik</a>.</span>
+            <span data-yj-en hidden>By submitting you accept our <a href="/en/privacy-policy">privacy policy</a>.</span>
+          </p>
+        </form>
+      </div>
+
+      <div id="ybu300-view-success" class="yb-modal-u__success" hidden role="status" aria-live="polite">
+        <div class="yb-modal-u__success-icon">&#10003;</div>
+        <h3 data-yj-da>Tak for din tilmelding!</h3>
+        <h3 data-yj-en hidden>Thank you!</h3>
+        <p data-yj-da>Vi har sendt skemaet til din e-mail.</p>
+        <p data-yj-en hidden>We have sent the schedule to your email.</p>
+        <button class="yb-btn yb-btn--outline" type="button" data-ybu300-close>
+          <span data-yj-da>Luk</span>
+          <span data-yj-en hidden>Close</span>
+        </button>
+      </div>
+    </div>
+  </div>
+</section>
