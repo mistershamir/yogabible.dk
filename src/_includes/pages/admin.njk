@@ -37,6 +37,7 @@
         <button class="yb-profile__tab" type="button" data-yb-admin-tab="blog">{{ t.tab_blog }}</button>
         <button class="yb-profile__tab" type="button" data-yb-admin-tab="users">{{ t.tab_users }}</button>
         <button class="yb-profile__tab" type="button" data-yb-admin-tab="analytics">{{ t.tab_analytics }}</button>
+        <button class="yb-profile__tab" type="button" data-yb-admin-tab="leads">{{ t.tab_leads }}</button>
       </div>
 
       {# ═══════════════════════════════════
@@ -392,6 +393,118 @@
 
       </div>{# end analytics tab panel #}
 
+      {# ═══════════════════════════════════
+         TAB: Lead Manager
+         ═══════════════════════════════════ #}
+      <div class="yb-admin__tab-panel" data-yb-admin-panel="leads">
+
+        {# Lead List View #}
+        <div id="yb-admin-v-lead-list">
+          <div class="yb-admin__view-head">
+            <h2>{{ t.leads_title }}</h2>
+          </div>
+
+          {# Stats #}
+          <div class="yb-admin__stats-grid" id="yb-lead-stats"></div>
+
+          {# Filters #}
+          <div class="yb-admin__user-toolbar" style="margin-top:1rem">
+            <form id="yb-lead-search-form" class="yb-admin__user-search">
+              <input type="text" id="yb-lead-search-input" placeholder="{{ t.leads_search_placeholder }}" class="yb-admin__user-search-input">
+              <button type="submit" class="yb-btn yb-btn--primary">{{ t.users_search_btn }}</button>
+            </form>
+            <select id="yb-lead-status-filter" class="yb-admin__select">
+              <option value="">{{ t.leads_all_statuses }}</option>
+              <option value="New">New</option>
+              <option value="Contacted">Contacted</option>
+              <option value="Follow-up">Follow-up</option>
+              <option value="Converted">Converted</option>
+              <option value="Existing Applicant">Existing Applicant</option>
+              <option value="Unsubscribed">Unsubscribed</option>
+              <option value="Closed">Closed</option>
+            </select>
+            <select id="yb-lead-type-filter" class="yb-admin__select">
+              <option value="">{{ t.leads_all_types }}</option>
+              <option value="ytt">YTT</option>
+              <option value="course">Course</option>
+              <option value="bundle">Bundle</option>
+              <option value="mentorship">Mentorship</option>
+            </select>
+            <button type="button" class="yb-btn yb-btn--outline yb-btn--sm" data-action="leads-refresh">{{ t.leads_refresh }}</button>
+          </div>
+
+          {# Lead table #}
+          <div class="yb-admin__table-wrap" style="margin-top:1rem">
+            <table class="yb-admin__table" id="yb-lead-table">
+              <thead>
+                <tr>
+                  <th>{{ t.leads_col_date }}</th>
+                  <th>{{ t.users_col_name }}</th>
+                  <th>{{ t.users_col_email }}</th>
+                  <th>{{ t.leads_col_type }}</th>
+                  <th>{{ t.leads_col_program }}</th>
+                  <th>{{ t.leads_col_status }}</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody id="yb-lead-table-body"></tbody>
+            </table>
+          </div>
+          <div id="yb-lead-load-more-wrap" style="text-align:center;margin-top:1rem" hidden>
+            <button class="yb-btn yb-btn--outline" data-action="leads-load-more">{{ t.leads_load_more }}</button>
+          </div>
+        </div>
+
+        {# Lead Detail View #}
+        <div id="yb-admin-v-lead-detail" hidden>
+          <div class="yb-admin__view-head">
+            <button class="yb-admin__back-btn" data-action="back-leads">&larr; {{ t.back }}</button>
+            <h2 id="yb-lead-detail-heading">{{ t.leads_detail_title }}</h2>
+          </div>
+
+          {# Lead info card #}
+          <div id="yb-lead-detail-card"></div>
+
+          {# Quick actions #}
+          <div class="yb-admin__section-divider"></div>
+          <h3 style="font-size:0.95rem;font-weight:700;margin-bottom:0.75rem">{{ t.leads_actions }}</h3>
+          <div id="yb-lead-actions" class="yb-lead__actions"></div>
+
+          {# Status + Notes editor #}
+          <div class="yb-admin__section-divider"></div>
+          <h3 style="font-size:0.95rem;font-weight:700;margin-bottom:0.75rem">{{ t.leads_update_status }}</h3>
+          <form id="yb-lead-status-form" class="yb-admin__form">
+            <div class="yb-admin__form-row">
+              <div class="yb-admin__field">
+                <label for="yb-lead-status-select">Status</label>
+                <select id="yb-lead-status-select" class="yb-admin__select">
+                  <option value="New">New</option>
+                  <option value="Contacted">Contacted</option>
+                  <option value="Follow-up">Follow-up</option>
+                  <option value="Converted">Converted</option>
+                  <option value="Existing Applicant">Existing Applicant</option>
+                  <option value="Unsubscribed">Unsubscribed</option>
+                  <option value="Closed">Closed</option>
+                </select>
+              </div>
+            </div>
+            <div class="yb-admin__field">
+              <label for="yb-lead-notes-input">{{ t.leads_notes }}</label>
+              <textarea id="yb-lead-notes-input" rows="4"></textarea>
+            </div>
+            <div class="yb-admin__form-actions">
+              <button type="submit" class="yb-btn yb-btn--primary">{{ t.save }}</button>
+            </div>
+          </form>
+
+          {# Activity / email log #}
+          <div class="yb-admin__section-divider"></div>
+          <h3 style="font-size:0.95rem;font-weight:700;margin-bottom:0.75rem">{{ t.leads_activity }}</h3>
+          <div id="yb-lead-activity"></div>
+        </div>
+
+      </div>{# end leads tab panel #}
+
     </div>{# end yb-admin-panel #}
 
   </div>{# end container #}
@@ -401,3 +514,4 @@
 </section>
 
 <script src="/js/course-admin.js"></script>
+<script src="/js/lead-admin.js"></script>
