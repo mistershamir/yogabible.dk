@@ -48,29 +48,29 @@ const YTT_PROGRAM_TYPES = {
 // Upload PDFs and paste the Cloudinary URLs here
 const SCHEDULE_PDFS = {
   '18-week': {
-    'Marts-Juni 2026': '',   // yogabible/schedules/2026/18w-mar-jun-2026.pdf
-    'August-December 2026': '', // yogabible/schedules/2026/18w-aug-dec-2026.pdf
-    'default': ''
+    'Marts-Juni 2026': 'https://res.cloudinary.com/ddcynsa30/image/upload/v1771280099/18w-mar-jun-2026.pdf_izgiuz',
+    'August-December 2026': '', // Upload when ready
+    'default': 'https://res.cloudinary.com/ddcynsa30/image/upload/v1771280099/18w-mar-jun-2026.pdf_izgiuz'
   },
   '4-week': {
-    'April 2026': '',        // yogabible/schedules/2026/4w-apr-2026.pdf
-    'Juli 2026': '',         // yogabible/schedules/2026/4w-jul-2026.pdf
-    'default': ''
+    'April 2026': 'https://res.cloudinary.com/ddcynsa30/image/upload/v1771280041/4w-apr-2026.pdf_x9iwdf',
+    'Juli 2026': '',         // Upload when ready
+    'default': 'https://res.cloudinary.com/ddcynsa30/image/upload/v1771280041/4w-apr-2026.pdf_x9iwdf'
   },
   '8-week': {
-    'Maj-Juni 2026': '',     // yogabible/schedules/2026/8w-may-jun-2026.pdf
-    'Oktober-November 2026': '', // yogabible/schedules/2026/8w-oct-nov-2026.pdf
-    'default': ''
+    'Maj-Juni 2026': 'https://res.cloudinary.com/ddcynsa30/image/upload/v1771280072/8w-may-jun-2026.pdf_k7i62j',
+    'Oktober-November 2026': '', // Upload when ready
+    'default': 'https://res.cloudinary.com/ddcynsa30/image/upload/v1771280072/8w-may-jun-2026.pdf_k7i62j'
   },
   '300h': {
-    'Maj-December 2026': '', // yogabible/schedules/2026/300h-may-dec-2026.pdf
+    'Maj-December 2026': '', // Upload when ready
     'default': ''
   },
   // Course schedules (Inversions, Splits, Backbends) — per month
   'courses': {
-    'April 2026': '',        // yogabible/schedules/2026/courses-apr-2026.pdf
-    'Maj 2026': '',          // yogabible/schedules/2026/courses-may-2026.pdf
-    'Juni 2026': '',         // yogabible/schedules/2026/courses-jun-2026.pdf
+    'April 2026': '',        // Upload when ready
+    'Maj 2026': '',          // Upload when ready
+    'Juni 2026': '',         // Upload when ready
     'default': ''
   }
 };
