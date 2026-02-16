@@ -940,6 +940,48 @@
 
 
   // ═══════════════════════════════════════════════════════════════════
+  // CROSS-IFRAME AUTH SYNC
+  // ═══════════════════════════════════════════════════════════════════
+  // login-cta and checkout-embed run in separate Framer iframes with
+  // separate Firebase instances.  When one logs in, it broadcasts so
+  // the other can restore the session from the shared token in storage.
+
+  var _authBC;
+  try { _authBC = new BroadcastChannel('hyc-auth-sync'); } catch (e) { /* unsupported */ }
+
+  function broadcastAuth(loggedIn) {
+    if (_authBC) try { _authBC.postMessage({ loggedIn: loggedIn }); } catch (e) {}
+    // Fallback: write a flag to localStorage so storage event fires in other iframes
+    var s = _parentStorage();
+    if (s) try { s.setItem('hyc_auth_flag', loggedIn ? Date.now().toString() : '0'); } catch (e) {}
+  }
+
+  function onAuthSync(loggedIn) {
+    if (!firebaseReady) return;
+    if (loggedIn && !currentUser) {
+      _restoring = true;
+      restoreSession();
+    } else if (!loggedIn && currentUser) {
+      firebase.auth().signOut();
+    }
+  }
+
+  // Listen via BroadcastChannel (primary — works across same-origin iframes)
+  if (_authBC) {
+    _authBC.onmessage = function (e) {
+      if (e.data) onAuthSync(e.data.loggedIn);
+    };
+  }
+
+  // Listen via storage event (fallback for older Safari < 15.4)
+  try {
+    window.addEventListener('storage', function (e) {
+      if (e.key === 'hyc_auth_flag') onAuthSync(e.newValue && e.newValue !== '0');
+    });
+  } catch (e) { /* sandboxed */ }
+
+
+  // ═══════════════════════════════════════════════════════════════════
   // AUTH STATE LISTENER
   // ═══════════════════════════════════════════════════════════════════
 
@@ -960,6 +1002,7 @@
         if (user) {
           _restoring = false;
           persistAuthToken(user);
+          broadcastAuth(true);
           resolveMbClient(user);
           renderLoggedIn(user);
           // If auth modal is open, close it — user just logged in
@@ -971,6 +1014,7 @@
           // Don't wipe stored token while we're still restoring
           if (!_restoring) {
             clearAuthToken();
+            broadcastAuth(false);
             renderLoggedOut();
           }
           // Close user area modal if open
