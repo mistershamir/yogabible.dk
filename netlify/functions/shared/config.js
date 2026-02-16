@@ -43,7 +43,30 @@ const YTT_PROGRAM_TYPES = {
   '30h': { keywords: ['30 hour', '30h', '30 timer', '30-hour'], label: '30-Hour Module', shortLabel: '30H' }
 };
 
-// Schedule PDFs are now served from Cloudinary — no Google Drive file IDs needed.
+// Schedule PDFs — hosted on Cloudinary
+// Folder: yogabible/schedules/2026/
+// Upload PDFs and paste the Cloudinary URLs here
+const SCHEDULE_PDFS = {
+  '18-week': {
+    'Marts-Juni 2026': '',   // yogabible/schedules/2026/18w-mar-jun-2026.pdf
+    'August-December 2026': '', // yogabible/schedules/2026/18w-aug-dec-2026.pdf
+    'default': ''
+  },
+  '4-week': {
+    'April 2026': '',        // yogabible/schedules/2026/4w-apr-2026.pdf
+    'Juli 2026': '',         // yogabible/schedules/2026/4w-jul-2026.pdf
+    'default': ''
+  },
+  '8-week': {
+    'Maj-Juni 2026': '',     // yogabible/schedules/2026/8w-may-jun-2026.pdf
+    'Oktober-November 2026': '', // yogabible/schedules/2026/8w-oct-nov-2026.pdf
+    'default': ''
+  },
+  '300h': {
+    'Maj-December 2026': '', // yogabible/schedules/2026/300h-may-dec-2026.pdf
+    'default': ''
+  }
+};
 
 const YTT_PAYMENT = {
   '4-week': {
@@ -119,6 +142,7 @@ module.exports = {
   CONFIG,
   AUTO_SMS_CONFIG,
   YTT_PROGRAM_TYPES,
+  SCHEDULE_PDFS,
   YTT_PAYMENT,
   COURSE_PAYMENT_URLS,
   BUNDLE_PAYMENT_URLS,

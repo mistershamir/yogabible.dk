@@ -11,7 +11,7 @@
  * Schedule PDFs are now hosted on Cloudinary (not Google Drive).
  */
 
-const { CONFIG, COURSE_CONFIG } = require('./config');
+const { CONFIG, COURSE_CONFIG, SCHEDULE_PDFS } = require('./config');
 const {
   escapeHtml,
   getCoursePaymentUrl,
@@ -29,17 +29,6 @@ const {
   getPricingSectionHtml
 } = require('./email-service');
 const { getDb } = require('./firestore');
-
-// =========================================================================
-// Schedule PDF URLs (Cloudinary)
-// Update these when you upload schedule PDFs to Cloudinary
-// =========================================================================
-
-const SCHEDULE_PDFS = {
-  '18-week': process.env.SCHEDULE_PDF_18W || '',
-  '8-week': process.env.SCHEDULE_PDF_8W || '',
-  '4-week': process.env.SCHEDULE_PDF_4W || ''
-};
 
 // =========================================================================
 // Shared HTML helpers
@@ -102,8 +91,45 @@ function getPricingSectionPlain(fullPrice, deposit, remaining, rateNote) {
 // Schedule PDF attachment helper
 // =========================================================================
 
-async function fetchSchedulePdfAttachment(programType) {
-  const url = SCHEDULE_PDFS[programType];
+/**
+ * Look up schedule PDF URL from config by program type and cohort.
+ * Falls back to 'default' if no cohort match.
+ */
+function getSchedulePdfUrl(programType, program) {
+  const urls = SCHEDULE_PDFS[programType];
+  if (!urls) return '';
+
+  // Try to match cohort from program string
+  const prog = (program || '').toLowerCase();
+  for (const cohortKey of Object.keys(urls)) {
+    if (cohortKey === 'default') continue;
+    if (prog.includes(cohortKey.toLowerCase().split(' ')[0])) {
+      return urls[cohortKey] || '';
+    }
+  }
+
+  // Try keyword matching
+  if (prog.includes('aug') || prog.includes('dec')) {
+    for (const key of Object.keys(urls)) {
+      if (key.toLowerCase().includes('aug') || key.toLowerCase().includes('dec')) return urls[key] || '';
+    }
+  }
+  if (prog.includes('okt') || prog.includes('oct') || prog.includes('nov')) {
+    for (const key of Object.keys(urls)) {
+      if (key.toLowerCase().includes('okt') || key.toLowerCase().includes('oct')) return urls[key] || '';
+    }
+  }
+  if (prog.includes('jul')) {
+    for (const key of Object.keys(urls)) {
+      if (key.toLowerCase().includes('jul')) return urls[key] || '';
+    }
+  }
+
+  return urls['default'] || '';
+}
+
+async function fetchSchedulePdfAttachment(programType, program) {
+  const url = getSchedulePdfUrl(programType, program);
   if (!url) return null;
 
   try {
@@ -214,7 +240,7 @@ async function sendEmail4wYTT(leadData) {
   const discountNote = isFebruary ? ' (inkl. 3.000 kr. early bird-rabat)' : '';
   const rateNote = 'kan betales i 2\u20134 rater';
 
-  const attachment = await fetchSchedulePdfAttachment('4-week');
+  const attachment = await fetchSchedulePdfAttachment('4-week', program);
   const hasSchedule = !!attachment;
 
   let bodyHtml = '<p>Hej ' + escapeHtml(firstName) + ',</p>';
@@ -275,7 +301,7 @@ async function sendEmail8wYTT(leadData) {
   const cityCountry = leadData.city_country || '';
   const subject = firstName + ', dit skema til 8-ugers yogauddannelsen';
 
-  const attachment = await fetchSchedulePdfAttachment('8-week');
+  const attachment = await fetchSchedulePdfAttachment('8-week', program);
   const hasSchedule = !!attachment;
 
   let bodyHtml = '<p>Hej ' + escapeHtml(firstName) + ',</p>';
@@ -330,7 +356,7 @@ async function sendEmail18wYTT(leadData) {
   const cityCountry = leadData.city_country || '';
   const subject = firstName + ', dit skema til 18-ugers yogauddannelsen';
 
-  const attachment = await fetchSchedulePdfAttachment('18-week');
+  const attachment = await fetchSchedulePdfAttachment('18-week', program);
   const hasSchedule = !!attachment;
 
   let bodyHtml = '<p>Hej ' + escapeHtml(firstName) + ',</p>';
@@ -391,23 +417,36 @@ async function sendEmail18wYTT(leadData) {
 
 async function sendEmail300hYTT(leadData) {
   const firstName = leadData.first_name || '';
+  const program = leadData.program || '300-Hour Advanced YTT';
   const subject = 'Din foresp\u00f8rgsel \u2014 300-timers avanceret yogal\u00e6reruddannelse';
 
+  const attachment = await fetchSchedulePdfAttachment('300h', program);
+  const hasSchedule = !!attachment;
+
   let bodyHtml = '<p>Hej ' + escapeHtml(firstName) + ',</p>';
-  bodyHtml += '<p>Tak for din interesse i vores <strong>300-timers avancerede yogal\u00e6reruddannelse</strong>!</p>';
-  bodyHtml += '<p>Dette program er designet til certificerede yogal\u00e6rere, der \u00f8nsker at fordybe deres praksis og undervisning.</p>';
-  bodyHtml += '<p>Vi er i gang med at planl\u00e6gge 2026-programmet. Vil du v\u00e6re blandt de f\u00f8rste, der h\u00f8rer nyt?</p>';
+  bodyHtml += '<p>Tak for din interesse i vores <strong>300-timers avancerede yogal\u00e6reruddannelse</strong> (24 uger, maj\u2013december 2026)!</p>';
+  bodyHtml += '<p>Dette program er designet til certificerede yogal\u00e6rere, der \u00f8nsker at fordybe deres praksis og undervisning p\u00e5 h\u00f8jeste niveau.</p>';
+
+  if (hasSchedule) {
+    bodyHtml += '<p>Jeg har vedh\u00e6ftet det fulde skema, s\u00e5 du kan se hvordan programmet er bygget op.</p>';
+  } else {
+    bodyHtml += '<p>Vi er ved at l\u00e6gge sidste h\u00e5nd p\u00e5 det detaljerede skema \u2014 jeg sender det til dig, s\u00e5 snart det er klar.</p>';
+  }
+
   bodyHtml += '<p><a href="' + CONFIG.MEETING_LINK + '" style="display:inline-block;background:#f75c03;color:#ffffff;padding:12px 24px;text-decoration:none;border-radius:6px;font-weight:600;">Book en uforpligtende samtale</a></p>';
   bodyHtml += '<p>Du er ogs\u00e5 velkommen til at svare p\u00e5 denne e-mail med dine sp\u00f8rgsm\u00e5l.</p>';
   bodyHtml += getEnglishNoteHtml() + getSignatureHtml() + getUnsubscribeFooterHtml(leadData.email);
 
-  const bodyPlain = 'Hej ' + firstName + ',\n\nTak for din interesse i vores 300-timers avancerede yogal\u00e6reruddannelse!\n\nVi er i gang med at planl\u00e6gge 2026-programmet.\n\nBook en samtale: ' + CONFIG.MEETING_LINK + getEnglishNotePlain() + getSignaturePlain() + getUnsubscribeFooterPlain(leadData.email);
+  let bodyPlain = 'Hej ' + firstName + ',\n\nTak for din interesse i vores 300-timers avancerede yogal\u00e6reruddannelse (24 uger, maj\u2013december 2026)!\n\n';
+  bodyPlain += hasSchedule ? 'Jeg har vedh\u00e6ftet det fulde skema.\n\n' : 'Det detaljerede skema er snart klar \u2014 jeg sender det til dig.\n\n';
+  bodyPlain += 'Book en samtale: ' + CONFIG.MEETING_LINK + getEnglishNotePlain() + getSignaturePlain() + getUnsubscribeFooterPlain(leadData.email);
 
   const result = await sendRawEmail({
     to: leadData.email,
     subject,
     html: wrapHtml(bodyHtml),
-    text: bodyPlain
+    text: bodyPlain,
+    attachments: attachment ? [attachment] : []
   });
   return { ...result, subject };
 }
