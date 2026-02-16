@@ -58,9 +58,9 @@ exports.handler = async (event) => {
 
     console.log(`[lead] New lead saved: ${docRef.id} (${leadData.email})`);
 
-    // Fire-and-forget: admin notification + welcome email + welcome SMS
-    // These run in background — don't block the form response
-    triggerNotifications(leadData, docRef.id, action).catch(err => {
+    // Send notifications (admin email + welcome email + welcome SMS)
+    // Must await — Netlify Functions terminate after response is sent
+    await triggerNotifications(leadData, docRef.id, action).catch(err => {
       console.error('[lead] Notification error (non-blocking):', err.message);
     });
 

@@ -147,18 +147,19 @@ exports.handler = async (event) => {
     };
     await db.collection('leads').add(leadDoc);
 
-    // Fire-and-forget: admin notification + applicant confirmation
+    // Send notifications — must await before returning (Netlify kills Lambda after response)
     if (process.env.GMAIL_APP_PASSWORD) {
-      sendAdminNotification({
-        ...leadDoc,
-        notes: `NEW APPLICATION: ${applicationId}\nType: ${type}\nProgram: ${appDoc.course_name || 'N/A'}\nCohort: ${appDoc.cohort_label || 'N/A'}`
-      }).catch(err => {
-        console.error('[apply] Admin notification failed:', err.message);
-      });
-
-      sendApplicationConfirmation(appDoc.email, applicationId, appDoc.first_name).catch(err => {
-        console.error('[apply] Application confirmation email failed:', err.message);
-      });
+      await Promise.all([
+        sendAdminNotification({
+          ...leadDoc,
+          notes: `NEW APPLICATION: ${applicationId}\nType: ${type}\nProgram: ${appDoc.course_name || 'N/A'}\nCohort: ${appDoc.cohort_label || 'N/A'}`
+        }).catch(err => {
+          console.error('[apply] Admin notification failed:', err.message);
+        }),
+        sendApplicationConfirmation(appDoc.email, applicationId, appDoc.first_name).catch(err => {
+          console.error('[apply] Application confirmation email failed:', err.message);
+        })
+      ]);
     }
 
     return jsonResponse(200, {
