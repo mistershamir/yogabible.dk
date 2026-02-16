@@ -30,3 +30,10 @@
   [headers.values]
     Access-Control-Allow-Origin = "*"
     Cache-Control = "public, max-age=300"
+
+# CORS headers for login-cta.js (loaded from Framer site)
+[[headers]]
+  for = "/js/login-cta.js"
+  [headers.values]
+    Access-Control-Allow-Origin = "*"
+    Cache-Control = "public, max-age=3600"
