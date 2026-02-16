@@ -14,6 +14,7 @@
 const { getDb } = require('./shared/firestore');
 const { jsonResponse, optionsResponse } = require('./shared/utils');
 const { sendAdminNotification } = require('./shared/email-service');
+const { sendCareersConfirmation } = require('./shared/lead-emails');
 
 exports.handler = async (event) => {
   if (event.httpMethod === 'OPTIONS') return optionsResponse();
@@ -140,13 +141,17 @@ exports.handler = async (event) => {
     };
     await db.collection('leads').add(leadDoc);
 
-    // Fire-and-forget admin notification
+    // Fire-and-forget: admin notification + applicant auto-reply
     if (process.env.GMAIL_APP_PASSWORD) {
       sendAdminNotification({
         ...leadDoc,
         notes: `NEW CAREER APPLICATION\nCategory: ${careerDoc.category}\nRole: ${careerDoc.role}\nFiles: ${careerDoc.file_count}`
       }).catch(err => {
         console.error('[careers] Admin notification failed:', err.message);
+      });
+
+      sendCareersConfirmation(email, careerDoc.first_name, careerDoc.category, careerDoc.role).catch(err => {
+        console.error('[careers] Careers confirmation email failed:', err.message);
       });
     }
 

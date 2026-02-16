@@ -14,6 +14,7 @@ const {
   detectYTTProgramType
 } = require('./shared/utils');
 const { sendAdminNotification } = require('./shared/email-service');
+const { sendApplicationConfirmation } = require('./shared/lead-emails');
 
 exports.handler = async (event) => {
   if (event.httpMethod === 'OPTIONS') return optionsResponse();
@@ -146,13 +147,17 @@ exports.handler = async (event) => {
     };
     await db.collection('leads').add(leadDoc);
 
-    // Fire-and-forget admin notification
+    // Fire-and-forget: admin notification + applicant confirmation
     if (process.env.GMAIL_APP_PASSWORD) {
       sendAdminNotification({
         ...leadDoc,
         notes: `NEW APPLICATION: ${applicationId}\nType: ${type}\nProgram: ${appDoc.course_name || 'N/A'}\nCohort: ${appDoc.cohort_label || 'N/A'}`
       }).catch(err => {
         console.error('[apply] Admin notification failed:', err.message);
+      });
+
+      sendApplicationConfirmation(appDoc.email, applicationId, appDoc.first_name).catch(err => {
+        console.error('[apply] Application confirmation email failed:', err.message);
       });
     }
 

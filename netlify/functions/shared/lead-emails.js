@@ -626,6 +626,62 @@ async function sendEmailGeneric(leadData) {
   return { ...result, subject };
 }
 
+// =========================================================================
+// Application Confirmation Email
+// =========================================================================
+
+async function sendApplicationConfirmation(email, applicationId, firstName) {
+  const subject = 'Tak for din ansøgning — Yoga Bible';
+
+  let bodyHtml = '<p>Hej ' + escapeHtml(firstName || '') + ',</p>';
+  bodyHtml += '<p>Tak for din ansøgning til <strong>Yoga Bible</strong>!</p>';
+  bodyHtml += '<p>Dit ansøgnings-ID er: <strong>' + escapeHtml(applicationId) + '</strong></p>';
+  bodyHtml += '<p>Vi kigger din ansøgning igennem og vender tilbage med næste skridt.</p>';
+  bodyHtml += '<p>Har du spørgsmål i mellemtiden? Svar bare på denne e-mail eller ring til os på <a href="tel:+4553881209" style="color:#f75c03;">+45 53 88 12 09</a>.</p>';
+  bodyHtml += getEnglishNoteHtml() + getSignatureHtml() + getUnsubscribeFooterHtml(email);
+
+  const bodyPlain = 'Hej ' + (firstName || '') + ',\n\nTak for din ansøgning til Yoga Bible!\n\nDit ansøgnings-ID er: ' + applicationId + '\n\nVi kigger din ansøgning igennem og vender tilbage.\n\nHar du spørgsmål? Svar på denne e-mail eller ring +45 53 88 12 09.' + getEnglishNotePlain() + getSignaturePlain() + getUnsubscribeFooterPlain(email);
+
+  const result = await sendRawEmail({
+    to: email,
+    subject,
+    html: wrapHtml(bodyHtml),
+    text: bodyPlain
+  });
+
+  await logWelcomeEmail(email, subject);
+  return { ...result, subject };
+}
+
+// =========================================================================
+// Careers Auto-Reply Email
+// =========================================================================
+
+async function sendCareersConfirmation(email, firstName, category, role) {
+  const subject = 'Tak for din ansøgning — Yoga Bible Careers';
+
+  let bodyHtml = '<p>Hej ' + escapeHtml(firstName || '') + ',</p>';
+  bodyHtml += '<p>Tak for din interesse i at blive en del af <strong>Yoga Bible</strong>-teamet!</p>';
+  bodyHtml += '<p>Vi har modtaget din ansøgning' + (category ? ' inden for <strong>' + escapeHtml(category) + '</strong>' : '') + (role ? ' som <strong>' + escapeHtml(role) + '</strong>' : '') + '.</p>';
+  bodyHtml += '<p>Vi gennemgår alle ansøgninger løbende og vender tilbage, hvis der er et match.</p>';
+  bodyHtml += '<p>Har du spørgsmål? Svar bare på denne e-mail.</p>';
+  bodyHtml += getEnglishNoteHtml() + getSignatureHtml() + getUnsubscribeFooterHtml(email);
+
+  const bodyPlain = 'Hej ' + (firstName || '') + ',\n\nTak for din interesse i at blive en del af Yoga Bible-teamet!\n\nVi har modtaget din ansøgning' + (category ? ' inden for ' + category : '') + (role ? ' som ' + role : '') + '.\n\nVi gennemgår alle ansøgninger løbende og vender tilbage, hvis der er et match.\n\nHar du spørgsmål? Svar bare på denne e-mail.' + getEnglishNotePlain() + getSignaturePlain() + getUnsubscribeFooterPlain(email);
+
+  const result = await sendRawEmail({
+    to: email,
+    subject,
+    html: wrapHtml(bodyHtml),
+    text: bodyPlain
+  });
+
+  await logWelcomeEmail(email, subject);
+  return { ...result, subject };
+}
+
 module.exports = {
-  sendWelcomeEmail
+  sendWelcomeEmail,
+  sendApplicationConfirmation,
+  sendCareersConfirmation
 };
