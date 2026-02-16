@@ -41,140 +41,134 @@
 
 
 <!-- ═══════════════════════════════════════════════════════════════
-     SECTION 2 — SOCIAL PROOF MARQUEE: Horizontal Ticker
+     SECTION 3 — THE FORK: Cinematic Split with Full-Bleed Images
+     Two immersive panels with background imagery
      ═══════════════════════════════════════════════════════════════ -->
-<div class="yb-marquee" aria-hidden="true">
-  <div class="yb-marquee__track">
-    <span class="yb-marquee__content">{{ t.marquee_text }} ·&nbsp;</span>
-    <span class="yb-marquee__content">{{ t.marquee_text }} ·&nbsp;</span>
-  </div>
-</div>
-
-
-<!-- ═══════════════════════════════════════════════════════════════
-     SECTION 3 — THE FORK: Find Din Vej
-     Split dark/light section for dual audience
-     ═══════════════════════════════════════════════════════════════ -->
-<section class="yb-fork">
-  <a href="#uddannelser" class="yb-fork__side yb-fork__side--dark">
-    <div class="yb-fork__media">
-      {# CLOUDINARY: yoga-bible-DK/courses/200-hour-yoga-education-copenhagen — 800x1000, teacher + students #}
+<section class="yb-fork2">
+  <a href="#uddannelser" class="yb-fork2__panel yb-fork2__panel--left">
+    <div class="yb-fork2__bg">
+      {# CLOUDINARY: yoga-bible-DK/courses/200-hour-yoga-education-copenhagen — 1200x800, teacher + students #}
       <img
-        src="{{ media.courses.education200hr | cloudimg('w_800,h_1000,c_fill') }}"
+        src="{{ media.courses.education200hr | cloudimg('w_1200,h_800,c_fill') }}"
         alt="{{ t.fork_left_img_alt }}"
         loading="lazy"
       >
     </div>
-    <div class="yb-fork__content">
-      <span class="yb-fork__eyebrow">{{ t.fork_left_eyebrow }}</span>
-      <h2 class="yb-fork__title">{{ t.fork_left_title }}</h2>
-      <p class="yb-fork__desc">{{ t.fork_left_desc }}</p>
-      <span class="yb-fork__cta">{{ t.fork_left_cta }} →</span>
+    <div class="yb-fork2__content">
+      <span class="yb-fork2__eyebrow">{{ t.fork_left_eyebrow }}</span>
+      <h2 class="yb-fork2__title">{{ t.fork_left_title }}</h2>
+      <p class="yb-fork2__desc">{{ t.fork_left_desc }}</p>
+      <span class="yb-fork2__cta">{{ t.fork_left_cta }} <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg></span>
     </div>
   </a>
 
-  <a href="#kurser" class="yb-fork__side yb-fork__side--light">
-    <div class="yb-fork__media">
-      {# CLOUDINARY: yoga-bible-DK/courses/inversions-course-copenhagen-promo — 800x1000, dynamic pose #}
+  <a href="#kurser" class="yb-fork2__panel yb-fork2__panel--right">
+    <div class="yb-fork2__bg">
+      {# CLOUDINARY: yoga-bible-DK/courses/inversions-course-copenhagen-promo — 1200x800, dynamic pose #}
       <img
-        src="{{ media.courses.inversionsPromo | cloudimg('w_800,h_1000,c_fill') }}"
+        src="{{ media.courses.inversionsPromo | cloudimg('w_1200,h_800,c_fill') }}"
         alt="{{ t.fork_right_img_alt }}"
         loading="lazy"
       >
     </div>
-    <div class="yb-fork__content">
-      <span class="yb-fork__eyebrow">{{ t.fork_right_eyebrow }}</span>
-      <h2 class="yb-fork__title">{{ t.fork_right_title }}</h2>
-      <p class="yb-fork__desc">{{ t.fork_right_desc }}</p>
-      <span class="yb-fork__cta">{{ t.fork_right_cta }} →</span>
+    <div class="yb-fork2__content">
+      <span class="yb-fork2__eyebrow">{{ t.fork_right_eyebrow }}</span>
+      <h2 class="yb-fork2__title">{{ t.fork_right_title }}</h2>
+      <p class="yb-fork2__desc">{{ t.fork_right_desc }}</p>
+      <span class="yb-fork2__cta">{{ t.fork_right_cta }} <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg></span>
     </div>
   </a>
 </section>
 
 
 <!-- ═══════════════════════════════════════════════════════════════
-     SECTION 4 — TRAINING PROGRAMS: 3 Format Cards
+     SECTION 4 — TRAINING PROGRAMS: Editorial Format Cards
+     Elegant large-number cards, order: 4 → 8 → 18
      ═══════════════════════════════════════════════════════════════ -->
-<section class="yb-programs" id="uddannelser">
-  <div class="yb-programs__inner">
-    <header class="yb-programs__header yb-fade-in">
-      <span class="yb-programs__eyebrow">{{ t.programs_eyebrow }}</span>
-      <h2 class="yb-programs__title">{{ t.programs_title }}</h2>
-      <p class="yb-programs__subtitle">{{ t.programs_subtitle }}</p>
+<section class="yb-formats" id="uddannelser">
+  <div class="yb-formats__inner">
+    <header class="yb-formats__header yb-fade-in">
+      <span class="yb-formats__eyebrow">{{ t.programs_eyebrow }}</span>
+      <h2 class="yb-formats__title">{{ t.programs_title }}</h2>
+      <p class="yb-formats__subtitle">{{ t.programs_subtitle }}</p>
     </header>
 
-    <div class="yb-programs__grid yb-programs__grid--three">
-      <!-- 18-Week Flexible (Featured) -->
-      <article class="yb-program-card yb-program-card--featured yb-fade-in">
-        <div class="yb-program-card__badge yb-program-card__badge--orange">{{ t.prog18_badge }}</div>
-        <h3 class="yb-program-card__title">{{ t.prog18_title }}</h3>
-        <p class="yb-program-card__tagline">{{ t.prog18_tagline }}</p>
-        <div class="yb-program-card__meta">
-          <span class="yb-program-card__date">{{ t.prog18_date }}</span>
-        </div>
-        <ul class="yb-program-card__points">
-          <li>{{ t.prog18_point1 }}</li>
-          <li>{{ t.prog18_point2 }}</li>
-          <li>{{ t.prog18_point3 }}</li>
-          <li>{{ t.prog18_point4 }}</li>
-        </ul>
-        <div class="yb-program-card__price">
-          <span class="yb-program-card__amount">{{ t.prog18_price }}</span>
-          <span class="yb-program-card__note">{{ t.prog18_note }}</span>
-        </div>
-        <a href="{{ lp }}/200-hours-18-weeks-flexible-programs" class="yb-btn yb-btn--primary yb-btn--full">
-          {{ t.prog18_cta }}
-        </a>
-      </article>
-
+    <div class="yb-formats__grid">
       <!-- 4-Week Intensive -->
-      <article class="yb-program-card yb-fade-in">
-        <div class="yb-program-card__badge">{{ t.prog4_badge }}</div>
-        <h3 class="yb-program-card__title">{{ t.prog4_title }}</h3>
-        <p class="yb-program-card__tagline">{{ t.prog4_tagline }}</p>
-        <div class="yb-program-card__meta">
-          <span class="yb-program-card__date">{{ t.prog4_date }}</span>
-        </div>
-        <ul class="yb-program-card__points">
+      <article class="yb-format yb-fade-in">
+        <div class="yb-format__number">4</div>
+        <div class="yb-format__unit">{{ t.prog4_badge }}</div>
+        <h3 class="yb-format__title">{{ t.prog4_title }}</h3>
+        <p class="yb-format__tagline">{{ t.prog4_tagline }}</p>
+        <span class="yb-format__date">{{ t.prog4_date }}</span>
+        <ul class="yb-format__points">
           <li>{{ t.prog4_point1 }}</li>
           <li>{{ t.prog4_point2 }}</li>
           <li>{{ t.prog4_point3 }}</li>
           <li>{{ t.prog4_point4 }}</li>
         </ul>
-        <div class="yb-program-card__price">
-          <span class="yb-program-card__amount">{{ t.prog4_price }}</span>
-          <span class="yb-program-card__note">{{ t.prog4_note }}</span>
+        <div class="yb-format__footer">
+          <div class="yb-format__price">
+            <span class="yb-format__amount">{{ t.prog4_price }}</span>
+            <span class="yb-format__note">{{ t.prog4_note }}</span>
+          </div>
+          <a href="{{ lp }}/200-hours-4-weeks-intensive-programs" class="yb-format__btn">
+            {{ t.prog4_cta }} <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+          </a>
         </div>
-        <a href="{{ lp }}/200-hours-4-weeks-intensive-programs" class="yb-btn yb-btn--primary yb-btn--full">
-          {{ t.prog4_cta }}
-        </a>
       </article>
 
       <!-- 8-Week Semi-Intensive -->
-      <article class="yb-program-card yb-fade-in">
-        <div class="yb-program-card__badge">{{ t.prog8_badge }}</div>
-        <h3 class="yb-program-card__title">{{ t.prog8_title }}</h3>
-        <p class="yb-program-card__tagline">{{ t.prog8_tagline }}</p>
-        <div class="yb-program-card__meta">
-          <span class="yb-program-card__date">{{ t.prog8_date }}</span>
-        </div>
-        <ul class="yb-program-card__points">
+      <article class="yb-format yb-fade-in">
+        <div class="yb-format__number">8</div>
+        <div class="yb-format__unit">{{ t.prog8_badge }}</div>
+        <h3 class="yb-format__title">{{ t.prog8_title }}</h3>
+        <p class="yb-format__tagline">{{ t.prog8_tagline }}</p>
+        <span class="yb-format__date">{{ t.prog8_date }}</span>
+        <ul class="yb-format__points">
           <li>{{ t.prog8_point1 }}</li>
           <li>{{ t.prog8_point2 }}</li>
           <li>{{ t.prog8_point3 }}</li>
           <li>{{ t.prog8_point4 }}</li>
         </ul>
-        <div class="yb-program-card__price">
-          <span class="yb-program-card__amount">{{ t.prog8_price }}</span>
-          <span class="yb-program-card__note">{{ t.prog8_note }}</span>
+        <div class="yb-format__footer">
+          <div class="yb-format__price">
+            <span class="yb-format__amount">{{ t.prog8_price }}</span>
+            <span class="yb-format__note">{{ t.prog8_note }}</span>
+          </div>
+          <a href="{{ lp }}/200-hours-8-weeks-semi-intensive-programs" class="yb-format__btn">
+            {{ t.prog8_cta }} <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+          </a>
         </div>
-        <a href="{{ lp }}/200-hours-8-weeks-semi-intensive-programs" class="yb-btn yb-btn--primary yb-btn--full">
-          {{ t.prog8_cta }}
-        </a>
+      </article>
+
+      <!-- 18-Week Flexible (Featured) -->
+      <article class="yb-format yb-format--featured yb-fade-in">
+        <div class="yb-format__badge">{{ t.prog18_badge }}</div>
+        <div class="yb-format__number">18</div>
+        <div class="yb-format__unit">{{ t.prog18_badge }}</div>
+        <h3 class="yb-format__title">{{ t.prog18_title }}</h3>
+        <p class="yb-format__tagline">{{ t.prog18_tagline }}</p>
+        <span class="yb-format__date">{{ t.prog18_date }}</span>
+        <ul class="yb-format__points">
+          <li>{{ t.prog18_point1 }}</li>
+          <li>{{ t.prog18_point2 }}</li>
+          <li>{{ t.prog18_point3 }}</li>
+          <li>{{ t.prog18_point4 }}</li>
+        </ul>
+        <div class="yb-format__footer">
+          <div class="yb-format__price">
+            <span class="yb-format__amount">{{ t.prog18_price }}</span>
+            <span class="yb-format__note">{{ t.prog18_note }}</span>
+          </div>
+          <a href="{{ lp }}/200-hours-18-weeks-flexible-programs" class="yb-format__btn">
+            {{ t.prog18_cta }} <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+          </a>
+        </div>
       </article>
     </div>
 
-    <div class="yb-programs__compare">
+    <div class="yb-formats__compare yb-fade-in">
       <a href="{{ lp }}/sammenlign-yogalreruddannelser" class="yb-link-arrow">
         {{ t.programs_compare }}
       </a>

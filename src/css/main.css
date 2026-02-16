@@ -3588,162 +3588,253 @@ section {
 
 
 /* -----------------------------------------------------------------
-   PROGRAMS SECTION
-   Two program cards side by side
+   TRAINING FORMATS — Editorial program cards with large numbers
    ----------------------------------------------------------------- */
 
-.yb-programs {
-  background: #fff;
-  padding: clamp(60px, 10vh, 120px) 0;
+.yb-formats {
+  background: #FFFCF9;
+  padding: clamp(80px, 12vh, 140px) 0;
 }
 
-.yb-programs__inner {
-  max-width: 1000px;
+.yb-formats__inner {
+  max-width: 1200px;
   margin: 0 auto;
   padding: 0 clamp(20px, 4vw, 60px);
 }
 
-.yb-programs__header {
+.yb-formats__header {
   text-align: center;
-  margin-bottom: clamp(40px, 6vh, 60px);
+  margin-bottom: clamp(48px, 8vh, 72px);
 }
 
-.yb-programs__title {
+.yb-formats__eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.25em;
+  color: var(--yb-brand);
+  margin-bottom: 12px;
+}
+
+.yb-formats__title {
   font-size: clamp(2rem, 1.5rem + 2vw, 3rem);
   font-weight: 700;
   color: #0F0F0F;
   margin: 0 0 16px;
 }
 
-.yb-programs__subtitle {
+.yb-formats__subtitle {
   font-size: clamp(1rem, 0.9rem + 0.3vw, 1.15rem);
-  color: #5a5a5a;
+  color: #6F6A66;
   margin: 0;
   max-width: 600px;
   margin-left: auto;
   margin-right: auto;
 }
 
-.yb-programs__grid {
+.yb-formats__grid {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
+  grid-template-columns: repeat(3, 1fr);
   gap: 24px;
+  align-items: start;
 }
 
-.yb-program-card {
-  background: #FFFCF9;
-  border: 1px solid rgba(0, 0, 0, 0.06);
-  border-radius: 16px;
-  padding: clamp(28px, 4vw, 40px);
-  transition: all 0.25s ease;
+.yb-format {
+  position: relative;
+  background: #fff;
+  border: 1px solid #E8E4E0;
+  border-radius: 20px;
+  padding: clamp(32px, 4vw, 44px) clamp(28px, 3vw, 36px);
+  transition: all 0.35s ease;
+  overflow: hidden;
 }
 
-.yb-program-card:hover {
+.yb-format:hover {
+  border-color: rgba(247, 92, 3, 0.3);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.06);
+  transform: translateY(-4px);
+}
+
+.yb-format--featured {
   border-color: var(--yb-brand);
-  box-shadow: 0 8px 32px rgba(247, 92, 3, 0.1);
+  box-shadow: 0 4px 24px rgba(247, 92, 3, 0.08);
 }
 
-.yb-program-card--featured {
-  background: linear-gradient(135deg, #FFFCF9 0%, #fff5f0 100%);
-  border-color: rgba(247, 92, 3, 0.2);
+.yb-format--featured:hover {
+  box-shadow: 0 20px 60px rgba(247, 92, 3, 0.12);
 }
 
-.yb-program-card__badge {
-  display: inline-block;
-  font-size: 0.7rem;
+.yb-format__badge {
+  position: absolute;
+  top: 20px;
+  right: -28px;
+  transform: rotate(45deg);
+  background: var(--yb-brand);
+  color: #fff;
+  font-size: 0.6rem;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.1em;
-  padding: 6px 14px;
-  border-radius: 20px;
-  background: #f0f0f0;
-  color: #5a5a5a;
-  margin-bottom: 16px;
+  padding: 5px 36px;
 }
 
-.yb-program-card__badge--orange {
-  background: var(--yb-brand);
-  color: #fff;
-}
-
-.yb-program-card__title {
-  font-size: clamp(2rem, 1.5rem + 1.5vw, 2.8rem);
+.yb-format__number {
+  font-size: clamp(4.5rem, 8vw, 7rem);
   font-weight: 700;
+  line-height: 0.85;
   color: #0F0F0F;
-  margin: 0 0 8px;
-  line-height: 1.1;
+  margin-bottom: 0;
 }
 
-.yb-program-card__tagline {
-  font-size: 1rem;
-  color: #5a5a5a;
-  margin: 0 0 20px;
+.yb-format--featured .yb-format__number {
+  background: linear-gradient(135deg, var(--yb-brand), #ff9966);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
 
-.yb-program-card__meta {
+.yb-format__unit {
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.2em;
+  color: #6F6A66;
   margin-bottom: 20px;
 }
 
-.yb-program-card__date {
-  display: inline-block;
-  font-size: 0.8rem;
+.yb-format__title {
+  font-size: clamp(1.15rem, 1rem + 0.5vw, 1.4rem);
   font-weight: 700;
-  color: var(--yb-brand);
-  padding: 6px 12px;
-  border: 1px solid var(--yb-brand);
-  border-radius: 6px;
+  color: #0F0F0F;
+  margin: 0 0 6px;
+  line-height: 1.2;
 }
 
-.yb-program-card__points {
+.yb-format__tagline {
+  font-size: 0.9rem;
+  color: #6F6A66;
+  margin: 0 0 16px;
+  line-height: 1.5;
+}
+
+.yb-format__date {
+  display: inline-block;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--yb-brand);
+  padding: 5px 12px;
+  border: 1.5px solid var(--yb-brand);
+  border-radius: 6px;
+  margin-bottom: 20px;
+}
+
+.yb-format__points {
   list-style: none;
   padding: 0;
   margin: 0 0 24px;
+  border-top: 1px solid #E8E4E0;
+  padding-top: 16px;
 }
 
-.yb-program-card__points li {
+.yb-format__points li {
   position: relative;
-  padding: 8px 0 8px 24px;
-  font-size: 0.95rem;
+  padding: 6px 0 6px 22px;
+  font-size: 0.88rem;
   color: #3a3a3a;
   line-height: 1.5;
 }
 
-.yb-program-card__points li::before {
+.yb-format__points li::before {
   content: "→";
   position: absolute;
   left: 0;
   color: var(--yb-brand);
   font-weight: 700;
+  font-size: 0.85rem;
 }
 
-.yb-program-card__price {
+.yb-format__footer {
+  border-top: 1px solid #E8E4E0;
+  padding-top: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.yb-format__price {
   display: flex;
   align-items: baseline;
-  gap: 12px;
-  margin-bottom: 24px;
-  padding-top: 20px;
-  border-top: 1px solid rgba(0, 0, 0, 0.06);
+  gap: 10px;
 }
 
-.yb-program-card__amount {
-  font-size: clamp(1.5rem, 1.2rem + 1vw, 2rem);
+.yb-format__amount {
+  font-size: clamp(1.4rem, 1.1rem + 0.8vw, 1.75rem);
   font-weight: 700;
   color: #0F0F0F;
 }
 
-.yb-program-card__note {
+.yb-format__note {
+  font-size: 0.8rem;
+  color: #6F6A66;
+}
+
+.yb-format__btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  padding: 14px 24px;
   font-size: 0.85rem;
-  color: #6b6b6b;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  border-radius: 12px;
+  text-decoration: none;
+  transition: all 0.25s ease;
+  background: transparent;
+  color: #0F0F0F;
+  border: 1.5px solid #E8E4E0;
 }
 
-.yb-programs__compare {
+.yb-format__btn:hover {
+  border-color: var(--yb-brand);
+  color: var(--yb-brand);
+}
+
+.yb-format__btn svg {
+  transition: transform 0.25s ease;
+}
+
+.yb-format__btn:hover svg {
+  transform: translateX(3px);
+}
+
+.yb-format--featured .yb-format__btn {
+  background: var(--yb-brand);
+  color: #fff;
+  border-color: var(--yb-brand);
+}
+
+.yb-format--featured .yb-format__btn:hover {
+  background: #d94f02;
+  border-color: #d94f02;
+  color: #fff;
+}
+
+.yb-formats__compare {
   text-align: center;
-  margin-top: 40px;
+  margin-top: 48px;
 }
 
-@media (max-width: 700px) {
-  .yb-programs__grid {
+@media (max-width: 900px) {
+  .yb-formats__grid {
     grid-template-columns: 1fr;
+    max-width: 420px;
+    margin: 0 auto;
   }
 }
 
@@ -4183,178 +4274,140 @@ section {
 
 
 /* -----------------------------------------------------------------
-   SOCIAL PROOF MARQUEE
-   Horizontal scrolling ticker for stats and credibility
+   THE FORK v2 — Cinematic full-bleed dual panels
+   Two immersive panels with background imagery
    ----------------------------------------------------------------- */
 
-.yb-marquee {
-  background: #F5F3F0;
-  border-top: 2px solid var(--yb-brand);
-  padding: 14px 0;
-  overflow: hidden;
-  white-space: nowrap;
-}
-
-.yb-marquee__track {
-  display: flex;
-  animation: yb-marquee-scroll 40s linear infinite;
-  width: max-content;
-}
-
-.yb-marquee__content {
-  font-size: 0.75rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.15em;
-  color: #6F6A66;
-  padding-right: 0;
-}
-
-@keyframes yb-marquee-scroll {
-  0% { transform: translateX(0); }
-  100% { transform: translateX(-50%); }
-}
-
-
-/* -----------------------------------------------------------------
-   THE FORK — Split dark/light dual-audience section
-   ----------------------------------------------------------------- */
-
-.yb-fork {
+.yb-fork2 {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  min-height: 500px;
 }
 
-.yb-fork__side {
+.yb-fork2__panel {
   position: relative;
   display: flex;
   align-items: flex-end;
-  padding: clamp(40px, 6vw, 80px);
+  min-height: 65vh;
   overflow: hidden;
   text-decoration: none;
-  color: inherit;
-  transition: all 0.4s ease;
-}
-
-.yb-fork__side--dark {
-  background: #1C1C1C;
   color: #fff;
 }
 
-.yb-fork__side--light {
-  background: #FFFCF9;
-  color: #0F0F0F;
-}
-
-.yb-fork__media {
+.yb-fork2__bg {
   position: absolute;
   inset: 0;
   z-index: 0;
 }
 
-.yb-fork__media img {
+.yb-fork2__bg img {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  transition: transform 0.6s ease;
+  transition: transform 0.7s cubic-bezier(0.25, 0.46, 0.45, 0.94);
 }
 
-.yb-fork__side--dark .yb-fork__media::after {
+.yb-fork2__panel:hover .yb-fork2__bg img {
+  transform: scale(1.06);
+}
+
+.yb-fork2__panel--left .yb-fork2__bg::after {
   content: "";
   position: absolute;
   inset: 0;
-  background: linear-gradient(0deg, rgba(15, 15, 15, 0.85) 0%, rgba(15, 15, 15, 0.3) 100%);
+  background: linear-gradient(15deg, rgba(15, 15, 15, 0.9) 0%, rgba(15, 15, 15, 0.35) 60%, rgba(15, 15, 15, 0.15) 100%);
 }
 
-.yb-fork__side--light .yb-fork__media::after {
+.yb-fork2__panel--right .yb-fork2__bg::after {
   content: "";
   position: absolute;
   inset: 0;
-  background: linear-gradient(0deg, rgba(255, 252, 249, 0.9) 0%, rgba(255, 252, 249, 0.3) 100%);
+  background: linear-gradient(-15deg, rgba(15, 15, 15, 0.9) 0%, rgba(15, 15, 15, 0.35) 60%, rgba(15, 15, 15, 0.15) 100%);
 }
 
-.yb-fork__side:hover .yb-fork__media img {
-  transform: scale(1.05);
-}
-
-.yb-fork__content {
+.yb-fork2__content {
   position: relative;
   z-index: 1;
-  max-width: 420px;
+  padding: clamp(32px, 5vw, 64px);
+  max-width: 480px;
 }
 
-.yb-fork__eyebrow {
+.yb-fork2__eyebrow {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
   font-size: 0.7rem;
   font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.2em;
-  margin-bottom: 16px;
+  letter-spacing: 0.25em;
   color: var(--yb-brand);
+  margin-bottom: 16px;
 }
 
-.yb-fork__eyebrow::before {
+.yb-fork2__eyebrow::before {
   content: "";
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
+  width: 24px;
+  height: 1.5px;
   background: var(--yb-brand);
 }
 
-.yb-fork__title {
-  font-size: clamp(1.8rem, 3vw, 2.8rem);
+.yb-fork2__title {
+  font-size: clamp(2rem, 3.5vw, 3rem);
   font-weight: 700;
-  margin: 0 0 12px;
-  line-height: 1.1;
+  margin: 0 0 14px;
+  line-height: 1.05;
+  color: #fff;
 }
 
-.yb-fork__desc {
+.yb-fork2__desc {
   font-size: 1rem;
-  line-height: 1.6;
-  margin: 0 0 20px;
-  opacity: 0.85;
+  line-height: 1.65;
+  margin: 0 0 24px;
+  color: rgba(255, 255, 255, 0.75);
 }
 
-.yb-fork__cta {
+.yb-fork2__cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
   font-size: 0.85rem;
   font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.1em;
   color: var(--yb-brand);
-  transition: gap 0.3s ease;
 }
 
-.yb-fork__side:hover .yb-fork__cta {
-  letter-spacing: 0.12em;
+.yb-fork2__cta svg {
+  transition: transform 0.3s ease;
+}
+
+.yb-fork2__panel:hover .yb-fork2__cta svg {
+  transform: translateX(4px);
+}
+
+.yb-fork2__panel--right .yb-fork2__content {
+  margin-left: auto;
 }
 
 @media (max-width: 768px) {
-  .yb-fork {
+  .yb-fork2 {
     grid-template-columns: 1fr;
   }
 
-  .yb-fork__side {
-    min-height: 400px;
+  .yb-fork2__panel {
+    min-height: 55vh;
+  }
+
+  .yb-fork2__panel--right .yb-fork2__content {
+    margin-left: 0;
   }
 }
 
 
 /* -----------------------------------------------------------------
-   PROGRAMS GRID — 3-column override
+   SHARED EYEBROW STYLES
    ----------------------------------------------------------------- */
 
-.yb-programs__grid--three {
-  grid-template-columns: repeat(3, 1fr);
-}
-
-.yb-programs__eyebrow,
-.yb-courses-gallery__eyebrow,
 .yb-testimonials__eyebrow,
-.yb-why__eyebrow,
-.yb-cph__eyebrow,
 .yb-journal-preview__eyebrow,
 .yb-studio__eyebrow {
   display: inline-flex;
@@ -4370,12 +4423,6 @@ section {
 
 .yb-studio__eyebrow {
   color: rgba(255, 255, 255, 0.7);
-}
-
-@media (max-width: 900px) {
-  .yb-programs__grid--three {
-    grid-template-columns: 1fr;
-  }
 }
 
 
