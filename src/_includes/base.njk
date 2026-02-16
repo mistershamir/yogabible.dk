@@ -8,9 +8,9 @@
   <!-- GTM noscript — injected by consent manager when accepted -->
   <noscript id="yb-gtm-noscript"></noscript>
 
-  <!-- Embed detection: hide page chrome when loaded in iframe -->
+  <!-- Embed detection: hide page chrome when loaded in iframe or via ?embed=1 -->
   <script>
-    if (window.self !== window.top) {
+    if (window.self !== window.top || new URLSearchParams(window.location.search).has('embed')) {
       document.documentElement.classList.add('yb-embed');
     }
   </script>
@@ -21,9 +21,12 @@
     .yb-embed #yb-cookie-banner,
     .yb-embed .yb-profile__hero,
     .yb-embed .yb-profile__tabs,
-    .yb-embed .yb-profile__guest { display: none !important; }
+    .yb-embed .yb-profile__guest,
+    .yb-embed .yb-tab-locked-toast { display: none !important; }
     .yb-embed .yb-profile { padding-top: 0 !important; }
     .yb-embed .yb-profile__wrap { padding-top: 1rem !important; }
+    .yb-embed body { background: var(--yb-warm-white, #FFFCF9) !important; }
+    .yb-embed main { min-height: auto !important; }
   </style>
 
   {% include "header.njk" %}

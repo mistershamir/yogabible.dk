@@ -52,6 +52,28 @@
     "user_title": "Member Area",
     "user_greeting": "Velkommen",
 
+    "ma_welcome_title": "Velkommen til dit Member Area",
+    "ma_welcome_text": "Her finder du alt hvad du har brug for som yogaudøver, studerende eller underviser — samlet ét sted. Udforsk dine kurser, deltag i live workshops, dyk ned i vores yoga-ordbog eller læs de nyeste artikler i journalen.",
+
+    "ma_benefits_eyebrow": "Dine fordele",
+    "ma_benefits_title": "Alt samlet ét sted",
+    "ma_benefit_1_title": "Kurser & uddannelse",
+    "ma_benefit_1_desc": "Adgang til alle dine kursusmaterialer, moduler og fremgangsrapporter.",
+    "ma_benefit_2_title": "Live workshops",
+    "ma_benefit_2_desc": "Deltag i live sessioner og gense optagelser når det passer dig.",
+    "ma_benefit_3_title": "Yoga-ordbog",
+    "ma_benefit_3_desc": "Danmarks mest komplette yoga-opslagsværk med sanskrit-termer og filosofi.",
+    "ma_benefit_4_title": "Eksklusivt indhold",
+    "ma_benefit_4_desc": "Artikler, guides og medlemsindhold tilpasset din yogarejse.",
+
+    "ma_philosophy_eyebrow": "Vores filosofi",
+    "ma_philosophy_title": "Yoga er for alle",
+    "ma_philosophy_text": "Vi tror på, at yoga er mere end bevægelse — det er en livslang rejse mod balance, bevidsthed og indre ro. Uanset om du er helt ny eller en erfaren underviser, er dette dit rum til at vokse, lære og fordybe dig i yogaens verden.",
+    "ma_philosophy_quote": "Yoga er rejsen fra selvet, gennem selvet, til selvet.",
+    "ma_philosophy_quote_source": "Bhagavad Gita",
+
+    "ma_explore_title": "Udforsk dit Member Area",
+
     "hub_courses_title": "Mine Kurser",
     "hub_courses_desc": "Kursusmaterialer, moduler, fremgang og noter",
     "hub_courses_badge": "Uddannelse",
@@ -113,12 +135,22 @@
     "role_badge_marketing": "Marketing",
     "role_badge_admin": "Administrator",
 
-    "tab_hub": "Overblik",
+    "tab_hub": "Member Area",
     "tab_courses": "Mine Kurser",
+    "tab_live": "Live & Optagelser",
+    "tab_events": "Events",
     "tab_schedule": "Skema",
     "tab_glossary": "Ordbog",
     "tab_journal": "Journal",
     "tab_profile": "Profil",
+
+    "live_placeholder_eyebrow": "Kommer snart",
+    "live_placeholder_title": "Live & Optagelser",
+    "live_placeholder_text": "Her vil du snart kunne deltage i live workshops, se optagelser og søge i tidligere sessioner. Vi arbejder på at bringe denne funktion til dig.",
+
+    "events_placeholder_eyebrow": "Kommer snart",
+    "events_placeholder_title": "Events & Workshops",
+    "events_placeholder_text": "Her vil du snart kunne se kommende events, workshops, retreats og særlige arrangementer. Hold øje med opdateringer.",
 
     "panel_back": "Tilbage",
     "coming_soon_title": "Kommer snart",
@@ -176,6 +208,28 @@
 
     "user_title": "Member Area",
     "user_greeting": "Welcome",
+
+    "ma_welcome_title": "Welcome to your Member Area",
+    "ma_welcome_text": "Here you'll find everything you need as a yoga practitioner, student, or teacher — all in one place. Explore your courses, join live workshops, dive into our yoga glossary, or read the latest articles in the journal.",
+
+    "ma_benefits_eyebrow": "Your benefits",
+    "ma_benefits_title": "Everything in one place",
+    "ma_benefit_1_title": "Courses & education",
+    "ma_benefit_1_desc": "Access all your course materials, modules, and progress reports.",
+    "ma_benefit_2_title": "Live workshops",
+    "ma_benefit_2_desc": "Join live sessions and revisit recordings at your convenience.",
+    "ma_benefit_3_title": "Yoga glossary",
+    "ma_benefit_3_desc": "Denmark's most comprehensive yoga reference with Sanskrit terms and philosophy.",
+    "ma_benefit_4_title": "Exclusive content",
+    "ma_benefit_4_desc": "Articles, guides, and member content tailored to your yoga journey.",
+
+    "ma_philosophy_eyebrow": "Our philosophy",
+    "ma_philosophy_title": "Yoga is for everyone",
+    "ma_philosophy_text": "We believe that yoga is more than movement — it's a lifelong journey toward balance, awareness, and inner peace. Whether you're a complete beginner or an experienced teacher, this is your space to grow, learn, and deepen your practice.",
+    "ma_philosophy_quote": "Yoga is the journey of the self, through the self, to the self.",
+    "ma_philosophy_quote_source": "Bhagavad Gita",
+
+    "ma_explore_title": "Explore your Member Area",
 
     "hub_courses_title": "My Courses",
     "hub_courses_desc": "Course materials, modules, progress and notes",
@@ -238,12 +292,22 @@
     "role_badge_marketing": "Marketing",
     "role_badge_admin": "Administrator",
 
-    "tab_hub": "Overview",
+    "tab_hub": "Member Area",
     "tab_courses": "My Courses",
+    "tab_live": "Live & Recordings",
+    "tab_events": "Events",
     "tab_schedule": "Schedule",
     "tab_glossary": "Glossary",
     "tab_journal": "Journal",
     "tab_profile": "Profile",
+
+    "live_placeholder_eyebrow": "Coming soon",
+    "live_placeholder_title": "Live & Recordings",
+    "live_placeholder_text": "Here you'll soon be able to join live workshops, watch recordings, and search through previous sessions. We're working on bringing this feature to you.",
+
+    "events_placeholder_eyebrow": "Coming soon",
+    "events_placeholder_title": "Events & Workshops",
+    "events_placeholder_text": "Here you'll soon be able to see upcoming events, workshops, retreats, and special gatherings. Stay tuned for updates.",
 
     "panel_back": "Back",
     "coming_soon_title": "Coming soon",
