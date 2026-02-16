@@ -641,5 +641,35 @@
     return messages[code] || (isDa ? 'Der opstod en fejl. Prøv igen.' : 'An error occurred. Please try again.');
   }
 
+  // ============================================
+  // AUTH BRIDGE (postMessage from parent iframe)
+  // ============================================
+  // When the profile page is embedded in an iframe on the Framer site,
+  // login-cta.js sends a Firebase ID token via postMessage.
+  // We exchange it for a custom token via a Netlify function and sign in.
+
+  window.addEventListener('message', function (event) {
+    var data = event.data;
+    if (!data || data.type !== 'hyc-auth-bridge' || !data.idToken) return;
+
+    // If already logged in, skip
+    if (auth.currentUser) return;
+
+    fetch('/.netlify/functions/auth-token', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ idToken: data.idToken })
+    })
+      .then(function (res) { return res.json(); })
+      .then(function (result) {
+        if (result.customToken) {
+          return auth.signInWithCustomToken(result.customToken);
+        }
+      })
+      .catch(function (err) {
+        console.warn('Auth bridge sign-in failed:', err);
+      });
+  });
+
   console.log('Firebase Auth initialized');
 })();
