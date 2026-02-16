@@ -4,7 +4,7 @@
  * Downloads files from Google Drive via service account.
  */
 
-const { google } = require('googleapis');
+const { drive } = require('@googleapis/drive');
 const { getAuth } = require('./google-sheets');
 
 let driveApi = null;
@@ -12,7 +12,7 @@ let driveApi = null;
 function getDriveApi() {
   if (driveApi) return driveApi;
   const auth = getAuth();
-  driveApi = google.drive({ version: 'v3', auth });
+  driveApi = drive({ version: 'v3', auth });
   return driveApi;
 }
 

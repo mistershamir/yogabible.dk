@@ -4,7 +4,8 @@
  * Uses a Google Service Account for authentication.
  */
 
-const { google } = require('googleapis');
+const { sheets } = require('@googleapis/sheets');
+const { GoogleAuth } = require('google-auth-library');
 const { CONFIG } = require('./config');
 
 let authClient = null;
@@ -23,7 +24,7 @@ function getAuth() {
   }
 
   const key = JSON.parse(keyJson);
-  authClient = new google.auth.GoogleAuth({
+  authClient = new GoogleAuth({
     credentials: key,
     scopes: [
       'https://www.googleapis.com/auth/spreadsheets',
@@ -39,7 +40,7 @@ function getAuth() {
 function getSheetsApi() {
   if (sheetsApi) return sheetsApi;
   const auth = getAuth();
-  sheetsApi = google.sheets({ version: 'v4', auth });
+  sheetsApi = sheets({ version: 'v4', auth });
   return sheetsApi;
 }
 
