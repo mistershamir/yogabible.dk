@@ -66,7 +66,7 @@
     style.textContent = [
 
       // ── Reset & Container ──────────────────────────────────────────
-      '.hycs{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;color:#0F0F0F;max-width:720px;margin:0 auto;padding:0 16px;-webkit-font-smoothing:antialiased}',
+      '.hycs{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;color:#0F0F0F;max-width:720px;margin:0 auto;padding:0 16px;-webkit-font-smoothing:antialiased;overflow-x:hidden;width:100%}',
       '.hycs *,.hycs *::before,.hycs *::after{box-sizing:border-box}',
 
       // ── Toolbar (nav + lang + filter + auth in one row) ────────────
@@ -211,19 +211,70 @@
       '.hycs__empty{text-align:center;color:#6F6A66;padding:2.5rem 0;font-size:0.88rem}',
       '.hycs__error{text-align:center;color:#c0392b;padding:2.5rem 0;font-size:0.88rem}',
 
-      // ── Mobile ─────────────────────────────────────────────────────
-      '@media (max-width:640px){',
-        '.hycs__toolbar{gap:0.35rem}',
-        '.hycs__class{flex-wrap:wrap;padding:0.55rem 0.6rem}',
-        '.hycs__class-time{min-width:auto;width:100%;font-size:0.78rem}',
-        '.hycs__class-action{width:100%;text-align:left;margin-top:0.15rem}',
-        '.hycs__no-pass{flex-direction:column;text-align:center;padding:0.85rem 1rem}',
-        '.hycs__pass-card{flex-direction:column;align-items:flex-start}',
-        '.hycs__teacher-bio{flex-direction:column;align-items:center;text-align:center}',
-        '.hycs__cancel-pop{right:auto;left:0}',
-        '.hycs__filter-dd{right:auto;left:0}',
+      // ── Tablet ───────────────────────────────────────────────────
+      '@media (max-width:768px){',
+        '.hycs__toolbar{gap:0.4rem}',
         '.hycs__auth-btn span{display:none}',
         '.hycs__auth-btn{padding:0 8px}',
+      '}',
+
+      // ── Mobile ─────────────────────────────────────────────────────
+      '@media (max-width:640px){',
+        // Toolbar: 2-row layout — nav on top, controls below
+        '.hycs__toolbar{gap:0.35rem}',
+        '.hycs__nav{flex:1 1 100%;order:1;justify-content:center}',
+        '.hycs__week-label{font-size:0.82rem;min-width:0}',
+        '.hycs__lang{order:2}',
+        '.hycs__filter-wrap{order:3}',
+        '.hycs__auth{order:4}',
+
+        // Class rows: clean stacked layout
+        '.hycs__class{flex-wrap:wrap;padding:0.55rem 0.5rem;gap:0.35rem}',
+        '.hycs__class-time{min-width:auto;font-size:0.78rem;flex:0 0 auto}',
+        '.hycs__class-info{flex:1 1 0%;min-width:0}',
+        '.hycs__class-name{font-size:0.82rem;white-space:normal;overflow:visible}',
+        '.hycs__class-action{width:100%;text-align:left;margin-top:0.15rem}',
+
+        // Banners & panels
+        '.hycs__no-pass{flex-direction:column;text-align:center;padding:0.85rem 1rem}',
+        '.hycs__pass-card{flex-direction:column;align-items:flex-start}',
+        '.hycs__pass-stats{flex-wrap:wrap;gap:0.5rem}',
+        '.hycs__teacher-bio{flex-direction:column;align-items:center;text-align:center}',
+
+        // Popovers & dropdowns: keep within viewport
+        '.hycs__cancel-pop{right:auto;left:50%;transform:translateX(-50%);width:200px}',
+        '.hycs__filter-dd{right:0;left:auto;min-width:160px}',
+
+        // Auth buttons: icon-only
+        '.hycs__auth-btn span{display:none}',
+        '.hycs__auth-btn{padding:0 8px}',
+
+        // Day labels
+        '.hycs__day-label{font-size:0.78rem}',
+        '.hycs__day-label span{font-size:0.75rem}',
+      '}',
+
+      // ── Small phones ──────────────────────────────────────────────
+      '@media (max-width:400px){',
+        '.hycs{padding:0 10px}',
+        '.hycs__nav-btn{width:28px;height:28px}',
+        '.hycs__nav-btn svg{width:14px;height:14px}',
+        '.hycs__week-label{font-size:0.75rem}',
+        '.hycs__lang-btn{padding:0 7px;font-size:0.7rem}',
+        '.hycs__lang{height:28px}',
+        '.hycs__filter-toggle{height:28px;padding:0 8px;font-size:0.75rem}',
+        '.hycs__class{padding:0.4rem 0.35rem}',
+        '.hycs__class-time{font-size:0.72rem}',
+        '.hycs__class-name{font-size:0.78rem}',
+        '.hycs__class-instructor{font-size:0.72rem}',
+        '.hycs__class-spots{font-size:0.68rem}',
+        '.hycs-btn{padding:0.3rem 0.7rem;font-size:0.75rem}',
+        '.hycs__show-more-btn{min-width:140px;font-size:0.78rem;padding:0.4rem 1rem}',
+        '.hycs__pass-dd-toggle{padding:0.6rem 0.75rem}',
+        '.hycs__pass-dd-label{font-size:0.68rem}',
+        '.hycs__pass-dd-count{font-size:0.72rem}',
+        '.hycs__cancel-pop{width:180px;padding:0.65rem 0.75rem}',
+        '.hycs__cancel-pop-text{font-size:0.75rem}',
       '}'
 
     ].join('\n');
