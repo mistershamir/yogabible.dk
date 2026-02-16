@@ -8,6 +8,27 @@
   <!-- GTM noscript — injected by consent manager when accepted -->
   <noscript id="yb-gtm-noscript"></noscript>
 
+  <!-- Embed detection: hide page chrome when loaded in iframe or via ?embed=1 -->
+  <script>
+    if (window.self !== window.top || new URLSearchParams(window.location.search).has('embed')) {
+      document.documentElement.classList.add('yb-embed');
+    }
+  </script>
+  <style>
+    .yb-embed .yb-header,
+    .yb-embed .yb-footer,
+    .yb-embed .yb-cookie,
+    .yb-embed #yb-cookie-banner,
+    .yb-embed .yb-profile__hero,
+    .yb-embed .yb-profile__tabs,
+    .yb-embed .yb-profile__guest,
+    .yb-embed .yb-tab-locked-toast { display: none !important; }
+    .yb-embed .yb-profile { padding-top: 0 !important; }
+    .yb-embed .yb-profile__wrap { padding-top: 1rem !important; }
+    .yb-embed body { background: var(--yb-warm-white, #FFFCF9) !important; }
+    .yb-embed main { min-height: auto !important; }
+  </style>
+
   {% include "header.njk" %}
 
   <!-- Main Content -->
@@ -21,8 +42,27 @@
     {% include "modal-schedule.njk" %}
   {% endif %}
 
+  {% if includeScheduleModal300 %}
+    {% include "modal-schedule-300.njk" %}
+  {% endif %}
+
+  {% if includeP300Styles %}
+    <link rel="stylesheet" href="/css/p300.css">
+    <script src="/js/p300.js" defer></script>
+  {% endif %}
+
   {% if includeP18Styles %}
     <link rel="stylesheet" href="/css/p18.css">
+  {% endif %}
+
+  {% if includeOm200Styles %}
+    <link rel="stylesheet" href="/css/om200.css">
+    <script src="/js/om200.js" defer></script>
+  {% endif %}
+
+  {% if includeCBStyles %}
+    <link rel="stylesheet" href="/css/cb.css">
+    <script src="/js/cb.js" defer></script>
   {% endif %}
 
   {% if includeCoursesModal %}
@@ -34,6 +74,9 @@
 
   <!-- Checkout Modal -->
   {% include "modal-checkout.njk" %}
+
+  <!-- Checkout Flow Modal (multi-step) -->
+  {% include "modal-checkout-flow.njk" %}
 
   <!-- Netlify Identity redirect (for CMS login flow) -->
   <script>
@@ -63,9 +106,14 @@
   <script src="/js/footer.js"></script>
   <script src="/js/roles-permissions.js"></script>
   <script src="/js/firebase-auth.js"></script>
+  <script src="/js/ytt-funnel.js"></script>
+  <script src="/js/checkout-flow.js"></script>
   <script src="/js/mindbody.js"></script>
   {% if includeScheduleModal %}
     <script src="/js/modal.js"></script>
+  {% endif %}
+  {% if includeScheduleModal300 %}
+    <script src="/js/modal-300.js"></script>
   {% endif %}
 </body>
 </html>

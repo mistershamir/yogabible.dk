@@ -251,8 +251,8 @@ exports.handler = async function(event) {
             ClientContractId: ccId,
             SuspensionStart: body.startDate,
             Duration: durationDays,
-            DurationUnit: 'Day',
-            SuspensionType: 'Vacation'
+            DurationUnit: 'Day'
+            // SuspensionType omitted — see mb-contract-manage.js
           };
 
           console.log('[mb-contracts] Suspending — body:', JSON.stringify(suspendBody));

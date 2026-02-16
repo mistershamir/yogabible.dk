@@ -24,10 +24,10 @@ exports.handler = async function(event) {
       return jsonResponse(400, { error: 'clientId is required' });
     }
 
-    // Fetch client services and contracts in parallel
-    // NOTE: We no longer use MB notes for pause detection — notes persist
-    // even after admin deletes a suspension, causing false "paused" states.
-    // Firestore is the reliable pause persistence layer for future-dated pauses.
+    // Fetch client services and contracts in parallel.
+    // NOTE: Do NOT use MB notes for pause detection — notes persist even after
+    // admin deletes a suspension, causing false "paused" states. Pause persistence
+    // for future-dated pauses is handled by frontend Firestore layer instead.
     var [servicesData, contractsData] = await Promise.all([
       mbFetch('/client/clientservices?ClientId=' + params.clientId + '&Limit=200').catch(function(e) {
         console.warn('mb-client-services: services fetch failed:', e.message);
@@ -101,8 +101,7 @@ exports.handler = async function(event) {
 
       // Use ONLY MB's own fields for pause detection.
       // IsSuspended = true only for currently active pauses (not future-dated).
-      // MB may return suspension dates under various field names.
-      // Frontend merges with Firestore for future-dated pause persistence.
+      // Frontend Firestore layer handles future-dated pause persistence.
       var pauseStartDate = c.SuspensionStart || c.SuspendDate || c.SuspensionDate || null;
       var pauseEndDate = c.ResumeDate || c.ResumptionDate || null;
       var isPaused = c.IsSuspended || !!(pauseStartDate && pauseEndDate);

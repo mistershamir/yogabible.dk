@@ -1,0 +1,378 @@
+{% set t = i18n.meet_the_teachers[lang or "da"] %}
+{% set lp = "/en" if lang == "en" else "" %}
+
+{# ── HERO ── #}
+<section class="yb-hero">
+  <div class="yb-hero__glow"></div>
+  <div class="yb-hero__content">
+    <p class="yb-hero__tagline">{{ t.hero_tagline }}</p>
+    <h1 class="yb-hero__title">{{ t.hero_title }}</h1>
+    <p class="yb-hero__subtitle">{{ t.hero_subtitle }}</p>
+    <div class="yb-hero__line"></div>
+    <div class="yb-hero__ctas">
+      <a href="{{ lp }}/apply" class="yb-btn yb-btn--primary yb-btn--large">{{ t.hero_cta_apply }}</a>
+      <a href="#teachers" class="yb-btn yb-btn--outline-white yb-btn--large">{{ t.hero_cta_explore }}</a>
+    </div>
+    <div class="yb-hero__trust">
+      <span>{{ t.hero_trust1 }}</span>
+      <span class="yb-hero__trust-dot"></span>
+      <span>{{ t.hero_trust2 }}</span>
+      <span class="yb-hero__trust-dot"></span>
+      <span>{{ t.hero_trust3 }}</span>
+    </div>
+  </div>
+  <div class="yb-hero__scroll">
+    <span>Scroll</span>
+    <div class="yb-hero__scroll-line"></div>
+  </div>
+</section>
+
+{# ── INTRO ── #}
+<section class="program-overview">
+  <div class="container">
+    <h2 class="section-title">{{ t.intro_title }}</h2>
+    <p class="section-subtitle">{{ t.intro_text }}</p>
+  </div>
+</section>
+
+{# ── FILTER TABS ── #}
+<section class="mt-filters" id="teachers">
+  <div class="container">
+    <div class="mt-filters__bar">
+      <button class="mt-filters__btn is-active" data-filter="all">{{ t.filter_all }}</button>
+      <button class="mt-filters__btn" data-filter="lead">{{ t.filter_lead }}</button>
+      <button class="mt-filters__btn" data-filter="senior">{{ t.filter_senior }}</button>
+      <button class="mt-filters__btn" data-filter="specialist">{{ t.filter_specialist }}</button>
+      <button class="mt-filters__btn" data-filter="guest">{{ t.filter_guest }}</button>
+    </div>
+  </div>
+</section>
+
+{# ── TEACHER GRID ── #}
+<section class="mt-grid-section">
+  <div class="container">
+    <div class="mt-grid">
+
+      {# Teacher 1 — Lead #}
+      <article class="mt-card" data-category="lead">
+        <div class="mt-card__media">
+          <img src="/assets/images/teachers/sarah-jensen.jpg" alt="{{ t.teacher1_img_alt }}" loading="lazy">
+          <video class="mt-card__video" src="/assets/images/teachers/sarah-jensen.mp4" muted loop playsinline preload="none" style="display:none"></video>
+          <div class="mt-card__media-toggle">
+            <button class="mt-card__media-btn is-active" data-media="photo" type="button">{{ t.media_label_photo }}</button>
+            <button class="mt-card__media-btn" data-media="video" type="button">{{ t.media_label_video }}</button>
+          </div>
+        </div>
+        <div class="mt-card__body">
+          <p class="mt-card__role">{{ t.teacher1_role }}</p>
+          <h3 class="mt-card__name">{{ t.teacher1_name }}</h3>
+          <div class="mt-card__tags">
+            {% for s in t.teacher1_specialties.split(", ") %}
+              <span class="mt-card__tag">{{ s }}</span>
+            {% endfor %}
+          </div>
+          <div class="mt-card__meta">
+            <span><strong>{{ t.card_experience }}:</strong> {{ t.teacher1_experience }}</span>
+            <span><strong>{{ t.card_certifications }}:</strong> {{ t.teacher1_certifications }}</span>
+          </div>
+          <blockquote class="mt-card__quote">"{{ t.teacher1_quote }}"</blockquote>
+          <div class="mt-card__bio-wrap" data-bio>
+            <p class="mt-card__bio">{{ t.teacher1_bio }}</p>
+          </div>
+          <button class="mt-card__toggle" data-bio-toggle type="button">
+            <span class="mt-card__toggle-more">{{ t.card_read_more }}</span>
+            <span class="mt-card__toggle-less" style="display:none">{{ t.card_close }}</span>
+          </button>
+        </div>
+      </article>
+
+      {# Teacher 2 — Senior #}
+      <article class="mt-card" data-category="senior">
+        <div class="mt-card__media">
+          <img src="/assets/images/teachers/mikkel-andersen.jpg" alt="{{ t.teacher2_img_alt }}" loading="lazy">
+          <video class="mt-card__video" src="/assets/images/teachers/mikkel-andersen.mp4" muted loop playsinline preload="none" style="display:none"></video>
+          <div class="mt-card__media-toggle">
+            <button class="mt-card__media-btn is-active" data-media="photo" type="button">{{ t.media_label_photo }}</button>
+            <button class="mt-card__media-btn" data-media="video" type="button">{{ t.media_label_video }}</button>
+          </div>
+        </div>
+        <div class="mt-card__body">
+          <p class="mt-card__role">{{ t.teacher2_role }}</p>
+          <h3 class="mt-card__name">{{ t.teacher2_name }}</h3>
+          <div class="mt-card__tags">
+            {% for s in t.teacher2_specialties.split(", ") %}
+              <span class="mt-card__tag">{{ s }}</span>
+            {% endfor %}
+          </div>
+          <div class="mt-card__meta">
+            <span><strong>{{ t.card_experience }}:</strong> {{ t.teacher2_experience }}</span>
+            <span><strong>{{ t.card_certifications }}:</strong> {{ t.teacher2_certifications }}</span>
+          </div>
+          <blockquote class="mt-card__quote">"{{ t.teacher2_quote }}"</blockquote>
+          <div class="mt-card__bio-wrap" data-bio>
+            <p class="mt-card__bio">{{ t.teacher2_bio }}</p>
+          </div>
+          <button class="mt-card__toggle" data-bio-toggle type="button">
+            <span class="mt-card__toggle-more">{{ t.card_read_more }}</span>
+            <span class="mt-card__toggle-less" style="display:none">{{ t.card_close }}</span>
+          </button>
+        </div>
+      </article>
+
+      {# Teacher 3 — Senior #}
+      <article class="mt-card" data-category="senior">
+        <div class="mt-card__media">
+          <img src="/assets/images/teachers/priya-sharma.jpg" alt="{{ t.teacher3_img_alt }}" loading="lazy">
+          <video class="mt-card__video" src="/assets/images/teachers/priya-sharma.mp4" muted loop playsinline preload="none" style="display:none"></video>
+          <div class="mt-card__media-toggle">
+            <button class="mt-card__media-btn is-active" data-media="photo" type="button">{{ t.media_label_photo }}</button>
+            <button class="mt-card__media-btn" data-media="video" type="button">{{ t.media_label_video }}</button>
+          </div>
+        </div>
+        <div class="mt-card__body">
+          <p class="mt-card__role">{{ t.teacher3_role }}</p>
+          <h3 class="mt-card__name">{{ t.teacher3_name }}</h3>
+          <div class="mt-card__tags">
+            {% for s in t.teacher3_specialties.split(", ") %}
+              <span class="mt-card__tag">{{ s }}</span>
+            {% endfor %}
+          </div>
+          <div class="mt-card__meta">
+            <span><strong>{{ t.card_experience }}:</strong> {{ t.teacher3_experience }}</span>
+            <span><strong>{{ t.card_certifications }}:</strong> {{ t.teacher3_certifications }}</span>
+          </div>
+          <blockquote class="mt-card__quote">"{{ t.teacher3_quote }}"</blockquote>
+          <div class="mt-card__bio-wrap" data-bio>
+            <p class="mt-card__bio">{{ t.teacher3_bio }}</p>
+          </div>
+          <button class="mt-card__toggle" data-bio-toggle type="button">
+            <span class="mt-card__toggle-more">{{ t.card_read_more }}</span>
+            <span class="mt-card__toggle-less" style="display:none">{{ t.card_close }}</span>
+          </button>
+        </div>
+      </article>
+
+      {# Teacher 4 — Specialist #}
+      <article class="mt-card" data-category="specialist">
+        <div class="mt-card__media">
+          <img src="/assets/images/teachers/jonas-berg.jpg" alt="{{ t.teacher4_img_alt }}" loading="lazy">
+          <video class="mt-card__video" src="/assets/images/teachers/jonas-berg.mp4" muted loop playsinline preload="none" style="display:none"></video>
+          <div class="mt-card__media-toggle">
+            <button class="mt-card__media-btn is-active" data-media="photo" type="button">{{ t.media_label_photo }}</button>
+            <button class="mt-card__media-btn" data-media="video" type="button">{{ t.media_label_video }}</button>
+          </div>
+        </div>
+        <div class="mt-card__body">
+          <p class="mt-card__role">{{ t.teacher4_role }}</p>
+          <h3 class="mt-card__name">{{ t.teacher4_name }}</h3>
+          <div class="mt-card__tags">
+            {% for s in t.teacher4_specialties.split(", ") %}
+              <span class="mt-card__tag">{{ s }}</span>
+            {% endfor %}
+          </div>
+          <div class="mt-card__meta">
+            <span><strong>{{ t.card_experience }}:</strong> {{ t.teacher4_experience }}</span>
+            <span><strong>{{ t.card_certifications }}:</strong> {{ t.teacher4_certifications }}</span>
+          </div>
+          <blockquote class="mt-card__quote">"{{ t.teacher4_quote }}"</blockquote>
+          <div class="mt-card__bio-wrap" data-bio>
+            <p class="mt-card__bio">{{ t.teacher4_bio }}</p>
+          </div>
+          <button class="mt-card__toggle" data-bio-toggle type="button">
+            <span class="mt-card__toggle-more">{{ t.card_read_more }}</span>
+            <span class="mt-card__toggle-less" style="display:none">{{ t.card_close }}</span>
+          </button>
+        </div>
+      </article>
+
+      {# Teacher 5 — Specialist #}
+      <article class="mt-card" data-category="specialist">
+        <div class="mt-card__media">
+          <img src="/assets/images/teachers/line-frederiksen.jpg" alt="{{ t.teacher5_img_alt }}" loading="lazy">
+          <video class="mt-card__video" src="/assets/images/teachers/line-frederiksen.mp4" muted loop playsinline preload="none" style="display:none"></video>
+          <div class="mt-card__media-toggle">
+            <button class="mt-card__media-btn is-active" data-media="photo" type="button">{{ t.media_label_photo }}</button>
+            <button class="mt-card__media-btn" data-media="video" type="button">{{ t.media_label_video }}</button>
+          </div>
+        </div>
+        <div class="mt-card__body">
+          <p class="mt-card__role">{{ t.teacher5_role }}</p>
+          <h3 class="mt-card__name">{{ t.teacher5_name }}</h3>
+          <div class="mt-card__tags">
+            {% for s in t.teacher5_specialties.split(", ") %}
+              <span class="mt-card__tag">{{ s }}</span>
+            {% endfor %}
+          </div>
+          <div class="mt-card__meta">
+            <span><strong>{{ t.card_experience }}:</strong> {{ t.teacher5_experience }}</span>
+            <span><strong>{{ t.card_certifications }}:</strong> {{ t.teacher5_certifications }}</span>
+          </div>
+          <blockquote class="mt-card__quote">"{{ t.teacher5_quote }}"</blockquote>
+          <div class="mt-card__bio-wrap" data-bio>
+            <p class="mt-card__bio">{{ t.teacher5_bio }}</p>
+          </div>
+          <button class="mt-card__toggle" data-bio-toggle type="button">
+            <span class="mt-card__toggle-more">{{ t.card_read_more }}</span>
+            <span class="mt-card__toggle-less" style="display:none">{{ t.card_close }}</span>
+          </button>
+        </div>
+      </article>
+
+      {# Teacher 6 — Guest #}
+      <article class="mt-card" data-category="guest">
+        <div class="mt-card__media">
+          <img src="/assets/images/teachers/david-osei.jpg" alt="{{ t.teacher6_img_alt }}" loading="lazy">
+          <video class="mt-card__video" src="/assets/images/teachers/david-osei.mp4" muted loop playsinline preload="none" style="display:none"></video>
+          <div class="mt-card__media-toggle">
+            <button class="mt-card__media-btn is-active" data-media="photo" type="button">{{ t.media_label_photo }}</button>
+            <button class="mt-card__media-btn" data-media="video" type="button">{{ t.media_label_video }}</button>
+          </div>
+        </div>
+        <div class="mt-card__body">
+          <p class="mt-card__role">{{ t.teacher6_role }}</p>
+          <h3 class="mt-card__name">{{ t.teacher6_name }}</h3>
+          <div class="mt-card__tags">
+            {% for s in t.teacher6_specialties.split(", ") %}
+              <span class="mt-card__tag">{{ s }}</span>
+            {% endfor %}
+          </div>
+          <div class="mt-card__meta">
+            <span><strong>{{ t.card_experience }}:</strong> {{ t.teacher6_experience }}</span>
+            <span><strong>{{ t.card_certifications }}:</strong> {{ t.teacher6_certifications }}</span>
+          </div>
+          <blockquote class="mt-card__quote">"{{ t.teacher6_quote }}"</blockquote>
+          <div class="mt-card__bio-wrap" data-bio>
+            <p class="mt-card__bio">{{ t.teacher6_bio }}</p>
+          </div>
+          <button class="mt-card__toggle" data-bio-toggle type="button">
+            <span class="mt-card__toggle-more">{{ t.card_read_more }}</span>
+            <span class="mt-card__toggle-less" style="display:none">{{ t.card_close }}</span>
+          </button>
+        </div>
+      </article>
+
+    </div>
+  </div>
+</section>
+
+{# ── VALUES ── #}
+<section class="program-overview" style="background:#F5F3F0;">
+  <div class="container">
+    <h2 class="section-title">{{ t.values_title }}</h2>
+    <p class="section-subtitle">{{ t.values_subtitle }}</p>
+    <div class="program-grid" style="grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));">
+      <div class="program-feature">
+        <div class="program-feature__icon">🔥</div>
+        <h3>{{ t.value1_title }}</h3>
+        <p>{{ t.value1_desc }}</p>
+      </div>
+      <div class="program-feature">
+        <div class="program-feature__icon">🎯</div>
+        <h3>{{ t.value2_title }}</h3>
+        <p>{{ t.value2_desc }}</p>
+      </div>
+      <div class="program-feature">
+        <div class="program-feature__icon">📚</div>
+        <h3>{{ t.value3_title }}</h3>
+        <p>{{ t.value3_desc }}</p>
+      </div>
+      <div class="program-feature">
+        <div class="program-feature__icon">🤝</div>
+        <h3>{{ t.value4_title }}</h3>
+        <p>{{ t.value4_desc }}</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+{# ── TEACHING METHOD ── #}
+<section class="program-overview">
+  <div class="container">
+    <h2 class="section-title">{{ t.approach_title }}</h2>
+    <p class="section-subtitle">{{ t.approach_text }}</p>
+    <div class="program-grid" style="grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));">
+      <div class="program-feature">
+        <div class="program-feature__icon">👥</div>
+        <h3>{{ t.approach1_title }}</h3>
+        <p>{{ t.approach1_desc }}</p>
+      </div>
+      <div class="program-feature">
+        <div class="program-feature__icon">🙌</div>
+        <h3>{{ t.approach2_title }}</h3>
+        <p>{{ t.approach2_desc }}</p>
+      </div>
+      <div class="program-feature">
+        <div class="program-feature__icon">🧠</div>
+        <h3>{{ t.approach3_title }}</h3>
+        <p>{{ t.approach3_desc }}</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+{# ── CTA BANNER ── #}
+<section style="background:linear-gradient(135deg, #1C1C1C 0%, #2a2a2a 100%); padding:100px 0; text-align:center; color:#FDFBF7;">
+  <div class="container">
+    <h2 style="font-size:clamp(32px,5vw,52px); font-weight:700; margin-bottom:16px;">{{ t.cta_title }}</h2>
+    <p style="font-size:clamp(16px,2vw,20px); color:rgba(253,251,247,0.74); max-width:600px; margin:0 auto 40px;">{{ t.cta_text }}</p>
+    <div style="display:flex; gap:16px; justify-content:center; flex-wrap:wrap;">
+      <a href="{{ lp }}/apply" class="yb-btn yb-btn--primary yb-btn--large">{{ t.cta_apply }}</a>
+      <a href="{{ lp }}/om-200hrs-yogalreruddannelser" class="yb-btn yb-btn--outline-white yb-btn--large">{{ t.cta_programs }}</a>
+    </div>
+  </div>
+</section>
+
+{# ── PAGE SCRIPT: filters, bio toggles, photo/video switch ── #}
+<script>
+(function(){
+  /* ── Filter tabs ── */
+  var btns = document.querySelectorAll('[data-filter]');
+  var cards = document.querySelectorAll('.mt-card');
+  btns.forEach(function(btn){
+    btn.addEventListener('click', function(){
+      btns.forEach(function(b){ b.classList.remove('is-active'); });
+      btn.classList.add('is-active');
+      var f = btn.getAttribute('data-filter');
+      cards.forEach(function(c){
+        if(f === 'all' || c.getAttribute('data-category') === f){
+          c.style.display = '';
+        } else {
+          c.style.display = 'none';
+        }
+      });
+    });
+  });
+
+  /* ── Bio read-more toggle ── */
+  document.querySelectorAll('[data-bio-toggle]').forEach(function(btn){
+    btn.addEventListener('click', function(){
+      var wrap = btn.previousElementSibling;
+      var more = btn.querySelector('.mt-card__toggle-more');
+      var less = btn.querySelector('.mt-card__toggle-less');
+      var open = wrap.classList.toggle('is-open');
+      more.style.display = open ? 'none' : '';
+      less.style.display = open ? '' : 'none';
+    });
+  });
+
+  /* ── Photo / Video toggle ── */
+  document.querySelectorAll('.mt-card__media-btn').forEach(function(btn){
+    btn.addEventListener('click', function(){
+      var media = btn.closest('.mt-card__media');
+      var img = media.querySelector('img');
+      var vid = media.querySelector('video');
+      var sibs = media.querySelectorAll('.mt-card__media-btn');
+      sibs.forEach(function(s){ s.classList.remove('is-active'); });
+      btn.classList.add('is-active');
+      if(btn.getAttribute('data-media') === 'video' && vid){
+        img.style.display = 'none';
+        vid.style.display = 'block';
+        vid.play();
+      } else {
+        img.style.display = '';
+        if(vid){ vid.style.display = 'none'; vid.pause(); }
+      }
+    });
+  });
+})();
+</script>

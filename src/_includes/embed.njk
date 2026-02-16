@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="{% if lang == 'en' %}en{% else %}da-DK{% endif %}" class="yb-embed">
+<head>
+  {% include "head.njk" %}
+  <style>
+    /* Embed pages: guarantee no site chrome ever renders */
+    .yb-header, .yb-footer, .yb-cookie, #yb-cookie-banner,
+    .yb-profile__hero, .yb-profile__tabs, .yb-profile__guest,
+    .yb-tab-locked-toast { display: none !important; }
+    .yb-profile { padding-top: 0 !important; }
+    .yb-profile__wrap { padding-top: 1rem !important; }
+    body { background: #FFFCF9 !important; }
+    main { min-height: auto !important; }
+  </style>
+</head>
+
+<body>
+  <main id="main-content">
+    {{ content | safe }}
+  </main>
+
+  <!-- Auth Modal (needed for login prompts) -->
+  {% include "modal-auth.njk" %}
+
+  <!-- Checkout Modal (needed for store purchases) -->
+  {% include "modal-checkout.njk" %}
+
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
+
+  <!-- Scripts (only essentials for profile functionality) -->
+  <script src="/js/main.js"></script>
+  <script src="/js/roles-permissions.js"></script>
+  <script src="/js/firebase-auth.js"></script>
+  <script src="/js/mindbody.js"></script>
+</body>
+</html>

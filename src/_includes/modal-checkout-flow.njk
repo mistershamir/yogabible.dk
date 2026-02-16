@@ -1,0 +1,268 @@
+<!-- Checkout Flow Modal — Multi-step: Auth → Register → Payment → Success -->
+<div id="ycf-modal" class="yb-auth-modal" aria-hidden="true" role="dialog" aria-modal="true" aria-label="Checkout">
+  <div class="yb-auth-modal__overlay" data-ycf-close></div>
+
+  <div class="yb-auth-modal__box ycf-box">
+    <button class="yb-auth-modal__close" type="button" data-ycf-close aria-label="Luk">&#10005;</button>
+
+    <!-- Step indicator -->
+    <div class="ycf-steps">
+      <div class="ycf-steps__dot ycf-steps__dot--active" data-ycf-step-dot="1"></div>
+      <div class="ycf-steps__line"></div>
+      <div class="ycf-steps__dot" data-ycf-step-dot="2"></div>
+      <div class="ycf-steps__line"></div>
+      <div class="ycf-steps__dot" data-ycf-step-dot="3"></div>
+    </div>
+
+    <!-- ─── STEP 1: LOGIN ─── -->
+    <div class="ycf-step" id="ycf-step-login" data-ycf-step="1">
+      <div class="yb-auth-modal__header">
+        <div class="yb-auth-modal__logo">
+          <img src="/assets/images/brand/logo-orange-on-transparent.png" alt="Yoga Bible" loading="lazy" />
+        </div>
+        <h2 class="yb-auth-modal__title" data-yj-da>Velkommen tilbage</h2>
+        <h2 class="yb-auth-modal__title" data-yj-en hidden>Welcome back</h2>
+        <p class="yb-auth-modal__subtitle" data-yj-da>Log ind for at forts&aelig;tte til betaling</p>
+        <p class="yb-auth-modal__subtitle" data-yj-en hidden>Sign in to continue to payment</p>
+      </div>
+
+      <!-- Product preview card -->
+      <div class="ycf-product-badge" id="ycf-product-badge">
+        <div class="ycf-product-badge__top">
+          <span class="ycf-product-badge__name" id="ycf-badge-name"></span>
+          <span class="ycf-product-badge__price" id="ycf-badge-price"></span>
+        </div>
+        <span class="ycf-product-badge__cohort" id="ycf-badge-cohort"></span>
+        <p class="ycf-product-badge__desc" data-yj-da>Du f&aring;r adgang til at booke klasser efter betaling</p>
+        <p class="ycf-product-badge__desc" data-yj-en hidden>You'll be able to start booking classes after payment</p>
+      </div>
+
+      <form id="ycf-login-form" class="yb-auth-form" novalidate>
+        <div class="yb-auth-field">
+          <label for="ycf-login-email" data-yj-da>Email</label>
+          <label for="ycf-login-email" data-yj-en hidden>Email</label>
+          <input type="email" id="ycf-login-email" required autocomplete="email" placeholder="din@email.dk">
+        </div>
+        <div class="yb-auth-field">
+          <label for="ycf-login-password" data-yj-da>Adgangskode</label>
+          <label for="ycf-login-password" data-yj-en hidden>Password</label>
+          <input type="password" id="ycf-login-password" required autocomplete="current-password" placeholder="&#8226;&#8226;&#8226;&#8226;&#8226;&#8226;&#8226;&#8226;">
+        </div>
+        <div class="yb-auth-error" id="ycf-login-error" hidden role="alert"></div>
+        <button type="submit" class="yb-auth-submit" id="ycf-login-btn" data-yj-da>Log ind</button>
+        <button type="submit" class="yb-auth-submit" id="ycf-login-btn-en" data-yj-en hidden>Sign in</button>
+      </form>
+
+      <div class="yb-auth-links">
+        <a href="#" data-ycf-action="forgot" data-yj-da>Glemt adgangskode?</a>
+        <a href="#" data-ycf-action="forgot" data-yj-en hidden>Forgot password?</a>
+      </div>
+      <div class="yb-auth-divider">
+        <span data-yj-da>Har du ikke en konto?</span>
+        <span data-yj-en hidden>Don't have an account?</span>
+        <a href="#" data-ycf-action="register" data-yj-da>Opret profil</a>
+        <a href="#" data-ycf-action="register" data-yj-en hidden>Create profile</a>
+      </div>
+    </div>
+
+    <!-- ─── STEP 1b: FORGOT PASSWORD (inline) ─── -->
+    <div class="ycf-step" id="ycf-step-forgot" data-ycf-step="1" hidden>
+      <div class="yb-auth-modal__header">
+        <div class="yb-auth-modal__logo">
+          <img src="/assets/images/brand/logo-orange-on-transparent.png" alt="Yoga Bible" loading="lazy" />
+        </div>
+        <h2 class="yb-auth-modal__title" data-yj-da>Nulstil adgangskode</h2>
+        <h2 class="yb-auth-modal__title" data-yj-en hidden>Reset password</h2>
+        <p class="yb-auth-modal__subtitle" data-yj-da>Indtast din email, s&aring; sender vi dig et link</p>
+        <p class="yb-auth-modal__subtitle" data-yj-en hidden>Enter your email and we'll send you a reset link</p>
+      </div>
+
+      <form id="ycf-forgot-form" class="yb-auth-form" novalidate>
+        <div class="yb-auth-field">
+          <label for="ycf-forgot-email" data-yj-da>Email</label>
+          <label for="ycf-forgot-email" data-yj-en hidden>Email</label>
+          <input type="email" id="ycf-forgot-email" required autocomplete="email" placeholder="din@email.dk">
+        </div>
+        <div class="yb-auth-error" id="ycf-forgot-error" hidden role="alert"></div>
+        <div class="yb-auth-success" id="ycf-forgot-success" hidden role="status"></div>
+        <button type="submit" class="yb-auth-submit" data-yj-da>Send nulstillingslink</button>
+        <button type="submit" class="yb-auth-submit" data-yj-en hidden>Send reset link</button>
+      </form>
+
+      <div class="yb-auth-divider">
+        <a href="#" data-ycf-action="back-login" data-yj-da>&larr; Tilbage til log ind</a>
+        <a href="#" data-ycf-action="back-login" data-yj-en hidden>&larr; Back to sign in</a>
+      </div>
+    </div>
+
+    <!-- ─── STEP 2: REGISTER ─── -->
+    <div class="ycf-step" id="ycf-step-register" data-ycf-step="2" hidden>
+      <a href="#" class="ycf-back" data-ycf-action="back-login">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5"/><path d="M12 19l-7-7 7-7"/></svg>
+        <span data-yj-da>Tilbage</span>
+        <span data-yj-en hidden>Back</span>
+      </a>
+      <div class="yb-auth-modal__header">
+        <h2 class="yb-auth-modal__title" data-yj-da>Opret din profil</h2>
+        <h2 class="yb-auth-modal__title" data-yj-en hidden>Create your profile</h2>
+        <p class="yb-auth-modal__subtitle" data-yj-da>Det tager kun et minut</p>
+        <p class="yb-auth-modal__subtitle" data-yj-en hidden>It only takes a minute</p>
+      </div>
+
+      <form id="ycf-register-form" class="yb-auth-form" novalidate>
+        <div class="yb-auth-row">
+          <div class="yb-auth-field">
+            <label for="ycf-reg-firstname" data-yj-da>Fornavn</label>
+            <label for="ycf-reg-firstname" data-yj-en hidden>First name</label>
+            <input type="text" id="ycf-reg-firstname" required autocomplete="given-name" placeholder="Fornavn">
+          </div>
+          <div class="yb-auth-field">
+            <label for="ycf-reg-lastname" data-yj-da>Efternavn</label>
+            <label for="ycf-reg-lastname" data-yj-en hidden>Last name</label>
+            <input type="text" id="ycf-reg-lastname" required autocomplete="family-name" placeholder="Efternavn">
+          </div>
+        </div>
+        <div class="yb-auth-field">
+          <label for="ycf-reg-email" data-yj-da>Email</label>
+          <label for="ycf-reg-email" data-yj-en hidden>Email</label>
+          <input type="email" id="ycf-reg-email" required autocomplete="email" placeholder="din@email.dk">
+        </div>
+        <div class="yb-auth-field">
+          <label for="ycf-reg-phone" data-yj-da>Telefon</label>
+          <label for="ycf-reg-phone" data-yj-en hidden>Phone</label>
+          <input type="tel" id="ycf-reg-phone" autocomplete="tel" placeholder="+45 12 34 56 78">
+        </div>
+        <div class="yb-auth-field">
+          <label for="ycf-reg-password" data-yj-da>Adgangskode</label>
+          <label for="ycf-reg-password" data-yj-en hidden>Password</label>
+          <input type="password" id="ycf-reg-password" required autocomplete="new-password" placeholder="Mindst 6 tegn">
+        </div>
+        <div class="yb-auth-consent">
+          <label class="yb-auth-consent__item">
+            <input type="checkbox" id="ycf-reg-terms" required>
+            <span data-yj-da>Jeg accepterer <a href="/terms-conditions/" target="_blank" rel="noopener">Handelsbetingelser</a> og <a href="/privacy-policy/" target="_blank" rel="noopener">Privatlivspolitik</a></span>
+            <span data-yj-en hidden>I agree to the <a href="/en/terms-conditions/" target="_blank" rel="noopener">Terms &amp; Conditions</a> and <a href="/en/privacy-policy/" target="_blank" rel="noopener">Privacy Policy</a></span>
+          </label>
+          <label class="yb-auth-consent__item">
+            <input type="checkbox" id="ycf-reg-conduct" required>
+            <span data-yj-da>Jeg accepterer <a href="/code-of-conduct/" target="_blank" rel="noopener">Code of Conduct</a></span>
+            <span data-yj-en hidden>I agree to the <a href="/en/code-of-conduct/" target="_blank" rel="noopener">Code of Conduct</a></span>
+          </label>
+        </div>
+        <div class="yb-auth-error" id="ycf-register-error" hidden role="alert"></div>
+        <button type="submit" class="yb-auth-submit" data-yj-da>Opret profil &amp; forts&aelig;t</button>
+        <button type="submit" class="yb-auth-submit" data-yj-en hidden>Create profile &amp; continue</button>
+      </form>
+
+      <div class="yb-auth-divider">
+        <span data-yj-da>Har du allerede en konto?</span>
+        <span data-yj-en hidden>Already have an account?</span>
+        <a href="#" data-ycf-action="back-login" data-yj-da>Log ind</a>
+        <a href="#" data-ycf-action="back-login" data-yj-en hidden>Sign in</a>
+      </div>
+    </div>
+
+    <!-- ─── STEP 3: CHECKOUT ─── -->
+    <div class="ycf-step" id="ycf-step-checkout" data-ycf-step="3" hidden>
+      <a href="#" class="ycf-back" data-ycf-action="back-auth" id="ycf-back-from-checkout">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5"/><path d="M12 19l-7-7 7-7"/></svg>
+        <span data-yj-da>Tilbage</span>
+        <span data-yj-en hidden>Back</span>
+      </a>
+      <div class="yb-auth-modal__header">
+        <h2 class="yb-auth-modal__title" data-yj-da>Gennemf&oslash;r k&oslash;b</h2>
+        <h2 class="yb-auth-modal__title" data-yj-en hidden>Complete purchase</h2>
+      </div>
+
+      <!-- Product breakdown -->
+      <div class="ycf-product" id="ycf-product-info">
+        <div class="ycf-product__header">
+          <span class="ycf-product__name" id="ycf-prod-name"></span>
+          <span class="ycf-product__price" id="ycf-prod-price"></span>
+        </div>
+        <div class="ycf-product__chips" id="ycf-prod-chips"></div>
+        <p class="ycf-product__desc" id="ycf-prod-desc"></p>
+        <div class="ycf-product__refund" id="ycf-prod-refund" hidden>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+          <span id="ycf-prod-refund-text"></span>
+        </div>
+        <ul class="ycf-product__benefits" id="ycf-prod-benefits" hidden></ul>
+        <div class="ycf-product__note" id="ycf-prod-note" hidden>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>
+          <span id="ycf-prod-note-text"></span>
+        </div>
+      </div>
+
+      <!-- Payment form -->
+      <form id="ycf-checkout-form" class="yb-auth-form" novalidate>
+        <div class="yb-checkout-divider">
+          <span data-yj-da>Betalingsoplysninger</span>
+          <span data-yj-en hidden>Payment details</span>
+        </div>
+
+        <!-- Stored card option (shown when user has a card on file) -->
+        <div id="ycf-stored-card-section" class="ycf-payment-methods" hidden>
+          <label class="ycf-payment-option ycf-payment-option--active" id="ycf-opt-stored">
+            <input type="radio" name="ycf-payment-method" value="stored" checked>
+            <div class="ycf-payment-option__info">
+              <span class="ycf-payment-option__label" data-yj-da>Brug gemt kort</span>
+              <span class="ycf-payment-option__label" data-yj-en hidden>Use saved card</span>
+              <span class="ycf-payment-option__card" id="ycf-stored-card-info"></span>
+            </div>
+          </label>
+          <label class="ycf-payment-option" id="ycf-opt-new">
+            <input type="radio" name="ycf-payment-method" value="new">
+            <span class="ycf-payment-option__label" data-yj-da>Brug nyt kort</span>
+            <span class="ycf-payment-option__label" data-yj-en hidden>Use new card</span>
+          </label>
+        </div>
+
+        <!-- New card fields (hidden when using stored card) -->
+        <div id="ycf-new-card-fields">
+          <div class="yb-auth-field">
+            <label for="ycf-card" data-yj-da>Kortnummer *</label>
+            <label for="ycf-card" data-yj-en hidden>Card number *</label>
+            <input type="text" id="ycf-card" autocomplete="cc-number" inputmode="numeric" placeholder="1234 5678 9012 3456" maxlength="19">
+          </div>
+
+          <div class="yb-checkout-row">
+            <div class="yb-auth-field">
+              <label for="ycf-expiry" data-yj-da>Udl&oslash;b *</label>
+              <label for="ycf-expiry" data-yj-en hidden>Expiry *</label>
+              <input type="text" id="ycf-expiry" autocomplete="cc-exp" inputmode="numeric" placeholder="MM/&Aring;&Aring;" maxlength="5">
+            </div>
+            <div class="yb-auth-field">
+              <label for="ycf-cvv">CVV *</label>
+              <input type="text" id="ycf-cvv" autocomplete="cc-csc" inputmode="numeric" placeholder="123" maxlength="4">
+            </div>
+          </div>
+        </div>
+
+        <div class="yb-auth-error" id="ycf-checkout-error" hidden role="alert"></div>
+
+        <button type="submit" class="yb-auth-submit" id="ycf-pay-btn" data-yj-da>Betal</button>
+        <button type="submit" class="yb-auth-submit" id="ycf-pay-btn-en" data-yj-en hidden>Pay</button>
+
+        <p class="yb-checkout-secure">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+          <span data-yj-da>Sikker betaling via Mindbody</span>
+          <span data-yj-en hidden>Secure payment via Mindbody</span>
+        </p>
+      </form>
+    </div>
+
+    <!-- ─── STEP 4: SUCCESS ─── -->
+    <div class="ycf-step" id="ycf-step-success" data-ycf-step="3" hidden>
+      <div class="yb-checkout-success__inner">
+        <div class="yb-checkout-success__icon">&#10003;</div>
+        <h2 class="yb-auth-modal__title" data-yj-da>Betaling gennemf&oslash;rt!</h2>
+        <h2 class="yb-auth-modal__title" data-yj-en hidden>Payment successful!</h2>
+        <p class="yb-auth-modal__subtitle" data-yj-da>Du modtager en bekr&aelig;ftelse p&aring; email. N&aelig;ste skridt: underskriv din ansvarsfraskrivelse.</p>
+        <p class="yb-auth-modal__subtitle" data-yj-en hidden>You'll receive a confirmation email. Next step: sign your liability waiver.</p>
+        <button class="yb-auth-submit" type="button" id="ycf-go-profile" data-yj-da>G&aring; til din profil</button>
+        <button class="yb-auth-submit" type="button" id="ycf-go-profile-en" data-yj-en hidden>Go to your profile</button>
+      </div>
+    </div>
+
+  </div>
+</div>

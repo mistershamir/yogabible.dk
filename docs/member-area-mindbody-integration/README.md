@@ -2,7 +2,7 @@
 
 > Reusable reference for building member areas on Yoga Bible DK, Hot Yoga CPH, and future brand sites.
 > All brands share the same Mindbody Site ID and Firebase project (yoga-bible-dk-com).
-> **Last updated: 2026-02-10** — reflects invoice/receipt rewrite with 3-source merge, correct MB field mappings, HTML invoice generation.
+> **Last updated: 2026-02-14** — reflects catalog-based store rewrite, teacher training deposits, course builder, gift cards tab, pause re-enablement, waiver system, stored card management.
 
 ## What This System Does
 
@@ -10,11 +10,11 @@ A complete self-service member area powered by Firebase Auth + Mindbody API v6:
 
 - **Profile & Auth** — Firebase login, Firestore profiles, Mindbody client sync, avatar upload, consent checkboxes + audit trail, mandatory phone/DOB onboarding
 - **Class Schedule** — Weekly view, book/cancel, waitlist, teacher bios, pass validation
-- **Online Store** — Sell services AND contracts (recurring memberships) from Mindbody, with search bar, category tabs, descriptions, contract terms, and T&C links
-- **My Passes** — Active passes, contract management (pause/suspend/cancel/terminate), retention card with reactivation CTA
+- **Online Store** — Catalog-based store with two-level categories, age-bracket pricing, teacher training deposits, course builder with bundle discounts, and full checkout with waiver/signature support
+- **My Passes** — Active passes, contract management (pause 1/2/3 months, cancel via contact), retention card with reactivation CTA
 - **Visit History** — Filterable past + upcoming visits with status badges
 - **Receipts** — Purchase history from 3 MB sources with downloadable HTML invoices (company header, line items, VAT, bank details)
-- **Courses** — Custom course system via Firestore (separate from Mindbody)
+- **Gift Cards** — Browse and purchase gift cards for others via Mindbody
 
 ## Quick Start for New Brand
 
@@ -40,15 +40,19 @@ Browser (Client-Side)
 │                        └── Auto-creates Mindbody client on signup
 │                        └── Bidirectional sync: links existing MB clients on login (pulls phone/DOB)
 │                        └── Syncs membershipTier to Firestore
-├── profile.js ───────── 7-tab member dashboard
-│   ├── Onboarding ───── Mandatory phone/DOB overlay (blocks tabs until filled)
-│   ├── Profile tab ──── Firestore profile + MB client sync + tier badge
-│   ├── Schedule tab ─── Classes + booking + pass validation
-│   ├── Store tab ────── Services + contracts with search, descriptions, terms
-│   ├── My Passes tab ── Active passes + contract management + retention card
+├── profile.js ───────── 7-tab member dashboard (~3700 lines)
+│   ├── Onboarding ───── Mandatory phone/DOB inline card (blocks tabs until filled)
+│   ├── Profile tab ──── Firestore profile + MB client sync + tier badge + stored card
+│   ├── Schedule tab ─── Classes + booking + pass validation + waitlist
+│   ├── Store tab ────── Catalog-based store with 4 top categories, age-bracket pricing
+│   │   ├── Daily ────── Memberships, clips, time-based, trials, tourist
+│   │   ├── Teacher ──── 5 YTT deposit cards (3,750 kr each)
+│   │   ├── Courses ──── Course builder (Inversions/Splits/Backbends + bundle discounts)
+│   │   └── Private ──── Coming soon
 │   ├── Visits tab ───── Visit history with status filters
-│   ├── Receipts tab ─── Purchase history with download
-│   └── Courses tab ──── Firestore-only (not connected to MB)
+│   ├── My Passes tab ── Active passes + contract pause (1/2/3 months) + retention card
+│   ├── Receipts tab ─── Purchase history with HTML invoice download
+│   └── Gift Cards tab ─ Browse + purchase gift cards via Mindbody
 └── mindbody.js ──────── Original checkout modal (standalone pages)
 
 Netlify Functions (Server-Side)

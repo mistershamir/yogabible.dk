@@ -34,8 +34,17 @@
 <!-- Google Site Verification -->
 <meta name="google-site-verification" content="TwcY-eZVLkyfpXRQVox4jFESZT0sitKW9qkvkJLE0P0">
 
+<!-- Facebook Domain Verification -->
+<meta name="facebook-domain-verification" content="8kdausd86qo8bo9gwc6o6hcazkz2si">
+<meta name="facebook-domain-verification" content="uhk5ka193c4bdd16ldrpfhdy92n02g">
+<meta name="facebook-domain-verification" content="mdl9vemqx5vi2rt1i60j8q2Ooom9re">
+
 <!-- GTM ID — loaded conditionally by cookie consent manager -->
 <meta name="yb-gtm-id" content="{{ site.gtmId }}">
+<!-- Meta Pixel ID — loaded conditionally by cookie consent manager -->
+{% if site.metaPixelId %}<meta name="yb-meta-pixel-id" content="{{ site.metaPixelId }}">{% endif %}
+<!-- Clarity ID — loaded conditionally by cookie consent manager -->
+{% if site.clarityId %}<meta name="yb-clarity-id" content="{{ site.clarityId }}">{% endif %}
 <script>window.dataLayer = window.dataLayer || [];</script>
 
 <!-- hreflang: Danish is primary, English at /en/ prefix -->

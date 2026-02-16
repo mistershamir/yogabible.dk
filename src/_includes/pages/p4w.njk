@@ -2,29 +2,33 @@
 {% set lp = "/en" if lang == "en" else "" %}
 
 <!-- ═══════════════════════════════════════
-     1. HERO — Copenhagen Dream + Certification
+     1. HERO — Primary Dark Cinematic
      ═══════════════════════════════════════ -->
-<section class="p18-hero">
-  <div class="p18-hero__bg">
-    <!-- Video slot: add <video> here when ready -->
-  </div>
-  <div class="p18-hero__overlay"></div>
-
-  <div class="container p18-hero__inner">
-    <span class="p18-hero__eyebrow">{{ t.hero_eyebrow }}</span>
-    <h1 class="p18-hero__title">{{ t.hero_title | safe }}</h1>
-    <p class="p18-hero__subtitle">{{ t.hero_subtitle }}</p>
-
-    <p class="p18-hero__meta-line">{{ t.hero_meta }}</p>
-
-    <p class="p18-hero__cert-badge">{{ t.hero_cert }}</p>
-
-    <p class="p18-hero__styles">{{ t.hero_styles }}</p>
-
-    <div class="p18-hero__cta">
-      <button onclick="openYBScheduleModal('4w')" class="btn btn--primary btn--large">{{ t.hero_cta_schedule }}</button>
-      <a href="#why-copenhagen" class="btn btn--secondary btn--large">{{ t.hero_cta_why }}</a>
+<section class="yb-hero">
+  <div class="yb-hero__glow"></div>
+  <div class="yb-hero__content">
+    <p class="yb-hero__tagline">{{ t.hero_tagline }}</p>
+    <h1 class="yb-hero__title">{{ t.hero_title | safe }}</h1>
+    <p class="yb-hero__subtitle">{{ t.hero_subtitle }}</p>
+    <div class="yb-hero__line"></div>
+    <div class="yb-hero__ctas">
+      <button class="yb-btn yb-btn--primary yb-btn--large" data-checkout-product="100121">{{ t.hero_cta_prep }}</button>
+      <button onclick="openYBScheduleModal('4w')" class="yb-btn yb-btn--outline-white yb-btn--large">{{ t.hero_cta_schedule }}</button>
     </div>
+    <p class="yb-hero__read-more">
+      <a href="{{ lp }}/om-200hrs-yogalreruddannelser" class="yb-hero__read-more-link">{{ t.hero_cta_more }}</a>
+    </p>
+    <div class="yb-hero__trust">
+      <span>{{ t.hero_trust1 }}</span>
+      <span class="yb-hero__trust-dot"></span>
+      <span>{{ t.hero_trust2 }}</span>
+      <span class="yb-hero__trust-dot"></span>
+      <span>{{ t.hero_trust3 }}</span>
+    </div>
+  </div>
+  <div class="yb-hero__scroll">
+    <span>Scroll</span>
+    <div class="yb-hero__scroll-line"></div>
   </div>
 </section>
 
@@ -631,12 +635,11 @@
         </ul>
 
         <div class="p4w-early-card__cta">
-          <a class="yb-btn yb-btn--cta"
-             href="https://clients.mindbodyonline.com/classic/ws?studioid=5748831&stype=41&sTG=46&prodId=100078"
-             target="_blank" rel="noopener">{{ t.early_cta_text }}</a>
+          <button class="yb-btn yb-btn--cta" data-checkout-product="100121">{{ t.early_cta_text }}</button>
           <div class="p4w-early-card__pricing">
             <span class="p4w-early-card__deposit">{{ t.early_deposit_label }}</span>
             <span class="p4w-early-card__remainder">{{ t.early_remainder_label }}</span>
+            <span class="p4w-early-card__refund">{{ t.early_refund_note }}</span>
           </div>
         </div>
       </div>
@@ -671,7 +674,10 @@
   <div class="container">
     <h2 class="p18-final-cta__title">{{ t.final_title }}</h2>
     <p class="p18-final-cta__text">{{ t.final_text }}</p>
-    <button onclick="openYBScheduleModal('4w')" class="btn btn--large btn--primary">{{ t.final_cta }}</button>
+    <div style="display:flex;flex-wrap:wrap;gap:1rem;justify-content:center">
+      <button onclick="openYBScheduleModal('4w')" class="btn btn--large btn--primary">{{ t.final_cta }}</button>
+      <button class="yb-btn yb-btn--primary yb-btn--large" data-checkout-product="100121">{{ t.final_prep_cta }}</button>
+    </div>
   </div>
 </section>
 

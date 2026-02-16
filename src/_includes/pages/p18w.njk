@@ -11,9 +11,12 @@
     <p class="yb-hero__subtitle">{{ t.hero_subtitle }}</p>
     <div class="yb-hero__line"></div>
     <div class="yb-hero__ctas">
-      <button onclick="openYBScheduleModal('18w')" class="yb-btn yb-btn--primary yb-btn--large">{{ t.hero_cta_schedule }}</button>
-      <a href="#program-overview" class="yb-btn yb-btn--outline-white yb-btn--large">{{ t.hero_cta_more }}</a>
+      <button class="yb-btn yb-btn--primary yb-btn--large" data-checkout-product="100078">{{ t.hero_cta_prep }}</button>
+      <button onclick="openYBScheduleModal('18w')" class="yb-btn yb-btn--outline-white yb-btn--large">{{ t.hero_cta_schedule }}</button>
     </div>
+    <p class="yb-hero__read-more">
+      <a href="{{ lp }}/om-200hrs-yogalreruddannelser" class="yb-hero__read-more-link">{{ t.hero_cta_more }}</a>
+    </p>
     <div class="yb-hero__trust">
       <span>{{ t.hero_trust1 }}</span>
       <span class="yb-hero__trust-dot"></span>
@@ -385,114 +388,92 @@
 </section>
 
 <!-- ═══════════════════════════════════════
-     7. INVESTMENT — 23.750 DKK
+     7. INVESTMENT & EARLY DEPOSIT — Side-by-Side
      ═══════════════════════════════════════ -->
 <section class="p18-investment">
   <div class="container">
     <span class="p18-eyebrow">{{ t.invest_eyebrow }}</span>
     <h2 class="p18-section-title">{{ t.invest_title }}</h2>
 
-    <div class="p18-invest-box">
-      <div class="p18-invest-price">
-        <span class="p18-invest-price__amount">{{ t.invest_amount }}</span>
-        <span class="p18-invest-price__label">{{ t.invest_label }}</span>
+    <div class="p4w-invest-combined">
+
+      <!-- Left: Pricing card -->
+      <div class="p18-invest-box">
+        <div class="p18-invest-price">
+          <span class="p18-invest-price__amount">{{ t.invest_amount }}</span>
+          <span class="p18-invest-price__label">{{ t.invest_label }}</span>
+        </div>
+
+        <div class="p18-invest-includes">
+          <h4>{{ t.invest_incl_title }}</h4>
+          <ul>
+            <li>{{ t.invest_incl1 }}</li>
+            <li>{{ t.invest_incl2 }}</li>
+            <li>{{ t.invest_incl3 }}</li>
+            <li>{{ t.invest_incl4 }}</li>
+            <li>{{ t.invest_incl5 }}</li>
+            <li>{{ t.invest_incl6 }}</li>
+          </ul>
+        </div>
+
+        <div class="p18-invest-divider"></div>
+
+        <div class="p18-invest-payment">
+          <h4>{{ t.invest_pay_title }}</h4>
+          <p class="p18-invest-note">{{ t.invest_deposit_note }}</p>
+          <div class="p18-invest-options">
+            <div class="p18-invest-option">
+              <span class="p18-invest-option__label">{{ t.invest_pay1_label }}</span>
+              <span class="p18-invest-option__value">{{ t.invest_pay1_value }}</span>
+            </div>
+            <div class="p18-invest-option">
+              <span class="p18-invest-option__label">{{ t.invest_pay2_label }}</span>
+              <span class="p18-invest-option__value">{{ t.invest_pay2_value }}</span>
+            </div>
+            <div class="p18-invest-option">
+              <span class="p18-invest-option__label">{{ t.invest_pay3_label }}</span>
+              <span class="p18-invest-option__value">{{ t.invest_pay3_value }}</span>
+            </div>
+          </div>
+        </div>
+
+        <button onclick="openYBScheduleModal('18w')" class="btn btn--primary btn--large" style="width:100%;margin-top:1.5rem">{{ t.invest_cta }}</button>
       </div>
 
-      <div class="p18-invest-includes">
-        <h4>{{ t.invest_incl_title }}</h4>
-        <ul>
-          <li>{{ t.invest_incl1 }}</li>
-          <li>{{ t.invest_incl2 }}</li>
-          <li>{{ t.invest_incl3 }}</li>
-          <li>{{ t.invest_incl4 }}</li>
-          <li>{{ t.invest_incl5 }}</li>
-          <li>{{ t.invest_incl6 }}</li>
+      <!-- Right: Early deposit benefits -->
+      <div class="p4w-early-card">
+        <h3 class="p4w-early-card__title">{{ t.invest_early_title }}</h3>
+        <p class="p4w-early-card__subtitle">{{ t.invest_early_desc }}</p>
+
+        <ul class="p4w-early-card__list">
+          <li>
+            <span class="p4w-early-card__check" aria-hidden="true">&#x2713;</span>
+            <span>{{ t.early1 }}</span>
+          </li>
+          <li>
+            <span class="p4w-early-card__check" aria-hidden="true">&#x2713;</span>
+            <span>{{ t.early2 }}</span>
+          </li>
+          <li>
+            <span class="p4w-early-card__check" aria-hidden="true">&#x2713;</span>
+            <span>{{ t.early3 }}</span>
+          </li>
+          <li>
+            <span class="p4w-early-card__check" aria-hidden="true">&#x2713;</span>
+            <span>{{ t.early4 }}</span>
+          </li>
         </ul>
-      </div>
 
-      <div class="p18-invest-divider"></div>
-
-      <div class="p18-invest-payment">
-        <h4>{{ t.invest_pay_title }}</h4>
-        <p style="font-size:13px;color:#6F6A66;margin:0 0 12px;">{{ t.invest_deposit_note }}</p>
-        <div class="p18-invest-options">
-          <div class="p18-invest-option">
-            <span class="p18-invest-option__label">{{ t.invest_pay1_label }}</span>
-            <span class="p18-invest-option__value">{{ t.invest_pay1_value }}</span>
-          </div>
-          <div class="p18-invest-option">
-            <span class="p18-invest-option__label">{{ t.invest_pay2_label }}</span>
-            <span class="p18-invest-option__value">{{ t.invest_pay2_value }}</span>
-          </div>
-          <div class="p18-invest-option">
-            <span class="p18-invest-option__label">{{ t.invest_pay3_label }}</span>
-            <span class="p18-invest-option__value">{{ t.invest_pay3_value }}</span>
+        <div class="p4w-early-card__cta">
+          <button class="yb-btn yb-btn--cta" data-checkout-product="100078">{{ t.invest_deposit_cta }}</button>
+          <div class="p4w-early-card__pricing">
+            <span class="p4w-early-card__deposit">{{ t.early_deposit }}</span>
+            <span class="p4w-early-card__remainder">{{ t.early_installment }}</span>
+            <span class="p4w-early-card__refund">{{ t.early_refund_note }}</span>
           </div>
         </div>
       </div>
 
-      <button onclick="openYBScheduleModal('18w')" class="btn btn--primary btn--large" style="width:100%;margin-top:1.5rem">{{ t.invest_cta }}</button>
-    </div>
-  </div>
-</section>
-
-<!-- ═══════════════════════════════════════
-     8. EARLY DEPOSIT — Get Studio Access Now
-     ═══════════════════════════════════════ -->
-<section class="yb-early" aria-label="{{ t.early_kicker }}">
-  <div class="yb-early-wrap container">
-    <figure class="yb-early-media">
-      <img
-        src="https://www.yogabible.dk/s/Start_with_Hot_Yoga_Copenhagen.jpg"
-        alt="{{ t.early_img_alt }}"
-        loading="lazy"
-        decoding="async"
-      />
-    </figure>
-
-    <div class="yb-early-copy">
-      <p class="yb-early-kicker">{{ t.early_kicker }}</p>
-      <h2 class="yb-early-title">{{ t.early_title }}</h2>
-
-      <div class="yb-early-meta">
-        <span class="yb-meta-item">
-          <span class="yb-meta-icon">📍</span>
-          {{ t.early_location }}
-        </span>
-        <span class="yb-meta-divider">•</span>
-        <span class="yb-meta-item">{{ t.early_classes }}</span>
-      </div>
-
-      <p class="yb-early-styles">{{ t.early_styles }}</p>
-
-      <ul class="yb-early-list" role="list">
-        <li>
-          <span class="yb-check" aria-hidden="true">✓</span>
-          <span>{{ t.early1 }}</span>
-        </li>
-        <li>
-          <span class="yb-check" aria-hidden="true">✓</span>
-          <span>{{ t.early2 }}</span>
-        </li>
-        <li>
-          <span class="yb-check" aria-hidden="true">✓</span>
-          <span>{{ t.early3 }}</span>
-        </li>
-        <li>
-          <span class="yb-check" aria-hidden="true">✓</span>
-          <span>{{ t.early4 }}</span>
-        </li>
-      </ul>
-
-      <div class="yb-early-cta">
-        <a class="yb-btn yb-btn--cta"
-           href="https://clients.mindbodyonline.com/classic/ws?studioid=5748831&stype=41&sTG=46&prodId=100078"
-           target="_blank" rel="noopener">{{ t.early_cta }}</a>
-        <div class="yb-early-pricing">
-          <span class="yb-deposit">{{ t.early_deposit }}</span>
-          <span class="yb-installment">{{ t.early_installment }}</span>
-        </div>
-      </div>
     </div>
   </div>
 </section>
@@ -673,7 +654,10 @@
   <div class="container">
     <h2 class="p18-final-cta__title">{{ t.final_title }}</h2>
     <p class="p18-final-cta__text">{{ t.final_text }}</p>
-    <button onclick="openYBScheduleModal('18w')" class="btn btn--large btn--primary">{{ t.final_cta }}</button>
+    <div style="display:flex;flex-wrap:wrap;gap:1rem;justify-content:center">
+      <button onclick="openYBScheduleModal('18w')" class="btn btn--large btn--primary">{{ t.final_cta }}</button>
+      <button class="yb-btn yb-btn--primary yb-btn--large" data-checkout-product="100078">{{ t.final_prep_cta }}</button>
+    </div>
   </div>
 </section>
 

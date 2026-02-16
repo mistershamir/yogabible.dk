@@ -16,3 +16,17 @@
     X-Content-Type-Options = "nosniff"
     X-XSS-Protection = "1; mode=block"
     Referrer-Policy = "strict-origin-when-cross-origin"
+
+# CORS headers for checkout-embed.js (loaded from Framer site)
+[[headers]]
+  for = "/js/checkout-embed.js"
+  [headers.values]
+    Access-Control-Allow-Origin = "*"
+    Cache-Control = "public, max-age=3600"
+
+# CORS headers for schedule-embed.js (loaded from Framer site)
+[[headers]]
+  for = "/js/schedule-embed.js"
+  [headers.values]
+    Access-Control-Allow-Origin = "*"
+    Cache-Control = "public, max-age=300"

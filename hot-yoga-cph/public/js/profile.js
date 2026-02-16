@@ -550,6 +550,20 @@
       if (tierEl) tierEl.textContent = '—';
       var tierDetailEl = document.getElementById('yb-profile-tier-detail');
       if (tierDetailEl) tierDetailEl.textContent = '—';
+
+      // Role badge
+      var roleBadgeEl = document.getElementById('yb-profile-role-badge');
+      if (roleBadgeEl && window.YBRoles) {
+        var role = d.role || 'member';
+        if (role === 'user') role = 'member';
+        var roleLabel = window.YBRoles.getRoleLabel(role, isDa() ? 'da' : 'en');
+        var roleDetail = window.YBRoles.getRoleDetail(role, d.roleDetails || {}, isDa() ? 'da' : 'en');
+        var roleColor = (window.YBRoles.ROLES[role] || {}).color || '#6F6A66';
+        roleBadgeEl.textContent = roleLabel + (roleDetail ? ' — ' + roleDetail : '');
+        roleBadgeEl.style.borderColor = roleColor;
+        roleBadgeEl.style.color = roleColor;
+        roleBadgeEl.style.display = '';
+      }
     }).catch(function(err) {
       console.warn('Could not load profile:', err);
       // If profile load fails, stop the stored card loading spinner
@@ -653,6 +667,7 @@
               } catch (e) {}
             }
             renderWaiverCard();
+            hideCheckoutWaiverIfSigned();
           }
         })
         .catch(function(err) {
@@ -675,6 +690,7 @@
               if (waiverAgreementDate) localStorage.setItem(cacheKey + '_date', waiverAgreementDate);
             } catch (e) {}
           }
+          hideCheckoutWaiverIfSigned();
         }
         // SYNC: If signed locally (localStorage/Firestore) but MB doesn't know yet,
         // push the marker note to MB so other browsers can detect it
@@ -700,6 +716,29 @@
       });
   }
 
+  // Hide checkout waiver section if waiver was confirmed signed after checkout opened
+  function hideCheckoutWaiverIfSigned() {
+    if (!waiverSigned) return;
+    var waiverSection = document.getElementById('yb-checkout-waiver-section');
+    if (waiverSection && !waiverSection.hidden) {
+      waiverSection.hidden = true;
+      var termsSection = document.getElementById('yb-checkout-terms-section');
+      var agreeSection = document.getElementById('yb-checkout-agree-section');
+      var showTerms = termsSection && !termsSection.hidden;
+      if (agreeSection) {
+        if (!showTerms) {
+          agreeSection.hidden = true;
+          var checkoutGrid = document.getElementById('yb-checkout-grid');
+          if (checkoutGrid) checkoutGrid.classList.remove('yb-checkout__grid--split');
+        } else {
+          var agreeLabel = document.getElementById('yb-checkout-agree-label');
+          if (agreeLabel) agreeLabel.textContent = isDa() ? 'Jeg accepterer kontraktvilkårene' : 'I accept the contract terms';
+        }
+      }
+      console.log('[waiver] Auto-hidden checkout waiver section (already signed)');
+    }
+  }
+
   // ══════════════════════════════════════
   // STORED CREDIT CARD
   // ══════════════════════════════════════
@@ -721,6 +760,11 @@
       if (holderEl) holderEl.textContent = card.cardHolder || '';
       if (expEl && card.expMonth && card.expYear) {
         expEl.textContent = (isDa() ? 'Udløber ' : 'Expires ') + card.expMonth + '/' + card.expYear;
+      }
+      // If checkout is already open, update stored card section there too
+      var checkoutEl = document.getElementById('yb-store-checkout');
+      if (checkoutEl && !checkoutEl.hidden) {
+        initCheckoutStoredCard('yb-store');
       }
     } else {
       storedCardData = null;
@@ -1317,11 +1361,64 @@
           html += '<p class="yb-membership__pause-contact">' + t('membership_resume_contact') + '</p>';
         }
 
-        // ── ACTIVE STATE: Manage info (contact-based) ──
+        // ── ACTIVE STATE: Pause button + cancel info ──
         var showActiveInfo = !isPaused && !c.terminationDate && c.isAutopay;
         if (showActiveInfo) {
-          html += '<div class="yb-membership__manage-info-box">';
-          html += '<p class="yb-membership__manage-info-text">' + t('membership_manage_info') + '</p>';
+          // Pause button
+          html += '<div class="yb-membership__manage-btns">';
+          html += '<button class="yb-membership__manage-btn yb-membership__manage-btn--pause" type="button" data-pause-contract="' + c.id + '" data-next-billing="' + (c.nextBillingDate || '') + '">' + t('membership_pause_btn') + '</button>';
+          html += '</div>';
+
+          // Expandable pause form (hidden until button clicked)
+          var earliestStart = calcEarliestPauseStart(c.nextBillingDate);
+          var earliestStr = toLocalDateStr(earliestStart);
+          var maxStartDate = new Date(earliestStart);
+          maxStartDate.setMonth(maxStartDate.getMonth() + 3);
+          var maxStartStr = toLocalDateStr(maxStartDate);
+
+          // Default resume date: earliest start + 1 month
+          var defaultResume = new Date(earliestStart);
+          defaultResume.setMonth(defaultResume.getMonth() + 1);
+
+          html += '<div class="yb-membership__manage-info" data-pause-form="' + c.id + '" hidden>';
+          html += '<h4 style="margin:0 0 0.5rem;font-size:0.95rem;font-weight:700">' + t('membership_pause_title') + '</h4>';
+          html += '<p style="font-size:0.85rem;color:#6F6A66;margin:0 0 0.75rem">' + t('membership_pause_desc') + '</p>';
+
+          // Start date
+          html += '<div class="yb-membership__info-row">';
+          html += '<span class="yb-membership__info-label">' + t('membership_pause_start') + '</span><br>';
+          html += '<input type="date" data-pause-start="' + c.id + '" min="' + earliestStr + '" max="' + maxStartStr + '" value="' + earliestStr + '" style="font-family:Abacaxi,sans-serif;font-size:0.9rem;padding:0.4rem 0.6rem;border:1.5px solid #E8E4E0;border-radius:8px;width:100%;margin-top:0.25rem">';
+          html += '<span style="font-size:0.78rem;color:#6F6A66;font-style:italic">' + t('membership_pause_next_billing') + ': ' + formatDateDK(c.nextBillingDate) + '</span>';
+          html += '</div>';
+
+          // Duration: 1 / 2 / 3 months
+          html += '<div class="yb-membership__info-row" style="margin-top:0.5rem">';
+          html += '<span class="yb-membership__info-label">' + t('membership_pause_duration') + '</span>';
+          html += '<div style="display:flex;gap:0.5rem;margin-top:0.35rem">';
+          for (var mi = 1; mi <= 3; mi++) {
+            var isDefault = mi === 1 ? ' yb-membership__month-btn--active' : '';
+            var label = mi + ' ' + (mi === 1 ? t('membership_pause_month_single') : t('membership_pause_month_plural'));
+            html += '<button type="button" class="yb-membership__month-btn' + isDefault + '" data-pause-months="' + c.id + '" data-months="' + mi + '" style="flex:1;padding:0.5rem 0.25rem;font-family:Abacaxi,sans-serif;font-size:0.85rem;font-weight:700;border:1.5px solid #E8E4E0;border-radius:8px;background:#fff;cursor:pointer;transition:all 0.15s">' + label + '</button>';
+          }
+          html += '</div>';
+          html += '</div>';
+
+          // Resume preview
+          html += '<p class="yb-membership__resume-info" data-pause-resume="' + c.id + '" style="margin-top:0.75rem">' + t('membership_pause_resume') + ' ' + formatDateDK(toLocalDateStr(defaultResume)) + '</p>';
+
+          // Error
+          html += '<div class="yb-auth-error" data-pause-error="' + c.id + '" hidden style="margin-top:0.5rem"></div>';
+
+          // Actions
+          html += '<button class="yb-membership__confirm-btn yb-membership__confirm-btn--pause" data-pause-confirm="' + c.id + '" style="margin-top:0.75rem">' + t('membership_pause_confirm') + '</button>';
+
+          // Special note
+          html += '<p class="yb-membership__special-note">' + t('membership_pause_special') + '</p>';
+          html += '</div>';
+
+          // Cancel by email info
+          html += '<div class="yb-membership__manage-info-box" style="margin-top:0.5rem">';
+          html += '<p class="yb-membership__manage-info-text">' + t('membership_cancel_info') + '</p>';
           html += '</div>';
         }
 
@@ -1514,14 +1611,119 @@
   function bindMembershipManageEvents(container, data) {
     var contracts = data.activeContracts || [];
 
-    // NOTE: Pause and Cancel buttons have been removed from the UI.
-    // These actions are now handled via email to info@hotyogacph.dk.
-    // The pause/termination STATUS display and retention card remain.
+    // ── Pause buttons: toggle the pause form ──
+    var pauseBtns = container.querySelectorAll('[data-pause-contract]');
+    for (var p = 0; p < pauseBtns.length; p++) {
+      pauseBtns[p].addEventListener('click', function() {
+        var cId = this.getAttribute('data-pause-contract');
+        var formEl = container.querySelector('[data-pause-form="' + cId + '"]');
+        if (formEl) {
+          formEl.hidden = !formEl.hidden;
+          if (!formEl.hidden) formEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+      });
+    }
 
-    // NOTE: Pause and Cancel buttons removed from UI.
-    // Pending Mindbody API clarification on SuspendDate semantics
-    // and missing delete-suspension / cancel-termination endpoints.
-    // Users are directed to email info@hotyogacph.dk instead.
+    // ── Pause: helper to get selected months for a contract ──
+    function getSelectedMonths(cId) {
+      var activeBtn = container.querySelector('[data-pause-months="' + cId + '"].yb-membership__month-btn--active');
+      return activeBtn ? Number(activeBtn.getAttribute('data-months')) : 1;
+    }
+
+    // ── Pause: helper to update resume preview from start + months ──
+    function updatePauseResume(cId) {
+      var startInput = container.querySelector('[data-pause-start="' + cId + '"]');
+      var resumeEl = container.querySelector('[data-pause-resume="' + cId + '"]');
+      if (!startInput || !resumeEl || !startInput.value) return;
+      var months = getSelectedMonths(cId);
+      var resumeDate = new Date(startInput.value);
+      resumeDate.setMonth(resumeDate.getMonth() + months);
+      resumeEl.textContent = t('membership_pause_resume') + ' ' + formatDateDK(toLocalDateStr(resumeDate));
+    }
+
+    // ── Pause: start date change → update resume preview ──
+    var pauseStartInputs = container.querySelectorAll('[data-pause-start]');
+    for (var ps = 0; ps < pauseStartInputs.length; ps++) {
+      pauseStartInputs[ps].addEventListener('change', function() {
+        updatePauseResume(this.getAttribute('data-pause-start'));
+      });
+    }
+
+    // ── Pause: month buttons ──
+    var monthBtns = container.querySelectorAll('[data-pause-months]');
+    for (var mb = 0; mb < monthBtns.length; mb++) {
+      monthBtns[mb].addEventListener('click', function() {
+        var cId = this.getAttribute('data-pause-months');
+        // Toggle active state
+        var siblings = container.querySelectorAll('[data-pause-months="' + cId + '"]');
+        for (var s = 0; s < siblings.length; s++) siblings[s].classList.remove('yb-membership__month-btn--active');
+        this.classList.add('yb-membership__month-btn--active');
+        updatePauseResume(cId);
+      });
+    }
+
+    // ── Pause confirm button ──
+    var pauseConfirmBtns = container.querySelectorAll('[data-pause-confirm]');
+    for (var pc = 0; pc < pauseConfirmBtns.length; pc++) {
+      pauseConfirmBtns[pc].addEventListener('click', function() {
+        var cId = this.getAttribute('data-pause-confirm');
+        var startInput = container.querySelector('[data-pause-start="' + cId + '"]');
+        var errorEl = container.querySelector('[data-pause-error="' + cId + '"]');
+        var btn = this;
+        var months = getSelectedMonths(cId);
+
+        if (!startInput || !startInput.value) {
+          if (errorEl) { errorEl.textContent = isDa() ? 'Vælg en startdato.' : 'Select a start date.'; errorEl.hidden = false; }
+          return;
+        }
+
+        // Calculate end date for local state
+        var endDate = new Date(startInput.value);
+        endDate.setMonth(endDate.getMonth() + months);
+        var endDateStr = toLocalDateStr(endDate);
+
+        btn.disabled = true;
+        btn.textContent = t('membership_pause_confirming');
+        if (errorEl) errorEl.hidden = true;
+
+        fetch('/.netlify/functions/mb-contract-manage', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            clientId: clientId,
+            clientContractId: Number(cId),
+            action: 'suspend',
+            startDate: startInput.value,
+            months: months
+          })
+        })
+        .then(function(r) { return r.json(); })
+        .then(function(result) {
+          btn.disabled = false;
+          btn.textContent = t('membership_pause_confirm');
+
+          if (result.error === 'already_suspended') {
+            if (errorEl) { errorEl.textContent = t('membership_already_paused'); errorEl.hidden = false; }
+            return;
+          }
+          if (result.error) {
+            if (errorEl) { errorEl.textContent = result.error; errorEl.hidden = false; }
+            return;
+          }
+
+          // Success — update local state and re-render
+          markContractPaused(cId, startInput.value, endDateStr);
+          showMembershipToast(t('membership_pause_success'), 'success');
+          var membershipEl = document.getElementById('yb-membership-content');
+          if (membershipEl && clientPassData) renderMembershipDetails(membershipEl, clientPassData);
+        })
+        .catch(function() {
+          btn.disabled = false;
+          btn.textContent = t('membership_pause_confirm');
+          if (errorEl) { errorEl.textContent = t('membership_pause_error'); errorEl.hidden = false; }
+        });
+      });
+    }
 
     // ── Reactivate (retention) buttons ──
     // First month free is already set on all contracts in Mindbody,
@@ -1631,8 +1833,8 @@
       id: 'teacher',
       da: 'Yogalæreruddannelse',
       en: 'Yoga Teacher Training',
-      desc_da: 'Depositum og tilmelding til uddannelse',
-      desc_en: 'Deposits and training enrollment',
+      desc_da: 'Forberedelsesfasen og tilmelding til uddannelse',
+      desc_en: 'Preparation Phase and training enrollment',
       icon: '<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>'
     },
     {
@@ -1789,7 +1991,7 @@
         { id: 'tr-1-u30', _ref: 'clips:0' },
         { id: 'tr-14d-u30', _ref: 'timebased:0' },
         { id: 'tr-21d-u30', _ref: 'timebased:1' },
-        { id: 'tr-kick-u30', name_da: 'KickStarter', name_en: 'KickStarter', price: 475, vat_pct: 0, validity: '3 weeks', classes: 10, prodId: '100185', cphOnly: true,
+        { id: 'tr-kick-u30', name_da: 'KickStarter', name_en: 'KickStarter', price: 475, vat_pct: 0, validity: '3 weeks', classes: 10, prodId: '100153', cphOnly: true,
           desc_da: 'Kun for Københavns-beboere. 10 klasser inden for 3 uger fra din første bookede klasse. Gyldighedsperioden starter fra din første bookede klasse.',
           desc_en: 'Only for Copenhagen residents. 10 classes to be used within 3 weeks from your first booked class. Validity period starts from your first booked class.'
         }
@@ -1814,6 +2016,67 @@
       rental_note_en: 'Bring your own or: Mat rental 40 kr \u00b7 Practice towel 40 kr \u00b7 Shower towel 40 kr (pay at studio upon arrival)'
     },
     // ── Test items (temporary — remove after testing) ──
+    teacher: [
+      { id: 'ytt-flex-mar-jun26', prodId: '100078', price: 3750, vat_pct: 0,
+        name_da: '18 Ugers Fleksibelt Program', name_en: '18-Week Flexible Program',
+        period_da: 'Marts – Juni 2026', period_en: 'March – June 2026',
+        format_da: '200-timers komplet uddannelse', format_en: '200-hour complete education',
+        desc_da: 'Start din forberedelsesfase for det 18-ugers fleksible yogalæreruddannelsesprogram. Begynd din rejse i dit eget tempo.',
+        desc_en: 'Begin your Preparation Phase for the 18-week flexible yoga teacher training program. Start your journey at your own pace.' },
+      { id: 'ytt-4w-apr26', prodId: '100121', price: 3750, vat_pct: 0,
+        name_da: '4 Ugers Intensiv', name_en: '4-Week Intensive',
+        period_da: 'April 2026', period_en: 'April 2026',
+        format_da: '200-timers komplet uddannelse', format_en: '200-hour complete education',
+        desc_da: 'Start din forberedelsesfase for det intensive 4-ugers program. Fuld fordybelse og hurtig transformation.',
+        desc_en: 'Begin your Preparation Phase for the intensive 4-week program. Full immersion and rapid transformation.' },
+      { id: 'ytt-4w-jul26', prodId: '100211', price: 3750, vat_pct: 0,
+        name_da: '4 Ugers Intensiv', name_en: '4-Week Intensive',
+        period_da: 'Juli 2026', period_en: 'July 2026',
+        format_da: '200-timers komplet uddannelse', format_en: '200-hour complete education',
+        desc_da: 'Start din forberedelsesfase for sommerens 4-ugers intensive program. Fordyb dig i yoga midt om sommeren.',
+        desc_en: 'Begin your Preparation Phase for the summer 4-week intensive program. Immerse yourself in yoga this summer.' },
+      { id: 'ytt-8w-semi-may-jun26', prodId: '100209', price: 3750, vat_pct: 0,
+        name_da: '8 Ugers Semi-Intensiv', name_en: '8-Week Semi-Intensive',
+        period_da: 'Maj – Juni 2026', period_en: 'May – June 2026',
+        format_da: '200-timers komplet uddannelse', format_en: '200-hour complete education',
+        desc_da: 'Start din forberedelsesfase for det 8-ugers semi-intensive program. Den perfekte balance mellem intensitet og fleksibilitet.',
+        desc_en: 'Begin your Preparation Phase for the 8-week semi-intensive program. The perfect balance between intensity and flexibility.' },
+      { id: 'ytt-flex-aug-dec26', prodId: '100210', price: 3750, vat_pct: 0,
+        name_da: '18 Ugers Fleksibelt Program', name_en: '18-Week Flexible Program',
+        period_da: 'August – December 2026', period_en: 'August – December 2026',
+        format_da: '200-timers komplet uddannelse', format_en: '200-hour complete education',
+        desc_da: 'Start din forberedelsesfase for efterårets 18-ugers fleksible program. Tag uddannelsen sideløbende med dit daglige liv.',
+        desc_en: 'Begin your Preparation Phase for the autumn 18-week flexible program. Complete your training alongside daily life.' }
+    ],
+    courses: {
+      single_price: 2300,
+      discounts: { 2: 0.10, 3: 0.15 },
+      bonus_pass_value: 1249,
+      items: [
+        { id: 'inversions', prodId: '100145',
+          name_da: 'Inversions', name_en: 'Inversions',
+          desc_da: 'Mester armbalancer og omvendinger med sikker teknik og gradvis progression.',
+          desc_en: 'Master arm balances and inversions with safe technique and gradual progression.',
+          link: '/inversions', icon: '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 2v8m0 0l-3-3m3 3l3-3"/><circle cx="12" cy="18" r="4"/></svg>' },
+        { id: 'splits', prodId: '100150',
+          name_da: 'Splits', name_en: 'Splits',
+          desc_da: 'Opnå fuld splits med systematisk fleksibilitetstræning og sikre stræk.',
+          desc_en: 'Achieve full splits with systematic flexibility training and safe stretching.',
+          link: '/splits', icon: '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 20l8-8 8 8"/><circle cx="12" cy="6" r="3"/></svg>' },
+        { id: 'backbends', prodId: '100140',
+          name_da: 'Backbends', name_en: 'Backbends',
+          desc_da: 'Åbn brystkasse og rygsøjle med trygge, dybe bagoverbøjninger.',
+          desc_en: 'Open chest and spine with safe, deep backbending practice.',
+          link: '/backbends', icon: '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 16c0-6 4-10 8-10s8 4 8 10"/><circle cx="12" cy="20" r="2"/></svg>' }
+      ],
+      bundles: {
+        'backbends|inversions': { prodId: '119' },
+        'inversions|splits': { prodId: '120' },
+        'backbends|splits': { prodId: '121' },
+        'backbends|inversions|splits': { prodId: '127' }
+      },
+      month_da: 'April 2026', month_en: 'April 2026'
+    },
     test: {
       over30: [
         { id: 'test-clip', name_da: 'Test Klippekort', name_en: 'Test Clip Card', price: 1, vat_pct: 25, classes: 1, validity: '1 day', prodId: '100203',
@@ -2055,6 +2318,31 @@
       });
     });
 
+    // ── Teacher Training deposits ──
+    var teacherItems = storeCatalog.teacher || [];
+    teacherItems.forEach(function(tt) {
+      items.push({
+        _uid: 'teacher-' + tt.prodId,
+        prodId: tt.prodId,
+        name: da ? tt.name_da : tt.name_en,
+        price: tt.price, onlinePrice: tt.price,
+        _itemType: 'service', _topCategory: 'teacher', _subCategory: 'deposits', _catalog: tt
+      });
+    });
+
+    // ── Course individual items (for card rendering — bundles handled by builder UI) ──
+    var courseData = storeCatalog.courses || {};
+    var courseItems = courseData.items || [];
+    courseItems.forEach(function(ci) {
+      items.push({
+        _uid: 'course-' + ci.prodId,
+        prodId: ci.prodId,
+        name: da ? ci.name_da : ci.name_en,
+        price: courseData.single_price || 0, onlinePrice: courseData.single_price || 0,
+        _itemType: 'service', _topCategory: 'courses', _subCategory: 'individual', _catalog: ci
+      });
+    });
+
     // ── Test items (temporary) ──
     var testItems = storeCatalog.test ? (storeCatalog.test[bracket] || []) : [];
     testItems.forEach(function(t) {
@@ -2103,7 +2391,7 @@
       storeTopCategories.forEach(function(cat) {
         var count = visibleServices.filter(function(s) { return s._topCategory === cat.id; }).length;
         var hasItems = count > 0;
-        var comingSoon = !hasItems && (cat.id === 'teacher' || cat.id === 'courses' || cat.id === 'private');
+        var comingSoon = !hasItems && (cat.id === 'private');
         html += '<button class="yb-store__top-cat' + (comingSoon ? ' yb-store__top-cat--soon' : '') + '" type="button" data-store-top="' + cat.id + '"' + (comingSoon ? ' data-store-soon' : '') + '>';
         html += '<div class="yb-store__top-cat-icon">' + cat.icon + '</div>';
         html += '<div class="yb-store__top-cat-text">';
@@ -2124,8 +2412,6 @@
             var catId = btn.getAttribute('data-store-top');
             var da = isDa();
             var msgs = {
-              teacher: { da: 'Yogalæreruddannelse — kontakt os for info og tilmelding.', en: 'Yoga Teacher Training — contact us for info and enrollment.' },
-              courses: { da: 'Kurser — nye kurser annonceres snart. Hold øje!', en: 'Courses — new courses will be announced soon. Stay tuned!' },
               private: { da: 'Privattimer — kontakt os for at booke.', en: 'Private Classes — contact us to book.' }
             };
             var msg = msgs[catId] ? (da ? msgs[catId].da : msgs[catId].en) : '';
@@ -2206,6 +2492,27 @@
       html += '</div>';
     }
 
+    // ── Teacher Training Preparation Phase info ──
+    if (storeTopCategory === 'teacher') {
+      html += '<div class="yb-store__teacher-info">';
+      html += '<div class="yb-store__teacher-info-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg></div>';
+      html += '<div class="yb-store__teacher-info-text">';
+      html += '<strong>' + (isDa() ? 'Start din forberedelsesfase — sikr din plads med 3.750 kr' : 'Start your Preparation Phase — secure your spot with 3,750 kr') + '</strong>';
+      html += '<p>' + (isDa()
+        ? 'Når din forberedelsesfase er aktiveret, kan du allerede begynde at booke klasser — selv før uddannelsen starter. Du sikrer din plads, forbereder krop og sind, bliver en del af fællesskabet, og de timer du tager tæller med i uddannelseskravene. Forberedelsesfasen giver dig klasseadgang, så du sparer på et separat medlemskab. Restbeløbet afregnes inden uddannelsesstart — enten som engangsbeløb eller i rater. Din uddannelsesleder kontakter dig med alle detaljer og næste skridt.'
+        : 'Once your Preparation Phase is activated, you can start booking classes right away — even before the training begins. You secure your spot, prepare your body and mind, become part of the community, and the classes you take count toward your training requirements. The Preparation Phase includes class access, saving you from a separate membership. The remaining balance is settled before training starts — either in full or in instalments. Your course director will be in touch with all the details and next steps.') + '</p>';
+      html += '</div></div>';
+    }
+
+    // ── Courses builder UI ──
+    if (storeTopCategory === 'courses') {
+      html += renderCourseBuilder();
+      container.innerHTML = html;
+      attachStoreHandlers(container);
+      attachCourseBuilderHandlers(container);
+      return;
+    }
+
     html += renderStoreCardGrid(filtered);
     container.innerHTML = html;
     attachStoreHandlers(container);
@@ -2223,7 +2530,8 @@
       var sub = s._subCategory;
       var isClipLike = !!(cat.classes && cat.perClass);
 
-      html += '<div class="yb-store__item' + (isContract ? ' yb-store__item--contract' : '') + (cat.popular ? ' yb-store__item--popular' : '') + (cat.bestDeal ? ' yb-store__item--best' : '') + '">';
+      var isDeposit = sub === 'deposits';
+      html += '<div class="yb-store__item' + (isContract ? ' yb-store__item--contract' : '') + (cat.popular ? ' yb-store__item--popular' : '') + (cat.bestDeal ? ' yb-store__item--best' : '') + (isDeposit ? ' yb-store__item--deposit' : '') + '">';
 
       // Badges
       var badges = [];
@@ -2325,7 +2633,14 @@
           html += (da ? 'Gyldighed: ' : 'Valid for: ') + cat.validity + ' ' + (da ? 'fra første booking' : 'from first booking');
           html += '</p>';
         }
-        // VAT moved to footer (under price)
+      }
+
+      // ── Teacher Training Preparation Phase details ──
+      if (sub === 'deposits' && cat.period_da) {
+        html += '<span class="yb-store__deposit-badge">' + (da ? 'Forberedelsesfasen' : 'Preparation Phase') + '</span>';
+        html += '<p class="yb-store__deposit-period"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg> ' + (da ? cat.period_da : cat.period_en) + '</p>';
+        html += '<p class="yb-store__deposit-format">' + (da ? cat.format_da : cat.format_en) + '</p>';
+        if (cat.desc_da) html += '<p class="yb-store__item-desc">' + (da ? cat.desc_da : cat.desc_en) + '</p>';
       }
 
       html += '</div>'; // .yb-store__item-info
@@ -2347,11 +2662,14 @@
       }
       if (_vatAmt > 0) {
         html += '<span class="yb-store__item-vat">' + (da ? 'Inkl. ' + formatDKK(_vatAmt) + ' moms (25%)' : 'Incl. ' + formatDKK(_vatAmt) + ' VAT (25%)') + '</span>';
+      } else if (_vatZero && isDeposit) {
+        html += '<span class="yb-store__item-vat yb-store__item-vat--zero">' + (da ? 'Momsfrit (uddannelse)' : 'VAT exempt (education)') + '</span>';
       } else if (_vatZero) {
         html += '<span class="yb-store__item-vat yb-store__item-vat--zero">' + (da ? 'Momsfrit (under 30)' : 'VAT exempt (under 30)') + '</span>';
       }
       html += '</div>';
-      html += '<button class="yb-btn yb-btn--primary yb-store__item-btn" type="button" data-store-buy="' + s._uid + '" data-item-type="' + (s._itemType || 'service') + '">' + t('store_buy') + '</button>';
+      var buyLabel = isDeposit ? (da ? 'Start forberedelsesfasen' : 'Start Preparation Phase') : t('store_buy');
+      html += '<button class="yb-btn yb-btn--primary yb-store__item-btn" type="button" data-store-buy="' + s._uid + '" data-item-type="' + (s._itemType || 'service') + '">' + buyLabel + '</button>';
       html += '</div>';
 
       html += '</div>'; // .yb-store__item
@@ -2398,6 +2716,181 @@
         if (details) { details.hidden = !details.hidden; btn.classList.toggle('is-open', !details.hidden); }
       });
     });
+  }
+
+  // ── Course builder state ──
+  var selectedCourses = [];
+
+  function renderCourseBuilder() {
+    var da = isDa();
+    var cd = storeCatalog.courses;
+    var items = cd.items || [];
+    var singlePrice = cd.single_price;
+    var html = '';
+
+    html += '<div class="yb-store__course-intro">';
+    html += '<p>' + (da
+      ? 'Vælg individuelle kurser eller byg en pakke og spar. Kombiner 2 kurser og få <strong>10% rabat</strong>, eller tag alle 3 og få <strong>15% rabat + 30 dages ubegrænset pas</strong> (værdi ' + formatDKK(cd.bonus_pass_value) + ').'
+      : 'Pick individual courses or build a bundle and save. Combine 2 courses for <strong>10% off</strong>, or take all 3 for <strong>15% off + a 30-day unlimited pass</strong> (value ' + formatDKK(cd.bonus_pass_value) + ').') + '</p>';
+    html += '</div>';
+
+    html += '<div class="yb-store__course-month">';
+    html += '<span class="yb-store__course-month-label">' + (da ? 'Periode' : 'Period') + '</span>';
+    html += '<span class="yb-store__course-month-chip">' + (da ? cd.month_da : cd.month_en) + '</span>';
+    html += '</div>';
+
+    html += '<div class="yb-store__course-grid">';
+    items.forEach(function(ci) {
+      var isSelected = selectedCourses.indexOf(ci.id) > -1;
+      html += '<button class="yb-store__course-card' + (isSelected ? ' is-selected' : '') + '" type="button" data-course-toggle="' + ci.id + '" aria-pressed="' + isSelected + '">';
+      html += '<div class="yb-store__course-card-check"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg></div>';
+      html += '<div class="yb-store__course-card-icon">' + ci.icon + '</div>';
+      html += '<span class="yb-store__course-card-name">' + (da ? ci.name_da : ci.name_en) + '</span>';
+      html += '<span class="yb-store__course-card-desc">' + (da ? ci.desc_da : ci.desc_en) + '</span>';
+      html += '<span class="yb-store__course-card-price">' + formatDKK(singlePrice) + '</span>';
+      html += '<a class="yb-store__course-card-link" href="' + ci.link + '" onclick="event.stopPropagation()">' + (da ? 'Læs mere' : 'Read more') + ' &rarr;</a>';
+      html += '</button>';
+    });
+    html += '</div>';
+
+    var count = selectedCourses.length;
+    var totalNormal = count * singlePrice;
+    var discount = cd.discounts[count] || 0;
+    var packPrice = count > 0 ? Math.round(totalNormal * (1 - discount)) : 0;
+    var savings = totalNormal - packPrice;
+    var showBonus = count >= 3;
+
+    html += '<div class="yb-store__course-summary' + (count > 0 ? ' has-selection' : '') + '">';
+    html += '<div class="yb-store__course-summary-rows">';
+
+    html += '<div class="yb-store__course-summary-row">';
+    html += '<span class="yb-store__course-summary-label">' + (da ? 'Valgt' : 'Selected') + '</span>';
+    html += '<span class="yb-store__course-summary-value" id="yb-course-picked">';
+    if (count === 0) {
+      html += '<em>' + (da ? 'Vælg kurser ovenfor' : 'Choose courses above') + '</em>';
+    } else {
+      var names = [];
+      selectedCourses.forEach(function(cid) {
+        var found = items.find(function(i) { return i.id === cid; });
+        if (found) names.push(da ? found.name_da : found.name_en);
+      });
+      html += names.join(' + ');
+    }
+    html += '</span></div>';
+
+    if (count > 0) {
+      var packageName = '';
+      if (count === 1) packageName = da ? 'Enkelt kursus' : 'Single course';
+      else if (count === 2) packageName = (da ? 'Pakke (2 kurser) — ' : 'Bundle (2 courses) — ') + Math.round(discount * 100) + '% ' + (da ? 'rabat' : 'off');
+      else packageName = (da ? 'All-In Pakke — ' : 'All-In Bundle — ') + Math.round(discount * 100) + '% ' + (da ? 'rabat' : 'off');
+
+      html += '<div class="yb-store__course-summary-row">';
+      html += '<span class="yb-store__course-summary-label">' + (da ? 'Pakke' : 'Package') + '</span>';
+      html += '<span class="yb-store__course-summary-value">' + packageName + '</span>';
+      html += '</div>';
+    }
+
+    html += '<div class="yb-store__course-summary-row yb-store__course-summary-row--price">';
+    html += '<span class="yb-store__course-summary-label">' + (da ? 'Pris' : 'Price') + '</span>';
+    html += '<span class="yb-store__course-summary-value">';
+    if (count > 0) {
+      if (savings > 0) html += '<span class="yb-store__course-original">' + formatDKK(totalNormal) + '</span> ';
+      html += '<strong>' + formatDKK(packPrice) + '</strong>';
+      if (savings > 0) html += ' <span class="yb-store__course-savings">' + (da ? 'spar ' : 'save ') + formatDKK(savings) + '</span>';
+    } else {
+      html += '—';
+    }
+    html += '</span></div>';
+
+    if (showBonus) {
+      html += '<div class="yb-store__course-summary-row yb-store__course-summary-row--bonus">';
+      html += '<span class="yb-store__course-summary-label"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 12v6a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-6"/><rect x="2" y="7" width="20" height="5" rx="2"/><line x1="12" y1="22" x2="12" y2="7"/><path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z"/><path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/></svg> ' + (da ? 'Bonus' : 'Bonus') + '</span>';
+      html += '<span class="yb-store__course-summary-value">' + (da ? '30 dages ubegrænset pas inkluderet' : '30-day unlimited pass included') + ' <em>(' + (da ? 'værdi ' : 'value ') + formatDKK(cd.bonus_pass_value) + ')</em></span>';
+      html += '</div>';
+    }
+
+    html += '</div>';
+
+    html += '<button class="yb-btn yb-btn--primary yb-store__course-cta" type="button" id="yb-course-buy-btn"' + (count === 0 ? ' disabled' : '') + '>';
+    html += (count === 0 ? (da ? 'Vælg kurser for at fortsætte' : 'Select courses to continue') : (da ? 'Køb nu' : 'Buy now'));
+    html += '</button>';
+
+    html += '</div>';
+    return html;
+  }
+
+  function getCourseCheckoutItem() {
+    var cd = storeCatalog.courses;
+    var count = selectedCourses.length;
+    if (count === 0) return null;
+
+    var da = isDa();
+    var singlePrice = cd.single_price;
+    var discount = cd.discounts[count] || 0;
+    var totalNormal = count * singlePrice;
+    var packPrice = Math.round(totalNormal * (1 - discount));
+
+    if (count === 1) {
+      var courseItem = cd.items.find(function(ci) { return ci.id === selectedCourses[0]; });
+      if (!courseItem) return null;
+      var svcItem = storeServices.find(function(s) { return s._uid === 'course-' + courseItem.prodId; });
+      return svcItem || null;
+    }
+
+    var key = selectedCourses.slice().sort().join('|');
+    var bundle = cd.bundles[key];
+    if (!bundle) return null;
+
+    var names = [];
+    var descs = [];
+    selectedCourses.forEach(function(cid) {
+      var found = cd.items.find(function(i) { return i.id === cid; });
+      if (found) {
+        names.push(da ? found.name_da : found.name_en);
+        descs.push(da ? found.desc_da : found.desc_en);
+      }
+    });
+
+    return {
+      _uid: 'bundle-' + bundle.prodId,
+      prodId: bundle.prodId,
+      name: (count >= 3 ? (da ? 'All-In Pakke: ' : 'All-In Bundle: ') : (da ? 'Kursuspakke: ' : 'Course Bundle: ')) + names.join(' + '),
+      price: packPrice, onlinePrice: packPrice,
+      _itemType: 'service', _topCategory: 'courses', _subCategory: 'bundle',
+      _catalog: {
+        vat_pct: 0,
+        _bundleCount: count,
+        _discount: discount,
+        _totalNormal: totalNormal,
+        _courseDescs: descs,
+        _bonusPass: count >= 3,
+        _bonusValue: cd.bonus_pass_value,
+        month_da: cd.month_da, month_en: cd.month_en
+      }
+    };
+  }
+
+  function attachCourseBuilderHandlers(container) {
+    container.querySelectorAll('[data-course-toggle]').forEach(function(btn) {
+      btn.addEventListener('click', function() {
+        var courseId = btn.getAttribute('data-course-toggle');
+        var idx = selectedCourses.indexOf(courseId);
+        if (idx > -1) { selectedCourses.splice(idx, 1); } else { selectedCourses.push(courseId); }
+        renderStoreItems(container);
+      });
+    });
+
+    var buyBtn = container.querySelector('#yb-course-buy-btn');
+    if (buyBtn) {
+      buyBtn.addEventListener('click', function() {
+        var item = getCourseCheckoutItem();
+        if (!item) return;
+        if (!storeServices.find(function(s) { return s._uid === item._uid; })) {
+          storeServices.push(item);
+        }
+        openCheckout(item._uid, 'service');
+      });
+    }
   }
 
   /**
@@ -2642,6 +3135,74 @@
     if (isContract && service._recurringInfo) {
       itemHtml += '<span class="yb-store__checkout-item-recurring">' + esc(service._recurringInfo) + '</span>';
     }
+
+    // ── Teacher Training deposit details ──
+    if (service._topCategory === 'teacher' && cat.period_da) {
+      itemHtml += '<div class="yb-store__checkout-meta">';
+      itemHtml += '<span class="yb-store__checkout-meta-chip">' + (da ? 'Forberedelsesfasen' : 'Preparation Phase') + '</span>';
+      itemHtml += '<span class="yb-store__checkout-meta-chip">' + esc(da ? cat.period_da : cat.period_en) + '</span>';
+      itemHtml += '</div>';
+      itemHtml += '<p class="yb-store__checkout-meta-format">' + esc(da ? cat.format_da : cat.format_en) + '</p>';
+      if (cat.desc_da) {
+        itemHtml += '<p class="yb-store__checkout-desc">' + esc(da ? cat.desc_da : cat.desc_en) + '</p>';
+      }
+      itemHtml += '<ul class="yb-store__checkout-features">';
+      var prepBenefits = da
+        ? ['Sikr din plads på programmet', 'Start booking af klasser med det samme', 'Klasser tæller med i dine træningstimer', 'Forbered krop og sind — bliv en del af fællesskabet', 'Inkluderet klasseadgang — spar på separat medlemskab']
+        : ['Secure your spot in the program', 'Start booking classes immediately', 'Classes count toward your training hours', 'Prepare body and mind — join the community early', 'Class access included — save on a separate membership'];
+      prepBenefits.forEach(function(b) { itemHtml += '<li>' + esc(b) + '</li>'; });
+      itemHtml += '</ul>';
+      itemHtml += '<div class="yb-store__checkout-remaining">';
+      itemHtml += '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>';
+      itemHtml += '<span>' + (da
+        ? 'Restbeløbet afregnes inden uddannelsesstart — enten som engangsbeløb eller i rater. Din uddannelsesleder vil kontakte dig med alle detaljer og næste skridt.'
+        : 'The remaining balance is settled before training starts — either in full or in instalments. Your course director will be in touch with all the details and next steps.') + '</span>';
+      itemHtml += '</div>';
+    }
+
+    // ── Course / Bundle details ──
+    else if (service._topCategory === 'courses') {
+      if (cat.month_da) {
+        itemHtml += '<div class="yb-store__checkout-meta">';
+        itemHtml += '<span class="yb-store__checkout-meta-chip">' + esc(da ? cat.month_da : cat.month_en) + '</span>';
+        itemHtml += '</div>';
+      }
+      if (cat.desc_da) {
+        itemHtml += '<p class="yb-store__checkout-desc">' + esc(da ? cat.desc_da : cat.desc_en) + '</p>';
+      }
+      if (cat._bundleCount) {
+        if (cat._courseDescs && cat._courseDescs.length) {
+          itemHtml += '<ul class="yb-store__checkout-features">';
+          cat._courseDescs.forEach(function(d) { itemHtml += '<li>' + esc(d) + '</li>'; });
+          itemHtml += '</ul>';
+        }
+        if (cat._discount > 0) {
+          itemHtml += '<div class="yb-store__checkout-saving">';
+          itemHtml += '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#27ae60" stroke-width="2"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg> ';
+          itemHtml += '<span>' + Math.round(cat._discount * 100) + '% ' + (da ? 'rabat — spar ' : 'off — save ') + formatDKK(cat._totalNormal - price) + '</span>';
+          itemHtml += '</div>';
+        }
+        if (cat._bonusPass) {
+          itemHtml += '<div class="yb-store__checkout-bonus">';
+          itemHtml += '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#f75c03" stroke-width="2"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87L18.18 22 12 18.56 5.82 22 7 14.14l-5-4.87 6.91-1.01L12 2z"/></svg> ';
+          itemHtml += '<span>' + (da ? 'BONUS: Gratis 30-dages ubegrænset pas (værdi ' : 'BONUS: Free 30-day unlimited pass (value ') + formatDKK(cat._bonusValue) + ')</span>';
+          itemHtml += '</div>';
+        }
+      }
+    }
+
+    // ── Generic description (clips, time-based, tourist etc.) ──
+    else if (cat.desc_da && !isContract) {
+      itemHtml += '<p class="yb-store__checkout-desc">' + esc(da ? cat.desc_da : cat.desc_en) + '</p>';
+    }
+
+    // ── Membership features ──
+    if (cat.features_da && cat.features_da.length) {
+      itemHtml += '<ul class="yb-store__checkout-features">';
+      (da ? cat.features_da : cat.features_en).forEach(function(f) { itemHtml += '<li>' + esc(f) + '</li>'; });
+      itemHtml += '</ul>';
+    }
+
     // First month free: show crossed-out price
     if (isContract && cat.firstMonthFree) {
       itemHtml += '<div class="yb-store__checkout-saving">';
@@ -2682,6 +3243,25 @@
     if (errEl) errEl.hidden = true;
     // Show stored card toggle if user has one
     initCheckoutStoredCard('yb-store');
+
+    // Show start date picker for contracts (memberships)
+    var startDateSection = document.getElementById('yb-checkout-startdate');
+    if (startDateSection) {
+      startDateSection.hidden = !isContract;
+      if (isContract) {
+        var startDateInput = document.getElementById('yb-store-start-date');
+        var startDateLabel = document.getElementById('yb-checkout-startdate-label');
+        if (startDateLabel) startDateLabel.textContent = da ? 'Startdato for medlemskab' : 'Membership start date';
+        if (startDateInput) {
+          var today = toLocalDateStr(new Date());
+          var maxDate = new Date();
+          maxDate.setDate(maxDate.getDate() + 60);
+          startDateInput.min = today;
+          startDateInput.max = toLocalDateStr(maxDate);
+          startDateInput.value = today;
+        }
+      }
+    }
 
     // 1. Determine what documents to show
     var waiverSection = document.getElementById('yb-checkout-waiver-section');
@@ -2873,7 +3453,7 @@
         clientId: clientId,
         contractId: Number(serviceId),
         locationId: locationId ? Number(locationId) : 1,
-        startDate: toLocalDateStr(new Date()),
+        startDate: (document.getElementById('yb-store-start-date') && document.getElementById('yb-store-start-date').value) || toLocalDateStr(new Date()),
         payment: paymentInfo
       };
       if (promoCode) {
@@ -4295,11 +4875,11 @@
       membership_retention_cta: isDa() ? 'Genaktiver — første måned gratis' : 'Reactivate — first month free',
       membership_rejoin_cta: isDa() ? 'Bliv medlem igen' : 'Become a member again',
       membership_pause_title: isDa() ? 'Sæt abonnement på pause' : 'Pause membership',
-      membership_pause_desc: isDa() ? 'Du kan sætte dit abonnement på pause i 14 dage til 3 måneder. Pausen starter efter din næste faktureringscyklus.' : 'You can pause your membership for 14 days to 3 months. The pause starts after your next billing cycle.',
+      membership_pause_desc: isDa() ? 'Du kan sætte dit abonnement på pause i 1-3 måneder. Pausen starter efter din næste faktureringscyklus.' : 'You can pause your membership for 1-3 months. The pause starts after your next billing cycle.',
       membership_pause_start: isDa() ? 'Pause starter' : 'Pause starts',
-      membership_pause_end: isDa() ? 'Pause slutter' : 'Pause ends',
-      membership_pause_min: isDa() ? 'Minimum 14 dage' : 'Minimum 14 days',
-      membership_pause_max: isDa() ? 'Maksimum 3 måneder' : 'Maximum 3 months',
+      membership_pause_duration: isDa() ? 'Varighed' : 'Duration',
+      membership_pause_month_single: isDa() ? 'måned' : 'month',
+      membership_pause_month_plural: isDa() ? 'måneder' : 'months',
       membership_pause_resume: isDa() ? 'Dit abonnement genoptages automatisk den' : 'Your membership will resume automatically on',
       membership_pause_next_billing: isDa() ? 'Tidligste startdato (efter næste fakturering)' : 'Earliest start date (after next billing)',
       membership_pause_confirm: isDa() ? 'Bekræft pause' : 'Confirm pause',
@@ -4328,6 +4908,9 @@
       membership_manage_info: isDa()
         ? 'Vil du <strong>sætte dit abonnement på pause</strong> (14 dage – 3 måneder, særlige omstændigheder) eller <strong>opsige dit medlemskab</strong> (1 måneds opsigelsesvarsel jf. handelsbetingelser)? Skriv til os på <a href="mailto:info@hotyogacph.dk">info@hotyogacph.dk</a>'
         : 'Want to <strong>pause your membership</strong> (14 days – 3 months, special circumstances) or <strong>cancel your membership</strong> (1 month notice per terms &amp; conditions)? Email us at <a href="mailto:info@hotyogacph.dk">info@hotyogacph.dk</a>',
+      membership_cancel_info: isDa()
+        ? 'Vil du <strong>opsige dit medlemskab</strong>? Skriv til os på <a href="mailto:info@hotyogacph.dk">info@hotyogacph.dk</a> (1 måneds opsigelsesvarsel jf. handelsbetingelser)'
+        : 'Want to <strong>cancel your membership</strong>? Email us at <a href="mailto:info@hotyogacph.dk">info@hotyogacph.dk</a> (1 month notice per terms &amp; conditions)',
       membership_cancel_termination_hint: isDa()
         ? 'Vil du annullere opsigelsen? Kontakt os på <a href="mailto:info@hotyogacph.dk">info@hotyogacph.dk</a>'
         : 'Want to cancel the termination? Contact us at <a href="mailto:info@hotyogacph.dk">info@hotyogacph.dk</a>',

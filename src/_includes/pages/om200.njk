@@ -1,6 +1,9 @@
 {% set t = i18n.om200[lang or "da"] %}
+{% set lp = "/en" if lang == "en" else "" %}
 
-<!-- Hero -->
+{# ═══════════════════════════════════════════════════════════
+   PRIMARY HERO — Dark Cinematic (full-width)
+   ═══════════════════════════════════════════════════════════ #}
 <section class="yb-hero">
   <div class="yb-hero__glow"></div>
   <div class="yb-hero__content">
@@ -9,8 +12,8 @@
     <p class="yb-hero__subtitle">{{ t.hero_subtitle }}</p>
     <div class="yb-hero__line"></div>
     <div class="yb-hero__ctas">
-      <a href="{% if lang == 'en' %}/en/apply{% else %}/apply{% endif %}" class="yb-btn yb-btn--primary yb-btn--large">{{ t.hero_cta_apply }}</a>
-      <a href="#curriculum" class="yb-btn yb-btn--outline-white yb-btn--large">{{ t.hero_cta_curriculum }}</a>
+      <a href="{{ lp }}/200-hours-18-weeks-flexible-programs" class="yb-btn yb-btn--primary yb-btn--large" target="_blank" rel="noopener">{{ t.hero_cta_apply }}</a>
+      <a href="#om2-hours" class="yb-btn yb-btn--outline-white yb-btn--large">{{ t.hero_cta_curriculum }}</a>
     </div>
     <div class="yb-hero__trust">
       <span>{{ t.hero_trust1 }}</span>
@@ -26,133 +29,869 @@
   </div>
 </section>
 
-<!-- What You Learn -->
-<section class="program-overview" id="curriculum">
-  <div class="container">
-    <h2 class="section-title">{{ t.learn_title }}</h2>
+{# ═══════════════════════════════════════════════════════════
+   SECTION 1: HERO — Split layout (content + image carousel)
+   ═══════════════════════════════════════════════════════════ #}
+<section class="om2-hero" id="om2-hero">
+  <div class="om2-hero__inner">
 
-    <div class="program-grid">
-      <div class="program-feature">
-        <div class="program-feature__icon">🧘</div>
-        <h3>{{ t.learn1_title }}</h3>
-        <p>{{ t.learn1_desc }}</p>
+    {# CONTENT (Left on desktop, second on mobile) #}
+    <div class="om2-hero__content">
+      <p class="om2-hero__eyebrow">{{ t.hero_tagline }}</p>
+      <h1 class="om2-hero__title">{{ t.hero_title }}</h1>
+      <p class="om2-hero__lead">{{ t.hero_subtitle }}</p>
+      <p class="om2-hero__subtext">{{ t.hero_subtext }}</p>
+      <div class="om2-hero__divider"></div>
+
+      <p class="om2-hero__acc-label">{{ t.hero_acc_label }}</p>
+      <div class="om2-hero__accordions" aria-label="{{ t.hero_acc_label }}">
+        {% for i in range(1, 7) %}
+        <details class="om2-hero__acc">
+          <summary class="om2-hero__acc-sum">
+            <span class="om2-hero__acc-icon">◇</span>
+            <span class="om2-hero__acc-title">{{ t["hero_acc" + (i | string) + "_title"] }}</span>
+            <span class="om2-hero__acc-chevron"></span>
+          </summary>
+          <div class="om2-hero__acc-body">{{ t["hero_acc" + (i | string) + "_body"] }}</div>
+        </details>
+        {% endfor %}
+        {# Special: Business of Yoga with badge #}
+        <details class="om2-hero__acc">
+          <summary class="om2-hero__acc-sum">
+            <span class="om2-hero__acc-icon">★</span>
+            <span class="om2-hero__acc-title">{{ t.hero_acc7_title }}</span>
+            <span class="om2-hero__acc-badge">{{ t.hero_acc7_badge }}</span>
+            <span class="om2-hero__acc-chevron"></span>
+          </summary>
+          <div class="om2-hero__acc-body">{{ t.hero_acc7_body }}</div>
+        </details>
       </div>
 
-      <div class="program-feature">
-        <div class="program-feature__icon">📐</div>
-        <h3>{{ t.learn2_title }}</h3>
-        <p>{{ t.learn2_desc }}</p>
+      {# MOBILE CTAs #}
+      <div class="om2-hero__ctas om2-hero__ctas--mobile">
+        <a class="yb-btn yb-btn--primary" href="{{ lp }}/200-hours-18-weeks-flexible-programs" target="_blank" rel="noopener">
+          <span>{{ t.hero_cta_18w }}</span>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+        </a>
+        <a class="yb-btn yb-btn--outline-brand" href="{{ lp }}/200-hours-8-weeks-semi-intensive-programs" target="_blank" rel="noopener">
+          <span>{{ t.hero_cta_8w }}</span>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+        </a>
+        <a class="yb-btn yb-btn--outline-brand" href="{{ lp }}/200-hours-4-weeks-intensive-programs" target="_blank" rel="noopener">
+          <span>{{ t.hero_cta_4w }}</span>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+        </a>
+      </div>
+    </div>
+
+    {# MEDIA (Right on desktop, first on mobile) #}
+    <div class="om2-hero__media-wrap">
+      <div class="om2-hero__media" aria-label="{{ t.hero_gallery_label }}">
+        <div class="om2-hero__viewport" data-om2-viewport>
+          <div class="om2-hero__track" data-om2-track></div>
+        </div>
+        <div class="om2-hero__dots" data-om2-dots aria-label="{{ t.hero_gallery_nav }}"></div>
       </div>
 
-      <div class="program-feature">
-        <div class="program-feature__icon">📿</div>
-        <h3>{{ t.learn3_title }}</h3>
-        <p>{{ t.learn3_desc }}</p>
+      <div class="om2-hero__arrows" aria-label="{{ t.hero_gallery_nav }}">
+        <button class="om2-hero__arrow om2-hero__arrow--prev" aria-label="{{ t.hero_prev }}" data-om2-prev type="button">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+        </button>
+        <button class="om2-hero__arrow om2-hero__arrow--next" aria-label="{{ t.hero_next }}" data-om2-next type="button">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+        </button>
       </div>
 
-      <div class="program-feature">
-        <div class="program-feature__icon">🎭</div>
-        <h3>{{ t.learn4_title }}</h3>
-        <p>{{ t.learn4_desc }}</p>
-      </div>
-
-      <div class="program-feature">
-        <div class="program-feature__icon">📋</div>
-        <h3>{{ t.learn5_title }}</h3>
-        <p>{{ t.learn5_desc }}</p>
-      </div>
-
-      <div class="program-feature">
-        <div class="program-feature__icon">💼</div>
-        <h3>{{ t.learn6_title }}</h3>
-        <p>{{ t.learn6_desc }}</p>
+      {# DESKTOP CTAs #}
+      <div class="om2-hero__ctas om2-hero__ctas--desktop">
+        <a class="yb-btn yb-btn--primary" href="{{ lp }}/200-hours-18-weeks-flexible-programs" target="_blank" rel="noopener">
+          <span>{{ t.hero_cta_18w }}</span>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+        </a>
+        <a class="yb-btn yb-btn--outline-brand" href="{{ lp }}/200-hours-8-weeks-semi-intensive-programs" target="_blank" rel="noopener">
+          <span>{{ t.hero_cta_8w }}</span>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+        </a>
+        <a class="yb-btn yb-btn--outline-brand" href="{{ lp }}/200-hours-4-weeks-intensive-programs" target="_blank" rel="noopener">
+          <span>{{ t.hero_cta_4w }}</span>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+        </a>
       </div>
     </div>
   </div>
 </section>
 
-<!-- 200-Hour Breakdown -->
-<section class="program-schedule">
-  <div class="container">
-    <h2 class="section-title">{{ t.hours_title }}</h2>
-    <p class="section-subtitle">{{ t.hours_subtitle }}</p>
+{# ═══════════════════════════════════════════════════════════
+   SECTION 2: 200 HOURS — Donut Chart + Module Cards
+   ═══════════════════════════════════════════════════════════ #}
+<section class="om2-hours" id="om2-hours" aria-labelledby="om2-hours-title">
+  <div class="om2-hours__inner">
+    <header class="om2-hours__head">
+      <p class="om2-hours__eyebrow">{{ t.hours_eyebrow }}</p>
+      <h2 class="om2-hours__title" id="om2-hours-title">{{ t.hours_title }}</h2>
+      <p class="om2-hours__lead">{{ t.hours_lead | safe }}</p>
+    </header>
 
-    <div class="schedule-options">
-      <div class="schedule-card">
-        <h3>{{ t.hours_contact_title }}</h3>
-        <ul>
-          <li>{{ t.hours_contact1 }}</li>
-          <li>{{ t.hours_contact2 }}</li>
-          <li>{{ t.hours_contact3 }}</li>
-          <li>{{ t.hours_contact4 }}</li>
-          <li>{{ t.hours_contact5 }}</li>
+    <div class="om2-hours__grid">
+      {# LEFT: Donut + legend #}
+      <aside class="om2-hours__viz" aria-label="{{ t.hours_legend_label }}">
+        <div class="om2-hours__donut" role="img" aria-label="{{ t.hours_chart_label }}">
+          <div class="om2-hours__donut-core">
+            <span class="om2-hours__total" data-om2-total>200</span>
+            <span class="om2-hours__total-sub">{{ t.hours_total_label }}</span>
+          </div>
+        </div>
+        <ul class="om2-hours__legend" data-om2-legend aria-label="{{ t.hours_legend_label }}"></ul>
+      </aside>
+
+      {# RIGHT: Module cards #}
+      <div class="om2-hours__rightcol">
+        <div class="om2-hours__modules">
+          {% set icons = ["🧘", "🌊", "🌙", "🦴", "📿", "📚"] %}
+          {% for i in range(1, 7) %}
+          <article class="om2-hours__card">
+            <div class="om2-hours__card-icon">{{ icons[i - 1] }}</div>
+            <div class="om2-hours__card-content">
+              <h3 class="om2-hours__card-title">{{ t["hours_mod" + (i | string) + "_title"] | safe }}</h3>
+              <p class="om2-hours__card-text">{{ t["hours_mod" + (i | string) + "_desc"] | safe }}</p>
+            </div>
+          </article>
+          {% endfor %}
+        </div>
+        <footer class="om2-hours__foot">
+          <a class="yb-btn yb-btn--primary" href="#om2-breakdown" aria-label="{{ t.hours_cta }}">
+            <span>{{ t.hours_cta }}</span>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+          </a>
+          <p class="om2-hours__note">{{ t.hours_note }}</p>
+        </footer>
+      </div>
+    </div>
+  </div>
+</section>
+
+{# ═══════════════════════════════════════════════════════════
+   SECTION 3: MEET THE TEACHERS
+   ═══════════════════════════════════════════════════════════ #}
+<section class="om2-teachers" id="om2-teachers" aria-labelledby="om2-teachers-title">
+  <div class="om2-teachers__inner">
+    <header class="om2-teachers__head">
+      <p class="om2-teachers__eyebrow">{{ t.teachers_eyebrow }}</p>
+      <h2 class="om2-teachers__title" id="om2-teachers-title">{{ t.teachers_title }}</h2>
+      <p class="om2-teachers__lead">{{ t.teachers_lead | safe }}</p>
+    </header>
+
+    <div class="om2-teachers__grid">
+      {% for i in range(1, 5) %}
+      <article class="om2-teachers__card{% if i == 1 %} om2-teachers__card--lead{% endif %}">
+        <div class="om2-teachers__portrait">
+          {# PLACEHOLDER — Replace with actual image: 400×500px portrait #}
+          <div class="om2-teachers__placeholder" aria-label="{{ t.teachers_img_placeholder }}">
+            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" opacity="0.4">
+              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+              <circle cx="12" cy="7" r="4"/>
+            </svg>
+            <span class="om2-teachers__placeholder-dim">{{ t.teachers_img_dimensions }}</span>
+          </div>
+        </div>
+        <div class="om2-teachers__info">
+          <h3 class="om2-teachers__name">{{ t["teachers" + (i | string) + "_name"] }}</h3>
+          <p class="om2-teachers__role">{{ t["teachers" + (i | string) + "_role"] }}</p>
+          <p class="om2-teachers__bio">{{ t["teachers" + (i | string) + "_bio"] }}</p>
+          <div class="om2-teachers__specs">
+            {% for s in range(1, 4) %}
+            <span class="om2-teachers__spec">{{ t["teachers" + (i | string) + "_spec" + (s | string)] }}</span>
+            {% endfor %}
+          </div>
+        </div>
+      </article>
+      {% endfor %}
+    </div>
+
+    <div class="om2-teachers__cta-wrap">
+      <a class="yb-btn yb-btn--outline-brand" href="{{ lp }}{{ t.teachers_cta_link }}" target="_blank" rel="noopener">
+        <span>{{ t.teachers_cta }}</span>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+      </a>
+    </div>
+  </div>
+</section>
+
+{# ═══════════════════════════════════════════════════════════
+   SECTION 4: CREDENTIALS — Experience, Quality, Certification
+   ═══════════════════════════════════════════════════════════ #}
+<section class="om2-cred" id="om2-cred" aria-labelledby="om2-cred-title">
+  <div class="om2-cred__inner">
+    {# MEDIA (video) #}
+    <div class="om2-cred__media">
+      <div class="om2-cred__video" data-om2-video-id="1WWanYni0tZKJ656czw_N2Vf6thCKFwU8">
+        <iframe
+          src="https://drive.google.com/file/d/1WWanYni0tZKJ656czw_N2Vf6thCKFwU8/preview"
+          title="{{ t.cred_video_title }}"
+          allow="autoplay; encrypted-media"
+          allowfullscreen
+          loading="lazy"
+          referrerpolicy="no-referrer-when-downgrade">
+        </iframe>
+      </div>
+    </div>
+
+    {# CONTENT #}
+    <div class="om2-cred__content">
+      <p class="om2-cred__eyebrow">{{ t.cred_eyebrow }}</p>
+      <h2 id="om2-cred-title" class="om2-cred__title">{{ t.cred_title }}</h2>
+      <p class="om2-cred__lead">{{ t.cred_lead }}</p>
+
+      <div class="om2-cred__stats">
+        <div class="om2-cred__stat">
+          <span class="om2-cred__stat-num">{{ t.cred_stat1_num }}</span>
+          <span class="om2-cred__stat-label">{{ t.cred_stat1_label }}</span>
+        </div>
+        <div class="om2-cred__stat">
+          <span class="om2-cred__stat-num">{{ t.cred_stat2_num }}</span>
+          <span class="om2-cred__stat-label">{{ t.cred_stat2_label }}</span>
+        </div>
+        <div class="om2-cred__stat">
+          <span class="om2-cred__stat-num">{{ t.cred_stat3_num }}</span>
+          <span class="om2-cred__stat-label">{{ t.cred_stat3_label }}</span>
+        </div>
+      </div>
+
+      <p class="om2-cred__body">{{ t.cred_body | safe }}</p>
+
+      <blockquote class="om2-cred__quote">{{ t.cred_quote }}</blockquote>
+
+      <div class="om2-cred__badges">
+        <div class="om2-cred__badge">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+          <span>{{ t.cred_badge1 }}</span>
+        </div>
+        <div class="om2-cred__badge">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+          <span>{{ t.cred_badge2 }}</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+{# ═══════════════════════════════════════════════════════════
+   SECTION 5: 60 HOURS PRACTICE
+   ═══════════════════════════════════════════════════════════ #}
+<section class="om2-practice" id="om2-practice" aria-labelledby="om2-practice-title">
+  <div class="om2-practice__inner">
+    <div class="om2-practice__grid">
+
+      {# LEFT: Content #}
+      <div class="om2-practice__content">
+        <p class="om2-practice__eyebrow">{{ t.practice_eyebrow }}</p>
+        <h2 id="om2-practice-title" class="om2-practice__title">{{ t.practice_title }}</h2>
+        <p class="om2-practice__lead">{{ t.practice_lead | safe }}</p>
+        <p class="om2-practice__text">{{ t.practice_text1 | safe }}</p>
+        <p class="om2-practice__text">{{ t.practice_text2 | safe }}</p>
+
+        <div class="om2-practice__highlight">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+          <span>{{ t.practice_highlight }}</span>
+        </div>
+      </div>
+
+      {# RIGHT: Checklist + CTA #}
+      <div class="om2-practice__details">
+        <div class="om2-practice__big-number">
+          <span class="om2-practice__num">60</span>
+          <span class="om2-practice__num-label">{{ t.hours_total_label }}</span>
+        </div>
+
+        <ul class="om2-practice__checklist">
+          {% for i in range(1, 6) %}
+          <li>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+            <span>{{ t["practice_check" + (i | string)] | safe }}</span>
+          </li>
+          {% endfor %}
         </ul>
+
+        <a class="yb-btn yb-btn--primary" href="{{ lp }}{{ t.practice_schedule_link }}" target="_blank" rel="noopener">
+          <span>{{ t.practice_cta }}</span>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+        </a>
       </div>
-      <div class="schedule-card">
-        <h3>{{ t.hours_self_title }}</h3>
-        <ul>
-          <li>{{ t.hours_self1 }}</li>
-          <li>{{ t.hours_self2 }}</li>
-          <li>{{ t.hours_self3 }}</li>
+    </div>
+  </div>
+</section>
+
+{# ═══════════════════════════════════════════════════════════
+   SECTION 6: DETAILED HOUR BREAKDOWN
+   ═══════════════════════════════════════════════════════════ #}
+<section class="om2-breakdown" id="om2-breakdown" aria-labelledby="om2-breakdown-title">
+  <div class="om2-breakdown__inner">
+    <div class="om2-breakdown__grid">
+
+      {# LEFT: Title + intro #}
+      <div class="om2-breakdown__left">
+        <header>
+          <p class="om2-breakdown__eyebrow">{{ t.breakdown_eyebrow }}</p>
+          <h2 id="om2-breakdown-title" class="om2-breakdown__title">{{ t.breakdown_title }}</h2>
+          <p class="om2-breakdown__lead">{{ t.breakdown_lead1 | safe }}</p>
+          <p class="om2-breakdown__lead">{{ t.breakdown_lead2 | safe }}</p>
+
+          <div class="om2-breakdown__chips" role="list">
+            {% for i in range(1, 5) %}
+            <span role="listitem" class="om2-breakdown__chip">
+              {% if i == 1 %}
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+              {% elif i == 2 %}
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+              {% elif i == 3 %}
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+              {% elif i == 4 %}
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>
+              {% endif %}
+              {{ t["breakdown_chip" + (i | string)] }}
+            </span>
+            {% endfor %}
+          </div>
+
+          <div class="om2-breakdown__note">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+            <p>{{ t.breakdown_note | safe }}</p>
+          </div>
+
+          {# Embedded video — structure overview (minimal controls, no fullscreen) #}
+          <div class="om2-breakdown__video" data-om2-breakdown-video>
+            <div class="om2-breakdown__video-card">
+              <div class="om2-breakdown__video-placeholder" data-om2-breakdown-play>
+                <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" opacity="0.5">
+                  <polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/>
+                </svg>
+                <span class="om2-breakdown__video-label">{{ t.breakdown_video_label }}</span>
+                <button class="om2-breakdown__play-btn" type="button" aria-label="{{ t.breakdown_video_play }}">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+                  <span>{{ t.breakdown_video_play }}</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </header>
+      </div>
+
+      {# RIGHT: Total + accordion #}
+      <div class="om2-breakdown__right">
+        <div class="om2-breakdown__total">
+          <span class="om2-breakdown__total-num">{{ t.breakdown_total }}</span>
+          <span class="om2-breakdown__total-text">{{ t.breakdown_total_label }}</span>
+        </div>
+
+        <div class="om2-breakdown__accordion" role="list" aria-label="{{ t.breakdown_acc_label }}" data-om2-single-accordion>
+          {% for i in range(1, 10) %}
+          <details class="om2-breakdown__item" role="listitem"{% if i == 1 %} open{% endif %}>
+            <summary class="om2-breakdown__summary">
+              <span class="om2-breakdown__hours-pill">{{ t["breakdown_a" + (i | string) + "_hours"] }}</span>
+              <span class="om2-breakdown__label">{{ t["breakdown_a" + (i | string) + "_label"] }}</span>
+              <span class="om2-breakdown__chev" aria-hidden="true"></span>
+            </summary>
+            <div class="om2-breakdown__body">
+              {{ t["breakdown_a" + (i | string) + "_body"] | safe }}
+            </div>
+          </details>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+{# ═══════════════════════════════════════════════════════════
+   SECTION 7: ONLINE PARTICIPATION
+   ═══════════════════════════════════════════════════════════ #}
+<section class="om2-online" id="om2-online" aria-labelledby="om2-online-title">
+  <div class="om2-online__inner">
+    <div class="om2-online__grid">
+
+      {# LEFT: Intro + Video preview #}
+      <div class="om2-online__intro">
+        <header>
+          <p class="om2-online__eyebrow">{{ t.online_eyebrow }}</p>
+          <h2 id="om2-online-title" class="om2-online__title">{{ t.online_title }}</h2>
+          <p class="om2-online__lead">{{ t.online_lead }}</p>
+        </header>
+        <p class="om2-online__text">{{ t.online_text1 | safe }}</p>
+        <p class="om2-online__text">{{ t.online_text2 | safe }}</p>
+        <div class="om2-online__badge-pill">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+          <span>{{ t.online_badge }}</span>
+        </div>
+
+        {# Video preview — moved into left column #}
+        <figure class="om2-online__media om2-online__media--inline">
+          <div class="om2-online__video-card" data-om2-online-video data-src="https://www.yogabible.dk/s/Yoga-Bible-Workshop-Previews.mp4">
+            <video
+              class="om2-online__thumb-video"
+              muted playsinline preload="metadata"
+              src="https://www.yogabible.dk/s/Yoga-Bible-Workshop-Previews.mp4#t=3">
+            </video>
+            <div class="om2-online__video-overlay"></div>
+            <span class="om2-online__video-label">{{ t.online_video_label }}</span>
+            <button class="om2-online__play-btn" type="button" aria-label="{{ t.online_video_play }}" data-om2-play-online>
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+              <span>{{ t.online_video_play }}</span>
+            </button>
+          </div>
+        </figure>
+      </div>
+
+      {# RIGHT: Details #}
+      <div class="om2-online__details">
+        <ul class="om2-online__chips">
+          <li class="om2-online__chip">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3" fill="currentColor"/></svg>
+            {{ t.online_chip1 }}
+          </li>
+          <li class="om2-online__chip">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>
+            {{ t.online_chip2 }}
+          </li>
+          <li class="om2-online__chip">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+            {{ t.online_chip3 }}
+          </li>
+          <li class="om2-online__chip">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="21" x2="9" y2="9"/></svg>
+            {{ t.online_chip4 }}
+          </li>
         </ul>
+
+        <div class="om2-online__content">
+          <p>{{ t.online_detail1 | safe }}</p>
+          <p>{{ t.online_detail2 | safe }}</p>
+          <p>{{ t.online_detail3 | safe }}</p>
+          <p>{{ t.online_detail4 | safe }}</p>
+          <p class="om2-online__result">{{ t.online_result | safe }}</p>
+        </div>
+
+        <div class="om2-online__how">
+          <h3 class="om2-online__how-title">{{ t.online_how_title }}</h3>
+          <ul class="om2-online__checklist">
+            {% for i in range(1, 5) %}
+            <li>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+              {{ t["online_check" + (i | string)] | safe }}
+            </li>
+            {% endfor %}
+          </ul>
+        </div>
       </div>
     </div>
   </div>
 </section>
 
-<!-- Program Formats -->
-<section class="program-overview">
-  <div class="container">
-    <h2 class="section-title">{{ t.formats_title }}</h2>
-    <p class="section-subtitle">{{ t.formats_subtitle }}</p>
+{# ═══════════════════════════════════════════════════════════
+   SECTION 8: LOCATION — Studio in Christianshavn
+   ═══════════════════════════════════════════════════════════ #}
+<section class="om2-location" id="om2-location" aria-labelledby="om2-location-title">
+  <div class="om2-location__inner">
+    <div class="om2-location__grid">
 
-    <div class="program-grid" style="max-width: 800px; margin: 0 auto;">
-      <div class="program-feature">
-        <div class="program-feature__icon">📅</div>
-        <h3>{{ t.format18_title }}</h3>
-        <p>{{ t.format18_desc }}</p>
-        <a href="{% if lang == 'en' %}/en/200-hours-18-weeks-flexible-programs{% else %}/200-hours-18-weeks-flexible-programs{% endif %}" class="btn btn--primary" style="margin-top:12px">{{ t.format18_cta }}</a>
+      {# TOP: Header + features #}
+      <div class="om2-location__header">
+        <p class="om2-location__eyebrow">{{ t.location_eyebrow }}</p>
+        <h2 id="om2-location-title" class="om2-location__title">{{ t.location_title }}</h2>
+        <p class="om2-location__lead">{{ t.location_lead | safe }}</p>
       </div>
 
-      <div class="program-feature">
-        <div class="program-feature__icon">⚡</div>
-        <h3>{{ t.format8_title }}</h3>
-        <p>{{ t.format8_desc }}</p>
-        <a href="{% if lang == 'en' %}/en/200-hours-8-weeks-semi-intensive-programs{% else %}/200-hours-8-weeks-semi-intensive-programs{% endif %}" class="btn btn--primary" style="margin-top:12px">{{ t.format8_cta }}</a>
+      <div class="om2-location__features">
+        {% set loc_icons = [
+          '<rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="21" x2="9" y2="9"/>',
+          '<polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/>',
+          '<path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/>',
+          '<path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>'
+        ] %}
+        {% for i in range(1, 5) %}
+        <div class="om2-location__feature">
+          <div class="om2-location__feature-icon">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">{{ loc_icons[i - 1] | safe }}</svg>
+          </div>
+          <div>
+            <h3 class="om2-location__feature-title">{{ t["location_feature" + (i | string) + "_title"] }}</h3>
+            <p class="om2-location__feature-desc">{{ t["location_feature" + (i | string) + "_desc"] }}</p>
+          </div>
+        </div>
+        {% endfor %}
       </div>
 
-      <div class="program-feature">
-        <div class="program-feature__icon">🔥</div>
-        <h3>{{ t.format4_title }}</h3>
-        <p>{{ t.format4_desc }}</p>
-        <a href="{% if lang == 'en' %}/en/200-hours-4-weeks-intensive-programs{% else %}/200-hours-4-weeks-intensive-programs{% endif %}" class="btn btn--primary" style="margin-top:12px">{{ t.format4_cta }}</a>
+      {# BOTTOM: Image gallery slider #}
+      <div class="om2-location__gallery" aria-label="{{ t.location_gallery_label }}">
+        <div class="om2-location__slider" data-om2-loc-slider>
+          <div class="om2-location__slider-track" data-om2-loc-track>
+            {# PLACEHOLDER SLIDES — Replace with actual studio photos: 1200×675px (16:9) #}
+            {% for i in range(1, 5) %}
+            <div class="om2-location__slide">
+              <div class="om2-location__img-placeholder">
+                <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" opacity="0.3">
+                  <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+                  <circle cx="8.5" cy="8.5" r="1.5"/>
+                  <polyline points="21 15 16 10 5 21"/>
+                </svg>
+                <span>{{ t.location_img_placeholder }} {{ i }}</span>
+                <span class="om2-location__dim-label">{{ t.location_img_dimensions }}</span>
+              </div>
+            </div>
+            {% endfor %}
+          </div>
+        </div>
+
+        <div class="om2-location__slider-nav">
+          <button class="om2-location__slider-btn" type="button" aria-label="{{ t.location_prev }}" data-om2-loc-prev>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+          </button>
+          <div class="om2-location__slider-dots" data-om2-loc-dots></div>
+          <button class="om2-location__slider-btn" type="button" aria-label="{{ t.location_next }}" data-om2-loc-next>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+          </button>
+        </div>
       </div>
     </div>
   </div>
 </section>
 
-<!-- Certification -->
-<section class="program-schedule">
-  <div class="container">
-    <h2 class="section-title">{{ t.cert_title }}</h2>
-    <p class="section-subtitle">{{ t.cert_subtitle }}</p>
+{# ═══════════════════════════════════════════════════════════
+   SECTION 9: REVIEWS — Google Reviews Carousel (p18w pattern)
+   ═══════════════════════════════════════════════════════════ #}
+<section class="yb-reviews" id="om2-reviews-section" aria-labelledby="om2-reviews-title">
+  <div class="yb-reviews__inner container">
+    <p class="yb-reviews__kicker">{{ t.reviews_kicker }}</p>
+    <h2 id="om2-reviews-title" class="yb-reviews__title">{{ t.reviews_title }}</h2>
+    <p class="yb-reviews__lead">{{ t.reviews_lead | safe }}</p>
 
-    <div class="schedule-options">
-      <div class="schedule-card" style="text-align:center">
-        <h3>{{ t.cert_ryt_title }}</h3>
-        <p>{{ t.cert_ryt1 }}</p>
-        <p>{{ t.cert_ryt2 }}</p>
-        <p>{{ t.cert_ryt3 }}</p>
+    <div class="yb-reviews__carousel">
+      <button class="yb-reviews__nav yb-reviews__nav--prev" aria-label="{{ t.reviews_prev_aria }}" data-om2-rev-prev type="button">❮</button>
+      <div class="yb-reviews__viewport" data-om2-rev-viewport>
+        <div class="yb-reviews__track" data-om2-rev-track></div>
+      </div>
+      <button class="yb-reviews__nav yb-reviews__nav--next" aria-label="{{ t.reviews_next_aria }}" data-om2-rev-next type="button">❯</button>
+    </div>
+
+    <div class="yb-reviews__footer">
+      <div class="yb-reviews__rating">
+        <span class="yb-reviews__stars" aria-hidden="true">★★★★★</span>
+        <span class="yb-reviews__score">{{ t.reviews_rating }}</span>
+      </div>
+      <a class="yb-reviews__link" target="_blank" rel="noopener"
+         href="https://search.google.com/local/reviews?placeid=ChIJpQHE13BTUkYRY6oGEONORHM">
+        {{ t.reviews_link }}
+      </a>
+    </div>
+  </div>
+</section>
+<script type="application/json" id="om2-reviews-data">{{ t.reviews | dump | safe }}</script>
+<script type="application/json" id="om2-reviews-aria">{{ t.reviews_card_aria_prefix | dump | safe }}</script>
+
+{# ═══════════════════════════════════════════════════════════
+   SECTION 9b: BENEFITS OF 200-HOUR YTT
+   ═══════════════════════════════════════════════════════════ #}
+<section class="om2-benefits" id="om2-benefits" aria-labelledby="om2-benefits-title">
+  <div class="om2-benefits__inner">
+    <header class="om2-benefits__head">
+      <p class="om2-benefits__eyebrow">{{ t.benefits_eyebrow }}</p>
+      <h2 class="om2-benefits__title" id="om2-benefits-title">{{ t.benefits_title }}</h2>
+      <p class="om2-benefits__lead">{{ t.benefits_lead | safe }}</p>
+    </header>
+
+    <div class="om2-benefits__grid">
+      {% set benefit_icons = [
+        '<path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>',
+        '<rect x="2" y="7" width="20" height="14" rx="2" ry="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/>',
+        '<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>',
+        '<path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/>',
+        '<path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>',
+        '<polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>'
+      ] %}
+      {% for i in range(1, 7) %}
+      <article class="om2-benefits__card">
+        <div class="om2-benefits__card-icon">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">{{ benefit_icons[i - 1] | safe }}</svg>
+        </div>
+        <h3 class="om2-benefits__card-title">{{ t["benefits" + (i | string) + "_title"] }}</h3>
+        <p class="om2-benefits__card-desc">{{ t["benefits" + (i | string) + "_desc"] | safe }}</p>
+      </article>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+
+{# ═══════════════════════════════════════════════════════════
+   SECTION 10: PROGRAM FORMATS + PRICING
+   ═══════════════════════════════════════════════════════════ #}
+<section class="om2-formats" id="om2-formats" aria-labelledby="om2-formats-title">
+  <div class="om2-formats__inner">
+    <header class="om2-formats__head">
+      <p class="om2-formats__eyebrow">{{ t.formats_eyebrow }}</p>
+      <h2 class="om2-formats__title" id="om2-formats-title">{{ t.formats_title }}</h2>
+      <p class="om2-formats__lead">{{ t.formats_lead | safe }}</p>
+    </header>
+
+    <p class="om2-formats__same-note">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+      {{ t.formats_same_note }}
+    </p>
+
+    <div class="om2-formats__cards">
+      {% for f in range(1, 4) %}
+      <article class="om2-formats__card">
+        <div class="om2-formats__card-head">
+          <span class="om2-formats__badge">{{ t["format" + (f | string) + "_badge"] }}</span>
+          <h3 class="om2-formats__card-name">{{ t["format" + (f | string) + "_name"] }}</h3>
+          <span class="om2-formats__card-price">{{ t["format" + (f | string) + "_price"] }}</span>
+          <p class="om2-formats__card-desc">{{ t["format" + (f | string) + "_desc"] }}</p>
+        </div>
+        <div class="om2-formats__card-details">
+          {% for d in range(1, 6) %}
+          <div class="om2-formats__detail-row">
+            <span class="om2-formats__detail-label">{{ t["format" + (f | string) + "_detail" + (d | string) + "_label"] }}</span>
+            <span class="om2-formats__detail-value">{{ t["format" + (f | string) + "_detail" + (d | string) + "_value"] }}</span>
+          </div>
+          {% endfor %}
+        </div>
+        <p class="om2-formats__suitable">{{ t["format" + (f | string) + "_suitable"] }}</p>
+        <div class="om2-formats__card-foot">
+          {% if f == 1 %}
+          <a class="yb-btn yb-btn--primary" href="{{ lp }}/200-hours-18-weeks-flexible-programs" target="_blank" rel="noopener">
+          {% elif f == 2 %}
+          <a class="yb-btn yb-btn--outline-brand" href="{{ lp }}/200-hours-8-weeks-semi-intensive-programs" target="_blank" rel="noopener">
+          {% else %}
+          <a class="yb-btn yb-btn--outline-brand" href="{{ lp }}/200-hours-4-weeks-intensive-programs" target="_blank" rel="noopener">
+          {% endif %}
+            <span>{{ t["format" + (f | string) + "_cta"] }}</span>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+          </a>
+        </div>
+      </article>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+
+{# ═══════════════════════════════════════════════════════════
+   SECTION 10b: PRICING BREAKDOWN
+   ═══════════════════════════════════════════════════════════ #}
+<section class="om2-pricing" id="om2-pricing" aria-labelledby="om2-pricing-title">
+  <div class="om2-pricing__inner">
+    <div class="om2-pricing__header">
+      <p class="om2-pricing__eyebrow">{{ t.pricing_eyebrow }}</p>
+      <h2 id="om2-pricing-title" class="om2-pricing__title">{{ t.pricing_title }}</h2>
+      <p class="om2-pricing__lead">{{ t.pricing_lead }}</p>
+    </div>
+    <div class="om2-pricing__grid">
+
+      {# LEFT: Breakdown #}
+      <div class="om2-pricing__breakdown">
+        <div class="om2-pricing__rows">
+          {% for r in range(1, 5) %}
+          <div class="om2-pricing__row">
+            <div class="om2-pricing__row-main">
+              <span class="om2-pricing__row-label">{{ t["pricing_row" + (r | string) + "_label"] }}</span>
+              <span class="om2-pricing__row-value">{{ t["pricing_row" + (r | string) + "_value"] }}</span>
+            </div>
+            <p class="om2-pricing__row-desc">{{ t["pricing_row" + (r | string) + "_desc"] }}</p>
+          </div>
+          {% endfor %}
+
+          <div class="om2-pricing__total-row">
+            <span class="om2-pricing__total-label">{{ t.pricing_total_label }}</span>
+            <span class="om2-pricing__total-value">{{ t.pricing_total }}</span>
+          </div>
+        </div>
+      </div>
+
+      {# RIGHT: Includes + CTA #}
+      <div class="om2-pricing__sidebar">
+        <div class="om2-pricing__includes">
+          <h3 class="om2-pricing__includes-title">{{ t.pricing_includes_title }}</h3>
+          <ul class="om2-pricing__includes-list">
+            {% for i in range(1, 7) %}
+            <li>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+              <span>{{ t["pricing_inc" + (i | string)] }}</span>
+            </li>
+            {% endfor %}
+          </ul>
+        </div>
+
+        <div class="om2-pricing__notes">
+          <p class="om2-pricing__deposit">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+            {{ t.pricing_deposit }}
+          </p>
+          <p class="om2-pricing__installment">{{ t.pricing_installment }}</p>
+        </div>
+
+        <div style="display:flex;flex-direction:column;gap:.75rem">
+          <button onclick="openYBScheduleModal('18w')" class="yb-btn yb-btn--primary yb-btn--large om2-pricing__cta">
+            <span>{{ t.pricing_cta }}</span>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+          </button>
+          <button class="yb-btn yb-btn--primary yb-btn--large" data-checkout-product="100078" style="width:100%">{{ t.pricing_prep_cta }}</button>
+        </div>
       </div>
     </div>
   </div>
 </section>
 
-<!-- CTA -->
+{# ═══════════════════════════════════════════════════════════
+   SECTION 11: YOGA ALLIANCE CERTIFICATION
+   ═══════════════════════════════════════════════════════════ #}
+<section class="om2-ya" id="om2-ya" aria-labelledby="om2-ya-title">
+  <div class="om2-ya__inner">
+    {# TOP ROW: Intro + Badges side by side #}
+    <div class="om2-ya__top">
+      <div class="om2-ya__intro">
+        <p class="om2-ya__eyebrow">{{ t.ya_eyebrow }}</p>
+        <h2 id="om2-ya-title" class="om2-ya__title">{{ t.ya_title }}</h2>
+        <div class="om2-ya__meta">
+          <span class="om2-ya__chip">{{ t.ya_chip_rys }}</span>
+          <span class="om2-ya__chip">{{ t.ya_chip_eryt }}</span>
+          <span class="om2-ya__chip">{{ t.ya_chip_yacep }}</span>
+          <span class="om2-ya__chip om2-ya__chip--highlight">{{ t.ya_chip_intl }}</span>
+        </div>
+        <p class="om2-ya__lead">{{ t.ya_lead }}</p>
+
+        <div class="om2-ya__path" aria-label="{{ t.ya_path_label }}">
+          <span class="om2-ya__step">{{ t.ya_path_step1 }}</span>
+          <span class="om2-ya__arrow-icon">→</span>
+          <span class="om2-ya__step">{{ t.ya_path_step2 }}</span>
+          <span class="om2-ya__arrow-icon">→</span>
+          <span class="om2-ya__step">{{ t.ya_path_step3 }}</span>
+        </div>
+      </div>
+
+      <aside class="om2-ya__badges" aria-label="{{ t.ya_badges_label }}">
+        <figure class="om2-ya__badge-card">
+          <div class="om2-ya__hero-badge">
+            <div class="om2-ya__tile om2-ya__tile--dark om2-ya__tile--hero" data-label="Yoga Alliance">
+              <img src="https://www.yogabible.dk/s/YA_logo_reg_white_500px.webp"
+                   alt="Yoga Alliance logo" loading="lazy" decoding="async"
+                   onerror="this.style.display='none';this.closest('.om2-ya__tile').classList.add('om2-ya__tile--fallback');">
+            </div>
+          </div>
+          <div class="om2-ya__badge-grid" role="list">
+            <div class="om2-ya__tile" role="listitem" data-label="E-RYT 500">
+              <img src="https://www.yogabible.dk/s/ERYT500.png" alt="E-RYT 500 badge" loading="lazy" decoding="async"
+                   onerror="this.style.display='none';this.closest('.om2-ya__tile').classList.add('om2-ya__tile--fallback');">
+            </div>
+            <div class="om2-ya__tile" role="listitem" data-label="RYS 200">
+              <img src="https://www.yogabible.dk/s/RYS200-1.png" alt="RYS 200 badge" loading="lazy" decoding="async"
+                   onerror="this.style.display='none';this.closest('.om2-ya__tile').classList.add('om2-ya__tile--fallback');">
+            </div>
+            <div class="om2-ya__tile" role="listitem" data-label="YACEP">
+              <img src="https://www.yogabible.dk/s/YACEP-5.png" alt="YACEP badge" loading="lazy" decoding="async"
+                   onerror="this.style.display='none';this.closest('.om2-ya__tile').classList.add('om2-ya__tile--fallback');">
+            </div>
+          </div>
+        </figure>
+      </aside>
+    </div>
+
+    {# STYLES + DOORS: Two columns #}
+    <div class="om2-ya__content-row">
+      <div class="om2-ya__styles">
+        <h3 class="om2-ya__sub-title">{{ t.ya_styles_title }}</h3>
+        <div class="om2-ya__style-cards">
+          {% set style_emojis = ["🧘", "🌊", "🌙", "🔥", "🧠"] %}
+          {% for i in range(1, 6) %}
+          <div class="om2-ya__style-card">
+            <span class="om2-ya__style-icon">{{ style_emojis[i - 1] }}</span>
+            <div>
+              <h4 class="om2-ya__style-name">{{ t["ya_style" + (i | string) + "_title"] }}</h4>
+              <p class="om2-ya__style-desc">{{ t["ya_style" + (i | string) + "_desc"] }}</p>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+
+      <div class="om2-ya__doors">
+        <h3 class="om2-ya__sub-title">{{ t.ya_doors_title }}</h3>
+        <ul class="om2-ya__doors-list">
+          {% for i in range(1, 6) %}
+          <li>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+            <span>{{ t["ya_door" + (i | string)] | safe }}</span>
+          </li>
+          {% endfor %}
+        </ul>
+
+        <div class="om2-ya__accordion" data-om2-ya-accordion>
+          {% for i in range(1, 5) %}
+          <div class="om2-ya__acc-item">
+            <button type="button" class="om2-ya__acc-btn" aria-expanded="false" aria-controls="om2-ya-p{{ i }}">
+              <span>{{ t["ya_faq" + (i | string) + "_q"] }}</span>
+              <span class="om2-ya__chev" aria-hidden="true"></span>
+            </button>
+            <div id="om2-ya-p{{ i }}" class="om2-ya__acc-panel" hidden>
+              <p>{{ t["ya_faq" + (i | string) + "_a"] | safe }}</p>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+
+    {# CLOSING + CTA #}
+    <div class="om2-ya__footer">
+      <p class="om2-ya__closing">{{ t.ya_closing }}</p>
+      <a class="yb-btn yb-btn--primary" href="https://www.yogaalliance.org/" target="_blank" rel="noopener">
+        <span>{{ t.ya_cta_external }}</span>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+      </a>
+    </div>
+  </div>
+</section>
+
+{# ═══════════════════════════════════════════════════════════
+   SECTION 12: FAQ — General Questions
+   ═══════════════════════════════════════════════════════════ #}
+<section class="om2-faq" id="om2-faq" aria-labelledby="om2-faq-title">
+  <div class="om2-faq__inner">
+    <header class="om2-faq__head">
+      <p class="om2-faq__eyebrow">{{ t.faq_eyebrow }}</p>
+      <h2 class="om2-faq__title" id="om2-faq-title">{{ t.faq_title }}</h2>
+      <p class="om2-faq__lead">{{ t.faq_lead }}</p>
+    </header>
+
+    <div class="om2-faq__grid" data-om2-faq-accordion>
+      {% for i in range(1, 11) %}
+      <div class="om2-faq__item">
+        <button type="button" class="om2-faq__btn" aria-expanded="false" aria-controls="om2-faq-p{{ i }}">
+          <span>{{ t["faq" + (i | string) + "_q"] }}</span>
+          <span class="om2-faq__chev" aria-hidden="true"></span>
+        </button>
+        <div id="om2-faq-p{{ i }}" class="om2-faq__panel" hidden>
+          <p>{{ t["faq" + (i | string) + "_a"] | safe }}</p>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+
+    <div class="om2-faq__contact">
+      <a href="{{ lp }}{{ t.faq_contact_link }}" class="yb-btn yb-btn--outline-brand" target="_blank" rel="noopener">
+        <span>{{ t.faq_contact }}</span>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+      </a>
+    </div>
+  </div>
+</section>
+
+{# ═══════════════════════════════════════════════════════════
+   CTA SECTION
+   ═══════════════════════════════════════════════════════════ #}
 <section class="cta-section">
   <div class="container">
     <h2 class="cta-section__title">{{ t.cta_title }}</h2>
     <p class="cta-section__text">{{ t.cta_text }}</p>
-    <button onclick="openYBScheduleModal('18w')" class="btn btn--large btn--primary">{{ t.cta_button }}</button>
+    <div style="display:flex;flex-wrap:wrap;gap:1rem;justify-content:center">
+      <button onclick="openYBScheduleModal('18w')" class="yb-btn yb-btn--primary yb-btn--large">{{ t.cta_button }}</button>
+      <button class="yb-btn yb-btn--primary yb-btn--large" data-checkout-product="100078">{{ t.cta_prep_button }}</button>
+    </div>
   </div>
 </section>
