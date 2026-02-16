@@ -464,14 +464,14 @@
     </section>
   </div>
 
-  {# ── TAB: My Courses (iframe) ── #}
+  {# ── TAB: My Courses (iframe — bare embed page, no site chrome) ── #}
   <div class="yb-ma-tp" id="yb-ma-tp-courses" data-yb-ma-panel="courses" hidden>
-    <iframe class="yb-ma-iframe" data-src="{{ lp }}/profile?embed=1#mine-kurser" title="{{ t.hub_courses_title }}"></iframe>
+    <iframe class="yb-ma-iframe" data-src="{{ lp }}/embed/courses/#mine-kurser" title="{{ t.hub_courses_title }}"></iframe>
   </div>
 
-  {# ── TAB: Schedule (iframe) ── #}
+  {# ── TAB: Schedule (iframe — bare embed page, no site chrome) ── #}
   <div class="yb-ma-tp" id="yb-ma-tp-schedule" data-yb-ma-panel="schedule" hidden>
-    <iframe class="yb-ma-iframe" data-src="{{ lp }}/profile?embed=1#schedule" title="{{ t.hub_schedule_title }}"></iframe>
+    <iframe class="yb-ma-iframe" data-src="{{ lp }}/embed/schedule/#schedule" title="{{ t.hub_schedule_title }}"></iframe>
   </div>
 
   {# ── TAB: Glossary (embedded) ── #}
@@ -516,9 +516,9 @@
     </section>
   </div>
 
-  {# ── TAB: Profile (iframe) ── #}
+  {# ── TAB: Profile (iframe — bare embed page, no site chrome) ── #}
   <div class="yb-ma-tp" id="yb-ma-tp-profile" data-yb-ma-panel="profile" hidden>
-    <iframe class="yb-ma-iframe" data-src="{{ lp }}/profile?embed=1#profile" title="{{ t.hub_profile_title }}"></iframe>
+    <iframe class="yb-ma-iframe" data-src="{{ lp }}/embed/profile/#profile" title="{{ t.hub_profile_title }}"></iframe>
   </div>
 
 </div>
