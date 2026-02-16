@@ -1959,12 +1959,34 @@
   // refreshed, or the embed page already has a Firebase session) we
   // skip auth steps and go straight to checkout (Step 3).
 
+  // ── Session persistence helpers (shared with login-cta.js) ────────
+  var SESSION_KEY = 'hyc_auth_token';
+  function _parentStorage() {
+    try { var s = (window.top || window).sessionStorage; s.getItem('_'); return s; }
+    catch (e) { return null; }
+  }
+  function persistAuthToken(user) {
+    if (!user) return;
+    user.getIdToken().then(function (t) {
+      var s = _parentStorage();
+      if (s) s.setItem(SESSION_KEY, t);
+    }).catch(function () {});
+  }
+  function clearAuthToken() {
+    var s = _parentStorage();
+    if (s) s.removeItem(SESSION_KEY);
+  }
+
   function initAuthListener() {
     // Poll for Firebase availability then listen for auth state
     var checkInterval = setInterval(function () {
       if (typeof firebase !== 'undefined' && firebase.auth) {
         clearInterval(checkInterval);
         firebase.auth().onAuthStateChanged(function (user) {
+          // Persist / clear token so login survives page reloads
+          if (user) persistAuthToken(user);
+          else clearAuthToken();
+
           if (!user) return;
 
           // If modal is not open, nothing to do yet

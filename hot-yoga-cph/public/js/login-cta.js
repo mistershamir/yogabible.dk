@@ -865,6 +865,56 @@
 
 
   // ═══════════════════════════════════════════════════════════════════
+  // SESSION PERSISTENCE (parent sessionStorage)
+  // ═══════════════════════════════════════════════════════════════════
+  // Firebase runs with Persistence.NONE in this cross-origin embed to
+  // avoid IndexedDB hangs.  To survive page reloads we store a Firebase
+  // ID token in the *parent* window's sessionStorage (first-party,
+  // never blocked) and exchange it for a custom token on init.
+
+  var SESSION_KEY = 'hyc_auth_token';
+
+  function _parentStorage() {
+    try { var s = (window.top || window).sessionStorage; s.getItem('_'); return s; }
+    catch (e) { return null; }
+  }
+
+  function persistAuthToken(user) {
+    if (!user) { clearAuthToken(); return; }
+    user.getIdToken().then(function (t) {
+      var s = _parentStorage();
+      if (s) s.setItem(SESSION_KEY, t);
+    }).catch(function () {});
+  }
+
+  function clearAuthToken() {
+    var s = _parentStorage();
+    if (s) s.removeItem(SESSION_KEY);
+  }
+
+  function restoreSession() {
+    var s = _parentStorage();
+    var token = s && s.getItem(SESSION_KEY);
+    if (!token || firebase.auth().currentUser) return;
+
+    fetch(API_BASE + '/auth-token', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ idToken: token })
+    })
+      .then(function (r) { return r.json(); })
+      .then(function (data) {
+        if (data.customToken) return firebase.auth().signInWithCustomToken(data.customToken);
+      })
+      .catch(function () {
+        // Token expired / invalid — clean up
+        clearAuthToken();
+        renderLoggedOut();
+      });
+  }
+
+
+  // ═══════════════════════════════════════════════════════════════════
   // AUTH STATE LISTENER
   // ═══════════════════════════════════════════════════════════════════
 
@@ -875,6 +925,7 @@
       firebase.auth().onAuthStateChanged(function (user) {
         currentUser = user;
         if (user) {
+          persistAuthToken(user);
           resolveMbClient(user);
           renderLoggedIn(user);
           // If auth modal is open, close it — user just logged in
@@ -882,14 +933,25 @@
             closeModal();
           }
         } else {
+          clearAuthToken();
           mbClientId = null;
-          renderLoggedOut();
+          // Only render logged-out if we're NOT about to restore
+          var s = _parentStorage();
+          var hasStoredToken = s && s.getItem(SESSION_KEY);
+          if (!hasStoredToken) {
+            renderLoggedOut();
+          }
           // Close user area modal if open
           if (modalMode === 'user-area') {
             closeModal();
           }
         }
       });
+
+      // If no user yet, try to restore from parent sessionStorage
+      if (!firebase.auth().currentUser) {
+        restoreSession();
+      }
     });
   }
 
@@ -919,8 +981,18 @@
     container = document.getElementById('hyc-login-cta');
     if (!container) return;
     container.className = 'hyc-cta';
-    renderLoggedOut(); // Show login button immediately
-    initAuth();        // Load Firebase → listen for auth state
+
+    // If we have a stored session token, show loading spinner instead
+    // of "Log ind" to avoid a logged-out → logged-in flash
+    var s = _parentStorage();
+    var hasStoredToken = s && s.getItem(SESSION_KEY);
+    if (hasStoredToken) {
+      container.innerHTML = '<span class="hyc-ua__loading" style="padding:6px 12px">' + ICON.spinner + '</span>';
+    } else {
+      renderLoggedOut();
+    }
+
+    initAuth();
   }
 
   if (document.readyState === 'loading') {
