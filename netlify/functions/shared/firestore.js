@@ -10,14 +10,22 @@ let initialized = false;
 function initFirebase() {
   if (initialized) return;
 
-  const keyJson = process.env.FIREBASE_SERVICE_ACCOUNT_KEY;
-  if (!keyJson) {
-    throw new Error('FIREBASE_SERVICE_ACCOUNT_KEY env var not set. Add your Firebase service account JSON to Netlify environment variables.');
+  // Use individual env vars to stay under the 4KB Lambda env limit.
+  // Extract these 3 fields from your Firebase service account JSON.
+  const projectId = process.env.FIREBASE_PROJECT_ID;
+  const clientEmail = process.env.FIREBASE_CLIENT_EMAIL;
+  const privateKey = process.env.FIREBASE_PRIVATE_KEY;
+
+  if (!projectId || !clientEmail || !privateKey) {
+    throw new Error('Firebase credentials not set. Add FIREBASE_PROJECT_ID, FIREBASE_CLIENT_EMAIL, and FIREBASE_PRIVATE_KEY to Netlify environment variables.');
   }
 
-  const serviceAccount = JSON.parse(keyJson);
   admin.initializeApp({
-    credential: admin.credential.cert(serviceAccount)
+    credential: admin.credential.cert({
+      projectId,
+      clientEmail,
+      privateKey: privateKey.replace(/\\n/g, '\n')
+    })
   });
 
   initialized = true;
