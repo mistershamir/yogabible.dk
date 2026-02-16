@@ -17,6 +17,15 @@
   margin: 0 auto;
 }
 
+/* ── Hero styles line ── */
+.p300-hero__styles {
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 0.82rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  margin-top: 8px;
+}
+
 /* ── Hero refund note ── */
 .p300-hero__refund {
   color: rgba(255, 255, 255, 0.6);
@@ -657,11 +666,26 @@
 .p300-final__ctas { display: flex; justify-content: center; gap: 16px; margin-bottom: 16px; }
 .p300-final__refund { font-size: 0.85rem; color: rgba(255, 255, 255, 0.5); }
 
+/* ═══ STYLES INTRO (above hours) ═══ */
+.p300-styles-intro {
+  text-align: center;
+  padding: 0 24px 0;
+  max-width: 800px;
+  margin: 0 auto;
+}
+.p300-styles-intro__text {
+  font-size: 1rem;
+  color: #6F6A66;
+  letter-spacing: 0.01em;
+  line-height: 1.6;
+  margin: 0;
+}
+
 /* ═══ IMAGE BREAKS ═══ */
 .p300-img-break { padding: 0; }
-.p300-img-break--wide { padding: 0 24px; }
-.p300-img-break--split { padding: 0 24px; }
-.p300-img-break--captioned { padding: 0 24px; }
+.p300-img-break--wide { padding: 48px 24px 0; }
+.p300-img-break--split { padding: 48px 24px 0; }
+.p300-img-break--captioned { padding: 48px 24px 0; }
 
 .p300-img-break__frame {
   max-width: 1100px;
@@ -755,7 +779,7 @@
   .p300-pricing__payment-split { grid-template-columns: 1fr; }
   .p300-final__ctas { flex-direction: column; align-items: center; }
   .p300-img-break__pair { grid-template-columns: 1fr; }
-  .p300-img-break--wide, .p300-img-break--split, .p300-img-break--captioned { padding: 0 16px; }
+  .p300-img-break--wide, .p300-img-break--split, .p300-img-break--captioned { padding: 32px 16px 0; }
   .p300-img-break__frame--cinema .p300-img-break__placeholder { min-height: 220px; }
   .p300-img-break__placeholder--half { min-height: 200px; }
   .p300-img-break__placeholder--overlay { min-height: 260px; }

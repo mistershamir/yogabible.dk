@@ -34,8 +34,8 @@
 
   // Refundable note (for teacher training prep phase)
   var REFUND_NOTE = {
-    da: 'Fuldt refunderbar — ingen spørgsmål',
-    en: 'Fully refundable — no questions asked'
+    da: 'Fuldt refunderbar op til 45 dage før uddannelsesstart',
+    en: 'Fully refundable up to 45 days before training starts'
   };
 
   // Prep phase benefits (for teacher training)
