@@ -66,6 +66,23 @@
 </section>
 
 {# ═══════════════════════════════════════════════════════════
+   IMAGE BREAK 1: Full-width cinematic image
+   ═══════════════════════════════════════════════════════════ #}
+<section class="p300-img-break p300-img-break--wide" aria-label="{{ t.img1_aria }}">
+  <div class="p300-img-break__frame p300-img-break__frame--cinema">
+    <div class="p300-img-break__placeholder">
+      <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" opacity="0.3">
+        <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+        <circle cx="8.5" cy="8.5" r="1.5"/>
+        <polyline points="21 15 16 10 5 21"/>
+      </svg>
+      <span>{{ t.img1_label }}</span>
+      <span class="p300-img-break__dim">1400 × 500 px</span>
+    </div>
+  </div>
+</section>
+
+{# ═══════════════════════════════════════════════════════════
    SECTION 2: THE EVOLUTION — 200 → 500 (Split Dark/Light)
    ═══════════════════════════════════════════════════════════ #}
 <section class="p300-evo" id="p300-evo">
@@ -129,6 +146,32 @@
         <p class="p300-curr__card-desc">{{ t["curr" + (i | string) + "_desc"] }}</p>
       </article>
       {% endfor %}
+    </div>
+  </div>
+</section>
+
+{# ═══════════════════════════════════════════════════════════
+   IMAGE BREAK 2: Two-image split strip
+   ═══════════════════════════════════════════════════════════ #}
+<section class="p300-img-break p300-img-break--split" aria-label="{{ t.img2_aria }}">
+  <div class="p300-img-break__pair">
+    <div class="p300-img-break__placeholder p300-img-break__placeholder--half">
+      <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" opacity="0.3">
+        <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+        <circle cx="8.5" cy="8.5" r="1.5"/>
+        <polyline points="21 15 16 10 5 21"/>
+      </svg>
+      <span>{{ t.img2_left_label }}</span>
+      <span class="p300-img-break__dim">680 × 460 px</span>
+    </div>
+    <div class="p300-img-break__placeholder p300-img-break__placeholder--half">
+      <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" opacity="0.3">
+        <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+        <circle cx="8.5" cy="8.5" r="1.5"/>
+        <polyline points="21 15 16 10 5 21"/>
+      </svg>
+      <span>{{ t.img2_right_label }}</span>
+      <span class="p300-img-break__dim">680 × 460 px</span>
     </div>
   </div>
 </section>
@@ -208,6 +251,26 @@
         </div>
       </div>
       {% endfor %}
+    </div>
+  </div>
+</section>
+
+{# ═══════════════════════════════════════════════════════════
+   IMAGE BREAK 3: Wide image with caption overlay
+   ═══════════════════════════════════════════════════════════ #}
+<section class="p300-img-break p300-img-break--captioned" aria-label="{{ t.img3_aria }}">
+  <div class="p300-img-break__frame p300-img-break__frame--overlay">
+    <div class="p300-img-break__placeholder p300-img-break__placeholder--overlay">
+      <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" opacity="0.3">
+        <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+        <circle cx="8.5" cy="8.5" r="1.5"/>
+        <polyline points="21 15 16 10 5 21"/>
+      </svg>
+      <span>{{ t.img3_label }}</span>
+      <span class="p300-img-break__dim">1400 × 600 px</span>
+    </div>
+    <div class="p300-img-break__caption">
+      <p>{{ t.img3_caption }}</p>
     </div>
   </div>
 </section>
