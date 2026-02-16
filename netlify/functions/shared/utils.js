@@ -160,6 +160,7 @@ function buildUnsubscribeUrl(email) {
 
 function detectAction(payload) {
   if (payload.action) return payload.action.toLowerCase();
+  if (payload.mode === 'careers') return 'careers';
   if (payload.applicant && payload.selections) return 'apply_builder';
   if (payload.form === 'yb4w') return 'lead_schedule_4w';
   if (payload.form === 'yb8w') return 'lead_schedule_8w';

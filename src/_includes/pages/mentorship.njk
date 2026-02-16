@@ -777,7 +777,7 @@
 </style>
 <script>
 (function(){
-  var YBINTAKE_WEBAPP_URL="https://script.google.com/macros/s/AKfycbyhs4bfPcvcqaJRTmAlPTFf_uIOkFatZviKKO20nckBfGi78JqkNzy4FNpWztl7nQsSAA/exec";
+  var YBINTAKE_WEBAPP_URL="/.netlify/functions/lead";
   var modal=document.getElementById("ybintake-modal");
   var form=document.getElementById("ybintake-form");
   var frame=document.getElementsByName("ybintakeFrame")[0];
@@ -831,14 +831,37 @@
   document.addEventListener("keydown",function(e){if(e.key==="Escape"&&modal.getAttribute('aria-hidden')==='false'){closeModal();resetModal();}});
   if(window.location.hash==="#yb-intake"){doOpenModal();}
   if(service){service.addEventListener("change",function(){renderSubs(service.value);});}
-  if(form&&frame){
+  if(form){
     form.addEventListener("submit",function(ev){
+      ev.preventDefault();
       if(errorBox)errorBox.hidden=true;var required=form.querySelectorAll("[required]");
-      for(var i=0;i<required.length;i++){if(!required[i].value){required[i].focus();ev.preventDefault();return;}}
-      if(metaAt)metaAt.value=new Date().toISOString();pendingSubmit=true;
+      for(var i=0;i<required.length;i++){if(!required[i].value){required[i].focus();return;}}
+      if(metaAt)metaAt.value=new Date().toISOString();
       if(submitBtn){submitBtn.disabled=true;submitBtn.textContent="Sender\u2026";}
+      var fd=new FormData(form);
+      var subs=[];fd.getAll("subcategories").forEach(function(v){subs.push(v);});
+      var payload={
+        action:"lead_mentorship",
+        firstName:fd.get("firstName")||"",
+        lastName:fd.get("lastName")||"",
+        email:fd.get("email")||"",
+        phone:fd.get("phone")||"",
+        service:fd.get("service")||"",
+        subcategories:subs,
+        message:fd.get("message")||"",
+        sourceUrl:window.location.href
+      };
+      fetch(YBINTAKE_WEBAPP_URL,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(payload)})
+        .then(function(r){return r.json();})
+        .then(function(data){
+          if(submitBtn){submitBtn.disabled=false;submitBtn.textContent="Send";}
+          if(data&&data.ok){showSuccess();}else{if(errorBox)errorBox.hidden=false;}
+        })
+        .catch(function(){
+          if(submitBtn){submitBtn.disabled=false;submitBtn.textContent="Send";}
+          if(errorBox)errorBox.hidden=false;
+        });
     });
-    frame.addEventListener("load",function(){if(!pendingSubmit)return;pendingSubmit=false;if(submitBtn){submitBtn.disabled=false;submitBtn.textContent="Send";}showSuccess();});
   }
   closeModal();
 })();

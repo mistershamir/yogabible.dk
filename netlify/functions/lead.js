@@ -23,7 +23,7 @@ exports.handler = async (event) => {
     let callback = '';
 
     if (event.httpMethod === 'POST') {
-      payload = JSON.parse(event.body || '{}');
+      payload = parseBody(event);
     } else if (event.httpMethod === 'GET') {
       payload = event.queryStringParameters || {};
       callback = payload.callback || '';
@@ -32,7 +32,7 @@ exports.handler = async (event) => {
     }
 
     const action = detectAction(payload);
-    if (!action || !action.startsWith('lead_')) {
+    if (!action || !(action.startsWith('lead_') || action === 'contact')) {
       return wrapCallback(callback, jsonResponse(400, { ok: false, error: 'Could not determine lead type' }));
     }
 
@@ -69,6 +69,42 @@ exports.handler = async (event) => {
     return jsonResponse(500, { ok: false, error: 'Server error: ' + error.message });
   }
 };
+
+/**
+ * Parse POST body — supports JSON, URL-encoded (FormData / URLSearchParams), and plain text JSON
+ */
+function parseBody(event) {
+  const contentType = (event.headers['content-type'] || event.headers['Content-Type'] || '').toLowerCase();
+  const body = event.body || '';
+
+  // URL-encoded (FormData or URLSearchParams)
+  if (contentType.includes('application/x-www-form-urlencoded') || contentType.includes('multipart/form-data')) {
+    const params = new URLSearchParams(body);
+    const obj = {};
+    for (const [key, value] of params) {
+      obj[key] = value;
+    }
+    return obj;
+  }
+
+  // JSON or text/plain with JSON inside
+  try {
+    return JSON.parse(body);
+  } catch (e) {
+    // Last resort: try URL-encoded
+    try {
+      const params = new URLSearchParams(body);
+      if (params.has('email') || params.has('firstName') || params.has('action')) {
+        const obj = {};
+        for (const [key, value] of params) {
+          obj[key] = value;
+        }
+        return obj;
+      }
+    } catch (e2) {}
+    return {};
+  }
+}
 
 function wrapCallback(callback, response) {
   if (!callback) return response;
@@ -247,6 +283,24 @@ function processLead(payload, action) {
         source: payload.sourceUrl || 'Mentorship intake form'
       };
     }
+
+    case 'contact':
+      return {
+        ...base,
+        type: 'contact',
+        ytt_program_type: '',
+        program: '',
+        course_id: '',
+        cohort_label: '',
+        preferred_month: '',
+        accommodation: 'No',
+        city_country: '',
+        housing_months: '',
+        service: '',
+        subcategories: '',
+        message: payload.message || '',
+        source: payload.source || 'Contact form'
+      };
 
     default:
       return { ...base, type: 'unknown', source: 'Unknown' };

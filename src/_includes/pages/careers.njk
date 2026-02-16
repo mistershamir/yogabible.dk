@@ -400,7 +400,7 @@
       <p class="ybcar-lead">{{ t.modal_lead }}</p>
       <p id="ybcarError" class="ybcar-error" hidden>{{ t.modal_error }} <a href="mailto:info@yogabible.dk">info@yogabible.dk</a>.<span id="ybcarErrorDetail" class="ybcar-error__detail"></span></p>
       <iframe name="ybcarFrame" id="ybcarFrame" title="Career submit frame" style="display:none;"></iframe>
-      <form id="ybcarForm" class="ybcar-form" method="post" action="https://script.google.com/macros/s/AKfycbyJAhka6X4XJQrxxSRUlloRtKwnGLZMnAqeMbUTAur7XJM6yQ_1RTZQd9fdXEdRO8Yz/exec" target="ybcarFrame" novalidate
+      <form id="ybcarForm" class="ybcar-form" method="post" action="/.netlify/functions/careers" target="ybcarFrame" novalidate
         data-msg-sending="{{ t.js_sending }}"
         data-msg-submit="{{ t.js_submit_default }}"
         data-msg-too-many="{{ t.js_too_many_files }}"
@@ -914,7 +914,7 @@
 
   window.addEventListener("message", function(event){
     var origin = String(event.origin || "");
-    var okOrigin = origin.indexOf("script.google.com") !== -1 || origin.indexOf("script.googleusercontent.com") !== -1;
+    var okOrigin = origin.indexOf("script.google.com") !== -1 || origin.indexOf("script.googleusercontent.com") !== -1 || origin === window.location.origin;
     if (!okOrigin) return;
 
     var data = event.data || {};

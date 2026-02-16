@@ -10,7 +10,7 @@
   if (!modal || modal.dataset.ybuInit === "1") return;
   modal.dataset.ybuInit = "1";
 
-  const FORM_URL = 'https://script.google.com/macros/s/AKfycbyhs4bfPcvcqaJRTmAlPTFf_uIOkFatZviKKO20nckBfGi78JqkNzy4FNpWztl7nQsSAA/exec';
+  const FORM_URL = '/.netlify/functions/lead';
 
   const form = document.getElementById("ybuForm");
   const viewForm = document.getElementById("ybu-view-form");
@@ -161,9 +161,8 @@
         p.append('allFormats', fmts.join(','));
       }
 
-      // GET request with query params — Google Apps Script redirects,
-      // and GET survives the redirect (POST body gets dropped)
-      fetch(FORM_URL + '?' + p.toString(), { method: 'GET', mode: 'no-cors' })
+      // POST to Netlify Function with query params as body
+      fetch(FORM_URL, { method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, body: p.toString() })
         .finally(() => {
           submitBtn.disabled = false;
           submitBtn.textContent = 'Send & få skema';

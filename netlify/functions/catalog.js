@@ -18,9 +18,9 @@ exports.handler = async (event) => {
       .where('active', '==', true)
       .get();
 
-    const courses = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    const catalog = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 
-    return jsonResponse(200, { ok: true, courses, count: courses.length });
+    return jsonResponse(200, { ok: true, catalog, count: catalog.length });
   } catch (error) {
     console.error('Catalog error:', error);
     return jsonResponse(500, { ok: false, error: 'System error' });

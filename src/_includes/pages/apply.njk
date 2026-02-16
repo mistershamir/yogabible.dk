@@ -1887,7 +1887,7 @@
     if(root.__ybApplyBooted) return;
     root.__ybApplyBooted = true;
 
-    const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbzYyWIlFHXlH7kOiRiBFVTspYkEAbL9_z7brMPcllYp3Hl5QhlHcspNmQW9tFDtj6GLGQ/exec";
+    const WEB_APP_URL = "/.netlify/functions/apply";
 
     window.YB_WEB_APP_URL = WEB_APP_URL;
 
@@ -2750,7 +2750,7 @@
 
     async function loadCatalog(){
       try{
-        var data = await getJSON(WEB_APP_URL + "?action=catalog&v=" + Date.now());
+        var data = await getJSON("/.netlify/functions/catalog?v=" + Date.now());
         if(!data || data.ok !== true) throw new Error("catalog not ok");
         catalog = data.catalog || [];
         buildMaps();
