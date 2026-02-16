@@ -380,14 +380,10 @@
 
   function renderLoggedIn(user) {
     if (!container) return;
-    var firstName = '';
-    if (user && user.displayName) {
-      firstName = user.displayName.split(' ')[0];
-    }
 
     container.innerHTML =
       '<button class="hyc-cta__btn hyc-cta__btn--user" type="button" id="hyc-cta-user">' +
-        ICON.profile + esc(firstName || t('Min profil', 'My Profile')) +
+        ICON.profile + t('Min profil', 'My Profile') +
       '</button>';
 
     document.getElementById('hyc-cta-user').addEventListener('click', function () {
