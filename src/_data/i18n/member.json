@@ -148,6 +148,9 @@
     "live_placeholder_title": "Live & Optagelser",
     "live_placeholder_text": "Her vil du snart kunne deltage i live workshops, se optagelser og søge i tidligere sessioner. Vi arbejder på at bringe denne funktion til dig.",
 
+    "live_noaccess_title": "Live & Optagelser",
+    "live_noaccess_text": "Du har ikke adgang til live streaming og optagelser endnu. Denne funktion er tilgængelig for studerende og kursister. Kontakt os for mere information om, hvordan du kan få adgang.",
+
     "events_placeholder_eyebrow": "Kommer snart",
     "events_placeholder_title": "Events & Workshops",
     "events_placeholder_text": "Her vil du snart kunne se kommende events, workshops, retreats og særlige arrangementer. Hold øje med opdateringer.",
@@ -304,6 +307,9 @@
     "live_placeholder_eyebrow": "Coming soon",
     "live_placeholder_title": "Live & Recordings",
     "live_placeholder_text": "Here you'll soon be able to join live workshops, watch recordings, and search through previous sessions. We're working on bringing this feature to you.",
+
+    "live_noaccess_title": "Live & Recordings",
+    "live_noaccess_text": "You don't have access to live streaming and recordings yet. This feature is available for students and trainees. Contact us for more information on how to get access.",
 
     "events_placeholder_eyebrow": "Coming soon",
     "events_placeholder_title": "Events & Workshops",
