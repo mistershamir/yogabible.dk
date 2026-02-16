@@ -25,6 +25,15 @@
     "snap_break": "Sommerpause: juli – 9. august",
     "snap_text": "Uddannelsen kører én gang om året. Næste hold starter den 18. maj 2026 og afsluttes den 13. december — med en sommerpause fra juli til 9. august. Det kompakte format med max 12 deltagere sikrer tæt mentoring og professionel dybde.",
 
+    "img1_aria": "Billede af avanceret yogapraksis",
+    "img1_label": "Hero billede · avanceret praksis",
+    "img2_aria": "Studiebilleder",
+    "img2_left_label": "Undervisning i studiet",
+    "img2_right_label": "Hands-on korrektion",
+    "img3_aria": "Holdets rejse",
+    "img3_label": "24 ugers rejse · holdets fællesskab",
+    "img3_caption": "24 uger. Ét hold. En transformation du mærker resten af karrieren.",
+
     "evo_eyebrow": "Fra 200 til 500 timer",
     "evo_title": "Evolutionen",
     "evo_lead": "Din 200-timers uddannelse gav dig fundamentet. De næste 300 timer giver dig <strong>dybde, specialisering og autoritet</strong>.",
@@ -303,6 +312,15 @@
     "snap_dates": "May 18 – December 13, 2026",
     "snap_break": "Summer break: July – August 9",
     "snap_text": "The program runs once per year. The next cohort starts May 18, 2026 and finishes December 13 — with a summer break from July to August 9. The compact format with max 12 participants ensures close mentoring and professional depth.",
+
+    "img1_aria": "Advanced yoga practice image",
+    "img1_label": "Hero image · advanced practice",
+    "img2_aria": "Studio images",
+    "img2_left_label": "Teaching in the studio",
+    "img2_right_label": "Hands-on adjustments",
+    "img3_aria": "The cohort journey",
+    "img3_label": "24-week journey · cohort community",
+    "img3_caption": "24 weeks. One cohort. A transformation you carry for the rest of your career.",
 
     "evo_eyebrow": "From 200 to 500 hours",
     "evo_title": "The Evolution",
