@@ -19,16 +19,17 @@ Upload each file to the matching Cloudinary folder below. Naming convention: low
 
 ---
 
-## yoga-bible-DK/homepage/ (5 images + 1 video)
+## yoga-bible-DK/homepage/ (4 images + 1 video)
 
 | Upload as | Size | Type | Description |
 |-----------|------|------|-------------|
-| `hero-loop` | 1920x1080 | VIDEO | Auto-playing hero video loop |
-| `hero-poster` | 1920x1080 | image | Static poster/fallback for hero video |
-| `studio-panorama` | 1920x900 | image | Wide panorama of studio at Torvegade 66 |
-| `teaching-scene` | 1200x800 | image | Teacher demonstrating to students |
-| `practice-scene` | 1200x800 | image | Students in flow/practice |
-| `hero-portrait` | 1080x1440 | image | Portrait-oriented hero (for mobile/alt layout) |
+| `hero-video` | 1920x1080 | VIDEO | Auto-playing hero video loop — **EXISTS locally** at `src/assets/hero-loop.mp4` |
+| `studio-panorama` | 1920x1080 | image | Studio panorama — hero poster fallback + studio section bg (used 2x on homepage) |
+| `inversions-card` | 800x600 | image | Inversions course triptych card |
+| `splits-card` | 800x600 | image | Splits course triptych card |
+| `backbends-card` | 800x600 | image | Backbends course triptych card |
+
+> The live homepage also uses: `education-200hr` + `inversions-promo` from `yoga-bible-DK/courses/`, 6 images from `yoga-bible-DK/copenhagen/` (`canal-panorama`, `bike-culture`, `saunagus`, `food-scene`, `cafe-scene`, `green-spaces`), and `practice-loop` video from `yoga-bible-DK/programs/`.
 
 ---
 
@@ -54,7 +55,7 @@ Upload each file to the matching Cloudinary folder below. Naming convention: low
 
 ---
 
-## yoga-bible-DK/courses/ (4 images)
+## yoga-bible-DK/courses/ (6 images)
 
 | Upload as | Size | Description |
 |-----------|------|-------------|
@@ -62,6 +63,8 @@ Upload each file to the matching Cloudinary folder below. Naming convention: low
 | `splits-hero` | 800x600 | Splits/flexibility course promo card |
 | `backbends-hero` | 800x600 | Backbends course promo card |
 | `200-hour-hero` | 800x600 | 200-hour YTT promo card |
+| `education-200hr` | 800x600 | 200hr teacher training promo — homepage fork left panel |
+| `inversions-promo` | 800x600 | Inversions promo — homepage fork right panel |
 
 ---
 
@@ -272,9 +275,9 @@ Upload each file to the matching Cloudinary folder below. Naming convention: low
 
 | Type | Count |
 |------|-------|
-| **Images** | ~110 |
+| **Images** | ~111 |
 | **Videos** | ~14 |
-| **Already exist (upload as-is)** | 5 (2 logos, 2 concept logos, 1 journal image) |
+| **Already exist (upload as-is)** | 6 (2 logos, 2 concept logos, 1 journal image, 1 hero video) |
 | **Need to create/source** | ~119 |
 
 ## Priority Order (suggested)
