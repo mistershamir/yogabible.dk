@@ -4445,136 +4445,157 @@ section {
 
 
 /* -----------------------------------------------------------------
-   COURSES GALLERY — Image-forward card grid
+   IMMERSIVE TRIPTYCH — Full-bleed image panels with overlays
+   Magazine-style course showcase
    ----------------------------------------------------------------- */
 
-.yb-courses-gallery {
-  background: #f9f7f5;
-  padding: clamp(60px, 10vh, 120px) 0;
+.yb-triptych {
+  background: #0F0F0F;
 }
 
-.yb-courses-gallery__inner {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 0 clamp(20px, 4vw, 60px);
-}
-
-.yb-courses-gallery__header {
+.yb-triptych__header {
   text-align: center;
-  margin-bottom: clamp(40px, 6vh, 60px);
+  padding: clamp(60px, 10vh, 100px) clamp(20px, 4vw, 60px) clamp(40px, 6vh, 60px);
 }
 
-.yb-courses-gallery__title {
+.yb-triptych__eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.25em;
+  color: var(--yb-brand);
+  margin-bottom: 12px;
+}
+
+.yb-triptych__title {
   font-size: clamp(2rem, 1.5rem + 2vw, 3rem);
   font-weight: 700;
-  color: #0F0F0F;
+  color: #fff;
   margin: 0 0 12px;
 }
 
-.yb-courses-gallery__subtitle {
+.yb-triptych__subtitle {
   font-size: 1rem;
-  color: #5a5a5a;
+  color: rgba(255, 255, 255, 0.6);
   margin: 0;
-  max-width: 600px;
+  max-width: 550px;
   margin-left: auto;
   margin-right: auto;
 }
 
-.yb-courses-gallery__grid {
+.yb-triptych__panels {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 24px;
+  gap: 0;
 }
 
-.yb-course-card {
-  background: #fff;
-  border-radius: 16px;
+.yb-triptych__panel {
+  position: relative;
+  display: flex;
+  align-items: flex-end;
+  min-height: 70vh;
   overflow: hidden;
-  border: 1px solid rgba(0, 0, 0, 0.06);
-  transition: all 0.3s ease;
+  text-decoration: none;
+  color: #fff;
+  border-right: 1px solid rgba(255, 255, 255, 0.08);
 }
 
-.yb-course-card:hover {
-  transform: translateY(-6px);
-  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.1);
+.yb-triptych__panel:last-child {
+  border-right: none;
 }
 
-.yb-course-card__media {
-  overflow: hidden;
-}
-
-.yb-course-card__media img {
+.yb-triptych__img {
+  position: absolute;
+  inset: 0;
   width: 100%;
-  aspect-ratio: 3 / 2;
+  height: 100%;
   object-fit: cover;
-  background: #e5e0db;
-  transition: transform 0.4s ease;
+  transition: transform 0.6s ease;
 }
 
-.yb-course-card:hover .yb-course-card__media img {
-  transform: scale(1.05);
+.yb-triptych__panel:hover .yb-triptych__img {
+  transform: scale(1.06);
 }
 
-.yb-course-card__body {
-  padding: clamp(20px, 3vw, 28px);
+.yb-triptych__overlay {
+  position: relative;
+  z-index: 1;
+  padding: clamp(28px, 4vw, 48px);
+  background: linear-gradient(0deg, rgba(0, 0, 0, 0.85) 0%, rgba(0, 0, 0, 0.4) 50%, transparent 100%);
+  width: 100%;
+  min-height: 50%;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
 }
 
-.yb-course-card__meta {
-  font-size: 0.75rem;
+.yb-triptych__meta {
+  font-size: 0.7rem;
   font-weight: 600;
   text-transform: uppercase;
-  letter-spacing: 0.08em;
-  color: #6b6b6b;
-  margin-bottom: 8px;
+  letter-spacing: 0.12em;
+  color: rgba(255, 255, 255, 0.6);
+  margin-bottom: 12px;
 }
 
-.yb-course-card__title {
-  font-size: 1.5rem;
+.yb-triptych__name {
+  font-size: clamp(1.8rem, 3vw, 2.8rem);
   font-weight: 700;
-  color: #0F0F0F;
-  margin: 0 0 10px;
+  margin: 0 0 12px;
+  line-height: 1.1;
 }
 
-.yb-course-card__desc {
+.yb-triptych__desc {
   font-size: 0.95rem;
   line-height: 1.6;
-  color: #4a4a4a;
-  margin: 0 0 16px;
+  color: rgba(255, 255, 255, 0.8);
+  margin: 0 0 20px;
 }
 
-.yb-course-card__link {
+.yb-triptych__cta {
   font-size: 0.85rem;
   font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.08em;
   color: var(--yb-brand);
-  text-decoration: none;
+  transition: letter-spacing 0.3s ease;
 }
 
-.yb-course-card__link:hover {
-  text-decoration: underline;
+.yb-triptych__panel:hover .yb-triptych__cta {
+  letter-spacing: 0.14em;
 }
 
-.yb-courses-gallery__bundle {
+.yb-triptych__bundle {
   text-align: center;
-  margin-top: 40px;
+  padding: clamp(32px, 5vh, 48px) clamp(20px, 4vw, 60px);
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 8px;
 }
 
-.yb-courses-gallery__bundle p {
+.yb-triptych__bundle p {
   font-size: 0.95rem;
-  color: #5a5a5a;
+  color: rgba(255, 255, 255, 0.6);
   margin: 0;
 }
 
 @media (max-width: 900px) {
-  .yb-courses-gallery__grid {
+  .yb-triptych__panels {
     grid-template-columns: 1fr;
-    max-width: 400px;
-    margin: 0 auto;
+  }
+
+  .yb-triptych__panel {
+    min-height: 50vh;
+    border-right: none;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  }
+
+  .yb-triptych__panel:last-child {
+    border-bottom: none;
   }
 }
 
@@ -4616,90 +4637,280 @@ section {
 
 
 /* -----------------------------------------------------------------
-   COPENHAGEN MOSAIC — Image grid
+   WHY US / DIFFERENTIATORS — Dark cinematic statement panels
+   Frosted glass cards with watermark numbers
    ----------------------------------------------------------------- */
 
-.yb-cph {
-  background: #1C1C1C;
-  padding: clamp(60px, 10vh, 120px) 0;
+.yb-diff {
+  position: relative;
+  background: #0F0F0F;
+  padding: clamp(80px, 12vh, 140px) 0;
+  overflow: hidden;
 }
 
-.yb-cph__inner {
+.yb-diff__glow {
+  position: absolute;
+  width: 700px;
+  height: 700px;
+  background: radial-gradient(circle, rgba(247, 92, 3, 0.06) 0%, transparent 60%);
+  top: 30%;
+  right: -10%;
+  pointer-events: none;
+}
+
+.yb-diff__inner {
+  position: relative;
+  z-index: 1;
   max-width: 1200px;
   margin: 0 auto;
   padding: 0 clamp(20px, 4vw, 60px);
 }
 
-.yb-cph__header {
-  margin-bottom: clamp(40px, 6vh, 60px);
+.yb-diff__header {
+  margin-bottom: clamp(48px, 8vh, 80px);
 }
 
-.yb-cph__eyebrow {
-  color: rgba(255, 255, 255, 0.5);
+.yb-diff__eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.25em;
+  color: rgba(255, 255, 255, 0.45);
+  margin-bottom: 16px;
 }
 
-.yb-cph__title {
-  font-size: clamp(2rem, 1.5rem + 2vw, 3rem);
+.yb-diff__title {
+  font-size: clamp(2.2rem, 1.5rem + 3vw, 3.5rem);
   font-weight: 700;
   color: #fff;
   margin: 0;
+  line-height: 1.1;
+}
+
+.yb-diff__grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 20px;
+}
+
+.yb-diff__card {
+  position: relative;
+  padding: clamp(32px, 4vw, 48px);
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 16px;
+  overflow: hidden;
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  transition: all 0.35s ease;
+}
+
+.yb-diff__card:hover {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(247, 92, 3, 0.25);
+  transform: translateY(-4px);
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.3);
+}
+
+.yb-diff__watermark {
+  position: absolute;
+  top: -8px;
+  right: 16px;
+  font-size: clamp(5rem, 10vw, 8rem);
+  font-weight: 700;
+  color: rgba(247, 92, 3, 0.06);
+  line-height: 1;
+  pointer-events: none;
+  transition: color 0.35s ease;
+}
+
+.yb-diff__card:hover .yb-diff__watermark {
+  color: rgba(247, 92, 3, 0.12);
+}
+
+.yb-diff__accent {
+  width: 40px;
+  height: 3px;
+  background: var(--yb-brand);
+  border-radius: 2px;
+  margin-bottom: 20px;
+}
+
+.yb-diff__card-title {
+  position: relative;
+  font-size: clamp(1.2rem, 1rem + 0.6vw, 1.5rem);
+  font-weight: 700;
+  color: #fff;
+  margin: 0 0 12px;
   line-height: 1.2;
 }
 
-.yb-cph__mosaic {
-  display: grid;
-  grid-template-columns: 2fr 1fr 1fr;
-  grid-template-rows: auto auto;
-  gap: 12px;
+.yb-diff__card-desc {
+  position: relative;
+  font-size: 0.95rem;
+  line-height: 1.7;
+  color: rgba(255, 255, 255, 0.6);
+  margin: 0;
 }
 
-.yb-cph__img {
+@media (max-width: 700px) {
+  .yb-diff__grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+
+/* -----------------------------------------------------------------
+   COPENHAGEN CINEMA — Full-bleed cinematic showcase with highlights
+   ----------------------------------------------------------------- */
+
+.yb-cph-cinema {
   position: relative;
-  border-radius: 12px;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
   overflow: hidden;
 }
 
-.yb-cph__img img {
+.yb-cph-cinema__bg {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+}
+
+.yb-cph-cinema__bg img,
+.yb-cph-cinema__bg video {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  background: #2a2a2a;
-  transition: transform 0.4s ease;
 }
 
-.yb-cph__img:hover img {
-  transform: scale(1.05);
+.yb-cph-cinema__overlay {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  min-height: 100vh;
+  background: linear-gradient(135deg, rgba(15, 15, 15, 0.88) 0%, rgba(15, 15, 15, 0.75) 50%, rgba(15, 15, 15, 0.85) 100%);
+  display: flex;
+  align-items: center;
 }
 
-.yb-cph__img--large {
-  grid-row: span 2;
+.yb-cph-cinema__content {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: clamp(60px, 10vh, 100px) clamp(20px, 4vw, 60px);
+  width: 100%;
 }
 
-.yb-cph__overlay-text {
-  position: absolute;
-  bottom: 16px;
-  left: 16px;
-  font-size: 0.75rem;
-  font-weight: 600;
-  color: rgba(255, 255, 255, 0.8);
+.yb-cph-cinema__header {
+  margin-bottom: clamp(40px, 6vh, 60px);
+}
+
+.yb-cph-cinema__eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.7rem;
+  font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.1em;
-  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.4);
+  letter-spacing: 0.25em;
+  color: rgba(255, 255, 255, 0.5);
+  margin-bottom: 16px;
 }
 
-.yb-cph__cta {
-  text-align: center;
-  margin-top: 40px;
+.yb-cph-cinema__title {
+  font-size: clamp(2.2rem, 1.5rem + 3vw, 3.5rem);
+  font-weight: 700;
+  color: #fff;
+  margin: 0 0 16px;
+  line-height: 1.15;
 }
 
-@media (max-width: 768px) {
-  .yb-cph__mosaic {
+.yb-cph-cinema__subtitle {
+  font-size: clamp(1rem, 0.9rem + 0.3vw, 1.15rem);
+  color: rgba(255, 255, 255, 0.6);
+  margin: 0;
+  max-width: 550px;
+}
+
+.yb-cph-cinema__highlights {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+  margin-bottom: clamp(40px, 6vh, 60px);
+}
+
+.yb-cph-highlight {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  padding: 16px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  transition: all 0.3s ease;
+}
+
+.yb-cph-highlight:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(247, 92, 3, 0.3);
+  transform: translateY(-2px);
+}
+
+.yb-cph-highlight__thumb {
+  flex-shrink: 0;
+  width: 52px;
+  height: 52px;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.yb-cph-highlight__thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.yb-cph-highlight__text {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.yb-cph-highlight__text strong {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: #fff;
+}
+
+.yb-cph-highlight__text span {
+  font-size: 0.8rem;
+  line-height: 1.4;
+  color: rgba(255, 255, 255, 0.55);
+}
+
+.yb-cph-cinema__cta {
+  text-align: left;
+}
+
+@media (max-width: 900px) {
+  .yb-cph-cinema__highlights {
     grid-template-columns: 1fr 1fr;
   }
+}
 
-  .yb-cph__img--large {
-    grid-column: span 2;
-    grid-row: span 1;
+@media (max-width: 600px) {
+  .yb-cph-cinema__highlights {
+    grid-template-columns: 1fr;
+  }
+
+  .yb-cph-cinema {
+    min-height: auto;
   }
 }
 
