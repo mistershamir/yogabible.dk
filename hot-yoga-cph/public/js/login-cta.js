@@ -494,14 +494,14 @@
     html +=   '<p class="hyc-auth__subtitle">' + t('Log ind for at se din profil og book klasser', 'Sign in to view your profile and book classes') + '</p>';
     html += '</div>';
 
-    html += '<form id="hyc-auth-login-form" class="hyc-auth__form" novalidate>';
+    html += '<form id="hyc-auth-login-form" class="hyc-auth__form" name="login" action="" novalidate>';
     html +=   '<div class="hyc-auth__field">';
     html +=     '<label for="hyc-auth-email">Email</label>';
-    html +=     '<input type="email" id="hyc-auth-email" required autocomplete="email" placeholder="din@email.dk">';
+    html +=     '<input type="email" id="hyc-auth-email" name="username" required autocomplete="username" placeholder="din@email.dk">';
     html +=   '</div>';
     html +=   '<div class="hyc-auth__field">';
     html +=     '<label for="hyc-auth-password">' + t('Adgangskode', 'Password') + '</label>';
-    html +=     '<input type="password" id="hyc-auth-password" required autocomplete="current-password" placeholder="\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022">';
+    html +=     '<input type="password" id="hyc-auth-password" name="password" required autocomplete="current-password" placeholder="\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022">';
     html +=   '</div>';
     html +=   '<div class="hyc-auth__error" id="hyc-auth-login-error"></div>';
     html +=   '<button type="submit" class="hyc-auth__submit" id="hyc-auth-login-btn">' + t('Log ind', 'Sign in') + '</button>';
@@ -561,8 +561,12 @@
       openModal('auth-register');
     });
 
-    // Focus first input
-    setTimeout(function () { $t('hyc-auth-email').focus(); }, 80);
+    // Focus first input — wait until after modal animation (250ms) and
+    // only focus if the user hasn't already clicked into a field
+    setTimeout(function () {
+      var el = $t('hyc-auth-email');
+      if (el && targetDoc.activeElement !== $t('hyc-auth-password')) el.focus();
+    }, 320);
   }
 
 
@@ -582,28 +586,28 @@
     html +=   '<p class="hyc-auth__subtitle">' + t('Det tager kun et minut', 'It only takes a minute') + '</p>';
     html += '</div>';
 
-    html += '<form id="hyc-auth-reg-form" class="hyc-auth__form" novalidate>';
+    html += '<form id="hyc-auth-reg-form" class="hyc-auth__form" name="register" action="" novalidate>';
     html +=   '<div class="hyc-auth__row">';
     html +=     '<div class="hyc-auth__field">';
     html +=       '<label for="hyc-reg-firstname">' + t('Fornavn', 'First name') + '</label>';
-    html +=       '<input type="text" id="hyc-reg-firstname" required autocomplete="given-name" placeholder="' + t('Fornavn', 'First name') + '">';
+    html +=       '<input type="text" id="hyc-reg-firstname" name="given-name" required autocomplete="given-name" placeholder="' + t('Fornavn', 'First name') + '">';
     html +=     '</div>';
     html +=     '<div class="hyc-auth__field">';
     html +=       '<label for="hyc-reg-lastname">' + t('Efternavn', 'Last name') + '</label>';
-    html +=       '<input type="text" id="hyc-reg-lastname" required autocomplete="family-name" placeholder="' + t('Efternavn', 'Last name') + '">';
+    html +=       '<input type="text" id="hyc-reg-lastname" name="family-name" required autocomplete="family-name" placeholder="' + t('Efternavn', 'Last name') + '">';
     html +=     '</div>';
     html +=   '</div>';
     html +=   '<div class="hyc-auth__field">';
     html +=     '<label for="hyc-reg-email">Email</label>';
-    html +=     '<input type="email" id="hyc-reg-email" required autocomplete="email" placeholder="din@email.dk">';
+    html +=     '<input type="email" id="hyc-reg-email" name="email" required autocomplete="email" placeholder="din@email.dk">';
     html +=   '</div>';
     html +=   '<div class="hyc-auth__field">';
     html +=     '<label for="hyc-reg-phone">' + t('Telefon', 'Phone') + '</label>';
-    html +=     '<input type="tel" id="hyc-reg-phone" autocomplete="tel" placeholder="+45 12 34 56 78">';
+    html +=     '<input type="tel" id="hyc-reg-phone" name="tel" autocomplete="tel" placeholder="+45 12 34 56 78">';
     html +=   '</div>';
     html +=   '<div class="hyc-auth__field">';
     html +=     '<label for="hyc-reg-password">' + t('Adgangskode', 'Password') + '</label>';
-    html +=     '<input type="password" id="hyc-reg-password" required autocomplete="new-password" placeholder="' + t('Mindst 6 tegn', 'At least 6 characters') + '">';
+    html +=     '<input type="password" id="hyc-reg-password" name="new-password" required autocomplete="new-password" placeholder="' + t('Mindst 6 tegn', 'At least 6 characters') + '">';
     html +=   '</div>';
 
     // Consent checkboxes
@@ -692,7 +696,7 @@
       openModal('auth-login');
     });
 
-    setTimeout(function () { $t('hyc-reg-firstname').focus(); }, 80);
+    setTimeout(function () { var el = $t('hyc-reg-firstname'); if (el) el.focus(); }, 320);
   }
 
 
@@ -708,10 +712,10 @@
     html +=   '<p class="hyc-auth__subtitle">' + t('Indtast din email, s\u00e5 sender vi dig et link', 'Enter your email and we\'ll send you a reset link') + '</p>';
     html += '</div>';
 
-    html += '<form id="hyc-auth-forgot-form" class="hyc-auth__form" novalidate>';
+    html += '<form id="hyc-auth-forgot-form" class="hyc-auth__form" name="forgot-password" action="" novalidate>';
     html +=   '<div class="hyc-auth__field">';
     html +=     '<label for="hyc-forgot-email">Email</label>';
-    html +=     '<input type="email" id="hyc-forgot-email" required autocomplete="email" placeholder="din@email.dk">';
+    html +=     '<input type="email" id="hyc-forgot-email" name="email" required autocomplete="email" placeholder="din@email.dk">';
     html +=   '</div>';
     html +=   '<div class="hyc-auth__error" id="hyc-auth-forgot-error"></div>';
     html +=   '<div class="hyc-auth__success" id="hyc-auth-forgot-success"></div>';
@@ -760,7 +764,7 @@
       openModal('auth-login');
     });
 
-    setTimeout(function () { $t('hyc-forgot-email').focus(); }, 80);
+    setTimeout(function () { var el = $t('hyc-forgot-email'); if (el) el.focus(); }, 320);
   }
 
 
