@@ -1,17 +1,16 @@
 /**
  * Lead Capture Endpoint — Yoga Bible
- * Replaces doPost/doGet lead handling from Apps Script
+ * Public endpoint for website forms. Writes to Firestore.
  *
  * POST /.netlify/functions/lead
  * Also supports GET with query params (JSONP callback)
  */
 
-const { getSheetData, appendRow, parseSheetData } = require('./shared/google-sheets');
-const { downloadFile } = require('./shared/google-drive');
+const { getDb } = require('./shared/firestore');
 const { CONFIG } = require('./shared/config');
 const {
   jsonResponse, optionsResponse, formatDate, normalizeYesNo,
-  getScheduleFileId, detectAction, LEADS_SCHEMA
+  detectAction
 } = require('./shared/utils');
 
 exports.handler = async (event) => {
@@ -38,31 +37,22 @@ exports.handler = async (event) => {
     // Process the lead
     const leadData = processLead(payload, action);
 
-    // Check for existing applicant
+    // Check for existing applicant in Firestore
     const existingAppId = await getExistingApplicationId(leadData.email);
     if (existingAppId) {
       leadData.notes = `EXISTING APPLICANT (App ID: ${existingAppId})`;
       leadData.status = 'Existing Applicant';
     }
 
-    // Get headers from existing sheet or use schema
-    let data;
-    try {
-      data = await getSheetData('Leads (RAW)');
-    } catch (err) {
-      console.error('Could not read Leads (RAW):', err.message);
-      return wrapCallback(callback, jsonResponse(500, { ok: false, error: 'Database error' }));
-    }
+    // Write to Firestore
+    const db = getDb();
+    const docRef = await db.collection('leads').add({
+      ...leadData,
+      created_at: new Date(),
+      updated_at: new Date()
+    });
 
-    const headers = (data && data.length > 0) ? data[0] : LEADS_SCHEMA;
-
-    // Build row array matching header order
-    const rowArray = headers.map(h => leadData[h] || '');
-    await appendRow('Leads (RAW)', rowArray);
-
-    // TODO: Phase 3 — send confirmation email
-    // TODO: Phase 3 — send welcome SMS
-    // TODO: Phase 3 — send admin notification
+    console.log(`[lead] New lead saved: ${docRef.id} (${leadData.email})`);
 
     const response = jsonResponse(200, { ok: true, message: 'Request received successfully' });
     return wrapCallback(callback, response);
@@ -72,9 +62,6 @@ exports.handler = async (event) => {
   }
 };
 
-/**
- * Wrap response in JSONP callback if provided
- */
 function wrapCallback(callback, response) {
   if (!callback) return response;
   return {
@@ -84,22 +71,22 @@ function wrapCallback(callback, response) {
   };
 }
 
-/**
- * Process lead data based on action type
- */
 function processLead(payload, action) {
-  const timestamp = formatDate(new Date());
   const base = {
-    timestamp,
     email: (payload.email || '').toLowerCase().trim(),
     first_name: (payload.firstName || '').trim(),
     last_name: (payload.lastName || '').trim(),
-    phone: "'" + (payload.phone || '').trim(),
-    converted: 'No',
-    converted_at: '',
-    application_id: '',
+    phone: (payload.phone || '').trim(),
+    converted: false,
+    converted_at: null,
+    application_id: null,
     status: 'New',
-    notes: ''
+    notes: '',
+    unsubscribed: false,
+    call_attempts: 0,
+    sms_status: '',
+    last_contact: null,
+    followup_date: null
   };
 
   switch (action) {
@@ -273,19 +260,13 @@ function getHousingMonths(payload) {
 
 async function getExistingApplicationId(email) {
   try {
-    const data = await getSheetData('Applications (RAW)');
-    if (!data || data.length < 2) return null;
-    const headers = data[0];
-    const emailCol = headers.indexOf('email');
-    const appIdCol = headers.indexOf('application_id');
-    if (emailCol === -1) return null;
-
-    for (let i = 1; i < data.length; i++) {
-      if (data[i][emailCol] === email.toLowerCase()) {
-        return data[i][appIdCol] || 'Unknown';
-      }
-    }
-    return null;
+    const db = getDb();
+    const snap = await db.collection('applications')
+      .where('email', '==', email.toLowerCase())
+      .limit(1)
+      .get();
+    if (snap.empty) return null;
+    return snap.docs[0].data().application_id || 'Unknown';
   } catch (err) {
     console.error('getExistingApplicationId error:', err.message);
     return null;

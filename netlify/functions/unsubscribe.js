@@ -1,13 +1,13 @@
 /**
  * Unsubscribe Endpoint — Yoga Bible
- * Replaces handleUnsubscribe from Apps Script
  * Two-step flow: confirmation page -> process unsubscribe
+ * Uses Firestore for lead storage.
  *
  * GET /.netlify/functions/unsubscribe?email=X&token=Y
  * GET /.netlify/functions/unsubscribe?email=X&token=Y&confirmed=yes
  */
 
-const { getSheetData, updateCell } = require('./shared/google-sheets');
+const { getDb } = require('./shared/firestore');
 const { CONFIG } = require('./shared/config');
 const {
   htmlResponse, optionsResponse, jsonResponse,
@@ -28,7 +28,7 @@ exports.handler = async (event) => {
   }
 
   if (!verifyUnsubscribeToken(email, token)) {
-    return htmlResponse(200, buildPage('error', 'Ugyldigt eller udl\u00f8bet link.'));
+    return htmlResponse(200, buildPage('error', 'Ugyldigt eller udløbet link.'));
   }
 
   if (confirmed !== 'yes') {
@@ -40,44 +40,44 @@ exports.handler = async (event) => {
   if (result.success) {
     return htmlResponse(200, buildPage('success', email));
   }
-  return htmlResponse(200, buildPage('error', 'Der opstod en fejl. Pr\u00f8v igen senere.'));
+  return htmlResponse(200, buildPage('error', 'Der opstod en fejl. Prøv igen senere.'));
 };
 
 /**
- * Process unsubscribe: update all lead rows for this email
+ * Process unsubscribe: update all lead docs for this email in Firestore
  */
 async function processUnsubscribe(email) {
   try {
-    const data = await getSheetData('Leads (RAW)');
-    if (!data || data.length < 2) return { success: false };
+    const db = getDb();
+    const snap = await db.collection('leads')
+      .where('email', '==', email)
+      .get();
 
-    const headers = data[0];
-    const emailCol = headers.indexOf('email');
-    const statusCol = headers.indexOf('status');
-    const notesCol = headers.indexOf('notes');
-
-    if (emailCol === -1 || statusCol === -1) return { success: false };
-
-    const now = formatDate(new Date());
-    let updated = 0;
-
-    for (let i = 1; i < data.length; i++) {
-      if (String(data[i][emailCol] || '').toLowerCase().trim() === email) {
-        const rowNum = i + 1;
-        await updateCell('Leads (RAW)', rowNum, statusCol + 1, CONFIG.UNSUBSCRIBE_STATUS);
-
-        if (notesCol !== -1) {
-          const currentNotes = data[i][notesCol] || '';
-          const newNote = `UNSUBSCRIBED via email link (${now})`;
-          await updateCell('Leads (RAW)', rowNum, notesCol + 1, newNote + '\n' + currentNotes);
-        }
-        updated++;
-      }
+    if (snap.empty) {
+      // No leads found — still count as success (user won't get emails anyway)
+      console.log(`[unsubscribe] No leads found for ${email}`);
+      return { success: true, updated: 0 };
     }
 
-    return { success: updated > 0, updated };
+    const now = formatDate(new Date());
+    const batch = db.batch();
+    let updated = 0;
+
+    for (const doc of snap.docs) {
+      batch.update(doc.ref, {
+        status: CONFIG.UNSUBSCRIBE_STATUS,
+        unsubscribed: true,
+        notes: `UNSUBSCRIBED via email link (${now})\n${doc.data().notes || ''}`,
+        updated_at: new Date()
+      });
+      updated++;
+    }
+
+    await batch.commit();
+    console.log(`[unsubscribe] Updated ${updated} leads for ${email}`);
+    return { success: true, updated };
   } catch (err) {
-    console.error('processUnsubscribe error:', err);
+    console.error('[unsubscribe] Error:', err);
     return { success: false };
   }
 }
@@ -104,7 +104,7 @@ function buildPage(state, emailOrMessage, token) {
   if (state === 'confirm') {
     const confirmUrl = `${CONFIG.SITE_URL}/.netlify/functions/unsubscribe?email=${encodeURIComponent(emailOrMessage)}&token=${token}&confirmed=yes`;
     content = `
-      <div class="icon">📧</div>
+      <div class="icon">\u{1F4E7}</div>
       <h1>Afmeld nyhedsbrev</h1>
       <p>Er du sikker p\u00e5, at du vil afmelde <strong>${emailOrMessage}</strong> fra vores nyhedsbrev?</p>
       <p>Du vil ikke l\u00e6ngere modtage e-mails fra Yoga Bible.</p>

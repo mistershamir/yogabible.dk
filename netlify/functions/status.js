@@ -1,12 +1,12 @@
 /**
- * Application Status Lookup Endpoint — Yoga Bible
- * Replaces handleStatusLookup from Apps Script
+ * Application Status Lookup — Yoga Bible
+ * Public endpoint for applicants to check status.
  *
  * POST /.netlify/functions/status
  * Body: { email, application_id }
  */
 
-const { getSheetData } = require('./shared/google-sheets');
+const { getDb } = require('./shared/firestore');
 const { jsonResponse, optionsResponse } = require('./shared/utils');
 
 exports.handler = async (event) => {
@@ -22,24 +22,19 @@ exports.handler = async (event) => {
       return jsonResponse(400, { ok: false, message: 'Email and application ID required' });
     }
 
-    const data = await getSheetData('Applications (RAW)');
-    if (!data || data.length < 2) {
+    const db = getDb();
+    const snap = await db.collection('applications')
+      .where('email', '==', email)
+      .where('application_id', '==', applicationId)
+      .limit(1)
+      .get();
+
+    if (snap.empty) {
       return jsonResponse(404, { ok: false, message: 'No application found with these details' });
     }
 
-    const headers = data[0];
-    const emailCol = headers.indexOf('email');
-    const idCol = headers.indexOf('application_id');
-    const statusCol = headers.indexOf('status');
-
-    for (let i = 1; i < data.length; i++) {
-      if (data[i][emailCol] === email && data[i][idCol] === applicationId) {
-        const status = data[i][statusCol] || 'Pending';
-        return jsonResponse(200, { ok: true, message: `Application status: ${status}`, status });
-      }
-    }
-
-    return jsonResponse(404, { ok: false, message: 'No application found with these details' });
+    const status = snap.docs[0].data().status || 'Pending';
+    return jsonResponse(200, { ok: true, message: `Application status: ${status}`, status });
   } catch (error) {
     console.error('Status lookup error:', error);
     return jsonResponse(500, { ok: false, message: 'System error' });
