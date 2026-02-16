@@ -105,13 +105,18 @@
   }
 
   function loadFirebaseSDK(callback) {
-    // Set auth persistence to NONE (in-memory) for cross-origin embeds.
-    // IndexedDB is blocked by browser storage partitioning on cross-origin pages.
+    // Try SESSION persistence (sessionStorage — not IndexedDB, so no hang).
+    // Falls back to NONE if SESSION is blocked (cross-origin sandbox).
     function onFirebaseReady() {
       if (typeof firebase !== 'undefined' && firebase.auth) {
-        firebase.auth().setPersistence(firebase.auth.Auth.Persistence.NONE)
+        firebase.auth().setPersistence(firebase.auth.Auth.Persistence.SESSION)
           .then(function () { callback(); })
-          .catch(function () { callback(); });
+          .catch(function () {
+            // SESSION blocked (cross-origin) — fall back to NONE + manual persistence
+            firebase.auth().setPersistence(firebase.auth.Auth.Persistence.NONE)
+              .then(function () { callback(); })
+              .catch(function () { callback(); });
+          });
       } else {
         callback();
       }
@@ -875,8 +880,19 @@
   var SESSION_KEY = 'hyc_auth_token';
 
   function _parentStorage() {
-    try { var s = (window.top || window).sessionStorage; s.getItem('_'); return s; }
-    catch (e) { return null; }
+    // Try parent localStorage first (survives tab close + page nav)
+    try { var s = window.top.localStorage; s.getItem('_'); return s; }
+    catch (e) { /* cross-origin */ }
+    // Try own localStorage
+    try { var s2 = window.localStorage; s2.getItem('_'); return s2; }
+    catch (e) { /* sandboxed */ }
+    // Try parent sessionStorage
+    try { var s3 = window.top.sessionStorage; s3.getItem('_'); return s3; }
+    catch (e) { /* cross-origin */ }
+    // Try own sessionStorage
+    try { var s4 = window.sessionStorage; s4.getItem('_'); return s4; }
+    catch (e) { /* sandboxed */ }
+    return null;
   }
 
   function persistAuthToken(user) {
@@ -895,7 +911,11 @@
   function restoreSession() {
     var s = _parentStorage();
     var token = s && s.getItem(SESSION_KEY);
-    if (!token || firebase.auth().currentUser) return;
+    if (!token || firebase.auth().currentUser) {
+      _restoring = false;
+      renderLoggedOut();
+      return;
+    }
 
     fetch(API_BASE + '/auth-token', {
       method: 'POST',
@@ -904,10 +924,15 @@
     })
       .then(function (r) { return r.json(); })
       .then(function (data) {
-        if (data.customToken) return firebase.auth().signInWithCustomToken(data.customToken);
+        if (data.customToken) {
+          return firebase.auth().signInWithCustomToken(data.customToken);
+        }
+        // No custom token returned — endpoint rejected it
+        throw new Error('No customToken in response');
       })
       .catch(function () {
-        // Token expired / invalid — clean up
+        // Token expired / invalid / endpoint error — clean up
+        _restoring = false;
         clearAuthToken();
         renderLoggedOut();
       });
@@ -918,13 +943,22 @@
   // AUTH STATE LISTENER
   // ═══════════════════════════════════════════════════════════════════
 
+  var _restoring = false;
+
   function initAuth() {
     loadFirebaseSDK(function () {
       firebaseReady = true;
 
+      // Read token BEFORE registering listener (prevents race condition)
+      var savedToken = null;
+      var s = _parentStorage();
+      if (s) savedToken = s.getItem(SESSION_KEY);
+      if (savedToken && !firebase.auth().currentUser) _restoring = true;
+
       firebase.auth().onAuthStateChanged(function (user) {
         currentUser = user;
         if (user) {
+          _restoring = false;
           persistAuthToken(user);
           resolveMbClient(user);
           renderLoggedIn(user);
@@ -933,12 +967,10 @@
             closeModal();
           }
         } else {
-          clearAuthToken();
           mbClientId = null;
-          // Only render logged-out if we're NOT about to restore
-          var s = _parentStorage();
-          var hasStoredToken = s && s.getItem(SESSION_KEY);
-          if (!hasStoredToken) {
+          // Don't wipe stored token while we're still restoring
+          if (!_restoring) {
+            clearAuthToken();
             renderLoggedOut();
           }
           // Close user area modal if open
@@ -948,8 +980,8 @@
         }
       });
 
-      // If no user yet, try to restore from parent sessionStorage
-      if (!firebase.auth().currentUser) {
+      // If no user yet, try to restore from stored token
+      if (!firebase.auth().currentUser && savedToken) {
         restoreSession();
       }
     });

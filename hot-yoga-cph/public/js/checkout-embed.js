@@ -363,9 +363,15 @@
     // signInWithEmailAndPassword to hang forever (promise never settles).
     function onFirebaseReady() {
       if (typeof firebase !== 'undefined' && firebase.auth) {
-        firebase.auth().setPersistence(firebase.auth.Auth.Persistence.NONE)
+        // Try SESSION persistence (sessionStorage — not IndexedDB, so no hang).
+        // Falls back to NONE if SESSION is blocked (cross-origin sandbox).
+        firebase.auth().setPersistence(firebase.auth.Auth.Persistence.SESSION)
           .then(function () { callback(); })
-          .catch(function () { callback(); }); // proceed even if setPersistence fails
+          .catch(function () {
+            firebase.auth().setPersistence(firebase.auth.Auth.Persistence.NONE)
+              .then(function () { callback(); })
+              .catch(function () { callback(); });
+          });
       } else {
         callback();
       }
@@ -1962,8 +1968,19 @@
   // ── Session persistence helpers (shared with login-cta.js) ────────
   var SESSION_KEY = 'hyc_auth_token';
   function _parentStorage() {
-    try { var s = (window.top || window).sessionStorage; s.getItem('_'); return s; }
-    catch (e) { return null; }
+    // Try parent localStorage first (survives tab close + page nav)
+    try { var s = window.top.localStorage; s.getItem('_'); return s; }
+    catch (e) { /* cross-origin */ }
+    // Try own localStorage
+    try { var s2 = window.localStorage; s2.getItem('_'); return s2; }
+    catch (e) { /* sandboxed */ }
+    // Try parent sessionStorage
+    try { var s3 = window.top.sessionStorage; s3.getItem('_'); return s3; }
+    catch (e) { /* cross-origin */ }
+    // Try own sessionStorage
+    try { var s4 = window.sessionStorage; s4.getItem('_'); return s4; }
+    catch (e) { /* sandboxed */ }
+    return null;
   }
   function persistAuthToken(user) {
     if (!user) return;
