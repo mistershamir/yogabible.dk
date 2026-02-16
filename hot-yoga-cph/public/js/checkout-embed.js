@@ -1994,44 +1994,35 @@
     if (s) s.removeItem(SESSION_KEY);
   }
 
-  // ── Cross-iframe auth sync (shared with login-cta.js) ──────────
-  var _authBC;
-  try { _authBC = new BroadcastChannel('hyc-auth-sync'); } catch (e) {}
+  // ── Cross-iframe auth sync (polling — shared with login-cta.js) ─
+  var _cePollingStarted = false;
 
-  function broadcastAuth(loggedIn) {
-    if (_authBC) try { _authBC.postMessage({ loggedIn: loggedIn }); } catch (e) {}
-    var s = _parentStorage();
-    if (s) try { s.setItem('hyc_auth_flag', loggedIn ? Date.now().toString() : '0'); } catch (e) {}
-  }
-
-  function onAuthSync(loggedIn) {
-    if (typeof firebase === 'undefined' || !firebase.auth) return;
-    if (loggedIn && !firebase.auth().currentUser) {
-      // Another iframe logged in — restore from shared token
+  function startAuthPolling() {
+    if (_cePollingStarted) return;
+    _cePollingStarted = true;
+    setInterval(function () {
+      if (typeof firebase === 'undefined' || !firebase.auth) return;
       var s = _parentStorage();
-      var token = s && s.getItem(SESSION_KEY);
-      if (!token) return;
-      fetch(API_BASE + '/auth-token', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ idToken: token })
-      })
-        .then(function (r) { return r.json(); })
-        .then(function (data) {
-          if (data.customToken) return firebase.auth().signInWithCustomToken(data.customToken);
-        })
-        .catch(function () {});
-    } else if (!loggedIn && firebase.auth().currentUser) {
-      firebase.auth().signOut();
-    }
-  }
+      var hasToken = s && s.getItem(SESSION_KEY);
 
-  if (_authBC) { _authBC.onmessage = function (e) { if (e.data) onAuthSync(e.data.loggedIn); }; }
-  try {
-    window.addEventListener('storage', function (e) {
-      if (e.key === 'hyc_auth_flag') onAuthSync(e.newValue && e.newValue !== '0');
-    });
-  } catch (e) {}
+      if (hasToken && !firebase.auth().currentUser) {
+        // Another iframe logged in — restore from shared token
+        var token = s.getItem(SESSION_KEY);
+        fetch(API_BASE + '/auth-token', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ idToken: token })
+        })
+          .then(function (r) { return r.json(); })
+          .then(function (data) {
+            if (data.customToken) return firebase.auth().signInWithCustomToken(data.customToken);
+          })
+          .catch(function () {});
+      } else if (!hasToken && firebase.auth().currentUser) {
+        firebase.auth().signOut();
+      }
+    }, 2000);
+  }
 
   function initAuthListener() {
     // Poll for Firebase availability then listen for auth state
@@ -2040,8 +2031,8 @@
         clearInterval(checkInterval);
         firebase.auth().onAuthStateChanged(function (user) {
           // Persist / clear token so login survives page reloads
-          if (user) { persistAuthToken(user); broadcastAuth(true); }
-          else { clearAuthToken(); broadcastAuth(false); }
+          if (user) persistAuthToken(user);
+          else clearAuthToken();
 
           if (!user) return;
 
@@ -2135,6 +2126,7 @@
       attachCTAButtons();
       observeCTAButtons();
       initAuthListener();
+      startAuthPolling();
 
       console.log('[HYC Embed] Checkout embed booted — ' + Object.keys(PRODUCTS).length + ' products loaded');
     });
