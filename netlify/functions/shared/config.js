@@ -15,7 +15,7 @@ const CONFIG = {
   APPLICATION_FORM_URL: 'https://www.yogabible.dk/apply',
   STUDIO_ADDRESS: 'Torvegade 66, 1400 Kobenhavn K, Danmark',
   STUDIO_MAPS_URL: 'https://www.google.com/maps/search/?api=1&query=Torvegade+66,+1400+Copenhagen,+Denmark',
-  UNSUBSCRIBE_SECRET: process.env.UNSUBSCRIBE_SECRET || 'yb-unsub-kbh-2026-xK9mPqR7vLs3wN',
+  UNSUBSCRIBE_SECRET: process.env.UNSUBSCRIBE_SECRET,
   UNSUBSCRIBE_STATUS: 'Unsubscribed',
   SITE_URL: process.env.URL || 'https://yogabible.dk',
   TRANSLATIONS: {
