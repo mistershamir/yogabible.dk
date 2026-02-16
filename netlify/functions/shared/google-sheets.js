@@ -13,19 +13,23 @@ let sheetsApi = null;
 
 /**
  * Get authenticated Google API client using service account credentials.
- * Credentials are stored as a JSON string in the GOOGLE_SERVICE_ACCOUNT_KEY env var.
+ * Uses individual env vars to stay under the 4KB Lambda env limit.
  */
 function getAuth() {
   if (authClient) return authClient;
 
-  const keyJson = process.env.GOOGLE_SERVICE_ACCOUNT_KEY;
-  if (!keyJson) {
-    throw new Error('GOOGLE_SERVICE_ACCOUNT_KEY env var not set. Add your service account JSON key to Netlify environment variables.');
+  const clientEmail = process.env.GOOGLE_CLIENT_EMAIL;
+  const privateKey = process.env.GOOGLE_PRIVATE_KEY;
+
+  if (!clientEmail || !privateKey) {
+    throw new Error('Google credentials not set. Add GOOGLE_CLIENT_EMAIL and GOOGLE_PRIVATE_KEY to Netlify environment variables.');
   }
 
-  const key = JSON.parse(keyJson);
   authClient = new GoogleAuth({
-    credentials: key,
+    credentials: {
+      client_email: clientEmail,
+      private_key: privateKey.replace(/\\n/g, '\n')
+    },
     scopes: [
       'https://www.googleapis.com/auth/spreadsheets',
       'https://www.googleapis.com/auth/drive.readonly'
