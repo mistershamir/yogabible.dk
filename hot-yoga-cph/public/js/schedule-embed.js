@@ -122,6 +122,7 @@
       '.hycs__pass-dd-chevron{color:#6F6A66;transition:transform .25s;flex-shrink:0}',
       '.hycs__pass-dd-toggle.is-open .hycs__pass-dd-chevron{transform:rotate(180deg)}',
       '.hycs__pass-dd-body{padding:0 1rem 0.75rem;display:flex;flex-direction:column;gap:0.5rem}',
+      '.hycs__pass-dd-body[hidden]{display:none}',
       '.hycs__pass-card{background:linear-gradient(135deg,' + BRAND_LIGHT + ',#FFFCF9);border:1.5px solid ' + BRAND + ';border-radius:10px;padding:0.75rem 1rem;display:flex;align-items:center;justify-content:space-between;gap:0.75rem;flex-wrap:wrap}',
       '.hycs__pass-label{font-size:0.68rem;text-transform:uppercase;letter-spacing:.05em;color:#6F6A66;display:block}',
       '.hycs__pass-name{font-weight:700;color:#0F0F0F;font-size:0.9rem;display:block}',
@@ -1173,6 +1174,11 @@
         scheduleMbClientId = null;
         schedulePassData = null;
         scheduleWaiverSigned = false;
+        // Hide pass info and no-pass banner immediately on logout
+        var passInfoEl = document.getElementById('hycs-pass-info');
+        var noPassEl = document.getElementById('hycs-no-pass');
+        if (passInfoEl) { passInfoEl.hidden = true; passInfoEl.innerHTML = ''; }
+        if (noPassEl) noPassEl.hidden = true;
         loadSchedule();
       }
     });
