@@ -496,6 +496,10 @@ async function sendEmailCourses(leadData) {
   const isBundle = courseList.length > 1;
   const subject = isBundle ? 'Dine kursus-detaljer \u2014 Yoga Bible' : 'Dit kursus \u2014 Yoga Bible';
 
+  // Try to attach course schedule for preferred month
+  const attachment = preferredMonth ? await fetchSchedulePdfAttachment('courses', preferredMonth) : null;
+  const hasSchedule = !!attachment;
+
   let bodyHtml = '<p>Hej ' + escapeHtml(firstName) + ',</p>';
 
   if (isBundle) {
@@ -514,6 +518,12 @@ async function sendEmailCourses(leadData) {
 
   if (preferredMonth) bodyHtml += '<p><strong>Foretrukken m\u00e5ned:</strong> ' + escapeHtml(preferredMonth) + '</p>';
 
+  if (hasSchedule) {
+    bodyHtml += '<p>Jeg har vedh\u00e6ftet kursusskemaet for <strong>' + escapeHtml(preferredMonth) + '</strong>, s\u00e5 du kan se datoer og tidspunkter.</p>';
+  } else if (preferredMonth) {
+    bodyHtml += '<p>Vi er ved at l\u00e6gge sidste h\u00e5nd p\u00e5 kursusskemaet for ' + escapeHtml(preferredMonth) + '. Jeg sender det til dig, s\u00e5 snart det er klar.</p>';
+  }
+
   if (needsHousing) bodyHtml += getAccommodationSectionHtml(cityCountry);
 
   bodyHtml += '<p style="margin-top:16px;">Du kan tilmelde dig direkte p\u00e5 vores hjemmeside, eller book en kort samtale hvis du har sp\u00f8rgsm\u00e5l:</p>';
@@ -531,6 +541,16 @@ async function sendEmailCourses(leadData) {
   bodyHtml += getEnglishNoteHtml() + getSignatureHtml() + getUnsubscribeFooterHtml(leadData.email);
 
   let bodyPlain = 'Hej ' + firstName + ',\n\nTak for din interesse i vores kurser!\n\n';
+  if (isBundle) {
+    bodyPlain += 'Du valgte: ' + courseList.join(', ') + '\n';
+    if (courseList.length === 2) bodyPlain += 'Bundle-pris (2 kurser): 4.140 kr. (spar 10%!)\n\n';
+    else if (courseList.length === 3) bodyPlain += 'All-In Bundle: 5.865 kr. (spar 15% + GRATIS 1-måneds yogapas!)\n\n';
+  } else {
+    bodyPlain += 'Kursus: ' + courses + '\nPris: 2.300 kr.\n\n';
+  }
+  if (preferredMonth) bodyPlain += 'Foretrukken måned: ' + preferredMonth + '\n';
+  if (hasSchedule) bodyPlain += 'Jeg har vedhæftet kursusskemaet for ' + preferredMonth + '.\n\n';
+  else if (preferredMonth) bodyPlain += 'Kursusskemaet for ' + preferredMonth + ' er snart klar.\n\n';
   if (needsHousing) bodyPlain += getAccommodationSectionPlain(cityCountry);
   bodyPlain += 'Book en samtale: ' + CONFIG.MEETING_LINK;
   bodyPlain += getEnglishNotePlain() + getSignaturePlain() + getUnsubscribeFooterPlain(leadData.email);
@@ -539,7 +559,8 @@ async function sendEmailCourses(leadData) {
     to: leadData.email,
     subject,
     html: wrapHtml(bodyHtml),
-    text: bodyPlain
+    text: bodyPlain,
+    attachments: attachment ? [attachment] : []
   });
   return { ...result, subject };
 }

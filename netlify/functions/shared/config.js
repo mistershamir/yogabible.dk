@@ -65,6 +65,13 @@ const SCHEDULE_PDFS = {
   '300h': {
     'Maj-December 2026': '', // yogabible/schedules/2026/300h-may-dec-2026.pdf
     'default': ''
+  },
+  // Course schedules (Inversions, Splits, Backbends) — per month
+  'courses': {
+    'April 2026': '',        // yogabible/schedules/2026/courses-apr-2026.pdf
+    'Maj 2026': '',          // yogabible/schedules/2026/courses-may-2026.pdf
+    'Juni 2026': '',         // yogabible/schedules/2026/courses-jun-2026.pdf
+    'default': ''
   }
 };
 
