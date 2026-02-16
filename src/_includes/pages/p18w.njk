@@ -11,9 +11,12 @@
     <p class="yb-hero__subtitle">{{ t.hero_subtitle }}</p>
     <div class="yb-hero__line"></div>
     <div class="yb-hero__ctas">
-      <button onclick="openYBScheduleModal('18w')" class="yb-btn yb-btn--primary yb-btn--large">{{ t.hero_cta_schedule }}</button>
-      <a href="#program-overview" class="yb-btn yb-btn--outline-white yb-btn--large">{{ t.hero_cta_more }}</a>
+      <button class="yb-btn yb-btn--primary yb-btn--large" data-checkout-product="100078">{{ t.hero_cta_prep }}</button>
+      <button onclick="openYBScheduleModal('18w')" class="yb-btn yb-btn--outline-white yb-btn--large">{{ t.hero_cta_schedule }}</button>
     </div>
+    <p class="yb-hero__read-more">
+      <a href="{{ lp }}/om-200hrs-yogalreruddannelser" class="yb-hero__read-more-link">{{ t.hero_cta_more }}</a>
+    </p>
     <div class="yb-hero__trust">
       <span>{{ t.hero_trust1 }}</span>
       <span class="yb-hero__trust-dot"></span>
@@ -359,6 +362,29 @@
     <div class="yb-tracks__cta">
       <p class="yb-tracks__cta-hint">{{ t.tracks_cta_hint }}</p>
       <button onclick="openYBScheduleModal('18w')" class="yb-btn yb-btn--cta">{{ t.tracks_cta_button }}</button>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════
+     5c. JOURNEY TIMELINE — Week by week
+     ═══════════════════════════════════════ -->
+<section class="yb-journey" id="p18-journey">
+  <div class="yb-journey__inner">
+    <div class="yb-journey__header">
+      <p class="yb-journey__label">{{ t.journey_label }}</p>
+      <h2 class="yb-journey__title">{{ t.journey_title }}</h2>
+      <p class="yb-journey__desc">{{ t.journey_desc }}</p>
+    </div>
+    <div class="yb-journey__timeline">
+      {% for i in range(1, 6) %}
+      <div class="yb-journey__item">
+        <div class="yb-journey__dot"></div>
+        <p class="yb-journey__step">{{ t["journey" + (i | string) + "_step"] }}</p>
+        <h4 class="yb-journey__item-title">{{ t["journey" + (i | string) + "_title"] }}</h4>
+        <p class="yb-journey__item-desc">{{ t["journey" + (i | string) + "_desc"] }}</p>
+      </div>
+      {% endfor %}
     </div>
   </div>
 </section>

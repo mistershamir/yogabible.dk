@@ -1724,6 +1724,115 @@
 }
 
 /* ═══════════════════════════════════════════
+   SECTION: PREPARATION PHASE
+   ═══════════════════════════════════════════ */
+.om2-prep {
+  background: #F5F3F0;
+  padding: clamp(32px, 6vw, 72px) clamp(16px, 4vw, 32px);
+}
+.om2-prep__inner { max-width: 1140px; margin: 0 auto; }
+.om2-prep__grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: clamp(24px, 4vw, 40px);
+  align-items: start;
+}
+.om2-prep__eyebrow {
+  color: var(--yb-brand);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-weight: 700;
+  font-size: 0.75rem;
+  margin-bottom: 8px;
+}
+.om2-prep__title {
+  font-size: clamp(1.5rem, 3.5vw, 2.2rem);
+  font-weight: 700;
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+  color: #0F0F0F;
+  margin-bottom: 12px;
+}
+.om2-prep__lead {
+  color: #222;
+  font-size: 1.05rem;
+  line-height: 1.6;
+  margin-bottom: 14px;
+}
+.om2-prep__lead strong { font-weight: 700; color: #0F0F0F; }
+.om2-prep__text {
+  color: #444;
+  font-size: 0.98rem;
+  line-height: 1.65;
+  margin-bottom: 12px;
+}
+.om2-prep__text strong { font-weight: 700; color: #0F0F0F; }
+.om2-prep__refund {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  background: #FFFCF9;
+  border: 1px solid #E8E4E0;
+  border-radius: 10px;
+  padding: 14px 16px;
+  margin-top: 8px;
+  font-size: 0.92rem;
+  color: #444;
+  line-height: 1.55;
+}
+.om2-prep__refund svg { flex-shrink: 0; color: #22c55e; margin-top: 2px; }
+.om2-prep__details {
+  background: #FFFCF9;
+  border: 1.5px solid #E8E4E0;
+  border-radius: 16px;
+  padding: clamp(20px, 3vw, 28px);
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+.om2-prep__price-badge {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid #E8E4E0;
+}
+.om2-prep__price {
+  font-size: clamp(1.6rem, 3vw, 2rem);
+  font-weight: 700;
+  color: #0F0F0F;
+  letter-spacing: -0.02em;
+}
+.om2-prep__price-label {
+  font-size: 0.88rem;
+  color: #6F6A66;
+  font-weight: 600;
+}
+.om2-prep__checklist { list-style: none; display: grid; gap: 14px; }
+.om2-prep__checklist li {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  font-size: 0.95rem;
+  line-height: 1.45;
+  color: #222;
+}
+.om2-prep__checklist li svg { flex-shrink: 0; color: var(--yb-brand); margin-top: 2px; }
+.om2-prep__social {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: #6F6A66;
+}
+.om2-prep__social svg { color: var(--yb-brand); flex-shrink: 0; }
+
+@media (min-width: 900px) {
+  .om2-prep__grid { grid-template-columns: 1.1fr 0.9fr; gap: 44px; }
+}
+
+/* ═══════════════════════════════════════════
    SECTION: LOCATION
    ═══════════════════════════════════════════ */
 .om2-location {

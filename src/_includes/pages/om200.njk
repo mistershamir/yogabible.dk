@@ -12,8 +12,8 @@
     <p class="yb-hero__subtitle">{{ t.hero_subtitle }}</p>
     <div class="yb-hero__line"></div>
     <div class="yb-hero__ctas">
-      <a href="{{ lp }}/200-hours-18-weeks-flexible-programs" class="yb-btn yb-btn--primary yb-btn--large" target="_blank" rel="noopener">{{ t.hero_cta_apply }}</a>
-      <a href="#om2-hours" class="yb-btn yb-btn--outline-white yb-btn--large">{{ t.hero_cta_curriculum }}</a>
+      <button type="button" class="yb-btn yb-btn--primary yb-btn--large" onclick="openYBScheduleModal('all')">{{ t.hero_cta_schedule }}</button>
+      <a href="#om2-formats" class="yb-btn yb-btn--outline-white yb-btn--large">{{ t.hero_cta_formats }}</a>
     </div>
     <div class="yb-hero__trust">
       <span>{{ t.hero_trust1 }}</span>
@@ -317,6 +317,80 @@
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
         </a>
       </div>
+    </div>
+  </div>
+</section>
+
+{# ═══════════════════════════════════════════════════════════
+   SECTION 5b: PREPARATION PHASE — Info + Benefits
+   ═══════════════════════════════════════════════════════════ #}
+<section class="om2-prep" id="om2-prep" aria-labelledby="om2-prep-title">
+  <div class="om2-prep__inner">
+    <div class="om2-prep__grid">
+
+      {# LEFT: Content #}
+      <div class="om2-prep__content">
+        <p class="om2-prep__eyebrow">{{ t.prep_eyebrow }}</p>
+        <h2 id="om2-prep-title" class="om2-prep__title">{{ t.prep_title }}</h2>
+        <p class="om2-prep__lead">{{ t.prep_lead | safe }}</p>
+        <p class="om2-prep__text">{{ t.prep_text1 | safe }}</p>
+        <p class="om2-prep__text">{{ t.prep_text2 | safe }}</p>
+
+        <div class="om2-prep__refund">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+          <span>{{ t.prep_refund }}</span>
+        </div>
+      </div>
+
+      {# RIGHT: Price badge + checklist + CTA #}
+      <div class="om2-prep__details">
+        <div class="om2-prep__price-badge">
+          <span class="om2-prep__price">{{ t.prep_price }}</span>
+          <span class="om2-prep__price-label">{{ t.prep_price_label }}</span>
+        </div>
+
+        <ul class="om2-prep__checklist">
+          {% for i in range(1, 6) %}
+          <li>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+            <span>{{ t["prep_check" + (i | string)] }}</span>
+          </li>
+          {% endfor %}
+        </ul>
+
+        <div class="om2-prep__social">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+          <span>{{ t.prep_social }}</span>
+        </div>
+
+        <button type="button" class="yb-btn yb-btn--primary yb-btn--large" onclick="openYBScheduleModal('all')" style="width:100%">
+          <span>{{ t.prep_cta }}</span>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+        </button>
+      </div>
+    </div>
+  </div>
+</section>
+
+{# ═══════════════════════════════════════════════════════════
+   SECTION 5c: JOURNEY TIMELINE — Application to Certification
+   ═══════════════════════════════════════════════════════════ #}
+<section class="yb-journey" id="om2-journey">
+  <div class="yb-journey__inner">
+    <div class="yb-journey__header">
+      <p class="yb-journey__label">{{ t.journey_label }}</p>
+      <h2 class="yb-journey__title">{{ t.journey_title }}</h2>
+      <p class="yb-journey__desc">{{ t.journey_desc }}</p>
+    </div>
+    <div class="yb-journey__timeline">
+      {% for i in range(1, 6) %}
+      <div class="yb-journey__item">
+        <div class="yb-journey__dot"></div>
+        <p class="yb-journey__step">{{ t["journey" + (i | string) + "_step"] }}</p>
+        <h4 class="yb-journey__item-title">{{ t["journey" + (i | string) + "_title"] }}</h4>
+        <p class="yb-journey__item-desc">{{ t["journey" + (i | string) + "_desc"] }}</p>
+      </div>
+      {% endfor %}
     </div>
   </div>
 </section>
@@ -727,11 +801,10 @@
         </div>
 
         <div style="display:flex;flex-direction:column;gap:.75rem">
-          <button onclick="openYBScheduleModal('18w')" class="yb-btn yb-btn--primary yb-btn--large om2-pricing__cta">
+          <button onclick="openYBScheduleModal('all')" class="yb-btn yb-btn--primary yb-btn--large om2-pricing__cta">
             <span>{{ t.pricing_cta }}</span>
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
           </button>
-          <button class="yb-btn yb-btn--primary yb-btn--large" data-checkout-product="100078" style="width:100%">{{ t.pricing_prep_cta }}</button>
         </div>
       </div>
     </div>
@@ -890,8 +963,7 @@
     <h2 class="cta-section__title">{{ t.cta_title }}</h2>
     <p class="cta-section__text">{{ t.cta_text }}</p>
     <div style="display:flex;flex-wrap:wrap;gap:1rem;justify-content:center">
-      <button onclick="openYBScheduleModal('18w')" class="yb-btn yb-btn--primary yb-btn--large">{{ t.cta_button }}</button>
-      <button class="yb-btn yb-btn--primary yb-btn--large" data-checkout-product="100078">{{ t.cta_prep_button }}</button>
+      <button onclick="openYBScheduleModal('all')" class="yb-btn yb-btn--primary yb-btn--large">{{ t.cta_button }}</button>
     </div>
   </div>
 </section>
