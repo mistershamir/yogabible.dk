@@ -49,7 +49,7 @@
     ],
     en: [
       'Secures your spot on the cohort',
-      'Start your practice and prepare body & mind right away',
+      'Start your practice right away and prepare body & mind',
       'More time to complete class practice requirements',
       'Save on studio memberships',
       'Access to welcome materials and online resources'
