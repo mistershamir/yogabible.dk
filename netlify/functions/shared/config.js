@@ -1,10 +1,9 @@
 /**
  * Shared Configuration — Yoga Bible Lead & Application System
- * Migrated from Apps Script 01_Config.gs
+ * Netlify Functions + Firestore
  */
 
 const CONFIG = {
-  SPREADSHEET_ID: process.env.GOOGLE_SPREADSHEET_ID || '1V72sWtw8LmeCVACruGpyTaJragzdlt3Umk2ZV6qxJjM',
   TIMEZONE: 'Europe/Copenhagen',
   DATE_FORMAT: 'yyyy-MM-dd HH:mm:ss',
   EMAIL_FROM: 'info@yogabible.dk',
@@ -44,54 +43,36 @@ const YTT_PROGRAM_TYPES = {
   '30h': { keywords: ['30 hour', '30h', '30 timer', '30-hour'], label: '30-Hour Module', shortLabel: '30H' }
 };
 
-const SCHEDULE_MAPPING = {
+// Schedule PDFs — hosted on Cloudinary
+// Folder: yogabible/schedules/2026/
+// Upload PDFs and paste the Cloudinary URLs here
+const SCHEDULE_PDFS = {
+  '18-week': {
+    'Marts-Juni 2026': 'https://res.cloudinary.com/ddcynsa30/image/upload/v1771280099/18w-mar-jun-2026.pdf_izgiuz',
+    'August-December 2026': '', // Upload when ready
+    'default': 'https://res.cloudinary.com/ddcynsa30/image/upload/v1771280099/18w-mar-jun-2026.pdf_izgiuz'
+  },
   '4-week': {
-    'januar': null, 'januari': null, 'january': null, 'tammikuu': null, 'jan': null,
-    'februar': '1EmwLQGMskPLpWzJJevZq6MNpva9gMCgD',
-    'februari': '1EmwLQGMskPLpWzJJevZq6MNpva9gMCgD',
-    'february': '1EmwLQGMskPLpWzJJevZq6MNpva9gMCgD',
-    'helmikuu': '1EmwLQGMskPLpWzJJevZq6MNpva9gMCgD',
-    'feb': '1EmwLQGMskPLpWzJJevZq6MNpva9gMCgD',
-    'marts': '1Fjedi0yqJrL6oLMMPGtQ5FOab9zAc3IQ',
-    'mars': '1Fjedi0yqJrL6oLMMPGtQ5FOab9zAc3IQ',
-    'march': '1Fjedi0yqJrL6oLMMPGtQ5FOab9zAc3IQ',
-    'märz': '1Fjedi0yqJrL6oLMMPGtQ5FOab9zAc3IQ',
-    'marz': '1Fjedi0yqJrL6oLMMPGtQ5FOab9zAc3IQ',
-    'maaliskuu': '1Fjedi0yqJrL6oLMMPGtQ5FOab9zAc3IQ',
-    'maart': '1Fjedi0yqJrL6oLMMPGtQ5FOab9zAc3IQ',
-    'mar': '1Fjedi0yqJrL6oLMMPGtQ5FOab9zAc3IQ',
-    'april': '1c9UMezMdHBJ5Akyt4GkFtUANG-f5qHnk',
-    'huhtikuu': '1c9UMezMdHBJ5Akyt4GkFtUANG-f5qHnk',
-    'apr': '1c9UMezMdHBJ5Akyt4GkFtUANG-f5qHnk',
-    'default': null
+    'April 2026': 'https://res.cloudinary.com/ddcynsa30/image/upload/v1771280041/4w-apr-2026.pdf_x9iwdf',
+    'Juli 2026': '',         // Upload when ready
+    'default': 'https://res.cloudinary.com/ddcynsa30/image/upload/v1771280041/4w-apr-2026.pdf_x9iwdf'
   },
   '8-week': {
-    'maj': '1KGPe73JYMJAxvCNirwoYeehr58irdfwP',
-    'mai': '1KGPe73JYMJAxvCNirwoYeehr58irdfwP',
-    'may': '1KGPe73JYMJAxvCNirwoYeehr58irdfwP',
-    'toukokuu': '1KGPe73JYMJAxvCNirwoYeehr58irdfwP',
-    'mei': '1KGPe73JYMJAxvCNirwoYeehr58irdfwP',
-    'juni': '1KGPe73JYMJAxvCNirwoYeehr58irdfwP',
-    'june': '1KGPe73JYMJAxvCNirwoYeehr58irdfwP',
-    'jun': '1KGPe73JYMJAxvCNirwoYeehr58irdfwP',
-    'default': '1KGPe73JYMJAxvCNirwoYeehr58irdfwP'
+    'Maj-Juni 2026': 'https://res.cloudinary.com/ddcynsa30/image/upload/v1771280072/8w-may-jun-2026.pdf_k7i62j',
+    'Oktober-November 2026': '', // Upload when ready
+    'default': 'https://res.cloudinary.com/ddcynsa30/image/upload/v1771280072/8w-may-jun-2026.pdf_k7i62j'
   },
-  '18-week': {
-    'marts': '1p6V-lR4fuVsFWqM9ctocY6YrErjGVMRT',
-    'mars': '1p6V-lR4fuVsFWqM9ctocY6YrErjGVMRT',
-    'march': '1p6V-lR4fuVsFWqM9ctocY6YrErjGVMRT',
-    'märz': '1p6V-lR4fuVsFWqM9ctocY6YrErjGVMRT',
-    'marz': '1p6V-lR4fuVsFWqM9ctocY6YrErjGVMRT',
-    'maaliskuu': '1p6V-lR4fuVsFWqM9ctocY6YrErjGVMRT',
-    'maart': '1p6V-lR4fuVsFWqM9ctocY6YrErjGVMRT',
-    'mar': '1p6V-lR4fuVsFWqM9ctocY6YrErjGVMRT',
-    'default': null
+  '300h': {
+    'Maj-December 2026': '', // Upload when ready
+    'default': ''
+  },
+  // Course schedules (Inversions, Splits, Backbends) — per month
+  'courses': {
+    'April 2026': '',        // Upload when ready
+    'Maj 2026': '',          // Upload when ready
+    'Juni 2026': '',         // Upload when ready
+    'default': ''
   }
-};
-
-const MONTH_SCHEDULES = {
-  'February 2026': '1pWESRFU2NmVwIBkx_wOoXwgcI_dvla7Z',
-  'Februar 2026': '1pWESRFU2NmVwIBkx_wOoXwgcI_dvla7Z'
 };
 
 const YTT_PAYMENT = {
@@ -164,21 +145,13 @@ const COURSE_CONFIG = {
   'Backbends': { label: 'Backbends', description: 'Chest, spine, technique', price: 2300, sessions: 8 }
 };
 
-const MULTIFORMAT_SCHEDULE_IDS = {
-  '18w': '1p6V-lR4fuVsFWqM9ctocY6YrErjGVMRT',
-  '8w': '1KGPe73JYMJAxvCNirwoYeehr58irdfwP',
-  '4w': '1Fjedi0yqJrL6oLMMPGtQ5FOab9zAc3IQ'
-};
-
 module.exports = {
   CONFIG,
   AUTO_SMS_CONFIG,
   YTT_PROGRAM_TYPES,
-  SCHEDULE_MAPPING,
-  MONTH_SCHEDULES,
+  SCHEDULE_PDFS,
   YTT_PAYMENT,
   COURSE_PAYMENT_URLS,
   BUNDLE_PAYMENT_URLS,
-  COURSE_CONFIG,
-  MULTIFORMAT_SCHEDULE_IDS
+  COURSE_CONFIG
 };

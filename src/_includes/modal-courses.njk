@@ -25,6 +25,7 @@
 
         <form id="ybC-form" class="yb-modal-courses__form" novalidate>
           <input type="hidden" id="ybC-source" value="Courses – landing page">
+          <input class="yb-modal-courses__hp" type="text" name="ybu_hp" tabindex="-1" autocomplete="off" aria-hidden="true">
 
           <div class="yb-modal-courses__grid">
             <label class="yb-modal-courses__field">
@@ -137,6 +138,16 @@
 
   font-family: "Helvetica Neue", Helvetica, Arial, sans-serif !important;
   color: var(--yb-ink);
+}
+
+/* Honeypot */
+#ybC-modal .yb-modal-courses__hp {
+  position: absolute !important;
+  left: -9999px !important;
+  width: 1px !important;
+  height: 1px !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
 }
 
 /* Shell */
@@ -657,7 +668,7 @@
   if (window.__ybC_Booted) return;
   window.__ybC_Booted = true;
 
-  const GAS_URL = 'https://script.google.com/macros/s/AKfycbyhs4bfPcvcqaJRTmAlPTFf_uIOkFatZviKKO20nckBfGi78JqkNzy4FNpWztl7nQsSAA/exec';
+  const GAS_URL = '/.netlify/functions/lead';
 
   const modal = document.getElementById('ybC-modal');
   const box   = document.getElementById('ybC-box');
@@ -685,11 +696,10 @@
   }
 
   function fillMonths(select, pillsWrap){
-    const months = [
-      'Ikke sikker endnu',
-      'Januar 2026','Februar 2026','Marts 2026','April 2026','Maj 2026','Juni 2026',
-      'Juli 2026','August 2026','September 2026','Oktober 2026','November 2026'
-    ];
+    // Available course months (update each season)
+    const courseMonths = ['April 2026', 'Juni 2026'];
+    const months = ['Ikke sikker endnu', ...courseMonths];
+
     if(select){
       select.innerHTML = '';
       months.forEach((m,i)=>{
@@ -702,7 +712,7 @@
     }
     if(pillsWrap){
       pillsWrap.innerHTML = '';
-      months.slice(1).forEach(m=>{
+      courseMonths.forEach(m=>{
         const label = document.createElement('label');
         label.className = 'yb-modal-courses__pill';
         label.innerHTML = `<input type="checkbox" name="months" value="${m}"><span>${m.split(' ')[0]}</span>`;
@@ -829,7 +839,11 @@
       }
     }
 
+    // Honeypot check
+    if (fd.get('ybu_hp')) { showThanks(); return; }
+
     const params = new URLSearchParams();
+    params.set('action',      'lead_courses');
     params.set('firstName',   fd.get('firstName') || '');
     params.set('lastName',    fd.get('lastName')  || '');
     params.set('email',       fd.get('email')     || '');
@@ -844,7 +858,7 @@
 
     setLoading(true);
     try{
-      await fetch(GAS_URL, { method:'POST', body:params, mode:'no-cors' });
+      await fetch(GAS_URL, { method:'POST', headers:{'Content-Type':'application/x-www-form-urlencoded'}, body:params.toString() });
       setLoading(false);
       showThanks();
     }catch(err){

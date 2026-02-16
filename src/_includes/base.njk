@@ -78,19 +78,6 @@
   <!-- Checkout Flow Modal (multi-step) -->
   {% include "modal-checkout-flow.njk" %}
 
-  <!-- Netlify Identity redirect (for CMS login flow) -->
-  <script>
-    if (window.netlifyIdentity) {
-      window.netlifyIdentity.on("init", function(user) {
-        if (!user) {
-          window.netlifyIdentity.on("login", function() {
-            document.location.href = "/decap-cms/";
-          });
-        }
-      });
-    }
-  </script>
-
   <!-- Cookie Consent -->
   {% include "cookies.njk" %}
   <script src="/js/cookies.js"></script>
@@ -110,10 +97,10 @@
   <script src="/js/checkout-flow.js"></script>
   <script src="/js/mindbody.js"></script>
   {% if includeScheduleModal %}
-    <script src="/js/modal.js"></script>
+    <script src="/js/modal-200ytt.js"></script>
   {% endif %}
   {% if includeScheduleModal300 %}
-    <script src="/js/modal-300.js"></script>
+    <script src="/js/modal-300ytt.js"></script>
   {% endif %}
 </body>
 </html>

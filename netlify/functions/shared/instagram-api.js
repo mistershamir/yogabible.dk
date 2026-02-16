@@ -220,14 +220,16 @@ async function logInteraction(data) {
   console.log('[ig-api] Interaction:', JSON.stringify(entry));
 
   // Firestore REST API write (if credentials available)
-  if (!process.env.FIREBASE_SERVICE_ACCOUNT_KEY) {
-    console.log('[ig-api] No FIREBASE_SERVICE_ACCOUNT_KEY — skipping Firestore write');
+  if (!process.env.FIREBASE_CLIENT_EMAIL || !process.env.FIREBASE_PRIVATE_KEY) {
+    console.log('[ig-api] No FIREBASE_CLIENT_EMAIL/FIREBASE_PRIVATE_KEY — skipping Firestore write');
     return;
   }
 
   try {
-    // Parse service account key
-    const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT_KEY);
+    const serviceAccount = {
+      client_email: process.env.FIREBASE_CLIENT_EMAIL,
+      private_key: process.env.FIREBASE_PRIVATE_KEY.replace(/\\n/g, '\n')
+    };
 
     // Create JWT for Firestore access
     const jwt = await createFirestoreJwt(serviceAccount);

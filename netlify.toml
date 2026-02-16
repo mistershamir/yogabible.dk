@@ -6,6 +6,10 @@
 [build.environment]
   NODE_VERSION = "20"
 
+[functions]
+  node_bundler = "esbuild"
+  external_node_modules = ["firebase-admin"]
+
 # Redirect www to non-www (301)
 [[redirects]]
   from = "https://www.yogabible.dk/*"
@@ -112,7 +116,7 @@
     Referrer-Policy = "strict-origin-when-cross-origin"
     Permissions-Policy = "camera=(), microphone=(), geolocation=()"
     Strict-Transport-Security = "max-age=31536000; includeSubDomains"
-    Content-Security-Policy = "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.gstatic.com https://www.googletagmanager.com https://connect.facebook.net https://www.clarity.ms https://apis.google.com https://use.typekit.net https://identity.netlify.com https://assets.calendly.com; style-src 'self' 'unsafe-inline' https://assets.calendly.com; img-src 'self' data: blob: https://res.cloudinary.com https://www.yogabible.dk https://*.google-analytics.com https://*.googletagmanager.com https://www.facebook.com https://*.clarity.ms https://p.typekit.net; font-src 'self' data: https://use.typekit.net https://p.typekit.net; connect-src 'self' https://*.netlify.com https://*.netlify.app https://*.firebaseio.com https://*.googleapis.com https://*.mindbodyonline.com https://*.google-analytics.com https://*.analytics.google.com https://*.googletagmanager.com https://www.facebook.com https://connect.facebook.net https://*.clarity.ms https://graph.facebook.com https://graph.instagram.com https://use.typekit.net https://p.typekit.net; media-src 'self' https://res.cloudinary.com https://www.yogabible.dk; frame-src 'self' https://www.googletagmanager.com https://yogabible.dk https://*.firebaseapp.com https://calendly.com; frame-ancestors 'self'"
+    Content-Security-Policy = "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.gstatic.com https://www.googletagmanager.com https://connect.facebook.net https://www.clarity.ms https://apis.google.com https://use.typekit.net https://assets.calendly.com; style-src 'self' 'unsafe-inline' https://assets.calendly.com; img-src 'self' data: blob: https://res.cloudinary.com https://www.yogabible.dk https://*.google-analytics.com https://*.googletagmanager.com https://www.facebook.com https://*.clarity.ms https://p.typekit.net; font-src 'self' data: https://use.typekit.net https://p.typekit.net; connect-src 'self' https://*.netlify.com https://*.netlify.app https://*.firebaseio.com https://*.googleapis.com https://*.mindbodyonline.com https://*.google-analytics.com https://*.analytics.google.com https://*.googletagmanager.com https://www.facebook.com https://connect.facebook.net https://*.clarity.ms https://graph.facebook.com https://graph.instagram.com https://use.typekit.net https://p.typekit.net; media-src 'self' https://res.cloudinary.com https://www.yogabible.dk; frame-src 'self' https://www.googletagmanager.com https://yogabible.dk https://*.firebaseapp.com https://calendly.com; frame-ancestors 'self'"
 
 # Cache: fonts (1 year)
 [[headers]]
