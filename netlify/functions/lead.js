@@ -12,6 +12,8 @@ const {
   jsonResponse, optionsResponse, formatDate, normalizeYesNo,
   detectAction
 } = require('./shared/utils');
+const { sendAdminNotification } = require('./shared/email-service');
+const { sendWelcomeSMS } = require('./shared/sms-service');
 
 exports.handler = async (event) => {
   if (event.httpMethod === 'OPTIONS') return optionsResponse();
@@ -53,6 +55,12 @@ exports.handler = async (event) => {
     });
 
     console.log(`[lead] New lead saved: ${docRef.id} (${leadData.email})`);
+
+    // Fire-and-forget: admin notification + welcome SMS
+    // These run in background — don't block the form response
+    triggerNotifications(leadData, docRef.id).catch(err => {
+      console.error('[lead] Notification error (non-blocking):', err.message);
+    });
 
     const response = jsonResponse(200, { ok: true, message: 'Request received successfully' });
     return wrapCallback(callback, response);
@@ -271,4 +279,33 @@ async function getExistingApplicationId(email) {
     console.error('getExistingApplicationId error:', err.message);
     return null;
   }
+}
+
+/**
+ * Fire-and-forget notifications when a new lead comes in
+ * - Admin notification email
+ * - Welcome SMS to the lead
+ */
+async function triggerNotifications(leadData, leadDocId) {
+  const promises = [];
+
+  // 1. Admin notification email
+  if (process.env.GMAIL_APP_PASSWORD) {
+    promises.push(
+      sendAdminNotification(leadData).catch(err => {
+        console.error('[lead] Admin notification failed:', err.message);
+      })
+    );
+  }
+
+  // 2. Welcome SMS
+  if (process.env.GATEWAYAPI_TOKEN && leadData.phone) {
+    promises.push(
+      sendWelcomeSMS(leadData, leadDocId).catch(err => {
+        console.error('[lead] Welcome SMS failed:', err.message);
+      })
+    );
+  }
+
+  await Promise.all(promises);
 }
