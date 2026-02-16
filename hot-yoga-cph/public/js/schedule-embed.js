@@ -214,8 +214,6 @@
       // ── Tablet ───────────────────────────────────────────────────
       '@media (max-width:768px){',
         '.hycs__toolbar{gap:0.4rem}',
-        '.hycs__auth-btn span{display:none}',
-        '.hycs__auth-btn{padding:0 8px}',
       '}',
 
       // ── Mobile ─────────────────────────────────────────────────────
@@ -233,7 +231,7 @@
         '.hycs__class-time{min-width:auto;font-size:0.78rem;flex:0 0 auto}',
         '.hycs__class-info{flex:1 1 0%;min-width:0}',
         '.hycs__class-name{font-size:0.82rem;white-space:normal;overflow:visible}',
-        '.hycs__class-action{width:100%;text-align:left;margin-top:0.15rem}',
+        '.hycs__class-action{width:100%;text-align:right;margin-top:0.15rem}',
 
         // Banners & panels
         '.hycs__no-pass{flex-direction:column;text-align:center;padding:0.85rem 1rem}',
@@ -245,9 +243,9 @@
         '.hycs__cancel-pop{right:auto;left:50%;transform:translateX(-50%);width:200px}',
         '.hycs__filter-dd{right:0;left:auto;min-width:160px}',
 
-        // Auth buttons: icon-only
-        '.hycs__auth-btn span{display:none}',
-        '.hycs__auth-btn{padding:0 8px}',
+        // Auth buttons: keep text visible, compact sizing
+        '.hycs__auth-btn{font-size:0.7rem;padding:0 8px;height:28px}',
+        '.hycs__auth-btn svg{width:12px;height:12px}',
 
         // Day labels
         '.hycs__day-label{font-size:0.78rem}',
