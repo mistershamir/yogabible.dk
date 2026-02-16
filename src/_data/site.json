@@ -1,6 +1,6 @@
 {
   "name": "YOGA BIBLE",
-  "url": "https://www.yogabible.dk",
+  "url": "https://yogabible.dk",
   "lang": "da-DK",
   "gtmId": "GTM-5QBGDCZG",
   "metaPixelId": "1186827080033883",
@@ -11,5 +11,9 @@
   "instagram": "https://www.instagram.com/yoga_bible",
   "soundcloud": "https://soundcloud.com/yogabible",
   "appStore": "https://apps.apple.com/us/app/yoga-bible-dk/id1089612518",
-  "googlePlay": "https://play.google.com/store/apps/details?id=com.fitnessmobileapps.hotyogacopenhagen"
+  "googlePlay": "https://play.google.com/store/apps/details?id=com.fitnessmobileapps.hotyogacopenhagen",
+  "cloudinary": {
+    "cloudName": "ddcynsa30",
+    "baseUrl": "https://res.cloudinary.com/ddcynsa30"
+  }
 }

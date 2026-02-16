@@ -3,3 +3,7 @@ node_modules/
 .DS_Store
 *.log
 .env
+create-cloudinary-folders.js
+
+# Local Netlify folder
+.netlify

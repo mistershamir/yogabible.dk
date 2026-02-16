@@ -286,7 +286,7 @@
 <script>
 (function() {
   'use strict';
-  var FORM_URL = 'https://script.google.com/macros/s/AKfycbwQ1re_EuGYRKfa8yDsObFxIL2h9qXudpBZ477tT__CYxVBTgkuao-02iOtr0YvMdEu/exec';
+  var FORM_URL = '/.netlify/functions/lead';
   var form = document.getElementById('ybForm');
   var errBox = document.getElementById('ybFormError');
   var successBox = document.getElementById('ybFormSuccess');
@@ -337,13 +337,21 @@
     submitBtn.disabled = true;
     submitBtn.textContent = MSG_SENDING;
 
-    var data = new FormData(form);
-    data.append('action', 'contact');
+    var fd = new FormData(form);
+    var payload = {
+      action: 'contact',
+      firstName: fd.get('firstName') || '',
+      lastName: fd.get('lastName') || '',
+      email: fd.get('email') || '',
+      phone: fd.get('phone') || '',
+      message: fd.get('message') || '',
+      source: 'Contact form'
+    };
 
     fetch(FORM_URL, {
       method: 'POST',
-      body: data,
-      mode: 'no-cors'
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
     })
     .finally(function() {
       submitBtn.disabled = false;

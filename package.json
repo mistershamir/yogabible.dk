@@ -16,10 +16,12 @@
   "license": "ISC",
   "type": "commonjs",
   "devDependencies": {
-    "@11ty/eleventy": "^3.1.2"
+    "@11ty/eleventy": "^3.1.2",
+    "cloudinary": "^2.9.0"
   },
   "dependencies": {
-    "googleapis": "^171.4.0",
-    "markdown-it": "^14.1.0"
+    "firebase-admin": "^13.6.1",
+    "markdown-it": "^14.1.0",
+    "nodemailer": "^8.0.1"
   }
 }

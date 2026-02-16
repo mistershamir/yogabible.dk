@@ -77,6 +77,35 @@
   </div>
 </section>
 
+{# ── JSON-LD: DefinedTermSet (AEO — makes each term citable by AI & search engines) ── #}
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "DefinedTermSet",
+  "name": {{ ("Yoga Glossary — Sanskrit, Danish & English | Yoga Bible" if lang == "en" else "Yoga Ordbog — Sanskrit, dansk & engelsk | Yoga Bible") | dump | safe }},
+  "description": {{ ("Searchable yoga glossary with 290+ terms in Sanskrit, Danish and English. Covering asanas, pranayama, philosophy, anatomy and more." if lang == "en" else "Søgbar yoga-ordbog med 290+ begreber på sanskrit, dansk og engelsk. Dækker stillinger, pranayama, filosofi, anatomi og mere.") | dump | safe }},
+  "url": "{{ site.url }}{% if lang == 'en' %}/en/yoga-glossary/{% else %}/yoga-glossary/{% endif %}",
+  "inLanguage": {{ (["en", "da", "sa"] if lang == "en" else ["da", "en", "sa"]) | dump | safe }},
+  "publisher": {
+    "@type": "EducationalOrganization",
+    "name": "Yoga Bible",
+    "url": "{{ site.url }}"
+  },
+  "hasDefinedTerm": [
+    {%- for term in allGlossaryTerms %}
+    {
+      "@type": "DefinedTerm",
+      "name": {{ term.sanskrit | dump | safe }},
+      "alternateName": [{{ (term.en if lang == "en" else term.da) | dump | safe }}, {{ (term.da if lang == "en" else term.en) | dump | safe }}],
+      "description": {{ (term.desc_en if lang == "en" else term.desc_da) | dump | safe }},
+      "inDefinedTermSet": "{{ site.url }}{% if lang == 'en' %}/en/yoga-glossary/{% else %}/yoga-glossary/{% endif %}",
+      "termCode": {{ term.category | dump | safe }}
+    }{%- if not loop.last %},{% endif %}
+    {%- endfor %}
+  ]
+}
+</script>
+
 {# ── Inject glossary data at build time ── #}
 <script>
 window.YB_GLOSSARY_DATA = {

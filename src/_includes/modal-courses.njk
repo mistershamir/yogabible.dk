@@ -657,7 +657,7 @@
   if (window.__ybC_Booted) return;
   window.__ybC_Booted = true;
 
-  const GAS_URL = 'https://script.google.com/macros/s/AKfycbyhs4bfPcvcqaJRTmAlPTFf_uIOkFatZviKKO20nckBfGi78JqkNzy4FNpWztl7nQsSAA/exec';
+  const GAS_URL = '/.netlify/functions/lead';
 
   const modal = document.getElementById('ybC-modal');
   const box   = document.getElementById('ybC-box');
@@ -844,7 +844,7 @@
 
     setLoading(true);
     try{
-      await fetch(GAS_URL, { method:'POST', body:params, mode:'no-cors' });
+      await fetch(GAS_URL, { method:'POST', headers:{'Content-Type':'application/x-www-form-urlencoded'}, body:params.toString() });
       setLoading(false);
       showThanks();
     }catch(err){

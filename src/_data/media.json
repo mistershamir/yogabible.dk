@@ -1,0 +1,183 @@
+{
+  "_readme": "Media asset map for Cloudinary. Upload files to Cloudinary using the folder paths below, then use in templates: {{ media.homepage.hero | cloudimg }} or {% cldimg media.homepage.hero, 'Alt text', 'w_800,c_fill', '800', '600' %}. Set a value to null until the asset is uploaded.",
+
+  "brand": {
+    "logo": "yoga-bible-DK/brand/yoga-bible-logo-orange",
+    "logo2x": "yoga-bible-DK/brand/yoga-bible-logo-orange-2x",
+    "ogLandscape": "yoga-bible-DK/brand/yoga-bible-og-landscape",
+    "ogSquare": "yoga-bible-DK/brand/yoga-bible-og-square",
+    "footerWordmark": "yoga-bible-DK/brand/yoga-bible-footer-wordmark",
+    "appStoreBadge": "yoga-bible-DK/brand/yoga-bible-app-store-badge",
+    "googlePlayBadge": "yoga-bible-DK/brand/yoga-bible-google-play-badge",
+    "instagramIcon": "yoga-bible-DK/brand/instagram-glyph-gradient",
+    "soundcloudIcon": "yoga-bible-DK/brand/soundcloud-logo-white"
+  },
+
+  "homepage": {
+    "heroVideo": "yoga-bible-DK/homepage/yoga-bible-hero-loop",
+    "inversionsCard": "yoga-bible-DK/homepage/inversions-course-hero-copenhagen",
+    "splitsCard": "yoga-bible-DK/homepage/splits-flexibility-course-hero",
+    "backbendsCard": "yoga-bible-DK/homepage/backbends-course-hero-yoga",
+    "studioPanorama": "yoga-bible-DK/homepage/yoga-bible-studio-panorama-torvegade"
+  },
+
+  "studio": {
+    "hotRoom": "yoga-bible-DK/studio/yoga-bible-studio-hot-room-copenhagen",
+    "trainingRoom": "yoga-bible-DK/studio/yoga-bible-training-room-daylight",
+    "entrance": "yoga-bible-DK/studio/yoga-bible-studio-torvegade-66-entrance",
+    "showers": "yoga-bible-DK/studio/yoga-bible-shower-changing-facilities",
+    "mainRoom": "yoga-bible-DK/studio/yoga-bible-main-practice-room",
+    "wide": "yoga-bible-DK/studio/yoga-bible-studio-panorama-torvegade"
+  },
+
+  "location": {
+    "christianshavnCanal": "yoga-bible-DK/location/christianshavn-canal-yoga-bible-location",
+    "metroStation": "yoga-bible-DK/location/christianshavn-metro-station-exterior",
+    "copenhagenNight": "yoga-bible-DK/location/copenhagen-night-near-yoga-studio"
+  },
+
+  "courses": {
+    "inversionsPromo": "yoga-bible-DK/courses/inversions-course-copenhagen-promo",
+    "splitsPromo": "yoga-bible-DK/courses/splits-course-copenhagen-promo",
+    "backbendsPromo": "yoga-bible-DK/courses/professional-backbend-training-copenhagen",
+    "education200hr": "yoga-bible-DK/courses/200-hour-yoga-education-copenhagen"
+  },
+
+  "programs": {
+    "testimonialVideo": "yoga-bible-DK/programs/yoga-students-share-training-experience",
+    "practiceLoopVideo": "yoga-bible-DK/programs/yoga-practice-session-loop",
+    "certificate": "yoga-bible-DK/programs/yoga-alliance-ryt200-certificate-sample"
+  },
+
+  "accommodation": {
+    "hero": "yoga-bible-DK/accommodation/yoga-student-accommodation-copenhagen-hero",
+    "studentLiving": "yoga-bible-DK/accommodation/yoga-student-apartment-living-copenhagen",
+    "singleOverview": "yoga-bible-DK/accommodation/single-studio-apartment-overview",
+    "singleBedroom": "yoga-bible-DK/accommodation/single-studio-apartment-bedroom",
+    "singleKitchen": "yoga-bible-DK/accommodation/single-studio-apartment-kitchen",
+    "singleBathroom": "yoga-bible-DK/accommodation/single-studio-apartment-bathroom",
+    "singleWorkspace": "yoga-bible-DK/accommodation/single-studio-apartment-workspace",
+    "sharedBedroom": "yoga-bible-DK/accommodation/shared-apartment-bedroom-copenhagen",
+    "sharedPrivateRoom": "yoga-bible-DK/accommodation/shared-apartment-private-room",
+    "sharedCommonArea": "yoga-bible-DK/accommodation/shared-apartment-common-area",
+    "sharedBathroomKitchen": "yoga-bible-DK/accommodation/shared-apartment-bathroom-kitchen",
+    "sharedLivingSpace": "yoga-bible-DK/accommodation/shared-apartment-living-space",
+    "studentCooking": "yoga-bible-DK/accommodation/yoga-student-cooking-copenhagen-kitchen",
+    "hotelCphLiving": "yoga-bible-DK/accommodation/hotel-cph-living-floating-copenhagen",
+    "hotel25hours": "yoga-bible-DK/accommodation/hotel-25hours-paper-island-copenhagen",
+    "hostelGenerator": "yoga-bible-DK/accommodation/hostel-generator-copenhagen",
+    "hostelSteelHouse": "yoga-bible-DK/accommodation/hostel-steel-house-copenhagen",
+    "studioApartment": "yoga-bible-DK/accommodation/copenhagen-studio-apartment-yoga-student",
+    "sharedApartment": "yoga-bible-DK/accommodation/copenhagen-shared-apartment-yoga-student"
+  },
+
+  "accommodationCourseCards": {
+    "fourWeek": "yoga-bible-DK/accommodation/course-4-week-intensive-yoga-training",
+    "eightWeek": "yoga-bible-DK/accommodation/course-8-week-semi-intensive-yoga",
+    "bundles": "yoga-bible-DK/accommodation/course-bundles-yoga-specialty-training"
+  },
+
+  "p4w": {
+    "studioApartment": "yoga-bible-DK/programs/p4w/studio-apartment-christianshavn-copenhagen",
+    "kitchenette": "yoga-bible-DK/programs/p4w/studio-apartment-kitchenette-copenhagen",
+    "sharedRoom": "yoga-bible-DK/programs/p4w/shared-apartment-private-room-copenhagen",
+    "sharedCommon": "yoga-bible-DK/programs/p4w/shared-apartment-common-area-copenhagen"
+  },
+
+  "inversions": {
+    "hero": "yoga-bible-DK/courses/inversions/inversions-yoga-course-hero",
+    "videoPoster": "yoga-bible-DK/courses/inversions/inversions-video-poster-thumbnail",
+    "reelVideo": "yoga-bible-DK/courses/inversions/inversions-course-reel-subtitled",
+    "demoVideo": "yoga-bible-DK/courses/inversions/inversions-course-full-demo",
+    "annaHerceg": "yoga-bible-DK/courses/inversions/anna-herceg-inversions-instructor",
+    "grid01": "yoga-bible-DK/courses/inversions/inversions-gallery-handstand-variation",
+    "grid02": "yoga-bible-DK/courses/inversions/inversions-gallery-forearm-balance",
+    "grid03": "yoga-bible-DK/courses/inversions/inversions-gallery-shoulder-stand",
+    "grid04": "yoga-bible-DK/courses/inversions/inversions-gallery-headstand-variation",
+    "grid05": "yoga-bible-DK/courses/inversions/inversions-gallery-spotter-assisted",
+    "grid06": "yoga-bible-DK/courses/inversions/inversions-gallery-group-class"
+  },
+
+  "concepts": {
+    "heroBg": "yoga-bible-DK/concepts/yoga-concepts-hero-background",
+    "hotyogaHero": "yoga-bible-DK/concepts/hotyoga/hot-yoga-copenhagen-studio-session",
+    "hotyogaInfrared": "yoga-bible-DK/concepts/hotyoga/infrared-heating-yoga-studio",
+    "hotyogaFrozenTowel": "yoga-bible-DK/concepts/hotyoga/frozen-towel-hot-yoga-shavasana",
+    "hotyogaSonicShavasana": "yoga-bible-DK/concepts/hotyoga/sonic-shavasana-sound-healing",
+    "hotyogaGingerShots": "yoga-bible-DK/concepts/hotyoga/ginger-shots-yoga-recovery",
+    "hotyogaHerbalTea": "yoga-bible-DK/concepts/hotyoga/herbal-tea-yoga-studio",
+    "hotyogaPremium": "yoga-bible-DK/concepts/hotyoga/premium-hot-yoga-membership",
+    "hotyogaMusic": "yoga-bible-DK/concepts/hotyoga/curated-soundscape-yoga-studio",
+    "hotyogaVideo": "yoga-bible-DK/concepts/hotyoga/hot-yoga-copenhagen-promo",
+    "namasteHero": "yoga-bible-DK/concepts/namaste/namaste-online-yoga-streaming-hero",
+    "namasteClass1": "yoga-bible-DK/concepts/namaste/live-online-yoga-class-session",
+    "namasteClass2": "yoga-bible-DK/concepts/namaste/yoga-teacher-streaming-from-studio",
+    "namasteClass3": "yoga-bible-DK/concepts/namaste/at-home-yoga-practitioner-online",
+    "namasteVideo": "yoga-bible-DK/concepts/namaste/namaste-online-platform-demo",
+    "vibroHero": "yoga-bible-DK/concepts/vibro/vibro-yoga-vibration-platform-hero",
+    "vibroStudio": "yoga-bible-DK/concepts/vibro/vibro-yoga-studio-setup",
+    "vibroSession": "yoga-bible-DK/concepts/vibro/vibro-yin-yoga-session",
+    "vibroShower": "yoga-bible-DK/concepts/vibro/vibration-shower-experience",
+    "vibroVideo": "yoga-bible-DK/concepts/vibro/vibro-yoga-concept-demo"
+  },
+
+  "copenhagen": {
+    "hero": "yoga-bible-DK/copenhagen/copenhagen-skyline-hero",
+    "bikeCulture": "yoga-bible-DK/copenhagen/copenhagen-bike-culture-cyclists",
+    "cafeScene": "yoga-bible-DK/copenhagen/copenhagen-hygge-cafe-scene",
+    "saunagus": "yoga-bible-DK/copenhagen/danish-saunagus-sauna-culture",
+    "coldDip": "yoga-bible-DK/copenhagen/copenhagen-cold-water-swimming",
+    "concerts": "yoga-bible-DK/copenhagen/copenhagen-music-concert-scene",
+    "design": "yoga-bible-DK/copenhagen/scandinavian-design-interior",
+    "greenSpaces": "yoga-bible-DK/copenhagen/copenhagen-green-spaces-parks",
+    "foodScene": "yoga-bible-DK/copenhagen/copenhagen-new-nordic-food-scene",
+    "canalPanorama": "yoga-bible-DK/copenhagen/christianshavn-canal-panorama"
+  },
+
+  "careers": {
+    "heroPoster": "yoga-bible-DK/careers/yoga-teaching-careers-hero-poster",
+    "heroVideo": "yoga-bible-DK/careers/yoga-careers-hero-vertical"
+  },
+
+  "apply": {
+    "bethPortrait": "yoga-bible-DK/apply/beth-yoga-instructor-portrait"
+  },
+
+  "compare": {
+    "lifelong": "yoga-bible-DK/compare/teacher-profile-lifelong-learner",
+    "midcareer": "yoga-bible-DK/compare/teacher-profile-midcareer-changer",
+    "rising": "yoga-bible-DK/compare/teacher-profile-rising-teacher"
+  },
+
+  "mentorship": {
+    "heroImage": "yoga-bible-DK/mentorship/private-mentorship-inversions-session",
+    "videoPoster": "yoga-bible-DK/mentorship/mentorship-practice-video-poster"
+  },
+
+  "link": {
+    "heroVideo": "yoga-bible-DK/link/yoga-bible-link-hero-vertical",
+    "heroPoster": "yoga-bible-DK/link/yoga-bible-link-hero-poster"
+  },
+
+  "schedule": {
+    "heroVideo": "yoga-bible-DK/schedule/yoga-practice-hero-loop",
+    "appDemoVideo": "yoga-bible-DK/schedule/yoga-bible-app-demo-mobile"
+  },
+
+  "member": {
+    "registerHero": "yoga-bible-DK/member/yoga-registration-hero"
+  },
+
+  "journal": {
+    "18uger": "yoga-bible-DK/journal/18-ugers-yogalaereruddannelse-fleksibelt-program",
+    "vinyasa": "yoga-bible-DK/journal/hvad-er-vinyasa-yoga",
+    "breathing": "yoga-bible-DK/journal/5-aandedraetsteknikker-for-begyndere",
+    "chakras": "yoga-bible-DK/journal/de-syv-chakraer-forklaret",
+    "mentalHealth": "yoga-bible-DK/journal/yoga-og-mental-sundhed",
+    "guideTraining": "yoga-bible-DK/journal/guide-til-din-foerste-yogalaereruddannelse",
+    "hotYoga": "yoga-bible-DK/journal/fordelene-ved-hot-yoga",
+    "morningFlow": "yoga-bible-DK/journal/yoga-bible-studio-morning-flow",
+    "studentTeachingVideo": "yoga-bible-DK/journal/students-teaching-each-other-loop",
+    "studioPanorama": "yoga-bible-DK/journal/yoga-bible-studio-panorama-torvegade"
+  }
+}

@@ -1,18 +1,20 @@
 /**
  * Lead Capture Endpoint — Yoga Bible
- * Replaces doPost/doGet lead handling from Apps Script
+ * Public endpoint for website forms. Writes to Firestore.
  *
  * POST /.netlify/functions/lead
  * Also supports GET with query params (JSONP callback)
  */
 
-const { getSheetData, appendRow, parseSheetData } = require('./shared/google-sheets');
-const { downloadFile } = require('./shared/google-drive');
+const { getDb } = require('./shared/firestore');
 const { CONFIG } = require('./shared/config');
 const {
   jsonResponse, optionsResponse, formatDate, normalizeYesNo,
-  getScheduleFileId, detectAction, LEADS_SCHEMA
+  detectAction
 } = require('./shared/utils');
+const { sendAdminNotification } = require('./shared/email-service');
+const { sendWelcomeSMS } = require('./shared/sms-service');
+const { sendWelcomeEmail } = require('./shared/lead-emails');
 
 exports.handler = async (event) => {
   if (event.httpMethod === 'OPTIONS') return optionsResponse();
@@ -22,7 +24,7 @@ exports.handler = async (event) => {
     let callback = '';
 
     if (event.httpMethod === 'POST') {
-      payload = JSON.parse(event.body || '{}');
+      payload = parseBody(event);
     } else if (event.httpMethod === 'GET') {
       payload = event.queryStringParameters || {};
       callback = payload.callback || '';
@@ -31,38 +33,36 @@ exports.handler = async (event) => {
     }
 
     const action = detectAction(payload);
-    if (!action || !action.startsWith('lead_')) {
+    if (!action || !(action.startsWith('lead_') || action === 'contact')) {
+      // NOTE: lead_meta is included via startsWith('lead_')
       return wrapCallback(callback, jsonResponse(400, { ok: false, error: 'Could not determine lead type' }));
     }
 
     // Process the lead
     const leadData = processLead(payload, action);
 
-    // Check for existing applicant
+    // Check for existing applicant in Firestore
     const existingAppId = await getExistingApplicationId(leadData.email);
     if (existingAppId) {
       leadData.notes = `EXISTING APPLICANT (App ID: ${existingAppId})`;
       leadData.status = 'Existing Applicant';
     }
 
-    // Get headers from existing sheet or use schema
-    let data;
-    try {
-      data = await getSheetData('Leads (RAW)');
-    } catch (err) {
-      console.error('Could not read Leads (RAW):', err.message);
-      return wrapCallback(callback, jsonResponse(500, { ok: false, error: 'Database error' }));
-    }
+    // Write to Firestore
+    const db = getDb();
+    const docRef = await db.collection('leads').add({
+      ...leadData,
+      created_at: new Date(),
+      updated_at: new Date()
+    });
 
-    const headers = (data && data.length > 0) ? data[0] : LEADS_SCHEMA;
+    console.log(`[lead] New lead saved: ${docRef.id} (${leadData.email})`);
 
-    // Build row array matching header order
-    const rowArray = headers.map(h => leadData[h] || '');
-    await appendRow('Leads (RAW)', rowArray);
-
-    // TODO: Phase 3 — send confirmation email
-    // TODO: Phase 3 — send welcome SMS
-    // TODO: Phase 3 — send admin notification
+    // Fire-and-forget: admin notification + welcome email + welcome SMS
+    // These run in background — don't block the form response
+    triggerNotifications(leadData, docRef.id, action).catch(err => {
+      console.error('[lead] Notification error (non-blocking):', err.message);
+    });
 
     const response = jsonResponse(200, { ok: true, message: 'Request received successfully' });
     return wrapCallback(callback, response);
@@ -73,8 +73,41 @@ exports.handler = async (event) => {
 };
 
 /**
- * Wrap response in JSONP callback if provided
+ * Parse POST body — supports JSON, URL-encoded (FormData / URLSearchParams), and plain text JSON
  */
+function parseBody(event) {
+  const contentType = (event.headers['content-type'] || event.headers['Content-Type'] || '').toLowerCase();
+  const body = event.body || '';
+
+  // URL-encoded (FormData or URLSearchParams)
+  if (contentType.includes('application/x-www-form-urlencoded') || contentType.includes('multipart/form-data')) {
+    const params = new URLSearchParams(body);
+    const obj = {};
+    for (const [key, value] of params) {
+      obj[key] = value;
+    }
+    return obj;
+  }
+
+  // JSON or text/plain with JSON inside
+  try {
+    return JSON.parse(body);
+  } catch (e) {
+    // Last resort: try URL-encoded
+    try {
+      const params = new URLSearchParams(body);
+      if (params.has('email') || params.has('firstName') || params.has('action')) {
+        const obj = {};
+        for (const [key, value] of params) {
+          obj[key] = value;
+        }
+        return obj;
+      }
+    } catch (e2) {}
+    return {};
+  }
+}
+
 function wrapCallback(callback, response) {
   if (!callback) return response;
   return {
@@ -84,22 +117,22 @@ function wrapCallback(callback, response) {
   };
 }
 
-/**
- * Process lead data based on action type
- */
 function processLead(payload, action) {
-  const timestamp = formatDate(new Date());
   const base = {
-    timestamp,
     email: (payload.email || '').toLowerCase().trim(),
     first_name: (payload.firstName || '').trim(),
     last_name: (payload.lastName || '').trim(),
-    phone: "'" + (payload.phone || '').trim(),
-    converted: 'No',
-    converted_at: '',
-    application_id: '',
+    phone: (payload.phone || '').trim(),
+    converted: false,
+    converted_at: null,
+    application_id: null,
     status: 'New',
-    notes: ''
+    notes: '',
+    unsubscribed: false,
+    call_attempts: 0,
+    sms_status: '',
+    last_contact: null,
+    followup_date: null
   };
 
   switch (action) {
@@ -253,6 +286,65 @@ function processLead(payload, action) {
       };
     }
 
+    case 'lead_meta': {
+      // Meta (Facebook/Instagram) Lead Forms via Zapier webhook
+      // Meta provides: full_name, email, phone_number, city, and custom questions
+      const fullName = payload.full_name || payload.fullName || '';
+      const nameParts = fullName.trim().split(/\s+/);
+      const metaFirst = payload.firstName || payload.first_name || nameParts[0] || '';
+      const metaLast = payload.lastName || payload.last_name || nameParts.slice(1).join(' ') || '';
+      const metaPhone = payload.phone_number || payload.phone || '';
+      const metaEmail = (payload.email || '').toLowerCase().trim();
+      // Try to detect program interest from Meta form fields
+      const metaProgram = payload.program || payload.which_program || payload.interested_in || '';
+      const metaFormName = payload.form_name || payload.ad_name || payload.campaign_name || '';
+      const metaCity = payload.city || payload.cityCountry || '';
+
+      // Override base with Meta-specific values
+      base.email = metaEmail;
+      base.first_name = metaFirst;
+      base.last_name = metaLast;
+      base.phone = metaPhone;
+
+      return {
+        ...base,
+        type: 'ytt',
+        ytt_program_type: detectMetaYTTType(metaProgram, metaFormName),
+        program: metaProgram || metaFormName || 'Meta Lead Form',
+        course_id: '',
+        cohort_label: '',
+        preferred_month: '',
+        accommodation: normalizeYesNo(payload.housing || payload.accommodation || 'No'),
+        city_country: metaCity,
+        housing_months: '',
+        service: '',
+        subcategories: '',
+        message: payload.message || '',
+        source: `Meta Lead – ${payload.platform || 'Facebook'} – ${metaFormName || 'Ad'}`,
+        meta_form_id: payload.form_id || '',
+        meta_ad_id: payload.ad_id || '',
+        meta_campaign: payload.campaign_name || ''
+      };
+    }
+
+    case 'contact':
+      return {
+        ...base,
+        type: 'contact',
+        ytt_program_type: '',
+        program: '',
+        course_id: '',
+        cohort_label: '',
+        preferred_month: '',
+        accommodation: 'No',
+        city_country: '',
+        housing_months: '',
+        service: '',
+        subcategories: '',
+        message: payload.message || '',
+        source: payload.source || 'Contact form'
+      };
+
     default:
       return { ...base, type: 'unknown', source: 'Unknown' };
   }
@@ -273,21 +365,69 @@ function getHousingMonths(payload) {
 
 async function getExistingApplicationId(email) {
   try {
-    const data = await getSheetData('Applications (RAW)');
-    if (!data || data.length < 2) return null;
-    const headers = data[0];
-    const emailCol = headers.indexOf('email');
-    const appIdCol = headers.indexOf('application_id');
-    if (emailCol === -1) return null;
-
-    for (let i = 1; i < data.length; i++) {
-      if (data[i][emailCol] === email.toLowerCase()) {
-        return data[i][appIdCol] || 'Unknown';
-      }
-    }
-    return null;
+    const db = getDb();
+    const snap = await db.collection('applications')
+      .where('email', '==', email.toLowerCase())
+      .limit(1)
+      .get();
+    if (snap.empty) return null;
+    return snap.docs[0].data().application_id || 'Unknown';
   } catch (err) {
     console.error('getExistingApplicationId error:', err.message);
     return null;
   }
+}
+
+/**
+ * Fire-and-forget notifications when a new lead comes in
+ * - Admin notification email
+ * - Welcome SMS to the lead
+ */
+/**
+ * Detect YTT program type from Meta Lead Form fields
+ */
+function detectMetaYTTType(program, formName) {
+  const combined = `${program} ${formName}`.toLowerCase();
+  if (combined.includes('300')) return '300h';
+  if (combined.includes('50h') || combined.includes('50 hour')) return '50h';
+  if (combined.includes('30h') || combined.includes('30 hour')) return '30h';
+  if (combined.includes('18') || combined.includes('fleksib') || combined.includes('flexible')) return '18-week';
+  if (combined.includes('8') && (combined.includes('uge') || combined.includes('week') || combined.includes('semi'))) return '8-week';
+  if (combined.includes('4') && (combined.includes('uge') || combined.includes('week') || combined.includes('intensi'))) return '4-week';
+  if (combined.includes('course') || combined.includes('kursus')) return '';
+  // Default to general YTT interest
+  return '4-week';
+}
+
+async function triggerNotifications(leadData, leadDocId, action) {
+  const promises = [];
+
+  // 1. Admin notification email
+  if (process.env.GMAIL_APP_PASSWORD) {
+    promises.push(
+      sendAdminNotification(leadData).catch(err => {
+        console.error('[lead] Admin notification failed:', err.message);
+      })
+    );
+  }
+
+  // 2. Welcome email to the lead (with schedule, pricing, etc.)
+  if (process.env.GMAIL_APP_PASSWORD && leadData.email) {
+    promises.push(
+      sendWelcomeEmail(leadData, action).catch(err => {
+        console.error('[lead] Welcome email failed:', err.message);
+      })
+    );
+  }
+
+  // 3. Welcome SMS
+  if (process.env.GATEWAYAPI_TOKEN && leadData.phone) {
+    promises.push(
+      sendWelcomeSMS(leadData, leadDocId).catch(err => {
+        console.error('[lead] Welcome SMS failed:', err.message);
+      })
+    );
+  }
+
+  await Promise.all(promises);
 }
