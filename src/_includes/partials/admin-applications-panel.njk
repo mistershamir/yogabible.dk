@@ -1,0 +1,105 @@
+{# ── Application List View ── #}
+<div id="yb-admin-v-app-list">
+  <div class="yb-admin__view-head">
+    <h2>{{ t.apps_title }}</h2>
+    <div class="yb-lead__toolbar-right">
+      <button type="button" class="yb-btn yb-btn--outline yb-btn--sm" data-action="apps-refresh">&#8635; {{ t.leads_refresh }}</button>
+    </div>
+  </div>
+
+  {# Stats #}
+  <div class="yb-lead__stats-grid" id="yb-app-stats"></div>
+
+  {# Search + Filters #}
+  <div class="yb-lead__filter-bar">
+    <form id="yb-app-search-form" class="yb-lead__search-form">
+      <input type="text" id="yb-app-search-input" placeholder="{{ t.apps_search_placeholder }}" class="yb-lead__search-input">
+    </form>
+    <select id="yb-app-status-filter" class="yb-admin__select yb-lead__filter">
+      <option value="">{{ t.leads_all_statuses }}</option>
+      <option value="Pending">&#9203; Pending</option>
+      <option value="Under Review">&#128269; Under Review</option>
+      <option value="Approved">&#9989; Approved</option>
+      <option value="Enrolled">&#127891; Enrolled</option>
+      <option value="Waitlisted">&#128203; Waitlisted</option>
+      <option value="Rejected">&#10060; Rejected</option>
+      <option value="Withdrawn">&#8617;&#65039; Withdrawn</option>
+      <option value="Completed">&#127942; Completed</option>
+    </select>
+    <select id="yb-app-type-filter" class="yb-admin__select yb-lead__filter">
+      <option value="">{{ t.leads_all_types }}</option>
+      <option value="ytt">YTT</option>
+      <option value="course">Course</option>
+      <option value="bundle">Bundle</option>
+      <option value="mentorship">Mentorship</option>
+    </select>
+  </div>
+
+  {# Result count #}
+  <div class="yb-lead__result-bar">
+    <span id="yb-app-count" class="yb-lead__count-text"></span>
+  </div>
+
+  {# Applications table #}
+  <div class="yb-admin__table-wrap yb-lead__table-wrap">
+    <table class="yb-admin__table yb-lead__table" id="yb-app-table">
+      <thead>
+        <tr>
+          <th>{{ t.apps_col_app_id }}</th>
+          <th>{{ t.users_col_name }}</th>
+          <th>{{ t.users_col_email }}</th>
+          <th>{{ t.apps_col_program }}</th>
+          <th>{{ t.apps_col_course }}</th>
+          <th>{{ t.apps_col_track }}</th>
+          <th>{{ t.apps_col_payment }}</th>
+          <th>{{ t.apps_col_status }}</th>
+          <th>{{ t.leads_col_date }}</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody id="yb-app-table-body"></tbody>
+    </table>
+  </div>
+</div>
+
+{# ── Application Detail View ── #}
+<div id="yb-admin-v-app-detail" hidden>
+  <div class="yb-admin__view-head">
+    <button class="yb-admin__back-btn" data-action="back-apps">&larr; {{ t.back }}</button>
+    <h2 id="yb-app-detail-heading">{{ t.apps_detail_title }}</h2>
+  </div>
+
+  {# Application detail cards #}
+  <div id="yb-app-detail-card"></div>
+
+  {# Status update #}
+  <div class="yb-admin__section-divider"></div>
+  <h3 class="yb-lead__section-title">{{ t.leads_update_status }}</h3>
+  <form id="yb-app-status-form" class="yb-admin__form">
+    <div style="display:flex;gap:0.75rem;align-items:flex-end;flex-wrap:wrap">
+      <div class="yb-admin__field">
+        <label for="yb-app-status-select">{{ t.leads_col_status }}</label>
+        <select id="yb-app-status-select" class="yb-admin__select">
+          <option value="Pending">&#9203; Pending</option>
+          <option value="Under Review">&#128269; Under Review</option>
+          <option value="Approved">&#9989; Approved</option>
+          <option value="Enrolled">&#127891; Enrolled</option>
+          <option value="Waitlisted">&#128203; Waitlisted</option>
+          <option value="Rejected">&#10060; Rejected</option>
+          <option value="Withdrawn">&#8617;&#65039; Withdrawn</option>
+          <option value="Completed">&#127942; Completed</option>
+        </select>
+      </div>
+      <button type="submit" class="yb-btn yb-btn--primary">{{ t.save }}</button>
+    </div>
+  </form>
+
+  {# Notes #}
+  <div class="yb-admin__section-divider"></div>
+  <h3 class="yb-lead__section-title">{{ t.leads_notes }}</h3>
+  <form id="yb-app-note-form" class="yb-lead__note-form">
+    <input type="text" id="yb-app-note-input" placeholder="{{ t.leads_note_placeholder }}" class="yb-lead__note-input">
+    <button type="submit" class="yb-btn yb-btn--primary yb-btn--sm">{{ t.leads_add_note_btn }}</button>
+  </form>
+  <div id="yb-app-notes-timeline" class="yb-lead__notes-timeline"></div>
+</div>

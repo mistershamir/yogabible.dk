@@ -207,6 +207,11 @@
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
           {{ t.tab_profile }}
         </button>
+        {# Leads tab — marketing & admin only #}
+        <button class="yb-ma-tabs__btn" type="button" data-yb-ma-tab="leads" data-yb-role="marketing,admin" style="display:none">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+          {{ t.tab_leads }}
+        </button>
       </div>
     </div>
   </nav>
@@ -430,7 +435,7 @@
     </section>
 
     {# Admin tools — gated by admin permissions #}
-    <section data-yb-requires="admin:courses,admin:content,admin:users" style="display:none;padding:5rem 0;background:#0F0F0F;color:#FFFCF9">
+    <section data-yb-requires="admin:courses,admin:content,admin:users,lead:manage" style="display:none;padding:5rem 0;background:#0F0F0F;color:#FFFCF9">
       <div class="container" style="max-width:960px">
         <div style="text-align:center;margin-bottom:3rem">
           <span class="yb-ma-eyebrow">{{ t.user_admin_eyebrow }}</span>
@@ -458,6 +463,13 @@
             </div>
             <h3 class="yb-ma-card__title" style="color:#FFFCF9">{{ t.user_card_admin_users_title }}</h3>
             <p class="yb-ma-card__desc">{{ t.user_card_admin_users_desc }}</p>
+          </a>
+          <a href="#leads" data-yb-ma-tab="leads" data-yb-requires="lead:manage" class="yb-ma-card yb-ma-card--dark yb-ma-card--link" style="display:none">
+            <div class="yb-ma-card__icon">
+              <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#f75c03" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="23" y1="11" x2="17" y2="11"/></svg>
+            </div>
+            <h3 class="yb-ma-card__title" style="color:#FFFCF9">{{ t.hub_leads_title }}</h3>
+            <p class="yb-ma-card__desc">{{ t.hub_leads_desc }}</p>
           </a>
         </div>
       </div>
@@ -561,6 +573,11 @@
   {# ── TAB: Profile (iframe — bare embed page, no site chrome) ── #}
   <div class="yb-ma-tp" id="yb-ma-tp-profile" data-yb-ma-panel="profile" hidden>
     <iframe class="yb-ma-iframe" data-src="{{ lp }}/embed/profile/#profile" title="{{ t.hub_profile_title }}"></iframe>
+  </div>
+
+  {# ── TAB: Leads (iframe — marketing & admin only) ── #}
+  <div class="yb-ma-tp" id="yb-ma-tp-leads" data-yb-ma-panel="leads" hidden data-yb-role="marketing,admin" style="display:none">
+    <iframe class="yb-ma-iframe" data-src="{{ lp }}/embed/leads/" title="{{ t.tab_leads }}"></iframe>
   </div>
 
 </div>

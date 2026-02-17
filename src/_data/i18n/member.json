@@ -143,6 +143,10 @@
     "tab_glossary": "Ordbog",
     "tab_journal": "Journal",
     "tab_profile": "Profil",
+    "tab_leads": "Leads",
+
+    "hub_leads_title": "Lead Manager",
+    "hub_leads_desc": "Administrer leads, ans\u00f8gninger og pipeline",
 
     "live_placeholder_eyebrow": "Kommer snart",
     "live_placeholder_title": "Live & Optagelser",
@@ -303,6 +307,10 @@
     "tab_glossary": "Glossary",
     "tab_journal": "Journal",
     "tab_profile": "Profile",
+    "tab_leads": "Leads",
+
+    "hub_leads_title": "Lead Manager",
+    "hub_leads_desc": "Manage leads, applications and pipeline",
 
     "live_placeholder_eyebrow": "Coming soon",
     "live_placeholder_title": "Live & Recordings",

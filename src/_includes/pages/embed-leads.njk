@@ -1,0 +1,85 @@
+{# ══════════════════════════════════════════════════════════════
+   EMBED LEADS — Standalone lead + application manager for iframing
+   into the Member Area. Uses the same partials as /admin/.
+   ══════════════════════════════════════════════════════════════ #}
+{% set t = i18n["course-admin"][lang or "da"] %}
+
+<script>
+  window._ybAdminLang = '{{ lang or "da" }}';
+  window._ybAdminT = {{ i18n["course-admin"][lang or "da"] | dump | safe }};
+</script>
+
+<section class="yb-admin" id="yb-admin" style="padding:1rem 0 3rem">
+  <div class="container">
+
+    {# Auth gate — show login prompt if not signed in #}
+    <div id="yb-admin-gate" style="text-align:center;padding:3rem 0">
+      <h2>{{ t.not_logged_in_title }}</h2>
+      <p style="color:var(--yb-muted,#6F6A66)">{{ t.not_logged_in_text }}</p>
+      <button class="yb-btn yb-btn--primary" onclick="if(window.openAuthModal)window.openAuthModal()">{{ t.login_btn }}</button>
+    </div>
+
+    {# Admin panel — shown when logged in #}
+    <div id="yb-admin-panel" style="display:none">
+
+      {# Tab bar — just Leads + Applications #}
+      <div class="yb-profile__tabs" style="margin-bottom:1.5rem">
+        <button class="yb-profile__tab is-active" type="button" data-yb-admin-tab="leads">{{ t.tab_leads }}</button>
+        <button class="yb-profile__tab" type="button" data-yb-admin-tab="applications">{{ t.tab_applications }}</button>
+      </div>
+
+      {# Leads panel #}
+      <div class="yb-admin__tab-panel is-active" data-yb-admin-panel="leads">
+        {% include "partials/admin-leads-panel.njk" %}
+      </div>
+
+      {# Applications panel #}
+      <div class="yb-admin__tab-panel" data-yb-admin-panel="applications">
+        {% include "partials/admin-applications-panel.njk" %}
+      </div>
+
+    </div>{# end yb-admin-panel #}
+
+  </div>
+
+  {# Toast notifications #}
+  <div class="yb-admin__toast" id="yb-admin-toast" hidden></div>
+</section>
+
+{# Lightweight tab switching (course-admin.js is NOT loaded here) #}
+<script>
+(function() {
+  // Tab switching
+  document.querySelectorAll('[data-yb-admin-tab]').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      var tab = btn.getAttribute('data-yb-admin-tab');
+      document.querySelectorAll('[data-yb-admin-tab]').forEach(function(b) { b.classList.remove('is-active'); });
+      btn.classList.add('is-active');
+      document.querySelectorAll('[data-yb-admin-panel]').forEach(function(p) { p.classList.remove('is-active'); });
+      var panel = document.querySelector('[data-yb-admin-panel="' + tab + '"]');
+      if (panel) panel.classList.add('is-active');
+    });
+  });
+
+  // Auth gate — show/hide based on Firebase auth state
+  var checkInterval = setInterval(function() {
+    if (typeof firebase !== 'undefined' && firebase.apps && firebase.apps.length) {
+      clearInterval(checkInterval);
+      firebase.auth().onAuthStateChanged(function(user) {
+        var gate = document.getElementById('yb-admin-gate');
+        var panel = document.getElementById('yb-admin-panel');
+        if (user) {
+          if (gate) gate.style.display = 'none';
+          if (panel) panel.style.display = '';
+        } else {
+          if (gate) gate.style.display = '';
+          if (panel) panel.style.display = 'none';
+        }
+      });
+    }
+  }, 100);
+})();
+</script>
+
+{# Lead admin JS — the full lead manager logic #}
+<script src="/js/lead-admin.js"></script>
