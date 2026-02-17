@@ -390,6 +390,11 @@
           <div class="yb-admin__view-head">
             <h2>{{ t.leads_title }}</h2>
             <div class="yb-lead__toolbar-right">
+              <div class="yb-lead__view-toggle" id="yb-lead-view-toggle">
+                <button class="yb-lead__view-btn is-active" data-view="table" type="button">&#128203; {{ t.leads_view_table }}</button>
+                <button class="yb-lead__view-btn" data-view="kanban" type="button">&#128202; {{ t.leads_view_board }}</button>
+              </div>
+              <button type="button" class="yb-btn yb-btn--outline yb-btn--sm" id="yb-lead-archive-toggle" data-action="toggle-show-archived">&#128230; {{ t.leads_show_archived }}</button>
               <button type="button" class="yb-btn yb-btn--outline yb-btn--sm" data-action="leads-export-csv">&#128229; {{ t.leads_export }}</button>
               <button type="button" class="yb-btn yb-btn--outline yb-btn--sm" data-action="leads-refresh">&#8635; {{ t.leads_refresh }}</button>
             </div>
@@ -407,6 +412,7 @@
               <option value="">{{ t.leads_all_statuses }}</option>
               <option value="New">&#10024; New</option>
               <option value="Contacted">&#128231; Contacted</option>
+              <option value="No Answer">&#128244; No Answer</option>
               <option value="Follow-up">&#128260; Follow-up</option>
               <option value="Engaged">&#128172; Engaged</option>
               <option value="Qualified">&#9989; Qualified</option>
@@ -417,6 +423,7 @@
               <option value="Unsubscribed">&#128683; Unsubscribed</option>
               <option value="Lost">&#128078; Lost</option>
               <option value="Closed">&#10006; Closed</option>
+              <option value="Archived">&#128230; Archived</option>
             </select>
             <select id="yb-lead-type-filter" class="yb-admin__select yb-lead__filter">
               <option value="">{{ t.leads_all_types }}</option>
@@ -468,10 +475,11 @@
           </div>
 
           {# Lead table #}
-          <div class="yb-admin__table-wrap yb-lead__table-wrap">
+          <div class="yb-admin__table-wrap yb-lead__table-wrap" id="yb-lead-table-container">
             <table class="yb-admin__table yb-lead__table" id="yb-lead-table">
               <thead>
                 <tr>
+                  <th class="yb-lead__th-chevron"></th>
                   <th class="yb-lead__th-cb"><input type="checkbox" id="yb-lead-select-all" title="{{ t.leads_select_all }}"></th>
                   <th class="yb-lead__th-date"><button class="yb-lead__sort-btn is-active is-desc" data-sort="created_at">{{ t.leads_col_date }} <span class="yb-lead__sort-icon"></span></button></th>
                   <th>{{ t.users_col_name }}</th>
@@ -481,6 +489,10 @@
                   <th class="yb-lead__th-source">{{ t.leads_source }}</th>
                   <th><button class="yb-lead__sort-btn" data-sort="status">{{ t.leads_col_status }} <span class="yb-lead__sort-icon"></span></button></th>
                   <th class="yb-lead__th-followup">{{ t.leads_followup }}</th>
+                  <th class="yb-lead__th-lastcontact">{{ t.leads_col_lastcontact }}</th>
+                  <th class="yb-lead__th-temp" title="{{ t.leads_col_temp }}">&#127777;</th>
+                  <th class="yb-lead__th-notes" title="{{ t.leads_col_notes }}">&#128221;</th>
+                  <th class="yb-lead__th-app" title="{{ t.leads_has_application }}">App</th>
                   <th></th>
                 </tr>
               </thead>
@@ -490,6 +502,9 @@
           <div id="yb-lead-load-more-wrap" style="text-align:center;margin-top:1rem" hidden>
             <button class="yb-btn yb-btn--outline" data-action="leads-load-more">{{ t.leads_load_more }}</button>
           </div>
+
+          {# Kanban Pipeline Board (hidden by default, toggled by view switch) #}
+          <div id="yb-lead-kanban" class="yb-lead__kanban" hidden></div>
         </div>
 
         {# ── Lead Detail View ── #}
