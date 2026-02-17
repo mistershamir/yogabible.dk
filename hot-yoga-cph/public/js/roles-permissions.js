@@ -28,6 +28,12 @@
     '500h': { label_da: '500-timer',  label_en: '500-Hour' }
   };
 
+  // ── Trainee method branches (yoga style of their YTT) ──
+  var TRAINEE_METHODS = {
+    triangle: { label_da: 'Triangle Method', label_en: 'Triangle Method' },
+    vinyasa:  { label_da: 'Vinyasa Plus',    label_en: 'Vinyasa Plus' }
+  };
+
   // ── Student course branches ──
   var STUDENT_COURSES = {
     inversions:  { label_da: 'Inversions',   label_en: 'Inversions' },
@@ -82,9 +88,35 @@
     var perms = base.slice(); // copy
     roleDetails = roleDetails || {};
 
-    // Trainee: grant access to their specific program materials
-    if (role === 'trainee' && roleDetails.program) {
-      perms.push('materials:' + roleDetails.program);
+    // Trainee: grant access to their specific program materials + method
+    if (role === 'trainee') {
+      if (roleDetails.program) {
+        perms.push('materials:' + roleDetails.program);
+      }
+      if (roleDetails.method) {
+        perms.push('method:' + roleDetails.method);
+      }
+      // Trainee may also have courseTypes (if they applied for courses too)
+      if (roleDetails.courseTypes && roleDetails.courseTypes.length) {
+        roleDetails.courseTypes.forEach(function(ct) {
+          perms.push('course:' + ct);
+        });
+      }
+      if (roleDetails.mentorship) {
+        perms.push('mentorship');
+      }
+    }
+
+    // Student: grant access to their specific course types
+    if (role === 'student') {
+      if (roleDetails.courseTypes && roleDetails.courseTypes.length) {
+        roleDetails.courseTypes.forEach(function(ct) {
+          perms.push('course:' + ct);
+        });
+      }
+      if (roleDetails.mentorship) {
+        perms.push('mentorship');
+      }
     }
 
     // Teacher: grant access to all program materials + their speciality
@@ -138,9 +170,30 @@
     roleDetails = roleDetails || {};
     lang = lang || 'da';
 
-    if (role === 'trainee' && roleDetails.program) {
-      var prog = TRAINEE_PROGRAMS[roleDetails.program];
-      return prog ? prog['label_' + lang] || prog.label_da : roleDetails.program;
+    if (role === 'trainee') {
+      var parts = [];
+      if (roleDetails.program) {
+        var prog = TRAINEE_PROGRAMS[roleDetails.program];
+        parts.push(prog ? prog['label_' + lang] || prog.label_da : roleDetails.program);
+      }
+      if (roleDetails.method) {
+        var meth = TRAINEE_METHODS[roleDetails.method];
+        parts.push(meth ? meth['label_' + lang] || meth.label_da : roleDetails.method);
+      }
+      return parts.join(' · ');
+    }
+    if (role === 'student') {
+      var labels = [];
+      if (roleDetails.courseTypes && roleDetails.courseTypes.length) {
+        roleDetails.courseTypes.forEach(function(ct) {
+          var course = STUDENT_COURSES[ct];
+          labels.push(course ? course['label_' + lang] || course.label_da : ct);
+        });
+      }
+      if (roleDetails.mentorship) {
+        labels.push(lang === 'en' ? 'Mentorship' : 'Mentorship');
+      }
+      return labels.join(', ');
     }
     if (role === 'teacher' && roleDetails.teacherType) {
       var tt = TEACHER_TYPES[roleDetails.teacherType];
@@ -187,6 +240,7 @@
     ROLES: ROLES,
     ROLE_LABELS: ROLE_LABELS,
     TRAINEE_PROGRAMS: TRAINEE_PROGRAMS,
+    TRAINEE_METHODS: TRAINEE_METHODS,
     STUDENT_COURSES: STUDENT_COURSES,
     TEACHER_TYPES: TEACHER_TYPES,
     ROLE_PERMISSIONS: ROLE_PERMISSIONS,

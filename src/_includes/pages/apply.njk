@@ -2905,6 +2905,11 @@
           show(successCard, true);
           successCard.scrollIntoView({ behavior: "smooth", block: "center" });
 
+          // If logged-in user's role was upgraded by the backend, refresh permissions
+          if(res.role_upgraded && window.ybReloadUserRole){
+            window.ybReloadUserRole();
+          }
+
           // Also set the text msg for screen readers
           setMsg(applyMsg, "{{ t.js_success_msg_prefix }}" + appId + ".", "ok");
 
