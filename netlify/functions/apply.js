@@ -8,13 +8,211 @@
  * Returns: { ok: true, application_id: "YB-260216-1234" }
  */
 
-const { getDb } = require('./shared/firestore');
+const { getDb, getAuth } = require('./shared/firestore');
 const {
   jsonResponse, optionsResponse, generateApplicationId,
   detectYTTProgramType
 } = require('./shared/utils');
 const { sendAdminNotification } = require('./shared/email-service');
 const { sendApplicationConfirmation } = require('./shared/lead-emails');
+
+// =========================================================================
+// Auto Role Assignment
+// =========================================================================
+
+const ROLE_PRIORITY = ['member', 'student', 'trainee', 'teacher', 'marketing', 'admin'];
+
+function getRolePriority(role) {
+  const idx = ROLE_PRIORITY.indexOf(role);
+  return idx === -1 ? 0 : idx;
+}
+
+/**
+ * Map YTT program type to trainee program code.
+ */
+function mapYTTToProgram(yttProgramType) {
+  if (yttProgramType === '300h') return '300h';
+  // '18-week', '4-week', '8-week', '50h', '30h', 'other' → all 200h
+  return '200h';
+}
+
+/**
+ * Map YTT program to training method (Triangle Method or Vinyasa Plus).
+ * Specialty modules (50h, 30h) don't get a method tag.
+ */
+function mapYTTToMethod(yttProgramType, courseName) {
+  const name = (courseName || '').toLowerCase();
+  // Vinyasa Plus detection — check course name first
+  if (name.includes('vinyasa')) return 'vinyasa';
+  // Specialty modules don't get a method
+  if (yttProgramType === '50h' || yttProgramType === '30h') return null;
+  // Default: Triangle Method
+  return 'triangle';
+}
+
+/**
+ * Detect course types from course name or bundle type string.
+ * Returns an array of course type keys.
+ */
+function detectCourseTypes(courseName, bundleType) {
+  const types = [];
+  // For bundles, parse the bundle_type string
+  const str = (bundleType || courseName || '').toLowerCase();
+  if (str.includes('inversions')) types.push('inversions');
+  if (str.includes('splits') || str.includes('spagat')) types.push('splits');
+  if (str.includes('backbends') || str.includes('rygbøjninger') || str.includes('backbend')) types.push('backbends');
+  return types;
+}
+
+/**
+ * Auto-assign user role after application submission.
+ * Looks up Firebase user by email and upgrades their role if appropriate.
+ * Never downgrades. Merges courseTypes when trainee applies for courses.
+ */
+async function autoAssignRole({ email, type, yttProgramType, courseName, bundleType, applicationId, mentorshipSelected }) {
+  try {
+    const auth = getAuth();
+    let firebaseUser;
+    try {
+      firebaseUser = await auth.getUserByEmail(email);
+    } catch (err) {
+      if (err.code === 'auth/user-not-found') {
+        console.log(`[apply:role] No Firebase user for ${email} — skipping role assignment`);
+        return { assigned: false, reason: 'no-firebase-user' };
+      }
+      throw err;
+    }
+
+    const uid = firebaseUser.uid;
+    const db = getDb();
+    const userRef = db.collection('users').doc(uid);
+    const userDoc = await userRef.get();
+
+    if (!userDoc.exists) {
+      console.log(`[apply:role] No Firestore user doc for UID ${uid} — skipping`);
+      return { assigned: false, reason: 'no-firestore-doc' };
+    }
+
+    const userData = userDoc.data();
+    const currentRole = userData.role || 'member';
+    const currentDetails = userData.roleDetails || {};
+
+    // Determine target role + details from application
+    let targetRole = null;
+    let targetDetails = {};
+
+    if (type === 'education') {
+      targetRole = 'trainee';
+      const program = mapYTTToProgram(yttProgramType);
+      const method = mapYTTToMethod(yttProgramType, courseName);
+      targetDetails = { program };
+      if (method) targetDetails.method = method;
+    } else if (type === 'course' || type === 'bundle') {
+      targetRole = 'student';
+      const courseTypes = detectCourseTypes(courseName, bundleType);
+      if (courseTypes.length) targetDetails.courseTypes = courseTypes;
+    } else if (type === 'mentorship') {
+      targetRole = 'student';
+      targetDetails.mentorship = true;
+    }
+
+    if (!targetRole) {
+      console.log(`[apply:role] Unknown type "${type}" — skipping role assignment`);
+      return { assigned: false, reason: 'unknown-type' };
+    }
+
+    // Priority check — never downgrade
+    const currentPriority = getRolePriority(currentRole);
+    const targetPriority = getRolePriority(targetRole);
+
+    let finalRole = currentRole;
+    let finalDetails = Object.assign({}, currentDetails);
+    let changed = false;
+
+    if (targetPriority > currentPriority) {
+      // Upgrade role — preserve existing courseTypes if upgrading from student to trainee
+      finalRole = targetRole;
+      finalDetails = Object.assign({}, targetDetails);
+      // Carry forward courseTypes from student → trainee upgrade
+      if (currentRole === 'student' && targetRole === 'trainee' && currentDetails.courseTypes) {
+        finalDetails.courseTypes = currentDetails.courseTypes;
+      }
+      if (currentRole === 'student' && targetRole === 'trainee' && currentDetails.mentorship) {
+        finalDetails.mentorship = true;
+      }
+      changed = true;
+    } else if (currentRole === targetRole) {
+      // Same role — merge details
+      if (targetRole === 'trainee') {
+        // Merge new fields into existing trainee details
+        if (targetDetails.program && !currentDetails.program) { finalDetails.program = targetDetails.program; changed = true; }
+        if (targetDetails.method && !currentDetails.method) { finalDetails.method = targetDetails.method; changed = true; }
+      }
+      if (targetRole === 'student') {
+        // Merge courseTypes arrays
+        const existing = currentDetails.courseTypes || [];
+        const incoming = targetDetails.courseTypes || [];
+        const merged = existing.slice();
+        incoming.forEach(ct => { if (merged.indexOf(ct) === -1) { merged.push(ct); changed = true; } });
+        finalDetails.courseTypes = merged;
+        if (targetDetails.mentorship && !currentDetails.mentorship) { finalDetails.mentorship = true; changed = true; }
+      }
+    } else if (currentPriority > targetPriority) {
+      // Current role is higher — but still merge courseTypes if applicable
+      if (currentRole === 'trainee' && (type === 'course' || type === 'bundle')) {
+        const existing = currentDetails.courseTypes || [];
+        const incoming = detectCourseTypes(courseName, bundleType);
+        const merged = existing.slice();
+        incoming.forEach(ct => { if (merged.indexOf(ct) === -1) { merged.push(ct); changed = true; } });
+        if (merged.length) finalDetails.courseTypes = merged;
+      }
+      if (currentRole === 'trainee' && type === 'mentorship' && !currentDetails.mentorship) {
+        finalDetails.mentorship = true;
+        changed = true;
+      }
+    }
+
+    if (!changed) {
+      console.log(`[apply:role] ${email}: no role change needed (current: ${currentRole})`);
+      await userRef.update({ lastApplicationId: applicationId, updated_at: new Date() });
+      return { assigned: false, reason: 'no-change-needed', currentRole };
+    }
+
+    // Apply the update
+    await userRef.update({
+      role: finalRole,
+      roleDetails: finalDetails,
+      lastApplicationId: applicationId,
+      updated_at: new Date()
+    });
+
+    console.log(`[apply:role] ${email}: ${currentRole} → ${finalRole} (${JSON.stringify(finalDetails)})`);
+
+    // Audit trail
+    await db.collection('role_audit').add({
+      uid,
+      email,
+      previousRole: currentRole,
+      previousRoleDetails: currentDetails,
+      newRole: finalRole,
+      newRoleDetails: finalDetails,
+      trigger: 'application',
+      applicationId,
+      applicationType: type,
+      yttProgramType: yttProgramType || '',
+      created_at: new Date()
+    });
+
+    return { assigned: true, previousRole: currentRole, newRole: finalRole, newRoleDetails: finalDetails };
+  } catch (err) {
+    console.error('[apply:role] Error during auto role assignment:', err.message);
+    return { assigned: false, reason: 'error', error: err.message };
+  }
+}
+
+// =========================================================================
+// Handler
+// =========================================================================
 
 exports.handler = async (event) => {
   if (event.httpMethod === 'OPTIONS') return optionsResponse();
@@ -147,12 +345,26 @@ exports.handler = async (event) => {
     };
     await db.collection('leads').add(leadDoc);
 
+    // Auto-assign user role based on application type
+    const roleResult = await autoAssignRole({
+      email: appDoc.email,
+      type,
+      yttProgramType,
+      courseName: appDoc.course_name || '',
+      bundleType: appDoc.bundle_type || '',
+      applicationId,
+      mentorshipSelected: !!applicant.mentorship_selected
+    }).catch(err => {
+      console.error('[apply] Role assignment failed:', err.message);
+      return { assigned: false, reason: 'error' };
+    });
+
     // Send notifications — must await before returning (Netlify kills Lambda after response)
     if (process.env.GMAIL_APP_PASSWORD) {
       await Promise.all([
         sendAdminNotification({
           ...leadDoc,
-          notes: `NEW APPLICATION: ${applicationId}\nType: ${type}\nProgram: ${appDoc.course_name || 'N/A'}\nCohort: ${appDoc.cohort_label || 'N/A'}`
+          notes: `NEW APPLICATION: ${applicationId}\nType: ${type}\nProgram: ${appDoc.course_name || 'N/A'}\nCohort: ${appDoc.cohort_label || 'N/A'}${roleResult.assigned ? `\nRole auto-assigned: ${roleResult.newRole} (${JSON.stringify(roleResult.newRoleDetails || {})})` : ''}`
         }).catch(err => {
           console.error('[apply] Admin notification failed:', err.message);
         }),
@@ -165,7 +377,8 @@ exports.handler = async (event) => {
     return jsonResponse(200, {
       ok: true,
       application_id: applicationId,
-      message: 'Application received successfully'
+      message: 'Application received successfully',
+      role_upgraded: roleResult.assigned || false
     });
   } catch (error) {
     console.error('[apply] Error:', error);
