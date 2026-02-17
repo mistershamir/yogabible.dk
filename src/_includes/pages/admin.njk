@@ -471,6 +471,7 @@
             <button class="yb-btn yb-btn--sm yb-btn--outline" data-action="bulk-status">&#9881;&#65039; {{ t.leads_bulk_status }}</button>
             <button class="yb-btn yb-btn--sm yb-btn--outline" data-action="bulk-email">&#9993;&#65039; {{ t.leads_bulk_email }}</button>
             <button class="yb-btn yb-btn--sm yb-btn--outline" data-action="bulk-sms">&#128241; {{ t.leads_bulk_sms }}</button>
+            <button class="yb-btn yb-btn--sm yb-btn--outline yb-admin__icon-btn--danger" data-action="bulk-archive">&#128451; {{ t.leads_bulk_archive }}</button>
             <button class="yb-btn yb-btn--sm yb-btn--outline" data-action="bulk-deselect">&#10006; {{ t.leads_deselect }}</button>
           </div>
 
@@ -607,8 +608,31 @@
           <div class="yb-lead__modal-box">
             <h3>&#128241; {{ t.leads_send_sms }}</h3>
             <p class="yb-lead__modal-to">{{ t.leads_to }}: <strong id="yb-sms-recipient-info"></strong></p>
+            <p class="yb-lead__modal-recipient-detail" id="yb-sms-recipient-detail" hidden></p>
+            {# Template selector #}
+            <select id="yb-sms-template-select" class="yb-lead__modal-select">
+              <option value="">{{ t.leads_sms_template_none }}</option>
+              <option value="ytt">{{ t.leads_sms_template_ytt }}</option>
+              <option value="course">{{ t.leads_sms_template_course }}</option>
+              <option value="mentorship">{{ t.leads_sms_template_mentorship }}</option>
+              <option value="default">{{ t.leads_sms_template_default }}</option>
+            </select>
+            {# Variable insert buttons #}
+            <div class="yb-lead__modal-vars">
+              <span class="yb-lead__modal-vars-label">{{ t.leads_insert_var }}:</span>
+              <button type="button" class="yb-lead__var-btn" data-var="{{first_name}}" data-target="yb-sms-message">&#123;&#123;first_name&#125;&#125;</button>
+              <button type="button" class="yb-lead__var-btn" data-var="{{program}}" data-target="yb-sms-message">&#123;&#123;program&#125;&#125;</button>
+              <button type="button" class="yb-lead__var-btn" data-var="{{name}}" data-target="yb-sms-message">&#123;&#123;name&#125;&#125;</button>
+            </div>
             <textarea id="yb-sms-message" class="yb-lead__modal-textarea" rows="4" placeholder="{{ t.leads_sms_placeholder }}" maxlength="640"></textarea>
-            <div class="yb-lead__modal-meta"><span id="yb-sms-char-count">0/160</span></div>
+            <div class="yb-lead__modal-meta">
+              <span id="yb-sms-char-count">0/160</span>
+              <span id="yb-sms-segment-count" class="yb-lead__sms-segments"></span>
+            </div>
+            <div id="yb-sms-progress" class="yb-lead__send-progress" hidden>
+              <div class="yb-lead__progress-bar"><div class="yb-lead__progress-fill" id="yb-sms-progress-fill"></div></div>
+              <span id="yb-sms-progress-text"></span>
+            </div>
             <div class="yb-lead__modal-actions">
               <button class="yb-btn yb-btn--primary" data-action="sms-send" id="yb-sms-send-btn">{{ t.leads_send_sms }}</button>
               <button class="yb-btn yb-btn--outline" data-action="sms-cancel">{{ t.cancel }}</button>
@@ -622,9 +646,26 @@
           <div class="yb-lead__modal-box yb-lead__modal-box--wide">
             <h3>&#9993;&#65039; {{ t.leads_send_email }}</h3>
             <p class="yb-lead__modal-to">{{ t.leads_to }}: <strong id="yb-email-recipient-info"></strong></p>
+            <p class="yb-lead__modal-recipient-detail" id="yb-email-recipient-detail" hidden></p>
+            {# Template selector (loaded from Firestore) #}
+            <select id="yb-email-template-select" class="yb-lead__modal-select">
+              <option value="">{{ t.leads_email_template_none }}</option>
+            </select>
             <input type="text" id="yb-email-subject" class="yb-lead__modal-input" placeholder="{{ t.leads_email_subject }}">
+            {# Variable insert buttons #}
+            <div class="yb-lead__modal-vars">
+              <span class="yb-lead__modal-vars-label">{{ t.leads_insert_var }}:</span>
+              <button type="button" class="yb-lead__var-btn" data-var="{{first_name}}" data-target="yb-email-body">&#123;&#123;first_name&#125;&#125;</button>
+              <button type="button" class="yb-lead__var-btn" data-var="{{last_name}}" data-target="yb-email-body">&#123;&#123;last_name&#125;&#125;</button>
+              <button type="button" class="yb-lead__var-btn" data-var="{{program}}" data-target="yb-email-body">&#123;&#123;program&#125;&#125;</button>
+              <button type="button" class="yb-lead__var-btn" data-var="{{email}}" data-target="yb-email-body">&#123;&#123;email&#125;&#125;</button>
+            </div>
             <textarea id="yb-email-body" class="yb-lead__modal-textarea" rows="10" placeholder="{{ t.leads_email_body }}"></textarea>
             <p class="yb-lead__modal-hint">{{ t.leads_email_hint }}</p>
+            <div id="yb-email-progress" class="yb-lead__send-progress" hidden>
+              <div class="yb-lead__progress-bar"><div class="yb-lead__progress-fill" id="yb-email-progress-fill"></div></div>
+              <span id="yb-email-progress-text"></span>
+            </div>
             <div class="yb-lead__modal-actions">
               <button class="yb-btn yb-btn--primary" data-action="email-send" id="yb-email-send-btn">{{ t.leads_send_email }}</button>
               <button class="yb-btn yb-btn--outline" data-action="email-cancel">{{ t.cancel }}</button>
