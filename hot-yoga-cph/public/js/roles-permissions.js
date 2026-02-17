@@ -73,8 +73,8 @@
     trainee:   ['gated-content', 'live-streaming', 'recordings'],
     student:   ['gated-content'],
     teacher:   ['gated-content', 'live-streaming', 'recordings'],
-    marketing: ['gated-content', 'admin:content'],
-    admin:     ['gated-content', 'live-streaming', 'recordings', 'admin:content', 'admin:courses', 'admin:users']
+    marketing: ['gated-content', 'admin:content', 'lead:manage'],
+    admin:     ['gated-content', 'live-streaming', 'recordings', 'admin:content', 'admin:courses', 'admin:users', 'lead:manage']
   };
 
   /**
