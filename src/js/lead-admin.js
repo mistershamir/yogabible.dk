@@ -46,6 +46,11 @@
   var sortDir = 'desc';
   var selectedIds = new Set();
   var selectAll = false;
+  var leadViewMode = 'table';
+  var expandedLeadIds = new Set();
+
+  // Kanban columns
+  var KANBAN_COLUMNS = ['New', 'Contacted', 'No Answer', 'Follow-up', 'Engaged', 'Qualified', 'Negotiating', 'Converted'];
 
   // Application state
   var applications = [];
@@ -127,6 +132,7 @@
   var STATUSES = [
     { value: 'New', label: 'New', color: '#fff3cd', text: '#856404', icon: '\u2728' },
     { value: 'Contacted', label: 'Contacted', color: '#d1ecf1', text: '#0c5460', icon: '\ud83d\udce7' },
+    { value: 'No Answer', label: 'No Answer', color: '#FFE0CC', text: '#BF360C', icon: '\ud83d\udcf5' },
     { value: 'Follow-up', label: 'Follow-up', color: '#e8daef', text: '#6c3483', icon: '\ud83d\udd04' },
     { value: 'Engaged', label: 'Engaged', color: '#DCEDC8', text: '#33691E', icon: '\ud83d\udcac' },
     { value: 'Qualified', label: 'Qualified', color: '#B3E5FC', text: '#01579B', icon: '\u2705' },
@@ -136,12 +142,14 @@
     { value: 'On Hold', label: 'On Hold', color: '#FFF9C4', text: '#F57F17', icon: '\u23f8\ufe0f' },
     { value: 'Unsubscribed', label: 'Unsubscribed', color: '#f8d7da', text: '#721c24', icon: '\ud83d\udeab' },
     { value: 'Lost', label: 'Lost', color: '#ECEFF1', text: '#546E7F', icon: '\ud83d\udc4e' },
-    { value: 'Closed', label: 'Closed', color: '#f5f5f5', text: '#9e9e9e', icon: '\u2716' }
+    { value: 'Closed', label: 'Closed', color: '#f5f5f5', text: '#9e9e9e', icon: '\u2716' },
+    { value: 'Archived', label: 'Archived', color: '#EFEBE9', text: '#795548', icon: '\ud83d\udce6' }
   ];
 
   var SUB_STATUSES = {
     'New': ['Incoming', 'Needs Review', 'Auto-assigned'],
-    'Contacted': ['First Email Sent', 'Called - No Answer', 'Called - Spoke', 'SMS Sent', 'WhatsApp Sent'],
+    'Contacted': ['First Email Sent', 'Called - Spoke', 'SMS Sent', 'WhatsApp Sent'],
+    'No Answer': ['1st Attempt', '2nd Attempt', '3rd Attempt', 'Voicemail Left', 'Try Again Later'],
     'Follow-up': ['Scheduled Call', 'Waiting Reply', 'Second Follow-up', 'Third Follow-up', 'Final Attempt'],
     'Engaged': ['Asking Questions', 'Price Discussion', 'Scheduling Visit', 'Reviewing Materials'],
     'Qualified': ['Ready to Apply', 'Needs Payment Info', 'Considering Dates'],
@@ -151,7 +159,8 @@
     'On Hold': ['Travel Issues', 'Financial', 'Personal Reasons', 'Next Cohort'],
     'Unsubscribed': ['Email Only', 'All Communications'],
     'Lost': ['No Response', 'Chose Competitor', 'Budget', 'Not Interested', 'Wrong Fit'],
-    'Closed': ['Spam', 'Duplicate', 'Invalid Contact', 'Completed']
+    'Closed': ['Spam', 'Duplicate', 'Invalid Contact', 'Completed'],
+    'Archived': ['Cleaned Up', 'Duplicate', 'Test Lead', 'Old Data']
   };
 
   var PRIORITIES = [
@@ -223,6 +232,15 @@
     return labels[(type || '').toLowerCase()] || type || '\u2014';
   }
 
+  function lcRecencyColor(d) {
+    if (!d) return '#6F6A66';
+    var date = d.toDate ? d.toDate() : new Date(d);
+    var days = Math.floor((Date.now() - date.getTime()) / 86400000);
+    if (days > 14) return '#EF5350';
+    if (days > 7) return '#FF9800';
+    return '#4CAF50';
+  }
+
   /* ══════════════════════════════════════════
      LOAD LEADS
      ══════════════════════════════════════════ */
@@ -232,11 +250,21 @@
       lastDoc = null;
       selectedIds.clear();
       selectAll = false;
+      expandedLeadIds.clear();
     }
 
     var query = db.collection('leads').orderBy(sortField, sortDir);
 
-    if (filterStatus) query = query.where('status', '==', filterStatus);
+    // Filter by archived state — only show archived when explicitly toggled
+    if (showArchived) {
+      query = query.where('archived', '==', true);
+    } else if (filterStatus === 'Archived') {
+      query = query.where('status', '==', 'Archived');
+    } else {
+      // Firestore doesn't support != well, so we filter client-side for non-archived
+    }
+
+    if (filterStatus && filterStatus !== 'Archived') query = query.where('status', '==', filterStatus);
     if (filterType) query = query.where('type', '==', filterType);
     if (filterSource) query = query.where('source', '==', filterSource);
     if (filterPriority) query = query.where('priority', '==', filterPriority);
@@ -245,16 +273,19 @@
 
     query.limit(PAGE_SIZE).get().then(function (snap) {
       snap.forEach(function (doc) {
-        leads.push(Object.assign({ id: doc.id }, doc.data()));
+        var data = Object.assign({ id: doc.id }, doc.data());
+        // Client-side filter: skip archived leads unless showing archived
+        if (!showArchived && data.archived === true) return;
+        leads.push(data);
       });
       lastDoc = snap.docs.length ? snap.docs[snap.docs.length - 1] : null;
 
-      renderLeadTable();
+      renderLeadView();
       renderLeadStats();
       updateBulkBar();
 
       var loadMore = $('yb-lead-load-more-wrap');
-      if (loadMore) loadMore.hidden = snap.docs.length < PAGE_SIZE;
+      if (loadMore && leadViewMode === 'table') loadMore.hidden = snap.docs.length < PAGE_SIZE;
 
     }).catch(function (err) {
       console.error('[lead-admin] Load error:', err);
@@ -281,6 +312,25 @@
     return filtered;
   }
 
+  /* ── View dispatcher ── */
+  function renderLeadView() {
+    var tableContainer = $('yb-lead-table-container');
+    var loadMore = $('yb-lead-load-more-wrap');
+    var kanbanEl = $('yb-lead-kanban');
+    var bulkBar = $('yb-lead-bulk-bar');
+
+    if (leadViewMode === 'kanban') {
+      if (tableContainer) tableContainer.hidden = true;
+      if (loadMore) loadMore.hidden = true;
+      if (bulkBar) bulkBar.hidden = true;
+      if (kanbanEl) { kanbanEl.hidden = false; renderKanban(); }
+    } else {
+      if (tableContainer) tableContainer.hidden = false;
+      if (kanbanEl) kanbanEl.hidden = true;
+      renderLeadTable();
+    }
+  }
+
   function renderLeadTable() {
     var tbody = $('yb-lead-table-body');
     if (!tbody) return;
@@ -292,7 +342,7 @@
     if (countEl) countEl.textContent = filtered.length + ' ' + t('leads_of') + ' ' + leads.length;
 
     if (!filtered.length) {
-      tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;padding:2rem;color:var(--yb-muted)">' + t('leads_no_leads') + '</td></tr>';
+      tbody.innerHTML = '<tr><td colspan="15" style="text-align:center;padding:2rem;color:var(--yb-muted)">' + t('leads_no_leads') + '</td></tr>';
       return;
     }
 
@@ -302,6 +352,7 @@
 
     tbody.innerHTML = filtered.map(function (l) {
       var isSelected = selectedIds.has(l.id);
+      var isExpanded = expandedLeadIds.has(l.id);
       var followupClass = '';
       if (l.followup_date) {
         var fDate = l.followup_date.toDate ? l.followup_date.toDate() : new Date(l.followup_date);
@@ -317,11 +368,20 @@
         unreadBadge = ' <span class="yb-lead__sms-unread-icon" title="Unread SMS">\ud83d\udce9</span>';
       }
 
-      return '<tr class="yb-lead__row' + followupClass + (isSelected ? ' is-selected' : '') + '" data-id="' + l.id + '">' +
+      // Notes count
+      var notesCount = Array.isArray(l.notes) ? l.notes.length : 0;
+
+      var row = '<tr class="yb-lead__row' + followupClass + (isSelected ? ' is-selected' : '') + '" data-id="' + l.id + '">' +
+        // Chevron
+        '<td class="yb-lead__cell-chevron">' +
+          '<button class="yb-lead__chevron-btn' + (isExpanded ? ' is-open' : '') + '" data-action="toggle-expand" data-id="' + l.id + '" title="Quick view">' +
+            '<span class="yb-lead__chevron-icon"></span>' +
+          '</button>' +
+        '</td>' +
         '<td class="yb-lead__cell-cb"><input type="checkbox" class="yb-lead__cb" data-lead-id="' + l.id + '"' + (isSelected ? ' checked' : '') + '></td>' +
         '<td class="yb-lead__cell-date">' + relativeTime(l.created_at) + '</td>' +
         '<td class="yb-lead__cell-name">' +
-          priorityBadgeHtml(l.priority) + temperatureBadgeHtml(l.temperature) +
+          priorityBadgeHtml(l.priority) +
           esc((l.first_name || '') + ' ' + (l.last_name || '')).trim() +
           unreadBadge +
         '</td>' +
@@ -338,11 +398,118 @@
         '<td class="yb-lead__cell-followup">' +
           (l.followup_date ? '<span class="yb-lead__followup-date' + followupClass + '">' + fmtDate(l.followup_date) + '</span>' : '\u2014') +
         '</td>' +
+        // Enhanced columns
+        '<td class="yb-lead__cell-lastcontact">' +
+          (l.last_contact ? '<span style="color:' + lcRecencyColor(l.last_contact) + '">' + relativeTime(l.last_contact) + '</span>' : '\u2014') +
+        '</td>' +
+        '<td class="yb-lead__cell-temp">' + temperatureBadgeHtml(l.temperature) + '</td>' +
+        '<td class="yb-lead__cell-notes">' +
+          (notesCount ? '<span class="yb-lead__notes-count">' + notesCount + '</span>' : '\u2014') +
+        '</td>' +
+        '<td class="yb-lead__cell-app">' +
+          (l.application_id ? '<span class="yb-lead__app-badge--inline" title="Has application">\u2713</span>' : '\u2014') +
+        '</td>' +
         '<td class="yb-lead__cell-actions">' +
           '<button class="yb-admin__icon-btn" data-action="view-lead" data-id="' + l.id + '" title="' + t('users_view') + '">\u2192</button>' +
         '</td>' +
         '</tr>';
+
+      // Expanded inline panel
+      if (isExpanded) {
+        row += buildExpandedRow(l);
+      }
+
+      return row;
     }).join('');
+  }
+
+  /* ── Expandable inline row ── */
+  function buildExpandedRow(l) {
+    var notes = Array.isArray(l.notes) ? l.notes : [];
+    var lastTwoNotes = notes.slice(-2).reverse();
+
+    var lcColor = lcRecencyColor(l.last_contact);
+
+    var appBadge = l.application_id
+      ? '<span class="yb-lead__app-badge--inline" style="color:#155724">\u2713 App</span>'
+      : '<span style="color:#6F6A66">\u2014</span>';
+
+    var html = '<tr class="yb-lead__expanded-row" data-expanded-for="' + l.id + '">' +
+      '<td colspan="15" class="yb-lead__expanded-cell">' +
+      '<div class="yb-lead__expanded-panel">' +
+
+      // Row 1: Quick stats
+      '<div class="yb-lead__exp-row">' +
+        '<div class="yb-lead__exp-stat">' +
+          '<span class="yb-lead__exp-label">' + t('leads_last_contact') + '</span>' +
+          '<span class="yb-lead__exp-value" style="color:' + lcColor + '">' +
+            (l.last_contact ? relativeTime(l.last_contact) : '\u2014') +
+          '</span>' +
+        '</div>' +
+        '<div class="yb-lead__exp-stat">' +
+          '<span class="yb-lead__exp-label">' + t('leads_call_attempts') + '</span>' +
+          '<span class="yb-lead__exp-value">' + (l.call_attempts || 0) + '</span>' +
+        '</div>' +
+        '<div class="yb-lead__exp-stat">' +
+          '<span class="yb-lead__exp-label">' + t('leads_sms_status') + '</span>' +
+          '<span class="yb-lead__exp-value">' + esc(l.sms_status || '\u2014') + '</span>' +
+        '</div>' +
+        '<div class="yb-lead__exp-stat">' +
+          '<span class="yb-lead__exp-label">' + t('leads_temperature') + ' / ' + t('leads_priority') + '</span>' +
+          '<span class="yb-lead__exp-value">' + temperatureBadgeHtml(l.temperature) + ' ' + priorityBadgeHtml(l.priority) + '</span>' +
+        '</div>' +
+        '<div class="yb-lead__exp-stat">' +
+          '<span class="yb-lead__exp-label">App</span>' +
+          '<span class="yb-lead__exp-value">' + appBadge + '</span>' +
+        '</div>' +
+      '</div>';
+
+    // Row 2: Location + Accommodation
+    if (l.city_country || (l.accommodation && l.accommodation !== 'No')) {
+      html += '<div class="yb-lead__exp-row">';
+      if (l.city_country) {
+        html += '<div class="yb-lead__exp-stat"><span class="yb-lead__exp-label">' + t('leads_city') + '</span><span class="yb-lead__exp-value">\ud83c\udf0d ' + esc(l.city_country) + '</span></div>';
+      }
+      if (l.accommodation && l.accommodation !== 'No') {
+        html += '<div class="yb-lead__exp-stat"><span class="yb-lead__exp-label">' + t('leads_accommodation') + '</span><span class="yb-lead__exp-value">\ud83c\udfe0 ' + esc(l.accommodation) + (l.housing_months ? ' \u00b7 ' + esc(l.housing_months) : '') + '</span></div>';
+      }
+      html += '</div>';
+    }
+
+    // Row 3: Notes preview
+    if (lastTwoNotes.length) {
+      html += '<div class="yb-lead__exp-notes">';
+      lastTwoNotes.forEach(function (n) {
+        var noteIcons = { call: '\ud83d\udcde', email: '\u2709\ufe0f', sms: '\ud83d\udcf1', note: '\ud83d\udcdd', system: '\u2699\ufe0f' };
+        html += '<div class="yb-lead__exp-note">' +
+          '<span class="yb-lead__exp-note-icon">' + (noteIcons[n.type] || '\ud83d\udcdd') + '</span>' +
+          '<span class="yb-lead__exp-note-time">' + relativeTime(n.timestamp) + '</span>' +
+          '<span class="yb-lead__exp-note-text">' + esc((n.text || '').substring(0, 120)) + (n.text && n.text.length > 120 ? '\u2026' : '') + '</span>' +
+        '</div>';
+      });
+      html += '</div>';
+    }
+
+    // Row 4: Message excerpt
+    if (l.message) {
+      html += '<div class="yb-lead__exp-message">\ud83d\udcac ' + esc(l.message.substring(0, 200)) + (l.message.length > 200 ? '\u2026' : '') + '</div>';
+    }
+
+    // Quick action buttons
+    html += '<div class="yb-lead__exp-actions">';
+    if (l.phone) {
+      html += '<a href="tel:' + esc(l.phone) + '" class="yb-btn yb-btn--outline yb-btn--sm" data-action="log-call-inline" data-id="' + l.id + '">\ud83d\udcde ' + t('leads_call') + '</a>';
+      html += '<button class="yb-btn yb-btn--outline yb-btn--sm" data-action="sms-inline" data-id="' + l.id + '">\ud83d\udcf1 ' + t('leads_sms') + '</button>';
+      html += '<a href="https://wa.me/' + esc((l.phone || '').replace(/[^0-9+]/g, '')) + '" target="_blank" rel="noopener" class="yb-btn yb-btn--outline yb-btn--sm">WhatsApp</a>';
+    }
+    if (l.email) {
+      html += '<button class="yb-btn yb-btn--outline yb-btn--sm" data-action="email-inline" data-id="' + l.id + '">\u2709 ' + t('leads_email') + '</button>';
+    }
+    html += '<button class="yb-btn yb-btn--primary yb-btn--sm" data-action="view-lead" data-id="' + l.id + '">' + t('leads_detail_title') + ' \u2192</button>';
+    html += '</div>';
+
+    html += '</div></td></tr>';
+    return html;
   }
 
   /* ══════════════════════════════════════════
@@ -364,7 +531,7 @@
 
     // Pipeline funnel stats
     var pipeline = leads.filter(function (l) {
-      return ['New', 'Contacted', 'Follow-up', 'Engaged', 'Qualified', 'Negotiating'].indexOf(l.status) !== -1;
+      return ['New', 'Contacted', 'No Answer', 'Follow-up', 'Engaged', 'Qualified', 'Negotiating'].indexOf(l.status) !== -1;
     }).length;
     var convertedCount = counts['Converted'] || 0;
     var conversionRate = total > 0 ? Math.round((convertedCount / total) * 100) : 0;
@@ -421,6 +588,173 @@
   }
 
   /* ══════════════════════════════════════════
+     KANBAN BOARD VIEW
+     ══════════════════════════════════════════ */
+  function renderKanban() {
+    var el = $('yb-lead-kanban');
+    if (!el) return;
+
+    var filtered = getFilteredLeads();
+
+    // Update count display
+    var countEl = $('yb-lead-count');
+    if (countEl) countEl.textContent = filtered.length + ' ' + t('leads_of') + ' ' + leads.length;
+
+    // Group leads by column
+    var groups = {};
+    KANBAN_COLUMNS.forEach(function (s) { groups[s] = []; });
+    groups['Other'] = [];
+
+    filtered.forEach(function (l) {
+      if (KANBAN_COLUMNS.indexOf(l.status) !== -1) {
+        groups[l.status].push(l);
+      } else {
+        groups['Other'].push(l);
+      }
+    });
+
+    var allCols = KANBAN_COLUMNS.concat(['Other']);
+
+    el.innerHTML = '<div class="yb-lead__kanban-board">' +
+      allCols.map(function (status) {
+        var meta = status === 'Other'
+          ? { color: '#BDBDBD', text: '#6F6A66', icon: '\u2022' }
+          : getStatusMeta(status);
+        var colLeads = groups[status];
+
+        return '<div class="yb-lead__kanban-col" data-kanban-status="' + esc(status) + '">' +
+          '<div class="yb-lead__kanban-col-header" style="border-top:3px solid ' + meta.text + '">' +
+            '<span class="yb-lead__kanban-col-icon">' + meta.icon + '</span>' +
+            '<span class="yb-lead__kanban-col-name">' + esc(status === 'Other' ? t('leads_kanban_other') : status) + '</span>' +
+            '<span class="yb-lead__kanban-col-count">' + colLeads.length + '</span>' +
+          '</div>' +
+          '<div class="yb-lead__kanban-cards" data-kanban-drop-zone="' + esc(status) + '">' +
+            colLeads.map(function (l) { return buildKanbanCard(l); }).join('') +
+          '</div>' +
+        '</div>';
+      }).join('') +
+    '</div>';
+
+    bindKanbanDragEvents();
+  }
+
+  function buildKanbanCard(l) {
+    var followupUrgency = '';
+    var followupText = '';
+    if (l.followup_date) {
+      var fDate = l.followup_date.toDate ? l.followup_date.toDate() : new Date(l.followup_date);
+      var today = new Date();
+      today.setHours(0, 0, 0, 0);
+      if (fDate < today) followupUrgency = ' yb-lead__kanban-followup--overdue';
+      else if (fDate < new Date(today.getTime() + 86400000)) followupUrgency = ' yb-lead__kanban-followup--today';
+      followupText = fmtDate(l.followup_date);
+    }
+
+    return '<div class="yb-lead__kanban-card" draggable="true" data-id="' + l.id + '">' +
+      '<div class="yb-lead__kanban-card-header">' +
+        '<strong class="yb-lead__kanban-card-name">' +
+          priorityBadgeHtml(l.priority) +
+          esc((l.first_name || '') + ' ' + (l.last_name || '')).trim() +
+        '</strong>' +
+        (l.has_unread_sms ? '<span class="yb-lead__sms-unread-icon" title="Unread SMS">\ud83d\udce9</span>' : '') +
+      '</div>' +
+      '<div class="yb-lead__kanban-card-meta">' +
+        '<span class="yb-lead__type-badge">' + typeBadge(l.type) + '</span>' +
+        temperatureBadgeHtml(l.temperature) +
+      '</div>' +
+      (followupText
+        ? '<div class="yb-lead__kanban-followup' + followupUrgency + '">\ud83d\udcc5 ' + followupText + '</div>'
+        : '') +
+      (l.source ? '<div class="yb-lead__kanban-source">' + esc(l.source.substring(0, 25)) + '</div>' : '') +
+    '</div>';
+  }
+
+  function bindKanbanDragEvents() {
+    var cards = $$('.yb-lead__kanban-card');
+    var dropZones = $$('.yb-lead__kanban-cards');
+
+    for (var i = 0; i < cards.length; i++) {
+      (function (card) {
+        card.addEventListener('dragstart', function (e) {
+          e.dataTransfer.setData('text/plain', card.getAttribute('data-id'));
+          e.dataTransfer.effectAllowed = 'move';
+          card.classList.add('is-dragging');
+        });
+        card.addEventListener('dragend', function () {
+          card.classList.remove('is-dragging');
+          for (var j = 0; j < dropZones.length; j++) {
+            dropZones[j].classList.remove('is-drag-over');
+          }
+        });
+        card.addEventListener('click', function (e) {
+          if (e.target.closest('button')) return;
+          showLeadDetail(card.getAttribute('data-id'));
+        });
+      })(cards[i]);
+    }
+
+    for (var k = 0; k < dropZones.length; k++) {
+      (function (zone) {
+        zone.addEventListener('dragover', function (e) {
+          e.preventDefault();
+          e.dataTransfer.dropEffect = 'move';
+          zone.classList.add('is-drag-over');
+        });
+        zone.addEventListener('dragleave', function (e) {
+          // Only remove if leaving the zone itself, not entering a child
+          if (!zone.contains(e.relatedTarget)) {
+            zone.classList.remove('is-drag-over');
+          }
+        });
+        zone.addEventListener('drop', function (e) {
+          e.preventDefault();
+          zone.classList.remove('is-drag-over');
+          var leadId = e.dataTransfer.getData('text/plain');
+          var newStatus = zone.getAttribute('data-kanban-drop-zone');
+          if (leadId && newStatus && newStatus !== 'Other') {
+            moveLeadToStatus(leadId, newStatus);
+          }
+        });
+      })(dropZones[k]);
+    }
+  }
+
+  function moveLeadToStatus(leadId, newStatus) {
+    var lead = leads.find(function (l) { return l.id === leadId; });
+    if (!lead || lead.status === newStatus) return;
+
+    var oldStatus = lead.status;
+    var updates = {
+      status: newStatus,
+      updated_at: firebase.firestore.FieldValue.serverTimestamp()
+    };
+
+    // Auto-set last_contact when moving to Contacted
+    if (newStatus === 'Contacted' && !lead.last_contact) {
+      updates.last_contact = firebase.firestore.FieldValue.serverTimestamp();
+    }
+    // Auto-set converted flag
+    if (newStatus === 'Converted') {
+      updates.converted = true;
+      updates.converted_at = firebase.firestore.FieldValue.serverTimestamp();
+    }
+
+    // Optimistic local update
+    lead.status = newStatus;
+    renderKanban();
+
+    db.collection('leads').doc(leadId).update(updates).then(function () {
+      renderLeadStats();
+      toast(esc((lead.first_name || '') + ' ' + (lead.last_name || '')).trim() + ' \u2192 ' + newStatus);
+    }).catch(function (err) {
+      // Rollback
+      lead.status = oldStatus;
+      renderKanban();
+      toast('Error: ' + err.message, true);
+    });
+  }
+
+  /* ══════════════════════════════════════════
      VIEW LEAD DETAIL
      ══════════════════════════════════════════ */
   function showLeadDetail(leadId) {
@@ -451,7 +785,7 @@
     $('yb-admin-v-lead-detail').hidden = true;
     currentLeadId = null;
     currentLead = null;
-    renderLeadTable(); // refresh in case changes were made
+    renderLeadView(); // refresh in case changes were made
   }
 
   /* ══════════════════════════════════════════
@@ -645,9 +979,13 @@
       (email ? '<button class="yb-btn yb-btn--outline yb-btn--sm" data-action="lead-email">\u2709\ufe0f ' + t('leads_email') + '</button>' : '') +
       '<button class="yb-btn yb-btn--outline yb-btn--sm" data-action="lead-add-note">\ud83d\udcdd ' + t('leads_add_note') + '</button>';
 
-    // Only show delete button for admins
+    // Admin actions: archive (soft delete) or restore
     if (currentUserRole === 'admin') {
-      html += '<button class="yb-btn yb-btn--outline yb-btn--sm yb-admin__icon-btn--danger" data-action="delete-lead" data-id="' + currentLeadId + '">\ud83d\uddd1 ' + t('delete') + '</button>';
+      if (currentLead.archived === true) {
+        html += '<button class="yb-btn yb-btn--outline yb-btn--sm" style="color:#4CAF50;border-color:#4CAF50" data-action="restore-lead" data-id="' + currentLeadId + '">\u21a9\ufe0f ' + t('leads_restore') + '</button>';
+      } else {
+        html += '<button class="yb-btn yb-btn--outline yb-btn--sm yb-admin__icon-btn--danger" data-action="delete-lead" data-id="' + currentLeadId + '">\ud83d\uddd1 ' + t('leads_archive') + '</button>';
+      }
     }
 
     el.innerHTML = html;
@@ -972,8 +1310,10 @@
   }
 
   /* ══════════════════════════════════════════
-     DELETE LEAD
+     DELETE LEAD (Soft — archives, does not remove from DB)
      ══════════════════════════════════════════ */
+  var showArchived = false;
+
   function deleteLead(leadId) {
     if (currentUserRole !== 'admin') {
       toast('Only admins can delete leads.', true);
@@ -981,16 +1321,65 @@
     }
     if (!confirm(t('leads_confirm_delete'))) return;
 
-    db.collection('leads').doc(leadId).delete().then(function () {
+    var lead = leads.find(function (l) { return l.id === leadId; });
+    var user = firebase.auth().currentUser;
+
+    db.collection('leads').doc(leadId).update({
+      archived: true,
+      archived_at: firebase.firestore.FieldValue.serverTimestamp(),
+      archived_by: user ? user.email : 'unknown',
+      previous_status: lead ? lead.status : '',
+      status: 'Archived'
+    }).then(function () {
       leads = leads.filter(function (l) { return l.id !== leadId; });
       backToLeadList();
-      renderLeadTable();
+      renderLeadView();
       renderLeadStats();
-      toast(t('saved'));
+      toast(t('leads_archived'));
     }).catch(function (err) {
-      console.error('[lead-admin] Delete error:', err);
+      console.error('[lead-admin] Archive error:', err);
       toast(t('error_save'), true);
     });
+  }
+
+  function restoreLead(leadId) {
+    if (currentUserRole !== 'admin') {
+      toast('Only admins can restore leads.', true);
+      return;
+    }
+    var lead = leads.find(function (l) { return l.id === leadId; });
+    if (!lead) return;
+
+    var restoreStatus = lead.previous_status || 'New';
+
+    db.collection('leads').doc(leadId).update({
+      archived: false,
+      archived_at: null,
+      archived_by: null,
+      previous_status: null,
+      status: restoreStatus
+    }).then(function () {
+      lead.archived = false;
+      lead.status = restoreStatus;
+      lead.previous_status = null;
+      renderLeadView();
+      renderLeadStats();
+      toast(t('leads_restored'));
+    }).catch(function (err) {
+      toast(t('error_save'), true);
+    });
+  }
+
+  function toggleShowArchived() {
+    showArchived = !showArchived;
+    var btn = $('yb-lead-archive-toggle');
+    if (btn) {
+      btn.textContent = showArchived
+        ? '\ud83d\udce6 ' + t('leads_hide_archived')
+        : '\ud83d\udce6 ' + t('leads_show_archived');
+      btn.classList.toggle('is-active', showArchived);
+    }
+    loadLeads();
   }
 
   /* ══════════════════════════════════════════
@@ -1264,7 +1653,7 @@
     } else {
       selectedIds.clear();
     }
-    renderLeadTable();
+    renderLeadView();
     updateBulkBar();
   }
 
@@ -1308,7 +1697,7 @@
       });
       selectedIds.clear();
       selectAll = false;
-      renderLeadTable();
+      renderLeadView();
       renderLeadStats();
       updateBulkBar();
       toast(t('saved'));
@@ -1827,16 +2216,47 @@
         case 'leads-refresh': loadLeads(); break;
         case 'leads-load-more': loadLeads(true); break;
         case 'delete-lead': deleteLead(id || currentLeadId); break;
+        case 'restore-lead': restoreLead(id || currentLeadId); break;
+        case 'toggle-show-archived': toggleShowArchived(); break;
         case 'lead-sms': openSMSComposer(); break;
         case 'lead-email': openEmailComposer(); break;
         case 'lead-add-note': addNote('note'); break;
         case 'log-call': e.preventDefault(); logCall(); break;
+        case 'toggle-expand':
+          if (id) {
+            if (expandedLeadIds.has(id)) expandedLeadIds.delete(id);
+            else expandedLeadIds.add(id);
+            renderLeadTable();
+          }
+          break;
+        case 'sms-inline':
+          if (id) {
+            currentLeadId = id;
+            currentLead = leads.find(function (l) { return l.id === id; });
+            openSMSComposer();
+          }
+          break;
+        case 'email-inline':
+          if (id) {
+            currentLeadId = id;
+            currentLead = leads.find(function (l) { return l.id === id; });
+            openEmailComposer();
+          }
+          break;
+        case 'log-call-inline':
+          e.preventDefault();
+          if (id) {
+            currentLeadId = id;
+            currentLead = leads.find(function (l) { return l.id === id; });
+            logCall();
+          }
+          break;
         case 'leads-export-csv': exportCSV(); break;
         case 'leads-select-all': toggleSelectAll(); break;
         case 'bulk-status': bulkUpdateStatus(); break;
         case 'bulk-sms': bulkSMS(); break;
         case 'bulk-email': bulkEmail(); break;
-        case 'bulk-deselect': selectedIds.clear(); selectAll = false; renderLeadTable(); updateBulkBar(); break;
+        case 'bulk-deselect': selectedIds.clear(); selectAll = false; renderLeadView(); updateBulkBar(); break;
         case 'sms-send': sendSMSFromComposer(); break;
         case 'sms-cancel': $('yb-lead-sms-modal').hidden = true; break;
         case 'email-send': sendEmailFromComposer(); break;
@@ -1880,14 +2300,14 @@
       searchForm.addEventListener('submit', function (e) {
         e.preventDefault();
         searchTerm = ($('yb-lead-search-input') || {}).value || '';
-        renderLeadTable();
+        renderLeadView();
       });
       // Live search
       var searchInput = $('yb-lead-search-input');
       if (searchInput) {
         searchInput.addEventListener('input', function () {
           searchTerm = searchInput.value || '';
-          renderLeadTable();
+          renderLeadView();
         });
       }
     }
@@ -1961,13 +2381,30 @@
     var table = $('yb-lead-table');
     if (table) {
       table.addEventListener('click', function (e) {
-        // Don't trigger on checkbox or button clicks
-        if (e.target.closest('input[type="checkbox"]') || e.target.closest('button')) return;
+        // Don't trigger on checkbox, button, anchor, or expanded panel clicks
+        if (e.target.closest('input[type="checkbox"]') || e.target.closest('button') || e.target.closest('a')) return;
+        if (e.target.closest('.yb-lead__expanded-row')) return;
         var row = e.target.closest('.yb-lead__row');
         if (row) {
           var rowId = row.getAttribute('data-id');
           if (rowId) showLeadDetail(rowId);
         }
+      });
+    }
+
+    // View toggle — Table / Kanban
+    var viewToggle = $('yb-lead-view-toggle');
+    if (viewToggle) {
+      viewToggle.addEventListener('click', function (e) {
+        var btn = e.target.closest('.yb-lead__view-btn');
+        if (!btn) return;
+        var view = btn.getAttribute('data-view');
+        if (!view || view === leadViewMode) return;
+        leadViewMode = view;
+        $$('.yb-lead__view-btn').forEach(function (b) {
+          b.classList.toggle('is-active', b.getAttribute('data-view') === view);
+        });
+        renderLeadView();
       });
     }
 
@@ -2033,18 +2470,27 @@
     if (typeof firebase === 'undefined' || !firebase.apps || !firebase.apps.length) return;
     db = firebase.firestore();
 
-    // Detect user role
-    var user = firebase.auth().currentUser;
-    if (user) {
+    // Detect user role — use onAuthStateChanged for reliability
+    function resolveRole(user) {
+      if (!user) return;
       db.collection('users').doc(user.uid).get().then(function (doc) {
         if (doc.exists) {
           var data = doc.data();
           currentUserRole = data.role || 'user';
+          // Re-render quick actions if a lead detail is already open
+          if (currentLead) renderLeadQuickActions();
         }
       }).catch(function (err) {
         console.error('[lead-admin] Role fetch error:', err);
       });
     }
+    var user = firebase.auth().currentUser;
+    if (user) {
+      resolveRole(user);
+    }
+    firebase.auth().onAuthStateChanged(function (u) {
+      if (u && currentUserRole === 'user') resolveRole(u);
+    });
 
     bindLeadEvents();
 
