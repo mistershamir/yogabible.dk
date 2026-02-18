@@ -70,9 +70,23 @@
       <p class="ybc-lead">{{ t.s1_lead }}</p>
       <p class="ybc-meta">{{ t.s1_meta | safe }}</p>
 
-      {# Pricing pill #}
+      {# Urgency badges #}
+      {% if t.s1_urgency_spots %}
+      <div class="ybc-urgency">
+        <span class="ybc-urgency__badge">{{ t.s1_urgency_spots }}</span>
+        <span class="ybc-urgency__badge ybc-urgency__badge--muted">{{ t.s1_urgency_deadline }}</span>
+      </div>
+      {% endif %}
+
+      {# Pricing pill + anchor #}
       <div class="ybc-price">
-        <div class="ybc-price__row">
+        {% if t.s1_anchor_label %}
+        <div class="ybc-price__row ybc-price__row--anchor">
+          <span class="ybc-price__label">{{ t.s1_anchor_label }}</span>
+          <span class="ybc-price__value ybc-price__value--struck">{{ t.s1_anchor_value }}</span>
+        </div>
+        {% endif %}
+        <div class="ybc-price__row ybc-price__row--main">
           <span class="ybc-price__label">{{ t.s1_price_label }}</span>
           <span class="ybc-price__value">{{ t.s1_price_value }}</span>
           <span class="ybc-price__hint">{{ t.s1_price_hint }}</span>
@@ -259,6 +273,32 @@
 </section>
 
 
+{# ═══════ S6: TESTIMONIALS ═══════ #}
+{% if t.s6_testimonials %}
+<section class="ybc-testimonials ybc-page ybc-fade-up" id="ybc-{{ courseId }}-reviews">
+  <div class="ybc-testimonials__inner">
+    <header class="ybc-testimonials__header">
+      <span class="ybc-testimonials__eyebrow">{{ tc.testimonials_eyebrow }}</span>
+      <h2 class="ybc-testimonials__title">{{ tc.testimonials_title }}</h2>
+    </header>
+    <div class="ybc-testimonials__track">
+      {% for review in t.s6_testimonials %}
+      <article class="ybc-testimonial">
+        <span class="ybc-testimonial__stars" aria-label="5 stars">{{ review.stars }}</span>
+        <blockquote class="ybc-testimonial__quote">{{ review.quote }}</blockquote>
+        <footer class="ybc-testimonial__footer">
+          <strong>{{ review.name }}</strong>
+          <span>{{ review.detail }}</span>
+        </footer>
+      </article>
+      {% endfor %}
+    </div>
+    <p class="ybc-testimonials__google">{{ tc.testimonials_google }}</p>
+  </div>
+</section>
+{% endif %}
+
+
 {# ═══════ S5: WHAT IS [TOPIC]? — Educational + image grid ═══════ #}
 <section class="ybc-what ybc-page" id="ybc-{{ courseId }}-what">
   <div class="ybc-what__wrapper">
@@ -357,6 +397,16 @@
       <a class="ybc-cross__blog-all" href="{{ lp }}/yoga-journal">{{ tc.cross_blog_cta }} &rarr;</a>
     </div>
     {% endif %}
+  </div>
+</section>
+
+
+{# ═══════ LEAD CAPTURE — for non-buyers ═══════ #}
+<section class="ybc-lead ybc-page ybc-fade-up">
+  <div class="ybc-lead__inner">
+    <h2 class="ybc-lead__title">{{ tc.lead_capture_title }}</h2>
+    <p class="ybc-lead__desc">{{ tc.lead_capture_desc }}</p>
+    <button type="button" class="ybc-lead__btn" data-ybc-open="brochure" data-ybc-course="{{ courseId | capitalize }}" data-ybc-source="{{ courseId | capitalize }} – lead capture">{{ tc.lead_capture_btn }}</button>
   </div>
 </section>
 

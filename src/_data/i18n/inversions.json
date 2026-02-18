@@ -106,6 +106,36 @@
     "s5_img6_src": "/assets/images/inversions/grid-06.jpg",
     "s5_img6_alt": "Tryg landing og afvikling",
 
+    "s1_urgency_spots": "Kun 14 pladser",
+    "s1_urgency_deadline": "Tilmelding lukker 25. marts",
+    "s1_anchor_label": "Værdien af 8 private workshops",
+    "s1_anchor_value": "24.000+ kr.",
+    "s1_anchor_vs": "Dit kursus",
+
+    "s5_title": "Hvad du vil kunne efter kurset",
+    "s5_intro": "Forestil dig at sparke op i en stabil håndstand, holde en kontrolleret underarmsstand eller flyde sikkert ind og ud af inversioner. Det er ikke en drøm – det er hvad du bygger op, workshop for workshop.",
+
+    "s6_testimonials": [
+      {
+        "stars": "★★★★★",
+        "quote": "Jeg var nervøs for at stå på hænderne – men efter 4 uger med Anna føler jeg mig tryg og stærk. Progressionen er genial.",
+        "name": "Jonas L.",
+        "detail": "Inversions Kursus, 2025"
+      },
+      {
+        "stars": "★★★★★",
+        "quote": "Endelig forstår jeg teknikken bag inversioner. Ingen hurtige genveje – bare solid opbygning. Bedste investering i min praksis.",
+        "name": "Maja S.",
+        "detail": "Inversions Kursus, 2025"
+      },
+      {
+        "stars": "★★★★★",
+        "quote": "Som yogalærer fik jeg masser af cues og sekvenser til mine egne elever. Kurset er lige så relevant for undervisere som for elever.",
+        "name": "Thomas R.",
+        "detail": "Inversions Kursus, 2024"
+      }
+    ],
+
     "s7_blog_slugs": ["din-foerste-inversion-guide", "arm-balances-modet-til-at-falde", "sikker-hovedstand-teknik"]
   },
   "en": {
@@ -214,6 +244,36 @@
     "s5_img5_alt": "Transition: lift to balance",
     "s5_img6_src": "/assets/images/inversions/grid-06.jpg",
     "s5_img6_alt": "Safe landing and exit",
+
+    "s1_urgency_spots": "Only 14 spots",
+    "s1_urgency_deadline": "Registration closes 25 March",
+    "s1_anchor_label": "Value of 8 private workshops",
+    "s1_anchor_value": "24,000+ DKK",
+    "s1_anchor_vs": "Your course",
+
+    "s5_title": "What you'll be able to do after the course",
+    "s5_intro": "Imagine kicking up into a stable handstand, holding a controlled forearm stand, or flowing safely in and out of inversions. It's not a dream — it's what you'll build, workshop by workshop.",
+
+    "s6_testimonials": [
+      {
+        "stars": "★★★★★",
+        "quote": "I was nervous about standing on my hands — but after 4 weeks with Anna I feel safe and strong. The progression is brilliant.",
+        "name": "Jonas L.",
+        "detail": "Inversions Course, 2025"
+      },
+      {
+        "stars": "★★★★★",
+        "quote": "I finally understand the technique behind inversions. No quick shortcuts — just solid foundation. Best investment in my practice.",
+        "name": "Maja S.",
+        "detail": "Inversions Course, 2025"
+      },
+      {
+        "stars": "★★★★★",
+        "quote": "As a yoga teacher, I got loads of cues and sequences for my own students. The course is as relevant for teachers as for practitioners.",
+        "name": "Thomas R.",
+        "detail": "Inversions Course, 2024"
+      }
+    ],
 
     "s7_blog_slugs": ["din-foerste-inversion-guide", "arm-balances-modet-til-at-falde", "sikker-hovedstand-teknik"]
   }
