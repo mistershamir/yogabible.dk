@@ -1800,14 +1800,24 @@
     var selected = leads.filter(function (l) { return selectedIds.has(l.id); });
     var withPhone = selected.filter(function (l) { return l.phone; });
     if (!withPhone.length) { toast(t('leads_no_phone'), true); return; }
-    openSMSComposer(selected);
+    // Delegate to campaign wizard if available
+    if (typeof window.openSMSCampaign === 'function') {
+      window.openSMSCampaign(selected);
+    } else {
+      openSMSComposer(selected);
+    }
   }
 
   function bulkEmail() {
     var selected = leads.filter(function (l) { return selectedIds.has(l.id); });
     var withEmail = selected.filter(function (l) { return l.email; });
     if (!withEmail.length) { toast(t('leads_no_email_addr'), true); return; }
-    openEmailComposer(selected);
+    // Delegate to campaign wizard if available
+    if (typeof window.openEmailCampaign === 'function') {
+      window.openEmailCampaign(selected);
+    } else {
+      openEmailComposer(selected);
+    }
   }
 
   function bulkArchive() {
@@ -2674,6 +2684,18 @@
       });
     });
   }
+
+  // Expose data bridge for campaign-wizard.js
+  window._ybLeadData = {
+    getLeads: function () { return leads; },
+    getApplications: function () { return applications; },
+    getDb: function () { return db; },
+    getAuthToken: function () { return getAuthToken(); },
+    getTranslations: function () { return T; },
+    toast: toast,
+    getCurrentLead: function () { return currentLead; },
+    getSelectedIds: function () { return selectedIds; }
+  };
 
   // Bootstrap
   var checkInterval = setInterval(function () {

@@ -25,6 +25,18 @@ exports.handler = async (event) => {
   try {
     const payload = JSON.parse(event.body || '{}');
 
+    // Test mode — send to test email without logging to any lead
+    if (payload.test && payload.testEmail) {
+      const { sendCustomEmail: sendCustom } = require('./shared/email-service');
+      const testResult = await sendCustom({
+        to: payload.testEmail,
+        subject: payload.subject || '[TEST] Campaign Test',
+        bodyHtml: payload.bodyHtml || '<p>Test email content</p>',
+        bodyPlain: payload.bodyPlain || 'Test email content'
+      });
+      return jsonResponse(200, { ok: true, test: true, ...testResult });
+    }
+
     // Bulk send
     if (payload.leadIds && Array.isArray(payload.leadIds)) {
       return await handleBulkSend(payload);
