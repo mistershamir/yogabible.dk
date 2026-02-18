@@ -35,7 +35,13 @@
     "faq_contact_cta": "Kontakt os",
     "cta_schedule": "Få skema",
     "cta_signup": "Tilmeld dig",
-    "scroll_label": "Scroll"
+    "scroll_label": "Scroll",
+    "testimonials_eyebrow": "Det Siger Vores Elever",
+    "testimonials_title": "Rigtige resultater fra rigtige yogier",
+    "testimonials_google": "4.8 ★ baseret på 700+ Google anmeldelser",
+    "lead_capture_title": "Ikke helt klar endnu?",
+    "lead_capture_desc": "Få kursusskema og praktisk info direkte i din indbakke — ingen forpligtelse.",
+    "lead_capture_btn": "Få gratis skema"
   },
   "en": {
     "cross_eyebrow": "Explore More",
@@ -73,6 +79,12 @@
     "faq_contact_cta": "Contact us",
     "cta_schedule": "Get schedule",
     "cta_signup": "Sign up",
-    "scroll_label": "Scroll"
+    "scroll_label": "Scroll",
+    "testimonials_eyebrow": "What Our Students Say",
+    "testimonials_title": "Real results from real yogis",
+    "testimonials_google": "4.8 ★ based on 700+ Google reviews",
+    "lead_capture_title": "Not quite ready yet?",
+    "lead_capture_desc": "Get the course schedule and practical info straight to your inbox — no commitment.",
+    "lead_capture_btn": "Get free schedule"
   }
 }

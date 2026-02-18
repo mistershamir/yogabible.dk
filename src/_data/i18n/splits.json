@@ -105,6 +105,36 @@
     "s5_img6_src": "https://www.yogabible.dk/s/Splits_Course_Kursus_Kbenhavn_Danmark_Europe_EU_Hot_Yoga_Copenhagen_Yoga_Bible_Open_Hips_06.jpg",
     "s5_img6_alt": "Afspænding og neutralisering efter dybe hofteåbnere",
 
+    "s1_urgency_spots": "Kun 14 pladser",
+    "s1_urgency_deadline": "Tilmelding lukker 25. marts",
+    "s1_anchor_label": "Værdien af 8 private workshops",
+    "s1_anchor_value": "24.000+ kr.",
+    "s1_anchor_vs": "Dit kursus",
+
+    "s5_title": "Hvad du vil kunne efter kurset",
+    "s5_intro": "Forestil dig at glide ned i fulde forlæns splits, holde en kontrolleret midtersplits, eller bevæge dig ind og ud af dybe hofteåbnere med lethed. Det er ikke en drøm – det er hvad du bygger op, workshop for workshop.",
+
+    "s6_testimonials": [
+      {
+        "stars": "★★★★★",
+        "quote": "Sita forstår kroppen på en helt anden måde. Hendes baggrund i akrobatik gør progressionen utrolig præcis og tryg.",
+        "name": "Lotte M.",
+        "detail": "Splits Kursus, 2025"
+      },
+      {
+        "stars": "★★★★★",
+        "quote": "Efter 4 uger nåede jeg mine forlæns splits for første gang! Kombinationen af varme og teknik er genial.",
+        "name": "Sarah H.",
+        "detail": "Splits Kursus, 2025"
+      },
+      {
+        "stars": "★★★★★",
+        "quote": "Jeg sidder ved et skrivebord hele dagen. Dette kursus åbnede mine hofter og ændrede min praksis fuldstændigt.",
+        "name": "Andreas K.",
+        "detail": "Splits Kursus, 2024"
+      }
+    ],
+
     "s7_blog_slugs": ["splits-fleksibilitet-guide", "hoftefleksibilitet-kontorarbejdere", "aktiv-vs-passiv-fleksibilitet"]
   },
   "en": {
@@ -212,6 +242,36 @@
     "s5_img5_alt": "Transition into splits with support and technique",
     "s5_img6_src": "https://www.yogabible.dk/s/Splits_Course_Kursus_Kbenhavn_Danmark_Europe_EU_Hot_Yoga_Copenhagen_Yoga_Bible_Open_Hips_06.jpg",
     "s5_img6_alt": "Release and neutralisation after deep hip openers",
+
+    "s1_urgency_spots": "Only 14 spots",
+    "s1_urgency_deadline": "Registration closes 25 March",
+    "s1_anchor_label": "Value of 8 private workshops",
+    "s1_anchor_value": "24,000+ DKK",
+    "s1_anchor_vs": "Your course",
+
+    "s5_title": "What you'll be able to do after the course",
+    "s5_intro": "Imagine sliding into full front splits, holding a controlled middle splits, or moving in and out of deep hip openers with ease. It's not a dream — it's what you'll build, workshop by workshop.",
+
+    "s6_testimonials": [
+      {
+        "stars": "★★★★★",
+        "quote": "Sita understands the body on a completely different level. Her acrobatics background makes the progression incredibly precise and safe.",
+        "name": "Lotte M.",
+        "detail": "Splits Course, 2025"
+      },
+      {
+        "stars": "★★★★★",
+        "quote": "After 4 weeks I reached my front splits for the first time! The combination of heat and technique is brilliant.",
+        "name": "Sarah H.",
+        "detail": "Splits Course, 2025"
+      },
+      {
+        "stars": "★★★★★",
+        "quote": "I sit at a desk all day. This course opened my hips and completely changed my practice.",
+        "name": "Andreas K.",
+        "detail": "Splits Course, 2024"
+      }
+    ],
 
     "s7_blog_slugs": ["splits-fleksibilitet-guide", "hoftefleksibilitet-kontorarbejdere", "aktiv-vs-passiv-fleksibilitet"]
   }

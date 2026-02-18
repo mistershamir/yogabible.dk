@@ -106,6 +106,36 @@
     "s5_img6_src": "https://www.yogabible.dk/s/professional-backbend-yoga-training-copenhagen.jpg",
     "s5_img6_alt": "Modstilling og afspænding efter dybe backbends",
 
+    "s1_urgency_spots": "Kun 14 pladser",
+    "s1_urgency_deadline": "Tilmelding lukker 25. marts",
+    "s1_anchor_label": "Værdien af 8 private workshops",
+    "s1_anchor_value": "24.000+ kr.",
+    "s1_anchor_vs": "Dit kursus",
+
+    "s5_title": "Hvad du vil kunne efter kurset",
+    "s5_intro": "Forestil dig at løfte dig op i en stabil Wheel, holde en dyb Camel med åbne skuldre, eller flyde sikkert ned i drop-backs. Det er ikke en drøm – det er hvad du bygger op, workshop for workshop.",
+
+    "s6_testimonials": [
+      {
+        "stars": "★★★★★",
+        "quote": "Vanja lærte mig at bruge styrke før åbning. For første gang føles mine backbends stabile i stedet for skræmmende.",
+        "name": "Maria K.",
+        "detail": "Backbends Kursus, 2025"
+      },
+      {
+        "stars": "★★★★★",
+        "quote": "Jeg troede aldrig jeg kunne lave Wheel. Efter 4 uger løftede jeg mig op — med kontrol og selvtillid. Anbefales varmt!",
+        "name": "Sofie L.",
+        "detail": "Backbends Kursus, 2025"
+      },
+      {
+        "stars": "★★★★★",
+        "quote": "Min lænd har det så meget bedre efter kurset. Vanja fokuserer på styrke i rygmusklerne, ikke bare at presse dybere.",
+        "name": "Henrik J.",
+        "detail": "Backbends Kursus, 2024"
+      }
+    ],
+
     "s7_blog_slugs": ["backbends-uden-smerter", "rygsojlens-anatomi-yogaudovere", "fra-bro-til-wheel-guide"]
   },
   "en": {
@@ -214,6 +244,36 @@
     "s5_img5_alt": "Drop-back practice with a spotter",
     "s5_img6_src": "https://www.yogabible.dk/s/professional-backbend-yoga-training-copenhagen.jpg",
     "s5_img6_alt": "Counter-pose and release after deep backbends",
+
+    "s1_urgency_spots": "Only 14 spots",
+    "s1_urgency_deadline": "Registration closes 25 March",
+    "s1_anchor_label": "Value of 8 private workshops",
+    "s1_anchor_value": "24,000+ DKK",
+    "s1_anchor_vs": "Your course",
+
+    "s5_title": "What you'll be able to do after the course",
+    "s5_intro": "Imagine lifting into a stable Wheel, holding a deep Camel with open shoulders, or flowing safely into drop-backs. It's not a dream — it's what you'll build, workshop by workshop.",
+
+    "s6_testimonials": [
+      {
+        "stars": "★★★★★",
+        "quote": "Vanja taught me to use strength before opening. For the first time my backbends feel stable instead of scary.",
+        "name": "Maria K.",
+        "detail": "Backbends Course, 2025"
+      },
+      {
+        "stars": "★★★★★",
+        "quote": "I never thought I could do Wheel. After 4 weeks I lifted up — with control and confidence. Highly recommended!",
+        "name": "Sofie L.",
+        "detail": "Backbends Course, 2025"
+      },
+      {
+        "stars": "★★★★★",
+        "quote": "My lower back feels so much better after the course. Vanja focuses on back muscle strength, not just pushing deeper.",
+        "name": "Henrik J.",
+        "detail": "Backbends Course, 2024"
+      }
+    ],
 
     "s7_blog_slugs": ["backbends-uden-smerter", "rygsojlens-anatomi-yogaudovere", "fra-bro-til-wheel-guide"]
   }
