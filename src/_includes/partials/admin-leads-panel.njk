@@ -219,46 +219,26 @@
 <div id="yb-campaign-sms-modal" class="yb-lead__modal" hidden>
   <div class="yb-lead__modal-overlay" data-action="campaign-sms-close"></div>
   <div class="yb-lead__campaign-box yb-lead__campaign-box--sms">
-    {# Header with tabs #}
     <div class="yb-lead__campaign-header">
       <h3 class="yb-lead__campaign-title">&#128241; {{ t.campaign_sms_title }}</h3>
       <button type="button" class="yb-lead__campaign-close" data-action="campaign-sms-close">&times;</button>
     </div>
     <div class="yb-lead__campaign-tabs" id="yb-campaign-sms-tabs">
-      <button class="yb-lead__campaign-tab is-active" data-tab="recipients" type="button">
-        <span class="yb-lead__campaign-tab-num">1</span>
-        {{ t.campaign_tab_recipients }}
-        <span class="yb-lead__campaign-tab-badge" id="yb-campaign-sms-recipient-badge"></span>
-      </button>
-      <button class="yb-lead__campaign-tab" data-tab="compose" type="button" disabled>
-        <span class="yb-lead__campaign-tab-num">2</span>
-        {{ t.campaign_tab_compose }}
-      </button>
-      <button class="yb-lead__campaign-tab" data-tab="send" type="button" disabled>
-        <span class="yb-lead__campaign-tab-num">3</span>
-        {{ t.campaign_tab_send }}
-      </button>
+      <button class="yb-lead__campaign-tab is-active" data-tab="recipients" type="button">1. {{ t.campaign_tab_recipients }} <span class="yb-lead__campaign-tab-count" id="yb-campaign-sms-recipient-badge"></span></button>
+      <button class="yb-lead__campaign-tab" data-tab="compose" type="button">2. {{ t.campaign_tab_compose }}</button>
+      <button class="yb-lead__campaign-tab" data-tab="send" type="button">3. {{ t.campaign_tab_send }}</button>
     </div>
-
-    {# Tab panels — content rendered by JS #}
     <div class="yb-lead__campaign-body">
-      <div class="yb-lead__campaign-panel is-active" data-panel="recipients" id="yb-campaign-sms-recipients">
-        {# JS renders: filter chips left + recipient list right #}
-      </div>
-      <div class="yb-lead__campaign-panel" data-panel="compose" id="yb-campaign-sms-compose">
-        {# JS renders: template chips, textarea, char/segment count, preview bubble #}
-      </div>
-      <div class="yb-lead__campaign-panel" data-panel="send" id="yb-campaign-sms-send">
-        {# JS renders: summary, cost estimate, test send, send all, progress, results #}
-      </div>
+      <div class="yb-lead__campaign-panel is-active" data-panel="recipients" id="yb-campaign-sms-recipients"></div>
+      <div class="yb-lead__campaign-panel" data-panel="compose" id="yb-campaign-sms-compose"></div>
+      <div class="yb-lead__campaign-panel" data-panel="send" id="yb-campaign-sms-send"></div>
     </div>
-
-    {# Footer — changes per tab #}
     <div class="yb-lead__campaign-footer" id="yb-campaign-sms-footer">
-      <button class="yb-btn yb-btn--outline" data-action="campaign-sms-back" hidden>{{ t.campaign_back }}</button>
+      <span class="yb-lead__campaign-step-info" id="yb-campaign-sms-step-info"></span>
       <div class="yb-lead__campaign-footer-right">
+        <button class="yb-btn yb-btn--outline" data-action="campaign-sms-back" disabled>&#8592; {{ t.campaign_back }}</button>
         <button class="yb-btn yb-btn--outline" data-action="campaign-sms-close">{{ t.campaign_cancel }}</button>
-        <button class="yb-btn yb-btn--primary" data-action="campaign-sms-next" id="yb-campaign-sms-next-btn">{{ t.campaign_recipients_continue }}</button>
+        <button class="yb-btn yb-btn--primary" data-action="campaign-sms-next" id="yb-campaign-sms-next-btn">{{ t.campaign_recipients_continue }} &#8594;</button>
       </div>
     </div>
   </div>
@@ -268,53 +248,28 @@
 <div id="yb-campaign-email-modal" class="yb-lead__modal" hidden>
   <div class="yb-lead__modal-overlay" data-action="campaign-email-close"></div>
   <div class="yb-lead__campaign-box yb-lead__campaign-box--email">
-    {# Header with tabs #}
     <div class="yb-lead__campaign-header">
       <h3 class="yb-lead__campaign-title">&#9993;&#65039; {{ t.campaign_email_title }}</h3>
       <button type="button" class="yb-lead__campaign-close" data-action="campaign-email-close">&times;</button>
     </div>
     <div class="yb-lead__campaign-tabs" id="yb-campaign-email-tabs">
-      <button class="yb-lead__campaign-tab is-active" data-tab="recipients" type="button">
-        <span class="yb-lead__campaign-tab-num">1</span>
-        {{ t.campaign_tab_recipients }}
-        <span class="yb-lead__campaign-tab-badge" id="yb-campaign-email-recipient-badge"></span>
-      </button>
-      <button class="yb-lead__campaign-tab" data-tab="compose" type="button" disabled>
-        <span class="yb-lead__campaign-tab-num">2</span>
-        {{ t.campaign_tab_compose }}
-      </button>
-      <button class="yb-lead__campaign-tab" data-tab="preview" type="button" disabled>
-        <span class="yb-lead__campaign-tab-num">3</span>
-        {{ t.campaign_tab_preview }}
-      </button>
-      <button class="yb-lead__campaign-tab" data-tab="send" type="button" disabled>
-        <span class="yb-lead__campaign-tab-num">4</span>
-        {{ t.campaign_tab_send }}
-      </button>
+      <button class="yb-lead__campaign-tab is-active" data-tab="recipients" type="button">1. {{ t.campaign_tab_recipients }} <span class="yb-lead__campaign-tab-count" id="yb-campaign-email-recipient-badge"></span></button>
+      <button class="yb-lead__campaign-tab" data-tab="compose" type="button">2. {{ t.campaign_tab_compose }}</button>
+      <button class="yb-lead__campaign-tab" data-tab="preview" type="button">3. {{ t.campaign_tab_preview }}</button>
+      <button class="yb-lead__campaign-tab" data-tab="send" type="button">4. {{ t.campaign_tab_send }}</button>
     </div>
-
-    {# Tab panels — content rendered by JS #}
     <div class="yb-lead__campaign-body">
-      <div class="yb-lead__campaign-panel is-active" data-panel="recipients" id="yb-campaign-email-recipients">
-        {# JS renders: filter chips left + recipient list right #}
-      </div>
-      <div class="yb-lead__campaign-panel" data-panel="compose" id="yb-campaign-email-compose">
-        {# JS renders: sidebar templates + main editor area #}
-      </div>
-      <div class="yb-lead__campaign-panel" data-panel="preview" id="yb-campaign-email-preview">
-        {# JS renders: desktop/mobile toggle, email preview frame, test send #}
-      </div>
-      <div class="yb-lead__campaign-panel" data-panel="send" id="yb-campaign-email-send">
-        {# JS renders: summary, schedule, test send, send all, progress, results #}
-      </div>
+      <div class="yb-lead__campaign-panel is-active" data-panel="recipients" id="yb-campaign-email-recipients"></div>
+      <div class="yb-lead__campaign-panel" data-panel="compose" id="yb-campaign-email-compose"></div>
+      <div class="yb-lead__campaign-panel" data-panel="preview" id="yb-campaign-email-preview"></div>
+      <div class="yb-lead__campaign-panel" data-panel="send" id="yb-campaign-email-send"></div>
     </div>
-
-    {# Footer — changes per tab #}
     <div class="yb-lead__campaign-footer" id="yb-campaign-email-footer">
-      <button class="yb-btn yb-btn--outline" data-action="campaign-email-back" hidden>{{ t.campaign_back }}</button>
+      <span class="yb-lead__campaign-step-info" id="yb-campaign-email-step-info"></span>
       <div class="yb-lead__campaign-footer-right">
+        <button class="yb-btn yb-btn--outline" data-action="campaign-email-back" disabled>&#8592; {{ t.campaign_back }}</button>
         <button class="yb-btn yb-btn--outline" data-action="campaign-email-close">{{ t.campaign_cancel }}</button>
-        <button class="yb-btn yb-btn--primary" data-action="campaign-email-next" id="yb-campaign-email-next-btn">{{ t.campaign_recipients_continue }}</button>
+        <button class="yb-btn yb-btn--primary" data-action="campaign-email-next" id="yb-campaign-email-next-btn">{{ t.campaign_recipients_continue }} &#8594;</button>
       </div>
     </div>
   </div>
