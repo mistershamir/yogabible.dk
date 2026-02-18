@@ -9,7 +9,7 @@
     <p class="yb-hero__subtitle">{{ t.hero_subtitle }}</p>
     <div class="yb-hero__line"></div>
     <div class="yb-hero__ctas">
-      <a href="#schedule-widget" class="yb-btn yb-btn--primary yb-btn--large">{{ t.hero_cta }}</a>
+      <a href="#booking" class="yb-btn yb-btn--primary yb-btn--large">{{ t.hero_cta }}</a>
     </div>
     <div class="yb-hero__trust">
       <span>{{ t.hero_trust1 }}</span>
@@ -142,7 +142,6 @@
     #yb-schedule .yb-schedule-subtitle { font-size: clamp(1rem, 1.6vw, 1.06rem); line-height: 1.6; color: #6F6A66; max-width: 600px; margin: 0 auto; }
     #yb-schedule .yb-schedule-widget { background: #fff; border: 1px solid #e5e0db; border-radius: 16px; padding: 24px; margin-bottom: 40px; min-height: 500px; }
     @media (max-width: 768px) { #yb-schedule .yb-schedule-widget { padding: 16px; } }
-    #yb-schedule .yb-schedule-widget .mindbody-widget { width: 100%; }
     #yb-schedule .yb-schedule-app { text-align: center; padding: 32px; background: #fff; border: 1px solid #e5e0db; border-radius: 16px; }
     #yb-schedule .yb-schedule-app-text { font-size: 16px; color: #333; margin: 0 0 20px 0; }
     #yb-schedule .yb-schedule-app-badges { display: flex; justify-content: center; align-items: center; gap: 16px; }
@@ -160,8 +159,8 @@
       <p class="yb-schedule-subtitle">{{ t.schedule_subtitle }}</p>
     </div>
     <div class="yb-schedule-widget">
-      <div class="mindbody-widget" data-widget-type="Schedules" data-widget-id="3943900f46e"></div>
-      <script async src="https://brandedweb.mindbodyonline.com/embed/widget.js"></script>
+      <div id="yb-schedule-embed"></div>
+      <script src="/js/schedule-embed.js" defer></script>
     </div>
     <div class="yb-schedule-app">
       <p class="yb-schedule-app-text">{{ t.app_text | safe }}</p>
