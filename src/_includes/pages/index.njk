@@ -1,4 +1,5 @@
 {% set t = i18n.index[lang or "da"] %}
+{% set media = media %}
 
 <!-- ═══════════════════════════════════════════════════════════════
      HERO — Cinematic Dark with Breathing Glow
@@ -6,9 +7,7 @@
      ═══════════════════════════════════════════════════════════════ -->
 <section class="yb-hero">
   <div class="yb-hero__bg">
-    <video autoplay muted loop playsinline>
-      <source src="/assets/hero-loop.mp4" type="video/mp4">
-    </video>
+    {% cldvid media.homepage.heroVideo %}
   </div>
   <div class="yb-hero__glow"></div>
 
@@ -166,11 +165,7 @@
           <a href="{% if lang == 'en' %}/en/inversions{% else %}/inversions{% endif %}" class="yb-btn yb-btn--primary">{{ t.inv_cta }}</a>
         </div>
         <div class="yb-courses__panel-media">
-          <img
-            src="/assets/images/courses/inversions-hero.jpg"
-            alt="{{ t.inv_img_alt }}"
-            loading="lazy"
-          >
+          {% cldimg media.homepage.inversionsCard, t.inv_img_alt, "w_800,h_600,c_fill", "800", "600" %}
         </div>
       </article>
 
@@ -189,11 +184,7 @@
           <a href="{% if lang == 'en' %}/en/splits{% else %}/splits{% endif %}" class="yb-btn yb-btn--primary">{{ t.splits_cta }}</a>
         </div>
         <div class="yb-courses__panel-media">
-          <img
-            src="/assets/images/courses/splits-hero.jpg"
-            alt="{{ t.splits_img_alt }}"
-            loading="lazy"
-          >
+          {% cldimg media.homepage.splitsCard, t.splits_img_alt, "w_800,h_600,c_fill", "800", "600" %}
         </div>
       </article>
 
@@ -212,11 +203,7 @@
           <a href="{% if lang == 'en' %}/en/backbends{% else %}/backbends{% endif %}" class="yb-btn yb-btn--primary">{{ t.back_cta }}</a>
         </div>
         <div class="yb-courses__panel-media">
-          <img
-            src="/assets/images/courses/backbends-hero.jpg"
-            alt="{{ t.back_img_alt }}"
-            loading="lazy"
-          >
+          {% cldimg media.homepage.backbendsCard, t.back_img_alt, "w_800,h_600,c_fill", "800", "600" %}
         </div>
       </article>
     </div>
@@ -235,11 +222,7 @@
      ═══════════════════════════════════════════════════════════════ -->
 <section class="yb-studio">
   <div class="yb-studio__bg">
-    <img
-      src="/assets/images/studio/studio-wide.jpg"
-      alt="{{ t.studio_img_alt }}"
-      loading="lazy"
-    >
+    {% cldimg "yoga-bible-DK/studio/studio-panorama", t.studio_img_alt, "w_1600,h_700,c_fill", "1600", "700" %}
   </div>
   <div class="yb-studio__overlay">
     <div class="yb-studio__content">
