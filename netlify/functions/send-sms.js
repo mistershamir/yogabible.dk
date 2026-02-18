@@ -27,6 +27,16 @@ exports.handler = async (event) => {
       return jsonResponse(400, { ok: false, error: 'message is required' });
     }
 
+    // Test mode — send to test phone without logging to any lead
+    if (payload.test && payload.testPhone) {
+      const normalized = normalizePhone(payload.testPhone);
+      if (!normalized) {
+        return jsonResponse(400, { ok: false, error: 'Invalid test phone number' });
+      }
+      const testResult = await sendSMS(normalized, payload.message);
+      return jsonResponse(200, { ok: true, test: true, ...testResult });
+    }
+
     // Bulk send
     if (payload.leadIds && Array.isArray(payload.leadIds)) {
       return await handleBulkSMS(payload);
