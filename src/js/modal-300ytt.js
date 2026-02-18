@@ -1,11 +1,11 @@
 // =========================================================================
-// modal-300.js — Schedule modal for 300-Hour Advanced Teacher Training
-// Mirrors modal.js pattern, sends to same Google Apps Script endpoint
+// modal-300ytt.js — Schedule modal for 300-Hour Advanced Teacher Training
+// Mirrors modal-200ytt.js pattern, sends to Netlify Functions lead endpoint
 // =========================================================================
 (function () {
   'use strict';
 
-  var FORM_URL = 'https://script.google.com/macros/s/AKfycbyhs4bfPcvcqaJRTmAlPTFf_uIOkFatZviKKO20nckBfGi78JqkNzy4FNpWztl7nQsSAA/exec';
+  var FORM_URL = '/.netlify/functions/lead';
 
   var modal = document.getElementById('yb-schedule-300-modal');
   if (!modal) return;
@@ -126,7 +126,7 @@
       p.append('cityCountry', city);
     }
 
-    fetch(FORM_URL + '?' + p.toString(), { method: 'GET', mode: 'no-cors' })
+    fetch(FORM_URL, { method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, body: p.toString() })
       .then(function () {
         viewForm.hidden = true;
         viewSuccess.hidden = false;

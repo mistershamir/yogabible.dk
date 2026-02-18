@@ -400,6 +400,12 @@
   window.openYBAuthModal = openAuthModal;
   window.closeYBAuthModal = closeAuthModal;
 
+  // Expose role reload so other scripts (apply form) can trigger it after submission
+  window.ybReloadUserRole = function() {
+    var user = auth.currentUser;
+    if (user) loadUserRoleAndPermissions(user);
+  };
+
   // Close handlers
   document.addEventListener('click', function(e) {
     if (e.target.closest('[data-yb-auth-close]')) {

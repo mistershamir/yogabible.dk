@@ -29,7 +29,6 @@
     userDetail: null
   };
 
-  var blogIframeLoaded = false;
   var usersLoaded = false;
 
   /* ═══════════════════════════════════════
@@ -68,12 +67,6 @@
         document.querySelectorAll('[data-yb-admin-panel]').forEach(function (p) { p.classList.remove('is-active'); });
         var panel = document.querySelector('[data-yb-admin-panel="' + tabName + '"]');
         if (panel) panel.classList.add('is-active');
-
-        // Lazy-load blog iframe
-        if (tabName === 'blog' && !blogIframeLoaded) {
-          var iframe = $('yb-admin-blog-iframe');
-          if (iframe) { iframe.src = '/decap-cms/'; blogIframeLoaded = true; }
-        }
 
         // Load users on first visit
         if (tabName === 'users' && !usersLoaded) {
@@ -1251,6 +1244,20 @@
     html += '</select>';
     html += '</div>';
 
+    // Trainee method select (shown conditionally)
+    html += '<div class="yb-admin__field" id="yb-admin-role-method-fields" style="flex:1;display:' + (currentRole === 'trainee' ? '' : 'none') + '">';
+    html += '<label for="yb-admin-role-method">Method</label>';
+    html += '<select id="yb-admin-role-method" class="yb-admin__select">';
+    html += '<option value="">—</option>';
+    if (R.TRAINEE_METHODS) {
+      Object.keys(R.TRAINEE_METHODS).forEach(function(k) {
+        var meth = R.TRAINEE_METHODS[k];
+        html += '<option value="' + k + '"' + (currentDetails.method === k ? ' selected' : '') + '>' + (meth['label_' + lang] || meth.label_da) + '</option>';
+      });
+    }
+    html += '</select>';
+    html += '</div>';
+
     // Teacher type select (shown conditionally)
     html += '<div class="yb-admin__field" id="yb-admin-role-teacher-fields" style="flex:1;display:' + (currentRole === 'teacher' ? '' : 'none') + '">';
     html += '<label for="yb-admin-role-teacher-type">' + t('role_teacher_type') + '</label>';
@@ -1263,6 +1270,28 @@
     html += '</select>';
     html += '</div>';
 
+    // Student course types (shown conditionally) — checkboxes for multi-select
+    html += '<div class="yb-admin__field" id="yb-admin-role-student-fields" style="flex:1;display:' + (currentRole === 'student' ? '' : 'none') + '">';
+    html += '<label>Courses</label>';
+    html += '<div style="display:flex;flex-wrap:wrap;gap:0.5rem 1rem;margin-top:0.25rem">';
+    var existingCourseTypes = (currentDetails.courseTypes || []);
+    Object.keys(R.STUDENT_COURSES).forEach(function(k) {
+      var sc = R.STUDENT_COURSES[k];
+      var checked = existingCourseTypes.indexOf(k) !== -1 ? ' checked' : '';
+      html += '<label style="font-size:0.85rem;display:flex;align-items:center;gap:0.35rem;cursor:pointer">';
+      html += '<input type="checkbox" class="yb-admin-role-coursetype" value="' + k + '"' + checked + '>';
+      html += (sc['label_' + lang] || sc.label_da);
+      html += '</label>';
+    });
+    // Mentorship checkbox
+    var mentorChecked = currentDetails.mentorship ? ' checked' : '';
+    html += '<label style="font-size:0.85rem;display:flex;align-items:center;gap:0.35rem;cursor:pointer">';
+    html += '<input type="checkbox" id="yb-admin-role-mentorship" value="mentorship"' + mentorChecked + '>';
+    html += 'Mentorship';
+    html += '</label>';
+    html += '</div>';
+    html += '</div>';
+
     html += '</div>'; // end form-row
 
     // Trainee cohort (shown conditionally)
@@ -1270,6 +1299,28 @@
     html += '<div class="yb-admin__field" style="max-width:220px">';
     html += '<label for="yb-admin-role-cohort">' + t('role_cohort') + '</label>';
     html += '<input type="text" id="yb-admin-role-cohort" placeholder="2026-spring" value="' + esc(currentDetails.cohort || '') + '">';
+    html += '</div>';
+    html += '</div>';
+
+    // Trainee courseTypes checkboxes (shown when trainee — they can also have courses)
+    html += '<div id="yb-admin-role-trainee-courses-wrap" style="display:' + (currentRole === 'trainee' ? '' : 'none') + '">';
+    html += '<div class="yb-admin__field">';
+    html += '<label>Courses (optional)</label>';
+    html += '<div style="display:flex;flex-wrap:wrap;gap:0.5rem 1rem;margin-top:0.25rem">';
+    Object.keys(R.STUDENT_COURSES).forEach(function(k) {
+      var sc = R.STUDENT_COURSES[k];
+      var checked = existingCourseTypes.indexOf(k) !== -1 ? ' checked' : '';
+      html += '<label style="font-size:0.85rem;display:flex;align-items:center;gap:0.35rem;cursor:pointer">';
+      html += '<input type="checkbox" class="yb-admin-role-trainee-coursetype" value="' + k + '"' + checked + '>';
+      html += (sc['label_' + lang] || sc.label_da);
+      html += '</label>';
+    });
+    var trainMentorChecked = currentDetails.mentorship ? ' checked' : '';
+    html += '<label style="font-size:0.85rem;display:flex;align-items:center;gap:0.35rem;cursor:pointer">';
+    html += '<input type="checkbox" id="yb-admin-role-trainee-mentorship" value="mentorship"' + trainMentorChecked + '>';
+    html += 'Mentorship';
+    html += '</label>';
+    html += '</div>';
     html += '</div>';
     html += '</div>';
 
@@ -1290,6 +1341,7 @@
 
     var roleSelect = $('yb-admin-role-select');
     var programSelect = $('yb-admin-role-program');
+    var methodSelect = $('yb-admin-role-method');
     var teacherTypeSelect = $('yb-admin-role-teacher-type');
     var cohortInput = $('yb-admin-role-cohort');
 
@@ -1298,7 +1350,26 @@
 
     if (newRole === 'trainee') {
       if (programSelect && programSelect.value) roleDetails.program = programSelect.value;
+      if (methodSelect && methodSelect.value) roleDetails.method = methodSelect.value;
       if (cohortInput && cohortInput.value.trim()) roleDetails.cohort = cohortInput.value.trim();
+      // Collect trainee courseTypes
+      var traineeCourseTypes = [];
+      document.querySelectorAll('.yb-admin-role-trainee-coursetype:checked').forEach(function(cb) {
+        traineeCourseTypes.push(cb.value);
+      });
+      if (traineeCourseTypes.length) roleDetails.courseTypes = traineeCourseTypes;
+      var traineeMentorship = $('yb-admin-role-trainee-mentorship');
+      if (traineeMentorship && traineeMentorship.checked) roleDetails.mentorship = true;
+    }
+    if (newRole === 'student') {
+      // Collect student courseTypes
+      var studentCourseTypes = [];
+      document.querySelectorAll('.yb-admin-role-coursetype:checked').forEach(function(cb) {
+        studentCourseTypes.push(cb.value);
+      });
+      if (studentCourseTypes.length) roleDetails.courseTypes = studentCourseTypes;
+      var studentMentorship = $('yb-admin-role-mentorship');
+      if (studentMentorship && studentMentorship.checked) roleDetails.mentorship = true;
     }
     if (newRole === 'teacher') {
       if (teacherTypeSelect && teacherTypeSelect.value) roleDetails.teacherType = teacherTypeSelect.value;
@@ -1323,11 +1394,17 @@
       if (e.target.id !== 'yb-admin-role-select') return;
       var role = e.target.value;
       var traineeFields = $('yb-admin-role-trainee-fields');
+      var methodFields = $('yb-admin-role-method-fields');
       var teacherFields = $('yb-admin-role-teacher-fields');
+      var studentFields = $('yb-admin-role-student-fields');
       var cohortWrap = $('yb-admin-role-cohort-wrap');
+      var traineeCoursesWrap = $('yb-admin-role-trainee-courses-wrap');
       if (traineeFields) traineeFields.style.display = role === 'trainee' ? '' : 'none';
+      if (methodFields) methodFields.style.display = role === 'trainee' ? '' : 'none';
       if (teacherFields) teacherFields.style.display = role === 'teacher' ? '' : 'none';
+      if (studentFields) studentFields.style.display = role === 'student' ? '' : 'none';
       if (cohortWrap) cohortWrap.style.display = role === 'trainee' ? '' : 'none';
+      if (traineeCoursesWrap) traineeCoursesWrap.style.display = role === 'trainee' ? '' : 'none';
     });
   }
 

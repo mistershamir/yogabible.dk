@@ -1,6 +1,38 @@
 {% set t = i18n.p4w[lang or "da"] %}
 {% set lp = "/en" if lang == "en" else "" %}
 
+
+<!-- FAQPage Schema (AEO — featured snippets for AI search) -->
+<script type="application/ld+json">
+{%- set _faqs = [
+      [t.faq1_q, t.faq1_a],
+      [t.faq2_q, t.faq2_a],
+      [t.faq3_q, t.faq3_a],
+      [t.faq4_q, t.faq4_a],
+      [t.faq5_q, t.faq5_a],
+      [t.faq6_q, t.faq6_a],
+      [t.faq7_q, t.faq7_a],
+      [t.faq8_q, t.faq8_a],
+      [t.faq9_q, t.faq9_a]
+    ] -%}
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {% for faq in _faqs %}
+    {
+      "@type": "Question",
+      "name": {{ faq[0] | dump | safe }},
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": {{ faq[1] | dump | safe }}
+      }
+    }{% if not loop.last %},{% endif %}
+    {% endfor %}
+  ]
+}
+</script>
+
 <!-- ═══════════════════════════════════════
      1. HERO — Primary Dark Cinematic
      ═══════════════════════════════════════ -->
@@ -512,6 +544,29 @@
     <div class="yb-tracks__cta">
       <p class="yb-tracks__cta-hint">{{ t.cohort_cta_hint }}</p>
       <button onclick="openYBScheduleModal('4w')" class="yb-btn yb-btn--cta">{{ t.cohort_cta_text }}</button>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════
+     11b. JOURNEY TIMELINE — Week by week
+     ═══════════════════════════════════════ -->
+<section class="yb-journey" id="p4w-journey">
+  <div class="yb-journey__inner">
+    <div class="yb-journey__header">
+      <p class="yb-journey__label">{{ t.journey_label }}</p>
+      <h2 class="yb-journey__title">{{ t.journey_title }}</h2>
+      <p class="yb-journey__desc">{{ t.journey_desc }}</p>
+    </div>
+    <div class="yb-journey__timeline">
+      {% for i in range(1, 6) %}
+      <div class="yb-journey__item">
+        <div class="yb-journey__dot"></div>
+        <p class="yb-journey__step">{{ t["journey" + (i | string) + "_step"] }}</p>
+        <h4 class="yb-journey__item-title">{{ t["journey" + (i | string) + "_title"] }}</h4>
+        <p class="yb-journey__item-desc">{{ t["journey" + (i | string) + "_desc"] }}</p>
+      </div>
+      {% endfor %}
     </div>
   </div>
 </section>

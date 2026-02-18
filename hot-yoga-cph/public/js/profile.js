@@ -1861,8 +1861,7 @@
     { id: 'timebased', da: 'Tidsbegrænsede pas', en: 'Time-based Passes', desc_da: 'Ubegrænset adgang', desc_en: 'Unlimited pass' },
     { id: 'clips', da: 'Klippekort', en: 'Clip Cards', desc_da: 'Lejlighedsvise besøg', desc_en: 'Occasional visits' },
     { id: 'trials', da: 'Prøvekort', en: 'Trial Passes', desc_da: 'Prøv os', desc_en: 'Try us' },
-    { id: 'tourist', da: 'Turistpas', en: 'Tourist Pass', desc_da: 'Inkl. måtte & håndklæde', desc_en: 'Incl. mat & towel' },
-    { id: 'test', da: 'Test', en: 'Test', desc_da: 'Kun til test', desc_en: 'Testing only' }
+    { id: 'tourist', da: 'Turistpas', en: 'Tourist Pass', desc_da: 'Inkl. måtte & håndklæde', desc_en: 'Incl. mat & towel' }
   ];
 
   // ── Hardcoded Product Catalog ──
@@ -2015,7 +2014,6 @@
       rental_note_da: 'Medbring eget udstyr eller: Måtteleje 40 kr \u00b7 Træningshåndklæde 40 kr \u00b7 Brusehåndklæde 40 kr (betal i studiet ved ankomst)',
       rental_note_en: 'Bring your own or: Mat rental 40 kr \u00b7 Practice towel 40 kr \u00b7 Shower towel 40 kr (pay at studio upon arrival)'
     },
-    // ── Test items (temporary — remove after testing) ──
     teacher: [
       { id: 'ytt-flex-mar-jun26', prodId: '100078', price: 3750, vat_pct: 0,
         name_da: '18 Ugers Fleksibelt Program', name_en: '18-Week Flexible Program',
@@ -2076,22 +2074,6 @@
         'backbends|inversions|splits': { prodId: '127' }
       },
       month_da: 'April 2026', month_en: 'April 2026'
-    },
-    test: {
-      over30: [
-        { id: 'test-clip', name_da: 'Test Klippekort', name_en: 'Test Clip Card', price: 1, vat_pct: 25, classes: 1, validity: '1 day', prodId: '100203',
-          desc_da: 'Test klippekort — kun til testbrug', desc_en: 'Test clip card — for testing only' },
-        { id: 'test-mem', name_da: 'Test Medlemskab', name_en: 'Test Membership', price: 1, vat_pct: 25, regFee: 0, firstMonthFree: false, prodId: '129', _itemType: 'contract',
-          desc_da: 'Test medlemskab — kun til testbrug', desc_en: 'Test membership — for testing only',
-          features_da: ['Testmedlemskab'], features_en: ['Test membership'] }
-      ],
-      under30: [
-        { id: 'test-clip-u30', name_da: 'Test Klippekort', name_en: 'Test Clip Card', price: 1, vat_pct: 0, classes: 1, validity: '1 day', prodId: '100203',
-          desc_da: 'Test klippekort — kun til testbrug', desc_en: 'Test clip card — for testing only' },
-        { id: 'test-mem-u30', name_da: 'Test Medlemskab', name_en: 'Test Membership', price: 1, vat_pct: 0, regFee: 0, firstMonthFree: false, prodId: '129', _itemType: 'contract',
-          desc_da: 'Test medlemskab — kun til testbrug', desc_en: 'Test membership — for testing only',
-          features_da: ['Testmedlemskab'], features_en: ['Test membership'] }
-      ]
     }
   };
 
@@ -2341,29 +2323,6 @@
         price: courseData.single_price || 0, onlinePrice: courseData.single_price || 0,
         _itemType: 'service', _topCategory: 'courses', _subCategory: 'individual', _catalog: ci
       });
-    });
-
-    // ── Test items (temporary) ──
-    var testItems = storeCatalog.test ? (storeCatalog.test[bracket] || []) : [];
-    testItems.forEach(function(t) {
-      var isContract = t._itemType === 'contract';
-      var item = {
-        _uid: 'test-' + t.prodId,
-        prodId: t.prodId,
-        name: da ? t.name_da : t.name_en,
-        price: t.price,
-        onlinePrice: t.price,
-        _itemType: isContract ? 'contract' : 'service',
-        _topCategory: 'daily',
-        _subCategory: 'test',
-        _catalog: t
-      };
-      if (isContract) {
-        item._recurringInfo = formatDKK(t.price) + ' ' + (da ? 'pr. måned' : 'per month');
-        item.firstMonthFree = t.firstMonthFree;
-        item._terms = [da ? 'Kun til testbrug' : 'Testing only'];
-      }
-      items.push(item);
     });
 
     console.log('[Store] Built', items.length, 'items from catalog (bracket:', bracket, ')');

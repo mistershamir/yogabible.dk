@@ -1,6 +1,37 @@
 {% set t = i18n.p300[lang or "da"] %}
 {% set lp = "/en" if lang == "en" else "" %}
 
+
+<!-- FAQPage Schema (AEO — featured snippets for AI search) -->
+<script type="application/ld+json">
+{%- set _faqs = [
+      [t.faq1_q, t.faq1_a],
+      [t.faq2_q, t.faq2_a],
+      [t.faq3_q, t.faq3_a],
+      [t.faq4_q, t.faq4_a],
+      [t.faq5_q, t.faq5_a],
+      [t.faq6_q, t.faq6_a],
+      [t.faq7_q, t.faq7_a],
+      [t.faq8_q, t.faq8_a]
+    ] -%}
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {% for faq in _faqs %}
+    {
+      "@type": "Question",
+      "name": {{ faq[0] | dump | safe }},
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": {{ faq[1] | dump | safe }}
+      }
+    }{% if not loop.last %},{% endif %}
+    {% endfor %}
+  ]
+}
+</script>
+
 {# ═══════════════════════════════════════════════════════════
    HERO — Primary Dark Cinematic (matches om200 hero)
    ═══════════════════════════════════════════════════════════ #}
@@ -237,26 +268,20 @@
 {# ═══════════════════════════════════════════════════════════
    SECTION 5: TIMELINE — 24-Week Journey
    ═══════════════════════════════════════════════════════════ #}
-<section class="p300-timeline" id="p300-timeline">
-  <div class="p300-timeline__inner">
-    <header class="p300-timeline__head">
-      <p class="p300-timeline__eyebrow ds-eyebrow ds-eyebrow--brand ds-eyebrow--dot">{{ t.timeline_eyebrow }}</p>
-      <h2 class="p300-timeline__title">{{ t.timeline_title }}</h2>
-      <p class="p300-timeline__lead">{{ t.timeline_lead }}</p>
-    </header>
-
-    <div class="p300-timeline__track">
-      {# Vertical line #}
-      <div class="p300-timeline__line" aria-hidden="true"></div>
-
+<section class="yb-journey" id="p300-timeline">
+  <div class="yb-journey__inner">
+    <div class="yb-journey__header">
+      <p class="yb-journey__label">{{ t.timeline_eyebrow }}</p>
+      <h2 class="yb-journey__title">{{ t.timeline_title }}</h2>
+      <p class="yb-journey__desc">{{ t.timeline_lead }}</p>
+    </div>
+    <div class="yb-journey__timeline">
       {% for i in range(1, 8) %}
-      <div class="p300-timeline__step{% if t['timeline' + (i | string) + '_step'] == 'PAUSE' or t['timeline' + (i | string) + '_step'] == 'BREAK' %} p300-timeline__step--break{% endif %}">
-        <div class="p300-timeline__dot"></div>
-        <div class="p300-timeline__content">
-          <p class="p300-timeline__step-label">{{ t["timeline" + (i | string) + "_step"] }}</p>
-          <h3 class="p300-timeline__step-title">{{ t["timeline" + (i | string) + "_title"] }}</h3>
-          <p class="p300-timeline__step-desc">{{ t["timeline" + (i | string) + "_desc"] }}</p>
-        </div>
+      <div class="yb-journey__item{% if t['timeline' + (i | string) + '_step'] == 'PAUSE' or t['timeline' + (i | string) + '_step'] == 'BREAK' %} yb-journey__item--break{% endif %}">
+        <div class="yb-journey__dot"></div>
+        <p class="yb-journey__step">{{ t["timeline" + (i | string) + "_step"] }}</p>
+        <h4 class="yb-journey__item-title">{{ t["timeline" + (i | string) + "_title"] }}</h4>
+        <p class="yb-journey__item-desc">{{ t["timeline" + (i | string) + "_desc"] }}</p>
       </div>
       {% endfor %}
     </div>
