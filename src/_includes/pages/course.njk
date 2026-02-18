@@ -1,0 +1,388 @@
+{# ═══════════════════════════════════════════════════════════════
+   course.njk — Shared template for all course pages
+   Variables set by the wrapper: courseId, t (course i18n), tc (shared i18n), lp (language prefix)
+   ═══════════════════════════════════════════════════════════════ #}
+
+{# FAQPage Schema (AEO) #}
+<script type="application/ld+json">
+{%- set _faqs = [
+  [t.s2_faq1_q, t.s2_faq1_a],
+  [t.s2_faq2_q, t.s2_faq2_a],
+  [t.s2_faq3_q, t.s2_faq3_a],
+  [t.s2_faq4_q, t.s2_faq4_a],
+  [t.s2_faq5_q, t.s2_faq5_a]
+] -%}
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {% for faq in _faqs %}
+    {
+      "@type": "Question",
+      "name": {{ faq[0] | dump | safe }},
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": {{ faq[1] | dump | safe }}
+      }
+    }{% if not loop.last %},{% endif %}
+    {% endfor %}
+  ]
+}
+</script>
+
+{# ═══════ HERO — Dark Cinematic (shared yb-hero styles) ═══════ #}
+<section class="yb-hero">
+  <div class="yb-hero__glow"></div>
+  <div class="yb-hero__content">
+    <p class="yb-hero__tagline">{{ t.hero_tagline }}</p>
+    <h1 class="yb-hero__title">{{ t.hero_title | safe }}</h1>
+    <p class="yb-hero__subtitle">{{ t.hero_lead }}</p>
+    <div class="yb-hero__line"></div>
+    <div class="yb-hero__ctas">
+      <a href="#ybc-{{ courseId }}-months" class="yb-btn yb-btn--primary yb-btn--large">{{ t.hero_cta_primary }}</a>
+      <button type="button" data-ybc-open="brochure" data-ybc-course="{{ courseId | capitalize }}" data-ybc-source="{{ courseId | capitalize }} – hero" class="yb-btn yb-btn--outline-white yb-btn--large">{{ t.hero_btn_schedule }}</button>
+    </div>
+    <div class="yb-hero__trust">
+      <span>{{ t.hero_trust1 }}</span>
+      <span class="yb-hero__trust-dot"></span>
+      <span>{{ t.hero_trust2 }}</span>
+      <span class="yb-hero__trust-dot"></span>
+      <span>{{ t.hero_trust3 }}</span>
+    </div>
+  </div>
+  <div class="yb-hero__scroll">
+    <span>{{ tc.scroll_label }}</span>
+    <div class="yb-hero__scroll-line"></div>
+  </div>
+</section>
+
+
+{# ═══════ S1: COURSE DETAILS — Split layout ═══════ #}
+<section class="ybc-details ybc-page" id="ybc-{{ courseId }}-details" aria-label="{{ t.s1_aria }}">
+  <div class="ybc-details__inner">
+
+    {# LEFT: Text #}
+    <div class="ybc-details__content">
+      <p class="ybc-eyebrow">{{ t.s1_eyebrow }}</p>
+      <h2 class="ybc-title">{{ t.s1_title | safe }}</h2>
+      <p class="ybc-sub">{{ t.s1_sub }}</p>
+      <p class="ybc-kicker">{{ t.s1_kicker }}</p>
+      <p class="ybc-lead">{{ t.s1_lead }}</p>
+      <p class="ybc-meta">{{ t.s1_meta | safe }}</p>
+
+      {# Pricing pill #}
+      <div class="ybc-price">
+        <div class="ybc-price__row">
+          <span class="ybc-price__label">{{ t.s1_price_label }}</span>
+          <span class="ybc-price__value">{{ t.s1_price_value }}</span>
+          <span class="ybc-price__hint">{{ t.s1_price_hint }}</span>
+        </div>
+        <div class="ybc-price__row">
+          <span class="ybc-price__label">{{ t.s1_dropin_label }}</span>
+          <span class="ybc-price__value">{{ t.s1_dropin_value }}</span>
+        </div>
+      </div>
+
+      {# Month chip (April only) #}
+      <div class="ybc-months" id="ybc-{{ courseId }}-months" role="tablist" aria-label="{{ t.s1_months_aria }}">
+        <button class="ybc-chip is-active" data-month="{{ t.s1_month_label }}" data-prodid="{{ t.s1_prodId }}">{{ t.s1_month_label }}</button>
+      </div>
+
+      {# CTAs #}
+      <div class="ybc-ctas">
+        <button class="ybc-cta ybc-cta--outline" type="button" data-ybc-open="brochure" data-ybc-course="{{ courseId | capitalize }}" data-ybc-source="{{ courseId | capitalize }} – details">{{ tc.cta_schedule }}</button>
+        <a class="ybc-cta" href="javascript:void(0)" onclick="if(window.openCheckoutFlow)window.openCheckoutFlow('{{ t.s1_prodId }}')">{{ t.s1_cta_signup }}</a>
+      </div>
+    </div>
+
+    {# RIGHT: Media #}
+    <figure class="ybc-details__media" aria-hidden="true">
+      <img src="{{ t.s1_img_src }}" alt="{{ t.s1_img_alt }}" loading="eager" decoding="async">
+      <span class="ybc-frame"></span>
+    </figure>
+  </div>
+</section>
+
+
+{# ═══════ S2: 4-WEEK JOURNEY — Text + Video + FAQ ═══════ #}
+<section class="ybc-journey ybc-page" id="ybc-journey" aria-labelledby="ybc-journey-title">
+  <div class="ybc-journey__inner">
+    <div class="ybc-journey__grid">
+
+      {# LEFT: Text + FAQ #}
+      <div class="ybc-journey__text">
+        <p class="ybc-eyebrow">{{ t.s2_eyebrow }}</p>
+        <h2 class="ybc-title" id="ybc-journey-title">{{ t.s2_title }}</h2>
+        <p class="ybc-lead">{{ t.s2_lead | safe }}</p>
+
+        <ul class="ybc-journey__list">
+          <li>{{ t.s2_list1_item1 }}</li>
+          <li>{{ t.s2_list1_item2 }}</li>
+          <li>{{ t.s2_list1_item3 }}</li>
+          <li>{{ t.s2_list1_item4 }}</li>
+        </ul>
+
+        <p class="ybc-journey__sub">{{ t.s2_session_label | safe }}</p>
+
+        <ul class="ybc-journey__list">
+          <li>{{ t.s2_list2_item1 }}</li>
+          <li>{{ t.s2_list2_item2 }}</li>
+          <li>{{ t.s2_list2_item3 }}</li>
+          <li>{{ t.s2_list2_item4 }}</li>
+        </ul>
+
+        <p class="ybc-journey__closing">{{ t.s2_closing | safe }}</p>
+
+        {# CTAs #}
+        <div class="ybc-journey__ctas">
+          <button class="ybc-cta ybc-cta--outline" type="button" data-ybc-open="brochure" data-ybc-course="{{ courseId | capitalize }}" data-ybc-source="{{ courseId | capitalize }} – journey">{{ tc.cta_schedule }}</button>
+          <a class="ybc-cta" href="#ybc-{{ courseId }}-months">{{ t.s2_cta_signup }}</a>
+        </div>
+
+        {# FAQ (desktop: here; mobile: moved below video via JS) #}
+        <section class="ybc-faq" aria-label="{{ t.s2_faq_aria }}">
+          <h3 class="ybc-faq__title">{{ t.s2_faq_title }}</h3>
+          {% for i in range(1, 6) %}
+          <div class="ybc-faq__item">
+            <button class="ybc-faq__toggle" type="button">
+              <span>{{ t["s2_faq" + i + "_q"] }}</span>
+              <span class="ybc-faq__icon" aria-hidden="true"></span>
+            </button>
+            <div class="ybc-faq__panel">
+              <p>{{ t["s2_faq" + i + "_a"] }}</p>
+            </div>
+          </div>
+          {% endfor %}
+        </section>
+      </div>
+
+      {# RIGHT: Video #}
+      <div class="ybc-journey__media" aria-label="{{ t.s2_video_aria }}">
+        <div class="ybc-journey__video-wrap">
+          <button class="ybc-video-poster" aria-label="{{ t.s2_video_play }}">
+            <img src="{{ t.s2_video_poster }}" alt="" loading="eager" decoding="async">
+          </button>
+          <video class="ybc-journey__video" playsinline webkit-playsinline preload="auto" loop
+                 poster="{{ t.s2_video_poster }}">
+            <source src="{{ t.s2_video_src }}" type="video/mp4">
+            {{ t.s2_video_nosupport }}
+          </video>
+          <button class="ybc-video-toggle" type="button" aria-label="{{ t.s2_video_toggle }}" aria-pressed="false">
+            <span class="ybc-video-icon" aria-hidden="true"></span>
+          </button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+
+{# ═══════ S3: INSPIRATION QUOTE — Animated text + looping video ═══════ #}
+<section class="ybc-quote ybc-page" id="ybc-{{ courseId }}-quote" aria-label="{{ t.s3_aria }}">
+  <div class="ybc-quote__inner">
+
+    {# Copy (first in HTML → mobile first; CSS reorders on desktop) #}
+    <div class="ybc-quote__copy" role="group" aria-roledescription="Artistic quote">
+      <h2 class="ybc-quote__heading" aria-label="{{ t.s3_quote_aria }}">
+        <span class="ybc-quote__line" data-step="0">{{ t.s3_line1 }}</span>
+        <span class="ybc-quote__line" data-step="1">{{ t.s3_line2 }}</span>
+        <span class="ybc-quote__line" data-step="2">{{ t.s3_line3 }}</span>
+        <span class="ybc-quote__line ybc-quote__accent" data-step="3">{{ t.s3_line4 }}</span>
+        <span class="ybc-quote__divider" aria-hidden="true"></span>
+        <span class="ybc-quote__line ybc-quote__soft" data-step="4">{{ t.s3_line5 }}</span>
+        <span class="ybc-quote__line ybc-quote__soft" data-step="5">{{ t.s3_line6 }}</span>
+      </h2>
+    </div>
+
+    {# Video #}
+    <figure class="ybc-quote__media" aria-hidden="true">
+      <div class="ybc-quote__clip">
+        <video class="ybc-quote__video" playsinline webkit-playsinline muted loop preload="metadata"
+               data-src="{{ t.s3_video_src }}"></video>
+        <span class="ybc-frame"></span>
+      </div>
+    </figure>
+  </div>
+</section>
+
+
+{# ═══════ S4: MEET THE TEACHER ═══════ #}
+<section class="ybc-teacher ybc-page" id="ybc-{{ courseId }}-teacher" aria-labelledby="ybc-teacher-title">
+  <div class="ybc-teacher__inner">
+    <div class="ybc-teacher__grid">
+
+      {# LEFT: Desktop image #}
+      <div class="ybc-teacher__col ybc-teacher__col--media">
+        <figure class="ybc-teacher__media--desktop" aria-label="{{ t.s4_portrait_aria }}">
+          <img src="{{ t.s4_img_src }}" alt="{{ t.s4_img_alt }}">
+        </figure>
+      </div>
+
+      {# RIGHT: Text #}
+      <div class="ybc-teacher__col ybc-teacher__col--text">
+        <div class="ybc-teacher__content">
+          <span class="ybc-teacher__eyebrow">{{ tc.teacher_eyebrow_label }}</span>
+          <h2 id="ybc-teacher-title" class="ybc-teacher__name">{{ t.s4_name }}</h2>
+          <p class="ybc-teacher__subtitle">{{ t.s4_subtitle }}</p>
+
+          {# Mobile image #}
+          <div class="ybc-teacher__media--mobile">
+            <figure>
+              <img src="{{ t.s4_img_src }}" alt="{{ t.s4_img_alt }}">
+            </figure>
+          </div>
+
+          <div class="ybc-teacher__text">
+            <p>{{ t.s4_text1 | safe }}</p>
+            <p>{{ t.s4_text2 | safe }}</p>
+            <p>{{ t.s4_text3 | safe }}</p>
+          </div>
+
+          <a class="ybc-teacher__team-link" href="{{ lp }}/meet-the-teachers">{{ tc.teacher_team_cta }} &rarr;</a>
+
+          <div class="ybc-teacher__ctas" role="group" aria-label="{{ t.s4_cta_group_aria }}">
+            <a class="ybc-teacher__cta ybc-teacher__cta--primary" href="#ybc-{{ courseId }}-months" aria-label="{{ t.s4_cta_signup_aria }}">
+              <span class="dot" aria-hidden="true"></span>
+              {{ t.s4_cta_signup }}
+            </a>
+            <button class="ybc-teacher__cta ybc-teacher__cta--outline" type="button" data-ybc-open="brochure" data-ybc-course="{{ courseId | capitalize }}" data-ybc-source="{{ courseId | capitalize }} – teacher" aria-label="{{ t.s4_cta_schedule_aria }}">
+              <span class="dot" aria-hidden="true"></span>
+              {{ t.s4_cta_schedule }}
+            </button>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+
+{# ═══════ S5: WHAT IS [TOPIC]? — Educational + image grid ═══════ #}
+<section class="ybc-what ybc-page" id="ybc-{{ courseId }}-what">
+  <div class="ybc-what__wrapper">
+    <div class="ybc-what__intro">
+      <h2>{{ t.s5_title }}</h2>
+      <p><strong>{{ t.s5_intro | safe }}</strong></p>
+      <p>{{ t.s5_p2 | safe }}</p>
+      {% if t.s5_p3 %}<p>{{ t.s5_p3 | safe }}</p>{% endif %}
+      <p class="ybc-what__note">{{ t.s5_note | safe }}</p>
+      <p class="ybc-what__meta">{{ t.s5_closing | safe }}</p>
+    </div>
+
+    <div class="ybc-what__grid" aria-label="{{ t.s5_grid_aria }}">
+      {% for i in range(1, 7) %}
+      <figure class="ybc-tile">
+        <img src="{{ t['s5_img' + i + '_src'] }}" alt="{{ t['s5_img' + i + '_alt'] }}" loading="lazy">
+      </figure>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+
+
+{# ═══════ S7: CROSS-SELL — Other courses, training, private, blog ═══════ #}
+<section class="ybc-cross ybc-page ybc-fade-up" id="ybc-{{ courseId }}-more">
+  <div class="ybc-cross__inner">
+    <p class="ybc-cross__eyebrow">{{ tc.cross_eyebrow }}</p>
+    <h2 class="ybc-cross__title">{{ tc.cross_title }}</h2>
+    <p class="ybc-cross__lead">{{ tc.cross_lead }}</p>
+
+    {# Row 1: Other courses + bundle #}
+    <div class="ybc-cross__courses">
+      {% set courses = [
+        { id: "inversions", img: "/assets/images/inversions/hero.jpg" },
+        { id: "splits", img: "https://www.yogabible.dk/s/Splits_Course_Kursus_Kbenhavn_Copenhagen_Yoga_Bible.jpg" },
+        { id: "backbends", img: "https://www.yogabible.dk/s/yoga-backbend-trning-kbenhavn.jpg" }
+      ] %}
+      {% for c in courses %}
+        {% if c.id != courseId %}
+        <a class="ybc-cross__card" href="{{ lp }}/{{ c.id }}">
+          <figure class="ybc-cross__card-img">
+            <img src="{{ c.img }}" alt="{{ tc['cross_' + c.id + '_alt'] }}" loading="lazy">
+          </figure>
+          <div class="ybc-cross__card-body">
+            <h3>{{ tc['cross_' + c.id + '_title'] }}</h3>
+            <p>{{ tc['cross_' + c.id + '_desc'] }}</p>
+            <span class="ybc-cross__card-price">{{ tc['cross_' + c.id + '_price'] }}</span>
+          </div>
+        </a>
+        {% endif %}
+      {% endfor %}
+
+      {# Bundle card #}
+      <a class="ybc-cross__card ybc-cross__card--bundle" href="{{ lp }}/course-bundles">
+        <div class="ybc-cross__card-body">
+          <h3>{{ tc.cross_bundle_title }}</h3>
+          <p>{{ tc.cross_bundle_desc }}</p>
+          <span class="ybc-cross__card-cta">{{ tc.cross_bundle_cta }} &rarr;</span>
+        </div>
+      </a>
+    </div>
+
+    {# Row 2: Teacher Training + Private #}
+    <div class="ybc-cross__programs">
+      <a class="ybc-cross__program" href="{{ lp }}/sammenlign-yogalreruddannelser">
+        <h3>{{ tc.cross_training_title }}</h3>
+        <p>{{ tc.cross_training_desc }}</p>
+        <span class="ybc-cross__program-cta">{{ tc.cross_training_cta }} &rarr;</span>
+      </a>
+      <a class="ybc-cross__program" href="{{ lp }}/mentorship-private-training">
+        <h3>{{ tc.cross_private_title }}</h3>
+        <p>{{ tc.cross_private_desc }}</p>
+        <span class="ybc-cross__program-cta">{{ tc.cross_private_cta }} &rarr;</span>
+      </a>
+    </div>
+
+    {# Row 3: Related Blog Posts #}
+    {% if t.s7_blog_slugs %}
+    <div class="ybc-cross__blog">
+      <h3 class="ybc-cross__blog-title">{{ tc.cross_blog_title }}</h3>
+      <div class="ybc-cross__blog-grid">
+        {% for slug in t.s7_blog_slugs %}
+          {% set post = null %}
+          {% for entry in journals.entries %}
+            {% if entry.slug == slug %}{% set post = entry %}{% endif %}
+          {% endfor %}
+          {% if post %}
+          <a class="ybc-cross__blog-card" href="{{ lp }}/yoga-journal/{{ post.slug }}/">
+            <img src="{{ post.image }}" alt="" loading="lazy">
+            <h4>{% if lang == 'en' %}{{ post.title_en }}{% else %}{{ post.title_da }}{% endif %}</h4>
+            <p>{% if lang == 'en' %}{{ post.excerpt_en }}{% else %}{{ post.excerpt_da }}{% endif %}</p>
+          </a>
+          {% endif %}
+        {% endfor %}
+      </div>
+      <a class="ybc-cross__blog-all" href="{{ lp }}/yoga-journal">{{ tc.cross_blog_cta }} &rarr;</a>
+    </div>
+    {% endif %}
+  </div>
+</section>
+
+
+{# ═══════ S8: BOTTOM FAQ ═══════ #}
+<section class="ybc-faq-section ybc-page ybc-fade-up">
+  <div class="ybc-faq-section__inner">
+    <h2 class="ybc-faq-section__title">{{ tc.faq_section_title }}</h2>
+
+    <div class="ybc-faq">
+      {% for i in range(1, 6) %}
+      <div class="ybc-faq__item">
+        <button class="ybc-faq__toggle" type="button">
+          <span>{{ t["s2_faq" + i + "_q"] }}</span>
+          <span class="ybc-faq__icon" aria-hidden="true"></span>
+        </button>
+        <div class="ybc-faq__panel">
+          <p>{{ t["s2_faq" + i + "_a"] }}</p>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+
+    <p class="ybc-faq-section__contact">
+      {{ tc.faq_contact_text }}
+      <a href="{{ lp }}/kontakt">{{ tc.faq_contact_cta }}</a>
+    </p>
+  </div>
+</section>

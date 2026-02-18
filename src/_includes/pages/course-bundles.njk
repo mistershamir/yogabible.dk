@@ -109,7 +109,7 @@
         {# CTAs #}
         <div class="cb-card__cta">
           <button class="cb-btn cb-btn--outline" type="button" data-ybc-open="brochure" data-ybc-course="Inversions, Splits, Backbends" data-ybc-source="Course Bundles – landing page">{{ t.builder_cta_brochure }}</button>
-          <a id="cb-cta-main" class="cb-btn cb-btn--primary" href="#" aria-disabled="true" tabindex="-1">{{ t.builder_cta_default }}</a>
+          <button id="cb-cta-main" class="cb-btn cb-btn--primary" type="button" aria-disabled="true" tabindex="-1">{{ t.builder_cta_default }}</button>
           <p class="cb-card__foot">{{ t.builder_foot }}</p>
         </div>
       </div>
@@ -189,16 +189,19 @@
 
     <div class="cb-courses-grid">
       {% set coursesList = [
-        { key: "inv", slug: "inversions" },
-        { key: "splits", slug: "splits" },
-        { key: "back", slug: "backbends" }
+        { key: "inv", slug: "inversions", prodId: "100145" },
+        { key: "splits", slug: "splits", prodId: "100150" },
+        { key: "back", slug: "backbends", prodId: "100140" }
       ] %}
       {% for c in coursesList %}
       <article class="cb-course-card">
         <h3 class="cb-course-card__title">{{ t["course_" + c.key + "_title"] }}</h3>
         <p class="cb-course-card__desc">{{ t["course_" + c.key + "_desc"] }}</p>
         <p class="cb-course-card__tags">{{ t["course_" + c.key + "_tags"] }}</p>
-        <a class="cb-course-card__link" href="{{ lp }}/{{ c.slug }}">{{ t.course_link }} &rarr;</a>
+        <div class="cb-course-card__ctas">
+          <a class="cb-course-card__link" href="{{ lp }}/{{ c.slug }}">{{ t.course_link }} &rarr;</a>
+          <button class="cb-btn cb-btn--primary cb-btn--sm" type="button" onclick="if(window.openCheckoutFlow)window.openCheckoutFlow('{{ c.prodId }}')">{{ t.course_cta_single }}</button>
+        </div>
       </article>
       {% endfor %}
     </div>
@@ -357,7 +360,7 @@
           </div>
         </div>
         <div class="cb-price-card__ctas">
-          <a class="cb-btn cb-btn--primary" href="#coursebuilder">{{ t.pricing_cta }}</a>
+          <button class="cb-btn cb-btn--primary" type="button" onclick="if(window.openCheckoutFlow)window.openCheckoutFlow('127')">{{ t.pricing3_cta_allin }}</button>
           <button class="cb-btn cb-btn--outline" type="button" data-ybc-open="brochure" data-ybc-source="Course Bundles – pricing section" data-ybc-course="Inversions,Splits,Backbends">{{ t.pricing_cta_brochure }}</button>
         </div>
       </article>
@@ -568,6 +571,32 @@
     <footer class="cb-accom__foot">
       <p class="cb-accom__fine">{{ t.accom_fine }}</p>
     </footer>
+  </div>
+</section>
+
+{# =========================================================
+   SECTION 8b: RELATED BLOG POSTS
+========================================================= #}
+<section class="cb-blog" aria-labelledby="cb-blog-title">
+  <div class="cb-inner">
+    <div class="cb-blog__head">
+      <p class="cb-eyebrow">{{ t.blog_eyebrow }}</p>
+      <h2 id="cb-blog-title" class="cb-section-title">{{ t.blog_title }}</h2>
+    </div>
+    <div class="cb-blog__grid">
+      {% set blogSlugs = t.blog_slugs %}
+      {% for slug in blogSlugs %}
+        {% for entry in journals.entries %}
+          {% if entry.slug == slug %}
+          <article class="cb-blog-card">
+            <h3 class="cb-blog-card__title">{{ entry["title_" + (lang or "da")] }}</h3>
+            <p class="cb-blog-card__excerpt">{{ entry["excerpt_" + (lang or "da")] }}</p>
+            <a class="cb-blog-card__link" href="{{ lp }}/yoga-journal/{{ entry.slug }}">{{ t.blog_read }} &rarr;</a>
+          </article>
+          {% endif %}
+        {% endfor %}
+      {% endfor %}
+    </div>
   </div>
 </section>
 

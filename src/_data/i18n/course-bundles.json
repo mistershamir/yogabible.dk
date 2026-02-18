@@ -84,6 +84,7 @@
     "course_back_desc": "Cobra, Camel, Wheel og avancerede variationer. Sikker progression med fokus på styrke.",
     "course_back_tags": "Rygsøjle · Bryst · Teknik",
     "course_link": "Læs mere",
+    "course_cta_single": "Tilmeld",
 
     "why_eyebrow": "HVORFOR BUNDLES VIRKER",
     "why_title": "Smart progression — ikke bare rabat",
@@ -138,6 +139,7 @@
     "pricing3_total": "Total værdi: <strong>2.434 kr.</strong> i besparelse og bonus",
     "pricing3_total_fine": "(1.035 kr rabat + 1.399 kr pass værdi)",
     "pricing_cta": "Byg din pakke",
+    "pricing3_cta_allin": "Tilmeld All-in nu",
     "pricing_cta_brochure": "Få skema",
     "pricing_fine": "* Alle kurser er <strong>4 uger</strong> med <strong>8 × 90 min</strong>. Bundle-rabatten gælder for samlet køb.",
 
@@ -205,6 +207,11 @@
     "accom_cta_see": "Se alle detaljer",
     "accom_cta_builder": "Byg dit bundle",
     "accom_fine": "Tip: Er du i tvivl om datoer? Skriv til os — så hjælper vi dig med den bedste løsning.",
+
+    "blog_eyebrow": "FRA VORES JOURNAL",
+    "blog_title": "Relaterede artikler",
+    "blog_read": "Læs artikel",
+    "blog_slugs": ["din-foerste-inversion-guide", "splits-fleksibilitet-guide", "backbends-uden-smerter"],
 
     "faq_eyebrow": "HAR DU SPØRGSMÅL?",
     "faq_title": "Ofte stillede spørgsmål",
@@ -314,6 +321,7 @@
     "course_back_desc": "Cobra, Camel, Wheel and advanced variations. Safe progression with a focus on strength.",
     "course_back_tags": "Spine · Chest · Technique",
     "course_link": "Read more",
+    "course_cta_single": "Sign up",
 
     "why_eyebrow": "WHY BUNDLES WORK",
     "why_title": "Smart progression — not just a discount",
@@ -368,6 +376,7 @@
     "pricing3_total": "Total value: <strong>2,434 DKK</strong> in savings and bonus",
     "pricing3_total_fine": "(1,035 DKK discount + 1,399 DKK pass value)",
     "pricing_cta": "Build your package",
+    "pricing3_cta_allin": "Sign up All-in now",
     "pricing_cta_brochure": "Get schedule",
     "pricing_fine": "* All courses are <strong>4 weeks</strong> with <strong>8 × 90 min</strong>. The bundle discount applies to combined purchase.",
 
@@ -435,6 +444,11 @@
     "accom_cta_see": "See all details",
     "accom_cta_builder": "Build your bundle",
     "accom_fine": "Tip: Not sure about dates? Write to us — we'll help you find the best solution.",
+
+    "blog_eyebrow": "FROM OUR JOURNAL",
+    "blog_title": "Related articles",
+    "blog_read": "Read article",
+    "blog_slugs": ["din-foerste-inversion-guide", "splits-fleksibilitet-guide", "backbends-uden-smerter"],
 
     "faq_eyebrow": "GOT QUESTIONS?",
     "faq_title": "Frequently asked questions",
