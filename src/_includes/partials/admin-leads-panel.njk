@@ -3,6 +3,11 @@
   <div class="yb-admin__view-head">
     <h2>{{ t.leads_title }}</h2>
     <div class="yb-lead__toolbar-right">
+      <div class="yb-lead__view-toggle" id="yb-lead-view-toggle">
+        <button class="yb-lead__view-btn is-active" data-view="table" type="button">&#128203; {{ t.leads_view_table }}</button>
+        <button class="yb-lead__view-btn" data-view="kanban" type="button">&#128202; {{ t.leads_view_board }}</button>
+      </div>
+      <button type="button" class="yb-btn yb-btn--outline yb-btn--sm" id="yb-lead-archive-toggle" data-action="toggle-show-archived">&#128230; {{ t.leads_show_archived }}</button>
       <button type="button" class="yb-btn yb-btn--outline yb-btn--sm" data-action="leads-export-csv">&#128229; {{ t.leads_export }}</button>
       <button type="button" class="yb-btn yb-btn--outline yb-btn--sm" data-action="leads-refresh">&#8635; {{ t.leads_refresh }}</button>
     </div>
@@ -20,6 +25,7 @@
       <option value="">{{ t.leads_all_statuses }}</option>
       <option value="New">&#10024; New</option>
       <option value="Contacted">&#128231; Contacted</option>
+      <option value="No Answer">&#128244; No Answer</option>
       <option value="Follow-up">&#128260; Follow-up</option>
       <option value="Engaged">&#128172; Engaged</option>
       <option value="Qualified">&#9989; Qualified</option>
@@ -30,6 +36,7 @@
       <option value="Unsubscribed">&#128683; Unsubscribed</option>
       <option value="Lost">&#128078; Lost</option>
       <option value="Closed">&#10006; Closed</option>
+      <option value="Archived">&#128230; Archived</option>
     </select>
     <select id="yb-lead-type-filter" class="yb-admin__select yb-lead__filter">
       <option value="">{{ t.leads_all_types }}</option>
@@ -77,14 +84,16 @@
     <button class="yb-btn yb-btn--sm yb-btn--outline" data-action="bulk-status">&#9881;&#65039; {{ t.leads_bulk_status }}</button>
     <button class="yb-btn yb-btn--sm yb-btn--outline" data-action="bulk-email">&#9993;&#65039; {{ t.leads_bulk_email }}</button>
     <button class="yb-btn yb-btn--sm yb-btn--outline" data-action="bulk-sms">&#128241; {{ t.leads_bulk_sms }}</button>
+    <button class="yb-btn yb-btn--sm yb-btn--outline yb-admin__icon-btn--danger" data-action="bulk-archive">&#128451; {{ t.leads_bulk_archive }}</button>
     <button class="yb-btn yb-btn--sm yb-btn--outline" data-action="bulk-deselect">&#10006; {{ t.leads_deselect }}</button>
   </div>
 
   {# Lead table #}
-  <div class="yb-admin__table-wrap yb-lead__table-wrap">
+  <div class="yb-admin__table-wrap yb-lead__table-wrap" id="yb-lead-table-container">
     <table class="yb-admin__table yb-lead__table" id="yb-lead-table">
       <thead>
         <tr>
+          <th class="yb-lead__th-chevron"></th>
           <th class="yb-lead__th-cb"><input type="checkbox" id="yb-lead-select-all" title="{{ t.leads_select_all }}"></th>
           <th class="yb-lead__th-date"><button class="yb-lead__sort-btn is-active is-desc" data-sort="created_at">{{ t.leads_col_date }} <span class="yb-lead__sort-icon"></span></button></th>
           <th>{{ t.users_col_name }}</th>
@@ -94,6 +103,10 @@
           <th class="yb-lead__th-source">{{ t.leads_source }}</th>
           <th><button class="yb-lead__sort-btn" data-sort="status">{{ t.leads_col_status }} <span class="yb-lead__sort-icon"></span></button></th>
           <th class="yb-lead__th-followup">{{ t.leads_followup }}</th>
+          <th class="yb-lead__th-lastcontact">{{ t.leads_col_lastcontact }}</th>
+          <th class="yb-lead__th-temp" title="{{ t.leads_col_temp }}">&#127777;</th>
+          <th class="yb-lead__th-notes" title="{{ t.leads_col_notes }}">&#128221;</th>
+          <th class="yb-lead__th-app" title="{{ t.leads_has_application }}">App</th>
           <th></th>
         </tr>
       </thead>
@@ -103,6 +116,9 @@
   <div id="yb-lead-load-more-wrap" style="text-align:center;margin-top:1rem" hidden>
     <button class="yb-btn yb-btn--outline" data-action="leads-load-more">{{ t.leads_load_more }}</button>
   </div>
+
+  {# Kanban Pipeline Board (hidden by default, toggled by view switch) #}
+  <div id="yb-lead-kanban" class="yb-lead__kanban" hidden></div>
 </div>
 
 {# ── Lead Detail View ── #}
@@ -205,8 +221,31 @@
   <div class="yb-lead__modal-box">
     <h3>&#128241; {{ t.leads_send_sms }}</h3>
     <p class="yb-lead__modal-to">{{ t.leads_to }}: <strong id="yb-sms-recipient-info"></strong></p>
+    <p class="yb-lead__modal-recipient-detail" id="yb-sms-recipient-detail" hidden></p>
+    {# Template selector #}
+    <select id="yb-sms-template-select" class="yb-lead__modal-select">
+      <option value="">{{ t.leads_sms_template_none }}</option>
+      <option value="ytt">{{ t.leads_sms_template_ytt }}</option>
+      <option value="course">{{ t.leads_sms_template_course }}</option>
+      <option value="mentorship">{{ t.leads_sms_template_mentorship }}</option>
+      <option value="default">{{ t.leads_sms_template_default }}</option>
+    </select>
+    {# Variable insert buttons #}
+    <div class="yb-lead__modal-vars">
+      <span class="yb-lead__modal-vars-label">{{ t.leads_insert_var }}:</span>
+      <button type="button" class="yb-lead__var-btn" data-var="{{first_name}}" data-target="yb-sms-message">&#123;&#123;first_name&#125;&#125;</button>
+      <button type="button" class="yb-lead__var-btn" data-var="{{program}}" data-target="yb-sms-message">&#123;&#123;program&#125;&#125;</button>
+      <button type="button" class="yb-lead__var-btn" data-var="{{name}}" data-target="yb-sms-message">&#123;&#123;name&#125;&#125;</button>
+    </div>
     <textarea id="yb-sms-message" class="yb-lead__modal-textarea" rows="4" placeholder="{{ t.leads_sms_placeholder }}" maxlength="640"></textarea>
-    <div class="yb-lead__modal-meta"><span id="yb-sms-char-count">0/160</span></div>
+    <div class="yb-lead__modal-meta">
+      <span id="yb-sms-char-count">0/160</span>
+      <span id="yb-sms-segment-count" class="yb-lead__sms-segments"></span>
+    </div>
+    <div id="yb-sms-progress" class="yb-lead__send-progress" hidden>
+      <div class="yb-lead__progress-bar"><div class="yb-lead__progress-fill" id="yb-sms-progress-fill"></div></div>
+      <span id="yb-sms-progress-text"></span>
+    </div>
     <div class="yb-lead__modal-actions">
       <button class="yb-btn yb-btn--primary" data-action="sms-send" id="yb-sms-send-btn">{{ t.leads_send_sms }}</button>
       <button class="yb-btn yb-btn--outline" data-action="sms-cancel">{{ t.cancel }}</button>
@@ -220,9 +259,26 @@
   <div class="yb-lead__modal-box yb-lead__modal-box--wide">
     <h3>&#9993;&#65039; {{ t.leads_send_email }}</h3>
     <p class="yb-lead__modal-to">{{ t.leads_to }}: <strong id="yb-email-recipient-info"></strong></p>
+    <p class="yb-lead__modal-recipient-detail" id="yb-email-recipient-detail" hidden></p>
+    {# Template selector (loaded from Firestore) #}
+    <select id="yb-email-template-select" class="yb-lead__modal-select">
+      <option value="">{{ t.leads_email_template_none }}</option>
+    </select>
     <input type="text" id="yb-email-subject" class="yb-lead__modal-input" placeholder="{{ t.leads_email_subject }}">
+    {# Variable insert buttons #}
+    <div class="yb-lead__modal-vars">
+      <span class="yb-lead__modal-vars-label">{{ t.leads_insert_var }}:</span>
+      <button type="button" class="yb-lead__var-btn" data-var="{{first_name}}" data-target="yb-email-body">&#123;&#123;first_name&#125;&#125;</button>
+      <button type="button" class="yb-lead__var-btn" data-var="{{last_name}}" data-target="yb-email-body">&#123;&#123;last_name&#125;&#125;</button>
+      <button type="button" class="yb-lead__var-btn" data-var="{{program}}" data-target="yb-email-body">&#123;&#123;program&#125;&#125;</button>
+      <button type="button" class="yb-lead__var-btn" data-var="{{email}}" data-target="yb-email-body">&#123;&#123;email&#125;&#125;</button>
+    </div>
     <textarea id="yb-email-body" class="yb-lead__modal-textarea" rows="10" placeholder="{{ t.leads_email_body }}"></textarea>
     <p class="yb-lead__modal-hint">{{ t.leads_email_hint }}</p>
+    <div id="yb-email-progress" class="yb-lead__send-progress" hidden>
+      <div class="yb-lead__progress-bar"><div class="yb-lead__progress-fill" id="yb-email-progress-fill"></div></div>
+      <span id="yb-email-progress-text"></span>
+    </div>
     <div class="yb-lead__modal-actions">
       <button class="yb-btn yb-btn--primary" data-action="email-send" id="yb-email-send-btn">{{ t.leads_send_email }}</button>
       <button class="yb-btn yb-btn--outline" data-action="email-cancel">{{ t.cancel }}</button>

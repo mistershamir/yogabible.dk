@@ -15850,6 +15850,90 @@ a.yb-kontakt-detail__value:hover {
 .yb-lead__modal-hint { font-size: 0.78rem; color: #6F6A66; margin: 0.5rem 0; }
 .yb-lead__modal-actions { display: flex; gap: 0.5rem; margin-top: 0.75rem; }
 
+/* ── SMS/Email Modal Enhancements ── */
+.yb-lead__modal-select {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid #E8E4E0;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  font-family: inherit;
+  background: #fff;
+  color: #0F0F0F;
+  margin-bottom: 0.5rem;
+  cursor: pointer;
+}
+.yb-lead__modal-select:focus { border-color: #f75c03; outline: none; }
+
+.yb-lead__modal-vars {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  flex-wrap: wrap;
+  margin-bottom: 0.5rem;
+}
+.yb-lead__modal-vars-label {
+  font-size: 0.75rem;
+  color: #6F6A66;
+  margin-right: 0.25rem;
+}
+.yb-lead__var-btn {
+  font-size: 0.72rem;
+  font-family: monospace;
+  padding: 2px 8px;
+  border: 1px solid #E8E4E0;
+  border-radius: 4px;
+  background: #F5F3F0;
+  color: #6F6A66;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.yb-lead__var-btn:hover {
+  border-color: #f75c03;
+  color: #f75c03;
+  background: #FFF5F0;
+}
+
+.yb-lead__modal-recipient-detail {
+  font-size: 0.78rem;
+  color: #6F6A66;
+  margin: -0.25rem 0 0.5rem;
+}
+
+.yb-lead__sms-segments {
+  font-size: 0.72rem;
+  color: #E65100;
+  margin-left: 0.5rem;
+}
+
+/* ── Send Progress Bar ── */
+.yb-lead__send-progress {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin: 0.5rem 0;
+}
+.yb-lead__send-progress[hidden] { display: none; }
+.yb-lead__progress-bar {
+  flex: 1;
+  height: 6px;
+  background: #E8E4E0;
+  border-radius: 3px;
+  overflow: hidden;
+}
+.yb-lead__progress-fill {
+  height: 100%;
+  background: #f75c03;
+  border-radius: 3px;
+  width: 0%;
+  transition: width 0.3s ease;
+}
+.yb-lead__send-progress span {
+  font-size: 0.75rem;
+  color: #6F6A66;
+  white-space: nowrap;
+}
+
 /* ── Responsive ── */
 @media (max-width: 768px) {
   .yb-lead__filter-bar { flex-direction: column; }

@@ -1457,6 +1457,27 @@
   }
 
   /* ══════════════════════════════════════════
+     SMS TEMPLATES (from config)
+     ══════════════════════════════════════════ */
+  var SMS_TEMPLATES = {
+    ytt: "Hi {{first_name}}! Thank you for your interest in our Yoga Teacher Training. We have just sent detailed information to your email - please check your inbox and spam or promotions folder. Feel free to reply here or call anytime with questions. Warm regards, Yoga Bible",
+    course: "Hi {{first_name}}! Thank you for your interest in our {{program}} course. We have just sent you all the details by email - please check your inbox and spam or promotions folder. Reply here anytime with questions! Warm regards, Yoga Bible",
+    mentorship: "Hi {{first_name}}! Thank you for your interest in our Personlig Mentorship program. We have sent you more information by email - check your inbox and spam or promotions folder. Looking forward to connecting! Warm regards, Yoga Bible",
+    'default': "Hi {{first_name}}! Thank you for reaching out to Yoga Bible. We have sent you information by email - please check your inbox and spam or promotions folder. Feel free to reply here or call us with any questions! Warm regards, Yoga Bible"
+  };
+
+  function updateSMSCharCount() {
+    var ta = $('yb-sms-message');
+    if (!ta) return;
+    var len = ta.value.length;
+    var segments = Math.ceil(len / 160) || 1;
+    var charEl = $('yb-sms-char-count');
+    var segEl = $('yb-sms-segment-count');
+    if (charEl) charEl.textContent = len + '/160';
+    if (segEl) segEl.textContent = segments > 1 ? '(' + segments + ' ' + t('leads_sms_segments') + ')' : '';
+  }
+
+  /* ══════════════════════════════════════════
      SMS COMPOSER (Modal)
      ══════════════════════════════════════════ */
   function openSMSComposer(leadOrLeads) {
@@ -1465,14 +1486,35 @@
 
     var isBulk = Array.isArray(leadOrLeads);
     var recipients = isBulk ? leadOrLeads : [leadOrLeads || currentLead];
-    var recipientCount = recipients.filter(function (l) { return l && l.phone; }).length;
+    var withPhone = recipients.filter(function (l) { return l && l.phone; }).length;
+    var skipped = recipients.length - withPhone;
 
+    // Main recipient info
     $('yb-sms-recipient-info').textContent = isBulk ?
-      recipientCount + ' ' + t('leads_recipients') :
+      withPhone + ' ' + t('leads_recipients') :
       (recipients[0].first_name || '') + ' (' + (recipients[0].phone || '') + ')';
 
+    // Detailed breakdown for bulk
+    var detailEl = $('yb-sms-recipient-detail');
+    if (detailEl) {
+      if (isBulk && skipped > 0) {
+        detailEl.textContent = withPhone + ' ' + t('leads_with_phone') + ' · ' + skipped + ' ' + t('leads_skipped');
+        detailEl.hidden = false;
+      } else {
+        detailEl.hidden = true;
+      }
+    }
+
     $('yb-sms-message').value = isBulk ? '' : ('Hi ' + (recipients[0].first_name || '') + '! ');
-    $('yb-sms-char-count').textContent = '0/160';
+    updateSMSCharCount();
+
+    // Reset template dropdown
+    var tplSel = $('yb-sms-template-select');
+    if (tplSel) tplSel.value = '';
+
+    // Hide progress bar
+    var prog = $('yb-sms-progress');
+    if (prog) prog.hidden = true;
 
     modal.hidden = false;
     modal._recipients = recipients;
@@ -1530,19 +1572,63 @@
   /* ══════════════════════════════════════════
      EMAIL COMPOSER (Modal)
      ══════════════════════════════════════════ */
+  var emailTemplatesLoaded = false;
+
+  function loadEmailTemplates() {
+    if (emailTemplatesLoaded || !db) return;
+    emailTemplatesLoaded = true;
+    var sel = $('yb-email-template-select');
+    if (!sel) return;
+    db.collection('email_templates').get().then(function (snap) {
+      snap.forEach(function (doc) {
+        var d = doc.data();
+        var opt = document.createElement('option');
+        opt.value = doc.id;
+        opt.textContent = d.name || doc.id;
+        opt.dataset.subject = d.subject || '';
+        opt.dataset.body = d.body_plain || d.body || '';
+        sel.appendChild(opt);
+      });
+    }).catch(function () { /* template collection may not exist */ });
+  }
+
   function openEmailComposer(leadOrLeads) {
     var modal = $('yb-lead-email-modal');
     if (!modal) return;
 
     var isBulk = Array.isArray(leadOrLeads);
     var recipients = isBulk ? leadOrLeads : [leadOrLeads || currentLead];
+    var withEmail = recipients.filter(function (l) { return l && l.email; }).length;
+    var skipped = recipients.length - withEmail;
 
     $('yb-email-recipient-info').textContent = isBulk ?
-      recipients.length + ' ' + t('leads_recipients') :
+      withEmail + ' ' + t('leads_recipients') :
       (recipients[0].first_name || '') + ' (' + (recipients[0].email || '') + ')';
+
+    // Detailed breakdown for bulk
+    var detailEl = $('yb-email-recipient-detail');
+    if (detailEl) {
+      if (isBulk && skipped > 0) {
+        detailEl.textContent = withEmail + ' ' + t('leads_with_email') + ' · ' + skipped + ' ' + t('leads_skipped');
+        detailEl.hidden = false;
+      } else {
+        detailEl.hidden = true;
+      }
+    }
 
     $('yb-email-subject').value = '';
     $('yb-email-body').value = '';
+
+    // Reset template dropdown
+    var tplSel = $('yb-email-template-select');
+    if (tplSel) tplSel.value = '';
+
+    // Load templates from Firestore (once)
+    loadEmailTemplates();
+
+    // Hide progress bar
+    var prog = $('yb-email-progress');
+    if (prog) prog.hidden = true;
 
     modal.hidden = false;
     modal._recipients = recipients;
@@ -1642,7 +1728,11 @@
     }
 
     bar.hidden = false;
-    $('yb-lead-bulk-count').textContent = selectedIds.size + ' ' + t('leads_selected');
+    var selected = leads.filter(function (l) { return selectedIds.has(l.id); });
+    var withPhone = selected.filter(function (l) { return l.phone; }).length;
+    var withEmail = selected.filter(function (l) { return l.email; }).length;
+    $('yb-lead-bulk-count').innerHTML = '<strong>' + selectedIds.size + '</strong> ' + t('leads_selected') +
+      ' &nbsp;·&nbsp; 📱 ' + withPhone + ' &nbsp;·&nbsp; ✉️ ' + withEmail;
   }
 
   function toggleSelectAll() {
@@ -1707,15 +1797,48 @@
   }
 
   function bulkSMS() {
-    var selected = leads.filter(function (l) { return selectedIds.has(l.id) && l.phone; });
-    if (!selected.length) { toast(t('leads_no_phone'), true); return; }
+    var selected = leads.filter(function (l) { return selectedIds.has(l.id); });
+    var withPhone = selected.filter(function (l) { return l.phone; });
+    if (!withPhone.length) { toast(t('leads_no_phone'), true); return; }
     openSMSComposer(selected);
   }
 
   function bulkEmail() {
-    var selected = leads.filter(function (l) { return selectedIds.has(l.id) && l.email; });
-    if (!selected.length) { toast(t('leads_no_email_addr'), true); return; }
+    var selected = leads.filter(function (l) { return selectedIds.has(l.id); });
+    var withEmail = selected.filter(function (l) { return l.email; });
+    if (!withEmail.length) { toast(t('leads_no_email_addr'), true); return; }
     openEmailComposer(selected);
+  }
+
+  function bulkArchive() {
+    if (currentUserRole !== 'admin') { toast('Only admins can archive leads.', true); return; }
+    var count = selectedIds.size;
+    if (!count) return;
+    if (!confirm(t('leads_bulk_archive_confirm').replace('{n}', count))) return;
+
+    var user = firebase.auth().currentUser;
+    var batch = db.batch();
+    selectedIds.forEach(function (id) {
+      var lead = leads.find(function (l) { return l.id === id; });
+      var ref = db.collection('leads').doc(id);
+      batch.update(ref, {
+        archived: true,
+        archived_at: firebase.firestore.FieldValue.serverTimestamp(),
+        archived_by: user ? user.email : 'unknown',
+        previous_status: lead ? lead.status : '',
+        status: 'Archived'
+      });
+    });
+
+    batch.commit().then(function () {
+      toast(count + ' ' + t('leads_bulk_archived'));
+      selectedIds.clear();
+      selectAll = false;
+      updateBulkBar();
+      loadLeads();
+    }).catch(function (err) {
+      toast(t('error_save') + ': ' + err.message, true);
+    });
   }
 
   /* ══════════════════════════════════════════
@@ -2257,6 +2380,7 @@
         case 'bulk-sms': bulkSMS(); break;
         case 'bulk-email': bulkEmail(); break;
         case 'bulk-deselect': selectedIds.clear(); selectAll = false; renderLeadView(); updateBulkBar(); break;
+        case 'bulk-archive': bulkArchive(); break;
         case 'sms-send': sendSMSFromComposer(); break;
         case 'sms-cancel': $('yb-lead-sms-modal').hidden = true; break;
         case 'email-send': sendEmailFromComposer(); break;
@@ -2292,6 +2416,47 @@
       if (e.target.id === 'yb-lead-select-all') {
         toggleSelectAll();
       }
+      // SMS template selector
+      if (e.target.id === 'yb-sms-template-select') {
+        var key = e.target.value;
+        if (key && SMS_TEMPLATES[key]) {
+          $('yb-sms-message').value = SMS_TEMPLATES[key];
+          updateSMSCharCount();
+        }
+      }
+      // Email template selector (from Firestore)
+      if (e.target.id === 'yb-email-template-select') {
+        var opt = e.target.options[e.target.selectedIndex];
+        if (opt && opt.value) {
+          var subj = opt.dataset.subject || '';
+          var body = opt.dataset.body || '';
+          if (subj) $('yb-email-subject').value = subj;
+          if (body) $('yb-email-body').value = body;
+        }
+      }
+    });
+
+    // SMS character count on input
+    document.addEventListener('input', function (e) {
+      if (e.target.id === 'yb-sms-message') {
+        updateSMSCharCount();
+      }
+    });
+
+    // Variable insert buttons
+    document.addEventListener('click', function (e) {
+      var varBtn = e.target.closest('.yb-lead__var-btn');
+      if (!varBtn) return;
+      var varText = varBtn.getAttribute('data-var');
+      var targetId = varBtn.getAttribute('data-target');
+      var ta = $(targetId);
+      if (!ta || !varText) return;
+      var start = ta.selectionStart || ta.value.length;
+      var end = ta.selectionEnd || ta.value.length;
+      ta.value = ta.value.substring(0, start) + varText + ta.value.substring(end);
+      ta.focus();
+      ta.setSelectionRange(start + varText.length, start + varText.length);
+      if (targetId === 'yb-sms-message') updateSMSCharCount();
     });
 
     // Search form — Leads
