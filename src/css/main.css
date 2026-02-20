@@ -13890,6 +13890,93 @@ a.yb-kontakt-detail__value:hover {
   .yb-giftcards__form-actions .yb-btn { width: 100%; }
 }
 
+/* ═══ My Applications Tab ═══ */
+.yb-applications-tab__header { margin-bottom: 1.5rem; }
+.yb-applications-tab__title { font-size: 1.3rem; font-weight: 700; color: #0F0F0F; margin: 0; }
+
+.yb-applications__empty-state { text-align: center; padding: 3rem 2rem; color: #6F6A66; }
+.yb-applications__empty-state p { font-size: 0.95rem; margin: 0 0 0.5rem; }
+
+.yb-applications__card {
+  background: #FFFCF9;
+  border: 1.5px solid #E8E4E0;
+  border-radius: 12px;
+  padding: 1.25rem 1.5rem;
+  margin-bottom: 1rem;
+  transition: border-color 0.2s;
+}
+.yb-applications__card:hover { border-color: #f75c03; }
+
+.yb-applications__card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 1rem;
+  gap: 1rem;
+}
+.yb-applications__card-title { display: flex; flex-direction: column; gap: 0.2rem; }
+.yb-applications__program-type { font-weight: 700; font-size: 1.05rem; color: #0F0F0F; }
+.yb-applications__course-name { color: #6F6A66; font-size: 0.92rem; }
+
+.yb-applications__status {
+  display: inline-block;
+  padding: 0.25rem 0.75rem;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  white-space: nowrap;
+  text-transform: capitalize;
+  flex-shrink: 0;
+}
+.yb-applications__status--new { background: #f0f0f0; color: #555; }
+.yb-applications__status--reviewed { background: #dbeafe; color: #1e40af; }
+.yb-applications__status--approved { background: #dcfce7; color: #166534; }
+.yb-applications__status--enrolled { background: #fff3e0; color: #b45309; }
+.yb-applications__status--rejected { background: #fee2e2; color: #991b1b; }
+.yb-applications__status--waitlist { background: #fef3c7; color: #92400e; }
+
+.yb-applications__card-body { display: flex; flex-direction: column; gap: 0; }
+
+.yb-applications__row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  font-size: 0.92rem;
+  padding: 0.4rem 0;
+  border-bottom: 1px dashed #E8E4E0;
+}
+.yb-applications__row:last-child { border-bottom: none; }
+.yb-applications__label { color: #6F6A66; font-weight: 500; min-width: 120px; flex-shrink: 0; }
+.yb-applications__row--notes { flex-direction: column; gap: 0.3rem; }
+.yb-applications__row--notes span:last-child {
+  font-size: 0.88rem;
+  color: #6F6A66;
+  white-space: pre-wrap;
+  line-height: 1.5;
+}
+
+.yb-applications__status--pending { background: #fff3cd; color: #856404; }
+.yb-applications__status--under_review { background: #d1ecf1; color: #0c5460; }
+.yb-applications__status--withdrawn { background: #ECEFF1; color: #546E7F; }
+.yb-applications__status--completed { background: #E8F5E9; color: #2E7D32; }
+
+.yb-applications__card-footer {
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid #E8E4E0;
+}
+.yb-applications__member-link {
+  display: inline-block;
+  font-size: 0.9rem;
+}
+
+@media (max-width: 600px) {
+  .yb-applications__card { padding: 1rem; }
+  .yb-applications__card-header { flex-direction: column; gap: 0.5rem; }
+  .yb-applications__row { font-size: 0.88rem; }
+  .yb-applications__label { min-width: 100px; }
+}
+
 /* Toast notification */
 .yb-membership__toast {
   padding: 0.75rem 1rem;

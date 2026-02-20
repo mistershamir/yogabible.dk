@@ -3,6 +3,8 @@
   <div class="yb-admin__view-head">
     <h2>{{ t.apps_title }}</h2>
     <div class="yb-lead__toolbar-right">
+      <button type="button" class="yb-btn yb-btn--outline yb-btn--sm" id="yb-app-archive-toggle" data-action="toggle-show-archived-apps">&#128230; {{ t.apps_show_archived }}</button>
+      <button type="button" class="yb-btn yb-btn--outline yb-btn--sm" data-action="apps-export-csv">&#128229; {{ t.apps_export }}</button>
       <button type="button" class="yb-btn yb-btn--outline yb-btn--sm" data-action="apps-refresh">&#8635; {{ t.leads_refresh }}</button>
     </div>
   </div>
@@ -40,11 +42,22 @@
     <span id="yb-app-count" class="yb-lead__count-text"></span>
   </div>
 
+  {# Bulk actions bar (hidden until selections) #}
+  <div id="yb-app-bulk-bar" class="yb-lead__bulk-bar" hidden>
+    <span id="yb-app-bulk-count" class="yb-lead__bulk-count-text"></span>
+    <button class="yb-btn yb-btn--sm yb-btn--outline" data-action="app-bulk-status">&#9881;&#65039; {{ t.apps_bulk_status }}</button>
+    <button class="yb-btn yb-btn--sm yb-btn--outline" data-action="app-bulk-email">&#9993;&#65039; {{ t.apps_bulk_email }}</button>
+    <button class="yb-btn yb-btn--sm yb-btn--outline" data-action="app-bulk-sms">&#128241; {{ t.apps_bulk_sms }}</button>
+    <button class="yb-btn yb-btn--sm yb-btn--outline yb-admin__icon-btn--danger" data-action="app-bulk-archive">&#128451; {{ t.apps_bulk_archive }}</button>
+    <button class="yb-btn yb-btn--sm yb-btn--outline" data-action="app-deselect-all">&#10006; {{ t.apps_deselect }}</button>
+  </div>
+
   {# Applications table #}
   <div class="yb-admin__table-wrap yb-lead__table-wrap">
     <table class="yb-admin__table yb-lead__table" id="yb-app-table">
       <thead>
         <tr>
+          <th class="yb-lead__th-cb"><input type="checkbox" id="yb-app-select-all" title="{{ t.apps_select_all }}"></th>
           <th>{{ t.apps_col_app_id }}</th>
           <th>{{ t.users_col_name }}</th>
           <th>{{ t.users_col_email }}</th>
@@ -71,6 +84,67 @@
 
   {# Application detail cards #}
   <div id="yb-app-detail-card"></div>
+
+  {# Quick actions #}
+  <div class="yb-admin__section-divider"></div>
+  <h3 class="yb-lead__section-title">{{ t.apps_quick_actions }}</h3>
+  <div id="yb-app-actions" class="yb-lead__actions"></div>
+
+  {# SMS Conversation #}
+  <div class="yb-admin__section-divider"></div>
+  <h3 class="yb-lead__section-title">{{ t.apps_sms_conversation }}</h3>
+  <div id="yb-app-sms-conversation" class="yb-lead__sms-conversation">
+    <p class="yb-lead__empty-text">{{ t.apps_no_messages }}</p>
+  </div>
+
+  {# Edit Fields #}
+  <div class="yb-admin__section-divider"></div>
+  <h3 class="yb-lead__section-title">{{ t.apps_edit_fields }}</h3>
+  <form id="yb-app-edit-form" class="yb-admin__form">
+    <div class="yb-lead__status-grid">
+      <div class="yb-admin__field">
+        <label for="yb-app-edit-first-name">{{ t.users_col_name }} ({{ t.apps_personal_info }})</label>
+        <input type="text" id="yb-app-edit-first-name" class="yb-admin__select" placeholder="First name">
+      </div>
+      <div class="yb-admin__field">
+        <label for="yb-app-edit-last-name">Last name</label>
+        <input type="text" id="yb-app-edit-last-name" class="yb-admin__select" placeholder="Last name">
+      </div>
+      <div class="yb-admin__field">
+        <label for="yb-app-edit-email">{{ t.users_col_email }}</label>
+        <input type="email" id="yb-app-edit-email" class="yb-admin__select" placeholder="Email">
+      </div>
+      <div class="yb-admin__field">
+        <label for="yb-app-edit-phone">{{ t.apps_col_phone }}</label>
+        <input type="text" id="yb-app-edit-phone" class="yb-admin__select" placeholder="Phone">
+      </div>
+      <div class="yb-admin__field">
+        <label for="yb-app-edit-program-type">{{ t.apps_col_program }}</label>
+        <select id="yb-app-edit-program-type" class="yb-admin__select">
+          <option value="">--</option>
+          <option value="ytt">YTT</option>
+          <option value="course">Course</option>
+          <option value="bundle">Bundle</option>
+          <option value="mentorship">Mentorship</option>
+        </select>
+      </div>
+      <div class="yb-admin__field">
+        <label for="yb-app-edit-track">{{ t.apps_col_track }}</label>
+        <input type="text" id="yb-app-edit-track" class="yb-admin__select" placeholder="Track">
+      </div>
+      <div class="yb-admin__field">
+        <label for="yb-app-edit-course-name">{{ t.apps_col_course }}</label>
+        <input type="text" id="yb-app-edit-course-name" class="yb-admin__select" placeholder="Course / Cohort">
+      </div>
+      <div class="yb-admin__field">
+        <label for="yb-app-edit-cohort-label">Cohort</label>
+        <input type="text" id="yb-app-edit-cohort-label" class="yb-admin__select" placeholder="Cohort label">
+      </div>
+    </div>
+    <div class="yb-admin__form-actions">
+      <button type="submit" class="yb-btn yb-btn--primary">{{ t.apps_save_fields }}</button>
+    </div>
+  </form>
 
   {# Status update #}
   <div class="yb-admin__section-divider"></div>

@@ -60,6 +60,7 @@
           <button class="yb-profile__tab" type="button" data-yb-tab="store">{{ t.tab_store }}</button>
           <button class="yb-profile__tab" type="button" data-yb-tab="visits">{{ t.tab_visits }}</button>
           <button class="yb-profile__tab" type="button" data-yb-tab="passes">{{ t.tab_passes }}</button>
+          <button class="yb-profile__tab" type="button" data-yb-tab="applications">{{ t.tab_applications }}</button>
           <button class="yb-profile__tab" type="button" data-yb-tab="receipts">{{ t.tab_receipts }}</button>
           <button class="yb-profile__tab" type="button" data-yb-tab="giftcards">{{ t.tab_giftcards }}</button>
         </div>
@@ -557,6 +558,22 @@
             <div id="yb-membership-content"></div>
           </div>
           </div>
+          </div>
+        </div>
+
+        {# ═══════ TAB: My Applications ═══════ #}
+        <div class="yb-profile__tab-panel" data-yb-panel="applications">
+          <div class="yb-profile__content-area">
+            <div class="yb-applications-tab">
+              <div class="yb-applications-tab__header">
+                <h2 class="yb-applications-tab__title">{{ t.tab_applications }}</h2>
+              </div>
+              <div id="yb-my-applications-loading" class="yb-store__loading" hidden>
+                <div class="yb-mb-spinner"></div>
+                <span id="yb-my-applications-loading-text"></span>
+              </div>
+              <div id="yb-my-applications-content"></div>
+            </div>
           </div>
         </div>
 
