@@ -299,6 +299,17 @@
 {% endif %}
 
 
+{# ═══════ S5b: OUTCOME — What you'll be able to do ═══════ #}
+{% if t.s5b_title %}
+<section class="ybc-outcome ybc-page ybc-fade-up" id="ybc-{{ courseId }}-outcome">
+  <div class="ybc-outcome__inner">
+    <h2 class="ybc-outcome__title">{{ t.s5b_title }}</h2>
+    <p class="ybc-outcome__lead">{{ t.s5b_intro }}</p>
+  </div>
+</section>
+{% endif %}
+
+
 {# ═══════ S5: WHAT IS [TOPIC]? — Educational + image grid ═══════ #}
 <section class="ybc-what ybc-page" id="ybc-{{ courseId }}-what">
   <div class="ybc-what__wrapper">
@@ -331,21 +342,17 @@
 
     {# Row 1: Other courses + bundle #}
     <div class="ybc-cross__courses">
-      {% set courses = [
-        { id: "inversions", img: "/assets/images/inversions/hero.jpg" },
-        { id: "splits", img: "https://www.yogabible.dk/s/Splits_Course_Kursus_Kbenhavn_Copenhagen_Yoga_Bible.jpg" },
-        { id: "backbends", img: "https://www.yogabible.dk/s/yoga-backbend-trning-kbenhavn.jpg" }
-      ] %}
-      {% for c in courses %}
-        {% if c.id != courseId %}
-        <a class="ybc-cross__card" href="{{ lp }}/{{ c.id }}">
+      {% set courses = ["inversions", "splits", "backbends"] %}
+      {% for cid in courses %}
+        {% if cid != courseId %}
+        <a class="ybc-cross__card" href="{{ lp }}/{{ cid }}">
           <figure class="ybc-cross__card-img">
-            <img src="{{ c.img }}" alt="{{ tc['cross_' + c.id + '_alt'] }}" loading="lazy">
+            <img src="{{ tc['cross_' + cid + '_img'] }}" alt="{{ tc['cross_' + cid + '_alt'] }}" loading="lazy">
           </figure>
           <div class="ybc-cross__card-body">
-            <h3>{{ tc['cross_' + c.id + '_title'] }}</h3>
-            <p>{{ tc['cross_' + c.id + '_desc'] }}</p>
-            <span class="ybc-cross__card-price">{{ tc['cross_' + c.id + '_price'] }}</span>
+            <h3>{{ tc['cross_' + cid + '_title'] }}</h3>
+            <p>{{ tc['cross_' + cid + '_desc'] }}</p>
+            <span class="ybc-cross__card-price">{{ tc['cross_' + cid + '_price'] }}</span>
           </div>
         </a>
         {% endif %}

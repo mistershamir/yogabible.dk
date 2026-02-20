@@ -3599,6 +3599,7 @@ section {
   --ybc-ink: #0f0f0f;
   --ybc-muted: #6F6A66;
   --ybc-bg: #fff;
+  --ybc-sand: #F5F3F0;
   --ybc-ring: rgba(247,92,3,.26);
   --ybc-radius: 20px;
   --ybc-gutter: clamp(18px, 4vw, 28px);
@@ -4497,6 +4498,28 @@ section {
 
 
 /* ── S5: What Is [Topic]? ── */
+
+/* ── S5b: Outcome ─────────────────────────── */
+.ybc-outcome {
+  padding: clamp(48px, 6vw, 80px) clamp(18px, 4vw, 28px);
+  background: var(--ybc-sand);
+  text-align: center;
+}
+.ybc-outcome__inner {
+  width: min(720px, 100%);
+  margin: 0 auto;
+}
+.ybc-outcome__title {
+  font-size: clamp(1.6rem, 3vw, 2.2rem);
+  font-weight: 700;
+  margin-bottom: 1rem;
+  color: var(--ybc-ink);
+}
+.ybc-outcome__lead {
+  font-size: clamp(1rem, 1.4vw, 1.15rem);
+  line-height: 1.65;
+  color: var(--ybc-muted);
+}
 
 .ybc-what {
   padding: clamp(48px, 6vw, 96px) clamp(18px, 4vw, 28px);
