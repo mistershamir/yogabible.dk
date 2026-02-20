@@ -63,6 +63,44 @@
   var selectedAppIds = new Set();
   var selectAllApps = false;
   var showArchivedApps = false;
+  var appFilterTrack = '';
+  var appFilterCohort = '';
+
+  // Course catalog for admin edit dropdowns (matches storeCatalog in profile.js)
+  var COURSE_CATALOG = {
+    ytt: [
+      { id: '100078', name: '18 Ugers Fleksibelt Program (Mar-Jun)', cohorts: [{ label: 'Marts\u2013Juni 2026' }] },
+      { id: '100121', name: '4 Ugers Intensiv (Apr)', cohorts: [{ label: 'April 2026' }] },
+      { id: '100211', name: '4 Ugers Intensiv (Jul)', cohorts: [{ label: 'Juli 2026' }] },
+      { id: '100209', name: '8 Ugers Semi-Intensiv (Maj-Jun)', cohorts: [{ label: 'Maj\u2013Juni 2026' }] },
+      { id: '100210', name: '18 Ugers Fleksibelt Program (Aug-Dec)', cohorts: [{ label: 'August\u2013December 2026' }] }
+    ],
+    course: [
+      { id: '100145', name: 'Inversions', cohorts: [{ label: 'April 2026' }] },
+      { id: '100150', name: 'Splits', cohorts: [{ label: 'April 2026' }] },
+      { id: '100140', name: 'Backbends', cohorts: [{ label: 'April 2026' }] }
+    ],
+    bundle: [
+      { id: '119', name: 'Backbends + Inversions', cohorts: [{ label: 'April 2026' }] },
+      { id: '120', name: 'Inversions + Splits', cohorts: [{ label: 'April 2026' }] },
+      { id: '121', name: 'Backbends + Splits', cohorts: [{ label: 'April 2026' }] },
+      { id: '127', name: 'All-In (Inversions + Splits + Backbends)', cohorts: [{ label: 'April 2026' }] }
+    ],
+    mentorship: []
+  };
+  // education is what apply.js stores for YTT
+  COURSE_CATALOG.education = COURSE_CATALOG.ytt;
+
+  // Payment choice labels for admin display
+  var PAYMENT_LABELS = {
+    paid: 'Paid (legacy)',
+    paid_deposit: 'Forberedelsesfasen betalt',
+    paid_full: 'Fuldt betalt',
+    pay_now: 'Betalt via link'
+  };
+  function getPaymentChoiceLabel(choice) {
+    return PAYMENT_LABELS[choice] || choice || '\u2014';
+  }
 
   /* ══════════════════════════════════════════
      HELPERS
@@ -1946,6 +1984,7 @@
 
       renderApplicationTable();
       renderApplicationStats();
+      populateCohortFilter();
     }).catch(function (err) {
       console.error('[lead-admin] Applications load error:', err);
       toast(t('error_load'), true);
@@ -1958,6 +1997,12 @@
     // Filter archived unless showing archived
     if (!showArchivedApps) {
       filtered = filtered.filter(function (a) { return !a.archived; });
+    }
+    if (appFilterTrack) {
+      filtered = filtered.filter(function (a) { return (a.track || '').toLowerCase() === appFilterTrack.toLowerCase(); });
+    }
+    if (appFilterCohort) {
+      filtered = filtered.filter(function (a) { return (a.cohort_label || a.cohort || '') === appFilterCohort; });
     }
     if (appSearchTerm) {
       var s = appSearchTerm.toLowerCase();
@@ -1999,7 +2044,7 @@
         '<td><span class="yb-lead__type-badge">' + esc(a.program_type || '\u2014') + '</span></td>' +
         '<td class="yb-lead__cell-program">' + esc((a.course_name || a.cohort || '').substring(0, 30)) + '</td>' +
         '<td>' + esc(a.track || '\u2014') + '</td>' +
-        '<td>' + esc(a.payment_choice || '\u2014') + '</td>' +
+        '<td>' + esc(getPaymentChoiceLabel(a.payment_choice)) + '</td>' +
         '<td>' + appStatusBadgeHtml(a.status) + archivedTag + '</td>' +
         '<td class="yb-lead__cell-date">' + relativeTime(a.created_at) + '</td>' +
         '<td class="yb-lead__cell-actions">' +
@@ -2203,7 +2248,7 @@
     if (a.payment_choice) {
       html += '<div class="yb-lead__card-row">' +
         '<span class="yb-lead__card-label">Payment Choice</span>' +
-        '<span class="yb-lead__card-value">' + esc(a.payment_choice) + '</span>' +
+        '<span class="yb-lead__card-value">' + esc(getPaymentChoiceLabel(a.payment_choice)) + '</span>' +
       '</div>';
     }
     html += '<div class="yb-lead__card-row">' +
@@ -2313,8 +2358,59 @@
     el = $('yb-app-edit-phone'); if (el) el.value = a.phone || '';
     el = $('yb-app-edit-program-type'); if (el) el.value = a.program_type || '';
     el = $('yb-app-edit-track'); if (el) el.value = a.track || '';
-    el = $('yb-app-edit-course-name'); if (el) el.value = a.course_name || '';
-    el = $('yb-app-edit-cohort-label'); if (el) el.value = a.cohort_label || a.cohort || '';
+
+    // Populate course and cohort dropdowns from catalog
+    populateCourseDropdown(a.program_type || a.type || '', a.course_name || '');
+    populateCohortDropdown(a.program_type || a.type || '', a.course_name || '', a.cohort_label || a.cohort || '');
+  }
+
+  function populateCourseDropdown(programType, currentValue) {
+    var sel = $('yb-app-edit-course-name');
+    if (!sel) return;
+    var courses = COURSE_CATALOG[programType] || [];
+    var html = '<option value="">---</option>';
+    courses.forEach(function (c) {
+      var selected = (c.name === currentValue) ? ' selected' : '';
+      html += '<option value="' + esc(c.name) + '" data-course-id="' + c.id + '"' + selected + '>' + esc(c.name) + '</option>';
+    });
+    // Preserve non-catalog values with a "(custom)" fallback
+    if (currentValue && !courses.some(function (c) { return c.name === currentValue; })) {
+      html += '<option value="' + esc(currentValue) + '" selected>' + esc(currentValue) + ' (custom)</option>';
+    }
+    sel.innerHTML = html;
+  }
+
+  function populateCohortDropdown(programType, courseName, currentValue) {
+    var sel = $('yb-app-edit-cohort-label');
+    if (!sel) return;
+    var courses = COURSE_CATALOG[programType] || [];
+    var course = courses.find(function (c) { return c.name === courseName; });
+    var cohorts = course ? course.cohorts : [];
+    var html = '<option value="">---</option>';
+    cohorts.forEach(function (co) {
+      var selected = (co.label === currentValue) ? ' selected' : '';
+      html += '<option value="' + esc(co.label) + '"' + selected + '>' + esc(co.label) + '</option>';
+    });
+    // Preserve non-catalog values
+    if (currentValue && !cohorts.some(function (co) { return co.label === currentValue; })) {
+      html += '<option value="' + esc(currentValue) + '" selected>' + esc(currentValue) + ' (custom)</option>';
+    }
+    sel.innerHTML = html;
+  }
+
+  function populateCohortFilter() {
+    var sel = $('yb-app-cohort-filter');
+    if (!sel) return;
+    var seen = {};
+    var html = '<option value="">' + t('apps_all_cohorts') + '</option>';
+    applications.forEach(function (a) {
+      var cl = a.cohort_label || a.cohort || '';
+      if (cl && !seen[cl]) {
+        seen[cl] = true;
+        html += '<option value="' + esc(cl) + '">' + esc(cl) + '</option>';
+      }
+    });
+    sel.innerHTML = html;
   }
 
   function saveAppFields() {
@@ -2741,22 +2837,26 @@
   function bulkAppEmail() {
     if (selectedAppIds.size === 0) return;
 
-    // Collect apps with emails
-    var appsWithEmail = [];
-    var skipped = 0;
+    // Collect selected apps
+    var selectedApps = [];
     selectedAppIds.forEach(function (id) {
       var app = applications.find(function (a) { return a.id === id; });
-      if (app && app.email) { appsWithEmail.push(app); } else { skipped++; }
+      if (app) { app._source = 'app'; selectedApps.push(app); }
     });
 
-    if (appsWithEmail.length === 0) {
-      toast('No applications with email addresses', true);
+    if (selectedApps.length === 0) return;
+
+    // Delegate to campaign wizard if available
+    if (typeof window.openEmailCampaign === 'function') {
+      window.openEmailCampaign(selectedApps);
       return;
     }
 
-    var subject = prompt('Email subject for ' + appsWithEmail.length + ' recipients' + (skipped ? ' (' + skipped + ' skipped - no email)' : '') + ':', '');
+    // Fallback: prompt-based send
+    var appsWithEmail = selectedApps.filter(function (a) { return !!a.email; });
+    if (appsWithEmail.length === 0) { toast('No applications with email addresses', true); return; }
+    var subject = prompt('Email subject for ' + appsWithEmail.length + ' recipients:', '');
     if (!subject) return;
-
     var body = prompt('Email body (HTML or plain text):', '');
     if (!body) return;
 
@@ -2788,20 +2888,25 @@
   function bulkAppSMS() {
     if (selectedAppIds.size === 0) return;
 
-    // Collect apps with phone
-    var appsWithPhone = [];
-    var skipped = 0;
+    // Collect selected apps
+    var selectedApps = [];
     selectedAppIds.forEach(function (id) {
       var app = applications.find(function (a) { return a.id === id; });
-      if (app && app.phone) { appsWithPhone.push(app); } else { skipped++; }
+      if (app) { app._source = 'app'; selectedApps.push(app); }
     });
 
-    if (appsWithPhone.length === 0) {
-      toast('No applications with phone numbers', true);
+    if (selectedApps.length === 0) return;
+
+    // Delegate to campaign wizard if available
+    if (typeof window.openSMSCampaign === 'function') {
+      window.openSMSCampaign(selectedApps);
       return;
     }
 
-    var message = prompt('SMS message for ' + appsWithPhone.length + ' recipients' + (skipped ? ' (' + skipped + ' skipped - no phone)' : '') + ':', '');
+    // Fallback: prompt-based send
+    var appsWithPhone = selectedApps.filter(function (a) { return !!a.phone; });
+    if (appsWithPhone.length === 0) { toast('No applications with phone numbers', true); return; }
+    var message = prompt('SMS message for ' + appsWithPhone.length + ' recipients:', '');
     if (!message) return;
 
     getAuthToken().then(function (token) {
@@ -3167,6 +3272,36 @@
         loadApplications();
       });
     }
+    var appTrackFilter = $('yb-app-track-filter');
+    if (appTrackFilter) {
+      appTrackFilter.addEventListener('change', function () {
+        appFilterTrack = appTrackFilter.value;
+        renderApplicationTable();
+      });
+    }
+    var appCohortFilterEl = $('yb-app-cohort-filter');
+    if (appCohortFilterEl) {
+      appCohortFilterEl.addEventListener('change', function () {
+        appFilterCohort = appCohortFilterEl.value;
+        renderApplicationTable();
+      });
+    }
+
+    // Cascading dropdowns for app edit form (program type → course → cohort)
+    var appEditProgramType = $('yb-app-edit-program-type');
+    if (appEditProgramType) {
+      appEditProgramType.addEventListener('change', function () {
+        populateCourseDropdown(appEditProgramType.value, '');
+        populateCohortDropdown(appEditProgramType.value, '', '');
+      });
+    }
+    var appEditCourseName = $('yb-app-edit-course-name');
+    if (appEditCourseName) {
+      appEditCourseName.addEventListener('change', function () {
+        var progType = $('yb-app-edit-program-type');
+        populateCohortDropdown(progType ? progType.value : '', appEditCourseName.value, '');
+      });
+    }
 
     // App select-all checkbox
     var appSelectAll = $('yb-app-select-all');
@@ -3263,7 +3398,7 @@
     var appTable = $('yb-app-table');
     if (appTable) {
       appTable.addEventListener('click', function (e) {
-        if (e.target.closest('button')) return;
+        if (e.target.closest('input[type="checkbox"]') || e.target.closest('button') || e.target.closest('a')) return;
         var row = e.target.closest('.yb-lead__row');
         if (row) {
           var rowAppId = row.getAttribute('data-app-id');

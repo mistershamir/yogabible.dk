@@ -31,9 +31,18 @@
     <select id="yb-app-type-filter" class="yb-admin__select yb-lead__filter">
       <option value="">{{ t.leads_all_types }}</option>
       <option value="ytt">YTT</option>
+      <option value="education">YTT (education)</option>
       <option value="course">Course</option>
       <option value="bundle">Bundle</option>
       <option value="mentorship">Mentorship</option>
+    </select>
+    <select id="yb-app-track-filter" class="yb-admin__select yb-lead__filter">
+      <option value="">{{ t.apps_all_tracks }}</option>
+      <option value="weekday">Weekday</option>
+      <option value="weekend">Weekend</option>
+    </select>
+    <select id="yb-app-cohort-filter" class="yb-admin__select yb-lead__filter">
+      <option value="">{{ t.apps_all_cohorts }}</option>
     </select>
   </div>
 
@@ -130,15 +139,23 @@
       </div>
       <div class="yb-admin__field">
         <label for="yb-app-edit-track">{{ t.apps_col_track }}</label>
-        <input type="text" id="yb-app-edit-track" class="yb-admin__select" placeholder="Track">
+        <select id="yb-app-edit-track" class="yb-admin__select">
+          <option value="">---</option>
+          <option value="weekday">Weekday</option>
+          <option value="weekend">Weekend</option>
+        </select>
       </div>
       <div class="yb-admin__field">
         <label for="yb-app-edit-course-name">{{ t.apps_col_course }}</label>
-        <input type="text" id="yb-app-edit-course-name" class="yb-admin__select" placeholder="Course / Cohort">
+        <select id="yb-app-edit-course-name" class="yb-admin__select">
+          <option value="">---</option>
+        </select>
       </div>
       <div class="yb-admin__field">
         <label for="yb-app-edit-cohort-label">Cohort</label>
-        <input type="text" id="yb-app-edit-cohort-label" class="yb-admin__select" placeholder="Cohort label">
+        <select id="yb-app-edit-cohort-label" class="yb-admin__select">
+          <option value="">---</option>
+        </select>
       </div>
     </div>
     <div class="yb-admin__form-actions">

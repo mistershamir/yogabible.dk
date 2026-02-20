@@ -4832,7 +4832,8 @@
       html += renderAppRow(t('apps_cohort'), escHtml(app.cohort_label));
     }
     if (app.payment_choice) {
-      html += renderAppRow(t('apps_payment'), escHtml(app.payment_choice));
+      var payLabels = { paid: 'Paid (legacy)', paid_deposit: 'Forberedelsesfasen betalt', paid_full: 'Fuldt betalt', pay_now: 'Betalt via link' };
+      html += renderAppRow(t('apps_payment'), escHtml(payLabels[app.payment_choice] || app.payment_choice));
     }
     if (createdAt) {
       html += renderAppRow(t('apps_submitted'), createdAt);

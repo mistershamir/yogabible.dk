@@ -26,6 +26,9 @@
       routes: [],
       countries: [],
       periods: [],
+      tracks: [],
+      cohorts: [],
+      paymentStatuses: [],
       recency: null,
       housing: false,
       meta: false,
@@ -244,6 +247,28 @@
         if (!routeMatch) return false;
       }
 
+      // Track filter (applications)
+      if (f.tracks.length > 0) {
+        var track = String(lead.track || '').toLowerCase();
+        var trackMatch = false;
+        for (var i = 0; i < f.tracks.length; i++) {
+          if (track === f.tracks[i]) { trackMatch = true; break; }
+        }
+        if (!trackMatch) return false;
+      }
+
+      // Cohort filter (applications)
+      if (f.cohorts.length > 0) {
+        var cohort = lead.cohort_label || '';
+        if (f.cohorts.indexOf(cohort) === -1) return false;
+      }
+
+      // Payment status filter (applications)
+      if (f.paymentStatuses.length > 0) {
+        var payChoice = lead.payment_choice || '';
+        if (f.paymentStatuses.indexOf(payChoice) === -1) return false;
+      }
+
       // Country filter
       if (f.countries.length > 0) {
         var country = detectCountry(lead);
@@ -444,6 +469,35 @@
       { id: 'april', label: 'Apr' }, { id: 'may', label: 'Maj' },
       { id: 'june', label: 'Jun' }
     ], f.periods, 'periods');
+
+    // Track (Weekday / Weekend) — for applications
+    html += buildChipSection('campaign_filter_track', [
+      { id: 'weekday', label: t('campaign_filter_track_weekday') },
+      { id: 'weekend', label: t('campaign_filter_track_weekend') }
+    ], f.tracks, 'tracks');
+
+    // Cohort — dynamically populated from loaded applications
+    var cohortChips = [];
+    try {
+      var allApps = (bridge && bridge.getApplications) ? (bridge.getApplications() || []) : [];
+      var seenCohorts = {};
+      allApps.forEach(function (a) {
+        var cl = a.cohort_label || '';
+        if (cl && !seenCohorts[cl]) { seenCohorts[cl] = true; cohortChips.push({ id: cl, label: cl }); }
+      });
+      cohortChips.sort(function (a, b) { return a.label.localeCompare(b.label); });
+    } catch (e) { /* ignore */ }
+    if (cohortChips.length > 0) {
+      html += buildChipSection('campaign_filter_cohort', cohortChips, f.cohorts, 'cohorts');
+    }
+
+    // Payment Status — for applications
+    html += buildChipSection('campaign_filter_payment', [
+      { id: 'paid_deposit', label: t('campaign_filter_payment_deposit') },
+      { id: 'paid_full', label: t('campaign_filter_payment_full') },
+      { id: 'pay_now', label: t('campaign_filter_payment_paynow') },
+      { id: 'paid', label: t('campaign_filter_payment_legacy') }
+    ], f.paymentStatuses, 'paymentStatuses');
 
     // Recency
     html += buildChipSection('campaign_filter_recency', [
@@ -1384,7 +1438,8 @@
     campaignState.tab = 'recipients';
     campaignState.filters = {
       source: 'all', statuses: [], programs: [], subtypes: [], routes: [],
-      countries: [], periods: [], recency: null, housing: false, meta: false,
+      countries: [], periods: [], tracks: [], cohorts: [], paymentStatuses: [],
+      recency: null, housing: false, meta: false,
       excludeConverted: false, excludeRecent: false,
       excludeNotInterested: true, excludeBadLeads: true, excludeUnsubscribed: true
     };
