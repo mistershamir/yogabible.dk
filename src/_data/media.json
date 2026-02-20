@@ -15,11 +15,11 @@
 
   "homepage": {
     "heroVideo": "yoga-bible-DK/homepage/yoga-bible-hero-loop",
-    "inversionsCard": "yoga-bible-DK/courses/inversions-course-copenhagen-promo",
-    "splitsCard": "yoga-bible-DK/courses/splits-course-copenhagen-promo",
-    "backbendsCard": "yoga-bible-DK/courses/professional-backbend-training-copenhagen",
-    "education200hr": "yoga-bible-DK/courses/200-hour-yoga-education-copenhagen",
-    "deepenPractice": "yoga-bible-DK/homepage/deepen-practice-testimonial",
+    "inversionsCard": "media.homepage.inversionsCard_g08t2r",
+    "splitsCard": "media.homepage.splitsCard_pd1wqz",
+    "backbendsCard": "media.homepage.backbendsCard_pr2d1n",
+    "education200hr": "200-hour-yoga-education-copenhagen_kfp7hz",
+    "deepenPractice": "deepend_practice_2_xoyewl",
     "studioPanorama": "yoga-bible-DK/homepage/yoga-bible-studio-panorama-torvegade",
     "practiceLoop": "yoga-bible-DK/homepage/practice-loop"
   },
@@ -40,10 +40,10 @@
   },
 
   "courses": {
-    "inversionsPromo": "yoga-bible-DK/courses/inversions-course-copenhagen-promo",
-    "splitsPromo": "yoga-bible-DK/courses/splits-course-copenhagen-promo",
-    "backbendsPromo": "yoga-bible-DK/courses/professional-backbend-training-copenhagen",
-    "education200hr": "yoga-bible-DK/courses/200-hour-yoga-education-copenhagen"
+    "inversionsPromo": "media.homepage.inversionsCard_g08t2r",
+    "splitsPromo": "media.homepage.splitsCard_pd1wqz",
+    "backbendsPromo": "media.homepage.backbendsCard_pr2d1n",
+    "education200hr": "200-hour-yoga-education-copenhagen_kfp7hz"
   },
 
   "programs": {
