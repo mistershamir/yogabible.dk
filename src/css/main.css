@@ -16888,7 +16888,7 @@ a.yb-kontakt-detail__value:hover {
 /* ── Table ── */
 .yb-lead__table-wrap { overflow-x: auto; }
 .yb-lead__table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
-.yb-lead__th-cb { width: 32px; }
+.yb-lead__th-cb { width: 44px; padding: 0.5rem 0.25rem; }
 .yb-lead__th-date { width: 90px; }
 .yb-lead__th-program { max-width: 150px; }
 .yb-lead__th-source { max-width: 120px; }
@@ -16912,8 +16912,9 @@ a.yb-kontakt-detail__value:hover {
 .yb-lead__row.is-selected { background: rgba(247, 92, 3, 0.08); }
 .yb-lead__row--overdue { border-left: 3px solid #EF5350; }
 .yb-lead__row--due-today { border-left: 3px solid #FF9800; }
-.yb-lead__cell-cb { width: 32px; text-align: center; }
-.yb-lead__cb { cursor: pointer; accent-color: #f75c03; }
+.yb-lead__cell-cb { width: 44px; text-align: center; padding: 0.5rem 0.25rem; cursor: pointer; }
+.yb-lead__cell-cb input[type="checkbox"],
+.yb-lead__cb { width: 20px; height: 20px; cursor: pointer; accent-color: #f75c03; }
 .yb-lead__cell-date { white-space: nowrap; font-size: 0.78rem; color: #6F6A66; }
 .yb-lead__cell-name { font-weight: 600; white-space: nowrap; max-width: 180px; overflow: hidden; text-overflow: ellipsis; }
 .yb-lead__cell-contact { max-width: 200px; }
