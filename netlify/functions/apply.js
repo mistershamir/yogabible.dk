@@ -15,6 +15,52 @@ const {
 } = require('./shared/utils');
 const { sendAdminNotification, sendRawEmail, getSignatureHtml, getEnglishNoteHtml } = require('./shared/email-service');
 const { CONFIG } = require('./shared/config');
+const { mbFetch } = require('./shared/mb-api');
+
+// =========================================================================
+// Mindbody Client — find or create (avoid duplicates)
+// =========================================================================
+
+/**
+ * Look up a Mindbody client by email. If not found, create one.
+ * Returns { found: bool, created: bool, clientId: string|number|null }
+ */
+async function findOrCreateMBClient({ email, firstName, lastName, phone }) {
+  try {
+    // 1. Search by email
+    const queryString = new URLSearchParams({ searchText: email, limit: '10' }).toString();
+    const searchData = await mbFetch(`/client/clients?${queryString}`);
+    const matches = (searchData.Clients || []).filter(c =>
+      c.Email && c.Email.toLowerCase() === email.toLowerCase()
+    );
+
+    if (matches.length > 0) {
+      console.log(`[apply:mb] Found existing MB client for ${email} (ID: ${matches[0].Id})`);
+      return { found: true, created: false, clientId: matches[0].Id };
+    }
+
+    // 2. Not found → create
+    const newClient = {
+      FirstName: firstName || 'Unknown',
+      LastName: lastName || firstName || 'Unknown',
+      Email: email,
+      SendAccountEmails: true
+    };
+    if (phone) newClient.MobilePhone = phone;
+
+    const createData = await mbFetch('/client/addclient', {
+      method: 'POST',
+      body: JSON.stringify(newClient)
+    });
+    const created = createData.Client || {};
+    console.log(`[apply:mb] Created MB client for ${email} (ID: ${created.Id})`);
+    return { found: false, created: true, clientId: created.Id || null };
+  } catch (err) {
+    // Don't let MB failure block the entire application
+    console.error(`[apply:mb] Error for ${email}:`, err.message);
+    return { found: false, created: false, clientId: null, error: err.message };
+  }
+}
 
 // =========================================================================
 // Auto Role Assignment
@@ -481,7 +527,29 @@ exports.handler = async (event) => {
       }
     }
 
-    // 2. Auto-assign role (now guaranteed to have a Firebase account)
+    // 2. Ensure Mindbody client exists (find or create — avoid duplicates)
+    const mbResult = await findOrCreateMBClient({
+      email: appDoc.email,
+      firstName: appDoc.first_name,
+      lastName: appDoc.last_name,
+      phone: appDoc.phone
+    });
+
+    // Store MB client ID on the application doc for reference
+    if (mbResult.clientId) {
+      const appSnapshot = await db.collection('applications')
+        .where('application_id', '==', applicationId)
+        .limit(1)
+        .get();
+      if (!appSnapshot.empty) {
+        await appSnapshot.docs[0].ref.update({
+          mb_client_id: mbResult.clientId,
+          mb_client_created: mbResult.created
+        });
+      }
+    }
+
+    // 3. Auto-assign role (now guaranteed to have a Firebase account)
     const roleResult = await autoAssignRole({
       email: appDoc.email,
       type,
@@ -495,12 +563,12 @@ exports.handler = async (event) => {
       return { assigned: false, reason: 'error' };
     });
 
-    // 3. Send acceptance email + admin notification
+    // 4. Send acceptance email + admin notification
     if (process.env.GMAIL_APP_PASSWORD) {
       await Promise.all([
         sendAdminNotification({
           ...leadDoc,
-          notes: `NEW APPLICATION (AUTO-APPROVED): ${applicationId}\nType: ${type}\nProgram: ${appDoc.course_name || 'N/A'}\nCohort: ${appDoc.cohort_label || 'N/A'}${roleResult.assigned ? `\nRole: ${roleResult.newRole} (${JSON.stringify(roleResult.newRoleDetails || {})})` : ''}${isNewAccount ? '\nNew Firebase account created' : ''}`
+          notes: `NEW APPLICATION (AUTO-APPROVED): ${applicationId}\nType: ${type}\nProgram: ${appDoc.course_name || 'N/A'}\nCohort: ${appDoc.cohort_label || 'N/A'}${roleResult.assigned ? `\nRole: ${roleResult.newRole} (${JSON.stringify(roleResult.newRoleDetails || {})})` : ''}${isNewAccount ? '\nNew Firebase account created' : ''}${mbResult.clientId ? `\nMB Client: ${mbResult.clientId}${mbResult.created ? ' (new)' : ' (existing)'}` : '\nMB Client: failed'}`
         }).catch(err => {
           console.error('[apply] Admin notification failed:', err.message);
         }),
@@ -517,7 +585,7 @@ exports.handler = async (event) => {
       ]);
     }
 
-    // 4. Update application with acceptance email flag
+    // 5. Update application with acceptance email flag
     // Find the doc we just created by application_id
     const appSnapshot = await db.collection('applications')
       .where('application_id', '==', applicationId)
@@ -536,7 +604,9 @@ exports.handler = async (event) => {
       application_id: applicationId,
       message: 'Application approved and accepted',
       role_upgraded: roleResult.assigned || false,
-      new_account_created: isNewAccount
+      new_account_created: isNewAccount,
+      mb_client_id: mbResult.clientId || null,
+      mb_client_created: mbResult.created || false
     });
   } catch (error) {
     console.error('[apply] Error:', error);
