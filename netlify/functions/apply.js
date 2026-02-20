@@ -13,8 +13,8 @@ const {
   jsonResponse, optionsResponse, generateApplicationId,
   detectYTTProgramType
 } = require('./shared/utils');
-const { sendAdminNotification } = require('./shared/email-service');
-const { sendApplicationConfirmation } = require('./shared/lead-emails');
+const { sendAdminNotification, sendRawEmail, getSignatureHtml, getEnglishNoteHtml } = require('./shared/email-service');
+const { CONFIG } = require('./shared/config');
 
 // =========================================================================
 // Auto Role Assignment
@@ -211,6 +211,99 @@ async function autoAssignRole({ email, type, yttProgramType, courseName, bundleT
 }
 
 // =========================================================================
+// Auto-Acceptance Email (sent immediately on application submission)
+// =========================================================================
+
+async function sendAutoAcceptanceEmail({ email, firstName, programName, isNewAccount, passwordResetLink, applicationId }) {
+  const siteUrl = CONFIG.SITE_URL || 'https://yogabible.dk';
+  const orange = '#f75c03';
+
+  let html = '<div style="font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Helvetica,Arial,sans-serif;color:#1a1a1a;line-height:1.65;font-size:16px;">';
+
+  // Congratulations header
+  html += '<div style="text-align:center;padding:24px 0 16px;">';
+  html += '<div style="font-size:48px;margin-bottom:8px;">&#127881;</div>';
+  html += '<h1 style="margin:0;font-size:24px;color:' + orange + ';">Tillykke, ' + (firstName || 'der') + '!</h1>';
+  html += '</div>';
+
+  // Danish content
+  html += '<p>Vi er glade for at kunne meddele, at din ans&oslash;gning til <strong>' + programName + '</strong> er blevet godkendt.</p>';
+  html += '<p>Du har nu adgang til din personlige profil og vores medlemsomr&aring;de, hvor du kan:</p>';
+
+  html += '<ul style="padding-left:20px;margin:12px 0;">';
+  html += '<li style="margin:6px 0;">Se dine hold og pass</li>';
+  html += '<li style="margin:6px 0;">Tilg&aring; ugentlige skemaer</li>';
+  html += '<li style="margin:6px 0;">L&aelig;se kursusmateriale og ressourcer</li>';
+  html += '<li style="margin:6px 0;">Udfylde ansvarsfraskrivelse og dokumenter</li>';
+  html += '</ul>';
+
+  // Password set link for new accounts
+  if (isNewAccount && passwordResetLink) {
+    html += '<div style="margin:20px 0;padding:16px;background:#FFF3E0;border-left:3px solid ' + orange + ';border-radius:4px;">';
+    html += '<strong>Opret din adgangskode:</strong><br>';
+    html += '<p style="margin:8px 0 0;">Da dette er din f&oslash;rste gang, skal du oprette en adgangskode for at logge ind:</p>';
+    html += '<a href="' + passwordResetLink + '" style="display:inline-block;margin-top:12px;padding:12px 24px;background:' + orange + ';color:#fff;text-decoration:none;border-radius:6px;font-weight:bold;">Opret adgangskode &rarr;</a>';
+    html += '</div>';
+  }
+
+  // CTA buttons
+  html += '<div style="margin:24px 0;text-align:center;">';
+  html += '<a href="' + siteUrl + '/profile" style="display:inline-block;margin:6px;padding:12px 24px;background:' + orange + ';color:#fff;text-decoration:none;border-radius:6px;font-weight:bold;">G&aring; til din profil &rarr;</a>';
+  html += '<a href="' + siteUrl + '/member" style="display:inline-block;margin:6px;padding:12px 24px;background:#0F0F0F;color:#fff;text-decoration:none;border-radius:6px;font-weight:bold;">Medlemsomr&aring;de &rarr;</a>';
+  html += '</div>';
+
+  html += '<p style="color:#666;font-size:14px;">Har du sp&oslash;rgsm&aring;l? Svar bare p&aring; denne e-mail, s&aring; vender vi hurtigt tilbage.</p>';
+
+  // English note
+  html += getEnglishNoteHtml();
+
+  // Brief English summary
+  html += '<div style="margin-top:12px;padding:14px;background:#F5F3F0;border-radius:6px;font-size:14px;color:#666;">';
+  html += '<strong>In English:</strong> Congratulations! Your application for ' + programName + ' has been approved. ';
+  if (isNewAccount && passwordResetLink) {
+    html += 'Please <a href="' + passwordResetLink + '" style="color:' + orange + ';">set your password</a> to log in. ';
+  }
+  html += 'Visit your <a href="' + siteUrl + '/profile" style="color:' + orange + ';">profile</a> and <a href="' + siteUrl + '/member" style="color:' + orange + ';">member area</a> to get started.';
+  html += '</div>';
+
+  // Signature
+  html += getSignatureHtml();
+  html += '</div>';
+
+  // Plain text version
+  let text = 'Tillykke, ' + (firstName || 'der') + '!\n\n';
+  text += 'Din ansogning til ' + programName + ' er blevet godkendt.\n\n';
+  text += 'Du har nu adgang til din profil og medlemsomraade:\n';
+  text += '- Profil: ' + siteUrl + '/profile\n';
+  text += '- Medlemsomraade: ' + siteUrl + '/member\n';
+  if (isNewAccount && passwordResetLink) {
+    text += '\nOpret din adgangskode: ' + passwordResetLink + '\n';
+  }
+  text += '\nHar du sporgsmal? Svar bare paa denne e-mail.\n';
+  text += '\nCongratulations! Your application for ' + programName + ' has been approved.\n';
+  text += 'Profile: ' + siteUrl + '/profile\n';
+  text += 'Member area: ' + siteUrl + '/member\n';
+
+  const subject = 'Tillykke! Din ansogning er godkendt \u2014 ' + programName;
+  const result = await sendRawEmail({ to: email, subject, html, text });
+
+  // Log to email_log
+  const db = getDb();
+  await db.collection('email_log').add({
+    to: email,
+    subject,
+    template_id: 'acceptance_email_auto',
+    application_id: applicationId,
+    sent_at: new Date(),
+    status: 'sent',
+    new_account_created: isNewAccount
+  });
+
+  console.log(`[apply] Acceptance email sent to ${email} (new account: ${isNewAccount})`);
+  return result;
+}
+
+// =========================================================================
 // Handler
 // =========================================================================
 
@@ -268,7 +361,7 @@ exports.handler = async (event) => {
       hear_about: applicant.hear_about || '',
       hear_about_other: applicant.hear_about_other || '',
       source: payload.source || 'Apply page',
-      status: 'New',
+      status: 'Approved',
       notes: [],
       mentorship_selected: !!applicant.mentorship_selected,
       created_at: new Date(),
@@ -345,7 +438,50 @@ exports.handler = async (event) => {
     };
     await db.collection('leads').add(leadDoc);
 
-    // Auto-assign user role based on application type
+    // ── Auto-Accept: Create account if needed → assign role → send acceptance email ──
+
+    const auth = getAuth();
+    let isNewAccount = false;
+    let passwordResetLink = null;
+    const fullName = [appDoc.first_name, appDoc.last_name].filter(Boolean).join(' ');
+
+    // 1. Ensure Firebase account exists (create if not)
+    try {
+      await auth.getUserByEmail(appDoc.email);
+    } catch (err) {
+      if (err.code === 'auth/user-not-found') {
+        const newUser = await auth.createUser({
+          email: appDoc.email,
+          displayName: fullName || undefined
+        });
+        isNewAccount = true;
+        passwordResetLink = await auth.generatePasswordResetLink(appDoc.email);
+        console.log(`[apply] Created Firebase account for ${appDoc.email} (uid: ${newUser.uid})`);
+
+        // Ensure Firestore user doc exists for new accounts (so autoAssignRole can work)
+        const userRef = db.collection('users').doc(newUser.uid);
+        const userDoc = await userRef.get();
+        if (!userDoc.exists) {
+          await userRef.set({
+            uid: newUser.uid,
+            email: appDoc.email,
+            displayName: fullName,
+            firstName: appDoc.first_name,
+            lastName: appDoc.last_name,
+            phone: appDoc.phone,
+            role: 'member',
+            roleDetails: {},
+            createdAt: new Date(),
+            updatedAt: new Date()
+          });
+          console.log(`[apply] Created Firestore user doc for ${appDoc.email}`);
+        }
+      } else {
+        console.error('[apply] Firebase user lookup error:', err.message);
+      }
+    }
+
+    // 2. Auto-assign role (now guaranteed to have a Firebase account)
     const roleResult = await autoAssignRole({
       email: appDoc.email,
       type,
@@ -359,26 +495,48 @@ exports.handler = async (event) => {
       return { assigned: false, reason: 'error' };
     });
 
-    // Send notifications — must await before returning (Netlify kills Lambda after response)
+    // 3. Send acceptance email + admin notification
     if (process.env.GMAIL_APP_PASSWORD) {
       await Promise.all([
         sendAdminNotification({
           ...leadDoc,
-          notes: `NEW APPLICATION: ${applicationId}\nType: ${type}\nProgram: ${appDoc.course_name || 'N/A'}\nCohort: ${appDoc.cohort_label || 'N/A'}${roleResult.assigned ? `\nRole auto-assigned: ${roleResult.newRole} (${JSON.stringify(roleResult.newRoleDetails || {})})` : ''}`
+          notes: `NEW APPLICATION (AUTO-APPROVED): ${applicationId}\nType: ${type}\nProgram: ${appDoc.course_name || 'N/A'}\nCohort: ${appDoc.cohort_label || 'N/A'}${roleResult.assigned ? `\nRole: ${roleResult.newRole} (${JSON.stringify(roleResult.newRoleDetails || {})})` : ''}${isNewAccount ? '\nNew Firebase account created' : ''}`
         }).catch(err => {
           console.error('[apply] Admin notification failed:', err.message);
         }),
-        sendApplicationConfirmation(appDoc.email, applicationId, appDoc.first_name).catch(err => {
-          console.error('[apply] Application confirmation email failed:', err.message);
+        sendAutoAcceptanceEmail({
+          email: appDoc.email,
+          firstName: appDoc.first_name,
+          programName: appDoc.course_name || appDoc.ytt_program_type || 'Yoga Bible',
+          isNewAccount,
+          passwordResetLink,
+          applicationId
+        }).catch(err => {
+          console.error('[apply] Acceptance email failed:', err.message);
         })
       ]);
+    }
+
+    // 4. Update application with acceptance email flag
+    // Find the doc we just created by application_id
+    const appSnapshot = await db.collection('applications')
+      .where('application_id', '==', applicationId)
+      .limit(1)
+      .get();
+    if (!appSnapshot.empty) {
+      await appSnapshot.docs[0].ref.update({
+        acceptance_email_sent: true,
+        acceptance_email_sent_at: new Date(),
+        updated_at: new Date()
+      });
     }
 
     return jsonResponse(200, {
       ok: true,
       application_id: applicationId,
-      message: 'Application received successfully',
-      role_upgraded: roleResult.assigned || false
+      message: 'Application approved and accepted',
+      role_upgraded: roleResult.assigned || false,
+      new_account_created: isNewAccount
     });
   } catch (error) {
     console.error('[apply] Error:', error);
