@@ -102,6 +102,20 @@
     return PAYMENT_LABELS[choice] || choice || '\u2014';
   }
 
+  // Track label translation — Firestore stores Danish ("Hverdagsprogram"/"Weekendprogram")
+  // but English site should display "Weekday Program"/"Weekend Program"
+  var TRACK_LABELS_EN = {
+    'Hverdagsprogram': 'Weekday Program',
+    'hverdagsprogram': 'Weekday Program',
+    'Weekendprogram': 'Weekend Program',
+    'weekendprogram': 'Weekend Program'
+  };
+  function displayTrack(raw) {
+    if (!raw) return '\u2014';
+    var isEn = (window._ybAdminLang === 'en');
+    return isEn ? (TRACK_LABELS_EN[raw] || raw) : raw;
+  }
+
   /* ══════════════════════════════════════════
      HELPERS
      ══════════════════════════════════════════ */
@@ -2002,7 +2016,12 @@
       });
     }
     if (appFilterTrack) {
-      filtered = filtered.filter(function (a) { return (a.track || '').toLowerCase() === appFilterTrack.toLowerCase(); });
+      filtered = filtered.filter(function (a) {
+        var tr = (a.track || '').toLowerCase();
+        if (appFilterTrack === 'weekday') return tr.indexOf('hverdag') !== -1 || tr.indexOf('weekday') !== -1;
+        if (appFilterTrack === 'weekend') return tr.indexOf('weekend') !== -1;
+        return tr === appFilterTrack.toLowerCase();
+      });
     }
     if (appFilterCohort) {
       filtered = filtered.filter(function (a) { return (a.cohort_label || a.cohort || '') === appFilterCohort; });
@@ -2046,7 +2065,7 @@
         '<td class="yb-lead__cell-contact"><div class="yb-lead__cell-email-text">' + esc(a.email || '') + '</div></td>' +
         '<td><span class="yb-lead__type-badge">' + esc(a.program_type || '\u2014') + '</span></td>' +
         '<td class="yb-lead__cell-program">' + esc((a.course_name || a.cohort || '').substring(0, 30)) + '</td>' +
-        '<td>' + esc(a.track || '\u2014') + '</td>' +
+        '<td>' + esc(displayTrack(a.track)) + '</td>' +
         '<td>' + esc(getPaymentChoiceLabel(a.payment_choice)) + '</td>' +
         '<td>' + appStatusBadgeHtml(a.status) + archivedTag + '</td>' +
         '<td class="yb-lead__cell-date">' + relativeTime(a.created_at) + '</td>' +
@@ -2216,7 +2235,7 @@
     if (a.track) {
       html += '<div class="yb-lead__card-row">' +
         '<span class="yb-lead__card-label">Track</span>' +
-        '<span class="yb-lead__card-value">' + esc(a.track) + '</span>' +
+        '<span class="yb-lead__card-value">' + esc(displayTrack(a.track)) + '</span>' +
       '</div>';
     }
     if (a.bundle) {
