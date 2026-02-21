@@ -249,11 +249,14 @@
       }
 
       // Track filter (applications)
+      // Stored values may be "Hverdagsprogram"/"Weekendprogram" (DA) or "Weekday program"/"Weekend program" (EN)
       if (f.tracks.length > 0) {
         var track = String(lead.track || '').toLowerCase();
         var trackMatch = false;
         for (var i = 0; i < f.tracks.length; i++) {
-          if (track === f.tracks[i]) { trackMatch = true; break; }
+          var fVal = f.tracks[i]; // 'weekday' or 'weekend'
+          if (fVal === 'weekday' && (track === 'weekday' || track.indexOf('hverdag') !== -1 || track.indexOf('weekday') !== -1)) { trackMatch = true; break; }
+          if (fVal === 'weekend' && (track === 'weekend' || track.indexOf('weekend') !== -1)) { trackMatch = true; break; }
         }
         if (!trackMatch) return false;
       }

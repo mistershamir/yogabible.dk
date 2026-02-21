@@ -4826,7 +4826,12 @@
     html += '<div class="yb-applications__card-body">';
 
     if (app.track) {
-      html += renderAppRow(t('apps_track'), escHtml(app.track));
+      var trackDisplay = app.track;
+      if (!isDa()) {
+        var trackMap = { 'Hverdagsprogram': 'Weekday Program', 'hverdagsprogram': 'Weekday Program', 'Weekendprogram': 'Weekend Program', 'weekendprogram': 'Weekend Program' };
+        trackDisplay = trackMap[app.track] || app.track;
+      }
+      html += renderAppRow(t('apps_track'), escHtml(trackDisplay));
     }
     if (app.cohort_label) {
       html += renderAppRow(t('apps_cohort'), escHtml(app.cohort_label));
