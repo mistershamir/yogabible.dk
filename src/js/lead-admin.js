@@ -2838,109 +2838,21 @@
   }
 
   function bulkAppEmail() {
-    // Use selected apps if any, otherwise all filtered apps
-    var targetApps;
-    if (selectedAppIds.size > 0) {
-      targetApps = [];
-      selectedAppIds.forEach(function (id) {
-        var app = applications.find(function (a) { return a.id === id; });
-        if (app) targetApps.push(app);
-      });
-    } else {
-      targetApps = getFilteredApps();
-    }
-
-    targetApps.forEach(function (a) { a._source = 'app'; });
-    if (targetApps.length === 0) { toast('No applications to email', true); return; }
-
-    // Delegate to campaign wizard if available
+    // Open the standard campaign wizard — user picks source (All / Leads / Applications) via DATAKILDE filter
     if (typeof window.openEmailCampaign === 'function') {
-      window.openEmailCampaign(targetApps);
-      return;
+      window.openEmailCampaign([]);
+    } else {
+      toast('Campaign wizard not available', true);
     }
-
-    // Fallback: prompt-based send
-    var appsWithEmail = targetApps.filter(function (a) { return !!a.email; });
-    if (appsWithEmail.length === 0) { toast('No applications with email addresses', true); return; }
-    var subject = prompt('Email subject for ' + appsWithEmail.length + ' recipients:', '');
-    if (!subject) return;
-    var body = prompt('Email body (HTML or plain text):', '');
-    if (!body) return;
-
-    getAuthToken().then(function (token) {
-      return fetch('/.netlify/functions/send-email', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
-        body: JSON.stringify({
-          applicationIds: appsWithEmail.map(function (a) { return a.id; }),
-          subject: subject,
-          bodyHtml: '<p>' + body.replace(/\n/g, '<br>') + '</p>',
-          bodyPlain: body
-        })
-      });
-    }).then(function (res) { return res.json(); })
-    .then(function (data) {
-      if (data.ok) {
-        toast('Email sent to ' + (data.results ? data.results.sent : appsWithEmail.length) + ' recipients');
-        deselectAllApps();
-      } else {
-        toast('Email failed: ' + (data.error || 'Unknown'), true);
-      }
-    }).catch(function (err) {
-      console.error('[lead-admin] Bulk app email error:', err);
-      toast('Email failed', true);
-    });
   }
 
   function bulkAppSMS() {
-    // Use selected apps if any, otherwise all filtered apps
-    var targetApps;
-    if (selectedAppIds.size > 0) {
-      targetApps = [];
-      selectedAppIds.forEach(function (id) {
-        var app = applications.find(function (a) { return a.id === id; });
-        if (app) targetApps.push(app);
-      });
-    } else {
-      targetApps = getFilteredApps();
-    }
-
-    targetApps.forEach(function (a) { a._source = 'app'; });
-    if (targetApps.length === 0) { toast('No applications to message', true); return; }
-
-    // Delegate to campaign wizard if available
+    // Open the standard campaign wizard — user picks source (All / Leads / Applications) via DATAKILDE filter
     if (typeof window.openSMSCampaign === 'function') {
-      window.openSMSCampaign(targetApps);
-      return;
+      window.openSMSCampaign([]);
+    } else {
+      toast('Campaign wizard not available', true);
     }
-
-    // Fallback: prompt-based send
-    var appsWithPhone = targetApps.filter(function (a) { return !!a.phone; });
-    if (appsWithPhone.length === 0) { toast('No applications with phone numbers', true); return; }
-    var message = prompt('SMS message for ' + appsWithPhone.length + ' recipients:', '');
-    if (!message) return;
-
-    getAuthToken().then(function (token) {
-      return fetch('/.netlify/functions/send-sms', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
-        body: JSON.stringify({
-          applicationIds: appsWithPhone.map(function (a) { return a.id; }),
-          message: message
-        })
-      });
-    }).then(function (res) { return res.json(); })
-    .then(function (data) {
-      if (data.ok) {
-        toast('SMS sent to ' + (data.results ? data.results.sent : appsWithPhone.length) + ' recipients');
-        deselectAllApps();
-      } else {
-        toast('SMS failed: ' + (data.error || 'Unknown'), true);
-      }
-    }).catch(function (err) {
-      console.error('[lead-admin] Bulk app SMS error:', err);
-      toast('SMS failed', true);
-    });
   }
 
   /* ══════════════════════════════════════════
