@@ -32,6 +32,13 @@
 
 {# ═══════ HERO — Dark Cinematic (shared yb-hero styles) ═══════ #}
 <section class="yb-hero">
+  {% if t.hero_video_src %}
+  <div class="yb-hero__bg">
+    <video autoplay muted loop playsinline preload="metadata">
+      <source src="{{ t.hero_video_src }}" type="video/mp4">
+    </video>
+  </div>
+  {% endif %}
   <div class="yb-hero__glow"></div>
   <div class="yb-hero__content">
     <p class="yb-hero__tagline">{{ t.hero_tagline }}</p>
