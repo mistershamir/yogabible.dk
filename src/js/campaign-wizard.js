@@ -379,7 +379,7 @@
 
     // Search
     html += '<div class="yb-lead__campaign-filter-section">' +
-      '<input type="text" class="yb-lead__campaign-email-search" placeholder="' + esc(t('campaign_filter_search')) + '" id="yb-campaign-filter-search" value="' + esc(campaignState.searchTerm) + '">' +
+      '<input type="text" class="yb-lead__campaign-email-search" placeholder="' + esc(t('campaign_filter_search')) + '" id="yb-campaign-' + campaignState.type + '-filter-search" value="' + esc(campaignState.searchTerm) + '">' +
       '</div>';
 
     // Data source
@@ -620,13 +620,14 @@
   function renderRecipientsTab(panelEl) {
     applyFilters();
 
+    var prefix = campaignState.type; // 'sms' or 'email'
     panelEl.innerHTML = '<div class="yb-lead__campaign-recipients">' +
-      '<div class="yb-lead__campaign-filters" id="yb-campaign-filters-area"></div>' +
-      '<div class="yb-lead__campaign-recipient-list-wrap" id="yb-campaign-recipients-list"></div>' +
+      '<div class="yb-lead__campaign-filters" id="yb-campaign-' + prefix + '-filters-area"></div>' +
+      '<div class="yb-lead__campaign-recipient-list-wrap" id="yb-campaign-' + prefix + '-recipients-list"></div>' +
       '</div>';
 
-    renderFilterPanel($('yb-campaign-filters-area'));
-    renderRecipientList($('yb-campaign-recipients-list'));
+    renderFilterPanel($('yb-campaign-' + prefix + '-filters-area'));
+    renderRecipientList($('yb-campaign-' + prefix + '-recipients-list'));
     updateRecipientBadge();
   }
 
@@ -1737,10 +1738,10 @@
 
     // Search input in filters
     document.addEventListener('input', function (e) {
-      if (e.target.id === 'yb-campaign-filter-search') {
+      if (e.target.id === 'yb-campaign-sms-filter-search' || e.target.id === 'yb-campaign-email-filter-search') {
         campaignState.searchTerm = e.target.value;
         applyFilters();
-        var listEl = $('yb-campaign-recipients-list');
+        var listEl = $('yb-campaign-' + campaignState.type + '-recipients-list');
         if (listEl) renderRecipientList(listEl);
         updateRecipientBadge();
       }
@@ -1805,7 +1806,7 @@
     // Reset selections and re-filter
     campaignState.selectedIds.clear();
     applyFilters();
-    var listEl = $('yb-campaign-recipients-list');
+    var listEl = $('yb-campaign-' + campaignState.type + '-recipients-list');
     if (listEl) renderRecipientList(listEl);
     updateRecipientBadge();
   }
@@ -1827,7 +1828,7 @@
     campaignState.filters[key] = checkbox.checked;
     campaignState.selectedIds.clear();
     applyFilters();
-    var listEl = $('yb-campaign-recipients-list');
+    var listEl = $('yb-campaign-' + campaignState.type + '-recipients-list');
     if (listEl) renderRecipientList(listEl);
     updateRecipientBadge();
   }
@@ -1932,7 +1933,7 @@
      HELPERS
      ══════════════════════════════════════════ */
   function refreshRecipientList() {
-    var listEl = $('yb-campaign-recipients-list');
+    var listEl = $('yb-campaign-' + campaignState.type + '-recipients-list');
     if (listEl) renderRecipientList(listEl);
     updateRecipientBadge();
   }
