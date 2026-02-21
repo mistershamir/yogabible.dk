@@ -49,12 +49,39 @@
       </div>
     </div>
 
-    {# Cloudinary URL #}
+    {# Cloudinary URL + Browse button #}
     <div style="margin-bottom:1rem">
       <label style="display:block;font-size:0.8rem;font-weight:600;margin-bottom:0.25rem">{{ t.doc_field_url }}</label>
-      <input type="url" id="yb-doc-url" required placeholder="https://res.cloudinary.com/ddcynsa30/image/upload/..."
-             style="width:100%;padding:0.6rem 0.75rem;border:1px solid var(--yb-brand,#f75c03);border-radius:12px;font-family:inherit;font-size:0.9rem">
+      <div style="display:flex;gap:0.5rem;align-items:center">
+        <input type="url" id="yb-doc-url" required placeholder="https://res.cloudinary.com/ddcynsa30/..."
+               style="flex:1;padding:0.6rem 0.75rem;border:1px solid var(--yb-brand,#f75c03);border-radius:12px;font-family:inherit;font-size:0.9rem">
+        <button type="button" class="yb-btn yb-btn--outline yb-btn--small" data-action="toggle-browser" style="white-space:nowrap">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;margin-right:0.2rem"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
+          {{ t.doc_browse }}
+        </button>
+      </div>
       <span style="font-size:0.75rem;color:var(--yb-muted,#6F6A66)">{{ t.doc_field_url_hint }}</span>
+    </div>
+
+    {# Cloudinary File Browser (inline, collapsible) #}
+    <div id="yb-doc-browser" class="yb-doc-browser" hidden>
+      <div class="yb-doc-browser__breadcrumb" id="yb-doc-breadcrumb"></div>
+      <div class="yb-doc-browser__toolbar">
+        <input type="text" id="yb-doc-browser-search" class="yb-doc-browser__search"
+               placeholder="{{ t.doc_browser_search }}">
+        <label class="yb-btn yb-btn--primary yb-btn--small yb-doc-browser__upload-btn">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;margin-right:0.2rem"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+          {{ t.doc_browser_upload }}
+          <input type="file" id="yb-doc-browser-file" accept=".pdf" hidden>
+        </label>
+      </div>
+      <div class="yb-doc-browser__list" id="yb-doc-browser-list"></div>
+      <div class="yb-doc-browser__upload-progress" id="yb-doc-upload-progress" hidden>
+        <div class="yb-doc-browser__progress-bar">
+          <div class="yb-doc-browser__progress-fill" id="yb-doc-progress-fill"></div>
+        </div>
+        <span id="yb-doc-progress-text" style="font-size:0.75rem;color:var(--yb-muted,#6F6A66)"></span>
+      </div>
     </div>
 
     {# Category + Order row #}
