@@ -435,10 +435,20 @@
             <span id="yb-catalog-count" class="yb-lead__count-text"></span>
           </div>
 
+          {# Bulk actions bar (hidden until selections) #}
+          <div id="yb-catalog-bulk-bar" class="yb-lead__bulk-bar" hidden>
+            <span id="yb-catalog-bulk-count" class="yb-lead__bulk-count-text"></span>
+            <button class="yb-btn yb-btn--sm yb-btn--outline" data-action="catalog-bulk-activate">&#9989; {{ t.catalog_bulk_activate }}</button>
+            <button class="yb-btn yb-btn--sm yb-btn--outline" data-action="catalog-bulk-deactivate">&#9675; {{ t.catalog_bulk_deactivate }}</button>
+            <button class="yb-btn yb-btn--sm yb-btn--outline yb-admin__icon-btn--danger" data-action="catalog-bulk-delete">&#128451; {{ t.catalog_bulk_delete }}</button>
+            <button class="yb-btn yb-btn--sm yb-btn--outline" data-action="catalog-deselect-all">&#10006; {{ t.catalog_deselect }}</button>
+          </div>
+
           <div class="yb-admin__table-wrap">
             <table class="yb-admin__table" id="yb-catalog-table">
               <thead>
                 <tr>
+                  <th class="yb-lead__th-cb"><input type="checkbox" id="yb-catalog-select-all" title="{{ t.catalog_select_all }}"></th>
                   <th>{{ t.catalog_col_course }}</th>
                   <th>{{ t.catalog_col_category }}</th>
                   <th>{{ t.catalog_col_cohort }}</th>
@@ -605,6 +615,69 @@
       </div>{# end documents tab panel #}
 
     </div>{# end yb-admin-panel #}
+
+    {# ═══════════════════════════════════
+       Campaign Wizard Modals (outside tab panels so they work from any tab)
+       ═══════════════════════════════════ #}
+    {# ── SMS Campaign Wizard Modal ── #}
+    <div id="yb-campaign-sms-modal" class="yb-lead__modal" hidden>
+      <div class="yb-lead__modal-overlay" data-action="campaign-sms-close"></div>
+      <div class="yb-lead__campaign-box yb-lead__campaign-box--sms">
+        <div class="yb-lead__campaign-header">
+          <h3 class="yb-lead__campaign-title">&#128241; {{ t.campaign_sms_title }}</h3>
+          <button type="button" class="yb-lead__campaign-close" data-action="campaign-sms-close">&times;</button>
+        </div>
+        <div class="yb-lead__campaign-tabs" id="yb-campaign-sms-tabs">
+          <button class="yb-lead__campaign-tab is-active" data-tab="recipients" type="button">1. {{ t.campaign_tab_recipients }} <span class="yb-lead__campaign-tab-count" id="yb-campaign-sms-recipient-badge"></span></button>
+          <button class="yb-lead__campaign-tab" data-tab="compose" type="button">2. {{ t.campaign_tab_compose }}</button>
+          <button class="yb-lead__campaign-tab" data-tab="send" type="button">3. {{ t.campaign_tab_send }}</button>
+        </div>
+        <div class="yb-lead__campaign-body">
+          <div class="yb-lead__campaign-panel is-active" data-panel="recipients" id="yb-campaign-sms-recipients"></div>
+          <div class="yb-lead__campaign-panel" data-panel="compose" id="yb-campaign-sms-compose"></div>
+          <div class="yb-lead__campaign-panel" data-panel="send" id="yb-campaign-sms-send"></div>
+        </div>
+        <div class="yb-lead__campaign-footer" id="yb-campaign-sms-footer">
+          <span class="yb-lead__campaign-step-info" id="yb-campaign-sms-step-info"></span>
+          <div class="yb-lead__campaign-footer-right">
+            <button class="yb-btn yb-btn--outline" data-action="campaign-sms-back" disabled>&#8592; {{ t.campaign_back }}</button>
+            <button class="yb-btn yb-btn--outline" data-action="campaign-sms-close">{{ t.campaign_cancel }}</button>
+            <button class="yb-btn yb-btn--primary" data-action="campaign-sms-next" id="yb-campaign-sms-next-btn">{{ t.campaign_recipients_continue }} &#8594;</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    {# ── Email Campaign Wizard Modal ── #}
+    <div id="yb-campaign-email-modal" class="yb-lead__modal" hidden>
+      <div class="yb-lead__modal-overlay" data-action="campaign-email-close"></div>
+      <div class="yb-lead__campaign-box yb-lead__campaign-box--email">
+        <div class="yb-lead__campaign-header">
+          <h3 class="yb-lead__campaign-title">&#9993;&#65039; {{ t.campaign_email_title }}</h3>
+          <button type="button" class="yb-lead__campaign-close" data-action="campaign-email-close">&times;</button>
+        </div>
+        <div class="yb-lead__campaign-tabs" id="yb-campaign-email-tabs">
+          <button class="yb-lead__campaign-tab is-active" data-tab="recipients" type="button">1. {{ t.campaign_tab_recipients }} <span class="yb-lead__campaign-tab-count" id="yb-campaign-email-recipient-badge"></span></button>
+          <button class="yb-lead__campaign-tab" data-tab="compose" type="button">2. {{ t.campaign_tab_compose }}</button>
+          <button class="yb-lead__campaign-tab" data-tab="preview" type="button">3. {{ t.campaign_tab_preview }}</button>
+          <button class="yb-lead__campaign-tab" data-tab="send" type="button">4. {{ t.campaign_tab_send }}</button>
+        </div>
+        <div class="yb-lead__campaign-body">
+          <div class="yb-lead__campaign-panel is-active" data-panel="recipients" id="yb-campaign-email-recipients"></div>
+          <div class="yb-lead__campaign-panel" data-panel="compose" id="yb-campaign-email-compose"></div>
+          <div class="yb-lead__campaign-panel" data-panel="preview" id="yb-campaign-email-preview"></div>
+          <div class="yb-lead__campaign-panel" data-panel="send" id="yb-campaign-email-send"></div>
+        </div>
+        <div class="yb-lead__campaign-footer" id="yb-campaign-email-footer">
+          <span class="yb-lead__campaign-step-info" id="yb-campaign-email-step-info"></span>
+          <div class="yb-lead__campaign-footer-right">
+            <button class="yb-btn yb-btn--outline" data-action="campaign-email-back" disabled>&#8592; {{ t.campaign_back }}</button>
+            <button class="yb-btn yb-btn--outline" data-action="campaign-email-close">{{ t.campaign_cancel }}</button>
+            <button class="yb-btn yb-btn--primary" data-action="campaign-email-next" id="yb-campaign-email-next-btn">{{ t.campaign_recipients_continue }} &#8594;</button>
+          </div>
+        </div>
+      </div>
+    </div>
 
   </div>{# end container #}
 

@@ -66,40 +66,78 @@
   var appFilterTrack = '';
   var appFilterCohort = '';
 
-  // Course catalog for admin edit dropdowns (matches storeCatalog in profile.js)
+  // Language helper — returns true when admin page is Danish
+  function isAdminDa() { return (window._ybAdminLang || 'da') !== 'en'; }
+
+  // Course catalog for admin edit dropdowns (bilingual)
   var COURSE_CATALOG = {
     ytt: [
-      { id: '100078', name: '18 Ugers Fleksibelt Program (Mar-Jun)', cohorts: [{ label: 'Marts\u2013Juni 2026' }] },
-      { id: '100121', name: '4 Ugers Intensiv (Apr)', cohorts: [{ label: 'April 2026' }] },
-      { id: '100211', name: '4 Ugers Intensiv (Jul)', cohorts: [{ label: 'Juli 2026' }] },
-      { id: '100209', name: '8 Ugers Semi-Intensiv (Maj-Jun)', cohorts: [{ label: 'Maj\u2013Juni 2026' }] },
-      { id: '100210', name: '18 Ugers Fleksibelt Program (Aug-Dec)', cohorts: [{ label: 'August\u2013December 2026' }] }
+      { id: '100078', name_da: '18 Ugers Fleksibelt Program (Mar-Jun)', name_en: '18 Weeks Flexible Program (Mar-Jun)', cohorts: [{ label_da: 'Marts\u2013Juni 2026', label_en: 'March\u2013June 2026' }] },
+      { id: '100121', name_da: '4 Ugers Intensiv (Apr)', name_en: '4 Weeks Intensive (Apr)', cohorts: [{ label_da: 'April 2026', label_en: 'April 2026' }] },
+      { id: '100211', name_da: '4 Ugers Intensiv (Jul)', name_en: '4 Weeks Intensive (Jul)', cohorts: [{ label_da: 'Juli 2026', label_en: 'July 2026' }] },
+      { id: '100209', name_da: '8 Ugers Semi-Intensiv (Maj-Jun)', name_en: '8 Weeks Semi-Intensive (May-Jun)', cohorts: [{ label_da: 'Maj\u2013Juni 2026', label_en: 'May\u2013June 2026' }] },
+      { id: '100210', name_da: '18 Ugers Fleksibelt Program (Aug-Dec)', name_en: '18 Weeks Flexible Program (Aug-Dec)', cohorts: [{ label_da: 'August\u2013December 2026', label_en: 'August\u2013December 2026' }] }
     ],
     course: [
-      { id: '100145', name: 'Inversions', cohorts: [{ label: 'April 2026' }] },
-      { id: '100150', name: 'Splits', cohorts: [{ label: 'April 2026' }] },
-      { id: '100140', name: 'Backbends', cohorts: [{ label: 'April 2026' }] }
+      { id: '100145', name_da: 'Inversions', name_en: 'Inversions', cohorts: [{ label_da: 'April 2026', label_en: 'April 2026' }] },
+      { id: '100150', name_da: 'Splits', name_en: 'Splits', cohorts: [{ label_da: 'April 2026', label_en: 'April 2026' }] },
+      { id: '100140', name_da: 'Backbends', name_en: 'Backbends', cohorts: [{ label_da: 'April 2026', label_en: 'April 2026' }] }
     ],
     bundle: [
-      { id: '119', name: 'Backbends + Inversions', cohorts: [{ label: 'April 2026' }] },
-      { id: '120', name: 'Inversions + Splits', cohorts: [{ label: 'April 2026' }] },
-      { id: '121', name: 'Backbends + Splits', cohorts: [{ label: 'April 2026' }] },
-      { id: '127', name: 'All-In (Inversions + Splits + Backbends)', cohorts: [{ label: 'April 2026' }] }
+      { id: '119', name_da: 'Backbends + Inversions', name_en: 'Backbends + Inversions', cohorts: [{ label_da: 'April 2026', label_en: 'April 2026' }] },
+      { id: '120', name_da: 'Inversions + Splits', name_en: 'Inversions + Splits', cohorts: [{ label_da: 'April 2026', label_en: 'April 2026' }] },
+      { id: '121', name_da: 'Backbends + Splits', name_en: 'Backbends + Splits', cohorts: [{ label_da: 'April 2026', label_en: 'April 2026' }] },
+      { id: '127', name_da: 'All-In (Inversions + Splits + Backbends)', name_en: 'All-In (Inversions + Splits + Backbends)', cohorts: [{ label_da: 'April 2026', label_en: 'April 2026' }] }
     ],
     mentorship: []
   };
   // education is what apply.js stores for YTT
   COURSE_CATALOG.education = COURSE_CATALOG.ytt;
 
-  // Payment choice labels for admin display
-  var PAYMENT_LABELS = {
-    paid: 'Paid (legacy)',
+  // Bilingual catalog accessors
+  function catalogName(item) { return isAdminDa() ? item.name_da : (item.name_en || item.name_da); }
+  function cohortLabel(coh) { return isAdminDa() ? coh.label_da : (coh.label_en || coh.label_da); }
+
+  // Payment choice labels for admin display (bilingual)
+  var PAYMENT_LABELS_DA = {
+    paid: 'Betalt (ældre)',
     paid_deposit: 'Forberedelsesfasen betalt',
     paid_full: 'Fuldt betalt',
     pay_now: 'Betalt via link'
   };
+  var PAYMENT_LABELS_EN = {
+    paid: 'Paid (legacy)',
+    paid_deposit: 'Preparation Phase paid',
+    paid_full: 'Fully paid',
+    pay_now: 'Paid via link'
+  };
   function getPaymentChoiceLabel(choice) {
-    return PAYMENT_LABELS[choice] || choice || '\u2014';
+    var labels = isAdminDa() ? PAYMENT_LABELS_DA : PAYMENT_LABELS_EN;
+    return labels[choice] || choice || '\u2014';
+  }
+
+  // Bilingual display helpers for stored Firestore values (legacy data is Danish)
+  var DISPLAY_MAP_EN = {
+    // Track labels
+    'Hverdagsprogram': 'Weekday Program',
+    'hverdagsprogram': 'Weekday Program',
+    'Weekendprogram': 'Weekend Program',
+    'weekendprogram': 'Weekend Program',
+    // Cohort labels
+    'Marts\u2013Juni 2026': 'March\u2013June 2026',
+    'April 2026': 'April 2026',
+    'Juli 2026': 'July 2026',
+    'Maj\u2013Juni 2026': 'May\u2013June 2026',
+    'August\u2013December 2026': 'August\u2013December 2026'
+  };
+  // Translate a stored DA value to EN for display (pass-through if not found)
+  function displayLocalized(raw) {
+    if (!raw) return '\u2014';
+    return isAdminDa() ? raw : (DISPLAY_MAP_EN[raw] || raw);
+  }
+  function displayTrack(raw) {
+    if (!raw) return '\u2014';
+    return displayLocalized(raw);
   }
 
   /* ══════════════════════════════════════════
@@ -124,14 +162,20 @@
     if (!d) return '\u2014';
     var date = d.toDate ? d.toDate() : new Date(d);
     if (isNaN(date.getTime())) return '\u2014';
-    return date.toLocaleDateString('da-DK', { day: '2-digit', month: 'short', year: 'numeric' });
+    var dd = String(date.getDate()).padStart(2, '0');
+    var mm = String(date.getMonth() + 1).padStart(2, '0');
+    var yyyy = date.getFullYear();
+    return dd + '/' + mm + '/' + yyyy;
   }
 
   function fmtDateTime(d) {
     if (!d) return '\u2014';
     var date = d.toDate ? d.toDate() : new Date(d);
     if (isNaN(date.getTime())) return '\u2014';
-    return date.toLocaleDateString('da-DK', { day: '2-digit', month: 'short', year: 'numeric' }) +
+    var dd = String(date.getDate()).padStart(2, '0');
+    var mm = String(date.getMonth() + 1).padStart(2, '0');
+    var yyyy = date.getFullYear();
+    return dd + '/' + mm + '/' + yyyy +
       ' ' + date.toLocaleTimeString('da-DK', { hour: '2-digit', minute: '2-digit' });
   }
 
@@ -143,16 +187,6 @@
   }
 
   function relativeTime(d) {
-    if (!d) return '';
-    var date = d.toDate ? d.toDate() : new Date(d);
-    if (isNaN(date.getTime())) return '';
-    var diff = Date.now() - date.getTime();
-    var mins = Math.floor(diff / 60000);
-    if (mins < 60) return mins + 'm ago';
-    var hrs = Math.floor(mins / 60);
-    if (hrs < 24) return hrs + 'h ago';
-    var days = Math.floor(hrs / 24);
-    if (days < 7) return days + 'd ago';
     return fmtDate(d);
   }
 
@@ -894,7 +928,7 @@
     if (l.cohort_label) {
       html += '<div class="yb-lead__card-row">' +
         '<span class="yb-lead__card-label">' + t('leads_cohort') + '</span>' +
-        '<span class="yb-lead__card-value">' + esc(l.cohort_label) + '</span>' +
+        '<span class="yb-lead__card-value">' + esc(displayLocalized(l.cohort_label)) + '</span>' +
       '</div>';
     }
     if (l.preferred_month) {
@@ -1972,12 +2006,7 @@
   function loadApplications() {
     applications = [];
 
-    var query = db.collection('applications').orderBy('created_at', 'desc');
-
-    if (appFilterStatus) query = query.where('status', '==', appFilterStatus);
-    if (appFilterType) query = query.where('program_type', '==', appFilterType);
-
-    query.limit(200).get().then(function (snap) {
+    db.collection('applications').orderBy('created_at', 'desc').limit(200).get().then(function (snap) {
       snap.forEach(function (doc) {
         applications.push(Object.assign({ id: doc.id }, doc.data()));
       });
@@ -1998,8 +2027,25 @@
     if (!showArchivedApps) {
       filtered = filtered.filter(function (a) { return !a.archived; });
     }
+    // Status filter (moved from Firestore query to client-side)
+    if (appFilterStatus) {
+      filtered = filtered.filter(function (a) { return a.status === appFilterStatus; });
+    }
+    // Type filter — "ytt" matches both 'ytt' and 'education' (apply.js stores 'education' for YTT)
+    if (appFilterType) {
+      filtered = filtered.filter(function (a) {
+        var pt = (a.program_type || a.type || '').toLowerCase();
+        if (appFilterType === 'ytt') return pt === 'ytt' || pt === 'education';
+        return pt === appFilterType;
+      });
+    }
     if (appFilterTrack) {
-      filtered = filtered.filter(function (a) { return (a.track || '').toLowerCase() === appFilterTrack.toLowerCase(); });
+      filtered = filtered.filter(function (a) {
+        var tr = (a.track || '').toLowerCase();
+        if (appFilterTrack === 'weekday') return tr.indexOf('hverdag') !== -1 || tr.indexOf('weekday') !== -1;
+        if (appFilterTrack === 'weekend') return tr.indexOf('weekend') !== -1;
+        return tr === appFilterTrack.toLowerCase();
+      });
     }
     if (appFilterCohort) {
       filtered = filtered.filter(function (a) { return (a.cohort_label || a.cohort || '') === appFilterCohort; });
@@ -2043,7 +2089,7 @@
         '<td class="yb-lead__cell-contact"><div class="yb-lead__cell-email-text">' + esc(a.email || '') + '</div></td>' +
         '<td><span class="yb-lead__type-badge">' + esc(a.program_type || '\u2014') + '</span></td>' +
         '<td class="yb-lead__cell-program">' + esc((a.course_name || a.cohort || '').substring(0, 30)) + '</td>' +
-        '<td>' + esc(a.track || '\u2014') + '</td>' +
+        '<td>' + esc(displayTrack(a.track)) + '</td>' +
         '<td>' + esc(getPaymentChoiceLabel(a.payment_choice)) + '</td>' +
         '<td>' + appStatusBadgeHtml(a.status) + archivedTag + '</td>' +
         '<td class="yb-lead__cell-date">' + relativeTime(a.created_at) + '</td>' +
@@ -2204,16 +2250,16 @@
         '<span class="yb-lead__card-value">' + esc(a.course_name) + '</span>' +
       '</div>';
     }
-    if (a.cohort) {
+    if (a.cohort_label || a.cohort) {
       html += '<div class="yb-lead__card-row">' +
         '<span class="yb-lead__card-label">Cohort</span>' +
-        '<span class="yb-lead__card-value">' + esc(a.cohort) + '</span>' +
+        '<span class="yb-lead__card-value">' + esc(displayLocalized(a.cohort_label || a.cohort)) + '</span>' +
       '</div>';
     }
     if (a.track) {
       html += '<div class="yb-lead__card-row">' +
         '<span class="yb-lead__card-label">Track</span>' +
-        '<span class="yb-lead__card-value">' + esc(a.track) + '</span>' +
+        '<span class="yb-lead__card-value">' + esc(displayTrack(a.track)) + '</span>' +
       '</div>';
     }
     if (a.bundle) {
@@ -2369,12 +2415,16 @@
     if (!sel) return;
     var courses = COURSE_CATALOG[programType] || [];
     var html = '<option value="">---</option>';
+    var matched = false;
     courses.forEach(function (c) {
-      var selected = (c.name === currentValue) ? ' selected' : '';
-      html += '<option value="' + esc(c.name) + '" data-course-id="' + c.id + '"' + selected + '>' + esc(c.name) + '</option>';
+      var displayName = catalogName(c);
+      // Match against both DA and EN names (stored value could be either)
+      var isMatch = (currentValue === c.name_da || currentValue === c.name_en);
+      if (isMatch) matched = true;
+      html += '<option value="' + esc(displayName) + '" data-course-id="' + c.id + '"' + (isMatch ? ' selected' : '') + '>' + esc(displayName) + '</option>';
     });
     // Preserve non-catalog values with a "(custom)" fallback
-    if (currentValue && !courses.some(function (c) { return c.name === currentValue; })) {
+    if (currentValue && !matched) {
       html += '<option value="' + esc(currentValue) + '" selected>' + esc(currentValue) + ' (custom)</option>';
     }
     sel.innerHTML = html;
@@ -2384,15 +2434,20 @@
     var sel = $('yb-app-edit-cohort-label');
     if (!sel) return;
     var courses = COURSE_CATALOG[programType] || [];
-    var course = courses.find(function (c) { return c.name === courseName; });
+    // Match course against both DA and EN names
+    var course = courses.find(function (c) { return c.name_da === courseName || c.name_en === courseName || catalogName(c) === courseName; });
     var cohorts = course ? course.cohorts : [];
     var html = '<option value="">---</option>';
+    var matched = false;
     cohorts.forEach(function (co) {
-      var selected = (co.label === currentValue) ? ' selected' : '';
-      html += '<option value="' + esc(co.label) + '"' + selected + '>' + esc(co.label) + '</option>';
+      var displayLabel = cohortLabel(co);
+      // Match against both DA and EN labels
+      var isMatch = (currentValue === co.label_da || currentValue === co.label_en);
+      if (isMatch) matched = true;
+      html += '<option value="' + esc(displayLabel) + '"' + (isMatch ? ' selected' : '') + '>' + esc(displayLabel) + '</option>';
     });
     // Preserve non-catalog values
-    if (currentValue && !cohorts.some(function (co) { return co.label === currentValue; })) {
+    if (currentValue && !matched) {
       html += '<option value="' + esc(currentValue) + '" selected>' + esc(currentValue) + ' (custom)</option>';
     }
     sel.innerHTML = html;
@@ -2407,7 +2462,7 @@
       var cl = a.cohort_label || a.cohort || '';
       if (cl && !seen[cl]) {
         seen[cl] = true;
-        html += '<option value="' + esc(cl) + '">' + esc(cl) + '</option>';
+        html += '<option value="' + esc(cl) + '">' + esc(displayLocalized(cl)) + '</option>';
       }
     });
     sel.innerHTML = html;
@@ -2842,101 +2897,21 @@
   }
 
   function bulkAppEmail() {
-    if (selectedAppIds.size === 0) return;
-
-    // Collect selected apps
-    var selectedApps = [];
-    selectedAppIds.forEach(function (id) {
-      var app = applications.find(function (a) { return a.id === id; });
-      if (app) { app._source = 'app'; selectedApps.push(app); }
-    });
-
-    if (selectedApps.length === 0) return;
-
-    // Delegate to campaign wizard if available
+    // Open the standard campaign wizard — user picks source (All / Leads / Applications) via DATAKILDE filter
     if (typeof window.openEmailCampaign === 'function') {
-      window.openEmailCampaign(selectedApps);
-      return;
+      window.openEmailCampaign([]);
+    } else {
+      toast('Campaign wizard not available', true);
     }
-
-    // Fallback: prompt-based send
-    var appsWithEmail = selectedApps.filter(function (a) { return !!a.email; });
-    if (appsWithEmail.length === 0) { toast('No applications with email addresses', true); return; }
-    var subject = prompt('Email subject for ' + appsWithEmail.length + ' recipients:', '');
-    if (!subject) return;
-    var body = prompt('Email body (HTML or plain text):', '');
-    if (!body) return;
-
-    getAuthToken().then(function (token) {
-      return fetch('/.netlify/functions/send-email', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
-        body: JSON.stringify({
-          applicationIds: appsWithEmail.map(function (a) { return a.id; }),
-          subject: subject,
-          bodyHtml: '<p>' + body.replace(/\n/g, '<br>') + '</p>',
-          bodyPlain: body
-        })
-      });
-    }).then(function (res) { return res.json(); })
-    .then(function (data) {
-      if (data.ok) {
-        toast('Email sent to ' + (data.results ? data.results.sent : appsWithEmail.length) + ' recipients');
-        deselectAllApps();
-      } else {
-        toast('Email failed: ' + (data.error || 'Unknown'), true);
-      }
-    }).catch(function (err) {
-      console.error('[lead-admin] Bulk app email error:', err);
-      toast('Email failed', true);
-    });
   }
 
   function bulkAppSMS() {
-    if (selectedAppIds.size === 0) return;
-
-    // Collect selected apps
-    var selectedApps = [];
-    selectedAppIds.forEach(function (id) {
-      var app = applications.find(function (a) { return a.id === id; });
-      if (app) { app._source = 'app'; selectedApps.push(app); }
-    });
-
-    if (selectedApps.length === 0) return;
-
-    // Delegate to campaign wizard if available
+    // Open the standard campaign wizard — user picks source (All / Leads / Applications) via DATAKILDE filter
     if (typeof window.openSMSCampaign === 'function') {
-      window.openSMSCampaign(selectedApps);
-      return;
+      window.openSMSCampaign([]);
+    } else {
+      toast('Campaign wizard not available', true);
     }
-
-    // Fallback: prompt-based send
-    var appsWithPhone = selectedApps.filter(function (a) { return !!a.phone; });
-    if (appsWithPhone.length === 0) { toast('No applications with phone numbers', true); return; }
-    var message = prompt('SMS message for ' + appsWithPhone.length + ' recipients:', '');
-    if (!message) return;
-
-    getAuthToken().then(function (token) {
-      return fetch('/.netlify/functions/send-sms', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
-        body: JSON.stringify({
-          applicationIds: appsWithPhone.map(function (a) { return a.id; }),
-          message: message
-        })
-      });
-    }).then(function (res) { return res.json(); })
-    .then(function (data) {
-      if (data.ok) {
-        toast('SMS sent to ' + (data.results ? data.results.sent : appsWithPhone.length) + ' recipients');
-        deselectAllApps();
-      } else {
-        toast('SMS failed: ' + (data.error || 'Unknown'), true);
-      }
-    }).catch(function (err) {
-      console.error('[lead-admin] Bulk app SMS error:', err);
-      toast('SMS failed', true);
-    });
   }
 
   /* ══════════════════════════════════════════
@@ -3269,14 +3244,14 @@
     if (appStatusFilter) {
       appStatusFilter.addEventListener('change', function () {
         appFilterStatus = appStatusFilter.value;
-        loadApplications();
+        renderApplicationTable();
       });
     }
     var appTypeFilter = $('yb-app-type-filter');
     if (appTypeFilter) {
       appTypeFilter.addEventListener('change', function () {
         appFilterType = appTypeFilter.value;
-        loadApplications();
+        renderApplicationTable();
       });
     }
     var appTrackFilter = $('yb-app-track-filter');

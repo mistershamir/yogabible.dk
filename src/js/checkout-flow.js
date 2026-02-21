@@ -549,6 +549,9 @@
         // Track purchase
         if (window.CheckoutFunnel) window.CheckoutFunnel.trackPurchased();
 
+        // Notify apply form (or any listener) that payment succeeded
+        window.dispatchEvent(new CustomEvent('ybCheckoutSuccess', { detail: { prodId: currentProdId } }));
+
         // Show success
         showStep('ycf-step-success');
       })
