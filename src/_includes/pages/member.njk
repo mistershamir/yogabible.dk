@@ -203,6 +203,11 @@
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
           {{ t.tab_journal }}
         </button>
+        {# Materials tab — trainee, teacher & admin only #}
+        <button class="yb-ma-tabs__btn" type="button" data-yb-ma-tab="materials" data-yb-role="trainee,teacher,admin" style="display:none">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+          {{ t.tab_materials }}
+        </button>
         <button class="yb-ma-tabs__btn" type="button" data-yb-ma-tab="profile">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
           {{ t.tab_profile }}
@@ -341,6 +346,19 @@
             </div>
             <h3 class="yb-ma-hub__card-title">{{ t.hub_journal_title }}</h3>
             <p class="yb-ma-hub__card-desc">{{ t.hub_journal_desc }}</p>
+            <span class="yb-ma-hub__card-arrow">&rarr;</span>
+          </a>
+
+          {# Training Materials — trainee/teacher/admin only #}
+          <a href="#materials" class="yb-ma-hub__card" data-yb-ma-tab="materials" data-yb-role="trainee,teacher,admin" style="display:none">
+            <div class="yb-ma-hub__card-top">
+              <span class="yb-ma-hub__badge">{{ t.hub_materials_badge }}</span>
+            </div>
+            <div class="yb-ma-hub__card-icon">
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+            </div>
+            <h3 class="yb-ma-hub__card-title">{{ t.hub_materials_title }}</h3>
+            <p class="yb-ma-hub__card-desc">{{ t.hub_materials_desc }}</p>
             <span class="yb-ma-hub__card-arrow">&rarr;</span>
           </a>
 
@@ -566,6 +584,38 @@
         <p class="yb-ma-eyebrow yb-ma-eyebrow--line">{{ t.events_placeholder_eyebrow }}</p>
         <h2 class="section-title" style="margin:0.5rem 0 1rem">{{ t.events_placeholder_title }}</h2>
         <p style="color:var(--yb-muted, #6F6A66);font-size:1rem;line-height:1.7;margin:0">{{ t.events_placeholder_text }}</p>
+      </div>
+    </section>
+  </div>
+
+  {# ── TAB: Training Materials (role-gated) ── #}
+  <div class="yb-ma-tp" id="yb-ma-tp-materials" data-yb-ma-panel="materials" hidden data-yb-role="trainee,teacher,admin" style="display:none">
+    <script>
+      window._ybMemberMaterialsT = {
+        materials_cat_manual: {{ t.materials_cat_manual | dump | safe }},
+        materials_cat_workbook: {{ t.materials_cat_workbook | dump | safe }},
+        materials_cat_reference: {{ t.materials_cat_reference | dump | safe }},
+        materials_cat_schedule: {{ t.materials_cat_schedule | dump | safe }},
+        materials_open: {{ t.materials_open | dump | safe }},
+        materials_download: {{ t.materials_download | dump | safe }}
+      };
+    </script>
+    <section style="padding:3rem 0 4rem;background:var(--yb-warm-white, #FFFCF9);min-height:50vh">
+      <div class="container" style="max-width:800px">
+        <div style="margin-bottom:2rem">
+          <h2 class="section-title" style="margin:0 0 0.5rem">{{ t.materials_title }}</h2>
+          <p style="color:var(--yb-muted, #6F6A66);margin:0">{{ t.materials_subtitle }}</p>
+        </div>
+        <div id="yb-mat-loading" style="text-align:center;padding:3rem 0">
+          <div class="yb-mb-spinner" style="margin:0 auto 1rem"></div>
+          <span style="color:#6F6A66">{{ t.materials_loading }}</span>
+        </div>
+        <div id="yb-mat-list"></div>
+        <div id="yb-mat-empty" hidden style="text-align:center;padding:4rem 0">
+          <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#6F6A66" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+          <h3 style="margin:1rem 0 0.5rem;color:#0F0F0F">{{ t.materials_empty_title }}</h3>
+          <p style="color:#6F6A66;margin:0">{{ t.materials_empty_text }}</p>
+        </div>
       </div>
     </section>
   </div>
@@ -1071,10 +1121,102 @@
     min-height: auto;
   }
 
+  /* ══════════════════════════════════════
+     TRAINING MATERIALS — CARD LIST
+     ══════════════════════════════════════ */
+  .yb-mat__group {
+    margin-bottom: 2rem;
+  }
+  .yb-mat__group-title {
+    font-size: 0.7rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--yb-brand, #f75c03);
+    margin: 0 0 0.75rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid var(--yb-border, #E8E4E0);
+  }
+  .yb-mat__cards {
+    display: flex;
+    flex-direction: column;
+    gap: 0.625rem;
+  }
+  .yb-mat__card {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    background: var(--yb-warm-white, #FFFCF9);
+    border: 1px solid var(--yb-border, #E8E4E0);
+    border-radius: 12px;
+    padding: 1rem 1.25rem;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  }
+  .yb-mat__card:hover {
+    border-color: var(--yb-brand, #f75c03);
+    box-shadow: 0 4px 16px rgba(0,0,0,0.06);
+  }
+  .yb-mat__card-icon {
+    width: 44px;
+    height: 44px;
+    border-radius: 10px;
+    background: var(--yb-light-bg, #F5F3F0);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    color: var(--yb-brand, #f75c03);
+  }
+  .yb-mat__card-body {
+    flex: 1;
+    min-width: 0;
+  }
+  .yb-mat__card-title {
+    font-size: 0.95rem;
+    font-weight: 700;
+    margin: 0 0 0.15rem;
+    color: #0F0F0F;
+  }
+  .yb-mat__card-desc {
+    font-size: 0.8rem;
+    color: var(--yb-muted, #6F6A66);
+    margin: 0;
+    line-height: 1.45;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  .yb-mat__card-actions {
+    display: flex;
+    gap: 0.5rem;
+    flex-shrink: 0;
+    align-items: center;
+  }
+  .yb-mat__card-actions .yb-btn--outline {
+    padding: 0.4rem 0.5rem;
+    min-width: unset;
+  }
+  @media (max-width: 600px) {
+    .yb-mat__card {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 0.75rem;
+    }
+    .yb-mat__card-actions {
+      align-self: stretch;
+    }
+    .yb-mat__card-actions .yb-btn {
+      flex: 1;
+      text-align: center;
+    }
+  }
+
 </style>
 
 <script src="/js/member.js"></script>
 <script src="/js/member-courses.js"></script>
+<script src="/js/member-materials.js"></script>
 <script>
   // Show live no-access message for users without live-streaming permission
   document.addEventListener('yb:user-loaded', function(e) {
