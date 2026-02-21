@@ -533,7 +533,14 @@
     "catalog_empty": "Ingen elementer i kataloget.",
     "catalog_edit_title": "Rediger katalog-element",
     "catalog_new_title": "Nyt katalog-element",
-    "catalog_items": "elementer"
+    "catalog_items": "elementer",
+    "catalog_select_all": "Vælg alle",
+    "catalog_selected": "valgt",
+    "catalog_bulk_delete": "Slet valgte",
+    "catalog_bulk_activate": "Aktivér",
+    "catalog_bulk_deactivate": "Deaktivér",
+    "catalog_deselect": "Fravælg alle",
+    "catalog_bulk_delete_confirm": "Slet {count} katalog-elementer? Dette kan ikke fortrydes."
   },
   "en": {
     "page_title": "Administration",
@@ -1069,6 +1076,13 @@
     "catalog_empty": "No items in the catalog.",
     "catalog_edit_title": "Edit Catalog Item",
     "catalog_new_title": "New Catalog Item",
-    "catalog_items": "items"
+    "catalog_items": "items",
+    "catalog_select_all": "Select all",
+    "catalog_selected": "selected",
+    "catalog_bulk_delete": "Delete selected",
+    "catalog_bulk_activate": "Activate",
+    "catalog_bulk_deactivate": "Deactivate",
+    "catalog_deselect": "Deselect all",
+    "catalog_bulk_delete_confirm": "Delete {count} catalog items? This cannot be undone."
   }
 }

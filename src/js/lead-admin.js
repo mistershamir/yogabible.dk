@@ -124,14 +124,20 @@
     if (!d) return '\u2014';
     var date = d.toDate ? d.toDate() : new Date(d);
     if (isNaN(date.getTime())) return '\u2014';
-    return date.toLocaleDateString('da-DK', { day: '2-digit', month: 'short', year: 'numeric' });
+    var dd = String(date.getDate()).padStart(2, '0');
+    var mm = String(date.getMonth() + 1).padStart(2, '0');
+    var yyyy = date.getFullYear();
+    return dd + '/' + mm + '/' + yyyy;
   }
 
   function fmtDateTime(d) {
     if (!d) return '\u2014';
     var date = d.toDate ? d.toDate() : new Date(d);
     if (isNaN(date.getTime())) return '\u2014';
-    return date.toLocaleDateString('da-DK', { day: '2-digit', month: 'short', year: 'numeric' }) +
+    var dd = String(date.getDate()).padStart(2, '0');
+    var mm = String(date.getMonth() + 1).padStart(2, '0');
+    var yyyy = date.getFullYear();
+    return dd + '/' + mm + '/' + yyyy +
       ' ' + date.toLocaleTimeString('da-DK', { hour: '2-digit', minute: '2-digit' });
   }
 
@@ -143,16 +149,6 @@
   }
 
   function relativeTime(d) {
-    if (!d) return '';
-    var date = d.toDate ? d.toDate() : new Date(d);
-    if (isNaN(date.getTime())) return '';
-    var diff = Date.now() - date.getTime();
-    var mins = Math.floor(diff / 60000);
-    if (mins < 60) return mins + 'm ago';
-    var hrs = Math.floor(mins / 60);
-    if (hrs < 24) return hrs + 'h ago';
-    var days = Math.floor(hrs / 24);
-    if (days < 7) return days + 'd ago';
     return fmtDate(d);
   }
 
@@ -1972,12 +1968,7 @@
   function loadApplications() {
     applications = [];
 
-    var query = db.collection('applications').orderBy('created_at', 'desc');
-
-    if (appFilterStatus) query = query.where('status', '==', appFilterStatus);
-    if (appFilterType) query = query.where('program_type', '==', appFilterType);
-
-    query.limit(200).get().then(function (snap) {
+    db.collection('applications').orderBy('created_at', 'desc').limit(200).get().then(function (snap) {
       snap.forEach(function (doc) {
         applications.push(Object.assign({ id: doc.id }, doc.data()));
       });
@@ -1997,6 +1988,18 @@
     // Filter archived unless showing archived
     if (!showArchivedApps) {
       filtered = filtered.filter(function (a) { return !a.archived; });
+    }
+    // Status filter (moved from Firestore query to client-side)
+    if (appFilterStatus) {
+      filtered = filtered.filter(function (a) { return a.status === appFilterStatus; });
+    }
+    // Type filter — "ytt" matches both 'ytt' and 'education' (apply.js stores 'education' for YTT)
+    if (appFilterType) {
+      filtered = filtered.filter(function (a) {
+        var pt = (a.program_type || a.type || '').toLowerCase();
+        if (appFilterType === 'ytt') return pt === 'ytt' || pt === 'education';
+        return pt === appFilterType;
+      });
     }
     if (appFilterTrack) {
       filtered = filtered.filter(function (a) { return (a.track || '').toLowerCase() === appFilterTrack.toLowerCase(); });
@@ -2835,25 +2838,29 @@
   }
 
   function bulkAppEmail() {
-    if (selectedAppIds.size === 0) return;
+    // Use selected apps if any, otherwise all filtered apps
+    var targetApps;
+    if (selectedAppIds.size > 0) {
+      targetApps = [];
+      selectedAppIds.forEach(function (id) {
+        var app = applications.find(function (a) { return a.id === id; });
+        if (app) targetApps.push(app);
+      });
+    } else {
+      targetApps = getFilteredApps();
+    }
 
-    // Collect selected apps
-    var selectedApps = [];
-    selectedAppIds.forEach(function (id) {
-      var app = applications.find(function (a) { return a.id === id; });
-      if (app) { app._source = 'app'; selectedApps.push(app); }
-    });
-
-    if (selectedApps.length === 0) return;
+    targetApps.forEach(function (a) { a._source = 'app'; });
+    if (targetApps.length === 0) { toast('No applications to email', true); return; }
 
     // Delegate to campaign wizard if available
     if (typeof window.openEmailCampaign === 'function') {
-      window.openEmailCampaign(selectedApps);
+      window.openEmailCampaign(targetApps);
       return;
     }
 
     // Fallback: prompt-based send
-    var appsWithEmail = selectedApps.filter(function (a) { return !!a.email; });
+    var appsWithEmail = targetApps.filter(function (a) { return !!a.email; });
     if (appsWithEmail.length === 0) { toast('No applications with email addresses', true); return; }
     var subject = prompt('Email subject for ' + appsWithEmail.length + ' recipients:', '');
     if (!subject) return;
@@ -2886,25 +2893,29 @@
   }
 
   function bulkAppSMS() {
-    if (selectedAppIds.size === 0) return;
+    // Use selected apps if any, otherwise all filtered apps
+    var targetApps;
+    if (selectedAppIds.size > 0) {
+      targetApps = [];
+      selectedAppIds.forEach(function (id) {
+        var app = applications.find(function (a) { return a.id === id; });
+        if (app) targetApps.push(app);
+      });
+    } else {
+      targetApps = getFilteredApps();
+    }
 
-    // Collect selected apps
-    var selectedApps = [];
-    selectedAppIds.forEach(function (id) {
-      var app = applications.find(function (a) { return a.id === id; });
-      if (app) { app._source = 'app'; selectedApps.push(app); }
-    });
-
-    if (selectedApps.length === 0) return;
+    targetApps.forEach(function (a) { a._source = 'app'; });
+    if (targetApps.length === 0) { toast('No applications to message', true); return; }
 
     // Delegate to campaign wizard if available
     if (typeof window.openSMSCampaign === 'function') {
-      window.openSMSCampaign(selectedApps);
+      window.openSMSCampaign(targetApps);
       return;
     }
 
     // Fallback: prompt-based send
-    var appsWithPhone = selectedApps.filter(function (a) { return !!a.phone; });
+    var appsWithPhone = targetApps.filter(function (a) { return !!a.phone; });
     if (appsWithPhone.length === 0) { toast('No applications with phone numbers', true); return; }
     var message = prompt('SMS message for ' + appsWithPhone.length + ' recipients:', '');
     if (!message) return;
@@ -3262,14 +3273,14 @@
     if (appStatusFilter) {
       appStatusFilter.addEventListener('change', function () {
         appFilterStatus = appStatusFilter.value;
-        loadApplications();
+        renderApplicationTable();
       });
     }
     var appTypeFilter = $('yb-app-type-filter');
     if (appTypeFilter) {
       appTypeFilter.addEventListener('change', function () {
         appFilterType = appTypeFilter.value;
-        loadApplications();
+        renderApplicationTable();
       });
     }
     var appTrackFilter = $('yb-app-track-filter');
