@@ -2588,10 +2588,17 @@
     .then(function (data) {
       if (data.ok) {
         currentApp.acceptance_email_sent = true;
+        if (data.firebaseUid) currentApp.firebase_uid = data.firebaseUid;
         var idx = applications.findIndex(function (a) { return a.id === currentAppId; });
-        if (idx !== -1) applications[idx].acceptance_email_sent = true;
+        if (idx !== -1) {
+          applications[idx].acceptance_email_sent = true;
+          if (data.firebaseUid) applications[idx].firebase_uid = data.firebaseUid;
+        }
         renderAppQuickActions();
-        toast(t('apps_acceptance_sent') + (data.newAccountCreated ? ' (New account created)' : ''));
+        var msg = t('apps_acceptance_sent');
+        if (data.newAccountCreated) msg += ' (New account created + role assigned)';
+        else msg += ' (Role assigned)';
+        toast(msg);
       } else {
         toast('Failed: ' + (data.error || 'Unknown error'), true);
       }

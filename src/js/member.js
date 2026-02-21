@@ -87,7 +87,7 @@
 
   // ── Tab Navigation ──
 
-  var VALID_TABS = ['hub', 'courses', 'live', 'events', 'schedule', 'glossary', 'journal', 'profile', 'leads'];
+  var VALID_TABS = ['hub', 'courses', 'live', 'events', 'schedule', 'glossary', 'journal', 'materials', 'profile', 'leads'];
   var IFRAME_TABS = ['schedule', 'profile', 'leads'];
   var loadedIframes = {};
   var resizeTimers = {};
