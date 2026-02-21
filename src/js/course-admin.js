@@ -1170,8 +1170,8 @@
         var pct = s.totalChapters > 0 ? Math.round((s.chaptersRead / s.totalChapters) * 100) : 0;
         var lastActiveStr = '';
         if (s.lastActive) {
-          lastActiveStr = s.lastActive.toLocaleDateString(lang === 'da' ? 'da-DK' : 'en-US', {
-            year: 'numeric', month: 'short', day: 'numeric'
+          lastActiveStr = s.lastActive.toLocaleDateString('da-DK', {
+            day: '2-digit', month: '2-digit', year: 'numeric'
           });
         }
         var displayName = s.name || s.email || s.userId;
@@ -1547,7 +1547,7 @@
       var joined = '';
       if (u.createdAt) {
         var d = u.createdAt.toDate ? u.createdAt.toDate() : new Date(u.createdAt);
-        joined = d.toLocaleDateString(lang === 'da' ? 'da-DK' : 'en-US', { year: 'numeric', month: 'short', day: 'numeric' });
+        joined = d.toLocaleDateString('da-DK', { day: '2-digit', month: '2-digit', year: 'numeric' });
       }
 
       html += '<tr>' +
@@ -1639,7 +1639,7 @@
     if (u.tier) html += '<div class="yb-admin__user-meta-item"><span class="yb-admin__user-meta-label">' + t('users_profile_tier') + '</span><span>' + esc(u.tier) + '</span></div>';
     if (u.createdAt) {
       var d = u.createdAt.toDate ? u.createdAt.toDate() : new Date(u.createdAt);
-      var dateStr = d.toLocaleDateString(lang === 'da' ? 'da-DK' : 'en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+      var dateStr = d.toLocaleDateString('da-DK', { day: '2-digit', month: '2-digit', year: 'numeric' });
       html += '<div class="yb-admin__user-meta-item"><span class="yb-admin__user-meta-label">' + t('users_profile_created') + '</span><span>' + esc(dateStr) + '</span></div>';
     }
     html += '<div class="yb-admin__user-meta-item"><span class="yb-admin__user-meta-label">' + t('users_profile_mindbody') + '</span><span>' + (u.mindbodyId ? t('users_profile_linked') : t('users_profile_not_linked')) + '</span></div>';
@@ -1756,7 +1756,7 @@
           var statusLabel = accepted ? t('users_consent_accepted') : t('users_consent_pending');
           var dateStr = '';
           if (item.val && item.val.toDate) {
-            dateStr = item.val.toDate().toLocaleDateString(lang === 'da' ? 'da-DK' : 'en-US', { year: 'numeric', month: 'short', day: 'numeric' });
+            dateStr = item.val.toDate().toLocaleDateString('da-DK', { day: '2-digit', month: '2-digit', year: 'numeric' });
           }
           return '<div class="yb-admin__enroll-row">' +
             '<span style="flex:1">' + item.label + '</span>' +

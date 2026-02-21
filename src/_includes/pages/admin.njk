@@ -434,10 +434,20 @@
             <span id="yb-catalog-count" class="yb-lead__count-text"></span>
           </div>
 
+          {# Bulk actions bar (hidden until selections) #}
+          <div id="yb-catalog-bulk-bar" class="yb-lead__bulk-bar" hidden>
+            <span id="yb-catalog-bulk-count" class="yb-lead__bulk-count-text"></span>
+            <button class="yb-btn yb-btn--sm yb-btn--outline" data-action="catalog-bulk-activate">&#9989; {{ t.catalog_bulk_activate }}</button>
+            <button class="yb-btn yb-btn--sm yb-btn--outline" data-action="catalog-bulk-deactivate">&#9675; {{ t.catalog_bulk_deactivate }}</button>
+            <button class="yb-btn yb-btn--sm yb-btn--outline yb-admin__icon-btn--danger" data-action="catalog-bulk-delete">&#128451; {{ t.catalog_bulk_delete }}</button>
+            <button class="yb-btn yb-btn--sm yb-btn--outline" data-action="catalog-deselect-all">&#10006; {{ t.catalog_deselect }}</button>
+          </div>
+
           <div class="yb-admin__table-wrap">
             <table class="yb-admin__table" id="yb-catalog-table">
               <thead>
                 <tr>
+                  <th class="yb-lead__th-cb"><input type="checkbox" id="yb-catalog-select-all" title="{{ t.catalog_select_all }}"></th>
                   <th>{{ t.catalog_col_course }}</th>
                   <th>{{ t.catalog_col_category }}</th>
                   <th>{{ t.catalog_col_cohort }}</th>

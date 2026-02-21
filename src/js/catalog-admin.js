@@ -1,7 +1,7 @@
 /**
  * YOGA BIBLE — CATALOG ADMIN
  * Manage course catalog items via catalog-admin Netlify function.
- * CRUD + seed + filters + inline active toggle.
+ * CRUD + seed + filters + inline active toggle + bulk operations.
  */
 (function () {
   'use strict';
@@ -16,6 +16,7 @@
   var catalogSearchTerm = '';
   var catalogFilterCategory = '';
   var catalogFilterActive = '';
+  var selectedCatalogIds = {};  // object used as Set: { id: true }
 
   /* ══════════════════════════════════════════
      HELPERS
@@ -23,6 +24,18 @@
   function t(k) { return T[k] || k; }
   function esc(s) { var d = document.createElement('div'); d.textContent = s || ''; return d.innerHTML; }
   function $(id) { return document.getElementById(id); }
+
+  function selectedCount() {
+    var n = 0;
+    for (var k in selectedCatalogIds) if (selectedCatalogIds[k]) n++;
+    return n;
+  }
+
+  function selectedIdList() {
+    var ids = [];
+    for (var k in selectedCatalogIds) if (selectedCatalogIds[k]) ids.push(k);
+    return ids;
+  }
 
   function toast(msg, isError) {
     var el = $('yb-admin-toast');
@@ -65,6 +78,37 @@
   }
 
   /* ══════════════════════════════════════════
+     BULK BAR
+     ══════════════════════════════════════════ */
+  function updateBulkBar() {
+    var bar = $('yb-catalog-bulk-bar');
+    var countEl = $('yb-catalog-bulk-count');
+    var n = selectedCount();
+    if (bar) bar.hidden = n === 0;
+    if (countEl) countEl.textContent = n + ' ' + t('catalog_selected');
+    // Sync select-all checkbox
+    var selAll = $('yb-catalog-select-all');
+    if (selAll) {
+      var visibleIds = getFilteredIds();
+      selAll.checked = visibleIds.length > 0 && visibleIds.every(function (id) { return selectedCatalogIds[id]; });
+    }
+  }
+
+  function getFilteredIds() {
+    return catalogItems.filter(function (item) {
+      if (catalogFilterCategory && item.category !== catalogFilterCategory) return false;
+      if (catalogFilterActive === 'true' && !item.active) return false;
+      if (catalogFilterActive === 'false' && item.active) return false;
+      if (catalogSearchTerm) {
+        var s = catalogSearchTerm.toLowerCase();
+        var haystack = ((item.course_name || '') + ' ' + (item.course_id || '') + ' ' + (item.cohort_label || '') + ' ' + (item.track || '')).toLowerCase();
+        if (haystack.indexOf(s) === -1) return false;
+      }
+      return true;
+    }).map(function (item) { return item.id; });
+  }
+
+  /* ══════════════════════════════════════════
      RENDER TABLE
      ══════════════════════════════════════════ */
   function renderCatalogTable() {
@@ -87,7 +131,8 @@
     if (countEl) countEl.textContent = filtered.length + ' ' + t('catalog_items');
 
     if (!filtered.length) {
-      tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:2rem;color:#6F6A66">' + esc(t('catalog_empty')) + '</td></tr>';
+      tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:2rem;color:#6F6A66">' + esc(t('catalog_empty')) + '</td></tr>';
+      updateBulkBar();
       return;
     }
 
@@ -104,16 +149,18 @@
     groupOrder.forEach(function (courseId) {
       var items = groups[courseId];
       // Group header
-      html += '<tr class="yb-admin__group-row"><td colspan="7" style="background:#F5F3F0;font-weight:700;padding:0.5rem 0.75rem;border-top:2px solid #E8E4E0">' + esc(courseId) + ' — ' + esc(items[0].course_name || '') + '</td></tr>';
+      html += '<tr class="yb-admin__group-row"><td colspan="8" style="background:#F5F3F0;font-weight:700;padding:0.5rem 0.75rem;border-top:2px solid #E8E4E0">' + esc(courseId) + ' \u2014 ' + esc(items[0].course_name || '') + '</td></tr>';
       items.forEach(function (item) {
+        var checked = selectedCatalogIds[item.id] ? ' checked' : '';
         var activeLabel = item.active ? '<span style="color:#22c55e">&#9679;</span> ' + t('catalog_active') : '<span style="color:#6F6A66">&#9675;</span> ' + t('catalog_inactive');
         html += '<tr>'
+          + '<td class="yb-lead__th-cb"><input type="checkbox" class="yb-catalog-row-cb" data-id="' + item.id + '"' + checked + '></td>'
           + '<td>' + esc(item.course_name || '') + '</td>'
           + '<td>' + esc(item.category || '') + '</td>'
           + '<td>' + esc(item.cohort_label || '') + '</td>'
           + '<td><button class="yb-btn yb-btn--ghost yb-btn--xs" data-action="catalog-toggle-active" data-id="' + item.id + '">' + activeLabel + '</button></td>'
           + '<td>' + esc(item.open_status || '') + '</td>'
-          + '<td>' + (item.price_full ? item.price_full.toLocaleString() + ' ' + (item.currency || 'DKK') : '—') + '</td>'
+          + '<td>' + (item.price_full ? item.price_full.toLocaleString() + ' ' + (item.currency || 'DKK') : '\u2014') + '</td>'
           + '<td class="yb-admin__actions-cell">'
             + '<button class="yb-btn yb-btn--outline yb-btn--xs" data-action="catalog-edit" data-id="' + item.id + '">' + t('edit') + '</button> '
             + '<button class="yb-btn yb-btn--outline yb-btn--xs" data-action="catalog-duplicate" data-id="' + item.id + '">' + t('duplicate') + '</button> '
@@ -124,6 +171,7 @@
     });
 
     tbody.innerHTML = html;
+    updateBulkBar();
   }
 
   /* ══════════════════════════════════════════
@@ -283,9 +331,50 @@
     apiCall('DELETE', null, { id: id }).then(function (res) {
       if (!res.ok) { toast(res.error || t('error_save'), true); return; }
       catalogItems = catalogItems.filter(function (x) { return x.id !== id; });
+      delete selectedCatalogIds[id];
       renderCatalogTable();
       toast(t('saved'));
     }).catch(function (err) {
+      toast(t('error_save'), true);
+    });
+  }
+
+  /* ══════════════════════════════════════════
+     BULK OPERATIONS
+     ══════════════════════════════════════════ */
+  function bulkDeleteCatalog() {
+    var ids = selectedIdList();
+    if (!ids.length) return;
+    var msg = t('catalog_bulk_delete_confirm').replace('{count}', ids.length);
+    if (!confirm(msg)) return;
+
+    apiCall('POST', null, { action: 'bulkDelete', ids: ids }).then(function (res) {
+      if (!res.ok) { toast(res.error || t('error_save'), true); return; }
+      // Remove from local state
+      catalogItems = catalogItems.filter(function (x) { return ids.indexOf(x.id) === -1; });
+      ids.forEach(function (id) { delete selectedCatalogIds[id]; });
+      renderCatalogTable();
+      toast(t('saved'));
+    }).catch(function (err) {
+      console.error('[catalog-admin] Bulk delete error:', err);
+      toast(t('error_save'), true);
+    });
+  }
+
+  function bulkToggleCatalog(active) {
+    var ids = selectedIdList();
+    if (!ids.length) return;
+
+    apiCall('POST', null, { action: 'bulkUpdate', ids: ids, updates: { active: active } }).then(function (res) {
+      if (!res.ok) { toast(res.error || t('error_save'), true); return; }
+      // Update local state
+      catalogItems.forEach(function (item) {
+        if (ids.indexOf(item.id) !== -1) item.active = active;
+      });
+      renderCatalogTable();
+      toast(t('saved'));
+    }).catch(function (err) {
+      console.error('[catalog-admin] Bulk toggle error:', err);
       toast(t('error_save'), true);
     });
   }
@@ -338,7 +427,39 @@
         case 'catalog-duplicate': duplicateCatalogItem(id); break;
         case 'catalog-delete': deleteCatalogItem(id); break;
         case 'catalog-seed': seedCatalog(); break;
+        case 'catalog-bulk-delete': bulkDeleteCatalog(); break;
+        case 'catalog-bulk-activate': bulkToggleCatalog(true); break;
+        case 'catalog-bulk-deactivate': bulkToggleCatalog(false); break;
+        case 'catalog-deselect-all':
+          selectedCatalogIds = {};
+          renderCatalogTable();
+          break;
       }
+    });
+
+    // Row checkbox changes (delegated)
+    document.addEventListener('change', function (e) {
+      if (e.target.classList.contains('yb-catalog-row-cb')) {
+        var id = e.target.getAttribute('data-id');
+        if (e.target.checked) {
+          selectedCatalogIds[id] = true;
+        } else {
+          delete selectedCatalogIds[id];
+        }
+        updateBulkBar();
+      }
+    });
+
+    // Select-all checkbox
+    var selAll = $('yb-catalog-select-all');
+    if (selAll) selAll.addEventListener('change', function () {
+      var visibleIds = getFilteredIds();
+      if (selAll.checked) {
+        visibleIds.forEach(function (id) { selectedCatalogIds[id] = true; });
+      } else {
+        visibleIds.forEach(function (id) { delete selectedCatalogIds[id]; });
+      }
+      renderCatalogTable();
     });
 
     // Form submit

@@ -3,6 +3,8 @@
   <div class="yb-admin__view-head">
     <h2>{{ t.apps_title }}</h2>
     <div class="yb-lead__toolbar-right">
+      <button type="button" class="yb-btn yb-btn--outline yb-btn--sm" data-action="app-bulk-email">&#9993;&#65039; {{ t.apps_bulk_email }}</button>
+      <button type="button" class="yb-btn yb-btn--outline yb-btn--sm" data-action="app-bulk-sms">&#128241; {{ t.apps_bulk_sms }}</button>
       <button type="button" class="yb-btn yb-btn--outline yb-btn--sm" id="yb-app-archive-toggle" data-action="toggle-show-archived-apps">&#128230; {{ t.apps_show_archived }}</button>
       <button type="button" class="yb-btn yb-btn--outline yb-btn--sm" data-action="apps-export-csv">&#128229; {{ t.apps_export }}</button>
       <button type="button" class="yb-btn yb-btn--outline yb-btn--sm" data-action="apps-refresh">&#8635; {{ t.leads_refresh }}</button>
@@ -31,7 +33,6 @@
     <select id="yb-app-type-filter" class="yb-admin__select yb-lead__filter">
       <option value="">{{ t.leads_all_types }}</option>
       <option value="ytt">YTT</option>
-      <option value="education">YTT (education)</option>
       <option value="course">Course</option>
       <option value="bundle">Bundle</option>
       <option value="mentorship">Mentorship</option>
@@ -55,8 +56,6 @@
   <div id="yb-app-bulk-bar" class="yb-lead__bulk-bar" hidden>
     <span id="yb-app-bulk-count" class="yb-lead__bulk-count-text"></span>
     <button class="yb-btn yb-btn--sm yb-btn--outline" data-action="app-bulk-status">&#9881;&#65039; {{ t.apps_bulk_status }}</button>
-    <button class="yb-btn yb-btn--sm yb-btn--outline" data-action="app-bulk-email">&#9993;&#65039; {{ t.apps_bulk_email }}</button>
-    <button class="yb-btn yb-btn--sm yb-btn--outline" data-action="app-bulk-sms">&#128241; {{ t.apps_bulk_sms }}</button>
     <button class="yb-btn yb-btn--sm yb-btn--outline yb-admin__icon-btn--danger" data-action="app-bulk-archive">&#128451; {{ t.apps_bulk_archive }}</button>
     <button class="yb-btn yb-btn--sm yb-btn--outline" data-action="app-deselect-all">&#10006; {{ t.apps_deselect }}</button>
   </div>
