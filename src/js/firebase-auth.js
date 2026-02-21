@@ -68,13 +68,21 @@
     db.collection('users').doc(user.uid).get().then(function(doc) {
       if (!doc.exists) return;
       var d = doc.data();
+
+      // Suspended accounts get no permissions (treated as member with no extras)
+      var isSuspended = d.suspended === true;
+
       var role = d.role || 'member';
       // Map legacy 'user' role to 'member'
       if (role === 'user') role = 'member';
       var roleDetails = d.roleDetails || {};
       var permissions = [];
 
-      if (window.YBRoles) {
+      if (isSuspended) {
+        // Suspended: strip all permissions, treat as basic member
+        role = 'member';
+        permissions = [];
+      } else if (window.YBRoles) {
         permissions = window.YBRoles.computePermissions(role, roleDetails);
       }
 
@@ -85,7 +93,8 @@
         role: role,
         roleDetails: roleDetails,
         permissions: permissions,
-        membershipTier: d.membershipTier || 'free'
+        membershipTier: d.membershipTier || 'free',
+        suspended: isSuspended
       };
 
       // Apply to DOM

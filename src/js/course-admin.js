@@ -1384,15 +1384,83 @@
       if (teacherTypeSelect && teacherTypeSelect.value) roleDetails.teacherType = teacherTypeSelect.value;
     }
 
+    var previousRole = state.userDetail ? (state.userDetail.role || 'member') : 'member';
+    var previousDetails = state.userDetail ? (state.userDetail.roleDetails || {}) : {};
+
     toast(t('saving'));
     db.collection('users').doc(uid).update({
       role: newRole,
       roleDetails: roleDetails,
       updatedAt: firebase.firestore.FieldValue.serverTimestamp()
     }).then(function() {
+      // Audit log
+      db.collection('role_changes').add({
+        userId: uid,
+        action: 'role_change',
+        previousRole: previousRole,
+        previousDetails: previousDetails,
+        newRole: newRole,
+        newDetails: roleDetails,
+        source: 'admin_manual',
+        changedBy: firebase.auth().currentUser ? firebase.auth().currentUser.uid : 'unknown',
+        changedAt: firebase.firestore.FieldValue.serverTimestamp()
+      });
       toast(t('role_saved'));
     }).catch(function(err) {
       console.error('Role save error:', err);
+      toast(err.message || t('error_save'), true);
+    });
+  }
+
+  function suspendUser(uid) {
+    if (!uid) return;
+    if (!confirm(t('users_suspend_confirm'))) return;
+
+    var previousRole = state.userDetail ? (state.userDetail.role || 'member') : 'member';
+
+    db.collection('users').doc(uid).update({
+      suspended: true,
+      suspendedAt: firebase.firestore.FieldValue.serverTimestamp(),
+      updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+    }).then(function () {
+      // Log role change
+      db.collection('role_changes').add({
+        userId: uid,
+        action: 'suspend',
+        previousRole: previousRole,
+        source: 'admin_manual',
+        changedBy: firebase.auth().currentUser ? firebase.auth().currentUser.uid : 'unknown',
+        changedAt: firebase.firestore.FieldValue.serverTimestamp()
+      });
+      toast(t('users_suspended'));
+      showUserDetail(uid);
+    }).catch(function (err) {
+      console.error('Suspend error:', err);
+      toast(err.message || t('error_save'), true);
+    });
+  }
+
+  function unsuspendUser(uid) {
+    if (!uid) return;
+    if (!confirm(t('users_unsuspend_confirm'))) return;
+
+    db.collection('users').doc(uid).update({
+      suspended: false,
+      suspendedAt: firebase.firestore.FieldValue.delete(),
+      updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+    }).then(function () {
+      // Log role change
+      db.collection('role_changes').add({
+        userId: uid,
+        action: 'unsuspend',
+        source: 'admin_manual',
+        changedBy: firebase.auth().currentUser ? firebase.auth().currentUser.uid : 'unknown',
+        changedAt: firebase.firestore.FieldValue.serverTimestamp()
+      });
+      toast(t('users_unsuspended'));
+      showUserDetail(uid);
+    }).catch(function (err) {
+      console.error('Unsuspend error:', err);
       toast(err.message || t('error_save'), true);
     });
   }
@@ -1948,7 +2016,20 @@
     }
     html += '<div class="yb-admin__user-meta-item"><span class="yb-admin__user-meta-label">' + t('users_profile_mindbody') + '</span><span>' + (u.mindbodyId ? t('users_profile_linked') : t('users_profile_not_linked')) + '</span></div>';
 
-    html += '</div></div>';
+    html += '</div>';
+
+    // Suspend / Reactivate button
+    var isSuspended = u.suspended === true;
+    html += '<div style="margin-top:1rem;padding-top:1rem;border-top:1px solid #E8E4E0;width:100%">';
+    if (isSuspended) {
+      html += '<span class="yb-admin__badge yb-admin__badge--danger" style="margin-right:0.75rem">' + t('users_suspended_badge') + '</span>';
+      html += '<button class="yb-btn yb-btn--outline yb-btn--sm" data-action="unsuspend-user" data-uid="' + esc(uid) + '">' + t('users_unsuspend') + '</button>';
+    } else {
+      html += '<button class="yb-btn yb-btn--outline yb-btn--sm yb-admin__icon-btn--danger" data-action="suspend-user" data-uid="' + esc(uid) + '">' + t('users_suspend') + '</button>';
+    }
+    html += '</div>';
+
+    html += '</div>';
     el.innerHTML = html;
   }
 
@@ -2203,6 +2284,8 @@
         case 'user-enroll-save': enrollUserFromDetail(); break;
         case 'revoke-user-enroll': toggleUserEnrollment(id, 'revoked'); break;
         case 'activate-user-enroll': toggleUserEnrollment(id, 'active'); break;
+        case 'suspend-user': suspendUser(btn.getAttribute('data-uid')); break;
+        case 'unsuspend-user': unsuspendUser(btn.getAttribute('data-uid')); break;
 
         // Enhanced user management actions
         case 'users-refresh': usersLoaded = false; loadAllUsers(); usersLoaded = true; break;

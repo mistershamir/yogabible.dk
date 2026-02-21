@@ -48,17 +48,20 @@ exports.handler = async (event) => {
     // Check if Firebase account exists, create if not
     let isNewAccount = false;
     let passwordResetLink = null;
+    let firebaseUid = null;
 
     try {
-      await auth.getUserByEmail(app.email);
+      const existingUser = await auth.getUserByEmail(app.email);
+      firebaseUid = existingUser.uid;
       // Account exists — no need to create
     } catch (err) {
       if (err.code === 'auth/user-not-found') {
         // Create new Firebase account
-        await auth.createUser({
+        const newUser = await auth.createUser({
           email: app.email,
           displayName: fullName || undefined
         });
+        firebaseUid = newUser.uid;
         isNewAccount = true;
       } else {
         throw err;
@@ -70,6 +73,68 @@ exports.handler = async (event) => {
     // For existing accounts this lets them reset if needed
     if (isNewAccount) {
       passwordResetLink = await auth.generatePasswordResetLink(app.email);
+    }
+
+    // ── Auto-assign role based on application type ──
+    // Determines role + roleDetails from the application data
+    if (firebaseUid) {
+      const programType = (app.program_type || '').toLowerCase();
+      let role = 'member';
+      const roleDetails = {};
+
+      if (programType === 'ytt' || programType === 'education') {
+        role = 'trainee';
+        roleDetails.program = '200h'; // default YTT program
+        roleDetails.method = 'triangle'; // default method
+        if (app.cohort_label || app.cohort) {
+          roleDetails.cohort = app.cohort_label || app.cohort;
+        }
+      } else if (programType === 'course' || programType === 'bundle') {
+        role = 'student';
+        // Map course name to courseType if possible
+        const courseNameLower = (app.course_name || '').toLowerCase();
+        const courseTypeMap = {
+          'inversions': 'inversions', 'splits': 'splits', 'spagat': 'splits',
+          'backbends': 'backbends', 'rygbøjninger': 'backbends',
+          'handstands': 'handstands', 'håndstand': 'handstands',
+          'arm balances': 'armbalances', 'armbalancer': 'armbalances',
+          'prenatal': 'prenatal', 'gravid': 'prenatal'
+        };
+        const matchedType = Object.keys(courseTypeMap).find(k => courseNameLower.includes(k));
+        if (matchedType) {
+          roleDetails.courseTypes = [courseTypeMap[matchedType]];
+        }
+      } else if (programType === 'mentorship') {
+        role = 'student';
+        roleDetails.mentorship = true;
+      }
+
+      // Write role to Firestore users collection (merge to preserve existing data)
+      const userRef = db.collection('users').doc(firebaseUid);
+      const userDoc = await userRef.get();
+      const existingRole = userDoc.exists ? (userDoc.data().role || 'member') : 'member';
+
+      // Only upgrade role, never downgrade (don't overwrite teacher/admin with trainee)
+      const rolePriority = { member: 0, student: 1, trainee: 2, teacher: 3, marketing: 4, admin: 5 };
+      if ((rolePriority[role] || 0) >= (rolePriority[existingRole] || 0)) {
+        await userRef.set({
+          role: role,
+          roleDetails: roleDetails,
+          updatedAt: new Date()
+        }, { merge: true });
+      }
+
+      // Log the role change for audit
+      await db.collection('role_changes').add({
+        userId: firebaseUid,
+        email: app.email,
+        previousRole: existingRole,
+        newRole: role,
+        roleDetails: roleDetails,
+        source: 'acceptance_email',
+        applicationId: payload.applicationId,
+        changedAt: new Date()
+      });
     }
 
     // Build acceptance email HTML
@@ -163,16 +228,21 @@ exports.handler = async (event) => {
       new_account_created: isNewAccount
     });
 
-    // Update application
-    await db.collection('applications').doc(payload.applicationId).update({
+    // Update application (link Firebase UID + mark email sent)
+    const appUpdate = {
       acceptance_email_sent: true,
       acceptance_email_sent_at: new Date(),
       updated_at: new Date()
-    });
+    };
+    if (firebaseUid) {
+      appUpdate.firebase_uid = firebaseUid;
+    }
+    await db.collection('applications').doc(payload.applicationId).update(appUpdate);
 
     return jsonResponse(200, {
       ok: true,
       newAccountCreated: isNewAccount,
+      firebaseUid: firebaseUid || null,
       ...result
     });
   } catch (err) {

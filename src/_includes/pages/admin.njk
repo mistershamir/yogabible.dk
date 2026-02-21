@@ -39,6 +39,7 @@
         <button class="yb-profile__tab" type="button" data-yb-admin-tab="leads">{{ t.tab_leads }}</button>
         <button class="yb-profile__tab" type="button" data-yb-admin-tab="applications">{{ t.tab_applications }}</button>
         <button class="yb-profile__tab" type="button" data-yb-admin-tab="catalog">{{ t.tab_catalog }}</button>
+        <button class="yb-profile__tab" type="button" data-yb-admin-tab="documents">{{ t.tab_documents }}</button>
       </div>
 
       {# ═══════════════════════════════════
@@ -533,6 +534,13 @@
 
       </div>{# end catalog tab panel #}
 
+      {# ═══════════════════════════════════
+         TAB: Training Documents
+         ═══════════════════════════════════ #}
+      <div class="yb-admin__tab-panel" data-yb-admin-panel="documents">
+        {% include "partials/admin-documents-panel.njk" %}
+      </div>{# end documents tab panel #}
+
     </div>{# end yb-admin-panel #}
 
     {# ═══════════════════════════════════
@@ -608,3 +616,7 @@
 <script src="/js/lead-admin.js"></script>
 <script src="/js/campaign-wizard.js"></script>
 <script src="/js/catalog-admin.js"></script>
+<script>
+  window._ybDocAdminT = {{ i18n["course-admin"][lang or "da"] | dump | safe }};
+</script>
+<script src="/js/doc-admin.js"></script>
