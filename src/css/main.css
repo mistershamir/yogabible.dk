@@ -21194,3 +21194,25 @@ a.yb-kontakt-detail__value:hover {
   .ym-cta__buttons { flex-direction: column; align-items: center; }
   .ym-cta__buttons .yb-btn { width: 100%; max-width: 280px; justify-content: center; }
 }
+
+
+/* ═══════════════════════════════════════════════════════════
+   ACCOMMODATION PAGE  (yba-*)
+   ═══════════════════════════════════════════════════════════ */
+.yba-eyebrow {
+  margin: 0 0 .35rem;
+  text-transform: uppercase;
+  letter-spacing: .12em;
+  font-size: .82rem;
+  color: var(--yb-brand, #f75c03);
+  font-weight: 800;
+}
+.yba-eyebrow--white { color: rgba(255,255,255,.7); }
+
+.yba-course-card__img img {
+  border-radius: 12px 12px 0 0;
+}
+
+.yba-hotel-card__img img {
+  border-radius: 12px 12px 0 0;
+}
