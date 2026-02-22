@@ -1,0 +1,186 @@
+{# ── Career Applications List View ── #}
+<div id="yb-admin-v-career-list">
+  <div class="yb-admin__view-head">
+    <h2>{{ t.careers_title }}</h2>
+    <div class="yb-lead__toolbar-right">
+      <button type="button" class="yb-btn yb-btn--outline yb-btn--sm" id="yb-career-archive-toggle" data-action="careers-toggle-archived">&#128230; {{ t.leads_show_archived }}</button>
+      <button type="button" class="yb-btn yb-btn--outline yb-btn--sm" data-action="careers-seed">&#128190; {{ t.catalog_seed_btn }}</button>
+      <button type="button" class="yb-btn yb-btn--outline yb-btn--sm" data-action="careers-export-csv">&#128229; {{ t.leads_export }}</button>
+      <button type="button" class="yb-btn yb-btn--outline yb-btn--sm" data-action="careers-refresh">&#8635; {{ t.leads_refresh }}</button>
+    </div>
+  </div>
+
+  {# Pipeline Stats (clickable) #}
+  <div class="yb-lead__stats-grid" id="yb-career-stats"></div>
+
+  {# Search + Filters #}
+  <div class="yb-lead__filter-bar">
+    <form id="yb-career-search-form" class="yb-lead__search-form">
+      <input type="text" id="yb-career-search-input" placeholder="{{ t.careers_search_placeholder }}" class="yb-lead__search-input">
+    </form>
+    <select id="yb-career-status-filter" class="yb-admin__select yb-lead__filter">
+      <option value="">{{ t.leads_all_statuses }}</option>
+      <option value="New">&#10024; New</option>
+      <option value="Reviewing">&#128269; Reviewing</option>
+      <option value="Interviewed">&#128172; Interviewed</option>
+      <option value="Trial Scheduled">&#128197; Trial Scheduled</option>
+      <option value="Offered">&#127881; Offered</option>
+      <option value="Hired">&#9989; Hired</option>
+      <option value="On Hold">&#9208;&#65039; On Hold</option>
+      <option value="Rejected">&#128078; Rejected</option>
+      <option value="Withdrawn">&#8617;&#65039; Withdrawn</option>
+      <option value="Archived">&#128230; Archived</option>
+    </select>
+    <select id="yb-career-category-filter" class="yb-admin__select yb-lead__filter">
+      <option value="">{{ t.careers_all_categories }}</option>
+      <option value="Yoga / Meditation Teacher">🧘 Yoga / Meditation</option>
+      <option value="Uddannelser (YTT)">📚 YTT</option>
+      <option value="Kurser & workshops">🏫 Kurser &amp; workshops</option>
+      <option value="Mentorship & privates">🤝 Mentorship</option>
+      <option value="Marketing & content">📣 Marketing</option>
+      <option value="Administration & outreach">🗂️ Administration</option>
+      <option value="Andet samarbejde">💡 Andet</option>
+    </select>
+    <select id="yb-career-role-filter" class="yb-admin__select yb-lead__filter">
+      <option value="">{{ t.careers_all_roles }}</option>
+      <option value="Lead trainer">Lead trainer</option>
+      <option value="Assistant lead trainer">Assistant lead trainer</option>
+      <option value="Underviser / modul">Underviser / modul</option>
+      <option value="Workshop facilitator">Workshop facilitator</option>
+      <option value="Mentor / privates">Mentor / privates</option>
+      <option value="Marketing / content">Marketing / content</option>
+      <option value="Administration / outreach">Administration / outreach</option>
+      <option value="Andet">Andet</option>
+    </select>
+    <select id="yb-career-exp-filter" class="yb-admin__select yb-lead__filter">
+      <option value="">{{ t.careers_all_experience }}</option>
+      <option value="0–2 år">0–2 år</option>
+      <option value="3–5 år">3–5 år</option>
+      <option value="6–10 år">6–10 år</option>
+      <option value="10+ år">10+ år</option>
+    </select>
+  </div>
+
+  {# Result count #}
+  <div class="yb-lead__result-bar">
+    <span id="yb-career-count" class="yb-lead__count-text"></span>
+  </div>
+
+  {# Bulk actions bar (hidden until selections made) #}
+  <div id="yb-career-bulk-bar" class="yb-lead__bulk-bar" hidden>
+    <span id="yb-career-bulk-count" class="yb-lead__bulk-count-text"></span>
+    <button class="yb-btn yb-btn--sm yb-btn--outline" data-action="career-bulk-status">&#9881;&#65039; {{ t.leads_bulk_status }}</button>
+    <button class="yb-btn yb-btn--sm yb-btn--outline" data-action="career-bulk-email">&#9993;&#65039; {{ t.leads_bulk_email }}</button>
+    <button class="yb-btn yb-btn--sm yb-btn--outline yb-admin__icon-btn--danger" data-action="career-bulk-archive">&#128451; {{ t.leads_bulk_archive }}</button>
+    <button class="yb-btn yb-btn--sm yb-btn--outline" data-action="career-bulk-deselect">&#10006; {{ t.leads_deselect }}</button>
+  </div>
+
+  {# Career applications table #}
+  <div class="yb-admin__table-wrap yb-lead__table-wrap">
+    <table class="yb-admin__table yb-lead__table" id="yb-career-table">
+      <thead>
+        <tr>
+          <th class="yb-lead__th-chevron"></th>
+          <th class="yb-lead__th-cb"><input type="checkbox" id="yb-career-select-all" title="{{ t.leads_select_all }}"></th>
+          <th><button class="yb-lead__sort-btn is-active is-desc" data-career-sort="created_at">{{ t.leads_col_date }} <span class="yb-lead__sort-icon"></span></button></th>
+          <th>{{ t.users_col_name }}</th>
+          <th>{{ t.leads_contact }}</th>
+          <th>{{ t.careers_col_category }}</th>
+          <th>{{ t.careers_col_role }}</th>
+          <th>{{ t.careers_col_experience }}</th>
+          <th>{{ t.leads_col_status }}</th>
+          <th>{{ t.careers_col_files }}</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody id="yb-career-table-body"></tbody>
+    </table>
+  </div>
+  <div id="yb-career-load-more-wrap" style="text-align:center;margin-top:1rem" hidden>
+    <button class="yb-btn yb-btn--outline" data-action="careers-load-more">{{ t.leads_load_more }}</button>
+  </div>
+</div>
+
+{# ── Bulk Status Modal ── #}
+<div id="yb-career-bulk-modal" class="yb-lead__modal" hidden>
+  <div class="yb-lead__modal-overlay" data-action="career-bulk-modal-close"></div>
+  <div class="yb-lead__campaign-box" style="max-width:380px">
+    <div class="yb-lead__campaign-header">
+      <h3 class="yb-lead__campaign-title">&#9881;&#65039; {{ t.leads_bulk_status }}</h3>
+      <button type="button" class="yb-lead__campaign-close" data-action="career-bulk-modal-close">&times;</button>
+    </div>
+    <div style="padding:1.25rem">
+      <div class="yb-admin__field">
+        <label for="yb-career-bulk-status-select">{{ t.leads_col_status }}</label>
+        <select id="yb-career-bulk-status-select" class="yb-admin__select">
+          <option value="New">&#10024; New</option>
+          <option value="Reviewing">&#128269; Reviewing</option>
+          <option value="Interviewed">&#128172; Interviewed</option>
+          <option value="Trial Scheduled">&#128197; Trial Scheduled</option>
+          <option value="Offered">&#127881; Offered</option>
+          <option value="Hired">&#9989; Hired</option>
+          <option value="On Hold">&#9208;&#65039; On Hold</option>
+          <option value="Rejected">&#128078; Rejected</option>
+          <option value="Withdrawn">&#8617;&#65039; Withdrawn</option>
+        </select>
+      </div>
+      <div style="margin-top:1rem;display:flex;gap:0.75rem">
+        <button class="yb-btn yb-btn--primary" data-action="career-bulk-status-apply">{{ t.save }}</button>
+        <button class="yb-btn yb-btn--outline" data-action="career-bulk-modal-close">{{ t.cancel }}</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+{# ── Career Application Detail View ── #}
+<div id="yb-admin-v-career-detail" hidden>
+  <div class="yb-admin__view-head">
+    <button class="yb-admin__back-btn" data-action="back-careers">&larr; {{ t.back }}</button>
+    <h2 id="yb-career-detail-heading">{{ t.careers_detail_title }}</h2>
+  </div>
+
+  {# Main info card #}
+  <div id="yb-career-detail-card"></div>
+
+  {# Quick actions #}
+  <div class="yb-admin__section-divider"></div>
+  <h3 class="yb-lead__section-title">{{ t.leads_actions }}</h3>
+  <div id="yb-career-actions" class="yb-lead__actions"></div>
+
+  {# Status update #}
+  <div class="yb-admin__section-divider"></div>
+  <h3 class="yb-lead__section-title">{{ t.leads_update_status }}</h3>
+  <form id="yb-career-status-form" class="yb-admin__form">
+    <div style="display:flex;gap:0.75rem;align-items:flex-end;flex-wrap:wrap">
+      <div class="yb-admin__field">
+        <label for="yb-career-status-select">{{ t.leads_col_status }}</label>
+        <select id="yb-career-status-select" class="yb-admin__select">
+          <option value="New">&#10024; New</option>
+          <option value="Reviewing">&#128269; Reviewing</option>
+          <option value="Interviewed">&#128172; Interviewed</option>
+          <option value="Trial Scheduled">&#128197; Trial Scheduled</option>
+          <option value="Offered">&#127881; Offered</option>
+          <option value="Hired">&#9989; Hired</option>
+          <option value="On Hold">&#9208;&#65039; On Hold</option>
+          <option value="Rejected">&#128078; Rejected</option>
+          <option value="Withdrawn">&#8617;&#65039; Withdrawn</option>
+        </select>
+      </div>
+      <div class="yb-admin__field">
+        <label for="yb-career-archive-check" style="cursor:pointer;display:flex;gap:0.5rem;align-items:center">
+          <input type="checkbox" id="yb-career-archive-check"> Archive this application
+        </label>
+      </div>
+      <button type="submit" class="yb-btn yb-btn--primary">{{ t.save }}</button>
+    </div>
+  </form>
+
+  {# Notes timeline #}
+  <div class="yb-admin__section-divider"></div>
+  <h3 class="yb-lead__section-title">{{ t.leads_notes }}</h3>
+  <form id="yb-career-note-form" class="yb-lead__note-form">
+    <input type="text" id="yb-career-note-input" placeholder="{{ t.leads_note_placeholder }}" class="yb-lead__note-input">
+    <button type="submit" class="yb-btn yb-btn--primary yb-btn--sm">{{ t.leads_add_note_btn }}</button>
+  </form>
+  <div id="yb-career-notes-timeline" class="yb-lead__notes-timeline"></div>
+</div>
