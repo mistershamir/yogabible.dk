@@ -191,14 +191,8 @@
           {% endfor %}
         </ul>
 
-        <div class="yba-room-card__months" role="tablist" aria-label="{{ t.rooms_month_aria }}">
-          <button class="yba-chip is-active" role="tab" aria-selected="true" data-month="feb" type="button">{{ t.month_feb }}</button>
-          <button class="yba-chip" role="tab" aria-selected="false" data-month="mar" type="button">{{ t.month_mar }}</button>
-          <button class="yba-chip" role="tab" aria-selected="false" data-month="apr" type="button">{{ t.month_apr }}</button>
-        </div>
-
         <div class="yba-room-card__cta">
-          <a href="#" class="yba-btn yba-btn--cta js-reserve" target="_blank" rel="noopener">{{ t.js_reserve_prefix }} {{ t.js_month_feb }}</a>
+          <a href="mailto:info@yogabible.dk?subject=Accommodation%20inquiry%20—%20Single%20Studio" class="yba-btn yba-btn--cta">{{ t.hero_cta_contact }}</a>
         </div>
       </article>
 
@@ -237,14 +231,8 @@
           {% endfor %}
         </ul>
 
-        <div class="yba-room-card__months" role="tablist" aria-label="{{ t.rooms_month_aria }}">
-          <button class="yba-chip is-active" role="tab" aria-selected="true" data-month="feb" type="button">{{ t.month_feb }}</button>
-          <button class="yba-chip" role="tab" aria-selected="false" data-month="mar" type="button">{{ t.month_mar }}</button>
-          <button class="yba-chip" role="tab" aria-selected="false" data-month="apr" type="button">{{ t.month_apr }}</button>
-        </div>
-
         <div class="yba-room-card__cta">
-          <a href="#" class="yba-btn yba-btn--cta js-reserve" target="_blank" rel="noopener">{{ t.js_reserve_prefix }} {{ t.js_month_feb }}</a>
+          <a href="mailto:info@yogabible.dk?subject=Accommodation%20inquiry%20—%20Double%20Studio" class="yba-btn yba-btn--cta">{{ t.hero_cta_contact }}</a>
         </div>
       </article>
 
@@ -378,6 +366,13 @@
     <p class="yba-eyebrow yba-eyebrow--white" style="text-align:center;">{{ t.loc_eyebrow }}</p>
     <h2 class="yba-h2" style="text-align:center; color:#fff;">{{ t.loc_title }}</h2>
     <p class="yba-lead" style="text-align:center; max-width:60ch; margin:0 auto 2.5rem; color:rgba(255,255,255,.75);">{{ t.loc_lead }}</p>
+
+    <div style="margin-bottom:2.5rem; border-radius:12px; overflow:hidden;">
+      <video autoplay muted loop playsinline preload="metadata" style="width:100%; aspect-ratio:16/9; object-fit:cover; display:block;"
+        poster="{{ "yoga-bible-DK/accommodation/christianshavn-copenhagen-neighbourhood.jpg" | cloudvid("w_1280,c_fill,so_0,q_60") }}">
+        <source src="{{ "yoga-bible-DK/accommodation/christianshavn-copenhagen-neighbourhood" | cloudvid("w_1280,q_auto") }}" type="video/mp4">
+      </video>
+    </div>
 
     <div class="yba-map-wrapper">
       <div class="yba-map-container">
@@ -884,7 +879,7 @@
    TYPOGRAPHY
    ══════════════════════════════════ */
 .yba-eyebrow {
-  display: inline-block;
+  display: block;
   font-size: 0.82rem;
   font-weight: 700;
   color: var(--yba-brand);
@@ -2072,60 +2067,10 @@
      ═══════════════════════════════════════════════════════════ -->
 <script>
 (function(){
-  /* ── Payment Links ── */
-  var reserveLinks = {
-    feb: {
-      single: 'https://clients.mindbodyonline.com/classic/ws?studioid=5748831&stype=43&prodid=100114',
-      double: 'https://clients.mindbodyonline.com/classic/ws?studioid=5748831&stype=43&catid=100003&prodGroupId=100136'
-    },
-    mar: {
-      single: 'https://clients.mindbodyonline.com/classic/ws?studioid=5748831&stype=43&prodid=100115',
-      double: 'https://clients.mindbodyonline.com/classic/ws?studioid=5748831&stype=43&catid=100003&prodGroupId=100135'
-    },
-    apr: {
-      single: 'https://clients.mindbodyonline.com/classic/ws?studioid=5748831&stype=43&catid=100001&prodGroupId=100116',
-      double: 'https://clients.mindbodyonline.com/classic/ws?studioid=5748831&stype=43&catid=100003&prodGroupId=100134'
-    }
-  };
-
-  var monthLabels = {
-    feb: '{{ t.js_month_feb }}',
-    mar: '{{ t.js_month_mar }}',
-    apr: '{{ t.js_month_apr }}'
-  };
-
-  var reservePrefix = '{{ t.js_reserve_prefix }}';
   var galleryAriaPrefix = '{{ t.js_gallery_aria }}';
 
-  /* ── Room Cards: Chips + Gallery ── */
+  /* ── Room Cards: Gallery ── */
   document.querySelectorAll('.yba-room-card').forEach(function(card) {
-    var type = card.dataset.type;
-    var chips = card.querySelectorAll('.yba-chip');
-    var reserveBtn = card.querySelector('.js-reserve');
-    var currentMonth = 'feb';
-
-    function updateReserveBtn() {
-      if (!reserveBtn) return;
-      var url = (reserveLinks[currentMonth] && reserveLinks[currentMonth][type]) || '#';
-      var label = monthLabels[currentMonth] || currentMonth;
-      reserveBtn.href = url;
-      reserveBtn.textContent = reservePrefix + ' ' + label;
-    }
-    updateReserveBtn();
-
-    chips.forEach(function(chip) {
-      chip.addEventListener('click', function() {
-        chips.forEach(function(c) {
-          c.classList.remove('is-active');
-          c.setAttribute('aria-selected', 'false');
-        });
-        chip.classList.add('is-active');
-        chip.setAttribute('aria-selected', 'true');
-        currentMonth = chip.dataset.month;
-        updateReserveBtn();
-      });
-    });
-
     /* Gallery */
     var gallery = card.querySelector('.yba-gallery');
     if (!gallery) return;
