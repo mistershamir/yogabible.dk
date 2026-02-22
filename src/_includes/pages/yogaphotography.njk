@@ -47,7 +47,7 @@
 </script>
 
 <!-- ═══════════════════════════════════════════════════════
-     Hero (existing site hero — kept as-is for now)
+     Hero
      ═══════════════════════════════════════════════════════ -->
 <section class="yb-hero">
   <div class="yb-hero__glow"></div>
@@ -75,44 +75,22 @@
 
 
 <!-- ═══════════════════════════════════════════════════════
-     Section 1: Dark Editorial Intro
+     Purpose Statement (pitch text from old hero)
      ═══════════════════════════════════════════════════════ -->
-<section class="yphoto-intro" aria-label="{{ t.intro_title_line1 }} {{ t.intro_title_line2 }}">
-  <div class="yphoto-intro__frame">
-    <div class="yphoto-intro__inner">
-      <div class="yphoto-intro__grid">
-        {# LEFT #}
-        <div class="yphoto-intro__left">
-          <h2 class="yphoto-intro__title yphoto-reveal yphoto-delay-1" aria-label="{{ t.intro_title_line1 }} {{ t.intro_title_line2 }}">
-            <span>{{ t.intro_title_line1 }}</span>
-            <span class="yphoto-intro__title-underline">{{ t.intro_title_line2 }}</span>
-          </h2>
-          <p class="yphoto-intro__sub yphoto-reveal yphoto-delay-3">{{ t.intro_sub }}</p>
-          <div class="yphoto-intro__ctaWrap yphoto-reveal yphoto-delay-4">
-            <a class="yphoto-intro__cta" href="{{ mailto_book }}">
-              <span>{{ t.intro_cta }}</span>
-              <span class="yphoto-arrow" aria-hidden="true">&rarr;</span>
-            </a>
-            <div class="yphoto-intro__micro">{{ t.intro_micro }}</div>
-          </div>
-        </div>
-        {# RIGHT #}
-        <div class="yphoto-intro__right">
-          <p class="yphoto-intro__pitch yphoto-reveal yphoto-delay-5">{{ t.intro_pitch | safe }}</p>
-          <div class="yphoto-intro__meta yphoto-reveal yphoto-delay-6">
-            <span>{{ t.intro_meta1 }}</span>
-            <span class="yphoto-intro__dot" aria-hidden="true">&bull;</span>
-            <span>{{ t.intro_meta2 }}</span>
-          </div>
-        </div>
-      </div>
+<section class="yphoto-purpose">
+  <div class="yphoto-purpose__inner yphoto-reveal">
+    <p class="yphoto-purpose__text">{{ t.intro_pitch | safe }}</p>
+    <div class="yphoto-purpose__meta">
+      <span>{{ t.intro_meta1 }}</span>
+      <span class="yphoto-purpose__dot" aria-hidden="true">&bull;</span>
+      <span>{{ t.intro_meta2 }}</span>
     </div>
   </div>
 </section>
 
 
 <!-- ═══════════════════════════════════════════════════════
-     Section 2: Session Details (light split)
+     Session Details (light split)
      ═══════════════════════════════════════════════════════ -->
 <section class="yphoto-session" aria-label="{{ t.session_kicker }}">
   <div class="yphoto-session__inner">
@@ -120,10 +98,9 @@
       {# IMAGE #}
       <figure class="yphoto-session__figure yphoto-reveal">
         <div class="yphoto-session__imgWrap">
-          {# CLOUDINARY: yoga-bible-DK/yogaphotography/session-hero.jpg — 1200x800, studio yoga photography #}
           <img
             class="yphoto-session__img"
-            src="{{ 'yoga-bible-DK/yogaphotography/session-hero' | cloudimg('w_1200,h_800,c_fill') }}"
+            src="{{ 'yoga-bible-DK/yogaphotography/session-hero' | cloudimg('w_1200,c_fill,g_auto') }}"
             alt="{{ t.session_img_alt }}"
             loading="lazy"
             decoding="async"
@@ -194,7 +171,7 @@
 
 
 <!-- ═══════════════════════════════════════════════════════
-     Section 3: Prep Guide + FAQ (2 cards)
+     Prep Guide + FAQ (2 cards)
      ═══════════════════════════════════════════════════════ -->
 <section class="yphoto-prepfaq" aria-label="{{ t.prep_title }}">
   <div class="yphoto-prepfaq__inner">
@@ -263,15 +240,14 @@
 
 
 <!-- ═══════════════════════════════════════════════════════
-     Section 4: Quote + Photo (editorial overlay)
+     Big Photo + Quote (editorial overlay — portrait image)
      ═══════════════════════════════════════════════════════ -->
 <section class="yphoto-quote" aria-label="{{ t.quote1_kicker }}">
   <div class="yphoto-quote__inner">
     <div class="yphoto-quote__media yphoto-reveal">
-      {# CLOUDINARY: yoga-bible-DK/yogaphotography/quote-hero.jpg — 1400x900, artistic yoga photography #}
       <img
         class="yphoto-quote__img"
-        src="{{ 'yoga-bible-DK/yogaphotography/quote-hero' | cloudimg('w_1400,h_900,c_fill') }}"
+        src="{{ 'yoga-bible-DK/yogaphotography/quote-hero' | cloudimg('w_1400,c_fill,g_auto') }}"
         alt="Yoga Photography — Yoga Bible"
         loading="lazy"
         decoding="async"
@@ -294,7 +270,7 @@
 
 
 <!-- ═══════════════════════════════════════════════════════
-     Section 5: Models Header
+     Models Header
      ═══════════════════════════════════════════════════════ -->
 <section class="yphoto-models-header">
   <div class="yphoto-models-header__inner yphoto-reveal">
@@ -306,16 +282,15 @@
 
 
 <!-- ═══════════════════════════════════════════════════════
-     Models Group 1: Anna, Sita, Kerti
+     Model Showcases + Interstitials
      ═══════════════════════════════════════════════════════ -->
 {% for m in models %}
 
 {# Insert interstitial after every 3 models #}
 {% if loop.index == 4 %}
-{# ── Interstitial 1 ── #}
 <section class="yphoto-interstitial">
   <div class="yphoto-interstitial__inner yphoto-reveal">
-    {# CLOUDINARY: yoga-bible-DK/yogaphotography/interstitial-1.jpg — 1200x1600 vertical, artistic yoga #}
+    {# CLOUDINARY: yoga-bible-DK/yogaphotography/interstitial-1.jpg — 1200x1600 vertical #}
     <img class="yphoto-interstitial__img" src="{{ 'yoga-bible-DK/yogaphotography/interstitial-1' | cloudimg('w_1200,h_1600,c_fill') }}" alt="" loading="lazy" decoding="async" />
     <div class="yphoto-interstitial__overlay">
       <blockquote class="yphoto-interstitial__quote">{{ t.interstitial1_quote }}</blockquote>
@@ -329,10 +304,9 @@
 {% endif %}
 
 {% if loop.index == 7 %}
-{# ── Interstitial 2 ── #}
 <section class="yphoto-interstitial">
   <div class="yphoto-interstitial__inner yphoto-reveal">
-    {# CLOUDINARY: yoga-bible-DK/yogaphotography/interstitial-2.jpg — 1200x1600 vertical, yoga strength #}
+    {# CLOUDINARY: yoga-bible-DK/yogaphotography/interstitial-2.jpg — 1200x1600 vertical #}
     <img class="yphoto-interstitial__img" src="{{ 'yoga-bible-DK/yogaphotography/interstitial-2' | cloudimg('w_1200,h_1600,c_fill') }}" alt="" loading="lazy" decoding="async" />
     <div class="yphoto-interstitial__overlay">
       <blockquote class="yphoto-interstitial__quote">{{ t.interstitial2_quote }}</blockquote>
@@ -346,10 +320,9 @@
 {% endif %}
 
 {% if loop.index == 10 %}
-{# ── Interstitial 3 ── #}
 <section class="yphoto-interstitial">
   <div class="yphoto-interstitial__inner yphoto-reveal">
-    {# CLOUDINARY: yoga-bible-DK/yogaphotography/interstitial-3.jpg — 1200x1600 vertical, yoga peace #}
+    {# CLOUDINARY: yoga-bible-DK/yogaphotography/interstitial-3.jpg — 1200x1600 vertical #}
     <img class="yphoto-interstitial__img" src="{{ 'yoga-bible-DK/yogaphotography/interstitial-3' | cloudimg('w_1200,h_1600,c_fill') }}" alt="" loading="lazy" decoding="async" />
     <div class="yphoto-interstitial__overlay">
       <blockquote class="yphoto-interstitial__quote">{{ t.interstitial3_quote }}</blockquote>
@@ -392,32 +365,14 @@
       </div>
     </div>
     <div class="yphoto-model__gallery">
-      {# CLOUDINARY: yoga-bible-DK/yogaphotography/models/{{mk}}-1.jpg — featured yoga photo #}
       <div class="yphoto-model__photo yphoto-model__photo--1">
-        <img
-          src="{{ ('yoga-bible-DK/yogaphotography/models/' + mk + '-1') | cloudimg('w_800,h_600,c_fill') }}"
-          alt="{{ mname }} — Yoga Photography"
-          loading="lazy"
-          decoding="async"
-        />
+        <img src="{{ ('yoga-bible-DK/yogaphotography/models/' + mk + '-1') | cloudimg('w_800,h_600,c_fill') }}" alt="{{ mname }} — Yoga Photography" loading="lazy" decoding="async" />
       </div>
-      {# CLOUDINARY: yoga-bible-DK/yogaphotography/models/{{mk}}-2.jpg — featured yoga photo #}
       <div class="yphoto-model__photo yphoto-model__photo--2">
-        <img
-          src="{{ ('yoga-bible-DK/yogaphotography/models/' + mk + '-2') | cloudimg('w_600,h_800,c_fill') }}"
-          alt="{{ mname }} — Yoga Photography"
-          loading="lazy"
-          decoding="async"
-        />
+        <img src="{{ ('yoga-bible-DK/yogaphotography/models/' + mk + '-2') | cloudimg('w_600,h_800,c_fill') }}" alt="{{ mname }} — Yoga Photography" loading="lazy" decoding="async" />
       </div>
-      {# CLOUDINARY: yoga-bible-DK/yogaphotography/models/{{mk}}-3.jpg — featured yoga photo #}
       <div class="yphoto-model__photo yphoto-model__photo--3">
-        <img
-          src="{{ ('yoga-bible-DK/yogaphotography/models/' + mk + '-3') | cloudimg('w_700,h_500,c_fill') }}"
-          alt="{{ mname }} — Yoga Photography"
-          loading="lazy"
-          decoding="async"
-        />
+        <img src="{{ ('yoga-bible-DK/yogaphotography/models/' + mk + '-3') | cloudimg('w_700,h_500,c_fill') }}" alt="{{ mname }} — Yoga Photography" loading="lazy" decoding="async" />
       </div>
     </div>
   </div>
@@ -438,9 +393,7 @@
 </section>
 
 
-<!-- ═══════════════════════════════════════════════════════
-     Scroll Reveal Observer (single shared script)
-     ═══════════════════════════════════════════════════════ -->
+<!-- Scroll Reveal Observer -->
 <script>
 (function(){
   var els = document.querySelectorAll('.yphoto-reveal');
