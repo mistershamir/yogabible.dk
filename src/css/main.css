@@ -21247,7 +21247,54 @@ a.yb-kontakt-detail__value:hover {
 
 
 /* ─────────────────────────────────────────
-   Section 1: Dark Editorial Intro
+   Purpose Statement (replaces dark intro)
+   ───────────────────────────────────────── */
+.yphoto-purpose {
+  background: #1C1C1C;
+  color: #F4F4F4;
+  padding: clamp(60px, 8vw, 100px) 20px;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+.yphoto-purpose::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(800px 500px at 50% 50%, rgba(247,92,3,.10), transparent 70%);
+  pointer-events: none;
+}
+.yphoto-purpose__inner {
+  max-width: 820px;
+  margin: 0 auto;
+  position: relative;
+  z-index: 1;
+}
+.yphoto-purpose__text {
+  margin: 0 0 20px;
+  font-size: clamp(1.15rem, 2.2vw, 1.5rem);
+  font-weight: 700;
+  line-height: 1.5;
+  color: rgba(255,255,255,.88);
+  text-transform: uppercase;
+  letter-spacing: .01em;
+}
+.yphoto-purpose__meta {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+  color: rgba(255,255,255,.5);
+  font-weight: 700;
+  font-size: 13px;
+  letter-spacing: .02em;
+}
+.yphoto-purpose__dot { opacity: .55; }
+
+
+/* ─────────────────────────────────────────
+   Section 1 (removed): Dark Editorial Intro
    ───────────────────────────────────────── */
 .yphoto-intro {
   background: #1C1C1C;
@@ -21444,18 +21491,19 @@ a.yb-kontakt-detail__value:hover {
   position: relative;
   border-radius: 20px;
   overflow: hidden;
-  background: #fff;
+  background: #f5f3f0;
   border: 1px solid var(--yb-border, #E8E4E0);
   box-shadow: 0 18px 60px rgba(0,0,0,.10);
   width: 100%;
-  display: flex;
-  min-height: 100%;
+  min-height: clamp(400px, 55vw, 650px);
 }
 .yphoto-session__img {
+  position: absolute;
+  inset: 0;
   width: 100%;
   height: 100%;
-  min-height: clamp(360px, 50vw, 620px);
   object-fit: cover;
+  object-position: 50% 20%;
   display: block;
   transform: scale(1.01);
   transition: transform .6s ease;
@@ -21904,10 +21952,12 @@ details[open] > .yphoto-faqQ::after {
   min-height: clamp(520px, 60vw, 760px);
 }
 .yphoto-quote__img {
+  position: absolute;
+  inset: 0;
   width: 100%;
   height: 100%;
   object-fit: cover;
-  object-position: 62% 48%;
+  object-position: 50% 25%;
   display: block;
   transform: scale(1.01);
   transition: transform .6s ease;
