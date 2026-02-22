@@ -60,6 +60,85 @@
   var appSearchTerm = '';
   var appFilterStatus = '';
   var appFilterType = '';
+  var selectedAppIds = new Set();
+  var selectAllApps = false;
+  var showArchivedApps = false;
+  var appFilterTrack = '';
+  var appFilterCohort = '';
+
+  // Language helper — returns true when admin page is Danish
+  function isAdminDa() { return (window._ybAdminLang || 'da') !== 'en'; }
+
+  // Course catalog for admin edit dropdowns (bilingual)
+  var COURSE_CATALOG = {
+    ytt: [
+      { id: '100078', name_da: '18 Ugers Fleksibelt Program (Mar-Jun)', name_en: '18 Weeks Flexible Program (Mar-Jun)', cohorts: [{ label_da: 'Marts\u2013Juni 2026', label_en: 'March\u2013June 2026' }] },
+      { id: '100121', name_da: '4 Ugers Intensiv (Apr)', name_en: '4 Weeks Intensive (Apr)', cohorts: [{ label_da: 'April 2026', label_en: 'April 2026' }] },
+      { id: '100211', name_da: '4 Ugers Intensiv (Jul)', name_en: '4 Weeks Intensive (Jul)', cohorts: [{ label_da: 'Juli 2026', label_en: 'July 2026' }] },
+      { id: '100209', name_da: '8 Ugers Semi-Intensiv (Maj-Jun)', name_en: '8 Weeks Semi-Intensive (May-Jun)', cohorts: [{ label_da: 'Maj\u2013Juni 2026', label_en: 'May\u2013June 2026' }] },
+      { id: '100210', name_da: '18 Ugers Fleksibelt Program (Aug-Dec)', name_en: '18 Weeks Flexible Program (Aug-Dec)', cohorts: [{ label_da: 'August\u2013December 2026', label_en: 'August\u2013December 2026' }] }
+    ],
+    course: [
+      { id: '100145', name_da: 'Inversions', name_en: 'Inversions', cohorts: [{ label_da: 'April 2026', label_en: 'April 2026' }] },
+      { id: '100150', name_da: 'Splits', name_en: 'Splits', cohorts: [{ label_da: 'April 2026', label_en: 'April 2026' }] },
+      { id: '100140', name_da: 'Backbends', name_en: 'Backbends', cohorts: [{ label_da: 'April 2026', label_en: 'April 2026' }] }
+    ],
+    bundle: [
+      { id: '119', name_da: 'Backbends + Inversions', name_en: 'Backbends + Inversions', cohorts: [{ label_da: 'April 2026', label_en: 'April 2026' }] },
+      { id: '120', name_da: 'Inversions + Splits', name_en: 'Inversions + Splits', cohorts: [{ label_da: 'April 2026', label_en: 'April 2026' }] },
+      { id: '121', name_da: 'Backbends + Splits', name_en: 'Backbends + Splits', cohorts: [{ label_da: 'April 2026', label_en: 'April 2026' }] },
+      { id: '127', name_da: 'All-In (Inversions + Splits + Backbends)', name_en: 'All-In (Inversions + Splits + Backbends)', cohorts: [{ label_da: 'April 2026', label_en: 'April 2026' }] }
+    ],
+    mentorship: []
+  };
+  // education is what apply.js stores for YTT
+  COURSE_CATALOG.education = COURSE_CATALOG.ytt;
+
+  // Bilingual catalog accessors
+  function catalogName(item) { return isAdminDa() ? item.name_da : (item.name_en || item.name_da); }
+  function cohortLabel(coh) { return isAdminDa() ? coh.label_da : (coh.label_en || coh.label_da); }
+
+  // Payment choice labels for admin display (bilingual)
+  var PAYMENT_LABELS_DA = {
+    paid: 'Betalt (ældre)',
+    paid_deposit: 'Forberedelsesfasen betalt',
+    paid_full: 'Fuldt betalt',
+    pay_now: 'Betalt via link'
+  };
+  var PAYMENT_LABELS_EN = {
+    paid: 'Paid (legacy)',
+    paid_deposit: 'Preparation Phase paid',
+    paid_full: 'Fully paid',
+    pay_now: 'Paid via link'
+  };
+  function getPaymentChoiceLabel(choice) {
+    var labels = isAdminDa() ? PAYMENT_LABELS_DA : PAYMENT_LABELS_EN;
+    return labels[choice] || choice || '\u2014';
+  }
+
+  // Bilingual display helpers for stored Firestore values (legacy data is Danish)
+  var DISPLAY_MAP_EN = {
+    // Track labels
+    'Hverdagsprogram': 'Weekday Program',
+    'hverdagsprogram': 'Weekday Program',
+    'Weekendprogram': 'Weekend Program',
+    'weekendprogram': 'Weekend Program',
+    // Cohort labels
+    'Marts\u2013Juni 2026': 'March\u2013June 2026',
+    'April 2026': 'April 2026',
+    'Juli 2026': 'July 2026',
+    'Maj\u2013Juni 2026': 'May\u2013June 2026',
+    'August\u2013December 2026': 'August\u2013December 2026'
+  };
+  // Translate a stored DA value to EN for display (pass-through if not found)
+  function displayLocalized(raw) {
+    if (!raw) return '\u2014';
+    return isAdminDa() ? raw : (DISPLAY_MAP_EN[raw] || raw);
+  }
+  function displayTrack(raw) {
+    if (!raw) return '\u2014';
+    return displayLocalized(raw);
+  }
 
   /* ══════════════════════════════════════════
      HELPERS
@@ -83,14 +162,20 @@
     if (!d) return '\u2014';
     var date = d.toDate ? d.toDate() : new Date(d);
     if (isNaN(date.getTime())) return '\u2014';
-    return date.toLocaleDateString('da-DK', { day: '2-digit', month: 'short', year: 'numeric' });
+    var dd = String(date.getDate()).padStart(2, '0');
+    var mm = String(date.getMonth() + 1).padStart(2, '0');
+    var yyyy = date.getFullYear();
+    return dd + '/' + mm + '/' + yyyy;
   }
 
   function fmtDateTime(d) {
     if (!d) return '\u2014';
     var date = d.toDate ? d.toDate() : new Date(d);
     if (isNaN(date.getTime())) return '\u2014';
-    return date.toLocaleDateString('da-DK', { day: '2-digit', month: 'short', year: 'numeric' }) +
+    var dd = String(date.getDate()).padStart(2, '0');
+    var mm = String(date.getMonth() + 1).padStart(2, '0');
+    var yyyy = date.getFullYear();
+    return dd + '/' + mm + '/' + yyyy +
       ' ' + date.toLocaleTimeString('da-DK', { hour: '2-digit', minute: '2-digit' });
   }
 
@@ -102,16 +187,6 @@
   }
 
   function relativeTime(d) {
-    if (!d) return '';
-    var date = d.toDate ? d.toDate() : new Date(d);
-    if (isNaN(date.getTime())) return '';
-    var diff = Date.now() - date.getTime();
-    var mins = Math.floor(diff / 60000);
-    if (mins < 60) return mins + 'm ago';
-    var hrs = Math.floor(mins / 60);
-    if (hrs < 24) return hrs + 'h ago';
-    var days = Math.floor(hrs / 24);
-    if (days < 7) return days + 'd ago';
     return fmtDate(d);
   }
 
@@ -853,7 +928,7 @@
     if (l.cohort_label) {
       html += '<div class="yb-lead__card-row">' +
         '<span class="yb-lead__card-label">' + t('leads_cohort') + '</span>' +
-        '<span class="yb-lead__card-value">' + esc(l.cohort_label) + '</span>' +
+        '<span class="yb-lead__card-value">' + esc(displayLocalized(l.cohort_label)) + '</span>' +
       '</div>';
     }
     if (l.preferred_month) {
@@ -1931,18 +2006,14 @@
   function loadApplications() {
     applications = [];
 
-    var query = db.collection('applications').orderBy('created_at', 'desc');
-
-    if (appFilterStatus) query = query.where('status', '==', appFilterStatus);
-    if (appFilterType) query = query.where('program_type', '==', appFilterType);
-
-    query.limit(200).get().then(function (snap) {
+    db.collection('applications').orderBy('created_at', 'desc').limit(200).get().then(function (snap) {
       snap.forEach(function (doc) {
         applications.push(Object.assign({ id: doc.id }, doc.data()));
       });
 
       renderApplicationTable();
       renderApplicationStats();
+      populateCohortFilter();
     }).catch(function (err) {
       console.error('[lead-admin] Applications load error:', err);
       toast(t('error_load'), true);
@@ -1952,9 +2023,36 @@
   /* ── Filter applications ── */
   function getFilteredApps() {
     var filtered = applications;
+    // Filter archived unless showing archived
+    if (!showArchivedApps) {
+      filtered = filtered.filter(function (a) { return !a.archived; });
+    }
+    // Status filter (moved from Firestore query to client-side)
+    if (appFilterStatus) {
+      filtered = filtered.filter(function (a) { return a.status === appFilterStatus; });
+    }
+    // Type filter — "ytt" matches both 'ytt' and 'education' (apply.js stores 'education' for YTT)
+    if (appFilterType) {
+      filtered = filtered.filter(function (a) {
+        var pt = (a.program_type || a.type || '').toLowerCase();
+        if (appFilterType === 'ytt') return pt === 'ytt' || pt === 'education';
+        return pt === appFilterType;
+      });
+    }
+    if (appFilterTrack) {
+      filtered = filtered.filter(function (a) {
+        var tr = (a.track || '').toLowerCase();
+        if (appFilterTrack === 'weekday') return tr.indexOf('hverdag') !== -1 || tr.indexOf('weekday') !== -1;
+        if (appFilterTrack === 'weekend') return tr.indexOf('weekend') !== -1;
+        return tr === appFilterTrack.toLowerCase();
+      });
+    }
+    if (appFilterCohort) {
+      filtered = filtered.filter(function (a) { return (a.cohort_label || a.cohort || '') === appFilterCohort; });
+    }
     if (appSearchTerm) {
       var s = appSearchTerm.toLowerCase();
-      filtered = applications.filter(function (a) {
+      filtered = filtered.filter(function (a) {
         return (a.email || '').toLowerCase().indexOf(s) !== -1 ||
           (a.first_name || '').toLowerCase().indexOf(s) !== -1 ||
           (a.last_name || '').toLowerCase().indexOf(s) !== -1 ||
@@ -1977,26 +2075,33 @@
     if (countEl) countEl.textContent = filtered.length + ' of ' + applications.length;
 
     if (!filtered.length) {
-      tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;padding:2rem;color:var(--yb-muted)">No applications found.</td></tr>';
+      tbody.innerHTML = '<tr><td colspan="11" style="text-align:center;padding:2rem;color:var(--yb-muted)">' + t('apps_no_apps') + '</td></tr>';
       return;
     }
 
     tbody.innerHTML = filtered.map(function (a) {
-      return '<tr class="yb-lead__row" data-app-id="' + a.id + '">' +
+      var isChecked = selectedAppIds.has(a.id);
+      var archivedTag = a.archived ? ' <span class="yb-lead__badge" style="background:#ECEFF1;color:#546E7F">' + t('apps_archived') + '</span>' : '';
+      return '<tr class="yb-lead__row' + (isChecked ? ' is-selected' : '') + (a.archived ? ' yb-lead__row--archived' : '') + '" data-app-id="' + a.id + '">' +
+        '<td class="yb-lead__cell-cb"><input type="checkbox" class="yb-app-row-cb" data-id="' + a.id + '"' + (isChecked ? ' checked' : '') + '></td>' +
         '<td class="yb-lead__cell-date">' + esc(a.app_id || a.id.substring(0, 8)) + '</td>' +
         '<td class="yb-lead__cell-name">' + esc((a.first_name || '') + ' ' + (a.last_name || '')).trim() + '</td>' +
         '<td class="yb-lead__cell-contact"><div class="yb-lead__cell-email-text">' + esc(a.email || '') + '</div></td>' +
         '<td><span class="yb-lead__type-badge">' + esc(a.program_type || '\u2014') + '</span></td>' +
         '<td class="yb-lead__cell-program">' + esc((a.course_name || a.cohort || '').substring(0, 30)) + '</td>' +
-        '<td>' + esc(a.track || '\u2014') + '</td>' +
-        '<td>' + esc(a.payment_choice || '\u2014') + '</td>' +
-        '<td>' + appStatusBadgeHtml(a.status) + '</td>' +
+        '<td>' + esc(displayTrack(a.track)) + '</td>' +
+        '<td>' + esc(getPaymentChoiceLabel(a.payment_choice)) + '</td>' +
+        '<td>' + appStatusBadgeHtml(a.status) + archivedTag + '</td>' +
         '<td class="yb-lead__cell-date">' + relativeTime(a.created_at) + '</td>' +
         '<td class="yb-lead__cell-actions">' +
           '<button class="yb-admin__icon-btn" data-action="view-app" data-id="' + a.id + '" title="View">\u2192</button>' +
         '</td>' +
       '</tr>';
     }).join('');
+
+    // Update select-all checkbox state
+    var selectAllCb = $('yb-app-select-all');
+    if (selectAllCb) selectAllCb.checked = selectAllApps && filtered.length > 0;
   }
 
   /* ── Render Application Stats ── */
@@ -2004,11 +2109,13 @@
     var el = $('yb-app-stats');
     if (!el) return;
 
-    var total = applications.length;
+    var nonArchived = applications.filter(function (a) { return !a.archived; });
+    var total = nonArchived.length;
+    var archivedCount = applications.length - total;
     var counts = {};
     APP_STATUSES.forEach(function (s) { counts[s.value] = 0; });
     var typeCounts = {};
-    applications.forEach(function (a) {
+    nonArchived.forEach(function (a) {
       var st = a.status || 'Pending';
       if (counts[st] !== undefined) counts[st]++;
       var pt = a.program_type || 'Other';
@@ -2041,6 +2148,13 @@
       '</div>';
     });
 
+    if (archivedCount > 0) {
+      html += '<div class="yb-lead__stat-card">' +
+        '<span class="yb-lead__stat-value">' + archivedCount + '</span>' +
+        '<span class="yb-lead__stat-label">\ud83d\udce6 ' + t('apps_archived') + '</span>' +
+      '</div>';
+    }
+
     el.innerHTML = html;
   }
 
@@ -2059,6 +2173,14 @@
     if (headingEl) headingEl.textContent = (currentApp.first_name || '') + ' ' + (currentApp.last_name || '') + ' \u2014 ' + (currentApp.app_id || appId.substring(0, 8));
 
     renderApplicationDetailCard();
+    renderAppQuickActions();
+    renderAppEditForm();
+    renderAppNotesTimeline();
+    loadAppSMSConversation(appId);
+
+    // Set status form to current status
+    var statusSelect = $('yb-app-status-select');
+    if (statusSelect && currentApp) statusSelect.value = currentApp.status || 'Pending';
   }
 
   function backToAppList() {
@@ -2128,16 +2250,16 @@
         '<span class="yb-lead__card-value">' + esc(a.course_name) + '</span>' +
       '</div>';
     }
-    if (a.cohort) {
+    if (a.cohort_label || a.cohort) {
       html += '<div class="yb-lead__card-row">' +
         '<span class="yb-lead__card-label">Cohort</span>' +
-        '<span class="yb-lead__card-value">' + esc(a.cohort) + '</span>' +
+        '<span class="yb-lead__card-value">' + esc(displayLocalized(a.cohort_label || a.cohort)) + '</span>' +
       '</div>';
     }
     if (a.track) {
       html += '<div class="yb-lead__card-row">' +
         '<span class="yb-lead__card-label">Track</span>' +
-        '<span class="yb-lead__card-value">' + esc(a.track) + '</span>' +
+        '<span class="yb-lead__card-value">' + esc(displayTrack(a.track)) + '</span>' +
       '</div>';
     }
     if (a.bundle) {
@@ -2172,7 +2294,7 @@
     if (a.payment_choice) {
       html += '<div class="yb-lead__card-row">' +
         '<span class="yb-lead__card-label">Payment Choice</span>' +
-        '<span class="yb-lead__card-value">' + esc(a.payment_choice) + '</span>' +
+        '<span class="yb-lead__card-value">' + esc(getPaymentChoiceLabel(a.payment_choice)) + '</span>' +
       '</div>';
     }
     html += '<div class="yb-lead__card-row">' +
@@ -2181,19 +2303,6 @@
         '<span class="yb-lead__badge yb-lead__badge--lg" style="background:' + statusMeta.color + ';color:' + statusMeta.text + '">' +
           statusMeta.icon + ' ' + esc(statusMeta.label) +
         '</span>' +
-      '</span>' +
-    '</div>';
-
-    // Status selector
-    html += '<div class="yb-lead__card-row">' +
-      '<span class="yb-lead__card-label">Change Status</span>' +
-      '<span class="yb-lead__card-value">' +
-        '<select id="yb-app-status-select" class="yb-admin__select" style="display:inline-block;width:auto;margin-right:0.5rem">' +
-        APP_STATUSES.map(function (s) {
-          return '<option value="' + esc(s.value) + '"' + (a.status === s.value ? ' selected' : '') + '>' + s.icon + ' ' + esc(s.label) + '</option>';
-        }).join('') +
-        '</select>' +
-        '<button class="yb-btn yb-btn--primary yb-btn--sm" data-action="app-update-status">' + t('save') + '</button>' +
       '</span>' +
     '</div>';
 
@@ -2246,6 +2355,604 @@
       console.error('[lead-admin] App status update error:', err);
       toast(t('error_save'), true);
     });
+  }
+
+  /* ══════════════════════════════════════════
+     APPLICATION — QUICK ACTIONS
+     ══════════════════════════════════════════ */
+
+  function renderAppQuickActions() {
+    var el = $('yb-app-actions');
+    if (!el || !currentApp) return;
+
+    var a = currentApp;
+    var isApprovedOrEnrolled = a.status === 'Approved' || a.status === 'Enrolled';
+    var acceptanceSent = a.acceptance_email_sent;
+
+    var html = '';
+    html += '<button class="yb-btn yb-btn--outline yb-btn--sm" data-action="app-send-email" data-id="' + a.id + '">\u2709\ufe0f ' + t('apps_send_email') + '</button> ';
+    html += '<button class="yb-btn yb-btn--outline yb-btn--sm" data-action="app-send-sms" data-id="' + a.id + '">\ud83d\udcf1 ' + t('apps_send_sms') + '</button> ';
+
+    if (isApprovedOrEnrolled) {
+      if (acceptanceSent) {
+        html += '<button class="yb-btn yb-btn--outline yb-btn--sm" data-action="app-send-acceptance" data-id="' + a.id + '" style="opacity:0.6">\u2705 ' + t('apps_acceptance_already_sent') + '</button> ';
+      } else {
+        html += '<button class="yb-btn yb-btn--primary yb-btn--sm" data-action="app-send-acceptance" data-id="' + a.id + '">\ud83c\udf89 ' + t('apps_send_acceptance') + '</button> ';
+      }
+    }
+
+    if (a.archived) {
+      html += '<button class="yb-btn yb-btn--outline yb-btn--sm" data-action="app-restore" data-id="' + a.id + '">\u21a9\ufe0f ' + t('apps_restore') + '</button>';
+    } else {
+      html += '<button class="yb-btn yb-btn--outline yb-btn--sm yb-admin__icon-btn--danger" data-action="app-archive" data-id="' + a.id + '">\ud83d\uddd1 ' + t('apps_bulk_archive') + '</button>';
+    }
+
+    el.innerHTML = html;
+  }
+
+  /* ══════════════════════════════════════════
+     APPLICATION — EDIT FIELDS FORM
+     ══════════════════════════════════════════ */
+
+  function renderAppEditForm() {
+    if (!currentApp) return;
+    var a = currentApp;
+    var el;
+    el = $('yb-app-edit-first-name'); if (el) el.value = a.first_name || '';
+    el = $('yb-app-edit-last-name'); if (el) el.value = a.last_name || '';
+    el = $('yb-app-edit-email'); if (el) el.value = a.email || '';
+    el = $('yb-app-edit-phone'); if (el) el.value = a.phone || '';
+    el = $('yb-app-edit-program-type'); if (el) el.value = a.program_type || '';
+    el = $('yb-app-edit-track'); if (el) el.value = a.track || '';
+
+    // Populate course and cohort dropdowns from catalog
+    populateCourseDropdown(a.program_type || a.type || '', a.course_name || '');
+    populateCohortDropdown(a.program_type || a.type || '', a.course_name || '', a.cohort_label || a.cohort || '');
+  }
+
+  function populateCourseDropdown(programType, currentValue) {
+    var sel = $('yb-app-edit-course-name');
+    if (!sel) return;
+    var courses = COURSE_CATALOG[programType] || [];
+    var html = '<option value="">---</option>';
+    var matched = false;
+    courses.forEach(function (c) {
+      var displayName = catalogName(c);
+      // Match against both DA and EN names (stored value could be either)
+      var isMatch = (currentValue === c.name_da || currentValue === c.name_en);
+      if (isMatch) matched = true;
+      html += '<option value="' + esc(displayName) + '" data-course-id="' + c.id + '"' + (isMatch ? ' selected' : '') + '>' + esc(displayName) + '</option>';
+    });
+    // Preserve non-catalog values with a "(custom)" fallback
+    if (currentValue && !matched) {
+      html += '<option value="' + esc(currentValue) + '" selected>' + esc(currentValue) + ' (custom)</option>';
+    }
+    sel.innerHTML = html;
+  }
+
+  function populateCohortDropdown(programType, courseName, currentValue) {
+    var sel = $('yb-app-edit-cohort-label');
+    if (!sel) return;
+    var courses = COURSE_CATALOG[programType] || [];
+    // Match course against both DA and EN names
+    var course = courses.find(function (c) { return c.name_da === courseName || c.name_en === courseName || catalogName(c) === courseName; });
+    var cohorts = course ? course.cohorts : [];
+    var html = '<option value="">---</option>';
+    var matched = false;
+    cohorts.forEach(function (co) {
+      var displayLabel = cohortLabel(co);
+      // Match against both DA and EN labels
+      var isMatch = (currentValue === co.label_da || currentValue === co.label_en);
+      if (isMatch) matched = true;
+      html += '<option value="' + esc(displayLabel) + '"' + (isMatch ? ' selected' : '') + '>' + esc(displayLabel) + '</option>';
+    });
+    // Preserve non-catalog values
+    if (currentValue && !matched) {
+      html += '<option value="' + esc(currentValue) + '" selected>' + esc(currentValue) + ' (custom)</option>';
+    }
+    sel.innerHTML = html;
+  }
+
+  function populateCohortFilter() {
+    var sel = $('yb-app-cohort-filter');
+    if (!sel) return;
+    var seen = {};
+    var html = '<option value="">' + t('apps_all_cohorts') + '</option>';
+    applications.forEach(function (a) {
+      var cl = a.cohort_label || a.cohort || '';
+      if (cl && !seen[cl]) {
+        seen[cl] = true;
+        html += '<option value="' + esc(cl) + '">' + esc(displayLocalized(cl)) + '</option>';
+      }
+    });
+    sel.innerHTML = html;
+  }
+
+  function saveAppFields() {
+    if (!currentAppId || !currentApp) return;
+
+    var updates = {};
+    var fields = [
+      { id: 'yb-app-edit-first-name', key: 'first_name' },
+      { id: 'yb-app-edit-last-name', key: 'last_name' },
+      { id: 'yb-app-edit-email', key: 'email' },
+      { id: 'yb-app-edit-phone', key: 'phone' },
+      { id: 'yb-app-edit-program-type', key: 'program_type' },
+      { id: 'yb-app-edit-track', key: 'track' },
+      { id: 'yb-app-edit-course-name', key: 'course_name' },
+      { id: 'yb-app-edit-cohort-label', key: 'cohort_label' }
+    ];
+
+    fields.forEach(function (f) {
+      var el = $(f.id);
+      if (el) updates[f.key] = el.value.trim();
+    });
+
+    updates.updated_at = firebase.firestore.FieldValue.serverTimestamp();
+
+    db.collection('applications').doc(currentAppId).update(updates).then(function () {
+      // Update local cache
+      Object.keys(updates).forEach(function (k) {
+        if (k !== 'updated_at') currentApp[k] = updates[k];
+      });
+      var idx = applications.findIndex(function (a) { return a.id === currentAppId; });
+      if (idx !== -1) Object.assign(applications[idx], currentApp);
+
+      renderApplicationDetailCard();
+      renderAppQuickActions();
+      toast(t('apps_fields_saved'));
+    }).catch(function (err) {
+      console.error('[lead-admin] App fields save error:', err);
+      toast(t('error_save'), true);
+    });
+  }
+
+  /* ══════════════════════════════════════════
+     APPLICATION — SMS CONVERSATION
+     ══════════════════════════════════════════ */
+
+  function loadAppSMSConversation(appId) {
+    var el = $('yb-app-sms-conversation');
+    if (!el) return;
+
+    db.collection('applications').doc(appId).collection('sms_messages')
+      .orderBy('timestamp', 'asc').get().then(function (snap) {
+        if (snap.empty) {
+          el.innerHTML = '<p class="yb-lead__empty-text">' + t('apps_no_messages') + '</p>' +
+            renderAppSMSReplyInput(appId);
+          return;
+        }
+
+        var html = '<div class="yb-lead__sms-thread">';
+        snap.forEach(function (doc) {
+          var msg = doc.data();
+          var dir = msg.direction === 'outbound' ? 'out' : 'in';
+          var time = msg.timestamp ? new Date(msg.timestamp.seconds ? msg.timestamp.seconds * 1000 : msg.timestamp).toLocaleString() : '';
+          html += '<div class="yb-lead__sms-bubble yb-lead__sms-bubble--' + dir + '">' +
+            '<div class="yb-lead__sms-text">' + esc(msg.message || msg.body || '') + '</div>' +
+            '<div class="yb-lead__sms-time">' + time + '</div>' +
+          '</div>';
+        });
+        html += '</div>';
+        html += renderAppSMSReplyInput(appId);
+        el.innerHTML = html;
+      }).catch(function (err) {
+        console.error('[lead-admin] App SMS load error:', err);
+        el.innerHTML = '<p class="yb-lead__empty-text">Error loading messages.</p>' +
+          renderAppSMSReplyInput(appId);
+      });
+  }
+
+  function renderAppSMSReplyInput(appId) {
+    return '<div class="yb-lead__sms-reply" style="margin-top:0.75rem;">' +
+      '<input type="text" id="yb-app-sms-reply-input" class="yb-lead__sms-reply-input" placeholder="' + t('apps_sms_reply_placeholder') + '">' +
+      '<button class="yb-btn yb-btn--primary yb-btn--sm" data-action="app-sms-reply" data-id="' + appId + '">Send</button>' +
+    '</div>';
+  }
+
+  function sendAppSMSReply() {
+    if (!currentAppId || !currentApp) return;
+
+    var input = $('yb-app-sms-reply-input');
+    if (!input) return;
+
+    var message = input.value.trim();
+    if (!message) return;
+
+    input.disabled = true;
+
+    getAuthToken().then(function (token) {
+      return fetch('/.netlify/functions/send-sms', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+        body: JSON.stringify({ applicationId: currentAppId, message: message })
+      });
+    }).then(function (res) { return res.json(); })
+    .then(function (data) {
+      input.disabled = false;
+      if (data.ok) {
+        input.value = '';
+        loadAppSMSConversation(currentAppId);
+        toast('SMS sent!');
+      } else {
+        toast('SMS failed: ' + (data.error || 'Unknown error'), true);
+      }
+    }).catch(function (err) {
+      input.disabled = false;
+      console.error('[lead-admin] App SMS reply error:', err);
+      toast('SMS failed', true);
+    });
+  }
+
+  /* ══════════════════════════════════════════
+     APPLICATION — SEND EMAIL (Single)
+     ══════════════════════════════════════════ */
+
+  function sendAppEmailPrompt() {
+    if (!currentApp || !currentApp.email) {
+      toast('No email address', true);
+      return;
+    }
+
+    var subject = prompt('Email subject:', '');
+    if (!subject) return;
+
+    var body = prompt('Email body (HTML or plain text):', '');
+    if (!body) return;
+
+    getAuthToken().then(function (token) {
+      return fetch('/.netlify/functions/send-email', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+        body: JSON.stringify({
+          applicationId: currentAppId,
+          subject: subject,
+          bodyHtml: '<p>' + body.replace(/\n/g, '<br>') + '</p>',
+          bodyPlain: body
+        })
+      });
+    }).then(function (res) { return res.json(); })
+    .then(function (data) {
+      if (data.ok) {
+        toast('Email sent!');
+      } else {
+        toast('Email failed: ' + (data.error || 'Unknown error'), true);
+      }
+    }).catch(function (err) {
+      console.error('[lead-admin] App email error:', err);
+      toast('Email failed', true);
+    });
+  }
+
+  /* ══════════════════════════════════════════
+     APPLICATION — SEND ACCEPTANCE EMAIL
+     ══════════════════════════════════════════ */
+
+  function sendAcceptanceEmail() {
+    if (!currentAppId || !currentApp) return;
+
+    if (!confirm(t('apps_acceptance_confirm'))) return;
+
+    getAuthToken().then(function (token) {
+      return fetch('/.netlify/functions/send-acceptance-email', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+        body: JSON.stringify({ applicationId: currentAppId })
+      });
+    }).then(function (res) { return res.json(); })
+    .then(function (data) {
+      if (data.ok) {
+        currentApp.acceptance_email_sent = true;
+        if (data.firebaseUid) currentApp.firebase_uid = data.firebaseUid;
+        var idx = applications.findIndex(function (a) { return a.id === currentAppId; });
+        if (idx !== -1) {
+          applications[idx].acceptance_email_sent = true;
+          if (data.firebaseUid) applications[idx].firebase_uid = data.firebaseUid;
+        }
+        renderAppQuickActions();
+        var msg = t('apps_acceptance_sent');
+        if (data.newAccountCreated) msg += ' (New account created + role assigned)';
+        else msg += ' (Role assigned)';
+        toast(msg);
+      } else {
+        toast('Failed: ' + (data.error || 'Unknown error'), true);
+      }
+    }).catch(function (err) {
+      console.error('[lead-admin] Acceptance email error:', err);
+      toast('Failed to send acceptance email', true);
+    });
+  }
+
+  /* ══════════════════════════════════════════
+     APPLICATION — ARCHIVE / RESTORE
+     ══════════════════════════════════════════ */
+
+  function archiveApp(appId) {
+    if (!confirm(t('apps_archive_confirm'))) return;
+
+    db.collection('applications').doc(appId).update({
+      archived: true,
+      updated_at: firebase.firestore.FieldValue.serverTimestamp()
+    }).then(function () {
+      var idx = applications.findIndex(function (a) { return a.id === appId; });
+      if (idx !== -1) applications[idx].archived = true;
+      if (currentApp && currentApp.id === appId) currentApp.archived = true;
+
+      if (currentAppId === appId) {
+        renderAppQuickActions();
+        renderApplicationDetailCard();
+      }
+      renderApplicationTable();
+      renderApplicationStats();
+      toast(t('apps_archived'));
+    }).catch(function (err) {
+      console.error('[lead-admin] Archive error:', err);
+      toast(t('error_save'), true);
+    });
+  }
+
+  function restoreApp(appId) {
+    db.collection('applications').doc(appId).update({
+      archived: false,
+      updated_at: firebase.firestore.FieldValue.serverTimestamp()
+    }).then(function () {
+      var idx = applications.findIndex(function (a) { return a.id === appId; });
+      if (idx !== -1) applications[idx].archived = false;
+      if (currentApp && currentApp.id === appId) currentApp.archived = false;
+
+      if (currentAppId === appId) {
+        renderAppQuickActions();
+        renderApplicationDetailCard();
+      }
+      renderApplicationTable();
+      renderApplicationStats();
+      toast(t('apps_restore') + '!');
+    }).catch(function (err) {
+      console.error('[lead-admin] Restore error:', err);
+      toast(t('error_save'), true);
+    });
+  }
+
+  function toggleShowArchivedApps() {
+    showArchivedApps = !showArchivedApps;
+    var btn = $('yb-app-archive-toggle');
+    if (btn) {
+      btn.innerHTML = '\ud83d\udce6 ' + (showArchivedApps ? t('apps_hide_archived') : t('apps_show_archived'));
+    }
+    renderApplicationTable();
+    renderApplicationStats();
+  }
+
+  /* ══════════════════════════════════════════
+     APPLICATION — NOTES
+     ══════════════════════════════════════════ */
+
+  function addAppNote() {
+    if (!currentAppId || !currentApp) return;
+
+    var input = $('yb-app-note-input');
+    if (!input) return;
+
+    var text = input.value.trim();
+    if (!text) return;
+
+    var note = {
+      text: text,
+      type: 'manual',
+      author: (firebase.auth().currentUser || {}).email || 'admin',
+      timestamp: new Date().toISOString()
+    };
+
+    var notes = Array.isArray(currentApp.notes) ? currentApp.notes.slice() : [];
+    notes.unshift(note);
+
+    db.collection('applications').doc(currentAppId).update({
+      notes: notes,
+      updated_at: firebase.firestore.FieldValue.serverTimestamp()
+    }).then(function () {
+      currentApp.notes = notes;
+      var idx = applications.findIndex(function (a) { return a.id === currentAppId; });
+      if (idx !== -1) applications[idx].notes = notes;
+      input.value = '';
+      renderAppNotesTimeline();
+      toast(t('apps_note_added'));
+    }).catch(function (err) {
+      console.error('[lead-admin] App note error:', err);
+      toast(t('error_save'), true);
+    });
+  }
+
+  function renderAppNotesTimeline() {
+    var el = $('yb-app-notes-timeline');
+    if (!el || !currentApp) return;
+
+    var notes = Array.isArray(currentApp.notes) ? currentApp.notes : [];
+    if (!notes.length) {
+      el.innerHTML = '<p class="yb-lead__empty-text">No notes yet.</p>';
+      return;
+    }
+
+    el.innerHTML = notes.map(function (n) {
+      var ts = n.timestamp ? new Date(n.timestamp).toLocaleString() : '';
+      var typeTag = n.type ? '<span class="yb-lead__note-type">' + esc(n.type) + '</span>' : '';
+      return '<div class="yb-lead__note-entry">' +
+        '<div class="yb-lead__note-meta">' +
+          '<span class="yb-lead__note-time">' + ts + '</span> ' +
+          '<span class="yb-lead__note-author">' + esc(n.author || '') + '</span> ' +
+          typeTag +
+        '</div>' +
+        '<div class="yb-lead__note-text">' + esc(n.text || '') + '</div>' +
+      '</div>';
+    }).join('');
+  }
+
+  /* ══════════════════════════════════════════
+     APPLICATION — BULK SELECTION
+     ══════════════════════════════════════════ */
+
+  function toggleAppSelect(appId) {
+    if (selectedAppIds.has(appId)) {
+      selectedAppIds.delete(appId);
+    } else {
+      selectedAppIds.add(appId);
+    }
+    updateAppBulkBar();
+    renderApplicationTable();
+  }
+
+  function toggleSelectAllApps() {
+    var filtered = getFilteredApps();
+    if (selectAllApps) {
+      selectedAppIds.clear();
+      selectAllApps = false;
+    } else {
+      filtered.forEach(function (a) { selectedAppIds.add(a.id); });
+      selectAllApps = true;
+    }
+    updateAppBulkBar();
+    renderApplicationTable();
+  }
+
+  function deselectAllApps() {
+    selectedAppIds.clear();
+    selectAllApps = false;
+    updateAppBulkBar();
+    renderApplicationTable();
+  }
+
+  function updateAppBulkBar() {
+    var bar = $('yb-app-bulk-bar');
+    var countEl = $('yb-app-bulk-count');
+    if (!bar) return;
+
+    if (selectedAppIds.size > 0) {
+      bar.hidden = false;
+      if (countEl) countEl.textContent = selectedAppIds.size + ' selected';
+    } else {
+      bar.hidden = true;
+    }
+  }
+
+  /* ══════════════════════════════════════════
+     APPLICATION — BULK ACTIONS
+     ══════════════════════════════════════════ */
+
+  function bulkAppStatusChange() {
+    if (selectedAppIds.size === 0) return;
+
+    var status = prompt(t('apps_bulk_status_prompt'), 'Approved');
+    if (!status) return;
+
+    // Validate status
+    var valid = APP_STATUSES.find(function (s) { return s.value === status; });
+    if (!valid) {
+      toast('Invalid status: ' + status, true);
+      return;
+    }
+
+    var batch = db.batch();
+    selectedAppIds.forEach(function (id) {
+      var ref = db.collection('applications').doc(id);
+      batch.update(ref, { status: status, updated_at: firebase.firestore.FieldValue.serverTimestamp() });
+    });
+
+    batch.commit().then(function () {
+      selectedAppIds.forEach(function (id) {
+        var idx = applications.findIndex(function (a) { return a.id === id; });
+        if (idx !== -1) applications[idx].status = status;
+      });
+      deselectAllApps();
+      renderApplicationTable();
+      renderApplicationStats();
+      toast('Status updated for ' + selectedAppIds.size + ' applications');
+    }).catch(function (err) {
+      console.error('[lead-admin] Bulk status error:', err);
+      toast(t('error_save'), true);
+    });
+  }
+
+  function bulkAppArchive() {
+    if (selectedAppIds.size === 0) return;
+    if (!confirm(t('apps_archive_confirm') + ' (' + selectedAppIds.size + ')')) return;
+
+    var batch = db.batch();
+    selectedAppIds.forEach(function (id) {
+      var ref = db.collection('applications').doc(id);
+      batch.update(ref, { archived: true, updated_at: firebase.firestore.FieldValue.serverTimestamp() });
+    });
+
+    batch.commit().then(function () {
+      selectedAppIds.forEach(function (id) {
+        var idx = applications.findIndex(function (a) { return a.id === id; });
+        if (idx !== -1) applications[idx].archived = true;
+      });
+      deselectAllApps();
+      renderApplicationTable();
+      renderApplicationStats();
+      toast(t('apps_archived'));
+    }).catch(function (err) {
+      console.error('[lead-admin] Bulk archive error:', err);
+      toast(t('error_save'), true);
+    });
+  }
+
+  function bulkAppEmail() {
+    // Open the standard campaign wizard — user picks source (All / Leads / Applications) via DATAKILDE filter
+    if (typeof window.openEmailCampaign === 'function') {
+      window.openEmailCampaign([]);
+    } else {
+      toast('Campaign wizard not available', true);
+    }
+  }
+
+  function bulkAppSMS() {
+    // Open the standard campaign wizard — user picks source (All / Leads / Applications) via DATAKILDE filter
+    if (typeof window.openSMSCampaign === 'function') {
+      window.openSMSCampaign([]);
+    } else {
+      toast('Campaign wizard not available', true);
+    }
+  }
+
+  /* ══════════════════════════════════════════
+     APPLICATION — CSV EXPORT
+     ══════════════════════════════════════════ */
+
+  function exportAppsCsv() {
+    var filtered = getFilteredApps();
+    if (filtered.length === 0) {
+      toast('No applications to export', true);
+      return;
+    }
+
+    var headers = ['App ID', 'First Name', 'Last Name', 'Email', 'Phone', 'Program Type', 'Course Name', 'Cohort', 'Track', 'Payment Choice', 'Status', 'Archived', 'Created'];
+    var rows = filtered.map(function (a) {
+      return [
+        a.app_id || a.id.substring(0, 8),
+        a.first_name || '',
+        a.last_name || '',
+        a.email || '',
+        a.phone || '',
+        a.program_type || '',
+        a.course_name || '',
+        a.cohort_label || a.cohort || '',
+        a.track || '',
+        a.payment_choice || '',
+        a.status || '',
+        a.archived ? 'Yes' : 'No',
+        a.created_at ? new Date(a.created_at.seconds ? a.created_at.seconds * 1000 : a.created_at).toISOString().substring(0, 10) : ''
+      ].map(function (v) { return '"' + String(v).replace(/"/g, '""') + '"'; }).join(',');
+    });
+
+    var csv = headers.join(',') + '\n' + rows.join('\n');
+    var blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    var url = URL.createObjectURL(blob);
+    var link = document.createElement('a');
+    link.href = url;
+    link.download = 'applications-' + new Date().toISOString().substring(0, 10) + '.csv';
+    link.click();
+    URL.revokeObjectURL(url);
+    toast(t('apps_csv_exported'));
   }
 
   /* ══════════════════════════════════════════
@@ -2405,6 +3112,19 @@
         case 'back-apps': backToAppList(); break;
         case 'apps-refresh': loadApplications(); break;
         case 'app-update-status': updateAppStatus(); break;
+        case 'app-send-email': sendAppEmailPrompt(); break;
+        case 'app-send-sms': /* Open SMS section — scroll to it */ var smsEl = $('yb-app-sms-conversation'); if (smsEl) smsEl.scrollIntoView({ behavior: 'smooth' }); var smsInput = $('yb-app-sms-reply-input'); if (smsInput) smsInput.focus(); break;
+        case 'app-sms-reply': sendAppSMSReply(); break;
+        case 'app-send-acceptance': sendAcceptanceEmail(); break;
+        case 'app-archive': archiveApp(id || currentAppId); break;
+        case 'app-restore': restoreApp(id || currentAppId); break;
+        case 'toggle-show-archived-apps': toggleShowArchivedApps(); break;
+        case 'apps-export-csv': exportAppsCsv(); break;
+        case 'app-bulk-status': bulkAppStatusChange(); break;
+        case 'app-bulk-email': bulkAppEmail(); break;
+        case 'app-bulk-sms': bulkAppSMS(); break;
+        case 'app-bulk-archive': bulkAppArchive(); break;
+        case 'app-deselect-all': deselectAllApps(); break;
 
         // Cross-linking
         case 'view-linked-app':
@@ -2524,14 +3244,87 @@
     if (appStatusFilter) {
       appStatusFilter.addEventListener('change', function () {
         appFilterStatus = appStatusFilter.value;
-        loadApplications();
+        renderApplicationTable();
       });
     }
     var appTypeFilter = $('yb-app-type-filter');
     if (appTypeFilter) {
       appTypeFilter.addEventListener('change', function () {
         appFilterType = appTypeFilter.value;
-        loadApplications();
+        renderApplicationTable();
+      });
+    }
+    var appTrackFilter = $('yb-app-track-filter');
+    if (appTrackFilter) {
+      appTrackFilter.addEventListener('change', function () {
+        appFilterTrack = appTrackFilter.value;
+        renderApplicationTable();
+      });
+    }
+    var appCohortFilterEl = $('yb-app-cohort-filter');
+    if (appCohortFilterEl) {
+      appCohortFilterEl.addEventListener('change', function () {
+        appFilterCohort = appCohortFilterEl.value;
+        renderApplicationTable();
+      });
+    }
+
+    // Cascading dropdowns for app edit form (program type → course → cohort)
+    var appEditProgramType = $('yb-app-edit-program-type');
+    if (appEditProgramType) {
+      appEditProgramType.addEventListener('change', function () {
+        populateCourseDropdown(appEditProgramType.value, '');
+        populateCohortDropdown(appEditProgramType.value, '', '');
+      });
+    }
+    var appEditCourseName = $('yb-app-edit-course-name');
+    if (appEditCourseName) {
+      appEditCourseName.addEventListener('change', function () {
+        var progType = $('yb-app-edit-program-type');
+        populateCohortDropdown(progType ? progType.value : '', appEditCourseName.value, '');
+      });
+    }
+
+    // App select-all checkbox
+    var appSelectAll = $('yb-app-select-all');
+    if (appSelectAll) {
+      appSelectAll.addEventListener('change', function () {
+        toggleSelectAllApps();
+      });
+    }
+
+    // App row checkbox (delegated)
+    document.addEventListener('change', function (e) {
+      if (e.target.classList.contains('yb-app-row-cb')) {
+        var appId = e.target.getAttribute('data-id');
+        if (appId) toggleAppSelect(appId);
+      }
+    });
+
+    // App edit form
+    var appEditForm = $('yb-app-edit-form');
+    if (appEditForm) {
+      appEditForm.addEventListener('submit', function (e) {
+        e.preventDefault();
+        saveAppFields();
+      });
+    }
+
+    // App status form
+    var appStatusForm = $('yb-app-status-form');
+    if (appStatusForm) {
+      appStatusForm.addEventListener('submit', function (e) {
+        e.preventDefault();
+        updateAppStatus();
+      });
+    }
+
+    // App note form
+    var appNoteForm = $('yb-app-note-form');
+    if (appNoteForm) {
+      appNoteForm.addEventListener('submit', function (e) {
+        e.preventDefault();
+        addAppNote();
       });
     }
 
@@ -2587,7 +3380,7 @@
     var appTable = $('yb-app-table');
     if (appTable) {
       appTable.addEventListener('click', function (e) {
-        if (e.target.closest('button')) return;
+        if (e.target.closest('input[type="checkbox"]') || e.target.closest('button') || e.target.closest('a')) return;
         var row = e.target.closest('.yb-lead__row');
         if (row) {
           var rowAppId = row.getAttribute('data-app-id');

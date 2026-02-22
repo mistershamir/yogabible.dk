@@ -49,8 +49,12 @@ exports.handler = async (event) => {
     switch (event.httpMethod) {
       case 'GET':
         return params.id ? getOne(db, params.id) : getAll(db, params);
-      case 'POST':
+      case 'POST': {
+        const body = JSON.parse(event.body || '{}');
+        if (body.action === 'bulkDelete') return bulkDelete(db, body);
+        if (body.action === 'bulkUpdate') return bulkUpdate(db, body, user);
         return create(db, event, user);
+      }
       case 'PUT':
         return update(db, event, user);
       case 'DELETE':
@@ -160,4 +164,53 @@ async function remove(db, event) {
   await docRef.delete();
   console.log(`[catalog-admin] Deleted ${data.id}`);
   return jsonResponse(200, { ok: true, message: 'Catalog item deleted' });
+}
+
+async function bulkDelete(db, data) {
+  const ids = data.ids;
+  if (!Array.isArray(ids) || ids.length === 0) {
+    return jsonResponse(400, { ok: false, error: 'ids array is required' });
+  }
+  if (ids.length > 100) {
+    return jsonResponse(400, { ok: false, error: 'Maximum 100 items per bulk delete' });
+  }
+
+  const batch = db.batch();
+  ids.forEach(id => {
+    batch.delete(db.collection('course_catalog').doc(id));
+  });
+  await batch.commit();
+
+  console.log(`[catalog-admin] Bulk deleted ${ids.length} items`);
+  return jsonResponse(200, { ok: true, deleted: ids.length });
+}
+
+async function bulkUpdate(db, data, user) {
+  const ids = data.ids;
+  const updates = data.updates;
+  if (!Array.isArray(ids) || ids.length === 0) {
+    return jsonResponse(400, { ok: false, error: 'ids array is required' });
+  }
+  if (!updates || typeof updates !== 'object') {
+    return jsonResponse(400, { ok: false, error: 'updates object is required' });
+  }
+  if (ids.length > 100) {
+    return jsonResponse(400, { ok: false, error: 'Maximum 100 items per bulk update' });
+  }
+
+  // Only allow whitelisted fields
+  const safeUpdates = { updated_at: new Date(), updated_by: user.email };
+  for (const key of ALLOWED_FIELDS) {
+    if (updates[key] !== undefined) safeUpdates[key] = updates[key];
+  }
+  coerceTypes(safeUpdates);
+
+  const batch = db.batch();
+  ids.forEach(id => {
+    batch.update(db.collection('course_catalog').doc(id), safeUpdates);
+  });
+  await batch.commit();
+
+  console.log(`[catalog-admin] Bulk updated ${ids.length} items`);
+  return jsonResponse(200, { ok: true, updated: ids.length });
 }

@@ -56,7 +56,7 @@ Drop files here with the exact names below for automatic integration.
 |-----------|---------|--------|----------|
 | `yoga-bible-online-workshop-preview.mp4` | Online camera angle preview | MP4 (H.264) | 10 MB |
 
-**Currently using:** `https://www.yogabible.dk/s/Yoga-Bible-Workshop-Previews.mp4`
+**Currently using:** `https://res.cloudinary.com/ddcynsa30/video/upload/f_auto,q_auto/yoga-bible-DK/courses/workshop-previews.mp4`
 
 ---
 
