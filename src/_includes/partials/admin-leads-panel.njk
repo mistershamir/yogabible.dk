@@ -143,6 +143,88 @@
     <p class="yb-lead__empty-text">{{ t.leads_no_messages }}</p>
   </div>
 
+  {# Edit Fields #}
+  <div class="yb-admin__section-divider"></div>
+  <h3 class="yb-lead__section-title">{{ t.leads_edit_fields }}</h3>
+  <form id="yb-lead-edit-form" class="yb-admin__form">
+    <div class="yb-lead__status-grid">
+      <div class="yb-admin__field">
+        <label for="yb-lead-edit-first-name">{{ t.users_col_name }} ({{ t.leads_edit_personal }})</label>
+        <input type="text" id="yb-lead-edit-first-name" class="yb-admin__select" placeholder="First name">
+      </div>
+      <div class="yb-admin__field">
+        <label for="yb-lead-edit-last-name">Last name</label>
+        <input type="text" id="yb-lead-edit-last-name" class="yb-admin__select" placeholder="Last name">
+      </div>
+      <div class="yb-admin__field">
+        <label for="yb-lead-edit-email">{{ t.users_col_email }}</label>
+        <input type="email" id="yb-lead-edit-email" class="yb-admin__select" placeholder="Email">
+      </div>
+      <div class="yb-admin__field">
+        <label for="yb-lead-edit-phone">{{ t.apps_col_phone }}</label>
+        <input type="text" id="yb-lead-edit-phone" class="yb-admin__select" placeholder="Phone">
+      </div>
+      <div class="yb-admin__field">
+        <label for="yb-lead-edit-city">{{ t.leads_city }}</label>
+        <input type="text" id="yb-lead-edit-city" class="yb-admin__select" placeholder="City / Country">
+      </div>
+      <div class="yb-admin__field">
+        <label for="yb-lead-edit-source">{{ t.leads_source }}</label>
+        <select id="yb-lead-edit-source" class="yb-admin__select">
+          <option value="">--</option>
+          <option value="200h YTT">200h YTT</option>
+          <option value="300h YTT">300h YTT</option>
+          <option value="Courses">Courses</option>
+          <option value="Mentorship">Mentorship</option>
+          <option value="Contact page">Contact page</option>
+          <option value="Careers page">Careers page</option>
+          <option value="Apply page">Apply page</option>
+          <option value="Manual entry">Manual entry</option>
+        </select>
+      </div>
+      <div class="yb-admin__field">
+        <label for="yb-lead-edit-type">{{ t.leads_col_type }}</label>
+        <select id="yb-lead-edit-type" class="yb-admin__select">
+          <option value="">--</option>
+          <option value="ytt">YTT</option>
+          <option value="course">Course</option>
+          <option value="bundle">Bundle</option>
+          <option value="mentorship">Mentorship</option>
+          <option value="careers">Career</option>
+          <option value="contact">Contact</option>
+        </select>
+      </div>
+      <div class="yb-admin__field">
+        <label for="yb-lead-edit-program">{{ t.leads_col_program }}</label>
+        <input type="text" id="yb-lead-edit-program" class="yb-admin__select" placeholder="Program name">
+      </div>
+      <div class="yb-admin__field">
+        <label for="yb-lead-edit-preferred-month">{{ t.leads_preferred_month }}</label>
+        <input type="text" id="yb-lead-edit-preferred-month" class="yb-admin__select" placeholder="e.g. April 2026">
+      </div>
+      <div class="yb-admin__field">
+        <label for="yb-lead-edit-accommodation">{{ t.leads_accommodation }}</label>
+        <select id="yb-lead-edit-accommodation" class="yb-admin__select">
+          <option value="">--</option>
+          <option value="No">No</option>
+          <option value="Studio Apartment">Studio Apartment</option>
+          <option value="Shared Apartment">Shared Apartment</option>
+        </select>
+      </div>
+      <div class="yb-admin__field">
+        <label for="yb-lead-edit-housing-months">{{ t.leads_housing_months }}</label>
+        <input type="text" id="yb-lead-edit-housing-months" class="yb-admin__select" placeholder="e.g. 2 months">
+      </div>
+      <div class="yb-admin__field yb-admin__field--full">
+        <label for="yb-lead-edit-message">{{ t.leads_message }}</label>
+        <textarea id="yb-lead-edit-message" class="yb-admin__select" rows="3" placeholder="Message"></textarea>
+      </div>
+    </div>
+    <div class="yb-admin__form-actions">
+      <button type="submit" class="yb-btn yb-btn--primary">{{ t.leads_save_fields }}</button>
+    </div>
+  </form>
+
   {# Status + Priority + Temperature + Follow-up #}
   <div class="yb-admin__section-divider"></div>
   <h3 class="yb-lead__section-title">{{ t.leads_update_status }}</h3>

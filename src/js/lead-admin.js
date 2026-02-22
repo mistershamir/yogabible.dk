@@ -844,6 +844,7 @@
 
     renderLeadDetailCard();
     renderLeadQuickActions();
+    renderLeadEditForm();
     loadSMSConversation(leadId);
     populateStatusForm();
     renderLeadNotes();
@@ -1035,6 +1036,73 @@
     html += '</div>'; // end yb-lead__detail-cards wrapper
 
     el.innerHTML = html;
+  }
+
+  /* ══════════════════════════════════════════
+     LEAD EDIT FORM (mirrors app edit pattern)
+     ══════════════════════════════════════════ */
+  function renderLeadEditForm() {
+    if (!currentLead) return;
+    var l = currentLead;
+    var el;
+    el = $('yb-lead-edit-first-name'); if (el) el.value = l.first_name || '';
+    el = $('yb-lead-edit-last-name'); if (el) el.value = l.last_name || '';
+    el = $('yb-lead-edit-email'); if (el) el.value = l.email || '';
+    el = $('yb-lead-edit-phone'); if (el) el.value = l.phone || '';
+    el = $('yb-lead-edit-city'); if (el) el.value = l.city_country || '';
+    el = $('yb-lead-edit-source'); if (el) el.value = l.source || '';
+    el = $('yb-lead-edit-type'); if (el) el.value = l.type || '';
+    el = $('yb-lead-edit-program'); if (el) el.value = l.program || '';
+    el = $('yb-lead-edit-preferred-month'); if (el) el.value = l.preferred_month || '';
+    el = $('yb-lead-edit-accommodation'); if (el) el.value = l.accommodation || '';
+    el = $('yb-lead-edit-housing-months'); if (el) el.value = l.housing_months || '';
+    el = $('yb-lead-edit-message'); if (el) el.value = l.message || '';
+  }
+
+  function saveLeadFields() {
+    if (!currentLeadId || !currentLead) return;
+
+    var updates = {};
+    var fields = [
+      { id: 'yb-lead-edit-first-name', key: 'first_name' },
+      { id: 'yb-lead-edit-last-name', key: 'last_name' },
+      { id: 'yb-lead-edit-email', key: 'email' },
+      { id: 'yb-lead-edit-phone', key: 'phone' },
+      { id: 'yb-lead-edit-city', key: 'city_country' },
+      { id: 'yb-lead-edit-source', key: 'source' },
+      { id: 'yb-lead-edit-type', key: 'type' },
+      { id: 'yb-lead-edit-program', key: 'program' },
+      { id: 'yb-lead-edit-preferred-month', key: 'preferred_month' },
+      { id: 'yb-lead-edit-accommodation', key: 'accommodation' },
+      { id: 'yb-lead-edit-housing-months', key: 'housing_months' },
+      { id: 'yb-lead-edit-message', key: 'message' }
+    ];
+
+    fields.forEach(function (f) {
+      var el = $(f.id);
+      if (el) updates[f.key] = el.value.trim();
+    });
+
+    updates.updated_at = firebase.firestore.FieldValue.serverTimestamp();
+
+    db.collection('leads').doc(currentLeadId).update(updates).then(function () {
+      // Update local cache
+      Object.keys(updates).forEach(function (k) {
+        if (k !== 'updated_at') currentLead[k] = updates[k];
+      });
+      var idx = leads.findIndex(function (l) { return l.id === currentLeadId; });
+      if (idx !== -1) Object.assign(leads[idx], currentLead);
+
+      renderLeadDetailCard();
+      renderLeadQuickActions();
+      // Update heading in case name changed
+      var headingEl = $('yb-lead-detail-heading');
+      if (headingEl) headingEl.textContent = (currentLead.first_name || '') + ' ' + (currentLead.last_name || '');
+      toast(t('leads_fields_saved'));
+    }).catch(function (err) {
+      console.error('[lead-admin] Lead fields save error:', err);
+      toast(t('error_save'), true);
+    });
   }
 
   /* ══════════════════════════════════════════
@@ -3300,6 +3368,15 @@
         if (appId) toggleAppSelect(appId);
       }
     });
+
+    // Lead edit form
+    var leadEditForm = $('yb-lead-edit-form');
+    if (leadEditForm) {
+      leadEditForm.addEventListener('submit', function (e) {
+        e.preventDefault();
+        saveLeadFields();
+      });
+    }
 
     // App edit form
     var appEditForm = $('yb-app-edit-form');
