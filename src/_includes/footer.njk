@@ -122,3 +122,18 @@
     </div>
   </div>
 </footer>
+<script>
+(function(){
+  var mark = document.querySelector('.yb-footer-mark');
+  if (!mark || !('IntersectionObserver' in window)) {
+    mark && mark.classList.add('is-visible');
+    return;
+  }
+  new IntersectionObserver(function(entries, obs) {
+    if (entries[0].isIntersecting) {
+      mark.classList.add('is-visible');
+      obs.disconnect();
+    }
+  }, { threshold: 0.15 }).observe(mark);
+})();
+</script>
