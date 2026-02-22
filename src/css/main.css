@@ -6396,6 +6396,1337 @@ section {
 
 
 /* -----------------------------------------------------------------
+   ABOUT COPENHAGEN — Shared Utilities
+   ----------------------------------------------------------------- */
+
+.yb-cph-eyebrow {
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--yb-brand);
+  margin-bottom: 0.5rem;
+}
+
+.yb-cph-section-title {
+  font-size: clamp(1.8rem, 3.5vw, 2.6rem);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1.15;
+  margin: 0 0 1rem;
+}
+
+.yb-cph-section-subtitle {
+  font-size: 1.05rem;
+  color: #6F6A66;
+  max-width: 720px;
+  line-height: 1.6;
+  margin: 0;
+}
+
+.yb-cph-inner {
+  max-width: 1160px;
+  margin: 0 auto;
+  padding: 0 clamp(1.25rem, 4vw, 2.5rem);
+}
+
+
+/* -----------------------------------------------------------------
+   ABOUT COPENHAGEN — Section 1: Life in Copenhagen
+   ----------------------------------------------------------------- */
+
+.yb-cph-life {
+  background: #fff;
+  padding: clamp(60px, 10vh, 120px) 0;
+}
+
+.yb-cph-life__header {
+  text-align: center;
+  max-width: 720px;
+  margin: 0 auto 3rem;
+}
+
+.yb-cph-life__grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1.25rem;
+}
+
+.yb-cph-life__card {
+  border-radius: 16px;
+  aspect-ratio: 3 / 4;
+  overflow: hidden;
+  background: #F5F3F0;
+  position: relative;
+  cursor: pointer;
+}
+
+.yb-cph-life__card-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  transition: transform 0.4s ease;
+}
+
+.yb-cph-life__card:hover .yb-cph-life__card-img {
+  transform: scale(1.05);
+}
+
+.yb-cph-life__card-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to top, rgba(0,0,0,0.7) 0%, transparent 55%);
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  padding: 1.25rem;
+}
+
+.yb-cph-life__card-title {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #fff;
+  margin: 0 0 0.25rem;
+}
+
+.yb-cph-life__card-desc {
+  font-size: 0.85rem;
+  color: rgba(255,255,255,0.85);
+  margin: 0;
+  line-height: 1.45;
+}
+
+@media (max-width: 900px) {
+  .yb-cph-life__grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 380px) {
+  .yb-cph-life__grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+
+/* -----------------------------------------------------------------
+   ABOUT COPENHAGEN — Section 2: Christianshavn Location
+   ----------------------------------------------------------------- */
+
+.yb-cph-location {
+  background: #FFFCF9;
+  padding: clamp(60px, 10vh, 120px) 0;
+}
+
+.yb-cph-location__header {
+  text-align: center;
+  max-width: 720px;
+  margin: 0 auto 3rem;
+}
+
+.yb-cph-location__content {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 3rem;
+  align-items: center;
+}
+
+.yb-cph-location__video-wrap {
+  border-radius: 20px;
+  aspect-ratio: 4 / 5;
+  overflow: hidden;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+}
+
+.yb-cph-location__video-wrap video,
+.yb-cph-location__video-wrap img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.yb-cph-location__text {
+  display: flex;
+  flex-direction: column;
+  gap: 1.75rem;
+}
+
+.yb-cph-location__text-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin: 0;
+}
+
+.yb-cph-location__text p {
+  font-size: 1.05rem;
+  line-height: 1.65;
+  color: #555;
+  margin: 0;
+}
+
+.yb-cph-location__highlight {
+  background: #fff;
+  border-left: 4px solid var(--yb-brand);
+  border-radius: 0 12px 12px 0;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+  padding: 1.25rem 1.5rem;
+  font-style: italic;
+  font-size: 1.05rem;
+  line-height: 1.6;
+  color: #333;
+  margin: 0;
+}
+
+.yb-cph-location__pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.yb-cph-location__pill {
+  background: #fff;
+  border: 1px solid #E8E4E0;
+  border-radius: 999px;
+  padding: 0.5rem 1rem;
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: #333;
+}
+
+.yb-cph-location__gallery {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1rem;
+  margin-top: 3.5rem;
+}
+
+.yb-cph-location__gallery-img {
+  border-radius: 14px;
+  aspect-ratio: 4 / 3;
+  overflow: hidden;
+}
+
+.yb-cph-location__gallery-img img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  transition: transform 0.4s ease;
+}
+
+.yb-cph-location__gallery-img:hover img {
+  transform: scale(1.04);
+}
+
+@media (max-width: 900px) {
+  .yb-cph-location__content {
+    grid-template-columns: 1fr;
+    gap: 2rem;
+  }
+
+  .yb-cph-location__gallery {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .yb-cph-location__gallery-img:nth-child(3) {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (max-width: 600px) {
+  .yb-cph-location__gallery {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+
+/* -----------------------------------------------------------------
+   ABOUT COPENHAGEN — Section 3: Why Copenhagen
+   ----------------------------------------------------------------- */
+
+.yb-cph-why {
+  background: #fff;
+  padding: clamp(60px, 10vh, 120px) 0;
+}
+
+.yb-cph-why__header {
+  text-align: center;
+  max-width: 720px;
+  margin: 0 auto 3rem;
+}
+
+.yb-cph-why__content {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 3.5rem;
+}
+
+.yb-cph-why__benefits {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.yb-cph-why__benefit {
+  background: #FFFCF9;
+  border: 1px solid #E8E4E0;
+  border-radius: 14px;
+  padding: 1.25rem 1.5rem;
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.yb-cph-why__benefit:hover {
+  border-color: rgba(247,92,3,0.35);
+  box-shadow: 0 4px 16px rgba(247,92,3,0.08);
+}
+
+.yb-cph-why__benefit-title {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  font-size: 1.05rem;
+  font-weight: 800;
+  margin: 0 0 0.5rem;
+}
+
+.yb-cph-why__benefit-icon {
+  width: 28px;
+  height: 28px;
+  min-width: 28px;
+  background: var(--yb-brand);
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.yb-cph-why__benefit-icon svg {
+  width: 16px;
+  height: 16px;
+  color: #fff;
+  fill: none;
+  stroke: currentColor;
+}
+
+.yb-cph-why__benefit-desc {
+  font-size: 0.95rem;
+  color: #555;
+  line-height: 1.6;
+  margin: 0;
+  padding-left: calc(28px + 0.6rem);
+}
+
+.yb-cph-why__media {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.yb-cph-why__media-main {
+  position: relative;
+  border-radius: 18px;
+  aspect-ratio: 4 / 3;
+  overflow: hidden;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+}
+
+.yb-cph-why__media-main img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.yb-cph-why__media-caption {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: linear-gradient(to top, rgba(0,0,0,0.65) 0%, transparent 100%);
+  padding: 2rem 1.5rem 1.25rem;
+  color: #fff;
+  font-size: 0.95rem;
+  line-height: 1.5;
+}
+
+.yb-cph-why__media-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.25rem;
+}
+
+.yb-cph-why__media-grid-item {
+  border-radius: 14px;
+  aspect-ratio: 3 / 2;
+  overflow: hidden;
+}
+
+.yb-cph-why__media-grid-item img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  transition: transform 0.4s ease;
+}
+
+.yb-cph-why__media-grid-item:hover img {
+  transform: scale(1.04);
+}
+
+.yb-cph-why__flights {
+  grid-column: span 2;
+  border: 2px solid var(--yb-brand);
+  border-radius: 18px;
+  padding: 2rem 2.5rem;
+  display: grid;
+  grid-template-columns: 1fr 1.2fr;
+  gap: 2rem;
+  align-items: center;
+}
+
+.yb-cph-why__flights-title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  margin: 0 0 0.75rem;
+}
+
+.yb-cph-why__flights-text {
+  font-size: 0.95rem;
+  color: #555;
+  line-height: 1.6;
+  margin: 0 0 1rem;
+}
+
+.yb-cph-why__flights-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.yb-cph-why__flights-pill {
+  background: #fff;
+  border: 1px solid #E8E4E0;
+  border-radius: 999px;
+  padding: 0.5rem 1rem;
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: #333;
+}
+
+.yb-cph-why__flights-map {
+  border-radius: 14px;
+  aspect-ratio: 16 / 10;
+  overflow: hidden;
+}
+
+.yb-cph-why__flights-map img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+@media (max-width: 900px) {
+  .yb-cph-why__content {
+    grid-template-columns: 1fr;
+  }
+
+  .yb-cph-why__flights {
+    grid-column: span 1;
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 600px) {
+  .yb-cph-why__flights {
+    padding: 1.5rem;
+  }
+}
+
+
+/* -----------------------------------------------------------------
+   ABOUT COPENHAGEN — Section 4: Hygge
+   ----------------------------------------------------------------- */
+
+.yb-cph-hygge {
+  background: #0F0F0F;
+  color: #fff;
+  padding: clamp(60px, 10vh, 120px) 0;
+  position: relative;
+  overflow: hidden;
+}
+
+.yb-cph-hygge::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse at 30% 50%, rgba(247,92,3,0.08) 0%, transparent 60%);
+  pointer-events: none;
+}
+
+.yb-cph-hygge__content {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4rem;
+  align-items: center;
+  position: relative;
+  z-index: 1;
+}
+
+.yb-cph-hygge__media {
+  position: relative;
+}
+
+.yb-cph-hygge__media-main {
+  border-radius: 20px;
+  aspect-ratio: 4 / 5;
+  overflow: hidden;
+  box-shadow: 0 24px 80px rgba(0,0,0,0.4);
+}
+
+.yb-cph-hygge__media-main img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.yb-cph-hygge__media-accent {
+  position: absolute;
+  bottom: -30px;
+  right: -30px;
+  width: 45%;
+  border-radius: 16px;
+  aspect-ratio: 1 / 1;
+  overflow: hidden;
+  border: 4px solid #0F0F0F;
+  box-shadow: 0 12px 40px rgba(0,0,0,0.5);
+}
+
+.yb-cph-hygge__media-accent img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.yb-cph-hygge__text {
+  display: flex;
+  flex-direction: column;
+  gap: 1.75rem;
+}
+
+.yb-cph-hygge__title {
+  font-size: clamp(2rem, 4vw, 3rem);
+  font-weight: 700;
+  color: #fff;
+  margin: 0;
+  line-height: 1.1;
+}
+
+.yb-cph-hygge__pronunciation {
+  font-size: 1.1rem;
+  font-style: italic;
+  color: rgba(255,255,255,0.6);
+  margin: 0;
+}
+
+.yb-cph-hygge__text > p {
+  font-size: 1.05rem;
+  color: rgba(255,255,255,0.85);
+  line-height: 1.65;
+  margin: 0;
+}
+
+.yb-cph-hygge__quote {
+  background: rgba(255,255,255,0.05);
+  border-left: 3px solid var(--yb-brand);
+  border-radius: 0 12px 12px 0;
+  padding: 1.25rem 1.5rem;
+  font-style: italic;
+  font-size: 1.05rem;
+  line-height: 1.6;
+  color: rgba(255,255,255,0.85);
+  margin: 0;
+}
+
+.yb-cph-hygge__values {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.yb-cph-hygge__values li {
+  font-size: 0.95rem;
+  color: rgba(255,255,255,0.85);
+  padding-left: 1.25rem;
+  position: relative;
+  line-height: 1.5;
+}
+
+.yb-cph-hygge__values li::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0.45em;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--yb-brand);
+}
+
+.yb-cph-hygge__connection {
+  background: linear-gradient(135deg, rgba(247,92,3,0.15) 0%, rgba(247,92,3,0.05) 100%);
+  border: 1px solid rgba(247,92,3,0.3);
+  border-radius: 14px;
+  padding: 1.25rem 1.5rem;
+}
+
+.yb-cph-hygge__connection-title {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #fff;
+  margin: 0 0 0.5rem;
+}
+
+.yb-cph-hygge__connection p {
+  font-size: 0.95rem;
+  color: rgba(255,255,255,0.8);
+  line-height: 1.6;
+  margin: 0;
+}
+
+@media (max-width: 900px) {
+  .yb-cph-hygge__content {
+    grid-template-columns: 1fr;
+    gap: 3rem;
+  }
+
+  .yb-cph-hygge__media {
+    order: -1;
+    max-width: 85%;
+    margin: 0 auto;
+  }
+
+  .yb-cph-hygge__media-accent {
+    bottom: -20px;
+    right: -15px;
+  }
+}
+
+@media (max-width: 600px) {
+  .yb-cph-hygge__values {
+    grid-template-columns: 1fr;
+  }
+}
+
+
+/* -----------------------------------------------------------------
+   ABOUT COPENHAGEN — Section 5: About Denmark
+   ----------------------------------------------------------------- */
+
+.yb-cph-denmark {
+  background: #FFFCF9;
+  padding: clamp(60px, 10vh, 120px) 0;
+}
+
+.yb-cph-denmark__header {
+  text-align: center;
+  max-width: 720px;
+  margin: 0 auto 3rem;
+}
+
+.yb-cph-denmark__grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.5rem;
+}
+
+.yb-cph-denmark__card {
+  background: #fff;
+  border: 1px solid #E8E4E0;
+  border-radius: 18px;
+  padding: 1.75rem;
+  transition: border-color 0.3s ease, box-shadow 0.3s ease, transform 0.3s ease;
+}
+
+.yb-cph-denmark__card:hover {
+  border-color: rgba(247,92,3,0.4);
+  box-shadow: 0 8px 24px rgba(247,92,3,0.08);
+  transform: translateY(-3px);
+}
+
+.yb-cph-denmark__card-icon {
+  width: 52px;
+  height: 52px;
+  min-width: 52px;
+  background: linear-gradient(135deg, var(--yb-brand), #ff7b2e);
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 1.25rem;
+}
+
+.yb-cph-denmark__card-icon svg {
+  width: 26px;
+  height: 26px;
+  color: #fff;
+  fill: none;
+  stroke: currentColor;
+}
+
+.yb-cph-denmark__card-title {
+  font-size: 1.15rem;
+  font-weight: 700;
+  margin: 0 0 0.5rem;
+}
+
+.yb-cph-denmark__card-text {
+  font-size: 0.95rem;
+  color: #555;
+  line-height: 1.6;
+  margin: 0;
+}
+
+.yb-cph-denmark__card--featured {
+  grid-column: span 2;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 2rem;
+  border: 2px solid var(--yb-brand);
+  background: linear-gradient(135deg, rgba(247,92,3,0.04) 0%, rgba(255,255,255,1) 100%);
+}
+
+.yb-cph-denmark__card--featured .yb-cph-denmark__card-icon {
+  width: 72px;
+  height: 72px;
+  min-width: 72px;
+}
+
+.yb-cph-denmark__card--featured .yb-cph-denmark__card-icon svg {
+  width: 36px;
+  height: 36px;
+}
+
+@media (max-width: 900px) {
+  .yb-cph-denmark__grid {
+    grid-template-columns: 1fr;
+  }
+
+  .yb-cph-denmark__card--featured {
+    grid-column: span 1;
+    flex-direction: column;
+    text-align: center;
+  }
+}
+
+
+/* -----------------------------------------------------------------
+   ABOUT COPENHAGEN — Section 6: Explore
+   ----------------------------------------------------------------- */
+
+.yb-cph-explore {
+  background: #fff;
+  padding: clamp(60px, 10vh, 120px) 0;
+}
+
+.yb-cph-explore__header {
+  text-align: center;
+  max-width: 720px;
+  margin: 0 auto 3rem;
+}
+
+.yb-cph-explore__grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.25rem;
+}
+
+.yb-cph-explore__card {
+  position: relative;
+  border-radius: 18px;
+  overflow: hidden;
+  cursor: pointer;
+}
+
+.yb-cph-explore__card-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  transition: transform 0.5s ease;
+}
+
+.yb-cph-explore__card:hover .yb-cph-explore__card-img {
+  transform: scale(1.06);
+}
+
+.yb-cph-explore__card-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, transparent 30%, rgba(0,0,0,0.75) 100%);
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  padding: 1.5rem;
+}
+
+.yb-cph-explore__card-tag {
+  display: inline-block;
+  background: var(--yb-brand);
+  color: #fff;
+  font-size: 0.7rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border-radius: 999px;
+  padding: 0.3rem 0.75rem;
+  margin-bottom: 0.5rem;
+  align-self: flex-start;
+}
+
+.yb-cph-explore__card-title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #fff;
+  margin: 0 0 0.25rem;
+}
+
+.yb-cph-explore__card-desc {
+  font-size: 0.9rem;
+  color: rgba(255,255,255,0.9);
+  margin: 0;
+  line-height: 1.45;
+}
+
+/* Card size variants */
+.yb-cph-explore__card--tall {
+  grid-row: span 2;
+  min-height: 480px;
+}
+
+.yb-cph-explore__card--wide {
+  grid-column: span 2;
+  aspect-ratio: 2 / 1;
+}
+
+.yb-cph-explore__card--regular {
+  aspect-ratio: 4 / 3;
+}
+
+/* Explicit grid placement (8 items) */
+.yb-cph-explore__card:nth-child(1) {
+  grid-column: 1;
+  grid-row: 1 / 3;
+}
+
+.yb-cph-explore__card:nth-child(2) {
+  grid-column: 2;
+  grid-row: 1;
+}
+
+.yb-cph-explore__card:nth-child(3) {
+  grid-column: 3;
+  grid-row: 1;
+}
+
+.yb-cph-explore__card:nth-child(4) {
+  grid-column: 2 / 4;
+  grid-row: 2;
+}
+
+.yb-cph-explore__card:nth-child(5) {
+  grid-column: 1 / 3;
+  grid-row: 3;
+}
+
+.yb-cph-explore__card:nth-child(6) {
+  grid-column: 3;
+  grid-row: 3 / 5;
+}
+
+.yb-cph-explore__card:nth-child(7) {
+  grid-column: 1;
+  grid-row: 4;
+}
+
+.yb-cph-explore__card:nth-child(8) {
+  grid-column: 2;
+  grid-row: 4;
+}
+
+@media (max-width: 900px) {
+  .yb-cph-explore__grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .yb-cph-explore__card:nth-child(n) {
+    grid-column: auto;
+    grid-row: auto;
+  }
+
+  .yb-cph-explore__card--tall {
+    grid-row: span 2;
+    min-height: 360px;
+  }
+
+  .yb-cph-explore__card--wide {
+    grid-column: span 2;
+  }
+}
+
+@media (max-width: 600px) {
+  .yb-cph-explore__grid {
+    grid-template-columns: 1fr;
+  }
+
+  .yb-cph-explore__card:nth-child(n) {
+    grid-column: auto;
+    grid-row: auto;
+  }
+
+  .yb-cph-explore__card--tall {
+    grid-row: auto;
+    min-height: auto;
+  }
+
+  .yb-cph-explore__card--wide {
+    grid-column: auto;
+  }
+
+  .yb-cph-explore__card--tall,
+  .yb-cph-explore__card--wide,
+  .yb-cph-explore__card--regular {
+    aspect-ratio: 4 / 3;
+  }
+}
+
+
+/* -----------------------------------------------------------------
+   ABOUT COPENHAGEN — Section 7: Practical Info
+   ----------------------------------------------------------------- */
+
+.yb-cph-practical {
+  background: #FFFCF9;
+  padding: clamp(60px, 10vh, 120px) 0;
+}
+
+.yb-cph-practical__inner {
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 0 clamp(1.25rem, 4vw, 2.5rem);
+}
+
+.yb-cph-practical__header {
+  text-align: center;
+  max-width: 720px;
+  margin: 0 auto 3rem;
+}
+
+.yb-cph-practical__grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1.25rem;
+}
+
+.yb-cph-practical__card {
+  background: #fff;
+  border: 1px solid #E8E4E0;
+  border-radius: 16px;
+  padding: 1.75rem;
+  display: flex;
+  flex-direction: row;
+  gap: 1.25rem;
+}
+
+.yb-cph-practical__card-icon {
+  width: 48px;
+  height: 48px;
+  min-width: 48px;
+  background: #FFFCF9;
+  border: 1px solid #E8E4E0;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.yb-cph-practical__card-icon svg {
+  width: 24px;
+  height: 24px;
+  color: var(--yb-brand);
+  fill: none;
+  stroke: currentColor;
+}
+
+.yb-cph-practical__card-title {
+  font-size: 1.1rem;
+  font-weight: 800;
+  margin: 0 0 0.4rem;
+}
+
+.yb-cph-practical__card-text {
+  font-size: 0.95rem;
+  color: #555;
+  line-height: 1.6;
+  margin: 0;
+}
+
+.yb-cph-practical__card-text strong {
+  color: #333;
+}
+
+.yb-cph-practical__card--highlight {
+  grid-column: span 2;
+  border: 2px solid var(--yb-brand);
+}
+
+.yb-cph-practical__card--highlight .yb-cph-practical__card-icon {
+  width: 56px;
+  height: 56px;
+  min-width: 56px;
+  background: var(--yb-brand);
+  border-color: var(--yb-brand);
+}
+
+.yb-cph-practical__card--highlight .yb-cph-practical__card-icon svg {
+  color: #fff;
+}
+
+.yb-cph-practical__tips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-top: 1rem;
+}
+
+.yb-cph-practical__tip {
+  background: #fff;
+  border: 1px solid #E8E4E0;
+  border-radius: 999px;
+  padding: 0.5rem 1rem;
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: #333;
+}
+
+.yb-cph-practical__note {
+  margin-top: 2rem;
+  border-radius: 14px;
+  text-align: center;
+  background: #fff;
+  border: 1px solid #E8E4E0;
+  padding: 1.25rem 1.5rem;
+  font-size: 0.95rem;
+  color: #555;
+  line-height: 1.6;
+}
+
+@media (max-width: 900px) {
+  .yb-cph-practical__grid {
+    grid-template-columns: 1fr;
+  }
+
+  .yb-cph-practical__card--highlight {
+    grid-column: span 1;
+  }
+}
+
+@media (max-width: 600px) {
+  .yb-cph-practical__card {
+    flex-direction: column;
+  }
+}
+
+
+/* -----------------------------------------------------------------
+   ABOUT COPENHAGEN — Section 8: CTA
+   ----------------------------------------------------------------- */
+
+.yb-cph-cta {
+  background: #0F0F0F;
+  color: #fff;
+  padding: clamp(60px, 10vh, 120px) 0;
+  position: relative;
+  overflow: hidden;
+}
+
+.yb-cph-cta::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -20%;
+  width: 60%;
+  height: 120%;
+  background: radial-gradient(ellipse, rgba(247,92,3,0.06) 0%, transparent 70%);
+  pointer-events: none;
+}
+
+.yb-cph-cta::after {
+  content: '';
+  position: absolute;
+  bottom: -40%;
+  right: -15%;
+  width: 50%;
+  height: 100%;
+  background: radial-gradient(ellipse, rgba(247,92,3,0.04) 0%, transparent 70%);
+  pointer-events: none;
+}
+
+.yb-cph-cta__header {
+  text-align: center;
+  max-width: 720px;
+  margin: 0 auto 3rem;
+  position: relative;
+  z-index: 1;
+}
+
+.yb-cph-cta__grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1.5rem;
+  position: relative;
+  z-index: 1;
+}
+
+.yb-cph-cta__card {
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 20px;
+  padding: 2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  transition: border-color 0.3s ease, background 0.3s ease, transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.yb-cph-cta__card:hover {
+  border-color: rgba(247,92,3,0.5);
+  background: rgba(255,255,255,0.05);
+  transform: translateY(-4px);
+  box-shadow: 0 12px 40px rgba(247,92,3,0.1);
+}
+
+.yb-cph-cta__card--featured {
+  border: 2px solid var(--yb-brand);
+  background: linear-gradient(135deg, rgba(247,92,3,0.1) 0%, rgba(247,92,3,0.02) 100%);
+}
+
+.yb-cph-cta__card-badge {
+  display: inline-block;
+  background: var(--yb-brand);
+  color: #fff;
+  font-size: 0.68rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border-radius: 999px;
+  padding: 0.35rem 0.85rem;
+  align-self: flex-start;
+}
+
+.yb-cph-cta__card-title {
+  font-size: 1.35rem;
+  font-weight: 700;
+  color: #fff;
+  margin: 0;
+}
+
+.yb-cph-cta__card-text {
+  font-size: 0.95rem;
+  color: rgba(255,255,255,0.75);
+  line-height: 1.6;
+  margin: 0;
+}
+
+.yb-cph-cta__card-features {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.yb-cph-cta__feature-pill {
+  background: rgba(255,255,255,0.08);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 999px;
+  padding: 0.4rem 0.9rem;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: rgba(255,255,255,0.85);
+}
+
+.yb-cph-cta__course-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.yb-cph-cta__course-pill {
+  background: rgba(247,92,3,0.12);
+  border: 1px solid rgba(247,92,3,0.25);
+  border-radius: 8px;
+  padding: 0.4rem 0.9rem;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: rgba(255,255,255,0.9);
+}
+
+.yb-cph-cta__btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--yb-brand);
+  color: #fff;
+  font-size: 0.95rem;
+  font-weight: 700;
+  border: none;
+  border-radius: 999px;
+  padding: 0.85rem 2rem;
+  cursor: pointer;
+  text-decoration: none;
+  transition: transform 0.25s ease, box-shadow 0.25s ease, background 0.25s ease;
+}
+
+.yb-cph-cta__btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(247,92,3,0.3);
+  background: var(--yb-brand-dark);
+}
+
+.yb-cph-cta__btn--secondary {
+  background: transparent;
+  border: 2px solid var(--yb-brand);
+  color: var(--yb-brand);
+}
+
+.yb-cph-cta__btn--secondary:hover {
+  background: var(--yb-brand);
+  color: #fff;
+}
+
+.yb-cph-cta__contact {
+  text-align: center;
+  border-top: 1px solid rgba(255,255,255,0.1);
+  padding-top: 2.5rem;
+  margin-top: 2.5rem;
+  position: relative;
+  z-index: 1;
+}
+
+.yb-cph-cta__contact p {
+  font-size: 0.95rem;
+  color: rgba(255,255,255,0.7);
+  margin: 0;
+  line-height: 1.6;
+}
+
+.yb-cph-cta__contact a {
+  color: var(--yb-brand);
+  text-decoration: none;
+}
+
+.yb-cph-cta__contact a:hover {
+  text-decoration: underline;
+}
+
+@media (max-width: 900px) {
+  .yb-cph-cta__grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+
+/* -----------------------------------------------------------------
+   ABOUT COPENHAGEN — Section 9: FAQ
+   ----------------------------------------------------------------- */
+
+.yb-cph-faq {
+  background: #FFFCF9;
+  padding: clamp(60px, 10vh, 120px) 0;
+}
+
+.yb-cph-faq__header {
+  text-align: center;
+  max-width: 720px;
+  margin: 0 auto 3rem;
+}
+
+.yb-cph-faq__list {
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.yb-cph-faq__item {
+  background: #F5F3F0;
+  border-radius: 14px;
+  margin-bottom: 0.75rem;
+  overflow: hidden;
+}
+
+.yb-cph-faq__item summary {
+  padding: 1.25rem 1.5rem;
+  font-size: 1.05rem;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  list-style: none;
+  user-select: none;
+  transition: background 0.2s ease;
+}
+
+.yb-cph-faq__item summary::-webkit-details-marker {
+  display: none;
+}
+
+.yb-cph-faq__item summary::after {
+  content: '+';
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  min-width: 28px;
+  background: var(--yb-brand);
+  color: #fff;
+  border-radius: 50%;
+  font-size: 1.1rem;
+  font-weight: 700;
+  line-height: 1;
+  transition: transform 0.25s ease;
+}
+
+.yb-cph-faq__item[open] summary {
+  border-bottom: 1px solid #E8E4E0;
+}
+
+.yb-cph-faq__item[open] summary::after {
+  content: '\2212';
+  transform: rotate(180deg);
+}
+
+.yb-cph-faq__item p {
+  padding: 0 1.5rem 1.25rem;
+  font-size: 0.95rem;
+  color: #555;
+  line-height: 1.65;
+  margin: 0;
+}
+
+.yb-cph-faq__item p:first-of-type {
+  padding-top: 1.25rem;
+}
+
+
+/* -----------------------------------------------------------------
    JOURNAL PREVIEW — Blog post cards
    ----------------------------------------------------------------- */
 
