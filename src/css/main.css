@@ -19866,18 +19866,8 @@ a.yb-kontakt-detail__value:hover {
 
 
 /* ═══════════════════════════════════════════════════════════
-   ACCOMMODATION PAGE  (yba-*)
+   ACCOMMODATION PAGE  (yba-*) — overrides / additions
    ═══════════════════════════════════════════════════════════ */
-.yba-eyebrow {
-  margin: 0 0 .35rem;
-  text-transform: uppercase;
-  letter-spacing: .12em;
-  font-size: .82rem;
-  color: var(--yb-brand, #f75c03);
-  font-weight: 800;
-}
-.yba-eyebrow--white { color: rgba(255,255,255,.7); }
-
 .yba-course-card__img img {
   border-radius: 12px 12px 0 0;
 }
