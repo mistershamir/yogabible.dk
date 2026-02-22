@@ -12,10 +12,10 @@
 
   /* ═══ 1. HERO CAROUSEL ═══ */
   var IMAGES = [
-    'https://www.yogabible.dk/s/200-hour-yoga-teacher-training-Copenhagen.webp',
-    'https://www.yogabible.dk/s/Yoga_Teacher_Training_Kbenhavn.jpg',
-    'https://www.yogabible.dk/s/yogalreruddannelse-i-kbenhavn.jpg',
-    'https://www.yogabible.dk/s/yoga-teacher-training.jpg'
+    'https://res.cloudinary.com/ddcynsa30/image/upload/f_auto,q_auto/yoga-bible-DK/programs/ytt-200h.webp',
+    'https://res.cloudinary.com/ddcynsa30/image/upload/f_auto,q_auto/yoga-bible-DK/programs/ytt-kbh.jpg',
+    'https://res.cloudinary.com/ddcynsa30/image/upload/f_auto,q_auto/yoga-bible-DK/programs/ytt-kbh.jpg',
+    'https://res.cloudinary.com/ddcynsa30/image/upload/f_auto,q_auto/yoga-bible-DK/programs/ytt-kbh.jpg'
   ];
 
   var viewport = document.querySelector('[data-om2-viewport]');

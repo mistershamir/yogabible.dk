@@ -143,6 +143,88 @@
     <p class="yb-lead__empty-text">{{ t.leads_no_messages }}</p>
   </div>
 
+  {# Edit Fields #}
+  <div class="yb-admin__section-divider"></div>
+  <h3 class="yb-lead__section-title">{{ t.leads_edit_fields }}</h3>
+  <form id="yb-lead-edit-form" class="yb-admin__form">
+    <div class="yb-lead__status-grid">
+      <div class="yb-admin__field">
+        <label for="yb-lead-edit-first-name">{{ t.users_col_name }} ({{ t.leads_edit_personal }})</label>
+        <input type="text" id="yb-lead-edit-first-name" class="yb-admin__select" placeholder="First name">
+      </div>
+      <div class="yb-admin__field">
+        <label for="yb-lead-edit-last-name">Last name</label>
+        <input type="text" id="yb-lead-edit-last-name" class="yb-admin__select" placeholder="Last name">
+      </div>
+      <div class="yb-admin__field">
+        <label for="yb-lead-edit-email">{{ t.users_col_email }}</label>
+        <input type="email" id="yb-lead-edit-email" class="yb-admin__select" placeholder="Email">
+      </div>
+      <div class="yb-admin__field">
+        <label for="yb-lead-edit-phone">{{ t.apps_col_phone }}</label>
+        <input type="text" id="yb-lead-edit-phone" class="yb-admin__select" placeholder="Phone">
+      </div>
+      <div class="yb-admin__field">
+        <label for="yb-lead-edit-city">{{ t.leads_city }}</label>
+        <input type="text" id="yb-lead-edit-city" class="yb-admin__select" placeholder="City / Country">
+      </div>
+      <div class="yb-admin__field">
+        <label for="yb-lead-edit-source">{{ t.leads_source }}</label>
+        <select id="yb-lead-edit-source" class="yb-admin__select">
+          <option value="">--</option>
+          <option value="200h YTT">200h YTT</option>
+          <option value="300h YTT">300h YTT</option>
+          <option value="Courses">Courses</option>
+          <option value="Mentorship">Mentorship</option>
+          <option value="Contact page">Contact page</option>
+          <option value="Careers page">Careers page</option>
+          <option value="Apply page">Apply page</option>
+          <option value="Manual entry">Manual entry</option>
+        </select>
+      </div>
+      <div class="yb-admin__field">
+        <label for="yb-lead-edit-type">{{ t.leads_col_type }}</label>
+        <select id="yb-lead-edit-type" class="yb-admin__select">
+          <option value="">--</option>
+          <option value="ytt">YTT</option>
+          <option value="course">Course</option>
+          <option value="bundle">Bundle</option>
+          <option value="mentorship">Mentorship</option>
+          <option value="careers">Career</option>
+          <option value="contact">Contact</option>
+        </select>
+      </div>
+      <div class="yb-admin__field">
+        <label for="yb-lead-edit-program">{{ t.leads_col_program }}</label>
+        <input type="text" id="yb-lead-edit-program" class="yb-admin__select" placeholder="Program name">
+      </div>
+      <div class="yb-admin__field">
+        <label for="yb-lead-edit-preferred-month">{{ t.leads_preferred_month }}</label>
+        <input type="text" id="yb-lead-edit-preferred-month" class="yb-admin__select" placeholder="e.g. April 2026">
+      </div>
+      <div class="yb-admin__field">
+        <label for="yb-lead-edit-accommodation">{{ t.leads_accommodation }}</label>
+        <select id="yb-lead-edit-accommodation" class="yb-admin__select">
+          <option value="">--</option>
+          <option value="No">No</option>
+          <option value="Studio Apartment">Studio Apartment</option>
+          <option value="Shared Apartment">Shared Apartment</option>
+        </select>
+      </div>
+      <div class="yb-admin__field">
+        <label for="yb-lead-edit-housing-months">{{ t.leads_housing_months }}</label>
+        <input type="text" id="yb-lead-edit-housing-months" class="yb-admin__select" placeholder="e.g. 2 months">
+      </div>
+      <div class="yb-admin__field yb-admin__field--full">
+        <label for="yb-lead-edit-message">{{ t.leads_message }}</label>
+        <textarea id="yb-lead-edit-message" class="yb-admin__select" rows="3" placeholder="Message"></textarea>
+      </div>
+    </div>
+    <div class="yb-admin__form-actions">
+      <button type="submit" class="yb-btn yb-btn--primary">{{ t.leads_save_fields }}</button>
+    </div>
+  </form>
+
   {# Status + Priority + Temperature + Follow-up #}
   <div class="yb-admin__section-divider"></div>
   <h3 class="yb-lead__section-title">{{ t.leads_update_status }}</h3>
@@ -215,107 +297,4 @@
   <div id="yb-lead-activity"></div>
 </div>
 
-{# ── SMS Campaign Wizard Modal ── #}
-<div id="yb-campaign-sms-modal" class="yb-lead__modal" hidden>
-  <div class="yb-lead__modal-overlay" data-action="campaign-sms-close"></div>
-  <div class="yb-lead__campaign-box yb-lead__campaign-box--sms">
-    {# Header with tabs #}
-    <div class="yb-lead__campaign-header">
-      <h3 class="yb-lead__campaign-title">&#128241; {{ t.campaign_sms_title }}</h3>
-      <button type="button" class="yb-lead__campaign-close" data-action="campaign-sms-close">&times;</button>
-    </div>
-    <div class="yb-lead__campaign-tabs" id="yb-campaign-sms-tabs">
-      <button class="yb-lead__campaign-tab is-active" data-tab="recipients" type="button">
-        <span class="yb-lead__campaign-tab-num">1</span>
-        {{ t.campaign_tab_recipients }}
-        <span class="yb-lead__campaign-tab-badge" id="yb-campaign-sms-recipient-badge"></span>
-      </button>
-      <button class="yb-lead__campaign-tab" data-tab="compose" type="button" disabled>
-        <span class="yb-lead__campaign-tab-num">2</span>
-        {{ t.campaign_tab_compose }}
-      </button>
-      <button class="yb-lead__campaign-tab" data-tab="send" type="button" disabled>
-        <span class="yb-lead__campaign-tab-num">3</span>
-        {{ t.campaign_tab_send }}
-      </button>
-    </div>
-
-    {# Tab panels — content rendered by JS #}
-    <div class="yb-lead__campaign-body">
-      <div class="yb-lead__campaign-panel is-active" data-panel="recipients" id="yb-campaign-sms-recipients">
-        {# JS renders: filter chips left + recipient list right #}
-      </div>
-      <div class="yb-lead__campaign-panel" data-panel="compose" id="yb-campaign-sms-compose">
-        {# JS renders: template chips, textarea, char/segment count, preview bubble #}
-      </div>
-      <div class="yb-lead__campaign-panel" data-panel="send" id="yb-campaign-sms-send">
-        {# JS renders: summary, cost estimate, test send, send all, progress, results #}
-      </div>
-    </div>
-
-    {# Footer — changes per tab #}
-    <div class="yb-lead__campaign-footer" id="yb-campaign-sms-footer">
-      <button class="yb-btn yb-btn--outline" data-action="campaign-sms-back" hidden>{{ t.campaign_back }}</button>
-      <div class="yb-lead__campaign-footer-right">
-        <button class="yb-btn yb-btn--outline" data-action="campaign-sms-close">{{ t.campaign_cancel }}</button>
-        <button class="yb-btn yb-btn--primary" data-action="campaign-sms-next" id="yb-campaign-sms-next-btn">{{ t.campaign_recipients_continue }}</button>
-      </div>
-    </div>
-  </div>
-</div>
-
-{# ── Email Campaign Wizard Modal ── #}
-<div id="yb-campaign-email-modal" class="yb-lead__modal" hidden>
-  <div class="yb-lead__modal-overlay" data-action="campaign-email-close"></div>
-  <div class="yb-lead__campaign-box yb-lead__campaign-box--email">
-    {# Header with tabs #}
-    <div class="yb-lead__campaign-header">
-      <h3 class="yb-lead__campaign-title">&#9993;&#65039; {{ t.campaign_email_title }}</h3>
-      <button type="button" class="yb-lead__campaign-close" data-action="campaign-email-close">&times;</button>
-    </div>
-    <div class="yb-lead__campaign-tabs" id="yb-campaign-email-tabs">
-      <button class="yb-lead__campaign-tab is-active" data-tab="recipients" type="button">
-        <span class="yb-lead__campaign-tab-num">1</span>
-        {{ t.campaign_tab_recipients }}
-        <span class="yb-lead__campaign-tab-badge" id="yb-campaign-email-recipient-badge"></span>
-      </button>
-      <button class="yb-lead__campaign-tab" data-tab="compose" type="button" disabled>
-        <span class="yb-lead__campaign-tab-num">2</span>
-        {{ t.campaign_tab_compose }}
-      </button>
-      <button class="yb-lead__campaign-tab" data-tab="preview" type="button" disabled>
-        <span class="yb-lead__campaign-tab-num">3</span>
-        {{ t.campaign_tab_preview }}
-      </button>
-      <button class="yb-lead__campaign-tab" data-tab="send" type="button" disabled>
-        <span class="yb-lead__campaign-tab-num">4</span>
-        {{ t.campaign_tab_send }}
-      </button>
-    </div>
-
-    {# Tab panels — content rendered by JS #}
-    <div class="yb-lead__campaign-body">
-      <div class="yb-lead__campaign-panel is-active" data-panel="recipients" id="yb-campaign-email-recipients">
-        {# JS renders: filter chips left + recipient list right #}
-      </div>
-      <div class="yb-lead__campaign-panel" data-panel="compose" id="yb-campaign-email-compose">
-        {# JS renders: sidebar templates + main editor area #}
-      </div>
-      <div class="yb-lead__campaign-panel" data-panel="preview" id="yb-campaign-email-preview">
-        {# JS renders: desktop/mobile toggle, email preview frame, test send #}
-      </div>
-      <div class="yb-lead__campaign-panel" data-panel="send" id="yb-campaign-email-send">
-        {# JS renders: summary, schedule, test send, send all, progress, results #}
-      </div>
-    </div>
-
-    {# Footer — changes per tab #}
-    <div class="yb-lead__campaign-footer" id="yb-campaign-email-footer">
-      <button class="yb-btn yb-btn--outline" data-action="campaign-email-back" hidden>{{ t.campaign_back }}</button>
-      <div class="yb-lead__campaign-footer-right">
-        <button class="yb-btn yb-btn--outline" data-action="campaign-email-close">{{ t.campaign_cancel }}</button>
-        <button class="yb-btn yb-btn--primary" data-action="campaign-email-next" id="yb-campaign-email-next-btn">{{ t.campaign_recipients_continue }}</button>
-      </div>
-    </div>
-  </div>
-</div>
+{# Campaign modals moved to admin.njk so they render outside tab panels #}

@@ -15,12 +15,13 @@
 
   "homepage": {
     "heroVideo": "yoga-bible-DK/homepage/yoga-bible-hero-loop",
-    "inversionsCard": "yoga-bible-DK/courses/inversions-course-copenhagen-promo",
-    "splitsCard": "yoga-bible-DK/courses/splits-course-copenhagen-promo",
-    "backbendsCard": "yoga-bible-DK/courses/professional-backbend-training-copenhagen",
-    "education200hr": "yoga-bible-DK/courses/200-hour-yoga-education-copenhagen",
-    "deepenPractice": "yoga-bible-DK/homepage/deepen-practice-testimonial",
-    "studioPanorama": "yoga-bible-DK/homepage/yoga-bible-studio-panorama-torvegade"
+    "inversionsCard": "media.homepage.inversionsCard_g08t2r",
+    "splitsCard": "media.homepage.splitsCard_pd1wqz",
+    "backbendsCard": "media.homepage.backbendsCard_pr2d1n",
+    "education200hr": "200-hour-yoga-education-copenhagen_kfp7hz",
+    "deepenPractice": "yoga-bible-DK/courses/inversions-course-copenhagen-promo",
+    "studioPanorama": "yoga-bible-DK/homepage/yoga-bible-studio-panorama-torvegade",
+    "practiceLoop": "yoga-bible-DK/homepage/yoga-practice-copenhagen-studio-loop"
   },
 
   "studio": {
@@ -40,9 +41,9 @@
 
   "courses": {
     "inversionsPromo": "yoga-bible-DK/courses/inversions-course-copenhagen-promo",
-    "splitsPromo": "yoga-bible-DK/courses/splits-course-copenhagen-promo",
-    "backbendsPromo": "yoga-bible-DK/courses/professional-backbend-training-copenhagen",
-    "education200hr": "yoga-bible-DK/courses/200-hour-yoga-education-copenhagen"
+    "splitsPromo": "media.homepage.splitsCard_pd1wqz",
+    "backbendsPromo": "media.homepage.backbendsCard_pr2d1n",
+    "education200hr": "200-hour-yoga-education-copenhagen_kfp7hz"
   },
 
   "programs": {
@@ -80,10 +81,10 @@
   },
 
   "p4w": {
-    "studioApartment": "yoga-bible-DK/programs/p4w/studio-apartment-christianshavn-copenhagen",
-    "kitchenette": "yoga-bible-DK/programs/p4w/studio-apartment-kitchenette-copenhagen",
-    "sharedRoom": "yoga-bible-DK/programs/p4w/shared-apartment-private-room-copenhagen",
-    "sharedCommon": "yoga-bible-DK/programs/p4w/shared-apartment-common-area-copenhagen"
+    "studioApartment": "yoga-bible-DK/YTT Programs/4w/studio-apartment-christianshavn-copenhagen",
+    "kitchenette": "yoga-bible-DK/YTT Programs/4w/studio-apartment-kitchenette-copenhagen",
+    "sharedRoom": "yoga-bible-DK/YTT Programs/4w/shared-apartment-private-room-copenhagen",
+    "sharedCommon": "yoga-bible-DK/YTT Programs/4w/shared-apartment-common-area-copenhagen"
   },
 
   "inversions": {
@@ -133,7 +134,25 @@
     "design": "yoga-bible-DK/copenhagen/scandinavian-design-interior",
     "greenSpaces": "yoga-bible-DK/copenhagen/copenhagen-green-spaces-parks",
     "foodScene": "yoga-bible-DK/copenhagen/copenhagen-new-nordic-food-scene",
-    "canalPanorama": "yoga-bible-DK/copenhagen/christianshavn-canal-panorama"
+    "canalPanorama": "yoga-bible-DK/copenhagen/christianshavn-canal-panorama",
+    "designCapital": "yoga-bible-DK/copenhagen/copenhagen-design-capital-architecture",
+    "locationVideo": "yoga-bible-DK/copenhagen/christianshavn-neighborhood-walkthrough",
+    "locationGallery1": "yoga-bible-DK/copenhagen/yoga-bible-studio-exterior-torvegade",
+    "locationGallery2": "yoga-bible-DK/copenhagen/christianshavn-canal-colorful-houses",
+    "locationGallery3": "yoga-bible-DK/copenhagen/christianshavn-cobblestone-street-scene",
+    "whyMain": "yoga-bible-DK/copenhagen/yoga-bible-studio-interior-training",
+    "whySmall1": "yoga-bible-DK/copenhagen/copenhagen-historic-building-detail",
+    "whySmall2": "yoga-bible-DK/copenhagen/copenhagen-airport-terminal",
+    "flightsMap": "yoga-bible-DK/copenhagen/copenhagen-flight-connections-map-europe",
+    "hyggeMain": "yoga-bible-DK/copenhagen/danish-hygge-cozy-candles-scene",
+    "hyggeAccent": "yoga-bible-DK/copenhagen/danish-hygge-warm-candlelit-detail",
+    "nyhavn": "yoga-bible-DK/copenhagen/nyhavn-colorful-harbor-waterfront",
+    "christiania": "yoga-bible-DK/copenhagen/christiania-freetown-entrance-gate",
+    "louisiana": "yoga-bible-DK/copenhagen/louisiana-museum-modern-art-coast",
+    "tivoli": "yoga-bible-DK/copenhagen/tivoli-gardens-illuminated-night",
+    "harborSwim": "yoga-bible-DK/copenhagen/copenhagen-harbor-bath-swimming",
+    "malmo": "yoga-bible-DK/copenhagen/oresund-bridge-malmo-sweden-daytrip",
+    "parks": "yoga-bible-DK/copenhagen/copenhagen-kings-garden-green-park"
   },
 
   "careers": {

@@ -1,16 +1,53 @@
 {% set t = i18n.yogamusic[lang or "da"] %}
+{% set lp = "/en" if lang == "en" else "" %}
 
-<!-- Hero -->
+{# FAQPage Schema (AEO — featured snippets for AI search) #}
+<script type="application/ld+json">
+{%- set _faqs = [
+  [t.faq1_q, t.faq1_a],
+  [t.faq2_q, t.faq2_a],
+  [t.faq3_q, t.faq3_a],
+  [t.faq4_q, t.faq4_a],
+  [t.faq5_q, t.faq5_a]
+] -%}
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {% for faq in _faqs %}
+    {
+      "@type": "Question",
+      "name": {{ faq[0] | dump | safe }},
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": {{ faq[1] | dump | safe }}
+      }
+    }{% if not loop.last %},{% endif %}
+    {% endfor %}
+  ]
+}
+</script>
+
+
+{# ═══════════════════════════════════════════════════════════════
+   HERO — Dark Cinematic with Background Video
+   ═══════════════════════════════════════════════════════════════ #}
 <section class="yb-hero">
+  <div class="yb-hero__bg">
+    {# CLOUDINARY: yoga-bible-DK/yogamusic/hero-loop.mp4 — dark cinematic, music/movement #}
+    <video autoplay muted loop playsinline poster="{{ 'yoga-bible-DK/yogamusic/hero-poster' | cloudimg('w_1920,h_1080,c_fill') }}">
+      <source src="{{ 'yoga-bible-DK/yogamusic/hero-loop' | cloudvid('w_1920,q_auto') }}" type="video/mp4">
+    </video>
+  </div>
   <div class="yb-hero__glow"></div>
   <div class="yb-hero__content">
     <p class="yb-hero__tagline">{{ t.hero_tagline }}</p>
     <h1 class="yb-hero__title">{{ t.hero_title }}</h1>
-    <p class="yb-hero__subtitle">{{ t.hero_subtitle }}</p>
+    <p class="yb-hero__subtitle">{{ t.hero_lead }}</p>
     <div class="yb-hero__line"></div>
     <div class="yb-hero__ctas">
-      <a href="https://on.soundcloud.com/N92LNtGPzJqwYbScA" target="_blank" rel="noopener" class="yb-btn yb-btn--primary yb-btn--large">{{ t.hero_cta_soundcloud }}</a>
-      <a href="https://open.spotify.com/user/31draywwpkwp4lljbv6onkmr6i5i" target="_blank" rel="noopener" class="yb-btn yb-btn--outline-white yb-btn--large">{{ t.hero_cta_spotify }}</a>
+      <a href="https://on.soundcloud.com/N92LNtGPzJqwYbScA" target="_blank" rel="noopener" class="yb-btn yb-btn--primary yb-btn--large">{{ t.hero_cta_listen }}</a>
+      <a href="https://open.spotify.com/user/31draywwpkwp4lljbv6onkmr6i5i" target="_blank" rel="noopener" class="yb-btn yb-btn--outline-white yb-btn--large">{{ t.hero_cta_follow }}</a>
     </div>
     <div class="yb-hero__trust">
       <span>{{ t.hero_trust1 }}</span>
@@ -21,100 +58,424 @@
     </div>
   </div>
   <div class="yb-hero__scroll">
-    <span>Scroll</span>
+    <span>{{ t.hero_scroll }}</span>
     <div class="yb-hero__scroll-line"></div>
   </div>
 </section>
 
-<!-- Our Universe -->
-<section class="program-overview">
-  <div class="container">
-    <h2 class="section-title">{{ t.universe_title }}</h2>
-    <p class="section-subtitle">
-      {{ t.universe_desc }}
-    </p>
+
+{# ═══════════════════════════════════════════════════════════════
+   INTRO — Centered prose (like course intro)
+   ═══════════════════════════════════════════════════════════════ #}
+<section class="ym-intro">
+  <div class="ym-intro__inner">
+    <p class="ym-intro__text">{{ t.intro_text }}</p>
+    <p class="ym-intro__text ym-intro__text--secondary">{{ t.intro_text2 }}</p>
   </div>
 </section>
 
-<!-- Behind The Music -->
-<section class="program-schedule">
-  <div class="container">
-    <h2 class="section-title">{{ t.behind_title }}</h2>
-    <p class="section-subtitle">
-      {{ t.behind_desc }}
-    </p>
 
-    <div class="schedule-options">
-      <div class="schedule-card">
-        <h3>{{ t.phase1_title }}</h3>
-        <div class="schedule-card__time">{{ t.phase1_bpm }}</div>
-        <p>{{ t.phase1_desc }}</p>
+{# ═══════════════════════════════════════════════════════════════
+   QUOTE — Animated text + looping video (like course S3)
+   ═══════════════════════════════════════════════════════════════ #}
+<section class="ym-quote">
+  <div class="ym-quote__inner">
+    <div class="ym-quote__copy">
+      <h2 class="ym-quote__heading">
+        <span class="ym-quote__line" data-step="0">{{ t.quote_line1 }}</span>
+        <span class="ym-quote__line" data-step="1">{{ t.quote_line2 }}</span>
+        <span class="ym-quote__line" data-step="2">{{ t.quote_line3 }}</span>
+        <span class="ym-quote__line ym-quote__accent" data-step="3">{{ t.quote_line4 }}</span>
+        <span class="ym-quote__divider"></span>
+        <span class="ym-quote__line ym-quote__soft" data-step="4">{{ t.quote_line5 }}</span>
+        <span class="ym-quote__line ym-quote__soft" data-step="5">{{ t.quote_line6 }}</span>
+      </h2>
+    </div>
+    <figure class="ym-quote__media">
+      <div class="ym-quote__clip">
+        {# CLOUDINARY: yoga-bible-DK/yogamusic/quote-loop.mp4 — vertical or square, moody practice footage #}
+        <video autoplay muted loop playsinline poster="{{ 'yoga-bible-DK/yogamusic/quote-poster' | cloudimg('w_800,h_1000,c_fill') }}">
+          <source src="{{ 'yoga-bible-DK/yogamusic/quote-loop' | cloudvid('w_800,q_auto') }}" type="video/mp4">
+        </video>
+        <span class="ym-quote__frame"></span>
       </div>
-      <div class="schedule-card">
-        <h3>{{ t.phase2_title }}</h3>
-        <div class="schedule-card__time">{{ t.phase2_bpm }}</div>
-        <p>{{ t.phase2_desc }}</p>
+    </figure>
+  </div>
+</section>
+
+
+{# ═══════════════════════════════════════════════════════════════
+   OUR UNIVERSE — Split layout: text + vertical phone video
+   ═══════════════════════════════════════════════════════════════ #}
+<section class="ym-concept">
+  <div class="ym-concept__inner">
+    <div class="ym-concept__grid">
+
+      <div class="ym-concept__content">
+        <span class="ym-eyebrow">{{ t.concept_eyebrow }}</span>
+        <h2 class="ym-concept__title">{{ t.concept_title }}</h2>
+        <p class="ym-concept__text">{{ t.concept_text1 | safe }}</p>
+        <p class="ym-concept__text">{{ t.concept_text2 | safe }}</p>
+        <div class="ym-concept__ctas">
+          <a href="https://on.soundcloud.com/N92LNtGPzJqwYbScA" target="_blank" rel="noopener" class="yb-btn yb-btn--primary">{{ t.concept_cta_sc }}</a>
+          <a href="https://open.spotify.com/user/31draywwpkwp4lljbv6onkmr6i5i" target="_blank" rel="noopener" class="yb-btn yb-btn--outline">{{ t.concept_cta_sp }}</a>
+        </div>
       </div>
-      <div class="schedule-card">
-        <h3>{{ t.phase3_title }}</h3>
-        <div class="schedule-card__time">{{ t.phase3_bpm }}</div>
-        <p>{{ t.phase3_desc }}</p>
+
+      <div class="ym-concept__visual">
+        <div class="ym-phone">
+          {# CLOUDINARY: yoga-bible-DK/yogamusic/phone-loop.mp4 — 9:16 vertical, practice footage #}
+          <video autoplay muted loop playsinline poster="{{ 'yoga-bible-DK/yogamusic/phone-poster' | cloudimg('w_680,h_1210,c_fill') }}">
+            <source src="{{ 'yoga-bible-DK/yogamusic/phone-loop' | cloudvid('w_680,q_auto') }}" type="video/mp4">
+          </video>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+
+{# ═══════════════════════════════════════════════════════════════
+   ENERGY ARC — Journey visualization
+   ═══════════════════════════════════════════════════════════════ #}
+<section class="ym-arc">
+  <div class="ym-arc__inner">
+    <header class="ym-arc__header">
+      <span class="ym-eyebrow ym-eyebrow--center">{{ t.arc_eyebrow }}</span>
+      <h2 class="ym-section-title">{{ t.arc_title }}</h2>
+      <p class="ym-section-sub">{{ t.arc_lead }}</p>
+    </header>
+
+    <div class="ym-arc__box">
+      <div class="ym-arc__box-intro">
+        <h3>{{ t.arc_journey_title }}</h3>
+        <p>{{ t.arc_journey_text }}</p>
+      </div>
+
+      {# SVG Energy Curve #}
+      <div class="ym-arc__curve">
+        <div class="ym-arc__peak-label"><span>{{ t.arc_peak }}</span></div>
+        <div class="ym-arc__svg-wrap">
+          <svg viewBox="0 0 800 120" preserveAspectRatio="none" class="ym-arc__svg">
+            <defs>
+              <linearGradient id="ymCG" x1="0%" y1="0%" x2="100%" y2="0%">
+                <stop offset="0%" style="stop-color:#64b5f6;stop-opacity:0.8"/>
+                <stop offset="25%" style="stop-color:#81c784;stop-opacity:0.8"/>
+                <stop offset="50%" style="stop-color:#f75c03;stop-opacity:1"/>
+                <stop offset="75%" style="stop-color:#81c784;stop-opacity:0.8"/>
+                <stop offset="100%" style="stop-color:#64b5f6;stop-opacity:0.8"/>
+              </linearGradient>
+              <linearGradient id="ymFG" x1="0%" y1="0%" x2="0%" y2="100%">
+                <stop offset="0%" style="stop-color:#f75c03;stop-opacity:0.1"/>
+                <stop offset="100%" style="stop-color:#f75c03;stop-opacity:0.01"/>
+              </linearGradient>
+            </defs>
+            <path d="M0,115 Q200,115 300,60 Q400,5 400,5 Q400,5 500,60 Q600,115 800,115 L800,120 L0,120Z" fill="url(#ymFG)"/>
+            <path d="M0,115 Q200,115 300,60 Q400,5 400,5 Q400,5 500,60 Q600,115 800,115" fill="none" stroke="url(#ymCG)" stroke-width="3.5" stroke-linecap="round"/>
+            <circle cx="400" cy="5" r="5" fill="#f75c03"/>
+          </svg>
+        </div>
+        <div class="ym-arc__labels">
+          <span class="ym-arc__label">{{ t.arc_ground }}<small>{{ t.arc_ground_sub }}</small></span>
+          <span class="ym-arc__label">{{ t.arc_shav }}<small>{{ t.arc_shav_sub }}</small></span>
+        </div>
+      </div>
+
+      {# Phase Cards #}
+      <div class="ym-arc__phases">
+        {% set phases = [1,2,3] %}
+        {% for p in phases %}
+        <div class="ym-arc__phase">
+          <span class="ym-arc__phase-time">{{ t["arc_p" + p + "_time"] }}</span>
+          <strong class="ym-arc__phase-name">{{ t["arc_p" + p + "_name"] }}</strong>
+          <span class="ym-arc__phase-bpm">{{ t["arc_p" + p + "_bpm"] }} <small>BPM</small></span>
+          <p>{{ t["arc_p" + p + "_desc"] }}</p>
+        </div>
+        {% endfor %}
       </div>
     </div>
   </div>
 </section>
 
-<!-- Design Principles -->
-<section class="program-overview">
-  <div class="container">
-    <h2 class="section-title">{{ t.principles_title }}</h2>
 
-    <div class="program-grid">
-      <div class="program-feature">
-        <div class="program-feature__icon">🎵</div>
-        <h3>{{ t.prin1_title }}</h3>
-        <p>{{ t.prin1_desc }}</p>
-      </div>
+{# ═══════════════════════════════════════════════════════════════
+   DESIGN PRINCIPLES — 4 feature cards
+   ═══════════════════════════════════════════════════════════════ #}
+<section class="ym-prin">
+  <div class="ym-prin__inner">
+    <header class="ym-prin__header">
+      <span class="ym-eyebrow ym-eyebrow--center">{{ t.prin_eyebrow }}</span>
+      <h2 class="ym-section-title">{{ t.prin_title }}</h2>
+      <p class="ym-section-sub">{{ t.prin_lead }}</p>
+    </header>
 
-      <div class="program-feature">
-        <div class="program-feature__icon">🔄</div>
-        <h3>{{ t.prin2_title }}</h3>
-        <p>{{ t.prin2_desc }}</p>
+    <div class="ym-prin__grid">
+      {% set icons = [
+        "M9 18V5l12-2v13M6 18a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM18 16a3 3 0 1 0 0-6 3 3 0 0 0 0 6z",
+        "M17 2.1l4 4-4 4M3 12.2v-2a4 4 0 0 1 4-4h12.8M7 21.9l-4-4 4-4M21 11.8v2a4 4 0 0 1-4 4H4.2",
+        "M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10zM2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z",
+        "M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9M13.73 21a2 2 0 0 1-3.46 0"
+      ] %}
+      {% for i in range(1, 5) %}
+      <div class="ym-prin__card">
+        <div class="ym-prin__icon">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--yb-brand)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="{{ icons[loop.index0] }}"/></svg>
+        </div>
+        <h3>{{ t["prin" + i + "_title"] }}</h3>
+        <p>{{ t["prin" + i + "_text"] }}</p>
       </div>
-
-      <div class="program-feature">
-        <div class="program-feature__icon">🌍</div>
-        <h3>{{ t.prin3_title }}</h3>
-        <p>{{ t.prin3_desc }}</p>
-      </div>
-
-      <div class="program-feature">
-        <div class="program-feature__icon">🧘</div>
-        <h3>{{ t.prin4_title }}</h3>
-        <p>{{ t.prin4_desc }}</p>
-      </div>
+      {% endfor %}
     </div>
   </div>
 </section>
 
-<!-- Meet The Creators -->
-<section class="program-schedule">
-  <div class="container">
-    <h2 class="section-title">{{ t.creators_title }}</h2>
-    <p class="section-subtitle">
-      {{ t.creators_desc }}
+
+{# ═══════════════════════════════════════════════════════════════
+   LISTEN NOW — SoundCloud embed (dark section)
+   ═══════════════════════════════════════════════════════════════ #}
+<section class="ym-listen">
+  <div class="ym-listen__inner">
+    <header class="ym-listen__header">
+      <span class="ym-eyebrow ym-eyebrow--center ym-eyebrow--on-dark">{{ t.listen_eyebrow }}</span>
+      <h2 class="ym-section-title ym-section-title--light">{{ t.listen_title }}</h2>
+      <p class="ym-section-sub ym-section-sub--light">{{ t.listen_lead }}</p>
+    </header>
+    <div class="ym-listen__embed">
+      <iframe width="100%" height="166" scrolling="no" frameborder="no" allow="autoplay" loading="lazy"
+        src="https://w.soundcloud.com/player/?url=https%3A//api.soundcloud.com/users/yogabible&color=%23f75c03&auto_play=false&hide_related=true&show_comments=false&show_user=true&show_reposts=false&show_teaser=false"></iframe>
+    </div>
+  </div>
+</section>
+
+
+{# ═══════════════════════════════════════════════════════════════
+   TESTIMONIALS — Orange stroke cards (like course S6)
+   ═══════════════════════════════════════════════════════════════ #}
+<section class="ym-test">
+  <div class="ym-test__inner">
+    <header class="ym-test__header">
+      <span class="ym-eyebrow ym-eyebrow--center">{{ t.test_eyebrow }}</span>
+      <h2 class="ym-section-title">{{ t.test_title }}</h2>
+    </header>
+    <div class="ym-test__grid">
+      {% for i in [1,2,3] %}
+      <article class="ym-test__card">
+        <span class="ym-test__stars" aria-label="5 stars">&#9733;&#9733;&#9733;&#9733;&#9733;</span>
+        <blockquote class="ym-test__quote">{{ t["test" + i + "_quote"] }}</blockquote>
+        <footer class="ym-test__footer">
+          <strong>{{ t["test" + i + "_name"] }}</strong>
+          <span>{{ t["test" + i + "_detail"] }}</span>
+        </footer>
+      </article>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+
+
+{# ═══════════════════════════════════════════════════════════════
+   FOR ARTISTS & DJs — Full dark technical section
+   ═══════════════════════════════════════════════════════════════ #}
+<section class="ym-artists">
+  <div class="ym-artists__inner">
+    <header class="ym-artists__header">
+      <span class="ym-eyebrow ym-eyebrow--center ym-eyebrow--on-dark">{{ t.artists_eyebrow }}</span>
+      <h2 class="ym-section-title ym-section-title--light">{{ t.artists_title }}</h2>
+      <p class="ym-section-sub ym-section-sub--light">{{ t.artists_lead }}</p>
+    </header>
+
+    {# Philosophy blockquote #}
+    <div class="ym-artists__quote">
+      <p>{{ t.artists_philosophy | safe }}</p>
+    </div>
+
+    {# Detailed Arc #}
+    <div class="ym-artists__arc">
+      <h3 class="ym-artists__arc-title">{{ t.artists_arc_title }}</h3>
+
+      <div class="ym-artists__bars">
+        <div class="ym-artists__bar ym-artists__bar--warm">{{ t.artists_warmup }} <span>20 min</span></div>
+        <div class="ym-artists__bar ym-artists__bar--peak">{{ t.artists_peak }} <span>20 min</span></div>
+        <div class="ym-artists__bar ym-artists__bar--cool">{{ t.artists_cooldown }} <span>20 min</span></div>
+      </div>
+
+      <div class="ym-artists__curve">
+        <div class="ym-artists__peak-label"><span>{{ t.artists_peak_energy }}</span></div>
+        <div class="ym-artists__svg-wrap">
+          <svg viewBox="0 0 1000 140" preserveAspectRatio="none" class="ym-artists__svg">
+            <defs>
+              <linearGradient id="ymACG" x1="0%" y1="0%" x2="100%" y2="0%">
+                <stop offset="0%" style="stop-color:#64b5f6"/>
+                <stop offset="17%" style="stop-color:#81c784"/>
+                <stop offset="33%" style="stop-color:#9ccc65"/>
+                <stop offset="50%" style="stop-color:#f75c03"/>
+                <stop offset="67%" style="stop-color:#9ccc65"/>
+                <stop offset="83%" style="stop-color:#81c784"/>
+                <stop offset="100%" style="stop-color:#64b5f6"/>
+              </linearGradient>
+              <linearGradient id="ymAFG" x1="0%" y1="0%" x2="0%" y2="100%">
+                <stop offset="0%" style="stop-color:#f75c03;stop-opacity:0.15"/>
+                <stop offset="100%" style="stop-color:#f75c03;stop-opacity:0.01"/>
+              </linearGradient>
+            </defs>
+            <line x1="167" y1="20" x2="167" y2="125" stroke="rgba(255,255,255,0.06)" stroke-dasharray="4,4"/>
+            <line x1="333" y1="20" x2="333" y2="125" stroke="rgba(255,255,255,0.06)" stroke-dasharray="4,4"/>
+            <line x1="500" y1="20" x2="500" y2="125" stroke="rgba(247,92,3,0.25)" stroke-dasharray="4,4"/>
+            <line x1="667" y1="20" x2="667" y2="125" stroke="rgba(255,255,255,0.06)" stroke-dasharray="4,4"/>
+            <line x1="833" y1="20" x2="833" y2="125" stroke="rgba(255,255,255,0.06)" stroke-dasharray="4,4"/>
+            <path d="M0,125 C100,125 150,120 200,110 C280,95 350,70 400,45 C450,25 480,12 500,10 C520,12 550,25 600,45 C650,70 720,95 800,110 C850,120 900,125 1000,125 L1000,140 L0,140Z" fill="url(#ymAFG)"/>
+            <path d="M0,125 C100,125 150,120 200,110 C280,95 350,70 400,45 C450,25 480,12 500,10 C520,12 550,25 600,45 C650,70 720,95 800,110 C850,120 900,125 1000,125" fill="none" stroke="url(#ymACG)" stroke-width="4" stroke-linecap="round"/>
+            <circle cx="500" cy="10" r="6" fill="#f75c03"/>
+            <circle cx="500" cy="10" r="10" fill="none" stroke="#f75c03" stroke-opacity="0.4" stroke-width="2"/>
+          </svg>
+        </div>
+        <div class="ym-artists__side-labels">
+          <span>{{ t.artists_ground }} <small>{{ t.artists_ground_sub }}</small></span>
+          <span class="ym-artists__side-labels--right">{{ t.artists_surrender }} <small>{{ t.artists_surrender_sub }}</small></span>
+        </div>
+        <div class="ym-artists__timeline">
+          <span>0:00</span><span>10:00</span><span>20:00</span><span>30:00</span><span>40:00</span><span>50:00</span><span>60:00</span>
+        </div>
+      </div>
+
+      {# 6-Segment Cards #}
+      <div class="ym-artists__segments">
+        {% for s in [1,2,3,4,5,6] %}
+        <div class="ym-artists__seg">
+          <span class="ym-artists__seg-label">{{ t["artists_seg" + s + "_label"] }}</span>
+          <span class="ym-artists__seg-bpm">{{ t["artists_seg" + s + "_bpm"] }} <small>BPM</small></span>
+          <span class="ym-artists__seg-desc">{{ t["artists_seg" + s + "_desc"] }}</span>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+
+    {# Rules #}
+    <div class="ym-artists__rules">
+      {% set ruleIcons = [
+        "M9 18V5l12-2v13M6 18a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM18 16a3 3 0 1 0 0-6 3 3 0 0 0 0 6z",
+        "M2 20h.01M7 20v-4M12 20v-8M17 20V8M22 4v16",
+        "M18.36 6.64a9 9 0 1 1-12.73 0M12 2v10",
+        "M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"
+      ] %}
+      {% set ruleTypes = ["", "", "avoid", "prefer"] %}
+      {% for i in [1,2,3,4] %}
+      <div class="ym-artists__rule{% if ruleTypes[loop.index0] %} ym-artists__rule--{{ ruleTypes[loop.index0] }}{% endif %}">
+        <div class="ym-artists__rule-icon">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="{{ ruleIcons[loop.index0] }}"/></svg>
+        </div>
+        <h3>{{ t["artists_rule" + i + "_title"] }}</h3>
+        <ul>
+          {% for item in t["artists_rule" + i + "_items"] %}
+          <li>{{ item }}</li>
+          {% endfor %}
+        </ul>
+      </div>
+      {% endfor %}
+    </div>
+
+    {# Specs #}
+    <div class="ym-artists__specs">
+      {% for s in [1,2,3,4] %}
+      <div class="ym-artists__spec">
+        <span class="ym-artists__spec-val">{{ t["artists_spec" + s + "_val"] }}{% if t["artists_spec" + s + "_unit"] %}<small>{{ t["artists_spec" + s + "_unit"] }}</small>{% endif %}</span>
+        <span class="ym-artists__spec-label">{{ t["artists_spec" + s + "_label"] }}</span>
+      </div>
+      {% endfor %}
+    </div>
+
+    {# Collaboration CTA #}
+    <div class="ym-artists__collab">
+      <h3>{{ t.artists_collab_title }}</h3>
+      <p>{{ t.artists_collab_text }}</p>
+      <a href="mailto:info@yogabible.dk?subject=Music%20Collaboration" class="yb-btn yb-btn--primary yb-btn--large">{{ t.artists_collab_btn }}</a>
+      <p class="ym-artists__collab-or">{{ t.artists_collab_or }} <a href="mailto:info@yogabible.dk">info@yogabible.dk</a></p>
+    </div>
+  </div>
+</section>
+
+
+{# ═══════════════════════════════════════════════════════════════
+   FAQ — Accordion with toggle buttons (like course S8)
+   ═══════════════════════════════════════════════════════════════ #}
+<section class="ym-faq">
+  <div class="ym-faq__inner">
+    <header class="ym-faq__header">
+      <span class="ym-eyebrow ym-eyebrow--center">{{ t.faq_eyebrow }}</span>
+      <h2 class="ym-section-title">{{ t.faq_title }}</h2>
+    </header>
+
+    <div class="ym-faq__list">
+      {% for i in [1,2,3,4,5] %}
+      <div class="ym-faq__item">
+        <button class="ym-faq__toggle" type="button" aria-expanded="false">
+          <span>{{ t["faq" + i + "_q"] }}</span>
+          <span class="ym-faq__icon" aria-hidden="true"></span>
+        </button>
+        <div class="ym-faq__panel" hidden>
+          <p>{{ t["faq" + i + "_a"] }}</p>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+
+    <p class="ym-faq__contact">
+      {{ t.faq_contact }}
+      <a href="{{ lp }}/kontakt">{{ t.faq_contact_cta }}</a>
     </p>
   </div>
 </section>
 
-<!-- CTA -->
-<section class="cta-section">
-  <div class="container">
-    <h2 class="cta-section__title">{{ t.cta_title }}</h2>
-    <p class="cta-section__text">{{ t.cta_text }}</p>
-    <div style="display:flex; gap:16px; justify-content:center; flex-wrap:wrap;">
-      <a href="https://on.soundcloud.com/N92LNtGPzJqwYbScA" target="_blank" rel="noopener" class="btn btn--large btn--primary">SoundCloud</a>
-      <a href="https://open.spotify.com/user/31draywwpkwp4lljbv6onkmr6i5i" target="_blank" rel="noopener" class="btn btn--large btn--secondary">Spotify</a>
+
+{# ═══════════════════════════════════════════════════════════════
+   CTA — Orange gradient final section
+   ═══════════════════════════════════════════════════════════════ #}
+<section class="ym-cta">
+  <div class="ym-cta__inner">
+    <h2>{{ t.cta_title }}</h2>
+    <p>{{ t.cta_text }}</p>
+    <div class="ym-cta__buttons">
+      <a href="https://on.soundcloud.com/N92LNtGPzJqwYbScA" target="_blank" rel="noopener" class="yb-btn yb-btn--primary yb-btn--large">{{ t.cta_sc }}</a>
+      <a href="https://open.spotify.com/user/31draywwpkwp4lljbv6onkmr6i5i" target="_blank" rel="noopener" class="yb-btn yb-btn--outline-white yb-btn--large">{{ t.cta_sp }}</a>
     </div>
   </div>
 </section>
+
+
+{# ═══════════════════════════════════════════════════════════════
+   PAGE JS — Quote animation + FAQ toggle
+   ═══════════════════════════════════════════════════════════════ #}
+<script>
+(function(){
+  /* Quote line-by-line reveal on scroll */
+  var lines = document.querySelectorAll('.ym-quote__line');
+  if (lines.length && 'IntersectionObserver' in window) {
+    var obs = new IntersectionObserver(function(entries) {
+      entries.forEach(function(e) {
+        if (e.isIntersecting) {
+          var container = e.target;
+          var items = container.querySelectorAll('.ym-quote__line');
+          items.forEach(function(line, i) {
+            setTimeout(function() { line.classList.add('is-visible'); }, i * 200);
+          });
+          obs.unobserve(container);
+        }
+      });
+    }, { threshold: 0.3 });
+    var heading = document.querySelector('.ym-quote__heading');
+    if (heading) obs.observe(heading);
+  }
+
+  /* FAQ toggle */
+  var faqBtns = document.querySelectorAll('.ym-faq__toggle');
+  faqBtns.forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      var expanded = btn.getAttribute('aria-expanded') === 'true';
+      btn.setAttribute('aria-expanded', !expanded);
+      var panel = btn.nextElementSibling;
+      if (panel) panel.hidden = expanded;
+    });
+  });
+})();
+</script>

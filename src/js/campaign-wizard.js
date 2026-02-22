@@ -18,6 +18,7 @@
   var campaignState = {
     type: null,       // 'sms' or 'email'
     tab: 'recipients',
+    maxVisitedTab: 0, // highest tab index visited — allows free back-navigation
     filters: {
       source: 'all',
       statuses: [],
@@ -26,6 +27,9 @@
       routes: [],
       countries: [],
       periods: [],
+      tracks: [],
+      cohorts: [],
+      paymentStatuses: [],
       recency: null,
       housing: false,
       meta: false,
@@ -244,6 +248,31 @@
         if (!routeMatch) return false;
       }
 
+      // Track filter (applications)
+      // Stored values may be "Hverdagsprogram"/"Weekendprogram" (DA) or "Weekday program"/"Weekend program" (EN)
+      if (f.tracks.length > 0) {
+        var track = String(lead.track || '').toLowerCase();
+        var trackMatch = false;
+        for (var i = 0; i < f.tracks.length; i++) {
+          var fVal = f.tracks[i]; // 'weekday' or 'weekend'
+          if (fVal === 'weekday' && (track === 'weekday' || track.indexOf('hverdag') !== -1 || track.indexOf('weekday') !== -1)) { trackMatch = true; break; }
+          if (fVal === 'weekend' && (track === 'weekend' || track.indexOf('weekend') !== -1)) { trackMatch = true; break; }
+        }
+        if (!trackMatch) return false;
+      }
+
+      // Cohort filter (applications)
+      if (f.cohorts.length > 0) {
+        var cohort = lead.cohort_label || '';
+        if (f.cohorts.indexOf(cohort) === -1) return false;
+      }
+
+      // Payment status filter (applications)
+      if (f.paymentStatuses.length > 0) {
+        var payChoice = lead.payment_choice || '';
+        if (f.paymentStatuses.indexOf(payChoice) === -1) return false;
+      }
+
       // Country filter
       if (f.countries.length > 0) {
         var country = detectCountry(lead);
@@ -353,7 +382,7 @@
 
     // Search
     html += '<div class="yb-lead__campaign-filter-section">' +
-      '<input type="text" class="yb-lead__campaign-email-search" placeholder="' + esc(t('campaign_filter_search')) + '" id="yb-campaign-filter-search" value="' + esc(campaignState.searchTerm) + '">' +
+      '<input type="text" class="yb-lead__campaign-email-search" placeholder="' + esc(t('campaign_filter_search')) + '" id="yb-campaign-' + campaignState.type + '-filter-search" value="' + esc(campaignState.searchTerm) + '">' +
       '</div>';
 
     // Data source
@@ -445,6 +474,35 @@
       { id: 'june', label: 'Jun' }
     ], f.periods, 'periods');
 
+    // Track (Weekday / Weekend) — for applications
+    html += buildChipSection('campaign_filter_track', [
+      { id: 'weekday', label: t('campaign_filter_track_weekday') },
+      { id: 'weekend', label: t('campaign_filter_track_weekend') }
+    ], f.tracks, 'tracks');
+
+    // Cohort — dynamically populated from loaded applications
+    var cohortChips = [];
+    try {
+      var allApps = (bridge && bridge.getApplications) ? (bridge.getApplications() || []) : [];
+      var seenCohorts = {};
+      allApps.forEach(function (a) {
+        var cl = a.cohort_label || '';
+        if (cl && !seenCohorts[cl]) { seenCohorts[cl] = true; cohortChips.push({ id: cl, label: cl }); }
+      });
+      cohortChips.sort(function (a, b) { return a.label.localeCompare(b.label); });
+    } catch (e) { /* ignore */ }
+    if (cohortChips.length > 0) {
+      html += buildChipSection('campaign_filter_cohort', cohortChips, f.cohorts, 'cohorts');
+    }
+
+    // Payment Status — for applications
+    html += buildChipSection('campaign_filter_payment', [
+      { id: 'paid_deposit', label: t('campaign_filter_payment_deposit') },
+      { id: 'paid_full', label: t('campaign_filter_payment_full') },
+      { id: 'pay_now', label: t('campaign_filter_payment_paynow') },
+      { id: 'paid', label: t('campaign_filter_payment_legacy') }
+    ], f.paymentStatuses, 'paymentStatuses');
+
     // Recency
     html += buildChipSection('campaign_filter_recency', [
       { id: '7d', label: t('campaign_filter_recency_7d') },
@@ -519,32 +577,38 @@
     var selectedCount = campaignState.selectedIds.size;
     var contactField = campaignState.type === 'sms' ? 'phone' : 'email';
 
-    var html = '<div class="yb-lead__campaign-recipient-count">' + recipients.length + '</div>';
-    html += '<div class="yb-lead__campaign-recipient-label">' + esc(t('campaign_recipients_count')) + '</div>';
+    // Header: count + match label on one line
+    var html = '<div class="yb-lead__campaign-recipient-header">' +
+      '<span class="yb-lead__campaign-recipient-count">' + recipients.length + '</span> ' +
+      '<span class="yb-lead__campaign-recipient-label">' + esc(t('campaign_recipients_count')) + '</span>' +
+      '</div>';
 
-    // Toolbar
+    // Toolbar: select all | selected count | deselect
     html += '<div class="yb-lead__campaign-recipient-toolbar">' +
       '<button type="button" data-action="campaign-select-all">' + esc(t('campaign_recipients_select_all')) + '</button>' +
-      '<span>' + selectedCount + ' ' + esc(t('campaign_recipients_selected')) + '</span>' +
+      '<span class="yb-lead__campaign-recipient-toolbar-count">' + selectedCount + ' ' + esc(t('campaign_recipients_selected')) + '</span>' +
       '<button type="button" data-action="campaign-deselect-all">' + esc(t('campaign_recipients_deselect_all')) + '</button>' +
       '</div>';
 
     if (recipients.length === 0) {
       html += '<div class="yb-lead__campaign-no-match">' + esc(t('campaign_recipients_no_match')) + '</div>';
     } else {
+      // Grid-based recipient list — columns: checkbox | flag | name (1fr) | contact | program
       html += '<div class="yb-lead__campaign-recipient-list">';
       recipients.forEach(function (lead) {
         var checked = campaignState.selectedIds.has(lead.id) ? ' checked' : '';
         var country = detectCountry(lead);
-        var name = esc((lead.first_name || '') + ' ' + (lead.last_name || '')).trim() || esc(lead.email || lead.phone || 'Unknown');
+        var fullName = ((lead.first_name || '') + ' ' + (lead.last_name || '')).trim();
+        var name = esc(fullName) || esc(lead.email || lead.phone || 'Unknown');
         var contact = esc(lead[contactField] || '');
         var prog = esc(lead.program || lead.type || '');
+
         html += '<div class="yb-lead__campaign-recipient-row" data-lead-id="' + lead.id + '">' +
-          '<input type="checkbox" data-action="campaign-toggle-recipient"' + checked + '> ' +
-          '<span class="yb-lead__campaign-recipient-flag">' + getFlag(country) + '</span> ' +
+          '<input type="checkbox" class="yb-lead__campaign-recipient-check" data-action="campaign-toggle-recipient"' + checked + '>' +
+          '<span class="yb-lead__campaign-recipient-flag">' + getFlag(country) + '</span>' +
           '<span class="yb-lead__campaign-recipient-name">' + name + '</span>' +
           '<span class="yb-lead__campaign-recipient-contact">' + contact + '</span>' +
-          (prog ? '<span class="yb-lead__campaign-recipient-program">' + prog + '</span>' : '') +
+          '<span class="yb-lead__campaign-recipient-program">' + prog + '</span>' +
           '</div>';
       });
       html += '</div>';
@@ -559,13 +623,14 @@
   function renderRecipientsTab(panelEl) {
     applyFilters();
 
+    var prefix = campaignState.type; // 'sms' or 'email'
     panelEl.innerHTML = '<div class="yb-lead__campaign-recipients">' +
-      '<div class="yb-lead__campaign-filters" id="yb-campaign-filters-area"></div>' +
-      '<div class="yb-lead__campaign-recipient-list-wrap" id="yb-campaign-recipients-list"></div>' +
+      '<div class="yb-lead__campaign-filters" id="yb-campaign-' + prefix + '-filters-area"></div>' +
+      '<div class="yb-lead__campaign-recipient-list-wrap" id="yb-campaign-' + prefix + '-recipients-list"></div>' +
       '</div>';
 
-    renderFilterPanel($('yb-campaign-filters-area'));
-    renderRecipientList($('yb-campaign-recipients-list'));
+    renderFilterPanel($('yb-campaign-' + prefix + '-filters-area'));
+    renderRecipientList($('yb-campaign-' + prefix + '-recipients-list'));
     updateRecipientBadge();
   }
 
@@ -1040,32 +1105,45 @@
     var idx = tabs.indexOf(tabName);
     if (idx === -1) return;
 
-    // Validate navigation
-    if (tabName === 'compose' && campaignState.selectedIds.size === 0) {
-      if (bridge) bridge.toast(t('campaign_recipients_no_match'), true);
-      return;
-    }
-    if (tabName === 'preview' || tabName === 'send') {
-      if (campaignState.type === 'sms' && !campaignState.smsMessage.trim()) {
-        if (bridge) bridge.toast(t('leads_sms_empty'), true);
+    var currentIdx = tabs.indexOf(campaignState.tab);
+    var isAdvancing = idx > currentIdx;
+
+    // Only validate when advancing FORWARD — going back is always free
+    if (isAdvancing) {
+      // Must have recipients selected to go past recipients tab
+      if (tabName !== 'recipients' && campaignState.selectedIds.size === 0) {
+        if (bridge) bridge.toast(t('campaign_recipients_no_match'), true);
         return;
       }
-      if (campaignState.type === 'email' && !campaignState.emailSubject.trim() && !campaignState.emailBodyHtml.trim()) {
-        if (bridge) bridge.toast(t('leads_email_empty'), true);
-        return;
+      // Must have composed message to go to preview or send
+      var needsCompose = (tabName === 'preview' || tabName === 'send');
+      if (needsCompose) {
+        if (campaignState.type === 'sms' && !campaignState.smsMessage.trim()) {
+          if (bridge) bridge.toast(t('leads_sms_empty'), true);
+          return;
+        }
+        if (campaignState.type === 'email' && !campaignState.emailSubject.trim() && !campaignState.emailBodyHtml.trim()) {
+          if (bridge) bridge.toast(t('leads_email_empty'), true);
+          return;
+        }
       }
     }
 
     campaignState.tab = tabName;
 
+    // Track highest visited tab — allows free back-navigation to any visited step
+    campaignState.maxVisitedTab = Math.max(campaignState.maxVisitedTab, idx);
+
     // Update tab buttons
     var tabBtns = document.querySelectorAll('#yb-campaign-' + prefix + '-tabs .yb-lead__campaign-tab');
     tabBtns.forEach(function (btn) {
-      var t = btn.getAttribute('data-tab');
-      btn.classList.toggle('is-active', t === tabName);
-      // Enable tabs up to current
-      var tIdx = tabs.indexOf(t);
-      btn.disabled = tIdx > idx;
+      var tName = btn.getAttribute('data-tab');
+      var tIdx = tabs.indexOf(tName);
+      btn.classList.toggle('is-active', tName === tabName);
+      // Allow clicking any tab up to maxVisitedTab
+      btn.disabled = tIdx > campaignState.maxVisitedTab;
+      // Mark previously visited tabs for styling
+      btn.classList.toggle('is-visited', tIdx <= campaignState.maxVisitedTab && tName !== tabName);
     });
 
     // Update panels
@@ -1099,8 +1177,18 @@
 
     var backBtn = footerEl.querySelector('[data-action="campaign-' + prefix + '-back"]');
     var nextBtn = $('yb-campaign-' + prefix + '-next-btn');
+    var stepInfo = $('yb-campaign-' + prefix + '-step-info');
 
-    if (backBtn) backBtn.hidden = idx === 0;
+    // Back button: always visible but disabled on first step
+    if (backBtn) {
+      backBtn.disabled = idx === 0;
+    }
+
+    // Step info text (e.g. "Step 1 of 3 · Recipients")
+    if (stepInfo) {
+      var tabLabels = { recipients: t('campaign_tab_recipients'), compose: t('campaign_tab_compose'), preview: t('campaign_tab_preview'), send: t('campaign_tab_send') };
+      stepInfo.textContent = (idx + 1) + ' / ' + tabs.length + ' · ' + (tabLabels[campaignState.tab] || '');
+    }
 
     if (nextBtn) {
       if (idx === tabs.length - 1) {
@@ -1109,9 +1197,9 @@
       } else {
         nextBtn.hidden = false;
         var nextTab = tabs[idx + 1];
-        if (nextTab === 'compose') nextBtn.textContent = t('campaign_recipients_continue');
-        else if (nextTab === 'preview') nextBtn.textContent = t('campaign_compose_continue_preview');
-        else if (nextTab === 'send') nextBtn.textContent = t('campaign_compose_continue_send');
+        if (nextTab === 'compose') nextBtn.textContent = t('campaign_recipients_continue') + ' \u2192';
+        else if (nextTab === 'preview') nextBtn.textContent = t('campaign_compose_continue_preview') + ' \u2192';
+        else if (nextTab === 'send') nextBtn.textContent = t('campaign_compose_continue_send') + ' \u2192';
       }
     }
   }
@@ -1382,9 +1470,11 @@
   function resetState(type) {
     campaignState.type = type;
     campaignState.tab = 'recipients';
+    campaignState.maxVisitedTab = 0;
     campaignState.filters = {
       source: 'all', statuses: [], programs: [], subtypes: [], routes: [],
-      countries: [], periods: [], recency: null, housing: false, meta: false,
+      countries: [], periods: [], tracks: [], cohorts: [], paymentStatuses: [],
+      recency: null, housing: false, meta: false,
       excludeConverted: false, excludeRecent: false,
       excludeNotInterested: true, excludeBadLeads: true, excludeUnsubscribed: true
     };
@@ -1448,6 +1538,13 @@
     document.addEventListener('click', function (e) {
       var btn = e.target.closest('[data-action]');
       if (!btn) {
+        // Tab button direct click — allows free navigation between visited tabs
+        var tabBtn = e.target.closest('.yb-lead__campaign-tab');
+        if (tabBtn && !tabBtn.disabled) {
+          var tabName = tabBtn.getAttribute('data-tab');
+          if (tabName) { switchTab(tabName); return; }
+        }
+
         // Filter chip click
         var chip = e.target.closest('[data-filter]');
         if (chip) { handleFilterChipClick(chip); return; }
@@ -1644,10 +1741,10 @@
 
     // Search input in filters
     document.addEventListener('input', function (e) {
-      if (e.target.id === 'yb-campaign-filter-search') {
+      if (e.target.id === 'yb-campaign-sms-filter-search' || e.target.id === 'yb-campaign-email-filter-search') {
         campaignState.searchTerm = e.target.value;
         applyFilters();
-        var listEl = $('yb-campaign-recipients-list');
+        var listEl = $('yb-campaign-' + campaignState.type + '-recipients-list');
         if (listEl) renderRecipientList(listEl);
         updateRecipientBadge();
       }
@@ -1712,7 +1809,7 @@
     // Reset selections and re-filter
     campaignState.selectedIds.clear();
     applyFilters();
-    var listEl = $('yb-campaign-recipients-list');
+    var listEl = $('yb-campaign-' + campaignState.type + '-recipients-list');
     if (listEl) renderRecipientList(listEl);
     updateRecipientBadge();
   }
@@ -1734,7 +1831,7 @@
     campaignState.filters[key] = checkbox.checked;
     campaignState.selectedIds.clear();
     applyFilters();
-    var listEl = $('yb-campaign-recipients-list');
+    var listEl = $('yb-campaign-' + campaignState.type + '-recipients-list');
     if (listEl) renderRecipientList(listEl);
     updateRecipientBadge();
   }
@@ -1839,7 +1936,7 @@
      HELPERS
      ══════════════════════════════════════════ */
   function refreshRecipientList() {
-    var listEl = $('yb-campaign-recipients-list');
+    var listEl = $('yb-campaign-' + campaignState.type + '-recipients-list');
     if (listEl) renderRecipientList(listEl);
     updateRecipientBadge();
   }
@@ -1847,7 +1944,8 @@
   function refreshRecipientToolbar() {
     var toolbar = document.querySelector('.yb-lead__campaign-recipient-toolbar');
     if (toolbar) {
-      var span = toolbar.querySelector('span');
+      var span = toolbar.querySelector('.yb-lead__campaign-recipient-toolbar-count');
+      if (!span) span = toolbar.querySelector('span');
       if (span) span.textContent = campaignState.selectedIds.size + ' ' + t('campaign_recipients_selected');
     }
     updateRecipientBadge();

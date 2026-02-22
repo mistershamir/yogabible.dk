@@ -186,6 +186,57 @@ async function sendSMSToLead(leadDocId, message) {
   return result;
 }
 
+/**
+ * Send SMS to an application by doc ID (admin action)
+ */
+async function sendSMSToApplication(appDocId, message) {
+  const db = getDb();
+  const doc = await db.collection('applications').doc(appDocId).get();
+
+  if (!doc.exists) {
+    return { success: false, error: 'Application not found' };
+  }
+
+  const app = doc.data();
+  const phone = normalizePhone(app.phone);
+  if (!phone) {
+    return { success: false, error: 'No valid phone number for this application' };
+  }
+
+  // Substitute variables
+  const personalizedMessage = message
+    .replace(/\{\{first_name\}\}/gi, app.first_name || 'there')
+    .replace(/\{\{name\}\}/gi, app.first_name || 'there')
+    .replace(/\{\{program\}\}/gi, app.course_name || app.program_type || '');
+
+  const result = await sendSMS(phone, personalizedMessage);
+
+  if (result.success) {
+    // Log to sms_messages subcollection for conversation UI
+    await logSMSToAppConversation(appDocId, personalizedMessage, phone, 'outbound');
+    // Update app timestamp
+    await db.collection('applications').doc(appDocId).update({ updated_at: new Date() });
+  }
+
+  return result;
+}
+
+async function logSMSToAppConversation(appDocId, message, phone, direction) {
+  try {
+    const db = getDb();
+    await db.collection('applications').doc(appDocId)
+      .collection('sms_messages').add({
+        direction: direction,
+        message: message,
+        phone: phone,
+        timestamp: new Date(),
+        read: true
+      });
+  } catch (err) {
+    console.error('[sms] Failed to log SMS to app conversation:', err.message);
+  }
+}
+
 // =========================================================================
 // Firestore Helpers
 // =========================================================================
@@ -241,6 +292,8 @@ module.exports = {
   sendSMS,
   sendWelcomeSMS,
   sendSMSToLead,
+  sendSMSToApplication,
   normalizePhone,
-  logSMSToConversation
+  logSMSToConversation,
+  logSMSToAppConversation
 };

@@ -1,0 +1,146 @@
+{# ══════════════════════════════════════
+   ADMIN: Training Documents Panel
+   CRUD for the Firestore 'documents' collection.
+   ══════════════════════════════════════ #}
+
+{# ── List View ── #}
+<div class="yb-admin__view" id="yb-doc-v-list">
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.5rem;flex-wrap:wrap;gap:1rem">
+    <h2 style="margin:0;font-size:1.3rem">{{ t.doc_title }}</h2>
+    <button class="yb-btn yb-btn--primary yb-btn--small" data-action="new-doc">+ {{ t.doc_new }}</button>
+  </div>
+  <div id="yb-doc-list-container"></div>
+</div>
+
+{# ── Form View (create / edit) ── #}
+<div class="yb-admin__view" id="yb-doc-v-form" hidden>
+  <div style="margin-bottom:1.5rem">
+    <a href="#" data-action="back-docs" style="color:var(--yb-brand, #f75c03);text-decoration:none;font-size:0.85rem">&larr; {{ t.back }}</a>
+  </div>
+
+  <form id="yb-doc-form" autocomplete="off">
+    <input type="hidden" id="yb-doc-id">
+
+    {# Title DA / EN #}
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1rem">
+      <div>
+        <label style="display:block;font-size:0.8rem;font-weight:600;margin-bottom:0.25rem">{{ t.doc_field_title_da }}</label>
+        <input type="text" id="yb-doc-title-da" required
+               style="width:100%;padding:0.6rem 0.75rem;border:1px solid var(--yb-brand,#f75c03);border-radius:12px;font-family:inherit;font-size:0.9rem">
+      </div>
+      <div>
+        <label style="display:block;font-size:0.8rem;font-weight:600;margin-bottom:0.25rem">{{ t.doc_field_title_en }}</label>
+        <input type="text" id="yb-doc-title-en" required
+               style="width:100%;padding:0.6rem 0.75rem;border:1px solid var(--yb-brand,#f75c03);border-radius:12px;font-family:inherit;font-size:0.9rem">
+      </div>
+    </div>
+
+    {# Description DA / EN #}
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1rem">
+      <div>
+        <label style="display:block;font-size:0.8rem;font-weight:600;margin-bottom:0.25rem">{{ t.doc_field_desc_da }}</label>
+        <textarea id="yb-doc-desc-da" rows="2"
+                  style="width:100%;padding:0.6rem 0.75rem;border:1px solid var(--yb-brand,#f75c03);border-radius:12px;font-family:inherit;font-size:0.9rem;resize:vertical"></textarea>
+      </div>
+      <div>
+        <label style="display:block;font-size:0.8rem;font-weight:600;margin-bottom:0.25rem">{{ t.doc_field_desc_en }}</label>
+        <textarea id="yb-doc-desc-en" rows="2"
+                  style="width:100%;padding:0.6rem 0.75rem;border:1px solid var(--yb-brand,#f75c03);border-radius:12px;font-family:inherit;font-size:0.9rem;resize:vertical"></textarea>
+      </div>
+    </div>
+
+    {# Cloudinary URL + Browse button #}
+    <div style="margin-bottom:1rem">
+      <label style="display:block;font-size:0.8rem;font-weight:600;margin-bottom:0.25rem">{{ t.doc_field_url }}</label>
+      <div style="display:flex;gap:0.5rem;align-items:center">
+        <input type="url" id="yb-doc-url" required placeholder="https://res.cloudinary.com/ddcynsa30/..."
+               style="flex:1;padding:0.6rem 0.75rem;border:1px solid var(--yb-brand,#f75c03);border-radius:12px;font-family:inherit;font-size:0.9rem">
+        <button type="button" class="yb-btn yb-btn--outline yb-btn--small" data-action="toggle-browser" style="white-space:nowrap">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;margin-right:0.2rem"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
+          {{ t.doc_browse }}
+        </button>
+      </div>
+      <span style="font-size:0.75rem;color:var(--yb-muted,#6F6A66)">{{ t.doc_field_url_hint }}</span>
+    </div>
+
+    {# Cloudinary File Browser (inline, collapsible) #}
+    <div id="yb-doc-browser" class="yb-doc-browser" hidden>
+      <div class="yb-doc-browser__breadcrumb" id="yb-doc-breadcrumb"></div>
+      <div class="yb-doc-browser__toolbar">
+        <input type="text" id="yb-doc-browser-search" class="yb-doc-browser__search"
+               placeholder="{{ t.doc_browser_search }}">
+        <label class="yb-btn yb-btn--primary yb-btn--small yb-doc-browser__upload-btn">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;margin-right:0.2rem"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+          {{ t.doc_browser_upload }}
+          <input type="file" id="yb-doc-browser-file" accept=".pdf" hidden>
+        </label>
+      </div>
+      <div class="yb-doc-browser__list" id="yb-doc-browser-list"></div>
+      <div class="yb-doc-browser__upload-progress" id="yb-doc-upload-progress" hidden>
+        <div class="yb-doc-browser__progress-bar">
+          <div class="yb-doc-browser__progress-fill" id="yb-doc-progress-fill"></div>
+        </div>
+        <span id="yb-doc-progress-text" style="font-size:0.75rem;color:var(--yb-muted,#6F6A66)"></span>
+      </div>
+    </div>
+
+    {# Category + Order row #}
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1rem">
+      <div>
+        <label style="display:block;font-size:0.8rem;font-weight:600;margin-bottom:0.25rem">{{ t.doc_field_category }}</label>
+        <select id="yb-doc-category"
+                style="width:100%;padding:0.6rem 0.75rem;border:1px solid var(--yb-brand,#f75c03);border-radius:12px;font-family:inherit;font-size:0.9rem;background:#fff">
+          <option value="manual">{{ t.doc_cat_manual }}</option>
+          <option value="workbook">{{ t.doc_cat_workbook }}</option>
+          <option value="reference">{{ t.doc_cat_reference }}</option>
+          <option value="schedule">{{ t.doc_cat_schedule }}</option>
+        </select>
+      </div>
+      <div>
+        <label style="display:block;font-size:0.8rem;font-weight:600;margin-bottom:0.25rem">{{ t.doc_field_order }}</label>
+        <input type="number" id="yb-doc-order" value="1" min="0"
+               style="width:100%;padding:0.6rem 0.75rem;border:1px solid var(--yb-brand,#f75c03);border-radius:12px;font-family:inherit;font-size:0.9rem">
+      </div>
+    </div>
+
+    {# Permissions — Program + Method checkboxes #}
+    <div style="margin-bottom:1.5rem">
+      <label style="display:block;font-size:0.8rem;font-weight:600;margin-bottom:0.5rem">{{ t.doc_field_permissions }}</label>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem">
+        <fieldset style="border:1px solid var(--yb-border,#E8E4E0);border-radius:12px;padding:0.75rem 1rem;margin:0">
+          <legend style="font-size:0.75rem;font-weight:600;color:var(--yb-muted,#6F6A66);padding:0 0.25rem">{{ t.doc_perm_program }}</legend>
+          <label style="display:flex;align-items:center;gap:0.5rem;margin-bottom:0.35rem;font-size:0.85rem;cursor:pointer">
+            <input type="checkbox" id="yb-doc-perm-100h" value="materials:100h"> 100-Hour
+          </label>
+          <label style="display:flex;align-items:center;gap:0.5rem;margin-bottom:0.35rem;font-size:0.85rem;cursor:pointer">
+            <input type="checkbox" id="yb-doc-perm-200h" value="materials:200h"> 200-Hour
+          </label>
+          <label style="display:flex;align-items:center;gap:0.5rem;margin-bottom:0.35rem;font-size:0.85rem;cursor:pointer">
+            <input type="checkbox" id="yb-doc-perm-300h" value="materials:300h"> 300-Hour
+          </label>
+          <label style="display:flex;align-items:center;gap:0.5rem;font-size:0.85rem;cursor:pointer">
+            <input type="checkbox" id="yb-doc-perm-500h" value="materials:500h"> 500-Hour
+          </label>
+        </fieldset>
+        <fieldset style="border:1px solid var(--yb-border,#E8E4E0);border-radius:12px;padding:0.75rem 1rem;margin:0">
+          <legend style="font-size:0.75rem;font-weight:600;color:var(--yb-muted,#6F6A66);padding:0 0.25rem">{{ t.doc_perm_method }}</legend>
+          <label style="display:flex;align-items:center;gap:0.5rem;margin-bottom:0.35rem;font-size:0.85rem;cursor:pointer">
+            <input type="checkbox" id="yb-doc-perm-triangle" value="method:triangle"> Triangle Method
+          </label>
+          <label style="display:flex;align-items:center;gap:0.5rem;font-size:0.85rem;cursor:pointer">
+            <input type="checkbox" id="yb-doc-perm-vinyasa" value="method:vinyasa"> Vinyasa Plus
+          </label>
+        </fieldset>
+      </div>
+      <p style="font-size:0.75rem;color:var(--yb-muted,#6F6A66);margin:0.5rem 0 0">
+        {{ t.doc_perm_none }}
+      </p>
+    </div>
+
+    {# Save / Cancel #}
+    <div style="display:flex;gap:0.75rem">
+      <button type="submit" class="yb-btn yb-btn--primary">{{ t.save }}</button>
+      <button type="button" class="yb-btn yb-btn--outline" data-action="back-docs">{{ t.cancel }}</button>
+    </div>
+  </form>
+</div>
