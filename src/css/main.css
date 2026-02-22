@@ -1634,12 +1634,27 @@ section {
 
 .yb-footer-mark {
   overflow: hidden;
+  perspective: 800px;
 }
 
 .yb-footer-logo {
   display: block;
   width: min(100%, 720px);
   height: auto;
+  transform: translateY(40%) rotateX(25deg) scale(0.92);
+  opacity: 0;
+  filter: blur(4px);
+  transform-origin: center bottom;
+  transition:
+    transform 1s cubic-bezier(0.16, 1, 0.3, 1),
+    opacity 0.8s ease,
+    filter 0.8s ease;
+}
+
+.yb-footer-mark.is-visible .yb-footer-logo {
+  transform: translateY(0) rotateX(0deg) scale(1);
+  opacity: 1;
+  filter: blur(0);
 }
 
 /* Language Switcher */
