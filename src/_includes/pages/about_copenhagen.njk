@@ -175,7 +175,7 @@
       <p class="yb-cph-section-subtitle">{{ t.location_subtitle }}</p>
     </div>
 
-    <div class="yb-cph-location__split">
+    <div class="yb-cph-location__content">
       <div class="yb-cph-location__video-wrap">
         {# CLOUDINARY: yoga-bible-DK/copenhagen/christianshavn-neighborhood-walkthrough — vertical video, 9:16 or 4:5, neighborhood walkthrough #}
         {% cldvid media.copenhagen.locationVideo, media.copenhagen.canalPanorama, "w_600" %}
@@ -184,7 +184,7 @@
         <h3 class="yb-cph-location__text-title">{{ t.location_text_title }}</h3>
         <p>{{ t.location_text1 }}</p>
         <p>{{ t.location_text2 }}</p>
-        <blockquote class="yb-cph-location__blockquote">
+        <blockquote class="yb-cph-location__highlight">
           {{ t.location_blockquote }}
         </blockquote>
         <p>{{ t.location_text3 }}</p>
@@ -197,13 +197,13 @@
     </div>
 
     <div class="yb-cph-location__gallery">
-      <div class="yb-cph-location__gallery-item">
+      <div class="yb-cph-location__gallery-img">
         {% cldimg media.copenhagen.locationGallery1, t.loc_gallery1_alt, "w_400,h_300,c_fill", "400", "300" %}
       </div>
-      <div class="yb-cph-location__gallery-item">
+      <div class="yb-cph-location__gallery-img">
         {% cldimg media.copenhagen.locationGallery2, t.loc_gallery2_alt, "w_400,h_300,c_fill", "400", "300" %}
       </div>
-      <div class="yb-cph-location__gallery-item">
+      <div class="yb-cph-location__gallery-img">
         {% cldimg media.copenhagen.locationGallery3, t.loc_gallery3_alt, "w_400,h_300,c_fill", "400", "300" %}
       </div>
     </div>
@@ -223,67 +223,49 @@
       <p class="yb-cph-section-subtitle">{{ t.why_subtitle }}</p>
     </div>
 
-    <div class="yb-cph-why__split">
+    <div class="yb-cph-why__content">
       <div class="yb-cph-why__benefits">
-        {# Benefit 1 #}
-        <div class="yb-cph-why__card">
-          <div class="yb-cph-why__card-icon">
-            <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="10" r="3"/><path d="M12 2a8 8 0 0 0-8 8c0 5.4 7 12 8 12s8-6.6 8-12a8 8 0 0 0-8-8z"/></svg>
-          </div>
-          <div>
-            <h3 class="yb-cph-why__card-title">{{ t.why1_title }}</h3>
-            <p class="yb-cph-why__card-desc">{{ t.why1_desc }}</p>
-          </div>
+        <div class="yb-cph-why__benefit">
+          <h3 class="yb-cph-why__benefit-title">
+            <span class="yb-cph-why__benefit-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="10" r="3"/><path d="M12 2a8 8 0 0 0-8 8c0 5.4 7 12 8 12s8-6.6 8-12a8 8 0 0 0-8-8z"/></svg></span>
+            {{ t.why1_title }}
+          </h3>
+          <p class="yb-cph-why__benefit-desc">{{ t.why1_desc }}</p>
         </div>
-        {# Benefit 2 #}
-        <div class="yb-cph-why__card">
-          <div class="yb-cph-why__card-icon">
-            <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 10 3 12 0v-5"/></svg>
-          </div>
-          <div>
-            <h3 class="yb-cph-why__card-title">{{ t.why2_title }}</h3>
-            <p class="yb-cph-why__card-desc">{{ t.why2_desc }}</p>
-          </div>
+        <div class="yb-cph-why__benefit">
+          <h3 class="yb-cph-why__benefit-title">
+            <span class="yb-cph-why__benefit-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 10 3 12 0v-5"/></svg></span>
+            {{ t.why2_title }}
+          </h3>
+          <p class="yb-cph-why__benefit-desc">{{ t.why2_desc }}</p>
         </div>
-        {# Benefit 3 #}
-        <div class="yb-cph-why__card">
-          <div class="yb-cph-why__card-icon">
-            <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-          </div>
-          <div>
-            <h3 class="yb-cph-why__card-title">{{ t.why3_title }}</h3>
-            <p class="yb-cph-why__card-desc">{{ t.why3_desc }}</p>
-          </div>
+        <div class="yb-cph-why__benefit">
+          <h3 class="yb-cph-why__benefit-title">
+            <span class="yb-cph-why__benefit-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></span>
+            {{ t.why3_title }}
+          </h3>
+          <p class="yb-cph-why__benefit-desc">{{ t.why3_desc }}</p>
         </div>
-        {# Benefit 4 #}
-        <div class="yb-cph-why__card">
-          <div class="yb-cph-why__card-icon">
-            <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M2 12h20"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
-          </div>
-          <div>
-            <h3 class="yb-cph-why__card-title">{{ t.why4_title }}</h3>
-            <p class="yb-cph-why__card-desc">{{ t.why4_desc }}</p>
-          </div>
+        <div class="yb-cph-why__benefit">
+          <h3 class="yb-cph-why__benefit-title">
+            <span class="yb-cph-why__benefit-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M2 12h20"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg></span>
+            {{ t.why4_title }}
+          </h3>
+          <p class="yb-cph-why__benefit-desc">{{ t.why4_desc }}</p>
         </div>
-        {# Benefit 5 #}
-        <div class="yb-cph-why__card">
-          <div class="yb-cph-why__card-icon">
-            <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.8 19.2L16 11l3.5-3.5C21 6 21.5 4 21 3c-1-.5-3 0-4.5 1.5L13 8 4.8 6.2c-.5-.1-.9.1-1.1.5l-.3.5c-.2.5-.1 1 .3 1.3L9 12l-2 3H4l-1 1 3 2 2 3 1-1v-3l3-2 3.5 5.3c.3.4.8.5 1.3.3l.5-.2c.4-.3.6-.7.5-1.2z"/></svg>
-          </div>
-          <div>
-            <h3 class="yb-cph-why__card-title">{{ t.why5_title }}</h3>
-            <p class="yb-cph-why__card-desc">{{ t.why5_desc }}</p>
-          </div>
+        <div class="yb-cph-why__benefit">
+          <h3 class="yb-cph-why__benefit-title">
+            <span class="yb-cph-why__benefit-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.8 19.2L16 11l3.5-3.5C21 6 21.5 4 21 3c-1-.5-3 0-4.5 1.5L13 8 4.8 6.2c-.5-.1-.9.1-1.1.5l-.3.5c-.2.5-.1 1 .3 1.3L9 12l-2 3H4l-1 1 3 2 2 3 1-1v-3l3-2 3.5 5.3c.3.4.8.5 1.3.3l.5-.2c.4-.3.6-.7.5-1.2z"/></svg></span>
+            {{ t.why5_title }}
+          </h3>
+          <p class="yb-cph-why__benefit-desc">{{ t.why5_desc }}</p>
         </div>
-        {# Benefit 6 #}
-        <div class="yb-cph-why__card">
-          <div class="yb-cph-why__card-icon">
-            <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg>
-          </div>
-          <div>
-            <h3 class="yb-cph-why__card-title">{{ t.why6_title }}</h3>
-            <p class="yb-cph-why__card-desc">{{ t.why6_desc }}</p>
-          </div>
+        <div class="yb-cph-why__benefit">
+          <h3 class="yb-cph-why__benefit-title">
+            <span class="yb-cph-why__benefit-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg></span>
+            {{ t.why6_title }}
+          </h3>
+          <p class="yb-cph-why__benefit-desc">{{ t.why6_desc }}</p>
         </div>
       </div>
 
@@ -292,26 +274,29 @@
           {% cldimg media.copenhagen.whyMain, t.why_img_alt, "w_600,h_700,c_fill", "600", "700" %}
           <span class="yb-cph-why__media-caption">{{ t.why_caption }}</span>
         </div>
-        <div class="yb-cph-why__media-small">
-          {% cldimg media.copenhagen.whySmall1, t.why_small1_alt, "w_280,h_200,c_fill", "280", "200" %}
-          {% cldimg media.copenhagen.whySmall2, t.why_small2_alt, "w_280,h_200,c_fill", "280", "200" %}
+        <div class="yb-cph-why__media-grid">
+          <div class="yb-cph-why__media-grid-item">
+            {% cldimg media.copenhagen.whySmall1, t.why_small1_alt, "w_280,h_200,c_fill", "280", "200" %}
+          </div>
+          <div class="yb-cph-why__media-grid-item">
+            {% cldimg media.copenhagen.whySmall2, t.why_small2_alt, "w_280,h_200,c_fill", "280", "200" %}
+          </div>
         </div>
       </div>
     </div>
 
     {# Flight connections box #}
     <div class="yb-cph-why__flights">
-      <div class="yb-cph-why__flights-text">
+      <div>
         <h3 class="yb-cph-why__flights-title">{{ t.flights_title }}</h3>
-        <p class="yb-cph-why__flights-desc">{{ t.flights_desc }}</p>
-        <div class="yb-cph-why__flights-cities">
+        <p class="yb-cph-why__flights-text">{{ t.flights_desc }}</p>
+        <div class="yb-cph-why__flights-pills">
           {% for city in t.flights_cities.split("|") %}
-          <span class="yb-cph-why__flight-pill">{{ city }}</span>
+          <span class="yb-cph-why__flights-pill">{{ city }}</span>
           {% endfor %}
         </div>
       </div>
       <div class="yb-cph-why__flights-map">
-        {# CLOUDINARY: yoga-bible-DK/copenhagen/copenhagen-flight-connections-map-europe — 600x400, flight routes map #}
         {% cldimg media.copenhagen.flightsMap, t.flights_map_alt, "w_500,c_scale", "500", "400" %}
       </div>
     </div>
@@ -325,44 +310,40 @@
    ════════════════════════════════════════════════════════════════════ #}
 <section class="yb-cph-hygge">
   <div class="yb-cph-inner">
-    <div class="yb-cph-hygge__header">
-      <span class="yb-cph-eyebrow" style="color: rgba(255,255,255,0.5);">{{ t.hygge_eyebrow }}</span>
-      <h2 class="yb-cph-section-title" style="color: #fff;">{{ t.hygge_title }}</h2>
-      <span class="yb-cph-hygge__pronunciation">{{ t.hygge_pronunciation }}</span>
-    </div>
-
-    <div class="yb-cph-hygge__split">
-      <div class="yb-cph-hygge__content">
-        <p class="yb-cph-hygge__desc">{{ t.hygge_desc }}</p>
+    <div class="yb-cph-hygge__content">
+      <div class="yb-cph-hygge__text">
+        <span class="yb-cph-eyebrow" style="color: rgba(255,255,255,0.5);">{{ t.hygge_eyebrow }}</span>
+        <h2 class="yb-cph-hygge__title">{{ t.hygge_title }}</h2>
+        <p class="yb-cph-hygge__pronunciation">{{ t.hygge_pronunciation }}</p>
+        <p>{{ t.hygge_desc }}</p>
 
         <blockquote class="yb-cph-hygge__quote">
           {{ t.hygge_quote }}
         </blockquote>
 
-        <p class="yb-cph-hygge__desc">{{ t.hygge_text2 }}</p>
+        <p>{{ t.hygge_text2 }}</p>
 
-        <div class="yb-cph-hygge__values">
-          <div class="yb-cph-hygge__value">{{ t.hygge_value1 }}</div>
-          <div class="yb-cph-hygge__value">{{ t.hygge_value2 }}</div>
-          <div class="yb-cph-hygge__value">{{ t.hygge_value3 }}</div>
-          <div class="yb-cph-hygge__value">{{ t.hygge_value4 }}</div>
+        <ul class="yb-cph-hygge__values">
+          <li>{{ t.hygge_value1 }}</li>
+          <li>{{ t.hygge_value2 }}</li>
+          <li>{{ t.hygge_value3 }}</li>
+          <li>{{ t.hygge_value4 }}</li>
+        </ul>
+
+        <div class="yb-cph-hygge__connection">
+          <h3 class="yb-cph-hygge__connection-title">{{ t.hygge_yoga_title }}</h3>
+          <p>{{ t.hygge_yoga_desc }}</p>
         </div>
       </div>
 
       <div class="yb-cph-hygge__media">
-        <div class="yb-cph-hygge__img-main">
+        <div class="yb-cph-hygge__media-main">
           {% cldimg media.copenhagen.hyggeMain, t.hygge_main_alt, "w_600,h_700,c_fill", "600", "700" %}
         </div>
-        <div class="yb-cph-hygge__img-accent">
+        <div class="yb-cph-hygge__media-accent">
           {% cldimg media.copenhagen.hyggeAccent, t.hygge_accent_alt, "w_280,h_280,c_fill", "280", "280" %}
         </div>
       </div>
-    </div>
-
-    {# Yoga connection card #}
-    <div class="yb-cph-hygge__yoga">
-      <h3 class="yb-cph-hygge__yoga-title">{{ t.hygge_yoga_title }}</h3>
-      <p class="yb-cph-hygge__yoga-desc">{{ t.hygge_yoga_desc }}</p>
     </div>
   </div>
 </section>
@@ -384,7 +365,7 @@
       {# Featured card — spans 2 columns #}
       <div class="yb-cph-denmark__card yb-cph-denmark__card--featured">
         <div class="yb-cph-denmark__card-icon">
-          <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2z"/></svg>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2z"/></svg>
         </div>
         <div>
           <h3 class="yb-cph-denmark__card-title">{{ t.denmark_featured_title }}</h3>
@@ -395,7 +376,7 @@
       {# Fact 1 #}
       <div class="yb-cph-denmark__card">
         <div class="yb-cph-denmark__card-icon">
-          <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8h1a4 4 0 0 1 0 8h-1"/><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"/><line x1="6" y1="1" x2="6" y2="4"/><line x1="10" y1="1" x2="10" y2="4"/><line x1="14" y1="1" x2="14" y2="4"/></svg>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8h1a4 4 0 0 1 0 8h-1"/><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"/><line x1="6" y1="1" x2="6" y2="4"/><line x1="10" y1="1" x2="10" y2="4"/><line x1="14" y1="1" x2="14" y2="4"/></svg>
         </div>
         <h3 class="yb-cph-denmark__card-title">{{ t.denmark1_title }}</h3>
         <p class="yb-cph-denmark__card-desc">{{ t.denmark1_desc }}</p>
@@ -404,7 +385,7 @@
       {# Fact 2 #}
       <div class="yb-cph-denmark__card">
         <div class="yb-cph-denmark__card-icon">
-          <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2"/><path d="M7 2v20"/><path d="M21 15V2v0a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3"/></svg>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2"/><path d="M7 2v20"/><path d="M21 15V2v0a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3"/></svg>
         </div>
         <h3 class="yb-cph-denmark__card-title">{{ t.denmark2_title }}</h3>
         <p class="yb-cph-denmark__card-desc">{{ t.denmark2_desc }}</p>
@@ -413,7 +394,7 @@
       {# Fact 3 #}
       <div class="yb-cph-denmark__card">
         <div class="yb-cph-denmark__card-icon">
-          <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19l7-7 3 3-7 7-3-3z"/><path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18l5-5z"/><path d="M2 2l7.586 7.586"/><circle cx="11" cy="11" r="2"/></svg>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19l7-7 3 3-7 7-3-3z"/><path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18l5-5z"/><path d="M2 2l7.586 7.586"/><circle cx="11" cy="11" r="2"/></svg>
         </div>
         <h3 class="yb-cph-denmark__card-title">{{ t.denmark3_title }}</h3>
         <p class="yb-cph-denmark__card-desc">{{ t.denmark3_desc }}</p>
@@ -422,7 +403,7 @@
       {# Fact 4 #}
       <div class="yb-cph-denmark__card">
         <div class="yb-cph-denmark__card-icon">
-          <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 20h.01"/><path d="M7 20v-4"/><path d="M12 20v-8"/><path d="M17 20V8"/><path d="M22 4v16"/></svg>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 20h.01"/><path d="M7 20v-4"/><path d="M12 20v-8"/><path d="M17 20V8"/><path d="M22 4v16"/></svg>
         </div>
         <h3 class="yb-cph-denmark__card-title">{{ t.denmark4_title }}</h3>
         <p class="yb-cph-denmark__card-desc">{{ t.denmark4_desc }}</p>
@@ -431,7 +412,7 @@
       {# Fact 5 #}
       <div class="yb-cph-denmark__card">
         <div class="yb-cph-denmark__card-icon">
-          <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18.5" cy="17.5" r="3.5"/><circle cx="5.5" cy="17.5" r="3.5"/><circle cx="15" cy="5" r="1"/><path d="M12 17.5V14l-3-3 4-3 2 3h2"/></svg>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18.5" cy="17.5" r="3.5"/><circle cx="5.5" cy="17.5" r="3.5"/><circle cx="15" cy="5" r="1"/><path d="M12 17.5V14l-3-3 4-3 2 3h2"/></svg>
         </div>
         <h3 class="yb-cph-denmark__card-title">{{ t.denmark5_title }}</h3>
         <p class="yb-cph-denmark__card-desc">{{ t.denmark5_desc }}</p>
@@ -440,7 +421,7 @@
       {# Fact 6 #}
       <div class="yb-cph-denmark__card">
         <div class="yb-cph-denmark__card-icon">
-          <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12h6l3-9 6 18 3-9h6"/></svg>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12h6l3-9 6 18 3-9h6"/></svg>
         </div>
         <h3 class="yb-cph-denmark__card-title">{{ t.denmark6_title }}</h3>
         <p class="yb-cph-denmark__card-desc">{{ t.denmark6_desc }}</p>
@@ -563,7 +544,7 @@
       {# Card 1: Best Time #}
       <div class="yb-cph-practical__card">
         <div class="yb-cph-practical__card-icon">
-          <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
         </div>
         <div>
           <h3 class="yb-cph-practical__card-title">{{ t.prac1_title }}</h3>
@@ -574,7 +555,7 @@
       {# Card 2: Getting Here #}
       <div class="yb-cph-practical__card">
         <div class="yb-cph-practical__card-icon">
-          <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.8 19.2L16 11l3.5-3.5C21 6 21.5 4 21 3c-1-.5-3 0-4.5 1.5L13 8 4.8 6.2c-.5-.1-.9.1-1.1.5l-.3.5c-.2.5-.1 1 .3 1.3L9 12l-2 3H4l-1 1 3 2 2 3 1-1v-3l3-2 3.5 5.3c.3.4.8.5 1.3.3l.5-.2c.4-.3.6-.7.5-1.2z"/></svg>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.8 19.2L16 11l3.5-3.5C21 6 21.5 4 21 3c-1-.5-3 0-4.5 1.5L13 8 4.8 6.2c-.5-.1-.9.1-1.1.5l-.3.5c-.2.5-.1 1 .3 1.3L9 12l-2 3H4l-1 1 3 2 2 3 1-1v-3l3-2 3.5 5.3c.3.4.8.5 1.3.3l.5-.2c.4-.3.6-.7.5-1.2z"/></svg>
         </div>
         <div>
           <h3 class="yb-cph-practical__card-title">{{ t.prac2_title }}</h3>
@@ -585,7 +566,7 @@
       {# Card 3: Bikes — highlighted, spans both columns #}
       <div class="yb-cph-practical__card yb-cph-practical__card--highlight">
         <div class="yb-cph-practical__card-icon">
-          <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18.5" cy="17.5" r="3.5"/><circle cx="5.5" cy="17.5" r="3.5"/><circle cx="15" cy="5" r="1"/><path d="M12 17.5V14l-3-3 4-3 2 3h2"/></svg>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18.5" cy="17.5" r="3.5"/><circle cx="5.5" cy="17.5" r="3.5"/><circle cx="15" cy="5" r="1"/><path d="M12 17.5V14l-3-3 4-3 2 3h2"/></svg>
         </div>
         <div>
           <h3 class="yb-cph-practical__card-title">{{ t.prac3_title }}</h3>
@@ -601,7 +582,7 @@
       {# Card 4: Language #}
       <div class="yb-cph-practical__card">
         <div class="yb-cph-practical__card-icon">
-          <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M2 12h20"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M2 12h20"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
         </div>
         <div>
           <h3 class="yb-cph-practical__card-title">{{ t.prac4_title }}</h3>
@@ -612,7 +593,7 @@
       {# Card 5: Currency #}
       <div class="yb-cph-practical__card">
         <div class="yb-cph-practical__card-icon">
-          <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
         </div>
         <div>
           <h3 class="yb-cph-practical__card-title">{{ t.prac5_title }}</h3>
@@ -623,7 +604,7 @@
       {# Card 6: Visa #}
       <div class="yb-cph-practical__card">
         <div class="yb-cph-practical__card-icon">
-          <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>
         </div>
         <div>
           <h3 class="yb-cph-practical__card-title">{{ t.prac6_title }}</h3>
@@ -634,7 +615,7 @@
       {# Card 7: Accommodation #}
       <div class="yb-cph-practical__card">
         <div class="yb-cph-practical__card-icon">
-          <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
         </div>
         <div>
           <h3 class="yb-cph-practical__card-title">{{ t.prac7_title }}</h3>
