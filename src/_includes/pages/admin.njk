@@ -38,6 +38,7 @@
         <button class="yb-profile__tab" type="button" data-yb-admin-tab="analytics">{{ t.tab_analytics }}</button>
         <button class="yb-profile__tab" type="button" data-yb-admin-tab="leads">{{ t.tab_leads }}</button>
         <button class="yb-profile__tab" type="button" data-yb-admin-tab="applications">{{ t.tab_applications }}</button>
+        <button class="yb-profile__tab" type="button" data-yb-admin-tab="careers">{{ t.tab_careers }}</button>
         <button class="yb-profile__tab" type="button" data-yb-admin-tab="catalog">{{ t.tab_catalog }}</button>
       </div>
 
@@ -396,6 +397,13 @@
 
 
       {# ═══════════════════════════════════
+         TAB: Careers
+         ═══════════════════════════════════ #}
+      <div class="yb-admin__tab-panel" data-yb-admin-panel="careers">
+        {% include "partials/admin-careers-panel.njk" %}
+      </div>{# end careers tab panel #}
+
+      {# ═══════════════════════════════════
          TAB: Course Catalog
          ═══════════════════════════════════ #}
       <div class="yb-admin__tab-panel" data-yb-admin-panel="catalog">
@@ -608,3 +616,4 @@
 <script src="/js/lead-admin.js"></script>
 <script src="/js/campaign-wizard.js"></script>
 <script src="/js/catalog-admin.js"></script>
+<script src="/js/careers-admin.js"></script>
