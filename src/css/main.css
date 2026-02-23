@@ -21781,14 +21781,14 @@ a.yb-kontakt-detail__value:hover {
   position: absolute;
   inset: 0;
   display: flex;
-  align-items: flex-end;
+  align-items: center;
   justify-content: flex-end;
   padding: clamp(20px, 4vw, 40px);
   background: linear-gradient(
-    180deg,
-    transparent 40%,
-    rgba(0,0,0,.15) 60%,
-    rgba(0,0,0,.45) 100%
+    90deg,
+    transparent 30%,
+    rgba(0,0,0,.08) 60%,
+    rgba(0,0,0,.20) 100%
   );
 }
 
@@ -21849,6 +21849,9 @@ a.yb-kontakt-detail__value:hover {
   font-weight: 700;
 }
 @media (max-width: 640px) {
+  .yphoto-quote__overlay {
+    align-items: flex-end;
+  }
   .yphoto-quote__glass {
     max-width: 100%;
     background: rgba(255,255,255,.92);

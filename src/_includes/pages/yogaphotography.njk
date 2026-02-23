@@ -5,17 +5,17 @@
 
 {# ── Models data array for loop ── #}
 {% set models = [
-  { key: "anna",      variation: "a" },
-  { key: "sita",      variation: "b" },
-  { key: "kerti",     variation: "c" },
-  { key: "eva",       variation: "c" },
-  { key: "nanna",     variation: "a" },
-  { key: "vanja",     variation: "b" },
-  { key: "christina", variation: "b" },
-  { key: "jana",      variation: "c" },
-  { key: "ida",       variation: "a" },
-  { key: "sophie",    variation: "a" },
-  { key: "frederik",  variation: "b" }
+  { key: "anna",      folder: "Anna",      variation: "a" },
+  { key: "sita",      folder: "Sita",      variation: "b" },
+  { key: "kerti",     folder: "Kerti",     variation: "c" },
+  { key: "eva",       folder: "Eva",       variation: "c" },
+  { key: "nanna",     folder: "Nanna",     variation: "a" },
+  { key: "vanja",     folder: "Vanja",     variation: "b" },
+  { key: "christina", folder: "Christina", variation: "b" },
+  { key: "jana",      folder: "Jana",      variation: "c" },
+  { key: "ida",       folder: "Ida",       variation: "a" },
+  { key: "sophie",    folder: "Sophie",    variation: "a" },
+  { key: "frederik",  folder: "Frederik",  variation: "b" }
 ] %}
 
 <!-- FAQPage Schema (AEO — featured snippets for AI search) -->
@@ -330,9 +330,9 @@
   <div class="yphoto-model__inner yphoto-reveal">
     <div class="yphoto-model__intro">
       <div class="yphoto-model__portrait">
-        {# CLOUDINARY: yoga-bible-DK/yogaphotography/models/{{mk}}-portrait.jpg — 520x680 portrait #}
+        {# CLOUDINARY: yoga-bible-DK/yogaphotography/models/{Folder}/{key}-portrait.jpg — 520x680 #}
         <img
-          src="{{ ('yoga-bible-DK/yogaphotography/models/' + mk + '-portrait') | cloudimg('w_520,h_680,c_fill') }}"
+          src="{{ ('yoga-bible-DK/yogaphotography/models/' + m.folder + '/' + mk + '-portrait') | cloudimg('w_520,h_680,c_fill') }}"
           alt="{{ mname }}"
           loading="lazy"
           decoding="async"
@@ -351,13 +351,13 @@
     </div>
     <div class="yphoto-model__gallery">
       <div class="yphoto-model__photo yphoto-model__photo--1">
-        <img src="{{ ('yoga-bible-DK/yogaphotography/models/' + mk + '-1') | cloudimg('w_800,h_600,c_fill') }}" alt="{{ mname }} — Yoga Photography" loading="lazy" decoding="async" />
+        <img src="{{ ('yoga-bible-DK/yogaphotography/models/' + m.folder + '/' + mk + '-1') | cloudimg('w_800,h_600,c_fill') }}" alt="{{ mname }} — Yoga Photography" loading="lazy" decoding="async" />
       </div>
       <div class="yphoto-model__photo yphoto-model__photo--2">
-        <img src="{{ ('yoga-bible-DK/yogaphotography/models/' + mk + '-2') | cloudimg('w_600,h_800,c_fill') }}" alt="{{ mname }} — Yoga Photography" loading="lazy" decoding="async" />
+        <img src="{{ ('yoga-bible-DK/yogaphotography/models/' + m.folder + '/' + mk + '-2') | cloudimg('w_600,h_800,c_fill') }}" alt="{{ mname }} — Yoga Photography" loading="lazy" decoding="async" />
       </div>
       <div class="yphoto-model__photo yphoto-model__photo--3">
-        <img src="{{ ('yoga-bible-DK/yogaphotography/models/' + mk + '-3') | cloudimg('w_700,h_500,c_fill') }}" alt="{{ mname }} — Yoga Photography" loading="lazy" decoding="async" />
+        <img src="{{ ('yoga-bible-DK/yogaphotography/models/' + m.folder + '/' + mk + '-3') | cloudimg('w_700,h_500,c_fill') }}" alt="{{ mname }} — Yoga Photography" loading="lazy" decoding="async" />
       </div>
     </div>
   </div>
