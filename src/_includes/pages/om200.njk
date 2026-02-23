@@ -121,21 +121,20 @@
       </div>
     </div>
 
-    {# MEDIA (Right on desktop, first on mobile) #}
+    {# MEDIA (Right on desktop, first on mobile) — Vertical review video #}
     <div class="om2-hero__media-wrap">
-      <div class="om2-hero__media" aria-label="{{ t.hero_gallery_label }}">
-        <div class="om2-hero__viewport" data-om2-viewport>
-          <div class="om2-hero__track" data-om2-track></div>
-        </div>
-        <div class="om2-hero__dots" data-om2-dots aria-label="{{ t.hero_gallery_nav }}"></div>
-      </div>
-
-      <div class="om2-hero__arrows" aria-label="{{ t.hero_gallery_nav }}">
-        <button class="om2-hero__arrow om2-hero__arrow--prev" aria-label="{{ t.hero_prev }}" data-om2-prev type="button">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
-        </button>
-        <button class="om2-hero__arrow om2-hero__arrow--next" aria-label="{{ t.hero_next }}" data-om2-next type="button">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+      <div class="om2-hero__video-wrap" data-review-video>
+        <video muted playsinline preload="metadata"
+          poster="{{ "yoga-bible-DK/programs/om200/yogalaereruddannelse-200-timer-elev-anmeldelse.jpg" | cloudvid("w_608,c_fill,so_1,q_60") }}"
+          style="width:100%;height:100%;object-fit:cover;border-radius:20px;">
+          <source src="{{ "yoga-bible-DK/programs/om200/yogalaereruddannelse-200-timer-elev-anmeldelse" | cloudvid("w_608,q_auto") }}" type="video/mp4">
+        </video>
+        <button type="button" data-mute-toggle class="om2-hero__mute-btn" aria-label="Toggle sound">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/>
+            <line class="yb-mute-x1" x1="23" y1="9" x2="17" y2="15"/>
+            <line class="yb-mute-x2" x1="17" y1="9" x2="23" y2="15"/>
+          </svg>
         </button>
       </div>
 
