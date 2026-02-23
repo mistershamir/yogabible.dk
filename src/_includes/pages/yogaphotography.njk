@@ -75,7 +75,7 @@
 
 
 <!-- ═══════════════════════════════════════════════════════
-     Purpose Statement (pitch text from old hero)
+     Purpose Statement
      ═══════════════════════════════════════════════════════ -->
 <section class="yphoto-purpose">
   <div class="yphoto-purpose__inner yphoto-reveal">
@@ -90,80 +90,66 @@
 
 
 <!-- ═══════════════════════════════════════════════════════
-     Session Details (light split)
+     Session Details — design system split layout
      ═══════════════════════════════════════════════════════ -->
 <section class="yphoto-session" aria-label="{{ t.session_kicker }}">
-  <div class="yphoto-session__inner">
+  <div class="yphoto-session__wrap">
     <div class="yphoto-session__grid">
-      {# IMAGE #}
-      <figure class="yphoto-session__figure yphoto-reveal">
-        <div class="yphoto-session__imgWrap">
-          <img
-            class="yphoto-session__img"
-            src="{{ 'yoga-bible-DK/yogaphotography/session-hero' | cloudimg('w_1200,c_fill,g_auto') }}"
-            alt="{{ t.session_img_alt }}"
-            loading="lazy"
-            decoding="async"
-          />
-          <figcaption class="yphoto-session__cap">
-            <span class="yphoto-session__cap-pill">{{ t.session_img_pill }}</span>
-            <span class="yphoto-session__cap-text">{{ t.session_img_loc }}</span>
-          </figcaption>
+
+      {# IMAGE SIDE #}
+      <div class="yphoto-session__media yphoto-reveal">
+        {# CLOUDINARY: yoga-bible-DK/yogaphotography/session-hero.jpg — portrait, studio yoga #}
+        <img
+          class="yphoto-session__img"
+          src="{{ 'yoga-bible-DK/yogaphotography/session-hero' | cloudimg('w_1200,c_fill,g_auto') }}"
+          alt="{{ t.session_img_alt }}"
+          loading="lazy"
+          decoding="async"
+        />
+        <div class="yphoto-session__badge">
+          <span class="yphoto-session__badge-pill">{{ t.session_img_pill }}</span>
+          <span class="yphoto-session__badge-loc">{{ t.session_img_loc }}</span>
         </div>
-      </figure>
-      {# COPY #}
-      <div class="yphoto-session__copy yphoto-reveal">
-        <div class="yphoto-session__top">
-          <div class="yphoto-session__kicker">
-            <span class="yphoto-session__kicker-dot" aria-hidden="true"></span>
-            <span class="yphoto-session__kicker-text">{{ t.session_kicker }}</span>
-          </div>
-          <h2 class="yphoto-session__title">{{ t.session_title }}</h2>
-          <p class="yphoto-session__lead">{{ t.session_lead }}</p>
-          {# Highlights #}
-          <div class="yphoto-session__highlights">
-            <div class="yphoto-hl">
-              <div class="yphoto-hl__top">
-                <span class="yphoto-hl__tag">{{ t.session_hl1_tag }}</span>
-                <span class="yphoto-hl__value">{{ t.session_hl1_val }}</span>
-              </div>
-              <p class="yphoto-hl__desc">{{ t.session_hl1_desc }}</p>
-            </div>
-            <div class="yphoto-hl">
-              <div class="yphoto-hl__top">
-                <span class="yphoto-hl__tag">{{ t.session_hl2_tag }}</span>
-                <span class="yphoto-hl__value">{{ t.session_hl2_val }}</span>
-              </div>
-              <p class="yphoto-hl__desc">{{ t.session_hl2_desc }}</p>
-            </div>
-            <div class="yphoto-hl">
-              <div class="yphoto-hl__top">
-                <span class="yphoto-hl__tag">{{ t.session_hl3_tag }}</span>
-                <span class="yphoto-hl__value">{{ t.session_hl3_val }}</span>
-              </div>
-              <p class="yphoto-hl__desc">{{ t.session_hl3_desc }}</p>
-            </div>
-          </div>
-          {# List #}
-          <div class="yphoto-session__list">
-            <h3 class="yphoto-session__list-title">{{ t.session_list_title }}</h3>
-            <ul class="yphoto-session__ul">
-              <li>{{ t.session_list1 }}</li>
-              <li>{{ t.session_list2 }}</li>
-              <li>{{ t.session_list3 }}</li>
-            </ul>
-          </div>
+      </div>
+
+      {# CONTENT SIDE #}
+      <div class="yphoto-session__content yphoto-reveal">
+        <div class="yphoto-session__eyebrow">
+          <span class="yphoto-session__eyebrow-dot" aria-hidden="true"></span>
+          <span>{{ t.session_kicker }}</span>
         </div>
-        <div class="yphoto-session__bottom">
-          <div class="yphoto-session__ctaRow">
-            <a class="yphoto-btn yphoto-btn--primary" href="{{ mailto_book }}">
-              <span>{{ t.session_cta_book }}</span>
-              <span class="yphoto-arrow" aria-hidden="true">&rarr;</span>
-            </a>
-            <a class="yphoto-btn yphoto-btn--secondary" href="{{ mailto_ask }}">{{ t.session_cta_ask }}</a>
+        <h2 class="yphoto-session__title">{{ t.session_title }}</h2>
+        <p class="yphoto-session__lead">{{ t.session_lead }}</p>
+
+        {# Highlight cards — Duration / Delivery / Price #}
+        <div class="yphoto-session__highlights">
+          {% for i in range(1, 4) %}
+          <div class="yphoto-session__hl">
+            <div class="yphoto-session__hl-row">
+              <span class="yphoto-session__hl-tag">{{ t["session_hl" + i + "_tag"] }}</span>
+              <span class="yphoto-session__hl-val">{{ t["session_hl" + i + "_val"] }}</span>
+            </div>
+            <p class="yphoto-session__hl-desc">{{ t["session_hl" + i + "_desc"] }}</p>
           </div>
-          <p class="yphoto-session__note">{{ t.session_note }}</p>
+          {% endfor %}
         </div>
+
+        {# Feature list — design system checkmark list #}
+        <div class="yphoto-session__features">
+          <h3 class="yphoto-session__features-title">{{ t.session_list_title }}</h3>
+          <ul class="yphoto-session__list">
+            <li>{{ t.session_list1 }}</li>
+            <li>{{ t.session_list2 }}</li>
+            <li>{{ t.session_list3 }}</li>
+          </ul>
+        </div>
+
+        {# CTA row #}
+        <div class="yphoto-session__ctas">
+          <a class="yb-btn yb-btn--primary" href="{{ mailto_book }}">{{ t.session_cta_book }}</a>
+          <a class="yb-btn yb-btn--outline" href="{{ mailto_ask }}">{{ t.session_cta_ask }}</a>
+        </div>
+        <p class="yphoto-session__note">{{ t.session_note }}</p>
       </div>
     </div>
   </div>
@@ -171,68 +157,71 @@
 
 
 <!-- ═══════════════════════════════════════════════════════
-     Prep Guide + FAQ (2 cards)
+     Prep Guide + FAQ — two side-by-side cards
      ═══════════════════════════════════════════════════════ -->
 <section class="yphoto-prepfaq" aria-label="{{ t.prep_title }}">
-  <div class="yphoto-prepfaq__inner">
+  <div class="yphoto-prepfaq__wrap">
     <div class="yphoto-prepfaq__grid">
 
-      {# CARD 1: PREP #}
-      <article class="yphoto-card">
-        <header class="yphoto-card__head">
-          <div class="yphoto-kicker">
-            <span class="yphoto-kicker__dot" aria-hidden="true"></span>
-            <span class="yphoto-kicker__text">{{ t.prep_kicker }}</span>
+      {# CARD 1: PREP GUIDE #}
+      <div class="yphoto-prepfaq__card yphoto-reveal">
+        <div class="yphoto-prepfaq__card-head">
+          <div class="yphoto-prepfaq__eyebrow">
+            <span class="yphoto-prepfaq__eyebrow-dot" aria-hidden="true"></span>
+            <span>{{ t.prep_kicker }}</span>
           </div>
-          <h2 class="yphoto-card__title">{{ t.prep_title }}</h2>
-          <p class="yphoto-card__lede">{{ t.prep_lede }}</p>
-        </header>
-        <ul class="yphoto-prepList">
+          <h2 class="yphoto-prepfaq__card-title">{{ t.prep_title }}</h2>
+          <p class="yphoto-prepfaq__card-desc">{{ t.prep_lede }}</p>
+        </div>
+
+        <ul class="yphoto-prep__list">
           {% for i in range(1, 7) %}
-          <li class="yphoto-prepItem">
-            <span class="yphoto-prepIcon" aria-hidden="true">{{ t["prep" + i + "_icon"] }}</span>
-            <div class="yphoto-prepText">
-              <strong>{{ t["prep" + i + "_title"] }}</strong>
-              <span>{{ t["prep" + i + "_desc"] }}</span>
+          <li class="yphoto-prep__item">
+            <span class="yphoto-prep__icon" aria-hidden="true">{{ t["prep" + i + "_icon"] }}</span>
+            <div class="yphoto-prep__text">
+              <strong class="yphoto-prep__label">{{ t["prep" + i + "_title"] }}</strong>
+              <p class="yphoto-prep__desc">{{ t["prep" + i + "_desc"] }}</p>
             </div>
           </li>
           {% endfor %}
         </ul>
-        <div class="yphoto-card__foot">
-          <a class="yphoto-btn yphoto-btn--primary" href="{{ mailto_book }}">
-            {{ t.prep_cta }}
-            <span class="yphoto-arrow" aria-hidden="true">&rarr;</span>
-          </a>
-          <p class="yphoto-note">{{ t.prep_note }}</p>
-        </div>
-      </article>
 
-      {# CARD 2: FAQ #}
-      <article class="yphoto-card">
-        <header class="yphoto-card__head">
-          <div class="yphoto-kicker">
-            <span class="yphoto-kicker__dot" aria-hidden="true"></span>
-            <span class="yphoto-kicker__text">{{ t.faq_kicker }}</span>
+        <div class="yphoto-prepfaq__card-foot">
+          <a class="yb-btn yb-btn--primary" href="{{ mailto_book }}">{{ t.prep_cta }}</a>
+          <p class="yphoto-prepfaq__note">{{ t.prep_note }}</p>
+        </div>
+      </div>
+
+      {# CARD 2: FAQ — design system accordion pattern #}
+      <div class="yphoto-prepfaq__card yphoto-reveal">
+        <div class="yphoto-prepfaq__card-head">
+          <div class="yphoto-prepfaq__eyebrow">
+            <span class="yphoto-prepfaq__eyebrow-dot" aria-hidden="true"></span>
+            <span>{{ t.faq_kicker }}</span>
           </div>
-          <h2 class="yphoto-card__title">{{ t.faq_title }}</h2>
-          <p class="yphoto-card__lede">{{ t.faq_lede }}</p>
-        </header>
-        <div class="yphoto-faq" role="list">
+          <h2 class="yphoto-prepfaq__card-title">{{ t.faq_title }}</h2>
+          <p class="yphoto-prepfaq__card-desc">{{ t.faq_lede }}</p>
+        </div>
+
+        <div class="yphoto-faq__list" role="list">
           {% for i in range(1, 7) %}
-          <details class="yphoto-faqItem" role="listitem">
-            <summary class="yphoto-faqQ">{{ t["faq" + i + "_q"] }}</summary>
-            <div class="yphoto-faqA">{{ t["faq" + i + "_a"] | safe }}</div>
-          </details>
+          <div class="yphoto-faq__item" role="listitem">
+            <button class="yphoto-faq__toggle" aria-expanded="false" onclick="this.setAttribute('aria-expanded', this.getAttribute('aria-expanded') === 'true' ? 'false' : 'true'); this.closest('.yphoto-faq__item').classList.toggle('is-open');">
+              <span>{{ t["faq" + i + "_q"] }}</span>
+              <span class="yphoto-faq__icon" aria-hidden="true"></span>
+            </button>
+            <div class="yphoto-faq__panel">
+              <p>{{ t["faq" + i + "_a"] | safe }}</p>
+            </div>
+          </div>
           {% endfor %}
         </div>
-        <div class="yphoto-card__foot yphoto-card__foot--split">
-          <a class="yphoto-btn yphoto-btn--ghost" href="{{ mailto_ask }}">{{ t.faq_cta_ask }}</a>
-          <a class="yphoto-btn yphoto-btn--primary" href="{{ mailto_book }}">
-            {{ t.faq_cta_book }}
-            <span class="yphoto-arrow" aria-hidden="true">&rarr;</span>
-          </a>
+
+        <div class="yphoto-prepfaq__card-foot yphoto-prepfaq__card-foot--split">
+          <a class="yb-btn yb-btn--ghost" href="{{ mailto_ask }}">{{ t.faq_cta_ask }}</a>
+          <a class="yb-btn yb-btn--primary" href="{{ mailto_book }}">{{ t.faq_cta_book }}</a>
         </div>
-      </article>
+      </div>
 
     </div>
   </div>
@@ -240,29 +229,28 @@
 
 
 <!-- ═══════════════════════════════════════════════════════
-     Big Photo + Quote (editorial overlay — portrait image)
+     Big Photo + Quote — full-height portrait
      ═══════════════════════════════════════════════════════ -->
 <section class="yphoto-quote" aria-label="{{ t.quote1_kicker }}">
-  <div class="yphoto-quote__inner">
-    <div class="yphoto-quote__media yphoto-reveal">
-      <img
-        class="yphoto-quote__img"
-        src="{{ 'yoga-bible-DK/yogaphotography/quote-hero' | cloudimg('w_1400,c_fill,g_auto') }}"
-        alt="Yoga Photography — Yoga Bible"
-        loading="lazy"
-        decoding="async"
-      />
-      <div class="yphoto-quote__text yphoto-reveal yphoto-delay-2">
-        <div class="yphoto-kicker">
-          <span class="yphoto-kicker__dot" aria-hidden="true"></span>
-          <span class="yphoto-kicker__text">{{ t.quote1_kicker }}</span>
+  <div class="yphoto-quote__wrap yphoto-reveal">
+    {# CLOUDINARY: yoga-bible-DK/yogaphotography/quote-hero.jpg — tall portrait, 1159x2048 #}
+    <img
+      class="yphoto-quote__img"
+      src="{{ 'yoga-bible-DK/yogaphotography/quote-hero' | cloudimg('w_1400,c_fill,g_auto') }}"
+      alt="Yoga Photography — Yoga Bible"
+      loading="lazy"
+      decoding="async"
+    />
+    <div class="yphoto-quote__overlay">
+      <div class="yphoto-quote__glass yphoto-reveal yphoto-delay-2">
+        <div class="yphoto-quote__bar" aria-hidden="true"></div>
+        <div class="yphoto-quote__eyebrow">
+          <span class="yphoto-quote__eyebrow-dot" aria-hidden="true"></span>
+          <span>{{ t.quote1_kicker }}</span>
         </div>
         <h2 class="yphoto-quote__headline">{{ t.quote1_text }}</h2>
-        <a class="yphoto-btn yphoto-btn--primary" href="{{ mailto_book }}">
-          <span>{{ t.quote1_cta }}</span>
-          <span class="yphoto-arrow" aria-hidden="true">&rarr;</span>
-        </a>
-        <div class="yphoto-quote__micro">{{ t.quote1_micro }}</div>
+        <a class="yb-btn yb-btn--primary" href="{{ mailto_book }}">{{ t.quote1_cta }}</a>
+        <p class="yphoto-quote__micro">{{ t.quote1_micro }}</p>
       </div>
     </div>
   </div>
@@ -294,9 +282,8 @@
     <img class="yphoto-interstitial__img" src="{{ 'yoga-bible-DK/yogaphotography/interstitial-1' | cloudimg('w_1200,h_1600,c_fill') }}" alt="" loading="lazy" decoding="async" />
     <div class="yphoto-interstitial__overlay">
       <blockquote class="yphoto-interstitial__quote">{{ t.interstitial1_quote }}</blockquote>
-      <a class="yphoto-interstitial__cta" href="{{ mailto_book }}">
+      <a class="yb-btn yb-btn--primary" href="{{ mailto_book }}">
         {{ t.interstitial1_cta }}
-        <span class="yphoto-arrow" aria-hidden="true">&rarr;</span>
       </a>
     </div>
   </div>
@@ -310,9 +297,8 @@
     <img class="yphoto-interstitial__img" src="{{ 'yoga-bible-DK/yogaphotography/interstitial-2' | cloudimg('w_1200,h_1600,c_fill') }}" alt="" loading="lazy" decoding="async" />
     <div class="yphoto-interstitial__overlay">
       <blockquote class="yphoto-interstitial__quote">{{ t.interstitial2_quote }}</blockquote>
-      <a class="yphoto-interstitial__cta" href="{{ mailto_book }}">
+      <a class="yb-btn yb-btn--primary" href="{{ mailto_book }}">
         {{ t.interstitial2_cta }}
-        <span class="yphoto-arrow" aria-hidden="true">&rarr;</span>
       </a>
     </div>
   </div>
@@ -326,9 +312,8 @@
     <img class="yphoto-interstitial__img" src="{{ 'yoga-bible-DK/yogaphotography/interstitial-3' | cloudimg('w_1200,h_1600,c_fill') }}" alt="" loading="lazy" decoding="async" />
     <div class="yphoto-interstitial__overlay">
       <blockquote class="yphoto-interstitial__quote">{{ t.interstitial3_quote }}</blockquote>
-      <a class="yphoto-interstitial__cta" href="{{ mailto_book }}">
+      <a class="yb-btn yb-btn--primary" href="{{ mailto_book }}">
         {{ t.interstitial3_cta }}
-        <span class="yphoto-arrow" aria-hidden="true">&rarr;</span>
       </a>
     </div>
   </div>
