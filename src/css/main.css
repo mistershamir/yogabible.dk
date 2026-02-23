@@ -5980,6 +5980,66 @@ section {
   color: rgba(255, 255, 255, 0.5);
 }
 
+/* Quote + Review Video split layout */
+.yb-quote__grid {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: 1fr 280px;
+  gap: clamp(24px, 4vw, 48px);
+  align-items: center;
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 0 clamp(24px, 6vw, 60px);
+}
+.yb-quote__grid .yb-quote__inner {
+  max-width: none;
+  margin: 0;
+  padding: 0;
+}
+.yb-quote__video-wrap {
+  position: relative;
+  border-radius: 16px;
+  overflow: hidden;
+  aspect-ratio: 9/16;
+  max-height: 480px;
+  box-shadow: 0 8px 40px rgba(0,0,0,.5);
+}
+.yb-quote__video-wrap video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.yb-quote__mute-btn {
+  position: absolute;
+  bottom: 12px;
+  right: 12px;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(0,0,0,.6);
+  color: #fff;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background .2s;
+  z-index: 2;
+}
+.yb-quote__mute-btn:hover { background: rgba(247,92,3,.8); }
+@media (max-width: 767px) {
+  .yb-quote__grid {
+    grid-template-columns: 1fr;
+    text-align: center;
+  }
+  .yb-quote__video-wrap {
+    max-width: 240px;
+    margin: 0 auto;
+    max-height: 400px;
+  }
+}
+
 
 /* -----------------------------------------------------------------
    IMMERSIVE TRIPTYCH — Full-bleed image panels with overlays

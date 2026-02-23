@@ -137,3 +137,27 @@
   }, { threshold: 0.15 }).observe(mark);
 })();
 </script>
+<script>
+/* Review video: autoplay on scroll, mute toggle */
+(function(){
+  if (!('IntersectionObserver' in window)) return;
+  document.querySelectorAll('[data-review-video]').forEach(function(wrap) {
+    var vid = wrap.querySelector('video');
+    var btn = wrap.querySelector('[data-mute-toggle]');
+    if (!vid) return;
+    new IntersectionObserver(function(entries) {
+      if (entries[0].isIntersecting) { vid.play(); }
+      else { vid.pause(); }
+    }, { threshold: 0.3 }).observe(wrap);
+    if (btn) {
+      btn.addEventListener('click', function() {
+        vid.muted = !vid.muted;
+        var x1 = btn.querySelector('.yb-mute-x1');
+        var x2 = btn.querySelector('.yb-mute-x2');
+        if (x1) x1.style.display = vid.muted ? '' : 'none';
+        if (x2) x2.style.display = vid.muted ? '' : 'none';
+      });
+    }
+  });
+})();
+</script>
