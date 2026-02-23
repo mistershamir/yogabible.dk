@@ -7,6 +7,19 @@
   'use strict';
 
   // ============================================
+  // GLOBAL BILINGUAL TOGGLE (data-yj-da / data-yj-en)
+  // Ensures all modals + global components show correct language
+  // ============================================
+
+  var pathname = window.location.pathname || '/';
+  var isEnglish = pathname.indexOf('/en/') === 0 || pathname === '/en';
+
+  if (isEnglish) {
+    document.querySelectorAll('[data-yj-da]').forEach(function(el) { el.hidden = true; });
+    document.querySelectorAll('[data-yj-en]').forEach(function(el) { el.hidden = false; });
+  }
+
+  // ============================================
   // SMOOTH SCROLL FOR ANCHOR LINKS
   // ============================================
 
