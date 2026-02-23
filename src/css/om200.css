@@ -213,10 +213,12 @@
   overflow: hidden;
   box-shadow: 0 16px 48px rgba(0,0,0,0.08);
   border: 1px solid #E8E4E0;
-  max-height: 680px;
 }
 .om2-hero__video-wrap video {
   display: block;
+  width: 100%;
+  height: auto;
+  border-radius: 20px;
 }
 .om2-hero__mute-btn {
   position: absolute;
