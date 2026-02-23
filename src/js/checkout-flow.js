@@ -37,10 +37,10 @@
     en: 'The remaining balance is settled before training starts — either in full or in instalments. Your course director will be in touch with all the details and next steps.'
   };
 
-  // Refundable note (for teacher training prep phase)
+  // Note for teacher training prep phase (refund removed)
   var REFUND_NOTE = {
-    da: 'Fuldt refunderbar, uden betingelser. Vi beder dig blot give os besked hurtigst muligt ved afmelding, så vi kan nå at fylde din plads.',
-    en: 'Fully refundable, no questions asked. We kindly ask that you let us know of any cancellation as soon as possible, so we have time to fill your spot.'
+    da: '',
+    en: ''
   };
 
   // Prep phase benefits (for teacher training)
