@@ -8608,12 +8608,12 @@ a.yb-kontakt-detail__value:hover {
 .yb-btn--outline-white {
   background: transparent;
   color: #fff;
-  border-color: var(--yb-brand);
+  border: 2px solid #f75c03;
 }
 
 .yb-btn--outline-white:hover {
-  background: rgba(247, 92, 3, 0.1);
-  border-color: var(--yb-brand-light, #ff9966);
+  background: rgba(247, 92, 3, 0.12);
+  border-color: #ff9966;
 }
 
 .yb-btn--outline-light {
