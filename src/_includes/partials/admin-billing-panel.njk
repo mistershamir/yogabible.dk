@@ -1,0 +1,219 @@
+{# ── Billing / e-conomic Panel ── #}
+
+{# ── Create Invoice View (default) ── #}
+<div id="yb-billing-v-create">
+  <div class="yb-admin__view-head">
+    <h2>{{ t.billing_title }}</h2>
+    <div class="yb-lead__toolbar-right">
+      <button type="button" class="yb-btn yb-btn--outline yb-btn--sm" data-action="billing-view-drafts">&#128196; {{ t.billing_view_drafts }}</button>
+      <button type="button" class="yb-btn yb-btn--outline yb-btn--sm" data-action="billing-refresh-settings">&#8635; {{ t.leads_refresh }}</button>
+    </div>
+  </div>
+
+  {# ── Step 1: Customer ── #}
+  <div class="yb-billing__section">
+    <h3 class="yb-billing__section-title">{{ t.billing_step_customer }}</h3>
+
+    {# Search existing customer #}
+    <div class="yb-billing__customer-search">
+      <label>{{ t.billing_search_customer }}</label>
+      <div class="yb-billing__search-row">
+        <input type="text" id="yb-billing-customer-search" placeholder="{{ t.billing_search_placeholder }}" class="yb-lead__search-input">
+        <button type="button" class="yb-btn yb-btn--outline yb-btn--sm" data-action="billing-search-customer">{{ t.billing_search_btn }}</button>
+        <button type="button" class="yb-btn yb-btn--primary yb-btn--sm" data-action="billing-new-customer">+ {{ t.billing_new_customer }}</button>
+      </div>
+      <div id="yb-billing-customer-results" class="yb-billing__customer-results" hidden></div>
+    </div>
+
+    {# Selected customer badge #}
+    <div id="yb-billing-selected-customer" class="yb-billing__selected-customer" hidden>
+      <div class="yb-billing__customer-badge">
+        <span class="yb-billing__customer-badge-name" id="yb-billing-cust-name"></span>
+        <span class="yb-billing__customer-badge-num" id="yb-billing-cust-num"></span>
+        <span class="yb-billing__customer-badge-email" id="yb-billing-cust-email"></span>
+        <button type="button" class="yb-billing__customer-badge-clear" data-action="billing-clear-customer">&times;</button>
+      </div>
+    </div>
+
+    {# New customer form (hidden by default) #}
+    <div id="yb-billing-new-customer-form" class="yb-billing__new-customer" hidden>
+      <div class="yb-admin__form-row">
+        <div class="yb-admin__field">
+          <label for="yb-billing-nc-name">{{ t.billing_nc_name }} *</label>
+          <input type="text" id="yb-billing-nc-name" required>
+        </div>
+        <div class="yb-admin__field">
+          <label for="yb-billing-nc-email">{{ t.billing_nc_email }}</label>
+          <input type="email" id="yb-billing-nc-email">
+        </div>
+      </div>
+      <div class="yb-admin__form-row">
+        <div class="yb-admin__field">
+          <label for="yb-billing-nc-address">{{ t.billing_nc_address }}</label>
+          <input type="text" id="yb-billing-nc-address">
+        </div>
+        <div class="yb-admin__field">
+          <label for="yb-billing-nc-zip">{{ t.billing_nc_zip }}</label>
+          <input type="text" id="yb-billing-nc-zip" style="max-width:120px">
+        </div>
+        <div class="yb-admin__field">
+          <label for="yb-billing-nc-city">{{ t.billing_nc_city }}</label>
+          <input type="text" id="yb-billing-nc-city">
+        </div>
+      </div>
+      <div class="yb-admin__form-row">
+        <div class="yb-admin__field">
+          <label for="yb-billing-nc-phone">{{ t.billing_nc_phone }}</label>
+          <input type="tel" id="yb-billing-nc-phone">
+        </div>
+        <div class="yb-admin__field">
+          <label for="yb-billing-nc-cvr">{{ t.billing_nc_cvr }}</label>
+          <input type="text" id="yb-billing-nc-cvr" placeholder="DK12345678">
+        </div>
+      </div>
+      <div class="yb-admin__form-row">
+        <div class="yb-admin__field">
+          <label for="yb-billing-nc-group">{{ t.billing_nc_group }}</label>
+          <select id="yb-billing-nc-group" class="yb-admin__select"></select>
+        </div>
+        <div class="yb-admin__field">
+          <label for="yb-billing-nc-vat">{{ t.billing_nc_vat }}</label>
+          <select id="yb-billing-nc-vat" class="yb-admin__select"></select>
+        </div>
+        <div class="yb-admin__field">
+          <label for="yb-billing-nc-payment">{{ t.billing_nc_payment_terms }}</label>
+          <select id="yb-billing-nc-payment" class="yb-admin__select"></select>
+        </div>
+      </div>
+      <div class="yb-admin__form-actions">
+        <button type="button" class="yb-btn yb-btn--primary yb-btn--sm" data-action="billing-save-customer">{{ t.billing_create_customer }}</button>
+        <button type="button" class="yb-btn yb-btn--outline yb-btn--sm" data-action="billing-cancel-new-customer">{{ t.cancel }}</button>
+      </div>
+    </div>
+  </div>
+
+  {# ── Step 2: Invoice Details ── #}
+  <div class="yb-billing__section">
+    <h3 class="yb-billing__section-title">{{ t.billing_step_invoice }}</h3>
+
+    <div class="yb-admin__form-row">
+      <div class="yb-admin__field">
+        <label for="yb-billing-description">{{ t.billing_inv_description }}</label>
+        <input type="text" id="yb-billing-description" placeholder="{{ t.billing_inv_description_ph }}">
+      </div>
+    </div>
+
+    <div class="yb-admin__form-row">
+      <div class="yb-admin__field">
+        <label for="yb-billing-total">{{ t.billing_inv_total }} *</label>
+        <div class="yb-billing__input-with-suffix">
+          <input type="number" id="yb-billing-total" min="1" step="1" placeholder="20000">
+          <span class="yb-billing__input-suffix">DKK</span>
+        </div>
+      </div>
+      <div class="yb-admin__field">
+        <label for="yb-billing-instalments">{{ t.billing_inv_instalments }} *</label>
+        <select id="yb-billing-instalments" class="yb-admin__select">
+          <option value="1">1 ({{ t.billing_full_payment }})</option>
+          <option value="2">2</option>
+          <option value="3">3</option>
+          <option value="4">4</option>
+          <option value="5">5</option>
+          <option value="6">6</option>
+          <option value="8">8</option>
+          <option value="10">10</option>
+          <option value="12">12</option>
+        </select>
+      </div>
+      <div class="yb-admin__field">
+        <label for="yb-billing-start-month">{{ t.billing_inv_start_month }} *</label>
+        <input type="month" id="yb-billing-start-month">
+      </div>
+    </div>
+
+    <div class="yb-admin__form-row">
+      <div class="yb-admin__field">
+        <label for="yb-billing-payment-terms">{{ t.billing_inv_payment_terms }}</label>
+        <select id="yb-billing-payment-terms" class="yb-admin__select"></select>
+      </div>
+      <div class="yb-admin__field">
+        <label for="yb-billing-layout">{{ t.billing_inv_layout }}</label>
+        <select id="yb-billing-layout" class="yb-admin__select"></select>
+      </div>
+    </div>
+
+    <div class="yb-admin__form-row">
+      <div class="yb-admin__field">
+        <label for="yb-billing-notes">{{ t.billing_inv_notes }}</label>
+        <textarea id="yb-billing-notes" rows="2" placeholder="{{ t.billing_inv_notes_ph }}"></textarea>
+      </div>
+    </div>
+
+    <div class="yb-admin__form-row">
+      <div class="yb-admin__field">
+        <label for="yb-billing-ref">{{ t.billing_inv_reference }}</label>
+        <input type="text" id="yb-billing-ref" placeholder="{{ t.billing_inv_reference_ph }}">
+      </div>
+    </div>
+  </div>
+
+  {# ── Step 3: Preview ── #}
+  <div class="yb-billing__section">
+    <h3 class="yb-billing__section-title">{{ t.billing_step_preview }}</h3>
+    <div id="yb-billing-preview" class="yb-billing__preview">
+      <p class="yb-billing__preview-empty">{{ t.billing_preview_empty }}</p>
+    </div>
+  </div>
+
+  {# ── Actions ── #}
+  <div class="yb-billing__actions">
+    <button type="button" class="yb-btn yb-btn--primary" data-action="billing-create-invoice" disabled>{{ t.billing_create_draft }}</button>
+    <button type="button" class="yb-btn yb-btn--outline" data-action="billing-reset-form">{{ t.billing_reset }}</button>
+  </div>
+</div>
+
+{# ── Drafts List View (hidden) ── #}
+<div id="yb-billing-v-drafts" hidden>
+  <div class="yb-admin__view-head">
+    <button class="yb-admin__back-btn" data-action="billing-back-create">&larr; {{ t.back }}</button>
+    <h2>{{ t.billing_drafts_title }}</h2>
+    <div class="yb-lead__toolbar-right">
+      <button type="button" class="yb-btn yb-btn--outline yb-btn--sm" data-action="billing-refresh-drafts">&#8635; {{ t.leads_refresh }}</button>
+    </div>
+  </div>
+  <div class="yb-admin__table-wrap">
+    <table class="yb-admin__table" id="yb-billing-drafts-table">
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>{{ t.billing_col_customer }}</th>
+          <th>{{ t.billing_col_date }}</th>
+          <th>{{ t.billing_col_due }}</th>
+          <th>{{ t.billing_col_total }}</th>
+          <th>{{ t.billing_col_lines }}</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody id="yb-billing-drafts-body"></tbody>
+    </table>
+  </div>
+  <div id="yb-billing-drafts-empty" class="yb-billing__empty" hidden>
+    <p>{{ t.billing_no_drafts }}</p>
+  </div>
+</div>
+
+{# ── Draft Detail Modal ── #}
+<div id="yb-billing-draft-modal" class="yb-lead__modal" hidden>
+  <div class="yb-lead__modal-overlay" data-close-billing-modal></div>
+  <div class="yb-billing__modal-box">
+    <div class="yb-billing__modal-header">
+      <h3 id="yb-billing-modal-title">{{ t.billing_draft_detail }}</h3>
+      <button type="button" class="yb-admin__icon-btn" data-close-billing-modal>&times;</button>
+    </div>
+    <div id="yb-billing-modal-body" class="yb-billing__modal-body"></div>
+    <div class="yb-billing__modal-footer">
+      <button type="button" class="yb-btn yb-btn--primary yb-btn--sm" data-action="billing-book-draft">{{ t.billing_book_invoice }}</button>
+      <button type="button" class="yb-btn yb-btn--outline yb-btn--sm" data-close-billing-modal>{{ t.billing_close }}</button>
+    </div>
+  </div>
+</div>
