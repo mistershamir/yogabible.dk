@@ -141,7 +141,7 @@
     "js_period_full_hint": "Hvis perioden er fuld, modtager vi stadig ansøgningen og sætter dig på venteliste.",
     "js_not_open_yet": "Denne ansøgning er ikke åben endnu. Skriv til",
     "js_closed_hint": "Denne periode er lukket — vi modtager stadig ansøgning og placerer dig på venteliste.",
-    "js_course_not_open": "Dette kursus er ikke åben endnu. Skriv til",
+    "js_course_not_open": "Dette kursus er ikke åbent endnu. Skriv til",
     "js_course_closed": "Dette kursus er lukket — vi modtager stadig ansøgning og placerer dig på venteliste.",
     "js_bundle_option": "Kursuspakke (bundle — kombiner kurser)",
     "js_bundle_select_period": "Vælg først periode — derefter din kursuspakke.",

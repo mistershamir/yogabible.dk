@@ -2029,7 +2029,7 @@
       items: [
         { id: 'inversions', prodId: '100145',
           name_da: 'Inversions', name_en: 'Inversions',
-          desc_da: 'Mester armbalancer og omvendinger med sikker teknik og gradvis progression.',
+          desc_da: 'Mestr armbalancer og inversioner med sikker teknik og gradvis progression.',
           desc_en: 'Master arm balances and inversions with safe technique and gradual progression.',
           link: '/inversions', icon: '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 2v8m0 0l-3-3m3 3l3-3"/><circle cx="12" cy="18" r="4"/></svg>' },
         { id: 'splits', prodId: '100150',
@@ -5013,7 +5013,7 @@
       apps_payment: isDa() ? 'Betalingsvalg' : 'Payment Choice',
       apps_submitted: isDa() ? 'Indsendt' : 'Submitted',
       apps_cohort: isDa() ? 'Hold' : 'Cohort',
-      apps_acceptance: isDa() ? 'Velkkomstmail sendt' : 'Acceptance email sent',
+      apps_acceptance: isDa() ? 'Velkomstmail sendt' : 'Acceptance email sent',
       apps_notes: isDa() ? 'Noter' : 'Notes',
       apps_status_new: isDa() ? 'Ny' : 'New',
       apps_status_reviewed: isDa() ? 'Gennemgået' : 'Reviewed',
