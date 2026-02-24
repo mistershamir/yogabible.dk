@@ -99,6 +99,16 @@
   </div>
 </section>
 
+{# ── Quick booking nudge before form ── #}
+<div style="text-align:center;margin-bottom:2rem;">
+  <p style="color:#6F6A66;font-size:0.95rem;margin-bottom:0.75rem;">
+    {% if lang == 'en' %}Not ready to apply yet? Talk to us first — it's free and no obligation.{% else %}Ikke klar til at ansøge endnu? Snak med os først — det er gratis og uforpligtende.{% endif %}
+  </p>
+  <button class="yb-btn yb-btn--outline" data-open-booking="info-session" style="font-size:0.9rem;">
+    &#127963; {% if lang == 'en' %}Book a Free Info Session{% else %}Book et Gratis Infomøde{% endif %}
+  </button>
+</div>
+
 <!-- =========================================================
   YogaBible.dk — Apply Page: PART 2 — Application Form
 ========================================================= -->

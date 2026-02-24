@@ -6,6 +6,7 @@
     "hero_styles": "Hatha · Vinyasa · Yin · Hot Yoga · Meditation & mere",
     "hero_cta_prep": "Start Forberedelsesfasen — 5.750 kr",
     "hero_cta_schedule": "Få Skema",
+    "hero_cta_info": "Book Gratis Infomøde",
     "hero_trust1": "Yoga Alliance RYS 300",
     "hero_trust2": "24 Uger · Maj–December 2026",
     "hero_trust3": "RYT-500 Certificering",
@@ -287,6 +288,7 @@
     "final_cta_text": "24 uger. 300 timer. RYT-500 certificering. Din plads venter.",
     "final_cta_prep": "Start Forberedelsesfasen — 5.750 kr",
     "final_cta_schedule": "Få Skema",
+    "final_cta_info": "Book Gratis Infomøde",
     "final_cta_refund": ""
   },
   "en": {
@@ -296,6 +298,7 @@
     "hero_styles": "Hatha · Vinyasa · Yin · Hot Yoga · Meditation & more",
     "hero_cta_prep": "Start Preparation Phase — 5,750 kr",
     "hero_cta_schedule": "Get Schedule",
+    "hero_cta_info": "Book Free Info Session",
     "hero_trust1": "Yoga Alliance RYS 300",
     "hero_trust2": "24 Weeks · May–December 2026",
     "hero_trust3": "RYT-500 Certification",
@@ -577,6 +580,7 @@
     "final_cta_text": "24 weeks. 300 hours. RYT-500 certification. Your spot is waiting.",
     "final_cta_prep": "Start Preparation Phase — 5,750 kr",
     "final_cta_schedule": "Get Schedule",
+    "final_cta_info": "Book Free Info Session",
     "final_cta_refund": ""
   }
 }
