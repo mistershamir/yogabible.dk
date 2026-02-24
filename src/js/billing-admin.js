@@ -725,6 +725,164 @@
   }
 
   /* ══════════════════════════════════════════
+     MASTER: CREATE, BOOK & SEND (one-click)
+     ══════════════════════════════════════════ */
+  function createBookAndSend() {
+    console.log('[billing] Master: Create, Book & Send clicked');
+    if (busy) return;
+
+    var vals = getFormValues();
+    if (!vals.total) { toast(t('billing_error_no_amount'), true); return; }
+    if (!vals.startMonth) { toast(t('billing_error_no_month'), true); return; }
+    if (!selectedCustomer && !selectedApplicant) { toast(t('billing_error_no_customer'), true); return; }
+
+    var btn = document.querySelector('[data-action="billing-create-book-send"]');
+    busy = true;
+
+    // Determine customer email for sending later
+    var customerEmail = selectedCustomer ? (selectedCustomer.email || '') : (selectedApplicant ? (selectedApplicant.email || '') : '');
+
+    // Step 1: Create customer if needed
+    if (selectedApplicant && !selectedCustomer) {
+      var name = ($('yb-billing-nc-name') || {}).value || (selectedApplicant ? selectedApplicant.name : '');
+      if (!name.trim()) {
+        busy = false;
+        toast(isDa ? 'Kundenavn mangler — udfyld kundeformularen' : 'Customer name missing — fill in the customer form', true);
+        return;
+      }
+      var customer = {
+        name: name.trim(),
+        email: ($('yb-billing-nc-email') || {}).value || '',
+        address: ($('yb-billing-nc-address') || {}).value || '',
+        zip: ($('yb-billing-nc-zip') || {}).value || '',
+        city: ($('yb-billing-nc-city') || {}).value || '',
+        phone: ($('yb-billing-nc-phone') || {}).value || '',
+        corporateIdentificationNumber: ($('yb-billing-nc-cvr') || {}).value || '',
+        customerGroupNumber: parseInt(($('yb-billing-nc-group') || {}).value) || 1,
+        vatZoneNumber: parseInt(($('yb-billing-nc-vat') || {}).value) || 1,
+        paymentTermsNumber: parseInt(($('yb-billing-nc-payment') || {}).value) || 1
+      };
+
+      if (btn) btn.textContent = t('billing_master_creating_customer');
+      customerEmail = customer.email || customerEmail;
+
+      apiCall({ action: 'createCustomer', customer: customer }).then(function (res) {
+        if (!res.ok) { busy = false; if (btn) btn.textContent = t('billing_create_book_send'); toast(res.error, true); return; }
+        var c = res.data;
+        selectCustomer(c.customerNumber, c.name, c.email || customer.email);
+        var ncForm = $('yb-billing-new-customer-form');
+        if (ncForm) ncForm.hidden = true;
+        masterCreateInvoice(vals, btn, customerEmail);
+      }).catch(function (err) { busy = false; if (btn) btn.textContent = t('billing_create_book_send'); toast(err.message, true); });
+      return;
+    }
+
+    // Customer already selected — go straight to invoice
+    masterCreateInvoice(vals, btn, customerEmail);
+  }
+
+  function masterCreateInvoice(vals, btn, customerEmail) {
+    if (btn) btn.textContent = t('billing_master_creating_invoice');
+
+    var lines = buildLines(vals);
+    var paymentTermsNum = parseInt(($('yb-billing-payment-terms') || {}).value) || 1;
+    var layoutNum = parseInt(($('yb-billing-layout') || {}).value) || (settings.layouts.length ? settings.layouts[0].layoutNumber : 19);
+    var notes = ($('yb-billing-notes') || {}).value || '';
+    var ref = ($('yb-billing-ref') || {}).value || '';
+
+    var invoice = {
+      customerNumber: selectedCustomer.customerNumber,
+      recipientName: selectedCustomer.name,
+      date: lines[0].date,
+      dueDate: lines[0].date,
+      paymentTermsNumber: paymentTermsNum,
+      layoutNumber: layoutNum,
+      currency: 'DKK',
+      lines: lines.map(function (l) {
+        return { description: l.description, unitNetPrice: l.unitNetPrice, quantity: 1 };
+      })
+    };
+    if (notes) invoice.notes = notes;
+    if (ref) invoice.references = { text1: ref };
+
+    console.log('[billing] Master: Creating draft invoice...');
+    apiCall({ action: 'createInvoice', invoice: invoice }).then(function (res) {
+      if (!res.ok) { busy = false; if (btn) btn.textContent = t('billing_create_book_send'); toast(res.error, true); return; }
+      var draft = res.data;
+      var draftNum = draft.draftInvoiceNumber;
+      console.log('[billing] Master: Draft created #' + draftNum + ', booking...');
+      masterBookInvoice(draftNum, btn, customerEmail);
+    }).catch(function (err) { busy = false; if (btn) btn.textContent = t('billing_create_book_send'); toast(err.message, true); });
+  }
+
+  function masterBookInvoice(draftNumber, btn, customerEmail) {
+    if (btn) btn.textContent = t('billing_master_booking');
+
+    console.log('[billing] Master: Booking draft #' + draftNumber + '...');
+    apiCall({ action: 'bookInvoice', draftNumber: draftNumber }).then(function (res) {
+      if (!res.ok) { busy = false; if (btn) btn.textContent = t('billing_create_book_send'); toast(res.error, true); return; }
+      var booked = res.data;
+      var bookedNum = booked.bookedInvoiceNumber;
+      console.log('[billing] Master: Booked as #' + bookedNum + ', sending email...');
+      masterSendEmail(bookedNum, btn, customerEmail);
+    }).catch(function (err) { busy = false; if (btn) btn.textContent = t('billing_create_book_send'); toast(err.message, true); });
+  }
+
+  function masterSendEmail(bookedNumber, btn, customerEmail) {
+    // If no email, skip sending and inform admin
+    if (!customerEmail) {
+      busy = false;
+      if (btn) btn.textContent = t('billing_create_book_send');
+      toast(t('billing_master_no_email'));
+      resetForm();
+      return;
+    }
+
+    // Prompt admin to confirm/edit the email address
+    var email = prompt(isDa
+      ? 'Faktura er bogført! Send til denne email:'
+      : 'Invoice booked! Send to this email:', customerEmail);
+
+    if (!email) {
+      // Admin cancelled — still a success (invoice was created and booked)
+      busy = false;
+      if (btn) btn.textContent = t('billing_create_book_send');
+      toast(isDa ? 'Faktura oprettet & bogført! Email ikke sendt.' : 'Invoice created & booked! Email not sent.');
+      resetForm();
+      return;
+    }
+
+    email = email.trim();
+    if (!email || email.indexOf('@') < 1) {
+      busy = false;
+      if (btn) btn.textContent = t('billing_create_book_send');
+      toast(isDa ? 'Ugyldig email — faktura er bogført men ikke sendt.' : 'Invalid email — invoice booked but not sent.', true);
+      resetForm();
+      return;
+    }
+
+    if (btn) btn.textContent = t('billing_master_sending');
+    console.log('[billing] Master: Sending invoice #' + bookedNumber + ' to ' + email);
+
+    apiCall({ action: 'sendInvoice', bookedNumber: bookedNumber, email: email }).then(function (res) {
+      busy = false;
+      if (!res.ok) {
+        if (btn) btn.textContent = t('billing_create_book_send');
+        toast(isDa ? 'Faktura bogført men email fejlede: ' + res.error : 'Invoice booked but email failed: ' + res.error, true);
+        return;
+      }
+      console.log('[billing] Master: All done! Invoice #' + bookedNumber + ' sent to ' + email);
+      if (btn) { btn.textContent = t('billing_master_done'); setTimeout(function () { btn.textContent = '⚡ ' + t('billing_create_book_send'); }, 3000); }
+      toast(t('billing_master_done'));
+      resetForm();
+    }).catch(function (err) {
+      busy = false;
+      if (btn) btn.textContent = t('billing_create_book_send');
+      toast(isDa ? 'Faktura bogført men email fejlede: ' + err.message : 'Invoice booked but email failed: ' + err.message, true);
+    });
+  }
+
+  /* ══════════════════════════════════════════
      DRAFTS LIST
      ══════════════════════════════════════════ */
   function showDrafts() {
@@ -1119,6 +1277,7 @@
       case 'billing-source-economic': switchSource('economic'); break;
       case 'billing-source-applicants': switchSource('applicants'); break;
       case 'billing-create-invoice': createInvoice(); break;
+      case 'billing-create-book-send': createBookAndSend(); break;
       case 'billing-reset-form': resetForm(); break;
       case 'billing-view-drafts': showDrafts(); break;
       case 'billing-back-create': showCreate(); break;
