@@ -82,9 +82,9 @@
         </div>
 
         <!-- Image frame -->
-        <figure class="yb-apply-intro__heroMedia" style="--yb-hero-img:url('https://www.yogabible.dk/s/Beth-02.jpg')" aria-label="Yoga Bible">
+        <figure class="yb-apply-intro__heroMedia" style="--yb-hero-img:url('https://res.cloudinary.com/ddcynsa30/image/upload/f_auto,q_auto/yoga-bible-DK/mentorship/beth-02.jpg')" aria-label="Yoga Bible">
           <img
-            src="https://www.yogabible.dk/s/Beth-02.jpg"
+            src="https://res.cloudinary.com/ddcynsa30/image/upload/f_auto,q_auto/yoga-bible-DK/mentorship/beth-02.jpg"
             alt="{{ t.intro_img_alt }}"
             loading="eager"
             decoding="async"
@@ -98,6 +98,16 @@
 
   </div>
 </section>
+
+{# ── Quick booking nudge before form ── #}
+<div style="text-align:center;margin-bottom:2rem;">
+  <p style="color:#6F6A66;font-size:0.95rem;margin-bottom:0.75rem;">
+    {% if lang == 'en' %}Not ready to apply yet? Talk to us first — it's free and no obligation.{% else %}Ikke klar til at ansøge endnu? Snak med os først — det er gratis og uforpligtende.{% endif %}
+  </p>
+  <button class="yb-btn yb-btn--outline" data-open-booking="info-session" style="font-size:0.9rem;">
+    &#127963; {% if lang == 'en' %}Book a Free Info Session{% else %}Book et Gratis Infomøde{% endif %}
+  </button>
+</div>
 
 <!-- =========================================================
   YogaBible.dk — Apply Page: PART 2 — Application Form
@@ -177,8 +187,13 @@
 
               <div class="yb-radioGroup" role="radiogroup" aria-label="{{ t.ytt_payment_group_label }}">
                 <label class="yb-radio">
-                  <input type="radio" name="ytt_payment_choice" value="paid" />
-                  <span>{{ t.ytt_paid_radio }}</span>
+                  <input type="radio" name="ytt_payment_choice" value="paid_deposit" />
+                  <span>{{ t.ytt_paid_deposit_radio }}</span>
+                </label>
+
+                <label class="yb-radio">
+                  <input type="radio" name="ytt_payment_choice" value="paid_full" />
+                  <span>{{ t.ytt_paid_full_radio }}</span>
                 </label>
 
                 <label class="yb-radio">
@@ -188,20 +203,18 @@
               </div>
 
               <div class="yb-payBox is-hidden" id="ybYttPayBox" aria-hidden="true">
-                <div class="yb-alert">{{ t.ytt_pay_alert | safe }}</div>
+                <div class="yb-alert">{{ t.ytt_pay_alert }}</div>
 
                 <div class="yb-payRow">
-                  <a id="ybYttPayLink" class="yb-payBtn" href="#" target="_blank" rel="noopener">
+                  <button type="button" id="ybYttPayLink" class="yb-payBtn">
                     <span class="yb-payBtn__txt">{{ t.ytt_pay_btn }}</span>
-                    <span class="yb-payBtn__icon" aria-hidden="true">&#8599;</span>
-                  </a>
-                  <span class="yb-payMeta">{{ t.ytt_pay_meta }}</span>
+                  </button>
                 </div>
 
-                <label class="yb-check yb-check--pay">
-                  <input id="ybYttPaidConfirm" type="checkbox" />
-                  <span>{{ t.ytt_paid_confirm }}</span>
-                </label>
+                <div id="ybYttPayDone" class="yb-payDone is-hidden" aria-live="polite">
+                  <span class="yb-payDone__icon">&#10003;</span>
+                  <span class="yb-payDone__txt">{{ t.ytt_pay_completed }}</span>
+                </div>
               </div>
             </fieldset>
           </section>
@@ -259,20 +272,18 @@
               </div>
 
               <div class="yb-payBox is-hidden" id="ybCoursePayBox" aria-hidden="true">
-                <div class="yb-alert">{{ t.course_pay_alert | safe }}</div>
+                <div class="yb-alert">{{ t.course_pay_alert }}</div>
 
                 <div class="yb-payRow">
-                  <a id="ybCoursePayLink" class="yb-payBtn" href="#" target="_blank" rel="noopener">
+                  <button type="button" id="ybCoursePayLink" class="yb-payBtn">
                     <span class="yb-payBtn__txt">{{ t.course_pay_btn }}</span>
-                    <span class="yb-payBtn__icon" aria-hidden="true">&#8599;</span>
-                  </a>
-                  <span class="yb-payMeta">{{ t.course_pay_meta }}</span>
+                  </button>
                 </div>
 
-                <label class="yb-check yb-check--pay">
-                  <input id="ybCoursePaidConfirm" type="checkbox" />
-                  <span>{{ t.course_paid_confirm }}</span>
-                </label>
+                <div id="ybCoursePayDone" class="yb-payDone is-hidden" aria-live="polite">
+                  <span class="yb-payDone__icon">&#10003;</span>
+                  <span class="yb-payDone__txt">{{ t.course_pay_completed }}</span>
+                </div>
               </div>
             </fieldset>
           </section>
@@ -430,14 +441,7 @@
           <span>{{ t.success_id_label }}</span>
           <strong id="ybSuccessId">-</strong>
         </div>
-        <div class="yb-successCard__next">
-          <p><strong>{{ t.success_next_title }}</strong></p>
-          <ol>
-            <li>{{ t.success_step1 }}</li>
-            <li>{{ t.success_step2 }}</li>
-            <li>{{ t.success_step3 }}</li>
-          </ol>
-        </div>
+        <p class="yb-successCard__next">{{ t.success_confirmation }}</p>
         <button id="ybApplyAgain" class="yb-btn yb-btn--outline" type="button">{{ t.success_again }}</button>
         <p class="yb-successCard__contact">{{ t.success_contact }} <a href="mailto:info@yogabible.dk">info@yogabible.dk</a></p>
       </div>
@@ -584,7 +588,7 @@
   inset: 0;
   background:
     linear-gradient(180deg, rgba(22,22,22,0.85) 0%, rgba(22,22,22,0.7) 50%, rgba(22,22,22,0.92) 100%),
-    url('https://www.yogabible.dk/s/Beth-02.jpg') center/cover no-repeat;
+    url('https://res.cloudinary.com/ddcynsa30/image/upload/f_auto,q_auto/yoga-bible-DK/mentorship/beth-02.jpg') center/cover no-repeat;
   z-index: 0;
 }
 
@@ -1183,6 +1187,32 @@
 #yb-apply-form .yb-payMeta {
   font-size: 0.8rem;
   color: var(--yb-muted);
+}
+
+#yb-apply-form .yb-payDone {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.6rem 1rem;
+  border-radius: 12px;
+  background: #F0FDF4;
+  border: 1px solid #BBF7D0;
+  color: #166534;
+  font-size: 0.9rem;
+  font-weight: 700;
+}
+
+#yb-apply-form .yb-payDone__icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: #22C55E;
+  color: #fff;
+  font-size: 0.75rem;
+  flex-shrink: 0;
 }
 
 /* Checkboxes */
@@ -1959,11 +1989,13 @@
 
     const yttPayBox        = $("#ybYttPayBox");
     const yttPayLink       = $("#ybYttPayLink");
-    const yttPaidConfirm   = $("#ybYttPaidConfirm");
+    const yttPayDone       = $("#ybYttPayDone");
+    var yttPaymentCompleted = false;
 
     const coursePayBox     = $("#ybCoursePayBox");
     const coursePayLink    = $("#ybCoursePayLink");
-    const coursePaidConfirm= $("#ybCoursePaidConfirm");
+    const coursePayDone    = $("#ybCoursePayDone");
+    var coursePaymentCompleted = false;
 
     const firstName = $("#ybFirstName");
     const lastName  = $("#ybLastName");
@@ -1990,6 +2022,12 @@
     var formIsValid = false;
 
     // ===== Helpers =====
+    function extractProdId(url){
+      if(!url) return "";
+      var m = url.match(/prodid=([0-9]+)/i);
+      return m ? m[1] : "";
+    }
+
     let catalog = [];
     let byCourse = new Map();
 
@@ -2371,13 +2409,21 @@
       var meta = row ? paymentMetaForRow(row) : { url:"", label:"Betal — YTT" };
       if(choice === "pay_now"){
         show(yttPayBox, true);
-        yttPayLink.href = meta.url || "#";
-        yttPayLink.style.pointerEvents = meta.url ? "auto" : "none";
-        yttPayLink.style.opacity = meta.url ? "1" : ".55";
+        var prodId = extractProdId(meta.url);
+        yttPayLink.dataset.prodId = prodId;
+        yttPayLink.style.pointerEvents = prodId ? "auto" : "none";
+        yttPayLink.style.opacity = prodId ? "1" : ".55";
         yttPayLink.querySelector(".yb-payBtn__txt").textContent = meta.label || "Betal — YTT";
+        // Show/hide the completed badge
+        if(yttPaymentCompleted){
+          show(yttPayDone, true);
+          yttPayLink.style.display = "none";
+        } else {
+          show(yttPayDone, false);
+          yttPayLink.style.display = "";
+        }
       } else {
         show(yttPayBox, false);
-        yttPaidConfirm.checked = false;
       }
     }
 
@@ -2512,13 +2558,20 @@
         var label = courseBundleType.value ? "{{ t.js_pay_bundle_prefix }}" + courseBundleType.value : "{{ t.js_pay_bundle_default }}";
         if(choice === "pay_now"){
           show(coursePayBox, true);
-          coursePayLink.href = url || "#";
-          coursePayLink.style.pointerEvents = url ? "auto" : "none";
-          coursePayLink.style.opacity = url ? "1" : ".55";
+          var prodId = extractProdId(url);
+          coursePayLink.dataset.prodId = prodId;
+          coursePayLink.style.pointerEvents = prodId ? "auto" : "none";
+          coursePayLink.style.opacity = prodId ? "1" : ".55";
           coursePayLink.querySelector(".yb-payBtn__txt").textContent = label;
+          if(coursePaymentCompleted){
+            show(coursePayDone, true);
+            coursePayLink.style.display = "none";
+          } else {
+            show(coursePayDone, false);
+            coursePayLink.style.display = "";
+          }
         } else {
           show(coursePayBox, false);
-          coursePaidConfirm.checked = false;
         }
         return;
       }
@@ -2526,13 +2579,20 @@
       var meta = row ? paymentMetaForRow(row) : { url:"", label:"Betal fuld betaling — Kursus" };
       if(choice === "pay_now"){
         show(coursePayBox, true);
-        coursePayLink.href = meta.url || "#";
-        coursePayLink.style.pointerEvents = meta.url ? "auto" : "none";
-        coursePayLink.style.opacity = meta.url ? "1" : ".55";
+        var prodId = extractProdId(meta.url);
+        coursePayLink.dataset.prodId = prodId;
+        coursePayLink.style.pointerEvents = prodId ? "auto" : "none";
+        coursePayLink.style.opacity = prodId ? "1" : ".55";
         coursePayLink.querySelector(".yb-payBtn__txt").textContent = meta.label || "Betal fuld betaling — Kursus";
+        if(coursePaymentCompleted){
+          show(coursePayDone, true);
+          coursePayLink.style.display = "none";
+        } else {
+          show(coursePayDone, false);
+          coursePayLink.style.display = "";
+        }
       } else {
         show(coursePayBox, false);
-        coursePaidConfirm.checked = false;
       }
     }
 
@@ -2646,7 +2706,8 @@
         yttTrackHint.textContent = "";
         yttPeriodHint.textContent = "";
         show(yttPayBox, false);
-        yttPaidConfirm.checked = false;
+        yttPaymentCompleted = false;
+        show(yttPayDone, false);
         applyForm.querySelectorAll("input[name='ytt_payment_choice']").forEach(function(r){ r.checked = false; });
       }
       if(!courseOn){
@@ -2656,7 +2717,8 @@
         coursePeriodHint.textContent = "";
         resetBundleUISafe();
         show(coursePayBox, false);
-        coursePaidConfirm.checked = false;
+        coursePaymentCompleted = false;
+        show(coursePayDone, false);
         applyForm.querySelectorAll("input[name='course_payment_choice']").forEach(function(r){ r.checked = false; });
       }
       updateBuilderHint();
@@ -2683,7 +2745,7 @@
         if(trackNeeded && !yttTrackSel.value) issues.push("{{ t.js_val_select_ytt_track }}");
         var yttPayChoice = (applyForm.querySelector("input[name='ytt_payment_choice']:checked") || {}).value || "";
         if(!yttPayChoice) issues.push("{{ t.js_val_select_ytt_payment }}");
-        if(yttPayChoice === "pay_now" && !yttPaidConfirm.checked) issues.push("{{ t.js_val_confirm_ytt_payment }}");
+        if(yttPayChoice === "pay_now" && !yttPaymentCompleted) issues.push("{{ t.js_val_confirm_ytt_payment }}");
       }
 
       if(applyForCourse.checked){
@@ -2696,7 +2758,7 @@
         }
         var coursePayChoice = (applyForm.querySelector("input[name='course_payment_choice']:checked") || {}).value || "";
         if(!coursePayChoice) issues.push("{{ t.js_val_select_course_payment }}");
-        if(coursePayChoice === "pay_now" && !coursePaidConfirm.checked) issues.push("{{ t.js_val_confirm_course_payment }}");
+        if(coursePayChoice === "pay_now" && !coursePaymentCompleted) issues.push("{{ t.js_val_confirm_course_payment }}");
       }
 
       if(getAccomNeed() === "yes"){
@@ -2801,8 +2863,47 @@
       updateSubmitState();
     });
 
-    yttPaidConfirm.addEventListener("change", updateSubmitState);
-    coursePaidConfirm.addEventListener("change", updateSubmitState);
+    // Pay button click handlers — open checkout flow modal
+    yttPayLink.addEventListener("click", function(){
+      var prodId = yttPayLink.dataset.prodId;
+      if(prodId && typeof window.openCheckoutFlow === "function"){
+        window.openCheckoutFlow(prodId);
+      }
+    });
+    coursePayLink.addEventListener("click", function(){
+      var prodId = coursePayLink.dataset.prodId;
+      if(prodId && typeof window.openCheckoutFlow === "function"){
+        window.openCheckoutFlow(prodId);
+      }
+    });
+
+    // Listen for successful checkout from the modal
+    window.addEventListener("ybCheckoutSuccess", function(e){
+      var prodId = e.detail && e.detail.prodId;
+      if(!prodId) return;
+
+      // Check if the paid prodId matches YTT selection
+      var yttProdId = yttPayLink.dataset.prodId;
+      if(yttProdId && yttProdId === String(prodId)){
+        yttPaymentCompleted = true;
+        // Auto-switch to paid_deposit radio
+        var depositRadio = applyForm.querySelector("input[name='ytt_payment_choice'][value='paid_deposit']");
+        if(depositRadio) depositRadio.checked = true;
+        updateYttPaymentUI();
+        updateSubmitState();
+      }
+
+      // Check if the paid prodId matches Course selection
+      var courseProdId = coursePayLink.dataset.prodId;
+      if(courseProdId && courseProdId === String(prodId)){
+        coursePaymentCompleted = true;
+        // Auto-switch to paid radio
+        var paidRadio = applyForm.querySelector("input[name='course_payment_choice'][value='paid']");
+        if(paidRadio) paidRadio.checked = true;
+        updateCoursePaymentUI();
+        updateSubmitState();
+      }
+    });
     accomPaidConfirm.addEventListener("change", updateSubmitState);
 
     hearAbout.addEventListener("change", updateHearAboutUI);
@@ -2905,6 +3006,11 @@
           show(successCard, true);
           successCard.scrollIntoView({ behavior: "smooth", block: "center" });
 
+          // If logged-in user's role was upgraded by the backend, refresh permissions
+          if(res.role_upgraded && window.ybReloadUserRole){
+            window.ybReloadUserRole();
+          }
+
           // Also set the text msg for screen readers
           setMsg(applyMsg, "{{ t.js_success_msg_prefix }}" + appId + ".", "ok");
 
@@ -2929,6 +3035,11 @@
           show(accomPayBox, false);
           show(accomInner, false);
           show(hearOtherField, false);
+
+          yttPaymentCompleted = false;
+          coursePaymentCompleted = false;
+          show(yttPayDone, false);
+          show(coursePayDone, false);
 
           accomMonthsWrap.innerHTML = "";
           accomMonthsValue.value = "";
@@ -2980,6 +3091,11 @@
         show(accomPayBox, false);
         show(accomInner, false);
         show(hearOtherField, false);
+
+        yttPaymentCompleted = false;
+        coursePaymentCompleted = false;
+        show(yttPayDone, false);
+        show(coursePayDone, false);
 
         accomMonthsWrap.innerHTML = "";
         accomMonthsValue.value = "";

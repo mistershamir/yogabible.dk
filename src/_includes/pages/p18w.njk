@@ -122,13 +122,10 @@
     <p class="p18-section-sub">{{ t.video_subtitle }}</p>
 
     <div class="p18-video-interview__wrap">
-      <iframe
-        src="https://drive.google.com/file/d/1WWanYni0tZKJ656czw_N2Vf6thCKFwU8/preview?t=10"
-        allow="autoplay; encrypted-media"
-        allowfullscreen
-        loading="lazy"
-        style="width:100%;height:100%;border:none;">
-      </iframe>
+      <video controls playsinline preload="metadata" style="width:100%;height:100%;border-radius:12px;background:#0F0F0F;"
+        poster="{{ "yoga-bible-DK/programs/p18w/yogalaereruddannelse-elev-erfaring-koebenhavn.jpg" | cloudvid("w_1280,c_fill,so_2,q_60") }}">
+        <source src="{{ "yoga-bible-DK/programs/p18w/yogalaereruddannelse-elev-erfaring-koebenhavn" | cloudvid("w_1280,q_auto") }}" type="video/mp4">
+      </video>
     </div>
   </div>
 </section>
@@ -219,6 +216,54 @@
 
     <div class="p18-cert-cta">
       <a href="{% if lang == 'en' %}/en/om-200hrs-yogalreruddannelser{% else %}/om-200hrs-yogalreruddannelser{% endif %}" class="btn btn--primary btn--large">{{ t.cert_cta }}</a>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════
+     4b. CERTIFICATION VALUE — Why RYT-200 Matters
+     ═══════════════════════════════════════ -->
+<section class="p4w-certval">
+  <div class="container">
+    <span class="p18-eyebrow">{{ t.certval_eyebrow }}</span>
+    <h2 class="p18-section-title">{{ t.certval_title }}</h2>
+    <p class="p18-section-sub">{{ t.certval_intro }}</p>
+
+    <div class="p4w-certval__grid">
+
+      <!-- Left: Content -->
+      <div class="p4w-certval__content">
+
+        <h3 class="p4w-certval__heading">{{ t.certval_learn_title }}</h3>
+        <ul class="p4w-certval__list">
+          {% for i in [1, 2, 3, 4, 5] %}
+          <li>
+            <span class="p4w-certval__check" aria-hidden="true">✓</span>
+            <span>{{ t["certval_learn" + i] }}</span>
+          </li>
+          {% endfor %}
+        </ul>
+
+        <h3 class="p4w-certval__heading">{{ t.certval_upgrade_title }}</h3>
+        <p class="p4w-certval__text">{{ t.certval_upgrade_text | safe }}</p>
+
+        <h3 class="p4w-certval__heading">{{ t.certval_exam_title }}</h3>
+        <p class="p4w-certval__text">{{ t.certval_exam_text }}</p>
+
+      </div>
+
+      <!-- Right: Certificate image -->
+      <div class="p4w-certval__media">
+        <div class="p4w-certval__image-placeholder">
+          {# CLOUDINARY: yoga-bible-DK/programs/p4w/yoga-alliance-ryt200-certificate-sample — 1200x800 #}
+          <img
+            src="{{ "yoga-bible-DK/programs/p4w/yoga-alliance-ryt200-certificate-sample" | cloudimg('w_600,q_auto,f_auto') }}"
+            alt="{{ t.certval_image_alt }}"
+            loading="lazy"
+          >
+        </div>
+      </div>
+
     </div>
   </div>
 </section>
@@ -325,7 +370,7 @@
     <figure class="yb-tracks__video">
       <div class="yb-tracks__video-container">
         <video id="tracksVideo" preload="metadata" playsinline>
-          <source src="https://www.yogabible.dk/s/Bliv-Yogalrer_-Tidligere-Elever-Deler-Deres-Erfaringer-fra-Vores-Yogauddannelse-i-Kbenhavn_Weekday_W.mp4" type="video/mp4">
+          <source src="https://res.cloudinary.com/ddcynsa30/video/upload/f_auto,q_auto/yoga-bible-DK/programs/testimonial-weekday.mp4" type="video/mp4">
         </video>
         <div class="yb-tracks__video-overlay" id="tracksVideoOverlay">
           <button class="yb-tracks__video-btn" id="tracksVideoBtn" aria-label="{{ t.tracks_video_play_aria }}">
@@ -422,20 +467,29 @@
 </section>
 
 <!-- ═══════════════════════════════════════
-     6. VERTICAL VIDEO + GRADUATION QUOTE
+     6. VERTICAL REVIEW VIDEO + STUDENT QUOTE
      ═══════════════════════════════════════ -->
 <section class="p18-testimonial-video">
   <div class="container">
     <div class="p18-testimonial-video__grid">
-      <div class="p18-testimonial-video__media">
-        <video autoplay muted loop playsinline preload="metadata">
-          <source src="/assets/video/yoga-practice-loop.mp4" type="video/mp4">
+      <div class="p18-testimonial-video__media" data-review-video>
+        <video muted playsinline preload="metadata"
+          poster="{{ "yoga-bible-DK/programs/p18w/yogalaereruddannelse-18-uger-elev-anmeldelse.jpg" | cloudvid("w_608,c_fill,so_1,q_60") }}">
+          <source src="{{ "yoga-bible-DK/programs/p18w/yogalaereruddannelse-18-uger-elev-anmeldelse" | cloudvid("w_608,q_auto") }}" type="video/mp4">
         </video>
+        <button class="p18-testimonial-video__mute-btn" type="button" aria-label="Toggle sound" data-mute-toggle>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/>
+            <line class="yb-mute-x1" x1="23" y1="9" x2="17" y2="15"/>
+            <line class="yb-mute-x2" x1="17" y1="9" x2="23" y2="15"/>
+          </svg>
+        </button>
       </div>
       <div class="p18-testimonial-video__content">
-        <p class="p18-testimonial-video__quote">{{ t.testimonial_quote }}</p>
+        <div class="p18-testimonial-video__stars" aria-label="5 stars">★★★★★</div>
+        <p class="p18-testimonial-video__quote">{{ t.testimonial_quote | safe }}</p>
         <p class="p18-testimonial-video__attribution">
-          <strong>{{ t.testimonial_attribution }}</strong>
+          <strong>{{ t.testimonial_attribution }}</strong> {{ t.testimonial_attribution_suffix }}
         </p>
       </div>
     </div>
@@ -605,25 +659,25 @@
         <div class="yb-visit__viewport">
           <div class="yb-visit__track" id="visit-track">
             <figure class="yb-visit__slide">
-              <img src="https://www.yogabible.dk/s/Yoga_bible_studio_Kbenhavn_Hot_Yoga_Copenhagen01" alt="{{ t.visit_img1_alt }}" loading="lazy">
+              <img src="https://res.cloudinary.com/ddcynsa30/image/upload/f_auto,q_auto/yoga-bible-DK/studio/studio-hot-yoga-01.jpg" alt="{{ t.visit_img1_alt }}" loading="lazy">
             </figure>
             <figure class="yb-visit__slide">
-              <img src="https://www.yogabible.dk/s/Yoga_bible_studio_Kbenhavn_Hot_Yoga_Copenhagen01_Yoga_Teacher_Training_space02" alt="{{ t.visit_img2_alt }}" loading="lazy">
+              <img src="https://res.cloudinary.com/ddcynsa30/image/upload/f_auto,q_auto/yoga-bible-DK/studio/studio-training-space.jpg" alt="{{ t.visit_img2_alt }}" loading="lazy">
             </figure>
             <figure class="yb-visit__slide">
-              <img src="https://www.yogabible.dk/s/Yoga_Bible_Studio_Torvegade_66_Christianshavn" alt="{{ t.visit_img3_alt }}" loading="lazy">
+              <img src="https://res.cloudinary.com/ddcynsa30/image/upload/f_auto,q_auto/yoga-bible-DK/studio/studio-torvegade.jpg" alt="{{ t.visit_img3_alt }}" loading="lazy">
             </figure>
             <figure class="yb-visit__slide">
-              <img src="https://www.yogabible.dk/s/Yoga_bible_shower_facilities" alt="{{ t.visit_img4_alt }}" loading="lazy">
+              <img src="https://res.cloudinary.com/ddcynsa30/image/upload/f_auto,q_auto/yoga-bible-DK/studio/studio-shower.jpg" alt="{{ t.visit_img4_alt }}" loading="lazy">
             </figure>
             <figure class="yb-visit__slide">
-              <img src="https://www.yogabible.dk/s/Christianshavn_Yoga_Bible_Central_Location.jpg" alt="{{ t.visit_img5_alt }}" loading="lazy">
+              <img src="https://res.cloudinary.com/ddcynsa30/image/upload/f_auto,q_auto/yoga-bible-DK/copenhagen/christianshavn-location.jpg" alt="{{ t.visit_img5_alt }}" loading="lazy">
             </figure>
             <figure class="yb-visit__slide">
-              <img src="https://www.yogabible.dk/s/christianshavn_metro_Station_studio_central_Yoga_Bible_Hot_Yoga_Copenhagen_02.jpeg" alt="{{ t.visit_img6_alt }}" loading="lazy">
+              <img src="https://res.cloudinary.com/ddcynsa30/image/upload/f_auto,q_auto/yoga-bible-DK/copenhagen/metro-station-02.jpeg" alt="{{ t.visit_img6_alt }}" loading="lazy">
             </figure>
             <figure class="yb-visit__slide">
-              <img src="https://www.yogabible.dk/s/christianshavn_metro_Station_studio_central_Yoga_Bible_Hot_Yoga_Copenhagen.jpeg" alt="{{ t.visit_img7_alt }}" loading="lazy">
+              <img src="https://res.cloudinary.com/ddcynsa30/image/upload/f_auto,q_auto/yoga-bible-DK/copenhagen/metro-station-01.jpeg" alt="{{ t.visit_img7_alt }}" loading="lazy">
             </figure>
           </div>
         </div>
@@ -650,13 +704,17 @@
       <p class="yb-modal-visit__subtitle">{{ t.visit_modal_subtitle }}</p>
     </div>
 
-    <link href="https://assets.calendly.com/assets/external/widget.css" rel="stylesheet">
-    <div class="calendly-inline-widget"
-         data-url="https://calendly.com/yogabible/studio-tour-consultation-yoga-teacher-training"
-         style="min-width:320px;height:680px;"></div>
-    <script src="https://assets.calendly.com/assets/external/widget.js" type="text/javascript" async></script>
-
-    <p class="yb-modal-visit__fallback">{{ t.visit_modal_fallback | safe }}</p>
+    <div class="yb-modal-visit__booking" style="text-align:center;padding:32px 16px;">
+      <p style="font-size:18px;margin-bottom:20px;">{{ t.visit_modal_subtitle }}</p>
+      <button class="yb-btn yb-btn--primary" data-open-booking="info-session" data-close style="font-size:16px;padding:14px 32px;">
+        &#127963; {% if lang == 'en' %}Book Free Info Session{% else %}Book et gratis infomøde{% endif %}
+      </button>
+      <div style="margin-top:16px;">
+        <button class="yb-btn yb-btn--outline" data-open-booking="consultation" data-close style="font-size:14px;padding:10px 24px;">
+          &#128187; {% if lang == 'en' %}Online Consultation{% else %}Online konsultation{% endif %}
+        </button>
+      </div>
+    </div>
   </div>
 </section>
 
@@ -734,7 +792,7 @@
       <article class="yb-more-card">
         <figure class="yb-more-card__image">
           <img id="ybCourseImg"
-               src="https://www.yogabible.dk/s/Inversions_Course_Copenhagen.jpg?format=1500w"
+               src="https://res.cloudinary.com/ddcynsa30/image/upload/f_auto,q_auto/yoga-bible-DK/courses/inversions-course.jpg"
                alt="{{ t.course_inv_alt }}"
                loading="lazy">
           <span class="yb-more-card__badge yb-more-card__badge--soft">{{ t.more_courses_badge }}</span>
@@ -762,7 +820,7 @@
       <article class="yb-more-card">
         <figure class="yb-more-card__image">
           <img id="ybProgramImg"
-               src="https://www.yogabible.dk/s/200timer-Yoga-Education-Kbenhavn.png?format=1500w"
+               src="https://res.cloudinary.com/ddcynsa30/image/upload/f_auto,q_auto/yoga-bible-DK/programs/ytt-200h-education.png"
                alt="{{ t.prog4w_alt }}"
                loading="lazy">
           <span id="ybProgramBadge" class="yb-more-card__badge yb-more-card__badge--primary">{{ t.prog4w_badge }}</span>
@@ -1027,21 +1085,21 @@
   /* ── yb-more: Course pills ── */
   var COURSE_DATA = {
     inv: {
-      image: 'https://www.yogabible.dk/s/Inversions_Course_Copenhagen.jpg?format=1500w',
+      image: 'https://res.cloudinary.com/ddcynsa30/image/upload/f_auto,q_auto/yoga-bible-DK/courses/inversions-course.jpg',
       blurb: {{ t.course_inv_blurb | dump | safe }},
       href: '{% if lang == "en" %}/en/inversions{% else %}/inversions{% endif %}',
       label: {{ t.course_inv_label | dump | safe }},
       alt: {{ t.course_inv_alt | dump | safe }}
     },
     spl: {
-      image: 'https://www.yogabible.dk/s/Splits_Course_Kursus_Kbenhavn_Copenhagen.jpg?format=1500w',
+      image: 'https://res.cloudinary.com/ddcynsa30/image/upload/f_auto,q_auto/yoga-bible-DK/courses/splits-course.jpg',
       blurb: {{ t.course_spl_blurb | dump | safe }},
       href: '{% if lang == "en" %}/en/splits{% else %}/splits{% endif %}',
       label: {{ t.course_spl_label | dump | safe }},
       alt: {{ t.course_spl_alt | dump | safe }}
     },
     bb: {
-      image: 'https://www.yogabible.dk/s/professional-backbend-yoga-training-copenhagen.jpg?format=1500w',
+      image: 'https://res.cloudinary.com/ddcynsa30/image/upload/f_auto,q_auto/yoga-bible-DK/courses/backbend-training-pro.jpg',
       blurb: {{ t.course_bb_blurb | dump | safe }},
       href: '{% if lang == "en" %}/en/backbends{% else %}/backbends{% endif %}',
       label: {{ t.course_bb_label | dump | safe }},

@@ -58,9 +58,9 @@ exports.handler = async (event) => {
 
     console.log(`[lead] New lead saved: ${docRef.id} (${leadData.email})`);
 
-    // Fire-and-forget: admin notification + welcome email + welcome SMS
-    // These run in background — don't block the form response
-    triggerNotifications(leadData, docRef.id, action).catch(err => {
+    // Send notifications (admin email + welcome email + welcome SMS)
+    // Must await — Netlify Functions terminate after response is sent
+    await triggerNotifications(leadData, docRef.id, action).catch(err => {
       console.error('[lead] Notification error (non-blocking):', err.message);
     });
 
@@ -191,6 +191,32 @@ function processLead(payload, action) {
         message: '',
         source: payload.source || '200H YTT - 8-week landing page'
       };
+
+    case 'lead_schedule_multi': {
+      // User selected multiple 200h formats (e.g. 4w,8w,18w)
+      const allFmts = (payload.allFormats || '').split(',').filter(f => f);
+      const fmtMap = { '4w': '4-week', '8w': '8-week', '18w': '18-week' };
+      const labelMap = { '4w': '4-ugers intensiv', '8w': '8-ugers semi-intensiv', '18w': '18-ugers fleksibel' };
+      const programTypes = allFmts.map(f => fmtMap[f] || f);
+      const programLabels = allFmts.map(f => labelMap[f] || f);
+      return {
+        ...base,
+        type: 'ytt',
+        ytt_program_type: programTypes.join(','),
+        program: programLabels.join(' + ') + ' yogalæreruddannelse',
+        course_id: '',
+        cohort_label: '',
+        preferred_month: '',
+        accommodation: normalizeYesNo(payload.accommodation || 'No'),
+        city_country: payload.cityCountry || '',
+        housing_months: '',
+        service: '',
+        subcategories: '',
+        message: '',
+        source: payload.source || 'Modal-Multi',
+        all_formats: payload.allFormats || ''
+      };
+    }
 
     case 'lead_schedule_300h':
       return {

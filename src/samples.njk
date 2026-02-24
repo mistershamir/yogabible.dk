@@ -6772,3 +6772,56 @@ document.addEventListener('DOMContentLoaded', function() {
 
     </div><!-- end .yba -->
   </section>
+
+  <!-- ================================================================
+     SECTION 33: APPOINTMENT BOOKING MODAL (Calendly Replacement)
+     ================================================================ -->
+  <section class="ds-section" id="section-33">
+    <h2 class="ds-section__title">33. Appointment Booking Modal</h2>
+    <p class="ds-section__desc">Calendly replacement — a 4-step booking flow for info sessions, consultations, and trial classes. Includes date picker, time slot selection, form, and confirmation with email notifications.</p>
+
+    <div class="ds-sub">
+      <h3 class="ds-sub__title">A. Open Booking Modal</h3>
+      <p class="ds-sub__desc">Click any button below to test the full booking flow. Each button pre-selects a different appointment type.</p>
+      <div style="display:flex;flex-wrap:wrap;gap:12px;margin:24px 0;">
+        <button class="yb-btn yb-btn--primary" data-open-booking="info-session">&#127963; Book Info Session</button>
+        <button class="yb-btn yb-btn--outline" data-open-booking="consultation">&#128187; Book Online Consultation</button>
+        <button class="yb-btn yb-btn--outline" data-open-booking="intro-class">&#129495; Book Free Trial Class</button>
+        <button class="yb-btn yb-btn--outline" data-open-booking>&#128197; Open Booking (no preset)</button>
+      </div>
+    </div>
+
+    <div class="ds-sub">
+      <h3 class="ds-sub__title">B. Usage in Templates</h3>
+      <p class="ds-sub__desc">Add <code>data-open-booking</code> to any button or link to trigger the modal. Optionally specify a type.</p>
+      <div style="background:#F5F3F0;border-radius:8px;padding:16px;margin:12px 0;">
+        <pre style="margin:0;font-size:13px;line-height:1.5;overflow-x:auto;"><code>&lt;!-- Button with preset type --&gt;
+&lt;button data-open-booking="info-session"&gt;Book Info Session&lt;/button&gt;
+&lt;button data-open-booking="consultation"&gt;Book Online Consultation&lt;/button&gt;
+&lt;button data-open-booking="intro-class"&gt;Book Free Trial Class&lt;/button&gt;
+
+&lt;!-- Button without preset (user chooses) --&gt;
+&lt;button data-open-booking&gt;Book an Appointment&lt;/button&gt;
+
+&lt;!-- JavaScript API --&gt;
+&lt;script&gt;window.openBookingModal('info-session');&lt;/script&gt;</code></pre>
+      </div>
+    </div>
+
+    <div class="ds-sub">
+      <h3 class="ds-sub__title">C. Features</h3>
+      <ul style="margin:12px 0;padding-left:20px;line-height:1.8;">
+        <li><strong>3 appointment types:</strong> Info Session, Online Consultation, Free Trial Class</li>
+        <li><strong>Date picker:</strong> Interactive calendar with blocked Sundays, 60-day ahead limit</li>
+        <li><strong>Time slots:</strong> Real-time availability from API (no double-booking)</li>
+        <li><strong>Email confirmations:</strong> Client gets confirmation + .ics calendar file</li>
+        <li><strong>Admin notifications:</strong> Admin email on every new booking</li>
+        <li><strong>Cancel/Reschedule:</strong> Token-based links in confirmation email</li>
+        <li><strong>24h + 1h reminders:</strong> Scheduled function sends automatic reminders</li>
+        <li><strong>Admin panel:</strong> Full appointment manager in /admin (Appointments tab)</li>
+        <li><strong>Bilingual:</strong> Danish primary, English via path detection</li>
+        <li><strong>CSV export:</strong> Export appointments from admin panel</li>
+        <li><strong>Calendar view:</strong> Month view with appointment dots in admin</li>
+      </ul>
+    </div>
+  </section>

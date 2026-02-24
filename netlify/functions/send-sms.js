@@ -9,7 +9,7 @@
 
 const { requireAuth } = require('./shared/auth');
 const { getDb } = require('./shared/firestore');
-const { sendSMSToLead, sendSMS, normalizePhone } = require('./shared/sms-service');
+const { sendSMSToLead, sendSMSToApplication, sendSMS, normalizePhone } = require('./shared/sms-service');
 const { jsonResponse, optionsResponse, formatDate } = require('./shared/utils');
 
 exports.handler = async (event) => {
@@ -27,14 +27,39 @@ exports.handler = async (event) => {
       return jsonResponse(400, { ok: false, error: 'message is required' });
     }
 
-    // Bulk send
-    if (payload.leadIds && Array.isArray(payload.leadIds)) {
-      return await handleBulkSMS(payload);
+    // Test mode — send to test phone without logging to any lead
+    if (payload.test && payload.testPhone) {
+      const normalized = normalizePhone(payload.testPhone);
+      if (!normalized) {
+        return jsonResponse(400, { ok: false, error: 'Invalid test phone number' });
+      }
+      const testResult = await sendSMS(normalized, payload.message);
+      return jsonResponse(200, { ok: true, test: true, ...testResult });
     }
 
-    // Single send
+    // Bulk send (leads)
+    if (payload.leadIds && Array.isArray(payload.leadIds)) {
+      return await handleBulkSMS(payload, 'lead');
+    }
+
+    // Bulk send (applications)
+    if (payload.applicationIds && Array.isArray(payload.applicationIds)) {
+      return await handleBulkSMS(payload, 'application');
+    }
+
+    // Single send (application)
+    if (payload.applicationId) {
+      const result = await sendSMSToApplication(payload.applicationId, payload.message);
+      if (result.success) {
+        return jsonResponse(200, { ok: true, ...result });
+      } else {
+        return jsonResponse(400, { ok: false, error: result.error });
+      }
+    }
+
+    // Single send (lead)
     if (!payload.leadId) {
-      return jsonResponse(400, { ok: false, error: 'leadId or leadIds is required' });
+      return jsonResponse(400, { ok: false, error: 'leadId, leadIds, applicationId, or applicationIds is required' });
     }
 
     const result = await sendSMSToLead(payload.leadId, payload.message);
@@ -50,26 +75,27 @@ exports.handler = async (event) => {
   }
 };
 
-async function handleBulkSMS(payload) {
-  const db = getDb();
+async function handleBulkSMS(payload, source) {
   const results = { sent: 0, failed: 0, skipped: 0, errors: [] };
+  const ids = source === 'application' ? payload.applicationIds : payload.leadIds;
+  const sendFn = source === 'application' ? sendSMSToApplication : sendSMSToLead;
 
-  for (const leadId of payload.leadIds) {
+  for (const id of ids) {
     try {
-      const result = await sendSMSToLead(leadId, payload.message);
+      const result = await sendFn(id, payload.message);
 
       if (result.success) {
         results.sent++;
       } else {
         results.failed++;
-        results.errors.push({ leadId, error: result.error });
+        results.errors.push({ id, error: result.error });
       }
 
       // Small delay to avoid rate limiting
       await new Promise(resolve => setTimeout(resolve, 100));
     } catch (err) {
       results.failed++;
-      results.errors.push({ leadId, error: err.message });
+      results.errors.push({ id, error: err.message });
     }
   }
 

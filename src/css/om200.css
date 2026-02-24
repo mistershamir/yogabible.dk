@@ -202,11 +202,47 @@
   background: #FFFCF9;
 }
 
-/* Hero Media (Carousel) */
+/* Hero Media — Vertical review video */
 .om2-hero__media-wrap {
   position: relative;
   order: 1;
 }
+.om2-hero__video-wrap {
+  position: relative;
+  border-radius: 20px;
+  overflow: hidden;
+  box-shadow: 0 16px 48px rgba(0,0,0,0.08);
+  border: 1px solid #E8E4E0;
+}
+.om2-hero__video-wrap video {
+  display: block;
+  width: 100%;
+  height: auto;
+  border-radius: 20px;
+}
+.om2-hero__mute-btn {
+  position: absolute;
+  bottom: 16px;
+  right: 16px;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(15,15,15,0.55);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 5;
+  transition: background 0.2s;
+}
+.om2-hero__mute-btn:hover {
+  background: rgba(15,15,15,0.75);
+}
+
+/* Legacy carousel (kept for reference) */
 .om2-hero__media {
   position: relative;
   border-radius: 20px;

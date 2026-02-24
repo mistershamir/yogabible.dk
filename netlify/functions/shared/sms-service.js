@@ -114,7 +114,12 @@ async function sendWelcomeSMS(leadData, leadDocId) {
   const program = String(leadData.program || '').toLowerCase();
   let templateKey = 'default';
 
-  if (program.includes('week') || program.includes('uge') || program.includes('ytt') ||
+  // Multi-format YTT request (user asked for multiple schedules)
+  const isMulti = leadData.all_formats && leadData.all_formats.includes(',');
+
+  if (isMulti) {
+    templateKey = 'ytt_multi';
+  } else if (program.includes('week') || program.includes('uge') || program.includes('ytt') ||
       program.includes('200') || program.includes('300') || program.includes('teacher training') ||
       program.includes('intensive') || program.includes('flexible') ||
       leadData.type === 'ytt') {
@@ -141,6 +146,7 @@ async function sendWelcomeSMS(leadData, leadDocId) {
   if (result.success) {
     await updateLeadSMSStatus(leadDocId, 'sent');
     await logSMSToNotes(leadDocId, message.substring(0, 30) + '...', 'sent');
+    await logSMSToConversation(leadDocId, message, phone, 'outbound');
     console.log(`[sms] Welcome SMS sent to ${phone} for lead ${leadDocId}`);
   } else {
     await updateLeadSMSStatus(leadDocId, 'failed: ' + (result.error || 'unknown').substring(0, 50));
@@ -178,9 +184,62 @@ async function sendSMSToLead(leadDocId, message) {
   if (result.success) {
     await updateLeadSMSStatus(leadDocId, 'sent');
     await logSMSToNotes(leadDocId, personalizedMessage.substring(0, 30) + '...', 'sent');
+    // Also write to sms_messages subcollection for conversation UI
+    await logSMSToConversation(leadDocId, personalizedMessage, phone, 'outbound');
   }
 
   return result;
+}
+
+/**
+ * Send SMS to an application by doc ID (admin action)
+ */
+async function sendSMSToApplication(appDocId, message) {
+  const db = getDb();
+  const doc = await db.collection('applications').doc(appDocId).get();
+
+  if (!doc.exists) {
+    return { success: false, error: 'Application not found' };
+  }
+
+  const app = doc.data();
+  const phone = normalizePhone(app.phone);
+  if (!phone) {
+    return { success: false, error: 'No valid phone number for this application' };
+  }
+
+  // Substitute variables
+  const personalizedMessage = message
+    .replace(/\{\{first_name\}\}/gi, app.first_name || 'there')
+    .replace(/\{\{name\}\}/gi, app.first_name || 'there')
+    .replace(/\{\{program\}\}/gi, app.course_name || app.program_type || '');
+
+  const result = await sendSMS(phone, personalizedMessage);
+
+  if (result.success) {
+    // Log to sms_messages subcollection for conversation UI
+    await logSMSToAppConversation(appDocId, personalizedMessage, phone, 'outbound');
+    // Update app timestamp
+    await db.collection('applications').doc(appDocId).update({ updated_at: new Date() });
+  }
+
+  return result;
+}
+
+async function logSMSToAppConversation(appDocId, message, phone, direction) {
+  try {
+    const db = getDb();
+    await db.collection('applications').doc(appDocId)
+      .collection('sms_messages').add({
+        direction: direction,
+        message: message,
+        phone: phone,
+        timestamp: new Date(),
+        read: true
+      });
+  } catch (err) {
+    console.error('[sms] Failed to log SMS to app conversation:', err.message);
+  }
 }
 
 // =========================================================================
@@ -218,9 +277,28 @@ async function logSMSToNotes(leadDocId, messageSummary, status) {
   }
 }
 
+async function logSMSToConversation(leadDocId, message, phone, direction) {
+  try {
+    const db = getDb();
+    await db.collection('leads').doc(leadDocId)
+      .collection('sms_messages').add({
+        direction: direction,
+        message: message,
+        phone: phone,
+        timestamp: new Date(),
+        read: true
+      });
+  } catch (err) {
+    console.error('[sms] Failed to log SMS to conversation:', err.message);
+  }
+}
+
 module.exports = {
   sendSMS,
   sendWelcomeSMS,
   sendSMSToLead,
-  normalizePhone
+  sendSMSToApplication,
+  normalizePhone,
+  logSMSToConversation,
+  logSMSToAppConversation
 };

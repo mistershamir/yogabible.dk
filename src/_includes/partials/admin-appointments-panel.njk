@@ -1,0 +1,244 @@
+{# ── Appointment List View ── #}
+<div id="yb-admin-v-appt-list">
+  <div class="yb-admin__view-head">
+    <h2>{{ t.appt_title }}</h2>
+    <div class="yb-lead__toolbar-right">
+      <div class="yb-lead__view-toggle" id="yb-appt-view-toggle">
+        <button class="yb-lead__view-btn is-active" data-view="list" type="button">&#128203; {{ t.appt_view_list }}</button>
+        <button class="yb-lead__view-btn" data-view="calendar" type="button">&#128197; {{ t.appt_view_calendar }}</button>
+      </div>
+      <button type="button" class="yb-btn yb-btn--primary yb-btn--sm" id="yb-appt-new-btn">+ {{ t.appt_new }}</button>
+      <button type="button" class="yb-btn yb-btn--outline yb-btn--sm" data-action="appt-export-csv">&#128229; {{ t.appt_export }}</button>
+      <button type="button" class="yb-btn yb-btn--outline yb-btn--sm" data-action="appt-refresh">&#8635; {{ t.appt_refresh }}</button>
+    </div>
+  </div>
+
+  {# Pipeline Stats (clickable) #}
+  <div class="yb-lead__stats-grid" id="yb-appt-stats"></div>
+
+  {# Search + Filters Row #}
+  <div class="yb-lead__filter-bar">
+    <form id="yb-appt-search-form" class="yb-lead__search-form">
+      <input type="text" id="yb-appt-search-input" placeholder="{{ t.appt_search_placeholder }}" class="yb-lead__search-input">
+    </form>
+    <select id="yb-appt-status-filter" class="yb-admin__select yb-lead__filter">
+      <option value="">{{ t.appt_all_statuses }}</option>
+      <option value="confirmed">&#9989; {{ t.appt_status_confirmed }}</option>
+      <option value="rescheduled">&#128260; {{ t.appt_status_rescheduled }}</option>
+      <option value="completed">&#9989; {{ t.appt_status_completed }}</option>
+      <option value="cancelled">&#10006; {{ t.appt_status_cancelled }}</option>
+      <option value="no-show">&#128683; {{ t.appt_status_no_show }}</option>
+    </select>
+    <select id="yb-appt-type-filter" class="yb-admin__select yb-lead__filter">
+      <option value="">{{ t.appt_all_types }}</option>
+      <option value="info-session">&#127963; {{ t.appt_info_session }}</option>
+      <option value="consultation">&#128187; {{ t.appt_consultation }}</option>
+      <option value="intro-class">&#129495; {{ t.appt_intro_class }}</option>
+    </select>
+    <input type="date" id="yb-appt-date-from" class="yb-admin__select yb-lead__filter" title="From date">
+    <input type="date" id="yb-appt-date-to" class="yb-admin__select yb-lead__filter" title="To date">
+  </div>
+
+  {# Result count #}
+  <div class="yb-lead__result-bar">
+    <span id="yb-appt-count" class="yb-lead__count-text"></span>
+  </div>
+
+  {# Appointment table (list view) #}
+  <div class="yb-admin__table-wrap yb-lead__table-wrap" id="yb-appt-table-container">
+    <table class="yb-admin__table yb-lead__table" id="yb-appt-table">
+      <thead>
+        <tr>
+          <th class="yb-lead__th-chevron"></th>
+          <th><button class="yb-lead__sort-btn is-active is-desc" data-sort="date">{{ t.appt_col_date }} <span class="yb-lead__sort-icon"></span></button></th>
+          <th>{{ t.appt_col_time }}</th>
+          <th>{{ t.appt_col_client }}</th>
+          <th>{{ t.appt_col_type }}</th>
+          <th>{{ t.appt_col_duration }}</th>
+          <th><button class="yb-lead__sort-btn" data-sort="status">{{ t.appt_col_status }} <span class="yb-lead__sort-icon"></span></button></th>
+          <th>{{ t.appt_col_source }}</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody id="yb-appt-table-body"></tbody>
+    </table>
+  </div>
+
+  {# Calendar view (hidden by default) #}
+  <div id="yb-appt-calendar" class="yb-appt__calendar" hidden>
+    <div class="yb-appt__calendar-nav">
+      <button type="button" class="yb-btn yb-btn--outline yb-btn--sm" data-action="appt-cal-prev">&larr; {{ t.appt_calendar_prev }}</button>
+      <h3 id="yb-appt-calendar-month" class="yb-appt__calendar-title"></h3>
+      <button type="button" class="yb-btn yb-btn--outline yb-btn--sm" data-action="appt-cal-next">{{ t.appt_calendar_next }} &rarr;</button>
+    </div>
+    <div class="yb-appt__calendar-grid" id="yb-appt-calendar-grid"></div>
+  </div>
+</div>
+
+{# ── New Appointment Modal ── #}
+<div id="yb-appt-new-modal" class="yb-lead__modal" hidden>
+  <div class="yb-lead__modal-overlay" data-action="appt-modal-close"></div>
+  <div class="yb-lead__campaign-box" style="max-width:520px;">
+    <div class="yb-lead__campaign-header">
+      <h3 class="yb-lead__campaign-title">&#128197; {{ t.appt_new }}</h3>
+      <button type="button" class="yb-lead__campaign-close" data-action="appt-modal-close">&times;</button>
+    </div>
+    <div style="padding:20px 24px;">
+      <form id="yb-appt-new-form" class="yb-admin__form">
+        <div class="yb-lead__status-grid">
+          <div class="yb-admin__field">
+            <label for="yb-appt-f-date">{{ t.appt_new_date }} *</label>
+            <input type="date" id="yb-appt-f-date" class="yb-admin__select" required>
+          </div>
+          <div class="yb-admin__field">
+            <label for="yb-appt-f-time">{{ t.appt_new_time }} *</label>
+            <input type="time" id="yb-appt-f-time" class="yb-admin__select" required>
+          </div>
+          <div class="yb-admin__field">
+            <label for="yb-appt-f-type">{{ t.appt_new_type }}</label>
+            <select id="yb-appt-f-type" class="yb-admin__select">
+              <option value="info-session">{{ t.appt_info_session }}</option>
+              <option value="consultation">{{ t.appt_consultation }}</option>
+              <option value="intro-class">{{ t.appt_intro_class }}</option>
+            </select>
+          </div>
+          <div class="yb-admin__field">
+            <label for="yb-appt-f-duration">{{ t.appt_new_duration }}</label>
+            <select id="yb-appt-f-duration" class="yb-admin__select">
+              <option value="30">30 {{ t.appt_min }}</option>
+              <option value="45">45 {{ t.appt_min }}</option>
+              <option value="60">60 {{ t.appt_min }}</option>
+              <option value="90">90 {{ t.appt_min }}</option>
+            </select>
+          </div>
+          <div class="yb-admin__field">
+            <label for="yb-appt-f-name">{{ t.appt_new_name }} *</label>
+            <input type="text" id="yb-appt-f-name" class="yb-admin__select" required placeholder="Fornavn Efternavn">
+          </div>
+          <div class="yb-admin__field">
+            <label for="yb-appt-f-email">{{ t.appt_new_email }} *</label>
+            <input type="email" id="yb-appt-f-email" class="yb-admin__select" required placeholder="email@eksempel.dk">
+          </div>
+          <div class="yb-admin__field">
+            <label for="yb-appt-f-phone">{{ t.appt_new_phone }}</label>
+            <input type="tel" id="yb-appt-f-phone" class="yb-admin__select" placeholder="+45 12345678">
+          </div>
+          <div class="yb-admin__field">
+            <label for="yb-appt-f-location">{{ t.appt_new_location }}</label>
+            <select id="yb-appt-f-location" class="yb-admin__select">
+              <option value="studio">{{ t.appt_location_studio }}</option>
+              <option value="online">{{ t.appt_location_online }}</option>
+            </select>
+          </div>
+          <div class="yb-admin__field yb-admin__field--full">
+            <label for="yb-appt-f-notes">{{ t.appt_new_notes }}</label>
+            <textarea id="yb-appt-f-notes" class="yb-admin__select" rows="2" placeholder=""></textarea>
+          </div>
+        </div>
+        <div class="yb-admin__form-actions" style="margin-top:16px;">
+          <button type="submit" class="yb-btn yb-btn--primary" id="yb-appt-create-btn">{{ t.appt_create }}</button>
+          <button type="button" class="yb-btn yb-btn--outline" data-action="appt-modal-close">{{ t.cancel }}</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+{# ── Appointment Detail View ── #}
+<div id="yb-admin-v-appt-detail" hidden>
+  <div class="yb-admin__view-head">
+    <button class="yb-admin__back-btn" data-action="back-appt">&larr; {{ t.back }}</button>
+    <h2 id="yb-appt-detail-heading">{{ t.appt_detail_title }}</h2>
+  </div>
+
+  {# Appointment info card #}
+  <div id="yb-appt-detail-card"></div>
+
+  {# Quick actions #}
+  <div class="yb-admin__section-divider"></div>
+  <h3 class="yb-lead__section-title">{{ t.leads_actions }}</h3>
+  <div id="yb-appt-actions" class="yb-lead__actions"></div>
+
+  {# Edit Fields #}
+  <div class="yb-admin__section-divider"></div>
+  <h3 class="yb-lead__section-title">{{ t.appt_edit_fields }}</h3>
+  <form id="yb-appt-edit-form" class="yb-admin__form">
+    <div class="yb-lead__status-grid">
+      <div class="yb-admin__field">
+        <label for="yb-appt-edit-date">{{ t.appt_new_date }}</label>
+        <input type="date" id="yb-appt-edit-date" class="yb-admin__select">
+      </div>
+      <div class="yb-admin__field">
+        <label for="yb-appt-edit-time">{{ t.appt_new_time }}</label>
+        <input type="time" id="yb-appt-edit-time" class="yb-admin__select">
+      </div>
+      <div class="yb-admin__field">
+        <label for="yb-appt-edit-type">{{ t.appt_new_type }}</label>
+        <select id="yb-appt-edit-type" class="yb-admin__select">
+          <option value="info-session">{{ t.appt_info_session }}</option>
+          <option value="consultation">{{ t.appt_consultation }}</option>
+          <option value="intro-class">{{ t.appt_intro_class }}</option>
+        </select>
+      </div>
+      <div class="yb-admin__field">
+        <label for="yb-appt-edit-duration">{{ t.appt_new_duration }}</label>
+        <select id="yb-appt-edit-duration" class="yb-admin__select">
+          <option value="30">30 min</option>
+          <option value="45">45 min</option>
+          <option value="60">60 min</option>
+          <option value="90">90 min</option>
+        </select>
+      </div>
+      <div class="yb-admin__field">
+        <label for="yb-appt-edit-name">{{ t.appt_new_name }}</label>
+        <input type="text" id="yb-appt-edit-name" class="yb-admin__select">
+      </div>
+      <div class="yb-admin__field">
+        <label for="yb-appt-edit-email">{{ t.appt_new_email }}</label>
+        <input type="email" id="yb-appt-edit-email" class="yb-admin__select">
+      </div>
+      <div class="yb-admin__field">
+        <label for="yb-appt-edit-phone">{{ t.appt_new_phone }}</label>
+        <input type="tel" id="yb-appt-edit-phone" class="yb-admin__select">
+      </div>
+      <div class="yb-admin__field">
+        <label for="yb-appt-edit-status">{{ t.appt_col_status }}</label>
+        <select id="yb-appt-edit-status" class="yb-admin__select">
+          <option value="confirmed">&#9989; {{ t.appt_status_confirmed }}</option>
+          <option value="rescheduled">&#128260; {{ t.appt_status_rescheduled }}</option>
+          <option value="completed">&#9989; {{ t.appt_status_completed }}</option>
+          <option value="cancelled">&#10006; {{ t.appt_status_cancelled }}</option>
+          <option value="no-show">&#128683; {{ t.appt_status_no_show }}</option>
+        </select>
+      </div>
+      <div class="yb-admin__field">
+        <label for="yb-appt-edit-location">{{ t.appt_new_location }}</label>
+        <select id="yb-appt-edit-location" class="yb-admin__select">
+          <option value="studio">{{ t.appt_location_studio }}</option>
+          <option value="online">{{ t.appt_location_online }}</option>
+        </select>
+      </div>
+      <div class="yb-admin__field yb-admin__field--full">
+        <label for="yb-appt-edit-notes">{{ t.appt_new_notes }}</label>
+        <textarea id="yb-appt-edit-notes" class="yb-admin__select" rows="3"></textarea>
+      </div>
+    </div>
+    <div class="yb-admin__form-actions">
+      <button type="submit" class="yb-btn yb-btn--primary">{{ t.appt_save_fields }}</button>
+    </div>
+  </form>
+
+  {# Notes timeline #}
+  <div class="yb-admin__section-divider"></div>
+  <h3 class="yb-lead__section-title">{{ t.appt_notes }}</h3>
+  <form id="yb-appt-note-form" class="yb-lead__note-form">
+    <input type="text" id="yb-appt-note-input" placeholder="{{ t.appt_note_placeholder }}" class="yb-lead__note-input">
+    <button type="submit" class="yb-btn yb-btn--primary yb-btn--sm">{{ t.appt_add_note }}</button>
+  </form>
+  <div id="yb-appt-notes-timeline" class="yb-lead__notes-timeline"></div>
+
+  {# Activity log #}
+  <div class="yb-admin__section-divider"></div>
+  <h3 class="yb-lead__section-title">{{ t.appt_activity }}</h3>
+  <div id="yb-appt-activity"></div>
+</div>

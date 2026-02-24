@@ -31,6 +31,15 @@
 
   var usersLoaded = false;
 
+  // User management enhanced state
+  var userSearchTerm = '';
+  var userFilterRole = '';
+  var userFilterTier = '';
+  var userFilterWaiver = '';
+  var userFilterMb = '';
+  var selectedUserIds = new Set();
+  var selectAllUsers = false;
+
   /* ═══════════════════════════════════════
      HELPERS
      ═══════════════════════════════════════ */
@@ -1170,8 +1179,8 @@
         var pct = s.totalChapters > 0 ? Math.round((s.chaptersRead / s.totalChapters) * 100) : 0;
         var lastActiveStr = '';
         if (s.lastActive) {
-          lastActiveStr = s.lastActive.toLocaleDateString(lang === 'da' ? 'da-DK' : 'en-US', {
-            year: 'numeric', month: 'short', day: 'numeric'
+          lastActiveStr = s.lastActive.toLocaleDateString('da-DK', {
+            day: '2-digit', month: '2-digit', year: 'numeric'
           });
         }
         var displayName = s.name || s.email || s.userId;
@@ -1244,6 +1253,20 @@
     html += '</select>';
     html += '</div>';
 
+    // Trainee method select (shown conditionally)
+    html += '<div class="yb-admin__field" id="yb-admin-role-method-fields" style="flex:1;display:' + (currentRole === 'trainee' ? '' : 'none') + '">';
+    html += '<label for="yb-admin-role-method">Method</label>';
+    html += '<select id="yb-admin-role-method" class="yb-admin__select">';
+    html += '<option value="">—</option>';
+    if (R.TRAINEE_METHODS) {
+      Object.keys(R.TRAINEE_METHODS).forEach(function(k) {
+        var meth = R.TRAINEE_METHODS[k];
+        html += '<option value="' + k + '"' + (currentDetails.method === k ? ' selected' : '') + '>' + (meth['label_' + lang] || meth.label_da) + '</option>';
+      });
+    }
+    html += '</select>';
+    html += '</div>';
+
     // Teacher type select (shown conditionally)
     html += '<div class="yb-admin__field" id="yb-admin-role-teacher-fields" style="flex:1;display:' + (currentRole === 'teacher' ? '' : 'none') + '">';
     html += '<label for="yb-admin-role-teacher-type">' + t('role_teacher_type') + '</label>';
@@ -1256,6 +1279,28 @@
     html += '</select>';
     html += '</div>';
 
+    // Student course types (shown conditionally) — checkboxes for multi-select
+    html += '<div class="yb-admin__field" id="yb-admin-role-student-fields" style="flex:1;display:' + (currentRole === 'student' ? '' : 'none') + '">';
+    html += '<label>Courses</label>';
+    html += '<div style="display:flex;flex-wrap:wrap;gap:0.5rem 1rem;margin-top:0.25rem">';
+    var existingCourseTypes = (currentDetails.courseTypes || []);
+    Object.keys(R.STUDENT_COURSES).forEach(function(k) {
+      var sc = R.STUDENT_COURSES[k];
+      var checked = existingCourseTypes.indexOf(k) !== -1 ? ' checked' : '';
+      html += '<label style="font-size:0.85rem;display:flex;align-items:center;gap:0.35rem;cursor:pointer">';
+      html += '<input type="checkbox" class="yb-admin-role-coursetype" value="' + k + '"' + checked + '>';
+      html += (sc['label_' + lang] || sc.label_da);
+      html += '</label>';
+    });
+    // Mentorship checkbox
+    var mentorChecked = currentDetails.mentorship ? ' checked' : '';
+    html += '<label style="font-size:0.85rem;display:flex;align-items:center;gap:0.35rem;cursor:pointer">';
+    html += '<input type="checkbox" id="yb-admin-role-mentorship" value="mentorship"' + mentorChecked + '>';
+    html += 'Mentorship';
+    html += '</label>';
+    html += '</div>';
+    html += '</div>';
+
     html += '</div>'; // end form-row
 
     // Trainee cohort (shown conditionally)
@@ -1263,6 +1308,28 @@
     html += '<div class="yb-admin__field" style="max-width:220px">';
     html += '<label for="yb-admin-role-cohort">' + t('role_cohort') + '</label>';
     html += '<input type="text" id="yb-admin-role-cohort" placeholder="2026-spring" value="' + esc(currentDetails.cohort || '') + '">';
+    html += '</div>';
+    html += '</div>';
+
+    // Trainee courseTypes checkboxes (shown when trainee — they can also have courses)
+    html += '<div id="yb-admin-role-trainee-courses-wrap" style="display:' + (currentRole === 'trainee' ? '' : 'none') + '">';
+    html += '<div class="yb-admin__field">';
+    html += '<label>Courses (optional)</label>';
+    html += '<div style="display:flex;flex-wrap:wrap;gap:0.5rem 1rem;margin-top:0.25rem">';
+    Object.keys(R.STUDENT_COURSES).forEach(function(k) {
+      var sc = R.STUDENT_COURSES[k];
+      var checked = existingCourseTypes.indexOf(k) !== -1 ? ' checked' : '';
+      html += '<label style="font-size:0.85rem;display:flex;align-items:center;gap:0.35rem;cursor:pointer">';
+      html += '<input type="checkbox" class="yb-admin-role-trainee-coursetype" value="' + k + '"' + checked + '>';
+      html += (sc['label_' + lang] || sc.label_da);
+      html += '</label>';
+    });
+    var trainMentorChecked = currentDetails.mentorship ? ' checked' : '';
+    html += '<label style="font-size:0.85rem;display:flex;align-items:center;gap:0.35rem;cursor:pointer">';
+    html += '<input type="checkbox" id="yb-admin-role-trainee-mentorship" value="mentorship"' + trainMentorChecked + '>';
+    html += 'Mentorship';
+    html += '</label>';
+    html += '</div>';
     html += '</div>';
     html += '</div>';
 
@@ -1283,6 +1350,7 @@
 
     var roleSelect = $('yb-admin-role-select');
     var programSelect = $('yb-admin-role-program');
+    var methodSelect = $('yb-admin-role-method');
     var teacherTypeSelect = $('yb-admin-role-teacher-type');
     var cohortInput = $('yb-admin-role-cohort');
 
@@ -1291,11 +1359,33 @@
 
     if (newRole === 'trainee') {
       if (programSelect && programSelect.value) roleDetails.program = programSelect.value;
+      if (methodSelect && methodSelect.value) roleDetails.method = methodSelect.value;
       if (cohortInput && cohortInput.value.trim()) roleDetails.cohort = cohortInput.value.trim();
+      // Collect trainee courseTypes
+      var traineeCourseTypes = [];
+      document.querySelectorAll('.yb-admin-role-trainee-coursetype:checked').forEach(function(cb) {
+        traineeCourseTypes.push(cb.value);
+      });
+      if (traineeCourseTypes.length) roleDetails.courseTypes = traineeCourseTypes;
+      var traineeMentorship = $('yb-admin-role-trainee-mentorship');
+      if (traineeMentorship && traineeMentorship.checked) roleDetails.mentorship = true;
+    }
+    if (newRole === 'student') {
+      // Collect student courseTypes
+      var studentCourseTypes = [];
+      document.querySelectorAll('.yb-admin-role-coursetype:checked').forEach(function(cb) {
+        studentCourseTypes.push(cb.value);
+      });
+      if (studentCourseTypes.length) roleDetails.courseTypes = studentCourseTypes;
+      var studentMentorship = $('yb-admin-role-mentorship');
+      if (studentMentorship && studentMentorship.checked) roleDetails.mentorship = true;
     }
     if (newRole === 'teacher') {
       if (teacherTypeSelect && teacherTypeSelect.value) roleDetails.teacherType = teacherTypeSelect.value;
     }
+
+    var previousRole = state.userDetail ? (state.userDetail.role || 'member') : 'member';
+    var previousDetails = state.userDetail ? (state.userDetail.roleDetails || {}) : {};
 
     toast(t('saving'));
     db.collection('users').doc(uid).update({
@@ -1303,9 +1393,74 @@
       roleDetails: roleDetails,
       updatedAt: firebase.firestore.FieldValue.serverTimestamp()
     }).then(function() {
+      // Audit log
+      db.collection('role_changes').add({
+        userId: uid,
+        action: 'role_change',
+        previousRole: previousRole,
+        previousDetails: previousDetails,
+        newRole: newRole,
+        newDetails: roleDetails,
+        source: 'admin_manual',
+        changedBy: firebase.auth().currentUser ? firebase.auth().currentUser.uid : 'unknown',
+        changedAt: firebase.firestore.FieldValue.serverTimestamp()
+      });
       toast(t('role_saved'));
     }).catch(function(err) {
       console.error('Role save error:', err);
+      toast(err.message || t('error_save'), true);
+    });
+  }
+
+  function suspendUser(uid) {
+    if (!uid) return;
+    if (!confirm(t('users_suspend_confirm'))) return;
+
+    var previousRole = state.userDetail ? (state.userDetail.role || 'member') : 'member';
+
+    db.collection('users').doc(uid).update({
+      suspended: true,
+      suspendedAt: firebase.firestore.FieldValue.serverTimestamp(),
+      updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+    }).then(function () {
+      // Log role change
+      db.collection('role_changes').add({
+        userId: uid,
+        action: 'suspend',
+        previousRole: previousRole,
+        source: 'admin_manual',
+        changedBy: firebase.auth().currentUser ? firebase.auth().currentUser.uid : 'unknown',
+        changedAt: firebase.firestore.FieldValue.serverTimestamp()
+      });
+      toast(t('users_suspended'));
+      showUserDetail(uid);
+    }).catch(function (err) {
+      console.error('Suspend error:', err);
+      toast(err.message || t('error_save'), true);
+    });
+  }
+
+  function unsuspendUser(uid) {
+    if (!uid) return;
+    if (!confirm(t('users_unsuspend_confirm'))) return;
+
+    db.collection('users').doc(uid).update({
+      suspended: false,
+      suspendedAt: firebase.firestore.FieldValue.delete(),
+      updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+    }).then(function () {
+      // Log role change
+      db.collection('role_changes').add({
+        userId: uid,
+        action: 'unsuspend',
+        source: 'admin_manual',
+        changedBy: firebase.auth().currentUser ? firebase.auth().currentUser.uid : 'unknown',
+        changedAt: firebase.firestore.FieldValue.serverTimestamp()
+      });
+      toast(t('users_unsuspended'));
+      showUserDetail(uid);
+    }).catch(function (err) {
+      console.error('Unsuspend error:', err);
       toast(err.message || t('error_save'), true);
     });
   }
@@ -1316,103 +1471,105 @@
       if (e.target.id !== 'yb-admin-role-select') return;
       var role = e.target.value;
       var traineeFields = $('yb-admin-role-trainee-fields');
+      var methodFields = $('yb-admin-role-method-fields');
       var teacherFields = $('yb-admin-role-teacher-fields');
+      var studentFields = $('yb-admin-role-student-fields');
       var cohortWrap = $('yb-admin-role-cohort-wrap');
+      var traineeCoursesWrap = $('yb-admin-role-trainee-courses-wrap');
       if (traineeFields) traineeFields.style.display = role === 'trainee' ? '' : 'none';
+      if (methodFields) methodFields.style.display = role === 'trainee' ? '' : 'none';
       if (teacherFields) teacherFields.style.display = role === 'teacher' ? '' : 'none';
+      if (studentFields) studentFields.style.display = role === 'student' ? '' : 'none';
       if (cohortWrap) cohortWrap.style.display = role === 'trainee' ? '' : 'none';
+      if (traineeCoursesWrap) traineeCoursesWrap.style.display = role === 'trainee' ? '' : 'none';
     });
   }
 
   /* ═══════════════════════════════════════
      USER MANAGEMENT (Users tab)
      ═══════════════════════════════════════ */
+  /* ═══════════════════════════════════════
+     USERS — LOAD / FILTER / RENDER
+     ═══════════════════════════════════════ */
   function loadAllUsers() {
-    var wrap = $('yb-admin-user-table-wrap');
-    if (wrap) wrap.innerHTML = '<p class="yb-admin__empty">' + t('loading') + '</p>';
+    var tbody = $('yb-user-table-body');
+    if (tbody) tbody.innerHTML = '<tr><td colspan="10" style="text-align:center;padding:2rem">' + t('loading') + '</td></tr>';
 
-    db.collection('users').orderBy('createdAt', 'desc').limit(100).get()
+    db.collection('users').orderBy('createdAt', 'desc').get()
       .then(function (snap) {
         state.users = [];
         snap.forEach(function (doc) { state.users.push(Object.assign({ id: doc.id }, doc.data())); });
         renderUserStats(state.users);
-        renderUserList(state.users);
+        renderUserTable();
+        // Expose user data bridge for campaign wizard
+        window._ybUserData = { getUsers: function () { return state.users; } };
       })
       .catch(function () {
         // Fallback: createdAt index may not exist
-        db.collection('users').limit(100).get()
+        db.collection('users').get()
           .then(function (snap) {
             state.users = [];
             snap.forEach(function (doc) { state.users.push(Object.assign({ id: doc.id }, doc.data())); });
             renderUserStats(state.users);
-            renderUserList(state.users);
+            renderUserTable();
+            window._ybUserData = { getUsers: function () { return state.users; } };
           })
           .catch(function (err) {
             console.error(err);
-            if (wrap) wrap.innerHTML = '<p class="yb-admin__empty" style="color:#dc2626">' + t('error_load') + '</p>';
+            if (tbody) tbody.innerHTML = '<tr><td colspan="10" style="text-align:center;padding:2rem;color:#dc2626">' + t('error_load') + '</td></tr>';
           });
       });
   }
 
-  function searchUsers(e) {
-    e.preventDefault();
-    var query = $('yb-admin-user-search-input').value.trim();
-    if (!query) return;
+  function getFilteredUsers() {
+    var filtered = state.users.slice();
 
-    var wrap = $('yb-admin-user-table-wrap');
-    if (wrap) wrap.innerHTML = '<p class="yb-admin__empty">' + t('loading') + '</p>';
-
-    if (query.indexOf('@') > -1) {
-      // Exact email match
-      db.collection('users').where('email', '==', query).limit(10).get()
-        .then(function (snap) {
-          var results = [];
-          snap.forEach(function (doc) { results.push(Object.assign({ id: doc.id }, doc.data())); });
-          if (results.length) {
-            renderUserList(results);
-          } else {
-            if (wrap) wrap.innerHTML = '<p class="yb-admin__empty">' + t('users_no_results') + '</p>';
-          }
-        })
-        .catch(function (err) { console.error(err); toast(t('error_load'), true); });
-    } else {
-      // Client-side filter from cached users
-      var q = query.toLowerCase();
-      var filtered = state.users.filter(function (u) {
+    // Search filter (name, email, phone)
+    if (userSearchTerm) {
+      var q = userSearchTerm.toLowerCase();
+      filtered = filtered.filter(function (u) {
         var name = (u.name || ((u.firstName || '') + ' ' + (u.lastName || '')).trim() || '').toLowerCase();
         var email = (u.email || '').toLowerCase();
-        return name.indexOf(q) > -1 || email.indexOf(q) > -1;
+        var phone = (u.phone || '').toLowerCase();
+        return name.indexOf(q) > -1 || email.indexOf(q) > -1 || phone.indexOf(q) > -1;
       });
-      if (filtered.length) {
-        renderUserList(filtered);
-      } else {
-        // Try Firestore prefix search on email
-        db.collection('users').orderBy('email').startAt(query).endAt(query + '\uf8ff').limit(20).get()
-          .then(function (snap) {
-            var results = [];
-            snap.forEach(function (doc) { results.push(Object.assign({ id: doc.id }, doc.data())); });
-            if (results.length) {
-              renderUserList(results);
-            } else {
-              if (wrap) wrap.innerHTML = '<p class="yb-admin__empty">' + t('users_no_results') + '</p>';
-            }
-          })
-          .catch(function () {
-            if (wrap) wrap.innerHTML = '<p class="yb-admin__empty">' + t('users_no_results') + '</p>';
-          });
-      }
     }
-  }
 
-  function filterUsersByRole() {
-    var role = $('yb-admin-user-role-filter').value;
-    if (!role) { renderUserList(state.users); return; }
-    var filtered = state.users.filter(function (u) {
-      var r = u.role || 'member';
-      if (r === 'user') r = 'member';
-      return r === role;
-    });
-    renderUserList(filtered);
+    // Role filter
+    if (userFilterRole) {
+      filtered = filtered.filter(function (u) {
+        var r = u.role || 'member';
+        if (r === 'user') r = 'member';
+        return r === userFilterRole;
+      });
+    }
+
+    // Membership tier filter
+    if (userFilterTier) {
+      filtered = filtered.filter(function (u) {
+        var tier = (u.tier || u.membershipTier || '').toLowerCase();
+        if (userFilterTier === 'none') return !tier;
+        return tier === userFilterTier;
+      });
+    }
+
+    // Waiver status filter
+    if (userFilterWaiver) {
+      filtered = filtered.filter(function (u) {
+        var signed = !!u.waiverSigned;
+        return userFilterWaiver === 'signed' ? signed : !signed;
+      });
+    }
+
+    // MindBody link filter
+    if (userFilterMb) {
+      filtered = filtered.filter(function (u) {
+        var linked = !!(u.mindbodyId || u.mindbodyClientId);
+        return userFilterMb === 'linked' ? linked : !linked;
+      });
+    }
+
+    return filtered;
   }
 
   function renderUserStats(users) {
@@ -1420,63 +1577,360 @@
     if (!el) return;
 
     var total = users.length;
-    var trainees = 0, teachers = 0, admins = 0;
+    var members = 0, students = 0, trainees = 0, teachers = 0, admins = 0, mbLinked = 0, waiverSigned = 0;
     users.forEach(function (u) {
       var r = u.role || 'member';
-      if (r === 'trainee') trainees++;
+      if (r === 'user') r = 'member';
+      if (r === 'member') members++;
+      else if (r === 'student') students++;
+      else if (r === 'trainee') trainees++;
       else if (r === 'teacher') teachers++;
       else if (r === 'admin') admins++;
+      if (u.mindbodyId || u.mindbodyClientId) mbLinked++;
+      if (u.waiverSigned) waiverSigned++;
     });
 
     el.innerHTML =
-      '<div class="yb-admin__stat-card"><span class="yb-admin__stat-value">' + total + '</span><span class="yb-admin__stat-label">' + t('users_stat_total') + '</span></div>' +
-      '<div class="yb-admin__stat-card"><span class="yb-admin__stat-value">' + trainees + '</span><span class="yb-admin__stat-label">' + t('users_stat_trainees') + '</span></div>' +
-      '<div class="yb-admin__stat-card"><span class="yb-admin__stat-value">' + teachers + '</span><span class="yb-admin__stat-label">' + t('users_stat_teachers') + '</span></div>' +
-      '<div class="yb-admin__stat-card"><span class="yb-admin__stat-value">' + admins + '</span><span class="yb-admin__stat-label">' + t('users_stat_admins') + '</span></div>';
+      '<div class="yb-lead__stat-card yb-lead__stat-card--total"><span class="yb-lead__stat-value">' + total + '</span><span class="yb-lead__stat-label">' + t('users_stat_total') + '</span></div>' +
+      '<div class="yb-lead__stat-card"><span class="yb-lead__stat-value">' + members + '</span><span class="yb-lead__stat-label">' + t('users_stat_members') + '</span></div>' +
+      '<div class="yb-lead__stat-card"><span class="yb-lead__stat-value">' + (students + trainees) + '</span><span class="yb-lead__stat-label">' + t('users_stat_students') + '</span></div>' +
+      '<div class="yb-lead__stat-card"><span class="yb-lead__stat-value">' + teachers + '</span><span class="yb-lead__stat-label">' + t('users_stat_teachers') + '</span></div>' +
+      '<div class="yb-lead__stat-card"><span class="yb-lead__stat-value">' + admins + '</span><span class="yb-lead__stat-label">' + t('users_stat_admins') + '</span></div>' +
+      '<div class="yb-lead__stat-card"><span class="yb-lead__stat-value">' + mbLinked + '</span><span class="yb-lead__stat-label">' + t('users_stat_mb_linked') + '</span></div>' +
+      '<div class="yb-lead__stat-card"><span class="yb-lead__stat-value">' + waiverSigned + '</span><span class="yb-lead__stat-label">' + t('users_stat_waiver_signed') + '</span></div>';
   }
 
-  function renderUserList(users) {
-    var el = $('yb-admin-user-table-wrap');
-    if (!el) return;
+  function renderUserTable() {
+    var tbody = $('yb-user-table-body');
+    if (!tbody) return;
 
-    if (!users.length) {
-      el.innerHTML = '<p class="yb-admin__empty">' + t('users_empty') + '</p>';
+    var filtered = getFilteredUsers();
+
+    // Update result count
+    var countEl = $('yb-user-count');
+    if (countEl) countEl.textContent = filtered.length + ' ' + t('users_of') + ' ' + state.users.length;
+
+    if (!filtered.length) {
+      tbody.innerHTML = '<tr><td colspan="10" style="text-align:center;padding:2rem;color:#6F6A66">' + t('users_no_users') + '</td></tr>';
       return;
     }
 
     var R = window.YBRoles;
 
-    var html = '<table class="yb-admin__table"><thead><tr>' +
-      '<th>' + t('users_col_name') + '</th>' +
-      '<th>' + t('users_col_email') + '</th>' +
-      '<th>' + t('users_col_role') + '</th>' +
-      '<th>' + t('users_col_joined') + '</th>' +
-      '<th></th>' +
-      '</tr></thead><tbody>';
-
-    users.forEach(function (u) {
-      var name = u.name || ((u.firstName || '') + ' ' + (u.lastName || '')).trim() || '—';
-      var email = u.email || '—';
+    tbody.innerHTML = filtered.map(function (u) {
+      var isChecked = selectedUserIds.has(u.id);
+      var name = u.name || ((u.firstName || '') + ' ' + (u.lastName || '')).trim() || '\u2014';
+      var email = u.email || '\u2014';
+      var phone = u.phone || '';
       var role = u.role || 'member';
       if (role === 'user') role = 'member';
       var roleLabel = R ? R.getRoleLabel(role, lang) : role;
+      var tier = u.tier || u.membershipTier || '';
+      var waiverStatus = u.waiverSigned ? '\u2705' : '\u274c';
+      var mbStatus = (u.mindbodyId || u.mindbodyClientId) ? '\u2705' : '\u274c';
       var joined = '';
       if (u.createdAt) {
         var d = u.createdAt.toDate ? u.createdAt.toDate() : new Date(u.createdAt);
-        joined = d.toLocaleDateString(lang === 'da' ? 'da-DK' : 'en-US', { year: 'numeric', month: 'short', day: 'numeric' });
+        joined = d.toLocaleDateString('da-DK', { day: '2-digit', month: '2-digit', year: 'numeric' });
       }
 
-      html += '<tr>' +
+      return '<tr class="yb-lead__row' + (isChecked ? ' is-selected' : '') + '">' +
+        '<td class="yb-lead__th-cb"><input type="checkbox" class="yb-user-row-cb" data-id="' + u.id + '"' + (isChecked ? ' checked' : '') + '></td>' +
         '<td>' + esc(name) + '</td>' +
         '<td style="font-size:0.8rem;color:#6F6A66">' + esc(email) + '</td>' +
+        '<td style="font-size:0.8rem">' + (phone ? '<a href="tel:' + esc(phone) + '" class="yb-lead__cell-phone-link" onclick="event.stopPropagation()">' + esc(phone) + '</a>' : '\u2014') + '</td>' +
         '<td><span class="yb-admin__badge">' + esc(roleLabel) + '</span></td>' +
+        '<td style="font-size:0.8rem">' + esc(tier || '\u2014') + '</td>' +
+        '<td style="text-align:center">' + waiverStatus + '</td>' +
+        '<td style="text-align:center">' + mbStatus + '</td>' +
         '<td style="font-size:0.8rem;color:#6F6A66">' + esc(joined) + '</td>' +
-        '<td><button class="yb-btn yb-btn--outline yb-btn--sm" data-action="view-user" data-id="' + u.id + '">' + t('users_view') + '</button></td>' +
-        '</tr>';
+        '<td><button class="yb-admin__icon-btn" data-action="view-user" data-id="' + u.id + '" title="' + t('users_view') + '">\u2192</button></td>' +
+      '</tr>';
+    }).join('');
+
+    // Update select-all checkbox state
+    var selectAllCb = $('yb-user-select-all');
+    if (selectAllCb) selectAllCb.checked = selectAllUsers && filtered.length > 0;
+  }
+
+  /* ═══════════════════════════════════════
+     USERS — BULK SELECTION
+     ═══════════════════════════════════════ */
+  function toggleUserSelectAll() {
+    selectAllUsers = !selectAllUsers;
+    var filtered = getFilteredUsers();
+    if (selectAllUsers) {
+      filtered.forEach(function (u) { selectedUserIds.add(u.id); });
+    } else {
+      selectedUserIds.clear();
+    }
+    renderUserTable();
+    updateUserBulkBar();
+  }
+
+  function toggleUserSelect(userId) {
+    if (selectedUserIds.has(userId)) {
+      selectedUserIds.delete(userId);
+    } else {
+      selectedUserIds.add(userId);
+    }
+    updateUserBulkBar();
+  }
+
+  function updateUserBulkBar() {
+    var bar = $('yb-user-bulk-bar');
+    if (!bar) return;
+    if (selectedUserIds.size === 0) {
+      bar.hidden = true;
+      return;
+    }
+    bar.hidden = false;
+    var selected = state.users.filter(function (u) { return selectedUserIds.has(u.id); });
+    var withPhone = selected.filter(function (u) { return u.phone; }).length;
+    var withEmail = selected.filter(function (u) { return u.email; }).length;
+    var countEl = $('yb-user-bulk-count');
+    if (countEl) countEl.innerHTML = '<strong>' + selectedUserIds.size + '</strong> ' + t('users_selected') +
+      ' &nbsp;&middot;&nbsp; \ud83d\udcf1 ' + withPhone + ' &nbsp;&middot;&nbsp; \u2709\ufe0f ' + withEmail;
+  }
+
+  function deselectAllUsers() {
+    selectedUserIds.clear();
+    selectAllUsers = false;
+    renderUserTable();
+    updateUserBulkBar();
+  }
+
+  /* ═══════════════════════════════════════
+     USERS — BULK ACTIONS
+     ═══════════════════════════════════════ */
+  function bulkUserRole() {
+    if (selectedUserIds.size === 0) return;
+    var VALID_ROLES = ['member', 'trainee', 'student', 'teacher', 'marketing', 'admin'];
+    var newRole = prompt(t('users_bulk_role_prompt'), 'member');
+    if (!newRole) return;
+    newRole = newRole.toLowerCase().trim();
+    if (VALID_ROLES.indexOf(newRole) === -1) {
+      toast(t('users_invalid_role'), true);
+      return;
+    }
+
+    var batch = db.batch();
+    selectedUserIds.forEach(function (id) {
+      batch.update(db.collection('users').doc(id), { role: newRole });
     });
 
-    html += '</tbody></table>';
-    el.innerHTML = html;
+    toast(t('saving'));
+    batch.commit().then(function () {
+      state.users.forEach(function (u) {
+        if (selectedUserIds.has(u.id)) u.role = newRole;
+      });
+      selectedUserIds.clear();
+      selectAllUsers = false;
+      renderUserTable();
+      renderUserStats(state.users);
+      updateUserBulkBar();
+      toast(t('saved'));
+    }).catch(function (err) {
+      console.error(err);
+      toast(t('error_save') + ': ' + err.message, true);
+    });
+  }
+
+  function bulkUserEmail() {
+    if (typeof window.openEmailCampaign === 'function') {
+      window.openEmailCampaign([]);
+    } else {
+      toast('Campaign wizard not available', true);
+    }
+  }
+
+  function bulkUserSMS() {
+    if (typeof window.openSMSCampaign === 'function') {
+      window.openSMSCampaign([]);
+    } else {
+      toast('Campaign wizard not available', true);
+    }
+  }
+
+  function bulkUserEmailSelected() {
+    var selected = state.users.filter(function (u) { return selectedUserIds.has(u.id); });
+    var withEmail = selected.filter(function (u) { return u.email; });
+    if (!withEmail.length) { toast(t('users_no_email_addr'), true); return; }
+    var recipients = withEmail.map(function (u) {
+      return {
+        id: u.id,
+        first_name: u.firstName || u.name || '',
+        last_name: u.lastName || '',
+        email: u.email,
+        phone: u.phone || ''
+      };
+    });
+    if (typeof window.openEmailCampaign === 'function') {
+      window.openEmailCampaign(recipients);
+    } else {
+      toast('Campaign wizard not available', true);
+    }
+  }
+
+  function bulkUserSMSSelected() {
+    var selected = state.users.filter(function (u) { return selectedUserIds.has(u.id); });
+    var withPhone = selected.filter(function (u) { return u.phone; });
+    if (!withPhone.length) { toast(t('users_no_phone'), true); return; }
+    var recipients = withPhone.map(function (u) {
+      return {
+        id: u.id,
+        first_name: u.firstName || u.name || '',
+        last_name: u.lastName || '',
+        email: u.email || '',
+        phone: u.phone
+      };
+    });
+    if (typeof window.openSMSCampaign === 'function') {
+      window.openSMSCampaign(recipients);
+    } else {
+      toast('Campaign wizard not available', true);
+    }
+  }
+
+  /* ═══════════════════════════════════════
+     USERS — CSV EXPORT
+     ═══════════════════════════════════════ */
+  function exportUsersCSV() {
+    var filtered = getFilteredUsers();
+    if (!filtered.length) { toast(t('users_no_users'), true); return; }
+
+    var headers = ['Name', 'Email', 'Phone', 'Role', 'Membership Tier', 'Waiver Signed', 'MindBody Linked', 'MindBody ID', 'Yoga Level', 'Practice Frequency', 'Date of Birth', 'Locale', 'Created'];
+    var rows = filtered.map(function (u) {
+      var name = u.name || ((u.firstName || '') + ' ' + (u.lastName || '')).trim();
+      var joined = '';
+      if (u.createdAt) {
+        var d = u.createdAt.toDate ? u.createdAt.toDate() : new Date(u.createdAt);
+        joined = d.toISOString().substring(0, 10);
+      }
+      return [
+        name,
+        u.email || '',
+        u.phone || '',
+        u.role || 'member',
+        u.tier || u.membershipTier || '',
+        u.waiverSigned ? 'Yes' : 'No',
+        (u.mindbodyId || u.mindbodyClientId) ? 'Yes' : 'No',
+        u.mindbodyId || u.mindbodyClientId || '',
+        u.yogaLevel || '',
+        u.practiceFrequency || '',
+        u.dateOfBirth || '',
+        u.locale || '',
+        joined
+      ].map(function (v) { return '"' + String(v).replace(/"/g, '""') + '"'; }).join(',');
+    });
+
+    var csv = headers.join(',') + '\n' + rows.join('\n');
+    var blob = new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8' });
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement('a');
+    a.href = url;
+    a.download = 'yoga-bible-users-' + new Date().toISOString().split('T')[0] + '.csv';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    toast(t('users_exported'));
+  }
+
+  /* ═══════════════════════════════════════
+     USERS — QUICK ACTIONS (detail view)
+     ═══════════════════════════════════════ */
+  function renderUserQuickActions() {
+    var el = $('yb-user-actions');
+    if (!el || !state.userDetail) return;
+
+    var u = state.userDetail;
+    var phone = u.phone || '';
+    var email = u.email || '';
+
+    var html =
+      (phone ? '<a href="tel:' + esc(phone) + '" class="yb-btn yb-btn--outline yb-btn--sm">\ud83d\udcde ' + t('users_call') + '</a>' : '') +
+      (phone ? '<button class="yb-btn yb-btn--outline yb-btn--sm" data-action="user-detail-sms">\ud83d\udcf1 ' + t('users_sms') + '</button>' : '') +
+      (phone ? '<a href="https://wa.me/' + esc(phone.replace(/[^0-9+]/g, '')) + '" target="_blank" rel="noopener" class="yb-btn yb-btn--outline yb-btn--sm">\ud83d\udcac WhatsApp</a>' : '') +
+      (email ? '<a href="mailto:' + esc(email) + '" class="yb-btn yb-btn--outline yb-btn--sm">\u2709\ufe0f ' + t('users_email') + '</a>' : '') +
+      '<button class="yb-btn yb-btn--outline yb-btn--sm" data-action="user-add-note">\ud83d\udcdd ' + t('users_add_note') + '</button>';
+
+    el.innerHTML = html || '<p class="yb-lead__empty-text">' + t('users_empty') + '</p>';
+  }
+
+  /* ═══════════════════════════════════════
+     USERS — NOTES TIMELINE
+     ═══════════════════════════════════════ */
+  function addUserNote(type) {
+    var uid = state.userDetailUid;
+    if (!uid || !state.userDetail) return;
+
+    var input = $('yb-user-note-input');
+    var noteText = input ? input.value.trim() : '';
+    if (!noteText) {
+      noteText = prompt(t('users_note_placeholder'));
+      if (!noteText) return;
+    }
+
+    var newNote = {
+      text: noteText,
+      timestamp: new Date().toISOString(),
+      author: (firebase.auth().currentUser || {}).email || 'admin',
+      type: type || 'note'
+    };
+
+    var existing = state.userDetail.notes;
+    var notesArray = [];
+    if (typeof existing === 'string' && existing) {
+      notesArray.push({ text: existing, timestamp: '', author: '', type: 'note' });
+    } else if (Array.isArray(existing)) {
+      notesArray = existing.slice();
+    }
+    notesArray.unshift(newNote);
+
+    db.collection('users').doc(uid).update({
+      notes: notesArray
+    }).then(function () {
+      state.userDetail.notes = notesArray;
+      var idx = -1;
+      for (var i = 0; i < state.users.length; i++) { if (state.users[i].id === uid) { idx = i; break; } }
+      if (idx !== -1) state.users[idx].notes = notesArray;
+      if (input) input.value = '';
+      renderUserNotesTimeline();
+      toast(t('users_note_added'));
+    }).catch(function (err) {
+      console.error('[course-admin] User note error:', err);
+      toast(t('error_save'), true);
+    });
+  }
+
+  function renderUserNotesTimeline() {
+    var el = $('yb-user-notes-timeline');
+    if (!el || !state.userDetail) return;
+
+    var notes = Array.isArray(state.userDetail.notes) ? state.userDetail.notes : [];
+    if (!notes.length) {
+      el.innerHTML = '<p class="yb-lead__empty-text">' + t('users_no_notes') + '</p>';
+      return;
+    }
+
+    var typeIcon = { call: '\ud83d\udcde', email: '\u2709\ufe0f', sms: '\ud83d\udcf1', note: '\ud83d\udcdd', system: '\u2699\ufe0f' };
+
+    el.innerHTML = notes.map(function (n) {
+      var icon = typeIcon[n.type || 'note'] || '\ud83d\udcdd';
+      var ts = '';
+      if (n.timestamp) {
+        try { ts = new Date(n.timestamp).toLocaleString(); } catch (e) { ts = n.timestamp; }
+      }
+      return '<div class="yb-lead__note-item yb-lead__note-item--' + (n.type || 'note') + '">' +
+        '<div class="yb-lead__note-header">' +
+          '<span class="yb-lead__note-icon">' + icon + '</span>' +
+          '<span class="yb-lead__note-author">' + esc(n.author || '') + '</span>' +
+          '<span class="yb-lead__note-time">' + ts + '</span>' +
+        '</div>' +
+        '<div class="yb-lead__note-text">' + esc(n.text || '') + '</div>' +
+      '</div>';
+    }).join('');
   }
 
   function showUserDetail(uid) {
@@ -1505,10 +1959,12 @@
         state.userDetail = u;
 
         renderUserProfile(uid, u, profileCard);
+        renderUserQuickActions();
         renderUserRoleEditorDetail(uid, u, roleEditor);
         loadUserEnrollments(uid, enrollments);
         loadUserProgress(uid, progress);
         loadUserConsents(uid, consents);
+        renderUserNotesTimeline();
         populateEnrollCourseDropdown();
 
         var heading = $('yb-admin-user-detail-heading');
@@ -1548,19 +2004,32 @@
       '</div>' +
       '<div class="yb-admin__user-meta">';
 
-    if (u.phone) html += '<div class="yb-admin__user-meta-item"><span class="yb-admin__user-meta-label">' + t('users_profile_phone') + '</span><span>' + esc(u.phone) + '</span></div>';
+    if (u.phone) html += '<div class="yb-admin__user-meta-item"><span class="yb-admin__user-meta-label">' + t('users_profile_phone') + '</span><a href="tel:' + esc(u.phone) + '" style="color:#f75c03">' + esc(u.phone) + '</a></div>';
     if (u.dateOfBirth) html += '<div class="yb-admin__user-meta-item"><span class="yb-admin__user-meta-label">' + t('users_profile_dob') + '</span><span>' + esc(u.dateOfBirth) + '</span></div>';
     if (u.yogaLevel) html += '<div class="yb-admin__user-meta-item"><span class="yb-admin__user-meta-label">' + t('users_profile_level') + '</span><span>' + esc(u.yogaLevel) + '</span></div>';
     if (u.practiceFrequency) html += '<div class="yb-admin__user-meta-item"><span class="yb-admin__user-meta-label">' + t('users_profile_frequency') + '</span><span>' + esc(u.practiceFrequency) + '</span></div>';
     if (u.tier) html += '<div class="yb-admin__user-meta-item"><span class="yb-admin__user-meta-label">' + t('users_profile_tier') + '</span><span>' + esc(u.tier) + '</span></div>';
     if (u.createdAt) {
       var d = u.createdAt.toDate ? u.createdAt.toDate() : new Date(u.createdAt);
-      var dateStr = d.toLocaleDateString(lang === 'da' ? 'da-DK' : 'en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+      var dateStr = d.toLocaleDateString('da-DK', { day: '2-digit', month: '2-digit', year: 'numeric' });
       html += '<div class="yb-admin__user-meta-item"><span class="yb-admin__user-meta-label">' + t('users_profile_created') + '</span><span>' + esc(dateStr) + '</span></div>';
     }
     html += '<div class="yb-admin__user-meta-item"><span class="yb-admin__user-meta-label">' + t('users_profile_mindbody') + '</span><span>' + (u.mindbodyId ? t('users_profile_linked') : t('users_profile_not_linked')) + '</span></div>';
 
-    html += '</div></div>';
+    html += '</div>';
+
+    // Suspend / Reactivate button
+    var isSuspended = u.suspended === true;
+    html += '<div style="margin-top:1rem;padding-top:1rem;border-top:1px solid #E8E4E0;width:100%">';
+    if (isSuspended) {
+      html += '<span class="yb-admin__badge yb-admin__badge--danger" style="margin-right:0.75rem">' + t('users_suspended_badge') + '</span>';
+      html += '<button class="yb-btn yb-btn--outline yb-btn--sm" data-action="unsuspend-user" data-uid="' + esc(uid) + '">' + t('users_unsuspend') + '</button>';
+    } else {
+      html += '<button class="yb-btn yb-btn--outline yb-btn--sm yb-admin__icon-btn--danger" data-action="suspend-user" data-uid="' + esc(uid) + '">' + t('users_suspend') + '</button>';
+    }
+    html += '</div>';
+
+    html += '</div>';
     el.innerHTML = html;
   }
 
@@ -1672,7 +2141,7 @@
           var statusLabel = accepted ? t('users_consent_accepted') : t('users_consent_pending');
           var dateStr = '';
           if (item.val && item.val.toDate) {
-            dateStr = item.val.toDate().toLocaleDateString(lang === 'da' ? 'da-DK' : 'en-US', { year: 'numeric', month: 'short', day: 'numeric' });
+            dateStr = item.val.toDate().toLocaleDateString('da-DK', { day: '2-digit', month: '2-digit', year: 'numeric' });
           }
           return '<div class="yb-admin__enroll-row">' +
             '<span style="flex:1">' + item.label + '</span>' +
@@ -1806,7 +2275,6 @@
         case 'activate-enroll': toggleEnrollment(id, 'active'); break;
 
         // User management actions
-        case 'users-browse': loadAllUsers(); break;
         case 'view-user': showUserDetail(id); break;
         case 'back-users': backToUserList(); break;
         case 'user-enroll-toggle':
@@ -1816,6 +2284,33 @@
         case 'user-enroll-save': enrollUserFromDetail(); break;
         case 'revoke-user-enroll': toggleUserEnrollment(id, 'revoked'); break;
         case 'activate-user-enroll': toggleUserEnrollment(id, 'active'); break;
+        case 'suspend-user': suspendUser(btn.getAttribute('data-uid')); break;
+        case 'unsuspend-user': unsuspendUser(btn.getAttribute('data-uid')); break;
+
+        // Enhanced user management actions
+        case 'users-refresh': usersLoaded = false; loadAllUsers(); usersLoaded = true; break;
+        case 'users-export-csv': exportUsersCSV(); break;
+        case 'user-bulk-email': bulkUserEmail(); break;
+        case 'user-bulk-sms': bulkUserSMS(); break;
+        case 'user-bulk-email-selected': bulkUserEmailSelected(); break;
+        case 'user-bulk-sms-selected': bulkUserSMSSelected(); break;
+        case 'user-bulk-role': bulkUserRole(); break;
+        case 'user-deselect-all': deselectAllUsers(); break;
+        case 'user-add-note': addUserNote('note'); break;
+        case 'user-detail-sms':
+          if (state.userDetail && state.userDetail.phone) {
+            var smsUser = {
+              id: state.userDetailUid,
+              first_name: state.userDetail.firstName || state.userDetail.name || '',
+              last_name: state.userDetail.lastName || '',
+              email: state.userDetail.email || '',
+              phone: state.userDetail.phone
+            };
+            if (typeof window.openSMSCampaign === 'function') {
+              window.openSMSCampaign([smsUser]);
+            }
+          }
+          break;
 
         // Rich text toolbar actions
         case 'toolbar-bold': insertTag('bold'); break;
@@ -1838,11 +2333,55 @@
     if (chapterForm) chapterForm.addEventListener('submit', saveChapter);
     var enrollForm = $('yb-admin-enroll-form');
     if (enrollForm) enrollForm.addEventListener('submit', enrollUser);
-    // User search + filter
-    var userSearchForm = $('yb-admin-user-search-form');
-    if (userSearchForm) userSearchForm.addEventListener('submit', searchUsers);
-    var userRoleFilter = $('yb-admin-user-role-filter');
-    if (userRoleFilter) userRoleFilter.addEventListener('change', filterUsersByRole);
+    // User search (live filtering)
+    var userSearchForm = $('yb-user-search-form');
+    if (userSearchForm) {
+      userSearchForm.addEventListener('submit', function (e) { e.preventDefault(); });
+      var userSearchInput = $('yb-user-search-input');
+      if (userSearchInput) {
+        userSearchInput.addEventListener('input', function () {
+          userSearchTerm = userSearchInput.value.trim();
+          renderUserTable();
+        });
+      }
+    }
+
+    // User filters (instant filtering on change)
+    ['yb-user-role-filter', 'yb-user-tier-filter', 'yb-user-waiver-filter', 'yb-user-mb-filter'].forEach(function (filterId) {
+      var filterEl = $(filterId);
+      if (filterEl) {
+        filterEl.addEventListener('change', function () {
+          if (filterId === 'yb-user-role-filter') userFilterRole = filterEl.value;
+          if (filterId === 'yb-user-tier-filter') userFilterTier = filterEl.value;
+          if (filterId === 'yb-user-waiver-filter') userFilterWaiver = filterEl.value;
+          if (filterId === 'yb-user-mb-filter') userFilterMb = filterEl.value;
+          renderUserTable();
+        });
+      }
+    });
+
+    // User select-all checkbox
+    var userSelectAllCb = $('yb-user-select-all');
+    if (userSelectAllCb) {
+      userSelectAllCb.addEventListener('change', function () { toggleUserSelectAll(); });
+    }
+
+    // User row checkboxes (delegated)
+    document.addEventListener('change', function (e) {
+      if (e.target.classList.contains('yb-user-row-cb')) {
+        var userId = e.target.getAttribute('data-id');
+        if (userId) toggleUserSelect(userId);
+      }
+    });
+
+    // User note form
+    var userNoteForm = $('yb-user-note-form');
+    if (userNoteForm) {
+      userNoteForm.addEventListener('submit', function (e) {
+        e.preventDefault();
+        addUserNote('note');
+      });
+    }
 
     // Bulk buttons
     var bulkPreview = $('yb-admin-bulk-preview-btn');

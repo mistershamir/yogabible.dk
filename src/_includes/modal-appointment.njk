@@ -1,0 +1,152 @@
+{# ═══════════════════════════════════════════════════════
+   APPOINTMENT BOOKING MODAL — Yoga Bible
+   Calendly replacement. 3-step booking flow:
+     Step 1: Select type + date
+     Step 2: Pick a time slot
+     Step 3: Enter details + confirm
+   ═══════════════════════════════════════════════════════ #}
+{% set lang = lang or "da" %}
+
+<div class="yb-book" id="yb-book-modal" aria-hidden="true">
+  <div class="yb-book__overlay" data-close-book></div>
+  <div class="yb-book__box">
+    <button class="yb-book__close" data-close-book type="button" aria-label="Close">&times;</button>
+
+    {# ── Step indicator ── #}
+    <div class="yb-book__steps">
+      <div class="yb-book__step-dot is-active" data-step="1">1</div>
+      <div class="yb-book__step-line"></div>
+      <div class="yb-book__step-dot" data-step="2">2</div>
+      <div class="yb-book__step-line"></div>
+      <div class="yb-book__step-dot" data-step="3">3</div>
+    </div>
+
+    {# ═══ STEP 1: Type + Date ═══ #}
+    <div class="yb-book__panel is-active" data-book-step="1">
+      <h2 class="yb-book__title" data-yj-da="Book en aftale" data-yj-en="Book an Appointment">
+        {% if lang == "en" %}Book an Appointment{% else %}Book en aftale{% endif %}
+      </h2>
+      <p class="yb-book__subtitle" data-yj-da="Vælg type og dato" data-yj-en="Choose type and date">
+        {% if lang == "en" %}Choose type and date{% else %}Vælg type og dato{% endif %}
+      </p>
+
+      {# Appointment types #}
+      <div class="yb-book__types" id="yb-book-types">
+        <button class="yb-book__type-btn is-active" data-type="info-session" type="button">
+          <span class="yb-book__type-icon">&#127963;</span>
+          <span class="yb-book__type-name" data-yj-da="Gratis infomøde" data-yj-en="Free Info Session">
+            {% if lang == "en" %}Free Info Session{% else %}Gratis infomøde{% endif %}
+          </span>
+          <span class="yb-book__type-dur">30 min</span>
+        </button>
+        <button class="yb-book__type-btn" data-type="consultation" type="button">
+          <span class="yb-book__type-icon">&#128187;</span>
+          <span class="yb-book__type-name" data-yj-da="Online konsultation" data-yj-en="Online Consultation">
+            {% if lang == "en" %}Online Consultation{% else %}Online konsultation{% endif %}
+          </span>
+          <span class="yb-book__type-dur">30 min</span>
+        </button>
+        <button class="yb-book__type-btn" data-type="intro-class" type="button">
+          <span class="yb-book__type-icon">&#129495;</span>
+          <span class="yb-book__type-name" data-yj-da="Gratis prøvetime" data-yj-en="Free Trial Class">
+            {% if lang == "en" %}Free Trial Class{% else %}Gratis prøvetime{% endif %}
+          </span>
+          <span class="yb-book__type-dur">60 min</span>
+        </button>
+      </div>
+
+      {# Calendar date picker #}
+      <div class="yb-book__calendar" id="yb-book-calendar">
+        <div class="yb-book__cal-nav">
+          <button type="button" class="yb-book__cal-arrow" id="yb-book-cal-prev">&larr;</button>
+          <span class="yb-book__cal-month" id="yb-book-cal-title"></span>
+          <button type="button" class="yb-book__cal-arrow" id="yb-book-cal-next">&rarr;</button>
+        </div>
+        <div class="yb-book__cal-grid" id="yb-book-cal-grid"></div>
+      </div>
+
+      <button class="yb-btn yb-btn--primary yb-book__next-btn" id="yb-book-next-1" type="button" disabled
+        data-yj-da="Vælg tidspunkt &rarr;" data-yj-en="Choose time &rarr;">
+        {% if lang == "en" %}Choose time &rarr;{% else %}Vælg tidspunkt &rarr;{% endif %}
+      </button>
+    </div>
+
+    {# ═══ STEP 2: Time Slots ═══ #}
+    <div class="yb-book__panel" data-book-step="2">
+      <button class="yb-book__back" id="yb-book-back-2" type="button" data-yj-da="&larr; Tilbage" data-yj-en="&larr; Back">
+        {% if lang == "en" %}&larr; Back{% else %}&larr; Tilbage{% endif %}
+      </button>
+      <h2 class="yb-book__title" data-yj-da="Vælg tidspunkt" data-yj-en="Choose a Time">
+        {% if lang == "en" %}Choose a Time{% else %}Vælg tidspunkt{% endif %}
+      </h2>
+      <p class="yb-book__date-label" id="yb-book-date-display"></p>
+
+      <div class="yb-book__slots" id="yb-book-slots">
+        <div class="yb-book__loading" data-yj-da="Indlæser tidspunkter..." data-yj-en="Loading times...">
+          {% if lang == "en" %}Loading times...{% else %}Indlæser tidspunkter...{% endif %}
+        </div>
+      </div>
+
+      <button class="yb-btn yb-btn--primary yb-book__next-btn" id="yb-book-next-2" type="button" disabled
+        data-yj-da="Udfyld oplysninger &rarr;" data-yj-en="Enter details &rarr;">
+        {% if lang == "en" %}Enter details &rarr;{% else %}Udfyld oplysninger &rarr;{% endif %}
+      </button>
+    </div>
+
+    {# ═══ STEP 3: Details + Confirm ═══ #}
+    <div class="yb-book__panel" data-book-step="3">
+      <button class="yb-book__back" id="yb-book-back-3" type="button" data-yj-da="&larr; Tilbage" data-yj-en="&larr; Back">
+        {% if lang == "en" %}&larr; Back{% else %}&larr; Tilbage{% endif %}
+      </button>
+      <h2 class="yb-book__title" data-yj-da="Dine oplysninger" data-yj-en="Your Details">
+        {% if lang == "en" %}Your Details{% else %}Dine oplysninger{% endif %}
+      </h2>
+
+      {# Summary card #}
+      <div class="yb-book__summary" id="yb-book-summary"></div>
+
+      {# Form #}
+      <form class="yb-book__form" id="yb-book-form">
+        <div class="yb-book__field">
+          <label data-yj-da="Navn *" data-yj-en="Name *">{% if lang == "en" %}Name *{% else %}Navn *{% endif %}</label>
+          <input type="text" id="yb-book-name" required placeholder="{% if lang == 'en' %}Your full name{% else %}Dit fulde navn{% endif %}">
+        </div>
+        <div class="yb-book__field">
+          <label data-yj-da="Email *" data-yj-en="Email *">Email *</label>
+          <input type="email" id="yb-book-email" required placeholder="email@eksempel.dk">
+        </div>
+        <div class="yb-book__field">
+          <label data-yj-da="Telefon" data-yj-en="Phone">{% if lang == "en" %}Phone{% else %}Telefon{% endif %}</label>
+          <input type="tel" id="yb-book-phone" placeholder="+45 12345678">
+        </div>
+        <div class="yb-book__field">
+          <label data-yj-da="Besked (valgfri)" data-yj-en="Message (optional)">{% if lang == "en" %}Message (optional){% else %}Besked (valgfri){% endif %}</label>
+          <textarea id="yb-book-message" rows="2" placeholder="{% if lang == 'en' %}Anything you'd like us to know{% else %}Noget du gerne vil fortælle os{% endif %}"></textarea>
+        </div>
+        <button type="submit" class="yb-btn yb-btn--primary yb-book__submit-btn" id="yb-book-submit"
+          data-yj-da="Bekræft aftale" data-yj-en="Confirm Appointment">
+          {% if lang == "en" %}Confirm Appointment{% else %}Bekræft aftale{% endif %}
+        </button>
+      </form>
+    </div>
+
+    {# ═══ STEP 4: Success ═══ #}
+    <div class="yb-book__panel" data-book-step="4">
+      <div class="yb-book__success">
+        <div class="yb-book__success-icon">&#9989;</div>
+        <h2 class="yb-book__title" data-yj-da="Aftale bekræftet!" data-yj-en="Appointment Confirmed!">
+          {% if lang == "en" %}Appointment Confirmed!{% else %}Aftale bekræftet!{% endif %}
+        </h2>
+        <p class="yb-book__success-text" id="yb-book-success-text" data-yj-da="Du modtager en bekræftelse på email med alle detaljer og mulighed for at aflyse eller flytte aftalen." data-yj-en="You'll receive a confirmation email with all details and options to cancel or reschedule.">
+          {% if lang == "en" %}You'll receive a confirmation email with all details and options to cancel or reschedule.{% else %}Du modtager en bekræftelse på email med alle detaljer og mulighed for at aflyse eller flytte aftalen.{% endif %}
+        </p>
+        <div id="yb-book-success-details"></div>
+        <button class="yb-btn yb-btn--primary" data-close-book type="button"
+          data-yj-da="Luk" data-yj-en="Close">
+          {% if lang == "en" %}Close{% else %}Luk{% endif %}
+        </button>
+      </div>
+    </div>
+
+  </div>{# end box #}
+</div>{# end modal #}

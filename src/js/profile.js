@@ -404,6 +404,7 @@
         if (tabName === 'passes') loadMembershipDetails();
         if (tabName === 'receipts') loadReceipts();
         if (tabName === 'giftcards') loadGiftCards();
+        if (tabName === 'applications') loadMyApplications();
       });
     });
   }
@@ -959,7 +960,7 @@
       var dateEl = document.getElementById('yb-waiver-signed-date');
       if (dateEl && waiverAgreementDate) {
         var d = new Date(waiverAgreementDate);
-        dateEl.textContent = d.toLocaleDateString(isDa() ? 'da-DK' : 'en-GB', { year: 'numeric', month: 'short', day: 'numeric' });
+        dateEl.textContent = d.toLocaleDateString(isDa() ? 'da-DK' : 'en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' });
       }
       // Toggle button expands/collapses the waiver text (read-only view when signed)
       var toggleBtn = document.getElementById('yb-waiver-toggle-btn');
@@ -1836,8 +1837,7 @@
     { id: 'timebased', da: 'Tidsbegrænsede pas', en: 'Time-based Passes', desc_da: 'Ubegrænset adgang', desc_en: 'Unlimited pass' },
     { id: 'clips', da: 'Klippekort', en: 'Clip Cards', desc_da: 'Lejlighedsvise besøg', desc_en: 'Occasional visits' },
     { id: 'trials', da: 'Prøvekort', en: 'Trial Passes', desc_da: 'Prøv os', desc_en: 'Try us' },
-    { id: 'tourist', da: 'Turistpas', en: 'Tourist Pass', desc_da: 'Inkl. måtte & håndklæde', desc_en: 'Incl. mat & towel' },
-    { id: 'test', da: 'Test', en: 'Test', desc_da: 'Kun til test', desc_en: 'Testing only' }
+    { id: 'tourist', da: 'Turistpas', en: 'Tourist Pass', desc_da: 'Inkl. måtte & håndklæde', desc_en: 'Incl. mat & towel' }
   ];
 
   // ── Hardcoded Product Catalog ──
@@ -1990,7 +1990,6 @@
       rental_note_da: 'Medbring eget udstyr eller: Måtteleje 40 kr \u00b7 Træningshåndklæde 40 kr \u00b7 Brusehåndklæde 40 kr (betal i studiet ved ankomst)',
       rental_note_en: 'Bring your own or: Mat rental 40 kr \u00b7 Practice towel 40 kr \u00b7 Shower towel 40 kr (pay at studio upon arrival)'
     },
-    // ── Test items (temporary — remove after testing) ──
     teacher: [
       { id: 'ytt-flex-mar-jun26', prodId: '100078', price: 3750, vat_pct: 0,
         name_da: '18 Ugers Fleksibelt Program', name_en: '18-Week Flexible Program',
@@ -2030,7 +2029,7 @@
       items: [
         { id: 'inversions', prodId: '100145',
           name_da: 'Inversions', name_en: 'Inversions',
-          desc_da: 'Mester armbalancer og omvendinger med sikker teknik og gradvis progression.',
+          desc_da: 'Mestr armbalancer og inversioner med sikker teknik og gradvis progression.',
           desc_en: 'Master arm balances and inversions with safe technique and gradual progression.',
           link: '/inversions', icon: '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 2v8m0 0l-3-3m3 3l3-3"/><circle cx="12" cy="18" r="4"/></svg>' },
         { id: 'splits', prodId: '100150',
@@ -2051,22 +2050,6 @@
         'backbends|inversions|splits': { prodId: '127' }
       },
       month_da: 'April 2026', month_en: 'April 2026'
-    },
-    test: {
-      over30: [
-        { id: 'test-clip', name_da: 'Test Klippekort', name_en: 'Test Clip Card', price: 1, vat_pct: 25, classes: 1, validity: '1 day', prodId: '100203',
-          desc_da: 'Test klippekort — kun til testbrug', desc_en: 'Test clip card — for testing only' },
-        { id: 'test-mem', name_da: 'Test Medlemskab', name_en: 'Test Membership', price: 1, vat_pct: 25, regFee: 0, firstMonthFree: false, prodId: '129', _itemType: 'contract',
-          desc_da: 'Test medlemskab — kun til testbrug', desc_en: 'Test membership — for testing only',
-          features_da: ['Testmedlemskab'], features_en: ['Test membership'] }
-      ],
-      under30: [
-        { id: 'test-clip-u30', name_da: 'Test Klippekort', name_en: 'Test Clip Card', price: 1, vat_pct: 0, classes: 1, validity: '1 day', prodId: '100203',
-          desc_da: 'Test klippekort — kun til testbrug', desc_en: 'Test clip card — for testing only' },
-        { id: 'test-mem-u30', name_da: 'Test Medlemskab', name_en: 'Test Membership', price: 1, vat_pct: 0, regFee: 0, firstMonthFree: false, prodId: '129', _itemType: 'contract',
-          desc_da: 'Test medlemskab — kun til testbrug', desc_en: 'Test membership — for testing only',
-          features_da: ['Testmedlemskab'], features_en: ['Test membership'] }
-      ]
     }
   };
 
@@ -2132,9 +2115,7 @@
    * Calculate user's age from DOB string (YYYY-MM-DD).
    * Returns null if no DOB available.
    */
-  var _ageOverride = null; // TEMP: for testing age-based filtering
   function getUserAge() {
-    if (_ageOverride !== null) return _ageOverride;
     if (!userDateOfBirth) return null;
     var parts = userDateOfBirth.split('-');
     if (parts.length !== 3) return null;
@@ -2147,14 +2128,6 @@
     }
     return age;
   }
-  // TEMP: Expose age override for testing — call window.setAge(25) or window.setAge(35) in console, then refresh store
-  window.setAge = function(age) {
-    _ageOverride = (age === null || age === undefined) ? null : Number(age);
-    console.log('[Store] Age override set to:', _ageOverride === null ? 'real DOB' : _ageOverride);
-    // Rebuild store with new age bracket
-    storeServices = [];
-    loadStore();
-  };
 
   /**
    * Determine the age bracket: 'over30' or 'under30'.
@@ -2316,29 +2289,6 @@
         price: courseData.single_price || 0, onlinePrice: courseData.single_price || 0,
         _itemType: 'service', _topCategory: 'courses', _subCategory: 'individual', _catalog: ci
       });
-    });
-
-    // ── Test items (temporary) ──
-    var testItems = storeCatalog.test ? (storeCatalog.test[bracket] || []) : [];
-    testItems.forEach(function(t) {
-      var isContract = t._itemType === 'contract';
-      var item = {
-        _uid: 'test-' + t.prodId,
-        prodId: t.prodId,
-        name: da ? t.name_da : t.name_en,
-        price: t.price,
-        onlinePrice: t.price,
-        _itemType: isContract ? 'contract' : 'service',
-        _topCategory: 'daily',
-        _subCategory: 'test',
-        _catalog: t
-      };
-      if (isContract) {
-        item._recurringInfo = formatDKK(t.price) + ' ' + (da ? 'pr. måned' : 'per month');
-        item.firstMonthFree = t.firstMonthFree;
-        item._terms = [da ? 'Kun til testbrug' : 'Testing only'];
-      }
-      items.push(item);
     });
 
     console.log('[Store] Built', items.length, 'items from catalog (bracket:', bracket, ')');
@@ -4387,7 +4337,7 @@
 
     visits.forEach(function(v) {
       var d = new Date(v.startDateTime);
-      var dateStr = d.toLocaleDateString(isDa() ? 'da-DK' : 'en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
+      var dateStr = d.toLocaleDateString(isDa() ? 'da-DK' : 'en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' });
       var timeStr = formatTime(v.startDateTime);
       var isUpcoming = d > now; // Use full datetime comparison
 
@@ -4461,7 +4411,7 @@
 
     purchases.forEach(function(p, idx) {
       var d = new Date(p.saleDate);
-      var dateStr = d.toLocaleDateString(isDa() ? 'da-DK' : 'en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
+      var dateStr = d.toLocaleDateString(isDa() ? 'da-DK' : 'en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' });
       var name = p.description || '—';
       var totalPaid = Number(p.totalPaid) || Number(p.subtotal) || 0;
 
@@ -4775,7 +4725,149 @@
   function formatDateDK(date) {
     if (!date) return '';
     var d = new Date(date);
-    return d.toLocaleDateString(isDa() ? 'da-DK' : 'en-GB', { day: 'numeric', month: 'long', year: 'numeric' });
+    return d.toLocaleDateString(isDa() ? 'da-DK' : 'en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' });
+  }
+
+  // ══════════════════════════════════════
+  // MY APPLICATIONS TAB
+  // ══════════════════════════════════════
+
+  function loadMyApplications() {
+    var loadingEl = document.getElementById('yb-my-applications-loading');
+    var loadingText = document.getElementById('yb-my-applications-loading-text');
+    var contentEl = document.getElementById('yb-my-applications-content');
+    if (!loadingEl || !contentEl) return;
+
+    loadingEl.hidden = false;
+    if (loadingText) loadingText.textContent = t('apps_loading');
+    contentEl.innerHTML = '';
+
+    if (!currentUser || !currentUser.email) {
+      loadingEl.hidden = true;
+      contentEl.innerHTML = '<p class="yb-receipts__empty">' + t('apps_error') + '</p>';
+      return;
+    }
+
+    currentDb.collection('applications')
+      .where('email', '==', currentUser.email.toLowerCase())
+      .orderBy('created_at', 'desc')
+      .get()
+      .then(function(snapshot) {
+        loadingEl.hidden = true;
+
+        if (snapshot.empty) {
+          contentEl.innerHTML =
+            '<div class="yb-applications__empty-state">' +
+              '<p>' + t('apps_empty') + '</p>' +
+              '<a href="' + (isDa() ? '/uddannelser/' : '/en/uddannelser/') + '" class="yb-btn yb-btn--outline" style="margin-top:1rem">' + t('apps_explore_programs') + '</a>' +
+            '</div>';
+          return;
+        }
+
+        var html = '';
+        snapshot.forEach(function(doc) {
+          var app = doc.data();
+          html += renderApplicationCard(app);
+        });
+        contentEl.innerHTML = html;
+      })
+      .catch(function(err) {
+        console.error('[profile] Failed to load applications:', err);
+        loadingEl.hidden = true;
+        contentEl.innerHTML = '<p class="yb-receipts__empty">' + t('apps_error') + '</p>';
+      });
+  }
+
+  function renderApplicationCard(app) {
+    // Normalize status key: 'Under Review' → 'under_review', 'Approved' → 'approved'
+    var statusKey = (app.status || 'new').toLowerCase().replace(/\s+/g, '_');
+    var statusLabel = t('apps_status_' + statusKey);
+    var statusClass = 'yb-applications__status--' + statusKey;
+
+    // Program type label
+    var programLabel = '';
+    if (app.type === 'ytt' || app.type === 'education') programLabel = t('apps_type_ytt');
+    else if (app.type === 'course') programLabel = t('apps_type_course');
+    else if (app.type === 'bundle') programLabel = t('apps_type_bundle');
+    else if (app.type === 'mentorship') programLabel = t('apps_type_mentorship');
+    else programLabel = app.type || '';
+
+    var courseName = app.course_name || app.program_type || app.ytt_program_type || '';
+
+    // Format created_at date
+    var createdAt = '';
+    if (app.created_at) {
+      var d = app.created_at.toDate ? app.created_at.toDate() : new Date(app.created_at);
+      createdAt = d.toLocaleDateString(isDa() ? 'da-DK' : 'en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' });
+    }
+
+    var html = '<div class="yb-applications__card">';
+
+    // Header: program type + course name | status badge
+    html += '<div class="yb-applications__card-header">';
+    html += '<div class="yb-applications__card-title">';
+    html += '<span class="yb-applications__program-type">' + escHtml(programLabel) + '</span>';
+    if (courseName) html += '<span class="yb-applications__course-name">' + escHtml(courseName) + '</span>';
+    html += '</div>';
+    html += '<span class="yb-applications__status ' + statusClass + '">' + escHtml(statusLabel) + '</span>';
+    html += '</div>';
+
+    // Body: info rows
+    html += '<div class="yb-applications__card-body">';
+
+    if (app.track) {
+      var trackDisplay = app.track;
+      if (!isDa()) {
+        var trackMap = { 'Hverdagsprogram': 'Weekday Program', 'hverdagsprogram': 'Weekday Program', 'Weekendprogram': 'Weekend Program', 'weekendprogram': 'Weekend Program' };
+        trackDisplay = trackMap[app.track] || app.track;
+      }
+      html += renderAppRow(t('apps_track'), escHtml(trackDisplay));
+    }
+    if (app.cohort_label) {
+      html += renderAppRow(t('apps_cohort'), escHtml(app.cohort_label));
+    }
+    if (app.payment_choice) {
+      var payLabels = { paid: 'Paid (legacy)', paid_deposit: 'Forberedelsesfasen betalt', paid_full: 'Fuldt betalt', pay_now: 'Betalt via link' };
+      html += renderAppRow(t('apps_payment'), escHtml(payLabels[app.payment_choice] || app.payment_choice));
+    }
+    if (createdAt) {
+      html += renderAppRow(t('apps_submitted'), createdAt);
+    }
+    if (app.acceptance_email_sent) {
+      html += renderAppRow(t('apps_acceptance'), '<span style="color:#16a34a">\u2713 ' + t('apps_yes') + '</span>');
+    }
+    if (app.notes) {
+      html += '<div class="yb-applications__row yb-applications__row--notes">' +
+        '<span class="yb-applications__label">' + t('apps_notes') + '</span>' +
+        '<span>' + escHtml(app.notes) + '</span>' +
+        '</div>';
+    }
+
+    html += '</div>';
+
+    // Member area CTA for approved/enrolled applications
+    if (statusKey === 'approved' || statusKey === 'enrolled') {
+      html += '<div class="yb-applications__card-footer">';
+      html += '<a href="' + (isDa() ? '/member/' : '/en/member/') + '" class="yb-btn yb-btn--primary yb-applications__member-link">';
+      html += t('apps_go_to_member') + ' \u2192';
+      html += '</a>';
+      html += '</div>';
+    }
+
+    html += '</div>';
+    return html;
+  }
+
+  function renderAppRow(label, value) {
+    return '<div class="yb-applications__row">' +
+      '<span class="yb-applications__label">' + label + '</span>' +
+      '<span>' + value + '</span>' +
+      '</div>';
+  }
+
+  function escHtml(str) {
+    if (!str) return '';
+    return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
   }
 
   // ══════════════════════════════════════
@@ -4901,7 +4993,36 @@
         : '<p><strong>Membership Terms</strong></p><p>This is a recurring monthly membership. Payment is charged automatically each month. You can cancel with 1 month notice per our <a href="/en/terms-conditions/" target="_blank" rel="noopener">terms &amp; conditions</a>. The membership can be paused for 14 days to 3 months under special circumstances. By signing below you confirm that you accept these terms.</p>',
       contract_terms_agree: isDa() ? 'Jeg har læst og accepterer kontraktvilkårene' : 'I have read and accept the contract terms',
       checkout_agree_waiver: isDa() ? 'Jeg har læst og accepterer ansvarsfrihedserklæringen' : 'I have read and accept the liability waiver',
-      checkout_agree_waiver_and_terms: isDa() ? 'Jeg har læst og accepterer ansvarsfrihedserklæringen og kontraktvilkårene' : 'I have read and accept the liability waiver and contract terms'
+      checkout_agree_waiver_and_terms: isDa() ? 'Jeg har læst og accepterer ansvarsfrihedserklæringen og kontraktvilkårene' : 'I have read and accept the liability waiver and contract terms',
+      apps_loading: isDa() ? 'Henter dine ansøgninger...' : 'Loading your applications...',
+      apps_empty: isDa() ? 'Du har ingen ansøgninger endnu.' : 'You have no applications yet.',
+      apps_error: isDa() ? 'Kunne ikke hente ansøgninger.' : 'Could not load applications.',
+      apps_status: isDa() ? 'Status' : 'Status',
+      apps_program: isDa() ? 'Program' : 'Program',
+      apps_track: isDa() ? 'Spor' : 'Track',
+      apps_payment: isDa() ? 'Betalingsvalg' : 'Payment Choice',
+      apps_submitted: isDa() ? 'Indsendt' : 'Submitted',
+      apps_cohort: isDa() ? 'Hold' : 'Cohort',
+      apps_acceptance: isDa() ? 'Velkomstmail sendt' : 'Acceptance email sent',
+      apps_notes: isDa() ? 'Noter' : 'Notes',
+      apps_status_new: isDa() ? 'Ny' : 'New',
+      apps_status_reviewed: isDa() ? 'Gennemgået' : 'Reviewed',
+      apps_status_approved: isDa() ? 'Godkendt' : 'Approved',
+      apps_status_enrolled: isDa() ? 'Tilmeldt' : 'Enrolled',
+      apps_status_rejected: isDa() ? 'Afvist' : 'Rejected',
+      apps_status_waitlist: isDa() ? 'Venteliste' : 'Waitlisted',
+      apps_type_ytt: isDa() ? 'Yogalæreruddannelse' : 'Teacher Training',
+      apps_type_course: isDa() ? 'Kursus' : 'Course',
+      apps_type_bundle: isDa() ? 'Kursuspakke' : 'Course Bundle',
+      apps_type_mentorship: isDa() ? 'Mentorordning' : 'Mentorship',
+      apps_yes: isDa() ? 'Ja' : 'Yes',
+      apps_no: isDa() ? 'Nej' : 'No',
+      apps_explore_programs: isDa() ? 'Udforsk vores programmer' : 'Explore our programs',
+      apps_go_to_member: isDa() ? 'Gå til medlemsområdet' : 'Go to Member Area',
+      apps_status_pending: isDa() ? 'Afventer' : 'Pending',
+      apps_status_under_review: isDa() ? 'Under gennemgang' : 'Under Review',
+      apps_status_withdrawn: isDa() ? 'Trukket tilbage' : 'Withdrawn',
+      apps_status_completed: isDa() ? 'Afsluttet' : 'Completed'
     };
     return map[key] || key;
   }

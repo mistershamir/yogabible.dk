@@ -141,18 +141,19 @@ exports.handler = async (event) => {
     };
     await db.collection('leads').add(leadDoc);
 
-    // Fire-and-forget: admin notification + applicant auto-reply
+    // Send notifications — must await before returning (Netlify kills Lambda after response)
     if (process.env.GMAIL_APP_PASSWORD) {
-      sendAdminNotification({
-        ...leadDoc,
-        notes: `NEW CAREER APPLICATION\nCategory: ${careerDoc.category}\nRole: ${careerDoc.role}\nFiles: ${careerDoc.file_count}`
-      }).catch(err => {
-        console.error('[careers] Admin notification failed:', err.message);
-      });
-
-      sendCareersConfirmation(email, careerDoc.first_name, careerDoc.category, careerDoc.role).catch(err => {
-        console.error('[careers] Careers confirmation email failed:', err.message);
-      });
+      await Promise.all([
+        sendAdminNotification({
+          ...leadDoc,
+          notes: `NEW CAREER APPLICATION\nCategory: ${careerDoc.category}\nRole: ${careerDoc.role}\nFiles: ${careerDoc.file_count}`
+        }).catch(err => {
+          console.error('[careers] Admin notification failed:', err.message);
+        }),
+        sendCareersConfirmation(email, careerDoc.first_name, careerDoc.category, careerDoc.role).catch(err => {
+          console.error('[careers] Careers confirmation email failed:', err.message);
+        })
+      ]);
     }
 
     // Return success — for iframe submissions, wrap in HTML with postMessage

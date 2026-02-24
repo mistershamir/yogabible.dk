@@ -32,7 +32,7 @@
     <div class="yb-kontakt-split">
       <!-- Left: Studio Photo -->
       <figure class="yb-kontakt-photo yb-fade-in">
-        <img src="https://www.yogabible.dk/s/DSC_8528.jpg"
+        <img src="https://res.cloudinary.com/ddcynsa30/image/upload/f_auto,q_auto/yoga-bible-DK/studio/dsc-8528.jpg"
              alt="Yoga Bible studio, Christianshavn"
              loading="lazy" decoding="async"
              width="600" height="800">
@@ -139,7 +139,7 @@
           <img src="/assets/images/copenhagen/christianshavn-canal.jpg" alt="{{ t.studio_img3_alt }}" loading="lazy" decoding="async">
         </div>
         <div class="yb-kontakt-gallery__slide">
-          <img src="https://www.yogabible.dk/s/DSC_8528.jpg" alt="{{ t.studio_img4_alt }}" loading="lazy" decoding="async">
+          <img src="https://res.cloudinary.com/ddcynsa30/image/upload/f_auto,q_auto/yoga-bible-DK/studio/dsc-8528.jpg" alt="{{ t.studio_img4_alt }}" loading="lazy" decoding="async">
         </div>
         <div class="yb-kontakt-gallery__slide">
           <img src="/assets/images/copenhagen/copenhagen-hero.jpg" alt="{{ t.studio_img5_alt }}" loading="lazy" decoding="async">
@@ -153,6 +153,18 @@
     </div>
   </div>
 </section>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     BOOKING NUDGE — Prefer to meet in person?
+     ═══════════════════════════════════════════════════════════════ -->
+<div style="text-align:center;padding:2.5rem 1rem 0;">
+  <p style="color:#6F6A66;font-size:0.95rem;margin-bottom:0.75rem;">
+    {% if lang == 'en' %}Prefer to talk in person? Book a free, no-obligation info session at our studio.{% else %}Foretrækker du at tale personligt? Book et gratis og uforpligtende infomøde i vores studie.{% endif %}
+  </p>
+  <button class="yb-btn yb-btn--primary" data-open-booking="info-session">
+    &#127963; {% if lang == 'en' %}Book a Free Info Session{% else %}Book et Gratis Infomøde{% endif %}
+  </button>
+</div>
 
 <!-- ═══════════════════════════════════════════════════════════════
      CONTACT FORM

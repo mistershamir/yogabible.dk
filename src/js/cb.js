@@ -1,6 +1,6 @@
 /* ========================================
    COURSE BUNDLES PAGE — Interactive Components
-   - Bundle builder (month + course selection, pricing, CTA)
+   - Bundle builder (month + course selection, pricing, CTA → checkout flow)
    - Accommodation galleries (swipe, dots, arrows)
    - FAQ accordion
    - Video autoplay (iOS retry)
@@ -15,22 +15,17 @@
 
   var SINGLE_PRICE = 2300;
 
-  /* Mindbody bundle product IDs keyed by month → sorted course combo */
-  var BUNDLE_URLS = {
-    'Februar 2026': { 'Backbends|Inversions': 113, 'Inversions|Splits': 114, 'Backbends|Splits': 115, 'ALL': 125 },
-    'Marts 2026':   { 'Backbends|Inversions': 116, 'Inversions|Splits': 117, 'Backbends|Splits': 118, 'ALL': 126 },
-    'April 2026':   { 'Backbends|Inversions': 119, 'Inversions|Splits': 120, 'Backbends|Splits': 121, 'ALL': 127 },
-    'Maj 2026':     { 'Backbends|Inversions': 122, 'Inversions|Splits': 123, 'Backbends|Splits': 124, 'ALL': 128 }
+  /* Product IDs keyed by month → sorted course combo */
+  var BUNDLE_IDS = {
+    'April 2026': { 'Backbends|Inversions': '119', 'Inversions|Splits': '120', 'Backbends|Splits': '121', 'ALL': '127' }
   };
 
-  /* Direct single-course booking links */
-  var SINGLE_URLS = {
-    'Inversions': '/mindbody?stype=40&sVT=16&sTG=28',
-    'Splits':     '/mindbody?stype=40&sVT=16&sTG=29',
-    'Backbends':  '/mindbody?stype=40&sVT=16&sTG=30'
+  /* Single-course product IDs */
+  var SINGLE_IDS = {
+    'Inversions': '100145',
+    'Splits':     '100150',
+    'Backbends':  '100140'
   };
-
-  var MB_BASE = '/mindbody?stype=42&sTG=8&prodId=';
 
   /* Language detection */
   var isEN = document.documentElement.lang === 'en' ||
@@ -83,6 +78,31 @@
     });
   });
 
+  /* --- Resolve product ID for current selection --- */
+  function resolveProdId() {
+    if (!selectedMonth || selectedCourses.length === 0) return null;
+
+    var count = selectedCourses.length;
+
+    /* Single course */
+    if (count === 1) {
+      return SINGLE_IDS[selectedCourses[0]] || null;
+    }
+
+    /* Bundle (2 or 3 courses) */
+    var monthData = BUNDLE_IDS[selectedMonth];
+    if (!monthData) return null;
+
+    if (count >= 3) {
+      return monthData['ALL'];
+    }
+
+    /* 2-course combo: sort and join with pipe to match the key */
+    var sorted = selectedCourses.slice().sort();
+    var key = sorted.join('|');
+    return monthData[key] || null;
+  }
+
   /* --- Calculate & render --- */
   function updateBuilder() {
     var count = selectedCourses.length;
@@ -123,59 +143,50 @@
       }
     }
 
-    /* CTA link */
+    /* CTA button */
     if (elCta) {
-      var url = buildURL();
-      if (url) {
-        elCta.href = url;
+      var prodId = resolveProdId();
+      if (prodId) {
         elCta.removeAttribute('aria-disabled');
         elCta.removeAttribute('tabindex');
-        elCta.textContent = isEN ? 'Book Now' : 'Book Nu';
+        elCta.setAttribute('data-cb-prodid', prodId);
+        if (count >= 3) {
+          elCta.textContent = isEN ? 'Sign up All-in' : 'Tilmeld All-in';
+        } else if (count === 2) {
+          elCta.textContent = isEN ? 'Sign up for your package' : 'Tilmeld din pakke';
+        } else {
+          elCta.textContent = isEN ? 'Sign up' : 'Tilmeld';
+        }
       } else {
-        elCta.href = '#';
         elCta.setAttribute('aria-disabled', 'true');
         elCta.setAttribute('tabindex', '-1');
+        elCta.removeAttribute('data-cb-prodid');
         if (count === 0 && !selectedMonth) {
-          elCta.textContent = isEN ? 'Choose month + courses' : 'Vælg måned + kurser';
+          elCta.textContent = isEN ? 'Choose month & courses' : 'Vælg måned & kurser';
         } else if (!selectedMonth) {
           elCta.textContent = isEN ? 'Choose a month' : 'Vælg en måned';
         } else if (count === 0) {
           elCta.textContent = isEN ? 'Choose courses' : 'Vælg kurser';
         } else {
-          elCta.textContent = isEN ? 'Choose month + courses' : 'Vælg måned + kurser';
+          elCta.textContent = isEN ? 'Choose month & courses' : 'Vælg måned & kurser';
         }
       }
     }
   }
 
-  function buildURL() {
-    if (!selectedMonth || selectedCourses.length === 0) return null;
+  /* --- CTA click → open checkout flow --- */
+  if (elCta) {
+    elCta.addEventListener('click', function (e) {
+      e.preventDefault();
+      var prodId = elCta.getAttribute('data-cb-prodid');
+      if (!prodId || elCta.getAttribute('aria-disabled') === 'true') return;
 
-    /* "Not sure yet" month — cannot build a Mindbody link */
-    if (selectedMonth === 'Ikke sikker endnu') return null;
-
-    var count = selectedCourses.length;
-
-    /* Single course — direct workshop link */
-    if (count === 1) {
-      return SINGLE_URLS[selectedCourses[0]] || null;
-    }
-
-    /* Bundle (2 or 3 courses) */
-    var monthData = BUNDLE_URLS[selectedMonth];
-    if (!monthData) return null;
-
-    if (count >= 3) {
-      return MB_BASE + monthData['ALL'];
-    }
-
-    /* 2-course combo: sort and join with pipe to match the key */
-    var sorted = selectedCourses.slice().sort();
-    var key = sorted.join('|');
-    var prodId = monthData[key];
-    if (prodId) return MB_BASE + prodId;
-
-    return null;
+      if (typeof window.openCheckoutFlow === 'function') {
+        window.openCheckoutFlow(prodId);
+      } else if (typeof window.startCheckoutFunnel === 'function') {
+        window.startCheckoutFunnel(prodId);
+      }
+    });
   }
 
   /* ═══════════════════════════════════════════════

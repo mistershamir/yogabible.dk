@@ -82,6 +82,12 @@
      HERO — Dark Cinematic with Breathing Glow
      ═══════════════════════════════════════════════════════════ -->
 <section class="yb-hero">
+  <div class="yb-hero__bg">
+    <video autoplay muted loop playsinline preload="auto" aria-hidden="true"
+      poster="{{ "yoga-bible-DK/accommodation/accommodation-hero-loop.jpg" | cloudvid("w_1920,c_fill,so_0,q_60") }}">
+      <source src="{{ "yoga-bible-DK/accommodation/accommodation-hero-loop" | cloudvid("w_1280,q_auto") }}" type="video/mp4">
+    </video>
+  </div>
   <div class="yb-hero__glow"></div>
   <div class="yb-hero__content">
     <p class="yb-hero__tagline">{{ t.hero_tagline }}</p>
@@ -106,12 +112,6 @@
   </div>
 </section>
 
-<!-- Hero Image -->
-<section class="program-overview" style="padding-top:0;">
-  <div class="container">
-    <img src="/assets/images/accommodation/hero-accommodation-copenhagen.jpg" alt="{{ t.hero_img_alt }}" style="width:100%; border-radius:12px; aspect-ratio:7/3; object-fit:cover; background:#f5f3f0;" loading="lazy">
-  </div>
-</section>
 
 
 <!-- ═══════════════════════════════════════════════════════════
@@ -132,10 +132,10 @@
         <a href="#roomoptions" class="btn btn--primary">{{ t.why_cta }}</a>
       </div>
       <div class="yba-split__media">
-        <!-- PLACEHOLDER: /assets/images/accommodation/student-apartment-living-yoga-copenhagen.jpg 800×1000px -->
-        <div class="yba-img-placeholder" style="aspect-ratio:4/5;">
-          <span>student-apartment-living-yoga-copenhagen.jpg<br>800 × 1000 px</span>
-        </div>
+        <video autoplay muted loop playsinline preload="metadata" style="width:100%; border-radius:12px; aspect-ratio:9/16; object-fit:cover;"
+          poster="{{ "yoga-bible-DK/accommodation/student-apartment-living-copenhagen.jpg" | cloudvid("w_600,c_fill,so_0,q_60") }}">
+          <source src="{{ "yoga-bible-DK/accommodation/student-apartment-living-copenhagen" | cloudvid("w_600,q_auto") }}" type="video/mp4">
+        </video>
       </div>
     </div>
   </div>
@@ -161,11 +161,11 @@
         <div class="yba-gallery" aria-label="{{ t.single_gallery_aria }}">
           <button class="yba-gallery__prev" type="button" aria-label="{{ t.single_prev_aria }}">‹</button>
           <div class="yba-gallery__track">
-            <img src="https://www.yogabible.dk/s/Yoga-Teacher-Training-Copenhagen-Accommodation-Single-Studio-Apartment.jpg" alt="Single studio apartment for yoga students Copenhagen — interior view 1" loading="lazy" decoding="async">
-            <img src="https://www.yogabible.dk/s/Single-Studio-Apartment-01.jpg" alt="Single studio apartment Copenhagen — bedroom" loading="lazy" decoding="async">
-            <img src="https://www.yogabible.dk/s/Single-Studio-Apartment-03.jpg" alt="Studio apartment kitchen yoga student accommodation" loading="lazy" decoding="async">
-            <img src="https://www.yogabible.dk/s/Single-Studio-Apartment-02.jpg" alt="Single studio apartment — bathroom" loading="lazy" decoding="async">
-            <img src="https://www.yogabible.dk/s/Single-Studio-Apartment-04.jpg" alt="Single studio apartment workspace and living area" loading="lazy" decoding="async">
+            <img src="https://res.cloudinary.com/ddcynsa30/image/upload/f_auto,q_auto/yoga-bible-DK/accommodation/single-apartment-hero.jpg" alt="Single studio apartment for yoga students Copenhagen — interior view 1" loading="lazy" decoding="async">
+            <img src="https://res.cloudinary.com/ddcynsa30/image/upload/f_auto,q_auto/yoga-bible-DK/accommodation/single-apartment-01.jpg" alt="Single studio apartment Copenhagen — bedroom" loading="lazy" decoding="async">
+            <img src="https://res.cloudinary.com/ddcynsa30/image/upload/f_auto,q_auto/yoga-bible-DK/accommodation/single-apartment-03.jpg" alt="Studio apartment kitchen yoga student accommodation" loading="lazy" decoding="async">
+            <img src="https://res.cloudinary.com/ddcynsa30/image/upload/f_auto,q_auto/yoga-bible-DK/accommodation/single-apartment-02.jpg" alt="Single studio apartment — bathroom" loading="lazy" decoding="async">
+            <img src="https://res.cloudinary.com/ddcynsa30/image/upload/f_auto,q_auto/yoga-bible-DK/accommodation/single-apartment-04.jpg" alt="Single studio apartment workspace and living area" loading="lazy" decoding="async">
           </div>
           <button class="yba-gallery__next" type="button" aria-label="{{ t.single_next_aria }}">›</button>
           <div class="yba-gallery__dots"></div>
@@ -191,14 +191,8 @@
           {% endfor %}
         </ul>
 
-        <div class="yba-room-card__months" role="tablist" aria-label="{{ t.rooms_month_aria }}">
-          <button class="yba-chip is-active" role="tab" aria-selected="true" data-month="feb" type="button">{{ t.month_feb }}</button>
-          <button class="yba-chip" role="tab" aria-selected="false" data-month="mar" type="button">{{ t.month_mar }}</button>
-          <button class="yba-chip" role="tab" aria-selected="false" data-month="apr" type="button">{{ t.month_apr }}</button>
-        </div>
-
         <div class="yba-room-card__cta">
-          <a href="#" class="yba-btn yba-btn--cta js-reserve" target="_blank" rel="noopener">{{ t.js_reserve_prefix }} {{ t.js_month_feb }}</a>
+          <a href="mailto:info@yogabible.dk?subject=Accommodation%20inquiry%20—%20Single%20Studio" class="yba-btn yba-btn--cta">{{ t.hero_cta_contact }}</a>
         </div>
       </article>
 
@@ -207,11 +201,11 @@
         <div class="yba-gallery" aria-label="{{ t.double_gallery_aria }}">
           <button class="yba-gallery__prev" type="button" aria-label="{{ t.double_prev_aria }}">‹</button>
           <div class="yba-gallery__track">
-            <img src="https://www.yogabible.dk/s/Double-Private-Bedroom-03.jpg" alt="Double studio apartment yoga student Copenhagen — bedroom" loading="lazy" decoding="async">
-            <img src="https://www.yogabible.dk/s/Double-Private-Bedroom-01.jpg" alt="Shared apartment private bedroom" loading="lazy" decoding="async">
-            <img src="https://www.yogabible.dk/s/Double-Private-Bedroom-07.jpg" alt="Shared apartment common area yoga accommodation" loading="lazy" decoding="async">
-            <img src="https://www.yogabible.dk/s/Double-Private-Bedroom-02.jpg" alt="Double studio bathroom and kitchen" loading="lazy" decoding="async">
-            <img src="https://www.yogabible.dk/s/Double-Private-Bedroom-04.jpg" alt="Shared yoga student accommodation Copenhagen living space" loading="lazy" decoding="async">
+            <img src="https://res.cloudinary.com/ddcynsa30/image/upload/f_auto,q_auto/yoga-bible-DK/accommodation/double-bedroom-03.jpg" alt="Double studio apartment yoga student Copenhagen — bedroom" loading="lazy" decoding="async">
+            <img src="https://res.cloudinary.com/ddcynsa30/image/upload/f_auto,q_auto/yoga-bible-DK/accommodation/double-bedroom-01.jpg" alt="Shared apartment private bedroom" loading="lazy" decoding="async">
+            <img src="https://res.cloudinary.com/ddcynsa30/image/upload/f_auto,q_auto/yoga-bible-DK/accommodation/double-bedroom-07.jpg" alt="Shared apartment common area yoga accommodation" loading="lazy" decoding="async">
+            <img src="https://res.cloudinary.com/ddcynsa30/image/upload/f_auto,q_auto/yoga-bible-DK/accommodation/double-bedroom-02.jpg" alt="Double studio bathroom and kitchen" loading="lazy" decoding="async">
+            <img src="https://res.cloudinary.com/ddcynsa30/image/upload/f_auto,q_auto/yoga-bible-DK/accommodation/double-bedroom-04.jpg" alt="Shared yoga student accommodation Copenhagen living space" loading="lazy" decoding="async">
           </div>
           <button class="yba-gallery__next" type="button" aria-label="{{ t.double_next_aria }}">›</button>
           <div class="yba-gallery__dots"></div>
@@ -237,14 +231,8 @@
           {% endfor %}
         </ul>
 
-        <div class="yba-room-card__months" role="tablist" aria-label="{{ t.rooms_month_aria }}">
-          <button class="yba-chip is-active" role="tab" aria-selected="true" data-month="feb" type="button">{{ t.month_feb }}</button>
-          <button class="yba-chip" role="tab" aria-selected="false" data-month="mar" type="button">{{ t.month_mar }}</button>
-          <button class="yba-chip" role="tab" aria-selected="false" data-month="apr" type="button">{{ t.month_apr }}</button>
-        </div>
-
         <div class="yba-room-card__cta">
-          <a href="#" class="yba-btn yba-btn--cta js-reserve" target="_blank" rel="noopener">{{ t.js_reserve_prefix }} {{ t.js_month_feb }}</a>
+          <a href="mailto:info@yogabible.dk?subject=Accommodation%20inquiry%20—%20Double%20Studio" class="yba-btn yba-btn--cta">{{ t.hero_cta_contact }}</a>
         </div>
       </article>
 
@@ -360,10 +348,10 @@
         </div>
       </div>
       <div class="yba-split__media">
-        <!-- PLACEHOLDER: /assets/images/accommodation/yoga-student-cooking-copenhagen-kitchen.jpg 800×1000px -->
-        <div class="yba-img-placeholder" style="aspect-ratio:4/5;">
-          <span>yoga-student-cooking-copenhagen-kitchen.jpg<br>800 × 1000 px</span>
-        </div>
+        <video autoplay muted loop playsinline preload="metadata" style="width:100%; border-radius:12px; aspect-ratio:9/16; object-fit:cover;"
+          poster="{{ "yoga-bible-DK/accommodation/yoga-student-cooking-copenhagen-kitchen.jpg" | cloudvid("w_600,c_fill,so_0,q_60") }}">
+          <source src="{{ "yoga-bible-DK/accommodation/yoga-student-cooking-copenhagen-kitchen" | cloudvid("w_600,q_auto") }}" type="video/mp4">
+        </video>
       </div>
     </div>
   </div>
@@ -378,6 +366,13 @@
     <p class="yba-eyebrow yba-eyebrow--white" style="text-align:center;">{{ t.loc_eyebrow }}</p>
     <h2 class="yba-h2" style="text-align:center; color:#fff;">{{ t.loc_title }}</h2>
     <p class="yba-lead" style="text-align:center; max-width:60ch; margin:0 auto 2.5rem; color:rgba(255,255,255,.75);">{{ t.loc_lead }}</p>
+
+    <div style="margin-bottom:2.5rem; border-radius:12px; overflow:hidden;">
+      <video autoplay muted loop playsinline preload="metadata" style="width:100%; aspect-ratio:16/9; object-fit:cover; display:block;"
+        poster="{{ "yoga-bible-DK/accommodation/christianshavn-copenhagen-neighbourhood.jpg" | cloudvid("w_1280,c_fill,so_0,q_60") }}">
+        <source src="{{ "yoga-bible-DK/accommodation/christianshavn-copenhagen-neighbourhood" | cloudvid("w_1280,q_auto") }}" type="video/mp4">
+      </video>
+    </div>
 
     <div class="yba-map-wrapper">
       <div class="yba-map-container">
@@ -565,7 +560,7 @@
       <div class="yba-hotel-grid">
         <div class="yba-hotel-card">
           <div class="yba-hotel-card__img">
-            <div class="yba-img-placeholder" style="aspect-ratio:3/2;"><span>hotel-cph-living-floating.jpg<br>600×400</span></div>
+            <img src="{{ "yoga-bible-DK/accommodation/hotel-cph-living-copenhagen" | cloudimg("w_600,ar_3:2,c_fill") }}" alt="CPH Living floating hotel Copenhagen harbour" loading="lazy" decoding="async" style="width:100%;aspect-ratio:3/2;object-fit:cover;border-radius:8px;">
           </div>
           <div class="yba-hotel-card__body">
             <span class="yba-badge yba-badge--outline">{{ t.hotel1_badge }}</span>
@@ -581,7 +576,7 @@
 
         <div class="yba-hotel-card">
           <div class="yba-hotel-card__img">
-            <div class="yba-img-placeholder" style="aspect-ratio:3/2;"><span>hotel-25hours-paper-island.jpg<br>600×400</span></div>
+            <img src="{{ "yoga-bible-DK/accommodation/hotel-25hours-paper-island-copenhagen" | cloudimg("w_600,ar_3:2,c_fill") }}" alt="25hours Hotel Paper Island Copenhagen" loading="lazy" decoding="async" style="width:100%;aspect-ratio:3/2;object-fit:cover;border-radius:8px;">
           </div>
           <div class="yba-hotel-card__body">
             <span class="yba-badge yba-badge--outline">{{ t.hotel2_badge }}</span>
@@ -597,7 +592,7 @@
 
         <div class="yba-hotel-card">
           <div class="yba-hotel-card__img">
-            <div class="yba-img-placeholder" style="aspect-ratio:3/2;"><span>hostel-generator-copenhagen.jpg<br>600×400</span></div>
+            <img src="{{ "yoga-bible-DK/accommodation/hostel-generator-copenhagen" | cloudimg("w_600,ar_3:2,c_fill") }}" alt="Generator Hostel Copenhagen budget accommodation" loading="lazy" decoding="async" style="width:100%;aspect-ratio:3/2;object-fit:cover;border-radius:8px;">
           </div>
           <div class="yba-hotel-card__body">
             <span class="yba-badge yba-badge--outline">{{ t.hotel3_badge }}</span>
@@ -613,7 +608,7 @@
 
         <div class="yba-hotel-card">
           <div class="yba-hotel-card__img">
-            <div class="yba-img-placeholder" style="aspect-ratio:3/2;"><span>hostel-steel-house-copenhagen.jpg<br>600×400</span></div>
+            <img src="{{ "yoga-bible-DK/accommodation/hostel-steel-house-copenhagen" | cloudimg("w_600,ar_3:2,c_fill") }}" alt="Steel House Copenhagen hostel yoga student accommodation" loading="lazy" decoding="async" style="width:100%;aspect-ratio:3/2;object-fit:cover;border-radius:8px;">
           </div>
           <div class="yba-hotel-card__body">
             <span class="yba-badge yba-badge--outline">{{ t.hotel4_badge }}</span>
@@ -737,7 +732,7 @@
     <div class="yba-course-grid">
       <a href="{{ lp }}/200-hours-4-weeks-intensive-programs" class="yba-course-card">
         <div class="yba-course-card__img">
-          <div class="yba-img-placeholder" style="aspect-ratio:3/2;"><span>course-4-week-intensive-yoga-training.jpg<br>600×400</span></div>
+          <img src="{{ "yoga-bible-DK/accommodation/course-4-week-intensive-yoga-training" | cloudimg("w_600,ar_3:2,c_fill") }}" alt="4-week intensive yoga teacher training Copenhagen" loading="lazy" decoding="async" style="width:100%;aspect-ratio:3/2;object-fit:cover;">
         </div>
         <div class="yba-course-card__body">
           <span class="yba-badge yba-badge--primary">{{ t.course1_badge }}</span>
@@ -749,7 +744,7 @@
 
       <a href="{{ lp }}/200-hours-8-weeks-semi-intensive-programs" class="yba-course-card">
         <div class="yba-course-card__img">
-          <div class="yba-img-placeholder" style="aspect-ratio:3/2;"><span>course-8-week-semi-intensive-yoga.jpg<br>600×400</span></div>
+          <img src="{{ "yoga-bible-DK/accommodation/course-8-week-semi-intensive-yoga" | cloudimg("w_600,ar_3:2,c_fill") }}" alt="8-week semi-intensive yoga teacher training Copenhagen" loading="lazy" decoding="async" style="width:100%;aspect-ratio:3/2;object-fit:cover;">
         </div>
         <div class="yba-course-card__body">
           <h3>{{ t.course2_title }}</h3>
@@ -760,7 +755,7 @@
 
       <a href="{{ lp }}/course-bundles" class="yba-course-card">
         <div class="yba-course-card__img">
-          <div class="yba-img-placeholder" style="aspect-ratio:3/2;"><span>course-bundles-yoga-specialty-training.jpg<br>600×400</span></div>
+          <img src="{{ "yoga-bible-DK/accommodation/course-bundles-yoga-specialty-training" | cloudimg("w_600,ar_3:2,c_fill") }}" alt="Yoga specialty course bundles inversions splits backbends" loading="lazy" decoding="async" style="width:100%;aspect-ratio:3/2;object-fit:cover;">
         </div>
         <div class="yba-course-card__body">
           <h3>{{ t.course3_title }}</h3>
@@ -884,7 +879,7 @@
    TYPOGRAPHY
    ══════════════════════════════════ */
 .yba-eyebrow {
-  display: inline-block;
+  display: block;
   font-size: 0.82rem;
   font-weight: 700;
   color: var(--yba-brand);
@@ -2072,60 +2067,10 @@
      ═══════════════════════════════════════════════════════════ -->
 <script>
 (function(){
-  /* ── Payment Links ── */
-  var reserveLinks = {
-    feb: {
-      single: 'https://clients.mindbodyonline.com/classic/ws?studioid=5748831&stype=43&prodid=100114',
-      double: 'https://clients.mindbodyonline.com/classic/ws?studioid=5748831&stype=43&catid=100003&prodGroupId=100136'
-    },
-    mar: {
-      single: 'https://clients.mindbodyonline.com/classic/ws?studioid=5748831&stype=43&prodid=100115',
-      double: 'https://clients.mindbodyonline.com/classic/ws?studioid=5748831&stype=43&catid=100003&prodGroupId=100135'
-    },
-    apr: {
-      single: 'https://clients.mindbodyonline.com/classic/ws?studioid=5748831&stype=43&catid=100001&prodGroupId=100116',
-      double: 'https://clients.mindbodyonline.com/classic/ws?studioid=5748831&stype=43&catid=100003&prodGroupId=100134'
-    }
-  };
-
-  var monthLabels = {
-    feb: '{{ t.js_month_feb }}',
-    mar: '{{ t.js_month_mar }}',
-    apr: '{{ t.js_month_apr }}'
-  };
-
-  var reservePrefix = '{{ t.js_reserve_prefix }}';
   var galleryAriaPrefix = '{{ t.js_gallery_aria }}';
 
-  /* ── Room Cards: Chips + Gallery ── */
+  /* ── Room Cards: Gallery ── */
   document.querySelectorAll('.yba-room-card').forEach(function(card) {
-    var type = card.dataset.type;
-    var chips = card.querySelectorAll('.yba-chip');
-    var reserveBtn = card.querySelector('.js-reserve');
-    var currentMonth = 'feb';
-
-    function updateReserveBtn() {
-      if (!reserveBtn) return;
-      var url = (reserveLinks[currentMonth] && reserveLinks[currentMonth][type]) || '#';
-      var label = monthLabels[currentMonth] || currentMonth;
-      reserveBtn.href = url;
-      reserveBtn.textContent = reservePrefix + ' ' + label;
-    }
-    updateReserveBtn();
-
-    chips.forEach(function(chip) {
-      chip.addEventListener('click', function() {
-        chips.forEach(function(c) {
-          c.classList.remove('is-active');
-          c.setAttribute('aria-selected', 'false');
-        });
-        chip.classList.add('is-active');
-        chip.setAttribute('aria-selected', 'true');
-        currentMonth = chip.dataset.month;
-        updateReserveBtn();
-      });
-    });
-
     /* Gallery */
     var gallery = card.querySelector('.yba-gallery');
     if (!gallery) return;

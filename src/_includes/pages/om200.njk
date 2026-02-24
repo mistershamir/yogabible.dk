@@ -121,21 +121,19 @@
       </div>
     </div>
 
-    {# MEDIA (Right on desktop, first on mobile) #}
+    {# MEDIA (Right on desktop, first on mobile) — Vertical review video #}
     <div class="om2-hero__media-wrap">
-      <div class="om2-hero__media" aria-label="{{ t.hero_gallery_label }}">
-        <div class="om2-hero__viewport" data-om2-viewport>
-          <div class="om2-hero__track" data-om2-track></div>
-        </div>
-        <div class="om2-hero__dots" data-om2-dots aria-label="{{ t.hero_gallery_nav }}"></div>
-      </div>
-
-      <div class="om2-hero__arrows" aria-label="{{ t.hero_gallery_nav }}">
-        <button class="om2-hero__arrow om2-hero__arrow--prev" aria-label="{{ t.hero_prev }}" data-om2-prev type="button">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
-        </button>
-        <button class="om2-hero__arrow om2-hero__arrow--next" aria-label="{{ t.hero_next }}" data-om2-next type="button">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+      <div class="om2-hero__video-wrap" data-review-video>
+        <video muted playsinline preload="metadata"
+          poster="{{ "yoga-bible-DK/programs/om200/yogalaereruddannelse-200-timer-elev-anmeldelse.jpg" | cloudvid("w_608,c_fill,so_1,q_60") }}">
+          <source src="{{ "yoga-bible-DK/programs/om200/yogalaereruddannelse-200-timer-elev-anmeldelse" | cloudvid("w_608,q_auto") }}" type="video/mp4">
+        </video>
+        <button type="button" data-mute-toggle class="om2-hero__mute-btn" aria-label="Toggle sound">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/>
+            <line class="yb-mute-x1" x1="23" y1="9" x2="17" y2="15"/>
+            <line class="yb-mute-x2" x1="17" y1="9" x2="23" y2="15"/>
+          </svg>
         </button>
       </div>
 
@@ -536,11 +534,11 @@
 
         {# Video preview — moved into left column #}
         <figure class="om2-online__media om2-online__media--inline">
-          <div class="om2-online__video-card" data-om2-online-video data-src="https://www.yogabible.dk/s/Yoga-Bible-Workshop-Previews.mp4">
+          <div class="om2-online__video-card" data-om2-online-video data-src="https://res.cloudinary.com/ddcynsa30/video/upload/w_1280,q_auto,f_auto/yoga-bible-DK/courses/workshop-previews.mp4">
             <video
               class="om2-online__thumb-video"
               muted playsinline preload="metadata"
-              src="https://www.yogabible.dk/s/Yoga-Bible-Workshop-Previews.mp4#t=3">
+              src="https://res.cloudinary.com/ddcynsa30/video/upload/w_1280,q_auto,f_auto/yoga-bible-DK/courses/workshop-previews.mp4#t=3">
             </video>
             <div class="om2-online__video-overlay"></div>
             <span class="om2-online__video-label">{{ t.online_video_label }}</span>
@@ -879,22 +877,22 @@
         <figure class="om2-ya__badge-card">
           <div class="om2-ya__hero-badge">
             <div class="om2-ya__tile om2-ya__tile--dark om2-ya__tile--hero" data-label="Yoga Alliance">
-              <img src="https://www.yogabible.dk/s/YA_logo_reg_white_500px.webp"
+              <img src="https://res.cloudinary.com/ddcynsa30/image/upload/f_auto,q_auto/yoga-bible-DK/brand/ya-logo-white.webp"
                    alt="Yoga Alliance logo" loading="lazy" decoding="async"
                    onerror="this.style.display='none';this.closest('.om2-ya__tile').classList.add('om2-ya__tile--fallback');">
             </div>
           </div>
           <div class="om2-ya__badge-grid" role="list">
             <div class="om2-ya__tile" role="listitem" data-label="E-RYT 500">
-              <img src="https://www.yogabible.dk/s/ERYT500.png" alt="E-RYT 500 badge" loading="lazy" decoding="async"
+              <img src="https://res.cloudinary.com/ddcynsa30/image/upload/f_auto,q_auto/yoga-bible-DK/brand/eryt500.png" alt="E-RYT 500 badge" loading="lazy" decoding="async"
                    onerror="this.style.display='none';this.closest('.om2-ya__tile').classList.add('om2-ya__tile--fallback');">
             </div>
             <div class="om2-ya__tile" role="listitem" data-label="RYS 200">
-              <img src="https://www.yogabible.dk/s/RYS200-1.png" alt="RYS 200 badge" loading="lazy" decoding="async"
+              <img src="https://res.cloudinary.com/ddcynsa30/image/upload/f_auto,q_auto/yoga-bible-DK/brand/rys200.png" alt="RYS 200 badge" loading="lazy" decoding="async"
                    onerror="this.style.display='none';this.closest('.om2-ya__tile').classList.add('om2-ya__tile--fallback');">
             </div>
             <div class="om2-ya__tile" role="listitem" data-label="YACEP">
-              <img src="https://www.yogabible.dk/s/YACEP-5.png" alt="YACEP badge" loading="lazy" decoding="async"
+              <img src="https://res.cloudinary.com/ddcynsa30/image/upload/f_auto,q_auto/yoga-bible-DK/brand/yacep.png" alt="YACEP badge" loading="lazy" decoding="async"
                    onerror="this.style.display='none';this.closest('.om2-ya__tile').classList.add('om2-ya__tile--fallback');">
             </div>
           </div>
@@ -954,6 +952,54 @@
         <span>{{ t.ya_cta_external }}</span>
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
       </a>
+    </div>
+  </div>
+</section>
+
+{# ═══════════════════════════════════════════════════════════
+   SECTION 11b: CERTIFICATION VALUE — Why RYT-200 Matters
+   ═══════════════════════════════════════════════════════════ #}
+<section class="p4w-certval">
+  <div class="container">
+    <span class="p18-eyebrow">{{ t.certval_eyebrow }}</span>
+    <h2 class="p18-section-title">{{ t.certval_title }}</h2>
+    <p class="p18-section-sub">{{ t.certval_intro }}</p>
+
+    <div class="p4w-certval__grid">
+
+      <!-- Left: Content -->
+      <div class="p4w-certval__content">
+
+        <h3 class="p4w-certval__heading">{{ t.certval_learn_title }}</h3>
+        <ul class="p4w-certval__list">
+          {% for i in [1, 2, 3, 4, 5] %}
+          <li>
+            <span class="p4w-certval__check" aria-hidden="true">✓</span>
+            <span>{{ t["certval_learn" + i] }}</span>
+          </li>
+          {% endfor %}
+        </ul>
+
+        <h3 class="p4w-certval__heading">{{ t.certval_upgrade_title }}</h3>
+        <p class="p4w-certval__text">{{ t.certval_upgrade_text | safe }}</p>
+
+        <h3 class="p4w-certval__heading">{{ t.certval_exam_title }}</h3>
+        <p class="p4w-certval__text">{{ t.certval_exam_text }}</p>
+
+      </div>
+
+      <!-- Right: Certificate image -->
+      <div class="p4w-certval__media">
+        <div class="p4w-certval__image-placeholder">
+          {# CLOUDINARY: yoga-bible-DK/programs/p4w/yoga-alliance-ryt200-certificate-sample — 1200x800 #}
+          <img
+            src="{{ "yoga-bible-DK/programs/p4w/yoga-alliance-ryt200-certificate-sample" | cloudimg('w_600,q_auto,f_auto') }}"
+            alt="{{ t.certval_image_alt }}"
+            loading="lazy"
+          >
+        </div>
+      </div>
+
     </div>
   </div>
 </section>

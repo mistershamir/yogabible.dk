@@ -78,6 +78,9 @@
   <!-- Checkout Flow Modal (multi-step) -->
   {% include "modal-checkout-flow.njk" %}
 
+  <!-- Appointment Booking Modal (Calendly replacement) -->
+  {% include "modal-appointment.njk" %}
+
   <!-- Cookie Consent -->
   {% include "cookies.njk" %}
   <script src="/js/cookies.js"></script>
@@ -93,6 +96,7 @@
   <script src="/js/footer.js"></script>
   <script src="/js/roles-permissions.js"></script>
   <script src="/js/firebase-auth.js"></script>
+  <script src="/js/appointment-booking.js"></script>
   <script src="/js/ytt-funnel.js"></script>
   <script src="/js/checkout-flow.js"></script>
   <script src="/js/mindbody.js"></script>
@@ -101,6 +105,9 @@
   {% endif %}
   {% if includeScheduleModal300 %}
     <script src="/js/modal-300ytt.js"></script>
+  {% endif %}
+  {% if includeCourseJS %}
+    <script src="/js/course.js" defer></script>
   {% endif %}
 </body>
 </html>

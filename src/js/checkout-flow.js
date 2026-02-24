@@ -19,11 +19,14 @@
     // 300-Hour Advanced Teacher Training — Preparation Phase
     '100212': { price: 5750, name_da: '300-Timer Advanced Teacher Training', name_en: '300-Hour Advanced Teacher Training', period_da: 'Maj–December 2026', period_en: 'May–December 2026', format_da: '300-timers avanceret uddannelse · RYT-500', format_en: '300-hour advanced training · RYT-500', desc_da: 'Start din forberedelsesfase for den 300-timers avancerede yogalæreruddannelse. 24 uger, RYT-500 certificering.', desc_en: 'Begin your Preparation Phase for the 300-hour advanced yoga teacher training. 24 weeks, RYT-500 certification.', category: 'teacher' },
     // Courses
-    '100145': { price: 2300, name_da: 'Inversions Kursus', name_en: 'Inversions Course', period_da: 'April 2026', period_en: 'April 2026', desc_da: 'Mester armbalancer og omvendinger med sikker teknik og gradvis progression.', desc_en: 'Master arm balances and inversions with safe technique and gradual progression.', category: 'courses' },
+    '100145': { price: 2300, name_da: 'Inversions Kursus', name_en: 'Inversions Course', period_da: 'April 2026', period_en: 'April 2026', desc_da: 'Mestr armbalancer og inversioner med sikker teknik og gradvis progression.', desc_en: 'Master arm balances and inversions with safe technique and gradual progression.', category: 'courses' },
     '100150': { price: 2300, name_da: 'Splits Kursus', name_en: 'Splits Course', period_da: 'April 2026', period_en: 'April 2026', desc_da: 'Opnå fuld splits med systematisk fleksibilitetstræning og sikre stræk.', desc_en: 'Achieve full splits with systematic flexibility training and safe stretching.', category: 'courses' },
     '100140': { price: 2300, name_da: 'Backbends Kursus', name_en: 'Backbends Course', period_da: 'April 2026', period_en: 'April 2026', desc_da: 'Åbn brystkasse og rygsøjle med trygge, dybe bagoverbøjninger.', desc_en: 'Open chest and spine with safe, deep backbending practice.', category: 'courses' },
-    // Test product (1 DKK — for end-to-end payment testing, REMOVE before production)
-    '100203': { price: 1, name_da: 'Test Klippekort', name_en: 'Test Clip Card', period_da: 'Test', period_en: 'Test', desc_da: 'Testprodukt til betalingsflow — 1 kr.', desc_en: 'Test product for payment flow — 1 DKK.', category: 'test' }
+    // Course Bundles — April 2026
+    '119': { price: 4140, name_da: 'Kursuspakke: Backbends + Inversions', name_en: 'Course Bundle: Backbends + Inversions', period_da: 'April 2026', period_en: 'April 2026', desc_da: '2-kursus pakke med 10% rabat. 16 workshops over 4 uger.', desc_en: '2-course bundle with 10% off. 16 workshops over 4 weeks.', category: 'bundle' },
+    '120': { price: 4140, name_da: 'Kursuspakke: Inversions + Splits', name_en: 'Course Bundle: Inversions + Splits', period_da: 'April 2026', period_en: 'April 2026', desc_da: '2-kursus pakke med 10% rabat. 16 workshops over 4 uger.', desc_en: '2-course bundle with 10% off. 16 workshops over 4 weeks.', category: 'bundle' },
+    '121': { price: 4140, name_da: 'Kursuspakke: Backbends + Splits', name_en: 'Course Bundle: Backbends + Splits', period_da: 'April 2026', period_en: 'April 2026', desc_da: '2-kursus pakke med 10% rabat. 16 workshops over 4 uger.', desc_en: '2-course bundle with 10% off. 16 workshops over 4 weeks.', category: 'bundle' },
+    '127': { price: 5865, name_da: 'All-In Pakke: Inversions + Splits + Backbends', name_en: 'All-In Bundle: Inversions + Splits + Backbends', period_da: 'April 2026', period_en: 'April 2026', desc_da: 'Alle 3 kurser med 15% rabat + gratis 1-måneds pass. 24 workshops over 4 uger.', desc_en: 'All 3 courses with 15% off + free 1-month pass. 24 workshops over 4 weeks.', category: 'bundle' }
   };
 
   // Remaining payment note (for teacher training)
@@ -543,6 +546,9 @@
 
         // Track purchase
         if (window.CheckoutFunnel) window.CheckoutFunnel.trackPurchased();
+
+        // Notify apply form (or any listener) that payment succeeded
+        window.dispatchEvent(new CustomEvent('ybCheckoutSuccess', { detail: { prodId: currentProdId } }));
 
         // Show success
         showStep('ycf-step-success');

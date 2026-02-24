@@ -1,5 +1,28 @@
 {% set t = i18n.yogaphotography[lang or "da"] %}
+{% set lp = "/en" if lang == "en" else "" %}
+{% set mailto_book = "mailto:info@yogabible.dk?subject=Booking%20af%20yoga%20fotosession&body=Hej%20Yoga%20Bible%0A%0AJeg%20vil%20gerne%20booke%20en%20yoga%20fotosession.%0A%0ANavn:%0ATelefon:%0A%0A%C3%98nsket%20dato:%0ALokation:%0AKort%20beskrivelse:%0A%0AVenlig%20hilsen%0A" %}
+{% set mailto_ask = "mailto:info@yogabible.dk?subject=Sp%C3%B8rgsm%C3%A5l%20til%20yoga%20fotosession&body=Hej%20Yoga%20Bible%0A%0AJeg%20har%20et%20sp%C3%B8rgsm%C3%A5l%20om%20yoga%20fotosession:%0A%0A" %}
 
+{# ── Models data array for loop ── #}
+{# imgBase = cloudinary folder for each model. Images: {key}-portrait, {key}-1, {key}-2, {key}-3
+   OR override with img_p / img_1 / img_2 / img_3 for custom Cloudinary public IDs #}
+{% set models = [
+  { key: "anna",      folder: "Anna",      variation: "a",
+    img_p: "DSC_6049_qx8dow",
+    img_1: "DSC_6430_mwuxlj",
+    img_2: "Inversion_Course_Kursus_K%C3%B8benhavn_l%C3%A6re_fi9ik3",
+    img_3: "DSC_6263_u780xe" },
+  { key: "sita",      folder: "Sita",      variation: "b" },
+  { key: "kerti",     folder: "Kerti",     variation: "c" },
+  { key: "eva",       folder: "Eva",       variation: "c" },
+  { key: "nanna",     folder: "Nanna",     variation: "a" },
+  { key: "vanja",     folder: "Vanja",     variation: "b" },
+  { key: "christina", folder: "Christina", variation: "b" },
+  { key: "jana",      folder: "Jana",      variation: "c" },
+  { key: "ida",       folder: "Ida",       variation: "a" },
+  { key: "sophie",    folder: "Sophie",    variation: "a" },
+  { key: "frederik",  folder: "Frederik",  variation: "b" }
+] %}
 
 <!-- FAQPage Schema (AEO — featured snippets for AI search) -->
 <script type="application/ld+json">
@@ -29,7 +52,9 @@
 }
 </script>
 
-<!-- Hero -->
+<!-- ═══════════════════════════════════════════════════════
+     Hero
+     ═══════════════════════════════════════════════════════ -->
 <section class="yb-hero">
   <div class="yb-hero__glow"></div>
   <div class="yb-hero__content">
@@ -38,7 +63,7 @@
     <p class="yb-hero__subtitle">{{ t.hero_subtitle }}</p>
     <div class="yb-hero__line"></div>
     <div class="yb-hero__ctas">
-      <a href="mailto:info@yogabible.dk?subject=Yoga%20Fotosession%20-%20Foresp%C3%B8rgsel&body=Hej%20Yoga%20Bible%2C%0A%0AJeg%20vil%20gerne%20h%C3%B8re%20mere%20om%20jeres%20yogafotosession.%0A%0AMvh" class="yb-btn yb-btn--primary yb-btn--large">{{ t.hero_cta }}</a>
+      <a href="{{ mailto_book }}" class="yb-btn yb-btn--primary yb-btn--large">{{ t.hero_cta }}</a>
     </div>
     <div class="yb-hero__trust">
       <span>{{ t.hero_trust1 }}</span>
@@ -54,122 +79,329 @@
   </div>
 </section>
 
-<!-- What You Get -->
-<section class="program-overview">
-  <div class="container">
-    <h2 class="section-title">{{ t.session_title }}</h2>
-    <p class="section-subtitle">{{ t.session_subtitle }}</p>
 
-    <div class="program-grid">
-      <div class="program-feature">
-        <div class="program-feature__icon">📸</div>
-        <h3>{{ t.feat1_title }}</h3>
-        <p>{{ t.feat1_desc }}</p>
+<!-- ═══════════════════════════════════════════════════════
+     Purpose Statement
+     ═══════════════════════════════════════════════════════ -->
+<section class="yphoto-purpose">
+  <div class="yphoto-purpose__inner yphoto-reveal">
+    <p class="yphoto-purpose__text">{{ t.intro_pitch | safe }}</p>
+    <div class="yphoto-purpose__meta">
+      <span>{{ t.intro_meta1 }}</span>
+      <span class="yphoto-purpose__dot" aria-hidden="true">&bull;</span>
+      <span>{{ t.intro_meta2 }}</span>
+    </div>
+  </div>
+</section>
+
+
+<!-- ═══════════════════════════════════════════════════════
+     Session Details — design system split layout
+     ═══════════════════════════════════════════════════════ -->
+<section class="yphoto-session" aria-label="{{ t.session_kicker }}">
+  <div class="yphoto-session__wrap">
+    <div class="yphoto-session__grid">
+
+      {# IMAGE SIDE #}
+      <div class="yphoto-session__media yphoto-reveal">
+        {# CLOUDINARY: yoga-bible-DK/yogaphotography/session-hero.jpg — portrait, studio yoga #}
+        <img
+          class="yphoto-session__img"
+          src="{{ 'yoga-bible-DK/yogaphotography/session-hero' | cloudimg('w_1200,c_fill,g_auto') }}"
+          alt="{{ t.session_img_alt }}"
+          loading="lazy"
+          decoding="async"
+        />
+        <div class="yphoto-session__badge">
+          <span class="yphoto-session__badge-pill">{{ t.session_img_pill }}</span>
+          <span class="yphoto-session__badge-loc">{{ t.session_img_loc }}</span>
+        </div>
       </div>
 
-      <div class="program-feature">
-        <div class="program-feature__icon">🖼️</div>
-        <h3>{{ t.feat2_title }}</h3>
-        <p>{{ t.feat2_desc }}</p>
-      </div>
+      {# CONTENT SIDE #}
+      <div class="yphoto-session__content yphoto-reveal">
+        <div class="yphoto-session__eyebrow">
+          <span class="yphoto-session__eyebrow-dot" aria-hidden="true"></span>
+          <span>{{ t.session_kicker }}</span>
+        </div>
+        <h2 class="yphoto-session__title">{{ t.session_title }}</h2>
+        <p class="yphoto-session__lead">{{ t.session_lead }}</p>
 
-      <div class="program-feature">
-        <div class="program-feature__icon">🎨</div>
-        <h3>{{ t.feat3_title }}</h3>
-        <p>{{ t.feat3_desc }}</p>
-      </div>
+        {# Highlight cards — Duration / Delivery / Price #}
+        <div class="yphoto-session__highlights">
+          {% for i in range(1, 4) %}
+          <div class="yphoto-session__hl">
+            <div class="yphoto-session__hl-row">
+              <span class="yphoto-session__hl-tag">{{ t["session_hl" + i + "_tag"] }}</span>
+              <span class="yphoto-session__hl-val">{{ t["session_hl" + i + "_val"] }}</span>
+            </div>
+            <p class="yphoto-session__hl-desc">{{ t["session_hl" + i + "_desc"] }}</p>
+          </div>
+          {% endfor %}
+        </div>
 
-      <div class="program-feature">
-        <div class="program-feature__icon">🧘</div>
-        <h3>{{ t.feat4_title }}</h3>
-        <p>{{ t.feat4_desc }}</p>
-      </div>
+        {# Feature list — design system checkmark list #}
+        <div class="yphoto-session__features">
+          <h3 class="yphoto-session__features-title">{{ t.session_list_title }}</h3>
+          <ul class="yphoto-session__list">
+            <li>{{ t.session_list1 }}</li>
+            <li>{{ t.session_list2 }}</li>
+            <li>{{ t.session_list3 }}</li>
+          </ul>
+        </div>
 
-      <div class="program-feature">
-        <div class="program-feature__icon">💰</div>
-        <h3>{{ t.feat5_title }}</h3>
-        <p>{{ t.feat5_desc }}</p>
-      </div>
-
-      <div class="program-feature">
-        <div class="program-feature__icon">📍</div>
-        <h3>{{ t.feat6_title }}</h3>
-        <p>{{ t.feat6_desc }}</p>
+        {# CTA row #}
+        <div class="yphoto-session__ctas">
+          <a class="yb-btn yb-btn--primary" href="{{ mailto_book }}">{{ t.session_cta_book }}</a>
+          <a class="yb-btn yb-btn--outline" href="{{ mailto_ask }}">{{ t.session_cta_ask }}</a>
+        </div>
+        <p class="yphoto-session__note">{{ t.session_note }}</p>
       </div>
     </div>
   </div>
 </section>
 
-<!-- Preparation Guide -->
-<section class="program-schedule">
-  <div class="container">
-    <h2 class="section-title">{{ t.prep_title }}</h2>
 
-    <div class="schedule-options">
-      <div class="schedule-card">
-        <h3>{{ t.prep_before_title }}</h3>
-        <ul>
-          <li>{{ t.prep_before_1 | safe }}</li>
-          <li>{{ t.prep_before_2 | safe }}</li>
-          <li>{{ t.prep_before_3 | safe }}</li>
+<!-- ═══════════════════════════════════════════════════════
+     Prep Guide + FAQ — two side-by-side cards
+     ═══════════════════════════════════════════════════════ -->
+<section class="yphoto-prepfaq" aria-label="{{ t.prep_title }}">
+  <div class="yphoto-prepfaq__wrap">
+    <div class="yphoto-prepfaq__grid">
+
+      {# CARD 1: PREP GUIDE #}
+      <div class="yphoto-prepfaq__card yphoto-reveal">
+        <div class="yphoto-prepfaq__card-head">
+          <div class="yphoto-prepfaq__eyebrow">
+            <span class="yphoto-prepfaq__eyebrow-dot" aria-hidden="true"></span>
+            <span>{{ t.prep_kicker }}</span>
+          </div>
+          <h2 class="yphoto-prepfaq__card-title">{{ t.prep_title }}</h2>
+          <p class="yphoto-prepfaq__card-desc">{{ t.prep_lede }}</p>
+        </div>
+
+        <ul class="yphoto-prep__list">
+          {% for i in range(1, 7) %}
+          <li class="yphoto-prep__item">
+            <span class="yphoto-prep__icon" aria-hidden="true">{{ t["prep" + i + "_icon"] }}</span>
+            <div class="yphoto-prep__text">
+              <strong class="yphoto-prep__label">{{ t["prep" + i + "_title"] }}</strong>
+              <p class="yphoto-prep__desc">{{ t["prep" + i + "_desc"] }}</p>
+            </div>
+          </li>
+          {% endfor %}
         </ul>
+
+        <div class="yphoto-prepfaq__card-foot">
+          <a class="yb-btn yb-btn--primary" href="{{ mailto_book }}">{{ t.prep_cta }}</a>
+          <p class="yphoto-prepfaq__note">{{ t.prep_note }}</p>
+        </div>
       </div>
-      <div class="schedule-card">
-        <h3>{{ t.prep_studio_title }}</h3>
-        <ul>
-          <li>{{ t.prep_studio_1 | safe }}</li>
-          <li>{{ t.prep_studio_2 | safe }}</li>
-          <li>{{ t.prep_studio_3 | safe }}</li>
-        </ul>
+
+      {# CARD 2: FAQ — design system accordion pattern #}
+      <div class="yphoto-prepfaq__card yphoto-reveal">
+        <div class="yphoto-prepfaq__card-head">
+          <div class="yphoto-prepfaq__eyebrow">
+            <span class="yphoto-prepfaq__eyebrow-dot" aria-hidden="true"></span>
+            <span>{{ t.faq_kicker }}</span>
+          </div>
+          <h2 class="yphoto-prepfaq__card-title">{{ t.faq_title }}</h2>
+          <p class="yphoto-prepfaq__card-desc">{{ t.faq_lede }}</p>
+        </div>
+
+        <div class="yphoto-faq__list" role="list">
+          {% for i in range(1, 7) %}
+          <div class="yphoto-faq__item" role="listitem">
+            <button class="yphoto-faq__toggle" aria-expanded="false" onclick="this.setAttribute('aria-expanded', this.getAttribute('aria-expanded') === 'true' ? 'false' : 'true'); this.closest('.yphoto-faq__item').classList.toggle('is-open');">
+              <span>{{ t["faq" + i + "_q"] }}</span>
+              <span class="yphoto-faq__icon" aria-hidden="true"></span>
+            </button>
+            <div class="yphoto-faq__panel">
+              <p>{{ t["faq" + i + "_a"] | safe }}</p>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+
+        <div class="yphoto-prepfaq__card-foot yphoto-prepfaq__card-foot--split">
+          <a class="yb-btn yb-btn--ghost" href="{{ mailto_ask }}">{{ t.faq_cta_ask }}</a>
+          <a class="yb-btn yb-btn--primary" href="{{ mailto_book }}">{{ t.faq_cta_book }}</a>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+
+<!-- ═══════════════════════════════════════════════════════
+     Big Photo + Quote — full-height portrait
+     ═══════════════════════════════════════════════════════ -->
+<section class="yphoto-quote" aria-label="{{ t.quote1_kicker }}">
+  <div class="yphoto-quote__wrap yphoto-reveal">
+    {# CLOUDINARY: yoga-bible-DK/yogaphotography/quote-hero.jpg — tall portrait, 1159x2048 #}
+    <img
+      class="yphoto-quote__img"
+      src="{{ 'yoga-bible-DK/yogaphotography/quote-hero' | cloudimg('w_1400,c_fill,g_auto') }}"
+      alt="Yoga Photography — Yoga Bible"
+      loading="lazy"
+      decoding="async"
+    />
+    <div class="yphoto-quote__overlay">
+      <div class="yphoto-quote__glass yphoto-reveal yphoto-delay-2">
+        <div class="yphoto-quote__bar" aria-hidden="true"></div>
+        <div class="yphoto-quote__eyebrow">
+          <span class="yphoto-quote__eyebrow-dot" aria-hidden="true"></span>
+          <span>{{ t.quote1_kicker }}</span>
+        </div>
+        <h2 class="yphoto-quote__headline">{{ t.quote1_text }}</h2>
+        <a class="yb-btn yb-btn--primary" href="{{ mailto_book }}">{{ t.quote1_cta }}</a>
+        <p class="yphoto-quote__micro">{{ t.quote1_micro }}</p>
       </div>
     </div>
   </div>
 </section>
 
-<!-- FAQ -->
-<section class="program-faq">
-  <div class="container">
-    <h2 class="section-title">{{ t.faq_title }}</h2>
 
-    <div class="faq-list">
-      <details class="faq-item">
-        <summary>{{ t.faq1_q }}</summary>
-        <p>{{ t.faq1_a }}</p>
-      </details>
+<!-- ═══════════════════════════════════════════════════════
+     Models Header
+     ═══════════════════════════════════════════════════════ -->
+<section class="yphoto-models-header">
+  <div class="yphoto-models-header__inner yphoto-reveal">
+    <p class="yphoto-models-header__eyebrow">{{ t.models_eyebrow }}</p>
+    <h2 class="yphoto-models-header__title">{{ t.models_title }}</h2>
+    <p class="yphoto-models-header__subtitle">{{ t.models_subtitle }}</p>
+  </div>
+</section>
 
-      <details class="faq-item">
-        <summary>{{ t.faq2_q }}</summary>
-        <p>{{ t.faq2_a }}</p>
-      </details>
 
-      <details class="faq-item">
-        <summary>{{ t.faq3_q }}</summary>
-        <p>{{ t.faq3_a }}</p>
-      </details>
+<!-- ═══════════════════════════════════════════════════════
+     Model Showcases + Interstitials
+     ═══════════════════════════════════════════════════════ -->
+{% for m in models %}
 
-      <details class="faq-item">
-        <summary>{{ t.faq4_q }}</summary>
-        <p>{{ t.faq4_a }}</p>
-      </details>
+{# Insert interstitial after every 3 models #}
+{% if loop.index == 4 %}
+<section class="yphoto-interstitial">
+  <div class="yphoto-interstitial__inner yphoto-reveal">
+    {# CLOUDINARY: yoga-bible-DK/yogaphotography/interstitial-1.jpg — 1200x1600 vertical #}
+    <img class="yphoto-interstitial__img" src="{{ 'yoga-bible-DK/yogaphotography/interstitial-1' | cloudimg('w_1200,h_1600,c_fill') }}" alt="" loading="lazy" decoding="async" />
+    <div class="yphoto-interstitial__overlay">
+      <blockquote class="yphoto-interstitial__quote">{{ t.interstitial1_quote }}</blockquote>
+      <a class="yb-btn yb-btn--primary" href="{{ mailto_book }}">
+        {{ t.interstitial1_cta }}
+      </a>
+    </div>
+  </div>
+</section>
+{% endif %}
 
-      <details class="faq-item">
-        <summary>{{ t.faq5_q }}</summary>
-        <p>{{ t.faq5_a }}</p>
-      </details>
+{% if loop.index == 7 %}
+<section class="yphoto-interstitial">
+  <div class="yphoto-interstitial__inner yphoto-reveal">
+    {# CLOUDINARY: yoga-bible-DK/yogaphotography/interstitial-2.jpg — 1200x1600 vertical #}
+    <img class="yphoto-interstitial__img" src="{{ 'yoga-bible-DK/yogaphotography/interstitial-2' | cloudimg('w_1200,h_1600,c_fill') }}" alt="" loading="lazy" decoding="async" />
+    <div class="yphoto-interstitial__overlay">
+      <blockquote class="yphoto-interstitial__quote">{{ t.interstitial2_quote }}</blockquote>
+      <a class="yb-btn yb-btn--primary" href="{{ mailto_book }}">
+        {{ t.interstitial2_cta }}
+      </a>
+    </div>
+  </div>
+</section>
+{% endif %}
 
-      <details class="faq-item">
-        <summary>{{ t.faq6_q }}</summary>
-        <p>{{ t.faq6_a }}</p>
-      </details>
+{% if loop.index == 10 %}
+<section class="yphoto-interstitial">
+  <div class="yphoto-interstitial__inner yphoto-reveal">
+    {# CLOUDINARY: yoga-bible-DK/yogaphotography/interstitial-3.jpg — 1200x1600 vertical #}
+    <img class="yphoto-interstitial__img" src="{{ 'yoga-bible-DK/yogaphotography/interstitial-3' | cloudimg('w_1200,h_1600,c_fill') }}" alt="" loading="lazy" decoding="async" />
+    <div class="yphoto-interstitial__overlay">
+      <blockquote class="yphoto-interstitial__quote">{{ t.interstitial3_quote }}</blockquote>
+      <a class="yb-btn yb-btn--primary" href="{{ mailto_book }}">
+        {{ t.interstitial3_cta }}
+      </a>
+    </div>
+  </div>
+</section>
+{% endif %}
+
+{# ── Model Card ── #}
+{% set mk = m.key %}
+{% set mname = t["model_" + mk + "_name"] %}
+{% set mbio = t["model_" + mk + "_bio"] %}
+{% set mig = t["model_" + mk + "_ig"] %}
+
+<section class="yphoto-model yphoto-model--{{ m.variation }}" aria-label="{{ mname }}">
+  <div class="yphoto-model__inner yphoto-reveal">
+    <div class="yphoto-model__intro">
+      {# Portrait — use override or default path, no forced crop #}
+      {% set portrait_src = m.img_p if m.img_p else ('yoga-bible-DK/yogaphotography/models/' + m.folder + '/' + mk + '-portrait') %}
+      <div class="yphoto-model__portrait">
+        <img
+          src="{{ portrait_src | cloudimg('w_520,c_scale') }}"
+          alt="{{ mname }}"
+          loading="lazy"
+          decoding="async"
+        />
+      </div>
+      <div class="yphoto-model__info">
+        <p class="yphoto-model__eyebrow">Yoga Bible Model</p>
+        <h3 class="yphoto-model__name">{{ mname }}</h3>
+        <p class="yphoto-model__bio">{{ mbio }}</p>
+        {% if mig %}
+        <div class="yphoto-model__links">
+          <a href="https://instagram.com/{{ mig | replace('@', '') }}" target="_blank" rel="noopener">{{ mig }}</a>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+    {# Gallery — use overrides or default paths, no forced crop #}
+    {% set g1 = m.img_1 if m.img_1 else ('yoga-bible-DK/yogaphotography/models/' + m.folder + '/' + mk + '-1') %}
+    {% set g2 = m.img_2 if m.img_2 else ('yoga-bible-DK/yogaphotography/models/' + m.folder + '/' + mk + '-2') %}
+    {% set g3 = m.img_3 if m.img_3 else ('yoga-bible-DK/yogaphotography/models/' + m.folder + '/' + mk + '-3') %}
+    <div class="yphoto-model__gallery">
+      <div class="yphoto-model__photo yphoto-model__photo--1">
+        <img src="{{ g1 | cloudimg('w_800,c_scale') }}" alt="{{ mname }} — Yoga Photography" loading="lazy" decoding="async" />
+      </div>
+      <div class="yphoto-model__photo yphoto-model__photo--2">
+        <img src="{{ g2 | cloudimg('w_600,c_scale') }}" alt="{{ mname }} — Yoga Photography" loading="lazy" decoding="async" />
+      </div>
+      <div class="yphoto-model__photo yphoto-model__photo--3">
+        <img src="{{ g3 | cloudimg('w_700,c_scale') }}" alt="{{ mname }} — Yoga Photography" loading="lazy" decoding="async" />
+      </div>
     </div>
   </div>
 </section>
 
-<!-- CTA -->
+{% endfor %}
+
+
+<!-- ═══════════════════════════════════════════════════════
+     Final CTA
+     ═══════════════════════════════════════════════════════ -->
 <section class="cta-section">
   <div class="container">
     <h2 class="cta-section__title">{{ t.cta_title }}</h2>
     <p class="cta-section__text">{{ t.cta_text }}</p>
-    <a href="mailto:info@yogabible.dk?subject=Yoga%20Fotosession%20-%20Foresp%C3%B8rgsel" class="btn btn--large btn--primary">{{ t.cta_btn }}</a>
+    <a href="{{ mailto_book }}" class="btn btn--large btn--primary">{{ t.cta_btn }}</a>
   </div>
 </section>
+
+
+<!-- Scroll Reveal Observer -->
+<script>
+(function(){
+  var els = document.querySelectorAll('.yphoto-reveal');
+  if (!els.length) return;
+  var io = new IntersectionObserver(function(entries){
+    entries.forEach(function(e){
+      if (e.isIntersecting) {
+        e.target.classList.add('is-visible');
+        io.unobserve(e.target);
+      }
+    });
+  }, { threshold: 0.15 });
+  els.forEach(function(el){ io.observe(el); });
+})();
+</script>

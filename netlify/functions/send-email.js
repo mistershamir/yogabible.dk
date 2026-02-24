@@ -25,70 +25,86 @@ exports.handler = async (event) => {
   try {
     const payload = JSON.parse(event.body || '{}');
 
-    // Bulk send
+    // Test mode — send to test email without logging to any lead
+    if (payload.test && payload.testEmail) {
+      const { sendCustomEmail: sendCustom } = require('./shared/email-service');
+      const testResult = await sendCustom({
+        to: payload.testEmail,
+        subject: payload.subject || '[TEST] Campaign Test',
+        bodyHtml: payload.bodyHtml || '<p>Test email content</p>',
+        bodyPlain: payload.bodyPlain || 'Test email content'
+      });
+      return jsonResponse(200, { ok: true, test: true, ...testResult });
+    }
+
+    // Bulk send (leads)
     if (payload.leadIds && Array.isArray(payload.leadIds)) {
-      return await handleBulkSend(payload);
+      return await handleBulkSend(payload, 'lead');
     }
 
-    // Single send
-    if (!payload.leadId) {
-      return jsonResponse(400, { ok: false, error: 'leadId is required' });
+    // Bulk send (applications)
+    if (payload.applicationIds && Array.isArray(payload.applicationIds)) {
+      return await handleBulkSend(payload, 'application');
     }
 
-    // Look up lead
+    // Determine source: lead or application
     const db = getDb();
-    const leadDoc = await db.collection('leads').doc(payload.leadId).get();
-    if (!leadDoc.exists) {
-      return jsonResponse(404, { ok: false, error: 'Lead not found' });
+    const isApp = !!payload.applicationId;
+    const docId = payload.applicationId || payload.leadId;
+
+    if (!docId) {
+      return jsonResponse(400, { ok: false, error: 'leadId or applicationId is required' });
     }
 
-    const lead = leadDoc.data();
-    if (!lead.email) {
-      return jsonResponse(400, { ok: false, error: 'Lead has no email address' });
+    const collection = isApp ? 'applications' : 'leads';
+    const doc = await db.collection(collection).doc(docId).get();
+    if (!doc.exists) {
+      return jsonResponse(404, { ok: false, error: (isApp ? 'Application' : 'Lead') + ' not found' });
     }
 
-    // Check unsubscribed
-    if (lead.unsubscribed) {
+    const record = doc.data();
+    if (!record.email) {
+      return jsonResponse(400, { ok: false, error: (isApp ? 'Application' : 'Lead') + ' has no email address' });
+    }
+
+    // Check unsubscribed (leads only — applications don't have this field)
+    if (!isApp && record.unsubscribed) {
       return jsonResponse(400, { ok: false, error: 'Lead is unsubscribed — cannot send email' });
     }
 
     let result;
+    const vars = {
+      first_name: record.first_name || '',
+      last_name: record.last_name || '',
+      program: record.program || record.course_name || record.program_type || '',
+      cohort: record.cohort_label || '',
+      email: record.email,
+      ...payload.vars
+    };
 
     if (payload.templateId) {
-      // Template-based send
-      const vars = {
-        first_name: lead.first_name || '',
-        last_name: lead.last_name || '',
-        program: lead.program || '',
-        cohort: lead.cohort_label || '',
-        email: lead.email,
-        ...payload.vars  // allow overrides
-      };
-
       result = await sendTemplateEmail({
-        to: lead.email,
+        to: record.email,
         templateId: payload.templateId,
         vars,
-        leadId: payload.leadId
+        leadId: isApp ? null : docId
       });
     } else if (payload.subject && payload.bodyHtml) {
-      // Custom email
       result = await sendCustomEmail({
-        to: lead.email,
+        to: record.email,
         subject: payload.subject,
         bodyHtml: payload.bodyHtml,
         bodyPlain: payload.bodyPlain || '',
-        leadId: payload.leadId
+        leadId: isApp ? null : docId
       });
     } else {
       return jsonResponse(400, { ok: false, error: 'Provide templateId or (subject + bodyHtml)' });
     }
 
-    // Update lead's last_contact
-    await db.collection('leads').doc(payload.leadId).update({
-      last_contact: new Date(),
-      updated_at: new Date()
-    });
+    // Update record timestamp
+    const updateFields = { updated_at: new Date() };
+    if (!isApp) updateFields.last_contact = new Date();
+    await db.collection(collection).doc(docId).update(updateFields);
 
     return jsonResponse(200, { ok: true, ...result });
   } catch (err) {
@@ -97,37 +113,43 @@ exports.handler = async (event) => {
   }
 };
 
-async function handleBulkSend(payload) {
+async function handleBulkSend(payload, source) {
   const db = getDb();
   const results = { sent: 0, failed: 0, skipped: 0, errors: [] };
+  const isApp = source === 'application';
+  const ids = isApp ? payload.applicationIds : payload.leadIds;
+  const collection = isApp ? 'applications' : 'leads';
 
-  for (const leadId of payload.leadIds) {
+  for (const id of ids) {
     try {
-      const leadDoc = await db.collection('leads').doc(leadId).get();
-      if (!leadDoc.exists) { results.skipped++; continue; }
+      const doc = await db.collection(collection).doc(id).get();
+      if (!doc.exists) { results.skipped++; continue; }
 
-      const lead = leadDoc.data();
-      if (!lead.email || lead.unsubscribed) { results.skipped++; continue; }
+      const record = doc.data();
+      if (!record.email) { results.skipped++; continue; }
+      if (!isApp && record.unsubscribed) { results.skipped++; continue; }
 
       const vars = {
-        first_name: lead.first_name || '',
-        last_name: lead.last_name || '',
-        program: lead.program || '',
-        cohort: lead.cohort_label || '',
-        email: lead.email
+        first_name: record.first_name || '',
+        last_name: record.last_name || '',
+        program: record.program || record.course_name || record.program_type || '',
+        cohort: record.cohort_label || '',
+        email: record.email
       };
 
       if (payload.templateId) {
-        await sendTemplateEmail({ to: lead.email, templateId: payload.templateId, vars, leadId });
+        await sendTemplateEmail({ to: record.email, templateId: payload.templateId, vars, leadId: isApp ? null : id });
       } else if (payload.subject && payload.bodyHtml) {
-        await sendCustomEmail({ to: lead.email, subject: payload.subject, bodyHtml: payload.bodyHtml, bodyPlain: payload.bodyPlain || '', leadId });
+        await sendCustomEmail({ to: record.email, subject: payload.subject, bodyHtml: payload.bodyHtml, bodyPlain: payload.bodyPlain || '', leadId: isApp ? null : id });
       }
 
-      await db.collection('leads').doc(leadId).update({ last_contact: new Date(), updated_at: new Date() });
+      const updateFields = { updated_at: new Date() };
+      if (!isApp) updateFields.last_contact = new Date();
+      await db.collection(collection).doc(id).update(updateFields);
       results.sent++;
     } catch (err) {
       results.failed++;
-      results.errors.push({ leadId, error: err.message });
+      results.errors.push({ id, error: err.message });
     }
   }
 
