@@ -1,0 +1,139 @@
+{# ── User List View ── #}
+<div id="yb-admin-v-user-list">
+  <div class="yb-admin__view-head">
+    <h2>{{ t.users_title }}</h2>
+    <div class="yb-lead__toolbar-right">
+      <button type="button" class="yb-btn yb-btn--outline yb-btn--sm" data-action="user-bulk-email">&#9993;&#65039; {{ t.users_bulk_email }}</button>
+      <button type="button" class="yb-btn yb-btn--outline yb-btn--sm" data-action="user-bulk-sms">&#128241; {{ t.users_bulk_sms }}</button>
+      <button type="button" class="yb-btn yb-btn--outline yb-btn--sm" data-action="users-export-csv">&#128229; {{ t.users_export }}</button>
+      <button type="button" class="yb-btn yb-btn--outline yb-btn--sm" data-action="users-refresh">&#8635; {{ t.users_refresh }}</button>
+    </div>
+  </div>
+
+  {# Stats #}
+  <div class="yb-lead__stats-grid" id="yb-admin-user-stats"></div>
+
+  {# Search + Filters #}
+  <div class="yb-lead__filter-bar">
+    <form id="yb-user-search-form" class="yb-lead__search-form">
+      <input type="text" id="yb-user-search-input" placeholder="{{ t.users_search_placeholder }}" class="yb-lead__search-input">
+    </form>
+    <select id="yb-user-role-filter" class="yb-admin__select yb-lead__filter">
+      <option value="">{{ t.users_all_roles }}</option>
+      <option value="member">Member</option>
+      <option value="trainee">Trainee</option>
+      <option value="student">Student</option>
+      <option value="teacher">Teacher</option>
+      <option value="marketing">Marketing</option>
+      <option value="admin">Admin</option>
+    </select>
+    <select id="yb-user-tier-filter" class="yb-admin__select yb-lead__filter">
+      <option value="">{{ t.users_all_tiers }}</option>
+      <option value="gold">Gold</option>
+      <option value="silver">Silver</option>
+      <option value="bronze">Bronze</option>
+      <option value="none">None</option>
+    </select>
+    <select id="yb-user-waiver-filter" class="yb-admin__select yb-lead__filter">
+      <option value="">{{ t.users_all_waiver }}</option>
+      <option value="signed">&#9989; {{ t.users_waiver_signed }}</option>
+      <option value="not_signed">&#10060; {{ t.users_waiver_not_signed }}</option>
+    </select>
+    <select id="yb-user-mb-filter" class="yb-admin__select yb-lead__filter">
+      <option value="">{{ t.users_all_mb }}</option>
+      <option value="linked">&#9989; {{ t.users_mb_linked }}</option>
+      <option value="not_linked">&#10060; {{ t.users_mb_not_linked }}</option>
+    </select>
+  </div>
+
+  {# Result count #}
+  <div class="yb-lead__result-bar">
+    <span id="yb-user-count" class="yb-lead__count-text"></span>
+  </div>
+
+  {# Bulk actions bar (hidden until selections) #}
+  <div id="yb-user-bulk-bar" class="yb-lead__bulk-bar" hidden>
+    <span id="yb-user-bulk-count" class="yb-lead__bulk-count-text"></span>
+    <button class="yb-btn yb-btn--sm yb-btn--outline" data-action="user-bulk-role">&#9881;&#65039; {{ t.users_bulk_role }}</button>
+    <button class="yb-btn yb-btn--sm yb-btn--outline" data-action="user-bulk-email-selected">&#9993;&#65039; {{ t.users_bulk_email }}</button>
+    <button class="yb-btn yb-btn--sm yb-btn--outline" data-action="user-bulk-sms-selected">&#128241; {{ t.users_bulk_sms }}</button>
+    <button class="yb-btn yb-btn--sm yb-btn--outline" data-action="user-deselect-all">&#10006; {{ t.users_deselect }}</button>
+  </div>
+
+  {# Users table #}
+  <div class="yb-admin__table-wrap yb-lead__table-wrap">
+    <table class="yb-admin__table yb-lead__table" id="yb-user-table">
+      <thead>
+        <tr>
+          <th class="yb-lead__th-cb"><input type="checkbox" id="yb-user-select-all" title="{{ t.users_select_all }}"></th>
+          <th>{{ t.users_col_name }}</th>
+          <th>{{ t.users_col_email }}</th>
+          <th>{{ t.users_col_phone }}</th>
+          <th>{{ t.users_col_role }}</th>
+          <th>{{ t.users_col_tier }}</th>
+          <th>{{ t.users_col_waiver }}</th>
+          <th>{{ t.users_col_mb }}</th>
+          <th>{{ t.users_col_joined }}</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody id="yb-user-table-body"></tbody>
+    </table>
+  </div>
+</div>
+
+{# ── User Detail View ── #}
+<div id="yb-admin-v-user-detail" hidden>
+  <div class="yb-admin__view-head">
+    <button class="yb-admin__back-btn" data-action="back-users">&larr; {{ t.back }}</button>
+    <h2 id="yb-admin-user-detail-heading">{{ t.users_detail_title }}</h2>
+  </div>
+
+  {# Profile card #}
+  <div id="yb-admin-user-profile-card"></div>
+
+  {# Quick actions #}
+  <div class="yb-admin__section-divider"></div>
+  <h3 class="yb-lead__section-title">{{ t.users_quick_actions }}</h3>
+  <div id="yb-user-actions" class="yb-lead__actions"></div>
+
+  {# Role editor #}
+  <div class="yb-admin__section-divider"></div>
+  <h3 style="font-size:0.95rem;font-weight:700;margin-bottom:0.75rem">{{ t.role_title }}</h3>
+  <div id="yb-admin-user-role-editor"></div>
+
+  {# Enrollments #}
+  <div class="yb-admin__section-divider"></div>
+  <div class="yb-admin__view-head">
+    <h3 style="font-size:0.95rem;font-weight:700">{{ t.users_enrollments }}</h3>
+    <button class="yb-btn yb-btn--primary yb-btn--sm" data-action="user-enroll-toggle">+ {{ t.users_enroll_course }}</button>
+  </div>
+  <div id="yb-admin-user-enroll-form-wrap" hidden>
+    <div class="yb-admin__enroll-form" style="margin-bottom:1rem">
+      <select id="yb-admin-user-enroll-course" class="yb-admin__select">
+        <option value="">{{ t.users_enroll_select }}</option>
+      </select>
+      <button type="button" class="yb-btn yb-btn--primary" data-action="user-enroll-save">{{ t.enroll_btn }}</button>
+    </div>
+  </div>
+  <div id="yb-admin-user-enrollments"></div>
+
+  {# Progress #}
+  <div class="yb-admin__section-divider"></div>
+  <h3 style="font-size:0.95rem;font-weight:700;margin-bottom:0.75rem">{{ t.users_progress_title }}</h3>
+  <div id="yb-admin-user-progress"></div>
+
+  {# Consents #}
+  <div class="yb-admin__section-divider"></div>
+  <h3 style="font-size:0.95rem;font-weight:700;margin-bottom:0.75rem">{{ t.users_consents_title }}</h3>
+  <div id="yb-admin-user-consents"></div>
+
+  {# Notes #}
+  <div class="yb-admin__section-divider"></div>
+  <h3 class="yb-lead__section-title">{{ t.users_notes }}</h3>
+  <form id="yb-user-note-form" class="yb-lead__note-form">
+    <input type="text" id="yb-user-note-input" placeholder="{{ t.users_note_placeholder }}" class="yb-lead__note-input">
+    <button type="submit" class="yb-btn yb-btn--primary yb-btn--sm">{{ t.leads_add_note_btn }}</button>
+  </form>
+  <div id="yb-user-notes-timeline" class="yb-lead__notes-timeline"></div>
+</div>

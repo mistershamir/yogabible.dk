@@ -36,6 +36,12 @@
         <button class="yb-profile__tab is-active" type="button" data-yb-admin-tab="courses">{{ t.tab_courses }}</button>
         <button class="yb-profile__tab" type="button" data-yb-admin-tab="users">{{ t.tab_users }}</button>
         <button class="yb-profile__tab" type="button" data-yb-admin-tab="analytics">{{ t.tab_analytics }}</button>
+        <button class="yb-profile__tab" type="button" data-yb-admin-tab="leads">{{ t.tab_leads }}</button>
+        <button class="yb-profile__tab" type="button" data-yb-admin-tab="applications">{{ t.tab_applications }}</button>
+        <button class="yb-profile__tab" type="button" data-yb-admin-tab="careers">{{ t.tab_careers }}</button>
+        <button class="yb-profile__tab" type="button" data-yb-admin-tab="appointments">{{ t.tab_appointments }}</button>
+        <button class="yb-profile__tab" type="button" data-yb-admin-tab="catalog">{{ t.tab_catalog }}</button>
+        <button class="yb-profile__tab" type="button" data-yb-admin-tab="documents">{{ t.tab_documents }}</button>
       </div>
 
       {# ═══════════════════════════════════
@@ -255,80 +261,7 @@
          TAB: Users
          ═══════════════════════════════════ #}
       <div class="yb-admin__tab-panel" data-yb-admin-panel="users">
-
-        {# User List View #}
-        <div id="yb-admin-v-user-list">
-          <div class="yb-admin__view-head">
-            <h2>{{ t.users_title }}</h2>
-          </div>
-
-          {# Search + Filter bar #}
-          <div class="yb-admin__user-toolbar">
-            <form id="yb-admin-user-search-form" class="yb-admin__user-search">
-              <input type="text" id="yb-admin-user-search-input" placeholder="{{ t.users_search_placeholder }}" class="yb-admin__user-search-input">
-              <button type="submit" class="yb-btn yb-btn--primary">{{ t.users_search_btn }}</button>
-            </form>
-            <select id="yb-admin-user-role-filter" class="yb-admin__select">
-              <option value="">{{ t.users_all_roles }}</option>
-              <option value="member">Member</option>
-              <option value="trainee">Trainee</option>
-              <option value="student">Student</option>
-              <option value="teacher">Teacher</option>
-              <option value="marketing">Marketing</option>
-              <option value="admin">Admin</option>
-            </select>
-            <button type="button" class="yb-btn yb-btn--outline yb-btn--sm" data-action="users-browse">{{ t.users_browse_btn }}</button>
-          </div>
-
-          {# Stat cards #}
-          <div class="yb-admin__stats-grid" id="yb-admin-user-stats" style="margin-bottom:1.5rem"></div>
-
-          {# User list table #}
-          <div id="yb-admin-user-table-wrap"></div>
-        </div>
-
-        {# User Detail View #}
-        <div id="yb-admin-v-user-detail" hidden>
-          <div class="yb-admin__view-head">
-            <button class="yb-admin__back-btn" data-action="back-users">&larr; {{ t.back }}</button>
-            <h2 id="yb-admin-user-detail-heading">{{ t.users_detail_title }}</h2>
-          </div>
-
-          {# Profile card #}
-          <div id="yb-admin-user-profile-card"></div>
-
-          {# Role editor #}
-          <div class="yb-admin__section-divider"></div>
-          <h3 style="font-size:0.95rem;font-weight:700;margin-bottom:0.75rem">{{ t.role_title }}</h3>
-          <div id="yb-admin-user-role-editor"></div>
-
-          {# Enrollments #}
-          <div class="yb-admin__section-divider"></div>
-          <div class="yb-admin__view-head">
-            <h3 style="font-size:0.95rem;font-weight:700">{{ t.users_enrollments }}</h3>
-            <button class="yb-btn yb-btn--primary yb-btn--sm" data-action="user-enroll-toggle">+ {{ t.users_enroll_course }}</button>
-          </div>
-          <div id="yb-admin-user-enroll-form-wrap" hidden>
-            <div class="yb-admin__enroll-form" style="margin-bottom:1rem">
-              <select id="yb-admin-user-enroll-course" class="yb-admin__select">
-                <option value="">{{ t.users_enroll_select }}</option>
-              </select>
-              <button type="button" class="yb-btn yb-btn--primary" data-action="user-enroll-save">{{ t.enroll_btn }}</button>
-            </div>
-          </div>
-          <div id="yb-admin-user-enrollments"></div>
-
-          {# Progress #}
-          <div class="yb-admin__section-divider"></div>
-          <h3 style="font-size:0.95rem;font-weight:700;margin-bottom:0.75rem">{{ t.users_progress_title }}</h3>
-          <div id="yb-admin-user-progress"></div>
-
-          {# Consents #}
-          <div class="yb-admin__section-divider"></div>
-          <h3 style="font-size:0.95rem;font-weight:700;margin-bottom:0.75rem">{{ t.users_consents_title }}</h3>
-          <div id="yb-admin-user-consents"></div>
-        </div>
-
+        {% include "partials/admin-users-panel.njk" %}
       </div>{# end users tab panel #}
 
       {# ═══════════════════════════════════
@@ -377,12 +310,344 @@
 
       </div>{# end analytics tab panel #}
 
+      {# ═══════════════════════════════════
+         TAB: Lead Manager (Enhanced)
+         ═══════════════════════════════════ #}
+      <div class="yb-admin__tab-panel" data-yb-admin-panel="leads">
+        {% include "partials/admin-leads-panel.njk" %}
+      </div>{# end leads tab panel #}
+
+      {# ═══════════════════════════════════
+         TAB: Applications
+         ═══════════════════════════════════ #}
+      <div class="yb-admin__tab-panel" data-yb-admin-panel="applications">
+        {% include "partials/admin-applications-panel.njk" %}
+      </div>{# end applications tab panel (refactored) #}
+
+
+      {# ═══════════════════════════════════
+         TAB: Careers
+         ═══════════════════════════════════ #}
+      <div class="yb-admin__tab-panel" data-yb-admin-panel="careers">
+        {% include "partials/admin-careers-panel.njk" %}
+      </div>{# end careers tab panel #}
+
+      {# ═══════════════════════════════════
+         TAB: Course Catalog
+         ═══════════════════════════════════ #}
+      <div class="yb-admin__tab-panel" data-yb-admin-panel="catalog">
+
+        {# ── List View ── #}
+        <div id="yb-catalog-v-list">
+          <div class="yb-admin__view-head">
+            <h2>{{ t.catalog_title }}</h2>
+            <div class="yb-lead__toolbar-right">
+              <button type="button" class="yb-btn yb-btn--outline yb-btn--sm" data-action="catalog-seed">{{ t.catalog_seed_btn }}</button>
+              <button type="button" class="yb-btn yb-btn--outline yb-btn--sm" data-action="catalog-refresh">{{ t.leads_refresh }}</button>
+              <button type="button" class="yb-btn yb-btn--primary yb-btn--sm" data-action="catalog-new">+ {{ t.catalog_new_btn }}</button>
+            </div>
+          </div>
+
+          {# Filters #}
+          <div class="yb-lead__filter-bar">
+            <form id="yb-catalog-search-form" class="yb-lead__search-form">
+              <input type="text" id="yb-catalog-search-input" placeholder="{{ t.catalog_search_placeholder }}" class="yb-lead__search-input">
+            </form>
+            <select id="yb-catalog-category-filter" class="yb-admin__select yb-lead__filter">
+              <option value="">{{ t.catalog_all_categories }}</option>
+              <option value="Education">Education</option>
+              <option value="Course">Course</option>
+              <option value="Bundle">Bundle</option>
+              <option value="Mentorship">Mentorship</option>
+            </select>
+            <select id="yb-catalog-active-filter" class="yb-admin__select yb-lead__filter">
+              <option value="">{{ t.catalog_all_statuses }}</option>
+              <option value="true">{{ t.catalog_active }}</option>
+              <option value="false">{{ t.catalog_inactive }}</option>
+            </select>
+          </div>
+
+          <div class="yb-lead__result-bar">
+            <span id="yb-catalog-count" class="yb-lead__count-text"></span>
+          </div>
+
+          {# Bulk actions bar (hidden until selections) #}
+          <div id="yb-catalog-bulk-bar" class="yb-lead__bulk-bar" hidden>
+            <span id="yb-catalog-bulk-count" class="yb-lead__bulk-count-text"></span>
+            <button class="yb-btn yb-btn--sm yb-btn--outline" data-action="catalog-bulk-activate">&#9989; {{ t.catalog_bulk_activate }}</button>
+            <button class="yb-btn yb-btn--sm yb-btn--outline" data-action="catalog-bulk-deactivate">&#9675; {{ t.catalog_bulk_deactivate }}</button>
+            <button class="yb-btn yb-btn--sm yb-btn--outline yb-admin__icon-btn--danger" data-action="catalog-bulk-delete">&#128451; {{ t.catalog_bulk_delete }}</button>
+            <button class="yb-btn yb-btn--sm yb-btn--outline" data-action="catalog-deselect-all">&#10006; {{ t.catalog_deselect }}</button>
+          </div>
+
+          <div class="yb-admin__table-wrap">
+            <table class="yb-admin__table" id="yb-catalog-table">
+              <thead>
+                <tr>
+                  <th class="yb-lead__th-cb"><input type="checkbox" id="yb-catalog-select-all" title="{{ t.catalog_select_all }}"></th>
+                  <th>{{ t.catalog_col_course }}</th>
+                  <th>{{ t.catalog_col_category }}</th>
+                  <th>{{ t.catalog_col_cohort }}</th>
+                  <th>{{ t.catalog_col_active }}</th>
+                  <th>{{ t.catalog_col_status }}</th>
+                  <th>{{ t.catalog_col_price }}</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody id="yb-catalog-table-body"></tbody>
+            </table>
+          </div>
+        </div>
+
+        {# ── Form View ── #}
+        <div id="yb-catalog-v-form" hidden>
+          <div class="yb-admin__view-head">
+            <button class="yb-admin__back-btn" data-action="catalog-cancel">&larr; {{ t.back }}</button>
+            <h2 id="yb-catalog-form-title">{{ t.catalog_new_btn }}</h2>
+          </div>
+
+          <form id="yb-catalog-form" class="yb-admin__form">
+            <input type="hidden" id="yb-cat-id">
+
+            <div class="yb-admin__form-row">
+              <div class="yb-admin__field">
+                <label for="yb-cat-course-id">{{ t.catalog_field_course_id }}</label>
+                <input type="text" id="yb-cat-course-id" placeholder="YTT200-4W" required>
+              </div>
+              <div class="yb-admin__field">
+                <label for="yb-cat-course-name">{{ t.catalog_field_course_name }}</label>
+                <input type="text" id="yb-cat-course-name" required>
+              </div>
+            </div>
+
+            <div class="yb-admin__form-row">
+              <div class="yb-admin__field">
+                <label for="yb-cat-category">{{ t.catalog_field_category }}</label>
+                <select id="yb-cat-category" class="yb-admin__select">
+                  <option value="Education">Education</option>
+                  <option value="Course">Course</option>
+                  <option value="Bundle">Bundle</option>
+                  <option value="Mentorship">Mentorship</option>
+                </select>
+              </div>
+              <div class="yb-admin__field">
+                <label for="yb-cat-track">{{ t.catalog_field_track }}</label>
+                <input type="text" id="yb-cat-track" placeholder="4 Weeks Intensive">
+              </div>
+            </div>
+
+            <div class="yb-admin__form-row">
+              <div class="yb-admin__field">
+                <label for="yb-cat-cohort-id">{{ t.catalog_field_cohort_id }}</label>
+                <input type="text" id="yb-cat-cohort-id" placeholder="2026-04">
+              </div>
+              <div class="yb-admin__field">
+                <label for="yb-cat-cohort-label">{{ t.catalog_field_cohort_label }}</label>
+                <input type="text" id="yb-cat-cohort-label" placeholder="April 2026">
+              </div>
+            </div>
+
+            <div class="yb-admin__form-row">
+              <div class="yb-admin__field">
+                <label for="yb-cat-start-date">{{ t.catalog_field_start_date }}</label>
+                <input type="text" id="yb-cat-start-date" placeholder="2026-04-01">
+              </div>
+              <div class="yb-admin__field">
+                <label for="yb-cat-end-date">{{ t.catalog_field_end_date }}</label>
+                <input type="text" id="yb-cat-end-date" placeholder="2026-04-28">
+              </div>
+            </div>
+
+            <div class="yb-admin__form-row">
+              <div class="yb-admin__field">
+                <label for="yb-cat-capacity">{{ t.catalog_field_capacity }}</label>
+                <input type="number" id="yb-cat-capacity" min="0" value="12">
+              </div>
+              <div class="yb-admin__field">
+                <label for="yb-cat-open-status">{{ t.catalog_field_open_status }}</label>
+                <input type="text" id="yb-cat-open-status" placeholder="Open">
+              </div>
+            </div>
+
+            <div class="yb-admin__form-row">
+              <div class="yb-admin__field">
+                <label for="yb-cat-payment-full">{{ t.catalog_field_payment_url_full }}</label>
+                <input type="url" id="yb-cat-payment-full" placeholder="https://...">
+              </div>
+              <div class="yb-admin__field">
+                <label for="yb-cat-payment-deposit">{{ t.catalog_field_payment_url_deposit }}</label>
+                <input type="url" id="yb-cat-payment-deposit" placeholder="https://...">
+              </div>
+            </div>
+
+            <div class="yb-admin__form-row">
+              <div class="yb-admin__field">
+                <label for="yb-cat-price-full">{{ t.catalog_field_price_full }}</label>
+                <input type="number" id="yb-cat-price-full" min="0" placeholder="23750">
+              </div>
+              <div class="yb-admin__field">
+                <label for="yb-cat-currency">{{ t.catalog_field_currency }}</label>
+                <input type="text" id="yb-cat-currency" value="DKK" style="max-width:80px">
+              </div>
+              <div class="yb-admin__field">
+                <label for="yb-cat-deposit-amount">{{ t.catalog_field_deposit_amount }}</label>
+                <input type="text" id="yb-cat-deposit-amount" placeholder="3750">
+              </div>
+            </div>
+
+            <div class="yb-admin__form-row">
+              <div class="yb-admin__field">
+                <label for="yb-cat-max-instalments">{{ t.catalog_field_max_instalments }}</label>
+                <input type="number" id="yb-cat-max-instalments" min="0" value="0">
+              </div>
+              <div class="yb-admin__field">
+                <label for="yb-cat-sort-key">{{ t.catalog_field_sort_key }}</label>
+                <input type="text" id="yb-cat-sort-key">
+              </div>
+            </div>
+
+            <div class="yb-admin__field">
+              <label for="yb-cat-notes">{{ t.catalog_field_notes }}</label>
+              <textarea id="yb-cat-notes" rows="2"></textarea>
+            </div>
+
+            <div class="yb-admin__form-row" style="flex-wrap:wrap;gap:1rem">
+              <label class="yb-admin__checkbox-label">
+                <input type="checkbox" id="yb-cat-active" checked> {{ t.catalog_field_active }}
+              </label>
+              <label class="yb-admin__checkbox-label">
+                <input type="checkbox" id="yb-cat-waitlist-enabled"> {{ t.catalog_field_waitlist }}
+              </label>
+              <label class="yb-admin__checkbox-label">
+                <input type="checkbox" id="yb-cat-allow-deposit"> {{ t.catalog_field_allow_deposit }}
+              </label>
+              <label class="yb-admin__checkbox-label">
+                <input type="checkbox" id="yb-cat-allow-instalments"> {{ t.catalog_field_allow_instalments }}
+              </label>
+              <label class="yb-admin__checkbox-label">
+                <input type="checkbox" id="yb-cat-external-only"> {{ t.catalog_field_external_only }}
+              </label>
+            </div>
+
+            <div class="yb-admin__field" id="yb-cat-external-url-wrap" hidden>
+              <label for="yb-cat-external-url">{{ t.catalog_field_external_url }}</label>
+              <input type="url" id="yb-cat-external-url" placeholder="https://...">
+            </div>
+
+            <div class="yb-admin__form-actions">
+              <button type="submit" class="yb-btn yb-btn--primary">{{ t.save }}</button>
+              <button type="button" class="yb-btn yb-btn--outline" data-action="catalog-cancel">{{ t.cancel }}</button>
+            </div>
+          </form>
+        </div>
+
+      </div>{# end catalog tab panel #}
+
+      {# ═══════════════════════════════════
+         TAB: Appointments
+         ═══════════════════════════════════ #}
+      <div class="yb-admin__tab-panel" data-yb-admin-panel="appointments">
+        {% include "partials/admin-appointments-panel.njk" %}
+      </div>{# end appointments tab panel #}
+
+      {# ═══════════════════════════════════
+         TAB: Training Documents
+         ═══════════════════════════════════ #}
+      <div class="yb-admin__tab-panel" data-yb-admin-panel="documents">
+        {% include "partials/admin-documents-panel.njk" %}
+      </div>{# end documents tab panel #}
+
     </div>{# end yb-admin-panel #}
 
+    {# ═══════════════════════════════════
+       Campaign Wizard Modals (outside tab panels so they work from any tab)
+       ═══════════════════════════════════ #}
+    {# ── SMS Campaign Wizard Modal ── #}
+    <div id="yb-campaign-sms-modal" class="yb-lead__modal" hidden>
+      <div class="yb-lead__modal-overlay" data-action="campaign-sms-close"></div>
+      <div class="yb-lead__campaign-box yb-lead__campaign-box--sms">
+        <div class="yb-lead__campaign-header">
+          <h3 class="yb-lead__campaign-title">&#128241; {{ t.campaign_sms_title }}</h3>
+          <button type="button" class="yb-lead__campaign-close" data-action="campaign-sms-close">&times;</button>
+        </div>
+        <div class="yb-lead__campaign-tabs" id="yb-campaign-sms-tabs">
+          <button class="yb-lead__campaign-tab is-active" data-tab="recipients" type="button">1. {{ t.campaign_tab_recipients }} <span class="yb-lead__campaign-tab-count" id="yb-campaign-sms-recipient-badge"></span></button>
+          <button class="yb-lead__campaign-tab" data-tab="compose" type="button">2. {{ t.campaign_tab_compose }}</button>
+          <button class="yb-lead__campaign-tab" data-tab="send" type="button">3. {{ t.campaign_tab_send }}</button>
+        </div>
+        <div class="yb-lead__campaign-body">
+          <div class="yb-lead__campaign-panel is-active" data-panel="recipients" id="yb-campaign-sms-recipients"></div>
+          <div class="yb-lead__campaign-panel" data-panel="compose" id="yb-campaign-sms-compose"></div>
+          <div class="yb-lead__campaign-panel" data-panel="send" id="yb-campaign-sms-send"></div>
+        </div>
+        <div class="yb-lead__campaign-footer" id="yb-campaign-sms-footer">
+          <span class="yb-lead__campaign-step-info" id="yb-campaign-sms-step-info"></span>
+          <div class="yb-lead__campaign-footer-right">
+            <button class="yb-btn yb-btn--outline" data-action="campaign-sms-back" disabled>&#8592; {{ t.campaign_back }}</button>
+            <button class="yb-btn yb-btn--outline" data-action="campaign-sms-close">{{ t.campaign_cancel }}</button>
+            <button class="yb-btn yb-btn--primary" data-action="campaign-sms-next" id="yb-campaign-sms-next-btn">{{ t.campaign_recipients_continue }} &#8594;</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    {# ── Email Campaign Wizard Modal ── #}
+    <div id="yb-campaign-email-modal" class="yb-lead__modal" hidden>
+      <div class="yb-lead__modal-overlay" data-action="campaign-email-close"></div>
+      <div class="yb-lead__campaign-box yb-lead__campaign-box--email">
+        <div class="yb-lead__campaign-header">
+          <h3 class="yb-lead__campaign-title">&#9993;&#65039; {{ t.campaign_email_title }}</h3>
+          <button type="button" class="yb-lead__campaign-close" data-action="campaign-email-close">&times;</button>
+        </div>
+        <div class="yb-lead__campaign-tabs" id="yb-campaign-email-tabs">
+          <button class="yb-lead__campaign-tab is-active" data-tab="recipients" type="button">1. {{ t.campaign_tab_recipients }} <span class="yb-lead__campaign-tab-count" id="yb-campaign-email-recipient-badge"></span></button>
+          <button class="yb-lead__campaign-tab" data-tab="compose" type="button">2. {{ t.campaign_tab_compose }}</button>
+          <button class="yb-lead__campaign-tab" data-tab="preview" type="button">3. {{ t.campaign_tab_preview }}</button>
+          <button class="yb-lead__campaign-tab" data-tab="send" type="button">4. {{ t.campaign_tab_send }}</button>
+        </div>
+        <div class="yb-lead__campaign-body">
+          <div class="yb-lead__campaign-panel is-active" data-panel="recipients" id="yb-campaign-email-recipients"></div>
+          <div class="yb-lead__campaign-panel" data-panel="compose" id="yb-campaign-email-compose"></div>
+          <div class="yb-lead__campaign-panel" data-panel="preview" id="yb-campaign-email-preview"></div>
+          <div class="yb-lead__campaign-panel" data-panel="send" id="yb-campaign-email-send"></div>
+        </div>
+        <div class="yb-lead__campaign-footer" id="yb-campaign-email-footer">
+          <span class="yb-lead__campaign-step-info" id="yb-campaign-email-step-info"></span>
+          <div class="yb-lead__campaign-footer-right">
+            <button class="yb-btn yb-btn--outline" data-action="campaign-email-back" disabled>&#8592; {{ t.campaign_back }}</button>
+            <button class="yb-btn yb-btn--outline" data-action="campaign-email-close">{{ t.campaign_cancel }}</button>
+            <button class="yb-btn yb-btn--primary" data-action="campaign-email-next" id="yb-campaign-email-next-btn">{{ t.campaign_recipients_continue }} &#8594;</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
   </div>{# end container #}
+
+  {# ── Bulk Status Picker Modal ── #}
+  <div id="yb-bulk-status-modal" class="yb-lead__modal" hidden>
+    <div class="yb-lead__modal-overlay" data-close-bulk-status></div>
+    <div class="yb-bulk-status__box">
+      <div class="yb-bulk-status__header">
+        <h3 id="yb-bulk-status-title">{{ t.leads_bulk_status }}</h3>
+        <button type="button" class="yb-admin__icon-btn" data-close-bulk-status>&times;</button>
+      </div>
+      <p class="yb-bulk-status__subtitle" id="yb-bulk-status-subtitle"></p>
+      <div class="yb-bulk-status__grid" id="yb-bulk-status-grid"></div>
+    </div>
+  </div>
 
   {# Toast #}
   <div class="yb-admin__toast" id="yb-admin-toast" hidden></div>
 </section>
 
 <script src="/js/course-admin.js"></script>
+<script src="/js/lead-admin.js"></script>
+<script src="/js/campaign-wizard.js"></script>
+<script src="/js/catalog-admin.js"></script>
+<script>
+  window._ybDocAdminT = {{ i18n["course-admin"][lang or "da"] | dump | safe }};
+</script>
+<script src="/js/doc-admin.js"></script>
+<script src="/js/careers-admin.js"></script>
+<script src="/js/appointments-admin.js"></script>

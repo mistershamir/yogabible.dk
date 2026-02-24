@@ -1,7 +1,38 @@
 {% set t = i18n.about_copenhagen[lang or "da"] %}
+{% set lp = "/en" if lang == "en" else "" %}
 
-<!-- Hero -->
+{# ── FAQPage Structured Data (SEO / AEO) ── #}
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {% for i in range(1, 13) %}
+    {
+      "@type": "Question",
+      "name": {{ t["faq" + i + "_q"] | dump | safe }},
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": {{ t["faq" + i + "_a"] | dump | safe }}
+      }
+    }{% if i < 12 %},{% endif %}
+    {% endfor %}
+  ]
+}
+</script>
+
+
+{# ════════════════════════════════════════════════════════════════════
+   SECTION 0 — HERO (Video background)
+   Adopted from main — yb-hero with looping video
+   ════════════════════════════════════════════════════════════════════ #}
 <section class="yb-hero">
+  <div class="yb-hero__bg">
+    <video autoplay muted loop playsinline preload="auto" aria-hidden="true"
+      poster="{{ "yoga-bible-DK/copenhagen/about-copenhagen-hero-loop.jpg" | cloudvid("w_1920,c_fill,so_0,q_60") }}">
+      <source src="{{ "yoga-bible-DK/copenhagen/about-copenhagen-hero-loop" | cloudvid("w_1920,q_auto") }}" type="video/mp4">
+    </video>
+  </div>
   <div class="yb-hero__glow"></div>
   <div class="yb-hero__content">
     <p class="yb-hero__tagline">{{ t.hero_tagline }}</p>
@@ -26,271 +57,651 @@
   </div>
 </section>
 
-<!-- Hero Image -->
-<section class="program-overview" style="padding-top:0;">
-  <div class="container">
-    <img src="/assets/images/copenhagen/copenhagen-hero.jpg" alt="{{ t.hero_img_alt }}" style="width:100%; border-radius:12px; aspect-ratio:7/3; object-fit:cover; background:#f5f3f0;" loading="lazy">
-  </div>
-</section>
 
-<!-- Life in Copenhagen -->
-<section class="program-overview" id="life-in-copenhagen">
-  <div class="container">
-    <h2 class="section-title">{{ t.life_title }}</h2>
-    <p class="section-subtitle">{{ t.life_subtitle }}</p>
+{# ════════════════════════════════════════════════════════════════════
+   SECTION 1 — LIFE IN COPENHAGEN
+   4-column image card grid with gradient overlays
+   ════════════════════════════════════════════════════════════════════ #}
+<section class="yb-cph-life" id="life-in-copenhagen">
+  <div class="yb-cph-inner">
+    <div class="yb-cph-life__header">
+      <span class="yb-cph-eyebrow">{{ t.life_eyebrow }}</span>
+      <h2 class="yb-cph-section-title">{{ t.life_title }}</h2>
+      <p class="yb-cph-section-subtitle">{{ t.life_subtitle }}</p>
+    </div>
 
-    <div class="program-grid">
-      <div class="program-feature">
-        <div class="program-feature__icon">🚲</div>
-        <h3>{{ t.life1_title }}</h3>
-        <img src="/assets/images/copenhagen/bike-culture.jpg" alt="{{ t.life1_img_alt }}" style="width:100%; border-radius:8px; aspect-ratio:3/2; object-fit:cover; background:#f5f3f0; margin-bottom:12px;" loading="lazy">
-        <p>{{ t.life1_desc }}</p>
+    <div class="yb-cph-life__grid">
+      {# Card 1: Bike Culture #}
+      <div class="yb-cph-life__card">
+        <div class="yb-cph-life__card-img">
+          {% cldimg media.copenhagen.bikeCulture, t.life1_img_alt, "w_600,h_400,c_fill", "600", "400" %}
+        </div>
+        <div class="yb-cph-life__card-overlay">
+          <h3 class="yb-cph-life__card-title">{{ t.life1_title }}</h3>
+          <p class="yb-cph-life__card-desc">{{ t.life1_desc }}</p>
+        </div>
       </div>
 
-      <div class="program-feature">
-        <div class="program-feature__icon">☕</div>
-        <h3>{{ t.life2_title }}</h3>
-        <img src="/assets/images/copenhagen/cafe-scene.jpg" alt="{{ t.life2_img_alt }}" style="width:100%; border-radius:8px; aspect-ratio:3/2; object-fit:cover; background:#f5f3f0; margin-bottom:12px;" loading="lazy">
-        <p>{{ t.life2_desc }}</p>
+      {# Card 2: Cafe Scene #}
+      <div class="yb-cph-life__card">
+        <div class="yb-cph-life__card-img">
+          {% cldimg media.copenhagen.cafeScene, t.life2_img_alt, "w_600,h_400,c_fill", "600", "400" %}
+        </div>
+        <div class="yb-cph-life__card-overlay">
+          <h3 class="yb-cph-life__card-title">{{ t.life2_title }}</h3>
+          <p class="yb-cph-life__card-desc">{{ t.life2_desc }}</p>
+        </div>
       </div>
 
-      <div class="program-feature">
-        <div class="program-feature__icon">🧖</div>
-        <h3>{{ t.life3_title }}</h3>
-        <img src="/assets/images/copenhagen/saunagus.jpg" alt="{{ t.life3_img_alt }}" style="width:100%; border-radius:8px; aspect-ratio:3/2; object-fit:cover; background:#f5f3f0; margin-bottom:12px;" loading="lazy">
-        <p>{{ t.life3_desc }}</p>
+      {# Card 3: Saunagus #}
+      <div class="yb-cph-life__card">
+        <div class="yb-cph-life__card-img">
+          {% cldimg media.copenhagen.saunagus, t.life3_img_alt, "w_600,h_400,c_fill", "600", "400" %}
+        </div>
+        <div class="yb-cph-life__card-overlay">
+          <h3 class="yb-cph-life__card-title">{{ t.life3_title }}</h3>
+          <p class="yb-cph-life__card-desc">{{ t.life3_desc }}</p>
+        </div>
       </div>
 
-      <div class="program-feature">
-        <div class="program-feature__icon">🏊</div>
-        <h3>{{ t.life4_title }}</h3>
-        <img src="/assets/images/copenhagen/cold-dip.jpg" alt="{{ t.life4_img_alt }}" style="width:100%; border-radius:8px; aspect-ratio:3/2; object-fit:cover; background:#f5f3f0; margin-bottom:12px;" loading="lazy">
-        <p>{{ t.life4_desc }}</p>
+      {# Card 4: Cold Dips #}
+      <div class="yb-cph-life__card">
+        <div class="yb-cph-life__card-img">
+          {% cldimg media.copenhagen.coldDip, t.life4_img_alt, "w_600,h_400,c_fill", "600", "400" %}
+        </div>
+        <div class="yb-cph-life__card-overlay">
+          <h3 class="yb-cph-life__card-title">{{ t.life4_title }}</h3>
+          <p class="yb-cph-life__card-desc">{{ t.life4_desc }}</p>
+        </div>
       </div>
 
-      <div class="program-feature">
-        <div class="program-feature__icon">🎶</div>
-        <h3>{{ t.life5_title }}</h3>
-        <img src="/assets/images/copenhagen/concerts.jpg" alt="{{ t.life5_img_alt }}" style="width:100%; border-radius:8px; aspect-ratio:3/2; object-fit:cover; background:#f5f3f0; margin-bottom:12px;" loading="lazy">
-        <p>{{ t.life5_desc }}</p>
+      {# Card 5: Concerts #}
+      <div class="yb-cph-life__card">
+        <div class="yb-cph-life__card-img">
+          {% cldimg media.copenhagen.concerts, t.life5_img_alt, "w_600,h_400,c_fill", "600", "400" %}
+        </div>
+        <div class="yb-cph-life__card-overlay">
+          <h3 class="yb-cph-life__card-title">{{ t.life5_title }}</h3>
+          <p class="yb-cph-life__card-desc">{{ t.life5_desc }}</p>
+        </div>
       </div>
 
-      <div class="program-feature">
-        <div class="program-feature__icon">🏛️</div>
-        <h3>{{ t.life6_title }}</h3>
-        <img src="/assets/images/copenhagen/scandinavian-design.jpg" alt="{{ t.life6_img_alt }}" style="width:100%; border-radius:8px; aspect-ratio:3/2; object-fit:cover; background:#f5f3f0; margin-bottom:12px;" loading="lazy">
-        <p>{{ t.life6_desc }}</p>
+      {# Card 6: Design #}
+      <div class="yb-cph-life__card">
+        <div class="yb-cph-life__card-img">
+          {% cldimg media.copenhagen.design, t.life6_img_alt, "w_600,h_400,c_fill", "600", "400" %}
+        </div>
+        <div class="yb-cph-life__card-overlay">
+          <h3 class="yb-cph-life__card-title">{{ t.life6_title }}</h3>
+          <p class="yb-cph-life__card-desc">{{ t.life6_desc }}</p>
+        </div>
       </div>
 
-      <div class="program-feature">
-        <div class="program-feature__icon">🌿</div>
-        <h3>{{ t.life7_title }}</h3>
-        <img src="/assets/images/copenhagen/green-spaces.jpg" alt="{{ t.life7_img_alt }}" style="width:100%; border-radius:8px; aspect-ratio:3/2; object-fit:cover; background:#f5f3f0; margin-bottom:12px;" loading="lazy">
-        <p>{{ t.life7_desc }}</p>
+      {# Card 7: Green Spaces #}
+      <div class="yb-cph-life__card">
+        <div class="yb-cph-life__card-img">
+          {% cldimg media.copenhagen.greenSpaces, t.life7_img_alt, "w_600,h_400,c_fill", "600", "400" %}
+        </div>
+        <div class="yb-cph-life__card-overlay">
+          <h3 class="yb-cph-life__card-title">{{ t.life7_title }}</h3>
+          <p class="yb-cph-life__card-desc">{{ t.life7_desc }}</p>
+        </div>
       </div>
 
-      <div class="program-feature">
-        <div class="program-feature__icon">🍽️</div>
-        <h3>{{ t.life8_title }}</h3>
-        <img src="/assets/images/copenhagen/food-scene.jpg" alt="{{ t.life8_img_alt }}" style="width:100%; border-radius:8px; aspect-ratio:3/2; object-fit:cover; background:#f5f3f0; margin-bottom:12px;" loading="lazy">
-        <p>{{ t.life8_desc }}</p>
+      {# Card 8: Design Capital #}
+      <div class="yb-cph-life__card">
+        <div class="yb-cph-life__card-img">
+          {% cldimg media.copenhagen.designCapital, t.life8_img_alt, "w_600,h_400,c_fill", "600", "400" %}
+        </div>
+        <div class="yb-cph-life__card-overlay">
+          <h3 class="yb-cph-life__card-title">{{ t.life8_title }}</h3>
+          <p class="yb-cph-life__card-desc">{{ t.life8_desc }}</p>
+        </div>
       </div>
     </div>
   </div>
 </section>
 
-<!-- Our Location: Christianshavn -->
-<section class="program-schedule">
-  <div class="container">
-    <h2 class="section-title">{{ t.location_title }}</h2>
-    <p class="section-subtitle">
-      {{ t.location_subtitle }}
-    </p>
 
-    <img src="/assets/images/copenhagen/christianshavn-canal.jpg" alt="{{ t.location_img_alt }}" style="width:100%; border-radius:12px; aspect-ratio:12/5; object-fit:cover; background:#f5f3f0; margin-bottom:32px;" loading="lazy">
-
-    <div class="schedule-options">
-      <div class="schedule-card">
-        <h3>{{ t.loc_card1_title }}</h3>
-        <p>{{ t.loc_card1_desc }}</p>
-      </div>
-      <div class="schedule-card">
-        <h3>{{ t.loc_card2_title }}</h3>
-        <p>{{ t.loc_card2_desc }}</p>
-      </div>
+{# ════════════════════════════════════════════════════════════════════
+   SECTION 2 — CHRISTIANSHAVN (Our Location)
+   Split layout: video left, text right. Blockquote, pills, gallery.
+   ════════════════════════════════════════════════════════════════════ #}
+<section class="yb-cph-location">
+  <div class="yb-cph-inner">
+    <div class="yb-cph-location__header">
+      <span class="yb-cph-eyebrow">{{ t.location_eyebrow }}</span>
+      <h2 class="yb-cph-section-title">{{ t.location_title }}</h2>
+      <p class="yb-cph-section-subtitle">{{ t.location_subtitle }}</p>
     </div>
 
-    <div class="program-grid" style="margin-top:32px;">
-      <div class="program-feature">
-        <div class="program-feature__icon">🏛️</div>
-        <h3>{{ t.loc_feat1_title }}</h3>
-        <p>{{ t.loc_feat1_desc }}</p>
+    <div class="yb-cph-location__content">
+      <div class="yb-cph-location__video-wrap">
+        {# CLOUDINARY: yoga-bible-DK/copenhagen/christianshavn-neighborhood-walkthrough — vertical video, 9:16 or 4:5, neighborhood walkthrough #}
+        {% cldvid media.copenhagen.locationVideo, media.copenhagen.canalPanorama, "w_600" %}
       </div>
-      <div class="program-feature">
-        <div class="program-feature__icon">🚇</div>
-        <h3>{{ t.loc_feat2_title }}</h3>
-        <p>{{ t.loc_feat2_desc }}</p>
-      </div>
-      <div class="program-feature">
-        <div class="program-feature__icon">🌳</div>
-        <h3>{{ t.loc_feat3_title }}</h3>
-        <p>{{ t.loc_feat3_desc }}</p>
-      </div>
-      <div class="program-feature">
-        <div class="program-feature__icon">🧘</div>
-        <h3>{{ t.loc_feat4_title }}</h3>
-        <p>{{ t.loc_feat4_desc }}</p>
-      </div>
-      <div class="program-feature">
-        <div class="program-feature__icon">🚲</div>
-        <h3>{{ t.loc_feat5_title }}</h3>
-        <p>{{ t.loc_feat5_desc }}</p>
-      </div>
-      <div class="program-feature">
-        <div class="program-feature__icon">🛒</div>
-        <h3>{{ t.loc_feat6_title }}</h3>
-        <p>{{ t.loc_feat6_desc }}</p>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- The Studio -->
-<section class="program-overview">
-  <div class="container">
-    <h2 class="section-title">{{ t.studio_title }}</h2>
-    <p class="section-subtitle">{{ t.studio_subtitle }}</p>
-
-    <div class="program-grid" style="max-width:800px; margin:0 auto;">
-      <div class="program-feature">
-        <img src="/assets/images/studio/studio-hot-room.jpg" alt="{{ t.studio_hot_img_alt }}" style="width:100%; border-radius:8px; aspect-ratio:3/2; object-fit:cover; background:#f5f3f0; margin-bottom:12px;" loading="lazy">
-        <h3>{{ t.studio_hot_title }}</h3>
-        <p>{{ t.studio_hot_desc }}</p>
-      </div>
-      <div class="program-feature">
-        <img src="/assets/images/studio/studio-main-room.jpg" alt="{{ t.studio_main_img_alt }}" style="width:100%; border-radius:8px; aspect-ratio:3/2; object-fit:cover; background:#f5f3f0; margin-bottom:12px;" loading="lazy">
-        <h3>{{ t.studio_main_title }}</h3>
-        <p>{{ t.studio_main_desc }}</p>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- Why Copenhagen for YTT -->
-<section class="program-schedule">
-  <div class="container">
-    <h2 class="section-title">{{ t.why_title }}</h2>
-
-    <div class="program-grid">
-      <div class="program-feature">
-        <div class="program-feature__icon">📍</div>
-        <h3>{{ t.why1_title }}</h3>
-        <p>{{ t.why1_desc }}</p>
-      </div>
-      <div class="program-feature">
-        <div class="program-feature__icon">🧘</div>
-        <h3>{{ t.why2_title }}</h3>
-        <p>{{ t.why2_desc }}</p>
-      </div>
-      <div class="program-feature">
-        <div class="program-feature__icon">🏫</div>
-        <h3>{{ t.why3_title }}</h3>
-        <p>{{ t.why3_desc }}</p>
-      </div>
-      <div class="program-feature">
-        <div class="program-feature__icon">🌍</div>
-        <h3>{{ t.why4_title }}</h3>
-        <p>{{ t.why4_desc }}</p>
-      </div>
-      <div class="program-feature">
-        <div class="program-feature__icon">✈️</div>
-        <h3>{{ t.why5_title }}</h3>
-        <p>{{ t.why5_desc }}</p>
-      </div>
-      <div class="program-feature">
-        <div class="program-feature__icon">🔒</div>
-        <h3>{{ t.why6_title }}</h3>
-        <p>{{ t.why6_desc }}</p>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- Practical Info -->
-<section class="program-overview">
-  <div class="container">
-    <h2 class="section-title">{{ t.practical_title }}</h2>
-
-    <div class="schedule-options">
-      <div class="schedule-card">
-        <h3>{{ t.prac_getting_here_title }}</h3>
-        <ul>
-          {% for item in t.prac_getting_here_items.split("|") %}
-          <li>{{ item | safe }}</li>
+      <div class="yb-cph-location__text">
+        <h3 class="yb-cph-location__text-title">{{ t.location_text_title }}</h3>
+        <p>{{ t.location_text1 }}</p>
+        <p>{{ t.location_text2 }}</p>
+        <blockquote class="yb-cph-location__highlight">
+          {{ t.location_blockquote }}
+        </blockquote>
+        <p>{{ t.location_text3 }}</p>
+        <div class="yb-cph-location__pills">
+          {% for pill in [t.loc_pill1, t.loc_pill2, t.loc_pill3, t.loc_pill4, t.loc_pill5] %}
+          <span class="yb-cph-location__pill">{{ pill }}</span>
           {% endfor %}
-        </ul>
+        </div>
       </div>
-      <div class="schedule-card">
-        <h3>{{ t.prac_getting_around_title }}</h3>
-        <ul>
-          {% for item in t.prac_getting_around_items.split("|") %}
-          <li>{{ item | safe }}</li>
-          {% endfor %}
-        </ul>
+    </div>
+
+    <div class="yb-cph-location__gallery">
+      <div class="yb-cph-location__gallery-img">
+        {% cldimg media.copenhagen.locationGallery1, t.loc_gallery1_alt, "w_400,h_300,c_fill", "400", "300" %}
       </div>
-      <div class="schedule-card">
-        <h3>{{ t.prac_living_costs_title }}</h3>
-        <ul>
-          {% for item in t.prac_living_costs_items.split("|") %}
-          <li>{{ item | safe }}</li>
-          {% endfor %}
-        </ul>
+      <div class="yb-cph-location__gallery-img">
+        {% cldimg media.copenhagen.locationGallery2, t.loc_gallery2_alt, "w_400,h_300,c_fill", "400", "300" %}
       </div>
-      <div class="schedule-card">
-        <h3>{{ t.prac_weather_title }}</h3>
-        <ul>
-          {% for item in t.prac_weather_items.split("|") %}
-          <li>{{ item | safe }}</li>
-          {% endfor %}
-        </ul>
+      <div class="yb-cph-location__gallery-img">
+        {% cldimg media.copenhagen.locationGallery3, t.loc_gallery3_alt, "w_400,h_300,c_fill", "400", "300" %}
       </div>
     </div>
   </div>
 </section>
 
-<!-- Accommodation -->
-<section class="program-schedule">
-  <div class="container">
-    <h2 class="section-title">{{ t.accom_title }}</h2>
-    <p class="section-subtitle">{{ t.accom_subtitle }}</p>
 
-    <div class="schedule-options">
-      <div class="schedule-card">
-        <img src="/assets/images/accommodation/studio-apartment.jpg" alt="{{ t.accom_studio_img_alt }}" style="width:100%; border-radius:8px; aspect-ratio:3/2; object-fit:cover; background:#f5f3f0; margin-bottom:12px;" loading="lazy">
-        <h3>{{ t.accom_studio_title }}</h3>
-        <p>{{ t.accom_studio_desc }}</p>
+{# ════════════════════════════════════════════════════════════════════
+   SECTION 3 — WHY COPENHAGEN FOR YTT
+   Benefits cards left, media right. Flight connections box.
+   ════════════════════════════════════════════════════════════════════ #}
+<section class="yb-cph-why">
+  <div class="yb-cph-inner">
+    <div class="yb-cph-why__header">
+      <span class="yb-cph-eyebrow">{{ t.why_eyebrow }}</span>
+      <h2 class="yb-cph-section-title">{{ t.why_title }}</h2>
+      <p class="yb-cph-section-subtitle">{{ t.why_subtitle }}</p>
+    </div>
+
+    <div class="yb-cph-why__content">
+      <div class="yb-cph-why__benefits">
+        <div class="yb-cph-why__benefit">
+          <h3 class="yb-cph-why__benefit-title">
+            <span class="yb-cph-why__benefit-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="10" r="3"/><path d="M12 2a8 8 0 0 0-8 8c0 5.4 7 12 8 12s8-6.6 8-12a8 8 0 0 0-8-8z"/></svg></span>
+            {{ t.why1_title }}
+          </h3>
+          <p class="yb-cph-why__benefit-desc">{{ t.why1_desc }}</p>
+        </div>
+        <div class="yb-cph-why__benefit">
+          <h3 class="yb-cph-why__benefit-title">
+            <span class="yb-cph-why__benefit-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 10 3 12 0v-5"/></svg></span>
+            {{ t.why2_title }}
+          </h3>
+          <p class="yb-cph-why__benefit-desc">{{ t.why2_desc }}</p>
+        </div>
+        <div class="yb-cph-why__benefit">
+          <h3 class="yb-cph-why__benefit-title">
+            <span class="yb-cph-why__benefit-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></span>
+            {{ t.why3_title }}
+          </h3>
+          <p class="yb-cph-why__benefit-desc">{{ t.why3_desc }}</p>
+        </div>
+        <div class="yb-cph-why__benefit">
+          <h3 class="yb-cph-why__benefit-title">
+            <span class="yb-cph-why__benefit-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M2 12h20"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg></span>
+            {{ t.why4_title }}
+          </h3>
+          <p class="yb-cph-why__benefit-desc">{{ t.why4_desc }}</p>
+        </div>
+        <div class="yb-cph-why__benefit">
+          <h3 class="yb-cph-why__benefit-title">
+            <span class="yb-cph-why__benefit-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.8 19.2L16 11l3.5-3.5C21 6 21.5 4 21 3c-1-.5-3 0-4.5 1.5L13 8 4.8 6.2c-.5-.1-.9.1-1.1.5l-.3.5c-.2.5-.1 1 .3 1.3L9 12l-2 3H4l-1 1 3 2 2 3 1-1v-3l3-2 3.5 5.3c.3.4.8.5 1.3.3l.5-.2c.4-.3.6-.7.5-1.2z"/></svg></span>
+            {{ t.why5_title }}
+          </h3>
+          <p class="yb-cph-why__benefit-desc">{{ t.why5_desc }}</p>
+        </div>
+        <div class="yb-cph-why__benefit">
+          <h3 class="yb-cph-why__benefit-title">
+            <span class="yb-cph-why__benefit-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg></span>
+            {{ t.why6_title }}
+          </h3>
+          <p class="yb-cph-why__benefit-desc">{{ t.why6_desc }}</p>
+        </div>
       </div>
-      <div class="schedule-card">
-        <img src="/assets/images/accommodation/shared-apartment.jpg" alt="{{ t.accom_shared_img_alt }}" style="width:100%; border-radius:8px; aspect-ratio:3/2; object-fit:cover; background:#f5f3f0; margin-bottom:12px;" loading="lazy">
-        <h3>{{ t.accom_shared_title }}</h3>
-        <p>{{ t.accom_shared_desc }}</p>
+
+      <div class="yb-cph-why__media">
+        <div class="yb-cph-why__media-main">
+          {% cldimg media.copenhagen.whyMain, t.why_img_alt, "w_600,h_700,c_fill", "600", "700" %}
+          <span class="yb-cph-why__media-caption">{{ t.why_caption }}</span>
+        </div>
+        <div class="yb-cph-why__media-grid">
+          <div class="yb-cph-why__media-grid-item">
+            {% cldimg media.copenhagen.whySmall1, t.why_small1_alt, "w_280,h_200,c_fill", "280", "200" %}
+          </div>
+          <div class="yb-cph-why__media-grid-item">
+            {% cldimg media.copenhagen.whySmall2, t.why_small2_alt, "w_280,h_200,c_fill", "280", "200" %}
+          </div>
+        </div>
       </div>
     </div>
 
-    <div style="text-align:center; margin-top:24px;">
-      <a href="{% if lang == 'en' %}/en/kontakt{% else %}/kontakt{% endif %}" class="btn btn--primary">{{ t.accom_cta }}</a>
+    {# Flight connections box #}
+    <div class="yb-cph-why__flights">
+      <div>
+        <h3 class="yb-cph-why__flights-title">{{ t.flights_title }}</h3>
+        <p class="yb-cph-why__flights-text">{{ t.flights_desc }}</p>
+        <div class="yb-cph-why__flights-pills">
+          {% for city in t.flights_cities.split("|") %}
+          <span class="yb-cph-why__flights-pill">{{ city }}</span>
+          {% endfor %}
+        </div>
+      </div>
+      <div class="yb-cph-why__flights-map">
+        {% cldimg media.copenhagen.flightsMap, t.flights_map_alt, "w_500,c_scale", "500", "400" %}
+      </div>
     </div>
   </div>
 </section>
 
-<!-- CTA -->
-<section class="cta-section">
-  <div class="container">
-    <h2 class="cta-section__title">{{ t.cta_title }}</h2>
-    <p class="cta-section__text">{{ t.cta_text }}</p>
-    <div style="display:flex; gap:16px; justify-content:center; flex-wrap:wrap;">
-      <a href="{% if lang == 'en' %}/en/om-200hrs-yogalreruddannelser{% else %}/om-200hrs-yogalreruddannelser{% endif %}" class="btn btn--large btn--primary">{{ t.cta_programs }}</a>
-      <a href="{% if lang == 'en' %}/en/sammenlign-yogalreruddannelser{% else %}/sammenlign-yogalreruddannelser{% endif %}" class="btn btn--large btn--secondary">{{ t.cta_compare }}</a>
+
+{# ════════════════════════════════════════════════════════════════════
+   SECTION 4 — HYGGE
+   Dark section. Split with accent image, values, yoga connection.
+   ════════════════════════════════════════════════════════════════════ #}
+<section class="yb-cph-hygge">
+  <div class="yb-cph-inner">
+    <div class="yb-cph-hygge__content">
+      <div class="yb-cph-hygge__text">
+        <span class="yb-cph-eyebrow" style="color: rgba(255,255,255,0.5);">{{ t.hygge_eyebrow }}</span>
+        <h2 class="yb-cph-hygge__title">{{ t.hygge_title }}</h2>
+        <p class="yb-cph-hygge__pronunciation">{{ t.hygge_pronunciation }}</p>
+        <p>{{ t.hygge_desc }}</p>
+
+        <blockquote class="yb-cph-hygge__quote">
+          {{ t.hygge_quote }}
+        </blockquote>
+
+        <p>{{ t.hygge_text2 }}</p>
+
+        <ul class="yb-cph-hygge__values">
+          <li>{{ t.hygge_value1 }}</li>
+          <li>{{ t.hygge_value2 }}</li>
+          <li>{{ t.hygge_value3 }}</li>
+          <li>{{ t.hygge_value4 }}</li>
+        </ul>
+
+        <div class="yb-cph-hygge__connection">
+          <h3 class="yb-cph-hygge__connection-title">{{ t.hygge_yoga_title }}</h3>
+          <p>{{ t.hygge_yoga_desc }}</p>
+        </div>
+      </div>
+
+      <div class="yb-cph-hygge__media">
+        <div class="yb-cph-hygge__media-main">
+          {% cldimg media.copenhagen.hyggeMain, t.hygge_main_alt, "w_600,h_700,c_fill", "600", "700" %}
+        </div>
+        <div class="yb-cph-hygge__media-accent">
+          {% cldimg media.copenhagen.hyggeAccent, t.hygge_accent_alt, "w_280,h_280,c_fill", "280", "280" %}
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+{# ════════════════════════════════════════════════════════════════════
+   SECTION 5 — ABOUT DENMARK
+   Facts grid with featured card spanning 2 columns, icon cards.
+   ════════════════════════════════════════════════════════════════════ #}
+<section class="yb-cph-denmark">
+  <div class="yb-cph-inner">
+    <div class="yb-cph-denmark__header">
+      <span class="yb-cph-eyebrow">{{ t.denmark_eyebrow }}</span>
+      <h2 class="yb-cph-section-title">{{ t.denmark_title }}</h2>
+      <p class="yb-cph-section-subtitle">{{ t.denmark_subtitle }}</p>
+    </div>
+
+    <div class="yb-cph-denmark__grid">
+      {# Featured card — spans 2 columns #}
+      <div class="yb-cph-denmark__card yb-cph-denmark__card--featured">
+        <div class="yb-cph-denmark__card-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2z"/></svg>
+        </div>
+        <div>
+          <h3 class="yb-cph-denmark__card-title">{{ t.denmark_featured_title }}</h3>
+          <p class="yb-cph-denmark__card-desc">{{ t.denmark_featured_desc }}</p>
+        </div>
+      </div>
+
+      {# Fact 1 #}
+      <div class="yb-cph-denmark__card">
+        <div class="yb-cph-denmark__card-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8h1a4 4 0 0 1 0 8h-1"/><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"/><line x1="6" y1="1" x2="6" y2="4"/><line x1="10" y1="1" x2="10" y2="4"/><line x1="14" y1="1" x2="14" y2="4"/></svg>
+        </div>
+        <h3 class="yb-cph-denmark__card-title">{{ t.denmark1_title }}</h3>
+        <p class="yb-cph-denmark__card-desc">{{ t.denmark1_desc }}</p>
+      </div>
+
+      {# Fact 2 #}
+      <div class="yb-cph-denmark__card">
+        <div class="yb-cph-denmark__card-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2"/><path d="M7 2v20"/><path d="M21 15V2v0a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3"/></svg>
+        </div>
+        <h3 class="yb-cph-denmark__card-title">{{ t.denmark2_title }}</h3>
+        <p class="yb-cph-denmark__card-desc">{{ t.denmark2_desc }}</p>
+      </div>
+
+      {# Fact 3 #}
+      <div class="yb-cph-denmark__card">
+        <div class="yb-cph-denmark__card-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19l7-7 3 3-7 7-3-3z"/><path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18l5-5z"/><path d="M2 2l7.586 7.586"/><circle cx="11" cy="11" r="2"/></svg>
+        </div>
+        <h3 class="yb-cph-denmark__card-title">{{ t.denmark3_title }}</h3>
+        <p class="yb-cph-denmark__card-desc">{{ t.denmark3_desc }}</p>
+      </div>
+
+      {# Fact 4 #}
+      <div class="yb-cph-denmark__card">
+        <div class="yb-cph-denmark__card-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 20h.01"/><path d="M7 20v-4"/><path d="M12 20v-8"/><path d="M17 20V8"/><path d="M22 4v16"/></svg>
+        </div>
+        <h3 class="yb-cph-denmark__card-title">{{ t.denmark4_title }}</h3>
+        <p class="yb-cph-denmark__card-desc">{{ t.denmark4_desc }}</p>
+      </div>
+
+      {# Fact 5 #}
+      <div class="yb-cph-denmark__card">
+        <div class="yb-cph-denmark__card-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18.5" cy="17.5" r="3.5"/><circle cx="5.5" cy="17.5" r="3.5"/><circle cx="15" cy="5" r="1"/><path d="M12 17.5V14l-3-3 4-3 2 3h2"/></svg>
+        </div>
+        <h3 class="yb-cph-denmark__card-title">{{ t.denmark5_title }}</h3>
+        <p class="yb-cph-denmark__card-desc">{{ t.denmark5_desc }}</p>
+      </div>
+
+      {# Fact 6 #}
+      <div class="yb-cph-denmark__card">
+        <div class="yb-cph-denmark__card-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12h6l3-9 6 18 3-9h6"/></svg>
+        </div>
+        <h3 class="yb-cph-denmark__card-title">{{ t.denmark6_title }}</h3>
+        <p class="yb-cph-denmark__card-desc">{{ t.denmark6_desc }}</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+{# ════════════════════════════════════════════════════════════════════
+   SECTION 6 — EXPLORE & EXPERIENCE
+   Masonry grid with 8 image cards (tall, regular, wide variants)
+   ════════════════════════════════════════════════════════════════════ #}
+<section class="yb-cph-explore">
+  <div class="yb-cph-inner">
+    <div class="yb-cph-explore__header">
+      <span class="yb-cph-eyebrow">{{ t.explore_eyebrow }}</span>
+      <h2 class="yb-cph-section-title">{{ t.explore_title }}</h2>
+      <p class="yb-cph-section-subtitle">{{ t.explore_subtitle }}</p>
+    </div>
+
+    <div class="yb-cph-explore__grid">
+      {# Card 1: Nyhavn — tall #}
+      <div class="yb-cph-explore__card yb-cph-explore__card--tall">
+        {% cldimg media.copenhagen.nyhavn, t.explore1_img_alt, "w_600,h_800,c_fill", "600", "800" %}
+        <div class="yb-cph-explore__card-overlay">
+          <span class="yb-cph-explore__card-tag">{{ t.explore1_tag }}</span>
+          <h3 class="yb-cph-explore__card-title">{{ t.explore1_title }}</h3>
+          <p class="yb-cph-explore__card-desc">{{ t.explore1_desc }}</p>
+        </div>
+      </div>
+
+      {# Card 2: Christiania — regular #}
+      <div class="yb-cph-explore__card yb-cph-explore__card--regular">
+        {% cldimg media.copenhagen.christiania, t.explore2_img_alt, "w_600,h_400,c_fill", "600", "400" %}
+        <div class="yb-cph-explore__card-overlay">
+          <span class="yb-cph-explore__card-tag">{{ t.explore2_tag }}</span>
+          <h3 class="yb-cph-explore__card-title">{{ t.explore2_title }}</h3>
+          <p class="yb-cph-explore__card-desc">{{ t.explore2_desc }}</p>
+        </div>
+      </div>
+
+      {# Card 3: Louisiana — regular #}
+      <div class="yb-cph-explore__card yb-cph-explore__card--regular">
+        {% cldimg media.copenhagen.louisiana, t.explore3_img_alt, "w_600,h_400,c_fill", "600", "400" %}
+        <div class="yb-cph-explore__card-overlay">
+          <span class="yb-cph-explore__card-tag">{{ t.explore3_tag }}</span>
+          <h3 class="yb-cph-explore__card-title">{{ t.explore3_title }}</h3>
+          <p class="yb-cph-explore__card-desc">{{ t.explore3_desc }}</p>
+        </div>
+      </div>
+
+      {# Card 4: Tivoli — tall #}
+      <div class="yb-cph-explore__card yb-cph-explore__card--tall">
+        {% cldimg media.copenhagen.tivoli, t.explore4_img_alt, "w_600,h_800,c_fill", "600", "800" %}
+        <div class="yb-cph-explore__card-overlay">
+          <span class="yb-cph-explore__card-tag">{{ t.explore4_tag }}</span>
+          <h3 class="yb-cph-explore__card-title">{{ t.explore4_title }}</h3>
+          <p class="yb-cph-explore__card-desc">{{ t.explore4_desc }}</p>
+        </div>
+      </div>
+
+      {# Card 5: Food Scene — wide #}
+      <div class="yb-cph-explore__card yb-cph-explore__card--wide">
+        {% cldimg media.copenhagen.foodScene, t.explore5_img_alt, "w_800,h_400,c_fill", "800", "400" %}
+        <div class="yb-cph-explore__card-overlay">
+          <span class="yb-cph-explore__card-tag">{{ t.explore5_tag }}</span>
+          <h3 class="yb-cph-explore__card-title">{{ t.explore5_title }}</h3>
+          <p class="yb-cph-explore__card-desc">{{ t.explore5_desc }}</p>
+        </div>
+      </div>
+
+      {# Card 6: Harbor Swimming — regular #}
+      <div class="yb-cph-explore__card yb-cph-explore__card--regular">
+        {% cldimg media.copenhagen.harborSwim, t.explore6_img_alt, "w_600,h_400,c_fill", "600", "400" %}
+        <div class="yb-cph-explore__card-overlay">
+          <span class="yb-cph-explore__card-tag">{{ t.explore6_tag }}</span>
+          <h3 class="yb-cph-explore__card-title">{{ t.explore6_title }}</h3>
+          <p class="yb-cph-explore__card-desc">{{ t.explore6_desc }}</p>
+        </div>
+      </div>
+
+      {# Card 7: Malmö — regular #}
+      <div class="yb-cph-explore__card yb-cph-explore__card--regular">
+        {% cldimg media.copenhagen.malmo, t.explore7_img_alt, "w_600,h_400,c_fill", "600", "400" %}
+        <div class="yb-cph-explore__card-overlay">
+          <span class="yb-cph-explore__card-tag">{{ t.explore7_tag }}</span>
+          <h3 class="yb-cph-explore__card-title">{{ t.explore7_title }}</h3>
+          <p class="yb-cph-explore__card-desc">{{ t.explore7_desc }}</p>
+        </div>
+      </div>
+
+      {# Card 8: Parks — regular #}
+      <div class="yb-cph-explore__card yb-cph-explore__card--regular">
+        {% cldimg media.copenhagen.parks, t.explore8_img_alt, "w_600,h_400,c_fill", "600", "400" %}
+        <div class="yb-cph-explore__card-overlay">
+          <span class="yb-cph-explore__card-tag">{{ t.explore8_tag }}</span>
+          <h3 class="yb-cph-explore__card-title">{{ t.explore8_title }}</h3>
+          <p class="yb-cph-explore__card-desc">{{ t.explore8_desc }}</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+{# ════════════════════════════════════════════════════════════════════
+   SECTION 7 — PRACTICAL INFORMATION
+   2-column card grid with icon+text, highlight card, tips, note
+   ════════════════════════════════════════════════════════════════════ #}
+<section class="yb-cph-practical">
+  <div class="yb-cph-practical__inner">
+    <div class="yb-cph-practical__header">
+      <span class="yb-cph-eyebrow">{{ t.practical_eyebrow }}</span>
+      <h2 class="yb-cph-section-title">{{ t.practical_title }}</h2>
+      <p class="yb-cph-section-subtitle">{{ t.practical_subtitle }}</p>
+    </div>
+
+    <div class="yb-cph-practical__grid">
+      {# Card 1: Best Time #}
+      <div class="yb-cph-practical__card">
+        <div class="yb-cph-practical__card-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+        </div>
+        <div>
+          <h3 class="yb-cph-practical__card-title">{{ t.prac1_title }}</h3>
+          <p class="yb-cph-practical__card-text">{{ t.prac1_content | safe }}</p>
+        </div>
+      </div>
+
+      {# Card 2: Getting Here #}
+      <div class="yb-cph-practical__card">
+        <div class="yb-cph-practical__card-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.8 19.2L16 11l3.5-3.5C21 6 21.5 4 21 3c-1-.5-3 0-4.5 1.5L13 8 4.8 6.2c-.5-.1-.9.1-1.1.5l-.3.5c-.2.5-.1 1 .3 1.3L9 12l-2 3H4l-1 1 3 2 2 3 1-1v-3l3-2 3.5 5.3c.3.4.8.5 1.3.3l.5-.2c.4-.3.6-.7.5-1.2z"/></svg>
+        </div>
+        <div>
+          <h3 class="yb-cph-practical__card-title">{{ t.prac2_title }}</h3>
+          <p class="yb-cph-practical__card-text">{{ t.prac2_content | safe }}</p>
+        </div>
+      </div>
+
+      {# Card 3: Bikes — highlighted, spans both columns #}
+      <div class="yb-cph-practical__card yb-cph-practical__card--highlight">
+        <div class="yb-cph-practical__card-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18.5" cy="17.5" r="3.5"/><circle cx="5.5" cy="17.5" r="3.5"/><circle cx="15" cy="5" r="1"/><path d="M12 17.5V14l-3-3 4-3 2 3h2"/></svg>
+        </div>
+        <div>
+          <h3 class="yb-cph-practical__card-title">{{ t.prac3_title }}</h3>
+          <p class="yb-cph-practical__card-text">{{ t.prac3_content | safe }}</p>
+          <div class="yb-cph-practical__tips">
+            {% for tip in t.prac3_tips.split("|") %}
+            <span class="yb-cph-practical__tip">{{ tip }}</span>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+
+      {# Card 4: Language #}
+      <div class="yb-cph-practical__card">
+        <div class="yb-cph-practical__card-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M2 12h20"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+        </div>
+        <div>
+          <h3 class="yb-cph-practical__card-title">{{ t.prac4_title }}</h3>
+          <p class="yb-cph-practical__card-text">{{ t.prac4_content | safe }}</p>
+        </div>
+      </div>
+
+      {# Card 5: Currency #}
+      <div class="yb-cph-practical__card">
+        <div class="yb-cph-practical__card-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+        </div>
+        <div>
+          <h3 class="yb-cph-practical__card-title">{{ t.prac5_title }}</h3>
+          <p class="yb-cph-practical__card-text">{{ t.prac5_content | safe }}</p>
+        </div>
+      </div>
+
+      {# Card 6: Visa #}
+      <div class="yb-cph-practical__card">
+        <div class="yb-cph-practical__card-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>
+        </div>
+        <div>
+          <h3 class="yb-cph-practical__card-title">{{ t.prac6_title }}</h3>
+          <p class="yb-cph-practical__card-text">{{ t.prac6_content | safe }}</p>
+        </div>
+      </div>
+
+      {# Card 7: Accommodation #}
+      <div class="yb-cph-practical__card">
+        <div class="yb-cph-practical__card-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+        </div>
+        <div>
+          <h3 class="yb-cph-practical__card-title">{{ t.prac7_title }}</h3>
+          <p class="yb-cph-practical__card-text">{{ t.prac7_content | safe }}</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="yb-cph-practical__note">
+      {{ t.practical_note | safe }}
+    </div>
+  </div>
+</section>
+
+
+{# ════════════════════════════════════════════════════════════════════
+   SECTION 8 — CTA (Your Journey Starts Here)
+   Dark section with 2 program cards
+   ════════════════════════════════════════════════════════════════════ #}
+<section class="yb-cph-cta">
+  <div class="yb-cph-inner">
+    <div class="yb-cph-cta__header">
+      <span class="yb-cph-eyebrow" style="color: rgba(255,255,255,0.5);">{{ t.cta_eyebrow }}</span>
+      <h2 class="yb-cph-section-title" style="color: #fff;">{{ t.cta_title }}</h2>
+      <p class="yb-cph-section-subtitle" style="color: rgba(255,255,255,0.7);">{{ t.cta_subtitle }}</p>
+    </div>
+
+    <div class="yb-cph-cta__grid">
+      {# Card 1: 4-Week Intensive — featured #}
+      <div class="yb-cph-cta__card yb-cph-cta__card--featured">
+        <span class="yb-cph-cta__card-badge">{{ t.cta_card1_badge }}</span>
+        <p style="font-size:0.78rem; text-transform:uppercase; letter-spacing:0.05em; color:rgba(255,255,255,0.5); margin:0;">{{ t.cta_card1_tag }}</p>
+        <h3 class="yb-cph-cta__card-title">{{ t.cta_card1_title }}</h3>
+        <p class="yb-cph-cta__card-text">{{ t.cta_card1_desc }}</p>
+        <div class="yb-cph-cta__card-features">
+          {% for feat in t.cta_card1_features.split("|") %}
+          <span class="yb-cph-cta__feature-pill">{{ feat }}</span>
+          {% endfor %}
+        </div>
+        <a href="{{ lp }}/om-200hrs-yogalreruddannelser" class="yb-cph-cta__btn">{{ t.cta_card1_btn }}</a>
+      </div>
+
+      {# Card 2: Course Bundles #}
+      <div class="yb-cph-cta__card">
+        <span class="yb-cph-cta__card-badge">{{ t.cta_card2_badge }}</span>
+        <p style="font-size:0.78rem; text-transform:uppercase; letter-spacing:0.05em; color:rgba(255,255,255,0.5); margin:0;">{{ t.cta_card2_tag }}</p>
+        <h3 class="yb-cph-cta__card-title">{{ t.cta_card2_title }}</h3>
+        <p class="yb-cph-cta__card-text">{{ t.cta_card2_desc }}</p>
+        <div class="yb-cph-cta__course-pills">
+          {% set courses = t.cta_card2_courses.split("|") %}
+          {% set subs = t.cta_card2_courses_sub.split("|") %}
+          {% for course in courses %}
+          <span class="yb-cph-cta__course-pill">{{ course }}<br><small style="opacity:0.7; font-weight:400;">{{ subs[loop.index0] }}</small></span>
+          {% endfor %}
+        </div>
+        <p style="font-size:0.82rem; color:rgba(255,255,255,0.65); margin:0.5rem 0 0;">{{ t.cta_card2_discount | safe }}</p>
+        <a href="{{ lp }}/sammenlign-yogalreruddannelser" class="yb-cph-cta__btn yb-cph-cta__btn--secondary">{{ t.cta_card2_btn }}</a>
+      </div>
+    </div>
+
+    <div class="yb-cph-cta__contact">
+      <p>{{ t.cta_contact }} <a href="{{ lp }}/kontakt">{{ t.cta_contact_link }}</a></p>
+    </div>
+  </div>
+</section>
+
+
+{# ════════════════════════════════════════════════════════════════════
+   SECTION 9 — FAQ (SEO / AEO)
+   Accordion using native <details>/<summary>
+   ════════════════════════════════════════════════════════════════════ #}
+<section class="yb-cph-faq">
+  <div class="yb-cph-inner">
+    <div class="yb-cph-faq__header">
+      <span class="yb-cph-eyebrow">{{ t.faq_eyebrow }}</span>
+      <h2 class="yb-cph-section-title">{{ t.faq_title }}</h2>
+      <p class="yb-cph-section-subtitle">{{ t.faq_subtitle }}</p>
+    </div>
+
+    <div class="yb-cph-faq__list">
+      {% for i in range(1, 13) %}
+      <details class="yb-cph-faq__item">
+        <summary>{{ t["faq" + i + "_q"] }}</summary>
+        <p>{{ t["faq" + i + "_a"] }}</p>
+      </details>
+      {% endfor %}
     </div>
   </div>
 </section>

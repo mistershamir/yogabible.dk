@@ -126,8 +126,9 @@
     "journey5_title": "Graduation",
     "journey5_desc": "Afsluttende assessment, portfolio og certificering. Du modtager din Yoga Alliance RYT-200 og er klar til at undervise.",
 
-    "testimonial_quote": "Probably the best thing I have ever done for myself",
-    "testimonial_attribution": "— Almost all ex-trainees say upon graduation",
+    "testimonial_quote": "Jeg kan varmt anbefale at tage yogalæreruddannelsen hos Yoga Bible. Underviserne er super dygtige, og de formår at skabe et trygt rum at lære i. Uddannelsen er fleksibel — du kan vælge hverdag eller weekend, og du kan skifte mellem hold. <br><br>Jeg har fået alle de rette værktøjer til at kunne undervise efter endt uddannelse. Min varmeste anbefaling.",
+    "testimonial_attribution": "Patricia Frederiksen",
+    "testimonial_attribution_suffix": "— Google Review ★★★★★",
 
     "invest_eyebrow": "Investering",
     "invest_title": "Pris & betalingsmuligheder",
@@ -140,7 +141,7 @@
     "invest_incl4": "Yoga Alliance RYT-200 certificering",
     "invest_incl5": "Adgang til alumni-netværk",
     "invest_incl6": "Livslang support fra instruktører",
-    "invest_deposit_note": "Forberedelsesfasen på 3.750 kr. er inkluderet i den samlede pris. Restbeløb: 20.000 kr. Fuldt refunderbar, uden betingelser.",
+    "invest_deposit_note": "Forberedelsesfasen på 3.750 kr. er inkluderet i den samlede pris. Restbeløb: 20.000 kr.",
     "invest_pay_title": "Betalingsmuligheder",
     "invest_pay1_label": "Fuld betaling",
     "invest_pay1_value": "23.750 DKK",
@@ -164,7 +165,7 @@
     "early4": "Forudfyld selvpraksis-timer til dine 200 timer",
     "early_cta": "Start forberedelsesfasen og begynd at booke",
     "early_deposit": "Forberedelsesfase: 3.750 kr.",
-    "early_refund_note": "Fuldt refunderbar, uden betingelser.",
+    "early_refund_note": "",
     "early_installment": "Resten kan betales i op til 5 rater fra feb/mar 2026",
     "early_img_alt": "Rolig yogasal i København med måtter og varmt lys",
 
@@ -216,7 +217,7 @@
     "visit_modal_subtitle": "Vælg en dato og et tidspunkt der passer dig.",
     "visit_modal_close_aria": "Luk",
     "visit_modal_aria": "Book en aftale",
-    "visit_modal_fallback": "Oplever du problemer? <a href=\"https://calendly.com/yogabible/studio-tour-consultation-yoga-teacher-training\" target=\"_blank\" rel=\"noopener\">Åbn booking i ny fane</a>",
+    "visit_modal_fallback": "",
 
     "faq_eyebrow": "Spørgsmål & svar",
     "faq_title": "Ofte stillede spørgsmål",
@@ -400,8 +401,9 @@
     "journey5_title": "Graduation",
     "journey5_desc": "Final assessment, portfolio and certification. You receive your Yoga Alliance RYT-200 and are ready to teach.",
 
-    "testimonial_quote": "Probably the best thing I have ever done for myself",
-    "testimonial_attribution": "— Almost all ex-trainees say upon graduation",
+    "testimonial_quote": "I highly recommend taking your yoga training at Yoga Bible. The teachers are super skilled, and they manage to create a safe space to learn in. The course is flexible — you can choose a weekday or weekend class, and it is even possible to jump between classes. <br><br>I have been given all the right tools to be able to teach after completing the training. My warmest recommendation.",
+    "testimonial_attribution": "Patricia Frederiksen",
+    "testimonial_attribution_suffix": "— Google Review ★★★★★",
 
     "invest_eyebrow": "Investment",
     "invest_title": "Price & payment options",
@@ -414,7 +416,7 @@
     "invest_incl4": "Yoga Alliance RYT-200 certification",
     "invest_incl5": "Access to alumni network",
     "invest_incl6": "Lifelong support from instructors",
-    "invest_deposit_note": "The Preparation Phase fee of 3,750 DKK is included in the total price. Remaining: 20,000 DKK. Fully refundable, no questions asked.",
+    "invest_deposit_note": "The Preparation Phase fee of 3,750 DKK is included in the total price. Remaining: 20,000 DKK.",
     "invest_pay_title": "Payment options",
     "invest_pay1_label": "Full payment",
     "invest_pay1_value": "23,750 DKK",
@@ -438,7 +440,7 @@
     "early4": "Pre-fill self-practice hours towards your 200 hours",
     "early_cta": "Start Preparation Phase and begin booking",
     "early_deposit": "Preparation Phase: 3,750 DKK",
-    "early_refund_note": "Fully refundable, no questions asked.",
+    "early_refund_note": "",
     "early_installment": "The rest can be paid in up to 5 installments from Feb/Mar 2026",
     "early_img_alt": "Calm yoga room in Copenhagen with mats and warm light",
 
@@ -490,7 +492,7 @@
     "visit_modal_subtitle": "Choose a date and time that works for you.",
     "visit_modal_close_aria": "Close",
     "visit_modal_aria": "Book an appointment",
-    "visit_modal_fallback": "Having trouble? <a href=\"https://calendly.com/yogabible/studio-tour-consultation-yoga-teacher-training\" target=\"_blank\" rel=\"noopener\">Open booking in a new tab</a>",
+    "visit_modal_fallback": "",
 
     "faq_eyebrow": "Questions & answers",
     "faq_title": "Frequently asked questions",
@@ -503,12 +505,12 @@
     "faq4_q": "Is the training Yoga Alliance certified?",
     "faq4_a": "Yes, we are a registered Yoga Alliance school (RYS-200). You receive RYT-200 certification after graduation — recognized globally.",
     "faq5_q": "What happens if I get sick?",
-    "faq5_a": "You may miss a maximum of 10% of the hours. We offer make-up sessions, and you can potentially complete with the next cohort if necessary.",
+    "faq5_a": "You may miss a maximum of 10% of the hours. We offer make-up sessions, and you can potentially complete with the next program if necessary.",
     "faq6_q": "Are there exams?",
     "faq6_a": "Yes — practical teaching exam, written anatomy test and philosophy assignment. Everything is designed for learning, not stress. We have a 90%+ pass rate.",
 
     "final_title": "Ready to start your journey?",
-    "final_text": "Next 18-week cohort starts March 2026. Get the schedule and answers to all your questions.",
+    "final_text": "Next 18-week program starts March 2026. Get the schedule and answers to all your questions.",
     "final_cta": "Get Schedule Now",
     "final_prep_cta": "Start Preparation Phase — 3,750 DKK",
 

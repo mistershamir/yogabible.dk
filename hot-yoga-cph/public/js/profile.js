@@ -984,7 +984,7 @@
       var dateEl = document.getElementById('yb-waiver-signed-date');
       if (dateEl && waiverAgreementDate) {
         var d = new Date(waiverAgreementDate);
-        dateEl.textContent = d.toLocaleDateString(isDa() ? 'da-DK' : 'en-GB', { year: 'numeric', month: 'short', day: 'numeric' });
+        dateEl.textContent = d.toLocaleDateString('da-DK', { day: '2-digit', month: '2-digit', year: 'numeric' });
       }
       // Toggle button expands/collapses the waiver text (read-only view when signed)
       var toggleBtn = document.getElementById('yb-waiver-toggle-btn');
@@ -4361,7 +4361,7 @@
 
     visits.forEach(function(v) {
       var d = new Date(v.startDateTime);
-      var dateStr = d.toLocaleDateString(isDa() ? 'da-DK' : 'en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
+      var dateStr = d.toLocaleDateString('da-DK', { day: '2-digit', month: '2-digit', year: 'numeric' });
       var timeStr = formatTime(v.startDateTime);
       var isUpcoming = d > now; // Use full datetime comparison
 
@@ -4435,7 +4435,7 @@
 
     purchases.forEach(function(p, idx) {
       var d = new Date(p.saleDate);
-      var dateStr = d.toLocaleDateString(isDa() ? 'da-DK' : 'en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
+      var dateStr = d.toLocaleDateString('da-DK', { day: '2-digit', month: '2-digit', year: 'numeric' });
       var name = p.description || '—';
       var totalPaid = Number(p.totalPaid) || Number(p.subtotal) || 0;
 
@@ -4749,7 +4749,7 @@
   function formatDateDK(date) {
     if (!date) return '';
     var d = new Date(date);
-    return d.toLocaleDateString(isDa() ? 'da-DK' : 'en-GB', { day: 'numeric', month: 'long', year: 'numeric' });
+    return d.toLocaleDateString('da-DK', { day: '2-digit', month: '2-digit', year: 'numeric' });
   }
 
   // ══════════════════════════════════════

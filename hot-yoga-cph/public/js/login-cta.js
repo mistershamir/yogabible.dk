@@ -105,13 +105,18 @@
   }
 
   function loadFirebaseSDK(callback) {
-    // Set auth persistence to NONE (in-memory) for cross-origin embeds.
-    // IndexedDB is blocked by browser storage partitioning on cross-origin pages.
+    // Try SESSION persistence (sessionStorage — not IndexedDB, so no hang).
+    // Falls back to NONE if SESSION is blocked (cross-origin sandbox).
     function onFirebaseReady() {
       if (typeof firebase !== 'undefined' && firebase.auth) {
-        firebase.auth().setPersistence(firebase.auth.Auth.Persistence.NONE)
+        firebase.auth().setPersistence(firebase.auth.Auth.Persistence.SESSION)
           .then(function () { callback(); })
-          .catch(function () { callback(); });
+          .catch(function () {
+            // SESSION blocked (cross-origin) — fall back to NONE + manual persistence
+            firebase.auth().setPersistence(firebase.auth.Auth.Persistence.NONE)
+              .then(function () { callback(); })
+              .catch(function () { callback(); });
+          });
       } else {
         callback();
       }
@@ -801,7 +806,7 @@
     html += '<div class="hyc-ua__iframe-wrap">';
     html += '<div class="hyc-ua__iframe-loader" id="hyc-ua-iframe-loader">';
     html += '<div class="hyc-ua__spinner"></div>';
-    html += '<span>' + t('Henter din profil\u2026', 'Loading your profile\u2026') + '</span>';
+    html += '<span id="hyc-ua-iframe-loader-text">' + t('Henter din profil\u2026', 'Loading your profile\u2026') + '</span>';
     html += '</div>';
     html += '<iframe class="hyc-ua__iframe" id="hyc-ua-iframe" src="' + PROFILE_URL + '/" allow="payment" title="' + t('Min profil', 'My profile') + '"></iframe>';
     html += '</div>';
@@ -810,14 +815,41 @@
 
     var iframe = $t('hyc-ua-iframe');
     var loader = $t('hyc-ua-iframe-loader');
+    var loaderText = $t('hyc-ua-iframe-loader-text');
 
-    // Hide loader once iframe content is loaded
     if (iframe) {
+      var authConfirmed = false;
+
+      // Listen for auth-ready confirmation from profile page
+      var onProfileMsg = function (e) {
+        if (e.data && e.data.type === 'hyc-profile-authenticated') {
+          authConfirmed = true;
+          if (loader) loader.classList.add('is-hidden');
+          window.removeEventListener('message', onProfileMsg);
+        }
+      };
+      window.addEventListener('message', onProfileMsg);
+
+      // Send auth token multiple times (profile page JS may not be ready on first attempt)
       iframe.addEventListener('load', function () {
-        if (loader) loader.classList.add('is-hidden');
-        // Send auth token to iframe so it can auto-login
         sendAuthToIframe(iframe);
+        setTimeout(function () { sendAuthToIframe(iframe); }, 800);
+        setTimeout(function () { sendAuthToIframe(iframe); }, 2000);
       });
+
+      // After 4s, hide loader regardless (profile page may not send confirmation)
+      setTimeout(function () {
+        if (loader) loader.classList.add('is-hidden');
+      }, 4000);
+
+      // After 7s, if still no auth confirmation, show a fallback link
+      setTimeout(function () {
+        if (!authConfirmed && loaderText) {
+          loaderText.innerHTML =
+            '<a href="' + PROFILE_URL + '/" target="_blank" rel="noopener" style="color:' + BRAND + ';text-decoration:underline">' +
+            t('\u00c5bn profil i ny fane', 'Open profile in new tab') + '</a>';
+        }
+      }, 7000);
     }
   }
 
@@ -865,16 +897,122 @@
 
 
   // ═══════════════════════════════════════════════════════════════════
+  // SESSION PERSISTENCE (parent sessionStorage)
+  // ═══════════════════════════════════════════════════════════════════
+  // Firebase runs with Persistence.NONE in this cross-origin embed to
+  // avoid IndexedDB hangs.  To survive page reloads we store a Firebase
+  // ID token in the *parent* window's sessionStorage (first-party,
+  // never blocked) and exchange it for a custom token on init.
+
+  var SESSION_KEY = 'hyc_auth_token';
+
+  function _parentStorage() {
+    // Try parent localStorage first (survives tab close + page nav)
+    try { var s = window.top.localStorage; s.getItem('_'); return s; }
+    catch (e) { /* cross-origin */ }
+    // Try own localStorage
+    try { var s2 = window.localStorage; s2.getItem('_'); return s2; }
+    catch (e) { /* sandboxed */ }
+    // Try parent sessionStorage
+    try { var s3 = window.top.sessionStorage; s3.getItem('_'); return s3; }
+    catch (e) { /* cross-origin */ }
+    // Try own sessionStorage
+    try { var s4 = window.sessionStorage; s4.getItem('_'); return s4; }
+    catch (e) { /* sandboxed */ }
+    return null;
+  }
+
+  function persistAuthToken(user) {
+    if (!user) { clearAuthToken(); return; }
+    user.getIdToken().then(function (t) {
+      var s = _parentStorage();
+      if (s) s.setItem(SESSION_KEY, t);
+    }).catch(function () {});
+  }
+
+  function clearAuthToken() {
+    var s = _parentStorage();
+    if (s) s.removeItem(SESSION_KEY);
+  }
+
+  function restoreSession() {
+    var s = _parentStorage();
+    var token = s && s.getItem(SESSION_KEY);
+    if (!token || firebase.auth().currentUser) {
+      _restoring = false;
+      renderLoggedOut();
+      return;
+    }
+
+    fetch(API_BASE + '/auth-token', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ idToken: token })
+    })
+      .then(function (r) { return r.json(); })
+      .then(function (data) {
+        if (data.customToken) {
+          return firebase.auth().signInWithCustomToken(data.customToken);
+        }
+        // No custom token returned — endpoint rejected it
+        throw new Error('No customToken in response');
+      })
+      .catch(function () {
+        // Token expired / invalid / endpoint error — clean up
+        _restoring = false;
+        clearAuthToken();
+        renderLoggedOut();
+      });
+  }
+
+
+  // ═══════════════════════════════════════════════════════════════════
+  // CROSS-IFRAME AUTH SYNC (polling)
+  // ═══════════════════════════════════════════════════════════════════
+  // login-cta and checkout-embed run in separate Framer iframes with
+  // separate Firebase instances.  We poll the shared auth token in
+  // localStorage every 2 s so that a login in one iframe is picked up
+  // by the other.
+
+  function startAuthPolling() {
+    setInterval(function () {
+      if (!firebaseReady) return;
+      var s = _parentStorage();
+      var hasToken = s && s.getItem(SESSION_KEY);
+
+      if (hasToken && !currentUser && !_restoring) {
+        // Another iframe logged in — restore session from shared token
+        _restoring = true;
+        restoreSession();
+      } else if (!hasToken && currentUser) {
+        // Another iframe logged out — sign out here too
+        firebase.auth().signOut();
+      }
+    }, 2000);
+  }
+
+
+  // ═══════════════════════════════════════════════════════════════════
   // AUTH STATE LISTENER
   // ═══════════════════════════════════════════════════════════════════
+
+  var _restoring = false;
 
   function initAuth() {
     loadFirebaseSDK(function () {
       firebaseReady = true;
 
+      // Read token BEFORE registering listener (prevents race condition)
+      var savedToken = null;
+      var s = _parentStorage();
+      if (s) savedToken = s.getItem(SESSION_KEY);
+      if (savedToken && !firebase.auth().currentUser) _restoring = true;
+
       firebase.auth().onAuthStateChanged(function (user) {
         currentUser = user;
         if (user) {
+          _restoring = false;
+          persistAuthToken(user);
           resolveMbClient(user);
           renderLoggedIn(user);
           // If auth modal is open, close it — user just logged in
@@ -883,13 +1021,25 @@
           }
         } else {
           mbClientId = null;
-          renderLoggedOut();
+          // Don't wipe stored token while we're still restoring
+          if (!_restoring) {
+            clearAuthToken();
+            renderLoggedOut();
+          }
           // Close user area modal if open
           if (modalMode === 'user-area') {
             closeModal();
           }
         }
       });
+
+      // If no user yet, try to restore from stored token
+      if (!firebase.auth().currentUser && savedToken) {
+        restoreSession();
+      }
+
+      // Start polling for auth changes from other iframes
+      startAuthPolling();
     });
   }
 
@@ -919,8 +1069,18 @@
     container = document.getElementById('hyc-login-cta');
     if (!container) return;
     container.className = 'hyc-cta';
-    renderLoggedOut(); // Show login button immediately
-    initAuth();        // Load Firebase → listen for auth state
+
+    // If we have a stored session token, show loading spinner instead
+    // of "Log ind" to avoid a logged-out → logged-in flash
+    var s = _parentStorage();
+    var hasStoredToken = s && s.getItem(SESSION_KEY);
+    if (hasStoredToken) {
+      container.innerHTML = '<span class="hyc-ua__loading" style="padding:6px 12px">' + ICON.spinner + '</span>';
+    } else {
+      renderLoggedOut();
+    }
+
+    initAuth();
   }
 
   if (document.readyState === 'loading') {

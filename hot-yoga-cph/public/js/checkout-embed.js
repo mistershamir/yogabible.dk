@@ -35,8 +35,38 @@
   };
 
   // ── Language helpers ────────────────────────────────────────────────
-  var isDa = window.location.pathname.indexOf('/en/') !== 0;
+  // Auto-detect: check Framer's html[lang], URL path /en/, or default to Danish
+  var isDa = (function () {
+    var htmlLang = (document.documentElement.lang || '').toLowerCase();
+    if (htmlLang === 'en' || htmlLang.indexOf('en-') === 0) return false;
+    if (window.location.pathname.indexOf('/en/') === 0 || window.location.pathname.indexOf('/en') === 0) return false;
+    return true;
+  })();
   function t(da, en) { return isDa ? da : en; }
+
+  // Switch language at runtime — toggles all data-yj-da/en elements + re-renders product
+  function switchLanguage(toLang) {
+    isDa = toLang === 'da';
+    // Update CSS rules for bilingual attributes
+    var langStyle = document.getElementById('hyc-lang-override');
+    if (!langStyle) {
+      langStyle = document.createElement('style');
+      langStyle.id = 'hyc-lang-override';
+      document.head.appendChild(langStyle);
+    }
+    if (isDa) {
+      langStyle.textContent = '[data-yj-da]{display:revert !important}[data-yj-en]{display:none !important}';
+    } else {
+      langStyle.textContent = '[data-yj-da]{display:none !important}[data-yj-en]{display:revert !important}';
+    }
+    // Update toggle button active state
+    var btnDa = document.getElementById('ycf-lang-da');
+    var btnEn = document.getElementById('ycf-lang-en');
+    if (btnDa) btnDa.classList.toggle('ycf-lang__btn--active', isDa);
+    if (btnEn) btnEn.classList.toggle('ycf-lang__btn--active', !isDa);
+    // Re-render dynamic product content if a product is loaded
+    if (currentProdId) populateProduct(currentProdId);
+  }
 
   // ── Product Catalog ─────────────────────────────────────────────────
   // All daily products: clips, time-based, trials, tourist (service type)
@@ -363,9 +393,15 @@
     // signInWithEmailAndPassword to hang forever (promise never settles).
     function onFirebaseReady() {
       if (typeof firebase !== 'undefined' && firebase.auth) {
-        firebase.auth().setPersistence(firebase.auth.Auth.Persistence.NONE)
+        // Try SESSION persistence (sessionStorage — not IndexedDB, so no hang).
+        // Falls back to NONE if SESSION is blocked (cross-origin sandbox).
+        firebase.auth().setPersistence(firebase.auth.Auth.Persistence.SESSION)
           .then(function () { callback(); })
-          .catch(function () { callback(); }); // proceed even if setPersistence fails
+          .catch(function () {
+            firebase.auth().setPersistence(firebase.auth.Auth.Persistence.NONE)
+              .then(function () { callback(); })
+              .catch(function () { callback(); });
+          });
       } else {
         callback();
       }
@@ -422,6 +458,12 @@
       // ── Close button ─────────────────────────────────────────────
       '.yb-auth-modal__close{position:absolute;top:16px;right:16px;background:none;border:none;font-size:1.2rem;color:#6F6A66;cursor:pointer;width:32px;height:32px;display:flex;align-items:center;justify-content:center;border-radius:50%;z-index:2;transition:background .15s,color .15s}',
       '.yb-auth-modal__close:hover{background:#F5F3F0;color:#0F0F0F}',
+
+      // ── Language toggle ─────────────────────────────────────────
+      '.ycf-lang{position:absolute;top:16px;left:16px;display:flex;gap:0;border-radius:8px;overflow:hidden;border:1px solid #E8E4E0;z-index:2}',
+      '.ycf-lang__btn{font-family:inherit;font-size:.7rem;font-weight:700;padding:5px 10px;border:none;cursor:pointer;transition:background .15s,color .15s;background:#F5F3F0;color:#6F6A66;letter-spacing:.03em;text-transform:uppercase}',
+      '.ycf-lang__btn--active{background:' + BRAND + ';color:#fff}',
+      '.ycf-lang__btn:hover:not(.ycf-lang__btn--active){background:#E8E4E0;color:#0F0F0F}',
 
       // ── Header ───────────────────────────────────────────────────
       '.yb-auth-modal__header{text-align:left;margin-bottom:28px}',
@@ -640,6 +682,12 @@
     h +=   '<div class="yb-auth-modal__overlay" data-ycf-close></div>';
     h +=   '<div class="yb-auth-modal__box ycf-box">';
     h +=     '<button class="yb-auth-modal__close" type="button" data-ycf-close aria-label="Close">&#10005;</button>';
+
+    // ── Language toggle (DA / EN) ────────────────────────────────
+    h +=     '<div class="ycf-lang">';
+    h +=       '<button class="ycf-lang__btn' + (isDa ? ' ycf-lang__btn--active' : '') + '" type="button" id="ycf-lang-da" data-ycf-lang="da">DA</button>';
+    h +=       '<button class="ycf-lang__btn' + (!isDa ? ' ycf-lang__btn--active' : '') + '" type="button" id="ycf-lang-en" data-ycf-lang="en">EN</button>';
+    h +=     '</div>';
 
     // ── Step indicator (3 dots) ───────────────────────────────────
     h +=     '<div class="ycf-steps">';
@@ -1529,6 +1577,22 @@
       }
     });
 
+    // ── Language toggle (DA / EN) ──────────────────────────────────
+    document.addEventListener('click', function (e) {
+      var btn = e.target.closest('[data-ycf-lang]');
+      if (!btn) return;
+      e.preventDefault();
+      var lang = btn.getAttribute('data-ycf-lang');
+      if ((lang === 'da') === isDa) return; // already active
+      // Clean contract extras before re-populating
+      var prodCard = $('ycf-product-info');
+      if (prodCard) {
+        var extras = prodCard.querySelectorAll('.ycf-product__features,.ycf-product__terms,.ycf-product__saving,.ycf-product__due');
+        for (var x = 0; x < extras.length; x++) extras[x].remove();
+      }
+      switchLanguage(lang);
+    });
+
     // ── Payment method radio toggle ───────────────────────────────
     document.addEventListener('change', function (e) {
       if (e.target.name !== 'ycf-payment-method') return;
@@ -1959,12 +2023,75 @@
   // refreshed, or the embed page already has a Firebase session) we
   // skip auth steps and go straight to checkout (Step 3).
 
+  // ── Session persistence helpers (shared with login-cta.js) ────────
+  var SESSION_KEY = 'hyc_auth_token';
+  function _parentStorage() {
+    // Try parent localStorage first (survives tab close + page nav)
+    try { var s = window.top.localStorage; s.getItem('_'); return s; }
+    catch (e) { /* cross-origin */ }
+    // Try own localStorage
+    try { var s2 = window.localStorage; s2.getItem('_'); return s2; }
+    catch (e) { /* sandboxed */ }
+    // Try parent sessionStorage
+    try { var s3 = window.top.sessionStorage; s3.getItem('_'); return s3; }
+    catch (e) { /* cross-origin */ }
+    // Try own sessionStorage
+    try { var s4 = window.sessionStorage; s4.getItem('_'); return s4; }
+    catch (e) { /* sandboxed */ }
+    return null;
+  }
+  function persistAuthToken(user) {
+    if (!user) return;
+    user.getIdToken().then(function (t) {
+      var s = _parentStorage();
+      if (s) s.setItem(SESSION_KEY, t);
+    }).catch(function () {});
+  }
+  function clearAuthToken() {
+    var s = _parentStorage();
+    if (s) s.removeItem(SESSION_KEY);
+  }
+
+  // ── Cross-iframe auth sync (polling — shared with login-cta.js) ─
+  var _cePollingStarted = false;
+
+  function startAuthPolling() {
+    if (_cePollingStarted) return;
+    _cePollingStarted = true;
+    setInterval(function () {
+      if (typeof firebase === 'undefined' || !firebase.auth) return;
+      var s = _parentStorage();
+      var hasToken = s && s.getItem(SESSION_KEY);
+
+      if (hasToken && !firebase.auth().currentUser) {
+        // Another iframe logged in — restore from shared token
+        var token = s.getItem(SESSION_KEY);
+        fetch(API_BASE + '/auth-token', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ idToken: token })
+        })
+          .then(function (r) { return r.json(); })
+          .then(function (data) {
+            if (data.customToken) return firebase.auth().signInWithCustomToken(data.customToken);
+          })
+          .catch(function () {});
+      } else if (!hasToken && firebase.auth().currentUser) {
+        firebase.auth().signOut();
+      }
+    }, 2000);
+  }
+
   function initAuthListener() {
     // Poll for Firebase availability then listen for auth state
     var checkInterval = setInterval(function () {
       if (typeof firebase !== 'undefined' && firebase.auth) {
         clearInterval(checkInterval);
         firebase.auth().onAuthStateChanged(function (user) {
+          // Persist / clear token so login survives page reloads
+          if (user) persistAuthToken(user);
+          else clearAuthToken();
+
           if (!user) return;
 
           // If modal is not open, nothing to do yet
@@ -2057,6 +2184,7 @@
       attachCTAButtons();
       observeCTAButtons();
       initAuthListener();
+      startAuthPolling();
 
       console.log('[HYC Embed] Checkout embed booted — ' + Object.keys(PRODUCTS).length + ' products loaded');
     });

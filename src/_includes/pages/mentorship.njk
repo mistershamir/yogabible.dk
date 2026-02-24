@@ -50,7 +50,7 @@
     </div>
   </div>
   <div class="yb-hero__scroll">
-    <span>Scroll</span>
+    <span>{{ t.scroll }}</span>
     <div class="yb-hero__scroll-line"></div>
   </div>
 </section>
@@ -63,33 +63,33 @@
   <div class="yb-practice__wrap">
     <div class="yb-practice__grid">
       <!-- LEFT: Media -->
-      <div class="yb-practice__mediaCol" aria-label="Billede eller video">
+      <div class="yb-practice__mediaCol" aria-label="{{ t.media_label }}">
         <div class="yb-practice__media" id="ybPracticeMedia">
           <video class="yb-practice__video" id="ybPracticeVideo" playsinline muted loop preload="metadata">
             <source id="ybPracticeVideoSource" src="" type="video/mp4" />
           </video>
-          <img class="yb-practice__img" id="ybPracticeImage" alt="Privatundervisning" loading="lazy" decoding="async"
-               src="https://www.yogabible.dk/s/mentor_03_private_class_inversions_course.jpg" />
-          <button class="yb-practice__play" id="ybPracticePlay" type="button" aria-label="Afspil video">
+          <img class="yb-practice__img" id="ybPracticeImage" alt="{{ t.practice_img_alt }}" loading="lazy" decoding="async"
+               src="https://res.cloudinary.com/ddcynsa30/image/upload/w_600,c_fill,q_auto,f_auto/yoga-bible-DK/mentorship/mentor-private-class" />
+          <button class="yb-practice__play" id="ybPracticePlay" type="button" aria-label="{{ t.play_video }}">
             <span class="yb-practice__playIcon" aria-hidden="true"></span>
           </button>
           <div class="yb-practice__badge" aria-hidden="true">
-            <span class="yb-practice__badgeKicker">1:1</span>
-            <span class="yb-practice__badgeTitle">Praksis</span>
+            <span class="yb-practice__badgeKicker">{{ t.practice_badge_kicker }}</span>
+            <span class="yb-practice__badgeTitle">{{ t.practice_badge_title }}</span>
           </div>
         </div>
         <div class="yb-practice__mini">
           <div class="yb-practice__miniItem">
-            <p class="yb-practice__miniTitle">Fokus</p>
-            <p class="yb-practice__miniText">Basis · Alignment · Dybere stillinger</p>
+            <p class="yb-practice__miniTitle">{{ t.practice_mini_focus_title }}</p>
+            <p class="yb-practice__miniText">{{ t.practice_mini_focus_text }}</p>
           </div>
           <div class="yb-practice__miniItem">
-            <p class="yb-practice__miniTitle">Format</p>
-            <p class="yb-practice__miniText">Studio eller online</p>
+            <p class="yb-practice__miniTitle">{{ t.practice_mini_format_title }}</p>
+            <p class="yb-practice__miniText">{{ t.practice_mini_format_text }}</p>
           </div>
           <div class="yb-practice__miniItem">
-            <p class="yb-practice__miniTitle">Tempo</p>
-            <p class="yb-practice__miniText">Trygt, tydeligt, trin-for-trin</p>
+            <p class="yb-practice__miniTitle">{{ t.practice_mini_tempo_title }}</p>
+            <p class="yb-practice__miniText">{{ t.practice_mini_tempo_text }}</p>
           </div>
         </div>
       </div>
@@ -97,56 +97,53 @@
       <!-- RIGHT: Content + FAQ -->
       <div class="yb-practice__content">
         <div class="yb-practice__head">
-          <p class="yb-practice__eyebrow">Yoga Bible · Privatundervisning</p>
-          <h2 id="yb-practice-title" class="yb-practice__title">For din praksis</h2>
-          <p class="yb-practice__sub">Byg en stærk base, få bedre alignment og gå dybere i de stillinger, du drømmer om — på en sikker og effektiv måde.</p>
+          <p class="yb-practice__eyebrow">{{ t.practice_eyebrow }}</p>
+          <h2 id="yb-practice-title" class="yb-practice__title">{{ t.practice_title }}</h2>
+          <p class="yb-practice__sub">{{ t.practice_sub }}</p>
         </div>
 
-        <div class="yb-practice__selector" role="tablist" aria-label="Vælg fokus">
-          <button class="yb-practiceChip is-active" type="button" role="tab" aria-selected="true" data-p="foundation">Basis &amp; alignment</button>
-          <button class="yb-practiceChip" type="button" role="tab" aria-selected="false" data-p="deep">Dybere stillinger</button>
-          <button class="yb-practiceChip" type="button" role="tab" aria-selected="false" data-p="mobility">Mobilitet &amp; styrke</button>
-          <button class="yb-practiceChip" type="button" role="tab" aria-selected="false" data-p="recovery">Skader &amp; tilbagevenden</button>
+        <div class="yb-practice__selector" role="tablist" aria-label="{{ t.practice_tablist_label }}">
+          <button class="yb-practiceChip is-active" type="button" role="tab" aria-selected="true" data-p="foundation">{{ t.practice_chip_foundation }}</button>
+          <button class="yb-practiceChip" type="button" role="tab" aria-selected="false" data-p="deep">{{ t.practice_chip_deep }}</button>
+          <button class="yb-practiceChip" type="button" role="tab" aria-selected="false" data-p="mobility">{{ t.practice_chip_mobility }}</button>
+          <button class="yb-practiceChip" type="button" role="tab" aria-selected="false" data-p="recovery">{{ t.practice_chip_recovery }}</button>
         </div>
 
         <div class="yb-practice__panel" aria-live="polite">
           <div class="yb-practice__panelTop">
-            <h3 class="yb-practice__panelTitle" id="ybPracticePanelTitle">Hvad vi arbejder med · Basis &amp; alignment</h3>
-            <p class="yb-practice__panelNote" id="ybPracticePanelNote">Perfekt til dig, der vil blive stærk i det grundlæggende og få en praksis, der føles stabil og fri.</p>
+            <h3 class="yb-practice__panelTitle" id="ybPracticePanelTitle">{{ t.practice_preset_foundation_title }}</h3>
+            <p class="yb-practice__panelNote" id="ybPracticePanelNote">{{ t.practice_preset_foundation_note }}</p>
           </div>
           <ul class="yb-practice__list" id="ybPracticeList">
-            <li><strong>Alignment-check</strong> — fødder, knæ, hofter, skuldre og nakke</li>
-            <li><strong>Teknik i klassikere</strong> — fremoverbøjninger, twists, balance og core</li>
-            <li><strong>Åndedræt &amp; tempo</strong> — ro, kontrol og bedre fokus</li>
-            <li><strong>Personlige cues</strong> — præcise rettelser du kan huske og bruge selv</li>
+            {% for item in t.practice_preset_foundation_items.split("|") %}<li>{{ item | safe }}</li>{% endfor %}
           </ul>
           <div class="yb-practice__ctaRow">
-            <a class="yb-btn yb-btn--primary" href="#yb-intake">Book en samtale</a>
+            <a class="yb-btn yb-btn--primary" href="#yb-intake">{{ t.practice_cta }}</a>
           </div>
         </div>
 
         <div class="yb-practice__faq">
-          <h3 class="yb-practice__faqTitle">FAQ</h3>
+          <h3 class="yb-practice__faqTitle">{{ t.practice_faq_title }}</h3>
           <div class="yb-pracAcc" data-prac-accordion>
             <div class="yb-pracItem">
-              <button class="yb-pracBtn" type="button" aria-expanded="false" aria-controls="ybPrF1" id="ybPrFB1">Hvem passer privatundervisning til?<span class="yb-pracIcon" aria-hidden="true"></span></button>
-              <div class="yb-pracPanel" id="ybPrF1" role="region" aria-labelledby="ybPrFB1" hidden><p>Til både begyndere og øvede. For begyndere skaber vi en solid base. For øvede går vi målrettet efter dine mål — fx dybere stillinger, bedre kontrol eller mere frihed i kroppen.</p></div>
+              <button class="yb-pracBtn" type="button" aria-expanded="false" aria-controls="ybPrF1" id="ybPrFB1">{{ t.practice_faq1_q }}<span class="yb-pracIcon" aria-hidden="true"></span></button>
+              <div class="yb-pracPanel" id="ybPrF1" role="region" aria-labelledby="ybPrFB1" hidden><p>{{ t.practice_faq1_a | safe }}</p></div>
             </div>
             <div class="yb-pracItem">
-              <button class="yb-pracBtn" type="button" aria-expanded="false" aria-controls="ybPrF2" id="ybPrFB2">Kan vi arbejde med inversions, backbends eller splits?<span class="yb-pracIcon" aria-hidden="true"></span></button>
-              <div class="yb-pracPanel" id="ybPrF2" role="region" aria-labelledby="ybPrFB2" hidden><p>Ja — vi bygger det op sikkert og systematisk med teknik, mobilitet og styrke, så du får progression uden at presse kroppen.</p></div>
+              <button class="yb-pracBtn" type="button" aria-expanded="false" aria-controls="ybPrF2" id="ybPrFB2">{{ t.practice_faq2_q }}<span class="yb-pracIcon" aria-hidden="true"></span></button>
+              <div class="yb-pracPanel" id="ybPrF2" role="region" aria-labelledby="ybPrFB2" hidden><p>{{ t.practice_faq2_a | safe }}</p></div>
             </div>
             <div class="yb-pracItem">
-              <button class="yb-pracBtn" type="button" aria-expanded="false" aria-controls="ybPrF3" id="ybPrFB3">Er hands-on justeringer en del af det?<span class="yb-pracIcon" aria-hidden="true"></span></button>
-              <div class="yb-pracPanel" id="ybPrF3" role="region" aria-labelledby="ybPrFB3" hidden><p>Kun hvis du ønsker det. Alternativt bruger vi verbale cues, spejl, video og simple "self-adjustments". Tryghed og tydelige grænser først.</p></div>
+              <button class="yb-pracBtn" type="button" aria-expanded="false" aria-controls="ybPrF3" id="ybPrFB3">{{ t.practice_faq3_q }}<span class="yb-pracIcon" aria-hidden="true"></span></button>
+              <div class="yb-pracPanel" id="ybPrF3" role="region" aria-labelledby="ybPrFB3" hidden><p>{{ t.practice_faq3_a | safe }}</p></div>
             </div>
             <div class="yb-pracItem">
-              <button class="yb-pracBtn" type="button" aria-expanded="false" aria-controls="ybPrF4" id="ybPrFB4">Hvor mange sessioner giver bedst effekt?<span class="yb-pracIcon" aria-hidden="true"></span></button>
-              <div class="yb-pracPanel" id="ybPrF4" role="region" aria-labelledby="ybPrFB4" hidden><p>De fleste får stor værdi af <strong>3–5 sessioner</strong>. Det giver tid til at lære, integrere og mærke reelle ændringer.</p></div>
+              <button class="yb-pracBtn" type="button" aria-expanded="false" aria-controls="ybPrF4" id="ybPrFB4">{{ t.practice_faq4_q }}<span class="yb-pracIcon" aria-hidden="true"></span></button>
+              <div class="yb-pracPanel" id="ybPrF4" role="region" aria-labelledby="ybPrFB4" hidden><p>{{ t.practice_faq4_a | safe }}</p></div>
             </div>
             <div class="yb-pracItem">
-              <button class="yb-pracBtn" type="button" aria-expanded="false" aria-controls="ybPrF5" id="ybPrFB5">Kan det være online?<span class="yb-pracIcon" aria-hidden="true"></span></button>
-              <div class="yb-pracPanel" id="ybPrF5" role="region" aria-labelledby="ybPrFB5" hidden><p>Ja. Online fungerer godt til teknik, alignment, styrke/mobilitet-plan og tydelige cues. Hvis du vil have hands-on, anbefaler vi studio.</p></div>
+              <button class="yb-pracBtn" type="button" aria-expanded="false" aria-controls="ybPrF5" id="ybPrFB5">{{ t.practice_faq5_q }}<span class="yb-pracIcon" aria-hidden="true"></span></button>
+              <div class="yb-pracPanel" id="ybPrF5" role="region" aria-labelledby="ybPrFB5" hidden><p>{{ t.practice_faq5_a | safe }}</p></div>
             </div>
           </div>
         </div>
@@ -241,10 +238,10 @@
     var note=document.getElementById("ybPracticePanelNote");
     var list=document.getElementById("ybPracticeList");
     var presets={
-      foundation:{title:"Hvad vi arbejder med \u00B7 Basis & alignment",note:"Perfekt til dig, der vil blive st\u00E6rk i det grundl\u00E6ggende og f\u00E5 en praksis, der f\u00F8les stabil og fri.",items:["<strong>Alignment-check</strong> \u2014 f\u00F8dder, kn\u00E6, hofter, skuldre og nakke","<strong>Teknik i klassikere</strong> \u2014 fremoverbøjninger, twists, balance og core","<strong>\u00C5ndedræt &amp; tempo</strong> \u2014 ro, kontrol og bedre fokus","<strong>Personlige cues</strong> \u2014 pr\u00E6cise rettelser du kan huske og bruge selv"]},
-      deep:{title:"Hvad vi arbejder med \u00B7 Dybere stillinger",note:"M\u00E5lrettet progression i fx inversions, backbends eller splits \u2014 med en sikker opbygning.",items:["<strong>Forberedende \u00F8velser</strong> \u2014 mobilitet + styrke for din krop","<strong>Teknik &amp; linjer</strong> \u2014 hvor du skaber stabilitet og l\u00E6ngde","<strong>Progression</strong> \u2014 trin-for-trin og realistiske delm\u00E5l","<strong>Smartere tr\u00E6ning</strong> \u2014 mindre pres, bedre resultat"]},
-      mobility:{title:"Hvad vi arbejder med \u00B7 Mobilitet & styrke",note:"For dig der vil \u00E5bne kroppen, f\u00F8le dig st\u00E6rkere og f\u00E5 mere kontrol i praksis.",items:["<strong>Hofter &amp; bagk\u00E6de</strong> \u2014 fleksibilitet uden at \u201Ch\u00E6nde\u201D","<strong>Skuldre &amp; bryst</strong> \u2014 bedre range + stabilitet","<strong>Core &amp; balance</strong> \u2014 kontrol, holdning, flow","<strong>Mini-program</strong> \u2014 en enkel plan du kan gentage hjemme"]},
-      recovery:{title:"Hvad vi arbejder med \u00B7 Skader & tilbagevenden",note:"Vi tilpasser, bygger op og skaber tryghed, s\u00E5 du kan komme tilbage med struktur og ro.",items:["<strong>Tilpasninger</strong> \u2014 hvad du kan g\u00F8re, og hvad du b\u00F8r undg\u00E5","<strong>Gradvis opbygning</strong> \u2014 belastning, pauser, progression","<strong>Teknisk oprydning</strong> \u2014 f\u00E6rre kompensationer, mere stabilitet","<strong>Plan for praksis</strong> \u2014 s\u00E5 du ved pr\u00E6cis hvad n\u00E6ste skridt er"]}
+      foundation:{title:{{ t.practice_preset_foundation_title | dump | safe }},note:{{ t.practice_preset_foundation_note | dump | safe }},items:{{ t.practice_preset_foundation_items.split("|") | dump | safe }}},
+      deep:{title:{{ t.practice_preset_deep_title | dump | safe }},note:{{ t.practice_preset_deep_note | dump | safe }},items:{{ t.practice_preset_deep_items.split("|") | dump | safe }}},
+      mobility:{title:{{ t.practice_preset_mobility_title | dump | safe }},note:{{ t.practice_preset_mobility_note | dump | safe }},items:{{ t.practice_preset_mobility_items.split("|") | dump | safe }}},
+      recovery:{title:{{ t.practice_preset_recovery_title | dump | safe }},note:{{ t.practice_preset_recovery_note | dump | safe }},items:{{ t.practice_preset_recovery_items.split("|") | dump | safe }}}
     };
     function setActive(key){ chips.forEach(function(b){ var on=b.getAttribute("data-p")===key; b.classList.toggle("is-active",on); b.setAttribute("aria-selected",on?"true":"false"); }); }
     function render(key){ var d=presets[key]; if(!d||!title||!note||!list)return; title.classList.add("yb-prFade"); note.classList.add("yb-prFade"); list.classList.add("yb-prFade"); requestAnimationFrame(function(){ title.textContent=d.title; note.textContent=d.note; list.innerHTML=d.items.map(function(html){return"<li>"+html+"</li>";}).join(""); setActive(key); requestAnimationFrame(function(){ title.classList.add("is-in"); note.classList.add("is-in"); list.classList.add("is-in"); setTimeout(function(){ title.classList.remove("yb-prFade","is-in"); note.classList.remove("yb-prFade","is-in"); list.classList.remove("yb-prFade","is-in"); },220); }); }); }
@@ -263,19 +260,19 @@
 <section class="yb-mentor2" aria-labelledby="yb-mentor2-title">
   <div class="yb-mentor2__wrap">
     <!-- MEDIA ROW (top) -->
-    <div class="yb-mentor2__mediaRow" aria-label="Billede eller video">
+    <div class="yb-mentor2__mediaRow" aria-label="{{ t.media_label }}">
       <div class="yb-mentor2__media" id="ybMentor2Media">
         <video class="yb-mentor2__video" id="ybMentor2Video" playsinline muted loop preload="metadata">
           <source id="ybMentor2VideoSource" src="" type="video/mp4" />
         </video>
-        <img class="yb-mentor2__img" id="ybMentor2Image" alt="Mentorforløb for undervisere" loading="lazy" decoding="async"
-             src="/assets/images/og/og-1200x630.png" />
-        <button class="yb-mentor2__play" id="ybMentor2Play" type="button" aria-label="Afspil video">
+        <img class="yb-mentor2__img" id="ybMentor2Image" alt="{{ t.mentor_img_alt }}" loading="lazy" decoding="async"
+             src="https://res.cloudinary.com/ddcynsa30/image/upload/w_600,c_fill,q_auto,f_auto/yoga-bible-DK/mentorship/mentor-private-inversions" />
+        <button class="yb-mentor2__play" id="ybMentor2Play" type="button" aria-label="{{ t.play_video }}">
           <span class="yb-mentor2__playIcon" aria-hidden="true"></span>
         </button>
         <div class="yb-mentor2__mediaTag" aria-hidden="true">
-          <span class="yb-mentor2__mediaKicker">Yoga Bible · 1:1</span>
-          <span class="yb-mentor2__mediaTitle">Mentorforløb for undervisere</span>
+          <span class="yb-mentor2__mediaKicker">{{ t.mentor_media_kicker }}</span>
+          <span class="yb-mentor2__mediaTitle">{{ t.mentor_media_title }}</span>
         </div>
       </div>
     </div>
@@ -285,28 +282,28 @@
       <!-- LEFT COLUMN -->
       <div class="yb-mentor2__col yb-mentor2__col--left">
         <div class="yb-mentor2__headline">
-          <p class="yb-mentor2__eyebrow">Yoga Bible · Mentorforløb</p>
-          <h2 id="yb-mentor2-title" class="yb-mentor2__title">For<br/>yogaundervisere</h2>
-          <p class="yb-mentor2__tagline">— Løft din undervisning</p>
-          <p class="yb-mentor2__intro">Et 1:1 mentorforløb, hvor vi arbejder med din stil, dine styrker og din konkrete undervisningshverdag. Fokus er altid praktisk, personligt og implementerbart — ikke et fast pensum.</p>
+          <p class="yb-mentor2__eyebrow">{{ t.mentor_eyebrow }}</p>
+          <h2 id="yb-mentor2-title" class="yb-mentor2__title">{{ t.mentor_title | safe }}</h2>
+          <p class="yb-mentor2__tagline">{{ t.mentor_tagline }}</p>
+          <p class="yb-mentor2__intro">{{ t.mentor_intro }}</p>
           <div class="yb-mentor2__meta">
             <span class="yb-mentor2__dot" aria-hidden="true"></span>
-            <span>Kan foregå i studio eller online · Mulighed for observation/video-feedback</span>
+            <span>{{ t.mentor_meta }}</span>
           </div>
-          <div class="yb-mentor2__chips" aria-label="Kort fortalt">
-            <span class="yb-mentor2__chip">Cueing</span>
-            <span class="yb-mentor2__chip">Stemme</span>
-            <span class="yb-mentor2__chip">Sekvensering</span>
-            <span class="yb-mentor2__chip">Tryghed &amp; autoritet</span>
+          <div class="yb-mentor2__chips" aria-label="{{ t.mentor_chips_label }}">
+            <span class="yb-mentor2__chip">{{ t.mentor_chip1 }}</span>
+            <span class="yb-mentor2__chip">{{ t.mentor_chip2 }}</span>
+            <span class="yb-mentor2__chip">{{ t.mentor_chip3 }}</span>
+            <span class="yb-mentor2__chip">{{ t.mentor_chip4 }}</span>
           </div>
         </div>
 
         <div class="yb-mentor2__how">
-          <h3 class="yb-mentor2__boxTitle">Sådan arbejder vi</h3>
+          <h3 class="yb-mentor2__boxTitle">{{ t.mentor_how_title }}</h3>
           <ol class="yb-mentor2__steps">
-            <li><span class="yb-mentor2__stepNum">1</span><div class="yb-mentor2__stepBody"><p class="yb-mentor2__stepTitle">Afklaring</p><p class="yb-mentor2__stepText">Mål, styrker, udfordringer og din undervisningsstil.</p></div></li>
-            <li><span class="yb-mentor2__stepNum">2</span><div class="yb-mentor2__stepBody"><p class="yb-mentor2__stepTitle">Konkrete værktøjer</p><p class="yb-mentor2__stepText">Struktur, cues, stemme, sekvensering og klasseledelse.</p></div></li>
-            <li><span class="yb-mentor2__stepNum">3</span><div class="yb-mentor2__stepBody"><p class="yb-mentor2__stepTitle">Feedback &amp; implementering</p><p class="yb-mentor2__stepText">Observation eller video — med en enkel plan til din næste klasse.</p></div></li>
+            <li><span class="yb-mentor2__stepNum">1</span><div class="yb-mentor2__stepBody"><p class="yb-mentor2__stepTitle">{{ t.mentor_step1_title }}</p><p class="yb-mentor2__stepText">{{ t.mentor_step1_text }}</p></div></li>
+            <li><span class="yb-mentor2__stepNum">2</span><div class="yb-mentor2__stepBody"><p class="yb-mentor2__stepTitle">{{ t.mentor_step2_title }}</p><p class="yb-mentor2__stepText">{{ t.mentor_step2_text }}</p></div></li>
+            <li><span class="yb-mentor2__stepNum">3</span><div class="yb-mentor2__stepBody"><p class="yb-mentor2__stepTitle">{{ t.mentor_step3_title }}</p><p class="yb-mentor2__stepText">{{ t.mentor_step3_text }}</p></div></li>
           </ol>
         </div>
       </div>
@@ -314,30 +311,30 @@
       <!-- RIGHT COLUMN -->
       <div class="yb-mentor2__col yb-mentor2__col--right">
         <div class="yb-mentor2__box">
-          <h3 class="yb-mentor2__boxTitle">Typiske temaer vi arbejder med</h3>
+          <h3 class="yb-mentor2__boxTitle">{{ t.mentor_themes_title }}</h3>
           <ul class="yb-mentor2__bullets">
-            <li><strong>Klasseledelse &amp; nærvær</strong> — ro, timing, energi, autoritet</li>
-            <li><strong>Cueing &amp; sprog</strong> — tydelighed, rytme, progression, "hvad siger jeg hvornår?"</li>
-            <li><strong>Stemmeføring</strong> — volumen, pauser, intention og sikker guidance</li>
-            <li><strong>Sekvensering</strong> — opbygning, tema, peak, transitions og flow</li>
-            <li><strong>Hands-on (valgfrit)</strong> — tryghed, etik, grænser og præcision</li>
-            <li><strong>Din læreridentitet</strong> — selvtillid, signatur, professionalisme</li>
+            <li>{{ t.mentor_theme1 | safe }}</li>
+            <li>{{ t.mentor_theme2 | safe }}</li>
+            <li>{{ t.mentor_theme3 | safe }}</li>
+            <li>{{ t.mentor_theme4 | safe }}</li>
+            <li>{{ t.mentor_theme5 | safe }}</li>
+            <li>{{ t.mentor_theme6 | safe }}</li>
           </ul>
           <div class="yb-mentor2__ctaRow">
-            <a class="yb-mentor2__cta" href="#yb-intake">Book en mentor-samtale</a>
+            <a class="yb-mentor2__cta" href="#yb-intake">{{ t.mentor_cta }}</a>
           </div>
         </div>
 
         <div class="yb-mentor2__faq">
-          <h3 class="yb-mentor2__boxTitle">FAQ</h3>
+          <h3 class="yb-mentor2__boxTitle">{{ t.mentor_faq_title }}</h3>
           <div class="yb-accordion" data-accordion>
-            <div class="yb-accItem"><button class="yb-accBtn" type="button" aria-expanded="false" aria-controls="ybFaq1" id="ybFaqBtn1">Hvem er mentorforløbet for?<span class="yb-accIcon" aria-hidden="true"></span></button><div class="yb-accPanel" id="ybFaq1" role="region" aria-labelledby="ybFaqBtn1" hidden><p>For undervisere, der vil løfte kvaliteten og blive mere trygge i deres undervisning — uanset om du er ny underviser eller har erfaring og vil tage næste niveau.</p></div></div>
-            <div class="yb-accItem"><button class="yb-accBtn" type="button" aria-expanded="false" aria-controls="ybFaq2" id="ybFaqBtn2">Hvordan foregår den første session?<span class="yb-accIcon" aria-hidden="true"></span></button><div class="yb-accPanel" id="ybFaq2" role="region" aria-labelledby="ybFaqBtn2" hidden><p>Vi afklarer dit mål, din stil og dine udfordringer. Derefter laver vi en klar plan for de næste skridt — fx cueing-struktur, stemme, sekvensering eller klasseledelse — så du kan mærke effekt med det samme.</p></div></div>
-            <div class="yb-accItem"><button class="yb-accBtn" type="button" aria-expanded="false" aria-controls="ybFaq3" id="ybFaqBtn3">Hvor mange sessioner anbefales?<span class="yb-accIcon" aria-hidden="true"></span></button><div class="yb-accPanel" id="ybFaq3" role="region" aria-labelledby="ybFaqBtn3" hidden><p>De fleste starter med <strong>3–5 sessioner</strong>. Det giver tid til at teste, få feedback og justere, så det du lærer bliver integreret i dine egne klasser.</p></div></div>
-            <div class="yb-accItem"><button class="yb-accBtn" type="button" aria-expanded="false" aria-controls="ybFaq4" id="ybFaqBtn4">Kan vi fokusere på fx sekvensering eller cueing?<span class="yb-accIcon" aria-hidden="true"></span></button><div class="yb-accPanel" id="ybFaq4" role="region" aria-labelledby="ybFaqBtn4" hidden><p>Ja. Vi kan gå dybt i ét område eller kombinere flere. Du bestemmer — og vi prioriterer det, der giver størst effekt i din undervisning lige nu.</p></div></div>
-            <div class="yb-accItem"><button class="yb-accBtn" type="button" aria-expanded="false" aria-controls="ybFaq5" id="ybFaqBtn5">Får jeg feedback på min undervisning?<span class="yb-accIcon" aria-hidden="true"></span></button><div class="yb-accPanel" id="ybFaq5" role="region" aria-labelledby="ybFaqBtn5" hidden><p>Ja. Du kan vælge observation i en klasse, eller sende en videooptagelse. Du får konkret feedback, tydelige forbedringspunkter og en enkel plan for næste klasse.</p></div></div>
-            <div class="yb-accItem"><button class="yb-accBtn" type="button" aria-expanded="false" aria-controls="ybFaq6" id="ybFaqBtn6">Kan det være online?<span class="yb-accIcon" aria-hidden="true"></span></button><div class="yb-accPanel" id="ybFaq6" role="region" aria-labelledby="ybFaqBtn6" hidden><p>Ja. Online fungerer særligt godt til cueing, stemme, struktur og sekvensering. Hvis du vil arbejde med hands-on, anbefaler vi studio-sessioner.</p></div></div>
-            <div class="yb-accItem"><button class="yb-accBtn" type="button" aria-expanded="false" aria-controls="ybFaq7" id="ybFaqBtn7">Kan vi også tale karriere og "næste skridt"?<span class="yb-accIcon" aria-hidden="true"></span></button><div class="yb-accPanel" id="ybFaq7" role="region" aria-labelledby="ybFaqBtn7" hidden><p>Ja. Vi kan fx kigge på auditions, studievalg, positionering, pricing og hvordan du bliver mere efterspurgt — uden at miste din autenticitet.</p></div></div>
+            <div class="yb-accItem"><button class="yb-accBtn" type="button" aria-expanded="false" aria-controls="ybFaq1" id="ybFaqBtn1">{{ t.mentor_faq1_q }}<span class="yb-accIcon" aria-hidden="true"></span></button><div class="yb-accPanel" id="ybFaq1" role="region" aria-labelledby="ybFaqBtn1" hidden><p>{{ t.mentor_faq1_a | safe }}</p></div></div>
+            <div class="yb-accItem"><button class="yb-accBtn" type="button" aria-expanded="false" aria-controls="ybFaq2" id="ybFaqBtn2">{{ t.mentor_faq2_q }}<span class="yb-accIcon" aria-hidden="true"></span></button><div class="yb-accPanel" id="ybFaq2" role="region" aria-labelledby="ybFaqBtn2" hidden><p>{{ t.mentor_faq2_a | safe }}</p></div></div>
+            <div class="yb-accItem"><button class="yb-accBtn" type="button" aria-expanded="false" aria-controls="ybFaq3" id="ybFaqBtn3">{{ t.mentor_faq3_q }}<span class="yb-accIcon" aria-hidden="true"></span></button><div class="yb-accPanel" id="ybFaq3" role="region" aria-labelledby="ybFaqBtn3" hidden><p>{{ t.mentor_faq3_a | safe }}</p></div></div>
+            <div class="yb-accItem"><button class="yb-accBtn" type="button" aria-expanded="false" aria-controls="ybFaq4" id="ybFaqBtn4">{{ t.mentor_faq4_q }}<span class="yb-accIcon" aria-hidden="true"></span></button><div class="yb-accPanel" id="ybFaq4" role="region" aria-labelledby="ybFaqBtn4" hidden><p>{{ t.mentor_faq4_a | safe }}</p></div></div>
+            <div class="yb-accItem"><button class="yb-accBtn" type="button" aria-expanded="false" aria-controls="ybFaq5" id="ybFaqBtn5">{{ t.mentor_faq5_q }}<span class="yb-accIcon" aria-hidden="true"></span></button><div class="yb-accPanel" id="ybFaq5" role="region" aria-labelledby="ybFaqBtn5" hidden><p>{{ t.mentor_faq5_a | safe }}</p></div></div>
+            <div class="yb-accItem"><button class="yb-accBtn" type="button" aria-expanded="false" aria-controls="ybFaq6" id="ybFaqBtn6">{{ t.mentor_faq6_q }}<span class="yb-accIcon" aria-hidden="true"></span></button><div class="yb-accPanel" id="ybFaq6" role="region" aria-labelledby="ybFaqBtn6" hidden><p>{{ t.mentor_faq6_a | safe }}</p></div></div>
+            <div class="yb-accItem"><button class="yb-accBtn" type="button" aria-expanded="false" aria-controls="ybFaq7" id="ybFaqBtn7">{{ t.mentor_faq7_q }}<span class="yb-accIcon" aria-hidden="true"></span></button><div class="yb-accPanel" id="ybFaq7" role="region" aria-labelledby="ybFaqBtn7" hidden><p>{{ t.mentor_faq7_a | safe }}</p></div></div>
           </div>
         </div>
       </div>
@@ -436,76 +433,70 @@
     <div class="yb-biz__card">
       <div class="yb-biz__grid">
         <!-- MEDIA -->
-        <div class="yb-biz__mediaCol" aria-label="Billede eller video">
+        <div class="yb-biz__mediaCol" aria-label="{{ t.media_label }}">
           <div class="yb-biz__media" id="ybBizMedia">
             <video class="yb-biz__video" id="ybBizVideo" playsinline muted loop preload="metadata">
               <source id="ybBizVideoSource" src="" type="video/mp4" />
             </video>
-            <img class="yb-biz__img" id="ybBizImage" alt="Yoga Business mentorship" loading="lazy" decoding="async"
-                 src="/assets/images/og/og-1200x630.png" />
-            <button class="yb-biz__play" id="ybBizPlay" type="button" aria-label="Afspil video">
+            <img class="yb-biz__img" id="ybBizImage" alt="{{ t.biz_img_alt }}" loading="lazy" decoding="async"
+                 src="https://res.cloudinary.com/ddcynsa30/image/upload/w_600,c_fill,q_auto,f_auto/yoga-bible-DK/mentorship/beth-02" />
+            <button class="yb-biz__play" id="ybBizPlay" type="button" aria-label="{{ t.play_video }}">
               <span class="yb-biz__playIcon" aria-hidden="true"></span>
             </button>
             <div class="yb-biz__stamp" aria-hidden="true">
-              <span class="yb-biz__stampKicker">Yoga Bible · 1:1</span>
-              <span class="yb-biz__stampTitle">Yoga Business</span>
+              <span class="yb-biz__stampKicker">{{ t.biz_stamp_kicker }}</span>
+              <span class="yb-biz__stampTitle">{{ t.biz_stamp_title }}</span>
             </div>
           </div>
           <div class="yb-biz__mini">
-            <div class="yb-biz__miniItem"><p class="yb-biz__miniTitle">Typisk fokus</p><p class="yb-biz__miniText">Koncept · Pris · Marketing · Drift</p></div>
-            <div class="yb-biz__miniItem"><p class="yb-biz__miniTitle">Format</p><p class="yb-biz__miniText">Online eller fysisk sparring</p></div>
+            <div class="yb-biz__miniItem"><p class="yb-biz__miniTitle">{{ t.biz_mini_focus_title }}</p><p class="yb-biz__miniText">{{ t.biz_mini_focus_text }}</p></div>
+            <div class="yb-biz__miniItem"><p class="yb-biz__miniTitle">{{ t.biz_mini_format_title }}</p><p class="yb-biz__miniText">{{ t.biz_mini_format_text }}</p></div>
           </div>
         </div>
 
         <!-- CONTENT -->
         <div class="yb-biz__content">
           <div class="yb-biz__header">
-            <p class="yb-biz__eyebrow">Mentorship &amp; Privatundervisning</p>
-            <h2 id="yb-biz-title" class="yb-biz__title">Yoga Business</h2>
-            <p class="yb-biz__sub">Klar retning og konkrete beslutninger — så dit yoga-projekt bliver bæredygtigt, professionelt og lettere at drive.</p>
+            <p class="yb-biz__eyebrow">{{ t.biz_eyebrow }}</p>
+            <h2 id="yb-biz-title" class="yb-biz__title">{{ t.biz_title }}</h2>
+            <p class="yb-biz__sub">{{ t.biz_sub }}</p>
           </div>
 
           <div class="yb-biz__diagnostic">
             <div class="yb-biz__diagLeft">
-              <p class="yb-biz__diagTitle">Hvad har du brug for lige nu?</p>
-              <p class="yb-biz__diagText">Vælg et spor — så ændrer indholdet sig med det samme. (Du kan også kombinere flere i et forløb.)</p>
+              <p class="yb-biz__diagTitle">{{ t.biz_diag_title }}</p>
+              <p class="yb-biz__diagText">{{ t.biz_diag_text }}</p>
             </div>
-            <div class="yb-biz__tabs" role="tablist" aria-label="Vælg spor">
-              <button class="yb-bizTab is-active" type="button" role="tab" aria-selected="true" data-b="launch">Startup</button>
-              <button class="yb-bizTab" type="button" role="tab" aria-selected="false" data-b="growth">Vækst</button>
-              <button class="yb-bizTab" type="button" role="tab" aria-selected="false" data-b="ops">Drift</button>
-              <button class="yb-bizTab" type="button" role="tab" aria-selected="false" data-b="content">Content</button>
+            <div class="yb-biz__tabs" role="tablist" aria-label="{{ t.biz_tablist_label }}">
+              <button class="yb-bizTab is-active" type="button" role="tab" aria-selected="true" data-b="launch">{{ t.biz_tab_launch }}</button>
+              <button class="yb-bizTab" type="button" role="tab" aria-selected="false" data-b="growth">{{ t.biz_tab_growth }}</button>
+              <button class="yb-bizTab" type="button" role="tab" aria-selected="false" data-b="ops">{{ t.biz_tab_ops }}</button>
+              <button class="yb-bizTab" type="button" role="tab" aria-selected="false" data-b="content">{{ t.biz_tab_content }}</button>
             </div>
           </div>
 
           <div class="yb-biz__panel" aria-live="polite">
             <div class="yb-biz__panelTop">
-              <h3 class="yb-biz__panelTitle" id="ybBizPanelTitle">Startup · Fra idé til klar plan</h3>
-              <p class="yb-biz__panelNote" id="ybBizPanelNote">Til dig der vil starte studio, privatforløb, brand eller online tilbud — og vil undgå dyre fejl.</p>
+              <h3 class="yb-biz__panelTitle" id="ybBizPanelTitle">{{ t.biz_preset_launch_title }}</h3>
+              <p class="yb-biz__panelNote" id="ybBizPanelNote">{{ t.biz_preset_launch_note }}</p>
             </div>
             <div class="yb-biz__cols">
               <div class="yb-biz__col">
-                <p class="yb-biz__colTitle">Vi kan hjælpe med</p>
+                <p class="yb-biz__colTitle" id="ybBizColTitleA">{{ t.biz_preset_launch_a_title }}</p>
                 <ul class="yb-biz__list" id="ybBizListA">
-                  <li><strong>Koncept &amp; positionering</strong> — hvem er det til, og hvorfor dig?</li>
-                  <li><strong>Pris &amp; pakkestruktur</strong> — medlemskaber, klippekort, intro-tilbud</li>
-                  <li><strong>Lokation &amp; lease</strong> — hvad skal du kigge efter i kontrakten?</li>
-                  <li><strong>Booking &amp; systemer</strong> — setup der passer til din drift</li>
+                  {% for item in t.biz_preset_launch_a.split("|") %}<li>{{ item | safe }}</li>{% endfor %}
                 </ul>
               </div>
               <div class="yb-biz__col">
-                <p class="yb-biz__colTitle">Typiske deliverables</p>
+                <p class="yb-biz__colTitle" id="ybBizColTitleB">{{ t.biz_preset_launch_b_title }}</p>
                 <ul class="yb-biz__list" id="ybBizListB">
-                  <li><strong>1-sides business blueprint</strong> — mål, tilbud, priser, næste skridt</li>
-                  <li><strong>Simple KPI'er</strong> — så du måler det rigtige</li>
-                  <li><strong>Plan for første 30 dage</strong> — launch, content, samarbejder</li>
-                  <li><strong>Beslutningsliste</strong> — prioriteringer der sparer tid</li>
+                  {% for item in t.biz_preset_launch_b.split("|") %}<li>{{ item | safe }}</li>{% endfor %}
                 </ul>
               </div>
             </div>
             <div class="yb-biz__ctaRow">
-              <a class="yb-biz__cta" href="#yb-intake">Book en business-samtale</a>
-              <p class="yb-biz__ctaHint">Kort og konkret. Du går herfra med næste skridt.</p>
+              <a class="yb-biz__cta" href="#yb-intake">{{ t.biz_cta }}</a>
+              <p class="yb-biz__ctaHint">{{ t.biz_cta_hint }}</p>
             </div>
           </div>
         </div>
@@ -514,13 +505,13 @@
       <!-- FAQ full width -->
       <div class="yb-biz__faqRow">
         <div class="yb-biz__faq">
-          <h3 class="yb-biz__faqTitle">FAQ</h3>
+          <h3 class="yb-biz__faqTitle">{{ t.biz_faq_title }}</h3>
           <div class="yb-bizAcc" data-biz-accordion>
-            <div class="yb-bizItem"><button class="yb-bizBtn" type="button" aria-expanded="false" aria-controls="ybBizF1" id="ybBizB1">Hvem er business-mentorship til?<span class="yb-bizIcon" aria-hidden="true"></span></button><div class="yb-bizPanel" id="ybBizF1" role="region" aria-labelledby="ybBizB1" hidden><p>Til yogalærere, studio-ejere og iværksættere, der vil skabe et bæredygtigt setup — fra første idé til optimering af drift.</p></div></div>
-            <div class="yb-bizItem"><button class="yb-bizBtn" type="button" aria-expanded="false" aria-controls="ybBizF2" id="ybBizB2">Hjælper du også med kontrakt og lokation?<span class="yb-bizIcon" aria-hidden="true"></span></button><div class="yb-bizPanel" id="ybBizF2" role="region" aria-labelledby="ybBizB2" hidden><p>Ja — vi kan gennemgå din situation og de vigtigste punkter, du bør være opmærksom på. (Det er sparring, ikke juridisk rådgivning — men det giver dig en stærkere forberedelse.)</p></div></div>
-            <div class="yb-bizItem"><button class="yb-bizBtn" type="button" aria-expanded="false" aria-controls="ybBizF3" id="ybBizB3">Kan vi arbejde med pris og pakker?<span class="yb-bizIcon" aria-hidden="true"></span></button><div class="yb-bizPanel" id="ybBizF3" role="region" aria-labelledby="ybBizB3" hidden><p>Ja. Vi bygger en klar struktur, der er let at kommunikere — og som passer til din økonomi, tid og målgruppe.</p></div></div>
-            <div class="yb-bizItem"><button class="yb-bizBtn" type="button" aria-expanded="false" aria-controls="ybBizF4" id="ybBizB4">Kan vi også tale om online kurser eller YouTube?<span class="yb-bizIcon" aria-hidden="true"></span></button><div class="yb-bizPanel" id="ybBizF4" role="region" aria-labelledby="ybBizB4" hidden><p>Ja — vi kan planlægge format, workflow, udstyr, editing-flow og en simpel udgivelsesplan, så du faktisk får det gjort.</p></div></div>
-            <div class="yb-bizItem"><button class="yb-bizBtn" type="button" aria-expanded="false" aria-controls="ybBizF5" id="ybBizB5">Hvor mange sessioner giver mening?<span class="yb-bizIcon" aria-hidden="true"></span></button><div class="yb-bizPanel" id="ybBizF5" role="region" aria-labelledby="ybBizB5" hidden><p>Mange starter med <strong>2–4 sessioner</strong> til at få retning og beslutninger på plads, og fortsætter derefter ved behov.</p></div></div>
+            <div class="yb-bizItem"><button class="yb-bizBtn" type="button" aria-expanded="false" aria-controls="ybBizF1" id="ybBizB1">{{ t.biz_faq1_q }}<span class="yb-bizIcon" aria-hidden="true"></span></button><div class="yb-bizPanel" id="ybBizF1" role="region" aria-labelledby="ybBizB1" hidden><p>{{ t.biz_faq1_a | safe }}</p></div></div>
+            <div class="yb-bizItem"><button class="yb-bizBtn" type="button" aria-expanded="false" aria-controls="ybBizF2" id="ybBizB2">{{ t.biz_faq2_q }}<span class="yb-bizIcon" aria-hidden="true"></span></button><div class="yb-bizPanel" id="ybBizF2" role="region" aria-labelledby="ybBizB2" hidden><p>{{ t.biz_faq2_a | safe }}</p></div></div>
+            <div class="yb-bizItem"><button class="yb-bizBtn" type="button" aria-expanded="false" aria-controls="ybBizF3" id="ybBizB3">{{ t.biz_faq3_q }}<span class="yb-bizIcon" aria-hidden="true"></span></button><div class="yb-bizPanel" id="ybBizF3" role="region" aria-labelledby="ybBizB3" hidden><p>{{ t.biz_faq3_a | safe }}</p></div></div>
+            <div class="yb-bizItem"><button class="yb-bizBtn" type="button" aria-expanded="false" aria-controls="ybBizF4" id="ybBizB4">{{ t.biz_faq4_q }}<span class="yb-bizIcon" aria-hidden="true"></span></button><div class="yb-bizPanel" id="ybBizF4" role="region" aria-labelledby="ybBizB4" hidden><p>{{ t.biz_faq4_a | safe }}</p></div></div>
+            <div class="yb-bizItem"><button class="yb-bizBtn" type="button" aria-expanded="false" aria-controls="ybBizF5" id="ybBizB5">{{ t.biz_faq5_q }}<span class="yb-bizIcon" aria-hidden="true"></span></button><div class="yb-bizPanel" id="ybBizF5" role="region" aria-labelledby="ybBizB5" hidden><p>{{ t.biz_faq5_a | safe }}</p></div></div>
           </div>
         </div>
       </div>
@@ -612,10 +603,10 @@
     var title=document.getElementById("ybBizPanelTitle"); var note=document.getElementById("ybBizPanelNote");
     var listA=document.getElementById("ybBizListA"); var listB=document.getElementById("ybBizListB");
     var presets={
-      launch:{title:"Startup \u00B7 Fra id\u00E9 til klar plan",note:"Til dig der vil starte studio, privatforl\u00F8b, brand eller online tilbud \u2014 og vil undg\u00E5 dyre fejl.",aTitle:"Vi kan hj\u00E6lpe med",a:["<strong>Koncept &amp; positionering</strong> \u2014 hvem er det til, og hvorfor dig?","<strong>Pris &amp; pakkestruktur</strong> \u2014 medlemskaber, klippekort, intro-tilbud","<strong>Lokation &amp; lease</strong> \u2014 hvad skal du kigge efter i kontrakten?","<strong>Booking &amp; systemer</strong> \u2014 setup der passer til din drift"],bTitle:"Typiske deliverables",b:["<strong>1-sides business blueprint</strong> \u2014 m\u00E5l, tilbud, priser, n\u00E6ste skridt","<strong>Simple KPI\u2019er</strong> \u2014 s\u00E5 du m\u00E5ler det rigtige","<strong>Plan for f\u00F8rste 30 dage</strong> \u2014 launch, content, samarbejder","<strong>Beslutningsliste</strong> \u2014 prioriteringer der sparer tid"]},
-      growth:{title:"V\u00E6kst \u00B7 Flere kunder uden stress",note:"Til dig der har gang i noget, men vil g\u00F8re det tydeligere, mere effektivt og mere efterspurgt.",aTitle:"Vi kan hj\u00E6lpe med",a:["<strong>Tilbud der konverterer</strong> \u2014 g\u00F8r det nemt at v\u00E6lge dig","<strong>Retention</strong> \u2014 fastholdelse, community og medlemsrejse","<strong>Samarbejder</strong> \u2014 partnerskaber der giver mening","<strong>Marketing-plan</strong> \u2014 simple kampagner du kan gentage"],bTitle:"Typiske deliverables",b:["<strong>Website/landing feedback</strong> \u2014 klarhed, flow, CTA\u2019er","<strong>Pris-justering</strong> \u2014 n\u00E5r du skal op i niveau","<strong>Intro-flow</strong> \u2014 fra f\u00F8rste bes\u00F8g til loyal kunde","<strong>Mini-kalender</strong> \u2014 4 ugers plan med content + tilbud"]},
-      ops:{title:"Drift \u00B7 Systemer, team og struktur",note:"Til studio-ejere og undervisere, der vil skabe ro, kvalitet og stabilitet i hverdagen.",aTitle:"Vi kan hj\u00E6lpe med",a:["<strong>Staff management</strong> \u2014 roller, standarder, kommunikation","<strong>Booking &amp; no-show</strong> \u2014 regler der fungerer i praksis","<strong>\u00D8konomisk overblik</strong> \u2014 simple rutiner og prioritering","<strong>Kvalitetssikring</strong> \u2014 ensartet oplevelse p\u00E5 tv\u00E6rs af l\u00E6rere"],bTitle:"Typiske deliverables",b:["<strong>Standarder &amp; playbook</strong> \u2014 onboarding, tone, service","<strong>Policy-setup</strong> \u2014 no-show, venteliste, refunds","<strong>Weekly ops plan</strong> \u2014 hvad du f\u00F8lger op p\u00E5 hver uge","<strong>Bedre arbejdsgange</strong> \u2014 f\u00E6rre \u201Csm\u00E5 brande\u201D"]},
-      content:{title:"Content \u00B7 Reels, YouTube og online produkter",note:"Til dig der vil bygge synlighed og skabe salg \u2014 uden at det f\u00F8les kaotisk.",aTitle:"Vi kan hj\u00E6lpe med",a:["<strong>Content retning</strong> \u2014 temaer der passer til dit brand","<strong>Workflow</strong> \u2014 optag, redig\u00E9r, public\u00E9r (enkelt)","<strong>Udstyr &amp; setup</strong> \u2014 lyd, lys, kamera, editing","<strong>Online produkter</strong> \u2014 kurser, memberships, digitale forl\u00F8b"],bTitle:"Typiske deliverables",b:["<strong>4-ugers content plan</strong> \u2014 reels + captions + CTA","<strong>Skabeloner</strong> \u2014 hooks, struktur, afslutning","<strong>Studio/optageplan</strong> \u2014 batch-produktion","<strong>Simple funnels</strong> \u2014 fra video til kunde"]}
+      launch:{title:{{ t.biz_preset_launch_title | dump | safe }},note:{{ t.biz_preset_launch_note | dump | safe }},aTitle:{{ t.biz_preset_launch_a_title | dump | safe }},a:{{ t.biz_preset_launch_a.split("|") | dump | safe }},bTitle:{{ t.biz_preset_launch_b_title | dump | safe }},b:{{ t.biz_preset_launch_b.split("|") | dump | safe }}},
+      growth:{title:{{ t.biz_preset_growth_title | dump | safe }},note:{{ t.biz_preset_growth_note | dump | safe }},aTitle:{{ t.biz_preset_growth_a_title | dump | safe }},a:{{ t.biz_preset_growth_a.split("|") | dump | safe }},bTitle:{{ t.biz_preset_growth_b_title | dump | safe }},b:{{ t.biz_preset_growth_b.split("|") | dump | safe }}},
+      ops:{title:{{ t.biz_preset_ops_title | dump | safe }},note:{{ t.biz_preset_ops_note | dump | safe }},aTitle:{{ t.biz_preset_ops_a_title | dump | safe }},a:{{ t.biz_preset_ops_a.split("|") | dump | safe }},bTitle:{{ t.biz_preset_ops_b_title | dump | safe }},b:{{ t.biz_preset_ops_b.split("|") | dump | safe }}},
+      content:{title:{{ t.biz_preset_content_title | dump | safe }},note:{{ t.biz_preset_content_note | dump | safe }},aTitle:{{ t.biz_preset_content_a_title | dump | safe }},a:{{ t.biz_preset_content_a.split("|") | dump | safe }},bTitle:{{ t.biz_preset_content_b_title | dump | safe }},b:{{ t.biz_preset_content_b.split("|") | dump | safe }}}
     };
     function setActive(key){tabs.forEach(function(t){var on=t.getAttribute("data-b")===key;t.classList.toggle("is-active",on);t.setAttribute("aria-selected",on?"true":"false");});}
     function setColTitle(listEl,newTitle){if(!listEl)return;var col=listEl.closest(".yb-biz__col");if(!col)return;var h=col.querySelector(".yb-biz__colTitle");if(h)h.textContent=newTitle;}
@@ -649,15 +640,15 @@
   <div class="yb-modal-intake" id="ybintake-modal" aria-hidden="true">
     <div class="yb-modal-intake__overlay" data-ybintake-close></div>
     <div class="yb-modal-intake__box" role="dialog" aria-modal="true" aria-labelledby="ybintake-title">
-      <button class="yb-modal-intake__close" type="button" data-ybintake-close aria-label="Luk">&times;</button>
+      <button class="yb-modal-intake__close" type="button" data-ybintake-close aria-label="{{ t.modal_close }}">&times;</button>
 
       <!-- Form View -->
       <div id="ybintake-view-form">
-        <p class="yb-modal-intake__eyebrow">Yoga Bible · 1:1</p>
-        <h3 id="ybintake-title">Book en samtale</h3>
-        <p class="yb-modal-intake__lead">Udfyld kort — så vender vi tilbage hurtigst muligt.</p>
+        <p class="yb-modal-intake__eyebrow">{{ t.hero_tagline }}</p>
+        <h3 id="ybintake-title">{{ t.intake_title }}</h3>
+        <p class="yb-modal-intake__lead">{{ t.intake_subtitle }}</p>
 
-        <iframe name="ybintakeFrame" class="yb-modal-intake__frame" title="Skjult submit" tabindex="-1"></iframe>
+        <iframe name="ybintakeFrame" class="yb-modal-intake__frame" title="Hidden submit" tabindex="-1"></iframe>
 
         <form id="ybintake-form" class="yb-modal-intake__form" method="POST" target="ybintakeFrame" novalidate>
           <input class="yb-modal-intake__hp" type="text" name="website" autocomplete="off" tabindex="-1" />
@@ -667,55 +658,55 @@
           <input type="hidden" name="submittedAt" id="ybintake-submittedAt" />
 
           <p id="ybintake-error" class="yb-modal-intake__error" hidden>
-            Kunne ikke sende lige nu. Prøv igen — eller skriv til <a href="mailto:info@yogabible.dk">info@yogabible.dk</a>.
+            {{ t.intake_error_send | safe }}
           </p>
 
           <div class="yb-modal-intake__grid">
-            <label class="yb-modal-intake__field"><span>Fornavn *</span><input name="firstName" type="text" required autocomplete="given-name" /></label>
-            <label class="yb-modal-intake__field"><span>Efternavn *</span><input name="lastName" type="text" required autocomplete="family-name" /></label>
-            <label class="yb-modal-intake__field"><span>Telefon *</span><input name="phone" type="tel" required autocomplete="tel" /></label>
-            <label class="yb-modal-intake__field"><span>E-mail *</span><input name="email" type="email" required autocomplete="email" /></label>
+            <label class="yb-modal-intake__field"><span>{{ t.intake_firstname }}</span><input name="firstName" type="text" required autocomplete="given-name" /></label>
+            <label class="yb-modal-intake__field"><span>{{ t.intake_lastname }}</span><input name="lastName" type="text" required autocomplete="family-name" /></label>
+            <label class="yb-modal-intake__field"><span>{{ t.intake_phone }}</span><input name="phone" type="tel" required autocomplete="tel" /></label>
+            <label class="yb-modal-intake__field"><span>{{ t.intake_email }}</span><input name="email" type="email" required autocomplete="email" /></label>
             <label class="yb-modal-intake__field yb-modal-intake__field--full">
-              <span>Vælg service *</span>
+              <span>{{ t.intake_service }}</span>
               <select name="service" id="ybintake-service" required>
-                <option value="" selected disabled>Vælg service…</option>
-                <option value="Personlig praksis">Personlig praksis</option>
-                <option value="Undervisning">Undervisning</option>
-                <option value="Yoga Business">Yoga Business</option>
-                <option value="Ikke sikker endnu">Ikke sikker endnu</option>
+                <option value="" selected disabled>{{ t.intake_service_placeholder }}</option>
+                <option value="{{ t.intake_service_practice }}">{{ t.intake_service_practice }}</option>
+                <option value="{{ t.intake_service_teaching }}">{{ t.intake_service_teaching }}</option>
+                <option value="{{ t.intake_service_business }}">{{ t.intake_service_business }}</option>
+                <option value="{{ t.intake_service_unsure }}">{{ t.intake_service_unsure }}</option>
               </select>
-              <small class="yb-modal-intake__hint">Vælg først service — derefter kan du vælge fokus.</small>
+              <small class="yb-modal-intake__hint">{{ t.intake_hint }}</small>
             </label>
           </div>
 
           <div class="yb-modal-intake__subs" id="ybintake-subs" hidden>
-            <p class="yb-modal-intake__subs-title">Vælg fokus (du kan vælge flere)</p>
+            <p class="yb-modal-intake__subs-title">{{ t.intake_subs_title }}</p>
             <div class="yb-modal-intake__subs-grid" id="ybintake-subsGrid" aria-live="polite"></div>
             <label class="yb-modal-intake__notsure">
               <input type="checkbox" id="ybintake-notSure" name="notSure" value="Ja" />
-              <span>Jeg er ikke sikker endnu (vi afklarer sammen)</span>
+              <span>{{ t.intake_notsure }}</span>
             </label>
           </div>
 
           <label class="yb-modal-intake__field yb-modal-intake__field--full">
-            <span>Kort besked (valgfrit)</span>
-            <textarea name="message" rows="3" placeholder="Fx dit mål, erfaring, eller hvad du gerne vil fokusere på."></textarea>
+            <span>{{ t.intake_message_optional }}</span>
+            <textarea name="message" rows="3" placeholder="{{ t.intake_message_placeholder }}"></textarea>
           </label>
 
-          <button id="ybintake-submit" class="yb-btn yb-btn--cta" type="submit">Send</button>
-          <p class="yb-modal-intake__fine">Ved at sende accepterer du, at vi må kontakte dig om din forespørgsel.</p>
+          <button id="ybintake-submit" class="yb-btn yb-btn--cta" type="submit">{{ t.intake_submit_short }}</button>
+          <p class="yb-modal-intake__fine">{{ t.intake_fine }}</p>
         </form>
       </div>
 
       <!-- Success View -->
       <div id="ybintake-view-success" class="yb-modal-intake__success" hidden role="status" aria-live="polite">
         <div class="yb-modal-intake__success-icon">&#10003;</div>
-        <h3>Tak!</h3>
-        <p>Vi har modtaget din forespørgsel og vender tilbage hurtigst muligt.</p>
+        <h3>{{ t.intake_success_title }}</h3>
+        <p>{{ t.intake_success_p1 }}</p>
         <p class="yb-modal-intake__success-contact">
-          Imens er du velkommen til at ringe på <a href="tel:+4553881209">+45 53 88 12 09</a> eller skrive til <a href="mailto:info@yogabible.dk">info@yogabible.dk</a>.
+          {{ t.intake_success_p2 | safe }}
         </p>
-        <button class="yb-btn yb-btn--outline" type="button" data-ybintake-close>Luk</button>
+        <button class="yb-btn yb-btn--outline" type="button" data-ybintake-close>{{ t.intake_close }}</button>
       </div>
     </div>
   </div>
@@ -777,7 +768,7 @@
 </style>
 <script>
 (function(){
-  var YBINTAKE_WEBAPP_URL="https://script.google.com/macros/s/AKfycbyhs4bfPcvcqaJRTmAlPTFf_uIOkFatZviKKO20nckBfGi78JqkNzy4FNpWztl7nQsSAA/exec";
+  var YBINTAKE_WEBAPP_URL="/.netlify/functions/lead";
   var modal=document.getElementById("ybintake-modal");
   var form=document.getElementById("ybintake-form");
   var frame=document.getElementsByName("ybintakeFrame")[0];
@@ -795,12 +786,11 @@
   var metaAt=document.getElementById("ybintake-submittedAt");
   try{if(modal.parentElement!==document.body)document.body.appendChild(modal);}catch(e){}
   var pendingSubmit=false;
-  var SUBS={
-    "Personlig praksis":["Basis & alignment","Dybere stillinger (inversions / backbends / splits)","Mobilitet (skuldre / hofter / ryg)","Hands-on justeringer (valgfrit)","\u00C5ndedr\u00E6t & fokus","Andet"],
-    "Undervisning":["Cueing & sprog (tydelighed / timing)","Stemme & presence (ro / autoritet)","Selvtillid & l\u00E6reridentitet","Sekvensering & klasseflow","Hands-on (etik & sikkerhed)","Klassepsykologi & energi","At blive mere efterspurgt","Andet"],
-    "Yoga Business":["Find job (CV / auditions / studio match)","Start studio / forretning","Lokation & lejekontrakt (sparring)","Pris & pakker (pricing)","Staff & drift","Booking-systemer","Marketing & strategi","SoMe / reels / produktion","YouTube / online kurser","Merch / brand","Tech / workflow (v\u00E6rkt\u00F8jer)","Andet"],
-    "Ikke sikker endnu":[]
-  };
+  var SUBS={};
+  SUBS[{{ t.intake_service_practice | dump | safe }}] = {{ t.intake_subs_practice.split("|") | dump | safe }};
+  SUBS[{{ t.intake_service_teaching | dump | safe }}] = {{ t.intake_subs_teaching.split("|") | dump | safe }};
+  SUBS[{{ t.intake_service_business | dump | safe }}] = {{ t.intake_subs_business.split("|") | dump | safe }};
+  SUBS[{{ t.intake_service_unsure | dump | safe }}] = [];
   function closeModal(){modal.setAttribute('aria-hidden','true');document.documentElement.style.overflow='';document.body.style.overflow='';}
   function openModal(){modal.setAttribute('aria-hidden','false');document.documentElement.style.overflow='hidden';document.body.style.overflow='hidden';}
   function clearSubs(){if(subsGrid)subsGrid.innerHTML="";if(notSure)notSure.checked=false;}
@@ -814,7 +804,7 @@
   function resetModal(){
     pendingSubmit=false;if(errorBox)errorBox.hidden=true;if(viewSuccess)viewSuccess.hidden=true;if(viewForm)viewForm.hidden=false;
     try{form.reset();}catch(e){}if(service)service.selectedIndex=0;hideSubs();
-    if(submitBtn){submitBtn.disabled=false;submitBtn.textContent="Send";}
+    if(submitBtn){submitBtn.disabled=false;submitBtn.textContent={{ t.intake_submit_short | dump | safe }};}
   }
   function showSuccess(){if(viewForm)viewForm.hidden=true;if(viewSuccess)viewSuccess.hidden=false;}
   function doOpenModal(){
@@ -831,14 +821,37 @@
   document.addEventListener("keydown",function(e){if(e.key==="Escape"&&modal.getAttribute('aria-hidden')==='false'){closeModal();resetModal();}});
   if(window.location.hash==="#yb-intake"){doOpenModal();}
   if(service){service.addEventListener("change",function(){renderSubs(service.value);});}
-  if(form&&frame){
+  if(form){
     form.addEventListener("submit",function(ev){
+      ev.preventDefault();
       if(errorBox)errorBox.hidden=true;var required=form.querySelectorAll("[required]");
-      for(var i=0;i<required.length;i++){if(!required[i].value){required[i].focus();ev.preventDefault();return;}}
-      if(metaAt)metaAt.value=new Date().toISOString();pendingSubmit=true;
-      if(submitBtn){submitBtn.disabled=true;submitBtn.textContent="Sender\u2026";}
+      for(var i=0;i<required.length;i++){if(!required[i].value){required[i].focus();return;}}
+      if(metaAt)metaAt.value=new Date().toISOString();
+      if(submitBtn){submitBtn.disabled=true;submitBtn.textContent={{ t.intake_js_sending | dump | safe }};}
+      var fd=new FormData(form);
+      var subs=[];fd.getAll("subcategories").forEach(function(v){subs.push(v);});
+      var payload={
+        action:"lead_mentorship",
+        firstName:fd.get("firstName")||"",
+        lastName:fd.get("lastName")||"",
+        email:fd.get("email")||"",
+        phone:fd.get("phone")||"",
+        service:fd.get("service")||"",
+        subcategories:subs,
+        message:fd.get("message")||"",
+        sourceUrl:window.location.href
+      };
+      fetch(YBINTAKE_WEBAPP_URL,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(payload)})
+        .then(function(r){return r.json();})
+        .then(function(data){
+          if(submitBtn){submitBtn.disabled=false;submitBtn.textContent={{ t.intake_submit_short | dump | safe }};}
+          if(data&&data.ok){showSuccess();}else{if(errorBox)errorBox.hidden=false;}
+        })
+        .catch(function(){
+          if(submitBtn){submitBtn.disabled=false;submitBtn.textContent={{ t.intake_submit_short | dump | safe }};}
+          if(errorBox)errorBox.hidden=false;
+        });
     });
-    frame.addEventListener("load",function(){if(!pendingSubmit)return;pendingSubmit=false;if(submitBtn){submitBtn.disabled=false;submitBtn.textContent="Send";}showSuccess();});
   }
   closeModal();
 })();
