@@ -322,7 +322,7 @@
         '<td class="yb-lead__td-chevron">&#9656;</td>' +
         '<td><strong>' + formatDate(appt.date) + '</strong>' + (isToday(appt.date) ? ' <span style="color:#f75c03;font-size:11px;font-weight:bold;">' + t('appt_today').toUpperCase() + '</span>' : '') + '</td>' +
         '<td style="font-weight:bold;font-size:15px;">' + esc(appt.time || '') + '</td>' +
-        '<td>' + esc(appt.client_name || '') + '<br><span style="color:#999;font-size:12px;">' + esc(appt.client_email || '') + '</span></td>' +
+        '<td>' + esc(appt.client_name || '') + '<br><span style="color:#999;font-size:12px;">' + esc(appt.client_email || '') + '</span>' + (appt.client_phone ? '<br><a href="tel:' + esc(appt.client_phone) + '" class="yb-appt__phone-link" onclick="event.stopPropagation()">' + esc(appt.client_phone) + '</a>' : '') + '</td>' +
         '<td>' + (TYPE_ICONS[appt.type] || '') + ' ' + getTypeLabel(appt.type) + '</td>' +
         '<td>' + (appt.duration || 30) + ' ' + t('appt_min') + '</td>' +
         '<td>' + getStatusBadge(appt.status) + '</td>' +

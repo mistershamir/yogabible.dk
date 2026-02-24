@@ -462,7 +462,7 @@
         '</td>' +
         '<td class="yb-lead__cell-contact">' +
           '<div class="yb-lead__cell-email-text">' + esc(l.email || '') + '</div>' +
-          (l.phone ? '<div class="yb-lead__cell-phone-text">' + esc(l.phone) + '</div>' : '') +
+          (l.phone ? '<a href="tel:' + esc(l.phone) + '" class="yb-lead__cell-phone-link" onclick="event.stopPropagation()">' + esc(l.phone) + '</a>' : '') +
         '</td>' +
         '<td><span class="yb-lead__type-badge">' + typeBadge(l.type) + '</span></td>' +
         '<td class="yb-lead__cell-program">' + esc((l.program || l.cohort_label || '').substring(0, 30)) + '</td>' +
@@ -2154,7 +2154,7 @@
         '<td class="yb-lead__cell-cb"><input type="checkbox" class="yb-app-row-cb" data-id="' + a.id + '"' + (isChecked ? ' checked' : '') + '></td>' +
         '<td class="yb-lead__cell-date">' + esc(a.app_id || a.id.substring(0, 8)) + '</td>' +
         '<td class="yb-lead__cell-name">' + esc((a.first_name || '') + ' ' + (a.last_name || '')).trim() + '</td>' +
-        '<td class="yb-lead__cell-contact"><div class="yb-lead__cell-email-text">' + esc(a.email || '') + '</div></td>' +
+        '<td class="yb-lead__cell-contact"><div class="yb-lead__cell-email-text">' + esc(a.email || '') + '</div>' + (a.phone ? '<a href="tel:' + esc(a.phone) + '" class="yb-lead__cell-phone-link" onclick="event.stopPropagation()">' + esc(a.phone) + '</a>' : '') + '</td>' +
         '<td><span class="yb-lead__type-badge">' + esc(a.program_type || '\u2014') + '</span></td>' +
         '<td class="yb-lead__cell-program">' + esc((a.course_name || a.cohort || '').substring(0, 30)) + '</td>' +
         '<td>' + esc(displayTrack(a.track)) + '</td>' +

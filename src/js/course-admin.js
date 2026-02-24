@@ -1638,7 +1638,7 @@
         '<td class="yb-lead__th-cb"><input type="checkbox" class="yb-user-row-cb" data-id="' + u.id + '"' + (isChecked ? ' checked' : '') + '></td>' +
         '<td>' + esc(name) + '</td>' +
         '<td style="font-size:0.8rem;color:#6F6A66">' + esc(email) + '</td>' +
-        '<td style="font-size:0.8rem;color:#6F6A66">' + esc(phone || '\u2014') + '</td>' +
+        '<td style="font-size:0.8rem">' + (phone ? '<a href="tel:' + esc(phone) + '" class="yb-lead__cell-phone-link" onclick="event.stopPropagation()">' + esc(phone) + '</a>' : '\u2014') + '</td>' +
         '<td><span class="yb-admin__badge">' + esc(roleLabel) + '</span></td>' +
         '<td style="font-size:0.8rem">' + esc(tier || '\u2014') + '</td>' +
         '<td style="text-align:center">' + waiverStatus + '</td>' +
@@ -2004,7 +2004,7 @@
       '</div>' +
       '<div class="yb-admin__user-meta">';
 
-    if (u.phone) html += '<div class="yb-admin__user-meta-item"><span class="yb-admin__user-meta-label">' + t('users_profile_phone') + '</span><span>' + esc(u.phone) + '</span></div>';
+    if (u.phone) html += '<div class="yb-admin__user-meta-item"><span class="yb-admin__user-meta-label">' + t('users_profile_phone') + '</span><a href="tel:' + esc(u.phone) + '" style="color:#f75c03">' + esc(u.phone) + '</a></div>';
     if (u.dateOfBirth) html += '<div class="yb-admin__user-meta-item"><span class="yb-admin__user-meta-label">' + t('users_profile_dob') + '</span><span>' + esc(u.dateOfBirth) + '</span></div>';
     if (u.yogaLevel) html += '<div class="yb-admin__user-meta-item"><span class="yb-admin__user-meta-label">' + t('users_profile_level') + '</span><span>' + esc(u.yogaLevel) + '</span></div>';
     if (u.practiceFrequency) html += '<div class="yb-admin__user-meta-item"><span class="yb-admin__user-meta-label">' + t('users_profile_frequency') + '</span><span>' + esc(u.practiceFrequency) + '</span></div>';
