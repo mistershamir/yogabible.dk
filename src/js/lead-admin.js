@@ -1158,7 +1158,7 @@
     var phone = currentLead.phone || '';
     var email = currentLead.email || '';
 
-    var bookingUrl = 'https://yogabible.dk/link#booking';
+    var bookingUrl = 'https://yogabible.dk/?booking=1';
 
     var html =
       (phone ? '<a href="tel:' + esc(phone) + '" class="yb-btn yb-btn--outline yb-btn--sm" data-action="log-call">\ud83d\udcde ' + t('leads_call') + '</a>' : '') +
@@ -1651,10 +1651,10 @@
      SMS TEMPLATES (from config)
      ══════════════════════════════════════════ */
   var SMS_TEMPLATES = {
-    ytt: "Hi {{first_name}}! Thank you for your interest in our Yoga Teacher Training. We've sent details to your email (check inbox + spam). Book a studio tour or consultation: https://yogabible.dk/link#booking — Warm regards, Yoga Bible",
-    course: "Hi {{first_name}}! Thank you for your interest in our {{program}} course. We've sent details to your email (check inbox + spam). Book a consultation: https://yogabible.dk/link#booking — Warm regards, Yoga Bible",
-    mentorship: "Hi {{first_name}}! Thank you for your interest in our Mentorship program. We've sent details to your email (check inbox + spam). Book a free consultation: https://yogabible.dk/link#booking — Warm regards, Yoga Bible",
-    'default': "Hi {{first_name}}! Thank you for reaching out to Yoga Bible. We've sent info to your email (check inbox + spam). Book a consultation: https://yogabible.dk/link#booking — Warm regards, Yoga Bible"
+    ytt: "Hi {{first_name}}! Thank you for your interest in our Yoga Teacher Training. We've sent details to your email (check inbox + spam). Book a studio tour or consultation: https://yogabible.dk/?booking=1 — Warm regards, Yoga Bible",
+    course: "Hi {{first_name}}! Thank you for your interest in our {{program}} course. We've sent details to your email (check inbox + spam). Book a consultation: https://yogabible.dk/?booking=1 — Warm regards, Yoga Bible",
+    mentorship: "Hi {{first_name}}! Thank you for your interest in our Mentorship program. We've sent details to your email (check inbox + spam). Book a free consultation: https://yogabible.dk/?booking=1 — Warm regards, Yoga Bible",
+    'default': "Hi {{first_name}}! Thank you for reaching out to Yoga Bible. We've sent info to your email (check inbox + spam). Book a consultation: https://yogabible.dk/?booking=1 — Warm regards, Yoga Bible"
   };
 
   function updateSMSCharCount() {
@@ -1766,7 +1766,7 @@
   function sendBookingSMS() {
     if (!currentLead || !currentLead.phone) { toast('No phone number', true); return; }
     var name = currentLead.first_name || '';
-    var bookingUrl = 'https://yogabible.dk/link#booking';
+    var bookingUrl = 'https://yogabible.dk/?booking=1';
     var msg = 'Hi ' + name + '! Ready to book a studio tour or consultation? Pick a date and time that suits you: ' + bookingUrl + ' — Yoga Bible';
     openSMSComposer();
     setTimeout(function () {
@@ -1783,7 +1783,7 @@
       var body = $('yb-email-body');
       var name = currentLead.first_name || '';
       if (subj) subj.value = 'Book en aftale — Yoga Bible';
-      if (body) body.value = 'Hej ' + name + ',\n\nTak for din interesse! Book en rundvisning, samtale eller prøvetime her:\nhttps://yogabible.dk/link#booking\n\nVi glæder os til at se dig.\n\nVarme hilsner,\nYoga Bible';
+      if (body) body.value = 'Hej ' + name + ',\n\nTak for din interesse! Book en rundvisning, samtale eller prøvetime her:\nhttps://yogabible.dk/?booking=1\n\nVi glæder os til at se dig.\n\nVarme hilsner,\nYoga Bible';
     }, 50);
   }
 

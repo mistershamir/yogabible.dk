@@ -10,7 +10,7 @@ const CONFIG = {
   EMAIL_ADMIN: 'info@yogabible.dk',
   FROM_NAME: 'Yoga Bible',
   BUNDLE_PROGRAM_ID: '__bundle__',
-  MEETING_LINK: 'https://yogabible.dk/link#booking',
+  MEETING_LINK: 'https://yogabible.dk/?booking=1',
   APPLICATION_FORM_URL: 'https://www.yogabible.dk/apply',
   STUDIO_ADDRESS: 'Torvegade 66, 1400 Kobenhavn K, Danmark',
   STUDIO_MAPS_URL: 'https://www.google.com/maps/search/?api=1&query=Torvegade+66,+1400+Copenhagen,+Denmark',
@@ -27,10 +27,10 @@ const CONFIG = {
 const AUTO_SMS_CONFIG = {
   enabled: true,
   templates: {
-    'ytt': "Hi {{first_name}}! Thank you for your interest in our Yoga Teacher Training. We've sent details to your email (check inbox + spam). Book a studio tour or consultation: https://yogabible.dk/link#booking — Warm regards, Yoga Bible",
-    'course': "Hi {{first_name}}! Thank you for your interest in our {{program}} course. We've sent details to your email (check inbox + spam). Book a consultation: https://yogabible.dk/link#booking — Warm regards, Yoga Bible",
-    'mentorship': "Hi {{first_name}}! Thank you for your interest in our Mentorship program. We've sent details to your email (check inbox + spam). Book a free consultation: https://yogabible.dk/link#booking — Warm regards, Yoga Bible",
-    'default': "Hi {{first_name}}! Thank you for reaching out to Yoga Bible. We've sent info to your email (check inbox + spam). Book a consultation: https://yogabible.dk/link#booking — Warm regards, Yoga Bible"
+    'ytt': "Hi {{first_name}}! Thank you for your interest in our Yoga Teacher Training. We've sent details to your email (check inbox + spam). Book a studio tour or consultation: https://yogabible.dk/?booking=1 — Warm regards, Yoga Bible",
+    'course': "Hi {{first_name}}! Thank you for your interest in our {{program}} course. We've sent details to your email (check inbox + spam). Book a consultation: https://yogabible.dk/?booking=1 — Warm regards, Yoga Bible",
+    'mentorship': "Hi {{first_name}}! Thank you for your interest in our Mentorship program. We've sent details to your email (check inbox + spam). Book a free consultation: https://yogabible.dk/?booking=1 — Warm regards, Yoga Bible",
+    'default': "Hi {{first_name}}! Thank you for reaching out to Yoga Bible. We've sent info to your email (check inbox + spam). Book a consultation: https://yogabible.dk/?booking=1 — Warm regards, Yoga Bible"
   }
 };
 
