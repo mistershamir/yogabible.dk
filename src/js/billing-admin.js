@@ -60,7 +60,20 @@
         headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
         body: JSON.stringify(body)
       });
-    }).then(function (res) { return res.json(); });
+    }).then(function (res) {
+      // Handle non-JSON responses (e.g. 502 timeout, 504 gateway errors)
+      return res.text().then(function (text) {
+        try {
+          return JSON.parse(text);
+        } catch (e) {
+          console.error('[billing] Non-JSON response (' + res.status + '):', text.substring(0, 200));
+          var msg = res.status === 502 || res.status === 504
+            ? (isDa ? 'Serveren svarede for langsomt (timeout). Prøv igen.' : 'Server timed out. Please try again.')
+            : (isDa ? 'Serverfejl (' + res.status + '). Prøv igen.' : 'Server error (' + res.status + '). Please try again.');
+          return { ok: false, error: msg };
+        }
+      });
+    });
   }
 
   /* ══════════════════════════════════════════

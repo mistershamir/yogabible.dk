@@ -185,7 +185,19 @@ async function getDraft(draftNumber) {
 
 async function bookInvoice(draftNumber) {
   // Get booking instructions first (required by e-conomic)
+  console.log('[economic] Fetching booking instructions for draft #' + draftNumber);
   const instructions = await ecoFetch(`/invoices/drafts/${draftNumber}/templates/booking-instructions`);
+
+  // Remove read-only / metadata fields that e-conomic rejects on POST
+  // (same pattern as createInvoice's template cleanup)
+  if (instructions) {
+    delete instructions.self;
+    delete instructions.metaData;
+    delete instructions.templates;
+    delete instructions.pdf;
+  }
+
+  console.log('[economic] Booking draft #' + draftNumber + ', payload keys:', instructions ? Object.keys(instructions).join(', ') : 'null');
   return ecoFetch('/invoices/booked', 'POST', instructions);
 }
 
@@ -216,12 +228,23 @@ async function getInvoicePdf(bookedNumber) {
   const pdfInfo = await ecoFetch(`/invoices/booked/${bookedNumber}/pdf`);
   if (!pdfInfo.download) throw new Error('Could not get PDF download URL from e-conomic');
 
-  console.log('[economic] Downloading PDF for invoice #' + bookedNumber);
-  // Try without auth headers first (signed URL), fall back to with auth
-  let pdfRes = await fetch(pdfInfo.download);
+  // Ensure download URL is absolute
+  let downloadUrl = pdfInfo.download;
+  if (!downloadUrl.startsWith('http')) downloadUrl = BASE + downloadUrl;
+
+  console.log('[economic] Downloading PDF for invoice #' + bookedNumber, 'from', downloadUrl.substring(0, 80));
+
+  // Download with auth headers (no Content-Type — this is a binary download, not JSON)
+  const dlHeaders = {
+    'X-AppSecretToken': process.env.ECONOMIC_APP_SECRET || '',
+    'X-AgreementGrantToken': process.env.ECONOMIC_AGREEMENT_TOKEN || ''
+  };
+
+  let pdfRes = await fetch(downloadUrl, { headers: dlHeaders });
   if (!pdfRes.ok) {
-    console.log('[economic] PDF download without auth failed (' + pdfRes.status + '), retrying with auth headers');
-    pdfRes = await fetch(pdfInfo.download, { headers: ecoHeaders() });
+    // Retry without auth in case it's a pre-signed URL
+    console.log('[economic] PDF download with auth failed (' + pdfRes.status + '), retrying without auth');
+    pdfRes = await fetch(downloadUrl);
   }
   if (!pdfRes.ok) throw new Error('PDF download failed: ' + pdfRes.status);
 
@@ -241,12 +264,12 @@ async function sendInvoiceEmail({ bookedNumber, recipientEmail }) {
   if (!bookedNumber) throw new Error('bookedNumber is required');
   if (!recipientEmail) throw new Error('recipientEmail is required');
 
-  // 1. Fetch invoice details
-  console.log('[economic] Fetching invoice', bookedNumber, 'for email to', recipientEmail);
-  const invoice = await ecoFetch(`/invoices/booked/${bookedNumber}`);
-
-  // 2. Get PDF
-  const pdfData = await getInvoicePdf(bookedNumber);
+  // 1. Fetch invoice details AND PDF in parallel (saves ~3-5s vs sequential)
+  console.log('[economic] Fetching invoice + PDF for #' + bookedNumber + ', email to', recipientEmail);
+  const [invoice, pdfData] = await Promise.all([
+    ecoFetch(`/invoices/booked/${bookedNumber}`),
+    getInvoicePdf(bookedNumber)
+  ]);
   const pdfBuffer = Buffer.from(pdfData.base64, 'base64');
 
   // 3. Build email
