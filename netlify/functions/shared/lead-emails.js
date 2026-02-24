@@ -97,8 +97,7 @@ function getPreparationPhaseHtml(programPageUrl) {
     '\u2705 Du kan begynde at deltage i klasser i studiet med det samme<br>' +
     '\u2705 Du opbygger styrke, fleksibilitet og rutine inden uddannelsesstart<br>' +
     '\u2705 Du m\u00f8der dine kommende medstuderende i et afslappet milj\u00f8<br>' +
-    '\u2705 Fuldt refunderbar \u2014 uden betingelser<br><br>' +
-    '<span style="font-size:13px;color:#555;">Forberedelsesfasen g\u00e6lder for alle tre 200-timers formater (4, 8 og 18 uger) \u2014 du v\u00e6lger format senere, s\u00e5 du kan starte uden at binde dig til \u00e9t.</span><br><br>' +
+    '\u2705 Dine klasser t\u00e6ller med i dine tr\u00e6ningstimer<br><br>' +
     '<a href="' + programPageUrl + '" style="display:inline-block;background:#f75c03;color:#ffffff;padding:10px 20px;text-decoration:none;border-radius:6px;font-weight:600;">Start forberedelsesfasen \u2014 3.750 kr.</a>' +
     '</div>';
 }
@@ -108,8 +107,7 @@ function getPreparationPhasePlain(programPageUrl) {
     '- Deltag i klasser i studiet med det samme\n' +
     '- Opbyg styrke, fleksibilitet og rutine inden uddannelsesstart\n' +
     '- M\u00f8d dine kommende medstuderende\n' +
-    '- Fuldt refunderbar \u2014 uden betingelser\n' +
-    'Forberedelsesfasen g\u00e6lder for alle tre 200-timers formater \u2014 du v\u00e6lger format senere.\n' +
+    '- Dine klasser t\u00e6ller med i dine tr\u00e6ningstimer\n' +
     'Start forberedelsesfasen: ' + programPageUrl + '\n';
 }
 
@@ -541,12 +539,11 @@ async function sendEmailMultiYTT(leadData) {
   // Preparation Phase — single block that covers all formats
   bodyHtml += '<div style="margin-top:20px;padding:16px;background:#F0FDF4;border-left:3px solid #22C55E;border-radius:4px;">';
   bodyHtml += '<strong style="color:#166534;">\ud83d\udca1 Smart tr\u00e6k: Start forberedelsesfasen nu</strong><br><br>';
-  bodyHtml += 'Du beh\u00f8ver ikke v\u00e6lge format endnu! Med forberedelsesfasen (3.750 kr.) f\u00e5r du:<br><br>';
+  bodyHtml += 'De fleste studerende starter med forberedelsesfasen allerede nu \u2014 og det er der en god grund til:<br><br>';
   bodyHtml += '\u2705 \u00d8jeblikkelig adgang til alle yogaklasser i studiet<br>';
   bodyHtml += '\u2705 Opbyg styrke, fleksibilitet og rutine inden uddannelsesstart<br>';
   bodyHtml += '\u2705 M\u00f8d dine kommende medstuderende i et afslappet milj\u00f8<br>';
-  bodyHtml += '\u2705 Fuldt refunderbar \u2014 uden betingelser<br><br>';
-  bodyHtml += '<span style="font-size:13px;color:#555;">Forberedelsesfasen sikrer din plads p\u00e5 uddannelsen \u2014 du v\u00e6lger det specifikke format (4, 8 eller 18 uger) senere, n\u00e5r du har f\u00e5et et bedre overblik. S\u00e5 du kan starte med det samme, helt uforpligtende.</span><br><br>';
+  bodyHtml += '\u2705 Dine klasser t\u00e6ller med i dine tr\u00e6ningstimer<br><br>';
   bodyHtml += '<a href="https://www.yogabible.dk/om-200hrs-yogalreruddannelser" style="display:inline-block;background:#f75c03;color:#ffffff;padding:10px 20px;text-decoration:none;border-radius:6px;font-weight:600;">Start forberedelsesfasen \u2014 3.750 kr.</a>';
   bodyHtml += '</div>';
 
@@ -578,10 +575,10 @@ async function sendEmailMultiYTT(leadData) {
   if (needsHousing) bodyPlain += getAccommodationSectionPlain(cityCountry);
   bodyPlain += '\n' + getPricingSectionPlain('23.750', '3.750', '20.000', 'samme pris for alle formater \u2014 rater mulig') + '\n';
   bodyPlain += '\nSmart tr\u00e6k: Start forberedelsesfasen nu (3.750 kr.)\n';
-  bodyPlain += '- Du beh\u00f8ver ikke v\u00e6lge format endnu\n';
   bodyPlain += '- \u00d8jeblikkelig adgang til alle yogaklasser i studiet\n';
   bodyPlain += '- Opbyg styrke og rutine inden uddannelsesstart\n';
-  bodyPlain += '- Fuldt refunderbar \u2014 uden betingelser\n';
+  bodyPlain += '- M\u00f8d dine kommende medstuderende\n';
+  bodyPlain += '- Dine klasser t\u00e6ller med i dine tr\u00e6ningstimer\n';
   bodyPlain += 'Start her: https://www.yogabible.dk/om-200hrs-yogalreruddannelser\n\n';
   bodyPlain += 'Book rundvisning eller samtale: ' + CONFIG.MEETING_LINK + '\n';
   bodyPlain += 'Gl\u00e6der mig til at h\u00f8re fra dig!';
