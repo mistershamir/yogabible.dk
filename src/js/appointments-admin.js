@@ -1,7 +1,7 @@
 /**
  * YOGA BIBLE — APPOINTMENT ADMIN
  * Full-featured Appointment Manager for the admin panel.
- * Reads/writes directly to Firestore (client-side SDK).
+ * All reads/writes go through the Netlify API (server-side Admin SDK).
  *
  * Features:
  *  - Sortable table with multi-column display
@@ -20,7 +20,6 @@
   /* ══════════════════════════════════════════
      STATE
      ══════════════════════════════════════════ */
-  var db;
   var T = {};
   var appointments = [];
   var apptLoaded = false;
@@ -132,20 +131,44 @@
   }
 
   /* ══════════════════════════════════════════
-     FIRESTORE DATA
+     API HELPERS
+     ══════════════════════════════════════════ */
+  function getToken() {
+    return window._ybFirebaseUser ? window._ybFirebaseUser.getIdToken() : Promise.resolve('');
+  }
+
+  function apiCall(method, params, body) {
+    return getToken().then(function (idToken) {
+      var url = '/.netlify/functions/appointments';
+      if (params) {
+        var qs = Object.keys(params).filter(function (k) { return params[k]; }).map(function (k) {
+          return encodeURIComponent(k) + '=' + encodeURIComponent(params[k]);
+        }).join('&');
+        if (qs) url += '?' + qs;
+      }
+      var opts = {
+        method: method,
+        headers: { 'Authorization': 'Bearer ' + idToken, 'Content-Type': 'application/json' }
+      };
+      if (body) opts.body = JSON.stringify(body);
+      return fetch(url, opts).then(function (r) { return r.json(); });
+    });
+  }
+
+  /* ══════════════════════════════════════════
+     LOAD DATA (via API)
      ══════════════════════════════════════════ */
   function loadAppointments() {
-    if (!db) return;
-    var ref = db.collection('appointments').orderBy('date', 'desc').limit(500);
-
-    ref.get().then(function (snap) {
-      appointments = [];
-      snap.forEach(function (doc) {
-        appointments.push(Object.assign({ id: doc.id }, doc.data()));
-      });
-      apptLoaded = true;
-      renderStats();
-      renderView();
+    apiCall('GET', { limit: 500 }).then(function (res) {
+      if (res.ok) {
+        appointments = res.data || [];
+        apptLoaded = true;
+        renderStats();
+        renderView();
+      } else {
+        console.error('[appointments] Load error:', res.error);
+        toast('Error loading appointments: ' + (res.error || 'Unknown'), true);
+      }
     }).catch(function (err) {
       console.error('[appointments] Load error:', err);
       toast('Error loading appointments', true);
@@ -513,52 +536,41 @@
   }
 
   function updateStatus(newStatus) {
-    db.collection('appointments').doc(currentApptId).update({
-      status: newStatus,
-      updated_at: firebase.firestore.FieldValue.serverTimestamp()
-    }).then(function () {
-      currentAppt.status = newStatus;
-      var idx = appointments.findIndex(function (a) { return a.id === currentApptId; });
-      if (idx >= 0) appointments[idx].status = newStatus;
-      renderDetailCard();
-      renderActions();
-      renderStats();
-      toast(t('appt_saved'));
+    apiCall('PUT', null, { id: currentApptId, status: newStatus }).then(function (res) {
+      if (res.ok) {
+        currentAppt.status = newStatus;
+        var idx = appointments.findIndex(function (a) { return a.id === currentApptId; });
+        if (idx >= 0) appointments[idx].status = newStatus;
+        renderDetailCard();
+        renderActions();
+        renderStats();
+        toast(t('appt_saved'));
+      } else {
+        toast('Error: ' + (res.error || 'Unknown'), true);
+      }
     }).catch(function (err) {
       toast('Error: ' + err.message, true);
     });
   }
 
   function deleteAppointment() {
-    db.collection('appointments').doc(currentApptId).delete().then(function () {
-      appointments = appointments.filter(function (a) { return a.id !== currentApptId; });
-      toast(isDa() ? 'Aftale slettet' : 'Appointment deleted');
-      backToList();
-      renderStats();
-      renderView();
+    apiCall('DELETE', { id: currentApptId }).then(function (res) {
+      if (res.ok) {
+        appointments = appointments.filter(function (a) { return a.id !== currentApptId; });
+        toast(isDa() ? 'Aftale slettet' : 'Appointment deleted');
+        backToList();
+        renderStats();
+        renderView();
+      } else {
+        toast('Error: ' + (res.error || 'Unknown'), true);
+      }
     }).catch(function (err) {
       toast('Error: ' + err.message, true);
     });
   }
 
   function sendManualReminder() {
-    // Call the appointment-reminders-like email via Netlify function
-    fetch('/.netlify/functions/appointment-book', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        action: 'book', // We'll reuse the confirmation email as a reminder
-        date: currentAppt.date,
-        time: currentAppt.time,
-        type: currentAppt.type,
-        name: currentAppt.client_name,
-        email: '__reminder_only__' // Flag to just send reminder
-      })
-    });
-    // For now, just send a custom reminder via the raw email approach
-    // Actually, let's use the admin send-email function
-    var token = window._ybFirebaseUser ? window._ybFirebaseUser.getIdToken() : Promise.resolve('');
-    (typeof token === 'object' ? token : Promise.resolve(token)).then(function (idToken) {
+    getToken().then(function (idToken) {
       return fetch('/.netlify/functions/send-email', {
         method: 'POST',
         headers: {
@@ -580,7 +592,7 @@
     }).then(function () {
       toast(t('appt_reminder_sent'));
       // Mark reminder as sent
-      db.collection('appointments').doc(currentApptId).update({ reminder_sent: true });
+      apiCall('PUT', null, { id: currentApptId, reminder_sent: true });
     }).catch(function (err) {
       toast('Error: ' + err.message, true);
     });
@@ -640,6 +652,7 @@
     var getVal = function (id) { var el = $(id); return el ? el.value : ''; };
 
     var updates = {
+      id: currentApptId,
       date: getVal('yb-appt-edit-date'),
       time: getVal('yb-appt-edit-time'),
       type: getVal('yb-appt-edit-type'),
@@ -649,18 +662,22 @@
       client_phone: getVal('yb-appt-edit-phone'),
       status: getVal('yb-appt-edit-status'),
       location: getVal('yb-appt-edit-location'),
-      notes: getVal('yb-appt-edit-notes'),
-      updated_at: firebase.firestore.FieldValue.serverTimestamp()
+      notes: getVal('yb-appt-edit-notes')
     };
 
-    db.collection('appointments').doc(currentApptId).update(updates).then(function () {
-      Object.assign(currentAppt, updates);
-      var idx = appointments.findIndex(function (a) { return a.id === currentApptId; });
-      if (idx >= 0) Object.assign(appointments[idx], updates);
-      renderDetailCard();
-      renderActions();
-      renderStats();
-      toast(t('appt_saved'));
+    apiCall('PUT', null, updates).then(function (res) {
+      if (res.ok) {
+        delete updates.id;
+        Object.assign(currentAppt, updates);
+        var idx = appointments.findIndex(function (a) { return a.id === currentApptId; });
+        if (idx >= 0) Object.assign(appointments[idx], updates);
+        renderDetailCard();
+        renderActions();
+        renderStats();
+        toast(t('appt_saved'));
+      } else {
+        toast('Error: ' + (res.error || 'Unknown'), true);
+      }
     }).catch(function (err) {
       toast('Error: ' + err.message, true);
     });
@@ -694,13 +711,14 @@
     var notes = currentAppt._notes || [];
     notes.push(note);
 
-    db.collection('appointments').doc(currentApptId).update({
-      _notes: notes,
-      updated_at: firebase.firestore.FieldValue.serverTimestamp()
-    }).then(function () {
-      currentAppt._notes = notes;
-      renderNotes();
-      toast(isDa() ? 'Note tilføjet' : 'Note added');
+    apiCall('PUT', null, { id: currentApptId, _notes: notes }).then(function (res) {
+      if (res.ok) {
+        currentAppt._notes = notes;
+        renderNotes();
+        toast(isDa() ? 'Note tilføjet' : 'Note added');
+      } else {
+        toast('Error: ' + (res.error || 'Unknown'), true);
+      }
     }).catch(function (err) {
       toast('Error: ' + err.message, true);
     });
@@ -713,20 +731,7 @@
     var btn = $('yb-appt-create-btn');
     if (btn) { btn.disabled = true; btn.textContent = t('appt_creating'); }
 
-    // Get auth token
-    var tokenPromise = window._ybFirebaseUser ? window._ybFirebaseUser.getIdToken() : Promise.resolve('');
-
-    tokenPromise.then(function (idToken) {
-      return fetch('/.netlify/functions/appointments', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': 'Bearer ' + idToken
-        },
-        body: JSON.stringify(formData)
-      });
-    }).then(function (r) { return r.json(); })
-    .then(function (data) {
+    apiCall('POST', null, formData).then(function (data) {
       if (data.ok) {
         toast(t('appt_created'));
         closeNewModal();
@@ -929,11 +934,10 @@
   function init() {
     T = window._ybAdminT || {};
 
-    // Wait for Firebase to be ready
+    // Wait for Firebase Auth to be ready (we use the API, not client-side Firestore)
     var checkInterval = setInterval(function () {
-      if (typeof firebase !== 'undefined' && firebase.firestore && firebase.auth) {
+      if (typeof firebase !== 'undefined' && firebase.auth) {
         clearInterval(checkInterval);
-        db = firebase.firestore();
 
         firebase.auth().onAuthStateChanged(function (user) {
           if (user) {
