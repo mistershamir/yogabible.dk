@@ -63,6 +63,10 @@
           <button class="yb-profile__tab" type="button" data-yb-tab="applications">{{ t.tab_applications }}</button>
           <button class="yb-profile__tab" type="button" data-yb-tab="receipts">{{ t.tab_receipts }}</button>
           <button class="yb-profile__tab" type="button" data-yb-tab="giftcards">{{ t.tab_giftcards }}</button>
+          {# CRM tabs — visible only for marketing and admin roles #}
+          <button class="yb-profile__tab yb-profile__tab--crm" type="button" data-yb-tab="crm-leads" data-yb-role="marketing,admin" style="display:none">{{ t.tab_crm_leads }}</button>
+          <button class="yb-profile__tab yb-profile__tab--crm" type="button" data-yb-tab="crm-applications" data-yb-role="marketing,admin" style="display:none">{{ t.tab_crm_applications }}</button>
+          <button class="yb-profile__tab yb-profile__tab--crm" type="button" data-yb-tab="crm-appointments" data-yb-role="marketing,admin" style="display:none">{{ t.tab_crm_appointments }}</button>
         </div>
 
         {# ═══════ TAB: Profile ═══════ #}
@@ -699,9 +703,58 @@
           </div>
         </div>
 
+        {# ═══════ CRM Panels (marketing/admin) — switch t to course-admin translations ═══════ #}
+        {% set t_profile = t %}
+        {% set t = i18n["course-admin"][lang or "da"] %}
+
+        {# ═══════ TAB: CRM Leads ═══════ #}
+        <div class="yb-profile__tab-panel" data-yb-panel="crm-leads" data-yb-role="marketing,admin" style="display:none">
+          <div class="yb-profile__content-area yb-profile__crm-panel">
+            {% include "partials/admin-leads-panel.njk" %}
+          </div>
+        </div>
+
+        {# ═══════ TAB: CRM Applications ═══════ #}
+        <div class="yb-profile__tab-panel" data-yb-panel="crm-applications" data-yb-role="marketing,admin" style="display:none">
+          <div class="yb-profile__content-area yb-profile__crm-panel">
+            {% include "partials/admin-applications-panel.njk" %}
+          </div>
+        </div>
+
+        {# ═══════ TAB: CRM Appointments ═══════ #}
+        <div class="yb-profile__tab-panel" data-yb-panel="crm-appointments" data-yb-role="marketing,admin" style="display:none">
+          <div class="yb-profile__content-area yb-profile__crm-panel">
+            {% include "partials/admin-appointments-panel.njk" %}
+          </div>
+        </div>
+
+        {# Restore profile translations #}
+        {% set t = t_profile %}
+
       </div><!-- end .yb-profile__wrap -->
     </div><!-- end #yb-profile-user -->
+  </div>
+
+  {# Bulk Status Picker Modal (for CRM panels) #}
+  <div id="yb-bulk-status-modal" class="yb-lead__modal" hidden>
+    <div class="yb-lead__modal-overlay" data-close-bulk-status></div>
+    <div class="yb-bulk-status__box">
+      <div class="yb-bulk-status__header">
+        <h3 id="yb-bulk-status-title">{{ t.tab_crm_leads }}</h3>
+        <button type="button" class="yb-admin__icon-btn" data-close-bulk-status>&times;</button>
+      </div>
+      <p class="yb-bulk-status__subtitle" id="yb-bulk-status-subtitle"></p>
+      <div class="yb-bulk-status__grid" id="yb-bulk-status-grid"></div>
+    </div>
   </div>
 </section>
 
 <script src="/js/profile.js"></script>
+{# CRM scripts — loaded for all users but only activate when role is marketing/admin #}
+<script>
+  window._ybAdminLang = '{{ lang or "da" }}';
+  window._ybAdminT = {{ i18n["course-admin"][lang or "da"] | dump | safe }};
+</script>
+<script src="/js/lead-admin.js"></script>
+<script src="/js/campaign-wizard.js"></script>
+<script src="/js/appointments-admin.js"></script>

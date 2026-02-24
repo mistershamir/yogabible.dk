@@ -624,6 +624,19 @@
 
   </div>{# end container #}
 
+  {# ── Bulk Status Picker Modal ── #}
+  <div id="yb-bulk-status-modal" class="yb-lead__modal" hidden>
+    <div class="yb-lead__modal-overlay" data-close-bulk-status></div>
+    <div class="yb-bulk-status__box">
+      <div class="yb-bulk-status__header">
+        <h3 id="yb-bulk-status-title">{{ t.leads_bulk_status }}</h3>
+        <button type="button" class="yb-admin__icon-btn" data-close-bulk-status>&times;</button>
+      </div>
+      <p class="yb-bulk-status__subtitle" id="yb-bulk-status-subtitle"></p>
+      <div class="yb-bulk-status__grid" id="yb-bulk-status-grid"></div>
+    </div>
+  </div>
+
   {# Toast #}
   <div class="yb-admin__toast" id="yb-admin-toast" hidden></div>
 </section>

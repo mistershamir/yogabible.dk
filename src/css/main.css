@@ -11637,6 +11637,21 @@ a.yb-kontakt-detail__value:hover {
   font-weight: 700;
 }
 
+/* CRM tabs (marketing/admin only) — subtle accent separator */
+.yb-profile__tab--crm {
+  border-left: 1px solid #E8E4E0;
+  margin-left: 4px;
+  padding-left: 20px;
+  color: #3f99a5;
+}
+.yb-profile__tab--crm.is-active {
+  color: #0F0F0F;
+  border-bottom-color: #3f99a5;
+}
+.yb-profile__crm-panel {
+  padding-top: 1rem;
+}
+
 .yb-profile__tab-panel {
   display: none;
 }
@@ -18431,13 +18446,107 @@ a.yb-kontakt-detail__value:hover {
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  padding: 0.6rem 1rem;
-  background: #FFF8E1;
-  border: 1px solid #FFE082;
-  border-radius: 8px;
+  padding: 0.75rem 1.25rem;
+  background: linear-gradient(135deg, #FFF8E1 0%, #FFFCF9 100%);
+  border: 1.5px solid #f75c03;
+  border-radius: 12px;
   margin-bottom: 0.75rem;
+  flex-wrap: wrap;
 }
-.yb-lead__bulk-count-text { font-size: 0.85rem; font-weight: 700; color: #E65100; margin-right: auto; }
+.yb-lead__bulk-count-text {
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: #f75c03;
+  margin-right: auto;
+  white-space: nowrap;
+}
+.yb-lead__bulk-bar .yb-btn--outline {
+  border-color: #E8E4E0;
+  background: #FFFCF9;
+  color: #0F0F0F;
+  border-radius: 8px;
+  font-weight: 600;
+  transition: all 0.15s;
+}
+.yb-lead__bulk-bar .yb-btn--outline:hover {
+  border-color: #f75c03;
+  color: #f75c03;
+  background: rgba(247, 92, 3, 0.04);
+}
+.yb-lead__bulk-bar .yb-admin__icon-btn--danger {
+  border-color: #E8E4E0;
+}
+.yb-lead__bulk-bar .yb-admin__icon-btn--danger:hover {
+  border-color: #dc2626;
+  color: #dc2626;
+  background: rgba(220, 38, 38, 0.04);
+}
+
+/* ── Bulk Status Picker Modal ── */
+.yb-bulk-status__box {
+  position: relative;
+  background: #FFFCF9;
+  border-radius: 16px;
+  padding: 1.5rem;
+  width: 90vw;
+  max-width: 520px;
+  max-height: 85vh;
+  overflow-y: auto;
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.18);
+  z-index: 1001;
+  animation: yb-expand-in 0.2s ease;
+}
+.yb-bulk-status__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.25rem;
+}
+.yb-bulk-status__header h3 {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #0F0F0F;
+  margin: 0;
+}
+.yb-bulk-status__subtitle {
+  font-size: 0.82rem;
+  color: #6F6A66;
+  margin: 0 0 1rem;
+}
+.yb-bulk-status__grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.5rem;
+}
+.yb-bulk-status__option {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.6rem 0.85rem;
+  border: 1.5px solid #E8E4E0;
+  border-radius: 10px;
+  background: #FFFCF9;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #0F0F0F;
+  transition: all 0.15s;
+  text-align: left;
+  width: 100%;
+}
+.yb-bulk-status__option:hover {
+  border-color: #f75c03;
+  background: rgba(247, 92, 3, 0.04);
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(247, 92, 3, 0.1);
+}
+.yb-bulk-status__option-icon { font-size: 1rem; flex-shrink: 0; }
+.yb-bulk-status__option-label { flex: 1; }
+@media (max-width: 480px) {
+  .yb-bulk-status__grid { grid-template-columns: 1fr; }
+  .yb-bulk-status__box { padding: 1rem; }
+}
 
 /* ── Table ── */
 .yb-lead__table-wrap { overflow-x: auto; }
