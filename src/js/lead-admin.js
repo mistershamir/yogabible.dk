@@ -3277,7 +3277,8 @@
 
       // Close modals on overlay click
       if (e.target.classList.contains('yb-lead__modal-overlay')) {
-        e.target.hidden = true;
+        var parentModal = e.target.closest('.yb-lead__modal');
+        if (parentModal) parentModal.hidden = true;
       }
     });
 
@@ -3584,35 +3585,26 @@
      INIT
      ══════════════════════════════════════════ */
   function createModals() {
-    // SMS Composer Modal
+    // SMS Composer Modal — uses existing .yb-lead__modal structure
     if (!$('yb-lead-sms-modal')) {
       var sms = document.createElement('div');
       sms.id = 'yb-lead-sms-modal';
-      sms.className = 'yb-lead__modal-overlay';
+      sms.className = 'yb-lead__modal';
       sms.hidden = true;
       sms.innerHTML =
+        '<div class="yb-lead__modal-overlay"></div>' +
         '<div class="yb-lead__modal-box">' +
-          '<div class="yb-lead__modal-header">' +
-            '<h3>\ud83d\udcf1 Send SMS</h3>' +
-            '<button class="yb-lead__modal-close" data-action="sms-cancel" type="button">&times;</button>' +
+          '<h3>\ud83d\udcf1 Send SMS</h3>' +
+          '<div class="yb-lead__modal-to">' +
+            'Til: <strong id="yb-sms-recipient-info"></strong>' +
           '</div>' +
-          '<div class="yb-lead__modal-body">' +
-            '<div class="yb-lead__modal-recipient">' +
-              'Til: <strong id="yb-sms-recipient-info"></strong>' +
-              '<span id="yb-sms-recipient-detail" hidden style="margin-left:6px;font-size:0.75rem;color:#999"></span>' +
-            '</div>' +
-            '<label>Skabelon</label>' +
-            '<div class="yb-lead__tpl-chips" id="yb-sms-tpl-chips"></div>' +
-            '<label>Besked</label>' +
-            '<textarea id="yb-sms-message" rows="4" placeholder="Skriv din SMS her..."></textarea>' +
-            '<div class="yb-lead__modal-charcount"><span id="yb-sms-charcount">0</span> tegn \u00b7 <span id="yb-sms-segments">1</span> segment(er)</div>' +
-            '<div id="yb-sms-progress" hidden style="margin-top:8px">' +
-              '<div style="background:#E8E4E0;border-radius:4px;height:6px;overflow:hidden">' +
-                '<div id="yb-sms-progress-bar" style="width:0%;height:100%;background:var(--yb-brand,#f75c03);transition:width 0.3s"></div>' +
-              '</div>' +
-            '</div>' +
+          '<div class="yb-lead__tpl-chips" id="yb-sms-tpl-chips"></div>' +
+          '<textarea id="yb-sms-message" class="yb-lead__modal-textarea" rows="4" placeholder="Skriv din SMS her..."></textarea>' +
+          '<div class="yb-lead__sms-charcount"><span id="yb-sms-charcount">0</span> tegn \u00b7 <span id="yb-sms-segments">1</span> segment(er)</div>' +
+          '<div id="yb-sms-progress" class="yb-lead__send-progress" hidden>' +
+            '<div class="yb-lead__progress-bar"><div id="yb-sms-progress-bar" class="yb-lead__progress-fill"></div></div>' +
           '</div>' +
-          '<div class="yb-lead__modal-footer">' +
+          '<div class="yb-lead__modal-actions">' +
             '<button class="yb-btn yb-btn--outline yb-btn--sm" data-action="sms-cancel" type="button">Annuller</button>' +
             '<button class="yb-btn yb-btn--primary yb-btn--sm" data-action="sms-send" id="yb-sms-send-btn" type="button">\u27a4 Send SMS</button>' +
           '</div>' +
@@ -3634,30 +3626,23 @@
       }
     }
 
-    // Email Composer Modal
+    // Email Composer Modal — uses existing .yb-lead__modal structure
     if (!$('yb-lead-email-modal')) {
       var email = document.createElement('div');
       email.id = 'yb-lead-email-modal';
-      email.className = 'yb-lead__modal-overlay';
+      email.className = 'yb-lead__modal';
       email.hidden = true;
       email.innerHTML =
+        '<div class="yb-lead__modal-overlay"></div>' +
         '<div class="yb-lead__modal-box">' +
-          '<div class="yb-lead__modal-header">' +
-            '<h3>\u2709\ufe0f Send Email</h3>' +
-            '<button class="yb-lead__modal-close" data-action="email-cancel" type="button">&times;</button>' +
+          '<h3>\u2709\ufe0f Send Email</h3>' +
+          '<div class="yb-lead__modal-to">' +
+            'Til: <strong id="yb-email-recipient-info"></strong>' +
           '</div>' +
-          '<div class="yb-lead__modal-body">' +
-            '<div class="yb-lead__modal-recipient">' +
-              'Til: <strong id="yb-email-recipient-info"></strong>' +
-            '</div>' +
-            '<label>Skabelon</label>' +
-            '<select id="yb-email-template-select" style="margin-bottom:12px"><option value="">V\u00e6lg skabelon...</option></select>' +
-            '<label>Emne</label>' +
-            '<input type="text" id="yb-email-subject" placeholder="Emne...">' +
-            '<label>Besked</label>' +
-            '<textarea id="yb-email-body" rows="8" placeholder="Skriv din email her..."></textarea>' +
-          '</div>' +
-          '<div class="yb-lead__modal-footer">' +
+          '<select id="yb-email-template-select" class="yb-lead__modal-select"><option value="">V\u00e6lg skabelon...</option></select>' +
+          '<input type="text" id="yb-email-subject" class="yb-lead__modal-input" placeholder="Emne...">' +
+          '<textarea id="yb-email-body" class="yb-lead__modal-textarea" rows="8" placeholder="Skriv din email her..."></textarea>' +
+          '<div class="yb-lead__modal-actions">' +
             '<button class="yb-btn yb-btn--outline yb-btn--sm" data-action="email-cancel" type="button">Annuller</button>' +
             '<button class="yb-btn yb-btn--primary yb-btn--sm" data-action="email-send" id="yb-email-send-btn" type="button">\u27a4 Send Email</button>' +
           '</div>' +
