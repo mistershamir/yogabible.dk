@@ -7,3 +7,10 @@ create-cloudinary-folders.js
 
 # Local Netlify folder
 .netlify
+
+# Lead agent secrets (never commit)
+lead-agent/.env
+lead-agent/logs/
+lead-agent/*.json
+lead-agent/__pycache__/
+lead-agent/tools/__pycache__/
