@@ -225,26 +225,71 @@ async function getBooked(bookedNumber) {
  * download URL requires server-side auth or may expire quickly).
  */
 async function getInvoicePdf(bookedNumber) {
-  const pdfInfo = await ecoFetch(`/invoices/booked/${bookedNumber}/pdf`);
-  if (!pdfInfo.download) throw new Error('Could not get PDF download URL from e-conomic');
+  console.log('[economic] Fetching PDF for invoice #' + bookedNumber);
 
-  // Ensure download URL is absolute
-  let downloadUrl = pdfInfo.download;
-  if (!downloadUrl.startsWith('http')) downloadUrl = BASE + downloadUrl;
+  // Fetch the PDF endpoint directly (NOT via ecoFetch — response may be binary PDF, not JSON)
+  const pdfEndpoint = `${BASE}/invoices/booked/${bookedNumber}/pdf`;
+  const res = await fetch(pdfEndpoint, { headers: ecoHeaders() });
 
-  console.log('[economic] Downloading PDF for invoice #' + bookedNumber, 'from', downloadUrl.substring(0, 80));
+  if (!res.ok) {
+    const errText = await res.text();
+    console.error('[economic] PDF endpoint failed:', res.status, errText.substring(0, 300));
+    throw new Error('PDF fetch failed (' + res.status + '): ' + errText.substring(0, 200));
+  }
 
-  // Download with auth headers (no Content-Type — this is a binary download, not JSON)
+  const contentType = (res.headers.get('content-type') || '').toLowerCase();
+
+  // Case 1: Direct PDF binary (modern e-conomic API returns this)
+  if (contentType.includes('pdf') || contentType.includes('octet-stream')) {
+    const pdfBuffer = Buffer.from(await res.arrayBuffer());
+    console.log('[economic] Got direct PDF binary, size:', pdfBuffer.length, 'bytes');
+    return {
+      base64: pdfBuffer.toString('base64'),
+      filename: 'Faktura-' + bookedNumber + '.pdf',
+      size: pdfBuffer.length
+    };
+  }
+
+  // Case 2: Read the body once as ArrayBuffer, then inspect
+  const rawBody = await res.arrayBuffer();
+  const text = Buffer.from(rawBody).toString('utf-8');
+
+  // Check if it's actually a PDF with wrong/missing Content-Type header
+  if (text.startsWith('%PDF')) {
+    console.log('[economic] Got PDF binary (unlabeled Content-Type), size:', rawBody.byteLength, 'bytes');
+    return {
+      base64: Buffer.from(rawBody).toString('base64'),
+      filename: 'Faktura-' + bookedNumber + '.pdf',
+      size: rawBody.byteLength
+    };
+  }
+
+  // Case 3: JSON with a download URL (older e-conomic API format)
+  let pdfInfo;
+  try { pdfInfo = JSON.parse(text); } catch {
+    throw new Error('Unexpected PDF response (Content-Type: ' + contentType + ', body starts: ' + text.substring(0, 100) + ')');
+  }
+
+  console.log('[economic] PDF JSON response keys:', Object.keys(pdfInfo).join(', '));
+
+  const downloadUrl = pdfInfo.download || pdfInfo.pdf;
+  if (!downloadUrl) {
+    throw new Error('No download URL in PDF response. Keys: ' + Object.keys(pdfInfo).join(', '));
+  }
+
+  const fullUrl = downloadUrl.startsWith('http') ? downloadUrl : BASE + downloadUrl;
+  console.log('[economic] Downloading PDF from:', fullUrl.substring(0, 100));
+
+  // Download with auth headers (no Content-Type — binary download)
   const dlHeaders = {
     'X-AppSecretToken': process.env.ECONOMIC_APP_SECRET || '',
     'X-AgreementGrantToken': process.env.ECONOMIC_AGREEMENT_TOKEN || ''
   };
 
-  let pdfRes = await fetch(downloadUrl, { headers: dlHeaders });
+  let pdfRes = await fetch(fullUrl, { headers: dlHeaders });
   if (!pdfRes.ok) {
-    // Retry without auth in case it's a pre-signed URL
     console.log('[economic] PDF download with auth failed (' + pdfRes.status + '), retrying without auth');
-    pdfRes = await fetch(downloadUrl);
+    pdfRes = await fetch(fullUrl);
   }
   if (!pdfRes.ok) throw new Error('PDF download failed: ' + pdfRes.status);
 
