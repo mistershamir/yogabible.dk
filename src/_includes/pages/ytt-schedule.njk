@@ -17,6 +17,9 @@
       margin-bottom: 12px;
     ">{{ t.hero_eyebrow }}</p>
 
+    {# Program selector — populated by JS #}
+    <div id="yts-program-selector" style="margin-bottom: 16px;"></div>
+
     <h1 id="yts-program-title" style="
       font-size: clamp(2rem, 5vw, 3.2rem);
       font-weight: 700;
@@ -59,6 +62,9 @@
     </button>
 
     <p style="margin-top: 16px; font-size: .85rem; color: rgba(255,255,255,.45);">{{ t.hero_tip }}</p>
+
+    {# Route toggle — populated by JS for multi-route programs #}
+    <div id="yts-route-toggle" style="margin-top: 24px;"></div>
   </div>
 </section>
 
@@ -122,6 +128,14 @@
     <span style="width:14px;height:14px;border-radius:4px;background:#2ecc71;display:inline-block;"></span>
     {{ t.legend_graduation }}
   </span>
+  <span id="yts-legend-shared" style="display:none;align-items:center;gap:6px;">
+    <span style="width:14px;height:14px;border-radius:4px;background:#3498db;display:inline-block;"></span>
+    {{ t.legend_shared }}
+  </span>
+  <span id="yts-legend-off" style="display:none;align-items:center;gap:6px;">
+    <span style="width:14px;height:14px;border-radius:4px;background:#c9c5c0;display:inline-block;"></span>
+    {{ t.legend_off }}
+  </span>
 </section>
 
 {# ── Schedule grid — populated by JS ─────────────── #}
@@ -134,11 +148,12 @@
 </section>
 
 {# ── Typical week visual ─────────────────────────── #}
-<section style="
+<section id="yts-typical-section" style="
   background: #F5F3F0;
   padding: 60px 24px;
 ">
   <div style="max-width: 800px; margin: 0 auto;">
+    <div id="yts-typical-inner">
     <h2 style="font-size: 1.5rem; font-weight: 700; margin-bottom: 24px; text-align: center;">{{ t.typical_title }}</h2>
     <div style="
       display: grid;
@@ -174,6 +189,7 @@
       </div>
       {% endfor %}
     </div>
+    </div>{# /yts-typical-inner #}
   </div>
 </section>
 
@@ -366,12 +382,51 @@
     border-top: 2px solid #f75c03;
   }
 
+  /* OFF week */
+  .yts-week--off {
+    margin-bottom: 16px;
+  }
+  .yts-week__header--off {
+    border-bottom-style: dashed;
+    border-bottom-color: #c9c5c0;
+    opacity: .7;
+  }
+  .yts-week__number--off {
+    background: #c9c5c0;
+  }
+  .yts-week__off-label {
+    font-size: .88rem;
+    color: #6F6A66;
+    font-style: italic;
+  }
+
+  /* Shared session (both groups) */
+  .yts-day--shared {
+    border-color: #3498db !important;
+    background: #EBF5FB !important;
+  }
+  .yts-shared-pill {
+    display: inline-block;
+    background: #3498db;
+    color: #fff;
+    padding: 2px 8px;
+    border-radius: 50px;
+    font-size: .65rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: .04em;
+    vertical-align: middle;
+    margin-left: 6px;
+  }
+
   /* Responsive: stack typical week on mobile */
   @media (max-width: 700px) {
-    #yts-typical-week {
+    #yts-typical-week,
+    #yts-typical-grid {
       grid-template-columns: repeat(2, 1fr) !important;
     }
-    #yts-typical-week > div:last-child {
+    #yts-typical-week > div:last-child,
+    #yts-typical-grid > div:last-child {
       grid-column: span 2;
     }
     #yts-stats > div {
@@ -386,13 +441,19 @@
     .yts-day__topic { font-size: .85rem; }
     .yts-week__header { flex-wrap: wrap; }
     .yts-week__theme { margin-left: 0; width: 100%; font-size: .78rem; }
+    #yts-route-toggle > div {
+      flex-direction: column !important;
+      max-width: 100% !important;
+    }
   }
 
   @media (max-width: 480px) {
-    #yts-typical-week {
+    #yts-typical-week,
+    #yts-typical-grid {
       grid-template-columns: 1fr !important;
     }
-    #yts-typical-week > div:last-child {
+    #yts-typical-week > div:last-child,
+    #yts-typical-grid > div:last-child {
       grid-column: span 1;
     }
   }

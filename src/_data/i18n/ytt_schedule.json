@@ -24,6 +24,8 @@
     "legend_free": "Fri dag / selvpraksis",
     "legend_weekend": "Weekendworkshop",
     "legend_graduation": "Eksamen & graduation",
+    "legend_shared": "Begge hold (fælles)",
+    "legend_off": "Fri uge / pause",
 
     "overview_title": "Overblik",
     "overview_weeks": "uger",
@@ -88,6 +90,8 @@
     "legend_free": "Free day / self-practice",
     "legend_weekend": "Weekend workshop",
     "legend_graduation": "Exam & graduation",
+    "legend_shared": "Both groups (shared)",
+    "legend_off": "Week off / break",
 
     "overview_title": "Overview",
     "overview_weeks": "weeks",
