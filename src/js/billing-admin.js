@@ -142,6 +142,15 @@
     if (!vzOpts) vzOpts = '<option value="1">Hjemme</option>';
     var vzSel = $('yb-billing-nc-vat');
     if (vzSel) vzSel.innerHTML = vzOpts;
+
+    // Products
+    var products = settings.products || [];
+    var prodOpts = products.map(function (p) {
+      return '<option value="' + esc(p.productNumber) + '">' + esc(p.productNumber + ' — ' + p.name) + '</option>';
+    }).join('');
+    if (!prodOpts) prodOpts = '<option value="">' + (isDa ? 'Ingen produkter fundet' : 'No products found') + '</option>';
+    var prodSel = $('yb-billing-product');
+    if (prodSel) prodSel.innerHTML = prodOpts;
   }
 
   /* ══════════════════════════════════════════
@@ -681,8 +690,11 @@
     var lines = buildLines(vals);
     var paymentTermsNum = parseInt(($('yb-billing-payment-terms') || {}).value) || 1;
     var layoutNum = parseInt(($('yb-billing-layout') || {}).value) || (settings.layouts.length ? settings.layouts[0].layoutNumber : 19);
+    var productNum = ($('yb-billing-product') || {}).value || '';
     var notes = ($('yb-billing-notes') || {}).value || '';
     var ref = ($('yb-billing-ref') || {}).value || '';
+
+    if (!productNum) { toast(isDa ? 'Vælg et produkt' : 'Select a product', true); busy = false; return; }
 
     var invoice = {
       customerNumber: selectedCustomer.customerNumber,
@@ -691,6 +703,7 @@
       dueDate: lines[0].date,
       paymentTermsNumber: paymentTermsNum,
       layoutNumber: layoutNum,
+      productNumber: productNum,
       currency: 'DKK',
       lines: lines.map(function (l) {
         return { description: l.description, unitNetPrice: l.unitNetPrice, quantity: 1 };
@@ -787,8 +800,11 @@
     var lines = buildLines(vals);
     var paymentTermsNum = parseInt(($('yb-billing-payment-terms') || {}).value) || 1;
     var layoutNum = parseInt(($('yb-billing-layout') || {}).value) || (settings.layouts.length ? settings.layouts[0].layoutNumber : 19);
+    var productNum = ($('yb-billing-product') || {}).value || '';
     var notes = ($('yb-billing-notes') || {}).value || '';
     var ref = ($('yb-billing-ref') || {}).value || '';
+
+    if (!productNum) { busy = false; if (btn) btn.textContent = t('billing_create_book_send'); toast(isDa ? 'Vælg et produkt' : 'Select a product', true); return; }
 
     var invoice = {
       customerNumber: selectedCustomer.customerNumber,
@@ -797,6 +813,7 @@
       dueDate: lines[0].date,
       paymentTermsNumber: paymentTermsNum,
       layoutNumber: layoutNum,
+      productNumber: productNum,
       currency: 'DKK',
       lines: lines.map(function (l) {
         return { description: l.description, unitNetPrice: l.unitNetPrice, quantity: 1 };
