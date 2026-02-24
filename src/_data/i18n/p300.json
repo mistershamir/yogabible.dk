@@ -10,7 +10,7 @@
     "hero_trust1": "Yoga Alliance RYS 300",
     "hero_trust2": "24 Uger · Maj–December 2026",
     "hero_trust3": "RYT-500 Certificering",
-    "hero_refund_note": "5.750 kr sikrer din plads — øjeblikkelig adgang til ressourcer",
+    "hero_refund_note": "5.750 kr sikrer din plads — giver øjeblikkelig adgang til materialer",
 
     "snap_eyebrow": "Programmet",
     "snap_title": "300 timer. Ét mål: Mastery.",
@@ -272,7 +272,7 @@
     "faq2_q": "Kan jeg tage 300-timer uden RYT-200 fra Yoga Bible?",
     "faq2_a": "Ja. Du skal have en RYT-200 certificering fra enhver Yoga Alliance-registreret skole. Vi gennemgår dine credentials ved tilmelding.",
     "faq3_q": "Hvad er forberedelsesfasen?",
-    "faq3_a": "Forberedelsesfasen koster 5.750 kr og sikrer din plads på uddannelsen. Du modtager velkomstmateriale, pensumoversigt og adgang til online-ressourcer med det samme. Giv os venligst besked hurtigst muligt ved afmelding, så vi kan nå at fylde din plads.",
+    "faq3_a": "Forberedelsesfasen koster 5.750 kr og sikrer din plads på uddannelsen. Vi beder dig blot give os besked hurtigst muligt ved afmelding, så vi kan nå at fylde din plads. Du modtager velkomstmateriale, pensumoversigt og adgang til online-ressourcer med det samme.",
     "faq4_q": "Hvordan betaler jeg resten?",
     "faq4_a": "De resterende 28.000 kr betales i løbet af 2026 i dit eget tempo. Du aftaler en betalingsplan direkte med din uddannelsesleder — enten som engangsbeløb eller i rater.",
     "faq5_q": "Er der online-muligheder?",
@@ -289,7 +289,7 @@
     "final_cta_prep": "Start Forberedelsesfasen — 5.750 kr",
     "final_cta_schedule": "Få Skema",
     "final_cta_info": "Book Gratis Infomøde",
-    "final_cta_refund": ""
+    "final_cta_refund": "Giv os besked hurtigst muligt ved afmelding."
   },
   "en": {
     "hero_tagline": "300 Hours · Yoga Alliance RYT-500",
@@ -302,7 +302,7 @@
     "hero_trust1": "Yoga Alliance RYS 300",
     "hero_trust2": "24 Weeks · May–December 2026",
     "hero_trust3": "RYT-500 Certification",
-    "hero_refund_note": "5,750 kr secures your spot — immediate access to resources",
+    "hero_refund_note": "5,750 kr secures your spot — immediate access to materials",
 
     "snap_eyebrow": "The Program",
     "snap_title": "300 hours. One goal: Mastery.",
@@ -564,7 +564,7 @@
     "faq2_q": "Can I take the 300-hour without an RYT-200 from Yoga Bible?",
     "faq2_a": "Yes. You need an RYT-200 certification from any Yoga Alliance-registered school. We review your credentials upon enrollment.",
     "faq3_q": "What is the Preparation Phase?",
-    "faq3_a": "The Preparation Phase costs 5,750 kr and secures your spot in the program. You receive welcome materials, syllabus overview and access to online resources immediately. Please let us know as soon as possible if your plans change, so we have time to fill your spot.",
+    "faq3_a": "The Preparation Phase costs 5,750 kr and secures your spot in the program. We simply ask that you let us know as soon as possible if you need to cancel, so we have time to fill your spot. You receive welcome materials, syllabus overview and access to online resources immediately.",
     "faq4_q": "How do I pay the remainder?",
     "faq4_a": "The remaining 28,000 kr is payable throughout 2026 at your own pace. You arrange a payment plan directly with your program director — either as a lump sum or in installments.",
     "faq5_q": "Are there online options?",
@@ -581,6 +581,6 @@
     "final_cta_prep": "Start Preparation Phase — 5,750 kr",
     "final_cta_schedule": "Get Schedule",
     "final_cta_info": "Book Free Info Session",
-    "final_cta_refund": ""
+    "final_cta_refund": "Please let us know as soon as possible if you need to cancel."
   }
 }

@@ -132,7 +132,9 @@ function processLead(payload, action) {
     call_attempts: 0,
     sms_status: '',
     last_contact: null,
-    followup_date: null
+    followup_date: null,
+    multi_format: payload.multiFormat || '',
+    all_formats: payload.allFormats || ''
   };
 
   switch (action) {

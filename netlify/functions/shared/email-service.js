@@ -86,7 +86,7 @@ function getAccommodationSectionHtml(cityCountry) {
 function getPricingSectionHtml(fullPrice, deposit, remaining, rateNote) {
   return '<div style="margin-top:20px;padding:14px;background:#FFFCF9;border-left:3px solid #f75c03;border-radius:4px;">' +
     '<strong>Pris:</strong> ' + fullPrice + ' kr. (ingen ekstra gebyrer)<br>' +
-    '<strong>Depositum:</strong> ' + deposit + ' kr. sikrer din plads<br>' +
+    '<strong>Forberedelsesfasen:</strong> ' + deposit + ' kr. sikrer din plads<br>' +
     '<strong>Rest:</strong> ' + remaining + ' kr. (' + rateNote + ')' +
     '</div>';
 }
