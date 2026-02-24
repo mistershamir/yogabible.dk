@@ -83,8 +83,34 @@ function getAccommodationSectionPlain(cityCountry) {
 
 function getPricingSectionPlain(fullPrice, deposit, remaining, rateNote) {
   return 'Pris: ' + fullPrice + ' kr. (ingen ekstra gebyrer)\n' +
-    'Depositum: ' + deposit + ' kr.\n' +
+    'Forberedelsesfasen: ' + deposit + ' kr.\n' +
     'Rest: ' + remaining + ' kr. (' + rateNote + ')\n';
+}
+
+// =========================================================================
+// Preparation Phase promotion block
+// =========================================================================
+
+function getPreparationPhaseHtml(programPageUrl) {
+  return '<div style="margin-top:16px;padding:16px;background:#F0FDF4;border-left:3px solid #22C55E;border-radius:4px;">' +
+    '<strong style="color:#166534;">\ud83d\udca1 Vidste du?</strong> De fleste studerende starter med forberedelsesfasen allerede nu \u2014 og det er der en god grund til:<br><br>' +
+    '\u2705 Du kan begynde at deltage i klasser i studiet med det samme<br>' +
+    '\u2705 Du opbygger styrke, fleksibilitet og rutine inden uddannelsesstart<br>' +
+    '\u2705 Du m\u00f8der dine kommende medstuderende i et afslappet milj\u00f8<br>' +
+    '\u2705 Fuldt refunderbar \u2014 uden betingelser<br><br>' +
+    '<span style="font-size:13px;color:#555;">Forberedelsesfasen g\u00e6lder for alle tre 200-timers formater (4, 8 og 18 uger) \u2014 du v\u00e6lger format senere, s\u00e5 du kan starte uden at binde dig til \u00e9t.</span><br><br>' +
+    '<a href="' + programPageUrl + '" style="display:inline-block;background:#f75c03;color:#ffffff;padding:10px 20px;text-decoration:none;border-radius:6px;font-weight:600;">Start forberedelsesfasen \u2014 3.750 kr.</a>' +
+    '</div>';
+}
+
+function getPreparationPhasePlain(programPageUrl) {
+  return '\nVidste du? De fleste studerende starter med forberedelsesfasen allerede nu:\n' +
+    '- Deltag i klasser i studiet med det samme\n' +
+    '- Opbyg styrke, fleksibilitet og rutine inden uddannelsesstart\n' +
+    '- M\u00f8d dine kommende medstuderende\n' +
+    '- Fuldt refunderbar \u2014 uden betingelser\n' +
+    'Forberedelsesfasen g\u00e6lder for alle tre 200-timers formater \u2014 du v\u00e6lger format senere.\n' +
+    'Start forberedelsesfasen: ' + programPageUrl + '\n';
 }
 
 // =========================================================================
@@ -260,9 +286,11 @@ async function sendEmail4wYTT(leadData) {
 
   bodyHtml += '<div style="margin-top:20px;padding:14px;background:#FFFCF9;border-left:3px solid #f75c03;border-radius:4px;">';
   bodyHtml += '<strong>Pris:</strong> ' + fullPrice + ' kr.' + discountNote + '<br>';
-  bodyHtml += '<strong>Depositum:</strong> 3.750 kr. sikrer din plads<br>';
+  bodyHtml += '<strong>Forberedelsesfasen:</strong> 3.750 kr. sikrer din plads<br>';
   bodyHtml += '<strong>Rest:</strong> ' + remaining + ' kr. (' + rateNote + ')';
   bodyHtml += '</div>';
+
+  bodyHtml += getPreparationPhaseHtml('https://www.yogabible.dk/200-hours-4-weeks-intensive-programs');
 
   bodyHtml += '<p style="margin-top:20px;"><a href="https://www.yogabible.dk/200-hours-4-weeks-intensive-programs" style="color:#f75c03;">L\u00e6s mere om 4-ugers programmet</a>';
   bodyHtml += ' \u00b7 <a href="https://www.yogabible.dk/om-200hrs-yogalreruddannelser" style="color:#f75c03;">Om vores 200-timers uddannelse</a></p>';
@@ -275,8 +303,9 @@ async function sendEmail4wYTT(leadData) {
   bodyPlain += hasSchedule ? 'Jeg har vedh\u00e6ftet det fulde skema for ' + program + '.\n\n' : 'Skemaet for ' + program + ' er ved at blive f\u00e6rdiggjort. Jeg sender det snarest.\n\n';
   bodyPlain += programHighlightsPlain();
   if (needsHousing) bodyPlain += getAccommodationSectionPlain(cityCountry);
-  bodyPlain += '\nPris: ' + fullPrice + ' kr.' + discountNote + '\nDepositum: 3.750 kr.\nRest: ' + remaining + ' kr. (' + rateNote + ')\n\n';
-  bodyPlain += 'L\u00e6s mere: https://www.yogabible.dk/200-hours-4-weeks-intensive-programs\n';
+  bodyPlain += '\nPris: ' + fullPrice + ' kr.' + discountNote + '\nForberedelsesfasen: 3.750 kr.\nRest: ' + remaining + ' kr. (' + rateNote + ')\n\n';
+  bodyPlain += getPreparationPhasePlain('https://www.yogabible.dk/200-hours-4-weeks-intensive-programs');
+  bodyPlain += '\nL\u00e6s mere: https://www.yogabible.dk/200-hours-4-weeks-intensive-programs\n';
   bodyPlain += 'Book rundvisning: ' + CONFIG.MEETING_LINK + '\n';
   bodyPlain += getEnglishNotePlain() + getSignaturePlain() + getUnsubscribeFooterPlain(leadData.email);
 
@@ -319,8 +348,9 @@ async function sendEmail8wYTT(leadData) {
 
   if (needsHousing) bodyHtml += getAccommodationSectionHtml(cityCountry);
   bodyHtml += getPricingSectionHtml('23.750', '3.750', '20.000', 'kan betales i 2\u20134 rater');
+  bodyHtml += getPreparationPhaseHtml('https://www.yogabible.dk/200-hours-8-weeks-semi-intensive-programs');
 
-  bodyHtml += '<p style="margin-top:20px;"><a href="https://www.yogabible.dk/200-hours-8-weeks-flexible-programs" style="color:#f75c03;">L\u00e6s mere om 8-ugers programmet</a>';
+  bodyHtml += '<p style="margin-top:20px;"><a href="https://www.yogabible.dk/200-hours-8-weeks-semi-intensive-programs" style="color:#f75c03;">L\u00e6s mere om 8-ugers programmet</a>';
   bodyHtml += ' \u00b7 <a href="https://www.yogabible.dk/om-200hrs-yogalreruddannelser" style="color:#f75c03;">Om vores 200-timers uddannelse</a></p>';
   bodyHtml += bookingCta() + questionPrompt();
   bodyHtml += getEnglishNoteHtml() + getSignatureHtml() + getUnsubscribeFooterHtml(leadData.email);
@@ -331,7 +361,8 @@ async function sendEmail8wYTT(leadData) {
   bodyPlain += programHighlightsPlain(['Online backup hvis du ikke kan m\u00f8de op']);
   if (needsHousing) bodyPlain += getAccommodationSectionPlain(cityCountry);
   bodyPlain += '\n' + getPricingSectionPlain('23.750', '3.750', '20.000', 'kan betales i 2\u20134 rater') + '\n';
-  bodyPlain += 'L\u00e6s mere: https://www.yogabible.dk/200-hours-8-weeks-flexible-programs\n';
+  bodyPlain += getPreparationPhasePlain('https://www.yogabible.dk/200-hours-8-weeks-semi-intensive-programs');
+  bodyPlain += '\nL\u00e6s mere: https://www.yogabible.dk/200-hours-8-weeks-semi-intensive-programs\n';
   bodyPlain += 'Book rundvisning: ' + CONFIG.MEETING_LINK + '\n';
   bodyPlain += getEnglishNotePlain() + getSignaturePlain() + getUnsubscribeFooterPlain(leadData.email);
 
@@ -379,6 +410,7 @@ async function sendEmail18wYTT(leadData) {
 
   if (needsHousing) bodyHtml += getAccommodationSectionHtml(cityCountry);
   bodyHtml += getPricingSectionHtml('23.750', '3.750', '20.000', 'kan betales i op til 5 rater');
+  bodyHtml += getPreparationPhaseHtml('https://www.yogabible.dk/200-hours-18-weeks-flexible-programs');
 
   bodyHtml += '<p style="margin-top:20px;"><a href="https://www.yogabible.dk/200-hours-18-weeks-flexible-programs" style="color:#f75c03;">L\u00e6s mere om 18-ugers programmet</a>';
   bodyHtml += ' \u00b7 <a href="https://www.yogabible.dk/om-200hrs-yogalreruddannelser" style="color:#f75c03;">Om vores 200-timers uddannelse</a></p>';
@@ -397,7 +429,8 @@ async function sendEmail18wYTT(leadData) {
   bodyPlain += 'Holdene starter slutningen af februar/marts 2026. Vi holder holdene sm\u00e5 \u2014 der er stadig ledige pladser.\n\n';
   if (needsHousing) bodyPlain += getAccommodationSectionPlain(cityCountry);
   bodyPlain += getPricingSectionPlain('23.750', '3.750', '20.000', 'op til 5 rater') + '\n';
-  bodyPlain += 'L\u00e6s mere: https://www.yogabible.dk/200-hours-18-weeks-flexible-programs\n';
+  bodyPlain += getPreparationPhasePlain('https://www.yogabible.dk/200-hours-18-weeks-flexible-programs');
+  bodyPlain += '\nL\u00e6s mere: https://www.yogabible.dk/200-hours-18-weeks-flexible-programs\n';
   bodyPlain += 'Book rundvisning: ' + CONFIG.MEETING_LINK + '\n';
   bodyPlain += getEnglishNotePlain() + getSignaturePlain() + getUnsubscribeFooterPlain(leadData.email);
 
