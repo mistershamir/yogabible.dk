@@ -23337,6 +23337,333 @@ a.yb-kontakt-detail__value:hover {
 .yb-appt__cal-cell--today .yb-appt__cal-date { color: #f75c03; }
 
 
+/* ═══════════════════════════════════════════════════════════
+   ADMIN PANEL — COMPREHENSIVE RESPONSIVE OVERHAUL
+   Mobile + Tablet responsive styles for all admin tabs
+   ═══════════════════════════════════════════════════════════ */
+
+/* ── Clickable phone links in tables ── */
+a.yb-lead__cell-phone-link {
+  font-size: 0.72rem;
+  color: #f75c03;
+  text-decoration: none;
+  display: block;
+}
+a.yb-lead__cell-phone-link:hover { text-decoration: underline; }
+
+a.yb-appt__phone-link {
+  color: #f75c03;
+  text-decoration: none;
+  font-size: 12px;
+}
+a.yb-appt__phone-link:hover { text-decoration: underline; }
+
+/* ── Tablet (max-width: 1024px) ── */
+@media (max-width: 1024px) {
+  /* Tabs: smaller padding, smaller font */
+  .yb-admin .yb-profile__tabs {
+    padding: 0 12px;
+    gap: 0;
+  }
+  .yb-admin .yb-profile__tab {
+    padding: 10px 12px;
+    font-size: 0.82rem;
+  }
+
+  /* View head: allow wrapping */
+  .yb-admin__view-head {
+    gap: 0.5rem;
+  }
+
+  /* Stats grid: 3 columns on tablet */
+  .yb-lead__stats-grid { grid-template-columns: repeat(3, 1fr); }
+
+  /* Lead table: hide follow-up column on tablet */
+  .yb-lead__th-followup,
+  .yb-lead__cell-followup { display: none; }
+
+  /* Kanban columns: narrower */
+  .yb-lead__kanban-col { flex: 0 0 200px; min-width: 200px; }
+
+  /* Appointment calendar cells: smaller */
+  .yb-appt__cal-cell { min-height: 60px; padding: 2px; }
+}
+
+/* ── Mobile (max-width: 768px) ── */
+@media (max-width: 768px) {
+  /* Admin container: reduce padding */
+  .yb-admin .container { padding-left: 12px; padding-right: 12px; }
+
+  /* Tabs: scrollable strip with compact sizing */
+  .yb-admin .yb-profile__tabs {
+    padding: 0 8px;
+    gap: 0;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+  .yb-admin .yb-profile__tabs::-webkit-scrollbar { display: none; }
+  .yb-admin .yb-profile__tab {
+    padding: 8px 10px;
+    font-size: 0.78rem;
+    flex-shrink: 0;
+  }
+
+  /* View head: stack title and buttons */
+  .yb-admin__view-head {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.5rem;
+  }
+  .yb-admin__view-head h2 { font-size: 1.1rem; }
+  .yb-admin__view-head-btns {
+    display: flex;
+    gap: 0.4rem;
+    flex-wrap: wrap;
+  }
+
+  /* View toggle: full width */
+  .yb-lead__view-toggle { width: 100%; }
+  .yb-lead__view-btn { flex: 1; justify-content: center; font-size: 0.78rem; padding: 6px 8px; }
+
+  /* Filter bar: full stack */
+  .yb-lead__filter-bar {
+    flex-direction: column;
+    gap: 0.4rem;
+  }
+  .yb-lead__search-form { width: 100%; min-width: 0; }
+  .yb-lead__filter { width: 100%; min-width: 0; }
+
+  /* Stats grid: 2 columns */
+  .yb-lead__stats-grid { grid-template-columns: repeat(2, 1fr); gap: 0.4rem; }
+  .yb-lead__stat-card { padding: 0.65rem; }
+  .yb-lead__stat-value { font-size: 1.2rem; }
+  .yb-lead__stat-label { font-size: 0.65rem; }
+
+  /* Bulk actions bar: wrap and compact */
+  .yb-lead__bulk-bar {
+    flex-wrap: wrap;
+    gap: 0.35rem;
+    padding: 0.5rem 0.6rem;
+    font-size: 0.78rem;
+  }
+  .yb-lead__bulk-bar button,
+  .yb-lead__bulk-bar .yb-btn { font-size: 0.75rem; padding: 4px 8px; }
+
+  /* Table: force horizontal scroll, min-width */
+  .yb-lead__table-wrap,
+  .yb-admin__table-wrap {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    margin: 0 -12px;
+    padding: 0 12px;
+  }
+  .yb-lead__table { min-width: 600px; font-size: 0.78rem; }
+  .yb-admin__table { min-width: 500px; font-size: 0.78rem; }
+
+  /* Hide more table columns on mobile */
+  .yb-lead__cell-program,
+  .yb-lead__cell-source,
+  .yb-lead__th-program,
+  .yb-lead__th-source,
+  .yb-lead__th-lastcontact,
+  .yb-lead__cell-lastcontact,
+  .yb-lead__th-notes,
+  .yb-lead__cell-notes,
+  .yb-lead__th-app,
+  .yb-lead__cell-app,
+  .yb-lead__th-temp,
+  .yb-lead__cell-temp,
+  .yb-lead__th-followup,
+  .yb-lead__cell-followup { display: none; }
+
+  /* Table cells: tighter padding */
+  .yb-lead__table th,
+  .yb-lead__table td { padding: 0.4rem 0.5rem; }
+  .yb-lead__cell-name { max-width: 120px; font-size: 0.8rem; }
+  .yb-lead__cell-contact { max-width: 150px; }
+  .yb-lead__cell-email-text { font-size: 0.75rem; }
+
+  /* Expanded panel: compact */
+  .yb-lead__expanded-panel { padding: 0.5rem 0.65rem; }
+  .yb-lead__exp-row { gap: 0.5rem; }
+  .yb-lead__exp-stat { min-width: 60px; }
+  .yb-lead__exp-label { font-size: 0.6rem; }
+  .yb-lead__exp-value { font-size: 0.78rem; }
+  .yb-lead__exp-actions { gap: 0.3rem; }
+  .yb-lead__exp-actions .yb-btn { font-size: 0.72rem; padding: 3px 6px; }
+
+  /* Detail views: stack everything */
+  .yb-lead__detail-cards { grid-template-columns: 1fr; gap: 0.65rem; }
+  .yb-lead__section-card { padding: 1rem; }
+  .yb-lead__section-card--full { grid-column: auto; }
+  .yb-lead__card-row { gap: 0.4rem; padding: 0.35rem 0; font-size: 0.82rem; }
+  .yb-lead__card-label { min-width: 70px; font-size: 0.75rem; }
+  .yb-lead__card-value { font-size: 0.82rem; word-break: break-word; }
+
+  /* Detail status bar: 2 columns */
+  .yb-lead__detail-status-bar { grid-template-columns: 1fr 1fr; gap: 0.5rem; }
+  .yb-lead__status-grid { grid-template-columns: 1fr; gap: 0.5rem; }
+
+  /* Actions row in detail view */
+  .yb-lead__actions { flex-wrap: wrap; gap: 0.35rem; }
+  .yb-lead__actions .yb-btn { font-size: 0.78rem; padding: 5px 10px; }
+
+  /* SMS conversation: tighter */
+  .yb-lead__sms-bubble--outbound,
+  .yb-lead__sms-bubble--inbound { max-width: 92%; font-size: 0.82rem; }
+
+  /* Notes timeline */
+  .yb-lead__notes-timeline { max-height: 300px; }
+  .yb-lead__note-form { flex-direction: column; gap: 0.4rem; }
+  .yb-lead__note-form input { width: 100%; }
+  .yb-lead__note-form button { width: 100%; }
+
+  /* Forms: single column */
+  .yb-admin__form { max-width: 100%; }
+  .yb-admin__form-row { grid-template-columns: 1fr; gap: 0.65rem; }
+  .yb-admin__field input,
+  .yb-admin__field textarea,
+  .yb-admin__field select,
+  .yb-admin__select { font-size: 16px; /* prevent iOS zoom */ }
+
+  /* Kanban: smaller columns */
+  .yb-lead__kanban-col { flex: 0 0 160px; min-width: 160px; }
+  .yb-lead__kanban-col-header { padding: 0.5rem; }
+  .yb-lead__kanban-col-name { font-size: 0.72rem; }
+  .yb-lead__kanban-card { padding: 0.5rem; }
+  .yb-lead__kanban-card-name { font-size: 0.75rem; }
+
+  /* Appointment calendar: compact cells */
+  .yb-appt__cal-cell { min-height: 48px; padding: 1px; font-size: 0.7rem; }
+  .yb-appt__cal-date { font-size: 10px; }
+  .yb-appt__cal-day-name { font-size: 10px; }
+  .yb-appt__calendar-title { font-size: 16px; }
+  .yb-appt__calendar-nav { gap: 6px; }
+  .yb-appt__calendar-nav button { font-size: 0.78rem; padding: 4px 8px; }
+
+  /* Appointment detail: stack grid */
+  .yb-lead__detail-grid {
+    grid-template-columns: 1fr !important;
+    gap: 8px !important;
+    padding: 12px !important;
+  }
+
+  /* Campaign modals: full screen on mobile */
+  .yb-lead__campaign-box { width: 98vw; max-height: 96vh; border-radius: 8px; }
+  .yb-lead__campaign-recipients { grid-template-columns: 1fr; }
+  .yb-lead__campaign-email-compose { grid-template-columns: 1fr; }
+  .yb-lead__campaign-email-sidebar {
+    border-right: none;
+    border-bottom: 1px solid #E8E4E0;
+    padding-right: 0;
+    padding-bottom: 0.75rem;
+  }
+  .yb-lead__campaign-results-grid { grid-template-columns: 1fr 1fr; }
+  .yb-lead__campaign-schedule-grid { grid-template-columns: 1fr; }
+  .yb-lead__campaign-summary-cards { grid-template-columns: 1fr; }
+  .yb-lead__campaign-tabs { gap: 0; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  .yb-lead__campaign-tab { font-size: 0.75rem; padding: 6px 8px; white-space: nowrap; }
+
+  /* Modal overlay: less padding */
+  .yb-lead__modal .yb-lead__campaign-box { padding: 1rem; }
+
+  /* Admin header compact */
+  .yb-admin__header { margin-bottom: 1rem; }
+
+  /* Document browser: compact */
+  .yb-doc-browser { padding: 0.5rem; }
+  .yb-doc-browser__toolbar { flex-wrap: wrap; }
+  .yb-doc-browser__search { min-width: 0; }
+
+  /* Toast: full width on mobile */
+  .yb-admin__toast { left: 1rem; right: 1rem; bottom: 1rem; text-align: center; font-size: 0.82rem; }
+
+  /* Breadcrumb: smaller */
+  .yb-admin__breadcrumb { font-size: 0.78rem; }
+
+  /* Enrollment form: stack */
+  .yb-admin__enroll-form { flex-direction: column; gap: 0.4rem; }
+  .yb-admin__enroll-form button { width: 100%; }
+
+  /* Editor: stack */
+  .yb-admin__editor-wrap { grid-template-columns: 1fr; }
+  .yb-admin__preview-panel { border-left: none; border-top: 1px solid #E8E4E0; min-height: 200px; }
+
+  /* Stats grid for admin */
+  .yb-admin__stats-grid { grid-template-columns: repeat(2, 1fr); }
+
+  /* User toolbar */
+  .yb-admin__user-toolbar { flex-direction: column; gap: 0.4rem; }
+  .yb-admin__user-search { width: 100%; }
+  .yb-admin__user-meta { grid-template-columns: 1fr; }
+}
+
+/* ── Small mobile (max-width: 480px) ── */
+@media (max-width: 480px) {
+  /* Tabs: even more compact */
+  .yb-admin .yb-profile__tab {
+    padding: 7px 8px;
+    font-size: 0.72rem;
+  }
+
+  /* Stats: single column */
+  .yb-lead__stats-grid { grid-template-columns: 1fr; }
+  .yb-admin__stats-grid { grid-template-columns: 1fr; }
+
+  /* Table: even more compact */
+  .yb-lead__table { min-width: 480px; font-size: 0.72rem; }
+  .yb-lead__table th,
+  .yb-lead__table td { padding: 0.3rem 0.35rem; }
+  .yb-lead__cell-name { max-width: 100px; font-size: 0.75rem; }
+  .yb-lead__cell-contact { max-width: 120px; }
+
+  /* Chevron smaller */
+  .yb-lead__th-chevron { width: 22px; }
+  .yb-lead__cell-chevron { width: 22px; }
+  .yb-lead__chevron-btn { width: 20px; height: 20px; }
+
+  /* Checkbox column smaller */
+  .yb-lead__th-cb,
+  .yb-lead__cell-cb { width: 32px; padding: 0.3rem 0.15rem; }
+
+  /* Calendar: 5-col fallback or very compact 7-col */
+  .yb-appt__cal-cell { min-height: 36px; border-radius: 4px; }
+  .yb-appt__cal-date { font-size: 9px; }
+  .yb-appt__cal-body { gap: 2px; }
+
+  /* Kanban: even smaller columns */
+  .yb-lead__kanban-col { flex: 0 0 140px; min-width: 140px; }
+
+  /* Detail view: compact cards */
+  .yb-lead__section-card { padding: 0.75rem; }
+  .yb-lead__card-title { font-size: 0.72rem; }
+  .yb-lead__card-row { font-size: 0.78rem; }
+
+  /* Campaign modal: tighter */
+  .yb-lead__campaign-box { padding: 0.75rem; }
+  .yb-lead__campaign-results-grid { grid-template-columns: 1fr; }
+
+  /* Appointment detail grid */
+  .yb-lead__detail-grid {
+    padding: 8px !important;
+    font-size: 0.82rem;
+  }
+
+  /* View head */
+  .yb-admin__view-head h2 { font-size: 1rem; }
+
+  /* Bulk bar compact */
+  .yb-lead__bulk-bar { padding: 0.35rem 0.5rem; }
+  .yb-lead__bulk-count-text { font-size: 0.75rem; }
+}
+
+/* ── Landscape phone (max-height: 500px) AND (max-width: 900px) ── */
+@media (max-height: 500px) and (max-width: 900px) {
+  .yb-lead__campaign-box { max-height: 94vh; }
+  .yb-appt__cal-cell { min-height: 32px; }
+}
+
+
 /* ── Link page booking buttons ── */
 .yb-link__item--booking {
   display: flex;

@@ -357,7 +357,7 @@
           (isSelected ? ' checked' : '') + '></td>' +
         '<td style="white-space:nowrap">' + fmtDate(c.created_at) + '</td>' +
         '<td><strong>' + name + '</strong></td>' +
-        '<td><div style="font-size:0.85rem">' + email + (phone ? '<br><span style="color:#888">' + phone + '</span>' : '') + '</div></td>' +
+        '<td><div style="font-size:0.85rem">' + email + (phone ? '<br><a href="tel:' + phone + '" class="yb-lead__cell-phone-link" onclick="event.stopPropagation()">' + phone + '</a>' : '') + '</div></td>' +
         '<td style="font-size:0.85rem;max-width:160px">' + category + '</td>' +
         '<td style="font-size:0.85rem">' + role + '</td>' +
         '<td style="font-size:0.85rem">' + exp + '</td>' +
@@ -476,7 +476,7 @@
       '<div class="yb-lead__detail-field"><span class="yb-lead__detail-label">Status</span>' + statusHtml + '</div>' +
       '<div class="yb-lead__detail-field"><span class="yb-lead__detail-label">Email</span>' +
         '<a href="mailto:' + esc(c.email || '') + '" style="color:#f75c03">' + esc(c.email || '—') + '</a></div>' +
-      '<div class="yb-lead__detail-field"><span class="yb-lead__detail-label">Phone</span>' + esc(c.phone || '—') + '</div>' +
+      '<div class="yb-lead__detail-field"><span class="yb-lead__detail-label">Phone</span>' + (c.phone ? '<a href="tel:' + esc(c.phone) + '" style="color:#f75c03">' + esc(c.phone) + '</a>' : '—') + '</div>' +
       '<div class="yb-lead__detail-field"><span class="yb-lead__detail-label">Category</span>' + esc(c.category || '—') + '</div>' +
       '<div class="yb-lead__detail-field"><span class="yb-lead__detail-label">Subcategory</span>' + esc(c.subcategory || '—') + '</div>' +
       '<div class="yb-lead__detail-field"><span class="yb-lead__detail-label">Role</span>' + esc(c.role || '—') + '</div>' +
