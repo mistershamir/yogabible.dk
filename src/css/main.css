@@ -8605,15 +8605,17 @@ a.yb-kontakt-detail__value:hover {
   background: rgba(247, 92, 3, 0.04);
 }
 
-.yb-btn--outline-white {
+.yb-btn--outline-white,
+button.yb-btn--outline-white {
   background: transparent;
   color: #fff;
-  border: 2px solid #f75c03;
+  border: 2px solid #f75c03 !important;
 }
 
-.yb-btn--outline-white:hover {
+.yb-btn--outline-white:hover,
+button.yb-btn--outline-white:hover {
   background: rgba(247, 92, 3, 0.12);
-  border-color: #ff9966;
+  border-color: #ff9966 !important;
 }
 
 .yb-btn--outline-light {
