@@ -40,8 +40,8 @@ function wrapHtml(body) {
 }
 
 function bookingCta() {
-  return '<p style="margin-top:20px;">Har du lyst til at se studiet, eller har du sp\u00f8rgsm\u00e5l? Book en uforpligtende rundvisning eller en kort samtale:</p>' +
-    '<p><a href="' + CONFIG.MEETING_LINK + '" style="display:inline-block;background:#f75c03;color:#ffffff;padding:12px 24px;text-decoration:none;border-radius:6px;font-weight:600;">Book rundvisning eller samtale</a></p>';
+  return '<p style="margin-top:20px;">Har du lyst til at h\u00f8re mere eller stille sp\u00f8rgsm\u00e5l? Book et gratis og uforpligtende infom\u00f8de:</p>' +
+    '<p><a href="' + CONFIG.MEETING_LINK + '" style="display:inline-block;background:#f75c03;color:#ffffff;padding:12px 24px;text-decoration:none;border-radius:6px;font-weight:600;">Book et gratis infom\u00f8de</a></p>';
 }
 
 function questionPrompt() {
@@ -280,7 +280,7 @@ async function sendEmail4wYTT(leadData) {
   if (needsHousing) bodyPlain += getAccommodationSectionPlain(cityCountry);
   bodyPlain += '\nPris: ' + fullPrice + ' kr.' + discountNote + '\nDepositum: 3.750 kr.\nRest: ' + remaining + ' kr. (' + rateNote + ')\n\n';
   bodyPlain += 'L\u00e6s mere: https://www.yogabible.dk/200-hours-4-weeks-intensive-programs\n';
-  bodyPlain += 'Book rundvisning: ' + CONFIG.MEETING_LINK + '\n';
+  bodyPlain += 'Book infom\u00f8de:' + CONFIG.MEETING_LINK + '\n';
   bodyPlain += getEnglishNotePlain() + getSignaturePlain() + getUnsubscribeFooterPlain(leadData.email);
 
   const result = await sendRawEmail({
@@ -335,7 +335,7 @@ async function sendEmail8wYTT(leadData) {
   if (needsHousing) bodyPlain += getAccommodationSectionPlain(cityCountry);
   bodyPlain += '\n' + getPricingSectionPlain('23.750', '3.750', '20.000', 'kan betales i 2\u20134 rater') + '\n';
   bodyPlain += 'L\u00e6s mere: https://www.yogabible.dk/200-hours-8-weeks-flexible-programs\n';
-  bodyPlain += 'Book rundvisning: ' + CONFIG.MEETING_LINK + '\n';
+  bodyPlain += 'Book infom\u00f8de:' + CONFIG.MEETING_LINK + '\n';
   bodyPlain += getEnglishNotePlain() + getSignaturePlain() + getUnsubscribeFooterPlain(leadData.email);
 
   const result = await sendRawEmail({
@@ -401,7 +401,7 @@ async function sendEmail18wYTT(leadData) {
   if (needsHousing) bodyPlain += getAccommodationSectionPlain(cityCountry);
   bodyPlain += getPricingSectionPlain('23.750', '3.750', '20.000', 'op til 5 rater') + '\n';
   bodyPlain += 'L\u00e6s mere: https://www.yogabible.dk/200-hours-18-weeks-flexible-programs\n';
-  bodyPlain += 'Book rundvisning: ' + CONFIG.MEETING_LINK + '\n';
+  bodyPlain += 'Book infom\u00f8de:' + CONFIG.MEETING_LINK + '\n';
   bodyPlain += getEnglishNotePlain() + getSignaturePlain() + getUnsubscribeFooterPlain(leadData.email);
 
   const result = await sendRawEmail({
@@ -525,7 +525,7 @@ async function sendEmailMultiYTT(leadData) {
   if (needsHousing) bodyPlain += getAccommodationSectionPlain(cityCountry);
   bodyPlain += '\nPris: 23.750 kr. (alle formater)\nDepositum: 3.750 kr.\nRest: 20.000 kr. (kan betales i rater)\n\n';
   bodyPlain += 'Sammenlign formater: https://www.yogabible.dk/om-200hrs-yogalreruddannelser\n';
-  bodyPlain += 'Book rundvisning: ' + CONFIG.MEETING_LINK + '\n';
+  bodyPlain += 'Book infom\u00f8de:' + CONFIG.MEETING_LINK + '\n';
   bodyPlain += getEnglishNotePlain() + getSignaturePlain() + getUnsubscribeFooterPlain(leadData.email);
 
   const result = await sendRawEmail({

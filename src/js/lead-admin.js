@@ -1605,9 +1605,9 @@
      SMS TEMPLATES (from config)
      ══════════════════════════════════════════ */
   var SMS_TEMPLATES = {
-    booking: { label: '\ud83d\udcc5 Book aftale', msg: "Hej {{first_name}}! Book en rundvisning, samtale eller pr\u00f8vetime her: https://yogabible.dk/?booking=1 \u2014 Yoga Bible" },
-    followup: { label: '\ud83d\udd04 F\u00f8lg op', msg: "Hej {{first_name}}! Jeg ville lige h\u00f8re om du har haft tid til at kigge p\u00e5 vores uddannelse? Du er velkommen til at booke en samtale: https://yogabible.dk/?booking=1 \u2014 Yoga Bible" },
-    ytt: { label: '\ud83c\udf93 YTT velkomst', msg: "Hej {{first_name}}! Tak for din interesse i vores yogal\u00e6reruddannelse. Vi har sendt detaljer til din email (tjek ogs\u00e5 spam). Book en rundvisning: https://yogabible.dk/?booking=1 \u2014 Yoga Bible" },
+    booking: { label: '\ud83d\udcc5 Book aftale', msg: "Hej {{first_name}}! Book et gratis infom\u00f8de, samtale eller pr\u00f8vetime her: https://yogabible.dk/?booking=1 \u2014 Yoga Bible" },
+    followup: { label: '\ud83d\udd04 F\u00f8lg op', msg: "Hej {{first_name}}! Jeg ville lige h\u00f8re om du har haft tid til at kigge p\u00e5 vores uddannelse? Du er velkommen til at booke et infom\u00f8de: https://yogabible.dk/?booking=1 \u2014 Yoga Bible" },
+    ytt: { label: '\ud83c\udf93 YTT velkomst', msg: "Hej {{first_name}}! Tak for din interesse i vores yogal\u00e6reruddannelse. Vi har sendt detaljer til din email (tjek ogs\u00e5 spam). Book et infom\u00f8de: https://yogabible.dk/?booking=1 \u2014 Yoga Bible" },
     course: { label: '\ud83d\udcda Kursus velkomst', msg: "Hej {{first_name}}! Tak for din interesse i vores {{program}} kursus. Vi har sendt detaljer til din email. Book en samtale: https://yogabible.dk/?booking=1 \u2014 Yoga Bible" },
     mentorship: { label: '\ud83e\uddd8 Mentorship', msg: "Hej {{first_name}}! Tak for din interesse i vores mentorship-program. Book en gratis samtale: https://yogabible.dk/?booking=1 \u2014 Yoga Bible" },
     reminder: { label: '\u23f0 P\u00e5mindelse', msg: "Hej {{first_name}}! Husk at vi har reserveret en plads til dig. Holdene fylder op \u2014 sikr din plads: https://yogabible.dk/?booking=1 \u2014 Yoga Bible" },
@@ -1749,7 +1749,7 @@
       var body = $('yb-email-body');
       var name = currentLead.first_name || '';
       if (subj) subj.value = 'Book en aftale — Yoga Bible';
-      if (body) body.value = 'Hej ' + name + ',\n\nTak for din interesse! Book en rundvisning, samtale eller prøvetime her:\nhttps://yogabible.dk/?booking=1\n\nVi glæder os til at se dig.\n\nVarme hilsner,\nYoga Bible';
+      if (body) body.value = 'Hej ' + name + ',\n\nTak for din interesse! Book et gratis infom\u00f8de, samtale eller pr\u00f8vetime her:\nhttps://yogabible.dk/?booking=1\n\nVi gl\u00e6der os til at se dig.\n\nVarme hilsner,\nYoga Bible';
     }, 50);
   }
 

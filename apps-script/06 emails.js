@@ -167,8 +167,8 @@ function sendEmail4wYTT(leadData) {
   bodyHtml += '</p>';
 
   // CTA
-  bodyHtml += '<p style="margin-top:20px;">Har du lyst til at se studiet, eller har du spørgsmål? Book en uforpligtende rundvisning eller en kort samtale:</p>';
-  bodyHtml += '<p><a href="' + CONFIG.MEETING_LINK + '" style="display:inline-block;background:#f75c03;color:#ffffff;padding:12px 24px;text-decoration:none;border-radius:6px;font-weight:600;">Book rundvisning eller samtale</a></p>';
+  bodyHtml += '<p style="margin-top:20px;">Har du lyst til at høre mere eller stille spørgsmål? Book et gratis og uforpligtende infomøde:</p>';
+  bodyHtml += '<p><a href="' + CONFIG.MEETING_LINK + '" style="display:inline-block;background:#f75c03;color:#ffffff;padding:12px 24px;text-decoration:none;border-radius:6px;font-weight:600;">Book et gratis infomøde</a></p>';
 
   bodyHtml += '<p style="margin-top:20px;">Jeg vil også gerne høre: <strong>Hvad fik dig til at overveje en yogauddannelse?</strong> Du er velkommen til bare at svare på denne mail.</p>';
 
@@ -198,7 +198,7 @@ function sendEmail4wYTT(leadData) {
   bodyPlain += 'Rest: ' + remaining + ' kr. (' + rateNote + ')\n\n';
   bodyPlain += 'Læs mere: https://www.yogabible.dk/200-hours-4-weeks-intensive-programs\n';
   bodyPlain += 'Om uddannelsen: https://www.yogabible.dk/om-200hrs-yogalreruddannelser\n\n';
-  bodyPlain += 'Book rundvisning eller samtale: ' + CONFIG.MEETING_LINK + '\n\n';
+  bodyPlain += 'Book et gratis infomøde: ' + CONFIG.MEETING_LINK + '\n\n';
   bodyPlain += 'Hvad fik dig til at overveje en yogauddannelse? Svar gerne på denne mail.\n\n';
   bodyPlain += 'Glæder mig til at høre fra dig.';
   bodyPlain += getEnglishNotePlain();
@@ -271,8 +271,8 @@ function sendEmail8wYTT(leadData) {
   bodyHtml += ' · <a href="https://www.yogabible.dk/om-200hrs-yogalreruddannelser" style="color:#f75c03;">Om vores 200-timers uddannelse</a>';
   bodyHtml += '</p>';
 
-  bodyHtml += '<p style="margin-top:20px;">Har du lyst til at se studiet, eller har du spørgsmål? Book en uforpligtende rundvisning eller en kort samtale:</p>';
-  bodyHtml += '<p><a href="' + CONFIG.MEETING_LINK + '" style="display:inline-block;background:#f75c03;color:#ffffff;padding:12px 24px;text-decoration:none;border-radius:6px;font-weight:600;">Book rundvisning eller samtale</a></p>';
+  bodyHtml += '<p style="margin-top:20px;">Har du lyst til at høre mere eller stille spørgsmål? Book et gratis og uforpligtende infomøde:</p>';
+  bodyHtml += '<p><a href="' + CONFIG.MEETING_LINK + '" style="display:inline-block;background:#f75c03;color:#ffffff;padding:12px 24px;text-decoration:none;border-radius:6px;font-weight:600;">Book et gratis infomøde</a></p>';
 
   bodyHtml += '<p style="margin-top:20px;">Jeg vil også gerne høre: <strong>Hvad fik dig til at overveje en yogauddannelse?</strong> Du er velkommen til bare at svare på denne mail.</p>';
 
@@ -301,7 +301,7 @@ function sendEmail8wYTT(leadData) {
   bodyPlain += getPricingSectionPlain('23.750', '3.750', '20.000', 'kan betales i 2–4 rater') + '\n';
   bodyPlain += 'Læs mere: https://www.yogabible.dk/200-hours-8-weeks-flexible-programs\n';
   bodyPlain += 'Om uddannelsen: https://www.yogabible.dk/om-200hrs-yogalreruddannelser\n\n';
-  bodyPlain += 'Book rundvisning eller samtale: ' + CONFIG.MEETING_LINK + '\n\n';
+  bodyPlain += 'Book et gratis infomøde: ' + CONFIG.MEETING_LINK + '\n\n';
   bodyPlain += 'Hvad fik dig til at overveje en yogauddannelse? Svar gerne på denne mail.\n\n';
   bodyPlain += 'Glæder mig til at høre fra dig.';
   bodyPlain += getEnglishNotePlain();
@@ -375,8 +375,8 @@ function sendEmail18wYTT(leadData) {
   bodyHtml += ' · <a href="https://www.yogabible.dk/om-200hrs-yogalreruddannelser" style="color:#f75c03;">Om vores 200-timers uddannelse</a>';
   bodyHtml += '</p>';
 
-  bodyHtml += '<p style="margin-top:20px;">Har du lyst til at se studiet, eller har du spørgsmål? Book en uforpligtende rundvisning eller en kort samtale:</p>';
-  bodyHtml += '<p><a href="' + CONFIG.MEETING_LINK + '" style="display:inline-block;background:#f75c03;color:#ffffff;padding:12px 24px;text-decoration:none;border-radius:6px;font-weight:600;">Book rundvisning eller samtale</a></p>';
+  bodyHtml += '<p style="margin-top:20px;">Har du lyst til at høre mere eller stille spørgsmål? Book et gratis og uforpligtende infomøde:</p>';
+  bodyHtml += '<p><a href="' + CONFIG.MEETING_LINK + '" style="display:inline-block;background:#f75c03;color:#ffffff;padding:12px 24px;text-decoration:none;border-radius:6px;font-weight:600;">Book et gratis infomøde</a></p>';
 
   bodyHtml += '<p style="margin-top:20px;">Jeg vil også gerne høre: <strong>Hvad fik dig til at overveje en yogauddannelse?</strong> Du er velkommen til bare at svare på denne mail.</p>';
 
@@ -407,7 +407,7 @@ function sendEmail18wYTT(leadData) {
   bodyPlain += getPricingSectionPlain('23.750', '3.750', '20.000', 'op til 5 rater') + '\n';
   bodyPlain += 'Læs mere: https://www.yogabible.dk/200-hours-18-weeks-flexible-programs\n';
   bodyPlain += 'Om uddannelsen: https://www.yogabible.dk/om-200hrs-yogalreruddannelser\n\n';
-  bodyPlain += 'Book rundvisning eller samtale: ' + CONFIG.MEETING_LINK + '\n\n';
+  bodyPlain += 'Book et gratis infomøde: ' + CONFIG.MEETING_LINK + '\n\n';
   bodyPlain += 'Hvad fik dig til at overveje en yogauddannelse? Svar gerne på denne mail.\n\n';
   bodyPlain += 'Glæder mig til at høre fra dig.';
   bodyPlain += getEnglishNotePlain();
@@ -511,7 +511,7 @@ function sendEmailMultiFormat(leadData, formats) {
   bodyHtml += '</p>';
 
   bodyHtml += '<p style="margin-top:20px;">Har du lyst til at se studiet eller få hjælp til at vælge det rigtige format?</p>';
-  bodyHtml += '<p><a href="' + CONFIG.MEETING_LINK + '" style="display:inline-block;background:#f75c03;color:#ffffff;padding:12px 24px;text-decoration:none;border-radius:6px;font-weight:600;">Book rundvisning eller samtale</a></p>';
+  bodyHtml += '<p><a href="' + CONFIG.MEETING_LINK + '" style="display:inline-block;background:#f75c03;color:#ffffff;padding:12px 24px;text-decoration:none;border-radius:6px;font-weight:600;">Book et gratis infomøde</a></p>';
 
   bodyHtml += '<p>Glæder mig til at høre fra dig!</p>';
   bodyHtml += getEnglishNoteHtml();
@@ -532,7 +532,7 @@ function sendEmailMultiFormat(leadData, formats) {
     bodyPlain += getAccommodationSectionPlain(cityCountry);
   }
   bodyPlain += getPricingSectionPlain('23.750', '3.750', '20.000', 'samme pris for alle formater — rater mulig') + '\n';
-  bodyPlain += 'Book rundvisning eller samtale: ' + CONFIG.MEETING_LINK + '\n\n';
+  bodyPlain += 'Book et gratis infomøde: ' + CONFIG.MEETING_LINK + '\n\n';
   bodyPlain += 'Glæder mig til at høre fra dig!';
   bodyPlain += getEnglishNotePlain();
   bodyPlain += getSignaturePlain();
