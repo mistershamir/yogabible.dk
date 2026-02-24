@@ -396,6 +396,14 @@
     // Form submit
     var form = $('yb-book-form');
     if (form) form.addEventListener('submit', submitBooking);
+
+    // Auto-open from URL: ?booking=1 or ?booking=studio-tour
+    var urlParams = new URLSearchParams(window.location.search);
+    var bookParam = urlParams.get('booking');
+    if (bookParam) {
+      var type = (bookParam === '1' || bookParam === 'true') ? null : bookParam;
+      openModal(type);
+    }
   }
 
   if (document.readyState === 'loading') {
