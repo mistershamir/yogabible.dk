@@ -819,7 +819,9 @@
     "billing_status_unpaid": "Ikke betalt",
     "billing_status_partial": "Delvist betalt",
     "billing_view_booked": "Bogførte",
-    "billing_no_booked": "Ingen bogførte fakturaer."
+    "billing_no_booked": "Ingen bogførte fakturaer.",
+    "billing_send_invoice": "Send faktura",
+    "billing_download_pdf": "Download PDF"
   },
   "en": {
     "page_title": "Administration",
@@ -1641,6 +1643,8 @@
     "billing_status_unpaid": "Unpaid",
     "billing_status_partial": "Partially paid",
     "billing_view_booked": "Booked",
-    "billing_no_booked": "No booked invoices."
+    "billing_no_booked": "No booked invoices.",
+    "billing_send_invoice": "Send Invoice",
+    "billing_download_pdf": "Download PDF"
   }
 }
