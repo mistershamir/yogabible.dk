@@ -16,6 +16,7 @@
 
 const { requireAuth } = require('./shared/auth');
 const { jsonResponse, optionsResponse } = require('./shared/utils');
+const { sendRawEmail } = require('./shared/email-service');
 
 const BASE = 'https://restapi.e-conomic.com';
 
@@ -192,6 +193,79 @@ async function getBooked(bookedNumber) {
   return ecoFetch(`/invoices/booked/${bookedNumber}`);
 }
 
+// ─── Invoice PDF ──────────────────────────────────────────────────
+
+async function getInvoicePdf(bookedNumber) {
+  const data = await ecoFetch(`/invoices/booked/${bookedNumber}/pdf`);
+  return data; // { download: "https://..." }
+}
+
+// ─── Send Invoice by Email ────────────────────────────────────────
+
+async function sendInvoiceEmail({ bookedNumber, recipientEmail }) {
+  if (!bookedNumber) throw new Error('bookedNumber is required');
+  if (!recipientEmail) throw new Error('recipientEmail is required');
+
+  // 1. Fetch invoice details
+  console.log('[economic] Fetching invoice', bookedNumber, 'for email to', recipientEmail);
+  const invoice = await ecoFetch(`/invoices/booked/${bookedNumber}`);
+
+  // 2. Get PDF download URL
+  const pdfInfo = await ecoFetch(`/invoices/booked/${bookedNumber}/pdf`);
+  if (!pdfInfo.download) throw new Error('Could not get PDF download URL from e-conomic');
+
+  // 3. Download PDF binary
+  console.log('[economic] Downloading PDF from', pdfInfo.download);
+  const pdfRes = await fetch(pdfInfo.download, { headers: ecoHeaders() });
+  if (!pdfRes.ok) throw new Error(`PDF download failed: ${pdfRes.status}`);
+  const pdfBuffer = Buffer.from(await pdfRes.arrayBuffer());
+
+  // 4. Build email
+  const invNum = invoice.bookedInvoiceNumber || bookedNumber;
+  const custName = (invoice.recipient && invoice.recipient.name) || '';
+  const total = invoice.grossAmount || invoice.netAmount || 0;
+  const dueDate = invoice.dueDate || '';
+  const notesText = (invoice.notes && invoice.notes.heading) || '';
+
+  const orange = '#f75c03';
+  const subject = `Faktura #${invNum} fra Yoga Bible`;
+
+  let html = '<div style="font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Helvetica,Arial,sans-serif;color:#1a1a1a;line-height:1.65;font-size:16px;">';
+  html += `<p>Kære ${custName || 'kunde'},</p>`;
+  html += `<p>Hermed sendes faktura <strong>#${invNum}</strong> fra Yoga Bible.</p>`;
+  html += '<table style="border-collapse:collapse;margin:16px 0;width:100%;max-width:400px;">';
+  html += `<tr><td style="padding:6px 16px 6px 0;color:#666;">Fakturanummer:</td><td style="padding:6px 0;font-weight:bold;">#${invNum}</td></tr>`;
+  html += `<tr><td style="padding:6px 16px 6px 0;color:#666;">Beløb:</td><td style="padding:6px 0;font-weight:bold;">${total.toLocaleString('da-DK')} DKK</td></tr>`;
+  if (dueDate) {
+    html += `<tr><td style="padding:6px 16px 6px 0;color:#666;">Forfaldsdato:</td><td style="padding:6px 0;">${dueDate}</td></tr>`;
+  }
+  html += '</table>';
+  if (notesText) {
+    html += `<div style="margin:16px 0;padding:12px;background:#FFFCF9;border-left:3px solid ${orange};border-radius:4px;font-size:14px;color:#555;">${notesText}</div>`;
+  }
+  html += '<p>Fakturaen er vedhæftet som PDF.</p>';
+  html += '<p>Har du spørgsmål, er du velkommen til at svare på denne email.</p>';
+  html += '</div>';
+
+  const text = `Kære ${custName || 'kunde'},\n\nHermed sendes faktura #${invNum} fra Yoga Bible.\n\nBeløb: ${total} DKK\n${dueDate ? 'Forfaldsdato: ' + dueDate + '\n' : ''}${notesText ? '\n' + notesText + '\n' : ''}\nFakturaen er vedhæftet som PDF.\n\nHar du spørgsmål, er du velkommen til at svare på denne email.`;
+
+  // 5. Send email with PDF attachment
+  const result = await sendRawEmail({
+    to: recipientEmail,
+    subject,
+    html,
+    text,
+    attachments: [{
+      filename: `Faktura-${invNum}.pdf`,
+      content: pdfBuffer,
+      contentType: 'application/pdf'
+    }]
+  });
+
+  console.log('[economic] Invoice email sent to', recipientEmail, 'messageId:', result.messageId);
+  return { sent: true, messageId: result.messageId, invoiceNumber: invNum };
+}
+
 // ─── Handler ───────────────────────────────────────────────────────
 
 exports.handler = async (event) => {
@@ -243,6 +317,15 @@ exports.handler = async (event) => {
       case 'getBooked':
         if (!body.bookedNumber) return jsonResponse(400, { ok: false, error: 'bookedNumber required' });
         return jsonResponse(200, { ok: true, data: await getBooked(body.bookedNumber) });
+
+      case 'getInvoicePdf':
+        if (!body.bookedNumber) return jsonResponse(400, { ok: false, error: 'bookedNumber required' });
+        return jsonResponse(200, { ok: true, data: await getInvoicePdf(body.bookedNumber) });
+
+      case 'sendInvoice':
+        if (!body.bookedNumber) return jsonResponse(400, { ok: false, error: 'bookedNumber required' });
+        if (!body.email) return jsonResponse(400, { ok: false, error: 'email required' });
+        return jsonResponse(200, { ok: true, data: await sendInvoiceEmail({ bookedNumber: body.bookedNumber, recipientEmail: body.email }) });
 
       default:
         return jsonResponse(400, { ok: false, error: `Unknown action: ${action}` });

@@ -24,6 +24,8 @@
   var selectedCustomer = null; // { customerNumber, name, email }
   var selectedApplicant = null; // { name, email, phone, course, appId } — pre-e-conomic
   var currentDraftNumber = null;
+  var currentBookedNumber = null;
+  var currentBookedEmail = null;
   var busy = false;
   var applicantsCache = []; // cached from Firestore
 
@@ -781,13 +783,19 @@
      ══════════════════════════════════════════ */
   function viewDraft(draftNumber) {
     currentDraftNumber = parseInt(draftNumber);
+    currentBookedNumber = null;
+    currentBookedEmail = null;
     var modal = $('yb-billing-draft-modal');
     var body = $('yb-billing-modal-body');
     var title = $('yb-billing-modal-title');
     var bookBtn = document.querySelector('[data-action="billing-book-draft"]');
+    var sendBtn = document.querySelector('[data-action="billing-send-invoice"]');
+    var pdfBtn = document.querySelector('[data-action="billing-download-pdf"]');
     if (!modal || !body) return;
     if (title) title.textContent = t('billing_draft_detail');
     if (bookBtn) bookBtn.hidden = false;
+    if (sendBtn) sendBtn.hidden = true;
+    if (pdfBtn) pdfBtn.hidden = true;
     body.innerHTML = '<p>' + t('loading') + '</p>';
     modal.hidden = false;
 
@@ -823,6 +831,8 @@
     var modal = $('yb-billing-draft-modal');
     if (modal) modal.hidden = true;
     currentDraftNumber = null;
+    currentBookedNumber = null;
+    currentBookedEmail = null;
   }
 
   function bookDraft() {
@@ -888,20 +898,41 @@
   }
 
   function viewBookedDetail(bookedNumber) {
+    currentBookedNumber = parseInt(bookedNumber);
+    currentBookedEmail = null;
+    currentDraftNumber = null;
     var modal = $('yb-billing-draft-modal');
     var body = $('yb-billing-modal-body');
     var title = $('yb-billing-modal-title');
     var bookBtn = document.querySelector('[data-action="billing-book-draft"]');
+    var sendBtn = document.querySelector('[data-action="billing-send-invoice"]');
+    var pdfBtn = document.querySelector('[data-action="billing-download-pdf"]');
     if (!modal || !body) return;
 
     if (title) title.textContent = t('billing_booked_title') + ' #' + bookedNumber;
-    if (bookBtn) bookBtn.hidden = true; // hide book button for already-booked invoices
+    if (bookBtn) bookBtn.hidden = true;
+    if (sendBtn) sendBtn.hidden = false;
+    if (pdfBtn) pdfBtn.hidden = false;
     body.innerHTML = '<p>' + t('loading') + '</p>';
     modal.hidden = false;
 
-    apiCall({ action: 'getBooked', bookedNumber: parseInt(bookedNumber) }).then(function (res) {
+    apiCall({ action: 'getBooked', bookedNumber: currentBookedNumber }).then(function (res) {
       if (!res.ok) { body.innerHTML = '<p class="yb-billing__error">' + esc(res.error) + '</p>'; return; }
       var d = res.data;
+
+      // Try to extract customer email for send button
+      if (d.customer && d.customer.customerNumber) {
+        apiCall({ action: 'searchCustomers', query: (d.recipient && d.recipient.name) || '' }).then(function (sr) {
+          if (sr.ok && sr.data) {
+            var match = sr.data.find(function (c) { return c.customerNumber === d.customer.customerNumber; });
+            if (match && match.email) {
+              currentBookedEmail = match.email;
+              console.log('[billing] Booked invoice customer email:', currentBookedEmail);
+            }
+          }
+        });
+      }
+
       var html = '<div class="yb-billing__detail">';
       html += '<div class="yb-billing__detail-row"><strong>' + t('billing_col_customer') + ':</strong> ' + esc(d.recipient && d.recipient.name || '—') + '</div>';
       html += '<div class="yb-billing__detail-row"><strong>' + t('billing_col_date') + ':</strong> ' + (d.date || '—') + '</div>';
@@ -921,6 +952,69 @@
       html += '</div>';
       body.innerHTML = html;
     }).catch(function (err) { body.innerHTML = '<p class="yb-billing__error">' + esc(err.message) + '</p>'; });
+  }
+
+  /* ══════════════════════════════════════════
+     SEND INVOICE / DOWNLOAD PDF
+     ══════════════════════════════════════════ */
+  function sendInvoiceEmail() {
+    if (!currentBookedNumber) return;
+
+    var email = currentBookedEmail || '';
+    var inputEmail = prompt(isDa
+      ? 'Send faktura #' + currentBookedNumber + ' til email:\n(PDF vedhæftes automatisk)'
+      : 'Send invoice #' + currentBookedNumber + ' to email:\n(PDF will be attached)', email);
+
+    if (!inputEmail) return; // cancelled
+    inputEmail = inputEmail.trim();
+    if (!inputEmail || inputEmail.indexOf('@') < 1) {
+      toast(isDa ? 'Ugyldig email-adresse' : 'Invalid email address', true);
+      return;
+    }
+
+    var sendBtn = document.querySelector('[data-action="billing-send-invoice"]');
+    if (sendBtn) { sendBtn.textContent = isDa ? 'Sender...' : 'Sending...'; sendBtn.classList.add('yb-btn--muted'); }
+
+    console.log('[billing] Sending invoice', currentBookedNumber, 'to', inputEmail);
+    apiCall({ action: 'sendInvoice', bookedNumber: currentBookedNumber, email: inputEmail }).then(function (res) {
+      if (sendBtn) { sendBtn.innerHTML = '&#9993; ' + t('billing_send_invoice'); sendBtn.classList.remove('yb-btn--muted'); }
+      if (!res.ok) {
+        console.error('[billing] Send invoice failed:', res.error);
+        toast(res.error, true);
+        return;
+      }
+      console.log('[billing] Invoice sent:', res.data);
+      toast(isDa ? 'Faktura sendt til ' + inputEmail : 'Invoice sent to ' + inputEmail);
+    }).catch(function (err) {
+      if (sendBtn) { sendBtn.innerHTML = '&#9993; ' + t('billing_send_invoice'); sendBtn.classList.remove('yb-btn--muted'); }
+      console.error('[billing] Send invoice error:', err);
+      toast(err.message, true);
+    });
+  }
+
+  function downloadInvoicePdf() {
+    if (!currentBookedNumber) return;
+
+    var pdfBtn = document.querySelector('[data-action="billing-download-pdf"]');
+    if (pdfBtn) { pdfBtn.textContent = isDa ? 'Henter...' : 'Loading...'; pdfBtn.classList.add('yb-btn--muted'); }
+
+    console.log('[billing] Getting PDF for invoice', currentBookedNumber);
+    apiCall({ action: 'getInvoicePdf', bookedNumber: currentBookedNumber }).then(function (res) {
+      if (pdfBtn) { pdfBtn.innerHTML = '&#128196; ' + t('billing_download_pdf'); pdfBtn.classList.remove('yb-btn--muted'); }
+      if (!res.ok) {
+        console.error('[billing] Get PDF failed:', res.error);
+        toast(res.error, true);
+        return;
+      }
+      if (res.data && res.data.download) {
+        window.open(res.data.download, '_blank');
+      } else {
+        toast(isDa ? 'Kunne ikke hente PDF-link' : 'Could not get PDF link', true);
+      }
+    }).catch(function (err) {
+      if (pdfBtn) { pdfBtn.innerHTML = '&#128196; ' + t('billing_download_pdf'); pdfBtn.classList.remove('yb-btn--muted'); }
+      toast(err.message, true);
+    });
   }
 
   /* ══════════════════════════════════════════
@@ -1035,6 +1129,8 @@
       case 'billing-view-booked': showBooked(); break;
       case 'billing-refresh-booked': loadBooked(); break;
       case 'billing-view-booked-detail': viewBookedDetail(el.dataset.booked); break;
+      case 'billing-send-invoice': sendInvoiceEmail(); break;
+      case 'billing-download-pdf': downloadInvoicePdf(); break;
       case 'billing-from-app': handleBillFromApp(); break;
     }
   }
