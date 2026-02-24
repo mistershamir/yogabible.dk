@@ -571,16 +571,16 @@
     }
 
     // Quick action buttons
-    html += '<div class="yb-lead__exp-actions">';
+    html += '<div class="yb-lead__exp-actions yb-lead__actions">';
     if (l.phone) {
-      html += '<a href="tel:' + esc(l.phone) + '" class="yb-btn yb-btn--outline yb-btn--sm" data-action="log-call-inline" data-id="' + l.id + '">\ud83d\udcde ' + t('leads_call') + '</a>';
-      html += '<button class="yb-btn yb-btn--outline yb-btn--sm" data-action="sms-inline" data-id="' + l.id + '">\ud83d\udcf1 ' + t('leads_sms') + '</button>';
-      html += '<a href="https://wa.me/' + esc((l.phone || '').replace(/[^0-9+]/g, '')) + '" target="_blank" rel="noopener" class="yb-btn yb-btn--outline yb-btn--sm">WhatsApp</a>';
+      html += '<a href="tel:' + esc(l.phone) + '" class="yb-btn" data-action="log-call-inline" data-id="' + l.id + '">\ud83d\udcde ' + t('leads_call') + '</a>';
+      html += '<button class="yb-btn" data-action="sms-inline" data-id="' + l.id + '">\ud83d\udcf1 ' + t('leads_sms') + '</button>';
+      html += '<a href="https://wa.me/' + esc((l.phone || '').replace(/[^0-9+]/g, '')) + '" target="_blank" rel="noopener" class="yb-btn">WhatsApp</a>';
     }
     if (l.email) {
-      html += '<button class="yb-btn yb-btn--outline yb-btn--sm" data-action="email-inline" data-id="' + l.id + '">\u2709 ' + t('leads_email') + '</button>';
+      html += '<button class="yb-btn" data-action="email-inline" data-id="' + l.id + '">\u2709 ' + t('leads_email') + '</button>';
     }
-    html += '<button class="yb-btn yb-btn--primary yb-btn--sm" data-action="view-lead" data-id="' + l.id + '">' + t('leads_detail_title') + ' \u2192</button>';
+    html += '<button class="yb-btn yb-btn--primary" data-action="view-lead" data-id="' + l.id + '">' + t('leads_detail_title') + ' \u2192</button>';
     html += '</div>';
 
     html += '</div></td></tr>';
@@ -1115,17 +1115,14 @@
     var phone = currentLead.phone || '';
     var email = currentLead.email || '';
 
-    var bookingUrl = 'https://yogabible.dk/?booking=1';
-
     var html =
-      (phone ? '<a href="tel:' + esc(phone) + '" class="yb-btn yb-btn--outline yb-btn--sm" data-action="log-call">\ud83d\udcde ' + t('leads_call') + '</a>' : '') +
-      (phone ? '<button class="yb-btn yb-btn--outline yb-btn--sm" data-action="lead-sms">\ud83d\udcf1 ' + t('leads_sms') + '</button>' : '') +
-      (phone ? '<a href="https://wa.me/' + esc(phone.replace(/[^0-9+]/g, '')) + '" target="_blank" class="yb-btn yb-btn--outline yb-btn--sm">\ud83d\udcac WhatsApp</a>' : '') +
-      (email ? '<button class="yb-btn yb-btn--outline yb-btn--sm" data-action="lead-email">\u2709\ufe0f ' + t('leads_email') + '</button>' : '') +
-      '<button class="yb-btn yb-btn--outline yb-btn--sm" data-action="send-booking-sms" title="Send booking link via SMS">\ud83d\udcc5 Booking SMS</button>' +
-      '<button class="yb-btn yb-btn--outline yb-btn--sm" data-action="send-booking-email" title="Send booking link via Email">\ud83d\udcc5 Booking Email</button>' +
-      '<a href="' + bookingUrl + '" target="_blank" class="yb-btn yb-btn--outline yb-btn--sm" title="Copy booking link">\ud83d\udd17 Booking Link</a>' +
-      '<button class="yb-btn yb-btn--outline yb-btn--sm" data-action="lead-add-note">\ud83d\udcdd ' + t('leads_add_note') + '</button>';
+      (phone ? '<a href="tel:' + esc(phone) + '" class="yb-btn" data-action="log-call">\ud83d\udcde ' + t('leads_call') + '</a>' : '') +
+      (phone ? '<button class="yb-btn" data-action="lead-sms">\ud83d\udcf1 ' + t('leads_sms') + '</button>' : '') +
+      (phone ? '<a href="https://wa.me/' + esc(phone.replace(/[^0-9+]/g, '')) + '" target="_blank" class="yb-btn">\ud83d\udcac WhatsApp</a>' : '') +
+      (email ? '<button class="yb-btn" data-action="lead-email">\u2709\ufe0f ' + t('leads_email') + '</button>' : '') +
+      (phone ? '<button class="yb-btn yb-btn--primary" data-action="send-booking-sms" title="Send booking link via SMS">\ud83d\udcc5 Booking SMS</button>' : '') +
+      (email ? '<button class="yb-btn yb-btn--primary" data-action="send-booking-email" title="Send booking link via Email">\ud83d\udcc5 Booking Email</button>' : '') +
+      '<button class="yb-btn" data-action="lead-add-note">\ud83d\udcdd ' + t('leads_add_note') + '</button>';
 
     // Admin actions: archive (soft delete) or restore
     if (currentUserRole === 'admin') {
@@ -1608,21 +1605,39 @@
      SMS TEMPLATES (from config)
      ══════════════════════════════════════════ */
   var SMS_TEMPLATES = {
-    ytt: "Hi {{first_name}}! Thank you for your interest in our Yoga Teacher Training. We've sent details to your email (check inbox + spam). Book a studio tour or consultation: https://yogabible.dk/?booking=1 — Warm regards, Yoga Bible",
-    course: "Hi {{first_name}}! Thank you for your interest in our {{program}} course. We've sent details to your email (check inbox + spam). Book a consultation: https://yogabible.dk/?booking=1 — Warm regards, Yoga Bible",
-    mentorship: "Hi {{first_name}}! Thank you for your interest in our Mentorship program. We've sent details to your email (check inbox + spam). Book a free consultation: https://yogabible.dk/?booking=1 — Warm regards, Yoga Bible",
-    'default': "Hi {{first_name}}! Thank you for reaching out to Yoga Bible. We've sent info to your email (check inbox + spam). Book a consultation: https://yogabible.dk/?booking=1 — Warm regards, Yoga Bible"
+    booking: { label: '\ud83d\udcc5 Book aftale', msg: "Hej {{first_name}}! Book en rundvisning, samtale eller pr\u00f8vetime her: https://yogabible.dk/?booking=1 \u2014 Yoga Bible" },
+    followup: { label: '\ud83d\udd04 F\u00f8lg op', msg: "Hej {{first_name}}! Jeg ville lige h\u00f8re om du har haft tid til at kigge p\u00e5 vores uddannelse? Du er velkommen til at booke en samtale: https://yogabible.dk/?booking=1 \u2014 Yoga Bible" },
+    ytt: { label: '\ud83c\udf93 YTT velkomst', msg: "Hej {{first_name}}! Tak for din interesse i vores yogal\u00e6reruddannelse. Vi har sendt detaljer til din email (tjek ogs\u00e5 spam). Book en rundvisning: https://yogabible.dk/?booking=1 \u2014 Yoga Bible" },
+    course: { label: '\ud83d\udcda Kursus velkomst', msg: "Hej {{first_name}}! Tak for din interesse i vores {{program}} kursus. Vi har sendt detaljer til din email. Book en samtale: https://yogabible.dk/?booking=1 \u2014 Yoga Bible" },
+    mentorship: { label: '\ud83e\uddd8 Mentorship', msg: "Hej {{first_name}}! Tak for din interesse i vores mentorship-program. Book en gratis samtale: https://yogabible.dk/?booking=1 \u2014 Yoga Bible" },
+    reminder: { label: '\u23f0 P\u00e5mindelse', msg: "Hej {{first_name}}! Husk at vi har reserveret en plads til dig. Holdene fylder op \u2014 sikr din plads: https://yogabible.dk/?booking=1 \u2014 Yoga Bible" },
+    general: { label: '\ud83d\udcac Generel', msg: "Hej {{first_name}}! Tak fordi du kontaktede Yoga Bible. Vi har sendt info til din email. Book en samtale: https://yogabible.dk/?booking=1 \u2014 Yoga Bible" }
   };
+
+  function applySMSTemplate(key) {
+    var tpl = SMS_TEMPLATES[key];
+    if (!tpl) return;
+    var ta = $('yb-sms-message');
+    if (!ta) return;
+    var msg = tpl.msg;
+    if (currentLead) {
+      msg = msg.replace(/\{\{first_name\}\}/gi, currentLead.first_name || '');
+      msg = msg.replace(/\{\{program\}\}/gi, currentLead.program || 'yoga program');
+    }
+    ta.value = msg;
+    updateSMSCharCount();
+    ta.focus();
+  }
 
   function updateSMSCharCount() {
     var ta = $('yb-sms-message');
     if (!ta) return;
     var len = ta.value.length;
     var segments = Math.ceil(len / 160) || 1;
-    var charEl = $('yb-sms-char-count');
-    var segEl = $('yb-sms-segment-count');
-    if (charEl) charEl.textContent = len + '/160';
-    if (segEl) segEl.textContent = segments > 1 ? '(' + segments + ' ' + t('leads_sms_segments') + ')' : '';
+    var charEl = $('yb-sms-charcount');
+    var segEl = $('yb-sms-segments');
+    if (charEl) charEl.textContent = len;
+    if (segEl) segEl.textContent = segments;
   }
 
   /* ══════════════════════════════════════════
@@ -1722,14 +1737,8 @@
      ══════════════════════════════════════════ */
   function sendBookingSMS() {
     if (!currentLead || !currentLead.phone) { toast('No phone number', true); return; }
-    var name = currentLead.first_name || '';
-    var bookingUrl = 'https://yogabible.dk/?booking=1';
-    var msg = 'Hi ' + name + '! Ready to book a studio tour or consultation? Pick a date and time that suits you: ' + bookingUrl + ' — Yoga Bible';
     openSMSComposer();
-    setTimeout(function () {
-      var ta = $('yb-sms-message');
-      if (ta) { ta.value = msg; updateSMSCharCount(); }
-    }, 50);
+    setTimeout(function () { applySMSTemplate('booking'); }, 50);
   }
 
   function sendBookingEmail() {
@@ -3238,6 +3247,11 @@
           if (linkedLeadAppId) viewLinkedLead(linkedLeadAppId);
           break;
       }
+
+      // Close modals on overlay click
+      if (e.target.classList.contains('yb-lead__modal-overlay')) {
+        e.target.hidden = true;
+      }
     });
 
     // Checkbox changes
@@ -3248,12 +3262,11 @@
       if (e.target.id === 'yb-lead-select-all') {
         toggleSelectAll();
       }
-      // SMS template selector
+      // SMS template chip or select
       if (e.target.id === 'yb-sms-template-select') {
         var key = e.target.value;
         if (key && SMS_TEMPLATES[key]) {
-          $('yb-sms-message').value = SMS_TEMPLATES[key];
-          updateSMSCharCount();
+          applySMSTemplate(key);
         }
       }
       // Email template selector (from Firestore)
@@ -3543,6 +3556,89 @@
   /* ══════════════════════════════════════════
      INIT
      ══════════════════════════════════════════ */
+  function createModals() {
+    // SMS Composer Modal
+    if (!$('yb-lead-sms-modal')) {
+      var sms = document.createElement('div');
+      sms.id = 'yb-lead-sms-modal';
+      sms.className = 'yb-lead__modal-overlay';
+      sms.hidden = true;
+      sms.innerHTML =
+        '<div class="yb-lead__modal-box">' +
+          '<div class="yb-lead__modal-header">' +
+            '<h3>\ud83d\udcf1 Send SMS</h3>' +
+            '<button class="yb-lead__modal-close" data-action="sms-cancel" type="button">&times;</button>' +
+          '</div>' +
+          '<div class="yb-lead__modal-body">' +
+            '<div class="yb-lead__modal-recipient">' +
+              'Til: <strong id="yb-sms-recipient-info"></strong>' +
+              '<span id="yb-sms-recipient-detail" hidden style="margin-left:6px;font-size:0.75rem;color:#999"></span>' +
+            '</div>' +
+            '<label>Skabelon</label>' +
+            '<div class="yb-lead__tpl-chips" id="yb-sms-tpl-chips"></div>' +
+            '<label>Besked</label>' +
+            '<textarea id="yb-sms-message" rows="4" placeholder="Skriv din SMS her..."></textarea>' +
+            '<div class="yb-lead__modal-charcount"><span id="yb-sms-charcount">0</span> tegn \u00b7 <span id="yb-sms-segments">1</span> segment(er)</div>' +
+            '<div id="yb-sms-progress" hidden style="margin-top:8px">' +
+              '<div style="background:#E8E4E0;border-radius:4px;height:6px;overflow:hidden">' +
+                '<div id="yb-sms-progress-bar" style="width:0%;height:100%;background:var(--yb-brand,#f75c03);transition:width 0.3s"></div>' +
+              '</div>' +
+            '</div>' +
+          '</div>' +
+          '<div class="yb-lead__modal-footer">' +
+            '<button class="yb-btn yb-btn--outline yb-btn--sm" data-action="sms-cancel" type="button">Annuller</button>' +
+            '<button class="yb-btn yb-btn--primary yb-btn--sm" data-action="sms-send" id="yb-sms-send-btn" type="button">\u27a4 Send SMS</button>' +
+          '</div>' +
+        '</div>';
+      document.body.appendChild(sms);
+
+      // Build template chips
+      var chipsEl = $('yb-sms-tpl-chips');
+      if (chipsEl) {
+        Object.keys(SMS_TEMPLATES).forEach(function (key) {
+          var tpl = SMS_TEMPLATES[key];
+          var chip = document.createElement('button');
+          chip.type = 'button';
+          chip.className = 'yb-lead__tpl-chip' + (key === 'booking' ? ' is-booking' : '');
+          chip.textContent = tpl.label;
+          chip.addEventListener('click', function () { applySMSTemplate(key); });
+          chipsEl.appendChild(chip);
+        });
+      }
+    }
+
+    // Email Composer Modal
+    if (!$('yb-lead-email-modal')) {
+      var email = document.createElement('div');
+      email.id = 'yb-lead-email-modal';
+      email.className = 'yb-lead__modal-overlay';
+      email.hidden = true;
+      email.innerHTML =
+        '<div class="yb-lead__modal-box">' +
+          '<div class="yb-lead__modal-header">' +
+            '<h3>\u2709\ufe0f Send Email</h3>' +
+            '<button class="yb-lead__modal-close" data-action="email-cancel" type="button">&times;</button>' +
+          '</div>' +
+          '<div class="yb-lead__modal-body">' +
+            '<div class="yb-lead__modal-recipient">' +
+              'Til: <strong id="yb-email-recipient-info"></strong>' +
+            '</div>' +
+            '<label>Skabelon</label>' +
+            '<select id="yb-email-template-select" style="margin-bottom:12px"><option value="">V\u00e6lg skabelon...</option></select>' +
+            '<label>Emne</label>' +
+            '<input type="text" id="yb-email-subject" placeholder="Emne...">' +
+            '<label>Besked</label>' +
+            '<textarea id="yb-email-body" rows="8" placeholder="Skriv din email her..."></textarea>' +
+          '</div>' +
+          '<div class="yb-lead__modal-footer">' +
+            '<button class="yb-btn yb-btn--outline yb-btn--sm" data-action="email-cancel" type="button">Annuller</button>' +
+            '<button class="yb-btn yb-btn--primary yb-btn--sm" data-action="email-send" id="yb-email-send-btn" type="button">\u27a4 Send Email</button>' +
+          '</div>' +
+        '</div>';
+      document.body.appendChild(email);
+    }
+  }
+
   function initLeadAdmin() {
     T = window._ybAdminT || {};
 
@@ -3571,6 +3667,7 @@
       if (u && currentUserRole === 'user') resolveRole(u);
     });
 
+    createModals();
     bindLeadEvents();
 
     // Hook into tab switching — Leads

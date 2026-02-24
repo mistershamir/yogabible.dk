@@ -8540,6 +8540,17 @@ a.yb-kontakt-detail__value:hover {
   box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
 }
 
+.yb-btn--outline {
+  background: transparent;
+  color: #0F0F0F;
+  border-color: #E8E4E0;
+}
+.yb-btn--outline:hover {
+  border-color: var(--yb-brand);
+  color: var(--yb-brand);
+  background: rgba(247, 92, 3, 0.04);
+}
+
 .yb-btn--outline-white {
   background: transparent;
   color: #fff;
@@ -18705,11 +18716,156 @@ a.yb-kontakt-detail__value:hover {
   padding: 0.75rem 0;
 }
 .yb-lead__actions .yb-btn {
-  transition: transform 0.12s, box-shadow 0.12s;
+  padding: 8px 14px;
+  font-size: 0.82rem;
+  border-radius: 8px;
+  border: 1.5px solid #E8E4E0;
+  background: #fff;
+  color: #0F0F0F;
+  font-weight: 600;
+  transition: all 0.15s ease;
 }
 .yb-lead__actions .yb-btn:hover {
+  border-color: var(--yb-brand, #f75c03);
+  color: var(--yb-brand, #f75c03);
+  background: rgba(247, 92, 3, 0.04);
   transform: translateY(-1px);
-  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.08);
+}
+.yb-lead__actions .yb-btn--primary {
+  background: var(--yb-brand, #f75c03);
+  color: #fff;
+  border-color: var(--yb-brand, #f75c03);
+}
+.yb-lead__actions .yb-btn--primary:hover {
+  background: #d94f02;
+  border-color: #d94f02;
+  color: #fff;
+}
+
+/* ── SMS / Email Composer Modals ── */
+.yb-lead__modal-overlay {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  padding: 1rem;
+}
+.yb-lead__modal-box {
+  background: #fff;
+  border-radius: 12px;
+  width: 100%;
+  max-width: 520px;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+}
+.yb-lead__modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+  border-bottom: 1px solid #E8E4E0;
+}
+.yb-lead__modal-header h3 {
+  margin: 0;
+  font-size: 1rem;
+}
+.yb-lead__modal-close {
+  background: none;
+  border: none;
+  font-size: 1.4rem;
+  cursor: pointer;
+  color: #6F6A66;
+  padding: 4px;
+  line-height: 1;
+}
+.yb-lead__modal-close:hover { color: #0F0F0F; }
+.yb-lead__modal-body {
+  padding: 20px;
+}
+.yb-lead__modal-body label {
+  display: block;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #6F6A66;
+  margin-bottom: 4px;
+}
+.yb-lead__modal-body textarea,
+.yb-lead__modal-body input,
+.yb-lead__modal-body select {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1.5px solid #E8E4E0;
+  border-radius: 8px;
+  font-family: inherit;
+  font-size: 0.88rem;
+  margin-bottom: 12px;
+  transition: border-color 0.15s;
+}
+.yb-lead__modal-body textarea:focus,
+.yb-lead__modal-body input:focus,
+.yb-lead__modal-body select:focus {
+  outline: none;
+  border-color: var(--yb-brand, #f75c03);
+}
+.yb-lead__modal-body textarea { resize: vertical; min-height: 100px; }
+.yb-lead__modal-recipient {
+  font-size: 0.85rem;
+  color: #6F6A66;
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.yb-lead__modal-recipient strong { color: #0F0F0F; }
+.yb-lead__modal-charcount {
+  font-size: 0.75rem;
+  color: #999;
+  text-align: right;
+  margin-top: -8px;
+  margin-bottom: 12px;
+}
+.yb-lead__modal-footer {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  padding: 12px 20px;
+  border-top: 1px solid #E8E4E0;
+}
+.yb-lead__tpl-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 12px;
+}
+.yb-lead__tpl-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 5px 10px;
+  border-radius: 6px;
+  border: 1px solid #E8E4E0;
+  background: #FAFAFA;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #333;
+  cursor: pointer;
+  transition: all 0.12s;
+}
+.yb-lead__tpl-chip:hover {
+  border-color: var(--yb-brand, #f75c03);
+  color: var(--yb-brand, #f75c03);
+  background: rgba(247, 92, 3, 0.04);
+}
+.yb-lead__tpl-chip.is-booking {
+  border-color: var(--yb-brand, #f75c03);
+  color: var(--yb-brand, #f75c03);
+  background: rgba(247, 92, 3, 0.06);
 }
 
 /* ── Cross-link button (View Application / View Lead) ── */
