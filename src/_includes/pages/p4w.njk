@@ -164,11 +164,12 @@
 
       </div>
 
-      <!-- Right: Certificate image placeholder -->
+      <!-- Right: Certificate image -->
       <div class="p4w-certval__media">
         <div class="p4w-certval__image-placeholder">
+          {# CLOUDINARY: yoga-bible-DK/programs/p4w/yoga-alliance-ryt200-certificate-sample — 1200x800 #}
           <img
-            src="https://res.cloudinary.com/ddcynsa30/image/upload/w_600,q_auto,f_auto/yoga-bible-DK/programs/yoga-alliance-ryt200-certificate-sample"
+            src="{{ "yoga-bible-DK/programs/p4w/yoga-alliance-ryt200-certificate-sample" | cloudimg('w_600,q_auto,f_auto') }}"
             alt="{{ t.certval_image_alt }}"
             loading="lazy"
           >

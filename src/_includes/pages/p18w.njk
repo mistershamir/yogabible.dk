@@ -221,6 +221,54 @@
 </section>
 
 <!-- ═══════════════════════════════════════
+     4b. CERTIFICATION VALUE — Why RYT-200 Matters
+     ═══════════════════════════════════════ -->
+<section class="p4w-certval">
+  <div class="container">
+    <span class="p18-eyebrow">{{ t.certval_eyebrow }}</span>
+    <h2 class="p18-section-title">{{ t.certval_title }}</h2>
+    <p class="p18-section-sub">{{ t.certval_intro }}</p>
+
+    <div class="p4w-certval__grid">
+
+      <!-- Left: Content -->
+      <div class="p4w-certval__content">
+
+        <h3 class="p4w-certval__heading">{{ t.certval_learn_title }}</h3>
+        <ul class="p4w-certval__list">
+          {% for i in [1, 2, 3, 4, 5] %}
+          <li>
+            <span class="p4w-certval__check" aria-hidden="true">✓</span>
+            <span>{{ t["certval_learn" + i] }}</span>
+          </li>
+          {% endfor %}
+        </ul>
+
+        <h3 class="p4w-certval__heading">{{ t.certval_upgrade_title }}</h3>
+        <p class="p4w-certval__text">{{ t.certval_upgrade_text | safe }}</p>
+
+        <h3 class="p4w-certval__heading">{{ t.certval_exam_title }}</h3>
+        <p class="p4w-certval__text">{{ t.certval_exam_text }}</p>
+
+      </div>
+
+      <!-- Right: Certificate image -->
+      <div class="p4w-certval__media">
+        <div class="p4w-certval__image-placeholder">
+          {# CLOUDINARY: yoga-bible-DK/programs/p4w/yoga-alliance-ryt200-certificate-sample — 1200x800 #}
+          <img
+            src="{{ "yoga-bible-DK/programs/p4w/yoga-alliance-ryt200-certificate-sample" | cloudimg('w_600,q_auto,f_auto') }}"
+            alt="{{ t.certval_image_alt }}"
+            loading="lazy"
+          >
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════
      5. SCHEDULE & FLEXIBILITY — Unique Dual Format
      (with scroll-draw vine accent)
      ═══════════════════════════════════════ -->

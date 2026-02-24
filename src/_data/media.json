@@ -49,7 +49,9 @@
   "programs": {
     "testimonialVideo": "yoga-bible-DK/programs/yoga-students-share-training-experience",
     "practiceLoopVideo": "yoga-bible-DK/programs/yoga-practice-session-loop",
-    "certificate": "yoga-bible-DK/programs/yoga-alliance-ryt200-certificate-sample"
+    "certificate": "yoga-bible-DK/programs/yoga-alliance-ryt200-certificate-sample",
+    "certificateP4w": "yoga-bible-DK/programs/p4w/yoga-alliance-ryt200-certificate-sample",
+    "certificateP8w": "yoga-bible-DK/programs/p8w/yoga-alliance-ryt200-certificate-sample"
   },
 
   "accommodation": {
