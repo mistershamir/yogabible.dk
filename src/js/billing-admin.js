@@ -12,9 +12,11 @@
   var T = {};
   var isDa = true;
   var settingsLoaded = false;
+  var settingsLoading = false;
   var settings = { paymentTerms: [], layouts: [], customerGroups: [], vatZones: [] };
   var selectedCustomer = null; // { customerNumber, name, email }
   var currentDraftNumber = null;
+  var busy = false;
 
   /* ══════════════════════════════════════════
      HELPERS
@@ -30,10 +32,13 @@
     el.className = 'yb-admin__toast' + (isError ? ' yb-admin__toast--error' : '');
     el.hidden = false;
     clearTimeout(el._tid);
-    el._tid = setTimeout(function () { el.hidden = true; }, 3000);
+    el._tid = setTimeout(function () { el.hidden = true; }, 4000);
   }
 
   function getAuthToken() {
+    if (!window.firebase || !firebase.auth || !firebase.auth().currentUser) {
+      return Promise.reject(new Error(isDa ? 'Du er ikke logget ind.' : 'You are not signed in.'));
+    }
     return firebase.auth().currentUser.getIdToken();
   }
 
@@ -70,12 +75,28 @@
      LOAD SETTINGS
      ══════════════════════════════════════════ */
   function loadSettings() {
+    if (settingsLoading) return;
+    settingsLoading = true;
+    console.log('[billing] Loading e-conomic settings...');
+    toast(t('billing_loading_settings'));
+
     apiCall({ action: 'settings' }).then(function (res) {
-      if (!res.ok) { toast(res.error || 'Failed to load settings', true); return; }
+      settingsLoading = false;
+      if (!res.ok) {
+        console.error('[billing] Settings load failed:', res.error);
+        toast(res.error || 'Failed to load e-conomic settings', true);
+        return;
+      }
       settings = res.data;
       settingsLoaded = true;
+      console.log('[billing] Settings loaded:', Object.keys(settings).map(function (k) { return k + '=' + settings[k].length; }).join(', '));
       populateDropdowns();
-    }).catch(function (err) { toast('e-conomic: ' + err.message, true); });
+      toast(isDa ? 'e-conomic indstillinger indlæst' : 'e-conomic settings loaded');
+    }).catch(function (err) {
+      settingsLoading = false;
+      console.error('[billing] Settings error:', err);
+      toast('e-conomic: ' + err.message, true);
+    });
   }
 
   function populateDropdowns() {
@@ -116,10 +137,11 @@
   function searchCustomers() {
     var q = ($('yb-billing-customer-search') || {}).value || '';
     if (q.length < 2) { toast(isDa ? 'Skriv mindst 2 tegn' : 'Type at least 2 characters', true); return; }
+    console.log('[billing] Searching customers:', q);
     apiCall({ action: 'searchCustomers', query: q }).then(function (res) {
       if (!res.ok) { toast(res.error, true); return; }
       renderCustomerResults(res.data);
-    });
+    }).catch(function (err) { toast(err.message, true); });
   }
 
   function renderCustomerResults(customers) {
@@ -155,14 +177,15 @@
     $('yb-billing-customer-results').hidden = true;
     var ncForm = $('yb-billing-new-customer-form');
     if (ncForm) ncForm.hidden = true;
+    console.log('[billing] Customer selected:', num, name);
     updatePreview();
-    updateCreateBtn();
+    updateBtnState();
   }
 
   function clearCustomer() {
     selectedCustomer = null;
     $('yb-billing-selected-customer').hidden = true;
-    updateCreateBtn();
+    updateBtnState();
   }
 
   /* ══════════════════════════════════════════
@@ -181,7 +204,7 @@
 
   function saveNewCustomer() {
     var name = ($('yb-billing-nc-name') || {}).value || '';
-    if (!name.trim()) { toast(t('billing_nc_name') + ' is required', true); return; }
+    if (!name.trim()) { toast(isDa ? 'Kundenavn er påkrævet' : 'Customer name is required', true); return; }
 
     var customer = {
       name: name.trim(),
@@ -196,6 +219,7 @@
       paymentTermsNumber: parseInt(($('yb-billing-nc-payment') || {}).value) || 1
     };
 
+    console.log('[billing] Creating customer:', customer.name);
     apiCall({ action: 'createCustomer', customer: customer }).then(function (res) {
       if (!res.ok) { toast(res.error, true); return; }
       var c = res.data;
@@ -266,6 +290,8 @@
     html += '<div class="yb-billing__preview-summary">';
     if (selectedCustomer) {
       html += '<div class="yb-billing__preview-row"><span class="yb-billing__preview-label">' + t('billing_col_customer') + '</span><span>' + esc(selectedCustomer.name) + ' (#' + selectedCustomer.customerNumber + ')</span></div>';
+    } else {
+      html += '<div class="yb-billing__preview-row yb-billing__preview-row--missing"><span class="yb-billing__preview-label">' + t('billing_col_customer') + '</span><span>' + (isDa ? '⚠ Ikke valgt endnu' : '⚠ Not selected yet') + '</span></div>';
     }
     if (vals.description) {
       html += '<div class="yb-billing__preview-row"><span class="yb-billing__preview-label">' + t('billing_inv_description') + '</span><span>' + esc(vals.description) + '</span></div>';
@@ -291,21 +317,38 @@
     return new Intl.NumberFormat(isDa ? 'da-DK' : 'en-DK', { style: 'currency', currency: 'DKK', minimumFractionDigits: 2 }).format(n);
   }
 
-  function updateCreateBtn() {
+  function updateBtnState() {
     var btn = document.querySelector('[data-action="billing-create-invoice"]');
     if (!btn) return;
     var vals = getFormValues();
-    btn.disabled = !selectedCustomer || !vals.total || !vals.startMonth;
+    var ready = selectedCustomer && vals.total && vals.startMonth;
+    btn.classList.toggle('yb-btn--muted', !ready);
   }
 
   /* ══════════════════════════════════════════
      CREATE INVOICE
      ══════════════════════════════════════════ */
   function createInvoice() {
-    if (!selectedCustomer) { toast(t('billing_error_no_customer'), true); return; }
+    console.log('[billing] Create invoice clicked');
+    if (busy) { console.log('[billing] Busy, ignoring'); return; }
+
+    // Validate with clear feedback
+    if (!selectedCustomer) {
+      toast(t('billing_error_no_customer'), true);
+      console.log('[billing] Blocked: no customer selected');
+      return;
+    }
     var vals = getFormValues();
-    if (!vals.total) { toast(t('billing_error_no_amount'), true); return; }
-    if (!vals.startMonth) { toast(t('billing_error_no_month'), true); return; }
+    if (!vals.total) {
+      toast(t('billing_error_no_amount'), true);
+      console.log('[billing] Blocked: no amount');
+      return;
+    }
+    if (!vals.startMonth) {
+      toast(t('billing_error_no_month'), true);
+      console.log('[billing] Blocked: no start month');
+      return;
+    }
 
     var lines = buildLines(vals);
     var paymentTermsNum = parseInt(($('yb-billing-payment-terms') || {}).value) || 1;
@@ -328,16 +371,27 @@
     if (notes) invoice.notes = notes;
     if (ref) invoice.references = { text1: ref };
 
+    console.log('[billing] Sending invoice:', JSON.stringify(invoice, null, 2));
+
     var btn = document.querySelector('[data-action="billing-create-invoice"]');
-    if (btn) { btn.disabled = true; btn.textContent = isDa ? 'Opretter...' : 'Creating...'; }
+    busy = true;
+    if (btn) { btn.textContent = isDa ? 'Opretter...' : 'Creating...'; btn.classList.add('yb-btn--muted'); }
 
     apiCall({ action: 'createInvoice', invoice: invoice }).then(function (res) {
-      if (btn) { btn.disabled = false; btn.textContent = t('billing_create_draft'); }
-      if (!res.ok) { toast(res.error, true); return; }
+      busy = false;
+      if (btn) { btn.textContent = t('billing_create_draft'); btn.classList.remove('yb-btn--muted'); }
+      if (!res.ok) {
+        console.error('[billing] Invoice creation failed:', res.error);
+        toast(res.error, true);
+        return;
+      }
+      console.log('[billing] Invoice created:', res.data);
       toast(t('billing_invoice_created'));
       resetForm();
     }).catch(function (err) {
-      if (btn) { btn.disabled = false; btn.textContent = t('billing_create_draft'); }
+      busy = false;
+      if (btn) { btn.textContent = t('billing_create_draft'); btn.classList.remove('yb-btn--muted'); }
+      console.error('[billing] Invoice error:', err);
       toast(err.message, true);
     });
   }
@@ -357,10 +411,11 @@
   }
 
   function loadDrafts() {
+    console.log('[billing] Loading drafts...');
     apiCall({ action: 'listDrafts' }).then(function (res) {
       if (!res.ok) { toast(res.error, true); return; }
       renderDrafts(res.data.drafts || []);
-    });
+    }).catch(function (err) { toast(err.message, true); });
   }
 
   function renderDrafts(drafts) {
@@ -406,7 +461,7 @@
     apiCall({ action: 'getDraft', draftNumber: currentDraftNumber }).then(function (res) {
       if (!res.ok) { body.innerHTML = '<p class="yb-billing__error">' + esc(res.error) + '</p>'; return; }
       renderDraftDetail(res.data);
-    });
+    }).catch(function (err) { body.innerHTML = '<p class="yb-billing__error">' + esc(err.message) + '</p>'; });
   }
 
   function renderDraftDetail(d) {
@@ -476,12 +531,16 @@
     if (monthInput) monthInput.value = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0');
 
     updatePreview();
-    updateCreateBtn();
+    updateBtnState();
   }
 
   /* ══════════════════════════════════════════
      EVENT DELEGATION
      ══════════════════════════════════════════ */
+  function isBillingAction(action) {
+    return action && action.indexOf('billing-') === 0;
+  }
+
   function handleAction(action, el) {
     switch (action) {
       case 'billing-search-customer': searchCustomers(); break;
@@ -501,9 +560,6 @@
       case 'billing-view-draft': viewDraft(el.dataset.draft); break;
       case 'billing-book-draft': bookDraft(); break;
     }
-    if (action === 'close-billing-modal' || el.hasAttribute('data-close-billing-modal')) {
-      closeDraftModal();
-    }
   }
 
   /* ══════════════════════════════════════════
@@ -512,11 +568,14 @@
   function init() {
     T = window._ybAdminT || {};
     isDa = (window._ybAdminLang || 'da') === 'da';
+    console.log('[billing] Init, lang=' + (isDa ? 'da' : 'en'));
 
-    // Event delegation
+    // Event delegation — only handle billing-* actions
     document.addEventListener('click', function (e) {
       var btn = e.target.closest('[data-action]');
-      if (btn) handleAction(btn.dataset.action, btn);
+      if (btn && isBillingAction(btn.dataset.action)) {
+        handleAction(btn.dataset.action, btn);
+      }
       if (e.target.closest('[data-close-billing-modal]')) closeDraftModal();
     });
 
@@ -531,8 +590,10 @@
     // Live preview on changes
     ['yb-billing-total', 'yb-billing-instalments', 'yb-billing-start-month', 'yb-billing-description'].forEach(function (id) {
       var el = $(id);
-      if (el) el.addEventListener('input', function () { updatePreview(); updateCreateBtn(); });
-      if (el) el.addEventListener('change', function () { updatePreview(); updateCreateBtn(); });
+      if (el) {
+        el.addEventListener('input', function () { updatePreview(); updateBtnState(); });
+        el.addEventListener('change', function () { updatePreview(); updateBtnState(); });
+      }
     });
 
     // Set default start month
@@ -545,8 +606,10 @@
     // Load settings when billing tab is activated
     document.addEventListener('click', function (e) {
       var tab = e.target.closest('[data-yb-admin-tab="billing"]');
-      if (tab && !settingsLoaded) loadSettings();
+      if (tab && !settingsLoaded && !settingsLoading) loadSettings();
     });
+
+    console.log('[billing] Ready');
   }
 
   // Run when DOM ready
