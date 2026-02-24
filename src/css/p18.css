@@ -1586,18 +1586,6 @@
   color: #6F6A66;
 }
 
-.yb-modal-visit .calendly-inline-widget {
-  min-height: 680px;
-  border-radius: 8px;
-  overflow: hidden;
-}
-
-@media (max-width: 900px) {
-  .yb-modal-visit .calendly-inline-widget {
-    min-height: 560px;
-  }
-}
-
 .yb-modal-visit__fallback {
   margin: 1rem 0 0;
   font-size: 0.9rem;

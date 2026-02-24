@@ -217,7 +217,7 @@
     "visit_modal_subtitle": "Vælg en dato og et tidspunkt der passer dig.",
     "visit_modal_close_aria": "Luk",
     "visit_modal_aria": "Book en aftale",
-    "visit_modal_fallback": "Oplever du problemer? <a href=\"https://calendly.com/yogabible/studio-tour-consultation-yoga-teacher-training\" target=\"_blank\" rel=\"noopener\">Åbn booking i ny fane</a>",
+    "visit_modal_fallback": "",
 
     "faq_eyebrow": "Spørgsmål & svar",
     "faq_title": "Ofte stillede spørgsmål",
@@ -492,7 +492,7 @@
     "visit_modal_subtitle": "Choose a date and time that works for you.",
     "visit_modal_close_aria": "Close",
     "visit_modal_aria": "Book an appointment",
-    "visit_modal_fallback": "Having trouble? <a href=\"https://calendly.com/yogabible/studio-tour-consultation-yoga-teacher-training\" target=\"_blank\" rel=\"noopener\">Open booking in a new tab</a>",
+    "visit_modal_fallback": "",
 
     "faq_eyebrow": "Questions & answers",
     "faq_title": "Frequently asked questions",
