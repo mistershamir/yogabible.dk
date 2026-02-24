@@ -103,7 +103,8 @@ async function handlePut(event, user) {
   const allowed = [
     'date', 'time', 'duration', 'type', 'client_name', 'client_email',
     'client_phone', 'notes', 'status', 'location', 'reminder_sent',
-    'reminder_24h_sent', 'cancelled_at', 'cancel_reason', 'rescheduled_from'
+    'reminder_24h_sent', 'cancelled_at', 'cancel_reason', 'rescheduled_from',
+    '_notes'
   ];
 
   const updates = {};
