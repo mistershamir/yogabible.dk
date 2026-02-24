@@ -42,6 +42,7 @@
         <button class="yb-profile__tab" type="button" data-yb-admin-tab="appointments">{{ t.tab_appointments }}</button>
         <button class="yb-profile__tab" type="button" data-yb-admin-tab="catalog">{{ t.tab_catalog }}</button>
         <button class="yb-profile__tab" type="button" data-yb-admin-tab="documents">{{ t.tab_documents }}</button>
+        <button class="yb-profile__tab" type="button" data-yb-admin-tab="billing">{{ t.tab_billing }}</button>
       </div>
 
       {# ═══════════════════════════════════
@@ -557,6 +558,13 @@
         {% include "partials/admin-documents-panel.njk" %}
       </div>{# end documents tab panel #}
 
+      {# ═══════════════════════════════════
+         TAB: Billing / e-conomic
+         ═══════════════════════════════════ #}
+      <div class="yb-admin__tab-panel" data-yb-admin-panel="billing">
+        {% include "partials/admin-billing-panel.njk" %}
+      </div>{# end billing tab panel #}
+
     </div>{# end yb-admin-panel #}
 
     {# ═══════════════════════════════════
@@ -651,3 +659,4 @@
 <script src="/js/doc-admin.js"></script>
 <script src="/js/careers-admin.js"></script>
 <script src="/js/appointments-admin.js"></script>
+<script src="/js/billing-admin.js"></script>

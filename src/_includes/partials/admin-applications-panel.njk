@@ -98,6 +98,11 @@
   <h3 class="yb-lead__section-title">{{ t.apps_quick_actions }}</h3>
   <div id="yb-app-actions" class="yb-lead__actions"></div>
 
+  {# Billing quick action #}
+  <div style="margin-top:0.5rem">
+    <button type="button" class="yb-btn yb-btn--outline yb-btn--sm" data-action="billing-from-app" id="yb-app-bill-btn">&#128176; {{ t.billing_bill_applicant }}</button>
+  </div>
+
   {# SMS Conversation #}
   <div class="yb-admin__section-divider"></div>
   <h3 class="yb-lead__section-title">{{ t.apps_sms_conversation }}</h3>

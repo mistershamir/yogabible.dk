@@ -23,7 +23,7 @@ const TOKEN_SECRET = process.env.UNSUBSCRIBE_SECRET || 'yb-appt-secret';
 // ─── Defaults ───────────────────────────────────────────────────────
 const DEFAULT_SETTINGS = {
   types: [
-    { id: 'studio-tour', name_da: 'Studiebesøg & konsultation', name_en: 'Studio Tour & Consultation', duration: 30, color: '#f75c03' },
+    { id: 'info-session', name_da: 'Gratis infomøde', name_en: 'Free Info Session', duration: 30, color: '#f75c03' },
     { id: 'consultation', name_da: 'Online konsultation', name_en: 'Online Consultation', duration: 30, color: '#3f99a5' },
     { id: 'intro-class', name_da: 'Gratis prøvetime', name_en: 'Free Trial Class', duration: 60, color: '#4CAF50' }
   ],
@@ -193,7 +193,7 @@ async function bookAppointment(body) {
     date,
     time,
     duration,
-    type: type || 'studio-tour',
+    type: type || 'info-session',
     type_name_da: typeConfig.name_da,
     type_name_en: typeConfig.name_en,
     client_name: name.trim(),

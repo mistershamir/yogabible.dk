@@ -10,8 +10,8 @@
  *
  * Usage:
  *   <button data-open-booking>Book</button>
- *   <button data-open-booking="studio-tour">Book Studio Tour</button>
- *   window.openBookingModal('studio-tour');
+ *   <button data-open-booking="info-session">Book Info Session</button>
+ *   window.openBookingModal('info-session');
  */
 (function () {
   'use strict';
@@ -20,7 +20,7 @@
   var isDa = window.location.pathname.indexOf('/en/') !== 0;
 
   // State
-  var selectedType = 'studio-tour';
+  var selectedType = 'info-session';
   var selectedDate = null;
   var selectedTime = null;
   var calYear, calMonth;
@@ -37,7 +37,7 @@
     ? ['Man', 'Tir', 'Ons', 'Tor', 'Fre', 'Lør', 'Søn']
     : ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 
-  var TYPE_DURATIONS = { 'studio-tour': 30, 'consultation': 30, 'intro-class': 60 };
+  var TYPE_DURATIONS = { 'info-session': 30, 'consultation': 30, 'intro-class': 60 };
 
   /* ══════════════════════════════════════════
      MODAL OPEN / CLOSE
@@ -236,13 +236,13 @@
     var dateFormatted = d.getDate() + '. ' + monthNames[d.getMonth()] + ' ' + d.getFullYear();
 
     var typeLabels = {
-      'studio-tour': t('Studiebesøg & konsultation', 'Studio Tour & Consultation'),
+      'info-session': t('Gratis infomøde', 'Free Info Session'),
       'consultation': t('Online konsultation', 'Online Consultation'),
       'intro-class': t('Gratis prøvetime', 'Free Trial Class')
     };
 
     var locationLabels = {
-      'studio-tour': 'Yoga Bible, Torvegade 66, 1400 København K',
+      'info-session': 'Yoga Bible, Torvegade 66, 1400 København K',
       'consultation': t('Online (link sendes på email)', 'Online (link sent via email)'),
       'intro-class': 'Yoga Bible, Torvegade 66, 1400 København K'
     };
@@ -396,6 +396,14 @@
     // Form submit
     var form = $('yb-book-form');
     if (form) form.addEventListener('submit', submitBooking);
+
+    // Auto-open from URL: ?booking=1 or ?booking=info-session
+    var urlParams = new URLSearchParams(window.location.search);
+    var bookParam = urlParams.get('booking');
+    if (bookParam) {
+      var type = (bookParam === '1' || bookParam === 'true') ? null : bookParam;
+      openModal(type);
+    }
   }
 
   if (document.readyState === 'loading') {
