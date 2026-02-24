@@ -507,7 +507,7 @@
 
       if (!termsChecked || !conductChecked) {
         showError(errorEl, detectLocale() === 'da'
-          ? 'Du skal acceptere vores vilkår, privatlivspolitik og code of conduct.'
+          ? 'Du skal acceptere vores vilkår, privatlivspolitik og adfærdskodeks.'
           : 'You must agree to our terms, privacy policy and code of conduct.');
         return;
       }

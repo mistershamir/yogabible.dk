@@ -446,7 +446,7 @@
     "membership_pause_error": "Could not pause membership. Please try again.",
     "membership_pause_special": "Special circumstances (injury, pregnancy, travel etc.)? Contact us for an extended pause.",
     "membership_cancel_title": "Cancel membership",
-    "membership_cancel_desc": "Cancellation follows our terms: 1 month + running days notice. You can use your membership until the end of the paid period.",
+    "membership_cancel_desc": "Cancellation follows our terms: 1 month + remaining days' notice. You can use your membership until the end of the paid period.",
     "membership_cancel_earliest": "Earliest cancellation date",
     "membership_cancel_use_until": "You can use your membership until",
     "membership_cancel_confirm": "Confirm cancellation",
