@@ -11,7 +11,7 @@ var CONFIG = {
   EMAIL_ADMIN: 'info@yogabible.dk',
   FROM_NAME: 'Yoga Bible',
   BUNDLE_PROGRAM_ID: '__bundle__',
-  MEETING_LINK: 'https://calendly.com/yogabible/studio-tour-consultation-yoga-teacher-training',
+  MEETING_LINK: 'https://yogabible.dk/?booking=1',
   APPLICATION_FORM_URL: 'https://www.yogabible.dk/apply',
   STUDIO_ADDRESS: 'Torvegade 66, 1400 Kobenhavn K, Danmark',
   STUDIO_MAPS_URL: 'https://www.google.com/maps/search/?api=1&query=Torvegade+66,+1400+Copenhagen,+Denmark',

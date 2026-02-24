@@ -70,7 +70,7 @@
   };
 
   var TYPE_ICONS = {
-    'studio-tour': '&#127963;',
+    'info-session': '&#127963;',
     'consultation': '&#128187;',
     'intro-class': '&#129495;'
   };

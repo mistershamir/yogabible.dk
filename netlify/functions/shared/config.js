@@ -27,8 +27,8 @@ const CONFIG = {
 const AUTO_SMS_CONFIG = {
   enabled: true,
   templates: {
-    'ytt': "Hi {{first_name}}! Thank you for your interest in our Yoga Teacher Training. We've sent details to your email (check inbox + spam). Book a studio tour or consultation: https://yogabible.dk/?booking=1 — Warm regards, Yoga Bible",
-    'ytt_multi': "Hi {{first_name}}! Thank you for requesting schedules for our {{program}}. We've sent all the schedules to your email (check inbox + spam) so you can compare. Book a tour or consultation: https://yogabible.dk/?booking=1 — Yoga Bible",
+    'ytt': "Hi {{first_name}}! Thank you for your interest in our Yoga Teacher Training. We've sent details to your email (check inbox + spam). Book a free info session: https://yogabible.dk/?booking=1 — Warm regards, Yoga Bible",
+    'ytt_multi': "Hi {{first_name}}! Thank you for requesting schedules for our {{program}}. We've sent all the schedules to your email (check inbox + spam) so you can compare. Book a free info session: https://yogabible.dk/?booking=1 — Yoga Bible",
     'course': "Hi {{first_name}}! Thank you for your interest in our {{program}} course. We've sent details to your email (check inbox + spam). Book a consultation: https://yogabible.dk/?booking=1 — Warm regards, Yoga Bible",
     'mentorship': "Hi {{first_name}}! Thank you for your interest in our Mentorship program. We've sent details to your email (check inbox + spam). Book a free consultation: https://yogabible.dk/?booking=1 — Warm regards, Yoga Bible",
     'default': "Hi {{first_name}}! Thank you for reaching out to Yoga Bible. We've sent info to your email (check inbox + spam). Book a consultation: https://yogabible.dk/?booking=1 — Warm regards, Yoga Bible"
