@@ -2,6 +2,13 @@
  * YOGA BIBLE — BILLING ADMIN (e-conomic)
  * Create customers + instalment invoices via the e-conomic REST API.
  * Talks to /.netlify/functions/economic-admin (server-side proxy).
+ *
+ * Supports:
+ * - e-conomic customer search + create
+ * - Firestore applicant picker (from applications collection)
+ * - "Bill Applicant" from Applications tab (auto-fill)
+ * - Description presets from course catalog
+ * - Instalment invoice lines with monthly schedule
  */
 (function () {
   'use strict';
@@ -15,8 +22,10 @@
   var settingsLoading = false;
   var settings = { paymentTerms: [], layouts: [], customerGroups: [], vatZones: [] };
   var selectedCustomer = null; // { customerNumber, name, email }
+  var selectedApplicant = null; // { name, email, phone, course, appId } — pre-e-conomic
   var currentDraftNumber = null;
   var busy = false;
+  var applicantsCache = []; // cached from Firestore
 
   /* ══════════════════════════════════════════
      HELPERS
@@ -72,13 +81,12 @@
   }
 
   /* ══════════════════════════════════════════
-     LOAD SETTINGS
+     LOAD E-CONOMIC SETTINGS
      ══════════════════════════════════════════ */
   function loadSettings() {
     if (settingsLoading) return;
     settingsLoading = true;
     console.log('[billing] Loading e-conomic settings...');
-    toast(t('billing_loading_settings'));
 
     apiCall({ action: 'settings' }).then(function (res) {
       settingsLoading = false;
@@ -91,7 +99,6 @@
       settingsLoaded = true;
       console.log('[billing] Settings loaded:', Object.keys(settings).map(function (k) { return k + '=' + settings[k].length; }).join(', '));
       populateDropdowns();
-      toast(isDa ? 'e-conomic indstillinger indlæst' : 'e-conomic settings loaded');
     }).catch(function (err) {
       settingsLoading = false;
       console.error('[billing] Settings error:', err);
@@ -104,6 +111,7 @@
     var ptOpts = settings.paymentTerms.map(function (pt) {
       return '<option value="' + pt.paymentTermsNumber + '">' + esc(pt.name) + '</option>';
     }).join('');
+    if (!ptOpts) ptOpts = '<option value="1">Netto 8 dage</option>';
     var ptSel = $('yb-billing-payment-terms');
     if (ptSel) ptSel.innerHTML = ptOpts;
     var ptSel2 = $('yb-billing-nc-payment');
@@ -113,6 +121,7 @@
     var layOpts = settings.layouts.map(function (l) {
       return '<option value="' + l.layoutNumber + '">' + esc(l.name) + '</option>';
     }).join('');
+    if (!layOpts) layOpts = '<option value="19">Standard</option>';
     var laySel = $('yb-billing-layout');
     if (laySel) laySel.innerHTML = layOpts;
 
@@ -120,6 +129,7 @@
     var cgOpts = settings.customerGroups.map(function (cg) {
       return '<option value="' + cg.customerGroupNumber + '">' + esc(cg.name) + '</option>';
     }).join('');
+    if (!cgOpts) cgOpts = '<option value="1">Standard</option>';
     var cgSel = $('yb-billing-nc-group');
     if (cgSel) cgSel.innerHTML = cgOpts;
 
@@ -127,17 +137,39 @@
     var vzOpts = settings.vatZones.map(function (vz) {
       return '<option value="' + vz.vatZoneNumber + '">' + esc(vz.name) + '</option>';
     }).join('');
+    if (!vzOpts) vzOpts = '<option value="1">Hjemme</option>';
     var vzSel = $('yb-billing-nc-vat');
     if (vzSel) vzSel.innerHTML = vzOpts;
   }
 
   /* ══════════════════════════════════════════
-     CUSTOMER SEARCH
+     SOURCE TABS (e-conomic / Applicants)
+     ══════════════════════════════════════════ */
+  function switchSource(source) {
+    var econPanel = $('yb-billing-source-economic');
+    var appPanel = $('yb-billing-source-applicants');
+    if (!econPanel || !appPanel) return;
+
+    document.querySelectorAll('.yb-billing__source-tab').forEach(function (btn) { btn.classList.remove('is-active'); });
+    var activeBtn = document.querySelector('[data-action="billing-source-' + source + '"]');
+    if (activeBtn) activeBtn.classList.add('is-active');
+
+    if (source === 'economic') {
+      econPanel.hidden = false;
+      appPanel.hidden = true;
+    } else {
+      econPanel.hidden = true;
+      appPanel.hidden = false;
+    }
+  }
+
+  /* ══════════════════════════════════════════
+     E-CONOMIC CUSTOMER SEARCH
      ══════════════════════════════════════════ */
   function searchCustomers() {
     var q = ($('yb-billing-customer-search') || {}).value || '';
     if (q.length < 2) { toast(isDa ? 'Skriv mindst 2 tegn' : 'Type at least 2 characters', true); return; }
-    console.log('[billing] Searching customers:', q);
+    console.log('[billing] Searching e-conomic customers:', q);
     apiCall({ action: 'searchCustomers', query: q }).then(function (res) {
       if (!res.ok) { toast(res.error, true); return; }
       renderCustomerResults(res.data);
@@ -170,11 +202,13 @@
 
   function selectCustomer(num, name, email) {
     selectedCustomer = { customerNumber: parseInt(num), name: name, email: email };
+    selectedApplicant = null;
     $('yb-billing-cust-name').textContent = name;
     $('yb-billing-cust-num').textContent = '#' + num;
     $('yb-billing-cust-email').textContent = email || '';
     $('yb-billing-selected-customer').hidden = false;
     $('yb-billing-customer-results').hidden = true;
+    $('yb-billing-applicant-results') && ($('yb-billing-applicant-results').hidden = true);
     var ncForm = $('yb-billing-new-customer-form');
     if (ncForm) ncForm.hidden = true;
     console.log('[billing] Customer selected:', num, name);
@@ -184,8 +218,143 @@
 
   function clearCustomer() {
     selectedCustomer = null;
+    selectedApplicant = null;
     $('yb-billing-selected-customer').hidden = true;
+    var banner = $('yb-billing-applicant-banner');
+    if (banner) banner.hidden = true;
     updateBtnState();
+  }
+
+  /* ══════════════════════════════════════════
+     FIRESTORE APPLICANT SEARCH
+     ══════════════════════════════════════════ */
+  function searchApplicants() {
+    var q = ($('yb-billing-applicant-search') || {}).value || '';
+    if (q.length < 2) { toast(isDa ? 'Skriv mindst 2 tegn' : 'Type at least 2 characters', true); return; }
+    console.log('[billing] Searching applicants:', q);
+
+    // Search from Firestore applications collection
+    var db = firebase.firestore();
+    db.collection('applications').orderBy('created_at', 'desc').limit(200).get().then(function (snap) {
+      var results = [];
+      var qLower = q.toLowerCase();
+      snap.forEach(function (doc) {
+        var d = doc.data();
+        d.id = doc.id;
+        var match = (d.first_name || '').toLowerCase().includes(qLower)
+          || (d.last_name || '').toLowerCase().includes(qLower)
+          || (d.email || '').toLowerCase().includes(qLower)
+          || ((d.first_name || '') + ' ' + (d.last_name || '')).toLowerCase().includes(qLower);
+        if (match) results.push(d);
+      });
+      renderApplicantResults(results);
+    }).catch(function (err) { toast(err.message, true); });
+  }
+
+  function renderApplicantResults(applicants) {
+    var el = $('yb-billing-applicant-results');
+    if (!el) return;
+    if (!applicants.length) {
+      el.innerHTML = '<p class="yb-billing__no-results">' + (isDa ? 'Ingen ansøgere fundet.' : 'No applicants found.') + '</p>';
+      el.hidden = false;
+      return;
+    }
+    var html = '<div class="yb-billing__customer-list">';
+    applicants.forEach(function (a) {
+      var name = (a.first_name || '') + ' ' + (a.last_name || '');
+      var statusBadge = a.status ? '<span class="yb-billing__cr-status">' + esc(a.status) + '</span>' : '';
+      html += '<button type="button" class="yb-billing__customer-row" data-action="billing-select-applicant" '
+        + 'data-app-name="' + esc(name.trim()) + '" '
+        + 'data-app-email="' + esc(a.email || '') + '" '
+        + 'data-app-phone="' + esc(a.phone || '') + '" '
+        + 'data-app-course="' + esc(a.course_name || '') + '" '
+        + 'data-app-type="' + esc(a.type || '') + '" '
+        + 'data-app-id="' + esc(a.app_id || a.id || '') + '">'
+        + '<span class="yb-billing__cr-name">' + esc(name.trim()) + '</span>'
+        + statusBadge
+        + (a.course_name ? '<span class="yb-billing__cr-course">' + esc(a.course_name) + '</span>' : '')
+        + (a.email ? '<span class="yb-billing__cr-email">' + esc(a.email) + '</span>' : '')
+        + '</button>';
+    });
+    html += '</div>';
+    el.innerHTML = html;
+    el.hidden = false;
+  }
+
+  function selectApplicant(data) {
+    selectedApplicant = {
+      name: data.appName,
+      email: data.appEmail,
+      phone: data.appPhone,
+      course: data.appCourse,
+      type: data.appType,
+      appId: data.appId
+    };
+    selectedCustomer = null;
+
+    // Show as selected customer badge (but without e-conomic number)
+    $('yb-billing-cust-name').textContent = data.appName;
+    $('yb-billing-cust-num').textContent = data.appId ? '(' + data.appId + ')' : '';
+    $('yb-billing-cust-email').textContent = data.appEmail || '';
+    $('yb-billing-selected-customer').hidden = false;
+    $('yb-billing-applicant-results') && ($('yb-billing-applicant-results').hidden = true);
+    $('yb-billing-customer-results') && ($('yb-billing-customer-results').hidden = true);
+
+    // Pre-fill new customer form with applicant data
+    prefillNewCustomerForm(data.appName, data.appEmail, data.appPhone);
+
+    // Auto-match description if course known
+    if (data.appCourse) {
+      autoMatchDescription(data.appCourse, data.appType);
+    }
+
+    // Set ref to app ID
+    var refEl = $('yb-billing-ref');
+    if (refEl && data.appId) refEl.value = data.appId;
+
+    console.log('[billing] Applicant selected:', data.appName, data.appCourse);
+    updatePreview();
+    updateBtnState();
+  }
+
+  function prefillNewCustomerForm(name, email, phone) {
+    // Show new customer form pre-filled
+    var ncForm = $('yb-billing-new-customer-form');
+    if (ncForm) ncForm.hidden = false;
+    var ncName = $('yb-billing-nc-name');
+    if (ncName) ncName.value = name || '';
+    var ncEmail = $('yb-billing-nc-email');
+    if (ncEmail) ncEmail.value = email || '';
+    var ncPhone = $('yb-billing-nc-phone');
+    if (ncPhone) ncPhone.value = phone || '';
+  }
+
+  function autoMatchDescription(courseName, appType) {
+    var preset = $('yb-billing-desc-preset');
+    var descInput = $('yb-billing-description');
+    if (!preset || !descInput) return;
+
+    var cn = (courseName || '').toLowerCase();
+    var matched = false;
+
+    // Try to match preset options
+    for (var i = 0; i < preset.options.length; i++) {
+      var val = preset.options[i].value.toLowerCase();
+      if (val && cn && (val.includes(cn) || cn.includes(val.split(' — ')[1] || ''))) {
+        preset.selectedIndex = i;
+        descInput.value = preset.options[i].value;
+        matched = true;
+        break;
+      }
+    }
+
+    // Fallback: use course name as custom description
+    if (!matched && courseName) {
+      preset.value = 'custom';
+      descInput.value = courseName;
+    }
+
+    updatePreview();
   }
 
   /* ══════════════════════════════════════════
@@ -219,7 +388,7 @@
       paymentTermsNumber: parseInt(($('yb-billing-nc-payment') || {}).value) || 1
     };
 
-    console.log('[billing] Creating customer:', customer.name);
+    console.log('[billing] Creating e-conomic customer:', customer.name);
     apiCall({ action: 'createCustomer', customer: customer }).then(function (res) {
       if (!res.ok) { toast(res.error, true); return; }
       var c = res.data;
@@ -227,6 +396,26 @@
       selectCustomer(c.customerNumber, c.name, c.email || customer.email);
       cancelNewCustomer();
     }).catch(function (err) { toast(err.message, true); });
+  }
+
+  /* ══════════════════════════════════════════
+     DESCRIPTION PRESETS
+     ══════════════════════════════════════════ */
+  function handleDescPresetChange() {
+    var preset = $('yb-billing-desc-preset');
+    var descInput = $('yb-billing-description');
+    if (!preset || !descInput) return;
+
+    var val = preset.value;
+    if (val === 'custom') {
+      descInput.value = '';
+      descInput.focus();
+    } else if (val) {
+      descInput.value = val;
+    } else {
+      descInput.value = '';
+    }
+    updatePreview();
   }
 
   /* ══════════════════════════════════════════
@@ -244,7 +433,7 @@
     if (!vals.total || !vals.startMonth) return [];
     var parts = vals.startMonth.split('-');
     var year = parseInt(parts[0]);
-    var month = parseInt(parts[1]) - 1; // 0-based
+    var month = parseInt(parts[1]) - 1;
     var perInstalment = Math.round((vals.total / vals.instalments) * 100) / 100;
     var lines = [];
 
@@ -262,7 +451,6 @@
           + ' — ' + dateStr;
       }
 
-      // Last instalment gets the remainder to avoid rounding issues
       var amount = (i === vals.instalments - 1) ? vals.total - (perInstalment * (vals.instalments - 1)) : perInstalment;
       amount = Math.round(amount * 100) / 100;
 
@@ -283,13 +471,16 @@
 
     var lines = buildLines(vals);
     var perInstalment = lines.length ? lines[0].unitNetPrice : 0;
+    var custName = selectedCustomer ? selectedCustomer.name : (selectedApplicant ? selectedApplicant.name : null);
 
     var html = '';
 
     // Summary
     html += '<div class="yb-billing__preview-summary">';
-    if (selectedCustomer) {
-      html += '<div class="yb-billing__preview-row"><span class="yb-billing__preview-label">' + t('billing_col_customer') + '</span><span>' + esc(selectedCustomer.name) + ' (#' + selectedCustomer.customerNumber + ')</span></div>';
+    if (custName) {
+      html += '<div class="yb-billing__preview-row"><span class="yb-billing__preview-label">' + t('billing_col_customer') + '</span><span>' + esc(custName);
+      if (selectedCustomer) html += ' (#' + selectedCustomer.customerNumber + ')';
+      html += '</span></div>';
     } else {
       html += '<div class="yb-billing__preview-row yb-billing__preview-row--missing"><span class="yb-billing__preview-label">' + t('billing_col_customer') + '</span><span>' + (isDa ? '⚠ Ikke valgt endnu' : '⚠ Not selected yet') + '</span></div>';
     }
@@ -321,7 +512,8 @@
     var btn = document.querySelector('[data-action="billing-create-invoice"]');
     if (!btn) return;
     var vals = getFormValues();
-    var ready = selectedCustomer && vals.total && vals.startMonth;
+    var hasCustomer = selectedCustomer || selectedApplicant;
+    var ready = hasCustomer && vals.total && vals.startMonth;
     btn.classList.toggle('yb-btn--muted', !ready);
   }
 
@@ -330,25 +522,20 @@
      ══════════════════════════════════════════ */
   function createInvoice() {
     console.log('[billing] Create invoice clicked');
-    if (busy) { console.log('[billing] Busy, ignoring'); return; }
+    if (busy) return;
 
-    // Validate with clear feedback
+    // If applicant selected but no e-conomic customer yet, prompt
+    if (selectedApplicant && !selectedCustomer) {
+      toast(isDa ? 'Opret først kunden i e-conomic (klik "Opret kunde" ovenfor)' : 'Create the customer in e-conomic first (click "Create Customer" above)', true);
+      return;
+    }
     if (!selectedCustomer) {
       toast(t('billing_error_no_customer'), true);
-      console.log('[billing] Blocked: no customer selected');
       return;
     }
     var vals = getFormValues();
-    if (!vals.total) {
-      toast(t('billing_error_no_amount'), true);
-      console.log('[billing] Blocked: no amount');
-      return;
-    }
-    if (!vals.startMonth) {
-      toast(t('billing_error_no_month'), true);
-      console.log('[billing] Blocked: no start month');
-      return;
-    }
+    if (!vals.total) { toast(t('billing_error_no_amount'), true); return; }
+    if (!vals.startMonth) { toast(t('billing_error_no_month'), true); return; }
 
     var lines = buildLines(vals);
     var paymentTermsNum = parseInt(($('yb-billing-payment-terms') || {}).value) || 1;
@@ -380,18 +567,13 @@
     apiCall({ action: 'createInvoice', invoice: invoice }).then(function (res) {
       busy = false;
       if (btn) { btn.textContent = t('billing_create_draft'); btn.classList.remove('yb-btn--muted'); }
-      if (!res.ok) {
-        console.error('[billing] Invoice creation failed:', res.error);
-        toast(res.error, true);
-        return;
-      }
+      if (!res.ok) { toast(res.error, true); return; }
       console.log('[billing] Invoice created:', res.data);
       toast(t('billing_invoice_created'));
       resetForm();
     }).catch(function (err) {
       busy = false;
       if (btn) { btn.textContent = t('billing_create_draft'); btn.classList.remove('yb-btn--muted'); }
-      console.error('[billing] Invoice error:', err);
       toast(err.message, true);
     });
   }
@@ -411,7 +593,6 @@
   }
 
   function loadDrafts() {
-    console.log('[billing] Loading drafts...');
     apiCall({ action: 'listDrafts' }).then(function (res) {
       if (!res.ok) { toast(res.error, true); return; }
       renderDrafts(res.data.drafts || []);
@@ -468,16 +649,13 @@
     var body = $('yb-billing-modal-body');
     if (!body) return;
     var html = '<div class="yb-billing__detail">';
-
     html += '<div class="yb-billing__detail-row"><strong>' + t('billing_col_customer') + ':</strong> ' + esc(d.recipient && d.recipient.name || '—') + '</div>';
     html += '<div class="yb-billing__detail-row"><strong>' + t('billing_col_date') + ':</strong> ' + (d.date || '—') + '</div>';
     html += '<div class="yb-billing__detail-row"><strong>' + t('billing_col_due') + ':</strong> ' + (d.dueDate || '—') + '</div>';
     html += '<div class="yb-billing__detail-row"><strong>' + t('billing_col_total') + ':</strong> ' + (d.grossAmount != null ? formatAmount(d.grossAmount) : formatAmount(d.netAmount || 0)) + '</div>';
-
     if (d.notes && d.notes.heading) {
       html += '<div class="yb-billing__detail-row"><strong>' + t('billing_inv_notes') + ':</strong> ' + esc(d.notes.heading) + '</div>';
     }
-
     if (d.lines && d.lines.length) {
       html += '<table class="yb-billing__preview-table"><thead><tr><th>#</th><th>' + t('billing_inv_description') + '</th><th>' + t('billing_col_total') + '</th></tr></thead><tbody>';
       d.lines.forEach(function (line, i) {
@@ -485,7 +663,6 @@
       });
       html += '</tbody></table>';
     }
-
     html += '</div>';
     body.innerHTML = html;
   }
@@ -499,7 +676,6 @@
   function bookDraft() {
     if (!currentDraftNumber) return;
     if (!confirm(t('billing_confirm_book'))) return;
-
     apiCall({ action: 'bookInvoice', draftNumber: currentDraftNumber }).then(function (res) {
       if (!res.ok) { toast(res.error, true); return; }
       toast(t('billing_booked'));
@@ -509,27 +685,73 @@
   }
 
   /* ══════════════════════════════════════════
+     BILL FROM APPLICATION TAB
+     ══════════════════════════════════════════ */
+  // Called from lead-admin.js via window.billingFromApp()
+  window.billingFromApp = function (appData) {
+    console.log('[billing] Bill from application:', appData);
+
+    // Switch to billing tab
+    var billingTabBtn = document.querySelector('[data-yb-admin-tab="billing"]');
+    if (billingTabBtn) billingTabBtn.click();
+
+    // Ensure settings are loaded
+    if (!settingsLoaded && !settingsLoading) loadSettings();
+
+    // Show create view
+    showCreate();
+
+    // Show applicant banner
+    var banner = $('yb-billing-applicant-banner');
+    var bannerInfo = $('yb-billing-applicant-info');
+    if (banner && bannerInfo) {
+      bannerInfo.textContent = t('billing_billing_for') + ': ' + (appData.name || '') + (appData.appId ? ' (' + appData.appId + ')' : '');
+      banner.hidden = false;
+    }
+
+    // Select applicant
+    selectApplicant({
+      appName: appData.name || '',
+      appEmail: appData.email || '',
+      appPhone: appData.phone || '',
+      appCourse: appData.course || '',
+      appType: appData.type || '',
+      appId: appData.appId || ''
+    });
+
+    // Switch source to applicants
+    switchSource('applicants');
+  };
+
+  /* ══════════════════════════════════════════
      RESET
      ══════════════════════════════════════════ */
   function resetForm() {
     selectedCustomer = null;
+    selectedApplicant = null;
     $('yb-billing-selected-customer').hidden = true;
     var ncForm = $('yb-billing-new-customer-form');
     if (ncForm) ncForm.hidden = true;
-    $('yb-billing-customer-results').hidden = true;
+    $('yb-billing-customer-results') && ($('yb-billing-customer-results').hidden = true);
+    $('yb-billing-applicant-results') && ($('yb-billing-applicant-results').hidden = true);
+    var banner = $('yb-billing-applicant-banner');
+    if (banner) banner.hidden = true;
 
-    var fields = ['yb-billing-customer-search', 'yb-billing-total', 'yb-billing-description', 'yb-billing-notes', 'yb-billing-ref',
+    var fields = ['yb-billing-customer-search', 'yb-billing-applicant-search', 'yb-billing-total', 'yb-billing-description', 'yb-billing-notes', 'yb-billing-ref',
       'yb-billing-nc-name', 'yb-billing-nc-email', 'yb-billing-nc-address', 'yb-billing-nc-zip', 'yb-billing-nc-city', 'yb-billing-nc-phone', 'yb-billing-nc-cvr'];
     fields.forEach(function (id) { var el = $(id); if (el) el.value = ''; });
 
     var instSel = $('yb-billing-instalments');
     if (instSel) instSel.value = '1';
 
-    // Set default start month to current month
+    var presetSel = $('yb-billing-desc-preset');
+    if (presetSel) presetSel.value = '';
+
     var now = new Date();
     var monthInput = $('yb-billing-start-month');
     if (monthInput) monthInput.value = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0');
 
+    switchSource('economic');
     updatePreview();
     updateBtnState();
   }
@@ -544,13 +766,20 @@
   function handleAction(action, el) {
     switch (action) {
       case 'billing-search-customer': searchCustomers(); break;
+      case 'billing-search-applicants': searchApplicants(); break;
       case 'billing-new-customer': showNewCustomerForm(); break;
       case 'billing-save-customer': saveNewCustomer(); break;
       case 'billing-cancel-new-customer': cancelNewCustomer(); break;
       case 'billing-clear-customer': clearCustomer(); break;
+      case 'billing-clear-applicant': clearCustomer(); break;
       case 'billing-select-customer':
         selectCustomer(el.dataset.customerNumber, el.dataset.customerName, el.dataset.customerEmail);
         break;
+      case 'billing-select-applicant':
+        selectApplicant(el.dataset);
+        break;
+      case 'billing-source-economic': switchSource('economic'); break;
+      case 'billing-source-applicants': switchSource('applicants'); break;
       case 'billing-create-invoice': createInvoice(); break;
       case 'billing-reset-form': resetForm(); break;
       case 'billing-view-drafts': showDrafts(); break;
@@ -559,6 +788,23 @@
       case 'billing-refresh-settings': loadSettings(); break;
       case 'billing-view-draft': viewDraft(el.dataset.draft); break;
       case 'billing-book-draft': bookDraft(); break;
+      case 'billing-from-app': handleBillFromApp(); break;
+    }
+  }
+
+  function handleBillFromApp() {
+    // Read current application from lead-admin's global currentApp
+    // This is called from the applications detail view
+    if (window._ybCurrentApp) {
+      var a = window._ybCurrentApp;
+      window.billingFromApp({
+        name: ((a.first_name || '') + ' ' + (a.last_name || '')).trim(),
+        email: a.email || '',
+        phone: a.phone || '',
+        course: a.course_name || '',
+        type: a.type || a.program_type || '',
+        appId: a.app_id || a.id || ''
+      });
     }
   }
 
@@ -580,12 +826,18 @@
     });
 
     // Search on enter
-    var searchInput = $('yb-billing-customer-search');
-    if (searchInput) {
-      searchInput.addEventListener('keydown', function (e) {
-        if (e.key === 'Enter') { e.preventDefault(); searchCustomers(); }
-      });
-    }
+    ['yb-billing-customer-search', 'yb-billing-applicant-search'].forEach(function (id) {
+      var el = $(id);
+      if (el) {
+        el.addEventListener('keydown', function (e) {
+          if (e.key === 'Enter') {
+            e.preventDefault();
+            if (id.includes('applicant')) searchApplicants();
+            else searchCustomers();
+          }
+        });
+      }
+    });
 
     // Live preview on changes
     ['yb-billing-total', 'yb-billing-instalments', 'yb-billing-start-month', 'yb-billing-description'].forEach(function (id) {
@@ -595,6 +847,10 @@
         el.addEventListener('change', function () { updatePreview(); updateBtnState(); });
       }
     });
+
+    // Description preset change
+    var presetSel = $('yb-billing-desc-preset');
+    if (presetSel) presetSel.addEventListener('change', handleDescPresetChange);
 
     // Set default start month
     var now = new Date();
@@ -612,7 +868,6 @@
     console.log('[billing] Ready');
   }
 
-  // Run when DOM ready
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', init);
   } else {

@@ -792,7 +792,20 @@
     "billing_preview_schedule": "Betalingsplan",
     "billing_loading_settings": "Indl\u00e6ser e-conomic indstillinger...",
     "billing_from_applicant": "Fra ans\u00f8ger",
-    "billing_pick_applicant": "V\u00e6lg ans\u00f8ger"
+    "billing_pick_applicant": "V\u00e6lg ans\u00f8ger",
+    "billing_bill_applicant": "Fakturer ans\u00f8ger",
+    "billing_source_economic": "e-conomic kunde",
+    "billing_source_applicants": "Ans\u00f8gere / Brugere",
+    "billing_applicant_search_ph": "S\u00f8g navn eller email blandt ans\u00f8gere...",
+    "billing_applicant_selected": "Ans\u00f8ger valgt \u2014 opret som e-conomic kunde for at fakturere",
+    "billing_desc_choose": "V\u00e6lg beskrivelse...",
+    "billing_desc_custom": "Tilpasset beskrivelse",
+    "billing_desc_ytt": "Yogal\u00e6reruddannelse 200t",
+    "billing_desc_courses": "Kurser & Bundles",
+    "billing_desc_other": "Andet",
+    "billing_desc_private": "Privattimer",
+    "billing_desc_text": "Fakturabeskrivelse",
+    "billing_billing_for": "Fakturering for"
   },
   "en": {
     "page_title": "Administration",
@@ -1587,6 +1600,19 @@
     "billing_preview_schedule": "Payment Schedule",
     "billing_loading_settings": "Loading e-conomic settings...",
     "billing_from_applicant": "From applicant",
-    "billing_pick_applicant": "Pick applicant"
+    "billing_pick_applicant": "Pick applicant",
+    "billing_bill_applicant": "Bill Applicant",
+    "billing_source_economic": "e-conomic customer",
+    "billing_source_applicants": "Applicants / Users",
+    "billing_applicant_search_ph": "Search name or email among applicants...",
+    "billing_applicant_selected": "Applicant selected — create as e-conomic customer to invoice",
+    "billing_desc_choose": "Choose description...",
+    "billing_desc_custom": "Custom description",
+    "billing_desc_ytt": "Yoga Teacher Training 200h",
+    "billing_desc_courses": "Courses & Bundles",
+    "billing_desc_other": "Other",
+    "billing_desc_private": "Private Sessions",
+    "billing_desc_text": "Invoice description",
+    "billing_billing_for": "Billing for"
   }
 }

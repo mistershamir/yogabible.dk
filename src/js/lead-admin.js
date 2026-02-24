@@ -2307,6 +2307,8 @@
     currentAppId = appId;
     currentApp = applications.find(function (a) { return a.id === appId; });
     if (!currentApp) return;
+    // Expose to billing-admin for "Bill Applicant" action
+    window._ybCurrentApp = currentApp;
 
     var listView = $('yb-admin-v-app-list');
     var detailView = $('yb-admin-v-app-detail');
