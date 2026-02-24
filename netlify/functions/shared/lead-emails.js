@@ -172,6 +172,9 @@ async function sendWelcomeEmail(leadData, action) {
       case 'lead_schedule_18w':
         result = await sendEmail18wYTT(leadData);
         break;
+      case 'lead_schedule_multi':
+        result = await sendEmailMultiYTT(leadData);
+        break;
       case 'lead_schedule_300h':
         result = await sendEmail300hYTT(leadData);
         break;
@@ -407,6 +410,130 @@ async function sendEmail18wYTT(leadData) {
     html: wrapHtml(bodyHtml),
     text: bodyPlain,
     attachments: attachment ? [attachment] : []
+  });
+  return { ...result, subject };
+}
+
+// =========================================================================
+// Multi-Format YTT Email (user selected multiple 200h formats)
+// =========================================================================
+
+async function sendEmailMultiYTT(leadData) {
+  const firstName = leadData.first_name || '';
+  const needsHousing = (leadData.accommodation || '').toLowerCase() === 'yes';
+  const cityCountry = leadData.city_country || '';
+
+  // Parse which formats were requested
+  const allFormats = (leadData.all_formats || leadData.ytt_program_type || '').split(',').filter(f => f);
+  const fmtMap = {
+    '4w': '4-week', '8w': '8-week', '18w': '18-week',
+    '4-week': '4-week', '8-week': '8-week', '18-week': '18-week'
+  };
+  const programTypes = allFormats.map(f => fmtMap[f] || f);
+
+  const formatInfo = {
+    '4-week': {
+      label: '4-ugers intensiv',
+      desc: 'Fuld fordybelse på 4 uger med daglig træning og teori. Perfekt hvis du vil dedikere dig 100%.',
+      link: 'https://www.yogabible.dk/200-hours-4-weeks-intensive-programs'
+    },
+    '8-week': {
+      label: '8-ugers semi-intensiv',
+      desc: 'En god balance mellem intensitet og fleksibilitet — nok fokus til at gøre fremskridt, men stadig plads til hverdagen.',
+      link: 'https://www.yogabible.dk/200-hours-8-weeks-flexible-programs'
+    },
+    '18-week': {
+      label: '18-ugers fleksibel',
+      desc: 'Maksimal fleksibilitet med hverdags- og weekendspor. Hver workshop kører to gange, så du altid kan følge med.',
+      link: 'https://www.yogabible.dk/200-hours-18-weeks-flexible-programs'
+    }
+  };
+
+  const count = programTypes.length;
+  const labelList = programTypes.map(t => (formatInfo[t] || {}).label || t);
+  const subjectFormats = labelList.join(', ');
+  const subject = firstName + ', dine skemaer til yogauddannelsen (' + subjectFormats + ')';
+
+  // Fetch all schedule PDFs in parallel
+  const attachmentPromises = programTypes.map(t => fetchSchedulePdfAttachment(t, ''));
+  const attachmentResults = await Promise.all(attachmentPromises);
+  const attachments = attachmentResults.filter(a => a);
+  const attachedTypes = [];
+  const missingTypes = [];
+  programTypes.forEach((t, i) => {
+    if (attachmentResults[i]) attachedTypes.push(t);
+    else missingTypes.push(t);
+  });
+
+  // Build HTML email
+  let bodyHtml = '<p>Hej ' + escapeHtml(firstName) + ',</p>';
+  bodyHtml += '<p>Tak fordi du viste interesse for vores <strong>200-timers yogalæreruddannelse</strong>! Du bad om skemaer for <strong>' + count + ' formater</strong>, og det er en rigtig god idé at sammenligne dem.</p>';
+
+  if (attachments.length > 0) {
+    bodyHtml += '<p>Jeg har vedhæftet ' + (attachments.length === count ? 'alle ' + count + ' skemaer' : attachments.length + ' ud af ' + count + ' skemaer') + ', så du kan se præcis hvordan dagene ser ud i hvert format.</p>';
+  }
+  if (missingTypes.length > 0) {
+    const missingLabels = missingTypes.map(t => '<strong>' + ((formatInfo[t] || {}).label || t) + '</strong>');
+    bodyHtml += '<p>Skemaet for ' + missingLabels.join(' og ') + ' er ved at blive færdiggjort — jeg sender det til dig, så snart det er klar.</p>';
+  }
+
+  // Program comparison section
+  bodyHtml += '<h3 style="margin-top:24px;font-size:18px;color:#f75c03;">Her er en oversigt over de formater du valgte:</h3>';
+
+  programTypes.forEach(t => {
+    const info = formatInfo[t] || {};
+    bodyHtml += '<div style="margin:16px 0;padding:14px;background:#FFFCF9;border-left:3px solid #f75c03;border-radius:4px;">';
+    bodyHtml += '<strong style="font-size:16px;">' + (info.label || t) + '</strong><br>';
+    bodyHtml += '<span style="color:#555;">' + (info.desc || '') + '</span><br>';
+    bodyHtml += '<a href="' + (info.link || '#') + '" style="color:#f75c03;font-size:14px;">Læs mere →</a>';
+    bodyHtml += '</div>';
+  });
+
+  bodyHtml += programHighlightsHtml();
+  bodyHtml += alumniNote();
+
+  if (needsHousing) bodyHtml += getAccommodationSectionHtml(cityCountry);
+
+  bodyHtml += '<div style="margin-top:20px;padding:14px;background:#FFFCF9;border-left:3px solid #f75c03;border-radius:4px;">';
+  bodyHtml += '<strong>Pris:</strong> 23.750 kr. (alle formater, ingen ekstra gebyrer)<br>';
+  bodyHtml += '<strong>Depositum:</strong> 3.750 kr. sikrer din plads<br>';
+  bodyHtml += '<strong>Rest:</strong> 20.000 kr. (kan betales i rater)';
+  bodyHtml += '</div>';
+
+  bodyHtml += '<p style="margin-top:20px;"><a href="https://www.yogabible.dk/om-200hrs-yogalreruddannelser" style="color:#f75c03;">Sammenlign alle formater</a></p>';
+  bodyHtml += bookingCta();
+  bodyHtml += '<p style="margin-top:20px;">Ikke sikker på hvilket format der passer dig bedst? <strong>Book en uforpligtende samtale</strong>, så hjælper jeg dig med at finde det rette match.</p>';
+  bodyHtml += questionPrompt();
+  bodyHtml += getEnglishNoteHtml() + getSignatureHtml() + getUnsubscribeFooterHtml(leadData.email);
+
+  // Plain text
+  let bodyPlain = 'Hej ' + firstName + ',\n\n';
+  bodyPlain += 'Tak fordi du viste interesse for vores 200-timers yogalæreruddannelse! Du bad om skemaer for ' + count + ' formater.\n\n';
+  if (attachments.length > 0) {
+    bodyPlain += 'Jeg har vedhæftet ' + (attachments.length === count ? 'alle ' + count + ' skemaer' : attachments.length + ' af ' + count + ' skemaer') + '.\n\n';
+  }
+  if (missingTypes.length > 0) {
+    const missingLabelsPlain = missingTypes.map(t => (formatInfo[t] || {}).label || t);
+    bodyPlain += 'Skemaet for ' + missingLabelsPlain.join(' og ') + ' er ved at blive færdiggjort.\n\n';
+  }
+  bodyPlain += 'De formater du valgte:\n';
+  programTypes.forEach(t => {
+    const info = formatInfo[t] || {};
+    bodyPlain += '\n• ' + (info.label || t) + '\n  ' + (info.desc || '') + '\n  ' + (info.link || '') + '\n';
+  });
+  bodyPlain += '\n' + programHighlightsPlain();
+  if (needsHousing) bodyPlain += getAccommodationSectionPlain(cityCountry);
+  bodyPlain += '\nPris: 23.750 kr. (alle formater)\nDepositum: 3.750 kr.\nRest: 20.000 kr. (kan betales i rater)\n\n';
+  bodyPlain += 'Sammenlign formater: https://www.yogabible.dk/om-200hrs-yogalreruddannelser\n';
+  bodyPlain += 'Book rundvisning: ' + CONFIG.MEETING_LINK + '\n';
+  bodyPlain += getEnglishNotePlain() + getSignaturePlain() + getUnsubscribeFooterPlain(leadData.email);
+
+  const result = await sendRawEmail({
+    to: leadData.email,
+    subject,
+    html: wrapHtml(bodyHtml),
+    text: bodyPlain,
+    attachments
   });
   return { ...result, subject };
 }
