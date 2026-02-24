@@ -76,7 +76,7 @@
 .p18-hero__inner {
   position: relative;
   z-index: 2;
-  padding: 140px 20px 80px;
+  padding: clamp(80px, 15vw, 140px) clamp(16px, 5vw, 20px) clamp(48px, 8vw, 80px);
 }
 
 .p18-hero__eyebrow {
@@ -128,10 +128,10 @@
 .p18-hero__meta {
   display: flex;
   justify-content: center;
-  gap: 24px;
+  gap: clamp(12px, 3vw, 24px);
   flex-wrap: wrap;
   margin-bottom: 18px;
-  font-size: 17px;
+  font-size: clamp(14px, 2.5vw, 17px);
   color: rgba(253, 251, 247, 0.75);
 }
 
