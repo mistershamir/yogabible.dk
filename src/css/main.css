@@ -22918,3 +22918,445 @@ a.yb-kontakt-detail__value:hover {
   transform: scale(1.01);
   transition: transform .6s ease;
 }
+
+
+/* ═══════════════════════════════════════════════════════════
+   APPOINTMENT BOOKING MODAL (yb-book-*)
+   Calendly replacement — 4-step booking flow
+   ═══════════════════════════════════════════════════════════ */
+
+/* Modal overlay */
+.yb-book[aria-hidden="true"] { display: none; }
+.yb-book[aria-hidden="false"] {
+  display: flex;
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+.yb-book__overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(15, 15, 15, 0.6);
+  backdrop-filter: blur(4px);
+  cursor: pointer;
+}
+.yb-book__box {
+  position: relative;
+  background: #FFFCF9;
+  border-radius: 16px;
+  width: 100%;
+  max-width: 480px;
+  max-height: 90vh;
+  overflow-y: auto;
+  padding: 32px 28px;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+  animation: ybBookFadeIn 0.3s ease;
+}
+@keyframes ybBookFadeIn {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.yb-book__close {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  background: none;
+  border: none;
+  font-size: 24px;
+  cursor: pointer;
+  color: #6F6A66;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.2s;
+}
+.yb-book__close:hover { background: #F5F3F0; }
+
+/* Step indicator */
+.yb-book__steps {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0;
+  margin-bottom: 24px;
+}
+.yb-book__step-dot {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 2px solid #E8E4E0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: bold;
+  color: #999;
+  background: #fff;
+  transition: all 0.3s;
+}
+.yb-book__step-dot.is-active {
+  border-color: #f75c03;
+  color: #fff;
+  background: #f75c03;
+}
+.yb-book__step-dot.is-current {
+  box-shadow: 0 0 0 4px rgba(247, 92, 3, 0.2);
+}
+.yb-book__step-line {
+  width: 40px;
+  height: 2px;
+  background: #E8E4E0;
+  transition: background 0.3s;
+}
+.yb-book__step-line.is-active { background: #f75c03; }
+
+/* Panel (step content) */
+.yb-book__panel { display: none; }
+.yb-book__panel.is-active { display: block; animation: ybBookFadeIn 0.25s ease; }
+
+/* Titles */
+.yb-book__title {
+  font-size: 22px;
+  font-weight: bold;
+  margin: 0 0 4px;
+  text-align: center;
+}
+.yb-book__subtitle {
+  font-size: 14px;
+  color: #6F6A66;
+  text-align: center;
+  margin: 0 0 20px;
+}
+.yb-book__back {
+  background: none;
+  border: none;
+  color: #f75c03;
+  font-size: 14px;
+  cursor: pointer;
+  padding: 0;
+  margin-bottom: 12px;
+  font-family: inherit;
+}
+.yb-book__back:hover { text-decoration: underline; }
+
+/* Appointment type buttons */
+.yb-book__types {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 20px;
+}
+.yb-book__type-btn {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  border: 1.5px solid #E8E4E0;
+  border-radius: 10px;
+  background: #fff;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-align: left;
+  font-family: inherit;
+  font-size: 14px;
+}
+.yb-book__type-btn:hover { border-color: #f75c03; background: #FFF8F5; }
+.yb-book__type-btn.is-active {
+  border-color: #f75c03;
+  background: #FFF8F5;
+  box-shadow: 0 0 0 3px rgba(247, 92, 3, 0.1);
+}
+.yb-book__type-icon { font-size: 20px; }
+.yb-book__type-name { flex: 1; font-weight: 600; }
+.yb-book__type-dur { font-size: 12px; color: #999; }
+
+/* Calendar */
+.yb-book__calendar { margin-bottom: 16px; }
+.yb-book__cal-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+.yb-book__cal-month {
+  font-size: 16px;
+  font-weight: bold;
+}
+.yb-book__cal-arrow {
+  background: none;
+  border: 1px solid #E8E4E0;
+  border-radius: 8px;
+  width: 32px;
+  height: 32px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  transition: all 0.2s;
+}
+.yb-book__cal-arrow:hover { border-color: #f75c03; color: #f75c03; }
+
+.yb-book__cal-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 4px;
+}
+.yb-book__cal-dayname {
+  text-align: center;
+  font-size: 11px;
+  font-weight: bold;
+  color: #999;
+  padding: 4px 0;
+  text-transform: uppercase;
+}
+.yb-book__cal-cell {
+  text-align: center;
+  padding: 8px 4px;
+  border-radius: 8px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.15s;
+  user-select: none;
+}
+.yb-book__cal-cell:hover:not(.yb-book__cal-cell--disabled):not(.yb-book__cal-cell--empty) {
+  background: #FFF8F5;
+  color: #f75c03;
+}
+.yb-book__cal-cell--empty { visibility: hidden; }
+.yb-book__cal-cell--disabled {
+  color: #ccc;
+  cursor: default;
+  pointer-events: none;
+}
+.yb-book__cal-cell--today {
+  font-weight: bold;
+  border: 1.5px solid #f75c03;
+}
+.yb-book__cal-cell--selected {
+  background: #f75c03 !important;
+  color: #fff !important;
+  font-weight: bold;
+}
+
+/* Time slots */
+.yb-book__slots { min-height: 120px; }
+.yb-book__loading {
+  text-align: center;
+  padding: 32px;
+  color: #999;
+}
+.yb-book__slot-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+.yb-book__slot-btn {
+  padding: 10px;
+  border: 1.5px solid #E8E4E0;
+  border-radius: 8px;
+  background: #fff;
+  cursor: pointer;
+  font-size: 15px;
+  font-weight: 600;
+  font-family: inherit;
+  transition: all 0.15s;
+  text-align: center;
+}
+.yb-book__slot-btn:hover {
+  border-color: #f75c03;
+  color: #f75c03;
+  background: #FFF8F5;
+}
+.yb-book__slot-btn.is-active {
+  background: #f75c03;
+  border-color: #f75c03;
+  color: #fff;
+}
+
+/* Date display label */
+.yb-book__date-label {
+  text-align: center;
+  font-size: 15px;
+  color: #666;
+  margin: 0 0 16px;
+  font-weight: 600;
+}
+
+/* Next/Submit buttons */
+.yb-book__next-btn,
+.yb-book__submit-btn {
+  width: 100%;
+  margin-top: 16px;
+  padding: 14px;
+  font-size: 16px;
+  border-radius: 10px;
+}
+.yb-book__next-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* Form */
+.yb-book__form { margin-top: 16px; }
+.yb-book__field {
+  margin-bottom: 14px;
+}
+.yb-book__field label {
+  display: block;
+  font-size: 13px;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 4px;
+}
+.yb-book__field input,
+.yb-book__field textarea {
+  width: 100%;
+  padding: 10px 14px;
+  border: 1.5px solid #f75c03;
+  border-radius: 10px;
+  font-family: inherit;
+  font-size: 14px;
+  background: #fff;
+  transition: box-shadow 0.2s;
+  box-sizing: border-box;
+}
+.yb-book__field input:focus,
+.yb-book__field textarea:focus {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(247, 92, 3, 0.15);
+}
+
+/* Summary card */
+.yb-book__summary-card {
+  background: #F5F3F0;
+  border-radius: 10px;
+  padding: 16px;
+}
+.yb-book__summary-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 6px 0;
+  font-size: 14px;
+  border-bottom: 1px solid #E8E4E0;
+}
+.yb-book__summary-row:last-child { border-bottom: none; }
+.yb-book__summary-label { color: #999; }
+
+/* Success */
+.yb-book__success {
+  text-align: center;
+  padding: 20px 0;
+}
+.yb-book__success-icon {
+  font-size: 56px;
+  margin-bottom: 12px;
+}
+.yb-book__success-text {
+  color: #666;
+  margin: 8px 0 16px;
+  font-size: 14px;
+}
+
+/* Mobile */
+@media (max-width: 520px) {
+  .yb-book__box { padding: 24px 20px; border-radius: 12px; }
+  .yb-book__slot-grid { grid-template-columns: repeat(2, 1fr); }
+  .yb-book__cal-cell { padding: 6px 2px; font-size: 13px; }
+  .yb-book__type-btn { padding: 10px 12px; }
+}
+
+
+/* ═══════════════════════════════════════════════════════════
+   ADMIN APPOINTMENTS — Calendar View (yb-appt-*)
+   ═══════════════════════════════════════════════════════════ */
+
+.yb-appt__calendar { margin-top: 16px; }
+.yb-appt__calendar-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+.yb-appt__calendar-title {
+  font-size: 20px;
+  font-weight: bold;
+  margin: 0;
+}
+.yb-appt__cal-header {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 4px;
+  margin-bottom: 4px;
+}
+.yb-appt__cal-day-name {
+  text-align: center;
+  font-size: 12px;
+  font-weight: bold;
+  color: #999;
+  padding: 8px 0;
+  text-transform: uppercase;
+}
+.yb-appt__cal-body {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 4px;
+}
+.yb-appt__cal-cell {
+  min-height: 80px;
+  border: 1px solid #E8E4E0;
+  border-radius: 6px;
+  padding: 4px;
+  background: #fff;
+  transition: background 0.15s;
+}
+.yb-appt__cal-cell:hover { background: #FAFAF8; }
+.yb-appt__cal-cell--empty {
+  background: transparent;
+  border-color: transparent;
+}
+.yb-appt__cal-cell--today {
+  border-color: #f75c03;
+  background: #FFF8F5;
+}
+.yb-appt__cal-cell--has-appts {
+  border-color: #f75c03;
+}
+.yb-appt__cal-date {
+  font-size: 12px;
+  font-weight: bold;
+  color: #666;
+  padding: 2px 4px;
+}
+.yb-appt__cal-cell--today .yb-appt__cal-date { color: #f75c03; }
+
+
+/* ── Link page booking buttons ── */
+.yb-link__item--booking {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1.5px solid rgba(255, 255, 255, 0.15);
+  border-radius: 12px;
+  padding: 14px 18px;
+  cursor: pointer;
+  text-decoration: none;
+  color: inherit;
+  font-family: inherit;
+  font-size: inherit;
+  text-align: left;
+  transition: all 0.2s;
+  margin-bottom: 8px;
+}
+.yb-link__item--booking:hover {
+  border-color: #f75c03;
+  background: rgba(247, 92, 3, 0.08);
+  transform: translateY(-1px);
+}

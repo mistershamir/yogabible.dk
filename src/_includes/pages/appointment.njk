@@ -1,0 +1,214 @@
+{% set t = i18n.appointment[lang or "da"] %}
+{% set lp = "/en" if lang == "en" else "" %}
+
+<section class="yb-appt-manage" id="yb-appt-manage">
+  <div class="container" style="max-width:640px;margin:0 auto;padding:40px 20px;">
+
+    {# Header #}
+    <div style="text-align:center;margin-bottom:32px;">
+      <a href="{{ lp }}/" style="display:inline-block;margin-bottom:16px;">
+        <img src="https://res.cloudinary.com/ddcynsa30/image/upload/f_auto,q_auto,w_160/yoga-bible-DK/brand/logo" alt="Yoga Bible" style="height:40px;">
+      </a>
+      <h1 style="font-size:24px;margin:0;">{{ t.page_title }}</h1>
+    </div>
+
+    {# Loading state #}
+    <div id="yb-appt-manage-loading" style="text-align:center;padding:40px;">
+      <p style="color:#999;">{{ t.loading }}</p>
+    </div>
+
+    {# Error state #}
+    <div id="yb-appt-manage-error" hidden style="text-align:center;padding:40px;">
+      <p style="color:#d32f2f;">{{ t.not_found }}</p>
+      <a href="{{ lp }}/link" class="yb-btn yb-btn--primary" style="margin-top:16px;">{{ t.book_new }}</a>
+    </div>
+
+    {# Appointment details #}
+    <div id="yb-appt-manage-details" hidden>
+      <div id="yb-appt-manage-card" style="background:#F5F3F0;border-radius:12px;padding:24px;margin-bottom:24px;"></div>
+
+      {# Cancel form #}
+      <div id="yb-appt-manage-cancel" hidden style="background:#FFFCF9;border:1px solid #E8E4E0;border-radius:12px;padding:24px;margin-bottom:24px;">
+        <h2 style="font-size:18px;margin:0 0 8px;">{{ t.cancel_title }}</h2>
+        <p style="color:#666;margin:0 0 16px;">{{ t.cancel_text }}</p>
+        <div style="margin-bottom:16px;">
+          <label style="display:block;margin-bottom:4px;font-size:14px;color:#666;">{{ t.cancel_reason }}</label>
+          <textarea id="yb-appt-cancel-reason" rows="2" style="width:100%;padding:10px;border:1px solid #E8E4E0;border-radius:8px;font-family:inherit;font-size:14px;"></textarea>
+        </div>
+        <button class="yb-btn yb-btn--primary" id="yb-appt-cancel-btn" style="background:#d32f2f;">{{ t.cancel_btn }}</button>
+      </div>
+
+      {# Reschedule form #}
+      <div id="yb-appt-manage-reschedule" hidden style="background:#FFFCF9;border:1px solid #E8E4E0;border-radius:12px;padding:24px;margin-bottom:24px;">
+        <h2 style="font-size:18px;margin:0 0 8px;">{{ t.reschedule_title }}</h2>
+        <p style="color:#666;margin:0 0 16px;">{{ t.reschedule_text }}</p>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px;">
+          <div>
+            <label style="display:block;margin-bottom:4px;font-size:14px;color:#666;">{{ t.date }}</label>
+            <input type="date" id="yb-appt-new-date" style="width:100%;padding:10px;border:1px solid #E8E4E0;border-radius:8px;font-family:inherit;font-size:14px;">
+          </div>
+          <div>
+            <label style="display:block;margin-bottom:4px;font-size:14px;color:#666;">{{ t.time }}</label>
+            <input type="time" id="yb-appt-new-time" style="width:100%;padding:10px;border:1px solid #E8E4E0;border-radius:8px;font-family:inherit;font-size:14px;">
+          </div>
+        </div>
+        <button class="yb-btn yb-btn--primary" id="yb-appt-reschedule-btn">{{ t.reschedule_btn }}</button>
+      </div>
+
+      {# Action buttons #}
+      <div id="yb-appt-manage-actions" style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;"></div>
+    </div>
+
+    {# Success state #}
+    <div id="yb-appt-manage-success" hidden style="text-align:center;padding:40px;">
+      <div style="font-size:48px;margin-bottom:16px;">&#9989;</div>
+      <p id="yb-appt-success-msg" style="font-size:16px;color:#333;"></p>
+      <div style="margin-top:24px;display:flex;gap:12px;justify-content:center;flex-wrap:wrap;">
+        <a href="{{ lp }}/link" class="yb-btn yb-btn--primary">{{ t.book_new }}</a>
+        <a href="{{ lp }}/" class="yb-btn yb-btn--outline">{{ t.back_home }}</a>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<script>
+(function() {
+  var API = '/.netlify/functions/appointment-book';
+  var isDa = '{{ lang or "da" }}' === 'da';
+  var T = {{ i18n.appointment[lang or "da"] | dump | safe }};
+
+  // Parse URL params
+  var params = new URLSearchParams(window.location.search);
+  var apptId = params.get('id');
+  var email = params.get('email');
+  var token = params.get('token');
+  var action = params.get('action');
+
+  var loadingEl = document.getElementById('yb-appt-manage-loading');
+  var errorEl = document.getElementById('yb-appt-manage-error');
+  var detailsEl = document.getElementById('yb-appt-manage-details');
+  var successEl = document.getElementById('yb-appt-manage-success');
+
+  if (!apptId || !email || !token) {
+    loadingEl.hidden = true;
+    errorEl.hidden = false;
+    return;
+  }
+
+  // Fetch appointment info via a simple validation call
+  // We'll display the info from the URL params + stored data
+  // For security, the actual actions (cancel/reschedule) verify the token server-side
+
+  // Render the page based on URL action parameter
+  loadingEl.hidden = true;
+  detailsEl.hidden = false;
+
+  var cardEl = document.getElementById('yb-appt-manage-card');
+  var actionsEl = document.getElementById('yb-appt-manage-actions');
+  var cancelSection = document.getElementById('yb-appt-manage-cancel');
+  var rescheduleSection = document.getElementById('yb-appt-manage-reschedule');
+
+  // We show a simple management page
+  cardEl.innerHTML = '<p style="color:#666;text-align:center;">' + T.your_appointment + '</p>' +
+    '<p style="text-align:center;font-size:14px;color:#999;">ID: ' + apptId.substring(0, 8) + '...</p>';
+
+  if (action === 'cancel') {
+    cancelSection.hidden = false;
+    rescheduleSection.hidden = true;
+
+    document.getElementById('yb-appt-cancel-btn').addEventListener('click', function() {
+      var btn = this;
+      btn.disabled = true;
+      btn.textContent = isDa ? 'Aflyser...' : 'Cancelling...';
+
+      fetch(API, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'cancel',
+          id: apptId,
+          email: email,
+          token: token,
+          reason: document.getElementById('yb-appt-cancel-reason').value
+        })
+      })
+      .then(function(r) { return r.json(); })
+      .then(function(res) {
+        if (res.ok) {
+          detailsEl.hidden = true;
+          successEl.hidden = false;
+          document.getElementById('yb-appt-success-msg').textContent = T.cancel_success;
+        } else {
+          alert(res.error === 'Already cancelled' ? T.already_cancelled : (T.error + ' (' + res.error + ')'));
+          btn.disabled = false;
+          btn.textContent = T.cancel_btn;
+        }
+      })
+      .catch(function() {
+        alert(T.error);
+        btn.disabled = false;
+        btn.textContent = T.cancel_btn;
+      });
+    });
+
+  } else if (action === 'reschedule') {
+    cancelSection.hidden = true;
+    rescheduleSection.hidden = false;
+
+    // Set min date to tomorrow
+    var tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    document.getElementById('yb-appt-new-date').min = tomorrow.toISOString().slice(0, 10);
+
+    document.getElementById('yb-appt-reschedule-btn').addEventListener('click', function() {
+      var newDate = document.getElementById('yb-appt-new-date').value;
+      var newTime = document.getElementById('yb-appt-new-time').value;
+      if (!newDate || !newTime) {
+        alert(isDa ? 'Vælg dato og tid' : 'Please select date and time');
+        return;
+      }
+
+      var btn = this;
+      btn.disabled = true;
+      btn.textContent = isDa ? 'Flytter...' : 'Rescheduling...';
+
+      fetch(API, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'reschedule',
+          id: apptId,
+          email: email,
+          token: token,
+          new_date: newDate,
+          new_time: newTime
+        })
+      })
+      .then(function(r) { return r.json(); })
+      .then(function(res) {
+        if (res.ok) {
+          detailsEl.hidden = true;
+          successEl.hidden = false;
+          document.getElementById('yb-appt-success-msg').textContent = T.reschedule_success;
+        } else {
+          alert(T.error + ' (' + (res.error || '') + ')');
+          btn.disabled = false;
+          btn.textContent = T.reschedule_btn;
+        }
+      })
+      .catch(function() {
+        alert(T.error);
+        btn.disabled = false;
+        btn.textContent = T.reschedule_btn;
+      });
+    });
+
+  } else {
+    // Default: show both options
+    actionsEl.innerHTML =
+      '<a href="?id=' + apptId + '&email=' + encodeURIComponent(email) + '&token=' + token + '&action=reschedule" class="yb-btn yb-btn--primary">' + (isDa ? '&#128260; Flyt aftale' : '&#128260; Reschedule') + '</a>' +
+      '<a href="?id=' + apptId + '&email=' + encodeURIComponent(email) + '&token=' + token + '&action=cancel" class="yb-btn yb-btn--outline" style="color:#d32f2f;border-color:#d32f2f;">' + (isDa ? '&#10006; Aflys aftale' : '&#10006; Cancel') + '</a>';
+  }
+})();
+</script>

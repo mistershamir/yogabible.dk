@@ -39,6 +39,7 @@
         <button class="yb-profile__tab" type="button" data-yb-admin-tab="leads">{{ t.tab_leads }}</button>
         <button class="yb-profile__tab" type="button" data-yb-admin-tab="applications">{{ t.tab_applications }}</button>
         <button class="yb-profile__tab" type="button" data-yb-admin-tab="careers">{{ t.tab_careers }}</button>
+        <button class="yb-profile__tab" type="button" data-yb-admin-tab="appointments">{{ t.tab_appointments }}</button>
         <button class="yb-profile__tab" type="button" data-yb-admin-tab="catalog">{{ t.tab_catalog }}</button>
         <button class="yb-profile__tab" type="button" data-yb-admin-tab="documents">{{ t.tab_documents }}</button>
       </div>
@@ -543,6 +544,13 @@
       </div>{# end catalog tab panel #}
 
       {# ═══════════════════════════════════
+         TAB: Appointments
+         ═══════════════════════════════════ #}
+      <div class="yb-admin__tab-panel" data-yb-admin-panel="appointments">
+        {% include "partials/admin-appointments-panel.njk" %}
+      </div>{# end appointments tab panel #}
+
+      {# ═══════════════════════════════════
          TAB: Training Documents
          ═══════════════════════════════════ #}
       <div class="yb-admin__tab-panel" data-yb-admin-panel="documents">
@@ -629,3 +637,4 @@
 </script>
 <script src="/js/doc-admin.js"></script>
 <script src="/js/careers-admin.js"></script>
+<script src="/js/appointments-admin.js"></script>
