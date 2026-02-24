@@ -155,6 +155,18 @@
 </section>
 
 <!-- ═══════════════════════════════════════════════════════════════
+     BOOKING NUDGE — Prefer to meet in person?
+     ═══════════════════════════════════════════════════════════════ -->
+<div style="text-align:center;padding:2.5rem 1rem 0;">
+  <p style="color:#6F6A66;font-size:0.95rem;margin-bottom:0.75rem;">
+    {% if lang == 'en' %}Prefer to talk in person? Book a free, no-obligation info session at our studio.{% else %}Foretrækker du at tale personligt? Book et gratis og uforpligtende infomøde i vores studie.{% endif %}
+  </p>
+  <button class="yb-btn yb-btn--primary" data-open-booking="info-session">
+    &#127963; {% if lang == 'en' %}Book a Free Info Session{% else %}Book et Gratis Infomøde{% endif %}
+  </button>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════
      CONTACT FORM
      ═══════════════════════════════════════════════════════════════ -->
 <section class="yb-kontakt-form-section">
