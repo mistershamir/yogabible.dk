@@ -591,19 +591,91 @@
     console.log('[billing] Create invoice clicked');
     if (busy) return;
 
-    // If applicant selected but no e-conomic customer yet, prompt
-    if (selectedApplicant && !selectedCustomer) {
-      toast(isDa ? 'Opret først kunden i e-conomic (klik "Opret kunde" ovenfor)' : 'Create the customer in e-conomic first (click "Create Customer" above)', true);
-      return;
-    }
-    if (!selectedCustomer) {
+    // Validate amount + month first
+    var vals = getFormValues();
+    if (!vals.total) { console.log('[billing] Blocked: no amount'); toast(t('billing_error_no_amount'), true); return; }
+    if (!vals.startMonth) { console.log('[billing] Blocked: no month'); toast(t('billing_error_no_month'), true); return; }
+
+    if (!selectedCustomer && !selectedApplicant) {
+      console.log('[billing] Blocked: no customer or applicant');
       toast(t('billing_error_no_customer'), true);
       return;
     }
-    var vals = getFormValues();
-    if (!vals.total) { toast(t('billing_error_no_amount'), true); return; }
-    if (!vals.startMonth) { toast(t('billing_error_no_month'), true); return; }
 
+    // If applicant selected but no e-conomic customer yet, auto-create from form
+    if (selectedApplicant && !selectedCustomer) {
+      console.log('[billing] Applicant selected without e-conomic customer — auto-creating...');
+      autoCreateCustomerThenInvoice(vals);
+      return;
+    }
+
+    // Customer already selected — go straight to invoice
+    sendInvoice(vals);
+  }
+
+  /**
+   * Auto-create e-conomic customer from the pre-filled new customer form,
+   * then immediately create the invoice. One-click flow for applicants.
+   */
+  function autoCreateCustomerThenInvoice(vals) {
+    var name = ($('yb-billing-nc-name') || {}).value || (selectedApplicant ? selectedApplicant.name : '');
+    if (!name.trim()) {
+      console.log('[billing] Blocked: no customer name for auto-create');
+      toast(isDa ? 'Kundenavn mangler — udfyld kundeformularen' : 'Customer name missing — fill in the customer form', true);
+      return;
+    }
+
+    var customer = {
+      name: name.trim(),
+      email: ($('yb-billing-nc-email') || {}).value || '',
+      address: ($('yb-billing-nc-address') || {}).value || '',
+      zip: ($('yb-billing-nc-zip') || {}).value || '',
+      city: ($('yb-billing-nc-city') || {}).value || '',
+      phone: ($('yb-billing-nc-phone') || {}).value || '',
+      corporateIdentificationNumber: ($('yb-billing-nc-cvr') || {}).value || '',
+      customerGroupNumber: parseInt(($('yb-billing-nc-group') || {}).value) || 1,
+      vatZoneNumber: parseInt(($('yb-billing-nc-vat') || {}).value) || 1,
+      paymentTermsNumber: parseInt(($('yb-billing-nc-payment') || {}).value) || 1
+    };
+
+    var btn = document.querySelector('[data-action="billing-create-invoice"]');
+    busy = true;
+    if (btn) { btn.textContent = isDa ? 'Opretter kunde...' : 'Creating customer...'; btn.classList.add('yb-btn--muted'); }
+
+    console.log('[billing] Auto-creating customer:', customer.name);
+    apiCall({ action: 'createCustomer', customer: customer }).then(function (res) {
+      if (!res.ok) {
+        busy = false;
+        if (btn) { btn.textContent = t('billing_create_draft'); btn.classList.remove('yb-btn--muted'); }
+        console.error('[billing] Auto-create customer failed:', res.error);
+        toast(res.error, true);
+        return;
+      }
+      var c = res.data;
+      console.log('[billing] Customer auto-created:', c.customerNumber, c.name);
+      toast(t('billing_customer_created'));
+      selectCustomer(c.customerNumber, c.name, c.email || customer.email);
+
+      // Hide the new customer form
+      var ncForm = $('yb-billing-new-customer-form');
+      if (ncForm) ncForm.hidden = true;
+
+      // Now create the invoice
+      if (btn) { btn.textContent = isDa ? 'Opretter faktura...' : 'Creating invoice...'; }
+      sendInvoice(vals);
+    }).catch(function (err) {
+      busy = false;
+      if (btn) { btn.textContent = t('billing_create_draft'); btn.classList.remove('yb-btn--muted'); }
+      console.error('[billing] Auto-create customer error:', err);
+      toast(err.message, true);
+    });
+  }
+
+  /**
+   * Build and send the invoice to e-conomic.
+   * Requires selectedCustomer to be set.
+   */
+  function sendInvoice(vals) {
     var lines = buildLines(vals);
     var paymentTermsNum = parseInt(($('yb-billing-payment-terms') || {}).value) || 1;
     var layoutNum = parseInt(($('yb-billing-layout') || {}).value) || (settings.layouts.length ? settings.layouts[0].layoutNumber : 19);
@@ -629,18 +701,23 @@
 
     var btn = document.querySelector('[data-action="billing-create-invoice"]');
     busy = true;
-    if (btn) { btn.textContent = isDa ? 'Opretter...' : 'Creating...'; btn.classList.add('yb-btn--muted'); }
+    if (btn) { btn.textContent = isDa ? 'Opretter faktura...' : 'Creating invoice...'; btn.classList.add('yb-btn--muted'); }
 
     apiCall({ action: 'createInvoice', invoice: invoice }).then(function (res) {
       busy = false;
       if (btn) { btn.textContent = t('billing_create_draft'); btn.classList.remove('yb-btn--muted'); }
-      if (!res.ok) { toast(res.error, true); return; }
+      if (!res.ok) {
+        console.error('[billing] Invoice creation failed:', res.error);
+        toast(res.error, true);
+        return;
+      }
       console.log('[billing] Invoice created:', res.data);
       toast(t('billing_invoice_created'));
       resetForm();
     }).catch(function (err) {
       busy = false;
       if (btn) { btn.textContent = t('billing_create_draft'); btn.classList.remove('yb-btn--muted'); }
+      console.error('[billing] Invoice error:', err);
       toast(err.message, true);
     });
   }
