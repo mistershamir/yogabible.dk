@@ -805,7 +805,21 @@
     "billing_desc_other": "Andet",
     "billing_desc_private": "Privattimer",
     "billing_desc_text": "Fakturabeskrivelse",
-    "billing_billing_for": "Fakturering for"
+    "billing_billing_for": "Fakturering for",
+    "billing_notes_none": "Ingen note",
+    "billing_notes_bank_ref": "Bankoverførsel — reference-instruktion",
+    "billing_notes_custom": "Tilpasset note",
+    "billing_notes_custom_label": "Tilpasset notetekst",
+    "billing_notes_bank_ref_text": "Venligst skriv dit fulde navn og fakturanummer i referencefeltet ved bankoverførsel, så vi kan matche din betaling.",
+    "billing_booked_title": "Bogførte fakturaer",
+    "billing_col_invoice": "Fakturanr.",
+    "billing_col_status": "Status",
+    "billing_col_remainder": "Restbeløb",
+    "billing_status_paid": "Betalt",
+    "billing_status_unpaid": "Ikke betalt",
+    "billing_status_partial": "Delvist betalt",
+    "billing_view_booked": "Bogførte",
+    "billing_no_booked": "Ingen bogførte fakturaer."
   },
   "en": {
     "page_title": "Administration",
@@ -1613,6 +1627,20 @@
     "billing_desc_other": "Other",
     "billing_desc_private": "Private Sessions",
     "billing_desc_text": "Invoice description",
-    "billing_billing_for": "Billing for"
+    "billing_billing_for": "Billing for",
+    "billing_notes_none": "No note",
+    "billing_notes_bank_ref": "Bank transfer — reference instruction",
+    "billing_notes_custom": "Custom note",
+    "billing_notes_custom_label": "Custom note text",
+    "billing_notes_bank_ref_text": "Please write your full name and invoice number in the reference field when making a bank transfer, so we can match your payment.",
+    "billing_booked_title": "Booked Invoices",
+    "billing_col_invoice": "Invoice #",
+    "billing_col_status": "Status",
+    "billing_col_remainder": "Remainder",
+    "billing_status_paid": "Paid",
+    "billing_status_unpaid": "Unpaid",
+    "billing_status_partial": "Partially paid",
+    "billing_view_booked": "Booked",
+    "billing_no_booked": "No booked invoices."
   }
 }

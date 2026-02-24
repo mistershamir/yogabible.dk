@@ -388,6 +388,46 @@
       paymentTermsNumber: parseInt(($('yb-billing-nc-payment') || {}).value) || 1
     };
 
+    // Check for duplicate customer before creating
+    console.log('[billing] Checking for duplicate customer:', customer.name);
+    apiCall({ action: 'searchCustomers', query: customer.name }).then(function (res) {
+      if (!res.ok) { doCreateCustomer(customer); return; } // If search fails, proceed anyway
+      var existing = res.data || [];
+
+      // Also check by email if provided
+      var emailCheck = customer.email
+        ? apiCall({ action: 'searchCustomers', query: customer.email })
+        : Promise.resolve({ ok: true, data: [] });
+
+      return emailCheck.then(function (emailRes) {
+        var emailMatches = (emailRes.ok ? emailRes.data : []) || [];
+        // Merge unique matches
+        var allMatches = existing.slice();
+        emailMatches.forEach(function (em) {
+          var found = allMatches.some(function (m) { return m.customerNumber === em.customerNumber; });
+          if (!found) allMatches.push(em);
+        });
+
+        if (allMatches.length > 0) {
+          var matchList = allMatches.map(function (m) { return m.name + ' (#' + m.customerNumber + ')' + (m.email ? ' — ' + m.email : ''); }).join('\n');
+          var msg = isDa
+            ? 'Der findes allerede kunde(r) med lignende navn/email:\n\n' + matchList + '\n\nVil du stadig oprette en ny kunde?'
+            : 'Customer(s) with similar name/email already exist:\n\n' + matchList + '\n\nDo you still want to create a new customer?';
+          if (!confirm(msg)) {
+            // Let admin select existing customer instead
+            renderCustomerResults(allMatches);
+            $('yb-billing-source-economic') && ($('yb-billing-source-economic').hidden = false);
+            $('yb-billing-customer-results').hidden = false;
+            switchSource('economic');
+            return;
+          }
+        }
+        doCreateCustomer(customer);
+      });
+    }).catch(function () { doCreateCustomer(customer); }); // On error, proceed anyway
+  }
+
+  function doCreateCustomer(customer) {
     console.log('[billing] Creating e-conomic customer:', customer.name);
     apiCall({ action: 'createCustomer', customer: customer }).then(function (res) {
       if (!res.ok) { toast(res.error, true); return; }
@@ -414,6 +454,29 @@
       descInput.value = val;
     } else {
       descInput.value = '';
+    }
+    updatePreview();
+  }
+
+  /* ══════════════════════════════════════════
+     NOTES PRESET
+     ══════════════════════════════════════════ */
+  function handleNotesPresetChange() {
+    var preset = $('yb-billing-notes-preset');
+    var customRow = $('yb-billing-notes-custom-row');
+    var notesArea = $('yb-billing-notes');
+    if (!preset) return;
+
+    var val = preset.value;
+    if (val === 'bank_ref') {
+      if (customRow) customRow.hidden = true;
+      if (notesArea) notesArea.value = t('billing_notes_bank_ref_text');
+    } else if (val === 'custom') {
+      if (customRow) customRow.hidden = false;
+      if (notesArea) { notesArea.value = ''; notesArea.focus(); }
+    } else {
+      if (customRow) customRow.hidden = true;
+      if (notesArea) notesArea.value = '';
     }
     updatePreview();
   }
@@ -490,6 +553,10 @@
     html += '<div class="yb-billing__preview-row"><span class="yb-billing__preview-label">' + t('billing_inv_total') + '</span><span class="yb-billing__preview-amount">' + formatAmount(vals.total) + '</span></div>';
     if (vals.instalments > 1) {
       html += '<div class="yb-billing__preview-row"><span class="yb-billing__preview-label">' + t('billing_inv_instalments') + '</span><span>' + vals.instalments + ' (' + formatAmount(perInstalment) + ' ' + t('billing_preview_per_instalment') + ')</span></div>';
+    }
+    var notesVal = ($('yb-billing-notes') || {}).value || '';
+    if (notesVal) {
+      html += '<div class="yb-billing__preview-row"><span class="yb-billing__preview-label">' + t('billing_inv_notes') + '</span><span>' + esc(notesVal) + '</span></div>';
     }
     html += '</div>';
 
@@ -584,12 +651,16 @@
   function showDrafts() {
     $('yb-billing-v-create').hidden = true;
     $('yb-billing-v-drafts').hidden = false;
+    var bookedView = $('yb-billing-v-booked');
+    if (bookedView) bookedView.hidden = true;
     loadDrafts();
   }
 
   function showCreate() {
     $('yb-billing-v-create').hidden = false;
     $('yb-billing-v-drafts').hidden = true;
+    var bookedView = $('yb-billing-v-booked');
+    if (bookedView) bookedView.hidden = true;
   }
 
   function loadDrafts() {
@@ -635,7 +706,11 @@
     currentDraftNumber = parseInt(draftNumber);
     var modal = $('yb-billing-draft-modal');
     var body = $('yb-billing-modal-body');
+    var title = $('yb-billing-modal-title');
+    var bookBtn = document.querySelector('[data-action="billing-book-draft"]');
     if (!modal || !body) return;
+    if (title) title.textContent = t('billing_draft_detail');
+    if (bookBtn) bookBtn.hidden = false;
     body.innerHTML = '<p>' + t('loading') + '</p>';
     modal.hidden = false;
 
@@ -682,6 +757,93 @@
       closeDraftModal();
       loadDrafts();
     }).catch(function (err) { toast(err.message, true); });
+  }
+
+  /* ══════════════════════════════════════════
+     BOOKED INVOICES
+     ══════════════════════════════════════════ */
+  function showBooked() {
+    $('yb-billing-v-create').hidden = true;
+    $('yb-billing-v-drafts').hidden = true;
+    $('yb-billing-v-booked').hidden = false;
+    loadBooked();
+  }
+
+  function loadBooked() {
+    apiCall({ action: 'listBooked' }).then(function (res) {
+      if (!res.ok) { toast(res.error, true); return; }
+      renderBooked(res.data.invoices || []);
+    }).catch(function (err) { toast(err.message, true); });
+  }
+
+  function renderBooked(invoices) {
+    var body = $('yb-billing-booked-body');
+    var empty = $('yb-billing-booked-empty');
+    if (!body) return;
+
+    if (!invoices.length) {
+      body.innerHTML = '';
+      if (empty) empty.hidden = false;
+      return;
+    }
+    if (empty) empty.hidden = true;
+
+    body.innerHTML = invoices.map(function (inv) {
+      var custName = inv.recipient && inv.recipient.name ? inv.recipient.name : '—';
+      var total = inv.grossAmount != null ? formatAmount(inv.grossAmount) : (inv.netAmount != null ? formatAmount(inv.netAmount) : '—');
+      var remainder = inv.remainder != null ? formatAmount(inv.remainder) : '—';
+      var isPaid = inv.remainder != null && inv.remainder === 0;
+      var isPartial = inv.remainder != null && inv.remainder > 0 && inv.remainder < (inv.grossAmount || inv.netAmount || 0);
+      var statusLabel = isPaid ? t('billing_status_paid') : (isPartial ? t('billing_status_partial') : t('billing_status_unpaid'));
+      var statusClass = isPaid ? 'yb-billing__status--paid' : (isPartial ? 'yb-billing__status--partial' : 'yb-billing__status--unpaid');
+
+      return '<tr>'
+        + '<td>' + inv.bookedInvoiceNumber + '</td>'
+        + '<td>' + esc(custName) + '</td>'
+        + '<td>' + (inv.date || '—') + '</td>'
+        + '<td>' + (inv.dueDate || '—') + '</td>'
+        + '<td>' + total + '</td>'
+        + '<td>' + remainder + '</td>'
+        + '<td><span class="' + statusClass + '">' + statusLabel + '</span></td>'
+        + '<td><button class="yb-btn yb-btn--outline yb-btn--sm" data-action="billing-view-booked-detail" data-booked="' + inv.bookedInvoiceNumber + '">' + (isDa ? 'Vis' : 'View') + '</button></td>'
+        + '</tr>';
+    }).join('');
+  }
+
+  function viewBookedDetail(bookedNumber) {
+    var modal = $('yb-billing-draft-modal');
+    var body = $('yb-billing-modal-body');
+    var title = $('yb-billing-modal-title');
+    var bookBtn = document.querySelector('[data-action="billing-book-draft"]');
+    if (!modal || !body) return;
+
+    if (title) title.textContent = t('billing_booked_title') + ' #' + bookedNumber;
+    if (bookBtn) bookBtn.hidden = true; // hide book button for already-booked invoices
+    body.innerHTML = '<p>' + t('loading') + '</p>';
+    modal.hidden = false;
+
+    apiCall({ action: 'getBooked', bookedNumber: parseInt(bookedNumber) }).then(function (res) {
+      if (!res.ok) { body.innerHTML = '<p class="yb-billing__error">' + esc(res.error) + '</p>'; return; }
+      var d = res.data;
+      var html = '<div class="yb-billing__detail">';
+      html += '<div class="yb-billing__detail-row"><strong>' + t('billing_col_customer') + ':</strong> ' + esc(d.recipient && d.recipient.name || '—') + '</div>';
+      html += '<div class="yb-billing__detail-row"><strong>' + t('billing_col_date') + ':</strong> ' + (d.date || '—') + '</div>';
+      html += '<div class="yb-billing__detail-row"><strong>' + t('billing_col_due') + ':</strong> ' + (d.dueDate || '—') + '</div>';
+      html += '<div class="yb-billing__detail-row"><strong>' + t('billing_col_total') + ':</strong> ' + (d.grossAmount != null ? formatAmount(d.grossAmount) : formatAmount(d.netAmount || 0)) + '</div>';
+      if (d.remainder != null) {
+        var isPaid = d.remainder === 0;
+        html += '<div class="yb-billing__detail-row"><strong>' + t('billing_col_remainder') + ':</strong> ' + formatAmount(d.remainder) + ' <span class="' + (isPaid ? 'yb-billing__status--paid' : 'yb-billing__status--unpaid') + '">' + (isPaid ? t('billing_status_paid') : t('billing_status_unpaid')) + '</span></div>';
+      }
+      if (d.lines && d.lines.length) {
+        html += '<table class="yb-billing__preview-table"><thead><tr><th>#</th><th>' + t('billing_inv_description') + '</th><th>' + t('billing_col_total') + '</th></tr></thead><tbody>';
+        d.lines.forEach(function (line, i) {
+          html += '<tr><td>' + (i + 1) + '</td><td>' + esc(line.description) + '</td><td>' + formatAmount(line.totalNetAmount || line.unitNetPrice || 0) + '</td></tr>';
+        });
+        html += '</tbody></table>';
+      }
+      html += '</div>';
+      body.innerHTML = html;
+    }).catch(function (err) { body.innerHTML = '<p class="yb-billing__error">' + esc(err.message) + '</p>'; });
   }
 
   /* ══════════════════════════════════════════
@@ -747,6 +909,11 @@
     var presetSel = $('yb-billing-desc-preset');
     if (presetSel) presetSel.value = '';
 
+    var notesPreset = $('yb-billing-notes-preset');
+    if (notesPreset) notesPreset.value = '';
+    var notesCustomRow = $('yb-billing-notes-custom-row');
+    if (notesCustomRow) notesCustomRow.hidden = true;
+
     var now = new Date();
     var monthInput = $('yb-billing-start-month');
     if (monthInput) monthInput.value = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0');
@@ -788,6 +955,9 @@
       case 'billing-refresh-settings': loadSettings(); break;
       case 'billing-view-draft': viewDraft(el.dataset.draft); break;
       case 'billing-book-draft': bookDraft(); break;
+      case 'billing-view-booked': showBooked(); break;
+      case 'billing-refresh-booked': loadBooked(); break;
+      case 'billing-view-booked-detail': viewBookedDetail(el.dataset.booked); break;
       case 'billing-from-app': handleBillFromApp(); break;
     }
   }
@@ -851,6 +1021,10 @@
     // Description preset change
     var presetSel = $('yb-billing-desc-preset');
     if (presetSel) presetSel.addEventListener('change', handleDescPresetChange);
+
+    // Notes preset change
+    var notesPresetSel = $('yb-billing-notes-preset');
+    if (notesPresetSel) notesPresetSel.addEventListener('change', handleNotesPresetChange);
 
     // Set default start month
     var now = new Date();

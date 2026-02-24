@@ -6,6 +6,7 @@
     <h2>{{ t.billing_title }}</h2>
     <div class="yb-lead__toolbar-right">
       <button type="button" class="yb-btn yb-btn--outline yb-btn--sm" data-action="billing-view-drafts">&#128196; {{ t.billing_view_drafts }}</button>
+      <button type="button" class="yb-btn yb-btn--outline yb-btn--sm" data-action="billing-view-booked">&#9989; {{ t.billing_view_booked }}</button>
       <button type="button" class="yb-btn yb-btn--outline yb-btn--sm" data-action="billing-refresh-settings">&#8635; {{ t.leads_refresh }}</button>
     </div>
   </div>
@@ -198,7 +199,17 @@
 
     <div class="yb-admin__form-row">
       <div class="yb-admin__field">
-        <label for="yb-billing-notes">{{ t.billing_inv_notes }}</label>
+        <label for="yb-billing-notes-preset">{{ t.billing_inv_notes }}</label>
+        <select id="yb-billing-notes-preset" class="yb-admin__select">
+          <option value="">{{ t.billing_notes_none }}</option>
+          <option value="bank_ref">{{ t.billing_notes_bank_ref }}</option>
+          <option value="custom">{{ t.billing_notes_custom }}</option>
+        </select>
+      </div>
+    </div>
+    <div class="yb-admin__form-row" id="yb-billing-notes-custom-row" hidden>
+      <div class="yb-admin__field">
+        <label for="yb-billing-notes">{{ t.billing_notes_custom_label }}</label>
         <textarea id="yb-billing-notes" rows="2" placeholder="{{ t.billing_inv_notes_ph }}"></textarea>
       </div>
     </div>
@@ -253,6 +264,37 @@
   </div>
   <div id="yb-billing-drafts-empty" class="yb-billing__empty" hidden>
     <p>{{ t.billing_no_drafts }}</p>
+  </div>
+</div>
+
+{# ── Booked Invoices View (hidden) ── #}
+<div id="yb-billing-v-booked" hidden>
+  <div class="yb-admin__view-head">
+    <button class="yb-admin__back-btn" data-action="billing-back-create">&larr; {{ t.back }}</button>
+    <h2>{{ t.billing_booked_title }}</h2>
+    <div class="yb-lead__toolbar-right">
+      <button type="button" class="yb-btn yb-btn--outline yb-btn--sm" data-action="billing-refresh-booked">&#8635; {{ t.leads_refresh }}</button>
+    </div>
+  </div>
+  <div class="yb-admin__table-wrap">
+    <table class="yb-admin__table" id="yb-billing-booked-table">
+      <thead>
+        <tr>
+          <th>{{ t.billing_col_invoice }}</th>
+          <th>{{ t.billing_col_customer }}</th>
+          <th>{{ t.billing_col_date }}</th>
+          <th>{{ t.billing_col_due }}</th>
+          <th>{{ t.billing_col_total }}</th>
+          <th>{{ t.billing_col_remainder }}</th>
+          <th>{{ t.billing_col_status }}</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody id="yb-billing-booked-body"></tbody>
+    </table>
+  </div>
+  <div id="yb-billing-booked-empty" class="yb-billing__empty" hidden>
+    <p>{{ t.billing_no_booked }}</p>
   </div>
 </div>
 

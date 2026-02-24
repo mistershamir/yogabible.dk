@@ -10,7 +10,8 @@
  * POST /.netlify/functions/economic-admin  { action: "listDrafts" }
  * POST /.netlify/functions/economic-admin  { action: "getDraft", draftNumber: N }
  * POST /.netlify/functions/economic-admin  { action: "bookInvoice", draftNumber: N }
- * POST /.netlify/functions/economic-admin  { action: "sendInvoice", draftNumber: N }
+ * POST /.netlify/functions/economic-admin  { action: "listBooked", page: N }
+ * POST /.netlify/functions/economic-admin  { action: "getBooked", bookedNumber: N }
  */
 
 const { requireAuth } = require('./shared/auth');
@@ -29,13 +30,16 @@ function ecoHeaders() {
 async function ecoFetch(path, method = 'GET', body = null) {
   const opts = { method, headers: ecoHeaders() };
   if (body) opts.body = JSON.stringify(body);
+  console.log(`[economic] ${method} ${path}`, body ? JSON.stringify(body).substring(0, 500) : '');
   const res = await fetch(`${BASE}${path}`, opts);
   const text = await res.text();
   let data;
   try { data = JSON.parse(text); } catch { data = { raw: text }; }
   if (!res.ok) {
-    console.error(`[economic] ${method} ${path} → ${res.status}`, data);
-    throw new Error(data.message || data.developerHint || `e-conomic API error ${res.status}`);
+    const hint = data.developerHint || data.message || '';
+    const errors = data.errors ? JSON.stringify(data.errors) : '';
+    console.error(`[economic] ${method} ${path} → ${res.status}`, JSON.stringify(data).substring(0, 1000));
+    throw new Error(`e-conomic ${res.status}: ${hint}${errors ? ' | ' + errors : ''}`);
   }
   return data;
 }
@@ -85,35 +89,70 @@ async function createCustomer(c) {
   return ecoFetch('/customers', 'POST', payload);
 }
 
+/**
+ * Create draft invoice using the customer's template (correct defaults).
+ * 1. GET /customers/:num/templates/invoice → template with layout, payment terms, vat
+ * 2. Merge our lines + overrides into the template
+ * 3. POST /invoices/drafts
+ */
 async function createInvoice(inv) {
   if (!inv.customerNumber) throw new Error('Customer number is required');
   if (!inv.lines || !inv.lines.length) throw new Error('At least one invoice line is required');
 
-  const payload = {
-    date: inv.date || new Date().toISOString().split('T')[0],
-    currency: inv.currency || 'DKK',
-    customer: { customerNumber: inv.customerNumber },
-    paymentTerms: { paymentTermsNumber: inv.paymentTermsNumber || 1 },
-    layout: { layoutNumber: inv.layoutNumber || 19 },
-    recipient: { name: inv.recipientName || '', vatZone: { vatZoneNumber: inv.vatZoneNumber || 1 } },
-    lines: inv.lines.map((line, i) => ({
-      lineNumber: i + 1,
-      sortKey: i + 1,
-      description: line.description,
-      quantity: line.quantity || 1,
-      unitNetPrice: line.unitNetPrice
-    }))
-  };
+  // Step 1: Fetch customer's invoice template (has correct layout, paymentTerms, vatZone)
+  console.log('[economic] Fetching invoice template for customer', inv.customerNumber);
+  const template = await ecoFetch(`/customers/${inv.customerNumber}/templates/invoice`);
 
-  if (inv.recipientAddress) payload.recipient.address = inv.recipientAddress;
-  if (inv.recipientCity) payload.recipient.city = inv.recipientCity;
-  if (inv.recipientZip) payload.recipient.zip = inv.recipientZip;
+  // Step 2: Build payload from template + our data
+  const payload = { ...template };
+
+  // Override date
+  payload.date = inv.date || new Date().toISOString().split('T')[0];
   if (inv.dueDate) payload.dueDate = inv.dueDate;
-  if (inv.notes) payload.notes = { heading: inv.notes };
-  if (inv.references && inv.references.text1) {
-    payload.references = { other: inv.references.text1 };
+  if (inv.currency) payload.currency = inv.currency;
+
+  // Override payment terms if explicitly set
+  if (inv.paymentTermsNumber) {
+    payload.paymentTerms = { paymentTermsNumber: inv.paymentTermsNumber };
   }
 
+  // Override layout if explicitly set
+  if (inv.layoutNumber) {
+    payload.layout = { layoutNumber: inv.layoutNumber };
+  }
+
+  // Set recipient name
+  if (inv.recipientName && payload.recipient) {
+    payload.recipient.name = inv.recipientName;
+  }
+
+  // Add lines
+  payload.lines = inv.lines.map((line, i) => ({
+    lineNumber: i + 1,
+    sortKey: i + 1,
+    description: line.description,
+    quantity: line.quantity || 1,
+    unitNetPrice: line.unitNetPrice
+  }));
+
+  // Notes
+  if (inv.notes) {
+    payload.notes = payload.notes || {};
+    payload.notes.heading = inv.notes;
+  }
+
+  // References
+  if (inv.references && inv.references.text1) {
+    payload.references = payload.references || {};
+    payload.references.other = inv.references.text1;
+  }
+
+  // Clean up template-only fields that shouldn't be POSTed
+  delete payload.self;
+  delete payload.templates;
+  delete payload.pdf;
+
+  console.log('[economic] Creating draft invoice, payload keys:', Object.keys(payload).join(', '));
   return ecoFetch('/invoices/drafts', 'POST', payload);
 }
 
@@ -132,8 +171,25 @@ async function getDraft(draftNumber) {
 }
 
 async function bookInvoice(draftNumber) {
-  const draft = await ecoFetch(`/invoices/drafts/${draftNumber}`);
-  return ecoFetch('/invoices/booked', 'POST', { draftInvoice: { draftInvoiceNumber: draftNumber } });
+  // Get booking instructions first (required by e-conomic)
+  const instructions = await ecoFetch(`/invoices/drafts/${draftNumber}/templates/booking-instructions`);
+  return ecoFetch('/invoices/booked', 'POST', instructions);
+}
+
+// ─── Payment Status (Booked Invoices) ─────────────────────────────
+
+async function listBooked(params) {
+  const page = params.page || 0;
+  const pageSize = params.pageSize || 25;
+  const data = await ecoFetch(`/invoices/booked?pagesize=${pageSize}&skippages=${page}&sort=-bookedInvoiceNumber`);
+  return {
+    invoices: data.collection || [],
+    pagination: data.pagination || {}
+  };
+}
+
+async function getBooked(bookedNumber) {
+  return ecoFetch(`/invoices/booked/${bookedNumber}`);
 }
 
 // ─── Handler ───────────────────────────────────────────────────────
@@ -180,6 +236,13 @@ exports.handler = async (event) => {
       case 'bookInvoice':
         if (!body.draftNumber) return jsonResponse(400, { ok: false, error: 'draftNumber required' });
         return jsonResponse(200, { ok: true, data: await bookInvoice(body.draftNumber) });
+
+      case 'listBooked':
+        return jsonResponse(200, { ok: true, data: await listBooked(body) });
+
+      case 'getBooked':
+        if (!body.bookedNumber) return jsonResponse(400, { ok: false, error: 'bookedNumber required' });
+        return jsonResponse(200, { ok: true, data: await getBooked(body.bookedNumber) });
 
       default:
         return jsonResponse(400, { ok: false, error: `Unknown action: ${action}` });
