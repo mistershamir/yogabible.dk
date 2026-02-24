@@ -23947,6 +23947,11 @@ a.yb-appt__phone-link:hover { text-decoration: underline; }
 .yb-billing__detail-row strong { color: #6F6A66; margin-right: 0.5rem; }
 .yb-billing__error { color: #dc2626; font-size: 0.85rem; }
 
+/* Payment status badges */
+.yb-billing__status--paid { color: #16a34a; font-weight: 600; font-size: 0.8rem; }
+.yb-billing__status--unpaid { color: #dc2626; font-weight: 600; font-size: 0.8rem; }
+.yb-billing__status--partial { color: #d97706; font-weight: 600; font-size: 0.8rem; }
+
 /* Responsive */
 @media (max-width: 600px) {
   .yb-billing__section { padding: 1rem; }
