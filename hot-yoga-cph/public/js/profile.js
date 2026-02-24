@@ -2139,9 +2139,7 @@
    * Calculate user's age from DOB string (YYYY-MM-DD).
    * Returns null if no DOB available.
    */
-  var _ageOverride = null; // TEMP: for testing age-based filtering
   function getUserAge() {
-    if (_ageOverride !== null) return _ageOverride;
     if (!userDateOfBirth) return null;
     var parts = userDateOfBirth.split('-');
     if (parts.length !== 3) return null;
@@ -2154,14 +2152,6 @@
     }
     return age;
   }
-  // TEMP: Expose age override for testing — call window.setAge(25) or window.setAge(35) in console, then refresh store
-  window.setAge = function(age) {
-    _ageOverride = (age === null || age === undefined) ? null : Number(age);
-    console.log('[Store] Age override set to:', _ageOverride === null ? 'real DOB' : _ageOverride);
-    // Rebuild store with new age bracket
-    storeServices = [];
-    loadStore();
-  };
 
   /**
    * Determine the age bracket: 'over30' or 'under30'.
