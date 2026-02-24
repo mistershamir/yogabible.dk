@@ -821,7 +821,14 @@
     "billing_view_booked": "Bogførte",
     "billing_no_booked": "Ingen bogførte fakturaer.",
     "billing_send_invoice": "Send faktura",
-    "billing_download_pdf": "Download PDF"
+    "billing_download_pdf": "Download PDF",
+    "billing_create_book_send": "Opret, Bogfør & Send",
+    "billing_master_creating_customer": "Opretter kunde...",
+    "billing_master_creating_invoice": "Opretter faktura...",
+    "billing_master_booking": "Bogfører...",
+    "billing_master_sending": "Sender email...",
+    "billing_master_done": "Faktura oprettet, bogført & sendt!",
+    "billing_master_no_email": "Faktura oprettet & bogført! Kunde har ingen email — send manuelt fra Bogførte fakturaer."
   },
   "en": {
     "page_title": "Administration",
@@ -1645,6 +1652,13 @@
     "billing_view_booked": "Booked",
     "billing_no_booked": "No booked invoices.",
     "billing_send_invoice": "Send Invoice",
-    "billing_download_pdf": "Download PDF"
+    "billing_download_pdf": "Download PDF",
+    "billing_create_book_send": "Create, Book & Send",
+    "billing_master_creating_customer": "Creating customer...",
+    "billing_master_creating_invoice": "Creating invoice...",
+    "billing_master_booking": "Booking...",
+    "billing_master_sending": "Sending email...",
+    "billing_master_done": "Invoice created, booked & sent!",
+    "billing_master_no_email": "Invoice created & booked! Customer has no email — send manually from Booked Invoices."
   }
 }
