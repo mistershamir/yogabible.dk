@@ -48,17 +48,19 @@ async function ecoFetch(path, method = 'GET', body = null) {
 // ─── Actions ───────────────────────────────────────────────────────
 
 async function getSettings() {
-  const [paymentTerms, layouts, customerGroups, vatZones] = await Promise.all([
+  const [paymentTerms, layouts, customerGroups, vatZones, products] = await Promise.all([
     ecoFetch('/payment-terms?pagesize=100'),
     ecoFetch('/layouts?pagesize=100'),
     ecoFetch('/customer-groups?pagesize=100'),
-    ecoFetch('/vat-zones?pagesize=100')
+    ecoFetch('/vat-zones?pagesize=100'),
+    ecoFetch('/products?pagesize=100')
   ]);
   return {
     paymentTerms: paymentTerms.collection || [],
     layouts: layouts.collection || [],
     customerGroups: customerGroups.collection || [],
-    vatZones: vatZones.collection || []
+    vatZones: vatZones.collection || [],
+    products: products.collection || []
   };
 }
 
@@ -127,14 +129,20 @@ async function createInvoice(inv) {
     payload.recipient.name = inv.recipientName;
   }
 
-  // Add lines
-  payload.lines = inv.lines.map((line, i) => ({
-    lineNumber: i + 1,
-    sortKey: i + 1,
-    description: line.description,
-    quantity: line.quantity || 1,
-    unitNetPrice: line.unitNetPrice
-  }));
+  // Add lines (product is required by e-conomic when quantity/unitNetPrice are set)
+  payload.lines = inv.lines.map((line, i) => {
+    const l = {
+      lineNumber: i + 1,
+      sortKey: i + 1,
+      description: line.description,
+      quantity: line.quantity || 1,
+      unitNetPrice: line.unitNetPrice
+    };
+    if (inv.productNumber) {
+      l.product = { productNumber: String(inv.productNumber) };
+    }
+    return l;
+  });
 
   // Notes
   if (inv.notes) {
