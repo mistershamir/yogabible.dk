@@ -23895,6 +23895,38 @@ a.yb-appt__phone-link:hover { text-decoration: underline; }
 /* Missing item warning in preview */
 .yb-billing__preview-row--missing span:last-child { color: #dc2626; font-weight: 600; }
 
+/* Source tabs (e-conomic / Applicants toggle) */
+.yb-billing__source-tabs {
+  display: flex; gap: 0; margin-bottom: 0.75rem; border-bottom: 2px solid #E8E4E0;
+}
+.yb-billing__source-tab {
+  padding: 0.5rem 1rem; background: none; border: none; cursor: pointer;
+  font-family: inherit; font-size: 0.85rem; font-weight: 600;
+  color: #6F6A66; border-bottom: 2px solid transparent;
+  margin-bottom: -2px; transition: color 0.15s, border-color 0.15s;
+}
+.yb-billing__source-tab:hover { color: #0F0F0F; }
+.yb-billing__source-tab.is-active { color: #f75c03; border-bottom-color: #f75c03; }
+
+/* Applicant-specific result row extras */
+.yb-billing__cr-status {
+  font-size: 0.7rem; font-weight: 600; background: #F5F3F0;
+  padding: 2px 6px; border-radius: 4px; color: #6F6A66;
+}
+.yb-billing__cr-course { font-size: 0.8rem; color: #f75c03; }
+
+/* Applicant banner (shown when navigated from Application tab) */
+.yb-billing__applicant-banner {
+  display: flex; align-items: center; gap: 0.5rem;
+  background: rgba(247,92,3,0.08); border: 1px solid #f75c03; border-radius: 8px;
+  padding: 0.6rem 1rem; margin-bottom: 1rem; font-size: 0.85rem; font-weight: 600;
+}
+.yb-billing__applicant-banner-clear {
+  margin-left: auto; background: none; border: none; cursor: pointer;
+  font-size: 1.1rem; color: #6F6A66; line-height: 1;
+}
+.yb-billing__applicant-banner-clear:hover { color: #dc2626; }
+
 /* Drafts empty */
 .yb-billing__empty { text-align: center; color: #6F6A66; padding: 2rem; font-size: 0.9rem; }
 
