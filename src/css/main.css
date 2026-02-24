@@ -709,7 +709,7 @@ p, span, li, a, div {
 .hero {
   background: linear-gradient(135deg, #1C1C1C 0%, #2a2a2a 100%);
   color: var(--yb-text);
-  padding: 120px 20px 100px;
+  padding: clamp(80px, 12vw, 120px) 20px clamp(60px, 10vw, 100px);
   text-align: center;
   position: relative;
   overflow: hidden;
@@ -744,7 +744,7 @@ p, span, li, a, div {
 .hero__subtitle {
   font-size: clamp(18px, 2.5vw, 24px);
   line-height: 1.6;
-  margin-bottom: 40px;
+  margin-bottom: clamp(24px, 4vw, 40px);
   color: var(--yb-muted);
   max-width: 800px;
   margin-left: auto;
@@ -764,7 +764,7 @@ p, span, li, a, div {
    ======================================== */
 
 section {
-  padding: 80px 0;
+  padding: clamp(48px, 8vw, 80px) 0;
 }
 
 .section-title {
@@ -779,7 +779,7 @@ section {
   text-align: center;
   font-size: clamp(16px, 2vw, 20px);
   color: #666;
-  margin-bottom: 60px;
+  margin-bottom: clamp(32px, 6vw, 60px);
   max-width: 700px;
   margin-left: auto;
   margin-right: auto;
@@ -795,8 +795,8 @@ section {
 
 .pathways__grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-  gap: 40px;
+  grid-template-columns: repeat(auto-fit, minmax(min(300px, 100%), 1fr));
+  gap: clamp(24px, 4vw, 40px);
   max-width: 1000px;
   margin: 0 auto;
 }
@@ -804,7 +804,7 @@ section {
 .program-card {
   background: white;
   border-radius: 20px;
-  padding: 40px;
+  padding: clamp(24px, 4vw, 40px);
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
   transition: transform 0.3s ease, box-shadow 0.3s ease;
   position: relative;
@@ -892,8 +892,8 @@ section {
 
 .courses__grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-  gap: 40px;
+  grid-template-columns: repeat(auto-fit, minmax(min(300px, 100%), 1fr));
+  gap: clamp(24px, 4vw, 40px);
 }
 
 .course-card {
@@ -1035,15 +1035,15 @@ section {
    ======================================== */
 
 .instructors {
-  padding: 100px 20px;
+  padding: clamp(60px, 10vw, 100px) 20px;
   background: white;
 }
 
 .instructors__grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  gap: 40px;
-  margin-top: 60px;
+  grid-template-columns: repeat(auto-fit, minmax(min(280px, 100%), 1fr));
+  gap: clamp(24px, 4vw, 40px);
+  margin-top: clamp(32px, 6vw, 60px);
 }
 
 .instructor-card {
@@ -1055,8 +1055,8 @@ section {
 }
 
 .instructor-card__image {
-  width: 200px;
-  height: 200px;
+  width: clamp(140px, 30vw, 200px);
+  height: clamp(140px, 30vw, 200px);
   border-radius: 50%;
   overflow: hidden;
   border: 4px solid var(--yb-brand);
@@ -1107,15 +1107,15 @@ section {
    ======================================== */
 
 .testimonials {
-  padding: 100px 20px;
+  padding: clamp(60px, 10vw, 100px) 20px;
   background: #f9f9f9;
 }
 
 .testimonials__grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-  gap: 40px;
-  margin-top: 60px;
+  grid-template-columns: repeat(auto-fit, minmax(min(300px, 100%), 1fr));
+  gap: clamp(24px, 4vw, 40px);
+  margin-top: clamp(32px, 6vw, 60px);
 }
 
 .testimonial-card {
@@ -1201,12 +1201,12 @@ section {
    ======================================== */
 
 .video-section {
-  padding: 100px 20px;
+  padding: clamp(60px, 10vw, 100px) 20px;
   background: white;
 }
 
 .video-wrapper {
-  margin-top: 60px;
+  margin-top: clamp(32px, 6vw, 60px);
   max-width: 900px;
   margin-left: auto;
   margin-right: auto;
@@ -1272,7 +1272,7 @@ section {
   background: linear-gradient(135deg, var(--yb-accent) 0%, #d94f02 100%);
   color: white;
   text-align: center;
-  padding: 100px 20px;
+  padding: clamp(60px, 10vw, 100px) 20px;
 }
 
 .cta-section__title {
@@ -2308,7 +2308,7 @@ section {
 .program-hero {
   background: linear-gradient(135deg, #1C1C1C 0%, #2a2a2a 100%);
   color: #FDFBF7;
-  padding: 140px 20px 80px;
+  padding: clamp(100px, 14vw, 140px) 20px clamp(48px, 8vw, 80px);
   text-align: center;
 }
 
@@ -2360,15 +2360,15 @@ section {
 }
 
 .program-overview {
-  padding: 100px 20px;
+  padding: clamp(60px, 10vw, 100px) 20px;
   background: white;
 }
 
 .program-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-  gap: 40px;
-  margin-top: 60px;
+  grid-template-columns: repeat(auto-fit, minmax(min(300px, 100%), 1fr));
+  gap: clamp(24px, 4vw, 40px);
+  margin-top: clamp(32px, 6vw, 60px);
 }
 
 .program-feature {
@@ -2394,15 +2394,15 @@ section {
 }
 
 .program-schedule {
-  padding: 100px 20px;
+  padding: clamp(60px, 10vw, 100px) 20px;
   background: #f9f9f9;
 }
 
 .schedule-options {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-  gap: 30px;
-  margin: 60px 0 40px;
+  grid-template-columns: repeat(auto-fit, minmax(min(300px, 100%), 1fr));
+  gap: clamp(20px, 3vw, 30px);
+  margin: clamp(32px, 6vw, 60px) 0 clamp(24px, 4vw, 40px);
   max-width: 900px;
   margin-left: auto;
   margin-right: auto;
@@ -2411,7 +2411,7 @@ section {
 .schedule-card {
   background: white;
   border-radius: 16px;
-  padding: 40px;
+  padding: clamp(24px, 4vw, 40px);
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
 }
 
@@ -2456,15 +2456,15 @@ section {
 }
 
 .program-curriculum {
-  padding: 100px 20px;
+  padding: clamp(60px, 10vw, 100px) 20px;
   background: white;
 }
 
 .curriculum-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  gap: 30px;
-  margin-top: 60px;
+  grid-template-columns: repeat(auto-fit, minmax(min(280px, 100%), 1fr));
+  gap: clamp(20px, 3vw, 30px);
+  margin-top: clamp(32px, 6vw, 60px);
 }
 
 .curriculum-module {
@@ -2489,16 +2489,16 @@ section {
 }
 
 .program-investment {
-  padding: 100px 20px;
+  padding: clamp(60px, 10vw, 100px) 20px;
   background: #f9f9f9;
 }
 
 .investment-box {
   max-width: 700px;
-  margin: 60px auto 0;
+  margin: clamp(32px, 6vw, 60px) auto 0;
   background: white;
   border-radius: 20px;
-  padding: 50px 40px;
+  padding: clamp(28px, 5vw, 50px) clamp(20px, 4vw, 40px);
   box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1);
   text-align: center;
 }
@@ -2559,13 +2559,13 @@ section {
 }
 
 .program-faq {
-  padding: 100px 20px;
+  padding: clamp(60px, 10vw, 100px) 20px;
   background: white;
 }
 
 .faq-list {
   max-width: 800px;
-  margin: 60px auto 0;
+  margin: clamp(32px, 6vw, 60px) auto 0;
 }
 
 .faq-item {
@@ -2615,34 +2615,10 @@ section {
 }
 
 @media (max-width: 768px) {
-  .program-hero {
-    padding: 120px 20px 60px;
-  }
-
   .program-hero__meta {
     flex-direction: column;
     gap: 15px;
     align-items: center;
-  }
-
-  .program-overview,
-  .program-schedule,
-  .program-curriculum,
-  .program-investment,
-  .program-faq {
-    padding: 60px 20px;
-  }
-
-  .program-grid,
-  .schedule-options,
-  .curriculum-grid {
-    gap: 30px;
-    margin-top: 40px;
-  }
-
-  .schedule-card,
-  .investment-box {
-    padding: 30px 24px;
   }
 
   .faq-item summary {
@@ -2668,7 +2644,7 @@ section {
 .coming-soon-hero {
   background: linear-gradient(135deg, #1C1C1C 0%, #2a2a2a 100%);
   color: #FDFBF7;
-  padding: 140px 20px 80px;
+  padding: clamp(100px, 14vw, 140px) 20px clamp(48px, 8vw, 80px);
   text-align: center;
   position: relative;
   overflow: hidden;
@@ -6620,7 +6596,7 @@ section {
   }
 }
 
-@media (max-width: 380px) {
+@media (max-width: 480px) {
   .yb-cph-life__grid {
     grid-template-columns: 1fr;
   }
@@ -8419,7 +8395,7 @@ a.yb-kontakt-detail__value:hover {
   background: #FFFCF9;
   border: 1.5px solid var(--yb-brand);
   border-radius: 16px;
-  padding: 40px;
+  padding: clamp(24px, 4vw, 40px);
   text-align: center;
 }
 
@@ -11647,7 +11623,7 @@ a.yb-kontakt-detail__value:hover {
 
 /* ── Profile Content Area ── */
 .yb-profile__content-area {
-  padding: 32px;
+  padding: clamp(16px, 3vw, 32px);
   background: #FFFCF9;
 }
 
@@ -11660,7 +11636,7 @@ a.yb-kontakt-detail__value:hover {
   background: #fff;
   border: 1px solid #E8E4E0;
   border-radius: 14px;
-  padding: 28px;
+  padding: clamp(16px, 3vw, 28px);
   margin-bottom: 20px;
 }
 
@@ -11791,7 +11767,7 @@ a.yb-kontakt-detail__value:hover {
 
 .yb-store__grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(min(280px, 100%), 1fr));
   gap: 1.25rem;
 }
 
@@ -11837,7 +11813,7 @@ a.yb-kontakt-detail__value:hover {
   background: #FFFCF9;
   border: 1.5px solid #E8E4E0;
   border-radius: 12px;
-  padding: 2rem;
+  padding: clamp(1rem, 3vw, 2rem);
   max-width: 900px;
 }
 
@@ -12694,7 +12670,7 @@ a.yb-kontakt-detail__value:hover {
   font-weight: 600;
 }
 
-@media (max-width: 480px) {
+@media (max-width: 600px) {
   .yb-receipts__card-details {
     grid-template-columns: 1fr;
   }
