@@ -215,6 +215,7 @@
     { value: 'Converted', label: 'Converted', color: '#d4edda', text: '#155724', icon: '\ud83c\udf89' },
     { value: 'Existing Applicant', label: 'Existing Applicant', color: '#cce5ff', text: '#004085', icon: '\ud83d\udcc4' },
     { value: 'On Hold', label: 'On Hold', color: '#FFF9C4', text: '#F57F17', icon: '\u23f8\ufe0f' },
+    { value: 'Not too keen', label: 'Not too keen', color: '#CFD8DC', text: '#37474F', icon: '\ud83d\ude10' },
     { value: 'Unsubscribed', label: 'Unsubscribed', color: '#f8d7da', text: '#721c24', icon: '\ud83d\udeab' },
     { value: 'Lost', label: 'Lost', color: '#ECEFF1', text: '#546E7F', icon: '\ud83d\udc4e' },
     { value: 'Closed', label: 'Closed', color: '#f5f5f5', text: '#9e9e9e', icon: '\u2716' },
@@ -232,6 +233,7 @@
     'Converted': ['Application Submitted', 'Payment Received', 'Enrolled'],
     'Existing Applicant': ['Re-inquiry', 'Upgrade Request', 'Referral'],
     'On Hold': ['Travel Issues', 'Financial', 'Personal Reasons', 'Next Cohort'],
+    'Not too keen': ['Price Too High', 'Bad Timing', 'Lost Interest', 'Considering Alternatives', 'No Reason Given'],
     'Unsubscribed': ['Email Only', 'All Communications'],
     'Lost': ['No Response', 'Chose Competitor', 'Budget', 'Not Interested', 'Wrong Fit'],
     'Closed': ['Spam', 'Duplicate', 'Invalid Contact', 'Completed'],
@@ -266,6 +268,47 @@
     { value: 'Withdrawn', label: 'Withdrawn', color: '#ECEFF1', text: '#546E7F', icon: '\u21a9\ufe0f' },
     { value: 'Completed', label: 'Completed', color: '#E8F5E9', text: '#2E7D32', icon: '\ud83c\udfc6' }
   ];
+
+  /* ══════════════════════════════════════════
+     BULK STATUS PICKER (shared modal)
+     ══════════════════════════════════════════ */
+  function openBulkStatusPicker(statuses, count, onSelect) {
+    var modal = document.getElementById('yb-bulk-status-modal');
+    var grid = document.getElementById('yb-bulk-status-grid');
+    var subtitle = document.getElementById('yb-bulk-status-subtitle');
+    if (!modal || !grid) return;
+
+    subtitle.textContent = count + ' ' + t('leads_selected');
+
+    grid.innerHTML = statuses.map(function (s) {
+      return '<button type="button" class="yb-bulk-status__option" data-status="' + esc(s.value) + '" style="border-color:' + s.color + '">' +
+        '<span class="yb-bulk-status__option-icon">' + s.icon + '</span>' +
+        '<span class="yb-bulk-status__option-label">' + esc(s.label) + '</span>' +
+      '</button>';
+    }).join('');
+
+    modal.hidden = false;
+
+    function close() {
+      modal.hidden = true;
+      grid.innerHTML = '';
+      modal.removeEventListener('click', handleClick);
+    }
+
+    function handleClick(e) {
+      // Close button or overlay
+      if (e.target.closest('[data-close-bulk-status]')) { close(); return; }
+      // Status option
+      var btn = e.target.closest('.yb-bulk-status__option');
+      if (btn) {
+        var status = btn.getAttribute('data-status');
+        close();
+        onSelect(status);
+      }
+    }
+
+    modal.addEventListener('click', handleClick);
+  }
 
   /* ══════════════════════════════════════════
      STATUS HELPERS
@@ -1938,36 +1981,28 @@
   }
 
   function bulkUpdateStatus() {
-    var newStatus = prompt(t('leads_bulk_status_prompt'), 'Contacted');
-    if (!newStatus) return;
-
-    // Validate
-    if (!STATUSES.find(function (s) { return s.value === newStatus; })) {
-      toast(t('leads_invalid_status'), true);
-      return;
-    }
-
-    var batch = db.batch();
-    selectedIds.forEach(function (id) {
-      batch.update(db.collection('leads').doc(id), {
-        status: newStatus,
-        updated_at: firebase.firestore.FieldValue.serverTimestamp()
+    openBulkStatusPicker(STATUSES, selectedIds.size, function (newStatus) {
+      var batch = db.batch();
+      selectedIds.forEach(function (id) {
+        batch.update(db.collection('leads').doc(id), {
+          status: newStatus,
+          updated_at: firebase.firestore.FieldValue.serverTimestamp()
+        });
       });
-    });
 
-    batch.commit().then(function () {
-      // Update local
-      leads.forEach(function (l) {
-        if (selectedIds.has(l.id)) l.status = newStatus;
+      batch.commit().then(function () {
+        leads.forEach(function (l) {
+          if (selectedIds.has(l.id)) l.status = newStatus;
+        });
+        selectedIds.clear();
+        selectAll = false;
+        renderLeadView();
+        renderLeadStats();
+        updateBulkBar();
+        toast(t('saved'));
+      }).catch(function (err) {
+        toast(t('error_save') + ': ' + err.message, true);
       });
-      selectedIds.clear();
-      selectAll = false;
-      renderLeadView();
-      renderLeadStats();
-      updateBulkBar();
-      toast(t('saved'));
-    }).catch(function (err) {
-      toast(t('error_save') + ': ' + err.message, true);
     });
   }
 
@@ -2940,34 +2975,26 @@
   function bulkAppStatusChange() {
     if (selectedAppIds.size === 0) return;
 
-    var status = prompt(t('apps_bulk_status_prompt'), 'Approved');
-    if (!status) return;
-
-    // Validate status
-    var valid = APP_STATUSES.find(function (s) { return s.value === status; });
-    if (!valid) {
-      toast('Invalid status: ' + status, true);
-      return;
-    }
-
-    var batch = db.batch();
-    selectedAppIds.forEach(function (id) {
-      var ref = db.collection('applications').doc(id);
-      batch.update(ref, { status: status, updated_at: firebase.firestore.FieldValue.serverTimestamp() });
-    });
-
-    batch.commit().then(function () {
+    openBulkStatusPicker(APP_STATUSES, selectedAppIds.size, function (status) {
+      var batch = db.batch();
       selectedAppIds.forEach(function (id) {
-        var idx = applications.findIndex(function (a) { return a.id === id; });
-        if (idx !== -1) applications[idx].status = status;
+        var ref = db.collection('applications').doc(id);
+        batch.update(ref, { status: status, updated_at: firebase.firestore.FieldValue.serverTimestamp() });
       });
-      deselectAllApps();
-      renderApplicationTable();
-      renderApplicationStats();
-      toast('Status updated for ' + selectedAppIds.size + ' applications');
-    }).catch(function (err) {
-      console.error('[lead-admin] Bulk status error:', err);
-      toast(t('error_save'), true);
+
+      batch.commit().then(function () {
+        selectedAppIds.forEach(function (id) {
+          var idx = applications.findIndex(function (a) { return a.id === id; });
+          if (idx !== -1) applications[idx].status = status;
+        });
+        deselectAllApps();
+        renderApplicationTable();
+        renderApplicationStats();
+        toast('Status updated for ' + selectedAppIds.size + ' applications');
+      }).catch(function (err) {
+        console.error('[lead-admin] Bulk status error:', err);
+        toast(t('error_save'), true);
+      });
     });
   }
 
@@ -3573,7 +3600,7 @@
 
     bindLeadEvents();
 
-    // Hook into tab switching — Leads
+    // Hook into tab switching — Leads (admin page)
     document.querySelectorAll('[data-yb-admin-tab]').forEach(function (btn) {
       btn.addEventListener('click', function () {
         var tab = btn.getAttribute('data-yb-admin-tab');
@@ -3582,6 +3609,21 @@
           leadsLoaded = true;
         }
         if (tab === 'applications' && !appLoaded) {
+          loadApplications();
+          appLoaded = true;
+        }
+      });
+    });
+
+    // Hook into tab switching — CRM tabs on profile page (marketing/admin)
+    document.querySelectorAll('[data-yb-tab]').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        var tab = btn.getAttribute('data-yb-tab');
+        if (tab === 'crm-leads' && !leadsLoaded) {
+          loadLeads();
+          leadsLoaded = true;
+        }
+        if (tab === 'crm-applications' && !appLoaded) {
           loadApplications();
           appLoaded = true;
         }

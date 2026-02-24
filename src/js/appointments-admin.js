@@ -948,6 +948,12 @@
                 if (!apptLoaded) loadAppointments();
               });
             });
+            // CRM tabs on profile page (marketing/admin)
+            document.querySelectorAll('[data-yb-tab="crm-appointments"]').forEach(function (btn) {
+              btn.addEventListener('click', function () {
+                if (!apptLoaded) loadAppointments();
+              });
+            });
             initEventListeners();
           }
         });
