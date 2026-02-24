@@ -625,8 +625,8 @@
   }
 
   /**
-   * Auto-create e-conomic customer from the pre-filled new customer form,
-   * then immediately create the invoice. One-click flow for applicants.
+   * Find existing e-conomic customer by email, or create a new one.
+   * Then create the invoice. Prevents duplicate customers.
    */
   function autoCreateCustomerThenInvoice(vals) {
     var name = ($('yb-billing-nc-name') || {}).value || (selectedApplicant ? selectedApplicant.name : '');
@@ -636,9 +636,11 @@
       return;
     }
 
+    var email = ($('yb-billing-nc-email') || {}).value || '';
+
     var customer = {
       name: name.trim(),
-      email: ($('yb-billing-nc-email') || {}).value || '',
+      email: email,
       address: ($('yb-billing-nc-address') || {}).value || '',
       zip: ($('yb-billing-nc-zip') || {}).value || '',
       city: ($('yb-billing-nc-city') || {}).value || '',
@@ -651,33 +653,57 @@
 
     var btn = document.querySelector('[data-action="billing-create-invoice"]');
     busy = true;
-    if (btn) { btn.textContent = isDa ? 'Opretter kunde...' : 'Creating customer...'; btn.classList.add('yb-btn--muted'); }
+    if (btn) { btn.textContent = isDa ? 'Søger kunde...' : 'Searching customer...'; btn.classList.add('yb-btn--muted'); }
 
-    console.log('[billing] Auto-creating customer:', customer.name);
-    apiCall({ action: 'createCustomer', customer: customer }).then(function (res) {
-      if (!res.ok) {
-        busy = false;
-        if (btn) { btn.textContent = t('billing_create_draft'); btn.classList.remove('yb-btn--muted'); }
-        console.error('[billing] Auto-create customer failed:', res.error);
-        toast(res.error, true);
+    // Search by email first to prevent duplicates
+    var searchQuery = email || customer.name;
+    console.log('[billing] Searching for existing customer:', searchQuery);
+    apiCall({ action: 'searchCustomers', query: searchQuery }).then(function (res) {
+      var existing = (res.ok && res.data) ? res.data : [];
+      // Find exact email match
+      var match = null;
+      if (email) {
+        match = existing.find(function (c) { return c.email && c.email.toLowerCase() === email.toLowerCase(); });
+      }
+      if (!match) {
+        match = existing.find(function (c) { return c.name && c.name.toLowerCase() === customer.name.toLowerCase(); });
+      }
+
+      if (match) {
+        console.log('[billing] Found existing customer #' + match.customerNumber + ' (' + match.name + ') — reusing');
+        toast(isDa ? 'Eksisterende kunde fundet: #' + match.customerNumber : 'Existing customer found: #' + match.customerNumber);
+        selectCustomer(match.customerNumber, match.name, match.email || email);
+        var ncForm = $('yb-billing-new-customer-form');
+        if (ncForm) ncForm.hidden = true;
+        if (btn) { btn.textContent = isDa ? 'Opretter faktura...' : 'Creating invoice...'; }
+        sendInvoice(vals);
         return;
       }
-      var c = res.data;
-      console.log('[billing] Customer auto-created:', c.customerNumber, c.name);
-      toast(t('billing_customer_created'));
-      selectCustomer(c.customerNumber, c.name, c.email || customer.email);
 
-      // Hide the new customer form
-      var ncForm = $('yb-billing-new-customer-form');
-      if (ncForm) ncForm.hidden = true;
-
-      // Now create the invoice
-      if (btn) { btn.textContent = isDa ? 'Opretter faktura...' : 'Creating invoice...'; }
-      sendInvoice(vals);
+      // No match — create new customer
+      if (btn) { btn.textContent = isDa ? 'Opretter kunde...' : 'Creating customer...'; }
+      console.log('[billing] No existing customer found, creating:', customer.name);
+      return apiCall({ action: 'createCustomer', customer: customer }).then(function (cRes) {
+        if (!cRes.ok) {
+          busy = false;
+          if (btn) { btn.textContent = t('billing_create_draft'); btn.classList.remove('yb-btn--muted'); }
+          console.error('[billing] Auto-create customer failed:', cRes.error);
+          toast(cRes.error, true);
+          return;
+        }
+        var c = cRes.data;
+        console.log('[billing] Customer created:', c.customerNumber, c.name);
+        toast(t('billing_customer_created'));
+        selectCustomer(c.customerNumber, c.name, c.email || customer.email);
+        var ncForm = $('yb-billing-new-customer-form');
+        if (ncForm) ncForm.hidden = true;
+        if (btn) { btn.textContent = isDa ? 'Opretter faktura...' : 'Creating invoice...'; }
+        sendInvoice(vals);
+      });
     }).catch(function (err) {
       busy = false;
       if (btn) { btn.textContent = t('billing_create_draft'); btn.classList.remove('yb-btn--muted'); }
-      console.error('[billing] Auto-create customer error:', err);
+      console.error('[billing] Find-or-create customer error:', err);
       toast(err.message, true);
     });
   }
@@ -755,7 +781,7 @@
     // Determine customer email for sending later
     var customerEmail = selectedCustomer ? (selectedCustomer.email || '') : (selectedApplicant ? (selectedApplicant.email || '') : '');
 
-    // Step 1: Create customer if needed
+    // Step 1: Find or create customer if needed
     if (selectedApplicant && !selectedCustomer) {
       var name = ($('yb-billing-nc-name') || {}).value || (selectedApplicant ? selectedApplicant.name : '');
       if (!name.trim()) {
@@ -763,9 +789,10 @@
         toast(isDa ? 'Kundenavn mangler — udfyld kundeformularen' : 'Customer name missing — fill in the customer form', true);
         return;
       }
+      var custEmail = ($('yb-billing-nc-email') || {}).value || '';
       var customer = {
         name: name.trim(),
-        email: ($('yb-billing-nc-email') || {}).value || '',
+        email: custEmail,
         address: ($('yb-billing-nc-address') || {}).value || '',
         zip: ($('yb-billing-nc-zip') || {}).value || '',
         city: ($('yb-billing-nc-city') || {}).value || '',
@@ -776,16 +803,39 @@
         paymentTermsNumber: parseInt(($('yb-billing-nc-payment') || {}).value) || 1
       };
 
-      if (btn) btn.textContent = t('billing_master_creating_customer');
-      customerEmail = customer.email || customerEmail;
+      customerEmail = custEmail || customerEmail;
+      if (btn) btn.textContent = isDa ? 'Søger kunde...' : 'Searching customer...';
 
-      apiCall({ action: 'createCustomer', customer: customer }).then(function (res) {
-        if (!res.ok) { busy = false; if (btn) btn.textContent = t('billing_create_book_send'); toast(res.error, true); return; }
-        var c = res.data;
-        selectCustomer(c.customerNumber, c.name, c.email || customer.email);
-        var ncForm = $('yb-billing-new-customer-form');
-        if (ncForm) ncForm.hidden = true;
-        masterCreateInvoice(vals, btn, customerEmail);
+      // Search by email/name first to prevent duplicates
+      var sq = custEmail || customer.name;
+      apiCall({ action: 'searchCustomers', query: sq }).then(function (res) {
+        var existing = (res.ok && res.data) ? res.data : [];
+        var match = null;
+        if (custEmail) {
+          match = existing.find(function (c) { return c.email && c.email.toLowerCase() === custEmail.toLowerCase(); });
+        }
+        if (!match) {
+          match = existing.find(function (c) { return c.name && c.name.toLowerCase() === customer.name.toLowerCase(); });
+        }
+
+        if (match) {
+          console.log('[billing] Master: Found existing customer #' + match.customerNumber);
+          selectCustomer(match.customerNumber, match.name, match.email || custEmail);
+          var ncForm = $('yb-billing-new-customer-form');
+          if (ncForm) ncForm.hidden = true;
+          masterCreateInvoice(vals, btn, customerEmail);
+          return;
+        }
+
+        if (btn) btn.textContent = t('billing_master_creating_customer');
+        return apiCall({ action: 'createCustomer', customer: customer }).then(function (cRes) {
+          if (!cRes.ok) { busy = false; if (btn) btn.textContent = t('billing_create_book_send'); toast(cRes.error, true); return; }
+          var c = cRes.data;
+          selectCustomer(c.customerNumber, c.name, c.email || customer.email);
+          var ncForm = $('yb-billing-new-customer-form');
+          if (ncForm) ncForm.hidden = true;
+          masterCreateInvoice(vals, btn, customerEmail);
+        });
       }).catch(function (err) { busy = false; if (btn) btn.textContent = t('billing_create_book_send'); toast(err.message, true); });
       return;
     }
@@ -1095,17 +1145,14 @@
       if (!res.ok) { body.innerHTML = '<p class="yb-billing__error">' + esc(res.error) + '</p>'; return; }
       var d = res.data;
 
-      // Try to extract customer email for send button
+      // Get customer email for send button (direct lookup by customer number)
       if (d.customer && d.customer.customerNumber) {
-        apiCall({ action: 'searchCustomers', query: (d.recipient && d.recipient.name) || '' }).then(function (sr) {
-          if (sr.ok && sr.data) {
-            var match = sr.data.find(function (c) { return c.customerNumber === d.customer.customerNumber; });
-            if (match && match.email) {
-              currentBookedEmail = match.email;
-              console.log('[billing] Booked invoice customer email:', currentBookedEmail);
-            }
+        apiCall({ action: 'getCustomer', customerNumber: d.customer.customerNumber }).then(function (cr) {
+          if (cr.ok && cr.data && cr.data.email) {
+            currentBookedEmail = cr.data.email;
+            console.log('[billing] Customer email for invoice:', currentBookedEmail);
           }
-        });
+        }).catch(function () { /* ignore — email will just be empty in prompt */ });
       }
 
       var html = '<div class="yb-billing__detail">';
@@ -1171,7 +1218,7 @@
     if (!currentBookedNumber) return;
 
     var pdfBtn = document.querySelector('[data-action="billing-download-pdf"]');
-    if (pdfBtn) { pdfBtn.textContent = isDa ? 'Henter...' : 'Loading...'; pdfBtn.classList.add('yb-btn--muted'); }
+    if (pdfBtn) { pdfBtn.textContent = isDa ? 'Henter PDF...' : 'Downloading PDF...'; pdfBtn.classList.add('yb-btn--muted'); }
 
     console.log('[billing] Getting PDF for invoice', currentBookedNumber);
     apiCall({ action: 'getInvoicePdf', bookedNumber: currentBookedNumber }).then(function (res) {
@@ -1181,13 +1228,27 @@
         toast(res.error, true);
         return;
       }
-      if (res.data && res.data.download) {
-        window.open(res.data.download, '_blank');
+      if (res.data && res.data.base64) {
+        // Convert base64 to blob and trigger download
+        var byteChars = atob(res.data.base64);
+        var byteNums = new Array(byteChars.length);
+        for (var i = 0; i < byteChars.length; i++) byteNums[i] = byteChars.charCodeAt(i);
+        var blob = new Blob([new Uint8Array(byteNums)], { type: 'application/pdf' });
+        var url = URL.createObjectURL(blob);
+        var a = document.createElement('a');
+        a.href = url;
+        a.download = res.data.filename || ('Faktura-' + currentBookedNumber + '.pdf');
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        toast(isDa ? 'PDF downloadet' : 'PDF downloaded');
       } else {
-        toast(isDa ? 'Kunne ikke hente PDF-link' : 'Could not get PDF link', true);
+        toast(isDa ? 'Kunne ikke hente PDF' : 'Could not get PDF', true);
       }
     }).catch(function (err) {
       if (pdfBtn) { pdfBtn.innerHTML = '&#128196; ' + t('billing_download_pdf'); pdfBtn.classList.remove('yb-btn--muted'); }
+      console.error('[billing] PDF download error:', err);
       toast(err.message, true);
     });
   }

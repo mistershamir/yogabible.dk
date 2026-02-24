@@ -92,6 +92,10 @@ async function createCustomer(c) {
   return ecoFetch('/customers', 'POST', payload);
 }
 
+async function getCustomer(customerNumber) {
+  return ecoFetch(`/customers/${customerNumber}`);
+}
+
 /**
  * Create draft invoice using the customer's template (correct defaults).
  * 1. GET /customers/:num/templates/invoice → template with layout, payment terms, vat
@@ -203,9 +207,32 @@ async function getBooked(bookedNumber) {
 
 // ─── Invoice PDF ──────────────────────────────────────────────────
 
+/**
+ * Get PDF for a booked invoice. Downloads from e-conomic and returns
+ * as base64 so the client can create a blob download (the e-conomic
+ * download URL requires server-side auth or may expire quickly).
+ */
 async function getInvoicePdf(bookedNumber) {
-  const data = await ecoFetch(`/invoices/booked/${bookedNumber}/pdf`);
-  return data; // { download: "https://..." }
+  const pdfInfo = await ecoFetch(`/invoices/booked/${bookedNumber}/pdf`);
+  if (!pdfInfo.download) throw new Error('Could not get PDF download URL from e-conomic');
+
+  console.log('[economic] Downloading PDF for invoice #' + bookedNumber);
+  // Try without auth headers first (signed URL), fall back to with auth
+  let pdfRes = await fetch(pdfInfo.download);
+  if (!pdfRes.ok) {
+    console.log('[economic] PDF download without auth failed (' + pdfRes.status + '), retrying with auth headers');
+    pdfRes = await fetch(pdfInfo.download, { headers: ecoHeaders() });
+  }
+  if (!pdfRes.ok) throw new Error('PDF download failed: ' + pdfRes.status);
+
+  const pdfBuffer = Buffer.from(await pdfRes.arrayBuffer());
+  console.log('[economic] PDF downloaded, size:', pdfBuffer.length, 'bytes');
+
+  return {
+    base64: pdfBuffer.toString('base64'),
+    filename: 'Faktura-' + bookedNumber + '.pdf',
+    size: pdfBuffer.length
+  };
 }
 
 // ─── Send Invoice by Email ────────────────────────────────────────
@@ -218,17 +245,11 @@ async function sendInvoiceEmail({ bookedNumber, recipientEmail }) {
   console.log('[economic] Fetching invoice', bookedNumber, 'for email to', recipientEmail);
   const invoice = await ecoFetch(`/invoices/booked/${bookedNumber}`);
 
-  // 2. Get PDF download URL
-  const pdfInfo = await ecoFetch(`/invoices/booked/${bookedNumber}/pdf`);
-  if (!pdfInfo.download) throw new Error('Could not get PDF download URL from e-conomic');
+  // 2. Get PDF
+  const pdfData = await getInvoicePdf(bookedNumber);
+  const pdfBuffer = Buffer.from(pdfData.base64, 'base64');
 
-  // 3. Download PDF binary
-  console.log('[economic] Downloading PDF from', pdfInfo.download);
-  const pdfRes = await fetch(pdfInfo.download, { headers: ecoHeaders() });
-  if (!pdfRes.ok) throw new Error(`PDF download failed: ${pdfRes.status}`);
-  const pdfBuffer = Buffer.from(await pdfRes.arrayBuffer());
-
-  // 4. Build email
+  // 3. Build email
   const invNum = invoice.bookedInvoiceNumber || bookedNumber;
   const custName = (invoice.recipient && invoice.recipient.name) || '';
   const total = invoice.grossAmount || invoice.netAmount || 0;
@@ -253,11 +274,19 @@ async function sendInvoiceEmail({ bookedNumber, recipientEmail }) {
   }
   html += '<p>Fakturaen er vedhæftet som PDF.</p>';
   html += '<p>Har du spørgsmål, er du velkommen til at svare på denne email.</p>';
+  // Signature
+  html += '<div style="margin-top:18px;padding-top:14px;border-top:1px solid #EBE7E3;font-size:15px;line-height:1.55;">';
+  html += '<div>Kærlig hilsen,</div>';
+  html += '<div><strong>Yoga Bible</strong></div>';
+  html += `<div><a href="https://www.yogabible.dk" style="color:${orange};text-decoration:none;">www.yogabible.dk</a></div>`;
+  html += `<div><a href="tel:+4553881209" style="color:${orange};text-decoration:none;">+45 53 88 12 09</a></div>`;
+  html += '</div>';
   html += '</div>';
 
-  const text = `Kære ${custName || 'kunde'},\n\nHermed sendes faktura #${invNum} fra Yoga Bible.\n\nBeløb: ${total} DKK\n${dueDate ? 'Forfaldsdato: ' + dueDate + '\n' : ''}${notesText ? '\n' + notesText + '\n' : ''}\nFakturaen er vedhæftet som PDF.\n\nHar du spørgsmål, er du velkommen til at svare på denne email.`;
+  const text = `Kære ${custName || 'kunde'},\n\nHermed sendes faktura #${invNum} fra Yoga Bible.\n\nBeløb: ${total} DKK\n${dueDate ? 'Forfaldsdato: ' + dueDate + '\n' : ''}${notesText ? '\n' + notesText + '\n' : ''}\nFakturaen er vedhæftet som PDF.\n\nHar du spørgsmål, er du velkommen til at svare på denne email.\n\nKærlig hilsen,\nYoga Bible\nwww.yogabible.dk\n+45 53 88 12 09`;
 
-  // 5. Send email with PDF attachment
+  // 4. Send email with PDF attachment
+  console.log('[economic] Sending invoice email to', recipientEmail, '(PDF size:', pdfBuffer.length, 'bytes)');
   const result = await sendRawEmail({
     to: recipientEmail,
     subject,
@@ -304,6 +333,10 @@ exports.handler = async (event) => {
 
       case 'createCustomer':
         return jsonResponse(201, { ok: true, data: await createCustomer(body.customer || {}) });
+
+      case 'getCustomer':
+        if (!body.customerNumber) return jsonResponse(400, { ok: false, error: 'customerNumber required' });
+        return jsonResponse(200, { ok: true, data: await getCustomer(body.customerNumber) });
 
       case 'createInvoice':
         return jsonResponse(201, { ok: true, data: await createInvoice(body.invoice || {}) });
