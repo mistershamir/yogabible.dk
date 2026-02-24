@@ -114,7 +114,12 @@ async function sendWelcomeSMS(leadData, leadDocId) {
   const program = String(leadData.program || '').toLowerCase();
   let templateKey = 'default';
 
-  if (program.includes('week') || program.includes('uge') || program.includes('ytt') ||
+  // Multi-format YTT request (user asked for multiple schedules)
+  const isMulti = leadData.all_formats && leadData.all_formats.includes(',');
+
+  if (isMulti) {
+    templateKey = 'ytt_multi';
+  } else if (program.includes('week') || program.includes('uge') || program.includes('ytt') ||
       program.includes('200') || program.includes('300') || program.includes('teacher training') ||
       program.includes('intensive') || program.includes('flexible') ||
       leadData.type === 'ytt') {

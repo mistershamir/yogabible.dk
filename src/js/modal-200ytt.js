@@ -148,18 +148,19 @@
       submitBtn.textContent = 'Sender…';
 
       const p = new URLSearchParams();
-      p.append('action', 'lead_schedule_' + fmts[0]);
+      if (fmts.length > 1) {
+        p.append('action', 'lead_schedule_multi');
+        p.append('allFormats', fmts.join(','));
+      } else {
+        p.append('action', 'lead_schedule_' + fmts[0]);
+      }
       p.append('firstName', fn);
       p.append('lastName', ln);
       p.append('email', em);
       p.append('phone', ph);
       p.append('accommodation', acc);
-      p.append('source', 'Modal-' + (fmts.length > 1 ? 'Multi' : fmts[0]));
+      p.append('source', 'Modal-' + (fmts.length > 1 ? 'Multi-' + fmts.join('+') : fmts[0]));
       if (city) p.append('cityCountry', city);
-      if (fmts.length > 1) {
-        p.append('multiFormat', 'Yes');
-        p.append('allFormats', fmts.join(','));
-      }
 
       // POST to Netlify Function with query params as body
       fetch(FORM_URL, { method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, body: p.toString() })
