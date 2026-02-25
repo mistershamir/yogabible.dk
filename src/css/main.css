@@ -24130,6 +24130,7 @@ a.yb-appt__phone-link:hover { text-decoration: underline; }
   border-radius: 50%; transition: background 0.15s;
 }
 .yb-billing__modal-close:hover { background: #F5F3F0; }
+.yb-billing__modal-footer-spacer { flex: 1; }
 
 /* ── Save Button Feedback ── */
 .yb-btn--save-success {
