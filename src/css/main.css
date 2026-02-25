@@ -15827,7 +15827,7 @@ button.yb-btn--outline-white:hover {
 
 /* Forms */
 .yb-admin__form { display: flex; flex-direction: column; gap: 1rem; max-width: 800px; }
-.yb-admin__form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; min-width: 0; overflow: hidden; }
+.yb-admin__form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
 .yb-admin__field { display: flex; flex-direction: column; gap: 0.25rem; min-width: 0; }
 .yb-admin__field label { font-size: 0.8rem; font-weight: 600; color: #6F6A66; }
 .yb-admin__field input,
@@ -15843,7 +15843,7 @@ button.yb-btn--outline-white:hover {
   padding: 0.6rem 0.75rem; border: 1px solid #f75c03; border-radius: 12px;
   font-family: inherit; font-size: 0.9rem; outline: none; background: #FFFCF9;
   transition: box-shadow 0.15s; cursor: pointer;
-  max-width: 100%; width: 100%; overflow: hidden; text-overflow: ellipsis;
+  max-width: 100%; text-overflow: ellipsis;
 }
 .yb-admin__field select:focus,
 .yb-admin__select:focus { box-shadow: 0 0 0 3px rgba(247,92,3,0.12); }
