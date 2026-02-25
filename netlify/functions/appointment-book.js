@@ -830,7 +830,7 @@ async function sendAdminPhotoRequestNotification(id, appointment, clientToken) {
       '</tr>';
   });
 
-  const suggestUrl = baseUrl + '/appointment?action=admin-suggest&id=' + id + '&admin_token=' + adminToken;
+  const adminPanelUrl = baseUrl + '/admin/#appointments';
 
   const html = '<div style="font-family:monospace;font-size:14px;line-height:1.6;">' +
     '<h3 style="color:#1a1a1a;">&#128247; Ny fotosession-anmodning</h3>' +
@@ -846,9 +846,9 @@ async function sendAdminPhotoRequestNotification(id, appointment, clientToken) {
     slotsHtml +
     '</table>' +
     '<div style="margin:20px 0;">' +
-    '<a href="' + suggestUrl + '" style="display:inline-block;padding:10px 20px;background:#6F6A66;color:#fff;text-decoration:none;border-radius:8px;">Foreslå alternativ tid</a>' +
+    '<a href="' + adminPanelUrl + '" style="display:inline-block;padding:10px 20px;background:#6F6A66;color:#fff;text-decoration:none;border-radius:8px;">Administrer i admin-panelet</a>' +
     '</div>' +
-    '<p style="font-size:12px;color:#999;">Du kan ogsa administrere anmodningen i admin-panelet.</p>' +
+    '<p style="font-size:12px;color:#999;">Åbn aftalen i admin-panelet for at godkende, foreslå alternativ tid, eller kontakte klienten.</p>' +
     '</div>';
 
   return sendRawEmail({

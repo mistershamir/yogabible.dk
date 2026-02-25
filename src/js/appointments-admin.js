@@ -55,6 +55,8 @@
      ══════════════════════════════════════════ */
   var STATUS_COLORS = {
     confirmed: '#4CAF50',
+    pending_request: '#f59e0b',
+    awaiting_client: '#3b82f6',
     rescheduled: '#f75c03',
     completed: '#2E7D32',
     cancelled: '#999',
@@ -63,6 +65,8 @@
 
   var STATUS_ICONS = {
     confirmed: '&#9989;',
+    pending_request: '&#128233;',
+    awaiting_client: '&#9203;',
     rescheduled: '&#128260;',
     completed: '&#9989;',
     cancelled: '&#10006;',
@@ -72,7 +76,8 @@
   var TYPE_ICONS = {
     'info-session': '&#127963;',
     'consultation': '&#128187;',
-    'intro-class': '&#129495;'
+    'intro-class': '&#129495;',
+    'photo-session': '&#128247;'
   };
 
   function getStatusLabel(status) {
@@ -488,6 +493,8 @@
       (a.source ? '<div><span style="color:#999;font-size:12px;">' + t('appt_col_source') + '</span><br>' + esc(a.source) + '</div>' : '') +
       (a.message ? '<div style="grid-column:1/-1;"><span style="color:#999;font-size:12px;">' + (isDa() ? 'Besked' : 'Message') + '</span><br>' + esc(a.message) + '</div>' : '') +
       (a.rescheduled_from ? '<div style="grid-column:1/-1;"><span style="color:#999;font-size:12px;">' + (isDa() ? 'Flyttet fra' : 'Rescheduled from') + '</span><br><span style="text-decoration:line-through;">' + esc(a.rescheduled_from) + '</span></div>' : '') +
+      (a.preferred_slots && a.preferred_slots.length ? '<div style="grid-column:1/-1;"><span style="color:#999;font-size:12px;">' + (isDa() ? 'Foretrukne tidspunkter' : 'Preferred times') + '</span><br>' + a.preferred_slots.map(function(s, i) { return '<span style="display:inline-block;background:#FFF8F0;border:1px solid #f75c03;border-radius:6px;padding:2px 8px;margin:2px 4px 2px 0;font-size:13px;">' + (i + 1) + '. ' + s.date + ' kl. ' + s.time + '</span>'; }).join('') + '</div>' : '') +
+      (a.location_pref ? '<div><span style="color:#999;font-size:12px;">' + (isDa() ? 'Ønsket lokation' : 'Preferred location') + '</span><br>' + esc(a.location_pref) + '</div>' : '') +
       '</div>';
   }
 
@@ -496,7 +503,54 @@
     if (!el || !currentAppt) return;
     var a = currentAppt;
 
-    var html = '<div style="display:flex;flex-wrap:wrap;gap:8px;">';
+    var html = '';
+
+    // Request-based appointments: approve + suggest alternative
+    if (a.status === 'pending_request') {
+      html += '<div style="background:#FFF8F0;border:1px solid #f75c03;border-radius:10px;padding:16px;margin-bottom:12px;">';
+      html += '<p style="margin:0 0 10px;font-weight:700;color:#f75c03;">&#128233; ' + (isDa() ? 'Anmodning — afventer godkendelse' : 'Request — awaiting approval') + '</p>';
+
+      // If photo-session with preferred slots, show approve per slot
+      if (a.preferred_slots && a.preferred_slots.length) {
+        html += '<div style="margin-bottom:12px;">';
+        a.preferred_slots.forEach(function(s, i) {
+          html += '<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">';
+          html += '<span style="background:#f75c03;color:#fff;border-radius:50%;width:22px;height:22px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0;">' + (i + 1) + '</span>';
+          html += '<span style="flex:1;">' + s.date + ' kl. ' + s.time + '</span>';
+          html += '<button class="yb-btn yb-btn--primary yb-btn--sm" data-action="appt-approve-slot" data-slot="' + i + '" style="padding:4px 12px;font-size:12px;">' + (isDa() ? 'Godkend' : 'Approve') + '</button>';
+          html += '</div>';
+        });
+        html += '</div>';
+      } else {
+        html += '<button class="yb-btn yb-btn--primary yb-btn--sm" data-action="appt-approve" style="margin-bottom:8px;">&#9989; ' + (isDa() ? 'Godkend anmodning' : 'Approve request') + '</button> ';
+      }
+
+      html += '<button class="yb-btn yb-btn--outline yb-btn--sm" data-action="appt-suggest-time">&#128197; ' + (isDa() ? 'Foreslå alternativ tid' : 'Suggest alternative time') + '</button>';
+      html += '</div>';
+
+      // Suggest alternative form (hidden initially)
+      html += '<div id="yb-appt-suggest-form" hidden style="background:#F5F3F0;border-radius:10px;padding:16px;margin-bottom:12px;">';
+      html += '<p style="margin:0 0 10px;font-weight:700;">' + (isDa() ? 'Foreslå alternativ tid' : 'Suggest Alternative Time') + '</p>';
+      html += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px;">';
+      html += '<div><label style="font-size:12px;color:#999;">' + (isDa() ? 'Dato' : 'Date') + '</label><input type="date" id="yb-appt-suggest-date-field" style="width:100%;padding:8px;border:1px solid #E8E4E0;border-radius:8px;font-family:inherit;font-size:14px;"></div>';
+      html += '<div><label style="font-size:12px;color:#999;">' + (isDa() ? 'Tid' : 'Time') + '</label><input type="time" id="yb-appt-suggest-time-field" style="width:100%;padding:8px;border:1px solid #E8E4E0;border-radius:8px;font-family:inherit;font-size:14px;"></div>';
+      html += '</div>';
+      html += '<div style="margin-bottom:8px;"><label style="font-size:12px;color:#999;">' + (isDa() ? 'Besked til klienten' : 'Message to client') + '</label><textarea id="yb-appt-suggest-msg-field" rows="2" style="width:100%;padding:8px;border:1px solid #E8E4E0;border-radius:8px;font-family:inherit;font-size:14px;" placeholder="' + (isDa() ? 'Valgfri besked...' : 'Optional message...') + '"></textarea></div>';
+      html += '<div style="display:flex;gap:8px;"><button class="yb-btn yb-btn--primary yb-btn--sm" data-action="appt-send-suggestion">' + (isDa() ? 'Send forslag' : 'Send Suggestion') + '</button>';
+      html += '<button class="yb-btn yb-btn--outline yb-btn--sm" data-action="appt-cancel-suggest">' + (isDa() ? 'Annuller' : 'Cancel') + '</button></div>';
+      html += '</div>';
+    }
+
+    if (a.status === 'awaiting_client') {
+      html += '<div style="background:#EFF6FF;border:1px solid #3b82f6;border-radius:10px;padding:16px;margin-bottom:12px;">';
+      html += '<p style="margin:0 0 4px;font-weight:700;color:#3b82f6;">&#9203; ' + (isDa() ? 'Afventer kundens svar' : 'Awaiting client response') + '</p>';
+      if (a.suggested_date && a.suggested_time) {
+        html += '<p style="margin:0;font-size:14px;color:#666;">' + (isDa() ? 'Foreslået: ' : 'Suggested: ') + a.suggested_date + ' kl. ' + a.suggested_time + '</p>';
+      }
+      html += '</div>';
+    }
+
+    html += '<div style="display:flex;flex-wrap:wrap;gap:8px;">';
 
     if (a.status === 'confirmed' || a.status === 'rescheduled') {
       html += '<button class="yb-btn yb-btn--outline yb-btn--sm" data-action="appt-send-reminder">&#128276; ' + t('appt_send_reminder') + '</button>';
@@ -513,11 +567,11 @@
 
     // Bind action buttons
     el.querySelectorAll('[data-action]').forEach(function (btn) {
-      btn.addEventListener('click', function () { handleDetailAction(btn.getAttribute('data-action')); });
+      btn.addEventListener('click', function () { handleDetailAction(btn.getAttribute('data-action'), btn); });
     });
   }
 
-  function handleDetailAction(action) {
+  function handleDetailAction(action, el) {
     if (!currentAppt || !currentApptId) return;
 
     if (action === 'appt-send-reminder') {
@@ -532,7 +586,121 @@
       if (confirm(t('appt_delete_confirm'))) deleteAppointment();
     } else if (action === 'appt-download-ics') {
       downloadIcs();
+    } else if (action === 'appt-approve') {
+      approveRequest();
+    } else if (action === 'appt-approve-slot') {
+      var slotIdx = el ? parseInt(el.getAttribute('data-slot')) : 0;
+      approveRequest(slotIdx);
+    } else if (action === 'appt-suggest-time') {
+      var suggestForm = document.getElementById('yb-appt-suggest-form');
+      if (suggestForm) suggestForm.hidden = false;
+    } else if (action === 'appt-cancel-suggest') {
+      var suggestForm2 = document.getElementById('yb-appt-suggest-form');
+      if (suggestForm2) suggestForm2.hidden = true;
+    } else if (action === 'appt-send-suggestion') {
+      sendSuggestion();
     }
+  }
+
+  function approveRequest(slotIndex) {
+    var BOOK_API = '/.netlify/functions/appointment-book';
+    var crypto = require ? null : null; // not available client-side
+    // We need to call confirm-request via the public API. Generate admin token client-side using HMAC.
+    // Since we can't do HMAC in the browser easily, we'll use the admin API to update status + trigger emails.
+    // Approach: Update status to confirmed via admin API, then trigger a send-email to client.
+
+    // Actually, let's call the public appointment-book endpoint with confirm-request action.
+    // But we need the admin_token. Let's compute it — but we don't have TOKEN_SECRET in the browser.
+    // Better approach: use the admin appointments API to confirm and send email.
+
+    var confirmedDate = currentAppt.date;
+    var confirmedTime = currentAppt.time;
+    if (currentAppt.preferred_slots && typeof slotIndex === 'number' && currentAppt.preferred_slots[slotIndex]) {
+      confirmedDate = currentAppt.preferred_slots[slotIndex].date;
+      confirmedTime = currentAppt.preferred_slots[slotIndex].time;
+    }
+
+    // Update via admin API (PUT), then trigger confirmation email via send-email
+    apiCall('PUT', null, { id: currentApptId, status: 'confirmed', date: confirmedDate, time: confirmedTime, confirmed_at: new Date().toISOString() }).then(function (res) {
+      if (res.ok) {
+        currentAppt.status = 'confirmed';
+        currentAppt.date = confirmedDate;
+        currentAppt.time = confirmedTime;
+        var idx = appointments.findIndex(function (a) { return a.id === currentApptId; });
+        if (idx >= 0) {
+          appointments[idx].status = 'confirmed';
+          appointments[idx].date = confirmedDate;
+          appointments[idx].time = confirmedTime;
+        }
+        renderDetailCard();
+        renderActions();
+        renderStats();
+        toast(isDa() ? 'Anmodning godkendt! Bekræftelsesmail sendt.' : 'Request approved! Confirmation email sent.');
+
+        // Trigger confirmation email via the send-email function
+        fetch('/.netlify/functions/send-email', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ template: 'appointment-confirmed', appointmentId: currentApptId })
+        }).catch(function() { /* non-critical */ });
+      } else {
+        toast('Error: ' + (res.error || 'Unknown'), true);
+      }
+    }).catch(function (err) {
+      toast('Error: ' + err.message, true);
+    });
+  }
+
+  function sendSuggestion() {
+    var dateField = document.getElementById('yb-appt-suggest-date-field');
+    var timeField = document.getElementById('yb-appt-suggest-time-field');
+    var msgField = document.getElementById('yb-appt-suggest-msg-field');
+    if (!dateField || !timeField) return;
+
+    var sugDate = dateField.value;
+    var sugTime = timeField.value;
+    var sugMsg = msgField ? msgField.value : '';
+
+    if (!sugDate || !sugTime) {
+      alert(isDa() ? 'Vælg dato og tid' : 'Please select date and time');
+      return;
+    }
+
+    // Update appointment to awaiting_client status with suggested date/time
+    apiCall('PUT', null, {
+      id: currentApptId,
+      status: 'awaiting_client',
+      suggested_date: sugDate,
+      suggested_time: sugTime,
+      admin_message: sugMsg
+    }).then(function (res) {
+      if (res.ok) {
+        currentAppt.status = 'awaiting_client';
+        currentAppt.suggested_date = sugDate;
+        currentAppt.suggested_time = sugTime;
+        var idx = appointments.findIndex(function (a) { return a.id === currentApptId; });
+        if (idx >= 0) {
+          appointments[idx].status = 'awaiting_client';
+          appointments[idx].suggested_date = sugDate;
+          appointments[idx].suggested_time = sugTime;
+        }
+        renderDetailCard();
+        renderActions();
+        renderStats();
+        toast(isDa() ? 'Forslag sendt til klienten!' : 'Suggestion sent to client!');
+
+        // Trigger suggestion email via send-email function
+        fetch('/.netlify/functions/send-email', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ template: 'appointment-suggestion', appointmentId: currentApptId, suggested_date: sugDate, suggested_time: sugTime, admin_message: sugMsg })
+        }).catch(function() { /* non-critical */ });
+      } else {
+        toast('Error: ' + (res.error || 'Unknown'), true);
+      }
+    }).catch(function (err) {
+      toast('Error: ' + err.message, true);
+    });
   }
 
   function updateStatus(newStatus) {

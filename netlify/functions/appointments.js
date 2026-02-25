@@ -104,6 +104,7 @@ async function handlePut(event, user) {
     'date', 'time', 'duration', 'type', 'client_name', 'client_email',
     'client_phone', 'notes', 'status', 'location', 'reminder_sent',
     'reminder_24h_sent', 'cancelled_at', 'cancel_reason', 'rescheduled_from',
+    'confirmed_at', 'suggested_date', 'suggested_time', 'admin_message',
     '_notes'
   ];
 
