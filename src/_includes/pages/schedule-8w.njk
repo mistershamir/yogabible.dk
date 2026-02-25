@@ -1,0 +1,280 @@
+{# CLOUDINARY: yoga-bible-DK/schedule-pages/8w/ — hero and og images #}
+{% set t = i18n.schedule_8w[lang or "da"] %}
+
+{# ── PERSONALIZED GREETING ────────────────────────────── #}
+<div id="sched8w-greeting" style="display:none;background:#FFF8F3;border-left:4px solid #f75c03;padding:14px 24px;max-width:700px;margin:0 auto;">
+  <p style="font-size:.92rem;font-weight:600;color:#0F0F0F;">{{ t.greetingHello }} <span id="sched8w-first-name"></span>! 👋 {{ t.greetingText }}</p>
+</div>
+
+<section id="schedule-8w">
+
+  {# ── HERO ─────────────────────────────────────────────── #}
+  <div style="background:#0F0F0F;color:#fff;padding:clamp(80px,12vw,160px) 24px clamp(60px,8vw,100px);text-align:center;">
+    <div style="max-width:640px;margin:0 auto;">
+      <p style="font-size:clamp(5rem,16vw,10rem);font-weight:700;line-height:1.05;padding-bottom:0.12em;background:linear-gradient(135deg,#f75c03,#ff9966);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin:0 0 16px;">{{ t.heroTitle }}</p>
+      <p style="font-size:clamp(1.25rem,3.5vw,1.8rem);font-weight:700;color:#fff;letter-spacing:-.015em;line-height:1.2;margin:0 0 12px;">{{ t.heroSubtitle }}</p>
+      <p style="font-size:.95rem;color:rgba(255,255,255,.4);letter-spacing:.04em;">{{ t.heroPeriod }}</p>
+      <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-top:28px;">
+        <button onclick="openBookingModal('info-session')" style="background:transparent;color:#fff;border:1.5px solid rgba(255,255,255,.5);padding:13px 24px;border-radius:50px;font-size:.92rem;font-weight:600;cursor:pointer;font-family:inherit;transition:all .2s;" onmouseenter="this.style.borderColor='#fff';this.style.background='rgba(255,255,255,.08)'" onmouseleave="this.style.borderColor='rgba(255,255,255,.5)';this.style.background='transparent'">{{ t.ctaBook }}</button>
+        <button onclick="startCheckoutFunnel('100209')" style="background:#f75c03;color:#fff;border:none;padding:13px 24px;border-radius:50px;font-size:.92rem;font-weight:600;cursor:pointer;font-family:inherit;transition:background .2s;" onmouseenter="this.style.background='#d94f02'" onmouseleave="this.style.background='#f75c03'">{{ t.ctaStart }}</button>
+      </div>
+    </div>
+  </div>
+
+  {# ── STATS BAR ────────────────────────────────────────── #}
+  <div style="background:#F5F3F0;padding:28px 24px;border-bottom:1px solid #E8E4E0;">
+    <div style="max-width:700px;margin:0 auto;">
+      <div style="display:flex;gap:6px;justify-content:center;flex-wrap:wrap;margin-bottom:20px;">
+        <span style="background:#F5F3F0;color:#6F6A66;padding:5px 14px;border-radius:50px;font-size:.72rem;font-weight:500;border:1px solid #E8E4E0;">{{ t.pillYA }}</span>
+        <span style="background:#F5F3F0;color:#6F6A66;padding:5px 14px;border-radius:50px;font-size:.72rem;font-weight:500;border:1px solid #E8E4E0;">{{ t.pillStudents }}</span>
+        <span style="background:#F5F3F0;color:#6F6A66;padding:5px 14px;border-radius:50px;font-size:.72rem;font-weight:500;border:1px solid #E8E4E0;">{{ t.pillPeriod }}</span>
+        <span style="background:#F5F3F0;color:#6F6A66;padding:5px 14px;border-radius:50px;font-size:.72rem;font-weight:500;border:1px solid #E8E4E0;">{{ t.pillVenue }}</span>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:16px;text-align:center;">
+        <div>
+          <span style="font-size:1.8rem;font-weight:700;color:#f75c03;">8</span>
+          <p style="font-size:.82rem;color:#6F6A66;margin-top:4px;">{{ t.statWeeks }}</p>
+        </div>
+        <div>
+          <span style="font-size:1.8rem;font-weight:700;color:#f75c03;">22</span>
+          <p style="font-size:.82rem;color:#6F6A66;margin-top:4px;">{{ t.statDays }}</p>
+        </div>
+        <div>
+          <span style="font-size:1.8rem;font-weight:700;color:#f75c03;">200+</span>
+          <p style="font-size:.82rem;color:#6F6A66;margin-top:4px;">{{ t.statHours }}</p>
+        </div>
+        <div>
+          <span style="font-size:1.8rem;font-weight:700;color:#f75c03;">28/6</span>
+          <p style="font-size:.82rem;color:#6F6A66;margin-top:4px;">Cert.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  {# ── HOURS BREAKDOWN ──────────────────────────────────── #}
+  <div style="max-width:700px;margin:0 auto;padding:32px 24px 0;">
+    <p style="font-size:.72rem;text-transform:uppercase;letter-spacing:.14em;color:#6F6A66;font-weight:700;margin-bottom:16px;">{{ t.hoursTitle }}</p>
+    {% set hoursData8 = [
+      { pct: 30, hours: 60, color: "#f75c03", key: "hLabel0" },
+      { pct: 5,  hours: 10, color: "#ff9966", key: "hLabel1" },
+      { pct: 15, hours: 30, color: "#0F0F0F", key: "hLabel2" },
+      { pct: 10, hours: 20, color: "#0F0F0F", key: "hLabel3" },
+      { pct: 8.5, hours: 17, color: "#0F0F0F", key: "hLabel4" },
+      { pct: 6,  hours: 12, color: "#6F6A66", key: "hLabel5" },
+      { pct: 8,  hours: 16, color: "#ff9966", key: "hLabel6" },
+      { pct: 6,  hours: 12, color: "#ff9966", key: "hLabel7" },
+      { pct: 10, hours: 20, color: "#E8E4E0", key: "hLabel8" },
+      { pct: 1.5, hours: 3, color: "#E8E4E0", key: "hLabel9" }
+    ] %}
+    {% for h in hoursData8 %}
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:8px;">
+      <span style="font-size:.78rem;color:#6F6A66;min-width:185px;text-align:right;">{{ t[h.key] }}</span>
+      <div style="flex:1;background:#F5F3F0;border-radius:50px;height:8px;overflow:hidden;">
+        <div style="width:{{ h.pct }}%;height:100%;background:{{ h.color }};border-radius:50px;"></div>
+      </div>
+      <span style="font-size:.78rem;font-weight:700;color:#0F0F0F;min-width:32px;">{{ h.hours }}t</span>
+    </div>
+    {% endfor %}
+    <p style="font-size:.72rem;color:#6F6A66;text-align:right;margin-top:8px;font-style:italic;">{{ t.hoursTotal }}</p>
+  </div>
+
+  {# ── SCHEDULE BODY ─────────────────────────────────────── #}
+  <div style="max-width:700px;margin:0 auto;padding:40px 24px 0;">
+
+    <div style="display:flex;justify-content:flex-end;margin-bottom:24px;">
+      <button style="display:inline-flex;align-items:center;gap:6px;background:none;color:#6F6A66;border:1.5px solid #E8E4E0;padding:8px 16px;border-radius:50px;font-size:.78rem;font-weight:600;cursor:pointer;font-family:inherit;transition:all .2s;" onmouseenter="this.style.borderColor='#f75c03';this.style.color='#f75c03'" onmouseleave="this.style.borderColor='#E8E4E0';this.style.color='#6F6A66'">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+        {{ t.calendarBtn }}
+      </button>
+    </div>
+
+    {% set months8w = [
+      { name: "Maj", name_en: "May", year: "2026", weeks: [
+        { num: 1, label: "Introduktion", range: "2–3 maj", range_en: "May 2–3", days: [
+          { dn: "2",  dd: "Lør", dd_en: "Sat", time: "13:00–18:00", topic: "Hatha & Class Management — Introduktion", type: "workshop" },
+          { dn: "3",  dd: "Søn", dd_en: "Sun", time: "14:00–19:00", topic: "Vinyasa & Yin Yoga — Introduktion", type: "workshop" }
+        ]},
+        { num: 2, range: "7–11 maj", range_en: "May 7–11", days: [
+          { dn: "7",  dd: "Tor", dd_en: "Thu", time: "10:00–15:00", topic: "Hatha & Class Management", type: "workshop" },
+          { dn: "9",  dd: "Lør", dd_en: "Sat", time: "13:00–18:00", topic: "Vinyasa & Yin Yoga", type: "workshop" },
+          { dn: "10", dd: "Søn", dd_en: "Sun", time: "14:00–18:00", topic: "Yogafilosofi 01 — Online", type: "online" },
+          { dn: "11", dd: "Man", dd_en: "Mon", time: "10:00–15:00", topic: "Vinyasa & Yin Yoga", type: "workshop" }
+        ]},
+        { num: 3, range: "16–18 maj", range_en: "May 16–18", days: [
+          { dn: "16", dd: "Lør", dd_en: "Sat", time: "13:00–18:00", topic: "Yoga Anatomi 01", type: "workshop" },
+          { dn: "17", dd: "Søn", dd_en: "Sun", time: "14:00–19:00", topic: "Hatha & Class Management", type: "workshop" },
+          { dn: "18", dd: "Man", dd_en: "Mon", time: "10:00–15:00", topic: "Vinyasa & Yin Yoga", type: "workshop" }
+        ]},
+        { num: 4, range: "21–24 maj", range_en: "May 21–24", days: [
+          { dn: "21", dd: "Tor", dd_en: "Thu", time: "10:00–15:00", topic: "Hatha & Class Management", type: "workshop" },
+          { dn: "23", dd: "Lør", dd_en: "Sat", time: "13:00–18:00", topic: "Yoga Anatomi 02", type: "workshop" },
+          { dn: "24", dd: "Søn", dd_en: "Sun", time: "14:00–18:00", topic: "Yogafilosofi 02 — Online", type: "online" }
+        ]},
+        { num: 5, range: "30–31 maj", range_en: "May 30–31", days: [
+          { dn: "30", dd: "Lør", dd_en: "Sat", time: "13:00–18:00", topic: "Vinyasa & Yin Yoga", type: "workshop" },
+          { dn: "31", dd: "Søn", dd_en: "Sun", time: "14:00–19:00", topic: "Hatha & Class Management", type: "workshop" }
+        ]}
+      ]},
+      { name: "Juni", name_en: "June", year: "2026", weeks: [
+        { num: 6, range: "6. jun", range_en: "Jun 6", days: [
+          { dn: "6",  dd: "Lør", dd_en: "Sat", time: "13:00–18:00", topic: "Vinyasa & Yin Yoga", type: "workshop" }
+        ]},
+        { num: 7, range: "11–15 jun", range_en: "Jun 11–15", days: [
+          { dn: "11", dd: "Tor", dd_en: "Thu", time: "10:00–15:00", topic: "Vinyasa & Yin Yoga", type: "workshop" },
+          { dn: "13", dd: "Lør", dd_en: "Sat", time: "13:00–18:00", topic: "Yoga Anatomi 03", type: "workshop" },
+          { dn: "14", dd: "Søn", dd_en: "Sun", time: "14:00–18:00", topic: "Yogafilosofi 03 — Online", type: "online" },
+          { dn: "15", dd: "Man", dd_en: "Mon", time: "10:00–15:00", topic: "Vinyasa & Yin Yoga", type: "workshop" }
+        ]},
+        { num: 8, label: "Eksamen & Graduation", range: "18–28 jun", range_en: "Jun 18–28", graduation: true, days: [
+          { dn: "18", dd: "Tor", dd_en: "Thu", time: "11:00–15:00", topic: "Business of Yoga", type: "workshop" },
+          { dn: "22", dd: "Man", dd_en: "Mon", time: "10:00–15:00", topic: "Vinyasa & Yin Yoga", type: "workshop" },
+          { dn: "27", dd: "Lør", dd_en: "Sat", time: "13:00–18:00", topic: "Vinyasa & Yin Yoga — Eksamen", type: "exam" },
+          { dn: "28", dd: "Søn", dd_en: "Sun", time: "14:00–17:00", topic: "Hatha & Class Management — Eksamen + Graduation 🎓", type: "graduation" }
+        ]}
+      ]}
+    ] %}
+
+    {% for month in months8w %}
+    <div style="display:flex;align-items:baseline;gap:12px;margin-bottom:32px;{% if not loop.first %}margin-top:40px;{% endif %}">
+      <span style="font-size:3.4rem;font-weight:700;line-height:1;color:#0F0F0F;">{{ month.name_en if lang == "en" else month.name }}</span>
+      <span style="font-size:1.1rem;color:#6F6A66;">{{ month.year }}</span>
+      <div style="flex:1;height:2px;background:linear-gradient(to right, #E8E4E0, transparent);margin-left:12px;"></div>
+    </div>
+
+    {% for week in month.weeks %}
+      {% if week.graduation %}
+      <details class="s8w-combo-accordion" open style="margin-bottom:10px;">
+        <summary class="s8w-combo-summary" style="display:flex;align-items:center;justify-content:space-between;padding:18px 22px;cursor:pointer;list-style:none;-webkit-appearance:none;background:linear-gradient(135deg,#f0fff0,#e8f5e8);border:1.5px solid #2ecc71;border-radius:14px;transition:all .2s;">
+          <div style="display:flex;align-items:center;gap:14px;">
+            <span style="background:#2ecc71;color:#fff;font-size:.68rem;font-weight:700;padding:5px 12px;border-radius:50px;letter-spacing:.06em;">{{ t.weekLabel }} {{ week.num }}</span>
+            <div>
+              <p style="font-weight:700;font-size:.92rem;color:#0F0F0F;">{{ week.label }}</p>
+              <p style="font-size:.75rem;color:#6F6A66;">{{ week.range_en if lang == "en" else week.range }}</p>
+            </div>
+          </div>
+          <div style="display:flex;align-items:center;gap:12px;">
+            <span style="background:#d4edda;color:#155724;padding:3px 10px;border-radius:50px;font-size:.65rem;font-weight:700;text-transform:uppercase;">{{ t.graduationBadge }}</span>
+            <span class="s8w-combo-icon" style="background:#2ecc71;color:#fff;width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.88rem;font-weight:700;transition:transform .25s;flex-shrink:0;">+</span>
+          </div>
+        </summary>
+        <div style="padding:6px 22px 18px;background:#fff;border:1.5px solid #2ecc71;border-top:none;border-radius:0 0 14px 14px;margin-top:-1px;">
+          {% for day in week.days %}
+          <div style="display:flex;gap:16px;align-items:center;padding:12px 0;{% if not loop.last %}border-bottom:1px solid #F0EDE9;{% endif %}">
+            <div style="background:{% if day.type == 'graduation' %}#2ecc71{% elif day.type == 'exam' %}#0F0F0F{% else %}#f75c03{% endif %};color:#fff;width:46px;height:46px;border-radius:10px;display:flex;flex-direction:column;align-items:center;justify-content:center;flex-shrink:0;">
+              <span style="font-size:1.1rem;font-weight:700;line-height:1;">{{ day.dn }}</span>
+              <span style="font-size:.52rem;text-transform:uppercase;letter-spacing:.06em;opacity:.75;">{{ day.dd_en if lang == "en" else day.dd }}</span>
+            </div>
+            <div style="flex:1;">
+              <p style="font-weight:600;font-size:.92rem;color:#0F0F0F;">{{ day.topic }}</p>
+              <p style="font-size:.78rem;color:#6F6A66;margin-top:2px;">{{ day.time }}</p>
+            </div>
+            {% if day.type == 'graduation' %}<span style="background:#d4edda;color:#155724;padding:3px 10px;border-radius:50px;font-size:.65rem;font-weight:600;text-transform:uppercase;">{{ t.graduationLabel }}</span>{% elif day.type == 'exam' %}<span style="background:#FFF0E6;color:#f75c03;padding:3px 10px;border-radius:50px;font-size:.65rem;font-weight:600;text-transform:uppercase;">{{ t.examLabel }}</span>{% endif %}
+          </div>
+          {% endfor %}
+        </div>
+      </details>
+      {% else %}
+      <details class="s8w-combo-accordion" {% if week.num == 1 %}open{% endif %} style="margin-bottom:10px;">
+        <summary class="s8w-combo-summary" style="display:flex;align-items:center;justify-content:space-between;padding:18px 22px;cursor:pointer;list-style:none;-webkit-appearance:none;background:#fff;border:1px solid #E8E4E0;border-radius:14px;transition:all .2s;">
+          <div style="display:flex;align-items:center;gap:14px;">
+            <span style="background:#f75c03;color:#fff;font-size:.68rem;font-weight:700;padding:5px 12px;border-radius:50px;letter-spacing:.06em;">{{ t.weekLabel }} {{ week.num }}</span>
+            <div>
+              <p style="font-weight:700;font-size:.92rem;color:#0F0F0F;">{% if week.label %}{{ week.label }}{% else %}{{ week.range_en if lang == "en" else week.range }}{% endif %}</p>
+              <p style="font-size:.75rem;color:#6F6A66;">{{ week.days | length }} {% if week.days | length == 1 %}{{ t.dayLabel }}{% else %}{{ t.daysLabel }}{% endif %}</p>
+            </div>
+          </div>
+          <div style="display:flex;align-items:center;gap:12px;">
+            <span style="font-size:.72rem;color:#6F6A66;font-weight:500;">{% for day in week.days %}{{ day.dd_en if lang == "en" else day.dd }}{% if not loop.last %} · {% endif %}{% endfor %}</span>
+            <span class="s8w-combo-icon" style="background:#f75c03;color:#fff;width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.88rem;font-weight:700;transition:transform .25s;flex-shrink:0;">+</span>
+          </div>
+        </summary>
+        <div style="padding:6px 22px 18px;background:#fff;border:1px solid #E8E4E0;border-top:none;border-radius:0 0 14px 14px;margin-top:-1px;">
+          {% for day in week.days %}
+          <div style="display:flex;gap:16px;align-items:center;padding:12px 0;{% if not loop.last %}border-bottom:1px solid #F0EDE9;{% endif %}">
+            <div style="background:#f75c03;color:#fff;width:46px;height:46px;border-radius:10px;display:flex;flex-direction:column;align-items:center;justify-content:center;flex-shrink:0;{% if day.type == 'online' %}box-shadow:0 0 0 2px #fff, 0 0 0 3px #f75c03;{% endif %}">
+              <span style="font-size:1.1rem;font-weight:700;line-height:1;">{{ day.dn }}</span>
+              <span style="font-size:.52rem;text-transform:uppercase;letter-spacing:.06em;opacity:.75;">{{ day.dd_en if lang == "en" else day.dd }}</span>
+            </div>
+            <div style="flex:1;min-width:0;">
+              <p style="font-weight:600;font-size:.92rem;color:#0F0F0F;">{{ day.topic }}</p>
+              <p style="font-size:.78rem;color:#6F6A66;margin-top:2px;">{{ day.time }}{% if day.type == 'online' %} · <span style="color:#f75c03;font-weight:600;">{{ t.onlineLabel }}</span>{% endif %}</p>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+      </details>
+      {% endif %}
+    {% endfor %}
+    {% endfor %}
+
+    {# ── GRADUATION ENDPOINT ────────────────────────────── #}
+    <div style="position:relative;padding-left:48px;margin-top:40px;">
+      <div style="position:absolute;left:18px;top:0;bottom:50%;width:2px;background:linear-gradient(to bottom, #E8E4E0, #2ecc71);"></div>
+      <div style="position:relative;">
+        <div style="position:absolute;left:-42px;top:4px;width:22px;height:22px;background:#2ecc71;border-radius:50%;border:3px solid #fff;box-shadow:0 0 0 2px #2ecc71, 0 0 20px rgba(46,204,113,.25);z-index:1;display:flex;align-items:center;justify-content:center;">
+          <span style="color:#fff;font-size:.7rem;">&#10003;</span>
+        </div>
+        <div>
+          <p style="font-weight:700;font-size:1.05rem;color:#2ecc71;">{{ t.certifiedTitle }}</p>
+          <p style="font-size:.82rem;color:#6F6A66;line-height:1.5;margin-top:4px;">{{ t.certDate }}</p>
+        </div>
+      </div>
+    </div>
+
+    <div style="margin-top:32px;">
+      <div style="background:#f0fff0;border:1px solid #c3e6c3;border-radius:12px;padding:18px;">
+        <p style="font-weight:700;font-size:.85rem;margin-bottom:4px;">{{ t.certificationLabel }}</p>
+        <p style="font-size:.78rem;color:#6F6A66;">{{ t.certGradDate }}</p>
+      </div>
+    </div>
+
+    <blockquote style="border-left:4px solid #f75c03;padding:24px 28px;margin:40px 0 0;background:#FFFCF9;border-radius:0 14px 14px 0;">
+      <p style="font-size:1.05rem;font-weight:600;font-style:italic;line-height:1.5;color:#0F0F0F;">"{{ t.quoteText }}"</p>
+      <p style="font-size:.82rem;color:#6F6A66;margin-top:8px;">{{ t.quoteAuthor }}</p>
+    </blockquote>
+
+  </div>
+
+  {# ── DARK CTA ─────────────────────────────────────────── #}
+  <div style="background:#0F0F0F;color:#fff;padding:60px 24px;text-align:center;">
+    <div style="max-width:600px;margin:0 auto;">
+      <h2 style="font-size:1.6rem;font-weight:700;margin-bottom:12px;">{{ t.ctaSectionTitle }}</h2>
+      <p style="color:rgba(255,255,255,.68);margin-bottom:28px;line-height:1.55;">{{ t.ctaSectionDesc }}</p>
+      <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;">
+        <button onclick="openBookingModal('info-session')" style="background:transparent;color:#fff;border:1.5px solid rgba(255,255,255,.5);padding:14px 28px;border-radius:50px;font-size:.95rem;font-weight:600;cursor:pointer;font-family:inherit;transition:all .2s;" onmouseenter="this.style.borderColor='#fff';this.style.background='rgba(255,255,255,.08)'" onmouseleave="this.style.borderColor='rgba(255,255,255,.5)';this.style.background='transparent'">{{ t.ctaBook }}</button>
+        <button onclick="startCheckoutFunnel('100209')" style="background:#f75c03;color:#fff;border:none;padding:14px 28px;border-radius:50px;font-size:.95rem;font-weight:600;cursor:pointer;font-family:inherit;transition:background .2s;" onmouseenter="this.style.background='#d94f02'" onmouseleave="this.style.background='#f75c03'">{{ t.ctaStart }}</button>
+      </div>
+    </div>
+  </div>
+
+</section>
+
+<script>
+(function() {
+  /* ── Personalization token ─────────────────── */
+  var params = new URLSearchParams(window.location.search);
+  var tid = params.get('tid');
+  var tok = params.get('tok');
+  if (tid && tok) {
+    fetch('/.netlify/functions/schedule-token?tid=' + encodeURIComponent(tid) + '&tok=' + encodeURIComponent(tok))
+      .then(function(r) { return r.json(); })
+      .then(function(d) {
+        if (d.ok && d.firstName) {
+          var nameEl = document.getElementById('sched8w-first-name');
+          var greetEl = document.getElementById('sched8w-greeting');
+          if (nameEl) nameEl.textContent = d.firstName;
+          if (greetEl) greetEl.style.display = 'block';
+        }
+      })
+      .catch(function() {});
+  }
+})();
+</script>
+
+<style>
+  .s8w-combo-accordion summary::-webkit-details-marker { display: none; }
+  .s8w-combo-accordion summary::marker { display: none; content: ''; }
+  .s8w-combo-summary:hover { box-shadow: 0 4px 16px rgba(0,0,0,.06); transform: translateY(-1px); }
+  .s8w-combo-accordion[open] .s8w-combo-summary { border-radius: 14px 14px 0 0 !important; border-bottom-color: transparent !important; }
+  .s8w-combo-accordion[open] .s8w-combo-icon { transform: rotate(45deg); }
+</style>
