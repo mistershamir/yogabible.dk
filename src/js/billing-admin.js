@@ -532,7 +532,7 @@
       return '<div class="yb-billing__extra-line" data-line-index="' + i + '">'
         + '<input type="text" class="yb-lead__search-input yb-billing__extra-desc" value="' + esc(line.description) + '" placeholder="' + t('billing_extra_desc_ph') + '" data-field="desc" data-idx="' + i + '">'
         + '<div class="yb-billing__input-with-suffix">'
-        + '<input type="number" min="0" step="1" value="' + (line.amount || '') + '" placeholder="0" data-field="amount" data-idx="' + i + '">'
+        + '<input type="number" step="1" value="' + (line.amount || '') + '" placeholder="0" data-field="amount" data-idx="' + i + '">'
         + '<span class="yb-billing__input-suffix">DKK</span>'
         + '</div>'
         + '<button type="button" class="yb-billing__extra-remove" data-action="billing-remove-line" data-idx="' + i + '">&times;</button>'
