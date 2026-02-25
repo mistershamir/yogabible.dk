@@ -829,7 +829,11 @@
     "billing_master_booking": "Bogfører...",
     "billing_master_sending": "Sender email...",
     "billing_master_done": "Faktura oprettet, bogført & sendt!",
-    "billing_master_no_email": "Faktura oprettet & bogført! Kunde har ingen email — send manuelt fra Bogførte fakturaer."
+    "billing_master_no_email": "Faktura oprettet & bogført! Kunde har ingen email — send manuelt fra Bogførte fakturaer.",
+    "billing_extra_lines": "Ekstra linjer",
+    "billing_add_line": "Tilføj linje",
+    "billing_extra_desc_ph": "Beskrivelse...",
+    "billing_extra_amount_ph": "Beløb"
   },
   "en": {
     "page_title": "Administration",
@@ -1661,6 +1665,10 @@
     "billing_master_booking": "Booking...",
     "billing_master_sending": "Sending email...",
     "billing_master_done": "Invoice created, booked & sent!",
-    "billing_master_no_email": "Invoice created & booked! Customer has no email — send manually from Booked Invoices."
+    "billing_master_no_email": "Invoice created & booked! Customer has no email — send manually from Booked Invoices.",
+    "billing_extra_lines": "Extra Lines",
+    "billing_add_line": "Add line",
+    "billing_extra_desc_ph": "Description...",
+    "billing_extra_amount_ph": "Amount"
   }
 }
