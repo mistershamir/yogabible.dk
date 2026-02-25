@@ -21,14 +21,9 @@
   <div class="yb-billing__section">
     <h3 class="yb-billing__section-title">{{ t.billing_step_customer }}</h3>
 
-    {# Pick from Firestore users/applicants #}
-    <div class="yb-billing__source-tabs">
-      <button type="button" class="yb-billing__source-tab is-active" data-action="billing-source-economic">{{ t.billing_source_economic }}</button>
-      <button type="button" class="yb-billing__source-tab" data-action="billing-source-applicants">{{ t.billing_source_applicants }}</button>
-    </div>
-
-    {# Source: e-conomic customers #}
-    <div id="yb-billing-source-economic" class="yb-billing__customer-search">
+    {# e-conomic customer lookup #}
+    <div class="yb-billing__customer-search" style="margin-bottom:0.75rem">
+      <label class="yb-billing__search-label" style="font-size:0.8rem;color:var(--yb-muted);margin-bottom:0.25rem;display:block">{{ t.billing_econ_search_label }}</label>
       <div class="yb-billing__search-row">
         <input type="text" id="yb-billing-customer-search" placeholder="{{ t.billing_search_placeholder }}" class="yb-lead__search-input">
         <button type="button" class="yb-btn yb-btn--outline yb-btn--sm" data-action="billing-search-customer">{{ t.billing_search_btn }}</button>
@@ -37,13 +32,14 @@
       <div id="yb-billing-customer-results" class="yb-billing__customer-results" hidden></div>
     </div>
 
-    {# Source: Firestore applicants #}
-    <div id="yb-billing-source-applicants" class="yb-billing__customer-search" hidden>
+    {# Unified search across applicants and users #}
+    <div class="yb-billing__customer-search">
+      <label class="yb-billing__search-label" style="font-size:0.8rem;color:var(--yb-muted);margin-bottom:0.25rem;display:block">{{ t.billing_unified_search_label }}</label>
       <div class="yb-billing__search-row">
-        <input type="text" id="yb-billing-applicant-search" placeholder="{{ t.billing_applicant_search_ph }}" class="yb-lead__search-input">
-        <button type="button" class="yb-btn yb-btn--outline yb-btn--sm" data-action="billing-search-applicants">{{ t.billing_search_btn }}</button>
+        <input type="text" id="yb-billing-unified-search" placeholder="{{ t.billing_unified_search_ph }}" class="yb-lead__search-input">
+        <button type="button" class="yb-btn yb-btn--outline yb-btn--sm" data-action="billing-unified-search">{{ t.billing_search_btn }}</button>
       </div>
-      <div id="yb-billing-applicant-results" class="yb-billing__customer-results" hidden></div>
+      <div id="yb-billing-unified-results" class="yb-billing__customer-results" hidden></div>
     </div>
 
     {# Selected customer badge #}

@@ -1853,7 +1853,8 @@
       (phone ? '<button class="yb-btn yb-btn--outline yb-btn--sm" data-action="user-detail-sms">\ud83d\udcf1 ' + t('users_sms') + '</button>' : '') +
       (phone ? '<a href="https://wa.me/' + esc(phone.replace(/[^0-9+]/g, '')) + '" target="_blank" rel="noopener" class="yb-btn yb-btn--outline yb-btn--sm">\ud83d\udcac WhatsApp</a>' : '') +
       (email ? '<a href="mailto:' + esc(email) + '" class="yb-btn yb-btn--outline yb-btn--sm">\u2709\ufe0f ' + t('users_email') + '</a>' : '') +
-      '<button class="yb-btn yb-btn--outline yb-btn--sm" data-action="user-add-note">\ud83d\udcdd ' + t('users_add_note') + '</button>';
+      '<button class="yb-btn yb-btn--outline yb-btn--sm" data-action="user-add-note">\ud83d\udcdd ' + t('users_add_note') + '</button>' +
+      '<button class="yb-btn yb-btn--outline yb-btn--sm" data-action="user-bill">\ud83d\udcb3 ' + t('users_bill') + '</button>';
 
     el.innerHTML = html || '<p class="yb-lead__empty-text">' + t('users_empty') + '</p>';
   }
@@ -2309,6 +2310,17 @@
             if (typeof window.openSMSCampaign === 'function') {
               window.openSMSCampaign([smsUser]);
             }
+          }
+          break;
+        case 'user-bill':
+          if (state.userDetail && typeof window.billingFromUser === 'function') {
+            var u = state.userDetail;
+            var uName = u.name || ((u.firstName || '') + ' ' + (u.lastName || '')).trim();
+            window.billingFromUser({
+              name: uName,
+              email: u.email || '',
+              phone: u.phone || ''
+            });
           }
           break;
 

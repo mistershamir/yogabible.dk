@@ -36,6 +36,7 @@
   var currentLead = null;
   var lastDoc = null;
   var PAGE_SIZE = 50;
+  var totalLeadCount = null; // true DB count (from aggregation query)
   var searchTerm = '';
   var filterStatus = '';
   var filterType = '';
@@ -446,6 +447,61 @@
     });
   }
 
+  /**
+   * Load the true total lead count from Firestore using aggregation.
+   * Uses count() aggregation (Firebase 9.22+) with fallback.
+   */
+  function loadTotalLeadCount() {
+    var ref = db.collection('leads');
+    // Try aggregation count first (Firebase 9.22+ compat)
+    try {
+      if (typeof ref.count === 'function') {
+        ref.count().get().then(function (snap) {
+          totalLeadCount = snap.data().count;
+          renderLeadStats();
+          updateCountDisplay();
+        }).catch(function () {
+          fallbackLoadCount();
+        });
+        return;
+      }
+    } catch (e) { /* fallback */ }
+    fallbackLoadCount();
+  }
+
+  function fallbackLoadCount() {
+    // Fallback: fetch all docs and count (works with any SDK version)
+    db.collection('leads').get().then(function (snap) {
+      var count = 0;
+      snap.forEach(function (doc) {
+        var d = doc.data();
+        if (!showArchived && d.archived === true) return;
+        count++;
+      });
+      totalLeadCount = count;
+      renderLeadStats();
+      updateCountDisplay();
+    }).catch(function () {
+      // If both fail, totalLeadCount stays null — stats will show loaded count
+    });
+  }
+
+  function updateCountDisplay() {
+    var countEl = $('yb-lead-count');
+    if (!countEl) return;
+    var filtered = getFilteredLeads();
+    var dbTotal = totalLeadCount !== null ? totalLeadCount : leads.length;
+    if (filtered.length < leads.length) {
+      // Search filter active: "X matching / Y loaded / Z total"
+      countEl.textContent = filtered.length + ' ' + t('leads_matching') + ' / ' + leads.length + ' ' + t('leads_loaded') + ' / ' + dbTotal + ' ' + t('leads_stat_total').toLowerCase();
+    } else if (leads.length < dbTotal) {
+      // Not all loaded yet: "Y loaded / Z total"
+      countEl.textContent = leads.length + ' ' + t('leads_loaded') + ' ' + t('leads_of') + ' ' + dbTotal;
+    } else {
+      countEl.textContent = filtered.length + ' ' + t('leads_of') + ' ' + dbTotal;
+    }
+  }
+
   /* ══════════════════════════════════════════
      RENDER LEAD TABLE
      ══════════════════════════════════════════ */
@@ -490,9 +546,8 @@
 
     var filtered = getFilteredLeads();
 
-    // Update count display
-    var countEl = $('yb-lead-count');
-    if (countEl) countEl.textContent = filtered.length + ' ' + t('leads_of') + ' ' + leads.length;
+    // Update count display (uses true DB total when available)
+    updateCountDisplay();
 
     if (!filtered.length) {
       tbody.innerHTML = '<tr><td colspan="15" style="text-align:center;padding:2rem;color:var(--yb-muted)">' + t('leads_no_leads') + '</td></tr>';
@@ -672,7 +727,9 @@
     var el = $('yb-lead-stats');
     if (!el) return;
 
-    var total = leads.length;
+    // Use true DB total when available, fall back to loaded count
+    var total = totalLeadCount !== null ? totalLeadCount : leads.length;
+    var loadedCount = leads.length;
     var counts = {};
     STATUSES.forEach(function (s) { counts[s.value] = 0; });
     var unreadSmsCount = 0;
@@ -749,9 +806,8 @@
 
     var filtered = getFilteredLeads();
 
-    // Update count display
-    var countEl = $('yb-lead-count');
-    if (countEl) countEl.textContent = filtered.length + ' ' + t('leads_of') + ' ' + leads.length;
+    // Update count display (uses true DB total when available)
+    updateCountDisplay();
 
     // Group leads by column
     var groups = {};
@@ -1962,8 +2018,11 @@
     var selected = leads.filter(function (l) { return selectedIds.has(l.id); });
     var withPhone = selected.filter(function (l) { return l.phone; }).length;
     var withEmail = selected.filter(function (l) { return l.email; }).length;
+    var dbTotal = totalLeadCount !== null ? totalLeadCount : leads.length;
+    var notAllLoaded = leads.length < dbTotal;
     $('yb-lead-bulk-count').innerHTML = '<strong>' + selectedIds.size + '</strong> ' + t('leads_selected') +
-      ' &nbsp;·&nbsp; 📱 ' + withPhone + ' &nbsp;·&nbsp; ✉️ ' + withEmail;
+      ' &nbsp;·&nbsp; 📱 ' + withPhone + ' &nbsp;·&nbsp; ✉️ ' + withEmail +
+      (notAllLoaded ? ' &nbsp;·&nbsp; <span style="color:var(--yb-muted);font-size:0.8em">(' + leads.length + ' ' + t('leads_loaded') + ' ' + t('leads_of') + ' ' + dbTotal + ')</span>' : '');
   }
 
   function toggleSelectAll() {
@@ -3633,7 +3692,7 @@
         // Lead actions
         case 'view-lead': e.preventDefault(); showLeadDetail(id); break;
         case 'back-leads': backToLeadList(); break;
-        case 'leads-refresh': loadLeads(); break;
+        case 'leads-refresh': loadLeads(); loadTotalLeadCount(); break;
         case 'leads-load-more': loadLeads(true); break;
         case 'delete-lead': deleteLead(id || currentLeadId); break;
         case 'restore-lead': restoreLead(id || currentLeadId); break;
@@ -4070,6 +4129,7 @@
         var tab = btn.getAttribute('data-yb-admin-tab');
         if (tab === 'leads' && !leadsLoaded) {
           loadLeads();
+          loadTotalLeadCount();
           leadsLoaded = true;
         }
         if (tab === 'applications' && !appLoaded) {
@@ -4085,6 +4145,7 @@
         var tab = btn.getAttribute('data-yb-tab');
         if (tab === 'crm-leads' && !leadsLoaded) {
           loadLeads();
+          loadTotalLeadCount();
           leadsLoaded = true;
         }
         if (tab === 'crm-applications' && !appLoaded) {
