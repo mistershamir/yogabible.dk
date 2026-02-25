@@ -65,7 +65,7 @@
   {# ── HERO: Minimal Cinematic ───────────────────────────── #}
   <div style="background:#0F0F0F;color:#fff;padding:clamp(100px,14vw,180px) 24px clamp(60px,8vw,100px);text-align:center;">
     <div style="max-width:600px;margin:0 auto;">
-      <p style="font-size:clamp(4.5rem,12vw,8rem);font-weight:700;line-height:.85;background:linear-gradient(135deg,#f75c03,#ff9966);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:20px;">8 Uger.</p>
+      <p style="font-size:clamp(4.5rem,12vw,8rem);font-weight:700;line-height:1.1;padding-top:.1em;background:linear-gradient(135deg,#f75c03,#ff9966);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:20px;">8 Uger.</p>
       <p style="font-size:1.05rem;color:rgba(255,255,255,.4);letter-spacing:.06em;">200-timers yogalæreruddannelse · København</p>
     </div>
   </div>
@@ -134,7 +134,7 @@
         transition:all .2s;
       ">
         <div style="display:flex;align-items:center;gap:14px;">
-          <span style="background:#0F0F0F;color:#fff;font-size:.68rem;font-weight:700;padding:5px 12px;border-radius:50px;letter-spacing:.06em;">UGE {{ week.num }}</span>
+          <span style="background:#f75c03;color:#fff;font-size:.68rem;font-weight:700;padding:5px 12px;border-radius:50px;letter-spacing:.06em;">UGE {{ week.num }}</span>
           <div>
             <p style="font-weight:700;font-size:.92rem;color:#0F0F0F;">{% if "—" in week.label %}{{ week.label | replace("Uge " + week.num + " — ", "") }}{% else %}{{ week.range }}{% endif %}</p>
             <p style="font-size:.75rem;color:#6F6A66;">{{ week.days | length }} {% if week.days | length == 1 %}dag{% else %}dage{% endif %} · {{ week.range }}</p>
