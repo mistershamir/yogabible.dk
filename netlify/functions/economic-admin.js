@@ -321,13 +321,31 @@ async function listBooked(params) {
 async function searchInvoicesByRef(refText) {
   if (!refText) throw new Error('Reference text is required');
   const encoded = encodeURIComponent(refText);
-  const [booked, drafts] = await Promise.all([
+  // Search both text1 (where we store the ref) and other (legacy) fields
+  const [bookedText1, draftsText1, bookedOther, draftsOther] = await Promise.all([
+    ecoFetch(`/invoices/booked?pagesize=10&filter=references.text1$eq:${encoded}`).catch(() => ({ collection: [] })),
+    ecoFetch(`/invoices/drafts?pagesize=10&filter=references.text1$eq:${encoded}`).catch(() => ({ collection: [] })),
     ecoFetch(`/invoices/booked?pagesize=10&filter=references.other$eq:${encoded}`).catch(() => ({ collection: [] })),
     ecoFetch(`/invoices/drafts?pagesize=10&filter=references.other$eq:${encoded}`).catch(() => ({ collection: [] }))
   ]);
+  // Merge and deduplicate
+  const allBooked = [...(bookedText1.collection || []), ...(bookedOther.collection || [])];
+  const allDrafts = [...(draftsText1.collection || []), ...(draftsOther.collection || [])];
+  const seenBooked = new Set();
+  const seenDrafts = new Set();
   return {
-    booked: booked.collection || [],
-    drafts: drafts.collection || []
+    booked: allBooked.filter(inv => {
+      const key = inv.bookedInvoiceNumber;
+      if (seenBooked.has(key)) return false;
+      seenBooked.add(key);
+      return true;
+    }),
+    drafts: allDrafts.filter(inv => {
+      const key = inv.draftInvoiceNumber;
+      if (seenDrafts.has(key)) return false;
+      seenDrafts.add(key);
+      return true;
+    })
   };
 }
 
