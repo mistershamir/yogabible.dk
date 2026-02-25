@@ -359,8 +359,8 @@
           <p style="font-size:.82rem;color:#6F6A66;margin-top:4px;">uger</p>
         </div>
         <div>
-          <span style="font-size:1.8rem;font-weight:700;color:#f75c03;">25</span>
-          <p style="font-size:.82rem;color:#6F6A66;margin-top:4px;">dage pr. hold</p>
+          <span id="ss18-stat-days" style="font-size:1.8rem;font-weight:700;color:#f75c03;">25</span>
+          <p id="ss18-stat-days-label" style="font-size:.82rem;color:#6F6A66;margin-top:4px;">dage pr. hold</p>
         </div>
         <div>
           <span style="font-size:1.8rem;font-weight:700;color:#f75c03;">200+</span>
@@ -374,20 +374,35 @@
     </div>
   </div>
 
-  {# ── ROUTE LEGEND ──────────────────────────────────────── #}
+  {# ── ROUTE TOGGLE (3 tabs) ──────────────────────────────── #}
   <div style="max-width:700px;margin:0 auto;padding:24px 24px 0;">
-    <div style="display:flex;gap:20px;justify-content:center;flex-wrap:wrap;">
+    <div id="ss18-route-toggle" style="display:flex;gap:0;background:rgba(15,15,15,.06);border-radius:16px;padding:4px;max-width:480px;margin:0 auto;">
+      <button onclick="ss18SetRoute('both')" data-ss18-tab="both" style="flex:1;padding:12px 14px;border-radius:12px;border:none;cursor:pointer;font-family:inherit;text-align:center;transition:all .25s;background:#f75c03;color:#fff;box-shadow:0 4px 12px rgba(247,92,3,.3);">
+        <span style="display:block;font-weight:700;font-size:.85rem;">Samlet overblik</span>
+        <span style="display:block;font-size:.68rem;margin-top:2px;opacity:.8;">Se begge hold</span>
+      </button>
+      <button onclick="ss18SetRoute('weekday')" data-ss18-tab="weekday" style="flex:1;padding:12px 14px;border-radius:12px;border:none;cursor:pointer;font-family:inherit;text-align:center;transition:all .25s;background:transparent;color:#6F6A66;">
+        <span style="display:block;font-weight:700;font-size:.85rem;">Hverdagshold</span>
+        <span style="display:block;font-size:.68rem;margin-top:2px;opacity:.8;">Man & Ons</span>
+      </button>
+      <button onclick="ss18SetRoute('weekend')" data-ss18-tab="weekend" style="flex:1;padding:12px 14px;border-radius:12px;border:none;cursor:pointer;font-family:inherit;text-align:center;transition:all .25s;background:transparent;color:#6F6A66;">
+        <span style="display:block;font-weight:700;font-size:.85rem;">Weekendhold</span>
+        <span style="display:block;font-size:.68rem;margin-top:2px;opacity:.8;">Lør & Søn</span>
+      </button>
+    </div>
+    {# Legend — only visible in "both" view #}
+    <div id="ss18-legend" style="display:flex;gap:20px;justify-content:center;flex-wrap:wrap;margin-top:16px;">
       <div style="display:flex;align-items:center;gap:8px;">
         <div style="width:12px;height:12px;background:#0F0F0F;border-radius:4px;"></div>
-        <span style="font-size:.78rem;color:#6F6A66;">Hverdagshold · Man & Ons</span>
+        <span style="font-size:.78rem;color:#6F6A66;">Hverdagshold</span>
       </div>
       <div style="display:flex;align-items:center;gap:8px;">
         <div style="width:12px;height:12px;background:#ff9966;border-radius:4px;"></div>
-        <span style="font-size:.78rem;color:#6F6A66;">Weekendhold · Lør & Søn</span>
+        <span style="font-size:.78rem;color:#6F6A66;">Weekendhold</span>
       </div>
       <div style="display:flex;align-items:center;gap:8px;">
         <div style="width:12px;height:12px;background:#f75c03;border-radius:4px;"></div>
-        <span style="font-size:.78rem;color:#6F6A66;">Fælles · Begge hold</span>
+        <span style="font-size:.78rem;color:#6F6A66;">Fælles</span>
       </div>
     </div>
   </div>
@@ -531,14 +546,14 @@
 
       {% if week.off %}
       {# ── OFF WEEK: muted non-expandable row ──── #}
-      <div style="margin-bottom:10px;padding:14px 22px;background:#FAFAFA;border:1px dashed #E8E4E0;border-radius:14px;display:flex;align-items:center;gap:14px;">
+      <div class="ss18-week" data-ss18-route="shared" style="margin-bottom:10px;padding:14px 22px;background:#FAFAFA;border:1px dashed #E8E4E0;border-radius:14px;display:flex;align-items:center;gap:14px;">
         <span style="background:#E8E4E0;color:#6F6A66;font-size:.68rem;font-weight:700;padding:5px 12px;border-radius:50px;letter-spacing:.06em;">UGE {{ week.num }}</span>
         <p style="font-size:.85rem;color:#6F6A66;font-style:italic;">{{ week.offLabel }}</p>
       </div>
 
       {% elif week.graduation %}
       {# ── GRADUATION WEEK: green accent ──── #}
-      <details class="ss-combo-accordion" open style="margin-bottom:10px;">
+      <details class="ss-combo-accordion ss18-week" data-ss18-route="shared" open style="margin-bottom:10px;">
         <summary class="ss-combo-summary" style="
           display:flex;
           align-items:center;
@@ -566,7 +581,7 @@
         </summary>
         <div style="padding:6px 22px 18px;background:#fff;border:1.5px solid #2ecc71;border-top:none;border-radius:0 0 14px 14px;margin-top:-1px;">
           {% for day in week.days %}
-          <div style="display:flex;gap:16px;align-items:center;padding:12px 0;{% if not loop.last %}border-bottom:1px solid #F0EDE9;{% endif %}">
+          <div class="ss18-day" data-ss18-route="shared" style="display:flex;gap:16px;align-items:center;padding:12px 0;{% if not loop.last %}border-bottom:1px solid #F0EDE9;{% endif %}">
             <div style="background:{% if day.type == 'graduation' %}#2ecc71{% else %}#0F0F0F{% endif %};color:#fff;width:46px;height:46px;border-radius:10px;display:flex;flex-direction:column;align-items:center;justify-content:center;flex-shrink:0;">
               <span style="font-size:1.1rem;font-weight:700;line-height:1;">{{ day.dn }}</span>
               <span style="font-size:.52rem;text-transform:uppercase;letter-spacing:.06em;opacity:.75;">{{ day.dd }}</span>
@@ -583,7 +598,7 @@
 
       {% else %}
       {# ── NORMAL WEEK: accordion ──── #}
-      <details class="ss-combo-accordion" {% if week.num == 1 %}open{% endif %} style="margin-bottom:10px;">
+      <details class="ss-combo-accordion ss18-week" {% if week.num == 1 %}open{% endif %} style="margin-bottom:10px;">
         <summary class="ss-combo-summary" style="
           display:flex;
           align-items:center;
@@ -612,7 +627,7 @@
 
         <div style="padding:6px 22px 18px;background:#fff;border:1px solid #E8E4E0;border-top:none;border-radius:0 0 14px 14px;margin-top:-1px;">
           {% for day in week.days %}
-          <div style="display:flex;gap:16px;align-items:center;padding:12px 0;{% if not loop.last %}border-bottom:1px solid #F0EDE9;{% endif %}">
+          <div class="ss18-day" data-ss18-route="{{ day.route }}" style="display:flex;gap:16px;align-items:center;padding:12px 0;{% if not loop.last %}border-bottom:1px solid #F0EDE9;{% endif %}">
 
             {# Date tile — color by route #}
             <div style="
@@ -636,11 +651,11 @@
 
             {# Route label #}
             {% if day.route == 'weekday' %}
-            <span style="font-size:.68rem;color:#6F6A66;font-weight:500;white-space:nowrap;">Hverdag</span>
+            <span class="ss18-route-label" style="font-size:.68rem;color:#6F6A66;font-weight:500;white-space:nowrap;">Hverdag</span>
             {% elif day.route == 'weekend' %}
-            <span style="font-size:.68rem;color:#ff9966;font-weight:500;white-space:nowrap;">Weekend</span>
+            <span class="ss18-route-label" style="font-size:.68rem;color:#ff9966;font-weight:500;white-space:nowrap;">Weekend</span>
             {% else %}
-            <span style="font-size:.68rem;color:#f75c03;font-weight:600;white-space:nowrap;">Begge hold</span>
+            <span class="ss18-route-label" style="font-size:.68rem;color:#f75c03;font-weight:600;white-space:nowrap;">Begge hold</span>
             {% endif %}
           </div>
           {% endfor %}
@@ -1147,6 +1162,92 @@
     });
   });
 
+  /* ── 18-week route toggle ─────────────────── */
+  window.ss18SetRoute = function(route) {
+    /* Update tab styles */
+    var tabs = document.querySelectorAll('[data-ss18-tab]');
+    tabs.forEach(function(btn) {
+      if (btn.dataset.ss18Tab === route) {
+        btn.style.background = '#f75c03';
+        btn.style.color = '#fff';
+        btn.style.boxShadow = '0 4px 12px rgba(247,92,3,.3)';
+      } else {
+        btn.style.background = 'transparent';
+        btn.style.color = '#6F6A66';
+        btn.style.boxShadow = 'none';
+      }
+    });
+
+    /* Show/hide legend (only in "both" view) */
+    var legend = document.getElementById('ss18-legend');
+    if (legend) legend.style.display = route === 'both' ? 'flex' : 'none';
+
+    /* Filter day rows */
+    var days = document.querySelectorAll('.ss18-day');
+    days.forEach(function(row) {
+      var dayRoute = row.dataset.ss18Route;
+      if (route === 'both') {
+        row.style.display = 'flex';
+      } else if (dayRoute === 'shared' || dayRoute === route) {
+        row.style.display = 'flex';
+      } else {
+        row.style.display = 'none';
+      }
+    });
+
+    /* Hide route labels when filtered to a single track */
+    var labels = document.querySelectorAll('.ss18-route-label');
+    labels.forEach(function(lbl) {
+      lbl.style.display = route === 'both' ? '' : 'none';
+    });
+
+    /* Hide accordion weeks that have zero visible days */
+    var weeks = document.querySelectorAll('.ss18-week');
+    weeks.forEach(function(wk) {
+      var wkRoute = wk.dataset.ss18Route;
+      /* Off weeks & graduation (shared) always show */
+      if (wkRoute === 'shared') { wk.style.display = ''; return; }
+      /* Check if any child days are visible */
+      var visibleDays = wk.querySelectorAll('.ss18-day');
+      if (visibleDays.length === 0) { wk.style.display = ''; return; }
+      var anyVisible = false;
+      visibleDays.forEach(function(d) {
+        if (d.style.display !== 'none') anyVisible = true;
+      });
+      wk.style.display = anyVisible ? '' : 'none';
+    });
+
+    /* Update the day count in stats bar */
+    var statDays = document.getElementById('ss18-stat-days');
+    var statLabel = document.getElementById('ss18-stat-days-label');
+    if (statDays && statLabel) {
+      if (route === 'both') {
+        statDays.textContent = '25';
+        statLabel.textContent = 'dage pr. hold';
+      } else {
+        /* Count visible days for this route */
+        var count = 0;
+        days.forEach(function(d) { if (d.style.display !== 'none') count++; });
+        statDays.textContent = count;
+        statLabel.textContent = 'uddannelsesdage';
+      }
+    }
+
+    /* Fix border-bottom on last-visible day rows within each accordion */
+    var containers = document.querySelectorAll('#design-combo-18w .ss-combo-accordion');
+    containers.forEach(function(acc) {
+      var rows = acc.querySelectorAll('.ss18-day');
+      var lastVisible = null;
+      rows.forEach(function(r) {
+        if (r.style.display !== 'none') {
+          r.style.borderBottom = '1px solid #F0EDE9';
+          lastVisible = r;
+        }
+      });
+      if (lastVisible) lastVisible.style.borderBottom = 'none';
+    });
+  };
+
   // Sticky nav highlight
   var navLinks = document.querySelectorAll('nav a[href^="#design-"]');
   var sections = [];
@@ -1192,6 +1293,10 @@
   .ss-combo-accordion[open] .ss-combo-icon {
     transform: rotate(45deg);
   }
+
+  /* 18w route filter transitions */
+  .ss18-day { transition: opacity .2s; }
+  .ss18-week { transition: opacity .2s; }
 
   /* Smooth scroll for nav links */
   html { scroll-behavior: smooth; }
