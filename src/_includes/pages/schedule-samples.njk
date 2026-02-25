@@ -402,43 +402,47 @@
     <p style="font-size:.72rem;color:#6F6A66;text-align:right;margin-top:8px;font-style:italic;">I alt: 202 kontakttimer</p>
   </div>
 
-  {# ── CONFLICT FINDER (collapsible) ────────────────────── #}
+  {# ── BUSY DAYS FINDER (collapsible) ───────────────────── #}
   <div style="max-width:700px;margin:0 auto;padding:24px 24px 0;">
     <details id="ss18-conflict-finder" style="background:#fff;border:1.5px solid #E8E4E0;border-radius:16px;overflow:hidden;">
       <summary style="display:flex;align-items:center;justify-content:space-between;padding:16px 20px;cursor:pointer;list-style:none;-webkit-appearance:none;">
         <div style="display:flex;align-items:center;gap:12px;">
           <span style="background:#FFF0E6;color:#f75c03;width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1.1rem;">&#128197;</span>
           <div>
-            <p style="font-weight:700;font-size:.92rem;">Tjek dit skema for konflikter</p>
-            <p style="font-size:.78rem;color:#6F6A66;">Fortæl os om din arbejdsuge, så finder vi det bedste hold.</p>
+            <p style="font-weight:700;font-size:.92rem;">Hvornår er du optaget?</p>
+            <p style="font-size:.78rem;color:#6F6A66;">Marker dine optagede dage — arbejde, familie, aftaler — så finder vi det bedste hold for dig.</p>
           </div>
         </div>
         <svg class="ss18-cf-chevron" style="flex-shrink:0;transition:transform .25s;" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#6F6A66" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
       </summary>
       <div style="padding:0 20px 20px;border-top:1px solid #E8E4E0;">
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;padding-top:16px;">
-          <div>
-            <label style="font-size:.82rem;font-weight:600;display:block;margin-bottom:8px;">Arbejdsdage</label>
-            <div style="display:flex;flex-wrap:wrap;gap:6px;">
-              <label style="display:flex;align-items:center;gap:4px;font-size:.78rem;cursor:pointer;background:#F5F3F0;padding:5px 10px;border-radius:50px;"><input type="checkbox" name="ss18-workday" value="1" checked style="accent-color:#f75c03;width:14px;height:14px;">Man</label>
-              <label style="display:flex;align-items:center;gap:4px;font-size:.78rem;cursor:pointer;background:#F5F3F0;padding:5px 10px;border-radius:50px;"><input type="checkbox" name="ss18-workday" value="2" checked style="accent-color:#f75c03;width:14px;height:14px;">Tir</label>
-              <label style="display:flex;align-items:center;gap:4px;font-size:.78rem;cursor:pointer;background:#F5F3F0;padding:5px 10px;border-radius:50px;"><input type="checkbox" name="ss18-workday" value="3" checked style="accent-color:#f75c03;width:14px;height:14px;">Ons</label>
-              <label style="display:flex;align-items:center;gap:4px;font-size:.78rem;cursor:pointer;background:#F5F3F0;padding:5px 10px;border-radius:50px;"><input type="checkbox" name="ss18-workday" value="4" checked style="accent-color:#f75c03;width:14px;height:14px;">Tor</label>
-              <label style="display:flex;align-items:center;gap:4px;font-size:.78rem;cursor:pointer;background:#F5F3F0;padding:5px 10px;border-radius:50px;"><input type="checkbox" name="ss18-workday" value="5" checked style="accent-color:#f75c03;width:14px;height:14px;">Fre</label>
-              <label style="display:flex;align-items:center;gap:4px;font-size:.78rem;cursor:pointer;background:#F5F3F0;padding:5px 10px;border-radius:50px;"><input type="checkbox" name="ss18-workday" value="6" style="accent-color:#f75c03;width:14px;height:14px;">Lør</label>
-              <label style="display:flex;align-items:center;gap:4px;font-size:.78rem;cursor:pointer;background:#F5F3F0;padding:5px 10px;border-radius:50px;"><input type="checkbox" name="ss18-workday" value="0" style="accent-color:#f75c03;width:14px;height:14px;">Søn</label>
+        <p style="font-size:.8rem;color:#6F6A66;padding:14px 0 10px;margin:0;">Klik på en dag for at markere den som optaget, og juster tiderne for hver dag.</p>
+        {# Per-day rows with individual time slots #}
+        <div style="display:flex;flex-direction:column;gap:6px;" id="ss18-busy-days">
+          {% set busyDays = [
+            { val: "1", label: "Mandag", abbr: "Man", checked: true, start: "09:00", end: "17:00" },
+            { val: "2", label: "Tirsdag", abbr: "Tir", checked: true, start: "09:00", end: "17:00" },
+            { val: "3", label: "Onsdag", abbr: "Ons", checked: true, start: "09:00", end: "17:00" },
+            { val: "4", label: "Torsdag", abbr: "Tor", checked: true, start: "09:00", end: "17:00" },
+            { val: "5", label: "Fredag", abbr: "Fre", checked: true, start: "09:00", end: "17:00" },
+            { val: "6", label: "Lørdag", abbr: "Lør", checked: false, start: "10:00", end: "14:00" },
+            { val: "0", label: "Søndag", abbr: "Søn", checked: false, start: "10:00", end: "14:00" }
+          ] %}
+          {% for d in busyDays %}
+          <div class="ss18-busy-row" style="display:flex;align-items:center;gap:10px;padding:8px 12px;border-radius:12px;background:{% if d.checked %}#F5F3F0{% else %}transparent{% endif %};transition:background .2s;">
+            <label style="display:flex;align-items:center;gap:8px;cursor:pointer;min-width:110px;">
+              <input type="checkbox" name="ss18-busy" value="{{ d.val }}" {% if d.checked %}checked{% endif %} onchange="ss18ToggleBusyRow(this)" style="accent-color:#f75c03;width:16px;height:16px;">
+              <span style="font-size:.85rem;font-weight:600;">{{ d.label }}</span>
+            </label>
+            <div class="ss18-busy-times" style="display:flex;align-items:center;gap:6px;{% if not d.checked %}opacity:.3;pointer-events:none;{% endif %}">
+              <input type="time" value="{{ d.start }}" class="ss18-time-from" style="border:1px solid #E8E4E0;border-radius:8px;padding:5px 8px;font-family:inherit;font-size:.8rem;width:100px;">
+              <span style="color:#6F6A66;font-size:.75rem;">til</span>
+              <input type="time" value="{{ d.end }}" class="ss18-time-to" style="border:1px solid #E8E4E0;border-radius:8px;padding:5px 8px;font-family:inherit;font-size:.8rem;width:100px;">
             </div>
           </div>
-          <div>
-            <label style="font-size:.82rem;font-weight:600;display:block;margin-bottom:8px;">Arbejdstider</label>
-            <div style="display:flex;align-items:center;gap:8px;">
-              <input type="time" id="ss18-work-start" value="09:00" style="border:1px solid #E8E4E0;border-radius:8px;padding:6px 10px;font-family:inherit;font-size:.85rem;">
-              <span style="color:#6F6A66;">–</span>
-              <input type="time" id="ss18-work-end" value="17:00" style="border:1px solid #E8E4E0;border-radius:8px;padding:6px 10px;font-family:inherit;font-size:.85rem;">
-            </div>
-          </div>
+          {% endfor %}
         </div>
-        <button onclick="ss18CheckConflicts()" style="margin-top:16px;background:#0F0F0F;color:#fff;border:none;padding:12px 24px;border-radius:50px;font-size:.88rem;font-weight:600;cursor:pointer;font-family:inherit;">Tjek konflikter</button>
+        <button onclick="ss18CheckConflicts()" style="margin-top:16px;background:#f75c03;color:#fff;border:none;padding:12px 24px;border-radius:50px;font-size:.88rem;font-weight:600;cursor:pointer;font-family:inherit;transition:background .2s;" onmouseenter="this.style.background='#d94f02'" onmouseleave="this.style.background='#f75c03'">Tjek konflikter</button>
         <div id="ss18-conflict-results" style="display:none;margin-top:16px;"></div>
       </div>
     </details>
@@ -613,7 +617,7 @@
       {% elif week.pairs %}
       {# Week label #}
       <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;{% if not loop.first %}margin-top:8px;{% endif %}">
-        <span style="background:#0F0F0F;color:#fff;font-size:.65rem;font-weight:700;padding:5px 12px;border-radius:50px;letter-spacing:.06em;white-space:nowrap;">UGE {{ week.num }}</span>
+        <span style="background:#f75c03;color:#fff;font-size:.65rem;font-weight:700;padding:5px 12px;border-radius:50px;letter-spacing:.06em;white-space:nowrap;">UGE {{ week.num }}</span>
         {% if week.label %}<span style="font-size:.82rem;font-weight:600;color:#6F6A66;">{{ week.label }}</span>{% endif %}
       </div>
       {# Pair cards with ELLER #}
@@ -1035,7 +1039,7 @@
     <details class="ss-accordion" style="background:#F5F3F0;border-radius:14px;margin-bottom:10px;overflow:hidden;">
       <summary style="display:flex;align-items:center;justify-content:space-between;padding:18px 22px;cursor:pointer;list-style:none;-webkit-appearance:none;">
         <div style="display:flex;align-items:center;gap:14px;">
-          <span style="background:#0F0F0F;color:#fff;font-size:.68rem;font-weight:700;padding:4px 10px;border-radius:50px;">UGE {{ week.num }}</span>
+          <span style="background:#f75c03;color:#fff;font-size:.68rem;font-weight:700;padding:4px 10px;border-radius:50px;">UGE {{ week.num }}</span>
           <div>
             <p style="font-weight:600;font-size:.92rem;">{{ week.label | replace("Uge " + week.num + " — ", "") | replace("Uge " + week.num, week.range) }}</p>
             <p style="font-size:.75rem;color:#6F6A66;">{{ week.days | length }} {% if week.days | length == 1 %}dag{% else %}dage{% endif %} · {{ week.range }}</p>
@@ -1446,53 +1450,88 @@
     }
   };
 
-  /* ── 18-week conflict checker ───────────────── */
+  /* ── Busy-day row toggle ────────────────────── */
+  window.ss18ToggleBusyRow = function(cb) {
+    var row = cb.closest('.ss18-busy-row');
+    var times = row.querySelector('.ss18-busy-times');
+    if (cb.checked) {
+      row.style.background = '#F5F3F0';
+      times.style.opacity = '1';
+      times.style.pointerEvents = '';
+    } else {
+      row.style.background = 'transparent';
+      times.style.opacity = '.3';
+      times.style.pointerEvents = 'none';
+    }
+  };
+
+  /* ── 18-week conflict checker (per-day times) ─ */
   var ss18Schedule = [
     {dow:1,s:'10:00',e:'15:00',r:'weekday'},{dow:3,s:'10:00',e:'15:00',r:'weekday'},
     {dow:6,s:'13:00',e:'18:00',r:'weekend'},{dow:0,s:'14:00',e:'19:00',r:'weekend'},
     {dow:6,s:'13:00',e:'17:00',r:'shared'},{dow:0,s:'14:00',e:'17:00',r:'shared'}
   ];
   function ss18TimeMin(t){var p=t.split(':');return parseInt(p[0])*60+parseInt(p[1]);}
-  function ss18Count(route,workDays,ws,we){
-    var days=ss18Schedule.filter(function(d){return route?d.r===route||d.r==='shared':true;});
-    var c=0;days.forEach(function(d){if(workDays.indexOf(d.dow)===-1)return;var s=ss18TimeMin(d.s),e=ss18TimeMin(d.e);if(s<we&&e>ws)c++;});
-    return{total:days.length,conflicts:c,clear:days.length-c};
+
+  function ss18GetBusySlots() {
+    var slots = {};
+    var rows = document.querySelectorAll('.ss18-busy-row');
+    rows.forEach(function(row) {
+      var cb = row.querySelector('input[name="ss18-busy"]');
+      if (!cb.checked) return;
+      var dow = parseInt(cb.value);
+      var from = row.querySelector('.ss18-time-from').value || '09:00';
+      var to = row.querySelector('.ss18-time-to').value || '17:00';
+      slots[dow] = { s: ss18TimeMin(from), e: ss18TimeMin(to) };
+    });
+    return slots;
   }
-  window.ss18CheckConflicts = function(){
-    var cbs=document.querySelectorAll('input[name="ss18-workday"]:checked');
-    var workDays=[];cbs.forEach(function(c){workDays.push(parseInt(c.value));});
-    var ws=ss18TimeMin(document.getElementById('ss18-work-start').value||'09:00');
-    var we=ss18TimeMin(document.getElementById('ss18-work-end').value||'17:00');
-    var el=document.getElementById('ss18-conflict-results');
-    if(!el)return;el.style.display='block';
-    var wd=ss18Count('weekday',workDays,ws,we);
-    var wec=ss18Count('weekend',workDays,ws,we);
-    var wdPct=Math.round((wd.clear/wd.total)*100);
-    var wePct=Math.round((wec.clear/wec.total)*100);
-    var wdBest=wd.conflicts<wec.conflicts;
-    var weBest=wec.conflicts<wd.conflicts;
-    var html='<div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">';
-    html+='<div style="background:'+(wdBest?'#f0fff0':'#fff')+';border:2px solid '+(wdBest?'#2ecc71':'#E8E4E0')+';border-radius:12px;padding:16px;text-align:center;position:relative;">';
-    if(wdBest)html+='<span style="position:absolute;top:-10px;left:50%;transform:translateX(-50%);background:#2ecc71;color:#fff;padding:3px 12px;border-radius:50px;font-size:.68rem;font-weight:700;">Bedste match</span>';
-    html+='<p style="font-weight:700;font-size:.85rem;margin-bottom:4px;">Hverdagshold</p>';
-    html+='<p style="font-size:2.2rem;font-weight:700;'+(wd.conflicts===0?'color:#2ecc71;':'color:#0F0F0F;')+'">'+wd.conflicts+'</p>';
-    html+='<p style="font-size:.75rem;color:#6F6A66;">konflikter af '+wd.total+'</p>';
-    html+='<div style="background:#E8E4E0;border-radius:50px;height:6px;overflow:hidden;margin-top:10px;"><div style="background:#2ecc71;height:100%;width:'+wdPct+'%;border-radius:50px;"></div></div></div>';
-    html+='<div style="background:'+(weBest?'#f0fff0':'#fff')+';border:2px solid '+(weBest?'#2ecc71':'#E8E4E0')+';border-radius:12px;padding:16px;text-align:center;position:relative;">';
-    if(weBest)html+='<span style="position:absolute;top:-10px;left:50%;transform:translateX(-50%);background:#2ecc71;color:#fff;padding:3px 12px;border-radius:50px;font-size:.68rem;font-weight:700;">Bedste match</span>';
-    html+='<p style="font-weight:700;font-size:.85rem;margin-bottom:4px;">Weekendhold</p>';
-    html+='<p style="font-size:2.2rem;font-weight:700;'+(wec.conflicts===0?'color:#2ecc71;':'color:#0F0F0F;')+'">'+wec.conflicts+'</p>';
-    html+='<p style="font-size:.75rem;color:#6F6A66;">konflikter af '+wec.total+'</p>';
-    html+='<div style="background:#E8E4E0;border-radius:50px;height:6px;overflow:hidden;margin-top:10px;"><div style="background:#2ecc71;height:100%;width:'+wePct+'%;border-radius:50px;"></div></div></div>';
-    html+='</div>';
-    if(wd.conflicts===0&&wec.conflicts===0){
-      html+='<div style="background:#f0fff0;border:1px solid #c3e6c3;border-radius:12px;padding:16px;text-align:center;margin-top:12px;"><p style="font-weight:700;color:#2ecc71;">Begge hold passer perfekt!</p></div>';
+
+  function ss18Count(route, busySlots) {
+    var days = ss18Schedule.filter(function(d) { return d.r === route || d.r === 'shared'; });
+    var c = 0;
+    days.forEach(function(d) {
+      var slot = busySlots[d.dow];
+      if (!slot) return;
+      var sessS = ss18TimeMin(d.s), sessE = ss18TimeMin(d.e);
+      if (sessS < slot.e && sessE > slot.s) c++;
+    });
+    return { total: days.length, conflicts: c, clear: days.length - c };
+  }
+
+  window.ss18CheckConflicts = function() {
+    var busySlots = ss18GetBusySlots();
+    var el = document.getElementById('ss18-conflict-results');
+    if (!el) return;
+    el.style.display = 'block';
+    var wd = ss18Count('weekday', busySlots);
+    var wec = ss18Count('weekend', busySlots);
+    var wdPct = Math.round((wd.clear / wd.total) * 100);
+    var wePct = Math.round((wec.clear / wec.total) * 100);
+    var wdBest = wd.conflicts < wec.conflicts;
+    var weBest = wec.conflicts < wd.conflicts;
+    var html = '<div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">';
+    html += '<div style="background:' + (wdBest ? '#f0fff0' : '#fff') + ';border:2px solid ' + (wdBest ? '#2ecc71' : '#E8E4E0') + ';border-radius:12px;padding:16px;text-align:center;position:relative;">';
+    if (wdBest) html += '<span style="position:absolute;top:-10px;left:50%;transform:translateX(-50%);background:#2ecc71;color:#fff;padding:3px 12px;border-radius:50px;font-size:.68rem;font-weight:700;">Bedste match</span>';
+    html += '<p style="font-weight:700;font-size:.85rem;margin-bottom:4px;">Hverdagshold</p>';
+    html += '<p style="font-size:2.2rem;font-weight:700;' + (wd.conflicts === 0 ? 'color:#2ecc71;' : 'color:#0F0F0F;') + '">' + wd.conflicts + '</p>';
+    html += '<p style="font-size:.75rem;color:#6F6A66;">konflikter af ' + wd.total + '</p>';
+    html += '<div style="background:#E8E4E0;border-radius:50px;height:6px;overflow:hidden;margin-top:10px;"><div style="background:#2ecc71;height:100%;width:' + wdPct + '%;border-radius:50px;"></div></div></div>';
+    html += '<div style="background:' + (weBest ? '#f0fff0' : '#fff') + ';border:2px solid ' + (weBest ? '#2ecc71' : '#E8E4E0') + ';border-radius:12px;padding:16px;text-align:center;position:relative;">';
+    if (weBest) html += '<span style="position:absolute;top:-10px;left:50%;transform:translateX(-50%);background:#2ecc71;color:#fff;padding:3px 12px;border-radius:50px;font-size:.68rem;font-weight:700;">Bedste match</span>';
+    html += '<p style="font-weight:700;font-size:.85rem;margin-bottom:4px;">Weekendhold</p>';
+    html += '<p style="font-size:2.2rem;font-weight:700;' + (wec.conflicts === 0 ? 'color:#2ecc71;' : 'color:#0F0F0F;') + '">' + wec.conflicts + '</p>';
+    html += '<p style="font-size:.75rem;color:#6F6A66;">konflikter af ' + wec.total + '</p>';
+    html += '<div style="background:#E8E4E0;border-radius:50px;height:6px;overflow:hidden;margin-top:10px;"><div style="background:#2ecc71;height:100%;width:' + wePct + '%;border-radius:50px;"></div></div></div>';
+    html += '</div>';
+    if (wd.conflicts === 0 && wec.conflicts === 0) {
+      html += '<div style="background:#f0fff0;border:1px solid #c3e6c3;border-radius:12px;padding:16px;text-align:center;margin-top:12px;"><p style="font-weight:700;color:#2ecc71;">Begge hold passer perfekt!</p></div>';
     } else {
-      var bestName=wdBest?'Hverdagshold':'Weekendhold';
-      var bestCount=Math.min(wd.conflicts,wec.conflicts);
-      html+='<div style="background:#FFF8F3;border:1px solid #FFE5D0;border-radius:12px;padding:16px;margin-top:12px;"><p style="font-size:.88rem;"><strong>Anbefaling:</strong> Brug '+bestName+' som base'+(bestCount>0?' og byt de '+bestCount+' konfliktuger til det andet hold':'')+'.</p></div>';
+      var bestName = wdBest ? 'Hverdagshold' : 'Weekendhold';
+      var bestCount = Math.min(wd.conflicts, wec.conflicts);
+      html += '<div style="background:#FFF8F3;border:1px solid #FFE5D0;border-radius:12px;padding:16px;margin-top:12px;"><p style="font-size:.88rem;"><strong>Anbefaling:</strong> Brug ' + bestName + ' som base' + (bestCount > 0 ? ' og byt de ' + bestCount + ' konfliktuger til det andet hold' : '') + '.</p></div>';
     }
-    el.innerHTML=html;
+    el.innerHTML = html;
   };
 
   /* ── Conflict finder chevron ──────────────── */
