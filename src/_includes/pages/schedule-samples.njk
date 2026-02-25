@@ -402,8 +402,50 @@
     <p style="font-size:.72rem;color:#6F6A66;text-align:right;margin-top:8px;font-style:italic;">I alt: 202 kontakttimer</p>
   </div>
 
+  {# ── CONFLICT FINDER (collapsible) ────────────────────── #}
+  <div style="max-width:700px;margin:0 auto;padding:24px 24px 0;">
+    <details id="ss18-conflict-finder" style="background:#fff;border:1.5px solid #E8E4E0;border-radius:16px;overflow:hidden;">
+      <summary style="display:flex;align-items:center;justify-content:space-between;padding:16px 20px;cursor:pointer;list-style:none;-webkit-appearance:none;">
+        <div style="display:flex;align-items:center;gap:12px;">
+          <span style="background:#FFF0E6;color:#f75c03;width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1.1rem;">&#128197;</span>
+          <div>
+            <p style="font-weight:700;font-size:.92rem;">Tjek dit skema for konflikter</p>
+            <p style="font-size:.78rem;color:#6F6A66;">Fortæl os om din arbejdsuge, så finder vi det bedste hold.</p>
+          </div>
+        </div>
+        <svg class="ss18-cf-chevron" style="flex-shrink:0;transition:transform .25s;" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#6F6A66" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+      </summary>
+      <div style="padding:0 20px 20px;border-top:1px solid #E8E4E0;">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;padding-top:16px;">
+          <div>
+            <label style="font-size:.82rem;font-weight:600;display:block;margin-bottom:8px;">Arbejdsdage</label>
+            <div style="display:flex;flex-wrap:wrap;gap:6px;">
+              <label style="display:flex;align-items:center;gap:4px;font-size:.78rem;cursor:pointer;background:#F5F3F0;padding:5px 10px;border-radius:50px;"><input type="checkbox" name="ss18-workday" value="1" checked style="accent-color:#f75c03;width:14px;height:14px;">Man</label>
+              <label style="display:flex;align-items:center;gap:4px;font-size:.78rem;cursor:pointer;background:#F5F3F0;padding:5px 10px;border-radius:50px;"><input type="checkbox" name="ss18-workday" value="2" checked style="accent-color:#f75c03;width:14px;height:14px;">Tir</label>
+              <label style="display:flex;align-items:center;gap:4px;font-size:.78rem;cursor:pointer;background:#F5F3F0;padding:5px 10px;border-radius:50px;"><input type="checkbox" name="ss18-workday" value="3" checked style="accent-color:#f75c03;width:14px;height:14px;">Ons</label>
+              <label style="display:flex;align-items:center;gap:4px;font-size:.78rem;cursor:pointer;background:#F5F3F0;padding:5px 10px;border-radius:50px;"><input type="checkbox" name="ss18-workday" value="4" checked style="accent-color:#f75c03;width:14px;height:14px;">Tor</label>
+              <label style="display:flex;align-items:center;gap:4px;font-size:.78rem;cursor:pointer;background:#F5F3F0;padding:5px 10px;border-radius:50px;"><input type="checkbox" name="ss18-workday" value="5" checked style="accent-color:#f75c03;width:14px;height:14px;">Fre</label>
+              <label style="display:flex;align-items:center;gap:4px;font-size:.78rem;cursor:pointer;background:#F5F3F0;padding:5px 10px;border-radius:50px;"><input type="checkbox" name="ss18-workday" value="6" style="accent-color:#f75c03;width:14px;height:14px;">Lør</label>
+              <label style="display:flex;align-items:center;gap:4px;font-size:.78rem;cursor:pointer;background:#F5F3F0;padding:5px 10px;border-radius:50px;"><input type="checkbox" name="ss18-workday" value="0" style="accent-color:#f75c03;width:14px;height:14px;">Søn</label>
+            </div>
+          </div>
+          <div>
+            <label style="font-size:.82rem;font-weight:600;display:block;margin-bottom:8px;">Arbejdstider</label>
+            <div style="display:flex;align-items:center;gap:8px;">
+              <input type="time" id="ss18-work-start" value="09:00" style="border:1px solid #E8E4E0;border-radius:8px;padding:6px 10px;font-family:inherit;font-size:.85rem;">
+              <span style="color:#6F6A66;">–</span>
+              <input type="time" id="ss18-work-end" value="17:00" style="border:1px solid #E8E4E0;border-radius:8px;padding:6px 10px;font-family:inherit;font-size:.85rem;">
+            </div>
+          </div>
+        </div>
+        <button onclick="ss18CheckConflicts()" style="margin-top:16px;background:#0F0F0F;color:#fff;border:none;padding:12px 24px;border-radius:50px;font-size:.88rem;font-weight:600;cursor:pointer;font-family:inherit;">Tjek konflikter</button>
+        <div id="ss18-conflict-results" style="display:none;margin-top:16px;"></div>
+      </div>
+    </details>
+  </div>
+
   {# ── ROUTE TOGGLE (3 tabs) ──────────────────────────────── #}
-  <div style="max-width:700px;margin:0 auto;padding:32px 24px 0;">
+  <div style="max-width:700px;margin:0 auto;padding:24px 24px 0;">
     <div id="ss18-route-toggle" style="display:flex;gap:0;background:rgba(15,15,15,.06);border-radius:16px;padding:4px;max-width:480px;margin:0 auto;">
       <button onclick="ss18SetRoute('both')" data-ss18-tab="both" style="flex:1;padding:12px 14px;border-radius:12px;border:none;cursor:pointer;font-family:inherit;text-align:center;transition:all .25s;background:#f75c03;color:#fff;box-shadow:0 4px 12px rgba(247,92,3,.3);">
         <span style="display:block;font-weight:700;font-size:.85rem;">Samlet overblik</span>
@@ -418,21 +460,6 @@
         <span style="display:block;font-size:.68rem;margin-top:2px;opacity:.8;">Lør & Søn</span>
       </button>
     </div>
-    {# Legend — only visible in "both" view #}
-    <div id="ss18-legend" style="display:flex;gap:20px;justify-content:center;flex-wrap:wrap;margin-top:16px;">
-      <div style="display:flex;align-items:center;gap:8px;">
-        <div style="width:12px;height:12px;background:#0F0F0F;border-radius:4px;"></div>
-        <span style="font-size:.78rem;color:#6F6A66;">Hverdagshold</span>
-      </div>
-      <div style="display:flex;align-items:center;gap:8px;">
-        <div style="width:12px;height:12px;background:#ff9966;border-radius:4px;"></div>
-        <span style="font-size:.78rem;color:#6F6A66;">Weekendhold</span>
-      </div>
-      <div style="display:flex;align-items:center;gap:8px;">
-        <div style="width:12px;height:12px;background:#f75c03;border-radius:4px;"></div>
-        <span style="font-size:.78rem;color:#6F6A66;">Fælles</span>
-      </div>
-    </div>
   </div>
 
   {# ── SCHEDULE BODY ─────────────────────────────────────── #}
@@ -445,6 +472,184 @@
         Tilføj alle til kalender
       </button>
     </div>
+
+    {# ══════════════════════════════════════════════════════
+       VIEW A: "BOTH" — Paired ELLER cards
+       ══════════════════════════════════════════════════════ #}
+    <div id="ss18-view-both">
+
+    {% set months18wPairs = [
+      { name: "Februar", year: "2026", weeks: [
+        { num: 1, label: "Introduktion", pairs: [
+          { topic: "Hatha & Class Management — Introduktion",
+            wd: { date: "Mandag 23. februar", time: "10:00–15:00" },
+            we: { date: "Lørdag 28. februar", time: "13:00–18:00" } },
+          { topic: "Vinyasa & Yin Yoga — Introduktion",
+            wd: { date: "Onsdag 25. februar", time: "10:00–15:00" },
+            we: { date: "Søndag 1. marts", time: "14:00–19:00" } }
+        ]}
+      ]},
+      { name: "Marts", year: "2026", weeks: [
+        { num: 2, label: "Anatomi & Filosofi", shared: [
+          { topic: "Yoga Anatomi 01", date: "Lørdag 7. marts", time: "13:00–17:00" },
+          { topic: "Yogafilosofi 01 — Online", date: "Søndag 8. marts", time: "14:00–17:00", online: true }
+        ]},
+        { num: 3, off: true, offLabel: "Fri uge" },
+        { num: 4, pairs: [
+          { topic: "Vinyasa & Yin Yoga 02",
+            wd: { date: "Mandag 16. marts", time: "10:00–15:00" },
+            we: { date: "Lørdag 21. marts", time: "13:00–18:00" } }
+        ]},
+        { num: 5, pairs: [
+          { topic: "Hatha & Class Management 02",
+            wd: { date: "Mandag 23. marts", time: "10:00–15:00" },
+            we: { date: "Lørdag 28. marts", time: "13:00–18:00" } },
+          { topic: "Vinyasa & Yin Yoga 03",
+            wd: { date: "Onsdag 25. marts", time: "10:00–15:00" },
+            we: { date: "Søndag 29. marts", time: "14:00–19:00" } }
+        ]}
+      ]},
+      { name: "April", year: "2026", weeks: [
+        { num: 6, off: true, offLabel: "Påskeferie" },
+        { num: 7, label: "Anatomi & Filosofi", shared: [
+          { topic: "Yoga Anatomi 02", date: "Lørdag 11. april", time: "13:00–17:00" },
+          { topic: "Yogafilosofi 02 — Online", date: "Søndag 12. april", time: "14:00–17:00", online: true }
+        ]},
+        { num: 8, pairs: [
+          { topic: "Vinyasa & Yin Yoga 04",
+            wd: { date: "Mandag 13. april", time: "10:00–15:00" },
+            we: { date: "Lørdag 18. april", time: "13:00–18:00" } },
+          { topic: "Hatha & Class Management 03",
+            wd: { date: "Onsdag 15. april", time: "10:00–15:00" },
+            we: { date: "Søndag 19. april", time: "14:00–19:00" } }
+        ]},
+        { num: 9, off: true, offLabel: "Fri uge" },
+        { num: 10, pairs: [
+          { topic: "Vinyasa & Yin Yoga 05",
+            wd: { date: "Mandag 27. april", time: "10:00–15:00" },
+            we: { date: "Lørdag 2. maj", time: "13:00–18:00" } },
+          { topic: "Hatha & Class Management 04",
+            wd: { date: "Onsdag 29. april", time: "10:00–15:00" },
+            we: { date: "Søndag 3. maj", time: "14:00–19:00" } }
+        ]}
+      ]},
+      { name: "Maj", year: "2026", weeks: [
+        { num: 11, label: "Anatomi & Filosofi", shared: [
+          { topic: "Yoga Anatomi 03", date: "Lørdag 9. maj", time: "13:00–17:00" },
+          { topic: "Yogafilosofi 03 — Online", date: "Søndag 10. maj", time: "14:00–17:00", online: true }
+        ]},
+        { num: 12, pairs: [
+          { topic: "Vinyasa & Yin Yoga 06",
+            wd: { date: "Mandag 11. maj", time: "10:00–15:00" },
+            we: { date: "Lørdag 16. maj", time: "13:00–18:00" } }
+        ]},
+        { num: 13, pairs: [
+          { topic: "Vinyasa & Yin Yoga 07",
+            wd: { date: "Mandag 18. maj", time: "10:00–15:00" },
+            we: { date: "Lørdag 23. maj", time: "13:00–18:00" } }
+        ]},
+        { num: 14, label: "Anatomi & Filosofi", shared: [
+          { topic: "Yoga Anatomi 04", date: "Lørdag 30. maj", time: "13:00–17:00" },
+          { topic: "Yogafilosofi 04 — Online", date: "Søndag 31. maj", time: "14:00–17:00", online: true }
+        ]}
+      ]},
+      { name: "Juni", year: "2026", weeks: [
+        { num: 15, pairs: [
+          { topic: "Vinyasa & Yin Yoga 08",
+            wd: { date: "Mandag 1. juni", time: "10:00–15:00" },
+            we: { date: "Lørdag 6. juni", time: "13:00–18:00" } },
+          { topic: "Hatha & Class Management 05",
+            wd: { date: "Onsdag 3. juni", time: "10:00–14:00" },
+            we: { date: "Søndag 7. juni", time: "14:00–18:00" } }
+        ]},
+        { num: 16, label: "Business of Yoga", pairs: [
+          { topic: "Vinyasa & Yin Yoga 09",
+            wd: { date: "Mandag 8. juni", time: "10:00–15:00" },
+            we: { date: "Lørdag 13. juni", time: "13:00–18:00" } },
+          { topic: "Business of Yoga — Foredrag",
+            wd: { date: "Onsdag 10. juni", time: "11:00–14:00" },
+            we: { date: "Søndag 14. juni", time: "14:00–17:00" } }
+        ]},
+        { num: 17, off: true, offLabel: "Fri uge — forbered dig til eksamen" },
+        { num: 18, label: "Eksamen & Graduation", graduation: true, shared: [
+          { topic: "Vinyasa & Yin Yoga — Eksamen", date: "Lørdag 27. juni", time: "13:00–18:00" },
+          { topic: "Hatha & CM — Eksamen + Graduation &#127891;", date: "Søndag 28. juni", time: "14:00–17:00", grad: true }
+        ]}
+      ]}
+    ] %}
+
+    {# ── Render paired view ──────────────────────────────── #}
+    {% for month in months18wPairs %}
+    <div style="display:flex;align-items:baseline;gap:12px;margin-bottom:24px;{% if not loop.first %}margin-top:40px;{% endif %}">
+      <span style="font-size:3.4rem;font-weight:700;line-height:1;color:#0F0F0F;">{{ month.name }}</span>
+      <span style="font-size:1.1rem;color:#6F6A66;">{{ month.year }}</span>
+      <div style="flex:1;height:2px;background:linear-gradient(to right, #E8E4E0, transparent);margin-left:12px;"></div>
+    </div>
+
+    {% for week in month.weeks %}
+      {% if week.off %}
+      <div style="margin-bottom:12px;padding:14px 22px;background:#FAFAFA;border:1px dashed #E8E4E0;border-radius:14px;display:flex;align-items:center;gap:14px;">
+        <span style="background:#E8E4E0;color:#6F6A66;font-size:.68rem;font-weight:700;padding:5px 12px;border-radius:50px;letter-spacing:.06em;">UGE {{ week.num }}</span>
+        <p style="font-size:.85rem;color:#6F6A66;font-style:italic;">{{ week.offLabel }}</p>
+      </div>
+
+      {% elif week.shared %}
+      {# Week label #}
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;{% if not loop.first %}margin-top:8px;{% endif %}">
+        <span style="background:{% if week.graduation %}#2ecc71{% else %}#0F0F0F{% endif %};color:#fff;font-size:.65rem;font-weight:700;padding:5px 12px;border-radius:50px;letter-spacing:.06em;white-space:nowrap;">UGE {{ week.num }}</span>
+        {% if week.label %}<span style="font-size:.82rem;font-weight:600;color:#6F6A66;">{{ week.label }}</span>{% endif %}
+      </div>
+      {# Shared session cards #}
+      {% for s in week.shared %}
+      <div style="border:1px solid {% if week.graduation %}#c3e6c3{% else %}#E8E4E0{% endif %};border-radius:14px;padding:16px 20px;margin-bottom:10px;{% if week.graduation %}background:linear-gradient(135deg, #f9fff9, #f0fff0);{% endif %}">
+        <div style="border-left:3px solid {% if s.grad %}#2ecc71{% elif week.graduation %}#f75c03{% else %}#f75c03{% endif %};padding-left:14px;">
+          <p style="font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:{% if s.grad %}#2ecc71{% else %}#f75c03{% endif %};margin-bottom:4px;">{% if s.grad %}Graduation{% else %}Begge hold{% endif %}</p>
+          <p style="font-weight:600;font-size:.92rem;color:#0F0F0F;">{{ s.topic }}</p>
+          <p style="font-size:.78rem;color:#6F6A66;margin-top:2px;">{{ s.date }} · {{ s.time }}{% if s.online %} · <span style="color:#f75c03;font-weight:600;">Online</span>{% endif %}</p>
+        </div>
+      </div>
+      {% endfor %}
+
+      {% elif week.pairs %}
+      {# Week label #}
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;{% if not loop.first %}margin-top:8px;{% endif %}">
+        <span style="background:#0F0F0F;color:#fff;font-size:.65rem;font-weight:700;padding:5px 12px;border-radius:50px;letter-spacing:.06em;white-space:nowrap;">UGE {{ week.num }}</span>
+        {% if week.label %}<span style="font-size:.82rem;font-weight:600;color:#6F6A66;">{{ week.label }}</span>{% endif %}
+      </div>
+      {# Pair cards with ELLER #}
+      {% for pair in week.pairs %}
+      <div style="border:1px solid #E8E4E0;border-radius:14px;overflow:hidden;margin-bottom:10px;background:#fff;">
+        <p style="font-weight:700;font-size:.92rem;padding:16px 20px 0;color:#0F0F0F;">{{ pair.topic }}</p>
+        <div style="display:flex;padding:12px 20px 16px;gap:0;">
+          {# Weekday option #}
+          <div style="flex:1;border-left:3px solid #0F0F0F;padding-left:14px;">
+            <p style="font-size:.62rem;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:#6F6A66;margin-bottom:4px;">Hverdagshold</p>
+            <p style="font-weight:600;font-size:.85rem;">{{ pair.wd.date }}</p>
+            <p style="font-size:.78rem;color:#6F6A66;margin-top:2px;">{{ pair.wd.time }}</p>
+          </div>
+          {# ELLER divider #}
+          <div style="display:flex;align-items:center;padding:0 14px;">
+            <span style="font-size:.72rem;font-weight:700;color:#E8E4E0;text-transform:uppercase;letter-spacing:.12em;">ELLER</span>
+          </div>
+          {# Weekend option #}
+          <div style="flex:1;border-left:3px solid #ff9966;padding-left:14px;">
+            <p style="font-size:.62rem;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:#ff9966;margin-bottom:4px;">Weekendhold</p>
+            <p style="font-weight:600;font-size:.85rem;">{{ pair.we.date }}</p>
+            <p style="font-size:.78rem;color:#6F6A66;margin-top:2px;">{{ pair.we.time }}</p>
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+      {% endif %}
+    {% endfor %}
+    {% endfor %}
+
+    </div> {# /ss18-view-both #}
+
+    {# ══════════════════════════════════════════════════════
+       VIEW B: Single track accordion (weekday or weekend)
+       ══════════════════════════════════════════════════════ #}
+    <div id="ss18-view-single" style="display:none;">
 
     {# ── 18-WEEK SCHEDULE DATA ───────────────────────────── #}
     {% set months18w = [
@@ -665,6 +870,8 @@
 
     {% endfor %}
     {% endfor %}
+
+    </div> {# /ss18-view-single #}
 
     {# ── TIMELINE ENDPOINT: Graduation ─────────────────── #}
     <div style="position:relative;padding-left:48px;margin-top:40px;">
@@ -1178,46 +1385,52 @@
       }
     });
 
-    /* Show/hide legend (only in "both" view) */
-    var legend = document.getElementById('ss18-legend');
-    if (legend) legend.style.display = route === 'both' ? 'flex' : 'none';
+    var viewBoth = document.getElementById('ss18-view-both');
+    var viewSingle = document.getElementById('ss18-view-single');
 
-    /* Filter day rows */
-    var days = document.querySelectorAll('.ss18-day');
-    days.forEach(function(row) {
-      var dayRoute = row.dataset.ss18Route;
-      if (route === 'both') {
-        row.style.display = 'flex';
-      } else if (dayRoute === 'shared' || dayRoute === route) {
-        row.style.display = 'flex';
-      } else {
-        row.style.display = 'none';
-      }
-    });
+    if (route === 'both') {
+      /* Show paired ELLER view, hide accordion */
+      if (viewBoth) viewBoth.style.display = '';
+      if (viewSingle) viewSingle.style.display = 'none';
+    } else {
+      /* Show accordion view, hide paired */
+      if (viewBoth) viewBoth.style.display = 'none';
+      if (viewSingle) viewSingle.style.display = '';
 
-    /* Hide route labels when filtered to a single track */
-    var labels = document.querySelectorAll('.ss18-route-label');
-    labels.forEach(function(lbl) {
-      lbl.style.display = route === 'both' ? '' : 'none';
-    });
-
-    /* Hide accordion weeks that have zero visible days */
-    var weeks = document.querySelectorAll('.ss18-week');
-    weeks.forEach(function(wk) {
-      var wkRoute = wk.dataset.ss18Route;
-      /* Off weeks & graduation (shared) always show */
-      if (wkRoute === 'shared') { wk.style.display = ''; return; }
-      /* Check if any child days are visible */
-      var visibleDays = wk.querySelectorAll('.ss18-day');
-      if (visibleDays.length === 0) { wk.style.display = ''; return; }
-      var anyVisible = false;
-      visibleDays.forEach(function(d) {
-        if (d.style.display !== 'none') anyVisible = true;
+      /* Filter day rows in accordion */
+      var days = document.querySelectorAll('.ss18-day');
+      days.forEach(function(row) {
+        var dayRoute = row.dataset.ss18Route;
+        row.style.display = (dayRoute === 'shared' || dayRoute === route) ? 'flex' : 'none';
       });
-      wk.style.display = anyVisible ? '' : 'none';
-    });
 
-    /* Update the day count in stats bar */
+      /* Hide route labels (redundant when filtered) */
+      document.querySelectorAll('.ss18-route-label').forEach(function(lbl) {
+        lbl.style.display = 'none';
+      });
+
+      /* Hide accordion weeks with zero visible days */
+      document.querySelectorAll('.ss18-week').forEach(function(wk) {
+        if (wk.dataset.ss18Route === 'shared') { wk.style.display = ''; return; }
+        var vis = wk.querySelectorAll('.ss18-day');
+        if (!vis.length) { wk.style.display = ''; return; }
+        var any = false;
+        vis.forEach(function(d) { if (d.style.display !== 'none') any = true; });
+        wk.style.display = any ? '' : 'none';
+      });
+
+      /* Fix border-bottom on last-visible day rows */
+      document.querySelectorAll('#design-combo-18w .ss-combo-accordion').forEach(function(acc) {
+        var rows = acc.querySelectorAll('.ss18-day');
+        var last = null;
+        rows.forEach(function(r) {
+          if (r.style.display !== 'none') { r.style.borderBottom = '1px solid #F0EDE9'; last = r; }
+        });
+        if (last) last.style.borderBottom = 'none';
+      });
+    }
+
+    /* Update stats */
     var statDays = document.getElementById('ss18-stat-days');
     var statLabel = document.getElementById('ss18-stat-days-label');
     if (statDays && statLabel) {
@@ -1225,28 +1438,71 @@
         statDays.textContent = '25';
         statLabel.textContent = 'dage pr. hold';
       } else {
-        /* Count visible days for this route */
         var count = 0;
-        days.forEach(function(d) { if (d.style.display !== 'none') count++; });
+        document.querySelectorAll('.ss18-day').forEach(function(d) { if (d.style.display !== 'none') count++; });
         statDays.textContent = count;
         statLabel.textContent = 'uddannelsesdage';
       }
     }
-
-    /* Fix border-bottom on last-visible day rows within each accordion */
-    var containers = document.querySelectorAll('#design-combo-18w .ss-combo-accordion');
-    containers.forEach(function(acc) {
-      var rows = acc.querySelectorAll('.ss18-day');
-      var lastVisible = null;
-      rows.forEach(function(r) {
-        if (r.style.display !== 'none') {
-          r.style.borderBottom = '1px solid #F0EDE9';
-          lastVisible = r;
-        }
-      });
-      if (lastVisible) lastVisible.style.borderBottom = 'none';
-    });
   };
+
+  /* ── 18-week conflict checker ───────────────── */
+  var ss18Schedule = [
+    {dow:1,s:'10:00',e:'15:00',r:'weekday'},{dow:3,s:'10:00',e:'15:00',r:'weekday'},
+    {dow:6,s:'13:00',e:'18:00',r:'weekend'},{dow:0,s:'14:00',e:'19:00',r:'weekend'},
+    {dow:6,s:'13:00',e:'17:00',r:'shared'},{dow:0,s:'14:00',e:'17:00',r:'shared'}
+  ];
+  function ss18TimeMin(t){var p=t.split(':');return parseInt(p[0])*60+parseInt(p[1]);}
+  function ss18Count(route,workDays,ws,we){
+    var days=ss18Schedule.filter(function(d){return route?d.r===route||d.r==='shared':true;});
+    var c=0;days.forEach(function(d){if(workDays.indexOf(d.dow)===-1)return;var s=ss18TimeMin(d.s),e=ss18TimeMin(d.e);if(s<we&&e>ws)c++;});
+    return{total:days.length,conflicts:c,clear:days.length-c};
+  }
+  window.ss18CheckConflicts = function(){
+    var cbs=document.querySelectorAll('input[name="ss18-workday"]:checked');
+    var workDays=[];cbs.forEach(function(c){workDays.push(parseInt(c.value));});
+    var ws=ss18TimeMin(document.getElementById('ss18-work-start').value||'09:00');
+    var we=ss18TimeMin(document.getElementById('ss18-work-end').value||'17:00');
+    var el=document.getElementById('ss18-conflict-results');
+    if(!el)return;el.style.display='block';
+    var wd=ss18Count('weekday',workDays,ws,we);
+    var wec=ss18Count('weekend',workDays,ws,we);
+    var wdPct=Math.round((wd.clear/wd.total)*100);
+    var wePct=Math.round((wec.clear/wec.total)*100);
+    var wdBest=wd.conflicts<wec.conflicts;
+    var weBest=wec.conflicts<wd.conflicts;
+    var html='<div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">';
+    html+='<div style="background:'+(wdBest?'#f0fff0':'#fff')+';border:2px solid '+(wdBest?'#2ecc71':'#E8E4E0')+';border-radius:12px;padding:16px;text-align:center;position:relative;">';
+    if(wdBest)html+='<span style="position:absolute;top:-10px;left:50%;transform:translateX(-50%);background:#2ecc71;color:#fff;padding:3px 12px;border-radius:50px;font-size:.68rem;font-weight:700;">Bedste match</span>';
+    html+='<p style="font-weight:700;font-size:.85rem;margin-bottom:4px;">Hverdagshold</p>';
+    html+='<p style="font-size:2.2rem;font-weight:700;'+(wd.conflicts===0?'color:#2ecc71;':'color:#0F0F0F;')+'">'+wd.conflicts+'</p>';
+    html+='<p style="font-size:.75rem;color:#6F6A66;">konflikter af '+wd.total+'</p>';
+    html+='<div style="background:#E8E4E0;border-radius:50px;height:6px;overflow:hidden;margin-top:10px;"><div style="background:#2ecc71;height:100%;width:'+wdPct+'%;border-radius:50px;"></div></div></div>';
+    html+='<div style="background:'+(weBest?'#f0fff0':'#fff')+';border:2px solid '+(weBest?'#2ecc71':'#E8E4E0')+';border-radius:12px;padding:16px;text-align:center;position:relative;">';
+    if(weBest)html+='<span style="position:absolute;top:-10px;left:50%;transform:translateX(-50%);background:#2ecc71;color:#fff;padding:3px 12px;border-radius:50px;font-size:.68rem;font-weight:700;">Bedste match</span>';
+    html+='<p style="font-weight:700;font-size:.85rem;margin-bottom:4px;">Weekendhold</p>';
+    html+='<p style="font-size:2.2rem;font-weight:700;'+(wec.conflicts===0?'color:#2ecc71;':'color:#0F0F0F;')+'">'+wec.conflicts+'</p>';
+    html+='<p style="font-size:.75rem;color:#6F6A66;">konflikter af '+wec.total+'</p>';
+    html+='<div style="background:#E8E4E0;border-radius:50px;height:6px;overflow:hidden;margin-top:10px;"><div style="background:#2ecc71;height:100%;width:'+wePct+'%;border-radius:50px;"></div></div></div>';
+    html+='</div>';
+    if(wd.conflicts===0&&wec.conflicts===0){
+      html+='<div style="background:#f0fff0;border:1px solid #c3e6c3;border-radius:12px;padding:16px;text-align:center;margin-top:12px;"><p style="font-weight:700;color:#2ecc71;">Begge hold passer perfekt!</p></div>';
+    } else {
+      var bestName=wdBest?'Hverdagshold':'Weekendhold';
+      var bestCount=Math.min(wd.conflicts,wec.conflicts);
+      html+='<div style="background:#FFF8F3;border:1px solid #FFE5D0;border-radius:12px;padding:16px;margin-top:12px;"><p style="font-size:.88rem;"><strong>Anbefaling:</strong> Brug '+bestName+' som base'+(bestCount>0?' og byt de '+bestCount+' konfliktuger til det andet hold':'')+'.</p></div>';
+    }
+    el.innerHTML=html;
+  };
+
+  /* ── Conflict finder chevron ──────────────── */
+  var cfDetails = document.getElementById('ss18-conflict-finder');
+  if (cfDetails) {
+    cfDetails.addEventListener('toggle', function() {
+      var chev = cfDetails.querySelector('.ss18-cf-chevron');
+      if (chev) chev.style.transform = cfDetails.open ? 'rotate(180deg)' : '';
+    });
+  }
 
   // Sticky nav highlight
   var navLinks = document.querySelectorAll('nav a[href^="#design-"]');
