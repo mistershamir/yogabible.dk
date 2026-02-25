@@ -6,6 +6,7 @@
  * Also supports GET with query params (JSONP callback)
  */
 
+const crypto = require('crypto');
 const { getDb } = require('./shared/firestore');
 const { CONFIG } = require('./shared/config');
 const {
@@ -15,6 +16,14 @@ const {
 const { sendAdminNotification } = require('./shared/email-service');
 const { sendWelcomeSMS } = require('./shared/sms-service');
 const { sendWelcomeEmail } = require('./shared/lead-emails');
+
+const TOKEN_SECRET = process.env.UNSUBSCRIBE_SECRET || 'yb-appt-secret';
+
+function generateScheduleToken(leadId, email) {
+  const hmac = crypto.createHmac('sha256', TOKEN_SECRET);
+  hmac.update(leadId + ':' + email.toLowerCase().trim());
+  return hmac.digest('hex');
+}
 
 exports.handler = async (event) => {
   if (event.httpMethod === 'OPTIONS') return optionsResponse();
@@ -439,10 +448,11 @@ async function triggerNotifications(leadData, leadDocId, action) {
     );
   }
 
-  // 2. Welcome email to the lead (with schedule, pricing, etc.)
+  // 2. Welcome email to the lead (with tokenized schedule link)
   if (process.env.GMAIL_APP_PASSWORD && leadData.email) {
+    const scheduleToken = generateScheduleToken(leadDocId, leadData.email);
     promises.push(
-      sendWelcomeEmail(leadData, action).catch(err => {
+      sendWelcomeEmail(leadData, action, { leadId: leadDocId, token: scheduleToken }).catch(err => {
         console.error('[lead] Welcome email failed:', err.message);
       })
     );

@@ -15,9 +15,13 @@
   {# ── HERO: "18 Uger." ───────────────────────────────── #}
   <div style="background:#0F0F0F;color:#fff;padding:clamp(80px,12vw,160px) 24px clamp(60px,8vw,100px);text-align:center;">
     <div style="max-width:640px;margin:0 auto;">
-      <p style="font-size:clamp(5rem,16vw,10rem);font-weight:700;line-height:1;background:linear-gradient(135deg,#f75c03,#ff9966);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin:0 0 16px;">18 Uger.</p>
+      <p style="font-size:clamp(5rem,16vw,10rem);font-weight:700;line-height:1.05;padding-bottom:0.12em;background:linear-gradient(135deg,#f75c03,#ff9966);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin:0 0 16px;">18 Uger.</p>
       <p style="font-size:clamp(1.25rem,3.5vw,1.8rem);font-weight:700;color:#fff;letter-spacing:-.015em;line-height:1.2;margin:0 0 12px;">Komplet Yogalæreruddannelse</p>
       <p style="font-size:.95rem;color:rgba(255,255,255,.4);letter-spacing:.04em;">Fleksibelt 200-timers program &middot; Feb–Juni 2026</p>
+      <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-top:28px;">
+        <button onclick="openBookingModal('info-session')" style="background:transparent;color:#fff;border:1.5px solid rgba(255,255,255,.5);padding:13px 24px;border-radius:50px;font-size:.92rem;font-weight:600;cursor:pointer;font-family:inherit;transition:all .2s;" onmouseenter="this.style.borderColor='#fff';this.style.background='rgba(255,255,255,.08)'" onmouseleave="this.style.borderColor='rgba(255,255,255,.5)';this.style.background='transparent'">Book infomøde</button>
+        <button onclick="startCheckoutFunnel('100078')" style="background:#f75c03;color:#fff;border:none;padding:13px 24px;border-radius:50px;font-size:.92rem;font-weight:600;cursor:pointer;font-family:inherit;transition:background .2s;" onmouseenter="this.style.background='#d94f02'" onmouseleave="this.style.background='#f75c03'">Start Forberedelsesfasen — 3.750 kr</button>
+      </div>
     </div>
   </div>
 
@@ -57,13 +61,15 @@
 
     {% set hours18 = [
       { label: "Studietimer i studiet", hours: 60, color: "#f75c03", pct: 30 },
-      { label: "Vinyasa & Yin Yoga", hours: 42, color: "#0F0F0F", pct: 21 },
-      { label: "Hatha & Class Management", hours: 35, color: "#0F0F0F", pct: 17 },
-      { label: "Hjemmearbejde & selvstudie", hours: 25, color: "#E8E4E0", pct: 12 },
+      { label: "Online & andre studier", hours: 10, color: "#ff9966", pct: 5 },
+      { label: "Vinyasa Yoga", hours: 30, color: "#0F0F0F", pct: 15 },
+      { label: "Yin Yoga", hours: 20, color: "#0F0F0F", pct: 10 },
+      { label: "Hatha Yoga", hours: 17, color: "#0F0F0F", pct: 8.5 },
+      { label: "Class Management", hours: 12, color: "#6F6A66", pct: 6 },
       { label: "Yoga Anatomi", hours: 16, color: "#ff9966", pct: 8 },
       { label: "Yogafilosofi", hours: 12, color: "#ff9966", pct: 6 },
-      { label: "Business of Yoga", hours: 4, color: "#E8E4E0", pct: 2 },
-      { label: "Eksamen & Graduation", hours: 8, color: "#2ecc71", pct: 4 }
+      { label: "Selvstudie & hjemmearbejde", hours: 20, color: "#E8E4E0", pct: 10 },
+      { label: "Business of Yoga", hours: 3, color: "#E8E4E0", pct: 1.5 }
     ] %}
 
     {% for h in hours18 %}
@@ -76,7 +82,7 @@
     </div>
     {% endfor %}
 
-    <p style="font-size:.72rem;color:#6F6A66;text-align:right;margin-top:8px;font-style:italic;">I alt: 202 kontakttimer</p>
+    <p style="font-size:.72rem;color:#6F6A66;text-align:right;margin-top:8px;font-style:italic;">I alt: 200 timer</p>
   </div>
 
   {# ── BUSY DAYS FINDER (collapsible) ───────────────────── #}
@@ -144,7 +150,7 @@
   </div>
 
   {# ── SCHEDULE BODY ─────────────────────────────────────── #}
-  <div style="max-width:700px;margin:0 auto;padding:40px 24px 60px;">
+  <div style="max-width:700px;margin:0 auto;padding:40px 24px 0;">
 
     {# Calendar export #}
     <div style="display:flex;justify-content:flex-end;margin-bottom:24px;">
@@ -310,7 +316,7 @@
           </div>
           {# ELLER divider #}
           <div style="display:flex;align-items:center;padding:0 14px;">
-            <span style="font-size:.72rem;font-weight:700;color:#E8E4E0;text-transform:uppercase;letter-spacing:.12em;">ELLER</span>
+            <span style="font-size:.72rem;font-weight:700;color:#0F0F0F;opacity:.4;text-transform:uppercase;letter-spacing:.12em;">ELLER</span>
           </div>
           {# Weekend option #}
           <div style="flex:1;border-left:3px solid #ff9966;padding-left:14px;">
@@ -594,8 +600,8 @@
       <h2 style="font-size:1.6rem;font-weight:700;margin-bottom:12px;">Klar til at starte?</h2>
       <p style="color:rgba(255,255,255,.68);margin-bottom:28px;line-height:1.55;">18 uger, dit tempo. Book et uforpligtende infomøde eller start din forberedelsesfase i dag.</p>
       <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;">
-        <a href="#" style="display:inline-block;background:transparent;color:#fff;border:1.5px solid #fff;padding:14px 28px;border-radius:50px;font-size:.95rem;font-weight:600;text-decoration:none;">Book infomøde</a>
-        <button style="display:inline-block;background:#f75c03;color:#fff;border:none;padding:14px 28px;border-radius:50px;font-size:.95rem;font-weight:600;cursor:pointer;font-family:inherit;">Start Forberedelsesfasen — 3.750 kr</button>
+        <button onclick="openBookingModal('info-session')" style="background:transparent;color:#fff;border:1.5px solid rgba(255,255,255,.5);padding:14px 28px;border-radius:50px;font-size:.95rem;font-weight:600;cursor:pointer;font-family:inherit;transition:all .2s;" onmouseenter="this.style.borderColor='#fff';this.style.background='rgba(255,255,255,.08)'" onmouseleave="this.style.borderColor='rgba(255,255,255,.5)';this.style.background='transparent'">Book infomøde</button>
+        <button onclick="startCheckoutFunnel('100078')" style="background:#f75c03;color:#fff;border:none;padding:14px 28px;border-radius:50px;font-size:.95rem;font-weight:600;cursor:pointer;font-family:inherit;transition:background .2s;" onmouseenter="this.style.background='#d94f02'" onmouseleave="this.style.background='#f75c03'">Start Forberedelsesfasen — 3.750 kr</button>
       </div>
     </div>
   </div>
