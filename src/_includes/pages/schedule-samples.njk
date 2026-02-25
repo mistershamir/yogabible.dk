@@ -374,8 +374,36 @@
     </div>
   </div>
 
+  {# ── HOURS BREAKDOWN ───────────────────────────────────── #}
+  <div style="max-width:700px;margin:0 auto;padding:32px 24px 0;">
+    <p style="font-size:.72rem;text-transform:uppercase;letter-spacing:.14em;color:#6F6A66;font-weight:700;margin-bottom:16px;">Dine 200+ timer fordelt</p>
+
+    {% set hours18 = [
+      { label: "Studietimer i studiet", hours: 60, color: "#f75c03", pct: 30 },
+      { label: "Vinyasa & Yin Yoga", hours: 42, color: "#0F0F0F", pct: 21 },
+      { label: "Hatha & Class Management", hours: 35, color: "#0F0F0F", pct: 17 },
+      { label: "Hjemmearbejde & selvstudie", hours: 25, color: "#E8E4E0", pct: 12 },
+      { label: "Yoga Anatomi", hours: 16, color: "#ff9966", pct: 8 },
+      { label: "Yogafilosofi", hours: 12, color: "#ff9966", pct: 6 },
+      { label: "Business of Yoga", hours: 4, color: "#E8E4E0", pct: 2 },
+      { label: "Eksamen & Graduation", hours: 8, color: "#2ecc71", pct: 4 }
+    ] %}
+
+    {% for h in hours18 %}
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:8px;">
+      <span style="font-size:.78rem;color:#6F6A66;min-width:185px;text-align:right;">{{ h.label }}</span>
+      <div style="flex:1;background:#F5F3F0;border-radius:50px;height:8px;overflow:hidden;">
+        <div style="width:{{ h.pct }}%;height:100%;background:{{ h.color }};border-radius:50px;"></div>
+      </div>
+      <span style="font-size:.78rem;font-weight:700;color:#0F0F0F;min-width:32px;">{{ h.hours }}t</span>
+    </div>
+    {% endfor %}
+
+    <p style="font-size:.72rem;color:#6F6A66;text-align:right;margin-top:8px;font-style:italic;">I alt: 202 kontakttimer</p>
+  </div>
+
   {# ── ROUTE TOGGLE (3 tabs) ──────────────────────────────── #}
-  <div style="max-width:700px;margin:0 auto;padding:24px 24px 0;">
+  <div style="max-width:700px;margin:0 auto;padding:32px 24px 0;">
     <div id="ss18-route-toggle" style="display:flex;gap:0;background:rgba(15,15,15,.06);border-radius:16px;padding:4px;max-width:480px;margin:0 auto;">
       <button onclick="ss18SetRoute('both')" data-ss18-tab="both" style="flex:1;padding:12px 14px;border-radius:12px;border:none;cursor:pointer;font-family:inherit;text-align:center;transition:all .25s;background:#f75c03;color:#fff;box-shadow:0 4px 12px rgba(247,92,3,.3);">
         <span style="display:block;font-weight:700;font-size:.85rem;">Samlet overblik</span>
@@ -405,34 +433,6 @@
         <span style="font-size:.78rem;color:#6F6A66;">Fælles</span>
       </div>
     </div>
-  </div>
-
-  {# ── HOURS BREAKDOWN ───────────────────────────────────── #}
-  <div style="max-width:700px;margin:0 auto;padding:32px 24px 0;">
-    <p style="font-size:.72rem;text-transform:uppercase;letter-spacing:.14em;color:#6F6A66;font-weight:700;margin-bottom:16px;">Dine 200+ timer fordelt</p>
-
-    {% set hours18 = [
-      { label: "Studietimer i studiet", hours: 60, color: "#f75c03", pct: 30 },
-      { label: "Vinyasa & Yin Yoga", hours: 42, color: "#0F0F0F", pct: 21 },
-      { label: "Hatha & Class Management", hours: 35, color: "#0F0F0F", pct: 17 },
-      { label: "Hjemmearbejde & selvstudie", hours: 25, color: "#E8E4E0", pct: 12 },
-      { label: "Yoga Anatomi", hours: 16, color: "#ff9966", pct: 8 },
-      { label: "Yogafilosofi", hours: 12, color: "#ff9966", pct: 6 },
-      { label: "Business of Yoga", hours: 4, color: "#E8E4E0", pct: 2 },
-      { label: "Eksamen & Graduation", hours: 8, color: "#2ecc71", pct: 4 }
-    ] %}
-
-    {% for h in hours18 %}
-    <div style="display:flex;align-items:center;gap:12px;margin-bottom:8px;">
-      <span style="font-size:.78rem;color:#6F6A66;min-width:185px;text-align:right;">{{ h.label }}</span>
-      <div style="flex:1;background:#F5F3F0;border-radius:50px;height:8px;overflow:hidden;">
-        <div style="width:{{ h.pct }}%;height:100%;background:{{ h.color }};border-radius:50px;"></div>
-      </div>
-      <span style="font-size:.78rem;font-weight:700;color:#0F0F0F;min-width:32px;">{{ h.hours }}t</span>
-    </div>
-    {% endfor %}
-
-    <p style="font-size:.72rem;color:#6F6A66;text-align:right;margin-top:8px;font-style:italic;">I alt: 202 kontakttimer</p>
   </div>
 
   {# ── SCHEDULE BODY ─────────────────────────────────────── #}
