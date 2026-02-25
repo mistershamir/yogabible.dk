@@ -97,6 +97,49 @@
   }
 
   /* ══════════════════════════════════════════
+     INVOICE ↔ APPLICATION TRACKING
+     ══════════════════════════════════════════ */
+  /**
+   * Save invoice metadata to the application's Firestore doc.
+   * Only runs if the invoice was created from the "Bill Applicant" flow
+   * (selectedApplicant with appId). Merges into `invoice` field on doc.
+   */
+  function saveInvoiceToApp(invoiceData) {
+    if (!selectedApplicant || !selectedApplicant.appId) return;
+    var appId = selectedApplicant.appId;
+    var fdb = firebase.firestore();
+    // Find the Firestore doc ID (appId may be the custom app_id field, not doc ID)
+    fdb.collection('applications').where('app_id', '==', appId).limit(1).get()
+      .then(function (snap) {
+        if (!snap.empty) return { docId: snap.docs[0].id, existing: snap.docs[0].data().invoice || {} };
+        // Try direct doc ID lookup
+        return fdb.collection('applications').doc(appId).get().then(function (doc) {
+          if (doc.exists) return { docId: doc.id, existing: doc.data().invoice || {} };
+          return null;
+        });
+      })
+      .then(function (result) {
+        if (!result || !result.docId) { console.log('[billing] No app doc found for', appId); return; }
+        // Merge with existing invoice data
+        var merged = {};
+        Object.keys(result.existing).forEach(function (k) { merged[k] = result.existing[k]; });
+        Object.keys(invoiceData).forEach(function (k) { merged[k] = invoiceData[k]; });
+        return fdb.collection('applications').doc(result.docId).update({
+          invoice: merged,
+          updated_at: firebase.firestore.FieldValue.serverTimestamp()
+        });
+      })
+      .then(function () {
+        console.log('[billing] Invoice data saved to app:', appId, invoiceData);
+        // Notify lead-admin to refresh if it has the app open
+        if (window._ybRefreshAppInvoice) window._ybRefreshAppInvoice();
+      })
+      .catch(function (err) {
+        console.error('[billing] Failed to save invoice to app doc:', err);
+      });
+  }
+
+  /* ══════════════════════════════════════════
      LOAD E-CONOMIC SETTINGS
      ══════════════════════════════════════════ */
   function loadSettings() {
@@ -565,12 +608,23 @@
   function buildLines(vals) {
     var lines = [];
 
+    // Calculate extra lines total first (can be negative, e.g. "Already paid -3300")
+    var extraTotal = 0;
+    extraLines.forEach(function (el) {
+      if (el.description && el.amount) extraTotal += el.amount;
+    });
+
     // Instalment lines (from total + start month)
+    // The instalment base is the total PLUS extra lines (negative extra lines reduce the amount to split)
+    // e.g. Total 23300 + extra -3300 (already paid) = 20000 remaining → 4 × 5000
     if (vals.total && vals.startMonth) {
+      var instalmentBase = vals.total + extraTotal;
+      if (instalmentBase < 0) instalmentBase = 0;
+
       var parts = vals.startMonth.split('-');
       var year = parseInt(parts[0]);
       var month = parseInt(parts[1]) - 1;
-      var perInstalment = Math.round((vals.total / vals.instalments) * 100) / 100;
+      var perInstalment = Math.round((instalmentBase / vals.instalments) * 100) / 100;
 
       for (var i = 0; i < vals.instalments; i++) {
         var m = (month + i) % 12;
@@ -586,17 +640,18 @@
             + ' — ' + dateStr;
         }
 
-        var amount = (i === vals.instalments - 1) ? vals.total - (perInstalment * (vals.instalments - 1)) : perInstalment;
+        var amount = (i === vals.instalments - 1) ? instalmentBase - (perInstalment * (vals.instalments - 1)) : perInstalment;
         amount = Math.round(amount * 100) / 100;
 
         lines.push({ description: desc, unitNetPrice: amount, quantity: 1, date: isoStr, month: m, year: y });
       }
     }
 
-    // Extra custom lines
+    // Extra lines are included in the preview for reference but flagged
+    // so they can be optionally excluded from the actual e-conomic invoice
     extraLines.forEach(function (el) {
       if (el.description && el.amount) {
-        lines.push({ description: el.description, unitNetPrice: el.amount, quantity: 1 });
+        lines.push({ description: el.description, unitNetPrice: el.amount, quantity: 1, isExtraLine: true });
       }
     });
 
@@ -618,8 +673,10 @@
     }
 
     var instalmentLines = hasInstalments ? lines.filter(function (l) { return l.date; }) : [];
+    var extraPreviewLines = lines.filter(function (l) { return l.isExtraLine; });
     var perInstalment = instalmentLines.length ? instalmentLines[0].unitNetPrice : 0;
-    var grandTotal = lines.reduce(function (sum, l) { return sum + l.unitNetPrice; }, 0);
+    var invoiceTotal = instalmentLines.reduce(function (sum, l) { return sum + l.unitNetPrice; }, 0);
+    var extraTotal = extraPreviewLines.reduce(function (sum, l) { return sum + l.unitNetPrice; }, 0);
     var custName = selectedCustomer ? selectedCustomer.name : (selectedApplicant ? selectedApplicant.name : null);
 
     var html = '';
@@ -631,12 +688,17 @@
       if (selectedCustomer) html += ' (#' + selectedCustomer.customerNumber + ')';
       html += '</span></div>';
     } else {
-      html += '<div class="yb-billing__preview-row yb-billing__preview-row--missing"><span class="yb-billing__preview-label">' + t('billing_col_customer') + '</span><span>' + (isDa ? '⚠ Ikke valgt endnu' : '⚠ Not selected yet') + '</span></div>';
+      html += '<div class="yb-billing__preview-row yb-billing__preview-row--missing"><span class="yb-billing__preview-label">' + t('billing_col_customer') + '</span><span>' + (isDa ? '\u26a0 Ikke valgt endnu' : '\u26a0 Not selected yet') + '</span></div>';
     }
     if (vals.description) {
       html += '<div class="yb-billing__preview-row"><span class="yb-billing__preview-label">' + t('billing_inv_description') + '</span><span>' + esc(vals.description) + '</span></div>';
     }
-    html += '<div class="yb-billing__preview-row"><span class="yb-billing__preview-label">' + t('billing_inv_total') + '</span><span class="yb-billing__preview-amount">' + formatAmount(grandTotal) + '</span></div>';
+    // Show original total and adjustments if there are extra lines
+    if (hasInstalments && extraTotal !== 0) {
+      html += '<div class="yb-billing__preview-row"><span class="yb-billing__preview-label">' + (isDa ? 'Samlet pris' : 'Total price') + '</span><span>' + formatAmount(vals.total) + '</span></div>';
+      html += '<div class="yb-billing__preview-row"><span class="yb-billing__preview-label">' + (isDa ? 'Justeringer' : 'Adjustments') + '</span><span style="color:' + (extraTotal < 0 ? '#16a34a' : '#0F0F0F') + '">' + formatAmount(extraTotal) + '</span></div>';
+    }
+    html += '<div class="yb-billing__preview-row"><span class="yb-billing__preview-label">' + (isDa ? 'Fakturabeløb' : 'Invoice Total') + '</span><span class="yb-billing__preview-amount">' + formatAmount(invoiceTotal) + '</span></div>';
     if (instalmentLines.length > 1) {
       html += '<div class="yb-billing__preview-row"><span class="yb-billing__preview-label">' + t('billing_inv_instalments') + '</span><span>' + instalmentLines.length + ' (' + formatAmount(perInstalment) + ' ' + t('billing_preview_per_instalment') + ')</span></div>';
     }
@@ -646,12 +708,18 @@
     }
     html += '</div>';
 
-    // Lines table
+    // Lines table — show instalment lines (what goes to e-conomic)
     html += '<h4 class="yb-billing__preview-heading">' + t('billing_preview_schedule') + '</h4>';
     html += '<table class="yb-billing__preview-table"><thead><tr><th>#</th><th>' + t('billing_inv_description') + '</th><th>' + t('billing_col_total') + '</th></tr></thead><tbody>';
-    lines.forEach(function (line, i) {
+    instalmentLines.forEach(function (line, i) {
       html += '<tr><td>' + (i + 1) + '</td><td>' + esc(line.description) + '</td><td class="yb-billing__preview-amount">' + formatAmount(line.unitNetPrice) + '</td></tr>';
     });
+    // Show extra lines in preview (muted, with note that they adjust the instalment amounts)
+    if (extraPreviewLines.length) {
+      extraPreviewLines.forEach(function (line) {
+        html += '<tr style="color:#6F6A66;font-style:italic"><td></td><td>' + esc(line.description) + ' <span style="font-size:0.75rem">(' + (isDa ? 'justeret i rater' : 'adjusted in instalments') + ')</span></td><td class="yb-billing__preview-amount">' + formatAmount(line.unitNetPrice) + '</td></tr>';
+      });
+    }
     html += '</tbody></table>';
 
     el.innerHTML = html;
@@ -804,16 +872,18 @@
 
     if (!productNum) { toast(isDa ? 'Vælg et produkt' : 'Select a product', true); busy = false; return; }
 
+    // Filter out extra lines — they already adjusted instalment amounts
+    var invoiceLines = lines.filter(function (l) { return !l.isExtraLine; });
     var invoice = {
       customerNumber: selectedCustomer.customerNumber,
       recipientName: selectedCustomer.name,
-      date: lines[0].date,
-      dueDate: lines[0].date,
+      date: invoiceLines[0].date,
+      dueDate: invoiceLines[0].date,
       paymentTermsNumber: paymentTermsNum,
       layoutNumber: layoutNum,
       productNumber: productNum,
       currency: 'DKK',
-      lines: lines.map(function (l) {
+      lines: invoiceLines.map(function (l) {
         return { description: l.description, unitNetPrice: l.unitNetPrice, quantity: 1 };
       })
     };
@@ -835,6 +905,15 @@
         return;
       }
       console.log('[billing] Invoice created:', res.data);
+      var draft = res.data;
+      // Track invoice on application doc
+      saveInvoiceToApp({
+        draftNumber: draft.draftInvoiceNumber,
+        status: 'draft',
+        amount: draft.grossAmount || draft.netAmount || 0,
+        date: draft.date || new Date().toISOString().split('T')[0],
+        createdAt: new Date().toISOString()
+      });
       toast(t('billing_invoice_created'));
       resetForm();
     }).catch(function (err) {
@@ -931,6 +1010,8 @@
     if (btn) btn.textContent = t('billing_master_creating_invoice');
 
     var lines = buildLines(vals);
+    // Filter out extra lines — they already adjusted instalment amounts
+    var invoiceLines = lines.filter(function (l) { return !l.isExtraLine; });
     var paymentTermsNum = parseInt(($('yb-billing-payment-terms') || {}).value) || 1;
     var layoutNum = parseInt(($('yb-billing-layout') || {}).value) || (settings.layouts.length ? settings.layouts[0].layoutNumber : 19);
     var productNum = ($('yb-billing-product') || {}).value || '';
@@ -942,13 +1023,13 @@
     var invoice = {
       customerNumber: selectedCustomer.customerNumber,
       recipientName: selectedCustomer.name,
-      date: lines[0].date,
-      dueDate: lines[0].date,
+      date: invoiceLines[0].date,
+      dueDate: invoiceLines[0].date,
       paymentTermsNumber: paymentTermsNum,
       layoutNumber: layoutNum,
       productNumber: productNum,
       currency: 'DKK',
-      lines: lines.map(function (l) {
+      lines: invoiceLines.map(function (l) {
         return { description: l.description, unitNetPrice: l.unitNetPrice, quantity: 1 };
       })
     };
@@ -973,6 +1054,16 @@
       if (!res.ok) { busy = false; if (btn) btn.textContent = t('billing_create_book_send'); toast(res.error, true); return; }
       var booked = res.data;
       var bookedNum = booked.bookedInvoiceNumber;
+      // Track booked status on application
+      saveInvoiceToApp({
+        draftNumber: draftNumber,
+        bookedNumber: bookedNum,
+        status: 'booked',
+        amount: booked.grossAmount || booked.netAmount || 0,
+        date: booked.date || new Date().toISOString().split('T')[0],
+        dueDate: booked.dueDate || '',
+        createdAt: new Date().toISOString()
+      });
       console.log('[billing] Master: Booked as #' + bookedNum + ', sending email...');
       masterSendEmail(bookedNum, btn, customerEmail);
     }).catch(function (err) { busy = false; if (btn) btn.textContent = t('billing_create_book_send'); toast(err.message, true); });
@@ -1022,7 +1113,14 @@
         return;
       }
       console.log('[billing] Master: All done! Invoice #' + bookedNumber + ' sent to ' + email);
-      if (btn) { btn.textContent = t('billing_master_done'); setTimeout(function () { btn.textContent = '⚡ ' + t('billing_create_book_send'); }, 3000); }
+      // Update invoice tracking with sent info
+      saveInvoiceToApp({
+        bookedNumber: bookedNumber,
+        status: 'sent',
+        sentAt: new Date().toISOString(),
+        sentTo: email
+      });
+      if (btn) { btn.textContent = t('billing_master_done'); setTimeout(function () { btn.textContent = '\u26a1 ' + t('billing_create_book_send'); }, 3000); }
       toast(t('billing_master_done'));
       resetForm();
     }).catch(function (err) {
@@ -1289,6 +1387,8 @@
         return;
       }
       console.log('[billing] Invoice sent:', res.data);
+      // Broadcast sent event for any listening app profile
+      if (window._ybInvoiceSent) window._ybInvoiceSent(currentBookedNumber, inputEmail);
       toast(isDa ? 'Faktura sendt til ' + inputEmail : 'Invoice sent to ' + inputEmail);
     }).catch(function (err) {
       if (sendBtn) { sendBtn.innerHTML = '&#9993; ' + t('billing_send_invoice'); sendBtn.classList.remove('yb-btn--muted'); }
