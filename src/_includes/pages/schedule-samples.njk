@@ -85,6 +85,278 @@
     <p style="font-size:.72rem;color:#6F6A66;text-align:right;margin-top:8px;font-style:italic;">I alt: 200 timer</p>
   </div>
 
+  {# ════════════════════════════════════════════════════════
+     HOURS CHART ALTERNATIVES — pick one to replace the above
+     ════════════════════════════════════════════════════════ #}
+
+  {# ── CHART OPTION A: Stacked Segment Bar ──────────────── #}
+  <div style="max-width:700px;margin:32px auto 0;padding:0 24px;">
+    <p style="font-size:.6rem;text-transform:uppercase;letter-spacing:.14em;color:#f75c03;font-weight:700;margin-bottom:4px;">Option A</p>
+    <p style="font-size:.72rem;text-transform:uppercase;letter-spacing:.14em;color:#6F6A66;font-weight:700;margin-bottom:16px;">Dine 200+ timer fordelt</p>
+
+    {# Stacked bar — each segment proportional to hours #}
+    <div style="height:22px;border-radius:50px;overflow:hidden;display:flex;gap:2px;margin-bottom:20px;">
+      <div style="width:30%;background:#f75c03;" title="Studietimer i studiet — 60t"></div>
+      <div style="width:5%;background:#ff9966;" title="Online & andre — 10t"></div>
+      <div style="width:15%;background:#1a1a1a;" title="Vinyasa Yoga — 30t"></div>
+      <div style="width:10%;background:#333;" title="Yin Yoga — 20t"></div>
+      <div style="width:8.5%;background:#555;" title="Hatha Yoga — 17t"></div>
+      <div style="width:6%;background:#6F6A66;" title="Class Management — 12t"></div>
+      <div style="width:8%;background:#ffb380;" title="Yoga Anatomi — 16t"></div>
+      <div style="width:6%;background:#ffd5b8;" title="Yogafilosofi — 12t"></div>
+      <div style="width:10%;background:#E8E4E0;" title="Selvstudie — 20t"></div>
+      <div style="flex:1;background:#F0EDEA;" title="Business of Yoga — 3t"></div>
+    </div>
+
+    {# Legend: 2-column grid #}
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px 24px;">
+      <div style="display:flex;align-items:center;gap:8px;">
+        <span style="width:10px;height:10px;border-radius:3px;background:#f75c03;flex-shrink:0;"></span>
+        <span style="font-size:.78rem;color:#0F0F0F;">Studietimer i studiet</span>
+        <span style="font-size:.78rem;font-weight:700;color:#0F0F0F;margin-left:auto;">60t</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px;">
+        <span style="width:10px;height:10px;border-radius:3px;background:#ff9966;flex-shrink:0;"></span>
+        <span style="font-size:.78rem;color:#0F0F0F;">Online & andre studier</span>
+        <span style="font-size:.78rem;font-weight:700;color:#0F0F0F;margin-left:auto;">10t</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px;">
+        <span style="width:10px;height:10px;border-radius:3px;background:#1a1a1a;flex-shrink:0;"></span>
+        <span style="font-size:.78rem;color:#0F0F0F;">Vinyasa Yoga</span>
+        <span style="font-size:.78rem;font-weight:700;color:#0F0F0F;margin-left:auto;">30t</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px;">
+        <span style="width:10px;height:10px;border-radius:3px;background:#333;flex-shrink:0;"></span>
+        <span style="font-size:.78rem;color:#0F0F0F;">Yin Yoga</span>
+        <span style="font-size:.78rem;font-weight:700;color:#0F0F0F;margin-left:auto;">20t</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px;">
+        <span style="width:10px;height:10px;border-radius:3px;background:#555;flex-shrink:0;"></span>
+        <span style="font-size:.78rem;color:#0F0F0F;">Hatha Yoga</span>
+        <span style="font-size:.78rem;font-weight:700;color:#0F0F0F;margin-left:auto;">17t</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px;">
+        <span style="width:10px;height:10px;border-radius:3px;background:#6F6A66;flex-shrink:0;"></span>
+        <span style="font-size:.78rem;color:#0F0F0F;">Class Management</span>
+        <span style="font-size:.78rem;font-weight:700;color:#0F0F0F;margin-left:auto;">12t</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px;">
+        <span style="width:10px;height:10px;border-radius:3px;background:#ffb380;flex-shrink:0;"></span>
+        <span style="font-size:.78rem;color:#0F0F0F;">Yoga Anatomi</span>
+        <span style="font-size:.78rem;font-weight:700;color:#0F0F0F;margin-left:auto;">16t</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px;">
+        <span style="width:10px;height:10px;border-radius:3px;background:#ffd5b8;flex-shrink:0;"></span>
+        <span style="font-size:.78rem;color:#0F0F0F;">Yogafilosofi</span>
+        <span style="font-size:.78rem;font-weight:700;color:#0F0F0F;margin-left:auto;">12t</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px;">
+        <span style="width:10px;height:10px;border-radius:3px;background:#E8E4E0;flex-shrink:0;border:1px solid #ccc;"></span>
+        <span style="font-size:.78rem;color:#0F0F0F;">Selvstudie & hjemmearbejde</span>
+        <span style="font-size:.78rem;font-weight:700;color:#0F0F0F;margin-left:auto;">20t</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px;">
+        <span style="width:10px;height:10px;border-radius:3px;background:#F0EDEA;flex-shrink:0;border:1px solid #ccc;"></span>
+        <span style="font-size:.78rem;color:#0F0F0F;">Business of Yoga</span>
+        <span style="font-size:.78rem;font-weight:700;color:#0F0F0F;margin-left:auto;">3t</span>
+      </div>
+    </div>
+    <p style="font-size:.72rem;color:#6F6A66;text-align:right;margin-top:10px;font-style:italic;">I alt: 200 timer</p>
+  </div>
+
+  {# ── CHART OPTION B: Card Tiles Grid ───────────────────── #}
+  <div style="max-width:700px;margin:32px auto 0;padding:0 24px;">
+    <p style="font-size:.6rem;text-transform:uppercase;letter-spacing:.14em;color:#f75c03;font-weight:700;margin-bottom:4px;">Option B</p>
+    <p style="font-size:.72rem;text-transform:uppercase;letter-spacing:.14em;color:#6F6A66;font-weight:700;margin-bottom:16px;">Dine 200+ timer fordelt</p>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+      <div style="display:flex;align-items:center;gap:12px;background:#FFFCF9;border:1px solid #E8E4E0;border-radius:12px;padding:12px 14px;border-left:3px solid #f75c03;">
+        <span style="font-size:1.5rem;font-weight:700;color:#f75c03;line-height:1;min-width:44px;">60t</span>
+        <span style="font-size:.8rem;font-weight:600;color:#0F0F0F;line-height:1.3;">Studietimer i studiet</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:12px;background:#FFFCF9;border:1px solid #E8E4E0;border-radius:12px;padding:12px 14px;border-left:3px solid #ff9966;">
+        <span style="font-size:1.5rem;font-weight:700;color:#ff9966;line-height:1;min-width:44px;">30t</span>
+        <span style="font-size:.8rem;font-weight:600;color:#0F0F0F;line-height:1.3;">Vinyasa Yoga</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:12px;background:#FFFCF9;border:1px solid #E8E4E0;border-radius:12px;padding:12px 14px;border-left:3px solid #333;">
+        <span style="font-size:1.5rem;font-weight:700;color:#333;line-height:1;min-width:44px;">20t</span>
+        <span style="font-size:.8rem;font-weight:600;color:#0F0F0F;line-height:1.3;">Yin Yoga</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:12px;background:#FFFCF9;border:1px solid #E8E4E0;border-radius:12px;padding:12px 14px;border-left:3px solid #555;">
+        <span style="font-size:1.5rem;font-weight:700;color:#555;line-height:1;min-width:44px;">20t</span>
+        <span style="font-size:.8rem;font-weight:600;color:#0F0F0F;line-height:1.3;">Selvstudie & hjemmearbejde</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:12px;background:#FFFCF9;border:1px solid #E8E4E0;border-radius:12px;padding:12px 14px;border-left:3px solid #555;">
+        <span style="font-size:1.5rem;font-weight:700;color:#555;line-height:1;min-width:44px;">17t</span>
+        <span style="font-size:.8rem;font-weight:600;color:#0F0F0F;line-height:1.3;">Hatha Yoga</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:12px;background:#FFFCF9;border:1px solid #E8E4E0;border-radius:12px;padding:12px 14px;border-left:3px solid #ffb380;">
+        <span style="font-size:1.5rem;font-weight:700;color:#ffb380;line-height:1;min-width:44px;">16t</span>
+        <span style="font-size:.8rem;font-weight:600;color:#0F0F0F;line-height:1.3;">Yoga Anatomi</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:12px;background:#FFFCF9;border:1px solid #E8E4E0;border-radius:12px;padding:12px 14px;border-left:3px solid #6F6A66;">
+        <span style="font-size:1.5rem;font-weight:700;color:#6F6A66;line-height:1;min-width:44px;">12t</span>
+        <span style="font-size:.8rem;font-weight:600;color:#0F0F0F;line-height:1.3;">Class Management</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:12px;background:#FFFCF9;border:1px solid #E8E4E0;border-radius:12px;padding:12px 14px;border-left:3px solid #ffd5b8;">
+        <span style="font-size:1.5rem;font-weight:700;color:#ffd5b8;line-height:1;min-width:44px;">12t</span>
+        <span style="font-size:.8rem;font-weight:600;color:#0F0F0F;line-height:1.3;">Yogafilosofi</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:12px;background:#FFFCF9;border:1px solid #E8E4E0;border-radius:12px;padding:12px 14px;border-left:3px solid #ff9966;">
+        <span style="font-size:1.5rem;font-weight:700;color:#ff9966;line-height:1;min-width:44px;">10t</span>
+        <span style="font-size:.8rem;font-weight:600;color:#0F0F0F;line-height:1.3;">Online & andre studier</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:12px;background:#FFFCF9;border:1px solid #E8E4E0;border-radius:12px;padding:12px 14px;border-left:3px solid #E8E4E0;">
+        <span style="font-size:1.5rem;font-weight:700;color:#aaa;line-height:1;min-width:44px;">3t</span>
+        <span style="font-size:.8rem;font-weight:600;color:#0F0F0F;line-height:1.3;">Business of Yoga</span>
+      </div>
+    </div>
+    <p style="font-size:.72rem;color:#6F6A66;text-align:right;margin-top:10px;font-style:italic;">I alt: 200 timer</p>
+  </div>
+
+  {# ── CHART OPTION C: Category Groups ───────────────────── #}
+  <div style="max-width:700px;margin:32px auto 0;padding:0 24px;">
+    <p style="font-size:.6rem;text-transform:uppercase;letter-spacing:.14em;color:#f75c03;font-weight:700;margin-bottom:4px;">Option C</p>
+    <p style="font-size:.72rem;text-transform:uppercase;letter-spacing:.14em;color:#6F6A66;font-weight:700;margin-bottom:16px;">Dine 200+ timer fordelt</p>
+
+    {# Group 1: Yogapraksis #}
+    <div style="margin-bottom:16px;">
+      <div style="display:flex;align-items:baseline;gap:10px;margin-bottom:8px;">
+        <span style="font-size:2rem;font-weight:700;color:#f75c03;line-height:1;">67t</span>
+        <div>
+          <p style="font-weight:700;font-size:.9rem;color:#0F0F0F;margin:0;">Yogapraksis</p>
+          <p style="font-size:.75rem;color:#6F6A66;margin:0;">Live undervisning i studiet</p>
+        </div>
+        <div style="flex:1;height:3px;background:linear-gradient(to right, #f75c03, transparent);border-radius:2px;align-self:center;"></div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:4px;padding-left:16px;border-left:2px solid #FFF0E6;">
+        <div style="display:flex;align-items:center;justify-content:space-between;">
+          <span style="font-size:.8rem;color:#0F0F0F;">Vinyasa Yoga</span>
+          <div style="display:flex;align-items:center;gap:8px;">
+            <div style="width:80px;background:#F5F3F0;border-radius:50px;height:5px;overflow:hidden;">
+              <div style="width:44.8%;height:100%;background:#f75c03;border-radius:50px;"></div>
+            </div>
+            <span style="font-size:.78rem;font-weight:700;min-width:28px;text-align:right;">30t</span>
+          </div>
+        </div>
+        <div style="display:flex;align-items:center;justify-content:space-between;">
+          <span style="font-size:.8rem;color:#0F0F0F;">Yin Yoga</span>
+          <div style="display:flex;align-items:center;gap:8px;">
+            <div style="width:80px;background:#F5F3F0;border-radius:50px;height:5px;overflow:hidden;">
+              <div style="width:29.9%;height:100%;background:#f75c03;border-radius:50px;"></div>
+            </div>
+            <span style="font-size:.78rem;font-weight:700;min-width:28px;text-align:right;">20t</span>
+          </div>
+        </div>
+        <div style="display:flex;align-items:center;justify-content:space-between;">
+          <span style="font-size:.8rem;color:#0F0F0F;">Hatha Yoga</span>
+          <div style="display:flex;align-items:center;gap:8px;">
+            <div style="width:80px;background:#F5F3F0;border-radius:50px;height:5px;overflow:hidden;">
+              <div style="width:25.4%;height:100%;background:#f75c03;border-radius:50px;"></div>
+            </div>
+            <span style="font-size:.78rem;font-weight:700;min-width:28px;text-align:right;">17t</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    {# Group 2: Teori & Studier #}
+    <div style="margin-bottom:16px;">
+      <div style="display:flex;align-items:baseline;gap:10px;margin-bottom:8px;">
+        <span style="font-size:2rem;font-weight:700;color:#0F0F0F;line-height:1;">98t</span>
+        <div>
+          <p style="font-weight:700;font-size:.9rem;color:#0F0F0F;margin:0;">Teori & Studier</p>
+          <p style="font-size:.75rem;color:#6F6A66;margin:0;">Akademisk fordybelse</p>
+        </div>
+        <div style="flex:1;height:3px;background:linear-gradient(to right, #0F0F0F, transparent);border-radius:2px;align-self:center;"></div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:4px;padding-left:16px;border-left:2px solid #F0EDEA;">
+        <div style="display:flex;align-items:center;justify-content:space-between;">
+          <span style="font-size:.8rem;color:#0F0F0F;">Studietimer i studiet</span>
+          <div style="display:flex;align-items:center;gap:8px;">
+            <div style="width:80px;background:#F5F3F0;border-radius:50px;height:5px;overflow:hidden;">
+              <div style="width:61.2%;height:100%;background:#0F0F0F;border-radius:50px;"></div>
+            </div>
+            <span style="font-size:.78rem;font-weight:700;min-width:28px;text-align:right;">60t</span>
+          </div>
+        </div>
+        <div style="display:flex;align-items:center;justify-content:space-between;">
+          <span style="font-size:.8rem;color:#0F0F0F;">Yoga Anatomi</span>
+          <div style="display:flex;align-items:center;gap:8px;">
+            <div style="width:80px;background:#F5F3F0;border-radius:50px;height:5px;overflow:hidden;">
+              <div style="width:16.3%;height:100%;background:#0F0F0F;border-radius:50px;"></div>
+            </div>
+            <span style="font-size:.78rem;font-weight:700;min-width:28px;text-align:right;">16t</span>
+          </div>
+        </div>
+        <div style="display:flex;align-items:center;justify-content:space-between;">
+          <span style="font-size:.8rem;color:#0F0F0F;">Yogafilosofi</span>
+          <div style="display:flex;align-items:center;gap:8px;">
+            <div style="width:80px;background:#F5F3F0;border-radius:50px;height:5px;overflow:hidden;">
+              <div style="width:12.2%;height:100%;background:#0F0F0F;border-radius:50px;"></div>
+            </div>
+            <span style="font-size:.78rem;font-weight:700;min-width:28px;text-align:right;">12t</span>
+          </div>
+        </div>
+        <div style="display:flex;align-items:center;justify-content:space-between;">
+          <span style="font-size:.8rem;color:#0F0F0F;">Online & andre studier</span>
+          <div style="display:flex;align-items:center;gap:8px;">
+            <div style="width:80px;background:#F5F3F0;border-radius:50px;height:5px;overflow:hidden;">
+              <div style="width:10.2%;height:100%;background:#0F0F0F;border-radius:50px;"></div>
+            </div>
+            <span style="font-size:.78rem;font-weight:700;min-width:28px;text-align:right;">10t</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    {# Group 3: Kompetencer & Selvstudie #}
+    <div>
+      <div style="display:flex;align-items:baseline;gap:10px;margin-bottom:8px;">
+        <span style="font-size:2rem;font-weight:700;color:#6F6A66;line-height:1;">35t</span>
+        <div>
+          <p style="font-weight:700;font-size:.9rem;color:#0F0F0F;margin:0;">Kompetencer & Selvstudie</p>
+          <p style="font-size:.75rem;color:#6F6A66;margin:0;">Undervisning, forretning & hjemmearbejde</p>
+        </div>
+        <div style="flex:1;height:3px;background:linear-gradient(to right, #6F6A66, transparent);border-radius:2px;align-self:center;"></div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:4px;padding-left:16px;border-left:2px solid #F5F3F0;">
+        <div style="display:flex;align-items:center;justify-content:space-between;">
+          <span style="font-size:.8rem;color:#0F0F0F;">Selvstudie & hjemmearbejde</span>
+          <div style="display:flex;align-items:center;gap:8px;">
+            <div style="width:80px;background:#F5F3F0;border-radius:50px;height:5px;overflow:hidden;">
+              <div style="width:57.1%;height:100%;background:#6F6A66;border-radius:50px;"></div>
+            </div>
+            <span style="font-size:.78rem;font-weight:700;min-width:28px;text-align:right;">20t</span>
+          </div>
+        </div>
+        <div style="display:flex;align-items:center;justify-content:space-between;">
+          <span style="font-size:.8rem;color:#0F0F0F;">Class Management</span>
+          <div style="display:flex;align-items:center;gap:8px;">
+            <div style="width:80px;background:#F5F3F0;border-radius:50px;height:5px;overflow:hidden;">
+              <div style="width:34.3%;height:100%;background:#6F6A66;border-radius:50px;"></div>
+            </div>
+            <span style="font-size:.78rem;font-weight:700;min-width:28px;text-align:right;">12t</span>
+          </div>
+        </div>
+        <div style="display:flex;align-items:center;justify-content:space-between;">
+          <span style="font-size:.8rem;color:#0F0F0F;">Business of Yoga</span>
+          <div style="display:flex;align-items:center;gap:8px;">
+            <div style="width:80px;background:#F5F3F0;border-radius:50px;height:5px;overflow:hidden;">
+              <div style="width:8.6%;height:100%;background:#6F6A66;border-radius:50px;"></div>
+            </div>
+            <span style="font-size:.78rem;font-weight:700;min-width:28px;text-align:right;">3t</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <p style="font-size:.72rem;color:#6F6A66;text-align:right;margin-top:16px;font-style:italic;">I alt: 200 timer</p>
+  </div>
+
+  <div style="max-width:700px;margin:0 auto;padding:16px 24px;">
+    <div style="border-top:2px dashed #E8E4E0;"></div>
+  </div>
+
   {# ── BUSY DAYS FINDER (collapsible) ───────────────────── #}
   <div style="max-width:700px;margin:0 auto;padding:24px 24px 0;">
     <details id="ss18-conflict-finder" style="background:#fff;border:1.5px solid #E8E4E0;border-radius:16px;overflow:hidden;">
