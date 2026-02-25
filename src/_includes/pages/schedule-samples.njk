@@ -99,6 +99,34 @@
     </div>
   </div>
 
+  {# ── HOURS BREAKDOWN: Horizontal bars ──────────────────── #}
+  <div style="max-width:700px;margin:0 auto;padding:32px 24px 0;">
+    <p style="font-size:.72rem;text-transform:uppercase;letter-spacing:.14em;color:#6F6A66;font-weight:700;margin-bottom:16px;">Dine 200+ timer fordelt</p>
+
+    {% set hours = [
+      { label: "Studietimer i studiet", hours: 60, color: "#f75c03", pct: 28 },
+      { label: "Vinyasa & Yin Yoga", hours: 42, color: "#0F0F0F", pct: 20 },
+      { label: "Hatha & Class Management", hours: 35, color: "#0F0F0F", pct: 17 },
+      { label: "Hjemmearbejde & selvstudie", hours: 25, color: "#E8E4E0", pct: 12 },
+      { label: "Yoga Anatomi", hours: 15, color: "#ff9966", pct: 7 },
+      { label: "Yogafilosofi", hours: 12, color: "#ff9966", pct: 6 },
+      { label: "Business of Yoga", hours: 4, color: "#E8E4E0", pct: 2 },
+      { label: "Eksamen & Graduation", hours: 8, color: "#2ecc71", pct: 4 }
+    ] %}
+
+    {% for h in hours %}
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:8px;">
+      <span style="font-size:.78rem;color:#6F6A66;min-width:185px;text-align:right;">{{ h.label }}</span>
+      <div style="flex:1;background:#F5F3F0;border-radius:50px;height:8px;overflow:hidden;">
+        <div style="width:{{ h.pct }}%;height:100%;background:{{ h.color }};border-radius:50px;"></div>
+      </div>
+      <span style="font-size:.78rem;font-weight:700;color:#0F0F0F;min-width:32px;">{{ h.hours }}t</span>
+    </div>
+    {% endfor %}
+
+    <p style="font-size:.72rem;color:#6F6A66;text-align:right;margin-top:8px;font-style:italic;">I alt: 201 kontakttimer</p>
+  </div>
+
   {# ── SCHEDULE BODY ────────────────────────────────────── #}
   <div style="max-width:700px;margin:0 auto;padding:40px 24px 60px;">
 
