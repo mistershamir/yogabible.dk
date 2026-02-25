@@ -201,6 +201,107 @@ async function bookInvoice(draftNumber) {
   return ecoFetch('/invoices/booked', 'POST', instructions);
 }
 
+async function deleteDraft(draftNumber) {
+  console.log('[economic] Deleting draft #' + draftNumber);
+  // DELETE returns 204 No Content on success — ecoFetch will throw on non-2xx
+  const res = await fetch(`${BASE}/invoices/drafts/${draftNumber}`, {
+    method: 'DELETE',
+    headers: ecoHeaders()
+  });
+  if (!res.ok) {
+    const text = await res.text();
+    let hint = '';
+    try { const d = JSON.parse(text); hint = d.developerHint || d.message || ''; } catch {}
+    throw new Error(`Delete failed (${res.status}): ${hint || text.substring(0, 200)}`);
+  }
+  return { deleted: true, draftNumber };
+}
+
+// ─── Credit Notes ─────────────────────────────────────────────────
+
+/**
+ * Create a credit note (negative invoice) for a booked invoice.
+ * In e-conomic, credit notes are draft invoices with negative line amounts
+ * that reference the original invoice. We then book it immediately.
+ *
+ * Steps:
+ * 1. Fetch the booked invoice details (lines, customer, etc.)
+ * 2. Create a draft with negative amounts + reference to original
+ * 3. Optionally book it immediately
+ */
+async function createCreditNote({ bookedNumber, lines, bookImmediately = true }) {
+  console.log('[economic] Creating credit note for booked invoice #' + bookedNumber);
+
+  // Fetch the original booked invoice
+  const original = await ecoFetch(`/invoices/booked/${bookedNumber}`);
+  if (!original || !original.customer) throw new Error('Could not fetch booked invoice #' + bookedNumber);
+
+  // Build credit note lines — either from provided custom lines or mirror the original
+  let creditLines;
+  if (lines && lines.length) {
+    // Custom credit lines (partial refund)
+    creditLines = lines.map((l, i) => ({
+      lineNumber: i + 1,
+      sortKey: i + 1,
+      description: l.description,
+      quantity: l.quantity || 1,
+      unitNetPrice: l.unitNetPrice // should be negative
+    }));
+  } else {
+    // Full refund — mirror all original lines as negatives
+    creditLines = (original.lines || []).map((l, i) => ({
+      lineNumber: i + 1,
+      sortKey: i + 1,
+      description: l.description + ' (credit)',
+      quantity: l.quantity || 1,
+      unitNetPrice: -(Math.abs(l.unitNetPrice || l.totalNetAmount || 0))
+    }));
+  }
+
+  if (!creditLines.length) throw new Error('No lines for credit note');
+
+  // Fetch customer invoice template for correct defaults
+  const custNum = original.customer.customerNumber;
+  const template = await ecoFetch(`/customers/${custNum}/templates/invoice`);
+
+  const payload = { ...template };
+  payload.date = new Date().toISOString().split('T')[0];
+  payload.lines = creditLines;
+
+  // Add product reference if original had one
+  if (original.lines && original.lines[0] && original.lines[0].product) {
+    creditLines.forEach(l => {
+      if (!l.product) l.product = original.lines[0].product;
+    });
+    payload.lines = creditLines;
+  }
+
+  // Notes referencing original invoice
+  payload.notes = payload.notes || {};
+  payload.notes.heading = `Kreditnota for faktura #${bookedNumber}`;
+
+  // Reference to original
+  payload.references = payload.references || {};
+  payload.references.other = `Credit: #${bookedNumber}`;
+
+  // Clean up template fields
+  delete payload.self;
+  delete payload.templates;
+  delete payload.pdf;
+
+  console.log('[economic] Creating credit note draft, lines:', creditLines.length);
+  const draft = await ecoFetch('/invoices/drafts', 'POST', payload);
+  console.log('[economic] Credit note draft created #' + draft.draftInvoiceNumber);
+
+  if (bookImmediately) {
+    const booked = await bookInvoice(draft.draftInvoiceNumber);
+    console.log('[economic] Credit note booked as #' + booked.bookedInvoiceNumber);
+    return { draft: draft.draftInvoiceNumber, booked: booked.bookedInvoiceNumber, creditNote: true };
+  }
+
+  return { draft: draft.draftInvoiceNumber, creditNote: true };
+}
+
 // ─── Payment Status (Booked Invoices) ─────────────────────────────
 
 async function listBooked(params) {
@@ -436,6 +537,18 @@ exports.handler = async (event) => {
       case 'bookInvoice':
         if (!body.draftNumber) return jsonResponse(400, { ok: false, error: 'draftNumber required' });
         return jsonResponse(200, { ok: true, data: await bookInvoice(body.draftNumber) });
+
+      case 'deleteDraft':
+        if (!body.draftNumber) return jsonResponse(400, { ok: false, error: 'draftNumber required' });
+        return jsonResponse(200, { ok: true, data: await deleteDraft(body.draftNumber) });
+
+      case 'createCreditNote':
+        if (!body.bookedNumber) return jsonResponse(400, { ok: false, error: 'bookedNumber required' });
+        return jsonResponse(200, { ok: true, data: await createCreditNote({
+          bookedNumber: body.bookedNumber,
+          lines: body.lines || null,
+          bookImmediately: body.bookImmediately !== false
+        }) });
 
       case 'listBooked':
         return jsonResponse(200, { ok: true, data: await listBooked(body) });

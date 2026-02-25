@@ -1195,13 +1195,17 @@
     var body = $('yb-billing-modal-body');
     var title = $('yb-billing-modal-title');
     var bookBtn = document.querySelector('[data-action="billing-book-draft"]');
+    var deleteBtn = document.querySelector('[data-action="billing-delete-draft"]');
     var sendBtn = document.querySelector('[data-action="billing-send-invoice"]');
     var pdfBtn = document.querySelector('[data-action="billing-download-pdf"]');
+    var creditBtn = document.querySelector('[data-action="billing-create-credit-note"]');
     if (!modal || !body) return;
     if (title) title.textContent = t('billing_draft_detail');
     if (bookBtn) bookBtn.hidden = false;
+    if (deleteBtn) deleteBtn.hidden = false;
     if (sendBtn) sendBtn.hidden = true;
     if (pdfBtn) pdfBtn.hidden = true;
+    if (creditBtn) creditBtn.hidden = true;
     body.innerHTML = '<p>' + t('loading') + '</p>';
     modal.hidden = false;
 
@@ -1250,6 +1254,93 @@
       closeDraftModal();
       loadDrafts();
     }).catch(function (err) { toast(err.message, true); });
+  }
+
+  function deleteDraft() {
+    if (!currentDraftNumber) return;
+    if (!confirm(isDa
+      ? 'Slet kladde #' + currentDraftNumber + '? Denne handling kan ikke fortrydes.'
+      : 'Delete draft #' + currentDraftNumber + '? This cannot be undone.')) return;
+
+    var btn = document.querySelector('[data-action="billing-delete-draft"]');
+    if (btn) { btn.textContent = isDa ? 'Sletter...' : 'Deleting...'; btn.classList.add('yb-btn--muted'); }
+
+    apiCall({ action: 'deleteDraft', draftNumber: currentDraftNumber }).then(function (res) {
+      if (btn) { btn.innerHTML = '\ud83d\uddd1 ' + t('billing_delete_draft'); btn.classList.remove('yb-btn--muted'); }
+      if (!res.ok) { toast(res.error, true); return; }
+      toast(isDa ? 'Kladde #' + currentDraftNumber + ' slettet' : 'Draft #' + currentDraftNumber + ' deleted');
+      closeDraftModal();
+      loadDrafts();
+    }).catch(function (err) {
+      if (btn) { btn.innerHTML = '\ud83d\uddd1 ' + t('billing_delete_draft'); btn.classList.remove('yb-btn--muted'); }
+      toast(err.message, true);
+    });
+  }
+
+  /* ══════════════════════════════════════════
+     CREDIT NOTES
+     ══════════════════════════════════════════ */
+  function createCreditNote() {
+    if (!currentBookedNumber) return;
+
+    // Show credit note options: full refund or partial (custom amount)
+    var choice = prompt(isDa
+      ? 'Kreditnota for faktura #' + currentBookedNumber + ':\n\nIndtast beløb at kreditere (negativt), eller tryk OK for fuld kreditnota.\n\n(Lad feltet stå tomt for fuld kreditnota)'
+      : 'Credit note for invoice #' + currentBookedNumber + ':\n\nEnter amount to credit (negative), or press OK for full credit note.\n\n(Leave empty for full credit note)',
+      '');
+
+    if (choice === null) return; // cancelled
+
+    var creditBtn = document.querySelector('[data-action="billing-create-credit-note"]');
+    if (creditBtn) { creditBtn.textContent = isDa ? 'Opretter...' : 'Creating...'; creditBtn.classList.add('yb-btn--muted'); }
+
+    var payload = { action: 'createCreditNote', bookedNumber: currentBookedNumber };
+
+    if (choice.trim()) {
+      // Partial credit — parse amount
+      var amount = parseFloat(choice.replace(/[^0-9.,\-]/g, '').replace(',', '.'));
+      if (isNaN(amount) || amount === 0) {
+        if (creditBtn) { creditBtn.innerHTML = '\u21ba ' + t('billing_credit_note'); creditBtn.classList.remove('yb-btn--muted'); }
+        toast(isDa ? 'Ugyldigt beløb' : 'Invalid amount', true);
+        return;
+      }
+      // Ensure negative
+      if (amount > 0) amount = -amount;
+
+      var desc = prompt(isDa
+        ? 'Beskrivelse for kreditlinjen:'
+        : 'Description for credit line:',
+        isDa ? 'Kreditnota — faktura #' + currentBookedNumber : 'Credit note — invoice #' + currentBookedNumber);
+
+      if (!desc) {
+        if (creditBtn) { creditBtn.innerHTML = '\u21ba ' + t('billing_credit_note'); creditBtn.classList.remove('yb-btn--muted'); }
+        return;
+      }
+
+      payload.lines = [{ description: desc, unitNetPrice: amount, quantity: 1 }];
+    }
+
+    if (!confirm(isDa
+      ? 'Opretter kreditnota for faktura #' + currentBookedNumber + (payload.lines ? ' (' + payload.lines[0].unitNetPrice + ' DKK)' : ' (fuld kreditering)') + '. Fortsæt?'
+      : 'Create credit note for invoice #' + currentBookedNumber + (payload.lines ? ' (' + payload.lines[0].unitNetPrice + ' DKK)' : ' (full credit)') + '. Continue?')) {
+      if (creditBtn) { creditBtn.innerHTML = '\u21ba ' + t('billing_credit_note'); creditBtn.classList.remove('yb-btn--muted'); }
+      return;
+    }
+
+    apiCall(payload).then(function (res) {
+      if (creditBtn) { creditBtn.innerHTML = '\u21ba ' + t('billing_credit_note'); creditBtn.classList.remove('yb-btn--muted'); }
+      if (!res.ok) { toast(res.error, true); return; }
+      var data = res.data;
+      var msg = isDa
+        ? 'Kreditnota oprettet' + (data.booked ? ' & bogført (#' + data.booked + ')' : ' som kladde #' + data.draft)
+        : 'Credit note created' + (data.booked ? ' & booked (#' + data.booked + ')' : ' as draft #' + data.draft);
+      toast(msg);
+      closeDraftModal();
+      loadBooked();
+    }).catch(function (err) {
+      if (creditBtn) { creditBtn.innerHTML = '\u21ba ' + t('billing_credit_note'); creditBtn.classList.remove('yb-btn--muted'); }
+      toast(err.message, true);
+    });
   }
 
   /* ══════════════════════════════════════════
@@ -1311,14 +1402,18 @@
     var body = $('yb-billing-modal-body');
     var title = $('yb-billing-modal-title');
     var bookBtn = document.querySelector('[data-action="billing-book-draft"]');
+    var deleteBtn = document.querySelector('[data-action="billing-delete-draft"]');
     var sendBtn = document.querySelector('[data-action="billing-send-invoice"]');
     var pdfBtn = document.querySelector('[data-action="billing-download-pdf"]');
+    var creditBtn = document.querySelector('[data-action="billing-create-credit-note"]');
     if (!modal || !body) return;
 
     if (title) title.textContent = t('billing_booked_title') + ' #' + bookedNumber;
     if (bookBtn) bookBtn.hidden = true;
+    if (deleteBtn) deleteBtn.hidden = true;
     if (sendBtn) sendBtn.hidden = false;
     if (pdfBtn) pdfBtn.hidden = false;
+    if (creditBtn) creditBtn.hidden = false;
     body.innerHTML = '<p>' + t('loading') + '</p>';
     modal.hidden = false;
 
@@ -1552,6 +1647,8 @@
       case 'billing-refresh-settings': loadSettings(); break;
       case 'billing-view-draft': viewDraft(el.dataset.draft); break;
       case 'billing-book-draft': bookDraft(); break;
+      case 'billing-delete-draft': deleteDraft(); break;
+      case 'billing-create-credit-note': createCreditNote(); break;
       case 'billing-view-booked': showBooked(); break;
       case 'billing-refresh-booked': loadBooked(); break;
       case 'billing-view-booked-detail': viewBookedDetail(el.dataset.booked); break;

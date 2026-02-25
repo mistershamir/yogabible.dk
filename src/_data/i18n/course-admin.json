@@ -834,6 +834,8 @@
     "billing_add_line": "Tilføj linje",
     "billing_extra_desc_ph": "Beskrivelse...",
     "billing_extra_amount_ph": "Beløb",
+    "billing_delete_draft": "Slet kladde",
+    "billing_credit_note": "Kreditnota",
 
     "invoice_title": "FAKTURA",
     "invoice_none": "Ingen faktura oprettet endnu.",
@@ -1695,6 +1697,8 @@
     "billing_add_line": "Add line",
     "billing_extra_desc_ph": "Description...",
     "billing_extra_amount_ph": "Amount",
+    "billing_delete_draft": "Delete Draft",
+    "billing_credit_note": "Credit Note",
 
     "invoice_title": "INVOICE",
     "invoice_none": "No invoice created yet.",

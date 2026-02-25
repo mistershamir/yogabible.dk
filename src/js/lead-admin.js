@@ -2575,6 +2575,10 @@
       html += '<button class="yb-btn yb-btn--outline yb-btn--sm" data-action="app-invoice-view" data-booked="' + inv.bookedNumber + '">\ud83d\udc41 ' + t('invoice_quick_view') + '</button>';
       html += '<button class="yb-btn yb-btn--outline yb-btn--sm" data-action="app-invoice-pdf" data-booked="' + inv.bookedNumber + '">\ud83d\udcc4 ' + t('invoice_download') + '</button>';
       html += '<button class="yb-btn yb-btn--outline yb-btn--sm" data-action="app-invoice-resend" data-booked="' + inv.bookedNumber + '" data-email="' + esc(inv.sentTo || currentApp.email || '') + '">\ud83d\udce8 ' + t('invoice_resend') + '</button>';
+      html += '<button class="yb-btn yb-btn--outline yb-btn--sm yb-admin__icon-btn--danger" data-action="app-invoice-credit" data-booked="' + inv.bookedNumber + '">\u21ba ' + t('billing_credit_note') + '</button>';
+    }
+    if (inv.draftNumber && !inv.bookedNumber) {
+      html += '<button class="yb-btn yb-btn--outline yb-btn--sm yb-admin__icon-btn--danger" data-action="app-invoice-delete-draft" data-draft="' + inv.draftNumber + '">\ud83d\uddd1 ' + t('billing_delete_draft') + '</button>';
     }
     html += '<button class="yb-btn yb-btn--outline yb-btn--sm" data-action="app-invoice-refresh" data-ref="' + esc(appRef) + '">\u21bb ' + t('invoice_refresh') + '</button>';
     html += '</div>';
@@ -2788,22 +2792,97 @@
     });
   }
 
-  /** Save invoice metadata to Firestore application doc and re-render */
+  function appInvoiceCreditNote(bookedNumber) {
+    var choice = prompt(isDa
+      ? 'Kreditnota for faktura #' + bookedNumber + ':\n\nIndtast beløb at kreditere, eller tryk OK for fuld kreditnota.\n(Lad feltet stå tomt for fuld kreditnota)'
+      : 'Credit note for invoice #' + bookedNumber + ':\n\nEnter amount to credit, or press OK for full credit note.\n(Leave empty for full credit note)',
+      '');
+    if (choice === null) return;
+
+    var payload = { action: 'createCreditNote', bookedNumber: parseInt(bookedNumber) };
+
+    if (choice.trim()) {
+      var amount = parseFloat(choice.replace(/[^0-9.,\-]/g, '').replace(',', '.'));
+      if (isNaN(amount) || amount === 0) { toast(isDa ? 'Ugyldigt beløb' : 'Invalid amount', true); return; }
+      if (amount > 0) amount = -amount;
+
+      var desc = prompt(isDa ? 'Beskrivelse for kreditlinjen:' : 'Description for credit line:',
+        isDa ? 'Kreditnota — faktura #' + bookedNumber : 'Credit note — invoice #' + bookedNumber);
+      if (!desc) return;
+
+      payload.lines = [{ description: desc, unitNetPrice: amount, quantity: 1 }];
+    }
+
+    if (!confirm(isDa
+      ? 'Opretter kreditnota for faktura #' + bookedNumber + '. Fortsæt?'
+      : 'Create credit note for invoice #' + bookedNumber + '. Continue?')) return;
+
+    var creditBtn = document.querySelector('[data-action="app-invoice-credit"]');
+    if (creditBtn) { creditBtn.textContent = '\u21ba ...'; creditBtn.classList.add('yb-btn--muted'); }
+
+    billingApiCall(payload).then(function (res) {
+      if (creditBtn) { creditBtn.textContent = '\u21ba ' + t('billing_credit_note'); creditBtn.classList.remove('yb-btn--muted'); }
+      if (!res.ok) { toast(res.error, true); return; }
+      var data = res.data;
+      toast(isDa
+        ? 'Kreditnota oprettet' + (data.booked ? ' & bogført (#' + data.booked + ')' : '')
+        : 'Credit note created' + (data.booked ? ' & booked (#' + data.booked + ')' : ''));
+    }).catch(function (err) {
+      if (creditBtn) { creditBtn.textContent = '\u21ba ' + t('billing_credit_note'); creditBtn.classList.remove('yb-btn--muted'); }
+      toast(err.message, true);
+    });
+  }
+
+  function appInvoiceDeleteDraft(draftNumber) {
+    if (!confirm(isDa
+      ? 'Slet kladde #' + draftNumber + '? Denne handling kan ikke fortrydes.'
+      : 'Delete draft #' + draftNumber + '? This cannot be undone.')) return;
+
+    var deleteBtn = document.querySelector('[data-action="app-invoice-delete-draft"]');
+    if (deleteBtn) { deleteBtn.textContent = '\ud83d\uddd1 ...'; deleteBtn.classList.add('yb-btn--muted'); }
+
+    billingApiCall({ action: 'deleteDraft', draftNumber: parseInt(draftNumber) }).then(function (res) {
+      if (deleteBtn) { deleteBtn.textContent = '\ud83d\uddd1 ' + t('billing_delete_draft'); deleteBtn.classList.remove('yb-btn--muted'); }
+      if (!res.ok) { toast(res.error, true); return; }
+      toast(isDa ? 'Kladde slettet' : 'Draft deleted');
+      // Clear invoice data from app
+      saveAppInvoiceData(null);
+    }).catch(function (err) {
+      if (deleteBtn) { deleteBtn.textContent = '\ud83d\uddd1 ' + t('billing_delete_draft'); deleteBtn.classList.remove('yb-btn--muted'); }
+      toast(err.message, true);
+    });
+  }
+
+  /** Save invoice metadata to Firestore application doc and re-render.
+   *  Pass null to clear the invoice field (e.g. after deleting a draft). */
   function saveAppInvoiceData(invoiceData) {
     if (!currentAppId) return;
-    // Merge with existing invoice data
-    var existing = (currentApp && currentApp.invoice) || {};
-    var merged = {};
-    Object.keys(existing).forEach(function (k) { merged[k] = existing[k]; });
-    Object.keys(invoiceData).forEach(function (k) { merged[k] = invoiceData[k]; });
+
+    var merged;
+    if (invoiceData === null) {
+      // Clear invoice data
+      merged = firebase.firestore.FieldValue.delete();
+    } else {
+      // Merge with existing invoice data
+      var existing = (currentApp && currentApp.invoice) || {};
+      merged = {};
+      Object.keys(existing).forEach(function (k) { merged[k] = existing[k]; });
+      Object.keys(invoiceData).forEach(function (k) { merged[k] = invoiceData[k]; });
+    }
 
     db.collection('applications').doc(currentAppId).update({
       invoice: merged,
       updated_at: firebase.firestore.FieldValue.serverTimestamp()
     }).then(function () {
-      currentApp.invoice = merged;
-      var idx = applications.findIndex(function (a) { return a.id === currentAppId; });
-      if (idx !== -1) applications[idx].invoice = merged;
+      if (invoiceData === null) {
+        delete currentApp.invoice;
+        var idx = applications.findIndex(function (a) { return a.id === currentAppId; });
+        if (idx !== -1) delete applications[idx].invoice;
+      } else {
+        currentApp.invoice = merged;
+        var idx = applications.findIndex(function (a) { return a.id === currentAppId; });
+        if (idx !== -1) applications[idx].invoice = merged;
+      }
       renderAppInvoiceStatus();
     }).catch(function (err) {
       console.error('[lead-admin] Save invoice data error:', err);
@@ -3633,6 +3712,8 @@
         case 'app-invoice-view': appInvoiceQuickView(btn.dataset.booked); break;
         case 'app-invoice-pdf': appInvoiceDownloadPdf(btn.dataset.booked); break;
         case 'app-invoice-resend': appInvoiceResend(btn.dataset.booked, btn.dataset.email); break;
+        case 'app-invoice-credit': appInvoiceCreditNote(btn.dataset.booked); break;
+        case 'app-invoice-delete-draft': appInvoiceDeleteDraft(btn.dataset.draft); break;
         case 'app-invoice-modal-close':
           var invModal = $('yb-app-invoice-modal');
           if (invModal) invModal.hidden = true;
