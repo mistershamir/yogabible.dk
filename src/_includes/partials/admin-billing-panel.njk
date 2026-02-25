@@ -231,6 +231,15 @@
     </div>
   </div>
 
+  {# ── Extra Invoice Lines ── #}
+  <div class="yb-billing__section">
+    <div class="yb-billing__extra-header">
+      <h3 class="yb-billing__section-title" style="margin:0">{{ t.billing_extra_lines }}</h3>
+      <button type="button" class="yb-btn yb-btn--outline yb-btn--sm" data-action="billing-add-line">+ {{ t.billing_add_line }}</button>
+    </div>
+    <div id="yb-billing-extra-lines"></div>
+  </div>
+
   {# ── Step 3: Preview ── #}
   <div class="yb-billing__section">
     <h3 class="yb-billing__section-title">{{ t.billing_step_preview }}</h3>

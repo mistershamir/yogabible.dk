@@ -23990,6 +23990,23 @@ a.yb-appt__phone-link:hover { text-decoration: underline; }
   font-weight: 600; font-size: 0.85rem; border-left: 1px solid #E8E4E0;
 }
 
+/* Extra lines */
+.yb-billing__extra-header { display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.5rem; }
+.yb-billing__extra-line {
+  display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem;
+}
+.yb-billing__extra-line input[type="text"] {
+  flex: 1; min-width: 0;
+}
+.yb-billing__extra-line .yb-billing__input-with-suffix { flex: 0 0 180px; }
+.yb-billing__extra-remove {
+  width: 28px; height: 28px; padding: 0; border: none; background: none;
+  cursor: pointer; font-size: 1.1rem; color: #6F6A66; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  transition: background 0.15s, color 0.15s;
+}
+.yb-billing__extra-remove:hover { background: #fee2e2; color: #dc2626; }
+
 /* Preview */
 .yb-billing__preview { margin-top: 0.5rem; }
 .yb-billing__preview-empty { color: #6F6A66; font-size: 0.85rem; }

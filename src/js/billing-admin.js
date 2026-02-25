@@ -28,6 +28,7 @@
   var currentBookedEmail = null;
   var busy = false;
   var applicantsCache = []; // cached from Firestore
+  var extraLines = []; // { description, amount } — custom lines appended to invoice
 
   /* ══════════════════════════════════════════
      HELPERS
@@ -506,6 +507,51 @@
   }
 
   /* ══════════════════════════════════════════
+     EXTRA INVOICE LINES
+     ══════════════════════════════════════════ */
+  function addExtraLine() {
+    extraLines.push({ description: '', amount: 0 });
+    renderExtraLines();
+    updatePreview();
+    updateBtnState();
+  }
+
+  function removeExtraLine(index) {
+    extraLines.splice(index, 1);
+    renderExtraLines();
+    updatePreview();
+    updateBtnState();
+  }
+
+  function renderExtraLines() {
+    var container = $('yb-billing-extra-lines');
+    if (!container) return;
+    if (!extraLines.length) { container.innerHTML = ''; return; }
+
+    container.innerHTML = extraLines.map(function (line, i) {
+      return '<div class="yb-billing__extra-line" data-line-index="' + i + '">'
+        + '<input type="text" class="yb-lead__search-input yb-billing__extra-desc" value="' + esc(line.description) + '" placeholder="' + t('billing_extra_desc_ph') + '" data-field="desc" data-idx="' + i + '">'
+        + '<div class="yb-billing__input-with-suffix">'
+        + '<input type="number" step="1" value="' + (line.amount || '') + '" placeholder="0" data-field="amount" data-idx="' + i + '">'
+        + '<span class="yb-billing__input-suffix">DKK</span>'
+        + '</div>'
+        + '<button type="button" class="yb-billing__extra-remove" data-action="billing-remove-line" data-idx="' + i + '">&times;</button>'
+        + '</div>';
+    }).join('');
+  }
+
+  function syncExtraLineFromInput(el) {
+    var idx = parseInt(el.dataset.idx);
+    if (isNaN(idx) || idx < 0 || idx >= extraLines.length) return;
+    if (el.dataset.field === 'desc') {
+      extraLines[idx].description = el.value;
+    } else if (el.dataset.field === 'amount') {
+      extraLines[idx].amount = parseFloat(el.value) || 0;
+    }
+    updatePreview();
+  }
+
+  /* ══════════════════════════════════════════
      PREVIEW
      ══════════════════════════════════════════ */
   function getFormValues() {
@@ -517,32 +563,43 @@
   }
 
   function buildLines(vals) {
-    if (!vals.total || !vals.startMonth) return [];
-    var parts = vals.startMonth.split('-');
-    var year = parseInt(parts[0]);
-    var month = parseInt(parts[1]) - 1;
-    var perInstalment = Math.round((vals.total / vals.instalments) * 100) / 100;
     var lines = [];
 
-    for (var i = 0; i < vals.instalments; i++) {
-      var m = (month + i) % 12;
-      var y = year + Math.floor((month + i) / 12);
-      var dateStr = formatDate(y, m, 1);
-      var isoStr = isoDate(y, m, 1);
-      var desc;
-      if (vals.instalments === 1) {
-        desc = (vals.description ? vals.description + ' — ' : '') + t('billing_line_full_payment');
-      } else {
-        desc = (vals.description ? vals.description + ' — ' : '')
-          + t('billing_line_instalment') + ' ' + (i + 1) + ' ' + t('billing_line_of') + ' ' + vals.instalments
-          + ' — ' + dateStr;
+    // Instalment lines (from total + start month)
+    if (vals.total && vals.startMonth) {
+      var parts = vals.startMonth.split('-');
+      var year = parseInt(parts[0]);
+      var month = parseInt(parts[1]) - 1;
+      var perInstalment = Math.round((vals.total / vals.instalments) * 100) / 100;
+
+      for (var i = 0; i < vals.instalments; i++) {
+        var m = (month + i) % 12;
+        var y = year + Math.floor((month + i) / 12);
+        var dateStr = formatDate(y, m, 1);
+        var isoStr = isoDate(y, m, 1);
+        var desc;
+        if (vals.instalments === 1) {
+          desc = (vals.description ? vals.description + ' — ' : '') + t('billing_line_full_payment');
+        } else {
+          desc = (vals.description ? vals.description + ' — ' : '')
+            + t('billing_line_instalment') + ' ' + (i + 1) + ' ' + t('billing_line_of') + ' ' + vals.instalments
+            + ' — ' + dateStr;
+        }
+
+        var amount = (i === vals.instalments - 1) ? vals.total - (perInstalment * (vals.instalments - 1)) : perInstalment;
+        amount = Math.round(amount * 100) / 100;
+
+        lines.push({ description: desc, unitNetPrice: amount, quantity: 1, date: isoStr, month: m, year: y });
       }
-
-      var amount = (i === vals.instalments - 1) ? vals.total - (perInstalment * (vals.instalments - 1)) : perInstalment;
-      amount = Math.round(amount * 100) / 100;
-
-      lines.push({ description: desc, unitNetPrice: amount, quantity: 1, date: isoStr, month: m, year: y });
     }
+
+    // Extra custom lines
+    extraLines.forEach(function (el) {
+      if (el.description && el.amount) {
+        lines.push({ description: el.description, unitNetPrice: el.amount, quantity: 1 });
+      }
+    });
+
     return lines;
   }
 
@@ -551,13 +608,18 @@
     var el = $('yb-billing-preview');
     if (!el) return;
 
-    if (!vals.total || !vals.startMonth) {
+    var lines = buildLines(vals);
+    var hasInstalments = vals.total && vals.startMonth;
+    var hasExtraLines = extraLines.some(function (l) { return l.description && l.amount; });
+
+    if (!hasInstalments && !hasExtraLines) {
       el.innerHTML = '<p class="yb-billing__preview-empty">' + t('billing_preview_empty') + '</p>';
       return;
     }
 
-    var lines = buildLines(vals);
-    var perInstalment = lines.length ? lines[0].unitNetPrice : 0;
+    var instalmentLines = hasInstalments ? lines.filter(function (l) { return l.date; }) : [];
+    var perInstalment = instalmentLines.length ? instalmentLines[0].unitNetPrice : 0;
+    var grandTotal = lines.reduce(function (sum, l) { return sum + l.unitNetPrice; }, 0);
     var custName = selectedCustomer ? selectedCustomer.name : (selectedApplicant ? selectedApplicant.name : null);
 
     var html = '';
@@ -574,9 +636,9 @@
     if (vals.description) {
       html += '<div class="yb-billing__preview-row"><span class="yb-billing__preview-label">' + t('billing_inv_description') + '</span><span>' + esc(vals.description) + '</span></div>';
     }
-    html += '<div class="yb-billing__preview-row"><span class="yb-billing__preview-label">' + t('billing_inv_total') + '</span><span class="yb-billing__preview-amount">' + formatAmount(vals.total) + '</span></div>';
-    if (vals.instalments > 1) {
-      html += '<div class="yb-billing__preview-row"><span class="yb-billing__preview-label">' + t('billing_inv_instalments') + '</span><span>' + vals.instalments + ' (' + formatAmount(perInstalment) + ' ' + t('billing_preview_per_instalment') + ')</span></div>';
+    html += '<div class="yb-billing__preview-row"><span class="yb-billing__preview-label">' + t('billing_inv_total') + '</span><span class="yb-billing__preview-amount">' + formatAmount(grandTotal) + '</span></div>';
+    if (instalmentLines.length > 1) {
+      html += '<div class="yb-billing__preview-row"><span class="yb-billing__preview-label">' + t('billing_inv_instalments') + '</span><span>' + instalmentLines.length + ' (' + formatAmount(perInstalment) + ' ' + t('billing_preview_per_instalment') + ')</span></div>';
     }
     var notesVal = ($('yb-billing-notes') || {}).value || '';
     if (notesVal) {
@@ -604,7 +666,9 @@
     if (!btn) return;
     var vals = getFormValues();
     var hasCustomer = selectedCustomer || selectedApplicant;
-    var ready = hasCustomer && vals.total && vals.startMonth;
+    var hasInstalments = vals.total && vals.startMonth;
+    var hasExtraLines = extraLines.some(function (l) { return l.description && l.amount; });
+    var ready = hasCustomer && (hasInstalments || hasExtraLines);
     btn.classList.toggle('yb-btn--muted', !ready);
   }
 
@@ -615,10 +679,15 @@
     console.log('[billing] Create invoice clicked');
     if (busy) return;
 
-    // Validate amount + month first
+    // Validate: need instalments OR extra lines
     var vals = getFormValues();
-    if (!vals.total) { console.log('[billing] Blocked: no amount'); toast(t('billing_error_no_amount'), true); return; }
-    if (!vals.startMonth) { console.log('[billing] Blocked: no month'); toast(t('billing_error_no_month'), true); return; }
+    var hasInstalments = vals.total && vals.startMonth;
+    var hasExtraLines = extraLines.some(function (l) { return l.description && l.amount; });
+    if (!hasInstalments && !hasExtraLines) {
+      console.log('[billing] Blocked: no amount/month and no extra lines');
+      toast(t('billing_error_no_amount'), true);
+      return;
+    }
 
     if (!selectedCustomer && !selectedApplicant) {
       console.log('[billing] Blocked: no customer or applicant');
@@ -784,8 +853,9 @@
     if (busy) return;
 
     var vals = getFormValues();
-    if (!vals.total) { toast(t('billing_error_no_amount'), true); return; }
-    if (!vals.startMonth) { toast(t('billing_error_no_month'), true); return; }
+    var hasInstalments = vals.total && vals.startMonth;
+    var hasExtraLines = extraLines.some(function (l) { return l.description && l.amount; });
+    if (!hasInstalments && !hasExtraLines) { toast(t('billing_error_no_amount'), true); return; }
     if (!selectedCustomer && !selectedApplicant) { toast(t('billing_error_no_customer'), true); return; }
 
     var btn = document.querySelector('[data-action="billing-create-book-send"]');
@@ -1334,6 +1404,10 @@
     var notesCustomRow = $('yb-billing-notes-custom-row');
     if (notesCustomRow) notesCustomRow.hidden = true;
 
+    // Clear extra lines
+    extraLines = [];
+    renderExtraLines();
+
     var now = new Date();
     var monthInput = $('yb-billing-start-month');
     if (monthInput) monthInput.value = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0');
@@ -1367,6 +1441,8 @@
         break;
       case 'billing-source-economic': switchSource('economic'); break;
       case 'billing-source-applicants': switchSource('applicants'); break;
+      case 'billing-add-line': addExtraLine(); break;
+      case 'billing-remove-line': removeExtraLine(parseInt(el.dataset.idx)); break;
       case 'billing-create-invoice': createInvoice(); break;
       case 'billing-create-book-send': createBookAndSend(); break;
       case 'billing-reset-form': resetForm(); break;
@@ -1416,6 +1492,14 @@
         handleAction(btn.dataset.action, btn);
       }
       if (e.target.closest('[data-close-billing-modal]')) closeDraftModal();
+    });
+
+    // Live sync for extra line inputs (delegated)
+    document.addEventListener('input', function (e) {
+      var el = e.target;
+      if (el.dataset && el.dataset.idx !== undefined && (el.dataset.field === 'desc' || el.dataset.field === 'amount')) {
+        syncExtraLineFromInput(el);
+      }
     });
 
     // Search on enter
