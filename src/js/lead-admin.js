@@ -2669,6 +2669,19 @@
       html += '<div class="yb-lead__card-row"><span class="yb-lead__card-label">' + t('invoice_last_sent') + '</span><span class="yb-lead__card-value">' + formatSentDate(inv.sentAt) + '</span></div>';
     }
 
+    // Manual payment status
+    var payStatus = inv.paymentStatus || 'pending';
+    html += '<div class="yb-lead__card-row" style="margin-top:0.5rem">';
+    html += '<span class="yb-lead__card-label">' + t('invoice_payment_status') + '</span>';
+    html += '<span class="yb-lead__card-value">';
+    html += '<select id="yb-app-invoice-payment-status" class="yb-admin__select" style="max-width:160px;font-size:0.8rem" data-action="app-invoice-payment-status">';
+    html += '<option value="pending"' + (payStatus === 'pending' ? ' selected' : '') + '>' + t('invoice_pay_pending') + '</option>';
+    html += '<option value="paid"' + (payStatus === 'paid' ? ' selected' : '') + '>' + t('invoice_pay_paid') + '</option>';
+    html += '<option value="unpaid"' + (payStatus === 'unpaid' ? ' selected' : '') + '>' + t('invoice_pay_unpaid') + '</option>';
+    html += '<option value="partial"' + (payStatus === 'partial' ? ' selected' : '') + '>' + t('invoice_pay_partial') + '</option>';
+    html += '</select>';
+    html += '</span></div>';
+
     // Action buttons
     html += '<div class="yb-app-invoice__actions">';
     if (inv.bookedNumber) {
@@ -2704,15 +2717,22 @@
   }
 
   /* ── Invoice Actions from Application Profile ── */
+  /**
+   * Look up invoices by customer email.
+   * Strategy: search e-conomic customers by email → then searchInvoicesByCustomer
+   * Falls back to searchInvoicesByRef if email yields nothing.
+   */
   function appInvoiceLookup(refText) {
     var btn = document.querySelector('[data-action="app-invoice-lookup"]');
     if (btn) { btn.textContent = '\ud83d\udd0d ' + t('invoice_looking_up'); btn.classList.add('yb-btn--muted'); }
 
-    billingApiCall({ action: 'searchInvoicesByRef', refText: refText }).then(function (res) {
-      if (btn) { btn.textContent = '\ud83d\udd0d ' + t('invoice_lookup'); btn.classList.remove('yb-btn--muted'); }
-      if (!res.ok) { toast(res.error, true); return; }
+    var email = currentApp ? (currentApp.email || '') : '';
 
-      var data = res.data;
+    function resetBtn() {
+      if (btn) { btn.textContent = '\ud83d\udd0d ' + t('invoice_lookup'); btn.classList.remove('yb-btn--muted'); }
+    }
+
+    function handleInvoiceResults(data) {
       var bookedList = data.booked || [];
       var draftList = data.drafts || [];
 
@@ -2722,10 +2742,9 @@
       }
 
       // Pick the most recent invoice (prefer booked over draft)
-      var inv;
       if (bookedList.length) {
-        inv = bookedList[0];
-        var invoiceData = {
+        var inv = bookedList[0];
+        saveAppInvoiceData({
           bookedNumber: inv.bookedInvoiceNumber,
           status: 'booked',
           amount: inv.grossAmount || inv.netAmount || 0,
@@ -2733,24 +2752,53 @@
           dueDate: inv.dueDate || '',
           remainder: inv.remainder,
           createdAt: new Date().toISOString()
-        };
-        // Save to app doc
-        saveAppInvoiceData(invoiceData);
+        });
       } else {
-        inv = draftList[0];
-        var invoiceData = {
+        var inv = draftList[0];
+        saveAppInvoiceData({
           draftNumber: inv.draftInvoiceNumber,
           status: 'draft',
           amount: inv.grossAmount || inv.netAmount || 0,
           date: inv.date || '',
           createdAt: new Date().toISOString()
-        };
-        saveAppInvoiceData(invoiceData);
+        });
       }
-    }).catch(function (err) {
-      if (btn) { btn.textContent = '\ud83d\udd0d ' + t('invoice_lookup'); btn.classList.remove('yb-btn--muted'); }
-      toast(err.message, true);
-    });
+    }
+
+    // Primary: search by customer email
+    if (email) {
+      billingApiCall({ action: 'searchCustomers', query: email }).then(function (custRes) {
+        if (!custRes.ok || !custRes.data || !custRes.data.length) {
+          // No e-conomic customer found — fallback to ref search
+          return fallbackRefSearch();
+        }
+        // Find exact email match
+        var match = custRes.data.find(function (c) { return c.email && c.email.toLowerCase() === email.toLowerCase(); });
+        if (!match) match = custRes.data[0]; // use closest match
+
+        // Search invoices by customer number
+        return billingApiCall({ action: 'searchInvoicesByCustomer', customerNumber: match.customerNumber }).then(function (invRes) {
+          resetBtn();
+          if (!invRes.ok) { toast(invRes.error, true); return; }
+          handleInvoiceResults(invRes.data);
+        });
+      }).catch(function (err) {
+        resetBtn();
+        toast(err.message, true);
+      });
+    } else {
+      // No email — try ref search directly
+      fallbackRefSearch();
+    }
+
+    function fallbackRefSearch() {
+      if (!refText) { resetBtn(); toast(t('invoice_not_found')); return; }
+      billingApiCall({ action: 'searchInvoicesByRef', refText: refText }).then(function (res) {
+        resetBtn();
+        if (!res.ok) { toast(res.error, true); return; }
+        handleInvoiceResults(res.data);
+      }).catch(function (err) { resetBtn(); toast(err.message, true); });
+    }
   }
 
   function appInvoiceRefresh(refText) {
@@ -2759,7 +2807,7 @@
 
     var inv = currentApp && currentApp.invoice;
     if (!inv || !inv.bookedNumber) {
-      // No booked number — try lookup by ref
+      // No booked number — try lookup
       appInvoiceLookup(refText);
       if (btn) { btn.textContent = '\u21bb ' + t('invoice_refresh'); btn.classList.remove('yb-btn--muted'); }
       return;
@@ -2786,6 +2834,13 @@
       if (btn) { btn.textContent = '\u21bb ' + t('invoice_refresh'); btn.classList.remove('yb-btn--muted'); }
       toast(err.message, true);
     });
+  }
+
+  function saveAppPaymentStatus(status) {
+    if (!currentApp || !currentApp.invoice) return;
+    currentApp.invoice.paymentStatus = status;
+    saveAppInvoiceData({ paymentStatus: status });
+    toast(isDa ? 'Betalingsstatus gemt' : 'Payment status saved');
   }
 
   function appInvoiceQuickView(bookedNumber) {
@@ -3870,6 +3925,13 @@
     document.addEventListener('input', function (e) {
       if (e.target.id === 'yb-sms-message') {
         updateSMSCharCount();
+      }
+    });
+
+    // Invoice payment status change (delegated)
+    document.addEventListener('change', function (e) {
+      if (e.target.id === 'yb-app-invoice-payment-status') {
+        saveAppPaymentStatus(e.target.value);
       }
     });
 

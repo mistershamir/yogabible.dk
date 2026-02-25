@@ -1934,6 +1934,141 @@
     }).join('');
   }
 
+  /* ═══════════════════════════════════════
+     USERS — INVOICE SECTION
+     ═══════════════════════════════════════ */
+  function loadUserInvoices(user) {
+    var el = $('yb-admin-user-invoices');
+    if (!el) return;
+
+    var email = (user && user.email) || '';
+    if (!email) {
+      el.innerHTML = '<p class="yb-lead__empty-text">' + t('users_no_invoices') + '</p>';
+      return;
+    }
+
+    el.innerHTML = '<p class="yb-admin__empty" style="color:var(--yb-muted)">' + t('users_invoice_looking_up') + '</p>';
+
+    // Search e-conomic customers by email
+    var token;
+    firebase.auth().currentUser.getIdToken().then(function (tk) {
+      token = tk;
+      return fetch('/.netlify/functions/economic-admin', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+        body: JSON.stringify({ action: 'searchCustomers', query: email })
+      }).then(function (r) { return r.json(); });
+    }).then(function (custRes) {
+      if (!custRes.ok || !custRes.data || !custRes.data.length) {
+        el.innerHTML = '<p class="yb-lead__empty-text">' + t('users_no_invoices') + '</p>' +
+          '<button class="yb-btn yb-btn--outline yb-btn--sm" data-action="user-invoice-lookup">\ud83d\udd0d ' + t('users_invoice_lookup') + '</button>';
+        return;
+      }
+
+      // Find best match by email
+      var match = custRes.data.find(function (c) { return c.email && c.email.toLowerCase() === email.toLowerCase(); });
+      if (!match) match = custRes.data[0];
+
+      // Fetch invoices for this customer
+      return fetch('/.netlify/functions/economic-admin', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+        body: JSON.stringify({ action: 'searchInvoicesByCustomer', customerNumber: match.customerNumber })
+      }).then(function (r) { return r.json(); }).then(function (invRes) {
+        if (!invRes.ok) {
+          el.innerHTML = '<p class="yb-lead__empty-text">' + t('users_no_invoices') + '</p>';
+          return;
+        }
+        renderUserInvoices(el, invRes.data, user);
+      });
+    }).catch(function (err) {
+      console.error('[course-admin] User invoice lookup error:', err);
+      el.innerHTML = '<p class="yb-lead__empty-text">' + t('users_no_invoices') + '</p>';
+    });
+  }
+
+  function renderUserInvoices(el, data, user) {
+    var booked = data.booked || [];
+    var drafts = data.drafts || [];
+
+    if (!booked.length && !drafts.length) {
+      el.innerHTML = '<p class="yb-lead__empty-text">' + t('users_no_invoices') + '</p>';
+      return;
+    }
+
+    var html = '<div class="yb-admin__table-wrap"><table class="yb-admin__table"><thead><tr>' +
+      '<th>#</th><th>' + t('billing_col_type') + '</th><th>' + t('billing_col_date') + '</th>' +
+      '<th>' + t('billing_col_total') + '</th><th>' + t('billing_col_remainder') + '</th>' +
+      '<th>' + t('billing_col_status') + '</th><th></th>' +
+      '</tr></thead><tbody>';
+
+    drafts.forEach(function (d) {
+      var total = d.grossAmount != null ? d.grossAmount : (d.netAmount || 0);
+      html += '<tr>' +
+        '<td>' + d.draftInvoiceNumber + '</td>' +
+        '<td><span class="yb-billing__type-badge yb-billing__type-badge--draft">' + t('billing_filter_draft') + '</span></td>' +
+        '<td>' + (d.date || '\u2014') + '</td>' +
+        '<td>' + formatInvAmount(total) + '</td>' +
+        '<td>\u2014</td>' +
+        '<td><span class="yb-billing__status--draft">' + t('billing_filter_draft') + '</span></td>' +
+        '<td><button class="yb-btn yb-btn--outline yb-btn--sm" data-action="user-invoice-view-draft" data-draft="' + d.draftInvoiceNumber + '">' + (lang === 'da' ? 'Vis' : 'View') + '</button></td>' +
+        '</tr>';
+    });
+
+    booked.forEach(function (inv) {
+      var total = inv.grossAmount != null ? inv.grossAmount : (inv.netAmount || 0);
+      var remainder = inv.remainder != null ? formatInvAmount(inv.remainder) : '\u2014';
+      var isPaid = inv.remainder != null && inv.remainder === 0;
+      var isPartial = inv.remainder != null && inv.remainder > 0 && inv.remainder < total;
+      var statusLabel = isPaid ? t('billing_status_paid') : (isPartial ? t('billing_status_partial') : t('billing_status_unpaid'));
+      var statusClass = isPaid ? 'yb-billing__status--paid' : (isPartial ? 'yb-billing__status--partial' : 'yb-billing__status--unpaid');
+
+      html += '<tr>' +
+        '<td>' + inv.bookedInvoiceNumber + '</td>' +
+        '<td><span class="yb-billing__type-badge yb-billing__type-badge--booked">' + t('billing_filter_booked') + '</span></td>' +
+        '<td>' + (inv.date || '\u2014') + '</td>' +
+        '<td>' + formatInvAmount(total) + '</td>' +
+        '<td>' + remainder + '</td>' +
+        '<td><span class="' + statusClass + '">' + statusLabel + '</span></td>' +
+        '<td><button class="yb-btn yb-btn--outline yb-btn--sm" data-action="user-invoice-view-booked" data-booked="' + inv.bookedInvoiceNumber + '">' + (lang === 'da' ? 'Vis' : 'View') + '</button></td>' +
+        '</tr>';
+    });
+
+    html += '</tbody></table></div>';
+
+    // Payment status selector
+    var payStatus = (user && user.invoicePaymentStatus) || 'pending';
+    html += '<div style="margin-top:0.75rem;display:flex;align-items:center;gap:0.5rem">';
+    html += '<label style="font-size:0.8rem;font-weight:600;color:var(--yb-muted)">' + t('invoice_payment_status') + ':</label>';
+    html += '<select id="yb-user-invoice-payment-status" class="yb-admin__select" style="max-width:160px;font-size:0.8rem">';
+    html += '<option value="pending"' + (payStatus === 'pending' ? ' selected' : '') + '>' + t('invoice_pay_pending') + '</option>';
+    html += '<option value="paid"' + (payStatus === 'paid' ? ' selected' : '') + '>' + t('invoice_pay_paid') + '</option>';
+    html += '<option value="unpaid"' + (payStatus === 'unpaid' ? ' selected' : '') + '>' + t('invoice_pay_unpaid') + '</option>';
+    html += '<option value="partial"' + (payStatus === 'partial' ? ' selected' : '') + '>' + t('invoice_pay_partial') + '</option>';
+    html += '</select></div>';
+
+    el.innerHTML = html;
+  }
+
+  function formatInvAmount(n) {
+    return new Intl.NumberFormat(lang === 'da' ? 'da-DK' : 'en-DK', { style: 'currency', currency: 'DKK', minimumFractionDigits: 2 }).format(n);
+  }
+
+  function saveUserPaymentStatus(status) {
+    var uid = state.userDetailUid;
+    if (!uid) return;
+    db.collection('users').doc(uid).update({
+      invoicePaymentStatus: status,
+      updated_at: firebase.firestore.FieldValue.serverTimestamp()
+    }).then(function () {
+      if (state.userDetail) state.userDetail.invoicePaymentStatus = status;
+      toast(lang === 'da' ? 'Betalingsstatus gemt' : 'Payment status saved');
+    }).catch(function (err) {
+      console.error('[course-admin] Save payment status error:', err);
+      toast(t('error_save'), true);
+    });
+  }
+
   function showUserDetail(uid) {
     state.userDetailUid = uid;
 
@@ -1965,6 +2100,7 @@
         loadUserEnrollments(uid, enrollments);
         loadUserProgress(uid, progress);
         loadUserConsents(uid, consents);
+        loadUserInvoices(u);
         renderUserNotesTimeline();
         populateEnrollCourseDropdown();
 
@@ -2323,6 +2459,17 @@
             });
           }
           break;
+        case 'user-invoice-lookup':
+          if (state.userDetail) loadUserInvoices(state.userDetail);
+          break;
+        case 'user-invoice-view-draft':
+          // Open billing modal for draft via billing-admin
+          if (window._ybBillingViewDraft) window._ybBillingViewDraft(btn.dataset.draft);
+          break;
+        case 'user-invoice-view-booked':
+          // Open billing modal for booked via billing-admin
+          if (window._ybBillingViewBooked) window._ybBillingViewBooked(btn.dataset.booked);
+          break;
 
         // Rich text toolbar actions
         case 'toolbar-bold': insertTag('bold'); break;
@@ -2383,6 +2530,9 @@
       if (e.target.classList.contains('yb-user-row-cb')) {
         var userId = e.target.getAttribute('data-id');
         if (userId) toggleUserSelect(userId);
+      }
+      if (e.target.id === 'yb-user-invoice-payment-status') {
+        saveUserPaymentStatus(e.target.value);
       }
     });
 
