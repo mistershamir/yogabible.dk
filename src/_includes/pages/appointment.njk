@@ -89,6 +89,10 @@
   var errorEl = document.getElementById('yb-appt-manage-error');
   var detailsEl = document.getElementById('yb-appt-manage-details');
   var successEl = document.getElementById('yb-appt-manage-success');
+  var cardEl = document.getElementById('yb-appt-manage-card');
+  var actionsEl = document.getElementById('yb-appt-manage-actions');
+  var cancelSection = document.getElementById('yb-appt-manage-cancel');
+  var rescheduleSection = document.getElementById('yb-appt-manage-reschedule');
 
   var adminToken = params.get('admin_token');
   var slotIndex = params.get('slot');
@@ -194,11 +198,6 @@
   // Render the page based on URL action parameter
   loadingEl.hidden = true;
   detailsEl.hidden = false;
-
-  var cardEl = document.getElementById('yb-appt-manage-card');
-  var actionsEl = document.getElementById('yb-appt-manage-actions');
-  var cancelSection = document.getElementById('yb-appt-manage-cancel');
-  var rescheduleSection = document.getElementById('yb-appt-manage-reschedule');
 
   // We show a simple management page
   cardEl.innerHTML = '<p style="color:#666;text-align:center;">' + T.your_appointment + '</p>' +
