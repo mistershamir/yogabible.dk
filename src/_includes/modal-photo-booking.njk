@@ -1,0 +1,144 @@
+{# ═══════════════════════════════════════════════════════
+   PHOTO SESSION REQUEST MODAL — Yoga Bible
+   Request-based booking for yoga photography.
+   3 preferred date/time suggestions → admin confirms or suggests alternative.
+
+   Steps:
+     Step 1: Enter details + suggest 3 date/time options
+     Step 2: Review summary + send request
+     Step 3: Success confirmation
+   ═══════════════════════════════════════════════════════ #}
+{% set lang = lang or "da" %}
+
+<div class="yb-pbook" id="yb-pbook-modal" aria-hidden="true">
+  <div class="yb-pbook__overlay" data-close-pbook></div>
+  <div class="yb-pbook__box">
+    <button class="yb-pbook__close" data-close-pbook type="button" aria-label="Close">&times;</button>
+
+    {# ── Step indicator (3 steps) ── #}
+    <div class="yb-pbook__steps">
+      <div class="yb-pbook__step-dot is-active" data-step="1">1</div>
+      <div class="yb-pbook__step-line"></div>
+      <div class="yb-pbook__step-dot" data-step="2">2</div>
+      <div class="yb-pbook__step-line"></div>
+      <div class="yb-pbook__step-dot" data-step="3">3</div>
+    </div>
+
+    {# ── Request badge ── #}
+    <div class="yb-pbook__request-badge">
+      <span>&#128247;</span>
+      <span data-yj-da="Forespørgsel — vi bekræfter inden for 48 timer" data-yj-en="Request — we'll confirm within 48 hours">
+        {% if lang == "en" %}Request — we'll confirm within 48 hours{% else %}Forespørgsel — vi bekræfter inden for 48 timer{% endif %}
+      </span>
+    </div>
+
+    {# ═══ STEP 1: Details + Date/Time Suggestions ═══ #}
+    <div class="yb-pbook__panel is-active" data-pbook-step="1">
+      <h2 class="yb-pbook__title" data-yj-da="Book en fotosession" data-yj-en="Book a Photo Session">
+        {% if lang == "en" %}Book a Photo Session{% else %}Book en fotosession{% endif %}
+      </h2>
+      <p class="yb-pbook__subtitle" data-yj-da="Foreslå 3 tidspunkter — vi bekræfter eller foreslår et alternativ." data-yj-en="Suggest 3 times — we'll confirm or propose an alternative.">
+        {% if lang == "en" %}Suggest 3 times — we'll confirm or propose an alternative.{% else %}Foreslå 3 tidspunkter — vi bekræfter eller foreslår et alternativ.{% endif %}
+      </p>
+
+      <form class="yb-pbook__form" id="yb-pbook-form">
+        {# Personal details #}
+        <div class="yb-pbook__field-row">
+          <div class="yb-pbook__field">
+            <label data-yj-da="Navn *" data-yj-en="Name *">{% if lang == "en" %}Name *{% else %}Navn *{% endif %}</label>
+            <input type="text" id="yb-pbook-name" required placeholder="{% if lang == 'en' %}Your full name{% else %}Dit fulde navn{% endif %}">
+          </div>
+          <div class="yb-pbook__field">
+            <label data-yj-da="Email *" data-yj-en="Email *">Email *</label>
+            <input type="email" id="yb-pbook-email" required placeholder="email@eksempel.dk">
+          </div>
+        </div>
+
+        <div class="yb-pbook__field-row">
+          <div class="yb-pbook__field">
+            <label data-yj-da="Telefon" data-yj-en="Phone">{% if lang == "en" %}Phone{% else %}Telefon{% endif %}</label>
+            <input type="tel" id="yb-pbook-phone" placeholder="+45 12345678">
+          </div>
+          <div class="yb-pbook__field">
+            <label data-yj-da="Lokation" data-yj-en="Location">{% if lang == "en" %}Location{% else %}Lokation{% endif %}</label>
+            <select id="yb-pbook-location">
+              <option value="studio" data-yj-da="Studio (Christianshavn)" data-yj-en="Studio (Christianshavn)">
+                {% if lang == "en" %}Studio (Christianshavn){% else %}Studio (Christianshavn){% endif %}
+              </option>
+              <option value="on-location" data-yj-da="On-location (efter aftale)" data-yj-en="On-location (by arrangement)">
+                {% if lang == "en" %}On-location (by arrangement){% else %}On-location (efter aftale){% endif %}
+              </option>
+            </select>
+          </div>
+        </div>
+
+        {# Date/time suggestions #}
+        <div class="yb-pbook__slots-header">
+          <p class="yb-pbook__slots-title" data-yj-da="Foreslå op til 3 tidspunkter *" data-yj-en="Suggest up to 3 times *">
+            {% if lang == "en" %}Suggest up to 3 times *{% else %}Foreslå op til 3 tidspunkter *{% endif %}
+          </p>
+          <p class="yb-pbook__slots-hint" data-yj-da="Mindst 1 forslag påkrævet" data-yj-en="At least 1 suggestion required">
+            {% if lang == "en" %}At least 1 suggestion required{% else %}Mindst 1 forslag påkrævet{% endif %}
+          </p>
+        </div>
+
+        {% for i in range(1, 4) %}
+        <div class="yb-pbook__slot-row{% if i == 1 %} yb-pbook__slot-row--required{% endif %}">
+          <span class="yb-pbook__slot-num">{{ i }}</span>
+          <div class="yb-pbook__slot-fields">
+            <input type="date" id="yb-pbook-date-{{ i }}" class="yb-pbook__slot-date" {% if i == 1 %}required{% endif %}>
+            <input type="time" id="yb-pbook-time-{{ i }}" class="yb-pbook__slot-time" {% if i == 1 %}required{% endif %} value="10:00" step="1800">
+          </div>
+        </div>
+        {% endfor %}
+
+        {# Message #}
+        <div class="yb-pbook__field">
+          <label data-yj-da="Besked (valgfri)" data-yj-en="Message (optional)">{% if lang == "en" %}Message (optional){% else %}Besked (valgfri){% endif %}</label>
+          <textarea id="yb-pbook-message" rows="2" placeholder="{% if lang == 'en' %}Anything you'd like us to know (moodboard, experience level, outfit ideas…){% else %}Noget du gerne vil fortælle os (moodboard, erfaringsniveau, outfit-ideer…){% endif %}"></textarea>
+        </div>
+
+        <button type="button" class="yb-btn yb-btn--primary yb-pbook__next-btn" id="yb-pbook-next-1"
+          data-yj-da="Se opsummering &rarr;" data-yj-en="Review summary &rarr;">
+          {% if lang == "en" %}Review summary &rarr;{% else %}Se opsummering &rarr;{% endif %}
+        </button>
+      </form>
+    </div>
+
+    {# ═══ STEP 2: Summary + Send ═══ #}
+    <div class="yb-pbook__panel" data-pbook-step="2">
+      <button class="yb-pbook__back" id="yb-pbook-back-2" type="button" data-yj-da="&larr; Tilbage" data-yj-en="&larr; Back">
+        {% if lang == "en" %}&larr; Back{% else %}&larr; Tilbage{% endif %}
+      </button>
+      <h2 class="yb-pbook__title" data-yj-da="Opsummering" data-yj-en="Summary">
+        {% if lang == "en" %}Summary{% else %}Opsummering{% endif %}
+      </h2>
+
+      <div class="yb-pbook__summary" id="yb-pbook-summary"></div>
+
+      <button type="button" class="yb-btn yb-btn--primary yb-pbook__submit-btn" id="yb-pbook-submit"
+        data-yj-da="Send forespørgsel" data-yj-en="Send Request">
+        {% if lang == "en" %}Send Request{% else %}Send forespørgsel{% endif %}
+      </button>
+    </div>
+
+    {# ═══ STEP 3: Success ═══ #}
+    <div class="yb-pbook__panel" data-pbook-step="3">
+      <div class="yb-pbook__success">
+        <div class="yb-pbook__success-icon">&#128247;</div>
+        <h2 class="yb-pbook__title" data-yj-da="Forespørgsel sendt!" data-yj-en="Request Sent!">
+          {% if lang == "en" %}Request Sent!{% else %}Forespørgsel sendt!{% endif %}
+        </h2>
+        <p class="yb-pbook__success-text" data-yj-da="Vi har modtaget din forespørgsel og vender tilbage med en bekræftelse inden for 48 timer. Tjek din email." data-yj-en="We've received your request and will confirm within 48 hours. Check your email.">
+          {% if lang == "en" %}We've received your request and will confirm within 48 hours. Check your email.{% else %}Vi har modtaget din forespørgsel og vender tilbage med en bekræftelse inden for 48 timer. Tjek din email.{% endif %}
+        </p>
+        <div id="yb-pbook-success-details"></div>
+        <button class="yb-btn yb-btn--primary" data-close-pbook type="button"
+          data-yj-da="Luk" data-yj-en="Close">
+          {% if lang == "en" %}Close{% else %}Luk{% endif %}
+        </button>
+      </div>
+    </div>
+
+  </div>{# end box #}
+</div>{# end modal #}

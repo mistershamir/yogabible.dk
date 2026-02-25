@@ -38,6 +38,7 @@
     : ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 
   var TYPE_DURATIONS = { 'info-session': 30, 'consultation': 30, 'intro-class': 60 };
+  var REQUEST_TYPES = ['intro-class']; // Types that are request-only (not instant booking)
 
   /* ══════════════════════════════════════════
      MODAL OPEN / CLOSE
@@ -226,6 +227,35 @@
   }
 
   /* ══════════════════════════════════════════
+     REQUEST MODE — toggle UI for request-only types
+     ══════════════════════════════════════════ */
+  function isRequestType() {
+    return REQUEST_TYPES.indexOf(selectedType) !== -1;
+  }
+
+  function updateRequestMode() {
+    var modal = $('yb-book-modal');
+    if (!modal) return;
+    var isReq = isRequestType();
+    // Toggle request badge visibility
+    var badge = modal.querySelector('.yb-book__request-badge');
+    if (badge) badge.style.display = isReq ? 'flex' : 'none';
+    // Update submit button text
+    var submitBtn = $('yb-book-submit');
+    if (submitBtn) {
+      if (isReq) {
+        submitBtn.textContent = t('Send anmodning', 'Send Request');
+        submitBtn.setAttribute('data-yj-da', 'Send anmodning');
+        submitBtn.setAttribute('data-yj-en', 'Send Request');
+      } else {
+        submitBtn.textContent = t('Bekræft aftale', 'Confirm Appointment');
+        submitBtn.setAttribute('data-yj-da', 'Bekræft aftale');
+        submitBtn.setAttribute('data-yj-en', 'Confirm Appointment');
+      }
+    }
+  }
+
+  /* ══════════════════════════════════════════
      STEP 3: SUMMARY + FORM
      ══════════════════════════════════════════ */
   function renderSummary() {
@@ -247,13 +277,25 @@
       'intro-class': 'Yoga Bible, Torvegade 66, 1400 København K'
     };
 
-    el.innerHTML = '<div class="yb-book__summary-card">' +
-      '<div class="yb-book__summary-row"><span class="yb-book__summary-label">' + t('Type', 'Type') + '</span><span>' + (typeLabels[selectedType] || selectedType) + '</span></div>' +
-      '<div class="yb-book__summary-row"><span class="yb-book__summary-label">' + t('Dato', 'Date') + '</span><span>' + dateFormatted + '</span></div>' +
-      '<div class="yb-book__summary-row"><span class="yb-book__summary-label">' + t('Tid', 'Time') + '</span><span style="font-weight:bold;color:#f75c03;">' + selectedTime + '</span></div>' +
+    var isReq = isRequestType();
+    var requestNotice = isReq
+      ? '<div class="yb-book__request-notice">' +
+          '<span style="margin-right:6px;">&#128233;</span>' +
+          t('Dette er en anmodning — vi bekræfter din tid inden for 24 timer.', 'This is a request — we\'ll confirm your time within 24 hours.') +
+        '</div>'
+      : '';
+
+    el.innerHTML = requestNotice +
+      '<div class="yb-book__summary-card">' +
+      '<div class="yb-book__summary-row"><span class="yb-book__summary-label">' + t('Type', 'Type') + '</span><span>' + (typeLabels[selectedType] || selectedType) + (isReq ? ' <span class="yb-book__req-chip">' + t('Anmodning', 'Request') + '</span>' : '') + '</span></div>' +
+      '<div class="yb-book__summary-row"><span class="yb-book__summary-label">' + (isReq ? t('Ønsket dato', 'Preferred date') : t('Dato', 'Date')) + '</span><span>' + dateFormatted + '</span></div>' +
+      '<div class="yb-book__summary-row"><span class="yb-book__summary-label">' + (isReq ? t('Ønsket tid', 'Preferred time') : t('Tid', 'Time')) + '</span><span style="font-weight:bold;color:#f75c03;">' + selectedTime + '</span></div>' +
       '<div class="yb-book__summary-row"><span class="yb-book__summary-label">' + t('Varighed', 'Duration') + '</span><span>' + (TYPE_DURATIONS[selectedType] || 30) + ' min</span></div>' +
       '<div class="yb-book__summary-row"><span class="yb-book__summary-label">' + t('Sted', 'Location') + '</span><span>' + (locationLabels[selectedType] || '') + '</span></div>' +
       '</div>';
+
+    // Update submit button text for request mode
+    updateRequestMode();
   }
 
   /* ══════════════════════════════════════════
@@ -270,7 +312,8 @@
     if (!name || !email) return;
 
     var btn = $('yb-book-submit');
-    if (btn) { btn.disabled = true; btn.textContent = t('Booker...', 'Booking...'); }
+    var isReq = isRequestType();
+    if (btn) { btn.disabled = true; btn.textContent = isReq ? t('Sender...', 'Sending...') : t('Booker...', 'Booking...'); }
 
     fetch(API, {
       method: 'POST',
@@ -293,12 +336,12 @@
         showSuccess();
       } else {
         alert(t('Fejl: ', 'Error: ') + (res.error || 'Unknown error'));
-        if (btn) { btn.disabled = false; btn.textContent = t('Bekræft aftale', 'Confirm Appointment'); }
+        if (btn) { btn.disabled = false; btn.textContent = isReq ? t('Send anmodning', 'Send Request') : t('Bekræft aftale', 'Confirm Appointment'); }
       }
     })
     .catch(function (err) {
       alert(t('Netværksfejl. Prøv igen.', 'Network error. Please try again.'));
-      if (btn) { btn.disabled = false; btn.textContent = t('Bekræft aftale', 'Confirm Appointment'); }
+      if (btn) { btn.disabled = false; btn.textContent = isReq ? t('Send anmodning', 'Send Request') : t('Bekræft aftale', 'Confirm Appointment'); }
     });
   }
 
@@ -307,10 +350,25 @@
 
     var d = new Date(selectedDate + 'T12:00:00');
     var dateFormatted = d.getDate() + '. ' + monthNames[d.getMonth()] + ' ' + d.getFullYear();
+    var isReq = isRequestType();
+
+    // Update success title and text for request mode
+    var titleEl = $('yb-book-modal').querySelector('[data-book-step="4"] .yb-book__title');
+    var textEl = $('yb-book-success-text');
+    if (isReq && titleEl) {
+      titleEl.textContent = t('Anmodning sendt!', 'Request Sent!');
+    }
+    if (isReq && textEl) {
+      textEl.textContent = t(
+        'Vi har modtaget din anmodning og vender tilbage med en bekræftelse inden for 24 timer. Tjek din email.',
+        'We\'ve received your request and will confirm within 24 hours. Check your email.'
+      );
+    }
 
     var detailsEl = $('yb-book-success-details');
     if (detailsEl) {
       detailsEl.innerHTML = '<div style="background:#F5F3F0;border-radius:8px;padding:16px;margin:16px 0;text-align:left;">' +
+        (isReq ? '<p style="margin:0 0 8px;color:#f75c03;font-weight:600;font-size:13px;">&#128233; ' + t('Anmodning — afventer bekræftelse', 'Request — awaiting confirmation') + '</p>' : '') +
         '<p style="margin:4px 0;">&#128197; <strong>' + dateFormatted + '</strong> ' + t('kl.', 'at') + ' <strong>' + selectedTime + '</strong></p>' +
         '<p style="margin:4px 0;">&#128205; ' + (selectedType === 'consultation' ? 'Online' : 'Yoga Bible, Torvegade 66') + '</p>' +
         '</div>';
@@ -348,6 +406,7 @@
           selectedType = btn.getAttribute('data-type');
           typesEl.querySelectorAll('[data-type]').forEach(function (b) { b.classList.remove('is-active'); });
           btn.classList.add('is-active');
+          updateRequestMode();
         });
       });
     }

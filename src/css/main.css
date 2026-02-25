@@ -23513,6 +23513,389 @@ button.yb-btn--outline-white:hover {
 }
 
 
+/* ─── Appointment Request Mode additions ─── */
+.yb-book__request-badge {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: #FFF8F0;
+  border: 1px solid #f75c03;
+  border-radius: 8px;
+  padding: 8px 14px;
+  margin-bottom: 12px;
+  font-size: 13px;
+  color: #f75c03;
+  font-weight: 600;
+}
+.yb-book__request-notice {
+  display: flex;
+  align-items: center;
+  background: #FFF8F0;
+  border: 1px dashed #f75c03;
+  border-radius: 8px;
+  padding: 10px 14px;
+  margin-bottom: 12px;
+  font-size: 13px;
+  color: #6F6A66;
+  line-height: 1.4;
+}
+.yb-book__req-chip {
+  display: inline-block;
+  background: #f75c03;
+  color: #fff;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  padding: 2px 8px;
+  border-radius: 20px;
+  margin-left: 6px;
+  vertical-align: middle;
+}
+.yb-book__type-req {
+  display: none;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: #f75c03;
+  background: #FFF8F0;
+  border: 1px solid #f75c03;
+  padding: 1px 8px;
+  border-radius: 20px;
+}
+.yb-book__type-btn[data-type="intro-class"] .yb-book__type-req {
+  display: inline-block;
+}
+
+
+/* ═══════════════════════════════════════════════════════════
+   PHOTO SESSION REQUEST MODAL (yb-pbook__*)
+   ═══════════════════════════════════════════════════════════ */
+.yb-pbook[aria-hidden="true"] { display: none; }
+.yb-pbook[aria-hidden="false"] {
+  display: flex;
+  position: fixed;
+  inset: 0;
+  z-index: 10001;
+  align-items: center;
+  justify-content: center;
+}
+.yb-pbook__overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 15, 15, 0.65);
+  backdrop-filter: blur(4px);
+  cursor: pointer;
+}
+.yb-pbook__box {
+  position: relative;
+  background: #fff;
+  border-radius: 16px;
+  padding: 32px 28px;
+  max-width: 520px;
+  width: calc(100% - 32px);
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.25);
+  z-index: 1;
+}
+.yb-pbook__close {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  width: 32px;
+  height: 32px;
+  border: none;
+  background: transparent;
+  font-size: 24px;
+  color: #999;
+  cursor: pointer;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s;
+}
+.yb-pbook__close:hover { background: #F5F3F0; }
+
+/* Step dots */
+.yb-pbook__steps {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0;
+  margin-bottom: 20px;
+}
+.yb-pbook__step-dot {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 2px solid #E8E4E0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 700;
+  color: #999;
+  background: #fff;
+  transition: all 0.2s;
+}
+.yb-pbook__step-dot.is-active {
+  background: #f75c03;
+  border-color: #f75c03;
+  color: #fff;
+}
+.yb-pbook__step-line {
+  width: 40px;
+  height: 2px;
+  background: #E8E4E0;
+  transition: background 0.2s;
+}
+.yb-pbook__step-line.is-active { background: #f75c03; }
+
+/* Panels */
+.yb-pbook__panel { display: none; }
+.yb-pbook__panel.is-active { display: block; animation: ybBookFadeIn 0.25s ease; }
+
+.yb-pbook__title {
+  font-size: 22px;
+  font-weight: 700;
+  margin: 0 0 4px;
+  color: #0F0F0F;
+}
+.yb-pbook__subtitle {
+  font-size: 14px;
+  color: #6F6A66;
+  margin: 0 0 20px;
+}
+
+/* Request badge */
+.yb-pbook__request-badge {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: #F5F3F0;
+  border: 1px solid #E8E4E0;
+  border-radius: 8px;
+  padding: 8px 14px;
+  margin-bottom: 12px;
+  font-size: 13px;
+  color: #6F6A66;
+  font-weight: 600;
+}
+
+/* Back button */
+.yb-pbook__back {
+  background: none;
+  border: none;
+  color: #6F6A66;
+  font-size: 14px;
+  cursor: pointer;
+  padding: 0;
+  margin-bottom: 12px;
+  display: inline-block;
+}
+.yb-pbook__back:hover { text-decoration: underline; }
+
+/* Form fields */
+.yb-pbook__form { margin-top: 0; }
+.yb-pbook__field-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-bottom: 0;
+}
+.yb-pbook__field {
+  margin-bottom: 12px;
+}
+.yb-pbook__field label {
+  display: block;
+  font-size: 13px;
+  font-weight: 600;
+  color: #0F0F0F;
+  margin-bottom: 4px;
+}
+.yb-pbook__field input,
+.yb-pbook__field textarea,
+.yb-pbook__field select {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid #f75c03;
+  border-radius: 12px;
+  font-size: 15px;
+  color: #0F0F0F;
+  background: #fff;
+  font-family: inherit;
+  transition: border-color 0.15s, box-shadow 0.15s;
+  box-sizing: border-box;
+}
+.yb-pbook__field input:focus,
+.yb-pbook__field textarea:focus,
+.yb-pbook__field select:focus {
+  outline: none;
+  border-color: #f75c03;
+  box-shadow: 0 0 0 3px rgba(247, 92, 3, 0.12);
+}
+
+/* Date/time suggestion slots */
+.yb-pbook__slots-header {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin-bottom: 8px;
+  margin-top: 4px;
+}
+.yb-pbook__slots-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: #0F0F0F;
+  margin: 0;
+}
+.yb-pbook__slots-hint {
+  font-size: 12px;
+  color: #999;
+  margin: 0;
+}
+.yb-pbook__slot-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 8px;
+  padding: 8px 12px;
+  background: #F5F3F0;
+  border-radius: 10px;
+  border: 1px solid #E8E4E0;
+}
+.yb-pbook__slot-row--required {
+  border-color: #f75c03;
+  background: #FFF8F0;
+}
+.yb-pbook__slot-num {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: #f75c03;
+  color: #fff;
+  font-size: 12px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.yb-pbook__slot-row:not(.yb-pbook__slot-row--required) .yb-pbook__slot-num {
+  background: #E8E4E0;
+  color: #6F6A66;
+}
+.yb-pbook__slot-fields {
+  display: flex;
+  gap: 8px;
+  flex: 1;
+}
+.yb-pbook__slot-date,
+.yb-pbook__slot-time {
+  padding: 8px 10px;
+  border: 1px solid #E8E4E0;
+  border-radius: 8px;
+  font-size: 14px;
+  font-family: inherit;
+  color: #0F0F0F;
+  background: #fff;
+  flex: 1;
+}
+.yb-pbook__slot-date:focus,
+.yb-pbook__slot-time:focus {
+  outline: none;
+  border-color: #f75c03;
+  box-shadow: 0 0 0 3px rgba(247, 92, 3, 0.12);
+}
+
+/* Next / Submit buttons */
+.yb-pbook__next-btn,
+.yb-pbook__submit-btn {
+  width: 100%;
+  margin-top: 16px;
+  padding: 14px;
+  font-size: 16px;
+  font-weight: 700;
+}
+
+/* Summary */
+.yb-pbook__summary-card {
+  background: #F5F3F0;
+  border-radius: 10px;
+  padding: 4px 0;
+  margin-bottom: 12px;
+}
+.yb-pbook__summary-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 8px 16px;
+  border-bottom: 1px solid #E8E4E0;
+  font-size: 14px;
+}
+.yb-pbook__summary-row:last-child { border-bottom: none; }
+.yb-pbook__summary-label { color: #999; }
+
+.yb-pbook__summary-slots {
+  margin-top: 12px;
+}
+.yb-pbook__summary-slots-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: #0F0F0F;
+  margin: 0 0 8px;
+}
+.yb-pbook__summary-slot {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 14px;
+  background: #FFF8F0;
+  border: 1px solid #f75c03;
+  border-radius: 8px;
+  margin-bottom: 6px;
+  font-size: 14px;
+}
+.yb-pbook__summary-slot-num {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: #f75c03;
+  color: #fff;
+  font-size: 11px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+/* Success */
+.yb-pbook__success {
+  text-align: center;
+  padding: 16px 0;
+}
+.yb-pbook__success-icon {
+  font-size: 48px;
+  margin-bottom: 12px;
+}
+.yb-pbook__success-text {
+  color: #6F6A66;
+  font-size: 15px;
+  margin: 8px 0 16px;
+  line-height: 1.5;
+}
+
+/* Mobile */
+@media (max-width: 520px) {
+  .yb-pbook__box { padding: 24px 20px; border-radius: 12px; }
+  .yb-pbook__field-row { grid-template-columns: 1fr; }
+  .yb-pbook__slot-fields { flex-direction: column; }
+}
+
+
 /* ═══════════════════════════════════════════════════════════
    ADMIN APPOINTMENTS — Calendar View (yb-appt-*)
    ═══════════════════════════════════════════════════════════ */

@@ -1,6 +1,6 @@
 {% set t = i18n.yogaphotography[lang or "da"] %}
 {% set lp = "/en" if lang == "en" else "" %}
-{% set mailto_book = "mailto:info@yogabible.dk?subject=Booking%20af%20yoga%20fotosession&body=Hej%20Yoga%20Bible%0A%0AJeg%20vil%20gerne%20booke%20en%20yoga%20fotosession.%0A%0ANavn:%0ATelefon:%0A%0A%C3%98nsket%20dato:%0ALokation:%0AKort%20beskrivelse:%0A%0AVenlig%20hilsen%0A" %}
+{# Photo booking now uses the request modal instead of mailto #}
 {% set mailto_ask = "mailto:info@yogabible.dk?subject=Sp%C3%B8rgsm%C3%A5l%20til%20yoga%20fotosession&body=Hej%20Yoga%20Bible%0A%0AJeg%20har%20et%20sp%C3%B8rgsm%C3%A5l%20om%20yoga%20fotosession:%0A%0A" %}
 
 {# ── Models data array for loop ── #}
@@ -63,7 +63,7 @@
     <p class="yb-hero__subtitle">{{ t.hero_subtitle }}</p>
     <div class="yb-hero__line"></div>
     <div class="yb-hero__ctas">
-      <a href="{{ mailto_book }}" class="yb-btn yb-btn--primary yb-btn--large">{{ t.hero_cta }}</a>
+      <button class="yb-btn yb-btn--primary yb-btn--large" data-open-photo-booking>{{ t.hero_cta }}</button>
     </div>
     <div class="yb-hero__trust">
       <span>{{ t.hero_trust1 }}</span>
@@ -152,7 +152,7 @@
 
         {# CTA row #}
         <div class="yphoto-session__ctas">
-          <a class="yb-btn yb-btn--primary" href="{{ mailto_book }}">{{ t.session_cta_book }}</a>
+          <button class="yb-btn yb-btn--primary" data-open-photo-booking>{{ t.session_cta_book }}</button>
           <a class="yb-btn yb-btn--outline" href="{{ mailto_ask }}">{{ t.session_cta_ask }}</a>
         </div>
         <p class="yphoto-session__note">{{ t.session_note }}</p>
@@ -193,7 +193,7 @@
         </ul>
 
         <div class="yphoto-prepfaq__card-foot">
-          <a class="yb-btn yb-btn--primary" href="{{ mailto_book }}">{{ t.prep_cta }}</a>
+          <button class="yb-btn yb-btn--primary" data-open-photo-booking>{{ t.prep_cta }}</button>
           <p class="yphoto-prepfaq__note">{{ t.prep_note }}</p>
         </div>
       </div>
@@ -225,7 +225,7 @@
 
         <div class="yphoto-prepfaq__card-foot yphoto-prepfaq__card-foot--split">
           <a class="yb-btn yb-btn--ghost" href="{{ mailto_ask }}">{{ t.faq_cta_ask }}</a>
-          <a class="yb-btn yb-btn--primary" href="{{ mailto_book }}">{{ t.faq_cta_book }}</a>
+          <button class="yb-btn yb-btn--primary" data-open-photo-booking>{{ t.faq_cta_book }}</button>
         </div>
       </div>
 
@@ -255,7 +255,7 @@
           <span>{{ t.quote1_kicker }}</span>
         </div>
         <h2 class="yphoto-quote__headline">{{ t.quote1_text }}</h2>
-        <a class="yb-btn yb-btn--primary" href="{{ mailto_book }}">{{ t.quote1_cta }}</a>
+        <button class="yb-btn yb-btn--primary" data-open-photo-booking>{{ t.quote1_cta }}</button>
         <p class="yphoto-quote__micro">{{ t.quote1_micro }}</p>
       </div>
     </div>
@@ -288,9 +288,9 @@
     <img class="yphoto-interstitial__img" src="{{ 'yoga-bible-DK/yogaphotography/interstitial-1' | cloudimg('w_1200,h_1600,c_fill') }}" alt="" loading="lazy" decoding="async" />
     <div class="yphoto-interstitial__overlay">
       <blockquote class="yphoto-interstitial__quote">{{ t.interstitial1_quote }}</blockquote>
-      <a class="yb-btn yb-btn--primary" href="{{ mailto_book }}">
+      <button class="yb-btn yb-btn--primary" data-open-photo-booking>
         {{ t.interstitial1_cta }}
-      </a>
+      </button>
     </div>
   </div>
 </section>
@@ -303,9 +303,9 @@
     <img class="yphoto-interstitial__img" src="{{ 'yoga-bible-DK/yogaphotography/interstitial-2' | cloudimg('w_1200,h_1600,c_fill') }}" alt="" loading="lazy" decoding="async" />
     <div class="yphoto-interstitial__overlay">
       <blockquote class="yphoto-interstitial__quote">{{ t.interstitial2_quote }}</blockquote>
-      <a class="yb-btn yb-btn--primary" href="{{ mailto_book }}">
+      <button class="yb-btn yb-btn--primary" data-open-photo-booking>
         {{ t.interstitial2_cta }}
-      </a>
+      </button>
     </div>
   </div>
 </section>
@@ -318,9 +318,9 @@
     <img class="yphoto-interstitial__img" src="{{ 'yoga-bible-DK/yogaphotography/interstitial-3' | cloudimg('w_1200,h_1600,c_fill') }}" alt="" loading="lazy" decoding="async" />
     <div class="yphoto-interstitial__overlay">
       <blockquote class="yphoto-interstitial__quote">{{ t.interstitial3_quote }}</blockquote>
-      <a class="yb-btn yb-btn--primary" href="{{ mailto_book }}">
+      <button class="yb-btn yb-btn--primary" data-open-photo-booking>
         {{ t.interstitial3_cta }}
-      </a>
+      </button>
     </div>
   </div>
 </section>
@@ -384,7 +384,7 @@
   <div class="container">
     <h2 class="cta-section__title">{{ t.cta_title }}</h2>
     <p class="cta-section__text">{{ t.cta_text }}</p>
-    <a href="{{ mailto_book }}" class="btn btn--large btn--primary">{{ t.cta_btn }}</a>
+    <button class="btn btn--large btn--primary" data-open-photo-booking>{{ t.cta_btn }}</button>
   </div>
 </section>
 
