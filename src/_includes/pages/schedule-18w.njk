@@ -1,11 +1,6 @@
 {# CLOUDINARY: yoga-bible-DK/schedule-pages/18w/ — hero and og images #}
 {% set t = i18n.schedule_18w[lang or "da"] %}
 
-{# ── PERSONALIZED GREETING ────────────────────────────── #}
-<div id="sched18-greeting" style="display:none;background:#FFF8F3;border-left:4px solid #f75c03;padding:14px 24px;max-width:700px;margin:0 auto;">
-  <p style="font-size:.92rem;font-weight:600;color:#0F0F0F;">{{ t.greetingHello }} <span id="sched18-first-name"></span>! 👋 {{ t.greetingText }}</p>
-</div>
-
 <section id="schedule-18w">
 
   {# ── HERO ─────────────────────────────────────────────── #}
@@ -714,17 +709,6 @@
     var tid = params.get('tid');
     var tok = params.get('tok');
     if (!tid || !tok) return;
-    fetch('/.netlify/functions/schedule-token?tid=' + encodeURIComponent(tid) + '&tok=' + encodeURIComponent(tok))
-      .then(function(r) { return r.json(); })
-      .then(function(d) {
-        if (d.ok && d.firstName) {
-          var nameEl = document.getElementById('sched18-first-name');
-          var greetEl = document.getElementById('sched18-greeting');
-          if (nameEl) nameEl.textContent = d.firstName;
-          if (greetEl) greetEl.style.display = 'block';
-        }
-      })
-      .catch(function() {});
   })();
 
 })();
