@@ -50,27 +50,36 @@
   <div style="max-width:700px;margin:0 auto;padding:32px 24px 0;">
     <p style="font-size:.72rem;text-transform:uppercase;letter-spacing:.14em;color:#6F6A66;font-weight:700;margin-bottom:16px;">{{ t.hoursTitle }}</p>
     {% set hoursData = [
-      { pct: 30, hours: 60, color: "#f75c03", key: "hLabel0" },
-      { pct: 5,  hours: 10, color: "#ff9966", key: "hLabel1" },
-      { pct: 15, hours: 30, color: "#0F0F0F", key: "hLabel2" },
-      { pct: 10, hours: 20, color: "#0F0F0F", key: "hLabel3" },
-      { pct: 8.5, hours: 17, color: "#0F0F0F", key: "hLabel4" },
-      { pct: 6,  hours: 12, color: "#6F6A66", key: "hLabel5" },
-      { pct: 8,  hours: 16, color: "#ff9966", key: "hLabel6" },
-      { pct: 6,  hours: 12, color: "#ff9966", key: "hLabel7" },
-      { pct: 10, hours: 20, color: "#E8E4E0", key: "hLabel8" },
-      { pct: 1.5, hours: 3, color: "#E8E4E0", key: "hLabel9" }
+      { pct: 30,  hours: 60, color: "#f75c03", key: "hLabel0" },
+      { pct: 5,   hours: 10, color: "#ff9966", key: "hLabel1" },
+      { pct: 15,  hours: 30, color: "#1a1a1a", key: "hLabel2" },
+      { pct: 10,  hours: 20, color: "#3d3d3d", key: "hLabel3" },
+      { pct: 8.5, hours: 17, color: "#666666", key: "hLabel4" },
+      { pct: 6,   hours: 12, color: "#6F6A66", key: "hLabel5" },
+      { pct: 8,   hours: 16, color: "#ffb380", key: "hLabel6" },
+      { pct: 6,   hours: 12, color: "#ffd5b8", key: "hLabel7" },
+      { pct: 10,  hours: 20, color: "#E8E4E0", key: "hLabel8" },
+      { pct: 1.5, hours: 3,  color: "#F0EDEA", key: "hLabel9" }
     ] %}
-    {% for h in hoursData %}
-    <div style="display:flex;align-items:center;gap:12px;margin-bottom:8px;">
-      <span style="font-size:.78rem;color:#6F6A66;min-width:185px;text-align:right;">{{ t[h.key] }}</span>
-      <div style="flex:1;background:#F5F3F0;border-radius:50px;height:8px;overflow:hidden;">
-        <div style="width:{{ h.pct }}%;height:100%;background:{{ h.color }};border-radius:50px;"></div>
-      </div>
-      <span style="font-size:.78rem;font-weight:700;color:#0F0F0F;min-width:32px;">{{ h.hours }}t</span>
+
+    {# Stacked segment bar #}
+    <div style="height:22px;border-radius:50px;overflow:hidden;display:flex;gap:2px;margin-bottom:20px;">
+      {% for h in hoursData %}
+      <div style="flex:{{ h.pct }};background:{{ h.color }};" title="{{ t[h.key] }} — {{ h.hours }}t"></div>
+      {% endfor %}
     </div>
-    {% endfor %}
-    <p style="font-size:.72rem;color:#6F6A66;text-align:right;margin-top:8px;font-style:italic;">{{ t.hoursTotal }}</p>
+
+    {# Legend: 2-column grid #}
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px 24px;">
+      {% for h in hoursData %}
+      <div style="display:flex;align-items:center;gap:8px;">
+        <span style="width:10px;height:10px;border-radius:3px;background:{{ h.color }};flex-shrink:0;{% if h.color == '#E8E4E0' or h.color == '#F0EDEA' %}border:1px solid #ccc;{% endif %}"></span>
+        <span style="font-size:.78rem;color:#0F0F0F;flex:1;">{{ t[h.key] }}</span>
+        <span style="font-size:.78rem;font-weight:700;color:#0F0F0F;">{{ h.hours }}t</span>
+      </div>
+      {% endfor %}
+    </div>
+    <p style="font-size:.72rem;color:#6F6A66;text-align:right;margin-top:10px;font-style:italic;">{{ t.hoursTotal }}</p>
   </div>
 
   {# ── CONFLICT FINDER ──────────────────────────────────── #}
