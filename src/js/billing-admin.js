@@ -1227,55 +1227,130 @@
   }
 
   /* ══════════════════════════════════════════
-     DRAFTS LIST
+     INVOICES VIEW (combined drafts + booked)
      ══════════════════════════════════════════ */
-  function showDrafts() {
+  var allInvoices = []; // cached combined list for filtering
+
+  function showInvoices() {
     $('yb-billing-v-create').hidden = true;
-    $('yb-billing-v-drafts').hidden = false;
-    var bookedView = $('yb-billing-v-booked');
-    if (bookedView) bookedView.hidden = true;
-    loadDrafts();
+    var invView = $('yb-billing-v-invoices');
+    if (invView) invView.hidden = false;
+    loadInvoices();
   }
 
   function showCreate() {
     $('yb-billing-v-create').hidden = false;
-    $('yb-billing-v-drafts').hidden = true;
-    var bookedView = $('yb-billing-v-booked');
-    if (bookedView) bookedView.hidden = true;
+    var invView = $('yb-billing-v-invoices');
+    if (invView) invView.hidden = true;
   }
 
-  function loadDrafts() {
-    apiCall({ action: 'listDrafts' }).then(function (res) {
-      if (!res.ok) { toast(res.error, true); return; }
-      renderDrafts(res.data.drafts || []);
-    }).catch(function (err) { toast(err.message, true); });
+  function loadInvoices() {
+    var body = $('yb-billing-invoices-body');
+    if (body) body.innerHTML = '<tr><td colspan="9" style="text-align:center;padding:1rem;color:var(--yb-muted)">' + t('loading') + '</td></tr>';
+
+    // Load both drafts and booked in parallel
+    Promise.all([
+      apiCall({ action: 'listDrafts' }).then(function (res) { return res.ok ? (res.data.drafts || []) : []; }).catch(function () { return []; }),
+      apiCall({ action: 'listBooked' }).then(function (res) { return res.ok ? (res.data.invoices || []) : []; }).catch(function () { return []; })
+    ]).then(function (results) {
+      var drafts = results[0];
+      var booked = results[1];
+
+      // Normalize into unified list
+      allInvoices = [];
+      drafts.forEach(function (d) {
+        allInvoices.push({
+          number: d.draftInvoiceNumber,
+          type: 'draft',
+          customer: d.recipient && d.recipient.name ? d.recipient.name : (d.customer ? '#' + d.customer.customerNumber : '—'),
+          date: d.date || '—',
+          dueDate: d.dueDate || '—',
+          total: d.grossAmount != null ? d.grossAmount : (d.netAmount || 0),
+          remainder: null,
+          status: 'draft',
+          actionType: 'draft'
+        });
+      });
+      booked.forEach(function (inv) {
+        var isPaid = inv.remainder != null && inv.remainder === 0;
+        var isPartial = inv.remainder != null && inv.remainder > 0 && inv.remainder < (inv.grossAmount || inv.netAmount || 0);
+        var hasSent = inv.sentDate || inv.sent;
+        var status = isPaid ? 'paid' : (isPartial ? 'partial' : (hasSent ? 'sent' : 'booked'));
+        allInvoices.push({
+          number: inv.bookedInvoiceNumber,
+          type: 'booked',
+          customer: inv.recipient && inv.recipient.name ? inv.recipient.name : '—',
+          date: inv.date || '—',
+          dueDate: inv.dueDate || '—',
+          total: inv.grossAmount != null ? inv.grossAmount : (inv.netAmount || 0),
+          remainder: inv.remainder,
+          status: status,
+          actionType: 'booked'
+        });
+      });
+
+      renderInvoices();
+    });
   }
 
-  function renderDrafts(drafts) {
-    var body = $('yb-billing-drafts-body');
-    var empty = $('yb-billing-drafts-empty');
+  function renderInvoices() {
+    var body = $('yb-billing-invoices-body');
+    var empty = $('yb-billing-invoices-empty');
+    var countEl = $('yb-billing-invoice-count');
     if (!body) return;
 
-    if (!drafts.length) {
+    // Apply filter
+    var filter = ($('yb-billing-invoice-filter') || {}).value || '';
+    var filtered = filter ? allInvoices.filter(function (inv) {
+      if (filter === 'draft') return inv.type === 'draft';
+      if (filter === 'booked') return inv.status === 'booked';
+      if (filter === 'sent') return inv.status === 'sent';
+      if (filter === 'paid') return inv.status === 'paid';
+      if (filter === 'unpaid') return inv.status !== 'paid' && inv.status !== 'partial' && inv.type === 'booked';
+      if (filter === 'partial') return inv.status === 'partial';
+      return true;
+    }) : allInvoices;
+
+    if (countEl) {
+      countEl.textContent = filtered.length + (filter ? ' ' + (isDa ? 'match' : 'matching') : '') + ' ' + (isDa ? 'af' : 'of') + ' ' + allInvoices.length;
+    }
+
+    if (!filtered.length) {
       body.innerHTML = '';
       if (empty) empty.hidden = false;
       return;
     }
     if (empty) empty.hidden = true;
 
-    body.innerHTML = drafts.map(function (d) {
-      var custName = d.customer ? d.customer.customerNumber : '—';
-      if (d.recipient && d.recipient.name) custName = d.recipient.name;
-      var total = d.grossAmount != null ? formatAmount(d.grossAmount) : (d.netAmount != null ? formatAmount(d.netAmount) : '—');
-      var lineCount = d.lines ? d.lines.length : '—';
+    body.innerHTML = filtered.map(function (inv) {
+      var typeLabel = inv.type === 'draft' ? t('billing_filter_draft') : t('billing_filter_booked');
+      var typeBadge = '<span class="yb-billing__type-badge yb-billing__type-badge--' + inv.type + '">' + typeLabel + '</span>';
+
+      var statusLabel, statusClass;
+      switch (inv.status) {
+        case 'draft': statusLabel = t('billing_filter_draft'); statusClass = 'yb-billing__status--draft'; break;
+        case 'booked': statusLabel = t('billing_filter_booked'); statusClass = 'yb-billing__status--booked'; break;
+        case 'sent': statusLabel = t('billing_filter_sent'); statusClass = 'yb-billing__status--sent'; break;
+        case 'paid': statusLabel = t('billing_status_paid'); statusClass = 'yb-billing__status--paid'; break;
+        case 'partial': statusLabel = t('billing_status_partial'); statusClass = 'yb-billing__status--partial'; break;
+        default: statusLabel = t('billing_status_unpaid'); statusClass = 'yb-billing__status--unpaid';
+      }
+
+      var remainder = inv.remainder != null ? formatAmount(inv.remainder) : '—';
+      var actionBtn = inv.actionType === 'draft'
+        ? '<button class="yb-btn yb-btn--outline yb-btn--sm" data-action="billing-view-draft" data-draft="' + inv.number + '">' + (isDa ? 'Vis' : 'View') + '</button>'
+        : '<button class="yb-btn yb-btn--outline yb-btn--sm" data-action="billing-view-booked-detail" data-booked="' + inv.number + '">' + (isDa ? 'Vis' : 'View') + '</button>';
+
       return '<tr>'
-        + '<td>' + d.draftInvoiceNumber + '</td>'
-        + '<td>' + esc(custName) + '</td>'
-        + '<td>' + (d.date || '—') + '</td>'
-        + '<td>' + (d.dueDate || '—') + '</td>'
-        + '<td>' + total + '</td>'
-        + '<td>' + lineCount + '</td>'
-        + '<td><button class="yb-btn yb-btn--outline yb-btn--sm" data-action="billing-view-draft" data-draft="' + d.draftInvoiceNumber + '">' + (isDa ? 'Vis' : 'View') + '</button></td>'
+        + '<td>' + inv.number + '</td>'
+        + '<td>' + typeBadge + '</td>'
+        + '<td>' + esc(inv.customer) + '</td>'
+        + '<td>' + inv.date + '</td>'
+        + '<td>' + inv.dueDate + '</td>'
+        + '<td>' + formatAmount(inv.total) + '</td>'
+        + '<td>' + remainder + '</td>'
+        + '<td><span class="' + statusClass + '">' + statusLabel + '</span></td>'
+        + '<td>' + actionBtn + '</td>'
         + '</tr>';
     }).join('');
   }
@@ -1348,7 +1423,7 @@
       if (!res.ok) { toast(res.error, true); return; }
       toast(t('billing_booked'));
       closeDraftModal();
-      loadDrafts();
+      loadInvoices();
     }).catch(function (err) { toast(err.message, true); });
   }
 
@@ -1366,7 +1441,7 @@
       if (!res.ok) { toast(res.error, true); return; }
       toast(isDa ? 'Kladde #' + currentDraftNumber + ' slettet' : 'Draft #' + currentDraftNumber + ' deleted');
       closeDraftModal();
-      loadDrafts();
+      loadInvoices();
     }).catch(function (err) {
       if (btn) { btn.innerHTML = '\ud83d\uddd1 ' + t('billing_delete_draft'); btn.classList.remove('yb-btn--muted'); }
       toast(err.message, true);
@@ -1432,7 +1507,7 @@
         : 'Credit note created' + (data.booked ? ' & booked (#' + data.booked + ')' : ' as draft #' + data.draft);
       toast(msg);
       closeDraftModal();
-      loadBooked();
+      loadInvoices();
     }).catch(function (err) {
       if (creditBtn) { creditBtn.innerHTML = '\u21ba ' + t('billing_credit_note'); creditBtn.classList.remove('yb-btn--muted'); }
       toast(err.message, true);
@@ -1440,55 +1515,8 @@
   }
 
   /* ══════════════════════════════════════════
-     BOOKED INVOICES
+     BOOKED INVOICES (kept for detail + credit note reload)
      ══════════════════════════════════════════ */
-  function showBooked() {
-    $('yb-billing-v-create').hidden = true;
-    $('yb-billing-v-drafts').hidden = true;
-    $('yb-billing-v-booked').hidden = false;
-    loadBooked();
-  }
-
-  function loadBooked() {
-    apiCall({ action: 'listBooked' }).then(function (res) {
-      if (!res.ok) { toast(res.error, true); return; }
-      renderBooked(res.data.invoices || []);
-    }).catch(function (err) { toast(err.message, true); });
-  }
-
-  function renderBooked(invoices) {
-    var body = $('yb-billing-booked-body');
-    var empty = $('yb-billing-booked-empty');
-    if (!body) return;
-
-    if (!invoices.length) {
-      body.innerHTML = '';
-      if (empty) empty.hidden = false;
-      return;
-    }
-    if (empty) empty.hidden = true;
-
-    body.innerHTML = invoices.map(function (inv) {
-      var custName = inv.recipient && inv.recipient.name ? inv.recipient.name : '—';
-      var total = inv.grossAmount != null ? formatAmount(inv.grossAmount) : (inv.netAmount != null ? formatAmount(inv.netAmount) : '—');
-      var remainder = inv.remainder != null ? formatAmount(inv.remainder) : '—';
-      var isPaid = inv.remainder != null && inv.remainder === 0;
-      var isPartial = inv.remainder != null && inv.remainder > 0 && inv.remainder < (inv.grossAmount || inv.netAmount || 0);
-      var statusLabel = isPaid ? t('billing_status_paid') : (isPartial ? t('billing_status_partial') : t('billing_status_unpaid'));
-      var statusClass = isPaid ? 'yb-billing__status--paid' : (isPartial ? 'yb-billing__status--partial' : 'yb-billing__status--unpaid');
-
-      return '<tr>'
-        + '<td>' + inv.bookedInvoiceNumber + '</td>'
-        + '<td>' + esc(custName) + '</td>'
-        + '<td>' + (inv.date || '—') + '</td>'
-        + '<td>' + (inv.dueDate || '—') + '</td>'
-        + '<td>' + total + '</td>'
-        + '<td>' + remainder + '</td>'
-        + '<td><span class="' + statusClass + '">' + statusLabel + '</span></td>'
-        + '<td><button class="yb-btn yb-btn--outline yb-btn--sm" data-action="billing-view-booked-detail" data-booked="' + inv.bookedInvoiceNumber + '">' + (isDa ? 'Vis' : 'View') + '</button></td>'
-        + '</tr>';
-    }).join('');
-  }
 
   function viewBookedDetail(bookedNumber) {
     currentBookedNumber = parseInt(bookedNumber);
@@ -1664,6 +1692,10 @@
 
   };
 
+  // Expose modal openers for cross-module usage (e.g. user detail invoice view)
+  window._ybBillingViewDraft = function (draftNum) { viewDraft(draftNum); };
+  window._ybBillingViewBooked = function (bookedNum) { viewBookedDetail(bookedNum); };
+
   // Called from course-admin.js via window.billingFromUser()
   window.billingFromUser = function (userData) {
     console.log('[billing] Bill from user:', userData);
@@ -1769,16 +1801,14 @@
       case 'billing-create-invoice': createInvoice(); break;
       case 'billing-create-book-send': createBookAndSend(); break;
       case 'billing-reset-form': resetForm(); break;
-      case 'billing-view-drafts': showDrafts(); break;
+      case 'billing-view-invoices': showInvoices(); break;
       case 'billing-back-create': showCreate(); break;
-      case 'billing-refresh-drafts': loadDrafts(); break;
+      case 'billing-refresh-invoices': loadInvoices(); break;
       case 'billing-refresh-settings': loadSettings(); break;
       case 'billing-view-draft': viewDraft(el.dataset.draft); break;
       case 'billing-book-draft': bookDraft(); break;
       case 'billing-delete-draft': deleteDraft(); break;
       case 'billing-create-credit-note': createCreditNote(); break;
-      case 'billing-view-booked': showBooked(); break;
-      case 'billing-refresh-booked': loadBooked(); break;
       case 'billing-view-booked-detail': viewBookedDetail(el.dataset.booked); break;
       case 'billing-send-invoice': sendInvoiceEmail(); break;
       case 'billing-download-pdf': downloadInvoicePdf(); break;
@@ -1858,6 +1888,10 @@
     // Notes preset change
     var notesPresetSel = $('yb-billing-notes-preset');
     if (notesPresetSel) notesPresetSel.addEventListener('change', handleNotesPresetChange);
+
+    // Invoice filter change
+    var invoiceFilter = $('yb-billing-invoice-filter');
+    if (invoiceFilter) invoiceFilter.addEventListener('change', renderInvoices);
 
     // Set default start month
     var now = new Date();

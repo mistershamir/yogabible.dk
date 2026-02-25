@@ -23982,6 +23982,15 @@ a.yb-appt__phone-link:hover { text-decoration: underline; }
 .yb-billing__status--paid { color: #16a34a; font-weight: 600; font-size: 0.8rem; }
 .yb-billing__status--unpaid { color: #dc2626; font-weight: 600; font-size: 0.8rem; }
 .yb-billing__status--partial { color: #d97706; font-weight: 600; font-size: 0.8rem; }
+.yb-billing__status--draft { color: #6F6A66; font-weight: 600; font-size: 0.8rem; }
+.yb-billing__status--booked { color: #2563eb; font-weight: 600; font-size: 0.8rem; }
+.yb-billing__status--sent { color: #7c3aed; font-weight: 600; font-size: 0.8rem; }
+.yb-billing__type-badge {
+  display: inline-block; padding: 0.15rem 0.5rem; border-radius: 6px;
+  font-size: 0.72rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.03em;
+}
+.yb-billing__type-badge--draft { background: #f3f4f6; color: #6F6A66; }
+.yb-billing__type-badge--booked { background: #eff6ff; color: #2563eb; }
 
 /* ── Invoice Status Card (on Application Profile) ── */
 .yb-app-invoice__header {

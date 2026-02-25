@@ -5,8 +5,7 @@
   <div class="yb-admin__view-head">
     <h2>{{ t.billing_title }}</h2>
     <div class="yb-lead__toolbar-right">
-      <button type="button" class="yb-btn yb-btn--outline yb-btn--sm" data-action="billing-view-drafts">&#128196; {{ t.billing_view_drafts }}</button>
-      <button type="button" class="yb-btn yb-btn--outline yb-btn--sm" data-action="billing-view-booked">&#9989; {{ t.billing_view_booked }}</button>
+      <button type="button" class="yb-btn yb-btn--outline yb-btn--sm" data-action="billing-view-invoices">&#128196; {{ t.billing_view_invoices }}</button>
       <button type="button" class="yb-btn yb-btn--outline yb-btn--sm" data-action="billing-refresh-settings">&#8635; {{ t.leads_refresh }}</button>
     </div>
   </div>
@@ -252,50 +251,36 @@
   </div>
 </div>
 
-{# ── Drafts List View (hidden) ── #}
-<div id="yb-billing-v-drafts" hidden>
+{# ── Invoices View (combined drafts + booked) ── #}
+<div id="yb-billing-v-invoices" hidden>
   <div class="yb-admin__view-head">
     <button class="yb-admin__back-btn" data-action="billing-back-create">&larr; {{ t.back }}</button>
-    <h2>{{ t.billing_drafts_title }}</h2>
+    <h2>{{ t.billing_view_invoices }}</h2>
     <div class="yb-lead__toolbar-right">
-      <button type="button" class="yb-btn yb-btn--outline yb-btn--sm" data-action="billing-refresh-drafts">&#8635; {{ t.leads_refresh }}</button>
+      <button type="button" class="yb-btn yb-btn--outline yb-btn--sm" data-action="billing-refresh-invoices">&#8635; {{ t.leads_refresh }}</button>
     </div>
   </div>
+
+  {# Status filter bar #}
+  <div class="yb-lead__filter-bar" style="margin-bottom:1rem">
+    <select id="yb-billing-invoice-filter" class="yb-admin__select yb-lead__filter">
+      <option value="">{{ t.billing_filter_all }}</option>
+      <option value="draft">{{ t.billing_filter_draft }}</option>
+      <option value="booked">{{ t.billing_filter_booked }}</option>
+      <option value="sent">{{ t.billing_filter_sent }}</option>
+      <option value="paid">{{ t.billing_filter_paid }}</option>
+      <option value="unpaid">{{ t.billing_filter_unpaid }}</option>
+      <option value="partial">{{ t.billing_filter_partial }}</option>
+    </select>
+    <span id="yb-billing-invoice-count" class="yb-lead__count-text"></span>
+  </div>
+
   <div class="yb-admin__table-wrap">
-    <table class="yb-admin__table" id="yb-billing-drafts-table">
+    <table class="yb-admin__table" id="yb-billing-invoices-table">
       <thead>
         <tr>
           <th>#</th>
-          <th>{{ t.billing_col_customer }}</th>
-          <th>{{ t.billing_col_date }}</th>
-          <th>{{ t.billing_col_due }}</th>
-          <th>{{ t.billing_col_total }}</th>
-          <th>{{ t.billing_col_lines }}</th>
-          <th></th>
-        </tr>
-      </thead>
-      <tbody id="yb-billing-drafts-body"></tbody>
-    </table>
-  </div>
-  <div id="yb-billing-drafts-empty" class="yb-billing__empty" hidden>
-    <p>{{ t.billing_no_drafts }}</p>
-  </div>
-</div>
-
-{# ── Booked Invoices View (hidden) ── #}
-<div id="yb-billing-v-booked" hidden>
-  <div class="yb-admin__view-head">
-    <button class="yb-admin__back-btn" data-action="billing-back-create">&larr; {{ t.back }}</button>
-    <h2>{{ t.billing_booked_title }}</h2>
-    <div class="yb-lead__toolbar-right">
-      <button type="button" class="yb-btn yb-btn--outline yb-btn--sm" data-action="billing-refresh-booked">&#8635; {{ t.leads_refresh }}</button>
-    </div>
-  </div>
-  <div class="yb-admin__table-wrap">
-    <table class="yb-admin__table" id="yb-billing-booked-table">
-      <thead>
-        <tr>
-          <th>{{ t.billing_col_invoice }}</th>
+          <th>{{ t.billing_col_type }}</th>
           <th>{{ t.billing_col_customer }}</th>
           <th>{{ t.billing_col_date }}</th>
           <th>{{ t.billing_col_due }}</th>
@@ -305,11 +290,11 @@
           <th></th>
         </tr>
       </thead>
-      <tbody id="yb-billing-booked-body"></tbody>
+      <tbody id="yb-billing-invoices-body"></tbody>
     </table>
   </div>
-  <div id="yb-billing-booked-empty" class="yb-billing__empty" hidden>
-    <p>{{ t.billing_no_booked }}</p>
+  <div id="yb-billing-invoices-empty" class="yb-billing__empty" hidden>
+    <p>{{ t.billing_no_invoices }}</p>
   </div>
 </div>
 

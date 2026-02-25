@@ -315,6 +315,22 @@ async function listBooked(params) {
 }
 
 /**
+ * Search booked + draft invoices by customer number.
+ * Used for profile invoice lookup (more reliable than ref-text search).
+ */
+async function searchInvoicesByCustomer(customerNumber) {
+  if (!customerNumber) throw new Error('Customer number is required');
+  const [booked, drafts] = await Promise.all([
+    ecoFetch(`/invoices/booked?pagesize=50&filter=customer.customerNumber$eq:${customerNumber}&sort=-bookedInvoiceNumber`).catch(() => ({ collection: [] })),
+    ecoFetch(`/invoices/drafts?pagesize=50&filter=customer.customerNumber$eq:${customerNumber}&sort=-draftInvoiceNumber`).catch(() => ({ collection: [] }))
+  ]);
+  return {
+    booked: booked.collection || [],
+    drafts: drafts.collection || []
+  };
+}
+
+/**
  * Search booked invoices by reference text (stored in references.other).
  * Also searches drafts. Returns combined results.
  */
@@ -570,6 +586,10 @@ exports.handler = async (event) => {
 
       case 'listBooked':
         return jsonResponse(200, { ok: true, data: await listBooked(body) });
+
+      case 'searchInvoicesByCustomer':
+        if (!body.customerNumber) return jsonResponse(400, { ok: false, error: 'customerNumber required' });
+        return jsonResponse(200, { ok: true, data: await searchInvoicesByCustomer(body.customerNumber) });
 
       case 'getBooked':
         if (!body.bookedNumber) return jsonResponse(400, { ok: false, error: 'bookedNumber required' });
