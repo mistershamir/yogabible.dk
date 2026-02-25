@@ -23969,6 +23969,52 @@ a.yb-appt__phone-link:hover { text-decoration: underline; }
 .yb-billing__status--unpaid { color: #dc2626; font-weight: 600; font-size: 0.8rem; }
 .yb-billing__status--partial { color: #d97706; font-weight: 600; font-size: 0.8rem; }
 
+/* ── Invoice Status Card (on Application Profile) ── */
+.yb-app-invoice__header {
+  display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.75rem;
+}
+.yb-app-invoice__badge {
+  display: inline-flex; align-items: center; gap: 0.3rem;
+  padding: 0.25rem 0.65rem; border-radius: 20px; font-size: 0.78rem;
+  font-weight: 700; letter-spacing: 0.02em;
+}
+.yb-app-invoice__badge--draft { background: #FEF3C7; color: #92400E; }
+.yb-app-invoice__badge--booked { background: #DBEAFE; color: #1E40AF; }
+.yb-app-invoice__badge--sent { background: #D1FAE5; color: #065F46; }
+.yb-app-invoice__actions {
+  display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 0.75rem; padding-top: 0.75rem;
+  border-top: 1px solid #E8E4E0;
+}
+.yb-app-invoice__modal {
+  position: relative; background: white; border-radius: 16px; padding: 1.5rem;
+  max-width: 560px; width: 90%; max-height: 85vh; overflow-y: auto;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.15); z-index: 1001;
+}
+.yb-billing__modal-overlay {
+  position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 1000;
+  display: flex; align-items: center; justify-content: center;
+}
+.yb-billing__modal-close {
+  background: none; border: none; font-size: 1.4rem; cursor: pointer; color: #6F6A66;
+  width: 32px; height: 32px; display: flex; align-items: center; justify-content: center;
+  border-radius: 50%; transition: background 0.15s;
+}
+.yb-billing__modal-close:hover { background: #F5F3F0; }
+
+/* ── Save Button Feedback ── */
+.yb-btn--save-success {
+  background: #16a34a !important; border-color: #16a34a !important; color: white !important;
+  transition: background 0.3s, border-color 0.3s;
+}
+@keyframes yb-save-pulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.04); }
+  100% { transform: scale(1); }
+}
+.yb-btn--save-pulse {
+  animation: yb-save-pulse 0.4s ease;
+}
+
 /* Responsive */
 @media (max-width: 600px) {
   .yb-billing__section { padding: 1rem; }

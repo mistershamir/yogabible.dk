@@ -213,6 +213,23 @@ async function listBooked(params) {
   };
 }
 
+/**
+ * Search booked invoices by reference text (stored in references.other).
+ * Also searches drafts. Returns combined results.
+ */
+async function searchInvoicesByRef(refText) {
+  if (!refText) throw new Error('Reference text is required');
+  const encoded = encodeURIComponent(refText);
+  const [booked, drafts] = await Promise.all([
+    ecoFetch(`/invoices/booked?pagesize=10&filter=references.other$eq:${encoded}`).catch(() => ({ collection: [] })),
+    ecoFetch(`/invoices/drafts?pagesize=10&filter=references.other$eq:${encoded}`).catch(() => ({ collection: [] }))
+  ]);
+  return {
+    booked: booked.collection || [],
+    drafts: drafts.collection || []
+  };
+}
+
 async function getBooked(bookedNumber) {
   return ecoFetch(`/invoices/booked/${bookedNumber}`);
 }
@@ -435,6 +452,10 @@ exports.handler = async (event) => {
         if (!body.bookedNumber) return jsonResponse(400, { ok: false, error: 'bookedNumber required' });
         if (!body.email) return jsonResponse(400, { ok: false, error: 'email required' });
         return jsonResponse(200, { ok: true, data: await sendInvoiceEmail({ bookedNumber: body.bookedNumber, recipientEmail: body.email }) });
+
+      case 'searchInvoicesByRef':
+        if (!body.refText) return jsonResponse(400, { ok: false, error: 'refText required' });
+        return jsonResponse(200, { ok: true, data: await searchInvoicesByRef(body.refText) });
 
       default:
         return jsonResponse(400, { ok: false, error: `Unknown action: ${action}` });

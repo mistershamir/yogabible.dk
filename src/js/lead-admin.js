@@ -158,6 +158,41 @@
     el._tid = setTimeout(function () { el.hidden = true; }, 3500);
   }
 
+  /**
+   * Show save feedback on a submit button:
+   * 1. Before save: text → "Saving..." + disable
+   * 2. On success: text → "✓ Saved!" + green + pulse animation
+   * 3. After 2s: revert to original
+   */
+  function saveBtnStart(formEl) {
+    if (!formEl) return;
+    var btn = formEl.querySelector('button[type="submit"]');
+    if (!btn) return;
+    btn._origText = btn.textContent;
+    btn.textContent = t('save_feedback_saving');
+    btn.disabled = true;
+    btn.classList.add('yb-btn--muted');
+    return btn;
+  }
+  function saveBtnSuccess(btn) {
+    if (!btn) return;
+    btn.disabled = false;
+    btn.classList.remove('yb-btn--muted');
+    btn.textContent = '\u2713 ' + t('save_feedback_saved');
+    btn.classList.add('yb-btn--save-success', 'yb-btn--save-pulse');
+    clearTimeout(btn._revertTid);
+    btn._revertTid = setTimeout(function () {
+      btn.classList.remove('yb-btn--save-success', 'yb-btn--save-pulse');
+      btn.textContent = btn._origText || t('save');
+    }, 2000);
+  }
+  function saveBtnError(btn) {
+    if (!btn) return;
+    btn.disabled = false;
+    btn.classList.remove('yb-btn--muted');
+    btn.textContent = btn._origText || t('save');
+  }
+
   function fmtDate(d) {
     if (!d) return '\u2014';
     var date = d.toDate ? d.toDate() : new Date(d);
@@ -1105,6 +1140,9 @@
   function saveLeadFields() {
     if (!currentLeadId || !currentLead) return;
 
+    var formEl = $('yb-lead-edit-form');
+    var btn = saveBtnStart(formEl);
+
     var updates = {};
     var fields = [
       { id: 'yb-lead-edit-first-name', key: 'first_name' },
@@ -1141,9 +1179,11 @@
       // Update heading in case name changed
       var headingEl = $('yb-lead-detail-heading');
       if (headingEl) headingEl.textContent = (currentLead.first_name || '') + ' ' + (currentLead.last_name || '');
+      saveBtnSuccess(btn);
       toast(t('leads_fields_saved'));
     }).catch(function (err) {
       console.error('[lead-admin] Lead fields save error:', err);
+      saveBtnError(btn);
       toast(t('error_save'), true);
     });
   }
@@ -1324,6 +1364,9 @@
     e.preventDefault();
     if (!currentLeadId) return;
 
+    var formEl = $('yb-lead-status-form');
+    var btn = saveBtnStart(formEl);
+
     var newStatus = $('yb-lead-status-select').value;
     var newSubStatus = $('yb-lead-sub-status-select') ? $('yb-lead-sub-status-select').value : '';
     var newPriority = $('yb-lead-priority-select') ? $('yb-lead-priority-select').value : '';
@@ -1363,9 +1406,11 @@
 
       renderLeadDetailCard();
       renderLeadStats();
+      saveBtnSuccess(btn);
       toast(t('saved'));
     }).catch(function (err) {
       console.error('[lead-admin] Save error:', err);
+      saveBtnError(btn);
       toast(t('error_save'), true);
     });
   }
@@ -2278,6 +2323,7 @@
     if (headingEl) headingEl.textContent = (currentApp.first_name || '') + ' ' + (currentApp.last_name || '') + ' \u2014 ' + (currentApp.app_id || appId.substring(0, 8));
 
     renderApplicationDetailCard();
+    renderAppInvoiceStatus();
     renderAppQuickActions();
     renderAppEditForm();
     renderAppNotesTimeline();
@@ -2286,6 +2332,24 @@
     // Set status form to current status
     var statusSelect = $('yb-app-status-select');
     if (statusSelect && currentApp) statusSelect.value = currentApp.status || 'Pending';
+
+    // Allow billing-admin to notify us when invoice data changes
+    window._ybRefreshAppInvoice = function () {
+      if (currentAppId) {
+        // Re-read the application to pick up invoice field changes
+        db.collection('applications').doc(currentAppId).get().then(function (doc) {
+          if (doc.exists) {
+            var data = doc.data();
+            data.id = doc.id;
+            currentApp = data;
+            window._ybCurrentApp = currentApp;
+            var idx = applications.findIndex(function (a) { return a.id === currentAppId; });
+            if (idx !== -1) applications[idx] = currentApp;
+            renderAppInvoiceStatus();
+          }
+        });
+      }
+    };
   }
 
   function backToAppList() {
@@ -2435,6 +2499,336 @@
     el.innerHTML = html;
   }
 
+  /* ── Render Application Invoice Status Card ── */
+  function renderAppInvoiceStatus() {
+    var el = $('yb-app-invoice-status');
+    if (!el || !currentApp) return;
+
+    var inv = currentApp.invoice;
+    var appRef = currentApp.app_id || currentAppId;
+
+    // No invoice data yet — show empty state with lookup button
+    if (!inv) {
+      el.innerHTML = '<div class="yb-lead__section-card yb-lead__section-card--full yb-app-invoice">' +
+        '<h4 class="yb-lead__card-title">' + t('invoice_title') + '</h4>' +
+        '<p class="yb-lead__empty-text" style="margin:0 0 0.75rem">' + t('invoice_none') + '</p>' +
+        '<button class="yb-btn yb-btn--outline yb-btn--sm" data-action="app-invoice-lookup" data-ref="' + esc(appRef) + '">' +
+          '\ud83d\udd0d ' + t('invoice_lookup') +
+        '</button>' +
+      '</div>';
+      return;
+    }
+
+    // Invoice exists — render status card
+    var statusLabel, statusClass, statusIcon;
+    switch (inv.status) {
+      case 'sent':
+        statusLabel = t('invoice_status_sent');
+        statusClass = 'yb-app-invoice__badge--sent';
+        statusIcon = '\u2709\ufe0f';
+        break;
+      case 'booked':
+        statusLabel = t('invoice_status_booked');
+        statusClass = 'yb-app-invoice__badge--booked';
+        statusIcon = '\u2705';
+        break;
+      default:
+        statusLabel = t('invoice_status_draft');
+        statusClass = 'yb-app-invoice__badge--draft';
+        statusIcon = '\ud83d\udcdd';
+    }
+
+    var html = '<div class="yb-lead__section-card yb-lead__section-card--full yb-app-invoice">';
+    html += '<div class="yb-app-invoice__header">';
+    html += '<h4 class="yb-lead__card-title" style="margin:0">' + t('invoice_title') + '</h4>';
+    html += '<span class="yb-app-invoice__badge ' + statusClass + '">' + statusIcon + ' ' + esc(statusLabel) + '</span>';
+    html += '</div>';
+
+    // Details rows
+    if (inv.bookedNumber) {
+      html += '<div class="yb-lead__card-row"><span class="yb-lead__card-label">' + t('invoice_number') + '</span><span class="yb-lead__card-value"><strong>#' + esc(String(inv.bookedNumber)) + '</strong></span></div>';
+    } else if (inv.draftNumber) {
+      html += '<div class="yb-lead__card-row"><span class="yb-lead__card-label">' + t('invoice_number') + '</span><span class="yb-lead__card-value">' + (isDa ? 'Kladde' : 'Draft') + ' #' + esc(String(inv.draftNumber)) + '</span></div>';
+    }
+    if (inv.amount) {
+      html += '<div class="yb-lead__card-row"><span class="yb-lead__card-label">' + t('invoice_amount') + '</span><span class="yb-lead__card-value">' + formatDKK(inv.amount) + '</span></div>';
+    }
+    if (inv.date) {
+      html += '<div class="yb-lead__card-row"><span class="yb-lead__card-label">' + t('invoice_date') + '</span><span class="yb-lead__card-value">' + esc(inv.date) + '</span></div>';
+    }
+    if (inv.dueDate) {
+      html += '<div class="yb-lead__card-row"><span class="yb-lead__card-label">' + t('invoice_due') + '</span><span class="yb-lead__card-value">' + esc(inv.dueDate) + '</span></div>';
+    }
+    if (inv.remainder != null) {
+      html += '<div class="yb-lead__card-row"><span class="yb-lead__card-label">' + t('invoice_remainder') + '</span><span class="yb-lead__card-value">' + formatDKK(inv.remainder) + '</span></div>';
+    }
+    if (inv.sentTo) {
+      html += '<div class="yb-lead__card-row"><span class="yb-lead__card-label">' + t('invoice_sent_to') + '</span><span class="yb-lead__card-value">' + esc(inv.sentTo) + '</span></div>';
+    }
+    if (inv.sentAt) {
+      html += '<div class="yb-lead__card-row"><span class="yb-lead__card-label">' + t('invoice_last_sent') + '</span><span class="yb-lead__card-value">' + formatSentDate(inv.sentAt) + '</span></div>';
+    }
+
+    // Action buttons
+    html += '<div class="yb-app-invoice__actions">';
+    if (inv.bookedNumber) {
+      html += '<button class="yb-btn yb-btn--outline yb-btn--sm" data-action="app-invoice-view" data-booked="' + inv.bookedNumber + '">\ud83d\udc41 ' + t('invoice_quick_view') + '</button>';
+      html += '<button class="yb-btn yb-btn--outline yb-btn--sm" data-action="app-invoice-pdf" data-booked="' + inv.bookedNumber + '">\ud83d\udcc4 ' + t('invoice_download') + '</button>';
+      html += '<button class="yb-btn yb-btn--outline yb-btn--sm" data-action="app-invoice-resend" data-booked="' + inv.bookedNumber + '" data-email="' + esc(inv.sentTo || currentApp.email || '') + '">\ud83d\udce8 ' + t('invoice_resend') + '</button>';
+    }
+    html += '<button class="yb-btn yb-btn--outline yb-btn--sm" data-action="app-invoice-refresh" data-ref="' + esc(appRef) + '">\u21bb ' + t('invoice_refresh') + '</button>';
+    html += '</div>';
+
+    html += '</div>';
+    el.innerHTML = html;
+  }
+
+  function formatDKK(amount) {
+    return Number(amount).toLocaleString('da-DK') + ' DKK';
+  }
+
+  function formatSentDate(isoStr) {
+    if (!isoStr) return '\u2014';
+    var d = new Date(isoStr);
+    if (isNaN(d.getTime())) return esc(isoStr);
+    var dd = String(d.getDate()).padStart(2, '0');
+    var mm = String(d.getMonth() + 1).padStart(2, '0');
+    var yyyy = d.getFullYear();
+    var hh = String(d.getHours()).padStart(2, '0');
+    var min = String(d.getMinutes()).padStart(2, '0');
+    return dd + '/' + mm + '/' + yyyy + ' ' + hh + ':' + min;
+  }
+
+  /* ── Invoice Actions from Application Profile ── */
+  function appInvoiceLookup(refText) {
+    var btn = document.querySelector('[data-action="app-invoice-lookup"]');
+    if (btn) { btn.textContent = '\ud83d\udd0d ' + t('invoice_looking_up'); btn.classList.add('yb-btn--muted'); }
+
+    billingApiCall({ action: 'searchInvoicesByRef', refText: refText }).then(function (res) {
+      if (btn) { btn.textContent = '\ud83d\udd0d ' + t('invoice_lookup'); btn.classList.remove('yb-btn--muted'); }
+      if (!res.ok) { toast(res.error, true); return; }
+
+      var data = res.data;
+      var bookedList = data.booked || [];
+      var draftList = data.drafts || [];
+
+      if (!bookedList.length && !draftList.length) {
+        toast(t('invoice_not_found'));
+        return;
+      }
+
+      // Pick the most recent invoice (prefer booked over draft)
+      var inv;
+      if (bookedList.length) {
+        inv = bookedList[0];
+        var invoiceData = {
+          bookedNumber: inv.bookedInvoiceNumber,
+          status: 'booked',
+          amount: inv.grossAmount || inv.netAmount || 0,
+          date: inv.date || '',
+          dueDate: inv.dueDate || '',
+          remainder: inv.remainder,
+          createdAt: new Date().toISOString()
+        };
+        // Save to app doc
+        saveAppInvoiceData(invoiceData);
+      } else {
+        inv = draftList[0];
+        var invoiceData = {
+          draftNumber: inv.draftInvoiceNumber,
+          status: 'draft',
+          amount: inv.grossAmount || inv.netAmount || 0,
+          date: inv.date || '',
+          createdAt: new Date().toISOString()
+        };
+        saveAppInvoiceData(invoiceData);
+      }
+    }).catch(function (err) {
+      if (btn) { btn.textContent = '\ud83d\udd0d ' + t('invoice_lookup'); btn.classList.remove('yb-btn--muted'); }
+      toast(err.message, true);
+    });
+  }
+
+  function appInvoiceRefresh(refText) {
+    var btn = document.querySelector('[data-action="app-invoice-refresh"]');
+    if (btn) { btn.textContent = '\u21bb ' + t('invoice_refreshing'); btn.classList.add('yb-btn--muted'); }
+
+    var inv = currentApp && currentApp.invoice;
+    if (!inv || !inv.bookedNumber) {
+      // No booked number — try lookup by ref
+      appInvoiceLookup(refText);
+      if (btn) { btn.textContent = '\u21bb ' + t('invoice_refresh'); btn.classList.remove('yb-btn--muted'); }
+      return;
+    }
+
+    // Fetch latest data from e-conomic for the booked invoice
+    billingApiCall({ action: 'getBooked', bookedNumber: inv.bookedNumber }).then(function (res) {
+      if (btn) { btn.textContent = '\u21bb ' + t('invoice_refresh'); btn.classList.remove('yb-btn--muted'); }
+      if (!res.ok) { toast(res.error, true); return; }
+      var d = res.data;
+      var update = {
+        bookedNumber: d.bookedInvoiceNumber,
+        status: inv.status || 'booked',
+        amount: d.grossAmount || d.netAmount || 0,
+        date: d.date || inv.date,
+        dueDate: d.dueDate || '',
+        remainder: d.remainder
+      };
+      if (inv.sentAt) update.sentAt = inv.sentAt;
+      if (inv.sentTo) update.sentTo = inv.sentTo;
+      saveAppInvoiceData(update);
+      toast(isDa ? 'Fakturastatus opdateret' : 'Invoice status updated');
+    }).catch(function (err) {
+      if (btn) { btn.textContent = '\u21bb ' + t('invoice_refresh'); btn.classList.remove('yb-btn--muted'); }
+      toast(err.message, true);
+    });
+  }
+
+  function appInvoiceQuickView(bookedNumber) {
+    var btn = document.querySelector('[data-action="app-invoice-view"]');
+    if (btn) { btn.textContent = '\ud83d\udc41 ...'; btn.classList.add('yb-btn--muted'); }
+
+    billingApiCall({ action: 'getBooked', bookedNumber: parseInt(bookedNumber) }).then(function (res) {
+      if (btn) { btn.textContent = '\ud83d\udc41 ' + t('invoice_quick_view'); btn.classList.remove('yb-btn--muted'); }
+      if (!res.ok) { toast(res.error, true); return; }
+      var d = res.data;
+      showInvoiceQuickViewModal(d);
+    }).catch(function (err) {
+      if (btn) { btn.textContent = '\ud83d\udc41 ' + t('invoice_quick_view'); btn.classList.remove('yb-btn--muted'); }
+      toast(err.message, true);
+    });
+  }
+
+  function showInvoiceQuickViewModal(d) {
+    // Re-use the billing modal if available, or create an inline overlay
+    var modal = $('yb-app-invoice-modal');
+    if (!modal) return;
+    var body = $('yb-app-invoice-modal-body');
+    var title = $('yb-app-invoice-modal-title');
+    if (title) title.textContent = (isDa ? 'Faktura' : 'Invoice') + ' #' + (d.bookedInvoiceNumber || '');
+
+    var html = '<div class="yb-billing__detail">';
+    html += '<div class="yb-billing__detail-row"><strong>' + (isDa ? 'Kunde' : 'Customer') + ':</strong> ' + esc(d.recipient && d.recipient.name || '\u2014') + '</div>';
+    html += '<div class="yb-billing__detail-row"><strong>' + (isDa ? 'Dato' : 'Date') + ':</strong> ' + (d.date || '\u2014') + '</div>';
+    html += '<div class="yb-billing__detail-row"><strong>' + (isDa ? 'Forfaldsdato' : 'Due Date') + ':</strong> ' + (d.dueDate || '\u2014') + '</div>';
+    html += '<div class="yb-billing__detail-row"><strong>' + (isDa ? 'Total' : 'Total') + ':</strong> ' + (d.grossAmount != null ? formatDKK(d.grossAmount) : formatDKK(d.netAmount || 0)) + '</div>';
+    if (d.remainder != null) {
+      var isPaid = d.remainder === 0;
+      html += '<div class="yb-billing__detail-row"><strong>' + t('invoice_remainder') + ':</strong> ' + formatDKK(d.remainder) + ' <span style="color:' + (isPaid ? '#16a34a' : '#dc2626') + ';font-weight:600">' + (isPaid ? (isDa ? 'Betalt' : 'Paid') : (isDa ? 'Ikke betalt' : 'Unpaid')) + '</span></div>';
+    }
+    if (d.lines && d.lines.length) {
+      html += '<table class="yb-billing__preview-table"><thead><tr><th>#</th><th>' + (isDa ? 'Beskrivelse' : 'Description') + '</th><th>' + (isDa ? 'Beløb' : 'Amount') + '</th></tr></thead><tbody>';
+      d.lines.forEach(function (line, i) {
+        html += '<tr><td>' + (i + 1) + '</td><td>' + esc(line.description) + '</td><td>' + formatDKK(line.totalNetAmount || line.unitNetPrice || 0) + '</td></tr>';
+      });
+      html += '</tbody></table>';
+    }
+    html += '</div>';
+    body.innerHTML = html;
+    modal.hidden = false;
+  }
+
+  function appInvoiceDownloadPdf(bookedNumber) {
+    var btn = document.querySelector('[data-action="app-invoice-pdf"]');
+    if (btn) { btn.textContent = '\ud83d\udcc4 ...'; btn.classList.add('yb-btn--muted'); }
+
+    billingApiCall({ action: 'getInvoicePdf', bookedNumber: parseInt(bookedNumber) }).then(function (res) {
+      if (btn) { btn.textContent = '\ud83d\udcc4 ' + t('invoice_download'); btn.classList.remove('yb-btn--muted'); }
+      if (!res.ok) { toast(res.error, true); return; }
+      if (res.data && res.data.base64) {
+        var byteChars = atob(res.data.base64);
+        var byteNums = new Array(byteChars.length);
+        for (var i = 0; i < byteChars.length; i++) byteNums[i] = byteChars.charCodeAt(i);
+        var blob = new Blob([new Uint8Array(byteNums)], { type: 'application/pdf' });
+        var url = URL.createObjectURL(blob);
+        var a = document.createElement('a');
+        a.href = url;
+        a.download = res.data.filename || ('Faktura-' + bookedNumber + '.pdf');
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        toast(isDa ? 'PDF downloadet' : 'PDF downloaded');
+      } else {
+        toast(isDa ? 'Kunne ikke hente PDF' : 'Could not get PDF', true);
+      }
+    }).catch(function (err) {
+      if (btn) { btn.textContent = '\ud83d\udcc4 ' + t('invoice_download'); btn.classList.remove('yb-btn--muted'); }
+      toast(err.message, true);
+    });
+  }
+
+  function appInvoiceResend(bookedNumber, email) {
+    var currentEmail = email || (currentApp && currentApp.email) || '';
+    var inputEmail = prompt(t('invoice_resend_confirm'), currentEmail);
+    if (!inputEmail) return;
+    inputEmail = inputEmail.trim();
+    if (!inputEmail || inputEmail.indexOf('@') < 1) {
+      toast(isDa ? 'Ugyldig email-adresse' : 'Invalid email address', true);
+      return;
+    }
+
+    var btn = document.querySelector('[data-action="app-invoice-resend"]');
+    if (btn) { btn.textContent = '\ud83d\udce8 ...'; btn.classList.add('yb-btn--muted'); }
+
+    billingApiCall({ action: 'sendInvoice', bookedNumber: parseInt(bookedNumber), email: inputEmail }).then(function (res) {
+      if (btn) { btn.textContent = '\ud83d\udce8 ' + t('invoice_resend'); btn.classList.remove('yb-btn--muted'); }
+      if (!res.ok) { toast(res.error, true); return; }
+      // Update sent tracking on the application doc
+      saveAppInvoiceData({
+        bookedNumber: parseInt(bookedNumber),
+        status: 'sent',
+        sentAt: new Date().toISOString(),
+        sentTo: inputEmail
+      });
+      toast(t('invoice_resent'));
+    }).catch(function (err) {
+      if (btn) { btn.textContent = '\ud83d\udce8 ' + t('invoice_resend'); btn.classList.remove('yb-btn--muted'); }
+      toast(err.message, true);
+    });
+  }
+
+  /** Save invoice metadata to Firestore application doc and re-render */
+  function saveAppInvoiceData(invoiceData) {
+    if (!currentAppId) return;
+    // Merge with existing invoice data
+    var existing = (currentApp && currentApp.invoice) || {};
+    var merged = {};
+    Object.keys(existing).forEach(function (k) { merged[k] = existing[k]; });
+    Object.keys(invoiceData).forEach(function (k) { merged[k] = invoiceData[k]; });
+
+    db.collection('applications').doc(currentAppId).update({
+      invoice: merged,
+      updated_at: firebase.firestore.FieldValue.serverTimestamp()
+    }).then(function () {
+      currentApp.invoice = merged;
+      var idx = applications.findIndex(function (a) { return a.id === currentAppId; });
+      if (idx !== -1) applications[idx].invoice = merged;
+      renderAppInvoiceStatus();
+    }).catch(function (err) {
+      console.error('[lead-admin] Save invoice data error:', err);
+    });
+  }
+
+  /** Proxy to billing API (same endpoint) */
+  function billingApiCall(body) {
+    if (!window.firebase || !firebase.auth || !firebase.auth().currentUser) {
+      return Promise.reject(new Error('Not signed in'));
+    }
+    return firebase.auth().currentUser.getIdToken().then(function (token) {
+      return fetch('/.netlify/functions/economic-admin', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+        body: JSON.stringify(body)
+      });
+    }).then(function (res) {
+      return res.text().then(function (text) {
+        try { return JSON.parse(text); }
+        catch (e) { return { ok: false, error: 'Server error (' + res.status + ')' }; }
+      });
+    });
+  }
+
   /* ── Update Application Status ── */
   function updateAppStatus() {
     if (!currentAppId || !currentApp) return;
@@ -2444,6 +2838,9 @@
 
     var newStatus = select.value;
     if (newStatus === currentApp.status) return;
+
+    var formEl = $('yb-app-status-form');
+    var btn = saveBtnStart(formEl);
 
     db.collection('applications').doc(currentAppId).update({
       status: newStatus,
@@ -2455,9 +2852,11 @@
 
       renderApplicationDetailCard();
       renderApplicationStats();
+      saveBtnSuccess(btn);
       toast(t('saved'));
     }).catch(function (err) {
       console.error('[lead-admin] App status update error:', err);
+      saveBtnError(btn);
       toast(t('error_save'), true);
     });
   }
@@ -2576,6 +2975,9 @@
   function saveAppFields() {
     if (!currentAppId || !currentApp) return;
 
+    var formEl = $('yb-app-edit-form');
+    var btn = saveBtnStart(formEl);
+
     var updates = {};
     var fields = [
       { id: 'yb-app-edit-first-name', key: 'first_name' },
@@ -2605,9 +3007,11 @@
 
       renderApplicationDetailCard();
       renderAppQuickActions();
+      saveBtnSuccess(btn);
       toast(t('apps_fields_saved'));
     }).catch(function (err) {
       console.error('[lead-admin] App fields save error:', err);
+      saveBtnError(btn);
       toast(t('error_save'), true);
     });
   }
@@ -3222,6 +3626,17 @@
         case 'app-bulk-sms': bulkAppSMS(); break;
         case 'app-bulk-archive': bulkAppArchive(); break;
         case 'app-deselect-all': deselectAllApps(); break;
+
+        // Invoice actions from application profile
+        case 'app-invoice-lookup': appInvoiceLookup(btn.dataset.ref); break;
+        case 'app-invoice-refresh': appInvoiceRefresh(btn.dataset.ref); break;
+        case 'app-invoice-view': appInvoiceQuickView(btn.dataset.booked); break;
+        case 'app-invoice-pdf': appInvoiceDownloadPdf(btn.dataset.booked); break;
+        case 'app-invoice-resend': appInvoiceResend(btn.dataset.booked, btn.dataset.email); break;
+        case 'app-invoice-modal-close':
+          var invModal = $('yb-app-invoice-modal');
+          if (invModal) invModal.hidden = true;
+          break;
 
         // Cross-linking
         case 'view-linked-app':

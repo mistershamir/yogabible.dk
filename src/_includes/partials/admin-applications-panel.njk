@@ -93,6 +93,10 @@
   {# Application detail cards #}
   <div id="yb-app-detail-card"></div>
 
+  {# Invoice status #}
+  <div class="yb-admin__section-divider"></div>
+  <div id="yb-app-invoice-status"></div>
+
   {# Quick actions #}
   <div class="yb-admin__section-divider"></div>
   <h3 class="yb-lead__section-title">{{ t.apps_quick_actions }}</h3>
@@ -101,6 +105,17 @@
   {# Billing quick action #}
   <div style="margin-top:0.5rem">
     <button type="button" class="yb-btn yb-btn--outline yb-btn--sm" data-action="billing-from-app" id="yb-app-bill-btn">&#128176; {{ t.billing_bill_applicant }}</button>
+  </div>
+
+  {# Invoice quick view modal #}
+  <div id="yb-app-invoice-modal" class="yb-billing__modal-overlay" hidden>
+    <div class="yb-billing__modal yb-app-invoice__modal">
+      <div class="yb-billing__modal-header">
+        <h3 id="yb-app-invoice-modal-title">Invoice</h3>
+        <button type="button" class="yb-billing__modal-close" data-action="app-invoice-modal-close">&times;</button>
+      </div>
+      <div id="yb-app-invoice-modal-body" class="yb-billing__modal-body"></div>
+    </div>
   </div>
 
   {# SMS Conversation #}
