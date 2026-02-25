@@ -24062,6 +24062,19 @@ a.yb-appt__phone-link:hover { text-decoration: underline; }
 }
 .yb-billing__cr-course { font-size: 0.8rem; color: #f75c03; }
 
+/* Unified search result groups */
+.yb-billing__result-group { margin-bottom: 0.5rem; }
+.yb-billing__result-group-header {
+  font-size: 0.75rem; font-weight: 700; text-transform: uppercase;
+  letter-spacing: 0.03em; color: #6F6A66; padding: 0.4rem 0.5rem 0.2rem;
+  border-bottom: 1px solid #E8E4E0; margin-bottom: 0.25rem;
+  display: flex; align-items: center; gap: 0.5rem;
+}
+.yb-billing__result-group-count {
+  background: #f75c03; color: #fff; font-size: 0.65rem;
+  padding: 1px 6px; border-radius: 10px; font-weight: 700;
+}
+
 /* Applicant banner (shown when navigated from Application tab) */
 .yb-billing__applicant-banner {
   display: flex; align-items: center; gap: 0.5rem;

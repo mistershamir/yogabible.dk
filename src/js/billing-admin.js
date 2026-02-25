@@ -211,28 +211,7 @@
   }
 
   /* ══════════════════════════════════════════
-     SOURCE TABS (e-conomic / Applicants)
-     ══════════════════════════════════════════ */
-  function switchSource(source) {
-    var econPanel = $('yb-billing-source-economic');
-    var appPanel = $('yb-billing-source-applicants');
-    if (!econPanel || !appPanel) return;
-
-    document.querySelectorAll('.yb-billing__source-tab').forEach(function (btn) { btn.classList.remove('is-active'); });
-    var activeBtn = document.querySelector('[data-action="billing-source-' + source + '"]');
-    if (activeBtn) activeBtn.classList.add('is-active');
-
-    if (source === 'economic') {
-      econPanel.hidden = false;
-      appPanel.hidden = true;
-    } else {
-      econPanel.hidden = true;
-      appPanel.hidden = false;
-    }
-  }
-
-  /* ══════════════════════════════════════════
-     E-CONOMIC CUSTOMER SEARCH
+     E-CONOMIC CUSTOMER SEARCH (dedicated)
      ══════════════════════════════════════════ */
   function searchCustomers() {
     var q = ($('yb-billing-customer-search') || {}).value || '';
@@ -268,6 +247,149 @@
     el.hidden = false;
   }
 
+  /* ══════════════════════════════════════════
+     UNIFIED CUSTOMER SEARCH
+     (searches e-conomic, applicants, and users)
+     ══════════════════════════════════════════ */
+  function unifiedSearch() {
+    var q = ($('yb-billing-unified-search') || {}).value || '';
+    if (q.length < 2) { toast(isDa ? 'Skriv mindst 2 tegn' : 'Type at least 2 characters', true); return; }
+    console.log('[billing] Unified search:', q);
+
+    var resultsEl = $('yb-billing-unified-results');
+    if (resultsEl) {
+      resultsEl.innerHTML = '<p style="padding:0.5rem;color:var(--yb-muted)">' + (isDa ? 'Søger...' : 'Searching...') + '</p>';
+      resultsEl.hidden = false;
+    }
+
+    var qLower = q.toLowerCase();
+
+    // Run all three searches in parallel
+    var econPromise = apiCall({ action: 'searchCustomers', query: q })
+      .then(function (res) { return (res.ok ? res.data : []) || []; })
+      .catch(function () { return []; });
+
+    var fdb = firebase.firestore();
+    var appPromise = fdb.collection('applications').orderBy('created_at', 'desc').limit(200).get()
+      .then(function (snap) {
+        var results = [];
+        snap.forEach(function (doc) {
+          var d = doc.data();
+          d.id = doc.id;
+          var match = (d.first_name || '').toLowerCase().includes(qLower)
+            || (d.last_name || '').toLowerCase().includes(qLower)
+            || (d.email || '').toLowerCase().includes(qLower)
+            || ((d.first_name || '') + ' ' + (d.last_name || '')).toLowerCase().includes(qLower);
+          if (match) results.push(d);
+        });
+        return results;
+      })
+      .catch(function () { return []; });
+
+    var userPromise = fdb.collection('users').limit(500).get()
+      .then(function (snap) {
+        var results = [];
+        snap.forEach(function (doc) {
+          var d = doc.data();
+          d.id = doc.id;
+          var name = (d.name || ((d.firstName || '') + ' ' + (d.lastName || '')).trim() || '').toLowerCase();
+          var email = (d.email || '').toLowerCase();
+          var phone = (d.phone || '').toLowerCase();
+          if (name.includes(qLower) || email.includes(qLower) || phone.includes(qLower)) {
+            results.push(d);
+          }
+        });
+        return results;
+      })
+      .catch(function () { return []; });
+
+    Promise.all([econPromise, appPromise, userPromise]).then(function (results) {
+      renderUnifiedResults(results[0], results[1], results[2]);
+    });
+  }
+
+  function renderUnifiedResults(customers, applicants, users) {
+    var el = $('yb-billing-unified-results');
+    if (!el) return;
+
+    var totalResults = customers.length + applicants.length + users.length;
+    if (!totalResults) {
+      el.innerHTML = '<p class="yb-billing__no-results">' + (isDa ? 'Ingen resultater fundet.' : 'No results found.') + '</p>';
+      el.hidden = false;
+      return;
+    }
+
+    var html = '';
+
+    // e-conomic customers
+    if (customers.length) {
+      html += '<div class="yb-billing__result-group">';
+      html += '<div class="yb-billing__result-group-header">e-conomic ' + (isDa ? 'kunder' : 'customers') + ' <span class="yb-billing__result-group-count">' + customers.length + '</span></div>';
+      html += '<div class="yb-billing__customer-list">';
+      customers.forEach(function (c) {
+        html += '<button type="button" class="yb-billing__customer-row" data-action="billing-select-customer" '
+          + 'data-customer-number="' + c.customerNumber + '" '
+          + 'data-customer-name="' + esc(c.name) + '" '
+          + 'data-customer-email="' + esc(c.email || '') + '">'
+          + '<span class="yb-billing__cr-name">' + esc(c.name) + '</span>'
+          + '<span class="yb-billing__cr-num">#' + c.customerNumber + '</span>'
+          + (c.email ? '<span class="yb-billing__cr-email">' + esc(c.email) + '</span>' : '')
+          + '</button>';
+      });
+      html += '</div></div>';
+    }
+
+    // Applicants
+    if (applicants.length) {
+      html += '<div class="yb-billing__result-group">';
+      html += '<div class="yb-billing__result-group-header">' + (isDa ? 'Ansøgere' : 'Applicants') + ' <span class="yb-billing__result-group-count">' + applicants.length + '</span></div>';
+      html += '<div class="yb-billing__customer-list">';
+      applicants.forEach(function (a) {
+        var name = (a.first_name || '') + ' ' + (a.last_name || '');
+        var statusBadge = a.status ? '<span class="yb-billing__cr-status">' + esc(a.status) + '</span>' : '';
+        html += '<button type="button" class="yb-billing__customer-row" data-action="billing-select-applicant" '
+          + 'data-app-name="' + esc(name.trim()) + '" '
+          + 'data-app-email="' + esc(a.email || '') + '" '
+          + 'data-app-phone="' + esc(a.phone || '') + '" '
+          + 'data-app-course="' + esc(a.course_name || '') + '" '
+          + 'data-app-type="' + esc(a.type || '') + '" '
+          + 'data-app-id="' + esc(a.app_id || a.id || '') + '">'
+          + '<span class="yb-billing__cr-name">' + esc(name.trim()) + '</span>'
+          + statusBadge
+          + (a.course_name ? '<span class="yb-billing__cr-course">' + esc(a.course_name) + '</span>' : '')
+          + (a.email ? '<span class="yb-billing__cr-email">' + esc(a.email) + '</span>' : '')
+          + '</button>';
+      });
+      html += '</div></div>';
+    }
+
+    // Users
+    if (users.length) {
+      html += '<div class="yb-billing__result-group">';
+      html += '<div class="yb-billing__result-group-header">' + (isDa ? 'Brugere' : 'Users') + ' <span class="yb-billing__result-group-count">' + users.length + '</span></div>';
+      html += '<div class="yb-billing__customer-list">';
+      users.forEach(function (u) {
+        var name = u.name || ((u.firstName || '') + ' ' + (u.lastName || '')).trim() || '';
+        var role = u.role || 'member';
+        if (role === 'user') role = 'member';
+        html += '<button type="button" class="yb-billing__customer-row" data-action="billing-select-user" '
+          + 'data-user-name="' + esc(name) + '" '
+          + 'data-user-email="' + esc(u.email || '') + '" '
+          + 'data-user-phone="' + esc(u.phone || '') + '" '
+          + 'data-user-id="' + esc(u.id || '') + '" '
+          + 'data-user-role="' + esc(role) + '">'
+          + '<span class="yb-billing__cr-name">' + esc(name) + '</span>'
+          + '<span class="yb-billing__cr-status">' + esc(role) + '</span>'
+          + (u.email ? '<span class="yb-billing__cr-email">' + esc(u.email) + '</span>' : '')
+          + '</button>';
+      });
+      html += '</div></div>';
+    }
+
+    el.innerHTML = html;
+    el.hidden = false;
+  }
+
   function selectCustomer(num, name, email) {
     selectedCustomer = { customerNumber: parseInt(num), name: name, email: email };
     selectedApplicant = null;
@@ -275,8 +397,11 @@
     $('yb-billing-cust-num').textContent = '#' + num;
     $('yb-billing-cust-email').textContent = email || '';
     $('yb-billing-selected-customer').hidden = false;
-    $('yb-billing-customer-results').hidden = true;
-    $('yb-billing-applicant-results') && ($('yb-billing-applicant-results').hidden = true);
+    // Hide all result panels
+    var econResults = $('yb-billing-customer-results');
+    if (econResults) econResults.hidden = true;
+    var unifiedResults = $('yb-billing-unified-results');
+    if (unifiedResults) unifiedResults.hidden = true;
     var ncForm = $('yb-billing-new-customer-form');
     if (ncForm) ncForm.hidden = true;
     console.log('[billing] Customer selected:', num, name);
@@ -291,62 +416,6 @@
     var banner = $('yb-billing-applicant-banner');
     if (banner) banner.hidden = true;
     updateBtnState();
-  }
-
-  /* ══════════════════════════════════════════
-     FIRESTORE APPLICANT SEARCH
-     ══════════════════════════════════════════ */
-  function searchApplicants() {
-    var q = ($('yb-billing-applicant-search') || {}).value || '';
-    if (q.length < 2) { toast(isDa ? 'Skriv mindst 2 tegn' : 'Type at least 2 characters', true); return; }
-    console.log('[billing] Searching applicants:', q);
-
-    // Search from Firestore applications collection
-    var db = firebase.firestore();
-    db.collection('applications').orderBy('created_at', 'desc').limit(200).get().then(function (snap) {
-      var results = [];
-      var qLower = q.toLowerCase();
-      snap.forEach(function (doc) {
-        var d = doc.data();
-        d.id = doc.id;
-        var match = (d.first_name || '').toLowerCase().includes(qLower)
-          || (d.last_name || '').toLowerCase().includes(qLower)
-          || (d.email || '').toLowerCase().includes(qLower)
-          || ((d.first_name || '') + ' ' + (d.last_name || '')).toLowerCase().includes(qLower);
-        if (match) results.push(d);
-      });
-      renderApplicantResults(results);
-    }).catch(function (err) { toast(err.message, true); });
-  }
-
-  function renderApplicantResults(applicants) {
-    var el = $('yb-billing-applicant-results');
-    if (!el) return;
-    if (!applicants.length) {
-      el.innerHTML = '<p class="yb-billing__no-results">' + (isDa ? 'Ingen ansøgere fundet.' : 'No applicants found.') + '</p>';
-      el.hidden = false;
-      return;
-    }
-    var html = '<div class="yb-billing__customer-list">';
-    applicants.forEach(function (a) {
-      var name = (a.first_name || '') + ' ' + (a.last_name || '');
-      var statusBadge = a.status ? '<span class="yb-billing__cr-status">' + esc(a.status) + '</span>' : '';
-      html += '<button type="button" class="yb-billing__customer-row" data-action="billing-select-applicant" '
-        + 'data-app-name="' + esc(name.trim()) + '" '
-        + 'data-app-email="' + esc(a.email || '') + '" '
-        + 'data-app-phone="' + esc(a.phone || '') + '" '
-        + 'data-app-course="' + esc(a.course_name || '') + '" '
-        + 'data-app-type="' + esc(a.type || '') + '" '
-        + 'data-app-id="' + esc(a.app_id || a.id || '') + '">'
-        + '<span class="yb-billing__cr-name">' + esc(name.trim()) + '</span>'
-        + statusBadge
-        + (a.course_name ? '<span class="yb-billing__cr-course">' + esc(a.course_name) + '</span>' : '')
-        + (a.email ? '<span class="yb-billing__cr-email">' + esc(a.email) + '</span>' : '')
-        + '</button>';
-    });
-    html += '</div>';
-    el.innerHTML = html;
-    el.hidden = false;
   }
 
   function selectApplicant(data) {
@@ -365,8 +434,8 @@
     $('yb-billing-cust-num').textContent = data.appId ? '(' + data.appId + ')' : '';
     $('yb-billing-cust-email').textContent = data.appEmail || '';
     $('yb-billing-selected-customer').hidden = false;
-    $('yb-billing-applicant-results') && ($('yb-billing-applicant-results').hidden = true);
-    $('yb-billing-customer-results') && ($('yb-billing-customer-results').hidden = true);
+    var resultsEl = $('yb-billing-unified-results');
+    if (resultsEl) resultsEl.hidden = true;
 
     // Pre-fill new customer form with applicant data
     prefillNewCustomerForm(data.appName, data.appEmail, data.appPhone);
@@ -381,6 +450,33 @@
     if (refEl && data.appId) refEl.value = data.appId;
 
     console.log('[billing] Applicant selected:', data.appName, data.appCourse);
+    updatePreview();
+    updateBtnState();
+  }
+
+  function selectUser(data) {
+    selectedApplicant = {
+      name: data.userName,
+      email: data.userEmail,
+      phone: data.userPhone,
+      course: '',
+      type: '',
+      appId: ''
+    };
+    selectedCustomer = null;
+
+    // Show as selected customer badge
+    $('yb-billing-cust-name').textContent = data.userName;
+    $('yb-billing-cust-num').textContent = data.userRole ? '(' + data.userRole + ')' : '';
+    $('yb-billing-cust-email').textContent = data.userEmail || '';
+    $('yb-billing-selected-customer').hidden = false;
+    var resultsEl = $('yb-billing-unified-results');
+    if (resultsEl) resultsEl.hidden = true;
+
+    // Pre-fill new customer form with user data
+    prefillNewCustomerForm(data.userName, data.userEmail, data.userPhone);
+
+    console.log('[billing] User selected:', data.userName, data.userEmail);
     updatePreview();
     updateBtnState();
   }
@@ -431,7 +527,10 @@
   function showNewCustomerForm() {
     var form = $('yb-billing-new-customer-form');
     if (form) form.hidden = false;
-    $('yb-billing-customer-results').hidden = true;
+    var econResults = $('yb-billing-customer-results');
+    if (econResults) econResults.hidden = true;
+    var unifiedResults = $('yb-billing-unified-results');
+    if (unifiedResults) unifiedResults.hidden = true;
   }
 
   function cancelNewCustomer() {
@@ -482,11 +581,8 @@
             ? 'Der findes allerede kunde(r) med lignende navn/email:\n\n' + matchList + '\n\nVil du stadig oprette en ny kunde?'
             : 'Customer(s) with similar name/email already exist:\n\n' + matchList + '\n\nDo you still want to create a new customer?';
           if (!confirm(msg)) {
-            // Let admin select existing customer instead
-            renderCustomerResults(allMatches);
-            $('yb-billing-source-economic') && ($('yb-billing-source-economic').hidden = false);
-            $('yb-billing-customer-results').hidden = false;
-            switchSource('economic');
+            // Let admin select existing customer instead — show in unified results
+            renderUnifiedResults(allMatches, [], []);
             return;
           }
         }
@@ -1566,8 +1662,38 @@
       appId: appData.appId || ''
     });
 
-    // Switch source to applicants
-    switchSource('applicants');
+  };
+
+  // Called from course-admin.js via window.billingFromUser()
+  window.billingFromUser = function (userData) {
+    console.log('[billing] Bill from user:', userData);
+
+    // Switch to billing tab
+    var billingTabBtn = document.querySelector('[data-yb-admin-tab="billing"]');
+    if (billingTabBtn) billingTabBtn.click();
+
+    // Ensure settings are loaded
+    if (!settingsLoaded && !settingsLoading) loadSettings();
+
+    // Show create view
+    showCreate();
+
+    // Show banner
+    var banner = $('yb-billing-applicant-banner');
+    var bannerInfo = $('yb-billing-applicant-info');
+    if (banner && bannerInfo) {
+      bannerInfo.textContent = t('billing_billing_for') + ': ' + (userData.name || '');
+      banner.hidden = false;
+    }
+
+    // Select as user (pre-fills new customer form)
+    selectUser({
+      userName: userData.name || '',
+      userEmail: userData.email || '',
+      userPhone: userData.phone || '',
+      userRole: '',
+      userId: ''
+    });
   };
 
   /* ══════════════════════════════════════════
@@ -1579,12 +1705,14 @@
     $('yb-billing-selected-customer').hidden = true;
     var ncForm = $('yb-billing-new-customer-form');
     if (ncForm) ncForm.hidden = true;
-    $('yb-billing-customer-results') && ($('yb-billing-customer-results').hidden = true);
-    $('yb-billing-applicant-results') && ($('yb-billing-applicant-results').hidden = true);
+    var econResults = $('yb-billing-customer-results');
+    if (econResults) econResults.hidden = true;
+    var unifiedResults = $('yb-billing-unified-results');
+    if (unifiedResults) unifiedResults.hidden = true;
     var banner = $('yb-billing-applicant-banner');
     if (banner) banner.hidden = true;
 
-    var fields = ['yb-billing-customer-search', 'yb-billing-applicant-search', 'yb-billing-total', 'yb-billing-description', 'yb-billing-notes', 'yb-billing-ref',
+    var fields = ['yb-billing-customer-search', 'yb-billing-unified-search', 'yb-billing-total', 'yb-billing-description', 'yb-billing-notes', 'yb-billing-ref',
       'yb-billing-nc-name', 'yb-billing-nc-email', 'yb-billing-nc-address', 'yb-billing-nc-zip', 'yb-billing-nc-city', 'yb-billing-nc-phone', 'yb-billing-nc-cvr'];
     fields.forEach(function (id) { var el = $(id); if (el) el.value = ''; });
 
@@ -1607,7 +1735,6 @@
     var monthInput = $('yb-billing-start-month');
     if (monthInput) monthInput.value = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0');
 
-    switchSource('economic');
     updatePreview();
     updateBtnState();
   }
@@ -1622,7 +1749,7 @@
   function handleAction(action, el) {
     switch (action) {
       case 'billing-search-customer': searchCustomers(); break;
-      case 'billing-search-applicants': searchApplicants(); break;
+      case 'billing-unified-search': unifiedSearch(); break;
       case 'billing-new-customer': showNewCustomerForm(); break;
       case 'billing-save-customer': saveNewCustomer(); break;
       case 'billing-cancel-new-customer': cancelNewCustomer(); break;
@@ -1634,8 +1761,9 @@
       case 'billing-select-applicant':
         selectApplicant(el.dataset);
         break;
-      case 'billing-source-economic': switchSource('economic'); break;
-      case 'billing-source-applicants': switchSource('applicants'); break;
+      case 'billing-select-user':
+        selectUser(el.dataset);
+        break;
       case 'billing-add-line': addExtraLine(); break;
       case 'billing-remove-line': removeExtraLine(parseInt(el.dataset.idx)); break;
       case 'billing-create-invoice': createInvoice(); break;
@@ -1699,19 +1827,20 @@
       }
     });
 
-    // Search on enter
-    ['yb-billing-customer-search', 'yb-billing-applicant-search'].forEach(function (id) {
-      var el = $(id);
-      if (el) {
-        el.addEventListener('keydown', function (e) {
-          if (e.key === 'Enter') {
-            e.preventDefault();
-            if (id.includes('applicant')) searchApplicants();
-            else searchCustomers();
-          }
-        });
-      }
-    });
+    // Search on enter — e-conomic search
+    var econInput = $('yb-billing-customer-search');
+    if (econInput) {
+      econInput.addEventListener('keydown', function (e) {
+        if (e.key === 'Enter') { e.preventDefault(); searchCustomers(); }
+      });
+    }
+    // Search on enter — unified search
+    var unifiedInput = $('yb-billing-unified-search');
+    if (unifiedInput) {
+      unifiedInput.addEventListener('keydown', function (e) {
+        if (e.key === 'Enter') { e.preventDefault(); unifiedSearch(); }
+      });
+    }
 
     // Live preview on changes
     ['yb-billing-total', 'yb-billing-instalments', 'yb-billing-start-month', 'yb-billing-description'].forEach(function (id) {
