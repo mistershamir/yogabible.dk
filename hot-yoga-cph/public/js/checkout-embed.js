@@ -544,6 +544,13 @@
       '.ycf-product-badge__cohort{display:block;font-size:.78rem;font-weight:600;color:#6F6A66;margin-top:4px}',
       '.ycf-product-badge__cohort[hidden]{display:none}',
       '.ycf-product-badge__desc{font-size:.78rem;color:#6F6A66;margin:6px 0 0;line-height:1.4}',
+      '.ycf-product-badge__saving{display:flex;align-items:center;gap:6px;margin-top:6px;font-size:.78rem}',
+      '.ycf-product-badge__saving s{color:#B5B0AB}',
+      '.ycf-product-badge__saving .ycf-free{color:#2e7d32;font-weight:700}',
+      '.ycf-product-badge__due{margin-top:4px;font-size:.78rem;color:#0F0F0F}',
+      '.ycf-product-badge__due strong{color:' + BRAND + '}',
+      '.ycf-product-badge__due .ycf-due-note{color:#6F6A66}',
+      '.ycf-product-badge__vat{display:inline-block;margin-top:4px;font-size:.72rem;color:#6F6A66;background:#E8E4E0;border-radius:4px;padding:1px 6px}',
 
       // Back link
       '.ycf-back{display:inline-flex;align-items:center;gap:4px;font-size:.82rem;font-weight:600;color:#6F6A66;text-decoration:none;margin-bottom:12px;transition:color .15s}',
@@ -709,6 +716,19 @@
     h +=     '<p class="yb-auth-modal__subtitle" data-yj-en hidden>Sign in to continue to payment</p>';
     h +=   '</div>';
 
+    // Age bracket toggle (early — login step)
+    h +=   '<div class="ycf-age" id="ycf-age-toggle-early" hidden>';
+    h +=     '<span class="ycf-age__label" data-yj-da>Alder:</span>';
+    h +=     '<span class="ycf-age__label" data-yj-en hidden>Age:</span>';
+    h +=     '<div class="ycf-age__toggle">';
+    h +=       '<button class="ycf-age__btn is-active" type="button" data-ycf-age="under30" data-yj-da>Under 30</button>';
+    h +=       '<button class="ycf-age__btn is-active" type="button" data-ycf-age="under30" data-yj-en hidden>Under 30</button>';
+    h +=       '<button class="ycf-age__btn" type="button" data-ycf-age="over30" data-yj-da>30+</button>';
+    h +=       '<button class="ycf-age__btn" type="button" data-ycf-age="over30" data-yj-en hidden>30+</button>';
+    h +=     '</div>';
+    h +=     '<span class="ycf-age__vat" id="ycf-age-vat-early" hidden></span>';
+    h +=   '</div>';
+
     // Product preview badge
     h +=   '<div class="ycf-product-badge" id="ycf-product-badge">';
     h +=     '<div class="ycf-product-badge__top">';
@@ -716,8 +736,11 @@
     h +=       '<span class="ycf-product-badge__price" id="ycf-badge-price"></span>';
     h +=     '</div>';
     h +=     '<span class="ycf-product-badge__cohort" id="ycf-badge-cohort" hidden></span>';
-    h +=     '<p class="ycf-product-badge__desc" data-yj-da>Du f\u00e5r adgang til at booke klasser efter betaling</p>';
-    h +=     '<p class="ycf-product-badge__desc" data-yj-en hidden>You\'ll be able to start booking classes after payment</p>';
+    h +=     '<div class="ycf-product-badge__saving" id="ycf-badge-saving" hidden></div>';
+    h +=     '<div class="ycf-product-badge__due" id="ycf-badge-due" hidden></div>';
+    h +=     '<span class="ycf-product-badge__vat" id="ycf-badge-vat" hidden></span>';
+    h +=     '<p class="ycf-product-badge__desc" id="ycf-badge-desc-da" data-yj-da>Du f\u00e5r adgang til at booke klasser efter betaling</p>';
+    h +=     '<p class="ycf-product-badge__desc" id="ycf-badge-desc-en" data-yj-en hidden>You\'ll be able to start booking classes after payment</p>';
     h +=   '</div>';
 
     // Login form
@@ -790,6 +813,31 @@
     h +=     '<h2 class="yb-auth-modal__title" data-yj-en hidden>Create your profile</h2>';
     h +=     '<p class="yb-auth-modal__subtitle" data-yj-da>Det tager kun et minut</p>';
     h +=     '<p class="yb-auth-modal__subtitle" data-yj-en hidden>It only takes a minute</p>';
+    h +=   '</div>';
+
+    // Age bracket toggle (register step)
+    h +=   '<div class="ycf-age" id="ycf-age-toggle-register" hidden>';
+    h +=     '<span class="ycf-age__label" data-yj-da>Alder:</span>';
+    h +=     '<span class="ycf-age__label" data-yj-en hidden>Age:</span>';
+    h +=     '<div class="ycf-age__toggle">';
+    h +=       '<button class="ycf-age__btn is-active" type="button" data-ycf-age="under30" data-yj-da>Under 30</button>';
+    h +=       '<button class="ycf-age__btn is-active" type="button" data-ycf-age="under30" data-yj-en hidden>Under 30</button>';
+    h +=       '<button class="ycf-age__btn" type="button" data-ycf-age="over30" data-yj-da>30+</button>';
+    h +=       '<button class="ycf-age__btn" type="button" data-ycf-age="over30" data-yj-en hidden>30+</button>';
+    h +=     '</div>';
+    h +=     '<span class="ycf-age__vat" id="ycf-age-vat-register" hidden></span>';
+    h +=   '</div>';
+
+    // Product preview badge (register step)
+    h +=   '<div class="ycf-product-badge" id="ycf-product-badge-register">';
+    h +=     '<div class="ycf-product-badge__top">';
+    h +=       '<span class="ycf-product-badge__name" id="ycf-rbadge-name"></span>';
+    h +=       '<span class="ycf-product-badge__price" id="ycf-rbadge-price"></span>';
+    h +=     '</div>';
+    h +=     '<span class="ycf-product-badge__cohort" id="ycf-rbadge-cohort" hidden></span>';
+    h +=     '<div class="ycf-product-badge__saving" id="ycf-rbadge-saving" hidden></div>';
+    h +=     '<div class="ycf-product-badge__due" id="ycf-rbadge-due" hidden></div>';
+    h +=     '<span class="ycf-product-badge__vat" id="ycf-rbadge-vat" hidden></span>';
     h +=   '</div>';
 
     h +=   '<form id="ycf-register-form" class="yb-auth-form" novalidate>';
@@ -1061,44 +1109,111 @@
     var name = isDa ? p.name_da : p.name_en;
     var price = p.price.toLocaleString('da-DK') + ' DKK';
 
-    // Show/hide age toggle + update VAT info
-    var ageToggle = $('ycf-age-toggle');
-    var ageVat = $('ycf-age-vat');
-    if (ageToggle) {
-      if (hasAgePricing(prodId)) {
-        ageToggle.hidden = false;
-        var ageInfo = getAgePair(prodId);
-        // Show VAT badge for over30 products
-        if (ageVat) {
-          if (ageInfo && ageInfo.age === 'over30') {
-            ageVat.textContent = t('Inkl. 25% moms', 'Incl. 25% VAT');
-            ageVat.hidden = false;
-          } else {
-            ageVat.hidden = true;
-          }
+    // Helper to build cohort string
+    function buildCohortParts(prod) {
+      var cp = [];
+      var lbl = isDa ? prod.label_da : prod.label_en;
+      if (lbl) cp.push(lbl);
+      if (prod.validity) cp.push(prod.validity);
+      if (prod.classes) cp.push(prod.classes + t(' klasser', ' classes'));
+      return cp;
+    }
+
+    // Helper to update a badge (login or register) with all info
+    function populateBadge(ids, prod) {
+      var bName   = $(ids.name);
+      var bPrice  = $(ids.price);
+      var bCohort = $(ids.cohort);
+      var bSaving = $(ids.saving);
+      var bDue    = $(ids.due);
+      var bVat    = $(ids.vat);
+      var bDescDa = $(ids.descDa);
+      var bDescEn = $(ids.descEn);
+      if (!bName) return;
+
+      var bLabel = isDa ? prod.name_da : prod.name_en;
+      bName.textContent = bLabel;
+
+      // Price: for contracts show reg fee as "amount due", otherwise full price
+      var displayPrice = (prod._itemType === 'contract' && prod.firstMonthFree && prod.regFee)
+        ? formatDKK(prod.regFee)
+        : prod.price.toLocaleString('da-DK') + ' DKK';
+      if (bPrice) bPrice.textContent = displayPrice;
+
+      // Cohort
+      if (bCohort) {
+        var cp = buildCohortParts(prod);
+        if (prod._itemType === 'contract') cp = [t('Medlemskab', 'Membership'), t('pr. måned', 'per month')];
+        bCohort.textContent = cp.join(' \u00b7 ');
+        bCohort.hidden = cp.length === 0;
+      }
+
+      // Savings + due (contracts with first-month-free)
+      if (bSaving) {
+        if (prod._itemType === 'contract' && prod.firstMonthFree) {
+          bSaving.innerHTML = '<s>' + formatDKK(prod.price) + '</s>&nbsp;<span class="ycf-free">' + t('0 kr første måned', '0 kr first month') + '</span>';
+          bSaving.hidden = false;
+        } else {
+          bSaving.hidden = true;
         }
+      }
+      if (bDue) {
+        if (prod._itemType === 'contract' && prod.firstMonthFree && prod.regFee) {
+          bDue.innerHTML = t('Betaler nu: ', 'Pay now: ') + '<strong>' + formatDKK(prod.regFee) + '</strong> <span class="ycf-due-note">' + t('(registreringsgebyr)', '(registration fee)') + '</span>';
+          bDue.hidden = false;
+        } else {
+          bDue.hidden = true;
+        }
+      }
+
+      // VAT badge (over30 only)
+      var ageInfo2 = getAgePair(prod === p ? prodId : prodId);
+      if (bVat) {
+        if (ageInfo2 && ageInfo2.age === 'over30') {
+          bVat.textContent = t('Inkl. 25% moms', 'Incl. 25% VAT');
+          bVat.hidden = false;
+        } else {
+          bVat.hidden = true;
+        }
+      }
+
+      // Desc: hide for contracts (savings/due says it all)
+      if (bDescDa) bDescDa.hidden = prod._itemType === 'contract';
+      if (bDescEn) bDescEn.hidden = prod._itemType === 'contract';
+    }
+
+    // Show/hide ALL age toggles + update VAT info
+    var ageInfo = getAgePair(prodId);
+    var isOver30 = ageInfo && ageInfo.age === 'over30';
+    var vatText = isOver30 ? t('Inkl. 25% moms', 'Incl. 25% VAT') : '';
+
+    var toggleIds = ['ycf-age-toggle', 'ycf-age-toggle-early', 'ycf-age-toggle-register'];
+    var vatIds    = ['ycf-age-vat',    'ycf-age-vat-early',    'ycf-age-vat-register'];
+    for (var ti = 0; ti < toggleIds.length; ti++) {
+      var tog = $(toggleIds[ti]);
+      if (!tog) continue;
+      if (hasAgePricing(prodId)) {
+        tog.hidden = false;
+        var vatEl = $(vatIds[ti]);
+        if (vatEl) { vatEl.textContent = vatText; vatEl.hidden = !isOver30; }
       } else {
-        ageToggle.hidden = true;
+        tog.hidden = true;
       }
     }
 
     // Badge (login step)
-    var badgeName = $('ycf-badge-name');
-    var badgePrice = $('ycf-badge-price');
-    var badgeCohort = $('ycf-badge-cohort');
-    if (badgeName) badgeName.textContent = name;
-    if (badgePrice) badgePrice.textContent = price;
+    populateBadge({
+      name: 'ycf-badge-name', price: 'ycf-badge-price', cohort: 'ycf-badge-cohort',
+      saving: 'ycf-badge-saving', due: 'ycf-badge-due', vat: 'ycf-badge-vat',
+      descDa: 'ycf-badge-desc-da', descEn: 'ycf-badge-desc-en'
+    }, p);
 
-    // Cohort line: label + validity + classes
-    if (badgeCohort) {
-      var parts = [];
-      var label = isDa ? p.label_da : p.label_en;
-      if (label) parts.push(label);
-      if (p.validity) parts.push(p.validity);
-      if (p.classes) parts.push(p.classes + t(' klasser', ' classes'));
-      badgeCohort.textContent = parts.join(' \u00b7 ');
-      badgeCohort.hidden = parts.length === 0;
-    }
+    // Badge (register step)
+    populateBadge({
+      name: 'ycf-rbadge-name', price: 'ycf-rbadge-price', cohort: 'ycf-rbadge-cohort',
+      saving: 'ycf-rbadge-saving', due: 'ycf-rbadge-due', vat: 'ycf-rbadge-vat',
+      descDa: null, descEn: null
+    }, p);
 
     // Checkout step product card
     var prodName  = $('ycf-prod-name');
@@ -1373,18 +1488,23 @@
     if (ageInfo) {
       selectedAge = ageInfo.age;
     }
-    // Sync toggle button styles
-    var ageWrap = $('ycf-age-toggle');
-    if (ageWrap) {
-      var ageBtns = ageWrap.querySelectorAll('[data-ycf-age]');
-      for (var ab = 0; ab < ageBtns.length; ab++) {
-        ageBtns[ab].classList.toggle('is-active', ageBtns[ab].getAttribute('data-ycf-age') === selectedAge);
+    // Sync toggle button styles across all age toggle widgets
+    var allAgeWrapIds = ['ycf-age-toggle', 'ycf-age-toggle-early', 'ycf-age-toggle-register'];
+    for (var aw = 0; aw < allAgeWrapIds.length; aw++) {
+      var ageWrap = $(allAgeWrapIds[aw]);
+      if (ageWrap) {
+        var ageBtns = ageWrap.querySelectorAll('[data-ycf-age]');
+        for (var ab = 0; ab < ageBtns.length; ab++) {
+          ageBtns[ab].classList.toggle('is-active', ageBtns[ab].getAttribute('data-ycf-age') === selectedAge);
+        }
       }
     }
 
-    // Restore product badge + step dots (may have been hidden by login-only mode)
+    // Restore product badges + step dots (may have been hidden by login-only mode)
     var badge = $('ycf-product-badge');
     if (badge) badge.hidden = false;
+    var badgeReg = $('ycf-product-badge-register');
+    if (badgeReg) badgeReg.hidden = false;
     var stepDots = modal.querySelector('.ycf-steps');
     if (stepDots) stepDots.hidden = false;
 
@@ -1552,12 +1672,15 @@
 
       selectedAge = targetAge;
 
-      // Update toggle button styles
-      var ageWrap = $('ycf-age-toggle');
-      if (ageWrap) {
-        var ageBtns = ageWrap.querySelectorAll('[data-ycf-age]');
-        for (var ab = 0; ab < ageBtns.length; ab++) {
-          ageBtns[ab].classList.toggle('is-active', ageBtns[ab].getAttribute('data-ycf-age') === targetAge);
+      // Update toggle button styles across ALL age toggle widgets
+      var allAgeWraps = ['ycf-age-toggle', 'ycf-age-toggle-early', 'ycf-age-toggle-register'];
+      for (var aw = 0; aw < allAgeWraps.length; aw++) {
+        var ageWrap = $(allAgeWraps[aw]);
+        if (ageWrap) {
+          var ageBtns = ageWrap.querySelectorAll('[data-ycf-age]');
+          for (var ab = 0; ab < ageBtns.length; ab++) {
+            ageBtns[ab].classList.toggle('is-active', ageBtns[ab].getAttribute('data-ycf-age') === targetAge);
+          }
         }
       }
 
