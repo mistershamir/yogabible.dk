@@ -545,12 +545,15 @@
       '.ycf-product-badge__cohort[hidden]{display:none}',
       '.ycf-product-badge__desc{font-size:.78rem;color:#6F6A66;margin:6px 0 0;line-height:1.4}',
       '.ycf-product-badge__saving{display:flex;align-items:center;gap:6px;margin-top:6px;font-size:.78rem}',
+      '.ycf-product-badge__saving[hidden]{display:none}',
       '.ycf-product-badge__saving s{color:#B5B0AB}',
       '.ycf-product-badge__saving .ycf-free{color:#2e7d32;font-weight:700}',
       '.ycf-product-badge__due{margin-top:4px;font-size:.78rem;color:#0F0F0F}',
+      '.ycf-product-badge__due[hidden]{display:none}',
       '.ycf-product-badge__due strong{color:' + BRAND + '}',
       '.ycf-product-badge__due .ycf-due-note{color:#6F6A66}',
       '.ycf-product-badge__vat{display:inline-block;margin-top:4px;font-size:.72rem;color:#6F6A66;background:#E8E4E0;border-radius:4px;padding:1px 6px}',
+      '.ycf-product-badge__vat[hidden]{display:none}',
 
       // Back link
       '.ycf-back{display:inline-flex;align-items:center;gap:4px;font-size:.82rem;font-weight:600;color:#6F6A66;text-decoration:none;margin-bottom:12px;transition:color .15s}',
