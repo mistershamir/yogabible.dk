@@ -268,7 +268,7 @@ async function sendEmail4wYTT(leadData, tokenData = {}) {
   const program = leadData.program || '4-Week Intensive YTT';
   const needsHousing = (leadData.accommodation || '').toLowerCase() === 'yes';
   const cityCountry = leadData.city_country || '';
-  const subject = firstName + ', dit personlige skema til 4-ugers yogauddannelsen';
+  const subject = firstName + ', her er alle datoer til 4-ugers yogauddannelsen';
 
   const isFebruary = program.toLowerCase().includes('feb');
   const fullPrice = isFebruary ? '20.750' : '23.750';
@@ -282,8 +282,8 @@ async function sendEmail4wYTT(leadData, tokenData = {}) {
 
   let bodyHtml = '<p>Hej ' + escapeHtml(firstName) + ',</p>';
   bodyHtml += '<p>Tak fordi du viste interesse for vores <strong>4-ugers intensive 200-timers yogal\u00e6reruddannelse</strong>.</p>';
-  bodyHtml += '<p>Her er dit personlige interaktive skema med alle tr\u00e6ningsdage og tider:</p>';
-  bodyHtml += '<p style="margin:20px 0;"><a href="' + scheduleUrl + '" style="display:inline-block;background:#f75c03;color:#ffffff;padding:14px 28px;text-decoration:none;border-radius:50px;font-weight:600;font-size:16px;">Se dit personlige skema \u2192</a></p>';
+  bodyHtml += '<p>Her finder du alle tr\u00e6ningsdage og tidspunkter for uddannelsen:</p>';
+  bodyHtml += '<p style="margin:20px 0;"><a href="' + scheduleUrl + '" style="display:inline-block;background:#f75c03;color:#ffffff;padding:14px 28px;text-decoration:none;border-radius:50px;font-weight:600;font-size:16px;">Se skemaet \u2192</a></p>';
   bodyHtml += '<p style="font-size:14px;color:#666;">Du kan tilf\u00f8je alle datoer direkte til din kalender \u2014 og se pr\u00e6cis, hvad der sker hver dag i de 4 uger.</p>';
 
   bodyHtml += '<p style="margin-top:16px;">Det intensive format er til dig, der vil fordybe dig fuldt ud. P\u00e5 4 uger gennemf\u00f8rer du hele certificeringen med daglig tr\u00e6ning og teori \u2014 mange af vores dimittender fort\u00e6ller, at det intensive format hjalp dem med at l\u00e6re mere, fordi de var 100% dedikerede.</p>';
@@ -308,7 +308,7 @@ async function sendEmail4wYTT(leadData, tokenData = {}) {
   // Plain text
   let bodyPlain = 'Hej ' + firstName + ',\n\n';
   bodyPlain += 'Tak fordi du viste interesse for vores 4-ugers intensive 200-timers yogal\u00e6reruddannelse.\n\n';
-  bodyPlain += 'Dit personlige interaktive skema:\n' + scheduleUrl + '\n\n';
+  bodyPlain += 'Uddannelsesskema og datoer:\n' + scheduleUrl + '\n\n';
   bodyPlain += programHighlightsPlain();
   if (needsHousing) bodyPlain += getAccommodationSectionPlain(cityCountry);
   bodyPlain += '\nPris: ' + fullPrice + ' kr.' + discountNote + '\nForberedelsesfasen: 3.750 kr.\nRest: ' + remaining + ' kr. (' + rateNote + ')\n\n';
@@ -335,7 +335,7 @@ async function sendEmail8wYTT(leadData, tokenData = {}) {
   const program = leadData.program || '8-Week Semi-Intensive YTT';
   const needsHousing = (leadData.accommodation || '').toLowerCase() === 'yes';
   const cityCountry = leadData.city_country || '';
-  const subject = firstName + ', dit personlige skema til 8-ugers yogauddannelsen';
+  const subject = firstName + ', her er alle datoer til 8-ugers yogauddannelsen';
 
   const scheduleUrl8w = tokenData.leadId && tokenData.token
     ? 'https://www.yogabible.dk/skema/8-uger/?tid=' + encodeURIComponent(tokenData.leadId) + '&tok=' + encodeURIComponent(tokenData.token)
@@ -344,9 +344,8 @@ async function sendEmail8wYTT(leadData, tokenData = {}) {
   let bodyHtml = '<p>Hej ' + escapeHtml(firstName) + ',</p>';
   bodyHtml += '<p>Tak fordi du viste interesse for vores <strong>8-ugers semi-intensive 200-timers yogal\u00e6reruddannelse</strong>.</p>';
 
-  // Interactive schedule page link (tokenized, personalized)
-  bodyHtml += '<p>Her er dit personlige interaktive skema med alle 22 workshopdatoer:</p>';
-  bodyHtml += '<p style="margin:20px 0;"><a href="' + scheduleUrl8w + '" style="display:inline-block;background:#f75c03;color:#ffffff;padding:14px 28px;text-decoration:none;border-radius:50px;font-weight:600;font-size:16px;">Se dit personlige skema \u2192</a></p>';
+  bodyHtml += '<p>Her finder du alle 22 workshopdatoer og tidspunkter:</p>';
+  bodyHtml += '<p style="margin:20px 0;"><a href="' + scheduleUrl8w + '" style="display:inline-block;background:#f75c03;color:#ffffff;padding:14px 28px;text-decoration:none;border-radius:50px;font-weight:600;font-size:16px;">Se skemaet \u2192</a></p>';
   bodyHtml += '<p style="font-size:14px;color:#666;">Du kan tilf\u00f8je alle datoer direkte til din kalender \u2014 og se pr\u00e6cis, hvad der sker hver dag i de 8 uger.</p>';
 
   bodyHtml += '<p style="margin-top:16px;">8-ugers formatet giver en god balance: nok intensitet til at holde fokus og g\u00f8re reelle fremskridt, men stadig plads til arbejde, familie eller andre forpligtelser. Det er et popul\u00e6rt valg for dem, der gerne vil have en dyb oplevelse uden at s\u00e6tte hele livet p\u00e5 pause.</p>';
@@ -364,7 +363,7 @@ async function sendEmail8wYTT(leadData, tokenData = {}) {
 
   let bodyPlain = 'Hej ' + firstName + ',\n\n';
   bodyPlain += 'Tak fordi du viste interesse for vores 8-ugers semi-intensive 200-timers yogal\u00e6reruddannelse.\n\n';
-  bodyPlain += 'Dit personlige interaktive skema:\n' + scheduleUrl8w + '\n\n';
+  bodyPlain += 'Uddannelsesskema og datoer:\n' + scheduleUrl8w + '\n\n';
   bodyPlain += programHighlightsPlain(['Online backup hvis du ikke kan m\u00f8de op']);
   if (needsHousing) bodyPlain += getAccommodationSectionPlain(cityCountry);
   bodyPlain += '\n' + getPricingSectionPlain('23.750', '3.750', '20.000', 'kan betales i 2\u20134 rater') + '\n';
@@ -391,7 +390,7 @@ async function sendEmail18wYTT(leadData, tokenData = {}) {
   const program = leadData.program || '18-Week Flexible YTT';
   const needsHousing = (leadData.accommodation || '').toLowerCase() === 'yes';
   const cityCountry = leadData.city_country || '';
-  const subject = firstName + ', dit personlige skema til 18-ugers yogauddannelsen';
+  const subject = firstName + ', her er alle datoer til 18-ugers yogauddannelsen';
 
   const scheduleUrl18w = tokenData.leadId && tokenData.token
     ? 'https://www.yogabible.dk/skema/18-uger/?tid=' + encodeURIComponent(tokenData.leadId) + '&tok=' + encodeURIComponent(tokenData.token)
@@ -400,8 +399,8 @@ async function sendEmail18wYTT(leadData, tokenData = {}) {
   let bodyHtml = '<p>Hej ' + escapeHtml(firstName) + ',</p>';
   bodyHtml += '<p>Tak fordi du viste interesse for vores <strong>18-ugers fleksible yogal\u00e6reruddannelse</strong>.</p>';
 
-  bodyHtml += '<p>Her er dit personlige interaktive skema med alle datoer og tidspunkter:</p>';
-  bodyHtml += '<p style="margin:20px 0;"><a href="' + scheduleUrl18w + '" style="display:inline-block;background:#f75c03;color:#ffffff;padding:14px 28px;text-decoration:none;border-radius:50px;font-weight:600;font-size:16px;">Se dit personlige skema \u2192</a></p>';
+  bodyHtml += '<p>Her finder du alle datoer og tidspunkter for uddannelsen:</p>';
+  bodyHtml += '<p style="margin:20px 0;"><a href="' + scheduleUrl18w + '" style="display:inline-block;background:#f75c03;color:#ffffff;padding:14px 28px;text-decoration:none;border-radius:50px;font-weight:600;font-size:16px;">Se skemaet \u2192</a></p>';
   bodyHtml += '<p style="font-size:14px;color:#666;">Du kan tilf\u00f8je alle datoer direkte til din kalender \u2014 og se pr\u00e6cis hvilke dage der er hverdagshold og weekendhold.</p>';
 
   bodyHtml += programHighlightsHtml([
@@ -424,7 +423,7 @@ async function sendEmail18wYTT(leadData, tokenData = {}) {
 
   let bodyPlain = 'Hej ' + firstName + ',\n\n';
   bodyPlain += 'Tak fordi du viste interesse for vores 18-ugers fleksible yogal\u00e6reruddannelse.\n\n';
-  bodyPlain += 'Dit personlige interaktive skema:\n' + scheduleUrl18w + '\n\n';
+  bodyPlain += 'Uddannelsesskema og datoer:\n' + scheduleUrl18w + '\n\n';
   bodyPlain += programHighlightsPlain([
     'V\u00e6lg hverdags- eller weekendspor \u2014 skift frit undervejs',
     'Online backup hvis du ikke kan m\u00f8de op',
@@ -505,7 +504,7 @@ async function sendEmailMultiYTT(leadData, tokenData = {}) {
   bodyHtml += '<p>Tak fordi du viste interesse for vores <strong>200-timers yogal\u00e6reruddannelse</strong>!</p>';
 
   bodyHtml += '<p>Jeg kan se, at du gerne vil sammenligne vores <strong>' + escapeHtml(formatList) + '</strong>. ';
-  bodyHtml += 'Godt t\u00e6nkt \u2014 herunder finder du links til dine personlige interaktive skemaer for hvert format.</p>';
+  bodyHtml += 'Godt t\u00e6nkt \u2014 herunder finder du skemaer og datoer for hvert format.</p>';
 
   // Comparison prompt box
   bodyHtml += '<div style="margin:20px 0;padding:14px;background:#E3F2FD;border-radius:6px;border-left:3px solid #1976D2;">';
@@ -564,14 +563,14 @@ async function sendEmailMultiYTT(leadData, tokenData = {}) {
   let bodyPlain = 'Hej ' + firstName + ',\n\n';
   bodyPlain += 'Tak fordi du viste interesse for vores 200-timers yogal\u00e6reruddannelse!\n\n';
   bodyPlain += 'Jeg kan se du gerne vil sammenligne vores ' + formatList + '. ';
-  bodyPlain += 'Herunder finder du links til dine personlige interaktive skemaer for hvert format.\n\n';
+  bodyPlain += 'Herunder finder du skemaer og datoer for hvert format.\n\n';
   bodyPlain += 'Et hurtigt sp\u00f8rgsm\u00e5l: Er det fordi du har andre forpligtelser der p\u00e5virker dit valg? Svar gerne s\u00e5 jeg kan hj\u00e6lpe!\n\n';
   formats.forEach(f => {
     const info = FORMAT_INFO[f];
     if (info) {
       bodyPlain += '--- ' + info.name + ' (' + info.period + ') ---\n';
       bodyPlain += info.desc + '\n';
-      if (info.scheduleUrl) bodyPlain += 'Se dit personlige skema: ' + info.scheduleUrl + '\n';
+      if (info.scheduleUrl) bodyPlain += 'Skema og datoer: ' + info.scheduleUrl + '\n';
       bodyPlain += 'L\u00e6s mere: ' + info.url + '\n\n';
     }
   });
