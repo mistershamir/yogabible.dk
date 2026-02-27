@@ -35,12 +35,6 @@
     en: 'The remaining balance is settled before training starts — either in full or in instalments. Your course director will be in touch with all the details and next steps.'
   };
 
-  // Cancellation note (for teacher training prep phase)
-  var CANCEL_NOTE = {
-    da: 'Vi beder dig give os besked hurtigst muligt ved afmelding, så vi kan nå at fylde din plads.',
-    en: 'We kindly ask that you let us know of any cancellation as soon as possible, so we have time to fill your spot.'
-  };
-
   // Prep phase benefits (for teacher training)
   var PREP_BENEFITS = {
     da: [
@@ -188,16 +182,6 @@
         chips += '<span class="ycf-chip ycf-chip--muted">' + (isDa ? p.format_da : p.format_en) + '</span>';
       }
       prodChips.innerHTML = chips;
-    }
-
-    // Cancellation note (teacher training only)
-    var prodRefund = $('ycf-prod-refund');
-    var prodRefundText = $('ycf-prod-refund-text');
-    if (prodRefund && prodRefundText && p.category === 'teacher') {
-      prodRefundText.textContent = isDa ? CANCEL_NOTE.da : CANCEL_NOTE.en;
-      prodRefund.hidden = false;
-    } else if (prodRefund) {
-      prodRefund.hidden = true;
     }
 
     // Prep phase benefits (teacher training only)
