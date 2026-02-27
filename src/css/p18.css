@@ -2088,8 +2088,93 @@
 
 .p18-final-cta__text {
   font-size: clamp(14px, 1.8vw, 18px);
-  margin-bottom: 28px;
+  margin-bottom: 10px;
   opacity: 0.92;
+}
+
+.p18-final-cta__urgency {
+  display: inline-block;
+  background: rgba(255,255,255,0.18);
+  border: 1px solid rgba(255,255,255,0.5);
+  color: #fff;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  padding: 5px 14px;
+  border-radius: 50px;
+  margin-bottom: 24px;
+}
+
+/* -- Hero urgency bar -- */
+.p18-urgency-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 22px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.p18-urgency-bar__dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #ff4545;
+  box-shadow: 0 0 0 3px rgba(255,69,69,0.25);
+  flex-shrink: 0;
+  animation: p18-pulse 1.6s ease-in-out infinite;
+}
+
+@keyframes p18-pulse {
+  0%, 100% { box-shadow: 0 0 0 3px rgba(255,69,69,0.25); }
+  50% { box-shadow: 0 0 0 6px rgba(255,69,69,0.1); }
+}
+
+.p18-urgency-bar__badge {
+  background: #ff4545;
+  color: #fff;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  padding: 3px 10px;
+  border-radius: 50px;
+}
+
+.p18-urgency-bar__sep {
+  color: rgba(255,255,255,0.45);
+  font-size: 13px;
+}
+
+.p18-urgency-bar__deadline {
+  color: rgba(255,255,255,0.9);
+  font-size: 13px;
+  font-weight: 500;
+}
+
+/* -- Investment urgency notice -- */
+.p18-urgency-notice {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #fff7f5;
+  border: 1px solid #f75c03;
+  border-radius: 8px;
+  padding: 10px 14px;
+  margin-bottom: 16px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #d94f02;
+}
+
+.p18-urgency-notice__dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #ff4545;
+  flex-shrink: 0;
+  animation: p18-pulse 1.6s ease-in-out infinite;
 }
 
 /* =============================================

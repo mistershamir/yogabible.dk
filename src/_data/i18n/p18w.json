@@ -1,5 +1,10 @@
 {
   "da": {
+    "urgency_badge": "Få pladser tilbage",
+    "urgency_deadline": "Tilmeldingsfrist: 6. marts",
+    "urgency_banner": "Kun få pladser tilbage — tilmeldingsfristen er <strong>6. marts</strong>. Sikr din plads nu.",
+    "urgency_inline": "⚡ Kun få pladser tilbage · Tilmeldingsfrist 6. marts",
+
     "hero_tagline": "200-Timer Yogalæreruddannelse",
     "hero_title": "18 Ugers Fleksibelt<br>Program",
     "hero_subtitle": "Bliv certificeret yogalærer ved siden af dit job, studie eller familieliv",
@@ -250,7 +255,8 @@
     "faq6_a": "Ja — praktisk undervisningsprøve, skriftlig anatomi-test og filosofi-aflevering. Alt er designet til læring, ikke stress. Vi har 90%+ beståelsesrate.",
 
     "final_title": "Klar til at starte din rejse?",
-    "final_text": "Næste 18-ugers hold starter Marts 2026. Få skemaet og svar på alle dine spørgsmål.",
+    "final_text": "Næste 18-ugers hold starter Marts 2026. <strong>Kun få pladser tilbage</strong> — tilmeldingsfristen er 6. marts.",
+    "final_urgency": "Sikr din plads inden fristen",
     "final_cta": "Få Skema Nu",
     "final_prep_cta": "Start Forberedelsesfasen — 3.750 kr",
 
@@ -290,6 +296,11 @@
     "prog8w_alt": "200-timers – 8 ugers semi-intensivt program"
   },
   "en": {
+    "urgency_badge": "Few spots remaining",
+    "urgency_deadline": "Sign-up deadline: 6 March",
+    "urgency_banner": "Only a few spots remaining — sign-up deadline is <strong>6 March</strong>. Secure your place now.",
+    "urgency_inline": "⚡ Few spots remaining · Deadline 6 March",
+
     "hero_tagline": "200-Hour Yoga Teacher Training",
     "hero_title": "18-Week Flexible<br>Program",
     "hero_subtitle": "Become a certified yoga teacher alongside your job, studies or family life",
@@ -540,7 +551,8 @@
     "faq6_a": "Yes — practical teaching exam, written anatomy test and philosophy assignment. Everything is designed for learning, not stress. We have a 90%+ pass rate.",
 
     "final_title": "Ready to start your journey?",
-    "final_text": "Next 18-week program starts March 2026. Get the schedule and answers to all your questions.",
+    "final_text": "Next 18-week program starts March 2026. <strong>Only a few spots remaining</strong> — sign-up deadline is 6 March.",
+    "final_urgency": "Secure your place before the deadline",
     "final_cta": "Get Schedule Now",
     "final_prep_cta": "Start Preparation Phase — 3,750 DKK",
 

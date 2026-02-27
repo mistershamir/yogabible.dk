@@ -390,14 +390,22 @@ async function sendEmail18wYTT(leadData, tokenData = {}) {
   const program = leadData.program || '18-Week Flexible YTT';
   const needsHousing = (leadData.accommodation || '').toLowerCase() === 'yes';
   const cityCountry = leadData.city_country || '';
-  const subject = firstName + ', her er alle datoer til 18-ugers yogauddannelsen';
+  const subject = firstName + ', f\u00e5 pladser tilbage \u2014 datoer til 18-ugers yogauddannelsen';
 
   const scheduleUrl18w = tokenData.leadId && tokenData.token
     ? 'https://www.yogabible.dk/skema/18-uger/?tid=' + encodeURIComponent(tokenData.leadId) + '&tok=' + encodeURIComponent(tokenData.token)
     : 'https://www.yogabible.dk/skema/18-uger/';
 
+  // Urgency banner
+  const urgencyHtml =
+    '<div style="margin-bottom:20px;padding:12px 16px;background:#FEF2F2;border-left:3px solid #ef4444;border-radius:6px;display:flex;align-items:center;gap:10px;">' +
+    '<span style="width:9px;height:9px;border-radius:50%;background:#ef4444;flex-shrink:0;display:inline-block;"></span>' +
+    '<span><strong style="color:#b91c1c;">Kun f\u00e5 pladser tilbage</strong> \u2014 <strong style="color:#b91c1c;">tilmeldingsfristen er 6. marts.</strong> Sikr din plads nu.</span>' +
+    '</div>';
+
   let bodyHtml = '<p>Hej ' + escapeHtml(firstName) + ',</p>';
   bodyHtml += '<p>Tak fordi du viste interesse for vores <strong>18-ugers fleksible yogal\u00e6reruddannelse</strong>.</p>';
+  bodyHtml += urgencyHtml;
 
   bodyHtml += '<p>Her finder du alle datoer og tidspunkter for uddannelsen:</p>';
   bodyHtml += '<p style="margin:20px 0;"><a href="' + scheduleUrl18w + '" style="display:inline-block;background:#f75c03;color:#ffffff;padding:14px 28px;text-decoration:none;border-radius:50px;font-weight:600;font-size:16px;">Se skemaet \u2192</a></p>';
@@ -410,7 +418,7 @@ async function sendEmail18wYTT(leadData, tokenData = {}) {
   ]);
 
   bodyHtml += '<p style="margin-top:12px;">Det, der g\u00f8r dette program unikt, er fleksibiliteten. Hver workshop k\u00f8rer to gange \u2014 \u00e9n p\u00e5 en hverdag og \u00e9n i weekenden \u2014 s\u00e5 du altid kan f\u00f8lge med, uanset hvad din uge ser ud.</p>';
-  bodyHtml += '<p style="margin-top:12px;">Holdene starter i <strong>slutningen af februar/marts 2026</strong>, og vi holder bevidst holdene sm\u00e5 for at sikre personlig feedback. Der er stadig ledige pladser, men de fylder stille og roligt op.</p>';
+  bodyHtml += '<p style="margin-top:12px;">Holdet starter i <strong>marts 2026</strong>, og vi holder holdene sm\u00e5 for at sikre personlig feedback. <strong>Der er kun f\u00e5 pladser tilbage</strong>, og tilmeldingsfristen er <strong>6. marts</strong>.</p>';
 
   if (needsHousing) bodyHtml += getAccommodationSectionHtml(cityCountry);
   bodyHtml += getPricingSectionHtml('23.750', '3.750', '20.000', 'kan betales i op til 5 rater');
@@ -423,6 +431,7 @@ async function sendEmail18wYTT(leadData, tokenData = {}) {
 
   let bodyPlain = 'Hej ' + firstName + ',\n\n';
   bodyPlain += 'Tak fordi du viste interesse for vores 18-ugers fleksible yogal\u00e6reruddannelse.\n\n';
+  bodyPlain += '\u26a1 KUN F\u00c5 PLADSER TILBAGE \u2014 TILMELDINGSFRIST 6. MARTS\n\n';
   bodyPlain += 'Uddannelsesskema og datoer:\n' + scheduleUrl18w + '\n\n';
   bodyPlain += programHighlightsPlain([
     'V\u00e6lg hverdags- eller weekendspor \u2014 skift frit undervejs',
@@ -430,7 +439,7 @@ async function sendEmail18wYTT(leadData, tokenData = {}) {
     '60 yogaklasser inkluderet'
   ]);
   bodyPlain += '\nDet unikke er fleksibiliteten: hver workshop k\u00f8rer to gange, \u00e9n hverdag og \u00e9n weekend.\n\n';
-  bodyPlain += 'Holdene starter slutningen af februar/marts 2026. Vi holder holdene sm\u00e5 \u2014 der er stadig ledige pladser.\n\n';
+  bodyPlain += 'Holdet starter marts 2026. Kun f\u00e5 pladser tilbage \u2014 tilmeldingsfrist 6. marts.\n\n';
   if (needsHousing) bodyPlain += getAccommodationSectionPlain(cityCountry);
   bodyPlain += getPricingSectionPlain('23.750', '3.750', '20.000', 'op til 5 rater') + '\n';
   bodyPlain += getPreparationPhasePlain('https://www.yogabible.dk/200-hours-18-weeks-flexible-programs');
