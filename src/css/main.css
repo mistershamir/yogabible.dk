@@ -9972,20 +9972,65 @@ button.yb-btn--outline-white:hover {
 }
 
 @media (max-width: 640px) {
+  .yb-auth-modal {
+    padding: 12px;
+    align-items: flex-end;
+  }
+  .yb-auth-modal__box {
+    max-height: 92vh;
+    padding: 32px 24px 28px;
+    border-radius: 20px 20px 16px 16px;
+  }
   .yb-auth-modal__box[data-view="register"] {
     grid-template-columns: 1fr;
-    max-width: 420px;
+    max-width: 100%;
     padding: 0;
+    border-radius: 20px 20px 16px 16px;
   }
   .yb-auth-modal__box[data-view="register"] .yb-auth-modal__visual {
-    min-height: 140px;
-    padding: 28px 24px;
+    min-height: 90px;
+    padding: 18px 20px;
     grid-row: 1;
+  }
+  .yb-auth-modal__visual-title {
+    font-size: 1.1rem;
+    margin-bottom: 4px;
+  }
+  .yb-auth-modal__visual-sub {
+    font-size: 0.8rem;
   }
   .yb-auth-modal__box[data-view="register"] .yb-auth-view {
     grid-column: 1;
     grid-row: 2;
-    padding: 32px 28px;
+    padding: 20px 20px 24px;
+  }
+  .yb-auth-modal__header {
+    margin-bottom: 16px;
+  }
+  .yb-auth-modal__logo {
+    margin-bottom: 12px;
+  }
+  .yb-auth-modal__logo img {
+    height: 28px;
+  }
+  .yb-auth-modal__title {
+    font-size: 1.2rem;
+  }
+  .yb-auth-form {
+    gap: 10px;
+  }
+  .yb-auth-field input,
+  .yb-auth-field__select {
+    padding: 9px 12px;
+    font-size: 0.88rem;
+  }
+  .yb-auth-field label {
+    font-size: 0.75rem;
+  }
+  .yb-auth-submit {
+    padding: 11px 20px;
+    font-size: 0.92rem;
+    margin-top: 2px;
   }
 }
 
