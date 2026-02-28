@@ -553,9 +553,15 @@
     };
   }
 
-  function importMbClass(idx) {
+  function importMbClass(idx, btn) {
     var cls = mbClasses[idx];
     if (!cls) return;
+
+    // Show loading state on the button
+    if (btn) {
+      btn.disabled = true;
+      btn.innerHTML = '<span class="yb-admin__spinner-sm"></span> ' + t('live_mb_importing');
+    }
 
     var data = buildMbImportData(cls);
 
@@ -563,9 +569,38 @@
       if (res.ok) {
         toast(t('live_mb_imported'));
         mbSelectedIdxs.delete(idx);
-        loadItems();
+        // Mark this row as imported immediately (don't wait for full reload)
+        if (btn) {
+          var row = btn.closest('tr');
+          if (row) {
+            row.style.opacity = '0.5';
+            // Add "already imported" label next to the title
+            var titleCell = row.querySelectorAll('td')[1];
+            if (titleCell && titleCell.querySelector('strong')) {
+              titleCell.querySelector('strong').insertAdjacentHTML(
+                'afterend',
+                ' <span style="font-size:0.7rem;color:#6F6A66">(' + esc(t('live_mb_already_imported')) + ')</span>'
+              );
+            }
+          }
+          btn.disabled = true;
+          btn.className = 'yb-btn yb-btn--outline yb-btn--sm';
+          btn.innerHTML = '&#10003; ' + t('live_mb_imported_label');
+        }
+        loadItems(); // Refresh items in background so re-render knows it's imported
       } else {
         toast(res.error || t('error_save'), true);
+        // Restore button on error
+        if (btn) {
+          btn.disabled = false;
+          btn.innerHTML = '+ Import';
+        }
+      }
+    }).catch(function () {
+      toast(t('error_save'), true);
+      if (btn) {
+        btn.disabled = false;
+        btn.innerHTML = '+ Import';
       }
     });
   }
@@ -578,6 +613,13 @@
     var done = 0;
     var failed = 0;
 
+    // Disable bulk import button and show progress
+    var bulkBtn = document.querySelector('[data-action="live-mb-bulk-import"]');
+    if (bulkBtn) {
+      bulkBtn.disabled = true;
+      bulkBtn.innerHTML = '<span class="yb-admin__spinner-sm"></span> 0 / ' + total;
+    }
+
     // Import sequentially to avoid overwhelming the API
     function importNext() {
       if (!idxArr.length) {
@@ -586,26 +628,35 @@
         var msg = (done - failed) + ' ' + t('live_mb_bulk_imported');
         if (failed) msg += ' (' + failed + ' failed)';
         toast(msg, failed > 0);
+        // Re-render table to show imported states
+        renderMbTable();
+        if (bulkBtn) {
+          bulkBtn.disabled = false;
+          bulkBtn.innerHTML = '&#128229; ' + t('live_mb_bulk_import');
+        }
         return;
       }
       var idx = idxArr.shift();
       var cls = mbClasses[idx];
-      if (!cls) { importNext(); return; }
+      if (!cls) { done++; importNext(); return; }
 
       var data = buildMbImportData(cls);
 
       apiFetch('create', { method: 'POST', body: data }).then(function (res) {
         done++;
         if (!res.ok) failed++;
+        // Update progress
+        if (bulkBtn) bulkBtn.innerHTML = '<span class="yb-admin__spinner-sm"></span> ' + done + ' / ' + total;
         importNext();
       }).catch(function () {
         done++;
         failed++;
+        if (bulkBtn) bulkBtn.innerHTML = '<span class="yb-admin__spinner-sm"></span> ' + done + ' / ' + total;
         importNext();
       });
     }
 
-    toast('Importing ' + total + '...');
+    toast(t('live_mb_importing') + ' ' + total + '...');
     importNext();
   }
 
@@ -646,7 +697,7 @@
       btn = e.target.closest('[data-action="live-mb-import-one"]');
       if (btn) {
         var idx = parseInt(btn.getAttribute('data-idx'), 10);
-        importMbClass(idx);
+        importMbClass(idx, btn);
         return;
       }
 
