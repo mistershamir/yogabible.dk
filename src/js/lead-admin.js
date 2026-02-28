@@ -2425,6 +2425,7 @@
     renderApplicationDetailCard();
     renderAppInvoiceStatus();
     renderAppQuickActions();
+    updateActivateBtn();
     renderAppEditForm();
     renderAppNotesTimeline();
     loadAppSMSConversation(appId);
@@ -3407,6 +3408,60 @@
   }
 
   /* ══════════════════════════════════════════
+     APPLICATION — ACTIVATE USER ACCOUNT
+     ══════════════════════════════════════════ */
+
+  function activateApplicant() {
+    if (!currentAppId || !currentApp) return;
+
+    if (currentApp.firebase_uid) {
+      toast(t('apps_user_already_activated'));
+      return;
+    }
+
+    if (!confirm(t('apps_activate_confirm'))) return;
+
+    getAuthToken().then(function (token) {
+      return fetch('/.netlify/functions/activate-applicant', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+        body: JSON.stringify({ applicationId: currentAppId })
+      });
+    }).then(function (res) { return res.json(); })
+    .then(function (data) {
+      if (data.ok) {
+        currentApp.firebase_uid = data.firebaseUid;
+        currentApp.status = 'Enrolled';
+        var idx = applications.findIndex(function (a) { return a.id === currentAppId; });
+        if (idx !== -1) {
+          applications[idx].firebase_uid = data.firebaseUid;
+          applications[idx].status = 'Enrolled';
+        }
+        renderAppQuickActions();
+        updateActivateBtn();
+        toast(t('apps_user_activated'));
+      } else {
+        toast('Failed: ' + (data.error || 'Unknown error'), true);
+      }
+    }).catch(function (err) {
+      console.error('[lead-admin] Activate applicant error:', err);
+      toast('Failed to activate user', true);
+    });
+  }
+
+  function updateActivateBtn() {
+    var btn = $('yb-app-activate-btn');
+    if (!btn || !currentApp) return;
+    if (currentApp.firebase_uid) {
+      btn.style.opacity = '0.6';
+      btn.textContent = '\u2705 ' + t('apps_user_already_activated');
+    } else {
+      btn.style.opacity = '';
+      btn.textContent = '\ud83d\udc64 ' + t('apps_activate_user');
+    }
+  }
+
+  /* ══════════════════════════════════════════
      APPLICATION — ARCHIVE / RESTORE
      ══════════════════════════════════════════ */
 
@@ -3853,6 +3908,7 @@
         case 'app-send-sms': /* Open SMS section — scroll to it */ var smsEl = $('yb-app-sms-conversation'); if (smsEl) smsEl.scrollIntoView({ behavior: 'smooth' }); var smsInput = $('yb-app-sms-reply-input'); if (smsInput) smsInput.focus(); break;
         case 'app-sms-reply': sendAppSMSReply(); break;
         case 'app-send-acceptance': sendAcceptanceEmail(); break;
+        case 'app-activate-user': activateApplicant(); break;
         case 'app-archive': archiveApp(id || currentAppId); break;
         case 'app-restore': restoreApp(id || currentAppId); break;
         case 'toggle-show-archived-apps': toggleShowArchivedApps(); break;
