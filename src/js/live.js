@@ -155,6 +155,12 @@
   var MONTHS_DA = ['jan', 'feb', 'mar', 'apr', 'maj', 'jun', 'jul', 'aug', 'sep', 'okt', 'nov', 'dec'];
   var MONTHS_EN = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
+  function stripHtml(s) {
+    var tmp = document.createElement('div');
+    tmp.innerHTML = s || '';
+    return tmp.textContent || tmp.innerText || '';
+  }
+
   function renderSchedule(items) {
     if (!scheduleSection || !scheduleList) return;
     if (!items || !items.length) {
@@ -174,6 +180,9 @@
       var hours = String(d.getHours()).padStart(2, '0');
       var mins = String(d.getMinutes()).padStart(2, '0');
       var title = isDa ? (item.title_da || item.title_en || '') : (item.title_en || item.title_da || '');
+      var desc = isDa ? (item.description_da || item.description_en || '') : (item.description_en || item.description_da || '');
+      var descText = stripHtml(desc).trim();
+      var hasDesc = descText.length > 0;
       var isLive = item.status === 'live';
 
       var dayLabel = '';
@@ -187,7 +196,8 @@
         tag = '<span class="yb-live-schedule__tag yb-live-schedule__tag--upcoming">' + hours + ':' + mins + '</span>';
       }
 
-      html += '<div class="yb-live-schedule__item' + (isLive ? ' yb-live-schedule__item--live' : '') + '">';
+      html += '<div class="yb-live-schedule__card' + (isLive ? ' yb-live-schedule__card--live' : '') + '">';
+      html += '<div class="yb-live-schedule__item' + (hasDesc ? ' yb-live-schedule__item--expandable' : '') + '"' + (hasDesc ? ' data-sched-toggle' : '') + '>';
       html += '<div class="yb-live-schedule__date">';
       html += '<div class="yb-live-schedule__day">' + day + '</div>';
       html += '<div class="yb-live-schedule__month">' + esc(dayLabel || monthLabel) + '</div>';
@@ -197,10 +207,29 @@
       html += '<span class="yb-live-schedule__meta">' + esc(item.instructor || '') + '</span>';
       html += '</div>';
       html += tag;
+      // Chevron for expandable items
+      if (hasDesc) {
+        html += '<svg class="yb-live-schedule__chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#6F6A66" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>';
+      }
+      html += '</div>';
+      // Description drawer
+      if (hasDesc) {
+        html += '<div class="yb-live-schedule__desc">';
+        html += '<p>' + esc(descText) + '</p>';
+        html += '</div>';
+      }
       html += '</div>';
     }
 
     scheduleList.innerHTML = html;
+
+    // Toggle description drawers
+    scheduleList.addEventListener('click', function (e) {
+      var row = e.target.closest('[data-sched-toggle]');
+      if (!row) return;
+      var card = row.closest('.yb-live-schedule__card');
+      if (card) card.classList.toggle('yb-live-schedule__card--open');
+    });
   }
 
   function fetchSchedule() {
