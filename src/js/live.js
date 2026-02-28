@@ -191,7 +191,7 @@
       html += '<div class="yb-live-schedule__item">';
       html += '<div class="yb-live-schedule__date">';
       html += '<div class="yb-live-schedule__day">' + day + '</div>';
-      html += '<div class="yb-live-schedule__month">' + esc(dayLabel || monthLabel) + '</div>';
+      html += '<div class="yb-live-schedule__month">' + esc(dayLabel || (monthLabel + ' ' + d.getFullYear())) + '</div>';
       html += '</div>';
       html += '<div class="yb-live-schedule__info">';
       html += '<p class="yb-live-schedule__name">' + esc(title) + '</p>';
