@@ -26,7 +26,7 @@ const ALLOWED_FIELDS = [
   'source', 'mbClassId', 'mbClassName', 'mbProgramId', 'mbSessionTypeId',
   'title_da', 'title_en', 'description_da', 'description_en',
   'instructor', 'startDateTime', 'endDateTime', 'duration',
-  'muxPlaybackId', 'muxStreamKey', 'recordingPlaybackId',
+  'muxPlaybackId', 'muxStreamKey', 'recordingPlaybackId', 'recordingAssetId',
   'status', 'recurrence', 'access', 'cohorts'
 ];
 

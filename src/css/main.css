@@ -15850,6 +15850,18 @@ button.yb-btn--outline-white:hover {
 .yb-admin__icon-btn:hover { border-color: #f75c03; color: #f75c03; }
 .yb-admin__icon-btn--danger:hover { border-color: #dc2626; color: #dc2626; }
 
+/* Inline spinner (for import buttons) */
+.yb-admin__spinner-sm {
+  display: inline-block; width: 14px; height: 14px;
+  border: 2px solid rgba(255,255,255,0.3); border-top-color: #fff;
+  border-radius: 50%; animation: yb-spin 0.6s linear infinite;
+  vertical-align: middle;
+}
+.yb-btn--outline .yb-admin__spinner-sm {
+  border-color: rgba(247,92,3,0.3); border-top-color: #f75c03;
+}
+@keyframes yb-spin { to { transform: rotate(360deg); } }
+
 /* Small buttons */
 .yb-admin__sm-btn {
   padding: 0.25rem 0.5rem; border-radius: 6px; border: 1px solid #E8E4E0;
