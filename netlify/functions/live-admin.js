@@ -270,15 +270,19 @@ async function handleRecordings(event) {
 
   // Fetch all and filter in-memory to avoid composite index requirement
   var allItems = await getCollection(COLLECTION, { orderBy: 'startDateTime', orderDir: 'desc' });
+  console.log('[live-admin] recordings: total sessions:', allItems.length);
+
   var items = allItems.filter(function (item) {
     return item.status === 'ended' && !!item.recordingPlaybackId;
   }).slice(0, 50);
+  console.log('[live-admin] recordings: with recording:', items.length);
 
   // Filter by permissions + cohort
   var userPermsWithCohort = await getUserPermissionsWithCohort(user);
   items = items.filter(function (item) {
     return hasAccess(item.access, user.role, userPermsWithCohort, item.cohorts);
   });
+  console.log('[live-admin] recordings: after access filter (' + user.role + '):', items.length);
 
   return jsonResponse(200, { ok: true, items: items });
 }
