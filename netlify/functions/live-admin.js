@@ -225,17 +225,26 @@ async function handleDelete(event, user) {
 async function handleSchedule(event) {
   var user = await optionalAuth(event);
 
-  var now = new Date().toISOString();
+  var nowMs = Date.now();
   const { queryDocs, getDb: getDbFn } = require('./shared/firestore');
   var items = await queryDocs(COLLECTION,
     [{ field: 'status', op: 'in', value: ['scheduled', 'live'] }],
     { orderBy: 'startDateTime', orderDir: 'asc' }
   );
 
-  // Filter to future events or currently live
+  console.log('[live-admin] schedule: found', items.length, 'items with status scheduled/live');
+
+  // Filter to future events or currently live.
+  // Compare as Date objects — MindBody startDateTime may lack timezone suffix,
+  // so string comparison against ISO UTC strings can incorrectly exclude future events.
   items = items.filter(function (item) {
-    return item.status === 'live' || item.startDateTime >= now;
+    if (item.status === 'live') return true;
+    if (!item.startDateTime) return false;
+    var itemTime = new Date(item.startDateTime).getTime();
+    return !isNaN(itemTime) && itemTime >= nowMs;
   });
+
+  console.log('[live-admin] schedule: after date filter:', items.length, 'items remain');
 
   // If user authenticated, filter by their permissions + cohort
   if (user) {
@@ -243,6 +252,7 @@ async function handleSchedule(event) {
     items = items.filter(function (item) {
       return hasAccess(item.access, user.role, userPerms, item.cohorts);
     });
+    console.log('[live-admin] schedule: after access filter (' + user.role + '):', items.length, 'items remain');
   }
 
   return jsonResponse(200, { ok: true, items: items });
