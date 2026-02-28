@@ -1,0 +1,225 @@
+{# ── List View ── #}
+<div id="yb-live-admin-v-list">
+  <div class="yb-admin__view-head">
+    <h2>{{ t.live_title }}</h2>
+    <div class="yb-lead__toolbar-right">
+      <button type="button" class="yb-btn yb-btn--outline yb-btn--sm" data-action="live-import-mb">{{ t.live_import_mb }}</button>
+      <button type="button" class="yb-btn yb-btn--primary yb-btn--sm" data-action="live-new">+ {{ t.live_new }}</button>
+    </div>
+  </div>
+
+  {# Filters #}
+  <div class="yb-lead__filter-bar">
+    <select id="yb-live-admin-filter" class="yb-admin__select yb-lead__filter">
+      <option value="all">{{ t.live_filter_all }}</option>
+      <option value="upcoming" selected>{{ t.live_filter_upcoming }}</option>
+      <option value="past">{{ t.live_filter_past }}</option>
+    </select>
+    <select id="yb-live-admin-source-filter" class="yb-admin__select yb-lead__filter">
+      <option value="">{{ t.live_filter_all }} ({{ t.live_field_source }})</option>
+      <option value="manual">{{ t.live_source_manual }}</option>
+      <option value="mindbody">{{ t.live_source_mindbody }}</option>
+    </select>
+  </div>
+
+  <div class="yb-lead__result-bar">
+    <span id="yb-live-admin-count" class="yb-lead__count-text"></span>
+  </div>
+
+  <div class="yb-admin__table-wrap">
+    <table class="yb-admin__table" id="yb-live-admin-table">
+      <thead>
+        <tr>
+          <th>{{ t.live_col_status }}</th>
+          <th>{{ t.live_col_title }}</th>
+          <th>{{ t.live_col_datetime }}</th>
+          <th>{{ t.live_col_source }}</th>
+          <th>{{ t.live_col_instructor }}</th>
+          <th>{{ t.live_col_access }}</th>
+          <th>{{ t.live_col_actions }}</th>
+        </tr>
+      </thead>
+      <tbody id="yb-live-admin-table-body"></tbody>
+    </table>
+  </div>
+  <p id="yb-live-admin-empty" class="yb-admin__empty" hidden>{{ t.live_no_events }}</p>
+</div>
+
+{# ── Form View (create / edit) ── #}
+<div id="yb-live-admin-v-form" hidden>
+  <div class="yb-admin__view-head">
+    <button class="yb-admin__back-btn" data-action="live-cancel">&larr; {{ t.back }}</button>
+    <h2 id="yb-live-admin-form-title">{{ t.live_form_title }}</h2>
+  </div>
+
+  <form id="yb-live-admin-form" class="yb-admin__form" autocomplete="off">
+    <input type="hidden" id="yb-la-id">
+
+    {# Source selector #}
+    <div class="yb-admin__form-row">
+      <div class="yb-admin__field">
+        <label for="yb-la-source">{{ t.live_field_source }}</label>
+        <select id="yb-la-source" class="yb-admin__select">
+          <option value="manual">{{ t.live_source_manual }}</option>
+          <option value="mindbody">{{ t.live_source_mindbody }}</option>
+        </select>
+      </div>
+      <div class="yb-admin__field">
+        <label for="yb-la-status">{{ t.live_field_status }}</label>
+        <select id="yb-la-status" class="yb-admin__select">
+          <option value="scheduled">{{ t.live_status_scheduled }}</option>
+          <option value="live">{{ t.live_status_live }}</option>
+          <option value="ended">{{ t.live_status_ended }}</option>
+          <option value="cancelled">{{ t.live_status_cancelled }}</option>
+        </select>
+      </div>
+    </div>
+
+    {# MB class picker (shown when source = mindbody) #}
+    <div class="yb-admin__field" id="yb-la-mb-wrap" hidden>
+      <label for="yb-la-mb-class">{{ t.live_field_mb_class }}</label>
+      <select id="yb-la-mb-class" class="yb-admin__select">
+        <option value="">{{ t.live_field_mb_select }}</option>
+      </select>
+    </div>
+
+    {# Title #}
+    <div class="yb-admin__form-row">
+      <div class="yb-admin__field">
+        <label for="yb-la-title-da">{{ t.live_field_title_da }}</label>
+        <input type="text" id="yb-la-title-da" required>
+      </div>
+      <div class="yb-admin__field">
+        <label for="yb-la-title-en">{{ t.live_field_title_en }}</label>
+        <input type="text" id="yb-la-title-en">
+      </div>
+    </div>
+
+    {# Description #}
+    <div class="yb-admin__form-row">
+      <div class="yb-admin__field">
+        <label for="yb-la-desc-da">{{ t.live_field_desc_da }}</label>
+        <textarea id="yb-la-desc-da" rows="3"></textarea>
+      </div>
+      <div class="yb-admin__field">
+        <label for="yb-la-desc-en">{{ t.live_field_desc_en }}</label>
+        <textarea id="yb-la-desc-en" rows="3"></textarea>
+      </div>
+    </div>
+
+    {# Instructor + Date/Time #}
+    <div class="yb-admin__form-row">
+      <div class="yb-admin__field">
+        <label for="yb-la-instructor">{{ t.live_field_instructor }}</label>
+        <input type="text" id="yb-la-instructor">
+      </div>
+    </div>
+
+    <div class="yb-admin__form-row">
+      <div class="yb-admin__field">
+        <label for="yb-la-start">{{ t.live_field_start }}</label>
+        <input type="datetime-local" id="yb-la-start" required>
+      </div>
+      <div class="yb-admin__field">
+        <label for="yb-la-end">{{ t.live_field_end }}</label>
+        <input type="datetime-local" id="yb-la-end">
+      </div>
+    </div>
+
+    {# Recurrence (manual only) #}
+    <div id="yb-la-recurrence-wrap">
+      <div class="yb-admin__form-row">
+        <div class="yb-admin__field">
+          <label for="yb-la-recurrence">{{ t.live_field_recurrence }}</label>
+          <select id="yb-la-recurrence" class="yb-admin__select">
+            <option value="none">{{ t.live_recurrence_none }}</option>
+            <option value="weekly">{{ t.live_recurrence_weekly }}</option>
+            <option value="biweekly">{{ t.live_recurrence_biweekly }}</option>
+            <option value="every3weeks">{{ t.live_recurrence_every3weeks }}</option>
+            <option value="every4weeks">{{ t.live_recurrence_every4weeks }}</option>
+          </select>
+        </div>
+        <div class="yb-admin__field" id="yb-la-recurrence-end-wrap" hidden>
+          <label for="yb-la-recurrence-end">{{ t.live_field_recurrence_end }}</label>
+          <input type="date" id="yb-la-recurrence-end">
+        </div>
+      </div>
+    </div>
+
+    {# Mux IDs #}
+    <div class="yb-admin__form-row">
+      <div class="yb-admin__field">
+        <label for="yb-la-mux-playback">{{ t.live_field_mux_playback }}</label>
+        <input type="text" id="yb-la-mux-playback" placeholder="{{ t.live_field_mux_playback_hint }}">
+      </div>
+      <div class="yb-admin__field">
+        <label for="yb-la-recording-id">{{ t.live_field_recording_id }}</label>
+        <input type="text" id="yb-la-recording-id" placeholder="{{ t.live_field_recording_hint }}">
+      </div>
+    </div>
+
+    {# Access: Roles #}
+    <div class="yb-admin__field">
+      <label>{{ t.live_field_access_roles }}</label>
+      <p style="font-size:0.8rem;color:#6F6A66;margin:0 0 0.5rem">{{ t.live_access_hint_roles }}</p>
+      <div class="yb-admin__form-row" style="flex-wrap:wrap;gap:1rem">
+        <label class="yb-admin__checkbox-label"><input type="checkbox" value="member" class="yb-la-role-cb"> Member</label>
+        <label class="yb-admin__checkbox-label"><input type="checkbox" value="trainee" class="yb-la-role-cb" checked> Trainee</label>
+        <label class="yb-admin__checkbox-label"><input type="checkbox" value="student" class="yb-la-role-cb"> Student</label>
+        <label class="yb-admin__checkbox-label"><input type="checkbox" value="teacher" class="yb-la-role-cb" checked> Teacher</label>
+        <label class="yb-admin__checkbox-label"><input type="checkbox" value="admin" class="yb-la-role-cb" checked> Admin</label>
+      </div>
+    </div>
+
+    {# Access: Permissions #}
+    <div class="yb-admin__field">
+      <label for="yb-la-access-perms">{{ t.live_field_access_perms }}</label>
+      <input type="text" id="yb-la-access-perms" placeholder="live-streaming, recordings" value="live-streaming">
+      <p style="font-size:0.8rem;color:#6F6A66;margin:0.25rem 0 0">{{ t.live_access_hint_perms }}</p>
+    </div>
+
+    <div class="yb-admin__form-actions">
+      <button type="submit" class="yb-btn yb-btn--primary">{{ t.save }}</button>
+      <button type="button" class="yb-btn yb-btn--outline" data-action="live-cancel">{{ t.cancel }}</button>
+    </div>
+  </form>
+</div>
+
+{# ── MindBody Import View ── #}
+<div id="yb-live-admin-v-mb" hidden>
+  <div class="yb-admin__view-head">
+    <button class="yb-admin__back-btn" data-action="live-cancel">&larr; {{ t.back }}</button>
+    <h2>{{ t.live_import_mb }}</h2>
+  </div>
+
+  <div class="yb-admin__form-row" style="margin-bottom:1rem">
+    <div class="yb-admin__field">
+      <label for="yb-la-mb-start">{{ t.live_field_start }}</label>
+      <input type="date" id="yb-la-mb-start">
+    </div>
+    <div class="yb-admin__field">
+      <label for="yb-la-mb-end">{{ t.live_field_end }}</label>
+      <input type="date" id="yb-la-mb-end">
+    </div>
+    <div class="yb-admin__field" style="align-self:flex-end">
+      <button type="button" class="yb-btn yb-btn--primary yb-btn--sm" data-action="live-mb-fetch">{{ t.loading }}</button>
+    </div>
+  </div>
+
+  <div class="yb-admin__table-wrap">
+    <table class="yb-admin__table" id="yb-live-mb-table">
+      <thead>
+        <tr>
+          <th></th>
+          <th>{{ t.live_col_title }}</th>
+          <th>{{ t.live_col_datetime }}</th>
+          <th>{{ t.live_col_instructor }}</th>
+          <th>Program</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody id="yb-live-mb-table-body"></tbody>
+    </table>
+  </div>
+  <p id="yb-live-mb-empty" class="yb-admin__empty" hidden>{{ t.live_field_mb_none }}</p>
+</div>
