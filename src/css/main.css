@@ -9802,18 +9802,19 @@ button.yb-btn--outline-white:hover {
 }
 
 .yb-drawer__auth-name {
-  color: #0F0F0F;
+  color: #FDFBF7;
   font-size: 0.92rem;
   font-weight: 700;
   flex: 1;
 }
 
 .yb-drawer__auth-logout {
-  color: #6F6A66;
+  color: rgba(253,251,247,0.5);
   text-decoration: none;
   font-size: 0.82rem;
   font-weight: 700;
   transition: color 0.18s ease;
+  white-space: nowrap;
 }
 
 .yb-drawer__auth-logout:hover {
