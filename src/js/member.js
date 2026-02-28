@@ -273,31 +273,33 @@
       var dur = item.duration ? formatDuration(item.duration) : '';
 
       var card = '';
-      card += '<div class="yb-rec-card" style="background:#1a1a1a;border-radius:10px;overflow:hidden;border:1px solid #222;transition:border-color 0.3s ease">';
+      card += '<div style="background:#1a1a1a;border-radius:12px;overflow:hidden;border:1px solid rgba(255,255,255,0.06);transition:all 0.3s ease"'
+        + ' onmouseover="this.style.borderColor=\'rgba(247,92,3,0.3)\';this.style.boxShadow=\'0 8px 30px rgba(0,0,0,0.3)\'"'
+        + ' onmouseout="this.style.borderColor=\'rgba(255,255,255,0.06)\';this.style.boxShadow=\'none\'">';
 
       // Thumbnail with play button overlay
       if (item.recordingPlaybackId) {
         card += '<div style="aspect-ratio:16/9;background:#111;position:relative;cursor:pointer" data-rec-playback="' + item.recordingPlaybackId + '">';
         card += '<img src="https://image.mux.com/' + item.recordingPlaybackId + '/thumbnail.jpg?width=560&height=315&fit_mode=smartcrop" alt="" style="width:100%;height:100%;object-fit:cover;display:block" loading="lazy">';
-        card += '<div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center">';
-        card += '<div style="width:52px;height:52px;border-radius:50%;background:rgba(247,92,3,0.9);display:flex;align-items:center;justify-content:center;box-shadow:0 4px 15px rgba(0,0,0,0.4)">';
+        card += '<div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,0.15);transition:background 0.3s ease">';
+        card += '<div style="width:52px;height:52px;border-radius:50%;background:rgba(247,92,3,0.9);display:flex;align-items:center;justify-content:center;box-shadow:0 4px 20px rgba(0,0,0,0.4);transition:transform 0.2s ease">';
         card += '<svg width="20" height="20" viewBox="0 0 24 24" fill="#fff"><polygon points="6 3 20 12 6 21 6 3"/></svg>';
         card += '</div></div>';
         // Duration badge
         if (dur) {
-          card += '<span style="position:absolute;bottom:8px;right:8px;background:rgba(0,0,0,0.75);color:#fff;font-size:0.7rem;padding:2px 6px;border-radius:4px">' + dur + '</span>';
+          card += '<span style="position:absolute;bottom:10px;right:10px;background:rgba(0,0,0,0.8);color:#FFFCF9;font-size:0.7rem;font-weight:600;padding:3px 8px;border-radius:4px;letter-spacing:0.02em">' + dur + '</span>';
         }
         card += '</div>';
       }
 
       // Info
-      card += '<div style="padding:0.85rem 1rem">';
-      card += '<p style="color:#FFFCF9;font-size:0.85rem;font-weight:700;margin:0 0 0.35rem;line-height:1.35">' + escHtml(title) + '</p>';
+      card += '<div style="padding:1rem 1.15rem">';
+      card += '<p style="color:#FFFCF9;font-size:0.9rem;font-weight:700;margin:0 0 0.4rem;line-height:1.35">' + escHtml(title) + '</p>';
       card += '<div style="display:flex;align-items:center;gap:0.5rem;flex-wrap:wrap">';
-      card += '<span style="color:#6F6A66;font-size:0.72rem">' + dateStr + '</span>';
+      card += '<span style="color:#999;font-size:0.75rem">' + dateStr + '</span>';
       if (item.instructor) {
-        card += '<span style="color:#6F6A66;font-size:0.72rem">&middot;</span>';
-        card += '<span style="color:#999;font-size:0.72rem">' + escHtml(item.instructor) + '</span>';
+        card += '<span style="color:rgba(255,255,255,0.15);font-size:0.65rem">&bull;</span>';
+        card += '<span style="color:#999;font-size:0.75rem">' + escHtml(item.instructor) + '</span>';
       }
       card += '</div></div></div>';
       return card;

@@ -281,80 +281,94 @@
 
   .yb-live-schedule__card {
     background: #1a1a1a;
-    border-radius: 10px;
-    border: 1px solid transparent;
-    transition: border-color 0.3s ease;
+    border-radius: 12px;
+    border: 1px solid rgba(255,255,255,0.06);
+    transition: border-color 0.3s ease, box-shadow 0.3s ease;
     overflow: hidden;
   }
 
   .yb-live-schedule__card:hover {
     border-color: rgba(247, 92, 3, 0.3);
+    box-shadow: 0 4px 20px rgba(0,0,0,0.3);
   }
 
   .yb-live-schedule__card--live {
     border-color: #f75c03;
+    box-shadow: 0 0 30px rgba(247,92,3,0.1);
   }
 
   .yb-live-schedule__item {
     display: flex;
     align-items: center;
-    gap: 1rem;
-    padding: 1rem 1.25rem;
+    gap: 1.25rem;
+    padding: 1.15rem 1.35rem;
   }
 
   .yb-live-schedule__item--expandable {
     cursor: pointer;
+    user-select: none;
   }
 
   .yb-live-schedule__chevron {
     flex-shrink: 0;
-    transition: transform 0.3s ease;
-    opacity: 0.5;
+    transition: transform 0.3s ease, opacity 0.2s ease;
+    opacity: 0.35;
+  }
+
+  .yb-live-schedule__item--expandable:hover .yb-live-schedule__chevron {
+    opacity: 0.7;
   }
 
   .yb-live-schedule__card--open .yb-live-schedule__chevron {
     transform: rotate(180deg);
+    opacity: 0.7;
   }
 
   .yb-live-schedule__desc {
     max-height: 0;
     overflow: hidden;
-    transition: max-height 0.35s ease, padding 0.35s ease;
-    padding: 0 1.25rem;
+    transition: max-height 0.4s cubic-bezier(0.4,0,0.2,1), padding 0.4s cubic-bezier(0.4,0,0.2,1), opacity 0.3s ease;
+    padding: 0 1.35rem;
+    opacity: 0;
   }
 
   .yb-live-schedule__card--open .yb-live-schedule__desc {
-    max-height: 200px;
-    padding: 0 1.25rem 1rem;
+    max-height: 300px;
+    padding: 0 1.35rem 1.15rem;
+    opacity: 1;
   }
 
   .yb-live-schedule__desc p {
     margin: 0;
     color: #999;
-    font-size: 0.8rem;
-    line-height: 1.55;
+    font-size: 0.85rem;
+    line-height: 1.65;
     border-top: 1px solid rgba(255,255,255,0.06);
-    padding-top: 0.75rem;
+    padding-top: 0.85rem;
   }
 
   .yb-live-schedule__date {
     text-align: center;
-    min-width: 48px;
+    min-width: 52px;
     flex-shrink: 0;
+    background: rgba(247,92,3,0.08);
+    border-radius: 8px;
+    padding: 0.5rem 0.4rem;
   }
 
   .yb-live-schedule__day {
-    font-size: 1.4rem;
+    font-size: 1.5rem;
     font-weight: 700;
     color: #FFFCF9;
     line-height: 1;
   }
 
   .yb-live-schedule__month {
-    font-size: 0.7rem;
-    color: #6F6A66;
+    font-size: 0.65rem;
+    color: #f75c03;
     text-transform: uppercase;
-    letter-spacing: 0.08em;
+    letter-spacing: 0.1em;
+    margin-top: 0.15rem;
   }
 
   .yb-live-schedule__info {
@@ -364,17 +378,15 @@
 
   .yb-live-schedule__name {
     color: #FFFCF9;
-    font-size: 0.95rem;
+    font-size: 1rem;
     font-weight: 700;
-    margin: 0 0 0.2rem;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
+    margin: 0 0 0.25rem;
+    line-height: 1.3;
   }
 
   .yb-live-schedule__meta {
-    color: #6F6A66;
-    font-size: 0.8rem;
+    color: #999;
+    font-size: 0.82rem;
   }
 
   .yb-live-schedule__tag {
@@ -385,7 +397,7 @@
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.1em;
-    padding: 0.2rem 0.6rem;
+    padding: 0.3rem 0.75rem;
     border-radius: 2rem;
     flex-shrink: 0;
   }
@@ -393,6 +405,7 @@
   .yb-live-schedule__tag--live {
     background: rgba(247, 92, 3, 0.15);
     color: #f75c03;
+    border: 1px solid rgba(247,92,3,0.3);
   }
 
   .yb-live-schedule__tag--live .yb-live-badge__dot {
@@ -401,8 +414,11 @@
   }
 
   .yb-live-schedule__tag--upcoming {
-    background: rgba(111, 106, 102, 0.15);
-    color: #6F6A66;
+    background: rgba(255,255,255,0.05);
+    color: #FFFCF9;
+    border: 1px solid rgba(255,255,255,0.1);
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
   }
 
   .yb-live-schedule__empty {
@@ -432,6 +448,11 @@
 
     .yb-live-schedule__item {
       padding: 0.85rem 1rem;
+      gap: 0.85rem;
+    }
+
+    .yb-live-schedule__name {
+      font-size: 0.9rem;
     }
   }
 </style>

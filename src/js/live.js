@@ -222,8 +222,10 @@
     }
 
     scheduleList.innerHTML = html;
+  }
 
-    // Toggle description drawers
+  // Toggle description drawers — single delegated listener (outside renderSchedule to avoid duplicates)
+  if (scheduleList) {
     scheduleList.addEventListener('click', function (e) {
       var row = e.target.closest('[data-sched-toggle]');
       if (!row) return;
