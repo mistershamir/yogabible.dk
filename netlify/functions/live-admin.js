@@ -80,19 +80,11 @@ exports.handler = async function (event) {
 // Admin: List all events
 // ═══════════════════════════════════════════════════════
 async function handleList(params) {
-  var opts = { orderBy: 'startDateTime', orderDir: 'asc' };
-  var conditions = [];
+  var items = await getCollection(COLLECTION, { orderBy: 'startDateTime', orderDir: 'asc' });
 
+  // Filter by status if requested (in-memory to avoid composite index)
   if (params.status) {
-    conditions.push({ field: 'status', op: '==', value: params.status });
-  }
-
-  var items;
-  if (conditions.length) {
-    const { queryDocs } = require('./shared/firestore');
-    items = await queryDocs(COLLECTION, conditions, opts);
-  } else {
-    items = await getCollection(COLLECTION, opts);
+    items = items.filter(function (item) { return item.status === params.status; });
   }
 
   return jsonResponse(200, { ok: true, items: items });
@@ -226,11 +218,15 @@ async function handleSchedule(event) {
   var user = await optionalAuth(event);
 
   var nowMs = Date.now();
-  const { queryDocs, getDb: getDbFn } = require('./shared/firestore');
-  var items = await queryDocs(COLLECTION,
-    [{ field: 'status', op: 'in', value: ['scheduled', 'live'] }],
-    { orderBy: 'startDateTime', orderDir: 'asc' }
-  );
+
+  // Fetch all scheduled items and sort in-memory to avoid needing a
+  // Firestore composite index (status `in` + orderBy startDateTime).
+  var allItems = await getCollection(COLLECTION, { orderBy: 'startDateTime', orderDir: 'asc' });
+
+  // Filter to scheduled or live status
+  var items = allItems.filter(function (item) {
+    return item.status === 'scheduled' || item.status === 'live';
+  });
 
   console.log('[live-admin] schedule: found', items.length, 'items with status scheduled/live');
 
@@ -272,16 +268,11 @@ async function handleRecordings(event) {
     return jsonResponse(403, { ok: false, error: 'Recordings permission required' });
   }
 
-  const { queryDocs } = require('./shared/firestore');
-  var items = await queryDocs(COLLECTION,
-    [{ field: 'status', op: '==', value: 'ended' }],
-    { orderBy: 'startDateTime', orderDir: 'desc', limit: 50 }
-  );
-
-  // Only return items with a recording
-  items = items.filter(function (item) {
-    return !!item.recordingPlaybackId;
-  });
+  // Fetch all and filter in-memory to avoid composite index requirement
+  var allItems = await getCollection(COLLECTION, { orderBy: 'startDateTime', orderDir: 'desc' });
+  var items = allItems.filter(function (item) {
+    return item.status === 'ended' && !!item.recordingPlaybackId;
+  }).slice(0, 50);
 
   // Filter by permissions + cohort
   var userPermsWithCohort = await getUserPermissionsWithCohort(user);
