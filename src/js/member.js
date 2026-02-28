@@ -291,15 +291,20 @@
       }
 
       // Info
+      var desc = isDa ? (item.description_da || item.description_en || '') : (item.description_en || item.description_da || '');
       card += '<div style="padding:0.85rem 1rem">';
       card += '<p style="color:#FFFCF9;font-size:0.85rem;font-weight:700;margin:0 0 0.35rem;line-height:1.35">' + escHtml(title) + '</p>';
-      card += '<div style="display:flex;align-items:center;gap:0.5rem;flex-wrap:wrap">';
+      card += '<div style="display:flex;align-items:center;gap:0.5rem;flex-wrap:wrap;margin-bottom:0.35rem">';
       card += '<span style="color:#6F6A66;font-size:0.72rem">' + dateStr + '</span>';
       if (item.instructor) {
         card += '<span style="color:#6F6A66;font-size:0.72rem">&middot;</span>';
         card += '<span style="color:#999;font-size:0.72rem">' + escHtml(item.instructor) + '</span>';
       }
-      card += '</div></div></div>';
+      card += '</div>';
+      if (desc) {
+        card += '<p style="color:#999;font-size:0.75rem;line-height:1.45;margin:0;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden">' + escHtml(desc) + '</p>';
+      }
+      card += '</div></div>';
       return card;
     }
 
@@ -410,8 +415,6 @@
           + ' accent-color="#f75c03"'
           + ' primary-color="#FFFCF9"'
           + ' secondary-color="#0F0F0F"'
-          + ' forward-seek-offset="30"'
-          + ' backward-seek-offset="10"'
           + ' default-show-remaining-time'
           + ' style="width:100%;aspect-ratio:16/9;--media-object-fit:contain"'
           + ' autoplay'
