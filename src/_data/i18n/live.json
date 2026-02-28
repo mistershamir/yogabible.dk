@@ -9,7 +9,8 @@
     "stream_title": "Yoga Bible Live Stream",
     "checking_text": "Tjekker livestream status…",
     "error_text": "Kunne ikke indlæse stream. Prøv igen om lidt.",
-    "retry_btn": "Prøv igen"
+    "retry_btn": "Prøv igen",
+    "elapsed_label": "Forløbet tid"
   },
   "en": {
     "hero_tagline": "Yoga Bible · Live",
@@ -21,6 +22,7 @@
     "stream_title": "Yoga Bible Live Stream",
     "checking_text": "Checking livestream status…",
     "error_text": "Could not load stream. Please try again shortly.",
-    "retry_btn": "Try again"
+    "retry_btn": "Try again",
+    "elapsed_label": "Elapsed"
   }
 }
