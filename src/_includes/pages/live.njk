@@ -92,6 +92,11 @@
     --media-object-fit: contain;
   }
 
+  /* On-demand recordings: hide centre seek fwd/bwd overlay (keep bottom seek bar only) */
+  mux-player[stream-type="on-demand"] {
+    --center-controls: none;
+  }
+
 
   .yb-live-player__checking {
     position: absolute;
@@ -274,23 +279,62 @@
     gap: 0.75rem;
   }
 
+  .yb-live-schedule__card {
+    background: #1a1a1a;
+    border-radius: 10px;
+    border: 1px solid transparent;
+    transition: border-color 0.3s ease;
+    overflow: hidden;
+  }
+
+  .yb-live-schedule__card:hover {
+    border-color: rgba(247, 92, 3, 0.3);
+  }
+
+  .yb-live-schedule__card--live {
+    border-color: #f75c03;
+  }
+
   .yb-live-schedule__item {
     display: flex;
     align-items: center;
     gap: 1rem;
-    background: #1a1a1a;
-    border-radius: 10px;
     padding: 1rem 1.25rem;
-    transition: border-color 0.3s ease;
-    border: 1px solid transparent;
   }
 
-  .yb-live-schedule__item:hover {
-    border-color: rgba(247, 92, 3, 0.3);
+  .yb-live-schedule__item--expandable {
+    cursor: pointer;
   }
 
-  .yb-live-schedule__item--live {
-    border-color: #f75c03;
+  .yb-live-schedule__chevron {
+    flex-shrink: 0;
+    transition: transform 0.3s ease;
+    opacity: 0.5;
+  }
+
+  .yb-live-schedule__card--open .yb-live-schedule__chevron {
+    transform: rotate(180deg);
+  }
+
+  .yb-live-schedule__desc {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.35s ease, padding 0.35s ease;
+    padding: 0 1.25rem;
+  }
+
+  .yb-live-schedule__card--open .yb-live-schedule__desc {
+    max-height: 200px;
+    padding: 0 1.25rem 1rem;
+  }
+
+  .yb-live-schedule__desc p {
+    margin: 0;
+    color: #999;
+    font-size: 0.8rem;
+    line-height: 1.55;
+    border-top: 1px solid rgba(255,255,255,0.06);
+    padding-top: 0.75rem;
   }
 
   .yb-live-schedule__date {
