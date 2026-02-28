@@ -108,16 +108,34 @@ async function handleMbClasses(params) {
   var startDate = params.startDate || now.toISOString().split('T')[0];
   var endDate = params.endDate || new Date(now.getTime() + 30 * 86400000).toISOString().split('T')[0];
 
-  var qs = {
-    StartDateTime: startDate,
-    EndDateTime: endDate,
-    Limit: '200'
-  };
+  // Paginate through all classes (MB API caps at 200 per request)
+  var allMbClasses = [];
+  var offset = 0;
+  var limit = 200;
+  var hasMore = true;
 
-  var queryString = new URLSearchParams(qs).toString();
-  var data = await mbFetch('/class/classes?' + queryString);
+  while (hasMore) {
+    var qs = {
+      StartDateTime: startDate,
+      EndDateTime: endDate,
+      Limit: String(limit),
+      Offset: String(offset)
+    };
+    var queryString = new URLSearchParams(qs).toString();
+    var data = await mbFetch('/class/classes?' + queryString);
+    var batch = data.Classes || [];
+    allMbClasses = allMbClasses.concat(batch);
 
-  var classes = (data.Classes || []).map(function (cls) {
+    if (batch.length < limit) {
+      hasMore = false;
+    } else {
+      offset += limit;
+    }
+    // Safety cap to prevent runaway loops
+    if (allMbClasses.length >= 2000) break;
+  }
+
+  var classes = allMbClasses.map(function (cls) {
     return {
       id: cls.Id,
       name: cls.ClassDescription ? cls.ClassDescription.Name : cls.Name || 'Class',
