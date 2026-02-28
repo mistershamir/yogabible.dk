@@ -13,7 +13,7 @@
   var POLL_INTERVAL = 30000;
 
   function showLive() {
-    playerSection.style.display = '';
+    playerSection.style.display = 'block';
     offlineSection.style.display = 'none';
     checkingOverlay.classList.add('yb-live-player__checking--hidden');
     badge.classList.add('yb-live-badge--visible');
@@ -25,7 +25,7 @@
 
   function showOffline() {
     playerSection.style.display = 'none';
-    offlineSection.style.display = '';
+    offlineSection.style.display = 'block';
     badge.classList.remove('yb-live-badge--visible');
     checkingOverlay.classList.add('yb-live-player__checking--hidden');
     startPolling();
@@ -37,7 +37,7 @@
       return;
     }
     var url = 'https://stream.mux.com/' + playbackId + '.m3u8';
-    fetch(url, { method: 'HEAD' })
+    fetch(url)
       .then(function (res) {
         if (res.ok) {
           showLive();
@@ -55,12 +55,12 @@
     pollTimer = setInterval(function () {
       if (!playbackId) return;
       var url = 'https://stream.mux.com/' + playbackId + '.m3u8';
-      fetch(url, { method: 'HEAD' })
+      fetch(url)
         .then(function (res) {
           if (res.ok) {
             showLive();
             if (player) {
-              player.playbackId = playbackId;
+              player.setAttribute('playback-id', playbackId);
             }
           }
         })
@@ -70,7 +70,7 @@
 
   if (retryBtn) {
     retryBtn.addEventListener('click', function () {
-      playerSection.style.display = '';
+      playerSection.style.display = 'block';
       offlineSection.style.display = 'none';
       checkingOverlay.classList.remove('yb-live-player__checking--hidden');
       checkStream();
