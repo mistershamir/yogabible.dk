@@ -197,8 +197,10 @@
       html += '<div class="yb-live-schedule__card' + (isLive ? ' yb-live-schedule__card--live' : '') + '">';
       html += '<div class="yb-live-schedule__item">';
       html += '<div class="yb-live-schedule__date">';
-      html += '<div class="yb-live-schedule__day">' + day + '</div>';
-      html += '<div class="yb-live-schedule__month">' + esc(dayLabel || (monthLabel + ' ' + d.getFullYear())) + '</div>';
+      if (dayLabel) {
+        html += '<div class="yb-live-schedule__day-label">' + esc(dayLabel) + '</div>';
+      }
+      html += '<div class="yb-live-schedule__day">' + day + '. ' + esc(monthLabel) + ' ' + d.getFullYear() + '</div>';
       html += '</div>';
       html += '<div class="yb-live-schedule__info">';
       html += '<p class="yb-live-schedule__name">' + esc(title) + '</p>';
