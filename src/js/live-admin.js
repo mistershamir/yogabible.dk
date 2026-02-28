@@ -9,6 +9,7 @@
   var items = [];
   var loaded = false;
   var mbClasses = [];
+  var mbSelectedIdxs = new Set();
   var API = '/.netlify/functions/live-admin';
 
   /* ══════════════════════════════════════════
@@ -308,55 +309,233 @@
     $('yb-la-mb-start').value = now.toISOString().split('T')[0];
     var future = new Date(now.getTime() + 30 * 86400000);
     $('yb-la-mb-end').value = future.toISOString().split('T')[0];
+    mbClasses = [];
+    mbSelectedIdxs.clear();
+    updateMbBulkBar();
     showView('mb');
   }
 
   function fetchMbClasses() {
     var startDate = $('yb-la-mb-start').value;
     var endDate = $('yb-la-mb-end').value;
+    var btn = $('yb-la-mb-fetch-btn');
+    if (btn) { btn.textContent = t('live_mb_fetching'); btn.disabled = true; }
 
     apiFetch('mb-classes', { params: { startDate: startDate, endDate: endDate } }).then(function (res) {
+      if (btn) { btn.textContent = t('live_mb_fetch_btn'); btn.disabled = false; }
       if (res.ok) {
         mbClasses = res.classes || [];
+        mbSelectedIdxs.clear();
+        populateMbFilters();
         renderMbTable();
+        // Show filters & result bar
+        var filtersEl = $('yb-la-mb-filters');
+        var resultBar = $('yb-la-mb-result-bar');
+        if (filtersEl) filtersEl.hidden = false;
+        if (resultBar) resultBar.hidden = false;
       } else {
         toast(res.error || t('error_load'), true);
       }
+    }).catch(function () {
+      if (btn) { btn.textContent = t('live_mb_fetch_btn'); btn.disabled = false; }
+      toast(t('error_load'), true);
     });
   }
 
+  // ── MB Filters ──
+  function populateMbFilters() {
+    var programs = {};
+    var instructors = {};
+    var sessionTypes = {};
+    var days = {};
+
+    var dayNames = LANG === 'en'
+      ? ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
+      : ['Søndag', 'Mandag', 'Tirsdag', 'Onsdag', 'Torsdag', 'Fredag', 'Lørdag'];
+
+    for (var i = 0; i < mbClasses.length; i++) {
+      var cls = mbClasses[i];
+      if (cls.programName) programs[cls.programName] = true;
+      if (cls.instructor) instructors[cls.instructor] = true;
+      if (cls.sessionTypeName) sessionTypes[cls.sessionTypeName] = true;
+      if (cls.startDateTime) {
+        var d = new Date(cls.startDateTime);
+        var dayIdx = d.getDay();
+        days[dayIdx] = dayNames[dayIdx];
+      }
+    }
+
+    fillSelect('yb-la-mb-filter-program', programs, t('live_mb_filter_program'));
+    fillSelect('yb-la-mb-filter-instructor', instructors, t('live_mb_filter_instructor'));
+    fillSelect('yb-la-mb-filter-session-type', sessionTypes, t('live_mb_filter_session_type'));
+    fillDaySelect('yb-la-mb-filter-day', days, t('live_mb_filter_day'));
+  }
+
+  function fillSelect(id, keysObj, allLabel) {
+    var sel = $(id);
+    if (!sel) return;
+    var current = sel.value;
+    sel.innerHTML = '<option value="">' + esc(allLabel) + '</option>';
+    var keys = Object.keys(keysObj).sort();
+    for (var i = 0; i < keys.length; i++) {
+      sel.innerHTML += '<option value="' + esc(keys[i]) + '">' + esc(keys[i]) + '</option>';
+    }
+    if (current) sel.value = current;
+  }
+
+  function fillDaySelect(id, daysMap, allLabel) {
+    var sel = $(id);
+    if (!sel) return;
+    var current = sel.value;
+    sel.innerHTML = '<option value="">' + esc(allLabel) + '</option>';
+    // Sort by day index (0-6)
+    var idxs = Object.keys(daysMap).map(Number).sort(function (a, b) { return a - b; });
+    for (var i = 0; i < idxs.length; i++) {
+      sel.innerHTML += '<option value="' + idxs[i] + '">' + esc(daysMap[idxs[i]]) + '</option>';
+    }
+    if (current) sel.value = current;
+  }
+
+  function getFilteredMbClasses() {
+    var search = ($('yb-la-mb-search') ? $('yb-la-mb-search').value : '').toLowerCase().trim();
+    var program = ($('yb-la-mb-filter-program') ? $('yb-la-mb-filter-program').value : '');
+    var instructor = ($('yb-la-mb-filter-instructor') ? $('yb-la-mb-filter-instructor').value : '');
+    var sessionType = ($('yb-la-mb-filter-session-type') ? $('yb-la-mb-filter-session-type').value : '');
+    var dayFilter = ($('yb-la-mb-filter-day') ? $('yb-la-mb-filter-day').value : '');
+
+    var result = [];
+    for (var i = 0; i < mbClasses.length; i++) {
+      var cls = mbClasses[i];
+
+      // Search filter
+      if (search) {
+        var haystack = ((cls.name || '') + ' ' + (cls.instructor || '')).toLowerCase();
+        if (haystack.indexOf(search) === -1) continue;
+      }
+      // Program filter
+      if (program && cls.programName !== program) continue;
+      // Instructor filter
+      if (instructor && cls.instructor !== instructor) continue;
+      // Session type filter
+      if (sessionType && cls.sessionTypeName !== sessionType) continue;
+      // Day filter
+      if (dayFilter !== '' && cls.startDateTime) {
+        var d = new Date(cls.startDateTime);
+        if (String(d.getDay()) !== dayFilter) continue;
+      }
+
+      result.push({ idx: i, cls: cls });
+    }
+    return result;
+  }
+
+  // ── MB Table Rendering ──
   function renderMbTable() {
     var tbody = $('yb-live-mb-table-body');
     var emptyEl = $('yb-live-mb-empty');
     if (!tbody) return;
 
-    if (emptyEl) emptyEl.hidden = mbClasses.length > 0;
+    var filtered = getFilteredMbClasses();
 
-    if (!mbClasses.length) {
+    // Update count
+    var countEl = $('yb-la-mb-count');
+    if (countEl) countEl.textContent = filtered.length + ' ' + t('live_mb_count') + (mbClasses.length !== filtered.length ? ' / ' + mbClasses.length + ' ' + t('live_filter_all').toLowerCase() : '');
+
+    if (emptyEl) emptyEl.hidden = filtered.length > 0;
+
+    if (!filtered.length) {
       tbody.innerHTML = '';
+      updateMbSelectAllCb();
+      updateMbBulkBar();
       return;
     }
 
+    // Check which MB class IDs are already imported
+    var importedMbIds = {};
+    for (var ii = 0; ii < items.length; ii++) {
+      if (items[ii].mbClassId) importedMbIds[items[ii].mbClassId] = true;
+    }
+
     var html = '';
-    for (var i = 0; i < mbClasses.length; i++) {
-      var cls = mbClasses[i];
-      html += '<tr>';
-      html += '<td><input type="checkbox" class="yb-la-mb-cb" data-idx="' + i + '"></td>';
-      html += '<td><strong>' + esc(cls.name) + '</strong></td>';
+    for (var i = 0; i < filtered.length; i++) {
+      var entry = filtered[i];
+      var cls = entry.cls;
+      var origIdx = entry.idx;
+      var isSelected = mbSelectedIdxs.has(origIdx);
+      var alreadyImported = !!importedMbIds[cls.id];
+
+      html += '<tr' + (alreadyImported ? ' style="opacity:0.5"' : '') + '>';
+      html += '<td><input type="checkbox" class="yb-la-mb-cb" data-idx="' + origIdx + '"' + (isSelected ? ' checked' : '') + '></td>';
+      html += '<td><strong>' + esc(cls.name) + '</strong>' + (alreadyImported ? ' <span style="font-size:0.7rem;color:#6F6A66">(' + t('live_mb_already_imported') + ')</span>' : '') + '</td>';
       html += '<td>' + fmtDate(cls.startDateTime) + '</td>';
       html += '<td>' + esc(cls.instructor) + '</td>';
       html += '<td style="font-size:0.75rem">' + esc(cls.programName) + '</td>';
-      html += '<td><button class="yb-btn yb-btn--primary yb-btn--sm" data-action="live-mb-import-one" data-idx="' + i + '">+ Import</button></td>';
+      html += '<td style="font-size:0.75rem">' + esc(cls.sessionTypeName || '') + '</td>';
+      html += '<td>';
+      if (!alreadyImported) {
+        html += '<button class="yb-btn yb-btn--primary yb-btn--sm" data-action="live-mb-import-one" data-idx="' + origIdx + '">+ Import</button>';
+      }
+      html += '</td>';
       html += '</tr>';
     }
     tbody.innerHTML = html;
+    updateMbSelectAllCb();
+    updateMbBulkBar();
   }
 
-  function importMbClass(idx) {
-    var cls = mbClasses[idx];
-    if (!cls) return;
+  // ── MB Selection ──
+  function toggleMbSelection(idx, checked) {
+    if (checked) {
+      mbSelectedIdxs.add(idx);
+    } else {
+      mbSelectedIdxs.delete(idx);
+    }
+    updateMbSelectAllCb();
+    updateMbBulkBar();
+  }
 
-    var data = {
+  function selectAllMb(checked) {
+    var filtered = getFilteredMbClasses();
+    if (checked) {
+      for (var i = 0; i < filtered.length; i++) {
+        mbSelectedIdxs.add(filtered[i].idx);
+      }
+    } else {
+      for (var i = 0; i < filtered.length; i++) {
+        mbSelectedIdxs.delete(filtered[i].idx);
+      }
+    }
+    renderMbTable();
+  }
+
+  function deselectAllMb() {
+    mbSelectedIdxs.clear();
+    renderMbTable();
+  }
+
+  function updateMbSelectAllCb() {
+    var cb = $('yb-la-mb-select-all');
+    if (!cb) return;
+    var filtered = getFilteredMbClasses();
+    if (!filtered.length) { cb.checked = false; return; }
+    var allChecked = filtered.every(function (e) { return mbSelectedIdxs.has(e.idx); });
+    var someChecked = filtered.some(function (e) { return mbSelectedIdxs.has(e.idx); });
+    cb.checked = allChecked;
+    cb.indeterminate = someChecked && !allChecked;
+  }
+
+  function updateMbBulkBar() {
+    var bar = $('yb-la-mb-bulk-bar');
+    var countEl = $('yb-la-mb-bulk-count');
+    if (!bar) return;
+    var count = mbSelectedIdxs.size;
+    bar.hidden = count === 0;
+    if (countEl) countEl.textContent = count + ' ' + t('live_mb_selected');
+  }
+
+  // ── MB Import ──
+  function buildMbImportData(cls) {
+    return {
       source: 'mindbody',
       mbClassId: cls.id,
       mbClassName: cls.name,
@@ -372,15 +551,62 @@
       status: 'scheduled',
       access: { roles: ['trainee', 'teacher', 'admin'], permissions: ['live-streaming'] }
     };
+  }
+
+  function importMbClass(idx) {
+    var cls = mbClasses[idx];
+    if (!cls) return;
+
+    var data = buildMbImportData(cls);
 
     apiFetch('create', { method: 'POST', body: data }).then(function (res) {
       if (res.ok) {
         toast(t('live_mb_imported'));
+        mbSelectedIdxs.delete(idx);
         loadItems();
       } else {
         toast(res.error || t('error_save'), true);
       }
     });
+  }
+
+  function bulkImportMb() {
+    if (!mbSelectedIdxs.size) return;
+
+    var idxArr = Array.from(mbSelectedIdxs);
+    var total = idxArr.length;
+    var done = 0;
+    var failed = 0;
+
+    // Import sequentially to avoid overwhelming the API
+    function importNext() {
+      if (!idxArr.length) {
+        mbSelectedIdxs.clear();
+        loadItems();
+        var msg = (done - failed) + ' ' + t('live_mb_bulk_imported');
+        if (failed) msg += ' (' + failed + ' failed)';
+        toast(msg, failed > 0);
+        return;
+      }
+      var idx = idxArr.shift();
+      var cls = mbClasses[idx];
+      if (!cls) { importNext(); return; }
+
+      var data = buildMbImportData(cls);
+
+      apiFetch('create', { method: 'POST', body: data }).then(function (res) {
+        done++;
+        if (!res.ok) failed++;
+        importNext();
+      }).catch(function () {
+        done++;
+        failed++;
+        importNext();
+      });
+    }
+
+    toast('Importing ' + total + '...');
+    importNext();
   }
 
   /* ══════════════════════════════════════════
@@ -424,6 +650,12 @@
         return;
       }
 
+      btn = e.target.closest('[data-action="live-mb-bulk-import"]');
+      if (btn) { bulkImportMb(); return; }
+
+      btn = e.target.closest('[data-action="live-mb-deselect"]');
+      if (btn) { deselectAllMb(); return; }
+
       btn = e.target.closest('[data-action="live-edit"]');
       if (btn) {
         var editId = btn.getAttribute('data-id');
@@ -451,11 +683,39 @@
     var recSelect = $('yb-la-recurrence');
     if (recSelect) recSelect.addEventListener('change', toggleRecurrenceEnd);
 
-    // Filters
+    // List view filters
     var filterEl = $('yb-live-admin-filter');
     if (filterEl) filterEl.addEventListener('change', renderTable);
     var sourceFilterEl = $('yb-live-admin-source-filter');
     if (sourceFilterEl) sourceFilterEl.addEventListener('change', renderTable);
+
+    // MB import: select-all checkbox
+    var mbSelectAll = $('yb-la-mb-select-all');
+    if (mbSelectAll) mbSelectAll.addEventListener('change', function () { selectAllMb(mbSelectAll.checked); });
+
+    // MB import: individual checkboxes (delegated)
+    document.addEventListener('change', function (e) {
+      if (e.target.classList.contains('yb-la-mb-cb')) {
+        var idx = parseInt(e.target.getAttribute('data-idx'), 10);
+        toggleMbSelection(idx, e.target.checked);
+      }
+    });
+
+    // MB import: search
+    var mbSearch = $('yb-la-mb-search');
+    if (mbSearch) {
+      var searchTimer;
+      mbSearch.addEventListener('input', function () {
+        clearTimeout(searchTimer);
+        searchTimer = setTimeout(renderMbTable, 200);
+      });
+    }
+
+    // MB import: filter dropdowns
+    ['yb-la-mb-filter-program', 'yb-la-mb-filter-instructor', 'yb-la-mb-filter-session-type', 'yb-la-mb-filter-day'].forEach(function (id) {
+      var el = $(id);
+      if (el) el.addEventListener('change', renderMbTable);
+    });
 
     // Tab listener — lazy load on first visit
     document.querySelectorAll('[data-yb-admin-tab]').forEach(function (btn) {

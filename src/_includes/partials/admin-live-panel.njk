@@ -199,6 +199,7 @@
     <h2>{{ t.live_import_mb }}</h2>
   </div>
 
+  {# Date range + fetch #}
   <div class="yb-admin__form-row" style="margin-bottom:1rem">
     <div class="yb-admin__field">
       <label for="yb-la-mb-start">{{ t.live_field_start }}</label>
@@ -209,19 +210,50 @@
       <input type="date" id="yb-la-mb-end">
     </div>
     <div class="yb-admin__field" style="align-self:flex-end">
-      <button type="button" class="yb-btn yb-btn--primary yb-btn--sm" data-action="live-mb-fetch">{{ t.loading }}</button>
+      <button type="button" class="yb-btn yb-btn--primary yb-btn--sm" data-action="live-mb-fetch" id="yb-la-mb-fetch-btn">{{ t.live_mb_fetch_btn }}</button>
     </div>
   </div>
 
+  {# Search + Filters (populated dynamically after fetch) #}
+  <div class="yb-lead__filter-bar" id="yb-la-mb-filters" hidden>
+    <input type="text" id="yb-la-mb-search" placeholder="{{ t.live_mb_search }}" class="yb-lead__search-input" style="min-width:220px">
+    <select id="yb-la-mb-filter-program" class="yb-admin__select yb-lead__filter">
+      <option value="">{{ t.live_mb_filter_program }}</option>
+    </select>
+    <select id="yb-la-mb-filter-instructor" class="yb-admin__select yb-lead__filter">
+      <option value="">{{ t.live_mb_filter_instructor }}</option>
+    </select>
+    <select id="yb-la-mb-filter-session-type" class="yb-admin__select yb-lead__filter">
+      <option value="">{{ t.live_mb_filter_session_type }}</option>
+    </select>
+    <select id="yb-la-mb-filter-day" class="yb-admin__select yb-lead__filter">
+      <option value="">{{ t.live_mb_filter_day }}</option>
+    </select>
+  </div>
+
+  {# Result count #}
+  <div class="yb-lead__result-bar" id="yb-la-mb-result-bar" hidden>
+    <span id="yb-la-mb-count" class="yb-lead__count-text"></span>
+  </div>
+
+  {# Bulk actions bar (hidden until selections) #}
+  <div id="yb-la-mb-bulk-bar" class="yb-lead__bulk-bar" hidden>
+    <span id="yb-la-mb-bulk-count" class="yb-lead__bulk-count-text"></span>
+    <button class="yb-btn yb-btn--primary yb-btn--sm" data-action="live-mb-bulk-import">&#128229; {{ t.live_mb_bulk_import }}</button>
+    <button class="yb-btn yb-btn--outline yb-btn--sm" data-action="live-mb-deselect">&#10006; {{ t.live_mb_deselect }}</button>
+  </div>
+
+  {# Table #}
   <div class="yb-admin__table-wrap">
     <table class="yb-admin__table" id="yb-live-mb-table">
       <thead>
         <tr>
-          <th></th>
+          <th class="yb-lead__th-cb"><input type="checkbox" id="yb-la-mb-select-all" title="{{ t.live_mb_select_all }}"></th>
           <th>{{ t.live_col_title }}</th>
           <th>{{ t.live_col_datetime }}</th>
           <th>{{ t.live_col_instructor }}</th>
-          <th>Program</th>
+          <th>{{ t.live_mb_col_program }}</th>
+          <th>{{ t.live_mb_col_session_type }}</th>
           <th></th>
         </tr>
       </thead>
