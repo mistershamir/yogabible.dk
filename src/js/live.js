@@ -173,6 +173,13 @@
       var monthLabel = months[d.getMonth()];
       var hours = String(d.getHours()).padStart(2, '0');
       var mins = String(d.getMinutes()).padStart(2, '0');
+      var startTime = hours + ':' + mins;
+      var endTime = '';
+      if (item.endDateTime) {
+        var de = new Date(item.endDateTime);
+        endTime = String(de.getHours()).padStart(2, '0') + ':' + String(de.getMinutes()).padStart(2, '0');
+      }
+      var timeRange = endTime ? (startTime + ' – ' + endTime) : startTime;
       var title = isDa ? (item.title_da || item.title_en || '') : (item.title_en || item.title_da || '');
       var isLive = item.status === 'live';
 
@@ -184,7 +191,7 @@
       if (isLive) {
         tag = '<span class="yb-live-schedule__tag yb-live-schedule__tag--live"><span class="yb-live-badge__dot"></span>' + tLiveNow + '</span>';
       } else {
-        tag = '<span class="yb-live-schedule__tag yb-live-schedule__tag--upcoming">' + hours + ':' + mins + '</span>';
+        tag = '<span class="yb-live-schedule__tag yb-live-schedule__tag--upcoming">' + timeRange + '</span>';
       }
 
       html += '<div class="yb-live-schedule__card' + (isLive ? ' yb-live-schedule__card--live' : '') + '">';
