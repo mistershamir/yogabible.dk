@@ -304,10 +304,16 @@
     return d.innerHTML;
   }
 
-  // Hook into tab switching to lazy-load recordings
+  // Hook into tab switching to lazy-load recordings + refresh schedule
   var origShowTab = showTab;
   showTab = function (tab, skipPush) {
     origShowTab(tab, skipPush);
-    if (tab === 'live') loadRecordings();
+    if (tab === 'live') {
+      loadRecordings();
+      // Re-fetch live schedule when tab becomes visible
+      if (typeof window._liveScheduleFetch === 'function') {
+        window._liveScheduleFetch();
+      }
+    }
   };
 })();
