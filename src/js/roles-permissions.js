@@ -88,13 +88,16 @@
     var perms = base.slice(); // copy
     roleDetails = roleDetails || {};
 
-    // Trainee: grant access to their specific program materials + method
+    // Trainee: grant access to their specific program materials + method + cohort
     if (role === 'trainee') {
       if (roleDetails.program) {
         perms.push('materials:' + roleDetails.program);
       }
       if (roleDetails.method) {
         perms.push('method:' + roleDetails.method);
+      }
+      if (roleDetails.cohort) {
+        perms.push('cohort:' + roleDetails.cohort);
       }
       // Trainee may also have courseTypes (if they applied for courses too)
       if (roleDetails.courseTypes && roleDetails.courseTypes.length) {

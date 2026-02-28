@@ -189,6 +189,7 @@
     $('yb-la-recurrence').value = (item && item.recurrence && item.recurrence.type) || 'none';
     $('yb-la-recurrence-end').value = (item && item.recurrence && item.recurrence.endDate) || '';
     $('yb-la-access-perms').value = (item && item.access && item.access.permissions) ? item.access.permissions.join(', ') : 'live-streaming';
+    $('yb-la-cohorts').value = (item && item.cohorts && item.cohorts.length) ? item.cohorts.join(', ') : '';
 
     // Start/end datetime-local
     if (item && item.startDateTime) {
@@ -251,6 +252,14 @@
       recordingPlaybackId: $('yb-la-recording-id').value.trim() || null,
       access: { roles: roles, permissions: perms }
     };
+
+    // Cohort restriction
+    var cohortsStr = ($('yb-la-cohorts') ? $('yb-la-cohorts').value : '').trim();
+    if (cohortsStr) {
+      data.cohorts = cohortsStr.split(',').map(function (s) { return s.trim(); }).filter(Boolean);
+    } else {
+      data.cohorts = [];
+    }
 
     var recType = $('yb-la-recurrence').value;
     if (recType !== 'none' && data.source === 'manual') {

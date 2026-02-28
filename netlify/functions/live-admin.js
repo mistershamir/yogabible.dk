@@ -27,7 +27,7 @@ const ALLOWED_FIELDS = [
   'title_da', 'title_en', 'description_da', 'description_en',
   'instructor', 'startDateTime', 'endDateTime', 'duration',
   'muxPlaybackId', 'muxStreamKey', 'recordingPlaybackId',
-  'status', 'recurrence', 'access'
+  'status', 'recurrence', 'access', 'cohorts'
 ];
 
 function sanitize(body) {
@@ -224,7 +224,7 @@ async function handleSchedule(event) {
   var user = await optionalAuth(event);
 
   var now = new Date().toISOString();
-  const { queryDocs } = require('./shared/firestore');
+  const { queryDocs, getDb: getDbFn } = require('./shared/firestore');
   var items = await queryDocs(COLLECTION,
     [{ field: 'status', op: 'in', value: ['scheduled', 'live'] }],
     { orderBy: 'startDateTime', orderDir: 'asc' }
@@ -235,11 +235,11 @@ async function handleSchedule(event) {
     return item.status === 'live' || item.startDateTime >= now;
   });
 
-  // If user authenticated, filter by their permissions
+  // If user authenticated, filter by their permissions + cohort
   if (user) {
-    var userPerms = getUserPermissions(user.role);
+    var userPerms = await getUserPermissionsWithCohort(user);
     items = items.filter(function (item) {
-      return hasAccess(item.access, user.role, userPerms);
+      return hasAccess(item.access, user.role, userPerms, item.cohorts);
     });
   }
 
@@ -271,9 +271,10 @@ async function handleRecordings(event) {
     return !!item.recordingPlaybackId;
   });
 
-  // Filter by permissions
+  // Filter by permissions + cohort
+  var userPermsWithCohort = await getUserPermissionsWithCohort(user);
   items = items.filter(function (item) {
-    return hasAccess(item.access, user.role, userPerms);
+    return hasAccess(item.access, user.role, userPermsWithCohort, item.cohorts);
   });
 
   return jsonResponse(200, { ok: true, items: items });
@@ -296,9 +297,63 @@ function getUserPermissions(role) {
   return ROLE_PERMISSIONS[role] || ROLE_PERMISSIONS.member;
 }
 
-function hasAccess(access, role, userPerms) {
-  if (!access) return true; // no restriction
+/**
+ * Get user permissions including cohort from Firestore roleDetails.
+ */
+async function getUserPermissionsWithCohort(user) {
+  var perms = getUserPermissions(user.role);
+
+  // Fetch roleDetails from Firestore to get cohort
+  try {
+    const { getDb: getDbFn } = require('./shared/firestore');
+    var db = getDbFn();
+    var userDoc = await db.collection('users').doc(user.uid).get();
+    if (userDoc.exists) {
+      var data = userDoc.data();
+      var roleDetails = data.roleDetails || {};
+      if (roleDetails.cohort) {
+        perms = perms.slice();
+        perms.push('cohort:' + roleDetails.cohort);
+      }
+      if (roleDetails.program) {
+        perms = perms.indexOf('materials:' + roleDetails.program) === -1
+          ? perms.concat(['materials:' + roleDetails.program])
+          : perms;
+      }
+      if (roleDetails.method) {
+        perms = perms.indexOf('method:' + roleDetails.method) === -1
+          ? perms.concat(['method:' + roleDetails.method])
+          : perms;
+      }
+    }
+  } catch (err) {
+    console.error('[live-admin] Failed to fetch roleDetails:', err.message);
+  }
+
+  return perms;
+}
+
+/**
+ * Check if a user has access to a live schedule item.
+ * @param {object} access - { roles: [], permissions: [] }
+ * @param {string} role - User's role
+ * @param {string[]} userPerms - User's computed permissions
+ * @param {string[]} cohorts - Item's required cohorts (optional)
+ */
+function hasAccess(access, role, userPerms, cohorts) {
+  if (!access && (!cohorts || !cohorts.length)) return true;
   if (role === 'admin') return true;
+
+  // If the item has cohort restrictions, user must match at least one
+  if (cohorts && cohorts.length > 0) {
+    var hasCohort = cohorts.some(function (c) {
+      return userPerms.indexOf('cohort:' + c) !== -1;
+    });
+    if (!hasCohort) return false;
+  }
+
+  // If no access object, cohort check was enough
+  if (!access) return true;
 
   // Check roles
   if (access.roles && access.roles.length > 0) {
@@ -312,7 +367,6 @@ function hasAccess(access, role, userPerms) {
     }
   }
 
-  // If both roles and permissions are specified but neither matched
   return false;
 }
 
