@@ -24,7 +24,7 @@
  */
 
 const crypto = require('crypto');
-const { queryDocs, updateDoc, addDoc } = require('./shared/firestore');
+const { getCollection, updateDoc, addDoc } = require('./shared/firestore');
 const { jsonResponse } = require('./shared/utils');
 
 const COLLECTION = 'live-schedule';
@@ -121,11 +121,9 @@ async function handleStreamActive(streamData) {
   var windowStart = new Date(now.getTime() - windowMs).toISOString();
   var windowEnd = new Date(now.getTime() + windowMs).toISOString();
 
-  // Find scheduled sessions in the time window
-  var sessions = await queryDocs(COLLECTION,
-    [{ field: 'status', op: '==', value: 'scheduled' }],
-    { orderBy: 'startDateTime', orderDir: 'asc' }
-  );
+  // Find scheduled sessions (fetch all, filter in-memory to avoid composite index)
+  var allSessions = await getCollection(COLLECTION, { orderBy: 'startDateTime', orderDir: 'asc' });
+  var sessions = allSessions.filter(function (s) { return s.status === 'scheduled'; });
 
   // Filter to sessions within the match window
   var candidates = sessions.filter(function (s) {
@@ -180,6 +178,9 @@ async function handleStreamActive(streamData) {
 /* ══════════════════════════════════════════════════════════════
    2. STREAM WENT IDLE — mark session as ended
    ══════════════════════════════════════════════════════════════ */
+// Streams shorter than this are treated as test runs — session resets to 'scheduled'
+var TEST_STREAM_THRESHOLD_MS = 5 * 60 * 1000; // 5 minutes
+
 async function handleStreamIdle(streamData) {
   if (!streamData || !streamData.id) return;
 
@@ -187,10 +188,8 @@ async function handleStreamIdle(streamData) {
   console.log('[mux-webhook] Stream idle:', liveStreamId);
 
   // Find the session we previously marked as live with this stream ID
-  var sessions = await queryDocs(COLLECTION,
-    [{ field: 'status', op: '==', value: 'live' }],
-    { orderBy: 'startDateTime', orderDir: 'desc', limit: 10 }
-  );
+  var allSessions = await getCollection(COLLECTION, { orderBy: 'startDateTime', orderDir: 'desc' });
+  var sessions = allSessions.filter(function (s) { return s.status === 'live'; });
 
   var matched = null;
   for (var i = 0; i < sessions.length; i++) {
@@ -206,11 +205,30 @@ async function handleStreamIdle(streamData) {
   }
 
   if (matched) {
-    await updateDoc(COLLECTION, matched.id, {
-      status: 'ended',
-      liveEndedAt: new Date().toISOString()
-    });
-    console.log('[mux-webhook] Session', matched.id, 'ended');
+    var now = new Date();
+
+    // Check how long the stream was actually live
+    var liveStarted = matched.liveStartedAt ? new Date(matched.liveStartedAt) : null;
+    var liveDurationMs = liveStarted ? (now.getTime() - liveStarted.getTime()) : Infinity;
+
+    if (liveDurationMs < TEST_STREAM_THRESHOLD_MS) {
+      // Short stream = test run — reset back to scheduled so it stays on the schedule
+      await updateDoc(COLLECTION, matched.id, {
+        status: 'scheduled',
+        muxLiveStreamId: null,
+        liveStartedAt: null
+      });
+      console.log('[mux-webhook] Session', matched.id, 'was live for only',
+        Math.round(liveDurationMs / 1000), 'seconds — treating as test, reset to scheduled');
+    } else {
+      // Real session — mark as ended
+      await updateDoc(COLLECTION, matched.id, {
+        status: 'ended',
+        liveEndedAt: now.toISOString()
+      });
+      console.log('[mux-webhook] Session', matched.id, 'ended after',
+        Math.round(liveDurationMs / 60000), 'minutes');
+    }
   } else {
     console.log('[mux-webhook] No live session found for stream', liveStreamId);
   }
@@ -239,10 +257,10 @@ async function handleAssetReady(assetData) {
   console.log('[mux-webhook] Recording ready:', recordingPlaybackId, 'from stream:', liveStreamId);
 
   // Find session by muxLiveStreamId (set during handleStreamActive)
-  var sessions = await queryDocs(COLLECTION,
-    [{ field: 'status', op: 'in', value: ['live', 'ended'] }],
-    { orderBy: 'startDateTime', orderDir: 'desc', limit: 50 }
-  );
+  var allSessions = await getCollection(COLLECTION, { orderBy: 'startDateTime', orderDir: 'desc' });
+  var sessions = allSessions.filter(function (s) {
+    return s.status === 'live' || s.status === 'ended';
+  }).slice(0, 50);
 
   var matched = null;
 
