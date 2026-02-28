@@ -221,4 +221,93 @@
       }
     }, 500);
   }
+
+  /* ══════════════════════════════════════════
+     RECORDINGS — lazy-load when live tab opened
+     ══════════════════════════════════════════ */
+  var recordingsLoaded = false;
+
+  function loadRecordings() {
+    if (recordingsLoaded) return;
+    recordingsLoaded = true;
+
+    var listEl = document.getElementById('yb-ma-recordings-list');
+    var emptyEl = document.getElementById('yb-ma-recordings-empty');
+    if (!listEl) return;
+
+    var isDa = window.location.pathname.indexOf('/en/') !== 0;
+
+    function getToken() {
+      if (typeof firebase !== 'undefined' && firebase.auth && firebase.auth().currentUser) {
+        return firebase.auth().currentUser.getIdToken();
+      }
+      return Promise.resolve('');
+    }
+
+    getToken().then(function (token) {
+      var opts = { headers: {} };
+      if (token) opts.headers['Authorization'] = 'Bearer ' + token;
+      return fetch('/.netlify/functions/live-admin?action=recordings', opts);
+    }).then(function (r) {
+      return r.json();
+    }).then(function (data) {
+      if (!data.ok || !data.items || !data.items.length) {
+        if (emptyEl) emptyEl.hidden = false;
+        return;
+      }
+      if (emptyEl) emptyEl.hidden = true;
+
+      var html = '';
+      for (var i = 0; i < data.items.length; i++) {
+        var item = data.items[i];
+        var title = isDa ? (item.title_da || item.title_en || '') : (item.title_en || item.title_da || '');
+        var d = new Date(item.startDateTime);
+        var dateStr = d.getDate() + '/' + (d.getMonth() + 1) + '/' + d.getFullYear();
+
+        html += '<div style="background:#1a1a1a;border-radius:10px;overflow:hidden;border:1px solid transparent;transition:border-color 0.3s ease">';
+
+        // Thumbnail / player embed
+        if (item.recordingPlaybackId) {
+          html += '<div style="aspect-ratio:16/9;background:#111;position:relative;cursor:pointer" data-rec-playback="' + item.recordingPlaybackId + '">';
+          html += '<img src="https://image.mux.com/' + item.recordingPlaybackId + '/thumbnail.jpg?width=560&height=315&fit_mode=smartcrop" alt="" style="width:100%;height:100%;object-fit:cover;display:block">';
+          html += '<div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center">';
+          html += '<div style="width:48px;height:48px;border-radius:50%;background:rgba(247,92,3,0.9);display:flex;align-items:center;justify-content:center">';
+          html += '<svg width="20" height="20" viewBox="0 0 24 24" fill="#fff"><polygon points="6 3 20 12 6 21 6 3"/></svg>';
+          html += '</div></div></div>';
+        }
+
+        html += '<div style="padding:0.85rem 1rem">';
+        html += '<p style="color:#FFFCF9;font-size:0.9rem;font-weight:700;margin:0 0 0.25rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + escHtml(title) + '</p>';
+        html += '<span style="color:#6F6A66;font-size:0.75rem">' + dateStr;
+        if (item.instructor) html += ' &middot; ' + escHtml(item.instructor);
+        html += '</span>';
+        html += '</div></div>';
+      }
+      listEl.innerHTML = html;
+
+      // Click to play — swap thumbnail with mux-player
+      listEl.addEventListener('click', function (e) {
+        var card = e.target.closest('[data-rec-playback]');
+        if (!card) return;
+        var pid = card.getAttribute('data-rec-playback');
+        card.innerHTML = '<mux-player playback-id="' + pid + '" accent-color="#f75c03" style="width:100%;aspect-ratio:16/9"></mux-player>';
+        card.removeAttribute('data-rec-playback');
+      });
+    }).catch(function () {
+      if (emptyEl) emptyEl.hidden = false;
+    });
+  }
+
+  function escHtml(s) {
+    var d = document.createElement('div');
+    d.textContent = s || '';
+    return d.innerHTML;
+  }
+
+  // Hook into tab switching to lazy-load recordings
+  var origShowTab = showTab;
+  showTab = function (tab, skipPush) {
+    origShowTab(tab, skipPush);
+    if (tab === 'live') loadRecordings();
+  };
 })();
