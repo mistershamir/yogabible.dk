@@ -126,6 +126,40 @@
     to { transform: rotate(360deg); }
   }
 
+  .yb-live-elapsed {
+    display: none;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 0.75rem 0 0;
+    max-width: 960px;
+    margin: 0 auto;
+  }
+
+  .yb-live-elapsed--visible {
+    display: flex;
+  }
+
+  .yb-live-elapsed__icon {
+    width: 14px;
+    height: 14px;
+    opacity: 0.5;
+  }
+
+  .yb-live-elapsed__label {
+    font-size: 0.75rem;
+    color: #6F6A66;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+
+  .yb-live-elapsed__time {
+    font-size: 0.85rem;
+    color: #FFFCF9;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: 0.04em;
+  }
+
   .yb-live-offline {
     max-width: 960px;
     margin: 0 auto;
@@ -260,6 +294,14 @@
         secondary-color="#0F0F0F"
         default-hidden-captions
       ></mux-player>
+    </div>
+    <div class="yb-live-elapsed" id="yb-live-elapsed">
+      <svg class="yb-live-elapsed__icon" viewBox="0 0 24 24" fill="none" stroke="#6F6A66" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="10"/>
+        <polyline points="12 6 12 12 16 14"/>
+      </svg>
+      <span class="yb-live-elapsed__label">{{ t.elapsed_label }}</span>
+      <span class="yb-live-elapsed__time" id="yb-live-elapsed-time">00:00</span>
     </div>
   </div>
 
