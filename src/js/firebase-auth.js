@@ -308,6 +308,7 @@
     var mobileLoginBtn = document.getElementById('yb-auth-mobile-login');
     var mobileUserSection = document.getElementById('yb-auth-mobile-user');
     var mobileUserName = document.getElementById('yb-auth-mobile-name');
+    var mobileAvatar = mobileUserSection ? mobileUserSection.querySelector('.yb-drawer__auth-avatar') : null;
 
     if (user) {
       var displayName = user.displayName || user.email.split('@')[0];
@@ -323,6 +324,7 @@
       if (mobileLoginBtn) mobileLoginBtn.style.display = 'none';
       if (mobileUserSection) mobileUserSection.style.display = 'flex';
       if (mobileUserName) mobileUserName.textContent = displayName;
+      if (mobileAvatar) mobileAvatar.textContent = initials;
     } else {
       // Desktop: show login link, hide user info
       if (loginLink) loginLink.style.display = '';
