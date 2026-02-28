@@ -204,7 +204,6 @@
   }
 
   function fetchSchedule() {
-    var headers = {};
     if (typeof firebase !== 'undefined' && firebase.auth && firebase.auth().currentUser) {
       firebase.auth().currentUser.getIdToken().then(function (token) {
         doFetch(token);
@@ -219,12 +218,29 @@
       fetch('/.netlify/functions/live-admin?action=schedule', opts)
         .then(function (r) { return r.json(); })
         .then(function (data) {
+          console.log('[live] schedule response:', data.ok, 'items:', data.items ? data.items.length : 0);
           if (data.ok) renderSchedule(data.items);
+          if (data.error) console.warn('[live] schedule error:', data.error);
         })
-        .catch(function () {});
+        .catch(function (err) {
+          console.error('[live] schedule fetch failed:', err);
+        });
     }
   }
 
+  // Expose so member.js can trigger a re-fetch when the Live tab opens
+  window._liveScheduleFetch = fetchSchedule;
+
   // Fetch schedule after a short delay (non-blocking)
   setTimeout(fetchSchedule, 500);
+
+  // Also re-fetch once auth is ready (may arrive after the initial 500ms fetch)
+  if (typeof firebase !== 'undefined' && firebase.auth) {
+    var authUnsub = firebase.auth().onAuthStateChanged(function (u) {
+      if (u) {
+        fetchSchedule();
+        authUnsub(); // Only need this once
+      }
+    });
+  }
 })();
