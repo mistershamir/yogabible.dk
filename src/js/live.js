@@ -155,12 +155,6 @@
   var MONTHS_DA = ['jan', 'feb', 'mar', 'apr', 'maj', 'jun', 'jul', 'aug', 'sep', 'okt', 'nov', 'dec'];
   var MONTHS_EN = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
-  function stripHtml(s) {
-    var tmp = document.createElement('div');
-    tmp.innerHTML = s || '';
-    return tmp.textContent || tmp.innerText || '';
-  }
-
   function renderSchedule(items) {
     if (!scheduleSection || !scheduleList) return;
     if (!items || !items.length) {
@@ -180,8 +174,6 @@
       var hours = String(d.getHours()).padStart(2, '0');
       var mins = String(d.getMinutes()).padStart(2, '0');
       var title = isDa ? (item.title_da || item.title_en || '') : (item.title_en || item.title_da || '');
-      var desc = isDa ? (item.description_da || item.description_en || '') : (item.description_en || item.description_da || '');
-      var descText = stripHtml(desc).trim();
       var isLive = item.status === 'live';
 
       var dayLabel = '';
@@ -199,14 +191,11 @@
       html += '<div class="yb-live-schedule__item">';
       html += '<div class="yb-live-schedule__date">';
       html += '<div class="yb-live-schedule__day">' + day + '</div>';
-      html += '<div class="yb-live-schedule__month">' + esc(dayLabel || monthLabel) + '</div>';
+      html += '<div class="yb-live-schedule__month">' + esc(dayLabel || (monthLabel + ' ' + d.getFullYear())) + '</div>';
       html += '</div>';
       html += '<div class="yb-live-schedule__info">';
       html += '<p class="yb-live-schedule__name">' + esc(title) + '</p>';
       html += '<span class="yb-live-schedule__meta">' + esc(item.instructor || '') + '</span>';
-      if (descText) {
-        html += '<p class="yb-live-schedule__desc-text">' + esc(descText) + '</p>';
-      }
       html += '</div>';
       html += tag;
       html += '</div>';
