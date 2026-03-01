@@ -632,9 +632,18 @@
     </section>
   </div>
 
-  {# ── TAB: Profile (iframe — bare embed page, no site chrome) ── #}
+  {# ── TAB: Profile (sub-navigation + iframe) ── #}
   <div class="yb-ma-tp" id="yb-ma-tp-profile" data-yb-ma-panel="profile" hidden>
-    <iframe class="yb-ma-iframe" data-src="{{ lp }}/embed/profile/#profile" title="{{ t.hub_profile_title }}"></iframe>
+    <nav class="yb-ma-profile-nav" id="yb-ma-profile-nav">
+      <button class="yb-ma-profile-nav__btn is-active" data-yb-profile-sub="profile" type="button">{{ t.profile_sub_profile }}</button>
+      <button class="yb-ma-profile-nav__btn" data-yb-profile-sub="passes" type="button">{{ t.profile_sub_passes }}</button>
+      <button class="yb-ma-profile-nav__btn" data-yb-profile-sub="visits" type="button">{{ t.profile_sub_visits }}</button>
+      <button class="yb-ma-profile-nav__btn" data-yb-profile-sub="store" type="button">{{ t.profile_sub_store }}</button>
+      <button class="yb-ma-profile-nav__btn" data-yb-profile-sub="receipts" type="button">{{ t.profile_sub_receipts }}</button>
+      <button class="yb-ma-profile-nav__btn" data-yb-profile-sub="applications" type="button">{{ t.profile_sub_applications }}</button>
+      <button class="yb-ma-profile-nav__btn" data-yb-profile-sub="giftcards" type="button">{{ t.profile_sub_giftcards }}</button>
+    </nav>
+    <iframe class="yb-ma-iframe" id="yb-ma-profile-iframe" data-src="{{ lp }}/embed/profile/#profile" title="{{ t.hub_profile_title }}"></iframe>
   </div>
 
   {# ── TAB: Leads (iframe — marketing & admin only) ── #}
@@ -1036,6 +1045,49 @@
     border: none;
     display: block;
     background: var(--yb-warm-white, #FFFCF9);
+  }
+
+  /* ── Profile sub-navigation ── */
+  .yb-ma-profile-nav {
+    display: flex;
+    gap: 0.35rem;
+    padding: 0.75rem 1.5rem;
+    background: var(--yb-light-bg, #F5F3F0);
+    border-bottom: 1px solid var(--yb-border, #E8E4E0);
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+  .yb-ma-profile-nav::-webkit-scrollbar { display: none; }
+
+  .yb-ma-profile-nav__btn {
+    flex-shrink: 0;
+    padding: 0.4rem 0.9rem;
+    font-family: inherit;
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: var(--yb-muted, #6F6A66);
+    background: transparent;
+    border: 1px solid transparent;
+    border-radius: 100px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+  }
+  .yb-ma-profile-nav__btn:hover {
+    color: #0F0F0F;
+    background: rgba(0,0,0,0.04);
+  }
+  .yb-ma-profile-nav__btn.is-active {
+    color: #0F0F0F;
+    background: #fff;
+    border-color: var(--yb-border, #E8E4E0);
+    box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+  }
+
+  @media (max-width: 600px) {
+    .yb-ma-profile-nav { padding: 0.6rem 1rem; }
+    .yb-ma-profile-nav__btn { font-size: 0.72rem; padding: 0.35rem 0.75rem; }
   }
 
   /* Embedded content panels — hide heroes and CTAs */
