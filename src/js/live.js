@@ -66,7 +66,7 @@
     var parent = player.parentNode;
     var newPlayer = document.createElement('mux-player');
     newPlayer.id = 'yb-mux-player';
-    newPlayer.setAttribute('stream-type', 'live');
+    newPlayer.setAttribute('stream-type', 'll-live');
     newPlayer.setAttribute('playback-id', playbackId);
     newPlayer.setAttribute('env-key', player.getAttribute('env-key') || '');
     newPlayer.setAttribute('metadata-video-title', player.getAttribute('metadata-video-title') || '');
