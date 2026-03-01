@@ -550,25 +550,41 @@
 
       renderList(allRecordings);
 
-      // Click to play — swap thumbnail with fresh mux-player element.
-      // Uses createElement (not innerHTML) for reliable mobile custom-element init.
+      // Click to play — swap thumbnail with player element.
+      // iOS: native <video> with HLS URL (WebKit supports HLS natively).
+      // Desktop/Android: mux-player web component.
+      var recIsIOS = /iPhone|iPad|iPod/.test(navigator.userAgent) ||
+        (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+
       listEl.addEventListener('click', function (e) {
         var card = e.target.closest('[data-rec-playback]');
         if (!card) return;
         var pid = card.getAttribute('data-rec-playback');
         card.removeAttribute('data-rec-playback');
 
-        var mp = document.createElement('mux-player');
-        mp.setAttribute('playback-id', pid);
-        mp.setAttribute('stream-type', 'on-demand');
-        mp.setAttribute('accent-color', '#f75c03');
-        mp.setAttribute('primary-color', '#FFFCF9');
-        mp.setAttribute('secondary-color', '#0F0F0F');
-        mp.setAttribute('default-show-remaining-time', '');
-        mp.setAttribute('playsinline', '');
-        mp.style.cssText = 'width:100%;aspect-ratio:16/9;--media-object-fit:contain';
+        var el;
+        if (recIsIOS) {
+          el = document.createElement('video');
+          el.setAttribute('playsinline', '');
+          el.setAttribute('webkit-playsinline', '');
+          el.setAttribute('controls', '');
+          el.setAttribute('preload', 'auto');
+          el.src = 'https://stream.mux.com/' + pid + '.m3u8';
+          el.style.cssText = 'width:100%;aspect-ratio:16/9;object-fit:contain;background:#000';
+        } else {
+          el = document.createElement('mux-player');
+          el.setAttribute('playback-id', pid);
+          el.setAttribute('stream-type', 'on-demand');
+          el.setAttribute('accent-color', '#f75c03');
+          el.setAttribute('primary-color', '#FFFCF9');
+          el.setAttribute('secondary-color', '#0F0F0F');
+          el.setAttribute('default-show-remaining-time', '');
+          el.setAttribute('playsinline', '');
+          el.style.cssText = 'width:100%;aspect-ratio:16/9;--media-object-fit:contain';
+        }
+
         card.innerHTML = '';
-        card.appendChild(mp);
+        card.appendChild(el);
       });
     }).catch(function () {
       if (emptyEl) emptyEl.hidden = false;

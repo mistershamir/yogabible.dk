@@ -85,11 +85,20 @@
     position: relative;
   }
 
-  mux-player {
+  mux-player,
+  #yb-live-player-mount video {
     display: block;
     width: 100%;
     aspect-ratio: 16 / 9;
+  }
+
+  mux-player {
     --media-object-fit: contain;
+  }
+
+  #yb-live-player-mount video {
+    object-fit: contain;
+    background: #000;
   }
 
   /* On-demand recordings: hide centre seek fwd/bwd buttons (keep play button + bottom seek bar) */
@@ -439,17 +448,7 @@
         <div class="yb-live-spinner"></div>
         <span>{{ t.checking_text }}</span>
       </div>
-      <mux-player
-        id="yb-mux-player"
-        stream-type="ll-live"
-        env-key="{{ mux.env_key }}"
-        metadata-video-title="{{ t.stream_title }}"
-        accent-color="#f75c03"
-        primary-color="#FFFCF9"
-        secondary-color="#0F0F0F"
-        default-hidden-captions
-        playsinline
-      ></mux-player>
+      <div id="yb-live-player-mount"></div>
     </div>
     <div class="yb-live-elapsed" id="yb-live-elapsed">
       <svg class="yb-live-elapsed__icon" viewBox="0 0 24 24" fill="none" stroke="#6F6A66" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
