@@ -56,6 +56,30 @@
     if (elapsedTimeEl) elapsedTimeEl.textContent = '00:00';
   }
 
+  /**
+   * Re-create the mux-player element from scratch.
+   * On mobile Safari, once a <video> errors it enters a broken state
+   * that cannot be recovered by simply changing attributes.
+   */
+  function recreatePlayer() {
+    if (!player || !player.parentNode) return;
+    var parent = player.parentNode;
+    var newPlayer = document.createElement('mux-player');
+    newPlayer.id = 'yb-mux-player';
+    newPlayer.setAttribute('stream-type', 'live');
+    newPlayer.setAttribute('playback-id', playbackId);
+    newPlayer.setAttribute('env-key', player.getAttribute('env-key') || '');
+    newPlayer.setAttribute('metadata-video-title', player.getAttribute('metadata-video-title') || '');
+    newPlayer.setAttribute('accent-color', '#f75c03');
+    newPlayer.setAttribute('primary-color', '#FFFCF9');
+    newPlayer.setAttribute('secondary-color', '#0F0F0F');
+    newPlayer.setAttribute('default-hidden-captions', '');
+    newPlayer.setAttribute('playsinline', '');
+    parent.replaceChild(newPlayer, player);
+    player = newPlayer;
+    bindPlayerEvents();
+  }
+
   function showLive() {
     isStreamLive = true;
     playerErrorCount = 0;
@@ -63,6 +87,12 @@
     offlineSection.style.display = 'none';
     checkingOverlay.classList.add('yb-live-player__checking--hidden');
     badge.classList.add('yb-live-badge--visible');
+
+    // Set playback-id only now — prevents eager load errors on mobile
+    if (player && !player.getAttribute('playback-id')) {
+      player.setAttribute('playback-id', playbackId);
+    }
+
     startElapsedTimer();
     if (pollTimer) {
       clearInterval(pollTimer);
@@ -77,6 +107,12 @@
     offlineSection.style.display = 'block';
     badge.classList.remove('yb-live-badge--visible');
     checkingOverlay.classList.add('yb-live-player__checking--hidden');
+
+    // Clear playback-id so the player stops trying to load
+    if (player && player.getAttribute('playback-id')) {
+      player.removeAttribute('playback-id');
+    }
+
     stopElapsedTimer();
     startPolling();
   }
@@ -108,10 +144,9 @@
       fetch(url)
         .then(function (res) {
           if (res.ok) {
+            // Stream came online — recreate player fresh for clean mobile init
+            recreatePlayer();
             showLive();
-            if (player) {
-              player.setAttribute('playback-id', playbackId);
-            }
           }
         })
         .catch(function () {});
@@ -123,11 +158,15 @@
       playerSection.style.display = 'block';
       offlineSection.style.display = 'none';
       checkingOverlay.classList.remove('yb-live-player__checking--hidden');
+      // Recreate player on retry to clear any broken mobile state
+      recreatePlayer();
       checkStream();
     });
   }
 
-  if (player) {
+  function bindPlayerEvents() {
+    if (!player) return;
+
     player.addEventListener('playing', function () {
       showLive();
     });
@@ -150,6 +189,7 @@
     });
   }
 
+  bindPlayerEvents();
   checkStream();
 
   /* ══════════════════════════════════════════

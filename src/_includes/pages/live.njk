@@ -442,7 +442,6 @@
       <mux-player
         id="yb-mux-player"
         stream-type="live"
-        playback-id="{{ mux.playback_id }}"
         env-key="{{ mux.env_key }}"
         metadata-video-title="{{ t.stream_title }}"
         accent-color="#f75c03"
@@ -450,7 +449,6 @@
         secondary-color="#0F0F0F"
         default-hidden-captions
         playsinline
-        preload="auto"
       ></mux-player>
     </div>
     <div class="yb-live-elapsed" id="yb-live-elapsed">
