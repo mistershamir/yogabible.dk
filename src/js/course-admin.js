@@ -1705,34 +1705,202 @@
      ═══════════════════════════════════════ */
   function bulkUserRole() {
     if (selectedUserIds.size === 0) return;
+    var R = window.YBRoles;
+    if (!R) { toast('Roles module not loaded', true); return; }
+
+    // Remove existing modal if any
+    var existing = document.getElementById('yb-bulk-role-modal');
+    if (existing) existing.remove();
+
     var VALID_ROLES = ['member', 'trainee', 'student', 'teacher', 'marketing', 'admin'];
-    var newRole = prompt(t('users_bulk_role_prompt'), 'member');
-    if (!newRole) return;
-    newRole = newRole.toLowerCase().trim();
-    if (VALID_ROLES.indexOf(newRole) === -1) {
-      toast(t('users_invalid_role'), true);
-      return;
-    }
 
-    var batch = db.batch();
-    selectedUserIds.forEach(function (id) {
-      batch.update(db.collection('users').doc(id), { role: newRole });
+    // Build modal HTML
+    var html = '<div id="yb-bulk-role-modal" class="yb-bulk-role-modal">';
+    html += '<div class="yb-bulk-role-modal__overlay"></div>';
+    html += '<div class="yb-bulk-role-modal__box">';
+
+    // Header
+    html += '<div class="yb-bulk-role-modal__header">';
+    html += '<h3 class="yb-bulk-role-modal__title">' + esc(t('users_bulk_role_title')) + '</h3>';
+    html += '<span class="yb-bulk-role-modal__count">' + selectedUserIds.size + (lang === 'da' ? ' brugere valgt' : ' users selected') + '</span>';
+    html += '<button type="button" class="yb-bulk-role-modal__close" id="yb-bulk-role-close">&times;</button>';
+    html += '</div>';
+
+    // Body
+    html += '<div class="yb-bulk-role-modal__body">';
+
+    // Role select
+    html += '<div class="yb-admin__field">';
+    html += '<label>' + esc(t('role_label')) + '</label>';
+    html += '<select id="yb-bulk-role-select" class="yb-admin__select">';
+    VALID_ROLES.forEach(function(r) {
+      html += '<option value="' + r + '">' + esc(R.getRoleLabel(r, lang)) + '</option>';
     });
+    html += '</select>';
+    html += '</div>';
 
-    toast(t('saving'));
-    batch.commit().then(function () {
-      state.users.forEach(function (u) {
-        if (selectedUserIds.has(u.id)) u.role = newRole;
+    // Trainee fields
+    html += '<div id="yb-bulk-role-trainee" class="yb-bulk-role-modal__fields" style="display:none">';
+    // Program
+    html += '<div class="yb-admin__field">';
+    html += '<label>' + esc(t('role_program')) + '</label>';
+    html += '<select id="yb-bulk-role-program" class="yb-admin__select"><option value="">—</option>';
+    Object.keys(R.TRAINEE_PROGRAMS).forEach(function(k) {
+      var p = R.TRAINEE_PROGRAMS[k];
+      html += '<option value="' + k + '">' + esc(p['label_' + lang] || p.label_da) + '</option>';
+    });
+    html += '</select></div>';
+    // Method
+    html += '<div class="yb-admin__field">';
+    html += '<label>Method</label>';
+    html += '<select id="yb-bulk-role-method" class="yb-admin__select"><option value="">—</option>';
+    if (R.TRAINEE_METHODS) {
+      Object.keys(R.TRAINEE_METHODS).forEach(function(k) {
+        var m = R.TRAINEE_METHODS[k];
+        html += '<option value="' + k + '">' + esc(m['label_' + lang] || m.label_da) + '</option>';
       });
-      selectedUserIds.clear();
-      selectAllUsers = false;
-      renderUserTable();
-      renderUserStats(state.users);
-      updateUserBulkBar();
-      toast(t('saved'));
-    }).catch(function (err) {
-      console.error(err);
-      toast(t('error_save') + ': ' + err.message, true);
+    }
+    html += '</select></div>';
+    // Cohort
+    html += '<div class="yb-admin__field">';
+    html += '<label>' + esc(t('role_cohort')) + '</label>';
+    html += '<input type="text" id="yb-bulk-role-cohort" placeholder="2026-spring">';
+    html += '</div>';
+    // Trainee course types
+    html += '<div class="yb-admin__field">';
+    html += '<label>Courses (optional)</label>';
+    html += '<div style="display:flex;flex-wrap:wrap;gap:0.5rem 1rem;margin-top:0.25rem">';
+    Object.keys(R.STUDENT_COURSES).forEach(function(k) {
+      var sc = R.STUDENT_COURSES[k];
+      html += '<label style="font-size:0.85rem;display:flex;align-items:center;gap:0.35rem;cursor:pointer">';
+      html += '<input type="checkbox" class="yb-bulk-role-trainee-ct" value="' + k + '">';
+      html += esc(sc['label_' + lang] || sc.label_da) + '</label>';
+    });
+    html += '<label style="font-size:0.85rem;display:flex;align-items:center;gap:0.35rem;cursor:pointer">';
+    html += '<input type="checkbox" class="yb-bulk-role-trainee-mentor" value="mentorship">Mentorship</label>';
+    html += '</div></div>';
+    html += '</div>'; // end trainee
+
+    // Teacher fields
+    html += '<div id="yb-bulk-role-teacher" class="yb-bulk-role-modal__fields" style="display:none">';
+    html += '<div class="yb-admin__field">';
+    html += '<label>' + esc(t('role_teacher_type')) + '</label>';
+    html += '<select id="yb-bulk-role-teacher-type" class="yb-admin__select"><option value="">—</option>';
+    Object.keys(R.TEACHER_TYPES).forEach(function(k) {
+      var tt = R.TEACHER_TYPES[k];
+      html += '<option value="' + k + '">' + esc(tt['label_' + lang] || tt.label_da) + '</option>';
+    });
+    html += '</select></div>';
+    html += '</div>'; // end teacher
+
+    // Student fields
+    html += '<div id="yb-bulk-role-student" class="yb-bulk-role-modal__fields" style="display:none">';
+    html += '<div class="yb-admin__field">';
+    html += '<label>Courses</label>';
+    html += '<div style="display:flex;flex-wrap:wrap;gap:0.5rem 1rem;margin-top:0.25rem">';
+    Object.keys(R.STUDENT_COURSES).forEach(function(k) {
+      var sc = R.STUDENT_COURSES[k];
+      html += '<label style="font-size:0.85rem;display:flex;align-items:center;gap:0.35rem;cursor:pointer">';
+      html += '<input type="checkbox" class="yb-bulk-role-student-ct" value="' + k + '">';
+      html += esc(sc['label_' + lang] || sc.label_da) + '</label>';
+    });
+    html += '<label style="font-size:0.85rem;display:flex;align-items:center;gap:0.35rem;cursor:pointer">';
+    html += '<input type="checkbox" class="yb-bulk-role-student-mentor" value="mentorship">Mentorship</label>';
+    html += '</div></div>';
+    html += '</div>'; // end student
+
+    html += '</div>'; // end body
+
+    // Footer
+    html += '<div class="yb-bulk-role-modal__footer">';
+    html += '<button type="button" class="yb-btn yb-btn--primary" id="yb-bulk-role-apply">' + esc(t('users_bulk_role_apply')) + '</button>';
+    html += '</div>';
+
+    html += '</div></div>'; // end box, end modal
+
+    // Inject modal
+    document.body.insertAdjacentHTML('beforeend', html);
+
+    var modal = document.getElementById('yb-bulk-role-modal');
+    var roleSelect = document.getElementById('yb-bulk-role-select');
+    var traineeWrap = document.getElementById('yb-bulk-role-trainee');
+    var teacherWrap = document.getElementById('yb-bulk-role-teacher');
+    var studentWrap = document.getElementById('yb-bulk-role-student');
+
+    // Show/hide conditional fields based on role
+    function toggleFields() {
+      var v = roleSelect.value;
+      traineeWrap.style.display = v === 'trainee' ? '' : 'none';
+      teacherWrap.style.display = v === 'teacher' ? '' : 'none';
+      studentWrap.style.display = v === 'student' ? '' : 'none';
+    }
+    roleSelect.addEventListener('change', toggleFields);
+
+    // Close handlers
+    function closeModal() { if (modal) modal.remove(); }
+    document.getElementById('yb-bulk-role-close').addEventListener('click', closeModal);
+    modal.querySelector('.yb-bulk-role-modal__overlay').addEventListener('click', closeModal);
+
+    // Apply handler
+    document.getElementById('yb-bulk-role-apply').addEventListener('click', function() {
+      var newRole = roleSelect.value;
+      if (VALID_ROLES.indexOf(newRole) === -1) { toast(t('users_invalid_role'), true); return; }
+
+      // Build roleDetails
+      var roleDetails = {};
+      if (newRole === 'trainee') {
+        var prog = document.getElementById('yb-bulk-role-program');
+        var meth = document.getElementById('yb-bulk-role-method');
+        var coh = document.getElementById('yb-bulk-role-cohort');
+        if (prog && prog.value) roleDetails.program = prog.value;
+        if (meth && meth.value) roleDetails.method = meth.value;
+        if (coh && coh.value.trim()) roleDetails.cohort = coh.value.trim();
+        var tct = []; document.querySelectorAll('.yb-bulk-role-trainee-ct:checked').forEach(function(c) { tct.push(c.value); });
+        if (tct.length) roleDetails.courseTypes = tct;
+        var tm = document.querySelector('.yb-bulk-role-trainee-mentor:checked');
+        if (tm) roleDetails.mentorship = true;
+      }
+      if (newRole === 'student') {
+        var sct = []; document.querySelectorAll('.yb-bulk-role-student-ct:checked').forEach(function(c) { sct.push(c.value); });
+        if (sct.length) roleDetails.courseTypes = sct;
+        var sm = document.querySelector('.yb-bulk-role-student-mentor:checked');
+        if (sm) roleDetails.mentorship = true;
+      }
+      if (newRole === 'teacher') {
+        var tt = document.getElementById('yb-bulk-role-teacher-type');
+        if (tt && tt.value) roleDetails.teacherType = tt.value;
+      }
+
+      // Batch update
+      var batch = db.batch();
+      selectedUserIds.forEach(function (id) {
+        batch.update(db.collection('users').doc(id), {
+          role: newRole,
+          roleDetails: roleDetails,
+          updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+        });
+      });
+
+      toast(t('saving'));
+      closeModal();
+
+      batch.commit().then(function () {
+        state.users.forEach(function (u) {
+          if (selectedUserIds.has(u.id)) {
+            u.role = newRole;
+            u.roleDetails = roleDetails;
+          }
+        });
+        selectedUserIds.clear();
+        selectAllUsers = false;
+        renderUserTable();
+        renderUserStats(state.users);
+        updateUserBulkBar();
+        toast(t('saved'));
+      }).catch(function (err) {
+        console.error(err);
+        toast(t('error_save') + ': ' + err.message, true);
+      });
     });
   }
 
