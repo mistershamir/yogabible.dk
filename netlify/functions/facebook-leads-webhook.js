@@ -147,7 +147,7 @@ async function processLeadgenChange(value) {
     phone,
     // Program info — use form name for detection when ad_name is missing
     type: 'ytt',
-    ytt_program_type: detectYTTType(program, ad_name || formName || ''),
+    ytt_program_type: detectYTTType(program, ad_name || formName || '', form_id),
     program: program || ad_name || formName || 'Facebook Lead Form',
     course_id: '',
     cohort_label: '',
@@ -234,6 +234,21 @@ function fetchFormNameFromGraph(formId) {
   });
 }
 
+// ─── Form ID → Program Type Map ──────────────────────────────────────────────
+// Checked FIRST before keyword matching — add new form IDs here as you create them.
+// Form ID is shown as meta_form_id in admin notification emails.
+//
+// How to find a form ID:
+//   1. It appears in the admin notification email as "meta_form_id"
+//   2. Or: Meta Ads Manager → Instant Forms → click the form → check the URL
+//
+// Program types: '18-week' | '8-week' | '4-week' | '300h' | '50h' | '30h'
+const FORM_ID_MAP = {
+  '1974647360148367': '18-week'   // 18 Ugers Fleksibelt YTT (identified 2026-03)
+  // Add new forms below:
+  // '123456789012345': '8-week',
+};
+
 function fetchLeadFromGraph(leadgenId) {
   const token = process.env.FB_PAGE_ACCESS_TOKEN || process.env.META_ACCESS_TOKEN;
   const url = `https://graph.facebook.com/${GRAPH_API_VERSION}/${leadgenId}?fields=field_data,form_id,ad_id,ad_name,created_time&access_token=${token}`;
@@ -261,10 +276,16 @@ function fetchLeadFromGraph(leadgenId) {
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
 /**
- * Detect YTT program type from form field + ad name.
- * Mirrors the detectMetaYTTType() logic in lead.js.
+ * Detect YTT program type.
+ * Priority: 1) FORM_ID_MAP (exact match) → 2) keyword matching on program/formName.
  */
-function detectYTTType(program, formName) {
+function detectYTTType(program, formName, formId) {
+  // 1. Exact form ID match — most reliable
+  if (formId && FORM_ID_MAP[formId]) {
+    console.log(`[fb-leads] detectYTTType: matched form_id ${formId} → ${FORM_ID_MAP[formId]}`);
+    return FORM_ID_MAP[formId];
+  }
+  // 2. Keyword matching fallback
   const combined = `${program} ${formName}`.toLowerCase();
   if (combined.includes('300')) return '300h';
   if (combined.includes('50h') || combined.includes('50 hour')) return '50h';
