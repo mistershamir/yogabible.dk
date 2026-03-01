@@ -86,8 +86,13 @@
       el.setAttribute('playsinline', '');
       el.setAttribute('webkit-playsinline', '');
       el.setAttribute('controls', '');
-      el.setAttribute('preload', 'auto');
-      el.src = 'https://stream.mux.com/' + playbackId + '.m3u8';
+      el.poster = 'https://image.mux.com/' + playbackId + '/thumbnail.jpg?width=960&height=540';
+
+      // Use <source> with MIME type so iOS/WebKit recognises HLS
+      var source = document.createElement('source');
+      source.src = 'https://stream.mux.com/' + playbackId + '.m3u8';
+      source.type = 'application/x-mpegURL';
+      el.appendChild(source);
     } else {
       el = document.createElement('mux-player');
       el.id = 'yb-mux-player';
@@ -104,6 +109,10 @@
     mountEl.appendChild(el);
     player = el;
     bindPlayerEvents();
+
+    // Explicitly trigger loading — required on iOS for HLS
+    if (isIOS) el.load();
+
     return el;
   }
 
@@ -128,9 +137,14 @@
       createPlayer();
     } else if (isIOS) {
       // Ensure HLS source is set for native video
-      var hlsUrl = 'https://stream.mux.com/' + playbackId + '.m3u8';
-      if (!player.src || player.src.indexOf(playbackId) === -1) {
-        player.src = hlsUrl;
+      var existingSource = player.querySelector('source');
+      if (!existingSource || existingSource.src.indexOf(playbackId) === -1) {
+        player.innerHTML = '';
+        var src = document.createElement('source');
+        src.src = 'https://stream.mux.com/' + playbackId + '.m3u8';
+        src.type = 'application/x-mpegURL';
+        player.appendChild(src);
+        player.load();
       }
     } else {
       // Set playback-id for mux-player if not already set
@@ -158,6 +172,7 @@
     if (player) {
       if (isIOS) {
         player.pause();
+        player.innerHTML = ''; // Remove <source> elements
         player.removeAttribute('src');
         player.load(); // Reset the video element
       } else if (player.getAttribute('playback-id')) {
