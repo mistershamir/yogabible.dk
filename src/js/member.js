@@ -562,8 +562,9 @@
           + ' primary-color="#FFFCF9"'
           + ' secondary-color="#0F0F0F"'
           + ' default-show-remaining-time'
+          + ' playsinline'
+          + ' preload="auto"'
           + ' style="width:100%;aspect-ratio:16/9;--media-object-fit:contain"'
-          + ' autoplay'
           + '></mux-player>';
         card.removeAttribute('data-rec-playback');
       });
