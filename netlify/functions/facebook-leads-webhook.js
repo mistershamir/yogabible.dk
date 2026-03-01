@@ -102,8 +102,12 @@ async function processLeadgenChange(value) {
   const { leadgen_id, form_id, ad_id, ad_name, page_id } = value;
   console.log(`[fb-leads] Processing lead: leadgen_id=${leadgen_id}, form=${form_id}, ad="${ad_name}"`);
 
-  // Fetch full lead data from Facebook Graph API
-  const leadData = await fetchLeadFromGraph(leadgen_id);
+  // Fetch full lead data + form name from Facebook Graph API in parallel
+  const [leadData, formName] = await Promise.all([
+    fetchLeadFromGraph(leadgen_id),
+    form_id ? fetchFormNameFromGraph(form_id) : Promise.resolve('')
+  ]);
+  console.log(`[fb-leads] Form name resolved: "${formName}"`);
 
   // Convert field_data array → flat key/value object
   // e.g. [{ name: "email", values: ["anna@example.com"] }] → { email: "anna@example.com" }
@@ -141,10 +145,10 @@ async function processLeadgenChange(value) {
     first_name: firstName,
     last_name: lastName,
     phone,
-    // Program info
+    // Program info — use form name for detection when ad_name is missing
     type: 'ytt',
-    ytt_program_type: detectYTTType(program, ad_name || ''),
-    program: program || ad_name || 'Facebook Lead Form',
+    ytt_program_type: detectYTTType(program, ad_name || formName || ''),
+    program: program || ad_name || formName || 'Facebook Lead Form',
     course_id: '',
     cohort_label: '',
     preferred_month: '',
@@ -154,9 +158,10 @@ async function processLeadgenChange(value) {
     service: '',
     subcategories: '',
     message: fields.message || fields.comments || '',
-    source: `Meta Lead – Facebook – ${ad_name || form_id || 'Ad'}`,
+    source: `Meta Lead – Facebook – ${formName || ad_name || form_id || 'Ad'}`,
     // Meta metadata (useful for reporting)
     meta_form_id: form_id || '',
+    meta_form_name: formName || '',
     meta_ad_id: ad_id || '',
     meta_campaign: ad_name || '',
     meta_leadgen_id: leadgen_id || '',
@@ -208,6 +213,26 @@ async function processLeadgenChange(value) {
 }
 
 // ─── Graph API ───────────────────────────────────────────────────────────────
+
+function fetchFormNameFromGraph(formId) {
+  const token = process.env.FB_PAGE_ACCESS_TOKEN || process.env.META_ACCESS_TOKEN;
+  const url = `https://graph.facebook.com/${GRAPH_API_VERSION}/${formId}?fields=name&access_token=${token}`;
+
+  return new Promise((resolve) => {
+    https.get(url, (res) => {
+      let data = '';
+      res.on('data', chunk => (data += chunk));
+      res.on('end', () => {
+        try {
+          const parsed = JSON.parse(data);
+          resolve(parsed.name || '');
+        } catch (e) {
+          resolve('');
+        }
+      });
+    }).on('error', () => resolve(''));
+  });
+}
 
 function fetchLeadFromGraph(leadgenId) {
   const token = process.env.FB_PAGE_ACCESS_TOKEN || process.env.META_ACCESS_TOKEN;
