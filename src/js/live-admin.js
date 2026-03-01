@@ -10,6 +10,7 @@
   var loaded = false;
   var mbClasses = [];
   var mbSelectedIdxs = new Set();
+  var liveSelectedIds = new Set();
   var API = '/.netlify/functions/live-admin';
 
   /* ══════════════════════════════════════════
@@ -154,8 +155,10 @@
       var item = filtered[i];
       var titleField = LANG === 'en' ? 'title_en' : 'title_da';
       var title = item[titleField] || item.title_da || item.title_en || '—';
+      var isSelected = liveSelectedIds.has(item.id);
 
       html += '<tr>';
+      html += '<td><input type="checkbox" class="yb-la-live-cb" data-id="' + item.id + '"' + (isSelected ? ' checked' : '') + '></td>';
       html += '<td>' + statusBadge(item.status) + '</td>';
       html += '<td><strong>' + esc(title) + '</strong></td>';
       html += '<td>' + fmtDate(item.startDateTime) + '</td>';
@@ -169,6 +172,8 @@
       html += '</tr>';
     }
     tbody.innerHTML = html;
+    updateLiveSelectAllCb();
+    updateLiveBulkBar();
   }
 
   /* ══════════════════════════════════════════
@@ -189,7 +194,6 @@
     $('yb-la-recording-id').value = (item && item.recordingPlaybackId) || '';
     $('yb-la-recurrence').value = (item && item.recurrence && item.recurrence.type) || 'none';
     $('yb-la-recurrence-end').value = (item && item.recurrence && item.recurrence.endDate) || '';
-    $('yb-la-access-perms').value = (item && item.access && item.access.permissions) ? item.access.permissions.join(', ') : 'live-streaming';
     $('yb-la-cohorts').value = (item && item.cohorts && item.cohorts.length) ? item.cohorts.join(', ') : '';
 
     // Start/end datetime-local
@@ -209,6 +213,13 @@
     var roles = (item && item.access && item.access.roles) || ['trainee', 'teacher', 'admin'];
     for (var i = 0; i < roleCbs.length; i++) {
       roleCbs[i].checked = roles.indexOf(roleCbs[i].value) !== -1;
+    }
+
+    // Permission checkboxes
+    var permCbs = document.querySelectorAll('.yb-la-perm-cb');
+    var permsList = (item && item.access && item.access.permissions) || ['live-streaming'];
+    for (var i = 0; i < permCbs.length; i++) {
+      permCbs[i].checked = permsList.indexOf(permCbs[i].value) !== -1;
     }
 
     toggleSourceFields();
@@ -236,8 +247,11 @@
     for (var i = 0; i < roleCbs.length; i++) {
       if (roleCbs[i].checked) roles.push(roleCbs[i].value);
     }
-    var permsStr = ($('yb-la-access-perms').value || '').trim();
-    var perms = permsStr ? permsStr.split(',').map(function (s) { return s.trim(); }).filter(Boolean) : [];
+    var permCbs = document.querySelectorAll('.yb-la-perm-cb');
+    var perms = [];
+    for (var i = 0; i < permCbs.length; i++) {
+      if (permCbs[i].checked) perms.push(permCbs[i].value);
+    }
 
     var data = {
       source: $('yb-la-source').value,
@@ -661,6 +675,144 @@
   }
 
   /* ══════════════════════════════════════════
+     LIVE LIST — BULK SELECTION & ACTIONS
+     ══════════════════════════════════════════ */
+  function toggleLiveSelection(id, checked) {
+    if (checked) {
+      liveSelectedIds.add(id);
+    } else {
+      liveSelectedIds.delete(id);
+    }
+    updateLiveSelectAllCb();
+    updateLiveBulkBar();
+  }
+
+  function selectAllLive(checked) {
+    var filtered = getFilteredItems();
+    if (checked) {
+      for (var i = 0; i < filtered.length; i++) {
+        liveSelectedIds.add(filtered[i].id);
+      }
+    } else {
+      for (var i = 0; i < filtered.length; i++) {
+        liveSelectedIds.delete(filtered[i].id);
+      }
+    }
+    renderTable();
+  }
+
+  function deselectAllLive() {
+    liveSelectedIds.clear();
+    var panel = $('yb-live-bulk-access-panel');
+    if (panel) panel.hidden = true;
+    renderTable();
+  }
+
+  function updateLiveSelectAllCb() {
+    var cb = $('yb-live-select-all');
+    if (!cb) return;
+    var filtered = getFilteredItems();
+    if (!filtered.length) { cb.checked = false; cb.indeterminate = false; return; }
+    var allChecked = filtered.every(function (e) { return liveSelectedIds.has(e.id); });
+    var someChecked = filtered.some(function (e) { return liveSelectedIds.has(e.id); });
+    cb.checked = allChecked;
+    cb.indeterminate = someChecked && !allChecked;
+  }
+
+  function updateLiveBulkBar() {
+    var bar = $('yb-live-bulk-bar');
+    var countEl = $('yb-live-bulk-count');
+    if (!bar) return;
+    var count = liveSelectedIds.size;
+    bar.hidden = count === 0;
+    if (countEl) countEl.textContent = count + ' ' + t('live_bulk_selected');
+    // Hide the access panel if nothing selected
+    if (count === 0) {
+      var panel = $('yb-live-bulk-access-panel');
+      if (panel) panel.hidden = true;
+    }
+  }
+
+  function toggleBulkAccessPanel() {
+    var panel = $('yb-live-bulk-access-panel');
+    if (panel) panel.hidden = !panel.hidden;
+  }
+
+  function collectBulkAccessData() {
+    var roleCbs = document.querySelectorAll('.yb-la-bulk-role-cb');
+    var roles = [];
+    for (var i = 0; i < roleCbs.length; i++) {
+      if (roleCbs[i].checked) roles.push(roleCbs[i].value);
+    }
+    var permCbs = document.querySelectorAll('.yb-la-bulk-perm-cb');
+    var perms = [];
+    for (var i = 0; i < permCbs.length; i++) {
+      if (permCbs[i].checked) perms.push(permCbs[i].value);
+    }
+    var cohortsStr = ($('yb-la-bulk-cohorts') ? $('yb-la-bulk-cohorts').value : '').trim();
+    var cohorts = cohortsStr ? cohortsStr.split(',').map(function (s) { return s.trim(); }).filter(Boolean) : [];
+
+    return {
+      access: { roles: roles, permissions: perms },
+      cohorts: cohorts
+    };
+  }
+
+  function bulkUpdateAccess() {
+    if (!liveSelectedIds.size) return;
+    var ids = Array.from(liveSelectedIds);
+    var updates = collectBulkAccessData();
+
+    apiFetch('bulk-update', { method: 'POST', body: { ids: ids, updates: updates } }).then(function (res) {
+      if (res.ok) {
+        toast(res.updated + ' ' + t('live_bulk_updated'));
+        liveSelectedIds.clear();
+        var panel = $('yb-live-bulk-access-panel');
+        if (panel) panel.hidden = true;
+        loadItems();
+      } else {
+        toast(res.error || t('error_save'), true);
+      }
+    }).catch(function () {
+      toast(t('error_save'), true);
+    });
+  }
+
+  function bulkDeleteLive() {
+    if (!liveSelectedIds.size) return;
+    if (!confirm(t('live_confirm_bulk_delete'))) return;
+
+    var ids = Array.from(liveSelectedIds);
+    var total = ids.length;
+    var done = 0;
+    var failed = 0;
+
+    function deleteNext() {
+      if (!ids.length) {
+        liveSelectedIds.clear();
+        loadItems();
+        var msg = (done - failed) + ' ' + t('live_bulk_deleted');
+        if (failed) msg += ' (' + failed + ' failed)';
+        toast(msg, failed > 0);
+        return;
+      }
+      var id = ids.shift();
+      apiFetch('delete', { method: 'POST', body: { id: id } }).then(function (res) {
+        done++;
+        if (!res.ok) failed++;
+        deleteNext();
+      }).catch(function () {
+        done++;
+        failed++;
+        deleteNext();
+      });
+    }
+
+    toast(t('live_mb_importing') + ' ' + total + '...');
+    deleteNext();
+  }
+
+  /* ══════════════════════════════════════════
      DELETE
      ══════════════════════════════════════════ */
   function deleteItem(id) {
@@ -720,6 +872,22 @@
         deleteItem(btn.getAttribute('data-id'));
         return;
       }
+
+      // ── Bulk actions for live list ──
+      btn = e.target.closest('[data-action="live-bulk-access"]');
+      if (btn) { toggleBulkAccessPanel(); return; }
+
+      btn = e.target.closest('[data-action="live-bulk-access-close"]');
+      if (btn) { var p = $('yb-live-bulk-access-panel'); if (p) p.hidden = true; return; }
+
+      btn = e.target.closest('[data-action="live-bulk-access-apply"]');
+      if (btn) { bulkUpdateAccess(); return; }
+
+      btn = e.target.closest('[data-action="live-bulk-delete"]');
+      if (btn) { bulkDeleteLive(); return; }
+
+      btn = e.target.closest('[data-action="live-bulk-deselect"]');
+      if (btn) { deselectAllLive(); return; }
     });
 
     // Form submit
@@ -740,12 +908,20 @@
     var sourceFilterEl = $('yb-live-admin-source-filter');
     if (sourceFilterEl) sourceFilterEl.addEventListener('change', renderTable);
 
+    // Live list: select-all checkbox
+    var liveSelectAll = $('yb-live-select-all');
+    if (liveSelectAll) liveSelectAll.addEventListener('change', function () { selectAllLive(liveSelectAll.checked); });
+
     // MB import: select-all checkbox
     var mbSelectAll = $('yb-la-mb-select-all');
     if (mbSelectAll) mbSelectAll.addEventListener('change', function () { selectAllMb(mbSelectAll.checked); });
 
-    // MB import: individual checkboxes (delegated)
+    // Live list + MB import: individual checkboxes (delegated)
     document.addEventListener('change', function (e) {
+      if (e.target.classList.contains('yb-la-live-cb')) {
+        var id = e.target.getAttribute('data-id');
+        toggleLiveSelection(id, e.target.checked);
+      }
       if (e.target.classList.contains('yb-la-mb-cb')) {
         var idx = parseInt(e.target.getAttribute('data-idx'), 10);
         toggleMbSelection(idx, e.target.checked);

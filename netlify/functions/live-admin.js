@@ -9,6 +9,7 @@
  *   POST ?action=create        — Create new live event
  *   POST ?action=update        — Update existing event
  *   POST ?action=delete        — Delete event
+ *   POST ?action=bulk-update   — Bulk update access/cohorts on multiple events
  *
  * Public actions (optional auth for permission filtering):
  *   GET  ?action=schedule      — Upcoming events (filtered by user permissions)
@@ -67,6 +68,7 @@ exports.handler = async function (event) {
       case 'create': return handleCreate(event, user);
       case 'update': return handleUpdate(event, user);
       case 'delete': return handleDelete(event, user);
+      case 'bulk-update': return handleBulkUpdate(event, user);
       default:
         return jsonResponse(400, { ok: false, error: 'Unknown action: ' + action });
     }
@@ -227,6 +229,37 @@ async function handleDelete(event, user) {
   await deleteDoc(COLLECTION, body.id);
   console.log('[live-admin] Deleted', body.id, 'by', user.email);
   return jsonResponse(200, { ok: true });
+}
+
+// ═══════════════════════════════════════════════════════
+// Admin: Bulk update events (access, cohorts)
+// ═══════════════════════════════════════════════════════
+async function handleBulkUpdate(event, user) {
+  var body = JSON.parse(event.body || '{}');
+  var ids = body.ids;
+  var updates = body.updates;
+
+  if (!ids || !Array.isArray(ids) || !ids.length) {
+    return jsonResponse(400, { ok: false, error: 'No IDs provided' });
+  }
+  if (!updates || typeof updates !== 'object') {
+    return jsonResponse(400, { ok: false, error: 'No updates provided' });
+  }
+
+  var data = sanitize(updates);
+  data.updated_by = user.email;
+
+  var updated = 0;
+  for (var i = 0; i < ids.length; i++) {
+    var existing = await getDoc(COLLECTION, ids[i]);
+    if (existing) {
+      await updateDoc(COLLECTION, ids[i], data);
+      updated++;
+    }
+  }
+
+  console.log('[live-admin] Bulk updated', updated, '/', ids.length, 'by', user.email);
+  return jsonResponse(200, { ok: true, updated: updated });
 }
 
 // ═══════════════════════════════════════════════════════

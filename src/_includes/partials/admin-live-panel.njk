@@ -26,10 +26,110 @@
     <span id="yb-live-admin-count" class="yb-lead__count-text"></span>
   </div>
 
+  {# Bulk actions bar (hidden until selections) #}
+  <div id="yb-live-bulk-bar" class="yb-lead__bulk-bar" hidden>
+    <span id="yb-live-bulk-count" class="yb-lead__bulk-count-text"></span>
+    <button class="yb-btn yb-btn--primary yb-btn--sm" data-action="live-bulk-access">&#128274; {{ t.live_bulk_set_access }}</button>
+    <button class="yb-btn yb-btn--outline yb-btn--sm yb-admin__icon-btn--danger" data-action="live-bulk-delete">&#128465; {{ t.live_bulk_delete }}</button>
+    <button class="yb-btn yb-btn--outline yb-btn--sm" data-action="live-bulk-deselect">&#10006; {{ t.live_bulk_deselect }}</button>
+  </div>
+
+  {# Bulk access settings panel (hidden until "Set Access" clicked) #}
+  <div id="yb-live-bulk-access-panel" class="yb-admin__form" hidden style="background:#FFFCF9;border:1px solid var(--yb-border,#E8E4E0);border-radius:12px;padding:1.25rem;margin-bottom:1rem">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.75rem">
+      <strong style="font-size:0.9rem">{{ t.live_bulk_set_access }}</strong>
+      <button type="button" class="yb-admin__icon-btn" data-action="live-bulk-access-close" title="Close">&times;</button>
+    </div>
+
+    {# Bulk — Role checkboxes #}
+    <div class="yb-admin__field" style="margin-bottom:1rem">
+      <label style="font-weight:600;font-size:0.82rem">{{ t.live_field_access_roles }}</label>
+      <div class="yb-admin__form-row" style="flex-wrap:wrap;gap:0.75rem;margin-top:0.35rem">
+        <label class="yb-admin__checkbox-label"><input type="checkbox" value="member" class="yb-la-bulk-role-cb"> Member</label>
+        <label class="yb-admin__checkbox-label"><input type="checkbox" value="trainee" class="yb-la-bulk-role-cb" checked> Trainee</label>
+        <label class="yb-admin__checkbox-label"><input type="checkbox" value="student" class="yb-la-bulk-role-cb"> Student</label>
+        <label class="yb-admin__checkbox-label"><input type="checkbox" value="teacher" class="yb-la-bulk-role-cb" checked> Teacher</label>
+        <label class="yb-admin__checkbox-label"><input type="checkbox" value="admin" class="yb-la-bulk-role-cb" checked> Admin</label>
+      </div>
+    </div>
+
+    {# Bulk — Permission checkboxes (same groups as form) #}
+    <div class="yb-admin__field" style="margin-bottom:1rem">
+      <label style="font-weight:600;font-size:0.82rem">{{ t.live_field_access_perms }}</label>
+      <div style="margin-top:0.5rem">
+        <div style="margin-bottom:0.6rem">
+          <span style="font-size:0.75rem;font-weight:600;color:#6F6A66">{{ t.live_perm_group_base }}</span>
+          <div class="yb-admin__form-row" style="flex-wrap:wrap;gap:0.75rem;margin-top:0.25rem">
+            <label class="yb-admin__checkbox-label"><input type="checkbox" value="live-streaming" class="yb-la-bulk-perm-cb" checked> Live Streaming</label>
+            <label class="yb-admin__checkbox-label"><input type="checkbox" value="recordings" class="yb-la-bulk-perm-cb"> Recordings</label>
+            <label class="yb-admin__checkbox-label"><input type="checkbox" value="gated-content" class="yb-la-bulk-perm-cb"> Gated Content</label>
+          </div>
+        </div>
+        <div style="margin-bottom:0.6rem">
+          <span style="font-size:0.75rem;font-weight:600;color:#6F6A66">{{ t.live_perm_group_materials }}</span>
+          <div class="yb-admin__form-row" style="flex-wrap:wrap;gap:0.75rem;margin-top:0.25rem">
+            <label class="yb-admin__checkbox-label"><input type="checkbox" value="materials:100h" class="yb-la-bulk-perm-cb"> 100h</label>
+            <label class="yb-admin__checkbox-label"><input type="checkbox" value="materials:200h" class="yb-la-bulk-perm-cb"> 200h</label>
+            <label class="yb-admin__checkbox-label"><input type="checkbox" value="materials:300h" class="yb-la-bulk-perm-cb"> 300h</label>
+            <label class="yb-admin__checkbox-label"><input type="checkbox" value="materials:500h" class="yb-la-bulk-perm-cb"> 500h</label>
+          </div>
+        </div>
+        <div style="margin-bottom:0.6rem">
+          <span style="font-size:0.75rem;font-weight:600;color:#6F6A66">{{ t.live_perm_group_methods }}</span>
+          <div class="yb-admin__form-row" style="flex-wrap:wrap;gap:0.75rem;margin-top:0.25rem">
+            <label class="yb-admin__checkbox-label"><input type="checkbox" value="method:triangle" class="yb-la-bulk-perm-cb"> Triangle</label>
+            <label class="yb-admin__checkbox-label"><input type="checkbox" value="method:vinyasa" class="yb-la-bulk-perm-cb"> Vinyasa</label>
+          </div>
+        </div>
+        <div style="margin-bottom:0.6rem">
+          <span style="font-size:0.75rem;font-weight:600;color:#6F6A66">{{ t.live_perm_group_courses }}</span>
+          <div class="yb-admin__form-row" style="flex-wrap:wrap;gap:0.75rem;margin-top:0.25rem">
+            <label class="yb-admin__checkbox-label"><input type="checkbox" value="course:inversions" class="yb-la-bulk-perm-cb"> Inversions</label>
+            <label class="yb-admin__checkbox-label"><input type="checkbox" value="course:splits" class="yb-la-bulk-perm-cb"> Splits</label>
+            <label class="yb-admin__checkbox-label"><input type="checkbox" value="course:backbends" class="yb-la-bulk-perm-cb"> Backbends</label>
+            <label class="yb-admin__checkbox-label"><input type="checkbox" value="course:handstands" class="yb-la-bulk-perm-cb"> Handstands</label>
+            <label class="yb-admin__checkbox-label"><input type="checkbox" value="course:armbalances" class="yb-la-bulk-perm-cb"> Arm Balances</label>
+            <label class="yb-admin__checkbox-label"><input type="checkbox" value="course:prenatal" class="yb-la-bulk-perm-cb"> Prenatal</label>
+          </div>
+        </div>
+        <div style="margin-bottom:0.6rem">
+          <span style="font-size:0.75rem;font-weight:600;color:#6F6A66">{{ t.live_perm_group_teacher }}</span>
+          <div class="yb-admin__form-row" style="flex-wrap:wrap;gap:0.75rem;margin-top:0.25rem">
+            <label class="yb-admin__checkbox-label"><input type="checkbox" value="teacher:vinyasa" class="yb-la-bulk-perm-cb"> Vinyasa</label>
+            <label class="yb-admin__checkbox-label"><input type="checkbox" value="teacher:yin" class="yb-la-bulk-perm-cb"> Yin</label>
+            <label class="yb-admin__checkbox-label"><input type="checkbox" value="teacher:hot" class="yb-la-bulk-perm-cb"> Hot Yoga</label>
+            <label class="yb-admin__checkbox-label"><input type="checkbox" value="teacher:ashtanga" class="yb-la-bulk-perm-cb"> Ashtanga</label>
+            <label class="yb-admin__checkbox-label"><input type="checkbox" value="teacher:hatha" class="yb-la-bulk-perm-cb"> Hatha</label>
+            <label class="yb-admin__checkbox-label"><input type="checkbox" value="teacher:kids" class="yb-la-bulk-perm-cb"> Kids</label>
+            <label class="yb-admin__checkbox-label"><input type="checkbox" value="teacher:restorative" class="yb-la-bulk-perm-cb"> Restorative</label>
+            <label class="yb-admin__checkbox-label"><input type="checkbox" value="teacher:prenatal" class="yb-la-bulk-perm-cb"> Prenatal</label>
+            <label class="yb-admin__checkbox-label"><input type="checkbox" value="teacher:meditation" class="yb-la-bulk-perm-cb"> Meditation</label>
+          </div>
+        </div>
+        <div>
+          <span style="font-size:0.75rem;font-weight:600;color:#6F6A66">{{ t.live_perm_group_other }}</span>
+          <div class="yb-admin__form-row" style="flex-wrap:wrap;gap:0.75rem;margin-top:0.25rem">
+            <label class="yb-admin__checkbox-label"><input type="checkbox" value="mentorship" class="yb-la-bulk-perm-cb"> Mentorship</label>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    {# Bulk — Cohorts #}
+    <div class="yb-admin__field" style="margin-bottom:1rem">
+      <label for="yb-la-bulk-cohorts" style="font-weight:600;font-size:0.82rem">{{ t.live_field_cohorts }}</label>
+      <input type="text" id="yb-la-bulk-cohorts" placeholder="{{ t.live_cohorts_hint }}">
+      <p style="font-size:0.75rem;color:#6F6A66;margin:0.25rem 0 0">{{ t.live_cohorts_help }}</p>
+    </div>
+
+    <button type="button" class="yb-btn yb-btn--primary yb-btn--sm" data-action="live-bulk-access-apply">&#10003; {{ t.live_bulk_apply }}</button>
+  </div>
+
   <div class="yb-admin__table-wrap">
     <table class="yb-admin__table" id="yb-live-admin-table">
       <thead>
         <tr>
+          <th class="yb-lead__th-cb"><input type="checkbox" id="yb-live-select-all" title="{{ t.live_bulk_select_all }}"></th>
           <th>{{ t.live_col_status }}</th>
           <th>{{ t.live_col_title }}</th>
           <th>{{ t.live_col_datetime }}</th>
@@ -178,11 +278,77 @@
       </div>
     </div>
 
-    {# Access: Permissions #}
+    {# Access: Permissions — grouped checkboxes #}
     <div class="yb-admin__field">
-      <label for="yb-la-access-perms">{{ t.live_field_access_perms }}</label>
-      <input type="text" id="yb-la-access-perms" placeholder="live-streaming, recordings" value="live-streaming">
-      <p style="font-size:0.8rem;color:#6F6A66;margin:0.25rem 0 0">{{ t.live_access_hint_perms }}</p>
+      <label>{{ t.live_field_access_perms }}</label>
+      <p style="font-size:0.8rem;color:#6F6A66;margin:0 0 0.5rem">{{ t.live_access_hint_perms }}</p>
+
+      {# Base permissions #}
+      <div style="margin-bottom:0.6rem">
+        <span style="font-size:0.75rem;font-weight:600;color:#6F6A66">{{ t.live_perm_group_base }}</span>
+        <div class="yb-admin__form-row" style="flex-wrap:wrap;gap:0.75rem;margin-top:0.25rem">
+          <label class="yb-admin__checkbox-label"><input type="checkbox" value="live-streaming" class="yb-la-perm-cb" checked> Live Streaming</label>
+          <label class="yb-admin__checkbox-label"><input type="checkbox" value="recordings" class="yb-la-perm-cb"> Recordings</label>
+          <label class="yb-admin__checkbox-label"><input type="checkbox" value="gated-content" class="yb-la-perm-cb"> Gated Content</label>
+        </div>
+      </div>
+
+      {# Materials (Program) #}
+      <div style="margin-bottom:0.6rem">
+        <span style="font-size:0.75rem;font-weight:600;color:#6F6A66">{{ t.live_perm_group_materials }}</span>
+        <div class="yb-admin__form-row" style="flex-wrap:wrap;gap:0.75rem;margin-top:0.25rem">
+          <label class="yb-admin__checkbox-label"><input type="checkbox" value="materials:100h" class="yb-la-perm-cb"> 100h</label>
+          <label class="yb-admin__checkbox-label"><input type="checkbox" value="materials:200h" class="yb-la-perm-cb"> 200h</label>
+          <label class="yb-admin__checkbox-label"><input type="checkbox" value="materials:300h" class="yb-la-perm-cb"> 300h</label>
+          <label class="yb-admin__checkbox-label"><input type="checkbox" value="materials:500h" class="yb-la-perm-cb"> 500h</label>
+        </div>
+      </div>
+
+      {# Method #}
+      <div style="margin-bottom:0.6rem">
+        <span style="font-size:0.75rem;font-weight:600;color:#6F6A66">{{ t.live_perm_group_methods }}</span>
+        <div class="yb-admin__form-row" style="flex-wrap:wrap;gap:0.75rem;margin-top:0.25rem">
+          <label class="yb-admin__checkbox-label"><input type="checkbox" value="method:triangle" class="yb-la-perm-cb"> Triangle</label>
+          <label class="yb-admin__checkbox-label"><input type="checkbox" value="method:vinyasa" class="yb-la-perm-cb"> Vinyasa</label>
+        </div>
+      </div>
+
+      {# Courses #}
+      <div style="margin-bottom:0.6rem">
+        <span style="font-size:0.75rem;font-weight:600;color:#6F6A66">{{ t.live_perm_group_courses }}</span>
+        <div class="yb-admin__form-row" style="flex-wrap:wrap;gap:0.75rem;margin-top:0.25rem">
+          <label class="yb-admin__checkbox-label"><input type="checkbox" value="course:inversions" class="yb-la-perm-cb"> Inversions</label>
+          <label class="yb-admin__checkbox-label"><input type="checkbox" value="course:splits" class="yb-la-perm-cb"> Splits</label>
+          <label class="yb-admin__checkbox-label"><input type="checkbox" value="course:backbends" class="yb-la-perm-cb"> Backbends</label>
+          <label class="yb-admin__checkbox-label"><input type="checkbox" value="course:handstands" class="yb-la-perm-cb"> Handstands</label>
+          <label class="yb-admin__checkbox-label"><input type="checkbox" value="course:armbalances" class="yb-la-perm-cb"> Arm Balances</label>
+          <label class="yb-admin__checkbox-label"><input type="checkbox" value="course:prenatal" class="yb-la-perm-cb"> Prenatal</label>
+        </div>
+      </div>
+
+      {# Teacher Type #}
+      <div style="margin-bottom:0.6rem">
+        <span style="font-size:0.75rem;font-weight:600;color:#6F6A66">{{ t.live_perm_group_teacher }}</span>
+        <div class="yb-admin__form-row" style="flex-wrap:wrap;gap:0.75rem;margin-top:0.25rem">
+          <label class="yb-admin__checkbox-label"><input type="checkbox" value="teacher:vinyasa" class="yb-la-perm-cb"> Vinyasa</label>
+          <label class="yb-admin__checkbox-label"><input type="checkbox" value="teacher:yin" class="yb-la-perm-cb"> Yin</label>
+          <label class="yb-admin__checkbox-label"><input type="checkbox" value="teacher:hot" class="yb-la-perm-cb"> Hot Yoga</label>
+          <label class="yb-admin__checkbox-label"><input type="checkbox" value="teacher:ashtanga" class="yb-la-perm-cb"> Ashtanga</label>
+          <label class="yb-admin__checkbox-label"><input type="checkbox" value="teacher:hatha" class="yb-la-perm-cb"> Hatha</label>
+          <label class="yb-admin__checkbox-label"><input type="checkbox" value="teacher:kids" class="yb-la-perm-cb"> Kids</label>
+          <label class="yb-admin__checkbox-label"><input type="checkbox" value="teacher:restorative" class="yb-la-perm-cb"> Restorative</label>
+          <label class="yb-admin__checkbox-label"><input type="checkbox" value="teacher:prenatal" class="yb-la-perm-cb"> Prenatal</label>
+          <label class="yb-admin__checkbox-label"><input type="checkbox" value="teacher:meditation" class="yb-la-perm-cb"> Meditation</label>
+        </div>
+      </div>
+
+      {# Other #}
+      <div>
+        <span style="font-size:0.75rem;font-weight:600;color:#6F6A66">{{ t.live_perm_group_other }}</span>
+        <div class="yb-admin__form-row" style="flex-wrap:wrap;gap:0.75rem;margin-top:0.25rem">
+          <label class="yb-admin__checkbox-label"><input type="checkbox" value="mentorship" class="yb-la-perm-cb"> Mentorship</label>
+        </div>
+      </div>
     </div>
 
     <div class="yb-admin__form-actions">
