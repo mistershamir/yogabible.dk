@@ -244,7 +244,7 @@ function fetchFormNameFromGraph(formId) {
 //
 // Program types: '18-week' | '8-week' | '4-week' | '300h' | '50h' | '30h'
 const FORM_ID_MAP = {
-  '1974647360148367': '18-week'   // 18 Ugers Fleksibelt YTT (identified 2026-03)
+  '1974647360148367': '18-week'   // 18 Ugers Fleksibelt YTT — March–June 2026 cohort
   // Add new forms below:
   // '123456789012345': '8-week',
 };
