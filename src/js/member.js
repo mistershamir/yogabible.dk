@@ -3,7 +3,8 @@
  * Toggles guest/user view based on Firebase auth state.
  * Renders role badge, manages tab navigation with hash routing,
  * lazy-loads iframes for courses/schedule/profile tabs,
- * and auto-resizes iframes to fit content.
+ * auto-resizes iframes to fit content,
+ * and populates the dashboard hub with dynamic data.
  */
 (function() {
   'use strict';
@@ -37,8 +38,11 @@
           guest.style.display = 'none';
           user.style.display = '';
           var displayName = u.displayName || (u.email ? u.email.split('@')[0] : '');
-          if (nameEl) nameEl.textContent = displayName.split(' ')[0] || '';
+          var firstName = displayName.split(' ')[0] || '';
+          if (nameEl) nameEl.textContent = firstName;
           if (avatarEl) avatarEl.textContent = displayName ? getInitials(displayName) : '';
+          renderDashboardGreeting(firstName);
+          loadDashboardCourse(u.uid);
           routeFromHash();
         } else {
           guest.style.display = '';
@@ -61,6 +65,98 @@
     });
 
     initTabNav();
+  }
+
+  // ══════════════════════════════════════
+  // DASHBOARD HUB
+  // ══════════════════════════════════════
+
+  function renderDashboardGreeting(firstName) {
+    var el = document.getElementById('yb-dash-greeting');
+    if (!el) return;
+    var T = window._ybDashT || {};
+    var h = new Date().getHours();
+    var greeting;
+    if (h < 12) greeting = T.morning || 'God morgen';
+    else if (h < 17) greeting = T.afternoon || 'God eftermiddag';
+    else greeting = T.evening || 'God aften';
+    el.textContent = greeting + ', ' + firstName;
+  }
+
+  var dashCourseLoaded = false;
+
+  function loadDashboardCourse(uid) {
+    if (dashCourseLoaded) return;
+    dashCourseLoaded = true;
+
+    var cardEl = document.getElementById('yb-dash-course');
+    var bodyEl = document.getElementById('yb-dash-course-body');
+    if (!cardEl || !bodyEl) return;
+
+    var T = window._ybDashT || {};
+    var isDa = window.location.pathname.indexOf('/en/') !== 0;
+    var lang = isDa ? 'da' : 'en';
+
+    var db = firebase.firestore();
+
+    db.collection('enrollments')
+      .where('userId', '==', uid)
+      .get()
+      .then(function(snap) {
+        var courseIds = [];
+        snap.forEach(function(doc) {
+          var d = doc.data();
+          if (d.status === 'active') courseIds.push(d.courseId);
+        });
+        if (!courseIds.length) {
+          // No active courses — show "Explore courses" card
+          bodyEl.innerHTML =
+            '<h3 class="yb-dash__action-title">' + escHtml(T.no_courses_title || 'Explore courses') + '</h3>' +
+            '<p class="yb-dash__action-desc">' + escHtml(T.no_courses_desc || 'Browse available courses') + ' &rarr;</p>';
+          cardEl.style.display = '';
+          cardEl.style.cursor = 'pointer';
+          cardEl.onclick = function() {
+            var tabBtn = document.querySelector('.yb-ma-tabs__btn[data-yb-ma-tab="courses"]');
+            if (tabBtn) tabBtn.click();
+          };
+          return;
+        }
+
+        // Get first enrolled course + progress
+        var courseId = courseIds[0];
+        Promise.all([
+          db.collection('courses').doc(courseId).get(),
+          db.collection('courseProgress').doc(uid + '_' + courseId).get()
+        ]).then(function(results) {
+          var courseDoc = results[0];
+          var progressDoc = results[1];
+          if (!courseDoc.exists) return;
+
+          var c = courseDoc.data();
+          var title = c['title_' + lang] || c.title_da || c.title || 'Course';
+          var progress = progressDoc.exists ? progressDoc.data() : null;
+          var viewed = progress && progress.viewed ? Object.keys(progress.viewed).length : 0;
+          var hasProgress = viewed > 0;
+          var btnLabel = hasProgress ? (T.continue_label || 'Continue') : (T.start_label || 'Start');
+
+          var html = '<h3 class="yb-dash__action-title">' + escHtml(T.course_card_title || 'Continue your course') + '</h3>';
+          html += '<p class="yb-dash__action-desc">' + escHtml(title) + '</p>';
+          if (hasProgress) {
+            html += '<p class="yb-dash__action-meta">' + viewed + ' ' + (T.chapters_read || 'chapters read') + '</p>';
+          }
+          html += '<span class="yb-dash__action-btn">' + escHtml(btnLabel) + ' &rarr;</span>';
+
+          bodyEl.innerHTML = html;
+          cardEl.style.display = '';
+          cardEl.onclick = function() {
+            var tabBtn = document.querySelector('.yb-ma-tabs__btn[data-yb-ma-tab="courses"]');
+            if (tabBtn) tabBtn.click();
+          };
+        });
+      })
+      .catch(function(err) {
+        console.error('Dashboard course load error:', err);
+      });
   }
 
   // ── Role Badge ──
