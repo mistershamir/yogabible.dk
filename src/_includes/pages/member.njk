@@ -225,240 +225,119 @@
      TAB PANELS
      ══════════════════════════════════════════════════════════════ #}
 
-  {# ── TAB: Member Area (default) ── #}
+  {# ── TAB: Dashboard (default) ── #}
   <div class="yb-ma-tp" id="yb-ma-tp-hub" data-yb-ma-panel="hub">
+    <script>
+      window._ybDashT = {
+        morning: {{ t.dash_morning | dump | safe }},
+        afternoon: {{ t.dash_afternoon | dump | safe }},
+        evening: {{ t.dash_evening | dump | safe }},
+        continue_label: {{ t.dash_continue | dump | safe }},
+        start_label: {{ t.dash_start | dump | safe }},
+        modules: {{ t.dash_modules | dump | safe }},
+        chapters_read: {{ t.dash_chapters_read | dump | safe }},
+        course_card_title: {{ t.dash_course_card_title | dump | safe }},
+        no_courses_title: {{ t.dash_no_courses_title | dump | safe }},
+        no_courses_desc: {{ t.dash_no_courses_desc | dump | safe }}
+      };
+    </script>
 
-    {# ── Welcome section ── #}
-    <section style="padding:4rem 0 3rem;background:var(--yb-warm-white, #FFFCF9)">
-      <div class="container" style="max-width:760px;text-align:center">
-        <h2 class="section-title" style="margin:0 0 1rem">{{ t.ma_welcome_title }}</h2>
-        <p style="color:var(--yb-muted, #6F6A66);font-size:1.05rem;line-height:1.7;margin:0">{{ t.ma_welcome_text }}</p>
-      </div>
-    </section>
-
-    {# ── Member Benefits ── #}
-    <section style="padding:4rem 0;background:var(--yb-light-bg, #F5F3F0)">
+    <section class="yb-dash">
       <div class="container" style="max-width:960px">
-        <div style="text-align:center;margin-bottom:2.5rem">
-          <p class="yb-ma-eyebrow yb-ma-eyebrow--line">{{ t.ma_benefits_eyebrow }}</p>
-          <h2 class="section-title">{{ t.ma_benefits_title }}</h2>
-        </div>
-        <div class="yb-ma-grid">
-          <a href="#courses" class="yb-ma-card yb-ma-card--lift yb-ma-card--link" data-yb-ma-tab="courses">
-            <div class="yb-ma-card__icon">
-              <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="var(--yb-brand, #f75c03)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
-            </div>
-            <h3 class="yb-ma-card__title">{{ t.ma_benefit_1_title }}</h3>
-            <p class="yb-ma-card__desc">{{ t.ma_benefit_1_desc }}</p>
-          </a>
-          <a href="#live" class="yb-ma-card yb-ma-card--lift yb-ma-card--link" data-yb-ma-tab="live">
-            <div class="yb-ma-card__icon">
-              <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="var(--yb-brand, #f75c03)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>
-            </div>
-            <h3 class="yb-ma-card__title">{{ t.ma_benefit_2_title }}</h3>
-            <p class="yb-ma-card__desc">{{ t.ma_benefit_2_desc }}</p>
-          </a>
-          <a href="#glossary" class="yb-ma-card yb-ma-card--lift yb-ma-card--link" data-yb-ma-tab="glossary">
-            <div class="yb-ma-card__icon">
-              <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="var(--yb-brand, #f75c03)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/><line x1="8" y1="7" x2="16" y2="7"/><line x1="8" y1="11" x2="14" y2="11"/></svg>
-            </div>
-            <h3 class="yb-ma-card__title">{{ t.ma_benefit_3_title }}</h3>
-            <p class="yb-ma-card__desc">{{ t.ma_benefit_3_desc }}</p>
-          </a>
-          <a href="#journal" class="yb-ma-card yb-ma-card--lift yb-ma-card--link" data-yb-ma-tab="journal">
-            <div class="yb-ma-card__icon">
-              <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="var(--yb-brand, #f75c03)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
-            </div>
-            <h3 class="yb-ma-card__title">{{ t.ma_benefit_4_title }}</h3>
-            <p class="yb-ma-card__desc">{{ t.ma_benefit_4_desc }}</p>
-          </a>
-        </div>
-      </div>
-    </section>
 
-    {# ── Our Philosophy ── #}
-    <section style="padding:5rem 0;background:#0F0F0F;color:#FFFCF9">
-      <div class="container" style="max-width:760px;text-align:center">
-        <p class="yb-ma-eyebrow yb-ma-eyebrow--line">{{ t.ma_philosophy_eyebrow }}</p>
-        <h2 style="font-size:clamp(1.5rem,3.5vw,2.25rem);margin:0.5rem 0 1.25rem;color:#FFFCF9">{{ t.ma_philosophy_title }}</h2>
-        <p style="color:#6F6A66;font-size:1.05rem;line-height:1.7;margin:0 0 2.5rem">{{ t.ma_philosophy_text }}</p>
-        <blockquote class="yb-ma-quote">
-          <p class="yb-ma-quote__text">&ldquo;{{ t.ma_philosophy_quote }}&rdquo;</p>
-          <footer class="yb-ma-quote__source">&mdash; {{ t.ma_philosophy_quote_source }}</footer>
-        </blockquote>
-      </div>
-    </section>
+        {# ── Greeting ── #}
+        <h2 class="yb-dash__greeting" id="yb-dash-greeting"></h2>
 
-    {# ── Explore quick links ── #}
-    <section style="padding:4rem 0 5rem;background:var(--yb-warm-white, #FFFCF9)">
-      <div class="container" style="max-width:960px">
-        <div style="text-align:center;margin-bottom:2.5rem">
-          <h2 class="section-title">{{ t.ma_explore_title }}</h2>
-        </div>
-        <div class="yb-ma-hub__grid">
+        {# ── Action cards ── #}
+        <div class="yb-dash__actions">
 
-          {# PRIMARY: My Courses #}
-          <a href="#courses" class="yb-ma-hub__card yb-ma-hub__card--primary" data-yb-ma-tab="courses">
-            <div class="yb-ma-hub__card-top">
-              <span class="yb-ma-hub__badge">{{ t.hub_courses_badge }}</span>
+          {# Continue course — populated by JS #}
+          <div class="yb-dash__action yb-dash__action--course" id="yb-dash-course" style="display:none">
+            <div class="yb-dash__action-icon">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
             </div>
-            <div class="yb-ma-hub__card-icon">
-              <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
-            </div>
-            <h2 class="yb-ma-hub__card-title">{{ t.hub_courses_title }}</h2>
-            <p class="yb-ma-hub__card-desc">{{ t.hub_courses_desc }}</p>
-            <span class="yb-ma-hub__card-arrow">&rarr;</span>
-          </a>
+            <div class="yb-dash__action-body" id="yb-dash-course-body"></div>
+          </div>
 
-          {# Class Schedule #}
-          <a href="#schedule" class="yb-ma-hub__card" data-yb-ma-tab="schedule">
-            <div class="yb-ma-hub__card-top">
-              <span class="yb-ma-hub__badge">{{ t.hub_schedule_badge }}</span>
+          {# Book a class #}
+          <a href="#schedule" class="yb-dash__action" data-yb-ma-tab="schedule">
+            <div class="yb-dash__action-icon">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
             </div>
-            <div class="yb-ma-hub__card-icon">
-              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+            <div class="yb-dash__action-body">
+              <h3 class="yb-dash__action-title">{{ t.dash_book_title }}</h3>
+              <p class="yb-dash__action-desc">{{ t.dash_book_desc }} &rarr;</p>
             </div>
-            <h3 class="yb-ma-hub__card-title">{{ t.hub_schedule_title }}</h3>
-            <p class="yb-ma-hub__card-desc">{{ t.hub_schedule_desc }}</p>
-            <span class="yb-ma-hub__card-arrow">&rarr;</span>
-          </a>
-
-          {# Yoga Glossary #}
-          <a href="#glossary" class="yb-ma-hub__card" data-yb-ma-tab="glossary">
-            <div class="yb-ma-hub__card-top">
-              <span class="yb-ma-hub__badge">{{ t.hub_glossary_badge }}</span>
-            </div>
-            <div class="yb-ma-hub__card-icon">
-              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/><line x1="8" y1="7" x2="16" y2="7"/><line x1="8" y1="11" x2="14" y2="11"/></svg>
-            </div>
-            <h3 class="yb-ma-hub__card-title">{{ t.hub_glossary_title }}</h3>
-            <p class="yb-ma-hub__card-desc">{{ t.hub_glossary_desc }}</p>
-            <span class="yb-ma-hub__card-arrow">&rarr;</span>
-          </a>
-
-          {# Yoga Journal #}
-          <a href="#journal" class="yb-ma-hub__card" data-yb-ma-tab="journal">
-            <div class="yb-ma-hub__card-top">
-              <span class="yb-ma-hub__badge">{{ t.hub_journal_badge }}</span>
-            </div>
-            <div class="yb-ma-hub__card-icon">
-              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
-            </div>
-            <h3 class="yb-ma-hub__card-title">{{ t.hub_journal_title }}</h3>
-            <p class="yb-ma-hub__card-desc">{{ t.hub_journal_desc }}</p>
-            <span class="yb-ma-hub__card-arrow">&rarr;</span>
-          </a>
-
-          {# Training Materials — trainee/teacher/admin only #}
-          <a href="#materials" class="yb-ma-hub__card" data-yb-ma-tab="materials" data-yb-role="trainee,teacher,admin" style="display:none">
-            <div class="yb-ma-hub__card-top">
-              <span class="yb-ma-hub__badge">{{ t.hub_materials_badge }}</span>
-            </div>
-            <div class="yb-ma-hub__card-icon">
-              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
-            </div>
-            <h3 class="yb-ma-hub__card-title">{{ t.hub_materials_title }}</h3>
-            <p class="yb-ma-hub__card-desc">{{ t.hub_materials_desc }}</p>
-            <span class="yb-ma-hub__card-arrow">&rarr;</span>
-          </a>
-
-          {# My Profile #}
-          <a href="#profile" class="yb-ma-hub__card" data-yb-ma-tab="profile">
-            <div class="yb-ma-hub__card-top">
-              <span class="yb-ma-hub__badge yb-ma-hub__badge--muted">{{ t.hub_profile_badge }}</span>
-            </div>
-            <div class="yb-ma-hub__card-icon">
-              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-            </div>
-            <h3 class="yb-ma-hub__card-title">{{ t.hub_profile_title }}</h3>
-            <p class="yb-ma-hub__card-desc">{{ t.hub_profile_desc }}</p>
-            <span class="yb-ma-hub__card-arrow">&rarr;</span>
           </a>
 
           {# Live & Recordings #}
-          <a href="#live" class="yb-ma-hub__card" data-yb-ma-tab="live">
-            <div class="yb-ma-hub__card-top">
-              <span class="yb-ma-hub__badge">{{ t.hub_live_badge }}</span>
+          <a href="#live" class="yb-dash__action" data-yb-ma-tab="live">
+            <div class="yb-dash__action-icon">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>
             </div>
-            <div class="yb-ma-hub__card-icon">
-              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>
+            <div class="yb-dash__action-body">
+              <h3 class="yb-dash__action-title">{{ t.hub_live_title }}</h3>
+              <p class="yb-dash__action-desc">{{ t.tab_live }} &rarr;</p>
             </div>
-            <h3 class="yb-ma-hub__card-title">{{ t.hub_live_title }}</h3>
-            <p class="yb-ma-hub__card-desc">{{ t.hub_live_desc }}</p>
-            <span class="yb-ma-hub__card-arrow">&rarr;</span>
+          </a>
+        </div>
+
+        {# ── Quick access grid ── #}
+        <h3 class="yb-dash__section-title">{{ t.dash_quick_access }}</h3>
+        <div class="yb-dash__grid">
+
+          <a href="#courses" class="yb-dash__link" data-yb-ma-tab="courses">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
+            <span>{{ t.hub_courses_title }}</span>
           </a>
 
-          {# Events #}
-          <a href="#events" class="yb-ma-hub__card" data-yb-ma-tab="events">
-            <div class="yb-ma-hub__card-top">
-              <span class="yb-ma-hub__badge">{{ t.hub_events_badge }}</span>
-            </div>
-            <div class="yb-ma-hub__card-icon">
-              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/><path d="M8 14h.01"/><path d="M12 14h.01"/><path d="M16 14h.01"/></svg>
-            </div>
-            <h3 class="yb-ma-hub__card-title">{{ t.hub_events_title }}</h3>
-            <p class="yb-ma-hub__card-desc">{{ t.hub_events_desc }}</p>
-            <span class="yb-ma-hub__card-arrow">&rarr;</span>
+          <a href="#live" class="yb-dash__link" data-yb-ma-tab="live">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>
+            <span>{{ t.hub_live_title }}</span>
           </a>
 
-          {# COMING SOON: Forum #}
-          <div class="yb-ma-hub__card yb-ma-hub__card--soon">
-            <div class="yb-ma-hub__card-top">
-              <span class="yb-ma-hub__badge yb-ma-hub__badge--muted">{{ t.hub_forum_badge }}</span>
-              <span class="yb-ma-hub__soon-tag">{{ t.hub_coming_soon }}</span>
-            </div>
-            <div class="yb-ma-hub__card-icon">
-              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
-            </div>
-            <h3 class="yb-ma-hub__card-title">{{ t.hub_forum_title }}</h3>
-            <p class="yb-ma-hub__card-desc">{{ t.hub_forum_desc }}</p>
-          </div>
-
-        </div>
-      </div>
-    </section>
-
-    {# Education materials — gated by permission #}
-    <section data-yb-requires="gated-content,live-streaming,recordings" style="display:none;padding:5rem 0;background:var(--yb-light-bg, #F5F3F0)">
-      <div class="container" style="max-width:960px">
-        <div style="text-align:center;margin-bottom:3rem">
-          <span class="yb-ma-eyebrow">{{ t.user_materials_eyebrow }}</span>
-          <h2 class="section-title">{{ t.user_materials_title }}</h2>
-          <p style="color:#6F6A66;max-width:560px;margin:0.5rem auto 0">{{ t.user_materials_subtitle }}</p>
-        </div>
-        <div class="yb-ma-grid yb-ma-grid--3">
-          <a href="#courses" data-yb-requires="gated-content" data-yb-ma-tab="courses" class="yb-ma-card yb-ma-card--link" style="display:none">
-            <div class="yb-ma-card__icon">
-              <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#f75c03" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
-            </div>
-            <h3 class="yb-ma-card__title">{{ t.user_card_materials_title }}</h3>
-            <p class="yb-ma-card__desc">{{ t.user_card_materials_desc }}</p>
+          <a href="#schedule" class="yb-dash__link" data-yb-ma-tab="schedule">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+            <span>{{ t.hub_schedule_title }}</span>
           </a>
-          <div data-yb-requires="live-streaming" class="yb-ma-card" style="display:none">
-            <div class="yb-ma-card__icon">
-              <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#f75c03" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>
-            </div>
-            <h3 class="yb-ma-card__title">{{ t.user_card_livestream_title }}</h3>
-            <p class="yb-ma-card__desc">{{ t.user_card_livestream_desc }}</p>
-          </div>
-          <div data-yb-requires="recordings" class="yb-ma-card" style="display:none">
-            <div class="yb-ma-card__icon">
-              <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#f75c03" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polygon points="10 8 16 12 10 16 10 8"/></svg>
-            </div>
-            <h3 class="yb-ma-card__title">{{ t.user_card_recordings_title }}</h3>
-            <p class="yb-ma-card__desc">{{ t.user_card_recordings_desc }}</p>
-          </div>
+
+          <a href="#glossary" class="yb-dash__link" data-yb-ma-tab="glossary">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/><line x1="8" y1="7" x2="16" y2="7"/><line x1="8" y1="11" x2="14" y2="11"/></svg>
+            <span>{{ t.hub_glossary_title }}</span>
+          </a>
+
+          <a href="#journal" class="yb-dash__link" data-yb-ma-tab="journal">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+            <span>{{ t.hub_journal_title }}</span>
+          </a>
+
+          <a href="#events" class="yb-dash__link" data-yb-ma-tab="events">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/><path d="M8 14h.01"/><path d="M12 14h.01"/><path d="M16 14h.01"/></svg>
+            <span>{{ t.hub_events_title }}</span>
+          </a>
+
+          <a href="#profile" class="yb-dash__link" data-yb-ma-tab="profile">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+            <span>{{ t.hub_profile_title }}</span>
+          </a>
+
+          {# Materials — role-gated #}
+          <a href="#materials" class="yb-dash__link" data-yb-ma-tab="materials" data-yb-role="trainee,teacher,admin" style="display:none">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+            <span>{{ t.hub_materials_title }}</span>
+          </a>
+
         </div>
+
       </div>
     </section>
 
     {# Admin tools — gated by admin permissions #}
-    <section data-yb-requires="admin:courses,admin:content,admin:users,lead:manage" style="display:none;padding:5rem 0;background:#0F0F0F;color:#FFFCF9">
+    <section data-yb-requires="admin:courses,admin:content,admin:users,lead:manage" style="display:none;padding:3rem 0;background:#0F0F0F;color:#FFFCF9">
       <div class="container" style="max-width:960px">
-        <div style="text-align:center;margin-bottom:3rem">
+        <div style="text-align:center;margin-bottom:2rem">
           <span class="yb-ma-eyebrow">{{ t.user_admin_eyebrow }}</span>
-          <h2 style="font-size:clamp(1.5rem,3.5vw,2.25rem);margin:0.5rem 0 0;color:#FFFCF9">{{ t.user_admin_title }}</h2>
-          <p style="color:#6F6A66;max-width:560px;margin:0.5rem auto 0">{{ t.user_admin_subtitle }}</p>
+          <h2 style="font-size:clamp(1.25rem,3vw,1.75rem);margin:0.5rem 0 0;color:#FFFCF9">{{ t.user_admin_title }}</h2>
         </div>
         <div class="yb-ma-grid yb-ma-grid--3">
           <a href="{{ lp }}/admin" data-yb-requires="admin:courses" class="yb-ma-card yb-ma-card--dark yb-ma-card--link" style="display:none">
@@ -896,142 +775,164 @@
     box-shadow: 0 0 0 3px rgba(247,92,3,0.3);
   }
 
-  /* ── Hub section ── */
-  .yb-ma-hub {
-    background: var(--yb-light-bg, #F5F3F0);
-    padding: 3rem 0 4rem;
+  /* ══════════════════════════════════════
+     DASHBOARD HUB
+     ══════════════════════════════════════ */
+
+  .yb-dash {
+    background: var(--yb-warm-white, #FFFCF9);
+    padding: 2.5rem 0 4rem;
     min-height: 60vh;
   }
 
-  /* ── Hub grid: 4-col base, primaries span 2 ── */
-  .yb-ma-hub__grid {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 1.25rem;
-  }
-  @media (max-width: 960px) {
-    .yb-ma-hub__grid { grid-template-columns: repeat(2, 1fr); }
-  }
-  @media (max-width: 520px) {
-    .yb-ma-hub__grid { grid-template-columns: 1fr; }
-    .yb-ma-hub__card--primary { grid-column: span 1; }
+  /* ── Greeting ── */
+  .yb-dash__greeting {
+    font-size: clamp(1.5rem, 3.5vw, 2rem);
+    font-weight: 700;
+    color: #0F0F0F;
+    margin: 0 0 2rem;
   }
 
-  /* ── Hub card ── */
-  .yb-ma-hub__card {
+  /* ── Action cards row ── */
+  .yb-dash__actions {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1rem;
+    margin-bottom: 2.5rem;
+  }
+  @media (max-width: 768px) {
+    .yb-dash__actions { grid-template-columns: 1fr; }
+  }
+
+  .yb-dash__action {
     display: flex;
-    flex-direction: column;
-    background: var(--yb-warm-white, #FFFCF9);
+    align-items: center;
+    gap: 1rem;
+    background: var(--yb-light-bg, #F5F3F0);
     border: 1px solid var(--yb-border, #E8E4E0);
     border-radius: 12px;
-    padding: 1.5rem;
+    padding: 1.25rem 1.5rem;
     text-decoration: none;
     color: inherit;
-    position: relative;
-    transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
   }
-  a.yb-ma-hub__card:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 12px 32px rgba(0,0,0,0.08);
+  a.yb-dash__action:hover {
     border-color: var(--yb-brand, #f75c03);
+    box-shadow: 0 8px 24px rgba(0,0,0,0.06);
+    transform: translateY(-2px);
   }
 
-  /* Primary card: spans 2 columns, taller */
-  .yb-ma-hub__card--primary {
-    grid-column: span 2;
-    padding: 2rem;
-  }
-
-  /* Dark variant for Live card */
-  .yb-ma-hub__card--dark {
-    background: #0F0F0F;
-    border-color: rgba(255,255,255,0.08);
-    color: #FFFCF9;
-  }
-  a.yb-ma-hub__card--dark:hover {
-    border-color: var(--yb-brand, #f75c03);
-    box-shadow: 0 12px 32px rgba(0,0,0,0.3);
-  }
-
-  /* Coming-soon card */
-  .yb-ma-hub__card--soon {
-    opacity: 0.55;
-    cursor: default;
-  }
-
-  /* Card inner elements */
-  .yb-ma-hub__card-top {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    margin-bottom: 1.25rem;
-  }
-  .yb-ma-hub__badge {
-    display: inline-flex;
-    align-items: center;
-    padding: 3px 10px;
-    font-size: 0.6rem;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.06em;
-    border-radius: 100px;
+  .yb-dash__action-icon {
+    width: 44px;
+    height: 44px;
+    border-radius: 10px;
     background: rgba(247,92,3,0.1);
     color: var(--yb-brand, #f75c03);
-  }
-  .yb-ma-hub__badge--dark {
-    background: rgba(247,92,3,0.2);
-    color: #ff9966;
-  }
-  .yb-ma-hub__badge--muted {
-    background: var(--yb-light-bg, #F5F3F0);
-    color: var(--yb-muted, #6F6A66);
-  }
-  .yb-ma-hub__card--dark .yb-ma-hub__badge--muted {
-    background: rgba(255,255,255,0.08);
-    color: rgba(255,255,255,0.5);
-  }
-  .yb-ma-hub__soon-tag {
-    font-size: 0.6rem;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.06em;
-    color: var(--yb-muted, #6F6A66);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
   }
 
-  .yb-ma-hub__card-icon {
-    color: var(--yb-brand, #f75c03);
-    margin-bottom: 1rem;
-  }
-  .yb-ma-hub__card--primary .yb-ma-hub__card-icon {
-    margin-bottom: 1.25rem;
-  }
+  .yb-dash__action-body { min-width: 0; }
 
-  .yb-ma-hub__card-title {
-    font-size: 1.1rem;
+  .yb-dash__action-title {
+    font-size: 0.95rem;
     font-weight: 700;
-    margin: 0 0 0.25rem;
-  }
-  .yb-ma-hub__card--primary .yb-ma-hub__card-title {
-    font-size: 1.35rem;
-  }
-
-  .yb-ma-hub__card-desc {
-    font-size: 0.85rem;
-    color: var(--yb-muted, #6F6A66);
+    color: #0F0F0F;
     margin: 0;
-    line-height: 1.5;
-    flex-grow: 1;
+    line-height: 1.3;
   }
 
-  .yb-ma-hub__card-arrow {
-    display: inline-block;
-    margin-top: 1rem;
-    font-size: 1.2rem;
-    color: var(--yb-brand, #f75c03);
-    transition: transform 0.2s ease;
+  .yb-dash__action-desc {
+    font-size: 0.8rem;
+    color: var(--yb-muted, #6F6A66);
+    margin: 0.15rem 0 0;
+    line-height: 1.4;
   }
-  a.yb-ma-hub__card:hover .yb-ma-hub__card-arrow {
-    transform: translateX(4px);
+
+  .yb-dash__action-meta {
+    font-size: 0.7rem;
+    color: var(--yb-muted, #6F6A66);
+    margin: 0.25rem 0 0;
+  }
+
+  .yb-dash__action-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    margin-top: 0.5rem;
+    padding: 0.3rem 0.85rem;
+    font-family: inherit;
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: #fff;
+    background: var(--yb-brand, #f75c03);
+    border: none;
+    border-radius: 100px;
+    cursor: pointer;
+    transition: background 0.2s ease;
+  }
+  .yb-dash__action-btn:hover {
+    background: var(--yb-brand-dark, #d94f02);
+  }
+
+  /* Course action card is clickable as a whole */
+  .yb-dash__action--course {
+    cursor: pointer;
+  }
+  .yb-dash__action--course:hover {
+    border-color: var(--yb-brand, #f75c03);
+    box-shadow: 0 8px 24px rgba(0,0,0,0.06);
+    transform: translateY(-2px);
+  }
+
+  /* ── Section title ── */
+  .yb-dash__section-title {
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--yb-muted, #6F6A66);
+    margin: 0 0 1rem;
+  }
+
+  /* ── Quick access grid ── */
+  .yb-dash__grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0.75rem;
+  }
+  @media (max-width: 768px) {
+    .yb-dash__grid { grid-template-columns: repeat(2, 1fr); }
+  }
+
+  .yb-dash__link {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.85rem 1rem;
+    background: var(--yb-light-bg, #F5F3F0);
+    border: 1px solid transparent;
+    border-radius: 10px;
+    text-decoration: none;
+    color: #0F0F0F;
+    font-size: 0.85rem;
+    font-weight: 600;
+    transition: border-color 0.2s ease, background 0.2s ease;
+  }
+  .yb-dash__link:hover {
+    border-color: var(--yb-brand, #f75c03);
+    background: #fff;
+  }
+  .yb-dash__link svg {
+    color: var(--yb-brand, #f75c03);
+    flex-shrink: 0;
+  }
+  .yb-dash__link span {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
 
   /* Role badge — shown in welcome header */
@@ -1132,30 +1033,6 @@
   /* Embedded content panels — hide heroes and CTAs */
   .yb-ma-tp__body > .yb-hero,
   .yb-ma-tp__body > .cta-section { display: none !important; }
-
-  /* ── Philosophy quote ── */
-  .yb-ma-quote {
-    border: none;
-    margin: 0;
-    padding: 2rem;
-    background: rgba(255,255,255,0.04);
-    border-left: 3px solid var(--yb-brand, #f75c03);
-    border-radius: 0 12px 12px 0;
-    text-align: left;
-  }
-  .yb-ma-quote__text {
-    font-size: 1.15rem;
-    font-style: italic;
-    color: #FFFCF9;
-    margin: 0 0 0.5rem;
-    line-height: 1.6;
-  }
-  .yb-ma-quote__source {
-    font-size: 0.8rem;
-    color: var(--yb-brand, #f75c03);
-    letter-spacing: 0.05em;
-    text-transform: uppercase;
-  }
 
   /* ── Link-style cards ── */
   .yb-ma-card--link {
