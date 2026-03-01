@@ -3,22 +3,31 @@
   if (!container) return;
 
   var playbackId = container.dataset.playbackId;
+  var envKey = container.dataset.envKey || '';
   var playerSection = document.getElementById('yb-live-player-section');
   var offlineSection = document.getElementById('yb-live-offline');
   var checkingOverlay = document.getElementById('yb-live-checking');
   var badge = document.getElementById('yb-live-badge');
   var retryBtn = document.getElementById('yb-live-retry');
-  var player = document.getElementById('yb-mux-player');
+  var mountEl = document.getElementById('yb-live-player-mount');
   var elapsedEl = document.getElementById('yb-live-elapsed');
   var elapsedTimeEl = document.getElementById('yb-live-elapsed-time');
   var scheduleSection = document.getElementById('yb-live-schedule');
   var scheduleList = document.getElementById('yb-live-schedule-list');
+  var player = null;
   var pollTimer = null;
   var elapsedTimer = null;
   var POLL_INTERVAL = 30000;
   var isStreamLive = false;
   var playerErrorCount = 0;
   var MAX_PLAYER_ERRORS = 3;
+
+  // iOS detection — ALL browsers on iOS use WebKit (Apple requirement).
+  // WebKit has native HLS support but the mux-player web component
+  // can fail to initialize, especially inside hidden containers.
+  // Use native <video> on iOS for reliable playback.
+  var isIOS = /iPhone|iPad|iPod/.test(navigator.userAgent) ||
+    (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
 
   var isDa = (container.dataset.lang || 'da') === 'da';
   var tToday = container.dataset.tToday || 'I dag';
@@ -57,27 +66,53 @@
   }
 
   /**
-   * Re-create the mux-player element from scratch.
-   * On mobile Safari, once a <video> errors it enters a broken state
-   * that cannot be recovered by simply changing attributes.
+   * Create the appropriate player element based on platform.
+   * iOS: native <video> with HLS URL (WebKit supports HLS natively)
+   * Desktop/Android: <mux-player> web component with full features
+   */
+  function createPlayer() {
+    if (!mountEl) return null;
+
+    // Remove existing player if any
+    if (player && player.parentNode) {
+      player.parentNode.removeChild(player);
+    }
+    player = null;
+
+    var el;
+    if (isIOS) {
+      el = document.createElement('video');
+      el.id = 'yb-mux-player';
+      el.setAttribute('playsinline', '');
+      el.setAttribute('webkit-playsinline', '');
+      el.setAttribute('controls', '');
+      el.setAttribute('preload', 'auto');
+      el.src = 'https://stream.mux.com/' + playbackId + '.m3u8';
+    } else {
+      el = document.createElement('mux-player');
+      el.id = 'yb-mux-player';
+      el.setAttribute('stream-type', 'll-live');
+      el.setAttribute('playback-id', playbackId);
+      el.setAttribute('env-key', envKey);
+      el.setAttribute('accent-color', '#f75c03');
+      el.setAttribute('primary-color', '#FFFCF9');
+      el.setAttribute('secondary-color', '#0F0F0F');
+      el.setAttribute('default-hidden-captions', '');
+      el.setAttribute('playsinline', '');
+    }
+
+    mountEl.appendChild(el);
+    player = el;
+    bindPlayerEvents();
+    return el;
+  }
+
+  /**
+   * Re-create the player element from scratch.
+   * Destroys the old element and builds a new one for clean init.
    */
   function recreatePlayer() {
-    if (!player || !player.parentNode) return;
-    var parent = player.parentNode;
-    var newPlayer = document.createElement('mux-player');
-    newPlayer.id = 'yb-mux-player';
-    newPlayer.setAttribute('stream-type', 'll-live');
-    newPlayer.setAttribute('playback-id', playbackId);
-    newPlayer.setAttribute('env-key', player.getAttribute('env-key') || '');
-    newPlayer.setAttribute('metadata-video-title', player.getAttribute('metadata-video-title') || '');
-    newPlayer.setAttribute('accent-color', '#f75c03');
-    newPlayer.setAttribute('primary-color', '#FFFCF9');
-    newPlayer.setAttribute('secondary-color', '#0F0F0F');
-    newPlayer.setAttribute('default-hidden-captions', '');
-    newPlayer.setAttribute('playsinline', '');
-    parent.replaceChild(newPlayer, player);
-    player = newPlayer;
-    bindPlayerEvents();
+    createPlayer();
   }
 
   function showLive() {
@@ -88,9 +123,20 @@
     checkingOverlay.classList.add('yb-live-player__checking--hidden');
     badge.classList.add('yb-live-badge--visible');
 
-    // Set playback-id only now — prevents eager load errors on mobile
-    if (player && !player.getAttribute('playback-id')) {
-      player.setAttribute('playback-id', playbackId);
+    // Create player lazily — only when stream is confirmed live
+    if (!player || !player.parentNode) {
+      createPlayer();
+    } else if (isIOS) {
+      // Ensure HLS source is set for native video
+      var hlsUrl = 'https://stream.mux.com/' + playbackId + '.m3u8';
+      if (!player.src || player.src.indexOf(playbackId) === -1) {
+        player.src = hlsUrl;
+      }
+    } else {
+      // Set playback-id for mux-player if not already set
+      if (!player.getAttribute('playback-id')) {
+        player.setAttribute('playback-id', playbackId);
+      }
     }
 
     startElapsedTimer();
@@ -108,9 +154,15 @@
     badge.classList.remove('yb-live-badge--visible');
     checkingOverlay.classList.add('yb-live-player__checking--hidden');
 
-    // Clear playback-id so the player stops trying to load
-    if (player && player.getAttribute('playback-id')) {
-      player.removeAttribute('playback-id');
+    // Stop/clear the player
+    if (player) {
+      if (isIOS) {
+        player.pause();
+        player.removeAttribute('src');
+        player.load(); // Reset the video element
+      } else if (player.getAttribute('playback-id')) {
+        player.removeAttribute('playback-id');
+      }
     }
 
     stopElapsedTimer();
@@ -144,7 +196,7 @@
       fetch(url)
         .then(function (res) {
           if (res.ok) {
-            // Stream came online — recreate player fresh for clean mobile init
+            // Stream came online — recreate player fresh for clean init
             recreatePlayer();
             showLive();
           }
@@ -158,7 +210,6 @@
       playerSection.style.display = 'block';
       offlineSection.style.display = 'none';
       checkingOverlay.classList.remove('yb-live-player__checking--hidden');
-      // Recreate player on retry to clear any broken mobile state
       recreatePlayer();
       checkStream();
     });
@@ -189,7 +240,7 @@
     });
   }
 
-  bindPlayerEvents();
+  // No player in HTML — created lazily by checkStream → showLive
   checkStream();
 
   /* ══════════════════════════════════════════

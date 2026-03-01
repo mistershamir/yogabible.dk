@@ -530,6 +530,13 @@
           grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
           gap: 1.25rem;
         }
+        .yb-rec__grid video {
+          display: block;
+          width: 100%;
+          aspect-ratio: 16 / 9;
+          object-fit: contain;
+          background: #000;
+        }
         @media (max-width: 640px) {
           .yb-rec__grid {
             grid-template-columns: 1fr;
