@@ -1066,9 +1066,9 @@
     font-family: inherit;
     font-size: 0.78rem;
     font-weight: 600;
-    color: var(--yb-muted, #6F6A66);
-    background: transparent;
-    border: 1px solid transparent;
+    color: #3d3a37;
+    background: rgba(0,0,0,0.05);
+    border: 1px solid var(--yb-border, #E8E4E0);
     border-radius: 100px;
     cursor: pointer;
     transition: all 0.2s ease;
@@ -1076,12 +1076,13 @@
   }
   .yb-ma-profile-nav__btn:hover {
     color: #0F0F0F;
-    background: rgba(0,0,0,0.04);
+    background: rgba(0,0,0,0.08);
+    border-color: #ccc;
   }
   .yb-ma-profile-nav__btn.is-active {
     color: #0F0F0F;
     background: #fff;
-    border-color: var(--yb-border, #E8E4E0);
+    border-color: var(--yb-brand, #f75c03);
     box-shadow: 0 1px 3px rgba(0,0,0,0.06);
   }
 

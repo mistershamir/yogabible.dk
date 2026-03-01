@@ -246,11 +246,12 @@
       return;
     }
 
-    // Iframe already loaded — navigate within it
+    // Iframe already loaded — click the tab button inside profile.js
     try {
-      iframe.contentWindow.location.hash = '#' + sub;
-      // Trigger hash change handling inside the iframe's profile.js
-      iframe.contentWindow.dispatchEvent(new HashChangeEvent('hashchange'));
+      var tabBtn = iframe.contentDocument.querySelector('[data-yb-tab="' + sub + '"]');
+      if (tabBtn) {
+        tabBtn.click();
+      }
       // Reset resize polling for new content
       autoResizeIframe(iframe, 'profile');
     } catch (e) {
