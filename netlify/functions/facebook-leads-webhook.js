@@ -188,13 +188,17 @@ async function processLeadgenChange(value) {
     .update(docRef.id + ':' + email)
     .digest('hex');
 
+  // Map ytt_program_type → correct email template action
+  const emailAction = yttTypeToAction(lead.ytt_program_type);
+  console.log(`[fb-leads] Email action for type "${lead.ytt_program_type}": ${emailAction}`);
+
   // Fire notifications in parallel — same as lead.js
   await Promise.all([
     process.env.GMAIL_APP_PASSWORD
       ? sendAdminNotification(lead).catch(e => console.error('[fb-leads] Admin email failed:', e.message))
       : Promise.resolve(),
     process.env.GMAIL_APP_PASSWORD && email
-      ? sendWelcomeEmail(lead, 'lead_meta', { leadId: docRef.id, token: scheduleToken })
+      ? sendWelcomeEmail(lead, emailAction, { leadId: docRef.id, token: scheduleToken })
           .catch(e => console.error('[fb-leads] Welcome email failed:', e.message))
       : Promise.resolve(),
     process.env.GATEWAYAPI_TOKEN && phone
@@ -244,6 +248,22 @@ function detectYTTType(program, formName) {
   if (combined.includes('8') && (combined.includes('uge') || combined.includes('week') || combined.includes('semi'))) return '8-week';
   if (combined.includes('4') && (combined.includes('uge') || combined.includes('week') || combined.includes('intensi'))) return '4-week';
   return '4-week';
+}
+
+/**
+ * Map ytt_program_type → sendWelcomeEmail action string.
+ * Mirrors the routing in lead.js / lead-emails.js.
+ */
+function yttTypeToAction(programType) {
+  switch (programType) {
+    case '18-week':  return 'lead_schedule_18w';
+    case '8-week':   return 'lead_schedule_8w';
+    case '4-week':   return 'lead_schedule_4w';
+    case '300h':     return 'lead_schedule_300h';
+    case '50h':      return 'lead_schedule_50h';
+    case '30h':      return 'lead_schedule_30h';
+    default:         return 'lead_meta'; // generic fallback
+  }
 }
 
 function normalizeYesNo(val) {
