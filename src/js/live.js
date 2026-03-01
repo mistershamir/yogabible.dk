@@ -16,6 +16,9 @@
   var pollTimer = null;
   var elapsedTimer = null;
   var POLL_INTERVAL = 30000;
+  var isStreamLive = false;
+  var playerErrorCount = 0;
+  var MAX_PLAYER_ERRORS = 3;
 
   var isDa = (container.dataset.lang || 'da') === 'da';
   var tToday = container.dataset.tToday || 'I dag';
@@ -54,6 +57,8 @@
   }
 
   function showLive() {
+    isStreamLive = true;
+    playerErrorCount = 0;
     playerSection.style.display = 'block';
     offlineSection.style.display = 'none';
     checkingOverlay.classList.add('yb-live-player__checking--hidden');
@@ -66,6 +71,8 @@
   }
 
   function showOffline() {
+    isStreamLive = false;
+    playerErrorCount = 0;
     playerSection.style.display = 'none';
     offlineSection.style.display = 'block';
     badge.classList.remove('yb-live-badge--visible');
@@ -126,7 +133,20 @@
     });
 
     player.addEventListener('error', function () {
-      showOffline();
+      // On mobile, transient errors can occur while the stream is loading.
+      // Only go offline after multiple consecutive errors, or if we never
+      // confirmed the stream was live in the first place.
+      if (!isStreamLive) {
+        showOffline();
+        return;
+      }
+      playerErrorCount++;
+      console.warn('[live] player error #' + playerErrorCount + ' (stream confirmed live, tolerating)');
+      if (playerErrorCount >= MAX_PLAYER_ERRORS) {
+        console.warn('[live] max errors reached, going offline');
+        isStreamLive = false;
+        showOffline();
+      }
     });
   }
 
