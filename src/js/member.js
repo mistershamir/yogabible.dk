@@ -550,23 +550,25 @@
 
       renderList(allRecordings);
 
-      // Click to play — swap thumbnail with full mux-player (on-demand with controls)
+      // Click to play — swap thumbnail with fresh mux-player element.
+      // Uses createElement (not innerHTML) for reliable mobile custom-element init.
       listEl.addEventListener('click', function (e) {
         var card = e.target.closest('[data-rec-playback]');
         if (!card) return;
         var pid = card.getAttribute('data-rec-playback');
-        card.innerHTML = '<mux-player'
-          + ' playback-id="' + pid + '"'
-          + ' stream-type="on-demand"'
-          + ' accent-color="#f75c03"'
-          + ' primary-color="#FFFCF9"'
-          + ' secondary-color="#0F0F0F"'
-          + ' default-show-remaining-time'
-          + ' playsinline'
-          + ' preload="auto"'
-          + ' style="width:100%;aspect-ratio:16/9;--media-object-fit:contain"'
-          + '></mux-player>';
         card.removeAttribute('data-rec-playback');
+
+        var mp = document.createElement('mux-player');
+        mp.setAttribute('playback-id', pid);
+        mp.setAttribute('stream-type', 'on-demand');
+        mp.setAttribute('accent-color', '#f75c03');
+        mp.setAttribute('primary-color', '#FFFCF9');
+        mp.setAttribute('secondary-color', '#0F0F0F');
+        mp.setAttribute('default-show-remaining-time', '');
+        mp.setAttribute('playsinline', '');
+        mp.style.cssText = 'width:100%;aspect-ratio:16/9;--media-object-fit:contain';
+        card.innerHTML = '';
+        card.appendChild(mp);
       });
     }).catch(function () {
       if (emptyEl) emptyEl.hidden = false;
