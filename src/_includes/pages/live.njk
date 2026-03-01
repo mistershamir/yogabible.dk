@@ -86,7 +86,8 @@
   }
 
   mux-player,
-  #yb-live-player-mount video {
+  #yb-live-player-mount video,
+  #yb-live-player-mount iframe {
     display: block;
     width: 100%;
     aspect-ratio: 16 / 9;
@@ -98,6 +99,11 @@
 
   #yb-live-player-mount video {
     object-fit: contain;
+    background: #000;
+  }
+
+  #yb-live-player-mount iframe {
+    border: none;
     background: #000;
   }
 
