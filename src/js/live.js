@@ -81,18 +81,13 @@
 
     var el;
     if (isIOS) {
-      el = document.createElement('video');
+      // Use Mux's hosted iframe player on iOS — handles HLS/codec/mobile natively
+      el = document.createElement('iframe');
       el.id = 'yb-mux-player';
-      el.setAttribute('playsinline', '');
-      el.setAttribute('webkit-playsinline', '');
-      el.setAttribute('controls', '');
-      el.poster = 'https://image.mux.com/' + playbackId + '/thumbnail.jpg?width=960&height=540';
-
-      // Use <source> with MIME type so iOS/WebKit recognises HLS
-      var source = document.createElement('source');
-      source.src = 'https://stream.mux.com/' + playbackId + '.m3u8';
-      source.type = 'application/x-mpegURL';
-      el.appendChild(source);
+      el.src = 'https://player.mux.com/' + playbackId;
+      el.style.cssText = 'width:100%;aspect-ratio:16/9;border:none;display:block';
+      el.setAttribute('allow', 'accelerometer; gyroscope; autoplay; encrypted-media; picture-in-picture;');
+      el.setAttribute('allowfullscreen', '');
     } else {
       el = document.createElement('mux-player');
       el.id = 'yb-mux-player';
@@ -108,10 +103,9 @@
 
     mountEl.appendChild(el);
     player = el;
-    bindPlayerEvents();
 
-    // Explicitly trigger loading — required on iOS for HLS
-    if (isIOS) el.load();
+    // Only bind player events for mux-player (iframe handles its own events)
+    if (!isIOS) bindPlayerEvents();
 
     return el;
   }
@@ -136,15 +130,10 @@
     if (!player || !player.parentNode) {
       createPlayer();
     } else if (isIOS) {
-      // Ensure HLS source is set for native video
-      var existingSource = player.querySelector('source');
-      if (!existingSource || existingSource.src.indexOf(playbackId) === -1) {
-        player.innerHTML = '';
-        var src = document.createElement('source');
-        src.src = 'https://stream.mux.com/' + playbackId + '.m3u8';
-        src.type = 'application/x-mpegURL';
-        player.appendChild(src);
-        player.load();
+      // Ensure iframe src is set for Mux hosted player
+      var expectedSrc = 'https://player.mux.com/' + playbackId;
+      if (!player.src || player.src.indexOf(playbackId) === -1) {
+        player.src = expectedSrc;
       }
     } else {
       // Set playback-id for mux-player if not already set
@@ -171,10 +160,7 @@
     // Stop/clear the player
     if (player) {
       if (isIOS) {
-        player.pause();
-        player.innerHTML = ''; // Remove <source> elements
-        player.removeAttribute('src');
-        player.load(); // Reset the video element
+        player.src = 'about:blank'; // Clear iframe
       } else if (player.getAttribute('playback-id')) {
         player.removeAttribute('playback-id');
       }
