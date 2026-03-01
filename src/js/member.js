@@ -568,9 +568,14 @@
           el.setAttribute('playsinline', '');
           el.setAttribute('webkit-playsinline', '');
           el.setAttribute('controls', '');
-          el.setAttribute('preload', 'auto');
-          el.src = 'https://stream.mux.com/' + pid + '.m3u8';
+          el.poster = 'https://image.mux.com/' + pid + '/thumbnail.jpg?width=560&height=315';
           el.style.cssText = 'width:100%;aspect-ratio:16/9;object-fit:contain;background:#000';
+
+          // Use <source> with MIME type so iOS/WebKit recognises HLS
+          var source = document.createElement('source');
+          source.src = 'https://stream.mux.com/' + pid + '.m3u8';
+          source.type = 'application/x-mpegURL';
+          el.appendChild(source);
         } else {
           el = document.createElement('mux-player');
           el.setAttribute('playback-id', pid);
@@ -585,6 +590,9 @@
 
         card.innerHTML = '';
         card.appendChild(el);
+
+        // Explicitly trigger loading — required on iOS for HLS
+        if (recIsIOS) el.load();
       });
     }).catch(function () {
       if (emptyEl) emptyEl.hidden = false;
