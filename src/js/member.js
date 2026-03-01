@@ -202,10 +202,62 @@
       });
     });
 
+    // Profile sub-tab clicks
+    initProfileSubTabs();
+
     // Browser back/forward
     window.addEventListener('popstate', function() {
       routeFromHash();
     });
+  }
+
+  // ── Profile sub-tab navigation ──
+  var PROFILE_SUBS = ['profile', 'passes', 'visits', 'store', 'receipts', 'applications', 'giftcards'];
+
+  function initProfileSubTabs() {
+    var subBtns = document.querySelectorAll('[data-yb-profile-sub]');
+    subBtns.forEach(function(btn) {
+      btn.addEventListener('click', function() {
+        var sub = btn.getAttribute('data-yb-profile-sub');
+        if (PROFILE_SUBS.indexOf(sub) === -1) return;
+        switchProfileSub(sub);
+      });
+    });
+  }
+
+  function switchProfileSub(sub) {
+    // Update active state on sub-nav buttons
+    var subBtns = document.querySelectorAll('[data-yb-profile-sub]');
+    subBtns.forEach(function(btn) {
+      if (btn.getAttribute('data-yb-profile-sub') === sub) {
+        btn.classList.add('is-active');
+      } else {
+        btn.classList.remove('is-active');
+      }
+    });
+
+    var iframe = document.getElementById('yb-ma-profile-iframe');
+    if (!iframe) return;
+
+    // If iframe not yet loaded, update the data-src before first load
+    if (!loadedIframes['profile']) {
+      var baseSrc = iframe.getAttribute('data-src') || '';
+      iframe.setAttribute('data-src', baseSrc.replace(/#.*$/, '') + '#' + sub);
+      return;
+    }
+
+    // Iframe already loaded — navigate within it
+    try {
+      iframe.contentWindow.location.hash = '#' + sub;
+      // Trigger hash change handling inside the iframe's profile.js
+      iframe.contentWindow.dispatchEvent(new HashChangeEvent('hashchange'));
+      // Reset resize polling for new content
+      autoResizeIframe(iframe, 'profile');
+    } catch (e) {
+      // Cross-origin fallback: reload with new hash
+      var src = iframe.src.replace(/#.*$/, '') + '#' + sub;
+      iframe.src = src;
+    }
   }
 
   function routeFromHash() {

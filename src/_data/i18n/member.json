@@ -114,6 +114,14 @@
     "tab_profile": "Profil",
     "tab_leads": "Leads",
 
+    "profile_sub_profile": "Min Profil",
+    "profile_sub_passes": "Mine Pas",
+    "profile_sub_visits": "Besøgshistorik",
+    "profile_sub_store": "Butik",
+    "profile_sub_receipts": "Kvitteringer",
+    "profile_sub_applications": "Ansøgninger",
+    "profile_sub_giftcards": "Gavekort",
+
     "hub_materials_title": "Uddannelsesmaterialer",
     "hub_materials_desc": "PDF-manualer, arbejdsbøger og referencematerialer til dit program",
     "hub_materials_badge": "Materialer",
@@ -262,6 +270,14 @@
     "tab_materials": "Materials",
     "tab_profile": "Profile",
     "tab_leads": "Leads",
+
+    "profile_sub_profile": "My Profile",
+    "profile_sub_passes": "My Passes",
+    "profile_sub_visits": "Visit History",
+    "profile_sub_store": "Store",
+    "profile_sub_receipts": "Receipts",
+    "profile_sub_applications": "Applications",
+    "profile_sub_giftcards": "Gift Cards",
 
     "hub_materials_title": "Training Materials",
     "hub_materials_desc": "PDF manuals, workbooks and reference materials for your program",
