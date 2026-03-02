@@ -14,3 +14,4 @@ lead-agent/logs/
 lead-agent/*.json
 lead-agent/__pycache__/
 lead-agent/tools/__pycache__/
+lead-agent/.knowledge-refresh-needed
