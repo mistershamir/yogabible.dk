@@ -1,9 +1,12 @@
 #!/usr/bin/env python3
 """
 Yoga Bible — AI Lead Management Agent
-Conversational interface + background drip scheduler + Firestore listener.
+Telegram interface + background drip scheduler + Firestore listener.
 
-Run: python agent.py
+Run:
+  python agent.py              # Telegram bot mode (default)
+  python agent.py --cli        # Old-school terminal mode (for testing)
+  python agent.py --daemon     # Telegram bot mode (launchd compatible)
 """
 
 import os
@@ -245,6 +248,8 @@ Context:
 
 Communication style:
 - Be concise and action-oriented
+- Use short paragraphs — this is Telegram, not email
+- Use emoji sparingly for visual scanning (✅ ⏸ 📧 📞)
 - Confirm actions taken
 - In Danish when the lead is Danish, in English otherwise
 - Always note what you did in the lead's Firestore record
@@ -261,6 +266,10 @@ conversation_history = []
 def chat(user_message):
     """Send a message to Claude and handle tool use."""
     conversation_history.append({"role": "user", "content": user_message})
+
+    # Keep conversation history manageable (last 40 messages)
+    if len(conversation_history) > 40:
+        conversation_history[:] = conversation_history[-40:]
 
     while True:
         response = client.messages.create(
@@ -296,18 +305,103 @@ def chat(user_message):
             # Continue the loop to get the next response
 
 
+# ── Button callback handler ──────────────────────────
+def handle_button(action, lead_id):
+    """Handle inline keyboard button taps from Telegram."""
+    if action == 'pause':
+        return chat(f"Pause the drip sequence for lead {lead_id} — I want to handle this one manually.")
+    elif action == 'call':
+        return chat(f"Pause drip for lead {lead_id} — I'll call them first. Remind me tomorrow at 10:00 if I haven't updated.")
+    elif action == 'ack':
+        return chat(f"Lead {lead_id} looks good, let the drip continue as planned. Just acknowledge.")
+    else:
+        return f"Unknown action: {action}"
+
+
 # ── New lead handler (Firestore listener) ─────────────
+# Will be set by the Telegram bot startup to enable async notifications
+_telegram_app = None
+
 def on_new_lead(lead):
-    """Called when a new lead appears in Firestore. Initializes their drip sequence."""
+    """Called when a new lead appears in Firestore. Initializes drip + notifies Telegram."""
     if lead.get('type') == 'ytt':
         logger.info(f'New YTT lead: {lead.get("first_name")} {lead.get("last_name")} ({lead.get("email")})')
         initialize_drip_for_lead(lead['id'], lead)
 
+        # Send Telegram notification
+        if _telegram_app:
+            from tools.telegram import format_new_lead_notification, send_notification
+            msg, buttons = format_new_lead_notification(lead)
+            asyncio.run_coroutine_threadsafe(
+                send_notification(_telegram_app, msg, buttons),
+                _telegram_app_loop
+            )
 
-# ── Main ──────────────────────────────────────────────
-def main():
+_telegram_app_loop = None
+
+
+# ── Drip notification hook ────────────────────────────
+def notify_drip_sent(lead_id, lead, step, channel='email'):
+    """Send a Telegram notification when a drip email/SMS is sent."""
+    if _telegram_app:
+        from tools.telegram import format_drip_sent_notification, send_notification
+        msg = format_drip_sent_notification(lead_id, lead, step, channel)
+        asyncio.run_coroutine_threadsafe(
+            send_notification(_telegram_app, msg),
+            _telegram_app_loop
+        )
+
+
+# ── Main: Telegram mode ─────────────────────────────
+def main_telegram():
+    """Run the agent as a Telegram bot."""
+    from telegram.ext import Application
+    from tools.telegram import build_handlers, TELEGRAM_TOKEN
+
+    global _telegram_app, _telegram_app_loop
+
+    if not TELEGRAM_TOKEN:
+        logger.error('TELEGRAM_BOT_TOKEN not set in .env — cannot start Telegram bot')
+        sys.exit(1)
+
+    logger.info('Starting Yoga Bible Lead Agent (Telegram mode)...')
+
+    # Build the Telegram application
+    app = Application.builder().token(TELEGRAM_TOKEN).build()
+    _telegram_app = app
+
+    # Register handlers
+    for handler in build_handlers(chat_fn=chat, on_callback_fn=handle_button):
+        app.add_handler(handler)
+
+    # Start the drip scheduler
+    scheduler = BackgroundScheduler()
+    interval = int(os.getenv('DRIP_CHECK_INTERVAL_MINUTES', '60'))
+    scheduler.add_job(process_due_drips, 'interval', minutes=interval,
+                      id='drip_check', replace_existing=True)
+    scheduler.start()
+    logger.info(f'Drip scheduler started (checking every {interval} min)')
+
+    # Start Firestore listener for new leads
+    try:
+        listen_new_leads(on_new_lead)
+        logger.info('Firestore listener started for new leads')
+    except Exception as e:
+        logger.warning(f'Could not start Firestore listener: {e}')
+
+    # Run the bot (blocks until stopped)
+    logger.info('Telegram bot is running — send /start to your bot')
+    app.run_polling(drop_pending_updates=True)
+
+    # Cleanup
+    scheduler.shutdown()
+
+
+# ── Main: CLI mode (for testing) ──────────────────────
+def main_cli():
+    """Run the agent in terminal mode (original behavior)."""
     print('\n' + '=' * 60)
-    print('  YOGA BIBLE — AI Lead Management Agent')
+    print('  YOGA BIBLE — AI Lead Management Agent (CLI mode)')
     print('  Type your commands in natural language.')
     print('  Type "quit" or Ctrl+C to exit.')
     print('=' * 60 + '\n')
@@ -348,6 +442,15 @@ def main():
         except Exception as e:
             logger.error(f'Error: {e}')
             print(f'\n❌ Error: {e}')
+
+
+# ── Entry point ──────────────────────────────────────
+def main():
+    if '--cli' in sys.argv:
+        main_cli()
+    else:
+        # Default: Telegram mode (also used by --daemon)
+        main_telegram()
 
 
 if __name__ == '__main__':
