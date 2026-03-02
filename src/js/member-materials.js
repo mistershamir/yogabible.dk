@@ -23,6 +23,16 @@
     return div.innerHTML;
   }
 
+  // Convert a Google Drive share/view URL to a direct download URL.
+  // Input:  https://drive.google.com/file/d/FILE_ID/view?...
+  // Output: https://drive.google.com/uc?export=download&id=FILE_ID
+  function driveDownloadUrl(url) {
+    if (!url || url.indexOf('drive.google.com') === -1) return url;
+    var match = url.match(/\/file\/d\/([^/?#]+)/);
+    if (match) return 'https://drive.google.com/uc?export=download&id=' + match[1];
+    return url;
+  }
+
   function t(key) {
     return T[key] || key;
   }
@@ -200,8 +210,9 @@
         html += '</div>';
         html += '<div class="yb-mat__card-actions">';
         if (d.fileUrl) {
+          var downloadUrl = driveDownloadUrl(d.fileUrl);
           html += '<a href="' + esc(d.fileUrl) + '" target="_blank" rel="noopener" class="yb-btn yb-btn--primary yb-btn--small">' + esc(t('materials_open')) + '</a>';
-          html += '<a href="' + esc(d.fileUrl) + '" download class="yb-btn yb-btn--outline yb-btn--small">';
+          html += '<a href="' + esc(downloadUrl) + '" target="_blank" rel="noopener" class="yb-btn yb-btn--outline yb-btn--small">';
           html += '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>';
           html += '</a>';
         }
