@@ -16801,6 +16801,50 @@ button.yb-btn--outline-white:hover {
   width: 0%;
 }
 
+/* ── Toggle switch (yb-toggle) ── */
+.yb-toggle { display: inline-flex; align-items: center; cursor: pointer; gap: 0.5rem; user-select: none; }
+.yb-toggle input[type="checkbox"] { position: absolute; opacity: 0; width: 0; height: 0; }
+.yb-toggle__track {
+  display: inline-block;
+  width: 36px; height: 20px;
+  background: var(--yb-border, #E8E4E0);
+  border-radius: 20px;
+  position: relative;
+  transition: background 0.2s;
+  flex-shrink: 0;
+}
+.yb-toggle__track::after {
+  content: '';
+  position: absolute;
+  top: 3px; left: 3px;
+  width: 14px; height: 14px;
+  border-radius: 50%;
+  background: #fff;
+  transition: transform 0.2s;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.18);
+}
+.yb-toggle input:checked + .yb-toggle__track { background: var(--yb-brand, #f75c03); }
+.yb-toggle input:checked + .yb-toggle__track::after { transform: translateX(16px); }
+.yb-toggle--sm .yb-toggle__track { width: 30px; height: 17px; }
+.yb-toggle--sm .yb-toggle__track::after { width: 11px; height: 11px; top: 3px; left: 3px; }
+.yb-toggle--sm input:checked + .yb-toggle__track::after { transform: translateX(13px); }
+
+/* ── Doc admin filter chips ── */
+.yb-doc-filter-chip {
+  padding: 0.3rem 0.7rem;
+  border-radius: 20px;
+  border: 1px solid var(--yb-border, #E8E4E0);
+  background: #fff;
+  font-family: inherit;
+  font-size: 0.78rem;
+  cursor: pointer;
+  color: var(--yb-muted, #6F6A66);
+  transition: all 0.15s;
+  white-space: nowrap;
+}
+.yb-doc-filter-chip:hover { border-color: var(--yb-brand, #f75c03); color: var(--yb-brand, #f75c03); }
+.yb-doc-filter-chip.is-active { background: var(--yb-brand, #f75c03); border-color: var(--yb-brand, #f75c03); color: #fff; }
+
 /* ── Print styles ── */
 @media print {
   .yb-cv-topbar, .yb-cv-sidebar, .yb-cv-sidebar-overlay,
