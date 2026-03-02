@@ -14,6 +14,7 @@ import sys
 import json
 import logging
 import asyncio
+import time
 from datetime import datetime, timezone
 from dotenv import load_dotenv
 
@@ -33,7 +34,7 @@ from tools.email import (
 )
 from tools.sms import send_sms
 from scheduler import initialize_drip_for_lead, process_due_drips
-from knowledge import build_knowledge, refresh_knowledge, read_project_file, get_recent_changes, check_refresh_flag
+from knowledge import build_knowledge, refresh_knowledge, check_refresh_flag
 
 # ── Logging ───────────────────────────────────────────
 logging.basicConfig(
@@ -54,17 +55,17 @@ MODEL = os.getenv('AGENT_MODEL', 'claude-sonnet-4-20250514')
 TOOLS = [
     {
         "name": "get_new_leads",
-        "description": "Get new leads from the last N hours. Default 24 hours.",
+        "description": "Get new leads from the last N hours (default 24).",
         "input_schema": {
             "type": "object",
             "properties": {
-                "since_hours": {"type": "number", "description": "Hours to look back. Default 24."}
+                "since_hours": {"type": "number"}
             }
         }
     },
     {
         "name": "find_lead",
-        "description": "Find a lead by email or name. Use email for exact match, or first_name + optional last_name.",
+        "description": "Find a lead by email or name.",
         "input_schema": {
             "type": "object",
             "properties": {
@@ -76,46 +77,46 @@ TOOLS = [
     },
     {
         "name": "update_lead_status",
-        "description": "Update a lead's status, sub_status, temperature, priority, or other fields.",
+        "description": "Update lead status, temperature, or add notes.",
         "input_schema": {
             "type": "object",
             "properties": {
-                "lead_id": {"type": "string", "description": "Firestore document ID"},
+                "lead_id": {"type": "string"},
                 "status": {"type": "string", "enum": ["New", "In Progress", "Contacted", "Converted", "Not Interested", "Deferred"]},
                 "sub_status": {"type": "string"},
                 "temperature": {"type": "string", "enum": ["Hot", "Warm", "Cold", ""]},
-                "notes": {"type": "string", "description": "Note to add (timestamped)"}
+                "notes": {"type": "string"}
             },
             "required": ["lead_id"]
         }
     },
     {
         "name": "pause_lead_emails",
-        "description": "Pause the drip email sequence for a lead. Stops all automated follow-up emails.",
+        "description": "Pause drip sequence for a lead.",
         "input_schema": {
             "type": "object",
             "properties": {
                 "lead_id": {"type": "string"},
-                "reason": {"type": "string", "description": "Why emails are being paused"}
+                "reason": {"type": "string"}
             },
             "required": ["lead_id"]
         }
     },
     {
         "name": "resume_lead_emails",
-        "description": "Resume a paused drip sequence. Optionally restart from a specific step (2-5).",
+        "description": "Resume paused drip. Optionally set from_step (2-5).",
         "input_schema": {
             "type": "object",
             "properties": {
                 "lead_id": {"type": "string"},
-                "from_step": {"type": "number", "description": "Step to resume from (2-5). Omit to continue where paused."}
+                "from_step": {"type": "number"}
             },
             "required": ["lead_id"]
         }
     },
     {
         "name": "get_drip_info",
-        "description": "Get the current drip sequence status for a lead.",
+        "description": "Get drip sequence status for a lead.",
         "input_schema": {
             "type": "object",
             "properties": {
@@ -126,82 +127,54 @@ TOOLS = [
     },
     {
         "name": "send_custom_email",
-        "description": "Send a custom one-off email to a lead (not part of the drip sequence). IMPORTANT: Use the Yoga Bible HTML email style — brand colors, signature, English note. Never send a plain/generic email.",
+        "description": "Send a one-off email. Use Yoga Bible HTML style (orange #f75c03, Danish, signature).",
         "input_schema": {
             "type": "object",
             "properties": {
                 "to_email": {"type": "string"},
                 "subject": {"type": "string"},
-                "body_html": {"type": "string", "description": "HTML email body. Use the Yoga Bible brand style (orange=#f75c03, signature, English note, etc.)"},
-                "log_lead_id": {"type": "string", "description": "Lead ID to log this email against"}
+                "body_html": {"type": "string"},
+                "log_lead_id": {"type": "string"}
             },
             "required": ["to_email", "subject", "body_html"]
         }
     },
     {
         "name": "send_template_email",
-        "description": "Send an email using one of the existing Yoga Bible templates. Use this for welcome emails (per program type) or drip step emails. This uses the EXACT same templates as the website forms, with correct content, signature, English note, pricing, and accommodation sections.",
+        "description": "Send welcome or drip email using existing templates with correct content, pricing, signature.",
         "input_schema": {
             "type": "object",
             "properties": {
-                "template_type": {
-                    "type": "string",
-                    "enum": ["welcome", "drip"],
-                    "description": "'welcome' = program welcome email (same as form submission). 'drip' = drip sequence step (2-5)."
-                },
-                "lead_id": {"type": "string", "description": "Firestore lead ID to look up and send to"},
-                "lead_email": {"type": "string", "description": "Alternative: send directly to this email (if no lead_id)"},
+                "template_type": {"type": "string", "enum": ["welcome", "drip"]},
+                "lead_id": {"type": "string"},
+                "lead_email": {"type": "string"},
                 "lead_data": {
                     "type": "object",
-                    "description": "Lead data override (first_name, email, ytt_program_type, type, accommodation, city_country, program, course_id). Used when lead_id lookup fails or for test sends.",
                     "properties": {
                         "first_name": {"type": "string"},
                         "email": {"type": "string"},
                         "ytt_program_type": {"type": "string"},
                         "type": {"type": "string"},
                         "accommodation": {"type": "string"},
-                        "city_country": {"type": "string"},
-                        "program": {"type": "string"},
-                        "course_id": {"type": "string"}
+                        "program": {"type": "string"}
                     }
                 },
-                "program_type": {"type": "string", "description": "For welcome: override program type (18-week, 4-week, 8-week, 300h, 50h, 30h)"},
-                "drip_step": {"type": "number", "description": "For drip: which step to send (1-5)"}
+                "program_type": {"type": "string"},
+                "drip_step": {"type": "number"}
             },
             "required": ["template_type"]
         }
     },
     {
         "name": "send_sms_message",
-        "description": "Send an SMS to a lead's phone number via GatewayAPI.",
+        "description": "Send SMS via GatewayAPI (max 160 chars).",
         "input_schema": {
             "type": "object",
             "properties": {
                 "to_phone": {"type": "string"},
-                "message": {"type": "string", "description": "SMS text (max 160 chars recommended)"}
+                "message": {"type": "string"}
             },
             "required": ["to_phone", "message"]
-        }
-    },
-    {
-        "name": "read_project_file",
-        "description": "Read a project file to check current code, templates, or configuration. Use relative paths from project root (e.g. 'netlify/functions/shared/config.js', 'lead-agent/tools/email.py', 'apps-script/06 emails.js').",
-        "input_schema": {
-            "type": "object",
-            "properties": {
-                "file_path": {"type": "string", "description": "Relative path from project root"}
-            },
-            "required": ["file_path"]
-        }
-    },
-    {
-        "name": "get_recent_changes",
-        "description": "Get recent git commits and changed files. Use to see what has changed in the project recently.",
-        "input_schema": {
-            "type": "object",
-            "properties": {
-                "days": {"type": "number", "description": "How many days back to look. Default 7."}
-            }
         }
     }
 ]
@@ -260,12 +233,6 @@ def execute_tool(name, input_data):
 
         elif name == 'send_sms_message':
             return send_sms(input_data['to_phone'], input_data['message'])
-
-        elif name == 'read_project_file':
-            return read_project_file(input_data['file_path'])
-
-        elif name == 'get_recent_changes':
-            return get_recent_changes(input_data.get('days', 7))
 
         return {'error': f'Unknown tool: {name}'}
 
@@ -355,23 +322,54 @@ logger.info(f'System prompt loaded ({len(SYSTEM_PROMPT)} chars)')
 
 conversation_history = []
 
+MAX_RETRIES = 4
+RETRY_BACKOFF = [2, 4, 8, 16]  # seconds
+
+def _call_api_with_retry(messages):
+    """Call Anthropic API with retry + exponential backoff for rate limits."""
+    for attempt in range(MAX_RETRIES + 1):
+        try:
+            return client.messages.create(
+                model=MODEL,
+                max_tokens=2048,
+                system=SYSTEM_PROMPT,
+                tools=TOOLS,
+                messages=messages,
+            )
+        except anthropic.RateLimitError as e:
+            if attempt < MAX_RETRIES:
+                wait = RETRY_BACKOFF[attempt]
+                logger.warning(f'Rate limited (attempt {attempt + 1}/{MAX_RETRIES + 1}), retrying in {wait}s...')
+                time.sleep(wait)
+            else:
+                logger.error(f'Rate limit exceeded after {MAX_RETRIES + 1} attempts')
+                raise
+        except anthropic.APIError as e:
+            if attempt < MAX_RETRIES and getattr(e, 'status_code', 0) >= 500:
+                wait = RETRY_BACKOFF[attempt]
+                logger.warning(f'API error {e.status_code} (attempt {attempt + 1}), retrying in {wait}s...')
+                time.sleep(wait)
+            else:
+                raise
+
+
 def chat(user_message):
     """Send a message to Claude and handle tool use."""
     global SYSTEM_PROMPT
     conversation_history.append({"role": "user", "content": user_message})
 
-    # Keep conversation history manageable (last 40 messages)
-    if len(conversation_history) > 40:
-        conversation_history[:] = conversation_history[-40:]
+    # Keep conversation history manageable (last 20 messages to save tokens)
+    if len(conversation_history) > 20:
+        conversation_history[:] = conversation_history[-20:]
 
     while True:
-        response = client.messages.create(
-            model=MODEL,
-            max_tokens=2048,
-            system=SYSTEM_PROMPT,
-            tools=TOOLS,
-            messages=conversation_history,
-        )
+        try:
+            response = _call_api_with_retry(conversation_history)
+        except Exception as e:
+            logger.error(f'API call failed: {e}')
+            # Remove the user message we just added so history stays clean
+            conversation_history.pop()
+            return f'Sorry, I hit an API error: {e}'
 
         # Add assistant response to history
         conversation_history.append({"role": "assistant", "content": response.content})
