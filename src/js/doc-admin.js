@@ -471,6 +471,15 @@
     }
   });
 
+  // ── Google Drive hint: show when URL field contains a Drive link ──
+  var urlInput = $('yb-doc-url');
+  var gdriveHint = $('yb-doc-gdrive-hint');
+  if (urlInput && gdriveHint) {
+    urlInput.addEventListener('input', function() {
+      gdriveHint.style.display = urlInput.value.indexOf('drive.google.com') !== -1 ? 'block' : 'none';
+    });
+  }
+
   // ── Form submit ──
   var form = $('yb-doc-form');
   if (form) form.addEventListener('submit', saveDocument);
