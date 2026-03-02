@@ -35,6 +35,7 @@ from tools.email import (
 from tools.sms import send_sms
 from scheduler import initialize_drip_for_lead, process_due_drips
 from knowledge import build_knowledge, refresh_knowledge, check_refresh_flag
+from monitor import notify_startup, notify_shutdown, notify_error, heartbeat
 
 # ── Logging ───────────────────────────────────────────
 logging.basicConfig(
@@ -238,6 +239,11 @@ def execute_tool(name, input_data):
 
     except Exception as e:
         logger.error(f'Tool {name} failed: {e}')
+        # Alert on email/SMS failures
+        if name in ('send_custom_email', 'send_template_email'):
+            notify_error('email_fail', f'{name}: {e}')
+        elif name == 'send_sms_message':
+            notify_error('sms_fail', f'{name}: {e}')
         return {'error': str(e)}
 
 
@@ -476,6 +482,9 @@ def main_telegram():
 
     logger.info('Starting Yoga Bible Lead Agent (Telegram mode)...')
 
+    # Notify via Telegram that agent has (re)started
+    notify_startup()
+
     # Build the Telegram application
     app = Application.builder().token(TELEGRAM_TOKEN).build()
     _telegram_app = app
@@ -508,9 +517,15 @@ def main_telegram():
 
     scheduler.add_job(_check_and_reload, 'interval', minutes=5,
                       id='knowledge_refresh', replace_existing=True)
+
+    # Daily heartbeat — proof of life + error summary
+    scheduler.add_job(heartbeat, 'interval', hours=24,
+                      id='heartbeat', replace_existing=True)
+
     scheduler.start()
     logger.info(f'Drip scheduler started (checking every {interval} min)')
     logger.info('Knowledge refresh checker started (checking every 5 min)')
+    logger.info('Daily heartbeat scheduled')
 
     # Start Firestore listener for new leads
     try:
@@ -525,6 +540,7 @@ def main_telegram():
 
     # Cleanup
     scheduler.shutdown()
+    notify_shutdown()
 
 
 # ── Main: CLI mode (for testing) ──────────────────────

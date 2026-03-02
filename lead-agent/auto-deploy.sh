@@ -7,7 +7,7 @@ set -e
 
 REPO_DIR="$HOME/yogabible.dk"
 AGENT_DIR="$REPO_DIR/lead-agent"
-BRANCH="claude/ai-email-followup-agent-2ORku"
+BRANCH="main"
 PLIST_NAME="com.yogabible.lead-agent"
 LOG_FILE="$AGENT_DIR/logs/auto-deploy.log"
 

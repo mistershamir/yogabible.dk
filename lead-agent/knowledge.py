@@ -87,8 +87,37 @@ def _compute_hash():
     return h.hexdigest()
 
 
+def _extract_config_summary():
+    """Read the live Netlify config.js and extract key data for the agent."""
+    content = _read_file('netlify/functions/shared/config.js')
+    if not content:
+        return '(config.js not found — using defaults)'
+    # Return the full config since it contains pricing, program types, schedule PDFs, etc.
+    # Truncate if too large (keep first 5000 chars which covers all the important stuff)
+    if len(content) > 5000:
+        content = content[:5000] + '\n... (truncated)'
+    return content
+
+
+def _extract_email_templates_summary():
+    """Read the live Netlify lead-emails.js and extract a summary of what each email says."""
+    content = _read_file('netlify/functions/shared/lead-emails.js')
+    if not content:
+        return '(lead-emails.js not found)'
+    # The file is large (~30KB). Include the key functions to give Claude visibility
+    # into what the actual welcome emails say (subject lines, banners, pricing, messaging).
+    # Truncate to keep the prompt reasonable but include enough to see all templates.
+    if len(content) > 20000:
+        content = content[:20000] + '\n... (truncated — remaining templates follow same pattern)'
+    return content
+
+
 def build_knowledge():
-    """Build the complete knowledge context from project files."""
+    """Build the complete knowledge context from project files.
+
+    Dynamically reads the live Netlify source files so the agent always
+    has up-to-date pricing, email content, program details, etc.
+    """
     global _cached_knowledge, _cache_hash
 
     current_hash = _compute_hash()
@@ -98,19 +127,21 @@ def build_knowledge():
 
     logger.info('Building knowledge base from project files...')
 
-    # (File reads removed to save tokens — templates are built into tools/email.py)
+    # Read live source files
+    config_content = _extract_config_summary()
+    email_content = _extract_email_templates_summary()
 
-    knowledge = """You are the lead management agent for Yoga Bible Denmark (yogabible.dk), a Yoga Alliance certified yoga teacher training school in Copenhagen.
+    knowledge = f"""You are the lead management agent for Yoga Bible Denmark (yogabible.dk), a Yoga Alliance certified yoga teacher training school in Copenhagen.
 
 BUSINESS: Owner Shamir (Kursusdirektør). Studio: Torvegade 66, 1400 København K. Phone: +45 53 88 12 09. Email: info@yogabible.dk. Booking: yogabible.dk/?booking=1
 
 YTT PROGRAMS (all Yoga Alliance RYT-200, 23750 DKK total, max 12 students):
 - 4-week Intensive: full-time daily, April 2026
 - 8-week Semi-Intensive: weekends, May-June 2026
-- 18-week Flexible: Saturdays, March-June 2026
+- 18-week Flexible: Saturdays, March-June 2026 (ALREADY STARTED — leads can still join this week with 1000 kr last-minute discount)
 - 300h Advanced: weekends, May-Dec 2026
 - 50h Specialty / 30h Module: TBA
-Preparation Phase ("Forberedelsesfasen"): 3750 DKK deposit (NEVER say "deposit"/"depositum" to leads — say "Forberedelsesfasen"). Gives immediate studio access. Remaining 20000 DKK in installments before start.
+Preparation Phase ("Forberedelsesfasen"): 3750 DKK (NEVER say "deposit"/"depositum" to leads — say "Forberedelsesfasen"). Gives immediate studio access. Remaining 20000 DKK in installments before start.
 
 COURSES: Inversions/Splits/Backbends — each 2300 DKK, 8 sessions. Bundle discounts available.
 
@@ -125,11 +156,24 @@ DRIP SEQUENCE (5 steps over 10 days for YTT leads):
 
 EMAILS: Use send_template_email tool for welcome/drip emails — it uses the exact Netlify templates with correct content, pricing, signature, English note. For custom emails use Yoga Bible HTML style (brand orange #f75c03, Danish, signature: "Kærlig hilsen, Shamir - Kursusdirektør, Yoga Bible (DK)"). NEVER invent generic emails — always use templates.
 
+IMPORTANT — 18-WEEK PROGRAM STATUS: The 18-week program has ALREADY STARTED (March 2026). The welcome email includes a "last-minute" banner offering 1000 kr discount, telling leads the intro modules are recorded so they can catch up. The discounted price is 22,750 kr (normal 23,750). This is the CURRENT live email — do NOT tell 18w leads the program hasn't started yet.
+
 SMS: GatewayAPI, sender +45 53 88 12 09, max 160 chars.
 
 STYLE: Be concise (Telegram). Short paragraphs. Emoji sparingly: ✅ ⏸ 📧 📞 🟢. Danish for Danish leads, English otherwise. Log notes to Firestore after actions.
 
 WORKFLOW when Shamir reports a conversation: 1) Find lead 2) Update status+notes 3) Adjust drip 4) Confirm.
+
+════════════════════════════════════════════
+LIVE REFERENCE: Netlify config.js (pricing, programs, PDFs, payment URLs)
+════════════════════════════════════════════
+{config_content}
+
+════════════════════════════════════════════
+LIVE REFERENCE: Netlify lead-emails.js (welcome email templates — the ACTUAL emails leads receive)
+These are the emails that go out automatically. When Shamir asks you to send a welcome email or asks what a lead received, refer to THIS source.
+════════════════════════════════════════════
+{email_content}
 """
 
     _cached_knowledge = knowledge
