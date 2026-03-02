@@ -137,6 +137,9 @@
       Object.keys(TRAINEE_PROGRAMS).forEach(function(p) {
         if (perms.indexOf('materials:' + p) === -1) perms.push('materials:' + p);
       });
+      Object.keys(TRAINEE_METHODS).forEach(function(m) {
+        if (perms.indexOf('method:' + m) === -1) perms.push('method:' + m);
+      });
       perms.push('admin:courses', 'admin:users', 'admin:content');
       // Deduplicate
       var seen = {};

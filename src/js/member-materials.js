@@ -138,10 +138,11 @@
           allDocs.push(Object.assign({ id: doc.id }, doc.data()));
         });
 
-        // Filter: user must have ALL requiredPermissions
+        // Filter: active only, and user must have ALL requiredPermissions
         var filtered = allDocs.filter(function(doc) {
+          if (doc.active === false) return false;
           var required = doc.requiredPermissions || [];
-          if (!required.length) return true; // No permissions required — visible to all with tab access
+          if (!required.length) return true;
           return required.every(function(perm) {
             return userPermissions.indexOf(perm) !== -1;
           });
