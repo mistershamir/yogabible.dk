@@ -1,6 +1,11 @@
 """
 Email tools for the lead management agent.
 Uses Gmail SMTP — same setup as the Netlify functions.
+
+Includes:
+- Raw email sending
+- Drip email builder (5-step sequence)
+- Welcome email builder (per program type, mirrors Netlify templates)
 """
 
 import os
@@ -14,6 +19,113 @@ load_dotenv()
 GMAIL_USER = os.getenv('GMAIL_USER', 'info@yogabible.dk')
 GMAIL_APP_PASSWORD = os.getenv('GMAIL_APP_PASSWORD', '')
 FROM_NAME = 'Yoga Bible'
+
+# ── Shared HTML building blocks (mirrors Netlify email-service.js) ──
+
+BASE_STYLE = 'font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Helvetica,Arial,sans-serif;color:#1a1a1a;line-height:1.65;font-size:16px;'
+BTN_STYLE = 'display:inline-block;background:#f75c03;color:#ffffff;padding:12px 24px;text-decoration:none;border-radius:6px;font-weight:600;'
+ORANGE = '#f75c03'
+
+MEETING_LINK = 'https://yogabible.dk/?booking=1'
+ACCOMMODATION_LINK = 'https://yogabible.dk/accommodation'
+
+SCHEDULE_LINKS = {
+    '18-week': 'https://yogabible.dk/ytt-skema/?program=18w-mar-jun-2026',
+    '4-week': 'https://yogabible.dk/ytt-skema/?program=4w-apr-2026',
+    '8-week': 'https://yogabible.dk/ytt-skema/?program=8w-may-jun-2026',
+}
+
+SCHEDULE_PDFS = {
+    '18-week': 'https://res.cloudinary.com/ddcynsa30/image/upload/v1771280099/18w-mar-jun-2026.pdf_izgiuz',
+    '4-week': 'https://res.cloudinary.com/ddcynsa30/image/upload/v1771280041/4w-apr-2026.pdf_x9iwdf',
+    '8-week': 'https://res.cloudinary.com/ddcynsa30/image/upload/v1771280072/8w-may-jun-2026.pdf_k7i62j',
+}
+
+PROGRAM_LABELS = {
+    '18-week': '18-Ugers Fleksibel Yogalæreruddannelse (200h RYT)',
+    '4-week': '4-Ugers Intensiv Yogalæreruddannelse (200h RYT)',
+    '8-week': '8-Ugers Semi-Intensiv Yogalæreruddannelse (200h RYT)',
+    '300h': '300-Timers Avanceret Yogalæreruddannelse',
+    '50h': '50-Timers Specialmodul',
+    '30h': '30-Timers Specialmodul',
+}
+
+COHORT_LABELS = {
+    '18-week': 'Marts–Juni 2026',
+    '4-week': 'April 2026',
+    '8-week': 'Maj–Juni 2026',
+    '300h': 'Maj–December 2026',
+}
+
+
+def _signature_html():
+    """Yoga Bible full HTML signature (matches Netlify + Apps Script)."""
+    return (
+        f'<div style="margin-top:18px;padding-top:14px;border-top:1px solid #EBE7E3;font-size:15px;line-height:1.55;color:#1a1a1a;">'
+        f'<div style="margin:0 0 2px;">Kærlig hilsen,</div>'
+        f'<div style="margin:0 0 2px;"><strong>Shamir</strong> - Kursusdirektør</div>'
+        f'<div style="margin:0 0 2px;">Yoga Bible (DK)</div>'
+        f'<div style="margin:0 0 2px;"><a href="https://www.yogabible.dk" style="color:{ORANGE};text-decoration:none;">www.yogabible.dk</a></div>'
+        f'<div style="margin:0 0 2px;"><a href="https://www.google.com/maps/search/?api=1&query=Torvegade+66,+1400+Copenhagen,+Denmark" target="_blank" style="color:{ORANGE};text-decoration:none;">Torvegade 66, 1400 København K, Danmark</a></div>'
+        f'<div style="margin:0;"><a href="tel:+4553881209" style="color:{ORANGE};text-decoration:none;">+45 53 88 12 09</a></div>'
+        f'</div>'
+    )
+
+
+def _signature_plain():
+    return '\n\nKærlig hilsen,\nShamir - Kursusdirektør\nYoga Bible (DK)\nwww.yogabible.dk\nTorvegade 66, 1400 København K, Danmark\n+45 53 88 12 09'
+
+
+def _english_note_html():
+    return '<p style="margin-top:16px;font-size:13px;color:#888;border-top:1px solid #EBE7E3;padding-top:12px;">🇬🇧 Are you an English speaker? No problem — just reply in English and I will be happy to help.</p>'
+
+
+def _english_note_plain():
+    return '\n\nAre you an English speaker? No problem — just reply in English and I will be happy to help.\n'
+
+
+def _accommodation_html(city_country=None):
+    city_part = f' kommer fra {city_country} og' if city_country else ''
+    return (
+        f'<div style="margin-top:16px;padding:14px;background:#E8F5E9;border-radius:6px;border-left:3px solid #4CAF50;">'
+        f'<strong style="color:#2E7D32;">🏠 Bolig:</strong> '
+        f'Jeg kan se, at du{city_part} har brug for bolig i København.<br><br>'
+        f'Vi samarbejder med lokale udbydere. '
+        f'<strong><a href="{ACCOMMODATION_LINK}" style="color:{ORANGE};">Se boligmuligheder her →</a></strong><br>'
+        f'<span style="color:#666;">Har du spørgsmål om bolig? Svar bare på denne e-mail.</span>'
+        f'</div>'
+    )
+
+
+def _pricing_html(full_price=23750, deposit=3750):
+    remaining = full_price - deposit
+    return (
+        f'<div style="margin-top:20px;padding:14px;background:#FFFCF9;border-left:3px solid {ORANGE};border-radius:4px;">'
+        f'<strong>Pris:</strong> {full_price:,} kr. (ingen ekstra gebyrer)<br>'
+        f'<strong>Forberedelsesfasen:</strong> {deposit:,} kr. sikrer din plads<br>'
+        f'<strong>Rest:</strong> {remaining:,} kr. (i behagelige rater inden uddannelsesstart)'
+        f'</div>'
+    )
+
+
+def _booking_cta_html():
+    return (
+        f'<p style="margin-top:20px;">Har du lyst til at høre mere eller stille spørgsmål? Book et gratis og uforpligtende infomøde:</p>'
+        f'<p><a href="{MEETING_LINK}" style="{BTN_STYLE}">Book gratis infomøde →</a></p>'
+        f'<p style="color:#666;font-size:14px;">20 minutter · Ansigt til ansigt eller online · Helt uforpligtende</p>'
+    )
+
+
+def _wrap_full_email(body_html, email_to=None):
+    """Wrap email body with all standard sections: English note + signature + unsubscribe."""
+    html = f'<div style="{BASE_STYLE}">'
+    html += body_html
+    html += _english_note_html()
+    html += _signature_html()
+    if email_to:
+        html += f'<div style="margin-top:24px;padding-top:12px;border-top:1px solid #EBE7E3;text-align:center;"><span style="color:#999;font-size:11px;">Ønsker du ikke at modtage flere e-mails? Svar "afmeld" på denne e-mail.</span></div>'
+    html += '</div>'
+    return html
 
 
 def send_email(to, subject, body_html, body_text=None):
@@ -127,3 +239,160 @@ def build_drip_email(step, lead, schedule_link=None):
         return None, None, None
 
     return subject, html, text
+
+
+# ── Welcome email templates (mirrors Netlify lead-emails.js) ──────
+
+def build_welcome_email(lead, program_type=None):
+    """
+    Build a welcome email matching the Netlify template for a program type.
+    Returns (subject, html, text) tuple.
+    This is the SAME content the lead receives when they first submit a form.
+    """
+    first_name = lead.get('first_name', '')
+    email = lead.get('email', '')
+    ptype = program_type or lead.get('ytt_program_type', '8-week')
+    lead_type = lead.get('type', 'ytt')
+    accommodation = lead.get('accommodation', '')
+    city_country = lead.get('city_country', '')
+
+    if lead_type == 'course':
+        return _build_course_welcome(lead)
+    elif lead_type == 'mentorship':
+        return _build_mentorship_welcome(lead)
+
+    # YTT welcome email
+    label = PROGRAM_LABELS.get(ptype, 'Yogalæreruddannelse (200h)')
+    cohort = COHORT_LABELS.get(ptype, '')
+    schedule_link = SCHEDULE_LINKS.get(ptype, 'https://yogabible.dk/ytt-skema/')
+    schedule_pdf = SCHEDULE_PDFS.get(ptype, '')
+
+    subject = f'{first_name}, velkommen — her er dit skema for {label}'
+
+    # Build highlights per program type
+    highlights = _get_program_highlights(ptype)
+
+    body = f'<p>Hej {first_name},</p>'
+    body += f'<p>Tak for din interesse i vores <strong>{label}</strong>. Det er rigtig spændende!</p>'
+
+    if cohort:
+        body += f'<p>Det aktuelle hold starter <strong>{cohort}</strong>.</p>'
+
+    # Schedule section
+    if schedule_pdf:
+        body += f'<p style="margin-top:16px;"><strong>📄 Dit skema:</strong></p>'
+        body += f'<p><a href="{schedule_pdf}" style="{BTN_STYLE}">Download skema (PDF) →</a></p>'
+    if schedule_link:
+        body += f'<p>Du kan også se det interaktive skema online og tilføje datoerne til din kalender:</p>'
+        body += f'<p><a href="{schedule_link}" style="color:{ORANGE};font-weight:600;">Se interaktivt skema →</a></p>'
+
+    # Program highlights
+    if highlights:
+        body += '<p style="margin-top:16px;"><strong>Uddannelsen inkluderer:</strong></p><ul style="padding-left:20px;">'
+        for h in highlights:
+            body += f'<li style="margin-bottom:6px;">{h}</li>'
+        body += '</ul>'
+
+    # Pricing section
+    body += _pricing_html()
+
+    # Accommodation
+    if accommodation and accommodation.lower() in ('yes', 'ja', 'true'):
+        body += _accommodation_html(city_country)
+
+    # Booking CTA
+    body += _booking_cta_html()
+
+    html = _wrap_full_email(body, email)
+    text = f'Hej {first_name},\n\nTak for din interesse i {label}.\n\nSe dit skema: {schedule_link}\n\nForberedelsesfasen: 3.750 kr.\n\nBook infomøde: {MEETING_LINK}{_english_note_plain()}{_signature_plain()}'
+
+    return subject, html, text
+
+
+def _get_program_highlights(ptype):
+    """Get bullet-point highlights for a YTT program type."""
+    shared = [
+        'Yoga Alliance certificeret (RYT-200)',
+        'Max 12 studerende per hold',
+        'Torvegade 66, Christianshavn, København',
+        'Adgang til alle studiehold under forberedelsesfasen',
+    ]
+    specific = {
+        '4-week': [
+            '4 ugers fuldtids-immersion',
+            'Mandag–fredag workshops',
+            'Den hurtigste vej til certificering',
+        ],
+        '8-week': [
+            '8 workshop-lørdage',
+            'Behold dit job eller studie ved siden af',
+            'Semi-intensivt weekend-format',
+        ],
+        '18-week': [
+            '18 workshop-lørdage',
+            'Det mest fleksible format',
+            'Perfekt balance med dagligdagen',
+        ],
+        '300h': [
+            'Avanceret certificering (bygger på 200h)',
+            'Specialiserede moduler',
+            'For erfarne praktikere og undervisere',
+        ],
+    }
+    return specific.get(ptype, []) + shared
+
+
+def _build_course_welcome(lead):
+    """Build welcome email for course leads (Inversions, Splits, Backbends)."""
+    first_name = lead.get('first_name', '')
+    email = lead.get('email', '')
+    course = lead.get('program', lead.get('course_id', 'Specialkursus'))
+
+    subject = f'{first_name}, velkommen til {course} hos Yoga Bible'
+
+    body = f'<p>Hej {first_name},</p>'
+    body += f'<p>Tak for din interesse i vores <strong>{course}</strong> kursus!</p>'
+    body += '<p>Kurset er 8 sessioner med fokus på teknik, styrke og progression. Alle niveauer er velkomne.</p>'
+    body += f'<div style="margin:16px 0;padding:14px;background:#FFFCF9;border-left:3px solid {ORANGE};border-radius:4px;">'
+    body += '<strong>Pris:</strong> 2.300 kr. per kursus<br>'
+    body += '<strong>Sessioner:</strong> 8 workshops<br>'
+    body += '<strong>Rabat:</strong> Spar med vores kursuspakker (2 eller 3 kurser)'
+    body += '</div>'
+    body += _booking_cta_html()
+
+    html = _wrap_full_email(body, email)
+    text = f'Hej {first_name},\n\nTak for din interesse i {course}.\n\nPris: 2.300 kr. · 8 sessioner\n\nBook infomøde: {MEETING_LINK}{_english_note_plain()}{_signature_plain()}'
+
+    return subject, html, text
+
+
+def _build_mentorship_welcome(lead):
+    """Build welcome email for mentorship leads."""
+    first_name = lead.get('first_name', '')
+    email = lead.get('email', '')
+
+    subject = f'{first_name}, velkommen til Yoga Bible Mentorship'
+
+    body = f'<p>Hej {first_name},</p>'
+    body += '<p>Tak for din interesse i vores <strong>Personlig Mentorship</strong> program!</p>'
+    body += '<p>Mentorship er et 1:1 skræddersyet forløb, hvor vi sammen udvikler din praksis og undervisning med personlig vejledning hele vejen.</p>'
+    body += _booking_cta_html()
+
+    html = _wrap_full_email(body, email)
+    text = f'Hej {first_name},\n\nTak for din interesse i Mentorship.\n\nBook konsultation: {MEETING_LINK}{_english_note_plain()}{_signature_plain()}'
+
+    return subject, html, text
+
+
+def send_welcome_email(lead, program_type=None):
+    """Build and send a welcome email for a lead using the correct template."""
+    subject, html, text = build_welcome_email(lead, program_type)
+    return send_email(lead['email'], subject, html, text)
+
+
+def send_drip_step(lead, step, schedule_link=None):
+    """Build and send a drip email for a specific step."""
+    subject, html, text = build_drip_email(step, lead, schedule_link)
+    if subject:
+        return send_email(lead['email'], subject, html, text)
+    return {'error': f'Invalid drip step: {step}'}
