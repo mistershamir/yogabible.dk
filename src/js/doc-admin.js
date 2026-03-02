@@ -480,6 +480,43 @@
     });
   }
 
+  // ── Seed trainee materials button ──
+  var seedBtn = $('yb-doc-seed-btn');
+  var seedStatus = $('yb-doc-seed-status');
+  if (seedBtn) {
+    seedBtn.addEventListener('click', function() {
+      seedBtn.disabled = true;
+      seedBtn.textContent = t('doc_seed_running');
+      if (seedStatus) { seedStatus.style.display = 'none'; seedStatus.textContent = ''; }
+
+      getAuthHeaders().then(function(headers) {
+        headers['Content-Type'] = 'application/json';
+        return fetch('/.netlify/functions/seed-trainee-materials', { method: 'POST', headers: headers });
+      }).then(function(r) { return r.json(); }).then(function(data) {
+        if (data.ok) {
+          if (seedStatus) {
+            seedStatus.textContent = t('doc_seed_ok');
+            seedStatus.style.color = 'green';
+            seedStatus.style.display = '';
+          }
+          setTimeout(function() { loadDocuments(); }, 1200);
+        } else {
+          throw new Error(data.error || 'Unknown error');
+        }
+      }).catch(function(err) {
+        console.error('[seed] Error:', err);
+        if (seedStatus) {
+          seedStatus.textContent = t('doc_seed_err');
+          seedStatus.style.color = '#dc3545';
+          seedStatus.style.display = '';
+        }
+      }).finally(function() {
+        seedBtn.disabled = false;
+        seedBtn.textContent = t('doc_seed_btn');
+      });
+    });
+  }
+
   // ── Form submit ──
   var form = $('yb-doc-form');
   if (form) form.addEventListener('submit', saveDocument);
