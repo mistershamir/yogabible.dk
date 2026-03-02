@@ -16,6 +16,15 @@ from tools.sms import send_sms, build_followup_sms
 
 logger = logging.getLogger('lead-agent.scheduler')
 
+
+def _notify_telegram(lead_id, lead, step, channel):
+    """Try to send a Telegram notification. Fails silently if not available."""
+    try:
+        from agent import notify_drip_sent
+        notify_drip_sent(lead_id, lead, step, channel)
+    except Exception:
+        pass  # Telegram not available (e.g. CLI mode)
+
 # Drip sequence timing: step -> days after lead creation
 DRIP_SCHEDULE = {
     1: 0,    # Immediate (handled by Netlify function already — skip in drip)
@@ -88,6 +97,7 @@ def process_due_drips():
                 log_email_sent(lead_id, lead['email'], subject, step)
                 add_lead_note(lead_id, f'Drip email #{step} sent: "{subject}"')
                 logger.info(f'Sent drip #{step} to {lead["email"]}')
+                _notify_telegram(lead_id, lead, step, 'email')
 
             # Send SMS on steps 2 and 4
             if step in (2, 4) and lead.get('phone'):
@@ -95,6 +105,7 @@ def process_due_drips():
                 if sms_text:
                     send_sms(lead['phone'], sms_text)
                     add_lead_note(lead_id, f'Drip SMS #{step} sent')
+                    _notify_telegram(lead_id, lead, step, 'sms')
 
             # Advance to next step
             next_step = step + 1
