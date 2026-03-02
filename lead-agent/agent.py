@@ -30,7 +30,7 @@ from tools.firestore import (
 )
 from tools.email import (
     send_email, build_drip_email, build_welcome_email,
-    send_welcome_email, send_drip_step, SCHEDULE_LINKS
+    send_welcome_email, send_drip_step, build_welcome_sms, SCHEDULE_LINKS
 )
 from tools.sms import send_sms
 from scheduler import initialize_drip_for_lead, process_due_drips
@@ -273,7 +273,17 @@ def _handle_template_email(input_data):
         result = send_email(lead_data['email'], subject, html, text)
         if lead_id:
             add_lead_note(lead_id, f'Welcome email sent via template ({program_type}): "{subject}"')
-        return {**result, 'template': 'welcome', 'program_type': program_type}
+
+        # Also send welcome SMS if phone is available (mirrors Netlify lead.js flow)
+        sms_result = None
+        phone = lead_data.get('phone', '')
+        if phone:
+            sms_message = build_welcome_sms(lead_data)
+            sms_result = send_sms(phone, sms_message)
+            if lead_id:
+                add_lead_note(lead_id, f'Welcome SMS sent: "{sms_message[:30]}..."')
+
+        return {**result, 'template': 'welcome', 'program_type': program_type, 'sms_sent': sms_result is not None and sms_result.get('success', False)}
 
     elif template_type == 'drip':
         step = input_data.get('drip_step', 2)

@@ -97,22 +97,86 @@ def _accommodation_html(city_country=None):
     )
 
 
-def _pricing_html(full_price=23750, deposit=3750):
-    remaining = full_price - deposit
-    return (
-        f'<div style="margin-top:20px;padding:14px;background:#FFFCF9;border-left:3px solid {ORANGE};border-radius:4px;">'
-        f'<strong>Pris:</strong> {full_price:,} kr. (ingen ekstra gebyrer)<br>'
-        f'<strong>Forberedelsesfasen:</strong> {deposit:,} kr. sikrer din plads<br>'
-        f'<strong>Rest:</strong> {remaining:,} kr. (i behagelige rater inden uddannelsesstart)'
-        f'</div>'
-    )
 
 
 def _booking_cta_html():
     return (
-        f'<p style="margin-top:20px;">Har du lyst til at høre mere eller stille spørgsmål? Book et gratis og uforpligtende infomøde:</p>'
-        f'<p><a href="{MEETING_LINK}" style="{BTN_STYLE}">Book gratis infomøde →</a></p>'
-        f'<p style="color:#666;font-size:14px;">20 minutter · Ansigt til ansigt eller online · Helt uforpligtende</p>'
+        '<p style="margin-top:20px;">Har du lyst til at høre mere eller stille spørgsmål? Book et gratis og uforpligtende infomøde:</p>'
+        f'<p><a href="{MEETING_LINK}" style="display:inline-block;background:#f75c03;color:#ffffff;padding:12px 24px;text-decoration:none;border-radius:6px;font-weight:600;">Book et gratis infomøde</a></p>'
+    )
+
+
+def _question_prompt_html():
+    return (
+        '<p style="margin-top:20px;">Jeg vil også gerne høre: <strong>Hvad fik dig til at overveje en yogauddannelse?</strong> Du er velkommen til bare at svare på denne mail.</p>'
+        '<p>Glæder mig til at høre fra dig.</p>'
+    )
+
+
+def _alumni_note_html():
+    return '<p style="margin-top:12px;">Vi har uddannet yogalærere siden 2014, og vores dimittender underviser i hele Europa og videre.</p>'
+
+
+def _program_highlights_html(extras=None):
+    """Shared program highlights — matches Netlify programHighlightsHtml()."""
+    html = '<p style="margin-top:16px;">Kort om uddannelsen:</p>'
+    html += '<ul style="margin:8px 0;padding-left:20px;color:#333;">'
+    html += '<li>200 timer · Yoga Alliance-certificeret</li>'
+    html += '<li>Hatha, Vinyasa, Yin, Hot Yoga & Meditation</li>'
+    html += '<li>Anatomi, filosofi, sekvensering & undervisningsmetodik</li>'
+    if extras:
+        for e in extras:
+            html += f'<li>{e}</li>'
+    html += '<li>Alle niveauer er velkomne</li>'
+    html += '</ul>'
+    return html
+
+
+def _program_highlights_plain(extras=None):
+    text = 'Kort om uddannelsen:\n'
+    text += '- 200 timer · Yoga Alliance-certificeret\n'
+    text += '- Hatha, Vinyasa, Yin, Hot Yoga & Meditation\n'
+    text += '- Anatomi, filosofi, sekvensering & undervisningsmetodik\n'
+    if extras:
+        for e in extras:
+            text += f'- {e}\n'
+    text += '- Alle niveauer velkomne\n'
+    return text
+
+
+def _preparation_phase_html(program_page_url):
+    """Green box with preparation phase benefits — matches Netlify getPreparationPhaseHtml()."""
+    return (
+        '<div style="margin-top:16px;padding:16px;background:#F0FDF4;border-left:3px solid #22C55E;border-radius:4px;">'
+        '<strong style="color:#166534;">💡 Vidste du?</strong> De fleste studerende starter med forberedelsesfasen allerede nu — og det er der en god grund til:<br><br>'
+        '✅ Du kan begynde at deltage i klasser i studiet med det samme<br>'
+        '✅ Du opbygger styrke, fleksibilitet og rutine inden uddannelsesstart<br>'
+        '✅ Du møder dine kommende medstuderende i et afslappet miljø<br>'
+        '✅ Dine klasser tæller med i dine træningstimer<br><br>'
+        f'<a href="{program_page_url}" style="display:inline-block;background:#f75c03;color:#ffffff;padding:10px 20px;text-decoration:none;border-radius:6px;font-weight:600;">Start forberedelsesfasen — 3.750 kr.</a>'
+        '</div>'
+    )
+
+
+def _preparation_phase_plain(program_page_url):
+    return (
+        '\nVidste du? De fleste studerende starter med forberedelsesfasen allerede nu:\n'
+        '- Deltag i klasser i studiet med det samme\n'
+        '- Opbyg styrke, fleksibilitet og rutine inden uddannelsesstart\n'
+        '- Mød dine kommende medstuderende\n'
+        '- Dine klasser tæller med i dine træningstimer\n'
+        f'Start forberedelsesfasen: {program_page_url}\n'
+    )
+
+
+def _pricing_section_html(full_price, deposit, remaining, rate_note):
+    """Pricing box — matches Netlify getPricingSectionHtml()."""
+    return (
+        f'<div style="margin-top:20px;padding:14px;background:#FFFCF9;border-left:3px solid #f75c03;border-radius:4px;">'
+        f'<strong>Pris:</strong> {full_price} kr. (ingen ekstra gebyrer)<br>'
+        f'<strong>Forberedelsesfasen:</strong> {deposit} kr. sikrer din plads<br>'
+        f'<strong>Rest:</strong> {remaining} kr. ({rate_note})'
+        f'</div>'
     )
 
 
@@ -241,105 +305,229 @@ def build_drip_email(step, lead, schedule_link=None):
     return subject, html, text
 
 
-# ── Welcome email templates (mirrors Netlify lead-emails.js) ──────
+# ── Welcome email templates (exact mirror of Netlify lead-emails.js) ──────
 
 def build_welcome_email(lead, program_type=None):
     """
-    Build a welcome email matching the Netlify template for a program type.
+    Build a welcome email matching the EXACT Netlify template for a program type.
     Returns (subject, html, text) tuple.
-    This is the SAME content the lead receives when they first submit a form.
     """
     first_name = lead.get('first_name', '')
     email = lead.get('email', '')
     ptype = program_type or lead.get('ytt_program_type', '8-week')
     lead_type = lead.get('type', 'ytt')
-    accommodation = lead.get('accommodation', '')
-    city_country = lead.get('city_country', '')
 
     if lead_type == 'course':
         return _build_course_welcome(lead)
     elif lead_type == 'mentorship':
         return _build_mentorship_welcome(lead)
 
-    # YTT welcome email
-    label = PROGRAM_LABELS.get(ptype, 'Yogalæreruddannelse (200h)')
-    cohort = COHORT_LABELS.get(ptype, '')
-    schedule_link = SCHEDULE_LINKS.get(ptype, 'https://yogabible.dk/ytt-skema/')
-    schedule_pdf = SCHEDULE_PDFS.get(ptype, '')
+    # Route to the correct YTT template
+    if ptype == '18-week':
+        return _build_18w_welcome(lead)
+    elif ptype == '4-week':
+        return _build_4w_welcome(lead)
+    elif ptype == '8-week':
+        return _build_8w_welcome(lead)
+    else:
+        # 300h, 50h, 30h — use generic YTT template
+        return _build_generic_ytt_welcome(lead, ptype)
 
-    subject = f'{first_name}, velkommen — her er dit skema for {label}'
 
-    # Build highlights per program type
-    highlights = _get_program_highlights(ptype)
+def _build_18w_welcome(lead):
+    """18-week YTT welcome — exact mirror of Netlify sendEmail18wYTT()."""
+    first_name = lead.get('first_name', '')
+    email = lead.get('email', '')
+    needs_housing = (lead.get('accommodation', '') or '').lower() == 'yes'
+    city_country = lead.get('city_country', '')
+
+    subject = f'{first_name}, uddannelsen er netop startet — tilmeld dig stadig denne uge'
+    schedule_url = 'https://www.yogabible.dk/skema/18-uger/'
+    program_page = 'https://www.yogabible.dk/200-hours-18-weeks-flexible-programs'
+
+    # Started + last-minute discount banner
+    started_banner = (
+        '<div style="margin-bottom:20px;padding:14px 16px;background:#FFF7ED;border-left:3px solid #f75c03;border-radius:6px;">'
+        '<p style="margin:0 0 8px;"><strong style="color:#c2410c;">🌟 Uddannelsen er netop gået i gang — og du kan stadig nå med denne uge.</strong></p>'
+        '<p style="margin:0;color:#444;">Intromodulerne er allerede afholdt, men vi har dem på optagelse — så du nemt kan indhente det på ingen tid. Som tak for din hurtige beslutning får du <strong style="color:#c2410c;">1.000 kr. i last-minute-rabat</strong>.</p>'
+        '</div>'
+    )
 
     body = f'<p>Hej {first_name},</p>'
-    body += f'<p>Tak for din interesse i vores <strong>{label}</strong>. Det er rigtig spændende!</p>'
+    body += '<p>Tak fordi du viste interesse for vores <strong>18-ugers fleksible yogalæreruddannelse</strong>.</p>'
+    body += started_banner
+    body += '<p>Her finder du alle datoer og tidspunkter for uddannelsen:</p>'
+    body += f'<p style="margin:20px 0;"><a href="{schedule_url}" style="display:inline-block;background:#f75c03;color:#ffffff;padding:14px 28px;text-decoration:none;border-radius:50px;font-weight:600;font-size:16px;">Se skemaet →</a></p>'
+    body += '<p style="font-size:14px;color:#666;">Du kan tilføje alle datoer direkte til din kalender — og se præcis hvilke dage der er hverdagshold og weekendhold.</p>'
+    body += _program_highlights_html([
+        'Vælg hverdags- eller weekendspor — og skift frit undervejs',
+        'Online backup hvis du ikke kan møde op en dag',
+        '60 yogaklasser i studiet inkluderet'
+    ])
+    body += '<p style="margin-top:12px;">Det, der gør dette program unikt, er fleksibiliteten. Hver workshop kører to gange — én på en hverdag og én i weekenden — så du altid kan følge med, uanset hvad din uge ser ud.</p>'
+    body += '<p style="margin-top:12px;">Holdet er <strong>netop gået i gang</strong>, og vi holder holdene små for at sikre personlig feedback. <strong>Der er kun få pladser tilbage</strong> — og last-minute-rabatten gælder kun denne uge.</p>'
 
-    if cohort:
-        body += f'<p>Det aktuelle hold starter <strong>{cohort}</strong>.</p>'
-
-    # Schedule section
-    if schedule_pdf:
-        body += f'<p style="margin-top:16px;"><strong>📄 Dit skema:</strong></p>'
-        body += f'<p><a href="{schedule_pdf}" style="{BTN_STYLE}">Download skema (PDF) →</a></p>'
-    if schedule_link:
-        body += f'<p>Du kan også se det interaktive skema online og tilføje datoerne til din kalender:</p>'
-        body += f'<p><a href="{schedule_link}" style="color:{ORANGE};font-weight:600;">Se interaktivt skema →</a></p>'
-
-    # Program highlights
-    if highlights:
-        body += '<p style="margin-top:16px;"><strong>Uddannelsen inkluderer:</strong></p><ul style="padding-left:20px;">'
-        for h in highlights:
-            body += f'<li style="margin-bottom:6px;">{h}</li>'
-        body += '</ul>'
-
-    # Pricing section
-    body += _pricing_html()
-
-    # Accommodation
-    if accommodation and accommodation.lower() in ('yes', 'ja', 'true'):
+    if needs_housing:
         body += _accommodation_html(city_country)
 
-    # Booking CTA
-    body += _booking_cta_html()
+    # Discounted pricing
+    body += (
+        '<div style="margin-top:20px;padding:14px;background:#FFFCF9;border-left:3px solid #f75c03;border-radius:4px;">'
+        '<strong>Normalpris:</strong> <span style="text-decoration:line-through;color:#999;">23.750 kr.</span> &rarr; <strong style="color:#166534;">22.750 kr.</strong> med last-minute-rabat<br>'
+        '<strong>Forberedelsesfasen:</strong> 3.750 kr. sikrer din plads<br>'
+        '<strong>Rest:</strong> 19.000 kr. (kan betales i op til 5 rater)'
+        '</div>'
+    )
+    body += _preparation_phase_html(program_page)
+    body += f'<p style="margin-top:20px;"><a href="{program_page}" style="color:#f75c03;">Læs mere om 18-ugers programmet</a>'
+    body += ' · <a href="https://www.yogabible.dk/om-200hrs-yogalreruddannelser" style="color:#f75c03;">Om vores 200-timers uddannelse</a></p>'
+    body += _booking_cta_html() + _question_prompt_html()
+    body += _english_note_html() + _signature_html()
+    body += f'<div style="margin-top:24px;padding-top:12px;border-top:1px solid #EBE7E3;text-align:center;"><span style="color:#999;font-size:11px;">Ønsker du ikke at modtage flere e-mails? Svar "afmeld" på denne e-mail.</span></div>'
 
-    html = _wrap_full_email(body, email)
-    text = f'Hej {first_name},\n\nTak for din interesse i {label}.\n\nSe dit skema: {schedule_link}\n\nForberedelsesfasen: 3.750 kr.\n\nBook infomøde: {MEETING_LINK}{_english_note_plain()}{_signature_plain()}'
+    html = f'<div style="{BASE_STYLE}">{body}</div>'
+
+    text = f'Hej {first_name},\n\n'
+    text += 'Tak fordi du viste interesse for vores 18-ugers fleksible yogalæreruddannelse.\n\n'
+    text += '🌟 UDDANNELSEN ER NETOP GÅET I GANG — DU KAN STADIG NÅ MED DENNE UGE\n\n'
+    text += 'Intromodulerne er allerede afholdt, men vi har dem på optagelse — så du nemt kan indhente det.\n'
+    text += 'Som tak for din hurtige beslutning får du 1.000 kr. i last-minute-rabat.\n\n'
+    text += f'Uddannelsesskema og datoer:\n{schedule_url}\n\n'
+    text += _program_highlights_plain(['Vælg hverdags- eller weekendspor — skift frit undervejs', 'Online backup hvis du ikke kan møde op', '60 yogaklasser inkluderet'])
+    text += '\nNormalpris: 23.750 kr. — din pris med last-minute-rabat: 22.750 kr.\n'
+    text += 'Forberedelsesfasen: 3.750 kr. · Rest: 19.000 kr. (op til 5 rater)\n'
+    text += _preparation_phase_plain(program_page)
+    text += f'\nLæs mere: {program_page}\n'
+    text += f'Book infomøde: {MEETING_LINK}\n'
+    text += _english_note_plain() + _signature_plain()
 
     return subject, html, text
 
 
-def _get_program_highlights(ptype):
-    """Get bullet-point highlights for a YTT program type."""
-    shared = [
-        'Yoga Alliance certificeret (RYT-200)',
-        'Max 12 studerende per hold',
-        'Torvegade 66, Christianshavn, København',
-        'Adgang til alle studiehold under forberedelsesfasen',
-    ]
-    specific = {
-        '4-week': [
-            '4 ugers fuldtids-immersion',
-            'Mandag–fredag workshops',
-            'Den hurtigste vej til certificering',
-        ],
-        '8-week': [
-            '8 workshop-lørdage',
-            'Behold dit job eller studie ved siden af',
-            'Semi-intensivt weekend-format',
-        ],
-        '18-week': [
-            '18 workshop-lørdage',
-            'Det mest fleksible format',
-            'Perfekt balance med dagligdagen',
-        ],
-        '300h': [
-            'Avanceret certificering (bygger på 200h)',
-            'Specialiserede moduler',
-            'For erfarne praktikere og undervisere',
-        ],
-    }
-    return specific.get(ptype, []) + shared
+def _build_4w_welcome(lead):
+    """4-week YTT welcome — exact mirror of Netlify sendEmail4wYTT()."""
+    first_name = lead.get('first_name', '')
+    email = lead.get('email', '')
+    program = lead.get('program', '4-Week Intensive YTT')
+    needs_housing = (lead.get('accommodation', '') or '').lower() == 'yes'
+    city_country = lead.get('city_country', '')
+
+    subject = f'{first_name}, her er alle datoer til 4-ugers yogauddannelsen'
+    schedule_url = 'https://www.yogabible.dk/skema/4-uger/'
+    program_page = 'https://www.yogabible.dk/200-hours-4-weeks-intensive-programs'
+
+    is_february = 'feb' in program.lower()
+    full_price = '20.750' if is_february else '23.750'
+    remaining = '17.000' if is_february else '20.000'
+    discount_note = ' (inkl. 3.000 kr. early bird-rabat)' if is_february else ''
+    rate_note = 'kan betales i 2–4 rater'
+
+    body = f'<p>Hej {first_name},</p>'
+    body += '<p>Tak fordi du viste interesse for vores <strong>4-ugers intensive 200-timers yogalæreruddannelse</strong>.</p>'
+    body += '<p>Her finder du alle træningsdage og tidspunkter for uddannelsen:</p>'
+    body += f'<p style="margin:20px 0;"><a href="{schedule_url}" style="display:inline-block;background:#f75c03;color:#ffffff;padding:14px 28px;text-decoration:none;border-radius:50px;font-weight:600;font-size:16px;">Se skemaet →</a></p>'
+    body += '<p style="font-size:14px;color:#666;">Du kan tilføje alle datoer direkte til din kalender — og se præcis, hvad der sker hver dag i de 4 uger.</p>'
+    body += '<p style="margin-top:16px;">Det intensive format er til dig, der vil fordybe dig fuldt ud. På 4 uger gennemfører du hele certificeringen med daglig træning og teori — mange af vores dimittender fortæller, at det intensive format hjalp dem med at lære mere, fordi de var 100% dedikerede.</p>'
+    body += _program_highlights_html()
+    body += '<p style="margin-top:12px;">Vi har uddannet yogalærere siden 2014, og vores dimittender underviser i hele Europa og videre. Kan du ikke møde op en dag, tilbyder vi online backup på udvalgte workshops.</p>'
+
+    if needs_housing:
+        body += _accommodation_html(city_country)
+
+    body += (
+        f'<div style="margin-top:20px;padding:14px;background:#FFFCF9;border-left:3px solid #f75c03;border-radius:4px;">'
+        f'<strong>Pris:</strong> {full_price} kr.{discount_note}<br>'
+        f'<strong>Forberedelsesfasen:</strong> 3.750 kr. sikrer din plads<br>'
+        f'<strong>Rest:</strong> {remaining} kr. ({rate_note})'
+        f'</div>'
+    )
+    body += _preparation_phase_html(program_page)
+    body += f'<p style="margin-top:20px;"><a href="{program_page}" style="color:#f75c03;">Læs mere om 4-ugers programmet</a>'
+    body += ' · <a href="https://www.yogabible.dk/om-200hrs-yogalreruddannelser" style="color:#f75c03;">Om vores 200-timers uddannelse</a></p>'
+    body += _booking_cta_html() + _question_prompt_html()
+    body += _english_note_html() + _signature_html()
+    body += f'<div style="margin-top:24px;padding-top:12px;border-top:1px solid #EBE7E3;text-align:center;"><span style="color:#999;font-size:11px;">Ønsker du ikke at modtage flere e-mails? Svar "afmeld" på denne e-mail.</span></div>'
+
+    html = f'<div style="{BASE_STYLE}">{body}</div>'
+
+    text = f'Hej {first_name},\n\n'
+    text += 'Tak fordi du viste interesse for vores 4-ugers intensive 200-timers yogalæreruddannelse.\n\n'
+    text += f'Uddannelsesskema og datoer:\n{schedule_url}\n\n'
+    text += _program_highlights_plain()
+    text += f'\nPris: {full_price} kr.{discount_note}\nForberedelsesfasen: 3.750 kr.\nRest: {remaining} kr. ({rate_note})\n\n'
+    text += _preparation_phase_plain(program_page)
+    text += f'\nLæs mere: {program_page}\n'
+    text += f'Book infomøde: {MEETING_LINK}\n'
+    text += _english_note_plain() + _signature_plain()
+
+    return subject, html, text
+
+
+def _build_8w_welcome(lead):
+    """8-week YTT welcome — exact mirror of Netlify sendEmail8wYTT()."""
+    first_name = lead.get('first_name', '')
+    email = lead.get('email', '')
+    needs_housing = (lead.get('accommodation', '') or '').lower() == 'yes'
+    city_country = lead.get('city_country', '')
+
+    subject = f'{first_name}, her er alle datoer til 8-ugers yogauddannelsen'
+    schedule_url = 'https://www.yogabible.dk/skema/8-uger/'
+    program_page = 'https://www.yogabible.dk/200-hours-8-weeks-semi-intensive-programs'
+
+    body = f'<p>Hej {first_name},</p>'
+    body += '<p>Tak fordi du viste interesse for vores <strong>8-ugers semi-intensive 200-timers yogalæreruddannelse</strong>.</p>'
+    body += '<p>Her finder du alle 22 workshopdatoer og tidspunkter:</p>'
+    body += f'<p style="margin:20px 0;"><a href="{schedule_url}" style="display:inline-block;background:#f75c03;color:#ffffff;padding:14px 28px;text-decoration:none;border-radius:50px;font-weight:600;font-size:16px;">Se skemaet →</a></p>'
+    body += '<p style="font-size:14px;color:#666;">Du kan tilføje alle datoer direkte til din kalender — og se præcis, hvad der sker hver dag i de 8 uger.</p>'
+    body += '<p style="margin-top:16px;">8-ugers formatet giver en god balance: nok intensitet til at holde fokus og gøre reelle fremskridt, men stadig plads til arbejde, familie eller andre forpligtelser. Det er et populært valg for dem, der gerne vil have en dyb oplevelse uden at sætte hele livet på pause.</p>'
+    body += _program_highlights_html(['Online backup hvis du ikke kan møde op en dag'])
+    body += _alumni_note_html()
+
+    if needs_housing:
+        body += _accommodation_html(city_country)
+
+    body += _pricing_section_html('23.750', '3.750', '20.000', 'kan betales i 2–4 rater')
+    body += _preparation_phase_html(program_page)
+    body += f'<p style="margin-top:20px;"><a href="{program_page}" style="color:#f75c03;">Læs mere om 8-ugers programmet</a>'
+    body += ' · <a href="https://www.yogabible.dk/om-200hrs-yogalreruddannelser" style="color:#f75c03;">Om vores 200-timers uddannelse</a></p>'
+    body += _booking_cta_html() + _question_prompt_html()
+    body += _english_note_html() + _signature_html()
+    body += f'<div style="margin-top:24px;padding-top:12px;border-top:1px solid #EBE7E3;text-align:center;"><span style="color:#999;font-size:11px;">Ønsker du ikke at modtage flere e-mails? Svar "afmeld" på denne e-mail.</span></div>'
+
+    html = f'<div style="{BASE_STYLE}">{body}</div>'
+
+    text = f'Hej {first_name},\n\n'
+    text += 'Tak fordi du viste interesse for vores 8-ugers semi-intensive 200-timers yogalæreruddannelse.\n\n'
+    text += f'Uddannelsesskema og datoer:\n{schedule_url}\n\n'
+    text += _program_highlights_plain(['Online backup hvis du ikke kan møde op'])
+    text += '\nPris: 23.750 kr. (ingen ekstra gebyrer)\nForberedelsesfasen: 3.750 kr.\nRest: 20.000 kr. (kan betales i 2–4 rater)\n\n'
+    text += _preparation_phase_plain(program_page)
+    text += f'\nLæs mere: {program_page}\n'
+    text += f'Book infomøde: {MEETING_LINK}\n'
+    text += _english_note_plain() + _signature_plain()
+
+    return subject, html, text
+
+
+def _build_generic_ytt_welcome(lead, ptype):
+    """Generic YTT welcome for 300h, 50h, 30h programs."""
+    first_name = lead.get('first_name', '')
+    email = lead.get('email', '')
+    label = PROGRAM_LABELS.get(ptype, 'Yogalæreruddannelse')
+
+    subject = f'{first_name}, tak for din interesse i {label}'
+
+    body = f'<p>Hej {first_name},</p>'
+    body += f'<p>Tak fordi du viste interesse for vores <strong>{label}</strong>.</p>'
+    body += _program_highlights_html()
+    body += _alumni_note_html()
+    body += _booking_cta_html() + _question_prompt_html()
+    body += _english_note_html() + _signature_html()
+
+    html = f'<div style="{BASE_STYLE}">{body}</div>'
+    text = f'Hej {first_name},\n\nTak for din interesse i {label}.\n\nBook infomøde: {MEETING_LINK}\n{_english_note_plain()}{_signature_plain()}'
+
+    return subject, html, text
 
 
 def _build_course_welcome(lead):
@@ -359,8 +547,9 @@ def _build_course_welcome(lead):
     body += '<strong>Rabat:</strong> Spar med vores kursuspakker (2 eller 3 kurser)'
     body += '</div>'
     body += _booking_cta_html()
+    body += _english_note_html() + _signature_html()
 
-    html = _wrap_full_email(body, email)
+    html = f'<div style="{BASE_STYLE}">{body}</div>'
     text = f'Hej {first_name},\n\nTak for din interesse i {course}.\n\nPris: 2.300 kr. · 8 sessioner\n\nBook infomøde: {MEETING_LINK}{_english_note_plain()}{_signature_plain()}'
 
     return subject, html, text
@@ -377,11 +566,40 @@ def _build_mentorship_welcome(lead):
     body += '<p>Tak for din interesse i vores <strong>Personlig Mentorship</strong> program!</p>'
     body += '<p>Mentorship er et 1:1 skræddersyet forløb, hvor vi sammen udvikler din praksis og undervisning med personlig vejledning hele vejen.</p>'
     body += _booking_cta_html()
+    body += _english_note_html() + _signature_html()
 
-    html = _wrap_full_email(body, email)
+    html = f'<div style="{BASE_STYLE}">{body}</div>'
     text = f'Hej {first_name},\n\nTak for din interesse i Mentorship.\n\nBook konsultation: {MEETING_LINK}{_english_note_plain()}{_signature_plain()}'
 
     return subject, html, text
+
+
+# ── Welcome SMS templates (mirrors Netlify config.js AUTO_SMS_CONFIG) ──
+
+WELCOME_SMS_TEMPLATES = {
+    'ytt': "Hi {{first_name}}! Thank you for your interest in our Yoga Teacher Training. We've sent details to your email (check inbox + spam). Book a free info session: https://yogabible.dk/?booking=1 — Warm regards, Yoga Bible",
+    'course': "Hi {{first_name}}! Thank you for your interest in our {{program}} course. We've sent details to your email (check inbox + spam). Book a consultation: https://yogabible.dk/?booking=1 — Warm regards, Yoga Bible",
+    'mentorship': "Hi {{first_name}}! Thank you for your interest in our Mentorship program. We've sent details to your email (check inbox + spam). Book a free consultation: https://yogabible.dk/?booking=1 — Warm regards, Yoga Bible",
+    'default': "Hi {{first_name}}! Thank you for reaching out to Yoga Bible. We've sent info to your email (check inbox + spam). Book a consultation: https://yogabible.dk/?booking=1 — Warm regards, Yoga Bible",
+}
+
+
+def build_welcome_sms(lead):
+    """Build the welcome SMS message matching the Netlify AUTO_SMS_CONFIG templates."""
+    lead_type = lead.get('type', 'ytt')
+    first_name = lead.get('first_name', 'there')
+    program = lead.get('program', 'yoga program')
+
+    if lead_type in ('ytt', 'meta'):
+        template = WELCOME_SMS_TEMPLATES['ytt']
+    elif lead_type in ('course', 'bundle'):
+        template = WELCOME_SMS_TEMPLATES['course']
+    elif lead_type == 'mentorship':
+        template = WELCOME_SMS_TEMPLATES['mentorship']
+    else:
+        template = WELCOME_SMS_TEMPLATES['default']
+
+    return template.replace('{{first_name}}', first_name).replace('{{program}}', program)
 
 
 def send_welcome_email(lead, program_type=None):
