@@ -51,7 +51,9 @@
   var expandedLeadIds = new Set();
 
   // Kanban columns
-  var KANBAN_COLUMNS = ['New', 'Contacted', 'No Answer', 'Follow-up', 'Engaged', 'Qualified', 'Negotiating', 'Converted'];
+  // 'Converted' and 'Existing Applicant' are intentionally excluded — those leads are
+  // hidden from the active leads view and live in the Applications tab instead.
+  var KANBAN_COLUMNS = ['New', 'Contacted', 'No Answer', 'Follow-up', 'Engaged', 'Qualified', 'Negotiating'];
 
   // Application state
   var applications = [];
@@ -507,9 +509,20 @@
      ══════════════════════════════════════════ */
   function getFilteredLeads() {
     var filtered = leads;
+
+    // By default hide converted/existing-applicant leads — they live in Applications tab.
+    // They remain visible when the user explicitly filters by those statuses (stat card click).
+    var CONVERTED_STATUSES = ['Converted', 'Existing Applicant'];
+    var isConvertedFilter = CONVERTED_STATUSES.indexOf(filterStatus) !== -1;
+    if (!isConvertedFilter) {
+      filtered = filtered.filter(function (l) {
+        return CONVERTED_STATUSES.indexOf(l.status) === -1 && !l.application_id;
+      });
+    }
+
     if (searchTerm) {
       var s = searchTerm.toLowerCase();
-      filtered = leads.filter(function (l) {
+      filtered = filtered.filter(function (l) {
         return (l.email || '').toLowerCase().indexOf(s) !== -1 ||
           (l.first_name || '').toLowerCase().indexOf(s) !== -1 ||
           (l.last_name || '').toLowerCase().indexOf(s) !== -1 ||
@@ -1462,10 +1475,26 @@
       var idx = leads.findIndex(function (l) { return l.id === currentLeadId; });
       if (idx !== -1) Object.assign(leads[idx], updates);
 
-      renderLeadDetailCard();
-      renderLeadStats();
-      saveBtnSuccess(btn);
-      toast(t('saved'));
+      // Converted / Existing Applicant → remove from active leads view
+      if (newStatus === 'Converted' || newStatus === 'Existing Applicant') {
+        saveBtnSuccess(btn);
+        var msg = newStatus === 'Converted'
+          ? 'Lead markeret som konverteret — se dem under Applications-fanen'
+          : 'Lead markeret som Existing Applicant — se dem under Applications-fanen';
+        toast(msg);
+        // Close detail panel and refresh list (lead disappears from active view)
+        $('yb-admin-v-lead-list').hidden = false;
+        $('yb-admin-v-lead-detail').hidden = true;
+        currentLeadId = null;
+        currentLead = null;
+        renderLeadView();
+        renderLeadStats();
+      } else {
+        renderLeadDetailCard();
+        renderLeadStats();
+        saveBtnSuccess(btn);
+        toast(t('saved'));
+      }
     }).catch(function (err) {
       console.error('[lead-admin] Save error:', err);
       saveBtnError(btn);
@@ -2096,11 +2125,16 @@
   function bulkUpdateStatus() {
     openBulkStatusPicker(STATUSES, selectedIds.size, function (newStatus) {
       var batch = db.batch();
+      var extraFields = {};
+      if (newStatus === 'Converted') {
+        extraFields.converted = true;
+        extraFields.converted_at = firebase.firestore.FieldValue.serverTimestamp();
+      }
       selectedIds.forEach(function (id) {
-        batch.update(db.collection('leads').doc(id), {
+        batch.update(db.collection('leads').doc(id), Object.assign({
           status: newStatus,
           updated_at: firebase.firestore.FieldValue.serverTimestamp()
-        });
+        }, extraFields));
       });
 
       batch.commit().then(function () {
