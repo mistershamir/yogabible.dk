@@ -5,10 +5,23 @@
 
 {# ── List View ── #}
 <div class="yb-admin__view" id="yb-doc-v-list">
-  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.5rem;flex-wrap:wrap;gap:1rem">
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;flex-wrap:wrap;gap:1rem">
     <h2 style="margin:0;font-size:1.3rem">{{ t.doc_title }}</h2>
     <button class="yb-btn yb-btn--primary yb-btn--small" data-action="new-doc">+ {{ t.doc_new }}</button>
   </div>
+
+  {# ── Seed trainee materials ── #}
+  <div style="background:#f5f3f0;border-radius:12px;padding:1rem 1.25rem;margin-bottom:1.5rem;display:flex;align-items:center;gap:1rem;flex-wrap:wrap">
+    <div style="flex:1;min-width:200px">
+      <p style="margin:0 0 0.2rem;font-size:0.85rem;font-weight:600">{{ t.doc_seed_title }}</p>
+      <p style="margin:0;font-size:0.75rem;color:var(--yb-muted,#6F6A66)">{{ t.doc_seed_hint }}</p>
+    </div>
+    <button class="yb-btn yb-btn--outline yb-btn--small" id="yb-doc-seed-btn" type="button">
+      {{ t.doc_seed_btn }}
+    </button>
+    <span id="yb-doc-seed-status" style="font-size:0.8rem;display:none"></span>
+  </div>
+
   <div id="yb-doc-list-container"></div>
 </div>
 
