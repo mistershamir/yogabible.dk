@@ -13,13 +13,27 @@
   </div>
 
   {# ── Seed box ── #}
-  <div style="background:#f5f3f0;border-radius:12px;padding:1rem 1.25rem;margin-bottom:1.25rem;display:flex;align-items:center;gap:1rem;flex-wrap:wrap">
-    <div style="flex:1;min-width:200px">
-      <p style="margin:0 0 0.2rem;font-size:0.85rem;font-weight:600">{{ t.doc_seed_title }}</p>
-      <p style="margin:0;font-size:0.75rem;color:var(--yb-muted,#6F6A66)">{{ t.doc_seed_hint }}</p>
+  <div style="border:1px solid var(--yb-border,#E8E4E0);border-radius:12px;margin-bottom:1.25rem;overflow:hidden">
+    {# Header row #}
+    <div style="display:flex;align-items:center;gap:1rem;padding:0.85rem 1.25rem;background:#f5f3f0;flex-wrap:wrap">
+      <div style="flex:1;min-width:200px">
+        <p style="margin:0 0 0.15rem;font-size:0.85rem;font-weight:600">{{ t.doc_seed_title }}</p>
+        <p style="margin:0;font-size:0.75rem;color:var(--yb-muted,#6F6A66)">{{ t.doc_seed_hint }}</p>
+      </div>
+      <div style="display:flex;align-items:center;gap:0.5rem;flex-wrap:wrap">
+        <button class="yb-btn yb-btn--outline yb-btn--small" id="yb-doc-seed-preview-btn" type="button">
+          {{ t.doc_seed_preview }}
+        </button>
+        <button class="yb-btn yb-btn--primary yb-btn--small" id="yb-doc-seed-btn" type="button" disabled>
+          {{ t.doc_seed_btn }}
+        </button>
+      </div>
     </div>
-    <button class="yb-btn yb-btn--outline yb-btn--small" id="yb-doc-seed-btn" type="button">{{ t.doc_seed_btn }}</button>
-    <span id="yb-doc-seed-status" style="font-size:0.8rem;display:none"></span>
+    {# Preview table — shown after "Check status" #}
+    <div id="yb-doc-seed-preview" style="display:none;padding:0.75rem 1.25rem 1rem">
+      <div id="yb-doc-seed-table"></div>
+      <div id="yb-doc-seed-status" style="font-size:0.82rem;margin-top:0.6rem;display:none"></div>
+    </div>
   </div>
 
   {# ── Search + Filters ── #}
