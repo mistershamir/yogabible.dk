@@ -27,9 +27,13 @@ from tools.firestore import (
     update_lead, add_lead_note, get_drip_status,
     pause_drip, resume_drip, listen_new_leads
 )
-from tools.email import send_email, build_drip_email
+from tools.email import (
+    send_email, build_drip_email, build_welcome_email,
+    send_welcome_email, send_drip_step, SCHEDULE_LINKS
+)
 from tools.sms import send_sms
 from scheduler import initialize_drip_for_lead, process_due_drips
+from knowledge import build_knowledge, refresh_knowledge, read_project_file, get_recent_changes, check_refresh_flag
 
 # ── Logging ───────────────────────────────────────────
 logging.basicConfig(
@@ -122,21 +126,54 @@ TOOLS = [
     },
     {
         "name": "send_custom_email",
-        "description": "Send a custom one-off email to a lead (not part of the drip sequence).",
+        "description": "Send a custom one-off email to a lead (not part of the drip sequence). IMPORTANT: Use the Yoga Bible HTML email style — brand colors, signature, English note. Never send a plain/generic email.",
         "input_schema": {
             "type": "object",
             "properties": {
                 "to_email": {"type": "string"},
                 "subject": {"type": "string"},
-                "body_html": {"type": "string", "description": "HTML email body. Use the Yoga Bible style."},
+                "body_html": {"type": "string", "description": "HTML email body. Use the Yoga Bible brand style (orange=#f75c03, signature, English note, etc.)"},
                 "log_lead_id": {"type": "string", "description": "Lead ID to log this email against"}
             },
             "required": ["to_email", "subject", "body_html"]
         }
     },
     {
+        "name": "send_template_email",
+        "description": "Send an email using one of the existing Yoga Bible templates. Use this for welcome emails (per program type) or drip step emails. This uses the EXACT same templates as the website forms, with correct content, signature, English note, pricing, and accommodation sections.",
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "template_type": {
+                    "type": "string",
+                    "enum": ["welcome", "drip"],
+                    "description": "'welcome' = program welcome email (same as form submission). 'drip' = drip sequence step (2-5)."
+                },
+                "lead_id": {"type": "string", "description": "Firestore lead ID to look up and send to"},
+                "lead_email": {"type": "string", "description": "Alternative: send directly to this email (if no lead_id)"},
+                "lead_data": {
+                    "type": "object",
+                    "description": "Lead data override (first_name, email, ytt_program_type, type, accommodation, city_country, program, course_id). Used when lead_id lookup fails or for test sends.",
+                    "properties": {
+                        "first_name": {"type": "string"},
+                        "email": {"type": "string"},
+                        "ytt_program_type": {"type": "string"},
+                        "type": {"type": "string"},
+                        "accommodation": {"type": "string"},
+                        "city_country": {"type": "string"},
+                        "program": {"type": "string"},
+                        "course_id": {"type": "string"}
+                    }
+                },
+                "program_type": {"type": "string", "description": "For welcome: override program type (18-week, 4-week, 8-week, 300h, 50h, 30h)"},
+                "drip_step": {"type": "number", "description": "For drip: which step to send (1-5)"}
+            },
+            "required": ["template_type"]
+        }
+    },
+    {
         "name": "send_sms_message",
-        "description": "Send an SMS to a lead's phone number.",
+        "description": "Send an SMS to a lead's phone number via GatewayAPI.",
         "input_schema": {
             "type": "object",
             "properties": {
@@ -144,6 +181,27 @@ TOOLS = [
                 "message": {"type": "string", "description": "SMS text (max 160 chars recommended)"}
             },
             "required": ["to_phone", "message"]
+        }
+    },
+    {
+        "name": "read_project_file",
+        "description": "Read a project file to check current code, templates, or configuration. Use relative paths from project root (e.g. 'netlify/functions/shared/config.js', 'lead-agent/tools/email.py', 'apps-script/06 emails.js').",
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "file_path": {"type": "string", "description": "Relative path from project root"}
+            },
+            "required": ["file_path"]
+        }
+    },
+    {
+        "name": "get_recent_changes",
+        "description": "Get recent git commits and changed files. Use to see what has changed in the project recently.",
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "days": {"type": "number", "description": "How many days back to look. Default 7."}
+            }
         }
     }
 ]
@@ -197,14 +255,72 @@ def execute_tool(name, input_data):
                 add_lead_note(input_data['log_lead_id'], f'Custom email sent: "{input_data["subject"]}"')
             return result
 
+        elif name == 'send_template_email':
+            return _handle_template_email(input_data)
+
         elif name == 'send_sms_message':
             return send_sms(input_data['to_phone'], input_data['message'])
+
+        elif name == 'read_project_file':
+            return read_project_file(input_data['file_path'])
+
+        elif name == 'get_recent_changes':
+            return get_recent_changes(input_data.get('days', 7))
 
         return {'error': f'Unknown tool: {name}'}
 
     except Exception as e:
         logger.error(f'Tool {name} failed: {e}')
         return {'error': str(e)}
+
+
+def _handle_template_email(input_data):
+    """Handle the send_template_email tool — build from templates and send."""
+    template_type = input_data['template_type']
+
+    # Resolve lead data: from lead_id lookup, lead_data override, or minimal data
+    lead_data = input_data.get('lead_data', {})
+    lead_id = input_data.get('lead_id')
+
+    if lead_id and not lead_data.get('email'):
+        # Look up lead from Firestore
+        from tools.firestore import get_lead_by_email
+        from google.cloud import firestore
+        db = firestore.Client()
+        doc = db.collection('leads').document(lead_id).get()
+        if doc.exists:
+            lead_data = {**doc.to_dict(), **lead_data, 'id': lead_id}
+        else:
+            return {'error': f'Lead {lead_id} not found in Firestore'}
+
+    # If only lead_email provided, use it
+    if input_data.get('lead_email') and not lead_data.get('email'):
+        lead_data['email'] = input_data['lead_email']
+
+    if not lead_data.get('email'):
+        return {'error': 'No email address available — provide lead_id, lead_email, or lead_data.email'}
+
+    if template_type == 'welcome':
+        program_type = input_data.get('program_type') or lead_data.get('ytt_program_type', '8-week')
+        subject, html, text = build_welcome_email(lead_data, program_type)
+        result = send_email(lead_data['email'], subject, html, text)
+        if lead_id:
+            add_lead_note(lead_id, f'Welcome email sent via template ({program_type}): "{subject}"')
+        return {**result, 'template': 'welcome', 'program_type': program_type}
+
+    elif template_type == 'drip':
+        step = input_data.get('drip_step', 2)
+        program_type = lead_data.get('ytt_program_type', '8-week')
+        schedule_link = SCHEDULE_LINKS.get(program_type, 'https://yogabible.dk/ytt-skema/')
+        subject, html, text = build_drip_email(step, lead_data, schedule_link)
+        if not subject:
+            return {'error': f'Invalid drip step: {step}'}
+        result = send_email(lead_data['email'], subject, html, text)
+        if lead_id:
+            add_lead_note(lead_id, f'Drip step {step} sent manually via template: "{subject}"')
+        return {**result, 'template': 'drip', 'step': step}
+
+    return {'error': f'Unknown template type: {template_type}'}
 
 
 def summarize_lead(lead):
@@ -217,11 +333,14 @@ def summarize_lead(lead):
         'email': lead.get('email'),
         'phone': lead.get('phone'),
         'program': lead.get('program'),
+        'ytt_program_type': lead.get('ytt_program_type'),
         'type': lead.get('type'),
         'status': lead.get('status'),
         'temperature': lead.get('temperature', ''),
         'source': lead.get('source'),
         'accommodation': lead.get('accommodation'),
+        'city_country': lead.get('city_country'),
+        'cohort_label': lead.get('cohort_label'),
         'created_at': str(lead.get('created_at', '')),
         'notes': (lead.get('notes', '') or '')[:500],  # Truncate long notes
         'converted': lead.get('converted', False),
@@ -230,41 +349,15 @@ def summarize_lead(lead):
 
 
 # ── Agent conversation loop ──────────────────────────
-SYSTEM_PROMPT = """You are the lead management agent for Yoga Bible Denmark, a yoga teacher training school in Copenhagen.
-
-Your job:
-- Help the owner (Shamir) manage YTT leads
-- Pause/resume/modify email drip sequences based on real conversations
-- Provide lead status updates and insights
-- Send custom emails or SMS when requested
-
-Context:
-- Leads come from the website's schedule request forms (200h, 300h programs)
-- Each lead gets a 5-step drip email sequence (welcome → social proof → pricing → urgency → final nudge)
-- The drip can be paused, resumed, or customized per-lead
-- Pricing: 23,750 DKK total, 3,750 DKK Preparation Phase deposit
-- Studio: Torvegade 66, Christianshavn, Copenhagen
-- Programs: 4-week intensive, 8-week semi-intensive, 18-week flexible (all 200h RYT)
-
-Communication style:
-- Be concise and action-oriented
-- Use short paragraphs — this is Telegram, not email
-- Use emoji sparingly for visual scanning (✅ ⏸ 📧 📞)
-- Confirm actions taken
-- In Danish when the lead is Danish, in English otherwise
-- Always note what you did in the lead's Firestore record
-
-When Shamir tells you about a conversation with a lead:
-1. Find the lead in Firestore
-2. Update their status and add notes about the conversation
-3. Adjust the drip sequence (pause if not interested, skip steps if already had a meeting, etc.)
-4. Confirm what you did
-"""
+# Build the system prompt dynamically from project knowledge
+SYSTEM_PROMPT = build_knowledge()
+logger.info(f'System prompt loaded ({len(SYSTEM_PROMPT)} chars)')
 
 conversation_history = []
 
 def chat(user_message):
     """Send a message to Claude and handle tool use."""
+    global SYSTEM_PROMPT
     conversation_history.append({"role": "user", "content": user_message})
 
     # Keep conversation history manageable (last 40 messages)
@@ -352,10 +445,19 @@ def notify_drip_sent(lead_id, lead, step, channel='email'):
         )
 
 
+# ── Knowledge refresh command ─────────────────────────
+def reload_knowledge():
+    """Refresh the system prompt from project files (call after git pull/push)."""
+    global SYSTEM_PROMPT
+    SYSTEM_PROMPT = refresh_knowledge()
+    logger.info(f'Knowledge reloaded ({len(SYSTEM_PROMPT)} chars)')
+    return SYSTEM_PROMPT
+
+
 # ── Main: Telegram mode ─────────────────────────────
 def main_telegram():
     """Run the agent as a Telegram bot."""
-    from telegram.ext import Application
+    from telegram.ext import Application, CommandHandler
     from tools.telegram import build_handlers, TELEGRAM_TOKEN
 
     global _telegram_app, _telegram_app_loop
@@ -370,17 +472,37 @@ def main_telegram():
     app = Application.builder().token(TELEGRAM_TOKEN).build()
     _telegram_app = app
 
-    # Register handlers
+    # Register handlers (chat + callbacks + /reload command)
     for handler in build_handlers(chat_fn=chat, on_callback_fn=handle_button):
         app.add_handler(handler)
 
-    # Start the drip scheduler
+    # Add /reload command for manual knowledge refresh
+    async def reload_handler(update, context):
+        from tools.telegram import is_owner
+        if not is_owner(update.effective_chat.id):
+            return
+        reload_knowledge()
+        await update.message.reply_text('✅ Knowledge base reloaded from project files.')
+
+    app.add_handler(CommandHandler('reload', reload_handler))
+
+    # Start the drip scheduler + knowledge refresh checker
     scheduler = BackgroundScheduler()
     interval = int(os.getenv('DRIP_CHECK_INTERVAL_MINUTES', '60'))
     scheduler.add_job(process_due_drips, 'interval', minutes=interval,
                       id='drip_check', replace_existing=True)
+
+    # Check for knowledge refresh flag every 5 minutes (set by git hooks)
+    def _check_and_reload():
+        if check_refresh_flag():
+            reload_knowledge()
+            logger.info('Knowledge auto-refreshed via git hook flag')
+
+    scheduler.add_job(_check_and_reload, 'interval', minutes=5,
+                      id='knowledge_refresh', replace_existing=True)
     scheduler.start()
     logger.info(f'Drip scheduler started (checking every {interval} min)')
+    logger.info('Knowledge refresh checker started (checking every 5 min)')
 
     # Start Firestore listener for new leads
     try:
@@ -404,6 +526,7 @@ def main_cli():
     print('  YOGA BIBLE — AI Lead Management Agent (CLI mode)')
     print('  Type your commands in natural language.')
     print('  Type "quit" or Ctrl+C to exit.')
+    print('  Type "reload" to refresh knowledge from project files.')
     print('=' * 60 + '\n')
 
     # Start the drip scheduler
@@ -431,6 +554,10 @@ def main_cli():
                 print('\nShutting down...')
                 scheduler.shutdown()
                 break
+            if user_input.lower() == 'reload':
+                reload_knowledge()
+                print('✅ Knowledge base reloaded.')
+                continue
 
             response = chat(user_input)
             print(f'\n🤖 Agent: {response}')
