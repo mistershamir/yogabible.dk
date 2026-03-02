@@ -1984,7 +1984,7 @@
     getAuthToken().then(function (token) {
       var body;
       if (isBulk) {
-        var leadIds = recipients.map(function (l) { return l.id; });
+        var leadIds = recipients.filter(function (l) { return l && l.email; }).map(function (l) { return l.id; });
         body = JSON.stringify({ leadIds: leadIds, subject: subject, bodyHtml: htmlBody, bodyPlain: bodyHtml });
       } else {
         body = JSON.stringify({ leadId: recipients[0].id, subject: subject, bodyHtml: htmlBody, bodyPlain: bodyHtml });
@@ -4399,7 +4399,42 @@
     getTranslations: function () { return T; },
     toast: toast,
     getCurrentLead: function () { return currentLead; },
-    getSelectedIds: function () { return selectedIds; }
+    getSelectedIds: function () { return selectedIds; },
+
+    // Load ALL non-archived leads for campaign wizard (not paginated)
+    loadAllLeadsForCampaign: function (callback) {
+      db.collection('leads').orderBy('created_at', 'desc').limit(2000).get()
+        .then(function (snap) {
+          var all = [];
+          snap.forEach(function (doc) {
+            var d = Object.assign({ id: doc.id }, doc.data());
+            if (!d.archived) all.push(d);
+          });
+          callback(null, all);
+        })
+        .catch(function (err) { callback(err, null); });
+    },
+
+    // Load ALL applications for campaign wizard
+    loadAllAppsForCampaign: function (callback) {
+      db.collection('applications').orderBy('created_at', 'desc').limit(500).get()
+        .then(function (snap) {
+          var all = [];
+          snap.forEach(function (doc) {
+            all.push(Object.assign({ id: doc.id }, doc.data()));
+          });
+          callback(null, all);
+        })
+        .catch(function (err) { callback(err, null); });
+    },
+
+    // Called by campaign wizard when a campaign send completes
+    onCampaignSent: function (type, results) {
+      selectedIds.clear();
+      selectAll = false;
+      updateBulkBar();
+      renderLeadView();
+    }
   };
 
   // Bootstrap
