@@ -497,26 +497,95 @@
     });
   }
 
-  // ── Seed button ──
-  var seedBtn = $('yb-doc-seed-btn');
-  var seedStatus = $('yb-doc-seed-status');
+  // ── Seed: Check status button ──
+  var seedPreviewBtn = $('yb-doc-seed-preview-btn');
+  var seedBtn        = $('yb-doc-seed-btn');
+  var seedPreview    = $('yb-doc-seed-preview');
+  var seedTable      = $('yb-doc-seed-table');
+  var seedStatus     = $('yb-doc-seed-status');
+
+  function renderSeedTable(materials) {
+    if (!seedTable) return;
+    var hasMissing = materials.some(function(m) { return !m.exists; });
+    if (seedBtn) seedBtn.disabled = !hasMissing;
+
+    var catLabels = {
+      manual: t('doc_cat_manual'), workbook: t('doc_cat_workbook'),
+      reference: t('doc_cat_reference'), schedule: t('doc_cat_schedule')
+    };
+
+    var rows = materials.map(function(m) {
+      var statusColor = m.exists ? 'green' : '#f75c03';
+      var statusLabel = m.exists ? t('doc_seed_status_exists') : t('doc_seed_status_missing');
+      var perms = (m.requiredPermissions || []).map(function(p) {
+        return '<span style="font-size:0.68rem;padding:0.1rem 0.35rem;background:rgba(247,92,3,0.1);color:var(--yb-brand,#f75c03);border-radius:4px">' + esc(p) + '</span>';
+      }).join(' ');
+      return '<tr style="border-bottom:1px solid var(--yb-border,#E8E4E0)">' +
+        '<td style="padding:0.5rem 0.25rem;font-size:0.82rem;font-weight:600">' + esc(m.title_en) + '</td>' +
+        '<td style="padding:0.5rem 0.4rem;font-size:0.78rem;color:var(--yb-muted,#6F6A66)">' + esc(catLabels[m.category] || m.category) + '</td>' +
+        '<td style="padding:0.5rem 0.4rem">' + perms + '</td>' +
+        '<td style="padding:0.5rem 0.25rem;font-size:0.78rem;font-weight:600;color:' + statusColor + ';white-space:nowrap">' + esc(statusLabel) + '</td>' +
+      '</tr>';
+    }).join('');
+
+    seedTable.innerHTML = '<table style="width:100%;border-collapse:collapse">' +
+      '<thead><tr style="border-bottom:2px solid var(--yb-border,#E8E4E0)">' +
+        '<th style="text-align:left;padding:0.3rem 0.25rem;font-size:0.75rem;color:var(--yb-muted,#6F6A66);font-weight:600">Title</th>' +
+        '<th style="text-align:left;padding:0.3rem 0.4rem;font-size:0.75rem;color:var(--yb-muted,#6F6A66);font-weight:600">Category</th>' +
+        '<th style="text-align:left;padding:0.3rem 0.4rem;font-size:0.75rem;color:var(--yb-muted,#6F6A66);font-weight:600">Permissions</th>' +
+        '<th style="text-align:left;padding:0.3rem 0.25rem;font-size:0.75rem;color:var(--yb-muted,#6F6A66);font-weight:600">Status</th>' +
+      '</tr></thead>' +
+      '<tbody>' + rows + '</tbody></table>';
+
+    if (seedPreview) seedPreview.style.display = '';
+  }
+
+  if (seedPreviewBtn) {
+    seedPreviewBtn.addEventListener('click', function() {
+      seedPreviewBtn.disabled = true;
+      seedPreviewBtn.textContent = t('doc_seed_checking');
+      if (seedStatus) seedStatus.style.display = 'none';
+
+      getAuthHeaders().then(function(headers) {
+        return fetch('/.netlify/functions/seed-trainee-materials', { headers: headers });
+      }).then(function(r) { return r.json(); }).then(function(data) {
+        if (!data.ok) throw new Error(data.error || 'Check failed');
+        renderSeedTable(data.materials);
+      }).catch(function(err) {
+        console.error('[seed check] Error:', err);
+        if (seedStatus) { seedStatus.textContent = t('doc_seed_err'); seedStatus.style.color = '#dc3545'; seedStatus.style.display = ''; }
+      }).finally(function() {
+        seedPreviewBtn.disabled = false;
+        seedPreviewBtn.textContent = t('doc_seed_preview');
+      });
+    });
+  }
+
   if (seedBtn) {
     seedBtn.addEventListener('click', function() {
       seedBtn.disabled = true;
       seedBtn.textContent = t('doc_seed_running');
-      if (seedStatus) { seedStatus.style.display = 'none'; }
+      if (seedStatus) seedStatus.style.display = 'none';
 
       getAuthHeaders().then(function(headers) {
         headers['Content-Type'] = 'application/json';
         return fetch('/.netlify/functions/seed-trainee-materials', { method: 'POST', headers: headers });
       }).then(function(r) { return r.json(); }).then(function(data) {
-        if (!data.ok) throw new Error(data.error || 'Unknown error');
-        if (seedStatus) { seedStatus.textContent = t('doc_seed_ok'); seedStatus.style.color = 'green'; seedStatus.style.display = ''; }
+        if (!data.ok) throw new Error(data.error || 'Seed failed');
+        var msg = data.created === 0
+          ? t('doc_seed_ok_none')
+          : t('doc_seed_ok').replace('{created}', data.created).replace('{skipped}', data.skipped);
+        if (seedStatus) { seedStatus.textContent = msg; seedStatus.style.color = 'green'; seedStatus.style.display = ''; }
+        // Re-check status to refresh the table, then reload list
+        getAuthHeaders().then(function(h) {
+          return fetch('/.netlify/functions/seed-trainee-materials', { headers: h });
+        }).then(function(r) { return r.json(); }).then(function(d) {
+          if (d.ok) renderSeedTable(d.materials);
+        }).catch(function() {});
         setTimeout(loadDocuments, 1200);
       }).catch(function(err) {
         console.error('[seed] Error:', err);
         if (seedStatus) { seedStatus.textContent = t('doc_seed_err'); seedStatus.style.color = '#dc3545'; seedStatus.style.display = ''; }
-      }).finally(function() {
         seedBtn.disabled = false;
         seedBtn.textContent = t('doc_seed_btn');
       });

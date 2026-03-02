@@ -1,15 +1,10 @@
 /**
- * Netlify Function: POST /.netlify/functions/seed-trainee-materials
+ * Netlify Function: seed-trainee-materials
  *
- * One-time seed to populate the Firestore 'documents' collection
- * with the 200-hour Triangle Method trainee materials (hosted on Google Drive).
+ * GET  → returns status of each of the 6 materials (exists / missing)
+ * POST → seeds only the MISSING documents (preserves existing edits)
  *
- * - Idempotent: uses set({ merge: false }) with fixed doc IDs — safe to run again
- * - Admin only: requires a valid Firebase admin token
- *
- * Usage:
- *   curl -X POST https://yogabible.dk/.netlify/functions/seed-trainee-materials \
- *     -H "Authorization: Bearer <firebase-id-token>"
+ * Admin only. Idempotent: running POST multiple times is safe.
  */
 
 const { getDb } = require('./shared/firestore');
@@ -28,7 +23,8 @@ const MATERIALS = [
     order: 1,
     requiredPermissions: ['materials:200h', 'method:triangle'],
     program: '200h',
-    method: 'triangle'
+    method: 'triangle',
+    active: true
   },
   {
     id: 'yin-yoga-student-manual',
@@ -41,7 +37,8 @@ const MATERIALS = [
     order: 2,
     requiredPermissions: ['materials:200h', 'method:triangle'],
     program: '200h',
-    method: 'triangle'
+    method: 'triangle',
+    active: true
   },
   {
     id: 'yoga-anatomy-student-manual',
@@ -54,7 +51,8 @@ const MATERIALS = [
     order: 3,
     requiredPermissions: ['materials:200h', 'method:triangle'],
     program: '200h',
-    method: 'triangle'
+    method: 'triangle',
+    active: true
   },
   {
     id: 'yoga-philosophy-student-manual',
@@ -67,7 +65,8 @@ const MATERIALS = [
     order: 4,
     requiredPermissions: ['materials:200h', 'method:triangle'],
     program: '200h',
-    method: 'triangle'
+    method: 'triangle',
+    active: true
   },
   {
     id: 'hatha-signature-sequence-bikram',
@@ -80,7 +79,8 @@ const MATERIALS = [
     order: 5,
     requiredPermissions: ['materials:200h', 'method:triangle'],
     program: '200h',
-    method: 'triangle'
+    method: 'triangle',
+    active: true
   },
   {
     id: 'yoga-anatomy-student-manual-old',
@@ -93,35 +93,70 @@ const MATERIALS = [
     order: 6,
     requiredPermissions: ['materials:200h', 'method:triangle'],
     program: '200h',
-    method: 'triangle'
+    method: 'triangle',
+    active: true
   }
 ];
 
+async function getStatuses(db) {
+  const results = await Promise.all(
+    MATERIALS.map(async (mat) => {
+      const doc = await db.collection('documents').doc(mat.id).get();
+      return { id: mat.id, exists: doc.exists, material: mat };
+    })
+  );
+  return results;
+}
+
 exports.handler = async function(event) {
   if (event.httpMethod === 'OPTIONS') return optionsResponse();
-  if (event.httpMethod !== 'POST') return jsonResponse(405, { ok: false, error: 'POST only' });
 
-  var user = await requireAuth(event, ['admin']);
+  const user = await requireAuth(event, ['admin']);
   if (user.error) return user.error;
 
-  var db = getDb();
-  var results = [];
+  const db = getDb();
 
-  for (var mat of MATERIALS) {
-    var docId = mat.id;
-    var data = Object.assign({}, mat);
-    delete data.id;
-    data.createdAt = new Date();
-    data.updatedAt = new Date();
-
-    await db.collection('documents').doc(docId).set(data);
-    results.push({ id: docId, ok: true });
-    console.log('[seed-trainee-materials] Seeded:', docId);
+  // GET → return status only (no writes)
+  if (event.httpMethod === 'GET') {
+    const statuses = await getStatuses(db);
+    return jsonResponse(200, {
+      ok: true,
+      materials: statuses.map(s => ({
+        id: s.id,
+        title_en: s.material.title_en,
+        title_da: s.material.title_da,
+        category: s.material.category,
+        order: s.material.order,
+        requiredPermissions: s.material.requiredPermissions,
+        active: s.material.active,
+        exists: s.exists
+      }))
+    });
   }
 
-  return jsonResponse(200, {
-    ok: true,
-    seeded: results.length,
-    documents: results
-  });
+  // POST → seed missing docs only
+  if (event.httpMethod === 'POST') {
+    const statuses = await getStatuses(db);
+    const missing  = statuses.filter(s => !s.exists);
+    const existing = statuses.filter(s => s.exists);
+
+    for (const s of missing) {
+      const data = Object.assign({}, s.material);
+      delete data.id;
+      data.createdAt = new Date();
+      data.updatedAt = new Date();
+      await db.collection('documents').doc(s.id).set(data);
+      console.log('[seed-trainee-materials] Created:', s.id);
+    }
+
+    return jsonResponse(200, {
+      ok: true,
+      created: missing.length,
+      skipped: existing.length,
+      createdIds: missing.map(s => s.id),
+      skippedIds: existing.map(s => s.id)
+    });
+  }
+
+  return jsonResponse(405, { ok: false, error: 'GET or POST only' });
 };
