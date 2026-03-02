@@ -40,10 +40,13 @@ def send_sms(to_phone, message):
     if not phone:
         return {'success': False, 'error': 'Invalid phone number'}
 
+    # sender must not include '+' for GatewayAPI
+    sender = SENDER_PHONE.lstrip('+')
+
     payload = json.dumps({
-        'sender': SENDER_PHONE,
+        'sender': sender,
         'message': message,
-        'recipients': [{'msisdn': int(phone)}]
+        'recipients': [{'msisdn': phone}]
     }).encode('utf-8')
 
     req = urllib.request.Request(
@@ -51,7 +54,7 @@ def send_sms(to_phone, message):
         data=payload,
         headers={
             'Content-Type': 'application/json',
-            'Authorization': 'Bearer ' + GATEWAYAPI_TOKEN
+            'Authorization': 'Token ' + GATEWAYAPI_TOKEN
         },
         method='POST'
     )

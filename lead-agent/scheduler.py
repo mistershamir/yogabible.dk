@@ -13,6 +13,7 @@ from tools.firestore import (
 )
 from tools.email import send_email, build_drip_email
 from tools.sms import send_sms, build_followup_sms
+from monitor import notify_error
 
 logger = logging.getLogger('lead-agent.scheduler')
 
@@ -128,3 +129,4 @@ def process_due_drips():
         except Exception as e:
             logger.error(f'Error sending drip #{step} to {lead_id}: {e}')
             add_lead_note(lead_id, f'Drip email #{step} FAILED: {str(e)}')
+            notify_error('drip_fail', f'Drip #{step} for {lead.get("email", lead_id)}: {e}')
