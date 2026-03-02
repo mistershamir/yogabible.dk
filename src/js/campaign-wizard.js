@@ -44,6 +44,14 @@
     excludedIds: new Set(),
     searchTerm: '',
 
+    // All leads/apps loaded for this campaign session (not limited to the current page)
+    campaignLeads: [],
+    campaignApps: [],
+    recipientsLoading: false,
+
+    // When opened from bulk bar: these IDs are pinned and survive filter changes
+    pinnedIds: new Set(),
+
     // Compose state
     smsTemplateId: '',
     smsMessage: '',
@@ -75,6 +83,24 @@
     if (cls) e.className = cls;
     if (html !== undefined) e.innerHTML = html;
     return e;
+  }
+
+  /* ══════════════════════════════════════════
+     PERIOD HELPERS
+     ══════════════════════════════════════════ */
+  var MONTH_IDS = ['january','february','march','april','may','june','july','august','september','october','november','december'];
+  var MONTH_LABELS = ['Jan','Feb','Mar','Apr','Maj','Jun','Jul','Aug','Sep','Okt','Nov','Dec'];
+
+  function getNextMonths(count) {
+    var result = [];
+    var now = new Date();
+    for (var i = 0; i < count; i++) {
+      var d = new Date(now.getFullYear(), now.getMonth() + i, 1);
+      var mo = d.getMonth();
+      var yr = d.getFullYear();
+      result.push({ id: MONTH_IDS[mo], label: MONTH_LABELS[mo] + ' ' + yr });
+    }
+    return result;
   }
 
   /* ══════════════════════════════════════════
@@ -188,16 +214,20 @@
      FILTER ENGINE
      ══════════════════════════════════════════ */
   function getAllLeads() {
-    if (!bridge) return [];
     var result = [];
     var src = campaignState.filters.source;
 
     if (src === 'all' || src === 'leads') {
-      var lds = bridge.getLeads() || [];
+      // Prefer campaign-local full load; fall back to bridge's paginated array
+      var lds = campaignState.campaignLeads.length > 0
+        ? campaignState.campaignLeads
+        : (bridge ? bridge.getLeads() || [] : []);
       lds.forEach(function (l) { l._source = 'lead'; result.push(l); });
     }
     if (src === 'all' || src === 'apps') {
-      var apps = bridge.getApplications() || [];
+      var apps = campaignState.campaignApps.length > 0
+        ? campaignState.campaignApps
+        : (bridge ? bridge.getApplications() || [] : []);
       apps.forEach(function (a) { a._source = 'app'; result.push(a); });
     }
     return result;
@@ -333,7 +363,8 @@
         if (st4 === 'unsubscribed' || st4.includes('afmeld')) return false;
       }
       if (f.excludeRecent) {
-        var lastContact = lead.last_contact_at || lead.last_sms_at;
+        // Check all possible field names for last contact timestamp
+        var lastContact = lead.last_contact || lead.last_contact_at || lead.last_sms_at;
         if (lastContact) {
           if (lastContact.toDate) lastContact = lastContact.toDate();
           else lastContact = new Date(lastContact);
@@ -359,12 +390,33 @@
 
     campaignState.allRecipients = filtered;
 
-    // Auto-select all if selectedIds is empty and we haven't manually changed
-    if (campaignState.selectedIds.size === 0 && filtered.length > 0) {
+    var filteredIdSet = new Set(filtered.map(function (l) { return l.id; }));
+
+    if (campaignState.pinnedIds.size > 0) {
+      // Pinned mode (opened from bulk bar): keep pinned IDs if they exist in filtered,
+      // or add them back even if filtered out — they were explicitly chosen.
+      // Also add any pinned leads that got filtered out back into allRecipients.
+      var allIds = new Set(filtered.map(function (l) { return l.id; }));
+      campaignState.pinnedIds.forEach(function (id) {
+        if (!allIds.has(id)) {
+          // Find the lead in the full pool and add it back
+          var allPool = getAllLeads();
+          var pinned = allPool.find(function (l) { return l.id === id; });
+          if (pinned) { filtered.push(pinned); filteredIdSet.add(id); }
+        }
+        campaignState.selectedIds.add(id);
+      });
+      // Remove non-pinned IDs that no longer match filters
+      campaignState.selectedIds.forEach(function (id) {
+        if (!filteredIdSet.has(id) && !campaignState.pinnedIds.has(id)) {
+          campaignState.selectedIds.delete(id);
+        }
+      });
+    } else if (campaignState.selectedIds.size === 0 && filtered.length > 0) {
+      // Auto-select all if no existing selection
       filtered.forEach(function (l) { campaignState.selectedIds.add(l.id); });
     } else {
       // Remove selectedIds that are no longer in filtered
-      var filteredIdSet = new Set(filtered.map(function (l) { return l.id; }));
       campaignState.selectedIds.forEach(function (id) {
         if (!filteredIdSet.has(id)) campaignState.selectedIds.delete(id);
       });
@@ -467,12 +519,8 @@
     });
     html += '</div></div>';
 
-    // Period
-    html += buildChipSection('campaign_filter_period', [
-      { id: 'february', label: 'Feb' }, { id: 'march', label: 'Mar' },
-      { id: 'april', label: 'Apr' }, { id: 'may', label: 'Maj' },
-      { id: 'june', label: 'Jun' }
-    ], f.periods, 'periods');
+    // Period — dynamically generated: current month + next 11 months
+    html += buildChipSection('campaign_filter_period', getNextMonths(12), f.periods, 'periods');
 
     // Track (Weekday / Weekend) — for applications
     html += buildChipSection('campaign_filter_track', [
@@ -576,11 +624,20 @@
     var recipients = campaignState.allRecipients;
     var selectedCount = campaignState.selectedIds.size;
     var contactField = campaignState.type === 'sms' ? 'phone' : 'email';
+    var totalInPool = campaignState.campaignLeads.length + campaignState.campaignApps.length;
 
     // Header: count + match label on one line
+    var totalNote = totalInPool > 0 && totalInPool > recipients.length
+      ? ' <span style="color:var(--yb-muted);font-size:0.85em">(' + totalInPool + ' i alt)</span>'
+      : '';
+    var pinnedNote = campaignState.pinnedIds.size > 0
+      ? ' <span style="color:var(--yb-brand);font-size:0.85em">· ' + campaignState.pinnedIds.size + ' fastlåst fra bulk-valg</span>'
+      : '';
+
     var html = '<div class="yb-lead__campaign-recipient-header">' +
       '<span class="yb-lead__campaign-recipient-count">' + recipients.length + '</span> ' +
       '<span class="yb-lead__campaign-recipient-label">' + esc(t('campaign_recipients_count')) + '</span>' +
+      totalNote + pinnedNote +
       '</div>';
 
     // Toolbar: select all | selected count | deselect
@@ -624,7 +681,12 @@
     applyFilters();
 
     var prefix = campaignState.type; // 'sms' or 'email'
+    var loadingBanner = campaignState.recipientsLoading
+      ? '<div class="yb-lead__campaign-loading-banner">Indlæser alle leads fra databasen…</div>'
+      : '';
+
     panelEl.innerHTML = '<div class="yb-lead__campaign-recipients">' +
+      loadingBanner +
       '<div class="yb-lead__campaign-filters" id="yb-campaign-' + prefix + '-filters-area"></div>' +
       '<div class="yb-lead__campaign-recipient-list-wrap" id="yb-campaign-' + prefix + '-recipients-list"></div>' +
       '</div>';
@@ -1270,12 +1332,16 @@
   function sendToLead(lead, isSMS) {
     if (!bridge) return Promise.reject(new Error('No bridge'));
 
+    var isApp = lead._source === 'app';
+
     return bridge.getAuthToken().then(function (token) {
       var url, body;
+      var idKey = isApp ? 'applicationId' : 'leadId';
 
       if (isSMS) {
         var message = personalizeMessage(campaignState.smsMessage, lead);
-        body = { leadId: lead.id, message: message };
+        body = { message: message };
+        body[idKey] = lead.id;
         if (campaignState.schedule !== 'now') {
           body.scheduledFor = getScheduledTime();
         }
@@ -1284,11 +1350,11 @@
         var subject = personalizeMessage(campaignState.emailSubject, lead);
         var htmlBody = personalizeMessage(campaignState.emailBodyHtml, lead);
         body = {
-          leadId: lead.id,
           subject: subject,
           bodyHtml: htmlBody,
           preheader: campaignState.emailPreheader
         };
+        body[idKey] = lead.id;
         if (campaignState.emailTemplateId) {
           body.templateId = campaignState.emailTemplateId;
         }
@@ -1403,6 +1469,7 @@
     }
 
     if (bridge) bridge.toast(t('campaign_send_complete'));
+    if (bridge && bridge.onCampaignSent) bridge.onCampaignSent(campaignState.type, results);
   }
 
   function logCampaign(results, total) {
@@ -1430,34 +1497,94 @@
      ══════════════════════════════════════════ */
   function openSMSCampaign(preSelectedLeads) {
     resetState('sms');
+    loadEmailTemplatesIfNeeded();
+
+    // Pin pre-selected leads so they survive filter changes
     if (preSelectedLeads && preSelectedLeads.length > 0) {
-      // Pre-populate from selected leads (from bulk bar)
       preSelectedLeads.forEach(function (l) {
-        if (l.phone) campaignState.selectedIds.add(l.id);
+        if (l.phone) {
+          campaignState.pinnedIds.add(l.id);
+          campaignState.selectedIds.add(l.id);
+        }
       });
+      // Pre-seed campaign leads with what we already have
+      campaignState.campaignLeads = bridge ? (bridge.getLeads() || []) : [];
     }
 
     var modal = $('yb-campaign-sms-modal');
-    if (modal) {
-      modal.hidden = false;
-      switchTab('recipients');
-      loadEmailTemplatesIfNeeded();
-    }
+    if (!modal) return;
+    modal.hidden = false;
+    switchTab('recipients');
+
+    // Load all leads from DB in background — updates recipient list when done
+    loadAllLeadsForCampaign(function () {
+      if (!modal.hidden) {
+        var panelEl = modal.querySelector('.yb-lead__campaign-panel[data-panel="recipients"]');
+        if (panelEl && campaignState.tab === 'recipients') renderRecipientsTab(panelEl);
+      }
+    });
   }
 
   function openEmailCampaign(preSelectedLeads) {
     resetState('email');
+    loadEmailTemplatesIfNeeded();
+
+    // Pin pre-selected leads so they survive filter changes
     if (preSelectedLeads && preSelectedLeads.length > 0) {
       preSelectedLeads.forEach(function (l) {
-        if (l.email) campaignState.selectedIds.add(l.id);
+        if (l.email) {
+          campaignState.pinnedIds.add(l.id);
+          campaignState.selectedIds.add(l.id);
+        }
       });
+      // Pre-seed campaign leads with what we already have
+      campaignState.campaignLeads = bridge ? (bridge.getLeads() || []) : [];
     }
 
     var modal = $('yb-campaign-email-modal');
-    if (modal) {
-      modal.hidden = false;
-      switchTab('recipients');
-      loadEmailTemplatesIfNeeded();
+    if (!modal) return;
+    modal.hidden = false;
+    switchTab('recipients');
+
+    // Load all leads from DB in background — updates recipient list when done
+    loadAllLeadsForCampaign(function () {
+      if (!modal.hidden) {
+        var panelEl = modal.querySelector('.yb-lead__campaign-panel[data-panel="recipients"]');
+        if (panelEl && campaignState.tab === 'recipients') renderRecipientsTab(panelEl);
+      }
+    });
+  }
+
+  function loadAllLeadsForCampaign(onComplete) {
+    if (!bridge || !bridge.loadAllLeadsForCampaign) { if (onComplete) onComplete(); return; }
+    campaignState.recipientsLoading = true;
+
+    var leadsLoaded = false;
+    var appsLoaded = false;
+
+    function checkDone() {
+      if (leadsLoaded && appsLoaded) {
+        campaignState.recipientsLoading = false;
+        if (onComplete) onComplete();
+      }
+    }
+
+    bridge.loadAllLeadsForCampaign(function (err, allLeads) {
+      if (!err && allLeads) campaignState.campaignLeads = allLeads;
+      leadsLoaded = true;
+      checkDone();
+    });
+
+    if (bridge.loadAllAppsForCampaign) {
+      bridge.loadAllAppsForCampaign(function (err, allApps) {
+        if (!err && allApps) campaignState.campaignApps = allApps;
+        appsLoaded = true;
+        checkDone();
+      });
+    } else {
+      campaignState.campaignApps = bridge.getApplications() || [];
+      appsLoaded = true;
+      checkDone();
     }
   }
 
@@ -1481,7 +1608,11 @@
     campaignState.allRecipients = [];
     campaignState.selectedIds = new Set();
     campaignState.excludedIds = new Set();
+    campaignState.pinnedIds = new Set();
     campaignState.searchTerm = '';
+    campaignState.campaignLeads = [];
+    campaignState.campaignApps = [];
+    campaignState.recipientsLoading = false;
     campaignState.smsTemplateId = '';
     campaignState.smsMessage = '';
     campaignState.emailMode = 'template';
@@ -1696,12 +1827,13 @@
       if (action === 'campaign-clear-filters') {
         campaignState.filters = {
           source: 'all', statuses: [], programs: [], subtypes: [], routes: [],
-          countries: [], periods: [], recency: null, housing: false, meta: false,
+          countries: [], periods: [], tracks: [], cohorts: [], paymentStatuses: [],
+          recency: null, housing: false, meta: false,
           excludeConverted: false, excludeRecent: false,
           excludeNotInterested: true, excludeBadLeads: true, excludeUnsubscribed: true
         };
         campaignState.searchTerm = '';
-        campaignState.selectedIds.clear();
+        if (campaignState.pinnedIds.size === 0) campaignState.selectedIds.clear();
         switchTab('recipients');
         return;
       }

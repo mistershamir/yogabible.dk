@@ -19636,6 +19636,24 @@ button.yb-btn--outline-white:hover {
 .yb-lead__campaign-recipient-list-wrap {
   min-width: 0;
 }
+.yb-lead__campaign-loading-banner {
+  background: #fff8f0;
+  border: 1px solid #f75c03;
+  border-radius: 8px;
+  padding: 0.5rem 0.75rem;
+  font-size: 0.85rem;
+  color: #f75c03;
+  margin-bottom: 0.75rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.yb-lead__campaign-loading-banner::before {
+  content: "⟳";
+  animation: yb-spin 1s linear infinite;
+  display: inline-block;
+}
+@keyframes yb-spin { to { transform: rotate(360deg); } }
 .yb-lead__campaign-recipient-header {
   display: flex;
   align-items: baseline;
@@ -19643,6 +19661,7 @@ button.yb-btn--outline-white:hover {
   margin-bottom: 0.5rem;
   padding-bottom: 0.5rem;
   border-bottom: 1px solid #E8E4E0;
+  flex-wrap: wrap;
 }
 .yb-lead__campaign-recipient-count {
   font-size: 2.2rem;
