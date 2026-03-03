@@ -1,0 +1,63 @@
+{% if videoTutorial %}
+<!-- Video Tutorial Widget — floats bottom-right, shown on pages with videoTutorial front matter -->
+<div id="yvt-widget" class="yvt-widget" role="complementary" aria-label="Video guide" hidden>
+
+  <!-- ── PREVIEW STATE (compact, shows on load) ── -->
+  <div class="yvt-preview" id="yvt-preview">
+    <button class="yvt-preview__thumb" id="yvt-thumb" aria-label="Afspil video guide" type="button">
+      <img
+        src="https://res.cloudinary.com/ddcynsa30/video/upload/so_1,w_120,h_68,c_fill,f_auto,q_auto/{{ videoTutorial.cloudinaryId }}.jpg"
+        alt=""
+        width="120"
+        height="68"
+        loading="lazy"
+      />
+      <span class="yvt-preview__play-icon" aria-hidden="true">
+        <svg width="22" height="22" viewBox="0 0 22 22" fill="none"><circle cx="11" cy="11" r="11" fill="rgba(0,0,0,.55)"/><polygon points="9,7 17,11 9,15" fill="#fff"/></svg>
+      </span>
+    </button>
+    <div class="yvt-preview__meta">
+      <span class="yvt-preview__eyebrow" data-yj-da>Video guide</span>
+      <span class="yvt-preview__eyebrow" data-yj-en hidden>Video guide</span>
+      <p class="yvt-preview__title" data-yj-da>{{ videoTutorial.title_da }}</p>
+      <p class="yvt-preview__title" data-yj-en hidden>{{ videoTutorial.title_en }}</p>
+    </div>
+    <button class="yvt-dismiss" id="yvt-dismiss" type="button" aria-label="Luk">
+      <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><line x1="1" y1="1" x2="11" y2="11" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><line x1="11" y1="1" x2="1" y2="11" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+    </button>
+  </div>
+
+  <!-- ── PLAYER STATE (expanded, shown after thumb click) ── -->
+  <div class="yvt-player" id="yvt-player" hidden>
+    <div class="yvt-player__header">
+      <span class="yvt-player__title" data-yj-da>{{ videoTutorial.title_da }}</span>
+      <span class="yvt-player__title" data-yj-en hidden>{{ videoTutorial.title_en }}</span>
+      <div class="yvt-player__controls">
+        <button class="yvt-player__minimize" id="yvt-minimize" type="button" aria-label="Minimer">
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><line x1="2" y1="7" x2="12" y2="7" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+        </button>
+        <button class="yvt-player__close" id="yvt-player-close" type="button" aria-label="Luk">
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><line x1="1" y1="1" x2="13" y2="13" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><line x1="13" y1="1" x2="1" y2="13" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+        </button>
+      </div>
+    </div>
+    <div class="yvt-player__video-wrap">
+      <video
+        id="yvt-video"
+        class="yvt-player__video"
+        controls
+        playsinline
+        preload="none"
+        poster="https://res.cloudinary.com/ddcynsa30/video/upload/so_1,w_360,h_203,c_fill,f_auto,q_auto/{{ videoTutorial.cloudinaryId }}.jpg"
+      ></video>
+    </div>
+  </div>
+</div>
+
+<script>
+  window.__yvt = {
+    src: 'https://res.cloudinary.com/ddcynsa30/video/upload/f_auto,q_auto/{{ videoTutorial.cloudinaryId }}.mp4',
+    delay: {{ videoTutorial.delay or 3000 }}
+  };
+</script>
+{% endif %}
