@@ -32,8 +32,20 @@ function getAdmin() {
   if (admin) return admin;
   admin = require('firebase-admin');
   if (!admin.apps.length) {
-    const sa = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT_HYC || '{}');
-    admin.initializeApp({ credential: admin.credential.cert(sa) });
+    if (process.env.FIREBASE_SERVICE_ACCOUNT_HYC) {
+      // HYC deployment: full service account JSON in one env var
+      const sa = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT_HYC);
+      admin.initializeApp({ credential: admin.credential.cert(sa) });
+    } else {
+      // YB deployment: individual env vars
+      admin.initializeApp({
+        credential: admin.credential.cert({
+          projectId: process.env.FIREBASE_PROJECT_ID,
+          clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
+          privateKey: (process.env.FIREBASE_PRIVATE_KEY || '').replace(/\\n/g, '\n')
+        })
+      });
+    }
   }
   return admin;
 }
