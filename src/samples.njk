@@ -6942,6 +6942,27 @@ document.addEventListener('DOMContentLoaded', function() {
   .yvs-e__title { font-size:13px; font-weight:700; color:#0F0F0F; line-height:1.35; }
   .yvs-e__close-row { display:flex; justify-content:flex-end; margin-top:6px; }
   .yvs-e__close { font-size:11px; color:#C0BCB8; cursor:pointer; }
+  /* ── F — Resend Style ── */
+  .yvs-f {
+    width: 248px; border-radius: 14px; overflow: hidden;
+    background: #111; border: 1px solid rgba(255,255,255,.08);
+    box-shadow: 0 10px 40px rgba(0,0,0,.6), 0 2px 8px rgba(0,0,0,.4);
+    position: relative;
+  }
+  .yvs-f__thumb { display:block; width:100%; height:140px; object-fit:cover; }
+  .yvs-f__bar { padding: 11px 13px 13px; }
+  .yvs-f__title {
+    font-size: 13px; font-weight: 500; color: #fff;
+    line-height: 1.4; letter-spacing: -.01em;
+  }
+  .yvs-f__close {
+    position: absolute; top: 8px; right: 8px;
+    width: 22px; height: 22px; border-radius: 50%;
+    background: rgba(0,0,0,.55); border: 1px solid rgba(255,255,255,.15);
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; color: rgba(255,255,255,.75);
+    line-height: 0;
+  }
   </style>
 
   <section class="ds-section" id="section-34">
@@ -7086,6 +7107,31 @@ document.addEventListener('DOMContentLoaded', function() {
               <div class="yvs-e__title">Kom godt i gang med Yoga Bible</div>
               <div class="yvs-e__close-row"><span class="yvs-e__close">Luk ✕</span></div>
             </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- F — Resend-style -->
+    <div class="ds-sub" style="margin-top:40px;">
+      <p class="yvs-item__label">Variant F</p>
+      <p class="yvs-item__name">Resend Style</p>
+      <p class="yvs-item__desc">Thumbnail-first card — no play button, no eyebrow, no chrome. Just the video poster filling the card and a slim dark caption bar underneath. The title tells you what it is. ✕ appears in the top-right corner to dismiss. Maximum signal, zero noise.</p>
+      <div class="yvs-screen yvs-screen--dark" style="height:220px;border-radius:16px;margin-top:16px;">
+        <div class="yvs-screen__lines" style="color:#fff;">
+          <div class="yvs-screen__line"></div><div class="yvs-screen__line"></div>
+          <div class="yvs-screen__line"></div><div class="yvs-screen__line"></div>
+          <div class="yvs-screen__line" style="width:35%"></div>
+        </div>
+        <div class="yvs-widget-wrap">
+          <div class="yvs-f">
+            <img class="yvs-f__thumb" src="https://res.cloudinary.com/ddcynsa30/video/upload/so_1,w_496,h_280,c_fill,f_auto,q_auto/yoga-bible-DK/careers/careers-vertical.jpg" alt="" width="248" height="140" />
+            <div class="yvs-f__bar">
+              <div class="yvs-f__title">Kom godt i gang med Yoga Bible</div>
+            </div>
+            <span class="yvs-f__close" aria-label="Luk">
+              <svg width="10" height="10" viewBox="0 0 10 10"><line x1="1" y1="1" x2="9" y2="9" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><line x1="9" y1="1" x2="1" y2="9" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+            </span>
           </div>
         </div>
       </div>
