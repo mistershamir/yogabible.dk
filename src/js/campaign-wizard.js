@@ -394,30 +394,23 @@
     var filteredIdSet = new Set(filtered.map(function (l) { return l.id; }));
 
     if (campaignState.pinnedIds.size > 0) {
-      // Pinned mode (opened from bulk bar): keep pinned IDs if they exist in filtered,
-      // or add them back even if filtered out — they were explicitly chosen.
-      // Also add any pinned leads that got filtered out back into allRecipients.
+      // Pinned mode: leads were pre-selected from the table — keep them even if filters change
       var allIds = new Set(filtered.map(function (l) { return l.id; }));
       campaignState.pinnedIds.forEach(function (id) {
         if (!allIds.has(id)) {
-          // Find the lead in the full pool and add it back
           var allPool = getAllLeads();
           var pinned = allPool.find(function (l) { return l.id === id; });
           if (pinned) { filtered.push(pinned); filteredIdSet.add(id); }
         }
         campaignState.selectedIds.add(id);
       });
-      // Remove non-pinned IDs that no longer match filters
       campaignState.selectedIds.forEach(function (id) {
         if (!filteredIdSet.has(id) && !campaignState.pinnedIds.has(id)) {
           campaignState.selectedIds.delete(id);
         }
       });
-    } else if (campaignState.selectedIds.size === 0 && filtered.length > 0) {
-      // Auto-select all if no existing selection
-      filtered.forEach(function (l) { campaignState.selectedIds.add(l.id); });
     } else {
-      // Remove selectedIds that are no longer in filtered
+      // No pinned leads — remove de-filtered IDs but never auto-select anything
       campaignState.selectedIds.forEach(function (id) {
         if (!filteredIdSet.has(id)) campaignState.selectedIds.delete(id);
       });
