@@ -84,6 +84,11 @@
   <!-- Photo Session Request Modal -->
   {% include "modal-photo-booking.njk" %}
 
+  <!-- Video Tutorial Widget (per-page, opt-in via front matter) -->
+  {% if videoTutorial %}
+    {% include "widget-video-tutorial.njk" %}
+  {% endif %}
+
   <!-- Cookie Consent -->
   {% include "cookies.njk" %}
   <script src="/js/cookies.js"></script>
@@ -112,6 +117,9 @@
   {% endif %}
   {% if includeCourseJS %}
     <script src="/js/course.js" defer></script>
+  {% endif %}
+  {% if videoTutorial %}
+    <script src="/js/video-tutorial.js" defer></script>
   {% endif %}
 </body>
 </html>
