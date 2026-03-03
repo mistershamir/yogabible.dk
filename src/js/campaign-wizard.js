@@ -618,6 +618,31 @@
   }
 
   /* ══════════════════════════════════════════
+     STATUS BADGE COLORS
+     ══════════════════════════════════════════ */
+  var STATUS_BADGE = {
+    'New':                { bg: '#F0EDE8', color: '#6F6A66' },
+    'Contacted':          { bg: '#e3f2fd', color: '#1565c0' },
+    'No Answer':          { bg: '#fff3e0', color: '#e65100' },
+    'Follow-up':          { bg: '#fff8e1', color: '#f57f17' },
+    'Engaged':            { bg: '#f3e5f5', color: '#6a1b9a' },
+    'Qualified':          { bg: '#e8f5e9', color: '#2e7d32' },
+    'Negotiating':        { bg: '#fce4ec', color: '#880e4f' },
+    'Converted':          { bg: '#d4edda', color: '#155724' },
+    'Existing Applicant': { bg: '#cce5ff', color: '#004085' },
+    'On Hold':            { bg: '#eeeeee', color: '#616161' },
+    'Not too keen':       { bg: '#ffeeba', color: '#856404' },
+    'Unsubscribed':       { bg: '#ffeeba', color: '#856404' },
+    'Lost':               { bg: '#f8d7da', color: '#721c24' },
+    'Closed':             { bg: '#e2e3e5', color: '#383d41' },
+    'Hot':                { bg: '#ff5252', color: '#fff' }
+  };
+
+  function getStatusBadge(status) {
+    return STATUS_BADGE[status] || { bg: '#F0EDE8', color: '#6F6A66' };
+  }
+
+  /* ══════════════════════════════════════════
      RECIPIENT LIST RENDERING
      ══════════════════════════════════════════ */
   function renderRecipientList(container) {
@@ -628,46 +653,61 @@
 
     // Header: count + match label on one line
     var totalNote = totalInPool > 0 && totalInPool > recipients.length
-      ? ' <span style="color:var(--yb-muted);font-size:0.85em">(' + totalInPool + ' i alt)</span>'
+      ? ' <span class="yb-lead__campaign-rl-pool-note">(' + totalInPool + ' i alt)</span>'
       : '';
     var pinnedNote = campaignState.pinnedIds.size > 0
-      ? ' <span style="color:var(--yb-brand);font-size:0.85em">· ' + campaignState.pinnedIds.size + ' fastlåst fra bulk-valg</span>'
+      ? ' <span class="yb-lead__campaign-rl-pinned-note">· ' + campaignState.pinnedIds.size + ' fastlåst fra bulk-valg</span>'
       : '';
 
     var html = '<div class="yb-lead__campaign-recipient-header">' +
-      '<span class="yb-lead__campaign-recipient-count">' + recipients.length + '</span> ' +
+      '<span class="yb-lead__campaign-recipient-count">' + recipients.length + '</span>' +
       '<span class="yb-lead__campaign-recipient-label">' + esc(t('campaign_recipients_count')) + '</span>' +
       totalNote + pinnedNote +
       '</div>';
 
-    // Toolbar: select all | selected count | deselect
+    // Toolbar
     html += '<div class="yb-lead__campaign-recipient-toolbar">' +
-      '<button type="button" data-action="campaign-select-all">' + esc(t('campaign_recipients_select_all')) + '</button>' +
-      '<span class="yb-lead__campaign-recipient-toolbar-count">' + selectedCount + ' ' + esc(t('campaign_recipients_selected')) + '</span>' +
-      '<button type="button" data-action="campaign-deselect-all">' + esc(t('campaign_recipients_deselect_all')) + '</button>' +
+      '<button type="button" data-action="campaign-select-all" class="yb-lead__campaign-rl-tbtn">' + esc(t('campaign_recipients_select_all')) + '</button>' +
+      '<span class="yb-lead__campaign-rl-selected">' + selectedCount + ' ' + esc(t('campaign_recipients_selected')) + '</span>' +
+      '<button type="button" data-action="campaign-deselect-all" class="yb-lead__campaign-rl-tbtn">' + esc(t('campaign_recipients_deselect_all')) + '</button>' +
       '</div>';
 
     if (recipients.length === 0) {
       html += '<div class="yb-lead__campaign-no-match">' + esc(t('campaign_recipients_no_match')) + '</div>';
     } else {
-      // Grid-based recipient list — columns: checkbox | flag | name (1fr) | contact | program
       html += '<div class="yb-lead__campaign-recipient-list">';
+
       recipients.forEach(function (lead) {
-        var checked = campaignState.selectedIds.has(lead.id) ? ' checked' : '';
+        var isSelected = campaignState.selectedIds.has(lead.id);
+        var checked = isSelected ? ' checked' : '';
         var country = detectCountry(lead);
         var fullName = ((lead.first_name || '') + ' ' + (lead.last_name || '')).trim();
         var name = esc(fullName) || esc(lead.email || lead.phone || 'Unknown');
-        var contact = esc(lead[contactField] || '');
-        var prog = esc(lead.program || lead.type || '');
+        var initial = (lead.first_name || lead.email || '?').charAt(0).toUpperCase();
+        var contact = esc(lead[contactField] || '—');
+        var prog = esc(lead.program || lead.type || lead.program_type || '');
+        var status = lead.status || lead._source === 'app' ? (lead.status || 'Applicant') : 'Lead';
+        var badge = getStatusBadge(status);
+        var source = lead._source === 'app' ? 'app' : 'lead';
 
-        html += '<div class="yb-lead__campaign-recipient-row" data-lead-id="' + lead.id + '">' +
+        html += '<label class="yb-lead__campaign-recipient-row' + (isSelected ? ' is-selected' : '') + '" data-lead-id="' + lead.id + '">' +
           '<input type="checkbox" class="yb-lead__campaign-recipient-check" data-action="campaign-toggle-recipient"' + checked + '>' +
-          '<span class="yb-lead__campaign-recipient-flag">' + getFlag(country) + '</span>' +
-          '<span class="yb-lead__campaign-recipient-name">' + name + '</span>' +
-          '<span class="yb-lead__campaign-recipient-contact">' + contact + '</span>' +
-          '<span class="yb-lead__campaign-recipient-program">' + prog + '</span>' +
-          '</div>';
+          '<div class="yb-lead__campaign-ri-avatar">' + esc(initial) + '</div>' +
+          '<div class="yb-lead__campaign-ri-body">' +
+            '<div class="yb-lead__campaign-ri-top">' +
+              '<span class="yb-lead__campaign-ri-name">' + name + '</span>' +
+              '<span class="yb-lead__campaign-ri-status" style="background:' + badge.bg + ';color:' + badge.color + '">' + esc(status) + '</span>' +
+            '</div>' +
+            '<div class="yb-lead__campaign-ri-sub">' +
+              '<span class="yb-lead__campaign-ri-flag">' + getFlag(country) + '</span>' +
+              '<span class="yb-lead__campaign-ri-contact">' + contact + '</span>' +
+              (prog ? '<span class="yb-lead__campaign-ri-dot">·</span><span class="yb-lead__campaign-ri-prog">' + prog + '</span>' : '') +
+              (source === 'app' ? '<span class="yb-lead__campaign-ri-src">APP</span>' : '') +
+            '</div>' +
+          '</div>' +
+        '</label>';
       });
+
       html += '</div>';
     }
 
