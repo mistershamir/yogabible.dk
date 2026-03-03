@@ -421,16 +421,60 @@
       submitBtn.disabled = true;
       submitBtn.textContent = detectLocale() === 'da' ? 'Logger ind...' : 'Signing in...';
 
+      var isMigrating = false;
+
       auth.signInWithEmailAndPassword(email, password)
         .then(function() {
           closeAuthModal();
         })
         .catch(function(error) {
-          showError(errorEl, getAuthErrorMessage(error.code));
+          // For user-not-found or invalid-credential: validate against Mindbody.
+          // If MB credentials are valid, sync the Firebase account with the same password
+          // and retry — so users never need a separate password for the new front end.
+          if (error.code === 'auth/user-not-found' || error.code === 'auth/invalid-credential') {
+            isMigrating = true;
+            submitBtn.textContent = detectLocale() === 'da' ? 'Tjekker konto...' : 'Checking account...';
+
+            fetch('/.netlify/functions/mb-auth', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ email: email, password: password })
+            })
+              .then(function(res) { return res.json(); })
+              .then(function(data) {
+                if (!data.success) {
+                  // Not valid in Mindbody either — show normal error
+                  showError(errorEl, getAuthErrorMessage(error.code));
+                  return;
+                }
+                // Firebase account now synced with MB password — retry login
+                return auth.signInWithEmailAndPassword(email, password)
+                  .then(function() {
+                    closeAuthModal();
+                  })
+                  .catch(function(retryErr) {
+                    console.warn('Retry after MB sync failed:', retryErr.code);
+                    showError(errorEl, detectLocale() === 'da'
+                      ? 'Prøv igen om et øjeblik.'
+                      : 'Please try again in a moment.');
+                  });
+              })
+              .catch(function() {
+                showError(errorEl, getAuthErrorMessage(error.code));
+              })
+              .finally(function() {
+                submitBtn.disabled = false;
+                submitBtn.textContent = detectLocale() === 'da' ? 'Log ind' : 'Sign in';
+              });
+          } else {
+            showError(errorEl, getAuthErrorMessage(error.code));
+          }
         })
         .finally(function() {
-          submitBtn.disabled = false;
-          submitBtn.textContent = detectLocale() === 'da' ? 'Log ind' : 'Sign in';
+          if (!isMigrating) {
+            submitBtn.disabled = false;
+            submitBtn.textContent = detectLocale() === 'da' ? 'Log ind' : 'Sign in';
+          }
         });
     });
   }
@@ -522,7 +566,17 @@
 
       submitBtn.disabled = true;
 
-      auth.sendPasswordResetEmail(email)
+      // For MB-only users (no Firebase account yet), ensure the account exists
+      // before sending the reset email — otherwise Firebase sends nothing.
+      fetch('/.netlify/functions/migrate-mb-user', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: email })
+      })
+        .catch(function() { return { found: false }; }) // don't block on MB errors
+        .then(function() {
+          return auth.sendPasswordResetEmail(email);
+        })
         .then(function() {
           if (errorEl) { errorEl.hidden = true; }
           if (successEl) {
@@ -623,6 +677,14 @@
   function showError(el, message) {
     if (!el) return;
     el.textContent = message;
+    el.style.color = '';
+    el.hidden = false;
+  }
+
+  function showSuccess(el, message) {
+    if (!el) return;
+    el.textContent = message;
+    el.style.color = '#2a7a2a';
     el.hidden = false;
   }
 
