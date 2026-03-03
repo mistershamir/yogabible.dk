@@ -19678,23 +19678,9 @@ button.yb-btn--outline-white:hover {
   align-items: center;
   justify-content: space-between;
   margin-bottom: 0.4rem;
+  gap: 0.5rem;
 }
-.yb-lead__campaign-recipient-toolbar button {
-  background: none;
-  border: none;
-  font-size: 0.8rem;
-  color: #f75c03;
-  cursor: pointer;
-  font-family: inherit;
-  padding: 0;
-  font-weight: 600;
-}
-.yb-lead__campaign-recipient-toolbar button:hover { text-decoration: underline; }
-.yb-lead__campaign-recipient-toolbar span {
-  font-size: 0.8rem;
-  color: #f75c03;
-  font-weight: 700;
-}
+/* ── Recipient list cards ── */
 .yb-lead__campaign-recipient-list {
   max-height: calc(80vh - 280px);
   overflow-y: auto;
@@ -19702,48 +19688,153 @@ button.yb-btn--outline-white:hover {
   border-radius: 10px;
   background: #fff;
 }
-.yb-lead__campaign-recipient-row {
-  display: grid;
-  grid-template-columns: 28px 24px 1fr 170px 160px;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.6rem 0.85rem;
-  border-bottom: 1px solid #F5F3F0;
-  font-size: 0.85rem;
-  transition: background 0.1s;
+.yb-lead__campaign-rl-pool-note {
+  color: #6F6A66;
+  font-size: 0.82em;
 }
-.yb-lead__campaign-box--email .yb-lead__campaign-recipient-row {
-  grid-template-columns: 28px 24px 1fr 220px 180px;
+.yb-lead__campaign-rl-pinned-note {
+  color: #f75c03;
+  font-size: 0.82em;
+}
+.yb-lead__campaign-rl-tbtn {
+  background: none;
+  border: none;
+  font-size: 0.78rem;
+  color: #f75c03;
+  cursor: pointer;
+  padding: 0;
+  font-family: inherit;
+  font-weight: 600;
+}
+.yb-lead__campaign-rl-tbtn:hover { text-decoration: underline; }
+.yb-lead__campaign-rl-selected {
+  font-size: 0.78rem;
+  color: #0F0F0F;
+  font-weight: 700;
+}
+
+/* Recipient row — full label, entire card is clickable */
+.yb-lead__campaign-recipient-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.55rem;
+  padding: 0.6rem 0.75rem;
+  border-bottom: 1px solid #F0EDE8;
+  cursor: pointer;
+  transition: background 0.12s;
+  -webkit-user-select: none;
+  user-select: none;
 }
 .yb-lead__campaign-recipient-row:last-child { border-bottom: none; }
-.yb-lead__campaign-recipient-row:nth-child(even) { background: #FDFCFB; }
-.yb-lead__campaign-recipient-row:hover { background: #F5F3F0; }
-.yb-lead__campaign-recipient-row input[type="checkbox"] { accent-color: #f75c03; }
-.yb-lead__campaign-recipient-flag { font-size: 1rem; text-align: center; }
-.yb-lead__campaign-recipient-name {
-  font-weight: 600;
-  font-size: 0.88rem;
-  line-height: 1.35;
-  min-width: 0;
+.yb-lead__campaign-recipient-row:hover { background: #FDFCFB; }
+.yb-lead__campaign-recipient-row.is-selected { background: #FFF8F4; }
+.yb-lead__campaign-recipient-row.is-selected:hover { background: #FFF3ED; }
+
+/* Checkbox */
+.yb-lead__campaign-recipient-check {
+  flex-shrink: 0;
+  margin-top: 0.3rem;
+  accent-color: #f75c03;
+  width: 14px;
+  height: 14px;
+  cursor: pointer;
 }
-.yb-lead__campaign-recipient-contact {
-  font-size: 0.82rem;
+
+/* Avatar circle — first initial */
+.yb-lead__campaign-ri-avatar {
+  flex-shrink: 0;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: #F0EDE8;
   color: #6F6A66;
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-.yb-lead__campaign-recipient-program {
   font-size: 0.72rem;
-  background: #F5F3F0;
-  padding: 0.2rem 0.5rem;
-  border-radius: 4px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-transform: uppercase;
+  margin-top: 0.05rem;
+}
+.yb-lead__campaign-recipient-row.is-selected .yb-lead__campaign-ri-avatar {
+  background: #ffe8d9;
+  color: #f75c03;
+}
+
+/* Body: two-line stack */
+.yb-lead__campaign-ri-body { flex: 1; min-width: 0; }
+
+/* Top line: name + status badge */
+.yb-lead__campaign-ri-top {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin-bottom: 0.2rem;
+}
+.yb-lead__campaign-ri-name {
+  font-weight: 600;
+  font-size: 0.855rem;
+  color: #0F0F0F;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  flex: 1;
+  min-width: 0;
+}
+.yb-lead__campaign-ri-status {
+  flex-shrink: 0;
+  font-size: 0.62rem;
+  font-weight: 700;
+  padding: 0.14rem 0.42rem;
+  border-radius: 20px;
+  white-space: nowrap;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  line-height: 1.5;
+}
+
+/* Bottom line: flag · contact · prog */
+.yb-lead__campaign-ri-sub {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  overflow: hidden;
+}
+.yb-lead__campaign-ri-flag { font-size: 0.85rem; flex-shrink: 0; line-height: 1; }
+.yb-lead__campaign-ri-contact {
+  font-size: 0.775rem;
   color: #6F6A66;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  flex: 1;
+  min-width: 0;
+}
+.yb-lead__campaign-ri-dot { color: #C8C4C0; font-size: 0.7rem; flex-shrink: 0; }
+.yb-lead__campaign-ri-prog {
+  font-size: 0.68rem;
+  background: #F0EDE8;
+  color: #6F6A66;
+  padding: 0.1rem 0.38rem;
+  border-radius: 4px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  max-width: 110px;
+  flex-shrink: 0;
 }
+.yb-lead__campaign-ri-src {
+  font-size: 0.6rem;
+  font-weight: 700;
+  background: #cce5ff;
+  color: #004085;
+  padding: 0.1rem 0.32rem;
+  border-radius: 3px;
+  flex-shrink: 0;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
 .yb-lead__campaign-no-match {
   text-align: center;
   padding: 2rem 1rem;
