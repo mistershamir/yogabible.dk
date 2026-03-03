@@ -59,6 +59,11 @@
       // Try to access parent — works for same-origin / srcdoc iframes
       var topDoc = window.top.document;
       if (topDoc && topDoc.body) {
+        // The Framer page may embed this script in multiple iframes.
+        // Only ONE instance should own the parent-document injection;
+        // others must bail out to avoid duplicate modals + event listeners.
+        if (window.top.__hyc_login_cta_injected) return;
+        window.top.__hyc_login_cta_injected = true;
         targetDoc = topDoc;
       }
     }
@@ -468,6 +473,9 @@
 
   function createModal() {
     if (modalEl) return;
+    // Also guard against a previous instance that already injected the modal
+    var existing = targetDoc.getElementById('hyc-ua-modal');
+    if (existing) { modalEl = existing; return; }
     // Create in targetDoc (parent page if framed) so modal covers full viewport
     modalEl = targetDoc.createElement('div');
     modalEl.className = 'hyc-ua';
