@@ -15,6 +15,7 @@ const { getDb } = require('./shared/firestore');
 const { jsonResponse, optionsResponse } = require('./shared/utils');
 const { sendAdminNotification } = require('./shared/email-service');
 const { sendCareersConfirmation } = require('./shared/lead-emails');
+const { runSpamChecks } = require('./shared/spam-check');
 
 exports.handler = async (event) => {
   if (event.httpMethod === 'OPTIONS') return optionsResponse();
@@ -67,6 +68,24 @@ exports.handler = async (event) => {
       return jsonResponse(400, { ok: false, error: 'Email is required' });
     }
 
+    // ── Spam protection ─────────────────────────────────────────────
+    const db = getDb();
+    const spamReason = await runSpamChecks({
+      honeypotValue: fields.ybcar_hp,
+      formOpenedAt:  fields.formOpenedAt,
+      db,
+      collection:  'careers',
+      emailField:  'email',
+      email,
+      windowHours: 24
+    });
+    if (spamReason) {
+      console.warn(`[careers] Spam rejected (${spamReason}): ${email}`);
+      // Return success-looking response so bots don't know they were blocked
+      return jsonResponse(200, { ok: true, message: 'Career application received' });
+    }
+    // ────────────────────────────────────────────────────────────────
+
     // Build career application document
     const careerDoc = {
       email,
@@ -102,7 +121,6 @@ exports.handler = async (event) => {
     }
 
     // Write to Firestore careers collection
-    const db = getDb();
     const docRef = await db.collection('careers').add(careerDoc);
 
     console.log(`[careers] New career submission: ${docRef.id} (${email})`);

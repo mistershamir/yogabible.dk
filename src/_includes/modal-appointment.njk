@@ -118,6 +118,9 @@
 
       {# Form #}
       <form class="yb-book__form" id="yb-book-form">
+        {# Spam protection — hidden honeypot (bots fill this; humans don't) #}
+        <input type="text" id="yb-book-hp" style="position:absolute;left:-9999px;opacity:0;width:1px;height:1px;pointer-events:none;" tabindex="-1" autocomplete="off" aria-hidden="true">
+        <input type="hidden" id="yb-book-opened-at">
         <div class="yb-book__field">
           <label data-yj-da="Navn *" data-yj-en="Name *">{% if lang == "en" %}Name *{% else %}Navn *{% endif %}</label>
           <input type="text" id="yb-book-name" required placeholder="{% if lang == 'en' %}Your full name{% else %}Dit fulde navn{% endif %}">
