@@ -60,7 +60,7 @@ def send_sms(to_phone, message):
     )
 
     try:
-        with urllib.request.urlopen(req) as resp:
+        with urllib.request.urlopen(req, timeout=15) as resp:
             return {'success': True, 'phone': phone}
     except Exception as e:
         return {'success': False, 'error': str(e)}

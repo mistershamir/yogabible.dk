@@ -226,3 +226,83 @@ def check_refresh_flag():
         except Exception as e:
             logger.warning(f'Could not process refresh flag: {e}')
     return False
+
+
+def auto_pull_main():
+    """Pull latest changes from origin/main. Returns dict with status info.
+
+    Returns:
+        dict with keys:
+          - pulled (bool): whether new commits were pulled
+          - agent_changed (bool): whether lead-agent/ Python files changed
+          - error (str|None): error message if pull failed
+    """
+    result = {'pulled': False, 'agent_changed': False, 'error': None}
+
+    try:
+        # Make sure we're on main
+        branch = _git_current_branch()
+        if branch != 'main':
+            logger.info(f'Not on main (on {branch}) — skipping auto-pull')
+            return result
+
+        # Fetch latest from origin
+        fetch = subprocess.run(
+            ['git', 'fetch', 'origin', 'main'],
+            capture_output=True, text=True, cwd=PROJECT_ROOT, timeout=30
+        )
+        if fetch.returncode != 0:
+            result['error'] = f'git fetch failed: {fetch.stderr.strip()}'
+            logger.warning(result['error'])
+            return result
+
+        # Check if there are new commits
+        diff_check = subprocess.run(
+            ['git', 'rev-list', 'HEAD..origin/main', '--count'],
+            capture_output=True, text=True, cwd=PROJECT_ROOT, timeout=10
+        )
+        new_commits = int(diff_check.stdout.strip()) if diff_check.returncode == 0 else 0
+
+        if new_commits == 0:
+            logger.debug('auto-pull: already up to date')
+            return result
+
+        # Check which files changed BEFORE pulling
+        changed_files = subprocess.run(
+            ['git', 'diff', '--name-only', 'HEAD..origin/main'],
+            capture_output=True, text=True, cwd=PROJECT_ROOT, timeout=10
+        )
+        changed = changed_files.stdout.strip().splitlines() if changed_files.returncode == 0 else []
+
+        # Pull
+        pull = subprocess.run(
+            ['git', 'pull', 'origin', 'main', '--ff-only'],
+            capture_output=True, text=True, cwd=PROJECT_ROOT, timeout=30
+        )
+        if pull.returncode != 0:
+            result['error'] = f'git pull failed: {pull.stderr.strip()}'
+            logger.warning(result['error'])
+            return result
+
+        result['pulled'] = True
+        logger.info(f'auto-pull: pulled {new_commits} new commit(s) from main')
+        logger.info(f'auto-pull: changed files: {", ".join(changed[:20])}')
+
+        # Check if agent code itself changed (needs restart)
+        agent_files = [f for f in changed if f.startswith('lead-agent/') and f.endswith('.py')]
+        if agent_files:
+            result['agent_changed'] = True
+            logger.info(f'auto-pull: agent code changed: {", ".join(agent_files)} — restart needed')
+
+        # Knowledge files changed — refresh immediately
+        knowledge_files = [f for f in changed if f in KEY_FILES]
+        if knowledge_files:
+            logger.info(f'auto-pull: knowledge files changed: {", ".join(knowledge_files)} — refreshing')
+            refresh_knowledge()
+
+        return result
+
+    except Exception as e:
+        result['error'] = str(e)
+        logger.warning(f'auto-pull error: {e}')
+        return result
