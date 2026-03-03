@@ -40,7 +40,8 @@
   var searchTerm = '';
   var filterStatuses = []; // multi-select array
   var filterTypes = [];    // multi-select array
-  var filterSubType = '';  // client-side sub-filter on program/course name
+  var filterSubType = '';      // client-side sub-filter value
+  var filterSubTypeField = ''; // which lead field to match filterSubType against
   var filterSource = '';
   var filterPriority = '';
   var filterTemperature = '';
@@ -508,6 +509,45 @@
   }
 
   /* ══════════════════════════════════════════
+     SOURCE FILTER — smart matching
+     Maps dropdown values → lead fields (type, ytt_program_type, source)
+     so that old leads with verbose sources still match.
+     ══════════════════════════════════════════ */
+  function matchesSourceFilter(lead, filterValue) {
+    var src  = (lead.source || '').toLowerCase();
+    var type = (lead.type   || '').toLowerCase();
+    var ytt  = (lead.ytt_program_type || '').toLowerCase();
+    switch (filterValue) {
+      case '200h YTT':
+        // Type must be ytt (or education from apply form), and NOT 300h / 50h / 30h
+        return (type === 'ytt' || type === 'education') &&
+               ytt !== '300h' && ytt !== '50h' && ytt !== '30h';
+      case '300h YTT':
+        return (type === 'ytt' || type === 'education') && ytt === '300h';
+      case '50h YTT':
+        return (type === 'ytt' || type === 'education') && ytt === '50h';
+      case '30h YTT':
+        return (type === 'ytt' || type === 'education') && ytt === '30h';
+      case 'Courses':
+        return type === 'course' || type === 'bundle';
+      case 'Mentorship':
+        return type === 'mentorship';
+      case 'Contact page':
+        return type === 'contact' || src.indexOf('contact') !== -1;
+      case 'Apply page':
+        return src.indexOf('apply') !== -1 || src === 'ansøgningsside' || src === 'application page';
+      case 'Careers page':
+        return type === 'careers' || src.indexOf('career') !== -1;
+      case 'Manual entry':
+        return src === 'manual entry' || src.indexOf('manual') !== -1;
+      case 'Facebook Ad':
+        return src.indexOf('meta lead') !== -1 || src.indexOf('facebook') !== -1;
+      default:
+        return lead.source === filterValue;
+    }
+  }
+
+  /* ══════════════════════════════════════════
      RENDER LEAD TABLE
      ══════════════════════════════════════════ */
   function getFilteredLeads() {
@@ -535,15 +575,19 @@
     }
 
     // Single-select secondary filters
-    if (filterSource) filtered = filtered.filter(function (l) { return l.source === filterSource; });
+    if (filterSource) filtered = filtered.filter(function (l) { return matchesSourceFilter(l, filterSource); });
     if (filterPriority) filtered = filtered.filter(function (l) { return l.priority === filterPriority; });
     if (filterTemperature) filtered = filtered.filter(function (l) { return l.temperature === filterTemperature; });
 
-    // Sub-type filter (program name match)
+    // Sub-type filter — matches on a specific field (ytt_program_type for YTT, or program text for others)
     if (filterSubType) {
       var st = filterSubType.toLowerCase();
       filtered = filtered.filter(function (l) {
-        var prog = (l.program || l.course_name || l.program_type || '').toLowerCase();
+        if (filterSubTypeField) {
+          return (String(l[filterSubTypeField] || '').toLowerCase()).indexOf(st) !== -1;
+        }
+        // fallback: check program text
+        var prog = (l.program || '').toLowerCase();
         return prog.indexOf(st) !== -1;
       });
     }
@@ -599,23 +643,25 @@
     }
   }
 
-  // Sub-type definitions per lead type — matches against lead.program text
+  // Sub-type definitions per lead type.
+  // `field` = which lead property to match against (defaults to 'program' text if omitted).
   var SUB_TYPE_OPTIONS = {
     ytt: [
-      { label: '18W', match: '18' },
-      { label: '4W Apr', match: '4 ugers intensiv (apr' },
-      { label: '4W Jul', match: '4 ugers intensiv (jul' },
-      { label: '4W Aug', match: '4 ugers intensiv (aug' },
-      { label: '8W', match: '8' }
+      { label: '18W Flex',     match: '18-week', field: 'ytt_program_type' },
+      { label: '8W Semi',      match: '8-week',  field: 'ytt_program_type' },
+      { label: '4W Intensive', match: '4-week',  field: 'ytt_program_type' },
+      { label: '300h Adv.',    match: '300h',    field: 'ytt_program_type' },
+      { label: '50h Specialty',match: '50h',     field: 'ytt_program_type' },
+      { label: '30h Module',   match: '30h',     field: 'ytt_program_type' }
     ],
     course: [
-      { label: 'Inversions', match: 'inversion' },
-      { label: 'Splits', match: 'split' },
-      { label: 'Backbends', match: 'backbend' }
+      { label: 'Inversions', match: 'inversion', field: 'program' },
+      { label: 'Splits',     match: 'split',     field: 'program' },
+      { label: 'Backbends',  match: 'backbend',  field: 'program' }
     ],
     bundle: [
-      { label: '2-Course', match: '2-course' },
-      { label: '3-Course All-In', match: 'all-in' }
+      { label: '2-Course',        match: '2-course', field: 'program' },
+      { label: '3-Course All-In', match: 'all-in',   field: 'program' }
     ]
   };
 
@@ -634,7 +680,9 @@
     chipsEl.innerHTML = '<span class="yb-lead__subtype-label">Sub-filter:</span>' +
       options.map(function (opt) {
         var active = filterSubType === opt.match ? ' is-active' : '';
-        return '<button type="button" class="yb-lead__campaign-chip' + active + '" data-subtype="' + esc(opt.match) + '">' + esc(opt.label) + '</button>';
+        var fieldAttr = opt.field ? ' data-subtype-field="' + esc(opt.field) + '"' : '';
+        return '<button type="button" class="yb-lead__campaign-chip' + active + '"' +
+          ' data-subtype="' + esc(opt.match) + '"' + fieldAttr + '>' + esc(opt.label) + '</button>';
       }).join('');
     row.hidden = false;
   }
@@ -4247,6 +4295,7 @@
         var idx = filterTypes.indexOf(val);
         if (idx !== -1) filterTypes.splice(idx, 1); else filterTypes.push(val);
         filterSubType = '';
+        filterSubTypeField = '';
         renderLeadFilterChips();
         renderSubTypeFilter(filterTypes.length === 1 ? filterTypes[0] : '');
         loadLeads();
@@ -4263,6 +4312,7 @@
         filterPriority = '';
         filterTemperature = '';
         filterSubType = '';
+        filterSubTypeField = '';
         var sel; // reset compact selects
         sel = $('yb-lead-source-filter'); if (sel) sel.value = '';
         sel = $('yb-lead-priority-filter'); if (sel) sel.value = '';
@@ -4281,7 +4331,13 @@
         var chip = e.target.closest('[data-subtype]');
         if (!chip) return;
         var val = chip.getAttribute('data-subtype');
-        filterSubType = filterSubType === val ? '' : val;
+        if (filterSubType === val) {
+          filterSubType = '';
+          filterSubTypeField = '';
+        } else {
+          filterSubType = val;
+          filterSubTypeField = chip.getAttribute('data-subtype-field') || '';
+        }
         subtypeRow.querySelectorAll('[data-subtype]').forEach(function (c) {
           c.classList.toggle('is-active', c.getAttribute('data-subtype') === filterSubType);
         });

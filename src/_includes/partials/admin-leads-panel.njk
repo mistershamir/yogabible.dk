@@ -23,14 +23,23 @@
     </form>
     <select id="yb-lead-source-filter" class="yb-admin__select yb-lead__filter">
       <option value="">{{ t.leads_all_sources }}</option>
-      <option value="200h YTT">200h YTT</option>
-      <option value="300h YTT">300h YTT</option>
-      <option value="Courses">Courses</option>
-      <option value="Mentorship">Mentorship</option>
-      <option value="Contact page">Contact page</option>
-      <option value="Careers page">Careers page</option>
-      <option value="Apply page">Apply page</option>
-      <option value="Manual entry">Manual entry</option>
+      <optgroup label="YTT Programs">
+        <option value="200h YTT">200h YTT (18w / 8w / 4w)</option>
+        <option value="300h YTT">300h Advanced YTT</option>
+        <option value="50h YTT">50h Specialty YTT</option>
+        <option value="30h YTT">30h Module</option>
+      </optgroup>
+      <optgroup label="Other Programs">
+        <option value="Courses">Courses</option>
+        <option value="Mentorship">Mentorship</option>
+      </optgroup>
+      <optgroup label="Channel / Origin">
+        <option value="Facebook Ad">Facebook Ad (Meta)</option>
+        <option value="Apply page">Apply page</option>
+        <option value="Contact page">Contact page</option>
+        <option value="Careers page">Careers page</option>
+        <option value="Manual entry">Manual entry</option>
+      </optgroup>
     </select>
     <select id="yb-lead-priority-filter" class="yb-admin__select yb-lead__filter">
       <option value="">{{ t.leads_all_priorities }}</option>
