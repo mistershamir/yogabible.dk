@@ -379,7 +379,27 @@
   function doLogin(email, password, callback) {
     firebase.auth().signInWithEmailAndPassword(email, password)
       .then(function () { callback(null); })
-      .catch(function (err) { callback(err); });
+      .catch(function (err) {
+        // Validate against Mindbody for legacy users who have no Firebase account yet
+        if (err.code === 'auth/user-not-found' || err.code === 'auth/invalid-credential') {
+          fetch(API_BASE + '/mb-auth', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email: email, password: password })
+          })
+            .then(function (res) { return res.json(); })
+            .then(function (data) {
+              if (!data.success) { callback(err); return; }
+              // Firebase account synced with MB password — retry
+              return firebase.auth().signInWithEmailAndPassword(email, password)
+                .then(function () { callback(null); })
+                .catch(function (retryErr) { callback(retryErr); });
+            })
+            .catch(function () { callback(err); });
+        } else {
+          callback(err);
+        }
+      });
   }
 
   function doRegister(email, password, firstName, lastName, phone, callback) {
@@ -403,7 +423,16 @@
   }
 
   function doForgotPassword(email, callback) {
-    firebase.auth().sendPasswordResetEmail(email)
+    // Ensure Firebase account exists for MB-only users before sending reset email
+    fetch(API_BASE + '/migrate-mb-user', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: email })
+    })
+      .catch(function () { return { found: false }; })
+      .then(function () {
+        return firebase.auth().sendPasswordResetEmail(email);
+      })
       .then(function () { callback(null); })
       .catch(function (err) { callback(err); });
   }
@@ -636,6 +665,40 @@
             ''
           );
         });
+      });
+    }
+
+    // ── Google Sign-In (login step) ──
+    var googleLoginBtn = $('ycf-google-signin');
+    if (googleLoginBtn) {
+      googleLoginBtn.addEventListener('click', function () {
+        googleLoginBtn.disabled = true;
+        hideError('ycf-login-error');
+
+        var provider = new firebase.auth.GoogleAuthProvider();
+        firebase.auth().signInWithPopup(provider)
+          .then(function (result) {
+            if (window.CheckoutFunnel) window.CheckoutFunnel.trackAuthComplete();
+            authOriginStep = 'login';
+
+            var user = result.user;
+            var displayName = (user && user.displayName) || '';
+            var nameParts = displayName.split(' ');
+            resolveClientAndAdvance(
+              nameParts[0] || 'User',
+              nameParts.slice(1).join(' ') || '',
+              (user && user.email) || '',
+              ''
+            );
+          })
+          .catch(function (error) {
+            if (error.code !== 'auth/popup-closed-by-user' && error.code !== 'auth/cancelled-popup-request') {
+              showError('ycf-login-error', authErrorMsg(error));
+            }
+          })
+          .finally(function () {
+            googleLoginBtn.disabled = false;
+          });
       });
     }
 
