@@ -19909,6 +19909,24 @@ details[open] .yb-lead__campaign-history-toggle::before { transform: rotate(90de
   font-size: 0.72rem;
 }
 
+/* ── Multi-select chip filter area (status + type chips below filter bar) ── */
+.yb-lead__chip-filter-area {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  padding: 0.5rem 0 0.15rem;
+}
+.yb-lead__filter-chips-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem;
+  align-items: center;
+}
+.yb-lead__filter-chips-row .yb-lead__campaign-chip {
+  font-size: 0.74rem;
+  padding: 0.18rem 0.5rem;
+}
+
 /* ── Sub-type filter row (shown when type is selected) ── */
 .yb-lead__subtype-row {
   display: flex;

@@ -16,40 +16,11 @@
   {# Pipeline Stats (clickable) #}
   <div class="yb-lead__stats-grid" id="yb-lead-stats"></div>
 
-  {# Search + Filters Row #}
+  {# Search + Compact Filters Row #}
   <div class="yb-lead__filter-bar">
     <form id="yb-lead-search-form" class="yb-lead__search-form">
       <input type="text" id="yb-lead-search-input" placeholder="{{ t.leads_search_placeholder }}" class="yb-lead__search-input">
     </form>
-    <select id="yb-lead-status-filter" class="yb-admin__select yb-lead__filter">
-      <option value="">{{ t.leads_all_statuses }}</option>
-      <option value="New">&#10024; New</option>
-      <option value="Contacted">&#128231; Contacted</option>
-      <option value="No Answer">&#128244; No Answer</option>
-      <option value="Follow-up">&#128260; Follow-up</option>
-      <option value="Engaged">&#128172; Engaged</option>
-      <option value="Strongly Interested">&#11088; Strongly Interested</option>
-      <option value="Qualified">&#9989; Qualified</option>
-      <option value="Negotiating">&#129309; Negotiating</option>
-      <option value="Converted">&#127881; Converted</option>
-      <option value="Existing Applicant">&#128196; Existing Applicant</option>
-      <option value="On Hold">&#9208;&#65039; On Hold</option>
-      <option value="Interested In Next Round">&#128197; Interested In Next Round</option>
-      <option value="Not too keen">&#128528; Not too keen</option>
-      <option value="Unsubscribed">&#128683; Unsubscribed</option>
-      <option value="Lost">&#128078; Lost</option>
-      <option value="Closed">&#10006; Closed</option>
-      <option value="Archived">&#128230; Archived</option>
-    </select>
-    <select id="yb-lead-type-filter" class="yb-admin__select yb-lead__filter">
-      <option value="">{{ t.leads_all_types }}</option>
-      <option value="ytt">YTT</option>
-      <option value="course">Course</option>
-      <option value="bundle">Bundle</option>
-      <option value="mentorship">Mentorship</option>
-      <option value="careers">Career</option>
-      <option value="contact">Contact</option>
-    </select>
     <select id="yb-lead-source-filter" class="yb-admin__select yb-lead__filter">
       <option value="">{{ t.leads_all_sources }}</option>
       <option value="200h YTT">200h YTT</option>
@@ -74,9 +45,16 @@
       <option value="warm">&#9728;&#65039; Warm</option>
       <option value="cold">&#10052;&#65039; Cold</option>
     </select>
+    <button type="button" id="yb-lead-clear-filters" class="yb-btn yb-btn--sm yb-btn--outline" title="Clear all filters">&#10006; Clear</button>
   </div>
 
-  {# Sub-type filter row — shown when a type with sub-options is selected #}
+  {# Multi-select chip filters — rendered by JS from STATUSES and TYPES arrays #}
+  <div class="yb-lead__chip-filter-area">
+    <div id="yb-lead-status-chips" class="yb-lead__filter-chips-row"></div>
+    <div id="yb-lead-type-chips" class="yb-lead__filter-chips-row"></div>
+  </div>
+
+  {# Sub-type filter row — shown when a single type with sub-options is selected #}
   <div id="yb-lead-subtype-row" class="yb-lead__subtype-row" hidden>
     <div id="yb-lead-subtype-chips" class="yb-lead__subtype-chips"></div>
   </div>
