@@ -745,11 +745,12 @@
       ? '<div class="yb-lead__campaign-loading-banner">Indlæser alle leads fra databasen…</div>'
       : '';
 
-    panelEl.innerHTML = '<div class="yb-lead__campaign-recipients">' +
+    panelEl.innerHTML =
       loadingBanner +
       '<div id="yb-campaign-' + prefix + '-history"></div>' +
-      '<div class="yb-lead__campaign-filters" id="yb-campaign-' + prefix + '-filters-area"></div>' +
-      '<div class="yb-lead__campaign-recipient-list-wrap" id="yb-campaign-' + prefix + '-recipients-list"></div>' +
+      '<div class="yb-lead__campaign-recipients">' +
+        '<div class="yb-lead__campaign-filters" id="yb-campaign-' + prefix + '-filters-area"></div>' +
+        '<div class="yb-lead__campaign-recipient-list-wrap" id="yb-campaign-' + prefix + '-recipients-list"></div>' +
       '</div>';
 
     renderCampaignHistory($('yb-campaign-' + prefix + '-history'));

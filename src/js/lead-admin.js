@@ -38,9 +38,9 @@
   var PAGE_SIZE = 50;
   var totalLeadCount = null; // true DB count (from aggregation query)
   var searchTerm = '';
-  var filterStatus = '';
-  var filterType = '';
-  var filterSubType = ''; // client-side sub-filter on program/course name
+  var filterStatuses = []; // multi-select array
+  var filterTypes = [];    // multi-select array
+  var filterSubType = '';  // client-side sub-filter on program/course name
   var filterSource = '';
   var filterPriority = '';
   var filterTemperature = '';
@@ -416,37 +416,35 @@
 
     var query = db.collection('leads').orderBy(sortField, sortDir);
 
-    // Filter by archived state — only show archived when explicitly toggled
+    // Archived mode: Firestore filter
     if (showArchived) {
       query = query.where('archived', '==', true);
-    } else if (filterStatus === 'Archived') {
-      query = query.where('status', '==', 'Archived');
-    } else {
-      // Firestore doesn't support != well, so we filter client-side for non-archived
     }
 
-    if (filterStatus && filterStatus !== 'Archived') query = query.where('status', '==', filterStatus);
-    if (filterType) query = query.where('type', '==', filterType);
-    if (filterSource) query = query.where('source', '==', filterSource);
-    if (filterPriority) query = query.where('priority', '==', filterPriority);
-    if (filterTemperature) query = query.where('temperature', '==', filterTemperature);
-    if (lastDoc) query = query.startAfter(lastDoc);
+    // When any chip filter is active, load a large batch and filter client-side.
+    // This avoids composite index requirements and supports multi-select combinations.
+    var hasFilters = filterStatuses.length > 0 || filterTypes.length > 0 ||
+      filterSource || filterPriority || filterTemperature || filterSubType;
 
-    query.limit(PAGE_SIZE).get().then(function (snap) {
+    var batchSize = hasFilters ? 1000 : PAGE_SIZE;
+    if (!hasFilters && lastDoc) query = query.startAfter(lastDoc);
+
+    query.limit(batchSize).get().then(function (snap) {
       snap.forEach(function (doc) {
         var data = Object.assign({ id: doc.id }, doc.data());
-        // Client-side filter: skip archived leads unless showing archived
         if (!showArchived && data.archived === true) return;
         leads.push(data);
       });
-      lastDoc = snap.docs.length ? snap.docs[snap.docs.length - 1] : null;
+
+      // Pagination only applies when no client-side filters are active
+      lastDoc = (!hasFilters && snap.docs.length) ? snap.docs[snap.docs.length - 1] : null;
 
       renderLeadView();
       renderLeadStats();
       updateBulkBar();
 
       var loadMore = $('yb-lead-load-more-wrap');
-      if (loadMore && leadViewMode === 'table') loadMore.hidden = snap.docs.length < PAGE_SIZE;
+      if (loadMore) loadMore.hidden = hasFilters || snap.docs.length < PAGE_SIZE;
 
     }).catch(function (err) {
       console.error('[lead-admin] Load error:', err);
@@ -515,23 +513,38 @@
   function getFilteredLeads() {
     var filtered = leads;
 
-    // By default hide converted/existing-applicant leads — they live in Applications tab.
-    // They remain visible when the user explicitly filters by those statuses (stat card click).
+    // Hide converted/existing-applicant unless explicitly filtered
     var CONVERTED_STATUSES = ['Converted', 'Existing Applicant'];
-    var isConvertedFilter = CONVERTED_STATUSES.indexOf(filterStatus) !== -1;
+    var isConvertedFilter = filterStatuses.some(function (s) { return CONVERTED_STATUSES.indexOf(s) !== -1; });
     if (!isConvertedFilter) {
       filtered = filtered.filter(function (l) {
         return CONVERTED_STATUSES.indexOf(l.status) === -1 && !l.application_id;
       });
     }
 
-    // Client-side sub-type filter — matches against program, course_name, or type
+    // Multi-select status filter (OR within same filter type)
+    if (filterStatuses.length > 0) {
+      filtered = filtered.filter(function (l) { return filterStatuses.indexOf(l.status) !== -1; });
+    } else if (!showArchived) {
+      filtered = filtered.filter(function (l) { return l.status !== 'Archived'; });
+    }
+
+    // Multi-select type filter
+    if (filterTypes.length > 0) {
+      filtered = filtered.filter(function (l) { return filterTypes.indexOf(l.type) !== -1; });
+    }
+
+    // Single-select secondary filters
+    if (filterSource) filtered = filtered.filter(function (l) { return l.source === filterSource; });
+    if (filterPriority) filtered = filtered.filter(function (l) { return l.priority === filterPriority; });
+    if (filterTemperature) filtered = filtered.filter(function (l) { return l.temperature === filterTemperature; });
+
+    // Sub-type filter (program name match)
     if (filterSubType) {
       var st = filterSubType.toLowerCase();
       filtered = filtered.filter(function (l) {
         var prog = (l.program || l.course_name || l.program_type || '').toLowerCase();
-        var type = (l.type || '').toLowerCase();
-        return prog.indexOf(st) !== -1 || type === st;
+        return prog.indexOf(st) !== -1;
       });
     }
 
@@ -547,6 +560,43 @@
       });
     }
     return filtered;
+  }
+
+  /* ══════════════════════════════════════════
+     MULTI-SELECT CHIP FILTERS
+     ══════════════════════════════════════════ */
+  function renderLeadFilterChips() {
+    // Status chips (all statuses except Archived, which is managed by the toggle button)
+    var sc = $('yb-lead-status-chips');
+    if (sc) {
+      var html = '';
+      STATUSES.filter(function (s) { return s.value !== 'Archived'; }).forEach(function (s) {
+        var active = filterStatuses.indexOf(s.value) !== -1 ? ' is-active' : '';
+        html += '<button type="button" class="yb-lead__campaign-chip' + active + '" data-status-chip="' + esc(s.value) + '">' +
+          s.icon + ' ' + esc(s.label) + '</button>';
+      });
+      sc.innerHTML = html;
+    }
+
+    // Type chips
+    var tc = $('yb-lead-type-chips');
+    if (tc) {
+      var types = [
+        { value: 'ytt', label: '🧘 YTT' },
+        { value: 'course', label: '📚 Course' },
+        { value: 'bundle', label: '📦 Bundle' },
+        { value: 'mentorship', label: '🎓 Mentorship' },
+        { value: 'careers', label: '💼 Career' },
+        { value: 'contact', label: '📞 Contact' }
+      ];
+      var html2 = '';
+      types.forEach(function (typ) {
+        var active = filterTypes.indexOf(typ.value) !== -1 ? ' is-active' : '';
+        html2 += '<button type="button" class="yb-lead__campaign-chip' + active + '" data-type-chip="' + esc(typ.value) + '">' +
+          esc(typ.label) + '</button>';
+      });
+      tc.innerHTML = html2;
+    }
   }
 
   // Sub-type definitions per lead type — matches against lead.program text
@@ -4160,17 +4210,11 @@
       }
     }
 
-    // Filters — Leads
-    ['yb-lead-status-filter', 'yb-lead-type-filter', 'yb-lead-source-filter', 'yb-lead-priority-filter', 'yb-lead-temperature-filter'].forEach(function (filterId) {
+    // Filters — compact selects (source / priority / temperature)
+    ['yb-lead-source-filter', 'yb-lead-priority-filter', 'yb-lead-temperature-filter'].forEach(function (filterId) {
       var el = $(filterId);
       if (el) {
         el.addEventListener('change', function () {
-          if (filterId === 'yb-lead-status-filter') filterStatus = el.value;
-          if (filterId === 'yb-lead-type-filter') {
-            filterType = el.value;
-            filterSubType = ''; // reset sub-filter when type changes
-            renderSubTypeFilter(el.value);
-          }
           if (filterId === 'yb-lead-source-filter') filterSource = el.value;
           if (filterId === 'yb-lead-priority-filter') filterPriority = el.value;
           if (filterId === 'yb-lead-temperature-filter') filterTemperature = el.value;
@@ -4179,7 +4223,58 @@
       }
     });
 
-    // Sub-type filter chips (rendered dynamically)
+    // Multi-select status chips
+    var scEl = $('yb-lead-status-chips');
+    if (scEl) {
+      scEl.addEventListener('click', function (e) {
+        var chip = e.target.closest('[data-status-chip]');
+        if (!chip) return;
+        var val = chip.getAttribute('data-status-chip');
+        var idx = filterStatuses.indexOf(val);
+        if (idx !== -1) filterStatuses.splice(idx, 1); else filterStatuses.push(val);
+        renderLeadFilterChips();
+        loadLeads();
+      });
+    }
+
+    // Multi-select type chips
+    var tcEl = $('yb-lead-type-chips');
+    if (tcEl) {
+      tcEl.addEventListener('click', function (e) {
+        var chip = e.target.closest('[data-type-chip]');
+        if (!chip) return;
+        var val = chip.getAttribute('data-type-chip');
+        var idx = filterTypes.indexOf(val);
+        if (idx !== -1) filterTypes.splice(idx, 1); else filterTypes.push(val);
+        filterSubType = '';
+        renderLeadFilterChips();
+        renderSubTypeFilter(filterTypes.length === 1 ? filterTypes[0] : '');
+        loadLeads();
+      });
+    }
+
+    // Clear all filters button
+    var clearFiltersBtn = $('yb-lead-clear-filters');
+    if (clearFiltersBtn) {
+      clearFiltersBtn.addEventListener('click', function () {
+        filterStatuses = [];
+        filterTypes = [];
+        filterSource = '';
+        filterPriority = '';
+        filterTemperature = '';
+        filterSubType = '';
+        var sel; // reset compact selects
+        sel = $('yb-lead-source-filter'); if (sel) sel.value = '';
+        sel = $('yb-lead-priority-filter'); if (sel) sel.value = '';
+        sel = $('yb-lead-temperature-filter'); if (sel) sel.value = '';
+        renderLeadFilterChips();
+        var subtypeRow2 = $('yb-lead-subtype-row');
+        if (subtypeRow2) subtypeRow2.hidden = true;
+        loadLeads();
+      });
+    }
+
+    // Sub-type filter chips
     var subtypeRow = $('yb-lead-subtype-row');
     if (subtypeRow) {
       subtypeRow.addEventListener('click', function (e) {
@@ -4187,7 +4282,6 @@
         if (!chip) return;
         var val = chip.getAttribute('data-subtype');
         filterSubType = filterSubType === val ? '' : val;
-        // Update active chip
         subtypeRow.querySelectorAll('[data-subtype]').forEach(function (c) {
           c.classList.toggle('is-active', c.getAttribute('data-subtype') === filterSubType);
         });
@@ -4359,9 +4453,8 @@
       var card = e.target.closest('[data-filter-status]');
       if (card) {
         var st = card.getAttribute('data-filter-status');
-        filterStatus = st || '';
-        var filterEl = $('yb-lead-status-filter');
-        if (filterEl) filterEl.value = filterStatus;
+        filterStatuses = st ? [st] : [];
+        renderLeadFilterChips();
         loadLeads();
       }
     });
@@ -4494,6 +4587,7 @@
 
     createModals();
     bindLeadEvents();
+    renderLeadFilterChips();
 
     // Hook into tab switching — Leads (admin page)
     document.querySelectorAll('[data-yb-admin-tab]').forEach(function (btn) {
