@@ -22,16 +22,14 @@ logger = logging.getLogger('lead-agent.knowledge')
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 
 # Key files the agent should know about (relative to project root)
+# NOTE: These are only used for cache invalidation (hash check), NOT loaded into the prompt.
+# The system prompt uses curated summaries instead of raw file content.
 KEY_FILES = {
     'lead-agent/tools/email.py': 'Drip email templates (5-step sequence)',
     'lead-agent/tools/sms.py': 'SMS templates and GatewayAPI integration',
     'lead-agent/scheduler.py': 'Drip schedule timing and processing logic',
     'netlify/functions/shared/config.js': 'Program types, pricing, schedule PDFs, payment URLs',
     'netlify/functions/shared/lead-emails.js': 'Welcome email templates (per program type)',
-    'netlify/functions/shared/email-service.js': 'Email signature, reusable blocks, template system',
-    'netlify/functions/lead.js': 'Lead capture API (form submissions)',
-    'apps-script/06 emails.js': 'Legacy Apps Script email templates',
-    'apps-script/01_Config.js': 'Apps Script config (schedule mappings, payment URLs)',
 }
 
 _cached_knowledge = None
@@ -88,28 +86,30 @@ def _compute_hash():
 
 
 def _extract_config_summary():
-    """Read the live Netlify config.js and extract key data for the agent."""
-    content = _read_file('netlify/functions/shared/config.js')
-    if not content:
-        return '(config.js not found — using defaults)'
-    # Return the full config since it contains pricing, program types, schedule PDFs, etc.
-    # Truncate if too large (keep first 5000 chars which covers all the important stuff)
-    if len(content) > 5000:
-        content = content[:5000] + '\n... (truncated)'
-    return content
+    """Return a concise summary of config.js — not the raw file."""
+    return """Schedule PDFs (Cloudinary):
+- 18-week Mar-Jun 2026: https://res.cloudinary.com/ddcynsa30/image/upload/v1771280099/18w-mar-jun-2026.pdf_izgiuz
+- 4-week Apr 2026: https://res.cloudinary.com/ddcynsa30/image/upload/v1771280041/4w-apr-2026.pdf_x9iwdf
+- 8-week May-Jun 2026: https://res.cloudinary.com/ddcynsa30/image/upload/v1771280072/8w-may-jun-2026.pdf_k7i62j
+- 300h: TBA
+
+Payment URLs (MindBody):
+- 18-week: prodid=10112 | 4-week: prodid=10113
+
+Courses: Inversions/Splits/Backbends — 2300 DKK each, 8 sessions.
+Booking link: https://yogabible.dk/?booking=1
+Application form: https://www.yogabible.dk/apply"""
 
 
 def _extract_email_templates_summary():
-    """Read the live Netlify lead-emails.js and extract a summary of what each email says."""
-    content = _read_file('netlify/functions/shared/lead-emails.js')
-    if not content:
-        return '(lead-emails.js not found)'
-    # The file is large (~30KB). Include the key functions to give Claude visibility
-    # into what the actual welcome emails say (subject lines, banners, pricing, messaging).
-    # Truncate to keep the prompt reasonable but include enough to see all templates.
-    if len(content) > 20000:
-        content = content[:20000] + '\n... (truncated — remaining templates follow same pattern)'
-    return content
+    """Return a concise summary of email templates — not the raw 48KB file."""
+    return """Welcome emails (auto-sent by Netlify on form submit):
+- Subject: "Dit [program] skema er klar — Yoga Bible" (or "Dine skemaer er klar" for multi)
+- Content: Greeting, program highlights (200h YA-certified, Hatha/Vinyasa/Yin/Hot/Meditation, anatomy/philosophy/sequencing), schedule PDF link, pricing (23750 DKK total, Forberedelsesfasen 3750 DKK), accommodation section if needed, booking CTA, question prompt, English note, signature
+- 18-week special: "LAST-MINUTE" banner with 1000 kr discount (22750 DKK), recorded intro modules, immediate start possible
+- Signature: "Kærlig hilsen, Shamir — Kursusdirektør, Yoga Bible (DK)"
+
+The agent has its own send_template_email tool that generates correct emails using tools/email.py — no need to reconstruct from lead-emails.js."""
 
 
 def build_knowledge():
@@ -164,15 +164,10 @@ STYLE: Be concise (Telegram). Short paragraphs. Emoji sparingly: ✅ ⏸ 📧 �
 
 WORKFLOW when Shamir reports a conversation: 1) Find lead 2) Update status+notes 3) Adjust drip 4) Confirm.
 
-════════════════════════════════════════════
-LIVE REFERENCE: Netlify config.js (pricing, programs, PDFs, payment URLs)
-════════════════════════════════════════════
+REFERENCE: Config (schedule PDFs, payment URLs)
 {config_content}
 
-════════════════════════════════════════════
-LIVE REFERENCE: Netlify lead-emails.js (welcome email templates — the ACTUAL emails leads receive)
-These are the emails that go out automatically. When Shamir asks you to send a welcome email or asks what a lead received, refer to THIS source.
-════════════════════════════════════════════
+REFERENCE: Email templates (what leads actually receive)
 {email_content}
 """
 
