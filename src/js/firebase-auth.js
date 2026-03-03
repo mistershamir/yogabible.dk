@@ -640,6 +640,33 @@
   }
 
   // ============================================
+  // GOOGLE SIGN-IN
+  // ============================================
+
+  var googleProvider = new firebase.auth.GoogleAuthProvider();
+
+  var googleBtn = document.getElementById('yb-google-signin');
+  if (googleBtn) {
+    googleBtn.addEventListener('click', function() {
+      googleBtn.disabled = true;
+
+      auth.signInWithPopup(googleProvider)
+        .then(function() {
+          closeAuthModal();
+        })
+        .catch(function(error) {
+          // Ignore user-dismissed popups — not an error worth showing
+          if (error.code !== 'auth/popup-closed-by-user' && error.code !== 'auth/cancelled-popup-request') {
+            showError(document.getElementById('yb-login-error'), getAuthErrorMessage(error.code));
+          }
+        })
+        .finally(function() {
+          googleBtn.disabled = false;
+        });
+    });
+  }
+
+  // ============================================
   // LOGOUT
   // ============================================
 

@@ -668,6 +668,40 @@
       });
     }
 
+    // ── Google Sign-In (login step) ──
+    var googleLoginBtn = $('ycf-google-signin');
+    if (googleLoginBtn) {
+      googleLoginBtn.addEventListener('click', function () {
+        googleLoginBtn.disabled = true;
+        hideError('ycf-login-error');
+
+        var provider = new firebase.auth.GoogleAuthProvider();
+        firebase.auth().signInWithPopup(provider)
+          .then(function (result) {
+            if (window.CheckoutFunnel) window.CheckoutFunnel.trackAuthComplete();
+            authOriginStep = 'login';
+
+            var user = result.user;
+            var displayName = (user && user.displayName) || '';
+            var nameParts = displayName.split(' ');
+            resolveClientAndAdvance(
+              nameParts[0] || 'User',
+              nameParts.slice(1).join(' ') || '',
+              (user && user.email) || '',
+              ''
+            );
+          })
+          .catch(function (error) {
+            if (error.code !== 'auth/popup-closed-by-user' && error.code !== 'auth/cancelled-popup-request') {
+              showError('ycf-login-error', authErrorMsg(error));
+            }
+          })
+          .finally(function () {
+            googleLoginBtn.disabled = false;
+          });
+      });
+    }
+
     // ── Forgot password form ──
     var forgotForm = $('ycf-forgot-form');
     if (forgotForm) {

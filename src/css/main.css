@@ -10197,6 +10197,47 @@ button.yb-btn--outline-white:hover {
   cursor: not-allowed;
 }
 
+.yb-auth-google-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  width: 100%;
+  padding: 13px 24px;
+  background: #fff;
+  border: 1.5px solid #E8E4E0;
+  border-radius: 12px;
+  font-family: var(--font-primary);
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #0F0F0F;
+  cursor: pointer;
+  transition: border-color 0.2s, background 0.2s;
+}
+.yb-auth-google-btn:hover {
+  border-color: #B5B0AB;
+  background: #F5F3F0;
+}
+.yb-auth-google-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.yb-auth-or-sep {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: #6F6A66;
+  font-size: 0.82rem;
+}
+.yb-auth-or-sep::before,
+.yb-auth-or-sep::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: #E8E4E0;
+}
+
 .yb-auth-error {
   font-size: 0.85rem;
   color: #d32f2f;
