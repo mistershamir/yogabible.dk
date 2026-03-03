@@ -34,7 +34,7 @@ from tools.email import (
 )
 from tools.sms import send_sms
 from scheduler import initialize_drip_for_lead, process_due_drips
-from knowledge import build_knowledge, refresh_knowledge, check_refresh_flag
+from knowledge import build_knowledge, refresh_knowledge, check_refresh_flag, auto_pull_main
 from monitor import notify_startup, notify_shutdown, notify_error, heartbeat
 
 # ── Logging ───────────────────────────────────────────
@@ -509,14 +509,38 @@ def main_telegram():
     scheduler.add_job(process_due_drips, 'interval', minutes=interval,
                       id='drip_check', replace_existing=True)
 
-    # Check for knowledge refresh flag every 5 minutes (set by git hooks)
-    def _check_and_reload():
+    # Auto-pull from main + knowledge refresh every 5 minutes
+    def _auto_update():
+        # 1. Check git hook flag (local trigger)
         if check_refresh_flag():
             reload_knowledge()
             logger.info('Knowledge auto-refreshed via git hook flag')
 
-    scheduler.add_job(_check_and_reload, 'interval', minutes=5,
-                      id='knowledge_refresh', replace_existing=True)
+        # 2. Pull latest from origin/main
+        pull_result = auto_pull_main()
+        if pull_result['pulled']:
+            if pull_result['agent_changed']:
+                # Agent Python code changed — restart the process
+                logger.info('Agent code updated — restarting process...')
+                try:
+                    from monitor import send_telegram
+                    import asyncio
+                    loop = asyncio.new_event_loop()
+                    loop.run_until_complete(
+                        send_telegram('🔄 Agent code updated from main — restarting...')
+                    )
+                    loop.close()
+                except Exception:
+                    pass
+                # Re-exec the same process (replaces current process in-place)
+                os.execv(sys.executable, [sys.executable] + sys.argv)
+            else:
+                # Only data/config files changed — refresh knowledge
+                reload_knowledge()
+                logger.info('Knowledge auto-refreshed after git pull')
+
+    scheduler.add_job(_auto_update, 'interval', minutes=5,
+                      id='auto_update', replace_existing=True)
 
     # Daily heartbeat — proof of life + error summary
     scheduler.add_job(heartbeat, 'interval', hours=24,
@@ -524,7 +548,7 @@ def main_telegram():
 
     scheduler.start()
     logger.info(f'Drip scheduler started (checking every {interval} min)')
-    logger.info('Knowledge refresh checker started (checking every 5 min)')
+    logger.info('Auto-update checker started (git pull + knowledge refresh every 5 min)')
     logger.info('Daily heartbeat scheduled')
 
     # Start Firestore listener for new leads
