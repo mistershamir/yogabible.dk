@@ -2,45 +2,31 @@
 <!-- Video Tutorial Widget — floats bottom-right, shown on pages with videoTutorial front matter -->
 <div id="yvt-widget" class="yvt-widget" role="complementary" aria-label="Video guide" hidden>
 
-  <!-- ── PREVIEW STATE (compact, shows on load) ── -->
+  <!-- ── PREVIEW (resting: thumbnail fills top, title bar underneath) ── -->
   <div class="yvt-preview" id="yvt-preview">
-    <button class="yvt-preview__thumb" id="yvt-thumb" aria-label="Afspil video guide" type="button">
+    <button class="yvt-preview__thumb" id="yvt-thumb" type="button" aria-label="Afspil video guide">
       <img
-        src="https://res.cloudinary.com/ddcynsa30/video/upload/so_1,w_120,h_68,c_fill,f_auto,q_auto/{{ videoTutorial.cloudinaryId }}.jpg"
+        src="https://res.cloudinary.com/ddcynsa30/video/upload/so_1,w_496,h_280,c_fill,f_auto,q_auto/{{ videoTutorial.cloudinaryId }}.jpg"
         alt=""
-        width="120"
-        height="68"
+        width="248"
+        height="140"
         loading="lazy"
       />
-      <span class="yvt-preview__play-icon" aria-hidden="true">
-        <svg width="22" height="22" viewBox="0 0 22 22" fill="none"><circle cx="11" cy="11" r="11" fill="rgba(0,0,0,.55)"/><polygon points="9,7 17,11 9,15" fill="#fff"/></svg>
-      </span>
     </button>
-    <div class="yvt-preview__meta">
-      <span class="yvt-preview__eyebrow" data-yj-da>Video guide</span>
-      <span class="yvt-preview__eyebrow" data-yj-en hidden>Video guide</span>
+    <div class="yvt-preview__bar">
       <p class="yvt-preview__title" data-yj-da>{{ videoTutorial.title_da }}</p>
       <p class="yvt-preview__title" data-yj-en hidden>{{ videoTutorial.title_en }}</p>
     </div>
     <button class="yvt-dismiss" id="yvt-dismiss" type="button" aria-label="Luk">
-      <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><line x1="1" y1="1" x2="11" y2="11" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><line x1="11" y1="1" x2="1" y2="11" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+      <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
+        <line x1="1" y1="1" x2="9" y2="9" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+        <line x1="9" y1="1" x2="1" y2="9" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+      </svg>
     </button>
   </div>
 
-  <!-- ── PLAYER STATE (expanded, shown after thumb click) ── -->
+  <!-- ── PLAYER (expanded: video above, title + controls bar underneath) ── -->
   <div class="yvt-player" id="yvt-player" hidden>
-    <div class="yvt-player__header">
-      <span class="yvt-player__title" data-yj-da>{{ videoTutorial.title_da }}</span>
-      <span class="yvt-player__title" data-yj-en hidden>{{ videoTutorial.title_en }}</span>
-      <div class="yvt-player__controls">
-        <button class="yvt-player__minimize" id="yvt-minimize" type="button" aria-label="Minimer">
-          <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><line x1="2" y1="7" x2="12" y2="7" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
-        </button>
-        <button class="yvt-player__close" id="yvt-player-close" type="button" aria-label="Luk">
-          <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><line x1="1" y1="1" x2="13" y2="13" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><line x1="13" y1="1" x2="1" y2="13" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
-        </button>
-      </div>
-    </div>
     <div class="yvt-player__video-wrap">
       <video
         id="yvt-video"
@@ -48,10 +34,26 @@
         controls
         playsinline
         preload="none"
-        poster="https://res.cloudinary.com/ddcynsa30/video/upload/so_1,w_360,h_203,c_fill,f_auto,q_auto/{{ videoTutorial.cloudinaryId }}.jpg"
+        poster="https://res.cloudinary.com/ddcynsa30/video/upload/so_1,w_640,h_360,c_fill,f_auto,q_auto/{{ videoTutorial.cloudinaryId }}.jpg"
       ></video>
     </div>
+    <div class="yvt-player__bar">
+      <span class="yvt-player__title" data-yj-da>{{ videoTutorial.title_da }}</span>
+      <span class="yvt-player__title" data-yj-en hidden>{{ videoTutorial.title_en }}</span>
+      <div class="yvt-player__controls">
+        <button class="yvt-player__minimize" id="yvt-minimize" type="button" aria-label="Minimer">
+          <svg width="12" height="2" viewBox="0 0 12 2" fill="none"><line x1="1" y1="1" x2="11" y2="1" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+        </button>
+        <button class="yvt-player__close" id="yvt-player-close" type="button" aria-label="Luk">
+          <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
+            <line x1="1" y1="1" x2="9" y2="9" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+            <line x1="9" y1="1" x2="1" y2="9" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+          </svg>
+        </button>
+      </div>
+    </div>
   </div>
+
 </div>
 
 <script>
