@@ -161,11 +161,16 @@
     var course = String(lead.course_name || '').toLowerCase();
 
     if (programId === '200h') {
+      // Matches YTT leads where program type is 18w/8w/4w (or unspecified, which defaults to 200h)
+      // Specifically excludes 300h / 50h / 30h which always have their ytt_program_type set
       var isYtt = type === 'ytt';
+      if (!isYtt) return false;
+      if (yttSub === '300h' || yttSub === '50h' || yttSub === '30h') return false;
       var hasWeekFormat = /\b(4|8|18).?(uge|week)/i.test(prog);
       var hasYttSubtype = /^(4|8|18)/i.test(yttSub);
       var has200 = /200/i.test(prog);
-      return isYtt && (hasWeekFormat || hasYttSubtype || has200);
+      var isUnspecified = yttSub === '' || yttSub === '200h';
+      return hasWeekFormat || hasYttSubtype || has200 || isUnspecified;
     }
     if (programId === '30h') return /\b30.?(h|hour|timer)/i.test(prog) || yttSub === '30h';
     if (programId === '50h') return /\b50.?(h|hour|timer)/i.test(prog) || yttSub === '50h';

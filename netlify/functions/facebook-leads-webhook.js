@@ -158,7 +158,7 @@ async function processLeadgenChange(value) {
     service: '',
     subcategories: '',
     message: fields.message || fields.comments || '',
-    source: `Meta Lead – Facebook – ${formName || ad_name || form_id || 'Ad'}`,
+    source: 'Facebook Ad',
     // Meta metadata (useful for reporting)
     meta_form_id: form_id || '',
     meta_form_name: formName || '',

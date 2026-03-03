@@ -162,7 +162,7 @@ function processLead(payload, action) {
         service: '',
         subcategories: '',
         message: '',
-        source: payload.source || '200H YTT - 18-week landing page'
+        source: '200h YTT'
       };
 
     case 'lead_schedule_4w':
@@ -180,7 +180,7 @@ function processLead(payload, action) {
         service: '',
         subcategories: '',
         message: '',
-        source: payload.source || '200H YTT - 4-week landing page'
+        source: '200h YTT'
       };
 
     case 'lead_schedule_8w':
@@ -198,7 +198,7 @@ function processLead(payload, action) {
         service: '',
         subcategories: '',
         message: '',
-        source: payload.source || '200H YTT - 8-week landing page'
+        source: '200h YTT'
       };
 
     case 'lead_schedule_multi': {
@@ -222,7 +222,7 @@ function processLead(payload, action) {
         service: '',
         subcategories: '',
         message: '',
-        source: payload.source || 'Modal-Multi',
+        source: '200h YTT',
         all_formats: payload.allFormats || ''
       };
     }
@@ -242,7 +242,7 @@ function processLead(payload, action) {
         service: '',
         subcategories: '',
         message: payload.message || '',
-        source: payload.source || '300H Advanced YTT landing page'
+        source: '300h YTT'
       };
 
     case 'lead_schedule_50h':
@@ -260,7 +260,7 @@ function processLead(payload, action) {
         service: '',
         subcategories: payload.specialty || '',
         message: payload.message || '',
-        source: payload.source || '50H Specialty landing page'
+        source: '50h YTT'
       };
 
     case 'lead_schedule_30h':
@@ -278,7 +278,7 @@ function processLead(payload, action) {
         service: '',
         subcategories: payload.module || '',
         message: payload.message || '',
-        source: payload.source || '30H Module landing page'
+        source: '30h YTT'
       };
 
     case 'lead_courses': {
@@ -298,7 +298,7 @@ function processLead(payload, action) {
         service: '',
         subcategories: '',
         message: '',
-        source: payload.source || 'Courses - landing page'
+        source: 'Courses'
       };
     }
 
@@ -319,7 +319,7 @@ function processLead(payload, action) {
         service: payload.service || '',
         subcategories,
         message: payload.message || '',
-        source: payload.sourceUrl || 'Mentorship intake form'
+        source: 'Mentorship'
       };
     }
 
@@ -357,7 +357,7 @@ function processLead(payload, action) {
         service: '',
         subcategories: '',
         message: payload.message || '',
-        source: `Meta Lead – ${payload.platform || 'Facebook'} – ${metaFormName || 'Ad'}`,
+        source: 'Facebook Ad',
         meta_form_id: payload.form_id || '',
         meta_ad_id: payload.ad_id || '',
         meta_campaign: payload.campaign_name || ''
@@ -379,7 +379,7 @@ function processLead(payload, action) {
         service: '',
         subcategories: '',
         message: payload.message || '',
-        source: payload.source || 'Contact form'
+        source: 'Contact page'
       };
 
     default:
