@@ -160,7 +160,27 @@
   function doLogin(email, password, callback) {
     firebase.auth().signInWithEmailAndPassword(email, password)
       .then(function () { callback(null); })
-      .catch(function (err) { callback(err); });
+      .catch(function (err) {
+        // Mindbody migration fallback: if no Firebase account, try validating against MB
+        if (err.code === 'auth/user-not-found' || err.code === 'auth/invalid-credential') {
+          fetch(API_BASE + '/mb-auth', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email: email, password: password })
+          })
+            .then(function (res) { return res.json(); })
+            .then(function (data) {
+              if (!data.success) { callback(err); return; }
+              // MB credentials valid — Firebase account created/updated, retry login
+              return firebase.auth().signInWithEmailAndPassword(email, password)
+                .then(function () { callback(null); })
+                .catch(function (retryErr) { callback(retryErr); });
+            })
+            .catch(function () { callback(err); });
+        } else {
+          callback(err);
+        }
+      });
   }
 
   function doRegister(email, password, firstName, lastName, phone, callback) {
@@ -183,7 +203,16 @@
   }
 
   function doForgotPassword(email, callback) {
-    firebase.auth().sendPasswordResetEmail(email)
+    // Pre-create Firebase account for Mindbody-only users so the reset email delivers
+    fetch(API_BASE + '/migrate-mb-user', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: email })
+    })
+      .catch(function () { return { found: false }; })
+      .then(function () {
+        return firebase.auth().sendPasswordResetEmail(email);
+      })
       .then(function () { callback(null); })
       .catch(function (err) { callback(err); });
   }
@@ -376,6 +405,12 @@
       '.hyc-auth__divider a{color:' + BRAND + ';text-decoration:none;font-weight:700;margin-left:4px;cursor:pointer}',
       '.hyc-auth__divider a:hover{text-decoration:underline}',
 
+      // ── Google Sign-In ────────────────────────────────────────
+      '.hyc-auth__or-sep{display:flex;align-items:center;gap:10px;margin:16px 0;font-size:.8rem;color:#6F6A66}',
+      '.hyc-auth__or-sep::before,.hyc-auth__or-sep::after{content:"";flex:1;height:1px;background:#E8E4E0}',
+      '.hyc-auth__google-btn{font-family:inherit;font-size:.95rem;font-weight:600;display:flex;align-items:center;justify-content:center;gap:10px;width:100%;padding:12px 24px;border:1.5px solid #E8E4E0;border-radius:12px;background:#fff;color:#0F0F0F;cursor:pointer;transition:border-color .2s,box-shadow .2s}',
+      '.hyc-auth__google-btn:hover{border-color:' + BRAND + ';box-shadow:0 0 0 3px ' + BRAND_RGBA12 + '}',
+
       // ── Back link ─────────────────────────────────────────────
       '.hyc-auth__back{display:inline-flex;align-items:center;gap:4px;font-size:.82rem;font-weight:600;color:#6F6A66;text-decoration:none;margin-bottom:12px;cursor:pointer;transition:color .15s;background:none;border:none;padding:0;font-family:inherit}',
       '.hyc-auth__back:hover{color:' + BRAND + '}',
@@ -534,6 +569,12 @@
     html +=   '<button type="submit" class="hyc-auth__submit" id="hyc-auth-login-btn">' + t('Log ind', 'Sign in') + '</button>';
     html += '</form>';
 
+    html += '<div class="hyc-auth__or-sep">' + t('eller', 'or') + '</div>';
+    html += '<button type="button" class="hyc-auth__google-btn" id="hyc-auth-google-btn">';
+    html +=   '<svg width="18" height="18" viewBox="0 0 18 18" xmlns="http://www.w3.org/2000/svg"><path d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844a4.14 4.14 0 0 1-1.796 2.716v2.259h2.908c1.702-1.567 2.684-3.875 2.684-6.615z" fill="#4285F4"/><path d="M9 18c2.43 0 4.467-.806 5.956-2.18l-2.908-2.259c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332A8.997 8.997 0 0 0 9 18z" fill="#34A853"/><path d="M3.964 10.71A5.41 5.41 0 0 1 3.682 9c0-.593.102-1.17.282-1.71V4.958H.957A8.996 8.996 0 0 0 0 9c0 1.452.348 2.827.957 4.042l3.007-2.332z" fill="#FBBC05"/><path d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0A8.997 8.997 0 0 0 .957 4.958L3.964 6.29C4.672 4.163 6.656 3.58 9 3.58z" fill="#EA4335"/></svg>';
+    html +=   t('Fortsæt med Google', 'Continue with Google');
+    html += '</button>';
+
     html += '<div class="hyc-auth__links">';
     html +=   '<a id="hyc-auth-goto-forgot">' + t('Glemt adgangskode?', 'Forgot password?') + '</a>';
     html += '</div>';
@@ -576,6 +617,18 @@
         // Auth state change will handle UI update and close modal
         closeModal();
       });
+    });
+
+    // Google Sign-In
+    $t('hyc-auth-google-btn').addEventListener('click', function () {
+      var provider = new firebase.auth.GoogleAuthProvider();
+      firebase.auth().signInWithPopup(provider)
+        .then(function () { closeModal(); })
+        .catch(function (err) {
+          var errorEl = $t('hyc-auth-login-error');
+          errorEl.textContent = authErrorMsg(err);
+          errorEl.classList.add('is-visible');
+        });
     });
 
     // Navigation links
