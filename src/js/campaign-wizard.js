@@ -1491,9 +1491,30 @@
     });
   }
 
+  function flashTestBtn(btn, ok, okText, failText) {
+    if (!btn) return;
+    var origText = btn.textContent;
+    btn.disabled = false;
+    if (ok) {
+      btn.textContent = '✓ ' + okText;
+      btn.style.cssText = 'background:#4CAF50;color:#fff;border-color:#4CAF50;transition:background 0.2s,color 0.2s';
+    } else {
+      btn.textContent = '✗ ' + failText;
+      btn.style.cssText = 'background:#ef5350;color:#fff;border-color:#ef5350;transition:background 0.2s,color 0.2s';
+    }
+    setTimeout(function () {
+      btn.textContent = origText;
+      btn.style.cssText = '';
+    }, 3000);
+  }
+
   function sendTestSMS() {
-    var phone = ($('yb-campaign-test-phone') || {}).value;
+    var phoneEl = $('yb-campaign-test-phone');
+    var phone = (phoneEl || {}).value;
     if (!phone) return;
+
+    var btn = phoneEl ? phoneEl.closest('.yb-lead__campaign-test-send').querySelector('[data-action="campaign-test-sms"]') : null;
+    if (btn) { btn.disabled = true; btn.textContent = '...'; }
 
     if (!bridge) return;
     bridge.getAuthToken().then(function (token) {
@@ -1505,9 +1526,9 @@
       });
     }).then(function (res) { return res.json(); })
       .then(function (data) {
-        if (bridge) bridge.toast(data.ok ? t('campaign_send_test_sent') : t('campaign_send_test_failed'));
+        flashTestBtn(btn, data.ok, t('campaign_send_test_sent'), t('campaign_send_test_failed'));
       }).catch(function () {
-        if (bridge) bridge.toast(t('campaign_send_test_failed'), true);
+        flashTestBtn(btn, false, '', t('campaign_send_test_failed'));
       });
   }
 
@@ -1517,6 +1538,10 @@
       : $('yb-campaign-test-email-input');
     var email = (inputEl || {}).value;
     if (!email) return;
+
+    var isSendTab = campaignState.tab === 'send';
+    var btn = inputEl ? inputEl.closest('.yb-lead__campaign-test-send').querySelector('[data-action="campaign-test-email"]') : null;
+    if (btn) { btn.disabled = true; btn.textContent = '...'; }
 
     if (!bridge) return;
     bridge.getAuthToken().then(function (token) {
@@ -1536,9 +1561,12 @@
       });
     }).then(function (res) { return res.json(); })
       .then(function (data) {
-        if (bridge) bridge.toast(data.ok ? t('campaign_preview_test_sent') : t('campaign_preview_test_failed'));
+        var okKey = isSendTab ? 'campaign_send_test_sent' : 'campaign_preview_test_sent';
+        var failKey = isSendTab ? 'campaign_send_test_failed' : 'campaign_preview_test_failed';
+        flashTestBtn(btn, data.ok, t(okKey), t(failKey));
       }).catch(function () {
-        if (bridge) bridge.toast(t('campaign_preview_test_failed'), true);
+        var failKey = isSendTab ? 'campaign_send_test_failed' : 'campaign_preview_test_failed';
+        flashTestBtn(btn, false, '', t(failKey));
       });
   }
 
