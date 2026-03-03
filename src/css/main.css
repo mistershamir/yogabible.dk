@@ -19842,6 +19842,92 @@ button.yb-btn--outline-white:hover {
   font-size: 0.85rem;
 }
 
+/* ── Per-lead campaign history badges ── */
+.yb-lead__campaign-ri-hist {
+  font-size: 0.6rem;
+  padding: 0.1rem 0.3rem;
+  border-radius: 3px;
+  flex-shrink: 0;
+  white-space: nowrap;
+  font-weight: 600;
+  cursor: default;
+}
+.yb-lead__campaign-ri-hist--email {
+  background: #FFF3CD;
+  color: #856404;
+}
+.yb-lead__campaign-ri-hist--sms {
+  background: #D1ECF1;
+  color: #0C5460;
+}
+
+/* ── Campaign history panel (recent campaigns collapsible) ── */
+.yb-lead__campaign-history {
+  margin-bottom: 0.75rem;
+  border: 1px solid #E8E4E0;
+  border-radius: 8px;
+  overflow: hidden;
+  font-size: 0.8rem;
+}
+.yb-lead__campaign-history-toggle {
+  padding: 0.5rem 0.75rem;
+  background: #F5F3F0;
+  cursor: pointer;
+  font-weight: 600;
+  color: #0F0F0F;
+  list-style: none;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  user-select: none;
+}
+.yb-lead__campaign-history-toggle::-webkit-details-marker { display: none; }
+.yb-lead__campaign-history-toggle::before { content: '▶'; font-size: 0.6rem; transition: transform 0.2s; }
+details[open] .yb-lead__campaign-history-toggle::before { transform: rotate(90deg); }
+.yb-lead__campaign-history-list {
+  padding: 0.25rem 0;
+}
+.yb-lead__campaign-history-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.35rem 0.75rem;
+  border-bottom: 1px solid #F0EDE8;
+}
+.yb-lead__campaign-history-row:last-child { border-bottom: none; }
+.yb-lead__campaign-history-icon { flex-shrink: 0; }
+.yb-lead__campaign-history-label {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: #0F0F0F;
+}
+.yb-lead__campaign-history-meta {
+  flex-shrink: 0;
+  color: #6F6A66;
+  font-size: 0.72rem;
+}
+
+/* ── Sub-type filter row (shown when type is selected) ── */
+.yb-lead__subtype-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  padding: 0.4rem 0;
+  border-top: 1px solid #F0EDE8;
+}
+.yb-lead__subtype-label {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: #6F6A66;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  flex-shrink: 0;
+}
+.yb-lead__subtype-chips { display: flex; flex-wrap: wrap; gap: 0.4rem; align-items: center; }
+
 /* ── SMS Compose ── */
 .yb-lead__campaign-sms-compose {
   max-width: 500px;

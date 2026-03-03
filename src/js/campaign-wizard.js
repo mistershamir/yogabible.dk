@@ -69,7 +69,11 @@
     schedule: 'now',
     customSchedule: '',
     sending: false,
-    results: null
+    results: null,
+
+    // Recent campaign history (fetched from campaign-log on open)
+    recentCampaigns: [],
+    recentCampaignsLoaded: false
   };
 
   /* ══════════════════════════════════════════
@@ -202,10 +206,14 @@
   function matchesStatus(lead, statusId) {
     var status = String(lead.status || '').toLowerCase();
     if (statusId === 'new') return status === '' || status === 'new' || status.includes('ny');
-    if (statusId === 'hot') return status.includes('hot') || status.includes('strongly');
+    if (statusId === 'hot') return status === 'hot';
+    if (statusId === 'strongly-interested') return status === 'strongly interested';
+    if (statusId === 'next-round') return status === 'interested in next round';
     if (statusId === 'no-answer') return status.includes('no answer') || status.includes('ikke svar');
     if (statusId === 'contacted') return status.includes('contact');
     if (statusId === 'follow-up') return status.includes('follow');
+    if (statusId === 'engaged') return status === 'engaged';
+    if (statusId === 'on-hold') return status === 'on hold';
     if (statusId === 'pending') return status.includes('pending') || status.includes('afventer');
     if (statusId === 'deposit') return status.includes('deposit') || status.includes('depositum');
     return false;
@@ -445,6 +453,10 @@
       { id: 'no-answer', label: t('campaign_filter_status_noanswer') },
       { id: 'contacted', label: t('campaign_filter_status_contacted') },
       { id: 'follow-up', label: t('campaign_filter_status_followup') },
+      { id: 'engaged', label: 'Engaged' },
+      { id: 'strongly-interested', label: '⭐ Strongly Interested' },
+      { id: 'on-hold', label: 'On Hold' },
+      { id: 'next-round', label: '📅 Next Round' },
       { id: 'pending', label: t('campaign_filter_status_pending') },
       { id: 'deposit', label: t('campaign_filter_status_deposit') }
     ], f.statuses, 'statuses');
@@ -684,6 +696,19 @@
         var badge = getStatusBadge(status);
         var source = lead._source === 'app' ? 'app' : 'lead';
 
+        // Per-lead communication history badges
+        var histBadges = '';
+        var contactField2 = campaignState.type;
+        if (lead.last_email_campaign && lead.last_email_campaign.sentAt) {
+          var emailDate = lead.last_email_campaign.sentAt.substring(0, 10);
+          var emailSubj = lead.last_email_campaign.subject || 'Email';
+          histBadges += '<span class="yb-lead__campaign-ri-hist yb-lead__campaign-ri-hist--email" title="Last email: ' + esc(emailSubj) + ' · ' + esc(emailDate) + '">📧 ' + esc(emailDate) + '</span>';
+        }
+        if (lead.last_sms_campaign && lead.last_sms_campaign.sentAt) {
+          var smsDate = lead.last_sms_campaign.sentAt.substring(0, 10);
+          histBadges += '<span class="yb-lead__campaign-ri-hist yb-lead__campaign-ri-hist--sms" title="Last SMS · ' + esc(smsDate) + '">📱 ' + esc(smsDate) + '</span>';
+        }
+
         html += '<label class="yb-lead__campaign-recipient-row' + (isSelected ? ' is-selected' : '') + '" data-lead-id="' + lead.id + '">' +
           '<input type="checkbox" class="yb-lead__campaign-recipient-check" data-action="campaign-toggle-recipient"' + checked + '>' +
           '<div class="yb-lead__campaign-ri-avatar">' + esc(initial) + '</div>' +
@@ -691,6 +716,7 @@
             '<div class="yb-lead__campaign-ri-top">' +
               '<span class="yb-lead__campaign-ri-name">' + name + '</span>' +
               '<span class="yb-lead__campaign-ri-status" style="background:' + badge.bg + ';color:' + badge.color + '">' + esc(status) + '</span>' +
+              histBadges +
             '</div>' +
             '<div class="yb-lead__campaign-ri-sub">' +
               '<span class="yb-lead__campaign-ri-flag">' + getFlag(country) + '</span>' +
@@ -721,10 +747,12 @@
 
     panelEl.innerHTML = '<div class="yb-lead__campaign-recipients">' +
       loadingBanner +
+      '<div id="yb-campaign-' + prefix + '-history"></div>' +
       '<div class="yb-lead__campaign-filters" id="yb-campaign-' + prefix + '-filters-area"></div>' +
       '<div class="yb-lead__campaign-recipient-list-wrap" id="yb-campaign-' + prefix + '-recipients-list"></div>' +
       '</div>';
 
+    renderCampaignHistory($('yb-campaign-' + prefix + '-history'));
     renderFilterPanel($('yb-campaign-' + prefix + '-filters-area'));
     renderRecipientList($('yb-campaign-' + prefix + '-recipients-list'));
     updateRecipientBadge();
@@ -1613,22 +1641,54 @@
   }
 
   function logCampaign(results, total) {
-    // Log campaign to Firestore or Netlify function
     if (!bridge) return;
+    var isEmail = campaignState.type === 'email';
+    var sentAt = new Date().toISOString();
+    var campaignSummary = {
+      type: campaignState.type,
+      subject: isEmail ? (campaignState.emailSubject || '') : '',
+      templateId: isEmail ? campaignState.emailTemplateId : campaignState.smsTemplateId,
+      sentAt: sentAt
+    };
+
     bridge.getAuthToken().then(function (token) {
+      // 1. Log to campaign-log
       fetch('/.netlify/functions/campaign-log', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
         body: JSON.stringify({
           type: campaignState.type,
-          templateId: campaignState.type === 'sms' ? campaignState.smsTemplateId : campaignState.emailTemplateId,
-          subject: campaignState.emailSubject || '',
+          templateId: campaignSummary.templateId,
+          subject: campaignSummary.subject,
           recipientCount: total,
           results: results,
           schedule: campaignState.schedule,
-          sentAt: new Date().toISOString()
+          sentAt: sentAt
         })
-      }).catch(function () { /* silent fail for logging */ });
+      }).catch(function () { /* silent */ });
+
+      // 2. Write per-lead history back to Firestore (so badges show next time)
+      if (window.firebase) {
+        var db = firebase.firestore();
+        var fieldKey = isEmail ? 'last_email_campaign' : 'last_sms_campaign';
+        var leadIds = [];
+        campaignState.selectedIds.forEach(function (id) {
+          // Only leads (not apps)
+          var lead = campaignState.allRecipients.find(function (l) { return l.id === id; });
+          if (lead && lead._source !== 'app') leadIds.push(id);
+        });
+        // Batch in groups of 500 (Firestore limit)
+        for (var i = 0; i < leadIds.length; i += 400) {
+          var chunk = leadIds.slice(i, i + 400);
+          var batch = db.batch();
+          chunk.forEach(function (lid) {
+            batch.update(db.collection('leads').doc(lid), {
+              [fieldKey]: campaignSummary
+            });
+          });
+          batch.commit().catch(function () { /* silent */ });
+        }
+      }
     });
   }
 
@@ -1638,6 +1698,7 @@
   function openSMSCampaign(preSelectedLeads) {
     resetState('sms');
     loadEmailTemplatesIfNeeded();
+    loadRecentCampaigns();
 
     // Pin pre-selected leads so they survive filter changes
     if (preSelectedLeads && preSelectedLeads.length > 0) {
@@ -1668,6 +1729,7 @@
   function openEmailCampaign(preSelectedLeads) {
     resetState('email');
     loadEmailTemplatesIfNeeded();
+    loadRecentCampaigns();
 
     // Pin pre-selected leads so they survive filter changes
     if (preSelectedLeads && preSelectedLeads.length > 0) {
@@ -1767,6 +1829,67 @@
     campaignState.customSchedule = '';
     campaignState.sending = false;
     campaignState.results = null;
+    campaignState.recentCampaigns = [];
+    campaignState.recentCampaignsLoaded = false;
+  }
+
+  /* ══════════════════════════════════════════
+     RECENT CAMPAIGNS HISTORY
+     ══════════════════════════════════════════ */
+  function loadRecentCampaigns() {
+    if (campaignState.recentCampaignsLoaded || !bridge) return;
+    bridge.getAuthToken().then(function (token) {
+      return fetch('/.netlify/functions/campaign-log?limit=8', {
+        headers: { 'Authorization': 'Bearer ' + token }
+      });
+    }).then(function (res) { return res.json(); })
+      .then(function (data) {
+        if (data.ok && Array.isArray(data.campaigns)) {
+          campaignState.recentCampaigns = data.campaigns;
+          campaignState.recentCampaignsLoaded = true;
+          // Re-render recipient list if still on recipients tab
+          var prefix = campaignState.type;
+          if (prefix && campaignState.tab === 'recipients') {
+            var histEl = $('yb-campaign-' + prefix + '-history');
+            if (histEl) renderCampaignHistory(histEl);
+          }
+        }
+      }).catch(function () { /* silent */ });
+  }
+
+  function renderCampaignHistory(container) {
+    if (!container) return;
+    var campaigns = campaignState.recentCampaigns;
+    if (!campaigns.length) {
+      container.innerHTML = '';
+      return;
+    }
+
+    var typeFilter = campaignState.type; // only show campaigns of same type
+    var filtered = campaigns.filter(function (c) { return c.type === typeFilter; });
+    if (!filtered.length) { container.innerHTML = ''; return; }
+
+    var isDa = window.location.pathname.indexOf('/en/') !== 0;
+    var heading = isDa ? 'Sendte kampagner (seneste)' : 'Recent campaigns sent';
+    var html = '<details class="yb-lead__campaign-history" open>' +
+      '<summary class="yb-lead__campaign-history-toggle">' + heading + '</summary>' +
+      '<div class="yb-lead__campaign-history-list">';
+
+    filtered.forEach(function (c) {
+      var icon = c.type === 'sms' ? '📱' : '📧';
+      var label = c.subject || c.templateId || (c.type === 'sms' ? 'SMS kampagne' : 'Email kampagne');
+      var date = c.sentAt ? c.sentAt.substring(0, 10) : '';
+      var count = c.recipientCount || 0;
+      var sent = (c.results && c.results.sent) || 0;
+      html += '<div class="yb-lead__campaign-history-row">' +
+        '<span class="yb-lead__campaign-history-icon">' + icon + '</span>' +
+        '<span class="yb-lead__campaign-history-label">' + esc(label) + '</span>' +
+        '<span class="yb-lead__campaign-history-meta">' + sent + '/' + count + ' · ' + esc(date) + '</span>' +
+      '</div>';
+    });
+
+    html += '</div></details>';
+    container.innerHTML = html;
   }
 
   /* ══════════════════════════════════════════

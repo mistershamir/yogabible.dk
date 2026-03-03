@@ -40,6 +40,7 @@
   var searchTerm = '';
   var filterStatus = '';
   var filterType = '';
+  var filterSubType = ''; // client-side sub-filter on program/course name
   var filterSource = '';
   var filterPriority = '';
   var filterTemperature = '';
@@ -248,11 +249,13 @@
     { value: 'No Answer', label: 'No Answer', color: '#FFE0CC', text: '#BF360C', icon: '\ud83d\udcf5' },
     { value: 'Follow-up', label: 'Follow-up', color: '#e8daef', text: '#6c3483', icon: '\ud83d\udd04' },
     { value: 'Engaged', label: 'Engaged', color: '#DCEDC8', text: '#33691E', icon: '\ud83d\udcac' },
+    { value: 'Strongly Interested', label: 'Strongly Interested', color: '#FFF9C4', text: '#F57F17', icon: '\u2B50' },
     { value: 'Qualified', label: 'Qualified', color: '#B3E5FC', text: '#01579B', icon: '\u2705' },
     { value: 'Negotiating', label: 'Negotiating', color: '#FFE0B2', text: '#E65100', icon: '\ud83e\udd1d' },
     { value: 'Converted', label: 'Converted', color: '#d4edda', text: '#155724', icon: '\ud83c\udf89' },
     { value: 'Existing Applicant', label: 'Existing Applicant', color: '#cce5ff', text: '#004085', icon: '\ud83d\udcc4' },
     { value: 'On Hold', label: 'On Hold', color: '#FFF9C4', text: '#F57F17', icon: '\u23f8\ufe0f' },
+    { value: 'Interested In Next Round', label: 'Interested In Next Round', color: '#E0F2F1', text: '#00695C', icon: '\ud83d\udcc5' },
     { value: 'Not too keen', label: 'Not too keen', color: '#CFD8DC', text: '#37474F', icon: '\ud83d\ude10' },
     { value: 'Unsubscribed', label: 'Unsubscribed', color: '#f8d7da', text: '#721c24', icon: '\ud83d\udeab' },
     { value: 'Lost', label: 'Lost', color: '#ECEFF1', text: '#546E7F', icon: '\ud83d\udc4e' },
@@ -266,11 +269,13 @@
     'No Answer': ['1st Attempt', '2nd Attempt', '3rd Attempt', 'Voicemail Left', 'Try Again Later'],
     'Follow-up': ['Scheduled Call', 'Waiting Reply', 'Second Follow-up', 'Third Follow-up', 'Final Attempt'],
     'Engaged': ['Asking Questions', 'Price Discussion', 'Scheduling Visit', 'Reviewing Materials'],
+    'Strongly Interested': ['Application Ready', 'Price Sensitive', 'Needs More Info', 'Almost Converted', 'Second Thoughts'],
     'Qualified': ['Ready to Apply', 'Needs Payment Info', 'Considering Dates'],
     'Negotiating': ['Payment Plan', 'Scholarship Request', 'Group Discount'],
     'Converted': ['Application Submitted', 'Payment Received', 'Enrolled'],
     'Existing Applicant': ['Re-inquiry', 'Upgrade Request', 'Referral'],
     'On Hold': ['Travel Issues', 'Financial', 'Personal Reasons', 'Next Cohort'],
+    'Interested In Next Round': [], // populated dynamically from COURSE_CATALOG cohorts
     'Not too keen': ['Price Too High', 'Bad Timing', 'Lost Interest', 'Considering Alternatives', 'No Reason Given'],
     'Unsubscribed': ['Email Only', 'All Communications'],
     'Lost': ['No Response', 'Chose Competitor', 'Budget', 'Not Interested', 'Wrong Fit'],
@@ -520,6 +525,16 @@
       });
     }
 
+    // Client-side sub-type filter — matches against program, course_name, or type
+    if (filterSubType) {
+      var st = filterSubType.toLowerCase();
+      filtered = filtered.filter(function (l) {
+        var prog = (l.program || l.course_name || l.program_type || '').toLowerCase();
+        var type = (l.type || '').toLowerCase();
+        return prog.indexOf(st) !== -1 || type === st;
+      });
+    }
+
     if (searchTerm) {
       var s = searchTerm.toLowerCase();
       filtered = filtered.filter(function (l) {
@@ -532,6 +547,46 @@
       });
     }
     return filtered;
+  }
+
+  // Sub-type definitions per lead type — matches against lead.program text
+  var SUB_TYPE_OPTIONS = {
+    ytt: [
+      { label: '18W', match: '18' },
+      { label: '4W Apr', match: '4 ugers intensiv (apr' },
+      { label: '4W Jul', match: '4 ugers intensiv (jul' },
+      { label: '4W Aug', match: '4 ugers intensiv (aug' },
+      { label: '8W', match: '8' }
+    ],
+    course: [
+      { label: 'Inversions', match: 'inversion' },
+      { label: 'Splits', match: 'split' },
+      { label: 'Backbends', match: 'backbend' }
+    ],
+    bundle: [
+      { label: '2-Course', match: '2-course' },
+      { label: '3-Course All-In', match: 'all-in' }
+    ]
+  };
+
+  function renderSubTypeFilter(type) {
+    var row = $('yb-lead-subtype-row');
+    var chipsEl = $('yb-lead-subtype-chips');
+    if (!row || !chipsEl) return;
+
+    var options = SUB_TYPE_OPTIONS[type];
+    if (!options || options.length === 0) {
+      row.hidden = true;
+      chipsEl.innerHTML = '';
+      return;
+    }
+
+    chipsEl.innerHTML = '<span class="yb-lead__subtype-label">Sub-filter:</span>' +
+      options.map(function (opt) {
+        var active = filterSubType === opt.match ? ' is-active' : '';
+        return '<button type="button" class="yb-lead__campaign-chip' + active + '" data-subtype="' + esc(opt.match) + '">' + esc(opt.label) + '</button>';
+      }).join('');
+    row.hidden = false;
   }
 
   /* ── View dispatcher ── */
@@ -1425,6 +1480,23 @@
 
     var status = statusSelect.value;
     var subs = SUB_STATUSES[status] || [];
+
+    // For "Interested In Next Round", use all cohort labels from COURSE_CATALOG
+    if (status === 'Interested In Next Round') {
+      subs = [];
+      ['ytt', 'course', 'bundle'].forEach(function (type) {
+        (COURSE_CATALOG[type] || []).forEach(function (item) {
+          var name = catalogName(item);
+          (item.cohorts || []).forEach(function (coh) {
+            subs.push(cohortLabel(coh) + ' — ' + name);
+          });
+          // For courses/bundles with no cohorts, just use the name
+          if (!item.cohorts || item.cohorts.length === 0) {
+            subs.push(name);
+          }
+        });
+      });
+    }
 
     subStatusSelect.innerHTML = '<option value="">-- ' + t('leads_no_sub_status') + ' --</option>' +
       subs.map(function (s) {
@@ -4094,7 +4166,11 @@
       if (el) {
         el.addEventListener('change', function () {
           if (filterId === 'yb-lead-status-filter') filterStatus = el.value;
-          if (filterId === 'yb-lead-type-filter') filterType = el.value;
+          if (filterId === 'yb-lead-type-filter') {
+            filterType = el.value;
+            filterSubType = ''; // reset sub-filter when type changes
+            renderSubTypeFilter(el.value);
+          }
           if (filterId === 'yb-lead-source-filter') filterSource = el.value;
           if (filterId === 'yb-lead-priority-filter') filterPriority = el.value;
           if (filterId === 'yb-lead-temperature-filter') filterTemperature = el.value;
@@ -4102,6 +4178,22 @@
         });
       }
     });
+
+    // Sub-type filter chips (rendered dynamically)
+    var subtypeRow = $('yb-lead-subtype-row');
+    if (subtypeRow) {
+      subtypeRow.addEventListener('click', function (e) {
+        var chip = e.target.closest('[data-subtype]');
+        if (!chip) return;
+        var val = chip.getAttribute('data-subtype');
+        filterSubType = filterSubType === val ? '' : val;
+        // Update active chip
+        subtypeRow.querySelectorAll('[data-subtype]').forEach(function (c) {
+          c.classList.toggle('is-active', c.getAttribute('data-subtype') === filterSubType);
+        });
+        renderLeadView();
+      });
+    }
 
     // Filters — Applications
     var appStatusFilter = $('yb-app-status-filter');
