@@ -443,8 +443,8 @@
               .then(function(res) { return res.json(); })
               .then(function(data) {
                 if (!data.success) {
-                  // Not valid in Mindbody either — show normal error
-                  showError(errorEl, getAuthErrorMessage(error.code));
+                  // All auth methods failed — show error with a direct reset link
+                  showErrorWithReset(errorEl);
                   return;
                 }
                 // Firebase account now synced with MB password — retry login
@@ -460,7 +460,7 @@
                   });
               })
               .catch(function() {
-                showError(errorEl, getAuthErrorMessage(error.code));
+                showErrorWithReset(errorEl);
               })
               .finally(function() {
                 submitBtn.disabled = false;
@@ -704,6 +704,17 @@
   function showError(el, message) {
     if (!el) return;
     el.textContent = message;
+    el.style.color = '';
+    el.hidden = false;
+  }
+
+  // When all auth methods fail, show error with an inline link to the reset view
+  function showErrorWithReset(el) {
+    if (!el) return;
+    var isDa = detectLocale() === 'da';
+    el.innerHTML = isDa
+      ? 'Forkert email eller adgangskode. <a href="#" data-yb-auth-switch="reset" style="color:inherit;font-weight:700;text-decoration:underline">Nulstil adgangskode &rarr;</a>'
+      : 'Incorrect email or password. <a href="#" data-yb-auth-switch="reset" style="color:inherit;font-weight:700;text-decoration:underline">Reset password &rarr;</a>';
     el.style.color = '';
     el.hidden = false;
   }
