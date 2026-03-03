@@ -1242,44 +1242,16 @@
     var idx = tabs.indexOf(tabName);
     if (idx === -1) return;
 
-    var currentIdx = tabs.indexOf(campaignState.tab);
-    var isAdvancing = idx > currentIdx;
-
-    // Only validate when advancing FORWARD — going back is always free
-    if (isAdvancing) {
-      // Must have recipients selected to go past recipients tab
-      if (tabName !== 'recipients' && campaignState.selectedIds.size === 0) {
-        if (bridge) bridge.toast(t('campaign_recipients_no_match'), true);
-        return;
-      }
-      // Must have composed message to go to preview or send
-      var needsCompose = (tabName === 'preview' || tabName === 'send');
-      if (needsCompose) {
-        if (campaignState.type === 'sms' && !campaignState.smsMessage.trim()) {
-          if (bridge) bridge.toast(t('leads_sms_empty'), true);
-          return;
-        }
-        if (campaignState.type === 'email' && !campaignState.emailSubject.trim() && !campaignState.emailBodyHtml.trim()) {
-          if (bridge) bridge.toast(t('leads_email_empty'), true);
-          return;
-        }
-      }
-    }
-
     campaignState.tab = tabName;
-
-    // Track highest visited tab — allows free back-navigation to any visited step
     campaignState.maxVisitedTab = Math.max(campaignState.maxVisitedTab, idx);
 
-    // Update tab buttons
+    // Update tab buttons — all tabs always clickable
     var tabBtns = document.querySelectorAll('#yb-campaign-' + prefix + '-tabs .yb-lead__campaign-tab');
     tabBtns.forEach(function (btn) {
       var tName = btn.getAttribute('data-tab');
       var tIdx = tabs.indexOf(tName);
       btn.classList.toggle('is-active', tName === tabName);
-      // Allow clicking any tab up to maxVisitedTab
-      btn.disabled = tIdx > campaignState.maxVisitedTab;
-      // Mark previously visited tabs for styling
+      btn.disabled = false;
       btn.classList.toggle('is-visited', tIdx <= campaignState.maxVisitedTab && tName !== tabName);
     });
 
@@ -1540,7 +1512,10 @@
   }
 
   function sendTestEmail() {
-    var email = ($('yb-campaign-test-email-input') || $('yb-campaign-test-email') || {}).value;
+    var inputEl = campaignState.tab === 'send'
+      ? $('yb-campaign-test-email')
+      : $('yb-campaign-test-email-input');
+    var email = (inputEl || {}).value;
     if (!email) return;
 
     if (!bridge) return;
@@ -1741,7 +1716,7 @@
   function resetState(type) {
     campaignState.type = type;
     campaignState.tab = 'recipients';
-    campaignState.maxVisitedTab = 0;
+    campaignState.maxVisitedTab = 3; // all tabs unlocked from the start
     campaignState.filters = {
       source: 'all', statuses: [], programs: [], subtypes: [], routes: [],
       countries: [], periods: [], tracks: [], cohorts: [], paymentStatuses: [],

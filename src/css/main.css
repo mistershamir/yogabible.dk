@@ -20243,6 +20243,7 @@ button.yb-btn--outline-white:hover {
   justify-content: center;
   gap: 0.5rem;
   margin-top: 1rem;
+  margin-bottom: 1.25rem;
 }
 .yb-lead__campaign-test-input {
   border: 1px solid #E8E4E0;
@@ -20270,12 +20271,13 @@ button.yb-btn--outline-white:hover {
 .yb-lead__campaign-send-wrap {
   max-width: 520px;
   margin: 0 auto;
+  padding-top: 0.5rem;
 }
 .yb-lead__campaign-summary-cards {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 0.75rem;
-  margin-bottom: 1.25rem;
+  margin-bottom: 1.5rem;
 }
 .yb-lead__campaign-summary-card {
   background: #F5F3F0;
@@ -20296,7 +20298,7 @@ button.yb-btn--outline-white:hover {
 }
 
 /* ── Delivery provider selector ── */
-.yb-lead__campaign-provider-section { margin-bottom: 1.25rem; }
+.yb-lead__campaign-provider-section { margin-bottom: 1.5rem; }
 .yb-lead__campaign-provider-cards {
   display: flex;
   flex-direction: column;
@@ -20348,7 +20350,7 @@ button.yb-btn--outline-white:hover {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 0.5rem;
-  margin-bottom: 1rem;
+  margin-bottom: 1.5rem;
 }
 .yb-lead__campaign-schedule-option {
   background: #fff;
