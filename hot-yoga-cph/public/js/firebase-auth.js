@@ -431,7 +431,7 @@
           // For user-not-found or invalid-credential: validate against Mindbody.
           // If MB credentials are valid, sync the Firebase account with the same password
           // and retry — so users never need a separate password for the new front end.
-          if (error.code === 'auth/user-not-found' || error.code === 'auth/invalid-credential') {
+          if (error.code === 'auth/user-not-found' || error.code === 'auth/invalid-credential' || error.code === 'auth/too-many-requests') {
             isMigrating = true;
             submitBtn.textContent = detectLocale() === 'da' ? 'Tjekker konto...' : 'Checking account...';
 

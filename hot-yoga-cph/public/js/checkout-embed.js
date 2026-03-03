@@ -1315,7 +1315,7 @@
       .then(function () { callback(null); })
       .catch(function (err) {
         // Validate against Mindbody for legacy users who have no Firebase account yet
-        if (err.code === 'auth/user-not-found' || err.code === 'auth/invalid-credential') {
+        if (err.code === 'auth/user-not-found' || err.code === 'auth/invalid-credential' || err.code === 'auth/too-many-requests') {
           fetch(API_BASE + '/mb-auth', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
