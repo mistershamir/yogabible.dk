@@ -110,20 +110,32 @@ exports.handler = async function (event) {
       if (err.code !== 'auth/user-not-found') throw err;
     }
 
+    let uid;
     if (firebaseUser) {
       // Account exists (wrong password on Firebase side) — update to match MB password
       await fb.auth().updateUser(firebaseUser.uid, { password });
+      uid = firebaseUser.uid;
     } else {
       // No Firebase account yet — create one with the same password
-      await fb.auth().createUser({
+      const newUser = await fb.auth().createUser({
         email,
         password,
         displayName: displayName || undefined,
         emailVerified: false
       });
+      uid = newUser.uid;
     }
 
-    return jsonResponse(200, { success: true });
+    // Generate a custom token so the client can sign in immediately without
+    // relying on password propagation (avoids timing/project-mismatch issues)
+    let customToken = null;
+    try {
+      customToken = await fb.auth().createCustomToken(uid);
+    } catch (e) {
+      console.warn('mb-auth: could not generate custom token:', e.message);
+    }
+
+    return jsonResponse(200, { success: true, customToken });
 
   } catch (err) {
     console.error('mb-auth error:', err.message);

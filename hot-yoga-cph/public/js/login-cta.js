@@ -171,8 +171,11 @@
             .then(function (res) { return res.json(); })
             .then(function (data) {
               if (!data.success) { callback(err); return; }
-              // Firebase account synced with MB password — retry
-              return firebase.auth().signInWithEmailAndPassword(email, password)
+              // Prefer custom token (avoids propagation delay + project mismatch)
+              var signIn = data.customToken
+                ? firebase.auth().signInWithCustomToken(data.customToken)
+                : firebase.auth().signInWithEmailAndPassword(email, password);
+              return signIn
                 .then(function () { callback(null); })
                 .catch(function (retryErr) { callback(retryErr); });
             })
