@@ -5,13 +5,14 @@ Also sends proactive notifications (new leads, drip events, reminders).
 """
 
 import os
+import asyncio
 import logging
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import (
     Application, CommandHandler, MessageHandler,
     CallbackQueryHandler, filters
 )
-from telegram.constants import ParseMode
+from telegram.constants import ParseMode, ChatAction
 
 logger = logging.getLogger('lead-agent.telegram')
 
@@ -129,17 +130,32 @@ def build_handlers(chat_fn, on_callback_fn):
         if not user_text:
             return
 
-        # Show typing indicator while Claude thinks
-        await update.effective_chat.send_action('typing')
+        # Run the blocking Claude API call in a thread so the event loop stays free.
+        # Meanwhile, refresh the typing indicator every 4 seconds (it expires after 5).
+        typing_active = True
+
+        async def keep_typing():
+            while typing_active:
+                try:
+                    await update.effective_chat.send_action(ChatAction.TYPING)
+                except Exception:
+                    pass
+                await asyncio.sleep(4)
+
+        typing_task = asyncio.create_task(keep_typing())
 
         try:
-            response = chat_fn(user_text)
+            # Run synchronous chat() in a thread — does NOT block the event loop
+            response = await asyncio.to_thread(chat_fn, user_text)
             # Telegram messages have a 4096 char limit — split if needed
             for chunk in _split_message(response):
                 await update.message.reply_text(chunk, parse_mode=ParseMode.HTML)
         except Exception as e:
             logger.error(f'Chat error: {e}')
             await update.message.reply_text(f"❌ Error: {e}")
+        finally:
+            typing_active = False
+            typing_task.cancel()
 
     async def callback_handler(update: Update, context):
         query = update.callback_query
@@ -155,7 +171,8 @@ def build_handlers(chat_fn, on_callback_fn):
         lead_id = parts[1] if len(parts) > 1 else ''
 
         try:
-            response = on_callback_fn(action, lead_id)
+            # Run blocking Claude call in a thread
+            response = await asyncio.to_thread(on_callback_fn, action, lead_id)
             await query.edit_message_reply_markup(reply_markup=None)
             await query.message.reply_text(response, parse_mode=ParseMode.HTML)
         except Exception as e:

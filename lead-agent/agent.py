@@ -50,7 +50,7 @@ logger = logging.getLogger('lead-agent')
 
 # ── Anthropic client ──────────────────────────────────
 client = anthropic.Anthropic()
-MODEL = os.getenv('AGENT_MODEL', 'claude-sonnet-4-20250514')
+MODEL = os.getenv('AGENT_MODEL', 'claude-haiku-4-5-20251001')
 
 # ── Tool definitions for Claude ───────────────────────
 TOOLS = [
@@ -374,9 +374,9 @@ def chat(user_message):
     global SYSTEM_PROMPT
     conversation_history.append({"role": "user", "content": user_message})
 
-    # Keep conversation history manageable (last 20 messages to save tokens)
-    if len(conversation_history) > 20:
-        conversation_history[:] = conversation_history[-20:]
+    # Keep conversation history manageable (last 10 messages to save tokens + reduce latency)
+    if len(conversation_history) > 10:
+        conversation_history[:] = conversation_history[-10:]
 
     while True:
         try:
