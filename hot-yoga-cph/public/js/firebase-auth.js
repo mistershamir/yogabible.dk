@@ -428,36 +428,36 @@
           closeAuthModal();
         })
         .catch(function(error) {
-          // For user-not-found or invalid-credential: check if this is a legacy Mindbody user
-          // who hasn't set a password on the new system yet
+          // For user-not-found or invalid-credential: validate against Mindbody.
+          // If MB credentials are valid, sync the Firebase account with the same password
+          // and retry — so users never need a separate password for the new front end.
           if (error.code === 'auth/user-not-found' || error.code === 'auth/invalid-credential') {
             isMigrating = true;
             submitBtn.textContent = detectLocale() === 'da' ? 'Tjekker konto...' : 'Checking account...';
 
-            fetch('/.netlify/functions/migrate-mb-user', {
+            fetch('/.netlify/functions/mb-auth', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ email: email })
+              body: JSON.stringify({ email: email, password: password })
             })
               .then(function(res) { return res.json(); })
               .then(function(data) {
-                if (data.found) {
-                  // Email exists in Mindbody — send a password reset/set email
-                  return auth.sendPasswordResetEmail(email).then(function() {
-                    var isDa = detectLocale() === 'da';
-                    var msg = data.created
-                      ? (isDa
-                          ? 'Vi har opgraderet vores login-system. Du har modtaget en email med et link til at sætte dit kodeord. Tjek din indbakke.'
-                          : 'We\'ve upgraded our login system. We\'ve sent you an email with a link to set your password. Please check your inbox.')
-                      : (isDa
-                          ? 'Vi har sendt dig et link til at nulstille din adgangskode. Tjek din indbakke.'
-                          : 'We\'ve sent you a link to reset your password. Please check your inbox.');
-                    showSuccess(errorEl, msg);
-                  });
-                } else {
-                  // Not in Mindbody — show normal auth error
+                if (!data.success) {
+                  // Not valid in Mindbody either — show normal error
                   showError(errorEl, getAuthErrorMessage(error.code));
+                  return;
                 }
+                // Firebase account now synced with MB password — retry login
+                return auth.signInWithEmailAndPassword(email, password)
+                  .then(function() {
+                    closeAuthModal();
+                  })
+                  .catch(function(retryErr) {
+                    console.warn('Retry after MB sync failed:', retryErr.code);
+                    showError(errorEl, detectLocale() === 'da'
+                      ? 'Prøv igen om et øjeblik.'
+                      : 'Please try again in a moment.');
+                  });
               })
               .catch(function() {
                 showError(errorEl, getAuthErrorMessage(error.code));
@@ -566,7 +566,17 @@
 
       submitBtn.disabled = true;
 
-      auth.sendPasswordResetEmail(email)
+      // For MB-only users (no Firebase account yet), ensure the account exists
+      // before sending the reset email — otherwise Firebase sends nothing.
+      fetch('/.netlify/functions/migrate-mb-user', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: email })
+      })
+        .catch(function() { return { found: false }; }) // don't block on MB errors
+        .then(function() {
+          return auth.sendPasswordResetEmail(email);
+        })
         .then(function() {
           if (errorEl) { errorEl.hidden = true; }
           if (successEl) {
