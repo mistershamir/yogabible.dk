@@ -8,6 +8,8 @@
 <title>{{ title | default("YOGA BIBLE - Denmark") }}</title>
 <meta name="description" content="{{ description | default("Yoga Bible er din platform for yogalæreruddannelser, fordybelse og professionelle yogaklasser. Uanset om du vil undervise, lære mere eller finde dit fællesskab – vi er her.") }}">
 <link rel="canonical" href="{{ site.url }}{{ page.url }}">
+{% if langAlternateEn %}<link rel="alternate" hreflang="en" href="{{ langAlternateEn }}">{% endif %}
+{% if langAlternateDa %}<link rel="alternate" hreflang="da" href="{{ langAlternateDa }}">{% endif %}
 
 <!-- Open Graph -->
 <meta property="og:site_name" content="{{ site.name }}">
