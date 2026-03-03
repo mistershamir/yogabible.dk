@@ -1784,6 +1784,7 @@
           if (btn) { btn.disabled = false; btn.textContent = t('Log ind', 'Sign in'); }
 
           if (err) {
+            // doLogin already tried MB fallback — both Firebase and MB failed
             showError('ycf-login-error', authErrorMsg(err));
             return;
           }

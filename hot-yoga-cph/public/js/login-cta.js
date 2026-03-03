@@ -609,13 +609,26 @@
       doLogin(email, password, function (err) {
         btn.disabled = false;
         btn.textContent = t('Log ind', 'Sign in');
-        if (err) {
-          errorEl.textContent = authErrorMsg(err);
-          errorEl.classList.add('is-visible');
+        if (!err) {
+          closeModal();
           return;
         }
-        // Auth state change will handle UI update and close modal
-        closeModal();
+        // doLogin already tried MB fallback — if we're here, all methods failed
+        var code = err.code || '';
+        if (code === 'auth/user-not-found' || code === 'auth/invalid-credential') {
+          errorEl.innerHTML = authErrorMsg(err) + ' <a id="hyc-inline-reset-link" style="color:inherit;text-decoration:underline;cursor:pointer;">' + t('Nulstil adgangskode', 'Reset password') + '</a>';
+          errorEl.classList.add('is-visible');
+          var resetLink = $t('hyc-inline-reset-link');
+          if (resetLink) {
+            resetLink.addEventListener('click', function (ev) {
+              ev.preventDefault();
+              openModal('auth-forgot');
+            });
+          }
+        } else {
+          errorEl.textContent = authErrorMsg(err);
+          errorEl.classList.add('is-visible');
+        }
       });
     });
 
