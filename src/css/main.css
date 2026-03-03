@@ -20295,6 +20295,54 @@ button.yb-btn--outline-white:hover {
   margin-top: 0.2rem;
 }
 
+/* ── Delivery provider selector ── */
+.yb-lead__campaign-provider-section { margin-bottom: 1.25rem; }
+.yb-lead__campaign-provider-cards {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-top: 0.4rem;
+}
+.yb-lead__campaign-provider-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.65rem;
+  padding: 0.7rem 0.85rem;
+  border: 1.5px solid #E8E4E0;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: border-color 0.12s, background 0.12s;
+  background: #FFFCF9;
+  -webkit-user-select: none;
+  user-select: none;
+}
+.yb-lead__campaign-provider-card:hover { border-color: #f75c03; background: #fff8f5; }
+.yb-lead__campaign-provider-card.is-selected { border-color: #f75c03; background: #fff4ed; }
+.yb-lead__campaign-provider-card input[type="radio"] { display: none; }
+.yb-lead__campaign-provider-icon { font-size: 1.2rem; flex-shrink: 0; margin-top: 0.05rem; line-height: 1; }
+.yb-lead__campaign-provider-body { flex: 1; min-width: 0; }
+.yb-lead__campaign-provider-name {
+  font-weight: 700;
+  font-size: 0.87rem;
+  color: #0F0F0F;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+}
+.yb-lead__campaign-provider-badge {
+  font-size: 0.62rem;
+  font-weight: 700;
+  background: #f75c03;
+  color: #fff;
+  padding: 0.1rem 0.4rem;
+  border-radius: 20px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.yb-lead__campaign-provider-auto-note { font-size: 0.68rem; color: #f75c03; font-weight: 600; }
+.yb-lead__campaign-provider-desc { font-size: 0.76rem; color: #6F6A66; margin-top: 0.15rem; line-height: 1.4; }
+
 /* Schedule options */
 .yb-lead__campaign-schedule-grid {
   display: grid;

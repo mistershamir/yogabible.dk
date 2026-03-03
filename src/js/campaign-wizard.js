@@ -65,6 +65,7 @@
     attachment: null,          // { name, type, data (base64) }
 
     // Send state
+    provider: 'resend',  // 'gmail' | 'resend' — auto-set when wizard opens
     schedule: 'now',
     customSchedule: '',
     sending: false,
@@ -1100,6 +1101,40 @@
         '</div>';
     }
 
+    // ── Delivery provider selector (email only) ──────────────────────────────
+    if (!isSMS) {
+      var isResend = campaignState.provider === 'resend';
+      var autoNote = selectedCount > 10
+        ? '<span class="yb-lead__campaign-provider-auto-note">Auto-valgt for ' + selectedCount + '+ modtagere</span>'
+        : '';
+      html += '<div class="yb-lead__campaign-provider-section">' +
+        '<div class="yb-lead__campaign-filter-label">Afsendelsesmetode</div>' +
+        '<div class="yb-lead__campaign-provider-cards">' +
+
+        // Gmail card
+        '<label class="yb-lead__campaign-provider-card' + (!isResend ? ' is-selected' : '') + '">' +
+          '<input type="radio" name="campaign-provider" value="gmail" data-action="campaign-set-provider"' + (!isResend ? ' checked' : '') + '>' +
+          '<div class="yb-lead__campaign-provider-icon">✉️</div>' +
+          '<div class="yb-lead__campaign-provider-body">' +
+            '<div class="yb-lead__campaign-provider-name">Gmail SMTP</div>' +
+            '<div class="yb-lead__campaign-provider-desc">Personlig 1:1-afsendelse · Vises i Sendt-mappe · Bedst til &lt;25 modtagere</div>' +
+          '</div>' +
+        '</label>' +
+
+        // Resend card
+        '<label class="yb-lead__campaign-provider-card' + (isResend ? ' is-selected' : '') + '">' +
+          '<input type="radio" name="campaign-provider" value="resend" data-action="campaign-set-provider"' + (isResend ? ' checked' : '') + '>' +
+          '<div class="yb-lead__campaign-provider-icon">🚀</div>' +
+          '<div class="yb-lead__campaign-provider-body">' +
+            '<div class="yb-lead__campaign-provider-name">Resend <span class="yb-lead__campaign-provider-badge">Anbefalet</span>' + autoNote + '</div>' +
+            '<div class="yb-lead__campaign-provider-desc">Inbox-optimeret bulk · Ingen Gmail-rod · List-Unsubscribe header · 3.000 gratis/md</div>' +
+          '</div>' +
+        '</label>' +
+
+        '</div>' + // .provider-cards
+        '</div>'; // .provider-section
+    }
+
     // Schedule options
     html += '<div class="yb-lead__campaign-filter-section">' +
       '<span class="yb-lead__campaign-filter-label">' + esc(t('campaign_send_schedule')) + '</span></div>';
@@ -1316,20 +1351,26 @@
     var isSMS = campaignState.type === 'sms';
     var recipients = campaignState.allRecipients.filter(function (l) { return campaignState.selectedIds.has(l.id); });
     var total = recipients.length;
-    var batchSize = 10;
-    var results = { sent: 0, failed: 0, skipped: 0, scheduled: 0, errors: [] };
 
-    // Show progress
+    // Show progress bar + disable send button
     var progressEl = $('yb-campaign-progress');
     if (progressEl) progressEl.classList.add('is-active');
     var sendBtn = $('yb-campaign-send-all-btn');
     if (sendBtn) sendBtn.disabled = true;
 
+    // ── Resend path (email only): one batch request to backend ────────────
+    if (!isSMS && campaignState.provider === 'resend') {
+      sendAllViaResend(recipients, total);
+      return;
+    }
+
+    // ── Gmail / SMS path: sequential per-lead loop ─────────────────────────
+    var batchSize = 10;
+    var results = { sent: 0, failed: 0, skipped: 0, scheduled: 0, errors: [] };
     var batches = [];
     for (var i = 0; i < recipients.length; i += batchSize) {
       batches.push(recipients.slice(i, i + batchSize));
     }
-
     var batchIdx = 0;
 
     function processBatch() {
@@ -1359,14 +1400,77 @@
 
       Promise.all(promises).then(function () {
         batchIdx++;
-        var done = Math.min((batchIdx * batchSize), total);
+        var done = Math.min(batchIdx * batchSize, total);
         updateProgress(done, total, batchIdx, batches.length);
-        // Small delay between batches
         setTimeout(processBatch, 200);
       });
     }
 
     processBatch();
+  }
+
+  // One-shot Resend bulk call — backend fetches leads, personalises, and
+  // sends in Resend batch API calls (100/request). Much faster than looping.
+  function sendAllViaResend(recipients, total) {
+    var leadIds = recipients.filter(function (l) { return l._source !== 'app'; }).map(function (l) { return l.id; });
+    var appIds = recipients.filter(function (l) { return l._source === 'app'; }).map(function (l) { return l.id; });
+
+    updateProgress(0, total, 0, 1);
+
+    bridge.getAuthToken().then(function (token) {
+      var body = {
+        subject: campaignState.emailSubject,
+        bodyHtml: campaignState.emailBodyHtml,
+        bodyPlain: '',
+        provider: 'resend'
+      };
+      if (leadIds.length > 0) body.leadIds = leadIds;
+      if (appIds.length > 0) body.applicationIds = appIds;
+
+      // If there are both leads and apps, send two requests
+      var requests = [];
+      if (leadIds.length > 0) {
+        requests.push(fetch('/.netlify/functions/send-email', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+          body: JSON.stringify({ leadIds: leadIds, subject: body.subject, bodyHtml: body.bodyHtml, bodyPlain: body.bodyPlain, provider: 'resend' })
+        }).then(function (r) { return r.json(); }));
+      }
+      if (appIds.length > 0) {
+        requests.push(fetch('/.netlify/functions/send-email', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+          body: JSON.stringify({ applicationIds: appIds, subject: body.subject, bodyHtml: body.bodyHtml, bodyPlain: body.bodyPlain, provider: 'resend' })
+        }).then(function (r) { return r.json(); }));
+      }
+
+      return Promise.all(requests);
+    }).then(function (responses) {
+      // Merge results from leads + apps responses
+      var merged = { sent: 0, failed: 0, skipped: 0, errors: [] };
+      responses.forEach(function (data) {
+        if (data.results) {
+          merged.sent += data.results.sent || 0;
+          merged.failed += data.results.failed || 0;
+          merged.skipped += data.results.skipped || 0;
+          if (data.results.errors) merged.errors = merged.errors.concat(data.results.errors);
+        } else if (!data.ok) {
+          merged.failed += total;
+          merged.errors.push({ id: 'batch', error: data.error || 'Unknown error' });
+        }
+      });
+
+      campaignState.sending = false;
+      campaignState.results = merged;
+      updateProgress(total, total, 1, 1);
+      showResults(merged);
+      logCampaign(merged, total);
+    }).catch(function (err) {
+      campaignState.sending = false;
+      var btn = $('yb-campaign-send-all-btn');
+      if (btn) btn.disabled = false;
+      if (bridge) bridge.toast('Afsendelse fejlede: ' + err.message, true);
+    });
   }
 
   function sendToLead(lead, isSMS) {
@@ -1662,6 +1766,7 @@
     campaignState.emailBodyHtml = '';
     campaignState.emailEditorMode = 'visual';
     campaignState.attachment = null;
+    campaignState.provider = 'resend'; // always default Resend for new campaigns
     campaignState.schedule = 'now';
     campaignState.customSchedule = '';
     campaignState.sending = false;
@@ -1856,6 +1961,17 @@
         return;
       }
 
+      // Provider radio change (handled on 'change' event below, but keep as fallback)
+      if (action === 'campaign-set-provider') {
+        campaignState.provider = btn.value || 'resend';
+        // Re-style cards
+        document.querySelectorAll('.yb-lead__campaign-provider-card').forEach(function (card) {
+          var radio = card.querySelector('input[type="radio"]');
+          card.classList.toggle('is-selected', radio && radio.checked);
+        });
+        return;
+      }
+
       // Test sends
       if (action === 'campaign-test-sms') { sendTestSMS(); return; }
       if (action === 'campaign-test-email') { sendTestEmail(); return; }
@@ -1908,6 +2024,17 @@
         var tid = btn.getAttribute('data-template-id');
         selectEmailTemplate(tid);
         return;
+      }
+    });
+
+    // Provider radio toggle
+    document.addEventListener('change', function (e) {
+      if (e.target && e.target.getAttribute('data-action') === 'campaign-set-provider') {
+        campaignState.provider = e.target.value || 'resend';
+        document.querySelectorAll('.yb-lead__campaign-provider-card').forEach(function (card) {
+          var radio = card.querySelector('input[type="radio"]');
+          card.classList.toggle('is-selected', radio && radio.checked);
+        });
       }
     });
 
