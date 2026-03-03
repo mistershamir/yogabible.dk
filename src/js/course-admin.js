@@ -1680,17 +1680,27 @@
   function updateUserBulkBar() {
     var bar = $('yb-user-bulk-bar');
     if (!bar) return;
-    if (selectedUserIds.size === 0) {
-      bar.hidden = true;
-      return;
-    }
-    bar.hidden = false;
-    var selected = state.users.filter(function (u) { return selectedUserIds.has(u.id); });
-    var withPhone = selected.filter(function (u) { return u.phone; }).length;
-    var withEmail = selected.filter(function (u) { return u.email; }).length;
+
+    // Bar is always visible; selection-only buttons toggled by selection count
+    var hasSelection = selectedUserIds.size > 0;
+
+    bar.querySelectorAll('.yb-lead__bulk-sel-only').forEach(function (btn) {
+      btn.hidden = !hasSelection;
+    });
+
     var countEl = $('yb-user-bulk-count');
-    if (countEl) countEl.innerHTML = '<strong>' + selectedUserIds.size + '</strong> ' + t('users_selected') +
-      ' &nbsp;&middot;&nbsp; \ud83d\udcf1 ' + withPhone + ' &nbsp;&middot;&nbsp; \u2709\ufe0f ' + withEmail;
+    if (countEl) {
+      if (hasSelection) {
+        var selected = state.users.filter(function (u) { return selectedUserIds.has(u.id); });
+        var withPhone = selected.filter(function (u) { return u.phone; }).length;
+        var withEmail = selected.filter(function (u) { return u.email; }).length;
+        countEl.innerHTML = '<strong>' + selectedUserIds.size + '</strong> ' + t('users_selected') +
+          ' &nbsp;&middot;&nbsp; \ud83d\udcf1 ' + withPhone + ' &nbsp;&middot;&nbsp; \u2709\ufe0f ' + withEmail;
+        countEl.hidden = false;
+      } else {
+        countEl.hidden = true;
+      }
+    }
   }
 
   function deselectAllUsers() {
@@ -1921,6 +1931,7 @@
   }
 
   function bulkUserEmailSelected() {
+    if (selectedUserIds.size === 0) { bulkUserEmail(); return; }
     var selected = state.users.filter(function (u) { return selectedUserIds.has(u.id); });
     var withEmail = selected.filter(function (u) { return u.email; });
     if (!withEmail.length) { toast(t('users_no_email_addr'), true); return; }
@@ -1941,6 +1952,7 @@
   }
 
   function bulkUserSMSSelected() {
+    if (selectedUserIds.size === 0) { bulkUserSMS(); return; }
     var selected = state.users.filter(function (u) { return selectedUserIds.has(u.id); });
     var withPhone = selected.filter(function (u) { return u.phone; });
     if (!withPhone.length) { toast(t('users_no_phone'), true); return; }

@@ -550,6 +550,7 @@
       if (tableContainer) tableContainer.hidden = false;
       if (kanbanEl) kanbanEl.hidden = true;
       renderLeadTable();
+      updateBulkBar();
     }
   }
 
@@ -2079,20 +2080,31 @@
     var bar = $('yb-lead-bulk-bar');
     if (!bar) return;
 
-    if (selectedIds.size === 0) {
-      bar.hidden = true;
-      return;
-    }
+    // Bar is always visible in table mode; kanban hides it via renderLeadView
+    var hasSelection = selectedIds.size > 0;
 
-    bar.hidden = false;
-    var selected = leads.filter(function (l) { return selectedIds.has(l.id); });
-    var withPhone = selected.filter(function (l) { return l.phone; }).length;
-    var withEmail = selected.filter(function (l) { return l.email; }).length;
-    var dbTotal = totalLeadCount !== null ? totalLeadCount : leads.length;
-    var notAllLoaded = leads.length < dbTotal;
-    $('yb-lead-bulk-count').innerHTML = '<strong>' + selectedIds.size + '</strong> ' + t('leads_selected') +
-      ' &nbsp;·&nbsp; 📱 ' + withPhone + ' &nbsp;·&nbsp; ✉️ ' + withEmail +
-      (notAllLoaded ? ' &nbsp;·&nbsp; <span style="color:var(--yb-muted);font-size:0.8em">(' + leads.length + ' ' + t('leads_loaded') + ' ' + t('leads_of') + ' ' + dbTotal + ')</span>' : '');
+    // Selection-only buttons
+    bar.querySelectorAll('.yb-lead__bulk-sel-only').forEach(function (btn) {
+      btn.hidden = !hasSelection;
+    });
+
+    // Count text
+    var countEl = $('yb-lead-bulk-count');
+    if (countEl) {
+      if (hasSelection) {
+        var selected = leads.filter(function (l) { return selectedIds.has(l.id); });
+        var withPhone = selected.filter(function (l) { return l.phone; }).length;
+        var withEmail = selected.filter(function (l) { return l.email; }).length;
+        var dbTotal = totalLeadCount !== null ? totalLeadCount : leads.length;
+        var notAllLoaded = leads.length < dbTotal;
+        countEl.innerHTML = '<strong>' + selectedIds.size + '</strong> ' + t('leads_selected') +
+          ' &nbsp;·&nbsp; 📱 ' + withPhone + ' &nbsp;·&nbsp; ✉️ ' + withEmail +
+          (notAllLoaded ? ' &nbsp;·&nbsp; <span style="color:var(--yb-muted);font-size:0.8em">(' + leads.length + ' ' + t('leads_loaded') + ' ' + t('leads_of') + ' ' + dbTotal + ')</span>' : '');
+        countEl.hidden = false;
+      } else {
+        countEl.hidden = true;
+      }
+    }
   }
 
   function toggleSelectAll() {
@@ -2154,10 +2166,11 @@
   }
 
   function bulkSMS() {
-    var selected = leads.filter(function (l) { return selectedIds.has(l.id); });
+    var selected = selectedIds.size > 0
+      ? leads.filter(function (l) { return selectedIds.has(l.id); })
+      : getFilteredLeads();
     var withPhone = selected.filter(function (l) { return l.phone; });
     if (!withPhone.length) { toast(t('leads_no_phone'), true); return; }
-    // Delegate to campaign wizard if available
     if (typeof window.openSMSCampaign === 'function') {
       window.openSMSCampaign(selected);
     } else {
@@ -2166,10 +2179,11 @@
   }
 
   function bulkEmail() {
-    var selected = leads.filter(function (l) { return selectedIds.has(l.id); });
+    var selected = selectedIds.size > 0
+      ? leads.filter(function (l) { return selectedIds.has(l.id); })
+      : getFilteredLeads();
     var withEmail = selected.filter(function (l) { return l.email; });
     if (!withEmail.length) { toast(t('leads_no_email_addr'), true); return; }
-    // Delegate to campaign wizard if available
     if (typeof window.openEmailCampaign === 'function') {
       window.openEmailCampaign(selected);
     } else {
