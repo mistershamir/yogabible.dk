@@ -763,12 +763,6 @@
     h +=     '<button type="submit" class="yb-auth-submit" id="ycf-login-btn-en" data-yj-en hidden>Sign in</button>';
     h +=   '</form>';
 
-    h +=   '<div class="yb-auth-or-sep"><span data-yj-da>eller</span><span data-yj-en hidden>or</span></div>';
-    h +=   '<button type="button" class="yb-auth-google-btn" id="ycf-google-signin">';
-    h +=     '<svg width="18" height="18" viewBox="0 0 18 18" xmlns="http://www.w3.org/2000/svg"><path d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844a4.14 4.14 0 0 1-1.796 2.716v2.259h2.908c1.702-1.567 2.684-3.875 2.684-6.615z" fill="#4285F4"/><path d="M9 18c2.43 0 4.467-.806 5.956-2.18l-2.908-2.259c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332A8.997 8.997 0 0 0 9 18z" fill="#34A853"/><path d="M3.964 10.71A5.41 5.41 0 0 1 3.682 9c0-.593.102-1.17.282-1.71V4.958H.957A8.996 8.996 0 0 0 0 9c0 1.452.348 2.827.957 4.042l3.007-2.332z" fill="#FBBC05"/><path d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0A8.997 8.997 0 0 0 .957 4.958L3.964 6.29C4.672 4.163 6.656 3.58 9 3.58z" fill="#EA4335"/></svg>';
-    h +=     '<span data-yj-da>Fortsæt med Google</span><span data-yj-en hidden>Continue with Google</span>';
-    h +=   '</button>';
-
     h +=   '<div class="yb-auth-links">';
     h +=     '<a href="#" data-ycf-action="forgot" data-yj-da>Glemt adgangskode?</a>';
     h +=     '<a href="#" data-ycf-action="forgot" data-yj-en hidden>Forgot password?</a>';
@@ -1320,7 +1314,7 @@
     firebase.auth().signInWithEmailAndPassword(email, password)
       .then(function () { callback(null); })
       .catch(function (err) {
-        // Mindbody migration fallback: if no Firebase account, validate against MB
+        // Validate against Mindbody for legacy users who have no Firebase account yet
         if (err.code === 'auth/user-not-found' || err.code === 'auth/invalid-credential') {
           fetch(API_BASE + '/mb-auth', {
             method: 'POST',
@@ -1330,7 +1324,7 @@
             .then(function (res) { return res.json(); })
             .then(function (data) {
               if (!data.success) { callback(err); return; }
-              // MB credentials valid — Firebase account created/updated, retry login
+              // Firebase account synced with MB password — retry
               return firebase.auth().signInWithEmailAndPassword(email, password)
                 .then(function () { callback(null); })
                 .catch(function (retryErr) { callback(retryErr); });
@@ -1367,16 +1361,7 @@
   }
 
   function doForgotPassword(email, callback) {
-    // Pre-create Firebase account for Mindbody-only users so the reset email delivers
-    fetch(API_BASE + '/migrate-mb-user', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email: email })
-    })
-      .catch(function () { return { found: false }; })
-      .then(function () {
-        return firebase.auth().sendPasswordResetEmail(email);
-      })
+    firebase.auth().sendPasswordResetEmail(email)
       .then(function () { callback(null); })
       .catch(function (err) { callback(err); });
   }
@@ -1784,7 +1769,6 @@
           if (btn) { btn.disabled = false; btn.textContent = t('Log ind', 'Sign in'); }
 
           if (err) {
-            // doLogin already tried MB fallback — both Firebase and MB failed
             showError('ycf-login-error', authErrorMsg(err));
             return;
           }
@@ -1815,31 +1799,6 @@
             ''
           );
         });
-      });
-    }
-
-    // ── Google Sign-In ────────────────────────────────────────────
-    var googleBtn = $('ycf-google-signin');
-    if (googleBtn) {
-      googleBtn.addEventListener('click', function () {
-        var provider = new firebase.auth.GoogleAuthProvider();
-        firebase.auth().signInWithPopup(provider)
-          .then(function () {
-            var user = firebase.auth().currentUser;
-            var displayName = (user && user.displayName) || '';
-            var nameParts = displayName.split(' ');
-            authOriginStep = 'login';
-            if (loginOnlyMode) { loginOnlyRedirect(); return; }
-            resolveClientAndAdvance(
-              nameParts[0] || 'User',
-              nameParts.slice(1).join(' ') || '',
-              (user && user.email) || '',
-              ''
-            );
-          })
-          .catch(function (err) {
-            showError('ycf-login-error', authErrorMsg(err));
-          });
       });
     }
 
