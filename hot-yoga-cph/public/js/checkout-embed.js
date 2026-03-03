@@ -1781,80 +1781,39 @@
         if (btn) { btn.disabled = true; btn.textContent = t('Logger ind...', 'Signing in...'); }
 
         doLogin(email, password, function (err) {
-          if (!err) {
-            if (btn) { btn.disabled = false; btn.textContent = t('Log ind', 'Sign in'); }
+          if (btn) { btn.disabled = false; btn.textContent = t('Log ind', 'Sign in'); }
 
-            // If onAuthStateChanged already handled this, bail out
-            if (!modal || modal.getAttribute('aria-hidden') === 'true') return;
-
-            authOriginStep = 'login';
-            trackAuthComplete();
-            pushDataLayer('checkout_funnel_auth_complete', {
-              funnel_stage: 'auth_complete',
-              product_id: currentProdId,
-              product_name: getProductName(currentProdId),
-              product_category: getProductCategory(currentProdId)
-            });
-
-            if (loginOnlyMode) { loginOnlyRedirect(); return; }
-
-            var user = firebase.auth().currentUser;
-            var displayName = (user && user.displayName) || '';
-            var nameParts = displayName.split(' ');
-            resolveClientAndAdvance(
-              nameParts[0] || 'User',
-              nameParts.slice(1).join(' ') || '',
-              (user && user.email) || email,
-              ''
-            );
+          if (err) {
+            // doLogin already tried MB fallback — both Firebase and MB failed
+            showError('ycf-login-error', authErrorMsg(err));
             return;
           }
 
-          var code = err.code || '';
-          if (code === 'auth/user-not-found' || code === 'auth/invalid-credential') {
-            // Try Mindbody fallback: validates credentials + syncs Firebase account
-            if (btn) btn.textContent = t('Tjekker konto...', 'Checking account...');
-            fetch(API_BASE + '/mb-auth', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ email: email, password: password })
-            })
-              .then(function (res) { return res.json(); })
-              .then(function (data) {
-                if (!data.success) {
-                  // Invalid in both Firebase and Mindbody — show error + reset link
-                  var forgotEl = $('ycf-forgot-link');
-                  if (forgotEl) forgotEl.style.fontWeight = 'bold';
-                  showError('ycf-login-error', authErrorMsg(err));
-                  if (btn) { btn.disabled = false; btn.textContent = t('Log ind', 'Sign in'); }
-                  return;
-                }
-                // MB valid — Firebase account now synced, retry login
-                return firebase.auth().signInWithEmailAndPassword(email, password)
-                  .then(function () {
-                    if (btn) { btn.disabled = false; btn.textContent = t('Log ind', 'Sign in'); }
-                    if (!modal || modal.getAttribute('aria-hidden') === 'true') return;
-                    authOriginStep = 'login';
-                    trackAuthComplete();
-                    if (loginOnlyMode) { loginOnlyRedirect(); return; }
-                    var user2 = firebase.auth().currentUser;
-                    var dn = (user2 && user2.displayName) || '';
-                    var np = dn.split(' ');
-                    resolveClientAndAdvance(np[0] || 'User', np.slice(1).join(' ') || '', (user2 && user2.email) || email, '');
-                  })
-                  .catch(function () {
-                    showError('ycf-login-error', t('Prøv igen om et øjeblik.', 'Please try again in a moment.'));
-                    if (btn) { btn.disabled = false; btn.textContent = t('Log ind', 'Sign in'); }
-                  });
-              })
-              .catch(function () {
-                showError('ycf-login-error', authErrorMsg(err));
-                if (btn) { btn.disabled = false; btn.textContent = t('Log ind', 'Sign in'); }
-              });
-          } else {
-            if (btn) { btn.disabled = false; btn.textContent = t('Log ind', 'Sign in'); }
-            showError('ycf-login-error', authErrorMsg(err));
-          }
+          // If onAuthStateChanged already handled this (closed modal / redirected), bail out
+          if (!modal || modal.getAttribute('aria-hidden') === 'true') return;
+
+          authOriginStep = 'login';
+          // Track auth complete
+          trackAuthComplete();
+          pushDataLayer('checkout_funnel_auth_complete', {
+            funnel_stage: 'auth_complete',
+            product_id: currentProdId,
+            product_name: getProductName(currentProdId),
+            product_category: getProductCategory(currentProdId)
+          });
+
+          // Login-only mode: redirect to profile instead of checkout
+          if (loginOnlyMode) { loginOnlyRedirect(); return; }
+
+          var user = firebase.auth().currentUser;
+          var displayName = (user && user.displayName) || '';
+          var nameParts = displayName.split(' ');
+          resolveClientAndAdvance(
+            nameParts[0] || 'User',
+            nameParts.slice(1).join(' ') || '',
+            (user && user.email) || email,
+            ''
+          );
         });
       });
     }

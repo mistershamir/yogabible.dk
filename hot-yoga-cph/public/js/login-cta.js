@@ -607,62 +607,25 @@
       btn.textContent = t('Logger ind...', 'Signing in...');
 
       doLogin(email, password, function (err) {
+        btn.disabled = false;
+        btn.textContent = t('Log ind', 'Sign in');
         if (!err) {
-          btn.disabled = false;
-          btn.textContent = t('Log ind', 'Sign in');
           closeModal();
           return;
         }
-
+        // doLogin already tried MB fallback — if we're here, all methods failed
         var code = err.code || '';
         if (code === 'auth/user-not-found' || code === 'auth/invalid-credential') {
-          // Try Mindbody fallback: validates credentials + syncs Firebase account
-          btn.textContent = t('Tjekker konto...', 'Checking account...');
-          fetch(API_BASE + '/mb-auth', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ email: email, password: password })
-          })
-            .then(function (res) { return res.json(); })
-            .then(function (data) {
-              if (!data.success) {
-                // Invalid in both Firebase and Mindbody — show error + reset link
-                errorEl.innerHTML = authErrorMsg(err) + ' <a id="hyc-inline-reset-link" style="color:inherit;text-decoration:underline;cursor:pointer;">' + t('Nulstil adgangskode', 'Reset password') + '</a>';
-                errorEl.classList.add('is-visible');
-                var resetLink = $t('hyc-inline-reset-link');
-                if (resetLink) {
-                  resetLink.addEventListener('click', function (ev) {
-                    ev.preventDefault();
-                    openModal('auth-forgot');
-                  });
-                }
-                btn.disabled = false;
-                btn.textContent = t('Log ind', 'Sign in');
-                return;
-              }
-              // MB valid — Firebase account now synced, retry login
-              return firebase.auth().signInWithEmailAndPassword(email, password)
-                .then(function () {
-                  btn.disabled = false;
-                  btn.textContent = t('Log ind', 'Sign in');
-                  closeModal();
-                })
-                .catch(function () {
-                  errorEl.textContent = t('Prøv igen om et øjeblik.', 'Please try again in a moment.');
-                  errorEl.classList.add('is-visible');
-                  btn.disabled = false;
-                  btn.textContent = t('Log ind', 'Sign in');
-                });
-            })
-            .catch(function () {
-              errorEl.textContent = authErrorMsg(err);
-              errorEl.classList.add('is-visible');
-              btn.disabled = false;
-              btn.textContent = t('Log ind', 'Sign in');
+          errorEl.innerHTML = authErrorMsg(err) + ' <a id="hyc-inline-reset-link" style="color:inherit;text-decoration:underline;cursor:pointer;">' + t('Nulstil adgangskode', 'Reset password') + '</a>';
+          errorEl.classList.add('is-visible');
+          var resetLink = $t('hyc-inline-reset-link');
+          if (resetLink) {
+            resetLink.addEventListener('click', function (ev) {
+              ev.preventDefault();
+              openModal('auth-forgot');
             });
+          }
         } else {
-          btn.disabled = false;
-          btn.textContent = t('Log ind', 'Sign in');
           errorEl.textContent = authErrorMsg(err);
           errorEl.classList.add('is-visible');
         }
