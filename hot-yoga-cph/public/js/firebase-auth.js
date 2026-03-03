@@ -421,16 +421,60 @@
       submitBtn.disabled = true;
       submitBtn.textContent = detectLocale() === 'da' ? 'Logger ind...' : 'Signing in...';
 
+      var isMigrating = false;
+
       auth.signInWithEmailAndPassword(email, password)
         .then(function() {
           closeAuthModal();
         })
         .catch(function(error) {
-          showError(errorEl, getAuthErrorMessage(error.code));
+          // For user-not-found or invalid-credential: check if this is a legacy Mindbody user
+          // who hasn't set a password on the new system yet
+          if (error.code === 'auth/user-not-found' || error.code === 'auth/invalid-credential') {
+            isMigrating = true;
+            submitBtn.textContent = detectLocale() === 'da' ? 'Tjekker konto...' : 'Checking account...';
+
+            fetch('/.netlify/functions/migrate-mb-user', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ email: email })
+            })
+              .then(function(res) { return res.json(); })
+              .then(function(data) {
+                if (data.found) {
+                  // Email exists in Mindbody — send a password reset/set email
+                  return auth.sendPasswordResetEmail(email).then(function() {
+                    var isDa = detectLocale() === 'da';
+                    var msg = data.created
+                      ? (isDa
+                          ? 'Vi har opgraderet vores login-system. Du har modtaget en email med et link til at sætte dit kodeord. Tjek din indbakke.'
+                          : 'We\'ve upgraded our login system. We\'ve sent you an email with a link to set your password. Please check your inbox.')
+                      : (isDa
+                          ? 'Vi har sendt dig et link til at nulstille din adgangskode. Tjek din indbakke.'
+                          : 'We\'ve sent you a link to reset your password. Please check your inbox.');
+                    showSuccess(errorEl, msg);
+                  });
+                } else {
+                  // Not in Mindbody — show normal auth error
+                  showError(errorEl, getAuthErrorMessage(error.code));
+                }
+              })
+              .catch(function() {
+                showError(errorEl, getAuthErrorMessage(error.code));
+              })
+              .finally(function() {
+                submitBtn.disabled = false;
+                submitBtn.textContent = detectLocale() === 'da' ? 'Log ind' : 'Sign in';
+              });
+          } else {
+            showError(errorEl, getAuthErrorMessage(error.code));
+          }
         })
         .finally(function() {
-          submitBtn.disabled = false;
-          submitBtn.textContent = detectLocale() === 'da' ? 'Log ind' : 'Sign in';
+          if (!isMigrating) {
+            submitBtn.disabled = false;
+            submitBtn.textContent = detectLocale() === 'da' ? 'Log ind' : 'Sign in';
+          }
         });
     });
   }
@@ -623,6 +667,14 @@
   function showError(el, message) {
     if (!el) return;
     el.textContent = message;
+    el.style.color = '';
+    el.hidden = false;
+  }
+
+  function showSuccess(el, message) {
+    if (!el) return;
+    el.textContent = message;
+    el.style.color = '#2a7a2a';
     el.hidden = false;
   }
 
