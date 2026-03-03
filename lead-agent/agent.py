@@ -338,8 +338,8 @@ logger.info(f'System prompt loaded ({len(SYSTEM_PROMPT)} chars)')
 
 conversation_history = []
 
-MAX_RETRIES = 4
-RETRY_BACKOFF = [2, 4, 8, 16]  # seconds
+MAX_RETRIES = 2
+RETRY_BACKOFF = [1, 3]  # seconds — keep fast for Telegram UX
 
 def _call_api_with_retry(messages):
     """Call Anthropic API with retry + exponential backoff for rate limits."""
@@ -539,7 +539,7 @@ def main_telegram():
                 reload_knowledge()
                 logger.info('Knowledge auto-refreshed after git pull')
 
-    scheduler.add_job(_auto_update, 'interval', minutes=5,
+    scheduler.add_job(_auto_update, 'interval', minutes=1,
                       id='auto_update', replace_existing=True)
 
     # Daily heartbeat — proof of life + error summary
@@ -548,7 +548,7 @@ def main_telegram():
 
     scheduler.start()
     logger.info(f'Drip scheduler started (checking every {interval} min)')
-    logger.info('Auto-update checker started (git pull + knowledge refresh every 5 min)')
+    logger.info('Auto-update checker started (git pull + knowledge refresh every 1 min)')
     logger.info('Daily heartbeat scheduled')
 
     # Start Firestore listener for new leads

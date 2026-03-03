@@ -203,7 +203,7 @@ def send_email(to, subject, body_html, body_text=None):
         msg.attach(MIMEText(body_text, 'plain', 'utf-8'))
     msg.attach(MIMEText(body_html, 'html', 'utf-8'))
 
-    with smtplib.SMTP_SSL('smtp.gmail.com', 465) as server:
+    with smtplib.SMTP_SSL('smtp.gmail.com', 465, timeout=15) as server:
         server.login(GMAIL_USER, GMAIL_APP_PASSWORD)
         server.send_message(msg)
 
