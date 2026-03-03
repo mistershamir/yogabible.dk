@@ -79,14 +79,14 @@
     <span id="yb-lead-count" class="yb-lead__count-text"></span>
   </div>
 
-  {# Bulk actions bar (hidden until selections) #}
-  <div id="yb-lead-bulk-bar" class="yb-lead__bulk-bar" hidden>
-    <span id="yb-lead-bulk-count" class="yb-lead__bulk-count-text"></span>
-    <button class="yb-btn yb-btn--sm yb-btn--outline" data-action="bulk-status">&#9881;&#65039; {{ t.leads_bulk_status }}</button>
+  {# Bulk actions bar — Email/SMS always visible; Status/Archive/Deselect shown only when rows are selected #}
+  <div id="yb-lead-bulk-bar" class="yb-lead__bulk-bar">
+    <span id="yb-lead-bulk-count" class="yb-lead__bulk-count-text" hidden></span>
+    <button class="yb-btn yb-btn--sm yb-btn--outline yb-lead__bulk-sel-only" data-action="bulk-status" hidden>&#9881;&#65039; {{ t.leads_bulk_status }}</button>
     <button class="yb-btn yb-btn--sm yb-btn--outline" data-action="bulk-email">&#9993;&#65039; {{ t.leads_bulk_email }}</button>
     <button class="yb-btn yb-btn--sm yb-btn--outline" data-action="bulk-sms">&#128241; {{ t.leads_bulk_sms }}</button>
-    <button class="yb-btn yb-btn--sm yb-btn--outline yb-admin__icon-btn--danger" data-action="bulk-archive">&#128451; {{ t.leads_bulk_archive }}</button>
-    <button class="yb-btn yb-btn--sm yb-btn--outline" data-action="bulk-deselect">&#10006; {{ t.leads_deselect }}</button>
+    <button class="yb-btn yb-btn--sm yb-btn--outline yb-admin__icon-btn--danger yb-lead__bulk-sel-only" data-action="bulk-archive" hidden>&#128451; {{ t.leads_bulk_archive }}</button>
+    <button class="yb-btn yb-btn--sm yb-btn--outline yb-lead__bulk-sel-only" data-action="bulk-deselect" hidden>&#10006; {{ t.leads_deselect }}</button>
   </div>
 
   {# Lead table #}
