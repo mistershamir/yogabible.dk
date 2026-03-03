@@ -447,8 +447,11 @@
                   showErrorWithReset(errorEl);
                   return;
                 }
-                // Firebase account now synced with MB password — retry login
-                return auth.signInWithEmailAndPassword(email, password)
+                // Prefer custom token (avoids propagation delay + project mismatch)
+                var signIn = data.customToken
+                  ? auth.signInWithCustomToken(data.customToken)
+                  : auth.signInWithEmailAndPassword(email, password);
+                return signIn
                   .then(function() {
                     closeAuthModal();
                   })
