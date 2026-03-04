@@ -167,33 +167,34 @@
 
   function doLogin(email, password, callback) {
     // callback(err, reason) — reason is 'wrong_password' | 'email_not_found' | undefined
-    firebase.auth().signInWithEmailAndPassword(email, password)
-      .then(function () { callback(null); })
-      .catch(function (err) {
-        // Validate against Mindbody for legacy users or when rate-limited
-        if (err.code === 'auth/user-not-found' || err.code === 'auth/invalid-credential' || err.code === 'auth/too-many-requests') {
-          fetch(API_BASE + '/mb-auth', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ email: email, password: password })
-          })
-            .then(function (res) { return res.json(); })
-            .then(function (data) {
-              if (!data.success) { callback(err, data.reason); return; }
-              if (data.customToken) {
-                return firebase.auth().signInWithCustomToken(data.customToken)
-                  .then(function () { callback(null); })
-                  .catch(function (tokenErr) { callback(tokenErr); });
-              }
-              if (err.code === 'auth/too-many-requests') { callback(err); return; }
-              return firebase.auth().signInWithEmailAndPassword(email, password)
-                .then(function () { callback(null); })
-                .catch(function (retryErr) { callback(retryErr); });
-            })
-            .catch(function () { callback(err); });
-        } else {
-          callback(err);
+    // Mindbody is the source of truth — validate there first.
+    // On success: Firebase is synced and a custom token signs the user in,
+    // bypassing Firebase rate limits entirely.
+    // On failure: fall back to Firebase password auth (handles post-reset users
+    // whose Firebase password was changed independently of Mindbody).
+    fetch(API_BASE + '/mb-auth', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: email, password: password })
+    })
+      .then(function (res) { return res.json(); })
+      .then(function (data) {
+        if (data.customToken) {
+          // Mindbody validated — sign in with custom token (immune to rate limiting)
+          return firebase.auth().signInWithCustomToken(data.customToken)
+            .then(function () { callback(null); })
+            .catch(function (err) { callback(err); });
         }
+        // MB failed or no token — try Firebase (handles post-password-reset users)
+        return firebase.auth().signInWithEmailAndPassword(email, password)
+          .then(function () { callback(null); })
+          .catch(function (err) { callback(err, data.reason); });
+      })
+      .catch(function () {
+        // mb-auth network error — fall back to Firebase directly
+        return firebase.auth().signInWithEmailAndPassword(email, password)
+          .then(function () { callback(null); })
+          .catch(function (err) { callback(err); });
       });
   }
 

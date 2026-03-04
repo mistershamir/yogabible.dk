@@ -421,66 +421,49 @@
       submitBtn.disabled = true;
       submitBtn.textContent = detectLocale() === 'da' ? 'Logger ind...' : 'Signing in...';
 
-      var isMigrating = false;
+      // Mindbody is the source of truth — validate there first.
+      // On success: Firebase is synced and a custom token signs the user in.
+      // On failure: fall back to Firebase password auth (handles post-reset users).
+      isMigrating = true;
+      submitBtn.textContent = detectLocale() === 'da' ? 'Tjekker konto...' : 'Checking account...';
 
-      auth.signInWithEmailAndPassword(email, password)
-        .then(function() {
-          closeAuthModal();
-        })
-        .catch(function(error) {
-          // For user-not-found or invalid-credential: validate against Mindbody.
-          // If MB credentials are valid, sync the Firebase account with the same password
-          // and retry — so users never need a separate password for the new front end.
-          if (error.code === 'auth/user-not-found' || error.code === 'auth/invalid-credential' || error.code === 'auth/too-many-requests') {
-            isMigrating = true;
-            submitBtn.textContent = detectLocale() === 'da' ? 'Tjekker konto...' : 'Checking account...';
-
-            fetch('/.netlify/functions/mb-auth', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ email: email, password: password })
-            })
-              .then(function(res) { return res.json(); })
-              .then(function(data) {
-                if (!data.success) {
-                  if (data.reason === 'email_not_found') {
-                    showErrorWithRegister(errorEl);
-                  } else {
-                    showErrorWithReset(errorEl, data.reason === 'wrong_password');
-                  }
-                  return;
-                }
-                // Prefer custom token (avoids propagation delay + project mismatch)
-                var signIn = data.customToken
-                  ? auth.signInWithCustomToken(data.customToken)
-                  : auth.signInWithEmailAndPassword(email, password);
-                return signIn
-                  .then(function() {
-                    closeAuthModal();
-                  })
-                  .catch(function(retryErr) {
-                    console.warn('Retry after MB sync failed:', retryErr.code);
-                    showError(errorEl, detectLocale() === 'da'
-                      ? 'Prøv igen om et øjeblik.'
-                      : 'Please try again in a moment.');
-                  });
-              })
-              .catch(function() {
-                showErrorWithReset(errorEl);
-              })
-              .finally(function() {
-                submitBtn.disabled = false;
-                submitBtn.textContent = detectLocale() === 'da' ? 'Log ind' : 'Sign in';
+      fetch('/.netlify/functions/mb-auth', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: email, password: password })
+      })
+        .then(function(res) { return res.json(); })
+        .then(function(data) {
+          if (data.customToken) {
+            return auth.signInWithCustomToken(data.customToken)
+              .then(function() { closeAuthModal(); })
+              .catch(function(retryErr) {
+                console.warn('Custom token sign-in failed:', retryErr.code);
+                showError(errorEl, detectLocale() === 'da'
+                  ? 'Prøv igen om et øjeblik.'
+                  : 'Please try again in a moment.');
               });
-          } else {
-            showError(errorEl, getAuthErrorMessage(error.code));
           }
+          // MB failed or no token — try Firebase (handles post-password-reset users)
+          return auth.signInWithEmailAndPassword(email, password)
+            .then(function() { closeAuthModal(); })
+            .catch(function() {
+              if (data.reason === 'email_not_found') {
+                showErrorWithRegister(errorEl);
+              } else {
+                showErrorWithReset(errorEl, data.reason === 'wrong_password');
+              }
+            });
+        })
+        .catch(function() {
+          // mb-auth network error — fall back to Firebase directly
+          return auth.signInWithEmailAndPassword(email, password)
+            .then(function() { closeAuthModal(); })
+            .catch(function() { showErrorWithReset(errorEl); });
         })
         .finally(function() {
-          if (!isMigrating) {
-            submitBtn.disabled = false;
-            submitBtn.textContent = detectLocale() === 'da' ? 'Log ind' : 'Sign in';
-          }
+          submitBtn.disabled = false;
+          submitBtn.textContent = detectLocale() === 'da' ? 'Log ind' : 'Sign in';
         });
     });
   }
