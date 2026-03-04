@@ -27,6 +27,8 @@
 const { jsonResponse, optionsResponse } = require('./shared/utils');
 const { mbFetch } = require('./shared/mb-api');
 
+const MB_BASE = 'https://api.mindbodyonline.com/public/v6';
+
 let admin;
 
 function getAdmin() {
@@ -73,23 +75,58 @@ exports.handler = async function (event) {
   }
 
   try {
-    // 1. Validate credentials against Mindbody's CLIENT login endpoint
-    //    (not /usertoken/issue — that only validates staff/admin accounts)
-    let mbData;
+    // ── Strategy: try CLIENT login first, then STAFF login as fallback ──
+    // /client/validatelogin  → validates client accounts (the main user base)
+    // /usertoken/issue       → validates staff/admin accounts (owners, teachers)
+    // Same email can have both account types with different passwords.
+
+    let displayName = '';
+    let validated = false;
+
+    // 1a. Try CLIENT credentials via /client/validatelogin
     try {
-      mbData = await mbFetch('/client/validatelogin', {
+      const clientRes = await mbFetch('/client/validatelogin', {
         method: 'POST',
         body: JSON.stringify({ Username: email, Password: password })
       });
+      if (clientRes && clientRes.ValidatedLogin) {
+        const cl = clientRes.ValidatedLogin;
+        displayName = ((cl.FirstName || '') + ' ' + (cl.LastName || '')).trim();
+        console.log('[mb-auth] CLIENT validated:', email, '— ID:', cl.Id, '— Name:', displayName);
+        validated = true;
+      }
     } catch (e) {
-      console.warn('[mb-auth] validatelogin failed for', email,
-        '— status:', e.status, '— message:', e.message,
-        '— data:', JSON.stringify(e.data || {}).substring(0, 300));
-      mbData = null;
+      console.log('[mb-auth] Client validatelogin failed for', email,
+        '— status:', e.status, '— message:', e.message);
     }
 
-    if (!mbData || !mbData.ValidatedLogin) {
-      // Client login failed — determine why
+    // 1b. If client login failed, try STAFF credentials via /usertoken/issue
+    if (!validated) {
+      try {
+        const staffRes = await fetch(`${MB_BASE}/usertoken/issue`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Api-Key': process.env.MB_API_KEY,
+            'SiteId': process.env.MB_SITE_ID
+          },
+          body: JSON.stringify({ Username: email, Password: password })
+        });
+        const staffData = await staffRes.json().catch(() => ({}));
+        if (staffData.AccessToken) {
+          displayName = staffData.User
+            ? ((staffData.User.FirstName || '') + ' ' + (staffData.User.LastName || '')).trim()
+            : '';
+          console.log('[mb-auth] STAFF validated:', email, '— Name:', displayName);
+          validated = true;
+        }
+      } catch (e) {
+        console.log('[mb-auth] Staff usertoken failed for', email, '—', e.message);
+      }
+    }
+
+    // 1c. Neither worked — determine why and return failure
+    if (!validated) {
       let reason = 'unknown';
       try {
         const qs = new URLSearchParams({ searchText: email, limit: '10' }).toString();
@@ -107,13 +144,9 @@ exports.handler = async function (event) {
       return jsonResponse(200, { success: false, reason });
     }
 
-    // 2. MB client credentials valid — sync Firebase account with the same password
+    // 2. MB credentials valid (client or staff) — sync Firebase account
     const fb = getAdmin();
-
-    // Pull display name from validated client
-    const client = mbData.ValidatedLogin;
-    const displayName = ((client.FirstName || '') + ' ' + (client.LastName || '')).trim();
-    console.log('[mb-auth] Client validated:', email, '— ID:', client.Id, '— Name:', displayName);
+    console.log('[mb-auth] Syncing Firebase for', email);
 
     let firebaseUser = null;
     try {
