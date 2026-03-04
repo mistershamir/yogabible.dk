@@ -50,14 +50,16 @@
   <div class="container">
     <div class="yb-k-brand-hero__inner">
       <div class="yb-k-brand-hero__content">
-        <div class="yb-k-brand-hero__badge yb-k-brand-hero__badge--hy">{{ t.hy_badge }}</div>
+        <div class="yb-k-brand-hero__logo yb-k-brand-hero__badge--hy">
+          {% cldimg "yoga-bible-DK/concepts/hotyoga/logo", "Hot Yoga Copenhagen", "w_400,c_scale", "400", "200" %}
+        </div>
         <h2 class="yb-k-brand-hero__title">{{ t.hy_title }}</h2>
         <p class="yb-k-brand-hero__subtitle">{{ t.hy_subtitle }}</p>
         <p class="yb-k-brand-hero__text">{{ t.hy_intro }}</p>
         <p class="yb-k-brand-hero__text">{{ t.hy_intro2 }}</p>
       </div>
       <div class="yb-k-brand-hero__image">
-        <img src="/assets/images/concepts/hotyoga-hero.jpg" alt="Hot Yoga Copenhagen" width="800" height="600" loading="lazy" />
+        {% cldimg "yoga-bible-DK/concepts/hotyoga/hero", "Hot Yoga Copenhagen", "w_1000,h_750,c_fill", "800", "600" %}
       </div>
     </div>
     <div class="yb-k-stats yb-k-stats--hy">
@@ -86,7 +88,7 @@
   <div class="container">
     <div class="yb-k-split__inner yb-k-split__inner--reverse">
       <div class="yb-k-split__media">
-        <img src="/assets/images/concepts/hotyoga-infrared.jpg" alt="Infrared Technology" width="700" height="500" loading="lazy" />
+        {% cldimg "yoga-bible-DK/concepts/hotyoga/infrared", "Infrared Technology", "w_900,h_650,c_fill", "700", "500" %}
       </div>
       <div class="yb-k-split__content">
         <h3 class="yb-k-split__title yb-k-split__title--hy">{{ t.hy_ir_title }}</h3>
