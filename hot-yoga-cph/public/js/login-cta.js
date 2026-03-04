@@ -158,11 +158,15 @@
   }
 
 
+  // Email to pre-fill on forgot-password view when user clicks inline reset link
+  var pendingEmail = '';
+
   // ═══════════════════════════════════════════════════════════════════
   // FIREBASE AUTH FUNCTIONS
   // ═══════════════════════════════════════════════════════════════════
 
   function doLogin(email, password, callback) {
+    // callback(err, reason) — reason is 'wrong_password' | 'email_not_found' | undefined
     // Mindbody is the source of truth — validate there first.
     // On success: Firebase is synced and a custom token signs the user in,
     // bypassing Firebase rate limits entirely.
@@ -184,7 +188,7 @@
         // MB failed or no token — try Firebase (handles post-password-reset users)
         return firebase.auth().signInWithEmailAndPassword(email, password)
           .then(function () { callback(null); })
-          .catch(function (err) { callback(err); });
+          .catch(function (err) { callback(err, data.reason); });
       })
       .catch(function () {
         // mb-auth network error — fall back to Firebase directly
@@ -214,9 +218,20 @@
   }
 
   function doForgotPassword(email, callback) {
-    firebase.auth().sendPasswordResetEmail(email)
-      .then(function () { callback(null); })
-      .catch(function (err) { callback(err); });
+    // Ensure MB-only users get a Firebase account first — otherwise
+    // sendPasswordResetEmail silently does nothing (no account to reset).
+    // Same pattern as firebase-auth.js line 574.
+    fetch(API_BASE + '/migrate-mb-user', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: email })
+    })
+    .catch(function() {}) // Don't block on MB errors
+    .then(function() {
+      return firebase.auth().sendPasswordResetEmail(email);
+    })
+    .then(function () { callback(null); })
+    .catch(function (err) { callback(err); });
   }
 
   function authErrorMsg(err) {
@@ -599,15 +614,41 @@
       btn.disabled = true;
       btn.textContent = t('Logger ind...', 'Signing in...');
 
-      doLogin(email, password, function (err) {
+      doLogin(email, password, function (err, reason) {
         btn.disabled = false;
         btn.textContent = t('Log ind', 'Sign in');
         if (err) {
-          errorEl.textContent = authErrorMsg(err);
+          if (reason === 'wrong_password') {
+            errorEl.innerHTML = t(
+              'Forkert adgangskode. <a href="#" id="hyc-err-reset" style="color:inherit;font-weight:700;text-decoration:underline">Nulstil adgangskode \u2192</a>',
+              'Wrong password. <a href="#" id="hyc-err-reset" style="color:inherit;font-weight:700;text-decoration:underline">Reset password \u2192</a>'
+            );
+          } else if (reason === 'email_not_found') {
+            errorEl.innerHTML = t(
+              'Ingen konto fundet. <a href="#" id="hyc-err-register" style="color:inherit;font-weight:700;text-decoration:underline">Opret profil \u2192</a>',
+              'No account found. <a href="#" id="hyc-err-register" style="color:inherit;font-weight:700;text-decoration:underline">Create profile \u2192</a>'
+            );
+          } else {
+            errorEl.innerHTML = t(
+              'Forkert email eller adgangskode. <a href="#" id="hyc-err-reset" style="color:inherit;font-weight:700;text-decoration:underline">Nulstil adgangskode \u2192</a>',
+              'Incorrect email or password. <a href="#" id="hyc-err-reset" style="color:inherit;font-weight:700;text-decoration:underline">Reset password \u2192</a>'
+            );
+          }
           errorEl.classList.add('is-visible');
+          // Wire inline action links
+          var resetLink = $t('hyc-err-reset');
+          if (resetLink) resetLink.addEventListener('click', function(ev) {
+            ev.preventDefault();
+            pendingEmail = email;
+            openModal('auth-forgot');
+          });
+          var regLink = $t('hyc-err-register');
+          if (regLink) regLink.addEventListener('click', function(ev) {
+            ev.preventDefault();
+            openModal('auth-register');
+          });
           return;
         }
-        // Auth state change will handle UI update and close modal
         closeModal();
       });
     });
@@ -825,7 +866,13 @@
       openModal('auth-login');
     });
 
-    setTimeout(function () { var el = $t('hyc-forgot-email'); if (el) el.focus(); }, 320);
+    setTimeout(function () {
+      var el = $t('hyc-forgot-email');
+      if (el) {
+        if (pendingEmail) { el.value = pendingEmail; pendingEmail = ''; }
+        el.focus();
+      }
+    }, 320);
   }
 
 

@@ -672,6 +672,11 @@
     if (el) { el.textContent = msg; el.hidden = false; }
   }
 
+  function showErrorHtml(elId, html) {
+    var el = $(elId);
+    if (el) { el.innerHTML = html; el.hidden = false; }
+  }
+
   function hideError(elId) {
     var el = $(elId);
     if (el) { el.textContent = ''; el.hidden = true; }
@@ -1311,6 +1316,7 @@
   // ── 3G: Firebase Auth Functions ─────────────────────────────────────
 
   function doLogin(email, password, callback) {
+    // callback(err, reason) — reason is 'wrong_password' | 'email_not_found' | undefined
     // Mindbody is the source of truth — validate there first.
     // On success: Firebase is synced and a custom token signs the user in,
     // bypassing Firebase rate limits entirely.
@@ -1332,7 +1338,7 @@
         // MB failed or no token — try Firebase (handles post-password-reset users)
         return firebase.auth().signInWithEmailAndPassword(email, password)
           .then(function () { callback(null); })
-          .catch(function (err) { callback(err); });
+          .catch(function (err) { callback(err, data.reason); });
       })
       .catch(function () {
         // mb-auth network error — fall back to Firebase directly
@@ -1367,9 +1373,19 @@
   }
 
   function doForgotPassword(email, callback) {
-    firebase.auth().sendPasswordResetEmail(email)
-      .then(function () { callback(null); })
-      .catch(function (err) { callback(err); });
+    // Ensure MB-only users get a Firebase account first — otherwise
+    // sendPasswordResetEmail silently does nothing (no account to reset).
+    fetch(API_BASE + '/migrate-mb-user', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: email })
+    })
+    .catch(function() {})
+    .then(function() {
+      return firebase.auth().sendPasswordResetEmail(email);
+    })
+    .then(function () { callback(null); })
+    .catch(function (err) { callback(err); });
   }
 
   function authErrorMsg(err) {
@@ -1771,11 +1787,38 @@
         var btn = loginForm.querySelector('.yb-auth-submit');
         if (btn) { btn.disabled = true; btn.textContent = t('Logger ind...', 'Signing in...'); }
 
-        doLogin(email, password, function (err) {
+        doLogin(email, password, function (err, reason) {
           if (btn) { btn.disabled = false; btn.textContent = t('Log ind', 'Sign in'); }
 
           if (err) {
-            showError('ycf-login-error', authErrorMsg(err));
+            if (reason === 'wrong_password') {
+              showErrorHtml('ycf-login-error', t(
+                'Forkert adgangskode. <a href="#" id="ycf-err-reset" style="color:inherit;font-weight:700;text-decoration:underline">Nulstil adgangskode \u2192</a>',
+                'Wrong password. <a href="#" id="ycf-err-reset" style="color:inherit;font-weight:700;text-decoration:underline">Reset password \u2192</a>'
+              ));
+            } else if (reason === 'email_not_found') {
+              showErrorHtml('ycf-login-error', t(
+                'Ingen konto fundet. <a href="#" id="ycf-err-register" style="color:inherit;font-weight:700;text-decoration:underline">Opret profil \u2192</a>',
+                'No account found. <a href="#" id="ycf-err-register" style="color:inherit;font-weight:700;text-decoration:underline">Create profile \u2192</a>'
+              ));
+            } else {
+              showErrorHtml('ycf-login-error', t(
+                'Forkert email eller adgangskode. <a href="#" id="ycf-err-reset" style="color:inherit;font-weight:700;text-decoration:underline">Nulstil adgangskode \u2192</a>',
+                'Incorrect email or password. <a href="#" id="ycf-err-reset" style="color:inherit;font-weight:700;text-decoration:underline">Reset password \u2192</a>'
+              ));
+            }
+            var resetLink = $('ycf-err-reset');
+            if (resetLink) resetLink.addEventListener('click', function(ev) {
+              ev.preventDefault();
+              var forgotEmail = $('ycf-forgot-email');
+              if (forgotEmail) forgotEmail.value = email;
+              showStep('ycf-step-forgot');
+            });
+            var regLink = $('ycf-err-register');
+            if (regLink) regLink.addEventListener('click', function(ev) {
+              ev.preventDefault();
+              showStep('ycf-step-register');
+            });
             return;
           }
 

@@ -11,8 +11,10 @@
  * POST { email: "user@example.com", password: "their-mindbody-password" }
  *
  * Returns:
- *   { success: false }        — credentials not valid in Mindbody
- *   { success: true }         — Firebase account created/updated with same password
+ *   { success: false, reason: 'wrong_password' }  — email found in MB, password invalid
+ *   { success: false, reason: 'email_not_found' }  — email not in MB client list
+ *   { success: false }                             — lookup failed (fallback)
+ *   { success: true, customToken: '...' }          — Firebase synced, ready to sign in
  *
  * Security note: password is received over HTTPS, validated against MB,
  * passed to Firebase Admin SDK for hashing — never logged or stored in plain text.
@@ -23,6 +25,7 @@
 'use strict';
 
 const { jsonResponse, optionsResponse } = require('./shared/utils');
+const { mbFetch } = require('./shared/mb-api');
 
 const MB_BASE = 'https://api.mindbodyonline.com/public/v6';
 
@@ -87,12 +90,32 @@ exports.handler = async function (event) {
     try {
       mbData = await mbRes.json();
     } catch (e) {
-      return jsonResponse(200, { success: false });
+      console.error('[mb-auth] MB response not JSON — HTTP', mbRes.status);
+      mbData = {};
     }
 
-    // No AccessToken = wrong credentials
     if (!mbData.AccessToken) {
-      return jsonResponse(200, { success: false });
+      // Log what Mindbody actually returned so we can diagnose failures
+      console.warn('[mb-auth] No AccessToken for', email,
+        '— HTTP', mbRes.status,
+        '— Response:', JSON.stringify(mbData).substring(0, 300));
+
+      // Look up email in MB client list to determine specific failure reason
+      let reason = 'unknown';
+      try {
+        const qs = new URLSearchParams({ searchText: email, limit: '10' }).toString();
+        const clientData = await mbFetch('/client/clients?' + qs);
+        const clients = (clientData.Clients || []).filter(c =>
+          c.Email && c.Email.toLowerCase() === email
+        );
+        reason = clients.length > 0 ? 'wrong_password' : 'email_not_found';
+        console.log('[mb-auth] Client lookup for', email, '→', reason,
+          clients.length > 0 ? '(client ID: ' + clients[0].Id + ')' : '');
+      } catch (lookupErr) {
+        console.error('[mb-auth] Client lookup failed:', lookupErr.message);
+      }
+
+      return jsonResponse(200, { success: false, reason });
     }
 
     // 2. MB credentials valid — sync Firebase account with the same password
