@@ -17160,14 +17160,6 @@ button.yb-btn--outline-white:hover {
   max-width: 1100px;
   margin: 0 auto;
 }
-.yb-k-brand-hero__brand-logo {
-  margin-bottom: 24px;
-}
-.yb-k-brand-hero__brand-logo img {
-  max-height: 60px;
-  width: auto;
-  display: block;
-}
 .yb-k-brand-hero__badge {
   display: inline-block;
   background: var(--yb-brand);
