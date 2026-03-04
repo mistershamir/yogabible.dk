@@ -1025,6 +1025,16 @@
       return;
     }
 
+    // Safety timeout: if restore hangs, force-show the login button
+    var restoreTimeout = setTimeout(function () {
+      if (_restoring) {
+        console.warn('[login-cta] Restore timed out — forcing logged-out state');
+        _restoring = false;
+        clearAuthToken();
+        renderLoggedOut();
+      }
+    }, 5000);
+
     fetch(API_BASE + '/auth-token', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -1038,8 +1048,14 @@
         // No custom token returned — endpoint rejected it
         throw new Error('No customToken in response');
       })
+      .then(function () {
+        // Success — onAuthStateChanged will handle rendering
+        clearTimeout(restoreTimeout);
+        _restoring = false;
+      })
       .catch(function () {
         // Token expired / invalid / endpoint error — clean up
+        clearTimeout(restoreTimeout);
         _restoring = false;
         clearAuthToken();
         renderLoggedOut();
@@ -1102,11 +1118,12 @@
           }
         } else {
           mbClientId = null;
-          // Don't wipe stored token while we're still restoring
+          // Don't wipe stored token while we're still restoring —
+          // but always render the logged-out state so the button is never invisible
           if (!_restoring) {
             clearAuthToken();
-            renderLoggedOut();
           }
+          renderLoggedOut();
           // Close user area modal if open
           if (modalMode === 'user-area') {
             closeModal();
