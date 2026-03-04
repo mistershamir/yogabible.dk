@@ -443,8 +443,11 @@
               .then(function(res) { return res.json(); })
               .then(function(data) {
                 if (!data.success) {
-                  // All auth methods failed — show error with a direct reset link
-                  showErrorWithReset(errorEl);
+                  if (data.reason === 'email_not_found') {
+                    showErrorWithRegister(errorEl);
+                  } else {
+                    showErrorWithReset(errorEl, data.reason === 'wrong_password');
+                  }
                   return;
                 }
                 // Prefer custom token (avoids propagation delay + project mismatch)
@@ -712,12 +715,28 @@
   }
 
   // When all auth methods fail, show error with an inline link to the reset view
-  function showErrorWithReset(el) {
+  function showErrorWithReset(el, isWrongPassword) {
+    if (!el) return;
+    var isDa = detectLocale() === 'da';
+    if (isWrongPassword) {
+      el.innerHTML = isDa
+        ? 'Forkert adgangskode. <a href="#" data-yb-auth-switch="reset" style="color:inherit;font-weight:700;text-decoration:underline">Nulstil adgangskode &rarr;</a>'
+        : 'Wrong password. <a href="#" data-yb-auth-switch="reset" style="color:inherit;font-weight:700;text-decoration:underline">Reset password &rarr;</a>';
+    } else {
+      el.innerHTML = isDa
+        ? 'Forkert email eller adgangskode. <a href="#" data-yb-auth-switch="reset" style="color:inherit;font-weight:700;text-decoration:underline">Nulstil adgangskode &rarr;</a>'
+        : 'Incorrect email or password. <a href="#" data-yb-auth-switch="reset" style="color:inherit;font-weight:700;text-decoration:underline">Reset password &rarr;</a>';
+    }
+    el.style.color = '';
+    el.hidden = false;
+  }
+
+  function showErrorWithRegister(el) {
     if (!el) return;
     var isDa = detectLocale() === 'da';
     el.innerHTML = isDa
-      ? 'Forkert email eller adgangskode. <a href="#" data-yb-auth-switch="reset" style="color:inherit;font-weight:700;text-decoration:underline">Nulstil adgangskode &rarr;</a>'
-      : 'Incorrect email or password. <a href="#" data-yb-auth-switch="reset" style="color:inherit;font-weight:700;text-decoration:underline">Reset password &rarr;</a>';
+      ? 'Ingen konto fundet. <a href="#" data-yb-auth-switch="register" style="color:inherit;font-weight:700;text-decoration:underline">Opret profil &rarr;</a>'
+      : 'No account found. <a href="#" data-yb-auth-switch="register" style="color:inherit;font-weight:700;text-decoration:underline">Create profile &rarr;</a>';
     el.style.color = '';
     el.hidden = false;
   }
