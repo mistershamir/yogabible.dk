@@ -448,7 +448,13 @@
           return auth.signInWithEmailAndPassword(email, password)
             .then(function() { closeAuthModal(); })
             .catch(function() {
-              if (data.reason === 'email_not_found') {
+              if (data.reason === 'needs_setup') {
+                // MB client found, Firebase account just created — send reset email
+                auth.sendPasswordResetEmail(email).catch(function() {});
+                showSuccess(errorEl, detectLocale() === 'da'
+                  ? 'Vi fandt din konto! Tjek din e-mail for et link til at oprette dit login.'
+                  : 'We found your account! Check your email for a link to set up your login.');
+              } else if (data.reason === 'email_not_found') {
                 showErrorWithRegister(errorEl);
               } else {
                 showErrorWithReset(errorEl, data.reason === 'wrong_password');

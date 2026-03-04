@@ -618,7 +618,15 @@
         btn.disabled = false;
         btn.textContent = t('Log ind', 'Sign in');
         if (err) {
-          if (reason === 'wrong_password') {
+          if (reason === 'needs_setup') {
+            // MB client found but no Firebase account — we just created one.
+            // Auto-send password reset email so they can set their login.
+            firebase.auth().sendPasswordResetEmail(email).catch(function () {});
+            errorEl.innerHTML = t(
+              'Vi fandt din konto! Tjek din e-mail for et link til at oprette dit login.',
+              'We found your account! Check your email for a link to set up your login.'
+            );
+          } else if (reason === 'wrong_password') {
             errorEl.innerHTML = t(
               'Forkert adgangskode. <a href="#" id="hyc-err-reset" style="color:inherit;font-weight:700;text-decoration:underline">Nulstil adgangskode \u2192</a>',
               'Wrong password. <a href="#" id="hyc-err-reset" style="color:inherit;font-weight:700;text-decoration:underline">Reset password \u2192</a>'

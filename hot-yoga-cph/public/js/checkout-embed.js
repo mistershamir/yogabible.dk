@@ -1791,7 +1791,17 @@
           if (btn) { btn.disabled = false; btn.textContent = t('Log ind', 'Sign in'); }
 
           if (err) {
-            if (reason === 'wrong_password') {
+            if (reason === 'needs_setup') {
+              // MB client exists but no Firebase account — we just created one.
+              // Auto-send password reset email.
+              if (typeof firebase !== 'undefined' && firebase.auth) {
+                firebase.auth().sendPasswordResetEmail(email).catch(function () {});
+              }
+              showErrorHtml('ycf-login-error', t(
+                'Vi fandt din konto! Tjek din e-mail for et link til at oprette dit login.',
+                'We found your account! Check your email for a link to set up your login.'
+              ));
+            } else if (reason === 'wrong_password') {
               showErrorHtml('ycf-login-error', t(
                 'Forkert adgangskode. <a href="#" id="ycf-err-reset" style="color:inherit;font-weight:700;text-decoration:underline">Nulstil adgangskode \u2192</a>',
                 'Wrong password. <a href="#" id="ycf-err-reset" style="color:inherit;font-weight:700;text-decoration:underline">Reset password \u2192</a>'
