@@ -461,8 +461,63 @@
         <!-- STEP 5: Review & Submit -->
         <div class="yb-wizard__step is-hidden" data-step="5" id="ybStep5">
 
+        <!-- Review Summary -->
+        <div class="yb-review" id="ybReview">
+          <h2 class="yb-review__title">Gennemse din ansøgning</h2>
+
+          <!-- Program Summary -->
+          <div class="yb-review__section" id="ybReviewProgram">
+            <h3 class="yb-review__section-title">Valgte programmer</h3>
+            <ul id="ybReviewProgramList" class="yb-review__list"></ul>
+          </div>
+
+          <!-- Accommodation Summary -->
+          <div class="yb-review__section" id="ybReviewAccom" style="display:none;">
+            <h3 class="yb-review__section-title">Bolig</h3>
+            <p id="ybReviewAccomText"></p>
+          </div>
+
+          <!-- Contact Summary -->
+          <div class="yb-review__section">
+            <h3 class="yb-review__section-title">Kontaktoplysninger</h3>
+            <div class="yb-review__contact">
+              <div class="yb-review__field">
+                <span class="yb-review__label">Navn:</span>
+                <span id="ybReviewName"></span>
+              </div>
+              <div class="yb-review__field">
+                <span class="yb-review__label">Email:</span>
+                <span id="ybReviewEmail"></span>
+              </div>
+              <div class="yb-review__field">
+                <span class="yb-review__label">Telefon:</span>
+                <span id="ybReviewPhone"></span>
+              </div>
+              <div class="yb-review__field">
+                <span class="yb-review__label">Sådan hørte du om os:</span>
+                <span id="ybReviewHear"></span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Payment Summary -->
+          <div class="yb-review__section" id="ybReviewPayment">
+            <h3 class="yb-review__section-title">Betaling</h3>
+            <div class="yb-review__payment">
+              <p id="ybReviewPaymentSummary"></p>
+            </div>
+          </div>
+
+          <!-- Edit Button -->
+          <div class="yb-review__actions">
+            <button type="button" class="yb-btn yb-btn--secondary" id="ybReviewEdit">
+              ✎ Rediger ansøgning
+            </button>
+          </div>
+        </div>
+
         <!-- Validation checklist (shown when form incomplete) -->
-        <div id="ybValidationBox" class="yb-validation" aria-live="polite">
+        <div id="ybValidationBox" class="yb-validation is-hidden" aria-live="polite">
           <div class="yb-validation__head">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
             <span>{{ t.validation_head }}</span>
@@ -2257,6 +2312,97 @@
     var userTriedSubmit = false;
     var formIsValid = false;
 
+    // ===== SessionStorage for Data Persistence =====
+    const STORAGE_KEY = "ybApplyFormData";
+
+    function saveFormData() {
+      const formData = {
+        // Step 1: Program selection
+        applyForYTT: applyForYTT.checked,
+        applyForCourse: applyForCourse.checked,
+        applyForMentorship: applyForMentorship.checked,
+
+        // Step 2: Program details
+        yttProgram: yttProgramSel.value,
+        yttPeriod: yttPeriodSel.value,
+        yttTrack: yttTrackSel.value,
+        yttPaymentChoice: (applyForm.querySelector("input[name='ytt_payment_choice']:checked") || {}).value,
+
+        courseProgram: courseProgramSel.value,
+        coursePeriod: coursePeriodSel.value,
+        courseBundle: courseBundleType.value,
+        coursePaymentChoice: (applyForm.querySelector("input[name='course_payment_choice']:checked") || {}).value,
+
+        // Step 3: Accommodation
+        accomNeed: (applyForm.querySelector("input[name='accom_need']:checked") || {}).value,
+        accomMonths: accomMonthsValue.value,
+        accomPaymentChoice: (applyForm.querySelector("input[name='accom_payment_choice']:checked") || {}).value,
+
+        // Step 4: Contact info
+        firstName: firstName.value,
+        lastName: lastName.value,
+        email: email.value,
+        phone: phone.value,
+        hearAbout: hearAbout.value,
+        hearOther: hearOther.value,
+        antiSpam: antiSpam.value,
+        consent: consent.checked,
+
+        // Payment status
+        yttPaymentCompleted: yttPaymentCompleted,
+        coursePaymentCompleted: coursePaymentCompleted
+      };
+      sessionStorage.setItem(STORAGE_KEY, JSON.stringify(formData));
+    }
+
+    function loadFormData() {
+      const stored = sessionStorage.getItem(STORAGE_KEY);
+      if (!stored) return;
+
+      try {
+        const data = JSON.parse(stored);
+        if (data.applyForYTT !== undefined) applyForYTT.checked = data.applyForYTT;
+        if (data.applyForCourse !== undefined) applyForCourse.checked = data.applyForCourse;
+        if (data.applyForMentorship !== undefined) applyForMentorship.checked = data.applyForMentorship;
+
+        if (data.yttProgram) yttProgramSel.value = data.yttProgram;
+        if (data.yttPeriod) yttPeriodSel.value = data.yttPeriod;
+        if (data.yttTrack) yttTrackSel.value = data.yttTrack;
+        if (data.courseProgram) courseProgramSel.value = data.courseProgram;
+        if (data.coursePeriod) coursePeriodSel.value = data.coursePeriod;
+        if (data.courseBundle) courseBundleType.value = data.courseBundle;
+
+        if (data.accomNeed) applyForm.querySelector("input[name='accom_need'][value='" + data.accomNeed + "']").checked = true;
+        if (data.accomMonths) accomMonthsValue.value = data.accomMonths;
+
+        if (data.firstName) firstName.value = data.firstName;
+        if (data.lastName) lastName.value = data.lastName;
+        if (data.email) email.value = data.email;
+        if (data.phone) phone.value = data.phone;
+        if (data.hearAbout) hearAbout.value = data.hearAbout;
+        if (data.hearOther) hearOther.value = data.hearOther;
+        if (data.antiSpam) antiSpam.value = data.antiSpam;
+        if (data.consent !== undefined) consent.checked = data.consent;
+
+        yttPaymentCompleted = data.yttPaymentCompleted || false;
+        coursePaymentCompleted = data.coursePaymentCompleted || false;
+
+        // Re-trigger UI updates
+        updateYttProgramUI();
+        updateCourseProgramUI();
+        updateAccomUI();
+      } catch(e) {
+        console.error("Error loading form data", e);
+      }
+    }
+
+    // Load data on page load
+    loadFormData();
+
+    // Save data on every input change
+    applyForm.addEventListener("change", saveFormData);
+    applyForm.addEventListener("input", saveFormData);
+
     // ===== Wizard State & Navigation =====
     const wizardState = {
       currentStep: 1,
@@ -2333,47 +2479,137 @@
 
       // Scroll to top
       wizard.scrollIntoView({ behavior: "smooth", block: "start" });
+
+      // Generate review summary if on step 5
+      if (step === 5) {
+        generateReviewSummary();
+      }
+    }
+
+    function generateReviewSummary() {
+      // Program Summary
+      const programList = $("#ybReviewProgramList");
+      const programs = [];
+
+      if (applyForYTT.checked) {
+        const yttText = yttProgramSel.options[yttProgramSel.selectedIndex]?.text || "Valgt uddannelse";
+        const periodText = yttPeriodSel.options[yttPeriodSel.selectedIndex]?.text || "";
+        const trackText = yttTrackSel.value ? ` - ${yttTrackSel.options[yttTrackSel.selectedIndex]?.text || ""}` : "";
+        programs.push(`${yttText} (${periodText})${trackText}`);
+      }
+
+      if (applyForCourse.checked) {
+        const courseText = courseProgramSel.options[courseProgramSel.selectedIndex]?.text || "Valgt kursus";
+        const periodText = coursePeriodSel.options[coursePeriodSel.selectedIndex]?.text || "";
+        programs.push(`${courseText} (${periodText})`);
+      }
+
+      programList.innerHTML = programs.map(p => `<li>${p}</li>`).join("");
+
+      // Accommodation Summary
+      const accomReview = $("#ybReviewAccom");
+      const accomText = $("#ybReviewAccomText");
+      const accomNeed = (applyForm.querySelector("input[name='accom_need']:checked") || {}).value || "no";
+
+      if (accomNeed === "yes") {
+        accomReview.style.display = "block";
+        const months = accomMonthsValue.value || "Ikke valgt";
+        accomText.textContent = `Ønsker bolig for: ${months}`;
+      } else {
+        accomReview.style.display = "none";
+      }
+
+      // Contact Info Summary
+      const reviewName = $("#ybReviewName");
+      const reviewEmail = $("#ybReviewEmail");
+      const reviewPhone = $("#ybReviewPhone");
+      const reviewHear = $("#ybReviewHear");
+
+      reviewName.textContent = `${firstName.value} ${lastName.value}`;
+      reviewEmail.textContent = email.value;
+      reviewPhone.textContent = phone.value;
+
+      const hearText = hearAbout.value === "Other" ? hearOther.value : (hearAbout.options[hearAbout.selectedIndex]?.text || "");
+      reviewHear.textContent = hearText;
+
+      // Payment Summary
+      const paymentSummary = $("#ybReviewPaymentSummary");
+      const paymentItems = [];
+
+      if (applyForYTT.checked) {
+        const choice = (applyForm.querySelector("input[name='ytt_payment_choice']:checked") || {}).value;
+        const choiceText = applyForm.querySelector(`input[name='ytt_payment_choice'][value='${choice}'] + span`)?.textContent || choice;
+        paymentItems.push(`Uddannelse: ${choiceText}`);
+      }
+
+      if (applyForCourse.checked) {
+        const choice = (applyForm.querySelector("input[name='course_payment_choice']:checked") || {}).value;
+        const choiceText = applyForm.querySelector(`input[name='course_payment_choice'][value='${choice}'] + span`)?.textContent || choice;
+        paymentItems.push(`Kursus: ${choiceText}`);
+      }
+
+      if (accomNeed === "yes") {
+        const choice = (applyForm.querySelector("input[name='accom_payment_choice']:checked") || {}).value;
+        const choiceText = applyForm.querySelector(`input[name='accom_payment_choice'][value='${choice}'] + span`)?.textContent || choice;
+        paymentItems.push(`Bolig: ${choiceText}`);
+      }
+
+      paymentSummary.innerHTML = paymentItems.map(p => `<p>• ${p}</p>`).join("");
+    }
+
+    function getValidationMessages(stepNum) {
+      const messages = [];
+
+      switch(stepNum) {
+        case 1:
+          if (!applyForYTT.checked && !applyForCourse.checked) {
+            messages.push("Vælg mindst ét program for at fortsætte");
+          }
+          break;
+
+        case 2:
+          if (applyForYTT.checked) {
+            if (!yttProgramSel.value) messages.push("Vælg yogalæreruddannelse");
+            if (!yttPeriodSel.value) messages.push("Vælg start periode");
+            if (!yttTrackField.classList.contains("is-hidden") && !yttTrackSel.value) messages.push("Vælg uddannelsessporet");
+            if (!(applyForm.querySelector("input[name='ytt_payment_choice']:checked") || {}).value) messages.push("Vælg betalingsform for uddannelsen");
+          }
+          if (applyForCourse.checked) {
+            if (!courseProgramSel.value) messages.push("Vælg kursus");
+            if (!coursePeriodSel.value) messages.push("Vælg kursus periode");
+            if (!(applyForm.querySelector("input[name='course_payment_choice']:checked") || {}).value) messages.push("Vælg betalingsform for kursus");
+          }
+          break;
+
+        case 3:
+          var accomNeed = (applyForm.querySelector("input[name='accom_need']:checked") || {}).value || "no";
+          if (accomNeed === "yes") {
+            if (!(accomMonthsValue.value || "").trim()) messages.push("Vælg boligperiode");
+            if (!(applyForm.querySelector("input[name='accom_payment_choice']:checked") || {}).value) messages.push("Vælg betalingsform for bolig");
+          }
+          break;
+
+        case 4:
+          if (!firstName.value.trim()) messages.push("Indtast fornavn");
+          if (!lastName.value.trim()) messages.push("Indtast efternavn");
+          if (!email.value.trim()) messages.push("Indtast email");
+          if (!phone.value.trim()) messages.push("Indtast telefonnummer");
+          if (!hearAbout.value) messages.push("Fortæl hvordan du hørte om os");
+          if (hearAbout.value === "Other" && !hearOther.value.trim()) messages.push("Beskiv hvor du hørte om Yoga Bible");
+          if ((antiSpam.value || "").trim().toUpperCase() !== "YOGA") messages.push("Verificer at du er menneskelig (skriv YOGA)");
+          if (!consent.checked) messages.push("Accepter betingelser for ansøgning");
+          break;
+
+        case 5:
+          // No validation needed - all data already validated
+          break;
+      }
+
+      return messages;
     }
 
     function validateStep(stepNum) {
-      switch(stepNum) {
-        case 1:
-          // At least YTT or Course
-          return applyForYTT.checked || applyForCourse.checked;
-        case 2:
-          // YTT and/or Course validation
-          if (applyForYTT.checked) {
-            if (!yttProgramSel.value || !yttPeriodSel.value) return false;
-            if (!yttTrackField.classList.contains("is-hidden") && !yttTrackSel.value) return false;
-            if (!(applyForm.querySelector("input[name='ytt_payment_choice']:checked") || {}).value) return false;
-          }
-          if (applyForCourse.checked) {
-            if (!courseProgramSel.value || !coursePeriodSel.value) return false;
-            if (!(applyForm.querySelector("input[name='course_payment_choice']:checked") || {}).value) return false;
-          }
-          return true;
-        case 3:
-          // Accommodation validation (optional, but if yes, must have payment choice)
-          var accomNeed = (applyForm.querySelector("input[name='accom_need']:checked") || {}).value || "no";
-          if (accomNeed === "yes") {
-            if (!(accomMonthsValue.value || "").trim()) return false;
-            if (!(applyForm.querySelector("input[name='accom_payment_choice']:checked") || {}).value) return false;
-          }
-          return true;
-        case 4:
-          // Contact info validation
-          if (!firstName.value.trim() || !lastName.value.trim() || !email.value.trim() || !phone.value.trim()) return false;
-          if (!hearAbout.value) return false;
-          if (hearAbout.value === "Other" && !hearOther.value.trim()) return false;
-          if ((antiSpam.value || "").trim().toUpperCase() !== "YOGA") return false;
-          if (!consent.checked) return false;
-          return true;
-        case 5:
-          // No validation needed - all data already validated
-          return true;
-        default:
-          return false;
-      }
+      return getValidationMessages(stepNum).length === 0;
     }
 
     // Wizard navigation handlers
@@ -2387,11 +2623,19 @@
           return;
         }
 
-        if (!validateStep(wizardState.currentStep)) {
-          userTriedSubmit = true;
-          updateSubmitState();
+        // Validate current step and show errors if needed
+        const errors = getValidationMessages(wizardState.currentStep);
+        if (errors.length > 0) {
+          // Show validation errors in a user-friendly way
+          validationBox.classList.remove("is-hidden");
+          validationList.innerHTML = errors.map(msg => `<li>${msg}</li>`).join("");
+          validationBox.scrollIntoView({ behavior: "smooth", block: "center" });
           return;
         }
+
+        // Hide validation errors if validation passes
+        validationBox.classList.add("is-hidden");
+        validationList.innerHTML = "";
 
         wizardState.completed.add(wizardState.currentStep);
         wizardState.advance();
@@ -2403,6 +2647,16 @@
       wizardBack.addEventListener("click", function(e) {
         e.preventDefault();
         wizardState.back();
+        renderWizardStep();
+      });
+    }
+
+    // Edit button on review step
+    const reviewEditBtn = $("#ybReviewEdit");
+    if (reviewEditBtn) {
+      reviewEditBtn.addEventListener("click", function(e) {
+        e.preventDefault();
+        wizardState.goToStep(1);
         renderWizardStep();
       });
     }
