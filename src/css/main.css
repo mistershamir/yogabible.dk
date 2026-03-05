@@ -25222,6 +25222,127 @@ a.yb-appt__phone-link:hover { text-decoration: underline; }
   display: none;
 }
 
+/* Review Summary Section */
+.yb-review {
+  background: #f5f3f0;
+  border-radius: 12px;
+  padding: 24px;
+  margin-bottom: 24px;
+}
+
+.yb-review__title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin-bottom: 24px;
+  color: #0f0f0f;
+}
+
+.yb-review__section {
+  background: white;
+  border: 1px solid #e8e4e0;
+  border-radius: 8px;
+  padding: 16px;
+  margin-bottom: 16px;
+}
+
+.yb-review__section-title {
+  font-size: 0.95rem;
+  font-weight: 700;
+  margin-bottom: 12px;
+  color: #0f0f0f;
+  border-bottom: 2px solid #f75c03;
+  padding-bottom: 8px;
+}
+
+.yb-review__list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.yb-review__list li {
+  padding: 8px 0;
+  color: #6f6a66;
+  font-size: 0.95rem;
+}
+
+.yb-review__list li:before {
+  content: "✓ ";
+  color: #f75c03;
+  font-weight: bold;
+  margin-right: 8px;
+}
+
+.yb-review__contact {
+  display: grid;
+  gap: 12px;
+}
+
+.yb-review__field {
+  display: flex;
+  justify-content: space-between;
+  padding: 8px 0;
+  border-bottom: 1px solid #e8e4e0;
+}
+
+.yb-review__field:last-child {
+  border-bottom: none;
+}
+
+.yb-review__label {
+  font-weight: 600;
+  color: #0f0f0f;
+  min-width: 140px;
+}
+
+.yb-review__payment p {
+  margin: 6px 0;
+  color: #6f6a66;
+  font-size: 0.95rem;
+}
+
+.yb-review__actions {
+  margin-top: 24px;
+  text-align: center;
+}
+
+.yb-review__actions .yb-btn {
+  max-width: 200px;
+}
+
+/* Message Styles */
+.yb-msg {
+  display: none;
+  padding: 12px 16px;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  margin-bottom: 16px;
+  animation: slideDown 0.3s ease-out;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.yb-msg--success {
+  background: #ECFDF5;
+  color: #166534;
+  border: 1px solid #D1FAE5;
+}
+
+.yb-msg--error {
+  background: #FEF2F2;
+  color: #991B1B;
+  border: 1px solid #FEE;
+}
+
 /* Mobile */
 @media (max-width: 480px) {
   .yvt-widget {
