@@ -329,6 +329,11 @@
                     </label>
 
                     <label class="yb-radio">
+                      <input type="radio" name="accom_payment_choice" value="contact_director" />
+                      <span>{{ t.accom_contact_director_radio }}</span>
+                    </label>
+
+                    <label class="yb-radio">
                       <input type="radio" name="accom_payment_choice" value="pay_now" />
                       <span>{{ t.accom_paynow_radio }}</span>
                     </label>
@@ -2598,11 +2603,7 @@
 
     // ===== Overnatning =====
     var FIXED_ACCOM_MONTHS = [
-      new Date(2026, 1, 1),
-      new Date(2026, 2, 1),
-      new Date(2026, 3, 1),
-      new Date(2026, 4, 1),
-      new Date(2026, 5, 1)
+      new Date(2026, 6, 1)
     ];
 
     function renderFixedAccomMonths(){
