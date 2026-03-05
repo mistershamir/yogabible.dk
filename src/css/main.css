@@ -25205,6 +25205,23 @@ a.yb-appt__phone-link:hover { text-decoration: underline; }
   color: #fff;
 }
 
+/* ===== Apply Form Wizard ===== */
+.yb-wizard__nav {
+  display: flex;
+  gap: 12px;
+  margin-top: 24px;
+  justify-content: flex-start;
+}
+
+.yb-wizard__nav .yb-btn {
+  flex: 1;
+  max-width: 180px;
+}
+
+.yb-wizard__nav .yb-btn.is-hidden {
+  display: none;
+}
+
 /* Mobile */
 @media (max-width: 480px) {
   .yvt-widget {
@@ -25220,5 +25237,13 @@ a.yb-appt__phone-link:hover { text-decoration: underline; }
   }
   .yvt-player__video {
     height: 157px; /* 280px × 9/16 */
+  }
+
+  .yb-wizard__nav {
+    flex-direction: column;
+  }
+
+  .yb-wizard__nav .yb-btn {
+    max-width: 100%;
   }
 }
