@@ -2399,6 +2399,37 @@
     // Load data on page load
     loadFormData();
 
+    // Check if returning from payment modal
+    function checkPaymentReturn() {
+      const paymentContext = sessionStorage.getItem("ybPaymentContext");
+      if (!paymentContext) return;
+
+      try {
+        const context = JSON.parse(paymentContext);
+        const timeSincePay = Date.now() - context.timestamp;
+
+        // If returned within 15 minutes, show success message
+        if (timeSincePay < 15 * 60 * 1000) {
+          const msg = applyMsg;
+          msg.textContent = "✓ Betaling registreret. Din ansøgning gendannet fra hvor du stoppede.";
+          msg.className = "yb-msg yb-msg--success";
+          msg.style.display = "block";
+
+          // Clear message after 5 seconds
+          setTimeout(() => {
+            msg.style.display = "none";
+          }, 5000);
+
+          // Clear the payment context
+          sessionStorage.removeItem("ybPaymentContext");
+        }
+      } catch (e) {
+        console.error("Error checking payment return", e);
+      }
+    }
+
+    checkPaymentReturn();
+
     // Save data on every input change
     applyForm.addEventListener("change", saveFormData);
     applyForm.addEventListener("input", saveFormData);
@@ -3515,12 +3546,28 @@
     yttPayLink.addEventListener("click", function(){
       var prodId = yttPayLink.dataset.prodId;
       if(prodId && typeof window.openCheckoutFlow === "function"){
+        // Save form state before opening payment modal
+        saveFormData();
+        // Store payment context for recovery if needed
+        sessionStorage.setItem("ybPaymentContext", JSON.stringify({
+          type: "ytt",
+          prodId: prodId,
+          timestamp: Date.now()
+        }));
         window.openCheckoutFlow(prodId);
       }
     });
     coursePayLink.addEventListener("click", function(){
       var prodId = coursePayLink.dataset.prodId;
       if(prodId && typeof window.openCheckoutFlow === "function"){
+        // Save form state before opening payment modal
+        saveFormData();
+        // Store payment context for recovery if needed
+        sessionStorage.setItem("ybPaymentContext", JSON.stringify({
+          type: "course",
+          prodId: prodId,
+          timestamp: Date.now()
+        }));
         window.openCheckoutFlow(prodId);
       }
     });

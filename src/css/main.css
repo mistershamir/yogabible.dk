@@ -25310,6 +25310,39 @@ a.yb-appt__phone-link:hover { text-decoration: underline; }
   max-width: 200px;
 }
 
+/* Message Styles */
+.yb-msg {
+  display: none;
+  padding: 12px 16px;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  margin-bottom: 16px;
+  animation: slideDown 0.3s ease-out;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.yb-msg--success {
+  background: #ECFDF5;
+  color: #166534;
+  border: 1px solid #D1FAE5;
+}
+
+.yb-msg--error {
+  background: #FEF2F2;
+  color: #991B1B;
+  border: 1px solid #FEE;
+}
+
 /* Mobile */
 @media (max-width: 480px) {
   .yvt-widget {
