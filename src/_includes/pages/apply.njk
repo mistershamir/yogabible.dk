@@ -2267,7 +2267,7 @@
       if(looksLikeRawDateLabel(label)) return false;
       if(is200Hr4WeekIntensive(courseId)){
         if(!/2026/.test(label)) return false;
-        return /(februar|feb)\s*2026|(marts|mar|march)\s*2026|(april|apr)\s*2026/i.test(label);
+        return /(februar|feb)\s*2026|(marts|mar|march)\s*2026|(april|apr)\s*2026|(juli|jul|july)\s*2026/i.test(label);
       }
       return true;
     }
