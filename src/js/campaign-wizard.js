@@ -210,6 +210,7 @@
 
   function matchesStatus(lead, statusId) {
     var status = String(lead.status || '').toLowerCase();
+    // Lead statuses
     if (statusId === 'new') return status === '' || status === 'new' || status.includes('ny');
     if (statusId === 'hot') return status === 'hot';
     if (statusId === 'strongly-interested') return status === 'strongly interested';
@@ -221,6 +222,12 @@
     if (statusId === 'on-hold') return status === 'on hold';
     if (statusId === 'pending') return status.includes('pending') || status.includes('afventer');
     if (statusId === 'deposit') return status.includes('deposit') || status.includes('depositum');
+    // Application statuses
+    if (statusId === 'app-approved')   return status === 'approved';
+    if (statusId === 'app-active')     return status === 'active';
+    if (statusId === 'app-waitlisted') return status.includes('waitlist');
+    if (statusId === 'app-rejected')   return status === 'rejected' || status.includes('rejected');
+    if (statusId === 'app-withdrawn')  return status.includes('withdrawn') || status.includes('trukket');
     return false;
   }
 
@@ -363,7 +370,8 @@
       if (f.excludeConverted) {
         var st = String(lead.status || '').toLowerCase();
         if (st === 'converted' || st.includes('konverteret') || st === 'existing applicant') return false;
-        if (lead.application_id) return false;
+        // Only check application_id for lead records — application docs always have this field as their own ID
+        if (lead._source !== 'app' && lead.application_id) return false;
       }
       if (f.excludeNotInterested) {
         var st2 = String(lead.status || '').toLowerCase();
@@ -452,20 +460,34 @@
       { id: 'apps', label: t('campaign_filter_source_apps') }
     ], [f.source], 'source', true);
 
-    // Status
-    html += buildChipSection('campaign_filter_status', [
-      { id: 'new', label: t('campaign_filter_status_new') },
-      { id: 'hot', label: t('campaign_filter_status_hot') },
-      { id: 'no-answer', label: t('campaign_filter_status_noanswer') },
-      { id: 'contacted', label: t('campaign_filter_status_contacted') },
-      { id: 'follow-up', label: t('campaign_filter_status_followup') },
-      { id: 'engaged', label: 'Engaged' },
-      { id: 'strongly-interested', label: '⭐ Strongly Interested' },
-      { id: 'on-hold', label: 'On Hold' },
-      { id: 'next-round', label: '📅 Next Round' },
-      { id: 'pending', label: t('campaign_filter_status_pending') },
-      { id: 'deposit', label: t('campaign_filter_status_deposit') }
-    ], f.statuses, 'statuses');
+    // Status — chips adapt to the selected data source
+    var statusChips;
+    if (f.source === 'apps') {
+      // Application statuses
+      statusChips = [
+        { id: 'app-approved',   label: '✅ Approved' },
+        { id: 'app-active',     label: '🎓 Active' },
+        { id: 'app-waitlisted', label: '⏳ Waitlisted' },
+        { id: 'app-rejected',   label: '❌ Rejected' },
+        { id: 'app-withdrawn',  label: '↩️ Withdrawn' }
+      ];
+    } else {
+      // Lead statuses
+      statusChips = [
+        { id: 'new', label: t('campaign_filter_status_new') },
+        { id: 'hot', label: t('campaign_filter_status_hot') },
+        { id: 'no-answer', label: t('campaign_filter_status_noanswer') },
+        { id: 'contacted', label: t('campaign_filter_status_contacted') },
+        { id: 'follow-up', label: t('campaign_filter_status_followup') },
+        { id: 'engaged', label: 'Engaged' },
+        { id: 'strongly-interested', label: '⭐ Strongly Interested' },
+        { id: 'on-hold', label: 'On Hold' },
+        { id: 'next-round', label: '📅 Next Round' },
+        { id: 'pending', label: t('campaign_filter_status_pending') },
+        { id: 'deposit', label: t('campaign_filter_status_deposit') }
+      ];
+    }
+    html += buildChipSection('campaign_filter_status', statusChips, f.statuses, 'statuses');
 
     // Program
     html += buildChipSection('campaign_filter_program', [
@@ -2192,10 +2214,18 @@
       chip.classList.toggle('is-active');
     } else if (filterKey === 'source' || filterKey === 'recency') {
       // Single-select filter
+      var prevSource = f.source;
       f[filterKey] = value === 'all' ? 'all' : value;
       chip.parentElement.querySelectorAll('.yb-lead__campaign-chip').forEach(function (c) {
         c.classList.toggle('is-active', c.getAttribute('data-value') === value);
       });
+      // When source changes between leads/apps, clear statuses so stale chips don't persist
+      if (filterKey === 'source' && value !== prevSource) {
+        f.statuses = [];
+        var prefix = campaignState.type;
+        var panel = document.querySelector('#yb-campaign-' + prefix + '-modal .yb-lead__campaign-panel[data-panel="recipients"]');
+        if (panel) { renderRecipientsTab(panel); return; }
+      }
     } else {
       // Multi-select toggle
       var arr = f[filterKey];
