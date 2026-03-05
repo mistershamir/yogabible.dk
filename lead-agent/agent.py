@@ -199,6 +199,22 @@ TOOLS = [
     }
 ]
 
+# ── Instant feedback for completed actions ───────────
+def _instant_feedback(message):
+    """Send an instant Telegram notification for completed actions.
+    This fires immediately when a tool completes, so the user doesn't
+    have to wait for Claude to compose its summary response."""
+    if _telegram_app and _telegram_app_loop:
+        from tools.telegram import send_notification
+        try:
+            asyncio.run_coroutine_threadsafe(
+                send_notification(_telegram_app, message),
+                _telegram_app_loop
+            )
+        except Exception as e:
+            logger.warning(f'Instant feedback failed: {e}')
+
+
 # ── Tool execution ────────────────────────────────────
 def execute_tool(name, input_data):
     """Execute a tool and return the result."""
@@ -246,13 +262,24 @@ def execute_tool(name, input_data):
             result = send_email(input_data['to_email'], input_data['subject'], input_data['body_html'])
             if input_data.get('log_lead_id'):
                 add_lead_note(input_data['log_lead_id'], f'Custom email sent: "{input_data["subject"]}"')
+            # Instant feedback — don't make the user wait for Claude's summary
+            _instant_feedback(f'📧 Email sent to <b>{input_data["to_email"]}</b>: "{input_data["subject"]}"')
             return result
 
         elif name == 'send_template_email':
-            return _handle_template_email(input_data)
+            result = _handle_template_email(input_data)
+            if result.get('success'):
+                to = input_data.get('lead_email') or input_data.get('lead_data', {}).get('email', '?')
+                tpl = input_data.get('template_type', '')
+                step_info = f' step {input_data.get("drip_step", "")}' if tpl == 'drip' else ''
+                _instant_feedback(f'📧 {tpl.title()}{step_info} email sent to <b>{to}</b>')
+            return result
 
         elif name == 'send_sms_message':
-            return send_sms(input_data['to_phone'], input_data['message'])
+            result = send_sms(input_data['to_phone'], input_data['message'])
+            if result.get('success'):
+                _instant_feedback(f'💬 SMS sent to <b>{input_data["to_phone"]}</b>')
+            return result
 
         elif name == 'get_pipeline_stats':
             return get_pipeline_stats()
@@ -372,7 +399,7 @@ def _call_api_with_retry(messages):
         try:
             return client.messages.create(
                 model=MODEL,
-                max_tokens=2048,
+                max_tokens=1024,
                 system=SYSTEM_PROMPT,
                 tools=TOOLS,
                 messages=messages,
@@ -399,9 +426,9 @@ def chat(user_message):
     global SYSTEM_PROMPT
     conversation_history.append({"role": "user", "content": user_message})
 
-    # Keep conversation history manageable (last 10 messages to save tokens + reduce latency)
-    if len(conversation_history) > 10:
-        conversation_history[:] = conversation_history[-10:]
+    # Keep conversation history tight — fewer tokens = faster API round-trips
+    if len(conversation_history) > 6:
+        conversation_history[:] = conversation_history[-6:]
 
     while True:
         try:
