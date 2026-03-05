@@ -321,6 +321,12 @@
             </fieldset>
           </section>
 
+        </div><!-- /builder grid -->
+        </div><!-- /Step 2 -->
+
+        <!-- STEP 3: Accommodation -->
+        <div class="yb-wizard__step is-hidden" data-step="3" id="ybStep3">
+
           <!-- Accommodation block (full width) -->
           <section id="ybAccomBlock" class="yb-subCard yb-subCard--wide" aria-label="{{ t.accom_section_label }}">
             <div class="yb-subHead">
@@ -394,12 +400,10 @@
               </div>
             </fieldset>
           </section>
+        </div><!-- /Step 3 -->
 
-        </div><!-- /builder grid -->
-        </div><!-- /Step 2 -->
-
-        <!-- STEP 3: Contact Information -->
-        <div class="yb-wizard__step is-hidden" data-step="3" id="ybStep3">
+        <!-- STEP 4: Contact Information -->
+        <div class="yb-wizard__step is-hidden" data-step="4" id="ybStep4">
 
         <!-- User info -->
         <label class="yb-field">
@@ -452,10 +456,10 @@
           <input id="ybConsent" type="checkbox" required />
           <span>{{ t.consent_text }}</span>
         </label>
-        </div><!-- /Step 3 -->
+        </div><!-- /Step 4 -->
 
-        <!-- STEP 4: Review & Submit -->
-        <div class="yb-wizard__step is-hidden" data-step="4" id="ybStep4">
+        <!-- STEP 5: Review & Submit -->
+        <div class="yb-wizard__step is-hidden" data-step="5" id="ybStep5">
 
         <!-- Validation checklist (shown when form incomplete) -->
         <div id="ybValidationBox" class="yb-validation" aria-live="polite">
@@ -481,10 +485,10 @@
             Tilbage
           </button>
           <button type="button" class="yb-btn yb-btn--primary" id="ybWizardContinue">
-            Fortsæt
+            Næste
           </button>
         </div>
-        </div><!-- /Step 4 -->
+        </div><!-- /Step 5 -->
         </form>
 
         </div><!-- /yb-wizard -->
@@ -2256,7 +2260,7 @@
     // ===== Wizard State & Navigation =====
     const wizardState = {
       currentStep: 1,
-      maxStep: 4,
+      maxStep: 5,
       completed: new Set(),
 
       advance() {
@@ -2320,11 +2324,11 @@
       // Show/hide back button
       wizardBack.classList.toggle("is-hidden", step === 1);
 
-      // Update continue button text
-      if (step === 4) {
+      // Update button text
+      if (step === 5) {
         wizardContinue.textContent = "{{ t.submit_btn }}";
       } else {
-        wizardContinue.textContent = "Fortsæt";
+        wizardContinue.textContent = "Næste";
       }
 
       // Scroll to top
@@ -2349,6 +2353,14 @@
           }
           return true;
         case 3:
+          // Accommodation validation (optional, but if yes, must have payment choice)
+          var accomNeed = (applyForm.querySelector("input[name='accom_need']:checked") || {}).value || "no";
+          if (accomNeed === "yes") {
+            if (!(accomMonthsValue.value || "").trim()) return false;
+            if (!(applyForm.querySelector("input[name='accom_payment_choice']:checked") || {}).value) return false;
+          }
+          return true;
+        case 4:
           // Contact info validation
           if (!firstName.value.trim() || !lastName.value.trim() || !email.value.trim() || !phone.value.trim()) return false;
           if (!hearAbout.value) return false;
@@ -2356,7 +2368,7 @@
           if ((antiSpam.value || "").trim().toUpperCase() !== "YOGA") return false;
           if (!consent.checked) return false;
           return true;
-        case 4:
+        case 5:
           // No validation needed - all data already validated
           return true;
         default:
@@ -2369,7 +2381,7 @@
       wizardContinue.addEventListener("click", function(e) {
         e.preventDefault();
 
-        if (wizardState.currentStep === 4) {
+        if (wizardState.currentStep === 5) {
           // Submit the form
           applyForm.dispatchEvent(new Event("submit"));
           return;
