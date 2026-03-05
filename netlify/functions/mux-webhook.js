@@ -5,8 +5,9 @@
  * Handles 3 Mux events:
  *
  *   1. video.live_stream.active  — Stream went live (teacher pressed On Air)
- *      → Finds the closest scheduled session by time (±30 min window)
+ *      → Finds the closest scheduled session by time (same-day window)
  *      → Sets status to 'live', stores the Mux live stream ID
+ *      → Also checks live-unmatched-recordings for any earlier asset.ready events
  *
  *   2. video.live_stream.idle    — Stream ended (teacher pressed Off)
  *      → Finds the session marked 'live' with matching stream ID
@@ -15,6 +16,7 @@
  *   3. video.asset.ready         — Recording asset is ready to play
  *      → Finds the session by stored muxLiveStreamId
  *      → Writes recordingPlaybackId so students can watch the replay
+ *      → If no session matched yet, saves as unmatched (reconciled by step 1)
  *
  * Setup:
  * 1. Mux Dashboard → Settings → Webhooks → Add endpoint:
@@ -24,13 +26,11 @@
  */
 
 const crypto = require('crypto');
-const { getCollection, updateDoc, addDoc } = require('./shared/firestore');
+const { getCollection, getDb, updateDoc, addDoc, deleteDoc } = require('./shared/firestore');
 const { jsonResponse } = require('./shared/utils');
 
 const COLLECTION = 'live-schedule';
-
-// How close (in minutes) a stream start can be to a scheduled session to auto-match
-var MATCH_WINDOW_MINUTES = 30;
+const UNMATCHED_COLLECTION = 'live-unmatched-recordings';
 
 /**
  * Verify Mux webhook signature.
@@ -105,6 +105,39 @@ exports.handler = async function (event) {
   }
 };
 
+/**
+ * Fetch all sessions from Firestore — no orderBy to avoid composite index requirement.
+ * Sorts in-memory instead.
+ */
+async function getAllSessions() {
+  var db = getDb();
+  var snapshot = await db.collection(COLLECTION).get();
+  var items = [];
+  snapshot.forEach(function (doc) {
+    items.push(Object.assign({ id: doc.id }, doc.data()));
+  });
+  // Sort by startDateTime descending (most recent first)
+  items.sort(function (a, b) {
+    var ta = a.startDateTime || '';
+    var tb = b.startDateTime || '';
+    return ta < tb ? 1 : ta > tb ? -1 : 0;
+  });
+  return items;
+}
+
+/**
+ * Get the start-of-day and end-of-day for a given Date (UTC).
+ */
+function getDayBounds(date) {
+  var y = date.getUTCFullYear();
+  var m = date.getUTCMonth();
+  var d = date.getUTCDate();
+  return {
+    start: new Date(Date.UTC(y, m, d, 0, 0, 0)).toISOString(),
+    end: new Date(Date.UTC(y, m, d, 23, 59, 59, 999)).toISOString()
+  };
+}
+
 /* ══════════════════════════════════════════════════════════════
    1. STREAM WENT LIVE — match to closest scheduled session
    ══════════════════════════════════════════════════════════════ */
@@ -117,29 +150,26 @@ async function handleStreamActive(streamData) {
   console.log('[mux-webhook] Stream active:', liveStreamId, 'playback:', streamPlaybackId);
 
   var now = new Date();
-  var windowMs = MATCH_WINDOW_MINUTES * 60 * 1000;
-  var windowStart = new Date(now.getTime() - windowMs).toISOString();
-  var windowEnd = new Date(now.getTime() + windowMs).toISOString();
+  var bounds = getDayBounds(now);
 
-  // Find scheduled sessions (fetch all, filter in-memory to avoid composite index)
-  var allSessions = await getCollection(COLLECTION, { orderBy: 'startDateTime', orderDir: 'asc' });
+  // Fetch ALL sessions (no orderBy → no composite index needed)
+  var allSessions = await getAllSessions();
   var sessions = allSessions.filter(function (s) { return s.status === 'scheduled'; });
 
-  // Filter to sessions within the match window
+  // Match sessions from today (same calendar day UTC), or yesterday if stream started around midnight
+  var yesterday = new Date(now.getTime() - 12 * 60 * 60 * 1000);
+  var yesterdayBounds = getDayBounds(yesterday);
+
   var candidates = sessions.filter(function (s) {
-    return s.startDateTime && s.startDateTime >= windowStart && s.startDateTime <= windowEnd;
+    if (!s.startDateTime) return false;
+    // Accept sessions from today or yesterday (covers late starts, long classes, midnight edge)
+    return (s.startDateTime >= bounds.start && s.startDateTime <= bounds.end) ||
+           (s.startDateTime >= yesterdayBounds.start && s.startDateTime <= yesterdayBounds.end);
   });
 
   if (!candidates.length) {
-    // Expand window: also check sessions starting up to 2 hours ago (late start / long class)
-    var expandedStart = new Date(now.getTime() - 120 * 60 * 1000).toISOString();
-    candidates = sessions.filter(function (s) {
-      return s.startDateTime && s.startDateTime >= expandedStart && s.startDateTime <= windowEnd;
-    });
-  }
-
-  if (!candidates.length) {
-    console.log('[mux-webhook] No scheduled session found near', now.toISOString(), '— skipping auto-match');
+    console.log('[mux-webhook] No scheduled session found for today/yesterday near',
+      now.toISOString(), '— skipping auto-match. Total scheduled:', sessions.length);
     return;
   }
 
@@ -173,6 +203,10 @@ async function handleStreamActive(streamData) {
 
   await updateDoc(COLLECTION, closest.id, update);
   console.log('[mux-webhook] Session', closest.id, 'is now LIVE');
+
+  // Reconcile: check for unmatched recordings from this same stream
+  // (asset.ready can fire BEFORE live_stream.active due to Mux event ordering)
+  await reconcileUnmatchedRecordings(liveStreamId, closest.id);
 }
 
 /* ══════════════════════════════════════════════════════════════
@@ -187,29 +221,45 @@ async function handleStreamIdle(streamData) {
   var liveStreamId = streamData.id;
   console.log('[mux-webhook] Stream idle:', liveStreamId);
 
-  // Find the session we previously marked as live with this stream ID
-  var allSessions = await getCollection(COLLECTION, { orderBy: 'startDateTime', orderDir: 'desc' });
-  var sessions = allSessions.filter(function (s) { return s.status === 'live'; });
+  // Fetch ALL sessions (no orderBy → no composite index needed)
+  var allSessions = await getAllSessions();
+  var liveSessions = allSessions.filter(function (s) { return s.status === 'live'; });
 
   var matched = null;
-  for (var i = 0; i < sessions.length; i++) {
-    if (sessions[i].muxLiveStreamId === liveStreamId) {
-      matched = sessions[i];
+
+  // Priority 1: exact match on stored muxLiveStreamId
+  for (var i = 0; i < liveSessions.length; i++) {
+    if (liveSessions[i].muxLiveStreamId === liveStreamId) {
+      matched = liveSessions[i];
       break;
     }
   }
 
-  // Fallback: if only one session is live, it's almost certainly the right one
-  if (!matched && sessions.length === 1) {
-    matched = sessions[0];
+  // Priority 2: if only one session is live, it's almost certainly the right one
+  if (!matched && liveSessions.length === 1) {
+    matched = liveSessions[0];
+    console.log('[mux-webhook] Fallback: matched to only live session:', matched.id);
+  }
+
+  // Priority 3: match to closest live session by startDateTime (same day)
+  if (!matched && liveSessions.length > 0) {
+    var now = new Date();
+    var bounds = getDayBounds(now);
+    var todayLive = liveSessions.filter(function (s) {
+      return s.startDateTime && s.startDateTime >= bounds.start && s.startDateTime <= bounds.end;
+    });
+    if (todayLive.length === 1) {
+      matched = todayLive[0];
+      console.log('[mux-webhook] Fallback: matched to only today-live session:', matched.id);
+    }
   }
 
   if (matched) {
-    var now = new Date();
+    var now2 = new Date();
 
     // Check how long the stream was actually live
     var liveStarted = matched.liveStartedAt ? new Date(matched.liveStartedAt) : null;
-    var liveDurationMs = liveStarted ? (now.getTime() - liveStarted.getTime()) : Infinity;
+    var liveDurationMs = liveStarted ? (now2.getTime() - liveStarted.getTime()) : Infinity;
 
     if (liveDurationMs < TEST_STREAM_THRESHOLD_MS) {
       // Short stream = test run — reset back to scheduled so it stays on the schedule
@@ -224,13 +274,14 @@ async function handleStreamIdle(streamData) {
       // Real session — mark as ended
       await updateDoc(COLLECTION, matched.id, {
         status: 'ended',
-        liveEndedAt: now.toISOString()
+        liveEndedAt: now2.toISOString()
       });
       console.log('[mux-webhook] Session', matched.id, 'ended after',
         Math.round(liveDurationMs / 60000), 'minutes');
     }
   } else {
-    console.log('[mux-webhook] No live session found for stream', liveStreamId);
+    console.log('[mux-webhook] No live session found for stream', liveStreamId,
+      '— total live sessions:', liveSessions.length);
   }
 }
 
@@ -256,38 +307,40 @@ async function handleAssetReady(assetData) {
 
   console.log('[mux-webhook] Recording ready:', recordingPlaybackId, 'from stream:', liveStreamId);
 
-  // Find session by muxLiveStreamId (set during handleStreamActive)
-  var allSessions = await getCollection(COLLECTION, { orderBy: 'startDateTime', orderDir: 'desc' });
-  var sessions = allSessions.filter(function (s) {
+  // Fetch ALL sessions (no orderBy → no composite index needed)
+  var allSessions = await getAllSessions();
+  var recentSessions = allSessions.filter(function (s) {
     return s.status === 'live' || s.status === 'ended';
   }).slice(0, 50);
 
   var matched = null;
 
   // Priority 1: exact match on stored muxLiveStreamId
-  for (var i = 0; i < sessions.length; i++) {
-    if (sessions[i].muxLiveStreamId === liveStreamId) {
-      matched = sessions[i];
+  for (var i = 0; i < recentSessions.length; i++) {
+    if (recentSessions[i].muxLiveStreamId === liveStreamId) {
+      matched = recentSessions[i];
       break;
     }
   }
 
   // Priority 2: match on muxStreamKey (manually entered in admin form)
   if (!matched) {
-    for (var j = 0; j < sessions.length; j++) {
-      if (sessions[j].muxStreamKey === liveStreamId) {
-        matched = sessions[j];
+    for (var j = 0; j < recentSessions.length; j++) {
+      if (recentSessions[j].muxStreamKey === liveStreamId) {
+        matched = recentSessions[j];
         break;
       }
     }
   }
 
-  // Priority 3: most recent ended session without a recording (within last 4 hours)
+  // Priority 3: most recent ended/live session without a recording (same day)
   if (!matched) {
-    var fourHoursAgo = new Date(Date.now() - 4 * 60 * 60 * 1000).toISOString();
-    for (var k = 0; k < sessions.length; k++) {
-      var s = sessions[k];
-      if (s.status === 'ended' && !s.recordingPlaybackId && s.startDateTime >= fourHoursAgo) {
+    var now = new Date();
+    var bounds = getDayBounds(now);
+    for (var k = 0; k < recentSessions.length; k++) {
+      var s = recentSessions[k];
+      if (!s.recordingPlaybackId && s.startDateTime &&
+          s.startDateTime >= bounds.start && s.startDateTime <= bounds.end) {
         matched = s;
         break;
       }
@@ -305,14 +358,63 @@ async function handleAssetReady(assetData) {
     });
     console.log('[mux-webhook] Session', matched.id, 'now has recording', recordingPlaybackId);
   } else {
-    // No match — store as unmatched recording so admin can assign it later
-    console.log('[mux-webhook] No matching session for stream', liveStreamId, '— saving as unmatched');
-    await addDoc('live-unmatched-recordings', {
+    // No match — store as unmatched recording so it gets reconciled
+    // when handleStreamActive runs (events can arrive out of order)
+    console.log('[mux-webhook] No matching session for stream', liveStreamId,
+      '— saving as unmatched for later reconciliation');
+    await addDoc(UNMATCHED_COLLECTION, {
       muxLiveStreamId: liveStreamId,
       recordingPlaybackId: recordingPlaybackId,
       recordingAssetId: assetData.id,
       createdAt: new Date().toISOString()
     });
+  }
+}
+
+/* ══════════════════════════════════════════════════════════════
+   RECONCILE — attach unmatched recordings when session is matched
+   ══════════════════════════════════════════════════════════════ */
+
+/**
+ * When handleStreamActive matches a session, check if there are
+ * unmatched recordings from the same stream (asset.ready fired before
+ * live_stream.active due to Mux event ordering).
+ */
+async function reconcileUnmatchedRecordings(liveStreamId, sessionId) {
+  try {
+    var db = getDb();
+    var snapshot = await db.collection(UNMATCHED_COLLECTION).get();
+    var unmatched = [];
+    snapshot.forEach(function (doc) {
+      unmatched.push(Object.assign({ id: doc.id }, doc.data()));
+    });
+
+    var matches = unmatched.filter(function (r) {
+      return r.muxLiveStreamId === liveStreamId;
+    });
+
+    if (!matches.length) return;
+
+    // Take the first (most recent) recording
+    var rec = matches[0];
+    console.log('[mux-webhook] Reconciling unmatched recording:', rec.recordingPlaybackId,
+      'from stream:', liveStreamId, '→ session:', sessionId);
+
+    // Attach recording to the session
+    await updateDoc(COLLECTION, sessionId, {
+      recordingPlaybackId: rec.recordingPlaybackId,
+      recordingAssetId: rec.recordingAssetId || null
+    });
+
+    // Delete all matched unmatched records
+    for (var i = 0; i < matches.length; i++) {
+      await deleteDoc(UNMATCHED_COLLECTION, matches[i].id);
+    }
+
+    console.log('[mux-webhook] Reconciled', matches.length, 'unmatched recording(s) for stream', liveStreamId);
+  } catch (err) {
+    // Non-fatal — session is already matched, recording just didn't get attached
+    console.error('[mux-webhook] Reconciliation error (non-fatal):', err.message);
   }
 }
 
