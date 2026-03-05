@@ -1,0 +1,74 @@
+{# ── Knowledge Base Admin Panel ── #}
+
+{# Brand tabs #}
+<div class="yb-kb__brand-tabs">
+  <button class="yb-kb__brand-tab is-active" type="button" data-kb-brand="yoga-bible">
+    <span class="yb-kb__brand-dot" style="background:#f75c03"></span> Yoga Bible
+  </button>
+  <button class="yb-kb__brand-tab" type="button" data-kb-brand="hot-yoga-cph">
+    <span class="yb-kb__brand-dot" style="background:#3f99a5"></span> Hot Yoga CPH
+  </button>
+  <button class="yb-kb__brand-tab" type="button" data-kb-brand="vibro-yoga">
+    <span class="yb-kb__brand-dot" style="background:#8B5CF6"></span> Vibro Yoga
+  </button>
+</div>
+
+{# Toolbar #}
+<div class="yb-admin__view-head yb-kb__toolbar">
+  <h2 id="yb-kb-brand-title">Yoga Bible — Knowledge Base</h2>
+  <div>
+    <button type="button" class="yb-btn yb-btn--primary yb-btn--sm" data-action="kb-add-section">+ {{ t.kb_new_section or "New Section" }}</button>
+    <button type="button" class="yb-btn yb-btn--outline yb-btn--sm" data-action="kb-refresh">&#8635; {{ t.kb_refresh or "Refresh" }}</button>
+  </div>
+</div>
+
+{# Sections list #}
+<div id="yb-kb-sections" class="yb-kb__sections">
+  <p class="yb-admin__empty">{{ t.loading or "Loading..." }}</p>
+</div>
+
+{# Section editor (hidden until editing) #}
+<div id="yb-kb-editor" class="yb-kb__editor" hidden>
+  <div class="yb-kb__editor-header">
+    <button type="button" class="yb-admin__back-btn" data-action="kb-back">&larr; {{ t.back or "Back" }}</button>
+    <h3 id="yb-kb-editor-title">{{ t.kb_edit_section or "Edit Section" }}</h3>
+  </div>
+  <form id="yb-kb-form" class="yb-admin__form">
+    <input type="hidden" id="yb-kb-id">
+    <input type="hidden" id="yb-kb-brand">
+    <div class="yb-admin__form-row">
+      <div class="yb-admin__field">
+        <label for="yb-kb-section-key">{{ t.kb_section_key or "Section Key" }}</label>
+        <input type="text" id="yb-kb-section-key" placeholder="e.g. programs, pricing, tone" required>
+        <small class="yb-admin__field-hint">{{ t.kb_section_key_hint or "Unique identifier for this section (lowercase, no spaces)" }}</small>
+      </div>
+      <div class="yb-admin__field">
+        <label for="yb-kb-title">{{ t.kb_section_title or "Title" }}</label>
+        <input type="text" id="yb-kb-title" placeholder="e.g. YTT Programs" required>
+      </div>
+    </div>
+    <div class="yb-admin__field">
+      <label for="yb-kb-content">{{ t.kb_content or "Content" }}</label>
+      <textarea id="yb-kb-content" rows="16" class="yb-kb__textarea" placeholder="Write the knowledge content here. This is what the AI agent will learn from."></textarea>
+      <small class="yb-admin__field-hint">{{ t.kb_content_hint or "Plain text or markdown. This content is injected into the agent's system prompt." }}</small>
+    </div>
+    <div class="yb-admin__form-row">
+      <div class="yb-admin__field">
+        <label for="yb-kb-sort">{{ t.kb_sort_order or "Sort Order" }}</label>
+        <input type="number" id="yb-kb-sort" value="0" min="0">
+      </div>
+      <div class="yb-admin__field">
+        <label class="yb-admin__checkbox-label">
+          <input type="checkbox" id="yb-kb-active" checked>
+          {{ t.kb_active or "Active" }}
+        </label>
+        <small class="yb-admin__field-hint">{{ t.kb_active_hint or "Inactive sections are not included in the agent's knowledge." }}</small>
+      </div>
+    </div>
+    <div class="yb-kb__editor-actions">
+      <button type="submit" class="yb-btn yb-btn--primary">{{ t.save or "Save" }}</button>
+      <button type="button" class="yb-btn yb-btn--outline" data-action="kb-back">{{ t.cancel or "Cancel" }}</button>
+      <button type="button" class="yb-btn yb-btn--ghost yb-kb__delete-btn" data-action="kb-delete" id="yb-kb-delete-btn" hidden>{{ t.delete or "Delete" }}</button>
+    </div>
+  </form>
+</div>

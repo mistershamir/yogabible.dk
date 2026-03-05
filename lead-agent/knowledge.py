@@ -171,10 +171,53 @@ REFERENCE: Email templates (what leads actually receive)
 {email_content}
 """
 
+    # Append dynamic knowledge from Firestore (editable via admin panel)
+    firestore_knowledge = _fetch_firestore_knowledge('yoga-bible')
+    if firestore_knowledge:
+        knowledge += f'\n\n--- ADMIN-MANAGED KNOWLEDGE (editable via admin panel) ---\n{firestore_knowledge}'
+
     _cached_knowledge = knowledge
     _cache_hash = current_hash
     logger.info(f'Knowledge base built ({len(knowledge)} chars, hash={current_hash[:8]})')
     return knowledge
+
+
+def _fetch_firestore_knowledge(brand='yoga-bible'):
+    """Fetch active knowledge sections from Firestore for a given brand.
+    Returns a formatted string to append to the system prompt, or None if empty/error."""
+    try:
+        from tools.firestore import get_db
+        db = get_db()
+        docs = (db.collection('agent_knowledge')
+                .where('brand', '==', brand)
+                .where('active', '==', True)
+                .order_by('sort_order')
+                .stream())
+
+        sections = []
+        for doc in docs:
+            d = doc.to_dict()
+            title = d.get('title', d.get('section_key', 'Untitled'))
+            content = d.get('content', '').strip()
+            if content:
+                sections.append(f'[{title}]\n{content}')
+
+        if not sections:
+            return None
+
+        result = '\n\n'.join(sections)
+        logger.info(f'Loaded {len(sections)} knowledge sections from Firestore (brand={brand})')
+        return result
+
+    except Exception as e:
+        logger.warning(f'Could not fetch Firestore knowledge: {e}')
+        return None
+
+
+def get_knowledge_for_brand(brand):
+    """Public API: fetch knowledge sections for any brand.
+    Used by future agents (Hot Yoga CPH, Vibro Yoga) to build their own prompts."""
+    return _fetch_firestore_knowledge(brand)
 
 
 def refresh_knowledge():
