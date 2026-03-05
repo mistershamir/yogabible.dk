@@ -15,7 +15,7 @@ import json
 import logging
 import asyncio
 import time
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -52,6 +52,9 @@ logger = logging.getLogger('lead-agent')
 # ── Anthropic client ──────────────────────────────────
 client = anthropic.Anthropic()
 MODEL = os.getenv('AGENT_MODEL', 'claude-haiku-4-5-20251001')
+
+# ── Shared scheduler reference (set in main_telegram) ──
+_scheduler = None
 
 # ── Tool definitions for Claude ───────────────────────
 TOOLS = [
@@ -196,6 +199,35 @@ TOOLS = [
                 "stale_days": {"type": "number", "description": "Days without activity to consider stale (default 3)"}
             }
         }
+    },
+    {
+        "name": "schedule_email",
+        "description": "Schedule an email to be sent after a delay (in minutes). Use this when Shamir asks to send an email later, e.g. 'send in 20 minutes'. The email will be sent automatically and a Telegram confirmation will follow.",
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "to_email": {"type": "string", "description": "Recipient email address"},
+                "subject": {"type": "string", "description": "Email subject line"},
+                "body_html": {"type": "string", "description": "Email HTML body"},
+                "delay_minutes": {"type": "number", "description": "Minutes from now to send (e.g. 20)"},
+                "log_lead_id": {"type": "string", "description": "Optional lead ID to log the note to"}
+            },
+            "required": ["to_email", "subject", "body_html", "delay_minutes"]
+        }
+    },
+    {
+        "name": "schedule_sms",
+        "description": "Schedule an SMS to be sent after a delay (in minutes). Use this when Shamir asks to send an SMS later. Max 160 chars.",
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "to_phone": {"type": "string", "description": "Recipient phone number"},
+                "message": {"type": "string", "description": "SMS text (max 160 chars)"},
+                "delay_minutes": {"type": "number", "description": "Minutes from now to send (e.g. 20)"},
+                "log_lead_id": {"type": "string", "description": "Optional lead ID to log the note to"}
+            },
+            "required": ["to_phone", "message", "delay_minutes"]
+        }
     }
 ]
 
@@ -213,6 +245,78 @@ def _instant_feedback(message):
             )
         except Exception as e:
             logger.warning(f'Instant feedback failed: {e}')
+
+
+# ── Scheduled send helpers ────────────────────────────
+def _scheduled_email_job(to_email, subject, body_html, log_lead_id=None):
+    """Callback for APScheduler — sends the email and notifies via Telegram."""
+    try:
+        send_email(to_email, subject, body_html)
+        if log_lead_id:
+            add_lead_note(log_lead_id, f'Scheduled email sent: "{subject}"')
+        _instant_feedback(f'⏰📧 Scheduled email sent to <b>{to_email}</b>: "{subject}"')
+        logger.info(f'Scheduled email sent to {to_email}: {subject}')
+    except Exception as e:
+        logger.error(f'Scheduled email failed: {e}')
+        notify_error('email_fail', f'Scheduled email to {to_email}: {e}')
+        _instant_feedback(f'❌ Scheduled email to <b>{to_email}</b> failed: {e}')
+
+
+def _scheduled_sms_job(to_phone, message, log_lead_id=None):
+    """Callback for APScheduler — sends the SMS and notifies via Telegram."""
+    try:
+        send_sms(to_phone, message)
+        if log_lead_id:
+            add_lead_note(log_lead_id, f'Scheduled SMS sent: "{message[:30]}..."')
+        _instant_feedback(f'⏰💬 Scheduled SMS sent to <b>{to_phone}</b>')
+        logger.info(f'Scheduled SMS sent to {to_phone}')
+    except Exception as e:
+        logger.error(f'Scheduled SMS failed: {e}')
+        notify_error('sms_fail', f'Scheduled SMS to {to_phone}: {e}')
+        _instant_feedback(f'❌ Scheduled SMS to <b>{to_phone}</b> failed: {e}')
+
+
+def _schedule_email(input_data):
+    """Schedule an email to be sent after a delay."""
+    if not _scheduler:
+        return {'error': 'Scheduler not running — send the email now instead'}
+    delay = input_data['delay_minutes']
+    if delay < 1 or delay > 1440:
+        return {'error': 'Delay must be between 1 and 1440 minutes (24 hours)'}
+    run_at = datetime.now(timezone.utc) + timedelta(minutes=delay)
+    job_id = f'scheduled_email_{input_data["to_email"]}_{int(time.time())}'
+    _scheduler.add_job(
+        _scheduled_email_job, 'date', run_date=run_at, id=job_id,
+        kwargs={
+            'to_email': input_data['to_email'],
+            'subject': input_data['subject'],
+            'body_html': input_data['body_html'],
+            'log_lead_id': input_data.get('log_lead_id'),
+        }
+    )
+    logger.info(f'Email to {input_data["to_email"]} scheduled for {run_at.isoformat()} (in {delay} min)')
+    return {'success': True, 'scheduled_for': run_at.isoformat(), 'delay_minutes': delay, 'job_id': job_id}
+
+
+def _schedule_sms(input_data):
+    """Schedule an SMS to be sent after a delay."""
+    if not _scheduler:
+        return {'error': 'Scheduler not running — send the SMS now instead'}
+    delay = input_data['delay_minutes']
+    if delay < 1 or delay > 1440:
+        return {'error': 'Delay must be between 1 and 1440 minutes (24 hours)'}
+    run_at = datetime.now(timezone.utc) + timedelta(minutes=delay)
+    job_id = f'scheduled_sms_{input_data["to_phone"]}_{int(time.time())}'
+    _scheduler.add_job(
+        _scheduled_sms_job, 'date', run_date=run_at, id=job_id,
+        kwargs={
+            'to_phone': input_data['to_phone'],
+            'message': input_data['message'],
+            'log_lead_id': input_data.get('log_lead_id'),
+        }
+    )
+    logger.info(f'SMS to {input_data["to_phone"]} scheduled for {run_at.isoformat()} (in {delay} min)')
+    return {'success': True, 'scheduled_for': run_at.isoformat(), 'delay_minutes': delay, 'job_id': job_id}
 
 
 # ── Tool execution ────────────────────────────────────
@@ -286,6 +390,12 @@ def execute_tool(name, input_data):
 
         elif name == 'get_stale_leads':
             return {'stale_leads': get_stale_leads(input_data.get('stale_days', 3))}
+
+        elif name == 'schedule_email':
+            return _schedule_email(input_data)
+
+        elif name == 'schedule_sms':
+            return _schedule_sms(input_data)
 
         return {'error': f'Unknown tool: {name}'}
 
@@ -612,7 +722,7 @@ def main_telegram():
     from telegram.ext import Application, CommandHandler
     from tools.telegram import build_handlers, TELEGRAM_TOKEN
 
-    global _telegram_app, _telegram_app_loop
+    global _telegram_app, _telegram_app_loop, _scheduler
 
     if not TELEGRAM_TOKEN:
         logger.error('TELEGRAM_BOT_TOKEN not set in .env — cannot start Telegram bot')
@@ -643,6 +753,7 @@ def main_telegram():
 
     # Start the drip scheduler + knowledge refresh checker
     scheduler = BackgroundScheduler()
+    _scheduler = scheduler  # Store reference so schedule_email/schedule_sms tools can use it
     interval = int(os.getenv('DRIP_CHECK_INTERVAL_MINUTES', '60'))
     scheduler.add_job(process_due_drips, 'interval', minutes=interval,
                       id='drip_check', replace_existing=True)
