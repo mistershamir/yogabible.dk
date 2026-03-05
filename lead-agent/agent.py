@@ -268,18 +268,18 @@ def execute_tool(name, input_data):
 
         elif name == 'send_template_email':
             result = _handle_template_email(input_data)
-            if result.get('success'):
+            if result and result.get('success'):
                 to = input_data.get('lead_email') or input_data.get('lead_data', {}).get('email', '?')
                 tpl = input_data.get('template_type', '')
                 step_info = f' step {input_data.get("drip_step", "")}' if tpl == 'drip' else ''
                 _instant_feedback(f'📧 {tpl.title()}{step_info} email sent to <b>{to}</b>')
-            return result
+            return result or {'error': 'Template email returned no result'}
 
         elif name == 'send_sms_message':
             result = send_sms(input_data['to_phone'], input_data['message'])
-            if result.get('success'):
+            if result and result.get('success'):
                 _instant_feedback(f'💬 SMS sent to <b>{input_data["to_phone"]}</b>')
-            return result
+            return result or {'error': 'SMS returned no result'}
 
         elif name == 'get_pipeline_stats':
             return get_pipeline_stats()
@@ -426,9 +426,10 @@ def chat(user_message):
     global SYSTEM_PROMPT
     conversation_history.append({"role": "user", "content": user_message})
 
-    # Keep conversation history tight — fewer tokens = faster API round-trips
-    if len(conversation_history) > 6:
-        conversation_history[:] = conversation_history[-6:]
+    # Keep conversation history manageable but preserve enough context for follow-ups.
+    # Tool-use rounds add ~4 messages each, so 6 was way too aggressive.
+    if len(conversation_history) > 20:
+        conversation_history[:] = conversation_history[-20:]
 
     while True:
         try:
