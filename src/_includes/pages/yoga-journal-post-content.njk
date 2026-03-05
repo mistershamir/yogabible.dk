@@ -8,7 +8,7 @@
   "headline": "{{ journal.title_da }}",
   "alternativeHeadline": "{{ journal.title_en }}",
   "description": "{{ journal.excerpt_da }}",
-  "image": "{{ site.url }}{{ journal.image }}",
+  "image": "{% if journal.image.startsWith('http') %}{{ journal.image }}{% else %}{{ site.url }}{{ journal.image }}{% endif %}",
   "url": "{{ site.url }}/yoga-journal/{{ journal.slug }}/",
   "datePublished": "{{ journal.date }}",
   "dateModified": "{{ journal.date }}",
