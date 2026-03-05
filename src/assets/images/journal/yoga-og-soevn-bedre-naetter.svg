@@ -1,0 +1,32 @@
+<svg viewBox="0 0 1200 630" xmlns="http://www.w3.org/2000/svg">
+  <rect width="1200" height="630" fill="#f5f3f0"/>
+  <defs>
+    <linearGradient id="nightGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#0f0f0f;stop-opacity:0.08" />
+      <stop offset="100%" style="stop-color:#f5f3f0;stop-opacity:0" />
+    </linearGradient>
+  </defs>
+  <rect x="0" y="0" width="1200" height="400" fill="url(#nightGrad)"/>
+  <!-- Moon -->
+  <path d="M 900 130 A 55 55 0 1 1 900 240 A 40 40 0 1 0 900 130" fill="#f75c03" opacity="0.3"/>
+  <!-- Stars -->
+  <circle cx="200" cy="80" r="3" fill="#f75c03" opacity="0.35"/>
+  <circle cx="400" cy="120" r="2.5" fill="#ff9966" opacity="0.3"/>
+  <circle cx="600" cy="70" r="3" fill="#f75c03" opacity="0.35"/>
+  <circle cx="750" cy="100" r="2" fill="#ff9966" opacity="0.3"/>
+  <circle cx="1050" cy="90" r="2.5" fill="#f75c03" opacity="0.3"/>
+  <circle cx="300" cy="160" r="2" fill="#ff9966" opacity="0.25"/>
+  <!-- 7 pose silhouette dots -->
+  <circle cx="200" cy="350" r="20" fill="#f75c03" opacity="0.3"/>
+  <circle cx="350" cy="350" r="20" fill="#f75c03" opacity="0.35"/>
+  <circle cx="500" cy="350" r="20" fill="#f75c03" opacity="0.4"/>
+  <circle cx="650" cy="350" r="20" fill="#f75c03" opacity="0.45"/>
+  <circle cx="800" cy="350" r="20" fill="#f75c03" opacity="0.4"/>
+  <circle cx="900" cy="350" r="18" fill="#ff9966" opacity="0.35"/>
+  <circle cx="1000" cy="350" r="18" fill="#ff9966" opacity="0.3"/>
+  <!-- Restful wave -->
+  <path d="M 100 420 Q 300 390 500 420 T 900 420 T 1100 420" stroke="#f75c03" stroke-width="1.5" fill="none" opacity="0.2"/>
+  <text x="600" y="560" font-family="Abacaxi, Helvetica, Arial, sans-serif" font-size="30" font-weight="bold" fill="#0f0f0f" text-anchor="middle">
+    Yoga &amp; Søvn
+  </text>
+</svg>

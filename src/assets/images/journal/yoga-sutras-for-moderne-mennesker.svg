@@ -1,0 +1,33 @@
+<svg viewBox="0 0 1200 630" xmlns="http://www.w3.org/2000/svg">
+  <rect width="1200" height="630" fill="#f5f3f0"/>
+  <defs>
+    <linearGradient id="sutraGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#f75c03;stop-opacity:0.6" />
+      <stop offset="100%" style="stop-color:#ff9966;stop-opacity:0.15" />
+    </linearGradient>
+  </defs>
+  <!-- Ancient scroll/book shape -->
+  <rect x="350" y="80" width="500" height="380" rx="8" fill="url(#sutraGrad)" opacity="0.15"/>
+  <rect x="350" y="80" width="500" height="380" rx="8" fill="none" stroke="#f75c03" stroke-width="1.5" opacity="0.3"/>
+  <!-- Text lines on scroll -->
+  <line x1="400" y1="140" x2="800" y2="140" stroke="#f75c03" stroke-width="1.5" opacity="0.2"/>
+  <line x1="400" y1="180" x2="750" y2="180" stroke="#f75c03" stroke-width="1.5" opacity="0.18"/>
+  <line x1="400" y1="220" x2="780" y2="220" stroke="#f75c03" stroke-width="1.5" opacity="0.16"/>
+  <line x1="400" y1="260" x2="720" y2="260" stroke="#f75c03" stroke-width="1.5" opacity="0.14"/>
+  <line x1="400" y1="300" x2="760" y2="300" stroke="#f75c03" stroke-width="1.5" opacity="0.12"/>
+  <line x1="400" y1="340" x2="700" y2="340" stroke="#f75c03" stroke-width="1.5" opacity="0.1"/>
+  <line x1="400" y1="380" x2="740" y2="380" stroke="#f75c03" stroke-width="1.5" opacity="0.08"/>
+  <!-- 8-limbed path circle -->
+  <circle cx="200" cy="270" r="80" fill="none" stroke="#f75c03" stroke-width="2" opacity="0.2"/>
+  <circle cx="200" cy="190" r="8" fill="#f75c03" opacity="0.4"/>
+  <circle cx="257" cy="213" r="8" fill="#f75c03" opacity="0.45"/>
+  <circle cx="280" cy="270" r="8" fill="#f75c03" opacity="0.5"/>
+  <circle cx="257" cy="327" r="8" fill="#f75c03" opacity="0.55"/>
+  <circle cx="200" cy="350" r="8" fill="#f75c03" opacity="0.6"/>
+  <circle cx="143" cy="327" r="8" fill="#f75c03" opacity="0.55"/>
+  <circle cx="120" cy="270" r="8" fill="#f75c03" opacity="0.5"/>
+  <circle cx="143" cy="213" r="8" fill="#f75c03" opacity="0.45"/>
+  <text x="600" y="560" font-family="Abacaxi, Helvetica, Arial, sans-serif" font-size="28" font-weight="bold" fill="#0f0f0f" text-anchor="middle">
+    Yoga Sutras for Moderne Mennesker
+  </text>
+</svg>

@@ -1,0 +1,29 @@
+<svg viewBox="0 0 1200 630" xmlns="http://www.w3.org/2000/svg">
+  <rect width="1200" height="630" fill="#f5f3f0"/>
+  <defs>
+    <linearGradient id="vataGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#ff9966;stop-opacity:0.5" />
+      <stop offset="100%" style="stop-color:#f5f3f0;stop-opacity:0" />
+    </linearGradient>
+  </defs>
+  <!-- Three dosha circles in triangle formation -->
+  <!-- Vata (air) - top -->
+  <circle cx="600" cy="140" r="70" fill="none" stroke="#ff9966" stroke-width="2.5" opacity="0.5"/>
+  <circle cx="600" cy="140" r="50" fill="#ff9966" opacity="0.15"/>
+  <text x="600" y="148" font-family="Abacaxi, Helvetica, Arial, sans-serif" font-size="18" fill="#f75c03" text-anchor="middle" opacity="0.6">Vata</text>
+  <!-- Pitta (fire) - bottom left -->
+  <circle cx="400" cy="340" r="70" fill="none" stroke="#f75c03" stroke-width="2.5" opacity="0.5"/>
+  <circle cx="400" cy="340" r="50" fill="#f75c03" opacity="0.15"/>
+  <text x="400" y="348" font-family="Abacaxi, Helvetica, Arial, sans-serif" font-size="18" fill="#f75c03" text-anchor="middle" opacity="0.6">Pitta</text>
+  <!-- Kapha (earth) - bottom right -->
+  <circle cx="800" cy="340" r="70" fill="none" stroke="#d94f02" stroke-width="2.5" opacity="0.4"/>
+  <circle cx="800" cy="340" r="50" fill="#d94f02" opacity="0.12"/>
+  <text x="800" y="348" font-family="Abacaxi, Helvetica, Arial, sans-serif" font-size="18" fill="#d94f02" text-anchor="middle" opacity="0.6">Kapha</text>
+  <!-- Connecting lines -->
+  <line x1="565" y1="195" x2="435" y2="285" stroke="#f75c03" stroke-width="1.5" opacity="0.2"/>
+  <line x1="635" y1="195" x2="765" y2="285" stroke="#f75c03" stroke-width="1.5" opacity="0.2"/>
+  <line x1="470" y1="340" x2="730" y2="340" stroke="#f75c03" stroke-width="1.5" opacity="0.2"/>
+  <text x="600" y="560" font-family="Abacaxi, Helvetica, Arial, sans-serif" font-size="30" font-weight="bold" fill="#0f0f0f" text-anchor="middle">
+    Ayurveda &amp; Dosha-Typer
+  </text>
+</svg>

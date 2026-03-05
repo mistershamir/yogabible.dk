@@ -1,0 +1,33 @@
+<svg viewBox="0 0 1200 630" xmlns="http://www.w3.org/2000/svg">
+  <rect width="1200" height="630" fill="#f5f3f0"/>
+  <defs>
+    <linearGradient id="coldGrad" x1="0%" y1="0%" x2="50%" y2="100%">
+      <stop offset="0%" style="stop-color:#6ba3be;stop-opacity:0.5" />
+      <stop offset="100%" style="stop-color:#f5f3f0;stop-opacity:0" />
+    </linearGradient>
+    <linearGradient id="warmGrad" x1="100%" y1="0%" x2="50%" y2="100%">
+      <stop offset="0%" style="stop-color:#f75c03;stop-opacity:0.5" />
+      <stop offset="100%" style="stop-color:#f5f3f0;stop-opacity:0" />
+    </linearGradient>
+  </defs>
+  <!-- Cold side (Wim Hof) -->
+  <rect x="0" y="0" width="600" height="500" fill="url(#coldGrad)"/>
+  <!-- Warm side (Pranayama) -->
+  <rect x="600" y="0" width="600" height="500" fill="url(#warmGrad)"/>
+  <!-- Divider -->
+  <line x1="600" y1="60" x2="600" y2="460" stroke="#0f0f0f" stroke-width="1" opacity="0.15"/>
+  <!-- Ice crystals left -->
+  <polygon points="250,200 260,170 270,200 260,210" fill="#6ba3be" opacity="0.4"/>
+  <polygon points="350,280 360,250 370,280 360,290" fill="#6ba3be" opacity="0.35"/>
+  <polygon points="200,320 210,290 220,320 210,330" fill="#6ba3be" opacity="0.3"/>
+  <!-- Fire/warmth right -->
+  <circle cx="850" cy="200" r="40" fill="#f75c03" opacity="0.3"/>
+  <circle cx="850" cy="200" r="25" fill="#ff9966" opacity="0.4"/>
+  <circle cx="900" cy="280" r="30" fill="#f75c03" opacity="0.25"/>
+  <circle cx="800" cy="320" r="25" fill="#ff9966" opacity="0.3"/>
+  <!-- VS text -->
+  <text x="600" y="270" font-family="Abacaxi, Helvetica, Arial, sans-serif" font-size="40" font-weight="bold" fill="#0f0f0f" text-anchor="middle" opacity="0.2">VS</text>
+  <text x="600" y="560" font-family="Abacaxi, Helvetica, Arial, sans-serif" font-size="30" font-weight="bold" fill="#0f0f0f" text-anchor="middle">
+    Wim Hof vs. Pranayama
+  </text>
+</svg>
