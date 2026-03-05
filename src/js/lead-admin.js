@@ -4691,12 +4691,17 @@
 
     // Load ALL non-archived leads for campaign wizard (not paginated)
     loadAllLeadsForCampaign: function (callback) {
+      var SKIP_STATUSES = ['Converted', 'Existing Applicant'];
       db.collection('leads').orderBy('created_at', 'desc').limit(2000).get()
         .then(function (snap) {
           var all = [];
           snap.forEach(function (doc) {
             var d = Object.assign({ id: doc.id }, doc.data());
-            if (!d.archived) all.push(d);
+            // Skip archived, converted, and leads that already have an application
+            if (d.archived) return;
+            if (d.application_id) return;
+            if (SKIP_STATUSES.indexOf(d.status) !== -1) return;
+            all.push(d);
           });
           callback(null, all);
         })

@@ -33,7 +33,7 @@
       recency: null,
       housing: false,
       meta: false,
-      excludeConverted: false,
+      excludeConverted: true,
       excludeRecent: false,
       excludeNotInterested: true,
       excludeBadLeads: true,
@@ -362,7 +362,8 @@
       // Exclude filters
       if (f.excludeConverted) {
         var st = String(lead.status || '').toLowerCase();
-        if (st === 'converted' || st.includes('konverteret')) return false;
+        if (st === 'converted' || st.includes('konverteret') || st === 'existing applicant') return false;
+        if (lead.application_id) return false;
       }
       if (f.excludeNotInterested) {
         var st2 = String(lead.status || '').toLowerCase();
@@ -1810,7 +1811,7 @@
       source: 'all', statuses: [], programs: [], subtypes: [], routes: [],
       countries: [], periods: [], tracks: [], cohorts: [], paymentStatuses: [],
       recency: null, housing: false, meta: false,
-      excludeConverted: false, excludeRecent: false,
+      excludeConverted: true, excludeRecent: false,
       excludeNotInterested: true, excludeBadLeads: true, excludeUnsubscribed: true
     };
     campaignState.allRecipients = [];
@@ -2110,7 +2111,7 @@
           source: 'all', statuses: [], programs: [], subtypes: [], routes: [],
           countries: [], periods: [], tracks: [], cohorts: [], paymentStatuses: [],
           recency: null, housing: false, meta: false,
-          excludeConverted: false, excludeRecent: false,
+          excludeConverted: true, excludeRecent: false,
           excludeNotInterested: true, excludeBadLeads: true, excludeUnsubscribed: true
         };
         campaignState.searchTerm = '';
