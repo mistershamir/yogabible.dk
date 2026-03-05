@@ -26,7 +26,8 @@ from apscheduler.schedulers.background import BackgroundScheduler
 from tools.firestore import (
     get_new_leads, get_lead_by_email, get_lead_by_name,
     update_lead, add_lead_note, get_drip_status,
-    pause_drip, resume_drip, listen_new_leads
+    pause_drip, resume_drip, listen_new_leads,
+    get_pipeline_stats, get_stale_leads
 )
 from tools.email import (
     send_email, build_drip_email, build_welcome_email,
@@ -177,6 +178,24 @@ TOOLS = [
             },
             "required": ["to_phone", "message"]
         }
+    },
+    {
+        "name": "get_pipeline_stats",
+        "description": "Get lead pipeline overview: counts by status (New/In Progress/Contacted/Converted/etc), temperature (Hot/Warm/Cold), conversions this month, new leads this week.",
+        "input_schema": {
+            "type": "object",
+            "properties": {}
+        }
+    },
+    {
+        "name": "get_stale_leads",
+        "description": "Find leads stuck in New or In Progress for 3+ days with no activity. Returns list sorted by most idle first.",
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "stale_days": {"type": "number", "description": "Days without activity to consider stale (default 3)"}
+            }
+        }
     }
 ]
 
@@ -234,6 +253,12 @@ def execute_tool(name, input_data):
 
         elif name == 'send_sms_message':
             return send_sms(input_data['to_phone'], input_data['message'])
+
+        elif name == 'get_pipeline_stats':
+            return get_pipeline_stats()
+
+        elif name == 'get_stale_leads':
+            return {'stale_leads': get_stale_leads(input_data.get('stale_days', 3))}
 
         return {'error': f'Unknown tool: {name}'}
 
@@ -459,6 +484,91 @@ def notify_drip_sent(lead_id, lead, step, channel='email'):
         )
 
 
+# ── Proactive alerts ─────────────────────────────────
+
+def morning_briefing():
+    """Send a proactive morning summary to Telegram at 9 AM."""
+    try:
+        stats = get_pipeline_stats()
+        stale = get_stale_leads(3)
+
+        # Build the message
+        lines = ["☀️ <b>Morning Briefing</b>\n"]
+
+        # Pipeline stats
+        by_status = stats.get('by_status', {})
+        status_parts = []
+        for s in ['New', 'In Progress', 'Contacted', 'Converted', 'Not Interested', 'Deferred']:
+            count = by_status.get(s, 0)
+            if count > 0:
+                status_parts.append(f"{s}: {count}")
+        if status_parts:
+            lines.append(f"📊 <b>Pipeline:</b> {' | '.join(status_parts)}")
+
+        # Temperature
+        by_temp = stats.get('by_temperature', {})
+        if by_temp:
+            temp_parts = [f"{'🔥' if t == 'Hot' else '🟡' if t == 'Warm' else '🔵'} {t}: {c}" for t, c in by_temp.items()]
+            lines.append(f"🌡 {' | '.join(temp_parts)}")
+
+        lines.append(f"📈 New this week: {stats.get('new_this_week', 0)} | Converted this month: {stats.get('converted_this_month', 0)}")
+
+        # Stale leads
+        if stale:
+            lines.append(f"\n⚠️ <b>{len(stale)} stale lead{'s' if len(stale) != 1 else ''}:</b>")
+            for lead in stale[:5]:  # Max 5
+                lines.append(f"  • <b>{lead['name']}</b> — {lead['status']}, idle {lead['days_idle']}d ({lead.get('program', 'N/A')})")
+            if len(stale) > 5:
+                lines.append(f"  ... and {len(stale) - 5} more")
+        else:
+            lines.append("\n✅ No stale leads — all caught up!")
+
+        msg = '\n'.join(lines)
+
+        # Send via monitor's sync Telegram
+        from monitor import _send_telegram_sync
+        _send_telegram_sync(msg)
+        logger.info('Morning briefing sent')
+
+    except Exception as e:
+        logger.error(f'Morning briefing failed: {e}')
+
+
+def check_stale_leads():
+    """Periodic check for stale leads — sends alert if any found."""
+    try:
+        stale = get_stale_leads(3)
+        if not stale:
+            return
+
+        # Only alert for leads that have been idle 3+ days (first alert)
+        # or 7+ days (urgent re-alert)
+        urgent = [l for l in stale if l['days_idle'] >= 7]
+        new_stale = [l for l in stale if 3 <= l['days_idle'] < 7]
+
+        if not urgent and not new_stale:
+            return
+
+        lines = []
+        if urgent:
+            lines.append(f"🚨 <b>{len(urgent)} lead{'s' if len(urgent) != 1 else ''} idle 7+ days:</b>")
+            for lead in urgent[:3]:
+                lines.append(f"  • <b>{lead['name']}</b> — {lead['days_idle']}d idle, {lead.get('program', 'N/A')}")
+        if new_stale:
+            lines.append(f"⏰ <b>{len(new_stale)} lead{'s' if len(new_stale) != 1 else ''} idle 3+ days:</b>")
+            for lead in new_stale[:3]:
+                lines.append(f"  • <b>{lead['name']}</b> — {lead['days_idle']}d idle, {lead.get('program', 'N/A')}")
+
+        lines.append("\nReply with a lead name to take action.")
+
+        from monitor import _send_telegram_sync
+        _send_telegram_sync('\n'.join(lines))
+        logger.info(f'Stale lead alert sent ({len(stale)} stale)')
+
+    except Exception as e:
+        logger.error(f'Stale lead check failed: {e}')
+
+
 # ── Knowledge refresh command ─────────────────────────
 def reload_knowledge():
     """Refresh the system prompt from project files (call after git pull/push)."""
@@ -546,9 +656,20 @@ def main_telegram():
     scheduler.add_job(heartbeat, 'interval', hours=24,
                       id='heartbeat', replace_existing=True)
 
+    # Morning briefing — daily at 9:00 AM Copenhagen time
+    scheduler.add_job(morning_briefing, 'cron', hour=9, minute=0,
+                      timezone='Europe/Copenhagen',
+                      id='morning_briefing', replace_existing=True)
+
+    # Stale lead check — every 6 hours (9, 15, 21, 03)
+    scheduler.add_job(check_stale_leads, 'interval', hours=6,
+                      id='stale_check', replace_existing=True)
+
     scheduler.start()
     logger.info(f'Drip scheduler started (checking every {interval} min)')
     logger.info('Auto-update checker started (git pull + knowledge refresh every 1 min)')
+    logger.info('Morning briefing scheduled (daily 9:00 CET)')
+    logger.info('Stale lead checker started (every 6h)')
     logger.info('Daily heartbeat scheduled')
 
     # Start Firestore listener for new leads
