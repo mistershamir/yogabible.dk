@@ -16036,6 +16036,54 @@ button.yb-btn--outline-white:hover {
 }
 .yb-admin__toast--error { background: #dc2626; }
 
+/* Knowledge Base Admin */
+.yb-kb__brand-tabs {
+  display: flex; gap: 0.5rem; margin-bottom: 1.25rem;
+  border-bottom: 1px solid #E8E4E0; padding-bottom: 0.75rem;
+}
+.yb-kb__brand-tab {
+  display: flex; align-items: center; gap: 0.5rem;
+  padding: 0.5rem 1rem; border: 1px solid #E8E4E0; border-radius: 8px;
+  background: white; cursor: pointer; font-family: inherit; font-size: 0.85rem;
+  font-weight: 600; color: #6F6A66; transition: all 0.2s;
+}
+.yb-kb__brand-tab:hover { border-color: #0F0F0F; color: #0F0F0F; }
+.yb-kb__brand-tab.is-active { border-color: #0F0F0F; color: #0F0F0F; background: #F5F3F0; }
+.yb-kb__brand-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+.yb-kb__toolbar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem; }
+.yb-kb__toolbar h2 { margin: 0; font-size: 1.1rem; }
+.yb-kb__toolbar div { display: flex; gap: 0.5rem; }
+.yb-kb__sections { display: flex; flex-direction: column; gap: 0.75rem; }
+.yb-kb__card {
+  border: 1px solid #E8E4E0; border-radius: 12px; padding: 1rem 1.25rem;
+  background: white; cursor: pointer; transition: border-color 0.2s, box-shadow 0.2s;
+}
+.yb-kb__card:hover { border-color: #f75c03; box-shadow: 0 2px 8px rgba(247,92,3,0.08); }
+.yb-kb__card-header { margin-bottom: 0.5rem; }
+.yb-kb__card-title-row { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.25rem; }
+.yb-kb__card-key {
+  font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;
+  color: #6F6A66; background: #F5F3F0; padding: 2px 8px; border-radius: 4px;
+}
+.yb-kb__card-title { font-size: 1rem; font-weight: 700; margin: 0; }
+.yb-kb__card-preview { font-size: 0.82rem; color: #6F6A66; margin: 0 0 0.75rem; line-height: 1.4; }
+.yb-kb__card-footer { display: flex; align-items: center; justify-content: space-between; }
+.yb-kb__card-meta { font-size: 0.72rem; color: #999; }
+.yb-kb__status { font-size: 0.7rem; font-weight: 600; padding: 2px 6px; border-radius: 4px; }
+.yb-kb__status--active { background: #DCFCE7; color: #166534; }
+.yb-kb__status--inactive { background: #FEE2E2; color: #991B1B; }
+.yb-kb__editor { padding: 0.5rem 0; }
+.yb-kb__editor-header { display: flex; align-items: center; gap: 1rem; margin-bottom: 1.25rem; }
+.yb-kb__editor-header h3 { margin: 0; font-size: 1.1rem; }
+.yb-kb__textarea {
+  width: 100%; min-height: 300px; padding: 1rem; border: 1px solid #f75c03; border-radius: 12px;
+  font-family: 'SF Mono', 'Fira Code', 'Consolas', monospace; font-size: 0.85rem; line-height: 1.6;
+  resize: vertical; outline: none;
+}
+.yb-kb__textarea:focus { box-shadow: 0 0 0 3px rgba(247,92,3,0.12); }
+.yb-kb__editor-actions { display: flex; align-items: center; gap: 0.75rem; margin-top: 1rem; }
+.yb-kb__delete-btn { color: #dc2626 !important; margin-left: auto; }
+
 /* Enrollment */
 .yb-admin__enroll-form { display: flex; gap: 0.5rem; margin-bottom: 1rem; }
 .yb-admin__enroll-form input {
