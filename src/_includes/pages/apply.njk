@@ -122,7 +122,36 @@
         <p class="yb-card__sub">{{ t.form_sub }}</p>
       </header>
 
-      <form id="ybApplyForm" class="yb-form" novalidate>
+      <!-- Wizard Wrapper -->
+      <div class="yb-wizard" id="ybWizard">
+
+        <!-- Step Indicator -->
+        <div class="yb-wizard__indicator">
+          <div class="yb-wizard__steps" id="ybWizardSteps">
+            <button type="button" class="yb-wizard__dot is-active" data-step="1" aria-label="Step 1">1</button>
+            <div class="yb-wizard__line"></div>
+            <button type="button" class="yb-wizard__dot" data-step="2" aria-label="Step 2">2</button>
+            <div class="yb-wizard__line"></div>
+            <button type="button" class="yb-wizard__dot" data-step="3" aria-label="Step 3">3</button>
+            <div class="yb-wizard__line"></div>
+            <button type="button" class="yb-wizard__dot" data-step="4" aria-label="Step 4">4</button>
+            <div class="yb-wizard__line"></div>
+            <button type="button" class="yb-wizard__dot" data-step="5" aria-label="Step 5">5</button>
+          </div>
+          <div class="yb-wizard__labels">
+            <span class="yb-wizard__label">Program</span>
+            <span class="yb-wizard__label">Detaljer</span>
+            <span class="yb-wizard__label">Overnatning</span>
+            <span class="yb-wizard__label">Kontakt</span>
+            <span class="yb-wizard__label">Bekræft</span>
+          </div>
+        </div>
+
+        <!-- Form with step panels -->
+        <form id="ybApplyForm" class="yb-form" novalidate>
+
+          <!-- STEP 1: Program Selection -->
+          <div class="yb-wizard__step is-active" data-step="1" id="ybStep1">
 
         <!-- Builder choose -->
         <fieldset class="yb-fieldset">
@@ -145,6 +174,10 @@
 
           <div id="ybBuilderHint" class="yb-hint" aria-live="polite"></div>
         </fieldset>
+          </div><!-- /Step 1 -->
+
+        <!-- STEP 2: Program Details (YTT + Course) -->
+        <div class="yb-wizard__step is-hidden" data-step="2" id="ybStep2">
 
         <!-- BUILDER GRID (YTT + Course blocks) -->
         <div class="yb-builderGrid" id="ybBuilderGrid" aria-label="{{ t.builder_grid_label }}">
@@ -363,6 +396,10 @@
           </section>
 
         </div><!-- /builder grid -->
+        </div><!-- /Step 2 -->
+
+        <!-- STEP 3: Contact Information -->
+        <div class="yb-wizard__step is-hidden" data-step="3" id="ybStep3">
 
         <!-- User info -->
         <label class="yb-field">
@@ -415,6 +452,10 @@
           <input id="ybConsent" type="checkbox" required />
           <span>{{ t.consent_text }}</span>
         </label>
+        </div><!-- /Step 3 -->
+
+        <!-- STEP 4: Review & Submit -->
+        <div class="yb-wizard__step is-hidden" data-step="4" id="ybStep4">
 
         <!-- Validation checklist (shown when form incomplete) -->
         <div id="ybValidationBox" class="yb-validation" aria-live="polite">
@@ -433,7 +474,20 @@
         </div>
 
         <p id="ybApplyMsg" class="yb-msg" aria-live="polite"></p>
-      </form>
+
+        <!-- Wizard Navigation -->
+        <div class="yb-wizard__nav">
+          <button type="button" class="yb-btn yb-btn--secondary is-hidden" id="ybWizardBack">
+            Tilbage
+          </button>
+          <button type="button" class="yb-btn yb-btn--primary" id="ybWizardContinue">
+            Fortsæt
+          </button>
+        </div>
+        </div><!-- /Step 4 -->
+        </form>
+
+        </div><!-- /yb-wizard -->
 
       <!-- Success card (replaces form on success) -->
       <div id="ybSuccessCard" class="yb-successCard is-hidden" role="status" aria-live="polite">
@@ -1907,6 +1961,172 @@
     gap: 1.25rem;
   }
 }
+
+/* ========================================
+   WIZARD MULTI-STEP FORM
+======================================== */
+
+.yb-wizard {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+/* Step indicator */
+.yb-wizard__indicator {
+  background: #f5f3f0;
+  border-radius: 12px;
+  padding: 2rem 1rem;
+  margin-bottom: 1rem;
+}
+
+.yb-wizard__steps {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 1.5rem;
+  flex-wrap: wrap;
+}
+
+.yb-wizard__dot {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: 2px solid var(--yb-border);
+  background: #fff;
+  color: var(--yb-muted);
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  font-size: 0.9rem;
+}
+
+.yb-wizard__dot:hover {
+  border-color: var(--yb-primary);
+  color: var(--yb-primary);
+}
+
+.yb-wizard__dot.is-active {
+  background: var(--yb-primary);
+  border-color: var(--yb-primary);
+  color: #fff;
+  box-shadow: 0 4px 12px rgba(247, 92, 3, 0.3);
+}
+
+.yb-wizard__dot.is-completed {
+  background: var(--yb-primary);
+  border-color: var(--yb-primary);
+  color: #fff;
+  opacity: 0.6;
+}
+
+.yb-wizard__line {
+  height: 2px;
+  flex: 1;
+  background: var(--yb-border);
+  max-width: 40px;
+  min-width: 20px;
+}
+
+.yb-wizard__line.is-completed {
+  background: var(--yb-primary);
+}
+
+.yb-wizard__labels {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+  font-size: 0.75rem;
+  color: var(--yb-muted);
+  margin-top: 1rem;
+  flex-wrap: wrap;
+}
+
+.yb-wizard__label {
+  text-align: center;
+  flex: 0 0 auto;
+  max-width: 70px;
+}
+
+/* Step panels */
+.yb-wizard__step {
+  display: none;
+  animation: fadeIn 0.3s ease;
+}
+
+.yb-wizard__step.is-active {
+  display: block;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Navigation buttons */
+.yb-wizard__nav {
+  display: flex;
+  gap: 1rem;
+  justify-content: flex-start;
+  margin-top: 2rem;
+  padding-top: 2rem;
+  border-top: 1px solid var(--yb-border);
+}
+
+.yb-wizard__nav .yb-btn {
+  min-width: 140px;
+}
+
+.yb-wizard__nav .yb-btn.is-hidden {
+  display: none;
+}
+
+/* Hidden by default */
+.is-hidden {
+  display: none !important;
+}
+
+@media (max-width: 768px) {
+  .yb-wizard__steps {
+    gap: 0.25rem;
+  }
+
+  .yb-wizard__dot {
+    width: 32px;
+    height: 32px;
+    font-size: 0.85rem;
+  }
+
+  .yb-wizard__line {
+    max-width: 20px;
+    min-width: 10px;
+  }
+
+  .yb-wizard__labels {
+    display: none;
+  }
+
+  .yb-wizard__nav {
+    flex-direction: column-reverse;
+    gap: 0.75rem;
+  }
+
+  .yb-wizard__nav .yb-btn {
+    min-width: auto;
+    width: 100%;
+  }
+}
 </style>
 
 
@@ -2014,6 +2234,13 @@
     const antiSpam = $("#ybAntiSpam");
     const consent  = $("#ybConsent");
 
+    // Wizard DOM
+    const wizard = $("#ybWizard");
+    const wizardSteps = $$(".yb-wizard__step");
+    const wizardDots = $$(".yb-wizard__dot");
+    const wizardBack = $("#ybWizardBack");
+    const wizardContinue = $("#ybWizardContinue");
+
     const applyForm = $("#ybApplyForm");
     const applyMsg  = $("#ybApplyMsg");
     const submitBtn = $("#ybApplySubmit");
@@ -2025,6 +2252,160 @@
     const successId      = $("#ybSuccessId");
     var userTriedSubmit = false;
     var formIsValid = false;
+
+    // ===== Wizard State & Navigation =====
+    const wizardState = {
+      currentStep: 1,
+      maxStep: 4,
+      completed: new Set(),
+
+      advance() {
+        if (this.currentStep < this.maxStep) {
+          this.currentStep++;
+        }
+      },
+
+      back() {
+        if (this.currentStep > 1) {
+          this.currentStep--;
+        }
+      },
+
+      goToStep(n) {
+        if (n >= 1 && n <= this.maxStep) {
+          this.currentStep = n;
+        }
+      }
+    };
+
+    function renderWizardStep() {
+      const step = wizardState.currentStep;
+
+      // Hide all steps, show current
+      wizardSteps.forEach((el, idx) => {
+        const stepNum = idx + 1;
+        if (stepNum === step) {
+          el.classList.remove("is-hidden");
+          el.classList.add("is-active");
+        } else {
+          el.classList.add("is-hidden");
+          el.classList.remove("is-active");
+        }
+      });
+
+      // Update dots
+      wizardDots.forEach((dot, idx) => {
+        const stepNum = idx + 1;
+        if (stepNum === step) {
+          dot.classList.add("is-active");
+          dot.classList.remove("is-completed");
+        } else if (wizardState.completed.has(stepNum)) {
+          dot.classList.add("is-completed");
+          dot.classList.remove("is-active");
+        } else {
+          dot.classList.remove("is-active", "is-completed");
+        }
+      });
+
+      // Update lines
+      const lines = wizard.querySelectorAll(".yb-wizard__line");
+      lines.forEach((line, idx) => {
+        if (idx + 1 < step) {
+          line.classList.add("is-completed");
+        } else {
+          line.classList.remove("is-completed");
+        }
+      });
+
+      // Show/hide back button
+      wizardBack.classList.toggle("is-hidden", step === 1);
+
+      // Update continue button text
+      if (step === 4) {
+        wizardContinue.textContent = "{{ t.submit_btn }}";
+      } else {
+        wizardContinue.textContent = "Fortsæt";
+      }
+
+      // Scroll to top
+      wizard.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+
+    function validateStep(stepNum) {
+      switch(stepNum) {
+        case 1:
+          // At least YTT or Course
+          return applyForYTT.checked || applyForCourse.checked;
+        case 2:
+          // YTT and/or Course validation
+          if (applyForYTT.checked) {
+            if (!yttProgramSel.value || !yttPeriodSel.value) return false;
+            if (!yttTrackField.classList.contains("is-hidden") && !yttTrackSel.value) return false;
+            if (!(applyForm.querySelector("input[name='ytt_payment_choice']:checked") || {}).value) return false;
+          }
+          if (applyForCourse.checked) {
+            if (!courseProgramSel.value || !coursePeriodSel.value) return false;
+            if (!(applyForm.querySelector("input[name='course_payment_choice']:checked") || {}).value) return false;
+          }
+          return true;
+        case 3:
+          // Contact info validation
+          if (!firstName.value.trim() || !lastName.value.trim() || !email.value.trim() || !phone.value.trim()) return false;
+          if (!hearAbout.value) return false;
+          if (hearAbout.value === "Other" && !hearOther.value.trim()) return false;
+          if ((antiSpam.value || "").trim().toUpperCase() !== "YOGA") return false;
+          if (!consent.checked) return false;
+          return true;
+        case 4:
+          // No validation needed - all data already validated
+          return true;
+        default:
+          return false;
+      }
+    }
+
+    // Wizard navigation handlers
+    if (wizardContinue) {
+      wizardContinue.addEventListener("click", function(e) {
+        e.preventDefault();
+
+        if (wizardState.currentStep === 4) {
+          // Submit the form
+          applyForm.dispatchEvent(new Event("submit"));
+          return;
+        }
+
+        if (!validateStep(wizardState.currentStep)) {
+          userTriedSubmit = true;
+          updateSubmitState();
+          return;
+        }
+
+        wizardState.completed.add(wizardState.currentStep);
+        wizardState.advance();
+        renderWizardStep();
+      });
+    }
+
+    if (wizardBack) {
+      wizardBack.addEventListener("click", function(e) {
+        e.preventDefault();
+        wizardState.back();
+        renderWizardStep();
+      });
+    }
+
+    // Dot click navigation
+    wizardDots.forEach((dot, idx) => {
+      dot.addEventListener("click", function(e) {
+        e.preventDefault();
+        const step = idx + 1;
+        if (wizardState.completed.has(step) || step < wizardState.currentStep) {
+          wizardState.goToStep(step);
+          renderWizardStep();
+        }
+      });
+    });
 
     // ===== Helpers =====
     function extractProdId(url){
