@@ -1,0 +1,28 @@
+<svg viewBox="0 0 1200 630" xmlns="http://www.w3.org/2000/svg">
+  <rect width="1200" height="630" fill="#f5f3f0"/>
+  <defs>
+    <linearGradient id="calmingGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#f75c03;stop-opacity:0.5" />
+      <stop offset="100%" style="stop-color:#ff9966;stop-opacity:0.1" />
+    </linearGradient>
+  </defs>
+  <!-- Chaotic lines (stress) on left transitioning to smooth (calm) on right -->
+  <path d="M 100 200 L 150 180 L 170 220 L 200 190 L 230 230 L 260 180 L 300 210" stroke="#f75c03" stroke-width="2" fill="none" opacity="0.4"/>
+  <path d="M 100 260 L 140 240 L 180 280 L 210 240 L 250 270 L 280 230 L 320 260" stroke="#ff9966" stroke-width="2" fill="none" opacity="0.35"/>
+  <path d="M 100 320 L 160 290 L 190 340 L 220 300 L 260 330 L 290 290 L 330 320" stroke="#f75c03" stroke-width="1.5" fill="none" opacity="0.3"/>
+  <!-- Transition zone -->
+  <rect x="400" y="120" width="2" height="300" fill="#f75c03" opacity="0.1"/>
+  <!-- Arrow -->
+  <line x1="450" y1="260" x2="550" y2="260" stroke="#f75c03" stroke-width="2" opacity="0.3"/>
+  <polygon points="550,260 540,254 540,266" fill="#f75c03" opacity="0.4"/>
+  <!-- Smooth calm waves on right -->
+  <path d="M 600 200 Q 700 180 800 200 T 1000 200 T 1100 200" stroke="#f75c03" stroke-width="2" fill="none" opacity="0.3"/>
+  <path d="M 600 260 Q 700 240 800 260 T 1000 260 T 1100 260" stroke="#ff9966" stroke-width="2" fill="none" opacity="0.25"/>
+  <path d="M 600 320 Q 700 300 800 320 T 1000 320 T 1100 320" stroke="#f75c03" stroke-width="1.5" fill="none" opacity="0.2"/>
+  <!-- Calm center dot -->
+  <circle cx="850" cy="260" r="30" fill="#f75c03" opacity="0.15"/>
+  <circle cx="850" cy="260" r="12" fill="#f75c03" opacity="0.3"/>
+  <text x="600" y="560" font-family="Abacaxi, Helvetica, Arial, sans-serif" font-size="30" font-weight="bold" fill="#0f0f0f" text-anchor="middle">
+    Yoga mod Stress &amp; Angst
+  </text>
+</svg>

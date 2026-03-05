@@ -1,0 +1,24 @@
+<svg viewBox="0 0 1200 630" xmlns="http://www.w3.org/2000/svg">
+  <rect width="1200" height="630" fill="#f5f3f0"/>
+  <defs>
+    <linearGradient id="vibroGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#f75c03;stop-opacity:0.7" />
+      <stop offset="50%" style="stop-color:#ff9966;stop-opacity:0.9" />
+      <stop offset="100%" style="stop-color:#f75c03;stop-opacity:0.7" />
+    </linearGradient>
+  </defs>
+  <!-- Sound wave vibration pattern -->
+  <path d="M 100 315 Q 150 200 200 315 Q 250 430 300 315 Q 350 200 400 315 Q 450 430 500 315 Q 550 200 600 315 Q 650 430 700 315 Q 750 200 800 315 Q 850 430 900 315 Q 950 200 1000 315 Q 1050 430 1100 315"
+        stroke="url(#vibroGrad)" stroke-width="3" fill="none" opacity="0.6"/>
+  <path d="M 100 315 Q 150 240 200 315 Q 250 390 300 315 Q 350 240 400 315 Q 450 390 500 315 Q 550 240 600 315 Q 650 390 700 315 Q 750 240 800 315 Q 850 390 900 315 Q 950 240 1000 315 Q 1050 390 1100 315"
+        stroke="#f75c03" stroke-width="2" fill="none" opacity="0.4"/>
+  <path d="M 100 315 Q 150 280 200 315 Q 250 350 300 315 Q 350 280 400 315 Q 450 350 500 315 Q 550 280 600 315 Q 650 350 700 315 Q 750 280 800 315 Q 850 350 900 315 Q 950 280 1000 315 Q 1050 350 1100 315"
+        stroke="#ff9966" stroke-width="1.5" fill="none" opacity="0.3"/>
+  <!-- Speaker/vibration dots -->
+  <circle cx="600" cy="315" r="30" fill="#f75c03" opacity="0.15"/>
+  <circle cx="600" cy="315" r="60" fill="none" stroke="#f75c03" stroke-width="1" opacity="0.2"/>
+  <circle cx="600" cy="315" r="90" fill="none" stroke="#f75c03" stroke-width="1" opacity="0.15"/>
+  <text x="600" y="560" font-family="Abacaxi, Helvetica, Arial, sans-serif" font-size="30" font-weight="bold" fill="#0f0f0f" text-anchor="middle">
+    Vibro Yoga
+  </text>
+</svg>

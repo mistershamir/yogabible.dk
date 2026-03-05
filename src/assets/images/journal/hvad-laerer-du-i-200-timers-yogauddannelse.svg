@@ -1,0 +1,25 @@
+<svg viewBox="0 0 1200 630" xmlns="http://www.w3.org/2000/svg">
+  <rect width="1200" height="630" fill="#f5f3f0"/>
+  <defs>
+    <linearGradient id="currGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#f75c03;stop-opacity:0.6" />
+      <stop offset="100%" style="stop-color:#ff9966;stop-opacity:0.2" />
+    </linearGradient>
+  </defs>
+  <!-- 200h badge -->
+  <circle cx="600" cy="120" r="55" fill="none" stroke="#f75c03" stroke-width="2.5" opacity="0.4"/>
+  <text x="600" y="128" font-family="Abacaxi, Helvetica, Arial, sans-serif" font-size="24" font-weight="bold" fill="#f75c03" text-anchor="middle" opacity="0.5">200h</text>
+  <!-- Curriculum pillars -->
+  <rect x="180" y="220" width="160" height="220" rx="6" fill="url(#currGrad)" opacity="0.2"/>
+  <rect x="400" y="200" width="160" height="240" rx="6" fill="url(#currGrad)" opacity="0.25"/>
+  <rect x="620" y="180" width="160" height="260" rx="6" fill="url(#currGrad)" opacity="0.3"/>
+  <rect x="840" y="210" width="160" height="230" rx="6" fill="url(#currGrad)" opacity="0.25"/>
+  <!-- Pillar labels -->
+  <text x="260" y="340" font-family="Abacaxi, Helvetica, Arial, sans-serif" font-size="13" fill="#6F6A66" text-anchor="middle" opacity="0.5">Asana</text>
+  <text x="480" y="330" font-family="Abacaxi, Helvetica, Arial, sans-serif" font-size="13" fill="#6F6A66" text-anchor="middle" opacity="0.5">Anatomi</text>
+  <text x="700" y="320" font-family="Abacaxi, Helvetica, Arial, sans-serif" font-size="13" fill="#6F6A66" text-anchor="middle" opacity="0.5">Filosofi</text>
+  <text x="920" y="335" font-family="Abacaxi, Helvetica, Arial, sans-serif" font-size="13" fill="#6F6A66" text-anchor="middle" opacity="0.5">Undervisning</text>
+  <text x="600" y="560" font-family="Abacaxi, Helvetica, Arial, sans-serif" font-size="26" font-weight="bold" fill="#0f0f0f" text-anchor="middle">
+    200-Timers Yogauddannelse
+  </text>
+</svg>

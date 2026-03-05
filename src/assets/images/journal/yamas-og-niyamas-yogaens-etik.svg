@@ -1,0 +1,38 @@
+<svg viewBox="0 0 1200 630" xmlns="http://www.w3.org/2000/svg">
+  <rect width="1200" height="630" fill="#f5f3f0"/>
+  <defs>
+    <linearGradient id="ethicsGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#f75c03;stop-opacity:0.6" />
+      <stop offset="100%" style="stop-color:#ff9966;stop-opacity:0.2" />
+    </linearGradient>
+  </defs>
+  <!-- Two columns: 5 Yamas left, 5 Niyamas right -->
+  <!-- Yamas -->
+  <circle cx="350" cy="100" r="22" fill="url(#ethicsGrad)" opacity="0.5"/>
+  <circle cx="350" cy="170" r="22" fill="url(#ethicsGrad)" opacity="0.55"/>
+  <circle cx="350" cy="240" r="22" fill="url(#ethicsGrad)" opacity="0.6"/>
+  <circle cx="350" cy="310" r="22" fill="url(#ethicsGrad)" opacity="0.65"/>
+  <circle cx="350" cy="380" r="22" fill="url(#ethicsGrad)" opacity="0.7"/>
+  <line x1="350" y1="122" x2="350" y2="148" stroke="#f75c03" stroke-width="1.5" opacity="0.3"/>
+  <line x1="350" y1="192" x2="350" y2="218" stroke="#f75c03" stroke-width="1.5" opacity="0.3"/>
+  <line x1="350" y1="262" x2="350" y2="288" stroke="#f75c03" stroke-width="1.5" opacity="0.3"/>
+  <line x1="350" y1="332" x2="350" y2="358" stroke="#f75c03" stroke-width="1.5" opacity="0.3"/>
+  <!-- Niyamas -->
+  <circle cx="850" cy="100" r="22" fill="#f75c03" opacity="0.4"/>
+  <circle cx="850" cy="170" r="22" fill="#f75c03" opacity="0.45"/>
+  <circle cx="850" cy="240" r="22" fill="#f75c03" opacity="0.5"/>
+  <circle cx="850" cy="310" r="22" fill="#f75c03" opacity="0.55"/>
+  <circle cx="850" cy="380" r="22" fill="#f75c03" opacity="0.6"/>
+  <line x1="850" y1="122" x2="850" y2="148" stroke="#f75c03" stroke-width="1.5" opacity="0.3"/>
+  <line x1="850" y1="192" x2="850" y2="218" stroke="#f75c03" stroke-width="1.5" opacity="0.3"/>
+  <line x1="850" y1="262" x2="850" y2="288" stroke="#f75c03" stroke-width="1.5" opacity="0.3"/>
+  <line x1="850" y1="332" x2="850" y2="358" stroke="#f75c03" stroke-width="1.5" opacity="0.3"/>
+  <!-- Bridge between columns -->
+  <path d="M 372 240 Q 600 180 828 240" stroke="#f75c03" stroke-width="1.5" fill="none" opacity="0.25"/>
+  <!-- Labels -->
+  <text x="350" y="450" font-family="Abacaxi, Helvetica, Arial, sans-serif" font-size="16" fill="#6F6A66" text-anchor="middle" opacity="0.5">Yamas</text>
+  <text x="850" y="450" font-family="Abacaxi, Helvetica, Arial, sans-serif" font-size="16" fill="#6F6A66" text-anchor="middle" opacity="0.5">Niyamas</text>
+  <text x="600" y="560" font-family="Abacaxi, Helvetica, Arial, sans-serif" font-size="30" font-weight="bold" fill="#0f0f0f" text-anchor="middle">
+    Yamas &amp; Niyamas
+  </text>
+</svg>
