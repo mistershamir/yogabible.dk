@@ -25222,3 +25222,106 @@ a.yb-appt__phone-link:hover { text-decoration: underline; }
     height: 157px; /* 280px × 9/16 */
   }
 }
+
+/* ─────────────────────────────────────────────────────────────
+   CAROUSEL — Studio Pictures
+   ───────────────────────────────────────────────────────────── */
+.yba-carousel-wrapper {
+  position: relative;
+}
+
+.yba-carousel {
+  position: relative;
+  width: 100%;
+  overflow: hidden;
+  border-radius: 12px;
+  background: #f5f3f0;
+}
+
+.yba-carousel__track {
+  display: flex;
+  transition: transform 0.4s ease;
+  width: 100%;
+}
+
+.yba-carousel__slide {
+  flex: 0 0 100%;
+  width: 100%;
+  aspect-ratio: 16/9;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.yba-carousel__img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.yba-carousel__btn {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 10;
+  background: rgba(247, 92, 3, 0.85);
+  border: none;
+  color: white;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.2s ease, transform 0.2s ease;
+  padding: 0;
+  line-height: 0;
+}
+
+.yba-carousel__btn:hover {
+  background: #f75c03;
+  transform: translateY(-50%) scale(1.1);
+}
+
+.yba-carousel__btn:active {
+  transform: translateY(-50%) scale(0.95);
+}
+
+.yba-carousel__btn--prev {
+  left: 20px;
+}
+
+.yba-carousel__btn--next {
+  right: 20px;
+}
+
+.yba-carousel__dots {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  padding: 16px 0;
+  background: #fff;
+}
+
+.yba-carousel__dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #e8e4e0;
+  cursor: pointer;
+  transition: background 0.2s ease, transform 0.2s ease;
+  border: none;
+  padding: 0;
+}
+
+.yba-carousel__dot:hover {
+  background: #d4cfc8;
+  transform: scale(1.2);
+}
+
+.yba-carousel__dot.active {
+  background: #f75c03;
+}
