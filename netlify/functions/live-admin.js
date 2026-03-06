@@ -30,7 +30,8 @@ const ALLOWED_FIELDS = [
   'muxPlaybackId', 'muxStreamKey', 'muxLiveStreamId',
   'recordingPlaybackId', 'recordingAssetId',
   'liveStartedAt', 'liveEndedAt',
-  'status', 'recurrence', 'access', 'cohorts'
+  'status', 'recurrence', 'access', 'cohorts',
+  'streamSource'
 ];
 
 function sanitize(body) {
