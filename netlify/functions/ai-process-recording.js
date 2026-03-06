@@ -149,8 +149,9 @@ function muxRequest(method, path, body) {
 
 async function requestCaptions(assetId) {
   // First check if a text track already exists
-  var existing = await muxRequest('GET', '/video/v1/assets/' + assetId + '/tracks');
-  var tracks = (existing.data || []);
+  // Note: GET /assets/{id}/tracks is not a valid Mux endpoint — tracks are on the asset object
+  var existing = await muxRequest('GET', '/video/v1/assets/' + assetId);
+  var tracks = (existing.data && existing.data.tracks) || [];
   for (var i = 0; i < tracks.length; i++) {
     if (tracks[i].type === 'text' && tracks[i].text_type === 'subtitles') {
       return tracks[i].id;
@@ -189,8 +190,8 @@ async function requestCaptions(assetId) {
     return newTracks[0].id;
   }
   // Fallback: re-fetch tracks to find the new text track
-  var refreshed = await muxRequest('GET', '/video/v1/assets/' + assetId + '/tracks');
-  var refreshedTracks = refreshed.data || [];
+  var refreshed = await muxRequest('GET', '/video/v1/assets/' + assetId);
+  var refreshedTracks = (refreshed.data && refreshed.data.tracks) || [];
   for (var k = 0; k < refreshedTracks.length; k++) {
     if (refreshedTracks[k].type === 'text' && refreshedTracks[k].text_type === 'subtitles') {
       return refreshedTracks[k].id;

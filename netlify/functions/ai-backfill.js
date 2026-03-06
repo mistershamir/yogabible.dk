@@ -266,8 +266,8 @@ exports.handler = async function (event) {
         var sess = waiting[c];
         try {
           // Check if text track is ready on Mux
-          var tracksResult = await muxRequest('GET', '/video/v1/assets/' + sess.recordingAssetId + '/tracks');
-          var tracks = tracksResult.data || [];
+          var tracksResult = await muxRequest('GET', '/video/v1/assets/' + sess.recordingAssetId);
+          var tracks = (tracksResult.data && tracksResult.data.tracks) || [];
           var readyTrack = null;
 
           for (var t = 0; t < tracks.length; t++) {
@@ -291,13 +291,8 @@ exports.handler = async function (event) {
           if (!readyTrack) continue;
 
           // Caption track is ready — get VTT URL
+          // Individual track endpoint doesn't exist; use playback URL directly
           var vttUrl = null;
-          try {
-            var trackDetail = await muxRequest('GET', '/video/v1/assets/' + sess.recordingAssetId + '/tracks/' + readyTrack.id);
-            if (trackDetail.data && trackDetail.data.text_source) {
-              vttUrl = trackDetail.data.text_source;
-            }
-          } catch (e) { /* fallback below */ }
 
           if (!vttUrl && sess.recordingPlaybackId) {
             vttUrl = 'https://stream.mux.com/' + sess.recordingPlaybackId + '/text/' + readyTrack.id + '.vtt';
