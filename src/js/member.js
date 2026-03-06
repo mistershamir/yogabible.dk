@@ -420,11 +420,10 @@
       var d = new Date(item.startDateTime);
       var dateStr = d.getDate() + '/' + (d.getMonth() + 1) + '/' + d.getFullYear();
       var dur = item.duration ? formatDuration(item.duration) : '';
+      var cardId = 'rec-' + (item.id || Math.random().toString(36).substring(7));
 
       var card = '';
-      card += '<div style="background:#1a1a1a;border-radius:12px;overflow:hidden;border:1px solid rgba(255,255,255,0.06);transition:all 0.3s ease"'
-        + ' onmouseover="this.style.borderColor=\'rgba(247,92,3,0.3)\';this.style.boxShadow=\'0 8px 30px rgba(0,0,0,0.3)\'"'
-        + ' onmouseout="this.style.borderColor=\'rgba(255,255,255,0.06)\';this.style.boxShadow=\'none\'">';
+      card += '<div class="yb-rec__card" id="' + cardId + '">';
 
       // Thumbnail with play button overlay
       if (item.recordingPlaybackId) {
@@ -450,7 +449,51 @@
         card += '<span style="color:rgba(255,255,255,0.15);font-size:0.65rem">&bull;</span>';
         card += '<span style="color:#999;font-size:0.75rem">' + escHtml(item.instructor) + '</span>';
       }
-      card += '</div></div></div>';
+      card += '</div>';
+
+      // AI Summary & Quiz accordions
+      if (item.aiStatus === 'complete') {
+        var summaryLabel = isDa ? 'Resumé' : 'Summary';
+        var quizLabel = isDa ? 'Test din viden' : 'Test Your Knowledge';
+
+        // Summary accordion
+        card += '<div class="yb-ai-accordion" style="margin-top:0.75rem">';
+        card += '<button class="yb-ai-accordion__btn" data-ai-toggle="summary-' + cardId + '">';
+        card += '<span class="yb-ai-accordion__icon">';
+        card += '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#f75c03" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>';
+        card += '</span>';
+        card += '<span>' + summaryLabel + '</span>';
+        card += '<svg class="yb-ai-accordion__chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>';
+        card += '</button>';
+        card += '<div class="yb-ai-accordion__body" id="summary-' + cardId + '" hidden>';
+        card += '<div class="yb-ai-summary">' + (item.aiSummary || '') + '</div>';
+        card += '</div></div>';
+
+        // Quiz accordion
+        var quizData = [];
+        try { quizData = JSON.parse(item.aiQuiz || '[]'); } catch (e) {}
+        if (quizData.length > 0) {
+          card += '<div class="yb-ai-accordion">';
+          card += '<button class="yb-ai-accordion__btn" data-ai-toggle="quiz-' + cardId + '">';
+          card += '<span class="yb-ai-accordion__icon">';
+          card += '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#f75c03" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>';
+          card += '</span>';
+          card += '<span>' + quizLabel + '</span>';
+          card += '<span class="yb-ai-quiz-badge">' + quizData.length + ' ' + (isDa ? 'spørgsmål' : 'questions') + '</span>';
+          card += '<svg class="yb-ai-accordion__chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>';
+          card += '</button>';
+          card += '<div class="yb-ai-accordion__body" id="quiz-' + cardId + '" hidden>';
+          card += '<div class="yb-ai-quiz" data-quiz-id="' + cardId + '" data-quiz=\'' + escHtml(item.aiQuiz || '[]') + '\'></div>';
+          card += '</div></div>';
+        }
+      } else if (item.aiStatus === 'processing') {
+        card += '<div class="yb-ai-processing" style="margin-top:0.75rem">';
+        card += '<span class="yb-ai-processing__dot"></span>';
+        card += '<span>' + (isDa ? 'AI opsummering undervejs…' : 'AI summary in progress…') + '</span>';
+        card += '</div>';
+      }
+
+      card += '</div></div>';
       return card;
     }
 
@@ -585,9 +628,215 @@
         card.innerHTML = '';
         card.appendChild(el);
       });
+      // Accordion toggle for summary/quiz panels
+      listEl.addEventListener('click', function (e) {
+        var btn = e.target.closest('[data-ai-toggle]');
+        if (!btn) return;
+        var targetId = btn.getAttribute('data-ai-toggle');
+        var panel = document.getElementById(targetId);
+        if (!panel) return;
+
+        var isOpen = !panel.hidden;
+        panel.hidden = isOpen;
+        btn.classList.toggle('is-open', !isOpen);
+
+        // Initialize quiz wizard on first open
+        if (!isOpen && targetId.indexOf('quiz-') === 0) {
+          var quizEl = panel.querySelector('.yb-ai-quiz');
+          if (quizEl && !quizEl.getAttribute('data-quiz-init')) {
+            quizEl.setAttribute('data-quiz-init', '1');
+            initQuizWizard(quizEl);
+          }
+        }
+      });
+
     }).catch(function () {
       if (emptyEl) emptyEl.hidden = false;
     });
+
+    // ══════════════════════════════════════
+    // QUIZ WIZARD — step-by-step quiz UI
+    // ══════════════════════════════════════
+
+    function initQuizWizard(el) {
+      var quizRaw = el.getAttribute('data-quiz') || '[]';
+      // Unescape HTML entities
+      var tmp = document.createElement('textarea');
+      tmp.innerHTML = quizRaw;
+      var questions;
+      try { questions = JSON.parse(tmp.value); } catch (e) { return; }
+      if (!questions.length) return;
+
+      var current = 0;
+      var score = 0;
+      var answered = [];
+
+      function renderQuestion() {
+        var q = questions[current];
+        var total = questions.length;
+
+        var html = '';
+
+        // Progress dots
+        html += '<div class="yb-quiz__progress">';
+        for (var i = 0; i < total; i++) {
+          var dotClass = 'yb-quiz__dot';
+          if (i === current) dotClass += ' yb-quiz__dot--active';
+          else if (answered[i] !== undefined) dotClass += (answered[i] ? ' yb-quiz__dot--correct' : ' yb-quiz__dot--wrong');
+          html += '<span class="' + dotClass + '"></span>';
+        }
+        html += '</div>';
+
+        // Question number + type badge
+        html += '<div class="yb-quiz__meta">';
+        html += '<span class="yb-quiz__num">' + (current + 1) + '/' + total + '</span>';
+        var typeLabel = q.type === 'truefalse'
+          ? (isDa ? 'Sandt/Falsk' : 'True/False')
+          : (isDa ? 'Multiple choice' : 'Multiple choice');
+        html += '<span class="yb-quiz__type">' + typeLabel + '</span>';
+        html += '</div>';
+
+        // Question text
+        html += '<p class="yb-quiz__question">' + escHtml(q.question) + '</p>';
+
+        // Options
+        html += '<div class="yb-quiz__options">';
+        var opts = q.options || [];
+        for (var j = 0; j < opts.length; j++) {
+          var optLabel = q.type === 'truefalse' ? '' : String.fromCharCode(65 + j) + '. ';
+          html += '<button class="yb-quiz__option" data-quiz-answer="' + j + '">';
+          html += optLabel + escHtml(opts[j]);
+          html += '</button>';
+        }
+        html += '</div>';
+
+        // Feedback area (hidden initially)
+        html += '<div class="yb-quiz__feedback" id="quiz-feedback-' + el.getAttribute('data-quiz-id') + '" hidden></div>';
+
+        el.innerHTML = html;
+      }
+
+      function showFeedback(selectedIdx) {
+        var q = questions[current];
+        var isCorrect = selectedIdx === q.correct;
+        answered[current] = isCorrect;
+        if (isCorrect) score++;
+
+        // Highlight options
+        var optBtns = el.querySelectorAll('.yb-quiz__option');
+        for (var i = 0; i < optBtns.length; i++) {
+          optBtns[i].disabled = true;
+          optBtns[i].style.pointerEvents = 'none';
+          if (i === q.correct) {
+            optBtns[i].classList.add('yb-quiz__option--correct');
+          } else if (i === selectedIdx && !isCorrect) {
+            optBtns[i].classList.add('yb-quiz__option--wrong');
+          } else {
+            optBtns[i].style.opacity = '0.4';
+          }
+        }
+
+        // Update progress dot
+        var dots = el.querySelectorAll('.yb-quiz__dot');
+        if (dots[current]) {
+          dots[current].classList.remove('yb-quiz__dot--active');
+          dots[current].classList.add(isCorrect ? 'yb-quiz__dot--correct' : 'yb-quiz__dot--wrong');
+        }
+
+        // Show feedback
+        var fbEl = el.querySelector('.yb-quiz__feedback');
+        if (fbEl) {
+          var icon = isCorrect
+            ? '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#34c759" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>'
+            : '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#ff453a" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>';
+          var fbText = isCorrect ? (isDa ? 'Korrekt!' : 'Correct!') : (isDa ? 'Ikke helt' : 'Not quite');
+          var fbHtml = '<div class="yb-quiz__feedback-row ' + (isCorrect ? 'yb-quiz__feedback--correct' : 'yb-quiz__feedback--wrong') + '">';
+          fbHtml += icon + ' <strong>' + fbText + '</strong>';
+          fbHtml += '</div>';
+          if (q.explanation) {
+            fbHtml += '<p class="yb-quiz__explanation">' + escHtml(q.explanation) + '</p>';
+          }
+
+          // Next button
+          var isLast = current === questions.length - 1;
+          var nextLabel = isLast ? (isDa ? 'Se resultat' : 'See Results') : (isDa ? 'Næste' : 'Next');
+          fbHtml += '<button class="yb-quiz__next" data-quiz-next="1">' + nextLabel + ' &rarr;</button>';
+
+          fbEl.innerHTML = fbHtml;
+          fbEl.hidden = false;
+        }
+      }
+
+      function showResults() {
+        var total = questions.length;
+        var pct = Math.round((score / total) * 100);
+
+        var emoji, msg;
+        if (pct === 100) {
+          emoji = '&#127942;'; // trophy
+          msg = isDa ? 'Perfekt! Du mestrer stoffet.' : 'Perfect! You\'ve mastered the material.';
+        } else if (pct >= 80) {
+          emoji = '&#11088;'; // star
+          msg = isDa ? 'Flot! Du har rigtig godt styr på det.' : 'Great job! You really know your stuff.';
+        } else if (pct >= 60) {
+          emoji = '&#128170;'; // flexed bicep
+          msg = isDa ? 'Godt arbejde! Du er godt på vej.' : 'Good work! You\'re on the right track.';
+        } else {
+          emoji = '&#128588;'; // hands
+          msg = isDa ? 'Godt forsøg! Se optagelsen igen og prøv på ny.' : 'Good try! Rewatch and try again.';
+        }
+
+        var html = '<div class="yb-quiz__results">';
+        html += '<div class="yb-quiz__results-emoji">' + emoji + '</div>';
+        html += '<div class="yb-quiz__results-score">' + score + '/' + total + '</div>';
+        html += '<div class="yb-quiz__results-pct">' + pct + '%</div>';
+        html += '<p class="yb-quiz__results-msg">' + msg + '</p>';
+
+        // Mini breakdown
+        html += '<div class="yb-quiz__results-dots">';
+        for (var i = 0; i < total; i++) {
+          html += '<span class="yb-quiz__dot ' + (answered[i] ? 'yb-quiz__dot--correct' : 'yb-quiz__dot--wrong') + '"></span>';
+        }
+        html += '</div>';
+
+        // Retry button
+        html += '<button class="yb-quiz__retry" data-quiz-retry="1">';
+        html += (isDa ? 'Prøv igen' : 'Try Again');
+        html += '</button>';
+        html += '</div>';
+
+        el.innerHTML = html;
+      }
+
+      // Event delegation for quiz interactions
+      el.addEventListener('click', function (e) {
+        var answerBtn = e.target.closest('[data-quiz-answer]');
+        if (answerBtn) {
+          showFeedback(parseInt(answerBtn.getAttribute('data-quiz-answer'), 10));
+          return;
+        }
+        var nextBtn = e.target.closest('[data-quiz-next]');
+        if (nextBtn) {
+          current++;
+          if (current >= questions.length) {
+            showResults();
+          } else {
+            renderQuestion();
+          }
+          return;
+        }
+        var retryBtn = e.target.closest('[data-quiz-retry]');
+        if (retryBtn) {
+          current = 0;
+          score = 0;
+          answered = [];
+          renderQuestion();
+        }
+      });
+
+      // Start
+      renderQuestion();
+    }
   }
 
   function escHtml(s) {

@@ -357,6 +357,9 @@ async function handleAssetReady(assetData) {
       status: 'ended'
     });
     console.log('[mux-webhook] Session', matched.id, 'now has recording', recordingPlaybackId);
+
+    // Trigger AI processing (transcription + summary + quiz)
+    triggerAiProcessing(matched.id, assetData.id);
   } else {
     // No match — store as unmatched recording so it gets reconciled
     // when handleStreamActive runs (events can arrive out of order)
@@ -406,6 +409,11 @@ async function reconcileUnmatchedRecordings(liveStreamId, sessionId) {
       recordingAssetId: rec.recordingAssetId || null
     });
 
+    // Trigger AI processing for reconciled recording
+    if (rec.recordingAssetId) {
+      triggerAiProcessing(sessionId, rec.recordingAssetId);
+    }
+
     // Delete all matched unmatched records
     for (var i = 0; i < matches.length; i++) {
       await deleteDoc(UNMATCHED_COLLECTION, matches[i].id);
@@ -415,6 +423,52 @@ async function reconcileUnmatchedRecordings(liveStreamId, sessionId) {
   } catch (err) {
     // Non-fatal — session is already matched, recording just didn't get attached
     console.error('[mux-webhook] Reconciliation error (non-fatal):', err.message);
+  }
+}
+
+/* ══════════════════════════════════════════════════════════════
+   AI PROCESSING — trigger transcription + summary + quiz
+   ══════════════════════════════════════════════════════════════ */
+
+/**
+ * Fire-and-forget call to ai-process-recording function.
+ * Non-blocking — errors are logged but don't affect the webhook response.
+ */
+function triggerAiProcessing(sessionId, assetId) {
+  try {
+    var https = require('https');
+    var body = JSON.stringify({
+      sessionId: sessionId,
+      assetId: assetId,
+      secret: process.env.AI_INTERNAL_SECRET || ''
+    });
+
+    var opts = {
+      hostname: 'www.yogabible.dk',
+      path: '/.netlify/functions/ai-process-recording',
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Content-Length': Buffer.byteLength(body)
+      },
+      timeout: 5000 // 5s timeout — we don't wait for it to finish
+    };
+
+    var req = https.request(opts, function (res) {
+      console.log('[mux-webhook] AI processing triggered, status:', res.statusCode);
+      res.resume(); // drain the response
+    });
+    req.on('error', function (err) {
+      console.log('[mux-webhook] AI trigger fire-and-forget error (non-fatal):', err.message);
+    });
+    req.on('timeout', function () {
+      console.log('[mux-webhook] AI trigger timed out (expected — function runs async)');
+      req.destroy();
+    });
+    req.write(body);
+    req.end();
+  } catch (err) {
+    console.log('[mux-webhook] AI trigger error (non-fatal):', err.message);
   }
 }
 
