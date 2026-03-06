@@ -514,7 +514,7 @@
           <p class="yb-track-card__styles">{{ t.april_styles }}</p>
           <div class="yb-track-card__ctas">
             <button class="yb-btn yb-btn--cta yb-btn--small" data-checkout-product="100121">{{ t.april_cta }}</button>
-            <a href="{% if lang == 'en' %}/en/schedule/4-weeks/{% else %}/skema/4-uger/{% endif %}" class="yb-btn yb-btn--outline yb-btn--small">{{ t.april_schedule_cta }}</a>
+            <button onclick="openYBScheduleModal('4w-apr')" class="yb-btn yb-btn--outline yb-btn--small">{{ t.april_schedule_cta }}</button>
           </div>
         </div>
       </article>
@@ -529,7 +529,7 @@
           <p class="yb-track-card__styles">{{ t.juli_styles }}</p>
           <div class="yb-track-card__ctas">
             <button class="yb-btn yb-btn--cta yb-btn--small" data-checkout-product="100211">{{ t.juli_cta }}</button>
-            <a href="{% if lang == 'en' %}/en/schedule/4-weeks-july/{% else %}/skema/4-uger-juli/{% endif %}" class="yb-btn yb-btn--outline yb-btn--small">{{ t.juli_schedule_cta }}</a>
+            <button onclick="openYBScheduleModal('4w-jul')" class="yb-btn yb-btn--outline yb-btn--small">{{ t.juli_schedule_cta }}</button>
           </div>
         </div>
       </article>
