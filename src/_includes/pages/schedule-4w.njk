@@ -250,6 +250,17 @@
 
   </div>
 
+  {# ── CROSS-LINK: July Vinyasa Plus ──────────────────────── #}
+  <div style="max-width:700px;margin:0 auto;padding:32px 24px 0;">
+    <div style="background:#FFF7ED;border:1px solid rgba(247,92,3,.15);border-radius:14px;padding:20px 24px;display:flex;align-items:center;gap:16px;flex-wrap:wrap;">
+      <div style="flex:1;min-width:200px;">
+        <p style="font-weight:700;font-size:.95rem;color:#0F0F0F;margin-bottom:4px;">{{ t.crossLinkTitle }}</p>
+        <p style="font-size:.82rem;color:#6F6A66;line-height:1.5;">{{ t.crossLinkDesc }}</p>
+      </div>
+      <a href="{% if lang == 'en' %}/en/schedule/4-weeks-july/{% else %}/skema/4-uger-juli/{% endif %}" style="display:inline-block;background:#f75c03;color:#fff;padding:10px 20px;border-radius:50px;font-size:.85rem;font-weight:600;text-decoration:none;white-space:nowrap;transition:background .2s;" onmouseenter="this.style.background='#d94f02'" onmouseleave="this.style.background='#f75c03'">{{ t.crossLinkCta }} →</a>
+    </div>
+  </div>
+
   {# ── DARK CTA ─────────────────────────────────────────── #}
   <div style="background:#0F0F0F;color:#fff;padding:60px 24px;text-align:center;">
     <div style="max-width:600px;margin:0 auto;">

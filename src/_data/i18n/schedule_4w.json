@@ -44,7 +44,10 @@
     "examLabel": "Eksamen",
     "graduationLabel": "Graduation",
     "graduationBadge": "Graduation",
-    "onlineLabel": "Online"
+    "onlineLabel": "Online",
+    "crossLinkTitle": "Også interesseret i juli?",
+    "crossLinkDesc": "Se skemaet for vores Vinyasa Plus program (70% Vinyasa Flow + Yin Yoga + Hot Yoga) — juli 2026.",
+    "crossLinkCta": "Se Juli-skema"
   },
   "en": {
     "pageTitle": "4-Week Intensive Yoga Teacher Training — Schedule | YOGA BIBLE",
@@ -91,6 +94,9 @@
     "examLabel": "Exam",
     "graduationLabel": "Graduation",
     "graduationBadge": "Graduation",
-    "onlineLabel": "Online"
+    "onlineLabel": "Online",
+    "crossLinkTitle": "Also interested in July?",
+    "crossLinkDesc": "See the schedule for our Vinyasa Plus program (70% Vinyasa Flow + Yin Yoga + Hot Yoga) — July 2026.",
+    "crossLinkCta": "See July Schedule"
   }
 }
