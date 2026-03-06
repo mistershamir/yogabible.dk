@@ -302,6 +302,34 @@
   line-height: 1.5;
 }
 
+.yb-track-card__badge {
+  display: inline-block;
+  background: #FFF0E6;
+  color: #f75c03;
+  font-size: 0.7rem;
+  font-weight: 700;
+  padding: 3px 10px;
+  border-radius: 50px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-bottom: 0.4rem;
+}
+
+.yb-track-card__styles {
+  margin: 0.5rem 0 0;
+  font-size: 0.78rem;
+  color: #6F6A66;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+}
+
+.yb-track-card__ctas {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  margin-top: 1rem;
+}
+
 /* Mirror example */
 .yb-mirror {
   background: #FFFCF9;

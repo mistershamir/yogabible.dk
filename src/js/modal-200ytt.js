@@ -57,9 +57,14 @@
     if (cityInput) cityInput.hidden = true;
     toggleBtns.forEach(b => b.classList.toggle('is-active', b.dataset.acc === 'No'));
 
-    // Pre-check default format
+    // Pre-check default format(s)
+    // Support '4w' as a shorthand that selects both 4w-apr and 4w-jul
     modal.querySelectorAll('input[name="format"]').forEach(cb => {
-      cb.checked = cb.value === defaultFormat;
+      if (defaultFormat === '4w') {
+        cb.checked = cb.value === '4w-apr' || cb.value === '4w-jul';
+      } else {
+        cb.checked = cb.value === defaultFormat;
+      }
     });
 
     // Lock body scroll
