@@ -177,19 +177,47 @@ async function requestCaptions(assetId) {
     }
   }
 
-  // Request auto-generated captions
-  var result = await muxRequest('POST', '/video/v1/assets/' + assetId + '/tracks', {
-    language_code: 'da',
-    type: 'text',
-    text_type: 'subtitles',
-    name: 'Auto (DA)',
-    generated_subtitles: [{
-      language_code: 'da',
-      name: 'Auto (DA)'
-    }]
-  });
+  // Find the audio track ID — required for generate-subtitles endpoint
+  var audioTrackId = null;
+  for (var j = 0; j < tracks.length; j++) {
+    if (tracks[j].type === 'audio') {
+      audioTrackId = tracks[j].id;
+      break;
+    }
+  }
 
-  return result.data ? result.data.id : null;
+  if (!audioTrackId) {
+    console.error('[ai-process] No audio track found on asset:', assetId);
+    return null;
+  }
+
+  // Request auto-generated captions via the correct endpoint
+  // POST /video/v1/assets/{ASSET_ID}/tracks/{AUDIO_TRACK_ID}/generate-subtitles
+  console.log('[ai-process] Requesting captions on audio track:', audioTrackId);
+  var result = await muxRequest('POST',
+    '/video/v1/assets/' + assetId + '/tracks/' + audioTrackId + '/generate-subtitles',
+    {
+      generated_subtitles: [{
+        language_code: 'da',
+        name: 'Auto (DA)'
+      }]
+    }
+  );
+
+  // The response contains the newly created text track(s)
+  var newTracks = result.data || [];
+  if (Array.isArray(newTracks) && newTracks.length > 0) {
+    return newTracks[0].id;
+  }
+  // Fallback: re-fetch tracks to find the new text track
+  var refreshed = await muxRequest('GET', '/video/v1/assets/' + assetId + '/tracks');
+  var refreshedTracks = refreshed.data || [];
+  for (var k = 0; k < refreshedTracks.length; k++) {
+    if (refreshedTracks[k].type === 'text' && refreshedTracks[k].text_type === 'subtitles') {
+      return refreshedTracks[k].id;
+    }
+  }
+  return null;
 }
 
 // ═══════════════════════════════════════════════════
