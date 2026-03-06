@@ -78,8 +78,8 @@
   var COURSE_CATALOG = {
     ytt: [
       { id: '100078', name_da: '18 Ugers Fleksibelt Program (Mar-Jun)', name_en: '18 Weeks Flexible Program (Mar-Jun)', cohorts: [{ label_da: 'Marts\u2013Juni 2026', label_en: 'March\u2013June 2026' }] },
-      { id: '100121', name_da: '4 Ugers Intensiv (Apr)', name_en: '4 Weeks Intensive (Apr)', cohorts: [{ label_da: 'April 2026', label_en: 'April 2026' }] },
-      { id: '100211', name_da: '4 Ugers Intensiv (Jul)', name_en: '4 Weeks Intensive (Jul)', cohorts: [{ label_da: 'Juli 2026', label_en: 'July 2026' }] },
+      { id: '100121', name_da: '4 Ugers Complete Program (Apr)', name_en: '4-Week Complete Program (Apr)', cohorts: [{ label_da: 'April 2026', label_en: 'April 2026' }] },
+      { id: '100211', name_da: '4 Ugers Vinyasa Plus (Jul)', name_en: '4-Week Vinyasa Plus (Jul)', cohorts: [{ label_da: 'Juli 2026', label_en: 'July 2026' }] },
       { id: '100209', name_da: '8 Ugers Semi-Intensiv (Maj-Jun)', name_en: '8 Weeks Semi-Intensive (May-Jun)', cohorts: [{ label_da: 'Maj\u2013Juni 2026', label_en: 'May\u2013June 2026' }] },
       { id: '100210', name_da: '18 Ugers Fleksibelt Program (Aug-Dec)', name_en: '18 Weeks Flexible Program (Aug-Dec)', cohorts: [{ label_da: 'August\u2013December 2026', label_en: 'August\u2013December 2026' }] }
     ],

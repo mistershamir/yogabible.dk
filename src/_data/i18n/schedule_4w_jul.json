@@ -45,7 +45,10 @@
     "examLabel": "Eksamen",
     "graduationLabel": "Graduation",
     "graduationBadge": "Graduation",
-    "onlineLabel": "Online"
+    "onlineLabel": "Online",
+    "crossLinkTitle": "Også interesseret i april?",
+    "crossLinkDesc": "Se skemaet for vores Complete Program (Hatha, Vinyasa, Yin, Hot Yoga, Meditation) — april 2026.",
+    "crossLinkCta": "Se April-skema"
   },
   "en": {
     "pageTitle": "4-Week Vinyasa Plus Yoga Teacher Training — Schedule July 2026 | YOGA BIBLE",
@@ -93,6 +96,9 @@
     "examLabel": "Exam",
     "graduationLabel": "Graduation",
     "graduationBadge": "Graduation",
-    "onlineLabel": "Online"
+    "onlineLabel": "Online",
+    "crossLinkTitle": "Also interested in April?",
+    "crossLinkDesc": "See the schedule for our Complete Program (Hatha, Vinyasa, Yin, Hot Yoga, Meditation) — April 2026.",
+    "crossLinkCta": "See April Schedule"
   }
 }
