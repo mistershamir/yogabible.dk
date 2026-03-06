@@ -706,8 +706,10 @@
   display: grid;
   grid-template-columns: 1fr;
   gap: clamp(24px, 4vw, 40px);
-  align-items: start;
+  align-items: stretch;
 }
+.om2-breakdown__left { display: flex; flex-direction: column; }
+.om2-breakdown__left > header { display: flex; flex-direction: column; flex: 1; }
 .om2-breakdown__eyebrow {
   color: #6F6A66;
   text-transform: uppercase;
