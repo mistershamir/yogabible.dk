@@ -1,12 +1,12 @@
 /**
  * Netlify Function: /.netlify/functions/ai-backfill
  *
- * One-time backfill: processes all existing recordings that don't have AI data yet.
- * Call via: GET /.netlify/functions/ai-backfill?secret=YOUR_AI_INTERNAL_SECRET
+ * Modes:
+ *   ?debug=1    — Show status of all sessions (read-only)
+ *   ?reconcile=1 — Find missing recordings from Mux and link them to Firestore sessions
+ *   (default)   — Process sessions that have recordings but no AI data yet
  *
- * Processes sequentially to avoid rate limits. Each recording takes ~3-6 min
- * (caption generation + Claude call), so this function may time out on Netlify's
- * 10s/26s limit. For many recordings, call it multiple times — it skips already-processed ones.
+ * All modes require: ?secret=YOUR_AI_INTERNAL_SECRET
  */
 
 const https = require('https');
@@ -18,17 +18,119 @@ var COLLECTION = 'live-schedule';
 exports.handler = async function (event) {
   if (event.httpMethod === 'OPTIONS') return jsonResponse(204, '');
 
+  var params = event.queryStringParameters || {};
+
   // Auth check
-  var secret = (event.queryStringParameters || {}).secret || '';
+  var secret = params.secret || '';
   var expected = process.env.AI_INTERNAL_SECRET || '';
   if (expected && secret !== expected) {
-    return jsonResponse(401, { ok: false, error: 'Invalid secret. Use ?secret=YOUR_AI_INTERNAL_SECRET' });
+    return jsonResponse(401, { ok: false, error: 'Invalid secret' });
   }
 
   try {
-    // Find all ended sessions with a recording but no AI data
     var all = await getCollection(COLLECTION, { orderBy: 'startDateTime', orderDir: 'desc' });
 
+    // ── Debug mode ──
+    if (params.debug === '1') {
+      return jsonResponse(200, {
+        ok: true,
+        total: all.length,
+        sessions: all.map(function (item) {
+          return {
+            id: item.id,
+            title: item.title_da || item.title_en || '',
+            status: item.status,
+            hasRecording: !!item.recordingAssetId,
+            recordingAssetId: item.recordingAssetId || null,
+            recordingPlaybackId: item.recordingPlaybackId || null,
+            muxLiveStreamId: item.muxLiveStreamId || null,
+            aiStatus: item.aiStatus || null
+          };
+        })
+      });
+    }
+
+    // ── Reconcile mode: find recordings from Mux for ended sessions missing recordingAssetId ──
+    if (params.reconcile === '1') {
+      var missing = all.filter(function (item) {
+        return item.status === 'ended' && !item.recordingAssetId && item.muxLiveStreamId;
+      });
+
+      if (missing.length === 0) {
+        // Also check sessions without muxLiveStreamId
+        var endedNoStream = all.filter(function (item) {
+          return item.status === 'ended' && !item.recordingAssetId;
+        });
+        if (endedNoStream.length > 0) {
+          return jsonResponse(200, {
+            ok: false,
+            message: endedNoStream.length + ' ended sessions have no recording AND no muxLiveStreamId — cannot reconcile automatically',
+            sessions: endedNoStream.map(function (item) {
+              return { id: item.id, title: item.title_da || item.title_en || '' };
+            })
+          });
+        }
+        return jsonResponse(200, { ok: true, message: 'No sessions need reconciliation' });
+      }
+
+      console.log('[ai-backfill] Reconciling', missing.length, 'sessions with Mux');
+      var reconciled = [];
+
+      for (var i = 0; i < missing.length; i++) {
+        var session = missing[i];
+        try {
+          // Query Mux for assets from this live stream
+          var assetsResult = await muxRequest('GET',
+            '/video/v1/assets?live_stream_id=' + session.muxLiveStreamId + '&limit=5');
+          var assets = (assetsResult.data || []).filter(function (a) {
+            return a.status === 'ready';
+          });
+
+          if (assets.length > 0) {
+            var asset = assets[0]; // take the most recent ready asset
+            var playbackId = asset.playback_ids && asset.playback_ids.length > 0
+              ? asset.playback_ids[0].id : null;
+
+            await updateDoc(COLLECTION, session.id, {
+              recordingAssetId: asset.id,
+              recordingPlaybackId: playbackId
+            });
+
+            reconciled.push({
+              id: session.id,
+              title: session.title_da || session.title_en || '',
+              assetId: asset.id,
+              playbackId: playbackId,
+              status: 'linked'
+            });
+            console.log('[ai-backfill] Linked session', session.id, 'to asset', asset.id);
+          } else {
+            reconciled.push({
+              id: session.id,
+              title: session.title_da || session.title_en || '',
+              status: 'no_assets_found',
+              muxLiveStreamId: session.muxLiveStreamId
+            });
+          }
+        } catch (err) {
+          console.error('[ai-backfill] Reconcile error for', session.id, ':', err.message);
+          reconciled.push({
+            id: session.id,
+            title: session.title_da || session.title_en || '',
+            status: 'error',
+            error: err.message
+          });
+        }
+      }
+
+      return jsonResponse(200, {
+        ok: true,
+        message: 'Reconciliation complete. Run without ?reconcile=1 to trigger AI processing.',
+        results: reconciled
+      });
+    }
+
+    // ── Default mode: process sessions with recordings but no AI data ──
     var pending = all.filter(function (item) {
       return item.status === 'ended'
         && item.recordingAssetId
@@ -37,41 +139,18 @@ exports.handler = async function (event) {
 
     console.log('[ai-backfill] Found', pending.length, 'recordings to process');
 
-    // Debug mode: show status of all sessions
-    var debug = (event.queryStringParameters || {}).debug === '1';
-    if (debug) {
-      return jsonResponse(200, {
-        ok: true,
-        total: all.length,
-        pending: pending.length,
-        sessions: all.map(function (item) {
-          return {
-            id: item.id,
-            title: item.title_da || item.title_en || '',
-            status: item.status,
-            hasRecording: !!item.recordingAssetId,
-            recordingAssetId: item.recordingAssetId || null,
-            aiStatus: item.aiStatus || null,
-            wouldProcess: item.status === 'ended' && !!item.recordingAssetId && (!item.aiStatus || item.aiStatus === 'error')
-          };
-        })
-      });
-    }
-
     if (pending.length === 0) {
       return jsonResponse(200, { ok: true, message: 'No recordings need processing', total: all.length });
     }
 
-    // Process up to 3 per invocation (to stay within Netlify function timeout)
     var batch = pending.slice(0, 3);
     var results = [];
 
-    for (var i = 0; i < batch.length; i++) {
-      var item = batch[i];
-      console.log('[ai-backfill] Processing', (i + 1) + '/' + batch.length, ':', item.id, item.title_da || item.title_en || '');
+    for (var j = 0; j < batch.length; j++) {
+      var item = batch[j];
+      console.log('[ai-backfill] Processing', (j + 1) + '/' + batch.length, ':', item.id);
 
       try {
-        // Call ai-process-recording synchronously
         var result = await callAiProcess(item.id, item.recordingAssetId);
         results.push({ id: item.id, title: item.title_da || item.title_en || '', status: 'triggered' });
       } catch (err) {
@@ -96,6 +175,54 @@ exports.handler = async function (event) {
   }
 };
 
+/* ── Mux API helper ── */
+
+function muxRequest(method, path, body) {
+  var tokenId = process.env.MUX_TOKEN_ID;
+  var tokenSecret = process.env.MUX_TOKEN_SECRET;
+  if (!tokenId || !tokenSecret) {
+    throw new Error('MUX_TOKEN_ID and MUX_TOKEN_SECRET env vars required');
+  }
+
+  return new Promise(function (resolve, reject) {
+    var data = body ? JSON.stringify(body) : '';
+    var opts = {
+      hostname: 'api.mux.com',
+      path: path,
+      method: method,
+      headers: {
+        'Authorization': 'Basic ' + Buffer.from(tokenId + ':' + tokenSecret).toString('base64'),
+        'Content-Type': 'application/json'
+      }
+    };
+    if (data) opts.headers['Content-Length'] = Buffer.byteLength(data);
+
+    var req = https.request(opts, function (res) {
+      var chunks = [];
+      res.on('data', function (c) { chunks.push(c); });
+      res.on('end', function () {
+        var raw = Buffer.concat(chunks).toString();
+        try {
+          var json = JSON.parse(raw);
+          if (res.statusCode >= 200 && res.statusCode < 300) {
+            resolve(json);
+          } else {
+            var err = new Error('Mux API ' + res.statusCode + ': ' + raw.substring(0, 200));
+            reject(err);
+          }
+        } catch (e) {
+          reject(new Error('Mux parse error: ' + raw.substring(0, 200)));
+        }
+      });
+    });
+    req.on('error', reject);
+    if (data) req.write(data);
+    req.end();
+  });
+}
+
+/* ── Call ai-process-recording ── */
+
 function callAiProcess(sessionId, assetId) {
   return new Promise(function (resolve, reject) {
     var body = JSON.stringify({
@@ -112,7 +239,7 @@ function callAiProcess(sessionId, assetId) {
         'Content-Type': 'application/json',
         'Content-Length': Buffer.byteLength(body)
       },
-      timeout: 300000 // 5 min
+      timeout: 300000
     };
 
     var req = https.request(opts, function (res) {
@@ -127,7 +254,6 @@ function callAiProcess(sessionId, assetId) {
     req.on('error', reject);
     req.on('timeout', function () {
       req.destroy();
-      // Timeout is expected — the AI function runs longer than the HTTP call
       resolve('timeout (expected)');
     });
     req.write(body);
