@@ -50,39 +50,52 @@ exports.handler = async function (event) {
       });
     }
 
-    // ── Manual link mode: hardcoded mappings for sessions that were never linked by webhooks ──
+    // ── Manual link mode: fetches correct playback IDs from Mux API using asset IDs ──
     if (params.link === '1') {
       var manualLinks = [
-        {
-          sessionId: 'fKCXgCU2FwyXWk8UCF1R',
-          assetId: 'WAGBUMO1M101Rovb9qRTV1U8S5LOlBDyPVL2y2miOkGE',
-          playbackId: '00YsBLE8nu5vkFSJyWawE2WdCIRY0EEjFeh87Xe6C3BU'
-        },
-        {
-          sessionId: 'YYDqECjSRemeb9dTRbPK',
-          assetId: 'kuHT5DO2VhICO6EKlbpZPGPO2tGodd8KiMelNWir3ziQ',
-          playbackId: 'CIvPqI2JYzAW4vGM9WWxkk00FAZAVtSGpnax1LobgsmQ'
-        }
+        { sessionId: 'fKCXgCU2FwyXWk8UCF1R', assetId: 'WAGBUMO1M101Rovb9qRTV1U8S5LOlBDyPVL2y2miOkGE' },
+        { sessionId: 'YYDqECjSRemeb9dTRbPK', assetId: 'kuHT5DO2VhICO6EKlbpZPGPO2tGodd8KiMelNWir3ziQ' }
       ];
 
       var linkResults = [];
       for (var m = 0; m < manualLinks.length; m++) {
         var link = manualLinks[m];
         try {
+          // Fetch the asset from Mux to get the correct public playback ID
+          var assetData = await muxRequest('GET', '/video/v1/assets/' + link.assetId);
+          var asset = assetData.data;
+          var playbackId = null;
+          var ids = asset.playback_ids || [];
+          for (var p = 0; p < ids.length; p++) {
+            if (ids[p].policy === 'public') { playbackId = ids[p].id; break; }
+          }
+          if (!playbackId && ids.length) playbackId = ids[0].id;
+
+          if (!playbackId) {
+            linkResults.push({ sessionId: link.sessionId, assetId: link.assetId, status: 'error', error: 'No playback ID found on asset' });
+            continue;
+          }
+
           await updateDoc(COLLECTION, link.sessionId, {
             recordingAssetId: link.assetId,
-            recordingPlaybackId: link.playbackId
+            recordingPlaybackId: playbackId
           });
-          linkResults.push({ sessionId: link.sessionId, status: 'linked', assetId: link.assetId });
-          console.log('[ai-backfill] Manually linked', link.sessionId, '→', link.assetId);
+          linkResults.push({
+            sessionId: link.sessionId,
+            assetId: link.assetId,
+            playbackId: playbackId,
+            playbackPolicy: ids[0] ? ids[0].policy : 'unknown',
+            status: 'linked'
+          });
+          console.log('[ai-backfill] Linked', link.sessionId, '→ asset:', link.assetId, 'playback:', playbackId);
         } catch (err) {
-          linkResults.push({ sessionId: link.sessionId, status: 'error', error: err.message });
+          linkResults.push({ sessionId: link.sessionId, assetId: link.assetId, status: 'error', error: err.message });
         }
       }
 
       return jsonResponse(200, {
         ok: true,
-        message: 'Manual linking complete. Now run without params to trigger AI processing.',
+        message: 'Manual linking complete (playback IDs fetched from Mux API).',
         results: linkResults
       });
     }
