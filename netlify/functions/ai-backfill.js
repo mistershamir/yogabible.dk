@@ -37,6 +37,27 @@ exports.handler = async function (event) {
 
     console.log('[ai-backfill] Found', pending.length, 'recordings to process');
 
+    // Debug mode: show status of all sessions
+    var debug = (event.queryStringParameters || {}).debug === '1';
+    if (debug) {
+      return jsonResponse(200, {
+        ok: true,
+        total: all.length,
+        pending: pending.length,
+        sessions: all.map(function (item) {
+          return {
+            id: item.id,
+            title: item.title_da || item.title_en || '',
+            status: item.status,
+            hasRecording: !!item.recordingAssetId,
+            recordingAssetId: item.recordingAssetId || null,
+            aiStatus: item.aiStatus || null,
+            wouldProcess: item.status === 'ended' && !!item.recordingAssetId && (!item.aiStatus || item.aiStatus === 'error')
+          };
+        })
+      });
+    }
+
     if (pending.length === 0) {
       return jsonResponse(200, { ok: true, message: 'No recordings need processing', total: all.length });
     }
