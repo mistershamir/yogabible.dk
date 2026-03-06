@@ -249,7 +249,7 @@ exports.handler = async function (event) {
     var pending = all.filter(function (item) {
       return item.status === 'ended'
         && item.recordingAssetId
-        && (!item.aiStatus || item.aiStatus === 'error');
+        && (!item.aiStatus || item.aiStatus === 'error' || item.aiStatus === 'captions_pending');
     });
 
     console.log('[ai-backfill] Found', pending.length, 'recordings to process');
