@@ -201,9 +201,10 @@ function sleep(ms) {
 }
 
 async function pollForTrack(assetId, trackId) {
-  // Poll every 15s for up to 4 minutes (16 attempts)
-  for (var attempt = 0; attempt < 16; attempt++) {
-    if (attempt > 0) await sleep(15000);
+  // Poll every 20s for up to 8 minutes (24 attempts)
+  // Long recordings (4-5 hrs) may need more time for Mux caption generation
+  for (var attempt = 0; attempt < 24; attempt++) {
+    if (attempt > 0) await sleep(20000);
 
     try {
       var result = await muxRequest('GET', '/video/v1/assets/' + assetId + '/tracks');
