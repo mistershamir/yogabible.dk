@@ -444,7 +444,7 @@ function triggerAiProcessing(sessionId, assetId) {
     });
 
     var opts = {
-      hostname: 'www.yogabible.dk',
+      hostname: 'yogabible.dk',
       path: '/.netlify/functions/ai-process-recording',
       method: 'POST',
       headers: {
