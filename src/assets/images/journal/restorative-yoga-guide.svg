@@ -1,23 +1,12 @@
 <svg viewBox="0 0 1200 630" xmlns="http://www.w3.org/2000/svg">
   <rect width="1200" height="630" fill="#f5f3f0"/>
-  <defs>
-    <linearGradient id="restoreGrad" x1="0%" y1="50%" x2="100%" y2="50%">
-      <stop offset="0%" style="stop-color:#ff9966;stop-opacity:0.2" />
-      <stop offset="50%" style="stop-color:#f75c03;stop-opacity:0.4" />
-      <stop offset="100%" style="stop-color:#ff9966;stop-opacity:0.2" />
-    </linearGradient>
-  </defs>
-  <!-- Gentle waves representing deep rest -->
-  <path d="M 0 300 Q 150 260 300 300 T 600 300 T 900 300 T 1200 300" stroke="#f75c03" stroke-width="2" fill="none" opacity="0.3"/>
-  <path d="M 0 330 Q 150 290 300 330 T 600 330 T 900 330 T 1200 330" stroke="#ff9966" stroke-width="2" fill="none" opacity="0.25"/>
-  <path d="M 0 360 Q 150 320 300 360 T 600 360 T 900 360 T 1200 360" stroke="#f75c03" stroke-width="1.5" fill="none" opacity="0.2"/>
-  <!-- Soft support shapes (bolsters/props) -->
-  <ellipse cx="300" cy="250" rx="100" ry="30" fill="url(#restoreGrad)" opacity="0.5"/>
-  <ellipse cx="600" cy="220" rx="120" ry="35" fill="url(#restoreGrad)" opacity="0.6"/>
-  <ellipse cx="900" cy="250" rx="100" ry="30" fill="url(#restoreGrad)" opacity="0.5"/>
-  <!-- Resting figure suggestion -->
-  <circle cx="600" cy="180" r="25" fill="#f75c03" opacity="0.3"/>
-  <text x="600" y="560" font-family="Abacaxi, Helvetica, Arial, sans-serif" font-size="30" font-weight="bold" fill="#0f0f0f" text-anchor="middle">
+  <ellipse cx="600" cy="320" rx="180" ry="100" fill="#f75c03" opacity="0.15"/>
+  <path d="M 350 350 Q 400 280 500 280 L 700 280 Q 800 280 850 350 L 800 400 Q 700 420 600 420 Q 500 420 400 400 Z" fill="#ff9966" opacity="0.8"/>
+  <ellipse cx="500" cy="240" rx="50" ry="40" fill="#d94f02" opacity="0.8"/>
+  <path d="M 300 420 L 250 500 L 300 480" fill="#f75c03" opacity="0.7"/>
+  <path d="M 900 420 L 950 500 L 900 480" fill="#f75c03" opacity="0.7"/>
+  <path d="M 600 320 L 580 400" stroke="#d94f02" stroke-width="4" opacity="0.6"/>
+  <text x="600" y="570" font-family="Abacaxi, Helvetica, Arial, sans-serif" font-size="34" font-weight="bold" fill="#0f0f0f" text-anchor="middle">
     Restorative Yoga
   </text>
 </svg>

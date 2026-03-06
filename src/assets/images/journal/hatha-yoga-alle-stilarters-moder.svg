@@ -1,31 +1,11 @@
 <svg viewBox="0 0 1200 630" xmlns="http://www.w3.org/2000/svg">
   <rect width="1200" height="630" fill="#f5f3f0"/>
-  <defs>
-    <linearGradient id="hathaGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" style="stop-color:#f75c03;stop-opacity:0.8" />
-      <stop offset="100%" style="stop-color:#ff9966;stop-opacity:0.3" />
-    </linearGradient>
-  </defs>
-  <!-- Tree of yoga styles branching from center -->
-  <line x1="600" y1="480" x2="600" y2="200" stroke="#f75c03" stroke-width="4" opacity="0.5"/>
-  <!-- Root -->
-  <circle cx="600" cy="480" r="20" fill="#f75c03" opacity="0.6"/>
-  <!-- Branches -->
-  <line x1="600" y1="350" x2="350" y2="200" stroke="#f75c03" stroke-width="2" opacity="0.4"/>
-  <line x1="600" y1="350" x2="850" y2="200" stroke="#f75c03" stroke-width="2" opacity="0.4"/>
-  <line x1="600" y1="280" x2="250" y2="130" stroke="#ff9966" stroke-width="1.5" opacity="0.35"/>
-  <line x1="600" y1="280" x2="950" y2="130" stroke="#ff9966" stroke-width="1.5" opacity="0.35"/>
-  <line x1="600" y1="200" x2="450" y2="80" stroke="#f75c03" stroke-width="1.5" opacity="0.3"/>
-  <line x1="600" y1="200" x2="750" y2="80" stroke="#f75c03" stroke-width="1.5" opacity="0.3"/>
-  <!-- Style nodes -->
-  <circle cx="350" cy="200" r="18" fill="url(#hathaGrad)" opacity="0.7"/>
-  <circle cx="850" cy="200" r="18" fill="url(#hathaGrad)" opacity="0.7"/>
-  <circle cx="250" cy="130" r="14" fill="#ff9966" opacity="0.5"/>
-  <circle cx="950" cy="130" r="14" fill="#ff9966" opacity="0.5"/>
-  <circle cx="450" cy="80" r="14" fill="#f75c03" opacity="0.45"/>
-  <circle cx="750" cy="80" r="14" fill="#f75c03" opacity="0.45"/>
-  <circle cx="600" cy="200" r="22" fill="#f75c03" opacity="0.65"/>
-  <text x="600" y="560" font-family="Abacaxi, Helvetica, Arial, sans-serif" font-size="30" font-weight="bold" fill="#0f0f0f" text-anchor="middle">
-    Hatha Yoga
+  <path d="M 300 450 L 400 200 L 500 300 L 600 150 L 700 300 L 800 200 L 900 450" fill="none" stroke="#d94f02" stroke-width="6" opacity="0.9" stroke-linecap="round"/>
+  <circle cx="400" cy="200" r="35" fill="#f75c03" opacity="0.9"/>
+  <circle cx="600" cy="150" r="35" fill="#ff9966" opacity="0.85"/>
+  <circle cx="800" cy="200" r="35" fill="#f75c03" opacity="0.9"/>
+  <line x1="200" y1="450" x2="1000" y2="450" stroke="#f75c03" stroke-width="5" opacity="0.8"/>
+  <text x="600" y="570" font-family="Abacaxi, Helvetica, Arial, sans-serif" font-size="30" font-weight="bold" fill="#0f0f0f" text-anchor="middle">
+    Hatha: Foundation of All
   </text>
 </svg>

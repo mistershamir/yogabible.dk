@@ -1,37 +1,14 @@
 <svg viewBox="0 0 1200 630" xmlns="http://www.w3.org/2000/svg">
   <rect width="1200" height="630" fill="#f5f3f0"/>
-  <defs>
-    <radialGradient id="calmGrad" cx="50%" cy="45%" r="35%">
-      <stop offset="0%" style="stop-color:#f75c03;stop-opacity:0.3" />
-      <stop offset="100%" style="stop-color:#f5f3f0;stop-opacity:0" />
-    </radialGradient>
-  </defs>
-  <!-- Scattered restless dots that converge to center -->
-  <!-- Outer scattered -->
-  <circle cx="120" cy="80" r="6" fill="#f75c03" opacity="0.2"/>
-  <circle cx="250" cy="150" r="5" fill="#ff9966" opacity="0.25"/>
-  <circle cx="180" cy="300" r="7" fill="#f75c03" opacity="0.2"/>
-  <circle cx="1050" cy="100" r="6" fill="#ff9966" opacity="0.2"/>
-  <circle cx="980" cy="250" r="5" fill="#f75c03" opacity="0.25"/>
-  <circle cx="1080" cy="380" r="7" fill="#ff9966" opacity="0.2"/>
-  <circle cx="300" cy="420" r="5" fill="#f75c03" opacity="0.22"/>
-  <circle cx="900" cy="400" r="6" fill="#ff9966" opacity="0.22"/>
-  <!-- Mid-range converging -->
-  <circle cx="350" cy="200" r="7" fill="#f75c03" opacity="0.3"/>
-  <circle cx="850" cy="180" r="7" fill="#f75c03" opacity="0.3"/>
-  <circle cx="400" cy="350" r="6" fill="#ff9966" opacity="0.35"/>
-  <circle cx="800" cy="330" r="6" fill="#ff9966" opacity="0.35"/>
-  <!-- Inner converging -->
-  <circle cx="480" cy="240" r="8" fill="#f75c03" opacity="0.4"/>
-  <circle cx="720" cy="250" r="8" fill="#f75c03" opacity="0.4"/>
-  <circle cx="520" cy="330" r="7" fill="#ff9966" opacity="0.45"/>
-  <circle cx="680" cy="310" r="7" fill="#ff9966" opacity="0.45"/>
-  <!-- Central calm point -->
-  <circle cx="600" cy="280" r="150" fill="url(#calmGrad)"/>
-  <circle cx="600" cy="280" r="20" fill="#f75c03" opacity="0.6"/>
-  <circle cx="600" cy="280" r="40" fill="none" stroke="#f75c03" stroke-width="1" opacity="0.3"/>
-  <circle cx="600" cy="280" r="65" fill="none" stroke="#f75c03" stroke-width="1" opacity="0.2"/>
-  <text x="600" y="560" font-family="Abacaxi, Helvetica, Arial, sans-serif" font-size="26" font-weight="bold" fill="#0f0f0f" text-anchor="middle">
-    Meditation for Rastløse
+  <circle cx="600" cy="280" r="50" fill="#f75c03" opacity="0.9"/>
+  <ellipse cx="600" cy="360" rx="80" ry="90" fill="#ff9966" opacity="0.8"/>
+  <path d="M 540 360 L 520 480 L 550 470" fill="#d94f02" opacity="0.7"/>
+  <path d="M 660 360 L 680 480 L 650 470" fill="#d94f02" opacity="0.7"/>
+  <path d="M 550 320 L 520 340" stroke="#f75c03" stroke-width="8" opacity="0.8" stroke-linecap="round"/>
+  <path d="M 650 320 L 680 340" stroke="#f75c03" stroke-width="8" opacity="0.8" stroke-linecap="round"/>
+  <circle cx="400" cy="200" r="30" fill="#f75c03" opacity="0.3"/>
+  <circle cx="800" cy="250" r="40" fill="#ff9966" opacity="0.25"/>
+  <text x="600" y="570" font-family="Abacaxi, Helvetica, Arial, sans-serif" font-size="30" font-weight="bold" fill="#0f0f0f" text-anchor="middle">
+    Meditation for Everyone
   </text>
 </svg>

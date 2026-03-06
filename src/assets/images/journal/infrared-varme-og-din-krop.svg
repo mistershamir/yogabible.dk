@@ -1,26 +1,11 @@
 <svg viewBox="0 0 1200 630" xmlns="http://www.w3.org/2000/svg">
   <rect width="1200" height="630" fill="#f5f3f0"/>
-  <defs>
-    <radialGradient id="heatGrad" cx="50%" cy="40%" r="45%">
-      <stop offset="0%" style="stop-color:#f75c03;stop-opacity:0.4" />
-      <stop offset="50%" style="stop-color:#ff9966;stop-opacity:0.15" />
-      <stop offset="100%" style="stop-color:#f5f3f0;stop-opacity:0" />
-    </radialGradient>
-  </defs>
-  <circle cx="600" cy="260" r="250" fill="url(#heatGrad)"/>
-  <!-- Infrared wave rings -->
-  <circle cx="600" cy="260" r="60" fill="none" stroke="#f75c03" stroke-width="2" opacity="0.5"/>
-  <circle cx="600" cy="260" r="100" fill="none" stroke="#f75c03" stroke-width="1.5" opacity="0.4"/>
-  <circle cx="600" cy="260" r="140" fill="none" stroke="#ff9966" stroke-width="1.5" opacity="0.3"/>
-  <circle cx="600" cy="260" r="180" fill="none" stroke="#f75c03" stroke-width="1" opacity="0.2"/>
-  <circle cx="600" cy="260" r="220" fill="none" stroke="#ff9966" stroke-width="1" opacity="0.15"/>
-  <!-- Heat source center -->
-  <circle cx="600" cy="260" r="25" fill="#f75c03" opacity="0.6"/>
-  <!-- Temperature markers -->
-  <text x="380" y="140" font-family="Abacaxi, Helvetica, Arial, sans-serif" font-size="14" fill="#f75c03" opacity="0.4">38°C</text>
-  <text x="310" y="260" font-family="Abacaxi, Helvetica, Arial, sans-serif" font-size="14" fill="#f75c03" opacity="0.35">40°C</text>
-  <text x="850" y="180" font-family="Abacaxi, Helvetica, Arial, sans-serif" font-size="14" fill="#ff9966" opacity="0.3">42°C</text>
-  <text x="600" y="560" font-family="Abacaxi, Helvetica, Arial, sans-serif" font-size="28" font-weight="bold" fill="#0f0f0f" text-anchor="middle">
-    Infrarød Varme &amp; Din Krop
+  <defs><radialGradient id="infraGrad" cx="50%" cy="50%" r="50%"><stop offset="0%" style="stop-color:#ff3333"/><stop offset="100%" style="stop-color:#ff9966"/></radialGradient></defs>
+  <circle cx="600" cy="300" r="130" fill="url(#infraGrad)" opacity="0.3"/>
+  <circle cx="600" cy="300" r="90" fill="url(#infraGrad)" opacity="0.5"/>
+  <circle cx="600" cy="300" r="50" fill="url(#infraGrad)" opacity="0.95"/>
+  <path d="M 500 250 L 480 220 M 550 240 L 540 210 M 600 240 L 600 200 M 650 240 L 660 210 M 700 250 L 720 220" stroke="#d94f02" stroke-width="3" opacity="0.9" stroke-linecap="round"/>
+  <text x="600" y="570" font-family="Abacaxi, Helvetica, Arial, sans-serif" font-size="32" font-weight="bold" fill="#0f0f0f" text-anchor="middle">
+    Infrared Heat
   </text>
 </svg>

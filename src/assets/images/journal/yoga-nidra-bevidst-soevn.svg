@@ -1,29 +1,13 @@
 <svg viewBox="0 0 1200 630" xmlns="http://www.w3.org/2000/svg">
   <rect width="1200" height="630" fill="#f5f3f0"/>
-  <defs>
-    <radialGradient id="nidraGlow" cx="50%" cy="40%" r="40%">
-      <stop offset="0%" style="stop-color:#f75c03;stop-opacity:0.5" />
-      <stop offset="100%" style="stop-color:#ff9966;stop-opacity:0" />
-    </radialGradient>
-  </defs>
-  <!-- Concentric awareness circles -->
-  <circle cx="600" cy="260" r="200" fill="none" stroke="#f75c03" stroke-width="1" opacity="0.15"/>
-  <circle cx="600" cy="260" r="160" fill="none" stroke="#f75c03" stroke-width="1.5" opacity="0.2"/>
-  <circle cx="600" cy="260" r="120" fill="none" stroke="#f75c03" stroke-width="2" opacity="0.3"/>
-  <circle cx="600" cy="260" r="80" fill="none" stroke="#f75c03" stroke-width="2" opacity="0.4"/>
-  <circle cx="600" cy="260" r="40" fill="none" stroke="#f75c03" stroke-width="2.5" opacity="0.5"/>
-  <!-- Central consciousness dot -->
-  <circle cx="600" cy="260" r="12" fill="#f75c03" opacity="0.7"/>
-  <circle cx="600" cy="260" r="250" fill="url(#nidraGlow)"/>
-  <!-- Crescent moon -->
-  <path d="M 900 120 A 60 60 0 1 1 900 240 A 45 45 0 1 0 900 120" fill="#f75c03" opacity="0.25"/>
-  <!-- Stars -->
-  <circle cx="200" cy="100" r="3" fill="#f75c03" opacity="0.4"/>
-  <circle cx="350" cy="150" r="2" fill="#ff9966" opacity="0.35"/>
-  <circle cx="150" cy="200" r="2.5" fill="#f75c03" opacity="0.3"/>
-  <circle cx="1050" cy="180" r="2.5" fill="#f75c03" opacity="0.35"/>
-  <circle cx="1000" cy="100" r="3" fill="#ff9966" opacity="0.3"/>
-  <text x="600" y="560" font-family="Abacaxi, Helvetica, Arial, sans-serif" font-size="30" font-weight="bold" fill="#0f0f0f" text-anchor="middle">
+  <circle cx="600" cy="300" r="180" fill="#f75c03" opacity="0.08"/>
+  <circle cx="600" cy="300" r="140" fill="#f75c03" opacity="0.12"/>
+  <circle cx="600" cy="300" r="100" fill="#f75c03" opacity="0.18"/>
+  <circle cx="600" cy="300" r="60" fill="#d94f02" opacity="0.9"/>
+  <path d="M 520 280 Q 540 260 560 280" fill="none" stroke="#ff9966" stroke-width="3" opacity="0.8" stroke-linecap="round"/>
+  <path d="M 640 280 Q 660 260 680 280" fill="none" stroke="#ff9966" stroke-width="3" opacity="0.8" stroke-linecap="round"/>
+  <path d="M 580 320 Q 600 340 620 320" fill="none" stroke="#f75c03" stroke-width="3" opacity="0.6" stroke-linecap="round"/>
+  <text x="600" y="570" font-family="Abacaxi, Helvetica, Arial, sans-serif" font-size="34" font-weight="bold" fill="#0f0f0f" text-anchor="middle">
     Yoga Nidra
   </text>
 </svg>
