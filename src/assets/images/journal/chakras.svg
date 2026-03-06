@@ -1,0 +1,24 @@
+<svg viewBox="0 0 1200 630" xmlns="http://www.w3.org/2000/svg">
+  <rect width="1200" height="630" fill="#f5f3f0"/>
+  <defs>
+    <linearGradient id="chakraRed" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" style="stop-color:#ff4444"/><stop offset="100%" style="stop-color:#cc0000"/></linearGradient>
+    <linearGradient id="chakraOrange" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" style="stop-color:#ff9966"/><stop offset="100%" style="stop-color:#d94f02"/></linearGradient>
+    <linearGradient id="chakraYellow" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" style="stop-color:#ffdd44"/><stop offset="100%" style="stop-color:#ffaa00"/></linearGradient>
+    <linearGradient id="chakraGreen" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" style="stop-color:#44dd44"/><stop offset="100%" style="stop-color:#00aa00"/></linearGradient>
+    <linearGradient id="chakraBlue" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" style="stop-color:#4488ff"/><stop offset="100%" style="stop-color:#0055dd"/></linearGradient>
+  </defs>
+  <circle cx="600" cy="120" r="45" fill="url(#chakraRed)"/><circle cx="600" cy="120" r="40" fill="url(#chakraRed)" opacity="0.5"/>
+  <circle cx="560" cy="220" r="42" fill="url(#chakraOrange)"/><circle cx="560" cy="220" r="38" fill="url(#chakraOrange)" opacity="0.5"/>
+  <circle cx="640" cy="220" r="42" fill="url(#chakraOrange)"/><circle cx="640" cy="220" r="38" fill="url(#chakraOrange)" opacity="0.5"/>
+  <circle cx="600" cy="300" r="45" fill="url(#chakraYellow)"/><circle cx="600" cy="300" r="40" fill="url(#chakraYellow)" opacity="0.5"/>
+  <circle cx="600" cy="390" r="45" fill="url(#chakraGreen)"/><circle cx="600" cy="390" r="40" fill="url(#chakraGreen)" opacity="0.5"/>
+  <circle cx="560" cy="470" r="40" fill="url(#chakraBlue)"/><circle cx="560" cy="470" r="36" fill="url(#chakraBlue)" opacity="0.5"/>
+  <circle cx="640" cy="470" r="40" fill="url(#chakraBlue)"/><circle cx="640" cy="470" r="36" fill="url(#chakraBlue)" opacity="0.5"/>
+  <line x1="600" y1="165" x2="600" y2="255" stroke="#f75c03" stroke-width="2" opacity="0.6"/>
+  <line x1="590" y1="250" x2="570" y2="405" stroke="#f75c03" stroke-width="2" opacity="0.6"/>
+  <line x1="610" y1="250" x2="630" y2="405" stroke="#f75c03" stroke-width="2" opacity="0.6"/>
+  <line x1="600" y1="345" x2="600" y2="435" stroke="#f75c03" stroke-width="2" opacity="0.6"/>
+  <text x="600" y="570" font-family="Abacaxi, Helvetica, Arial, sans-serif" font-size="36" font-weight="bold" fill="#0f0f0f" text-anchor="middle">
+    The Seven Chakras
+  </text>
+</svg>

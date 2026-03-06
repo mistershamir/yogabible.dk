@@ -1,0 +1,14 @@
+<svg viewBox="0 0 1200 630" xmlns="http://www.w3.org/2000/svg">
+  <rect width="1200" height="630" fill="#f5f3f0"/>
+  <defs><linearGradient id="wheelGrad" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" style="stop-color:#d94f02"/><stop offset="50%" style="stop-color:#f75c03"/><stop offset="100%" style="stop-color:#ff9966"/></linearGradient></defs>
+  <circle cx="600" cy="300" r="140" fill="url(#wheelGrad)" opacity="0.25"/>
+  <path d="M 600 160 Q 680 180 700 260 Q 680 340 600 360 Q 520 340 500 260 Q 520 180 600 160" fill="none" stroke="url(#wheelGrad)" stroke-width="8" opacity="1"/>
+  <circle cx="600" cy="200" r="25" fill="#f75c03" opacity="0.9"/>
+  <circle cx="600" cy="420" r="25" fill="#ff9966" opacity="0.9"/>
+  <circle cx="720" cy="300" r="20" fill="#d94f02" opacity="0.85"/>
+  <circle cx="480" cy="300" r="20" fill="#d94f02" opacity="0.85"/>
+  <path d="M 600 445 L 600 480" stroke="#f75c03" stroke-width="6" opacity="0.8"/>
+  <text x="600" y="570" font-family="Abacaxi, Helvetica, Arial, sans-serif" font-size="32" font-weight="bold" fill="#0f0f0f" text-anchor="middle">
+    Bridge to Wheel
+  </text>
+</svg>

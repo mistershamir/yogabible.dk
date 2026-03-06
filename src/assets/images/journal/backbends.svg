@@ -1,0 +1,12 @@
+<svg viewBox="0 0 1200 630" xmlns="http://www.w3.org/2000/svg">
+  <rect width="1200" height="630" fill="#f5f3f0"/>
+  <defs><linearGradient id="backGrad" x1="0%" y1="100%" x2="100%" y2="0%"><stop offset="0%" style="stop-color:#ff9966"/><stop offset="100%" style="stop-color:#d94f02"/></linearGradient></defs>
+  <circle cx="600" cy="200" r="50" fill="#f75c03" opacity="0.95"/>
+  <path d="M 600 250 Q 550 320 600 400 Q 650 320 600 250" fill="url(#backGrad)" opacity="0.9"/>
+  <path d="M 570 350 L 480 420 M 630 350 L 720 420" stroke="#d94f02" stroke-width="8" opacity="0.85" stroke-linecap="round"/>
+  <ellipse cx="600" cy="450" rx="100" ry="40" fill="#f75c03" opacity="0.3"/>
+  <path d="M 400 450 L 800 450" stroke="#f75c03" stroke-width="5" opacity="0.8"/>
+  <text x="600" y="570" font-family="Abacaxi, Helvetica, Arial, sans-serif" font-size="36" font-weight="bold" fill="#0f0f0f" text-anchor="middle">
+    Backbends without Pain
+  </text>
+</svg>

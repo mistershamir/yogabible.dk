@@ -1,0 +1,9 @@
+<svg viewBox="0 0 1200 630" xmlns="http://www.w3.org/2000/svg">
+  <rect width="1200" height="630" fill="#f5f3f0"/>
+  <line x1="600" y1="100" x2="600" y2="500" stroke="#d94f02" stroke-width="3" opacity="0.5"/>
+  <g id="active"><circle cx="350" cy="200" r="70" fill="#f75c03" opacity="0.2"/><path d="M 280 280 L 280 380 L 320 380 L 320 280" fill="#f75c03" opacity="0.9"/><path d="M 380 280 L 380 380 L 420 380 L 420 280" fill="#f75c03" opacity="0.9"/><text x="350" y="450" font-family="Abacaxi, Arial" font-size="24" font-weight="bold" fill="#0f0f0f" text-anchor="middle">Active</text></g>
+  <g id="passive"><circle cx="850" cy="200" r="70" fill="#ff9966" opacity="0.2"/><path d="M 800 350 Q 850 250 900 350" fill="none" stroke="#ff9966" stroke-width="8" opacity="0.9"/><circle cx="800" cy="350" r="20" fill="#ff9966" opacity="0.85"/><circle cx="900" cy="350" r="20" fill="#ff9966" opacity="0.85"/><text x="850" y="450" font-family="Abacaxi, Arial" font-size="24" font-weight="bold" fill="#0f0f0f" text-anchor="middle">Passive</text></g>
+  <text x="600" y="570" font-family="Abacaxi, Helvetica, Arial, sans-serif" font-size="34" font-weight="bold" fill="#0f0f0f" text-anchor="middle">
+    Active vs Passive
+  </text>
+</svg>

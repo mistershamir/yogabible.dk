@@ -1,0 +1,15 @@
+<svg viewBox="0 0 1200 630" xmlns="http://www.w3.org/2000/svg">
+  <rect width="1200" height="630" fill="#f5f3f0"/>
+  <circle cx="300" cy="250" r="90" fill="#f75c03" opacity="0.15"/>
+  <circle cx="900" cy="250" r="90" fill="#f75c03" opacity="0.15"/>
+  <path d="M 250 300 L 250 150 L 280 180 M 280 180 L 250 150 L 270 160" fill="#d94f02" opacity="0.95"/>
+  <path d="M 350 300 L 350 180 L 380 200" fill="#d94f02" opacity="0.95"/>
+  <path d="M 950 300 L 920 140 L 950 170 M 950 170 L 920 140 L 940 155" fill="#d94f02" opacity="0.95"/>
+  <path d="M 850 300 L 880 180 L 850 200" fill="#d94f02" opacity="0.95"/>
+  <circle cx="300" cy="350" r="50" fill="#ff9966" opacity="0.9"/>
+  <circle cx="900" cy="350" r="50" fill="#ff9966" opacity="0.9"/>
+  <path d="M 200 420 L 1000 420" stroke="#f75c03" stroke-width="5" opacity="0.8"/>
+  <text x="600" y="570" font-family="Abacaxi, Helvetica, Arial, sans-serif" font-size="32" font-weight="bold" fill="#0f0f0f" text-anchor="middle">
+    Arm Balances & Courage
+  </text>
+</svg>

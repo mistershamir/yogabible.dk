@@ -1,0 +1,14 @@
+<svg viewBox="0 0 1200 630" xmlns="http://www.w3.org/2000/svg">
+  <rect width="1200" height="630" fill="#f5f3f0"/>
+  <circle cx="600" cy="180" r="55" fill="#f75c03" opacity="0.95"/>
+  <path d="M 570 235 L 570 380" stroke="#d94f02" stroke-width="8" opacity="0.9"/>
+  <path d="M 630 235 L 630 380" stroke="#d94f02" stroke-width="8" opacity="0.9"/>
+  <path d="M 570 380 L 500 450 M 630 380 L 700 450" stroke="#ff9966" stroke-width="8" opacity="0.85" stroke-linecap="round"/>
+  <circle cx="570" cy="235" r="12" fill="#0f0f0f" opacity="0.4"/>
+  <circle cx="630" cy="235" r="12" fill="#0f0f0f" opacity="0.4"/>
+  <ellipse cx="600" cy="450" rx="120" ry="30" fill="#f75c03" opacity="0.3"/>
+  <line x1="300" y1="450" x2="900" y2="450" stroke="#d94f02" stroke-width="4" opacity="0.8"/>
+  <text x="600" y="570" font-family="Abacaxi, Helvetica, Arial, sans-serif" font-size="36" font-weight="bold" fill="#0f0f0f" text-anchor="middle">
+    Headstand Technique
+  </text>
+</svg>
