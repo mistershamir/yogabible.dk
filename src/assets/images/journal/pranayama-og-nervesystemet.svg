@@ -1,16 +1,74 @@
 <svg viewBox="0 0 1200 630" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <filter id="nerveShadow" x="-50%" y="-50%" width="200%" height="200%">
+      <feDropShadow dx="4" dy="6" stdDeviation="8" flood-opacity="0.35" flood-color="#000"/>
+    </filter>
+    <linearGradient id="breathGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#ff9966;stop-opacity:1"/>
+      <stop offset="100%" style="stop-color:#f75c03;stop-opacity:1"/>
+    </linearGradient>
+  </defs>
+
   <rect width="1200" height="630" fill="#f5f3f0"/>
-  <circle cx="300" cy="250" r="80" fill="#f75c03" opacity="0.2"/>
-  <path d="M 240 250 L 360 250" stroke="#d94f02" stroke-width="5" opacity="0.9"/>
-  <path d="M 300 190 L 300 310" stroke="#d94f02" stroke-width="5" opacity="0.9"/>
-  <circle cx="300" cy="250" r="30" fill="#f75c03" opacity="0.9"/>
-  <g id="nerve-branches">
-    <path d="M 380 220 Q 500 180 600 160" fill="none" stroke="#ff9966" stroke-width="4" opacity="0.85"/>
-    <path d="M 380 280 Q 500 320 600 340" fill="none" stroke="#ff9966" stroke-width="4" opacity="0.85"/>
-    <circle cx="600" cy="160" r="15" fill="#ff9966"/>
-    <circle cx="600" cy="340" r="15" fill="#ff9966"/>
+
+  <circle cx="100" cy="300" r="100" fill="#ff9966" opacity="0.08"/>
+  <circle cx="1100" cy="300" r="130" fill="#f75c03" opacity="0.09"/>
+
+  <!-- Breath/Pranayama center -->
+  <g filter="url(#nerveShadow)">
+    <circle cx="280" cy="300" r="90" fill="url(#breathGrad)" opacity="0.88" stroke="#d94f02" stroke-width="4"/>
+    <circle cx="280" cy="300" r="65" fill="none" stroke="#ffb380" stroke-width="2" opacity="0.5"/>
+    <circle cx="280" cy="300" r="35" fill="#d94f02" opacity="0.92" stroke="#0f0f0f" stroke-width="2"/>
+
+    <!-- Breath symbol (wave) -->
+    <path d="M 250 290 Q 265 275 280 290 Q 295 305 310 290" fill="none" stroke="#ff9966" stroke-width="3" opacity="0.75" stroke-linecap="round"/>
   </g>
-  <text x="600" y="570" font-family="Abacaxi, Helvetica, Arial, sans-serif" font-size="32" font-weight="bold" fill="#0f0f0f" text-anchor="middle">
-    Pranayama & Nervous System
-  </text>
+
+  <!-- Sympathetic nerve pathway (upper) -->
+  <g opacity="0.85" filter="url(#nerveShadow)">
+    <!-- Pathway line -->
+    <path d="M 370 250 Q 550 220 700 180" fill="none" stroke="url(#breathGrad)" stroke-width="6" stroke-linecap="round"/>
+
+    <!-- Branch points -->
+    <circle cx="480" cy="230" r="10" fill="#f75c03" opacity="0.8"/>
+    <circle cx="620" cy="200" r="10" fill="#ff9966" opacity="0.8"/>
+    <circle cx="700" cy="180" r="12" fill="#d94f02" opacity="0.9" stroke="#0f0f0f" stroke-width="2"/>
+
+    <!-- End organ -->
+    <ellipse cx="730" cy="170" rx="40" ry="25" fill="#ff6b6b" opacity="0.6" stroke="#d94f02" stroke-width="2" rx="12"/>
+
+    <!-- Label -->
+    <text x="700" y="145" font-family="Abacaxi, Helvetica, Arial, sans-serif" font-size="13" fill="#d94f02" opacity="0.75" text-anchor="middle">Activation</text>
+  </g>
+
+  <!-- Parasympathetic nerve pathway (lower) -->
+  <g opacity="0.85" filter="url(#nerveShadow)">
+    <!-- Pathway line -->
+    <path d="M 370 350 Q 550 380 700 420" fill="none" stroke="url(#breathGrad)" stroke-width="6" stroke-linecap="round"/>
+
+    <!-- Branch points -->
+    <circle cx="480" cy="370" r="10" fill="#ff9966" opacity="0.8"/>
+    <circle cx="620" cy="400" r="10" fill="#f75c03" opacity="0.8"/>
+    <circle cx="700" cy="420" r="12" fill="#d94f02" opacity="0.9" stroke="#0f0f0f" stroke-width="2"/>
+
+    <!-- End organ -->
+    <ellipse cx="730" cy="430" rx="40" ry="25" fill="#51cf66" opacity="0.6" stroke="#2f9e44" stroke-width="2" rx="12"/>
+
+    <!-- Label -->
+    <text x="700" y="455" font-family="Abacaxi, Helvetica, Arial, sans-serif" font-size="13" fill="#2f9e44" opacity="0.75" text-anchor="middle">Relaxation</text>
+  </g>
+
+  <!-- Central axis line -->
+  <line x1="280" y1="100" x2="280" y2="500" stroke="#0f0f0f" stroke-width="2" opacity="0.15" stroke-linecap="round"/>
+
+  <!-- System labels -->
+  <g opacity="0.75" filter="url(#nerveShadow)">
+    <rect x="480" y="100" width="140" height="40" fill="#ff6b6b" opacity="0.1" rx="6" stroke="#d94f02" stroke-width="2"/>
+    <text x="550" y="127" font-family="Abacaxi, Helvetica, Arial, sans-serif" font-size="14" font-weight="bold" fill="#d94f02" text-anchor="middle">Sympathetic</text>
+
+    <rect x="480" y="480" width="140" height="40" fill="#51cf66" opacity="0.1" rx="6" stroke="#2f9e44" stroke-width="2"/>
+    <text x="550" y="507" font-family="Abacaxi, Helvetica, Arial, sans-serif" font-size="14" font-weight="bold" fill="#2f9e44" text-anchor="middle">Parasympathetic</text>
+  </g>
+
+  <text x="600" y="590" font-family="Abacaxi, Helvetica, Arial, sans-serif" font-size="38" font-weight="bold" fill="#0f0f0f" text-anchor="middle">Pranayama & Nervous System</text>
 </svg>

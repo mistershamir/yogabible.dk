@@ -1,15 +1,74 @@
 <svg viewBox="0 0 1200 630" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <filter id="armShadow" x="-50%" y="-50%" width="200%" height="200%">
+      <feDropShadow dx="4" dy="6" stdDeviation="8" flood-opacity="0.35" flood-color="#000"/>
+    </filter>
+    <linearGradient id="armGrad" x1="0%" y1="100%" x2="0%" y2="0%">
+      <stop offset="0%" style="stop-color:#ff9966;stop-opacity:1"/>
+      <stop offset="100%" style="stop-color:#f75c03;stop-opacity:1"/>
+    </linearGradient>
+    <linearGradient id="strengthGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#f75c03;stop-opacity:1"/>
+      <stop offset="100%" style="stop-color:#d94f02;stop-opacity:1"/>
+    </linearGradient>
+  </defs>
+
   <rect width="1200" height="630" fill="#f5f3f0"/>
-  <circle cx="300" cy="250" r="90" fill="#f75c03" opacity="0.15"/>
-  <circle cx="900" cy="250" r="90" fill="#f75c03" opacity="0.15"/>
-  <path d="M 250 300 L 250 150 L 280 180 M 280 180 L 250 150 L 270 160" fill="#d94f02" opacity="0.95"/>
-  <path d="M 350 300 L 350 180 L 380 200" fill="#d94f02" opacity="0.95"/>
-  <path d="M 950 300 L 920 140 L 950 170 M 950 170 L 920 140 L 940 155" fill="#d94f02" opacity="0.95"/>
-  <path d="M 850 300 L 880 180 L 850 200" fill="#d94f02" opacity="0.95"/>
-  <circle cx="300" cy="350" r="50" fill="#ff9966" opacity="0.9"/>
-  <circle cx="900" cy="350" r="50" fill="#ff9966" opacity="0.9"/>
-  <path d="M 200 420 L 1000 420" stroke="#f75c03" stroke-width="5" opacity="0.8"/>
-  <text x="600" y="570" font-family="Abacaxi, Helvetica, Arial, sans-serif" font-size="32" font-weight="bold" fill="#0f0f0f" text-anchor="middle">
-    Arm Balances & Courage
-  </text>
+
+  <circle cx="150" cy="200" r="110" fill="#ff9966" opacity="0.09"/>
+  <circle cx="1050" cy="400" r="135" fill="#d94f02" opacity="0.08"/>
+
+  <!-- Left figure in arm balance -->
+  <g filter="url(#armShadow)">
+    <!-- Base/foundation circle -->
+    <circle cx="280" cy="380" r="50" fill="url(#strengthGrad)" opacity="0.85" stroke="#0f0f0f" stroke-width="3"/>
+
+    <!-- Left arm reaching up and out -->
+    <line x1="280" y1="330" x2="180" y2="180" stroke="url(#armGrad)" stroke-width="12" stroke-linecap="round" opacity="0.9"/>
+    <circle cx="180" cy="180" r="18" fill="#f75c03" opacity="0.95" stroke="#d94f02" stroke-width="2"/>
+
+    <!-- Right arm support -->
+    <line x1="280" y1="330" x2="320" y2="200" stroke="url(#armGrad)" stroke-width="12" stroke-linecap="round" opacity="0.9"/>
+    <circle cx="320" cy="200" r="18" fill="#ff9966" opacity="0.9" stroke="#d94f02" stroke-width="2"/>
+
+    <!-- Head/body point -->
+    <circle cx="280" cy="300" r="22" fill="#d94f02" opacity="0.92" stroke="#0f0f0f" stroke-width="2"/>
+
+    <!-- Legs up -->
+    <line x1="280" y1="280" x2="260" y2="150" stroke="url(#armGrad)" stroke-width="10" stroke-linecap="round" opacity="0.85"/>
+    <line x1="280" y1="280" x2="300" y2="140" stroke="url(#armGrad)" stroke-width="10" stroke-linecap="round" opacity="0.85"/>
+  </g>
+
+  <!-- Right figure in arm balance (mirrored) -->
+  <g filter="url(#armShadow)">
+    <!-- Base/foundation circle -->
+    <circle cx="920" cy="380" r="50" fill="url(#strengthGrad)" opacity="0.85" stroke="#0f0f0f" stroke-width="3"/>
+
+    <!-- Right arm reaching up and out -->
+    <line x1="920" y1="330" x2="1020" y2="180" stroke="url(#armGrad)" stroke-width="12" stroke-linecap="round" opacity="0.9"/>
+    <circle cx="1020" cy="180" r="18" fill="#f75c03" opacity="0.95" stroke="#d94f02" stroke-width="2"/>
+
+    <!-- Left arm support -->
+    <line x1="920" y1="330" x2="880" y2="200" stroke="url(#armGrad)" stroke-width="12" stroke-linecap="round" opacity="0.9"/>
+    <circle cx="880" cy="200" r="18" fill="#ff9966" opacity="0.9" stroke="#d94f02" stroke-width="2"/>
+
+    <!-- Head/body point -->
+    <circle cx="920" cy="300" r="22" fill="#d94f02" opacity="0.92" stroke="#0f0f0f" stroke-width="2"/>
+
+    <!-- Legs up -->
+    <line x1="920" y1="280" x2="940" y2="150" stroke="url(#armGrad)" stroke-width="10" stroke-linecap="round" opacity="0.85"/>
+    <line x1="920" y1="280" x2="900" y2="140" stroke="url(#armGrad)" stroke-width="10" stroke-linecap="round" opacity="0.85"/>
+  </g>
+
+  <!-- Ground line connecting both -->
+  <line x1="200" y1="430" x2="1000" y2="430" stroke="#0f0f0f" stroke-width="6" opacity="0.4" stroke-linecap="round"/>
+  <line x1="200" y1="435" x2="1000" y2="435" stroke="#f75c03" stroke-width="3" opacity="0.6"/>
+
+  <!-- Energy indicators -->
+  <g opacity="0.7">
+    <line x1="260" y1="100" x2="280" y2="80" stroke="#f75c03" stroke-width="4" stroke-linecap="round"/>
+    <line x1="940" y1="100" x2="920" y2="80" stroke="#f75c03" stroke-width="4" stroke-linecap="round"/>
+  </g>
+
+  <text x="600" y="590" font-family="Abacaxi, Helvetica, Arial, sans-serif" font-size="38" font-weight="bold" fill="#0f0f0f" text-anchor="middle">Arm Balances</text>
 </svg>

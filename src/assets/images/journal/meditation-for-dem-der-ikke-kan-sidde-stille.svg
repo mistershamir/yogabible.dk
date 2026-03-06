@@ -1,14 +1,76 @@
 <svg viewBox="0 0 1200 630" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <filter id="medShadow" x="-50%" y="-50%" width="200%" height="200%">
+      <feDropShadow dx="4" dy="6" stdDeviation="8" flood-opacity="0.35" flood-color="#000"/>
+    </filter>
+    <filter id="medGlow">
+      <feGaussianBlur stdDeviation="4" result="coloredBlur"/>
+      <feMerge><feMergeNode in="coloredBlur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <radialGradient id="medCenter" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" style="stop-color:#ff9966;stop-opacity:1"/>
+      <stop offset="100%" style="stop-color:#f75c03;stop-opacity:1"/>
+    </radialGradient>
+  </defs>
+
   <rect width="1200" height="630" fill="#f5f3f0"/>
-  <circle cx="600" cy="280" r="50" fill="#f75c03" opacity="0.9"/>
-  <ellipse cx="600" cy="360" rx="80" ry="90" fill="#ff9966" opacity="0.8"/>
-  <path d="M 540 360 L 520 480 L 550 470" fill="#d94f02" opacity="0.7"/>
-  <path d="M 660 360 L 680 480 L 650 470" fill="#d94f02" opacity="0.7"/>
-  <path d="M 550 320 L 520 340" stroke="#f75c03" stroke-width="8" opacity="0.8" stroke-linecap="round"/>
-  <path d="M 650 320 L 680 340" stroke="#f75c03" stroke-width="8" opacity="0.8" stroke-linecap="round"/>
-  <circle cx="400" cy="200" r="30" fill="#f75c03" opacity="0.3"/>
-  <circle cx="800" cy="250" r="40" fill="#ff9966" opacity="0.25"/>
-  <text x="600" y="570" font-family="Abacaxi, Helvetica, Arial, sans-serif" font-size="30" font-weight="bold" fill="#0f0f0f" text-anchor="middle">
-    Meditation for Everyone
-  </text>
+
+  <circle cx="120" cy="200" r="110" fill="#f75c03" opacity="0.08"/>
+  <circle cx="1080" cy="450" r="140" fill="#ff9966" opacity="0.09"/>
+
+  <!-- Seated meditation figure -->
+  <g filter="url(#medShadow)">
+    <!-- Head -->
+    <circle cx="600" cy="150" r="35" fill="url(#medCenter)" opacity="0.93" stroke="#d94f02" stroke-width="3"/>
+
+    <!-- Torso -->
+    <ellipse cx="600" cy="260" rx="55" ry="80" fill="url(#medCenter)" opacity="0.88" stroke="#d94f02" stroke-width="3"/>
+
+    <!-- Left leg -->
+    <path d="M 570 340 Q 530 380 520 440" stroke="#ff9966" stroke-width="14" stroke-linecap="round" opacity="0.85" fill="none"/>
+    <circle cx="520" cy="440" r="16" fill="#d94f02" opacity="0.88" stroke="#0f0f0f" stroke-width="2"/>
+
+    <!-- Right leg -->
+    <path d="M 630 340 Q 670 380 680 440" stroke="#ff9966" stroke-width="14" stroke-linecap="round" opacity="0.85" fill="none"/>
+    <circle cx="680" cy="440" r="16" fill="#d94f02" opacity="0.88" stroke="#0f0f0f" stroke-width="2"/>
+
+    <!-- Left hand on lap -->
+    <circle cx="565" cy="310" r="13" fill="#ff9966" opacity="0.85" stroke="#d94f02" stroke-width="2"/>
+
+    <!-- Right hand on lap -->
+    <circle cx="635" cy="310" r="13" fill="#ff9966" opacity="0.85" stroke="#d94f02" stroke-width="2"/>
+
+    <!-- Serene expression -->
+    <circle cx="585" cy="140" r="5" fill="#0f0f0f" opacity="0.5"/>
+    <circle cx="615" cy="140" r="5" fill="#0f0f0f" opacity="0.5"/>
+  </g>
+
+  <!-- Calm radiating circles -->
+  <g filter="url(#medGlow)" opacity="0.6">
+    <circle cx="600" cy="290" r="100" fill="none" stroke="#f75c03" stroke-width="2" stroke-dasharray="8,6"/>
+    <circle cx="600" cy="290" r="140" fill="none" stroke="#ff9966" stroke-width="2" stroke-dasharray="6,4"/>
+    <circle cx="600" cy="290" r="180" fill="none" stroke="#d94f02" stroke-width="2" stroke-dasharray="10,8" opacity="0.4"/>
+  </g>
+
+  <!-- Meditation elements surrounding -->
+  <g filter="url(#medShadow)" opacity="0.8">
+    <!-- Left element -->
+    <circle cx="250" cy="220" r="45" fill="url(#medCenter)" opacity="0.7" stroke="#f75c03" stroke-width="2" stroke-dasharray="6,4"/>
+    <circle cx="250" cy="220" r="30" fill="none" stroke="#d94f02" stroke-width="2"/>
+    <circle cx="250" cy="220" r="15" fill="#ff9966" opacity="0.8"/>
+
+    <!-- Right element -->
+    <circle cx="950" cy="280" r="45" fill="url(#medCenter)" opacity="0.7" stroke="#f75c03" stroke-width="2" stroke-dasharray="6,4"/>
+    <circle cx="950" cy="280" r="30" fill="none" stroke="#d94f02" stroke-width="2"/>
+    <circle cx="950" cy="280" r="15" fill="#ff9966" opacity="0.8"/>
+
+    <!-- Top element -->
+    <circle cx="600" cy="70" r="40" fill="url(#medCenter)" opacity="0.65" stroke="#d94f02" stroke-width="2"/>
+    <circle cx="600" cy="70" r="25" fill="none" stroke="#ff9966" stroke-width="2" opacity="0.6"/>
+  </g>
+
+  <!-- Peaceful aura base -->
+  <ellipse cx="600" cy="460" rx="140" ry="35" fill="#f75c03" opacity="0.2" stroke="#d94f02" stroke-width="2" filter="url(#medShadow)"/>
+
+  <text x="600" y="590" font-family="Abacaxi, Helvetica, Arial, sans-serif" font-size="38" font-weight="bold" fill="#0f0f0f" text-anchor="middle">Meditation for Everyone</text>
 </svg>

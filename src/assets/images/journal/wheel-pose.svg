@@ -1,14 +1,91 @@
 <svg viewBox="0 0 1200 630" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <filter id="wheelShadow" x="-50%" y="-50%" width="200%" height="200%">
+      <feDropShadow dx="4" dy="6" stdDeviation="8" flood-opacity="0.35" flood-color="#000"/>
+    </filter>
+    <linearGradient id="wheelProgGrad" x1="0%" y1="100%" x2="0%" y2="0%">
+      <stop offset="0%" style="stop-color:#ff9966;stop-opacity:1"/>
+      <stop offset="50%" style="stop-color:#f75c03;stop-opacity:1"/>
+      <stop offset="100%" style="stop-color:#d94f02;stop-opacity:1"/>
+    </linearGradient>
+    <linearGradient id="progLine" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#f75c03;stop-opacity:0.9"/>
+      <stop offset="100%" style="stop-color:#d94f02;stop-opacity:0.9"/>
+    </linearGradient>
+  </defs>
+
   <rect width="1200" height="630" fill="#f5f3f0"/>
-  <defs><linearGradient id="wheelGrad" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" style="stop-color:#d94f02"/><stop offset="50%" style="stop-color:#f75c03"/><stop offset="100%" style="stop-color:#ff9966"/></linearGradient></defs>
-  <circle cx="600" cy="300" r="140" fill="url(#wheelGrad)" opacity="0.25"/>
-  <path d="M 600 160 Q 680 180 700 260 Q 680 340 600 360 Q 520 340 500 260 Q 520 180 600 160" fill="none" stroke="url(#wheelGrad)" stroke-width="8" opacity="1"/>
-  <circle cx="600" cy="200" r="25" fill="#f75c03" opacity="0.9"/>
-  <circle cx="600" cy="420" r="25" fill="#ff9966" opacity="0.9"/>
-  <circle cx="720" cy="300" r="20" fill="#d94f02" opacity="0.85"/>
-  <circle cx="480" cy="300" r="20" fill="#d94f02" opacity="0.85"/>
-  <path d="M 600 445 L 600 480" stroke="#f75c03" stroke-width="6" opacity="0.8"/>
-  <text x="600" y="570" font-family="Abacaxi, Helvetica, Arial, sans-serif" font-size="32" font-weight="bold" fill="#0f0f0f" text-anchor="middle">
-    Bridge to Wheel
-  </text>
+
+  <circle cx="150" cy="300" r="110" fill="#f75c03" opacity="0.08"/>
+  <circle cx="1050" cy="200" r="130" fill="#ff9966" opacity="0.09"/>
+
+  <!-- Left: Bridge pose -->
+  <g filter="url(#wheelShadow)">
+    <!-- Head -->
+    <circle cx="280" cy="150" r="22" fill="#ff9966" opacity="0.92" stroke="#d94f02" stroke-width="2"/>
+
+    <!-- Back curve (gentle) -->
+    <path d="M 280 172 Q 270 240 280 300" fill="url(#wheelProgGrad)" opacity="0.85" stroke="#d94f02" stroke-width="4"/>
+
+    <!-- Arms -->
+    <line x1="265" y1="200" x2="220" y2="280" stroke="#ff9966" stroke-width="12" stroke-linecap="round" opacity="0.88"/>
+    <line x1="295" y1="200" x2="340" y2="280" stroke="#ff9966" stroke-width="12" stroke-linecap="round" opacity="0.88"/>
+    <circle cx="220" cy="280" r="14" fill="#f75c03" opacity="0.85"/>
+    <circle cx="340" cy="280" r="14" fill="#f75c03" opacity="0.85"/>
+
+    <!-- Left leg -->
+    <line x1="270" y1="300" x2="250" y2="400" stroke="#ff9966" stroke-width="13" stroke-linecap="round" opacity="0.86"/>
+    <circle cx="250" cy="400" r="15" fill="#d94f02" opacity="0.88"/>
+
+    <!-- Right leg -->
+    <line x1="290" y1="300" x2="310" y2="400" stroke="#ff9966" stroke-width="13" stroke-linecap="round" opacity="0.86"/>
+    <circle cx="310" cy="400" r="15" fill="#d94f02" opacity="0.88"/>
+
+    <!-- Step 1 label -->
+    <rect x="180" y="440" width="200" height="40" fill="#ff9966" opacity="0.2" rx="6" stroke="#f75c03" stroke-width="2"/>
+    <text x="280" y="467" font-family="Abacaxi, Helvetica, Arial, sans-serif" font-size="18" font-weight="bold" fill="#0f0f0f" text-anchor="middle">Bridge Pose</text>
+  </g>
+
+  <!-- Progress arrow -->
+  <g opacity="0.75" filter="url(#wheelShadow)">
+    <path d="M 420 300 L 500 300" stroke="url(#progLine)" stroke-width="8" stroke-linecap="round"/>
+    <polygon points="510,300 480,285 490,300 480,315" fill="#d94f02" opacity="0.9"/>
+  </g>
+
+  <!-- Right: Wheel pose -->
+  <g filter="url(#wheelShadow)">
+    <!-- Head -->
+    <circle cx="920" cy="140" r="22" fill="#d94f02" opacity="0.92" stroke="#0f0f0f" stroke-width="2"/>
+
+    <!-- Dramatic back curve (intense) -->
+    <path d="M 920 162 Q 880 220 900 310 Q 920 360 960 350" fill="url(#wheelProgGrad)" opacity="0.92" stroke="#0f0f0f" stroke-width="4"/>
+
+    <!-- Arms extended back -->
+    <line x1="910" y1="200" x2="850" y2="260" stroke="#d94f02" stroke-width="14" stroke-linecap="round" opacity="0.9"/>
+    <line x1="930" y1="200" x2="990" y2="260" stroke="#d94f02" stroke-width="14" stroke-linecap="round" opacity="0.9"/>
+    <circle cx="850" cy="260" r="15" fill="#f75c03" opacity="0.88"/>
+    <circle cx="990" cy="260" r="15" fill="#f75c03" opacity="0.88"/>
+
+    <!-- Left leg - lifted dynamic -->
+    <line x1="900" y1="330" x2="860" y2="420" stroke="#d94f02" stroke-width="14" stroke-linecap="round" opacity="0.9"/>
+    <circle cx="860" cy="420" r="16" fill="#ff9966" opacity="0.9"/>
+
+    <!-- Right leg - lifted dynamic -->
+    <line x1="940" y1="330" x2="980" y2="420" stroke="#d94f02" stroke-width="14" stroke-linecap="round" opacity="0.9"/>
+    <circle cx="980" cy="420" r="16" fill="#ff9966" opacity="0.9"/>
+
+    <!-- Energy indicators -->
+    <circle cx="880" cy="180" r="6" fill="#f75c03" opacity="0.8"/>
+    <circle cx="960" cy="180" r="6" fill="#f75c03" opacity="0.8"/>
+
+    <!-- Step 2 label -->
+    <rect x="820" y="440" width="200" height="40" fill="#d94f02" opacity="0.2" rx="6" stroke="#0f0f0f" stroke-width="2"/>
+    <text x="920" y="467" font-family="Abacaxi, Helvetica, Arial, sans-serif" font-size="18" font-weight="bold" fill="#0f0f0f" text-anchor="middle">Wheel Pose</text>
+  </g>
+
+  <!-- Central aura circle showing progression -->
+  <circle cx="600" cy="290" r="180" fill="none" stroke="url(#progLine)" stroke-width="2" opacity="0.4" stroke-dasharray="10,8"/>
+  <circle cx="600" cy="290" r="160" fill="none" stroke="#f75c03" stroke-width="1" opacity="0.2" stroke-dasharray="8,6"/>
+
+  <text x="600" y="590" font-family="Abacaxi, Helvetica, Arial, sans-serif" font-size="38" font-weight="bold" fill="#0f0f0f" text-anchor="middle">Bridge to Wheel</text>
 </svg>
