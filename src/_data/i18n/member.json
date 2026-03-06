@@ -95,6 +95,10 @@
     "user_card_admin_content_desc": "Rediger sider, journal og indhold",
     "user_card_admin_users_title": "Brugeradministration",
     "user_card_admin_users_desc": "Administrer roller og tilladelser",
+    "user_teacher_tools_eyebrow": "Underviserværktøjer",
+    "user_teacher_tools_title": "Dit underviserstudio",
+    "user_card_teacher_studio_title": "Underviserstudio",
+    "user_card_teacher_studio_desc": "Stream direkte til studerende fra dit eget kamera",
 
     "role_badge_member": "Medlem",
     "role_badge_trainee": "Yogalærer-studerende",
@@ -252,6 +256,10 @@
     "user_card_admin_content_desc": "Edit pages, journal, and content",
     "user_card_admin_users_title": "User Management",
     "user_card_admin_users_desc": "Manage roles and permissions",
+    "user_teacher_tools_eyebrow": "Teacher Tools",
+    "user_teacher_tools_title": "Your teaching studio",
+    "user_card_teacher_studio_title": "Teacher Studio",
+    "user_card_teacher_studio_desc": "Stream live to students from your own camera",
 
     "role_badge_member": "Member",
     "role_badge_trainee": "Teacher Trainee",
