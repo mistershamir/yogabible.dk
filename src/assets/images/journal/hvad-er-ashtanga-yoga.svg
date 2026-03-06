@@ -1,25 +1,86 @@
 <svg viewBox="0 0 1200 630" xmlns="http://www.w3.org/2000/svg">
-  <rect width="1200" height="630" fill="#f5f3f0"/>
   <defs>
-    <linearGradient id="ashtangaGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" style="stop-color:#f75c03;stop-opacity:0.9" />
-      <stop offset="100%" style="stop-color:#ff9966;stop-opacity:0.4" />
-    </linearGradient>
+    <filter id="mandala-shadow" x="-50%" y="-50%" width="200%" height="200%">
+      <feDropShadow dx="4" dy="6" stdDeviation="8" flood-opacity="0.35" flood-color="#000"/>
+    </filter>
+    <filter id="mandala-glow">
+      <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
+      <feMerge><feMergeNode in="coloredBlur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <radialGradient id="mandalaCore" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" style="stop-color:#ff9966;stop-opacity:1"/>
+      <stop offset="100%" style="stop-color:#f75c03;stop-opacity:1"/>
+    </radialGradient>
+    <radialGradient id="mandalaMid" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" style="stop-color:#f75c03;stop-opacity:1"/>
+      <stop offset="100%" style="stop-color:#d94f02;stop-opacity:1"/>
+    </radialGradient>
   </defs>
-  <!-- 8 limbs represented as 8 ascending circles -->
-  <circle cx="100" cy="420" r="35" fill="url(#ashtangaGrad)" opacity="0.4"/>
-  <circle cx="240" cy="380" r="35" fill="url(#ashtangaGrad)" opacity="0.5"/>
-  <circle cx="380" cy="340" r="35" fill="url(#ashtangaGrad)" opacity="0.55"/>
-  <circle cx="520" cy="290" r="35" fill="url(#ashtangaGrad)" opacity="0.6"/>
-  <circle cx="660" cy="240" r="35" fill="url(#ashtangaGrad)" opacity="0.65"/>
-  <circle cx="800" cy="190" r="35" fill="url(#ashtangaGrad)" opacity="0.7"/>
-  <circle cx="940" cy="140" r="35" fill="url(#ashtangaGrad)" opacity="0.8"/>
-  <circle cx="1080" cy="90" r="35" fill="#f75c03" opacity="0.85"/>
-  <polyline points="100,420 240,380 380,340 520,290 660,240 800,190 940,140 1080,90"
-        stroke="#f75c03" stroke-width="2.5" fill="none" opacity="0.5" stroke-linecap="round"/>
-  <!-- Subtle mat line at bottom -->
-  <rect x="80" y="470" width="1040" height="4" rx="2" fill="#f75c03" opacity="0.2"/>
-  <text x="600" y="560" font-family="Abacaxi, Helvetica, Arial, sans-serif" font-size="30" font-weight="bold" fill="#0f0f0f" text-anchor="middle">
-    Ashtanga Yoga
-  </text>
+
+  <rect width="1200" height="630" fill="#f5f3f0"/>
+
+  <circle cx="100" cy="300" r="100" fill="#f75c03" opacity="0.08"/>
+  <circle cx="1100" cy="300" r="130" fill="#ff9966" opacity="0.09"/>
+
+  <!-- Left mandala: Ashtanga flow cycle -->
+  <g filter="url(#mandala-shadow)">
+    <!-- Outer petals -->
+    <circle cx="300" cy="150" r="35" fill="url(#mandalaCore)" opacity="0.9" stroke="#d94f02" stroke-width="3"/>
+    <circle cx="400" cy="150" r="35" fill="url(#mandalaCore)" opacity="0.88" stroke="#d94f02" stroke-width="3"/>
+    <circle cx="450" cy="200" r="35" fill="url(#mandalaMid)" opacity="0.88" stroke="#0f0f0f" stroke-width="3"/>
+    <circle cx="450" cy="300" r="35" fill="url(#mandalaMid)" opacity="0.9" stroke="#0f0f0f" stroke-width="3"/>
+    <circle cx="400" cy="350" r="35" fill="url(#mandalaCore)" opacity="0.88" stroke="#d94f02" stroke-width="3"/>
+    <circle cx="300" cy="350" r="35" fill="url(#mandalaCore)" opacity="0.9" stroke="#d94f02" stroke-width="3"/>
+    <circle cx="250" cy="300" r="35" fill="url(#mandalaMid)" opacity="0.88" stroke="#0f0f0f" stroke-width="3"/>
+    <circle cx="250" cy="200" r="35" fill="url(#mandalaMid)" opacity="0.9" stroke="#0f0f0f" stroke-width="3"/>
+
+    <!-- Inner circles -->
+    <circle cx="350" cy="250" r="50" fill="url(#mandalaCore)" opacity="0.92" stroke="#d94f02" stroke-width="3"/>
+    <circle cx="350" cy="250" r="35" fill="url(#mandalaMid)" opacity="0.85" stroke="#f75c03" stroke-width="2" opacity="0.6"/>
+    <circle cx="350" cy="250" r="20" fill="#ff9966" opacity="0.95" stroke="#d94f02" stroke-width="2"/>
+
+    <!-- Connecting lines -->
+    <circle cx="350" cy="250" r="70" fill="none" stroke="#f75c03" stroke-width="2" opacity="0.5" stroke-dasharray="8,5"/>
+    <circle cx="350" cy="250" r="90" fill="none" stroke="#d94f02" stroke-width="2" opacity="0.4" stroke-dasharray="6,4"/>
+  </g>
+
+  <!-- Center flow arrow -->
+  <g opacity="0.65" filter="url(#mandala-shadow)" stroke="#f75c03" stroke-width="6" fill="none" stroke-linecap="round">
+    <path d="M 480 250 L 550 250"/>
+    <polygon points="560,250 535,235 540,250 535,265" fill="#f75c03" opacity="0.9"/>
+  </g>
+
+  <!-- Right mandala: Breath cycle -->
+  <g filter="url(#mandala-shadow)">
+    <!-- Breathing flow circles -->
+    <circle cx="650" cy="200" r="40" fill="url(#mandalaCore)" opacity="0.88" stroke="#d94f02" stroke-width="3"/>
+    <circle cx="750" cy="200" r="40" fill="url(#mandalaCore)" opacity="0.88" stroke="#d94f02" stroke-width="3"/>
+    <circle cx="800" cy="250" r="40" fill="url(#mandalaMid)" opacity="0.88" stroke="#0f0f0f" stroke-width="3"/>
+    <circle cx="750" cy="300" r="40" fill="url(#mandalaMid)" opacity="0.9" stroke="#0f0f0f" stroke-width="3"/>
+    <circle cx="650" cy="300" r="40" fill="url(#mandalaCore)" opacity="0.88" stroke="#d94f02" stroke-width="3"/>
+    <circle cx="600" cy="250" r="40" fill="url(#mandalaCore)" opacity="0.92" stroke="#d94f02" stroke-width="3"/>
+
+    <!-- Center breath hub -->
+    <circle cx="700" cy="250" r="55" fill="url(#mandalaCore)" opacity="0.9" stroke="#0f0f0f" stroke-width="3"/>
+    <circle cx="700" cy="250" r="40" fill="url(#mandalaMid)" opacity="0.85" stroke="#ff9966" stroke-width="2" opacity="0.6"/>
+    <circle cx="700" cy="250" r="22" fill="#ff9966" opacity="0.95" stroke="#d94f02" stroke-width="2"/>
+
+    <!-- Breathing wave indicators -->
+    <path d="M 650 180 Q 700 160 750 180" fill="none" stroke="#f75c03" stroke-width="3" opacity="0.7" stroke-linecap="round"/>
+    <path d="M 750 320 Q 700 340 650 320" fill="none" stroke="#d94f02" stroke-width="3" opacity="0.7" stroke-linecap="round"/>
+
+    <!-- Outer ring -->
+    <circle cx="700" cy="250" r="80" fill="none" stroke="#f75c03" stroke-width="2" opacity="0.4" stroke-dasharray="8,5"/>
+  </g>
+
+  <!-- Label badges -->
+  <g opacity="0.85" filter="url(#mandala-shadow)">
+    <rect x="240" y="380" width="220" height="45" fill="#ff9966" opacity="0.15" rx="8" stroke="#f75c03" stroke-width="2"/>
+    <text x="350" y="412" font-family="Abacaxi, Helvetica, Arial, sans-serif" font-size="20" font-weight="bold" fill="#0f0f0f" text-anchor="middle">Ashtanga Flow</text>
+
+    <rect x="740" y="380" width="220" height="45" fill="#d94f02" opacity="0.15" rx="8" stroke="#d94f02" stroke-width="2"/>
+    <text x="850" y="412" font-family="Abacaxi, Helvetica, Arial, sans-serif" font-size="20" font-weight="bold" fill="#0f0f0f" text-anchor="middle">Breath Cycle</text>
+  </g>
+
+  <text x="600" y="590" font-family="Abacaxi, Helvetica, Arial, sans-serif" font-size="38" font-weight="bold" fill="#0f0f0f" text-anchor="middle">What is Ashtanga Yoga</text>
 </svg>

@@ -1,29 +1,79 @@
 <svg viewBox="0 0 1200 630" xmlns="http://www.w3.org/2000/svg">
-  <rect width="1200" height="630" fill="#f5f3f0"/>
   <defs>
-    <radialGradient id="nidraGlow" cx="50%" cy="40%" r="40%">
-      <stop offset="0%" style="stop-color:#f75c03;stop-opacity:0.5" />
-      <stop offset="100%" style="stop-color:#ff9966;stop-opacity:0" />
+    <filter id="nidra-shadow" x="-50%" y="-50%" width="200%" height="200%">
+      <feDropShadow dx="4" dy="6" stdDeviation="8" flood-opacity="0.35" flood-color="#000"/>
+    </filter>
+    <filter id="nidra-glow">
+      <feGaussianBlur stdDeviation="5" result="coloredBlur"/>
+      <feMerge><feMergeNode in="coloredBlur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <radialGradient id="nidraAware" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" style="stop-color:#ff9966;stop-opacity:1"/>
+      <stop offset="100%" style="stop-color:#f75c03;stop-opacity:0.8"/>
     </radialGradient>
   </defs>
-  <!-- Concentric awareness circles -->
-  <circle cx="600" cy="260" r="200" fill="none" stroke="#f75c03" stroke-width="1" opacity="0.15"/>
-  <circle cx="600" cy="260" r="160" fill="none" stroke="#f75c03" stroke-width="1.5" opacity="0.2"/>
-  <circle cx="600" cy="260" r="120" fill="none" stroke="#f75c03" stroke-width="2" opacity="0.3"/>
-  <circle cx="600" cy="260" r="80" fill="none" stroke="#f75c03" stroke-width="2" opacity="0.4"/>
-  <circle cx="600" cy="260" r="40" fill="none" stroke="#f75c03" stroke-width="2.5" opacity="0.5"/>
-  <!-- Central consciousness dot -->
-  <circle cx="600" cy="260" r="12" fill="#f75c03" opacity="0.7"/>
-  <circle cx="600" cy="260" r="250" fill="url(#nidraGlow)"/>
-  <!-- Crescent moon -->
-  <path d="M 900 120 A 60 60 0 1 1 900 240 A 45 45 0 1 0 900 120" fill="#f75c03" opacity="0.25"/>
-  <!-- Stars -->
-  <circle cx="200" cy="100" r="3" fill="#f75c03" opacity="0.4"/>
-  <circle cx="350" cy="150" r="2" fill="#ff9966" opacity="0.35"/>
-  <circle cx="150" cy="200" r="2.5" fill="#f75c03" opacity="0.3"/>
-  <circle cx="1050" cy="180" r="2.5" fill="#f75c03" opacity="0.35"/>
-  <circle cx="1000" cy="100" r="3" fill="#ff9966" opacity="0.3"/>
-  <text x="600" y="560" font-family="Abacaxi, Helvetica, Arial, sans-serif" font-size="30" font-weight="bold" fill="#0f0f0f" text-anchor="middle">
-    Yoga Nidra
-  </text>
+
+  <rect width="1200" height="630" fill="#f5f3f0"/>
+
+  <circle cx="120" cy="250" r="110" fill="#f75c03" opacity="0.08"/>
+  <circle cx="1080" cy="400" r="140" fill="#ff9966" opacity="0.09"/>
+
+  <!-- Consciousness layers - expanding aura -->
+  <g filter="url(#nidra-glow)" opacity="0.7">
+    <!-- Outermost: Awake layer -->
+    <circle cx="600" cy="300" r="200" fill="none" stroke="#d94f02" stroke-width="3" stroke-dasharray="12,8" opacity="0.3"/>
+    <text x="750" y="305" font-family="Abacaxi, Helvetica, Arial, sans-serif" font-size="14" fill="#d94f02" opacity="0.6">Awake</text>
+
+    <!-- Layer 2: Dreaming -->
+    <circle cx="600" cy="300" r="155" fill="none" stroke="#f75c03" stroke-width="3" stroke-dasharray="10,7" opacity="0.5"/>
+    <text x="680" y="195" font-family="Abacaxi, Helvetica, Arial, sans-serif" font-size="14" fill="#f75c03" opacity="0.6">Dreaming</text>
+
+    <!-- Layer 3: Deep sleep -->
+    <circle cx="600" cy="300" r="110" fill="none" stroke="#ff9966" stroke-width="3" stroke-dasharray="8,6" opacity="0.65"/>
+    <text x="630" y="120" font-family="Abacaxi, Helvetica, Arial, sans-serif" font-size="14" fill="#ff9966" opacity="0.7">Deep Sleep</text>
+
+    <!-- Layer 4: Pure consciousness -->
+    <circle cx="600" cy="300" r="65" fill="url(#nidraAware)" opacity="0.9" stroke="#0f0f0f" stroke-width="2"/>
+    <text x="600" y="308" font-family="Abacaxi, Helvetica, Arial, sans-serif" font-size="12" fill="#0f0f0f" text-anchor="middle" opacity="0.7">Awareness</text>
+  </g>
+
+  <!-- Sleeping figure at center -->
+  <g filter="url(#nidra-shadow)" opacity="0.85">
+    <!-- Head on pillow -->
+    <circle cx="480" cy="320" r="30" fill="#ff9966" opacity="0.92" stroke="#d94f02" stroke-width="3"/>
+    <ellipse cx="460" cy="340" rx="50" ry="30" fill="#d94f02" opacity="0.85" stroke="#f75c03" stroke-width="2" rx="15"/>
+
+    <!-- Body reclined -->
+    <ellipse cx="580" cy="340" rx="80" ry="50" fill="#ff9966" opacity="0.88" stroke="#d94f02" stroke-width="3"/>
+
+    <!-- Legs relaxed -->
+    <line x1="640" y1="360" x2="720" y2="380" stroke="#f75c03" stroke-width="12" stroke-linecap="round" opacity="0.85"/>
+
+    <!-- Left hand -->
+    <circle cx="520" cy="330" r="12" fill="#f75c03" opacity="0.85"/>
+
+    <!-- Peaceful expression (closed eyes) -->
+    <line x1="470" y1="315" x2="490" y2="315" stroke="#0f0f0f" stroke-width="2" opacity="0.6"/>
+  </g>
+
+  <!-- Moon and stars to indicate sleep -->
+  <g filter="url(#nidra-shadow)" opacity="0.75">
+    <!-- Moon -->
+    <circle cx="950" cy="180" r="35" fill="#f75c03" opacity="0.85" stroke="#d94f02" stroke-width="2"/>
+    <circle cx="960" cy="175" r="35" fill="#f5f3f0" opacity="1"/>
+
+    <!-- Stars around moon -->
+    <circle cx="900" cy="120" r="4" fill="#d94f02" opacity="0.8"/>
+    <circle cx="1000" cy="130" r="4" fill="#ff9966" opacity="0.75"/>
+    <circle cx="920" cy="220" r="3" fill="#f75c03" opacity="0.7"/>
+    <circle cx="1020" cy="210" r="3" fill="#d94f02" opacity="0.7"/>
+  </g>
+
+  <!-- Brainwave indicators -->
+  <g opacity="0.6" filter="url(#nidra-shadow)" stroke="#f75c03" stroke-width="3" fill="none" stroke-linecap="round">
+    <path d="M 200 470 Q 230 450 260 470 Q 290 490 320 470" stroke-dasharray="5,3"/>
+    <path d="M 880 470 Q 910 450 940 470 Q 970 490 1000 470" stroke-dasharray="5,3"/>
+  </g>
+
+  <text x="600" y="590" font-family="Abacaxi, Helvetica, Arial, sans-serif" font-size="38" font-weight="bold" fill="#0f0f0f" text-anchor="middle">Yoga Nidra</text>
 </svg>

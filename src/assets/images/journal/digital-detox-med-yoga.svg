@@ -1,25 +1,14 @@
 <svg viewBox="0 0 1200 630" xmlns="http://www.w3.org/2000/svg">
   <rect width="1200" height="630" fill="#f5f3f0"/>
-  <!-- Phone/screen shape (crossed out) -->
-  <rect x="250" y="120" width="140" height="240" rx="12" fill="none" stroke="#6F6A66" stroke-width="2" opacity="0.25"/>
-  <line x1="250" y1="120" x2="390" y2="360" stroke="#f75c03" stroke-width="2.5" opacity="0.4"/>
-  <line x1="390" y1="120" x2="250" y2="360" stroke="#f75c03" stroke-width="2.5" opacity="0.4"/>
-  <!-- Arrow pointing away -->
-  <line x1="450" y1="260" x2="580" y2="260" stroke="#f75c03" stroke-width="2" opacity="0.3"/>
-  <polygon points="580,260 568,253 568,267" fill="#f75c03" opacity="0.4"/>
-  <!-- Nature/yoga elements on right -->
-  <!-- Lotus suggestion -->
-  <ellipse cx="800" cy="260" rx="60" ry="25" fill="#f75c03" opacity="0.15"/>
-  <ellipse cx="770" cy="230" rx="18" ry="40" fill="#ff9966" opacity="0.2" transform="rotate(-15 770 230)"/>
-  <ellipse cx="830" cy="230" rx="18" ry="40" fill="#ff9966" opacity="0.2" transform="rotate(15 830 230)"/>
-  <ellipse cx="800" cy="220" rx="15" ry="35" fill="#f75c03" opacity="0.2"/>
-  <circle cx="800" cy="245" r="10" fill="#f75c03" opacity="0.35"/>
-  <!-- Organic dots -->
-  <circle cx="680" cy="180" r="8" fill="#ff9966" opacity="0.25"/>
-  <circle cx="920" cy="200" r="6" fill="#f75c03" opacity="0.2"/>
-  <circle cx="750" cy="350" r="7" fill="#ff9966" opacity="0.2"/>
-  <circle cx="880" cy="330" r="5" fill="#f75c03" opacity="0.25"/>
-  <text x="600" y="560" font-family="Abacaxi, Helvetica, Arial, sans-serif" font-size="30" font-weight="bold" fill="#0f0f0f" text-anchor="middle">
-    Digital Detox med Yoga
+  <rect x="250" y="200" width="120" height="180" rx="12" fill="none" stroke="#d94f02" stroke-width="4" opacity="0.8"/>
+  <line x1="260" y1="220" x2="360" y2="220" stroke="#d94f02" stroke-width="2" opacity="0.5"/>
+  <line x1="260" y1="250" x2="360" y2="250" stroke="#d94f02" stroke-width="2" opacity="0.5"/>
+  <line x1="260" y1="280" x2="360" y2="280" stroke="#d94f02" stroke-width="2" opacity="0.5"/>
+  <path d="M 310 370 L 310 270 M 250 370 L 370 370" stroke="#f75c03" stroke-width="4" opacity="0.7"/>
+  <circle cx="750" cy="280" r="100" fill="#ff9966" opacity="0.2"/>
+  <path d="M 700 250 Q 750 200 800 250 Q 750 280 700 250" fill="#f75c03" opacity="0.8"/>
+  <path d="M 750 300 Q 750 340 750 380" stroke="#d94f02" stroke-width="5" opacity="0.8" stroke-linecap="round"/>
+  <text x="600" y="570" font-family="Abacaxi, Helvetica, Arial, sans-serif" font-size="32" font-weight="bold" fill="#0f0f0f" text-anchor="middle">
+    Digital Detox
   </text>
 </svg>

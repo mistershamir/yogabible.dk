@@ -1,0 +1,30 @@
+<svg viewBox=\"0 0 1200 630\" xmlns=\"http://www.w3.org/2000/svg\">
+  <defs>
+    <linearGradient id=\"book-grad\" x1=\"0%\" y1=\"0%\" x2=\"100%\" y2=\"100%\">
+      <stop offset=\"0%\" style=\"stop-color:#ff9966;stop-opacity:0.95\" />
+      <stop offset=\"100%\" style=\"stop-color:#d94f02;stop-opacity:0.95\" />
+    </linearGradient>
+    <filter id=\"book-shadow\"><feDropShadow dx=\"4\" dy=\"8\" stdDeviation=\"5\" flood-opacity=\"0.35\"/></filter>
+  </defs>
+  <rect width=\"1200\" height=\"630\" fill=\"#f5f3f0\"/>
+  <circle cx=\"100\" cy=\"150\" r=\"70\" fill=\"#f75c03\" opacity=\"0.12\"/>
+  <circle cx=\"1100\" cy=\"480\" r=\"90\" fill=\"#ff9966\" opacity=\"0.1\"/>
+  <g filter=\"url(#book-shadow)\">
+    <rect x=\"350\" y=\"120\" width=\"200\" height=\"280\" rx=\"12\" fill=\"url(#book-grad)\" stroke=\"#0f0f0f\" stroke-width=\"5\" opacity=\"0.95\"/>
+    <line x1=\"450\" y1=\"120\" x2=\"450\" y2=\"400\" stroke=\"#fff\" stroke-width=\"2\" opacity=\"0.4\"/>
+    <rect x=\"360\" y=\"140\" width=\"80\" height=\"60\" fill=\"#f75c03\" opacity=\"0.85\"/>
+    <rect x=\"410\" y=\"140\" width=\"80\" height=\"60\" fill=\"#ff9966\" opacity=\"0.75\"/>
+    <rect x=\"360\" y=\"220\" width=\"130\" height=\"80\" fill=\"none\" stroke=\"#fff\" stroke-width=\"2\" opacity=\"0.5\"/>
+  </g>
+  <g filter=\"url(#book-shadow)\" opacity=\"0.9\">
+    <ellipse cx=\"750\" cy=\"200\" rx=\"80\" ry=\"100\" fill=\"#f75c03\"/>
+    <path d=\"M 680 200 L 820 200 M 730 140 L 730 260 M 770 140 L 770 260\" stroke=\"#ff9966\" stroke-width=\"4\" opacity=\"0.8\"/>
+    <circle cx=\"750\" cy=\"200\" r=\"30\" fill=\"#d94f02\"/>
+  </g>
+  <g opacity=\"0.85\">
+    <polygon points=\"900,180 950,150 1000,180 950,220\" fill=\"#f75c03\"/>
+    <polygon points=\"920,250 970,220 1020,250 970,290\" fill=\"#ff9966\"/>
+    <polygon points=\"880,320 930,290 980,320 930,360\" fill=\"#d94f02\"/>
+  </g>
+  <text x=\"600\" y=\"590\" font-family=\"Abacaxi, Helvetica, Arial, sans-serif\" font-size=\"38\" font-weight=\"bold\" fill=\"#0f0f0f\" text-anchor=\"middle\">First Teacher Training</text>
+</svg>

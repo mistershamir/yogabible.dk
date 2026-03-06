@@ -1,30 +1,13 @@
 <svg viewBox="0 0 1200 630" xmlns="http://www.w3.org/2000/svg">
   <rect width="1200" height="630" fill="#f5f3f0"/>
-  <defs>
-    <linearGradient id="voiceGrad" x1="0%" y1="0%" x2="100%" y2="0%">
-      <stop offset="0%" style="stop-color:#f75c03;stop-opacity:0.6" />
-      <stop offset="100%" style="stop-color:#ff9966;stop-opacity:0.1" />
-    </linearGradient>
-  </defs>
-  <!-- Voice/mouth source -->
-  <circle cx="200" cy="260" r="35" fill="#f75c03" opacity="0.35"/>
-  <!-- Sound waves expanding from source -->
-  <path d="M 260 220 Q 280 260 260 300" stroke="#f75c03" stroke-width="2.5" fill="none" opacity="0.5"/>
-  <path d="M 300 190 Q 330 260 300 330" stroke="#f75c03" stroke-width="2" fill="none" opacity="0.4"/>
-  <path d="M 350 160 Q 390 260 350 360" stroke="#ff9966" stroke-width="2" fill="none" opacity="0.35"/>
-  <path d="M 410 130 Q 460 260 410 390" stroke="#f75c03" stroke-width="1.5" fill="none" opacity="0.3"/>
-  <path d="M 480 110 Q 540 260 480 410" stroke="#ff9966" stroke-width="1.5" fill="none" opacity="0.25"/>
-  <!-- Receiving figures (dots) -->
-  <circle cx="700" cy="180" r="18" fill="#f75c03" opacity="0.25"/>
-  <circle cx="800" cy="260" r="18" fill="#f75c03" opacity="0.3"/>
-  <circle cx="700" cy="340" r="18" fill="#f75c03" opacity="0.25"/>
-  <circle cx="900" cy="200" r="15" fill="#ff9966" opacity="0.2"/>
-  <circle cx="900" cy="320" r="15" fill="#ff9966" opacity="0.2"/>
-  <!-- Connection lines -->
-  <line x1="540" y1="200" x2="682" y2="180" stroke="#f75c03" stroke-width="1" opacity="0.15" stroke-dasharray="4 4"/>
-  <line x1="540" y1="260" x2="782" y2="260" stroke="#f75c03" stroke-width="1" opacity="0.15" stroke-dasharray="4 4"/>
-  <line x1="540" y1="320" x2="682" y2="340" stroke="#f75c03" stroke-width="1" opacity="0.15" stroke-dasharray="4 4"/>
-  <text x="600" y="560" font-family="Abacaxi, Helvetica, Arial, sans-serif" font-size="30" font-weight="bold" fill="#0f0f0f" text-anchor="middle">
-    Cueing: Kunsten at Guide
+  <circle cx="600" cy="280" r="80" fill="#f75c03" opacity="0.2"/>
+  <path d="M 520 280 Q 560 240 600 260 Q 640 240 680 280" fill="none" stroke="#d94f02" stroke-width="5" opacity="0.9" stroke-linecap="round"/>
+  <path d="M 500 320 Q 550 350 600 330 Q 650 350 700 320" fill="none" stroke="#ff9966" stroke-width="5" opacity="0.85" stroke-linecap="round"/>
+  <g id="sound-waves">
+    <path d="M 350 280 Q 370 250 390 280" fill="none" stroke="#f75c03" stroke-width="3" opacity="0.7"/>
+    <path d="M 810 280 Q 830 250 850 280" fill="none" stroke="#d94f02" stroke-width="3" opacity="0.7"/>
+  </g>
+  <text x="600" y="570" font-family="Abacaxi, Helvetica, Arial, sans-serif" font-size="32" font-weight="bold" fill="#0f0f0f" text-anchor="middle">
+    Cueing: Art of Guiding
   </text>
 </svg>

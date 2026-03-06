@@ -1,0 +1,79 @@
+<svg viewBox="0 0 1200 630" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <filter id="hipShadow" x="-50%" y="-50%" width="200%" height="200%">
+      <feDropShadow dx="4" dy="6" stdDeviation="9" flood-opacity="0.35" flood-color="#000"/>
+    </filter>
+    <filter id="hipGlow">
+      <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
+      <feMerge><feMergeNode in="coloredBlur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <radialGradient id="hipCore" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" style="stop-color:#ff9966;stop-opacity:1"/>
+      <stop offset="100%" style="stop-color:#f75c03;stop-opacity:1"/>
+    </radialGradient>
+    <radialGradient id="hipAura" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" style="stop-color:#ff9966;stop-opacity:0.9"/>
+      <stop offset="100%" style="stop-color:#d94f02;stop-opacity:0.3"/>
+    </radialGradient>
+  </defs>
+
+  <rect width="1200" height="630" fill="#f5f3f0"/>
+
+  <circle cx="120" cy="250" r="110" fill="#f75c03" opacity="0.08"/>
+  <circle cx="1080" cy="400" r="140" fill="#ff9966" opacity="0.09"/>
+
+  <!-- Central hip joint with radiating opening -->
+  <g filter="url(#hipShadow)">
+    <!-- Main hip circles (ball joints) -->
+    <circle cx="400" cy="280" r="65" fill="url(#hipCore)" opacity="0.94" stroke="#d94f02" stroke-width="4"/>
+    <circle cx="400" cy="280" r="50" fill="none" stroke="#ffb380" stroke-width="2" opacity="0.6"/>
+
+    <circle cx="800" cy="280" r="65" fill="url(#hipCore)" opacity="0.94" stroke="#d94f02" stroke-width="4"/>
+    <circle cx="800" cy="280" r="50" fill="none" stroke="#ffb380" stroke-width="2" opacity="0.6"/>
+
+    <!-- Center connecting socket -->
+    <ellipse cx="600" cy="350" rx="90" ry="110" fill="url(#hipAura)" opacity="0.7" stroke="#d94f02" stroke-width="4"/>
+    <ellipse cx="600" cy="350" rx="75" ry="95" fill="none" stroke="#f75c03" stroke-width="2" opacity="0.6"/>
+  </g>
+
+  <!-- Opening angle visualization (radiating arcs) -->
+  <g opacity="0.65" fill="none" stroke-linecap="round" stroke-linejoin="round" filter="url(#hipGlow)">
+    <!-- Left opening -->
+    <path d="M 400 210 Q 350 250 380 340" stroke="#f75c03" stroke-width="4" stroke-dasharray="8,5"/>
+    <path d="M 400 350 Q 350 350 380 360" stroke="#ff9966" stroke-width="4" stroke-dasharray="8,5"/>
+
+    <!-- Right opening -->
+    <path d="M 800 210 Q 850 250 820 340" stroke="#f75c03" stroke-width="4" stroke-dasharray="8,5"/>
+    <path d="M 800 350 Q 850 350 820 360" stroke="#ff9966" stroke-width="4" stroke-dasharray="8,5"/>
+
+    <!-- Central opening spread -->
+    <path d="M 520 300 L 480 400 L 510 430" stroke="#d94f02" stroke-width="4"/>
+    <path d="M 680 300 L 720 400 L 690 430" stroke="#d94f02" stroke-width="4"/>
+  </g>
+
+  <!-- Leg extensions -->
+  <g filter="url(#hipShadow)">
+    <!-- Left leg -->
+    <line x1="400" y1="345" x2="400" y2="460" stroke="#f75c03" stroke-width="18" stroke-linecap="round" opacity="0.88"/>
+    <circle cx="400" cy="460" r="22" fill="#d94f02" opacity="0.9" stroke="#0f0f0f" stroke-width="2"/>
+
+    <!-- Right leg -->
+    <line x1="800" y1="345" x2="800" y2="460" stroke="#f75c03" stroke-width="18" stroke-linecap="round" opacity="0.88"/>
+    <circle cx="800" cy="460" r="22" fill="#d94f02" opacity="0.9" stroke="#0f0f0f" stroke-width="2"/>
+  </g>
+
+  <!-- Flexibility range indicators -->
+  <g opacity="0.7" filter="url(#hipShadow)">
+    <circle cx="520" cy="380" r="6" fill="#ff9966"/>
+    <circle cx="600" cy="420" r="7" fill="#f75c03"/>
+    <circle cx="680" cy="380" r="6" fill="#ff9966"/>
+  </g>
+
+  <!-- Improvement arrows -->
+  <g stroke="#f75c03" stroke-width="3" fill="none" stroke-linecap="round" opacity="0.6">
+    <path d="M 300 200 L 320 170 L 340 190"/>
+    <path d="M 900 200 L 880 170 L 860 190"/>
+  </g>
+
+  <text x="600" y="590" font-family="Abacaxi, Helvetica, Arial, sans-serif" font-size="38" font-weight="bold" fill="#0f0f0f" text-anchor="middle">Hip Flexibility</text>
+</svg>

@@ -1,24 +1,78 @@
 <svg viewBox="0 0 1200 630" xmlns="http://www.w3.org/2000/svg">
-  <rect width="1200" height="630" fill="#f5f3f0"/>
   <defs>
-    <linearGradient id="vibroGrad" x1="0%" y1="0%" x2="100%" y2="0%">
-      <stop offset="0%" style="stop-color:#f75c03;stop-opacity:0.7" />
-      <stop offset="50%" style="stop-color:#ff9966;stop-opacity:0.9" />
-      <stop offset="100%" style="stop-color:#f75c03;stop-opacity:0.7" />
-    </linearGradient>
+    <filter id="vibroShadow" x="-50%" y="-50%" width="200%" height="200%">
+      <feDropShadow dx="4" dy="6" stdDeviation="8" flood-opacity="0.35" flood-color="#000"/>
+    </filter>
+    <filter id="vibroGlow">
+      <feGaussianBlur stdDeviation="4" result="coloredBlur"/>
+      <feMerge><feMergeNode in="coloredBlur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <radialGradient id="vibroCore" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" style="stop-color:#ff9966;stop-opacity:1"/>
+      <stop offset="100%" style="stop-color:#f75c03;stop-opacity:1"/>
+    </radialGradient>
   </defs>
-  <!-- Sound wave vibration pattern -->
-  <path d="M 100 315 Q 150 200 200 315 Q 250 430 300 315 Q 350 200 400 315 Q 450 430 500 315 Q 550 200 600 315 Q 650 430 700 315 Q 750 200 800 315 Q 850 430 900 315 Q 950 200 1000 315 Q 1050 430 1100 315"
-        stroke="url(#vibroGrad)" stroke-width="3" fill="none" opacity="0.6"/>
-  <path d="M 100 315 Q 150 240 200 315 Q 250 390 300 315 Q 350 240 400 315 Q 450 390 500 315 Q 550 240 600 315 Q 650 390 700 315 Q 750 240 800 315 Q 850 390 900 315 Q 950 240 1000 315 Q 1050 390 1100 315"
-        stroke="#f75c03" stroke-width="2" fill="none" opacity="0.4"/>
-  <path d="M 100 315 Q 150 280 200 315 Q 250 350 300 315 Q 350 280 400 315 Q 450 350 500 315 Q 550 280 600 315 Q 650 350 700 315 Q 750 280 800 315 Q 850 350 900 315 Q 950 280 1000 315 Q 1050 350 1100 315"
-        stroke="#ff9966" stroke-width="1.5" fill="none" opacity="0.3"/>
-  <!-- Speaker/vibration dots -->
-  <circle cx="600" cy="315" r="30" fill="#f75c03" opacity="0.15"/>
-  <circle cx="600" cy="315" r="60" fill="none" stroke="#f75c03" stroke-width="1" opacity="0.2"/>
-  <circle cx="600" cy="315" r="90" fill="none" stroke="#f75c03" stroke-width="1" opacity="0.15"/>
-  <text x="600" y="560" font-family="Abacaxi, Helvetica, Arial, sans-serif" font-size="30" font-weight="bold" fill="#0f0f0f" text-anchor="middle">
-    Vibro Yoga
-  </text>
+
+  <rect width="1200" height="630" fill="#f5f3f0"/>
+
+  <circle cx="120" cy="200" r="100" fill="#f75c03" opacity="0.08"/>
+  <circle cx="1080" cy="450" r="130" fill="#ff9966" opacity="0.09"/>
+
+  <!-- Central vibration core -->
+  <g filter="url(#vibroGlow)">
+    <circle cx="600" cy="320" r="80" fill="url(#vibroCore)" opacity="0.95" stroke="#d94f02" stroke-width="4"/>
+    <circle cx="600" cy="320" r="60" fill="none" stroke="#ff9966" stroke-width="2" opacity="0.6"/>
+    <circle cx="600" cy="320" r="40" fill="#d94f02" opacity="0.92" stroke="#0f0f0f" stroke-width="2"/>
+  </g>
+
+  <!-- Radiating vibration waves (left side) -->
+  <g opacity="0.75" stroke-linecap="round" fill="none" filter="url(#vibroShadow)">
+    <!-- Outer wave 1 -->
+    <path d="M 250 300 Q 320 280 380 300" stroke="#f75c03" stroke-width="4"/>
+    <path d="M 250 340 Q 320 360 380 340" stroke="#f75c03" stroke-width="4"/>
+
+    <!-- Middle wave 2 -->
+    <path d="M 240 280 Q 300 240 360 280" stroke="#d94f02" stroke-width="3"/>
+    <path d="M 240 360 Q 300 400 360 360" stroke="#d94f02" stroke-width="3"/>
+
+    <!-- Inner wave 3 -->
+    <path d="M 260 320 Q 310 300 360 320" stroke="#ff9966" stroke-width="3" stroke-dasharray="6,4"/>
+
+    <!-- Direction markers -->
+    <polygon points="380,300 360,290 370,310" fill="#f75c03" opacity="0.8"/>
+    <polygon points="380,340 360,350 370,330" fill="#f75c03" opacity="0.8"/>
+  </g>
+
+  <!-- Radiating vibration waves (right side) -->
+  <g opacity="0.75" stroke-linecap="round" fill="none" filter="url(#vibroShadow)">
+    <!-- Outer wave 1 -->
+    <path d="M 950 300 Q 880 280 820 300" stroke="#f75c03" stroke-width="4"/>
+    <path d="M 950 340 Q 880 360 820 340" stroke="#f75c03" stroke-width="4"/>
+
+    <!-- Middle wave 2 -->
+    <path d="M 960 280 Q 900 240 840 280" stroke="#d94f02" stroke-width="3"/>
+    <path d="M 960 360 Q 900 400 840 360" stroke="#d94f02" stroke-width="3"/>
+
+    <!-- Inner wave 3 -->
+    <path d="M 940 320 Q 890 300 840 320" stroke="#ff9966" stroke-width="3" stroke-dasharray="6,4"/>
+
+    <!-- Direction markers -->
+    <polygon points="820,300 840,290 830,310" fill="#f75c03" opacity="0.8"/>
+    <polygon points="820,340 840,350 830,330" fill="#f75c03" opacity="0.8"/>
+  </g>
+
+  <!-- Energy pulses -->
+  <g opacity="0.65" filter="url(#vibroGlow)">
+    <circle cx="600" cy="320" r="110" fill="none" stroke="#f75c03" stroke-width="2" stroke-dasharray="10,8"/>
+    <circle cx="600" cy="320" r="150" fill="none" stroke="#ff9966" stroke-width="2" stroke-dasharray="8,6" opacity="0.5"/>
+    <circle cx="600" cy="320" r="190" fill="none" stroke="#d94f02" stroke-width="1" stroke-dasharray="12,10" opacity="0.3"/>
+  </g>
+
+  <!-- Frequency indicators -->
+  <g opacity="0.7" filter="url(#vibroShadow)">
+    <rect x="450" y="470" width="300" height="50" fill="#f75c03" opacity="0.12" rx="8" stroke="#f75c03" stroke-width="2"/>
+    <text x="600" y="505" font-family="Abacaxi, Helvetica, Arial, sans-serif" font-size="18" font-weight="bold" fill="#0f0f0f" text-anchor="middle">Cellular Vibration</text>
+  </g>
+
+  <text x="600" y="590" font-family="Abacaxi, Helvetica, Arial, sans-serif" font-size="38" font-weight="bold" fill="#0f0f0f" text-anchor="middle">Vibro Yoga</text>
 </svg>

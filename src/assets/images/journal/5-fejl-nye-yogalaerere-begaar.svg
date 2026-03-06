@@ -1,33 +1,19 @@
 <svg viewBox="0 0 1200 630" xmlns="http://www.w3.org/2000/svg">
   <rect width="1200" height="630" fill="#f5f3f0"/>
-  <!-- 5 circles with X marks transitioning to checkmarks -->
-  <!-- Mistake 1 -->
-  <circle cx="200" cy="250" r="45" fill="none" stroke="#f75c03" stroke-width="2" opacity="0.4"/>
-  <line x1="180" y1="230" x2="220" y2="270" stroke="#f75c03" stroke-width="2.5" opacity="0.5"/>
-  <line x1="220" y1="230" x2="180" y2="270" stroke="#f75c03" stroke-width="2.5" opacity="0.5"/>
-  <!-- Mistake 2 -->
-  <circle cx="350" cy="250" r="45" fill="none" stroke="#f75c03" stroke-width="2" opacity="0.4"/>
-  <line x1="330" y1="230" x2="370" y2="270" stroke="#f75c03" stroke-width="2.5" opacity="0.5"/>
-  <line x1="370" y1="230" x2="330" y2="270" stroke="#f75c03" stroke-width="2.5" opacity="0.5"/>
-  <!-- Mistake 3 -->
-  <circle cx="500" cy="250" r="45" fill="none" stroke="#f75c03" stroke-width="2" opacity="0.4"/>
-  <line x1="480" y1="230" x2="520" y2="270" stroke="#f75c03" stroke-width="2.5" opacity="0.5"/>
-  <line x1="520" y1="230" x2="480" y2="270" stroke="#f75c03" stroke-width="2.5" opacity="0.5"/>
-  <!-- Mistake 4 -->
-  <circle cx="650" cy="250" r="45" fill="none" stroke="#f75c03" stroke-width="2" opacity="0.4"/>
-  <line x1="630" y1="230" x2="670" y2="270" stroke="#f75c03" stroke-width="2.5" opacity="0.45"/>
-  <line x1="670" y1="230" x2="630" y2="270" stroke="#f75c03" stroke-width="2.5" opacity="0.45"/>
-  <!-- Mistake 5 -->
-  <circle cx="800" cy="250" r="45" fill="none" stroke="#f75c03" stroke-width="2" opacity="0.4"/>
-  <line x1="780" y1="230" x2="820" y2="270" stroke="#f75c03" stroke-width="2.5" opacity="0.4"/>
-  <line x1="820" y1="230" x2="780" y2="270" stroke="#f75c03" stroke-width="2.5" opacity="0.4"/>
-  <!-- Solution arrow -->
-  <line x1="870" y1="250" x2="950" y2="250" stroke="#f75c03" stroke-width="2" opacity="0.3"/>
-  <polygon points="950,250 940,243 940,257" fill="#f75c03" opacity="0.4"/>
-  <!-- Checkmark -->
-  <circle cx="1020" cy="250" r="45" fill="#f75c03" opacity="0.15"/>
-  <polyline points="1000,250 1012,265 1040,235" stroke="#f75c03" stroke-width="3" fill="none" opacity="0.6"/>
-  <text x="600" y="560" font-family="Abacaxi, Helvetica, Arial, sans-serif" font-size="28" font-weight="bold" fill="#0f0f0f" text-anchor="middle">
-    5 Fejl Nye Yogalærere Begår
+  <g id="mistakes">
+    <circle cx="200" cy="150" r="25" fill="#f75c03" opacity="0.8"/>
+    <circle cx="400" cy="150" r="25" fill="#ff9966" opacity="0.8"/>
+    <circle cx="600" cy="150" r="25" fill="#d94f02" opacity="0.8"/>
+    <circle cx="800" cy="150" r="25" fill="#f75c03" opacity="0.8"/>
+    <circle cx="1000" cy="150" r="25" fill="#ff9966" opacity="0.8"/>
+  </g>
+  <path d="M 200 180 L 200 350" stroke="#d94f02" stroke-width="3" opacity="0.6"/>
+  <path d="M 400 180 L 400 350" stroke="#d94f02" stroke-width="3" opacity="0.6"/>
+  <path d="M 600 180 L 600 350" stroke="#d94f02" stroke-width="3" opacity="0.6"/>
+  <path d="M 800 180 L 800 350" stroke="#d94f02" stroke-width="3" opacity="0.6"/>
+  <path d="M 1000 180 L 1000 350" stroke="#d94f02" stroke-width="3" opacity="0.6"/>
+  <path d="M 200 350 Q 600 400 1000 350" fill="none" stroke="#f75c03" stroke-width="3" opacity="0.8" stroke-linecap="round"/>
+  <text x="600" y="570" font-family="Abacaxi, Helvetica, Arial, sans-serif" font-size="28" font-weight="bold" fill="#0f0f0f" text-anchor="middle">
+    5 Common Mistakes
   </text>
 </svg>

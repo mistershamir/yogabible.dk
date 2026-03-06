@@ -1,0 +1,31 @@
+<svg viewBox=\"0 0 1200 630\" xmlns=\"http://www.w3.org/2000/svg\">
+  <defs>
+    <linearGradient id=\"mental-wave\" x1=\"0%\" y1=\"0%\" x2=\"100%\" y2=\"0%\">
+      <stop offset=\"0%\" style=\"stop-color:#f75c03;stop-opacity:0.9\" />
+      <stop offset=\"50%\" style=\"stop-color:#ff9966;stop-opacity:0.9\" />
+      <stop offset=\"100%\" style=\"stop-color:#d94f02;stop-opacity:0.9\" />
+    </linearGradient>
+    <filter id=\"mental-shadow\"><feDropShadow dx=\"2\" dy=\"4\" stdDeviation=\"3\" flood-opacity=\"0.25\"/></filter>
+  </defs>
+  <rect width=\"1200\" height=\"630\" fill=\"#f5f3f0\"/>
+  <circle cx=\"200\" cy=\"80\" r=\"60\" fill=\"#ff9966\" opacity=\"0.15\"/>
+  <circle cx=\"1000\" cy=\"550\" r=\"100\" fill=\"#f75c03\" opacity=\"0.12\"/>
+  <g filter=\"url(#mental-shadow)\">
+    <ellipse cx=\"400\" cy=\"250\" rx=\"90\" ry=\"100\" fill=\"none\" stroke=\"#0f0f0f\" stroke-width=\"5\" opacity=\"0.85\"/>
+    <path d=\"M 350 200 Q 340 220 345 240 Q 330 260 340 280\" fill=\"none\" stroke=\"#0f0f0f\" stroke-width=\"4\" opacity=\"0.8\"/>
+    <path d=\"M 450 200 Q 460 220 455 240 Q 470 260 460 280\" fill=\"none\" stroke=\"#0f0f0f\" stroke-width=\"4\" opacity=\"0.8\"/>
+    <circle cx=\"400\" cy=\"250\" r=\"20\" fill=\"#f75c03\" opacity=\"0.8\"/>
+  </g>
+  <g opacity=\"0.85\">
+    <path d=\"M 520 200 Q 570 180 620 200 T 720 200 T 820 200\" fill=\"none\" stroke=\"url(#mental-wave)\" stroke-width=\"8\" stroke-linecap=\"round\"/>
+    <path d=\"M 520 270 Q 570 250 620 270 T 720 270 T 820 270\" fill=\"none\" stroke=\"url(#mental-wave)\" stroke-width=\"8\" stroke-linecap=\"round\"/>
+    <path d=\"M 520 340 Q 570 320 620 340 T 720 340 T 820 340\" fill=\"none\" stroke=\"url(#mental-wave)\" stroke-width=\"8\" stroke-linecap=\"round\"/>
+  </g>
+  <circle cx=\"700\" cy=\"200\" r=\"35\" fill=\"#ff9966\" opacity=\"0.75\"/>
+  <circle cx=\"800\" cy=\"270\" r=\"35\" fill=\"#f75c03\" opacity=\"0.75\"/>
+  <circle cx=\"700\" cy=\"340\" r=\"35\" fill=\"#d94f02\" opacity=\"0.75\"/>
+  <rect x=\"950\" y=\"220\" width=\"8\" height=\"140\" fill=\"#f75c03\" opacity=\"0.8\" rx=\"4\"/>
+  <rect x=\"980\" y=\"200\" width=\"8\" height=\"180\" fill=\"#ff9966\" opacity=\"0.75\" rx=\"4\"/>
+  <rect x=\"1010\" y=\"230\" width=\"8\" height=\"120\" fill=\"#d94f02\" opacity=\"0.8\" rx=\"4\"/>
+  <text x=\"600\" y=\"590\" font-family=\"Abacaxi, Helvetica, Arial, sans-serif\" font-size=\"38\" font-weight=\"bold\" fill=\"#0f0f0f\" text-anchor=\"middle\">Yoga & Mental Health</text>
+</svg>
