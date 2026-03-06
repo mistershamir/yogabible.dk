@@ -100,6 +100,76 @@ exports.handler = async function (event) {
       });
     }
 
+    // ── Fix mode: re-fetch correct asset + playback IDs from Mux for ALL ended sessions ──
+    // Use this when stored playback IDs are invalid/corrupted
+    if (params.fix === '1') {
+      var fixable = all.filter(function (item) {
+        return item.status === 'ended' && item.muxLiveStreamId;
+      });
+
+      if (fixable.length === 0) {
+        return jsonResponse(200, { ok: true, message: 'No ended sessions with muxLiveStreamId found' });
+      }
+
+      console.log('[ai-backfill] Fixing', fixable.length, 'sessions — re-fetching from Mux API');
+      var fixResults = [];
+
+      for (var f = 0; f < fixable.length; f++) {
+        var sess = fixable[f];
+        try {
+          var assetsRes = await muxRequest('GET',
+            '/video/v1/assets?live_stream_id=' + sess.muxLiveStreamId + '&limit=5');
+          var readyAssets = (assetsRes.data || []).filter(function (a) {
+            return a.status === 'ready';
+          });
+
+          if (readyAssets.length > 0) {
+            var fixAsset = readyAssets[0];
+            var fixPbId = null;
+            var fixIds = fixAsset.playback_ids || [];
+            for (var fp = 0; fp < fixIds.length; fp++) {
+              if (fixIds[fp].policy === 'public') { fixPbId = fixIds[fp].id; break; }
+            }
+            if (!fixPbId && fixIds.length) fixPbId = fixIds[0].id;
+
+            await updateDoc(COLLECTION, sess.id, {
+              recordingAssetId: fixAsset.id,
+              recordingPlaybackId: fixPbId
+            });
+            fixResults.push({
+              id: sess.id,
+              title: sess.title_da || sess.title_en || '',
+              assetId: fixAsset.id,
+              playbackId: fixPbId,
+              status: 'fixed'
+            });
+            console.log('[ai-backfill] Fixed', sess.id, '→ asset:', fixAsset.id, 'playback:', fixPbId);
+          } else {
+            fixResults.push({
+              id: sess.id,
+              title: sess.title_da || sess.title_en || '',
+              status: 'no_ready_assets',
+              muxLiveStreamId: sess.muxLiveStreamId
+            });
+          }
+        } catch (err) {
+          console.error('[ai-backfill] Fix error for', sess.id, ':', err.message);
+          fixResults.push({
+            id: sess.id,
+            title: sess.title_da || sess.title_en || '',
+            status: 'error',
+            error: err.message
+          });
+        }
+      }
+
+      return jsonResponse(200, {
+        ok: true,
+        message: 'Fix complete. Run without params (default mode) to trigger AI processing.',
+        results: fixResults
+      });
+    }
+
     // ── Reconcile mode: find recordings from Mux for ended sessions missing recordingAssetId ──
     if (params.reconcile === '1') {
       var missing = all.filter(function (item) {
