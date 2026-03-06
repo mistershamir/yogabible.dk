@@ -25121,6 +25121,16 @@ a.yb-appt__phone-link:hover { text-decoration: underline; }
   width: 320px;
 }
 
+/* ── Explainer mode: wider to fit 480×270 component ── */
+.yvt-widget--explainer.yvt-widget--expanded {
+  width: 480px;
+}
+@media (max-width: 520px) {
+  .yvt-widget--explainer.yvt-widget--expanded {
+    width: calc(100vw - 24px);
+  }
+}
+
 /* ── Preview (resting) state ── */
 .yvt-preview {
   position: relative;

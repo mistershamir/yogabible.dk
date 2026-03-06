@@ -1,7 +1,27 @@
 {% if videoTutorial %}
 <!-- Video Tutorial Widget — floats bottom-right, shown on pages with videoTutorial front matter -->
-<div id="yvt-widget" class="yvt-widget" role="complementary" aria-label="Video guide" hidden>
+<div id="yvt-widget" class="yvt-widget{% if videoTutorial.explainer %} yvt-widget--explainer{% endif %}" role="complementary" aria-label="Video guide" hidden>
 
+  {% if videoTutorial.explainer %}
+  {# ── EXPLAINER MODE: skip preview, go straight to expanded player with component ── #}
+  <div class="yvt-player" id="yvt-player">
+    <div class="yvt-player__video-wrap">
+      {% include "components/page-explainer-200hr.njk" %}
+    </div>
+    <div class="yvt-player__bar">
+      <span class="yvt-player__title" data-yj-da>{{ videoTutorial.title_da }}</span>
+      <span class="yvt-player__title" data-yj-en hidden>{{ videoTutorial.title_en }}</span>
+      <div class="yvt-player__controls">
+        <button class="yvt-player__close" id="yvt-player-close" type="button" aria-label="Luk">
+          <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
+            <line x1="1" y1="1" x2="9" y2="9" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+            <line x1="9" y1="1" x2="1" y2="9" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+  </div>
+  {% else %}
   <!-- ── PREVIEW (resting: thumbnail fills top, title bar underneath) ── -->
   <div class="yvt-preview" id="yvt-preview">
     <button class="yvt-preview__thumb" id="yvt-thumb" type="button" aria-label="Afspil video guide">
@@ -53,13 +73,20 @@
       </div>
     </div>
   </div>
+  {% endif %}
 
 </div>
 
+{% if not videoTutorial.explainer %}
 <script>
   window.__yvt = {
     src: 'https://res.cloudinary.com/ddcynsa30/video/upload/f_auto,q_auto/{{ videoTutorial.cloudinaryId }}.mp4',
     delay: {{ videoTutorial.delay or 3000 }}
   };
 </script>
+{% else %}
+<script>
+  window.__yvt = { explainer: true, delay: {{ videoTutorial.delay or 3000 }} };
+</script>
+{% endif %}
 {% endif %}
