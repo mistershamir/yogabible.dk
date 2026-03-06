@@ -232,6 +232,19 @@ exports.handler = async function (event) {
       });
     }
 
+    // ── Reset mode: clear aiStatus so recordings can be re-processed ──
+    if (params.reset === '1') {
+      var resettable = all.filter(function (item) {
+        return item.status === 'ended' && item.recordingAssetId && item.aiStatus && item.aiStatus !== 'complete';
+      });
+      var resetResults = [];
+      for (var r = 0; r < resettable.length; r++) {
+        await updateDoc(COLLECTION, resettable[r].id, { aiStatus: 'error' });
+        resetResults.push({ id: resettable[r].id, title: resettable[r].title_da || '', oldStatus: resettable[r].aiStatus, newStatus: 'error' });
+      }
+      return jsonResponse(200, { ok: true, message: 'Reset ' + resetResults.length + ' sessions. Now run default mode.', results: resetResults });
+    }
+
     // ── Default mode: process sessions with recordings but no AI data ──
     var pending = all.filter(function (item) {
       return item.status === 'ended'
