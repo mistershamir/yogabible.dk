@@ -6,11 +6,11 @@
       <stop offset="100%" style="stop-color:#d94f02;stop-opacity:1" />
     </linearGradient>
     <radialGradient id="grad-glow-18w" cx="50%" cy="50%" r="50%">
-      <stop offset="0%" style="stop-color:#ff9966;stop-opacity:0.3" />
+      <stop offset="0%" style="stop-color:#ff9966;stop-opacity:0.2" />
       <stop offset="100%" style="stop-color:#f75c03;stop-opacity:0" />
     </radialGradient>
     <filter id="shadow-18w">
-      <feDropShadow dx="0" dy="4" stdDeviation="6" flood-opacity="0.15" />
+      <feDropShadow dx="0" dy="3" stdDeviation="4" flood-opacity="0.12" />
     </filter>
   </defs>
 
@@ -18,92 +18,53 @@
   <rect width="1200" height="630" fill="#f5f3f0"/>
 
   <!-- Glow backdrop -->
-  <circle cx="600" cy="280" r="280" fill="url(#grad-glow-18w)"/>
+  <circle cx="600" cy="300" r="220" fill="url(#grad-glow-18w)"/>
 
-  <!-- Calendar/Timeline visualization -->
-  <g transform="translate(300, 150)">
-    <!-- Week boxes representing 18 weeks -->
-    <g filter="url(#shadow-18w)">
-      <!-- Row 1: Weeks 1-6 -->
-      <rect x="0" y="0" width="40" height="40" rx="6" fill="url(#grad-orange-18w)" opacity="0.95" stroke="#d94f02" stroke-width="2"/>
-      <text x="20" y="28" font-family="Abacaxi, Arial, sans-serif" font-size="14" font-weight="bold" fill="#0f0f0f" text-anchor="middle">1</text>
+  <!-- Central timeline graphic: 3x6 week grid -->
+  <g transform="translate(350, 180)" filter="url(#shadow-18w)">
+    <!-- Row 1: Weeks 1-6 -->
+    <rect x="0" y="0" width="28" height="28" rx="4" fill="url(#grad-orange-18w)" opacity="1"/>
+    <rect x="35" y="0" width="28" height="28" rx="4" fill="url(#grad-orange-18w)" opacity="0.92"/>
+    <rect x="70" y="0" width="28" height="28" rx="4" fill="url(#grad-orange-18w)" opacity="0.84"/>
+    <rect x="105" y="0" width="28" height="28" rx="4" fill="url(#grad-orange-18w)" opacity="0.76"/>
+    <rect x="140" y="0" width="28" height="28" rx="4" fill="url(#grad-orange-18w)" opacity="0.68"/>
+    <rect x="175" y="0" width="28" height="28" rx="4" fill="url(#grad-orange-18w)" opacity="0.6"/>
 
-      <rect x="50" y="0" width="40" height="40" rx="6" fill="url(#grad-orange-18w)" opacity="0.88" stroke="#d94f02" stroke-width="2"/>
-      <text x="70" y="28" font-family="Abacaxi, Arial, sans-serif" font-size="14" font-weight="bold" fill="#0f0f0f" text-anchor="middle">2</text>
+    <!-- Row 2: Weeks 7-12 -->
+    <rect x="0" y="40" width="28" height="28" rx="4" fill="url(#grad-orange-18w)" opacity="0.88"/>
+    <rect x="35" y="40" width="28" height="28" rx="4" fill="url(#grad-orange-18w)" opacity="0.8"/>
+    <rect x="70" y="40" width="28" height="28" rx="4" fill="url(#grad-orange-18w)" opacity="0.72"/>
+    <rect x="105" y="40" width="28" height="28" rx="4" fill="url(#grad-orange-18w)" opacity="0.64"/>
+    <rect x="140" y="40" width="28" height="28" rx="4" fill="url(#grad-orange-18w)" opacity="0.56"/>
+    <rect x="175" y="40" width="28" height="28" rx="4" fill="url(#grad-orange-18w)" opacity="0.48"/>
 
-      <rect x="100" y="0" width="40" height="40" rx="6" fill="url(#grad-orange-18w)" opacity="0.81" stroke="#d94f02" stroke-width="2"/>
-      <text x="120" y="28" font-family="Abacaxi, Arial, sans-serif" font-size="14" font-weight="bold" fill="#0f0f0f" text-anchor="middle">3</text>
+    <!-- Row 3: Weeks 13-18 -->
+    <rect x="0" y="80" width="28" height="28" rx="4" fill="url(#grad-orange-18w)" opacity="0.9"/>
+    <rect x="35" y="80" width="28" height="28" rx="4" fill="url(#grad-orange-18w)" opacity="0.82"/>
+    <rect x="70" y="80" width="28" height="28" rx="4" fill="url(#grad-orange-18w)" opacity="0.74"/>
+    <rect x="105" y="80" width="28" height="28" rx="4" fill="url(#grad-orange-18w)" opacity="0.66"/>
+    <rect x="140" y="80" width="28" height="28" rx="4" fill="url(#grad-orange-18w)" opacity="0.58"/>
+    <rect x="175" y="80" width="28" height="28" rx="4" fill="url(#grad-orange-18w)" opacity="0.95"/>
 
-      <rect x="150" y="0" width="40" height="40" rx="6" fill="url(#grad-orange-18w)" opacity="0.74" stroke="#d94f02" stroke-width="2"/>
-      <text x="170" y="28" font-family="Abacaxi, Arial, sans-serif" font-size="14" font-weight="bold" fill="#0f0f0f" text-anchor="middle">4</text>
-
-      <rect x="200" y="0" width="40" height="40" rx="6" fill="url(#grad-orange-18w)" opacity="0.67" stroke="#d94f02" stroke-width="2"/>
-      <text x="220" y="28" font-family="Abacaxi, Arial, sans-serif" font-size="14" font-weight="bold" fill="#0f0f0f" text-anchor="middle">5</text>
-
-      <rect x="250" y="0" width="40" height="40" rx="6" fill="url(#grad-orange-18w)" opacity="0.6" stroke="#d94f02" stroke-width="2"/>
-      <text x="270" y="28" font-family="Abacaxi, Arial, sans-serif" font-size="14" font-weight="bold" fill="#0f0f0f" text-anchor="middle">6</text>
-
-      <!-- Row 2: Weeks 7-12 -->
-      <rect x="0" y="60" width="40" height="40" rx="6" fill="url(#grad-orange-18w)" opacity="0.82" stroke="#d94f02" stroke-width="2"/>
-      <text x="20" y="88" font-family="Abacaxi, Arial, sans-serif" font-size="14" font-weight="bold" fill="#0f0f0f" text-anchor="middle">7</text>
-
-      <rect x="50" y="60" width="40" height="40" rx="6" fill="url(#grad-orange-18w)" opacity="0.79" stroke="#d94f02" stroke-width="2"/>
-      <text x="70" y="88" font-family="Abacaxi, Arial, sans-serif" font-size="14" font-weight="bold" fill="#0f0f0f" text-anchor="middle">8</text>
-
-      <rect x="100" y="60" width="40" height="40" rx="6" fill="url(#grad-orange-18w)" opacity="0.76" stroke="#d94f02" stroke-width="2"/>
-      <text x="120" y="88" font-family="Abacaxi, Arial, sans-serif" font-size="14" font-weight="bold" fill="#0f0f0f" text-anchor="middle">9</text>
-
-      <rect x="150" y="60" width="40" height="40" rx="6" fill="url(#grad-orange-18w)" opacity="0.73" stroke="#d94f02" stroke-width="2"/>
-      <text x="170" y="88" font-family="Abacaxi, Arial, sans-serif" font-size="14" font-weight="bold" fill="#0f0f0f" text-anchor="middle">10</text>
-
-      <rect x="200" y="60" width="40" height="40" rx="6" fill="url(#grad-orange-18w)" opacity="0.7" stroke="#d94f02" stroke-width="2"/>
-      <text x="220" y="88" font-family="Abacaxi, Arial, sans-serif" font-size="14" font-weight="bold" fill="#0f0f0f" text-anchor="middle">11</text>
-
-      <rect x="250" y="60" width="40" height="40" rx="6" fill="url(#grad-orange-18w)" opacity="0.67" stroke="#d94f02" stroke-width="2"/>
-      <text x="270" y="88" font-family="Abacaxi, Arial, sans-serif" font-size="14" font-weight="bold" fill="#0f0f0f" text-anchor="middle">12</text>
-
-      <!-- Row 3: Weeks 13-18 -->
-      <rect x="0" y="120" width="40" height="40" rx="6" fill="url(#grad-orange-18w)" opacity="0.85" stroke="#d94f02" stroke-width="2"/>
-      <text x="20" y="148" font-family="Abacaxi, Arial, sans-serif" font-size="14" font-weight="bold" fill="#0f0f0f" text-anchor="middle">13</text>
-
-      <rect x="50" y="120" width="40" height="40" rx="6" fill="url(#grad-orange-18w)" opacity="0.82" stroke="#d94f02" stroke-width="2"/>
-      <text x="70" y="148" font-family="Abacaxi, Arial, sans-serif" font-size="14" font-weight="bold" fill="#0f0f0f" text-anchor="middle">14</text>
-
-      <rect x="100" y="120" width="40" height="40" rx="6" fill="url(#grad-orange-18w)" opacity="0.79" stroke="#d94f02" stroke-width="2"/>
-      <text x="120" y="148" font-family="Abacaxi, Arial, sans-serif" font-size="14" font-weight="bold" fill="#0f0f0f" text-anchor="middle">15</text>
-
-      <rect x="150" y="120" width="40" height="40" rx="6" fill="url(#grad-orange-18w)" opacity="0.76" stroke="#d94f02" stroke-width="2"/>
-      <text x="170" y="148" font-family="Abacaxi, Arial, sans-serif" font-size="14" font-weight="bold" fill="#0f0f0f" text-anchor="middle">16</text>
-
-      <rect x="200" y="120" width="40" height="40" rx="6" fill="url(#grad-orange-18w)" opacity="0.73" stroke="#d94f02" stroke-width="2"/>
-      <text x="220" y="148" font-family="Abacaxi, Arial, sans-serif" font-size="14" font-weight="bold" fill="#0f0f0f" text-anchor="middle">17</text>
-
-      <rect x="250" y="120" width="40" height="40" rx="6" fill="url(#grad-orange-18w)" opacity="0.7" stroke="#d94f02" stroke-width="2"/>
-      <text x="270" y="148" font-family="Abacaxi, Arial, sans-serif" font-size="14" font-weight="bold" fill="#0f0f0f" text-anchor="middle">18</text>
-    </g>
-
-    <!-- Checkmark on final week (18) -->
-    <g transform="translate(270, 120)">
-      <circle cx="20" cy="20" r="22" fill="none" stroke="#0f0f0f" stroke-width="2.5" opacity="0.7"/>
-      <polyline points="14,23 18,27 26,19" fill="none" stroke="#0f0f0f" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" opacity="0.8"/>
+    <!-- Checkmark on final week -->
+    <g transform="translate(189, 94)">
+      <polyline points="4,7 8,11 16,3" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
     </g>
   </g>
 
-  <!-- Flexibility badge on right -->
-  <g transform="translate(850, 200)">
-    <rect x="0" y="0" width="280" height="220" rx="12" fill="#fff" stroke="url(#grad-orange-18w)" stroke-width="2.5" opacity="0.95" filter="url(#shadow-18w)"/>
+  <!-- Right side: Flexibility badge -->
+  <g transform="translate(700, 220)">
+    <rect x="0" y="0" width="160" height="140" rx="8" fill="#fff" stroke="url(#grad-orange-18w)" stroke-width="1.5" opacity="0.9" filter="url(#shadow-18w)"/>
 
-    <!-- Icon: Flexibility symbol -->
-    <circle cx="140" cy="60" r="35" fill="url(#grad-orange-18w)" opacity="0.2"/>
-    <path d="M 120 45 Q 140 35 160 45 L 155 75 Q 140 85 125 75 Z" fill="none" stroke="url(#grad-orange-18w)" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+    <!-- Icon: Flowing design -->
+    <path d="M 80 30 Q 70 40 80 50 Q 90 40 80 30" fill="url(#grad-orange-18w)" opacity="0.8"/>
+    <path d="M 80 55 Q 70 65 80 75 Q 90 65 80 55" fill="url(#grad-orange-18w)" opacity="0.6"/>
 
     <!-- Text -->
-    <text x="140" y="130" font-family="Abacaxi, Arial, sans-serif" font-size="16" font-weight="bold" fill="#0f0f0f" text-anchor="middle">Helt fleksibelt</text>
-    <text x="140" y="155" font-family="Abacaxi, Arial, sans-serif" font-size="13" fill="#6f6a66" text-anchor="middle">Studer når du kan</text>
-    <text x="140" y="180" font-family="Abacaxi, Arial, sans-serif" font-size="13" fill="#6f6a66" text-anchor="middle">Online + offline mix</text>
-    <text x="140" y="205" font-family="Abacaxi, Arial, sans-serif" font-size="13" fill="#6f6a66" text-anchor="middle">Jobamtidigt muligt</text>
+    <text x="80" y="105" font-family="Abacaxi, Arial, sans-serif" font-size="12" font-weight="bold" fill="#0f0f0f" text-anchor="middle">Helt fleksibelt</text>
+    <text x="80" y="125" font-family="Abacaxi, Arial, sans-serif" font-size="10" fill="#6f6a66" text-anchor="middle">Online + offline</text>
   </g>
 
   <!-- Bottom title -->
-  <text x="600" y="590" font-family="Abacaxi, Helvetica, Arial, sans-serif" font-size="38" font-weight="bold" fill="#0f0f0f" text-anchor="middle">18-Ugers Uddannelse</text>
+  <text x="600" y="590" font-family="Abacaxi, Helvetica, Arial, sans-serif" font-size="38" font-weight="bold" fill="#0f0f0f" text-anchor="middle">18-Ugers Program</text>
 </svg>
