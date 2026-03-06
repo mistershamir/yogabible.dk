@@ -254,7 +254,8 @@ async function handleTeacherSessions(user) {
       status: item.status,
       streamSource: item.streamSource || 'studio',
       muxLiveStreamId: item.muxLiveStreamId || null,
-      muxPlaybackId: item.muxPlaybackId || null
+      muxPlaybackId: item.muxPlaybackId || null,
+      livekitRoom: item.livekitRoom || null
     };
   });
 

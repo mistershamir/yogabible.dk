@@ -16,8 +16,7 @@
   data-t-idle="{{ t.status_idle }}"
   data-t-confirm-end="{{ t.confirm_end }}"
   data-t-permission-denied="{{ t.permission_denied }}"
-  data-t-no-session="{{ t.no_session_selected }}"
-  data-t-whip-not-supported="{{ t.whip_not_supported }}">
+  data-t-no-session="{{ t.no_session_selected }}">
 
   {# ── Auth gate: only visible to teacher/admin ── #}
   <div class="yts-gate" id="yts-gate">
@@ -184,4 +183,5 @@
   </div>
 </div>
 
+<script src="https://unpkg.com/livekit-client@2/dist/livekit-client.umd.js" defer></script>
 <script src="/js/teacher-studio.js" defer></script>

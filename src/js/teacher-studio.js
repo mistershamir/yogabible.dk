@@ -1,16 +1,15 @@
 /**
  * Teacher Studio — Browser-based live streaming for teachers.
  *
- * Uses Mux WHIP (WebRTC HTTP Ingestion Protocol) to stream camera/mic
- * directly from the browser to Mux. The same webhook pipeline
- * (mux-webhook.js) handles the lifecycle — no changes needed downstream.
+ * Uses LiveKit Cloud for real-time video streaming. The teacher publishes
+ * camera + microphone to a LiveKit Room. Students subscribe on /live.
  *
  * Flow:
  * 1. Teacher authenticates → role check (teacher/admin only)
  * 2. Teacher selects upcoming session → camera/mic preview starts
- * 3. Teacher clicks "Go Live" → creates Mux live stream via API → connects via WHIP
- * 4. Stream is live → students see it on /live, recording happens automatically
- * 5. Teacher clicks "End Stream" → WHIP connection closed, Mux stream completed
+ * 3. Teacher clicks "Go Live" → creates LiveKit room via API → connects + publishes
+ * 4. Stream is live → students see it on /live via LiveKit subscribe
+ * 5. Teacher clicks "End Stream" → disconnects from room, room is deleted
  */
 (function () {
   'use strict';
@@ -30,7 +29,6 @@
   var qualitySelect = document.getElementById('yts-quality-select');
   var sessionList = document.getElementById('yts-session-list');
   var statusEl = document.getElementById('yts-status');
-  var statusDot = document.getElementById('yts-status-dot');
   var statusText = document.getElementById('yts-status-text');
   var goLiveBtn = document.getElementById('yts-go-live');
   var endStreamBtn = document.getElementById('yts-end-stream');
@@ -53,14 +51,12 @@
   var tConfirmEnd = root.dataset.tConfirmEnd || 'End the stream?';
   var tPermissionDenied = root.dataset.tPermissionDenied || 'Permission denied.';
   var tNoSession = root.dataset.tNoSession || 'Select a session first.';
-  var tWhipNotSupported = root.dataset.tWhipNotSupported || 'Browser not supported.';
 
   // ── State ──
   var mediaStream = null;
-  var peerConnection = null;
+  var livekitRoom = null;    // LiveKit Room instance
   var selectedSession = null;
-  var activeStreamId = null;
-  var activeWhipUrl = null;
+  var activeRoomName = null;
   var isLive = false;
   var elapsedTimer = null;
   var liveStartTime = null;
@@ -78,7 +74,6 @@
         return;
       }
 
-      // Check Firestore role
       firebase.firestore().collection('users').doc(user.uid).get()
         .then(function (doc) {
           var role = doc.exists ? (doc.data().role || 'member') : 'member';
@@ -187,7 +182,6 @@
 
     sessionList.innerHTML = html;
 
-    // Bind click handlers
     var cards = sessionList.querySelectorAll('.yts-sessions__item');
     for (var j = 0; j < cards.length; j++) {
       cards[j].addEventListener('click', handleSessionClick);
@@ -195,12 +189,11 @@
   }
 
   function handleSessionClick(e) {
-    if (isLive) return; // Can't switch sessions while live
+    if (isLive) return;
 
     var el = e.currentTarget;
     var sessionData = JSON.parse(el.dataset.session);
 
-    // Update selection UI
     var all = sessionList.querySelectorAll('.yts-sessions__item');
     for (var i = 0; i < all.length; i++) {
       all[i].classList.remove('yts-sessions__item--selected');
@@ -208,8 +201,6 @@
     el.classList.add('yts-sessions__item--selected');
 
     selectedSession = sessionData;
-
-    // Enable go-live button if camera is on
     updateGoLiveState();
   }
 
@@ -264,7 +255,6 @@
       var cameras = devices.filter(function (d) { return d.kind === 'videoinput'; });
       var mics = devices.filter(function (d) { return d.kind === 'audioinput'; });
 
-      // Current device IDs
       var currentCam = '';
       var currentMic = '';
       if (mediaStream) {
@@ -296,7 +286,6 @@
 
   function switchDevice() {
     if (!mediaStream) return;
-    // Stop current tracks
     mediaStream.getTracks().forEach(function (t) { t.stop(); });
     startCamera();
   }
@@ -315,7 +304,7 @@
   }
 
   // ═══════════════════════════════════════════════════════
-  // GO LIVE — create Mux stream + connect via WHIP
+  // GO LIVE — create LiveKit room + publish tracks
   // ═══════════════════════════════════════════════════════
   function goLive() {
     if (!selectedSession) {
@@ -334,7 +323,7 @@
     if (!user) return;
 
     user.getIdToken().then(function (token) {
-      return fetch('/.netlify/functions/mux-stream?action=create-stream', {
+      return fetch('/.netlify/functions/livekit-token?action=create-room', {
         method: 'POST',
         headers: {
           'Authorization': 'Bearer ' + token,
@@ -346,16 +335,13 @@
     .then(function (r) { return r.json(); })
     .then(function (data) {
       if (!data.ok) {
-        throw new Error(data.error || 'Failed to create stream');
+        throw new Error(data.error || 'Failed to create room');
       }
 
-      activeStreamId = data.streamId;
-      activeWhipUrl = data.whipUrl;
+      activeRoomName = data.roomName;
+      console.log('[teacher-studio] Room created:', activeRoomName);
 
-      console.log('[teacher-studio] Stream created:', activeStreamId);
-      console.log('[teacher-studio] WHIP URL:', activeWhipUrl);
-
-      return connectWhip(activeWhipUrl, mediaStream);
+      return connectLiveKit(data.wsUrl, data.token);
     })
     .then(function () {
       isLive = true;
@@ -364,6 +350,24 @@
       endStreamBtn.style.display = '';
       liveBadge.style.display = '';
       startElapsed();
+
+      // Update session status to live in Firestore via existing mux-stream endpoint
+      var user2 = firebase.auth().currentUser;
+      if (user2) {
+        user2.getIdToken().then(function (token) {
+          fetch('/.netlify/functions/live-admin?action=set-live', {
+            method: 'POST',
+            headers: {
+              'Authorization': 'Bearer ' + token,
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+              sessionId: selectedSession.id,
+              livekitRoom: activeRoomName
+            })
+          }).catch(function () {});
+        });
+      }
     })
     .catch(function (err) {
       console.error('[teacher-studio] go live error:', err);
@@ -375,127 +379,85 @@
   if (goLiveBtn) goLiveBtn.addEventListener('click', goLive);
 
   // ═══════════════════════════════════════════════════════
-  // WHIP — WebRTC HTTP Ingestion Protocol
+  // LIVEKIT — connect to room + publish tracks
   // ═══════════════════════════════════════════════════════
 
   /**
-   * Connect to Mux via WHIP (WebRTC).
-   * WHIP is a simple protocol: POST an SDP offer, get an SDP answer.
-   * @see https://docs.mux.com/guides/stream-with-whip
+   * Connect to LiveKit room and publish local tracks.
+   * Uses the livekit-client SDK loaded via CDN.
    */
-  function connectWhip(whipUrl, stream) {
+  function connectLiveKit(wsUrl, token) {
     return new Promise(function (resolve, reject) {
-      // Check RTCPeerConnection support
-      if (typeof RTCPeerConnection === 'undefined') {
-        reject(new Error(tWhipNotSupported));
+      if (typeof LivekitClient === 'undefined') {
+        reject(new Error('LiveKit SDK not loaded. Please refresh the page.'));
         return;
       }
 
-      var pc = new RTCPeerConnection({
-        iceServers: [] // Mux handles ICE
-      });
-      peerConnection = pc;
-
-      // Add local tracks to peer connection
-      stream.getTracks().forEach(function (track) {
-        pc.addTrack(track, stream);
+      var room = new LivekitClient.Room({
+        adaptiveStream: true,
+        dynacast: true,
+        videoCaptureDefaults: {
+          resolution: LivekitClient.VideoPresets.h720.resolution
+        }
       });
 
-      // Set preferred codec to H264 for Mux compatibility
-      var transceivers = pc.getTransceivers();
-      for (var i = 0; i < transceivers.length; i++) {
-        var t = transceivers[i];
-        if (t.sender && t.sender.track && t.sender.track.kind === 'video') {
-          var codecs = RTCRtpSender.getCapabilities
-            ? RTCRtpSender.getCapabilities('video').codecs
-            : [];
-          var h264 = codecs.filter(function (c) {
-            return c.mimeType === 'video/H264';
-          });
-          if (h264.length && t.setCodecPreferences) {
-            // Put H264 first, keep others as fallback
-            var rest = codecs.filter(function (c) { return c.mimeType !== 'video/H264'; });
-            try { t.setCodecPreferences(h264.concat(rest)); } catch (e) { /* ignore */ }
-          }
-        }
-      }
-
-      // Create offer
-      pc.createOffer().then(function (offer) {
-        return pc.setLocalDescription(offer);
-      }).then(function () {
-        // Wait for ICE gathering to complete (or timeout after 2s)
-        return waitForIce(pc, 2000);
-      }).then(function () {
-        // Send the SDP offer to Mux via WHIP
-        return fetch(whipUrl, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/sdp' },
-          body: pc.localDescription.sdp
-        });
-      }).then(function (res) {
-        if (!res.ok) {
-          return res.text().then(function (body) {
-            throw new Error('WHIP error (' + res.status + '): ' + body);
-          });
-        }
-        // Store the resource URL for DELETE on end-stream
-        var location = res.headers.get('Location');
-        if (location) {
-          // Resolve relative URLs
-          if (location.startsWith('/')) {
-            var urlObj = new URL(whipUrl);
-            location = urlObj.origin + location;
-          }
-          activeWhipUrl = location;
-        }
-        return res.text();
-      }).then(function (answerSdp) {
-        return pc.setRemoteDescription({
-          type: 'answer',
-          sdp: answerSdp
-        });
-      }).then(function () {
-        console.log('[teacher-studio] WHIP connected');
-        resolve();
-      }).catch(function (err) {
-        pc.close();
-        peerConnection = null;
-        reject(err);
-      });
+      livekitRoom = room;
 
       // Monitor connection state
-      pc.onconnectionstatechange = function () {
-        console.log('[teacher-studio] connection state:', pc.connectionState);
-        if (pc.connectionState === 'failed' || pc.connectionState === 'disconnected') {
-          if (isLive) {
-            setStatus('error');
-          }
+      room.on(LivekitClient.RoomEvent.Disconnected, function () {
+        console.log('[teacher-studio] Disconnected from LiveKit room');
+        if (isLive) {
+          setStatus('error');
         }
-      };
-    });
-  }
+      });
 
-  /**
-   * Wait for ICE gathering to complete (or timeout).
-   */
-  function waitForIce(pc, timeoutMs) {
-    return new Promise(function (resolve) {
-      if (pc.iceGatheringState === 'complete') {
+      room.on(LivekitClient.RoomEvent.Reconnecting, function () {
+        console.log('[teacher-studio] Reconnecting to LiveKit room…');
+      });
+
+      room.on(LivekitClient.RoomEvent.Reconnected, function () {
+        console.log('[teacher-studio] Reconnected to LiveKit room');
+        if (isLive) setStatus('live');
+      });
+
+      // Connect to the room
+      room.connect(wsUrl, token).then(function () {
+        console.log('[teacher-studio] Connected to LiveKit room:', room.name);
+
+        // Publish local tracks from our existing mediaStream
+        var videoTrack = mediaStream.getVideoTracks()[0];
+        var audioTrack = mediaStream.getAudioTracks()[0];
+
+        var publishPromises = [];
+
+        if (videoTrack) {
+          var localVideo = new LivekitClient.LocalVideoTrack(videoTrack);
+          publishPromises.push(
+            room.localParticipant.publishTrack(localVideo, {
+              source: LivekitClient.Track.Source.Camera,
+              simulcast: true
+            })
+          );
+        }
+
+        if (audioTrack) {
+          var localAudio = new LivekitClient.LocalAudioTrack(audioTrack);
+          publishPromises.push(
+            room.localParticipant.publishTrack(localAudio, {
+              source: LivekitClient.Track.Source.Microphone
+            })
+          );
+        }
+
+        return Promise.all(publishPromises);
+      }).then(function () {
+        console.log('[teacher-studio] Tracks published to LiveKit room');
         resolve();
-        return;
-      }
-
-      var timer = setTimeout(function () {
-        resolve(); // Proceed with whatever candidates we have
-      }, timeoutMs);
-
-      pc.onicegatheringstatechange = function () {
-        if (pc.iceGatheringState === 'complete') {
-          clearTimeout(timer);
-          resolve();
-        }
-      };
+      }).catch(function (err) {
+        room.disconnect();
+        livekitRoom = null;
+        reject(err);
+      });
     });
   }
 
@@ -517,36 +479,31 @@
     goLiveBtn.style.display = '';
     goLiveBtn.disabled = true;
 
-    // Close WHIP connection
-    if (peerConnection) {
-      peerConnection.close();
-      peerConnection = null;
+    // Disconnect from LiveKit room
+    if (livekitRoom) {
+      livekitRoom.disconnect();
+      livekitRoom = null;
     }
 
-    // Send DELETE to WHIP resource URL (optional cleanup)
-    if (activeWhipUrl) {
-      fetch(activeWhipUrl, { method: 'DELETE' }).catch(function () {});
-    }
-
-    // Tell our backend to complete the Mux stream
-    if (activeStreamId) {
+    // Tell backend to close the room and update session status
+    if (activeRoomName) {
       var user = firebase.auth().currentUser;
       if (user) {
         user.getIdToken().then(function (token) {
-          fetch('/.netlify/functions/mux-stream?action=delete-stream', {
+          fetch('/.netlify/functions/livekit-token?action=close-room', {
             method: 'POST',
             headers: {
               'Authorization': 'Bearer ' + token,
               'Content-Type': 'application/json'
             },
             body: JSON.stringify({
-              streamId: activeStreamId,
+              roomName: activeRoomName,
               sessionId: selectedSession ? selectedSession.id : null
             })
           }).catch(function () {});
         });
       }
-      activeStreamId = null;
+      activeRoomName = null;
     }
 
     // Refresh sessions

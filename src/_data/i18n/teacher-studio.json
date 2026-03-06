@@ -16,7 +16,7 @@
     "preview_select_mic": "Mikrofon",
     "go_live_btn": "Gå Live",
     "end_stream_btn": "Afslut Stream",
-    "status_connecting": "Forbinder til Mux…",
+    "status_connecting": "Forbinder til livestream…",
     "status_live": "Du er LIVE",
     "status_ended": "Stream afsluttet",
     "status_error": "Forbindelsesfejl — prøv igen",
@@ -32,8 +32,7 @@
     "stream_quality_1080": "1080p",
     "stream_quality_480": "480p (langsom forbindelse)",
     "teacher_only_notice": "Denne side er kun for undervisere.",
-    "whip_not_supported": "Din browser understøtter ikke live streaming. Brug venligst Chrome, Edge eller Safari.",
-    "footer_note": "Streamen sendes direkte til Mux — studerende ser den på",
+    "footer_note": "Streamen sendes direkte til studerende på",
     "footer_link_text": "live-siden"
   },
   "en": {
@@ -53,7 +52,7 @@
     "preview_select_mic": "Microphone",
     "go_live_btn": "Go Live",
     "end_stream_btn": "End Stream",
-    "status_connecting": "Connecting to Mux…",
+    "status_connecting": "Connecting to livestream…",
     "status_live": "You are LIVE",
     "status_ended": "Stream ended",
     "status_error": "Connection error — please try again",
@@ -69,8 +68,7 @@
     "stream_quality_1080": "1080p",
     "stream_quality_480": "480p (slow connection)",
     "teacher_only_notice": "This page is for teachers only.",
-    "whip_not_supported": "Your browser does not support live streaming. Please use Chrome, Edge or Safari.",
-    "footer_note": "Stream is sent directly to Mux — students watch on the",
+    "footer_note": "Stream is sent directly to students on the",
     "footer_link_text": "live page"
   }
 }

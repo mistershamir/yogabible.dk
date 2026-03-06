@@ -1,9 +1,20 @@
+/**
+ * Live Page — Student-facing live stream viewer.
+ *
+ * Uses LiveKit to subscribe to teacher's video/audio in real time.
+ * Falls back to Mux HLS player for hardware encoder streams.
+ * Shows upcoming schedule and polls for active rooms.
+ *
+ * Flow:
+ * 1. Check schedule for live sessions with a LiveKit room
+ * 2. If active → get viewer token → connect to room → display video
+ * 3. If not → show offline card, poll every 15s
+ * 4. Schedule section always loads upcoming sessions
+ */
 (function () {
   var container = document.getElementById('yb-live');
   if (!container) return;
 
-  var playbackId = container.dataset.playbackId;
-  var envKey = container.dataset.envKey || '';
   var playerSection = document.getElementById('yb-live-player-section');
   var offlineSection = document.getElementById('yb-live-offline');
   var checkingOverlay = document.getElementById('yb-live-checking');
@@ -14,20 +25,14 @@
   var elapsedTimeEl = document.getElementById('yb-live-elapsed-time');
   var scheduleSection = document.getElementById('yb-live-schedule');
   var scheduleList = document.getElementById('yb-live-schedule-list');
-  var player = null;
+
   var pollTimer = null;
   var elapsedTimer = null;
-  var POLL_INTERVAL = 30000;
+  var liveStartTime = null;
+  var POLL_INTERVAL = 15000;
   var isStreamLive = false;
-  var playerErrorCount = 0;
-  var MAX_PLAYER_ERRORS = 3;
-
-  // iOS detection — ALL browsers on iOS use WebKit (Apple requirement).
-  // WebKit has native HLS support but the mux-player web component
-  // can fail to initialize, especially inside hidden containers.
-  // Use native <video> on iOS for reliable playback.
-  var isIOS = /iPhone|iPad|iPod/.test(navigator.userAgent) ||
-    (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+  var livekitRoom = null;
+  var currentRoomName = null;
 
   var isDa = (container.dataset.lang || 'da') === 'da';
   var tToday = container.dataset.tToday || 'I dag';
@@ -47,11 +52,12 @@
 
   function startElapsedTimer() {
     if (elapsedTimer) return;
+    liveStartTime = Date.now();
     if (elapsedEl) elapsedEl.classList.add('yb-live-elapsed--visible');
     elapsedTimer = setInterval(function () {
-      if (player && elapsedTimeEl) {
-        var t = player.currentTime;
-        if (t > 0) elapsedTimeEl.textContent = formatTime(t);
+      if (elapsedTimeEl && liveStartTime) {
+        var t = (Date.now() - liveStartTime) / 1000;
+        elapsedTimeEl.textContent = formatTime(t);
       }
     }, 1000);
   }
@@ -61,87 +67,156 @@
       clearInterval(elapsedTimer);
       elapsedTimer = null;
     }
+    liveStartTime = null;
     if (elapsedEl) elapsedEl.classList.remove('yb-live-elapsed--visible');
     if (elapsedTimeEl) elapsedTimeEl.textContent = '00:00';
   }
 
-  /**
-   * Create the appropriate player element based on platform.
-   * iOS: native <video> with HLS URL (WebKit supports HLS natively)
-   * Desktop/Android: <mux-player> web component with full features
-   */
-  function createPlayer() {
-    if (!mountEl) return null;
+  // ═══════════════════════════════════════════════════════
+  // LIVEKIT — subscribe to teacher's tracks
+  // ═══════════════════════════════════════════════════════
 
-    // Remove existing player if any
-    if (player && player.parentNode) {
-      player.parentNode.removeChild(player);
+  function connectToRoom(roomName) {
+    if (typeof LivekitClient === 'undefined') {
+      console.error('[live] LiveKit SDK not loaded');
+      showOffline();
+      return;
     }
-    player = null;
 
-    var el;
-    if (isIOS) {
-      // Use Mux's hosted iframe player on iOS — handles HLS/codec/mobile natively
-      el = document.createElement('iframe');
-      el.id = 'yb-mux-player';
-      el.src = 'https://player.mux.com/' + playbackId;
-      el.style.cssText = 'width:100%;aspect-ratio:16/9;border:none;display:block';
-      el.setAttribute('allow', 'accelerometer; gyroscope; autoplay; encrypted-media; picture-in-picture;');
-      el.setAttribute('allowfullscreen', '');
+    if (livekitRoom && currentRoomName === roomName) {
+      showLive();
+      return;
+    }
+
+    if (livekitRoom) {
+      livekitRoom.disconnect();
+      livekitRoom = null;
+    }
+
+    currentRoomName = roomName;
+
+    var tokenUrl = '/.netlify/functions/livekit-token?action=viewer-token&room=' + encodeURIComponent(roomName);
+    var opts = { headers: {} };
+
+    var authPromise;
+    if (typeof firebase !== 'undefined' && firebase.auth && firebase.auth().currentUser) {
+      authPromise = firebase.auth().currentUser.getIdToken();
     } else {
-      el = document.createElement('mux-player');
-      el.id = 'yb-mux-player';
-      el.setAttribute('stream-type', 'll-live');
-      el.setAttribute('playback-id', playbackId);
-      el.setAttribute('env-key', envKey);
-      el.setAttribute('accent-color', '#f75c03');
-      el.setAttribute('primary-color', '#FFFCF9');
-      el.setAttribute('secondary-color', '#0F0F0F');
-      el.setAttribute('default-hidden-captions', '');
-      el.setAttribute('playsinline', '');
+      authPromise = Promise.resolve(null);
+    }
+
+    authPromise.then(function (authToken) {
+      if (authToken) opts.headers['Authorization'] = 'Bearer ' + authToken;
+      return fetch(tokenUrl, opts);
+    })
+    .then(function (r) { return r.json(); })
+    .then(function (data) {
+      if (!data.ok) throw new Error(data.error || 'Failed to get viewer token');
+      return joinRoom(data.wsUrl, data.token);
+    })
+    .catch(function (err) {
+      console.error('[live] LiveKit connection error:', err);
+      showOffline();
+    });
+  }
+
+  function joinRoom(wsUrl, token) {
+    var room = new LivekitClient.Room({
+      adaptiveStream: true,
+      dynacast: true
+    });
+
+    livekitRoom = room;
+
+    room.on(LivekitClient.RoomEvent.TrackSubscribed, function (track, publication, participant) {
+      console.log('[live] Track subscribed:', track.kind, 'from', participant.identity);
+      attachTrack(track);
+      showLive();
+    });
+
+    room.on(LivekitClient.RoomEvent.TrackUnsubscribed, function (track) {
+      console.log('[live] Track unsubscribed:', track.kind);
+      detachTrack(track);
+    });
+
+    room.on(LivekitClient.RoomEvent.Disconnected, function () {
+      console.log('[live] Disconnected from LiveKit room');
+      cleanupMount();
+      livekitRoom = null;
+      currentRoomName = null;
+      showOffline();
+    });
+
+    room.on(LivekitClient.RoomEvent.Reconnecting, function () {
+      console.log('[live] Reconnecting…');
+    });
+
+    room.on(LivekitClient.RoomEvent.Reconnected, function () {
+      console.log('[live] Reconnected');
+    });
+
+    return room.connect(wsUrl, token).then(function () {
+      console.log('[live] Connected to room:', room.name, 'participants:', room.remoteParticipants.size);
+
+      room.remoteParticipants.forEach(function (participant) {
+        participant.trackPublications.forEach(function (publication) {
+          if (publication.track && publication.isSubscribed) {
+            attachTrack(publication.track);
+          }
+        });
+      });
+
+      if (room.remoteParticipants.size > 0) {
+        showLive();
+      }
+    });
+  }
+
+  function attachTrack(track) {
+    if (!mountEl) return;
+
+    var el = track.attach();
+    el.id = 'yb-live-track-' + track.sid;
+
+    if (track.kind === 'video') {
+      el.style.width = '100%';
+      el.style.aspectRatio = '16 / 9';
+      el.style.objectFit = 'contain';
+      el.style.background = '#000';
+      el.style.display = 'block';
+    } else {
+      el.style.display = 'none';
     }
 
     mountEl.appendChild(el);
-    player = el;
-
-    // Only bind player events for mux-player (iframe handles its own events)
-    if (!isIOS) bindPlayerEvents();
-
-    return el;
   }
 
-  /**
-   * Re-create the player element from scratch.
-   * Destroys the old element and builds a new one for clean init.
-   */
-  function recreatePlayer() {
-    createPlayer();
+  function detachTrack(track) {
+    var elements = track.detach();
+    for (var i = 0; i < elements.length; i++) {
+      if (elements[i].parentNode) {
+        elements[i].parentNode.removeChild(elements[i]);
+      }
+    }
   }
+
+  function cleanupMount() {
+    if (!mountEl) return;
+    while (mountEl.firstChild) {
+      mountEl.removeChild(mountEl.firstChild);
+    }
+  }
+
+  // ═══════════════════════════════════════════════════════
+  // SHOW LIVE / OFFLINE
+  // ═══════════════════════════════════════════════════════
 
   function showLive() {
     isStreamLive = true;
-    playerErrorCount = 0;
     playerSection.style.display = 'block';
     offlineSection.style.display = 'none';
     checkingOverlay.classList.add('yb-live-player__checking--hidden');
     badge.classList.add('yb-live-badge--visible');
-
-    // Create player lazily — only when stream is confirmed live
-    if (!player || !player.parentNode) {
-      createPlayer();
-    } else if (isIOS) {
-      // Ensure iframe src is set for Mux hosted player
-      var expectedSrc = 'https://player.mux.com/' + playbackId;
-      if (!player.src || player.src.indexOf(playbackId) === -1) {
-        player.src = expectedSrc;
-      }
-    } else {
-      // Set playback-id for mux-player if not already set
-      if (!player.getAttribute('playback-id')) {
-        player.setAttribute('playback-id', playbackId);
-      }
-    }
-
     startElapsedTimer();
     if (pollTimer) {
       clearInterval(pollTimer);
@@ -151,59 +226,122 @@
 
   function showOffline() {
     isStreamLive = false;
-    playerErrorCount = 0;
     playerSection.style.display = 'none';
     offlineSection.style.display = 'block';
     badge.classList.remove('yb-live-badge--visible');
     checkingOverlay.classList.add('yb-live-player__checking--hidden');
+    cleanupMount();
+    stopElapsedTimer();
 
-    // Stop/clear the player
-    if (player) {
-      if (isIOS) {
-        player.src = 'about:blank'; // Clear iframe
-      } else if (player.getAttribute('playback-id')) {
-        player.removeAttribute('playback-id');
-      }
+    if (livekitRoom) {
+      livekitRoom.disconnect();
+      livekitRoom = null;
+      currentRoomName = null;
     }
 
-    stopElapsedTimer();
     startPolling();
   }
 
-  function checkStream() {
-    if (!playbackId) {
-      showOffline();
-      return;
+  // ═══════════════════════════════════════════════════════
+  // STREAM CHECK — poll schedule for active rooms
+  // ═══════════════════════════════════════════════════════
+
+  /**
+   * Mux HLS fallback for hardware encoder streams (ATEM Mini etc.)
+   */
+  function showMuxPlayer(playbackId) {
+    if (!mountEl) return;
+    cleanupMount();
+
+    var envKey = container.dataset.envKey || '';
+    var isIOS = /iPhone|iPad|iPod/.test(navigator.userAgent) ||
+      (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+
+    var el;
+    if (isIOS) {
+      el = document.createElement('iframe');
+      el.src = 'https://player.mux.com/' + playbackId;
+      el.style.cssText = 'width:100%;aspect-ratio:16/9;border:none;display:block';
+      el.setAttribute('allow', 'accelerometer; gyroscope; autoplay; encrypted-media; picture-in-picture;');
+      el.setAttribute('allowfullscreen', '');
+    } else {
+      el = document.createElement('mux-player');
+      el.setAttribute('stream-type', 'll-live');
+      el.setAttribute('playback-id', playbackId);
+      if (envKey) el.setAttribute('env-key', envKey);
+      el.setAttribute('accent-color', '#f75c03');
+      el.setAttribute('primary-color', '#FFFCF9');
+      el.setAttribute('secondary-color', '#0F0F0F');
+      el.setAttribute('default-hidden-captions', '');
+      el.setAttribute('playsinline', '');
     }
-    var url = 'https://stream.mux.com/' + playbackId + '.m3u8';
-    fetch(url)
-      .then(function (res) {
-        if (res.ok) {
-          showLive();
-        } else {
-          showOffline();
-        }
-      })
-      .catch(function () {
+
+    mountEl.appendChild(el);
+    showLive();
+  }
+
+  function checkStream() {
+    var opts = { headers: {} };
+    var authPromise;
+
+    if (typeof firebase !== 'undefined' && firebase.auth && firebase.auth().currentUser) {
+      authPromise = firebase.auth().currentUser.getIdToken();
+    } else {
+      authPromise = Promise.resolve(null);
+    }
+
+    authPromise.then(function (token) {
+      if (token) opts.headers['Authorization'] = 'Bearer ' + token;
+      return fetch('/.netlify/functions/live-admin?action=schedule', opts);
+    })
+    .then(function (r) { return r.json(); })
+    .then(function (data) {
+      if (!data.ok || !data.items) {
         showOffline();
-      });
+        return;
+      }
+
+      // Priority 1: LiveKit room
+      var liveSession = null;
+      for (var i = 0; i < data.items.length; i++) {
+        if (data.items[i].status === 'live' && data.items[i].livekitRoom) {
+          liveSession = data.items[i];
+          break;
+        }
+      }
+
+      if (liveSession) {
+        console.log('[live] Found live session:', liveSession.id, 'room:', liveSession.livekitRoom);
+        connectToRoom(liveSession.livekitRoom);
+        renderSchedule(data.items);
+        return;
+      }
+
+      // Priority 2: Mux HLS (hardware encoder fallback)
+      var muxLive = null;
+      for (var j = 0; j < data.items.length; j++) {
+        if (data.items[j].status === 'live' && data.items[j].muxPlaybackId) {
+          muxLive = data.items[j];
+          break;
+        }
+      }
+
+      if (muxLive) {
+        showMuxPlayer(muxLive.muxPlaybackId);
+      } else {
+        showOffline();
+      }
+
+      renderSchedule(data.items);
+    })
+    .catch(function () {
+      showOffline();
+    });
   }
 
   function startPolling() {
     if (pollTimer) return;
-    pollTimer = setInterval(function () {
-      if (!playbackId) return;
-      var url = 'https://stream.mux.com/' + playbackId + '.m3u8';
-      fetch(url)
-        .then(function (res) {
-          if (res.ok) {
-            // Stream came online — recreate player fresh for clean init
-            recreatePlayer();
-            showLive();
-          }
-        })
-        .catch(function () {});
-    }, POLL_INTERVAL);
+    pollTimer = setInterval(checkStream, POLL_INTERVAL);
   }
 
   if (retryBtn) {
@@ -211,42 +349,16 @@
       playerSection.style.display = 'block';
       offlineSection.style.display = 'none';
       checkingOverlay.classList.remove('yb-live-player__checking--hidden');
-      recreatePlayer();
       checkStream();
     });
   }
 
-  function bindPlayerEvents() {
-    if (!player) return;
-
-    player.addEventListener('playing', function () {
-      showLive();
-    });
-
-    player.addEventListener('error', function () {
-      // On mobile, transient errors can occur while the stream is loading.
-      // Only go offline after multiple consecutive errors, or if we never
-      // confirmed the stream was live in the first place.
-      if (!isStreamLive) {
-        showOffline();
-        return;
-      }
-      playerErrorCount++;
-      console.warn('[live] player error #' + playerErrorCount + ' (stream confirmed live, tolerating)');
-      if (playerErrorCount >= MAX_PLAYER_ERRORS) {
-        console.warn('[live] max errors reached, going offline');
-        isStreamLive = false;
-        showOffline();
-      }
-    });
-  }
-
-  // No player in HTML — created lazily by checkStream → showLive
+  // Initial check
   checkStream();
 
-  /* ══════════════════════════════════════════
-     SCHEDULE — fetch upcoming live sessions
-     ══════════════════════════════════════════ */
+  // ═══════════════════════════════════════════════════════
+  // SCHEDULE RENDERING
+  // ═══════════════════════════════════════════════════════
   function esc(s) {
     var d = document.createElement('div');
     d.textContent = s || '';
@@ -326,43 +438,15 @@
     scheduleList.innerHTML = html;
   }
 
-  function fetchSchedule() {
-    if (typeof firebase !== 'undefined' && firebase.auth && firebase.auth().currentUser) {
-      firebase.auth().currentUser.getIdToken().then(function (token) {
-        doFetch(token);
-      });
-    } else {
-      doFetch(null);
-    }
+  // Expose for member.js to trigger re-fetch
+  window._liveScheduleFetch = checkStream;
 
-    function doFetch(token) {
-      var opts = { headers: {} };
-      if (token) opts.headers['Authorization'] = 'Bearer ' + token;
-      fetch('/.netlify/functions/live-admin?action=schedule', opts)
-        .then(function (r) { return r.json(); })
-        .then(function (data) {
-          console.log('[live] schedule response:', data.ok, 'items:', data.items ? data.items.length : 0);
-          if (data.ok) renderSchedule(data.items);
-          if (data.error) console.warn('[live] schedule error:', data.error);
-        })
-        .catch(function (err) {
-          console.error('[live] schedule fetch failed:', err);
-        });
-    }
-  }
-
-  // Expose so member.js can trigger a re-fetch when the Live tab opens
-  window._liveScheduleFetch = fetchSchedule;
-
-  // Fetch schedule after a short delay (non-blocking)
-  setTimeout(fetchSchedule, 500);
-
-  // Also re-fetch once auth is ready (may arrive after the initial 500ms fetch)
+  // Re-fetch once auth is ready
   if (typeof firebase !== 'undefined' && firebase.auth) {
     var authUnsub = firebase.auth().onAuthStateChanged(function (u) {
       if (u) {
-        fetchSchedule();
-        authUnsub(); // Only need this once
+        checkStream();
+        authUnsub();
       }
     });
   }
