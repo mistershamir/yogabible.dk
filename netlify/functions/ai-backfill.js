@@ -50,6 +50,43 @@ exports.handler = async function (event) {
       });
     }
 
+    // ── Manual link mode: hardcoded mappings for sessions that were never linked by webhooks ──
+    if (params.link === '1') {
+      var manualLinks = [
+        {
+          sessionId: 'fKCXgCU2FwyXWk8UCF1R',
+          assetId: 'WAGBUMO1M101Rovb9qRTV1U8S5LOlBDyPVL2y2miOkGE',
+          playbackId: '00YsBLE8nu5vkFSJyWawE2WdCIRY0EEjFeh87Xe6C3BU'
+        },
+        {
+          sessionId: 'YYDqECjSRemeb9dTRbPK',
+          assetId: 'kuHT5DO2VhICO6EKlbpZPGPO2tGodd8KiMelNWir3ziQ',
+          playbackId: 'CIvPqI2JYzAW4vGM9WWxkk00FAZAVtSGpnax1LobgsmQ'
+        }
+      ];
+
+      var linkResults = [];
+      for (var m = 0; m < manualLinks.length; m++) {
+        var link = manualLinks[m];
+        try {
+          await updateDoc(COLLECTION, link.sessionId, {
+            recordingAssetId: link.assetId,
+            recordingPlaybackId: link.playbackId
+          });
+          linkResults.push({ sessionId: link.sessionId, status: 'linked', assetId: link.assetId });
+          console.log('[ai-backfill] Manually linked', link.sessionId, '→', link.assetId);
+        } catch (err) {
+          linkResults.push({ sessionId: link.sessionId, status: 'error', error: err.message });
+        }
+      }
+
+      return jsonResponse(200, {
+        ok: true,
+        message: 'Manual linking complete. Now run without params to trigger AI processing.',
+        results: linkResults
+      });
+    }
+
     // ── Reconcile mode: find recordings from Mux for ended sessions missing recordingAssetId ──
     if (params.reconcile === '1') {
       var missing = all.filter(function (item) {
