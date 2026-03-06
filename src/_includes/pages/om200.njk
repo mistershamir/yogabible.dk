@@ -467,21 +467,8 @@
             <p>{{ t.breakdown_note | safe }}</p>
           </div>
 
-          {# Embedded video — structure overview (minimal controls, no fullscreen) #}
-          <div class="om2-breakdown__video" data-om2-breakdown-video>
-            <div class="om2-breakdown__video-card">
-              <div class="om2-breakdown__video-placeholder" data-om2-breakdown-play>
-                <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" opacity="0.5">
-                  <polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/>
-                </svg>
-                <span class="om2-breakdown__video-label">{{ t.breakdown_video_label }}</span>
-                <button class="om2-breakdown__play-btn" type="button" aria-label="{{ t.breakdown_video_play }}">
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>
-                  <span>{{ t.breakdown_video_play }}</span>
-                </button>
-              </div>
-            </div>
-          </div>
+          {# Curriculum animation — replaces video placeholder #}
+          {% include "components/curriculum-animation.njk" %}
         </header>
       </div>
 
@@ -508,13 +495,6 @@
         </div>
       </div>
     </div>
-  </div>
-</section>
-
-{# Curriculum animation — looping topic reveal #}
-<section class="om2-curriculum-anim" style="padding:3rem 1rem;">
-  <div style="max-width:900px;margin:0 auto;">
-    {% include "components/curriculum-animation.njk" %}
   </div>
 </section>
 
