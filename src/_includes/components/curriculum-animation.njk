@@ -7,19 +7,28 @@
   <style>
     .ca-wrap {
       width: 100%;
-      height: 220px;
+      min-height: 220px;
+      flex: 1 1 auto;
       background: #141414;
       display: flex;
       align-items: center;
       justify-content: center;
       overflow: hidden;
       position: relative;
-      border-radius: 12px;
+      border-radius: 16px;
+      margin-top: 24px;
+      border: 1px solid #E8E4E0;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.06);
     }
+
+    /* Let the left column stretch so ca-wrap fills remaining height */
+    .om2-breakdown__left { display: flex; flex-direction: column; }
+    .om2-breakdown__left > header { display: flex; flex-direction: column; flex: 1 1 auto; }
 
     .ca-stage {
       text-align: center;
       position: relative;
+      padding: 0 24px;
     }
 
     .ca-label {
@@ -40,7 +49,7 @@
 
     .ca-topic {
       font-family: 'Cormorant Garamond', 'Georgia', serif;
-      font-size: clamp(2rem, 5vw, 3.6rem);
+      font-size: clamp(1.8rem, 4vw, 3.4rem);
       font-weight: 600;
       color: #F5EDD6;
       line-height: 1.15;
@@ -48,7 +57,6 @@
       opacity: 0;
       transform: translateY(20px);
       transition: opacity 0.5s ease-out, transform 0.5s ease-out;
-      white-space: nowrap;
     }
 
     .ca-topic.ca--visible {
@@ -76,11 +84,23 @@
       width: 100%;
     }
 
-    @media (max-width: 600px) {
+    /* ── Mobile: fixed comfortable height ── */
+    @media (max-width: 899px) {
+      .ca-wrap {
+        min-height: 180px;
+        margin-top: 20px;
+      }
       .ca-topic {
-        white-space: normal;
+        font-size: clamp(1.5rem, 6vw, 2.2rem);
+      }
+      .ca-stage {
         padding: 0 16px;
       }
+    }
+
+    /* ── Desktop: stretch to match the right column ── */
+    @media (min-width: 900px) {
+      .om2-breakdown__grid { align-items: stretch; }
     }
   </style>
 
