@@ -940,6 +940,17 @@
   // CTA BUTTON RENDERS
   // ═══════════════════════════════════════════════════════════════════
 
+  // Tell Framer's parent frame about our height so the embed iframe
+  // is sized correctly (Framer HTML embeds start at height:0).
+  function notifyFramerHeight() {
+    try {
+      if (window.parent && window.parent !== window) {
+        var h = document.body.scrollHeight || document.body.offsetHeight || 0;
+        if (h > 0) window.parent.postMessage({ embedHeight: h }, '*');
+      }
+    } catch (e) { /* cross-origin — ignore */ }
+  }
+
   function renderLoggedOut() {
     if (!container) return;
     container.innerHTML =
@@ -950,6 +961,7 @@
     document.getElementById('hyc-cta-login').addEventListener('click', function () {
       openModal('auth-login');
     });
+    notifyFramerHeight();
   }
 
   function renderLoggedIn(user) {
@@ -962,6 +974,7 @@
     document.getElementById('hyc-cta-user').addEventListener('click', function () {
       openModal('user-area');
     });
+    notifyFramerHeight();
   }
 
 
@@ -1162,6 +1175,7 @@
     var hasStoredToken = s && s.getItem(SESSION_KEY);
     if (hasStoredToken) {
       container.innerHTML = '<span class="hyc-ua__loading" style="padding:6px 12px">' + ICON.spinner + '</span>';
+      notifyFramerHeight();
     } else {
       renderLoggedOut();
     }
