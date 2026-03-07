@@ -1367,7 +1367,8 @@
   }
 
   function doForgotPassword(email, callback) {
-    firebase.auth().sendPasswordResetEmail(email)
+    var resetUrl = window.location.origin + '/auth-action/';
+    firebase.auth().sendPasswordResetEmail(email, { url: resetUrl, handleCodeInApp: true })
       .then(function () { callback(null); })
       .catch(function (err) { callback(err); });
   }
