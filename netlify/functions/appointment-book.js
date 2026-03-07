@@ -15,6 +15,7 @@ const { getDb, addDoc, updateDoc, serverTimestamp } = require('./shared/firestor
 const { jsonResponse, optionsResponse, escapeHtml } = require('./shared/utils');
 const { sendRawEmail, getSignatureHtml, getSignaturePlain } = require('./shared/email-service');
 const { CONFIG } = require('./shared/config');
+const { runSpamChecks } = require('./shared/spam-check');
 
 const COLLECTION = 'appointments';
 const SETTINGS_COLLECTION = 'appointment_settings';
@@ -185,6 +186,22 @@ async function bookAppointment(body) {
     return jsonResponse(400, { ok: false, error: 'Invalid email format' });
   }
 
+  // ── Spam protection ─────────────────────────────────────────────
+  const spamReason = await runSpamChecks({
+    honeypotValue: body._hp,
+    formOpenedAt:  body.formOpenedAt,
+    db:            getDb(),
+    collection:    COLLECTION,
+    emailField:    'client_email',
+    email,
+    windowHours:   1
+  });
+  if (spamReason) {
+    console.warn(`[appointment-book:book] Spam rejected (${spamReason}): ${email}`);
+    return jsonResponse(201, { ok: true, id: 'spam', token: '', isRequest: false });
+  }
+  // ────────────────────────────────────────────────────────────────
+
   // Load settings for type info
   let settings = DEFAULT_SETTINGS;
   try {
@@ -329,6 +346,22 @@ async function photoSessionRequest(body) {
     return jsonResponse(400, { ok: false, error: 'Invalid email format' });
   }
 
+  // ── Spam protection ─────────────────────────────────────────────
+  const spamReason = await runSpamChecks({
+    honeypotValue: body._hp,
+    formOpenedAt:  body.formOpenedAt,
+    db:            getDb(),
+    collection:    COLLECTION,
+    emailField:    'client_email',
+    email,
+    windowHours:   2
+  });
+  if (spamReason) {
+    console.warn(`[appointment-book:photo] Spam rejected (${spamReason}): ${email}`);
+    return jsonResponse(201, { ok: true, id: 'spam', token: '', isRequest: true });
+  }
+  // ────────────────────────────────────────────────────────────────
+
   const appointmentData = {
     date: preferred_slots[0].date,
     time: preferred_slots[0].time,
@@ -405,7 +438,7 @@ async function confirmRequest(body) {
     console.error('[appointment-book] Confirm request email error:', err.message);
   });
 
-  return jsonResponse(200, { ok: true, confirmed: true });
+  return jsonResponse(200, { ok: true, confirmed: true, date: confirmedDate, time: confirmedTime, duration: doc.duration });
 }
 
 // ─── Suggest Alternative (admin proposes different date/time) ─────
@@ -479,7 +512,7 @@ async function acceptSuggestion(body) {
     console.error('[appointment-book] Admin accept notice error:', err.message);
   });
 
-  return jsonResponse(200, { ok: true });
+  return jsonResponse(200, { ok: true, date: doc.suggested_date, time: doc.suggested_time, duration: doc.duration });
 }
 
 // ═══════════════════════════════════════════════════════════════════
@@ -533,6 +566,27 @@ function buildIcsContent(appointment, id) {
   ].join('\r\n');
 }
 
+function buildGoogleCalendarUrl(appointment, id) {
+  const dateClean = appointment.date.replace(/-/g, '');
+  const h = parseInt(appointment.time.split(':')[0]);
+  const m = parseInt(appointment.time.split(':')[1]);
+  const durationMin = appointment.duration || 30;
+  const endMin = h * 60 + m + durationMin;
+  const endH = Math.floor(endMin / 60);
+  const endM = endMin % 60;
+  const startStr = dateClean + 'T' + String(h).padStart(2, '0') + String(m).padStart(2, '0') + '00';
+  const endStr = dateClean + 'T' + String(endH).padStart(2, '0') + String(endM).padStart(2, '0') + '00';
+  const location = appointment.location === 'online' ? 'Online' : 'Yoga Bible, Torvegade 66, 1400 København K';
+  const title = (appointment.type_name_en || 'Appointment') + ' - Yoga Bible';
+
+  return 'https://calendar.google.com/calendar/render?action=TEMPLATE' +
+    '&text=' + encodeURIComponent(title) +
+    '&dates=' + startStr + '/' + endStr +
+    '&ctz=Europe/Copenhagen' +
+    '&details=' + encodeURIComponent(title) +
+    '&location=' + encodeURIComponent(location);
+}
+
 // ─── Client Confirmation ────────────────────────────────────────────
 async function sendClientConfirmation(id, appointment, token) {
   const orange = '#f75c03';
@@ -566,6 +620,10 @@ async function sendClientConfirmation(id, appointment, token) {
     '<a href="' + rescheduleUrl + '" style="display:inline-block;padding:10px 24px;background:' + orange + ';color:#fff;text-decoration:none;border-radius:8px;font-weight:bold;margin:0 6px;">Flyt aftale</a>' +
     '<a href="' + cancelUrl + '" style="display:inline-block;padding:10px 24px;background:#fff;color:#6F6A66;text-decoration:none;border-radius:8px;border:1px solid #E8E4E0;margin:0 6px;">Aflys aftale</a>' +
     '</div>' +
+    '<div style="margin:16px 0;text-align:center;">' +
+    '<a href="' + buildGoogleCalendarUrl(appointment, id) + '" style="display:inline-block;padding:8px 20px;background:#fff;color:#333;text-decoration:none;border-radius:8px;border:1px solid #E8E4E0;font-size:13px;margin:0 4px;">&#128197; Google Calendar</a>' +
+    '</div>' +
+    '<p style="font-size:12px;color:#aaa;text-align:center;margin:4px 0 16px;">' + 'En .ics kalenderfil er vedhæftet denne email (Apple Calendar, Outlook m.fl.)' + '</p>' +
     '<p style="font-size:13px;color:#888;">&#127468;&#127463; Appointment confirmed: ' + dateEn + ' at ' + appointment.time + ' (' + (appointment.duration || 30) + ' min). ' + locationEn + '</p>' +
     '<p style="font-size:13px;color:#888;">To reschedule or cancel, use the buttons above or reply to this email.</p>' +
     getSignatureHtml() +
@@ -680,6 +738,10 @@ async function sendRescheduleEmail(appointment, oldDate, oldTime, id, token) {
     '<div style="margin:20px 0;text-align:center;">' +
     '<a href="' + manageUrl + '&action=cancel" style="display:inline-block;padding:10px 20px;background:#fff;color:#6F6A66;text-decoration:none;border-radius:8px;border:1px solid #E8E4E0;">Aflys aftale</a>' +
     '</div>' +
+    '<div style="margin:16px 0;text-align:center;">' +
+    '<a href="' + buildGoogleCalendarUrl(appointment, id) + '" style="display:inline-block;padding:8px 20px;background:#fff;color:#333;text-decoration:none;border-radius:8px;border:1px solid #E8E4E0;font-size:13px;">&#128197; Google Calendar</a>' +
+    '</div>' +
+    '<p style="font-size:12px;color:#aaa;text-align:center;margin:4px 0 16px;">En opdateret .ics kalenderfil er vedhæftet / An updated .ics file is attached</p>' +
     '<p style="font-size:13px;color:#888;">&#127468;&#127463; Your appointment has been rescheduled to ' + formatDateEn(appointment.date) + ' at ' + appointment.time + '.</p>' +
     getSignatureHtml() +
     '</div></div>';

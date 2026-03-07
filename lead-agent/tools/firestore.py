@@ -165,6 +165,83 @@ def log_email_sent(lead_id, email_to, subject, step):
     return True
 
 
+def get_pipeline_stats():
+    """Get lead pipeline stats: counts by status, temperature, recent conversions."""
+    db = get_db()
+    now = datetime.now(timezone.utc)
+    thirty_days_ago = now - __import__('datetime').timedelta(days=30)
+
+    stats = {
+        'by_status': {},
+        'by_temperature': {},
+        'total': 0,
+        'converted_this_month': 0,
+        'new_this_week': 0,
+    }
+
+    seven_days_ago = now - __import__('datetime').timedelta(days=7)
+
+    for doc in db.collection('leads').stream():
+        lead = doc.to_dict()
+        stats['total'] += 1
+
+        status = lead.get('status', 'Unknown')
+        stats['by_status'][status] = stats['by_status'].get(status, 0) + 1
+
+        temp = lead.get('temperature', '')
+        if temp:
+            stats['by_temperature'][temp] = stats['by_temperature'].get(temp, 0) + 1
+
+        created = lead.get('created_at')
+        if created:
+            if hasattr(created, 'timestamp'):
+                created_ts = created
+            else:
+                continue
+            if created_ts >= thirty_days_ago and lead.get('converted'):
+                stats['converted_this_month'] += 1
+            if created_ts >= seven_days_ago:
+                stats['new_this_week'] += 1
+
+    return stats
+
+
+def get_stale_leads(stale_days=3):
+    """Find leads that are New or In Progress with no update in stale_days days."""
+    db = get_db()
+    now = datetime.now(timezone.utc)
+    cutoff = now - __import__('datetime').timedelta(days=stale_days)
+
+    stale = []
+    for doc in db.collection('leads').stream():
+        lead = doc.to_dict()
+        lead['id'] = doc.id
+        status = lead.get('status', '')
+        if status not in ('New', 'In Progress'):
+            continue
+        if lead.get('converted') or lead.get('unsubscribed'):
+            continue
+
+        # Check last activity: updated_at or created_at
+        last_activity = lead.get('updated_at') or lead.get('created_at')
+        if last_activity and hasattr(last_activity, 'timestamp') and last_activity < cutoff:
+            days_idle = (now - last_activity).days
+            stale.append({
+                'id': doc.id,
+                'name': f"{lead.get('first_name', '')} {lead.get('last_name', '')}".strip(),
+                'email': lead.get('email'),
+                'phone': lead.get('phone'),
+                'status': status,
+                'program': lead.get('program') or lead.get('ytt_program_type'),
+                'days_idle': days_idle,
+                'created_at': str(lead.get('created_at', '')),
+            })
+
+    # Sort by most idle first
+    stale.sort(key=lambda x: x['days_idle'], reverse=True)
+    return stale
+
+
 def listen_new_leads(callback):
     """Real-time listener for new leads. Calls callback(lead_dict) for each new lead."""
     db = get_db()

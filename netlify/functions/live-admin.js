@@ -31,7 +31,7 @@ const ALLOWED_FIELDS = [
   'recordingPlaybackId', 'recordingAssetId',
   'liveStartedAt', 'liveEndedAt',
   'status', 'recurrence', 'access', 'cohorts',
-  'streamSource',
+  'streamSource', 'livekitRoom',
   'aiSummary', 'aiQuiz', 'aiSummaryLang'
 ];
 
@@ -54,6 +54,9 @@ exports.handler = async function (event) {
     // ── Public endpoints ──
     if (action === 'schedule') return handleSchedule(event);
     if (action === 'recordings') return handleRecordings(event);
+
+    // ── Teacher endpoints ──
+    if (action === 'set-live') return handleSetLive(event);
 
     // ── Admin endpoints ──
     if (event.httpMethod !== 'GET' && event.httpMethod !== 'POST') {
@@ -262,6 +265,37 @@ async function handleBulkUpdate(event, user) {
 
   console.log('[live-admin] Bulk updated', updated, '/', ids.length, 'by', user.email);
   return jsonResponse(200, { ok: true, updated: updated });
+}
+
+// ═══════════════════════════════════════════════════════
+// Teacher: Set session to live (when going live via LiveKit)
+// ═══════════════════════════════════════════════════════
+async function handleSetLive(event) {
+  var user = await requireAuth(event, ['teacher', 'admin']);
+  if (user.error) return user.error;
+
+  var body = JSON.parse(event.body || '{}');
+  var sessionId = body.sessionId;
+  var livekitRoom = body.livekitRoom;
+
+  if (!sessionId) {
+    return jsonResponse(400, { ok: false, error: 'sessionId is required' });
+  }
+
+  var session = await getDoc(COLLECTION, sessionId);
+  if (!session) {
+    return jsonResponse(404, { ok: false, error: 'Session not found' });
+  }
+
+  await updateDoc(COLLECTION, sessionId, {
+    status: 'live',
+    livekitRoom: livekitRoom || null,
+    liveStartedAt: new Date().toISOString(),
+    updated_by: user.email
+  });
+
+  console.log('[live-admin] Session', sessionId, 'set to LIVE by', user.email, 'room:', livekitRoom);
+  return jsonResponse(200, { ok: true });
 }
 
 // ═══════════════════════════════════════════════════════

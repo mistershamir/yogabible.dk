@@ -1,0 +1,15 @@
+<svg viewBox="0 0 1200 630" xmlns="http://www.w3.org/2000/svg">
+  <rect width="1200" height="630" fill="#f5f3f0"/>
+  <circle cx="300" cy="300" r="80" fill="#f75c03" opacity="0.2"/>
+  <circle cx="600" cy="300" r="80" fill="#ff9966" opacity="0.2"/>
+  <circle cx="900" cy="300" r="80" fill="#d94f02" opacity="0.2"/>
+  <circle cx="300" cy="300" r="50" fill="#f75c03" opacity="0.9"/>
+  <circle cx="600" cy="300" r="50" fill="#ff9966" opacity="0.9"/>
+  <circle cx="900" cy="300" r="50" fill="#d94f02" opacity="0.9"/>
+  <text x="300" y="310" font-family="Abacaxi, Arial" font-size="16" font-weight="bold" fill="#0f0f0f" text-anchor="middle">V</text>
+  <text x="600" y="310" font-family="Abacaxi, Arial" font-size="16" font-weight="bold" fill="#0f0f0f" text-anchor="middle">P</text>
+  <text x="900" y="310" font-family="Abacaxi, Arial" font-size="16" font-weight="bold" fill="#0f0f0f" text-anchor="middle">K</text>
+  <text x="600" y="570" font-family="Abacaxi, Helvetica, Arial, sans-serif" font-size="30" font-weight="bold" fill="#0f0f0f" text-anchor="middle">
+    Ayurveda & Yoga
+  </text>
+</svg>

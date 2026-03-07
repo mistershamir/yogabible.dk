@@ -197,7 +197,11 @@ async function sendWelcomeEmail(leadData, action, tokenData = {}) {
     let result;
     switch (action) {
       case 'lead_schedule_4w':
+      case 'lead_schedule_4w-apr':
         result = await sendEmail4wYTT(leadData, tokenData);
+        break;
+      case 'lead_schedule_4w-jul':
+        result = await sendEmail4wJulyYTT(leadData, tokenData);
         break;
       case 'lead_schedule_8w':
         result = await sendEmail8wYTT(leadData, tokenData);
@@ -327,6 +331,78 @@ async function sendEmail4wYTT(leadData, tokenData = {}) {
 }
 
 // =========================================================================
+// 4-Week July (Vinyasa Plus) YTT Email
+// =========================================================================
+
+async function sendEmail4wJulyYTT(leadData, tokenData = {}) {
+  const firstName = leadData.first_name || '';
+  const needsHousing = (leadData.accommodation || '').toLowerCase() === 'yes';
+  const cityCountry = leadData.city_country || '';
+  const subject = firstName + ', her er alle datoer til 4-ugers Vinyasa Plus yogauddannelsen (juli)';
+
+  const fullPrice = '23.750';
+  const remaining = '20.000';
+  const rateNote = 'kan betales i 2\u20134 rater';
+
+  const scheduleUrl = tokenData.leadId && tokenData.token
+    ? 'https://www.yogabible.dk/skema/4-uger-juli/?tid=' + encodeURIComponent(tokenData.leadId) + '&tok=' + encodeURIComponent(tokenData.token)
+    : 'https://www.yogabible.dk/skema/4-uger-juli/';
+
+  let bodyHtml = '<p>Hej ' + escapeHtml(firstName) + ',</p>';
+  bodyHtml += '<p>Tak fordi du viste interesse for vores <strong>4-ugers Vinyasa Plus yogal\u00e6reruddannelse</strong> (juli 2026).</p>';
+  bodyHtml += '<p>Her finder du alle tr\u00e6ningsdage og tidspunkter for uddannelsen:</p>';
+  bodyHtml += '<p style="margin:20px 0;"><a href="' + scheduleUrl + '" style="display:inline-block;background:#f75c03;color:#ffffff;padding:14px 28px;text-decoration:none;border-radius:50px;font-weight:600;font-size:16px;">Se skemaet \u2192</a></p>';
+  bodyHtml += '<p style="font-size:14px;color:#666;">Du kan tilf\u00f8je alle datoer direkte til din kalender \u2014 og se pr\u00e6cis, hvad der sker hver dag i de 4 uger.</p>';
+
+  bodyHtml += '<div style="margin:16px 0;padding:14px;background:#FFF7ED;border-left:3px solid #f75c03;border-radius:6px;">';
+  bodyHtml += '<strong style="color:#c2410c;">Vinyasa Plus \u2014 hvad g\u00f8r dette hold s\u00e6rligt?</strong><br><br>';
+  bodyHtml += '<strong>70% Vinyasa Flow:</strong> Kreativ sekvensering, klasseledelse og avancerede undervisningsteknikker<br>';
+  bodyHtml += '<strong>30% Yin Yoga + Hot Yoga:</strong> Restitution, dybe stræk og undervisning i opvarmet milj\u00f8<br><br>';
+  bodyHtml += 'Du bliver certificeret til at undervise b\u00e5de opvarmede og ikke-opvarmede Vinyasa-klasser samt Yin Yoga.';
+  bodyHtml += '</div>';
+
+  bodyHtml += programHighlightsHtml();
+
+  if (needsHousing) bodyHtml += getAccommodationSectionHtml(cityCountry);
+
+  bodyHtml += '<div style="margin-top:20px;padding:14px;background:#FFFCF9;border-left:3px solid #f75c03;border-radius:4px;">';
+  bodyHtml += '<strong>Pris:</strong> ' + fullPrice + ' kr.<br>';
+  bodyHtml += '<strong>Forberedelsesfasen:</strong> 3.750 kr. sikrer din plads<br>';
+  bodyHtml += '<strong>Rest:</strong> ' + remaining + ' kr. (' + rateNote + ')';
+  bodyHtml += '</div>';
+
+  bodyHtml += getPreparationPhaseHtml('https://www.yogabible.dk/200-hours-4-weeks-intensive-programs');
+
+  bodyHtml += '<p style="margin-top:20px;"><a href="https://www.yogabible.dk/200-hours-4-weeks-intensive-programs" style="color:#f75c03;">L\u00e6s mere om 4-ugers programmet</a>';
+  bodyHtml += ' \u00b7 <a href="https://www.yogabible.dk/om-200hrs-yogalreruddannelser" style="color:#f75c03;">Om vores 200-timers uddannelse</a></p>';
+  bodyHtml += bookingCta() + questionPrompt();
+  bodyHtml += getEnglishNoteHtml() + getSignatureHtml() + getUnsubscribeFooterHtml(leadData.email);
+
+  // Plain text
+  let bodyPlain = 'Hej ' + firstName + ',\n\n';
+  bodyPlain += 'Tak fordi du viste interesse for vores 4-ugers Vinyasa Plus yogal\u00e6reruddannelse (juli 2026).\n\n';
+  bodyPlain += 'Uddannelsesskema og datoer:\n' + scheduleUrl + '\n\n';
+  bodyPlain += 'VINYASA PLUS \u2014 hvad g\u00f8r dette hold s\u00e6rligt?\n';
+  bodyPlain += '70% Vinyasa Flow: Kreativ sekvensering, klasseledelse og undervisningsteknikker\n';
+  bodyPlain += '30% Yin Yoga + Hot Yoga: Restitution og undervisning i opvarmet milj\u00f8\n\n';
+  bodyPlain += programHighlightsPlain();
+  if (needsHousing) bodyPlain += getAccommodationSectionPlain(cityCountry);
+  bodyPlain += '\nPris: ' + fullPrice + ' kr.\nForberedelsesfasen: 3.750 kr.\nRest: ' + remaining + ' kr. (' + rateNote + ')\n\n';
+  bodyPlain += getPreparationPhasePlain('https://www.yogabible.dk/200-hours-4-weeks-intensive-programs');
+  bodyPlain += '\nL\u00e6s mere: https://www.yogabible.dk/200-hours-4-weeks-intensive-programs\n';
+  bodyPlain += 'Book infom\u00f8de: ' + CONFIG.MEETING_LINK + '\n';
+  bodyPlain += getEnglishNotePlain() + getSignaturePlain() + getUnsubscribeFooterPlain(leadData.email);
+
+  const result = await sendRawEmail({
+    to: leadData.email,
+    subject,
+    html: wrapHtml(bodyHtml),
+    text: bodyPlain
+  });
+  return { ...result, subject };
+}
+
+// =========================================================================
 // 8-Week YTT Email
 // =========================================================================
 
@@ -390,22 +466,22 @@ async function sendEmail18wYTT(leadData, tokenData = {}) {
   const program = leadData.program || '18-Week Flexible YTT';
   const needsHousing = (leadData.accommodation || '').toLowerCase() === 'yes';
   const cityCountry = leadData.city_country || '';
-  const subject = firstName + ', f\u00e5 pladser tilbage \u2014 datoer til 18-ugers yogauddannelsen';
+  const subject = firstName + ', uddannelsen er netop startet \u2014 tilmeld dig stadig denne uge';
 
   const scheduleUrl18w = tokenData.leadId && tokenData.token
     ? 'https://www.yogabible.dk/skema/18-uger/?tid=' + encodeURIComponent(tokenData.leadId) + '&tok=' + encodeURIComponent(tokenData.token)
     : 'https://www.yogabible.dk/skema/18-uger/';
 
-  // Urgency banner
-  const urgencyHtml =
-    '<div style="margin-bottom:20px;padding:12px 16px;background:#FEF2F2;border-left:3px solid #ef4444;border-radius:6px;display:flex;align-items:center;gap:10px;">' +
-    '<span style="width:9px;height:9px;border-radius:50%;background:#ef4444;flex-shrink:0;display:inline-block;"></span>' +
-    '<span><strong style="color:#b91c1c;">Kun f\u00e5 pladser tilbage</strong> \u2014 <strong style="color:#b91c1c;">tilmeldingsfristen er 6. marts.</strong> Sikr din plads nu.</span>' +
+  // Started + last-minute discount banner
+  const startedBannerHtml =
+    '<div style="margin-bottom:20px;padding:14px 16px;background:#FFF7ED;border-left:3px solid #f75c03;border-radius:6px;">' +
+    '<p style="margin:0 0 8px;"><strong style="color:#c2410c;">\ud83c\udf1f Uddannelsen er netop g\u00e5et i gang \u2014 og du kan stadig n\u00e5 med denne uge.</strong></p>' +
+    '<p style="margin:0;color:#444;">Intromodulerne er allerede afholdt, men vi har dem p\u00e5 optagelse \u2014 s\u00e5 du nemt kan indhente det p\u00e5 ingen tid. Som tak for din hurtige beslutning f\u00e5r du <strong style="color:#c2410c;">1.000 kr. i last-minute-rabat</strong>.</p>' +
     '</div>';
 
   let bodyHtml = '<p>Hej ' + escapeHtml(firstName) + ',</p>';
   bodyHtml += '<p>Tak fordi du viste interesse for vores <strong>18-ugers fleksible yogal\u00e6reruddannelse</strong>.</p>';
-  bodyHtml += urgencyHtml;
+  bodyHtml += startedBannerHtml;
 
   bodyHtml += '<p>Her finder du alle datoer og tidspunkter for uddannelsen:</p>';
   bodyHtml += '<p style="margin:20px 0;"><a href="' + scheduleUrl18w + '" style="display:inline-block;background:#f75c03;color:#ffffff;padding:14px 28px;text-decoration:none;border-radius:50px;font-weight:600;font-size:16px;">Se skemaet \u2192</a></p>';
@@ -418,10 +494,14 @@ async function sendEmail18wYTT(leadData, tokenData = {}) {
   ]);
 
   bodyHtml += '<p style="margin-top:12px;">Det, der g\u00f8r dette program unikt, er fleksibiliteten. Hver workshop k\u00f8rer to gange \u2014 \u00e9n p\u00e5 en hverdag og \u00e9n i weekenden \u2014 s\u00e5 du altid kan f\u00f8lge med, uanset hvad din uge ser ud.</p>';
-  bodyHtml += '<p style="margin-top:12px;">Holdet starter i <strong>marts 2026</strong>, og vi holder holdene sm\u00e5 for at sikre personlig feedback. <strong>Der er kun f\u00e5 pladser tilbage</strong>, og tilmeldingsfristen er <strong>6. marts</strong>.</p>';
+  bodyHtml += '<p style="margin-top:12px;">Holdet er <strong>netop g\u00e5et i gang</strong>, og vi holder holdene sm\u00e5 for at sikre personlig feedback. <strong>Der er kun f\u00e5 pladser tilbage</strong> \u2014 og last-minute-rabatten g\u00e6lder kun denne uge.</p>';
 
   if (needsHousing) bodyHtml += getAccommodationSectionHtml(cityCountry);
-  bodyHtml += getPricingSectionHtml('23.750', '3.750', '20.000', 'kan betales i op til 5 rater');
+  bodyHtml += '<div style="margin-top:20px;padding:14px;background:#FFFCF9;border-left:3px solid #f75c03;border-radius:4px;">' +
+    '<strong>Normalpris:</strong> <span style="text-decoration:line-through;color:#999;">23.750 kr.</span> &rarr; <strong style="color:#166534;">22.750 kr.</strong> med last-minute-rabat<br>' +
+    '<strong>Forberedelsesfasen:</strong> 3.750 kr. sikrer din plads<br>' +
+    '<strong>Rest:</strong> 19.000 kr. (kan betales i op til 5 rater)' +
+    '</div>';
   bodyHtml += getPreparationPhaseHtml('https://www.yogabible.dk/200-hours-18-weeks-flexible-programs');
 
   bodyHtml += '<p style="margin-top:20px;"><a href="https://www.yogabible.dk/200-hours-18-weeks-flexible-programs" style="color:#f75c03;">L\u00e6s mere om 18-ugers programmet</a>';
@@ -431,7 +511,9 @@ async function sendEmail18wYTT(leadData, tokenData = {}) {
 
   let bodyPlain = 'Hej ' + firstName + ',\n\n';
   bodyPlain += 'Tak fordi du viste interesse for vores 18-ugers fleksible yogal\u00e6reruddannelse.\n\n';
-  bodyPlain += '\u26a1 KUN F\u00c5 PLADSER TILBAGE \u2014 TILMELDINGSFRIST 6. MARTS\n\n';
+  bodyPlain += '\ud83c\udf1f UDDANNELSEN ER NETOP G\u00c5ET I GANG \u2014 DU KAN STADIG N\u00c5 MED DENNE UGE\n\n';
+  bodyPlain += 'Intromodulerne er allerede afholdt, men vi har dem p\u00e5 optagelse \u2014 s\u00e5 du nemt kan indhente det.\n';
+  bodyPlain += 'Som tak for din hurtige beslutning f\u00e5r du 1.000 kr. i last-minute-rabat.\n\n';
   bodyPlain += 'Uddannelsesskema og datoer:\n' + scheduleUrl18w + '\n\n';
   bodyPlain += programHighlightsPlain([
     'V\u00e6lg hverdags- eller weekendspor \u2014 skift frit undervejs',
@@ -439,9 +521,10 @@ async function sendEmail18wYTT(leadData, tokenData = {}) {
     '60 yogaklasser inkluderet'
   ]);
   bodyPlain += '\nDet unikke er fleksibiliteten: hver workshop k\u00f8rer to gange, \u00e9n hverdag og \u00e9n weekend.\n\n';
-  bodyPlain += 'Holdet starter marts 2026. Kun f\u00e5 pladser tilbage \u2014 tilmeldingsfrist 6. marts.\n\n';
+  bodyPlain += 'Holdet er netop g\u00e5et i gang. Kun f\u00e5 pladser tilbage \u2014 last-minute-rabatten g\u00e6lder kun denne uge.\n\n';
   if (needsHousing) bodyPlain += getAccommodationSectionPlain(cityCountry);
-  bodyPlain += getPricingSectionPlain('23.750', '3.750', '20.000', 'op til 5 rater') + '\n';
+  bodyPlain += 'Normalpris: 23.750 kr. \u2014 din pris med last-minute-rabat: 22.750 kr.\n';
+  bodyPlain += 'Forberedelsesfasen: 3.750 kr. \u00b7 Rest: 19.000 kr. (op til 5 rater)\n';
   bodyPlain += getPreparationPhasePlain('https://www.yogabible.dk/200-hours-18-weeks-flexible-programs');
   bodyPlain += '\nL\u00e6s mere: https://www.yogabible.dk/200-hours-18-weeks-flexible-programs\n';
   bodyPlain += 'Book infom\u00f8de: ' + CONFIG.MEETING_LINK + '\n';
@@ -488,11 +571,27 @@ async function sendEmailMultiYTT(leadData, tokenData = {}) {
       programType: '8-week'
     },
     '4w': {
-      name: '4-ugers intensive program',
+      name: '4-ugers intensive program (april)',
       period: 'april 2026',
-      desc: 'Fuldt fordybende \u2014 daglig tr\u00e6ning og teori i 4 uger. Mange dimittender fort\u00e6ller, at det intensive format hjalp dem l\u00e6re mest, fordi de var 100% dedikerede.',
+      desc: 'Fuldt fordybende \u2014 daglig tr\u00e6ning og teori i 4 uger. Complete Program: Hatha, Vinyasa, Yin, Hot Yoga og Meditation.',
       url: 'https://www.yogabible.dk/200-hours-4-weeks-intensive-programs',
       scheduleUrl: 'https://www.yogabible.dk/skema/4-uger/' + scheduleBase,
+      programType: '4-week'
+    },
+    '4w-apr': {
+      name: '4-ugers Complete Program (april)',
+      period: 'april 2026',
+      desc: 'Fuldt fordybende \u2014 daglig tr\u00e6ning og teori i 4 uger. Hatha, Vinyasa, Yin, Hot Yoga og Meditation.',
+      url: 'https://www.yogabible.dk/200-hours-4-weeks-intensive-programs',
+      scheduleUrl: 'https://www.yogabible.dk/skema/4-uger/' + scheduleBase,
+      programType: '4-week'
+    },
+    '4w-jul': {
+      name: '4-ugers Vinyasa Plus (juli)',
+      period: 'juli 2026',
+      desc: '70% Vinyasa Flow \u2014 kreativ sekvensering, klasseledelse og undervisningsteknikker. Plus 30% Yin Yoga + Hot Yoga. Underviser opvarmede og ikke-opvarmede klasser.',
+      url: 'https://www.yogabible.dk/200-hours-4-weeks-intensive-programs',
+      scheduleUrl: 'https://www.yogabible.dk/skema/4-uger-juli/' + scheduleBase,
       programType: '4-week'
     }
   };

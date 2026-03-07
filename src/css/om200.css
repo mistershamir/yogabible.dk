@@ -661,8 +661,27 @@
 }
 .om2-cred__badge svg { color: var(--yb-brand); flex-shrink: 0; }
 
-/* Video */
+/* Media Container */
 .om2-cred__media { order: 1; }
+
+/* Certificate Image */
+.om2-cred__image {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+}
+.om2-cred__image img {
+  width: 100%;
+  max-width: 100%;
+  height: auto;
+  display: block;
+  border-radius: 12px;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+  object-fit: contain;
+}
+
+/* Video */
 .om2-cred__video {
   position: relative;
   width: 100%;
@@ -706,8 +725,10 @@
   display: grid;
   grid-template-columns: 1fr;
   gap: clamp(24px, 4vw, 40px);
-  align-items: start;
+  align-items: stretch;
 }
+.om2-breakdown__left { display: flex; flex-direction: column; }
+.om2-breakdown__left > header { display: flex; flex-direction: column; flex: 1; }
 .om2-breakdown__eyebrow {
   color: #6F6A66;
   text-transform: uppercase;

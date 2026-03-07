@@ -379,6 +379,25 @@
         </div>
       </div>
     </section>
+
+    {# Teacher tools — gated by teacher/admin role #}
+    <section data-yb-role="teacher,admin" style="display:none;padding:3rem 0;background:#0F0F0F;color:#FFFCF9">
+      <div class="container" style="max-width:960px">
+        <div style="text-align:center;margin-bottom:2rem">
+          <span class="yb-ma-eyebrow">{{ t.user_teacher_tools_eyebrow }}</span>
+          <h2 style="font-size:clamp(1.25rem,3vw,1.75rem);margin:0.5rem 0 0;color:#FFFCF9">{{ t.user_teacher_tools_title }}</h2>
+        </div>
+        <div class="yb-ma-grid yb-ma-grid--3">
+          <a href="{{ lp }}/teacher-studio" class="yb-ma-card yb-ma-card--dark yb-ma-card--link">
+            <div class="yb-ma-card__icon">
+              <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#f75c03" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>
+            </div>
+            <h3 class="yb-ma-card__title" style="color:#FFFCF9">{{ t.user_card_teacher_studio_title }}</h3>
+            <p class="yb-ma-card__desc">{{ t.user_card_teacher_studio_desc }}</p>
+          </a>
+        </div>
+      </div>
+    </section>
   </div>
 
   {% set tcv = i18n["course-viewer"][lang or "da"] %}
@@ -603,6 +622,19 @@
         @keyframes ybAiFadeIn {
           from { opacity: 0; transform: translateY(-6px); }
           to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* ── AI Disclaimer ── */
+        .yb-ai-disclaimer {
+          font-size: 0.72rem;
+          color: #8a8580;
+          font-style: italic;
+          margin: 0 0 0.75rem;
+          padding: 0.5rem 0.65rem;
+          background: rgba(255,255,255,0.04);
+          border-radius: 6px;
+          border-left: 2px solid #6F6A66;
+          line-height: 1.5;
         }
 
         /* ── AI Summary ── */

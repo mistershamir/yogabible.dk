@@ -479,6 +479,10 @@
       '.yb-auth-field input{font-family:inherit;font-size:.95rem;padding:12px 16px;border:1px solid ' + BRAND + ';border-radius:12px;background:#fff;color:#0F0F0F;transition:border-color .15s,box-shadow .15s;outline:none;width:100%;min-width:0;box-sizing:border-box}',
       '.yb-auth-field input::placeholder{color:#B5B0AB}',
       '.yb-auth-field input:focus{border-color:' + BRAND + ';box-shadow:0 0 0 3px ' + BRAND_RGBA12 + '}',
+      '.yb-auth-hint{font-size:.78rem;color:#6F6A66;margin-top:-2px}',
+      '.yb-auth-notice{background:#F5F3F0;border-radius:10px;padding:12px 14px;margin-top:4px}',
+      '.yb-auth-notice p{font-size:.82rem;color:#6F6A66;line-height:1.45;margin:0}',
+      '.yb-auth-notice strong{color:#0F0F0F}',
       '.yb-auth-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;overflow:hidden}',
 
       // ── Submit button — teal ─────────────────────────────────────
@@ -767,6 +771,10 @@
     h +=     '<a href="#" data-ycf-action="forgot" data-yj-da>Glemt adgangskode?</a>';
     h +=     '<a href="#" data-ycf-action="forgot" data-yj-en hidden>Forgot password?</a>';
     h +=   '</div>';
+    h +=   '<div class="yb-auth-notice">';
+    h +=     '<p data-yj-da>Allerede klient hos os? Opret en profil herunder med <strong>samme email</strong> som du booker med \u2014 s\u00e5 bliver alt koblet sammen automatisk.</p>';
+    h +=     '<p data-yj-en hidden>Already a client? Create a profile below with the <strong>same email</strong> you book with \u2014 everything will be linked automatically.</p>';
+    h +=   '</div>';
     h +=   '<div class="yb-auth-divider">';
     h +=     '<span data-yj-da>Har du ikke en konto?</span>';
     h +=     '<span data-yj-en hidden>Don\'t have an account?</span>';
@@ -860,6 +868,8 @@
     h +=       '<label for="ycf-reg-email" data-yj-da>Email</label>';
     h +=       '<label for="ycf-reg-email" data-yj-en hidden>Email</label>';
     h +=       '<input type="email" id="ycf-reg-email" required autocomplete="email" placeholder="din@email.dk">';
+    h +=       '<small class="yb-auth-hint" data-yj-da>Allerede klient? Brug den samme email som du booker med</small>';
+    h +=       '<small class="yb-auth-hint" data-yj-en hidden>Already a client? Use the same email you book with</small>';
     h +=     '</div>';
     h +=     '<div class="yb-auth-field">';
     h +=       '<label for="ycf-reg-phone" data-yj-da>Telefon</label>';
@@ -1341,8 +1351,19 @@
   }
 
   function doForgotPassword(email, callback) {
-    firebase.auth().sendPasswordResetEmail(email)
-      .then(function () { callback(null); })
+    // Send branded reset email via Resend (better deliverability than
+    // Firebase's built-in noreply@*.firebaseapp.com emails).
+    var apiBase = 'https://www.hotyogacph.dk/.netlify/functions';
+    fetch(apiBase + '/send-password-reset', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: email, lang: isDa ? 'da' : 'en' })
+    })
+      .then(function (res) { return res.json(); })
+      .then(function (data) {
+        if (data.ok) { callback(null); }
+        else { callback({ code: 'custom', message: data.error || 'Failed' }); }
+      })
       .catch(function (err) { callback(err); });
   }
 
@@ -1749,7 +1770,70 @@
           if (btn) { btn.disabled = false; btn.textContent = t('Log ind', 'Sign in'); }
 
           if (err) {
-            showError('ycf-login-error', authErrorMsg(err));
+            var code = err.code || '';
+            if (code === 'auth/user-not-found' || code === 'auth/invalid-credential') {
+              // Try migrating from Mindbody — create account with their password
+              fetch(API_BASE + '/migrate-mb-user', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email: email, password: password })
+              })
+                .then(function(res) { return res.json(); })
+                .then(function(data) {
+                  if (data.created) {
+                    doLogin(email, password, function(err2) {
+                      if (err2) {
+                        showError('ycf-login-error', authErrorMsg(err2));
+                        return;
+                      }
+                      if (!modal || modal.getAttribute('aria-hidden') === 'true') return;
+                      authOriginStep = 'login';
+                      trackAuthComplete();
+                      pushDataLayer('checkout_funnel_auth_complete', {
+                        funnel_stage: 'auth_complete',
+                        product_id: currentProdId,
+                        product_name: getProductName(currentProdId),
+                        product_category: getProductCategory(currentProdId)
+                      });
+                      if (loginOnlyMode) { loginOnlyRedirect(); return; }
+                      var user = firebase.auth().currentUser;
+                      var displayName = (user && user.displayName) || '';
+                      var nameParts = displayName.split(' ');
+                      resolveClientAndAdvance(
+                        nameParts[0] || 'User',
+                        nameParts.slice(1).join(' ') || '',
+                        (user && user.email) || email,
+                        ''
+                      );
+                    });
+                    return;
+                  }
+                  var el = $('ycf-login-error');
+                  if (el) {
+                    el.innerHTML = t(
+                      'Vi kunne ikke finde en konto med disse oplysninger. Allerede klient hos os? <a href="#" data-ycf-action="register" style="color:inherit;font-weight:700;text-decoration:underline">Opret profil</a> med samme email som du booker med. Har du allerede en konto her? <a href="#" data-ycf-action="forgot" style="color:inherit;font-weight:700;text-decoration:underline">Nulstil adgangskode \u2192</a>',
+                      'We couldn\'t find an account with these details. Already a client? <a href="#" data-ycf-action="register" style="color:inherit;font-weight:700;text-decoration:underline">Create a profile</a> with the same email you book with. Already have one here? <a href="#" data-ycf-action="forgot" style="color:inherit;font-weight:700;text-decoration:underline">Reset password \u2192</a>'
+                    );
+                    el.hidden = false;
+                  }
+                })
+                .catch(function() {
+                  var el = $('ycf-login-error');
+                  if (el) {
+                    el.innerHTML = t(
+                      'Vi kunne ikke finde en konto med disse oplysninger. Allerede klient hos os? <a href="#" data-ycf-action="register" style="color:inherit;font-weight:700;text-decoration:underline">Opret profil</a> med samme email som du booker med. Har du allerede en konto her? <a href="#" data-ycf-action="forgot" style="color:inherit;font-weight:700;text-decoration:underline">Nulstil adgangskode \u2192</a>',
+                      'We couldn\'t find an account with these details. Already a client? <a href="#" data-ycf-action="register" style="color:inherit;font-weight:700;text-decoration:underline">Create a profile</a> with the same email you book with. Already have one here? <a href="#" data-ycf-action="forgot" style="color:inherit;font-weight:700;text-decoration:underline">Reset password \u2192</a>'
+                    );
+                    el.hidden = false;
+                  }
+                })
+                .finally(function() {
+                  if (btn) { btn.disabled = false; btn.textContent = t('Log ind', 'Sign in'); }
+                });
+              return;
+            } else {
+              showError('ycf-login-error', authErrorMsg(err));
+            }
             return;
           }
 
@@ -1848,7 +1932,26 @@
           if (btn) { btn.disabled = false; btn.textContent = t('Opret profil & forts\u00e6t', 'Create profile & continue'); }
 
           if (err) {
-            showError('ycf-register-error', authErrorMsg(err));
+            var code = err.code || '';
+            if (code === 'auth/email-already-in-use') {
+              var el = $('ycf-register-error');
+              if (el) {
+                el.innerHTML = t(
+                  'Der findes allerede en konto med denne email. Vi har sendt dig en email til at oprette din adgangskode. Tjek din indbakke (og spam), eller <a href="#" data-ycf-action="forgot" style="color:inherit;font-weight:700;text-decoration:underline">nulstil adgangskode \u2192</a>',
+                  'An account with this email already exists. We\'ve sent you an email to set your password. Check your inbox (and spam), or <a href="#" data-ycf-action="forgot" style="color:inherit;font-weight:700;text-decoration:underline">reset password \u2192</a>'
+                );
+                el.hidden = false;
+              }
+              // Send branded reset email via Resend
+              var apiBase = 'https://www.hotyogacph.dk/.netlify/functions';
+              fetch(apiBase + '/send-password-reset', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email: email, lang: isDa ? 'da' : 'en' })
+              }).catch(function() {});
+            } else {
+              showError('ycf-register-error', authErrorMsg(err));
+            }
             return;
           }
 

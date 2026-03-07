@@ -38,8 +38,10 @@
   var PAGE_SIZE = 50;
   var totalLeadCount = null; // true DB count (from aggregation query)
   var searchTerm = '';
-  var filterStatus = '';
-  var filterType = '';
+  var filterStatuses = []; // multi-select array
+  var filterTypes = [];    // multi-select array
+  var filterSubType = '';      // client-side sub-filter value
+  var filterSubTypeField = ''; // which lead field to match filterSubType against
   var filterSource = '';
   var filterPriority = '';
   var filterTemperature = '';
@@ -51,7 +53,9 @@
   var expandedLeadIds = new Set();
 
   // Kanban columns
-  var KANBAN_COLUMNS = ['New', 'Contacted', 'No Answer', 'Follow-up', 'Engaged', 'Qualified', 'Negotiating', 'Converted'];
+  // 'Converted' and 'Existing Applicant' are intentionally excluded — those leads are
+  // hidden from the active leads view and live in the Applications tab instead.
+  var KANBAN_COLUMNS = ['New', 'Contacted', 'No Answer', 'Follow-up', 'Engaged', 'Qualified', 'Negotiating'];
 
   // Application state
   var applications = [];
@@ -74,8 +78,8 @@
   var COURSE_CATALOG = {
     ytt: [
       { id: '100078', name_da: '18 Ugers Fleksibelt Program (Mar-Jun)', name_en: '18 Weeks Flexible Program (Mar-Jun)', cohorts: [{ label_da: 'Marts\u2013Juni 2026', label_en: 'March\u2013June 2026' }] },
-      { id: '100121', name_da: '4 Ugers Intensiv (Apr)', name_en: '4 Weeks Intensive (Apr)', cohorts: [{ label_da: 'April 2026', label_en: 'April 2026' }] },
-      { id: '100211', name_da: '4 Ugers Intensiv (Jul)', name_en: '4 Weeks Intensive (Jul)', cohorts: [{ label_da: 'Juli 2026', label_en: 'July 2026' }] },
+      { id: '100121', name_da: '4 Ugers Complete Program (Apr)', name_en: '4-Week Complete Program (Apr)', cohorts: [{ label_da: 'April 2026', label_en: 'April 2026' }] },
+      { id: '100211', name_da: '4 Ugers Vinyasa Plus (Jul)', name_en: '4-Week Vinyasa Plus (Jul)', cohorts: [{ label_da: 'Juli 2026', label_en: 'July 2026' }] },
       { id: '100209', name_da: '8 Ugers Semi-Intensiv (Maj-Jun)', name_en: '8 Weeks Semi-Intensive (May-Jun)', cohorts: [{ label_da: 'Maj\u2013Juni 2026', label_en: 'May\u2013June 2026' }] },
       { id: '100210', name_da: '18 Ugers Fleksibelt Program (Aug-Dec)', name_en: '18 Weeks Flexible Program (Aug-Dec)', cohorts: [{ label_da: 'August\u2013December 2026', label_en: 'August\u2013December 2026' }] }
     ],
@@ -246,11 +250,13 @@
     { value: 'No Answer', label: 'No Answer', color: '#FFE0CC', text: '#BF360C', icon: '\ud83d\udcf5' },
     { value: 'Follow-up', label: 'Follow-up', color: '#e8daef', text: '#6c3483', icon: '\ud83d\udd04' },
     { value: 'Engaged', label: 'Engaged', color: '#DCEDC8', text: '#33691E', icon: '\ud83d\udcac' },
+    { value: 'Strongly Interested', label: 'Strongly Interested', color: '#FFF9C4', text: '#F57F17', icon: '\u2B50' },
     { value: 'Qualified', label: 'Qualified', color: '#B3E5FC', text: '#01579B', icon: '\u2705' },
     { value: 'Negotiating', label: 'Negotiating', color: '#FFE0B2', text: '#E65100', icon: '\ud83e\udd1d' },
     { value: 'Converted', label: 'Converted', color: '#d4edda', text: '#155724', icon: '\ud83c\udf89' },
     { value: 'Existing Applicant', label: 'Existing Applicant', color: '#cce5ff', text: '#004085', icon: '\ud83d\udcc4' },
     { value: 'On Hold', label: 'On Hold', color: '#FFF9C4', text: '#F57F17', icon: '\u23f8\ufe0f' },
+    { value: 'Interested In Next Round', label: 'Interested In Next Round', color: '#E0F2F1', text: '#00695C', icon: '\ud83d\udcc5' },
     { value: 'Not too keen', label: 'Not too keen', color: '#CFD8DC', text: '#37474F', icon: '\ud83d\ude10' },
     { value: 'Unsubscribed', label: 'Unsubscribed', color: '#f8d7da', text: '#721c24', icon: '\ud83d\udeab' },
     { value: 'Lost', label: 'Lost', color: '#ECEFF1', text: '#546E7F', icon: '\ud83d\udc4e' },
@@ -264,11 +270,13 @@
     'No Answer': ['1st Attempt', '2nd Attempt', '3rd Attempt', 'Voicemail Left', 'Try Again Later'],
     'Follow-up': ['Scheduled Call', 'Waiting Reply', 'Second Follow-up', 'Third Follow-up', 'Final Attempt'],
     'Engaged': ['Asking Questions', 'Price Discussion', 'Scheduling Visit', 'Reviewing Materials'],
+    'Strongly Interested': ['Application Ready', 'Price Sensitive', 'Needs More Info', 'Almost Converted', 'Second Thoughts'],
     'Qualified': ['Ready to Apply', 'Needs Payment Info', 'Considering Dates'],
     'Negotiating': ['Payment Plan', 'Scholarship Request', 'Group Discount'],
     'Converted': ['Application Submitted', 'Payment Received', 'Enrolled'],
     'Existing Applicant': ['Re-inquiry', 'Upgrade Request', 'Referral'],
     'On Hold': ['Travel Issues', 'Financial', 'Personal Reasons', 'Next Cohort'],
+    'Interested In Next Round': [], // populated dynamically from COURSE_CATALOG cohorts
     'Not too keen': ['Price Too High', 'Bad Timing', 'Lost Interest', 'Considering Alternatives', 'No Reason Given'],
     'Unsubscribed': ['Email Only', 'All Communications'],
     'Lost': ['No Response', 'Chose Competitor', 'Budget', 'Not Interested', 'Wrong Fit'],
@@ -409,37 +417,35 @@
 
     var query = db.collection('leads').orderBy(sortField, sortDir);
 
-    // Filter by archived state — only show archived when explicitly toggled
+    // Archived mode: Firestore filter
     if (showArchived) {
       query = query.where('archived', '==', true);
-    } else if (filterStatus === 'Archived') {
-      query = query.where('status', '==', 'Archived');
-    } else {
-      // Firestore doesn't support != well, so we filter client-side for non-archived
     }
 
-    if (filterStatus && filterStatus !== 'Archived') query = query.where('status', '==', filterStatus);
-    if (filterType) query = query.where('type', '==', filterType);
-    if (filterSource) query = query.where('source', '==', filterSource);
-    if (filterPriority) query = query.where('priority', '==', filterPriority);
-    if (filterTemperature) query = query.where('temperature', '==', filterTemperature);
-    if (lastDoc) query = query.startAfter(lastDoc);
+    // When any chip filter is active, load a large batch and filter client-side.
+    // This avoids composite index requirements and supports multi-select combinations.
+    var hasFilters = filterStatuses.length > 0 || filterTypes.length > 0 ||
+      filterSource || filterPriority || filterTemperature || filterSubType;
 
-    query.limit(PAGE_SIZE).get().then(function (snap) {
+    var batchSize = hasFilters ? 1000 : PAGE_SIZE;
+    if (!hasFilters && lastDoc) query = query.startAfter(lastDoc);
+
+    query.limit(batchSize).get().then(function (snap) {
       snap.forEach(function (doc) {
         var data = Object.assign({ id: doc.id }, doc.data());
-        // Client-side filter: skip archived leads unless showing archived
         if (!showArchived && data.archived === true) return;
         leads.push(data);
       });
-      lastDoc = snap.docs.length ? snap.docs[snap.docs.length - 1] : null;
+
+      // Pagination only applies when no client-side filters are active
+      lastDoc = (!hasFilters && snap.docs.length) ? snap.docs[snap.docs.length - 1] : null;
 
       renderLeadView();
       renderLeadStats();
       updateBulkBar();
 
       var loadMore = $('yb-lead-load-more-wrap');
-      if (loadMore && leadViewMode === 'table') loadMore.hidden = snap.docs.length < PAGE_SIZE;
+      if (loadMore) loadMore.hidden = hasFilters || snap.docs.length < PAGE_SIZE;
 
     }).catch(function (err) {
       console.error('[lead-admin] Load error:', err);
@@ -503,13 +509,92 @@
   }
 
   /* ══════════════════════════════════════════
+     SOURCE FILTER — smart matching
+     Maps dropdown values → lead fields (type, ytt_program_type, source)
+     so that old leads with verbose sources still match.
+     ══════════════════════════════════════════ */
+  function matchesSourceFilter(lead, filterValue) {
+    var src  = (lead.source || '').toLowerCase();
+    var type = (lead.type   || '').toLowerCase();
+    var ytt  = (lead.ytt_program_type || '').toLowerCase();
+    switch (filterValue) {
+      case '200h YTT':
+        // Type must be ytt (or education from apply form), and NOT 300h / 50h / 30h
+        return (type === 'ytt' || type === 'education') &&
+               ytt !== '300h' && ytt !== '50h' && ytt !== '30h';
+      case '300h YTT':
+        return (type === 'ytt' || type === 'education') && ytt === '300h';
+      case '50h YTT':
+        return (type === 'ytt' || type === 'education') && ytt === '50h';
+      case '30h YTT':
+        return (type === 'ytt' || type === 'education') && ytt === '30h';
+      case 'Courses':
+        return type === 'course' || type === 'bundle';
+      case 'Mentorship':
+        return type === 'mentorship';
+      case 'Contact page':
+        return type === 'contact' || src.indexOf('contact') !== -1;
+      case 'Apply page':
+        return src.indexOf('apply') !== -1 || src === 'ansøgningsside' || src === 'application page';
+      case 'Careers page':
+        return type === 'careers' || src.indexOf('career') !== -1;
+      case 'Manual entry':
+        return src === 'manual entry' || src.indexOf('manual') !== -1;
+      case 'Facebook Ad':
+        return src.indexOf('meta lead') !== -1 || src.indexOf('facebook') !== -1;
+      default:
+        return lead.source === filterValue;
+    }
+  }
+
+  /* ══════════════════════════════════════════
      RENDER LEAD TABLE
      ══════════════════════════════════════════ */
   function getFilteredLeads() {
     var filtered = leads;
+
+    // Hide converted/existing-applicant unless explicitly filtered
+    var CONVERTED_STATUSES = ['Converted', 'Existing Applicant'];
+    var isConvertedFilter = filterStatuses.some(function (s) { return CONVERTED_STATUSES.indexOf(s) !== -1; });
+    if (!isConvertedFilter) {
+      filtered = filtered.filter(function (l) {
+        return CONVERTED_STATUSES.indexOf(l.status) === -1 && !l.application_id;
+      });
+    }
+
+    // Multi-select status filter (OR within same filter type)
+    if (filterStatuses.length > 0) {
+      filtered = filtered.filter(function (l) { return filterStatuses.indexOf(l.status) !== -1; });
+    } else if (!showArchived) {
+      filtered = filtered.filter(function (l) { return l.status !== 'Archived'; });
+    }
+
+    // Multi-select type filter
+    if (filterTypes.length > 0) {
+      filtered = filtered.filter(function (l) { return filterTypes.indexOf(l.type) !== -1; });
+    }
+
+    // Single-select secondary filters
+    if (filterSource) filtered = filtered.filter(function (l) { return matchesSourceFilter(l, filterSource); });
+    if (filterPriority) filtered = filtered.filter(function (l) { return l.priority === filterPriority; });
+    if (filterTemperature) filtered = filtered.filter(function (l) { return l.temperature === filterTemperature; });
+
+    // Sub-type filter — matches on a specific field (ytt_program_type for YTT, or program text for others)
+    if (filterSubType) {
+      var st = filterSubType.toLowerCase();
+      filtered = filtered.filter(function (l) {
+        if (filterSubTypeField) {
+          return (String(l[filterSubTypeField] || '').toLowerCase()).indexOf(st) !== -1;
+        }
+        // fallback: check program text
+        var prog = (l.program || '').toLowerCase();
+        return prog.indexOf(st) !== -1;
+      });
+    }
+
     if (searchTerm) {
       var s = searchTerm.toLowerCase();
-      filtered = leads.filter(function (l) {
+      filtered = filtered.filter(function (l) {
         return (l.email || '').toLowerCase().indexOf(s) !== -1 ||
           (l.first_name || '').toLowerCase().indexOf(s) !== -1 ||
           (l.last_name || '').toLowerCase().indexOf(s) !== -1 ||
@@ -519,6 +604,87 @@
       });
     }
     return filtered;
+  }
+
+  /* ══════════════════════════════════════════
+     MULTI-SELECT CHIP FILTERS
+     ══════════════════════════════════════════ */
+  function renderLeadFilterChips() {
+    // Status chips (all statuses except Archived, which is managed by the toggle button)
+    var sc = $('yb-lead-status-chips');
+    if (sc) {
+      var html = '';
+      STATUSES.filter(function (s) { return s.value !== 'Archived'; }).forEach(function (s) {
+        var active = filterStatuses.indexOf(s.value) !== -1 ? ' is-active' : '';
+        html += '<button type="button" class="yb-lead__campaign-chip' + active + '" data-status-chip="' + esc(s.value) + '">' +
+          s.icon + ' ' + esc(s.label) + '</button>';
+      });
+      sc.innerHTML = html;
+    }
+
+    // Type chips
+    var tc = $('yb-lead-type-chips');
+    if (tc) {
+      var types = [
+        { value: 'ytt', label: '🧘 YTT' },
+        { value: 'course', label: '📚 Course' },
+        { value: 'bundle', label: '📦 Bundle' },
+        { value: 'mentorship', label: '🎓 Mentorship' },
+        { value: 'careers', label: '💼 Career' },
+        { value: 'contact', label: '📞 Contact' }
+      ];
+      var html2 = '';
+      types.forEach(function (typ) {
+        var active = filterTypes.indexOf(typ.value) !== -1 ? ' is-active' : '';
+        html2 += '<button type="button" class="yb-lead__campaign-chip' + active + '" data-type-chip="' + esc(typ.value) + '">' +
+          esc(typ.label) + '</button>';
+      });
+      tc.innerHTML = html2;
+    }
+  }
+
+  // Sub-type definitions per lead type.
+  // `field` = which lead property to match against (defaults to 'program' text if omitted).
+  var SUB_TYPE_OPTIONS = {
+    ytt: [
+      { label: '18W Flex',     match: '18-week', field: 'ytt_program_type' },
+      { label: '8W Semi',      match: '8-week',  field: 'ytt_program_type' },
+      { label: '4W Intensive', match: '4-week',  field: 'ytt_program_type' },
+      { label: '300h Adv.',    match: '300h',    field: 'ytt_program_type' },
+      { label: '50h Specialty',match: '50h',     field: 'ytt_program_type' },
+      { label: '30h Module',   match: '30h',     field: 'ytt_program_type' }
+    ],
+    course: [
+      { label: 'Inversions', match: 'inversion', field: 'program' },
+      { label: 'Splits',     match: 'split',     field: 'program' },
+      { label: 'Backbends',  match: 'backbend',  field: 'program' }
+    ],
+    bundle: [
+      { label: '2-Course',        match: '2-course', field: 'program' },
+      { label: '3-Course All-In', match: 'all-in',   field: 'program' }
+    ]
+  };
+
+  function renderSubTypeFilter(type) {
+    var row = $('yb-lead-subtype-row');
+    var chipsEl = $('yb-lead-subtype-chips');
+    if (!row || !chipsEl) return;
+
+    var options = SUB_TYPE_OPTIONS[type];
+    if (!options || options.length === 0) {
+      row.hidden = true;
+      chipsEl.innerHTML = '';
+      return;
+    }
+
+    chipsEl.innerHTML = '<span class="yb-lead__subtype-label">Sub-filter:</span>' +
+      options.map(function (opt) {
+        var active = filterSubType === opt.match ? ' is-active' : '';
+        var fieldAttr = opt.field ? ' data-subtype-field="' + esc(opt.field) + '"' : '';
+        return '<button type="button" class="yb-lead__campaign-chip' + active + '"' +
+          ' data-subtype="' + esc(opt.match) + '"' + fieldAttr + '>' + esc(opt.label) + '</button>';
+      }).join('');
+    row.hidden = false;
   }
 
   /* ── View dispatcher ── */
@@ -537,6 +703,7 @@
       if (tableContainer) tableContainer.hidden = false;
       if (kanbanEl) kanbanEl.hidden = true;
       renderLeadTable();
+      updateBulkBar();
     }
   }
 
@@ -1412,6 +1579,23 @@
     var status = statusSelect.value;
     var subs = SUB_STATUSES[status] || [];
 
+    // For "Interested In Next Round", use all cohort labels from COURSE_CATALOG
+    if (status === 'Interested In Next Round') {
+      subs = [];
+      ['ytt', 'course', 'bundle'].forEach(function (type) {
+        (COURSE_CATALOG[type] || []).forEach(function (item) {
+          var name = catalogName(item);
+          (item.cohorts || []).forEach(function (coh) {
+            subs.push(cohortLabel(coh) + ' — ' + name);
+          });
+          // For courses/bundles with no cohorts, just use the name
+          if (!item.cohorts || item.cohorts.length === 0) {
+            subs.push(name);
+          }
+        });
+      });
+    }
+
     subStatusSelect.innerHTML = '<option value="">-- ' + t('leads_no_sub_status') + ' --</option>' +
       subs.map(function (s) {
         return '<option value="' + esc(s) + '">' + esc(s) + '</option>';
@@ -1462,10 +1646,26 @@
       var idx = leads.findIndex(function (l) { return l.id === currentLeadId; });
       if (idx !== -1) Object.assign(leads[idx], updates);
 
-      renderLeadDetailCard();
-      renderLeadStats();
-      saveBtnSuccess(btn);
-      toast(t('saved'));
+      // Converted / Existing Applicant → remove from active leads view
+      if (newStatus === 'Converted' || newStatus === 'Existing Applicant') {
+        saveBtnSuccess(btn);
+        var msg = newStatus === 'Converted'
+          ? 'Lead markeret som konverteret — se dem under Applications-fanen'
+          : 'Lead markeret som Existing Applicant — se dem under Applications-fanen';
+        toast(msg);
+        // Close detail panel and refresh list (lead disappears from active view)
+        $('yb-admin-v-lead-list').hidden = false;
+        $('yb-admin-v-lead-detail').hidden = true;
+        currentLeadId = null;
+        currentLead = null;
+        renderLeadView();
+        renderLeadStats();
+      } else {
+        renderLeadDetailCard();
+        renderLeadStats();
+        saveBtnSuccess(btn);
+        toast(t('saved'));
+      }
     }).catch(function (err) {
       console.error('[lead-admin] Save error:', err);
       saveBtnError(btn);
@@ -1984,7 +2184,7 @@
     getAuthToken().then(function (token) {
       var body;
       if (isBulk) {
-        var leadIds = recipients.map(function (l) { return l.id; });
+        var leadIds = recipients.filter(function (l) { return l && l.email; }).map(function (l) { return l.id; });
         body = JSON.stringify({ leadIds: leadIds, subject: subject, bodyHtml: htmlBody, bodyPlain: bodyHtml });
       } else {
         body = JSON.stringify({ leadId: recipients[0].id, subject: subject, bodyHtml: htmlBody, bodyPlain: bodyHtml });
@@ -2050,20 +2250,31 @@
     var bar = $('yb-lead-bulk-bar');
     if (!bar) return;
 
-    if (selectedIds.size === 0) {
-      bar.hidden = true;
-      return;
-    }
+    // Bar is always visible in table mode; kanban hides it via renderLeadView
+    var hasSelection = selectedIds.size > 0;
 
-    bar.hidden = false;
-    var selected = leads.filter(function (l) { return selectedIds.has(l.id); });
-    var withPhone = selected.filter(function (l) { return l.phone; }).length;
-    var withEmail = selected.filter(function (l) { return l.email; }).length;
-    var dbTotal = totalLeadCount !== null ? totalLeadCount : leads.length;
-    var notAllLoaded = leads.length < dbTotal;
-    $('yb-lead-bulk-count').innerHTML = '<strong>' + selectedIds.size + '</strong> ' + t('leads_selected') +
-      ' &nbsp;·&nbsp; 📱 ' + withPhone + ' &nbsp;·&nbsp; ✉️ ' + withEmail +
-      (notAllLoaded ? ' &nbsp;·&nbsp; <span style="color:var(--yb-muted);font-size:0.8em">(' + leads.length + ' ' + t('leads_loaded') + ' ' + t('leads_of') + ' ' + dbTotal + ')</span>' : '');
+    // Selection-only buttons
+    bar.querySelectorAll('.yb-lead__bulk-sel-only').forEach(function (btn) {
+      btn.hidden = !hasSelection;
+    });
+
+    // Count text
+    var countEl = $('yb-lead-bulk-count');
+    if (countEl) {
+      if (hasSelection) {
+        var selected = leads.filter(function (l) { return selectedIds.has(l.id); });
+        var withPhone = selected.filter(function (l) { return l.phone; }).length;
+        var withEmail = selected.filter(function (l) { return l.email; }).length;
+        var dbTotal = totalLeadCount !== null ? totalLeadCount : leads.length;
+        var notAllLoaded = leads.length < dbTotal;
+        countEl.innerHTML = '<strong>' + selectedIds.size + '</strong> ' + t('leads_selected') +
+          ' &nbsp;·&nbsp; 📱 ' + withPhone + ' &nbsp;·&nbsp; ✉️ ' + withEmail +
+          (notAllLoaded ? ' &nbsp;·&nbsp; <span style="color:var(--yb-muted);font-size:0.8em">(' + leads.length + ' ' + t('leads_loaded') + ' ' + t('leads_of') + ' ' + dbTotal + ')</span>' : '');
+        countEl.hidden = false;
+      } else {
+        countEl.hidden = true;
+      }
+    }
   }
 
   function toggleSelectAll() {
@@ -2096,11 +2307,16 @@
   function bulkUpdateStatus() {
     openBulkStatusPicker(STATUSES, selectedIds.size, function (newStatus) {
       var batch = db.batch();
+      var extraFields = {};
+      if (newStatus === 'Converted') {
+        extraFields.converted = true;
+        extraFields.converted_at = firebase.firestore.FieldValue.serverTimestamp();
+      }
       selectedIds.forEach(function (id) {
-        batch.update(db.collection('leads').doc(id), {
+        batch.update(db.collection('leads').doc(id), Object.assign({
           status: newStatus,
           updated_at: firebase.firestore.FieldValue.serverTimestamp()
-        });
+        }, extraFields));
       });
 
       batch.commit().then(function () {
@@ -2120,26 +2336,26 @@
   }
 
   function bulkSMS() {
-    var selected = leads.filter(function (l) { return selectedIds.has(l.id); });
-    var withPhone = selected.filter(function (l) { return l.phone; });
-    if (!withPhone.length) { toast(t('leads_no_phone'), true); return; }
-    // Delegate to campaign wizard if available
-    if (typeof window.openSMSCampaign === 'function') {
-      window.openSMSCampaign(selected);
+    if (selectedIds.size > 0) {
+      var selected = leads.filter(function (l) { return selectedIds.has(l.id); });
+      if (!selected.some(function (l) { return l.phone; })) { toast(t('leads_no_phone'), true); return; }
+      if (typeof window.openSMSCampaign === 'function') { window.openSMSCampaign(selected); }
+      else { openSMSComposer(selected); }
     } else {
-      openSMSComposer(selected);
+      // No pre-selection: open wizard fresh, admin picks recipients inside
+      if (typeof window.openSMSCampaign === 'function') { window.openSMSCampaign([]); }
     }
   }
 
   function bulkEmail() {
-    var selected = leads.filter(function (l) { return selectedIds.has(l.id); });
-    var withEmail = selected.filter(function (l) { return l.email; });
-    if (!withEmail.length) { toast(t('leads_no_email_addr'), true); return; }
-    // Delegate to campaign wizard if available
-    if (typeof window.openEmailCampaign === 'function') {
-      window.openEmailCampaign(selected);
+    if (selectedIds.size > 0) {
+      var selected = leads.filter(function (l) { return selectedIds.has(l.id); });
+      if (!selected.some(function (l) { return l.email; })) { toast(t('leads_no_email_addr'), true); return; }
+      if (typeof window.openEmailCampaign === 'function') { window.openEmailCampaign(selected); }
+      else { openEmailComposer(selected); }
     } else {
-      openEmailComposer(selected);
+      // No pre-selection: open wizard fresh, admin picks recipients inside
+      if (typeof window.openEmailCampaign === 'function') { window.openEmailCampaign([]); }
     }
   }
 
@@ -4042,13 +4258,11 @@
       }
     }
 
-    // Filters — Leads
-    ['yb-lead-status-filter', 'yb-lead-type-filter', 'yb-lead-source-filter', 'yb-lead-priority-filter', 'yb-lead-temperature-filter'].forEach(function (filterId) {
+    // Filters — compact selects (source / priority / temperature)
+    ['yb-lead-source-filter', 'yb-lead-priority-filter', 'yb-lead-temperature-filter'].forEach(function (filterId) {
       var el = $(filterId);
       if (el) {
         el.addEventListener('change', function () {
-          if (filterId === 'yb-lead-status-filter') filterStatus = el.value;
-          if (filterId === 'yb-lead-type-filter') filterType = el.value;
           if (filterId === 'yb-lead-source-filter') filterSource = el.value;
           if (filterId === 'yb-lead-priority-filter') filterPriority = el.value;
           if (filterId === 'yb-lead-temperature-filter') filterTemperature = el.value;
@@ -4056,6 +4270,80 @@
         });
       }
     });
+
+    // Multi-select status chips
+    var scEl = $('yb-lead-status-chips');
+    if (scEl) {
+      scEl.addEventListener('click', function (e) {
+        var chip = e.target.closest('[data-status-chip]');
+        if (!chip) return;
+        var val = chip.getAttribute('data-status-chip');
+        var idx = filterStatuses.indexOf(val);
+        if (idx !== -1) filterStatuses.splice(idx, 1); else filterStatuses.push(val);
+        renderLeadFilterChips();
+        loadLeads();
+      });
+    }
+
+    // Multi-select type chips
+    var tcEl = $('yb-lead-type-chips');
+    if (tcEl) {
+      tcEl.addEventListener('click', function (e) {
+        var chip = e.target.closest('[data-type-chip]');
+        if (!chip) return;
+        var val = chip.getAttribute('data-type-chip');
+        var idx = filterTypes.indexOf(val);
+        if (idx !== -1) filterTypes.splice(idx, 1); else filterTypes.push(val);
+        filterSubType = '';
+        filterSubTypeField = '';
+        renderLeadFilterChips();
+        renderSubTypeFilter(filterTypes.length === 1 ? filterTypes[0] : '');
+        loadLeads();
+      });
+    }
+
+    // Clear all filters button
+    var clearFiltersBtn = $('yb-lead-clear-filters');
+    if (clearFiltersBtn) {
+      clearFiltersBtn.addEventListener('click', function () {
+        filterStatuses = [];
+        filterTypes = [];
+        filterSource = '';
+        filterPriority = '';
+        filterTemperature = '';
+        filterSubType = '';
+        filterSubTypeField = '';
+        var sel; // reset compact selects
+        sel = $('yb-lead-source-filter'); if (sel) sel.value = '';
+        sel = $('yb-lead-priority-filter'); if (sel) sel.value = '';
+        sel = $('yb-lead-temperature-filter'); if (sel) sel.value = '';
+        renderLeadFilterChips();
+        var subtypeRow2 = $('yb-lead-subtype-row');
+        if (subtypeRow2) subtypeRow2.hidden = true;
+        loadLeads();
+      });
+    }
+
+    // Sub-type filter chips
+    var subtypeRow = $('yb-lead-subtype-row');
+    if (subtypeRow) {
+      subtypeRow.addEventListener('click', function (e) {
+        var chip = e.target.closest('[data-subtype]');
+        if (!chip) return;
+        var val = chip.getAttribute('data-subtype');
+        if (filterSubType === val) {
+          filterSubType = '';
+          filterSubTypeField = '';
+        } else {
+          filterSubType = val;
+          filterSubTypeField = chip.getAttribute('data-subtype-field') || '';
+        }
+        subtypeRow.querySelectorAll('[data-subtype]').forEach(function (c) {
+          c.classList.toggle('is-active', c.getAttribute('data-subtype') === filterSubType);
+        });
+        renderLeadView();
+      });
+    }
 
     // Filters — Applications
     var appStatusFilter = $('yb-app-status-filter');
@@ -4221,9 +4509,8 @@
       var card = e.target.closest('[data-filter-status]');
       if (card) {
         var st = card.getAttribute('data-filter-status');
-        filterStatus = st || '';
-        var filterEl = $('yb-lead-status-filter');
-        if (filterEl) filterEl.value = filterStatus;
+        filterStatuses = st ? [st] : [];
+        renderLeadFilterChips();
         loadLeads();
       }
     });
@@ -4356,6 +4643,7 @@
 
     createModals();
     bindLeadEvents();
+    renderLeadFilterChips();
 
     // Hook into tab switching — Leads (admin page)
     document.querySelectorAll('[data-yb-admin-tab]').forEach(function (btn) {
@@ -4399,7 +4687,47 @@
     getTranslations: function () { return T; },
     toast: toast,
     getCurrentLead: function () { return currentLead; },
-    getSelectedIds: function () { return selectedIds; }
+    getSelectedIds: function () { return selectedIds; },
+
+    // Load ALL non-archived leads for campaign wizard (not paginated)
+    loadAllLeadsForCampaign: function (callback) {
+      var SKIP_STATUSES = ['Converted', 'Existing Applicant'];
+      db.collection('leads').orderBy('created_at', 'desc').limit(2000).get()
+        .then(function (snap) {
+          var all = [];
+          snap.forEach(function (doc) {
+            var d = Object.assign({ id: doc.id }, doc.data());
+            // Skip archived, converted, and leads that already have an application
+            if (d.archived) return;
+            if (d.application_id) return;
+            if (SKIP_STATUSES.indexOf(d.status) !== -1) return;
+            all.push(d);
+          });
+          callback(null, all);
+        })
+        .catch(function (err) { callback(err, null); });
+    },
+
+    // Load ALL applications for campaign wizard
+    loadAllAppsForCampaign: function (callback) {
+      db.collection('applications').orderBy('created_at', 'desc').limit(500).get()
+        .then(function (snap) {
+          var all = [];
+          snap.forEach(function (doc) {
+            all.push(Object.assign({ id: doc.id }, doc.data()));
+          });
+          callback(null, all);
+        })
+        .catch(function (err) { callback(err, null); });
+    },
+
+    // Called by campaign wizard when a campaign send completes
+    onCampaignSent: function (type, results) {
+      selectedIds.clear();
+      selectAll = false;
+      updateBulkBar();
+      renderLeadView();
+    }
   };
 
   // Bootstrap

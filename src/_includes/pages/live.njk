@@ -432,7 +432,7 @@
   }
 </style>
 
-<div class="yb-live" id="yb-live" data-playback-id="{{ mux.playback_id }}" data-env-key="{{ mux.env_key }}" data-lang="{{ lang or 'da' }}"
+<div class="yb-live" id="yb-live" data-env-key="{{ mux.env_key }}" data-lang="{{ lang or 'da' }}"
   data-t-today="{{ t.schedule_today }}"
   data-t-tomorrow="{{ t.schedule_tomorrow }}"
   data-t-live-now="{{ t.schedule_live_now }}"
@@ -503,5 +503,6 @@
 
 </div>
 
+<script src="https://unpkg.com/livekit-client@2/dist/livekit-client.umd.js" defer></script>
 <script src="https://cdn.jsdelivr.net/npm/@mux/mux-player@3" defer></script>
 <script src="/js/live.js" defer></script>

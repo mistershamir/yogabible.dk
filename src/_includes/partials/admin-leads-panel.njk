@@ -16,48 +16,30 @@
   {# Pipeline Stats (clickable) #}
   <div class="yb-lead__stats-grid" id="yb-lead-stats"></div>
 
-  {# Search + Filters Row #}
+  {# Search + Compact Filters Row #}
   <div class="yb-lead__filter-bar">
     <form id="yb-lead-search-form" class="yb-lead__search-form">
       <input type="text" id="yb-lead-search-input" placeholder="{{ t.leads_search_placeholder }}" class="yb-lead__search-input">
     </form>
-    <select id="yb-lead-status-filter" class="yb-admin__select yb-lead__filter">
-      <option value="">{{ t.leads_all_statuses }}</option>
-      <option value="New">&#10024; New</option>
-      <option value="Contacted">&#128231; Contacted</option>
-      <option value="No Answer">&#128244; No Answer</option>
-      <option value="Follow-up">&#128260; Follow-up</option>
-      <option value="Engaged">&#128172; Engaged</option>
-      <option value="Qualified">&#9989; Qualified</option>
-      <option value="Negotiating">&#129309; Negotiating</option>
-      <option value="Converted">&#127881; Converted</option>
-      <option value="Existing Applicant">&#128196; Existing Applicant</option>
-      <option value="On Hold">&#9208;&#65039; On Hold</option>
-      <option value="Not too keen">&#128528; Not too keen</option>
-      <option value="Unsubscribed">&#128683; Unsubscribed</option>
-      <option value="Lost">&#128078; Lost</option>
-      <option value="Closed">&#10006; Closed</option>
-      <option value="Archived">&#128230; Archived</option>
-    </select>
-    <select id="yb-lead-type-filter" class="yb-admin__select yb-lead__filter">
-      <option value="">{{ t.leads_all_types }}</option>
-      <option value="ytt">YTT</option>
-      <option value="course">Course</option>
-      <option value="bundle">Bundle</option>
-      <option value="mentorship">Mentorship</option>
-      <option value="careers">Career</option>
-      <option value="contact">Contact</option>
-    </select>
     <select id="yb-lead-source-filter" class="yb-admin__select yb-lead__filter">
       <option value="">{{ t.leads_all_sources }}</option>
-      <option value="200h YTT">200h YTT</option>
-      <option value="300h YTT">300h YTT</option>
-      <option value="Courses">Courses</option>
-      <option value="Mentorship">Mentorship</option>
-      <option value="Contact page">Contact page</option>
-      <option value="Careers page">Careers page</option>
-      <option value="Apply page">Apply page</option>
-      <option value="Manual entry">Manual entry</option>
+      <optgroup label="YTT Programs">
+        <option value="200h YTT">200h YTT (18w / 8w / 4w)</option>
+        <option value="300h YTT">300h Advanced YTT</option>
+        <option value="50h YTT">50h Specialty YTT</option>
+        <option value="30h YTT">30h Module</option>
+      </optgroup>
+      <optgroup label="Other Programs">
+        <option value="Courses">Courses</option>
+        <option value="Mentorship">Mentorship</option>
+      </optgroup>
+      <optgroup label="Channel / Origin">
+        <option value="Facebook Ad">Facebook Ad (Meta)</option>
+        <option value="Apply page">Apply page</option>
+        <option value="Contact page">Contact page</option>
+        <option value="Careers page">Careers page</option>
+        <option value="Manual entry">Manual entry</option>
+      </optgroup>
     </select>
     <select id="yb-lead-priority-filter" class="yb-admin__select yb-lead__filter">
       <option value="">{{ t.leads_all_priorities }}</option>
@@ -72,6 +54,18 @@
       <option value="warm">&#9728;&#65039; Warm</option>
       <option value="cold">&#10052;&#65039; Cold</option>
     </select>
+    <button type="button" id="yb-lead-clear-filters" class="yb-btn yb-btn--sm yb-btn--outline" title="Clear all filters">&#10006; Clear</button>
+  </div>
+
+  {# Multi-select chip filters — rendered by JS from STATUSES and TYPES arrays #}
+  <div class="yb-lead__chip-filter-area">
+    <div id="yb-lead-status-chips" class="yb-lead__filter-chips-row"></div>
+    <div id="yb-lead-type-chips" class="yb-lead__filter-chips-row"></div>
+  </div>
+
+  {# Sub-type filter row — shown when a single type with sub-options is selected #}
+  <div id="yb-lead-subtype-row" class="yb-lead__subtype-row" hidden>
+    <div id="yb-lead-subtype-chips" class="yb-lead__subtype-chips"></div>
   </div>
 
   {# Result count #}
@@ -79,14 +73,14 @@
     <span id="yb-lead-count" class="yb-lead__count-text"></span>
   </div>
 
-  {# Bulk actions bar (hidden until selections) #}
-  <div id="yb-lead-bulk-bar" class="yb-lead__bulk-bar" hidden>
-    <span id="yb-lead-bulk-count" class="yb-lead__bulk-count-text"></span>
-    <button class="yb-btn yb-btn--sm yb-btn--outline" data-action="bulk-status">&#9881;&#65039; {{ t.leads_bulk_status }}</button>
+  {# Bulk actions bar — Email/SMS always visible; Status/Archive/Deselect shown only when rows are selected #}
+  <div id="yb-lead-bulk-bar" class="yb-lead__bulk-bar">
+    <span id="yb-lead-bulk-count" class="yb-lead__bulk-count-text" hidden></span>
+    <button class="yb-btn yb-btn--sm yb-btn--outline yb-lead__bulk-sel-only" data-action="bulk-status" hidden>&#9881;&#65039; {{ t.leads_bulk_status }}</button>
     <button class="yb-btn yb-btn--sm yb-btn--outline" data-action="bulk-email">&#9993;&#65039; {{ t.leads_bulk_email }}</button>
     <button class="yb-btn yb-btn--sm yb-btn--outline" data-action="bulk-sms">&#128241; {{ t.leads_bulk_sms }}</button>
-    <button class="yb-btn yb-btn--sm yb-btn--outline yb-admin__icon-btn--danger" data-action="bulk-archive">&#128451; {{ t.leads_bulk_archive }}</button>
-    <button class="yb-btn yb-btn--sm yb-btn--outline" data-action="bulk-deselect">&#10006; {{ t.leads_deselect }}</button>
+    <button class="yb-btn yb-btn--sm yb-btn--outline yb-admin__icon-btn--danger yb-lead__bulk-sel-only" data-action="bulk-archive" hidden>&#128451; {{ t.leads_bulk_archive }}</button>
+    <button class="yb-btn yb-btn--sm yb-btn--outline yb-lead__bulk-sel-only" data-action="bulk-deselect" hidden>&#10006; {{ t.leads_deselect }}</button>
   </div>
 
   {# Lead table #}
@@ -136,6 +130,77 @@
   <div class="yb-admin__section-divider"></div>
   <h3 class="yb-lead__section-title">{{ t.leads_actions }}</h3>
   <div id="yb-lead-actions" class="yb-lead__actions"></div>
+
+  {# Status + Priority + Temperature + Follow-up — moved above SMS conversation #}
+  <div class="yb-admin__section-divider"></div>
+  <h3 class="yb-lead__section-title">{{ t.leads_update_status }}</h3>
+  <form id="yb-lead-status-form" class="yb-admin__form">
+    <div class="yb-lead__status-grid">
+      <div class="yb-admin__field">
+        <label for="yb-lead-status-select">{{ t.leads_col_status }}</label>
+        <select id="yb-lead-status-select" class="yb-admin__select">
+          <option value="New">&#10024; New</option>
+          <option value="Contacted">&#128231; Contacted</option>
+          <option value="No Answer">&#128244; No Answer</option>
+          <option value="Follow-up">&#128260; Follow-up</option>
+          <option value="Engaged">&#128172; Engaged</option>
+          <option value="Strongly Interested">&#11088; Strongly Interested</option>
+          <option value="Qualified">&#9989; Qualified</option>
+          <option value="Negotiating">&#129309; Negotiating</option>
+          <option value="Converted">&#127881; Converted</option>
+          <option value="Existing Applicant">&#128196; Existing Applicant</option>
+          <option value="On Hold">&#9208;&#65039; On Hold</option>
+          <option value="Interested In Next Round">&#128197; Interested In Next Round</option>
+          <option value="Not too keen">&#128528; Not too keen</option>
+          <option value="Unsubscribed">&#128683; Unsubscribed</option>
+          <option value="Lost">&#128078; Lost</option>
+          <option value="Closed">&#10006; Closed</option>
+          <option value="Archived">&#128230; Archived</option>
+        </select>
+      </div>
+      <div class="yb-admin__field">
+        <label for="yb-lead-sub-status-select">{{ t.leads_sub_status }}</label>
+        <select id="yb-lead-sub-status-select" class="yb-admin__select">
+          <option value="">--</option>
+        </select>
+      </div>
+      <div class="yb-admin__field">
+        <label for="yb-lead-priority-select">{{ t.leads_priority }}</label>
+        <select id="yb-lead-priority-select" class="yb-admin__select">
+          <option value="">&#8212; None</option>
+          <option value="urgent">&#128308; Urgent</option>
+          <option value="high">&#128992; High</option>
+          <option value="normal">&#128994; Normal</option>
+          <option value="low">&#9898; Low</option>
+        </select>
+      </div>
+      <div class="yb-admin__field">
+        <label for="yb-lead-temperature-select">{{ t.leads_temperature }}</label>
+        <select id="yb-lead-temperature-select" class="yb-admin__select">
+          <option value="">&#8212; None</option>
+          <option value="hot">&#128293; Hot</option>
+          <option value="warm">&#9728;&#65039; Warm</option>
+          <option value="cold">&#10052;&#65039; Cold</option>
+        </select>
+      </div>
+      <div class="yb-admin__field">
+        <label for="yb-lead-followup-input">{{ t.leads_followup }}</label>
+        <input type="date" id="yb-lead-followup-input" class="yb-admin__select">
+      </div>
+    </div>
+    <div class="yb-admin__form-actions">
+      <button type="submit" class="yb-btn yb-btn--primary">{{ t.save }}</button>
+    </div>
+  </form>
+
+  {# Notes timeline — moved above SMS conversation #}
+  <div class="yb-admin__section-divider"></div>
+  <h3 class="yb-lead__section-title">{{ t.leads_notes }}</h3>
+  <form id="yb-lead-note-form" class="yb-lead__note-form">
+    <input type="text" id="yb-lead-note-input" placeholder="{{ t.leads_note_placeholder }}" class="yb-lead__note-input">
+    <button type="submit" class="yb-btn yb-btn--primary yb-btn--sm" data-action="lead-note-submit">{{ t.leads_add_note_btn }}</button>
+  </form>
+  <div id="yb-lead-notes-timeline" class="yb-lead__notes-timeline"></div>
 
   {# SMS Conversation #}
   <div class="yb-admin__section-divider"></div>
@@ -225,75 +290,6 @@
       <button type="submit" class="yb-btn yb-btn--primary">{{ t.leads_save_fields }}</button>
     </div>
   </form>
-
-  {# Status + Priority + Temperature + Follow-up #}
-  <div class="yb-admin__section-divider"></div>
-  <h3 class="yb-lead__section-title">{{ t.leads_update_status }}</h3>
-  <form id="yb-lead-status-form" class="yb-admin__form">
-    <div class="yb-lead__status-grid">
-      <div class="yb-admin__field">
-        <label for="yb-lead-status-select">{{ t.leads_col_status }}</label>
-        <select id="yb-lead-status-select" class="yb-admin__select">
-          <option value="New">&#10024; New</option>
-          <option value="Contacted">&#128231; Contacted</option>
-          <option value="No Answer">&#128244; No Answer</option>
-          <option value="Follow-up">&#128260; Follow-up</option>
-          <option value="Engaged">&#128172; Engaged</option>
-          <option value="Qualified">&#9989; Qualified</option>
-          <option value="Negotiating">&#129309; Negotiating</option>
-          <option value="Converted">&#127881; Converted</option>
-          <option value="Existing Applicant">&#128196; Existing Applicant</option>
-          <option value="On Hold">&#9208;&#65039; On Hold</option>
-          <option value="Not too keen">&#128528; Not too keen</option>
-          <option value="Unsubscribed">&#128683; Unsubscribed</option>
-          <option value="Lost">&#128078; Lost</option>
-          <option value="Closed">&#10006; Closed</option>
-          <option value="Archived">&#128230; Archived</option>
-        </select>
-      </div>
-      <div class="yb-admin__field">
-        <label for="yb-lead-sub-status-select">{{ t.leads_sub_status }}</label>
-        <select id="yb-lead-sub-status-select" class="yb-admin__select">
-          <option value="">--</option>
-        </select>
-      </div>
-      <div class="yb-admin__field">
-        <label for="yb-lead-priority-select">{{ t.leads_priority }}</label>
-        <select id="yb-lead-priority-select" class="yb-admin__select">
-          <option value="">&#8212; None</option>
-          <option value="urgent">&#128308; Urgent</option>
-          <option value="high">&#128992; High</option>
-          <option value="normal">&#128994; Normal</option>
-          <option value="low">&#9898; Low</option>
-        </select>
-      </div>
-      <div class="yb-admin__field">
-        <label for="yb-lead-temperature-select">{{ t.leads_temperature }}</label>
-        <select id="yb-lead-temperature-select" class="yb-admin__select">
-          <option value="">&#8212; None</option>
-          <option value="hot">&#128293; Hot</option>
-          <option value="warm">&#9728;&#65039; Warm</option>
-          <option value="cold">&#10052;&#65039; Cold</option>
-        </select>
-      </div>
-      <div class="yb-admin__field">
-        <label for="yb-lead-followup-input">{{ t.leads_followup }}</label>
-        <input type="date" id="yb-lead-followup-input" class="yb-admin__select">
-      </div>
-    </div>
-    <div class="yb-admin__form-actions">
-      <button type="submit" class="yb-btn yb-btn--primary">{{ t.save }}</button>
-    </div>
-  </form>
-
-  {# Notes timeline #}
-  <div class="yb-admin__section-divider"></div>
-  <h3 class="yb-lead__section-title">{{ t.leads_notes }}</h3>
-  <form id="yb-lead-note-form" class="yb-lead__note-form">
-    <input type="text" id="yb-lead-note-input" placeholder="{{ t.leads_note_placeholder }}" class="yb-lead__note-input">
-    <button type="submit" class="yb-btn yb-btn--primary yb-btn--sm" data-action="lead-note-submit">{{ t.leads_add_note_btn }}</button>
-  </form>
-  <div id="yb-lead-notes-timeline" class="yb-lead__notes-timeline"></div>
 
   {# Activity / communication log #}
   <div class="yb-admin__section-divider"></div>

@@ -198,7 +198,7 @@ async function sendAdminNotification(leadData) {
   html += '<h3 style="color:#f75c03;">Ny lead modtaget</h3>';
   html += '<table style="border-collapse:collapse;">';
 
-  const fields = ['email', 'first_name', 'last_name', 'phone', 'type', 'program', 'source', 'accommodation', 'city_country'];
+  const fields = ['email', 'first_name', 'last_name', 'phone', 'type', 'ytt_program_type', 'program', 'meta_form_id', 'meta_form_name', 'source', 'accommodation', 'city_country'];
   for (const field of fields) {
     if (leadData[field]) {
       html += `<tr><td style="padding:4px 12px 4px 0;font-weight:bold;color:#666;">${field}:</td><td style="padding:4px 0;">${escapeHtml(String(leadData[field]))}</td></tr>`;

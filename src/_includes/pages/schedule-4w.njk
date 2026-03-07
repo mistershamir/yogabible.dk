@@ -39,8 +39,8 @@
           <p style="font-size:.82rem;color:#6F6A66;margin-top:4px;">{{ t.statHours }}</p>
         </div>
         <div>
-          <span style="font-size:1.8rem;font-weight:700;color:#f75c03;">10/5</span>
-          <p style="font-size:.82rem;color:#6F6A66;margin-top:4px;">Cert.</p>
+          <span style="font-size:1.8rem;font-weight:700;color:#f75c03;">{{ t.statCertDate }}</span>
+          <p style="font-size:.82rem;color:#6F6A66;margin-top:4px;">{{ t.certificationLabel }}</p>
         </div>
       </div>
     </div>
@@ -65,7 +65,7 @@
     {# Stacked segment bar #}
     <div style="height:22px;border-radius:50px;overflow:hidden;display:flex;gap:2px;margin-bottom:20px;">
       {% for h in hoursData4 %}
-      <div style="flex:{{ h.pct }};background:{{ h.color }};" title="{{ t[h.key] }} — {{ h.hours }}t"></div>
+      <div style="flex:{{ h.pct }};background:{{ h.color }};" title="{{ t[h.key] }} — {{ h.hours }}{{ 'h' if lang == 'en' else 't' }}"></div>
       {% endfor %}
     </div>
 
@@ -75,7 +75,7 @@
       <div style="display:flex;align-items:center;gap:8px;">
         <span style="width:10px;height:10px;border-radius:3px;background:{{ h.color }};flex-shrink:0;{% if h.color == '#E8E4E0' or h.color == '#F0EDEA' %}border:1px solid #ccc;{% endif %}"></span>
         <span style="font-size:.78rem;color:#0F0F0F;flex:1;">{{ t[h.key] }}</span>
-        <span style="font-size:.78rem;font-weight:700;color:#0F0F0F;">{{ h.hours }}t</span>
+        <span style="font-size:.78rem;font-weight:700;color:#0F0F0F;">{{ h.hours }}{{ "h" if lang == "en" else "t" }}</span>
       </div>
       {% endfor %}
     </div>
@@ -94,20 +94,20 @@
 
     {% set months4w = [
       { name: "April", name_en: "April", year: "2026", weeks: [
-        { num: 1, label: "Introduktion", range: "13–19 apr", range_en: "Apr 13–19", days: [
-          { dn: "13", dd: "Man", dd_en: "Mon", time: "09:00–15:00", topic: "Hatha & Class Management — Introduktion", type: "workshop" },
-          { dn: "14", dd: "Tir", dd_en: "Tue", time: "11:00–17:00", topic: "Vinyasa & Yin Yoga — Introduktion", type: "workshop" },
+        { num: 1, label: "Introduktion", label_en: "Introduction", range: "13–19 apr", range_en: "Apr 13–19", days: [
+          { dn: "13", dd: "Man", dd_en: "Mon", time: "09:00–15:00", topic: "Hatha & Class Management — Introduktion", topic_en: "Hatha & Class Management — Introduction", type: "workshop" },
+          { dn: "14", dd: "Tir", dd_en: "Tue", time: "11:00–17:00", topic: "Vinyasa & Yin Yoga — Introduktion", topic_en: "Vinyasa & Yin Yoga — Introduction", type: "workshop" },
           { dn: "16", dd: "Tor", dd_en: "Thu", time: "11:00–17:00", topic: "Vinyasa & Yin Yoga", type: "workshop" },
-          { dn: "18", dd: "Lør", dd_en: "Sat", time: "13:00–18:00", topic: "Yoga Anatomi", type: "workshop" },
-          { dn: "19", dd: "Søn", dd_en: "Sun", time: "14:00–18:00", topic: "Yogafilosofi 01 — Online", type: "online" }
+          { dn: "18", dd: "Lør", dd_en: "Sat", time: "13:00–18:00", topic: "Yoga Anatomi", topic_en: "Yoga Anatomy", type: "workshop" },
+          { dn: "19", dd: "Søn", dd_en: "Sun", time: "14:00–18:00", topic: "Yogafilosofi 01 — Online", topic_en: "Yoga Philosophy 01 — Online", type: "online" }
         ]},
         { num: 2, range: "20–26 apr", range_en: "Apr 20–26", days: [
           { dn: "20", dd: "Man", dd_en: "Mon", time: "09:00–15:00", topic: "Hatha & Class Management", type: "workshop" },
           { dn: "21", dd: "Tir", dd_en: "Tue", time: "11:00–17:00", topic: "Vinyasa & Yin Yoga", type: "workshop" },
           { dn: "22", dd: "Ons", dd_en: "Wed", time: "10:00–15:00", topic: "Hatha & Class Management", type: "workshop" },
           { dn: "23", dd: "Tor", dd_en: "Thu", time: "11:00–17:00", topic: "Vinyasa & Yin Yoga", type: "workshop" },
-          { dn: "25", dd: "Lør", dd_en: "Sat", time: "13:00–18:00", topic: "Yoga Anatomi", type: "workshop" },
-          { dn: "26", dd: "Søn", dd_en: "Sun", time: "13:00–17:00", topic: "Yogafilosofi 02 — Online", type: "online" }
+          { dn: "25", dd: "Lør", dd_en: "Sat", time: "13:00–18:00", topic: "Yoga Anatomi", topic_en: "Yoga Anatomy", type: "workshop" },
+          { dn: "26", dd: "Søn", dd_en: "Sun", time: "13:00–17:00", topic: "Yogafilosofi 02 — Online", topic_en: "Yoga Philosophy 02 — Online", type: "online" }
         ]},
         { num: 3, range: "27 apr – 3 maj", range_en: "Apr 27 – May 3", days: [
           { dn: "27", dd: "Man", dd_en: "Mon", time: "10:00–15:00", topic: "Hatha & Class Management", type: "workshop" },
@@ -118,15 +118,15 @@
         { num: 3, range: "27 apr – 3 maj", range_en: "Apr 27 – May 3", continuesFrom: true, days: [
           { dn: "30", dd: "Tor", dd_en: "Thu", time: "11:00–15:00", topic: "Vinyasa & Yin Yoga", type: "workshop" },
           { dn: "1",  dd: "Fre", dd_en: "Fri", time: "11:00–16:00", topic: "Hatha & Class Management", type: "workshop" },
-          { dn: "2",  dd: "Lør", dd_en: "Sat", time: "13:00–18:00", topic: "Yoga Anatomi", type: "workshop" },
-          { dn: "3",  dd: "Søn", dd_en: "Sun", time: "13:00–17:00", topic: "Yogafilosofi 03 — Online", type: "online" }
+          { dn: "2",  dd: "Lør", dd_en: "Sat", time: "13:00–18:00", topic: "Yoga Anatomi", topic_en: "Yoga Anatomy", type: "workshop" },
+          { dn: "3",  dd: "Søn", dd_en: "Sun", time: "13:00–17:00", topic: "Yogafilosofi 03 — Online", topic_en: "Yoga Philosophy 03 — Online", type: "online" }
         ]},
-        { num: 4, label: "Eksamen & Graduation", range: "4–10 maj", range_en: "May 4–10", graduation: true, days: [
+        { num: 4, label: "Eksamen & Graduation", label_en: "Exam & Graduation", range: "4–10 maj", range_en: "May 4–10", graduation: true, days: [
           { dn: "4",  dd: "Man", dd_en: "Mon", time: "10:00–15:00", topic: "Vinyasa & Yin Yoga", type: "workshop" },
           { dn: "6",  dd: "Ons", dd_en: "Wed", time: "09:00–15:00", topic: "Business of Yoga", type: "workshop" },
           { dn: "7",  dd: "Fre", dd_en: "Fri", time: "11:00–17:00", topic: "Vinyasa & Yin Yoga", type: "workshop" },
-          { dn: "9",  dd: "Lør", dd_en: "Sat", time: "13:00–18:00", topic: "Vinyasa & Yin Yoga — Eksamen", type: "exam" },
-          { dn: "10", dd: "Søn", dd_en: "Sun", time: "14:00–17:00", topic: "Hatha & Class Management — Eksamen + Graduation 🎓", type: "graduation" }
+          { dn: "9",  dd: "Lør", dd_en: "Sat", time: "13:00–18:00", topic: "Vinyasa & Yin Yoga — Eksamen", topic_en: "Vinyasa & Yin Yoga — Exam", type: "exam" },
+          { dn: "10", dd: "Søn", dd_en: "Sun", time: "14:00–17:00", topic: "Hatha & Class Management — Eksamen + Graduation 🎓", topic_en: "Hatha & Class Management — Exam + Graduation 🎓", type: "graduation" }
         ]}
       ]}
     ] %}
@@ -150,7 +150,7 @@
               <span style="font-size:.52rem;text-transform:uppercase;letter-spacing:.06em;opacity:.75;">{{ day.dd_en if lang == "en" else day.dd }}</span>
             </div>
             <div style="flex:1;min-width:0;">
-              <p style="font-weight:600;font-size:.92rem;color:#0F0F0F;">{{ day.topic }}</p>
+              <p style="font-weight:600;font-size:.92rem;color:#0F0F0F;">{{ day.topic_en if lang == "en" else day.topic }}</p>
               <p style="font-size:.78rem;color:#6F6A66;margin-top:2px;">{{ day.time }}{% if day.type == 'online' %} · <span style="color:#f75c03;font-weight:600;">{{ t.onlineLabel }}</span>{% endif %}</p>
             </div>
           </div>
@@ -163,7 +163,7 @@
           <div style="display:flex;align-items:center;gap:14px;">
             <span style="background:#2ecc71;color:#fff;font-size:.68rem;font-weight:700;padding:5px 12px;border-radius:50px;letter-spacing:.06em;">{{ t.weekLabel }} {{ week.num }}</span>
             <div>
-              <p style="font-weight:700;font-size:.92rem;color:#0F0F0F;">{{ week.label }}</p>
+              <p style="font-weight:700;font-size:.92rem;color:#0F0F0F;">{{ week.label_en if lang == "en" else week.label }}</p>
               <p style="font-size:.75rem;color:#6F6A66;">{{ week.range_en if lang == "en" else week.range }}</p>
             </div>
           </div>
@@ -180,7 +180,7 @@
               <span style="font-size:.52rem;text-transform:uppercase;letter-spacing:.06em;opacity:.75;">{{ day.dd_en if lang == "en" else day.dd }}</span>
             </div>
             <div style="flex:1;">
-              <p style="font-weight:600;font-size:.92rem;color:#0F0F0F;">{{ day.topic }}</p>
+              <p style="font-weight:600;font-size:.92rem;color:#0F0F0F;">{{ day.topic_en if lang == "en" else day.topic }}</p>
               <p style="font-size:.78rem;color:#6F6A66;margin-top:2px;">{{ day.time }}</p>
             </div>
             {% if day.type == 'graduation' %}<span style="background:#d4edda;color:#155724;padding:3px 10px;border-radius:50px;font-size:.65rem;font-weight:600;text-transform:uppercase;">{{ t.graduationLabel }}</span>{% elif day.type == 'exam' %}<span style="background:#FFF0E6;color:#f75c03;padding:3px 10px;border-radius:50px;font-size:.65rem;font-weight:600;text-transform:uppercase;">{{ t.examLabel }}</span>{% endif %}
@@ -194,7 +194,7 @@
           <div style="display:flex;align-items:center;gap:14px;">
             <span style="background:#f75c03;color:#fff;font-size:.68rem;font-weight:700;padding:5px 12px;border-radius:50px;letter-spacing:.06em;">{{ t.weekLabel }} {{ week.num }}</span>
             <div>
-              <p style="font-weight:700;font-size:.92rem;color:#0F0F0F;">{% if week.label %}{{ week.label }}{% else %}{{ week.range_en if lang == "en" else week.range }}{% endif %}</p>
+              <p style="font-weight:700;font-size:.92rem;color:#0F0F0F;">{% if week.label %}{{ week.label_en if lang == "en" else week.label }}{% else %}{{ week.range_en if lang == "en" else week.range }}{% endif %}</p>
               <p style="font-size:.75rem;color:#6F6A66;">{{ week.days | length }} {% if week.days | length == 1 %}{{ t.dayLabel }}{% else %}{{ t.daysLabel }}{% endif %}</p>
             </div>
           </div>
@@ -211,7 +211,7 @@
               <span style="font-size:.52rem;text-transform:uppercase;letter-spacing:.06em;opacity:.75;">{{ day.dd_en if lang == "en" else day.dd }}</span>
             </div>
             <div style="flex:1;min-width:0;">
-              <p style="font-weight:600;font-size:.92rem;color:#0F0F0F;">{{ day.topic }}</p>
+              <p style="font-weight:600;font-size:.92rem;color:#0F0F0F;">{{ day.topic_en if lang == "en" else day.topic }}</p>
               <p style="font-size:.78rem;color:#6F6A66;margin-top:2px;">{{ day.time }}{% if day.type == 'online' %} · <span style="color:#f75c03;font-weight:600;">{{ t.onlineLabel }}</span>{% endif %}</p>
             </div>
           </div>
@@ -248,6 +248,17 @@
       <p style="font-size:.82rem;color:#6F6A66;margin-top:8px;">{{ t.quoteAuthor }}</p>
     </blockquote>
 
+  </div>
+
+  {# ── CROSS-LINK: July Vinyasa Plus ──────────────────────── #}
+  <div style="max-width:700px;margin:0 auto;padding:32px 24px 0;">
+    <div style="background:#FFF7ED;border:1px solid rgba(247,92,3,.15);border-radius:14px;padding:20px 24px;display:flex;align-items:center;gap:16px;flex-wrap:wrap;">
+      <div style="flex:1;min-width:200px;">
+        <p style="font-weight:700;font-size:.95rem;color:#0F0F0F;margin-bottom:4px;">{{ t.crossLinkTitle }}</p>
+        <p style="font-size:.82rem;color:#6F6A66;line-height:1.5;">{{ t.crossLinkDesc }}</p>
+      </div>
+      <a href="{% if lang == 'en' %}/en/schedule/4-weeks-july/{% else %}/skema/4-uger-juli/{% endif %}" style="display:inline-block;background:#f75c03;color:#fff;padding:10px 20px;border-radius:50px;font-size:.85rem;font-weight:600;text-decoration:none;white-space:nowrap;transition:background .2s;" onmouseenter="this.style.background='#d94f02'" onmouseleave="this.style.background='#f75c03'">{{ t.crossLinkCta }} →</a>
+    </div>
   </div>
 
   {# ── DARK CTA ─────────────────────────────────────────── #}

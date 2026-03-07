@@ -3,3 +3,4 @@ google-cloud-firestore>=2.19.0
 apscheduler>=3.10.4
 python-dotenv>=1.0.1
 aiohttp>=3.10.0
+python-telegram-bot>=21.0

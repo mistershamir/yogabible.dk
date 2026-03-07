@@ -102,8 +102,12 @@ async function processLeadgenChange(value) {
   const { leadgen_id, form_id, ad_id, ad_name, page_id } = value;
   console.log(`[fb-leads] Processing lead: leadgen_id=${leadgen_id}, form=${form_id}, ad="${ad_name}"`);
 
-  // Fetch full lead data from Facebook Graph API
-  const leadData = await fetchLeadFromGraph(leadgen_id);
+  // Fetch full lead data + form name from Facebook Graph API in parallel
+  const [leadData, formName] = await Promise.all([
+    fetchLeadFromGraph(leadgen_id),
+    form_id ? fetchFormNameFromGraph(form_id) : Promise.resolve('')
+  ]);
+  console.log(`[fb-leads] Form name resolved: "${formName}"`);
 
   // Convert field_data array → flat key/value object
   // e.g. [{ name: "email", values: ["anna@example.com"] }] → { email: "anna@example.com" }
@@ -141,10 +145,10 @@ async function processLeadgenChange(value) {
     first_name: firstName,
     last_name: lastName,
     phone,
-    // Program info
+    // Program info — use form name for detection when ad_name is missing
     type: 'ytt',
-    ytt_program_type: detectYTTType(program, ad_name || ''),
-    program: program || ad_name || 'Facebook Lead Form',
+    ytt_program_type: detectYTTType(program, ad_name || formName || '', form_id),
+    program: program || ad_name || formName || 'Facebook Lead Form',
     course_id: '',
     cohort_label: '',
     preferred_month: '',
@@ -154,9 +158,10 @@ async function processLeadgenChange(value) {
     service: '',
     subcategories: '',
     message: fields.message || fields.comments || '',
-    source: `Meta Lead – Facebook – ${ad_name || form_id || 'Ad'}`,
+    source: 'Facebook Ad',
     // Meta metadata (useful for reporting)
     meta_form_id: form_id || '',
+    meta_form_name: formName || '',
     meta_ad_id: ad_id || '',
     meta_campaign: ad_name || '',
     meta_leadgen_id: leadgen_id || '',
@@ -188,13 +193,17 @@ async function processLeadgenChange(value) {
     .update(docRef.id + ':' + email)
     .digest('hex');
 
+  // Map ytt_program_type → correct email template action
+  const emailAction = yttTypeToAction(lead.ytt_program_type);
+  console.log(`[fb-leads] Email action for type "${lead.ytt_program_type}": ${emailAction}`);
+
   // Fire notifications in parallel — same as lead.js
   await Promise.all([
     process.env.GMAIL_APP_PASSWORD
       ? sendAdminNotification(lead).catch(e => console.error('[fb-leads] Admin email failed:', e.message))
       : Promise.resolve(),
     process.env.GMAIL_APP_PASSWORD && email
-      ? sendWelcomeEmail(lead, 'lead_meta', { leadId: docRef.id, token: scheduleToken })
+      ? sendWelcomeEmail(lead, emailAction, { leadId: docRef.id, token: scheduleToken })
           .catch(e => console.error('[fb-leads] Welcome email failed:', e.message))
       : Promise.resolve(),
     process.env.GATEWAYAPI_TOKEN && phone
@@ -204,6 +213,41 @@ async function processLeadgenChange(value) {
 }
 
 // ─── Graph API ───────────────────────────────────────────────────────────────
+
+function fetchFormNameFromGraph(formId) {
+  const token = process.env.FB_PAGE_ACCESS_TOKEN || process.env.META_ACCESS_TOKEN;
+  const url = `https://graph.facebook.com/${GRAPH_API_VERSION}/${formId}?fields=name&access_token=${token}`;
+
+  return new Promise((resolve) => {
+    https.get(url, (res) => {
+      let data = '';
+      res.on('data', chunk => (data += chunk));
+      res.on('end', () => {
+        try {
+          const parsed = JSON.parse(data);
+          resolve(parsed.name || '');
+        } catch (e) {
+          resolve('');
+        }
+      });
+    }).on('error', () => resolve(''));
+  });
+}
+
+// ─── Form ID → Program Type Map ──────────────────────────────────────────────
+// Checked FIRST before keyword matching — add new form IDs here as you create them.
+// Form ID is shown as meta_form_id in admin notification emails.
+//
+// How to find a form ID:
+//   1. It appears in the admin notification email as "meta_form_id"
+//   2. Or: Meta Ads Manager → Instant Forms → click the form → check the URL
+//
+// Program types: '18-week' | '8-week' | '4-week' | '300h' | '50h' | '30h'
+const FORM_ID_MAP = {
+  '1974647360148367': '18-week'   // 18 Ugers Fleksibelt YTT — March–June 2026 cohort
+  // Add new forms below:
+  // '123456789012345': '8-week',
+};
 
 function fetchLeadFromGraph(leadgenId) {
   const token = process.env.FB_PAGE_ACCESS_TOKEN || process.env.META_ACCESS_TOKEN;
@@ -232,10 +276,16 @@ function fetchLeadFromGraph(leadgenId) {
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
 /**
- * Detect YTT program type from form field + ad name.
- * Mirrors the detectMetaYTTType() logic in lead.js.
+ * Detect YTT program type.
+ * Priority: 1) FORM_ID_MAP (exact match) → 2) keyword matching on program/formName.
  */
-function detectYTTType(program, formName) {
+function detectYTTType(program, formName, formId) {
+  // 1. Exact form ID match — most reliable
+  if (formId && FORM_ID_MAP[formId]) {
+    console.log(`[fb-leads] detectYTTType: matched form_id ${formId} → ${FORM_ID_MAP[formId]}`);
+    return FORM_ID_MAP[formId];
+  }
+  // 2. Keyword matching fallback
   const combined = `${program} ${formName}`.toLowerCase();
   if (combined.includes('300')) return '300h';
   if (combined.includes('50h') || combined.includes('50 hour')) return '50h';
@@ -244,6 +294,22 @@ function detectYTTType(program, formName) {
   if (combined.includes('8') && (combined.includes('uge') || combined.includes('week') || combined.includes('semi'))) return '8-week';
   if (combined.includes('4') && (combined.includes('uge') || combined.includes('week') || combined.includes('intensi'))) return '4-week';
   return '4-week';
+}
+
+/**
+ * Map ytt_program_type → sendWelcomeEmail action string.
+ * Mirrors the routing in lead.js / lead-emails.js.
+ */
+function yttTypeToAction(programType) {
+  switch (programType) {
+    case '18-week':  return 'lead_schedule_18w';
+    case '8-week':   return 'lead_schedule_8w';
+    case '4-week':   return 'lead_schedule_4w';
+    case '300h':     return 'lead_schedule_300h';
+    case '50h':      return 'lead_schedule_50h';
+    case '30h':      return 'lead_schedule_30h';
+    default:         return 'lead_meta'; // generic fallback
+  }
 }
 
 function normalizeYesNo(val) {

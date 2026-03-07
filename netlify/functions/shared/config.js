@@ -37,7 +37,8 @@ const AUTO_SMS_CONFIG = {
 
 const YTT_PROGRAM_TYPES = {
   '18-week': { keywords: ['18 uger', '18-week', '18 week', 'fleksibel', 'flexible', '18w'], label: '18-Week Flexible', shortLabel: '18W' },
-  '4-week': { keywords: ['4 uger', '4-week', '4 week', 'intensiv', 'intensive', '4w'], label: '4-Week Intensive', shortLabel: '4W' },
+  '4-week': { keywords: ['4 uger', '4-week', '4 week', 'intensiv', 'intensive', '4w', '4w-apr'], label: '4-Week Intensive', shortLabel: '4W' },
+  '4-week-jul': { keywords: ['4w-jul', 'vinyasa plus', 'vinyasa+', 'juli 4w'], label: '4-Week Vinyasa Plus (July)', shortLabel: '4W-VP' },
   '8-week': { keywords: ['8 uger', '8-week', '8 week', 'semi-intensiv', 'semi-intensive', '8w'], label: '8-Week Semi-Intensive', shortLabel: '8W' },
   '300h': { keywords: ['300 hour', '300h', '300 timer', '300-hour', 'advanced'], label: '300-Hour Advanced', shortLabel: '300H' },
   '50h': { keywords: ['50 hour', '50h', '50 timer', '50-hour'], label: '50-Hour Specialty', shortLabel: '50H' },
