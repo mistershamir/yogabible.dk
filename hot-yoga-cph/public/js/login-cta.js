@@ -958,20 +958,33 @@
 
   // Tell Framer's parent frame about our height so the embed iframe
   // is sized correctly (Framer HTML embeds start at height:0).
-  function notifyFramerHeight() {
-    function send() {
-      try {
-        if (window.parent && window.parent !== window) {
-          var h = document.body.scrollHeight || document.body.offsetHeight || 0;
-          if (h > 0) window.parent.postMessage({ embedHeight: h }, '*');
-        }
-      } catch (e) { /* cross-origin — ignore */ }
-    }
-    // Send immediately + after a short delay (CSS may not be computed yet)
-    send();
-    setTimeout(send, 50);
-    setTimeout(send, 200);
+  // Framer's srcdoc includes a ResizeObserver that posts { embedHeight }
+  // to the parent, but it can report 0 before our content renders.
+  // We send our own measured height and keep a persistent interval
+  // running for a few seconds to ensure Framer picks it up.
+  var _heightInterval = null;
+
+  function _sendHeight() {
+    try {
+      if (window.parent && window.parent !== window) {
+        var h = document.body.scrollHeight || document.body.offsetHeight || 0;
+        if (h > 0) window.parent.postMessage({ embedHeight: h }, '*');
+      }
+    } catch (e) { /* cross-origin — ignore */ }
   }
+
+  function notifyFramerHeight() {
+    _sendHeight();
+    setTimeout(_sendHeight, 50);
+    setTimeout(_sendHeight, 200);
+  }
+
+  // Also respond when Framer asks for height (its poll mechanism)
+  window.addEventListener('message', function (e) {
+    try {
+      if (e.data === 'getEmbedHeight') _sendHeight();
+    } catch (x) {}
+  });
 
   function renderLoggedOut() {
     if (!container) return;
@@ -1203,6 +1216,14 @@
     }
 
     initAuth();
+
+    // Keep posting height to Framer every 500ms for 8 seconds.
+    // Framer's ResizeObserver can report height:0 before our content
+    // renders, and once Framer collapses the iframe to 0px it won't
+    // recover unless it receives a new embedHeight message.
+    if (_heightInterval) clearInterval(_heightInterval);
+    _heightInterval = setInterval(_sendHeight, 500);
+    setTimeout(function () { clearInterval(_heightInterval); }, 8000);
   }
 
   if (document.readyState === 'loading') {
