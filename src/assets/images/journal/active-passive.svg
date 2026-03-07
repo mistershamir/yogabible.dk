@@ -1,97 +1,88 @@
 <svg viewBox="0 0 1200 630" xmlns="http://www.w3.org/2000/svg">
   <defs>
-    <filter id="splitShadow" x="-50%" y="-50%" width="200%" height="200%">
-      <feDropShadow dx="4" dy="6" stdDeviation="8" flood-opacity="0.35" flood-color="#000"/>
+    <filter id="shadow" x="-50%" y="-50%" width="200%" height="200%">
+      <feDropShadow dx="3" dy="5" stdDeviation="6" flood-opacity="0.25" flood-color="#000"/>
     </filter>
-    <linearGradient id="activeGrad" x1="0%" y1="100%" x2="0%" y2="0%">
-      <stop offset="0%" style="stop-color:#ff9966;stop-opacity:1"/>
-      <stop offset="100%" style="stop-color:#f75c03;stop-opacity:1"/>
-    </linearGradient>
-    <linearGradient id="passiveGrad" x1="0%" y1="100%" x2="0%" y2="0%">
-      <stop offset="0%" style="stop-color:#f75c03;stop-opacity:1"/>
-      <stop offset="100%" style="stop-color:#d94f02;stop-opacity:1"/>
-    </linearGradient>
   </defs>
 
   <rect width="1200" height="630" fill="#f5f3f0"/>
 
-  <!-- Center dividing line -->
-  <line x1="600" y1="80" x2="600" y2="540" stroke="#0f0f0f" stroke-width="6" opacity="0.3" stroke-linecap="round"/>
-  <line x1="600" y1="85" x2="600" y2="535" stroke="#f75c03" stroke-width="2" opacity="0.6" stroke-dasharray="8,6"/>
+  <!-- Divider line -->
+  <line x1="600" y1="60" x2="600" y2="430" stroke="#E8E4E0" stroke-width="2" stroke-dasharray="6,6"/>
 
-  <!-- LEFT SIDE: ACTIVE -->
-  <g filter="url(#splitShadow)">
-    <!-- Background circle -->
-    <circle cx="300" cy="200" r="90" fill="url(#activeGrad)" opacity="0.15" stroke="#f75c03" stroke-width="2"/>
-
-    <!-- Active figure - dynamic arms -->
-    <!-- Head -->
-    <circle cx="300" cy="150" r="28" fill="url(#activeGrad)" opacity="0.93" stroke="#d94f02" stroke-width="3"/>
-
-    <!-- Strong left arm (extended) -->
-    <line x1="280" y1="175" x2="180" y2="120" stroke="url(#activeGrad)" stroke-width="16" stroke-linecap="round" opacity="0.92"/>
-    <circle cx="180" cy="120" r="18" fill="#f75c03" opacity="0.95" stroke="#0f0f0f" stroke-width="2"/>
-
-    <!-- Strong right arm (extended) -->
-    <line x1="320" y1="175" x2="420" y2="120" stroke="url(#activeGrad)" stroke-width="16" stroke-linecap="round" opacity="0.92"/>
-    <circle cx="420" cy="120" r="18" fill="#f75c03" opacity="0.95" stroke="#0f0f0f" stroke-width="2"/>
-
-    <!-- Torso bent -->
-    <ellipse cx="300" cy="250" rx="40" ry="60" fill="url(#activeGrad)" opacity="0.88" stroke="#d94f02" stroke-width="3"/>
-
-    <!-- Left leg planted -->
-    <line x1="280" y1="310" x2="250" y2="420" stroke="url(#activeGrad)" stroke-width="15" stroke-linecap="round" opacity="0.88"/>
-    <circle cx="250" cy="420" r="18" fill="#d94f02" opacity="0.9" stroke="#0f0f0f" stroke-width="2"/>
-
-    <!-- Right leg extended -->
-    <line x1="320" y1="310" x2="380" y2="410" stroke="url(#activeGrad)" stroke-width="15" stroke-linecap="round" opacity="0.88"/>
-    <circle cx="380" cy="410" r="18" fill="#d94f02" opacity="0.9" stroke="#0f0f0f" stroke-width="2"/>
-
-    <!-- Energy/movement indicators -->
-    <path d="M 160 120 L 140 100" stroke="#f75c03" stroke-width="3" stroke-linecap="round" opacity="0.7"/>
-    <path d="M 440 120 L 460 100" stroke="#f75c03" stroke-width="3" stroke-linecap="round" opacity="0.7"/>
+  <!-- LEFT: Active Flexibility -->
+  <g filter="url(#shadow)">
+    <!-- Active figure: standing leg raise (using own strength) -->
+    <g transform="translate(300, 180)">
+      <circle cx="0" cy="0" r="16" fill="#f75c03" opacity="0.9"/>
+      <line x1="0" y1="16" x2="0" y2="70" stroke="#f75c03" stroke-width="6" stroke-linecap="round"/>
+      <!-- Standing leg -->
+      <line x1="0" y1="70" x2="0" y2="140" stroke="#f75c03" stroke-width="5" stroke-linecap="round"/>
+      <!-- Lifted leg (active) -->
+      <line x1="0" y1="70" x2="60" y2="20" stroke="#d94f02" stroke-width="5" stroke-linecap="round"/>
+      <!-- Arms helping -->
+      <line x1="0" y1="35" x2="-25" y2="15" stroke="#f75c03" stroke-width="4" stroke-linecap="round"/>
+      <line x1="0" y1="35" x2="25" y2="55" stroke="#ff9966" stroke-width="4" stroke-linecap="round"/>
+      
+      <!-- Muscle engagement lightning bolts -->
+      <g opacity="0.6">
+        <path d="M 35 40 L 40 35 L 38 42 L 43 37" fill="none" stroke="#f75c03" stroke-width="2"/>
+        <path d="M -5 85 L -10 80 L -8 87 L -13 82" fill="none" stroke="#f75c03" stroke-width="2"/>
+      </g>
+    </g>
+    
+    <!-- Active label -->
+    <rect x="190" y="80" width="220" height="44" rx="22" fill="#f75c03" opacity="0.15" stroke="#f75c03" stroke-width="2"/>
+    <text x="300" y="108" font-family="Abacaxi, Helvetica, Arial, sans-serif" font-size="20" font-weight="bold" fill="#d94f02" text-anchor="middle">ACTIVE</text>
   </g>
 
-  <!-- RIGHT SIDE: PASSIVE -->
-  <g filter="url(#splitShadow)">
-    <!-- Background circle -->
-    <circle cx="900" cy="200" r="90" fill="url(#passiveGrad)" opacity="0.15" stroke="#d94f02" stroke-width="2"/>
+  <!-- RIGHT: Passive Flexibility -->
+  <g filter="url(#shadow)">
+    <!-- Passive figure: seated forward fold (gravity/props) -->
+    <g transform="translate(900, 180)">
+      <circle cx="-20" cy="20" r="16" fill="#ff9966" opacity="0.9"/>
+      <!-- Torso folded forward -->
+      <path d="M 20 80 Q 0 50 -20 35" fill="none" stroke="#ff9966" stroke-width="6" stroke-linecap="round"/>
+      <!-- Legs extended -->
+      <line x1="20" y1="80" x2="80" y2="80" stroke="#ff9966" stroke-width="5" stroke-linecap="round"/>
+      <!-- Arms reaching -->
+      <line x1="-20" y1="35" x2="30" y2="60" stroke="#ff9966" stroke-width="4" stroke-linecap="round"/>
+      <!-- Feet -->
+      <line x1="80" y1="80" x2="85" y2="70" stroke="#ff9966" stroke-width="3" stroke-linecap="round"/>
+      
+      <!-- Gravity arrows -->
+      <g opacity="0.4">
+        <line x1="-10" y1="-10" x2="-10" y2="10" stroke="#6F6A66" stroke-width="2"/>
+        <polygon points="-10,10 -14,4 -6,4" fill="#6F6A66"/>
+        <line x1="10" y1="0" x2="10" y2="20" stroke="#6F6A66" stroke-width="2"/>
+        <polygon points="10,20 6,14 14,14" fill="#6F6A66"/>
+      </g>
+    </g>
 
-    <!-- Passive figure - relaxed -->
-    <!-- Head -->
-    <circle cx="900" cy="180" r="28" fill="url(#passiveGrad)" opacity="0.93" stroke="#0f0f0f" stroke-width="3"/>
-
-    <!-- Left arm relaxed (supported) -->
-    <path d="M 880 205 Q 820 240 800 300" stroke="url(#passiveGrad)" stroke-width="14" stroke-linecap="round" opacity="0.88" fill="none"/>
-    <circle cx="800" cy="300" r="16" fill="#d94f02" opacity="0.9" stroke="#0f0f0f" stroke-width="2"/>
-
-    <!-- Right arm relaxed (supported) -->
-    <path d="M 920 205 Q 980 240 1000 300" stroke="url(#passiveGrad)" stroke-width="14" stroke-linecap="round" opacity="0.88" fill="none"/>
-    <circle cx="1000" cy="300" r="16" fill="#d94f02" opacity="0.9" stroke="#0f0f0f" stroke-width="2"/>
-
-    <!-- Relaxed torso -->
-    <ellipse cx="900" cy="280" rx="45" ry="70" fill="url(#passiveGrad)" opacity="0.86" stroke="#0f0f0f" stroke-width="3"/>
-
-    <!-- Left leg relaxed -->
-    <path d="M 880 350 Q 850 380 840 420" stroke="url(#passiveGrad)" stroke-width="14" stroke-linecap="round" opacity="0.85" fill="none"/>
-    <circle cx="840" cy="420" r="16" fill="#f75c03" opacity="0.88" stroke="#0f0f0f" stroke-width="2"/>
-
-    <!-- Right leg relaxed -->
-    <path d="M 920 350 Q 950 380 960 420" stroke="url(#passiveGrad)" stroke-width="14" stroke-linecap="round" opacity="0.85" fill="none"/>
-    <circle cx="960" cy="420" r="16" fill="#f75c03" opacity="0.88" stroke="#0f0f0f" stroke-width="2"/>
-
-    <!-- Calm/relaxation indicator (aura) -->
-    <ellipse cx="900" cy="280" rx="100" ry="90" fill="none" stroke="#d94f02" stroke-width="2" opacity="0.4" stroke-dasharray="6,5"/>
+    <!-- Passive label -->
+    <rect x="790" y="80" width="220" height="44" rx="22" fill="#ff9966" opacity="0.15" stroke="#ff9966" stroke-width="2"/>
+    <text x="900" y="108" font-family="Abacaxi, Helvetica, Arial, sans-serif" font-size="20" font-weight="bold" fill="#d94f02" text-anchor="middle">PASSIVE</text>
   </g>
 
-  <!-- Labels with styling -->
-  <g opacity="0.95" filter="url(#splitShadow)">
-    <rect x="200" y="450" width="200" height="50" fill="#f75c03" opacity="0.15" rx="8" stroke="#f75c03" stroke-width="2"/>
-    <text x="300" y="485" font-family="Abacaxi, Helvetica, Arial, sans-serif" font-size="28" font-weight="bold" fill="#0f0f0f" text-anchor="middle">Active</text>
-
-    <rect x="800" y="450" width="200" height="50" fill="#d94f02" opacity="0.15" rx="8" stroke="#d94f02" stroke-width="2"/>
-    <text x="900" y="485" font-family="Abacaxi, Helvetica, Arial, sans-serif" font-size="28" font-weight="bold" fill="#0f0f0f" text-anchor="middle">Passive</text>
+  <!-- VS divider -->
+  <g transform="translate(600, 220)">
+    <circle cx="0" cy="0" r="28" fill="#f5f3f0" stroke="#E8E4E0" stroke-width="2"/>
+    <text x="0" y="7" font-family="Abacaxi, Helvetica, Arial, sans-serif" font-size="18" font-weight="bold" fill="#6F6A66" text-anchor="middle">VS</text>
   </g>
 
-  <text x="600" y="590" font-family="Abacaxi, Helvetica, Arial, sans-serif" font-size="38" font-weight="bold" fill="#0f0f0f" text-anchor="middle">Active vs Passive</text>
+  <!-- Comparison bars -->
+  <g transform="translate(0, 380)" font-family="Abacaxi, Helvetica, Arial, sans-serif" font-size="13" opacity="0.6">
+    <text x="170" y="15" fill="#6F6A66" text-anchor="end">Strength</text>
+    <rect x="180" y="3" width="200" height="16" rx="8" fill="#f75c03" opacity="0.7"/>
+    <rect x="620" y="3" width="80" height="16" rx="8" fill="#ff9966" opacity="0.5"/>
+    <text x="1030" y="15" fill="#6F6A66" text-anchor="start">Low</text>
+
+    <text x="170" y="45" fill="#6F6A66" text-anchor="end">Range</text>
+    <rect x="180" y="33" width="120" height="16" rx="8" fill="#f75c03" opacity="0.5"/>
+    <rect x="620" y="33" width="200" height="16" rx="8" fill="#ff9966" opacity="0.7"/>
+    <text x="1030" y="45" fill="#6F6A66" text-anchor="start">High</text>
+  </g>
+
+  <text x="600" y="530" font-family="Abacaxi, Helvetica, Arial, sans-serif" font-size="36" font-weight="bold" fill="#0f0f0f" text-anchor="middle">Active vs. Passive Flexibility</text>
+  <text x="600" y="568" font-family="Abacaxi, Helvetica, Arial, sans-serif" font-size="18" fill="#6F6A66" text-anchor="middle">Understanding Both Approaches</text>
 </svg>

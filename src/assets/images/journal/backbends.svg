@@ -1,78 +1,64 @@
 <svg viewBox="0 0 1200 630" xmlns="http://www.w3.org/2000/svg">
   <defs>
-    <filter id="backShadow" x="-50%" y="-50%" width="200%" height="200%">
-      <feDropShadow dx="4" dy="6" stdDeviation="8" flood-opacity="0.35" flood-color="#000"/>
+    <filter id="shadow" x="-50%" y="-50%" width="200%" height="200%">
+      <feDropShadow dx="3" dy="5" stdDeviation="6" flood-opacity="0.25" flood-color="#000"/>
     </filter>
-    <linearGradient id="spineCurve" x1="0%" y1="100%" x2="0%" y2="0%">
-      <stop offset="0%" style="stop-color:#90EE90;stop-opacity:1"/>
-      <stop offset="50%" style="stop-color:#FFD700;stop-opacity:1"/>
-      <stop offset="100%" style="stop-color:#FF6B6B;stop-opacity:1"/>
-    </linearGradient>
-    <linearGradient id="safeZoneGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" style="stop-color:#51cf66;stop-opacity:0.8"/>
-      <stop offset="100%" style="stop-color:#2f9e44;stop-opacity:0.8"/>
-    </linearGradient>
-    <linearGradient id="caution" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" style="stop-color:#ffd93d;stop-opacity:0.8"/>
-      <stop offset="100%" style="stop-color:#f0ad0e;stop-opacity:0.8"/>
-    </linearGradient>
   </defs>
 
   <rect width="1200" height="630" fill="#f5f3f0"/>
+  <circle cx="130" cy="200" r="110" fill="#ff9966" opacity="0.07"/>
+  <circle cx="1070" cy="380" r="140" fill="#f75c03" opacity="0.06"/>
 
-  <circle cx="150" cy="300" r="110" fill="#f75c03" opacity="0.08"/>
-  <circle cx="1050" cy="250" r="130" fill="#ff9966" opacity="0.09"/>
+  <!-- Spine curve illustration (abstract backbend arc) -->
+  <g filter="url(#shadow)" transform="translate(600, 280)">
+    <!-- The arc (spine) -->
+    <path d="M -250 80 Q -150 -100 0 -120 Q 150 -100 250 80" fill="none" stroke="#f75c03" stroke-width="6" stroke-linecap="round" opacity="0.8"/>
+    
+    <!-- Vertebrae dots along the arc -->
+    <circle cx="-220" cy="55" r="8" fill="#ff9966" opacity="0.7"/>
+    <circle cx="-170" cy="0" r="9" fill="#f75c03" opacity="0.75"/>
+    <circle cx="-110" cy="-55" r="9" fill="#f75c03" opacity="0.8"/>
+    <circle cx="-50" cy="-95" r="10" fill="#d94f02" opacity="0.85"/>
+    <circle cx="0" cy="-120" r="11" fill="#d94f02" opacity="0.9"/>
+    <circle cx="50" cy="-95" r="10" fill="#d94f02" opacity="0.85"/>
+    <circle cx="110" cy="-55" r="9" fill="#f75c03" opacity="0.8"/>
+    <circle cx="170" cy="0" r="9" fill="#f75c03" opacity="0.75"/>
+    <circle cx="220" cy="55" r="8" fill="#ff9966" opacity="0.7"/>
 
-  <!-- Spine visualization with safety zones -->
-  <g filter="url(#backShadow)">
-    <!-- Head -->
-    <circle cx="600" cy="100" r="35" fill="#f75c03" opacity="0.94" stroke="#d94f02" stroke-width="3"/>
+    <!-- Hands (at ends) -->
+    <circle cx="-250" cy="80" r="12" fill="#ff9966" opacity="0.8"/>
+    <circle cx="250" cy="80" r="12" fill="#ff9966" opacity="0.8"/>
 
-    <!-- Neck zone (safe/green) -->
-    <rect x="570" y="135" width="60" height="45" fill="url(#safeZoneGrad)" opacity="0.7" stroke="#2f9e44" stroke-width="3" rx="4"/>
-
-    <!-- Upper back curve (caution/yellow) -->
-    <path d="M 560 180 Q 500 220 520 280" fill="url(#caution)" opacity="0.75" stroke="#f0ad0e" stroke-width="4" stroke-linecap="round"/>
-    <path d="M 640 180 Q 700 220 680 280" fill="url(#caution)" opacity="0.75" stroke="#f0ad0e" stroke-width="4" stroke-linecap="round"/>
-
-    <!-- Mid-back zone (safe/green) -->
-    <ellipse cx="600" cy="320" rx="80" ry="60" fill="url(#safeZoneGrad)" opacity="0.75" stroke="#2f9e44" stroke-width="3"/>
-
-    <!-- Lower back curve zone (danger/red) -->
-    <path d="M 560 375 Q 500 420 560 460" fill="#FF6B6B" opacity="0.7" stroke="#c92a2a" stroke-width="4" stroke-linecap="round"/>
-    <path d="M 640 375 Q 700 420 640 460" fill="#FF6B6B" opacity="0.7" stroke="#c92a2a" stroke-width="4" stroke-linecap="round"/>
-
-    <!-- Center spine line gradient -->
-    <line x1="600" y1="100" x2="600" y2="460" stroke="url(#spineCurve)" stroke-width="5" opacity="0.8"/>
+    <!-- Head (at peak) -->
+    <circle cx="0" cy="-145" r="18" fill="#d94f02" opacity="0.85"/>
   </g>
 
-  <!-- Left arm -->
-  <path d="M 565 200 L 450 280" stroke="#f75c03" stroke-width="14" stroke-linecap="round" opacity="0.88" fill="none" filter="url(#backShadow)"/>
-  <circle cx="450" cy="280" r="16" fill="#d94f02" opacity="0.9" stroke="#0f0f0f" stroke-width="2"/>
-
-  <!-- Right arm -->
-  <path d="M 635 200 L 750 280" stroke="#f75c03" stroke-width="14" stroke-linecap="round" opacity="0.88" fill="none" filter="url(#backShadow)"/>
-  <circle cx="750" cy="280" r="16" fill="#d94f02" opacity="0.9" stroke="#0f0f0f" stroke-width="2"/>
-
-  <!-- Left leg -->
-  <line x1="570" y1="450" x2="480" y2="520" stroke="#ff9966" stroke-width="13" stroke-linecap="round" opacity="0.85" filter="url(#backShadow)"/>
-  <circle cx="480" cy="520" r="14" fill="#f75c03" opacity="0.88" stroke="#0f0f0f" stroke-width="2"/>
-
-  <!-- Right leg -->
-  <line x1="630" y1="450" x2="720" y2="520" stroke="#ff9966" stroke-width="13" stroke-linecap="round" opacity="0.85" filter="url(#backShadow)"/>
-  <circle cx="720" cy="520" r="14" fill="#f75c03" opacity="0.88" stroke="#0f0f0f" stroke-width="2"/>
-
-  <!-- Legend dots -->
-  <g opacity="0.8" filter="url(#backShadow)">
-    <circle cx="200" cy="500" r="6" fill="#2f9e44"/>
-    <text x="220" y="508" font-family="Abacaxi, Helvetica, Arial, sans-serif" font-size="14" fill="#0f0f0f">Safe</text>
-
-    <circle cx="350" cy="500" r="6" fill="#f0ad0e"/>
-    <text x="370" y="508" font-family="Abacaxi, Helvetica, Arial, sans-serif" font-size="14" fill="#0f0f0f">Caution</text>
-
-    <circle cx="500" cy="500" r="6" fill="#c92a2a"/>
-    <text x="520" y="508" font-family="Abacaxi, Helvetica, Arial, sans-serif" font-size="14" fill="#0f0f0f">Risk</text>
+  <!-- Strength indicators (muscles engaged) -->
+  <g opacity="0.5" font-family="Abacaxi, Helvetica, Arial, sans-serif" font-size="12" fill="#6F6A66">
+    <g transform="translate(350, 350)">
+      <rect x="-40" y="-12" width="80" height="24" rx="12" fill="#f75c03" opacity="0.1" stroke="#f75c03" stroke-width="1.5"/>
+      <text x="0" y="4" text-anchor="middle" fill="#d94f02" font-weight="bold">Glutes</text>
+    </g>
+    <g transform="translate(500, 170)">
+      <rect x="-35" y="-12" width="70" height="24" rx="12" fill="#f75c03" opacity="0.1" stroke="#f75c03" stroke-width="1.5"/>
+      <text x="0" y="4" text-anchor="middle" fill="#d94f02" font-weight="bold">Core</text>
+    </g>
+    <g transform="translate(700, 170)">
+      <rect x="-50" y="-12" width="100" height="24" rx="12" fill="#f75c03" opacity="0.1" stroke="#f75c03" stroke-width="1.5"/>
+      <text x="0" y="4" text-anchor="middle" fill="#d94f02" font-weight="bold">Shoulders</text>
+    </g>
+    <g transform="translate(850, 350)">
+      <rect x="-40" y="-12" width="80" height="24" rx="12" fill="#f75c03" opacity="0.1" stroke="#f75c03" stroke-width="1.5"/>
+      <text x="0" y="4" text-anchor="middle" fill="#d94f02" font-weight="bold">Quads</text>
+    </g>
   </g>
 
-  <text x="600" y="590" font-family="Abacaxi, Helvetica, Arial, sans-serif" font-size="38" font-weight="bold" fill="#0f0f0f" text-anchor="middle">Backbends Without Pain</text>
+  <!-- Key message -->
+  <g transform="translate(600, 140)" opacity="0.5">
+    <rect x="-120" y="-16" width="240" height="32" rx="16" fill="#f75c03" opacity="0.1" stroke="#f75c03" stroke-width="1.5"/>
+    <text x="0" y="4" font-family="Abacaxi, Helvetica, Arial, sans-serif" font-size="14" fill="#d94f02" text-anchor="middle" font-weight="bold">Strength Before Opening</text>
+  </g>
+
+  <text x="600" y="500" font-family="Abacaxi, Helvetica, Arial, sans-serif" font-size="38" font-weight="bold" fill="#0f0f0f" text-anchor="middle">Backbends Without Pain</text>
+  <text x="600" y="540" font-family="Abacaxi, Helvetica, Arial, sans-serif" font-size="18" fill="#6F6A66" text-anchor="middle">Strength Before Opening</text>
 </svg>
