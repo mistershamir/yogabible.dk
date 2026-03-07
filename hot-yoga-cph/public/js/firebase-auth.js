@@ -674,8 +674,8 @@
     if (!el) return;
     var isDa = detectLocale() === 'da';
     el.innerHTML = isDa
-      ? 'Forkert email eller adgangskode. <a href="#" data-yb-auth-switch="reset" style="color:inherit;font-weight:700;text-decoration:underline">Nulstil adgangskode &rarr;</a>'
-      : 'Incorrect email or password. <a href="#" data-yb-auth-switch="reset" style="color:inherit;font-weight:700;text-decoration:underline">Reset password &rarr;</a>';
+      ? 'Vi kunne ikke finde en konto med disse oplysninger. Bruger du vores app? <a href="#" data-yb-auth-switch="register" style="color:inherit;font-weight:700;text-decoration:underline">Opret konto</a> med samme email. Har du allerede en konto her? <a href="#" data-yb-auth-switch="reset" style="color:inherit;font-weight:700;text-decoration:underline">Nulstil adgangskode &rarr;</a>'
+      : 'We couldn\'t find an account with these details. Already using our app? <a href="#" data-yb-auth-switch="register" style="color:inherit;font-weight:700;text-decoration:underline">Create an account</a> with the same email. Already have one here? <a href="#" data-yb-auth-switch="reset" style="color:inherit;font-weight:700;text-decoration:underline">Reset password &rarr;</a>';
     el.style.color = '';
     el.hidden = false;
   }
