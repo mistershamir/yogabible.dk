@@ -1133,47 +1133,64 @@
 
   function initAuth() {
     loadFirebaseSDK(function () {
+      // Guard: if Firebase SDK failed to load (blocked by Safari ITP,
+      // content blocker, or network error), just show the login button.
+      if (typeof firebase === 'undefined' || !firebase.auth) {
+        console.warn('[login-cta] Firebase SDK unavailable — showing login button');
+        renderLoggedOut();
+        return;
+      }
+
       firebaseReady = true;
 
       // Read token BEFORE registering listener (prevents race condition)
       var savedToken = null;
       var s = _parentStorage();
-      if (s) savedToken = s.getItem(SESSION_KEY);
-      if (savedToken && !firebase.auth().currentUser) _restoring = true;
-
-      firebase.auth().onAuthStateChanged(function (user) {
-        currentUser = user;
-        if (user) {
-          _restoring = false;
-          persistAuthToken(user);
-          resolveMbClient(user);
-          renderLoggedIn(user);
-          // If auth modal is open, close it — user just logged in
-          if (modalMode && modalMode.indexOf('auth-') === 0) {
-            closeModal();
-          }
-        } else {
-          mbClientId = null;
-          // Don't wipe stored token while we're still restoring —
-          // but always render the logged-out state so the button is never invisible
-          if (!_restoring) {
-            clearAuthToken();
-          }
-          renderLoggedOut();
-          // Close user area modal if open
-          if (modalMode === 'user-area') {
-            closeModal();
-          }
-        }
-      });
-
-      // If no user yet, try to restore from stored token
-      if (!firebase.auth().currentUser && savedToken) {
-        restoreSession();
+      if (s) {
+        try { savedToken = s.getItem(SESSION_KEY); } catch (e) { /* storage blocked */ }
       }
+      try {
+        if (savedToken && !firebase.auth().currentUser) _restoring = true;
+      } catch (e) { /* auth() threw */ }
 
-      // Start polling for auth changes from other iframes
-      startAuthPolling();
+      try {
+        firebase.auth().onAuthStateChanged(function (user) {
+          currentUser = user;
+          if (user) {
+            _restoring = false;
+            persistAuthToken(user);
+            resolveMbClient(user);
+            renderLoggedIn(user);
+            // If auth modal is open, close it — user just logged in
+            if (modalMode && modalMode.indexOf('auth-') === 0) {
+              closeModal();
+            }
+          } else {
+            mbClientId = null;
+            // Don't wipe stored token while we're still restoring —
+            // but always render the logged-out state so the button is never invisible
+            if (!_restoring) {
+              clearAuthToken();
+            }
+            renderLoggedOut();
+            // Close user area modal if open
+            if (modalMode === 'user-area') {
+              closeModal();
+            }
+          }
+        });
+
+        // If no user yet, try to restore from stored token
+        if (!firebase.auth().currentUser && savedToken) {
+          restoreSession();
+        }
+
+        // Start polling for auth changes from other iframes
+        startAuthPolling();
+      } catch (e) {
+        console.warn('[login-cta] Firebase auth error:', e.message);
+        renderLoggedOut();
+      }
     });
   }
 
