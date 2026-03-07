@@ -403,18 +403,18 @@
   }
 
   function doForgotPassword(email, callback) {
-    // Ensure Firebase account exists for MB-only users before sending reset email
-    fetch(API_BASE + '/migrate-mb-user', {
+    // Send branded reset email via Resend (better deliverability than
+    // Firebase's built-in noreply@*.firebaseapp.com emails).
+    fetch(API_BASE + '/send-password-reset', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email: email })
+      body: JSON.stringify({ email: email, lang: isDa ? 'da' : 'en' })
     })
-      .catch(function () { return { found: false }; })
-      .then(function () {
-        var resetUrl = window.location.origin + (isDa ? '/auth-action/' : '/en/auth-action/');
-        return firebase.auth().sendPasswordResetEmail(email, { url: resetUrl, handleCodeInApp: true });
+      .then(function (res) { return res.json(); })
+      .then(function (data) {
+        if (data.ok) { callback(null); }
+        else { callback({ code: 'custom', message: data.error || 'Failed' }); }
       })
-      .then(function () { callback(null); })
       .catch(function (err) { callback(err); });
   }
 
@@ -814,8 +814,12 @@
                 );
                 el.hidden = false;
               }
-              var resetUrl = window.location.origin + (isDa ? '/auth-action/' : '/en/auth-action/');
-              firebase.auth().sendPasswordResetEmail(email, { url: resetUrl, handleCodeInApp: true }).catch(function() {});
+              // Send branded reset email via Resend
+              fetch(API_BASE + '/send-password-reset', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email: email, lang: isDa ? 'da' : 'en' })
+              }).catch(function() {});
             } else {
               showError('ycf-register-error', authErrorMsg(err));
             }

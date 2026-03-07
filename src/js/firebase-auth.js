@@ -581,8 +581,12 @@
                 });
               }
             }
-            var resetUrl = window.location.origin + (isDa ? '/auth-action/' : '/en/auth-action/');
-            auth.sendPasswordResetEmail(email, { url: resetUrl, handleCodeInApp: true }).catch(function() {});
+            // Send branded reset email via Resend
+            fetch('/.netlify/functions/send-password-reset', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ email: email, lang: isDa ? 'da' : 'en' })
+            }).catch(function() {});
           } else {
             showError(errorEl, getAuthErrorMessage(error.code));
           }
@@ -614,29 +618,30 @@
 
       submitBtn.disabled = true;
 
-      // For MB-only users (no Firebase account yet), ensure the account exists
-      // before sending the reset email — otherwise Firebase sends nothing.
-      fetch('/.netlify/functions/migrate-mb-user', {
+      // Send branded reset email via Resend (better deliverability than
+      // Firebase's built-in noreply@*.firebaseapp.com emails).
+      var lang = detectLocale();
+      fetch('/.netlify/functions/send-password-reset', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: email })
+        body: JSON.stringify({ email: email, lang: lang })
       })
-        .catch(function() { return { found: false }; })
-        .then(function() {
-          var resetUrl = window.location.origin + (detectLocale() === 'da' ? '/auth-action/' : '/en/auth-action/');
-          return auth.sendPasswordResetEmail(email, { url: resetUrl, handleCodeInApp: true });
-        })
-        .then(function() {
-          if (errorEl) { errorEl.hidden = true; }
-          if (successEl) {
-            successEl.textContent = detectLocale() === 'da'
-              ? 'Vi har sendt dig en email med et link til at nulstille din adgangskode.'
-              : 'We\'ve sent you an email with a link to reset your password.';
-            successEl.hidden = false;
+        .then(function(res) { return res.json(); })
+        .then(function(data) {
+          if (data.ok) {
+            if (errorEl) { errorEl.hidden = true; }
+            if (successEl) {
+              successEl.textContent = lang === 'da'
+                ? 'Vi har sendt dig en email med et link til at nulstille din adgangskode.'
+                : 'We\'ve sent you an email with a link to reset your password.';
+              successEl.hidden = false;
+            }
+          } else {
+            showError(errorEl, lang === 'da' ? 'Der opstod en fejl. Prøv igen.' : 'An error occurred. Please try again.');
           }
         })
-        .catch(function(error) {
-          showError(errorEl, getAuthErrorMessage(error.code));
+        .catch(function() {
+          showError(errorEl, lang === 'da' ? 'Der opstod en fejl. Prøv igen.' : 'An error occurred. Please try again.');
         })
         .finally(function() {
           submitBtn.disabled = false;
