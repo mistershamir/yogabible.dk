@@ -328,10 +328,16 @@
           doGoLive();
         })
         .catch(function (err) {
-          console.error('[teacher-studio] camera error:', err);
+          console.error('[teacher-studio] camera error:', err.name, err.message);
           setStatus('error');
           goLiveBtn.disabled = false;
-          alert(tPermissionDenied);
+          if (err.name === 'NotAllowedError') {
+            alert(tPermissionDenied);
+          } else if (err.name === 'NotFoundError') {
+            alert(isDa ? 'Ingen kamera eller mikrofon fundet.' : 'No camera or microphone found.');
+          } else {
+            alert((isDa ? 'Kamerafejl: ' : 'Camera error: ') + err.message);
+          }
         });
       return;
     }
