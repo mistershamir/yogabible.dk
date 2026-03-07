@@ -1885,7 +1885,21 @@
           if (btn) { btn.disabled = false; btn.textContent = t('Opret profil & forts\u00e6t', 'Create profile & continue'); }
 
           if (err) {
-            showError('ycf-register-error', authErrorMsg(err));
+            var code = err.code || '';
+            if (code === 'auth/email-already-in-use') {
+              var el = $('ycf-register-error');
+              if (el) {
+                el.innerHTML = t(
+                  'Der findes allerede en konto med denne email. Vi har sendt dig en email til at oprette din adgangskode. Tjek din indbakke (og spam), eller <a href="#" data-ycf-action="forgot" style="color:inherit;font-weight:700;text-decoration:underline">nulstil adgangskode \u2192</a>',
+                  'An account with this email already exists. We\'ve sent you an email to set your password. Check your inbox (and spam), or <a href="#" data-ycf-action="forgot" style="color:inherit;font-weight:700;text-decoration:underline">reset password \u2192</a>'
+                );
+                el.hidden = false;
+              }
+              var resetUrl = window.location.origin + '/auth-action/';
+              firebase.auth().sendPasswordResetEmail(email, { url: resetUrl, handleCodeInApp: true }).catch(function() {});
+            } else {
+              showError('ycf-register-error', authErrorMsg(err));
+            }
             return;
           }
 

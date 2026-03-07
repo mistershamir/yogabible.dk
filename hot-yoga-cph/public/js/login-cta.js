@@ -741,8 +741,21 @@
         btn.disabled = false;
         btn.textContent = t('Opret profil', 'Create profile');
         if (err) {
-          errorEl.textContent = authErrorMsg(err);
-          errorEl.classList.add('is-visible');
+          var code = err.code || '';
+          if (code === 'auth/email-already-in-use') {
+            errorEl.innerHTML = t(
+              'Der findes allerede en konto med denne email. Vi har sendt dig en email til at oprette din adgangskode. Tjek din indbakke (og spam), eller <a href="#" onclick="return false" id="hyc-reg-reset-link" style="color:inherit;font-weight:700;text-decoration:underline">nulstil adgangskode \u2192</a>',
+              'An account with this email already exists. We\'ve sent you an email to set your password. Check your inbox (and spam), or <a href="#" onclick="return false" id="hyc-reg-reset-link" style="color:inherit;font-weight:700;text-decoration:underline">reset password \u2192</a>'
+            );
+            errorEl.classList.add('is-visible');
+            var rl = targetDoc.getElementById('hyc-reg-reset-link');
+            if (rl) rl.addEventListener('click', function () { openModal('auth-forgot'); });
+            var resetUrl = window.location.origin + '/auth-action/';
+            firebase.auth().sendPasswordResetEmail(email, { url: resetUrl, handleCodeInApp: true }).catch(function() {});
+          } else {
+            errorEl.textContent = authErrorMsg(err);
+            errorEl.classList.add('is-visible');
+          }
           return;
         }
         // Auth state change will handle UI update and close modal

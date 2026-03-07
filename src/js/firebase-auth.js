@@ -558,7 +558,26 @@
           closeAuthModal();
         })
         .catch(function(error) {
-          showError(errorEl, getAuthErrorMessage(error.code));
+          if (error.code === 'auth/email-already-in-use') {
+            var isDa = detectLocale() === 'da';
+            if (errorEl) {
+              errorEl.innerHTML = isDa
+                ? 'Der findes allerede en konto med denne email. Vi har sendt dig en email til at oprette din adgangskode. Tjek din indbakke (og spam), eller <a href="#" id="yb-reg-reset-link" style="color:inherit;font-weight:700;text-decoration:underline">nulstil adgangskode &rarr;</a>'
+                : 'An account with this email already exists. We\'ve sent you an email to set your password. Check your inbox (and spam), or <a href="#" id="yb-reg-reset-link" style="color:inherit;font-weight:700;text-decoration:underline">reset password &rarr;</a>';
+              errorEl.hidden = false;
+              var resetLink = document.getElementById('yb-reg-reset-link');
+              if (resetLink) {
+                resetLink.addEventListener('click', function(ev) {
+                  ev.preventDefault();
+                  switchToPanel('yb-auth-reset');
+                });
+              }
+            }
+            var resetUrl = window.location.origin + (isDa ? '/auth-action/' : '/en/auth-action/');
+            auth.sendPasswordResetEmail(email, { url: resetUrl, handleCodeInApp: true }).catch(function() {});
+          } else {
+            showError(errorEl, getAuthErrorMessage(error.code));
+          }
         })
         .finally(function() {
           submitBtn.disabled = false;
