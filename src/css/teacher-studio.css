@@ -6,6 +6,7 @@
   background: #0F0F0F;
   min-height: 100vh;
   padding: 0;
+  overflow-x: hidden;
 }
 
 /* ── Auth Gate ── */
@@ -542,6 +543,21 @@
 
   .yts-main {
     padding: 0 0.75rem;
+  }
+
+  .yts-devices__row {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.35rem;
+  }
+
+  .yts-devices__label {
+    min-width: 0;
+  }
+
+  .yts-sessions__item-name {
+    white-space: normal;
+    word-break: break-word;
   }
 
   .yts-actions {
