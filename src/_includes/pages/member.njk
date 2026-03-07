@@ -604,7 +604,9 @@
           transition: color 0.2s ease;
         }
         .yb-ai-accordion__btn:hover { color: #FFFCF9; }
-        .yb-ai-accordion__icon { display: flex; flex-shrink: 0; }
+        .yb-ai-accordion__icon { display: flex; flex-shrink: 0; pointer-events: none; }
+        .yb-ai-accordion__btn > svg { pointer-events: none; }
+        .yb-ai-accordion__btn > span { pointer-events: none; }
         .yb-ai-accordion__chevron {
           margin-left: auto;
           flex-shrink: 0;

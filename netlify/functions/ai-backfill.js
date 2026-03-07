@@ -344,6 +344,58 @@ exports.handler = async function (event) {
       });
     }
 
+    // ── Reprocess mode: re-run Claude on a specific session (uses existing transcript) ──
+    // ?reprocess=SESSION_ID  — optionally &lang=en to force language
+    if (params.reprocess) {
+      var sessId = params.reprocess;
+      var sess = all.find(function (item) { return item.id === sessId; });
+      if (!sess) {
+        return jsonResponse(404, { ok: false, error: 'Session not found: ' + sessId });
+      }
+
+      // Use existing transcript or re-download from Mux
+      var transcript = sess.aiTranscript || '';
+      if (!transcript && sess.recordingPlaybackId && sess.recordingAssetId) {
+        // Try to get VTT from Mux
+        var tracksResult = await muxRequest('GET', '/video/v1/assets/' + sess.recordingAssetId);
+        var tracks = (tracksResult.data && tracksResult.data.tracks) || [];
+        var readyTrack = null;
+        for (var t = 0; t < tracks.length; t++) {
+          if (tracks[t].type === 'text' && tracks[t].text_type === 'subtitles' && tracks[t].status === 'ready') {
+            readyTrack = tracks[t]; break;
+          }
+        }
+        if (readyTrack) {
+          transcript = await downloadVTT('https://stream.mux.com/' + sess.recordingPlaybackId + '/text/' + readyTrack.id + '.vtt');
+        }
+      }
+
+      if (!transcript || transcript.length < 50) {
+        return jsonResponse(400, { ok: false, error: 'No transcript available for session ' + sessId });
+      }
+
+      var sessionTitle = sess.title_da || sess.title_en || 'Yoga Class';
+      var sessionInstructor = sess.instructor || '';
+      var aiResult = await generateSummaryAndQuiz(transcript, sessionTitle, sessionInstructor, params.lang || null);
+
+      await updateDoc(COLLECTION, sessId, {
+        aiStatus: 'complete',
+        aiTranscript: transcript.substring(0, 50000),
+        aiSummary: aiResult.summary || '',
+        aiSummaryLang: aiResult.lang || 'en',
+        aiQuiz: JSON.stringify(aiResult.quiz || []),
+        aiProcessedAt: new Date().toISOString()
+      });
+
+      return jsonResponse(200, {
+        ok: true,
+        message: 'Reprocessed session ' + sessId + ' in ' + aiResult.lang,
+        id: sessId,
+        title: sessionTitle,
+        lang: aiResult.lang
+      });
+    }
+
     // ── Default mode (Phase 1): trigger caption requests for sessions with recordings ──
     var pending = all.filter(function (item) {
       return item.status === 'ended'
@@ -513,10 +565,13 @@ function claudeRequest(messages, systemPrompt) {
   });
 }
 
-function generateSummaryAndQuiz(transcript, title, instructor) {
-  // Detect language from transcript
-  var daWords = ['og', 'med', 'fra', 'til', 'din', 'det', 'som', 'men', 'har', 'den', 'ikke', 'kan', 'skal', 'godt', 'ind', 'ud', 'hold', 'pust', 'ånd', 'stræk', 'krop', 'ben', 'arme', 'ryg'];
-  var enWords = ['the', 'and', 'with', 'from', 'your', 'that', 'this', 'but', 'have', 'not', 'can', 'breathe', 'stretch', 'body', 'arms', 'legs', 'hold', 'inhale', 'exhale'];
+function generateSummaryAndQuiz(transcript, title, instructor, forceLang) {
+  // Detect language from transcript (or use forced language)
+  // Use only unambiguous words (no overlap between languages)
+  // Danish-only words (never appear in English yoga instruction)
+  var daWords = ['og', 'til', 'din', 'det', 'som', 'har', 'den', 'ikke', 'kan', 'skal', 'godt', 'pust', 'ånd', 'stræk', 'krop', 'ben', 'arme', 'ryg', 'vi', 'jer', 'dig', 'ser', 'ned', 'op', 'er', 'en', 'et', 'jeg', 'nu', 'lige', 'også', 'så', 'bare', 'igen', 'lidt', 'helt', 'venstre', 'højre'];
+  // English-only words (never appear in Danish yoga instruction)
+  var enWords = ['the', 'and', 'your', 'you', 'that', 'this', 'have', 'not', 'breathe', 'stretch', 'body', 'arms', 'legs', 'inhale', 'exhale', 'is', 'are', 'we', 'go', 'into', 'let', 'just', 'now', 'right', 'left', 'down', 'up', 'here', 'feel', 'bring', 'keep', 'through', 'then', 'going', 'want', 'make', 'take', 'come'];
 
   var words = transcript.toLowerCase().split(/\s+/).slice(0, 500);
   var daScore = 0, enScore = 0;
@@ -524,7 +579,9 @@ function generateSummaryAndQuiz(transcript, title, instructor) {
     if (daWords.indexOf(words[i]) !== -1) daScore++;
     if (enWords.indexOf(words[i]) !== -1) enScore++;
   }
-  var lang = daScore >= enScore ? 'da' : 'en';
+  // Default to English on tie (most yoga instruction is English)
+  var lang = forceLang || (daScore > enScore ? 'da' : 'en');
+  console.log('[ai-backfill] Language detection — DA:', daScore, 'EN:', enScore, '→', lang, forceLang ? '(forced)' : '');
 
   var systemPrompt = lang === 'da'
     ? 'Du er en yogaekspert, der hjælper med at opsummere yogaklasser og lave quizzer. Svar KUN på dansk. Svar i valid JSON.'

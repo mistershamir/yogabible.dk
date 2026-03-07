@@ -178,8 +178,8 @@ async function requestCaptions(assetId) {
     '/video/v1/assets/' + assetId + '/tracks/' + audioTrackId + '/generate-subtitles',
     {
       generated_subtitles: [{
-        language_code: 'da',
-        name: 'Auto (DA)'
+        language_code: 'en',
+        name: 'English CC'
       }]
     }
   );
