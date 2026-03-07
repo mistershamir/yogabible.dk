@@ -782,8 +782,12 @@
             errorEl.classList.add('is-visible');
             var rl = targetDoc.getElementById('hyc-reg-reset-link');
             if (rl) rl.addEventListener('click', function () { openModal('auth-forgot'); });
-            var resetUrl = window.location.origin + '/auth-action/';
-            firebase.auth().sendPasswordResetEmail(email, { url: resetUrl, handleCodeInApp: true }).catch(function() {});
+            var resetUrl = 'https://www.hotyogacph.dk/.netlify/functions';
+            fetch(resetUrl + '/send-password-reset', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ email: email, lang: isDa ? 'da' : 'en' })
+            }).catch(function() {});
           } else {
             errorEl.textContent = authErrorMsg(err);
             errorEl.classList.add('is-visible');
