@@ -31,7 +31,8 @@ const ALLOWED_FIELDS = [
   'recordingPlaybackId', 'recordingAssetId',
   'liveStartedAt', 'liveEndedAt',
   'status', 'recurrence', 'access', 'cohorts',
-  'streamSource', 'livekitRoom'
+  'streamSource', 'livekitRoom',
+  'aiSummary', 'aiQuiz', 'aiSummaryLang'
 ];
 
 function sanitize(body) {

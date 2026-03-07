@@ -351,6 +351,47 @@
       </div>
     </div>
 
+    {# ── AI Content (summary + quiz) — shown only for ended sessions with recordings ── #}
+    <div id="yb-la-ai-section" hidden>
+      <hr style="border:none;border-top:1px solid #E8E4E0;margin:1.5rem 0">
+      <h3 style="font-size:1rem;margin:0 0 0.25rem">AI-genereret indhold</h3>
+      <p style="font-size:0.8rem;color:#6F6A66;margin:0 0 1rem">Rediger summary og quiz genereret af AI. Ændringer gemmes når du trykker Gem.</p>
+
+      {# AI Status indicator #}
+      <div class="yb-admin__form-row" style="margin-bottom:1rem">
+        <div class="yb-admin__field" style="flex:0 0 auto">
+          <label>AI Status</label>
+          <span id="yb-la-ai-status" style="display:inline-block;padding:0.25rem 0.75rem;border-radius:20px;font-size:0.8rem;font-weight:600;background:#E8E4E0;color:#6F6A66">—</span>
+        </div>
+        <div class="yb-admin__field" style="flex:0 0 auto;align-self:flex-end">
+          <button type="button" class="yb-btn yb-btn--outline yb-btn--sm" id="yb-la-ai-reprocess-btn" title="Re-run AI on this session's transcript">
+            ↻ Reprocess AI
+          </button>
+        </div>
+      </div>
+
+      {# Summary (HTML) #}
+      <div class="yb-admin__field">
+        <label for="yb-la-ai-summary">Summary (HTML)</label>
+        <textarea id="yb-la-ai-summary" rows="10" style="font-family:monospace;font-size:0.8rem;white-space:pre-wrap;line-height:1.4" placeholder="<p>AI-generated summary appears here...</p>"></textarea>
+      </div>
+
+      {# Summary preview toggle #}
+      <div style="margin-bottom:1rem">
+        <button type="button" class="yb-btn yb-btn--outline yb-btn--sm" id="yb-la-ai-preview-btn">Preview summary</button>
+        <div id="yb-la-ai-preview" hidden style="margin-top:0.75rem;padding:1rem;background:#FFFCF9;border:1px solid #E8E4E0;border-radius:8px;font-size:0.9rem;line-height:1.6"></div>
+      </div>
+
+      {# Quiz (JSON) #}
+      <div class="yb-admin__field">
+        <label for="yb-la-ai-quiz">Quiz (JSON array)</label>
+        <textarea id="yb-la-ai-quiz" rows="12" style="font-family:monospace;font-size:0.8rem;white-space:pre-wrap;line-height:1.4" placeholder='[{"question":"...","type":"multiple","options":["A","B","C","D"],"correct":0,"explanation":"..."}]'></textarea>
+      </div>
+
+      {# Quiz validation #}
+      <div id="yb-la-ai-quiz-error" style="color:#ff453a;font-size:0.8rem;margin-top:-0.5rem;margin-bottom:1rem" hidden></div>
+    </div>
+
     <div class="yb-admin__form-actions">
       <button type="submit" class="yb-btn yb-btn--primary">{{ t.save }}</button>
       <button type="button" class="yb-btn yb-btn--outline" data-action="live-cancel">{{ t.cancel }}</button>

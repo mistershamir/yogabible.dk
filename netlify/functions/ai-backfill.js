@@ -524,8 +524,8 @@ function claudeRequest(messages, systemPrompt) {
 
   return new Promise(function (resolve, reject) {
     var body = JSON.stringify({
-      model: 'claude-haiku-4-5-20251001',
-      max_tokens: 4096,
+      model: 'claude-sonnet-4-6',
+      max_tokens: 8192,
       system: systemPrompt,
       messages: messages
     });
@@ -584,35 +584,99 @@ function generateSummaryAndQuiz(transcript, title, instructor, forceLang) {
   console.log('[ai-backfill] Language detection — DA:', daScore, 'EN:', enScore, '→', lang, forceLang ? '(forced)' : '');
 
   var systemPrompt = lang === 'da'
-    ? 'Du er en yogaekspert, der hjælper med at opsummere yogaklasser og lave quizzer. Svar KUN på dansk. Svar i valid JSON.'
-    : 'You are a yoga expert who helps summarize yoga classes and create quizzes. Respond ONLY in English. Respond in valid JSON.';
+    ? 'Du er en erfaren yogauddannelsesekspert med dyb viden om yogafilosofi, anatomi, undervisningsmetodik, pranayama, asana-alignment og sekventering. '
+      + 'Du hjælper yogalærerstuderende med at lære ved at lave præcise opsummeringer og meningsfulde quizzer af optagede undervisningssessioner. '
+      + 'Svar KUN på dansk. Svar i valid JSON.'
+    : 'You are an experienced yoga teacher training expert with deep knowledge of yoga philosophy, anatomy, teaching methodology, pranayama, asana alignment, and sequencing. '
+      + 'You help yoga teacher trainees learn by creating precise summaries and meaningful quizzes from recorded training sessions. '
+      + 'Respond ONLY in English. Respond in valid JSON.';
+
+  var focusInstructions = lang === 'da'
+    ? '\n\nVIGTIGT — Indholdsprioritering:\n'
+      + 'Disse optagelser er fra et yogalæreruddannelsesprogram (ofte 3-4 timer lange). '
+      + 'Du SKAL fokusere på det fagligt relevante indhold og IGNORERE alt irrelevant.\n\n'
+      + 'FOKUSÉR PÅ (høj prioritet):\n'
+      + '- Yoga-teknikker, asanas, alignment cues og fysiske instruktioner\n'
+      + '- Pranayama (åndedrætsteknikker) og meditation\n'
+      + '- Yogafilosofi, sutraer, yamas, niyamas, chakraer\n'
+      + '- Anatomi og fysiologi relateret til yogapraksis\n'
+      + '- Undervisningsmetodik: hvordan man guider elever, cue-teknikker, sekventering\n'
+      + '- Justeringer (adjustments/assists) og sikkerhed\n'
+      + '- Yogastilarter og deres forskelle (vinyasa, yin, hot yoga, hatha osv.)\n'
+      + '- Professionelle aspekter: klassestruktur, musikvalg, rumopsætning, forretning\n\n'
+      + 'IGNORÉR HELT (medtag ALDRIG i summary eller quiz):\n'
+      + '- Personlige introduktioner, baghistorier og anekdoter om underviseren\n'
+      + '- Logistik: pauser, skemaer, madbestillinger, praktiske detaljer\n'
+      + '- Small talk, jokes, og uformel samtale mellem deltagere\n'
+      + '- Navne og personlige detaljer om underviseren eller studerende\n'
+      + '- Tekniske problemer med lyd, kamera eller streaming\n'
+      + '- Trivia om underviseren (fx antal studier, rejser, personlig historik)\n'
+    : '\n\nIMPORTANT — Content Prioritization:\n'
+      + 'These recordings are from a yoga teacher training program (often 3-4 hours long). '
+      + 'You MUST focus on professionally relevant content and IGNORE everything irrelevant.\n\n'
+      + 'FOCUS ON (high priority):\n'
+      + '- Yoga techniques, asanas, alignment cues, and physical instructions\n'
+      + '- Pranayama (breathing techniques) and meditation\n'
+      + '- Yoga philosophy, sutras, yamas, niyamas, chakras\n'
+      + '- Anatomy and physiology related to yoga practice\n'
+      + '- Teaching methodology: how to guide students, cueing techniques, sequencing\n'
+      + '- Adjustments/assists and safety considerations\n'
+      + '- Yoga styles and their differences (vinyasa, yin, hot yoga, hatha, etc.)\n'
+      + '- Professional aspects: class structure, music selection, room setup, business\n\n'
+      + 'COMPLETELY IGNORE (NEVER include in summary or quiz):\n'
+      + '- Personal introductions, backstories, and anecdotes about the instructor\n'
+      + '- Logistics: breaks, schedules, food orders, practical arrangements\n'
+      + '- Small talk, jokes, and casual conversation between participants\n'
+      + '- Names and personal details about the instructor or students\n'
+      + '- Technical issues with audio, camera, or streaming\n'
+      + '- Trivia about the instructor (e.g., how many studios they own, travel history)\n';
 
   var userPrompt = lang === 'da'
-    ? 'Her er en transskription af en yogaklasse'
+    ? 'Her er en transskription af en yogalæreruddannelsessession'
       + (title ? ' med titlen "' + title + '"' : '')
       + (instructor ? ' undervist af ' + instructor : '')
-      + '.\n\nTransskription:\n' + transcript.substring(0, 30000)
+      + '.'
+      + focusInstructions
+      + '\nTransskription:\n' + transcript.substring(0, 30000)
       + '\n\nGenerer et JSON-objekt med:\n'
-      + '1. "summary": En detaljeret opsummering af klassen (2-3 afsnit) med bullet points. Brug HTML: <p>, <ul><li>, <strong>.\n'
-      + '2. "quiz": Et array med 8-10 spørgsmål. Mix af multiple choice og sandt/falsk. Hvert:\n'
+      + '1. "summary": En struktureret opsummering af sessionens FAGLIGE indhold (3-5 afsnit). '
+      + 'Organisér efter emner/temaer der blev dækket. '
+      + 'Fremhæv de vigtigste læringspointer for en yogalærerstuderende. '
+      + 'Brug HTML: <h3> for emneoverskrifter, <p> for afsnit, <ul><li> for nøglepunkter, <strong> for vigtige begreber.\n'
+      + '2. "quiz": Et array med 8-12 spørgsmål der tester FAGLIG forståelse. Spørgsmålene skal hjælpe studerende med at huske og forstå det vigtigste fra sessionen. Mix af:\n'
+      + '   - Teknik-spørgsmål (alignment, cues, variationer)\n'
+      + '   - Filosofi-spørgsmål (hvis relevant)\n'
+      + '   - Anatomi-spørgsmål (hvis relevant)\n'
+      + '   - Undervisningsmetodik-spørgsmål\n'
+      + '   Hvert spørgsmål:\n'
       + '   - "question": Spørgsmålstekst\n'
       + '   - "type": "multiple" eller "truefalse"\n'
-      + '   - "options": Array af svarmuligheder\n'
+      + '   - "options": Array af svarmuligheder (4 for multiple choice)\n'
       + '   - "correct": Index af korrekt svar (0-baseret)\n'
-      + '   - "explanation": Kort forklaring\n\n'
+      + '   - "explanation": Kort forklaring der uddyber det korrekte svar og styrker læringen\n\n'
       + 'Svar KUN med det rå JSON-objekt.'
-    : 'Here is a transcript of a yoga class'
+    : 'Here is a transcript of a yoga teacher training session'
       + (title ? ' titled "' + title + '"' : '')
       + (instructor ? ' taught by ' + instructor : '')
-      + '.\n\nTranscript:\n' + transcript.substring(0, 30000)
+      + '.'
+      + focusInstructions
+      + '\nTranscript:\n' + transcript.substring(0, 30000)
       + '\n\nGenerate a JSON object with:\n'
-      + '1. "summary": Detailed summary (2-3 paragraphs) with bullets. Use HTML: <p>, <ul><li>, <strong>.\n'
-      + '2. "quiz": Array of 8-10 questions. Mix multiple choice and true/false. Each:\n'
+      + '1. "summary": A structured summary of the session\'s EDUCATIONAL content (3-5 paragraphs). '
+      + 'Organize by topics/themes covered. '
+      + 'Highlight the most important learning points for a yoga teacher trainee. '
+      + 'Use HTML: <h3> for topic headings, <p> for paragraphs, <ul><li> for key points, <strong> for important concepts.\n'
+      + '2. "quiz": Array of 8-12 questions testing PROFESSIONAL understanding. Questions should help trainees retain and understand the most important content from the session. Mix of:\n'
+      + '   - Technique questions (alignment, cues, variations)\n'
+      + '   - Philosophy questions (if covered)\n'
+      + '   - Anatomy questions (if covered)\n'
+      + '   - Teaching methodology questions\n'
+      + '   Each question:\n'
       + '   - "question": Question text\n'
       + '   - "type": "multiple" or "truefalse"\n'
-      + '   - "options": Array of answer options\n'
+      + '   - "options": Array of answer options (4 for multiple choice)\n'
       + '   - "correct": Index of correct answer (0-based)\n'
-      + '   - "explanation": Brief explanation\n\n'
+      + '   - "explanation": Brief explanation that reinforces the learning\n\n'
       + 'Respond ONLY with the raw JSON object.';
 
   return claudeRequest([{ role: 'user', content: userPrompt }], systemPrompt)
