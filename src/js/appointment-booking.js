@@ -41,6 +41,76 @@
   var REQUEST_TYPES = ['intro-class']; // Types that are request-only (not instant booking)
 
   /* ══════════════════════════════════════════
+     ICS CALENDAR HELPER
+     ══════════════════════════════════════════ */
+  function buildIcsFile(date, time, duration, typeName, location) {
+    var dateClean = date.replace(/-/g, '');
+    var timeClean = time.replace(/:/g, '') + '00';
+    var h = parseInt(time.split(':')[0]);
+    var m = parseInt(time.split(':')[1]);
+    var endMin = h * 60 + m + (duration || 30);
+    var endH = Math.floor(endMin / 60);
+    var endM = endMin % 60;
+    var endTime = String(endH).padStart(2, '0') + String(endM).padStart(2, '0') + '00';
+    var loc = location === 'online' ? 'Online' : 'Yoga Bible, Torvegade 66, 1400 København K';
+    var uid = date + '-' + time.replace(/:/g, '') + '@yogabible.dk';
+
+    return [
+      'BEGIN:VCALENDAR',
+      'VERSION:2.0',
+      'PRODID:-//Yoga Bible//Appointment//DA',
+      'CALSCALE:GREGORIAN',
+      'METHOD:REQUEST',
+      'BEGIN:VEVENT',
+      'DTSTART;TZID=Europe/Copenhagen:' + dateClean + 'T' + timeClean,
+      'DTEND;TZID=Europe/Copenhagen:' + dateClean + 'T' + endTime,
+      'SUMMARY:' + (typeName || 'Appointment') + ' - Yoga Bible',
+      'DESCRIPTION:' + (typeName || 'Appointment') + ' at Yoga Bible',
+      'LOCATION:' + loc,
+      'UID:' + uid,
+      'STATUS:CONFIRMED',
+      'BEGIN:VALARM',
+      'TRIGGER:-PT1H',
+      'ACTION:DISPLAY',
+      'DESCRIPTION:Reminder: ' + (typeName || 'Appointment') + ' at Yoga Bible',
+      'END:VALARM',
+      'END:VEVENT',
+      'END:VCALENDAR'
+    ].join('\r\n');
+  }
+
+  function downloadIcsFile(date, time, duration, typeName, location) {
+    var ics = buildIcsFile(date, time, duration, typeName, location);
+    var blob = new Blob([ics], { type: 'text/calendar;charset=utf-8' });
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement('a');
+    a.href = url;
+    a.download = 'appointment-' + date + '.ics';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }
+
+  function getGoogleCalendarUrl(date, time, duration, typeName, location) {
+    var h = parseInt(time.split(':')[0]);
+    var m = parseInt(time.split(':')[1]);
+    var endMin = h * 60 + m + (duration || 30);
+    var endH = Math.floor(endMin / 60);
+    var endM = endMin % 60;
+    var dateClean = date.replace(/-/g, '');
+    var startStr = dateClean + 'T' + String(h).padStart(2, '0') + String(m).padStart(2, '0') + '00';
+    var endStr = dateClean + 'T' + String(endH).padStart(2, '0') + String(endM).padStart(2, '0') + '00';
+    var loc = location === 'online' ? 'Online' : 'Yoga Bible, Torvegade 66, 1400 København K';
+    return 'https://calendar.google.com/calendar/render?action=TEMPLATE' +
+      '&text=' + encodeURIComponent((typeName || 'Appointment') + ' - Yoga Bible') +
+      '&dates=' + startStr + '/' + endStr +
+      '&ctz=Europe/Copenhagen' +
+      '&details=' + encodeURIComponent((typeName || 'Appointment') + ' at Yoga Bible') +
+      '&location=' + encodeURIComponent(loc);
+  }
+
+  /* ══════════════════════════════════════════
      MODAL OPEN / CLOSE
      ══════════════════════════════════════════ */
   function openModal(preselectedType) {
@@ -79,6 +149,9 @@
   }
 
   window.openBookingModal = openModal;
+  window.ybBuildIcsFile = buildIcsFile;
+  window.ybDownloadIcsFile = downloadIcsFile;
+  window.ybGetGoogleCalendarUrl = getGoogleCalendarUrl;
 
   /* ══════════════════════════════════════════
      STEP NAVIGATION
@@ -367,11 +440,36 @@
 
     var detailsEl = $('yb-book-success-details');
     if (detailsEl) {
+      var duration = TYPE_DURATIONS[selectedType] || 30;
+      var location = selectedType === 'consultation' ? 'online' : 'studio';
+      var typeName = isDa ? selectedType : selectedType;
+
+      var calendarBtns = '';
+      if (!isReq) {
+        var gcalUrl = getGoogleCalendarUrl(selectedDate, selectedTime, duration, typeName, location);
+        calendarBtns = '<div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap;justify-content:center;">' +
+          '<button type="button" id="yb-book-download-ics" style="display:inline-flex;align-items:center;gap:6px;padding:8px 16px;background:#fff;border:1px solid #E8E4E0;border-radius:8px;font-size:13px;cursor:pointer;font-family:inherit;color:#333;">&#128197; ' + t('Download .ics', 'Download .ics') + '</button>' +
+          '<a href="' + gcalUrl + '" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:6px;padding:8px 16px;background:#fff;border:1px solid #E8E4E0;border-radius:8px;font-size:13px;text-decoration:none;color:#333;">&#128279; Google Calendar</a>' +
+          '</div>';
+      }
+
       detailsEl.innerHTML = '<div style="background:#F5F3F0;border-radius:8px;padding:16px;margin:16px 0;text-align:left;">' +
         (isReq ? '<p style="margin:0 0 8px;color:#f75c03;font-weight:600;font-size:13px;">&#128233; ' + t('Anmodning — afventer bekræftelse', 'Request — awaiting confirmation') + '</p>' : '') +
         '<p style="margin:4px 0;">&#128197; <strong>' + dateFormatted + '</strong> ' + t('kl.', 'at') + ' <strong>' + selectedTime + '</strong></p>' +
         '<p style="margin:4px 0;">&#128205; ' + (selectedType === 'consultation' ? 'Online' : 'Yoga Bible, Torvegade 66') + '</p>' +
-        '</div>';
+        '</div>' +
+        calendarBtns +
+        (!isReq ? '<p style="font-size:12px;color:#999;margin-top:8px;text-align:center;">' + t('Kalenderfilen sendes også med din bekræftelsesmail', 'A calendar file is also included in your confirmation email') + '</p>' : '');
+
+      // Bind ICS download button
+      if (!isReq) {
+        var icsBtn = document.getElementById('yb-book-download-ics');
+        if (icsBtn) {
+          icsBtn.addEventListener('click', function() {
+            downloadIcsFile(selectedDate, selectedTime, duration, typeName, location);
+          });
+        }
+      }
     }
   }
 
