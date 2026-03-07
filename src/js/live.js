@@ -254,11 +254,12 @@
     cleanupMount();
 
     var envKey = container.dataset.envKey || '';
+    var isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
     var isIOS = /iPhone|iPad|iPod/.test(navigator.userAgent) ||
       (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
 
     var el;
-    if (isIOS) {
+    if (isSafari || isIOS) {
       el = document.createElement('iframe');
       el.src = 'https://player.mux.com/' + playbackId;
       el.style.cssText = 'width:100%;aspect-ratio:16/9;border:none;display:block';
