@@ -509,6 +509,19 @@ p, span, li, a, div {
 }
 .yb-drawer__link:hover { border-color: var(--yb-brand); }
 
+.yb-drawer__link--member {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border-color: var(--yb-brand);
+  color: var(--yb-brand);
+}
+.yb-drawer__link--member:hover {
+  background: var(--yb-brand);
+  color: #fff;
+}
+.yb-drawer__link--member svg { flex-shrink: 0; }
+
 /* Drawer CTA */
 .yb-drawer__cta {
   display: block;
@@ -9676,6 +9689,19 @@ button.yb-btn--outline-white:hover {
 /* ========================================
    AUTH: UTILITY BAR & DRAWER AUTH
    ======================================== */
+
+/* Utility bar member link */
+.yb-util__member {
+  color: #fff;
+  text-decoration: none;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  transition: color 0.18s ease;
+}
+.yb-util__member:hover {
+  color: var(--yb-brand);
+}
 
 /* Utility bar auth link */
 .yb-util__auth {
