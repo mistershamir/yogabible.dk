@@ -623,7 +623,8 @@
       })
         .catch(function() { return { found: false }; })
         .then(function() {
-          return auth.sendPasswordResetEmail(email);
+          var resetUrl = window.location.origin + (detectLocale() === 'da' ? '/auth-action/' : '/en/auth-action/');
+          return auth.sendPasswordResetEmail(email, { url: resetUrl, handleCodeInApp: true });
         })
         .then(function() {
           if (errorEl) { errorEl.hidden = true; }

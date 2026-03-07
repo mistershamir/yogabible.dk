@@ -434,7 +434,8 @@
     })
       .catch(function () { return { found: false }; })
       .then(function () {
-        return firebase.auth().sendPasswordResetEmail(email);
+        var resetUrl = window.location.origin + (isDa ? '/auth-action/' : '/en/auth-action/');
+        return firebase.auth().sendPasswordResetEmail(email, { url: resetUrl, handleCodeInApp: true });
       })
       .then(function () { callback(null); })
       .catch(function (err) { callback(err); });
