@@ -57,12 +57,16 @@
 
       {# Action buttons #}
       <div id="yb-appt-manage-actions" style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;"></div>
+
+      {# Calendar buttons (shown for confirmed appointments) #}
+      <div id="yb-appt-manage-calendar" hidden style="margin-top:16px;text-align:center;"></div>
     </div>
 
     {# Success state #}
     <div id="yb-appt-manage-success" hidden style="text-align:center;padding:40px;">
       <div style="font-size:48px;margin-bottom:16px;">&#9989;</div>
       <p id="yb-appt-success-msg" style="font-size:16px;color:#333;"></p>
+      <div id="yb-appt-success-calendar" style="margin:16px 0;"></div>
       <div style="margin-top:24px;display:flex;gap:12px;justify-content:center;flex-wrap:wrap;">
         <a href="{{ lp }}/link" class="yb-btn yb-btn--primary">{{ t.book_new }}</a>
         <a href="{{ lp }}/" class="yb-btn yb-btn--outline">{{ t.back_home }}</a>
@@ -94,8 +98,34 @@
   var cancelSection = document.getElementById('yb-appt-manage-cancel');
   var rescheduleSection = document.getElementById('yb-appt-manage-reschedule');
 
+  var calendarEl = document.getElementById('yb-appt-manage-calendar');
+  var successCalEl = document.getElementById('yb-appt-success-calendar');
+
   var adminToken = params.get('admin_token');
   var slotIndex = params.get('slot');
+
+  // Calendar helper — renders "Add to Calendar" buttons
+  function renderCalendarButtons(container, date, time, duration, typeName, location) {
+    if (!container || !date || !time) return;
+    var icsHelper = window.ybBuildIcsFile;
+    var gcalHelper = window.ybGetGoogleCalendarUrl;
+    if (!icsHelper) return;
+
+    var gcalUrl = gcalHelper ? gcalHelper(date, time, duration || 30, typeName || 'Appointment', location || 'studio') : '';
+
+    container.innerHTML = '<div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:center;">' +
+      '<button type="button" class="yb-appt-cal-ics" style="display:inline-flex;align-items:center;gap:6px;padding:8px 16px;background:#fff;border:1px solid #E8E4E0;border-radius:8px;font-size:13px;cursor:pointer;font-family:inherit;color:#333;">&#128197; ' + (isDa ? 'Tilføj til kalender (.ics)' : 'Add to calendar (.ics)') + '</button>' +
+      (gcalUrl ? '<a href="' + gcalUrl + '" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:6px;padding:8px 16px;background:#fff;border:1px solid #E8E4E0;border-radius:8px;font-size:13px;text-decoration:none;color:#333;">&#128279; Google Calendar</a>' : '') +
+      '</div>' +
+      '<p style="font-size:11px;color:#999;margin-top:6px;">' + (isDa ? '.ics virker med Apple Calendar, Outlook og de fleste kalenderapps' : '.ics works with Apple Calendar, Outlook, and most calendar apps') + '</p>';
+    container.hidden = false;
+
+    container.querySelector('.yb-appt-cal-ics').addEventListener('click', function() {
+      if (window.ybDownloadIcsFile) {
+        window.ybDownloadIcsFile(date, time, duration || 30, typeName || 'Appointment', location || 'studio');
+      }
+    });
+  }
 
   // ── Admin confirm (approve request) ──
   if (action === 'admin-confirm' && apptId && adminToken) {
@@ -112,6 +142,9 @@
       document.getElementById('yb-appt-success-msg').textContent = res.ok
         ? (isDa ? 'Anmodningen er godkendt! Klienten modtager en bekræftelse på email.' : 'Request approved! The client will receive a confirmation email.')
         : (isDa ? 'Fejl: ' : 'Error: ') + (res.error || 'Unknown');
+      if (res.ok && res.date && res.time) {
+        renderCalendarButtons(successCalEl, res.date, res.time, res.duration);
+      }
     })
     .catch(function() {
       loadingEl.hidden = true;
@@ -176,6 +209,9 @@
       document.getElementById('yb-appt-success-msg').textContent = res.ok
         ? (isDa ? 'Tidspunktet er accepteret! Du modtager en bekræftelse på email.' : 'Time accepted! You\'ll receive a confirmation email.')
         : (isDa ? 'Fejl: ' : 'Error: ') + (res.error || 'Unknown');
+      if (res.ok && res.date && res.time) {
+        renderCalendarButtons(successCalEl, res.date, res.time, res.duration);
+      }
     })
     .catch(function() {
       loadingEl.hidden = true;
@@ -281,6 +317,7 @@
           detailsEl.hidden = true;
           successEl.hidden = false;
           document.getElementById('yb-appt-success-msg').textContent = T.reschedule_success;
+          renderCalendarButtons(successCalEl, newDate, newTime);
         } else {
           alert(T.error + ' (' + (res.error || '') + ')');
           btn.disabled = false;
