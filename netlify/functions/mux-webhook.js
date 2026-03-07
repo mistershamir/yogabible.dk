@@ -434,18 +434,20 @@ async function reconcileUnmatchedRecordings(liveStreamId, sessionId) {
  * Fire-and-forget call to ai-process-recording function.
  * Non-blocking — errors are logged but don't affect the webhook response.
  */
-function triggerAiProcessing(sessionId, assetId) {
+function triggerAiProcessing(sessionId, assetId, playbackId) {
   try {
     var https = require('https');
-    var body = JSON.stringify({
+    var payload = {
       sessionId: sessionId,
       assetId: assetId,
       secret: process.env.AI_INTERNAL_SECRET || ''
-    });
+    };
+    if (playbackId) payload.playbackId = playbackId;
+    var body = JSON.stringify(payload);
 
     var opts = {
       hostname: 'yogabible.dk',
-      path: '/.netlify/functions/ai-process-recording',
+      path: '/.netlify/functions/ai-process-recording-background',
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
