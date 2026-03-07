@@ -376,6 +376,7 @@
      ══════════════════════════════════════════ */
   var recordingsLoaded = false;
   var allRecordings = [];
+  var quizDataMap = {}; // cardId → quiz array (avoids HTML attribute quote issues)
 
   function loadRecordings() {
     if (recordingsLoaded) return;
@@ -473,6 +474,7 @@
         var quizData = [];
         try { quizData = JSON.parse(item.aiQuiz || '[]'); } catch (e) {}
         if (quizData.length > 0) {
+          quizDataMap[cardId] = quizData;
           card += '<div class="yb-ai-accordion">';
           card += '<button class="yb-ai-accordion__btn" data-ai-toggle="quiz-' + cardId + '">';
           card += '<span class="yb-ai-accordion__icon">';
@@ -483,7 +485,7 @@
           card += '<svg class="yb-ai-accordion__chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>';
           card += '</button>';
           card += '<div class="yb-ai-accordion__body" id="quiz-' + cardId + '" hidden>';
-          card += '<div class="yb-ai-quiz" data-quiz-id="' + cardId + '" data-quiz=\'' + escHtml(item.aiQuiz || '[]') + '\'></div>';
+          card += '<div class="yb-ai-quiz" data-quiz-id="' + cardId + '"></div>';
           card += '</div></div>';
         }
       } else if (item.aiStatus === 'processing') {
@@ -659,13 +661,9 @@
     // ══════════════════════════════════════
 
     function initQuizWizard(el) {
-      var quizRaw = el.getAttribute('data-quiz') || '[]';
-      // Unescape HTML entities
-      var tmp = document.createElement('textarea');
-      tmp.innerHTML = quizRaw;
-      var questions;
-      try { questions = JSON.parse(tmp.value); } catch (e) { return; }
-      if (!questions.length) return;
+      var qid = el.getAttribute('data-quiz-id');
+      var questions = quizDataMap[qid];
+      if (!questions || !questions.length) return;
 
       var current = 0;
       var score = 0;
