@@ -1,12 +1,70 @@
 <svg viewBox="0 0 1200 630" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <filter id="shadow" x="-50%" y="-50%" width="200%" height="200%">
+      <feDropShadow dx="3" dy="5" stdDeviation="6" flood-opacity="0.25" flood-color="#000"/>
+    </filter>
+    <radialGradient id="moonGlow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" style="stop-color:#ff9966;stop-opacity:0.2"/>
+      <stop offset="100%" style="stop-color:#f5f3f0;stop-opacity:0"/>
+    </radialGradient>
+  </defs>
+
   <rect width="1200" height="630" fill="#f5f3f0"/>
-  <circle cx="300" cy="200" r="60" fill="#d94f02" opacity="0.9"/>
-  <path d="M 240 200 L 360 200 M 300 140 L 300 260" stroke="#0f0f0f" stroke-width="3" opacity="0.3"/>
-  <path d="M 900 380 Q 880 340 900 300 Q 920 340 900 380" fill="#f75c03" opacity="0.8"/>
-  <path d="M 950 380 Q 930 340 950 300 Q 970 340 950 380" fill="#f75c03" opacity="0.8"/>
-  <path d="M 1000 380 Q 980 340 1000 300 Q 1020 340 1000 380" fill="#ff9966" opacity="0.75"/>
-  <path d="M 500 450 L 600 350 L 700 420" fill="none" stroke="#ff9966" stroke-width="5" opacity="0.85" stroke-linecap="round"/>
-  <text x="600" y="570" font-family="Abacaxi, Helvetica, Arial, sans-serif" font-size="34" font-weight="bold" fill="#0f0f0f" text-anchor="middle">
-    Yoga & Sleep
-  </text>
+
+  <!-- Moon glow -->
+  <circle cx="850" cy="130" r="160" fill="url(#moonGlow)"/>
+
+  <!-- Crescent moon -->
+  <g filter="url(#shadow)" transform="translate(850, 130)">
+    <circle cx="0" cy="0" r="60" fill="#f75c03" opacity="0.2"/>
+    <circle cx="15" cy="-10" r="50" fill="#f5f3f0"/>
+    <circle cx="0" cy="0" r="60" fill="none" stroke="#f75c03" stroke-width="2" opacity="0.5"/>
+  </g>
+
+  <!-- Stars -->
+  <g opacity="0.4">
+    <g transform="translate(700, 80)">
+      <line x1="0" y1="-8" x2="0" y2="8" stroke="#f75c03" stroke-width="2"/>
+      <line x1="-8" y1="0" x2="8" y2="0" stroke="#f75c03" stroke-width="2"/>
+    </g>
+    <g transform="translate(950, 60)">
+      <line x1="0" y1="-6" x2="0" y2="6" stroke="#ff9966" stroke-width="1.5"/>
+      <line x1="-6" y1="0" x2="6" y2="0" stroke="#ff9966" stroke-width="1.5"/>
+    </g>
+    <g transform="translate(1000, 180)">
+      <line x1="0" y1="-5" x2="0" y2="5" stroke="#f75c03" stroke-width="1.5"/>
+      <line x1="-5" y1="0" x2="5" y2="0" stroke="#f75c03" stroke-width="1.5"/>
+    </g>
+    <circle cx="780" cy="200" r="3" fill="#ff9966"/>
+    <circle cx="920" cy="240" r="2.5" fill="#f75c03"/>
+  </g>
+
+  <!-- Sleeping/resting figure (Savasana) -->
+  <g filter="url(#shadow)" transform="translate(350, 280)">
+    <!-- Body lying flat -->
+    <circle cx="-120" cy="0" r="16" fill="#f75c03" opacity="0.8"/>
+    <line x1="-104" y1="0" x2="40" y2="0" stroke="#f75c03" stroke-width="5" stroke-linecap="round"/>
+    <!-- Arms relaxed -->
+    <line x1="-60" y1="0" x2="-70" y2="25" stroke="#ff9966" stroke-width="3" stroke-linecap="round"/>
+    <line x1="0" y1="0" x2="10" y2="25" stroke="#ff9966" stroke-width="3" stroke-linecap="round"/>
+    <!-- Legs -->
+    <line x1="40" y1="0" x2="80" y2="12" stroke="#f75c03" stroke-width="4" stroke-linecap="round"/>
+    <line x1="40" y1="0" x2="80" y2="-12" stroke="#f75c03" stroke-width="4" stroke-linecap="round"/>
+    
+    <!-- Z's (sleeping) -->
+    <g opacity="0.5" font-family="Abacaxi, Helvetica, Arial, sans-serif" font-weight="bold" fill="#f75c03">
+      <text x="-100" y="-30" font-size="22">z</text>
+      <text x="-80" y="-55" font-size="18">z</text>
+      <text x="-65" y="-75" font-size="14">z</text>
+    </g>
+  </g>
+
+  <!-- Sleep wave pattern -->
+  <g opacity="0.2">
+    <path d="M 150 380 Q 250 360 350 380 Q 450 400 550 380 Q 650 360 750 380 Q 850 400 950 380 Q 1050 360 1100 380" fill="none" stroke="#f75c03" stroke-width="3" stroke-linecap="round"/>
+    <path d="M 150 400 Q 250 380 350 400 Q 450 420 550 400 Q 650 380 750 400 Q 850 420 950 400 Q 1050 380 1100 400" fill="none" stroke="#ff9966" stroke-width="2" stroke-linecap="round"/>
+  </g>
+
+  <text x="600" y="510" font-family="Abacaxi, Helvetica, Arial, sans-serif" font-size="38" font-weight="bold" fill="#0f0f0f" text-anchor="middle">Yoga and Sleep</text>
+  <text x="600" y="550" font-family="Abacaxi, Helvetica, Arial, sans-serif" font-size="18" fill="#6F6A66" text-anchor="middle">Better Nights Through Practice</text>
 </svg>

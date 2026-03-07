@@ -1,92 +1,73 @@
 <svg viewBox="0 0 1200 630" xmlns="http://www.w3.org/2000/svg">
   <defs>
-    <filter id="balanceShadow" x="-50%" y="-50%" width="200%" height="200%">
-      <feDropShadow dx="4" dy="6" stdDeviation="8" flood-opacity="0.35" flood-color="#000"/>
+    <filter id="shadow" x="-50%" y="-50%" width="200%" height="200%">
+      <feDropShadow dx="3" dy="5" stdDeviation="6" flood-opacity="0.25" flood-color="#000"/>
     </filter>
-    <linearGradient id="balanceLeftGrad" x1="0%" y1="100%" x2="0%" y2="0%">
-      <stop offset="0%" style="stop-color:#ff9966;stop-opacity:1"/>
-      <stop offset="100%" style="stop-color:#f75c03;stop-opacity:1"/>
-    </linearGradient>
-    <linearGradient id="balanceRightGrad" x1="0%" y1="100%" x2="0%" y2="0%">
-      <stop offset="0%" style="stop-color:#f75c03;stop-opacity:1"/>
-      <stop offset="100%" style="stop-color:#d94f02;stop-opacity:1"/>
+    <linearGradient id="matGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#ff9966;stop-opacity:0.6"/>
+      <stop offset="100%" style="stop-color:#f75c03;stop-opacity:0.8"/>
     </linearGradient>
   </defs>
 
   <rect width="1200" height="630" fill="#f5f3f0"/>
+  <circle cx="130" cy="200" r="100" fill="#ff9966" opacity="0.07"/>
+  <circle cx="1070" cy="400" r="130" fill="#f75c03" opacity="0.06"/>
 
-  <circle cx="100" cy="200" r="100" fill="#ff9966" opacity="0.08"/>
-  <circle cx="1100" cy="400" r="130" fill="#f75c03" opacity="0.09"/>
+  <!-- Yoga mat (ground) -->
+  <rect x="350" y="420" width="500" height="12" rx="6" fill="url(#matGrad)" opacity="0.5"/>
 
-  <!-- Central balance line -->
-  <line x1="600" y1="60" x2="600" y2="520" stroke="#0f0f0f" stroke-width="5" opacity="0.25" stroke-linecap="round"/>
-  <line x1="600" y1="65" x2="600" y2="515" stroke="#f75c03" stroke-width="2" opacity="0.5" stroke-dasharray="10,8"/>
-
-  <!-- Left inverted figure -->
-  <g filter="url(#balanceShadow)">
-    <!-- Head pointing down -->
-    <circle cx="420" cy="520" r="28" fill="url(#balanceLeftGrad)" opacity="0.93" stroke="#d94f02" stroke-width="3"/>
-
-    <!-- Body inverted -->
-    <ellipse cx="420" cy="430" rx="38" ry="55" fill="url(#balanceLeftGrad)" opacity="0.88" stroke="#d94f02" stroke-width="3"/>
-
-    <!-- Left arm -->
-    <line x1="400" y1="380" x2="320" y2="280" stroke="url(#balanceLeftGrad)" stroke-width="15" stroke-linecap="round" opacity="0.89"/>
-    <circle cx="320" cy="280" r="17" fill="#ff9966" opacity="0.92" stroke="#0f0f0f" stroke-width="2"/>
-
-    <!-- Right arm -->
-    <line x1="440" y1="380" x2="520" y2="280" stroke="url(#balanceLeftGrad)" stroke-width="15" stroke-linecap="round" opacity="0.89"/>
-    <circle cx="520" cy="280" r="17" fill="#ff9966" opacity="0.92" stroke="#0f0f0f" stroke-width="2"/>
-
-    <!-- Left leg -->
-    <line x1="400" y1="375" x2="360" y2="200" stroke="url(#balanceLeftGrad)" stroke-width="14" stroke-linecap="round" opacity="0.87"/>
-    <circle cx="360" cy="200" r="15" fill="#d94f02" opacity="0.9" stroke="#0f0f0f" stroke-width="2"/>
-
-    <!-- Right leg -->
-    <line x1="440" y1="375" x2="480" y2="200" stroke="url(#balanceLeftGrad)" stroke-width="14" stroke-linecap="round" opacity="0.87"/>
-    <circle cx="480" cy="200" r="15" fill="#d94f02" opacity="0.9" stroke="#0f0f0f" stroke-width="2"/>
-
-    <!-- Support circle outline -->
-    <circle cx="420" cy="480" r="65" fill="none" stroke="#f75c03" stroke-width="3" opacity="0.6"/>
+  <!-- Handstand figure (center) -->
+  <g filter="url(#shadow)" transform="translate(600, 250)">
+    <!-- Hands on ground -->
+    <circle cx="-20" cy="168" r="8" fill="#f75c03" opacity="0.8"/>
+    <circle cx="20" cy="168" r="8" fill="#f75c03" opacity="0.8"/>
+    
+    <!-- Arms -->
+    <line x1="-20" y1="160" x2="-25" y2="110" stroke="#f75c03" stroke-width="5" stroke-linecap="round"/>
+    <line x1="20" y1="160" x2="25" y2="110" stroke="#f75c03" stroke-width="5" stroke-linecap="round"/>
+    
+    <!-- Torso (inverted) -->
+    <line x1="0" y1="110" x2="0" y2="20" stroke="#d94f02" stroke-width="6" stroke-linecap="round"/>
+    
+    <!-- Legs (pointing up) -->
+    <line x1="0" y1="20" x2="-15" y2="-60" stroke="#f75c03" stroke-width="5" stroke-linecap="round"/>
+    <line x1="0" y1="20" x2="15" y2="-60" stroke="#f75c03" stroke-width="5" stroke-linecap="round"/>
+    
+    <!-- Feet -->
+    <line x1="-15" y1="-60" x2="-20" y2="-75" stroke="#ff9966" stroke-width="4" stroke-linecap="round"/>
+    <line x1="15" y1="-60" x2="20" y2="-75" stroke="#ff9966" stroke-width="4" stroke-linecap="round"/>
+    
+    <!-- Head -->
+    <circle cx="0" cy="130" r="16" fill="#d94f02" opacity="0.85"/>
+    
+    <!-- Balance lines -->
+    <line x1="0" y1="-80" x2="0" y2="-100" stroke="#f75c03" stroke-width="1.5" opacity="0.4" stroke-dasharray="4,4"/>
+    <line x1="-40" y1="170" x2="40" y2="170" stroke="#f75c03" stroke-width="1.5" opacity="0.4" stroke-dasharray="4,4"/>
   </g>
 
-  <!-- Right inverted figure (mirrored) -->
-  <g filter="url(#balanceShadow)">
-    <!-- Head pointing down -->
-    <circle cx="780" cy="520" r="28" fill="url(#balanceRightGrad)" opacity="0.93" stroke="#0f0f0f" stroke-width="3"/>
-
-    <!-- Body inverted -->
-    <ellipse cx="780" cy="430" rx="38" ry="55" fill="url(#balanceRightGrad)" opacity="0.88" stroke="#0f0f0f" stroke-width="3"/>
-
-    <!-- Left arm -->
-    <line x1="760" y1="380" x2="680" y2="280" stroke="url(#balanceRightGrad)" stroke-width="15" stroke-linecap="round" opacity="0.89"/>
-    <circle cx="680" cy="280" r="17" fill="#f75c03" opacity="0.92" stroke="#0f0f0f" stroke-width="2"/>
-
-    <!-- Right arm -->
-    <line x1="800" y1="380" x2="880" y2="280" stroke="url(#balanceRightGrad)" stroke-width="15" stroke-linecap="round" opacity="0.89"/>
-    <circle cx="880" cy="280" r="17" fill="#f75c03" opacity="0.92" stroke="#0f0f0f" stroke-width="2"/>
-
-    <!-- Left leg -->
-    <line x1="760" y1="375" x2="720" y2="200" stroke="url(#balanceRightGrad)" stroke-width="14" stroke-linecap="round" opacity="0.87"/>
-    <circle cx="720" cy="200" r="15" fill="#ff9966" opacity="0.9" stroke="#0f0f0f" stroke-width="2"/>
-
-    <!-- Right leg -->
-    <line x1="800" y1="375" x2="840" y2="200" stroke="url(#balanceRightGrad)" stroke-width="14" stroke-linecap="round" opacity="0.87"/>
-    <circle cx="840" cy="200" r="15" fill="#ff9966" opacity="0.9" stroke="#0f0f0f" stroke-width="2"/>
-
-    <!-- Support circle outline -->
-    <circle cx="780" cy="480" r="65" fill="none" stroke="#d94f02" stroke-width="3" opacity="0.6"/>
+  <!-- Balance indicator arrows -->
+  <g opacity="0.4">
+    <path d="M 500 300 L 490 310 M 500 300 L 510 310" fill="none" stroke="#f75c03" stroke-width="2" stroke-linecap="round"/>
+    <line x1="500" y1="300" x2="500" y2="350" stroke="#f75c03" stroke-width="2" stroke-dasharray="4,4"/>
+    <path d="M 700 300 L 690 310 M 700 300 L 710 310" fill="none" stroke="#f75c03" stroke-width="2" stroke-linecap="round"/>
+    <line x1="700" y1="300" x2="700" y2="350" stroke="#f75c03" stroke-width="2" stroke-dasharray="4,4"/>
   </g>
 
-  <!-- Balance equilibrium markers -->
-  <g opacity="0.7" filter="url(#balanceShadow)">
-    <circle cx="300" cy="120" r="5" fill="#f75c03"/>
-    <circle cx="600" cy="100" r="6" fill="#d94f02"/>
-    <circle cx="900" cy="120" r="5" fill="#f75c03"/>
+  <!-- Progression steps -->
+  <g font-family="Abacaxi, Helvetica, Arial, sans-serif" font-size="14" fill="#6F6A66" text-anchor="middle" opacity="0.7">
+    <rect x="195" y="150" width="120" height="50" rx="10" fill="#f75c03" opacity="0.1" stroke="#f75c03" stroke-width="1.5"/>
+    <text x="255" y="168" fill="#d94f02" font-weight="bold" font-size="13">Wall Support</text>
+    <text x="255" y="185" font-size="11">Start here</text>
+
+    <rect x="195" y="250" width="120" height="50" rx="10" fill="#f75c03" opacity="0.1" stroke="#ff9966" stroke-width="1.5"/>
+    <text x="255" y="268" fill="#d94f02" font-weight="bold" font-size="13">Spotter Help</text>
+    <text x="255" y="285" font-size="11">Build trust</text>
+
+    <rect x="195" y="350" width="120" height="50" rx="10" fill="#f75c03" opacity="0.1" stroke="#d94f02" stroke-width="1.5"/>
+    <text x="255" y="368" fill="#d94f02" font-weight="bold" font-size="13">Free Balance</text>
+    <text x="255" y="385" font-size="11">You did it!</text>
   </g>
 
-  <!-- Grounding element -->
-  <ellipse cx="600" cy="540" rx="150" ry="25" fill="url(#balanceLeftGrad)" opacity="0.6" stroke="#0f0f0f" stroke-width="3" filter="url(#balanceShadow)"/>
-
-  <text x="600" y="590" font-family="Abacaxi, Helvetica, Arial, sans-serif" font-size="38" font-weight="bold" fill="#0f0f0f" text-anchor="middle">Inversions Balance</text>
+  <text x="600" y="530" font-family="Abacaxi, Helvetica, Arial, sans-serif" font-size="38" font-weight="bold" fill="#0f0f0f" text-anchor="middle">Your First Inversion</text>
+  <text x="600" y="570" font-family="Abacaxi, Helvetica, Arial, sans-serif" font-size="18" fill="#6F6A66" text-anchor="middle">A Beginner's Guide</text>
 </svg>

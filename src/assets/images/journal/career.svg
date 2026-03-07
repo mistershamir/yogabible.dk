@@ -1,14 +1,64 @@
 <svg viewBox="0 0 1200 630" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <filter id="shadow" x="-50%" y="-50%" width="200%" height="200%">
+      <feDropShadow dx="3" dy="5" stdDeviation="6" flood-opacity="0.25" flood-color="#000"/>
+    </filter>
+    <linearGradient id="skyline" x1="0%" y1="100%" x2="0%" y2="0%">
+      <stop offset="0%" style="stop-color:#E8E4E0;stop-opacity:1"/>
+      <stop offset="100%" style="stop-color:#f5f3f0;stop-opacity:1"/>
+    </linearGradient>
+  </defs>
+
   <rect width="1200" height="630" fill="#f5f3f0"/>
-  <path d="M 300 450 L 350 350 L 450 280 L 600 200 L 750 220 L 850 180" fill="none" stroke="#d94f02" stroke-width="6" opacity="0.9" stroke-linecap="round"/>
-  <circle cx="300" cy="450" r="35" fill="#ff9966" opacity="0.9"/>
-  <circle cx="350" cy="350" r="32" fill="#f75c03" opacity="0.9"/>
-  <circle cx="450" cy="280" r="32" fill="#ff9966" opacity="0.9"/>
-  <circle cx="600" cy="200" r="35" fill="#d94f02" opacity="0.95"/>
-  <circle cx="750" cy="220" r="32" fill="#f75c03" opacity="0.9"/>
-  <circle cx="850" cy="180" r="35" fill="#d94f02" opacity="0.95"/>
-  <path d="M 250 500 L 900 500" stroke="#f75c03" stroke-width="4" opacity="0.7"/>
-  <text x="600" y="570" font-family="Abacaxi, Helvetica, Arial, sans-serif" font-size="34" font-weight="bold" fill="#0f0f0f" text-anchor="middle">
-    Copenhagen Career
-  </text>
+  <circle cx="120" cy="150" r="100" fill="#ff9966" opacity="0.08"/>
+  <circle cx="1080" cy="480" r="130" fill="#f75c03" opacity="0.06"/>
+
+  <!-- Copenhagen skyline silhouette -->
+  <g opacity="0.12">
+    <rect x="100" y="280" width="60" height="200" fill="#0f0f0f"/>
+    <rect x="180" y="320" width="50" height="160" fill="#0f0f0f"/>
+    <rect x="250" y="250" width="70" height="230" fill="#0f0f0f"/>
+    <polygon points="285,250 250,200 320,200" fill="#0f0f0f"/>
+    <rect x="340" y="300" width="55" height="180" fill="#0f0f0f"/>
+    <rect x="820" y="290" width="65" height="190" fill="#0f0f0f"/>
+    <rect x="900" y="260" width="50" height="220" fill="#0f0f0f"/>
+    <rect x="970" y="310" width="70" height="170" fill="#0f0f0f"/>
+    <rect x="1060" y="280" width="55" height="200" fill="#0f0f0f"/>
+  </g>
+
+  <!-- Career growth path -->
+  <g filter="url(#shadow)">
+    <path d="M 200 420 C 300 420 350 360 420 340 C 490 320 530 300 600 260 C 670 220 720 200 800 180 C 860 165 920 140 1000 120" fill="none" stroke="#f75c03" stroke-width="5" stroke-linecap="round" opacity="0.8"/>
+    
+    <!-- Milestone dots -->
+    <circle cx="300" cy="410" r="16" fill="#ff9966" opacity="0.9"/>
+    <circle cx="420" cy="340" r="18" fill="#f75c03" opacity="0.9"/>
+    <circle cx="600" cy="260" r="20" fill="#d94f02" opacity="0.95"/>
+    <circle cx="800" cy="180" r="22" fill="#f75c03" opacity="0.95"/>
+    <circle cx="1000" cy="120" r="24" fill="#d94f02" opacity="1"/>
+  </g>
+
+  <!-- Milestone labels -->
+  <g font-family="Abacaxi, Helvetica, Arial, sans-serif" font-size="13" fill="#6F6A66" text-anchor="middle">
+    <text x="300" y="445">Student</text>
+    <text x="420" y="375">Certified</text>
+    <text x="600" y="295">Teaching</text>
+    <text x="800" y="215">Studio</text>
+    <text x="1000" y="155">Leader</text>
+  </g>
+
+  <!-- Yoga mat icon at finish -->
+  <g transform="translate(970, 70)" opacity="0.7">
+    <ellipse cx="0" cy="15" rx="10" ry="15" fill="#f75c03"/>
+    <rect x="0" y="0" width="50" height="30" rx="3" fill="#f75c03" opacity="0.6"/>
+  </g>
+
+  <!-- Location pin -->
+  <g transform="translate(580, 100)" filter="url(#shadow)" opacity="0.6">
+    <path d="M 0 -5 C -12 -5 -20 5 -20 15 C -20 30 0 45 0 45 C 0 45 20 30 20 15 C 20 5 12 -5 0 -5 Z" fill="#f75c03" opacity="0.7"/>
+    <circle cx="0" cy="14" r="6" fill="#f5f3f0"/>
+  </g>
+
+  <text x="600" y="545" font-family="Abacaxi, Helvetica, Arial, sans-serif" font-size="36" font-weight="bold" fill="#0f0f0f" text-anchor="middle">Yoga Teacher in Copenhagen</text>
+  <text x="600" y="580" font-family="Abacaxi, Helvetica, Arial, sans-serif" font-size="18" fill="#6F6A66" text-anchor="middle">What to Expect from the Career</text>
 </svg>

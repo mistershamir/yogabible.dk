@@ -1,76 +1,77 @@
 <svg viewBox="0 0 1200 630" xmlns="http://www.w3.org/2000/svg">
   <defs>
-    <filter id="headShadow" x="-50%" y="-50%" width="200%" height="200%">
-      <feDropShadow dx="4" dy="6" stdDeviation="9" flood-opacity="0.4" flood-color="#000"/>
+    <filter id="shadow" x="-50%" y="-50%" width="200%" height="200%">
+      <feDropShadow dx="3" dy="5" stdDeviation="6" flood-opacity="0.25" flood-color="#000"/>
     </filter>
-    <linearGradient id="headGrad" x1="0%" y1="0%" x2="0%" y2="100%">
-      <stop offset="0%" style="stop-color:#ff9966;stop-opacity:1"/>
-      <stop offset="100%" style="stop-color:#f75c03;stop-opacity:1"/>
-    </linearGradient>
-    <linearGradient id="bodyGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" style="stop-color:#f75c03;stop-opacity:1"/>
-      <stop offset="100%" style="stop-color:#d94f02;stop-opacity:0.95"/>
-    </linearGradient>
   </defs>
 
   <rect width="1200" height="630" fill="#f5f3f0"/>
+  <circle cx="150" cy="200" r="120" fill="#ff9966" opacity="0.07"/>
+  <circle cx="1050" cy="400" r="140" fill="#f75c03" opacity="0.06"/>
 
-  <circle cx="120" cy="300" r="100" fill="#ff9966" opacity="0.08"/>
-  <circle cx="1080" cy="180" r="130" fill="#f75c03" opacity="0.1"/>
-
-  <!-- Foundation base -->
-  <g filter="url(#headShadow)">
-    <ellipse cx="600" cy="480" rx="140" ry="35" fill="#0f0f0f" opacity="0.2" stroke="#f75c03" stroke-width="4"/>
-    <ellipse cx="600" cy="475" rx="135" ry="30" fill="url(#bodyGrad)" opacity="0.8" stroke="#0f0f0f" stroke-width="3"/>
+  <!-- Alignment grid -->
+  <g opacity="0.1">
+    <line x1="600" y1="50" x2="600" y2="450" stroke="#f75c03" stroke-width="2" stroke-dasharray="8,8"/>
+    <line x1="400" y1="250" x2="800" y2="250" stroke="#f75c03" stroke-width="1" stroke-dasharray="6,6"/>
   </g>
 
-  <!-- Main inverted figure -->
-  <g filter="url(#headShadow)">
-    <!-- Head at top -->
-    <circle cx="600" cy="120" r="60" fill="url(#headGrad)" opacity="0.95" stroke="#d94f02" stroke-width="4"/>
-    <circle cx="600" cy="120" r="48" fill="none" stroke="#ffb380" stroke-width="2" opacity="0.5"/>
-
-    <!-- Face details -->
-    <circle cx="580" cy="110" r="8" fill="#0f0f0f" opacity="0.6"/>
-    <circle cx="620" cy="110" r="8" fill="#0f0f0f" opacity="0.6"/>
-
-    <!-- Neck connection -->
-    <rect x="580" y="175" width="40" height="20" fill="#ff9966" opacity="0.85" stroke="#d94f02" stroke-width="2" rx="2"/>
-
-    <!-- Left arm -->
-    <path d="M 570 195 L 520 260 L 510 290" stroke="url(#bodyGrad)" stroke-width="14" stroke-linecap="round" opacity="0.9" fill="none"/>
-    <circle cx="510" cy="290" r="16" fill="#f75c03" opacity="0.9" stroke="#0f0f0f" stroke-width="2"/>
-
-    <!-- Right arm -->
-    <path d="M 630 195 L 680 260 L 690 290" stroke="url(#bodyGrad)" stroke-width="14" stroke-linecap="round" opacity="0.9" fill="none"/>
-    <circle cx="690" cy="290" r="16" fill="#f75c03" opacity="0.9" stroke="#0f0f0f" stroke-width="2"/>
-
-    <!-- Core/torso -->
-    <ellipse cx="600" cy="310" rx="45" ry="70" fill="url(#bodyGrad)" opacity="0.9" stroke="#0f0f0f" stroke-width="3"/>
-
-    <!-- Left leg -->
-    <path d="M 585 375 L 540 430 L 530 460" stroke="url(#bodyGrad)" stroke-width="13" stroke-linecap="round" opacity="0.88" fill="none"/>
-    <circle cx="530" cy="460" r="14" fill="#d94f02" opacity="0.9" stroke="#0f0f0f" stroke-width="2"/>
-
-    <!-- Right leg -->
-    <path d="M 615 375 L 660 430 L 670 460" stroke="url(#bodyGrad)" stroke-width="13" stroke-linecap="round" opacity="0.88" fill="none"/>
-    <circle cx="670" cy="460" r="14" fill="#d94f02" opacity="0.9" stroke="#0f0f0f" stroke-width="2"/>
+  <!-- Headstand figure (detailed) -->
+  <g filter="url(#shadow)" transform="translate(600, 80)">
+    <!-- Crown of head (foundation) -->
+    <circle cx="0" cy="340" r="20" fill="#d94f02" opacity="0.9"/>
+    
+    <!-- Forearms (triangle base) -->
+    <path d="M -60 320 L 0 340 L 60 320" fill="none" stroke="#f75c03" stroke-width="6" stroke-linecap="round"/>
+    <!-- Hands interlaced (cup) -->
+    <circle cx="-60" cy="320" r="8" fill="#ff9966" opacity="0.8"/>
+    <circle cx="60" cy="320" r="8" fill="#ff9966" opacity="0.8"/>
+    
+    <!-- Upper arms -->
+    <line x1="-60" y1="320" x2="-40" y2="280" stroke="#f75c03" stroke-width="5" stroke-linecap="round"/>
+    <line x1="60" y1="320" x2="40" y2="280" stroke="#f75c03" stroke-width="5" stroke-linecap="round"/>
+    
+    <!-- Shoulders -->
+    <line x1="-40" y1="280" x2="40" y2="280" stroke="#d94f02" stroke-width="6" stroke-linecap="round"/>
+    
+    <!-- Spine (straight!) -->
+    <line x1="0" y1="280" x2="0" y2="120" stroke="#d94f02" stroke-width="7" stroke-linecap="round"/>
+    
+    <!-- Hips -->
+    <line x1="-20" y1="120" x2="20" y2="120" stroke="#f75c03" stroke-width="5" stroke-linecap="round"/>
+    
+    <!-- Legs (straight up) -->
+    <line x1="-10" y1="120" x2="-10" y2="20" stroke="#f75c03" stroke-width="5" stroke-linecap="round"/>
+    <line x1="10" y1="120" x2="10" y2="20" stroke="#f75c03" stroke-width="5" stroke-linecap="round"/>
+    
+    <!-- Pointed feet -->
+    <line x1="-10" y1="20" x2="-10" y2="0" stroke="#ff9966" stroke-width="4" stroke-linecap="round"/>
+    <line x1="10" y1="20" x2="10" y2="0" stroke="#ff9966" stroke-width="4" stroke-linecap="round"/>
   </g>
 
-  <!-- Energy flow lines -->
-  <g opacity="0.6" stroke="#f75c03" stroke-width="3" stroke-linecap="round" fill="none">
-    <path d="M 600 60 L 600 20"/>
-    <path d="M 560 65 L 520 30"/>
-    <path d="M 640 65 L 680 30"/>
+  <!-- Alignment labels -->
+  <g font-family="Abacaxi, Helvetica, Arial, sans-serif" font-size="13" fill="#6F6A66" opacity="0.7">
+    <!-- Right side labels -->
+    <line x1="670" y1="420" x2="700" y2="420" stroke="#f75c03" stroke-width="1.5"/>
+    <text x="710" y="424">Foundation</text>
+    
+    <line x1="665" y1="360" x2="700" y2="360" stroke="#f75c03" stroke-width="1.5"/>
+    <text x="710" y="364">Shoulders</text>
+    
+    <line x1="615" y1="250" x2="700" y2="250" stroke="#f75c03" stroke-width="1.5"/>
+    <text x="710" y="254">Core Active</text>
+    
+    <line x1="615" y1="130" x2="700" y2="130" stroke="#f75c03" stroke-width="1.5"/>
+    <text x="710" y="134">Legs Engaged</text>
   </g>
 
-  <!-- Balance stability indicator -->
-  <g opacity="0.7" filter="url(#headShadow)">
-    <line x1="350" y1="475" x2="850" y2="475" stroke="#0f0f0f" stroke-width="5" opacity="0.3"/>
-    <circle cx="350" cy="475" r="5" fill="#f75c03"/>
-    <circle cx="600" cy="475" r="6" fill="#d94f02"/>
-    <circle cx="850" cy="475" r="5" fill="#f75c03"/>
+  <!-- Safety warning icon -->
+  <g transform="translate(280, 380)" filter="url(#shadow)" opacity="0.6">
+    <circle cx="0" cy="0" r="25" fill="#ff9966" opacity="0.2"/>
+    <circle cx="0" cy="0" r="25" fill="none" stroke="#f75c03" stroke-width="2"/>
+    <text x="0" y="7" font-family="Abacaxi, Helvetica, Arial, sans-serif" font-size="28" font-weight="bold" fill="#f75c03" text-anchor="middle">!</text>
   </g>
+  <text x="280" y="420" font-family="Abacaxi, Helvetica, Arial, sans-serif" font-size="12" fill="#6F6A66" text-anchor="middle" opacity="0.6">Safety First</text>
 
-  <text x="600" y="590" font-family="Abacaxi, Helvetica, Arial, sans-serif" font-size="38" font-weight="bold" fill="#0f0f0f" text-anchor="middle">Headstand Technique</text>
+  <text x="600" y="530" font-family="Abacaxi, Helvetica, Arial, sans-serif" font-size="38" font-weight="bold" fill="#0f0f0f" text-anchor="middle">Safe Headstand</text>
+  <text x="600" y="570" font-family="Abacaxi, Helvetica, Arial, sans-serif" font-size="18" fill="#6F6A66" text-anchor="middle">Technique and Alignment</text>
 </svg>
