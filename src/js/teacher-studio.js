@@ -299,25 +299,47 @@
 
   function updateGoLiveState() {
     if (goLiveBtn) {
-      goLiveBtn.disabled = !(mediaStream && selectedSession && !isLive);
+      goLiveBtn.disabled = !(selectedSession && !isLive);
     }
   }
 
   // ═══════════════════════════════════════════════════════
-  // GO LIVE — create LiveKit room + publish tracks
+  // GO LIVE — request camera (if needed) + create LiveKit room + publish
   // ═══════════════════════════════════════════════════════
   function goLive() {
     if (!selectedSession) {
       alert(tNoSession);
       return;
     }
-    if (!mediaStream) {
-      startCamera();
-      return;
-    }
 
     setStatus('connecting');
     goLiveBtn.disabled = true;
+
+    // If camera not started yet, request it now
+    if (!mediaStream) {
+      navigator.mediaDevices.getUserMedia(getConstraints())
+        .then(function (stream) {
+          mediaStream = stream;
+          previewVideo.srcObject = stream;
+          placeholder.classList.add('yts-preview__placeholder--hidden');
+          devicesPanel.style.display = '';
+          enumerateDevices();
+          // Now proceed to connect
+          doGoLive();
+        })
+        .catch(function (err) {
+          console.error('[teacher-studio] camera error:', err);
+          setStatus('error');
+          goLiveBtn.disabled = false;
+          alert(tPermissionDenied);
+        });
+      return;
+    }
+
+    doGoLive();
+  }
+
+  function doGoLive() {
 
     var user = firebase.auth().currentUser;
     if (!user) return;
