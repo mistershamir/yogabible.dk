@@ -20,6 +20,31 @@ const { getDoc, updateDoc } = require('./shared/firestore');
 const { jsonResponse, optionsResponse } = require('./shared/utils');
 
 const COLLECTION = 'live-schedule';
+const MUX_API_BASE = 'https://api.mux.com';
+
+/**
+ * Make authenticated request to Mux API (for recording setup).
+ */
+async function muxFetch(path, method, body) {
+  var tokenId = process.env.MUX_TOKEN_ID;
+  var tokenSecret = process.env.MUX_TOKEN_SECRET;
+  if (!tokenId || !tokenSecret) throw new Error('MUX_TOKEN_ID/SECRET not set');
+
+  var auth = Buffer.from(tokenId + ':' + tokenSecret).toString('base64');
+  var opts = {
+    method: method || 'GET',
+    headers: { 'Authorization': 'Basic ' + auth, 'Content-Type': 'application/json' }
+  };
+  if (body) opts.body = JSON.stringify(body);
+
+  var res = await fetch(MUX_API_BASE + path, opts);
+  var data = await res.json();
+  if (!res.ok) {
+    var errMsg = data.error ? (data.error.message || JSON.stringify(data.error)) : 'Mux API error';
+    throw new Error(errMsg);
+  }
+  return data;
+}
 
 exports.handler = async function (event) {
   if (event.httpMethod === 'OPTIONS') return optionsResponse();
@@ -219,12 +244,48 @@ async function handleCreateRoom(event) {
     ttl: 21600
   });
 
-  // Update session with LiveKit room info
-  await updateDoc(COLLECTION, sessionId, {
+  // ── Set up Mux recording via Room Composite Egress ──
+  var muxStreamId = null;
+  var muxPlaybackId = null;
+  try {
+    var muxResult = await muxFetch('/video/v1/live-streams', 'POST', {
+      playback_policy: ['public'],
+      new_asset_settings: { playback_policy: ['public'] },
+      latency_mode: 'low',
+      reconnect_window: 60,
+      max_continuous_duration: 21600
+    });
+    var muxStream = muxResult.data;
+    muxStreamId = muxStream.id;
+    muxPlaybackId = muxStream.playback_ids && muxStream.playback_ids[0]
+      ? muxStream.playback_ids[0].id : null;
+
+    // Start LiveKit Room Composite Egress → RTMP to Mux
+    var rtmpUrl = 'rtmps://global-live.mux.com:443/app/' + muxStream.stream_key;
+    await livekitApi('StartRoomCompositeEgress', {
+      room_name: roomName,
+      stream_urls: [rtmpUrl],
+      layout: 'grid',
+      audio_only: false,
+      video_only: false
+    });
+
+    console.log('[livekit-token] Recording egress started → Mux stream:', muxStreamId);
+  } catch (egressErr) {
+    // Recording failure should not block the session
+    console.error('[livekit-token] Recording setup failed (non-blocking):', egressErr.message);
+  }
+
+  // Update session with LiveKit room info + Mux recording info
+  var sessionUpdate = {
     livekitRoom: roomName,
     streamSource: 'remote',
     updated_by: user.email
-  });
+  };
+  if (muxStreamId) sessionUpdate.muxLiveStreamId = muxStreamId;
+  if (muxPlaybackId) sessionUpdate.muxPlaybackId = muxPlaybackId;
+
+  await updateDoc(COLLECTION, sessionId, sessionUpdate);
 
   var wsUrl = process.env.LIVEKIT_URL || '';
 
