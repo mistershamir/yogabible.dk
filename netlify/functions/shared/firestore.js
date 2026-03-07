@@ -4,20 +4,18 @@
  */
 
 const admin = require('firebase-admin');
-const fs = require('fs');
-const path = require('path');
 
 let initialized = false;
 
 /**
- * Read the Firebase private key. Prefers the PEM file written at build time
- * (so the env var can be scoped to "Builds" only and stay out of the Lambda
- * 4KB env limit). Falls back to the env var for local development.
+ * Read the Firebase private key. Prefers the JS module written at build time
+ * (bundled by esbuild, so the env var can be scoped to "Builds" only and stay
+ * out of the Lambda 4KB env limit). Falls back to the env var for local dev.
  */
 function getPrivateKey() {
-  const keyFile = path.join(__dirname, 'firebase-key.pem');
   try {
-    return fs.readFileSync(keyFile, 'utf8');
+    // Build-time generated module — esbuild bundles this into each function
+    return require('./firebase-key-data');
   } catch (e) {
     // Fallback: env var (local dev or if build script didn't run)
     const key = process.env.FIREBASE_PRIVATE_KEY;

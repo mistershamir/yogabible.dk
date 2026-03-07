@@ -220,10 +220,8 @@ async function logInteraction(data) {
   console.log('[ig-api] Interaction:', JSON.stringify(entry));
 
   // Firestore REST API write (if credentials available)
-  const fs = require('fs');
-  const keyFile = require('path').join(__dirname, 'firebase-key.pem');
   let privateKey;
-  try { privateKey = fs.readFileSync(keyFile, 'utf8'); } catch (e) {
+  try { privateKey = require('./firebase-key-data'); } catch (e) {
     privateKey = process.env.FIREBASE_PRIVATE_KEY ? process.env.FIREBASE_PRIVATE_KEY.replace(/\\n/g, '\n') : null;
   }
 
