@@ -188,9 +188,19 @@
   }
 
   function doForgotPassword(email, callback) {
-    var resetUrl = window.location.origin + '/auth-action/';
-    firebase.auth().sendPasswordResetEmail(email, { url: resetUrl, handleCodeInApp: true })
-      .then(function () { callback(null); })
+    // Send branded reset email via Resend (better deliverability than
+    // Firebase's built-in noreply@*.firebaseapp.com emails).
+    var apiBase = 'https://www.hotyogacph.dk/.netlify/functions';
+    fetch(apiBase + '/send-password-reset', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: email, lang: isDa ? 'da' : 'en' })
+    })
+      .then(function (res) { return res.json(); })
+      .then(function (data) {
+        if (data.ok) { callback(null); }
+        else { callback({ code: 'custom', message: data.error || 'Failed' }); }
+      })
       .catch(function (err) { callback(err); });
   }
 
@@ -284,8 +294,10 @@
     var css = [
 
       // ── CTA button ──────────────────────────────────────────────
-      '.hyc-cta{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;display:inline-flex;align-items:center;gap:0.5rem;-webkit-font-smoothing:antialiased}',
-      '.hyc-cta__btn{display:inline-flex;align-items:center;gap:0.4rem;padding:0.55rem 1.25rem;border-radius:999px;font-family:inherit;font-size:0.88rem;font-weight:700;text-decoration:none;border:1.5px solid transparent;cursor:pointer;transition:all .2s;white-space:nowrap;line-height:1.2}',
+      // Override Framer srcdoc defaults (body { display:flex } and * { box-sizing:border-box })
+      'html,body{margin:0;padding:0;min-height:0;overflow:visible}',
+      '.hyc-cta{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;display:inline-flex;align-items:center;gap:0.5rem;-webkit-font-smoothing:antialiased;overflow:visible}',
+      '.hyc-cta__btn{display:inline-flex;align-items:center;gap:0.4rem;padding:0.55rem 1.25rem;border-radius:999px;font-family:inherit;font-size:0.88rem;font-weight:700;text-decoration:none;border:1.5px solid transparent;cursor:pointer;transition:all .2s;white-space:nowrap;line-height:1.2;box-sizing:content-box}',
       '.hyc-cta__btn svg{width:16px;height:16px;flex-shrink:0}',
       '.hyc-cta__btn--login{background:' + BRAND + ';color:#fff;border-color:' + BRAND + '}',
       '.hyc-cta__btn--login:hover{background:' + BRAND_DARK + ';border-color:' + BRAND_DARK + ';transform:translateY(-1px);box-shadow:0 4px 12px rgba(63,153,165,.3)}',
@@ -943,12 +955,18 @@
   // Tell Framer's parent frame about our height so the embed iframe
   // is sized correctly (Framer HTML embeds start at height:0).
   function notifyFramerHeight() {
-    try {
-      if (window.parent && window.parent !== window) {
-        var h = document.body.scrollHeight || document.body.offsetHeight || 0;
-        if (h > 0) window.parent.postMessage({ embedHeight: h }, '*');
-      }
-    } catch (e) { /* cross-origin — ignore */ }
+    function send() {
+      try {
+        if (window.parent && window.parent !== window) {
+          var h = document.body.scrollHeight || document.body.offsetHeight || 0;
+          if (h > 0) window.parent.postMessage({ embedHeight: h }, '*');
+        }
+      } catch (e) { /* cross-origin — ignore */ }
+    }
+    // Send immediately + after a short delay (CSS may not be computed yet)
+    send();
+    setTimeout(send, 50);
+    setTimeout(send, 200);
   }
 
   function renderLoggedOut() {
