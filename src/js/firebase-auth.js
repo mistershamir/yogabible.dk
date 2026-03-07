@@ -466,11 +466,24 @@
       submitBtn.disabled = true;
       submitBtn.textContent = detectLocale() === 'da' ? 'Logger ind...' : 'Signing in...';
 
+      var resetBtn = function() {
+        submitBtn.disabled = false;
+        submitBtn.textContent = detectLocale() === 'da' ? 'Log ind' : 'Sign in';
+      };
+
+      // Timeout wrapper — prevents mobile from hanging forever on stalled requests
+      var loginTimeout = setTimeout(function() {
+        resetBtn();
+        showError(errorEl, detectLocale() === 'da' ? 'Login tog for lang tid. Prøv igen.' : 'Login timed out. Please try again.');
+      }, 15000);
+
       auth.signInWithEmailAndPassword(email, password)
         .then(function() {
+          clearTimeout(loginTimeout);
           closeAuthModal();
         })
         .catch(function(error) {
+          clearTimeout(loginTimeout);
           if (error.code === 'auth/user-not-found' || error.code === 'auth/invalid-credential') {
             // Check Mindbody — if they exist, create Firebase account with
             // their password and sign in seamlessly.
@@ -479,7 +492,10 @@
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({ email: email, password: password })
             })
-              .then(function(res) { return res.json(); })
+              .then(function(res) {
+                if (!res.ok) throw new Error('Server error');
+                return res.json();
+              })
               .then(function(data) {
                 if (data.created) {
                   // Account created with their password — sign in now
@@ -492,19 +508,13 @@
               .catch(function() {
                 showErrorWithReset(errorEl);
               })
-              .finally(function() {
-                submitBtn.disabled = false;
-                submitBtn.textContent = detectLocale() === 'da' ? 'Log ind' : 'Sign in';
-              });
-            return; // skip the outer .finally
+              .finally(resetBtn);
+            return;
           } else {
             showError(errorEl, getAuthErrorMessage(error.code));
           }
         })
-        .finally(function() {
-          submitBtn.disabled = false;
-          submitBtn.textContent = detectLocale() === 'da' ? 'Log ind' : 'Sign in';
-        });
+        .finally(resetBtn);
     });
   }
 
