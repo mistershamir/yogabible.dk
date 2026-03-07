@@ -20,7 +20,23 @@
     "recordings_title": "Optagelser",
     "recordings_empty": "Ingen optagelser tilgængelige endnu.",
     "recordings_watch": "Se optagelse",
-    "recordings_recorded": "Optaget"
+    "recordings_recorded": "Optaget",
+    "interactive_join": "Deltag med kamera",
+    "interactive_joining": "Tilslutter…",
+    "interactive_camera_on": "Kamera til",
+    "interactive_camera_off": "Kamera fra",
+    "interactive_mic_on": "Mikrofon til",
+    "interactive_mic_off": "Mikrofon fra",
+    "interactive_raise_hand": "Ræk hånden op",
+    "interactive_lower_hand": "Sænk hånden",
+    "interactive_chat": "Chat",
+    "interactive_leave": "Forlad",
+    "interactive_leave_confirm": "Er du sikker på, at du vil forlade sessionen?",
+    "interactive_chat_placeholder": "Skriv en besked…",
+    "interactive_you": "Dig",
+    "interactive_login_required": "Du skal logge ind for at deltage i denne interaktive session.",
+    "interactive_permission_denied": "Kamera-/mikrofontilladelse afvist. Tjek dine browserindstillinger.",
+    "interactive_participants": "Deltagere"
   },
   "en": {
     "hero_tagline": "Yoga Bible · Live",
@@ -43,6 +59,22 @@
     "recordings_title": "Recordings",
     "recordings_empty": "No recordings available yet.",
     "recordings_watch": "Watch recording",
-    "recordings_recorded": "Recorded"
+    "recordings_recorded": "Recorded",
+    "interactive_join": "Join with camera",
+    "interactive_joining": "Joining…",
+    "interactive_camera_on": "Camera on",
+    "interactive_camera_off": "Camera off",
+    "interactive_mic_on": "Mic on",
+    "interactive_mic_off": "Mic off",
+    "interactive_raise_hand": "Raise hand",
+    "interactive_lower_hand": "Lower hand",
+    "interactive_chat": "Chat",
+    "interactive_leave": "Leave",
+    "interactive_leave_confirm": "Are you sure you want to leave this session?",
+    "interactive_chat_placeholder": "Type a message…",
+    "interactive_you": "You",
+    "interactive_login_required": "You need to log in to join this interactive session.",
+    "interactive_permission_denied": "Camera/microphone permission denied. Check your browser settings.",
+    "interactive_participants": "Participants"
   }
 }

@@ -1,15 +1,12 @@
 /**
- * Live Page — Student-facing live stream viewer.
+ * Live Page — Student-facing live stream viewer + interactive mode.
  *
- * Uses LiveKit to subscribe to teacher's video/audio in real time.
- * Falls back to Mux HLS player for hardware encoder streams.
- * Shows upcoming schedule and polls for active rooms.
+ * TWO MODES:
+ * 1. Viewer mode (default): One-way stream from teacher via LiveKit/Mux
+ * 2. Interactive mode: Zoom-style group call with camera/mic, chat, raise hand
  *
- * Flow:
- * 1. Check schedule for live sessions with a LiveKit room
- * 2. If active → get viewer token → connect to room → display video
- * 3. If not → show offline card, poll every 15s
- * 4. Schedule section always loads upcoming sessions
+ * Interactive mode is activated when the session has `interactive: true`.
+ * Students must be logged in to join interactive sessions.
  */
 (function () {
   var container = document.getElementById('yb-live');
@@ -26,6 +23,26 @@
   var scheduleSection = document.getElementById('yb-live-schedule');
   var scheduleList = document.getElementById('yb-live-schedule-list');
 
+  // Interactive elements
+  var joinSection = document.getElementById('yb-live-join');
+  var joinTitle = document.getElementById('yb-live-join-title');
+  var joinText = document.getElementById('yb-live-join-text');
+  var joinBtn = document.getElementById('yb-live-join-btn');
+  var interactiveSection = document.getElementById('yb-live-interactive');
+  var gridEl = document.getElementById('yb-live-grid');
+  var participantsEl = document.getElementById('yb-live-participants');
+  var chatPanel = document.getElementById('yb-live-chat');
+  var chatMessages = document.getElementById('yb-live-chat-messages');
+  var chatInput = document.getElementById('yb-live-chat-input');
+  var chatSendBtn = document.getElementById('yb-live-chat-send');
+  var chatCloseBtn = document.getElementById('yb-live-chat-close');
+  var chatBadge = document.getElementById('yb-live-chat-badge');
+  var btnCam = document.getElementById('yb-live-btn-cam');
+  var btnMic = document.getElementById('yb-live-btn-mic');
+  var btnHand = document.getElementById('yb-live-btn-hand');
+  var btnChat = document.getElementById('yb-live-btn-chat');
+  var btnLeave = document.getElementById('yb-live-btn-leave');
+
   var pollTimer = null;
   var elapsedTimer = null;
   var liveStartTime = null;
@@ -34,11 +51,48 @@
   var livekitRoom = null;
   var currentRoomName = null;
 
+  // Interactive state
+  var isInteractive = false;
+  var isJoined = false;
+  var localVideoTrack = null;
+  var localAudioTrack = null;
+  var cameraEnabled = true;
+  var micEnabled = true;
+  var handRaised = false;
+  var chatOpen = false;
+  var unreadChat = 0;
+  var currentSession = null;
+  var participantTiles = {}; // identity → tile element
+
+  // i18n
   var isDa = (container.dataset.lang || 'da') === 'da';
-  var tToday = container.dataset.tToday || 'I dag';
-  var tTomorrow = container.dataset.tTomorrow || 'I morgen';
-  var tLiveNow = container.dataset.tLiveNow || 'LIVE NU';
-  var tEmpty = container.dataset.tEmpty || '';
+  var T = {
+    today: container.dataset.tToday || 'I dag',
+    tomorrow: container.dataset.tTomorrow || 'I morgen',
+    liveNow: container.dataset.tLiveNow || 'LIVE NU',
+    empty: container.dataset.tEmpty || '',
+    join: container.dataset.tJoin || 'Join with camera',
+    joining: container.dataset.tJoining || 'Joining…',
+    camOn: container.dataset.tCamOn || 'Camera on',
+    camOff: container.dataset.tCamOff || 'Camera off',
+    micOn: container.dataset.tMicOn || 'Mic on',
+    micOff: container.dataset.tMicOff || 'Mic off',
+    raise: container.dataset.tRaise || 'Raise hand',
+    lower: container.dataset.tLower || 'Lower hand',
+    chat: container.dataset.tChat || 'Chat',
+    leave: container.dataset.tLeave || 'Leave',
+    leaveConfirm: container.dataset.tLeaveConfirm || 'Leave this session?',
+    chatPlaceholder: container.dataset.tChatPlaceholder || 'Type a message…',
+    you: container.dataset.tYou || 'You',
+    loginRequired: container.dataset.tLoginRequired || 'Log in to join this interactive session.',
+    permDenied: container.dataset.tPermDenied || 'Camera/mic permission denied.',
+    participants: container.dataset.tParticipants || 'Participants'
+  };
+
+  // SVG icons for muted mic indicator
+  var MIC_MUTED_SVG = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#ff453a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="1" y1="1" x2="23" y2="23"/><path d="M9 9v3a3 3 0 0 0 5.12 2.12M15 9.34V4a3 3 0 0 0-5.94-.6"/><path d="M17 16.95A7 7 0 0 1 5 12v-2m14 0v2c0 .28-.02.55-.05.82"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>';
+  var CAM_OFF_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="1" y1="1" x2="23" y2="23"/><path d="M21 21H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h3m3-3h6l2 3h4a2 2 0 0 1 2 2v9.34m-7.72-2.06a4 4 0 1 1-5.56-5.56"/></svg>';
+  var MIC_OFF_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="1" y1="1" x2="23" y2="23"/><path d="M9 9v3a3 3 0 0 0 5.12 2.12M15 9.34V4a3 3 0 0 0-5.94-.6"/><path d="M17 16.95A7 7 0 0 1 5 12v-2m14 0v2c0 .28-.02.55-.05.82"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>';
 
   function formatTime(totalSeconds) {
     var s = Math.floor(totalSeconds);
@@ -72,8 +126,14 @@
     if (elapsedTimeEl) elapsedTimeEl.textContent = '00:00';
   }
 
+  function esc(s) {
+    var d = document.createElement('div');
+    d.textContent = s || '';
+    return d.innerHTML;
+  }
+
   // ═══════════════════════════════════════════════════════
-  // LIVEKIT — subscribe to teacher's tracks
+  // VIEWER MODE — subscribe to teacher's tracks (one-way)
   // ═══════════════════════════════════════════════════════
 
   function connectToRoom(roomName) {
@@ -98,14 +158,7 @@
     var tokenUrl = '/.netlify/functions/livekit-token?action=viewer-token&room=' + encodeURIComponent(roomName);
     var opts = { headers: {} };
 
-    var authPromise;
-    if (typeof firebase !== 'undefined' && firebase.auth && firebase.auth().currentUser) {
-      authPromise = firebase.auth().currentUser.getIdToken();
-    } else {
-      authPromise = Promise.resolve(null);
-    }
-
-    authPromise.then(function (authToken) {
+    getAuthToken().then(function (authToken) {
       if (authToken) opts.headers['Authorization'] = 'Bearer ' + authToken;
       return fetch(tokenUrl, opts);
     })
@@ -175,6 +228,10 @@
   function attachTrack(track) {
     if (!mountEl) return;
 
+    // Prevent duplicate tracks
+    var existing = document.getElementById('yb-live-track-' + track.sid);
+    if (existing) return;
+
     var el = track.attach();
     el.id = 'yb-live-track-' + track.sid;
 
@@ -208,6 +265,578 @@
   }
 
   // ═══════════════════════════════════════════════════════
+  // INTERACTIVE MODE — Zoom-style group call
+  // ═══════════════════════════════════════════════════════
+
+  function showInteractiveJoin(session) {
+    currentSession = session;
+    var title = isDa ? (session.title_da || session.title_en || '') : (session.title_en || session.title_da || '');
+    joinTitle.textContent = title;
+    joinText.textContent = isDa
+      ? 'Denne session er interaktiv. Du kan deltage med dit kamera og din mikrofon.'
+      : 'This session is interactive. You can join with your camera and microphone.';
+    joinBtn.textContent = T.join;
+    joinBtn.disabled = false;
+
+    playerSection.style.display = 'none';
+    offlineSection.style.display = 'none';
+    joinSection.style.display = 'block';
+    interactiveSection.classList.remove('yb-live-interactive--active');
+    badge.classList.add('yb-live-badge--visible');
+    checkingOverlay.classList.add('yb-live-player__checking--hidden');
+
+    if (pollTimer) {
+      clearInterval(pollTimer);
+      pollTimer = null;
+    }
+  }
+
+  function joinInteractive() {
+    // Require auth
+    if (typeof firebase === 'undefined' || !firebase.auth || !firebase.auth().currentUser) {
+      alert(T.loginRequired);
+      // Try opening login modal if available
+      if (typeof window.openLoginModal === 'function') window.openLoginModal();
+      return;
+    }
+
+    joinBtn.disabled = true;
+    joinBtn.textContent = T.joining;
+
+    var roomName = currentSession.livekitRoom;
+    var tokenUrl = '/.netlify/functions/livekit-token?action=viewer-token&room=' + encodeURIComponent(roomName);
+
+    // Get auth token, fetch participant token, then capture media and connect
+    getAuthToken().then(function (authToken) {
+      return fetch(tokenUrl, {
+        headers: authToken ? { 'Authorization': 'Bearer ' + authToken } : {}
+      });
+    })
+    .then(function (r) { return r.json(); })
+    .then(function (data) {
+      if (!data.ok) throw new Error(data.error || 'Token error');
+      return captureLocalMedia().then(function () {
+        return connectInteractive(data.wsUrl, data.token, roomName);
+      });
+    })
+    .catch(function (err) {
+      console.error('[live] Interactive join error:', err);
+      joinBtn.disabled = false;
+      joinBtn.textContent = T.join;
+      if (err.name === 'NotAllowedError') {
+        alert(T.permDenied);
+      } else {
+        alert(err.message);
+      }
+    });
+  }
+
+  function captureLocalMedia() {
+    return navigator.mediaDevices.getUserMedia({
+      video: { width: { ideal: 1280 }, height: { ideal: 720 } },
+      audio: true
+    }).then(function (stream) {
+      var vt = stream.getVideoTracks()[0];
+      var at = stream.getAudioTracks()[0];
+      if (vt) localVideoTrack = new LivekitClient.LocalVideoTrack(vt);
+      if (at) localAudioTrack = new LivekitClient.LocalAudioTrack(at);
+      cameraEnabled = !!vt;
+      micEnabled = !!at;
+    });
+  }
+
+  function connectInteractive(wsUrl, token, roomName) {
+    var room = new LivekitClient.Room({
+      adaptiveStream: true,
+      dynacast: true
+    });
+
+    livekitRoom = room;
+    currentRoomName = roomName;
+
+    // Track subscribed — remote participant's track
+    room.on(LivekitClient.RoomEvent.TrackSubscribed, function (track, publication, participant) {
+      console.log('[live-i] Track subscribed:', track.kind, participant.identity);
+      ensureParticipantTile(participant);
+      attachTrackToTile(track, participant);
+    });
+
+    room.on(LivekitClient.RoomEvent.TrackUnsubscribed, function (track, publication, participant) {
+      console.log('[live-i] Track unsubscribed:', track.kind, participant.identity);
+      detachTrackFromTile(track, participant);
+    });
+
+    // Track muted/unmuted
+    room.on(LivekitClient.RoomEvent.TrackMuted, function (publication, participant) {
+      updateTileMuteState(participant);
+    });
+
+    room.on(LivekitClient.RoomEvent.TrackUnmuted, function (publication, participant) {
+      updateTileMuteState(participant);
+    });
+
+    // Participant connected/disconnected
+    room.on(LivekitClient.RoomEvent.ParticipantConnected, function (participant) {
+      console.log('[live-i] Participant connected:', participant.identity);
+      ensureParticipantTile(participant);
+      updateParticipantCount();
+      addChatSystemMessage(getParticipantName(participant) + (isDa ? ' deltager' : ' joined'));
+    });
+
+    room.on(LivekitClient.RoomEvent.ParticipantDisconnected, function (participant) {
+      console.log('[live-i] Participant disconnected:', participant.identity);
+      removeParticipantTile(participant);
+      updateParticipantCount();
+      addChatSystemMessage(getParticipantName(participant) + (isDa ? ' forlod' : ' left'));
+    });
+
+    // Data messages (chat + raise hand)
+    room.on(LivekitClient.RoomEvent.DataReceived, function (payload, participant) {
+      try {
+        var msg = JSON.parse(new TextDecoder().decode(payload));
+        handleDataMessage(msg, participant);
+      } catch (e) {}
+    });
+
+    room.on(LivekitClient.RoomEvent.Disconnected, function () {
+      console.log('[live-i] Disconnected');
+      leaveInteractive(true);
+    });
+
+    return room.connect(wsUrl, token).then(function () {
+      console.log('[live-i] Connected, participants:', room.remoteParticipants.size);
+
+      isJoined = true;
+
+      // Show interactive UI
+      joinSection.style.display = 'none';
+      playerSection.style.display = 'none';
+      offlineSection.style.display = 'none';
+      interactiveSection.classList.add('yb-live-interactive--active');
+
+      // Create local participant tile
+      createLocalTile(room.localParticipant);
+
+      // Publish local tracks
+      var publishPromises = [];
+      if (localVideoTrack) {
+        publishPromises.push(
+          room.localParticipant.publishTrack(localVideoTrack, {
+            source: LivekitClient.Track.Source.Camera,
+            simulcast: true
+          })
+        );
+      }
+      if (localAudioTrack) {
+        publishPromises.push(
+          room.localParticipant.publishTrack(localAudioTrack, {
+            source: LivekitClient.Track.Source.Microphone
+          })
+        );
+      }
+
+      return Promise.all(publishPromises).then(function () {
+        console.log('[live-i] Local tracks published');
+
+        // Create tiles for existing participants
+        room.remoteParticipants.forEach(function (participant) {
+          ensureParticipantTile(participant);
+          participant.trackPublications.forEach(function (pub) {
+            if (pub.track && pub.isSubscribed) {
+              attachTrackToTile(pub.track, participant);
+            }
+          });
+        });
+
+        updateParticipantCount();
+        startElapsedTimer();
+        updateControlStates();
+      });
+    });
+  }
+
+  // ── Participant tile management ──
+
+  function getParticipantName(participant) {
+    if (!participant) return 'Unknown';
+    var meta = {};
+    try { meta = JSON.parse(participant.metadata || '{}'); } catch (e) {}
+    return meta.name || participant.name || participant.identity.split('-')[0] || 'Participant';
+  }
+
+  function createTileElement(identity, name, isLocal) {
+    var tile = document.createElement('div');
+    tile.className = 'yb-live-tile' + (isLocal ? ' yb-live-tile--local yb-live-tile--no-video' : ' yb-live-tile--no-video');
+    tile.id = 'yb-live-tile-' + identity;
+    tile.dataset.identity = identity;
+
+    // Avatar (shown when no video)
+    var avatar = document.createElement('div');
+    avatar.className = 'yb-live-tile__avatar';
+    avatar.textContent = (name || '?').charAt(0).toUpperCase();
+    tile.appendChild(avatar);
+
+    // Name label
+    var nameEl = document.createElement('div');
+    nameEl.className = 'yb-live-tile__name';
+    nameEl.textContent = isLocal ? T.you : name;
+    tile.appendChild(nameEl);
+
+    // Hand raised icon
+    var hand = document.createElement('div');
+    hand.className = 'yb-live-tile__hand';
+    hand.textContent = '✋';
+    tile.appendChild(hand);
+
+    // Muted indicator
+    var muted = document.createElement('div');
+    muted.className = 'yb-live-tile__muted';
+    muted.innerHTML = MIC_MUTED_SVG;
+    tile.appendChild(muted);
+
+    return tile;
+  }
+
+  function createLocalTile(localParticipant) {
+    var name = getParticipantName(localParticipant);
+    var tile = createTileElement(localParticipant.identity, name, true);
+
+    // Attach local video preview
+    if (localVideoTrack) {
+      var videoEl = localVideoTrack.attach();
+      videoEl.style.width = '100%';
+      videoEl.style.height = '100%';
+      videoEl.style.objectFit = 'cover';
+      videoEl.muted = true;
+      tile.insertBefore(videoEl, tile.firstChild);
+      tile.classList.remove('yb-live-tile--no-video');
+    }
+
+    participantTiles[localParticipant.identity] = tile;
+    gridEl.appendChild(tile);
+    updateGridLayout();
+  }
+
+  function ensureParticipantTile(participant) {
+    if (participantTiles[participant.identity]) return;
+    var name = getParticipantName(participant);
+    var tile = createTileElement(participant.identity, name, false);
+    participantTiles[participant.identity] = tile;
+    gridEl.appendChild(tile);
+    updateGridLayout();
+  }
+
+  function removeParticipantTile(participant) {
+    var tile = participantTiles[participant.identity];
+    if (tile && tile.parentNode) {
+      tile.parentNode.removeChild(tile);
+    }
+    delete participantTiles[participant.identity];
+    updateGridLayout();
+  }
+
+  function attachTrackToTile(track, participant) {
+    var tile = participantTiles[participant.identity];
+    if (!tile) return;
+
+    if (track.kind === 'video') {
+      // Remove existing video if any
+      var existingVideo = tile.querySelector('video');
+      if (existingVideo) existingVideo.remove();
+
+      var el = track.attach();
+      el.style.width = '100%';
+      el.style.height = '100%';
+      el.style.objectFit = 'cover';
+      tile.insertBefore(el, tile.firstChild);
+      tile.classList.remove('yb-live-tile--no-video');
+    } else if (track.kind === 'audio') {
+      var audioEl = track.attach();
+      audioEl.id = 'yb-live-audio-' + participant.identity;
+      audioEl.style.display = 'none';
+      tile.appendChild(audioEl);
+    }
+  }
+
+  function detachTrackFromTile(track, participant) {
+    if (track.kind === 'video') {
+      var tile = participantTiles[participant.identity];
+      var elements = track.detach();
+      for (var i = 0; i < elements.length; i++) {
+        if (elements[i].parentNode) elements[i].parentNode.removeChild(elements[i]);
+      }
+      if (tile) tile.classList.add('yb-live-tile--no-video');
+    } else if (track.kind === 'audio') {
+      var audioElements = track.detach();
+      for (var j = 0; j < audioElements.length; j++) {
+        if (audioElements[j].parentNode) audioElements[j].parentNode.removeChild(audioElements[j]);
+      }
+    }
+  }
+
+  function updateTileMuteState(participant) {
+    var tile = participantTiles[participant.identity];
+    if (!tile) return;
+
+    var isMicMuted = true;
+    participant.audioTrackPublications.forEach(function (pub) {
+      if (pub.track && !pub.isMuted) isMicMuted = false;
+    });
+
+    var mutedEl = tile.querySelector('.yb-live-tile__muted');
+    if (mutedEl) {
+      if (isMicMuted) {
+        mutedEl.classList.add('yb-live-tile__muted--visible');
+      } else {
+        mutedEl.classList.remove('yb-live-tile__muted--visible');
+      }
+    }
+  }
+
+  function updateGridLayout() {
+    var count = Object.keys(participantTiles).length;
+    gridEl.setAttribute('data-count', String(Math.min(count, 9)));
+  }
+
+  function updateParticipantCount() {
+    if (!participantsEl || !livekitRoom) return;
+    var count = livekitRoom.remoteParticipants.size + 1; // +1 for self
+    participantsEl.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg> '
+      + count + ' ' + T.participants;
+  }
+
+  // ── Controls ──
+
+  function toggleCamera() {
+    if (!livekitRoom || !isJoined) return;
+
+    if (cameraEnabled) {
+      livekitRoom.localParticipant.setCameraEnabled(false);
+      cameraEnabled = false;
+      // Update local tile
+      var localTile = participantTiles[livekitRoom.localParticipant.identity];
+      if (localTile) {
+        var vid = localTile.querySelector('video');
+        if (vid) vid.style.display = 'none';
+        localTile.classList.add('yb-live-tile--no-video');
+      }
+    } else {
+      livekitRoom.localParticipant.setCameraEnabled(true);
+      cameraEnabled = true;
+      var localTile2 = participantTiles[livekitRoom.localParticipant.identity];
+      if (localTile2) {
+        var vid2 = localTile2.querySelector('video');
+        if (vid2) vid2.style.display = '';
+        localTile2.classList.remove('yb-live-tile--no-video');
+      }
+    }
+    updateControlStates();
+  }
+
+  function toggleMic() {
+    if (!livekitRoom || !isJoined) return;
+
+    if (micEnabled) {
+      livekitRoom.localParticipant.setMicrophoneEnabled(false);
+      micEnabled = false;
+    } else {
+      livekitRoom.localParticipant.setMicrophoneEnabled(true);
+      micEnabled = true;
+    }
+    updateControlStates();
+  }
+
+  function toggleHand() {
+    handRaised = !handRaised;
+    updateControlStates();
+
+    // Update local tile hand icon
+    if (livekitRoom) {
+      var localTile = participantTiles[livekitRoom.localParticipant.identity];
+      if (localTile) {
+        var handEl = localTile.querySelector('.yb-live-tile__hand');
+        if (handEl) {
+          if (handRaised) handEl.classList.add('yb-live-tile__hand--visible');
+          else handEl.classList.remove('yb-live-tile__hand--visible');
+        }
+      }
+
+      // Broadcast hand state
+      sendDataMessage({ type: 'hand', raised: handRaised });
+    }
+  }
+
+  function toggleChat() {
+    chatOpen = !chatOpen;
+    if (chatOpen) {
+      chatPanel.classList.add('yb-live-chat--open');
+      unreadChat = 0;
+      updateChatBadge();
+      if (chatInput) chatInput.focus();
+    } else {
+      chatPanel.classList.remove('yb-live-chat--open');
+    }
+    updateControlStates();
+  }
+
+  function updateControlStates() {
+    if (btnCam) {
+      btnCam.className = 'yb-live-controls__btn' + (cameraEnabled ? ' yb-live-controls__btn--active' : ' yb-live-controls__btn--off');
+      btnCam.title = cameraEnabled ? T.camOn : T.camOff;
+      if (!cameraEnabled) {
+        btnCam.innerHTML = CAM_OFF_SVG;
+      } else {
+        btnCam.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 7l-7 5 7 5V7z"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>';
+      }
+    }
+    if (btnMic) {
+      btnMic.className = 'yb-live-controls__btn' + (micEnabled ? ' yb-live-controls__btn--active' : ' yb-live-controls__btn--off');
+      btnMic.title = micEnabled ? T.micOn : T.micOff;
+      if (!micEnabled) {
+        btnMic.innerHTML = MIC_OFF_SVG;
+      } else {
+        btnMic.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>';
+      }
+    }
+    if (btnHand) {
+      btnHand.className = 'yb-live-controls__btn' + (handRaised ? ' yb-live-controls__btn--active' : '');
+      btnHand.title = handRaised ? T.lower : T.raise;
+    }
+    if (btnChat) {
+      btnChat.className = 'yb-live-controls__btn' + (chatOpen ? ' yb-live-controls__btn--active' : '');
+    }
+  }
+
+  function updateChatBadge() {
+    if (!chatBadge) return;
+    if (unreadChat > 0 && !chatOpen) {
+      chatBadge.textContent = unreadChat > 9 ? '9+' : String(unreadChat);
+      chatBadge.classList.add('yb-live-controls__badge--visible');
+    } else {
+      chatBadge.classList.remove('yb-live-controls__badge--visible');
+    }
+  }
+
+  // ── Chat + data messages ──
+
+  function sendDataMessage(msg) {
+    if (!livekitRoom || !isJoined) return;
+    var data = new TextEncoder().encode(JSON.stringify(msg));
+    livekitRoom.localParticipant.publishData(data, { reliable: true });
+  }
+
+  function sendChat() {
+    var text = chatInput.value.trim();
+    if (!text) return;
+    chatInput.value = '';
+
+    sendDataMessage({ type: 'chat', text: text });
+
+    // Show own message locally
+    addChatMessage(T.you, text, true);
+  }
+
+  function handleDataMessage(msg, participant) {
+    if (msg.type === 'chat') {
+      var name = getParticipantName(participant);
+      addChatMessage(name, msg.text, false);
+      if (!chatOpen) {
+        unreadChat++;
+        updateChatBadge();
+      }
+    } else if (msg.type === 'hand') {
+      var tile = participant ? participantTiles[participant.identity] : null;
+      if (tile) {
+        var handEl = tile.querySelector('.yb-live-tile__hand');
+        if (handEl) {
+          if (msg.raised) handEl.classList.add('yb-live-tile__hand--visible');
+          else handEl.classList.remove('yb-live-tile__hand--visible');
+        }
+      }
+    }
+  }
+
+  function addChatMessage(name, text, isSelf) {
+    if (!chatMessages) return;
+    var div = document.createElement('div');
+    div.className = 'yb-live-chat__msg';
+    div.innerHTML = '<span class="yb-live-chat__msg-name" style="' + (isSelf ? 'color:#FFFCF9' : '') + '">' + esc(name) + '</span><span class="yb-live-chat__msg-text">' + esc(text) + '</span>';
+    chatMessages.appendChild(div);
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+  }
+
+  function addChatSystemMessage(text) {
+    if (!chatMessages) return;
+    var div = document.createElement('div');
+    div.className = 'yb-live-chat__msg yb-live-chat__msg--system';
+    div.textContent = text;
+    chatMessages.appendChild(div);
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+  }
+
+  // ── Leave ──
+
+  function leaveInteractive(wasDisconnected) {
+    if (!wasDisconnected && !confirm(T.leaveConfirm)) return;
+
+    isJoined = false;
+    isInteractive = false;
+    handRaised = false;
+    chatOpen = false;
+    unreadChat = 0;
+
+    // Stop local tracks
+    if (localVideoTrack) {
+      localVideoTrack.stop();
+      localVideoTrack = null;
+    }
+    if (localAudioTrack) {
+      localAudioTrack.stop();
+      localAudioTrack = null;
+    }
+
+    // Disconnect room
+    if (livekitRoom) {
+      livekitRoom.disconnect();
+      livekitRoom = null;
+      currentRoomName = null;
+    }
+
+    // Clear tiles
+    Object.keys(participantTiles).forEach(function (key) {
+      var tile = participantTiles[key];
+      if (tile && tile.parentNode) tile.parentNode.removeChild(tile);
+    });
+    participantTiles = {};
+
+    // Clear chat
+    if (chatMessages) chatMessages.innerHTML = '';
+    if (chatPanel) chatPanel.classList.remove('yb-live-chat--open');
+
+    // Reset UI
+    interactiveSection.classList.remove('yb-live-interactive--active');
+    joinSection.style.display = 'none';
+    stopElapsedTimer();
+
+    // Resume polling
+    showOffline();
+  }
+
+  // ── Control event listeners ──
+
+  if (btnCam) btnCam.addEventListener('click', toggleCamera);
+  if (btnMic) btnMic.addEventListener('click', toggleMic);
+  if (btnHand) btnHand.addEventListener('click', toggleHand);
+  if (btnChat) btnChat.addEventListener('click', toggleChat);
+  if (btnLeave) btnLeave.addEventListener('click', function () { leaveInteractive(false); });
+  if (chatCloseBtn) chatCloseBtn.addEventListener('click', toggleChat);
+  if (chatSendBtn) chatSendBtn.addEventListener('click', sendChat);
+  if (chatInput) chatInput.addEventListener('keydown', function (e) {
+    if (e.key === 'Enter') sendChat();
+  });
+  if (joinBtn) joinBtn.addEventListener('click', joinInteractive);
+
+  // ═══════════════════════════════════════════════════════
   // SHOW LIVE / OFFLINE
   // ═══════════════════════════════════════════════════════
 
@@ -215,6 +844,7 @@
     isStreamLive = true;
     playerSection.style.display = 'block';
     offlineSection.style.display = 'none';
+    joinSection.style.display = 'none';
     checkingOverlay.classList.add('yb-live-player__checking--hidden');
     badge.classList.add('yb-live-badge--visible');
     startElapsedTimer();
@@ -228,12 +858,14 @@
     isStreamLive = false;
     playerSection.style.display = 'none';
     offlineSection.style.display = 'block';
+    joinSection.style.display = 'none';
+    interactiveSection.classList.remove('yb-live-interactive--active');
     badge.classList.remove('yb-live-badge--visible');
     checkingOverlay.classList.add('yb-live-player__checking--hidden');
     cleanupMount();
     stopElapsedTimer();
 
-    if (livekitRoom) {
+    if (livekitRoom && !isJoined) {
       livekitRoom.disconnect();
       livekitRoom = null;
       currentRoomName = null;
@@ -246,9 +878,6 @@
   // STREAM CHECK — poll schedule for active rooms
   // ═══════════════════════════════════════════════════════
 
-  /**
-   * Mux HLS fallback for hardware encoder streams (ATEM Mini etc.)
-   */
   function showMuxPlayer(playbackId) {
     if (!mountEl) return;
     cleanupMount();
@@ -281,17 +910,19 @@
     showLive();
   }
 
-  function checkStream() {
-    var opts = { headers: {} };
-    var authPromise;
-
+  function getAuthToken() {
     if (typeof firebase !== 'undefined' && firebase.auth && firebase.auth().currentUser) {
-      authPromise = firebase.auth().currentUser.getIdToken();
-    } else {
-      authPromise = Promise.resolve(null);
+      return firebase.auth().currentUser.getIdToken();
     }
+    return Promise.resolve(null);
+  }
 
-    authPromise.then(function (token) {
+  function checkStream() {
+    if (isJoined) return; // Don't poll while in interactive session
+
+    var opts = { headers: {} };
+
+    getAuthToken().then(function (token) {
       if (token) opts.headers['Authorization'] = 'Bearer ' + token;
       return fetch('/.netlify/functions/live-admin?action=schedule', opts);
     })
@@ -312,7 +943,17 @@
       }
 
       if (liveSession) {
-        console.log('[live] Found live session:', liveSession.id, 'room:', liveSession.livekitRoom);
+        console.log('[live] Found live session:', liveSession.id, 'interactive:', !!liveSession.interactive);
+
+        // Interactive session → show join prompt
+        if (liveSession.interactive) {
+          isInteractive = true;
+          showInteractiveJoin(liveSession);
+          renderSchedule(data.items);
+          return;
+        }
+
+        // Normal viewer mode
         connectToRoom(liveSession.livekitRoom);
         renderSchedule(data.items);
         return;
@@ -360,12 +1001,6 @@
   // ═══════════════════════════════════════════════════════
   // SCHEDULE RENDERING
   // ═══════════════════════════════════════════════════════
-  function esc(s) {
-    var d = document.createElement('div');
-    d.textContent = s || '';
-    return d.innerHTML;
-  }
-
   function isToday(d) {
     var now = new Date();
     return d.getFullYear() === now.getFullYear() && d.getMonth() === now.getMonth() && d.getDate() === now.getDate();
@@ -409,12 +1044,12 @@
       var isLive = item.status === 'live';
 
       var dayLabel = '';
-      if (isToday(d)) dayLabel = tToday;
-      else if (isTomorrow(d)) dayLabel = tTomorrow;
+      if (isToday(d)) dayLabel = T.today;
+      else if (isTomorrow(d)) dayLabel = T.tomorrow;
 
       var tag = '';
       if (isLive) {
-        tag = '<span class="yb-live-schedule__tag yb-live-schedule__tag--live"><span class="yb-live-badge__dot"></span>' + tLiveNow + '</span>';
+        tag = '<span class="yb-live-schedule__tag yb-live-schedule__tag--live"><span class="yb-live-badge__dot"></span>' + T.liveNow + '</span>';
       } else {
         tag = '<span class="yb-live-schedule__tag yb-live-schedule__tag--upcoming">' + timeRange + '</span>';
       }

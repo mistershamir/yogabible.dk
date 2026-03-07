@@ -196,6 +196,10 @@
     $('yb-la-recurrence-end').value = (item && item.recurrence && item.recurrence.endDate) || '';
     $('yb-la-cohorts').value = (item && item.cohorts && item.cohorts.length) ? item.cohorts.join(', ') : '';
 
+    // Interactive toggle
+    var interactiveCb = $('yb-la-interactive');
+    if (interactiveCb) interactiveCb.checked = !!(item && item.interactive);
+
     // Start/end datetime-local
     if (item && item.startDateTime) {
       $('yb-la-start').value = item.startDateTime.slice(0, 16);
@@ -301,6 +305,10 @@
     } else {
       data.cohorts = [];
     }
+
+    // Interactive mode
+    var interactiveCb = $('yb-la-interactive');
+    data.interactive = interactiveCb ? interactiveCb.checked : false;
 
     var recType = $('yb-la-recurrence').value;
     if (recType !== 'none' && data.source === 'manual') {

@@ -430,13 +430,472 @@
       font-size: 0.9rem;
     }
   }
+
+  /* ═══════════════════════════════════════
+     INTERACTIVE MODE — Video grid + controls
+     ═══════════════════════════════════════ */
+
+  .yb-live-interactive {
+    display: none;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 1rem;
+  }
+
+  .yb-live-interactive--active {
+    display: flex;
+    gap: 0;
+  }
+
+  .yb-live-interactive__main {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* Video grid */
+  .yb-live-grid {
+    display: grid;
+    gap: 6px;
+    background: #0F0F0F;
+    border-radius: 12px;
+    overflow: hidden;
+    min-height: 400px;
+  }
+
+  .yb-live-grid[data-count="1"] { grid-template-columns: 1fr; }
+  .yb-live-grid[data-count="2"] { grid-template-columns: 1fr 1fr; }
+  .yb-live-grid[data-count="3"],
+  .yb-live-grid[data-count="4"] { grid-template-columns: 1fr 1fr; }
+  .yb-live-grid[data-count="5"],
+  .yb-live-grid[data-count="6"] { grid-template-columns: 1fr 1fr 1fr; }
+  .yb-live-grid[data-count="7"],
+  .yb-live-grid[data-count="8"],
+  .yb-live-grid[data-count="9"] { grid-template-columns: 1fr 1fr 1fr; }
+
+  .yb-live-tile {
+    position: relative;
+    background: #1a1a1a;
+    border-radius: 8px;
+    overflow: hidden;
+    aspect-ratio: 16 / 9;
+  }
+
+  .yb-live-tile video {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+
+  .yb-live-tile--local video {
+    transform: scaleX(-1);
+  }
+
+  .yb-live-tile--no-video {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .yb-live-tile__avatar {
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    background: rgba(247,92,3,0.15);
+    color: #f75c03;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    font-weight: 700;
+    text-transform: uppercase;
+  }
+
+  .yb-live-tile__name {
+    position: absolute;
+    bottom: 6px;
+    left: 8px;
+    background: rgba(0,0,0,0.65);
+    color: #FFFCF9;
+    font-size: 0.72rem;
+    padding: 2px 8px;
+    border-radius: 4px;
+    max-width: calc(100% - 16px);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .yb-live-tile__hand {
+    position: absolute;
+    top: 6px;
+    right: 8px;
+    font-size: 1.2rem;
+    display: none;
+    animation: yb-live-hand-wave 1s ease-in-out infinite alternate;
+  }
+
+  .yb-live-tile__hand--visible {
+    display: block;
+  }
+
+  @keyframes yb-live-hand-wave {
+    0% { transform: rotate(-10deg); }
+    100% { transform: rotate(20deg); }
+  }
+
+  .yb-live-tile__muted {
+    position: absolute;
+    top: 6px;
+    left: 8px;
+    background: rgba(0,0,0,0.6);
+    border-radius: 50%;
+    width: 24px;
+    height: 24px;
+    display: none;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .yb-live-tile__muted--visible {
+    display: flex;
+  }
+
+  /* Control bar */
+  .yb-live-controls {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.75rem;
+    padding: 0.75rem 0;
+  }
+
+  .yb-live-controls__btn {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+    background: #2a2a2a;
+    color: #FFFCF9;
+    font-family: inherit;
+    position: relative;
+  }
+
+  .yb-live-controls__btn:hover {
+    background: #3a3a3a;
+  }
+
+  .yb-live-controls__btn--active {
+    background: #f75c03;
+    color: #fff;
+  }
+
+  .yb-live-controls__btn--active:hover {
+    background: #d94f02;
+  }
+
+  .yb-live-controls__btn--off {
+    background: #ff453a;
+    color: #fff;
+  }
+
+  .yb-live-controls__btn--off:hover {
+    background: #cc3730;
+  }
+
+  .yb-live-controls__btn--leave {
+    background: #ff453a;
+    color: #fff;
+  }
+
+  .yb-live-controls__btn--leave:hover {
+    background: #cc3730;
+  }
+
+  .yb-live-controls__btn svg {
+    width: 20px;
+    height: 20px;
+  }
+
+  .yb-live-controls__badge {
+    position: absolute;
+    top: -2px;
+    right: -2px;
+    background: #f75c03;
+    color: #fff;
+    font-size: 0.6rem;
+    font-weight: 700;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    display: none;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .yb-live-controls__badge--visible {
+    display: flex;
+  }
+
+  /* Participant count */
+  .yb-live-participants {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.4rem;
+    padding: 0 0 0.25rem;
+    color: #6F6A66;
+    font-size: 0.75rem;
+  }
+
+  /* Chat panel */
+  .yb-live-chat {
+    width: 0;
+    overflow: hidden;
+    transition: width 0.3s ease;
+    background: #1a1a1a;
+    border-radius: 0 12px 12px 0;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .yb-live-chat--open {
+    width: 320px;
+    margin-left: 6px;
+  }
+
+  .yb-live-chat__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.75rem 1rem;
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+  }
+
+  .yb-live-chat__title {
+    color: #FFFCF9;
+    font-size: 0.9rem;
+    font-weight: 700;
+  }
+
+  .yb-live-chat__close {
+    background: none;
+    border: none;
+    color: #6F6A66;
+    cursor: pointer;
+    font-size: 1.2rem;
+    padding: 0;
+    line-height: 1;
+  }
+
+  .yb-live-chat__messages {
+    flex: 1;
+    overflow-y: auto;
+    padding: 0.75rem 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    min-height: 200px;
+    max-height: 500px;
+  }
+
+  .yb-live-chat__msg {
+    font-size: 0.82rem;
+    line-height: 1.4;
+  }
+
+  .yb-live-chat__msg-name {
+    font-weight: 700;
+    color: #f75c03;
+    margin-right: 0.35rem;
+  }
+
+  .yb-live-chat__msg-text {
+    color: #FFFCF9;
+  }
+
+  .yb-live-chat__msg--system {
+    color: #6F6A66;
+    font-size: 0.75rem;
+    font-style: italic;
+  }
+
+  .yb-live-chat__input-wrap {
+    display: flex;
+    gap: 0.5rem;
+    padding: 0.75rem 1rem;
+    border-top: 1px solid rgba(255,255,255,0.06);
+  }
+
+  .yb-live-chat__input {
+    flex: 1;
+    background: #0F0F0F;
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 8px;
+    color: #FFFCF9;
+    padding: 0.5rem 0.75rem;
+    font-family: inherit;
+    font-size: 0.82rem;
+    outline: none;
+  }
+
+  .yb-live-chat__input:focus {
+    border-color: #f75c03;
+  }
+
+  .yb-live-chat__send {
+    background: #f75c03;
+    border: none;
+    border-radius: 8px;
+    color: #fff;
+    padding: 0 0.75rem;
+    cursor: pointer;
+    font-family: inherit;
+    font-size: 0.82rem;
+    font-weight: 700;
+  }
+
+  .yb-live-chat__send:hover {
+    background: #d94f02;
+  }
+
+  /* Join prompt (shown before joining interactive session) */
+  .yb-live-join {
+    display: none;
+    max-width: 960px;
+    margin: 0 auto;
+    padding: 0 1.5rem;
+  }
+
+  .yb-live-join__card {
+    border-radius: 12px;
+    background: #1a1a1a;
+    padding: 3rem 2rem;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+  }
+
+  .yb-live-join__icon {
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    background: rgba(247,92,3,0.12);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 1.5rem;
+  }
+
+  .yb-live-join__title {
+    font-size: 1.3rem;
+    color: #FFFCF9;
+    margin: 0 0 0.75rem;
+  }
+
+  .yb-live-join__text {
+    color: #6F6A66;
+    max-width: 400px;
+    margin: 0 auto 1.5rem;
+    line-height: 1.6;
+    font-size: 0.95rem;
+  }
+
+  .yb-live-join__btn {
+    background: #f75c03;
+    color: #fff;
+    border: none;
+    padding: 0.75rem 2rem;
+    border-radius: 2rem;
+    cursor: pointer;
+    font-family: inherit;
+    font-size: 0.95rem;
+    font-weight: 700;
+    transition: background 0.2s ease;
+  }
+
+  .yb-live-join__btn:hover {
+    background: #d94f02;
+  }
+
+  .yb-live-join__btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  /* Mobile adjustments for interactive */
+  @media (max-width: 768px) {
+    .yb-live-interactive--active {
+      flex-direction: column;
+    }
+
+    .yb-live-chat--open {
+      width: 100%;
+      margin-left: 0;
+      margin-top: 6px;
+      max-height: 300px;
+    }
+
+    .yb-live-grid {
+      min-height: 250px;
+    }
+
+    .yb-live-controls__btn {
+      width: 42px;
+      height: 42px;
+    }
+
+    .yb-live-tile__avatar {
+      width: 48px;
+      height: 48px;
+      font-size: 1.1rem;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .yb-live-grid[data-count="3"],
+    .yb-live-grid[data-count="4"],
+    .yb-live-grid[data-count="5"],
+    .yb-live-grid[data-count="6"],
+    .yb-live-grid[data-count="7"],
+    .yb-live-grid[data-count="8"],
+    .yb-live-grid[data-count="9"] {
+      grid-template-columns: 1fr 1fr;
+    }
+  }
 </style>
 
 <div class="yb-live" id="yb-live" data-env-key="{{ mux.env_key }}" data-lang="{{ lang or 'da' }}"
   data-t-today="{{ t.schedule_today }}"
   data-t-tomorrow="{{ t.schedule_tomorrow }}"
   data-t-live-now="{{ t.schedule_live_now }}"
-  data-t-empty="{{ t.schedule_empty }}">
+  data-t-empty="{{ t.schedule_empty }}"
+  data-t-join="{{ t.interactive_join }}"
+  data-t-joining="{{ t.interactive_joining }}"
+  data-t-cam-on="{{ t.interactive_camera_on }}"
+  data-t-cam-off="{{ t.interactive_camera_off }}"
+  data-t-mic-on="{{ t.interactive_mic_on }}"
+  data-t-mic-off="{{ t.interactive_mic_off }}"
+  data-t-raise="{{ t.interactive_raise_hand }}"
+  data-t-lower="{{ t.interactive_lower_hand }}"
+  data-t-chat="{{ t.interactive_chat }}"
+  data-t-leave="{{ t.interactive_leave }}"
+  data-t-leave-confirm="{{ t.interactive_leave_confirm }}"
+  data-t-chat-placeholder="{{ t.interactive_chat_placeholder }}"
+  data-t-you="{{ t.interactive_you }}"
+  data-t-login-required="{{ t.interactive_login_required }}"
+  data-t-perm-denied="{{ t.interactive_permission_denied }}"
+  data-t-participants="{{ t.interactive_participants }}">
 
   <div class="yb-live-hero">
     <p class="yb-live-hero__tagline">{{ t.hero_tagline }}</p>
@@ -463,6 +922,69 @@
       </svg>
       <span class="yb-live-elapsed__label">{{ t.elapsed_label }}</span>
       <span class="yb-live-elapsed__time" id="yb-live-elapsed-time">00:00</span>
+    </div>
+  </div>
+
+  {# Interactive: Join prompt (shown before student joins) #}
+  <div class="yb-live-join" id="yb-live-join">
+    <div class="yb-live-join__card">
+      <div class="yb-live-join__icon">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#f75c03" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M23 7l-7 5 7 5V7z"/>
+          <rect x="1" y="5" width="15" height="14" rx="2" ry="2"/>
+        </svg>
+      </div>
+      <h2 class="yb-live-join__title" id="yb-live-join-title"></h2>
+      <p class="yb-live-join__text" id="yb-live-join-text"></p>
+      <button class="yb-live-join__btn" id="yb-live-join-btn"></button>
+    </div>
+  </div>
+
+  {# Interactive: Video grid + controls + chat #}
+  <div class="yb-live-interactive" id="yb-live-interactive">
+    <div class="yb-live-interactive__main">
+      <div class="yb-live-grid" id="yb-live-grid" data-count="0"></div>
+      <div class="yb-live-participants" id="yb-live-participants"></div>
+      <div class="yb-live-controls" id="yb-live-controls">
+        <button class="yb-live-controls__btn yb-live-controls__btn--active" id="yb-live-btn-cam" title="{{ t.interactive_camera_on }}">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M23 7l-7 5 7 5V7z"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/>
+          </svg>
+        </button>
+        <button class="yb-live-controls__btn yb-live-controls__btn--active" id="yb-live-btn-mic" title="{{ t.interactive_mic_on }}">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/>
+          </svg>
+        </button>
+        <button class="yb-live-controls__btn" id="yb-live-btn-hand" title="{{ t.interactive_raise_hand }}">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M18 11V6a2 2 0 0 0-4 0"/><path d="M14 10V4a2 2 0 0 0-4 0v7"/><path d="M10 10.5V2a2 2 0 0 0-4 0v11"/><path d="M18 8a2 2 0 0 1 4 0v7a8 8 0 0 1-8 8h-2c-2.77 0-4.47-.93-6.28-2.72L2.34 16.9a2 2 0 0 1 2.83-2.83L8 17"/>
+          </svg>
+        </button>
+        <button class="yb-live-controls__btn" id="yb-live-btn-chat" title="{{ t.interactive_chat }}">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+          </svg>
+          <span class="yb-live-controls__badge" id="yb-live-chat-badge">0</span>
+        </button>
+        <button class="yb-live-controls__btn yb-live-controls__btn--leave" id="yb-live-btn-leave" title="{{ t.interactive_leave }}">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M10.68 13.31a16 16 0 0 0 3.41 2.6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7 2 2 0 0 1 1.72 2v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.42 19.42 0 0 1-5.33-5.33A19.79 19.79 0 0 1 2.8 5.18 2 2 0 0 1 4.8 3h3a2 2 0 0 1 2 1.72c.13.88.37 1.85.7 2.81a2 2 0 0 1-.45 2.11z"/>
+            <line x1="1" y1="1" x2="23" y2="23"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+    <div class="yb-live-chat" id="yb-live-chat">
+      <div class="yb-live-chat__header">
+        <span class="yb-live-chat__title">{{ t.interactive_chat }}</span>
+        <button class="yb-live-chat__close" id="yb-live-chat-close">&times;</button>
+      </div>
+      <div class="yb-live-chat__messages" id="yb-live-chat-messages"></div>
+      <div class="yb-live-chat__input-wrap">
+        <input class="yb-live-chat__input" id="yb-live-chat-input" type="text" placeholder="{{ t.interactive_chat_placeholder }}" autocomplete="off">
+        <button class="yb-live-chat__send" id="yb-live-chat-send">&#10148;</button>
+      </div>
     </div>
   </div>
 

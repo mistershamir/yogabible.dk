@@ -265,6 +265,14 @@
       <p style="font-size:0.8rem;color:#6F6A66;margin:0.25rem 0 0">{{ t.live_cohorts_help }}</p>
     </div>
 
+    {# Interactive (two-way video) #}
+    <div class="yb-admin__field">
+      <label class="yb-admin__checkbox-label" style="font-weight:600">
+        <input type="checkbox" id="yb-la-interactive"> {{ t.live_field_interactive or "Interactive (two-way video)" }}
+      </label>
+      <p style="font-size:0.8rem;color:#6F6A66;margin:0.25rem 0 0">{{ t.live_interactive_help or "Students can join with camera & microphone (Zoom-style group call)" }}</p>
+    </div>
+
     {# Access: Roles #}
     <div class="yb-admin__field">
       <label>{{ t.live_field_access_roles }}</label>
