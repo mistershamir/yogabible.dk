@@ -515,8 +515,11 @@ function claudeRequest(messages, systemPrompt) {
 
 function generateSummaryAndQuiz(transcript, title, instructor) {
   // Detect language from transcript
-  var daWords = ['og', 'med', 'fra', 'til', 'din', 'det', 'som', 'men', 'har', 'den', 'ikke', 'kan', 'skal', 'godt', 'ind', 'ud', 'hold', 'pust', 'ånd', 'stræk', 'krop', 'ben', 'arme', 'ryg'];
-  var enWords = ['the', 'and', 'with', 'from', 'your', 'that', 'this', 'but', 'have', 'not', 'can', 'breathe', 'stretch', 'body', 'arms', 'legs', 'hold', 'inhale', 'exhale'];
+  // Use only unambiguous words (no overlap between languages)
+  // Danish-only words (never appear in English yoga instruction)
+  var daWords = ['og', 'til', 'din', 'det', 'som', 'har', 'den', 'ikke', 'kan', 'skal', 'godt', 'pust', 'ånd', 'stræk', 'krop', 'ben', 'arme', 'ryg', 'vi', 'jer', 'dig', 'ser', 'ned', 'op', 'er', 'en', 'et', 'jeg', 'nu', 'lige', 'også', 'så', 'bare', 'igen', 'lidt', 'helt', 'venstre', 'højre'];
+  // English-only words (never appear in Danish yoga instruction)
+  var enWords = ['the', 'and', 'your', 'you', 'that', 'this', 'have', 'not', 'breathe', 'stretch', 'body', 'arms', 'legs', 'inhale', 'exhale', 'is', 'are', 'we', 'go', 'into', 'let', 'just', 'now', 'right', 'left', 'down', 'up', 'here', 'feel', 'bring', 'keep', 'through', 'then', 'going', 'want', 'make', 'take', 'come'];
 
   var words = transcript.toLowerCase().split(/\s+/).slice(0, 500);
   var daScore = 0, enScore = 0;
@@ -524,7 +527,9 @@ function generateSummaryAndQuiz(transcript, title, instructor) {
     if (daWords.indexOf(words[i]) !== -1) daScore++;
     if (enWords.indexOf(words[i]) !== -1) enScore++;
   }
-  var lang = daScore >= enScore ? 'da' : 'en';
+  // Default to English on tie (most yoga instruction is English)
+  var lang = daScore > enScore ? 'da' : 'en';
+  console.log('[ai-backfill] Language detection — DA:', daScore, 'EN:', enScore, '→', lang);
 
   var systemPrompt = lang === 'da'
     ? 'Du er en yogaekspert, der hjælper med at opsummere yogaklasser og lave quizzer. Svar KUN på dansk. Svar i valid JSON.'
