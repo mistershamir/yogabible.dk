@@ -209,7 +209,7 @@
   // ═══════════════════════════════════════════════════════
   function getConstraints() {
     var quality = qualitySelect ? qualitySelect.value : '720';
-    var videoConstraints = { facingMode: 'user' };
+    var videoConstraints = {};
 
     if (quality === '1080') {
       videoConstraints.width = { ideal: 1920 };
