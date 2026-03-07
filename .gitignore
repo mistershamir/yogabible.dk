@@ -5,6 +5,9 @@ node_modules/
 .env
 create-cloudinary-folders.js
 
+# Firebase private key (written at build time by scripts/write-firebase-key.js)
+netlify/functions/shared/firebase-key.pem
+
 # Local Netlify folder
 .netlify
 

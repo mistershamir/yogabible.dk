@@ -220,15 +220,22 @@ async function logInteraction(data) {
   console.log('[ig-api] Interaction:', JSON.stringify(entry));
 
   // Firestore REST API write (if credentials available)
-  if (!process.env.FIREBASE_CLIENT_EMAIL || !process.env.FIREBASE_PRIVATE_KEY) {
-    console.log('[ig-api] No FIREBASE_CLIENT_EMAIL/FIREBASE_PRIVATE_KEY — skipping Firestore write');
+  const fs = require('fs');
+  const keyFile = require('path').join(__dirname, 'firebase-key.pem');
+  let privateKey;
+  try { privateKey = fs.readFileSync(keyFile, 'utf8'); } catch (e) {
+    privateKey = process.env.FIREBASE_PRIVATE_KEY ? process.env.FIREBASE_PRIVATE_KEY.replace(/\\n/g, '\n') : null;
+  }
+
+  if (!process.env.FIREBASE_CLIENT_EMAIL || !privateKey) {
+    console.log('[ig-api] No Firebase credentials — skipping Firestore write');
     return;
   }
 
   try {
     const serviceAccount = {
       client_email: process.env.FIREBASE_CLIENT_EMAIL,
-      private_key: process.env.FIREBASE_PRIVATE_KEY.replace(/\\n/g, '\n')
+      private_key: privateKey
     };
 
     // Create JWT for Firestore access
