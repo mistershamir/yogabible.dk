@@ -496,6 +496,8 @@ Current products:
 - **Teacher Training (5):** 100078, 100121, 100211, 100209, 100210 — all 3750 DKK
 - **Courses (3):** 100145, 100150, 100140 — all 2300 DKK
 
+**WARNING:** `ytt-funnel.js` line 33 contains a test product (`100203: Test Klippekort`) marked "REMOVE before production". Do NOT use in live checkout flows.
+
 #### CSS Class Prefix
 
 All checkout flow modal styles use the `ycf-` prefix:
