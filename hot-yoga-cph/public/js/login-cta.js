@@ -295,7 +295,7 @@
 
       // ── CTA button ──────────────────────────────────────────────
       // Override Framer srcdoc defaults (body { display:flex } and * { box-sizing:border-box })
-      'html,body{margin:0;padding:0;min-height:0;overflow:visible}',
+      'html,body{margin:0;padding:0;min-height:0;overflow:visible;background:transparent}',
       '.hyc-cta{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;display:inline-flex;align-items:center;gap:0.5rem;-webkit-font-smoothing:antialiased;overflow:visible}',
       '.hyc-cta__btn{display:inline-flex;align-items:center;gap:0.4rem;padding:0.55rem 1.25rem;border-radius:999px;font-family:inherit;font-size:0.88rem;font-weight:700;text-decoration:none;border:1.5px solid transparent;cursor:pointer;transition:all .2s;white-space:nowrap;line-height:1.2;box-sizing:content-box}',
       '.hyc-cta__btn svg{width:16px;height:16px;flex-shrink:0}',
