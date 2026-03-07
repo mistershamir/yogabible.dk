@@ -150,6 +150,57 @@ Every page follows this pattern — **no exceptions**:
 
 ---
 
+## AI Lead Management Agent
+
+The project includes a Python AI agent that manages YTT leads via Telegram. It lives in `lead-agent/` and runs 24/7 on a Mac Mini.
+
+### Key Files
+
+| File | Purpose |
+|------|---------|
+| `lead-agent/agent.py` | Main entry — Telegram bot + APScheduler + Firestore real-time listener |
+| `lead-agent/knowledge.py` | Builds the agent's system prompt from project files + Firestore knowledge base |
+| `lead-agent/scheduler.py` | Drip email/SMS sequence logic (5 steps over 10 days) |
+| `lead-agent/monitor.py` | Uptime monitoring — startup/shutdown/error Telegram notifications |
+| `lead-agent/tools/firestore.py` | Firestore CRUD — leads, drip status, notes, pipeline stats |
+| `lead-agent/tools/email.py` | Email sending — welcome, drip templates, custom emails via Gmail |
+| `lead-agent/tools/sms.py` | SMS via GatewayAPI |
+| `lead-agent/tools/telegram.py` | Telegram bot helpers — send messages, inline keyboards |
+
+### How It Works
+
+1. **Firestore listener** watches the `leads` collection for new leads
+2. **Telegram notifies** Shamir when a new lead arrives (with action buttons)
+3. **Drip scheduler** (APScheduler) sends email/SMS sequences: Day 0, 2-3, 5, 7, 10
+4. **Shamir chats** via Telegram to pause drips, update leads, send custom emails
+5. **Claude API** (Anthropic) processes natural language commands with tool-use
+
+### Dynamic Knowledge Base
+
+The agent's system prompt is built from two sources:
+
+1. **Static knowledge** — hardcoded in `knowledge.py` (business info, programs, workflow rules)
+2. **Dynamic knowledge** — fetched from Firestore `agent_knowledge` collection at prompt build time
+
+Admin manages dynamic knowledge via `/admin/` → **Knowledge** tab → 3 brand tabs (Yoga Bible, Hot Yoga CPH, Vibro Yoga). Each brand's sections are injected into the respective agent's system prompt.
+
+**API:** `knowledge-admin.js` Netlify function (admin-auth protected CRUD)
+
+**For future agents (HYC, Vibro):** Call `get_knowledge_for_brand('hot-yoga-cph')` from `knowledge.py` to get that brand's knowledge sections.
+
+### Running the Agent
+
+```bash
+cd lead-agent
+pip install -r requirements.txt
+cp .env.example .env  # Fill in API keys
+python agent.py           # Telegram bot mode
+python agent.py --cli     # Terminal mode (testing)
+python agent.py --daemon  # launchd daemon mode
+```
+
+---
+
 ## Store & Checkout System
 
 ### Terminology (MANDATORY)
