@@ -10142,6 +10142,12 @@ button.yb-btn--outline-white:hover {
   box-shadow: 0 0 0 3px rgba(247, 92, 3, 0.12);
 }
 
+.yb-auth-hint {
+  font-size: 0.78rem;
+  color: #6F6A66;
+  margin-top: -2px;
+}
+
 .yb-auth-field__select {
   font-family: var(--font-primary);
   font-size: 0.95rem;

@@ -479,6 +479,7 @@
       '.yb-auth-field input{font-family:inherit;font-size:.95rem;padding:12px 16px;border:1px solid ' + BRAND + ';border-radius:12px;background:#fff;color:#0F0F0F;transition:border-color .15s,box-shadow .15s;outline:none;width:100%;min-width:0;box-sizing:border-box}',
       '.yb-auth-field input::placeholder{color:#B5B0AB}',
       '.yb-auth-field input:focus{border-color:' + BRAND + ';box-shadow:0 0 0 3px ' + BRAND_RGBA12 + '}',
+      '.yb-auth-hint{font-size:.78rem;color:#6F6A66;margin-top:-2px}',
       '.yb-auth-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;overflow:hidden}',
 
       // ── Submit button — teal ─────────────────────────────────────
@@ -860,6 +861,8 @@
     h +=       '<label for="ycf-reg-email" data-yj-da>Email</label>';
     h +=       '<label for="ycf-reg-email" data-yj-en hidden>Email</label>';
     h +=       '<input type="email" id="ycf-reg-email" required autocomplete="email" placeholder="din@email.dk">';
+    h +=       '<small class="yb-auth-hint" data-yj-da>Allerede medlem? Brug den samme email som i appen</small>';
+    h +=       '<small class="yb-auth-hint" data-yj-en hidden>Already a member? Use the same email as in the app</small>';
     h +=     '</div>';
     h +=     '<div class="yb-auth-field">';
     h +=       '<label for="ycf-reg-phone" data-yj-da>Telefon</label>';
@@ -1311,35 +1314,9 @@
   // ── 3G: Firebase Auth Functions ─────────────────────────────────────
 
   function doLogin(email, password, callback) {
-    // Mindbody is the source of truth — validate there first.
-    // On success: Firebase is synced and a custom token signs the user in,
-    // bypassing Firebase rate limits entirely.
-    // On failure: fall back to Firebase password auth (handles post-reset users
-    // whose Firebase password was changed independently of Mindbody).
-    fetch(API_BASE + '/mb-auth', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email: email, password: password })
-    })
-      .then(function (res) { return res.json(); })
-      .then(function (data) {
-        if (data.customToken) {
-          // Mindbody validated — sign in with custom token (immune to rate limiting)
-          return firebase.auth().signInWithCustomToken(data.customToken)
-            .then(function () { callback(null); })
-            .catch(function (err) { callback(err); });
-        }
-        // MB failed or no token — try Firebase (handles post-password-reset users)
-        return firebase.auth().signInWithEmailAndPassword(email, password)
-          .then(function () { callback(null); })
-          .catch(function (err) { callback(err); });
-      })
-      .catch(function () {
-        // mb-auth network error — fall back to Firebase directly
-        return firebase.auth().signInWithEmailAndPassword(email, password)
-          .then(function () { callback(null); })
-          .catch(function (err) { callback(err); });
-      });
+    firebase.auth().signInWithEmailAndPassword(email, password)
+      .then(function () { callback(null); })
+      .catch(function (err) { callback(err); });
   }
 
   function doRegister(email, password, firstName, lastName, phone, callback) {

@@ -163,35 +163,9 @@
   // ═══════════════════════════════════════════════════════════════════
 
   function doLogin(email, password, callback) {
-    // Mindbody is the source of truth — validate there first.
-    // On success: Firebase is synced and a custom token signs the user in,
-    // bypassing Firebase rate limits entirely.
-    // On failure: fall back to Firebase password auth (handles post-reset users
-    // whose Firebase password was changed independently of Mindbody).
-    fetch(API_BASE + '/mb-auth', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email: email, password: password })
-    })
-      .then(function (res) { return res.json(); })
-      .then(function (data) {
-        if (data.customToken) {
-          // Mindbody validated — sign in with custom token (immune to rate limiting)
-          return firebase.auth().signInWithCustomToken(data.customToken)
-            .then(function () { callback(null); })
-            .catch(function (err) { callback(err); });
-        }
-        // MB failed or no token — try Firebase (handles post-password-reset users)
-        return firebase.auth().signInWithEmailAndPassword(email, password)
-          .then(function () { callback(null); })
-          .catch(function (err) { callback(err); });
-      })
-      .catch(function () {
-        // mb-auth network error — fall back to Firebase directly
-        return firebase.auth().signInWithEmailAndPassword(email, password)
-          .then(function () { callback(null); })
-          .catch(function (err) { callback(err); });
-      });
+    firebase.auth().signInWithEmailAndPassword(email, password)
+      .then(function () { callback(null); })
+      .catch(function (err) { callback(err); });
   }
 
   function doRegister(email, password, firstName, lastName, phone, callback) {
