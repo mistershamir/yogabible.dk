@@ -248,10 +248,29 @@ async function handleViewerToken(event, params) {
     return jsonResponse(400, { ok: false, error: 'room parameter is required' });
   }
 
-  // Optional auth — viewers can be anonymous
+  // Check if session is interactive — extract sessionId from room name (yb-live-{sessionId})
+  var isInteractive = false;
+  var sessionId = roomName.replace('yb-live-', '');
+  if (sessionId && sessionId !== roomName) {
+    try {
+      var session = await getDoc(COLLECTION, sessionId);
+      if (session && session.interactive) {
+        isInteractive = true;
+      }
+    } catch (err) {
+      console.log('[livekit-token] Could not check session interactive flag:', err.message);
+    }
+  }
+
+  // Optional auth — viewers can be anonymous (but interactive requires auth)
   var user = await optionalAuth(event);
+
+  if (isInteractive && !user) {
+    return jsonResponse(401, { ok: false, error: 'Authentication required for interactive sessions' });
+  }
+
   var identity = user
-    ? 'viewer-' + user.uid
+    ? (isInteractive ? 'participant-' : 'viewer-') + user.uid
     : 'anon-' + Math.random().toString(36).substring(2, 10);
   var displayName = user
     ? (user.email || '').split('@')[0]
@@ -261,7 +280,7 @@ async function handleViewerToken(event, params) {
     identity: identity,
     name: displayName,
     room: roomName,
-    canPublish: false,
+    canPublish: isInteractive,
     canSubscribe: true,
     ttl: 21600
   });
@@ -272,7 +291,8 @@ async function handleViewerToken(event, params) {
     ok: true,
     token: token,
     wsUrl: wsUrl,
-    roomName: roomName
+    roomName: roomName,
+    interactive: isInteractive
   });
 }
 
