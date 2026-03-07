@@ -5,6 +5,7 @@
  *   ?debug=1    — Show status of all sessions (read-only)
  *   ?reconcile=1 — Find missing recordings from Mux and link them to Firestore sessions
  *   ?check=1    — Phase 2: check if Mux captions are ready, download transcript, run Claude
+ *   ?retranscribe=SESSION_ID — Delete old subtitle track, re-request captions from Mux (use ?check=1 after)
  *   (default)   — Phase 1: trigger caption requests for sessions with recordings but no AI data
  *
  * All modes require: ?secret=YOUR_AI_INTERNAL_SECRET
@@ -244,6 +245,84 @@ exports.handler = async function (event) {
         resetResults.push({ id: resettable[r].id, title: resettable[r].title_da || '', oldStatus: resettable[r].aiStatus, newStatus: 'error' });
       }
       return jsonResponse(200, { ok: true, message: 'Reset ' + resetResults.length + ' sessions. Now run default mode.', results: resetResults });
+    }
+
+    // ── Retranscribe mode: delete old subtitle track, re-request captions from Mux ──
+    // ?retranscribe=SESSION_ID  — then use ?check=1 after a few minutes to process
+    if (params.retranscribe) {
+      var sessId = params.retranscribe;
+      var sess = all.find(function (item) { return item.id === sessId; });
+      if (!sess) {
+        return jsonResponse(404, { ok: false, error: 'Session not found: ' + sessId });
+      }
+      if (!sess.recordingAssetId) {
+        return jsonResponse(400, { ok: false, error: 'Session has no recording asset' });
+      }
+
+      // Step 1: Get current tracks on the asset
+      var assetResult = await muxRequest('GET', '/video/v1/assets/' + sess.recordingAssetId);
+      var tracks = (assetResult.data && assetResult.data.tracks) || [];
+      var deletedTracks = [];
+
+      // Step 2: Delete any existing subtitle tracks
+      for (var dt = 0; dt < tracks.length; dt++) {
+        if (tracks[dt].type === 'text' && tracks[dt].text_type === 'subtitles') {
+          try {
+            await muxRequest('DELETE', '/video/v1/assets/' + sess.recordingAssetId + '/tracks/' + tracks[dt].id);
+            deletedTracks.push(tracks[dt].id);
+            console.log('[ai-backfill] Deleted subtitle track:', tracks[dt].id);
+          } catch (delErr) {
+            console.error('[ai-backfill] Failed to delete track', tracks[dt].id, ':', delErr.message);
+          }
+        }
+      }
+
+      // Step 3: Find the audio track and request fresh captions
+      var audioTrackId = null;
+      for (var at = 0; at < tracks.length; at++) {
+        if (tracks[at].type === 'audio') {
+          audioTrackId = tracks[at].id;
+          break;
+        }
+      }
+
+      if (!audioTrackId) {
+        return jsonResponse(400, { ok: false, error: 'No audio track found on asset' });
+      }
+
+      var captionResult = await muxRequest('POST',
+        '/video/v1/assets/' + sess.recordingAssetId + '/tracks/' + audioTrackId + '/generate-subtitles',
+        {
+          generated_subtitles: [{
+            language_code: 'en',
+            name: 'English CC'
+          }]
+        }
+      );
+
+      // Get the new track ID
+      var newTrackId = null;
+      var newTracks = captionResult.data || [];
+      if (Array.isArray(newTracks) && newTracks.length > 0) {
+        newTrackId = newTracks[0].id;
+      }
+
+      // Update session status so ?check=1 picks it up
+      await updateDoc(COLLECTION, sessId, {
+        aiStatus: 'captions_requested',
+        aiCaptionTrackId: newTrackId,
+        aiError: null
+      });
+
+      console.log('[ai-backfill] Retranscribe:', sessId, '— deleted', deletedTracks.length, 'old tracks, new track:', newTrackId);
+
+      return jsonResponse(200, {
+        ok: true,
+        message: 'Deleted ' + deletedTracks.length + ' old subtitle track(s) and requested fresh captions. Wait 2-3 minutes then call ?check=1 to process.',
+        sessionId: sessId,
+        deletedTracks: deletedTracks,
+        newTrackId: newTrackId
+      });
     }
 
     // ── Check mode (Phase 2): check if Mux captions are ready, download + Claude ──
