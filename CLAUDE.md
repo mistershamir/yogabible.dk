@@ -325,9 +325,14 @@ yoga-bible-DK/
 ├── studio/           ← studio facility photos (hot room, main room)
 ├── location/         ← venue/location photos
 ├── courses/          ← course hero images
-│   └── inversions/   ← inversions course specific
+│   ├── inversions/   ← inversions course specific
+│   ├── backbends/    ← backbends course specific
+│   └── splits/       ← splits course specific
 ├── programs/         ← program pages
-│   └── p4w/          ← 4-week program (accommodation, certificates)
+│   ├── p4w/          ← 4-week program (accommodation, certificates)
+│   ├── p8w/          ← 8-week semi-intensive program
+│   ├── p18w/         ← 18-week flexible program
+│   └── om200/        ← about 200-hour YTT overview
 ├── accommodation/    ← student housing photos
 ├── concepts/         ← concept pages
 │   ├── hotyoga/      ← Hot Yoga CPH images & videos
@@ -339,9 +344,20 @@ yoga-bible-DK/
 ├── compare/          ← teacher comparison avatars
 ├── mentorship/       ← mentorship page images
 ├── link/             ← link page hero & video
-├── schedule/         ← schedule page images
+├── schedule/         ← schedule page shared assets
+├── schedule-pages/   ← variant-specific schedule images
+│   ├── 4w/           ← 4-week schedule hero/OG
+│   ├── 8w/           ← 8-week schedule hero/OG
+│   ├── 18w/          ← 18-week schedule hero/OG
+│   └── 4w-jul/       ← 4-week July schedule hero/OG
 ├── member/           ← member area images
-└── journal/          ← blog post featured images
+├── journal/          ← blog post featured images
+├── materials/        ← course materials (doc-admin browser)
+├── tutorials/        ← video tutorial assets
+│   └── homepage/     ← homepage tutorial videos
+├── yogamusic/        ← yoga music page videos & posters
+└── yogaphotography/  ← photography page images
+    └── models/       ← model showcase photos
 ```
 
 ### Auto-Create Cloudinary Folder for New Pages (MANDATORY)
