@@ -632,8 +632,8 @@
               var el = $('ycf-login-error');
               if (el) {
                 el.innerHTML = isDa
-                  ? 'Vi kunne ikke finde en konto med disse oplysninger. Bruger du vores app? <a href="#" data-ycf-action="register" style="color:inherit;font-weight:700;text-decoration:underline">Opret profil</a> med samme email. Har du allerede en konto her? <a href="#" data-ycf-action="forgot" style="color:inherit;font-weight:700;text-decoration:underline">Nulstil adgangskode &rarr;</a>'
-                  : 'We couldn\'t find an account with these details. Already using our app? <a href="#" data-ycf-action="register" style="color:inherit;font-weight:700;text-decoration:underline">Create a profile</a> with the same email. Already have one here? <a href="#" data-ycf-action="forgot" style="color:inherit;font-weight:700;text-decoration:underline">Reset password &rarr;</a>';
+                  ? 'Vi kunne ikke finde en konto med disse oplysninger. Allerede klient hos os? <a href="#" data-ycf-action="register" style="color:inherit;font-weight:700;text-decoration:underline">Opret profil</a> med samme email som du booker med. Har du allerede en konto her? <a href="#" data-ycf-action="forgot" style="color:inherit;font-weight:700;text-decoration:underline">Nulstil adgangskode &rarr;</a>'
+                  : 'We couldn\'t find an account with these details. Already a client? <a href="#" data-ycf-action="register" style="color:inherit;font-weight:700;text-decoration:underline">Create a profile</a> with the same email you book with. Already have one here? <a href="#" data-ycf-action="forgot" style="color:inherit;font-weight:700;text-decoration:underline">Reset password &rarr;</a>';
                 el.hidden = false;
               }
             } else {
