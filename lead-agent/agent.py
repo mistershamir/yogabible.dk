@@ -27,7 +27,11 @@ from tools.firestore import (
     get_new_leads, get_lead_by_email, get_lead_by_name,
     update_lead, add_lead_note, get_drip_status,
     pause_drip, resume_drip, listen_new_leads,
-    get_pipeline_stats, get_stale_leads
+    get_pipeline_stats, get_stale_leads,
+    get_upcoming_appointments, get_appointment, find_appointment_by_client,
+    update_appointment, cancel_appointment, reschedule_appointment,
+    confirm_appointment_request, get_pending_requests, get_todays_appointments,
+    listen_new_appointments
 )
 from tools.email import (
     send_email, build_drip_email, build_welcome_email,
@@ -228,6 +232,93 @@ TOOLS = [
             },
             "required": ["to_phone", "message", "delay_minutes"]
         }
+    },
+    # ── Appointment tools ──────────────────────────────
+    {
+        "name": "get_upcoming_appointments",
+        "description": "Get confirmed appointments in the next N days (default 7). Shows client name, type, date, time, phone, location.",
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "days": {"type": "number", "description": "Number of days ahead to look (default 7)"}
+            }
+        }
+    },
+    {
+        "name": "get_todays_appointments",
+        "description": "Get all confirmed appointments for today, sorted by time.",
+        "input_schema": {
+            "type": "object",
+            "properties": {}
+        }
+    },
+    {
+        "name": "find_appointment",
+        "description": "Find appointments by client name or email. Returns up to 10 most recent.",
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "name_or_email": {"type": "string", "description": "Client name or email to search for"}
+            },
+            "required": ["name_or_email"]
+        }
+    },
+    {
+        "name": "get_pending_requests",
+        "description": "Get all pending appointment requests (intro-class, photo-session) awaiting admin approval.",
+        "input_schema": {
+            "type": "object",
+            "properties": {}
+        }
+    },
+    {
+        "name": "cancel_appointment",
+        "description": "Cancel an appointment by ID. Optionally provide a reason.",
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "appointment_id": {"type": "string"},
+                "reason": {"type": "string"}
+            },
+            "required": ["appointment_id"]
+        }
+    },
+    {
+        "name": "reschedule_appointment",
+        "description": "Reschedule an appointment to a new date and time.",
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "appointment_id": {"type": "string"},
+                "new_date": {"type": "string", "description": "New date in YYYY-MM-DD format"},
+                "new_time": {"type": "string", "description": "New time in HH:MM format"}
+            },
+            "required": ["appointment_id", "new_date", "new_time"]
+        }
+    },
+    {
+        "name": "confirm_appointment_request",
+        "description": "Approve a pending appointment request. For photo sessions with multiple suggested times, specify slot_index (0, 1, or 2) to pick a slot.",
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "appointment_id": {"type": "string"},
+                "slot_index": {"type": "number", "description": "For photo sessions: which preferred slot to confirm (0, 1, or 2)"}
+            },
+            "required": ["appointment_id"]
+        }
+    },
+    {
+        "name": "send_appointment_sms",
+        "description": "Send an SMS to an appointment client. Looks up client phone from the appointment.",
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "appointment_id": {"type": "string"},
+                "message": {"type": "string"}
+            },
+            "required": ["appointment_id", "message"]
+        }
     }
 ]
 
@@ -397,6 +488,52 @@ def execute_tool(name, input_data):
         elif name == 'schedule_sms':
             return _schedule_sms(input_data)
 
+        # ── Appointment tools ──────────────────────────
+        elif name == 'get_upcoming_appointments':
+            appts = get_upcoming_appointments(input_data.get('days', 7))
+            return {'appointments': [summarize_appointment(a) for a in appts], 'count': len(appts)}
+
+        elif name == 'get_todays_appointments':
+            appts = get_todays_appointments()
+            return {'appointments': [summarize_appointment(a) for a in appts], 'count': len(appts)}
+
+        elif name == 'find_appointment':
+            appts = find_appointment_by_client(input_data['name_or_email'])
+            return {'appointments': [summarize_appointment(a) for a in appts], 'count': len(appts)}
+
+        elif name == 'get_pending_requests':
+            appts = get_pending_requests()
+            return {'requests': [summarize_appointment(a) for a in appts], 'count': len(appts)}
+
+        elif name == 'cancel_appointment':
+            cancel_appointment(input_data['appointment_id'], input_data.get('reason', ''))
+            _instant_feedback(f'❌ Appointment <b>{input_data["appointment_id"][:8]}...</b> cancelled')
+            return {'success': True, 'cancelled': True}
+
+        elif name == 'reschedule_appointment':
+            result = reschedule_appointment(input_data['appointment_id'], input_data['new_date'], input_data['new_time'])
+            if result:
+                _instant_feedback(f'🔄 Appointment rescheduled to <b>{input_data["new_date"]} {input_data["new_time"]}</b>')
+            return {'success': result, 'new_date': input_data['new_date'], 'new_time': input_data['new_time']}
+
+        elif name == 'confirm_appointment_request':
+            result = confirm_appointment_request(input_data['appointment_id'], input_data.get('slot_index'))
+            if result.get('success'):
+                _instant_feedback(f'✅ Request confirmed: <b>{result["date"]} {result["time"]}</b>')
+            return result
+
+        elif name == 'send_appointment_sms':
+            appt = get_appointment(input_data['appointment_id'])
+            if not appt:
+                return {'error': 'Appointment not found'}
+            phone = appt.get('client_phone', '')
+            if not phone:
+                return {'error': 'Client has no phone number'}
+            result = send_sms(phone, input_data['message'])
+            if result and result.get('success'):
+                _instant_feedback(f'💬 SMS sent to <b>{appt.get("client_name", "client")}</b> ({phone})')
+            return result or {'error': 'SMS returned no result'}
+
         return {'error': f'Unknown tool: {name}'}
 
     except Exception as e:
@@ -491,6 +628,34 @@ def summarize_lead(lead):
         'converted': lead.get('converted', False),
         'unsubscribed': lead.get('unsubscribed', False),
     }
+
+
+def summarize_appointment(appt):
+    """Create a concise appointment summary for the AI context."""
+    if not appt:
+        return None
+    result = {
+        'id': appt.get('id'),
+        'client_name': appt.get('client_name'),
+        'client_email': appt.get('client_email'),
+        'client_phone': appt.get('client_phone'),
+        'type': appt.get('type'),
+        'type_name': appt.get('type_name_da'),
+        'date': appt.get('date'),
+        'time': appt.get('time'),
+        'duration': appt.get('duration'),
+        'status': appt.get('status'),
+        'location': appt.get('location'),
+        'message': (appt.get('message', '') or '')[:200],
+    }
+    # Include preferred slots for photo sessions
+    if appt.get('preferred_slots'):
+        result['preferred_slots'] = appt['preferred_slots']
+    # Include suggestion info
+    if appt.get('suggested_date'):
+        result['suggested_date'] = appt['suggested_date']
+        result['suggested_time'] = appt.get('suggested_time')
+    return result
 
 
 # ── Agent conversation loop ──────────────────────────
@@ -661,6 +826,24 @@ def morning_briefing():
         else:
             lines.append("\n✅ No stale leads — all caught up!")
 
+        # Today's appointments
+        todays = get_todays_appointments()
+        pending = get_pending_requests()
+        if todays:
+            lines.append(f"\n📅 <b>Today's appointments ({len(todays)}):</b>")
+            for a in todays:
+                loc = '🌐' if a.get('location') == 'online' else '🏠'
+                lines.append(f"  • <b>{a.get('time', '?')}</b> — {a.get('client_name', '?')} ({a.get('type_name_da', a.get('type', '?'))}) {loc}")
+                if a.get('client_phone'):
+                    lines.append(f"    📱 {a['client_phone']}")
+        else:
+            lines.append("\n📅 No appointments today")
+
+        if pending:
+            lines.append(f"\n🔔 <b>{len(pending)} pending request{'s' if len(pending) != 1 else ''} awaiting approval</b>")
+            for a in pending[:3]:
+                lines.append(f"  • {a.get('client_name', '?')} — {a.get('type_name_da', a.get('type', '?'))} ({a.get('date', '?')})")
+
         msg = '\n'.join(lines)
 
         # Send via monitor's sync Telegram
@@ -705,6 +888,94 @@ def check_stale_leads():
 
     except Exception as e:
         logger.error(f'Stale lead check failed: {e}')
+
+
+# ── Appointment reminder (Telegram, 24h before) ──────
+def check_appointment_reminders():
+    """Check for appointments tomorrow and send Telegram reminders to admin."""
+    try:
+        tomorrow = (datetime.now(timezone.utc) + timedelta(days=1)).strftime('%Y-%m-%d')
+        appts = get_upcoming_appointments(2)
+        tomorrows = [a for a in appts if a.get('date') == tomorrow]
+
+        if not tomorrows:
+            return
+
+        lines = [f"📅 <b>Tomorrow's appointments ({len(tomorrows)}):</b>\n"]
+        for a in tomorrows:
+            loc = '🌐 Online' if a.get('location') == 'online' else '🏠 Studio'
+            lines.append(f"<b>{a.get('time', '?')}</b> — {a.get('client_name', '?')}")
+            lines.append(f"  {a.get('type_name_da', a.get('type', '?'))} · {loc}")
+            if a.get('client_phone'):
+                lines.append(f"  📱 {a['client_phone']}")
+            if a.get('client_email'):
+                lines.append(f"  ✉️ {a['client_email']}")
+            lines.append('')
+
+        lines.append('Reply with a client name to manage (cancel, reschedule, SMS, etc.)')
+
+        from monitor import _send_telegram_sync
+        _send_telegram_sync('\n'.join(lines))
+        logger.info(f'Appointment reminders sent for {len(tomorrows)} tomorrow')
+
+    except Exception as e:
+        logger.error(f'Appointment reminder check failed: {e}')
+
+
+# ── New appointment Telegram notification ─────────────
+_seen_appointments = set()
+
+def on_new_appointment(appt):
+    """Called when a new appointment appears in Firestore. Notifies via Telegram."""
+    appt_id = appt.get('id', '')
+    if appt_id in _seen_appointments:
+        return
+    _seen_appointments.add(appt_id)
+
+    status = appt.get('status', '')
+    is_request = status == 'pending_request'
+    type_name = appt.get('type_name_da', appt.get('type', '?'))
+    client = appt.get('client_name', '?')
+    phone = appt.get('client_phone', '')
+    email = appt.get('client_email', '')
+
+    if is_request:
+        emoji = '🔔'
+        title = 'Ny anmodning'
+        action_hint = 'Reply "approve" or "suggest alternative" to manage.'
+    else:
+        emoji = '📅'
+        title = 'Ny aftale booket'
+        action_hint = 'Reply with client name to manage.'
+
+    lines = [
+        f'{emoji} <b>{title}</b>\n',
+        f'<b>{client}</b>',
+        f'{type_name}',
+        f'📆 {appt.get("date", "?")} kl. {appt.get("time", "?")}',
+    ]
+    if appt.get('location'):
+        loc = '🌐 Online' if appt['location'] == 'online' else '🏠 Studio'
+        lines.append(loc)
+    if phone:
+        lines.append(f'📱 {phone}')
+    if email:
+        lines.append(f'✉️ {email}')
+    if appt.get('message'):
+        lines.append(f'💬 "{appt["message"][:100]}"')
+    if appt.get('preferred_slots'):
+        lines.append('\n<b>Foretrukne tider:</b>')
+        for i, s in enumerate(appt['preferred_slots']):
+            lines.append(f'  {i+1}. {s.get("date", "?")} kl. {s.get("time", "?")}')
+
+    lines.append(f'\n{action_hint}')
+
+    if _telegram_app and _telegram_app_loop:
+        from tools.telegram import send_notification
+        asyncio.run_coroutine_threadsafe(
+            send_notification(_telegram_app, '\n'.join(lines)),
+            _telegram_app_loop
+        )
 
 
 # ── Knowledge refresh command ─────────────────────────
@@ -804,11 +1075,17 @@ def main_telegram():
     scheduler.add_job(check_stale_leads, 'interval', hours=6,
                       id='stale_check', replace_existing=True)
 
+    # Appointment reminders — daily at 18:00 Copenhagen time (evening before)
+    scheduler.add_job(check_appointment_reminders, 'cron', hour=18, minute=0,
+                      timezone='Europe/Copenhagen',
+                      id='appointment_reminders', replace_existing=True)
+
     scheduler.start()
     logger.info(f'Drip scheduler started (checking every {interval} min)')
     logger.info('Auto-update checker started (git pull + knowledge refresh every 1 min)')
     logger.info('Morning briefing scheduled (daily 9:00 CET)')
     logger.info('Stale lead checker started (every 6h)')
+    logger.info('Appointment reminders scheduled (daily 18:00 CET)')
     logger.info('Daily heartbeat scheduled')
 
     # Start Firestore listener for new leads
@@ -817,6 +1094,13 @@ def main_telegram():
         logger.info('Firestore listener started for new leads')
     except Exception as e:
         logger.warning(f'Could not start Firestore listener: {e}')
+
+    # Start Firestore listener for new appointments
+    try:
+        listen_new_appointments(on_new_appointment)
+        logger.info('Firestore listener started for new appointments')
+    except Exception as e:
+        logger.warning(f'Could not start Firestore listener for appointments: {e}')
 
     # Run the bot (blocks until stopped)
     logger.info('Telegram bot is running — send /start to your bot')
