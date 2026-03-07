@@ -17,38 +17,15 @@
  * Security note: password is received over HTTPS, validated against MB,
  * passed to Firebase Admin SDK for hashing — never logged or stored in plain text.
  *
- * Requires env: MB_API_KEY, MB_SITE_ID, FIREBASE_SERVICE_ACCOUNT_HYC
+ * Requires env: MB_API_KEY, MB_SITE_ID, FIREBASE_PROJECT_ID, FIREBASE_CLIENT_EMAIL, FIREBASE_PRIVATE_KEY
  */
 
 'use strict';
 
 const { jsonResponse, optionsResponse } = require('./shared/utils');
+const { getAuth } = require('./shared/firestore');
 
 const MB_BASE = 'https://api.mindbodyonline.com/public/v6';
-
-let admin;
-
-function getAdmin() {
-  if (admin) return admin;
-  admin = require('firebase-admin');
-  if (!admin.apps.length) {
-    if (process.env.FIREBASE_SERVICE_ACCOUNT_HYC) {
-      // HYC deployment: full service account JSON in one env var
-      const sa = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT_HYC);
-      admin.initializeApp({ credential: admin.credential.cert(sa) });
-    } else {
-      // YB deployment: individual env vars
-      admin.initializeApp({
-        credential: admin.credential.cert({
-          projectId: process.env.FIREBASE_PROJECT_ID,
-          clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
-          privateKey: (process.env.FIREBASE_PRIVATE_KEY || '').replace(/\\n/g, '\n')
-        })
-      });
-    }
-  }
-  return admin;
-}
 
 exports.handler = async function (event) {
   if (event.httpMethod === 'OPTIONS') return optionsResponse();
@@ -96,7 +73,7 @@ exports.handler = async function (event) {
     }
 
     // 2. MB credentials valid — sync Firebase account with the same password
-    const fb = getAdmin();
+    const auth = getAuth();
 
     // Pull display name from MB token response
     const displayName = mbData.User
@@ -105,7 +82,7 @@ exports.handler = async function (event) {
 
     let firebaseUser = null;
     try {
-      firebaseUser = await fb.auth().getUserByEmail(email);
+      firebaseUser = await auth.getUserByEmail(email);
     } catch (err) {
       if (err.code !== 'auth/user-not-found') throw err;
     }
@@ -113,11 +90,11 @@ exports.handler = async function (event) {
     let uid;
     if (firebaseUser) {
       // Account exists (wrong password on Firebase side) — update to match MB password
-      await fb.auth().updateUser(firebaseUser.uid, { password });
+      await auth.updateUser(firebaseUser.uid, { password });
       uid = firebaseUser.uid;
     } else {
       // No Firebase account yet — create one with the same password
-      const newUser = await fb.auth().createUser({
+      const newUser = await auth.createUser({
         email,
         password,
         displayName: displayName || undefined,
@@ -130,7 +107,7 @@ exports.handler = async function (event) {
     // relying on password propagation (avoids timing/project-mismatch issues)
     let customToken = null;
     try {
-      customToken = await fb.auth().createCustomToken(uid);
+      customToken = await auth.createCustomToken(uid);
     } catch (e) {
       console.warn('mb-auth: could not generate custom token:', e.message);
     }
