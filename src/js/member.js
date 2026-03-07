@@ -596,10 +596,13 @@
       renderList(allRecordings);
 
       // Click to play — swap thumbnail with player element.
-      // iOS: native <video> with HLS URL (WebKit supports HLS natively).
-      // Desktop/Android: mux-player web component.
-      var recIsIOS = /iPhone|iPad|iPod/.test(navigator.userAgent) ||
+      // Safari/iOS: Mux hosted iframe player (WebKit has HLS native support but
+      // mux-player web component can show "Source Not Supported" on Safari).
+      // Desktop Chrome/Firefox/Android: mux-player web component.
+      var isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
+      var isIOS = /iPhone|iPad|iPod/.test(navigator.userAgent) ||
         (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+      var useMuxIframe = isSafari || isIOS;
 
       listEl.addEventListener('click', function (e) {
         var card = e.target.closest('[data-rec-playback]');
@@ -608,8 +611,8 @@
         card.removeAttribute('data-rec-playback');
 
         var el;
-        if (recIsIOS) {
-          // Use Mux's hosted iframe player on iOS
+        if (useMuxIframe) {
+          // Use Mux's hosted iframe player on Safari/iOS
           el = document.createElement('iframe');
           el.src = 'https://player.mux.com/' + pid;
           el.style.cssText = 'width:100%;aspect-ratio:16/9;border:none;display:block;background:#000';
