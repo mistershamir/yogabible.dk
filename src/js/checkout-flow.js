@@ -379,30 +379,7 @@
   function doLogin(email, password, callback) {
     firebase.auth().signInWithEmailAndPassword(email, password)
       .then(function () { callback(null); })
-      .catch(function (err) {
-        // Validate against Mindbody for legacy users who have no Firebase account yet
-        if (err.code === 'auth/user-not-found' || err.code === 'auth/invalid-credential' || err.code === 'auth/too-many-requests') {
-          fetch(API_BASE + '/mb-auth', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ email: email, password: password })
-          })
-            .then(function (res) { return res.json(); })
-            .then(function (data) {
-              if (!data.success) { callback(err); return; }
-              // Prefer custom token (avoids propagation delay + project mismatch)
-              var signIn = data.customToken
-                ? firebase.auth().signInWithCustomToken(data.customToken)
-                : firebase.auth().signInWithEmailAndPassword(email, password);
-              return signIn
-                .then(function () { callback(null); })
-                .catch(function (retryErr) { callback(retryErr); });
-            })
-            .catch(function () { callback(err); });
-        } else {
-          callback(err);
-        }
-      });
+      .catch(function (err) { callback(err); });
   }
 
   function doRegister(email, password, firstName, lastName, phone, callback) {

@@ -63,6 +63,10 @@
         <a href="#" data-yb-auth-switch="reset" data-yj-da>Glemt adgangskode?</a>
         <a href="#" data-yb-auth-switch="reset" data-yj-en hidden>Forgot password?</a>
       </div>
+      <div class="yb-auth-notice">
+        <p data-yj-da>Bruger du vores app i dag? Opret en konto herunder med <strong>samme email</strong> som i appen &mdash; s&aring; bliver alt koblet sammen automatisk.</p>
+        <p data-yj-en hidden>Already using our app? Create an account below with the <strong>same email</strong> as in the app &mdash; everything will be linked automatically.</p>
+      </div>
       <div class="yb-auth-divider">
         <span data-yj-da>Har du ikke en konto?</span>
         <span data-yj-en hidden>Don't have an account?</span>
@@ -97,6 +101,8 @@
           <label for="yb-register-email" data-yj-da>Email</label>
           <label for="yb-register-email" data-yj-en hidden>Email</label>
           <input type="email" id="yb-register-email" required autocomplete="email" placeholder="din@email.dk">
+          <small class="yb-auth-hint" data-yj-da>Allerede medlem? Brug den samme email som i appen</small>
+          <small class="yb-auth-hint" data-yj-en hidden>Already a member? Use the same email as in the app</small>
         </div>
         <div class="yb-auth-field">
           <label for="yb-register-password" data-yj-da>Adgangskode</label>

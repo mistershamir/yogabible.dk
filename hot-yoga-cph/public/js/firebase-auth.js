@@ -421,63 +421,20 @@
       submitBtn.disabled = true;
       submitBtn.textContent = detectLocale() === 'da' ? 'Logger ind...' : 'Signing in...';
 
-      var isMigrating = false;
-
       auth.signInWithEmailAndPassword(email, password)
         .then(function() {
           closeAuthModal();
         })
         .catch(function(error) {
-          // For user-not-found or invalid-credential: validate against Mindbody.
-          // If MB credentials are valid, sync the Firebase account with the same password
-          // and retry — so users never need a separate password for the new front end.
-          if (error.code === 'auth/user-not-found' || error.code === 'auth/invalid-credential' || error.code === 'auth/too-many-requests') {
-            isMigrating = true;
-            submitBtn.textContent = detectLocale() === 'da' ? 'Tjekker konto...' : 'Checking account...';
-
-            fetch('/.netlify/functions/mb-auth', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ email: email, password: password })
-            })
-              .then(function(res) { return res.json(); })
-              .then(function(data) {
-                if (!data.success) {
-                  // All auth methods failed — show error with a direct reset link
-                  showErrorWithReset(errorEl);
-                  return;
-                }
-                // Prefer custom token (avoids propagation delay + project mismatch)
-                var signIn = data.customToken
-                  ? auth.signInWithCustomToken(data.customToken)
-                  : auth.signInWithEmailAndPassword(email, password);
-                return signIn
-                  .then(function() {
-                    closeAuthModal();
-                  })
-                  .catch(function(retryErr) {
-                    console.warn('Retry after MB sync failed:', retryErr.code);
-                    showError(errorEl, detectLocale() === 'da'
-                      ? 'Prøv igen om et øjeblik.'
-                      : 'Please try again in a moment.');
-                  });
-              })
-              .catch(function() {
-                showErrorWithReset(errorEl);
-              })
-              .finally(function() {
-                submitBtn.disabled = false;
-                submitBtn.textContent = detectLocale() === 'da' ? 'Log ind' : 'Sign in';
-              });
+          if (error.code === 'auth/user-not-found' || error.code === 'auth/invalid-credential') {
+            showErrorWithReset(errorEl);
           } else {
             showError(errorEl, getAuthErrorMessage(error.code));
           }
         })
         .finally(function() {
-          if (!isMigrating) {
-            submitBtn.disabled = false;
-            submitBtn.textContent = detectLocale() === 'da' ? 'Log ind' : 'Sign in';
-          }
+          submitBtn.disabled = false;
+          submitBtn.textContent = detectLocale() === 'da' ? 'Log ind' : 'Sign in';
         });
     });
   }
