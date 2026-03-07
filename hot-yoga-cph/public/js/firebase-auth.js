@@ -427,20 +427,27 @@
         })
         .catch(function(error) {
           if (error.code === 'auth/user-not-found' || error.code === 'auth/invalid-credential') {
-            showErrorWithReset(errorEl);
             fetch('/.netlify/functions/migrate-mb-user', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ email: email })
+              body: JSON.stringify({ email: email, password: password })
             })
               .then(function(res) { return res.json(); })
               .then(function(data) {
-                if (data.found) {
-                  var resetUrl = window.location.origin + (detectLocale() === 'da' ? '/auth-action/' : '/en/auth-action/');
-                  auth.sendPasswordResetEmail(email, { url: resetUrl, handleCodeInApp: true }).catch(function() {});
+                if (data.created) {
+                  return auth.signInWithEmailAndPassword(email, password)
+                    .then(function() { closeAuthModal(); });
                 }
+                showErrorWithReset(errorEl);
               })
-              .catch(function() {});
+              .catch(function() {
+                showErrorWithReset(errorEl);
+              })
+              .finally(function() {
+                submitBtn.disabled = false;
+                submitBtn.textContent = detectLocale() === 'da' ? 'Log ind' : 'Sign in';
+              });
+            return;
           } else {
             showError(errorEl, getAuthErrorMessage(error.code));
           }
@@ -510,7 +517,26 @@
           closeAuthModal();
         })
         .catch(function(error) {
-          showError(errorEl, getAuthErrorMessage(error.code));
+          if (error.code === 'auth/email-already-in-use') {
+            var isDa = detectLocale() === 'da';
+            if (errorEl) {
+              errorEl.innerHTML = isDa
+                ? 'Der findes allerede en konto med denne email. Vi har sendt dig en email til at oprette din adgangskode. Tjek din indbakke (og spam), eller <a href="#" id="yb-reg-reset-link" style="color:inherit;font-weight:700;text-decoration:underline">nulstil adgangskode &rarr;</a>'
+                : 'An account with this email already exists. We\'ve sent you an email to set your password. Check your inbox (and spam), or <a href="#" id="yb-reg-reset-link" style="color:inherit;font-weight:700;text-decoration:underline">reset password &rarr;</a>';
+              errorEl.hidden = false;
+              var resetLink = document.getElementById('yb-reg-reset-link');
+              if (resetLink) {
+                resetLink.addEventListener('click', function(ev) {
+                  ev.preventDefault();
+                  switchToPanel('yb-auth-reset');
+                });
+              }
+            }
+            var resetUrl = window.location.origin + (isDa ? '/auth-action/' : '/en/auth-action/');
+            auth.sendPasswordResetEmail(email, { url: resetUrl, handleCodeInApp: true }).catch(function() {});
+          } else {
+            showError(errorEl, getAuthErrorMessage(error.code));
+          }
         })
         .finally(function() {
           submitBtn.disabled = false;

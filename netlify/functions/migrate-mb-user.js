@@ -5,7 +5,10 @@
  * Called when a login attempt fails — checks if the email exists in Mindbody,
  * and if so, creates a Firebase account for them so they can set a new password.
  *
- * POST { email: "user@example.com" }
+ * POST { email: "user@example.com", password: "optional" }
+ *
+ * If `password` is provided, it is used as the new Firebase account password
+ * (so the caller can immediately sign in after migration).
  *
  * Returns:
  *   { found: false }                              — email not in Mindbody
@@ -60,6 +63,7 @@ exports.handler = async function (event) {
   }
 
   const email = (body.email || '').toLowerCase().trim();
+  const password = body.password || '';
   if (!email) {
     return jsonResponse(400, { error: 'email is required' });
   }
@@ -96,13 +100,16 @@ exports.handler = async function (event) {
     }
 
     // 3. No Firebase account — create one.
-    //    Use a random temp password so the email/password provider is active
-    //    (required for sendPasswordResetEmail to work on the client side).
-    const tempPassword = crypto.randomBytes(32).toString('hex');
+    //    If a password was provided (from the login form), use it so the
+    //    caller can immediately signInWithEmailAndPassword afterwards.
+    //    Otherwise fall back to a random temp password (reset-email flow).
+    const usePassword = password.length >= 6
+      ? password
+      : crypto.randomBytes(32).toString('hex');
 
     await fb.auth().createUser({
       email: email,
-      password: tempPassword,
+      password: usePassword,
       displayName: displayName || undefined,
       emailVerified: false
     });
