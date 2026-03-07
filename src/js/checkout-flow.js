@@ -12,35 +12,27 @@
   var PRODUCTS = {
     // Teacher Training — Preparation Phase
     '100078': { price: 3750, name_da: '18 Ugers Fleksibelt Program', name_en: '18-Week Flexible Program', period_da: 'Marts–Juni 2026', period_en: 'March–June 2026', format_da: '200-timers komplet uddannelse', format_en: '200-hour complete education', desc_da: 'Start din forberedelsesfase for det 18-ugers fleksible yogalæreruddannelsesprogram.', desc_en: 'Begin your Preparation Phase for the 18-week flexible yoga teacher training program.', category: 'teacher' },
-    '100121': { price: 3750, name_da: '4 Ugers Intensiv', name_en: '4-Week Intensive', period_da: 'April 2026', period_en: 'April 2026', format_da: '200-timers komplet uddannelse', format_en: '200-hour complete education', desc_da: 'Start din forberedelsesfase for det intensive 4-ugers program. Fuld fordybelse og hurtig transformation.', desc_en: 'Begin your Preparation Phase for the intensive 4-week program. Full immersion and rapid transformation.', category: 'teacher' },
-    '100211': { price: 3750, name_da: '4 Ugers Intensiv', name_en: '4-Week Intensive', period_da: 'Juli 2026', period_en: 'July 2026', format_da: '200-timers komplet uddannelse', format_en: '200-hour complete education', desc_da: 'Start din forberedelsesfase for sommerens 4-ugers intensive program.', desc_en: 'Begin your Preparation Phase for the summer 4-week intensive program.', category: 'teacher' },
+    '100121': { price: 3750, name_da: '4 Ugers Complete Program', name_en: '4-Week Complete Program', period_da: 'April 2026', period_en: 'April 2026', format_da: '200-timers komplet uddannelse · Multi-Style', format_en: '200-hour complete education · Multi-Style', desc_da: 'Start din forberedelsesfase for det intensive 4-ugers Complete Program. Hatha, Vinyasa, Yin, Hot Yoga og Meditation.', desc_en: 'Begin your Preparation Phase for the intensive 4-week Complete Program. Hatha, Vinyasa, Yin, Hot Yoga, and Meditation.', category: 'teacher' },
+    '100211': { price: 3750, name_da: '4 Ugers Vinyasa Plus', name_en: '4-Week Vinyasa Plus', period_da: 'Juli 2026', period_en: 'July 2026', format_da: '200-timers uddannelse · 70% Vinyasa · 30% Yin + Hot Yoga', format_en: '200-hour training · 70% Vinyasa · 30% Yin + Hot Yoga', desc_da: 'Start din forberedelsesfase for sommerens Vinyasa Plus program. Kreativ sekvensering, klasseledelse og undervisning i opvarmet og ikke-opvarmet Vinyasa samt Yin Yoga.', desc_en: 'Begin your Preparation Phase for the summer Vinyasa Plus program. Creative sequencing, class management, and teaching heated and non-heated Vinyasa plus Yin Yoga.', category: 'teacher' },
     '100209': { price: 3750, name_da: '8 Ugers Semi-Intensiv', name_en: '8-Week Semi-Intensive', period_da: 'Maj–Juni 2026', period_en: 'May–June 2026', format_da: '200-timers komplet uddannelse', format_en: '200-hour complete education', desc_da: 'Start din forberedelsesfase for det 8-ugers semi-intensive program.', desc_en: 'Begin your Preparation Phase for the 8-week semi-intensive program.', category: 'teacher' },
     '100210': { price: 3750, name_da: '18 Ugers Fleksibelt Program', name_en: '18-Week Flexible Program', period_da: 'August–December 2026', period_en: 'August–December 2026', format_da: '200-timers komplet uddannelse', format_en: '200-hour complete education', desc_da: 'Start din forberedelsesfase for det 18-ugers fleksible program.', desc_en: 'Begin your Preparation Phase for the 18-week flexible program.', category: 'teacher' },
     // 300-Hour Advanced Teacher Training — Preparation Phase
     '100212': { price: 5750, name_da: '300-Timer Advanced Teacher Training', name_en: '300-Hour Advanced Teacher Training', period_da: 'Maj–December 2026', period_en: 'May–December 2026', format_da: '300-timers avanceret uddannelse · RYT-500', format_en: '300-hour advanced training · RYT-500', desc_da: 'Start din forberedelsesfase for den 300-timers avancerede yogalæreruddannelse. 24 uger, RYT-500 certificering.', desc_en: 'Begin your Preparation Phase for the 300-hour advanced yoga teacher training. 24 weeks, RYT-500 certification.', category: 'teacher' },
     // Courses
-    '100145': { price: 2300, name_da: 'Inversions Kursus', name_en: 'Inversions Course', period_da: 'April 2026', period_en: 'April 2026', desc_da: 'Mester armbalancer og omvendinger med sikker teknik og gradvis progression.', desc_en: 'Master arm balances and inversions with safe technique and gradual progression.', category: 'courses' },
+    '100145': { price: 2300, name_da: 'Inversions Kursus', name_en: 'Inversions Course', period_da: 'April 2026', period_en: 'April 2026', desc_da: 'Mestr armbalancer og inversioner med sikker teknik og gradvis progression.', desc_en: 'Master arm balances and inversions with safe technique and gradual progression.', category: 'courses' },
     '100150': { price: 2300, name_da: 'Splits Kursus', name_en: 'Splits Course', period_da: 'April 2026', period_en: 'April 2026', desc_da: 'Opnå fuld splits med systematisk fleksibilitetstræning og sikre stræk.', desc_en: 'Achieve full splits with systematic flexibility training and safe stretching.', category: 'courses' },
     '100140': { price: 2300, name_da: 'Backbends Kursus', name_en: 'Backbends Course', period_da: 'April 2026', period_en: 'April 2026', desc_da: 'Åbn brystkasse og rygsøjle med trygge, dybe bagoverbøjninger.', desc_en: 'Open chest and spine with safe, deep backbending practice.', category: 'courses' },
     // Course Bundles — April 2026
     '119': { price: 4140, name_da: 'Kursuspakke: Backbends + Inversions', name_en: 'Course Bundle: Backbends + Inversions', period_da: 'April 2026', period_en: 'April 2026', desc_da: '2-kursus pakke med 10% rabat. 16 workshops over 4 uger.', desc_en: '2-course bundle with 10% off. 16 workshops over 4 weeks.', category: 'bundle' },
     '120': { price: 4140, name_da: 'Kursuspakke: Inversions + Splits', name_en: 'Course Bundle: Inversions + Splits', period_da: 'April 2026', period_en: 'April 2026', desc_da: '2-kursus pakke med 10% rabat. 16 workshops over 4 uger.', desc_en: '2-course bundle with 10% off. 16 workshops over 4 weeks.', category: 'bundle' },
     '121': { price: 4140, name_da: 'Kursuspakke: Backbends + Splits', name_en: 'Course Bundle: Backbends + Splits', period_da: 'April 2026', period_en: 'April 2026', desc_da: '2-kursus pakke med 10% rabat. 16 workshops over 4 uger.', desc_en: '2-course bundle with 10% off. 16 workshops over 4 weeks.', category: 'bundle' },
-    '127': { price: 5865, name_da: 'All-In Pakke: Inversions + Splits + Backbends', name_en: 'All-In Bundle: Inversions + Splits + Backbends', period_da: 'April 2026', period_en: 'April 2026', desc_da: 'Alle 3 kurser med 15% rabat + gratis 1-måneds pass. 24 workshops over 4 uger.', desc_en: 'All 3 courses with 15% off + free 1-month pass. 24 workshops over 4 weeks.', category: 'bundle' },
-    // Test product (1 DKK — for end-to-end payment testing, REMOVE before production)
-    '100203': { price: 1, name_da: 'Test Klippekort', name_en: 'Test Clip Card', period_da: 'Test', period_en: 'Test', desc_da: 'Testprodukt til betalingsflow — 1 kr.', desc_en: 'Test product for payment flow — 1 DKK.', category: 'test' }
+    '127': { price: 5865, name_da: 'All-In Pakke: Inversions + Splits + Backbends', name_en: 'All-In Bundle: Inversions + Splits + Backbends', period_da: 'April 2026', period_en: 'April 2026', desc_da: 'Alle 3 kurser med 15% rabat + gratis 1-måneds pass. 24 workshops over 4 uger.', desc_en: 'All 3 courses with 15% off + free 1-month pass. 24 workshops over 4 weeks.', category: 'bundle' }
   };
 
   // Remaining payment note (for teacher training)
   var REMAINING_NOTE = {
     da: 'Restbeløbet afregnes inden uddannelsesstart — enten som engangsbeløb eller i rater. Din uddannelsesleder vil kontakte dig med alle detaljer og næste skridt.',
     en: 'The remaining balance is settled before training starts — either in full or in instalments. Your course director will be in touch with all the details and next steps.'
-  };
-
-  // Note for teacher training prep phase (refund removed)
-  var REFUND_NOTE = {
-    da: '',
-    en: ''
   };
 
   // Prep phase benefits (for teacher training)
@@ -190,16 +182,6 @@
         chips += '<span class="ycf-chip ycf-chip--muted">' + (isDa ? p.format_da : p.format_en) + '</span>';
       }
       prodChips.innerHTML = chips;
-    }
-
-    // Refundable note (teacher training only)
-    var prodRefund = $('ycf-prod-refund');
-    var prodRefundText = $('ycf-prod-refund-text');
-    if (prodRefund && prodRefundText && p.category === 'teacher') {
-      prodRefundText.textContent = isDa ? REFUND_NOTE.da : REFUND_NOTE.en;
-      prodRefund.hidden = false;
-    } else if (prodRefund) {
-      prodRefund.hidden = true;
     }
 
     // Prep phase benefits (teacher training only)
@@ -421,8 +403,18 @@
   }
 
   function doForgotPassword(email, callback) {
-    firebase.auth().sendPasswordResetEmail(email)
-      .then(function () { callback(null); })
+    // Send branded reset email via Resend (better deliverability than
+    // Firebase's built-in noreply@*.firebaseapp.com emails).
+    fetch(API_BASE + '/send-password-reset', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: email, lang: isDa ? 'da' : 'en' })
+    })
+      .then(function (res) { return res.json(); })
+      .then(function (data) {
+        if (data.ok) { callback(null); }
+        else { callback({ code: 'custom', message: data.error || 'Failed' }); }
+      })
       .catch(function (err) { callback(err); });
   }
 
@@ -635,7 +627,62 @@
           if (btn) { btn.disabled = false; btn.textContent = isDa ? 'Log ind' : 'Sign in'; }
 
           if (err) {
-            showError('ycf-login-error', authErrorMsg(err));
+            var code = err.code || '';
+            if (code === 'auth/user-not-found' || code === 'auth/invalid-credential') {
+              // Try migrating from Mindbody — create account with their password
+              fetch(API_BASE + '/migrate-mb-user', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email: email, password: password })
+              })
+                .then(function(res) { return res.json(); })
+                .then(function(data) {
+                  if (data.created) {
+                    // Account created — sign in seamlessly
+                    doLogin(email, password, function(err2) {
+                      if (err2) {
+                        showError('ycf-login-error', authErrorMsg(err2));
+                        return;
+                      }
+                      if (window.CheckoutFunnel) window.CheckoutFunnel.trackAuthComplete();
+                      authOriginStep = 'login';
+                      var user = firebase.auth().currentUser;
+                      var displayName = (user && user.displayName) || '';
+                      var nameParts = displayName.split(' ');
+                      resolveClientAndAdvance(
+                        nameParts[0] || 'User',
+                        nameParts.slice(1).join(' ') || '',
+                        (user && user.email) || email,
+                        ''
+                      );
+                    });
+                    return;
+                  }
+                  // Not in MB or already has Firebase account — show error
+                  var el = $('ycf-login-error');
+                  if (el) {
+                    el.innerHTML = isDa
+                      ? 'Vi kunne ikke finde en konto med disse oplysninger. Allerede klient hos os? <a href="#" data-ycf-action="register" style="color:inherit;font-weight:700;text-decoration:underline">Opret profil</a> med samme email som du booker med. Har du allerede en konto her? <a href="#" data-ycf-action="forgot" style="color:inherit;font-weight:700;text-decoration:underline">Nulstil adgangskode &rarr;</a>'
+                      : 'We couldn\'t find an account with these details. Already a client? <a href="#" data-ycf-action="register" style="color:inherit;font-weight:700;text-decoration:underline">Create a profile</a> with the same email you book with. Already have one here? <a href="#" data-ycf-action="forgot" style="color:inherit;font-weight:700;text-decoration:underline">Reset password &rarr;</a>';
+                    el.hidden = false;
+                  }
+                })
+                .catch(function() {
+                  var el = $('ycf-login-error');
+                  if (el) {
+                    el.innerHTML = isDa
+                      ? 'Vi kunne ikke finde en konto med disse oplysninger. Allerede klient hos os? <a href="#" data-ycf-action="register" style="color:inherit;font-weight:700;text-decoration:underline">Opret profil</a> med samme email som du booker med. Har du allerede en konto her? <a href="#" data-ycf-action="forgot" style="color:inherit;font-weight:700;text-decoration:underline">Nulstil adgangskode &rarr;</a>'
+                      : 'We couldn\'t find an account with these details. Already a client? <a href="#" data-ycf-action="register" style="color:inherit;font-weight:700;text-decoration:underline">Create a profile</a> with the same email you book with. Already have one here? <a href="#" data-ycf-action="forgot" style="color:inherit;font-weight:700;text-decoration:underline">Reset password &rarr;</a>';
+                    el.hidden = false;
+                  }
+                })
+                .finally(function() {
+                  if (btn) { btn.disabled = false; btn.textContent = isDa ? 'Log ind' : 'Sign in'; }
+                });
+              return;
+            } else {
+              showError('ycf-login-error', authErrorMsg(err));
+            }
             return;
           }
 
@@ -654,6 +701,40 @@
             ''
           );
         });
+      });
+    }
+
+    // ── Google Sign-In (login step) ──
+    var googleLoginBtn = $('ycf-google-signin');
+    if (googleLoginBtn) {
+      googleLoginBtn.addEventListener('click', function () {
+        googleLoginBtn.disabled = true;
+        hideError('ycf-login-error');
+
+        var provider = new firebase.auth.GoogleAuthProvider();
+        firebase.auth().signInWithPopup(provider)
+          .then(function (result) {
+            if (window.CheckoutFunnel) window.CheckoutFunnel.trackAuthComplete();
+            authOriginStep = 'login';
+
+            var user = result.user;
+            var displayName = (user && user.displayName) || '';
+            var nameParts = displayName.split(' ');
+            resolveClientAndAdvance(
+              nameParts[0] || 'User',
+              nameParts.slice(1).join(' ') || '',
+              (user && user.email) || '',
+              ''
+            );
+          })
+          .catch(function (error) {
+            if (error.code !== 'auth/popup-closed-by-user' && error.code !== 'auth/cancelled-popup-request') {
+              showError('ycf-login-error', authErrorMsg(error));
+            }
+          })
+          .finally(function () {
+            googleLoginBtn.disabled = false;
+          });
       });
     }
 
@@ -723,7 +804,25 @@
           if (btn) { btn.disabled = false; btn.textContent = isDa ? 'Opret profil & fortsæt' : 'Create profile & continue'; }
 
           if (err) {
-            showError('ycf-register-error', authErrorMsg(err));
+            var code = err.code || '';
+            if (code === 'auth/email-already-in-use') {
+              var el = $('ycf-register-error');
+              if (el) {
+                el.innerHTML = t(
+                  'Der findes allerede en konto med denne email. Vi har sendt dig en email til at oprette din adgangskode. Tjek din indbakke (og spam), eller <a href="#" data-ycf-action="forgot" style="color:inherit;font-weight:700;text-decoration:underline">nulstil adgangskode &rarr;</a>',
+                  'An account with this email already exists. We\'ve sent you an email to set your password. Check your inbox (and spam), or <a href="#" data-ycf-action="forgot" style="color:inherit;font-weight:700;text-decoration:underline">reset password &rarr;</a>'
+                );
+                el.hidden = false;
+              }
+              // Send branded reset email via Resend
+              fetch(API_BASE + '/send-password-reset', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email: email, lang: isDa ? 'da' : 'en' })
+              }).catch(function() {});
+            } else {
+              showError('ycf-register-error', authErrorMsg(err));
+            }
             return;
           }
 

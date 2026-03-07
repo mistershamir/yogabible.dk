@@ -6,6 +6,7 @@
  * Also supports GET with query params (JSONP callback)
  */
 
+const crypto = require('crypto');
 const { getDb } = require('./shared/firestore');
 const { CONFIG } = require('./shared/config');
 const {
@@ -15,6 +16,14 @@ const {
 const { sendAdminNotification } = require('./shared/email-service');
 const { sendWelcomeSMS } = require('./shared/sms-service');
 const { sendWelcomeEmail } = require('./shared/lead-emails');
+
+const TOKEN_SECRET = process.env.UNSUBSCRIBE_SECRET || 'yb-appt-secret';
+
+function generateScheduleToken(leadId, email) {
+  const hmac = crypto.createHmac('sha256', TOKEN_SECRET);
+  hmac.update(leadId + ':' + email.toLowerCase().trim());
+  return hmac.digest('hex');
+}
 
 exports.handler = async (event) => {
   if (event.httpMethod === 'OPTIONS') return optionsResponse();
@@ -132,7 +141,9 @@ function processLead(payload, action) {
     call_attempts: 0,
     sms_status: '',
     last_contact: null,
-    followup_date: null
+    followup_date: null,
+    multi_format: payload.multiFormat || '',
+    all_formats: payload.allFormats || ''
   };
 
   switch (action) {
@@ -151,7 +162,7 @@ function processLead(payload, action) {
         service: '',
         subcategories: '',
         message: '',
-        source: payload.source || '200H YTT - 18-week landing page'
+        source: '200h YTT'
       };
 
     case 'lead_schedule_4w':
@@ -169,7 +180,7 @@ function processLead(payload, action) {
         service: '',
         subcategories: '',
         message: '',
-        source: payload.source || '200H YTT - 4-week landing page'
+        source: '200h YTT'
       };
 
     case 'lead_schedule_8w':
@@ -187,7 +198,7 @@ function processLead(payload, action) {
         service: '',
         subcategories: '',
         message: '',
-        source: payload.source || '200H YTT - 8-week landing page'
+        source: '200h YTT'
       };
 
     case 'lead_schedule_multi': {
@@ -211,7 +222,7 @@ function processLead(payload, action) {
         service: '',
         subcategories: '',
         message: '',
-        source: payload.source || 'Modal-Multi',
+        source: '200h YTT',
         all_formats: payload.allFormats || ''
       };
     }
@@ -231,7 +242,7 @@ function processLead(payload, action) {
         service: '',
         subcategories: '',
         message: payload.message || '',
-        source: payload.source || '300H Advanced YTT landing page'
+        source: '300h YTT'
       };
 
     case 'lead_schedule_50h':
@@ -249,7 +260,7 @@ function processLead(payload, action) {
         service: '',
         subcategories: payload.specialty || '',
         message: payload.message || '',
-        source: payload.source || '50H Specialty landing page'
+        source: '50h YTT'
       };
 
     case 'lead_schedule_30h':
@@ -267,7 +278,7 @@ function processLead(payload, action) {
         service: '',
         subcategories: payload.module || '',
         message: payload.message || '',
-        source: payload.source || '30H Module landing page'
+        source: '30h YTT'
       };
 
     case 'lead_courses': {
@@ -287,7 +298,7 @@ function processLead(payload, action) {
         service: '',
         subcategories: '',
         message: '',
-        source: payload.source || 'Courses - landing page'
+        source: 'Courses'
       };
     }
 
@@ -308,7 +319,7 @@ function processLead(payload, action) {
         service: payload.service || '',
         subcategories,
         message: payload.message || '',
-        source: payload.sourceUrl || 'Mentorship intake form'
+        source: 'Mentorship'
       };
     }
 
@@ -346,7 +357,7 @@ function processLead(payload, action) {
         service: '',
         subcategories: '',
         message: payload.message || '',
-        source: `Meta Lead – ${payload.platform || 'Facebook'} – ${metaFormName || 'Ad'}`,
+        source: 'Facebook Ad',
         meta_form_id: payload.form_id || '',
         meta_ad_id: payload.ad_id || '',
         meta_campaign: payload.campaign_name || ''
@@ -368,7 +379,7 @@ function processLead(payload, action) {
         service: '',
         subcategories: '',
         message: payload.message || '',
-        source: payload.source || 'Contact form'
+        source: 'Contact page'
       };
 
     default:
@@ -437,10 +448,11 @@ async function triggerNotifications(leadData, leadDocId, action) {
     );
   }
 
-  // 2. Welcome email to the lead (with schedule, pricing, etc.)
+  // 2. Welcome email to the lead (with tokenized schedule link)
   if (process.env.GMAIL_APP_PASSWORD && leadData.email) {
+    const scheduleToken = generateScheduleToken(leadDocId, leadData.email);
     promises.push(
-      sendWelcomeEmail(leadData, action).catch(err => {
+      sendWelcomeEmail(leadData, action, { leadId: leadDocId, token: scheduleToken }).catch(err => {
         console.error('[lead] Welcome email failed:', err.message);
       })
     );

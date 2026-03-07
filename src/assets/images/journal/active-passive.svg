@@ -1,0 +1,88 @@
+<svg viewBox="0 0 1200 630" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <filter id="shadow" x="-50%" y="-50%" width="200%" height="200%">
+      <feDropShadow dx="3" dy="5" stdDeviation="6" flood-opacity="0.25" flood-color="#000"/>
+    </filter>
+  </defs>
+
+  <rect width="1200" height="630" fill="#f5f3f0"/>
+
+  <!-- Divider line -->
+  <line x1="600" y1="60" x2="600" y2="430" stroke="#E8E4E0" stroke-width="2" stroke-dasharray="6,6"/>
+
+  <!-- LEFT: Active Flexibility -->
+  <g filter="url(#shadow)">
+    <!-- Active figure: standing leg raise (using own strength) -->
+    <g transform="translate(300, 180)">
+      <circle cx="0" cy="0" r="16" fill="#f75c03" opacity="0.9"/>
+      <line x1="0" y1="16" x2="0" y2="70" stroke="#f75c03" stroke-width="6" stroke-linecap="round"/>
+      <!-- Standing leg -->
+      <line x1="0" y1="70" x2="0" y2="140" stroke="#f75c03" stroke-width="5" stroke-linecap="round"/>
+      <!-- Lifted leg (active) -->
+      <line x1="0" y1="70" x2="60" y2="20" stroke="#d94f02" stroke-width="5" stroke-linecap="round"/>
+      <!-- Arms helping -->
+      <line x1="0" y1="35" x2="-25" y2="15" stroke="#f75c03" stroke-width="4" stroke-linecap="round"/>
+      <line x1="0" y1="35" x2="25" y2="55" stroke="#ff9966" stroke-width="4" stroke-linecap="round"/>
+      
+      <!-- Muscle engagement lightning bolts -->
+      <g opacity="0.6">
+        <path d="M 35 40 L 40 35 L 38 42 L 43 37" fill="none" stroke="#f75c03" stroke-width="2"/>
+        <path d="M -5 85 L -10 80 L -8 87 L -13 82" fill="none" stroke="#f75c03" stroke-width="2"/>
+      </g>
+    </g>
+    
+    <!-- Active label -->
+    <rect x="190" y="80" width="220" height="44" rx="22" fill="#f75c03" opacity="0.15" stroke="#f75c03" stroke-width="2"/>
+    <text x="300" y="108" font-family="Abacaxi, Helvetica, Arial, sans-serif" font-size="20" font-weight="bold" fill="#d94f02" text-anchor="middle">ACTIVE</text>
+  </g>
+
+  <!-- RIGHT: Passive Flexibility -->
+  <g filter="url(#shadow)">
+    <!-- Passive figure: seated forward fold (gravity/props) -->
+    <g transform="translate(900, 180)">
+      <circle cx="-20" cy="20" r="16" fill="#ff9966" opacity="0.9"/>
+      <!-- Torso folded forward -->
+      <path d="M 20 80 Q 0 50 -20 35" fill="none" stroke="#ff9966" stroke-width="6" stroke-linecap="round"/>
+      <!-- Legs extended -->
+      <line x1="20" y1="80" x2="80" y2="80" stroke="#ff9966" stroke-width="5" stroke-linecap="round"/>
+      <!-- Arms reaching -->
+      <line x1="-20" y1="35" x2="30" y2="60" stroke="#ff9966" stroke-width="4" stroke-linecap="round"/>
+      <!-- Feet -->
+      <line x1="80" y1="80" x2="85" y2="70" stroke="#ff9966" stroke-width="3" stroke-linecap="round"/>
+      
+      <!-- Gravity arrows -->
+      <g opacity="0.4">
+        <line x1="-10" y1="-10" x2="-10" y2="10" stroke="#6F6A66" stroke-width="2"/>
+        <polygon points="-10,10 -14,4 -6,4" fill="#6F6A66"/>
+        <line x1="10" y1="0" x2="10" y2="20" stroke="#6F6A66" stroke-width="2"/>
+        <polygon points="10,20 6,14 14,14" fill="#6F6A66"/>
+      </g>
+    </g>
+
+    <!-- Passive label -->
+    <rect x="790" y="80" width="220" height="44" rx="22" fill="#ff9966" opacity="0.15" stroke="#ff9966" stroke-width="2"/>
+    <text x="900" y="108" font-family="Abacaxi, Helvetica, Arial, sans-serif" font-size="20" font-weight="bold" fill="#d94f02" text-anchor="middle">PASSIVE</text>
+  </g>
+
+  <!-- VS divider -->
+  <g transform="translate(600, 220)">
+    <circle cx="0" cy="0" r="28" fill="#f5f3f0" stroke="#E8E4E0" stroke-width="2"/>
+    <text x="0" y="7" font-family="Abacaxi, Helvetica, Arial, sans-serif" font-size="18" font-weight="bold" fill="#6F6A66" text-anchor="middle">VS</text>
+  </g>
+
+  <!-- Comparison bars -->
+  <g transform="translate(0, 380)" font-family="Abacaxi, Helvetica, Arial, sans-serif" font-size="13" opacity="0.6">
+    <text x="170" y="15" fill="#6F6A66" text-anchor="end">Strength</text>
+    <rect x="180" y="3" width="200" height="16" rx="8" fill="#f75c03" opacity="0.7"/>
+    <rect x="620" y="3" width="80" height="16" rx="8" fill="#ff9966" opacity="0.5"/>
+    <text x="1030" y="15" fill="#6F6A66" text-anchor="start">Low</text>
+
+    <text x="170" y="45" fill="#6F6A66" text-anchor="end">Range</text>
+    <rect x="180" y="33" width="120" height="16" rx="8" fill="#f75c03" opacity="0.5"/>
+    <rect x="620" y="33" width="200" height="16" rx="8" fill="#ff9966" opacity="0.7"/>
+    <text x="1030" y="45" fill="#6F6A66" text-anchor="start">High</text>
+  </g>
+
+  <text x="600" y="530" font-family="Abacaxi, Helvetica, Arial, sans-serif" font-size="36" font-weight="bold" fill="#0f0f0f" text-anchor="middle">Active vs. Passive Flexibility</text>
+  <text x="600" y="568" font-family="Abacaxi, Helvetica, Arial, sans-serif" font-size="18" fill="#6F6A66" text-anchor="middle">Understanding Both Approaches</text>
+</svg>

@@ -1,0 +1,64 @@
+<svg viewBox="0 0 1200 630" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <filter id="shadow" x="-50%" y="-50%" width="200%" height="200%">
+      <feDropShadow dx="3" dy="5" stdDeviation="6" flood-opacity="0.25" flood-color="#000"/>
+    </filter>
+  </defs>
+
+  <rect width="1200" height="630" fill="#f5f3f0"/>
+  <circle cx="130" cy="200" r="110" fill="#ff9966" opacity="0.07"/>
+  <circle cx="1070" cy="380" r="140" fill="#f75c03" opacity="0.06"/>
+
+  <!-- Spine curve illustration (abstract backbend arc) -->
+  <g filter="url(#shadow)" transform="translate(600, 280)">
+    <!-- The arc (spine) -->
+    <path d="M -250 80 Q -150 -100 0 -120 Q 150 -100 250 80" fill="none" stroke="#f75c03" stroke-width="6" stroke-linecap="round" opacity="0.8"/>
+    
+    <!-- Vertebrae dots along the arc -->
+    <circle cx="-220" cy="55" r="8" fill="#ff9966" opacity="0.7"/>
+    <circle cx="-170" cy="0" r="9" fill="#f75c03" opacity="0.75"/>
+    <circle cx="-110" cy="-55" r="9" fill="#f75c03" opacity="0.8"/>
+    <circle cx="-50" cy="-95" r="10" fill="#d94f02" opacity="0.85"/>
+    <circle cx="0" cy="-120" r="11" fill="#d94f02" opacity="0.9"/>
+    <circle cx="50" cy="-95" r="10" fill="#d94f02" opacity="0.85"/>
+    <circle cx="110" cy="-55" r="9" fill="#f75c03" opacity="0.8"/>
+    <circle cx="170" cy="0" r="9" fill="#f75c03" opacity="0.75"/>
+    <circle cx="220" cy="55" r="8" fill="#ff9966" opacity="0.7"/>
+
+    <!-- Hands (at ends) -->
+    <circle cx="-250" cy="80" r="12" fill="#ff9966" opacity="0.8"/>
+    <circle cx="250" cy="80" r="12" fill="#ff9966" opacity="0.8"/>
+
+    <!-- Head (at peak) -->
+    <circle cx="0" cy="-145" r="18" fill="#d94f02" opacity="0.85"/>
+  </g>
+
+  <!-- Strength indicators (muscles engaged) -->
+  <g opacity="0.5" font-family="Abacaxi, Helvetica, Arial, sans-serif" font-size="12" fill="#6F6A66">
+    <g transform="translate(350, 350)">
+      <rect x="-40" y="-12" width="80" height="24" rx="12" fill="#f75c03" opacity="0.1" stroke="#f75c03" stroke-width="1.5"/>
+      <text x="0" y="4" text-anchor="middle" fill="#d94f02" font-weight="bold">Glutes</text>
+    </g>
+    <g transform="translate(500, 170)">
+      <rect x="-35" y="-12" width="70" height="24" rx="12" fill="#f75c03" opacity="0.1" stroke="#f75c03" stroke-width="1.5"/>
+      <text x="0" y="4" text-anchor="middle" fill="#d94f02" font-weight="bold">Core</text>
+    </g>
+    <g transform="translate(700, 170)">
+      <rect x="-50" y="-12" width="100" height="24" rx="12" fill="#f75c03" opacity="0.1" stroke="#f75c03" stroke-width="1.5"/>
+      <text x="0" y="4" text-anchor="middle" fill="#d94f02" font-weight="bold">Shoulders</text>
+    </g>
+    <g transform="translate(850, 350)">
+      <rect x="-40" y="-12" width="80" height="24" rx="12" fill="#f75c03" opacity="0.1" stroke="#f75c03" stroke-width="1.5"/>
+      <text x="0" y="4" text-anchor="middle" fill="#d94f02" font-weight="bold">Quads</text>
+    </g>
+  </g>
+
+  <!-- Key message -->
+  <g transform="translate(600, 140)" opacity="0.5">
+    <rect x="-120" y="-16" width="240" height="32" rx="16" fill="#f75c03" opacity="0.1" stroke="#f75c03" stroke-width="1.5"/>
+    <text x="0" y="4" font-family="Abacaxi, Helvetica, Arial, sans-serif" font-size="14" fill="#d94f02" text-anchor="middle" font-weight="bold">Strength Before Opening</text>
+  </g>
+
+  <text x="600" y="500" font-family="Abacaxi, Helvetica, Arial, sans-serif" font-size="38" font-weight="bold" fill="#0f0f0f" text-anchor="middle">Backbends Without Pain</text>
+  <text x="600" y="540" font-family="Abacaxi, Helvetica, Arial, sans-serif" font-size="18" fill="#6F6A66" text-anchor="middle">Strength Before Opening</text>
+</svg>

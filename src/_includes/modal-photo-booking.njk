@@ -42,6 +42,9 @@
       </p>
 
       <form class="yb-pbook__form" id="yb-pbook-form">
+        {# Spam protection — hidden honeypot (bots fill this; humans don't) #}
+        <input type="text" id="yb-pbook-hp" style="position:absolute;left:-9999px;opacity:0;width:1px;height:1px;pointer-events:none;" tabindex="-1" autocomplete="off" aria-hidden="true">
+        <input type="hidden" id="yb-pbook-opened-at">
         {# Personal details #}
         <div class="yb-pbook__field-row">
           <div class="yb-pbook__field">

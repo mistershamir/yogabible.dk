@@ -3,14 +3,14 @@
 
 <section class="yb-link">
 
-  {# ── Hero Media (auto-detects image or video) ── #}
+  {# ── Hero Media (mobile only) ── #}
   <div class="yb-link__media">
-    <video
+    <img
       class="yb-link__video"
-      src="/assets/images/link/hero.mp4"
-      autoplay loop muted playsinline
-      poster="/assets/images/link/hero.jpg"
-    ></video>
+      src="{{ 'hero_image_link_page_yoga_bible_hp1qxj' | cloudimg('w_800,c_scale') }}"
+      alt=""
+      loading="eager"
+    >
     <div class="yb-link__media-overlay"></div>
   </div>
 

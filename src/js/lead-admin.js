@@ -36,9 +36,12 @@
   var currentLead = null;
   var lastDoc = null;
   var PAGE_SIZE = 50;
+  var totalLeadCount = null; // true DB count (from aggregation query)
   var searchTerm = '';
-  var filterStatus = '';
-  var filterType = '';
+  var filterStatuses = []; // multi-select array
+  var filterTypes = [];    // multi-select array
+  var filterSubType = '';      // client-side sub-filter value
+  var filterSubTypeField = ''; // which lead field to match filterSubType against
   var filterSource = '';
   var filterPriority = '';
   var filterTemperature = '';
@@ -50,7 +53,9 @@
   var expandedLeadIds = new Set();
 
   // Kanban columns
-  var KANBAN_COLUMNS = ['New', 'Contacted', 'No Answer', 'Follow-up', 'Engaged', 'Qualified', 'Negotiating', 'Converted'];
+  // 'Converted' and 'Existing Applicant' are intentionally excluded — those leads are
+  // hidden from the active leads view and live in the Applications tab instead.
+  var KANBAN_COLUMNS = ['New', 'Contacted', 'No Answer', 'Follow-up', 'Engaged', 'Qualified', 'Negotiating'];
 
   // Application state
   var applications = [];
@@ -73,8 +78,8 @@
   var COURSE_CATALOG = {
     ytt: [
       { id: '100078', name_da: '18 Ugers Fleksibelt Program (Mar-Jun)', name_en: '18 Weeks Flexible Program (Mar-Jun)', cohorts: [{ label_da: 'Marts\u2013Juni 2026', label_en: 'March\u2013June 2026' }] },
-      { id: '100121', name_da: '4 Ugers Intensiv (Apr)', name_en: '4 Weeks Intensive (Apr)', cohorts: [{ label_da: 'April 2026', label_en: 'April 2026' }] },
-      { id: '100211', name_da: '4 Ugers Intensiv (Jul)', name_en: '4 Weeks Intensive (Jul)', cohorts: [{ label_da: 'Juli 2026', label_en: 'July 2026' }] },
+      { id: '100121', name_da: '4 Ugers Complete Program (Apr)', name_en: '4-Week Complete Program (Apr)', cohorts: [{ label_da: 'April 2026', label_en: 'April 2026' }] },
+      { id: '100211', name_da: '4 Ugers Vinyasa Plus (Jul)', name_en: '4-Week Vinyasa Plus (Jul)', cohorts: [{ label_da: 'Juli 2026', label_en: 'July 2026' }] },
       { id: '100209', name_da: '8 Ugers Semi-Intensiv (Maj-Jun)', name_en: '8 Weeks Semi-Intensive (May-Jun)', cohorts: [{ label_da: 'Maj\u2013Juni 2026', label_en: 'May\u2013June 2026' }] },
       { id: '100210', name_da: '18 Ugers Fleksibelt Program (Aug-Dec)', name_en: '18 Weeks Flexible Program (Aug-Dec)', cohorts: [{ label_da: 'August\u2013December 2026', label_en: 'August\u2013December 2026' }] }
     ],
@@ -158,6 +163,41 @@
     el._tid = setTimeout(function () { el.hidden = true; }, 3500);
   }
 
+  /**
+   * Show save feedback on a submit button:
+   * 1. Before save: text → "Saving..." + disable
+   * 2. On success: text → "✓ Saved!" + green + pulse animation
+   * 3. After 2s: revert to original
+   */
+  function saveBtnStart(formEl) {
+    if (!formEl) return;
+    var btn = formEl.querySelector('button[type="submit"]');
+    if (!btn) return;
+    btn._origText = btn.textContent;
+    btn.textContent = t('save_feedback_saving');
+    btn.disabled = true;
+    btn.classList.add('yb-btn--muted');
+    return btn;
+  }
+  function saveBtnSuccess(btn) {
+    if (!btn) return;
+    btn.disabled = false;
+    btn.classList.remove('yb-btn--muted');
+    btn.textContent = '\u2713 ' + t('save_feedback_saved');
+    btn.classList.add('yb-btn--save-success', 'yb-btn--save-pulse');
+    clearTimeout(btn._revertTid);
+    btn._revertTid = setTimeout(function () {
+      btn.classList.remove('yb-btn--save-success', 'yb-btn--save-pulse');
+      btn.textContent = btn._origText || t('save');
+    }, 2000);
+  }
+  function saveBtnError(btn) {
+    if (!btn) return;
+    btn.disabled = false;
+    btn.classList.remove('yb-btn--muted');
+    btn.textContent = btn._origText || t('save');
+  }
+
   function fmtDate(d) {
     if (!d) return '\u2014';
     var date = d.toDate ? d.toDate() : new Date(d);
@@ -210,11 +250,14 @@
     { value: 'No Answer', label: 'No Answer', color: '#FFE0CC', text: '#BF360C', icon: '\ud83d\udcf5' },
     { value: 'Follow-up', label: 'Follow-up', color: '#e8daef', text: '#6c3483', icon: '\ud83d\udd04' },
     { value: 'Engaged', label: 'Engaged', color: '#DCEDC8', text: '#33691E', icon: '\ud83d\udcac' },
+    { value: 'Strongly Interested', label: 'Strongly Interested', color: '#FFF9C4', text: '#F57F17', icon: '\u2B50' },
     { value: 'Qualified', label: 'Qualified', color: '#B3E5FC', text: '#01579B', icon: '\u2705' },
     { value: 'Negotiating', label: 'Negotiating', color: '#FFE0B2', text: '#E65100', icon: '\ud83e\udd1d' },
     { value: 'Converted', label: 'Converted', color: '#d4edda', text: '#155724', icon: '\ud83c\udf89' },
     { value: 'Existing Applicant', label: 'Existing Applicant', color: '#cce5ff', text: '#004085', icon: '\ud83d\udcc4' },
     { value: 'On Hold', label: 'On Hold', color: '#FFF9C4', text: '#F57F17', icon: '\u23f8\ufe0f' },
+    { value: 'Interested In Next Round', label: 'Interested In Next Round', color: '#E0F2F1', text: '#00695C', icon: '\ud83d\udcc5' },
+    { value: 'Not too keen', label: 'Not too keen', color: '#CFD8DC', text: '#37474F', icon: '\ud83d\ude10' },
     { value: 'Unsubscribed', label: 'Unsubscribed', color: '#f8d7da', text: '#721c24', icon: '\ud83d\udeab' },
     { value: 'Lost', label: 'Lost', color: '#ECEFF1', text: '#546E7F', icon: '\ud83d\udc4e' },
     { value: 'Closed', label: 'Closed', color: '#f5f5f5', text: '#9e9e9e', icon: '\u2716' },
@@ -227,11 +270,14 @@
     'No Answer': ['1st Attempt', '2nd Attempt', '3rd Attempt', 'Voicemail Left', 'Try Again Later'],
     'Follow-up': ['Scheduled Call', 'Waiting Reply', 'Second Follow-up', 'Third Follow-up', 'Final Attempt'],
     'Engaged': ['Asking Questions', 'Price Discussion', 'Scheduling Visit', 'Reviewing Materials'],
+    'Strongly Interested': ['Application Ready', 'Price Sensitive', 'Needs More Info', 'Almost Converted', 'Second Thoughts'],
     'Qualified': ['Ready to Apply', 'Needs Payment Info', 'Considering Dates'],
     'Negotiating': ['Payment Plan', 'Scholarship Request', 'Group Discount'],
     'Converted': ['Application Submitted', 'Payment Received', 'Enrolled'],
     'Existing Applicant': ['Re-inquiry', 'Upgrade Request', 'Referral'],
     'On Hold': ['Travel Issues', 'Financial', 'Personal Reasons', 'Next Cohort'],
+    'Interested In Next Round': [], // populated dynamically from COURSE_CATALOG cohorts
+    'Not too keen': ['Price Too High', 'Bad Timing', 'Lost Interest', 'Considering Alternatives', 'No Reason Given'],
     'Unsubscribed': ['Email Only', 'All Communications'],
     'Lost': ['No Response', 'Chose Competitor', 'Budget', 'Not Interested', 'Wrong Fit'],
     'Closed': ['Spam', 'Duplicate', 'Invalid Contact', 'Completed'],
@@ -266,6 +312,47 @@
     { value: 'Withdrawn', label: 'Withdrawn', color: '#ECEFF1', text: '#546E7F', icon: '\u21a9\ufe0f' },
     { value: 'Completed', label: 'Completed', color: '#E8F5E9', text: '#2E7D32', icon: '\ud83c\udfc6' }
   ];
+
+  /* ══════════════════════════════════════════
+     BULK STATUS PICKER (shared modal)
+     ══════════════════════════════════════════ */
+  function openBulkStatusPicker(statuses, count, onSelect) {
+    var modal = document.getElementById('yb-bulk-status-modal');
+    var grid = document.getElementById('yb-bulk-status-grid');
+    var subtitle = document.getElementById('yb-bulk-status-subtitle');
+    if (!modal || !grid) return;
+
+    subtitle.textContent = count + ' ' + t('leads_selected');
+
+    grid.innerHTML = statuses.map(function (s) {
+      return '<button type="button" class="yb-bulk-status__option" data-status="' + esc(s.value) + '" style="border-color:' + s.color + '">' +
+        '<span class="yb-bulk-status__option-icon">' + s.icon + '</span>' +
+        '<span class="yb-bulk-status__option-label">' + esc(s.label) + '</span>' +
+      '</button>';
+    }).join('');
+
+    modal.hidden = false;
+
+    function close() {
+      modal.hidden = true;
+      grid.innerHTML = '';
+      modal.removeEventListener('click', handleClick);
+    }
+
+    function handleClick(e) {
+      // Close button or overlay
+      if (e.target.closest('[data-close-bulk-status]')) { close(); return; }
+      // Status option
+      var btn = e.target.closest('.yb-bulk-status__option');
+      if (btn) {
+        var status = btn.getAttribute('data-status');
+        close();
+        onSelect(status);
+      }
+    }
+
+    modal.addEventListener('click', handleClick);
+  }
 
   /* ══════════════════════════════════════════
      STATUS HELPERS
@@ -330,37 +417,35 @@
 
     var query = db.collection('leads').orderBy(sortField, sortDir);
 
-    // Filter by archived state — only show archived when explicitly toggled
+    // Archived mode: Firestore filter
     if (showArchived) {
       query = query.where('archived', '==', true);
-    } else if (filterStatus === 'Archived') {
-      query = query.where('status', '==', 'Archived');
-    } else {
-      // Firestore doesn't support != well, so we filter client-side for non-archived
     }
 
-    if (filterStatus && filterStatus !== 'Archived') query = query.where('status', '==', filterStatus);
-    if (filterType) query = query.where('type', '==', filterType);
-    if (filterSource) query = query.where('source', '==', filterSource);
-    if (filterPriority) query = query.where('priority', '==', filterPriority);
-    if (filterTemperature) query = query.where('temperature', '==', filterTemperature);
-    if (lastDoc) query = query.startAfter(lastDoc);
+    // When any chip filter is active, load a large batch and filter client-side.
+    // This avoids composite index requirements and supports multi-select combinations.
+    var hasFilters = filterStatuses.length > 0 || filterTypes.length > 0 ||
+      filterSource || filterPriority || filterTemperature || filterSubType;
 
-    query.limit(PAGE_SIZE).get().then(function (snap) {
+    var batchSize = hasFilters ? 1000 : PAGE_SIZE;
+    if (!hasFilters && lastDoc) query = query.startAfter(lastDoc);
+
+    query.limit(batchSize).get().then(function (snap) {
       snap.forEach(function (doc) {
         var data = Object.assign({ id: doc.id }, doc.data());
-        // Client-side filter: skip archived leads unless showing archived
         if (!showArchived && data.archived === true) return;
         leads.push(data);
       });
-      lastDoc = snap.docs.length ? snap.docs[snap.docs.length - 1] : null;
+
+      // Pagination only applies when no client-side filters are active
+      lastDoc = (!hasFilters && snap.docs.length) ? snap.docs[snap.docs.length - 1] : null;
 
       renderLeadView();
       renderLeadStats();
       updateBulkBar();
 
       var loadMore = $('yb-lead-load-more-wrap');
-      if (loadMore && leadViewMode === 'table') loadMore.hidden = snap.docs.length < PAGE_SIZE;
+      if (loadMore) loadMore.hidden = hasFilters || snap.docs.length < PAGE_SIZE;
 
     }).catch(function (err) {
       console.error('[lead-admin] Load error:', err);
@@ -368,14 +453,148 @@
     });
   }
 
+  /**
+   * Load the true total lead count from Firestore using aggregation.
+   * Uses count() aggregation (Firebase 9.22+) with fallback.
+   */
+  function loadTotalLeadCount() {
+    var ref = db.collection('leads');
+    // Try aggregation count first (Firebase 9.22+ compat)
+    try {
+      if (typeof ref.count === 'function') {
+        ref.count().get().then(function (snap) {
+          totalLeadCount = snap.data().count;
+          renderLeadStats();
+          updateCountDisplay();
+        }).catch(function () {
+          fallbackLoadCount();
+        });
+        return;
+      }
+    } catch (e) { /* fallback */ }
+    fallbackLoadCount();
+  }
+
+  function fallbackLoadCount() {
+    // Fallback: fetch all docs and count (works with any SDK version)
+    db.collection('leads').get().then(function (snap) {
+      var count = 0;
+      snap.forEach(function (doc) {
+        var d = doc.data();
+        if (!showArchived && d.archived === true) return;
+        count++;
+      });
+      totalLeadCount = count;
+      renderLeadStats();
+      updateCountDisplay();
+    }).catch(function () {
+      // If both fail, totalLeadCount stays null — stats will show loaded count
+    });
+  }
+
+  function updateCountDisplay() {
+    var countEl = $('yb-lead-count');
+    if (!countEl) return;
+    var filtered = getFilteredLeads();
+    var dbTotal = totalLeadCount !== null ? totalLeadCount : leads.length;
+    if (filtered.length < leads.length) {
+      // Search filter active: "X matching / Y loaded / Z total"
+      countEl.textContent = filtered.length + ' ' + t('leads_matching') + ' / ' + leads.length + ' ' + t('leads_loaded') + ' / ' + dbTotal + ' ' + t('leads_stat_total').toLowerCase();
+    } else if (leads.length < dbTotal) {
+      // Not all loaded yet: "Y loaded / Z total"
+      countEl.textContent = leads.length + ' ' + t('leads_loaded') + ' ' + t('leads_of') + ' ' + dbTotal;
+    } else {
+      countEl.textContent = filtered.length + ' ' + t('leads_of') + ' ' + dbTotal;
+    }
+  }
+
+  /* ══════════════════════════════════════════
+     SOURCE FILTER — smart matching
+     Maps dropdown values → lead fields (type, ytt_program_type, source)
+     so that old leads with verbose sources still match.
+     ══════════════════════════════════════════ */
+  function matchesSourceFilter(lead, filterValue) {
+    var src  = (lead.source || '').toLowerCase();
+    var type = (lead.type   || '').toLowerCase();
+    var ytt  = (lead.ytt_program_type || '').toLowerCase();
+    switch (filterValue) {
+      case '200h YTT':
+        // Type must be ytt (or education from apply form), and NOT 300h / 50h / 30h
+        return (type === 'ytt' || type === 'education') &&
+               ytt !== '300h' && ytt !== '50h' && ytt !== '30h';
+      case '300h YTT':
+        return (type === 'ytt' || type === 'education') && ytt === '300h';
+      case '50h YTT':
+        return (type === 'ytt' || type === 'education') && ytt === '50h';
+      case '30h YTT':
+        return (type === 'ytt' || type === 'education') && ytt === '30h';
+      case 'Courses':
+        return type === 'course' || type === 'bundle';
+      case 'Mentorship':
+        return type === 'mentorship';
+      case 'Contact page':
+        return type === 'contact' || src.indexOf('contact') !== -1;
+      case 'Apply page':
+        return src.indexOf('apply') !== -1 || src === 'ansøgningsside' || src === 'application page';
+      case 'Careers page':
+        return type === 'careers' || src.indexOf('career') !== -1;
+      case 'Manual entry':
+        return src === 'manual entry' || src.indexOf('manual') !== -1;
+      case 'Facebook Ad':
+        return src.indexOf('meta lead') !== -1 || src.indexOf('facebook') !== -1;
+      default:
+        return lead.source === filterValue;
+    }
+  }
+
   /* ══════════════════════════════════════════
      RENDER LEAD TABLE
      ══════════════════════════════════════════ */
   function getFilteredLeads() {
     var filtered = leads;
+
+    // Hide converted/existing-applicant unless explicitly filtered
+    var CONVERTED_STATUSES = ['Converted', 'Existing Applicant'];
+    var isConvertedFilter = filterStatuses.some(function (s) { return CONVERTED_STATUSES.indexOf(s) !== -1; });
+    if (!isConvertedFilter) {
+      filtered = filtered.filter(function (l) {
+        return CONVERTED_STATUSES.indexOf(l.status) === -1 && !l.application_id;
+      });
+    }
+
+    // Multi-select status filter (OR within same filter type)
+    if (filterStatuses.length > 0) {
+      filtered = filtered.filter(function (l) { return filterStatuses.indexOf(l.status) !== -1; });
+    } else if (!showArchived) {
+      filtered = filtered.filter(function (l) { return l.status !== 'Archived'; });
+    }
+
+    // Multi-select type filter
+    if (filterTypes.length > 0) {
+      filtered = filtered.filter(function (l) { return filterTypes.indexOf(l.type) !== -1; });
+    }
+
+    // Single-select secondary filters
+    if (filterSource) filtered = filtered.filter(function (l) { return matchesSourceFilter(l, filterSource); });
+    if (filterPriority) filtered = filtered.filter(function (l) { return l.priority === filterPriority; });
+    if (filterTemperature) filtered = filtered.filter(function (l) { return l.temperature === filterTemperature; });
+
+    // Sub-type filter — matches on a specific field (ytt_program_type for YTT, or program text for others)
+    if (filterSubType) {
+      var st = filterSubType.toLowerCase();
+      filtered = filtered.filter(function (l) {
+        if (filterSubTypeField) {
+          return (String(l[filterSubTypeField] || '').toLowerCase()).indexOf(st) !== -1;
+        }
+        // fallback: check program text
+        var prog = (l.program || '').toLowerCase();
+        return prog.indexOf(st) !== -1;
+      });
+    }
+
     if (searchTerm) {
       var s = searchTerm.toLowerCase();
-      filtered = leads.filter(function (l) {
+      filtered = filtered.filter(function (l) {
         return (l.email || '').toLowerCase().indexOf(s) !== -1 ||
           (l.first_name || '').toLowerCase().indexOf(s) !== -1 ||
           (l.last_name || '').toLowerCase().indexOf(s) !== -1 ||
@@ -385,6 +604,87 @@
       });
     }
     return filtered;
+  }
+
+  /* ══════════════════════════════════════════
+     MULTI-SELECT CHIP FILTERS
+     ══════════════════════════════════════════ */
+  function renderLeadFilterChips() {
+    // Status chips (all statuses except Archived, which is managed by the toggle button)
+    var sc = $('yb-lead-status-chips');
+    if (sc) {
+      var html = '';
+      STATUSES.filter(function (s) { return s.value !== 'Archived'; }).forEach(function (s) {
+        var active = filterStatuses.indexOf(s.value) !== -1 ? ' is-active' : '';
+        html += '<button type="button" class="yb-lead__campaign-chip' + active + '" data-status-chip="' + esc(s.value) + '">' +
+          s.icon + ' ' + esc(s.label) + '</button>';
+      });
+      sc.innerHTML = html;
+    }
+
+    // Type chips
+    var tc = $('yb-lead-type-chips');
+    if (tc) {
+      var types = [
+        { value: 'ytt', label: '🧘 YTT' },
+        { value: 'course', label: '📚 Course' },
+        { value: 'bundle', label: '📦 Bundle' },
+        { value: 'mentorship', label: '🎓 Mentorship' },
+        { value: 'careers', label: '💼 Career' },
+        { value: 'contact', label: '📞 Contact' }
+      ];
+      var html2 = '';
+      types.forEach(function (typ) {
+        var active = filterTypes.indexOf(typ.value) !== -1 ? ' is-active' : '';
+        html2 += '<button type="button" class="yb-lead__campaign-chip' + active + '" data-type-chip="' + esc(typ.value) + '">' +
+          esc(typ.label) + '</button>';
+      });
+      tc.innerHTML = html2;
+    }
+  }
+
+  // Sub-type definitions per lead type.
+  // `field` = which lead property to match against (defaults to 'program' text if omitted).
+  var SUB_TYPE_OPTIONS = {
+    ytt: [
+      { label: '18W Flex',     match: '18-week', field: 'ytt_program_type' },
+      { label: '8W Semi',      match: '8-week',  field: 'ytt_program_type' },
+      { label: '4W Intensive', match: '4-week',  field: 'ytt_program_type' },
+      { label: '300h Adv.',    match: '300h',    field: 'ytt_program_type' },
+      { label: '50h Specialty',match: '50h',     field: 'ytt_program_type' },
+      { label: '30h Module',   match: '30h',     field: 'ytt_program_type' }
+    ],
+    course: [
+      { label: 'Inversions', match: 'inversion', field: 'program' },
+      { label: 'Splits',     match: 'split',     field: 'program' },
+      { label: 'Backbends',  match: 'backbend',  field: 'program' }
+    ],
+    bundle: [
+      { label: '2-Course',        match: '2-course', field: 'program' },
+      { label: '3-Course All-In', match: 'all-in',   field: 'program' }
+    ]
+  };
+
+  function renderSubTypeFilter(type) {
+    var row = $('yb-lead-subtype-row');
+    var chipsEl = $('yb-lead-subtype-chips');
+    if (!row || !chipsEl) return;
+
+    var options = SUB_TYPE_OPTIONS[type];
+    if (!options || options.length === 0) {
+      row.hidden = true;
+      chipsEl.innerHTML = '';
+      return;
+    }
+
+    chipsEl.innerHTML = '<span class="yb-lead__subtype-label">Sub-filter:</span>' +
+      options.map(function (opt) {
+        var active = filterSubType === opt.match ? ' is-active' : '';
+        var fieldAttr = opt.field ? ' data-subtype-field="' + esc(opt.field) + '"' : '';
+        return '<button type="button" class="yb-lead__campaign-chip' + active + '"' +
+          ' data-subtype="' + esc(opt.match) + '"' + fieldAttr + '>' + esc(opt.label) + '</button>';
+      }).join('');
+    row.hidden = false;
   }
 
   /* ── View dispatcher ── */
@@ -403,6 +703,7 @@
       if (tableContainer) tableContainer.hidden = false;
       if (kanbanEl) kanbanEl.hidden = true;
       renderLeadTable();
+      updateBulkBar();
     }
   }
 
@@ -412,9 +713,8 @@
 
     var filtered = getFilteredLeads();
 
-    // Update count display
-    var countEl = $('yb-lead-count');
-    if (countEl) countEl.textContent = filtered.length + ' ' + t('leads_of') + ' ' + leads.length;
+    // Update count display (uses true DB total when available)
+    updateCountDisplay();
 
     if (!filtered.length) {
       tbody.innerHTML = '<tr><td colspan="15" style="text-align:center;padding:2rem;color:var(--yb-muted)">' + t('leads_no_leads') + '</td></tr>';
@@ -462,7 +762,7 @@
         '</td>' +
         '<td class="yb-lead__cell-contact">' +
           '<div class="yb-lead__cell-email-text">' + esc(l.email || '') + '</div>' +
-          (l.phone ? '<div class="yb-lead__cell-phone-text">' + esc(l.phone) + '</div>' : '') +
+          (l.phone ? '<a href="tel:' + esc(l.phone) + '" class="yb-lead__cell-phone-link" onclick="event.stopPropagation()">' + esc(l.phone) + '</a>' : '') +
         '</td>' +
         '<td><span class="yb-lead__type-badge">' + typeBadge(l.type) + '</span></td>' +
         '<td class="yb-lead__cell-program">' + esc((l.program || l.cohort_label || '').substring(0, 30)) + '</td>' +
@@ -594,7 +894,9 @@
     var el = $('yb-lead-stats');
     if (!el) return;
 
-    var total = leads.length;
+    // Use true DB total when available, fall back to loaded count
+    var total = totalLeadCount !== null ? totalLeadCount : leads.length;
+    var loadedCount = leads.length;
     var counts = {};
     STATUSES.forEach(function (s) { counts[s.value] = 0; });
     var unreadSmsCount = 0;
@@ -671,9 +973,8 @@
 
     var filtered = getFilteredLeads();
 
-    // Update count display
-    var countEl = $('yb-lead-count');
-    if (countEl) countEl.textContent = filtered.length + ' ' + t('leads_of') + ' ' + leads.length;
+    // Update count display (uses true DB total when available)
+    updateCountDisplay();
 
     // Group leads by column
     var groups = {};
@@ -1062,6 +1363,9 @@
   function saveLeadFields() {
     if (!currentLeadId || !currentLead) return;
 
+    var formEl = $('yb-lead-edit-form');
+    var btn = saveBtnStart(formEl);
+
     var updates = {};
     var fields = [
       { id: 'yb-lead-edit-first-name', key: 'first_name' },
@@ -1098,9 +1402,11 @@
       // Update heading in case name changed
       var headingEl = $('yb-lead-detail-heading');
       if (headingEl) headingEl.textContent = (currentLead.first_name || '') + ' ' + (currentLead.last_name || '');
+      saveBtnSuccess(btn);
       toast(t('leads_fields_saved'));
     }).catch(function (err) {
       console.error('[lead-admin] Lead fields save error:', err);
+      saveBtnError(btn);
       toast(t('error_save'), true);
     });
   }
@@ -1273,6 +1579,23 @@
     var status = statusSelect.value;
     var subs = SUB_STATUSES[status] || [];
 
+    // For "Interested In Next Round", use all cohort labels from COURSE_CATALOG
+    if (status === 'Interested In Next Round') {
+      subs = [];
+      ['ytt', 'course', 'bundle'].forEach(function (type) {
+        (COURSE_CATALOG[type] || []).forEach(function (item) {
+          var name = catalogName(item);
+          (item.cohorts || []).forEach(function (coh) {
+            subs.push(cohortLabel(coh) + ' — ' + name);
+          });
+          // For courses/bundles with no cohorts, just use the name
+          if (!item.cohorts || item.cohorts.length === 0) {
+            subs.push(name);
+          }
+        });
+      });
+    }
+
     subStatusSelect.innerHTML = '<option value="">-- ' + t('leads_no_sub_status') + ' --</option>' +
       subs.map(function (s) {
         return '<option value="' + esc(s) + '">' + esc(s) + '</option>';
@@ -1282,6 +1605,9 @@
   function saveLeadStatus(e) {
     e.preventDefault();
     if (!currentLeadId) return;
+
+    var formEl = $('yb-lead-status-form');
+    var btn = saveBtnStart(formEl);
 
     var newStatus = $('yb-lead-status-select').value;
     var newSubStatus = $('yb-lead-sub-status-select') ? $('yb-lead-sub-status-select').value : '';
@@ -1320,11 +1646,29 @@
       var idx = leads.findIndex(function (l) { return l.id === currentLeadId; });
       if (idx !== -1) Object.assign(leads[idx], updates);
 
-      renderLeadDetailCard();
-      renderLeadStats();
-      toast(t('saved'));
+      // Converted / Existing Applicant → remove from active leads view
+      if (newStatus === 'Converted' || newStatus === 'Existing Applicant') {
+        saveBtnSuccess(btn);
+        var msg = newStatus === 'Converted'
+          ? 'Lead markeret som konverteret — se dem under Applications-fanen'
+          : 'Lead markeret som Existing Applicant — se dem under Applications-fanen';
+        toast(msg);
+        // Close detail panel and refresh list (lead disappears from active view)
+        $('yb-admin-v-lead-list').hidden = false;
+        $('yb-admin-v-lead-detail').hidden = true;
+        currentLeadId = null;
+        currentLead = null;
+        renderLeadView();
+        renderLeadStats();
+      } else {
+        renderLeadDetailCard();
+        renderLeadStats();
+        saveBtnSuccess(btn);
+        toast(t('saved'));
+      }
     }).catch(function (err) {
       console.error('[lead-admin] Save error:', err);
+      saveBtnError(btn);
       toast(t('error_save'), true);
     });
   }
@@ -1840,7 +2184,7 @@
     getAuthToken().then(function (token) {
       var body;
       if (isBulk) {
-        var leadIds = recipients.map(function (l) { return l.id; });
+        var leadIds = recipients.filter(function (l) { return l && l.email; }).map(function (l) { return l.id; });
         body = JSON.stringify({ leadIds: leadIds, subject: subject, bodyHtml: htmlBody, bodyPlain: bodyHtml });
       } else {
         body = JSON.stringify({ leadId: recipients[0].id, subject: subject, bodyHtml: htmlBody, bodyPlain: bodyHtml });
@@ -1906,17 +2250,31 @@
     var bar = $('yb-lead-bulk-bar');
     if (!bar) return;
 
-    if (selectedIds.size === 0) {
-      bar.hidden = true;
-      return;
-    }
+    // Bar is always visible in table mode; kanban hides it via renderLeadView
+    var hasSelection = selectedIds.size > 0;
 
-    bar.hidden = false;
-    var selected = leads.filter(function (l) { return selectedIds.has(l.id); });
-    var withPhone = selected.filter(function (l) { return l.phone; }).length;
-    var withEmail = selected.filter(function (l) { return l.email; }).length;
-    $('yb-lead-bulk-count').innerHTML = '<strong>' + selectedIds.size + '</strong> ' + t('leads_selected') +
-      ' &nbsp;·&nbsp; 📱 ' + withPhone + ' &nbsp;·&nbsp; ✉️ ' + withEmail;
+    // Selection-only buttons
+    bar.querySelectorAll('.yb-lead__bulk-sel-only').forEach(function (btn) {
+      btn.hidden = !hasSelection;
+    });
+
+    // Count text
+    var countEl = $('yb-lead-bulk-count');
+    if (countEl) {
+      if (hasSelection) {
+        var selected = leads.filter(function (l) { return selectedIds.has(l.id); });
+        var withPhone = selected.filter(function (l) { return l.phone; }).length;
+        var withEmail = selected.filter(function (l) { return l.email; }).length;
+        var dbTotal = totalLeadCount !== null ? totalLeadCount : leads.length;
+        var notAllLoaded = leads.length < dbTotal;
+        countEl.innerHTML = '<strong>' + selectedIds.size + '</strong> ' + t('leads_selected') +
+          ' &nbsp;·&nbsp; 📱 ' + withPhone + ' &nbsp;·&nbsp; ✉️ ' + withEmail +
+          (notAllLoaded ? ' &nbsp;·&nbsp; <span style="color:var(--yb-muted);font-size:0.8em">(' + leads.length + ' ' + t('leads_loaded') + ' ' + t('leads_of') + ' ' + dbTotal + ')</span>' : '');
+        countEl.hidden = false;
+      } else {
+        countEl.hidden = true;
+      }
+    }
   }
 
   function toggleSelectAll() {
@@ -1947,60 +2305,57 @@
   }
 
   function bulkUpdateStatus() {
-    var newStatus = prompt(t('leads_bulk_status_prompt'), 'Contacted');
-    if (!newStatus) return;
-
-    // Validate
-    if (!STATUSES.find(function (s) { return s.value === newStatus; })) {
-      toast(t('leads_invalid_status'), true);
-      return;
-    }
-
-    var batch = db.batch();
-    selectedIds.forEach(function (id) {
-      batch.update(db.collection('leads').doc(id), {
-        status: newStatus,
-        updated_at: firebase.firestore.FieldValue.serverTimestamp()
+    openBulkStatusPicker(STATUSES, selectedIds.size, function (newStatus) {
+      var batch = db.batch();
+      var extraFields = {};
+      if (newStatus === 'Converted') {
+        extraFields.converted = true;
+        extraFields.converted_at = firebase.firestore.FieldValue.serverTimestamp();
+      }
+      selectedIds.forEach(function (id) {
+        batch.update(db.collection('leads').doc(id), Object.assign({
+          status: newStatus,
+          updated_at: firebase.firestore.FieldValue.serverTimestamp()
+        }, extraFields));
       });
-    });
 
-    batch.commit().then(function () {
-      // Update local
-      leads.forEach(function (l) {
-        if (selectedIds.has(l.id)) l.status = newStatus;
+      batch.commit().then(function () {
+        leads.forEach(function (l) {
+          if (selectedIds.has(l.id)) l.status = newStatus;
+        });
+        selectedIds.clear();
+        selectAll = false;
+        renderLeadView();
+        renderLeadStats();
+        updateBulkBar();
+        toast(t('saved'));
+      }).catch(function (err) {
+        toast(t('error_save') + ': ' + err.message, true);
       });
-      selectedIds.clear();
-      selectAll = false;
-      renderLeadView();
-      renderLeadStats();
-      updateBulkBar();
-      toast(t('saved'));
-    }).catch(function (err) {
-      toast(t('error_save') + ': ' + err.message, true);
     });
   }
 
   function bulkSMS() {
-    var selected = leads.filter(function (l) { return selectedIds.has(l.id); });
-    var withPhone = selected.filter(function (l) { return l.phone; });
-    if (!withPhone.length) { toast(t('leads_no_phone'), true); return; }
-    // Delegate to campaign wizard if available
-    if (typeof window.openSMSCampaign === 'function') {
-      window.openSMSCampaign(selected);
+    if (selectedIds.size > 0) {
+      var selected = leads.filter(function (l) { return selectedIds.has(l.id); });
+      if (!selected.some(function (l) { return l.phone; })) { toast(t('leads_no_phone'), true); return; }
+      if (typeof window.openSMSCampaign === 'function') { window.openSMSCampaign(selected); }
+      else { openSMSComposer(selected); }
     } else {
-      openSMSComposer(selected);
+      // No pre-selection: open wizard fresh, admin picks recipients inside
+      if (typeof window.openSMSCampaign === 'function') { window.openSMSCampaign([]); }
     }
   }
 
   function bulkEmail() {
-    var selected = leads.filter(function (l) { return selectedIds.has(l.id); });
-    var withEmail = selected.filter(function (l) { return l.email; });
-    if (!withEmail.length) { toast(t('leads_no_email_addr'), true); return; }
-    // Delegate to campaign wizard if available
-    if (typeof window.openEmailCampaign === 'function') {
-      window.openEmailCampaign(selected);
+    if (selectedIds.size > 0) {
+      var selected = leads.filter(function (l) { return selectedIds.has(l.id); });
+      if (!selected.some(function (l) { return l.email; })) { toast(t('leads_no_email_addr'), true); return; }
+      if (typeof window.openEmailCampaign === 'function') { window.openEmailCampaign(selected); }
+      else { openEmailComposer(selected); }
     } else {
-      openEmailComposer(selected);
+      // No pre-selection: open wizard fresh, admin picks recipients inside
+      if (typeof window.openEmailCampaign === 'function') { window.openEmailCampaign([]); }
     }
   }
 
@@ -2195,7 +2550,7 @@
         '<td class="yb-lead__cell-cb"><input type="checkbox" class="yb-app-row-cb" data-id="' + a.id + '"' + (isChecked ? ' checked' : '') + '></td>' +
         '<td class="yb-lead__cell-date">' + esc(a.app_id || a.id.substring(0, 8)) + '</td>' +
         '<td class="yb-lead__cell-name">' + esc((a.first_name || '') + ' ' + (a.last_name || '')).trim() + '</td>' +
-        '<td class="yb-lead__cell-contact"><div class="yb-lead__cell-email-text">' + esc(a.email || '') + '</div></td>' +
+        '<td class="yb-lead__cell-contact"><div class="yb-lead__cell-email-text">' + esc(a.email || '') + '</div>' + (a.phone ? '<a href="tel:' + esc(a.phone) + '" class="yb-lead__cell-phone-link" onclick="event.stopPropagation()">' + esc(a.phone) + '</a>' : '') + '</td>' +
         '<td><span class="yb-lead__type-badge">' + esc(a.program_type || '\u2014') + '</span></td>' +
         '<td class="yb-lead__cell-program">' + esc((a.course_name || a.cohort || '').substring(0, 30)) + '</td>' +
         '<td>' + esc(displayTrack(a.track)) + '</td>' +
@@ -2272,6 +2627,8 @@
     currentAppId = appId;
     currentApp = applications.find(function (a) { return a.id === appId; });
     if (!currentApp) return;
+    // Expose to billing-admin for "Bill Applicant" action
+    window._ybCurrentApp = currentApp;
 
     var listView = $('yb-admin-v-app-list');
     var detailView = $('yb-admin-v-app-detail');
@@ -2282,7 +2639,9 @@
     if (headingEl) headingEl.textContent = (currentApp.first_name || '') + ' ' + (currentApp.last_name || '') + ' \u2014 ' + (currentApp.app_id || appId.substring(0, 8));
 
     renderApplicationDetailCard();
+    renderAppInvoiceStatus();
     renderAppQuickActions();
+    updateActivateBtn();
     renderAppEditForm();
     renderAppNotesTimeline();
     loadAppSMSConversation(appId);
@@ -2290,6 +2649,24 @@
     // Set status form to current status
     var statusSelect = $('yb-app-status-select');
     if (statusSelect && currentApp) statusSelect.value = currentApp.status || 'Pending';
+
+    // Allow billing-admin to notify us when invoice data changes
+    window._ybRefreshAppInvoice = function () {
+      if (currentAppId) {
+        // Re-read the application to pick up invoice field changes
+        db.collection('applications').doc(currentAppId).get().then(function (doc) {
+          if (doc.exists) {
+            var data = doc.data();
+            data.id = doc.id;
+            currentApp = data;
+            window._ybCurrentApp = currentApp;
+            var idx = applications.findIndex(function (a) { return a.id === currentAppId; });
+            if (idx !== -1) applications[idx] = currentApp;
+            renderAppInvoiceStatus();
+          }
+        });
+      }
+    };
   }
 
   function backToAppList() {
@@ -2439,6 +2816,470 @@
     el.innerHTML = html;
   }
 
+  /* ── Render Application Invoice Status Card ── */
+  function renderAppInvoiceStatus() {
+    var el = $('yb-app-invoice-status');
+    if (!el || !currentApp) return;
+
+    var inv = currentApp.invoice;
+    var appRef = currentApp.app_id || currentAppId;
+
+    // No invoice data yet — show empty state with lookup button
+    if (!inv) {
+      el.innerHTML = '<div class="yb-lead__section-card yb-lead__section-card--full yb-app-invoice">' +
+        '<h4 class="yb-lead__card-title">' + t('invoice_title') + '</h4>' +
+        '<p class="yb-lead__empty-text" style="margin:0 0 0.75rem">' + t('invoice_none') + '</p>' +
+        '<button class="yb-btn yb-btn--outline yb-btn--sm" data-action="app-invoice-lookup" data-ref="' + esc(appRef) + '">' +
+          '\ud83d\udd0d ' + t('invoice_lookup') +
+        '</button>' +
+      '</div>';
+      return;
+    }
+
+    // Invoice exists — render status card
+    var statusLabel, statusClass, statusIcon;
+    switch (inv.status) {
+      case 'sent':
+        statusLabel = t('invoice_status_sent');
+        statusClass = 'yb-app-invoice__badge--sent';
+        statusIcon = '\u2709\ufe0f';
+        break;
+      case 'booked':
+        statusLabel = t('invoice_status_booked');
+        statusClass = 'yb-app-invoice__badge--booked';
+        statusIcon = '\u2705';
+        break;
+      default:
+        statusLabel = t('invoice_status_draft');
+        statusClass = 'yb-app-invoice__badge--draft';
+        statusIcon = '\ud83d\udcdd';
+    }
+
+    var html = '<div class="yb-lead__section-card yb-lead__section-card--full yb-app-invoice">';
+    html += '<div class="yb-app-invoice__header">';
+    html += '<h4 class="yb-lead__card-title" style="margin:0">' + t('invoice_title') + '</h4>';
+    html += '<span class="yb-app-invoice__badge ' + statusClass + '">' + statusIcon + ' ' + esc(statusLabel) + '</span>';
+    html += '</div>';
+
+    // Details rows
+    if (inv.bookedNumber) {
+      html += '<div class="yb-lead__card-row"><span class="yb-lead__card-label">' + t('invoice_number') + '</span><span class="yb-lead__card-value"><strong>#' + esc(String(inv.bookedNumber)) + '</strong></span></div>';
+    } else if (inv.draftNumber) {
+      html += '<div class="yb-lead__card-row"><span class="yb-lead__card-label">' + t('invoice_number') + '</span><span class="yb-lead__card-value">' + (isDa ? 'Kladde' : 'Draft') + ' #' + esc(String(inv.draftNumber)) + '</span></div>';
+    }
+    if (inv.amount) {
+      html += '<div class="yb-lead__card-row"><span class="yb-lead__card-label">' + t('invoice_amount') + '</span><span class="yb-lead__card-value">' + formatDKK(inv.amount) + '</span></div>';
+    }
+    if (inv.date) {
+      html += '<div class="yb-lead__card-row"><span class="yb-lead__card-label">' + t('invoice_date') + '</span><span class="yb-lead__card-value">' + esc(inv.date) + '</span></div>';
+    }
+    if (inv.dueDate) {
+      html += '<div class="yb-lead__card-row"><span class="yb-lead__card-label">' + t('invoice_due') + '</span><span class="yb-lead__card-value">' + esc(inv.dueDate) + '</span></div>';
+    }
+    if (inv.remainder != null) {
+      html += '<div class="yb-lead__card-row"><span class="yb-lead__card-label">' + t('invoice_remainder') + '</span><span class="yb-lead__card-value">' + formatDKK(inv.remainder) + '</span></div>';
+    }
+    if (inv.sentTo) {
+      html += '<div class="yb-lead__card-row"><span class="yb-lead__card-label">' + t('invoice_sent_to') + '</span><span class="yb-lead__card-value">' + esc(inv.sentTo) + '</span></div>';
+    }
+    if (inv.sentAt) {
+      html += '<div class="yb-lead__card-row"><span class="yb-lead__card-label">' + t('invoice_last_sent') + '</span><span class="yb-lead__card-value">' + formatSentDate(inv.sentAt) + '</span></div>';
+    }
+
+    // Manual payment status
+    var payStatus = inv.paymentStatus || 'pending';
+    html += '<div class="yb-lead__card-row" style="margin-top:0.5rem">';
+    html += '<span class="yb-lead__card-label">' + t('invoice_payment_status') + '</span>';
+    html += '<span class="yb-lead__card-value">';
+    html += '<select id="yb-app-invoice-payment-status" class="yb-admin__select" style="max-width:160px;font-size:0.8rem" data-action="app-invoice-payment-status">';
+    html += '<option value="pending"' + (payStatus === 'pending' ? ' selected' : '') + '>' + t('invoice_pay_pending') + '</option>';
+    html += '<option value="paid"' + (payStatus === 'paid' ? ' selected' : '') + '>' + t('invoice_pay_paid') + '</option>';
+    html += '<option value="unpaid"' + (payStatus === 'unpaid' ? ' selected' : '') + '>' + t('invoice_pay_unpaid') + '</option>';
+    html += '<option value="partial"' + (payStatus === 'partial' ? ' selected' : '') + '>' + t('invoice_pay_partial') + '</option>';
+    html += '</select>';
+    html += '</span></div>';
+
+    // Action buttons
+    html += '<div class="yb-app-invoice__actions">';
+    if (inv.bookedNumber) {
+      html += '<button class="yb-btn yb-btn--outline yb-btn--sm" data-action="app-invoice-view" data-booked="' + inv.bookedNumber + '">\ud83d\udc41 ' + t('invoice_quick_view') + '</button>';
+      html += '<button class="yb-btn yb-btn--outline yb-btn--sm" data-action="app-invoice-pdf" data-booked="' + inv.bookedNumber + '">\ud83d\udcc4 ' + t('invoice_download') + '</button>';
+      html += '<button class="yb-btn yb-btn--outline yb-btn--sm" data-action="app-invoice-resend" data-booked="' + inv.bookedNumber + '" data-email="' + esc(inv.sentTo || currentApp.email || '') + '">\ud83d\udce8 ' + t('invoice_resend') + '</button>';
+      html += '<button class="yb-btn yb-btn--outline yb-btn--sm yb-admin__icon-btn--danger" data-action="app-invoice-credit" data-booked="' + inv.bookedNumber + '">\u21ba ' + t('billing_credit_note') + '</button>';
+    }
+    if (inv.draftNumber && !inv.bookedNumber) {
+      html += '<button class="yb-btn yb-btn--outline yb-btn--sm yb-admin__icon-btn--danger" data-action="app-invoice-delete-draft" data-draft="' + inv.draftNumber + '">\ud83d\uddd1 ' + t('billing_delete_draft') + '</button>';
+    }
+    html += '<button class="yb-btn yb-btn--outline yb-btn--sm" data-action="app-invoice-refresh" data-ref="' + esc(appRef) + '">\u21bb ' + t('invoice_refresh') + '</button>';
+    html += '</div>';
+
+    html += '</div>';
+    el.innerHTML = html;
+  }
+
+  function formatDKK(amount) {
+    return Number(amount).toLocaleString('da-DK') + ' DKK';
+  }
+
+  function formatSentDate(isoStr) {
+    if (!isoStr) return '\u2014';
+    var d = new Date(isoStr);
+    if (isNaN(d.getTime())) return esc(isoStr);
+    var dd = String(d.getDate()).padStart(2, '0');
+    var mm = String(d.getMonth() + 1).padStart(2, '0');
+    var yyyy = d.getFullYear();
+    var hh = String(d.getHours()).padStart(2, '0');
+    var min = String(d.getMinutes()).padStart(2, '0');
+    return dd + '/' + mm + '/' + yyyy + ' ' + hh + ':' + min;
+  }
+
+  /* ── Invoice Actions from Application Profile ── */
+  /**
+   * Look up invoices by customer email.
+   * Strategy: search e-conomic customers by email → then searchInvoicesByCustomer
+   * Falls back to searchInvoicesByRef if email yields nothing.
+   */
+  function appInvoiceLookup(refText) {
+    var btn = document.querySelector('[data-action="app-invoice-lookup"]');
+    if (btn) { btn.textContent = '\ud83d\udd0d ' + t('invoice_looking_up'); btn.classList.add('yb-btn--muted'); }
+
+    var email = currentApp ? (currentApp.email || '') : '';
+
+    function resetBtn() {
+      if (btn) { btn.textContent = '\ud83d\udd0d ' + t('invoice_lookup'); btn.classList.remove('yb-btn--muted'); }
+    }
+
+    function handleInvoiceResults(data) {
+      var bookedList = data.booked || [];
+      var draftList = data.drafts || [];
+
+      if (!bookedList.length && !draftList.length) {
+        toast(t('invoice_not_found'));
+        return;
+      }
+
+      // Pick the most recent invoice (prefer booked over draft)
+      if (bookedList.length) {
+        var inv = bookedList[0];
+        saveAppInvoiceData({
+          bookedNumber: inv.bookedInvoiceNumber,
+          status: 'booked',
+          amount: inv.grossAmount || inv.netAmount || 0,
+          date: inv.date || '',
+          dueDate: inv.dueDate || '',
+          remainder: inv.remainder,
+          createdAt: new Date().toISOString()
+        });
+      } else {
+        var inv = draftList[0];
+        saveAppInvoiceData({
+          draftNumber: inv.draftInvoiceNumber,
+          status: 'draft',
+          amount: inv.grossAmount || inv.netAmount || 0,
+          date: inv.date || '',
+          createdAt: new Date().toISOString()
+        });
+      }
+    }
+
+    // Primary: search by customer email
+    if (email) {
+      billingApiCall({ action: 'searchCustomers', query: email }).then(function (custRes) {
+        if (!custRes.ok || !custRes.data || !custRes.data.length) {
+          // No e-conomic customer found — fallback to ref search
+          return fallbackRefSearch();
+        }
+        // Find exact email match
+        var match = custRes.data.find(function (c) { return c.email && c.email.toLowerCase() === email.toLowerCase(); });
+        if (!match) match = custRes.data[0]; // use closest match
+
+        // Search invoices by customer number
+        return billingApiCall({ action: 'searchInvoicesByCustomer', customerNumber: match.customerNumber }).then(function (invRes) {
+          resetBtn();
+          if (!invRes.ok) { toast(invRes.error, true); return; }
+          handleInvoiceResults(invRes.data);
+        });
+      }).catch(function (err) {
+        resetBtn();
+        toast(err.message, true);
+      });
+    } else {
+      // No email — try ref search directly
+      fallbackRefSearch();
+    }
+
+    function fallbackRefSearch() {
+      if (!refText) { resetBtn(); toast(t('invoice_not_found')); return; }
+      billingApiCall({ action: 'searchInvoicesByRef', refText: refText }).then(function (res) {
+        resetBtn();
+        if (!res.ok) { toast(res.error, true); return; }
+        handleInvoiceResults(res.data);
+      }).catch(function (err) { resetBtn(); toast(err.message, true); });
+    }
+  }
+
+  function appInvoiceRefresh(refText) {
+    var btn = document.querySelector('[data-action="app-invoice-refresh"]');
+    if (btn) { btn.textContent = '\u21bb ' + t('invoice_refreshing'); btn.classList.add('yb-btn--muted'); }
+
+    var inv = currentApp && currentApp.invoice;
+    if (!inv || !inv.bookedNumber) {
+      // No booked number — try lookup
+      appInvoiceLookup(refText);
+      if (btn) { btn.textContent = '\u21bb ' + t('invoice_refresh'); btn.classList.remove('yb-btn--muted'); }
+      return;
+    }
+
+    // Fetch latest data from e-conomic for the booked invoice
+    billingApiCall({ action: 'getBooked', bookedNumber: inv.bookedNumber }).then(function (res) {
+      if (btn) { btn.textContent = '\u21bb ' + t('invoice_refresh'); btn.classList.remove('yb-btn--muted'); }
+      if (!res.ok) { toast(res.error, true); return; }
+      var d = res.data;
+      var update = {
+        bookedNumber: d.bookedInvoiceNumber,
+        status: inv.status || 'booked',
+        amount: d.grossAmount || d.netAmount || 0,
+        date: d.date || inv.date,
+        dueDate: d.dueDate || '',
+        remainder: d.remainder
+      };
+      if (inv.sentAt) update.sentAt = inv.sentAt;
+      if (inv.sentTo) update.sentTo = inv.sentTo;
+      saveAppInvoiceData(update);
+      toast(isDa ? 'Fakturastatus opdateret' : 'Invoice status updated');
+    }).catch(function (err) {
+      if (btn) { btn.textContent = '\u21bb ' + t('invoice_refresh'); btn.classList.remove('yb-btn--muted'); }
+      toast(err.message, true);
+    });
+  }
+
+  function saveAppPaymentStatus(status) {
+    if (!currentApp || !currentApp.invoice) return;
+    currentApp.invoice.paymentStatus = status;
+    saveAppInvoiceData({ paymentStatus: status });
+    toast(isDa ? 'Betalingsstatus gemt' : 'Payment status saved');
+  }
+
+  function appInvoiceQuickView(bookedNumber) {
+    var btn = document.querySelector('[data-action="app-invoice-view"]');
+    if (btn) { btn.textContent = '\ud83d\udc41 ...'; btn.classList.add('yb-btn--muted'); }
+
+    billingApiCall({ action: 'getBooked', bookedNumber: parseInt(bookedNumber) }).then(function (res) {
+      if (btn) { btn.textContent = '\ud83d\udc41 ' + t('invoice_quick_view'); btn.classList.remove('yb-btn--muted'); }
+      if (!res.ok) { toast(res.error, true); return; }
+      var d = res.data;
+      showInvoiceQuickViewModal(d);
+    }).catch(function (err) {
+      if (btn) { btn.textContent = '\ud83d\udc41 ' + t('invoice_quick_view'); btn.classList.remove('yb-btn--muted'); }
+      toast(err.message, true);
+    });
+  }
+
+  function showInvoiceQuickViewModal(d) {
+    // Re-use the billing modal if available, or create an inline overlay
+    var modal = $('yb-app-invoice-modal');
+    if (!modal) return;
+    var body = $('yb-app-invoice-modal-body');
+    var title = $('yb-app-invoice-modal-title');
+    if (title) title.textContent = (isDa ? 'Faktura' : 'Invoice') + ' #' + (d.bookedInvoiceNumber || '');
+
+    var html = '<div class="yb-billing__detail">';
+    html += '<div class="yb-billing__detail-row"><strong>' + (isDa ? 'Kunde' : 'Customer') + ':</strong> ' + esc(d.recipient && d.recipient.name || '\u2014') + '</div>';
+    html += '<div class="yb-billing__detail-row"><strong>' + (isDa ? 'Dato' : 'Date') + ':</strong> ' + (d.date || '\u2014') + '</div>';
+    html += '<div class="yb-billing__detail-row"><strong>' + (isDa ? 'Forfaldsdato' : 'Due Date') + ':</strong> ' + (d.dueDate || '\u2014') + '</div>';
+    html += '<div class="yb-billing__detail-row"><strong>' + (isDa ? 'Total' : 'Total') + ':</strong> ' + (d.grossAmount != null ? formatDKK(d.grossAmount) : formatDKK(d.netAmount || 0)) + '</div>';
+    if (d.remainder != null) {
+      var isPaid = d.remainder === 0;
+      html += '<div class="yb-billing__detail-row"><strong>' + t('invoice_remainder') + ':</strong> ' + formatDKK(d.remainder) + ' <span style="color:' + (isPaid ? '#16a34a' : '#dc2626') + ';font-weight:600">' + (isPaid ? (isDa ? 'Betalt' : 'Paid') : (isDa ? 'Ikke betalt' : 'Unpaid')) + '</span></div>';
+    }
+    if (d.lines && d.lines.length) {
+      html += '<table class="yb-billing__preview-table"><thead><tr><th>#</th><th>' + (isDa ? 'Beskrivelse' : 'Description') + '</th><th>' + (isDa ? 'Beløb' : 'Amount') + '</th></tr></thead><tbody>';
+      d.lines.forEach(function (line, i) {
+        html += '<tr><td>' + (i + 1) + '</td><td>' + esc(line.description) + '</td><td>' + formatDKK(line.totalNetAmount || line.unitNetPrice || 0) + '</td></tr>';
+      });
+      html += '</tbody></table>';
+    }
+    html += '</div>';
+    body.innerHTML = html;
+    modal.hidden = false;
+  }
+
+  function appInvoiceDownloadPdf(bookedNumber) {
+    var btn = document.querySelector('[data-action="app-invoice-pdf"]');
+    if (btn) { btn.textContent = '\ud83d\udcc4 ...'; btn.classList.add('yb-btn--muted'); }
+
+    billingApiCall({ action: 'getInvoicePdf', bookedNumber: parseInt(bookedNumber) }).then(function (res) {
+      if (btn) { btn.textContent = '\ud83d\udcc4 ' + t('invoice_download'); btn.classList.remove('yb-btn--muted'); }
+      if (!res.ok) { toast(res.error, true); return; }
+      if (res.data && res.data.base64) {
+        var byteChars = atob(res.data.base64);
+        var byteNums = new Array(byteChars.length);
+        for (var i = 0; i < byteChars.length; i++) byteNums[i] = byteChars.charCodeAt(i);
+        var blob = new Blob([new Uint8Array(byteNums)], { type: 'application/pdf' });
+        var url = URL.createObjectURL(blob);
+        var a = document.createElement('a');
+        a.href = url;
+        a.download = res.data.filename || ('Faktura-' + bookedNumber + '.pdf');
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        toast(isDa ? 'PDF downloadet' : 'PDF downloaded');
+      } else {
+        toast(isDa ? 'Kunne ikke hente PDF' : 'Could not get PDF', true);
+      }
+    }).catch(function (err) {
+      if (btn) { btn.textContent = '\ud83d\udcc4 ' + t('invoice_download'); btn.classList.remove('yb-btn--muted'); }
+      toast(err.message, true);
+    });
+  }
+
+  function appInvoiceResend(bookedNumber, email) {
+    var currentEmail = email || (currentApp && currentApp.email) || '';
+    var inputEmail = prompt(t('invoice_resend_confirm'), currentEmail);
+    if (!inputEmail) return;
+    inputEmail = inputEmail.trim();
+    if (!inputEmail || inputEmail.indexOf('@') < 1) {
+      toast(isDa ? 'Ugyldig email-adresse' : 'Invalid email address', true);
+      return;
+    }
+
+    var btn = document.querySelector('[data-action="app-invoice-resend"]');
+    if (btn) { btn.textContent = '\ud83d\udce8 ...'; btn.classList.add('yb-btn--muted'); }
+
+    billingApiCall({ action: 'sendInvoice', bookedNumber: parseInt(bookedNumber), email: inputEmail }).then(function (res) {
+      if (btn) { btn.textContent = '\ud83d\udce8 ' + t('invoice_resend'); btn.classList.remove('yb-btn--muted'); }
+      if (!res.ok) { toast(res.error, true); return; }
+      // Update sent tracking on the application doc
+      saveAppInvoiceData({
+        bookedNumber: parseInt(bookedNumber),
+        status: 'sent',
+        sentAt: new Date().toISOString(),
+        sentTo: inputEmail
+      });
+      toast(t('invoice_resent'));
+    }).catch(function (err) {
+      if (btn) { btn.textContent = '\ud83d\udce8 ' + t('invoice_resend'); btn.classList.remove('yb-btn--muted'); }
+      toast(err.message, true);
+    });
+  }
+
+  function appInvoiceCreditNote(bookedNumber) {
+    var choice = prompt(isDa
+      ? 'Kreditnota for faktura #' + bookedNumber + ':\n\nIndtast beløb at kreditere, eller tryk OK for fuld kreditnota.\n(Lad feltet stå tomt for fuld kreditnota)'
+      : 'Credit note for invoice #' + bookedNumber + ':\n\nEnter amount to credit, or press OK for full credit note.\n(Leave empty for full credit note)',
+      '');
+    if (choice === null) return;
+
+    var payload = { action: 'createCreditNote', bookedNumber: parseInt(bookedNumber) };
+
+    if (choice.trim()) {
+      var amount = parseFloat(choice.replace(/[^0-9.,\-]/g, '').replace(',', '.'));
+      if (isNaN(amount) || amount === 0) { toast(isDa ? 'Ugyldigt beløb' : 'Invalid amount', true); return; }
+      if (amount > 0) amount = -amount;
+
+      var desc = prompt(isDa ? 'Beskrivelse for kreditlinjen:' : 'Description for credit line:',
+        isDa ? 'Kreditnota — faktura #' + bookedNumber : 'Credit note — invoice #' + bookedNumber);
+      if (!desc) return;
+
+      payload.lines = [{ description: desc, unitNetPrice: amount, quantity: 1 }];
+    }
+
+    if (!confirm(isDa
+      ? 'Opretter kreditnota for faktura #' + bookedNumber + '. Fortsæt?'
+      : 'Create credit note for invoice #' + bookedNumber + '. Continue?')) return;
+
+    var creditBtn = document.querySelector('[data-action="app-invoice-credit"]');
+    if (creditBtn) { creditBtn.textContent = '\u21ba ...'; creditBtn.classList.add('yb-btn--muted'); }
+
+    billingApiCall(payload).then(function (res) {
+      if (creditBtn) { creditBtn.textContent = '\u21ba ' + t('billing_credit_note'); creditBtn.classList.remove('yb-btn--muted'); }
+      if (!res.ok) { toast(res.error, true); return; }
+      var data = res.data;
+      toast(isDa
+        ? 'Kreditnota oprettet' + (data.booked ? ' & bogført (#' + data.booked + ')' : '')
+        : 'Credit note created' + (data.booked ? ' & booked (#' + data.booked + ')' : ''));
+    }).catch(function (err) {
+      if (creditBtn) { creditBtn.textContent = '\u21ba ' + t('billing_credit_note'); creditBtn.classList.remove('yb-btn--muted'); }
+      toast(err.message, true);
+    });
+  }
+
+  function appInvoiceDeleteDraft(draftNumber) {
+    if (!confirm(isDa
+      ? 'Slet kladde #' + draftNumber + '? Denne handling kan ikke fortrydes.'
+      : 'Delete draft #' + draftNumber + '? This cannot be undone.')) return;
+
+    var deleteBtn = document.querySelector('[data-action="app-invoice-delete-draft"]');
+    if (deleteBtn) { deleteBtn.textContent = '\ud83d\uddd1 ...'; deleteBtn.classList.add('yb-btn--muted'); }
+
+    billingApiCall({ action: 'deleteDraft', draftNumber: parseInt(draftNumber) }).then(function (res) {
+      if (deleteBtn) { deleteBtn.textContent = '\ud83d\uddd1 ' + t('billing_delete_draft'); deleteBtn.classList.remove('yb-btn--muted'); }
+      if (!res.ok) { toast(res.error, true); return; }
+      toast(isDa ? 'Kladde slettet' : 'Draft deleted');
+      // Clear invoice data from app
+      saveAppInvoiceData(null);
+    }).catch(function (err) {
+      if (deleteBtn) { deleteBtn.textContent = '\ud83d\uddd1 ' + t('billing_delete_draft'); deleteBtn.classList.remove('yb-btn--muted'); }
+      toast(err.message, true);
+    });
+  }
+
+  /** Save invoice metadata to Firestore application doc and re-render.
+   *  Pass null to clear the invoice field (e.g. after deleting a draft). */
+  function saveAppInvoiceData(invoiceData) {
+    if (!currentAppId) return;
+
+    var merged;
+    if (invoiceData === null) {
+      // Clear invoice data
+      merged = firebase.firestore.FieldValue.delete();
+    } else {
+      // Merge with existing invoice data
+      var existing = (currentApp && currentApp.invoice) || {};
+      merged = {};
+      Object.keys(existing).forEach(function (k) { merged[k] = existing[k]; });
+      Object.keys(invoiceData).forEach(function (k) { merged[k] = invoiceData[k]; });
+    }
+
+    db.collection('applications').doc(currentAppId).update({
+      invoice: merged,
+      updated_at: firebase.firestore.FieldValue.serverTimestamp()
+    }).then(function () {
+      if (invoiceData === null) {
+        delete currentApp.invoice;
+        var idx = applications.findIndex(function (a) { return a.id === currentAppId; });
+        if (idx !== -1) delete applications[idx].invoice;
+      } else {
+        currentApp.invoice = merged;
+        var idx = applications.findIndex(function (a) { return a.id === currentAppId; });
+        if (idx !== -1) applications[idx].invoice = merged;
+      }
+      renderAppInvoiceStatus();
+    }).catch(function (err) {
+      console.error('[lead-admin] Save invoice data error:', err);
+    });
+  }
+
+  /** Proxy to billing API (same endpoint) */
+  function billingApiCall(body) {
+    if (!window.firebase || !firebase.auth || !firebase.auth().currentUser) {
+      return Promise.reject(new Error('Not signed in'));
+    }
+    return firebase.auth().currentUser.getIdToken().then(function (token) {
+      return fetch('/.netlify/functions/economic-admin', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+        body: JSON.stringify(body)
+      });
+    }).then(function (res) {
+      return res.text().then(function (text) {
+        try { return JSON.parse(text); }
+        catch (e) { return { ok: false, error: 'Server error (' + res.status + ')' }; }
+      });
+    });
+  }
+
   /* ── Update Application Status ── */
   function updateAppStatus() {
     if (!currentAppId || !currentApp) return;
@@ -2448,6 +3289,9 @@
 
     var newStatus = select.value;
     if (newStatus === currentApp.status) return;
+
+    var formEl = $('yb-app-status-form');
+    var btn = saveBtnStart(formEl);
 
     db.collection('applications').doc(currentAppId).update({
       status: newStatus,
@@ -2459,9 +3303,11 @@
 
       renderApplicationDetailCard();
       renderApplicationStats();
+      saveBtnSuccess(btn);
       toast(t('saved'));
     }).catch(function (err) {
       console.error('[lead-admin] App status update error:', err);
+      saveBtnError(btn);
       toast(t('error_save'), true);
     });
   }
@@ -2580,6 +3426,9 @@
   function saveAppFields() {
     if (!currentAppId || !currentApp) return;
 
+    var formEl = $('yb-app-edit-form');
+    var btn = saveBtnStart(formEl);
+
     var updates = {};
     var fields = [
       { id: 'yb-app-edit-first-name', key: 'first_name' },
@@ -2609,9 +3458,11 @@
 
       renderApplicationDetailCard();
       renderAppQuickActions();
+      saveBtnSuccess(btn);
       toast(t('apps_fields_saved'));
     }).catch(function (err) {
       console.error('[lead-admin] App fields save error:', err);
+      saveBtnError(btn);
       toast(t('error_save'), true);
     });
   }
@@ -2770,6 +3621,60 @@
       console.error('[lead-admin] Acceptance email error:', err);
       toast('Failed to send acceptance email', true);
     });
+  }
+
+  /* ══════════════════════════════════════════
+     APPLICATION — ACTIVATE USER ACCOUNT
+     ══════════════════════════════════════════ */
+
+  function activateApplicant() {
+    if (!currentAppId || !currentApp) return;
+
+    if (currentApp.firebase_uid) {
+      toast(t('apps_user_already_activated'));
+      return;
+    }
+
+    if (!confirm(t('apps_activate_confirm'))) return;
+
+    getAuthToken().then(function (token) {
+      return fetch('/.netlify/functions/activate-applicant', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+        body: JSON.stringify({ applicationId: currentAppId })
+      });
+    }).then(function (res) { return res.json(); })
+    .then(function (data) {
+      if (data.ok) {
+        currentApp.firebase_uid = data.firebaseUid;
+        currentApp.status = 'Enrolled';
+        var idx = applications.findIndex(function (a) { return a.id === currentAppId; });
+        if (idx !== -1) {
+          applications[idx].firebase_uid = data.firebaseUid;
+          applications[idx].status = 'Enrolled';
+        }
+        renderAppQuickActions();
+        updateActivateBtn();
+        toast(t('apps_user_activated'));
+      } else {
+        toast('Failed: ' + (data.error || 'Unknown error'), true);
+      }
+    }).catch(function (err) {
+      console.error('[lead-admin] Activate applicant error:', err);
+      toast('Failed to activate user', true);
+    });
+  }
+
+  function updateActivateBtn() {
+    var btn = $('yb-app-activate-btn');
+    if (!btn || !currentApp) return;
+    if (currentApp.firebase_uid) {
+      btn.style.opacity = '0.6';
+      btn.textContent = '\u2705 ' + t('apps_user_already_activated');
+    } else {
+      btn.style.opacity = '';
+      btn.textContent = '\ud83d\udc64 ' + t('apps_activate_user');
+    }
   }
 
   /* ══════════════════════════════════════════
@@ -2949,34 +3854,26 @@
   function bulkAppStatusChange() {
     if (selectedAppIds.size === 0) return;
 
-    var status = prompt(t('apps_bulk_status_prompt'), 'Approved');
-    if (!status) return;
-
-    // Validate status
-    var valid = APP_STATUSES.find(function (s) { return s.value === status; });
-    if (!valid) {
-      toast('Invalid status: ' + status, true);
-      return;
-    }
-
-    var batch = db.batch();
-    selectedAppIds.forEach(function (id) {
-      var ref = db.collection('applications').doc(id);
-      batch.update(ref, { status: status, updated_at: firebase.firestore.FieldValue.serverTimestamp() });
-    });
-
-    batch.commit().then(function () {
+    openBulkStatusPicker(APP_STATUSES, selectedAppIds.size, function (status) {
+      var batch = db.batch();
       selectedAppIds.forEach(function (id) {
-        var idx = applications.findIndex(function (a) { return a.id === id; });
-        if (idx !== -1) applications[idx].status = status;
+        var ref = db.collection('applications').doc(id);
+        batch.update(ref, { status: status, updated_at: firebase.firestore.FieldValue.serverTimestamp() });
       });
-      deselectAllApps();
-      renderApplicationTable();
-      renderApplicationStats();
-      toast('Status updated for ' + selectedAppIds.size + ' applications');
-    }).catch(function (err) {
-      console.error('[lead-admin] Bulk status error:', err);
-      toast(t('error_save'), true);
+
+      batch.commit().then(function () {
+        selectedAppIds.forEach(function (id) {
+          var idx = applications.findIndex(function (a) { return a.id === id; });
+          if (idx !== -1) applications[idx].status = status;
+        });
+        deselectAllApps();
+        renderApplicationTable();
+        renderApplicationStats();
+        toast('Status updated for ' + selectedAppIds.size + ' applications');
+      }).catch(function (err) {
+        console.error('[lead-admin] Bulk status error:', err);
+        toast(t('error_save'), true);
+      });
     });
   }
 
@@ -3162,7 +4059,7 @@
         // Lead actions
         case 'view-lead': e.preventDefault(); showLeadDetail(id); break;
         case 'back-leads': backToLeadList(); break;
-        case 'leads-refresh': loadLeads(); break;
+        case 'leads-refresh': loadLeads(); loadTotalLeadCount(); break;
         case 'leads-load-more': loadLeads(true); break;
         case 'delete-lead': deleteLead(id || currentLeadId); break;
         case 'restore-lead': restoreLead(id || currentLeadId); break;
@@ -3227,6 +4124,7 @@
         case 'app-send-sms': /* Open SMS section — scroll to it */ var smsEl = $('yb-app-sms-conversation'); if (smsEl) smsEl.scrollIntoView({ behavior: 'smooth' }); var smsInput = $('yb-app-sms-reply-input'); if (smsInput) smsInput.focus(); break;
         case 'app-sms-reply': sendAppSMSReply(); break;
         case 'app-send-acceptance': sendAcceptanceEmail(); break;
+        case 'app-activate-user': activateApplicant(); break;
         case 'app-archive': archiveApp(id || currentAppId); break;
         case 'app-restore': restoreApp(id || currentAppId); break;
         case 'toggle-show-archived-apps': toggleShowArchivedApps(); break;
@@ -3236,6 +4134,19 @@
         case 'app-bulk-sms': bulkAppSMS(); break;
         case 'app-bulk-archive': bulkAppArchive(); break;
         case 'app-deselect-all': deselectAllApps(); break;
+
+        // Invoice actions from application profile
+        case 'app-invoice-lookup': appInvoiceLookup(btn.dataset.ref); break;
+        case 'app-invoice-refresh': appInvoiceRefresh(btn.dataset.ref); break;
+        case 'app-invoice-view': appInvoiceQuickView(btn.dataset.booked); break;
+        case 'app-invoice-pdf': appInvoiceDownloadPdf(btn.dataset.booked); break;
+        case 'app-invoice-resend': appInvoiceResend(btn.dataset.booked, btn.dataset.email); break;
+        case 'app-invoice-credit': appInvoiceCreditNote(btn.dataset.booked); break;
+        case 'app-invoice-delete-draft': appInvoiceDeleteDraft(btn.dataset.draft); break;
+        case 'app-invoice-modal-close':
+          var invModal = $('yb-app-invoice-modal');
+          if (invModal) invModal.hidden = true;
+          break;
 
         // Cross-linking
         case 'view-linked-app':
@@ -3286,6 +4197,13 @@
     document.addEventListener('input', function (e) {
       if (e.target.id === 'yb-sms-message') {
         updateSMSCharCount();
+      }
+    });
+
+    // Invoice payment status change (delegated)
+    document.addEventListener('change', function (e) {
+      if (e.target.id === 'yb-app-invoice-payment-status') {
+        saveAppPaymentStatus(e.target.value);
       }
     });
 
@@ -3340,13 +4258,11 @@
       }
     }
 
-    // Filters — Leads
-    ['yb-lead-status-filter', 'yb-lead-type-filter', 'yb-lead-source-filter', 'yb-lead-priority-filter', 'yb-lead-temperature-filter'].forEach(function (filterId) {
+    // Filters — compact selects (source / priority / temperature)
+    ['yb-lead-source-filter', 'yb-lead-priority-filter', 'yb-lead-temperature-filter'].forEach(function (filterId) {
       var el = $(filterId);
       if (el) {
         el.addEventListener('change', function () {
-          if (filterId === 'yb-lead-status-filter') filterStatus = el.value;
-          if (filterId === 'yb-lead-type-filter') filterType = el.value;
           if (filterId === 'yb-lead-source-filter') filterSource = el.value;
           if (filterId === 'yb-lead-priority-filter') filterPriority = el.value;
           if (filterId === 'yb-lead-temperature-filter') filterTemperature = el.value;
@@ -3354,6 +4270,80 @@
         });
       }
     });
+
+    // Multi-select status chips
+    var scEl = $('yb-lead-status-chips');
+    if (scEl) {
+      scEl.addEventListener('click', function (e) {
+        var chip = e.target.closest('[data-status-chip]');
+        if (!chip) return;
+        var val = chip.getAttribute('data-status-chip');
+        var idx = filterStatuses.indexOf(val);
+        if (idx !== -1) filterStatuses.splice(idx, 1); else filterStatuses.push(val);
+        renderLeadFilterChips();
+        loadLeads();
+      });
+    }
+
+    // Multi-select type chips
+    var tcEl = $('yb-lead-type-chips');
+    if (tcEl) {
+      tcEl.addEventListener('click', function (e) {
+        var chip = e.target.closest('[data-type-chip]');
+        if (!chip) return;
+        var val = chip.getAttribute('data-type-chip');
+        var idx = filterTypes.indexOf(val);
+        if (idx !== -1) filterTypes.splice(idx, 1); else filterTypes.push(val);
+        filterSubType = '';
+        filterSubTypeField = '';
+        renderLeadFilterChips();
+        renderSubTypeFilter(filterTypes.length === 1 ? filterTypes[0] : '');
+        loadLeads();
+      });
+    }
+
+    // Clear all filters button
+    var clearFiltersBtn = $('yb-lead-clear-filters');
+    if (clearFiltersBtn) {
+      clearFiltersBtn.addEventListener('click', function () {
+        filterStatuses = [];
+        filterTypes = [];
+        filterSource = '';
+        filterPriority = '';
+        filterTemperature = '';
+        filterSubType = '';
+        filterSubTypeField = '';
+        var sel; // reset compact selects
+        sel = $('yb-lead-source-filter'); if (sel) sel.value = '';
+        sel = $('yb-lead-priority-filter'); if (sel) sel.value = '';
+        sel = $('yb-lead-temperature-filter'); if (sel) sel.value = '';
+        renderLeadFilterChips();
+        var subtypeRow2 = $('yb-lead-subtype-row');
+        if (subtypeRow2) subtypeRow2.hidden = true;
+        loadLeads();
+      });
+    }
+
+    // Sub-type filter chips
+    var subtypeRow = $('yb-lead-subtype-row');
+    if (subtypeRow) {
+      subtypeRow.addEventListener('click', function (e) {
+        var chip = e.target.closest('[data-subtype]');
+        if (!chip) return;
+        var val = chip.getAttribute('data-subtype');
+        if (filterSubType === val) {
+          filterSubType = '';
+          filterSubTypeField = '';
+        } else {
+          filterSubType = val;
+          filterSubTypeField = chip.getAttribute('data-subtype-field') || '';
+        }
+        subtypeRow.querySelectorAll('[data-subtype]').forEach(function (c) {
+          c.classList.toggle('is-active', c.getAttribute('data-subtype') === filterSubType);
+        });
+        renderLeadView();
+      });
+    }
 
     // Filters — Applications
     var appStatusFilter = $('yb-app-status-filter');
@@ -3519,9 +4509,8 @@
       var card = e.target.closest('[data-filter-status]');
       if (card) {
         var st = card.getAttribute('data-filter-status');
-        filterStatus = st || '';
-        var filterEl = $('yb-lead-status-filter');
-        if (filterEl) filterEl.value = filterStatus;
+        filterStatuses = st ? [st] : [];
+        renderLeadFilterChips();
         loadLeads();
       }
     });
@@ -3654,16 +4643,34 @@
 
     createModals();
     bindLeadEvents();
+    renderLeadFilterChips();
 
-    // Hook into tab switching — Leads
+    // Hook into tab switching — Leads (admin page)
     document.querySelectorAll('[data-yb-admin-tab]').forEach(function (btn) {
       btn.addEventListener('click', function () {
         var tab = btn.getAttribute('data-yb-admin-tab');
         if (tab === 'leads' && !leadsLoaded) {
           loadLeads();
+          loadTotalLeadCount();
           leadsLoaded = true;
         }
         if (tab === 'applications' && !appLoaded) {
+          loadApplications();
+          appLoaded = true;
+        }
+      });
+    });
+
+    // Hook into tab switching — CRM tabs on profile page (marketing/admin)
+    document.querySelectorAll('[data-yb-tab]').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        var tab = btn.getAttribute('data-yb-tab');
+        if (tab === 'crm-leads' && !leadsLoaded) {
+          loadLeads();
+          loadTotalLeadCount();
+          leadsLoaded = true;
+        }
+        if (tab === 'crm-applications' && !appLoaded) {
           loadApplications();
           appLoaded = true;
         }
@@ -3680,7 +4687,47 @@
     getTranslations: function () { return T; },
     toast: toast,
     getCurrentLead: function () { return currentLead; },
-    getSelectedIds: function () { return selectedIds; }
+    getSelectedIds: function () { return selectedIds; },
+
+    // Load ALL non-archived leads for campaign wizard (not paginated)
+    loadAllLeadsForCampaign: function (callback) {
+      var SKIP_STATUSES = ['Converted', 'Existing Applicant'];
+      db.collection('leads').orderBy('created_at', 'desc').limit(2000).get()
+        .then(function (snap) {
+          var all = [];
+          snap.forEach(function (doc) {
+            var d = Object.assign({ id: doc.id }, doc.data());
+            // Skip archived, converted, and leads that already have an application
+            if (d.archived) return;
+            if (d.application_id) return;
+            if (SKIP_STATUSES.indexOf(d.status) !== -1) return;
+            all.push(d);
+          });
+          callback(null, all);
+        })
+        .catch(function (err) { callback(err, null); });
+    },
+
+    // Load ALL applications for campaign wizard
+    loadAllAppsForCampaign: function (callback) {
+      db.collection('applications').orderBy('created_at', 'desc').limit(500).get()
+        .then(function (snap) {
+          var all = [];
+          snap.forEach(function (doc) {
+            all.push(Object.assign({ id: doc.id }, doc.data()));
+          });
+          callback(null, all);
+        })
+        .catch(function (err) { callback(err, null); });
+    },
+
+    // Called by campaign wizard when a campaign send completes
+    onCampaignSent: function (type, results) {
+      selectedIds.clear();
+      selectAll = false;
+      updateBulkBar();
+      renderLeadView();
+    }
   };
 
   // Bootstrap

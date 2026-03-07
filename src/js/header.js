@@ -19,6 +19,12 @@
   var daURL = base + qs + hash;
   var enURL = '/en' + base + qs + hash;
 
+  /* Override with explicit hreflang alternates when the page has different DA/EN slugs */
+  var altEN = document.querySelector('link[rel="alternate"][hreflang="en"]');
+  var altDA = document.querySelector('link[rel="alternate"][hreflang="da"]');
+  if (altEN) { enURL = altEN.getAttribute('href') + qs + hash; }
+  if (altDA) { daURL = altDA.getAttribute('href') + qs + hash; }
+
   /* ── Translations ── */
   var t = {
     da: {

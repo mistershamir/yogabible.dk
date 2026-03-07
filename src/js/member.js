@@ -3,7 +3,8 @@
  * Toggles guest/user view based on Firebase auth state.
  * Renders role badge, manages tab navigation with hash routing,
  * lazy-loads iframes for courses/schedule/profile tabs,
- * and auto-resizes iframes to fit content.
+ * auto-resizes iframes to fit content,
+ * and populates the dashboard hub with dynamic data.
  */
 (function() {
   'use strict';
@@ -37,8 +38,11 @@
           guest.style.display = 'none';
           user.style.display = '';
           var displayName = u.displayName || (u.email ? u.email.split('@')[0] : '');
-          if (nameEl) nameEl.textContent = displayName.split(' ')[0] || '';
+          var firstName = displayName.split(' ')[0] || '';
+          if (nameEl) nameEl.textContent = firstName;
           if (avatarEl) avatarEl.textContent = displayName ? getInitials(displayName) : '';
+          renderDashboardGreeting(firstName);
+          loadDashboardCourse(u.uid);
           routeFromHash();
         } else {
           guest.style.display = '';
@@ -61,6 +65,98 @@
     });
 
     initTabNav();
+  }
+
+  // ══════════════════════════════════════
+  // DASHBOARD HUB
+  // ══════════════════════════════════════
+
+  function renderDashboardGreeting(firstName) {
+    var el = document.getElementById('yb-dash-greeting');
+    if (!el) return;
+    var T = window._ybDashT || {};
+    var h = new Date().getHours();
+    var greeting;
+    if (h < 12) greeting = T.morning || 'God morgen';
+    else if (h < 17) greeting = T.afternoon || 'God eftermiddag';
+    else greeting = T.evening || 'God aften';
+    el.textContent = greeting + ', ' + firstName;
+  }
+
+  var dashCourseLoaded = false;
+
+  function loadDashboardCourse(uid) {
+    if (dashCourseLoaded) return;
+    dashCourseLoaded = true;
+
+    var cardEl = document.getElementById('yb-dash-course');
+    var bodyEl = document.getElementById('yb-dash-course-body');
+    if (!cardEl || !bodyEl) return;
+
+    var T = window._ybDashT || {};
+    var isDa = window.location.pathname.indexOf('/en/') !== 0;
+    var lang = isDa ? 'da' : 'en';
+
+    var db = firebase.firestore();
+
+    db.collection('enrollments')
+      .where('userId', '==', uid)
+      .get()
+      .then(function(snap) {
+        var courseIds = [];
+        snap.forEach(function(doc) {
+          var d = doc.data();
+          if (d.status === 'active') courseIds.push(d.courseId);
+        });
+        if (!courseIds.length) {
+          // No active courses — show "Explore courses" card
+          bodyEl.innerHTML =
+            '<h3 class="yb-dash__action-title">' + escHtml(T.no_courses_title || 'Explore courses') + '</h3>' +
+            '<p class="yb-dash__action-desc">' + escHtml(T.no_courses_desc || 'Browse available courses') + ' &rarr;</p>';
+          cardEl.style.display = '';
+          cardEl.style.cursor = 'pointer';
+          cardEl.onclick = function() {
+            var tabBtn = document.querySelector('.yb-ma-tabs__btn[data-yb-ma-tab="courses"]');
+            if (tabBtn) tabBtn.click();
+          };
+          return;
+        }
+
+        // Get first enrolled course + progress
+        var courseId = courseIds[0];
+        Promise.all([
+          db.collection('courses').doc(courseId).get(),
+          db.collection('courseProgress').doc(uid + '_' + courseId).get()
+        ]).then(function(results) {
+          var courseDoc = results[0];
+          var progressDoc = results[1];
+          if (!courseDoc.exists) return;
+
+          var c = courseDoc.data();
+          var title = c['title_' + lang] || c.title_da || c.title || 'Course';
+          var progress = progressDoc.exists ? progressDoc.data() : null;
+          var viewed = progress && progress.viewed ? Object.keys(progress.viewed).length : 0;
+          var hasProgress = viewed > 0;
+          var btnLabel = hasProgress ? (T.continue_label || 'Continue') : (T.start_label || 'Start');
+
+          var html = '<h3 class="yb-dash__action-title">' + escHtml(T.course_card_title || 'Continue your course') + '</h3>';
+          html += '<p class="yb-dash__action-desc">' + escHtml(title) + '</p>';
+          if (hasProgress) {
+            html += '<p class="yb-dash__action-meta">' + viewed + ' ' + (T.chapters_read || 'chapters read') + '</p>';
+          }
+          html += '<span class="yb-dash__action-btn">' + escHtml(btnLabel) + ' &rarr;</span>';
+
+          bodyEl.innerHTML = html;
+          cardEl.style.display = '';
+          cardEl.onclick = function() {
+            var tabBtn = document.querySelector('.yb-ma-tabs__btn[data-yb-ma-tab="courses"]');
+            if (tabBtn) tabBtn.click();
+          };
+        });
+      })
+      .catch(function(err) {
+        console.error('Dashboard course load error:', err);
+      });
   }
 
   // ── Role Badge ──
@@ -106,10 +202,63 @@
       });
     });
 
+    // Profile sub-tab clicks
+    initProfileSubTabs();
+
     // Browser back/forward
     window.addEventListener('popstate', function() {
       routeFromHash();
     });
+  }
+
+  // ── Profile sub-tab navigation ──
+  var PROFILE_SUBS = ['profile', 'passes', 'visits', 'store', 'receipts', 'applications', 'giftcards'];
+
+  function initProfileSubTabs() {
+    var subBtns = document.querySelectorAll('[data-yb-profile-sub]');
+    subBtns.forEach(function(btn) {
+      btn.addEventListener('click', function() {
+        var sub = btn.getAttribute('data-yb-profile-sub');
+        if (PROFILE_SUBS.indexOf(sub) === -1) return;
+        switchProfileSub(sub);
+      });
+    });
+  }
+
+  function switchProfileSub(sub) {
+    // Update active state on sub-nav buttons
+    var subBtns = document.querySelectorAll('[data-yb-profile-sub]');
+    subBtns.forEach(function(btn) {
+      if (btn.getAttribute('data-yb-profile-sub') === sub) {
+        btn.classList.add('is-active');
+      } else {
+        btn.classList.remove('is-active');
+      }
+    });
+
+    var iframe = document.getElementById('yb-ma-profile-iframe');
+    if (!iframe) return;
+
+    // If iframe not yet loaded, update the data-src before first load
+    if (!loadedIframes['profile']) {
+      var baseSrc = iframe.getAttribute('data-src') || '';
+      iframe.setAttribute('data-src', baseSrc.replace(/#.*$/, '') + '#' + sub);
+      return;
+    }
+
+    // Iframe already loaded — click the tab button inside profile.js
+    try {
+      var tabBtn = iframe.contentDocument.querySelector('[data-yb-tab="' + sub + '"]');
+      if (tabBtn) {
+        tabBtn.click();
+      }
+      // Reset resize polling for new content
+      autoResizeIframe(iframe, 'profile');
+    } catch (e) {
+      // Cross-origin fallback: reload with new hash
+      var src = iframe.src.replace(/#.*$/, '') + '#' + sub;
+      iframe.src = src;
+    }
   }
 
   function routeFromHash() {
@@ -221,4 +370,492 @@
       }
     }, 500);
   }
+
+  /* ══════════════════════════════════════════
+     RECORDINGS — lazy-load when live tab opened
+     ══════════════════════════════════════════ */
+  var recordingsLoaded = false;
+  var allRecordings = [];
+  var quizDataMap = {}; // cardId → quiz array (avoids HTML attribute quote issues)
+
+  function loadRecordings() {
+    if (recordingsLoaded) return;
+    recordingsLoaded = true;
+
+    var listEl = document.getElementById('yb-ma-recordings-list');
+    var emptyEl = document.getElementById('yb-ma-recordings-empty');
+    var toolbarEl = document.getElementById('yb-ma-recordings-toolbar');
+    if (!listEl) return;
+
+    var isDa = window.location.pathname.indexOf('/en/') !== 0;
+
+    // Set bilingual placeholder/label text
+    var searchEl = document.getElementById('yb-ma-rec-search');
+    var instructorEl = document.getElementById('yb-ma-rec-instructor');
+    var sortEl = document.getElementById('yb-ma-rec-sort');
+    var countEl = document.getElementById('yb-ma-rec-count');
+    if (searchEl) searchEl.placeholder = isDa ? 'Søg i optagelser…' : 'Search recordings…';
+    if (instructorEl) instructorEl.options[0].text = isDa ? 'Alle instruktører' : 'All instructors';
+    if (sortEl) {
+      sortEl.options[0].text = isDa ? 'Nyeste først' : 'Newest first';
+      sortEl.options[1].text = isDa ? 'Ældste først' : 'Oldest first';
+    }
+
+    function getToken() {
+      if (typeof firebase !== 'undefined' && firebase.auth && firebase.auth().currentUser) {
+        return firebase.auth().currentUser.getIdToken();
+      }
+      return Promise.resolve('');
+    }
+
+    function formatDuration(mins) {
+      if (!mins) return '';
+      var h = Math.floor(mins / 60);
+      var m = mins % 60;
+      if (h > 0) return h + 'h ' + (m > 0 ? m + 'm' : '');
+      return m + ' min';
+    }
+
+    function renderCard(item) {
+      var title = isDa ? (item.title_da || item.title_en || '') : (item.title_en || item.title_da || '');
+      var d = new Date(item.startDateTime);
+      var dateStr = d.getDate() + '/' + (d.getMonth() + 1) + '/' + d.getFullYear();
+      var dur = item.duration ? formatDuration(item.duration) : '';
+      var cardId = 'rec-' + (item.id || Math.random().toString(36).substring(7));
+
+      var card = '';
+      card += '<div class="yb-rec__card" id="' + cardId + '">';
+
+      // Thumbnail with play button overlay
+      if (item.recordingPlaybackId) {
+        card += '<div style="aspect-ratio:16/9;background:#111;position:relative;cursor:pointer" data-rec-playback="' + item.recordingPlaybackId + '">';
+        card += '<img src="https://image.mux.com/' + item.recordingPlaybackId + '/thumbnail.jpg?width=560&height=315&fit_mode=smartcrop" alt="" style="width:100%;height:100%;object-fit:cover;display:block" loading="lazy">';
+        card += '<div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,0.15);transition:background 0.3s ease">';
+        card += '<div style="width:52px;height:52px;border-radius:50%;background:rgba(247,92,3,0.9);display:flex;align-items:center;justify-content:center;box-shadow:0 4px 20px rgba(0,0,0,0.4);transition:transform 0.2s ease">';
+        card += '<svg width="20" height="20" viewBox="0 0 24 24" fill="#fff"><polygon points="6 3 20 12 6 21 6 3"/></svg>';
+        card += '</div></div>';
+        // Duration badge
+        if (dur) {
+          card += '<span style="position:absolute;bottom:10px;right:10px;background:rgba(0,0,0,0.8);color:#FFFCF9;font-size:0.7rem;font-weight:600;padding:3px 8px;border-radius:4px;letter-spacing:0.02em">' + dur + '</span>';
+        }
+        card += '</div>';
+      }
+
+      // Info
+      card += '<div style="padding:1rem 1.15rem">';
+      card += '<p style="color:#FFFCF9;font-size:0.9rem;font-weight:700;margin:0 0 0.4rem;line-height:1.35">' + escHtml(title) + '</p>';
+      card += '<div style="display:flex;align-items:center;gap:0.5rem;flex-wrap:wrap">';
+      card += '<span style="color:#999;font-size:0.75rem">' + dateStr + '</span>';
+      if (item.instructor) {
+        card += '<span style="color:rgba(255,255,255,0.15);font-size:0.65rem">&bull;</span>';
+        card += '<span style="color:#999;font-size:0.75rem">' + escHtml(item.instructor) + '</span>';
+      }
+      card += '</div>';
+
+      // AI Summary & Quiz accordions
+      if (item.aiStatus === 'complete') {
+        var summaryLabel = isDa ? 'Resumé' : 'Summary';
+        var quizLabel = isDa ? 'Test din viden' : 'Test Your Knowledge';
+
+        // Summary accordion
+        card += '<div class="yb-ai-accordion" style="margin-top:0.75rem">';
+        card += '<button class="yb-ai-accordion__btn" data-ai-toggle="summary-' + cardId + '">';
+        card += '<span class="yb-ai-accordion__icon">';
+        card += '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#f75c03" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>';
+        card += '</span>';
+        card += '<span>' + summaryLabel + '</span>';
+        card += '<svg class="yb-ai-accordion__chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>';
+        card += '</button>';
+        card += '<div class="yb-ai-accordion__body" id="summary-' + cardId + '" hidden>';
+        card += '<div class="yb-ai-summary">' + (item.aiSummary || '') + '</div>';
+        card += '</div></div>';
+
+        // Quiz accordion
+        var quizData = [];
+        try { quizData = JSON.parse(item.aiQuiz || '[]'); } catch (e) {}
+        if (quizData.length > 0) {
+          quizDataMap[cardId] = quizData;
+          card += '<div class="yb-ai-accordion">';
+          card += '<button class="yb-ai-accordion__btn" data-ai-toggle="quiz-' + cardId + '">';
+          card += '<span class="yb-ai-accordion__icon">';
+          card += '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#f75c03" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>';
+          card += '</span>';
+          card += '<span>' + quizLabel + '</span>';
+          card += '<span class="yb-ai-quiz-badge">' + quizData.length + ' ' + (isDa ? 'spørgsmål' : 'questions') + '</span>';
+          card += '<svg class="yb-ai-accordion__chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>';
+          card += '</button>';
+          card += '<div class="yb-ai-accordion__body" id="quiz-' + cardId + '" hidden>';
+          card += '<div class="yb-ai-quiz" data-quiz-id="' + cardId + '"></div>';
+          card += '</div></div>';
+        }
+      } else if (item.aiStatus === 'processing') {
+        card += '<div class="yb-ai-processing" style="margin-top:0.75rem">';
+        card += '<span class="yb-ai-processing__dot"></span>';
+        card += '<span>' + (isDa ? 'AI opsummering undervejs…' : 'AI summary in progress…') + '</span>';
+        card += '</div>';
+      }
+
+      card += '</div></div>';
+      return card;
+    }
+
+    function renderList(items) {
+      if (!items.length) {
+        listEl.innerHTML = '';
+        if (emptyEl) emptyEl.hidden = false;
+        if (countEl) countEl.textContent = '';
+        return;
+      }
+      if (emptyEl) emptyEl.hidden = true;
+
+      var html = '';
+      for (var i = 0; i < items.length; i++) {
+        html += renderCard(items[i]);
+      }
+      listEl.innerHTML = html;
+
+      // Count
+      if (countEl) {
+        var total = allRecordings.length;
+        if (items.length < total) {
+          countEl.textContent = items.length + ' / ' + total;
+        } else {
+          countEl.textContent = total + (isDa ? ' optagelser' : ' recordings');
+        }
+      }
+    }
+
+    function getFiltered() {
+      var items = allRecordings.slice();
+      // Search filter
+      var q = (searchEl ? searchEl.value : '').toLowerCase().trim();
+      if (q) {
+        items = items.filter(function (item) {
+          var title = (item.title_da || '') + ' ' + (item.title_en || '');
+          var instr = item.instructor || '';
+          return title.toLowerCase().indexOf(q) !== -1 || instr.toLowerCase().indexOf(q) !== -1;
+        });
+      }
+      // Instructor filter
+      var instrVal = instructorEl ? instructorEl.value : '';
+      if (instrVal) {
+        items = items.filter(function (item) { return item.instructor === instrVal; });
+      }
+      // Sort
+      var sortVal = sortEl ? sortEl.value : 'newest';
+      items.sort(function (a, b) {
+        var ta = new Date(a.startDateTime).getTime();
+        var tb = new Date(b.startDateTime).getTime();
+        return sortVal === 'oldest' ? ta - tb : tb - ta;
+      });
+      return items;
+    }
+
+    function applyFilters() {
+      renderList(getFiltered());
+    }
+
+    // Attach filter listeners
+    if (searchEl) searchEl.addEventListener('input', applyFilters);
+    if (instructorEl) instructorEl.addEventListener('change', applyFilters);
+    if (sortEl) sortEl.addEventListener('change', applyFilters);
+
+    getToken().then(function (token) {
+      var opts = { headers: {} };
+      if (token) opts.headers['Authorization'] = 'Bearer ' + token;
+      return fetch('/.netlify/functions/live-admin?action=recordings', opts);
+    }).then(function (r) {
+      return r.json();
+    }).then(function (data) {
+      if (!data.ok || !data.items || !data.items.length) {
+        if (emptyEl) emptyEl.hidden = false;
+        return;
+      }
+
+      allRecordings = data.items;
+
+      // Populate instructor dropdown
+      if (instructorEl) {
+        var instructors = {};
+        for (var i = 0; i < allRecordings.length; i++) {
+          var instr = allRecordings[i].instructor;
+          if (instr && !instructors[instr]) instructors[instr] = true;
+        }
+        var names = Object.keys(instructors).sort();
+        for (var j = 0; j < names.length; j++) {
+          var opt = document.createElement('option');
+          opt.value = names[j];
+          opt.textContent = names[j];
+          instructorEl.appendChild(opt);
+        }
+      }
+
+      // Show toolbar
+      if (toolbarEl) toolbarEl.style.display = 'flex';
+
+      renderList(allRecordings);
+
+      // Click to play — swap thumbnail with player element.
+      // Safari/iOS: Mux hosted iframe player (WebKit has HLS native support but
+      // mux-player web component can show "Source Not Supported" on Safari).
+      // Desktop Chrome/Firefox/Android: mux-player web component.
+      var isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
+      var isIOS = /iPhone|iPad|iPod/.test(navigator.userAgent) ||
+        (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+      var useMuxIframe = isSafari || isIOS;
+
+      listEl.addEventListener('click', function (e) {
+        var card = e.target.closest('[data-rec-playback]');
+        if (!card) return;
+        var pid = card.getAttribute('data-rec-playback');
+        card.removeAttribute('data-rec-playback');
+
+        var el;
+        if (useMuxIframe) {
+          // Use Mux's hosted iframe player on Safari/iOS
+          el = document.createElement('iframe');
+          el.src = 'https://player.mux.com/' + pid;
+          el.style.cssText = 'width:100%;aspect-ratio:16/9;border:none;display:block;background:#000';
+          el.setAttribute('allow', 'accelerometer; gyroscope; autoplay; encrypted-media; picture-in-picture;');
+          el.setAttribute('allowfullscreen', '');
+        } else {
+          el = document.createElement('mux-player');
+          el.setAttribute('playback-id', pid);
+          el.setAttribute('stream-type', 'on-demand');
+          el.setAttribute('accent-color', '#f75c03');
+          el.setAttribute('primary-color', '#FFFCF9');
+          el.setAttribute('secondary-color', '#0F0F0F');
+          el.setAttribute('default-show-remaining-time', '');
+          el.setAttribute('playsinline', '');
+          el.style.cssText = 'width:100%;aspect-ratio:16/9;--media-object-fit:contain';
+        }
+
+        card.innerHTML = '';
+        card.appendChild(el);
+      });
+      // Accordion toggle for summary/quiz panels
+      listEl.addEventListener('click', function (e) {
+        var btn = e.target.closest('[data-ai-toggle]');
+        if (!btn) return;
+        var targetId = btn.getAttribute('data-ai-toggle');
+        var panel = document.getElementById(targetId);
+        if (!panel) return;
+
+        var isOpen = !panel.hidden;
+        panel.hidden = isOpen;
+        btn.classList.toggle('is-open', !isOpen);
+
+        // Initialize quiz wizard on first open
+        if (!isOpen && targetId.indexOf('quiz-') === 0) {
+          var quizEl = panel.querySelector('.yb-ai-quiz');
+          if (quizEl && !quizEl.getAttribute('data-quiz-init')) {
+            quizEl.setAttribute('data-quiz-init', '1');
+            initQuizWizard(quizEl);
+          }
+        }
+      });
+
+    }).catch(function () {
+      if (emptyEl) emptyEl.hidden = false;
+    });
+
+    // ══════════════════════════════════════
+    // QUIZ WIZARD — step-by-step quiz UI
+    // ══════════════════════════════════════
+
+    function initQuizWizard(el) {
+      var qid = el.getAttribute('data-quiz-id');
+      var questions = quizDataMap[qid];
+      if (!questions || !questions.length) return;
+
+      var current = 0;
+      var score = 0;
+      var answered = [];
+
+      function renderQuestion() {
+        var q = questions[current];
+        var total = questions.length;
+
+        var html = '';
+
+        // Progress dots
+        html += '<div class="yb-quiz__progress">';
+        for (var i = 0; i < total; i++) {
+          var dotClass = 'yb-quiz__dot';
+          if (i === current) dotClass += ' yb-quiz__dot--active';
+          else if (answered[i] !== undefined) dotClass += (answered[i] ? ' yb-quiz__dot--correct' : ' yb-quiz__dot--wrong');
+          html += '<span class="' + dotClass + '"></span>';
+        }
+        html += '</div>';
+
+        // Question number + type badge
+        html += '<div class="yb-quiz__meta">';
+        html += '<span class="yb-quiz__num">' + (current + 1) + '/' + total + '</span>';
+        var typeLabel = q.type === 'truefalse'
+          ? (isDa ? 'Sandt/Falsk' : 'True/False')
+          : (isDa ? 'Multiple choice' : 'Multiple choice');
+        html += '<span class="yb-quiz__type">' + typeLabel + '</span>';
+        html += '</div>';
+
+        // Question text
+        html += '<p class="yb-quiz__question">' + escHtml(q.question) + '</p>';
+
+        // Options
+        html += '<div class="yb-quiz__options">';
+        var opts = q.options || [];
+        for (var j = 0; j < opts.length; j++) {
+          var optLabel = q.type === 'truefalse' ? '' : String.fromCharCode(65 + j) + '. ';
+          html += '<button class="yb-quiz__option" data-quiz-answer="' + j + '">';
+          html += optLabel + escHtml(opts[j]);
+          html += '</button>';
+        }
+        html += '</div>';
+
+        // Feedback area (hidden initially)
+        html += '<div class="yb-quiz__feedback" id="quiz-feedback-' + el.getAttribute('data-quiz-id') + '" hidden></div>';
+
+        el.innerHTML = html;
+      }
+
+      function showFeedback(selectedIdx) {
+        var q = questions[current];
+        var isCorrect = selectedIdx === q.correct;
+        answered[current] = isCorrect;
+        if (isCorrect) score++;
+
+        // Highlight options
+        var optBtns = el.querySelectorAll('.yb-quiz__option');
+        for (var i = 0; i < optBtns.length; i++) {
+          optBtns[i].disabled = true;
+          optBtns[i].style.pointerEvents = 'none';
+          if (i === q.correct) {
+            optBtns[i].classList.add('yb-quiz__option--correct');
+          } else if (i === selectedIdx && !isCorrect) {
+            optBtns[i].classList.add('yb-quiz__option--wrong');
+          } else {
+            optBtns[i].style.opacity = '0.4';
+          }
+        }
+
+        // Update progress dot
+        var dots = el.querySelectorAll('.yb-quiz__dot');
+        if (dots[current]) {
+          dots[current].classList.remove('yb-quiz__dot--active');
+          dots[current].classList.add(isCorrect ? 'yb-quiz__dot--correct' : 'yb-quiz__dot--wrong');
+        }
+
+        // Show feedback
+        var fbEl = el.querySelector('.yb-quiz__feedback');
+        if (fbEl) {
+          var icon = isCorrect
+            ? '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#34c759" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>'
+            : '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#ff453a" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>';
+          var fbText = isCorrect ? (isDa ? 'Korrekt!' : 'Correct!') : (isDa ? 'Ikke helt' : 'Not quite');
+          var fbHtml = '<div class="yb-quiz__feedback-row ' + (isCorrect ? 'yb-quiz__feedback--correct' : 'yb-quiz__feedback--wrong') + '">';
+          fbHtml += icon + ' <strong>' + fbText + '</strong>';
+          fbHtml += '</div>';
+          if (q.explanation) {
+            fbHtml += '<p class="yb-quiz__explanation">' + escHtml(q.explanation) + '</p>';
+          }
+
+          // Next button
+          var isLast = current === questions.length - 1;
+          var nextLabel = isLast ? (isDa ? 'Se resultat' : 'See Results') : (isDa ? 'Næste' : 'Next');
+          fbHtml += '<button class="yb-quiz__next" data-quiz-next="1">' + nextLabel + ' &rarr;</button>';
+
+          fbEl.innerHTML = fbHtml;
+          fbEl.hidden = false;
+        }
+      }
+
+      function showResults() {
+        var total = questions.length;
+        var pct = Math.round((score / total) * 100);
+
+        var emoji, msg;
+        if (pct === 100) {
+          emoji = '&#127942;'; // trophy
+          msg = isDa ? 'Perfekt! Du mestrer stoffet.' : 'Perfect! You\'ve mastered the material.';
+        } else if (pct >= 80) {
+          emoji = '&#11088;'; // star
+          msg = isDa ? 'Flot! Du har rigtig godt styr på det.' : 'Great job! You really know your stuff.';
+        } else if (pct >= 60) {
+          emoji = '&#128170;'; // flexed bicep
+          msg = isDa ? 'Godt arbejde! Du er godt på vej.' : 'Good work! You\'re on the right track.';
+        } else {
+          emoji = '&#128588;'; // hands
+          msg = isDa ? 'Godt forsøg! Se optagelsen igen og prøv på ny.' : 'Good try! Rewatch and try again.';
+        }
+
+        var html = '<div class="yb-quiz__results">';
+        html += '<div class="yb-quiz__results-emoji">' + emoji + '</div>';
+        html += '<div class="yb-quiz__results-score">' + score + '/' + total + '</div>';
+        html += '<div class="yb-quiz__results-pct">' + pct + '%</div>';
+        html += '<p class="yb-quiz__results-msg">' + msg + '</p>';
+
+        // Mini breakdown
+        html += '<div class="yb-quiz__results-dots">';
+        for (var i = 0; i < total; i++) {
+          html += '<span class="yb-quiz__dot ' + (answered[i] ? 'yb-quiz__dot--correct' : 'yb-quiz__dot--wrong') + '"></span>';
+        }
+        html += '</div>';
+
+        // Retry button
+        html += '<button class="yb-quiz__retry" data-quiz-retry="1">';
+        html += (isDa ? 'Prøv igen' : 'Try Again');
+        html += '</button>';
+        html += '</div>';
+
+        el.innerHTML = html;
+      }
+
+      // Event delegation for quiz interactions
+      el.addEventListener('click', function (e) {
+        var answerBtn = e.target.closest('[data-quiz-answer]');
+        if (answerBtn) {
+          showFeedback(parseInt(answerBtn.getAttribute('data-quiz-answer'), 10));
+          return;
+        }
+        var nextBtn = e.target.closest('[data-quiz-next]');
+        if (nextBtn) {
+          current++;
+          if (current >= questions.length) {
+            showResults();
+          } else {
+            renderQuestion();
+          }
+          return;
+        }
+        var retryBtn = e.target.closest('[data-quiz-retry]');
+        if (retryBtn) {
+          current = 0;
+          score = 0;
+          answered = [];
+          renderQuestion();
+        }
+      });
+
+      // Start
+      renderQuestion();
+    }
+  }
+
+  function escHtml(s) {
+    var d = document.createElement('div');
+    d.textContent = s || '';
+    return d.innerHTML;
+  }
+
+  // Hook into tab switching to lazy-load recordings + refresh schedule
+  var origShowTab = showTab;
+  showTab = function (tab, skipPush) {
+    origShowTab(tab, skipPush);
+    if (tab === 'live') {
+      loadRecordings();
+      // Re-fetch live schedule when tab becomes visible
+      if (typeof window._liveScheduleFetch === 'function') {
+        window._liveScheduleFetch();
+      }
+    }
+  };
 })();

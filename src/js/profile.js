@@ -1998,17 +1998,17 @@
         desc_da: 'Start din forberedelsesfase for det 18-ugers fleksible yogalæreruddannelsesprogram. Begynd din rejse i dit eget tempo.',
         desc_en: 'Begin your Preparation Phase for the 18-week flexible yoga teacher training program. Start your journey at your own pace.' },
       { id: 'ytt-4w-apr26', prodId: '100121', price: 3750, vat_pct: 0,
-        name_da: '4 Ugers Intensiv', name_en: '4-Week Intensive',
+        name_da: '4 Ugers Complete Program', name_en: '4-Week Complete Program',
         period_da: 'April 2026', period_en: 'April 2026',
-        format_da: '200-timers komplet uddannelse', format_en: '200-hour complete education',
-        desc_da: 'Start din forberedelsesfase for det intensive 4-ugers program. Fuld fordybelse og hurtig transformation.',
-        desc_en: 'Begin your Preparation Phase for the intensive 4-week program. Full immersion and rapid transformation.' },
+        format_da: '200-timers komplet uddannelse · Multi-Style', format_en: '200-hour complete education · Multi-Style',
+        desc_da: 'Start din forberedelsesfase for det intensive 4-ugers Complete Program. Hatha, Vinyasa, Yin, Hot Yoga og Meditation.',
+        desc_en: 'Begin your Preparation Phase for the intensive 4-week Complete Program. Hatha, Vinyasa, Yin, Hot Yoga, and Meditation.' },
       { id: 'ytt-4w-jul26', prodId: '100211', price: 3750, vat_pct: 0,
-        name_da: '4 Ugers Intensiv', name_en: '4-Week Intensive',
+        name_da: '4 Ugers Vinyasa Plus', name_en: '4-Week Vinyasa Plus',
         period_da: 'Juli 2026', period_en: 'July 2026',
-        format_da: '200-timers komplet uddannelse', format_en: '200-hour complete education',
-        desc_da: 'Start din forberedelsesfase for sommerens 4-ugers intensive program. Fordyb dig i yoga midt om sommeren.',
-        desc_en: 'Begin your Preparation Phase for the summer 4-week intensive program. Immerse yourself in yoga this summer.' },
+        format_da: '200-timers uddannelse · 70% Vinyasa · 30% Yin + Hot Yoga', format_en: '200-hour training · 70% Vinyasa · 30% Yin + Hot Yoga',
+        desc_da: 'Start din forberedelsesfase for sommerens Vinyasa Plus program. Kreativ sekvensering, klasseledelse og undervisning i Vinyasa, Yin Yoga og Hot Yoga.',
+        desc_en: 'Begin your Preparation Phase for the summer Vinyasa Plus program. Creative sequencing, class management, and teaching Vinyasa, Yin Yoga, and Hot Yoga.' },
       { id: 'ytt-8w-semi-may-jun26', prodId: '100209', price: 3750, vat_pct: 0,
         name_da: '8 Ugers Semi-Intensiv', name_en: '8-Week Semi-Intensive',
         period_da: 'Maj – Juni 2026', period_en: 'May – June 2026',
@@ -2029,7 +2029,7 @@
       items: [
         { id: 'inversions', prodId: '100145',
           name_da: 'Inversions', name_en: 'Inversions',
-          desc_da: 'Mester armbalancer og omvendinger med sikker teknik og gradvis progression.',
+          desc_da: 'Mestr armbalancer og inversioner med sikker teknik og gradvis progression.',
           desc_en: 'Master arm balances and inversions with safe technique and gradual progression.',
           link: '/inversions', icon: '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 2v8m0 0l-3-3m3 3l3-3"/><circle cx="12" cy="18" r="4"/></svg>' },
         { id: 'splits', prodId: '100150',
@@ -2115,9 +2115,7 @@
    * Calculate user's age from DOB string (YYYY-MM-DD).
    * Returns null if no DOB available.
    */
-  var _ageOverride = null; // TEMP: for testing age-based filtering
   function getUserAge() {
-    if (_ageOverride !== null) return _ageOverride;
     if (!userDateOfBirth) return null;
     var parts = userDateOfBirth.split('-');
     if (parts.length !== 3) return null;
@@ -2130,14 +2128,6 @@
     }
     return age;
   }
-  // TEMP: Expose age override for testing — call window.setAge(25) or window.setAge(35) in console, then refresh store
-  window.setAge = function(age) {
-    _ageOverride = (age === null || age === undefined) ? null : Number(age);
-    console.log('[Store] Age override set to:', _ageOverride === null ? 'real DOB' : _ageOverride);
-    // Rebuild store with new age bracket
-    storeServices = [];
-    loadStore();
-  };
 
   /**
    * Determine the age bracket: 'over30' or 'under30'.
@@ -5013,7 +5003,7 @@
       apps_payment: isDa() ? 'Betalingsvalg' : 'Payment Choice',
       apps_submitted: isDa() ? 'Indsendt' : 'Submitted',
       apps_cohort: isDa() ? 'Hold' : 'Cohort',
-      apps_acceptance: isDa() ? 'Velkkomstmail sendt' : 'Acceptance email sent',
+      apps_acceptance: isDa() ? 'Velkomstmail sendt' : 'Acceptance email sent',
       apps_notes: isDa() ? 'Noter' : 'Notes',
       apps_status_new: isDa() ? 'Ny' : 'New',
       apps_status_reviewed: isDa() ? 'Gennemgået' : 'Reviewed',

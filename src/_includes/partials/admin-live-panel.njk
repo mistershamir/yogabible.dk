@@ -1,0 +1,430 @@
+{# ── List View ── #}
+<div id="yb-live-admin-v-list">
+  <div class="yb-admin__view-head">
+    <h2>{{ t.live_title }}</h2>
+    <div class="yb-lead__toolbar-right">
+      <button type="button" class="yb-btn yb-btn--outline yb-btn--sm" data-action="live-import-mb">{{ t.live_import_mb }}</button>
+      <button type="button" class="yb-btn yb-btn--primary yb-btn--sm" data-action="live-new">+ {{ t.live_new }}</button>
+    </div>
+  </div>
+
+  {# Filters #}
+  <div class="yb-lead__filter-bar">
+    <select id="yb-live-admin-filter" class="yb-admin__select yb-lead__filter">
+      <option value="all">{{ t.live_filter_all }}</option>
+      <option value="upcoming" selected>{{ t.live_filter_upcoming }}</option>
+      <option value="past">{{ t.live_filter_past }}</option>
+    </select>
+    <select id="yb-live-admin-source-filter" class="yb-admin__select yb-lead__filter">
+      <option value="">{{ t.live_filter_all }} ({{ t.live_field_source }})</option>
+      <option value="manual">{{ t.live_source_manual }}</option>
+      <option value="mindbody">{{ t.live_source_mindbody }}</option>
+    </select>
+  </div>
+
+  <div class="yb-lead__result-bar">
+    <span id="yb-live-admin-count" class="yb-lead__count-text"></span>
+  </div>
+
+  {# Bulk actions bar (hidden until selections) #}
+  <div id="yb-live-bulk-bar" class="yb-lead__bulk-bar" hidden>
+    <span id="yb-live-bulk-count" class="yb-lead__bulk-count-text"></span>
+    <button class="yb-btn yb-btn--primary yb-btn--sm" data-action="live-bulk-access">&#128274; {{ t.live_bulk_set_access }}</button>
+    <button class="yb-btn yb-btn--outline yb-btn--sm yb-admin__icon-btn--danger" data-action="live-bulk-delete">&#128465; {{ t.live_bulk_delete }}</button>
+    <button class="yb-btn yb-btn--outline yb-btn--sm" data-action="live-bulk-deselect">&#10006; {{ t.live_bulk_deselect }}</button>
+  </div>
+
+  {# Bulk access settings panel (hidden until "Set Access" clicked) #}
+  <div id="yb-live-bulk-access-panel" class="yb-admin__form" hidden style="background:#FFFCF9;border:1px solid var(--yb-border,#E8E4E0);border-radius:12px;padding:1.25rem;margin-bottom:1rem">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.75rem">
+      <strong style="font-size:0.9rem">{{ t.live_bulk_set_access }}</strong>
+      <button type="button" class="yb-admin__icon-btn" data-action="live-bulk-access-close" title="Close">&times;</button>
+    </div>
+
+    {# Bulk — Role checkboxes #}
+    <div class="yb-admin__field" style="margin-bottom:1rem">
+      <label style="font-weight:600;font-size:0.82rem">{{ t.live_field_access_roles }}</label>
+      <div class="yb-admin__form-row" style="flex-wrap:wrap;gap:0.75rem;margin-top:0.35rem">
+        <label class="yb-admin__checkbox-label"><input type="checkbox" value="member" class="yb-la-bulk-role-cb"> Member</label>
+        <label class="yb-admin__checkbox-label"><input type="checkbox" value="trainee" class="yb-la-bulk-role-cb" checked> Trainee</label>
+        <label class="yb-admin__checkbox-label"><input type="checkbox" value="student" class="yb-la-bulk-role-cb"> Student</label>
+        <label class="yb-admin__checkbox-label"><input type="checkbox" value="teacher" class="yb-la-bulk-role-cb" checked> Teacher</label>
+        <label class="yb-admin__checkbox-label"><input type="checkbox" value="admin" class="yb-la-bulk-role-cb" checked> Admin</label>
+      </div>
+    </div>
+
+    {# Bulk — Permission checkboxes (same groups as form) #}
+    <div class="yb-admin__field" style="margin-bottom:1rem">
+      <label style="font-weight:600;font-size:0.82rem">{{ t.live_field_access_perms }}</label>
+      <div style="margin-top:0.5rem">
+        <div style="margin-bottom:0.6rem">
+          <span style="font-size:0.75rem;font-weight:600;color:#6F6A66">{{ t.live_perm_group_base }}</span>
+          <div class="yb-admin__form-row" style="flex-wrap:wrap;gap:0.75rem;margin-top:0.25rem">
+            <label class="yb-admin__checkbox-label"><input type="checkbox" value="live-streaming" class="yb-la-bulk-perm-cb" checked> Live Streaming</label>
+            <label class="yb-admin__checkbox-label"><input type="checkbox" value="recordings" class="yb-la-bulk-perm-cb"> Recordings</label>
+            <label class="yb-admin__checkbox-label"><input type="checkbox" value="gated-content" class="yb-la-bulk-perm-cb"> Gated Content</label>
+          </div>
+        </div>
+        <div style="margin-bottom:0.6rem">
+          <span style="font-size:0.75rem;font-weight:600;color:#6F6A66">{{ t.live_perm_group_materials }}</span>
+          <div class="yb-admin__form-row" style="flex-wrap:wrap;gap:0.75rem;margin-top:0.25rem">
+            <label class="yb-admin__checkbox-label"><input type="checkbox" value="materials:100h" class="yb-la-bulk-perm-cb"> 100h</label>
+            <label class="yb-admin__checkbox-label"><input type="checkbox" value="materials:200h" class="yb-la-bulk-perm-cb"> 200h</label>
+            <label class="yb-admin__checkbox-label"><input type="checkbox" value="materials:300h" class="yb-la-bulk-perm-cb"> 300h</label>
+            <label class="yb-admin__checkbox-label"><input type="checkbox" value="materials:500h" class="yb-la-bulk-perm-cb"> 500h</label>
+          </div>
+        </div>
+        <div style="margin-bottom:0.6rem">
+          <span style="font-size:0.75rem;font-weight:600;color:#6F6A66">{{ t.live_perm_group_methods }}</span>
+          <div class="yb-admin__form-row" style="flex-wrap:wrap;gap:0.75rem;margin-top:0.25rem">
+            <label class="yb-admin__checkbox-label"><input type="checkbox" value="method:triangle" class="yb-la-bulk-perm-cb"> Triangle</label>
+            <label class="yb-admin__checkbox-label"><input type="checkbox" value="method:vinyasa" class="yb-la-bulk-perm-cb"> Vinyasa</label>
+          </div>
+        </div>
+        <div style="margin-bottom:0.6rem">
+          <span style="font-size:0.75rem;font-weight:600;color:#6F6A66">{{ t.live_perm_group_courses }}</span>
+          <div class="yb-admin__form-row" style="flex-wrap:wrap;gap:0.75rem;margin-top:0.25rem">
+            <label class="yb-admin__checkbox-label"><input type="checkbox" value="course:inversions" class="yb-la-bulk-perm-cb"> Inversions</label>
+            <label class="yb-admin__checkbox-label"><input type="checkbox" value="course:splits" class="yb-la-bulk-perm-cb"> Splits</label>
+            <label class="yb-admin__checkbox-label"><input type="checkbox" value="course:backbends" class="yb-la-bulk-perm-cb"> Backbends</label>
+            <label class="yb-admin__checkbox-label"><input type="checkbox" value="course:handstands" class="yb-la-bulk-perm-cb"> Handstands</label>
+            <label class="yb-admin__checkbox-label"><input type="checkbox" value="course:armbalances" class="yb-la-bulk-perm-cb"> Arm Balances</label>
+            <label class="yb-admin__checkbox-label"><input type="checkbox" value="course:prenatal" class="yb-la-bulk-perm-cb"> Prenatal</label>
+          </div>
+        </div>
+        <div style="margin-bottom:0.6rem">
+          <span style="font-size:0.75rem;font-weight:600;color:#6F6A66">{{ t.live_perm_group_teacher }}</span>
+          <div class="yb-admin__form-row" style="flex-wrap:wrap;gap:0.75rem;margin-top:0.25rem">
+            <label class="yb-admin__checkbox-label"><input type="checkbox" value="teacher:vinyasa" class="yb-la-bulk-perm-cb"> Vinyasa</label>
+            <label class="yb-admin__checkbox-label"><input type="checkbox" value="teacher:yin" class="yb-la-bulk-perm-cb"> Yin</label>
+            <label class="yb-admin__checkbox-label"><input type="checkbox" value="teacher:hot" class="yb-la-bulk-perm-cb"> Hot Yoga</label>
+            <label class="yb-admin__checkbox-label"><input type="checkbox" value="teacher:ashtanga" class="yb-la-bulk-perm-cb"> Ashtanga</label>
+            <label class="yb-admin__checkbox-label"><input type="checkbox" value="teacher:hatha" class="yb-la-bulk-perm-cb"> Hatha</label>
+            <label class="yb-admin__checkbox-label"><input type="checkbox" value="teacher:kids" class="yb-la-bulk-perm-cb"> Kids</label>
+            <label class="yb-admin__checkbox-label"><input type="checkbox" value="teacher:restorative" class="yb-la-bulk-perm-cb"> Restorative</label>
+            <label class="yb-admin__checkbox-label"><input type="checkbox" value="teacher:prenatal" class="yb-la-bulk-perm-cb"> Prenatal</label>
+            <label class="yb-admin__checkbox-label"><input type="checkbox" value="teacher:meditation" class="yb-la-bulk-perm-cb"> Meditation</label>
+          </div>
+        </div>
+        <div>
+          <span style="font-size:0.75rem;font-weight:600;color:#6F6A66">{{ t.live_perm_group_other }}</span>
+          <div class="yb-admin__form-row" style="flex-wrap:wrap;gap:0.75rem;margin-top:0.25rem">
+            <label class="yb-admin__checkbox-label"><input type="checkbox" value="mentorship" class="yb-la-bulk-perm-cb"> Mentorship</label>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    {# Bulk — Cohorts #}
+    <div class="yb-admin__field" style="margin-bottom:1rem">
+      <label for="yb-la-bulk-cohorts" style="font-weight:600;font-size:0.82rem">{{ t.live_field_cohorts }}</label>
+      <input type="text" id="yb-la-bulk-cohorts" placeholder="{{ t.live_cohorts_hint }}">
+      <p style="font-size:0.75rem;color:#6F6A66;margin:0.25rem 0 0">{{ t.live_cohorts_help }}</p>
+    </div>
+
+    <button type="button" class="yb-btn yb-btn--primary yb-btn--sm" data-action="live-bulk-access-apply">&#10003; {{ t.live_bulk_apply }}</button>
+  </div>
+
+  <div class="yb-admin__table-wrap">
+    <table class="yb-admin__table" id="yb-live-admin-table">
+      <thead>
+        <tr>
+          <th class="yb-lead__th-cb"><input type="checkbox" id="yb-live-select-all" title="{{ t.live_bulk_select_all }}"></th>
+          <th>{{ t.live_col_status }}</th>
+          <th>{{ t.live_col_title }}</th>
+          <th>{{ t.live_col_datetime }}</th>
+          <th>{{ t.live_col_source }}</th>
+          <th>{{ t.live_col_instructor }}</th>
+          <th>{{ t.live_col_access }}</th>
+          <th>{{ t.live_col_actions }}</th>
+        </tr>
+      </thead>
+      <tbody id="yb-live-admin-table-body"></tbody>
+    </table>
+  </div>
+  <p id="yb-live-admin-empty" class="yb-admin__empty" hidden>{{ t.live_no_events }}</p>
+</div>
+
+{# ── Form View (create / edit) ── #}
+<div id="yb-live-admin-v-form" hidden>
+  <div class="yb-admin__view-head">
+    <button class="yb-admin__back-btn" data-action="live-cancel">&larr; {{ t.back }}</button>
+    <h2 id="yb-live-admin-form-title">{{ t.live_form_title }}</h2>
+  </div>
+
+  <form id="yb-live-admin-form" class="yb-admin__form" autocomplete="off">
+    <input type="hidden" id="yb-la-id">
+
+    {# Source selector #}
+    <div class="yb-admin__form-row">
+      <div class="yb-admin__field">
+        <label for="yb-la-source">{{ t.live_field_source }}</label>
+        <select id="yb-la-source" class="yb-admin__select">
+          <option value="manual">{{ t.live_source_manual }}</option>
+          <option value="mindbody">{{ t.live_source_mindbody }}</option>
+        </select>
+      </div>
+      <div class="yb-admin__field">
+        <label for="yb-la-status">{{ t.live_field_status }}</label>
+        <select id="yb-la-status" class="yb-admin__select">
+          <option value="scheduled">{{ t.live_status_scheduled }}</option>
+          <option value="live">{{ t.live_status_live }}</option>
+          <option value="ended">{{ t.live_status_ended }}</option>
+          <option value="cancelled">{{ t.live_status_cancelled }}</option>
+        </select>
+      </div>
+    </div>
+
+    {# MB class picker (shown when source = mindbody) #}
+    <div class="yb-admin__field" id="yb-la-mb-wrap" hidden>
+      <label for="yb-la-mb-class">{{ t.live_field_mb_class }}</label>
+      <select id="yb-la-mb-class" class="yb-admin__select">
+        <option value="">{{ t.live_field_mb_select }}</option>
+      </select>
+    </div>
+
+    {# Title #}
+    <div class="yb-admin__form-row">
+      <div class="yb-admin__field">
+        <label for="yb-la-title-da">{{ t.live_field_title_da }}</label>
+        <input type="text" id="yb-la-title-da" required>
+      </div>
+      <div class="yb-admin__field">
+        <label for="yb-la-title-en">{{ t.live_field_title_en }}</label>
+        <input type="text" id="yb-la-title-en">
+      </div>
+    </div>
+
+    {# Description #}
+    <div class="yb-admin__form-row">
+      <div class="yb-admin__field">
+        <label for="yb-la-desc-da">{{ t.live_field_desc_da }}</label>
+        <textarea id="yb-la-desc-da" rows="3"></textarea>
+      </div>
+      <div class="yb-admin__field">
+        <label for="yb-la-desc-en">{{ t.live_field_desc_en }}</label>
+        <textarea id="yb-la-desc-en" rows="3"></textarea>
+      </div>
+    </div>
+
+    {# Instructor + Date/Time #}
+    <div class="yb-admin__form-row">
+      <div class="yb-admin__field">
+        <label for="yb-la-instructor">{{ t.live_field_instructor }}</label>
+        <input type="text" id="yb-la-instructor">
+      </div>
+    </div>
+
+    <div class="yb-admin__form-row">
+      <div class="yb-admin__field">
+        <label for="yb-la-start">{{ t.live_field_start }}</label>
+        <input type="datetime-local" id="yb-la-start" required>
+      </div>
+      <div class="yb-admin__field">
+        <label for="yb-la-end">{{ t.live_field_end }}</label>
+        <input type="datetime-local" id="yb-la-end">
+      </div>
+    </div>
+
+    {# Recurrence (manual only) #}
+    <div id="yb-la-recurrence-wrap">
+      <div class="yb-admin__form-row">
+        <div class="yb-admin__field">
+          <label for="yb-la-recurrence">{{ t.live_field_recurrence }}</label>
+          <select id="yb-la-recurrence" class="yb-admin__select">
+            <option value="none">{{ t.live_recurrence_none }}</option>
+            <option value="weekly">{{ t.live_recurrence_weekly }}</option>
+            <option value="biweekly">{{ t.live_recurrence_biweekly }}</option>
+            <option value="every3weeks">{{ t.live_recurrence_every3weeks }}</option>
+            <option value="every4weeks">{{ t.live_recurrence_every4weeks }}</option>
+          </select>
+        </div>
+        <div class="yb-admin__field" id="yb-la-recurrence-end-wrap" hidden>
+          <label for="yb-la-recurrence-end">{{ t.live_field_recurrence_end }}</label>
+          <input type="date" id="yb-la-recurrence-end">
+        </div>
+      </div>
+    </div>
+
+    {# Mux IDs #}
+    <div class="yb-admin__form-row">
+      <div class="yb-admin__field">
+        <label for="yb-la-mux-playback">{{ t.live_field_mux_playback }}</label>
+        <input type="text" id="yb-la-mux-playback" placeholder="{{ t.live_field_mux_playback_hint }}">
+      </div>
+      <div class="yb-admin__field">
+        <label for="yb-la-recording-id">{{ t.live_field_recording_id }}</label>
+        <input type="text" id="yb-la-recording-id" placeholder="{{ t.live_field_recording_hint }}">
+      </div>
+    </div>
+
+    {# Cohort restriction #}
+    <div class="yb-admin__field">
+      <label for="yb-la-cohorts">{{ t.live_field_cohorts }}</label>
+      <input type="text" id="yb-la-cohorts" placeholder="{{ t.live_cohorts_hint }}">
+      <p style="font-size:0.8rem;color:#6F6A66;margin:0.25rem 0 0">{{ t.live_cohorts_help }}</p>
+    </div>
+
+    {# Access: Roles #}
+    <div class="yb-admin__field">
+      <label>{{ t.live_field_access_roles }}</label>
+      <p style="font-size:0.8rem;color:#6F6A66;margin:0 0 0.5rem">{{ t.live_access_hint_roles }}</p>
+      <div class="yb-admin__form-row" style="flex-wrap:wrap;gap:1rem">
+        <label class="yb-admin__checkbox-label"><input type="checkbox" value="member" class="yb-la-role-cb"> Member</label>
+        <label class="yb-admin__checkbox-label"><input type="checkbox" value="trainee" class="yb-la-role-cb" checked> Trainee</label>
+        <label class="yb-admin__checkbox-label"><input type="checkbox" value="student" class="yb-la-role-cb"> Student</label>
+        <label class="yb-admin__checkbox-label"><input type="checkbox" value="teacher" class="yb-la-role-cb" checked> Teacher</label>
+        <label class="yb-admin__checkbox-label"><input type="checkbox" value="admin" class="yb-la-role-cb" checked> Admin</label>
+      </div>
+    </div>
+
+    {# Access: Permissions — grouped checkboxes #}
+    <div class="yb-admin__field">
+      <label>{{ t.live_field_access_perms }}</label>
+      <p style="font-size:0.8rem;color:#6F6A66;margin:0 0 0.5rem">{{ t.live_access_hint_perms }}</p>
+
+      {# Base permissions #}
+      <div style="margin-bottom:0.6rem">
+        <span style="font-size:0.75rem;font-weight:600;color:#6F6A66">{{ t.live_perm_group_base }}</span>
+        <div class="yb-admin__form-row" style="flex-wrap:wrap;gap:0.75rem;margin-top:0.25rem">
+          <label class="yb-admin__checkbox-label"><input type="checkbox" value="live-streaming" class="yb-la-perm-cb" checked> Live Streaming</label>
+          <label class="yb-admin__checkbox-label"><input type="checkbox" value="recordings" class="yb-la-perm-cb"> Recordings</label>
+          <label class="yb-admin__checkbox-label"><input type="checkbox" value="gated-content" class="yb-la-perm-cb"> Gated Content</label>
+        </div>
+      </div>
+
+      {# Materials (Program) #}
+      <div style="margin-bottom:0.6rem">
+        <span style="font-size:0.75rem;font-weight:600;color:#6F6A66">{{ t.live_perm_group_materials }}</span>
+        <div class="yb-admin__form-row" style="flex-wrap:wrap;gap:0.75rem;margin-top:0.25rem">
+          <label class="yb-admin__checkbox-label"><input type="checkbox" value="materials:100h" class="yb-la-perm-cb"> 100h</label>
+          <label class="yb-admin__checkbox-label"><input type="checkbox" value="materials:200h" class="yb-la-perm-cb"> 200h</label>
+          <label class="yb-admin__checkbox-label"><input type="checkbox" value="materials:300h" class="yb-la-perm-cb"> 300h</label>
+          <label class="yb-admin__checkbox-label"><input type="checkbox" value="materials:500h" class="yb-la-perm-cb"> 500h</label>
+        </div>
+      </div>
+
+      {# Method #}
+      <div style="margin-bottom:0.6rem">
+        <span style="font-size:0.75rem;font-weight:600;color:#6F6A66">{{ t.live_perm_group_methods }}</span>
+        <div class="yb-admin__form-row" style="flex-wrap:wrap;gap:0.75rem;margin-top:0.25rem">
+          <label class="yb-admin__checkbox-label"><input type="checkbox" value="method:triangle" class="yb-la-perm-cb"> Triangle</label>
+          <label class="yb-admin__checkbox-label"><input type="checkbox" value="method:vinyasa" class="yb-la-perm-cb"> Vinyasa</label>
+        </div>
+      </div>
+
+      {# Courses #}
+      <div style="margin-bottom:0.6rem">
+        <span style="font-size:0.75rem;font-weight:600;color:#6F6A66">{{ t.live_perm_group_courses }}</span>
+        <div class="yb-admin__form-row" style="flex-wrap:wrap;gap:0.75rem;margin-top:0.25rem">
+          <label class="yb-admin__checkbox-label"><input type="checkbox" value="course:inversions" class="yb-la-perm-cb"> Inversions</label>
+          <label class="yb-admin__checkbox-label"><input type="checkbox" value="course:splits" class="yb-la-perm-cb"> Splits</label>
+          <label class="yb-admin__checkbox-label"><input type="checkbox" value="course:backbends" class="yb-la-perm-cb"> Backbends</label>
+          <label class="yb-admin__checkbox-label"><input type="checkbox" value="course:handstands" class="yb-la-perm-cb"> Handstands</label>
+          <label class="yb-admin__checkbox-label"><input type="checkbox" value="course:armbalances" class="yb-la-perm-cb"> Arm Balances</label>
+          <label class="yb-admin__checkbox-label"><input type="checkbox" value="course:prenatal" class="yb-la-perm-cb"> Prenatal</label>
+        </div>
+      </div>
+
+      {# Teacher Type #}
+      <div style="margin-bottom:0.6rem">
+        <span style="font-size:0.75rem;font-weight:600;color:#6F6A66">{{ t.live_perm_group_teacher }}</span>
+        <div class="yb-admin__form-row" style="flex-wrap:wrap;gap:0.75rem;margin-top:0.25rem">
+          <label class="yb-admin__checkbox-label"><input type="checkbox" value="teacher:vinyasa" class="yb-la-perm-cb"> Vinyasa</label>
+          <label class="yb-admin__checkbox-label"><input type="checkbox" value="teacher:yin" class="yb-la-perm-cb"> Yin</label>
+          <label class="yb-admin__checkbox-label"><input type="checkbox" value="teacher:hot" class="yb-la-perm-cb"> Hot Yoga</label>
+          <label class="yb-admin__checkbox-label"><input type="checkbox" value="teacher:ashtanga" class="yb-la-perm-cb"> Ashtanga</label>
+          <label class="yb-admin__checkbox-label"><input type="checkbox" value="teacher:hatha" class="yb-la-perm-cb"> Hatha</label>
+          <label class="yb-admin__checkbox-label"><input type="checkbox" value="teacher:kids" class="yb-la-perm-cb"> Kids</label>
+          <label class="yb-admin__checkbox-label"><input type="checkbox" value="teacher:restorative" class="yb-la-perm-cb"> Restorative</label>
+          <label class="yb-admin__checkbox-label"><input type="checkbox" value="teacher:prenatal" class="yb-la-perm-cb"> Prenatal</label>
+          <label class="yb-admin__checkbox-label"><input type="checkbox" value="teacher:meditation" class="yb-la-perm-cb"> Meditation</label>
+        </div>
+      </div>
+
+      {# Other #}
+      <div>
+        <span style="font-size:0.75rem;font-weight:600;color:#6F6A66">{{ t.live_perm_group_other }}</span>
+        <div class="yb-admin__form-row" style="flex-wrap:wrap;gap:0.75rem;margin-top:0.25rem">
+          <label class="yb-admin__checkbox-label"><input type="checkbox" value="mentorship" class="yb-la-perm-cb"> Mentorship</label>
+        </div>
+      </div>
+    </div>
+
+    <div class="yb-admin__form-actions">
+      <button type="submit" class="yb-btn yb-btn--primary">{{ t.save }}</button>
+      <button type="button" class="yb-btn yb-btn--outline" data-action="live-cancel">{{ t.cancel }}</button>
+    </div>
+  </form>
+</div>
+
+{# ── MindBody Import View ── #}
+<div id="yb-live-admin-v-mb" hidden>
+  <div class="yb-admin__view-head">
+    <button class="yb-admin__back-btn" data-action="live-cancel">&larr; {{ t.back }}</button>
+    <h2>{{ t.live_import_mb }}</h2>
+  </div>
+
+  {# Date range + fetch #}
+  <div class="yb-admin__form-row" style="margin-bottom:1rem">
+    <div class="yb-admin__field">
+      <label for="yb-la-mb-start">{{ t.live_field_start }}</label>
+      <input type="date" id="yb-la-mb-start">
+    </div>
+    <div class="yb-admin__field">
+      <label for="yb-la-mb-end">{{ t.live_field_end }}</label>
+      <input type="date" id="yb-la-mb-end">
+    </div>
+    <div class="yb-admin__field" style="align-self:flex-end">
+      <button type="button" class="yb-btn yb-btn--primary yb-btn--sm" data-action="live-mb-fetch" id="yb-la-mb-fetch-btn">{{ t.live_mb_fetch_btn }}</button>
+    </div>
+  </div>
+
+  {# Search + Filters (populated dynamically after fetch) #}
+  <div class="yb-lead__filter-bar" id="yb-la-mb-filters" hidden>
+    <input type="text" id="yb-la-mb-search" placeholder="{{ t.live_mb_search }}" class="yb-lead__search-input" style="min-width:220px">
+    <select id="yb-la-mb-filter-program" class="yb-admin__select yb-lead__filter">
+      <option value="">{{ t.live_mb_filter_program }}</option>
+    </select>
+    <select id="yb-la-mb-filter-instructor" class="yb-admin__select yb-lead__filter">
+      <option value="">{{ t.live_mb_filter_instructor }}</option>
+    </select>
+    <select id="yb-la-mb-filter-session-type" class="yb-admin__select yb-lead__filter">
+      <option value="">{{ t.live_mb_filter_session_type }}</option>
+    </select>
+    <select id="yb-la-mb-filter-day" class="yb-admin__select yb-lead__filter">
+      <option value="">{{ t.live_mb_filter_day }}</option>
+    </select>
+  </div>
+
+  {# Result count #}
+  <div class="yb-lead__result-bar" id="yb-la-mb-result-bar" hidden>
+    <span id="yb-la-mb-count" class="yb-lead__count-text"></span>
+  </div>
+
+  {# Bulk actions bar (hidden until selections) #}
+  <div id="yb-la-mb-bulk-bar" class="yb-lead__bulk-bar" hidden>
+    <span id="yb-la-mb-bulk-count" class="yb-lead__bulk-count-text"></span>
+    <button class="yb-btn yb-btn--primary yb-btn--sm" data-action="live-mb-bulk-import">&#128229; {{ t.live_mb_bulk_import }}</button>
+    <button class="yb-btn yb-btn--outline yb-btn--sm" data-action="live-mb-deselect">&#10006; {{ t.live_mb_deselect }}</button>
+  </div>
+
+  {# Table #}
+  <div class="yb-admin__table-wrap">
+    <table class="yb-admin__table" id="yb-live-mb-table">
+      <thead>
+        <tr>
+          <th class="yb-lead__th-cb"><input type="checkbox" id="yb-la-mb-select-all" title="{{ t.live_mb_select_all }}"></th>
+          <th>{{ t.live_col_title }}</th>
+          <th>{{ t.live_col_datetime }}</th>
+          <th>{{ t.live_col_instructor }}</th>
+          <th>{{ t.live_mb_col_program }}</th>
+          <th>{{ t.live_mb_col_session_type }}</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody id="yb-live-mb-table-body"></tbody>
+    </table>
+  </div>
+  <p id="yb-live-mb-empty" class="yb-admin__empty" hidden>{{ t.live_field_mb_none }}</p>
+</div>

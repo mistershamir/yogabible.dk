@@ -15,6 +15,7 @@ const { getDb, addDoc, updateDoc, serverTimestamp } = require('./shared/firestor
 const { jsonResponse, optionsResponse, escapeHtml } = require('./shared/utils');
 const { sendRawEmail, getSignatureHtml, getSignaturePlain } = require('./shared/email-service');
 const { CONFIG } = require('./shared/config');
+const { runSpamChecks } = require('./shared/spam-check');
 
 const COLLECTION = 'appointments';
 const SETTINGS_COLLECTION = 'appointment_settings';
@@ -185,6 +186,22 @@ async function bookAppointment(body) {
     return jsonResponse(400, { ok: false, error: 'Invalid email format' });
   }
 
+  // ── Spam protection ─────────────────────────────────────────────
+  const spamReason = await runSpamChecks({
+    honeypotValue: body._hp,
+    formOpenedAt:  body.formOpenedAt,
+    db:            getDb(),
+    collection:    COLLECTION,
+    emailField:    'client_email',
+    email,
+    windowHours:   1
+  });
+  if (spamReason) {
+    console.warn(`[appointment-book:book] Spam rejected (${spamReason}): ${email}`);
+    return jsonResponse(201, { ok: true, id: 'spam', token: '', isRequest: false });
+  }
+  // ────────────────────────────────────────────────────────────────
+
   // Load settings for type info
   let settings = DEFAULT_SETTINGS;
   try {
@@ -328,6 +345,22 @@ async function photoSessionRequest(body) {
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
     return jsonResponse(400, { ok: false, error: 'Invalid email format' });
   }
+
+  // ── Spam protection ─────────────────────────────────────────────
+  const spamReason = await runSpamChecks({
+    honeypotValue: body._hp,
+    formOpenedAt:  body.formOpenedAt,
+    db:            getDb(),
+    collection:    COLLECTION,
+    emailField:    'client_email',
+    email,
+    windowHours:   2
+  });
+  if (spamReason) {
+    console.warn(`[appointment-book:photo] Spam rejected (${spamReason}): ${email}`);
+    return jsonResponse(201, { ok: true, id: 'spam', token: '', isRequest: true });
+  }
+  // ────────────────────────────────────────────────────────────────
 
   const appointmentData = {
     date: preferred_slots[0].date,

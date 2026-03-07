@@ -139,6 +139,10 @@
 
     modal.setAttribute('aria-hidden', 'false');
     document.body.style.overflow = 'hidden';
+
+    // Record the time the modal was opened (used for spam timing check)
+    var openedAtEl = $('yb-book-opened-at');
+    if (openedAtEl) openedAtEl.value = String(Date.now());
   }
 
   function closeModal() {
@@ -388,6 +392,9 @@
     var isReq = isRequestType();
     if (btn) { btn.disabled = true; btn.textContent = isReq ? t('Sender...', 'Sending...') : t('Booker...', 'Booking...'); }
 
+    var hpEl       = $('yb-book-hp');
+    var openedAtEl = $('yb-book-opened-at');
+
     fetch(API, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -400,7 +407,9 @@
         email: email,
         phone: phone,
         message: message,
-        source: 'website-modal'
+        source: 'website-modal',
+        _hp: hpEl ? hpEl.value : '',
+        formOpenedAt: openedAtEl ? openedAtEl.value : ''
       })
     })
     .then(function (r) { return r.json(); })

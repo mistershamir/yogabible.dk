@@ -1,0 +1,70 @@
+<svg viewBox="0 0 1200 630" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <filter id="hathaShadow" x="-50%" y="-50%" width="200%" height="200%">
+      <feDropShadow dx="4" dy="6" stdDeviation="8" flood-opacity="0.35" flood-color="#000"/>
+    </filter>
+    <linearGradient id="hathaFlow" x1="0%" y1="100%" x2="0%" y2="0%">
+      <stop offset="0%" style="stop-color:#ff9966;stop-opacity:1"/>
+      <stop offset="50%" style="stop-color:#f75c03;stop-opacity:1"/>
+      <stop offset="100%" style="stop-color:#d94f02;stop-opacity:1"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="1200" height="630" fill="#f5f3f0"/>
+
+  <circle cx="100" cy="250" r="100" fill="#ff9966" opacity="0.08"/>
+  <circle cx="1100" cy="380" r="130" fill="#f75c03" opacity="0.09"/>
+
+  <!-- Hatha triangle base -->
+  <g filter="url(#hathaShadow)">
+    <!-- Ground line (foundation) -->
+    <line x1="180" y1="480" x2="1020" y2="480" stroke="#0f0f0f" stroke-width="8" opacity="0.3" stroke-linecap="round"/>
+    <line x1="180" y1="485" x2="1020" y2="485" stroke="#f75c03" stroke-width="3" opacity="0.7" stroke-linecap="round"/>
+
+    <!-- Sky line -->
+    <line x1="180" y1="100" x2="1020" y2="100" stroke="#d94f02" stroke-width="2" opacity="0.3" stroke-dasharray="8,5"/>
+
+    <!-- Mountain/pyramid path -->
+    <path d="M 180 480 L 600 120 L 1020 480 Z" fill="url(#hathaFlow)" opacity="0.6" stroke="#0f0f0f" stroke-width="4" stroke-linejoin="round"/>
+
+    <!-- Inner flow path -->
+    <path d="M 300 420 L 400 240 L 500 340 L 600 180 L 700 340 L 800 240 L 900 420" fill="none" stroke="url(#hathaFlow)" stroke-width="6" opacity="0.85" stroke-linecap="round" stroke-linejoin="round"/>
+  </g>
+
+  <!-- Chakra points along the path -->
+  <g filter="url(#hathaShadow)" opacity="0.92">
+    <circle cx="400" cy="240" r="38" fill="#f75c03" opacity="0.95" stroke="#d94f02" stroke-width="3"/>
+    <circle cx="400" cy="240" r="28" fill="none" stroke="#ffb380" stroke-width="2" opacity="0.5"/>
+
+    <circle cx="600" cy="180" r="42" fill="#d94f02" opacity="0.95" stroke="#0f0f0f" stroke-width="3"/>
+    <circle cx="600" cy="180" r="32" fill="none" stroke="#ff9966" stroke-width="2" opacity="0.5"/>
+
+    <circle cx="800" cy="240" r="38" fill="#f75c03" opacity="0.95" stroke="#d94f02" stroke-width="3"/>
+    <circle cx="800" cy="240" r="28" fill="none" stroke="#ffb380" stroke-width="2" opacity="0.5"/>
+
+    <!-- Base anchor points -->
+    <circle cx="300" cy="420" r="32" fill="#ff9966" opacity="0.9" stroke="#f75c03" stroke-width="3"/>
+    <circle cx="900" cy="420" r="32" fill="#ff9966" opacity="0.9" stroke="#f75c03" stroke-width="3"/>
+  </g>
+
+  <!-- Connecting energy lines -->
+  <g opacity="0.5" stroke="#f75c03" stroke-width="2" fill="none" stroke-linecap="round" filter="url(#hathaShadow)">
+    <path d="M 400 278 L 600 222"/>
+    <path d="M 600 222 L 800 278"/>
+  </g>
+
+  <!-- Growth rings representing expansion -->
+  <g opacity="0.4" filter="url(#hathaShadow)">
+    <circle cx="600" cy="280" r="150" fill="none" stroke="#f75c03" stroke-width="2" stroke-dasharray="10,8"/>
+    <circle cx="600" cy="280" r="200" fill="none" stroke="#ff9966" stroke-width="1" stroke-dasharray="8,6"/>
+    <circle cx="600" cy="280" r="250" fill="none" stroke="#d94f02" stroke-width="1" stroke-dasharray="12,10" opacity="0.3"/>
+  </g>
+
+  <!-- Foundation label -->
+  <g opacity="0.85" filter="url(#hathaShadow)">
+    <rect x="480" y="510" width="240" height="40" fill="#f75c03" opacity="0.15" rx="6" stroke="#f75c03" stroke-width="2"/>
+    <text x="600" y="537" font-family="Abacaxi, Helvetica, Arial, sans-serif" font-size="18" font-weight="bold" fill="#0f0f0f" text-anchor="middle">Foundation of Yoga</text>
+  </g>
+
+  <text x="600" y="590" font-family="Abacaxi, Helvetica, Arial, sans-serif" font-size="38" font-weight="bold" fill="#0f0f0f" text-anchor="middle">Hatha Yoga</text>
+</svg>

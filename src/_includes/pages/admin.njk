@@ -42,6 +42,9 @@
         <button class="yb-profile__tab" type="button" data-yb-admin-tab="appointments">{{ t.tab_appointments }}</button>
         <button class="yb-profile__tab" type="button" data-yb-admin-tab="catalog">{{ t.tab_catalog }}</button>
         <button class="yb-profile__tab" type="button" data-yb-admin-tab="documents">{{ t.tab_documents }}</button>
+        <button class="yb-profile__tab" type="button" data-yb-admin-tab="live">{{ t.tab_live }}</button>
+        <button class="yb-profile__tab" type="button" data-yb-admin-tab="billing">{{ t.tab_billing }}</button>
+        <button class="yb-profile__tab" type="button" data-yb-admin-tab="knowledge">{{ t.tab_knowledge or "Knowledge" }}</button>
       </div>
 
       {# ═══════════════════════════════════
@@ -557,6 +560,27 @@
         {% include "partials/admin-documents-panel.njk" %}
       </div>{# end documents tab panel #}
 
+      {# ═══════════════════════════════════
+         TAB: Live Schedule
+         ═══════════════════════════════════ #}
+      <div class="yb-admin__tab-panel" data-yb-admin-panel="live">
+        {% include "partials/admin-live-panel.njk" %}
+      </div>{# end live tab panel #}
+
+      {# ═══════════════════════════════════
+         TAB: Billing / e-conomic
+         ═══════════════════════════════════ #}
+      <div class="yb-admin__tab-panel" data-yb-admin-panel="billing">
+        {% include "partials/admin-billing-panel.njk" %}
+      </div>{# end billing tab panel #}
+
+      {# ═══════════════════════════════════
+         TAB: Knowledge Base
+         ═══════════════════════════════════ #}
+      <div class="yb-admin__tab-panel" data-yb-admin-panel="knowledge">
+        {% include "partials/admin-knowledge-panel.njk" %}
+      </div>{# end knowledge tab panel #}
+
     </div>{# end yb-admin-panel #}
 
     {# ═══════════════════════════════════
@@ -624,6 +648,19 @@
 
   </div>{# end container #}
 
+  {# ── Bulk Status Picker Modal ── #}
+  <div id="yb-bulk-status-modal" class="yb-lead__modal" hidden>
+    <div class="yb-lead__modal-overlay" data-close-bulk-status></div>
+    <div class="yb-bulk-status__box">
+      <div class="yb-bulk-status__header">
+        <h3 id="yb-bulk-status-title">{{ t.leads_bulk_status }}</h3>
+        <button type="button" class="yb-admin__icon-btn" data-close-bulk-status>&times;</button>
+      </div>
+      <p class="yb-bulk-status__subtitle" id="yb-bulk-status-subtitle"></p>
+      <div class="yb-bulk-status__grid" id="yb-bulk-status-grid"></div>
+    </div>
+  </div>
+
   {# Toast #}
   <div class="yb-admin__toast" id="yb-admin-toast" hidden></div>
 </section>
@@ -638,3 +675,6 @@
 <script src="/js/doc-admin.js"></script>
 <script src="/js/careers-admin.js"></script>
 <script src="/js/appointments-admin.js"></script>
+<script src="/js/billing-admin.js"></script>
+<script src="/js/live-admin.js"></script>
+<script src="/js/knowledge-admin.js"></script>

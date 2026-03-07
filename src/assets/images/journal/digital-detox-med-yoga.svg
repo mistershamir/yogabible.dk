@@ -1,0 +1,14 @@
+<svg viewBox="0 0 1200 630" xmlns="http://www.w3.org/2000/svg">
+  <rect width="1200" height="630" fill="#f5f3f0"/>
+  <rect x="250" y="200" width="120" height="180" rx="12" fill="none" stroke="#d94f02" stroke-width="4" opacity="0.8"/>
+  <line x1="260" y1="220" x2="360" y2="220" stroke="#d94f02" stroke-width="2" opacity="0.5"/>
+  <line x1="260" y1="250" x2="360" y2="250" stroke="#d94f02" stroke-width="2" opacity="0.5"/>
+  <line x1="260" y1="280" x2="360" y2="280" stroke="#d94f02" stroke-width="2" opacity="0.5"/>
+  <path d="M 310 370 L 310 270 M 250 370 L 370 370" stroke="#f75c03" stroke-width="4" opacity="0.7"/>
+  <circle cx="750" cy="280" r="100" fill="#ff9966" opacity="0.2"/>
+  <path d="M 700 250 Q 750 200 800 250 Q 750 280 700 250" fill="#f75c03" opacity="0.8"/>
+  <path d="M 750 300 Q 750 340 750 380" stroke="#d94f02" stroke-width="5" opacity="0.8" stroke-linecap="round"/>
+  <text x="600" y="570" font-family="Abacaxi, Helvetica, Arial, sans-serif" font-size="32" font-weight="bold" fill="#0f0f0f" text-anchor="middle">
+    Digital Detox
+  </text>
+</svg>

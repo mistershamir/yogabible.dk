@@ -257,17 +257,15 @@
    ═══════════════════════════════════════════════════════════ #}
 <section class="om2-cred" id="om2-cred" aria-labelledby="om2-cred-title">
   <div class="om2-cred__inner">
-    {# MEDIA (video) #}
+    {# MEDIA (certificate image) #}
     <div class="om2-cred__media">
-      <div class="om2-cred__video" data-om2-video-id="1WWanYni0tZKJ656czw_N2Vf6thCKFwU8">
-        <iframe
-          src="https://drive.google.com/file/d/1WWanYni0tZKJ656czw_N2Vf6thCKFwU8/preview"
-          title="{{ t.cred_video_title }}"
-          allow="autoplay; encrypted-media"
-          allowfullscreen
+      <div class="om2-cred__image">
+        <img
+          src="https://res.cloudinary.com/ddcynsa30/image/upload/v1771966816/Sample_Certificate_jzjtfx.png"
+          alt="Yoga Alliance RYS 200 Certificate Sample"
           loading="lazy"
-          referrerpolicy="no-referrer-when-downgrade">
-        </iframe>
+          decoding="async"
+        >
       </div>
     </div>
 
@@ -467,21 +465,8 @@
             <p>{{ t.breakdown_note | safe }}</p>
           </div>
 
-          {# Embedded video — structure overview (minimal controls, no fullscreen) #}
-          <div class="om2-breakdown__video" data-om2-breakdown-video>
-            <div class="om2-breakdown__video-card">
-              <div class="om2-breakdown__video-placeholder" data-om2-breakdown-play>
-                <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" opacity="0.5">
-                  <polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/>
-                </svg>
-                <span class="om2-breakdown__video-label">{{ t.breakdown_video_label }}</span>
-                <button class="om2-breakdown__play-btn" type="button" aria-label="{{ t.breakdown_video_play }}">
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>
-                  <span>{{ t.breakdown_video_play }}</span>
-                </button>
-              </div>
-            </div>
-          </div>
+          {# Curriculum animation — replaces video placeholder #}
+          {% include "components/curriculum-animation.njk" %}
         </header>
       </div>
 
@@ -957,7 +942,7 @@
 </section>
 
 {# ═══════════════════════════════════════════════════════════
-   SECTION 12: FAQ — General Questions
+   SECTION 11: FAQ — General Questions
    ═══════════════════════════════════════════════════════════ #}
 <section class="om2-faq" id="om2-faq" aria-labelledby="om2-faq-title">
   <div class="om2-faq__inner">

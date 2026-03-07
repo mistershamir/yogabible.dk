@@ -1,0 +1,79 @@
+<svg viewBox="0 0 1200 630" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <filter id="restShadow" x="-50%" y="-50%" width="200%" height="200%">
+      <feDropShadow dx="4" dy="6" stdDeviation="8" flood-opacity="0.35" flood-color="#000"/>
+    </filter>
+    <linearGradient id="bodyGradRest" x1="0%" y1="100%" x2="0%" y2="0%">
+      <stop offset="0%" style="stop-color:#ff9966;stop-opacity:1"/>
+      <stop offset="100%" style="stop-color:#f75c03;stop-opacity:1"/>
+    </linearGradient>
+    <linearGradient id="supportGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#d94f02;stop-opacity:0.9"/>
+      <stop offset="100%" style="stop-color:#f75c03;stop-opacity:0.9"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="1200" height="630" fill="#f5f3f0"/>
+
+  <circle cx="100" cy="300" r="100" fill="#ff9966" opacity="0.08"/>
+  <circle cx="1100" cy="350" r="130" fill="#f75c03" opacity="0.09"/>
+
+  <!-- Supported reclining figure -->
+  <g filter="url(#restShadow)">
+    <!-- Head on pillow -->
+    <rect x="240" y="180" width="120" height="60" fill="url(#supportGrad)" opacity="0.85" stroke="#d94f02" stroke-width="3" rx="20"/>
+    <circle cx="300" cy="180" r="32" fill="url(#bodyGradRest)" opacity="0.9" stroke="#d94f02" stroke-width="3"/>
+
+    <!-- Upper body on bolster -->
+    <rect x="280" y="260" width="240" height="100" fill="url(#supportGrad)" opacity="0.8" stroke="#0f0f0f" stroke-width="3" rx="12" ry="8"/>
+
+    <!-- Torso on main support -->
+    <ellipse cx="450" cy="320" rx="100" ry="90" fill="url(#bodyGradRest)" opacity="0.87" stroke="#d94f02" stroke-width="3"/>
+
+    <!-- Left arm relaxed -->
+    <path d="M 380 300 Q 320 320 290 360" stroke="url(#bodyGradRest)" stroke-width="13" stroke-linecap="round" opacity="0.85" fill="none"/>
+    <circle cx="290" cy="360" r="14" fill="#f75c03" opacity="0.85" stroke="#0f0f0f" stroke-width="2"/>
+
+    <!-- Right arm relaxed -->
+    <path d="M 520 300 Q 580 320 610 360" stroke="url(#bodyGradRest)" stroke-width="13" stroke-linecap="round" opacity="0.85" fill="none"/>
+    <circle cx="610" cy="360" r="14" fill="#f75c03" opacity="0.85" stroke="#0f0f0f" stroke-width="2"/>
+
+    <!-- Legs on support -->
+    <rect x="380" y="380" width="140" height="80" fill="url(#supportGrad)" opacity="0.8" stroke="#0f0f0f" stroke-width="3" rx="10"/>
+
+    <!-- Left foot -->
+    <ellipse cx="420" cy="460" rx="22" ry="16" fill="#f75c03" opacity="0.82" stroke="#0f0f0f" stroke-width="2"/>
+
+    <!-- Right foot -->
+    <ellipse cx="500" cy="460" rx="22" ry="16" fill="#f75c03" opacity="0.82" stroke="#0f0f0f" stroke-width="2"/>
+  </g>
+
+  <!-- Extended supports/props -->
+  <g opacity="0.7" filter="url(#restShadow)">
+    <!-- Eye pillow indicator -->
+    <rect x="270" y="170" width="60" height="20" fill="#d94f02" opacity="0.6" stroke="#f75c03" stroke-width="2" rx="4"/>
+
+    <!-- Blanket indicator -->
+    <path d="M 520 400 L 600 380 L 630 450" fill="#ff9966" opacity="0.5" stroke="#d94f02" stroke-width="2"/>
+
+    <!-- Support block indicator -->
+    <rect x="650" y="410" width="50" height="50" fill="#d94f02" opacity="0.5" stroke="#f75c03" stroke-width="2" rx="3"/>
+  </g>
+
+  <!-- Calming aura -->
+  <g opacity="0.5" filter="url(#restShadow)">
+    <ellipse cx="450" cy="330" rx="200" ry="140" fill="none" stroke="#f75c03" stroke-width="2" stroke-dasharray="10,8"/>
+    <ellipse cx="450" cy="330" rx="260" ry="180" fill="none" stroke="#ff9966" stroke-width="1" stroke-dasharray="8,5" opacity="0.6"/>
+  </g>
+
+  <!-- Relaxation indicator (gentle dots) -->
+  <g opacity="0.65" filter="url(#restShadow)">
+    <circle cx="750" cy="220" r="6" fill="#f75c03" opacity="0.75"/>
+    <circle cx="800" cy="250" r="5" fill="#ff9966" opacity="0.7"/>
+    <circle cx="830" cy="310" r="6" fill="#d94f02" opacity="0.75"/>
+    <circle cx="820" cy="380" r="5" fill="#ff9966" opacity="0.7"/>
+    <circle cx="780" cy="420" r="6" fill="#f75c03" opacity="0.75"/>
+  </g>
+
+  <text x="600" y="590" font-family="Abacaxi, Helvetica, Arial, sans-serif" font-size="38" font-weight="bold" fill="#0f0f0f" text-anchor="middle">Restorative Yoga</text>
+</svg>

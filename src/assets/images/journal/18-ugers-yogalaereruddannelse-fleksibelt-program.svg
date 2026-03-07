@@ -1,0 +1,70 @@
+<svg viewBox="0 0 1200 630" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="grad-orange-18w" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#ff9966;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#f75c03;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#d94f02;stop-opacity:1" />
+    </linearGradient>
+    <radialGradient id="grad-glow-18w" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" style="stop-color:#ff9966;stop-opacity:0.2" />
+      <stop offset="100%" style="stop-color:#f75c03;stop-opacity:0" />
+    </radialGradient>
+    <filter id="shadow-18w">
+      <feDropShadow dx="0" dy="3" stdDeviation="4" flood-opacity="0.12" />
+    </filter>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1200" height="630" fill="#f5f3f0"/>
+
+  <!-- Glow backdrop -->
+  <circle cx="600" cy="300" r="220" fill="url(#grad-glow-18w)"/>
+
+  <!-- Central timeline graphic: 3x6 week grid -->
+  <g transform="translate(350, 180)" filter="url(#shadow-18w)">
+    <!-- Row 1: Weeks 1-6 -->
+    <rect x="0" y="0" width="28" height="28" rx="4" fill="url(#grad-orange-18w)" opacity="1"/>
+    <rect x="35" y="0" width="28" height="28" rx="4" fill="url(#grad-orange-18w)" opacity="0.92"/>
+    <rect x="70" y="0" width="28" height="28" rx="4" fill="url(#grad-orange-18w)" opacity="0.84"/>
+    <rect x="105" y="0" width="28" height="28" rx="4" fill="url(#grad-orange-18w)" opacity="0.76"/>
+    <rect x="140" y="0" width="28" height="28" rx="4" fill="url(#grad-orange-18w)" opacity="0.68"/>
+    <rect x="175" y="0" width="28" height="28" rx="4" fill="url(#grad-orange-18w)" opacity="0.6"/>
+
+    <!-- Row 2: Weeks 7-12 -->
+    <rect x="0" y="40" width="28" height="28" rx="4" fill="url(#grad-orange-18w)" opacity="0.88"/>
+    <rect x="35" y="40" width="28" height="28" rx="4" fill="url(#grad-orange-18w)" opacity="0.8"/>
+    <rect x="70" y="40" width="28" height="28" rx="4" fill="url(#grad-orange-18w)" opacity="0.72"/>
+    <rect x="105" y="40" width="28" height="28" rx="4" fill="url(#grad-orange-18w)" opacity="0.64"/>
+    <rect x="140" y="40" width="28" height="28" rx="4" fill="url(#grad-orange-18w)" opacity="0.56"/>
+    <rect x="175" y="40" width="28" height="28" rx="4" fill="url(#grad-orange-18w)" opacity="0.48"/>
+
+    <!-- Row 3: Weeks 13-18 -->
+    <rect x="0" y="80" width="28" height="28" rx="4" fill="url(#grad-orange-18w)" opacity="0.9"/>
+    <rect x="35" y="80" width="28" height="28" rx="4" fill="url(#grad-orange-18w)" opacity="0.82"/>
+    <rect x="70" y="80" width="28" height="28" rx="4" fill="url(#grad-orange-18w)" opacity="0.74"/>
+    <rect x="105" y="80" width="28" height="28" rx="4" fill="url(#grad-orange-18w)" opacity="0.66"/>
+    <rect x="140" y="80" width="28" height="28" rx="4" fill="url(#grad-orange-18w)" opacity="0.58"/>
+    <rect x="175" y="80" width="28" height="28" rx="4" fill="url(#grad-orange-18w)" opacity="0.95"/>
+
+    <!-- Checkmark on final week -->
+    <g transform="translate(189, 94)">
+      <polyline points="4,7 8,11 16,3" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+    </g>
+  </g>
+
+  <!-- Right side: Flexibility badge -->
+  <g transform="translate(700, 220)">
+    <rect x="0" y="0" width="160" height="140" rx="8" fill="#fff" stroke="url(#grad-orange-18w)" stroke-width="1.5" opacity="0.9" filter="url(#shadow-18w)"/>
+
+    <!-- Icon: Flowing design -->
+    <path d="M 80 30 Q 70 40 80 50 Q 90 40 80 30" fill="url(#grad-orange-18w)" opacity="0.8"/>
+    <path d="M 80 55 Q 70 65 80 75 Q 90 65 80 55" fill="url(#grad-orange-18w)" opacity="0.6"/>
+
+    <!-- Text -->
+    <text x="80" y="105" font-family="Abacaxi, Arial, sans-serif" font-size="12" font-weight="bold" fill="#0f0f0f" text-anchor="middle">Helt fleksibelt</text>
+    <text x="80" y="125" font-family="Abacaxi, Arial, sans-serif" font-size="10" fill="#6f6a66" text-anchor="middle">Online + offline</text>
+  </g>
+
+  <!-- Bottom title -->
+  <text x="600" y="590" font-family="Abacaxi, Helvetica, Arial, sans-serif" font-size="38" font-weight="bold" fill="#0f0f0f" text-anchor="middle">18-Ugers Program</text>
+</svg>

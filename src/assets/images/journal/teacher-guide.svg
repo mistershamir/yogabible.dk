@@ -1,0 +1,70 @@
+<svg viewBox="0 0 1200 630" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <filter id="shadow" x="-50%" y="-50%" width="200%" height="200%">
+      <feDropShadow dx="3" dy="5" stdDeviation="6" flood-opacity="0.25" flood-color="#000"/>
+    </filter>
+  </defs>
+
+  <rect width="1200" height="630" fill="#f5f3f0"/>
+  <circle cx="120" cy="130" r="100" fill="#ff9966" opacity="0.07"/>
+  <circle cx="1080" cy="500" r="120" fill="#f75c03" opacity="0.06"/>
+
+  <!-- Open book / guide -->
+  <g filter="url(#shadow)" transform="translate(600, 220)">
+    <!-- Left page -->
+    <path d="M -10 -100 L -200 -80 L -200 120 L -10 100 Z" fill="#FFFCF9" stroke="#E8E4E0" stroke-width="2"/>
+    <!-- Right page -->
+    <path d="M 10 -100 L 200 -80 L 200 120 L 10 100 Z" fill="#FFFCF9" stroke="#E8E4E0" stroke-width="2"/>
+    <!-- Spine -->
+    <line x1="0" y1="-100" x2="0" y2="100" stroke="#E8E4E0" stroke-width="3"/>
+    
+    <!-- Left page content (lines) -->
+    <g opacity="0.35">
+      <line x1="-170" y1="-50" x2="-40" y2="-50" stroke="#6F6A66" stroke-width="2" stroke-linecap="round"/>
+      <line x1="-170" y1="-25" x2="-60" y2="-25" stroke="#6F6A66" stroke-width="2" stroke-linecap="round"/>
+      <line x1="-170" y1="0" x2="-50" y2="0" stroke="#6F6A66" stroke-width="2" stroke-linecap="round"/>
+      <line x1="-170" y1="25" x2="-70" y2="25" stroke="#6F6A66" stroke-width="2" stroke-linecap="round"/>
+      <line x1="-170" y1="50" x2="-40" y2="50" stroke="#6F6A66" stroke-width="2" stroke-linecap="round"/>
+      <line x1="-170" y1="75" x2="-80" y2="75" stroke="#6F6A66" stroke-width="2" stroke-linecap="round"/>
+    </g>
+
+    <!-- Right page content (yoga pose icon + checklist) -->
+    <g opacity="0.6">
+      <!-- Pose icon -->
+      <circle cx="60" cy="-50" r="10" fill="#f75c03" opacity="0.8"/>
+      <line x1="60" y1="-40" x2="60" y2="-10" stroke="#f75c03" stroke-width="3"/>
+      <line x1="45" y1="-25" x2="75" y2="-25" stroke="#f75c03" stroke-width="2.5"/>
+      
+      <!-- Checklist -->
+      <rect x="40" y="10" width="14" height="14" rx="3" fill="none" stroke="#f75c03" stroke-width="2"/>
+      <path d="M 43 17 L 47 21 L 55 13" fill="none" stroke="#f75c03" stroke-width="2"/>
+      <line x1="65" y1="17" x2="160" y2="17" stroke="#6F6A66" stroke-width="2" opacity="0.4"/>
+      
+      <rect x="40" y="40" width="14" height="14" rx="3" fill="none" stroke="#f75c03" stroke-width="2"/>
+      <path d="M 43 47 L 47 51 L 55 43" fill="none" stroke="#f75c03" stroke-width="2"/>
+      <line x1="65" y1="47" x2="140" y2="47" stroke="#6F6A66" stroke-width="2" opacity="0.4"/>
+
+      <rect x="40" y="70" width="14" height="14" rx="3" fill="none" stroke="#ff9966" stroke-width="2"/>
+      <line x1="65" y1="77" x2="150" y2="77" stroke="#6F6A66" stroke-width="2" opacity="0.4"/>
+    </g>
+  </g>
+
+  <!-- Certificate badge -->
+  <g filter="url(#shadow)" transform="translate(900, 150)" opacity="0.7">
+    <circle cx="0" cy="0" r="40" fill="#f75c03" opacity="0.15"/>
+    <circle cx="0" cy="0" r="35" fill="none" stroke="#f75c03" stroke-width="2"/>
+    <text x="0" y="-5" font-family="Abacaxi, Helvetica, Arial, sans-serif" font-size="14" font-weight="bold" fill="#f75c03" text-anchor="middle">RYT</text>
+    <text x="0" y="14" font-family="Abacaxi, Helvetica, Arial, sans-serif" font-size="16" font-weight="bold" fill="#d94f02" text-anchor="middle">200</text>
+  </g>
+
+  <!-- Compass/direction icon -->
+  <g transform="translate(280, 150)" opacity="0.5" filter="url(#shadow)">
+    <circle cx="0" cy="0" r="30" fill="none" stroke="#f75c03" stroke-width="2"/>
+    <line x1="0" y1="-20" x2="0" y2="20" stroke="#f75c03" stroke-width="2"/>
+    <line x1="-20" y1="0" x2="20" y2="0" stroke="#f75c03" stroke-width="2"/>
+    <polygon points="0,-18 -5,-5 5,-5" fill="#f75c03"/>
+  </g>
+
+  <text x="600" y="530" font-family="Abacaxi, Helvetica, Arial, sans-serif" font-size="36" font-weight="bold" fill="#0f0f0f" text-anchor="middle">Guide to Your First</text>
+  <text x="600" y="575" font-family="Abacaxi, Helvetica, Arial, sans-serif" font-size="36" font-weight="bold" fill="#0f0f0f" text-anchor="middle">Yoga Teacher Training</text>
+</svg>

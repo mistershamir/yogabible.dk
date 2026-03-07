@@ -2,7 +2,7 @@
 
 > Compilation of all debugging findings, gotchas, and decisions made during development.
 > Reference this first before investigating issues — the answer may already be here.
-> **Last updated: 2026-02-14**
+> **Last updated: 2026-02-25**
 
 ---
 
@@ -208,3 +208,188 @@ After user pauses a contract:
 | 2026-02-14 | Replace Courses tab with Gift Cards | Courses sold via store builder, not a separate tab |
 | 2026-02-14 | Add Teacher Training Preparation Phase | Direct purchase of YTT Preparation Phase |
 | 2026-02-14 | Add Course Builder | Interactive selection with bundle discounts |
+| 2026-02-25 | e-conomic billing panel | Invoicing via e-conomic REST API (create, book, send, PDF) |
+| 2026-02-25 | PDF endpoint returns binary | e-conomic `/pdf` endpoint returns raw PDF, not JSON |
+| 2026-02-25 | Booking instructions cleanup | Must delete `self`/`metaData` before POST |
+| 2026-02-25 | Parallel PDF+invoice fetch | sendInvoiceEmail now fetches both concurrently |
+
+---
+
+## e-conomic REST API Integration
+
+### Architecture
+
+| Component | File | Purpose |
+|-----------|------|---------|
+| **Server proxy** | `netlify/functions/economic-admin.js` | All e-conomic REST calls, keeps tokens server-side |
+| **Admin JS** | `src/js/billing-admin.js` | UI logic, form handling, API calls via `apiCall()` |
+| **Admin HTML** | `src/_includes/partials/admin-billing-panel.njk` | Billing tab template |
+| **Translations** | `src/_data/i18n/course-admin.json` | All `billing_*` keys |
+
+### API Base & Auth
+
+```
+Base: https://restapi.e-conomic.com
+Headers:
+  X-AppSecretToken:      env.ECONOMIC_APP_SECRET
+  X-AgreementGrantToken: env.ECONOMIC_AGREEMENT_TOKEN
+  Content-Type:          application/json
+```
+
+Tokens live in Netlify env vars only — never exposed to the client. All client calls go through the Netlify function with Firebase admin auth (`requireAuth(event, ['admin'])`).
+
+### Gotcha 1: PDF Endpoint Returns Binary (Critical)
+
+**`GET /invoices/booked/{number}/pdf` returns the actual PDF binary**, not a JSON object with a download URL.
+
+**What went wrong:** The original code routed this through `ecoFetch()` which:
+1. Called `res.text()` → garbled binary-as-text
+2. Tried `JSON.parse()` → failed
+3. Wrapped as `{ raw: garbled-text }`
+4. `pdfInfo.download` → `undefined` → threw error
+
+**Fix:** Bypass `ecoFetch` entirely. Use `fetch()` directly and check `Content-Type`:
+
+```javascript
+const res = await fetch(BASE + '/invoices/booked/' + num + '/pdf', { headers: ecoHeaders() });
+const contentType = (res.headers.get('content-type') || '').toLowerCase();
+
+if (contentType.includes('pdf') || contentType.includes('octet-stream')) {
+  // Direct binary — convert to base64
+  return Buffer.from(await res.arrayBuffer()).toString('base64');
+}
+
+// Fallback: check for %PDF magic bytes (wrong Content-Type header)
+const raw = await res.arrayBuffer();
+const text = Buffer.from(raw).toString('utf-8');
+if (text.startsWith('%PDF')) { /* it's a PDF */ }
+
+// Last resort: try to parse as JSON with download URL
+```
+
+**Rule:** Never pass the `/pdf` endpoint through a JSON-parsing helper. Always handle the response directly.
+
+### Gotcha 2: Booking Instructions Have Read-Only Fields
+
+**`GET /invoices/drafts/{number}/templates/booking-instructions`** returns a template to POST to `/invoices/booked`. But the response includes metadata fields that e-conomic rejects on POST.
+
+**Fix:** Clean up before posting (same pattern as `createInvoice`):
+
+```javascript
+const instructions = await ecoFetch('/invoices/drafts/' + num + '/templates/booking-instructions');
+delete instructions.self;
+delete instructions.metaData;
+delete instructions.templates;
+delete instructions.pdf;
+return ecoFetch('/invoices/booked', 'POST', instructions);
+```
+
+**Rule:** Always strip `self`, `metaData`, `templates`, `pdf` from any e-conomic template before POSTing it back.
+
+### Gotcha 3: Binary Downloads Must Not Use Content-Type: application/json
+
+**`ecoHeaders()`** includes `Content-Type: application/json`. This is correct for API calls, but **wrong for downloading binary files** (PDFs, images).
+
+**Fix:** Use separate headers for binary downloads:
+
+```javascript
+const dlHeaders = {
+  'X-AppSecretToken': process.env.ECONOMIC_APP_SECRET,
+  'X-AgreementGrantToken': process.env.ECONOMIC_AGREEMENT_TOKEN
+  // NO Content-Type — let the browser negotiate
+};
+```
+
+### Gotcha 4: Netlify Function Timeouts on Multi-Call Chains
+
+Netlify functions have a 10s (free) or 26s (pro) timeout. Operations that chain multiple API calls can hit this:
+
+| Operation | Calls | Est. Time |
+|-----------|-------|-----------|
+| `createInvoice` | 2 (get template + POST draft) | 4-6s ✓ |
+| `bookInvoice` | 2 (get instructions + POST book) | 4-6s ✓ |
+| `getInvoicePdf` | 1-2 (fetch endpoint + maybe download) | 3-5s ✓ |
+| `sendInvoice` | 3+ (invoice + PDF + email) | 8-15s ⚠ |
+
+**Fix for sendInvoice:** Fetch invoice details and PDF in parallel:
+
+```javascript
+const [invoice, pdfData] = await Promise.all([
+  ecoFetch('/invoices/booked/' + num),
+  getInvoicePdf(num)
+]);
+```
+
+This saves 3-5 seconds vs sequential fetching.
+
+### Gotcha 5: Client Must Handle Non-JSON Error Responses
+
+When a Netlify function times out, Netlify returns a **502 HTML page**, not JSON. The original `apiCall()` used `res.json()` which threw a JSON parse error, hiding the real timeout cause.
+
+**Fix:** Use `res.text()` + `JSON.parse()` in a try/catch:
+
+```javascript
+return res.text().then(function (text) {
+  try { return JSON.parse(text); }
+  catch (e) {
+    return { ok: false, error: 'Server timed out (' + res.status + ')' };
+  }
+});
+```
+
+### Invoice Creation Flow (Working Reference)
+
+```
+1. GET /customers/{num}/templates/invoice     → Get customer's default template
+2. Merge: date, dueDate, lines[], paymentTerms, layout, product, notes
+3. DELETE template-only fields: self, templates, pdf
+4. POST /invoices/drafts                      → Creates draft → draftInvoiceNumber
+```
+
+### Invoice Booking Flow (Working Reference)
+
+```
+1. GET /invoices/drafts/{num}/templates/booking-instructions
+2. DELETE metadata fields: self, metaData, templates, pdf
+3. POST /invoices/booked                      → Books draft → bookedInvoiceNumber
+```
+
+### Invoice PDF Flow (Working Reference)
+
+```
+1. fetch(BASE + '/invoices/booked/{num}/pdf', { headers: ecoHeaders() })
+2. Check Content-Type:
+   - application/pdf → direct binary, convert to base64
+   - other → check %PDF magic bytes → try JSON with download URL
+3. Return { base64, filename, size }
+```
+
+### Invoice Email Flow (Working Reference)
+
+```
+1. Promise.all: fetch invoice details + getInvoicePdf (parallel)
+2. Build branded HTML email (Danish, with invoice summary table)
+3. Attach PDF via nodemailer (sendRawEmail)
+4. Return { sent, messageId, invoiceNumber }
+```
+
+### e-conomic REST API Quick Reference
+
+| Endpoint | Method | Returns |
+|----------|--------|---------|
+| `/customers?filter=name$like:X` | GET | Customer search results |
+| `/customers` | POST | Created customer |
+| `/customers/{num}/templates/invoice` | GET | Invoice template (JSON) |
+| `/invoices/drafts` | POST | Created draft (JSON) |
+| `/invoices/drafts?sort=-draftInvoiceNumber` | GET | Draft list (JSON) |
+| `/invoices/drafts/{num}` | GET | Draft detail (JSON) |
+| `/invoices/drafts/{num}/templates/booking-instructions` | GET | Booking template (JSON) |
+| `/invoices/booked` | POST | Booked invoice (JSON) |
+| `/invoices/booked?sort=-bookedInvoiceNumber` | GET | Booked list (JSON) |
+| `/invoices/booked/{num}` | GET | Booked detail (JSON) |
+| `/invoices/booked/{num}/pdf` | GET | **PDF binary** (NOT JSON!) |
+| `/payment-terms` | GET | Payment terms list |
+| `/layouts` | GET | Invoice layout list |
+| `/customer-groups` | GET | Customer group list |
+| `/vat-zones` | GET | VAT zone list |
+| `/products` | GET | Product list |

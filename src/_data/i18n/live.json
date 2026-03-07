@@ -9,7 +9,18 @@
     "stream_title": "Yoga Bible Live Stream",
     "checking_text": "Tjekker livestream status…",
     "error_text": "Kunne ikke indlæse stream. Prøv igen om lidt.",
-    "retry_btn": "Prøv igen"
+    "retry_btn": "Prøv igen",
+    "elapsed_label": "Forløbet tid",
+    "schedule_title": "Kommende Live Sessions",
+    "schedule_empty": "Ingen planlagte live sessions lige nu.",
+    "schedule_join": "Deltag",
+    "schedule_live_now": "LIVE NU",
+    "schedule_today": "I dag",
+    "schedule_tomorrow": "I morgen",
+    "recordings_title": "Optagelser",
+    "recordings_empty": "Ingen optagelser tilgængelige endnu.",
+    "recordings_watch": "Se optagelse",
+    "recordings_recorded": "Optaget"
   },
   "en": {
     "hero_tagline": "Yoga Bible · Live",
@@ -21,6 +32,17 @@
     "stream_title": "Yoga Bible Live Stream",
     "checking_text": "Checking livestream status…",
     "error_text": "Could not load stream. Please try again shortly.",
-    "retry_btn": "Try again"
+    "retry_btn": "Try again",
+    "elapsed_label": "Elapsed",
+    "schedule_title": "Upcoming Live Sessions",
+    "schedule_empty": "No live sessions scheduled right now.",
+    "schedule_join": "Join",
+    "schedule_live_now": "LIVE NOW",
+    "schedule_today": "Today",
+    "schedule_tomorrow": "Tomorrow",
+    "recordings_title": "Recordings",
+    "recordings_empty": "No recordings available yet.",
+    "recordings_watch": "Watch recording",
+    "recordings_recorded": "Recorded"
   }
 }

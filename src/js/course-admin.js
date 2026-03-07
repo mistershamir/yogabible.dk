@@ -1638,7 +1638,7 @@
         '<td class="yb-lead__th-cb"><input type="checkbox" class="yb-user-row-cb" data-id="' + u.id + '"' + (isChecked ? ' checked' : '') + '></td>' +
         '<td>' + esc(name) + '</td>' +
         '<td style="font-size:0.8rem;color:#6F6A66">' + esc(email) + '</td>' +
-        '<td style="font-size:0.8rem;color:#6F6A66">' + esc(phone || '\u2014') + '</td>' +
+        '<td style="font-size:0.8rem">' + (phone ? '<a href="tel:' + esc(phone) + '" class="yb-lead__cell-phone-link" onclick="event.stopPropagation()">' + esc(phone) + '</a>' : '\u2014') + '</td>' +
         '<td><span class="yb-admin__badge">' + esc(roleLabel) + '</span></td>' +
         '<td style="font-size:0.8rem">' + esc(tier || '\u2014') + '</td>' +
         '<td style="text-align:center">' + waiverStatus + '</td>' +
@@ -1680,17 +1680,27 @@
   function updateUserBulkBar() {
     var bar = $('yb-user-bulk-bar');
     if (!bar) return;
-    if (selectedUserIds.size === 0) {
-      bar.hidden = true;
-      return;
-    }
-    bar.hidden = false;
-    var selected = state.users.filter(function (u) { return selectedUserIds.has(u.id); });
-    var withPhone = selected.filter(function (u) { return u.phone; }).length;
-    var withEmail = selected.filter(function (u) { return u.email; }).length;
+
+    // Bar is always visible; selection-only buttons toggled by selection count
+    var hasSelection = selectedUserIds.size > 0;
+
+    bar.querySelectorAll('.yb-lead__bulk-sel-only').forEach(function (btn) {
+      btn.hidden = !hasSelection;
+    });
+
     var countEl = $('yb-user-bulk-count');
-    if (countEl) countEl.innerHTML = '<strong>' + selectedUserIds.size + '</strong> ' + t('users_selected') +
-      ' &nbsp;&middot;&nbsp; \ud83d\udcf1 ' + withPhone + ' &nbsp;&middot;&nbsp; \u2709\ufe0f ' + withEmail;
+    if (countEl) {
+      if (hasSelection) {
+        var selected = state.users.filter(function (u) { return selectedUserIds.has(u.id); });
+        var withPhone = selected.filter(function (u) { return u.phone; }).length;
+        var withEmail = selected.filter(function (u) { return u.email; }).length;
+        countEl.innerHTML = '<strong>' + selectedUserIds.size + '</strong> ' + t('users_selected') +
+          ' &nbsp;&middot;&nbsp; \ud83d\udcf1 ' + withPhone + ' &nbsp;&middot;&nbsp; \u2709\ufe0f ' + withEmail;
+        countEl.hidden = false;
+      } else {
+        countEl.hidden = true;
+      }
+    }
   }
 
   function deselectAllUsers() {
@@ -1705,34 +1715,202 @@
      ═══════════════════════════════════════ */
   function bulkUserRole() {
     if (selectedUserIds.size === 0) return;
+    var R = window.YBRoles;
+    if (!R) { toast('Roles module not loaded', true); return; }
+
+    // Remove existing modal if any
+    var existing = document.getElementById('yb-bulk-role-modal');
+    if (existing) existing.remove();
+
     var VALID_ROLES = ['member', 'trainee', 'student', 'teacher', 'marketing', 'admin'];
-    var newRole = prompt(t('users_bulk_role_prompt'), 'member');
-    if (!newRole) return;
-    newRole = newRole.toLowerCase().trim();
-    if (VALID_ROLES.indexOf(newRole) === -1) {
-      toast(t('users_invalid_role'), true);
-      return;
-    }
 
-    var batch = db.batch();
-    selectedUserIds.forEach(function (id) {
-      batch.update(db.collection('users').doc(id), { role: newRole });
+    // Build modal HTML
+    var html = '<div id="yb-bulk-role-modal" class="yb-bulk-role-modal">';
+    html += '<div class="yb-bulk-role-modal__overlay"></div>';
+    html += '<div class="yb-bulk-role-modal__box">';
+
+    // Header
+    html += '<div class="yb-bulk-role-modal__header">';
+    html += '<h3 class="yb-bulk-role-modal__title">' + esc(t('users_bulk_role_title')) + '</h3>';
+    html += '<span class="yb-bulk-role-modal__count">' + selectedUserIds.size + (lang === 'da' ? ' brugere valgt' : ' users selected') + '</span>';
+    html += '<button type="button" class="yb-bulk-role-modal__close" id="yb-bulk-role-close">&times;</button>';
+    html += '</div>';
+
+    // Body
+    html += '<div class="yb-bulk-role-modal__body">';
+
+    // Role select
+    html += '<div class="yb-admin__field">';
+    html += '<label>' + esc(t('role_label')) + '</label>';
+    html += '<select id="yb-bulk-role-select" class="yb-admin__select">';
+    VALID_ROLES.forEach(function(r) {
+      html += '<option value="' + r + '">' + esc(R.getRoleLabel(r, lang)) + '</option>';
     });
+    html += '</select>';
+    html += '</div>';
 
-    toast(t('saving'));
-    batch.commit().then(function () {
-      state.users.forEach(function (u) {
-        if (selectedUserIds.has(u.id)) u.role = newRole;
+    // Trainee fields
+    html += '<div id="yb-bulk-role-trainee" class="yb-bulk-role-modal__fields" style="display:none">';
+    // Program
+    html += '<div class="yb-admin__field">';
+    html += '<label>' + esc(t('role_program')) + '</label>';
+    html += '<select id="yb-bulk-role-program" class="yb-admin__select"><option value="">—</option>';
+    Object.keys(R.TRAINEE_PROGRAMS).forEach(function(k) {
+      var p = R.TRAINEE_PROGRAMS[k];
+      html += '<option value="' + k + '">' + esc(p['label_' + lang] || p.label_da) + '</option>';
+    });
+    html += '</select></div>';
+    // Method
+    html += '<div class="yb-admin__field">';
+    html += '<label>Method</label>';
+    html += '<select id="yb-bulk-role-method" class="yb-admin__select"><option value="">—</option>';
+    if (R.TRAINEE_METHODS) {
+      Object.keys(R.TRAINEE_METHODS).forEach(function(k) {
+        var m = R.TRAINEE_METHODS[k];
+        html += '<option value="' + k + '">' + esc(m['label_' + lang] || m.label_da) + '</option>';
       });
-      selectedUserIds.clear();
-      selectAllUsers = false;
-      renderUserTable();
-      renderUserStats(state.users);
-      updateUserBulkBar();
-      toast(t('saved'));
-    }).catch(function (err) {
-      console.error(err);
-      toast(t('error_save') + ': ' + err.message, true);
+    }
+    html += '</select></div>';
+    // Cohort
+    html += '<div class="yb-admin__field">';
+    html += '<label>' + esc(t('role_cohort')) + '</label>';
+    html += '<input type="text" id="yb-bulk-role-cohort" placeholder="2026-spring">';
+    html += '</div>';
+    // Trainee course types
+    html += '<div class="yb-admin__field">';
+    html += '<label>Courses (optional)</label>';
+    html += '<div style="display:flex;flex-wrap:wrap;gap:0.5rem 1rem;margin-top:0.25rem">';
+    Object.keys(R.STUDENT_COURSES).forEach(function(k) {
+      var sc = R.STUDENT_COURSES[k];
+      html += '<label style="font-size:0.85rem;display:flex;align-items:center;gap:0.35rem;cursor:pointer">';
+      html += '<input type="checkbox" class="yb-bulk-role-trainee-ct" value="' + k + '">';
+      html += esc(sc['label_' + lang] || sc.label_da) + '</label>';
+    });
+    html += '<label style="font-size:0.85rem;display:flex;align-items:center;gap:0.35rem;cursor:pointer">';
+    html += '<input type="checkbox" class="yb-bulk-role-trainee-mentor" value="mentorship">Mentorship</label>';
+    html += '</div></div>';
+    html += '</div>'; // end trainee
+
+    // Teacher fields
+    html += '<div id="yb-bulk-role-teacher" class="yb-bulk-role-modal__fields" style="display:none">';
+    html += '<div class="yb-admin__field">';
+    html += '<label>' + esc(t('role_teacher_type')) + '</label>';
+    html += '<select id="yb-bulk-role-teacher-type" class="yb-admin__select"><option value="">—</option>';
+    Object.keys(R.TEACHER_TYPES).forEach(function(k) {
+      var tt = R.TEACHER_TYPES[k];
+      html += '<option value="' + k + '">' + esc(tt['label_' + lang] || tt.label_da) + '</option>';
+    });
+    html += '</select></div>';
+    html += '</div>'; // end teacher
+
+    // Student fields
+    html += '<div id="yb-bulk-role-student" class="yb-bulk-role-modal__fields" style="display:none">';
+    html += '<div class="yb-admin__field">';
+    html += '<label>Courses</label>';
+    html += '<div style="display:flex;flex-wrap:wrap;gap:0.5rem 1rem;margin-top:0.25rem">';
+    Object.keys(R.STUDENT_COURSES).forEach(function(k) {
+      var sc = R.STUDENT_COURSES[k];
+      html += '<label style="font-size:0.85rem;display:flex;align-items:center;gap:0.35rem;cursor:pointer">';
+      html += '<input type="checkbox" class="yb-bulk-role-student-ct" value="' + k + '">';
+      html += esc(sc['label_' + lang] || sc.label_da) + '</label>';
+    });
+    html += '<label style="font-size:0.85rem;display:flex;align-items:center;gap:0.35rem;cursor:pointer">';
+    html += '<input type="checkbox" class="yb-bulk-role-student-mentor" value="mentorship">Mentorship</label>';
+    html += '</div></div>';
+    html += '</div>'; // end student
+
+    html += '</div>'; // end body
+
+    // Footer
+    html += '<div class="yb-bulk-role-modal__footer">';
+    html += '<button type="button" class="yb-btn yb-btn--primary" id="yb-bulk-role-apply">' + esc(t('users_bulk_role_apply')) + '</button>';
+    html += '</div>';
+
+    html += '</div></div>'; // end box, end modal
+
+    // Inject modal
+    document.body.insertAdjacentHTML('beforeend', html);
+
+    var modal = document.getElementById('yb-bulk-role-modal');
+    var roleSelect = document.getElementById('yb-bulk-role-select');
+    var traineeWrap = document.getElementById('yb-bulk-role-trainee');
+    var teacherWrap = document.getElementById('yb-bulk-role-teacher');
+    var studentWrap = document.getElementById('yb-bulk-role-student');
+
+    // Show/hide conditional fields based on role
+    function toggleFields() {
+      var v = roleSelect.value;
+      traineeWrap.style.display = v === 'trainee' ? '' : 'none';
+      teacherWrap.style.display = v === 'teacher' ? '' : 'none';
+      studentWrap.style.display = v === 'student' ? '' : 'none';
+    }
+    roleSelect.addEventListener('change', toggleFields);
+
+    // Close handlers
+    function closeModal() { if (modal) modal.remove(); }
+    document.getElementById('yb-bulk-role-close').addEventListener('click', closeModal);
+    modal.querySelector('.yb-bulk-role-modal__overlay').addEventListener('click', closeModal);
+
+    // Apply handler
+    document.getElementById('yb-bulk-role-apply').addEventListener('click', function() {
+      var newRole = roleSelect.value;
+      if (VALID_ROLES.indexOf(newRole) === -1) { toast(t('users_invalid_role'), true); return; }
+
+      // Build roleDetails
+      var roleDetails = {};
+      if (newRole === 'trainee') {
+        var prog = document.getElementById('yb-bulk-role-program');
+        var meth = document.getElementById('yb-bulk-role-method');
+        var coh = document.getElementById('yb-bulk-role-cohort');
+        if (prog && prog.value) roleDetails.program = prog.value;
+        if (meth && meth.value) roleDetails.method = meth.value;
+        if (coh && coh.value.trim()) roleDetails.cohort = coh.value.trim();
+        var tct = []; document.querySelectorAll('.yb-bulk-role-trainee-ct:checked').forEach(function(c) { tct.push(c.value); });
+        if (tct.length) roleDetails.courseTypes = tct;
+        var tm = document.querySelector('.yb-bulk-role-trainee-mentor:checked');
+        if (tm) roleDetails.mentorship = true;
+      }
+      if (newRole === 'student') {
+        var sct = []; document.querySelectorAll('.yb-bulk-role-student-ct:checked').forEach(function(c) { sct.push(c.value); });
+        if (sct.length) roleDetails.courseTypes = sct;
+        var sm = document.querySelector('.yb-bulk-role-student-mentor:checked');
+        if (sm) roleDetails.mentorship = true;
+      }
+      if (newRole === 'teacher') {
+        var tt = document.getElementById('yb-bulk-role-teacher-type');
+        if (tt && tt.value) roleDetails.teacherType = tt.value;
+      }
+
+      // Batch update
+      var batch = db.batch();
+      selectedUserIds.forEach(function (id) {
+        batch.update(db.collection('users').doc(id), {
+          role: newRole,
+          roleDetails: roleDetails,
+          updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+        });
+      });
+
+      toast(t('saving'));
+      closeModal();
+
+      batch.commit().then(function () {
+        state.users.forEach(function (u) {
+          if (selectedUserIds.has(u.id)) {
+            u.role = newRole;
+            u.roleDetails = roleDetails;
+          }
+        });
+        selectedUserIds.clear();
+        selectAllUsers = false;
+        renderUserTable();
+        renderUserStats(state.users);
+        updateUserBulkBar();
+        toast(t('saved'));
+      }).catch(function (err) {
+        console.error(err);
+        toast(t('error_save') + ': ' + err.message, true);
+      });
     });
   }
 
@@ -1753,6 +1931,7 @@
   }
 
   function bulkUserEmailSelected() {
+    if (selectedUserIds.size === 0) { bulkUserEmail(); return; }
     var selected = state.users.filter(function (u) { return selectedUserIds.has(u.id); });
     var withEmail = selected.filter(function (u) { return u.email; });
     if (!withEmail.length) { toast(t('users_no_email_addr'), true); return; }
@@ -1773,6 +1952,7 @@
   }
 
   function bulkUserSMSSelected() {
+    if (selectedUserIds.size === 0) { bulkUserSMS(); return; }
     var selected = state.users.filter(function (u) { return selectedUserIds.has(u.id); });
     var withPhone = selected.filter(function (u) { return u.phone; });
     if (!withPhone.length) { toast(t('users_no_phone'), true); return; }
@@ -1853,7 +2033,8 @@
       (phone ? '<button class="yb-btn yb-btn--outline yb-btn--sm" data-action="user-detail-sms">\ud83d\udcf1 ' + t('users_sms') + '</button>' : '') +
       (phone ? '<a href="https://wa.me/' + esc(phone.replace(/[^0-9+]/g, '')) + '" target="_blank" rel="noopener" class="yb-btn yb-btn--outline yb-btn--sm">\ud83d\udcac WhatsApp</a>' : '') +
       (email ? '<a href="mailto:' + esc(email) + '" class="yb-btn yb-btn--outline yb-btn--sm">\u2709\ufe0f ' + t('users_email') + '</a>' : '') +
-      '<button class="yb-btn yb-btn--outline yb-btn--sm" data-action="user-add-note">\ud83d\udcdd ' + t('users_add_note') + '</button>';
+      '<button class="yb-btn yb-btn--outline yb-btn--sm" data-action="user-add-note">\ud83d\udcdd ' + t('users_add_note') + '</button>' +
+      '<button class="yb-btn yb-btn--outline yb-btn--sm" data-action="user-bill">\ud83d\udcb3 ' + t('users_bill') + '</button>';
 
     el.innerHTML = html || '<p class="yb-lead__empty-text">' + t('users_empty') + '</p>';
   }
@@ -1933,6 +2114,141 @@
     }).join('');
   }
 
+  /* ═══════════════════════════════════════
+     USERS — INVOICE SECTION
+     ═══════════════════════════════════════ */
+  function loadUserInvoices(user) {
+    var el = $('yb-admin-user-invoices');
+    if (!el) return;
+
+    var email = (user && user.email) || '';
+    if (!email) {
+      el.innerHTML = '<p class="yb-lead__empty-text">' + t('users_no_invoices') + '</p>';
+      return;
+    }
+
+    el.innerHTML = '<p class="yb-admin__empty" style="color:var(--yb-muted)">' + t('users_invoice_looking_up') + '</p>';
+
+    // Search e-conomic customers by email
+    var token;
+    firebase.auth().currentUser.getIdToken().then(function (tk) {
+      token = tk;
+      return fetch('/.netlify/functions/economic-admin', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+        body: JSON.stringify({ action: 'searchCustomers', query: email })
+      }).then(function (r) { return r.json(); });
+    }).then(function (custRes) {
+      if (!custRes.ok || !custRes.data || !custRes.data.length) {
+        el.innerHTML = '<p class="yb-lead__empty-text">' + t('users_no_invoices') + '</p>' +
+          '<button class="yb-btn yb-btn--outline yb-btn--sm" data-action="user-invoice-lookup">\ud83d\udd0d ' + t('users_invoice_lookup') + '</button>';
+        return;
+      }
+
+      // Find best match by email
+      var match = custRes.data.find(function (c) { return c.email && c.email.toLowerCase() === email.toLowerCase(); });
+      if (!match) match = custRes.data[0];
+
+      // Fetch invoices for this customer
+      return fetch('/.netlify/functions/economic-admin', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+        body: JSON.stringify({ action: 'searchInvoicesByCustomer', customerNumber: match.customerNumber })
+      }).then(function (r) { return r.json(); }).then(function (invRes) {
+        if (!invRes.ok) {
+          el.innerHTML = '<p class="yb-lead__empty-text">' + t('users_no_invoices') + '</p>';
+          return;
+        }
+        renderUserInvoices(el, invRes.data, user);
+      });
+    }).catch(function (err) {
+      console.error('[course-admin] User invoice lookup error:', err);
+      el.innerHTML = '<p class="yb-lead__empty-text">' + t('users_no_invoices') + '</p>';
+    });
+  }
+
+  function renderUserInvoices(el, data, user) {
+    var booked = data.booked || [];
+    var drafts = data.drafts || [];
+
+    if (!booked.length && !drafts.length) {
+      el.innerHTML = '<p class="yb-lead__empty-text">' + t('users_no_invoices') + '</p>';
+      return;
+    }
+
+    var html = '<div class="yb-admin__table-wrap"><table class="yb-admin__table"><thead><tr>' +
+      '<th>#</th><th>' + t('billing_col_type') + '</th><th>' + t('billing_col_date') + '</th>' +
+      '<th>' + t('billing_col_total') + '</th><th>' + t('billing_col_remainder') + '</th>' +
+      '<th>' + t('billing_col_status') + '</th><th></th>' +
+      '</tr></thead><tbody>';
+
+    drafts.forEach(function (d) {
+      var total = d.grossAmount != null ? d.grossAmount : (d.netAmount || 0);
+      html += '<tr>' +
+        '<td>' + d.draftInvoiceNumber + '</td>' +
+        '<td><span class="yb-billing__type-badge yb-billing__type-badge--draft">' + t('billing_filter_draft') + '</span></td>' +
+        '<td>' + (d.date || '\u2014') + '</td>' +
+        '<td>' + formatInvAmount(total) + '</td>' +
+        '<td>\u2014</td>' +
+        '<td><span class="yb-billing__status--draft">' + t('billing_filter_draft') + '</span></td>' +
+        '<td><button class="yb-btn yb-btn--outline yb-btn--sm" data-action="user-invoice-view-draft" data-draft="' + d.draftInvoiceNumber + '">' + (lang === 'da' ? 'Vis' : 'View') + '</button></td>' +
+        '</tr>';
+    });
+
+    booked.forEach(function (inv) {
+      var total = inv.grossAmount != null ? inv.grossAmount : (inv.netAmount || 0);
+      var remainder = inv.remainder != null ? formatInvAmount(inv.remainder) : '\u2014';
+      var isPaid = inv.remainder != null && inv.remainder === 0;
+      var isPartial = inv.remainder != null && inv.remainder > 0 && inv.remainder < total;
+      var statusLabel = isPaid ? t('billing_status_paid') : (isPartial ? t('billing_status_partial') : t('billing_status_unpaid'));
+      var statusClass = isPaid ? 'yb-billing__status--paid' : (isPartial ? 'yb-billing__status--partial' : 'yb-billing__status--unpaid');
+
+      html += '<tr>' +
+        '<td>' + inv.bookedInvoiceNumber + '</td>' +
+        '<td><span class="yb-billing__type-badge yb-billing__type-badge--booked">' + t('billing_filter_booked') + '</span></td>' +
+        '<td>' + (inv.date || '\u2014') + '</td>' +
+        '<td>' + formatInvAmount(total) + '</td>' +
+        '<td>' + remainder + '</td>' +
+        '<td><span class="' + statusClass + '">' + statusLabel + '</span></td>' +
+        '<td><button class="yb-btn yb-btn--outline yb-btn--sm" data-action="user-invoice-view-booked" data-booked="' + inv.bookedInvoiceNumber + '">' + (lang === 'da' ? 'Vis' : 'View') + '</button></td>' +
+        '</tr>';
+    });
+
+    html += '</tbody></table></div>';
+
+    // Payment status selector
+    var payStatus = (user && user.invoicePaymentStatus) || 'pending';
+    html += '<div style="margin-top:0.75rem;display:flex;align-items:center;gap:0.5rem">';
+    html += '<label style="font-size:0.8rem;font-weight:600;color:var(--yb-muted)">' + t('invoice_payment_status') + ':</label>';
+    html += '<select id="yb-user-invoice-payment-status" class="yb-admin__select" style="max-width:160px;font-size:0.8rem">';
+    html += '<option value="pending"' + (payStatus === 'pending' ? ' selected' : '') + '>' + t('invoice_pay_pending') + '</option>';
+    html += '<option value="paid"' + (payStatus === 'paid' ? ' selected' : '') + '>' + t('invoice_pay_paid') + '</option>';
+    html += '<option value="unpaid"' + (payStatus === 'unpaid' ? ' selected' : '') + '>' + t('invoice_pay_unpaid') + '</option>';
+    html += '<option value="partial"' + (payStatus === 'partial' ? ' selected' : '') + '>' + t('invoice_pay_partial') + '</option>';
+    html += '</select></div>';
+
+    el.innerHTML = html;
+  }
+
+  function formatInvAmount(n) {
+    return new Intl.NumberFormat(lang === 'da' ? 'da-DK' : 'en-DK', { style: 'currency', currency: 'DKK', minimumFractionDigits: 2 }).format(n);
+  }
+
+  function saveUserPaymentStatus(status) {
+    var uid = state.userDetailUid;
+    if (!uid) return;
+    db.collection('users').doc(uid).update({
+      invoicePaymentStatus: status,
+      updated_at: firebase.firestore.FieldValue.serverTimestamp()
+    }).then(function () {
+      if (state.userDetail) state.userDetail.invoicePaymentStatus = status;
+      toast(lang === 'da' ? 'Betalingsstatus gemt' : 'Payment status saved');
+    }).catch(function (err) {
+      console.error('[course-admin] Save payment status error:', err);
+      toast(t('error_save'), true);
+    });
+  }
+
   function showUserDetail(uid) {
     state.userDetailUid = uid;
 
@@ -1964,6 +2280,7 @@
         loadUserEnrollments(uid, enrollments);
         loadUserProgress(uid, progress);
         loadUserConsents(uid, consents);
+        loadUserInvoices(u);
         renderUserNotesTimeline();
         populateEnrollCourseDropdown();
 
@@ -2004,7 +2321,7 @@
       '</div>' +
       '<div class="yb-admin__user-meta">';
 
-    if (u.phone) html += '<div class="yb-admin__user-meta-item"><span class="yb-admin__user-meta-label">' + t('users_profile_phone') + '</span><span>' + esc(u.phone) + '</span></div>';
+    if (u.phone) html += '<div class="yb-admin__user-meta-item"><span class="yb-admin__user-meta-label">' + t('users_profile_phone') + '</span><a href="tel:' + esc(u.phone) + '" style="color:#f75c03">' + esc(u.phone) + '</a></div>';
     if (u.dateOfBirth) html += '<div class="yb-admin__user-meta-item"><span class="yb-admin__user-meta-label">' + t('users_profile_dob') + '</span><span>' + esc(u.dateOfBirth) + '</span></div>';
     if (u.yogaLevel) html += '<div class="yb-admin__user-meta-item"><span class="yb-admin__user-meta-label">' + t('users_profile_level') + '</span><span>' + esc(u.yogaLevel) + '</span></div>';
     if (u.practiceFrequency) html += '<div class="yb-admin__user-meta-item"><span class="yb-admin__user-meta-label">' + t('users_profile_frequency') + '</span><span>' + esc(u.practiceFrequency) + '</span></div>';
@@ -2311,6 +2628,28 @@
             }
           }
           break;
+        case 'user-bill':
+          if (state.userDetail && typeof window.billingFromUser === 'function') {
+            var u = state.userDetail;
+            var uName = u.name || ((u.firstName || '') + ' ' + (u.lastName || '')).trim();
+            window.billingFromUser({
+              name: uName,
+              email: u.email || '',
+              phone: u.phone || ''
+            });
+          }
+          break;
+        case 'user-invoice-lookup':
+          if (state.userDetail) loadUserInvoices(state.userDetail);
+          break;
+        case 'user-invoice-view-draft':
+          // Open billing modal for draft via billing-admin
+          if (window._ybBillingViewDraft) window._ybBillingViewDraft(btn.dataset.draft);
+          break;
+        case 'user-invoice-view-booked':
+          // Open billing modal for booked via billing-admin
+          if (window._ybBillingViewBooked) window._ybBillingViewBooked(btn.dataset.booked);
+          break;
 
         // Rich text toolbar actions
         case 'toolbar-bold': insertTag('bold'); break;
@@ -2371,6 +2710,9 @@
       if (e.target.classList.contains('yb-user-row-cb')) {
         var userId = e.target.getAttribute('data-id');
         if (userId) toggleUserSelect(userId);
+      }
+      if (e.target.id === 'yb-user-invoice-payment-status') {
+        saveUserPaymentStatus(e.target.value);
       }
     });
 

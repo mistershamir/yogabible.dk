@@ -1,0 +1,293 @@
+{# ═══════════════════════════════════════════════════════════
+   PAGE EXPLAINER — 200hr YTT animated scenes
+   Self-contained HTML + CSS + vanilla JS, no dependencies
+   Plays 7 scenes once, then holds on final CTA with replay button
+   480×270 (16:9), dark cinematic style
+   ═══════════════════════════════════════════════════════════ #}
+<div class="pe2-wrap" id="pe2-wrap" role="img" aria-label="200-timers yogalæreruddannelse — animeret overblik">
+<style>
+/* ── Container ── */
+.pe2-wrap{position:relative;width:480px;max-width:100%;aspect-ratio:16/9;background:#141414;overflow:hidden;border-radius:12px;font-family:'Abacaxi',"Helvetica Neue",Helvetica,Arial,system-ui,sans-serif;-webkit-font-smoothing:antialiased;user-select:none}
+
+/* ── Wordmark ── */
+.pe2-wm{position:absolute;top:14px;left:16px;font-size:.55rem;font-weight:700;letter-spacing:.22em;text-transform:uppercase;color:rgba(245,237,214,.18);z-index:5;pointer-events:none}
+
+/* ── Scenes ── */
+.pe2-scene{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px 28px;opacity:0;visibility:hidden;transition:opacity .5s ease,visibility .5s ease;z-index:1}
+.pe2-scene--active{opacity:1;visibility:visible;z-index:2}
+
+/* ── Typography ── */
+.pe2-label{font-size:.55rem;font-weight:700;letter-spacing:.22em;text-transform:uppercase;color:#E8561E;margin:0 0 10px;opacity:0;transform:translateY(12px)}
+.pe2-headline{font-size:1.35rem;font-weight:700;color:#F5EDD6;text-align:center;margin:0 0 6px;line-height:1.2;opacity:0;transform:translateY(20px);position:relative;display:inline-block}
+.pe2-subtitle{font-size:.7rem;color:rgba(245,237,214,.55);text-align:center;margin:0;letter-spacing:.04em;opacity:0;transform:translateY(16px)}
+.pe2-sub-note{font-size:.52rem;color:rgba(245,237,214,.35);text-align:center;margin:8px 0 0;letter-spacing:.02em;opacity:0;transform:translateY(12px)}
+
+/* ── Animated underline ── */
+.pe2-underline{position:relative;display:inline-block}
+.pe2-underline::after{content:'';position:absolute;left:0;bottom:-3px;width:0;height:2px;background:#E8561E;border-radius:1px;transition:width .6s cubic-bezier(.25,.46,.45,.94) .3s}
+.pe2-scene--active .pe2-underline::after{width:100%}
+
+/* ── Badges / Pills ── */
+.pe2-badges{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin:8px 0 0}
+.pe2-badge{display:inline-block;padding:4px 12px;border-radius:20px;font-size:.56rem;font-weight:700;letter-spacing:.06em;color:#F5EDD6;border:1px solid rgba(232,86,30,.5);background:rgba(232,86,30,.08);opacity:0;transform:translateY(14px) scale(.92)}
+
+/* ── Format cards ── */
+.pe2-cards{display:flex;gap:8px;margin:8px 0 0;justify-content:center}
+.pe2-card{padding:10px 14px;border-radius:10px;background:rgba(245,237,214,.06);border:1px solid rgba(245,237,214,.1);text-align:center;min-width:100px;opacity:0;transform:translateY(16px)}
+.pe2-card__title{font-size:.65rem;font-weight:700;color:#E8561E;margin:0 0 2px}
+.pe2-card__sub{font-size:.5rem;color:rgba(245,237,214,.5);margin:0}
+
+/* ── Counters ── */
+.pe2-counters{display:flex;gap:24px;justify-content:center;margin:6px 0 0}
+.pe2-counter{text-align:center;opacity:0;transform:translateY(16px)}
+.pe2-counter__num{font-size:1.6rem;font-weight:700;color:#E8561E;margin:0;line-height:1;font-variant-numeric:tabular-nums}
+.pe2-counter__txt{font-size:.48rem;color:rgba(245,237,214,.5);margin:2px 0 0;letter-spacing:.06em;text-transform:uppercase}
+
+/* ── Checklist ── */
+.pe2-checks{display:grid;grid-template-columns:1fr 1fr;gap:3px 16px;margin:6px 0 0}
+.pe2-check{font-size:.5rem;color:rgba(245,237,214,.65);opacity:0;transform:translateX(-10px);white-space:nowrap}
+.pe2-check::before{content:'✓ ';color:#E8561E;font-weight:700}
+
+/* ── Price ── */
+.pe2-price{font-size:1.15rem;font-weight:700;color:#F5EDD6;margin:0 0 2px;opacity:0;transform:translateY(16px)}
+.pe2-price-sub{font-size:.56rem;color:rgba(245,237,214,.45);margin:0 0 6px;opacity:0;transform:translateY(12px)}
+
+/* ── Credential pills ── */
+.pe2-creds{display:flex;gap:8px;justify-content:center;margin:8px 0 0}
+.pe2-cred{display:inline-block;padding:5px 14px;border-radius:20px;font-size:.58rem;font-weight:700;letter-spacing:.08em;color:#E8561E;border:1.5px solid #E8561E;background:transparent;opacity:0;transform:scale(.85)}
+
+/* ── CTA button ── */
+.pe2-cta{display:inline-block;padding:8px 22px;border-radius:24px;background:#E8561E;color:#F5EDD6;font-size:.62rem;font-weight:700;letter-spacing:.04em;text-decoration:none;margin:10px 0 0;opacity:0;transform:translateY(14px);cursor:pointer;border:none;transition:background .2s}
+.pe2-cta:hover{background:#d94f02}
+
+/* ── Progress bar ── */
+.pe2-progress{position:absolute;bottom:0;left:0;height:2.5px;background:#E8561E;z-index:10;border-radius:0 2px 0 0;transition:width .15s linear}
+
+/* ── Replay button ── */
+.pe2-replay{position:absolute;bottom:8px;right:10px;z-index:15;background:rgba(245,237,214,.08);border:1px solid rgba(245,237,214,.12);color:rgba(245,237,214,.4);width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.7rem;cursor:pointer;opacity:0;visibility:hidden;transition:opacity .4s,visibility .4s,color .2s,border-color .2s}
+.pe2-replay--visible{opacity:1;visibility:visible}
+.pe2-replay:hover{color:#E8561E;border-color:rgba(232,86,30,.4)}
+
+/* ── Entrance animation helper ── */
+.pe2-in{opacity:1!important;transform:translateY(0) translateX(0) scale(1)!important}
+</style>
+
+<!-- Wordmark -->
+<span class="pe2-wm">YOGA BIBLE</span>
+
+<!-- Scene 1 — Hook -->
+<div class="pe2-scene" id="pe2-s1">
+  <p class="pe2-headline"><span class="pe2-underline">Din rejse mod at blive yogalærer</span></p>
+  <p class="pe2-subtitle">200-timers Yogalæreruddannelse · Yoga Bible København</p>
+</div>
+
+<!-- Scene 2 — What you learn -->
+<div class="pe2-scene" id="pe2-s2">
+  <p class="pe2-label">DU LÆRER</p>
+  <div class="pe2-badges">
+    <span class="pe2-badge">Hatha</span>
+    <span class="pe2-badge">Vinyasa</span>
+    <span class="pe2-badge">Yin Yoga</span>
+    <span class="pe2-badge">Hot Yoga</span>
+    <span class="pe2-badge">Anatomi</span>
+    <span class="pe2-badge">Filosofi</span>
+  </div>
+</div>
+
+<!-- Scene 3 — Formats -->
+<div class="pe2-scene" id="pe2-s3">
+  <p class="pe2-label">VÆLG DIT FORMAT</p>
+  <div class="pe2-cards">
+    <div class="pe2-card"><p class="pe2-card__title">4 uger</p><p class="pe2-card__sub">Intensiv</p></div>
+    <div class="pe2-card"><p class="pe2-card__title">8 uger</p><p class="pe2-card__sub">Semi-intensiv</p></div>
+    <div class="pe2-card"><p class="pe2-card__title">18 uger</p><p class="pe2-card__sub">Fleksibel</p></div>
+  </div>
+  <p class="pe2-sub-note">Samme certificering · Samme undervisere · Samme pensum</p>
+</div>
+
+<!-- Scene 4 — Numbers -->
+<div class="pe2-scene" id="pe2-s4">
+  <p class="pe2-label">YOGA BIBLE I TAL</p>
+  <div class="pe2-counters">
+    <div class="pe2-counter"><p class="pe2-counter__num" data-pe2-count="200">0</p><p class="pe2-counter__txt">timer</p></div>
+    <div class="pe2-counter"><p class="pe2-counter__num" data-pe2-count="500" data-pe2-suffix="+">0</p><p class="pe2-counter__txt">certificerede</p></div>
+    <div class="pe2-counter"><p class="pe2-counter__num" data-pe2-count="2014" data-pe2-raw>0</p><p class="pe2-counter__txt">siden</p></div>
+  </div>
+</div>
+
+<!-- Scene 5 — Price -->
+<div class="pe2-scene" id="pe2-s5">
+  <p class="pe2-label">DIN INVESTERING</p>
+  <p class="pe2-price">23.750 kr · Alt inkluderet</p>
+  <p class="pe2-price-sub">Start med forberedelsesfasen: 3.750 kr</p>
+  <div class="pe2-checks">
+    <span class="pe2-check">60 yogaklasser</span>
+    <span class="pe2-check">Alle workshops</span>
+    <span class="pe2-check">Livslang adgang</span>
+    <span class="pe2-check">Yoga Alliance certificering</span>
+  </div>
+</div>
+
+<!-- Scene 6 — Yoga Alliance -->
+<div class="pe2-scene" id="pe2-s6">
+  <p class="pe2-label">INTERNATIONALT ANERKENDT</p>
+  <p class="pe2-headline"><span class="pe2-underline">Yoga Alliance RYT-200</span></p>
+  <p class="pe2-subtitle">Undervis overalt i verden</p>
+  <div class="pe2-creds">
+    <span class="pe2-cred">RYT 200</span>
+    <span class="pe2-cred">E-RYT 500</span>
+    <span class="pe2-cred">YACEP</span>
+  </div>
+</div>
+
+<!-- Scene 7 — CTA -->
+<div class="pe2-scene" id="pe2-s7">
+  <p class="pe2-headline"><span class="pe2-underline">Klar til at starte?</span></p>
+  <p class="pe2-subtitle">Få dit skema i dag</p>
+  <a class="pe2-cta" href="{% if lang == 'en' %}/en/ansog{% else %}/ansog{% endif %}">yogabible.dk/ansøg →</a>
+</div>
+
+<!-- Progress bar -->
+<div class="pe2-progress" id="pe2-bar" style="width:0"></div>
+
+<!-- Replay -->
+<button class="pe2-replay" id="pe2-replay" type="button" aria-label="Afspil igen" title="Afspil igen">↺</button>
+
+<script>
+(function(){
+  var SCENES = [
+    { id:'pe2-s1', dur:5000 },
+    { id:'pe2-s2', dur:6000 },
+    { id:'pe2-s3', dur:6000 },
+    { id:'pe2-s4', dur:5000 },
+    { id:'pe2-s5', dur:5000 },
+    { id:'pe2-s6', dur:4000 },
+    { id:'pe2-s7', dur:0 }           // holds forever
+  ];
+  var totalDur = SCENES.reduce(function(s,c){return s+c.dur},0);
+  var elapsed = 0;
+  var current = -1;
+  var timer = null;
+  var bar = document.getElementById('pe2-bar');
+  var replay = document.getElementById('pe2-replay');
+  var wrap = document.getElementById('pe2-wrap');
+
+  /* ── animate children into view ── */
+  function animateIn(el){
+    var children = el.querySelectorAll('.pe2-label,.pe2-headline,.pe2-subtitle,.pe2-sub-note,.pe2-badge,.pe2-card,.pe2-counter,.pe2-price,.pe2-price-sub,.pe2-check,.pe2-cred,.pe2-cta');
+    var stagger = Math.min(180, 800 / Math.max(children.length,1));
+    for(var i=0;i<children.length;i++){
+      children[i].classList.remove('pe2-in');
+    }
+    /* force reflow */
+    void el.offsetWidth;
+    for(var j=0;j<children.length;j++){
+      (function(c,d){ setTimeout(function(){ c.classList.add('pe2-in'); c.style.transition='opacity .45s ease '+d+'ms, transform .45s ease '+d+'ms'; },10); })(children[j], j*stagger);
+    }
+  }
+
+  /* ── count-up for Scene 4 ── */
+  function runCounters(sceneEl){
+    var nums = sceneEl.querySelectorAll('[data-pe2-count]');
+    for(var i=0;i<nums.length;i++){
+      (function(el){
+        var target = parseInt(el.getAttribute('data-pe2-count'),10);
+        var suffix = el.getAttribute('data-pe2-suffix')||'';
+        var raw = el.hasAttribute('data-pe2-raw');
+        var start = raw ? 2000 : 0;
+        var duration = 1800;
+        var t0 = null;
+        function step(ts){
+          if(!t0) t0=ts;
+          var p = Math.min((ts-t0)/duration,1);
+          /* ease out cubic */
+          var ep = 1 - Math.pow(1-p,3);
+          var v = Math.round(start + (target-start)*ep);
+          el.textContent = raw ? v : v.toLocaleString('da-DK') + suffix;
+          if(p<1) requestAnimationFrame(step);
+        }
+        requestAnimationFrame(step);
+      })(nums[i]);
+    }
+  }
+
+  /* ── progress bar tick ── */
+  var barRAF = null;
+  var barStart = 0;
+  var barBase = 0;
+  function tickBar(){
+    var now = performance.now();
+    var e = barBase + (now - barStart);
+    var pct = Math.min(e/totalDur*100,100);
+    bar.style.width = pct+'%';
+    if(pct<100) barRAF = requestAnimationFrame(tickBar);
+  }
+  function startBarSegment(){
+    barStart = performance.now();
+    barBase = elapsed;
+    if(barRAF) cancelAnimationFrame(barRAF);
+    barRAF = requestAnimationFrame(tickBar);
+  }
+
+  /* ── show scene ── */
+  function show(idx){
+    if(idx === current) return;
+    /* hide previous */
+    if(current >= 0){
+      var prev = document.getElementById(SCENES[current].id);
+      prev.classList.remove('pe2-scene--active');
+      /* reset children for potential replay */
+      var ch = prev.querySelectorAll('.pe2-in');
+      for(var k=0;k<ch.length;k++) ch[k].classList.remove('pe2-in');
+    }
+    current = idx;
+    var el = document.getElementById(SCENES[idx].id);
+    el.classList.add('pe2-scene--active');
+    animateIn(el);
+    if(idx === 3) setTimeout(function(){ runCounters(el); },250);
+    /* schedule next scene or finish */
+    if(SCENES[idx].dur > 0){
+      timer = setTimeout(function(){
+        elapsed += SCENES[idx].dur;
+        show(idx+1);
+      }, SCENES[idx].dur);
+      startBarSegment();
+    } else {
+      /* final scene — fill bar, show replay */
+      bar.style.width='100%';
+      if(barRAF) cancelAnimationFrame(barRAF);
+      replay.classList.add('pe2-replay--visible');
+    }
+  }
+
+  /* ── start / restart ── */
+  function start(){
+    clearTimeout(timer);
+    if(barRAF) cancelAnimationFrame(barRAF);
+    elapsed=0; current=-1;
+    bar.style.width='0';
+    replay.classList.remove('pe2-replay--visible');
+    /* reset all scenes */
+    for(var i=0;i<SCENES.length;i++){
+      var s=document.getElementById(SCENES[i].id);
+      s.classList.remove('pe2-scene--active');
+      var ch=s.querySelectorAll('.pe2-in');
+      for(var j=0;j<ch.length;j++){ch[j].classList.remove('pe2-in');ch[j].style.transition='';}
+    }
+    show(0);
+  }
+
+  replay.addEventListener('click',function(e){e.stopPropagation();start();});
+
+  /* auto-start when widget becomes visible */
+  if(typeof IntersectionObserver !== 'undefined'){
+    var obs = new IntersectionObserver(function(entries){
+      if(entries[0].isIntersecting){obs.disconnect();start();}
+    },{threshold:0.3});
+    obs.observe(wrap);
+  } else {
+    start();
+  }
+})();
+</script>
+</div>

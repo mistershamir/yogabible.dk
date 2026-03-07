@@ -1,0 +1,60 @@
+<svg viewBox="0 0 1200 630" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <filter id="shadow" x="-50%" y="-50%" width="200%" height="200%">
+      <feDropShadow dx="3" dy="5" stdDeviation="6" flood-opacity="0.25" flood-color="#000"/>
+    </filter>
+    <linearGradient id="heatGrad" x1="0%" y1="100%" x2="0%" y2="0%">
+      <stop offset="0%" style="stop-color:#d94f02;stop-opacity:0.3"/>
+      <stop offset="50%" style="stop-color:#f75c03;stop-opacity:0.15"/>
+      <stop offset="100%" style="stop-color:#ff9966;stop-opacity:0.05"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="1200" height="630" fill="#f5f3f0"/>
+  
+  <!-- Heat gradient background -->
+  <rect x="200" y="50" width="800" height="420" rx="20" fill="url(#heatGrad)" opacity="0.6"/>
+
+  <!-- Thermometer -->
+  <g filter="url(#shadow)" transform="translate(600, 80)">
+    <!-- Bulb -->
+    <circle cx="0" cy="300" r="45" fill="#d94f02" opacity="0.9"/>
+    <circle cx="0" cy="300" r="38" fill="#f75c03" opacity="0.7"/>
+    <!-- Tube -->
+    <rect x="-12" y="30" width="24" height="270" rx="12" fill="#FFFCF9" stroke="#E8E4E0" stroke-width="2"/>
+    <!-- Mercury fill -->
+    <rect x="-8" y="80" width="16" height="220" rx="8" fill="#f75c03" opacity="0.85"/>
+    <!-- Scale marks -->
+    <line x1="15" y1="80" x2="30" y2="80" stroke="#6F6A66" stroke-width="1.5" opacity="0.5"/>
+    <line x1="15" y1="130" x2="25" y2="130" stroke="#6F6A66" stroke-width="1" opacity="0.4"/>
+    <line x1="15" y1="180" x2="30" y2="180" stroke="#6F6A66" stroke-width="1.5" opacity="0.5"/>
+    <line x1="15" y1="230" x2="25" y2="230" stroke="#6F6A66" stroke-width="1" opacity="0.4"/>
+    <!-- Temperature label -->
+    <text x="45" y="85" font-family="Abacaxi, Helvetica, Arial, sans-serif" font-size="16" fill="#d94f02" font-weight="bold">40°C</text>
+  </g>
+
+  <!-- Heat waves (rising) -->
+  <g opacity="0.4">
+    <path d="M 350 380 Q 360 350 350 320 Q 340 290 350 260" fill="none" stroke="#f75c03" stroke-width="2.5" stroke-linecap="round"/>
+    <path d="M 420 400 Q 430 365 420 330 Q 410 295 420 260" fill="none" stroke="#ff9966" stroke-width="2" stroke-linecap="round"/>
+    <path d="M 780 380 Q 790 350 780 320 Q 770 290 780 260" fill="none" stroke="#f75c03" stroke-width="2.5" stroke-linecap="round"/>
+    <path d="M 850 400 Q 860 365 850 330 Q 840 295 850 260" fill="none" stroke="#ff9966" stroke-width="2" stroke-linecap="round"/>
+  </g>
+
+  <!-- Water droplets -->
+  <g opacity="0.5" filter="url(#shadow)">
+    <path d="M 300 200 Q 305 185 300 170 Q 295 185 300 200 Z" fill="#f75c03"/>
+    <path d="M 900 180 Q 905 165 900 150 Q 895 165 900 180 Z" fill="#ff9966"/>
+    <path d="M 450 160 Q 453 150 450 140 Q 447 150 450 160 Z" fill="#d94f02"/>
+    <path d="M 750 150 Q 753 140 750 130 Q 747 140 750 150 Z" fill="#f75c03"/>
+  </g>
+
+  <!-- Infrared wave indicators -->
+  <g opacity="0.25">
+    <path d="M 250 450 Q 400 430 550 450 Q 700 470 850 450 Q 950 440 1000 450" fill="none" stroke="#d94f02" stroke-width="3"/>
+    <path d="M 250 465 Q 400 445 550 465 Q 700 485 850 465 Q 950 455 1000 465" fill="none" stroke="#f75c03" stroke-width="2"/>
+  </g>
+
+  <text x="600" y="540" font-family="Abacaxi, Helvetica, Arial, sans-serif" font-size="38" font-weight="bold" fill="#0f0f0f" text-anchor="middle">The Benefits of Hot Yoga</text>
+  <text x="600" y="578" font-family="Abacaxi, Helvetica, Arial, sans-serif" font-size="18" fill="#6F6A66" text-anchor="middle">Heat, Sweat, Transform</text>
+</svg>

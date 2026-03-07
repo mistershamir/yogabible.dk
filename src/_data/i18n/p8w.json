@@ -92,7 +92,7 @@
     "cph_title": "Træn i København",
     "cph_subtitle": "Uanset om du bor i København eller rejser hertil for uddannelsen — du træner i en af verdens mest inspirerende byer. Professionelt studie, fantastisk infrastruktur og et livsstilsmiljø der beriger din praksis.",
     "cph_feat1_icon": "🚲", "cph_feat1_title": "Cykelkultur", "cph_feat1_desc": "Byen er bygget til cykler — dedikerede baner, cykellyskryds og mere frihed end en bil nogensinde giver.",
-    "cph_feat2_icon": "☕", "cph_feat2_title": "Specialty Coffee", "cph_feat2_desc": "World-class kaffebarer på hvert hjørne — perfekt til at studere anatomi, journalisere eller bare nyde en pause.",
+    "cph_feat2_icon": "☕", "cph_feat2_title": "Specialty Coffee", "cph_feat2_desc": "World-class kaffebarer på hvert hjørne — perfekt til at studere anatomi, skrive dagbog eller bare nyde en pause.",
     "cph_feat3_icon": "🧖", "cph_feat3_title": "Saunagus & Badekultur", "cph_feat3_desc": "Nordiske saunaritualer med aufguss-mestre — varme, åndedræt og community. Det perfekte supplement til din praksis.",
     "cph_feat4_icon": "🏊", "cph_feat4_title": "Cold Dips & Havnebad", "cph_feat4_desc": "Havnebade og udendørs svømning året rundt. Mange yogier integrerer kuldeeksponering i deres daglige routine.",
     "cph_feat5_icon": "🍽️", "cph_feat5_title": "New Nordic Gastronomi", "cph_feat5_desc": "Hjemsted for det ny nordiske køkken. Street food, Torvehallerne, Michelin-restauranter — friskt, sæsonbetonet og plantebaseret.",
@@ -218,7 +218,7 @@
     "early_list4": "Forudfyld selvpraksis-timer til dine 200 timer",
     "early_cta_text": "Start forberedelsesfasen og begynd at booke",
     "early_deposit_label": "Forberedelsesfase: 3.750 kr.",
-    "early_refund_note": "",
+    "early_refund_note": "Giv os besked hurtigst muligt ved afmelding.",
     "early_remainder_label": "Restbeløb: 20.000 kr.",
 
     "faq_eyebrow": "Spørgsmål & svar",
@@ -478,7 +478,7 @@
     "early_list4": "Pre-fill self-practice hours towards your 200 hours",
     "early_cta_text": "Start Preparation Phase and begin booking",
     "early_deposit_label": "Preparation Phase: 3,750 kr.",
-    "early_refund_note": "",
+    "early_refund_note": "Please let us know as soon as possible if you need to cancel.",
     "early_remainder_label": "Remaining: 20,000 kr.",
 
     "faq_eyebrow": "Questions & answers",
