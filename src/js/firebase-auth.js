@@ -472,23 +472,31 @@
         })
         .catch(function(error) {
           if (error.code === 'auth/user-not-found' || error.code === 'auth/invalid-credential') {
-            showErrorWithReset(errorEl);
-            // Silently check Mindbody — if they exist there, create a Firebase
-            // account and send a password reset email so they get guidance in
-            // their inbox without having to click anything.
+            // Check Mindbody — if they exist, create Firebase account with
+            // their password and sign in seamlessly.
             fetch('/.netlify/functions/migrate-mb-user', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ email: email })
+              body: JSON.stringify({ email: email, password: password })
             })
               .then(function(res) { return res.json(); })
               .then(function(data) {
-                if (data.found) {
-                  var resetUrl = window.location.origin + (detectLocale() === 'da' ? '/auth-action/' : '/en/auth-action/');
-                  auth.sendPasswordResetEmail(email, { url: resetUrl, handleCodeInApp: true }).catch(function() {});
+                if (data.created) {
+                  // Account created with their password — sign in now
+                  return auth.signInWithEmailAndPassword(email, password)
+                    .then(function() { closeAuthModal(); });
                 }
+                // Not in MB or already has Firebase account — show normal error
+                showErrorWithReset(errorEl);
               })
-              .catch(function() {});
+              .catch(function() {
+                showErrorWithReset(errorEl);
+              })
+              .finally(function() {
+                submitBtn.disabled = false;
+                submitBtn.textContent = detectLocale() === 'da' ? 'Log ind' : 'Sign in';
+              });
+            return; // skip the outer .finally
           } else {
             showError(errorEl, getAuthErrorMessage(error.code));
           }

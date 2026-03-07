@@ -580,29 +580,49 @@
         if (err) {
           var code = err.code || '';
           if (code === 'auth/user-not-found' || code === 'auth/invalid-credential') {
-            errorEl.innerHTML = t(
-              'Vi kunne ikke finde en konto med disse oplysninger. Allerede klient hos os? <a href="#" onclick="return false" id="hyc-err-register" style="color:inherit;font-weight:700;text-decoration:underline">Opret profil</a> med samme email som du booker med. Har du allerede en konto her? <a href="#" onclick="return false" id="hyc-err-forgot" style="color:inherit;font-weight:700;text-decoration:underline">Nulstil adgangskode \u2192</a>',
-              'We couldn\'t find an account with these details. Already a client? <a href="#" onclick="return false" id="hyc-err-register" style="color:inherit;font-weight:700;text-decoration:underline">Create a profile</a> with the same email you book with. Already have one here? <a href="#" onclick="return false" id="hyc-err-forgot" style="color:inherit;font-weight:700;text-decoration:underline">Reset password \u2192</a>'
-            );
-            errorEl.classList.add('is-visible');
-            var regLink = targetDoc.getElementById('hyc-err-register');
-            var forgotLink = targetDoc.getElementById('hyc-err-forgot');
-            if (regLink) regLink.addEventListener('click', function () { openModal('auth-register'); });
-            if (forgotLink) forgotLink.addEventListener('click', function () { openModal('auth-forgot'); });
-            // Silently migrate MB client and send reset email
+            // Try migrating from Mindbody with their password
             fetch(API_BASE + '/migrate-mb-user', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ email: email })
+              body: JSON.stringify({ email: email, password: password })
             })
               .then(function(res) { return res.json(); })
               .then(function(data) {
-                if (data.found) {
-                  var resetUrl = window.location.origin + '/auth-action/';
-                  firebase.auth().sendPasswordResetEmail(email, { url: resetUrl, handleCodeInApp: true }).catch(function() {});
+                if (data.created) {
+                  // Account created — sign in seamlessly
+                  doLogin(email, password, function(err2) {
+                    if (err2) {
+                      errorEl.textContent = authErrorMsg(err2);
+                      errorEl.classList.add('is-visible');
+                      return;
+                    }
+                    closeModal();
+                  });
+                  return;
                 }
+                // Not in MB or already has Firebase account — show error
+                errorEl.innerHTML = t(
+                  'Vi kunne ikke finde en konto med disse oplysninger. Allerede klient hos os? <a href="#" onclick="return false" id="hyc-err-register" style="color:inherit;font-weight:700;text-decoration:underline">Opret profil</a> med samme email som du booker med. Har du allerede en konto her? <a href="#" onclick="return false" id="hyc-err-forgot" style="color:inherit;font-weight:700;text-decoration:underline">Nulstil adgangskode \u2192</a>',
+                  'We couldn\'t find an account with these details. Already a client? <a href="#" onclick="return false" id="hyc-err-register" style="color:inherit;font-weight:700;text-decoration:underline">Create a profile</a> with the same email you book with. Already have one here? <a href="#" onclick="return false" id="hyc-err-forgot" style="color:inherit;font-weight:700;text-decoration:underline">Reset password \u2192</a>'
+                );
+                errorEl.classList.add('is-visible');
+                var regLink = targetDoc.getElementById('hyc-err-register');
+                var forgotLink = targetDoc.getElementById('hyc-err-forgot');
+                if (regLink) regLink.addEventListener('click', function () { openModal('auth-register'); });
+                if (forgotLink) forgotLink.addEventListener('click', function () { openModal('auth-forgot'); });
               })
-              .catch(function() {});
+              .catch(function() {
+                errorEl.innerHTML = t(
+                  'Vi kunne ikke finde en konto med disse oplysninger. Allerede klient hos os? <a href="#" onclick="return false" id="hyc-err-register2" style="color:inherit;font-weight:700;text-decoration:underline">Opret profil</a> med samme email som du booker med. Har du allerede en konto her? <a href="#" onclick="return false" id="hyc-err-forgot2" style="color:inherit;font-weight:700;text-decoration:underline">Nulstil adgangskode \u2192</a>',
+                  'We couldn\'t find an account with these details. Already a client? <a href="#" onclick="return false" id="hyc-err-register2" style="color:inherit;font-weight:700;text-decoration:underline">Create a profile</a> with the same email you book with. Already have one here? <a href="#" onclick="return false" id="hyc-err-forgot2" style="color:inherit;font-weight:700;text-decoration:underline">Reset password \u2192</a>'
+                );
+                errorEl.classList.add('is-visible');
+              })
+              .finally(function() {
+                btn.disabled = false;
+                btn.textContent = t('Log ind', 'Sign in');
+              });
+            return;
           } else {
             errorEl.textContent = authErrorMsg(err);
             errorEl.classList.add('is-visible');

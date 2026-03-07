@@ -427,20 +427,27 @@
         })
         .catch(function(error) {
           if (error.code === 'auth/user-not-found' || error.code === 'auth/invalid-credential') {
-            showErrorWithReset(errorEl);
             fetch('/.netlify/functions/migrate-mb-user', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ email: email })
+              body: JSON.stringify({ email: email, password: password })
             })
               .then(function(res) { return res.json(); })
               .then(function(data) {
-                if (data.found) {
-                  var resetUrl = window.location.origin + (detectLocale() === 'da' ? '/auth-action/' : '/en/auth-action/');
-                  auth.sendPasswordResetEmail(email, { url: resetUrl, handleCodeInApp: true }).catch(function() {});
+                if (data.created) {
+                  return auth.signInWithEmailAndPassword(email, password)
+                    .then(function() { closeAuthModal(); });
                 }
+                showErrorWithReset(errorEl);
               })
-              .catch(function() {});
+              .catch(function() {
+                showErrorWithReset(errorEl);
+              })
+              .finally(function() {
+                submitBtn.disabled = false;
+                submitBtn.textContent = detectLocale() === 'da' ? 'Log ind' : 'Sign in';
+              });
+            return;
           } else {
             showError(errorEl, getAuthErrorMessage(error.code));
           }

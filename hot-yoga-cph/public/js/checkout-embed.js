@@ -1762,28 +1762,65 @@
           if (err) {
             var code = err.code || '';
             if (code === 'auth/user-not-found' || code === 'auth/invalid-credential') {
-              var el = $('ycf-login-error');
-              if (el) {
-                el.innerHTML = t(
-                  'Vi kunne ikke finde en konto med disse oplysninger. Allerede klient hos os? <a href="#" data-ycf-action="register" style="color:inherit;font-weight:700;text-decoration:underline">Opret profil</a> med samme email som du booker med. Har du allerede en konto her? <a href="#" data-ycf-action="forgot" style="color:inherit;font-weight:700;text-decoration:underline">Nulstil adgangskode \u2192</a>',
-                  'We couldn\'t find an account with these details. Already a client? <a href="#" data-ycf-action="register" style="color:inherit;font-weight:700;text-decoration:underline">Create a profile</a> with the same email you book with. Already have one here? <a href="#" data-ycf-action="forgot" style="color:inherit;font-weight:700;text-decoration:underline">Reset password \u2192</a>'
-                );
-                el.hidden = false;
-              }
-              // Silently migrate MB client and send reset email
+              // Try migrating from Mindbody — create account with their password
               fetch(API_BASE + '/migrate-mb-user', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ email: email })
+                body: JSON.stringify({ email: email, password: password })
               })
                 .then(function(res) { return res.json(); })
                 .then(function(data) {
-                  if (data.found) {
-                    var resetUrl = window.location.origin + '/auth-action/';
-                    firebase.auth().sendPasswordResetEmail(email, { url: resetUrl, handleCodeInApp: true }).catch(function() {});
+                  if (data.created) {
+                    doLogin(email, password, function(err2) {
+                      if (err2) {
+                        showError('ycf-login-error', authErrorMsg(err2));
+                        return;
+                      }
+                      if (!modal || modal.getAttribute('aria-hidden') === 'true') return;
+                      authOriginStep = 'login';
+                      trackAuthComplete();
+                      pushDataLayer('checkout_funnel_auth_complete', {
+                        funnel_stage: 'auth_complete',
+                        product_id: currentProdId,
+                        product_name: getProductName(currentProdId),
+                        product_category: getProductCategory(currentProdId)
+                      });
+                      if (loginOnlyMode) { loginOnlyRedirect(); return; }
+                      var user = firebase.auth().currentUser;
+                      var displayName = (user && user.displayName) || '';
+                      var nameParts = displayName.split(' ');
+                      resolveClientAndAdvance(
+                        nameParts[0] || 'User',
+                        nameParts.slice(1).join(' ') || '',
+                        (user && user.email) || email,
+                        ''
+                      );
+                    });
+                    return;
+                  }
+                  var el = $('ycf-login-error');
+                  if (el) {
+                    el.innerHTML = t(
+                      'Vi kunne ikke finde en konto med disse oplysninger. Allerede klient hos os? <a href="#" data-ycf-action="register" style="color:inherit;font-weight:700;text-decoration:underline">Opret profil</a> med samme email som du booker med. Har du allerede en konto her? <a href="#" data-ycf-action="forgot" style="color:inherit;font-weight:700;text-decoration:underline">Nulstil adgangskode \u2192</a>',
+                      'We couldn\'t find an account with these details. Already a client? <a href="#" data-ycf-action="register" style="color:inherit;font-weight:700;text-decoration:underline">Create a profile</a> with the same email you book with. Already have one here? <a href="#" data-ycf-action="forgot" style="color:inherit;font-weight:700;text-decoration:underline">Reset password \u2192</a>'
+                    );
+                    el.hidden = false;
                   }
                 })
-                .catch(function() {});
+                .catch(function() {
+                  var el = $('ycf-login-error');
+                  if (el) {
+                    el.innerHTML = t(
+                      'Vi kunne ikke finde en konto med disse oplysninger. Allerede klient hos os? <a href="#" data-ycf-action="register" style="color:inherit;font-weight:700;text-decoration:underline">Opret profil</a> med samme email som du booker med. Har du allerede en konto her? <a href="#" data-ycf-action="forgot" style="color:inherit;font-weight:700;text-decoration:underline">Nulstil adgangskode \u2192</a>',
+                      'We couldn\'t find an account with these details. Already a client? <a href="#" data-ycf-action="register" style="color:inherit;font-weight:700;text-decoration:underline">Create a profile</a> with the same email you book with. Already have one here? <a href="#" data-ycf-action="forgot" style="color:inherit;font-weight:700;text-decoration:underline">Reset password \u2192</a>'
+                    );
+                    el.hidden = false;
+                  }
+                })
+                .finally(function() {
+                  if (btn) { btn.disabled = false; btn.textContent = t('Log ind', 'Sign in'); }
+                });
+              return;
             } else {
               showError('ycf-login-error', authErrorMsg(err));
             }
