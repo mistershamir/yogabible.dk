@@ -1351,9 +1351,19 @@
   }
 
   function doForgotPassword(email, callback) {
-    var resetUrl = window.location.origin + '/auth-action/';
-    firebase.auth().sendPasswordResetEmail(email, { url: resetUrl, handleCodeInApp: true })
-      .then(function () { callback(null); })
+    // Send branded reset email via Resend (better deliverability than
+    // Firebase's built-in noreply@*.firebaseapp.com emails).
+    var apiBase = 'https://www.hotyogacph.dk/.netlify/functions';
+    fetch(apiBase + '/send-password-reset', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: email, lang: isDa ? 'da' : 'en' })
+    })
+      .then(function (res) { return res.json(); })
+      .then(function (data) {
+        if (data.ok) { callback(null); }
+        else { callback({ code: 'custom', message: data.error || 'Failed' }); }
+      })
       .catch(function (err) { callback(err); });
   }
 
@@ -1932,8 +1942,13 @@
                 );
                 el.hidden = false;
               }
-              var resetUrl = window.location.origin + '/auth-action/';
-              firebase.auth().sendPasswordResetEmail(email, { url: resetUrl, handleCodeInApp: true }).catch(function() {});
+              // Send branded reset email via Resend
+              var apiBase = 'https://www.hotyogacph.dk/.netlify/functions';
+              fetch(apiBase + '/send-password-reset', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email: email, lang: isDa ? 'da' : 'en' })
+              }).catch(function() {});
             } else {
               showError('ycf-register-error', authErrorMsg(err));
             }
