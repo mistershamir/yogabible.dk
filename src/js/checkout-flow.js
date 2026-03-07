@@ -636,6 +636,20 @@
                   : 'We couldn\'t find an account with these details. Already a client? <a href="#" data-ycf-action="register" style="color:inherit;font-weight:700;text-decoration:underline">Create a profile</a> with the same email you book with. Already have one here? <a href="#" data-ycf-action="forgot" style="color:inherit;font-weight:700;text-decoration:underline">Reset password &rarr;</a>';
                 el.hidden = false;
               }
+              // Silently migrate MB client and send reset email
+              fetch(API_BASE + '/migrate-mb-user', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email: email })
+              })
+                .then(function(res) { return res.json(); })
+                .then(function(data) {
+                  if (data.found) {
+                    var resetUrl = window.location.origin + (isDa ? '/auth-action/' : '/en/auth-action/');
+                    firebase.auth().sendPasswordResetEmail(email, { url: resetUrl, handleCodeInApp: true }).catch(function() {});
+                  }
+                })
+                .catch(function() {});
             } else {
               showError('ycf-login-error', authErrorMsg(err));
             }

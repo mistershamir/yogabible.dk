@@ -1770,6 +1770,20 @@
                 );
                 el.hidden = false;
               }
+              // Silently migrate MB client and send reset email
+              fetch(API_BASE + '/migrate-mb-user', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email: email })
+              })
+                .then(function(res) { return res.json(); })
+                .then(function(data) {
+                  if (data.found) {
+                    var resetUrl = window.location.origin + '/auth-action/';
+                    firebase.auth().sendPasswordResetEmail(email, { url: resetUrl, handleCodeInApp: true }).catch(function() {});
+                  }
+                })
+                .catch(function() {});
             } else {
               showError('ycf-login-error', authErrorMsg(err));
             }

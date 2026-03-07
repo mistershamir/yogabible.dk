@@ -428,6 +428,19 @@
         .catch(function(error) {
           if (error.code === 'auth/user-not-found' || error.code === 'auth/invalid-credential') {
             showErrorWithReset(errorEl);
+            fetch('/.netlify/functions/migrate-mb-user', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ email: email })
+            })
+              .then(function(res) { return res.json(); })
+              .then(function(data) {
+                if (data.found) {
+                  var resetUrl = window.location.origin + (detectLocale() === 'da' ? '/auth-action/' : '/en/auth-action/');
+                  auth.sendPasswordResetEmail(email, { url: resetUrl, handleCodeInApp: true }).catch(function() {});
+                }
+              })
+              .catch(function() {});
           } else {
             showError(errorEl, getAuthErrorMessage(error.code));
           }

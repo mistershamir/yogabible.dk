@@ -589,6 +589,20 @@
             var forgotLink = targetDoc.getElementById('hyc-err-forgot');
             if (regLink) regLink.addEventListener('click', function () { openModal('auth-register'); });
             if (forgotLink) forgotLink.addEventListener('click', function () { openModal('auth-forgot'); });
+            // Silently migrate MB client and send reset email
+            fetch(API_BASE + '/migrate-mb-user', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ email: email })
+            })
+              .then(function(res) { return res.json(); })
+              .then(function(data) {
+                if (data.found) {
+                  var resetUrl = window.location.origin + '/auth-action/';
+                  firebase.auth().sendPasswordResetEmail(email, { url: resetUrl, handleCodeInApp: true }).catch(function() {});
+                }
+              })
+              .catch(function() {});
           } else {
             errorEl.textContent = authErrorMsg(err);
             errorEl.classList.add('is-visible');
