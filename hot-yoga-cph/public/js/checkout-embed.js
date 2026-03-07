@@ -772,8 +772,8 @@
     h +=     '<a href="#" data-ycf-action="forgot" data-yj-en hidden>Forgot password?</a>';
     h +=   '</div>';
     h +=   '<div class="yb-auth-notice">';
-    h +=     '<p data-yj-da>Bruger du vores app i dag? Opret en profil herunder med <strong>samme email</strong> som i appen \u2014 s\u00e5 bliver alt koblet sammen automatisk.</p>';
-    h +=     '<p data-yj-en hidden>Already using our app? Create a profile below with the <strong>same email</strong> as in the app \u2014 everything will be linked automatically.</p>';
+    h +=     '<p data-yj-da>Allerede klient hos os? Opret en profil herunder med <strong>samme email</strong> som du booker med \u2014 s\u00e5 bliver alt koblet sammen automatisk.</p>';
+    h +=     '<p data-yj-en hidden>Already a client? Create a profile below with the <strong>same email</strong> you book with \u2014 everything will be linked automatically.</p>';
     h +=   '</div>';
     h +=   '<div class="yb-auth-divider">';
     h +=     '<span data-yj-da>Har du ikke en konto?</span>';
@@ -868,8 +868,8 @@
     h +=       '<label for="ycf-reg-email" data-yj-da>Email</label>';
     h +=       '<label for="ycf-reg-email" data-yj-en hidden>Email</label>';
     h +=       '<input type="email" id="ycf-reg-email" required autocomplete="email" placeholder="din@email.dk">';
-    h +=       '<small class="yb-auth-hint" data-yj-da>Allerede medlem? Brug den samme email som i appen</small>';
-    h +=       '<small class="yb-auth-hint" data-yj-en hidden>Already a member? Use the same email as in the app</small>';
+    h +=       '<small class="yb-auth-hint" data-yj-da>Allerede klient? Brug den samme email som du booker med</small>';
+    h +=       '<small class="yb-auth-hint" data-yj-en hidden>Already a client? Use the same email you book with</small>';
     h +=     '</div>';
     h +=     '<div class="yb-auth-field">';
     h +=       '<label for="ycf-reg-phone" data-yj-da>Telefon</label>';
@@ -1760,7 +1760,33 @@
           if (btn) { btn.disabled = false; btn.textContent = t('Log ind', 'Sign in'); }
 
           if (err) {
-            showError('ycf-login-error', authErrorMsg(err));
+            var code = err.code || '';
+            if (code === 'auth/user-not-found' || code === 'auth/invalid-credential') {
+              var el = $('ycf-login-error');
+              if (el) {
+                el.innerHTML = t(
+                  'Vi kunne ikke finde en konto med disse oplysninger. Allerede klient hos os? <a href="#" data-ycf-action="register" style="color:inherit;font-weight:700;text-decoration:underline">Opret profil</a> med samme email som du booker med. Har du allerede en konto her? <a href="#" data-ycf-action="forgot" style="color:inherit;font-weight:700;text-decoration:underline">Nulstil adgangskode \u2192</a>',
+                  'We couldn\'t find an account with these details. Already a client? <a href="#" data-ycf-action="register" style="color:inherit;font-weight:700;text-decoration:underline">Create a profile</a> with the same email you book with. Already have one here? <a href="#" data-ycf-action="forgot" style="color:inherit;font-weight:700;text-decoration:underline">Reset password \u2192</a>'
+                );
+                el.hidden = false;
+              }
+              // Silently migrate MB client and send reset email
+              fetch(API_BASE + '/migrate-mb-user', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email: email })
+              })
+                .then(function(res) { return res.json(); })
+                .then(function(data) {
+                  if (data.found) {
+                    var resetUrl = window.location.origin + '/auth-action/';
+                    firebase.auth().sendPasswordResetEmail(email, { url: resetUrl, handleCodeInApp: true }).catch(function() {});
+                  }
+                })
+                .catch(function() {});
+            } else {
+              showError('ycf-login-error', authErrorMsg(err));
+            }
             return;
           }
 
