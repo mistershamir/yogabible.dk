@@ -235,19 +235,39 @@
   }
 
   function startCamera() {
-    navigator.mediaDevices.getUserMedia(getConstraints())
-      .then(function (stream) {
-        mediaStream = stream;
-        previewVideo.srcObject = stream;
-        placeholder.classList.add('yts-preview__placeholder--hidden');
-        devicesPanel.style.display = '';
-        enumerateDevices();
-        updateGoLiveState();
+    var constraints = getConstraints();
+    navigator.mediaDevices.getUserMedia(constraints)
+      .then(handleStream)
+      .catch(function (err) {
+        console.warn('[teacher-studio] full constraints failed:', err.name, err.message);
+        // If video failed (no camera), try audio-only so mic still works
+        if (constraints.video && constraints.audio) {
+          return navigator.mediaDevices.getUserMedia({ video: false, audio: constraints.audio })
+            .then(handleStream);
+        }
+        throw err;
       })
       .catch(function (err) {
-        console.error('[teacher-studio] camera error:', err);
-        alert(tPermissionDenied);
+        console.error('[teacher-studio] camera error:', err.name, err.message);
+        if (err.name === 'NotAllowedError') {
+          alert(tPermissionDenied);
+        } else if (err.name === 'NotFoundError' || err.name === 'NotReadableError') {
+          alert(isDa ? 'Ingen kamera eller mikrofon fundet.' : 'No camera or microphone found.');
+        } else {
+          alert((isDa ? 'Kamerafejl: ' : 'Camera error: ') + err.message);
+        }
       });
+  }
+
+  function handleStream(stream) {
+    mediaStream = stream;
+    previewVideo.srcObject = stream;
+    if (stream.getVideoTracks().length > 0) {
+      placeholder.classList.add('yts-preview__placeholder--hidden');
+    }
+    devicesPanel.style.display = '';
+    enumerateDevices();
+    updateGoLiveState();
   }
 
   function enumerateDevices() {
@@ -317,15 +337,23 @@
 
     // If camera not started yet, request it now
     if (!mediaStream) {
-      navigator.mediaDevices.getUserMedia(getConstraints())
+      var constraints = getConstraints();
+      navigator.mediaDevices.getUserMedia(constraints)
         .then(function (stream) {
-          mediaStream = stream;
-          previewVideo.srcObject = stream;
-          placeholder.classList.add('yts-preview__placeholder--hidden');
-          devicesPanel.style.display = '';
-          enumerateDevices();
-          // Now proceed to connect
+          handleStream(stream);
           doGoLive();
+        })
+        .catch(function (err) {
+          console.warn('[teacher-studio] full constraints failed:', err.name, err.message);
+          // If video failed (no camera), try audio-only
+          if (constraints.video && constraints.audio) {
+            return navigator.mediaDevices.getUserMedia({ video: false, audio: constraints.audio })
+              .then(function (stream) {
+                handleStream(stream);
+                doGoLive();
+              });
+          }
+          throw err;
         })
         .catch(function (err) {
           console.error('[teacher-studio] camera error:', err.name, err.message);
@@ -333,7 +361,7 @@
           goLiveBtn.disabled = false;
           if (err.name === 'NotAllowedError') {
             alert(tPermissionDenied);
-          } else if (err.name === 'NotFoundError') {
+          } else if (err.name === 'NotFoundError' || err.name === 'NotReadableError') {
             alert(isDa ? 'Ingen kamera eller mikrofon fundet.' : 'No camera or microphone found.');
           } else {
             alert((isDa ? 'Kamerafejl: ' : 'Camera error: ') + err.message);
