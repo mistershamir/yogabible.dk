@@ -705,7 +705,7 @@ function callAiProcess(sessionId, assetId) {
 
     var opts = {
       hostname: 'yogabible.dk',
-      path: '/.netlify/functions/ai-process-recording',
+      path: '/.netlify/functions/ai-process-recording-background',
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
