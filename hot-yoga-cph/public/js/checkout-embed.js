@@ -480,6 +480,9 @@
       '.yb-auth-field input::placeholder{color:#B5B0AB}',
       '.yb-auth-field input:focus{border-color:' + BRAND + ';box-shadow:0 0 0 3px ' + BRAND_RGBA12 + '}',
       '.yb-auth-hint{font-size:.78rem;color:#6F6A66;margin-top:-2px}',
+      '.yb-auth-notice{background:#F5F3F0;border-radius:10px;padding:12px 14px;margin-top:4px}',
+      '.yb-auth-notice p{font-size:.82rem;color:#6F6A66;line-height:1.45;margin:0}',
+      '.yb-auth-notice strong{color:#0F0F0F}',
       '.yb-auth-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;overflow:hidden}',
 
       // ── Submit button — teal ─────────────────────────────────────
@@ -767,6 +770,10 @@
     h +=   '<div class="yb-auth-links">';
     h +=     '<a href="#" data-ycf-action="forgot" data-yj-da>Glemt adgangskode?</a>';
     h +=     '<a href="#" data-ycf-action="forgot" data-yj-en hidden>Forgot password?</a>';
+    h +=   '</div>';
+    h +=   '<div class="yb-auth-notice">';
+    h +=     '<p data-yj-da>Bruger du vores app i dag? Opret en profil herunder med <strong>samme email</strong> som i appen \u2014 s\u00e5 bliver alt koblet sammen automatisk.</p>';
+    h +=     '<p data-yj-en hidden>Already using our app? Create a profile below with the <strong>same email</strong> as in the app \u2014 everything will be linked automatically.</p>';
     h +=   '</div>';
     h +=   '<div class="yb-auth-divider">';
     h +=     '<span data-yj-da>Har du ikke en konto?</span>';
