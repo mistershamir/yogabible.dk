@@ -397,6 +397,20 @@
       updateTileMuteState(participant);
     });
 
+    // Active speaker detection — highlight who's talking
+    room.on(LivekitClient.RoomEvent.ActiveSpeakersChanged, function (speakers) {
+      // Clear all speaking highlights
+      Object.keys(participantTiles).forEach(function (id) {
+        var t = participantTiles[id];
+        if (t) t.classList.remove('yb-live-tile--speaking');
+      });
+      // Highlight active speakers
+      for (var si = 0; si < speakers.length; si++) {
+        var t = participantTiles[speakers[si].identity];
+        if (t) t.classList.add('yb-live-tile--speaking');
+      }
+    });
+
     // Participant connected/disconnected
     room.on(LivekitClient.RoomEvent.ParticipantConnected, function (participant) {
       console.log('[live-i] Participant connected:', participant.identity);
@@ -486,11 +500,20 @@
     return meta.name || participant.name || participant.identity.split('-')[0] || 'Participant';
   }
 
-  function createTileElement(identity, name, isLocal) {
+  function getParticipantRole(participant) {
+    if (!participant) return 'viewer';
+    var meta = {};
+    try { meta = JSON.parse(participant.metadata || '{}'); } catch (e) {}
+    return meta.role || (participant.identity.indexOf('teacher-') === 0 ? 'teacher' : 'viewer');
+  }
+
+  function createTileElement(identity, name, isLocal, role) {
     var tile = document.createElement('div');
     tile.className = 'yb-live-tile' + (isLocal ? ' yb-live-tile--local yb-live-tile--no-video' : ' yb-live-tile--no-video');
+    if (role === 'teacher') tile.className += ' yb-live-tile--teacher';
     tile.id = 'yb-live-tile-' + identity;
     tile.dataset.identity = identity;
+    tile.dataset.role = role || 'viewer';
 
     // Avatar (shown when no video)
     var avatar = document.createElement('div');
@@ -498,10 +521,14 @@
     avatar.textContent = (name || '?').charAt(0).toUpperCase();
     tile.appendChild(avatar);
 
-    // Name label
+    // Name label with role badge
     var nameEl = document.createElement('div');
     nameEl.className = 'yb-live-tile__name';
-    nameEl.textContent = isLocal ? T.you : name;
+    if (role === 'teacher') {
+      nameEl.innerHTML = '<span class="yb-live-tile__role-badge">' + (isDa ? 'UNDERVISER' : 'TEACHER') + '</span> ' + esc(isLocal ? T.you : name);
+    } else {
+      nameEl.textContent = isLocal ? T.you : name;
+    }
     tile.appendChild(nameEl);
 
     // Hand raised icon
@@ -521,7 +548,8 @@
 
   function createLocalTile(localParticipant) {
     var name = getParticipantName(localParticipant);
-    var tile = createTileElement(localParticipant.identity, name, true);
+    var role = getParticipantRole(localParticipant);
+    var tile = createTileElement(localParticipant.identity, name, true, role);
 
     // Attach local video preview
     if (localVideoTrack) {
@@ -542,7 +570,8 @@
   function ensureParticipantTile(participant) {
     if (participantTiles[participant.identity]) return;
     var name = getParticipantName(participant);
-    var tile = createTileElement(participant.identity, name, false);
+    var role = getParticipantRole(participant);
+    var tile = createTileElement(participant.identity, name, false, role);
     participantTiles[participant.identity] = tile;
     gridEl.appendChild(tile);
     updateGridLayout();
@@ -1000,7 +1029,8 @@
       }
 
       if (liveSession) {
-        console.log('[live] Found live session:', liveSession.id, 'interactive:', !!liveSession.interactive);
+        var sType = liveSession.streamType || (liveSession.interactive ? 'interactive' : 'broadcast');
+        console.log('[live] Found live session:', liveSession.id, 'streamType:', sType);
 
         // Store session start time for persistent elapsed timer
         if (liveSession.liveStartedAt) {
@@ -1009,8 +1039,8 @@
           sessionLiveStartTime = new Date(liveSession.startDateTime).getTime();
         }
 
-        // Interactive session → show join prompt
-        if (liveSession.interactive) {
+        // Interactive or panel session → show join prompt
+        if (sType === 'interactive' || sType === 'panel') {
           isInteractive = true;
           showInteractiveJoin(liveSession);
           renderSchedule(data.items);

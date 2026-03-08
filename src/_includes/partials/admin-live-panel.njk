@@ -265,12 +265,22 @@
       <p style="font-size:0.8rem;color:#6F6A66;margin:0.25rem 0 0">{{ t.live_cohorts_help }}</p>
     </div>
 
-    {# Interactive (two-way video) #}
+    {# Stream Type #}
     <div class="yb-admin__field">
-      <label class="yb-admin__checkbox-label" style="font-weight:600">
-        <input type="checkbox" id="yb-la-interactive"> {{ t.live_field_interactive or "Interactive (two-way video)" }}
-      </label>
-      <p style="font-size:0.8rem;color:#6F6A66;margin:0.25rem 0 0">{{ t.live_interactive_help or "Students can join with camera & microphone (Zoom-style group call)" }}</p>
+      <label for="yb-la-stream-type">{{ t.live_field_stream_type or "Stream Type" }}</label>
+      <select id="yb-la-stream-type" class="yb-admin__input">
+        <option value="broadcast">{{ t.live_stream_broadcast or "Broadcast — teacher streams, students watch" }}</option>
+        <option value="interactive">{{ t.live_stream_interactive or "Interactive — students join with camera & mic" }}</option>
+        <option value="panel">{{ t.live_stream_panel or "Panel — multiple teachers stream together" }}</option>
+      </select>
+      <p style="font-size:0.8rem;color:#6F6A66;margin:0.25rem 0 0">{{ t.live_stream_type_help or "Defines who can publish video/audio in this session" }}</p>
+    </div>
+
+    {# Co-teachers (only for panel sessions) #}
+    <div class="yb-admin__field" id="yb-la-coteachers-field" style="display:none">
+      <label for="yb-la-coteachers">{{ t.live_field_coteachers or "Co-teachers (emails)" }}</label>
+      <input type="text" id="yb-la-coteachers" placeholder="{{ t.live_coteachers_hint or "teacher1@yogabible.dk, teacher2@yogabible.dk" }}">
+      <p style="font-size:0.8rem;color:#6F6A66;margin:0.25rem 0 0">{{ t.live_coteachers_help or "Comma-separated emails. These teachers can also Go Live for this session." }}</p>
     </div>
 
     {# Access: Roles #}
