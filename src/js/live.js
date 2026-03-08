@@ -604,8 +604,28 @@
     } else if (track.kind === 'audio') {
       var audioEl = track.attach();
       audioEl.id = 'yb-live-audio-' + participant.identity;
-      audioEl.style.display = 'none';
+      // Use absolute positioning instead of display:none — some mobile browsers
+      // block audio playback on elements with display:none
+      audioEl.style.position = 'absolute';
+      audioEl.style.width = '1px';
+      audioEl.style.height = '1px';
+      audioEl.style.overflow = 'hidden';
+      audioEl.style.opacity = '0';
       tile.appendChild(audioEl);
+      // Handle autoplay policy
+      var playPromise = audioEl.play();
+      if (playPromise && playPromise.catch) {
+        playPromise.catch(function () {
+          console.log('[live-i] Audio autoplay blocked for', participant.identity);
+          function resumeAudio() {
+            audioEl.play().catch(function () {});
+            document.removeEventListener('click', resumeAudio);
+            document.removeEventListener('touchstart', resumeAudio);
+          }
+          document.addEventListener('click', resumeAudio);
+          document.addEventListener('touchstart', resumeAudio);
+        });
+      }
     }
   }
 
