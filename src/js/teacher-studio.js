@@ -373,10 +373,14 @@
     doGoLive();
   }
 
+  var goLiveInProgress = false;
+
   function doGoLive() {
+    if (goLiveInProgress) return;
+    goLiveInProgress = true;
 
     var user = firebase.auth().currentUser;
-    if (!user) return;
+    if (!user) { goLiveInProgress = false; return; }
 
     user.getIdToken().then(function (token) {
       return fetch('/.netlify/functions/livekit-token?action=create-room', {
@@ -430,6 +434,7 @@
       setStatus('error');
       statusText.textContent = tError + ' — ' + (err.message || 'please try again');
       goLiveBtn.disabled = false;
+      goLiveInProgress = false;
     });
   }
 
