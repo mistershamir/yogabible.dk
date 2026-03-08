@@ -161,6 +161,16 @@
     display: flex;
   }
 
+  .yb-live-viewer-count {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    font-size: 0.82rem;
+    color: #6F6A66;
+    margin-top: 8px;
+  }
+
   .yb-live-elapsed__icon {
     width: 14px;
     height: 14px;
@@ -949,6 +959,7 @@
       <span class="yb-live-elapsed__label">{{ t.elapsed_label }}</span>
       <span class="yb-live-elapsed__time" id="yb-live-elapsed-time">00:00</span>
     </div>
+    <div class="yb-live-viewer-count" id="yb-live-viewer-count" style="display:none"></div>
   </div>
 
   {# Interactive: Join prompt (shown before student joins) #}

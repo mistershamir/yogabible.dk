@@ -291,9 +291,13 @@ async function handleCreateRoom(event) {
   }
 
   // Update session with LiveKit room info + Mux recording info
+  // Also set status to 'live' and liveStartedAt here (not just in set-live)
+  // to avoid timer discrepancy between teacher and viewer
   var sessionUpdate = {
     livekitRoom: roomName,
     streamSource: 'remote',
+    status: 'live',
+    liveStartedAt: new Date().toISOString(),
     updated_by: user.email
   };
   if (muxStreamId) sessionUpdate.muxLiveStreamId = muxStreamId;
