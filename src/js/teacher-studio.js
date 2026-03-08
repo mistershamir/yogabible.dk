@@ -500,6 +500,15 @@
   function updateGoLiveState() {
     if (goLiveBtn) {
       goLiveBtn.disabled = !(selectedSession && !isLive && !isTestMode);
+      // Update button label for meet sessions
+      if (selectedSession) {
+        var st = selectedSession.streamType || (selectedSession.interactive ? 'interactive' : 'broadcast');
+        if (st === 'meet') {
+          goLiveBtn.textContent = isDa ? 'Start møde' : 'Start meeting';
+        } else {
+          goLiveBtn.textContent = isDa ? 'Gå live' : 'Go Live';
+        }
+      }
     }
   }
 
@@ -618,6 +627,13 @@
       return;
     }
 
+    // Google Meet sessions — no LiveKit needed, just set status to live and open Meet
+    var sType = selectedSession.streamType || (selectedSession.interactive ? 'interactive' : 'broadcast');
+    if (sType === 'meet') {
+      goLiveMeet();
+      return;
+    }
+
     setStatus('connecting');
     goLiveBtn.disabled = true;
 
@@ -722,6 +738,60 @@
       statusText.textContent = tError + ' — ' + (err.message || 'please try again');
       goLiveBtn.disabled = false;
       goLiveInProgress = false;
+    });
+  }
+
+  // ═══════════════════════════════════════════════════════
+  // GO LIVE — Google Meet (no LiveKit, just set status + open link)
+  // ═══════════════════════════════════════════════════════
+  function goLiveMeet() {
+    setStatus('connecting');
+    goLiveBtn.disabled = true;
+
+    var user = firebase.auth().currentUser;
+    if (!user) { goLiveBtn.disabled = false; return; }
+
+    user.getIdToken().then(function (token) {
+      return fetch('/.netlify/functions/live-admin?action=set-live', {
+        method: 'POST',
+        headers: {
+          'Authorization': 'Bearer ' + token,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ sessionId: selectedSession.id })
+      });
+    })
+    .then(function (r) { return r.json(); })
+    .then(function (data) {
+      if (data.error) throw new Error(data.error);
+
+      isLive = true;
+      setStatus('live');
+      goLiveBtn.style.display = 'none';
+      endStreamBtn.style.display = '';
+      if (testStreamBtn) testStreamBtn.style.display = 'none';
+      liveBadge.style.display = '';
+      startElapsed();
+
+      // Open the Google Meet link in a new tab
+      var meetUrl = selectedSession.meetingUrl;
+      if (meetUrl) {
+        window.open(meetUrl, '_blank');
+      }
+
+      // Show info in preview area
+      if (previewEl) {
+        previewEl.innerHTML = '<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;gap:1rem;color:#FFFCF9">'
+          + '<svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#f75c03" stroke-width="1.5"><path d="M23 7l-7 5 7 5V7z"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>'
+          + '<p style="font-size:1.1rem;margin:0">' + (isDa ? 'Google Meet session er live' : 'Google Meet session is live') + '</p>'
+          + '<a href="' + (meetUrl || '#') + '" target="_blank" rel="noopener" style="color:#f75c03;font-size:0.9rem">' + (isDa ? 'Åbn mødet igen' : 'Reopen meeting') + '</a>'
+          + '</div>';
+      }
+    })
+    .catch(function (err) {
+      console.error('[teacher-studio] meet go-live error:', err);
+      setStatus('error');
+      goLiveBtn.disabled = false;
     });
   }
 
@@ -1020,6 +1090,25 @@
         });
       }
       activeRoomName = null;
+    } else if (selectedSession) {
+      // Meet session (no LiveKit room) — update Firestore status directly
+      var user3 = firebase.auth().currentUser;
+      if (user3) {
+        user3.getIdToken().then(function (token) {
+          fetch('/.netlify/functions/live-admin', {
+            method: 'PUT',
+            headers: {
+              'Authorization': 'Bearer ' + token,
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+              id: selectedSession.id,
+              status: 'ended',
+              liveEndedAt: new Date().toISOString()
+            })
+          }).catch(function () {});
+        });
+      }
     }
 
     setTimeout(fetchSessions, 2000);

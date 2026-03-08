@@ -31,7 +31,7 @@ const ALLOWED_FIELDS = [
   'recordingPlaybackId', 'recordingAssetId',
   'liveStartedAt', 'liveEndedAt',
   'status', 'recurrence', 'access', 'cohorts',
-  'streamSource', 'livekitRoom', 'interactive', 'streamType', 'coTeachers',
+  'streamSource', 'livekitRoom', 'interactive', 'streamType', 'coTeachers', 'meetingUrl',
   'aiSummary', 'aiQuiz', 'aiSummaryLang'
 ];
 

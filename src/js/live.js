@@ -307,6 +307,70 @@
   }
 
   // ═══════════════════════════════════════════════════════
+  // ═══════════════════════════════════════════════════════
+  // GOOGLE MEET MODE — embedded external meeting
+  // ═══════════════════════════════════════════════════════
+
+  var meetSection = document.getElementById('yb-live-meet');
+  var meetIframe = document.getElementById('yb-live-meet-iframe');
+  var meetTitle = document.getElementById('yb-live-meet-title');
+  var meetInstructor = document.getElementById('yb-live-meet-instructor');
+  var meetExternal = document.getElementById('yb-live-meet-external');
+  var meetFallback = document.getElementById('yb-live-meet-fallback');
+  var meetFallbackTitle = document.getElementById('yb-live-meet-fallback-title');
+  var meetLink = document.getElementById('yb-live-meet-link');
+
+  function showMeetSession(session) {
+    currentSession = session;
+    var title = isDa ? (session.title_da || session.title_en || '') : (session.title_en || session.title_da || '');
+    var url = session.meetingUrl;
+
+    // Hide other sections
+    playerSection.style.display = 'none';
+    offlineSection.style.display = 'none';
+    joinSection.style.display = 'none';
+    interactiveSection.classList.remove('yb-live-interactive--active');
+
+    // Show badge
+    badge.classList.add('yb-live-badge--visible');
+    checkingOverlay.classList.add('yb-live-player__checking--hidden');
+
+    if (pollTimer) {
+      clearInterval(pollTimer);
+      pollTimer = null;
+    }
+
+    // Set header info
+    if (meetTitle) meetTitle.textContent = title;
+    if (meetInstructor) meetInstructor.textContent = session.instructor || '';
+    if (meetExternal) meetExternal.href = url;
+    if (meetLink) meetLink.href = url;
+    if (meetFallbackTitle) meetFallbackTitle.textContent = title;
+
+    // Try to embed the meeting in an iframe
+    if (meetIframe) {
+      meetIframe.src = url;
+      // Detect if iframe is blocked (Google may block embedding)
+      meetIframe.onerror = function () {
+        showMeetFallback();
+      };
+      // Also check after a timeout — if iframe loads but shows X-Frame-Options error,
+      // the onerror won't fire, but we can't detect that easily.
+      // Show the "open in new window" link prominently as backup.
+    }
+
+    if (meetSection) meetSection.style.display = 'block';
+
+    // Start elapsed timer
+    startElapsedTimer();
+  }
+
+  function showMeetFallback() {
+    if (meetIframe) meetIframe.parentElement.style.display = 'none';
+    if (meetFallback) meetFallback.style.display = 'block';
+  }
+
+  // ═══════════════════════════════════════════════════════
   // INTERACTIVE MODE — Zoom-style group call
   // ═══════════════════════════════════════════════════════
 
@@ -957,6 +1021,7 @@
     offlineSection.style.display = 'block';
     joinSection.style.display = 'none';
     interactiveSection.classList.remove('yb-live-interactive--active');
+    if (meetSection) { meetSection.style.display = 'none'; if (meetIframe) meetIframe.src = ''; }
     badge.classList.remove('yb-live-badge--visible');
     checkingOverlay.classList.add('yb-live-player__checking--hidden');
     if (viewerCountEl) viewerCountEl.style.display = 'none';
@@ -1067,10 +1132,12 @@
       }
 
       // Priority 1: LiveKit room
+      // Priority 1: Find any live session (LiveKit or Meet)
       var liveSession = null;
       for (var i = 0; i < data.items.length; i++) {
-        if (data.items[i].status === 'live' && data.items[i].livekitRoom) {
-          liveSession = data.items[i];
+        var s = data.items[i];
+        if (s.status === 'live' && (s.livekitRoom || s.streamType === 'meet')) {
+          liveSession = s;
           break;
         }
       }
@@ -1084,6 +1151,13 @@
           sessionLiveStartTime = new Date(liveSession.liveStartedAt).getTime();
         } else if (liveSession.startDateTime) {
           sessionLiveStartTime = new Date(liveSession.startDateTime).getTime();
+        }
+
+        // Google Meet session → show embedded meeting
+        if (sType === 'meet' && liveSession.meetingUrl) {
+          showMeetSession(liveSession);
+          renderSchedule(data.items);
+          return;
         }
 
         // Interactive or panel session → show join prompt

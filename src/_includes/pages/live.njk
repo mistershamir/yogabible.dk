@@ -803,6 +803,66 @@
   }
 
   /* Join prompt (shown before joining interactive session) */
+  /* Google Meet embed */
+  .yb-live-meet {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 0 1.5rem;
+  }
+
+  .yb-live-meet__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 1rem;
+    padding: 0 0.25rem;
+  }
+
+  .yb-live-meet__title {
+    font-size: 1.2rem;
+    color: #FFFCF9;
+    margin: 0;
+  }
+
+  .yb-live-meet__instructor {
+    font-size: 0.85rem;
+    color: #6F6A66;
+    margin: 0.25rem 0 0;
+  }
+
+  .yb-live-meet__external {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    color: #f75c03;
+    font-size: 0.85rem;
+    text-decoration: none;
+    padding: 6px 14px;
+    border: 1px solid rgba(247,92,3,0.3);
+    border-radius: 8px;
+    transition: all 0.2s;
+  }
+
+  .yb-live-meet__external:hover {
+    background: rgba(247,92,3,0.1);
+    border-color: #f75c03;
+  }
+
+  .yb-live-meet__embed {
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    border-radius: 12px;
+    overflow: hidden;
+    background: #1a1a1a;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+  }
+
+  .yb-live-meet__embed iframe {
+    width: 100%;
+    height: 100%;
+    border: 0;
+  }
+
   .yb-live-join {
     display: none;
     max-width: 960px;
@@ -960,6 +1020,40 @@
       <span class="yb-live-elapsed__time" id="yb-live-elapsed-time">00:00</span>
     </div>
     <div class="yb-live-viewer-count" id="yb-live-viewer-count" style="display:none"></div>
+  </div>
+
+  {# Google Meet: Embedded meeting view #}
+  <div class="yb-live-meet" id="yb-live-meet" style="display:none">
+    <div class="yb-live-meet__header">
+      <div class="yb-live-meet__info">
+        <h2 class="yb-live-meet__title" id="yb-live-meet-title"></h2>
+        <p class="yb-live-meet__instructor" id="yb-live-meet-instructor"></p>
+      </div>
+      <div class="yb-live-meet__actions">
+        <a class="yb-live-meet__external" id="yb-live-meet-external" href="#" target="_blank" rel="noopener">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/>
+          </svg>
+          <span data-yj-da="Åbn i nyt vindue" data-yj-en="Open in new window"></span>
+        </a>
+      </div>
+    </div>
+    <div class="yb-live-meet__embed">
+      <iframe id="yb-live-meet-iframe" allow="camera; microphone; display-capture; autoplay; fullscreen" allowfullscreen></iframe>
+    </div>
+    <div class="yb-live-meet__fallback" id="yb-live-meet-fallback" style="display:none">
+      <div class="yb-live-join__card">
+        <div class="yb-live-join__icon">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#f75c03" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M23 7l-7 5 7 5V7z"/>
+            <rect x="1" y="5" width="15" height="14" rx="2" ry="2"/>
+          </svg>
+        </div>
+        <h2 class="yb-live-join__title" id="yb-live-meet-fallback-title"></h2>
+        <p class="yb-live-join__text" data-yj-da="Klik nedenfor for at deltage i mødet" data-yj-en="Click below to join the meeting"></p>
+        <a class="yb-live-join__btn" id="yb-live-meet-link" href="#" target="_blank" rel="noopener" data-yj-da="Deltag i mødet" data-yj-en="Join meeting"></a>
+      </div>
+    </div>
   </div>
 
   {# Interactive: Join prompt (shown before student joins) #}

@@ -271,9 +271,17 @@
       <select id="yb-la-stream-type" class="yb-admin__input">
         <option value="broadcast">{{ t.live_stream_broadcast or "Broadcast — teacher streams, students watch" }}</option>
         <option value="interactive">{{ t.live_stream_interactive or "Interactive — students join with camera & mic" }}</option>
+        <option value="meet">{{ t.live_stream_meet or "Google Meet — external video meeting" }}</option>
         <option value="panel">{{ t.live_stream_panel or "Panel — multiple teachers stream together" }}</option>
       </select>
       <p style="font-size:0.8rem;color:#6F6A66;margin:0.25rem 0 0">{{ t.live_stream_type_help or "Defines who can publish video/audio in this session" }}</p>
+    </div>
+
+    {# Meeting URL (for Google Meet / external meeting links) #}
+    <div class="yb-admin__field" id="yb-la-meeting-url-field" style="display:none">
+      <label for="yb-la-meeting-url">{{ t.live_field_meeting_url or "Meeting URL" }}</label>
+      <input type="url" id="yb-la-meeting-url" placeholder="https://meet.google.com/abc-defg-hij">
+      <p style="font-size:0.8rem;color:#6F6A66;margin:0.25rem 0 0">{{ t.live_meeting_url_help or "Paste your Google Meet, Zoom, or other meeting link here" }}</p>
     </div>
 
     {# Co-teachers (only for panel sessions) #}
