@@ -35,6 +35,7 @@
   var liveBadge = document.getElementById('yts-live-badge');
   var elapsedEl = document.getElementById('yts-elapsed');
   var elapsedTimeEl = document.getElementById('yts-elapsed-time');
+  var testStreamBtn = document.getElementById('yts-test-stream');
 
   // ── i18n data attributes ──
   var lang = root.dataset.lang || 'da';
@@ -54,12 +55,19 @@
 
   // ── State ──
   var mediaStream = null;
-  var livekitRoom = null;    // LiveKit Room instance
+  var livekitRoom = null;
+  var publishedVideoTrack = null;  // LiveKit LocalVideoTrack we published
+  var publishedAudioTrack = null;  // LiveKit LocalAudioTrack we published
   var selectedSession = null;
   var activeRoomName = null;
   var isLive = false;
+  var isTestMode = false;
+  var testRoomName = null;
   var elapsedTimer = null;
   var liveStartTime = null;
+  var cameraEnabled = true;
+  var micEnabled = true;
+  var allCameras = [];  // full device list for flip
 
   // ═══════════════════════════════════════════════════════
   // AUTH GATE — show studio only for teacher/admin
@@ -189,7 +197,7 @@
   }
 
   function handleSessionClick(e) {
-    if (isLive) return;
+    if (isLive || isTestMode) return;
 
     var el = e.currentTarget;
     var sessionData = JSON.parse(el.dataset.session);
@@ -207,6 +215,67 @@
   // ═══════════════════════════════════════════════════════
   // CAMERA & MICROPHONE — preview + device selection
   // ═══════════════════════════════════════════════════════
+
+  /**
+   * Filter cameras to only front/back on mobile, or simplify labels on desktop.
+   * Returns filtered + relabelled camera list.
+   */
+  function filterCameras(cameras) {
+    var isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent) ||
+      (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+
+    if (!isMobile) return cameras;
+
+    // On mobile: pick one front, one back based on label
+    var front = null;
+    var back = null;
+    for (var i = 0; i < cameras.length; i++) {
+      var label = (cameras[i].label || '').toLowerCase();
+      // Skip ultra wide, telephoto, infrared, LiDAR, etc.
+      if (label.indexOf('ultra') !== -1 || label.indexOf('telephoto') !== -1 ||
+          label.indexOf('infrared') !== -1 || label.indexOf('lidar') !== -1 ||
+          label.indexOf('truedepth') !== -1) continue;
+      if (!back && (label.indexOf('back') !== -1 || label.indexOf('rear') !== -1 || label.indexOf('bag') !== -1)) {
+        back = cameras[i];
+      }
+      if (!front && (label.indexOf('front') !== -1 || label.indexOf('user') !== -1 || label.indexOf('facetime') !== -1 || label.indexOf('selfie') !== -1)) {
+        front = cameras[i];
+      }
+    }
+
+    // If no labels matched, use first two cameras (front-facing first on iOS)
+    if (!front && !back) {
+      front = cameras[0] || null;
+      back = cameras[1] || null;
+    } else if (!front) {
+      // Find the first camera that isn't the back camera
+      for (var j = 0; j < cameras.length; j++) {
+        if (cameras[j].deviceId !== (back && back.deviceId)) {
+          var l = (cameras[j].label || '').toLowerCase();
+          if (l.indexOf('ultra') === -1 && l.indexOf('telephoto') === -1 && l.indexOf('infrared') === -1) {
+            front = cameras[j];
+            break;
+          }
+        }
+      }
+    } else if (!back) {
+      for (var k = 0; k < cameras.length; k++) {
+        if (cameras[k].deviceId !== (front && front.deviceId)) {
+          var lb = (cameras[k].label || '').toLowerCase();
+          if (lb.indexOf('ultra') === -1 && lb.indexOf('telephoto') === -1 && lb.indexOf('infrared') === -1) {
+            back = cameras[k];
+            break;
+          }
+        }
+      }
+    }
+
+    var result = [];
+    if (front) result.push({ deviceId: front.deviceId, label: isDa ? 'Frontkamera' : 'Front Camera', kind: 'videoinput' });
+    if (back) result.push({ deviceId: back.deviceId, label: isDa ? 'Bagkamera' : 'Back Camera', kind: 'videoinput' });
+    return result.length ? result : cameras;
+  }
+
   function getConstraints() {
     var quality = qualitySelect ? qualitySelect.value : '720';
     var videoConstraints = {};
@@ -240,7 +309,6 @@
       .then(handleStream)
       .catch(function (err) {
         console.warn('[teacher-studio] full constraints failed:', err.name, err.message);
-        // If video failed (no camera), try audio-only so mic still works
         if (constraints.video && constraints.audio) {
           return navigator.mediaDevices.getUserMedia({ video: false, audio: constraints.audio })
             .then(handleStream);
@@ -272,7 +340,9 @@
 
   function enumerateDevices() {
     navigator.mediaDevices.enumerateDevices().then(function (devices) {
-      var cameras = devices.filter(function (d) { return d.kind === 'videoinput'; });
+      var rawCameras = devices.filter(function (d) { return d.kind === 'videoinput'; });
+      var cameras = filterCameras(rawCameras);
+      allCameras = cameras;
       var mics = devices.filter(function (d) { return d.kind === 'audioinput'; });
 
       var currentCam = '';
@@ -304,23 +374,225 @@
     });
   }
 
+  /**
+   * Switch camera/mic device. If we're live, republish tracks to LiveKit.
+   * This fixes the bug where changing camera broke the viewer feed.
+   */
   function switchDevice() {
     if (!mediaStream) return;
     mediaStream.getTracks().forEach(function (t) { t.stop(); });
-    startCamera();
+
+    var constraints = getConstraints();
+    navigator.mediaDevices.getUserMedia(constraints)
+      .then(function (stream) {
+        handleStream(stream);
+
+        // If live, replace the published tracks in LiveKit
+        if ((isLive || isTestMode) && livekitRoom) {
+          republishTracks(stream);
+        }
+      })
+      .catch(function (err) {
+        console.error('[teacher-studio] switchDevice error:', err);
+      });
+  }
+
+  /**
+   * Replace published LiveKit tracks with new ones from the stream.
+   * This is the key fix: viewers get the new track automatically.
+   */
+  function republishTracks(stream) {
+    var room = livekitRoom;
+    if (!room) return;
+
+    var newVideoTrack = stream.getVideoTracks()[0];
+    var newAudioTrack = stream.getAudioTracks()[0];
+
+    // Unpublish old tracks, publish new ones
+    var unpublishPromises = [];
+
+    if (publishedVideoTrack) {
+      try {
+        room.localParticipant.unpublishTrack(publishedVideoTrack);
+      } catch (e) { console.warn('[teacher-studio] unpublish video:', e.message); }
+      publishedVideoTrack = null;
+    }
+    if (publishedAudioTrack) {
+      try {
+        room.localParticipant.unpublishTrack(publishedAudioTrack);
+      } catch (e) { console.warn('[teacher-studio] unpublish audio:', e.message); }
+      publishedAudioTrack = null;
+    }
+
+    var publishPromises = [];
+
+    if (newVideoTrack) {
+      var lv = new LivekitClient.LocalVideoTrack(newVideoTrack);
+      publishedVideoTrack = lv;
+      publishPromises.push(
+        room.localParticipant.publishTrack(lv, {
+          source: LivekitClient.Track.Source.Camera,
+          simulcast: true
+        })
+      );
+    }
+
+    if (newAudioTrack) {
+      var la = new LivekitClient.LocalAudioTrack(newAudioTrack);
+      publishedAudioTrack = la;
+      publishPromises.push(
+        room.localParticipant.publishTrack(la, {
+          source: LivekitClient.Track.Source.Microphone
+        })
+      );
+    }
+
+    Promise.all(publishPromises).then(function () {
+      console.log('[teacher-studio] Tracks republished after device switch');
+      // Restore mute states
+      if (!cameraEnabled && publishedVideoTrack) {
+        publishedVideoTrack.mute();
+      }
+      if (!micEnabled && publishedAudioTrack) {
+        publishedAudioTrack.mute();
+      }
+    }).catch(function (err) {
+      console.error('[teacher-studio] republish error:', err);
+    });
+  }
+
+  /**
+   * Flip camera (toggle between front and back).
+   */
+  function flipCamera() {
+    if (allCameras.length < 2) return;
+    var currentIdx = -1;
+    var currentId = cameraSelect ? cameraSelect.value : '';
+    for (var i = 0; i < allCameras.length; i++) {
+      if (allCameras[i].deviceId === currentId) { currentIdx = i; break; }
+    }
+    var nextIdx = (currentIdx + 1) % allCameras.length;
+    if (cameraSelect) cameraSelect.value = allCameras[nextIdx].deviceId;
+    switchDevice();
   }
 
   if (startCameraBtn) startCameraBtn.addEventListener('click', startCamera);
   if (cameraSelect) cameraSelect.addEventListener('change', switchDevice);
   if (micSelect) micSelect.addEventListener('change', switchDevice);
   if (qualitySelect) qualitySelect.addEventListener('change', function () {
-    if (mediaStream && !isLive) switchDevice();
+    if (mediaStream && !isLive && !isTestMode) switchDevice();
   });
 
   function updateGoLiveState() {
     if (goLiveBtn) {
-      goLiveBtn.disabled = !(selectedSession && !isLive);
+      goLiveBtn.disabled = !(selectedSession && !isLive && !isTestMode);
     }
+  }
+
+  // ═══════════════════════════════════════════════════════
+  // LIVE CONTROLS — mute camera, mute mic, flip camera
+  // ═══════════════════════════════════════════════════════
+  var controlsBar = null;
+
+  function createLiveControls() {
+    if (controlsBar) return;
+    var viewport = document.getElementById('yts-viewport');
+    if (!viewport) return;
+
+    controlsBar = document.createElement('div');
+    controlsBar.className = 'yts-live-controls';
+    controlsBar.innerHTML =
+      '<button class="yts-live-controls__btn yts-live-controls__btn--active" id="yts-ctrl-cam" title="' + (isDa ? 'Kamera til/fra' : 'Camera on/off') + '">' +
+        '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m22 8-6 4 6 4V8Z"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>' +
+      '</button>' +
+      '<button class="yts-live-controls__btn yts-live-controls__btn--active" id="yts-ctrl-mic" title="' + (isDa ? 'Mikrofon til/fra' : 'Mic on/off') + '">' +
+        '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>' +
+      '</button>' +
+      '<button class="yts-live-controls__btn" id="yts-ctrl-flip" title="' + (isDa ? 'Skift kamera' : 'Flip camera') + '">' +
+        '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 2v6h-6"/><path d="M3 12a9 9 0 0 1 15-6.7L21 8"/><path d="M3 22v-6h6"/><path d="M21 12a9 9 0 0 1-15 6.7L3 16"/></svg>' +
+      '</button>';
+
+    viewport.appendChild(controlsBar);
+
+    document.getElementById('yts-ctrl-cam').addEventListener('click', toggleCamera);
+    document.getElementById('yts-ctrl-mic').addEventListener('click', toggleMic);
+    document.getElementById('yts-ctrl-flip').addEventListener('click', flipCamera);
+  }
+
+  function removeLiveControls() {
+    if (controlsBar && controlsBar.parentNode) {
+      controlsBar.parentNode.removeChild(controlsBar);
+    }
+    controlsBar = null;
+  }
+
+  function toggleCamera() {
+    cameraEnabled = !cameraEnabled;
+
+    if (publishedVideoTrack) {
+      if (cameraEnabled) publishedVideoTrack.unmute();
+      else publishedVideoTrack.mute();
+    }
+
+    // Update preview
+    if (mediaStream) {
+      var vt = mediaStream.getVideoTracks()[0];
+      if (vt) vt.enabled = cameraEnabled;
+    }
+
+    updateControlStates();
+  }
+
+  function toggleMic() {
+    micEnabled = !micEnabled;
+
+    if (publishedAudioTrack) {
+      if (micEnabled) publishedAudioTrack.unmute();
+      else publishedAudioTrack.mute();
+    }
+
+    if (mediaStream) {
+      var at = mediaStream.getAudioTracks()[0];
+      if (at) at.enabled = micEnabled;
+    }
+
+    updateControlStates();
+  }
+
+  function updateControlStates() {
+    var camBtn = document.getElementById('yts-ctrl-cam');
+    var micBtn = document.getElementById('yts-ctrl-mic');
+    if (camBtn) {
+      camBtn.className = 'yts-live-controls__btn' + (cameraEnabled ? ' yts-live-controls__btn--active' : ' yts-live-controls__btn--off');
+      if (!cameraEnabled) {
+        camBtn.innerHTML = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="1" y1="1" x2="23" y2="23"/><path d="M21 21H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h3m3-3h6l2 3h4a2 2 0 0 1 2 2v9.34"/></svg>';
+      } else {
+        camBtn.innerHTML = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m22 8-6 4 6 4V8Z"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>';
+      }
+    }
+    if (micBtn) {
+      micBtn.className = 'yts-live-controls__btn' + (micEnabled ? ' yts-live-controls__btn--active' : ' yts-live-controls__btn--off');
+      if (!micEnabled) {
+        micBtn.innerHTML = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="1" y1="1" x2="23" y2="23"/><path d="M9 9v3a3 3 0 0 0 5.12 2.12M15 9.34V4a3 3 0 0 0-5.94-.6"/><path d="M17 16.95A7 7 0 0 1 5 12v-2m14 0v2c0 .28-.02.55-.05.82"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>';
+      } else {
+        micBtn.innerHTML = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>';
+      }
+    }
+  }
+
+  // ═══════════════════════════════════════════════════════
+  // LIVE MODE LAYOUT — video becomes main, controls overlay
+  // ═══════════════════════════════════════════════════════
+  function enterLiveMode() {
+    root.classList.add('yts--live-mode');
+    createLiveControls();
+  }
+
+  function exitLiveMode() {
+    root.classList.remove('yts--live-mode');
+    removeLiveControls();
+    cameraEnabled = true;
+    micEnabled = true;
   }
 
   // ═══════════════════════════════════════════════════════
@@ -335,7 +607,6 @@
     setStatus('connecting');
     goLiveBtn.disabled = true;
 
-    // If camera not started yet, request it now
     if (!mediaStream) {
       var constraints = getConstraints();
       navigator.mediaDevices.getUserMedia(constraints)
@@ -345,7 +616,6 @@
         })
         .catch(function (err) {
           console.warn('[teacher-studio] full constraints failed:', err.name, err.message);
-          // If video failed (no camera), try audio-only
           if (constraints.video && constraints.audio) {
             return navigator.mediaDevices.getUserMedia({ video: false, audio: constraints.audio })
               .then(function (stream) {
@@ -405,13 +675,16 @@
     })
     .then(function () {
       isLive = true;
+      goLiveInProgress = false;
       setStatus('live');
       goLiveBtn.style.display = 'none';
       endStreamBtn.style.display = '';
+      if (testStreamBtn) testStreamBtn.style.display = 'none';
       liveBadge.style.display = '';
       startElapsed();
+      enterLiveMode();
 
-      // Update session status to live in Firestore via existing mux-stream endpoint
+      // Update session status to live in Firestore
       var user2 = firebase.auth().currentUser;
       if (user2) {
         user2.getIdToken().then(function (token) {
@@ -443,14 +716,10 @@
   // ═══════════════════════════════════════════════════════
   // TEST STREAM — quick connection test, no session needed
   // ═══════════════════════════════════════════════════════
-  var testStreamBtn = document.getElementById('yts-test-stream');
-  var isTestMode = false;
-  var testRoomName = null;
 
   function testStream() {
     if (isLive || isTestMode) return;
 
-    // If no camera yet, start it first
     if (!mediaStream) {
       var constraints = getConstraints();
       navigator.mediaDevices.getUserMedia(constraints)
@@ -476,7 +745,7 @@
 
   function doTestStream() {
     setStatus('connecting');
-    testStreamBtn.disabled = true;
+    if (testStreamBtn) testStreamBtn.disabled = true;
 
     var user = firebase.auth().currentUser;
     if (!user) return;
@@ -502,18 +771,21 @@
       setStatus('live');
       statusText.textContent = 'TEST — ' + (isDa ? 'forbundet' : 'connected');
       liveBadge.style.display = '';
-      liveBadge.querySelector('.yts-preview__live-dot') && (liveBadge.style.background = 'rgba(255,150,0,0.85)');
-      testStreamBtn.textContent = isDa ? 'Afslut Test' : 'End Test';
-      testStreamBtn.disabled = false;
-      testStreamBtn.className = 'yts-btn yts-btn--end';
+      liveBadge.style.background = 'rgba(255,150,0,0.9)';
+      if (testStreamBtn) {
+        testStreamBtn.textContent = isDa ? 'Afslut Test' : 'End Test';
+        testStreamBtn.disabled = false;
+        testStreamBtn.className = 'yts-btn yts-btn--end';
+      }
       goLiveBtn.style.display = 'none';
       startElapsed();
+      enterLiveMode();
     })
     .catch(function (err) {
       console.error('[teacher-studio] test stream error:', err);
       setStatus('error');
       statusText.textContent = tError + ' — ' + (err.message || '');
-      testStreamBtn.disabled = false;
+      if (testStreamBtn) testStreamBtn.disabled = false;
     });
   }
 
@@ -521,16 +793,23 @@
     isTestMode = false;
     setStatus('ended');
     stopElapsed();
+    exitLiveMode();
     liveBadge.style.display = 'none';
-    testStreamBtn.textContent = isDa ? 'Test Stream' : 'Test Stream';
-    testStreamBtn.className = 'yts-btn yts-btn--outline';
-    testStreamBtn.disabled = false;
+    liveBadge.style.background = '';
+    if (testStreamBtn) {
+      testStreamBtn.textContent = isDa ? 'Test Stream' : 'Test Stream';
+      testStreamBtn.className = 'yts-btn yts-btn--outline';
+      testStreamBtn.disabled = false;
+    }
     goLiveBtn.style.display = '';
 
     if (livekitRoom) {
       livekitRoom.disconnect();
       livekitRoom = null;
     }
+    publishedVideoTrack = null;
+    publishedAudioTrack = null;
+
     if (testRoomName) {
       var user = firebase.auth().currentUser;
       if (user) {
@@ -557,10 +836,6 @@
   // LIVEKIT — connect to room + publish tracks
   // ═══════════════════════════════════════════════════════
 
-  /**
-   * Connect to LiveKit room and publish local tracks.
-   * Uses the livekit-client SDK loaded via CDN.
-   */
   function connectLiveKit(wsUrl, token) {
     return new Promise(function (resolve, reject) {
       if (typeof LivekitClient === 'undefined') {
@@ -578,7 +853,6 @@
 
       livekitRoom = room;
 
-      // Monitor connection state
       room.on(LivekitClient.RoomEvent.Disconnected, function () {
         console.log('[teacher-studio] Disconnected from LiveKit room');
         if (isLive) {
@@ -618,7 +892,6 @@
         updateRemoteCount();
       });
 
-      // Data messages (hand raise, chat)
       room.on(LivekitClient.RoomEvent.DataReceived, function (payload, participant) {
         try {
           var msg = JSON.parse(new TextDecoder().decode(payload));
@@ -636,14 +909,14 @@
       room.connect(wsUrl, token).then(function () {
         console.log('[teacher-studio] Connected to LiveKit room:', room.name);
 
-        // Publish local tracks from our existing mediaStream
-        var videoTrack = mediaStream.getVideoTracks()[0];
-        var audioTrack = mediaStream.getAudioTracks()[0];
+        var videoTrack = mediaStream ? mediaStream.getVideoTracks()[0] : null;
+        var audioTrack = mediaStream ? mediaStream.getAudioTracks()[0] : null;
 
         var publishPromises = [];
 
         if (videoTrack) {
           var localVideo = new LivekitClient.LocalVideoTrack(videoTrack);
+          publishedVideoTrack = localVideo;
           publishPromises.push(
             room.localParticipant.publishTrack(localVideo, {
               source: LivekitClient.Track.Source.Camera,
@@ -654,6 +927,7 @@
 
         if (audioTrack) {
           var localAudio = new LivekitClient.LocalAudioTrack(audioTrack);
+          publishedAudioTrack = localAudio;
           publishPromises.push(
             room.localParticipant.publishTrack(localAudio, {
               source: LivekitClient.Track.Source.Microphone
@@ -668,6 +942,8 @@
       }).catch(function (err) {
         room.disconnect();
         livekitRoom = null;
+        publishedVideoTrack = null;
+        publishedAudioTrack = null;
         reject(err);
       });
     });
@@ -686,18 +962,20 @@
     isLive = false;
     setStatus('ended');
     stopElapsed();
+    exitLiveMode();
     liveBadge.style.display = 'none';
     endStreamBtn.style.display = 'none';
     goLiveBtn.style.display = '';
     goLiveBtn.disabled = true;
+    if (testStreamBtn) testStreamBtn.style.display = '';
 
-    // Disconnect from LiveKit room
     if (livekitRoom) {
       livekitRoom.disconnect();
       livekitRoom = null;
     }
+    publishedVideoTrack = null;
+    publishedAudioTrack = null;
 
-    // Tell backend to close the room and update session status
     if (activeRoomName) {
       var user = firebase.auth().currentUser;
       if (user) {
@@ -718,7 +996,6 @@
       activeRoomName = null;
     }
 
-    // Refresh sessions
     setTimeout(fetchSessions, 2000);
   }
 
@@ -800,7 +1077,7 @@
   // BEFOREUNLOAD — warn if live
   // ═══════════════════════════════════════════════════════
   window.addEventListener('beforeunload', function (e) {
-    if (isLive) {
+    if (isLive || isTestMode) {
       e.preventDefault();
       e.returnValue = '';
     }
@@ -815,7 +1092,6 @@
 
   function getRemoteContainer() {
     if (remoteContainer) return remoteContainer;
-    // Create container below preview for remote participants
     var studioEl = document.getElementById('yts-studio');
     if (!studioEl) return null;
 
@@ -855,20 +1131,17 @@
     tile.id = 'yts-remote-' + participant.identity;
     tile.style.cssText = 'position:relative;background:#1a1a1a;border-radius:8px;overflow:hidden;aspect-ratio:16/9;display:flex;align-items:center;justify-content:center;';
 
-    // Avatar
     var avatar = document.createElement('div');
     avatar.className = 'yts-remote__avatar';
     avatar.style.cssText = 'width:48px;height:48px;border-radius:50%;background:rgba(247,92,3,0.15);color:#f75c03;display:flex;align-items:center;justify-content:center;font-size:1.2rem;font-weight:700;';
     avatar.textContent = name.charAt(0).toUpperCase();
     tile.appendChild(avatar);
 
-    // Name
     var nameEl = document.createElement('div');
     nameEl.style.cssText = 'position:absolute;bottom:4px;left:6px;background:rgba(0,0,0,0.65);color:#FFFCF9;font-size:0.65rem;padding:2px 6px;border-radius:3px;';
     nameEl.textContent = name;
     tile.appendChild(nameEl);
 
-    // Hand indicator
     var hand = document.createElement('div');
     hand.className = 'yts-remote__hand';
     hand.style.cssText = 'position:absolute;top:4px;right:6px;font-size:1rem;display:none;';
