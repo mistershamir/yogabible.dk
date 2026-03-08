@@ -364,6 +364,32 @@
   border: 1px solid rgba(247,92,3,0.3);
 }
 
+/* Stream type badge on session cards */
+.yts-sessions__item-type {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 0.6rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  padding: 0.15rem 0.4rem;
+  border-radius: 3px;
+  margin-top: 0.2rem;
+  color: #6F6A66;
+  background: rgba(111,106,102,0.1);
+}
+
+.yts-sessions__item-type--interactive {
+  color: #3f99a5;
+  background: rgba(63,153,165,0.1);
+}
+
+.yts-sessions__item-type--panel {
+  color: #f59e0b;
+  background: rgba(245,158,11,0.1);
+}
+
 /* ── Status ── */
 .yts-status {
   display: flex;

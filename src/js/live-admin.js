@@ -179,6 +179,19 @@
   /* ══════════════════════════════════════════
      FORM
      ══════════════════════════════════════════ */
+  // Toggle co-teachers field visibility based on stream type
+  function toggleCoTeachersField(type) {
+    var field = $('yb-la-coteachers-field');
+    if (field) field.style.display = type === 'panel' ? '' : 'none';
+  }
+
+  var streamTypeSelect = $('yb-la-stream-type');
+  if (streamTypeSelect) {
+    streamTypeSelect.addEventListener('change', function () {
+      toggleCoTeachersField(this.value);
+    });
+  }
+
   function openForm(item) {
     var isEdit = !!item;
     $('yb-live-admin-form-title').textContent = isEdit ? t('live_form_edit_title') : t('live_form_title');
@@ -196,9 +209,19 @@
     $('yb-la-recurrence-end').value = (item && item.recurrence && item.recurrence.endDate) || '';
     $('yb-la-cohorts').value = (item && item.cohorts && item.cohorts.length) ? item.cohorts.join(', ') : '';
 
-    // Interactive toggle
-    var interactiveCb = $('yb-la-interactive');
-    if (interactiveCb) interactiveCb.checked = !!(item && item.interactive);
+    // Stream type (migrate from old interactive boolean)
+    var streamTypeSel = $('yb-la-stream-type');
+    if (streamTypeSel) {
+      var st = (item && item.streamType) || (item && item.interactive ? 'interactive' : 'broadcast');
+      streamTypeSel.value = st;
+      toggleCoTeachersField(st);
+    }
+
+    // Co-teachers
+    var coteachersInput = $('yb-la-coteachers');
+    if (coteachersInput) {
+      coteachersInput.value = (item && item.coTeachers && item.coTeachers.length) ? item.coTeachers.join(', ') : '';
+    }
 
     // Start/end datetime-local
     if (item && item.startDateTime) {
@@ -306,9 +329,17 @@
       data.cohorts = [];
     }
 
-    // Interactive mode
-    var interactiveCb = $('yb-la-interactive');
-    data.interactive = interactiveCb ? interactiveCb.checked : false;
+    // Stream type + co-teachers
+    var streamTypeSel = $('yb-la-stream-type');
+    data.streamType = streamTypeSel ? streamTypeSel.value : 'broadcast';
+    data.interactive = data.streamType === 'interactive'; // backwards compat
+
+    var coTeachersStr = ($('yb-la-coteachers') ? $('yb-la-coteachers').value : '').trim();
+    if (coTeachersStr && data.streamType === 'panel') {
+      data.coTeachers = coTeachersStr.split(',').map(function (s) { return s.trim(); }).filter(Boolean);
+    } else {
+      data.coTeachers = [];
+    }
 
     var recType = $('yb-la-recurrence').value;
     if (recType !== 'none' && data.source === 'manual') {

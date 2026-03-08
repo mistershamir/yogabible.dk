@@ -563,6 +563,32 @@
     display: flex;
   }
 
+  /* Teacher tile — subtle orange border */
+  .yb-live-tile--teacher {
+    border: 1.5px solid rgba(247, 92, 3, 0.4);
+    order: -1; /* Teachers always appear first in grid */
+  }
+
+  /* Active speaker — glow border */
+  .yb-live-tile--speaking {
+    border: 2px solid #f75c03;
+    box-shadow: 0 0 12px rgba(247, 92, 3, 0.3);
+  }
+
+  /* Role badge in name label */
+  .yb-live-tile__role-badge {
+    display: inline-block;
+    background: rgba(247, 92, 3, 0.9);
+    color: #fff;
+    font-size: 0.55rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    padding: 1px 5px;
+    border-radius: 2px;
+    vertical-align: middle;
+    margin-right: 2px;
+  }
+
   /* Control bar */
   .yb-live-controls {
     display: flex;

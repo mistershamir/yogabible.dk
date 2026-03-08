@@ -124,7 +124,10 @@ function createToken(opts) {
       canSubscribe: !!opts.canSubscribe,
       canPublishData: true
     },
-    metadata: JSON.stringify({ name: opts.name || opts.identity }),
+    metadata: JSON.stringify({
+      name: opts.name || opts.identity,
+      role: opts.role || 'viewer'
+    }),
     name: opts.name || opts.identity
   };
 
@@ -228,7 +231,8 @@ async function handleCreateRoom(event) {
       metadata: JSON.stringify({
         sessionId: sessionId,
         title: session.title_da || session.title_en || '',
-        instructor: session.instructor || ''
+        instructor: session.instructor || '',
+        streamType: session.streamType || (session.interactive ? 'interactive' : 'broadcast')
       })
     });
     console.log('[livekit-token] Created room:', roomName);
@@ -244,7 +248,8 @@ async function handleCreateRoom(event) {
   // Generate publisher token for the teacher
   var token = createToken({
     identity: 'teacher-' + user.uid,
-    name: user.email.split('@')[0],
+    name: session.instructor || user.email.split('@')[0],
+    role: 'teacher',
     room: roomName,
     canPublish: true,
     canSubscribe: true,
@@ -334,6 +339,7 @@ async function handleTestRoom(event) {
   var token = createToken({
     identity: 'teacher-' + user.uid,
     name: user.email.split('@')[0],
+    role: 'teacher',
     room: roomName,
     canPublish: true,
     canSubscribe: true,
@@ -363,40 +369,69 @@ async function handleViewerToken(event, params) {
     return jsonResponse(400, { ok: false, error: 'room parameter is required' });
   }
 
-  // Check if session is interactive — extract sessionId from room name (yb-live-{sessionId})
+  // Check session type — extract sessionId from room name (yb-live-{sessionId})
   var isInteractive = false;
+  var streamType = 'broadcast';
+  var coTeachers = [];
   var sessionId = roomName.replace('yb-live-', '');
   if (sessionId && sessionId !== roomName) {
     try {
       var session = await getDoc(COLLECTION, sessionId);
-      if (session && session.interactive) {
-        isInteractive = true;
+      if (session) {
+        streamType = session.streamType || (session.interactive ? 'interactive' : 'broadcast');
+        isInteractive = streamType === 'interactive' || streamType === 'panel';
+        coTeachers = session.coTeachers || [];
       }
     } catch (err) {
-      console.log('[livekit-token] Could not check session interactive flag:', err.message);
+      console.log('[livekit-token] Could not check session:', err.message);
     }
   }
 
-  // Optional auth — viewers can be anonymous (but interactive requires auth)
+  // Optional auth — viewers can be anonymous (but interactive/panel requires auth)
   var user = await optionalAuth(event);
 
   if (isInteractive && !user) {
     return jsonResponse(401, { ok: false, error: 'Authentication required for interactive sessions' });
   }
 
+  // Determine viewer's role and publish rights
+  var viewerRole = 'viewer';
+  var canPublish = false;
+  if (user && streamType === 'panel' && coTeachers.indexOf(user.email) !== -1) {
+    // Co-teacher in a panel session → gets teacher role + publish rights
+    viewerRole = 'teacher';
+    canPublish = true;
+  } else if (user && streamType === 'interactive') {
+    viewerRole = 'participant';
+    canPublish = true;
+  }
+
   var identity = user
-    ? (isInteractive ? 'participant-' : 'viewer-') + user.uid
+    ? (viewerRole === 'teacher' ? 'teacher-' : viewerRole === 'participant' ? 'participant-' : 'viewer-') + user.uid
     : 'anon-' + Math.random().toString(36).substring(2, 10);
   var displayName = user
     ? (user.email || '').split('@')[0]
     : 'Viewer';
 
+  // Look up user's Firestore profile for a better display name
+  if (user) {
+    try {
+      var userDoc = await getDoc('users', user.uid);
+      if (userDoc && (userDoc.firstName || userDoc.displayName)) {
+        displayName = userDoc.firstName || userDoc.displayName.split(' ')[0];
+      }
+    } catch (e) {}
+  }
+
   var token = createToken({
     identity: identity,
     name: displayName,
+    role: viewerRole,
     room: roomName,
-    canPublish: isInteractive,
+    canPublish: canPublish,
     canSubscribe: true,
+    roomCreate: viewerRole === 'teacher',
+    roomAdmin: viewerRole === 'teacher',
     ttl: 21600
   });
 
@@ -407,7 +442,9 @@ async function handleViewerToken(event, params) {
     token: token,
     wsUrl: wsUrl,
     roomName: roomName,
-    interactive: isInteractive
+    interactive: isInteractive,
+    streamType: streamType,
+    role: viewerRole
   });
 }
 
