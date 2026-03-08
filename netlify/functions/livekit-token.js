@@ -148,7 +148,7 @@ function createToken(opts) {
  * Call LiveKit Server API using Twirp protocol.
  * LiveKit uses Twirp RPC over HTTP POST with JSON bodies.
  */
-async function livekitApi(method, body) {
+async function livekitApi(method, body, service) {
   var url = process.env.LIVEKIT_URL;
   if (!url) throw new Error('LIVEKIT_URL must be set');
 
@@ -166,7 +166,8 @@ async function livekitApi(method, body) {
     ttl: 60
   });
 
-  var apiUrl = httpUrl + '/twirp/livekit.RoomService/' + method;
+  var svc = service || 'livekit.RoomService';
+  var apiUrl = httpUrl + '/twirp/' + svc + '/' + method;
   var res = await fetch(apiUrl, {
     method: 'POST',
     headers: {
@@ -176,7 +177,13 @@ async function livekitApi(method, body) {
     body: JSON.stringify(body || {})
   });
 
-  var data = await res.json();
+  var text = await res.text();
+  var data;
+  try {
+    data = JSON.parse(text);
+  } catch (e) {
+    throw new Error('LiveKit API error (' + res.status + '): non-JSON response — ' + text.substring(0, 200));
+  }
   if (!res.ok) {
     var errMsg = data.msg || data.message || JSON.stringify(data);
     throw new Error('LiveKit API error (' + res.status + '): ' + errMsg);
@@ -203,7 +210,7 @@ async function handleCreateRoom(event) {
   if (!session) {
     return jsonResponse(404, { ok: false, error: 'Session not found' });
   }
-  if (session.status !== 'scheduled') {
+  if (session.status !== 'scheduled' && session.status !== 'live') {
     return jsonResponse(400, { ok: false, error: 'Session is not in scheduled state (current: ' + session.status + ')' });
   }
 
@@ -268,7 +275,7 @@ async function handleCreateRoom(event) {
       layout: 'grid',
       audio_only: false,
       video_only: false
-    });
+    }, 'livekit.Egress');
 
     console.log('[livekit-token] Recording egress started → Mux stream:', muxStreamId);
   } catch (egressErr) {

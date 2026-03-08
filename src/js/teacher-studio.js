@@ -428,6 +428,7 @@
     .catch(function (err) {
       console.error('[teacher-studio] go live error:', err);
       setStatus('error');
+      statusText.textContent = tError + ' — ' + (err.message || 'please try again');
       goLiveBtn.disabled = false;
     });
   }
