@@ -441,6 +441,119 @@
   if (goLiveBtn) goLiveBtn.addEventListener('click', goLive);
 
   // ═══════════════════════════════════════════════════════
+  // TEST STREAM — quick connection test, no session needed
+  // ═══════════════════════════════════════════════════════
+  var testStreamBtn = document.getElementById('yts-test-stream');
+  var isTestMode = false;
+  var testRoomName = null;
+
+  function testStream() {
+    if (isLive || isTestMode) return;
+
+    // If no camera yet, start it first
+    if (!mediaStream) {
+      var constraints = getConstraints();
+      navigator.mediaDevices.getUserMedia(constraints)
+        .then(function (stream) {
+          handleStream(stream);
+          doTestStream();
+        })
+        .catch(function (err) {
+          if (constraints.video && constraints.audio) {
+            return navigator.mediaDevices.getUserMedia({ video: false, audio: constraints.audio })
+              .then(function (stream) { handleStream(stream); doTestStream(); });
+          }
+          throw err;
+        })
+        .catch(function (err) {
+          console.error('[teacher-studio] camera error:', err.name);
+          alert(tPermissionDenied);
+        });
+      return;
+    }
+    doTestStream();
+  }
+
+  function doTestStream() {
+    setStatus('connecting');
+    testStreamBtn.disabled = true;
+
+    var user = firebase.auth().currentUser;
+    if (!user) return;
+
+    user.getIdToken().then(function (token) {
+      return fetch('/.netlify/functions/livekit-token?action=test-room', {
+        method: 'POST',
+        headers: {
+          'Authorization': 'Bearer ' + token,
+          'Content-Type': 'application/json'
+        },
+        body: '{}'
+      });
+    })
+    .then(function (r) { return r.json(); })
+    .then(function (data) {
+      if (!data.ok) throw new Error(data.error || 'Failed to create test room');
+      testRoomName = data.roomName;
+      return connectLiveKit(data.wsUrl, data.token);
+    })
+    .then(function () {
+      isTestMode = true;
+      setStatus('live');
+      statusText.textContent = 'TEST — ' + (isDa ? 'forbundet' : 'connected');
+      liveBadge.style.display = '';
+      liveBadge.querySelector('.yts-preview__live-dot') && (liveBadge.style.background = 'rgba(255,150,0,0.85)');
+      testStreamBtn.textContent = isDa ? 'Afslut Test' : 'End Test';
+      testStreamBtn.disabled = false;
+      testStreamBtn.className = 'yts-btn yts-btn--end';
+      goLiveBtn.style.display = 'none';
+      startElapsed();
+    })
+    .catch(function (err) {
+      console.error('[teacher-studio] test stream error:', err);
+      setStatus('error');
+      statusText.textContent = tError + ' — ' + (err.message || '');
+      testStreamBtn.disabled = false;
+    });
+  }
+
+  function endTestStream() {
+    isTestMode = false;
+    setStatus('ended');
+    stopElapsed();
+    liveBadge.style.display = 'none';
+    testStreamBtn.textContent = isDa ? 'Test Stream' : 'Test Stream';
+    testStreamBtn.className = 'yts-btn yts-btn--outline';
+    testStreamBtn.disabled = false;
+    goLiveBtn.style.display = '';
+
+    if (livekitRoom) {
+      livekitRoom.disconnect();
+      livekitRoom = null;
+    }
+    if (testRoomName) {
+      var user = firebase.auth().currentUser;
+      if (user) {
+        user.getIdToken().then(function (token) {
+          fetch('/.netlify/functions/livekit-token?action=close-room', {
+            method: 'POST',
+            headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' },
+            body: JSON.stringify({ roomName: testRoomName })
+          }).catch(function () {});
+        });
+      }
+      testRoomName = null;
+    }
+  }
+
+  if (testStreamBtn) {
+    testStreamBtn.addEventListener('click', function () {
+      if (isTestMode) endTestStream();
+      else testStream();
+    });
+  }
+
+  // ═══════════════════════════════════════════════════════
   // LIVEKIT — connect to room + publish tracks
   // ═══════════════════════════════════════════════════════
 

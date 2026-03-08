@@ -56,6 +56,8 @@ exports.handler = async function (event) {
     switch (action) {
       case 'create-room':
         return handleCreateRoom(event);
+      case 'test-room':
+        return handleTestRoom(event);
       case 'viewer-token':
         return handleViewerToken(event, params);
       case 'close-room':
@@ -304,6 +306,51 @@ async function handleCreateRoom(event) {
     wsUrl: wsUrl,
     roomName: roomName,
     sessionId: sessionId
+  });
+}
+
+// ═══════════════════════════════════════════════════════
+// Test room — quick LiveKit test, no Firestore/Mux (teacher/admin only)
+// ═══════════════════════════════════════════════════════
+async function handleTestRoom(event) {
+  var user = await requireAuth(event, ['teacher', 'admin']);
+  if (user.error) return user.error;
+
+  var roomName = 'yb-test-' + user.uid.substring(0, 8) + '-' + Date.now();
+
+  try {
+    await livekitApi('CreateRoom', {
+      name: roomName,
+      empty_timeout: 120,
+      max_participants: 10,
+      metadata: JSON.stringify({ test: true, teacher: user.email })
+    });
+  } catch (err) {
+    if (!err.message || err.message.indexOf('already exists') === -1) {
+      throw err;
+    }
+  }
+
+  var token = createToken({
+    identity: 'teacher-' + user.uid,
+    name: user.email.split('@')[0],
+    room: roomName,
+    canPublish: true,
+    canSubscribe: true,
+    roomCreate: true,
+    roomAdmin: true,
+    ttl: 3600
+  });
+
+  var wsUrl = process.env.LIVEKIT_URL || '';
+  console.log('[livekit-token] Test room created:', roomName, 'by:', user.email);
+
+  return jsonResponse(200, {
+    ok: true,
+    token: token,
+    wsUrl: wsUrl,
+    roomName: roomName,
+    test: true
   });
 }
 

@@ -33,7 +33,9 @@
     "stream_quality_480": "480p (langsom forbindelse)",
     "teacher_only_notice": "Denne side er kun for undervisere.",
     "footer_note": "Streamen sendes direkte til studerende på",
-    "footer_link_text": "live-siden"
+    "footer_link_text": "live-siden",
+    "test_stream_btn": "Test Stream",
+    "test_stream_end": "Afslut Test"
   },
   "en": {
     "hero_tagline": "Yoga Bible · Teacher Studio",
@@ -69,6 +71,8 @@
     "stream_quality_480": "480p (slow connection)",
     "teacher_only_notice": "This page is for teachers only.",
     "footer_note": "Stream is sent directly to students on the",
-    "footer_link_text": "live page"
+    "footer_link_text": "live page",
+    "test_stream_btn": "Test Stream",
+    "test_stream_end": "End Test"
   }
 }
