@@ -869,8 +869,20 @@
 
       room.on(LivekitClient.RoomEvent.Disconnected, function () {
         console.log('[teacher-studio] Disconnected from LiveKit room');
-        if (isLive) {
+        if (isLive || isTestMode) {
           setStatus('error');
+          // Show Go Live button again so teacher can reconnect
+          goLiveBtn.style.display = '';
+          goLiveBtn.disabled = false;
+          goLiveBtn.textContent = isDa ? 'Tilslut igen' : 'Reconnect';
+          endStreamBtn.style.display = 'none';
+          exitLiveMode();
+          stopElapsed();
+          isLive = false;
+          isTestMode = false;
+          livekitRoom = null;
+          publishedVideoTrack = null;
+          publishedAudioTrack = null;
         }
       });
 
