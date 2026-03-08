@@ -46,6 +46,7 @@
   var pollTimer = null;
   var elapsedTimer = null;
   var liveStartTime = null;
+  var sessionLiveStartTime = null;  // Server-side start time for persistent timer
   var POLL_INTERVAL = 15000;
   var isStreamLive = false;
   var livekitRoom = null;
@@ -106,7 +107,8 @@
 
   function startElapsedTimer() {
     if (elapsedTimer) return;
-    liveStartTime = Date.now();
+    // Use server-side start time if available (survives refresh)
+    liveStartTime = sessionLiveStartTime || Date.now();
     if (elapsedEl) elapsedEl.classList.add('yb-live-elapsed--visible');
     elapsedTimer = setInterval(function () {
       if (elapsedTimeEl && liveStartTime) {
@@ -241,8 +243,28 @@
       el.style.objectFit = 'contain';
       el.style.background = '#000';
       el.style.display = 'block';
-    } else {
-      el.style.display = 'none';
+    } else if (track.kind === 'audio') {
+      // Audio element: hidden but must not be display:none on some browsers
+      el.style.position = 'absolute';
+      el.style.width = '1px';
+      el.style.height = '1px';
+      el.style.overflow = 'hidden';
+      el.style.opacity = '0';
+      // Attempt autoplay — handle blocked autoplay
+      var playPromise = el.play();
+      if (playPromise && playPromise.catch) {
+        playPromise.catch(function () {
+          console.log('[live] Audio autoplay blocked, will play on user interaction');
+          // Play on first user interaction
+          function resumeAudio() {
+            el.play().catch(function () {});
+            document.removeEventListener('click', resumeAudio);
+            document.removeEventListener('touchstart', resumeAudio);
+          }
+          document.addEventListener('click', resumeAudio);
+          document.addEventListener('touchstart', resumeAudio);
+        });
+      }
     }
 
     mountEl.appendChild(el);
@@ -920,6 +942,41 @@
   function checkStream() {
     if (isJoined) return; // Don't poll while in interactive session
 
+    // If we're already connected via LiveKit and streaming, don't disrupt
+    if (livekitRoom && isStreamLive && !isJoined) {
+      // Still fetch schedule for sidebar, but don't touch player
+      var opts2 = { headers: {} };
+      getAuthToken().then(function (token) {
+        if (token) opts2.headers['Authorization'] = 'Bearer ' + token;
+        return fetch('/.netlify/functions/live-admin?action=schedule', opts2);
+      })
+      .then(function (r) { return r.json(); })
+      .then(function (data) {
+        if (data.ok && data.items) {
+          renderSchedule(data.items);
+          // Check if session actually ended (no live session found)
+          var stillLive = false;
+          for (var i = 0; i < data.items.length; i++) {
+            if (data.items[i].status === 'live' && (data.items[i].livekitRoom || data.items[i].muxPlaybackId)) {
+              stillLive = true;
+              break;
+            }
+          }
+          if (!stillLive) {
+            // Session ended server-side but LiveKit still connected — clean up
+            if (livekitRoom) {
+              livekitRoom.disconnect();
+              livekitRoom = null;
+              currentRoomName = null;
+            }
+            showOffline();
+          }
+        }
+      })
+      .catch(function () {});
+      return;
+    }
+
     var opts = { headers: {} };
 
     getAuthToken().then(function (token) {
@@ -945,6 +1002,13 @@
       if (liveSession) {
         console.log('[live] Found live session:', liveSession.id, 'interactive:', !!liveSession.interactive);
 
+        // Store session start time for persistent elapsed timer
+        if (liveSession.liveStartedAt) {
+          sessionLiveStartTime = new Date(liveSession.liveStartedAt).getTime();
+        } else if (liveSession.startDateTime) {
+          sessionLiveStartTime = new Date(liveSession.startDateTime).getTime();
+        }
+
         // Interactive session → show join prompt
         if (liveSession.interactive) {
           isInteractive = true;
@@ -969,6 +1033,9 @@
       }
 
       if (muxLive) {
+        if (muxLive.liveStartedAt) {
+          sessionLiveStartTime = new Date(muxLive.liveStartedAt).getTime();
+        }
         showMuxPlayer(muxLive.muxPlaybackId);
       } else {
         showOffline();
