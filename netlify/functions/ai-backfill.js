@@ -395,7 +395,7 @@ exports.handler = async function (event) {
           // Send to Claude for summary + quiz
           var sessionTitle = sess.title_da || sess.title_en || 'Yoga Class';
           var sessionInstructor = sess.instructor || '';
-          var aiResult = await generateSummaryAndQuiz(transcript, sessionTitle, sessionInstructor);
+          var aiResult = await generateSummaryAndQuiz(transcript, sessionTitle, sessionInstructor, null, !!sess.interactive);
 
           // Save to Firestore
           await updateDoc(COLLECTION, sess.id, {
@@ -455,7 +455,7 @@ exports.handler = async function (event) {
 
       var sessionTitle = sess.title_da || sess.title_en || 'Yoga Class';
       var sessionInstructor = sess.instructor || '';
-      var aiResult = await generateSummaryAndQuiz(transcript, sessionTitle, sessionInstructor, params.lang || null);
+      var aiResult = await generateSummaryAndQuiz(transcript, sessionTitle, sessionInstructor, params.lang || null, !!sess.interactive);
 
       await updateDoc(COLLECTION, sessId, {
         aiStatus: 'complete',
@@ -644,7 +644,7 @@ function claudeRequest(messages, systemPrompt) {
   });
 }
 
-function generateSummaryAndQuiz(transcript, title, instructor, forceLang) {
+function generateSummaryAndQuiz(transcript, title, instructor, forceLang, isInteractive) {
   // Detect language from transcript (or use forced language)
   // Use only unambiguous words (no overlap between languages)
   // Danish-only words (never appear in English yoga instruction)
@@ -709,6 +709,33 @@ function generateSummaryAndQuiz(transcript, title, instructor, forceLang) {
       + '- Names and personal details about the instructor or students\n'
       + '- Technical issues with audio, camera, or streaming\n'
       + '- Trivia about the instructor (e.g., how many studios they own, travel history)\n';
+
+  // Interactive session: add multi-speaker handling instructions
+  if (isInteractive) {
+    var interactiveInstructions = lang === 'da'
+      ? '\n\nINTERAKTIV SESSION — Flerspeaker-håndtering:\n'
+        + 'Denne optagelse er fra en interaktiv session med flere deltagere (Zoom-stil gruppeundervisning). '
+        + 'Der vil være flere stemmer i transskriptionen.\n\n'
+        + (instructor ? 'UNDERVISER: ' + instructor + ' — denne persons udtalelser er det primære faglige indhold.\n' : '')
+        + 'REGLER:\n'
+        + '- Underviseren er den autoritative kilde. Prioritér undervisernes forklaringer, instruktioner og svar.\n'
+        + '- Studerendes spørgsmål: Medtag vigtige faglige spørgsmål som "Diskussionspunkter" i opsummeringen — men kun spørgsmål der fører til fagligt værdifulde svar fra underviseren.\n'
+        + '- IGNORÉR studerendes small talk, personlige kommentarer, "ja/nej"-svar og casual snak mellem deltagere.\n'
+        + '- Hvis en studerende stiller et godt spørgsmål og underviseren svarer uddybende, medtag BÅDE spørgsmålet og svaret.\n'
+        + '- Quiz-spørgsmål skal baseres på undervisernes svar, IKKE på studerendes udtalelser.\n'
+      : '\n\nINTERACTIVE SESSION — Multi-Speaker Handling:\n'
+        + 'This recording is from an interactive session with multiple participants (Zoom-style group class). '
+        + 'There will be multiple voices in the transcript.\n\n'
+        + (instructor ? 'INSTRUCTOR: ' + instructor + ' — this person\'s statements are the primary educational content.\n' : '')
+        + 'RULES:\n'
+        + '- The instructor is the authoritative source. Prioritize the instructor\'s explanations, instructions, and answers.\n'
+        + '- Student questions: Include important educational questions as "Discussion Points" in the summary — but only questions that led to valuable answers from the instructor.\n'
+        + '- IGNORE student small talk, personal comments, "yes/no" responses, and casual chat between participants.\n'
+        + '- If a student asks a good question and the instructor gives an in-depth answer, include BOTH the question and answer.\n'
+        + '- Quiz questions must be based on the instructor\'s answers, NOT on student statements.\n';
+
+    focusInstructions += interactiveInstructions;
+  }
 
   var userPrompt = lang === 'da'
     ? 'Her er en transskription af en yogalæreruddannelsessession'
