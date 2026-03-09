@@ -18,3 +18,7 @@ lead-agent/*.json
 lead-agent/__pycache__/
 lead-agent/tools/__pycache__/
 lead-agent/.knowledge-refresh-needed
+
+# SEO agent secrets (never commit)
+seo-agent/.env
+seo-agent/__pycache__/
