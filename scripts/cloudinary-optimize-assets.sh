@@ -114,8 +114,7 @@ echo ""
 search_result=$(curl -s "$SEARCH_API" \
   -u "$AUTH" \
   -d "expression=public_id:yoga-bible-DK/* AND resource_type:image AND bytes>$MIN_BYTES" \
-  -d "max_results=500" \
-  -d 'sort_by=[{"bytes":"desc"}]')
+  -d "max_results=500")
 
 total=$(echo "$search_result" | python3 -c "import sys,json; print(json.load(sys.stdin).get('total_count',0))" 2>/dev/null)
 error_msg=$(echo "$search_result" | python3 -c "import sys,json; d=json.load(sys.stdin); e=d.get('error',{}); print(e.get('message',''))" 2>/dev/null)
