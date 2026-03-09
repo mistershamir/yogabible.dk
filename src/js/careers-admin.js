@@ -220,14 +220,8 @@
       expandedCareerIds.clear();
     }
 
+    // Avoid composite index issues — filter status client-side in getFilteredCareers()
     var query = db.collection('careers').orderBy(careerSortField, careerSortDir);
-
-    // Only server-side filter by status when not in archived view (no composite indexes needed)
-    if (!showArchivedCareers && careerFilterStatus && careerFilterStatus !== 'Archived') {
-      query = query.where('status', '==', careerFilterStatus);
-    } else if (showArchivedCareers) {
-      query = query.where('status', '==', 'Archived');
-    }
 
     if (careerLastDoc) query = query.startAfter(careerLastDoc);
 
@@ -255,12 +249,18 @@
   function getFilteredCareers() {
     var filtered = careers;
 
-    // Filter archived client-side
-    if (!showArchivedCareers) {
-      filtered = filtered.filter(function (c) { return !c.archived; });
+    // Filter archived / status client-side (avoids Firestore composite index requirements)
+    if (showArchivedCareers) {
+      filtered = filtered.filter(function (c) { return c.status === 'Archived' || c.archived; });
+    } else {
+      filtered = filtered.filter(function (c) { return c.status !== 'Archived' && !c.archived; });
     }
 
-    // Client-side category + role + exp filters (not in Firestore query to avoid composite index requirements)
+    if (careerFilterStatus) {
+      filtered = filtered.filter(function (c) { return (c.status || 'New') === careerFilterStatus; });
+    }
+
+    // Client-side category + role + exp filters
     if (careerFilterCategory) {
       filtered = filtered.filter(function (c) {
         return (c.category || '').indexOf(careerFilterCategory) !== -1;
