@@ -576,9 +576,9 @@ async function sendEmail18wAugYTT(leadData, tokenData = {}) {
 
   if (needsHousing) bodyHtml += getAccommodationSectionHtml(cityCountry);
   bodyHtml += '<div style="margin-top:20px;padding:14px;background:#FFFCF9;border-left:3px solid #f75c03;border-radius:4px;">' +
-    '<strong>Pris:</strong> 25.500 kr.<br>' +
+    '<strong>Pris:</strong> 23.750 kr.<br>' +
     '<strong>Forberedelsesfasen:</strong> 3.750 kr. sikrer din plads<br>' +
-    '<strong>Rest:</strong> 21.750 kr. (fleksibel ratebetaling)' +
+    '<strong>Rest:</strong> 20.000 kr. (fleksibel ratebetaling)' +
     '</div>';
   bodyHtml += getPreparationPhaseHtml('https://www.yogabible.dk/200-hours-18-weeks-flexible-programs');
 
@@ -599,8 +599,8 @@ async function sendEmail18wAugYTT(leadData, tokenData = {}) {
   bodyPlain += '\nDet unikke er fleksibiliteten: hver workshop k\u00f8rer to gange, \u00e9n hverdag og \u00e9n weekend.\n\n';
   bodyPlain += 'Max 12 studerende pr. hold. Tilmeld dig tidligt.\n\n';
   if (needsHousing) bodyPlain += getAccommodationSectionPlain(cityCountry);
-  bodyPlain += 'Pris: 25.500 kr.\n';
-  bodyPlain += 'Forberedelsesfasen: 3.750 kr. \u00b7 Rest: 21.750 kr. (fleksibel ratebetaling)\n';
+  bodyPlain += 'Pris: 23.750 kr.\n';
+  bodyPlain += 'Forberedelsesfasen: 3.750 kr. \u00b7 Rest: 20.000 kr. (fleksibel ratebetaling)\n';
   bodyPlain += getPreparationPhasePlain('https://www.yogabible.dk/200-hours-18-weeks-flexible-programs');
   bodyPlain += '\nL\u00e6s mere: https://www.yogabible.dk/200-hours-18-weeks-flexible-programs\n';
   bodyPlain += 'Book infom\u00f8de: ' + CONFIG.MEETING_LINK + '\n';
