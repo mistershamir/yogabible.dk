@@ -136,16 +136,18 @@ fi
 echo "  Found $total images over 1MB"
 echo ""
 
-# Parse each result and optimize
+# Parse results to a temp file, then loop (avoids subshell counter issue)
 echo "$search_result" | python3 -c "
 import sys, json
 data = json.load(sys.stdin)
 for r in data.get('resources', []):
     fmt = r.get('format', 'jpg')
     print(f\"{r['public_id']}|{r.get('width',0)}|{r.get('height',0)}|{r.get('bytes',0)}|{fmt}\")
-" | while IFS='|' read -r pub_id width height bytes fmt; do
+" > "${TMPDIR}/assets.txt"
+
+while IFS='|' read -r pub_id width height bytes fmt; do
   optimize_image "$pub_id" "$MAX_WIDTH" "$fmt" "$bytes" "$width" "$height"
-done
+done < "${TMPDIR}/assets.txt"
 
 # ── Cleanup ──
 rm -rf "$TMPDIR"
