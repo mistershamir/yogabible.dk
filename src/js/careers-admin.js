@@ -1,7 +1,7 @@
 /**
  * YOGA BIBLE — CAREER APPLICATIONS ADMIN
  * Manages the "Careers" tab in the admin panel.
- * Reads/writes directly to Firestore `careers` collection.
+ * Reads/writes from Firestore `leads` collection (type='careers').
  *
  * Features:
  *  - Sortable table (date)
@@ -138,7 +138,7 @@
     var ids = Array.from(selectedCareerIds);
     var batch = db.batch();
     ids.forEach(function (id) {
-      batch.update(db.collection('careers').doc(id), { status: newStatus, updated_at: new Date() });
+      batch.update(db.collection('leads').doc(id), { status: newStatus, updated_at: new Date() });
     });
 
     batch.commit().then(function () {
@@ -175,7 +175,7 @@
     var ids = Array.from(selectedCareerIds);
     var batch = db.batch();
     ids.forEach(function (id) {
-      batch.update(db.collection('careers').doc(id), { archived: true, status: 'Archived', updated_at: new Date() });
+      batch.update(db.collection('leads').doc(id), { archived: true, status: 'Archived', updated_at: new Date() });
     });
 
     batch.commit().then(function () {
@@ -220,22 +220,29 @@
       expandedCareerIds.clear();
     }
 
-    // Avoid composite index issues — filter status client-side in getFilteredCareers()
-    var query = db.collection('careers').orderBy(careerSortField, careerSortDir);
-
-    if (careerLastDoc) query = query.startAfter(careerLastDoc);
-
-    query.limit(PAGE_SIZE).get().then(function (snap) {
+    // Read all career-type leads (no orderBy to avoid composite index requirement)
+    db.collection('leads')
+      .where('type', '==', 'careers')
+      .get().then(function (snap) {
       snap.forEach(function (doc) {
         careers.push(Object.assign({ id: doc.id }, doc.data()));
       });
-      careerLastDoc = snap.docs.length ? snap.docs[snap.docs.length - 1] : null;
+
+      // Sort client-side
+      careers.sort(function (a, b) {
+        var av = a[careerSortField], bv = b[careerSortField];
+        if (av && av.toDate) av = av.toDate();
+        if (bv && bv.toDate) bv = bv.toDate();
+        if (av < bv) return careerSortDir === 'asc' ? -1 : 1;
+        if (av > bv) return careerSortDir === 'asc' ? 1 : -1;
+        return 0;
+      });
 
       renderCareersTable();
       renderCareerStats();
 
       var loadMore = $('yb-career-load-more-wrap');
-      if (loadMore) loadMore.hidden = snap.docs.length < PAGE_SIZE;
+      if (loadMore) loadMore.hidden = true; // all loaded at once
 
     }).catch(function (err) {
       console.error('[careers-admin] Load error:', err);
@@ -537,7 +544,7 @@
       author: (firebase.auth().currentUser && firebase.auth().currentUser.email) || 'admin'
     };
 
-    db.collection('careers').doc(currentCareerId).update({
+    db.collection('leads').doc(currentCareerId).update({
       notes: firebase.firestore.FieldValue.arrayUnion(note),
       updated_at: new Date()
     }).then(function () {
@@ -566,7 +573,7 @@
     var update = { status: newStatus, updated_at: new Date() };
     if (doArchive) update.archived = true;
 
-    db.collection('careers').doc(currentCareerId).update(update).then(function () {
+    db.collection('leads').doc(currentCareerId).update(update).then(function () {
       currentCareer.status = newStatus;
       if (doArchive) currentCareer.archived = true;
       // Also update in-memory list
@@ -659,14 +666,13 @@
       searchForm.addEventListener('submit', function (e) { e.preventDefault(); });
     }
 
-    // Status filter
+    // Status filter (client-side to avoid composite index requirements)
     var statusFilter = $('yb-career-status-filter');
     if (statusFilter) {
       statusFilter.addEventListener('change', function () {
         careerFilterStatus = statusFilter.value;
-        careers = [];
-        careerLastDoc = null;
-        loadCareers();
+        renderCareersTable();
+        renderCareerStats();
       });
     }
 
@@ -811,25 +817,60 @@
         return;
       }
 
-      // Seed from CSV
-      if (e.target.closest('[data-action="careers-seed"]')) {
-        if (!confirm('Seed careers collection from CSV data? Duplicate emails will be skipped.')) return;
-        firebase.auth().currentUser.getIdToken().then(function (token) {
-          return fetch('/.netlify/functions/careers-seed?confirm=seed', {
-            method: 'POST',
-            headers: { Authorization: 'Bearer ' + token }
+      // Migrate old careers collection → leads
+      if (e.target.closest('[data-action="careers-migrate"]')) {
+        if (!confirm('Migrate all documents from the old "careers" collection into "leads"? Duplicates (same email + type) will be skipped.')) return;
+        toast('Migrating…');
+        db.collection('careers').get().then(function (snap) {
+          if (snap.empty) { toast('No old career docs found.'); return; }
+          // Get existing career-type leads to skip duplicates
+          return db.collection('leads').where('type', '==', 'careers').get().then(function (leadsSnap) {
+            var existingEmails = {};
+            leadsSnap.forEach(function (d) { existingEmails[(d.data().email || '').toLowerCase()] = true; });
+            var batch = db.batch();
+            var added = 0;
+            var skipped = 0;
+            snap.forEach(function (doc) {
+              var c = doc.data();
+              var em = (c.email || '').toLowerCase();
+              if (em && existingEmails[em]) { skipped++; return; }
+              var ref = db.collection('leads').doc();
+              batch.set(ref, Object.assign({}, c, {
+                type: 'careers',
+                source: c.source || 'Careers page',
+                notes: c.notes || [],
+                converted: false,
+                converted_at: null,
+                application_id: null,
+                unsubscribed: false,
+                call_attempts: 0,
+                sms_status: '',
+                last_contact: null,
+                followup_date: null,
+                ytt_program_type: '',
+                program: '',
+                course_id: '',
+                cohort_label: '',
+                preferred_month: '',
+                accommodation: 'No',
+                housing_months: '',
+                service: c.category || 'Careers',
+                subcategories: c.subcategory || '',
+                updated_at: new Date()
+              }));
+              added++;
+            });
+            if (added === 0) { toast('All ' + skipped + ' already migrated.'); return; }
+            return batch.commit().then(function () {
+              toast('Migrated ' + added + ' career applications (' + skipped + ' skipped).');
+              careers = [];
+              careerLastDoc = null;
+              loadCareers();
+            });
           });
-        }).then(function (r) { return r.json(); }).then(function (data) {
-          if (data.ok) {
-            toast('Seeded: ' + data.added + ' added, ' + data.skipped + ' skipped.');
-            careers = [];
-            careerLastDoc = null;
-            loadCareers();
-          } else {
-            toast(data.error || 'Seed failed.', true);
-          }
         }).catch(function (err) {
-          toast('Seed error: ' + err.message, true);
+          console.error('[careers-admin] Migration error:', err);
+          toast('Migration error: ' + err.message, true);
         });
         return;
       }
@@ -846,7 +887,7 @@
         return;
       }
 
-      // Sort by date
+      // Sort by date (client-side sort of loaded data)
       var sortBtn = e.target.closest('[data-career-sort]');
       if (sortBtn) {
         var field = sortBtn.getAttribute('data-career-sort');
@@ -856,22 +897,26 @@
           careerSortField = field;
           careerSortDir = 'desc';
         }
-        careers = [];
-        careerLastDoc = null;
-        loadCareers();
+        careers.sort(function (a, b) {
+          var av = a[field], bv = b[field];
+          if (av && av.toDate) av = av.toDate();
+          if (bv && bv.toDate) bv = bv.toDate();
+          if (av < bv) return careerSortDir === 'asc' ? -1 : 1;
+          if (av > bv) return careerSortDir === 'asc' ? 1 : -1;
+          return 0;
+        });
+        renderCareersTable();
         return;
       }
 
-      // Stats card click — filter by status
+      // Stats card click — filter by status (client-side)
       var statCard = e.target.closest('[data-filter-career-status]');
       if (statCard) {
         var st = statCard.getAttribute('data-filter-career-status');
         careerFilterStatus = st || '';
         var sel = $('yb-career-status-filter');
         if (sel) sel.value = careerFilterStatus;
-        careers = [];
-        careerLastDoc = null;
-        loadCareers();
+        renderCareersTable();
         return;
       }
 
