@@ -207,7 +207,11 @@ async function sendWelcomeEmail(leadData, action, tokenData = {}) {
         result = await sendEmail8wYTT(leadData, tokenData);
         break;
       case 'lead_schedule_18w':
+      case 'lead_schedule_18w-mar':
         result = await sendEmail18wYTT(leadData, tokenData);
+        break;
+      case 'lead_schedule_18w-aug':
+        result = await sendEmail18wAugYTT(leadData, tokenData);
         break;
       case 'lead_schedule_multi':
         result = await sendEmailMultiYTT(leadData, tokenData);
@@ -540,6 +544,78 @@ async function sendEmail18wYTT(leadData, tokenData = {}) {
 }
 
 // =========================================================================
+// 18-Week Flexible YTT — August–December 2026
+// =========================================================================
+
+async function sendEmail18wAugYTT(leadData, tokenData = {}) {
+  const firstName = leadData.first_name || '';
+  const needsHousing = (leadData.accommodation || '').toLowerCase() === 'yes';
+  const cityCountry = leadData.city_country || '';
+  const subject = firstName + ', dit skema til efter\u00e5rets 18-ugers program er klar';
+
+  const scheduleUrl18wAug = tokenData.leadId && tokenData.token
+    ? 'https://www.yogabible.dk/skema/18-uger-august/?tid=' + encodeURIComponent(tokenData.leadId) + '&tok=' + encodeURIComponent(tokenData.token)
+    : 'https://www.yogabible.dk/skema/18-uger-august/';
+
+  let bodyHtml = '<p>Hej ' + escapeHtml(firstName) + ',</p>';
+  bodyHtml += '<p>Tak fordi du viste interesse for vores <strong>18-ugers fleksible yogal\u00e6reruddannelse</strong> \u2014 efter\u00e5rsholdet august\u2013december 2026.</p>';
+
+  bodyHtml += '<p>Her finder du alle datoer og tidspunkter for uddannelsen:</p>';
+  bodyHtml += '<p style="margin:20px 0;"><a href="' + scheduleUrl18wAug + '" style="display:inline-block;background:#f75c03;color:#ffffff;padding:14px 28px;text-decoration:none;border-radius:50px;font-weight:600;font-size:16px;">Se skemaet \u2192</a></p>';
+  bodyHtml += '<p style="font-size:14px;color:#666;">Du kan tilf\u00f8je alle datoer direkte til din kalender \u2014 og se pr\u00e6cis hvilke dage der er hverdagshold og weekendhold.</p>';
+
+  bodyHtml += programHighlightsHtml([
+    'V\u00e6lg hverdags- eller weekendspor \u2014 og skift frit undervejs',
+    'Online backup hvis du ikke kan m\u00f8de op en dag',
+    '60 yogaklasser i studiet inkluderet',
+    'Start: 10. august 2026 \u00b7 Graduation: 13. december 2026'
+  ]);
+
+  bodyHtml += '<p style="margin-top:12px;">Det, der g\u00f8r dette program unikt, er fleksibiliteten. Hver workshop k\u00f8rer to gange \u2014 \u00e9n p\u00e5 en hverdag og \u00e9n i weekenden \u2014 s\u00e5 du altid kan f\u00f8lge med, uanset hvad din uge ser ud.</p>';
+  bodyHtml += '<p style="margin-top:12px;">Holdene er sm\u00e5 (max 12 studerende) for at sikre personlig feedback og n\u00e6rv\u00e6rende undervisning. <strong>Tilmeld dig tidligt</strong> \u2014 pladser fyldes.</p>';
+
+  if (needsHousing) bodyHtml += getAccommodationSectionHtml(cityCountry);
+  bodyHtml += '<div style="margin-top:20px;padding:14px;background:#FFFCF9;border-left:3px solid #f75c03;border-radius:4px;">' +
+    '<strong>Pris:</strong> 25.500 kr.<br>' +
+    '<strong>Forberedelsesfasen:</strong> 3.750 kr. sikrer din plads<br>' +
+    '<strong>Rest:</strong> 21.750 kr. (kan betales i op til 5 rater)' +
+    '</div>';
+  bodyHtml += getPreparationPhaseHtml('https://www.yogabible.dk/200-hours-18-weeks-flexible-programs');
+
+  bodyHtml += '<p style="margin-top:20px;"><a href="https://www.yogabible.dk/200-hours-18-weeks-flexible-programs" style="color:#f75c03;">L\u00e6s mere om 18-ugers programmet</a>';
+  bodyHtml += ' \u00b7 <a href="https://www.yogabible.dk/om-200hrs-yogalreruddannelser" style="color:#f75c03;">Om vores 200-timers uddannelse</a></p>';
+  bodyHtml += bookingCta() + questionPrompt();
+  bodyHtml += getEnglishNoteHtml() + getSignatureHtml() + getUnsubscribeFooterHtml(leadData.email);
+
+  let bodyPlain = 'Hej ' + firstName + ',\n\n';
+  bodyPlain += 'Tak fordi du viste interesse for vores 18-ugers fleksible yogal\u00e6reruddannelse \u2014 efter\u00e5rsholdet august\u2013december 2026.\n\n';
+  bodyPlain += 'Uddannelsesskema og datoer:\n' + scheduleUrl18wAug + '\n\n';
+  bodyPlain += programHighlightsPlain([
+    'V\u00e6lg hverdags- eller weekendspor \u2014 skift frit undervejs',
+    'Online backup hvis du ikke kan m\u00f8de op',
+    '60 yogaklasser inkluderet',
+    'Start: 10. august 2026 \u00b7 Graduation: 13. december 2026'
+  ]);
+  bodyPlain += '\nDet unikke er fleksibiliteten: hver workshop k\u00f8rer to gange, \u00e9n hverdag og \u00e9n weekend.\n\n';
+  bodyPlain += 'Max 12 studerende pr. hold. Tilmeld dig tidligt.\n\n';
+  if (needsHousing) bodyPlain += getAccommodationSectionPlain(cityCountry);
+  bodyPlain += 'Pris: 25.500 kr.\n';
+  bodyPlain += 'Forberedelsesfasen: 3.750 kr. \u00b7 Rest: 21.750 kr. (op til 5 rater)\n';
+  bodyPlain += getPreparationPhasePlain('https://www.yogabible.dk/200-hours-18-weeks-flexible-programs');
+  bodyPlain += '\nL\u00e6s mere: https://www.yogabible.dk/200-hours-18-weeks-flexible-programs\n';
+  bodyPlain += 'Book infom\u00f8de: ' + CONFIG.MEETING_LINK + '\n';
+  bodyPlain += getEnglishNotePlain() + getSignaturePlain() + getUnsubscribeFooterPlain(leadData.email);
+
+  const result = await sendRawEmail({
+    to: leadData.email,
+    subject,
+    html: wrapHtml(bodyHtml),
+    text: bodyPlain,
+  });
+  return { ...result, subject };
+}
+
+// =========================================================================
 // Multi-Format YTT Email (user requested 2–3 formats at once)
 // =========================================================================
 
@@ -555,11 +631,27 @@ async function sendEmailMultiYTT(leadData, tokenData = {}) {
 
   const FORMAT_INFO = {
     '18w': {
-      name: '18-ugers fleksible program',
+      name: '18-ugers fleksible program (for\u00e5r)',
       period: 'marts\u2013juni 2026',
       desc: 'Det mest fleksible format \u2014 v\u00e6lg hverdags- eller weekendspor og skift frit undervejs. Perfekt hvis du har arbejde, studie eller familie ved siden af.',
       url: 'https://www.yogabible.dk/200-hours-18-weeks-flexible-programs',
       scheduleUrl: 'https://www.yogabible.dk/skema/18-uger/' + scheduleBase,
+      programType: '18-week'
+    },
+    '18w-mar': {
+      name: '18-ugers fleksible program (for\u00e5r)',
+      period: 'marts\u2013juni 2026',
+      desc: 'For\u00e5rsholdet \u2014 v\u00e6lg hverdags- eller weekendspor og skift frit undervejs. Perfekt hvis du har arbejde, studie eller familie ved siden af.',
+      url: 'https://www.yogabible.dk/200-hours-18-weeks-flexible-programs',
+      scheduleUrl: 'https://www.yogabible.dk/skema/18-uger/' + scheduleBase,
+      programType: '18-week'
+    },
+    '18w-aug': {
+      name: '18-ugers fleksible program (efter\u00e5r)',
+      period: 'august\u2013december 2026',
+      desc: 'Efter\u00e5rsholdet \u2014 v\u00e6lg hverdags- eller weekendspor og skift frit undervejs. Start 10. august, graduation 13. december.',
+      url: 'https://www.yogabible.dk/200-hours-18-weeks-flexible-programs',
+      scheduleUrl: 'https://www.yogabible.dk/skema/18-uger-august/' + scheduleBase,
       programType: '18-week'
     },
     '8w': {

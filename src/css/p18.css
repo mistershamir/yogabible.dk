@@ -3568,3 +3568,140 @@
     gap: 24px;
   }
 }
+
+/* ═══════════════════════════════════════
+   COHORT SELECTION CARDS
+   ═══════════════════════════════════════ */
+.p18-cohorts {
+  padding: 80px 0 60px;
+}
+
+.p18-cohorts__grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 32px;
+  margin-top: 40px;
+}
+
+.p18-cohort-card {
+  border-radius: 16px;
+  padding: 32px;
+  position: relative;
+}
+
+.p18-cohort-card--archive {
+  background: #F5F3F0;
+  border: 1px solid #E8E4E0;
+}
+
+.p18-cohort-card--active {
+  background: #0F0F0F;
+  color: #FFFCF9;
+  border: 1.5px solid #f75c03;
+}
+
+.p18-cohort-card__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+  gap: 12px;
+}
+
+.p18-cohort-card__title {
+  font-size: 1.35rem;
+  font-weight: 700;
+  margin: 0;
+}
+
+.p18-cohort-card__badge {
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 4px 12px;
+  border-radius: 100px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+}
+
+.p18-cohort-card__badge--sold {
+  background: #E8E4E0;
+  color: #6F6A66;
+}
+
+.p18-cohort-card__badge--open {
+  background: #f75c03;
+  color: #fff;
+}
+
+.p18-cohort-card__proof {
+  font-size: 0.95rem;
+  font-weight: 600;
+  margin: 0 0 4px;
+  color: #0F0F0F;
+}
+
+.p18-cohort-card__proof-detail {
+  font-size: 0.85rem;
+  color: #6F6A66;
+  margin: 0 0 20px;
+}
+
+.p18-cohort-card__desc {
+  font-size: 0.9rem;
+  line-height: 1.6;
+  margin: 0 0 16px;
+}
+
+.p18-cohort-card--archive .p18-cohort-card__desc {
+  color: #6F6A66;
+}
+
+.p18-cohort-card--active .p18-cohort-card__desc {
+  color: rgba(255,252,249,0.8);
+}
+
+.p18-cohort-card__list {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 20px;
+}
+
+.p18-cohort-card__list li {
+  padding: 4px 0 4px 20px;
+  position: relative;
+  font-size: 0.9rem;
+  color: rgba(255,252,249,0.85);
+}
+
+.p18-cohort-card__list li::before {
+  content: '✓';
+  position: absolute;
+  left: 0;
+  color: #f75c03;
+  font-weight: 700;
+}
+
+.p18-cohort-card__redirect {
+  display: inline-block;
+  margin-top: 8px;
+  font-size: 0.85rem;
+  color: #f75c03;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.p18-cohort-card__redirect:hover {
+  color: #d94f02;
+}
+
+@media (max-width: 768px) {
+  .p18-cohorts__grid {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+
+  .p18-cohort-card {
+    padding: 24px;
+  }
+}
