@@ -180,15 +180,17 @@
      FORM
      ══════════════════════════════════════════ */
   // Toggle co-teachers field visibility based on stream type
-  function toggleCoTeachersField(type) {
-    var field = $('yb-la-coteachers-field');
-    if (field) field.style.display = type === 'panel' ? '' : 'none';
+  function toggleStreamTypeFields(type) {
+    var coTeachersField = $('yb-la-coteachers-field');
+    var meetingUrlField = $('yb-la-meeting-url-field');
+    if (coTeachersField) coTeachersField.style.display = type === 'panel' ? '' : 'none';
+    if (meetingUrlField) meetingUrlField.style.display = type === 'meet' ? '' : 'none';
   }
 
   var streamTypeSelect = $('yb-la-stream-type');
   if (streamTypeSelect) {
     streamTypeSelect.addEventListener('change', function () {
-      toggleCoTeachersField(this.value);
+      toggleStreamTypeFields(this.value);
     });
   }
 
@@ -214,7 +216,13 @@
     if (streamTypeSel) {
       var st = (item && item.streamType) || (item && item.interactive ? 'interactive' : 'broadcast');
       streamTypeSel.value = st;
-      toggleCoTeachersField(st);
+      toggleStreamTypeFields(st);
+    }
+
+    // Meeting URL
+    var meetingUrlInput = $('yb-la-meeting-url');
+    if (meetingUrlInput) {
+      meetingUrlInput.value = (item && item.meetingUrl) || '';
     }
 
     // Co-teachers
@@ -329,10 +337,22 @@
       data.cohorts = [];
     }
 
-    // Stream type + co-teachers
+    // Stream type + co-teachers + meeting URL
     var streamTypeSel = $('yb-la-stream-type');
     data.streamType = streamTypeSel ? streamTypeSel.value : 'broadcast';
     data.interactive = data.streamType === 'interactive'; // backwards compat
+
+    // Meeting URL (for Google Meet / external meeting sessions)
+    if (data.streamType === 'meet') {
+      var meetUrl = ($('yb-la-meeting-url') ? $('yb-la-meeting-url').value : '').trim();
+      if (!meetUrl) {
+        alert(isDa ? 'Indtast en meeting URL' : 'Please enter a meeting URL');
+        return;
+      }
+      data.meetingUrl = meetUrl;
+    } else {
+      data.meetingUrl = null;
+    }
 
     var coTeachersStr = ($('yb-la-coteachers') ? $('yb-la-coteachers').value : '').trim();
     if (coTeachersStr && data.streamType === 'panel') {
