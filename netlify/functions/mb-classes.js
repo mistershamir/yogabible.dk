@@ -5,6 +5,8 @@
  * Query params:
  *   startDate (YYYY-MM-DD) - defaults to today
  *   endDate (YYYY-MM-DD) - defaults to 7 days from startDate
+ *   sessionTypeIds (comma-separated) - filter by session type
+ *   programIds (comma-separated) - filter by program
  */
 
 const { mbFetch, jsonResponse, corsHeaders } = require('./shared/mb-api');
@@ -34,6 +36,14 @@ exports.handler = async function(event) {
 
     if (params.clientId) {
       qsParams.ClientId = params.clientId;
+    }
+
+    if (params.sessionTypeIds) {
+      qsParams.SessionTypeIds = params.sessionTypeIds;
+    }
+
+    if (params.programIds) {
+      qsParams.ProgramIds = params.programIds;
     }
 
     const queryString = new URLSearchParams(qsParams).toString();
