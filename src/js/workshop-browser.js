@@ -7,7 +7,6 @@
   'use strict';
 
   var API = '/.netlify/functions';
-  var SESSION_TYPE_NAME = '200hrs Teacher Training Workshops';
   var WORKSHOP_PROD_ID = '100075';
   var isDa = window.location.pathname.indexOf('/en/') !== 0;
 
@@ -64,10 +63,10 @@
     if (!resp.ok) throw new Error('Failed to fetch workshops');
     var data = await resp.json();
 
-    // Filter to YTT workshops only, exclude cancelled and past classes
+    // Filter to YTT workshops only (all start with "Teacher Training:")
     return (data.classes || []).filter(function (c) {
       return !c.isCanceled && new Date(c.startDateTime) > now &&
-        c.sessionTypeName === SESSION_TYPE_NAME;
+        c.name.indexOf('Teacher Training:') === 0;
     });
   }
 
