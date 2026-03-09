@@ -3,14 +3,25 @@ permalink: /sitemap.xml
 eleventyExcludeFromCollections: true
 ---
 <?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+        xmlns:xhtml="http://www.w3.org/1999/xhtml">
   {%- for p in collections.all %}
-  {%- if p.url != "/sitemap.xml" and p.url != "/robots.txt" and p.url != "/404.html" and "/embed/" not in p.url and "/admin" not in p.url and "/samples/" not in p.url %}
+  {%- if p.url != "/sitemap.xml" and p.url != "/robots.txt" and p.url != "/404.html" and "/embed/" not in p.url and "/admin" not in p.url and "/samples/" not in p.url and "vibroyogadesign" not in p.url and "vibroyoga-showcase" not in p.url and "hotyogacph-user-area" not in p.url %}
+  {%- if "/en/" in p.url %}
+  {%- set daUrl = p.url | replace("/en/", "/") %}
+  {%- set enUrl = p.url %}
+  {%- else %}
+  {%- set daUrl = p.url %}
+  {%- set enUrl = "/en" + p.url %}
+  {%- endif %}
   <url>
     <loc>{{ site.url }}{{ p.url }}</loc>
     <lastmod>{{ p.date | date("%Y-%m-%d") }}</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>{%- if p.url == "/" %}1.0{%- elif "200-hours" in p.url or p.url == "/om-200hrs-yogalreruddannelser/" or p.url == "/sammenlign-yogalreruddannelser/" %}0.9{%- elif p.url == "/apply/" or p.url == "/kontakt/" %}0.8{%- elif p.url == "/yoga-journal/" %}0.8{%- elif p.url == "/inversions/" or p.url == "/splits/" or p.url == "/backbends/" or p.url == "/course-bundles/" %}0.7{%- elif "/yoga-journal/" in p.url %}0.6{%- else %}0.5{%- endif %}</priority>
+    <changefreq>{%- if p.url == "/" or p.url == "/en/" %}daily{%- elif "200-hours" in p.url or "300-hours" in p.url or "om-200hrs" in p.url or "sammenlign" in p.url or "/hot-yoga" in p.url or "/vibro-yoga" in p.url %}weekly{%- elif "/yoga-journal/" in p.url and p.url != "/yoga-journal/" and p.url != "/en/yoga-journal/" %}monthly{%- else %}weekly{%- endif %}</changefreq>
+    <priority>{%- if p.url == "/" or p.url == "/en/" %}1.0{%- elif "200-hours" in p.url or "300-hours" in p.url or p.url == "/om-200hrs-yogalreruddannelser/" or p.url == "/en/om-200hrs-yogalreruddannelser/" or p.url == "/sammenlign-yogalreruddannelser/" or p.url == "/en/sammenlign-yogalreruddannelser/" %}0.9{%- elif "/hot-yoga-copenhagen/" in p.url or "/vibro-yoga/" in p.url %}0.9{%- elif p.url == "/ansøg/" or p.url == "/en/apply/" or p.url == "/kontakt/" or p.url == "/en/kontakt/" %}0.8{%- elif p.url == "/yoga-journal/" or p.url == "/en/yoga-journal/" %}0.8{%- elif p.url == "/inversions/" or p.url == "/splits/" or p.url == "/backbends/" or p.url == "/course-bundles/" or p.url == "/en/inversions/" or p.url == "/en/splits/" or p.url == "/en/backbends/" or p.url == "/en/course-bundles/" %}0.7{%- elif "/yoga-journal/" in p.url %}0.6{%- elif p.url == "/yoga-glossary/" or p.url == "/en/yoga-glossary/" %}0.7{%- elif p.url == "/yoga-bible-concepts/" or p.url == "/en/concepts/" %}0.7{%- else %}0.5{%- endif %}</priority>
+    <xhtml:link rel="alternate" hreflang="da" href="{{ site.url }}{{ daUrl }}" />
+    <xhtml:link rel="alternate" hreflang="en" href="{{ site.url }}{{ enUrl }}" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="{{ site.url }}{{ daUrl }}" />
   </url>
   {%- endif %}
   {%- endfor %}

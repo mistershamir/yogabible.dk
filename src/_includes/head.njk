@@ -6,27 +6,30 @@
 {% if noindex %}<meta name="robots" content="noindex, nofollow">{% endif %}
 
 <!-- SEO Meta Tags -->
-<title>{{ title | default("YOGA BIBLE - Denmark") }}</title>
-<meta name="description" content="{{ description | default("Yoga Bible er din platform for yogalæreruddannelser, fordybelse og professionelle yogaklasser. Uanset om du vil undervise, lære mere eller finde dit fællesskab – vi er her.") }}">
+<title>{{ title | default("YOGA BIBLE — Yogalæreruddannelse i København | Yoga Teacher Training Copenhagen") }}</title>
+<meta name="description" content="{{ description | default("Yoga Bible — professionel yogalæreruddannelse i København siden 2014. Yoga Alliance certificeret (RYS-200). 200-timers & 300-timers uddannelse, hot yoga, kurser og klasser. Professional yoga teacher training in Copenhagen.") }}">
+{% if keywords %}<meta name="keywords" content="{{ keywords }}">{% endif %}
 <link rel="canonical" href="{{ site.url }}{{ page.url }}">
 {% if langAlternateEn %}<link rel="alternate" hreflang="en" href="{{ langAlternateEn }}">{% endif %}
 {% if langAlternateDa %}<link rel="alternate" hreflang="da" href="{{ langAlternateDa }}">{% endif %}
 
 <!-- Open Graph -->
 <meta property="og:site_name" content="{{ site.name }}">
-<meta property="og:title" content="{{ title | default("YOGA BIBLE - Denmark") }}">
+<meta property="og:title" content="{{ ogTitle or title | default("YOGA BIBLE — Yoga Teacher Training Copenhagen") }}">
 <meta property="og:url" content="{{ site.url }}{{ page.url }}">
-<meta property="og:type" content="website">
-<meta property="og:description" content="{{ description | default("Yoga Bible er din platform for yogalæreruddannelser, fordybelse og professionelle yogaklasser.") }}">
-<meta property="og:image" content="{{ site.url }}/assets/images/og/og-1200x630.png">
+<meta property="og:type" content="{{ ogType | default('website') }}">
+<meta property="og:description" content="{{ ogDescription or description | default("Yoga Bible — professionel yogalæreruddannelse i København. Yoga Alliance certificeret. Hot yoga, kurser og klasser.") }}">
+<meta property="og:image" content="{{ ogImage | default(site.url + '/assets/images/og/og-1200x630.png') }}">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
+<meta property="og:locale" content="{% if lang == 'en' %}en_US{% else %}da_DK{% endif %}">
+<meta property="og:locale:alternate" content="{% if lang == 'en' %}da_DK{% else %}en_US{% endif %}">
 
 <!-- Twitter Card -->
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="{{ title | default("YOGA BIBLE - Denmark") }}">
-<meta name="twitter:description" content="{{ description | default("Yoga Bible er din platform for yogalæreruddannelser, fordybelse og professionelle yogaklasser.") }}">
-<meta name="twitter:image" content="{{ site.url }}/assets/images/og/og-1200x630.png">
+<meta name="twitter:title" content="{{ ogTitle or title | default("YOGA BIBLE — Yoga Teacher Training Copenhagen") }}">
+<meta name="twitter:description" content="{{ ogDescription or description | default("Yoga Bible — professionel yogalæreruddannelse i København. Yoga Alliance certificeret.") }}">
+<meta name="twitter:image" content="{{ ogImage | default(site.url + '/assets/images/og/og-1200x630.png') }}">
 
 <!-- Favicon -->
 <link rel="icon" href="/favicon.ico" sizes="any">
@@ -62,32 +65,130 @@
 <link rel="alternate" hreflang="en" href="{{ site.url }}{{ enPath }}">
 <link rel="alternate" hreflang="x-default" href="{{ site.url }}{{ daPath }}">
 
-<!-- JSON-LD: Organization (all pages) -->
+<!-- JSON-LD: Organization + LocalBusiness (all pages, rich local SEO) -->
 <script type="application/ld+json">
 {
   "@context": "https://schema.org",
-  "@type": "EducationalOrganization",
+  "@type": ["EducationalOrganization", "LocalBusiness", "HealthAndBeautyBusiness"],
+  "@id": "{{ site.url }}/#organization",
   "name": "Yoga Bible",
-  "alternateName": "YOGA BIBLE",
+  "alternateName": ["YOGA BIBLE", "Yoga Bible DK", "Yoga Bible Copenhagen"],
   "url": "{{ site.url }}",
-  "logo": "{{ site.url }}/assets/images/og/og-1200x630.png",
-  "description": "Yogalæreruddannelser i København. Yoga Alliance certificeret (RYS-200). Hatha, Vinyasa, Yin og Hot Yoga.",
+  "logo": {
+    "@type": "ImageObject",
+    "url": "{{ site.url }}/assets/images/og/og-1200x630.png",
+    "width": 1200,
+    "height": 630
+  },
+  "image": "{{ site.url }}/assets/images/og/og-1200x630.png",
+  "description": "{% if lang == 'en' %}Professional yoga teacher training in Copenhagen since 2014. Yoga Alliance certified (RYS-200 & RYS-300). 200-hour and 300-hour programs, hot yoga classes, specialty courses, and private training.{% else %}Professionel yogalæreruddannelse i København siden 2014. Yoga Alliance certificeret (RYS-200 & RYS-300). 200-timers og 300-timers uddannelser, hot yoga klasser, specialkurser og privatundervisning.{% endif %}",
   "address": {
     "@type": "PostalAddress",
     "streetAddress": "Torvegade 66",
-    "addressLocality": "København K",
+    "addressLocality": "Copenhagen",
+    "addressRegion": "Capital Region of Denmark",
     "postalCode": "1400",
     "addressCountry": "DK"
   },
+  "geo": {
+    "@type": "GeoCoordinates",
+    "latitude": 55.6722,
+    "longitude": 12.5923
+  },
   "telephone": "{{ site.phone }}",
   "email": "{{ site.email }}",
-  "sameAs": [
-    "{{ site.instagram }}"
+  "priceRange": "$$",
+  "currenciesAccepted": "DKK",
+  "paymentAccepted": "Credit Card, Debit Card, MobilePay",
+  "openingHoursSpecification": [
+    {
+      "@type": "OpeningHoursSpecification",
+      "dayOfWeek": ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"],
+      "opens": "06:30",
+      "closes": "21:00"
+    },
+    {
+      "@type": "OpeningHoursSpecification",
+      "dayOfWeek": ["Saturday", "Sunday"],
+      "opens": "08:00",
+      "closes": "18:00"
+    }
   ],
-  "areaServed": {
-    "@type": "City",
-    "name": "København"
-  }
+  "sameAs": [
+    "{{ site.instagram }}",
+    "{{ site.soundcloud }}",
+    "https://www.facebook.com/hotyogacph",
+    "https://www.google.com/maps/place/Hot+Yoga+Copenhagen",
+    "https://www.tripadvisor.com/Attraction_Review-g189541-d10596318-Reviews-Hot_Yoga_Copenhagen-Copenhagen_Zealand.html"
+  ],
+  "areaServed": [
+    {
+      "@type": "City",
+      "name": "Copenhagen"
+    },
+    {
+      "@type": "Country",
+      "name": "Denmark"
+    }
+  ],
+  "hasOfferCatalog": {
+    "@type": "OfferCatalog",
+    "name": "{% if lang == 'en' %}Yoga Teacher Training Programs{% else %}Yogalæreruddannelser{% endif %}",
+    "itemListElement": [
+      {
+        "@type": "OfferCatalog",
+        "name": "200-Hour Yoga Teacher Training",
+        "itemListElement": [
+          {
+            "@type": "Offer",
+            "itemOffered": {
+              "@type": "Course",
+              "name": "4-Week Intensive YTT",
+              "description": "200-hour intensive yoga teacher training in 4 weeks"
+            }
+          },
+          {
+            "@type": "Offer",
+            "itemOffered": {
+              "@type": "Course",
+              "name": "8-Week Semi-Intensive YTT",
+              "description": "200-hour semi-intensive yoga teacher training in 8 weeks"
+            }
+          },
+          {
+            "@type": "Offer",
+            "itemOffered": {
+              "@type": "Course",
+              "name": "18-Week Flexible YTT",
+              "description": "200-hour flexible yoga teacher training in 18 weeks"
+            }
+          }
+        ]
+      },
+      {
+        "@type": "Offer",
+        "itemOffered": {
+          "@type": "Course",
+          "name": "300-Hour Advanced Teacher Training",
+          "description": "300-hour advanced yoga teacher training for RYT-500 certification"
+        }
+      }
+    ]
+  },
+  "aggregateRating": {
+    "@type": "AggregateRating",
+    "ratingValue": "4.9",
+    "bestRating": "5",
+    "ratingCount": "500",
+    "reviewCount": "500"
+  },
+  "founder": {
+    "@type": "Person",
+    "name": "Shamir Rahim"
+  },
+  "foundingDate": "2014",
+  "knowsAbout": ["Yoga", "Yoga Teacher Training", "Hot Yoga", "Vinyasa Yoga", "Yin Yoga", "Hatha Yoga", "Vibro Yoga", "Meditation", "Pranayama", "Yogalæreruddannelse"],
+  "knowsLanguage": ["da", "en"]
 }
 </script>
 
@@ -98,12 +199,21 @@
   "@context": "https://schema.org",
   "@type": "WebSite",
   "name": "Yoga Bible",
+  "alternateName": "YOGA BIBLE",
   "url": "{{ site.url }}",
-  "description": "Yogalæreruddannelser, kurser og klasser i København. Yoga Alliance certificeret.",
+  "description": "{% if lang == 'en' %}Yoga teacher training programs, hot yoga classes, and specialty courses in Copenhagen. Yoga Alliance certified since 2014.{% else %}Yogalæreruddannelser, hot yoga klasser og specialkurser i København. Yoga Alliance certificeret siden 2014.{% endif %}",
   "inLanguage": ["da", "en"],
   "publisher": {
     "@type": "EducationalOrganization",
-    "name": "Yoga Bible"
+    "@id": "{{ site.url }}/#organization"
+  },
+  "potentialAction": {
+    "@type": "SearchAction",
+    "target": {
+      "@type": "EntryPoint",
+      "urlTemplate": "{{ site.url }}/yoga-journal/?q={search_term_string}"
+    },
+    "query-input": "required name=search_term_string"
   }
 }
 </script>
@@ -112,7 +222,7 @@
 {% set coursePages = ["/om-200hrs-yogalreruddannelser/", "/200-hours-18-weeks-flexible-programs/", "/200-hours-8-weeks-semi-intensive-programs/", "/200-hours-4-weeks-intensive-programs/"] %}
 {% set isCourse = page.url in coursePages or page.url | replace("/en/", "/") in coursePages %}
 {% if isCourse %}
-<!-- JSON-LD: Course (program pages) -->
+<!-- JSON-LD: Course with multiple instances (program pages) -->
 <script type="application/ld+json">
 {
   "@context": "https://schema.org",
@@ -122,28 +232,230 @@
   "url": "{{ site.url }}{{ page.url }}",
   "provider": {
     "@type": "EducationalOrganization",
+    "@id": "{{ site.url }}/#organization",
     "name": "Yoga Bible",
     "url": "{{ site.url }}",
     "address": {
       "@type": "PostalAddress",
       "streetAddress": "Torvegade 66",
-      "addressLocality": "København K",
+      "addressLocality": "Copenhagen",
       "postalCode": "1400",
       "addressCountry": "DK"
     }
   },
-  "educationalCredentialAwarded": "RYT-200 Yoga Alliance Certification",
+  "educationalCredentialAwarded": "{% if '/300-hours' in page.url %}RYT-500 Yoga Alliance Certification{% else %}RYT-200 Yoga Alliance Certification{% endif %}",
+  "educationalLevel": "{% if '/300-hours' in page.url %}Advanced{% else %}Beginner to Intermediate{% endif %}",
+  "coursePrerequisites": "{% if '/300-hours' in page.url %}RYT-200 certification required{% else %}No prior yoga teaching experience required{% endif %}",
   "inLanguage": ["da", "en"],
+  "numberOfCredits": "{% if '/300-hours' in page.url %}300{% else %}200{% endif %}",
+  "occupationalCredentialAwarded": {
+    "@type": "EducationalOccupationalCredential",
+    "name": "{% if '/300-hours' in page.url %}RYT-500{% else %}RYT-200{% endif %}",
+    "credentialCategory": "Professional Certification",
+    "recognizedBy": {
+      "@type": "Organization",
+      "name": "Yoga Alliance",
+      "url": "https://www.yogaalliance.org"
+    }
+  },
+  "teaches": ["Hatha Yoga", "Vinyasa Flow", "Yin Yoga", "Hot Yoga", "Meditation", "Pranayama", "Yoga Anatomy", "Yoga Philosophy", "Teaching Methodology", "Sequencing"],
+  "hasCourseInstance": [
+    {% if '/4-weeks' in page.url or page.url == '/om-200hrs-yogalreruddannelser/' or page.url == '/en/om-200hrs-yogalreruddannelser/' %}
+    {
+      "@type": "CourseInstance",
+      "name": "4-Week Intensive — April 2026",
+      "courseMode": "onsite",
+      "courseWorkload": "PT160H",
+      "startDate": "2026-04-06",
+      "endDate": "2026-05-01",
+      "location": {
+        "@type": "Place",
+        "name": "Yoga Bible Studio",
+        "address": {
+          "@type": "PostalAddress",
+          "streetAddress": "Torvegade 66",
+          "addressLocality": "Copenhagen",
+          "postalCode": "1400",
+          "addressCountry": "DK"
+        }
+      },
+      "offers": {
+        "@type": "Offer",
+        "price": "25500",
+        "priceCurrency": "DKK",
+        "availability": "https://schema.org/InStock",
+        "validFrom": "2025-01-01",
+        "url": "{{ site.url }}/ansøg/"
+      }
+    },
+    {
+      "@type": "CourseInstance",
+      "name": "4-Week Intensive — July 2026",
+      "courseMode": "onsite",
+      "courseWorkload": "PT160H",
+      "startDate": "2026-07-06",
+      "endDate": "2026-07-31",
+      "location": {
+        "@type": "Place",
+        "name": "Yoga Bible Studio",
+        "address": {
+          "@type": "PostalAddress",
+          "streetAddress": "Torvegade 66",
+          "addressLocality": "Copenhagen",
+          "postalCode": "1400",
+          "addressCountry": "DK"
+        }
+      },
+      "offers": {
+        "@type": "Offer",
+        "price": "25500",
+        "priceCurrency": "DKK",
+        "availability": "https://schema.org/InStock",
+        "validFrom": "2025-01-01",
+        "url": "{{ site.url }}/ansøg/"
+      }
+    }
+    {% endif %}
+    {% if '/8-weeks' in page.url or page.url == '/om-200hrs-yogalreruddannelser/' or page.url == '/en/om-200hrs-yogalreruddannelser/' %}
+    {% if '/4-weeks' in page.url or page.url == '/om-200hrs-yogalreruddannelser/' or page.url == '/en/om-200hrs-yogalreruddannelser/' %},{% endif %}
+    {
+      "@type": "CourseInstance",
+      "name": "8-Week Semi-Intensive — May 2026",
+      "courseMode": "onsite",
+      "courseWorkload": "PT160H",
+      "startDate": "2026-05-04",
+      "endDate": "2026-06-26",
+      "location": {
+        "@type": "Place",
+        "name": "Yoga Bible Studio",
+        "address": {
+          "@type": "PostalAddress",
+          "streetAddress": "Torvegade 66",
+          "addressLocality": "Copenhagen",
+          "postalCode": "1400",
+          "addressCountry": "DK"
+        }
+      },
+      "offers": {
+        "@type": "Offer",
+        "price": "25500",
+        "priceCurrency": "DKK",
+        "availability": "https://schema.org/InStock",
+        "validFrom": "2025-01-01",
+        "url": "{{ site.url }}/ansøg/"
+      }
+    }
+    {% endif %}
+    {% if '/18-weeks' in page.url or page.url == '/om-200hrs-yogalreruddannelser/' or page.url == '/en/om-200hrs-yogalreruddannelser/' %}
+    {% if '/4-weeks' in page.url or '/8-weeks' in page.url or page.url == '/om-200hrs-yogalreruddannelser/' or page.url == '/en/om-200hrs-yogalreruddannelser/' %},{% endif %}
+    {
+      "@type": "CourseInstance",
+      "name": "18-Week Flexible — March 2026",
+      "courseMode": "onsite",
+      "courseWorkload": "PT160H",
+      "startDate": "2026-03-02",
+      "endDate": "2026-06-29",
+      "location": {
+        "@type": "Place",
+        "name": "Yoga Bible Studio",
+        "address": {
+          "@type": "PostalAddress",
+          "streetAddress": "Torvegade 66",
+          "addressLocality": "Copenhagen",
+          "postalCode": "1400",
+          "addressCountry": "DK"
+        }
+      },
+      "offers": {
+        "@type": "Offer",
+        "price": "25500",
+        "priceCurrency": "DKK",
+        "availability": "https://schema.org/InStock",
+        "validFrom": "2025-01-01",
+        "url": "{{ site.url }}/ansøg/"
+      }
+    },
+    {
+      "@type": "CourseInstance",
+      "name": "18-Week Flexible — August 2026",
+      "courseMode": "onsite",
+      "courseWorkload": "PT160H",
+      "startDate": "2026-08-17",
+      "endDate": "2026-12-18",
+      "location": {
+        "@type": "Place",
+        "name": "Yoga Bible Studio",
+        "address": {
+          "@type": "PostalAddress",
+          "streetAddress": "Torvegade 66",
+          "addressLocality": "Copenhagen",
+          "postalCode": "1400",
+          "addressCountry": "DK"
+        }
+      },
+      "offers": {
+        "@type": "Offer",
+        "price": "25500",
+        "priceCurrency": "DKK",
+        "availability": "https://schema.org/InStock",
+        "validFrom": "2025-01-01",
+        "url": "{{ site.url }}/ansøg/"
+      }
+    }
+    {% endif %}
+  ],
+  "offers": {
+    "@type": "Offer",
+    "price": "25500",
+    "priceCurrency": "DKK",
+    "availability": "https://schema.org/InStock",
+    "url": "{{ site.url }}/ansøg/"
+  },
+  "aggregateRating": {
+    "@type": "AggregateRating",
+    "ratingValue": "4.9",
+    "bestRating": "5",
+    "ratingCount": "500"
+  }
+}
+</script>
+{% endif %}
+
+{% set p300Pages = ["/300-hours-advanced-teacher-training/"] %}
+{% set isP300 = page.url in p300Pages or page.url | replace("/en/", "/") in p300Pages %}
+{% if isP300 %}
+<!-- JSON-LD: 300-Hour Advanced Course -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Course",
+  "name": "{{ title }}",
+  "description": "{{ description }}",
+  "url": "{{ site.url }}{{ page.url }}",
+  "provider": {
+    "@type": "EducationalOrganization",
+    "@id": "{{ site.url }}/#organization"
+  },
+  "educationalCredentialAwarded": "RYT-500 Yoga Alliance Certification",
+  "educationalLevel": "Advanced",
+  "coursePrerequisites": "RYT-200 certification required",
+  "inLanguage": ["da", "en"],
+  "numberOfCredits": "300",
+  "teaches": ["Advanced Asana", "Advanced Pranayama", "Yoga Therapy", "Advanced Anatomy", "Advanced Teaching Methodology", "Business of Yoga"],
   "hasCourseInstance": {
     "@type": "CourseInstance",
+    "name": "300-Hour Advanced YTT — May–December 2026",
     "courseMode": "onsite",
+    "courseWorkload": "PT300H",
+    "startDate": "2026-05-01",
+    "endDate": "2026-12-15",
     "location": {
       "@type": "Place",
       "name": "Yoga Bible Studio",
       "address": {
         "@type": "PostalAddress",
         "streetAddress": "Torvegade 66",
-        "addressLocality": "København K",
+        "addressLocality": "Copenhagen",
         "postalCode": "1400",
         "addressCountry": "DK"
       }
@@ -151,10 +463,10 @@
   },
   "offers": {
     "@type": "Offer",
-    "price": "25500",
+    "price": "39500",
     "priceCurrency": "DKK",
     "availability": "https://schema.org/InStock",
-    "url": "{{ site.url }}/apply"
+    "url": "{{ site.url }}/ansøg/"
   }
 }
 </script>
@@ -173,9 +485,10 @@
   "url": "{{ site.url }}{{ page.url }}",
   "provider": {
     "@type": "EducationalOrganization",
-    "name": "Yoga Bible",
-    "url": "{{ site.url }}"
+    "@id": "{{ site.url }}/#organization"
   },
+  "inLanguage": ["da", "en"],
+  "teaches": [{% if '/inversions' in page.url %}"Headstand", "Handstand", "Forearm Stand", "Inversions Technique"{% elif '/backbends' in page.url %}"Wheel Pose", "Camel Pose", "Backbend Technique", "Spinal Flexibility"{% elif '/splits' in page.url %}"Front Splits", "Side Splits", "Hip Opening", "Flexibility Training"{% endif %}],
   "offers": {
     "@type": "Offer",
     "price": "2300",
@@ -193,14 +506,109 @@
   "@context": "https://schema.org",
   "@type": "Blog",
   "name": "Yoga Journal — YOGA BIBLE",
-  "description": "Dybdegående artikler om yogafilosofi, pranayama, asanas, mental sundhed og uddannelse fra Yoga Bible i København.",
+  "description": "{% if lang == 'en' %}In-depth articles about yoga philosophy, pranayama, asanas, mental health, and yoga teacher training from Yoga Bible in Copenhagen.{% else %}Dybdegående artikler om yogafilosofi, pranayama, asanas, mental sundhed og uddannelse fra Yoga Bible i København.{% endif %}",
   "url": "{{ site.url }}/yoga-journal/",
   "inLanguage": ["da", "en"],
   "publisher": {
     "@type": "EducationalOrganization",
-    "name": "Yoga Bible",
-    "url": "{{ site.url }}"
+    "@id": "{{ site.url }}/#organization"
   }
+}
+</script>
+{% endif %}
+
+{% if isJournalPost %}
+<!-- JSON-LD: Article (individual blog posts, AEO) -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Article",
+  "headline": "{{ title }}",
+  "description": "{{ description }}",
+  "url": "{{ site.url }}{{ page.url }}",
+  "datePublished": "{{ journalDate }}",
+  "dateModified": "{{ journalDate }}",
+  "author": {
+    "@type": "Organization",
+    "name": "Yoga Bible",
+    "@id": "{{ site.url }}/#organization"
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "Yoga Bible",
+    "logo": {
+      "@type": "ImageObject",
+      "url": "{{ site.url }}/assets/images/og/og-1200x630.png"
+    }
+  },
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "{{ site.url }}{{ page.url }}"
+  },
+  "inLanguage": "{% if lang == 'en' %}en{% else %}da{% endif %}"
+}
+</script>
+{% endif %}
+
+<!-- JSON-LD: BreadcrumbList (all pages, AEO) -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position": 1,
+      "name": "{% if lang == 'en' %}Home{% else %}Forside{% endif %}",
+      "item": "{{ site.url }}{% if lang == 'en' %}/en/{% else %}/{% endif %}"
+    }
+    {% if breadcrumb2 %},
+    {
+      "@type": "ListItem",
+      "position": 2,
+      "name": "{{ breadcrumb2 }}",
+      "item": "{{ site.url }}{{ breadcrumb2url }}"
+    }
+    {% endif %}
+    {% if breadcrumb3 %},
+    {
+      "@type": "ListItem",
+      "position": 3,
+      "name": "{{ breadcrumb3 }}",
+      "item": "{{ site.url }}{{ page.url }}"
+    }
+    {% endif %}
+    {% if not breadcrumb2 and page.url != "/" and page.url != "/en/" %},
+    {
+      "@type": "ListItem",
+      "position": 2,
+      "name": "{{ title }}",
+      "item": "{{ site.url }}{{ page.url }}"
+    }
+    {% endif %}
+  ]
+}
+</script>
+
+{% if faq %}
+<!-- JSON-LD: FAQPage (AEO — pages with FAQ data) -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {% for item in faq %}
+    {% if not loop.first %},{% endif %}
+    {
+      "@type": "Question",
+      "name": "{{ item.q }}",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "{{ item.a }}"
+      }
+    }
+    {% endfor %}
+  ]
 }
 </script>
 {% endif %}
