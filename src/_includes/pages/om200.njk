@@ -206,6 +206,126 @@
 </section>
 
 {# ═══════════════════════════════════════════════════════════
+   SECTION 2b: EDUCATION METHODS — Triangle Method + Vinyasa Plus
+   ═══════════════════════════════════════════════════════════ #}
+<section class="om2-methods" id="om2-methods" aria-labelledby="om2-methods-title">
+  <div class="om2-methods__inner">
+    <header class="om2-methods__head">
+      <p class="om2-methods__eyebrow">{{ t.methods_eyebrow }}</p>
+      <h2 class="om2-methods__title" id="om2-methods-title">{{ t.methods_title }}</h2>
+      <p class="om2-methods__lead">{{ t.methods_lead | safe }}</p>
+    </header>
+
+    <div class="om2-methods__cards">
+
+      {# ── THE TRIANGLE METHOD ── #}
+      <article class="om2-methods__card om2-methods__card--triangle">
+        <div class="om2-methods__card-badge">{{ t.tri_badge }}</div>
+        <h3 class="om2-methods__card-title">{{ t.tri_title }}</h3>
+        <p class="om2-methods__card-subtitle">{{ t.tri_subtitle }}</p>
+        <p class="om2-methods__card-lead">{{ t.tri_lead }}</p>
+
+        {# Animated Triangle Visual #}
+        {% include "components/triangle-method-animation.njk" %}
+
+        <div class="om2-methods__styles">
+          <div class="om2-methods__style">
+            <span class="om2-methods__style-icon">🧘</span>
+            <div>
+              <h4 class="om2-methods__style-name">{{ t.tri_hatha_title }}</h4>
+              <p class="om2-methods__style-desc">{{ t.tri_hatha_desc }}</p>
+            </div>
+          </div>
+          <div class="om2-methods__style">
+            <span class="om2-methods__style-icon">🌊</span>
+            <div>
+              <h4 class="om2-methods__style-name">{{ t.tri_vinyasa_title }}</h4>
+              <p class="om2-methods__style-desc">{{ t.tri_vinyasa_desc }}</p>
+            </div>
+          </div>
+          <div class="om2-methods__style">
+            <span class="om2-methods__style-icon">🌙</span>
+            <div>
+              <h4 class="om2-methods__style-name">{{ t.tri_yin_title }}</h4>
+              <p class="om2-methods__style-desc">{{ t.tri_yin_desc }}</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="om2-methods__why">
+          <h4 class="om2-methods__why-title">{{ t.tri_why_title }}</h4>
+          <p class="om2-methods__why-text">{{ t.tri_why_text | safe }}</p>
+        </div>
+
+        <ul class="om2-methods__benefits">
+          {% for i in range(1, 4) %}
+          <li>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+            <span>{{ t["tri_benefit" + (i | string)] | safe }}</span>
+          </li>
+          {% endfor %}
+        </ul>
+      </article>
+
+      {# ── VINYASA PLUS ── #}
+      <article class="om2-methods__card om2-methods__card--vinyasa-plus">
+        <div class="om2-methods__card-badge om2-methods__card-badge--alt">{{ t.vp_badge }}</div>
+        <h3 class="om2-methods__card-title">{{ t.vp_title }}</h3>
+        <p class="om2-methods__card-subtitle">{{ t.vp_subtitle }}</p>
+        <p class="om2-methods__card-lead">{{ t.vp_lead }}</p>
+
+        {# Animated Vinyasa Plus Visual #}
+        {% include "components/vinyasa-plus-animation.njk" %}
+
+        <div class="om2-methods__split">
+          <h4 class="om2-methods__split-title">{{ t.vp_split_title }}</h4>
+          <div class="om2-methods__split-bars">
+            <div class="om2-methods__split-bar om2-methods__split-bar--vinyasa">
+              <span class="om2-methods__split-label">{{ t.vp_split_vinyasa }}</span>
+              <p class="om2-methods__split-desc">{{ t.vp_split_vinyasa_desc }}</p>
+            </div>
+            <div class="om2-methods__split-bar om2-methods__split-bar--yin">
+              <span class="om2-methods__split-label">{{ t.vp_split_yin }}</span>
+              <p class="om2-methods__split-desc">{{ t.vp_split_yin_desc }}</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="om2-methods__why">
+          <h4 class="om2-methods__why-title">{{ t.vp_why_title }}</h4>
+          <p class="om2-methods__why-text">{{ t.vp_why_text | safe }}</p>
+        </div>
+
+        <ul class="om2-methods__benefits">
+          {% for i in range(1, 4) %}
+          <li>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+            <span>{{ t["vp_benefit" + (i | string)] | safe }}</span>
+          </li>
+          {% endfor %}
+        </ul>
+      </article>
+    </div>
+
+    {# SHARED: Both methods include #}
+    <div class="om2-methods__shared">
+      <h3 class="om2-methods__shared-title">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+        {{ t.methods_shared_title }}
+      </h3>
+      <ul class="om2-methods__shared-list">
+        {% for i in range(1, 4) %}
+        <li>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+          <span>{{ t["methods_shared" + (i | string)] | safe }}</span>
+        </li>
+        {% endfor %}
+      </ul>
+    </div>
+  </div>
+</section>
+
+{# ═══════════════════════════════════════════════════════════
    SECTION 3: MEET THE TEACHERS
    ═══════════════════════════════════════════════════════════ #}
 <section class="om2-teachers" id="om2-teachers" aria-labelledby="om2-teachers-title">
