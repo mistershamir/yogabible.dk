@@ -52,7 +52,7 @@
     // Fetch 6 months ahead
     var end = new Date(now.getTime() + 180 * 86400000).toISOString().split('T')[0];
 
-    var url = API + '/mb-classes?startDate=' + start + '&endDate=' + end;
+    var url = API + '/mb-classes?sessionTypeIds=24&startDate=' + start + '&endDate=' + end;
 
     // Include clientId if available for isBooked detection
     if (mbClientId) {
