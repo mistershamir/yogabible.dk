@@ -1,0 +1,49 @@
+# Hot Yoga Copenhagen — Member Profile Portal
+# This subdomain (profile.hotyogacph.dk) is a member-only application.
+# The public website is at www.hotyogacph.dk
+
+User-agent: *
+Disallow: /
+Allow: /llms.txt
+Allow: /faq.html
+Allow: /classes.html
+Allow: /pricing.html
+
+# Sitemap for public pages only
+Sitemap: https://profile.hotyogacph.dk/sitemap.xml
+
+# AI crawlers — allow llms.txt
+User-agent: GPTBot
+Allow: /llms.txt
+Allow: /faq.html
+Allow: /classes.html
+Allow: /pricing.html
+Disallow: /
+
+User-agent: ChatGPT-User
+Allow: /llms.txt
+Allow: /faq.html
+Allow: /classes.html
+Allow: /pricing.html
+Disallow: /
+
+User-agent: anthropic-ai
+Allow: /llms.txt
+Allow: /faq.html
+Allow: /classes.html
+Allow: /pricing.html
+Disallow: /
+
+User-agent: PerplexityBot
+Allow: /llms.txt
+Allow: /faq.html
+Allow: /classes.html
+Allow: /pricing.html
+Disallow: /
+
+User-agent: ClaudeBot
+Allow: /llms.txt
+Allow: /faq.html
+Allow: /classes.html
+Allow: /pricing.html
+Disallow: /

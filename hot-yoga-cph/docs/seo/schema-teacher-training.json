@@ -1,0 +1,139 @@
+<!--
+  HOT YOGA COPENHAGEN — Teacher Training (YTT) JSON-LD
+
+  Paste this into Framer:
+  Teacher Training page(s) → Page Settings → Custom Code → Start of <head> tag
+
+  Contains: EducationalOccupationalProgram (Course) + BreadcrumbList
+-->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        {
+          "@type": "ListItem",
+          "position": 1,
+          "name": "Hot Yoga Copenhagen",
+          "item": "https://www.hotyogacph.dk"
+        },
+        {
+          "@type": "ListItem",
+          "position": 2,
+          "name": "Yoga Teacher Training",
+          "item": "https://www.hotyogacph.dk/teacher-training-yogauddannelse-weekdays"
+        }
+      ]
+    },
+    {
+      "@type": "EducationalOccupationalProgram",
+      "name": "200-Hour Yoga Teacher Training (YTT)",
+      "alternateName": ["200-timers Yogalæreruddannelse", "200hr YTT Copenhagen", "Yoga Alliance Certified Teacher Training Denmark"],
+      "description": "Become a certified yoga teacher with Hot Yoga Copenhagen's Yoga Alliance registered 200-hour teacher training program. Multiple format options: 4-week intensive, 8-week semi-intensive, or 18-week flexible format. Learn to teach both heated and non-heated yoga classes. Taught in English in Copenhagen, Denmark.",
+      "url": "https://www.hotyogacph.dk/teacher-training-yogauddannelse-weekdays",
+      "provider": {
+        "@id": "https://www.hotyogacph.dk/#organization"
+      },
+      "educationalCredentialAwarded": "200-Hour Yoga Alliance RYT Certification",
+      "occupationalCategory": "Yoga Teacher",
+      "timeToComplete": "P18W",
+      "numberOfCredits": {
+        "@type": "StructuredValue",
+        "value": "200",
+        "unitText": "hours"
+      },
+      "programType": "Professional Certification",
+      "educationalProgramMode": "In-Person",
+      "teaches": [
+        "Yoga Asana (Postures)",
+        "Pranayama (Breathing Techniques)",
+        "Meditation",
+        "Yoga Philosophy",
+        "Anatomy & Physiology",
+        "Teaching Methodology",
+        "Hot Yoga Teaching",
+        "Class Sequencing",
+        "Alignment & Adjustments",
+        "Yoga Business Skills"
+      ],
+      "hasCourse": [
+        {
+          "@type": "Course",
+          "name": "4-Week Intensive YTT",
+          "description": "Full-time 4-week immersive yoga teacher training. Monday-Friday, all day. Fastest path to certification.",
+          "timeRequired": "P4W",
+          "provider": { "@id": "https://www.hotyogacph.dk/#organization" }
+        },
+        {
+          "@type": "Course",
+          "name": "18-Week Flexible YTT",
+          "description": "Part-time 18-week yoga teacher training. Weekday evenings and weekends. Perfect for working professionals.",
+          "timeRequired": "P18W",
+          "provider": { "@id": "https://www.hotyogacph.dk/#organization" }
+        }
+      ],
+      "offers": {
+        "@type": "Offer",
+        "name": "Preparation Phase (Initial Payment)",
+        "description": "Begin your yoga teacher training journey. The preparation phase secures your spot and gives you access to pre-training materials. Remaining balance settled before training starts.",
+        "price": "3750",
+        "priceCurrency": "DKK",
+        "availability": "https://schema.org/InStock",
+        "url": "https://www.hotyogacph.dk/teacher-training-yogauddannelse-weekdays"
+      },
+      "identifier": {
+        "@type": "PropertyValue",
+        "name": "Yoga Alliance Registration",
+        "value": "RYS 200"
+      }
+    },
+    {
+      "@type": "FAQPage",
+      "mainEntity": [
+        {
+          "@type": "Question",
+          "name": "How long is the yoga teacher training at Hot Yoga Copenhagen?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Hot Yoga Copenhagen offers 200-hour yoga teacher training in three formats: a 4-week full-time intensive, an 8-week semi-intensive, and an 18-week flexible format designed for working professionals. All formats lead to the same Yoga Alliance RYT-200 certification."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Is the yoga teacher training certified by Yoga Alliance?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Yes. Hot Yoga Copenhagen has been a Yoga Alliance Registered Yoga School (RYS) since 2015. Graduates receive a 200-hour certification and can register as RYT-200 (Registered Yoga Teacher) with Yoga Alliance, which is recognized worldwide."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "What language is the teacher training taught in?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "All yoga teacher training modules at Hot Yoga Copenhagen are taught in English, making the program accessible to both Danish and international students."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "How much does the yoga teacher training cost?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "The training begins with a Preparation Phase payment of 3,750 DKK to secure your spot and access pre-training materials. The remaining balance is settled before training starts, either as a lump sum or in installments. Contact the studio for full pricing details."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Can I teach hot yoga after completing the training?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Absolutely. The 200-hour program qualifies you to teach both heated and non-heated yoga classes. You'll learn specific techniques for teaching in hot environments, including infrared-heated studios, as well as standard room temperature classes."
+          }
+        }
+      ]
+    }
+  ]
+}
+</script>
