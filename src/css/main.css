@@ -11405,6 +11405,81 @@ button.yb-btn--outline-white:hover {
   }
 }
 
+/* Workshop browser — branded dialog (replaces native alert/confirm) */
+.ywb-dialog__overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 100001;
+  background: rgba(15, 15, 15, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  animation: ywbFadeIn 0.18s ease;
+}
+
+@keyframes ywbFadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+.ywb-dialog {
+  background: #FFFCF9;
+  border-radius: 16px;
+  padding: 28px 24px 20px;
+  max-width: 360px;
+  width: 100%;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.18);
+}
+
+.ywb-dialog__message {
+  font-size: 0.95rem;
+  line-height: 1.5;
+  color: #0F0F0F;
+  margin: 0 0 24px;
+  text-align: center;
+}
+
+.ywb-dialog__actions {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+}
+
+.ywb-dialog__btn {
+  flex: 1;
+  padding: 10px 20px;
+  border-radius: 50px;
+  font-size: 0.88rem;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  transition: background 0.2s, transform 0.15s;
+  border: none;
+}
+
+.ywb-dialog__btn:active {
+  transform: scale(0.97);
+}
+
+.ywb-dialog__btn--cancel {
+  background: #F5F3F0;
+  color: #0F0F0F;
+}
+
+.ywb-dialog__btn--cancel:hover {
+  background: #E8E4E0;
+}
+
+.ywb-dialog__btn--confirm {
+  background: #f75c03;
+  color: #fff;
+}
+
+.ywb-dialog__btn--confirm:hover {
+  background: #d94f02;
+}
+
 /* ========================================
    MINDBODY RESPONSIVE
    ======================================== */
