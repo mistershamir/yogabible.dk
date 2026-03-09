@@ -2413,30 +2413,97 @@
 
 /* ═══════════════════════════════════════════
    SECTION: REVIEWS CAROUSEL OVERRIDE (om200)
-   Uses shared yb-reviews from p18.css
+   Elevated style matching om200 page design
    ═══════════════════════════════════════════ */
 #om2-reviews-section {
-  background: #FFFCF9;
-  padding: clamp(32px, 6vw, 72px) 0;
+  background: #F5F3F0;
+  padding: clamp(40px, 7vw, 80px) 0;
 }
 #om2-reviews-section .yb-reviews__inner {
   max-width: 1140px;
   margin: 0 auto;
   padding: 0 clamp(16px, 4vw, 32px);
 }
-/* Ensure carousel doesn't bleed */
+
+/* Header styling */
+#om2-reviews-section .yb-reviews__kicker {
+  color: var(--yb-brand);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  font-size: 0.75rem;
+}
+#om2-reviews-section .yb-reviews__title {
+  font-size: clamp(1.5rem, 3.5vw, 2.2rem);
+  font-weight: 700;
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+  color: #0F0F0F;
+}
+#om2-reviews-section .yb-reviews__lead {
+  max-width: 680px;
+  color: #444;
+  font-size: 1rem;
+  line-height: 1.6;
+}
+
+/* Navigation arrows */
+#om2-reviews-section .yb-reviews__nav {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: 1.5px solid #E8E4E0;
+  background: #fff;
+  color: #0F0F0F;
+  font-size: 16px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+  transition: all 0.2s ease;
+}
+#om2-reviews-section .yb-reviews__nav:hover:not(:disabled) {
+  background: var(--yb-brand);
+  color: #fff;
+  border-color: var(--yb-brand);
+  box-shadow: 0 4px 14px rgba(var(--yb-brand-rgb), 0.25);
+}
+
+/* Viewport & track */
 #om2-reviews-section .yb-reviews__viewport {
   overflow-x: auto;
   overflow-y: visible;
+  padding: 8px 0;
 }
 #om2-reviews-section .yb-reviews__track {
   display: flex;
   gap: 1rem;
 }
+
+/* Card styling — orange stroke, elevated */
 #om2-reviews-section .yb-reviews__card {
   flex: 0 0 calc(100% - 1rem);
   scroll-snap-align: start;
-  min-height: 200px;
+  min-height: 220px;
+  background: #fff;
+  border: 1.5px solid var(--yb-brand);
+  border-radius: 16px;
+  padding: 24px 28px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.06);
+  transition: all 0.3s ease;
+  position: relative;
+}
+#om2-reviews-section .yb-reviews__card::before {
+  content: '\201C';
+  position: absolute;
+  top: 16px;
+  right: 24px;
+  font-size: 3rem;
+  line-height: 1;
+  color: rgba(var(--yb-brand-rgb), 0.12);
+  font-family: Georgia, serif;
+  pointer-events: none;
+}
+#om2-reviews-section .yb-reviews__card:hover {
+  box-shadow: 0 16px 48px rgba(var(--yb-brand-rgb), 0.12);
+  transform: translateY(-4px);
 }
 @media (min-width: 600px) {
   #om2-reviews-section .yb-reviews__card {
@@ -2447,6 +2514,69 @@
   #om2-reviews-section .yb-reviews__card {
     flex: 0 0 calc(33.333% - 0.667rem);
   }
+}
+
+/* Card header */
+#om2-reviews-section .yb-reviews__card-header {
+  margin-bottom: 14px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #E8E4E0;
+}
+#om2-reviews-section .yb-reviews__name {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #0F0F0F;
+}
+#om2-reviews-section .yb-reviews__when {
+  font-size: 0.8rem;
+  color: #6F6A66;
+}
+
+/* Orange stars */
+#om2-reviews-section .yb-reviews__card-stars {
+  color: var(--yb-brand);
+  font-size: 0.95rem;
+  letter-spacing: 0.06em;
+}
+
+/* Review text — italic with better spacing */
+#om2-reviews-section .yb-reviews__text {
+  color: #333;
+  font-size: 0.95rem;
+  line-height: 1.65;
+  font-style: italic;
+}
+
+/* Footer — centered, clean */
+#om2-reviews-section .yb-reviews__footer {
+  margin-top: 24px;
+  padding-top: 20px;
+  border-top: 1px solid #E8E4E0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 24px;
+  flex-wrap: wrap;
+}
+#om2-reviews-section .yb-reviews__stars {
+  color: var(--yb-brand);
+  font-size: 1.1rem;
+}
+#om2-reviews-section .yb-reviews__score {
+  font-weight: 700;
+  color: #0F0F0F;
+  font-size: 0.95rem;
+}
+#om2-reviews-section .yb-reviews__link {
+  color: var(--yb-brand);
+  font-weight: 700;
+  font-size: 0.9rem;
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+#om2-reviews-section .yb-reviews__link:hover {
+  color: #d94f02;
+  text-decoration: underline;
 }
 
 /* Old om2-reviews dead code — kept for reference but unused */
