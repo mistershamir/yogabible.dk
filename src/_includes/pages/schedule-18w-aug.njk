@@ -1,5 +1,5 @@
 {# CLOUDINARY: yoga-bible-DK/schedule-pages/18w/ — hero and og images #}
-{% set t = i18n.schedule_18w[lang or "da"] %}
+{% set t = i18n.schedule_18w_aug[lang or "da"] %}
 
 <section id="schedule-18w">
 
@@ -11,7 +11,7 @@
       <p style="font-size:.95rem;color:rgba(255,255,255,.4);letter-spacing:.04em;">{{ t.heroPeriod }}</p>
       <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-top:28px;">
         <button onclick="openBookingModal('info-session')" style="background:transparent;color:#fff;border:1.5px solid rgba(255,255,255,.5);padding:13px 24px;border-radius:50px;font-size:.92rem;font-weight:600;cursor:pointer;font-family:inherit;transition:all .2s;" onmouseenter="this.style.borderColor='#fff';this.style.background='rgba(255,255,255,.08)'" onmouseleave="this.style.borderColor='rgba(255,255,255,.5)';this.style.background='transparent'">{{ t.ctaBook }}</button>
-        <button onclick="startCheckoutFunnel('100078')" style="background:#f75c03;color:#fff;border:none;padding:13px 24px;border-radius:50px;font-size:.92rem;font-weight:600;cursor:pointer;font-family:inherit;transition:background .2s;" onmouseenter="this.style.background='#d94f02'" onmouseleave="this.style.background='#f75c03'">{{ t.ctaStart }}</button>
+        <button onclick="startCheckoutFunnel('100210')" style="background:#f75c03;color:#fff;border:none;padding:13px 24px;border-radius:50px;font-size:.92rem;font-weight:600;cursor:pointer;font-family:inherit;transition:background .2s;" onmouseenter="this.style.background='#d94f02'" onmouseleave="this.style.background='#f75c03'">{{ t.ctaStart }}</button>
       </div>
     </div>
   </div>
@@ -161,101 +161,101 @@
     <div id="s18w-view-both">
 
     {% set months18wPairs = [
-      { name: "Februar", name_en: "February", year: "2026", weeks: [
+      { name: "August", name_en: "August", year: "2026", weeks: [
         { num: 1, label: "Introduktion", label_en: "Introduction", pairs: [
           { topic: "Hatha & Class Management — Introduktion", topic_en: "Hatha & Class Management — Introduction",
-            wd: { date: "Man 23. feb", date_en: "Mon Feb 23", time: "10:00–15:00" },
-            we: { date: "Lør 28. feb", date_en: "Sat Feb 28", time: "13:00–18:00" } },
+            wd: { date: "Man 10. aug", date_en: "Mon Aug 10", time: "10:00–15:00" },
+            we: { date: "Lør 15. aug", date_en: "Sat Aug 15", time: "13:00–18:00" } },
           { topic: "Vinyasa & Yin Yoga — Introduktion", topic_en: "Vinyasa & Yin Yoga — Introduction",
-            wd: { date: "Ons 25. feb", date_en: "Wed Feb 25", time: "10:00–15:00" },
-            we: { date: "Søn 1. mar", date_en: "Sun Mar 1", time: "14:00–19:00" } }
-        ]}
-      ]},
-      { name: "Marts", name_en: "March", year: "2026", weeks: [
-        { num: 2, label: "Anatomi & Filosofi", label_en: "Anatomy & Philosophy", sharedPairs: [
-          { topic: "Yoga Anatomi 01", topic_en: "Yoga Anatomy 01", date: "Lør 7. mar", date_en: "Sat Mar 7", time: "13:00–17:00" },
-          { topic: "Yogafilosofi 01 — Online", topic_en: "Yoga Philosophy 01 — Online", date: "Søn 8. mar", date_en: "Sun Mar 8", time: "14:00–17:00", online: true }
+            wd: { date: "Ons 12. aug", date_en: "Wed Aug 12", time: "10:00–15:00" },
+            we: { date: "Søn 16. aug", date_en: "Sun Aug 16", time: "14:00–19:00" } }
         ]},
-        { num: 3, off: true, offLabel: "Fri uge", offLabel_en: "Free week" },
+        { num: 2, label: "Anatomi & Filosofi", label_en: "Anatomy & Philosophy", sharedPairs: [
+          { topic: "Yoga Anatomi 01", topic_en: "Yoga Anatomy 01", date: "Lør 22. aug", date_en: "Sat Aug 22", time: "13:00–17:00" },
+          { topic: "Yogafilosofi 01 — Online", topic_en: "Yoga Philosophy 01 — Online", date: "Søn 23. aug", date_en: "Sun Aug 23", time: "14:00–17:00", online: true }
+        ]},
+        { num: 3, off: true, offLabel: "Fri uge", offLabel_en: "Free week" }
+      ]},
+      { name: "September", name_en: "September", year: "2026", weeks: [
         { num: 4, pairs: [
           { topic: "Vinyasa & Yin Yoga 02",
-            wd: { date: "Man 16. mar", date_en: "Mon Mar 16", time: "10:00–15:00" },
-            we: { date: "Lør 21. mar", date_en: "Sat Mar 21", time: "13:00–18:00" } }
+            wd: { date: "Man 31. aug", date_en: "Mon Aug 31", time: "10:00–15:00" },
+            we: { date: "Lør 5. sep", date_en: "Sat Sep 5", time: "13:00–18:00" } }
         ]},
         { num: 5, pairs: [
           { topic: "Hatha & Class Management 02",
-            wd: { date: "Man 23. mar", date_en: "Mon Mar 23", time: "10:00–15:00" },
-            we: { date: "Lør 28. mar", date_en: "Sat Mar 28", time: "13:00–18:00" } },
+            wd: { date: "Man 7. sep", date_en: "Mon Sep 7", time: "10:00–15:00" },
+            we: { date: "Lør 12. sep", date_en: "Sat Sep 12", time: "13:00–18:00" } },
           { topic: "Vinyasa & Yin Yoga 03",
-            wd: { date: "Ons 25. mar", date_en: "Wed Mar 25", time: "10:00–15:00" },
-            we: { date: "Søn 29. mar", date_en: "Sun Mar 29", time: "14:00–19:00" } }
-        ]}
-      ]},
-      { name: "April", name_en: "April", year: "2026", weeks: [
-        { num: 6, off: true, offLabel: "Påskeferie", offLabel_en: "Easter break" },
-        { num: 7, label: "Anatomi & Filosofi", label_en: "Anatomy & Philosophy", sharedPairs: [
-          { topic: "Yoga Anatomi 02", topic_en: "Yoga Anatomy 02", date: "Lør 11. apr", date_en: "Sat Apr 11", time: "13:00–17:00" },
-          { topic: "Yogafilosofi 02 — Online", topic_en: "Yoga Philosophy 02 — Online", date: "Søn 12. apr", date_en: "Sun Apr 12", time: "14:00–17:00", online: true }
+            wd: { date: "Ons 9. sep", date_en: "Wed Sep 9", time: "10:00–15:00" },
+            we: { date: "Søn 13. sep", date_en: "Sun Sep 13", time: "14:00–19:00" } }
         ]},
-        { num: 8, pairs: [
+        { num: 6, label: "Anatomi & Filosofi", label_en: "Anatomy & Philosophy", sharedPairs: [
+          { topic: "Yoga Anatomi 02", topic_en: "Yoga Anatomy 02", date: "Lør 19. sep", date_en: "Sat Sep 19", time: "13:00–17:00" },
+          { topic: "Yogafilosofi 02 — Online", topic_en: "Yoga Philosophy 02 — Online", date: "Søn 20. sep", date_en: "Sun Sep 20", time: "14:00–17:00", online: true }
+        ]},
+        { num: 7, pairs: [
           { topic: "Vinyasa & Yin Yoga 04",
-            wd: { date: "Man 13. apr", date_en: "Mon Apr 13", time: "10:00–15:00" },
-            we: { date: "Lør 18. apr", date_en: "Sat Apr 18", time: "13:00–18:00" } },
+            wd: { date: "Man 21. sep", date_en: "Mon Sep 21", time: "10:00–15:00" },
+            we: { date: "Lør 26. sep", date_en: "Sat Sep 26", time: "13:00–18:00" } },
           { topic: "Hatha & Class Management 03",
-            wd: { date: "Ons 15. apr", date_en: "Wed Apr 15", time: "10:00–15:00" },
-            we: { date: "Søn 19. apr", date_en: "Sun Apr 19", time: "14:00–19:00" } }
+            wd: { date: "Ons 23. sep", date_en: "Wed Sep 23", time: "10:00–15:00" },
+            we: { date: "Søn 27. sep", date_en: "Sun Sep 27", time: "14:00–19:00" } }
         ]},
-        { num: 9, off: true, offLabel: "Fri uge", offLabel_en: "Free week" },
-        { num: 10, pairs: [
-          { topic: "Vinyasa & Yin Yoga 05",
-            wd: { date: "Man 27. apr", date_en: "Mon Apr 27", time: "10:00–15:00" },
-            we: { date: "Lør 2. maj", date_en: "Sat May 2", time: "13:00–18:00" } },
-          { topic: "Hatha & Class Management 04",
-            wd: { date: "Ons 29. apr", date_en: "Wed Apr 29", time: "10:00–15:00" },
-            we: { date: "Søn 3. maj", date_en: "Sun May 3", time: "14:00–19:00" } }
-        ]}
+        { num: 8, off: true, offLabel: "Fri uge", offLabel_en: "Free week" }
       ]},
-      { name: "Maj", name_en: "May", year: "2026", weeks: [
+      { name: "Oktober", name_en: "October", year: "2026", weeks: [
+        { num: 9, pairs: [
+          { topic: "Vinyasa & Yin Yoga 05",
+            wd: { date: "Man 5. okt", date_en: "Mon Oct 5", time: "10:00–15:00" },
+            we: { date: "Lør 10. okt", date_en: "Sat Oct 10", time: "13:00–18:00" } },
+          { topic: "Hatha & Class Management 04",
+            wd: { date: "Ons 7. okt", date_en: "Wed Oct 7", time: "10:00–15:00" },
+            we: { date: "Søn 11. okt", date_en: "Sun Oct 11", time: "14:00–19:00" } }
+        ]},
+        { num: 10, off: true, offLabel: "Efterårsferie", offLabel_en: "Fall break" },
         { num: 11, label: "Anatomi & Filosofi", label_en: "Anatomy & Philosophy", sharedPairs: [
-          { topic: "Yoga Anatomi 03", topic_en: "Yoga Anatomy 03", date: "Lør 9. maj", date_en: "Sat May 9", time: "13:00–17:00" },
-          { topic: "Yogafilosofi 03 — Online", topic_en: "Yoga Philosophy 03 — Online", date: "Søn 10. maj", date_en: "Sun May 10", time: "14:00–17:00", online: true }
+          { topic: "Yoga Anatomi 03", topic_en: "Yoga Anatomy 03", date: "Lør 24. okt", date_en: "Sat Oct 24", time: "13:00–17:00" },
+          { topic: "Yogafilosofi 03 — Online", topic_en: "Yoga Philosophy 03 — Online", date: "Søn 25. okt", date_en: "Sun Oct 25", time: "14:00–17:00", online: true }
         ]},
         { num: 12, pairs: [
           { topic: "Vinyasa & Yin Yoga 06",
-            wd: { date: "Man 11. maj", date_en: "Mon May 11", time: "10:00–15:00" },
-            we: { date: "Lør 16. maj", date_en: "Sat May 16", time: "13:00–18:00" } }
-        ]},
-        { num: 13, pairs: [
-          { topic: "Vinyasa & Yin Yoga 07",
-            wd: { date: "Man 18. maj", date_en: "Mon May 18", time: "10:00–15:00" },
-            we: { date: "Lør 23. maj", date_en: "Sat May 23", time: "13:00–18:00" } }
-        ]},
-        { num: 14, label: "Anatomi & Filosofi", label_en: "Anatomy & Philosophy", sharedPairs: [
-          { topic: "Yoga Anatomi 04", topic_en: "Yoga Anatomy 04", date: "Lør 30. maj", date_en: "Sat May 30", time: "13:00–17:00" },
-          { topic: "Yogafilosofi 04 — Online", topic_en: "Yoga Philosophy 04 — Online", date: "Søn 31. maj", date_en: "Sun May 31", time: "14:00–17:00", online: true }
+            wd: { date: "Man 26. okt", date_en: "Mon Oct 26", time: "10:00–15:00" },
+            we: { date: "Lør 31. okt", date_en: "Sat Oct 31", time: "13:00–18:00" } }
         ]}
       ]},
-      { name: "Juni", name_en: "June", year: "2026", weeks: [
+      { name: "November", name_en: "November", year: "2026", weeks: [
+        { num: 13, pairs: [
+          { topic: "Vinyasa & Yin Yoga 07",
+            wd: { date: "Man 2. nov", date_en: "Mon Nov 2", time: "10:00–15:00" },
+            we: { date: "Lør 7. nov", date_en: "Sat Nov 7", time: "13:00–18:00" } }
+        ]},
+        { num: 14, label: "Anatomi & Filosofi", label_en: "Anatomy & Philosophy", sharedPairs: [
+          { topic: "Yoga Anatomi 04", topic_en: "Yoga Anatomy 04", date: "Lør 14. nov", date_en: "Sat Nov 14", time: "13:00–17:00" },
+          { topic: "Yogafilosofi 04 — Online", topic_en: "Yoga Philosophy 04 — Online", date: "Søn 15. nov", date_en: "Sun Nov 15", time: "14:00–17:00", online: true }
+        ]},
         { num: 15, pairs: [
           { topic: "Vinyasa & Yin Yoga 08",
-            wd: { date: "Man 1. jun", date_en: "Mon Jun 1", time: "10:00–15:00" },
-            we: { date: "Lør 6. jun", date_en: "Sat Jun 6", time: "13:00–18:00" } },
+            wd: { date: "Man 16. nov", date_en: "Mon Nov 16", time: "10:00–15:00" },
+            we: { date: "Lør 21. nov", date_en: "Sat Nov 21", time: "13:00–18:00" } },
           { topic: "Hatha & Class Management 05",
-            wd: { date: "Ons 3. jun", date_en: "Wed Jun 3", time: "10:00–14:00" },
-            we: { date: "Søn 7. jun", date_en: "Sun Jun 7", time: "14:00–18:00" } }
+            wd: { date: "Ons 18. nov", date_en: "Wed Nov 18", time: "10:00–14:00" },
+            we: { date: "Søn 22. nov", date_en: "Sun Nov 22", time: "14:00–18:00" } }
         ]},
         { num: 16, label: "Business of Yoga", label_en: "Business of Yoga", pairs: [
           { topic: "Vinyasa & Yin Yoga 09",
-            wd: { date: "Man 8. jun", date_en: "Mon Jun 8", time: "10:00–15:00" },
-            we: { date: "Lør 13. jun", date_en: "Sat Jun 13", time: "13:00–18:00" } },
+            wd: { date: "Man 23. nov", date_en: "Mon Nov 23", time: "10:00–15:00" },
+            we: { date: "Lør 28. nov", date_en: "Sat Nov 28", time: "13:00–18:00" } },
           { topic: "Business of Yoga",
-            wd: { date: "Ons 10. jun", date_en: "Wed Jun 10", time: "11:00–14:00" },
-            we: { date: "Søn 14. jun", date_en: "Sun Jun 14", time: "14:00–17:00" } }
-        ]},
+            wd: { date: "Ons 25. nov", date_en: "Wed Nov 25", time: "11:00–14:00" },
+            we: { date: "Søn 29. nov", date_en: "Sun Nov 29", time: "14:00–17:00" } }
+        ]}
+      ]},
+      { name: "December", name_en: "December", year: "2026", weeks: [
         { num: 17, off: true, offLabel: "Fri uge — forbered dig til eksamen", offLabel_en: "Free week — prepare for exam" },
         { num: 18, label: "Eksamen & Graduation", label_en: "Exam & Graduation", graduation: true, sharedPairs: [
-          { topic: "Vinyasa & Yin Yoga — Eksamen", topic_en: "Vinyasa & Yin Yoga — Exam", date: "Lør 27. jun", date_en: "Sat Jun 27", time: "13:00–18:00", exam: true },
-          { topic: "Hatha & Class Management — Eksamen + Graduation 🎓", topic_en: "Hatha & Class Management — Exam + Graduation 🎓", date: "Søn 28. jun", date_en: "Sun Jun 28", time: "14:00–17:00", graduation: true }
+          { topic: "Vinyasa & Yin Yoga — Eksamen", topic_en: "Vinyasa & Yin Yoga — Exam", date: "Lør 12. dec", date_en: "Sat Dec 12", time: "13:00–18:00", exam: true },
+          { topic: "Hatha & Class Management — Eksamen + Graduation 🎓", topic_en: "Hatha & Class Management — Exam + Graduation 🎓", date: "Søn 13. dec", date_en: "Sun Dec 13", time: "14:00–17:00", graduation: true }
         ]}
       ]}
     ] %}
@@ -343,86 +343,86 @@
     <div id="s18w-view-single" style="display:none;">
 
     {% set months18w = [
-      { name: "Februar", name_en: "February", year: "2026", weeks: [
-        { num: 1, label: "Introduktion", label_en: "Introduction", range: "23 feb – 1 mar", range_en: "Feb 23 – Mar 1", days: [
-          { dn: "23", dd: "Man", dd_en: "Mon", time: "10:00–15:00", topic: "Hatha & Class Management — Introduktion", topic_en: "Hatha & Class Management — Introduction", type: "workshop", route: "weekday" },
-          { dn: "25", dd: "Ons", dd_en: "Wed", time: "10:00–15:00", topic: "Vinyasa & Yin Yoga — Introduktion", topic_en: "Vinyasa & Yin Yoga — Introduction", type: "workshop", route: "weekday" },
-          { dn: "28", dd: "Lør", dd_en: "Sat", time: "13:00–18:00", topic: "Hatha & Class Management — Introduktion", topic_en: "Hatha & Class Management — Introduction", type: "workshop", route: "weekend" },
-          { dn: "1", dd: "Søn", dd_en: "Sun", time: "14:00–19:00", topic: "Vinyasa & Yin Yoga — Introduktion", topic_en: "Vinyasa & Yin Yoga — Introduction", type: "workshop", route: "weekend" }
+      { name: "August", name_en: "August", year: "2026", weeks: [
+        { num: 1, label: "Introduktion", label_en: "Introduction", range: "10–16 aug", range_en: "Aug 10–16", days: [
+          { dn: "10", dd: "Man", dd_en: "Mon", time: "10:00–15:00", topic: "Hatha & Class Management — Introduktion", topic_en: "Hatha & Class Management — Introduction", type: "workshop", route: "weekday" },
+          { dn: "12", dd: "Ons", dd_en: "Wed", time: "10:00–15:00", topic: "Vinyasa & Yin Yoga — Introduktion", topic_en: "Vinyasa & Yin Yoga — Introduction", type: "workshop", route: "weekday" },
+          { dn: "15", dd: "Lør", dd_en: "Sat", time: "13:00–18:00", topic: "Hatha & Class Management — Introduktion", topic_en: "Hatha & Class Management — Introduction", type: "workshop", route: "weekend" },
+          { dn: "16", dd: "Søn", dd_en: "Sun", time: "14:00–19:00", topic: "Vinyasa & Yin Yoga — Introduktion", topic_en: "Vinyasa & Yin Yoga — Introduction", type: "workshop", route: "weekend" }
+        ]},
+        { num: 2, label: "Anatomi & Filosofi", label_en: "Anatomy & Philosophy", range: "22–23 aug", range_en: "Aug 22–23", days: [
+          { dn: "22", dd: "Lør", dd_en: "Sat", time: "13:00–17:00", topic: "Yoga Anatomi 01", topic_en: "Yoga Anatomy 01", type: "workshop", route: "shared" },
+          { dn: "23", dd: "Søn", dd_en: "Sun", time: "14:00–17:00", topic: "Yogafilosofi 01 — Online", topic_en: "Yoga Philosophy 01 — Online", type: "online", route: "shared" }
+        ]},
+        { num: 3, off: true, offLabel: "Fri uge", offLabel_en: "Free week" }
+      ]},
+      { name: "September", name_en: "September", year: "2026", weeks: [
+        { num: 4, range: "31 aug – 5 sep", range_en: "Aug 31 – Sep 5", days: [
+          { dn: "31", dd: "Man", dd_en: "Mon", time: "10:00–15:00", topic: "Vinyasa & Yin Yoga 02", type: "workshop", route: "weekday" },
+          { dn: "5", dd: "Lør", dd_en: "Sat", time: "13:00–18:00", topic: "Vinyasa & Yin Yoga 02", type: "workshop", route: "weekend" }
+        ]},
+        { num: 5, range: "7–13 sep", range_en: "Sep 7–13", days: [
+          { dn: "7", dd: "Man", dd_en: "Mon", time: "10:00–15:00", topic: "Hatha & Class Management 02", type: "workshop", route: "weekday" },
+          { dn: "9", dd: "Ons", dd_en: "Wed", time: "10:00–15:00", topic: "Vinyasa & Yin Yoga 03", type: "workshop", route: "weekday" },
+          { dn: "12", dd: "Lør", dd_en: "Sat", time: "13:00–18:00", topic: "Hatha & Class Management 02", type: "workshop", route: "weekend" },
+          { dn: "13", dd: "Søn", dd_en: "Sun", time: "14:00–19:00", topic: "Vinyasa & Yin Yoga 03", type: "workshop", route: "weekend" }
+        ]},
+        { num: 6, label: "Anatomi & Filosofi", label_en: "Anatomy & Philosophy", range: "19–20 sep", range_en: "Sep 19–20", days: [
+          { dn: "19", dd: "Lør", dd_en: "Sat", time: "13:00–17:00", topic: "Yoga Anatomi 02", topic_en: "Yoga Anatomy 02", type: "workshop", route: "shared" },
+          { dn: "20", dd: "Søn", dd_en: "Sun", time: "14:00–17:00", topic: "Yogafilosofi 02 — Online", topic_en: "Yoga Philosophy 02 — Online", type: "online", route: "shared" }
+        ]},
+        { num: 7, range: "21–27 sep", range_en: "Sep 21–27", days: [
+          { dn: "21", dd: "Man", dd_en: "Mon", time: "10:00–15:00", topic: "Vinyasa & Yin Yoga 04", type: "workshop", route: "weekday" },
+          { dn: "23", dd: "Ons", dd_en: "Wed", time: "10:00–15:00", topic: "Hatha & Class Management 03", type: "workshop", route: "weekday" },
+          { dn: "26", dd: "Lør", dd_en: "Sat", time: "13:00–18:00", topic: "Vinyasa & Yin Yoga 04", type: "workshop", route: "weekend" },
+          { dn: "27", dd: "Søn", dd_en: "Sun", time: "14:00–19:00", topic: "Hatha & Class Management 03", type: "workshop", route: "weekend" }
+        ]},
+        { num: 8, off: true, offLabel: "Fri uge", offLabel_en: "Free week" }
+      ]},
+      { name: "Oktober", name_en: "October", year: "2026", weeks: [
+        { num: 9, range: "5–11 okt", range_en: "Oct 5–11", days: [
+          { dn: "5", dd: "Man", dd_en: "Mon", time: "10:00–15:00", topic: "Vinyasa & Yin Yoga 05", type: "workshop", route: "weekday" },
+          { dn: "7", dd: "Ons", dd_en: "Wed", time: "10:00–15:00", topic: "Hatha & Class Management 04", type: "workshop", route: "weekday" },
+          { dn: "10", dd: "Lør", dd_en: "Sat", time: "13:00–18:00", topic: "Vinyasa & Yin Yoga 05", type: "workshop", route: "weekend" },
+          { dn: "11", dd: "Søn", dd_en: "Sun", time: "14:00–19:00", topic: "Hatha & Class Management 04", type: "workshop", route: "weekend" }
+        ]},
+        { num: 10, off: true, offLabel: "Efterårsferie", offLabel_en: "Fall break" },
+        { num: 11, label: "Anatomi & Filosofi", label_en: "Anatomy & Philosophy", range: "24–25 okt", range_en: "Oct 24–25", days: [
+          { dn: "24", dd: "Lør", dd_en: "Sat", time: "13:00–17:00", topic: "Yoga Anatomi 03", topic_en: "Yoga Anatomy 03", type: "workshop", route: "shared" },
+          { dn: "25", dd: "Søn", dd_en: "Sun", time: "14:00–17:00", topic: "Yogafilosofi 03 — Online", topic_en: "Yoga Philosophy 03 — Online", type: "online", route: "shared" }
+        ]},
+        { num: 12, range: "26–31 okt", range_en: "Oct 26–31", days: [
+          { dn: "26", dd: "Man", dd_en: "Mon", time: "10:00–15:00", topic: "Vinyasa & Yin Yoga 06", type: "workshop", route: "weekday" },
+          { dn: "31", dd: "Lør", dd_en: "Sat", time: "13:00–18:00", topic: "Vinyasa & Yin Yoga 06", type: "workshop", route: "weekend" }
         ]}
       ]},
-      { name: "Marts", name_en: "March", year: "2026", weeks: [
-        { num: 2, label: "Anatomi & Filosofi", label_en: "Anatomy & Philosophy", range: "7–8 mar", range_en: "Mar 7–8", days: [
-          { dn: "7", dd: "Lør", dd_en: "Sat", time: "13:00–17:00", topic: "Yoga Anatomi 01", topic_en: "Yoga Anatomy 01", type: "workshop", route: "shared" },
-          { dn: "8", dd: "Søn", dd_en: "Sun", time: "14:00–17:00", topic: "Yogafilosofi 01 — Online", topic_en: "Yoga Philosophy 01 — Online", type: "online", route: "shared" }
+      { name: "November", name_en: "November", year: "2026", weeks: [
+        { num: 13, range: "2–7 nov", range_en: "Nov 2–7", days: [
+          { dn: "2", dd: "Man", dd_en: "Mon", time: "10:00–15:00", topic: "Vinyasa & Yin Yoga 07", type: "workshop", route: "weekday" },
+          { dn: "7", dd: "Lør", dd_en: "Sat", time: "13:00–18:00", topic: "Vinyasa & Yin Yoga 07", type: "workshop", route: "weekend" }
         ]},
-        { num: 3, off: true, offLabel: "Fri uge", offLabel_en: "Free week" },
-        { num: 4, range: "16–21 mar", range_en: "Mar 16–21", days: [
-          { dn: "16", dd: "Man", dd_en: "Mon", time: "10:00–15:00", topic: "Vinyasa & Yin Yoga 02", type: "workshop", route: "weekday" },
-          { dn: "21", dd: "Lør", dd_en: "Sat", time: "13:00–18:00", topic: "Vinyasa & Yin Yoga 02", type: "workshop", route: "weekend" }
+        { num: 14, label: "Anatomi & Filosofi", label_en: "Anatomy & Philosophy", range: "14–15 nov", range_en: "Nov 14–15", days: [
+          { dn: "14", dd: "Lør", dd_en: "Sat", time: "13:00–17:00", topic: "Yoga Anatomi 04", topic_en: "Yoga Anatomy 04", type: "workshop", route: "shared" },
+          { dn: "15", dd: "Søn", dd_en: "Sun", time: "14:00–17:00", topic: "Yogafilosofi 04 — Online", topic_en: "Yoga Philosophy 04 — Online", type: "online", route: "shared" }
         ]},
-        { num: 5, range: "23–29 mar", range_en: "Mar 23–29", days: [
-          { dn: "23", dd: "Man", dd_en: "Mon", time: "10:00–15:00", topic: "Hatha & Class Management 02", type: "workshop", route: "weekday" },
-          { dn: "25", dd: "Ons", dd_en: "Wed", time: "10:00–15:00", topic: "Vinyasa & Yin Yoga 03", type: "workshop", route: "weekday" },
-          { dn: "28", dd: "Lør", dd_en: "Sat", time: "13:00–18:00", topic: "Hatha & Class Management 02", type: "workshop", route: "weekend" },
-          { dn: "29", dd: "Søn", dd_en: "Sun", time: "14:00–19:00", topic: "Vinyasa & Yin Yoga 03", type: "workshop", route: "weekend" }
+        { num: 15, range: "16–22 nov", range_en: "Nov 16–22", days: [
+          { dn: "16", dd: "Man", dd_en: "Mon", time: "10:00–15:00", topic: "Vinyasa & Yin Yoga 08", type: "workshop", route: "weekday" },
+          { dn: "18", dd: "Ons", dd_en: "Wed", time: "10:00–14:00", topic: "Hatha & Class Management 05", type: "workshop", route: "weekday" },
+          { dn: "21", dd: "Lør", dd_en: "Sat", time: "13:00–18:00", topic: "Vinyasa & Yin Yoga 08", type: "workshop", route: "weekend" },
+          { dn: "22", dd: "Søn", dd_en: "Sun", time: "14:00–18:00", topic: "Hatha & Class Management 05", type: "workshop", route: "weekend" }
+        ]},
+        { num: 16, label: "Business of Yoga", label_en: "Business of Yoga", range: "23–29 nov", range_en: "Nov 23–29", days: [
+          { dn: "23", dd: "Man", dd_en: "Mon", time: "10:00–15:00", topic: "Vinyasa & Yin Yoga 09", type: "workshop", route: "weekday" },
+          { dn: "25", dd: "Ons", dd_en: "Wed", time: "11:00–14:00", topic: "Business of Yoga", type: "workshop", route: "weekday" },
+          { dn: "28", dd: "Lør", dd_en: "Sat", time: "13:00–18:00", topic: "Vinyasa & Yin Yoga 09", type: "workshop", route: "weekend" },
+          { dn: "29", dd: "Søn", dd_en: "Sun", time: "14:00–17:00", topic: "Business of Yoga", type: "workshop", route: "weekend" }
         ]}
       ]},
-      { name: "April", name_en: "April", year: "2026", weeks: [
-        { num: 6, off: true, offLabel: "Påskeferie", offLabel_en: "Easter break" },
-        { num: 7, label: "Anatomi & Filosofi", label_en: "Anatomy & Philosophy", range: "11–12 apr", range_en: "Apr 11–12", days: [
-          { dn: "11", dd: "Lør", dd_en: "Sat", time: "13:00–17:00", topic: "Yoga Anatomi 02", topic_en: "Yoga Anatomy 02", type: "workshop", route: "shared" },
-          { dn: "12", dd: "Søn", dd_en: "Sun", time: "14:00–17:00", topic: "Yogafilosofi 02 — Online", topic_en: "Yoga Philosophy 02 — Online", type: "online", route: "shared" }
-        ]},
-        { num: 8, range: "13–19 apr", range_en: "Apr 13–19", days: [
-          { dn: "13", dd: "Man", dd_en: "Mon", time: "10:00–15:00", topic: "Vinyasa & Yin Yoga 04", type: "workshop", route: "weekday" },
-          { dn: "15", dd: "Ons", dd_en: "Wed", time: "10:00–15:00", topic: "Hatha & Class Management 03", type: "workshop", route: "weekday" },
-          { dn: "18", dd: "Lør", dd_en: "Sat", time: "13:00–18:00", topic: "Vinyasa & Yin Yoga 04", type: "workshop", route: "weekend" },
-          { dn: "19", dd: "Søn", dd_en: "Sun", time: "14:00–19:00", topic: "Hatha & Class Management 03", type: "workshop", route: "weekend" }
-        ]},
-        { num: 9, off: true, offLabel: "Fri uge", offLabel_en: "Free week" },
-        { num: 10, range: "27 apr – 3 maj", range_en: "Apr 27 – May 3", days: [
-          { dn: "27", dd: "Man", dd_en: "Mon", time: "10:00–15:00", topic: "Vinyasa & Yin Yoga 05", type: "workshop", route: "weekday" },
-          { dn: "29", dd: "Ons", dd_en: "Wed", time: "10:00–15:00", topic: "Hatha & Class Management 04", type: "workshop", route: "weekday" },
-          { dn: "2", dd: "Lør", dd_en: "Sat", time: "13:00–18:00", topic: "Vinyasa & Yin Yoga 05", type: "workshop", route: "weekend" },
-          { dn: "3", dd: "Søn", dd_en: "Sun", time: "14:00–19:00", topic: "Hatha & Class Management 04", type: "workshop", route: "weekend" }
-        ]}
-      ]},
-      { name: "Maj", name_en: "May", year: "2026", weeks: [
-        { num: 11, label: "Anatomi & Filosofi", label_en: "Anatomy & Philosophy", range: "9–10 maj", range_en: "May 9–10", days: [
-          { dn: "9", dd: "Lør", dd_en: "Sat", time: "13:00–17:00", topic: "Yoga Anatomi 03", topic_en: "Yoga Anatomy 03", type: "workshop", route: "shared" },
-          { dn: "10", dd: "Søn", dd_en: "Sun", time: "14:00–17:00", topic: "Yogafilosofi 03 — Online", topic_en: "Yoga Philosophy 03 — Online", type: "online", route: "shared" }
-        ]},
-        { num: 12, range: "11–16 maj", range_en: "May 11–16", days: [
-          { dn: "11", dd: "Man", dd_en: "Mon", time: "10:00–15:00", topic: "Vinyasa & Yin Yoga 06", type: "workshop", route: "weekday" },
-          { dn: "16", dd: "Lør", dd_en: "Sat", time: "13:00–18:00", topic: "Vinyasa & Yin Yoga 06", type: "workshop", route: "weekend" }
-        ]},
-        { num: 13, range: "18–23 maj", range_en: "May 18–23", days: [
-          { dn: "18", dd: "Man", dd_en: "Mon", time: "10:00–15:00", topic: "Vinyasa & Yin Yoga 07", type: "workshop", route: "weekday" },
-          { dn: "23", dd: "Lør", dd_en: "Sat", time: "13:00–18:00", topic: "Vinyasa & Yin Yoga 07", type: "workshop", route: "weekend" }
-        ]},
-        { num: 14, label: "Anatomi & Filosofi", label_en: "Anatomy & Philosophy", range: "30–31 maj", range_en: "May 30–31", days: [
-          { dn: "30", dd: "Lør", dd_en: "Sat", time: "13:00–17:00", topic: "Yoga Anatomi 04", topic_en: "Yoga Anatomy 04", type: "workshop", route: "shared" },
-          { dn: "31", dd: "Søn", dd_en: "Sun", time: "14:00–17:00", topic: "Yogafilosofi 04 — Online", topic_en: "Yoga Philosophy 04 — Online", type: "online", route: "shared" }
-        ]}
-      ]},
-      { name: "Juni", name_en: "June", year: "2026", weeks: [
-        { num: 15, range: "1–7 jun", range_en: "Jun 1–7", days: [
-          { dn: "1", dd: "Man", dd_en: "Mon", time: "10:00–15:00", topic: "Vinyasa & Yin Yoga 08", type: "workshop", route: "weekday" },
-          { dn: "3", dd: "Ons", dd_en: "Wed", time: "10:00–14:00", topic: "Hatha & Class Management 05", type: "workshop", route: "weekday" },
-          { dn: "6", dd: "Lør", dd_en: "Sat", time: "13:00–18:00", topic: "Vinyasa & Yin Yoga 08", type: "workshop", route: "weekend" },
-          { dn: "7", dd: "Søn", dd_en: "Sun", time: "14:00–18:00", topic: "Hatha & Class Management 05", type: "workshop", route: "weekend" }
-        ]},
-        { num: 16, label: "Business of Yoga", label_en: "Business of Yoga", range: "8–14 jun", range_en: "Jun 8–14", days: [
-          { dn: "8", dd: "Man", dd_en: "Mon", time: "10:00–15:00", topic: "Vinyasa & Yin Yoga 09", type: "workshop", route: "weekday" },
-          { dn: "10", dd: "Ons", dd_en: "Wed", time: "11:00–14:00", topic: "Business of Yoga", type: "workshop", route: "weekday" },
-          { dn: "13", dd: "Lør", dd_en: "Sat", time: "13:00–18:00", topic: "Vinyasa & Yin Yoga 09", type: "workshop", route: "weekend" },
-          { dn: "14", dd: "Søn", dd_en: "Sun", time: "14:00–17:00", topic: "Business of Yoga", type: "workshop", route: "weekend" }
-        ]},
+      { name: "December", name_en: "December", year: "2026", weeks: [
         { num: 17, off: true, offLabel: "Fri uge — forbered dig til eksamen", offLabel_en: "Free week — prepare for exam" },
-        { num: 18, label: "Eksamen & Graduation", label_en: "Exam & Graduation", range: "27–28 jun", range_en: "Jun 27–28", graduation: true, days: [
-          { dn: "27", dd: "Lør", dd_en: "Sat", time: "13:00–18:00", topic: "Vinyasa & Yin Yoga — Eksamen", topic_en: "Vinyasa & Yin Yoga — Exam", type: "exam", route: "shared" },
-          { dn: "28", dd: "Søn", dd_en: "Sun", time: "14:00–17:00", topic: "Hatha & Class Management — Eksamen + Graduation 🎓", topic_en: "Hatha & Class Management — Exam + Graduation 🎓", type: "graduation", route: "shared" }
+        { num: 18, label: "Eksamen & Graduation", label_en: "Exam & Graduation", range: "12–13 dec", range_en: "Dec 12–13", graduation: true, days: [
+          { dn: "12", dd: "Lør", dd_en: "Sat", time: "13:00–18:00", topic: "Vinyasa & Yin Yoga — Eksamen", topic_en: "Vinyasa & Yin Yoga — Exam", type: "exam", route: "shared" },
+          { dn: "13", dd: "Søn", dd_en: "Sun", time: "14:00–17:00", topic: "Hatha & Class Management — Eksamen + Graduation 🎓", topic_en: "Hatha & Class Management — Exam + Graduation 🎓", type: "graduation", route: "shared" }
         ]}
       ]}
     ] %}
@@ -557,7 +557,7 @@
         <p style="font-weight:700;">{{ t.crossLinkTitle }}</p>
         <p style="font-size:.85rem;color:#6F6A66;margin-top:4px;">{{ t.crossLinkDesc }}</p>
       </div>
-      <a href="{% if lang == 'en' %}/en/schedule/18-weeks-august/{% else %}/skema/18-uger-august/{% endif %}" style="background:#f75c03;color:#fff;padding:10px 20px;border-radius:50px;font-size:.85rem;font-weight:600;text-decoration:none;white-space:nowrap;">{{ t.crossLinkCta }} →</a>
+      <a href="{% if lang == 'en' %}/en/schedule/18-weeks/{% else %}/skema/18-uger/{% endif %}" style="background:#f75c03;color:#fff;padding:10px 20px;border-radius:50px;font-size:.85rem;font-weight:600;text-decoration:none;white-space:nowrap;">{{ t.crossLinkCta }} →</a>
     </div>
   </div>
 
@@ -568,7 +568,7 @@
       <p style="color:rgba(255,255,255,.68);margin-bottom:28px;line-height:1.55;">{{ t.ctaSectionDesc }}</p>
       <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;">
         <button onclick="openBookingModal('info-session')" style="background:transparent;color:#fff;border:1.5px solid rgba(255,255,255,.5);padding:14px 28px;border-radius:50px;font-size:.95rem;font-weight:600;cursor:pointer;font-family:inherit;transition:all .2s;" onmouseenter="this.style.borderColor='#fff';this.style.background='rgba(255,255,255,.08)'" onmouseleave="this.style.borderColor='rgba(255,255,255,.5)';this.style.background='transparent'">{{ t.ctaBook }}</button>
-        <button onclick="startCheckoutFunnel('100078')" style="background:#f75c03;color:#fff;border:none;padding:14px 28px;border-radius:50px;font-size:.95rem;font-weight:600;cursor:pointer;font-family:inherit;transition:background .2s;" onmouseenter="this.style.background='#d94f02'" onmouseleave="this.style.background='#f75c03'">{{ t.ctaStart }}</button>
+        <button onclick="startCheckoutFunnel('100210')" style="background:#f75c03;color:#fff;border:none;padding:14px 28px;border-radius:50px;font-size:.95rem;font-weight:600;cursor:pointer;font-family:inherit;transition:background .2s;" onmouseenter="this.style.background='#d94f02'" onmouseleave="this.style.background='#f75c03'">{{ t.ctaStart }}</button>
       </div>
     </div>
   </div>

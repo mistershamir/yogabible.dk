@@ -49,7 +49,7 @@
       <span class="p18-urgency-bar__deadline">{{ t.urgency_deadline }}</span>
     </div>
     <div class="yb-hero__ctas">
-      <button class="yb-btn yb-btn--primary yb-btn--large" data-checkout-product="100078">{{ t.hero_cta_prep }}</button>
+      <button class="yb-btn yb-btn--primary yb-btn--large" data-checkout-product="100210">{{ t.hero_cta_prep }}</button>
       <button onclick="openYBScheduleModal('18w')" class="yb-btn yb-btn--outline-white yb-btn--large">{{ t.hero_cta_schedule }}</button>
     </div>
     <p class="yb-hero__read-more">
@@ -68,6 +68,91 @@
     <div class="yb-hero__scroll-line"></div>
   </div>
 </section>
+
+<!-- ═══════════════════════════════════════
+     1b. COHORT SELECTION — Spring (archive) + Autumn (active)
+     ═══════════════════════════════════════ -->
+<section class="p18-cohorts" id="cohorts">
+  <div class="container">
+    <span class="p18-eyebrow">{{ t.cohort_eyebrow }}</span>
+    <h2 class="p18-section-title">{{ t.cohort_title }}</h2>
+    <p class="p18-section-sub">{{ t.cohort_subtitle }}</p>
+
+    <div class="p18-cohorts__grid">
+
+      <!-- March–June 2026 — Archived / Sold Out -->
+      <div class="p18-cohort-card p18-cohort-card--archive" id="p18-cohort-spring">
+        <div class="p18-cohort-card__header">
+          <h3 class="p18-cohort-card__title">{{ t.cohort_spring_title }}</h3>
+          <span class="p18-cohort-card__badge p18-cohort-card__badge--sold">{{ t.cohort_spring_badge }}</span>
+        </div>
+        <p class="p18-cohort-card__proof">{{ t.cohort_spring_proof }}</p>
+        <p class="p18-cohort-card__proof-detail">{{ t.cohort_spring_proof_detail }}</p>
+
+        <!-- Phase 1: Until mid-April — Join Late + Workshops -->
+        <div class="p18-cohort-spring__phase" data-phase="late">
+          <p class="p18-cohort-card__desc">{{ t.cohort_spring_late_desc }}</p>
+          <button class="yb-btn yb-btn--outline" onclick="openYBScheduleModal('18w-mar')" style="width:100%;margin-bottom:0.75rem">{{ t.cohort_spring_late_cta }}</button>
+          <a href="{% if lang == 'en' %}/en/schedule/18-weeks-march/{% else %}/skema/18-uger/{% endif %}" class="yb-btn yb-btn--outline" style="width:100%;margin-bottom:0.75rem">{{ t.cohort_spring_workshop_cta }}</a>
+          <a href="#p18-cohort-autumn" class="p18-cohort-card__redirect">{{ t.cohort_spring_redirect }}</a>
+        </div>
+
+        <!-- Phase 2: Mid-April to end June — Workshops + Redirect -->
+        <div class="p18-cohort-spring__phase" data-phase="workshops" hidden>
+          <p class="p18-cohort-card__desc">{{ t.cohort_spring_workshop_desc }}</p>
+          <a href="{% if lang == 'en' %}/en/schedule/18-weeks-march/{% else %}/skema/18-uger/{% endif %}" class="yb-btn yb-btn--outline" style="width:100%;margin-bottom:0.75rem">{{ t.cohort_spring_workshop_cta }}</a>
+          <a href="#p18-cohort-autumn" class="p18-cohort-card__redirect">{{ t.cohort_spring_redirect }}</a>
+        </div>
+
+        <!-- Phase 3: After end June — Informational only -->
+        <div class="p18-cohort-spring__phase" data-phase="ended" hidden>
+          <p class="p18-cohort-card__desc">{{ t.cohort_spring_ended }}</p>
+          <a href="#p18-cohort-autumn" class="p18-cohort-card__redirect">{{ t.cohort_spring_redirect }}</a>
+        </div>
+      </div>
+
+      <!-- August–December 2026 — Active -->
+      <div class="p18-cohort-card p18-cohort-card--active" id="p18-cohort-autumn">
+        <div class="p18-cohort-card__header">
+          <h3 class="p18-cohort-card__title">{{ t.cohort_autumn_title }}</h3>
+          <span class="p18-cohort-card__badge p18-cohort-card__badge--open">{{ t.cohort_autumn_badge }}</span>
+        </div>
+        <p class="p18-cohort-card__desc">{{ t.cohort_autumn_desc }}</p>
+        <ul class="p18-cohort-card__list">
+          <li>{{ t.cohort_autumn_list1 }}</li>
+          <li>{{ t.cohort_autumn_list2 }}</li>
+          <li>{{ t.cohort_autumn_list3 }}</li>
+        </ul>
+        <button class="yb-btn yb-btn--cta" data-checkout-product="100210" style="width:100%;margin-bottom:0.75rem">{{ t.cohort_autumn_cta_prep }}</button>
+        <a href="{% if lang == 'en' %}/en/schedule/18-weeks-august/{% else %}/skema/18-uger-august/{% endif %}" class="yb-btn yb-btn--outline" style="width:100%">{{ t.cohort_autumn_cta_schedule }}</a>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- Cohort phase logic — time-based display -->
+<script>
+(function() {
+  var now = new Date();
+  var midApril = new Date(2026, 3, 15);  // April 15, 2026
+  var endJune = new Date(2026, 5, 30);   // June 30, 2026
+
+  var phase;
+  if (now < midApril) {
+    phase = 'late';
+  } else if (now < endJune) {
+    phase = 'workshops';
+  } else {
+    phase = 'ended';
+  }
+
+  var phases = document.querySelectorAll('.p18-cohort-spring__phase');
+  phases.forEach(function(el) {
+    el.hidden = el.getAttribute('data-phase') !== phase;
+  });
+})();
+</script>
 
 <!-- ═══════════════════════════════════════
      2. WHAT YOU LEARN — Lifting Cards
@@ -599,7 +684,7 @@
           <span>{{ t.urgency_inline | safe }}</span>
         </div>
         <div class="p4w-early-card__cta">
-          <button class="yb-btn yb-btn--cta" data-checkout-product="100078">{{ t.invest_deposit_cta }}</button>
+          <button class="yb-btn yb-btn--cta" data-checkout-product="100210">{{ t.invest_deposit_cta }}</button>
           <div class="p4w-early-card__pricing">
             <span class="p4w-early-card__deposit">{{ t.early_deposit }}</span>
             <span class="p4w-early-card__remainder">{{ t.early_installment }}</span>
@@ -794,7 +879,7 @@
     <p class="p18-final-cta__urgency">{{ t.final_urgency }}</p>
     <div style="display:flex;flex-wrap:wrap;gap:1rem;justify-content:center">
       <button onclick="openYBScheduleModal('18w')" class="btn btn--large btn--primary">{{ t.final_cta }}</button>
-      <button class="yb-btn yb-btn--primary yb-btn--large" data-checkout-product="100078">{{ t.final_prep_cta }}</button>
+      <button class="yb-btn yb-btn--primary yb-btn--large" data-checkout-product="100210">{{ t.final_prep_cta }}</button>
     </div>
   </div>
 </section>

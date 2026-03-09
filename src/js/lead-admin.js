@@ -647,7 +647,8 @@
   // `field` = which lead property to match against (defaults to 'program' text if omitted).
   var SUB_TYPE_OPTIONS = {
     ytt: [
-      { label: '18W Flex',     match: '18-week', field: 'ytt_program_type' },
+      { label: '18W Spring',   match: '18-week', field: 'ytt_program_type' },
+      { label: '18W Autumn',   match: '18-week-aug', field: 'ytt_program_type' },
       { label: '8W Semi',      match: '8-week',  field: 'ytt_program_type' },
       { label: '4W Intensive', match: '4-week',  field: 'ytt_program_type' },
       { label: '300h Adv.',    match: '300h',    field: 'ytt_program_type' },

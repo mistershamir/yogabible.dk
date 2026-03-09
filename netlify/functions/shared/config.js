@@ -36,7 +36,8 @@ const AUTO_SMS_CONFIG = {
 };
 
 const YTT_PROGRAM_TYPES = {
-  '18-week': { keywords: ['18 uger', '18-week', '18 week', 'fleksibel', 'flexible', '18w'], label: '18-Week Flexible', shortLabel: '18W' },
+  '18-week': { keywords: ['18 uger', '18-week', '18 week', 'fleksibel', 'flexible', '18w', '18w-mar'], label: '18-Week Flexible (Spring)', shortLabel: '18W' },
+  '18-week-aug': { keywords: ['18w-aug', 'efterår 18w', 'autumn 18w', 'august 18w'], label: '18-Week Flexible (Autumn)', shortLabel: '18W-AUG' },
   '4-week': { keywords: ['4 uger', '4-week', '4 week', 'intensiv', 'intensive', '4w', '4w-apr'], label: '4-Week Intensive', shortLabel: '4W' },
   '4-week-jul': { keywords: ['4w-jul', 'vinyasa plus', 'vinyasa+', 'juli 4w'], label: '4-Week Vinyasa Plus (July)', shortLabel: '4W-VP' },
   '8-week': { keywords: ['8 uger', '8-week', '8 week', 'semi-intensiv', 'semi-intensive', '8w'], label: '8-Week Semi-Intensive', shortLabel: '8W' },
