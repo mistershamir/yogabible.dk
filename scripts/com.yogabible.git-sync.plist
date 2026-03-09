@@ -1,23 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
-<!--
-  macOS launchd agent for auto-syncing yogabible.dk repo.
-  Runs every 5 minutes. More reliable than cron on macOS.
-
-  INSTALL:
-  1. Edit the REPO_DIR path below to match your iCloud repo location
-  2. Copy to ~/Library/LaunchAgents/:
-     cp scripts/com.yogabible.git-sync.plist ~/Library/LaunchAgents/
-  3. Load it:
-     launchctl load ~/Library/LaunchAgents/com.yogabible.git-sync.plist
-  4. Verify:
-     launchctl list | grep yogabible
-
-  UNINSTALL:
-     launchctl unload ~/Library/LaunchAgents/com.yogabible.git-sync.plist
-     rm ~/Library/LaunchAgents/com.yogabible.git-sync.plist
--->
 <dict>
     <key>Label</key>
     <string>com.yogabible.git-sync</string>
@@ -38,7 +21,6 @@
     </dict>
 
     <key>StartInterval</key>
-    <!-- Sync every 300 seconds (5 minutes) -->
     <integer>300</integer>
 
     <key>StandardOutPath</key>
