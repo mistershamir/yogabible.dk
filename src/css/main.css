@@ -18842,6 +18842,41 @@ button.yb-btn--outline-white:hover {
 /* ── Toolbar ── */
 .yb-lead__toolbar-right { display: flex; gap: 0.5rem; align-items: center; }
 
+/* ── Stats Toggle (mobile only) ── */
+.yb-lead__stats-toggle {
+  display: none; /* hidden on desktop */
+  width: 100%;
+  padding: 0.6rem 0.75rem;
+  background: #FFFCF9;
+  border: 1px solid #e5e0db;
+  border-radius: 12px;
+  cursor: pointer;
+  align-items: center;
+  justify-content: space-between;
+  font-family: inherit;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: #161616;
+  margin-bottom: 0.5rem;
+  transition: border-color 0.15s;
+}
+.yb-lead__stats-toggle:hover { border-color: #f75c03; }
+.yb-lead__stats-summary { display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center; }
+.yb-lead__stats-summary-item { white-space: nowrap; }
+.yb-lead__stats-summary-item--new { color: #856404; }
+.yb-lead__stats-summary-item--pipeline { color: #0c5460; }
+.yb-lead__stats-summary-item--converted { color: #155724; }
+.yb-lead__stats-summary-item--rate { color: #f75c03; }
+.yb-lead__stats-summary-item--followup { color: #EF5350; }
+.yb-lead__stats-chevron {
+  flex-shrink: 0;
+  transition: transform 0.2s;
+  color: #6F6A66;
+}
+.yb-lead__stats-toggle[aria-expanded="true"] .yb-lead__stats-chevron {
+  transform: rotate(180deg);
+}
+
 /* ── Pipeline Stats ── */
 .yb-lead__stats-grid {
   display: grid;
@@ -24704,8 +24739,16 @@ a.yb-appt__phone-link:hover { text-decoration: underline; }
   .yb-lead__search-form { width: 100%; min-width: 0; }
   .yb-lead__filter { width: 100%; min-width: 0; }
 
-  /* Stats grid: 2 columns */
-  .yb-lead__stats-grid { grid-template-columns: repeat(2, 1fr); gap: 0.4rem; }
+  /* Stats toggle: visible on mobile */
+  .yb-lead__stats-toggle { display: flex; }
+
+  /* Stats grid: collapsed by default on mobile */
+  .yb-lead__stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.4rem;
+    display: none; /* collapsed by default */
+  }
+  .yb-lead__stats-grid.is-expanded { display: grid; }
   .yb-lead__stat-card { padding: 0.65rem; }
   .yb-lead__stat-value { font-size: 1.2rem; }
   .yb-lead__stat-label { font-size: 0.65rem; }
