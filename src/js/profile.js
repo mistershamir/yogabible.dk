@@ -2022,6 +2022,14 @@
         desc_da: 'Start din forberedelsesfase for efterårets 18-ugers fleksible program. Tag uddannelsen sideløbende med dit daglige liv.',
         desc_en: 'Begin your Preparation Phase for the autumn 18-week flexible program. Complete your training alongside daily life.' }
     ],
+    workshops: [
+      { id: 'ytt-individual-workshops', prodId: '100075', price: 0, vat_pct: 0,
+        name_da: 'Deltag i individuelle workshops', name_en: 'Join Individual Workshops',
+        period_da: '2026', period_en: '2026',
+        format_da: '200-timers yogalæreruddannelse', format_en: '200-hour yoga teacher training',
+        desc_da: 'Book og deltag i individuelle workshops fra yogalæreruddannelsen.',
+        desc_en: 'Book and join individual workshops from the yoga teacher training.' }
+    ],
     courses: {
       single_price: 2300,
       discounts: { 2: 0.10, 3: 0.15 },
