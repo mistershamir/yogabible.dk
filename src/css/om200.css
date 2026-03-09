@@ -1720,6 +1720,31 @@
   color: #6F6A66;
   line-height: 1.45;
 }
+.om2-methods__split-points {
+  list-style: none;
+  padding: 0;
+  margin: 8px 0 0;
+  display: grid;
+  gap: 4px;
+}
+.om2-methods__split-points li {
+  font-size: 0.78rem;
+  color: #222;
+  line-height: 1.4;
+  padding-left: 16px;
+  position: relative;
+}
+.om2-methods__split-points li::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 6px;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--yb-brand);
+  opacity: 0.6;
+}
 
 /* Why section */
 .om2-methods__why {
@@ -2275,6 +2300,7 @@
 /* Location Gallery / Slider */
 .om2-location__gallery {
   position: relative;
+  margin-top: 20px;
 }
 .om2-location__slider {
   overflow: hidden;
@@ -2359,6 +2385,30 @@
   background: var(--yb-brand);
   width: 24px;
   border-radius: 999px;
+}
+
+/* Location Video */
+.om2-location__video-wrap {
+  margin-top: 28px;
+  border-radius: 20px;
+  overflow: hidden;
+  border: 1px solid #E8E4E0;
+  box-shadow: 0 12px 36px rgba(0,0,0,0.08);
+}
+.om2-location__video-wrap video {
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  object-fit: cover;
+  display: block;
+}
+
+/* Location Address */
+.om2-location__address {
+  margin-top: 20px;
+  text-align: center;
+  color: #6F6A66;
+  font-size: 0.9rem;
+  font-weight: 600;
 }
 
 /* ═══════════════════════════════════════════

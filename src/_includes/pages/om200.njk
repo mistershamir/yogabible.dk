@@ -283,6 +283,11 @@
             <div class="om2-methods__split-bar om2-methods__split-bar--vinyasa">
               <span class="om2-methods__split-label">{{ t.vp_split_vinyasa }}</span>
               <p class="om2-methods__split-desc">{{ t.vp_split_vinyasa_desc }}</p>
+              <ul class="om2-methods__split-points">
+                {% for i in range(1, 6) %}
+                <li>{{ t["vp_split_vinyasa_point" + (i | string)] }}</li>
+                {% endfor %}
+              </ul>
             </div>
             <div class="om2-methods__split-bar om2-methods__split-bar--yin">
               <span class="om2-methods__split-label">{{ t.vp_split_yin }}</span>
@@ -705,67 +710,76 @@
    ═══════════════════════════════════════════════════════════ #}
 <section class="om2-location" id="om2-location" aria-labelledby="om2-location-title">
   <div class="om2-location__inner">
-    <div class="om2-location__grid">
 
-      {# TOP: Header + features #}
-      <div class="om2-location__header">
-        <p class="om2-location__eyebrow">{{ t.location_eyebrow }}</p>
-        <h2 id="om2-location-title" class="om2-location__title">{{ t.location_title }}</h2>
-        <p class="om2-location__lead">{{ t.location_lead | safe }}</p>
+    {# TOP: Header + features #}
+    <div class="om2-location__header">
+      <p class="om2-location__eyebrow">{{ t.location_eyebrow }}</p>
+      <h2 id="om2-location-title" class="om2-location__title">{{ t.location_title }}</h2>
+      <p class="om2-location__lead">{{ t.location_lead | safe }}</p>
+    </div>
+
+    <div class="om2-location__features">
+      {% set loc_icons = [
+        '<rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="21" x2="9" y2="9"/>',
+        '<polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/>',
+        '<path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/>',
+        '<path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>'
+      ] %}
+      {% for i in range(1, 5) %}
+      <div class="om2-location__feature">
+        <div class="om2-location__feature-icon">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">{{ loc_icons[i - 1] | safe }}</svg>
+        </div>
+        <div>
+          <h3 class="om2-location__feature-title">{{ t["location_feature" + (i | string) + "_title"] }}</h3>
+          <p class="om2-location__feature-desc">{{ t["location_feature" + (i | string) + "_desc"] }}</p>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+
+    {# MEDIA: Christianshavn neighbourhood video loop #}
+    <div class="om2-location__video-wrap">
+      <video autoplay muted loop playsinline preload="metadata"
+        poster="{{ "yoga-bible-DK/accommodation/christianshavn-copenhagen-neighbourhood.jpg" | cloudvid("w_1280,c_fill,so_0,q_60") }}">
+        <source src="{{ "yoga-bible-DK/accommodation/christianshavn-copenhagen-neighbourhood" | cloudvid("w_1280,q_auto") }}" type="video/mp4">
+      </video>
+    </div>
+
+    {# GALLERY: Studio photos carousel #}
+    <div class="om2-location__gallery" aria-label="{{ t.location_gallery_label }}">
+      <div class="om2-location__slider" data-om2-loc-slider>
+        <div class="om2-location__slider-track" data-om2-loc-track>
+          {% set studio_imgs = [
+            "https://res.cloudinary.com/ddcynsa30/image/upload/w_1000,q_auto,f_auto/v1772736516/Studio_Pictures-8_maazde.jpg",
+            "https://res.cloudinary.com/ddcynsa30/image/upload/w_1000,q_auto,f_auto/v1772736512/Studio_Pictures-1_usfq4w.jpg",
+            "https://res.cloudinary.com/ddcynsa30/image/upload/w_1000,q_auto,f_auto/v1772736515/Studio_Pictures-5_daelan.jpg",
+            "https://res.cloudinary.com/ddcynsa30/image/upload/w_1000,q_auto,f_auto/v1772736509/Studio_Pictures-9_yhwn7h.jpg",
+            "https://res.cloudinary.com/ddcynsa30/image/upload/w_1000,q_auto,f_auto/v1772736511/Studio_Pictures-4_tnsrfh.jpg",
+            "https://res.cloudinary.com/ddcynsa30/image/upload/w_1000,q_auto,f_auto/v1772736508/Studio_Pictures-7_v4to94.jpg"
+          ] %}
+          {% set studio_alts = ["Yoga studio main room", "Studio entrance", "Practice space", "Hot room", "Studio interior", "Changing area"] %}
+          {% for img in studio_imgs %}
+          <div class="om2-location__slide">
+            <img src="{{ img }}" alt="{{ studio_alts[loop.index0] }}" loading="lazy" decoding="async">
+          </div>
+          {% endfor %}
+        </div>
       </div>
 
-      <div class="om2-location__features">
-        {% set loc_icons = [
-          '<rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="21" x2="9" y2="9"/>',
-          '<polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/>',
-          '<path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/>',
-          '<path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>'
-        ] %}
-        {% for i in range(1, 5) %}
-        <div class="om2-location__feature">
-          <div class="om2-location__feature-icon">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">{{ loc_icons[i - 1] | safe }}</svg>
-          </div>
-          <div>
-            <h3 class="om2-location__feature-title">{{ t["location_feature" + (i | string) + "_title"] }}</h3>
-            <p class="om2-location__feature-desc">{{ t["location_feature" + (i | string) + "_desc"] }}</p>
-          </div>
-        </div>
-        {% endfor %}
-      </div>
-
-      {# BOTTOM: Image gallery slider #}
-      <div class="om2-location__gallery" aria-label="{{ t.location_gallery_label }}">
-        <div class="om2-location__slider" data-om2-loc-slider>
-          <div class="om2-location__slider-track" data-om2-loc-track>
-            {# PLACEHOLDER SLIDES — Replace with actual studio photos: 1200×675px (16:9) #}
-            {% for i in range(1, 5) %}
-            <div class="om2-location__slide">
-              <div class="om2-location__img-placeholder">
-                <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" opacity="0.3">
-                  <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
-                  <circle cx="8.5" cy="8.5" r="1.5"/>
-                  <polyline points="21 15 16 10 5 21"/>
-                </svg>
-                <span>{{ t.location_img_placeholder }} {{ i }}</span>
-                <span class="om2-location__dim-label">{{ t.location_img_dimensions }}</span>
-              </div>
-            </div>
-            {% endfor %}
-          </div>
-        </div>
-
-        <div class="om2-location__slider-nav">
-          <button class="om2-location__slider-btn" type="button" aria-label="{{ t.location_prev }}" data-om2-loc-prev>
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
-          </button>
-          <div class="om2-location__slider-dots" data-om2-loc-dots></div>
-          <button class="om2-location__slider-btn" type="button" aria-label="{{ t.location_next }}" data-om2-loc-next>
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
-          </button>
-        </div>
+      <div class="om2-location__slider-nav">
+        <button class="om2-location__slider-btn" type="button" aria-label="{{ t.location_prev }}" data-om2-loc-prev>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+        </button>
+        <div class="om2-location__slider-dots" data-om2-loc-dots></div>
+        <button class="om2-location__slider-btn" type="button" aria-label="{{ t.location_next }}" data-om2-loc-next>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+        </button>
       </div>
     </div>
+
+    {# ADDRESS #}
+    <p class="om2-location__address">{{ t.location_address }}</p>
   </div>
 </section>
 
