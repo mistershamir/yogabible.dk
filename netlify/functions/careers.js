@@ -67,67 +67,59 @@ exports.handler = async (event) => {
       return jsonResponse(400, { ok: false, error: 'Email is required' });
     }
 
-    // Build career application document
-    const careerDoc = {
-      email,
-      first_name: (fields.firstName || '').trim(),
-      last_name: (fields.lastName || '').trim(),
-      phone: (fields.phone || '').trim(),
-      category: fields.category || '',
-      subcategory: fields.subcategory || '',
-      role: fields.role || '',
-      experience: fields.experience || '',
-      message: fields.message || fields.otherTopic || '',
-      page_url: fields.pageUrl || '',
-      submitted_at: fields.submittedAt || new Date().toISOString(),
-      file_count: files.length,
-      file_names: files.map(f => f.filename || 'unnamed').join(', '),
-      status: 'New',
-      notes: [],
-      created_at: new Date(),
-      updated_at: new Date()
-    };
+    // Build lead document with career-specific fields
+    const firstName = (fields.firstName || '').trim();
+    const lastName = (fields.lastName || '').trim();
+    const phone = (fields.phone || '').trim();
+    const category = fields.category || '';
+    const subcategory = fields.subcategory || '';
+    const role = fields.role || '';
+    const experience = fields.experience || '';
+    const message = fields.message || fields.otherTopic || '';
 
-    // Store file metadata (base64 data stored only if small enough)
-    // For larger files, we skip base64 storage in Firestore (1MB doc limit)
-    if (files.length > 0) {
-      careerDoc.files = files.map(f => ({
-        kind: f.kind || 'extra',
-        filename: f.filename || 'unnamed',
-        mimeType: f.mimeType || 'application/octet-stream',
-        // Only store base64 if file is small (< 500KB encoded)
-        base64: (f.base64 && f.base64.length < 500000) ? f.base64 : null,
-        size_bytes: f.base64 ? Math.round(f.base64.length * 0.75) : 0
-      }));
-    }
+    // File metadata (base64 stored only if < 500KB to stay within Firestore 1MB doc limit)
+    const fileData = files.length > 0 ? files.map(f => ({
+      kind: f.kind || 'extra',
+      filename: f.filename || 'unnamed',
+      mimeType: f.mimeType || 'application/octet-stream',
+      base64: (f.base64 && f.base64.length < 500000) ? f.base64 : null,
+      size_bytes: f.base64 ? Math.round(f.base64.length * 0.75) : 0
+    })) : [];
 
-    // Write to Firestore careers collection
-    const db = getDb();
-    const docRef = await db.collection('careers').add(careerDoc);
-
-    console.log(`[careers] New career submission: ${docRef.id} (${email})`);
-
-    // Also create a lead for tracking
+    // All career data stored directly in the leads collection
     const leadDoc = {
       email,
-      first_name: careerDoc.first_name,
-      last_name: careerDoc.last_name,
-      phone: careerDoc.phone,
+      first_name: firstName,
+      last_name: lastName,
+      phone,
       type: 'careers',
+      // Career-specific fields
+      category,
+      subcategory,
+      role,
+      experience,
+      background: fields.background || '',
+      languages: fields.languages || '',
+      city_country: fields.cityCountry || '',
+      links: fields.links || '',
+      file_count: files.length,
+      file_names: files.map(f => f.filename || 'unnamed').join(', '),
+      files: fileData,
+      // Standard lead fields
       ytt_program_type: '',
       program: '',
       course_id: '',
       cohort_label: '',
       preferred_month: '',
       accommodation: 'No',
-      city_country: '',
       housing_months: '',
-      service: careerDoc.category || 'Careers',
-      subcategories: careerDoc.subcategory || '',
-      message: careerDoc.message || '',
+      service: category || 'Careers',
+      subcategories: subcategory || '',
+      message,
+      page_url: fields.pageUrl || '',
       source: 'Careers page',
       status: 'New',
-      notes: `Career application: ${careerDoc.category || 'General'} — ${careerDoc.role || 'N/A'}`,
+      notes: [],
       converted: false,
       converted_at: null,
       application_id: null,
@@ -139,18 +131,22 @@ exports.handler = async (event) => {
       created_at: new Date(),
       updated_at: new Date()
     };
-    await db.collection('leads').add(leadDoc);
+
+    const db = getDb();
+    const docRef = await db.collection('leads').add(leadDoc);
+
+    console.log(`[careers] New career submission: ${docRef.id} (${email})`);
 
     // Send notifications — must await before returning (Netlify kills Lambda after response)
     if (process.env.GMAIL_APP_PASSWORD) {
       await Promise.all([
         sendAdminNotification({
           ...leadDoc,
-          notes: `NEW CAREER APPLICATION\nCategory: ${careerDoc.category}\nRole: ${careerDoc.role}\nFiles: ${careerDoc.file_count}`
+          notes: `NEW CAREER APPLICATION\nCategory: ${category}\nRole: ${role}\nFiles: ${files.length}`
         }).catch(err => {
           console.error('[careers] Admin notification failed:', err.message);
         }),
-        sendCareersConfirmation(email, careerDoc.first_name, careerDoc.category, careerDoc.role).catch(err => {
+        sendCareersConfirmation(email, firstName, category, role).catch(err => {
           console.error('[careers] Careers confirmation email failed:', err.message);
         })
       ]);

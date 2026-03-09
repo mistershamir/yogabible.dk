@@ -192,9 +192,15 @@
     var result = [];
     var src = campaignState.filters.source;
 
-    if (src === 'all' || src === 'leads') {
+    if (src === 'all' || src === 'leads' || src === 'careers') {
       var lds = bridge.getLeads() || [];
-      lds.forEach(function (l) { l._source = 'lead'; result.push(l); });
+      lds.forEach(function (l) {
+        l._source = (l.type === 'careers') ? 'career' : 'lead';
+        // Filter: 'leads' excludes careers, 'careers' includes only careers
+        if (src === 'leads' && l.type === 'careers') return;
+        if (src === 'careers' && l.type !== 'careers') return;
+        result.push(l);
+      });
     }
     if (src === 'all' || src === 'apps') {
       var apps = bridge.getApplications() || [];
@@ -389,7 +395,8 @@
     html += buildChipSection('campaign_filter_source', [
       { id: 'all', label: t('campaign_filter_source_all') },
       { id: 'leads', label: t('campaign_filter_source_leads') },
-      { id: 'apps', label: t('campaign_filter_source_apps') }
+      { id: 'apps', label: t('campaign_filter_source_apps') },
+      { id: 'careers', label: t('campaign_filter_source_careers') || 'Careers' }
     ], [f.source], 'source', true);
 
     // Status
