@@ -49,7 +49,7 @@
       <span class="p18-urgency-bar__deadline">{{ t.urgency_deadline }}</span>
     </div>
     <div class="yb-hero__ctas">
-      <button class="yb-btn yb-btn--primary yb-btn--large" data-checkout-product="100210">{{ t.hero_cta_prep }}</button>
+      <a href="?product=100210" class="yb-btn yb-btn--primary yb-btn--large" data-checkout-product="100210">{{ t.hero_cta_prep }}</a>
       <button onclick="openYBScheduleModal('18w')" class="yb-btn yb-btn--outline-white yb-btn--large">{{ t.hero_cta_schedule }}</button>
     </div>
     <p class="yb-hero__read-more">
@@ -123,7 +123,7 @@
           <li>{{ t.cohort_autumn_list2 }}</li>
           <li>{{ t.cohort_autumn_list3 }}</li>
         </ul>
-        <button class="yb-btn yb-btn--cta" data-checkout-product="100210" style="width:100%;margin-bottom:0.75rem">{{ t.cohort_autumn_cta_prep }}</button>
+        <a href="?product=100210" class="yb-btn yb-btn--cta" data-checkout-product="100210" style="width:100%;margin-bottom:0.75rem">{{ t.cohort_autumn_cta_prep }}</a>
         <a href="{% if lang == 'en' %}/en/schedule/18-weeks-august/{% else %}/skema/18-uger-august/{% endif %}" class="yb-btn yb-btn--outline" style="width:100%">{{ t.cohort_autumn_cta_schedule }}</a>
       </div>
 
@@ -684,7 +684,7 @@
           <span>{{ t.urgency_inline | safe }}</span>
         </div>
         <div class="p4w-early-card__cta">
-          <button class="yb-btn yb-btn--cta" data-checkout-product="100210">{{ t.invest_deposit_cta }}</button>
+          <a href="?product=100210" class="yb-btn yb-btn--cta" data-checkout-product="100210">{{ t.invest_deposit_cta }}</a>
           <div class="p4w-early-card__pricing">
             <span class="p4w-early-card__deposit">{{ t.early_deposit }}</span>
             <span class="p4w-early-card__remainder">{{ t.early_installment }}</span>
@@ -879,7 +879,7 @@
     <p class="p18-final-cta__urgency">{{ t.final_urgency }}</p>
     <div style="display:flex;flex-wrap:wrap;gap:1rem;justify-content:center">
       <button onclick="openYBScheduleModal('18w')" class="btn btn--large btn--primary">{{ t.final_cta }}</button>
-      <button class="yb-btn yb-btn--primary yb-btn--large" data-checkout-product="100210">{{ t.final_prep_cta }}</button>
+      <a href="?product=100210" class="yb-btn yb-btn--primary yb-btn--large" data-checkout-product="100210">{{ t.final_prep_cta }}</a>
     </div>
   </div>
 </section>
