@@ -25,16 +25,14 @@
     <key>ProgramArguments</key>
     <array>
         <string>/bin/bash</string>
-        <!-- UPDATE THIS PATH to your actual repo location on iCloud -->
-        <string>/Users/YOUR_USERNAME/Library/Mobile Documents/com~apple~CloudDocs/yogabible.dk/scripts/git-auto-sync.sh</string>
+        <string>/Users/mistershamir/Library/Mobile Documents/com~apple~CloudDocs/Claude Drive/Claude Projects/Yoga Bible DK (Claude)/scripts/git-auto-sync.sh</string>
         <string>main</string>
     </array>
 
     <key>EnvironmentVariables</key>
     <dict>
-        <!-- UPDATE THIS PATH to your actual repo location on iCloud -->
         <key>REPO_DIR</key>
-        <string>/Users/YOUR_USERNAME/Library/Mobile Documents/com~apple~CloudDocs/yogabible.dk</string>
+        <string>/Users/mistershamir/Library/Mobile Documents/com~apple~CloudDocs/Claude Drive/Claude Projects/Yoga Bible DK (Claude)</string>
         <key>PATH</key>
         <string>/usr/local/bin:/usr/bin:/bin:/opt/homebrew/bin</string>
     </dict>
