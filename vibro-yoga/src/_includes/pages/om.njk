@@ -1,0 +1,139 @@
+{% set t = i18n.om[lang or "da"] %}
+{% set tc = i18n.common[lang or "da"] %}
+{% set lp = "/en" if lang == "en" else "" %}
+
+{# ── Hero ── #}
+<section class="vy-hero vy-hero--compact">
+  <div class="vy-hero__bg"><div class="vy-hero__gradient"></div></div>
+  <div class="container vy-hero__content">
+    <p class="vy-hero__tagline">{{ t.hero_eyebrow }}</p>
+    <h1 class="vy-hero__title">{{ t.hero_title }}</h1>
+    <p class="vy-hero__subtitle">{{ t.hero_subtitle }}</p>
+  </div>
+</section>
+
+{# ── Story ── #}
+<section class="section bg-light">
+  <div class="container">
+    <div class="vy-about__split vy-reveal">
+      <div class="vy-about__text">
+        <h2 class="section-title">{{ t.story_title }}</h2>
+        <p>{{ t.story_text1 }}</p>
+        <p>{{ t.story_text2 }}</p>
+        <p>{{ t.story_text3 }}</p>
+      </div>
+      <div class="vy-about__image">
+        <div class="vy-session-card__placeholder" style="min-height:400px"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+{# ── Timeline ── #}
+<section class="section bg-dark">
+  <div class="container">
+    <h2 class="section-title section-title--light vy-reveal">{{ t.timeline_title }}</h2>
+    <div class="vy-timeline vy-reveal">
+      <div class="vy-timeline__item">
+        <div class="vy-timeline__year">{{ t.tl1_year }}</div>
+        <div class="vy-timeline__dot"></div>
+        <div class="vy-timeline__content">
+          <h3>{{ t.tl1_title }}</h3>
+          <p>{{ t.tl1_text }}</p>
+        </div>
+      </div>
+      <div class="vy-timeline__item">
+        <div class="vy-timeline__year">{{ t.tl2_year }}</div>
+        <div class="vy-timeline__dot"></div>
+        <div class="vy-timeline__content">
+          <h3>{{ t.tl2_title }}</h3>
+          <p>{{ t.tl2_text }}</p>
+        </div>
+      </div>
+      <div class="vy-timeline__item">
+        <div class="vy-timeline__year">{{ t.tl3_year }}</div>
+        <div class="vy-timeline__dot"></div>
+        <div class="vy-timeline__content">
+          <h3>{{ t.tl3_title }}</h3>
+          <p>{{ t.tl3_text }}</p>
+        </div>
+      </div>
+      <div class="vy-timeline__item">
+        <div class="vy-timeline__year">{{ t.tl4_year }}</div>
+        <div class="vy-timeline__dot"></div>
+        <div class="vy-timeline__content">
+          <h3>{{ t.tl4_title }}</h3>
+          <p>{{ t.tl4_text }}</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+{# ── Philosophy ── #}
+<section class="section bg-light">
+  <div class="container vy-reveal">
+    <p class="eyebrow">{{ t.philosophy_eyebrow }}</p>
+    <h2 class="section-title">{{ t.philosophy_title }}</h2>
+    <p class="section-text section-text--wide">{{ t.philosophy_text }}</p>
+  </div>
+</section>
+
+{# ── Technology ── #}
+<section class="section bg-dark">
+  <div class="container">
+    <p class="eyebrow eyebrow--light vy-reveal">{{ t.tech_eyebrow }}</p>
+    <h2 class="section-title section-title--light vy-reveal">{{ t.tech_title }}</h2>
+    <div class="vy-features vy-reveal">
+      <div class="vy-features__card">
+        <div class="vy-features__icon">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+        </div>
+        <h4>{{ t.tech1_title }}</h4>
+        <p>{{ t.tech1_text }}</p>
+      </div>
+      <div class="vy-features__card">
+        <div class="vy-features__icon">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>
+        </div>
+        <h4>{{ t.tech2_title }}</h4>
+        <p>{{ t.tech2_text }}</p>
+      </div>
+      <div class="vy-features__card">
+        <div class="vy-features__icon">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06A1.65 1.65 0 0 0 15 19.4"/></svg>
+        </div>
+        <h4>{{ t.tech3_title }}</h4>
+        <p>{{ t.tech3_text }}</p>
+      </div>
+      <div class="vy-features__card">
+        <div class="vy-features__icon">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+        </div>
+        <h4>{{ t.tech4_title }}</h4>
+        <p>{{ t.tech4_text }}</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+{# ── Location ── #}
+<section class="section bg-light">
+  <div class="container vy-reveal">
+    <p class="eyebrow">{{ t.location_eyebrow }}</p>
+    <h2 class="section-title">{{ t.location_title }}</h2>
+    <p class="section-text section-text--wide">{{ t.location_text }}</p>
+    <div class="vy-contact__map">
+      <div class="vy-session-card__placeholder" style="min-height:300px"></div>
+    </div>
+  </div>
+</section>
+
+{# ── CTA ── #}
+<section class="vy-cta">
+  <div class="container vy-reveal">
+    <h2 class="vy-cta__title">{{ t.cta_title }}</h2>
+    <p class="vy-cta__text">{{ t.cta_text }}</p>
+    <a href="{{ lp }}/booking" class="btn btn--primary btn--large">{{ t.cta_btn }}</a>
+  </div>
+</section>

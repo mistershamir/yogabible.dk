@@ -1,0 +1,42 @@
+{
+  "da": {
+    "hero_eyebrow": "KONTAKT",
+    "hero_title": "Lad Os H\u00f8re fra Dig",
+    "hero_subtitle": "Sp\u00f8rgsm\u00e5l om sessioner, private events eller partnerskaber? Vi er klar til at hj\u00e6lpe.",
+    "form_title": "Send en Besked",
+    "form_name": "Navn",
+    "form_email": "E-mail",
+    "form_subject": "Emne",
+    "form_message": "Din besked",
+    "form_submit": "Send Besked",
+    "info_title": "Kontaktinformation",
+    "info_address_label": "Adresse",
+    "info_phone_label": "Telefon",
+    "info_email_label": "E-mail",
+    "info_hours_label": "\u00c5bningstider",
+    "info_hours_text": "Sessioner efter booking. Kontakt os for ledige tider.",
+    "info_metro": "Christianshavn Metrostation (2 min gang)",
+    "rent_title": "Lej Lokalet",
+    "rent_text": "Vibro Yoga-studiet kan lejes til private events, firmaevents, workshops og s\u00e6rlige lejligheder. Kontakt os for priser og tilg\u00e6ngelighed."
+  },
+  "en": {
+    "hero_eyebrow": "CONTACT",
+    "hero_title": "Let\u2019s Hear from You",
+    "hero_subtitle": "Questions about sessions, private events, or partnerships? We\u2019re here to help.",
+    "form_title": "Send a Message",
+    "form_name": "Name",
+    "form_email": "Email",
+    "form_subject": "Subject",
+    "form_message": "Your message",
+    "form_submit": "Send Message",
+    "info_title": "Contact Information",
+    "info_address_label": "Address",
+    "info_phone_label": "Phone",
+    "info_email_label": "Email",
+    "info_hours_label": "Opening Hours",
+    "info_hours_text": "Sessions by booking. Contact us for available times.",
+    "info_metro": "Christianshavn Metro Station (2 min walk)",
+    "rent_title": "Rent the Space",
+    "rent_text": "The Vibro Yoga studio is available for private events, corporate events, workshops, and special occasions. Contact us for pricing and availability."
+  }
+}

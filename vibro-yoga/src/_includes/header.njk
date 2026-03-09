@@ -1,0 +1,49 @@
+{% set tc = i18n.common[lang or "da"] %}
+{% set lp = "/en" if lang == "en" else "" %}
+
+{# Announcement Bar #}
+<div class="vy-announce">
+  <div class="container">
+    <p>{{ tc.announcement }}</p>
+  </div>
+</div>
+
+<header class="vy-header" id="vy-header">
+  <div class="container vy-header__inner">
+    {# Logo #}
+    <a href="{{ lp }}/" class="vy-header__logo">
+      <img src="/assets/images/brand/logo-white.svg" alt="Vibro Yoga" width="140" height="40">
+    </a>
+
+    {# Desktop Nav #}
+    <nav class="vy-header__nav" id="vy-nav">
+      <a href="{{ lp }}/#sessions">{{ tc.nav_sessions }}</a>
+      <a href="{{ lp }}/#priser">{{ tc.nav_pricing }}</a>
+      <a href="{{ lp }}/ressourcer">{{ tc.nav_resources }}</a>
+      <a href="{{ lp }}/om">{{ tc.nav_about }}</a>
+      <a href="{{ lp }}/kontakt">{{ tc.nav_contact }}</a>
+    </nav>
+
+    {# Right Side: Lang + CTA #}
+    <div class="vy-header__actions">
+      <a href="{% if lang == 'en' %}/{% else %}/en/{% endif %}" class="vy-header__lang">{{ tc.lang_label }}</a>
+      <a href="{{ lp }}/booking" class="btn btn--primary btn--pill vy-header__cta">{{ tc.nav_booking }}</a>
+      <button class="vy-header__burger" id="vy-burger" aria-label="Menu">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </div>
+
+  {# Mobile Drawer #}
+  <div class="vy-drawer" id="vy-drawer">
+    <nav class="vy-drawer__nav">
+      <a href="{{ lp }}/#sessions">{{ tc.nav_sessions }}</a>
+      <a href="{{ lp }}/#priser">{{ tc.nav_pricing }}</a>
+      <a href="{{ lp }}/ressourcer">{{ tc.nav_resources }}</a>
+      <a href="{{ lp }}/om">{{ tc.nav_about }}</a>
+      <a href="{{ lp }}/kontakt">{{ tc.nav_contact }}</a>
+      <a href="{{ lp }}/booking" class="btn btn--primary btn--pill">{{ tc.nav_booking }}</a>
+      <a href="{% if lang == 'en' %}/{% else %}/en/{% endif %}" class="vy-drawer__lang">{{ tc.lang_label }}</a>
+    </nav>
+  </div>
+</header>
