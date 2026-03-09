@@ -7,7 +7,7 @@
   'use strict';
 
   var API = '/.netlify/functions';
-  var SESSION_TYPE_ID = '24';
+  var SESSION_TYPE_NAME = '200hrs Teacher Training Workshops';
   var WORKSHOP_PROD_ID = '100075';
   var isDa = window.location.pathname.indexOf('/en/') !== 0;
 
@@ -53,8 +53,7 @@
     // Fetch 6 months ahead
     var end = new Date(now.getTime() + 180 * 86400000).toISOString().split('T')[0];
 
-    var url = API + '/mb-classes?sessionTypeIds=' + SESSION_TYPE_ID +
-      '&startDate=' + start + '&endDate=' + end;
+    var url = API + '/mb-classes?startDate=' + start + '&endDate=' + end;
 
     // Include clientId if available for isBooked detection
     if (mbClientId) {
@@ -65,9 +64,10 @@
     if (!resp.ok) throw new Error('Failed to fetch workshops');
     var data = await resp.json();
 
-    // Filter out cancelled classes and past classes
+    // Filter to YTT workshops only, exclude cancelled and past classes
     return (data.classes || []).filter(function (c) {
-      return !c.isCanceled && new Date(c.startDateTime) > now;
+      return !c.isCanceled && new Date(c.startDateTime) > now &&
+        c.sessionTypeName === SESSION_TYPE_NAME;
     });
   }
 
