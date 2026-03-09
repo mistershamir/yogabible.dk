@@ -18,6 +18,8 @@
     '100210': { price: 3750, name_da: '18 Ugers Fleksibelt Program', name_en: '18-Week Flexible Program', period_da: 'August–December 2026', period_en: 'August–December 2026', format_da: '200-timers komplet uddannelse', format_en: '200-hour complete education', desc_da: 'Start din forberedelsesfase for det 18-ugers fleksible program.', desc_en: 'Begin your Preparation Phase for the 18-week flexible program.', category: 'teacher' },
     // 300-Hour Advanced Teacher Training — Preparation Phase
     '100212': { price: 5750, name_da: '300-Timer Advanced Teacher Training', name_en: '300-Hour Advanced Teacher Training', period_da: 'Maj–December 2026', period_en: 'May–December 2026', format_da: '300-timers avanceret uddannelse · RYT-500', format_en: '300-hour advanced training · RYT-500', desc_da: 'Start din forberedelsesfase for den 300-timers avancerede yogalæreruddannelse. 24 uger, RYT-500 certificering.', desc_en: 'Begin your Preparation Phase for the 300-hour advanced yoga teacher training. 24 weeks, RYT-500 certification.', category: 'teacher' },
+    // Individual YTT Workshops (drop-in)
+    '100075': { price: 975, name_da: 'Deltag i individuelle workshops', name_en: 'Join Individual Workshops', period_da: '2026', period_en: '2026', format_da: '200-timers yogalæreruddannelse', format_en: '200-hour yoga teacher training', desc_da: 'Book og deltag i individuelle workshops fra yogalæreruddannelsen.', desc_en: 'Book and join individual workshops from the yoga teacher training.', category: 'workshop', successUrl: '/weekly-schedule/?filter=ytt' },
     // Courses
     '100145': { price: 2300, name_da: 'Inversions Kursus', name_en: 'Inversions Course', period_da: 'April 2026', period_en: 'April 2026', desc_da: 'Mestr armbalancer og inversioner med sikker teknik og gradvis progression.', desc_en: 'Master arm balances and inversions with safe technique and gradual progression.', category: 'courses' },
     '100150': { price: 2300, name_da: 'Splits Kursus', name_en: 'Splits Course', period_da: 'April 2026', period_en: 'April 2026', desc_da: 'Opnå fuld splits med systematisk fleksibilitetstræning og sikre stræk.', desc_en: 'Achieve full splits with systematic flexibility training and safe stretching.', category: 'courses' },
@@ -544,6 +546,19 @@
         // Notify apply form (or any listener) that payment succeeded
         window.dispatchEvent(new CustomEvent('ybCheckoutSuccess', { detail: { prodId: currentProdId } }));
 
+        // Update success step content based on product
+        var prod = currentProdId ? getProduct(currentProdId) : null;
+        if (prod && prod.successUrl) {
+          var subDa = modal.querySelector('#ycf-step-success .yb-auth-modal__subtitle[data-yj-da]');
+          var subEn = modal.querySelector('#ycf-step-success .yb-auth-modal__subtitle[data-yj-en]');
+          var btnDa = $('ycf-go-profile');
+          var btnEn = $('ycf-go-profile-en');
+          if (subDa) subDa.textContent = 'Du kan nu booke individuelle workshops fra ugeskemaet.';
+          if (subEn) subEn.textContent = 'You can now book individual workshops from the weekly schedule.';
+          if (btnDa) btnDa.textContent = 'Gå til skemaet';
+          if (btnEn) btnEn.textContent = 'Go to schedule';
+        }
+
         // Show success
         showStep('ycf-step-success');
       })
@@ -848,12 +863,17 @@
       });
     }
 
-    // ── Go to profile button ──
+    // ── Go to profile / success redirect button ──
     document.addEventListener('click', function (e) {
       if (e.target.id === 'ycf-go-profile' || e.target.id === 'ycf-go-profile-en') {
         e.preventDefault();
         closeModal();
-        window.location.href = getProfilePath() + '#passes';
+        var prod = currentProdId ? getProduct(currentProdId) : null;
+        if (prod && prod.successUrl) {
+          window.location.href = (isDa ? '' : '/en') + prod.successUrl;
+        } else {
+          window.location.href = getProfilePath() + '#passes';
+        }
       }
     });
 
