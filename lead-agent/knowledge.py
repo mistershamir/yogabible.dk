@@ -141,7 +141,7 @@ YTT PROGRAMS (all Yoga Alliance RYT-200, 23750 DKK total, max 12 students):
 - 18-week Flexible: Saturdays, March-June 2026 (ALREADY STARTED — leads can still join this week with 1000 kr last-minute discount)
 - 300h Advanced: weekends, May-Dec 2026
 - 50h Specialty / 30h Module: TBA
-Preparation Phase ("Forberedelsesfasen"): 3750 DKK (NEVER say "deposit"/"depositum" to leads — say "Forberedelsesfasen"). Gives immediate studio access. Remaining 20000 DKK in installments before start.
+Preparation Phase ("Forberedelsesfasen"): 3750 DKK (NEVER say "deposit"/"depositum" to leads — say "Forberedelsesfasen"). Gives immediate studio access. Remaining 20000 DKK in flexible instalments at the student's comfort — before training starts.
 
 COURSES: Inversions/Splits/Backbends — each 2300 DKK, 8 sessions. Bundle discounts available.
 
