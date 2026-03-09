@@ -52,7 +52,7 @@
     // Fetch 6 months ahead
     var end = new Date(now.getTime() + 180 * 86400000).toISOString().split('T')[0];
 
-    var url = API + '/mb-classes?sessionTypeIds=24&startDate=' + start + '&endDate=' + end;
+    var url = API + '/mb-classes?startDate=' + start + '&endDate=' + end;
 
     // Include clientId if available for isBooked detection
     if (mbClientId) {
@@ -63,10 +63,10 @@
     if (!resp.ok) throw new Error('Failed to fetch workshops');
     var data = await resp.json();
 
-    // Filter to YTT workshops only (all start with "Teacher Training:")
+    // Filter to YTT workshops only — match by class type (same filter as Schedule tab)
     return (data.classes || []).filter(function (c) {
       return !c.isCanceled && new Date(c.startDateTime) > now &&
-        c.name.indexOf('Teacher Training:') === 0;
+        c.sessionTypeName === '200hrs Teacher Training Workshops';
     });
   }
 
