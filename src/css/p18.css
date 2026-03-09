@@ -3590,8 +3590,9 @@
 }
 
 .p18-cohort-card--archive {
-  background: #F5F3F0;
-  border: 1px solid #E8E4E0;
+  background: #FFFCF9;
+  border: 1.5px solid #E8E4E0;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04);
 }
 
 .p18-cohort-card--active {
@@ -3625,8 +3626,14 @@
 }
 
 .p18-cohort-card__badge--sold {
-  background: #E8E4E0;
-  color: #6F6A66;
+  background: #0F0F0F;
+  color: #FFFCF9;
+  animation: p18SoldPulse 2.5s ease-in-out infinite;
+}
+
+@keyframes p18SoldPulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(15, 15, 15, 0.25); }
+  50%      { box-shadow: 0 0 0 6px rgba(15, 15, 15, 0); }
 }
 
 .p18-cohort-card__badge--open {
@@ -3635,10 +3642,10 @@
 }
 
 .p18-cohort-card__proof {
-  font-size: 0.95rem;
-  font-weight: 600;
+  font-size: 0.92rem;
+  font-weight: 700;
   margin: 0 0 4px;
-  color: #0F0F0F;
+  color: #f75c03;
 }
 
 .p18-cohort-card__proof-detail {
@@ -3685,12 +3692,13 @@
 .p18-cohort-card .yb-btn--outline {
   background: transparent;
   color: #0F0F0F;
-  border: 1.5px solid #0F0F0F;
+  border: 1.5px solid #E8E4E0;
 }
 
 .p18-cohort-card .yb-btn--outline:hover {
   background: #0F0F0F;
   color: #fff;
+  border-color: #0F0F0F;
 }
 
 .p18-cohort-card--active .yb-btn--outline {
