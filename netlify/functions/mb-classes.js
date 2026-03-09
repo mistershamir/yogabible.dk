@@ -46,14 +46,31 @@ exports.handler = async function(event) {
       qsParams.ProgramIds = params.programIds;
     }
 
-    const queryString = new URLSearchParams(qsParams).toString();
+    // Paginate through all results
+    let allClasses = [];
+    let offset = 0;
+    const limit = 200;
 
-    console.log('mb-classes query:', queryString);
+    while (true) {
+      qsParams.Limit = String(limit);
+      qsParams.Offset = String(offset);
+      const queryString = new URLSearchParams(qsParams).toString();
+      console.log('mb-classes query:', queryString);
 
-    const data = await mbFetch('/class/classes?' + queryString);
+      const data = await mbFetch('/class/classes?' + queryString);
+      const page = data.Classes || [];
+      allClasses = allClasses.concat(page);
+
+      // Stop if we got fewer than limit or reached total
+      const pagination = data.PaginationResponse;
+      if (page.length < limit || !pagination || allClasses.length >= pagination.TotalResults) {
+        break;
+      }
+      offset += limit;
+    }
 
     // Transform for frontend consumption
-    const classes = (data.Classes || []).map(function(cls) {
+    const classes = allClasses.map(function(cls) {
       // Check if this client is already booked
       var isBooked = false;
       if (params.clientId && cls.Clients) {
