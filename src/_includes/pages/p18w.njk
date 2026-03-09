@@ -474,15 +474,31 @@
 
     <!-- Video -->
     <figure class="yb-tracks__video">
-      <div class="yb-tracks__video-container">
-        <video id="tracksVideo" preload="metadata" playsinline>
+      <div class="yb-tracks__video-container" id="tracksVideoWrap">
+        <video id="tracksVideo" preload="metadata" playsinline
+               poster="https://res.cloudinary.com/ddcynsa30/video/upload/so_0,w_1280,f_jpg,q_auto/yoga-bible-DK/programs/testimonial-weekday.jpg">
           <source src="https://res.cloudinary.com/ddcynsa30/video/upload/f_auto,q_auto/yoga-bible-DK/programs/testimonial-weekday.mp4" type="video/mp4">
         </video>
         <div class="yb-tracks__video-overlay" id="tracksVideoOverlay">
           <button class="yb-tracks__video-btn" id="tracksVideoBtn" aria-label="{{ t.tracks_video_play_aria }}">
-            <span>▶</span>
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5.14v14l11-7-11-7z"/></svg>
           </button>
           <span class="yb-tracks__video-label">{{ t.tracks_video_label }}</span>
+        </div>
+        {# Controls bar — visible during playback #}
+        <div class="yb-tracks__controls" id="tracksControls">
+          <button class="yb-tracks__ctrl-btn" id="tracksCtrlPlay" aria-label="Play/Pause">
+            <svg class="yb-tracks__icon-pause" width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M6 4h4v16H6zm8 0h4v16h-4z"/></svg>
+            <svg class="yb-tracks__icon-play" width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5.14v14l11-7-11-7z"/></svg>
+          </button>
+          <span class="yb-tracks__time" id="tracksTime">0:00</span>
+          <div class="yb-tracks__progress" id="tracksProgress">
+            <div class="yb-tracks__progress-fill" id="tracksProgressFill"></div>
+          </div>
+          <span class="yb-tracks__duration" id="tracksDuration">0:00</span>
+          <button class="yb-tracks__ctrl-btn" id="tracksFullscreen" aria-label="Fullscreen">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H5a2 2 0 00-2 2v3m18 0V5a2 2 0 00-2-2h-3m0 18h3a2 2 0 002-2v-3M3 16v3a2 2 0 002 2h3"/></svg>
+          </button>
         </div>
       </div>
       <figcaption class="yb-tracks__video-caption">{{ t.tracks_video_caption }}</figcaption>
@@ -1013,13 +1029,35 @@
   var tracksVideo = document.getElementById('tracksVideo');
   var tracksOverlay = document.getElementById('tracksVideoOverlay');
   var tracksPlayBtn = document.getElementById('tracksVideoBtn');
+  var tracksControls = document.getElementById('tracksControls');
+  var tracksCtrlPlay = document.getElementById('tracksCtrlPlay');
+  var tracksProgress = document.getElementById('tracksProgress');
+  var tracksProgressFill = document.getElementById('tracksProgressFill');
+  var tracksTime = document.getElementById('tracksTime');
+  var tracksDuration = document.getElementById('tracksDuration');
+  var tracksFullscreen = document.getElementById('tracksFullscreen');
+  var tracksWrap = document.getElementById('tracksVideoWrap');
+  var controlsTimeout;
 
   if (tracksVideo && tracksOverlay && tracksPlayBtn) {
     tracksVideo.volume = 1.0;
 
+    function fmtTime(s) {
+      var m = Math.floor(s / 60);
+      var sec = Math.floor(s % 60);
+      return m + ':' + (sec < 10 ? '0' : '') + sec;
+    }
+
+    var setPlaying = function(playing) {
+      tracksOverlay.classList.toggle('is-playing', playing);
+      if (tracksControls) tracksControls.classList.toggle('is-visible', playing);
+      if (tracksWrap) tracksWrap.classList.toggle('is-playing', playing);
+    };
+
     var playVideo = function() {
       tracksVideo.play().then(function() {
-        tracksOverlay.classList.add('is-playing');
+        setPlaying(true);
+        showControlsBriefly();
       }).catch(function(err) {
         console.log('Video play failed:', err);
       });
@@ -1027,12 +1065,20 @@
 
     var pauseVideo = function() {
       tracksVideo.pause();
-      tracksOverlay.classList.remove('is-playing');
+      setPlaying(false);
     };
 
     var toggleVideo = function() {
       if (tracksVideo.paused) { playVideo(); } else { pauseVideo(); }
     };
+
+    function showControlsBriefly() {
+      if (tracksControls) tracksControls.classList.add('is-visible');
+      clearTimeout(controlsTimeout);
+      controlsTimeout = setTimeout(function() {
+        if (!tracksVideo.paused) tracksControls.classList.remove('is-visible');
+      }, 3000);
+    }
 
     tracksPlayBtn.addEventListener('click', function(e) {
       e.stopPropagation();
@@ -1040,14 +1086,60 @@
     });
     tracksOverlay.addEventListener('click', toggleVideo);
     tracksVideo.addEventListener('click', function() {
-      if (!tracksVideo.paused) pauseVideo();
+      toggleVideo();
+      if (!tracksVideo.paused) showControlsBriefly();
     });
     tracksVideo.addEventListener('ended', function() {
-      tracksOverlay.classList.remove('is-playing');
+      setPlaying(false);
     });
     tracksVideo.addEventListener('pause', function() {
-      tracksOverlay.classList.remove('is-playing');
+      setPlaying(false);
     });
+
+    /* Progress + time updates */
+    tracksVideo.addEventListener('loadedmetadata', function() {
+      if (tracksDuration) tracksDuration.textContent = fmtTime(tracksVideo.duration);
+    });
+    tracksVideo.addEventListener('timeupdate', function() {
+      if (!tracksVideo.duration) return;
+      var pct = (tracksVideo.currentTime / tracksVideo.duration) * 100;
+      if (tracksProgressFill) tracksProgressFill.style.width = pct + '%';
+      if (tracksTime) tracksTime.textContent = fmtTime(tracksVideo.currentTime);
+    });
+
+    /* Seek on progress bar click */
+    if (tracksProgress) {
+      tracksProgress.addEventListener('click', function(e) {
+        var rect = tracksProgress.getBoundingClientRect();
+        var pct = (e.clientX - rect.left) / rect.width;
+        tracksVideo.currentTime = pct * tracksVideo.duration;
+      });
+    }
+
+    /* Control bar play/pause */
+    if (tracksCtrlPlay) {
+      tracksCtrlPlay.addEventListener('click', function(e) {
+        e.stopPropagation();
+        toggleVideo();
+      });
+    }
+
+    /* Fullscreen */
+    if (tracksFullscreen && tracksWrap) {
+      tracksFullscreen.addEventListener('click', function(e) {
+        e.stopPropagation();
+        if (tracksWrap.requestFullscreen) tracksWrap.requestFullscreen();
+        else if (tracksWrap.webkitRequestFullscreen) tracksWrap.webkitRequestFullscreen();
+        else if (tracksVideo.webkitEnterFullScreen) tracksVideo.webkitEnterFullScreen();
+      });
+    }
+
+    /* Show controls on mouse move during playback */
+    if (tracksWrap) {
+      tracksWrap.addEventListener('mousemove', function() {
+        if (!tracksVideo.paused) showControlsBriefly();
+      });
+    }
   }
 
   /* ── Visit Gallery Slider ── */
