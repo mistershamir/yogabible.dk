@@ -20,6 +20,50 @@
   function t(da, en) { return isDa ? da : en; }
   function $(id) { return document.getElementById(id); }
 
+  // ── Branded dialog (replaces native alert/confirm) ──
+  function ywbDialog(message, opts) {
+    opts = opts || {};
+    return new Promise(function (resolve) {
+      var overlay = document.createElement('div');
+      overlay.className = 'ywb-dialog__overlay';
+
+      var box = document.createElement('div');
+      box.className = 'ywb-dialog';
+
+      var msg = document.createElement('p');
+      msg.className = 'ywb-dialog__message';
+      msg.textContent = message;
+      box.appendChild(msg);
+
+      var actions = document.createElement('div');
+      actions.className = 'ywb-dialog__actions';
+
+      if (opts.confirm) {
+        var cancelBtn = document.createElement('button');
+        cancelBtn.className = 'ywb-dialog__btn ywb-dialog__btn--cancel';
+        cancelBtn.textContent = t('Annuller', 'Cancel');
+        cancelBtn.addEventListener('click', function () { overlay.remove(); resolve(false); });
+        actions.appendChild(cancelBtn);
+
+        var okBtn = document.createElement('button');
+        okBtn.className = 'ywb-dialog__btn ywb-dialog__btn--confirm';
+        okBtn.textContent = opts.confirmLabel || 'OK';
+        okBtn.addEventListener('click', function () { overlay.remove(); resolve(true); });
+        actions.appendChild(okBtn);
+      } else {
+        var okOnlyBtn = document.createElement('button');
+        okOnlyBtn.className = 'ywb-dialog__btn ywb-dialog__btn--confirm';
+        okOnlyBtn.textContent = 'OK';
+        okOnlyBtn.addEventListener('click', function () { overlay.remove(); resolve(true); });
+        actions.appendChild(okOnlyBtn);
+      }
+
+      box.appendChild(actions);
+      overlay.appendChild(box);
+      document.body.appendChild(overlay);
+    });
+  }
+
   // ── Date helpers ──
   var dayNames = {
     da: ['Søndag', 'Mandag', 'Tirsdag', 'Onsdag', 'Torsdag', 'Fredag', 'Lørdag'],
@@ -113,14 +157,13 @@
         var time = formatTime(ws.startDateTime) + ' – ' + formatTime(ws.endDateTime);
         var spots = ws.spotsLeft !== null ? ws.spotsLeft : '–';
         var isFull = ws.spotsLeft !== null && ws.spotsLeft <= 0;
+        var loc = ws.location || (isDa ? 'Christianshavn, København' : 'Christianshavn, Copenhagen');
+        var hasDesc = ws.description && ws.description.trim();
+        var descId = 'ywb-desc-' + ws.id;
 
         card.innerHTML =
-          '<div class="ywb-card__main">' +
+          '<div class="ywb-card__top">' +
             '<div class="ywb-card__time">' + time + '</div>' +
-            '<div class="ywb-card__info">' +
-              '<div class="ywb-card__name">' + ws.name + '</div>' +
-              '<div class="ywb-card__instructor">' + ws.instructor + '</div>' +
-            '</div>' +
             '<div class="ywb-card__right">' +
               (ws.isBooked
                 ? '<span class="ywb-badge ywb-badge--booked">' + t('Booket', 'Booked') + '</span>'
@@ -134,7 +177,19 @@
                 ? '<button type="button" class="ywb-cancel-btn" data-class-id="' + ws.id + '">' + t('Afmeld', 'Cancel') + '</button>'
                 : '') +
             '</div>' +
-          '</div>';
+          '</div>' +
+          '<div class="ywb-card__name">' + ws.name + '</div>' +
+          '<div class="ywb-card__meta">' +
+            '<span class="ywb-card__instructor">' + ws.instructor + '</span>' +
+            '<span class="ywb-card__location">' + loc + '</span>' +
+          '</div>' +
+          (hasDesc
+            ? '<button type="button" class="ywb-card__toggle" data-desc="' + descId + '">' +
+                t('Beskrivelse', 'Description') +
+                ' <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M3 4.5L6 7.5L9 4.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>' +
+              '</button>' +
+              '<div class="ywb-card__desc" id="' + descId + '" hidden>' + ws.description + '</div>'
+            : '');
 
         section.appendChild(card);
       });
@@ -152,6 +207,17 @@
     container.querySelectorAll('.ywb-cancel-btn').forEach(function (btn) {
       btn.addEventListener('click', function () {
         handleCancel(btn.getAttribute('data-class-id'), btn);
+      });
+    });
+
+    // Description toggles
+    container.querySelectorAll('.ywb-card__toggle').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        var desc = document.getElementById(btn.getAttribute('data-desc'));
+        if (!desc) return;
+        var open = !desc.hidden;
+        desc.hidden = open;
+        btn.classList.toggle('ywb-card__toggle--open', !open);
       });
     });
   }
@@ -195,7 +261,7 @@
     // Resolve MB client
     var clientId = await resolveMbClient();
     if (!clientId) {
-      alert(t('Kunne ikke finde din Mindbody-profil. Prøv at logge ind igen.', 'Could not find your Mindbody profile. Please try logging in again.'));
+      ywbDialog(t('Kunne ikke finde din Mindbody-profil. Prøv at logge ind igen.', 'Could not find your Mindbody profile. Please try logging in again.'));
       return;
     }
 
@@ -224,25 +290,27 @@
         });
       } else if (data.error === 'no_pass') {
         // No valid pass — offer to buy workshop pass
-        if (confirm(t(
-          'Du har ikke et gyldigt workshop-pass. Vil du købe et? (975 kr.)',
-          "You don't have a valid workshop pass. Would you like to buy one? (975 DKK)"
-        ))) {
+        btn.disabled = false;
+        btn.textContent = origText;
+        var accepted = await ywbDialog(
+          t('Du har ikke et gyldigt workshop-pass. Vil du købe et? (975 kr.)',
+            "You don't have a valid workshop pass. Would you like to buy one? (975 DKK)"),
+          { confirm: true, confirmLabel: t('Køb pass', 'Buy pass') }
+        );
+        if (accepted) {
           closeModal();
           if (typeof window.openCheckoutFlow === 'function') {
             window.openCheckoutFlow(WORKSHOP_PROD_ID);
           }
         }
-        btn.disabled = false;
-        btn.textContent = origText;
       } else {
-        alert(data.error || t('Booking fejlede', 'Booking failed'));
+        ywbDialog(data.error || t('Booking fejlede', 'Booking failed'));
         btn.disabled = false;
         btn.textContent = origText;
       }
     } catch (err) {
       console.error('ywb: book error', err);
-      alert(t('Noget gik galt. Prøv igen.', 'Something went wrong. Please try again.'));
+      ywbDialog(t('Noget gik galt. Prøv igen.', 'Something went wrong. Please try again.'));
       btn.disabled = false;
       btn.textContent = origText;
     }
@@ -250,7 +318,11 @@
 
   // ── Cancel a booking ──
   async function handleCancel(classId, btn) {
-    if (!confirm(t('Er du sikker på at du vil afmelde denne workshop?', 'Are you sure you want to cancel this workshop?'))) return;
+    var confirmed = await ywbDialog(
+      t('Er du sikker på at du vil afmelde denne workshop?', 'Are you sure you want to cancel this workshop?'),
+      { confirm: true, confirmLabel: t('Ja, afmeld', 'Yes, cancel') }
+    );
+    if (!confirmed) return;
 
     var origText = btn.textContent;
     btn.disabled = true;
@@ -268,7 +340,7 @@
         // Refresh the whole list to get correct state
         await loadWorkshops();
       } else {
-        alert(data.error || t('Afmelding fejlede', 'Cancellation failed'));
+        ywbDialog(data.error || t('Afmelding fejlede', 'Cancellation failed'));
         btn.disabled = false;
         btn.textContent = origText;
       }
