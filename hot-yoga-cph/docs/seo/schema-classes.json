@@ -1,0 +1,136 @@
+<!--
+  HOT YOGA COPENHAGEN — Classes / Book a Class JSON-LD
+
+  Paste this into Framer:
+  Book a Class page → Page Settings → Custom Code → Start of <head> tag
+
+  Contains: Event series for recurring classes + BreadcrumbList
+-->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        {
+          "@type": "ListItem",
+          "position": 1,
+          "name": "Hot Yoga Copenhagen",
+          "item": "https://www.hotyogacph.dk"
+        },
+        {
+          "@type": "ListItem",
+          "position": 2,
+          "name": "Book a Class",
+          "item": "https://www.hotyogacph.dk/book-a-class"
+        }
+      ]
+    },
+    {
+      "@type": "ItemList",
+      "name": "Hot Yoga Class Types",
+      "description": "All hot yoga class types available at Hot Yoga Copenhagen. Classes are held in a 30-35°C infrared-heated studio and taught in English.",
+      "numberOfItems": 8,
+      "itemListElement": [
+        {
+          "@type": "ListItem",
+          "position": 1,
+          "item": {
+            "@type": "ExercisePlan",
+            "name": "Hot Vinyasa Flow",
+            "description": "Dynamic flowing yoga in infrared heat (35°C). Synchronize breath with movement through creative sequences. Builds strength, flexibility and cardiovascular endurance. All levels welcome.",
+            "exerciseType": "Hot Yoga",
+            "activityDuration": "PT60M",
+            "provider": { "@id": "https://www.hotyogacph.dk/#organization" }
+          }
+        },
+        {
+          "@type": "ListItem",
+          "position": 2,
+          "item": {
+            "@type": "ExercisePlan",
+            "name": "Hot Power Yoga",
+            "description": "Intense, strength-building yoga in heated studio. Challenging poses, arm balances, and inversions. Perfect for experienced yogis seeking a vigorous practice.",
+            "exerciseType": "Hot Yoga",
+            "activityDuration": "PT60M",
+            "provider": { "@id": "https://www.hotyogacph.dk/#organization" }
+          }
+        },
+        {
+          "@type": "ListItem",
+          "position": 3,
+          "item": {
+            "@type": "ExercisePlan",
+            "name": "Hot Yin Yoga",
+            "description": "Slow, meditative practice in gentle heat. Hold poses for 3-5 minutes to stretch deep connective tissue. Deeply relaxing — ideal for stress relief and flexibility.",
+            "exerciseType": "Hot Yoga",
+            "activityDuration": "PT60M",
+            "provider": { "@id": "https://www.hotyogacph.dk/#organization" }
+          }
+        },
+        {
+          "@type": "ListItem",
+          "position": 4,
+          "item": {
+            "@type": "ExercisePlan",
+            "name": "Hot Yoga Basics",
+            "description": "Perfect for beginners. Learn foundational poses, breathing techniques, and alignment in a supportive heated environment. No experience needed.",
+            "exerciseType": "Hot Yoga",
+            "activityDuration": "PT60M",
+            "provider": { "@id": "https://www.hotyogacph.dk/#organization" }
+          }
+        },
+        {
+          "@type": "ListItem",
+          "position": 5,
+          "item": {
+            "@type": "ExercisePlan",
+            "name": "Hot Flow & Restore",
+            "description": "Balanced class combining dynamic flow sequences with restorative holds. Experience both the energy of vinyasa and the calm of yin in one session.",
+            "exerciseType": "Hot Yoga",
+            "activityDuration": "PT60M",
+            "provider": { "@id": "https://www.hotyogacph.dk/#organization" }
+          }
+        },
+        {
+          "@type": "ListItem",
+          "position": 6,
+          "item": {
+            "@type": "ExercisePlan",
+            "name": "Hot Sculpt",
+            "description": "High-energy class combining yoga with bodyweight strength exercises in infrared heat. Tone, sculpt, and sweat. Music-driven and motivating.",
+            "exerciseType": "Hot Yoga",
+            "activityDuration": "PT60M",
+            "provider": { "@id": "https://www.hotyogacph.dk/#organization" }
+          }
+        },
+        {
+          "@type": "ListItem",
+          "position": 7,
+          "item": {
+            "@type": "ExercisePlan",
+            "name": "Meditation & Breathwork",
+            "description": "Guided meditation and pranayama breathing techniques in a warm, calming space. Reduce stress, improve focus, and cultivate inner peace.",
+            "exerciseType": "Meditation",
+            "activityDuration": "PT45M",
+            "provider": { "@id": "https://www.hotyogacph.dk/#organization" }
+          }
+        },
+        {
+          "@type": "ListItem",
+          "position": 8,
+          "item": {
+            "@type": "ExercisePlan",
+            "name": "Vibro Yoga",
+            "description": "Innovative yoga on vibrating platforms. Enhances balance, strengthens stabilizer muscles, and deepens stretches. A unique Copenhagen yoga experience.",
+            "exerciseType": "Yoga",
+            "activityDuration": "PT45M",
+            "provider": { "@id": "https://www.hotyogacph.dk/#organization" }
+          }
+        }
+      ]
+    }
+  ]
+}
+</script>

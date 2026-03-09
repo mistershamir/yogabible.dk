@@ -17,6 +17,40 @@
     X-XSS-Protection = "1; mode=block"
     Referrer-Policy = "strict-origin-when-cross-origin"
 
+# Noindex member-only pages (profile app)
+[[headers]]
+  for = "/index.html"
+  [headers.values]
+    X-Robots-Tag = "noindex, nofollow"
+
+# Allow AI crawlers to read llms.txt
+[[headers]]
+  for = "/llms.txt"
+  [headers.values]
+    Content-Type = "text/plain; charset=utf-8"
+    X-Robots-Tag = "index, follow"
+    Access-Control-Allow-Origin = "*"
+    Cache-Control = "public, max-age=86400"
+
+# CORS + caching for public SEO pages
+[[headers]]
+  for = "/faq.html"
+  [headers.values]
+    X-Robots-Tag = "index, follow"
+    Cache-Control = "public, max-age=3600"
+
+[[headers]]
+  for = "/classes.html"
+  [headers.values]
+    X-Robots-Tag = "index, follow"
+    Cache-Control = "public, max-age=3600"
+
+[[headers]]
+  for = "/pricing.html"
+  [headers.values]
+    X-Robots-Tag = "index, follow"
+    Cache-Control = "public, max-age=3600"
+
 # CORS headers for checkout-embed.js (loaded from Framer site)
 [[headers]]
   for = "/js/checkout-embed.js"
