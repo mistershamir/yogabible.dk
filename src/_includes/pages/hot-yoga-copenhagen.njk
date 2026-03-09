@@ -1,0 +1,130 @@
+{% set t = i18n["hot-yoga-copenhagen"][lang or "da"] %}
+{% set lp = "/en" if lang == "en" else "" %}
+
+<!-- Hero Section -->
+<section style="background: #0F0F0F; color: #FFFCF9; padding: 6rem 2rem 4rem; text-align: center;">
+  <div style="max-width: 900px; margin: 0 auto;">
+    <p style="font-size: 0.85rem; letter-spacing: 0.15em; text-transform: uppercase; color: #f75c03; margin-bottom: 1rem;">{{ t.hero_tagline }}</p>
+    <h1 style="font-size: clamp(2.5rem, 6vw, 4.5rem); line-height: 1.1; margin-bottom: 1.5rem;">{{ t.hero_title }}</h1>
+    <p style="font-size: 1.15rem; color: #B0ACA8; max-width: 700px; margin: 0 auto 2.5rem; line-height: 1.7;">{{ t.hero_subtitle }}</p>
+
+    <div style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; margin-bottom: 3rem;">
+      <a href="{{ lp }}/ugentligt-klasseskema/" class="yb-btn yb-btn--primary" style="font-size: 1rem; padding: 0.85rem 2rem;">{{ t.hero_cta1 }}</a>
+      <a href="{{ lp }}/profile/#store" class="yb-btn yb-btn--outline-light" style="font-size: 1rem; padding: 0.85rem 2rem;">{{ t.hero_cta2 }}</a>
+    </div>
+
+    <div style="display: flex; gap: 2rem; justify-content: center; flex-wrap: wrap; font-size: 0.85rem; color: #6F6A66;">
+      <span>{{ t.hero_trust1 }}</span>
+      <span>{{ t.hero_trust2 }}</span>
+      <span>{{ t.hero_trust3 }}</span>
+      <span>{{ t.hero_trust4 }}</span>
+    </div>
+  </div>
+</section>
+
+<!-- What Is Hot Yoga -->
+<section style="padding: 5rem 2rem; background: #FFFCF9;">
+  <div style="max-width: 800px; margin: 0 auto;">
+    <h2 style="font-size: 2rem; margin-bottom: 1.5rem; border-top: 2px solid #f75c03; padding-top: 1.5rem;">{{ t.intro_title }}</h2>
+    <p style="font-size: 1.05rem; line-height: 1.8; color: #333; margin-bottom: 1.5rem;">{{ t.intro_text | safe }}</p>
+    <p style="font-size: 1.05rem; line-height: 1.8; color: #333;">{{ t.intro_text2 }}</p>
+  </div>
+</section>
+
+<!-- Infrared Technology -->
+<section style="padding: 5rem 2rem; background: #F5F3F0;">
+  <div style="max-width: 800px; margin: 0 auto;">
+    <h2 style="font-size: 2rem; margin-bottom: 0.5rem;">{{ t.ir_title }}</h2>
+    <p style="color: #f75c03; font-size: 0.9rem; letter-spacing: 0.05em; margin-bottom: 1.5rem;">{{ t.ir_subtitle }}</p>
+    <p style="font-size: 1.05rem; line-height: 1.8; color: #333; margin-bottom: 1.5rem;">{{ t.ir_text }}</p>
+    <ul style="list-style: none; padding: 0;">
+      <li style="padding: 0.6rem 0; padding-left: 1.5rem; position: relative; font-size: 1rem; color: #333;"><span style="position: absolute; left: 0; color: #f75c03;">✓</span> {{ t.ir_point1 }}</li>
+      <li style="padding: 0.6rem 0; padding-left: 1.5rem; position: relative; font-size: 1rem; color: #333;"><span style="position: absolute; left: 0; color: #f75c03;">✓</span> {{ t.ir_point2 }}</li>
+      <li style="padding: 0.6rem 0; padding-left: 1.5rem; position: relative; font-size: 1rem; color: #333;"><span style="position: absolute; left: 0; color: #f75c03;">✓</span> {{ t.ir_point3 }}</li>
+      <li style="padding: 0.6rem 0; padding-left: 1.5rem; position: relative; font-size: 1rem; color: #333;"><span style="position: absolute; left: 0; color: #f75c03;">✓</span> {{ t.ir_point4 }}</li>
+      <li style="padding: 0.6rem 0; padding-left: 1.5rem; position: relative; font-size: 1rem; color: #333;"><span style="position: absolute; left: 0; color: #f75c03;">✓</span> {{ t.ir_point5 }}</li>
+    </ul>
+  </div>
+</section>
+
+<!-- Classes -->
+<section style="padding: 5rem 2rem; background: #FFFCF9;">
+  <div style="max-width: 1000px; margin: 0 auto;">
+    <h2 style="font-size: 2rem; margin-bottom: 0.5rem; text-align: center;">{{ t.classes_title }}</h2>
+    <p style="text-align: center; color: #6F6A66; margin-bottom: 3rem;">{{ t.classes_subtitle }}</p>
+
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.5rem;">
+      <div style="background: #F5F3F0; border-radius: 12px; padding: 1.5rem;">
+        <h3 style="font-size: 1.1rem; margin-bottom: 0.5rem; color: #f75c03;">{{ t.class1_title }}</h3>
+        <p style="font-size: 0.95rem; color: #333; line-height: 1.6;">{{ t.class1_desc }}</p>
+      </div>
+      <div style="background: #F5F3F0; border-radius: 12px; padding: 1.5rem;">
+        <h3 style="font-size: 1.1rem; margin-bottom: 0.5rem; color: #f75c03;">{{ t.class2_title }}</h3>
+        <p style="font-size: 0.95rem; color: #333; line-height: 1.6;">{{ t.class2_desc }}</p>
+      </div>
+      <div style="background: #F5F3F0; border-radius: 12px; padding: 1.5rem;">
+        <h3 style="font-size: 1.1rem; margin-bottom: 0.5rem; color: #f75c03;">{{ t.class3_title }}</h3>
+        <p style="font-size: 0.95rem; color: #333; line-height: 1.6;">{{ t.class3_desc }}</p>
+      </div>
+      <div style="background: #F5F3F0; border-radius: 12px; padding: 1.5rem;">
+        <h3 style="font-size: 1.1rem; margin-bottom: 0.5rem; color: #f75c03;">{{ t.class4_title }}</h3>
+        <p style="font-size: 0.95rem; color: #333; line-height: 1.6;">{{ t.class4_desc }}</p>
+      </div>
+      <div style="background: #F5F3F0; border-radius: 12px; padding: 1.5rem;">
+        <h3 style="font-size: 1.1rem; margin-bottom: 0.5rem; color: #f75c03;">{{ t.class5_title }}</h3>
+        <p style="font-size: 0.95rem; color: #333; line-height: 1.6;">{{ t.class5_desc }}</p>
+      </div>
+      <div style="background: #F5F3F0; border-radius: 12px; padding: 1.5rem;">
+        <h3 style="font-size: 1.1rem; margin-bottom: 0.5rem; color: #f75c03;">{{ t.class6_title }}</h3>
+        <p style="font-size: 0.95rem; color: #333; line-height: 1.6;">{{ t.class6_desc }}</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Rituals -->
+<section style="padding: 5rem 2rem; background: #0F0F0F; color: #FFFCF9;">
+  <div style="max-width: 800px; margin: 0 auto;">
+    <h2 style="font-size: 2rem; margin-bottom: 0.5rem;">{{ t.rituals_title }}</h2>
+    <p style="color: #f75c03; font-size: 0.9rem; letter-spacing: 0.05em; margin-bottom: 3rem;">{{ t.rituals_subtitle }}</p>
+
+    <div style="display: flex; flex-direction: column; gap: 2.5rem;">
+      <div>
+        <h3 style="font-size: 1.15rem; color: #f75c03; margin-bottom: 0.5rem;">{{ t.rit1_title }}</h3>
+        <p style="color: #B0ACA8; line-height: 1.7;">{{ t.rit1_desc }}</p>
+      </div>
+      <div>
+        <h3 style="font-size: 1.15rem; color: #f75c03; margin-bottom: 0.5rem;">{{ t.rit2_title }}</h3>
+        <p style="color: #B0ACA8; line-height: 1.7;">{{ t.rit2_desc }}</p>
+      </div>
+      <div>
+        <h3 style="font-size: 1.15rem; color: #f75c03; margin-bottom: 0.5rem;">{{ t.rit3_title }}</h3>
+        <p style="color: #B0ACA8; line-height: 1.7;">{{ t.rit3_desc }}</p>
+      </div>
+      <div>
+        <h3 style="font-size: 1.15rem; color: #f75c03; margin-bottom: 0.5rem;">{{ t.rit4_title }}</h3>
+        <p style="color: #B0ACA8; line-height: 1.7;">{{ t.rit4_desc }}</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Location -->
+<section style="padding: 5rem 2rem; background: #F5F3F0;">
+  <div style="max-width: 800px; margin: 0 auto; text-align: center;">
+    <h2 style="font-size: 2rem; margin-bottom: 1.5rem;">{{ t.location_title }}</h2>
+    <p style="font-size: 1.1rem; font-weight: 700; margin-bottom: 0.5rem;">{{ t.location_address }}</p>
+    <p style="color: #6F6A66; margin-bottom: 0.5rem;">{{ t.location_area }}</p>
+    <p style="color: #6F6A66; margin-bottom: 2rem;">{{ t.location_hours }}</p>
+    <a href="https://www.google.com/maps/place/Hot+Yoga+Copenhagen" target="_blank" rel="noopener" class="yb-btn yb-btn--outline" style="font-size: 0.95rem;">Google Maps →</a>
+  </div>
+</section>
+
+<!-- CTA -->
+<section style="padding: 5rem 2rem; background: #0F0F0F; color: #FFFCF9; text-align: center;">
+  <div style="max-width: 600px; margin: 0 auto;">
+    <h2 style="font-size: 2rem; margin-bottom: 1rem;">{{ t.cta_title }}</h2>
+    <p style="color: #B0ACA8; margin-bottom: 2rem;">{{ t.cta_subtitle }}</p>
+    <a href="{{ lp }}/ugentligt-klasseskema/" class="yb-btn yb-btn--primary" style="font-size: 1.05rem; padding: 1rem 2.5rem;">{{ t.cta_button }}</a>
+  </div>
+</section>
