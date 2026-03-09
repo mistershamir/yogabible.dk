@@ -1,0 +1,19 @@
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{{ title or site.name }} — {% if lang == "en" %}{{ site.description_en }}{% else %}{{ site.description_da }}{% endif %}</title>
+<meta name="description" content="{{ description or (site.description_da if lang != 'en' else site.description_en) }}">
+<link rel="canonical" href="{{ site.url }}{{ page.url }}">
+{% if lang == "en" %}
+<link rel="alternate" hreflang="da" href="{{ site.url }}{{ page.url | replace('/en/', '/') }}">
+<link rel="alternate" hreflang="en" href="{{ site.url }}{{ page.url }}">
+{% else %}
+<link rel="alternate" hreflang="da" href="{{ site.url }}{{ page.url }}">
+<link rel="alternate" hreflang="en" href="{{ site.url }}/en{{ page.url }}">
+{% endif %}
+<meta property="og:title" content="{{ title or site.name }}">
+<meta property="og:description" content="{{ description or (site.description_da if lang != 'en' else site.description_en) }}">
+<meta property="og:url" content="{{ site.url }}{{ page.url }}">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="{{ site.name }}">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="/css/main.css">

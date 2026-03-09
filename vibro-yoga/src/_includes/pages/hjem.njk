@@ -1,0 +1,269 @@
+{% set t = i18n.hjem[lang or "da"] %}
+{% set tc = i18n.common[lang or "da"] %}
+{% set lp = "/en" if lang == "en" else "" %}
+
+{# ═══════════════════════════════════════════
+   HERO — Full Viewport Dark Cinematic
+   ═══════════════════════════════════════════ #}
+<section class="vy-hero">
+  <div class="vy-hero__bg">
+    {# Placeholder: dark atmospheric studio image #}
+    <div class="vy-hero__gradient"></div>
+  </div>
+  <div class="vy-hero__canvas" id="vy-hero-waves"></div>
+  <div class="container vy-hero__content">
+    <p class="vy-hero__tagline">{{ t.hero_tagline }}</p>
+    <h1 class="vy-hero__title">{{ t.hero_title }}</h1>
+    <p class="vy-hero__subtitle">{{ t.hero_subtitle }}</p>
+    <div class="vy-hero__actions">
+      <a href="{{ lp }}/booking" class="btn btn--primary btn--large">{{ t.hero_cta }}</a>
+      <a href="#sessions" class="btn btn--outline-light btn--large">{{ t.hero_cta2 }}</a>
+    </div>
+  </div>
+  <div class="vy-hero__scroll">
+    <span>{{ t.hero_scroll }}</span>
+    <div class="vy-hero__scroll-line"></div>
+  </div>
+</section>
+
+{# ═══════════════════════════════════════════
+   INTRO — Brand Statement
+   ═══════════════════════════════════════════ #}
+<section class="section bg-light">
+  <div class="container vy-reveal">
+    <p class="eyebrow">{{ t.intro_eyebrow }}</p>
+    <h2 class="section-title">{{ t.intro_title }}</h2>
+    <p class="section-text section-text--wide">{{ t.intro_text }}</p>
+    <blockquote class="vy-quote vy-quote--centered">
+      <p>{{ t.intro_quote }}</p>
+    </blockquote>
+  </div>
+</section>
+
+{# ═══════════════════════════════════════════
+   SESSIONS — Three Experiences
+   ═══════════════════════════════════════════ #}
+<section class="section bg-dark" id="sessions">
+  <div class="container">
+    <p class="eyebrow eyebrow--light vy-reveal">{{ t.sessions_eyebrow }}</p>
+    <h2 class="section-title section-title--light vy-reveal">{{ t.sessions_title }}</h2>
+    <p class="section-text section-text--light vy-reveal">{{ t.sessions_subtitle }}</p>
+
+    <div class="vy-sessions__grid">
+      {# Session 1: Vibration Shower #}
+      <div class="vy-session-card vy-reveal">
+        <div class="vy-session-card__img">
+          {# Placeholder image #}
+          <div class="vy-session-card__placeholder"></div>
+          {% if t.s1_badge %}<span class="vy-session-card__badge">{{ t.s1_badge }}</span>{% endif %}
+        </div>
+        <div class="vy-session-card__body">
+          <h3>{{ t.s1_title }}</h3>
+          <p class="vy-session-card__tagline">{{ t.s1_tagline }}</p>
+          <p>{{ t.s1_desc }}</p>
+          <ul class="vy-check-list">
+            <li>{{ t.s1_detail1 }}</li>
+            <li>{{ t.s1_detail2 }}</li>
+            <li>{{ t.s1_detail3 }}</li>
+          </ul>
+        </div>
+      </div>
+
+      {# Session 2: Yin Yoga & Vibration #}
+      <div class="vy-session-card vy-reveal">
+        <div class="vy-session-card__img">
+          <div class="vy-session-card__placeholder"></div>
+        </div>
+        <div class="vy-session-card__body">
+          <h3>{{ t.s2_title }}</h3>
+          <p class="vy-session-card__tagline">{{ t.s2_tagline }}</p>
+          <p>{{ t.s2_desc }}</p>
+          <ul class="vy-check-list">
+            <li>{{ t.s2_detail1 }}</li>
+            <li>{{ t.s2_detail2 }}</li>
+            <li>{{ t.s2_detail3 }}</li>
+          </ul>
+        </div>
+      </div>
+
+      {# Session 3: Hot Yoga + Vibration Shower #}
+      <div class="vy-session-card vy-reveal">
+        <div class="vy-session-card__img">
+          <div class="vy-session-card__placeholder"></div>
+          {% if t.s3_badge %}<span class="vy-session-card__badge">{{ t.s3_badge }}</span>{% endif %}
+        </div>
+        <div class="vy-session-card__body">
+          <h3>{{ t.s3_title }}</h3>
+          <p class="vy-session-card__tagline">{{ t.s3_tagline }}</p>
+          <p>{{ t.s3_desc }}</p>
+          <ul class="vy-check-list">
+            <li>{{ t.s3_detail1 }}</li>
+            <li>{{ t.s3_detail2 }}</li>
+            <li>{{ t.s3_detail3 }}</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+{# ═══════════════════════════════════════════
+   SOUND — Technology Section
+   ═══════════════════════════════════════════ #}
+<section class="section vy-sound">
+  <div class="container">
+    <p class="eyebrow eyebrow--light vy-reveal">{{ t.sound_eyebrow }}</p>
+    <h2 class="section-title section-title--light vy-reveal">{{ t.sound_title }}</h2>
+    <p class="section-text section-text--light section-text--wide vy-reveal">{{ t.sound_subtitle }}</p>
+
+    <div class="vy-sound__split vy-reveal">
+      <div class="vy-sound__text">
+        <p>{{ t.sound_text1 }}</p>
+        <p>{{ t.sound_text2 }}</p>
+      </div>
+      <div class="vy-sound__features">
+        <div class="vy-sound__feature">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>
+          <span>{{ t.sound_feature1 }}</span>
+        </div>
+        <div class="vy-sound__feature">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06A1.65 1.65 0 0 0 15 19.4a1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9 1.65 1.65 0 0 0 4.27 7.18l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+          <span>{{ t.sound_feature2 }}</span>
+        </div>
+        <div class="vy-sound__feature">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
+          <span>{{ t.sound_feature3 }}</span>
+        </div>
+        <div class="vy-sound__feature">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+          <span>{{ t.sound_feature4 }}</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+{# ═══════════════════════════════════════════
+   PRICING
+   ═══════════════════════════════════════════ #}
+<section class="section bg-light" id="priser">
+  <div class="container">
+    <p class="eyebrow vy-reveal">{{ t.pricing_eyebrow }}</p>
+    <h2 class="section-title vy-reveal">{{ t.pricing_title }}</h2>
+    <p class="section-text vy-reveal">{{ t.pricing_subtitle }}</p>
+
+    <div class="vy-pricing vy-reveal">
+      <div class="vy-pricing__card vy-pricing__card--featured">
+        <h3 class="vy-pricing__name">{{ t.pricing_solo_title }}</h3>
+        <p class="vy-pricing__persons">{{ t.pricing_solo_persons }}</p>
+        <div class="vy-pricing__price">
+          <span class="vy-pricing__amount">{{ t.pricing_solo_price }}</span>
+          <span class="vy-pricing__currency">{{ t.pricing_solo_currency }}</span>
+        </div>
+        <p class="vy-pricing__extra">{{ t.pricing_extra }}</p>
+        <p class="vy-pricing__max">{{ t.pricing_max }}</p>
+        <a href="{{ lp }}/booking" class="btn btn--primary btn--large">{{ tc.cta_book }}</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+{# ═══════════════════════════════════════════
+   INCLUDED + PRACTICAL INFO
+   ═══════════════════════════════════════════ #}
+<section class="section bg-dark">
+  <div class="container">
+    <p class="eyebrow eyebrow--light vy-reveal">{{ t.included_eyebrow }}</p>
+    <h2 class="section-title section-title--light vy-reveal">{{ t.included_title }}</h2>
+    <div class="vy-info-grid vy-reveal">
+      <div class="vy-info-grid__item">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--vy-primary)" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+        <span>{{ t.inc1 }}</span>
+      </div>
+      <div class="vy-info-grid__item">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--vy-primary)" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+        <span>{{ t.inc2 }}</span>
+      </div>
+      <div class="vy-info-grid__item">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--vy-primary)" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+        <span>{{ t.inc3 }}</span>
+      </div>
+      <div class="vy-info-grid__item">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--vy-primary)" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+        <span>{{ t.inc4 }}</span>
+      </div>
+      <div class="vy-info-grid__item">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--vy-primary)" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+        <span>{{ t.inc5 }}</span>
+      </div>
+      <div class="vy-info-grid__item">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--vy-primary)" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+        <span>{{ t.inc6 }}</span>
+      </div>
+    </div>
+
+    <div class="vy-spacer"></div>
+
+    <p class="eyebrow eyebrow--light vy-reveal">{{ t.practical_eyebrow }}</p>
+    <div class="vy-practical vy-reveal">
+      <div class="vy-practical__item">
+        <h4>{{ t.prac1_title }}</h4>
+        <p>{{ t.prac1_text }}</p>
+      </div>
+      <div class="vy-practical__item">
+        <h4>{{ t.prac2_title }}</h4>
+        <p>{{ t.prac2_text }}</p>
+      </div>
+      <div class="vy-practical__item">
+        <h4>{{ t.prac3_title }}</h4>
+        <p>{{ t.prac3_text }}</p>
+      </div>
+      <div class="vy-practical__item">
+        <h4>{{ t.prac4_title }}</h4>
+        <p>{{ t.prac4_text }}</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+{# ═══════════════════════════════════════════
+   TESTIMONIALS
+   ═══════════════════════════════════════════ #}
+<section class="section bg-light">
+  <div class="container">
+    <p class="eyebrow vy-reveal">{{ t.testimonials_eyebrow }}</p>
+    <h2 class="section-title vy-reveal">{{ t.testimonials_title }}</h2>
+    <div class="vy-testimonials vy-reveal">
+      <div class="vy-testimonial">
+        <p class="vy-testimonial__text">\u201c{{ t.t1_text }}\u201d</p>
+        <span class="vy-testimonial__author">\u2014 {{ t.t1_author }}</span>
+      </div>
+      <div class="vy-testimonial">
+        <p class="vy-testimonial__text">\u201c{{ t.t2_text }}\u201d</p>
+        <span class="vy-testimonial__author">\u2014 {{ t.t2_author }}</span>
+      </div>
+      <div class="vy-testimonial">
+        <p class="vy-testimonial__text">\u201c{{ t.t3_text }}\u201d</p>
+        <span class="vy-testimonial__author">\u2014 {{ t.t3_author }}</span>
+      </div>
+      <div class="vy-testimonial">
+        <p class="vy-testimonial__text">\u201c{{ t.t4_text }}\u201d</p>
+        <span class="vy-testimonial__author">\u2014 {{ t.t4_author }}</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+{# ═══════════════════════════════════════════
+   FINAL CTA
+   ═══════════════════════════════════════════ #}
+<section class="vy-cta">
+  <div class="container vy-reveal">
+    <h2 class="vy-cta__title">{{ t.cta_title }}</h2>
+    <p class="vy-cta__text">{{ t.cta_text }}</p>
+    <div class="vy-cta__actions">
+      <a href="{{ lp }}/booking" class="btn btn--primary btn--large">{{ t.cta_btn }}</a>
+      <a href="{{ lp }}/kontakt" class="btn btn--outline-light btn--large">{{ t.cta_btn2 }}</a>
+    </div>
+  </div>
+</section>

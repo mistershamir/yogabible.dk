@@ -1,0 +1,16 @@
+{
+  "name": "vibroyoga-dk",
+  "version": "1.0.0",
+  "description": "Vibro Yoga Denmark — The world's first vibroacoustic yoga studio",
+  "scripts": {
+    "build": "npx @11ty/eleventy",
+    "start": "npx @11ty/eleventy --serve"
+  },
+  "type": "commonjs",
+  "devDependencies": {
+    "@11ty/eleventy": "^3.1.2"
+  },
+  "dependencies": {
+    "markdown-it": "^14.1.0"
+  }
+}
