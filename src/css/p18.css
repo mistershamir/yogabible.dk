@@ -3682,6 +3682,27 @@
   font-weight: 700;
 }
 
+.p18-cohort-card .yb-btn--outline {
+  background: transparent;
+  color: #0F0F0F;
+  border: 1.5px solid #0F0F0F;
+}
+
+.p18-cohort-card .yb-btn--outline:hover {
+  background: #0F0F0F;
+  color: #fff;
+}
+
+.p18-cohort-card--active .yb-btn--outline {
+  color: #FFFCF9;
+  border-color: #FFFCF9;
+}
+
+.p18-cohort-card--active .yb-btn--outline:hover {
+  background: #FFFCF9;
+  color: #0F0F0F;
+}
+
 .p18-cohort-card__redirect {
   display: inline-block;
   margin-top: 8px;
