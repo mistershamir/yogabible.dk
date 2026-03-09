@@ -1,34 +1,52 @@
 #!/bin/bash
 # ============================================================
 # Cloudinary Asset Optimizer — yogabible.dk
-# Downloads originals, applies transforms locally, re-uploads.
-# Requires: curl, python3, sips (macOS built-in image tool)
+# Dynamically finds oversized images (>1MB) and optimizes them.
+# Requires: curl, python3
 # ============================================================
 
 CLOUD="ddcynsa30"
 UPLOAD_API="https://api.cloudinary.com/v1_1/$CLOUD/image/upload"
+SEARCH_API="https://api.cloudinary.com/v1_1/$CLOUD/resources/search"
 AUTH="617726211878669:n90Ts-IUyUnxwNdtQd9i64d6Gtw"
 CDN="https://res.cloudinary.com/$CLOUD/image/upload"
 TMPDIR=$(mktemp -d)
 
+# Thresholds
+MIN_BYTES=1048576    # 1MB — only optimize images larger than this
+MAX_WIDTH=2400       # Max width for photos
+QUALITY=85           # JPG quality
+BRAND_MAX_WIDTH=512  # Max width for brand assets (icons, logos)
+
 optimized=0
 failed=0
+skipped=0
 
 optimize_image() {
   local public_id="$1"
-  local max_width="$2"
-  local quality="$3"
-  local out_format="$4"
-  local label="$5"
+  local width="$2"
+  local orig_format="$3"
+  local orig_bytes="$4"
+  local orig_width="$5"
+  local orig_height="$6"
 
-  echo "  → $label"
-  echo "    ID: $public_id"
+  local orig_mb
+  orig_mb=$(echo "scale=1; $orig_bytes / 1048576" | bc)
 
-  # Download original with transforms applied (delivery URL, not upload)
-  local download_url="${CDN}/w_${max_width},c_limit,q_${quality}/${public_id}.${out_format}"
+  # Determine output format: keep PNG for brand assets, convert photos to JPG
+  local out_format="jpg"
+  if [[ "$public_id" == *"/brand/"* ]]; then
+    out_format="png"
+    width=$BRAND_MAX_WIDTH
+  fi
+
+  echo "  → $public_id"
+  echo "    Original: ${orig_mb}MB, ${orig_width}x${orig_height}, ${orig_format}"
+
+  # Download optimized version via Cloudinary delivery URL
+  local download_url="${CDN}/w_${width},c_limit,q_${QUALITY}/${public_id}.${out_format}"
   local tmpfile="${TMPDIR}/optimized.${out_format}"
 
-  echo "    Downloading optimized version..."
   local http_code
   http_code=$(curl -s -o "$tmpfile" -w "%{http_code}" "$download_url")
 
@@ -41,12 +59,23 @@ optimize_image() {
 
   local dl_size
   dl_size=$(wc -c < "$tmpfile" | tr -d ' ')
+
+  # Skip if optimized version isn't actually smaller
+  if [ "$dl_size" -ge "$orig_bytes" ]; then
+    echo "    ⊘ Already optimal (optimized would be same size or larger)"
+    ((skipped++))
+    echo ""
+    return
+  fi
+
   local dl_mb
   dl_mb=$(echo "scale=1; $dl_size / 1048576" | bc)
-  echo "    Downloaded: ${dl_mb}MB"
+  local saved
+  saved=$(echo "scale=0; ($orig_bytes - $dl_size) * 100 / $orig_bytes" | bc)
+  echo "    Optimized: ${dl_mb}MB (${saved}% smaller)"
 
   # Re-upload the optimized file
-  echo "    Uploading optimized version..."
+  echo "    Uploading..."
   local result
   result=$(curl -s -X POST "$UPLOAD_API" \
     -u "$AUTH" \
@@ -65,7 +94,7 @@ optimize_image() {
   elif [ "$bytes" -gt 0 ] 2>/dev/null; then
     local mb
     mb=$(echo "scale=1; $bytes / 1048576" | bc)
-    echo "    ✓ Done — new size: ${mb}MB"
+    echo "    ✓ Replaced — new size: ${mb}MB"
     ((optimized++))
   else
     echo "    ? Unknown result"
@@ -76,35 +105,40 @@ optimize_image() {
 
 echo "=========================================="
 echo "  Cloudinary Asset Optimizer"
+echo "  Scanning yoga-bible-DK/ for images >1MB"
 echo "=========================================="
-echo "  Temp dir: $TMPDIR"
 echo ""
 
-# ── 1. Oversized JPG photos (resize to max 2400px wide, quality 85) ──
-echo "── Step 1: Resize oversized JPG photos ──"
+# Search for all images in yoga-bible-DK/ that are over 1MB
+# Cloudinary search API returns max 500 results per page
+search_result=$(curl -s "$SEARCH_API" \
+  -u "$AUTH" \
+  -d "expression=folder:yoga-bible-DK/* AND resource_type:image AND bytes>$MIN_BYTES" \
+  -d "max_results=500" \
+  -d "sort_by[0][bytes]=desc")
+
+total=$(echo "$search_result" | python3 -c "import sys,json; print(json.load(sys.stdin).get('total_count',0))" 2>/dev/null)
+
+if [ "$total" = "0" ] || [ -z "$total" ]; then
+  echo "  No oversized images found (all images are under 1MB)."
+  echo ""
+  rm -rf "$TMPDIR"
+  exit 0
+fi
+
+echo "  Found $total images over 1MB"
 echo ""
 
-optimize_image "yoga-bible-DK/studio/studio-torvegade"              2400 85 jpg "Studio Torvegade (7.2MB, 4240x2832)"
-optimize_image "yoga-bible-DK/studio/studio-shower"                 2400 85 jpg "Studio Shower (6.8MB, 4240x2832)"
-optimize_image "yoga-bible-DK/mentorship/beth-02"                   2400 85 jpg "Beth Mentorship (5.7MB, 3833x4627)"
-optimize_image "yoga-bible-DK/mentorship/mentor-private-inversions" 2400 85 jpg "Mentor Inversions (3.7MB, 4480x6720)"
-optimize_image "yoga-bible-DK/copenhagen/metro-station-01"          2400 85 jpg "Metro Station 01 (3.3MB, 4032x3024)"
-optimize_image "yoga-bible-DK/copenhagen/metro-station-02"          2400 85 jpg "Metro Station 02 (2.6MB, 4032x3024)"
-
-# ── 2. PNG → JPG conversion (photos stored as PNG) ──
-echo "── Step 2: Convert PNG photos to JPG ──"
-echo ""
-
-optimize_image "yoga-bible-DK/studio/studio-hot-yoga-01"                  2000 85 jpg "Studio Hot Yoga (4.0MB PNG)"
-optimize_image "yoga-bible-DK/studio/studio-training-space"               2000 85 jpg "Studio Training Space (3.5MB PNG)"
-optimize_image "yoga-bible-DK/programs/ytt-200h-education"                1600 85 jpg "YTT 200h Education (1.6MB PNG)"
-optimize_image "yoga-bible-DK/courses/inversions-course-copenhagen-promo" 1200 85 jpg "Inversions Promo (0.6MB PNG)"
-
-# ── 3. Oversized brand PNG (keep PNG, reduce size) ──
-echo "── Step 3: Resize oversized brand PNG ──"
-echo ""
-
-optimize_image "yoga-bible-DK/brand/instagram-glyph" 512 90 png "Instagram Glyph (2.5MB, 5000x5000 → 512)"
+# Parse each result and optimize
+echo "$search_result" | python3 -c "
+import sys, json
+data = json.load(sys.stdin)
+for r in data.get('resources', []):
+    fmt = r.get('format', 'jpg')
+    print(f\"{r['public_id']}|{r.get('width',0)}|{r.get('height',0)}|{r.get('bytes',0)}|{fmt}\")
+" | while IFS='|' read -r pub_id width height bytes fmt; do
+  optimize_image "$pub_id" "$MAX_WIDTH" "$fmt" "$bytes" "$width" "$height"
+done
 
 # ── Cleanup ──
 rm -rf "$TMPDIR"
@@ -113,6 +147,7 @@ rm -rf "$TMPDIR"
 echo "=========================================="
 echo "  Optimization complete!"
 echo "  ✓ Optimized: $optimized"
+echo "  ⊘ Skipped (already optimal): $skipped"
 echo "  ✗ Failed: $failed"
 echo ""
 echo "  Videos are optimized on delivery via"
