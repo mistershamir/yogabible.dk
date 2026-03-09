@@ -144,36 +144,50 @@
 
     <div class="p4w-certval__grid">
 
-      <!-- Left: Content -->
+      <!-- Left: Content with Feature Card -->
       <div class="p4w-certval__content">
 
-        <h3 class="p4w-certval__heading">{{ t.certval_learn_title }}</h3>
-        <ul class="p4w-certval__list">
-          {% for i in [1, 2, 3, 4, 5] %}
-          <li>
-            <span class="p4w-certval__check" aria-hidden="true">✓</span>
-            <span>{{ t["certval_learn" + i] }}</span>
-          </li>
-          {% endfor %}
-        </ul>
+        <!-- What You Learn Card -->
+        <div class="p4w-certval__card">
+          <div class="p4w-certval__card-header">
+            <h3 class="p4w-certval__card-title">{{ t.certval_learn_title }}</h3>
+          </div>
+          <ul class="p4w-certval__list">
+            {% for i in [1, 2, 3, 4, 5] %}
+            <li>
+              <svg class="p4w-certval__check-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                <polyline points="20 6 9 17 4 12"></polyline>
+              </svg>
+              <span>{{ t["certval_learn" + i] }}</span>
+            </li>
+            {% endfor %}
+          </ul>
+        </div>
 
-        <h3 class="p4w-certval__heading">{{ t.certval_upgrade_title }}</h3>
-        <p class="p4w-certval__text">{{ t.certval_upgrade_text | safe }}</p>
+        <!-- Additional sections -->
+        <div class="p4w-certval__section">
+          <h3 class="p4w-certval__heading">{{ t.certval_upgrade_title }}</h3>
+          <p class="p4w-certval__text">{{ t.certval_upgrade_text | safe }}</p>
+        </div>
 
-        <h3 class="p4w-certval__heading">{{ t.certval_exam_title }}</h3>
-        <p class="p4w-certval__text">{{ t.certval_exam_text }}</p>
+        <div class="p4w-certval__section">
+          <h3 class="p4w-certval__heading">{{ t.certval_exam_title }}</h3>
+          <p class="p4w-certval__text">{{ t.certval_exam_text }}</p>
+        </div>
 
       </div>
 
-      <!-- Right: Certificate image -->
+      <!-- Right: Certificate image (featured) -->
       <div class="p4w-certval__media">
-        <div class="p4w-certval__image-placeholder">
-          {# CLOUDINARY: yoga-bible-DK/programs/p4w/yoga-alliance-ryt200-certificate-sample — 1200x800 #}
-          <img
-            src="{{ "yoga-bible-DK/programs/p4w/yoga-alliance-ryt200-certificate-sample" | cloudimg('w_600,q_auto,f_auto') }}"
-            alt="{{ t.certval_image_alt }}"
-            loading="lazy"
-          >
+        <div class="p4w-certval__image-container">
+          <div class="p4w-certval__image-wrapper">
+            {# CLOUDINARY: Sample_Certificate_jzjtfx — optimized for display #}
+            <img
+              src="https://res.cloudinary.com/ddcynsa30/image/upload/w_800,q_auto,f_auto/v1771966816/Sample_Certificate_jzjtfx.png"
+              alt="{{ t.certval_image_alt }}"
+              loading="lazy"
+            >
+          </div>
         </div>
       </div>
 
