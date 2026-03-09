@@ -413,6 +413,7 @@
         <input type="hidden" name="mode" value="careers">
         <input type="hidden" id="ybcarPageUrl" name="pageUrl" value="">
         <input type="hidden" id="ybcarSubmittedAt" name="submittedAt" value="">
+        <input type="hidden" id="ybcarFormOpenedAt" name="formOpenedAt" value="">
         <input type="hidden" id="ybcarPayload" name="payload" value="">
         <input type="hidden" id="ybcarCategoryValue" name="category" value="">
         <div class="ybcar-grid">
@@ -567,9 +568,10 @@
   var viewForm    = document.getElementById("ybcar-view-form");
   var viewSuccess = document.getElementById("ybcar-view-success");
 
-  var metaUrl   = document.getElementById("ybcarPageUrl");
-  var metaAt    = document.getElementById("ybcarSubmittedAt");
-  var payloadEl = document.getElementById("ybcarPayload");
+  var metaUrl       = document.getElementById("ybcarPageUrl");
+  var metaAt        = document.getElementById("ybcarSubmittedAt");
+  var metaOpenedAt  = document.getElementById("ybcarFormOpenedAt");
+  var payloadEl     = document.getElementById("ybcarPayload");
 
   var errBox    = document.getElementById("ybcarError");
   var errDetail = document.getElementById("ybcarErrorDetail");
@@ -758,6 +760,7 @@
     try{ form && form.reset(); }catch(e){}
     if (metaUrl) metaUrl.value = window.location.href;
     if (metaAt) metaAt.value = "";
+    if (metaOpenedAt) metaOpenedAt.value = String(Date.now());
     if (payloadEl) payloadEl.value = "";
     if (categoryValueEl) categoryValueEl.value = "";
     if (subValueEl) subValueEl.value = "";
@@ -857,6 +860,7 @@
 
     fields.pageUrl = (metaUrl && metaUrl.value) ? metaUrl.value : window.location.href;
     fields.submittedAt = (metaAt && metaAt.value) ? metaAt.value : new Date().toISOString();
+    fields.formOpenedAt = (metaOpenedAt && metaOpenedAt.value) ? metaOpenedAt.value : "";
     fields.mode = "careers";
 
     var files = [];

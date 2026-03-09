@@ -2,12 +2,12 @@
   "da": {
     "title": "YOGA BIBLE",
     "subtitle": "Yogalæreruddannelser & Kurser i København",
-    "social_proof": "300+ certificerede yogalærere siden 2014",
+    "social_proof": "500+ certificerede yogalærere siden 2014",
     "location": "Torvegade 66, 1400 København K",
 
     "section_trainings": "YOGALÆRERUDDANNELSER",
     "training_4w": "200 Timer — 4 Ugers Intensiv",
-    "training_4w_sub": "Fuld immersion · Daglig praksis · Hurtigste vej til certificering",
+    "training_4w_sub": "April & Juli 2026 · Complete Program + Vinyasa Plus",
     "training_8w": "200 Timer — 8 Ugers Semi-Intensiv",
     "training_8w_sub": "Balanceret tempo · Weekender + hverdage · Tid til integration",
     "training_18w": "200 Timer — 18 Ugers Fleksibel",
@@ -29,8 +29,8 @@
     "mentorship_sub": "1-til-1 vejledning · Skræddersyet program · Personlig udvikling",
 
     "section_booking": "BOOK EN AFTALE",
-    "booking_studio": "Studiebesøg & Konsultation",
-    "booking_studio_sub": "Besøg vores studio · Mød teamet · Gratis og uforpligtende",
+    "booking_studio": "Gratis Infomøde",
+    "booking_studio_sub": "Hør om uddannelsen · Mød teamet · Gratis og uforpligtende",
     "booking_consultation": "Online Konsultation",
     "booking_consultation_sub": "Videomøde · Svar på dine spørgsmål · 30 min",
     "booking_trial": "Gratis Prøvetime",
@@ -63,12 +63,12 @@
   "en": {
     "title": "YOGA BIBLE",
     "subtitle": "Yoga Teacher Trainings & Courses in Copenhagen",
-    "social_proof": "300+ certified yoga teachers since 2014",
+    "social_proof": "500+ certified yoga teachers since 2014",
     "location": "Torvegade 66, 1400 Copenhagen K, Denmark",
 
     "section_trainings": "YOGA TEACHER TRAININGS",
     "training_4w": "200 Hours — 4-Week Intensive",
-    "training_4w_sub": "Full immersion · Daily practice · Fastest path to certification",
+    "training_4w_sub": "April & July 2026 · Complete Program + Vinyasa Plus",
     "training_8w": "200 Hours — 8-Week Semi-Intensive",
     "training_8w_sub": "Balanced pace · Weekends + weekdays · Time for integration",
     "training_18w": "200 Hours — 18-Week Flexible",
@@ -90,8 +90,8 @@
     "mentorship_sub": "1-on-1 guidance · Tailored program · Personal development",
 
     "section_booking": "BOOK AN APPOINTMENT",
-    "booking_studio": "Studio Tour & Consultation",
-    "booking_studio_sub": "Visit our studio · Meet the team · Free and no obligation",
+    "booking_studio": "Free Info Session",
+    "booking_studio_sub": "Learn about the training · Meet the team · Free and no obligation",
     "booking_consultation": "Online Consultation",
     "booking_consultation_sub": "Video call · Get your questions answered · 30 min",
     "booking_trial": "Free Trial Class",

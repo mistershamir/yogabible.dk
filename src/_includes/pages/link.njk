@@ -3,14 +3,14 @@
 
 <section class="yb-link">
 
-  {# ── Hero Media (auto-detects image or video) ── #}
+  {# ── Hero Media (mobile only) ── #}
   <div class="yb-link__media">
-    <video
+    <img
       class="yb-link__video"
-      src="/assets/images/link/hero.mp4"
-      autoplay loop muted playsinline
-      poster="/assets/images/link/hero.jpg"
-    ></video>
+      src="{{ 'hero_image_link_page_yoga_bible_hp1qxj' | cloudimg('w_800,c_scale') }}"
+      alt=""
+      loading="eager"
+    >
     <div class="yb-link__media-overlay"></div>
   </div>
 
@@ -120,9 +120,9 @@
     </div>
 
     {# ── Book Appointment ── #}
-    <div class="yb-link__section yb-link__fade">
+    <div class="yb-link__section yb-link__fade" id="booking">
       <p class="yb-link__section-label">{{ t.section_booking }}</p>
-      <button class="yb-link__item yb-link__item--booking" data-open-booking="studio-tour" data-yb-link="booking-studio">
+      <button class="yb-link__item yb-link__item--booking" data-open-booking="info-session" data-yb-link="booking-studio">
         <span class="yb-link__item-text">
           <span class="yb-link__item-title">{{ t.booking_studio }}</span>
           <span class="yb-link__item-sub">{{ t.booking_studio_sub }}</span>

@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html lang="{{ lang or 'da' }}">
+<head>
+  {% include "head.njk" %}
+</head>
+<body class="{% if bodyClass %}{{ bodyClass }}{% endif %}">
+
+  {% include "header.njk" %}
+
+  <main>
+    {{ content | safe }}
+  </main>
+
+  {% include "footer.njk" %}
+
+  <script src="/js/main.js" defer></script>
+</body>
+</html>

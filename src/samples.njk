@@ -6778,13 +6778,13 @@ document.addEventListener('DOMContentLoaded', function() {
      ================================================================ -->
   <section class="ds-section" id="section-33">
     <h2 class="ds-section__title">33. Appointment Booking Modal</h2>
-    <p class="ds-section__desc">Calendly replacement — a 4-step booking flow for studio tours, consultations, and trial classes. Includes date picker, time slot selection, form, and confirmation with email notifications.</p>
+    <p class="ds-section__desc">Calendly replacement — a 4-step booking flow for info sessions, consultations, and trial classes. Includes date picker, time slot selection, form, and confirmation with email notifications.</p>
 
     <div class="ds-sub">
       <h3 class="ds-sub__title">A. Open Booking Modal</h3>
       <p class="ds-sub__desc">Click any button below to test the full booking flow. Each button pre-selects a different appointment type.</p>
       <div style="display:flex;flex-wrap:wrap;gap:12px;margin:24px 0;">
-        <button class="yb-btn yb-btn--primary" data-open-booking="studio-tour">&#127963; Book Studio Tour</button>
+        <button class="yb-btn yb-btn--primary" data-open-booking="info-session">&#127963; Book Info Session</button>
         <button class="yb-btn yb-btn--outline" data-open-booking="consultation">&#128187; Book Online Consultation</button>
         <button class="yb-btn yb-btn--outline" data-open-booking="intro-class">&#129495; Book Free Trial Class</button>
         <button class="yb-btn yb-btn--outline" data-open-booking>&#128197; Open Booking (no preset)</button>
@@ -6796,7 +6796,7 @@ document.addEventListener('DOMContentLoaded', function() {
       <p class="ds-sub__desc">Add <code>data-open-booking</code> to any button or link to trigger the modal. Optionally specify a type.</p>
       <div style="background:#F5F3F0;border-radius:8px;padding:16px;margin:12px 0;">
         <pre style="margin:0;font-size:13px;line-height:1.5;overflow-x:auto;"><code>&lt;!-- Button with preset type --&gt;
-&lt;button data-open-booking="studio-tour"&gt;Book Studio Tour&lt;/button&gt;
+&lt;button data-open-booking="info-session"&gt;Book Info Session&lt;/button&gt;
 &lt;button data-open-booking="consultation"&gt;Book Online Consultation&lt;/button&gt;
 &lt;button data-open-booking="intro-class"&gt;Book Free Trial Class&lt;/button&gt;
 
@@ -6804,14 +6804,14 @@ document.addEventListener('DOMContentLoaded', function() {
 &lt;button data-open-booking&gt;Book an Appointment&lt;/button&gt;
 
 &lt;!-- JavaScript API --&gt;
-&lt;script&gt;window.openBookingModal('studio-tour');&lt;/script&gt;</code></pre>
+&lt;script&gt;window.openBookingModal('info-session');&lt;/script&gt;</code></pre>
       </div>
     </div>
 
     <div class="ds-sub">
       <h3 class="ds-sub__title">C. Features</h3>
       <ul style="margin:12px 0;padding-left:20px;line-height:1.8;">
-        <li><strong>3 appointment types:</strong> Studio Tour, Online Consultation, Free Trial Class</li>
+        <li><strong>3 appointment types:</strong> Info Session, Online Consultation, Free Trial Class</li>
         <li><strong>Date picker:</strong> Interactive calendar with blocked Sundays, 60-day ahead limit</li>
         <li><strong>Time slots:</strong> Real-time availability from API (no double-booking)</li>
         <li><strong>Email confirmations:</strong> Client gets confirmation + .ics calendar file</li>
@@ -6823,5 +6823,325 @@ document.addEventListener('DOMContentLoaded', function() {
         <li><strong>CSV export:</strong> Export appointments from admin panel</li>
         <li><strong>Calendar view:</strong> Month view with appointment dots in admin</li>
       </ul>
+    </div>
+  </section>
+
+  <!-- ================================================================
+     SECTION 34: VIDEO TUTORIAL WIDGET — DESIGN VARIATIONS
+     ================================================================ -->
+  <style>
+  /* ── shared panel scaffold ── */
+  .yvs-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin: 32px 0; }
+  @media(max-width:700px){ .yvs-grid { grid-template-columns: 1fr; } }
+  .yvs-item__label {
+    font-size: 11px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase;
+    color: #6F6A66; margin-bottom: 6px;
+  }
+  .yvs-item__name { font-size: 15px; font-weight: 700; color: #0F0F0F; margin-bottom: 4px; }
+  .yvs-item__desc { font-size: 13px; color: #6F6A66; margin-bottom: 14px; line-height: 1.5; }
+  .yvs-screen {
+    position: relative; border-radius: 16px; overflow: hidden;
+    height: 180px;
+    background: linear-gradient(135deg, #F5F3F0 0%, #E8E4E0 100%);
+  }
+  .yvs-screen--dark { background: linear-gradient(135deg, #1a1a1a 0%, #0F0F0F 100%); }
+  .yvs-screen--warmglass { background: linear-gradient(135deg, #f0ede8 0%, #e8e2da 100%); }
+  .yvs-screen__lines {
+    position: absolute; inset: 0; padding: 18px 20px;
+    display: flex; flex-direction: column; gap: 8px; opacity: .35;
+  }
+  .yvs-screen__line { height: 6px; border-radius: 3px; background: currentColor; }
+  .yvs-screen__line:nth-child(1){ width: 55%; }
+  .yvs-screen__line:nth-child(2){ width: 80%; }
+  .yvs-screen__line:nth-child(3){ width: 65%; }
+  .yvs-screen__line:nth-child(4){ width: 40%; }
+  .yvs-widget-wrap { position: absolute; bottom: 14px; right: 14px; }
+  /* ── A — Soft White Card ── */
+  .yvs-a {
+    display: flex; align-items: center; gap: 11px;
+    background: #FFFCF9; border: 1px solid #E8E4E0; border-radius: 14px;
+    box-shadow: 0 8px 32px rgba(0,0,0,.11), 0 2px 6px rgba(0,0,0,.06);
+    padding: 9px 12px 9px 9px; width: 268px;
+  }
+  .yvs-a__thumb {
+    position: relative; flex-shrink: 0; border-radius: 8px; overflow: hidden;
+    width: 88px; height: 50px;
+  }
+  .yvs-a__thumb img { display:block; width:100%; height:100%; object-fit:cover; }
+  .yvs-a__play { position:absolute; inset:0; display:flex; align-items:center; justify-content:center; }
+  .yvs-a__meta { flex:1; min-width:0; }
+  .yvs-a__eyebrow { font-size:10px; letter-spacing:.08em; text-transform:uppercase; color:#6F6A66; display:block; margin-bottom:3px; }
+  .yvs-a__title { font-size:12.5px; font-weight:700; color:#0F0F0F; line-height:1.3; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .yvs-a__close { flex-shrink:0; color:#C0BCB8; cursor:pointer; padding:2px; line-height:0; }
+  /* ── B — Dark Cinematic ── */
+  .yvs-b {
+    display: flex; align-items: center; gap: 11px;
+    background: #0F0F0F; border: 1px solid rgba(255,255,255,.12); border-radius: 14px;
+    box-shadow: 0 12px 40px rgba(0,0,0,.55);
+    padding: 9px 12px 9px 9px; width: 268px;
+  }
+  .yvs-b__thumb {
+    position: relative; flex-shrink: 0; border-radius: 8px; overflow: hidden;
+    width: 88px; height: 50px;
+  }
+  .yvs-b__thumb img { display:block; width:100%; height:100%; object-fit:cover; filter:brightness(.75); }
+  .yvs-b__play { position:absolute; inset:0; display:flex; align-items:center; justify-content:center; }
+  .yvs-b__meta { flex:1; min-width:0; }
+  .yvs-b__eyebrow { font-size:10px; letter-spacing:.1em; text-transform:uppercase; color:#f75c03; display:block; margin-bottom:3px; }
+  .yvs-b__title { font-size:12.5px; font-weight:600; color:#fff; line-height:1.3; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .yvs-b__close { flex-shrink:0; color:rgba(255,255,255,.35); cursor:pointer; padding:2px; line-height:0; }
+  /* ── C — Frosted Glass ── */
+  .yvs-c {
+    display: flex; align-items: center; gap: 11px;
+    background: rgba(255,252,249,.86);
+    backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px);
+    border: 1px solid rgba(247,92,3,.18); border-radius: 16px;
+    box-shadow: 0 8px 32px rgba(247,92,3,.07), 0 2px 10px rgba(0,0,0,.07);
+    padding: 9px 12px 9px 9px; width: 268px;
+  }
+  .yvs-c__thumb {
+    position: relative; flex-shrink: 0; border-radius: 10px; overflow: hidden;
+    width: 88px; height: 50px;
+  }
+  .yvs-c__thumb img { display:block; width:100%; height:100%; object-fit:cover; }
+  .yvs-c__play { position:absolute; inset:0; display:flex; align-items:center; justify-content:center; }
+  .yvs-c__meta { flex:1; min-width:0; }
+  .yvs-c__eyebrow { font-size:10px; letter-spacing:.07em; text-transform:uppercase; color:rgba(247,92,3,.7); display:block; margin-bottom:3px; }
+  .yvs-c__title { font-size:12.5px; font-weight:700; color:#0F0F0F; line-height:1.3; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .yvs-c__close { flex-shrink:0; color:rgba(0,0,0,.25); cursor:pointer; padding:2px; line-height:0; }
+  /* ── D — Minimal Pill ── */
+  .yvs-d {
+    display: inline-flex; align-items: center; gap: 10px;
+    background: #FFFCF9; border: 1.5px solid rgba(247,92,3,.28); border-radius: 100px;
+    box-shadow: 0 4px 20px rgba(0,0,0,.09);
+    padding: 9px 14px 9px 10px;
+  }
+  .yvs-d__icon {
+    width: 30px; height: 30px; border-radius: 50%;
+    background: #f75c03; display:flex; align-items:center; justify-content:center; flex-shrink:0;
+  }
+  .yvs-d__title { font-size:12.5px; font-weight:600; color:#0F0F0F; white-space:nowrap; }
+  .yvs-d__close { color:#C0BCB8; cursor:pointer; padding:2px; line-height:0; }
+  /* ── E — Elevated Editorial Panel ── */
+  .yvs-e {
+    background: #FFFCF9; border-radius: 18px;
+    box-shadow: 0 20px 60px rgba(0,0,0,.14), 0 4px 12px rgba(0,0,0,.07);
+    border-top: 3px solid #f75c03; width: 230px; overflow: hidden;
+  }
+  .yvs-e__thumb { position:relative; width:100%; height:80px; overflow:hidden; }
+  .yvs-e__thumb img { display:block; width:100%; height:100%; object-fit:cover; filter:brightness(.85); }
+  .yvs-e__overlay { position:absolute; inset:0; background: linear-gradient(to top, rgba(0,0,0,.5) 0%, transparent 60%); }
+  .yvs-e__play-row { position:absolute; bottom:8px; left:10px; display:flex; align-items:center; gap:7px; }
+  .yvs-e__play-btn {
+    width:24px; height:24px; border-radius:50%;
+    background:#f75c03; display:flex; align-items:center; justify-content:center; flex-shrink:0;
+  }
+  .yvs-e__play-label { font-size:11px; font-weight:600; color:#fff; letter-spacing:.04em; }
+  .yvs-e__body { padding: 10px 12px 12px; }
+  .yvs-e__eyebrow { font-size:9.5px; letter-spacing:.1em; text-transform:uppercase; color:#6F6A66; display:block; margin-bottom:4px; }
+  .yvs-e__title { font-size:13px; font-weight:700; color:#0F0F0F; line-height:1.35; }
+  .yvs-e__close-row { display:flex; justify-content:flex-end; margin-top:6px; }
+  .yvs-e__close { font-size:11px; color:#C0BCB8; cursor:pointer; }
+  /* ── F — Resend Style ── */
+  .yvs-f {
+    width: 248px; border-radius: 14px; overflow: hidden;
+    background: #111; border: 1px solid rgba(255,255,255,.08);
+    box-shadow: 0 10px 40px rgba(0,0,0,.6), 0 2px 8px rgba(0,0,0,.4);
+    position: relative;
+  }
+  .yvs-f__thumb { display:block; width:100%; height:140px; object-fit:cover; }
+  .yvs-f__bar { padding: 11px 13px 13px; }
+  .yvs-f__title {
+    font-size: 13px; font-weight: 500; color: #fff;
+    line-height: 1.4; letter-spacing: -.01em;
+  }
+  .yvs-f__close {
+    position: absolute; top: 8px; right: 8px;
+    width: 22px; height: 22px; border-radius: 50%;
+    background: rgba(0,0,0,.55); border: 1px solid rgba(255,255,255,.15);
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; color: rgba(255,255,255,.75);
+    line-height: 0;
+  }
+  </style>
+
+  <section class="ds-section" id="section-34">
+    <h2 class="ds-section__title">34. Video Tutorial Widget — Design Variations</h2>
+    <p class="ds-section__desc">Five elegant designs for the floating bottom-right video guide widget. Each is shown anchored to the corner of a simulated page — as it would appear in production. Pick your preferred style.</p>
+
+    <div class="yvs-grid">
+
+      <!-- A — Soft White Card -->
+      <div class="yvs-item">
+        <p class="yvs-item__label">Variant A</p>
+        <p class="yvs-item__name">Soft White Card</p>
+        <p class="yvs-item__desc">Clean warm-white card, muted border, soft shadow. Thumbnail left, meta right. Neutral and familiar — works on any page background.</p>
+        <div class="yvs-screen">
+          <div class="yvs-screen__lines" style="color:#a09a94;">
+            <div class="yvs-screen__line"></div><div class="yvs-screen__line"></div>
+            <div class="yvs-screen__line"></div><div class="yvs-screen__line"></div>
+          </div>
+          <div class="yvs-widget-wrap">
+            <div class="yvs-a">
+              <div class="yvs-a__thumb">
+                <img src="https://res.cloudinary.com/ddcynsa30/video/upload/so_1,w_176,h_100,c_fill,f_auto,q_auto/yoga-bible-DK/careers/careers-vertical.jpg" alt="" width="88" height="50" />
+                <div class="yvs-a__play">
+                  <svg width="26" height="26" viewBox="0 0 26 26" fill="none"><circle cx="13" cy="13" r="13" fill="rgba(0,0,0,.5)"/><polygon points="11,8.5 20,13 11,17.5" fill="#fff"/></svg>
+                </div>
+              </div>
+              <div class="yvs-a__meta">
+                <span class="yvs-a__eyebrow">Video guide</span>
+                <div class="yvs-a__title">Kom godt i gang med Yoga Bible</div>
+              </div>
+              <span class="yvs-a__close"><svg width="12" height="12" viewBox="0 0 12 12"><line x1="1" y1="1" x2="11" y2="11" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><line x1="11" y1="1" x2="1" y2="11" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- B — Dark Cinematic -->
+      <div class="yvs-item">
+        <p class="yvs-item__label">Variant B</p>
+        <p class="yvs-item__name">Dark Cinematic</p>
+        <p class="yvs-item__desc">Near-black card, translucent border, heavy shadow. Orange play icon and eyebrow are the only accent. Dramatic and sophisticated — strong on light pages.</p>
+        <div class="yvs-screen yvs-screen--dark">
+          <div class="yvs-screen__lines" style="color:#fff;">
+            <div class="yvs-screen__line"></div><div class="yvs-screen__line"></div>
+            <div class="yvs-screen__line"></div><div class="yvs-screen__line"></div>
+          </div>
+          <div class="yvs-widget-wrap">
+            <div class="yvs-b">
+              <div class="yvs-b__thumb">
+                <img src="https://res.cloudinary.com/ddcynsa30/video/upload/so_1,w_176,h_100,c_fill,f_auto,q_auto/yoga-bible-DK/careers/careers-vertical.jpg" alt="" width="88" height="50" />
+                <div class="yvs-b__play">
+                  <svg width="26" height="26" viewBox="0 0 26 26" fill="none"><circle cx="13" cy="13" r="13" fill="#f75c03"/><polygon points="11,8.5 20,13 11,17.5" fill="#fff"/></svg>
+                </div>
+              </div>
+              <div class="yvs-b__meta">
+                <span class="yvs-b__eyebrow">Video guide</span>
+                <div class="yvs-b__title">Kom godt i gang med Yoga Bible</div>
+              </div>
+              <span class="yvs-b__close"><svg width="12" height="12" viewBox="0 0 12 12"><line x1="1" y1="1" x2="11" y2="11" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><line x1="11" y1="1" x2="1" y2="11" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- C — Frosted Glass -->
+      <div class="yvs-item">
+        <p class="yvs-item__label">Variant C</p>
+        <p class="yvs-item__name">Frosted Glass</p>
+        <p class="yvs-item__desc">Translucent warm-white + backdrop blur + faint orange border. The card absorbs the page behind it — barely-there elegance. Apple-style restraint.</p>
+        <div class="yvs-screen yvs-screen--warmglass">
+          <div class="yvs-screen__lines" style="color:#8a8480;">
+            <div class="yvs-screen__line"></div><div class="yvs-screen__line"></div>
+            <div class="yvs-screen__line"></div><div class="yvs-screen__line"></div>
+          </div>
+          <div class="yvs-widget-wrap">
+            <div class="yvs-c">
+              <div class="yvs-c__thumb">
+                <img src="https://res.cloudinary.com/ddcynsa30/video/upload/so_1,w_176,h_100,c_fill,f_auto,q_auto/yoga-bible-DK/careers/careers-vertical.jpg" alt="" width="88" height="50" />
+                <div class="yvs-c__play">
+                  <svg width="26" height="26" viewBox="0 0 26 26" fill="none"><circle cx="13" cy="13" r="13" fill="rgba(255,255,255,.8)"/><polygon points="11,8.5 20,13 11,17.5" fill="#f75c03"/></svg>
+                </div>
+              </div>
+              <div class="yvs-c__meta">
+                <span class="yvs-c__eyebrow">Video guide</span>
+                <div class="yvs-c__title">Kom godt i gang med Yoga Bible</div>
+              </div>
+              <span class="yvs-c__close"><svg width="12" height="12" viewBox="0 0 12 12"><line x1="1" y1="1" x2="11" y2="11" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><line x1="11" y1="1" x2="1" y2="11" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- D — Minimal Pill -->
+      <div class="yvs-item">
+        <p class="yvs-item__label">Variant D</p>
+        <p class="yvs-item__name">Minimal Pill</p>
+        <p class="yvs-item__desc">No thumbnail — just an orange play circle, title text, and a faint orange border. Smallest footprint possible. Expands to full player on click.</p>
+        <div class="yvs-screen">
+          <div class="yvs-screen__lines" style="color:#a09a94;">
+            <div class="yvs-screen__line"></div><div class="yvs-screen__line"></div>
+            <div class="yvs-screen__line"></div><div class="yvs-screen__line"></div>
+          </div>
+          <div class="yvs-widget-wrap">
+            <div class="yvs-d">
+              <div class="yvs-d__icon">
+                <svg width="12" height="14" viewBox="0 0 12 14" fill="none"><polygon points="1,1 11,7 1,13" fill="#fff"/></svg>
+              </div>
+              <span class="yvs-d__title">Kom godt i gang med Yoga Bible</span>
+              <span class="yvs-d__close"><svg width="11" height="11" viewBox="0 0 11 11"><line x1="1" y1="1" x2="10" y2="10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><line x1="10" y1="1" x2="1" y2="10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- end 2-col grid -->
+
+    <!-- E — Elevated Editorial (full-width row) -->
+    <div class="ds-sub">
+      <p class="yvs-item__label">Variant E</p>
+      <p class="yvs-item__name">Elevated Editorial Panel</p>
+      <p class="yvs-item__desc">A taller card: thumbnail fills the top as a wide banner with gradient overlay and "Afspil" label inset. Body area below with eyebrow and title. Orange top border anchors the brand. More premium — fewer words, more image.</p>
+      <div class="yvs-screen" style="height:220px;border-radius:16px;margin-top:16px;">
+        <div class="yvs-screen__lines" style="color:#a09a94;">
+          <div class="yvs-screen__line"></div><div class="yvs-screen__line"></div>
+          <div class="yvs-screen__line"></div><div class="yvs-screen__line"></div>
+          <div class="yvs-screen__line" style="width:30%"></div>
+        </div>
+        <div class="yvs-widget-wrap">
+          <div class="yvs-e">
+            <div class="yvs-e__thumb">
+              <img src="https://res.cloudinary.com/ddcynsa30/video/upload/so_1,w_460,h_160,c_fill,f_auto,q_auto/yoga-bible-DK/careers/careers-vertical.jpg" alt="" width="230" height="80" />
+              <div class="yvs-e__overlay"></div>
+              <div class="yvs-e__play-row">
+                <div class="yvs-e__play-btn">
+                  <svg width="10" height="12" viewBox="0 0 10 12" fill="none"><polygon points="1,1 9,6 1,11" fill="#fff"/></svg>
+                </div>
+                <span class="yvs-e__play-label">Afspil</span>
+              </div>
+            </div>
+            <div class="yvs-e__body">
+              <span class="yvs-e__eyebrow">Video guide</span>
+              <div class="yvs-e__title">Kom godt i gang med Yoga Bible</div>
+              <div class="yvs-e__close-row"><span class="yvs-e__close">Luk ✕</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- F — Resend-style -->
+    <div class="ds-sub" style="margin-top:40px;">
+      <p class="yvs-item__label">Variant F</p>
+      <p class="yvs-item__name">Resend Style</p>
+      <p class="yvs-item__desc">Thumbnail-first card — no play button, no eyebrow, no chrome. Just the video poster filling the card and a slim dark caption bar underneath. The title tells you what it is. ✕ appears in the top-right corner to dismiss. Maximum signal, zero noise.</p>
+      <div class="yvs-screen yvs-screen--dark" style="height:220px;border-radius:16px;margin-top:16px;">
+        <div class="yvs-screen__lines" style="color:#fff;">
+          <div class="yvs-screen__line"></div><div class="yvs-screen__line"></div>
+          <div class="yvs-screen__line"></div><div class="yvs-screen__line"></div>
+          <div class="yvs-screen__line" style="width:35%"></div>
+        </div>
+        <div class="yvs-widget-wrap">
+          <div class="yvs-f">
+            <img class="yvs-f__thumb" src="https://res.cloudinary.com/ddcynsa30/video/upload/so_1,w_496,h_280,c_fill,f_auto,q_auto/yoga-bible-DK/careers/careers-vertical.jpg" alt="" width="248" height="140" />
+            <div class="yvs-f__bar">
+              <div class="yvs-f__title">Kom godt i gang med Yoga Bible</div>
+            </div>
+            <span class="yvs-f__close" aria-label="Luk">
+              <svg width="10" height="10" viewBox="0 0 10 10"><line x1="1" y1="1" x2="9" y2="9" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><line x1="9" y1="1" x2="1" y2="9" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="ds-sub" style="margin-top:32px;">
+      <h3 class="ds-sub__title">Implementation Note</h3>
+      <p class="ds-sub__desc">All variants share the same widget JS. Only the CSS block changes. Activate on any page by adding <code>videoTutorial</code> front matter — remove it to hide the widget on that page.</p>
+      <div style="background:#F5F3F0;border-radius:8px;padding:14px 16px;margin:12px 0;font-size:13px;line-height:1.7;">
+        <code>videoTutorial:<br>&nbsp;&nbsp;cloudinaryId: "yoga-bible-DK/tutorials/homepage/intro"<br>&nbsp;&nbsp;title_da: "Kom godt i gang med Yoga Bible"<br>&nbsp;&nbsp;title_en: "Getting started with Yoga Bible"<br>&nbsp;&nbsp;delay: 3000</code>
+      </div>
     </div>
   </section>

@@ -6,6 +6,7 @@
  * Also supports GET with query params (JSONP callback)
  */
 
+const crypto = require('crypto');
 const { getDb } = require('./shared/firestore');
 const { CONFIG } = require('./shared/config');
 const {
@@ -15,6 +16,14 @@ const {
 const { sendAdminNotification } = require('./shared/email-service');
 const { sendWelcomeSMS } = require('./shared/sms-service');
 const { sendWelcomeEmail } = require('./shared/lead-emails');
+
+const TOKEN_SECRET = process.env.UNSUBSCRIBE_SECRET || 'yb-appt-secret';
+
+function generateScheduleToken(leadId, email) {
+  const hmac = crypto.createHmac('sha256', TOKEN_SECRET);
+  hmac.update(leadId + ':' + email.toLowerCase().trim());
+  return hmac.digest('hex');
+}
 
 exports.handler = async (event) => {
   if (event.httpMethod === 'OPTIONS') return optionsResponse();
@@ -132,11 +141,14 @@ function processLead(payload, action) {
     call_attempts: 0,
     sms_status: '',
     last_contact: null,
-    followup_date: null
+    followup_date: null,
+    multi_format: payload.multiFormat || '',
+    all_formats: payload.allFormats || ''
   };
 
   switch (action) {
     case 'lead_schedule_18w':
+    case 'lead_schedule_18w-mar':
       return {
         ...base,
         type: 'ytt',
@@ -151,10 +163,29 @@ function processLead(payload, action) {
         service: '',
         subcategories: '',
         message: '',
-        source: payload.source || '200H YTT - 18-week landing page'
+        source: '200h YTT'
+      };
+
+    case 'lead_schedule_18w-aug':
+      return {
+        ...base,
+        type: 'ytt',
+        ytt_program_type: '18-week-aug',
+        program: payload.program || '18 UGERS FLEKSIBELT PROGRAM - August-December 2026',
+        course_id: '',
+        cohort_label: 'August-December 2026',
+        preferred_month: '',
+        accommodation: normalizeYesNo(payload.housing || payload.accommodation || 'No'),
+        city_country: payload.origin || payload.cityCountry || '',
+        housing_months: getHousingMonths(payload),
+        service: '',
+        subcategories: '',
+        message: '',
+        source: '200h YTT'
       };
 
     case 'lead_schedule_4w':
+    case 'lead_schedule_4w-apr':
       return {
         ...base,
         type: 'ytt',
@@ -169,7 +200,25 @@ function processLead(payload, action) {
         service: '',
         subcategories: '',
         message: '',
-        source: payload.source || '200H YTT - 4-week landing page'
+        source: '200h YTT'
+      };
+
+    case 'lead_schedule_4w-jul':
+      return {
+        ...base,
+        type: 'ytt',
+        ytt_program_type: '4-week-jul',
+        program: payload.program || '4-Week Vinyasa Plus YTT (July)',
+        course_id: '',
+        cohort_label: 'Juli 2026',
+        preferred_month: '',
+        accommodation: normalizeYesNo(payload.accommodation || 'No'),
+        city_country: payload.cityCountry || '',
+        housing_months: '',
+        service: '',
+        subcategories: '',
+        message: '',
+        source: '200h YTT'
       };
 
     case 'lead_schedule_8w':
@@ -187,8 +236,34 @@ function processLead(payload, action) {
         service: '',
         subcategories: '',
         message: '',
-        source: payload.source || '200H YTT - 8-week landing page'
+        source: '200h YTT'
       };
+
+    case 'lead_schedule_multi': {
+      // User selected multiple 200h formats (e.g. 4w,8w,18w)
+      const allFmts = (payload.allFormats || '').split(',').filter(f => f);
+      const fmtMap = { '4w': '4-week', '8w': '8-week', '18w': '18-week' };
+      const labelMap = { '4w': '4-ugers intensiv', '8w': '8-ugers semi-intensiv', '18w': '18-ugers fleksibel' };
+      const programTypes = allFmts.map(f => fmtMap[f] || f);
+      const programLabels = allFmts.map(f => labelMap[f] || f);
+      return {
+        ...base,
+        type: 'ytt',
+        ytt_program_type: programTypes.join(','),
+        program: programLabels.join(' + ') + ' yogalæreruddannelse',
+        course_id: '',
+        cohort_label: '',
+        preferred_month: '',
+        accommodation: normalizeYesNo(payload.accommodation || 'No'),
+        city_country: payload.cityCountry || '',
+        housing_months: '',
+        service: '',
+        subcategories: '',
+        message: '',
+        source: '200h YTT',
+        all_formats: payload.allFormats || ''
+      };
+    }
 
     case 'lead_schedule_300h':
       return {
@@ -205,7 +280,7 @@ function processLead(payload, action) {
         service: '',
         subcategories: '',
         message: payload.message || '',
-        source: payload.source || '300H Advanced YTT landing page'
+        source: '300h YTT'
       };
 
     case 'lead_schedule_50h':
@@ -223,7 +298,7 @@ function processLead(payload, action) {
         service: '',
         subcategories: payload.specialty || '',
         message: payload.message || '',
-        source: payload.source || '50H Specialty landing page'
+        source: '50h YTT'
       };
 
     case 'lead_schedule_30h':
@@ -241,7 +316,7 @@ function processLead(payload, action) {
         service: '',
         subcategories: payload.module || '',
         message: payload.message || '',
-        source: payload.source || '30H Module landing page'
+        source: '30h YTT'
       };
 
     case 'lead_courses': {
@@ -261,7 +336,7 @@ function processLead(payload, action) {
         service: '',
         subcategories: '',
         message: '',
-        source: payload.source || 'Courses - landing page'
+        source: 'Courses'
       };
     }
 
@@ -282,7 +357,7 @@ function processLead(payload, action) {
         service: payload.service || '',
         subcategories,
         message: payload.message || '',
-        source: payload.sourceUrl || 'Mentorship intake form'
+        source: 'Mentorship'
       };
     }
 
@@ -320,7 +395,7 @@ function processLead(payload, action) {
         service: '',
         subcategories: '',
         message: payload.message || '',
-        source: `Meta Lead – ${payload.platform || 'Facebook'} – ${metaFormName || 'Ad'}`,
+        source: 'Facebook Ad',
         meta_form_id: payload.form_id || '',
         meta_ad_id: payload.ad_id || '',
         meta_campaign: payload.campaign_name || ''
@@ -342,7 +417,7 @@ function processLead(payload, action) {
         service: '',
         subcategories: '',
         message: payload.message || '',
-        source: payload.source || 'Contact form'
+        source: 'Contact page'
       };
 
     default:
@@ -411,10 +486,11 @@ async function triggerNotifications(leadData, leadDocId, action) {
     );
   }
 
-  // 2. Welcome email to the lead (with schedule, pricing, etc.)
+  // 2. Welcome email to the lead (with tokenized schedule link)
   if (process.env.GMAIL_APP_PASSWORD && leadData.email) {
+    const scheduleToken = generateScheduleToken(leadDocId, leadData.email);
     promises.push(
-      sendWelcomeEmail(leadData, action).catch(err => {
+      sendWelcomeEmail(leadData, action, { leadId: leadDocId, token: scheduleToken }).catch(err => {
         console.error('[lead] Welcome email failed:', err.message);
       })
     );

@@ -1,0 +1,1088 @@
+{# ────────────────────────────────────────────────────────────────
+   18-WEEK SCHEDULE DESIGN — Active development
+   ──────────────────────────────────────────────────────────────── #}
+
+
+
+{# ════════════════════════════════════════════════════════════
+   18-WEEK COMBO — Flexible Program (Feb–June 2026)
+   Same visual approach as 8-week combo, adapted for the
+   18-week flexible format with dual tracks (weekday/weekend).
+   ════════════════════════════════════════════════════════════ #}
+
+<section id="design-combo-18w">
+
+  {# ── HERO: "18 Uger." ───────────────────────────────── #}
+  <div style="background:#0F0F0F;color:#fff;padding:clamp(80px,12vw,160px) 24px clamp(60px,8vw,100px);text-align:center;">
+    <div style="max-width:640px;margin:0 auto;">
+      <p style="font-size:clamp(5rem,16vw,10rem);font-weight:700;line-height:1.05;padding-bottom:0.12em;background:linear-gradient(135deg,#f75c03,#ff9966);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin:0 0 16px;">18 Uger.</p>
+      <p style="font-size:clamp(1.25rem,3.5vw,1.8rem);font-weight:700;color:#fff;letter-spacing:-.015em;line-height:1.2;margin:0 0 12px;">Komplet Yogalæreruddannelse</p>
+      <p style="font-size:.95rem;color:rgba(255,255,255,.4);letter-spacing:.04em;">Fleksibelt 200-timers program &middot; Feb–Juni 2026</p>
+      <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-top:28px;">
+        <button onclick="openBookingModal('info-session')" style="background:transparent;color:#fff;border:1.5px solid rgba(255,255,255,.5);padding:13px 24px;border-radius:50px;font-size:.92rem;font-weight:600;cursor:pointer;font-family:inherit;transition:all .2s;" onmouseenter="this.style.borderColor='#fff';this.style.background='rgba(255,255,255,.08)'" onmouseleave="this.style.borderColor='rgba(255,255,255,.5)';this.style.background='transparent'">Book infomøde</button>
+        <button onclick="startCheckoutFunnel('100078')" style="background:#f75c03;color:#fff;border:none;padding:13px 24px;border-radius:50px;font-size:.92rem;font-weight:600;cursor:pointer;font-family:inherit;transition:background .2s;" onmouseenter="this.style.background='#d94f02'" onmouseleave="this.style.background='#f75c03'">Start Forberedelsesfasen</button>
+      </div>
+    </div>
+  </div>
+
+  {# ── STATS BAR + meta chips ────────────────────────────── #}
+  <div style="background:#F5F3F0;padding:28px 24px;border-bottom:1px solid #E8E4E0;">
+    <div style="max-width:700px;margin:0 auto;">
+      <div style="display:flex;gap:6px;justify-content:center;flex-wrap:wrap;margin-bottom:20px;">
+        <span style="background:#F5F3F0;color:#6F6A66;padding:5px 14px;border-radius:50px;font-size:.72rem;font-weight:500;border:1px solid #E8E4E0;">Yoga Alliance RYT-200</span>
+        <span style="background:#F5F3F0;color:#6F6A66;padding:5px 14px;border-radius:50px;font-size:.72rem;font-weight:500;border:1px solid #E8E4E0;">Max 12 studerende</span>
+        <span style="background:#F5F3F0;color:#6F6A66;padding:5px 14px;border-radius:50px;font-size:.72rem;font-weight:500;border:1px solid #E8E4E0;">Hverdagshold · Weekendhold</span>
+        <span style="background:#F5F3F0;color:#6F6A66;padding:5px 14px;border-radius:50px;font-size:.72rem;font-weight:500;border:1px solid #E8E4E0;">Feb–Juni 2026</span>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:16px;text-align:center;">
+        <div>
+          <span style="font-size:1.8rem;font-weight:700;color:#f75c03;">18</span>
+          <p style="font-size:.82rem;color:#6F6A66;margin-top:4px;">uger</p>
+        </div>
+        <div>
+          <span id="ss18-stat-days" style="font-size:1.8rem;font-weight:700;color:#f75c03;">25</span>
+          <p id="ss18-stat-days-label" style="font-size:.82rem;color:#6F6A66;margin-top:4px;">dage pr. hold</p>
+        </div>
+        <div>
+          <span style="font-size:1.8rem;font-weight:700;color:#f75c03;">200+</span>
+          <p style="font-size:.82rem;color:#6F6A66;margin-top:4px;">kontakttimer</p>
+        </div>
+        <div>
+          <span style="font-size:1.8rem;font-weight:700;color:#f75c03;">4</span>
+          <p style="font-size:.82rem;color:#6F6A66;margin-top:4px;">fri uger</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  {# ── HOURS BREAKDOWN ───────────────────────────────────── #}
+  <div style="max-width:700px;margin:0 auto;padding:32px 24px 0;">
+    <p style="font-size:.72rem;text-transform:uppercase;letter-spacing:.14em;color:#6F6A66;font-weight:700;margin-bottom:16px;">Dine 200+ timer fordelt</p>
+
+    {% set hours18 = [
+      { label: "Studietimer i studiet", hours: 60, color: "#f75c03", pct: 30 },
+      { label: "Online & andre studier", hours: 10, color: "#ff9966", pct: 5 },
+      { label: "Vinyasa Yoga", hours: 30, color: "#0F0F0F", pct: 15 },
+      { label: "Yin Yoga", hours: 20, color: "#0F0F0F", pct: 10 },
+      { label: "Hatha Yoga", hours: 17, color: "#0F0F0F", pct: 8.5 },
+      { label: "Class Management", hours: 12, color: "#6F6A66", pct: 6 },
+      { label: "Yoga Anatomi", hours: 16, color: "#ff9966", pct: 8 },
+      { label: "Yogafilosofi", hours: 12, color: "#ff9966", pct: 6 },
+      { label: "Selvstudie & hjemmearbejde", hours: 20, color: "#E8E4E0", pct: 10 },
+      { label: "Business of Yoga", hours: 3, color: "#E8E4E0", pct: 1.5 }
+    ] %}
+
+    {% for h in hours18 %}
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:8px;">
+      <span style="font-size:.78rem;color:#6F6A66;min-width:185px;text-align:right;">{{ h.label }}</span>
+      <div style="flex:1;background:#F5F3F0;border-radius:50px;height:8px;overflow:hidden;">
+        <div style="width:{{ h.pct }}%;height:100%;background:{{ h.color }};border-radius:50px;"></div>
+      </div>
+      <span style="font-size:.78rem;font-weight:700;color:#0F0F0F;min-width:32px;">{{ h.hours }}t</span>
+    </div>
+    {% endfor %}
+
+    <p style="font-size:.72rem;color:#6F6A66;text-align:right;margin-top:8px;font-style:italic;">I alt: 200 timer</p>
+  </div>
+
+  {# ════════════════════════════════════════════════════════
+     HOURS CHART ALTERNATIVES — pick one to replace the above
+     ════════════════════════════════════════════════════════ #}
+
+  {# ── CHART OPTION A: Stacked Segment Bar ──────────────── #}
+  <div style="max-width:700px;margin:32px auto 0;padding:0 24px;">
+    <p style="font-size:.6rem;text-transform:uppercase;letter-spacing:.14em;color:#f75c03;font-weight:700;margin-bottom:4px;">Option A</p>
+    <p style="font-size:.72rem;text-transform:uppercase;letter-spacing:.14em;color:#6F6A66;font-weight:700;margin-bottom:16px;">Dine 200+ timer fordelt</p>
+
+    {# Stacked bar — each segment proportional to hours #}
+    <div style="height:22px;border-radius:50px;overflow:hidden;display:flex;gap:2px;margin-bottom:20px;">
+      <div style="width:30%;background:#f75c03;" title="Studietimer i studiet — 60t"></div>
+      <div style="width:5%;background:#ff9966;" title="Online & andre — 10t"></div>
+      <div style="width:15%;background:#1a1a1a;" title="Vinyasa Yoga — 30t"></div>
+      <div style="width:10%;background:#333;" title="Yin Yoga — 20t"></div>
+      <div style="width:8.5%;background:#555;" title="Hatha Yoga — 17t"></div>
+      <div style="width:6%;background:#6F6A66;" title="Class Management — 12t"></div>
+      <div style="width:8%;background:#ffb380;" title="Yoga Anatomi — 16t"></div>
+      <div style="width:6%;background:#ffd5b8;" title="Yogafilosofi — 12t"></div>
+      <div style="width:10%;background:#E8E4E0;" title="Selvstudie — 20t"></div>
+      <div style="flex:1;background:#F0EDEA;" title="Business of Yoga — 3t"></div>
+    </div>
+
+    {# Legend: 2-column grid #}
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px 24px;">
+      <div style="display:flex;align-items:center;gap:8px;">
+        <span style="width:10px;height:10px;border-radius:3px;background:#f75c03;flex-shrink:0;"></span>
+        <span style="font-size:.78rem;color:#0F0F0F;">Studietimer i studiet</span>
+        <span style="font-size:.78rem;font-weight:700;color:#0F0F0F;margin-left:auto;">60t</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px;">
+        <span style="width:10px;height:10px;border-radius:3px;background:#ff9966;flex-shrink:0;"></span>
+        <span style="font-size:.78rem;color:#0F0F0F;">Online & andre studier</span>
+        <span style="font-size:.78rem;font-weight:700;color:#0F0F0F;margin-left:auto;">10t</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px;">
+        <span style="width:10px;height:10px;border-radius:3px;background:#1a1a1a;flex-shrink:0;"></span>
+        <span style="font-size:.78rem;color:#0F0F0F;">Vinyasa Yoga</span>
+        <span style="font-size:.78rem;font-weight:700;color:#0F0F0F;margin-left:auto;">30t</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px;">
+        <span style="width:10px;height:10px;border-radius:3px;background:#333;flex-shrink:0;"></span>
+        <span style="font-size:.78rem;color:#0F0F0F;">Yin Yoga</span>
+        <span style="font-size:.78rem;font-weight:700;color:#0F0F0F;margin-left:auto;">20t</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px;">
+        <span style="width:10px;height:10px;border-radius:3px;background:#555;flex-shrink:0;"></span>
+        <span style="font-size:.78rem;color:#0F0F0F;">Hatha Yoga</span>
+        <span style="font-size:.78rem;font-weight:700;color:#0F0F0F;margin-left:auto;">17t</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px;">
+        <span style="width:10px;height:10px;border-radius:3px;background:#6F6A66;flex-shrink:0;"></span>
+        <span style="font-size:.78rem;color:#0F0F0F;">Class Management</span>
+        <span style="font-size:.78rem;font-weight:700;color:#0F0F0F;margin-left:auto;">12t</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px;">
+        <span style="width:10px;height:10px;border-radius:3px;background:#ffb380;flex-shrink:0;"></span>
+        <span style="font-size:.78rem;color:#0F0F0F;">Yoga Anatomi</span>
+        <span style="font-size:.78rem;font-weight:700;color:#0F0F0F;margin-left:auto;">16t</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px;">
+        <span style="width:10px;height:10px;border-radius:3px;background:#ffd5b8;flex-shrink:0;"></span>
+        <span style="font-size:.78rem;color:#0F0F0F;">Yogafilosofi</span>
+        <span style="font-size:.78rem;font-weight:700;color:#0F0F0F;margin-left:auto;">12t</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px;">
+        <span style="width:10px;height:10px;border-radius:3px;background:#E8E4E0;flex-shrink:0;border:1px solid #ccc;"></span>
+        <span style="font-size:.78rem;color:#0F0F0F;">Selvstudie & hjemmearbejde</span>
+        <span style="font-size:.78rem;font-weight:700;color:#0F0F0F;margin-left:auto;">20t</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px;">
+        <span style="width:10px;height:10px;border-radius:3px;background:#F0EDEA;flex-shrink:0;border:1px solid #ccc;"></span>
+        <span style="font-size:.78rem;color:#0F0F0F;">Business of Yoga</span>
+        <span style="font-size:.78rem;font-weight:700;color:#0F0F0F;margin-left:auto;">3t</span>
+      </div>
+    </div>
+    <p style="font-size:.72rem;color:#6F6A66;text-align:right;margin-top:10px;font-style:italic;">I alt: 200 timer</p>
+  </div>
+
+  {# ── CHART OPTION B: Card Tiles Grid ───────────────────── #}
+  <div style="max-width:700px;margin:32px auto 0;padding:0 24px;">
+    <p style="font-size:.6rem;text-transform:uppercase;letter-spacing:.14em;color:#f75c03;font-weight:700;margin-bottom:4px;">Option B</p>
+    <p style="font-size:.72rem;text-transform:uppercase;letter-spacing:.14em;color:#6F6A66;font-weight:700;margin-bottom:16px;">Dine 200+ timer fordelt</p>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+      <div style="display:flex;align-items:center;gap:12px;background:#FFFCF9;border:1px solid #E8E4E0;border-radius:12px;padding:12px 14px;border-left:3px solid #f75c03;">
+        <span style="font-size:1.5rem;font-weight:700;color:#f75c03;line-height:1;min-width:44px;">60t</span>
+        <span style="font-size:.8rem;font-weight:600;color:#0F0F0F;line-height:1.3;">Studietimer i studiet</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:12px;background:#FFFCF9;border:1px solid #E8E4E0;border-radius:12px;padding:12px 14px;border-left:3px solid #ff9966;">
+        <span style="font-size:1.5rem;font-weight:700;color:#ff9966;line-height:1;min-width:44px;">30t</span>
+        <span style="font-size:.8rem;font-weight:600;color:#0F0F0F;line-height:1.3;">Vinyasa Yoga</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:12px;background:#FFFCF9;border:1px solid #E8E4E0;border-radius:12px;padding:12px 14px;border-left:3px solid #333;">
+        <span style="font-size:1.5rem;font-weight:700;color:#333;line-height:1;min-width:44px;">20t</span>
+        <span style="font-size:.8rem;font-weight:600;color:#0F0F0F;line-height:1.3;">Yin Yoga</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:12px;background:#FFFCF9;border:1px solid #E8E4E0;border-radius:12px;padding:12px 14px;border-left:3px solid #555;">
+        <span style="font-size:1.5rem;font-weight:700;color:#555;line-height:1;min-width:44px;">20t</span>
+        <span style="font-size:.8rem;font-weight:600;color:#0F0F0F;line-height:1.3;">Selvstudie & hjemmearbejde</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:12px;background:#FFFCF9;border:1px solid #E8E4E0;border-radius:12px;padding:12px 14px;border-left:3px solid #555;">
+        <span style="font-size:1.5rem;font-weight:700;color:#555;line-height:1;min-width:44px;">17t</span>
+        <span style="font-size:.8rem;font-weight:600;color:#0F0F0F;line-height:1.3;">Hatha Yoga</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:12px;background:#FFFCF9;border:1px solid #E8E4E0;border-radius:12px;padding:12px 14px;border-left:3px solid #ffb380;">
+        <span style="font-size:1.5rem;font-weight:700;color:#ffb380;line-height:1;min-width:44px;">16t</span>
+        <span style="font-size:.8rem;font-weight:600;color:#0F0F0F;line-height:1.3;">Yoga Anatomi</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:12px;background:#FFFCF9;border:1px solid #E8E4E0;border-radius:12px;padding:12px 14px;border-left:3px solid #6F6A66;">
+        <span style="font-size:1.5rem;font-weight:700;color:#6F6A66;line-height:1;min-width:44px;">12t</span>
+        <span style="font-size:.8rem;font-weight:600;color:#0F0F0F;line-height:1.3;">Class Management</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:12px;background:#FFFCF9;border:1px solid #E8E4E0;border-radius:12px;padding:12px 14px;border-left:3px solid #ffd5b8;">
+        <span style="font-size:1.5rem;font-weight:700;color:#ffd5b8;line-height:1;min-width:44px;">12t</span>
+        <span style="font-size:.8rem;font-weight:600;color:#0F0F0F;line-height:1.3;">Yogafilosofi</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:12px;background:#FFFCF9;border:1px solid #E8E4E0;border-radius:12px;padding:12px 14px;border-left:3px solid #ff9966;">
+        <span style="font-size:1.5rem;font-weight:700;color:#ff9966;line-height:1;min-width:44px;">10t</span>
+        <span style="font-size:.8rem;font-weight:600;color:#0F0F0F;line-height:1.3;">Online & andre studier</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:12px;background:#FFFCF9;border:1px solid #E8E4E0;border-radius:12px;padding:12px 14px;border-left:3px solid #E8E4E0;">
+        <span style="font-size:1.5rem;font-weight:700;color:#aaa;line-height:1;min-width:44px;">3t</span>
+        <span style="font-size:.8rem;font-weight:600;color:#0F0F0F;line-height:1.3;">Business of Yoga</span>
+      </div>
+    </div>
+    <p style="font-size:.72rem;color:#6F6A66;text-align:right;margin-top:10px;font-style:italic;">I alt: 200 timer</p>
+  </div>
+
+  {# ── CHART OPTION C: Category Groups ───────────────────── #}
+  <div style="max-width:700px;margin:32px auto 0;padding:0 24px;">
+    <p style="font-size:.6rem;text-transform:uppercase;letter-spacing:.14em;color:#f75c03;font-weight:700;margin-bottom:4px;">Option C</p>
+    <p style="font-size:.72rem;text-transform:uppercase;letter-spacing:.14em;color:#6F6A66;font-weight:700;margin-bottom:16px;">Dine 200+ timer fordelt</p>
+
+    {# Group 1: Yogapraksis #}
+    <div style="margin-bottom:16px;">
+      <div style="display:flex;align-items:baseline;gap:10px;margin-bottom:8px;">
+        <span style="font-size:2rem;font-weight:700;color:#f75c03;line-height:1;">67t</span>
+        <div>
+          <p style="font-weight:700;font-size:.9rem;color:#0F0F0F;margin:0;">Yogapraksis</p>
+          <p style="font-size:.75rem;color:#6F6A66;margin:0;">Live undervisning i studiet</p>
+        </div>
+        <div style="flex:1;height:3px;background:linear-gradient(to right, #f75c03, transparent);border-radius:2px;align-self:center;"></div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:4px;padding-left:16px;border-left:2px solid #FFF0E6;">
+        <div style="display:flex;align-items:center;justify-content:space-between;">
+          <span style="font-size:.8rem;color:#0F0F0F;">Vinyasa Yoga</span>
+          <div style="display:flex;align-items:center;gap:8px;">
+            <div style="width:80px;background:#F5F3F0;border-radius:50px;height:5px;overflow:hidden;">
+              <div style="width:44.8%;height:100%;background:#f75c03;border-radius:50px;"></div>
+            </div>
+            <span style="font-size:.78rem;font-weight:700;min-width:28px;text-align:right;">30t</span>
+          </div>
+        </div>
+        <div style="display:flex;align-items:center;justify-content:space-between;">
+          <span style="font-size:.8rem;color:#0F0F0F;">Yin Yoga</span>
+          <div style="display:flex;align-items:center;gap:8px;">
+            <div style="width:80px;background:#F5F3F0;border-radius:50px;height:5px;overflow:hidden;">
+              <div style="width:29.9%;height:100%;background:#f75c03;border-radius:50px;"></div>
+            </div>
+            <span style="font-size:.78rem;font-weight:700;min-width:28px;text-align:right;">20t</span>
+          </div>
+        </div>
+        <div style="display:flex;align-items:center;justify-content:space-between;">
+          <span style="font-size:.8rem;color:#0F0F0F;">Hatha Yoga</span>
+          <div style="display:flex;align-items:center;gap:8px;">
+            <div style="width:80px;background:#F5F3F0;border-radius:50px;height:5px;overflow:hidden;">
+              <div style="width:25.4%;height:100%;background:#f75c03;border-radius:50px;"></div>
+            </div>
+            <span style="font-size:.78rem;font-weight:700;min-width:28px;text-align:right;">17t</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    {# Group 2: Teori & Studier #}
+    <div style="margin-bottom:16px;">
+      <div style="display:flex;align-items:baseline;gap:10px;margin-bottom:8px;">
+        <span style="font-size:2rem;font-weight:700;color:#0F0F0F;line-height:1;">98t</span>
+        <div>
+          <p style="font-weight:700;font-size:.9rem;color:#0F0F0F;margin:0;">Teori & Studier</p>
+          <p style="font-size:.75rem;color:#6F6A66;margin:0;">Akademisk fordybelse</p>
+        </div>
+        <div style="flex:1;height:3px;background:linear-gradient(to right, #0F0F0F, transparent);border-radius:2px;align-self:center;"></div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:4px;padding-left:16px;border-left:2px solid #F0EDEA;">
+        <div style="display:flex;align-items:center;justify-content:space-between;">
+          <span style="font-size:.8rem;color:#0F0F0F;">Studietimer i studiet</span>
+          <div style="display:flex;align-items:center;gap:8px;">
+            <div style="width:80px;background:#F5F3F0;border-radius:50px;height:5px;overflow:hidden;">
+              <div style="width:61.2%;height:100%;background:#0F0F0F;border-radius:50px;"></div>
+            </div>
+            <span style="font-size:.78rem;font-weight:700;min-width:28px;text-align:right;">60t</span>
+          </div>
+        </div>
+        <div style="display:flex;align-items:center;justify-content:space-between;">
+          <span style="font-size:.8rem;color:#0F0F0F;">Yoga Anatomi</span>
+          <div style="display:flex;align-items:center;gap:8px;">
+            <div style="width:80px;background:#F5F3F0;border-radius:50px;height:5px;overflow:hidden;">
+              <div style="width:16.3%;height:100%;background:#0F0F0F;border-radius:50px;"></div>
+            </div>
+            <span style="font-size:.78rem;font-weight:700;min-width:28px;text-align:right;">16t</span>
+          </div>
+        </div>
+        <div style="display:flex;align-items:center;justify-content:space-between;">
+          <span style="font-size:.8rem;color:#0F0F0F;">Yogafilosofi</span>
+          <div style="display:flex;align-items:center;gap:8px;">
+            <div style="width:80px;background:#F5F3F0;border-radius:50px;height:5px;overflow:hidden;">
+              <div style="width:12.2%;height:100%;background:#0F0F0F;border-radius:50px;"></div>
+            </div>
+            <span style="font-size:.78rem;font-weight:700;min-width:28px;text-align:right;">12t</span>
+          </div>
+        </div>
+        <div style="display:flex;align-items:center;justify-content:space-between;">
+          <span style="font-size:.8rem;color:#0F0F0F;">Online & andre studier</span>
+          <div style="display:flex;align-items:center;gap:8px;">
+            <div style="width:80px;background:#F5F3F0;border-radius:50px;height:5px;overflow:hidden;">
+              <div style="width:10.2%;height:100%;background:#0F0F0F;border-radius:50px;"></div>
+            </div>
+            <span style="font-size:.78rem;font-weight:700;min-width:28px;text-align:right;">10t</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    {# Group 3: Kompetencer & Selvstudie #}
+    <div>
+      <div style="display:flex;align-items:baseline;gap:10px;margin-bottom:8px;">
+        <span style="font-size:2rem;font-weight:700;color:#6F6A66;line-height:1;">35t</span>
+        <div>
+          <p style="font-weight:700;font-size:.9rem;color:#0F0F0F;margin:0;">Kompetencer & Selvstudie</p>
+          <p style="font-size:.75rem;color:#6F6A66;margin:0;">Undervisning, forretning & hjemmearbejde</p>
+        </div>
+        <div style="flex:1;height:3px;background:linear-gradient(to right, #6F6A66, transparent);border-radius:2px;align-self:center;"></div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:4px;padding-left:16px;border-left:2px solid #F5F3F0;">
+        <div style="display:flex;align-items:center;justify-content:space-between;">
+          <span style="font-size:.8rem;color:#0F0F0F;">Selvstudie & hjemmearbejde</span>
+          <div style="display:flex;align-items:center;gap:8px;">
+            <div style="width:80px;background:#F5F3F0;border-radius:50px;height:5px;overflow:hidden;">
+              <div style="width:57.1%;height:100%;background:#6F6A66;border-radius:50px;"></div>
+            </div>
+            <span style="font-size:.78rem;font-weight:700;min-width:28px;text-align:right;">20t</span>
+          </div>
+        </div>
+        <div style="display:flex;align-items:center;justify-content:space-between;">
+          <span style="font-size:.8rem;color:#0F0F0F;">Class Management</span>
+          <div style="display:flex;align-items:center;gap:8px;">
+            <div style="width:80px;background:#F5F3F0;border-radius:50px;height:5px;overflow:hidden;">
+              <div style="width:34.3%;height:100%;background:#6F6A66;border-radius:50px;"></div>
+            </div>
+            <span style="font-size:.78rem;font-weight:700;min-width:28px;text-align:right;">12t</span>
+          </div>
+        </div>
+        <div style="display:flex;align-items:center;justify-content:space-between;">
+          <span style="font-size:.8rem;color:#0F0F0F;">Business of Yoga</span>
+          <div style="display:flex;align-items:center;gap:8px;">
+            <div style="width:80px;background:#F5F3F0;border-radius:50px;height:5px;overflow:hidden;">
+              <div style="width:8.6%;height:100%;background:#6F6A66;border-radius:50px;"></div>
+            </div>
+            <span style="font-size:.78rem;font-weight:700;min-width:28px;text-align:right;">3t</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <p style="font-size:.72rem;color:#6F6A66;text-align:right;margin-top:16px;font-style:italic;">I alt: 200 timer</p>
+  </div>
+
+  <div style="max-width:700px;margin:0 auto;padding:16px 24px;">
+    <div style="border-top:2px dashed #E8E4E0;"></div>
+  </div>
+
+  {# ── BUSY DAYS FINDER (collapsible) ───────────────────── #}
+  <div style="max-width:700px;margin:0 auto;padding:24px 24px 0;">
+    <details id="ss18-conflict-finder" style="background:#fff;border:1.5px solid #E8E4E0;border-radius:16px;overflow:hidden;">
+      <summary style="display:flex;align-items:center;justify-content:space-between;padding:16px 20px;cursor:pointer;list-style:none;-webkit-appearance:none;">
+        <div style="display:flex;align-items:center;gap:12px;">
+          <span style="background:#FFF0E6;color:#f75c03;width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1.1rem;">&#128197;</span>
+          <div>
+            <p style="font-weight:700;font-size:.92rem;">Hvornår er du optaget?</p>
+            <p style="font-size:.78rem;color:#6F6A66;">Marker dine optagede dage — arbejde, familie, aftaler — så finder vi det bedste hold for dig.</p>
+          </div>
+        </div>
+        <svg class="ss18-cf-chevron" style="flex-shrink:0;transition:transform .25s;" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#6F6A66" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+      </summary>
+      <div style="padding:0 20px 20px;border-top:1px solid #E8E4E0;">
+        <p style="font-size:.8rem;color:#6F6A66;padding:14px 0 10px;margin:0;">Klik på en dag for at markere den som optaget, og juster tiderne for hver dag.</p>
+        {# Per-day rows with individual time slots #}
+        <div style="display:flex;flex-direction:column;gap:6px;" id="ss18-busy-days">
+          {% set busyDays = [
+            { val: "1", label: "Mandag", abbr: "Man", checked: true, start: "09:00", end: "17:00" },
+            { val: "2", label: "Tirsdag", abbr: "Tir", checked: true, start: "09:00", end: "17:00" },
+            { val: "3", label: "Onsdag", abbr: "Ons", checked: true, start: "09:00", end: "17:00" },
+            { val: "4", label: "Torsdag", abbr: "Tor", checked: true, start: "09:00", end: "17:00" },
+            { val: "5", label: "Fredag", abbr: "Fre", checked: true, start: "09:00", end: "17:00" },
+            { val: "6", label: "Lørdag", abbr: "Lør", checked: false, start: "10:00", end: "14:00" },
+            { val: "0", label: "Søndag", abbr: "Søn", checked: false, start: "10:00", end: "14:00" }
+          ] %}
+          {% for d in busyDays %}
+          <div class="ss18-busy-row" style="display:flex;align-items:center;gap:10px;padding:8px 12px;border-radius:12px;background:{% if d.checked %}#F5F3F0{% else %}transparent{% endif %};transition:background .2s;">
+            <label style="display:flex;align-items:center;gap:8px;cursor:pointer;min-width:110px;">
+              <input type="checkbox" name="ss18-busy" value="{{ d.val }}" {% if d.checked %}checked{% endif %} onchange="ss18ToggleBusyRow(this)" style="accent-color:#f75c03;width:16px;height:16px;">
+              <span style="font-size:.85rem;font-weight:600;">{{ d.label }}</span>
+            </label>
+            <div class="ss18-busy-times" style="display:flex;align-items:center;gap:6px;{% if not d.checked %}opacity:.3;pointer-events:none;{% endif %}">
+              <input type="time" value="{{ d.start }}" class="ss18-time-from" style="border:1px solid #E8E4E0;border-radius:8px;padding:5px 8px;font-family:inherit;font-size:.8rem;width:100px;">
+              <span style="color:#6F6A66;font-size:.75rem;">til</span>
+              <input type="time" value="{{ d.end }}" class="ss18-time-to" style="border:1px solid #E8E4E0;border-radius:8px;padding:5px 8px;font-family:inherit;font-size:.8rem;width:100px;">
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+        <button onclick="ss18CheckConflicts()" style="margin-top:16px;background:#f75c03;color:#fff;border:none;padding:12px 24px;border-radius:50px;font-size:.88rem;font-weight:600;cursor:pointer;font-family:inherit;transition:background .2s;" onmouseenter="this.style.background='#d94f02'" onmouseleave="this.style.background='#f75c03'">Tjek konflikter</button>
+        <div id="ss18-conflict-results" style="display:none;margin-top:16px;"></div>
+      </div>
+    </details>
+  </div>
+
+  {# ── ROUTE TOGGLE (3 tabs) ──────────────────────────────── #}
+  <div style="max-width:700px;margin:0 auto;padding:24px 24px 0;">
+    <div id="ss18-route-toggle" style="display:flex;gap:0;background:rgba(15,15,15,.06);border-radius:16px;padding:4px;max-width:480px;margin:0 auto;">
+      <button onclick="ss18SetRoute('both')" data-ss18-tab="both" style="flex:1;padding:12px 14px;border-radius:12px;border:none;cursor:pointer;font-family:inherit;text-align:center;transition:all .25s;background:#f75c03;color:#fff;box-shadow:0 4px 12px rgba(247,92,3,.3);">
+        <span style="display:block;font-weight:700;font-size:.85rem;">Samlet overblik</span>
+        <span style="display:block;font-size:.68rem;margin-top:2px;opacity:.8;">Se begge hold</span>
+      </button>
+      <button onclick="ss18SetRoute('weekday')" data-ss18-tab="weekday" style="flex:1;padding:12px 14px;border-radius:12px;border:none;cursor:pointer;font-family:inherit;text-align:center;transition:all .25s;background:transparent;color:#6F6A66;">
+        <span style="display:block;font-weight:700;font-size:.85rem;">Hverdagshold</span>
+        <span style="display:block;font-size:.68rem;margin-top:2px;opacity:.8;">Man & Ons</span>
+      </button>
+      <button onclick="ss18SetRoute('weekend')" data-ss18-tab="weekend" style="flex:1;padding:12px 14px;border-radius:12px;border:none;cursor:pointer;font-family:inherit;text-align:center;transition:all .25s;background:transparent;color:#6F6A66;">
+        <span style="display:block;font-weight:700;font-size:.85rem;">Weekendhold</span>
+        <span style="display:block;font-size:.68rem;margin-top:2px;opacity:.8;">Lør & Søn</span>
+      </button>
+    </div>
+  </div>
+
+  {# ── SCHEDULE BODY ─────────────────────────────────────── #}
+  <div style="max-width:700px;margin:0 auto;padding:40px 24px 0;">
+
+    {# Calendar export #}
+    <div style="display:flex;justify-content:flex-end;margin-bottom:24px;">
+      <button style="display:inline-flex;align-items:center;gap:6px;background:none;color:#6F6A66;border:1.5px solid #E8E4E0;padding:8px 16px;border-radius:50px;font-size:.78rem;font-weight:600;cursor:pointer;font-family:inherit;transition:all .2s;" onmouseenter="this.style.borderColor='#f75c03';this.style.color='#f75c03'" onmouseleave="this.style.borderColor='#E8E4E0';this.style.color='#6F6A66'">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+        Tilføj alle til kalender
+      </button>
+    </div>
+
+    {# ══════════════════════════════════════════════════════
+       VIEW A: "BOTH" — Paired ELLER cards
+       ══════════════════════════════════════════════════════ #}
+    <div id="ss18-view-both">
+
+    {% set months18wPairs = [
+      { name: "Februar", year: "2026", weeks: [
+        { num: 1, label: "Introduktion", pairs: [
+          { topic: "Hatha & Class Management — Introduktion",
+            wd: { date: "Mandag 23. februar", time: "10:00–15:00" },
+            we: { date: "Lørdag 28. februar", time: "13:00–18:00" } },
+          { topic: "Vinyasa & Yin Yoga — Introduktion",
+            wd: { date: "Onsdag 25. februar", time: "10:00–15:00" },
+            we: { date: "Søndag 1. marts", time: "14:00–19:00" } }
+        ]}
+      ]},
+      { name: "Marts", year: "2026", weeks: [
+        { num: 2, label: "Anatomi & Filosofi", shared: [
+          { topic: "Yoga Anatomi 01", date: "Lørdag 7. marts", time: "13:00–17:00" },
+          { topic: "Yogafilosofi 01 — Online", date: "Søndag 8. marts", time: "14:00–17:00", online: true }
+        ]},
+        { num: 3, off: true, offLabel: "Fri uge" },
+        { num: 4, pairs: [
+          { topic: "Vinyasa & Yin Yoga 02",
+            wd: { date: "Mandag 16. marts", time: "10:00–15:00" },
+            we: { date: "Lørdag 21. marts", time: "13:00–18:00" } }
+        ]},
+        { num: 5, pairs: [
+          { topic: "Hatha & Class Management 02",
+            wd: { date: "Mandag 23. marts", time: "10:00–15:00" },
+            we: { date: "Lørdag 28. marts", time: "13:00–18:00" } },
+          { topic: "Vinyasa & Yin Yoga 03",
+            wd: { date: "Onsdag 25. marts", time: "10:00–15:00" },
+            we: { date: "Søndag 29. marts", time: "14:00–19:00" } }
+        ]}
+      ]},
+      { name: "April", year: "2026", weeks: [
+        { num: 6, off: true, offLabel: "Påskeferie" },
+        { num: 7, label: "Anatomi & Filosofi", shared: [
+          { topic: "Yoga Anatomi 02", date: "Lørdag 11. april", time: "13:00–17:00" },
+          { topic: "Yogafilosofi 02 — Online", date: "Søndag 12. april", time: "14:00–17:00", online: true }
+        ]},
+        { num: 8, pairs: [
+          { topic: "Vinyasa & Yin Yoga 04",
+            wd: { date: "Mandag 13. april", time: "10:00–15:00" },
+            we: { date: "Lørdag 18. april", time: "13:00–18:00" } },
+          { topic: "Hatha & Class Management 03",
+            wd: { date: "Onsdag 15. april", time: "10:00–15:00" },
+            we: { date: "Søndag 19. april", time: "14:00–19:00" } }
+        ]},
+        { num: 9, off: true, offLabel: "Fri uge" },
+        { num: 10, pairs: [
+          { topic: "Vinyasa & Yin Yoga 05",
+            wd: { date: "Mandag 27. april", time: "10:00–15:00" },
+            we: { date: "Lørdag 2. maj", time: "13:00–18:00" } },
+          { topic: "Hatha & Class Management 04",
+            wd: { date: "Onsdag 29. april", time: "10:00–15:00" },
+            we: { date: "Søndag 3. maj", time: "14:00–19:00" } }
+        ]}
+      ]},
+      { name: "Maj", year: "2026", weeks: [
+        { num: 11, label: "Anatomi & Filosofi", shared: [
+          { topic: "Yoga Anatomi 03", date: "Lørdag 9. maj", time: "13:00–17:00" },
+          { topic: "Yogafilosofi 03 — Online", date: "Søndag 10. maj", time: "14:00–17:00", online: true }
+        ]},
+        { num: 12, pairs: [
+          { topic: "Vinyasa & Yin Yoga 06",
+            wd: { date: "Mandag 11. maj", time: "10:00–15:00" },
+            we: { date: "Lørdag 16. maj", time: "13:00–18:00" } }
+        ]},
+        { num: 13, pairs: [
+          { topic: "Vinyasa & Yin Yoga 07",
+            wd: { date: "Mandag 18. maj", time: "10:00–15:00" },
+            we: { date: "Lørdag 23. maj", time: "13:00–18:00" } }
+        ]},
+        { num: 14, label: "Anatomi & Filosofi", shared: [
+          { topic: "Yoga Anatomi 04", date: "Lørdag 30. maj", time: "13:00–17:00" },
+          { topic: "Yogafilosofi 04 — Online", date: "Søndag 31. maj", time: "14:00–17:00", online: true }
+        ]}
+      ]},
+      { name: "Juni", year: "2026", weeks: [
+        { num: 15, pairs: [
+          { topic: "Vinyasa & Yin Yoga 08",
+            wd: { date: "Mandag 1. juni", time: "10:00–15:00" },
+            we: { date: "Lørdag 6. juni", time: "13:00–18:00" } },
+          { topic: "Hatha & Class Management 05",
+            wd: { date: "Onsdag 3. juni", time: "10:00–14:00" },
+            we: { date: "Søndag 7. juni", time: "14:00–18:00" } }
+        ]},
+        { num: 16, label: "Business of Yoga", pairs: [
+          { topic: "Vinyasa & Yin Yoga 09",
+            wd: { date: "Mandag 8. juni", time: "10:00–15:00" },
+            we: { date: "Lørdag 13. juni", time: "13:00–18:00" } },
+          { topic: "Business of Yoga — Foredrag",
+            wd: { date: "Onsdag 10. juni", time: "11:00–14:00" },
+            we: { date: "Søndag 14. juni", time: "14:00–17:00" } }
+        ]},
+        { num: 17, off: true, offLabel: "Fri uge — forbered dig til eksamen" },
+        { num: 18, label: "Eksamen & Graduation", graduation: true, shared: [
+          { topic: "Vinyasa & Yin Yoga — Eksamen", date: "Lørdag 27. juni", time: "13:00–18:00" },
+          { topic: "Hatha & CM — Eksamen + Graduation &#127891;", date: "Søndag 28. juni", time: "14:00–17:00", grad: true }
+        ]}
+      ]}
+    ] %}
+
+    {# ── Render paired view ──────────────────────────────── #}
+    {% for month in months18wPairs %}
+    <div style="display:flex;align-items:baseline;gap:12px;margin-bottom:24px;{% if not loop.first %}margin-top:40px;{% endif %}">
+      <span style="font-size:3.4rem;font-weight:700;line-height:1;color:#0F0F0F;">{{ month.name }}</span>
+      <span style="font-size:1.1rem;color:#6F6A66;">{{ month.year }}</span>
+      <div style="flex:1;height:2px;background:linear-gradient(to right, #E8E4E0, transparent);margin-left:12px;"></div>
+    </div>
+
+    {% for week in month.weeks %}
+      {% if week.off %}
+      <div style="margin-bottom:12px;padding:14px 22px;background:#FAFAFA;border:1px dashed #E8E4E0;border-radius:14px;display:flex;align-items:center;gap:14px;">
+        <span style="background:#E8E4E0;color:#6F6A66;font-size:.68rem;font-weight:700;padding:5px 12px;border-radius:50px;letter-spacing:.06em;">UGE {{ week.num }}</span>
+        <p style="font-size:.85rem;color:#6F6A66;font-style:italic;">{{ week.offLabel }}</p>
+      </div>
+
+      {% elif week.shared %}
+      {# Week label #}
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;{% if not loop.first %}margin-top:8px;{% endif %}">
+        <span style="background:{% if week.graduation %}#2ecc71{% else %}#0F0F0F{% endif %};color:#fff;font-size:.65rem;font-weight:700;padding:5px 12px;border-radius:50px;letter-spacing:.06em;white-space:nowrap;">UGE {{ week.num }}</span>
+        {% if week.label %}<span style="font-size:.82rem;font-weight:600;color:#6F6A66;">{{ week.label }}</span>{% endif %}
+      </div>
+      {# Shared session cards #}
+      {% for s in week.shared %}
+      <div style="border:1px solid {% if week.graduation %}#c3e6c3{% else %}#E8E4E0{% endif %};border-radius:14px;padding:16px 20px;margin-bottom:10px;{% if week.graduation %}background:linear-gradient(135deg, #f9fff9, #f0fff0);{% endif %}">
+        <div style="border-left:3px solid {% if s.grad %}#2ecc71{% elif week.graduation %}#f75c03{% else %}#f75c03{% endif %};padding-left:14px;">
+          <p style="font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:{% if s.grad %}#2ecc71{% else %}#f75c03{% endif %};margin-bottom:4px;">{% if s.grad %}Graduation{% else %}Begge hold{% endif %}</p>
+          <p style="font-weight:600;font-size:.92rem;color:#0F0F0F;">{{ s.topic }}</p>
+          <p style="font-size:.78rem;color:#6F6A66;margin-top:2px;">{{ s.date }} · {{ s.time }}{% if s.online %} · <span style="color:#f75c03;font-weight:600;">Online</span>{% endif %}</p>
+        </div>
+      </div>
+      {% endfor %}
+
+      {% elif week.pairs %}
+      {# Week label #}
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;{% if not loop.first %}margin-top:8px;{% endif %}">
+        <span style="background:#f75c03;color:#fff;font-size:.65rem;font-weight:700;padding:5px 12px;border-radius:50px;letter-spacing:.06em;white-space:nowrap;">UGE {{ week.num }}</span>
+        {% if week.label %}<span style="font-size:.82rem;font-weight:600;color:#6F6A66;">{{ week.label }}</span>{% endif %}
+      </div>
+      {# Pair cards with ELLER #}
+      {% for pair in week.pairs %}
+      <div style="border:1px solid #E8E4E0;border-radius:14px;overflow:hidden;margin-bottom:10px;background:#fff;">
+        <p style="font-weight:700;font-size:.92rem;padding:16px 20px 0;color:#0F0F0F;">{{ pair.topic }}</p>
+        <div style="display:flex;padding:12px 20px 16px;gap:0;">
+          {# Weekday option #}
+          <div style="flex:1;border-left:3px solid #0F0F0F;padding-left:14px;">
+            <p style="font-size:.62rem;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:#6F6A66;margin-bottom:4px;">Hverdagshold</p>
+            <p style="font-weight:600;font-size:.85rem;">{{ pair.wd.date }}</p>
+            <p style="font-size:.78rem;color:#6F6A66;margin-top:2px;">{{ pair.wd.time }}</p>
+          </div>
+          {# ELLER divider #}
+          <div style="display:flex;align-items:center;padding:0 14px;">
+            <span style="font-size:.72rem;font-weight:700;color:#0F0F0F;opacity:.4;text-transform:uppercase;letter-spacing:.12em;">ELLER</span>
+          </div>
+          {# Weekend option #}
+          <div style="flex:1;border-left:3px solid #ff9966;padding-left:14px;">
+            <p style="font-size:.62rem;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:#ff9966;margin-bottom:4px;">Weekendhold</p>
+            <p style="font-weight:600;font-size:.85rem;">{{ pair.we.date }}</p>
+            <p style="font-size:.78rem;color:#6F6A66;margin-top:2px;">{{ pair.we.time }}</p>
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+      {% endif %}
+    {% endfor %}
+    {% endfor %}
+
+    </div> {# /ss18-view-both #}
+
+    {# ══════════════════════════════════════════════════════
+       VIEW B: Single track accordion (weekday or weekend)
+       ══════════════════════════════════════════════════════ #}
+    <div id="ss18-view-single" style="display:none;">
+
+    {# ── 18-WEEK SCHEDULE DATA ───────────────────────────── #}
+    {% set months18w = [
+      { name: "Februar", year: "2026", weeks: [
+        { num: 1, label: "Introduktion", range: "23 feb – 1 mar", days: [
+          { dn: "23", dd: "Man", time: "10:00–15:00", topic: "Hatha & Class Management — Introduktion", type: "workshop", route: "weekday" },
+          { dn: "25", dd: "Ons", time: "10:00–15:00", topic: "Vinyasa & Yin Yoga — Introduktion", type: "workshop", route: "weekday" },
+          { dn: "28", dd: "Lør", time: "13:00–18:00", topic: "Hatha & Class Management — Introduktion", type: "workshop", route: "weekend" },
+          { dn: "1", dd: "Søn", time: "14:00–19:00", topic: "Vinyasa & Yin Yoga — Introduktion", type: "workshop", route: "weekend" }
+        ]}
+      ]},
+      { name: "Marts", year: "2026", weeks: [
+        { num: 2, label: "Anatomi & Filosofi", range: "7–8 mar", days: [
+          { dn: "7", dd: "Lør", time: "13:00–17:00", topic: "Yoga Anatomi 01", type: "workshop", route: "shared" },
+          { dn: "8", dd: "Søn", time: "14:00–17:00", topic: "Yogafilosofi 01 — Online", type: "online", route: "shared" }
+        ]},
+        { num: 3, off: true, offLabel: "Fri uge" },
+        { num: 4, range: "16–21 mar", days: [
+          { dn: "16", dd: "Man", time: "10:00–15:00", topic: "Vinyasa & Yin Yoga 02", type: "workshop", route: "weekday" },
+          { dn: "21", dd: "Lør", time: "13:00–18:00", topic: "Vinyasa & Yin Yoga 02", type: "workshop", route: "weekend" }
+        ]},
+        { num: 5, range: "23–29 mar", days: [
+          { dn: "23", dd: "Man", time: "10:00–15:00", topic: "Hatha & Class Management 02", type: "workshop", route: "weekday" },
+          { dn: "25", dd: "Ons", time: "10:00–15:00", topic: "Vinyasa & Yin Yoga 03", type: "workshop", route: "weekday" },
+          { dn: "28", dd: "Lør", time: "13:00–18:00", topic: "Hatha & Class Management 02", type: "workshop", route: "weekend" },
+          { dn: "29", dd: "Søn", time: "14:00–19:00", topic: "Vinyasa & Yin Yoga 03", type: "workshop", route: "weekend" }
+        ]}
+      ]},
+      { name: "April", year: "2026", weeks: [
+        { num: 6, off: true, offLabel: "Påskeferie" },
+        { num: 7, label: "Anatomi & Filosofi", range: "11–12 apr", days: [
+          { dn: "11", dd: "Lør", time: "13:00–17:00", topic: "Yoga Anatomi 02", type: "workshop", route: "shared" },
+          { dn: "12", dd: "Søn", time: "14:00–17:00", topic: "Yogafilosofi 02 — Online", type: "online", route: "shared" }
+        ]},
+        { num: 8, range: "13–19 apr", days: [
+          { dn: "13", dd: "Man", time: "10:00–15:00", topic: "Vinyasa & Yin Yoga 04", type: "workshop", route: "weekday" },
+          { dn: "15", dd: "Ons", time: "10:00–15:00", topic: "Hatha & Class Management 03", type: "workshop", route: "weekday" },
+          { dn: "18", dd: "Lør", time: "13:00–18:00", topic: "Vinyasa & Yin Yoga 04", type: "workshop", route: "weekend" },
+          { dn: "19", dd: "Søn", time: "14:00–19:00", topic: "Hatha & Class Management 03", type: "workshop", route: "weekend" }
+        ]},
+        { num: 9, off: true, offLabel: "Fri uge" },
+        { num: 10, range: "27 apr – 3 maj", days: [
+          { dn: "27", dd: "Man", time: "10:00–15:00", topic: "Vinyasa & Yin Yoga 05", type: "workshop", route: "weekday" },
+          { dn: "29", dd: "Ons", time: "10:00–15:00", topic: "Hatha & Class Management 04", type: "workshop", route: "weekday" },
+          { dn: "2", dd: "Lør", time: "13:00–18:00", topic: "Vinyasa & Yin Yoga 05", type: "workshop", route: "weekend" },
+          { dn: "3", dd: "Søn", time: "14:00–19:00", topic: "Hatha & Class Management 04", type: "workshop", route: "weekend" }
+        ]}
+      ]},
+      { name: "Maj", year: "2026", weeks: [
+        { num: 11, label: "Anatomi & Filosofi", range: "9–10 maj", days: [
+          { dn: "9", dd: "Lør", time: "13:00–17:00", topic: "Yoga Anatomi 03", type: "workshop", route: "shared" },
+          { dn: "10", dd: "Søn", time: "14:00–17:00", topic: "Yogafilosofi 03 — Online", type: "online", route: "shared" }
+        ]},
+        { num: 12, range: "11–16 maj", days: [
+          { dn: "11", dd: "Man", time: "10:00–15:00", topic: "Vinyasa & Yin Yoga 06", type: "workshop", route: "weekday" },
+          { dn: "16", dd: "Lør", time: "13:00–18:00", topic: "Vinyasa & Yin Yoga 06", type: "workshop", route: "weekend" }
+        ]},
+        { num: 13, range: "18–23 maj", days: [
+          { dn: "18", dd: "Man", time: "10:00–15:00", topic: "Vinyasa & Yin Yoga 07", type: "workshop", route: "weekday" },
+          { dn: "23", dd: "Lør", time: "13:00–18:00", topic: "Vinyasa & Yin Yoga 07", type: "workshop", route: "weekend" }
+        ]},
+        { num: 14, label: "Anatomi & Filosofi", range: "30–31 maj", days: [
+          { dn: "30", dd: "Lør", time: "13:00–17:00", topic: "Yoga Anatomi 04", type: "workshop", route: "shared" },
+          { dn: "31", dd: "Søn", time: "14:00–17:00", topic: "Yogafilosofi 04 — Online", type: "online", route: "shared" }
+        ]}
+      ]},
+      { name: "Juni", year: "2026", weeks: [
+        { num: 15, range: "1–7 jun", days: [
+          { dn: "1", dd: "Man", time: "10:00–15:00", topic: "Vinyasa & Yin Yoga 08", type: "workshop", route: "weekday" },
+          { dn: "3", dd: "Ons", time: "10:00–14:00", topic: "Hatha & Class Management 05", type: "workshop", route: "weekday" },
+          { dn: "6", dd: "Lør", time: "13:00–18:00", topic: "Vinyasa & Yin Yoga 08", type: "workshop", route: "weekend" },
+          { dn: "7", dd: "Søn", time: "14:00–18:00", topic: "Hatha & Class Management 05", type: "workshop", route: "weekend" }
+        ]},
+        { num: 16, label: "Business of Yoga", range: "8–14 jun", days: [
+          { dn: "8", dd: "Man", time: "10:00–15:00", topic: "Vinyasa & Yin Yoga 09", type: "workshop", route: "weekday" },
+          { dn: "10", dd: "Ons", time: "11:00–14:00", topic: "Business of Yoga — Foredrag", type: "workshop", route: "weekday" },
+          { dn: "13", dd: "Lør", time: "13:00–18:00", topic: "Vinyasa & Yin Yoga 09", type: "workshop", route: "weekend" },
+          { dn: "14", dd: "Søn", time: "14:00–17:00", topic: "Business of Yoga — Foredrag", type: "workshop", route: "weekend" }
+        ]},
+        { num: 17, off: true, offLabel: "Fri uge — forbered dig til eksamen" },
+        { num: 18, label: "Eksamen & Graduation", range: "27–28 jun", graduation: true, days: [
+          { dn: "27", dd: "Lør", time: "13:00–18:00", topic: "Vinyasa & Yin Yoga — Eksamen", type: "exam", route: "shared" },
+          { dn: "28", dd: "Søn", time: "14:00–17:00", topic: "Hatha & Class Management — Eksamen + Graduation 🎓", type: "graduation", route: "shared" }
+        ]}
+      ]}
+    ] %}
+
+    {# ── RENDER MONTHS + WEEKS ───────────────────────────── #}
+    {% for month in months18w %}
+
+    {# Magazine month header #}
+    <div style="display:flex;align-items:baseline;gap:12px;margin-bottom:32px;{% if not loop.first %}margin-top:40px;{% endif %}">
+      <span style="font-size:3.4rem;font-weight:700;line-height:1;color:#0F0F0F;">{{ month.name }}</span>
+      <span style="font-size:1.1rem;color:#6F6A66;">{{ month.year }}</span>
+      <div style="flex:1;height:2px;background:linear-gradient(to right, #E8E4E0, transparent);margin-left:12px;"></div>
+    </div>
+
+    {% for week in month.weeks %}
+
+      {% if week.off %}
+      {# ── OFF WEEK: muted non-expandable row ──── #}
+      <div class="ss18-week" data-ss18-route="shared" style="margin-bottom:10px;padding:14px 22px;background:#FAFAFA;border:1px dashed #E8E4E0;border-radius:14px;display:flex;align-items:center;gap:14px;">
+        <span style="background:#E8E4E0;color:#6F6A66;font-size:.68rem;font-weight:700;padding:5px 12px;border-radius:50px;letter-spacing:.06em;">UGE {{ week.num }}</span>
+        <p style="font-size:.85rem;color:#6F6A66;font-style:italic;">{{ week.offLabel }}</p>
+      </div>
+
+      {% elif week.graduation %}
+      {# ── GRADUATION WEEK: green accent ──── #}
+      <details class="ss-combo-accordion ss18-week" data-ss18-route="shared" open style="margin-bottom:10px;">
+        <summary class="ss-combo-summary" style="
+          display:flex;
+          align-items:center;
+          justify-content:space-between;
+          padding:18px 22px;
+          cursor:pointer;
+          list-style:none;
+          -webkit-appearance:none;
+          background:linear-gradient(135deg, #f0fff0, #e8f5e8);
+          border:1.5px solid #2ecc71;
+          border-radius:14px;
+          transition:all .2s;
+        ">
+          <div style="display:flex;align-items:center;gap:14px;">
+            <span style="background:#2ecc71;color:#fff;font-size:.68rem;font-weight:700;padding:5px 12px;border-radius:50px;letter-spacing:.06em;">UGE {{ week.num }}</span>
+            <div>
+              <p style="font-weight:700;font-size:.92rem;color:#0F0F0F;">{{ week.label }}</p>
+              <p style="font-size:.75rem;color:#6F6A66;">{{ week.days | length }} dage · {{ week.range }}</p>
+            </div>
+          </div>
+          <div style="display:flex;align-items:center;gap:12px;">
+            <span style="background:#d4edda;color:#155724;padding:3px 10px;border-radius:50px;font-size:.65rem;font-weight:700;text-transform:uppercase;">Graduation</span>
+            <span class="ss-combo-icon" style="background:#2ecc71;color:#fff;width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.88rem;font-weight:700;transition:transform .25s;flex-shrink:0;">+</span>
+          </div>
+        </summary>
+        <div style="padding:6px 22px 18px;background:#fff;border:1.5px solid #2ecc71;border-top:none;border-radius:0 0 14px 14px;margin-top:-1px;">
+          {% for day in week.days %}
+          <div class="ss18-day" data-ss18-route="shared" style="display:flex;gap:16px;align-items:center;padding:12px 0;{% if not loop.last %}border-bottom:1px solid #F0EDE9;{% endif %}">
+            <div style="background:{% if day.type == 'graduation' %}#2ecc71{% else %}#0F0F0F{% endif %};color:#fff;width:46px;height:46px;border-radius:10px;display:flex;flex-direction:column;align-items:center;justify-content:center;flex-shrink:0;">
+              <span style="font-size:1.1rem;font-weight:700;line-height:1;">{{ day.dn }}</span>
+              <span style="font-size:.52rem;text-transform:uppercase;letter-spacing:.06em;opacity:.75;">{{ day.dd }}</span>
+            </div>
+            <div style="flex:1;">
+              <p style="font-weight:600;font-size:.92rem;color:#0F0F0F;">{{ day.topic }}</p>
+              <p style="font-size:.78rem;color:#6F6A66;margin-top:2px;">{{ day.time }}</p>
+            </div>
+            <span style="background:{% if day.type == 'graduation' %}#d4edda{% else %}#FFF0E6{% endif %};color:{% if day.type == 'graduation' %}#155724{% else %}#f75c03{% endif %};padding:3px 10px;border-radius:50px;font-size:.65rem;font-weight:600;text-transform:uppercase;">{% if day.type == 'graduation' %}Graduation{% else %}Eksamen{% endif %}</span>
+          </div>
+          {% endfor %}
+        </div>
+      </details>
+
+      {% else %}
+      {# ── NORMAL WEEK: accordion ──── #}
+      <details class="ss-combo-accordion ss18-week" {% if week.num == 1 %}open{% endif %} style="margin-bottom:10px;">
+        <summary class="ss-combo-summary" style="
+          display:flex;
+          align-items:center;
+          justify-content:space-between;
+          padding:18px 22px;
+          cursor:pointer;
+          list-style:none;
+          -webkit-appearance:none;
+          background:#fff;
+          border:1px solid #E8E4E0;
+          border-radius:14px;
+          transition:all .2s;
+        ">
+          <div style="display:flex;align-items:center;gap:14px;">
+            <span style="background:#f75c03;color:#fff;font-size:.68rem;font-weight:700;padding:5px 12px;border-radius:50px;letter-spacing:.06em;">UGE {{ week.num }}</span>
+            <div>
+              <p style="font-weight:700;font-size:.92rem;color:#0F0F0F;">{% if week.label %}{{ week.label }}{% else %}{{ week.range }}{% endif %}</p>
+              <p style="font-size:.75rem;color:#6F6A66;">{{ week.days | length }} {% if week.days | length == 1 %}dag{% else %}dage{% endif %} · {{ week.range }}</p>
+            </div>
+          </div>
+          <div style="display:flex;align-items:center;gap:12px;">
+            <span style="font-size:.72rem;color:#6F6A66;font-weight:500;">{% for day in week.days %}{{ day.dd }}{% if not loop.last %} · {% endif %}{% endfor %}</span>
+            <span class="ss-combo-icon" style="background:#f75c03;color:#fff;width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.88rem;font-weight:700;transition:transform .25s;flex-shrink:0;">+</span>
+          </div>
+        </summary>
+
+        <div style="padding:6px 22px 18px;background:#fff;border:1px solid #E8E4E0;border-top:none;border-radius:0 0 14px 14px;margin-top:-1px;">
+          {% for day in week.days %}
+          <div class="ss18-day" data-ss18-route="{{ day.route }}" style="display:flex;gap:16px;align-items:center;padding:12px 0;{% if not loop.last %}border-bottom:1px solid #F0EDE9;{% endif %}">
+
+            {# Date tile — color by route #}
+            <div style="
+              background:{% if day.route == 'shared' %}#f75c03{% elif day.route == 'weekend' %}#ff9966{% else %}#0F0F0F{% endif %};
+              color:#fff;
+              width:46px;height:46px;
+              border-radius:10px;
+              display:flex;flex-direction:column;align-items:center;justify-content:center;
+              flex-shrink:0;
+              {% if day.type == 'online' %}box-shadow:0 0 0 2px #fff, 0 0 0 3px #f75c03;{% endif %}
+            ">
+              <span style="font-size:1.1rem;font-weight:700;line-height:1;">{{ day.dn }}</span>
+              <span style="font-size:.52rem;text-transform:uppercase;letter-spacing:.06em;opacity:.75;">{{ day.dd }}</span>
+            </div>
+
+            {# Topic & time #}
+            <div style="flex:1;min-width:0;">
+              <p style="font-weight:600;font-size:.92rem;color:#0F0F0F;">{{ day.topic }}</p>
+              <p style="font-size:.78rem;color:#6F6A66;margin-top:2px;">{{ day.time }}{% if day.type == 'online' %} · <span style="color:#f75c03;font-weight:600;">Online</span>{% endif %}</p>
+            </div>
+
+            {# Route label #}
+            {% if day.route == 'weekday' %}
+            <span class="ss18-route-label" style="font-size:.68rem;color:#6F6A66;font-weight:500;white-space:nowrap;">Hverdag</span>
+            {% elif day.route == 'weekend' %}
+            <span class="ss18-route-label" style="font-size:.68rem;color:#ff9966;font-weight:500;white-space:nowrap;">Weekend</span>
+            {% else %}
+            <span class="ss18-route-label" style="font-size:.68rem;color:#f75c03;font-weight:600;white-space:nowrap;">Begge hold</span>
+            {% endif %}
+          </div>
+          {% endfor %}
+        </div>
+      </details>
+      {% endif %}
+
+    {% endfor %}
+    {% endfor %}
+
+    </div> {# /ss18-view-single #}
+
+    {# ── TIMELINE ENDPOINT: Graduation ─────────────────── #}
+    <div style="position:relative;padding-left:48px;margin-top:40px;">
+      <div style="position:absolute;left:18px;top:0;bottom:50%;width:2px;background:linear-gradient(to bottom, #E8E4E0, #2ecc71);"></div>
+      <div style="position:relative;">
+        <div style="position:absolute;left:-42px;top:4px;width:22px;height:22px;background:#2ecc71;border-radius:50%;border:3px solid #fff;box-shadow:0 0 0 2px #2ecc71, 0 0 20px rgba(46,204,113,.25);z-index:1;display:flex;align-items:center;justify-content:center;">
+          <span style="color:#fff;font-size:.7rem;">&#10003;</span>
+        </div>
+        <div>
+          <p style="font-weight:700;font-size:1.05rem;color:#2ecc71;">Certificeret Yogalærer</p>
+          <p style="font-size:.82rem;color:#6F6A66;line-height:1.5;margin-top:4px;">28. juni 2026 · Yoga Alliance RYT-200</p>
+        </div>
+      </div>
+    </div>
+
+    {# ── INFO CARDS ────────────────────────────────────── #}
+    <div style="margin-top:32px;display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+      <div style="background:#FFF8F3;border:1px solid #FFE5D0;border-radius:12px;padding:18px;">
+        <p style="font-weight:700;font-size:.85rem;margin-bottom:4px;">60 studietimer påkrævet</p>
+        <p style="font-size:.78rem;color:#6F6A66;">Senest 30. september 2026</p>
+      </div>
+      <div style="background:#f0fff0;border:1px solid #c3e6c3;border-radius:12px;padding:18px;">
+        <p style="font-weight:700;font-size:.85rem;margin-bottom:4px;">Certificering</p>
+        <p style="font-size:.78rem;color:#6F6A66;">Graduation: 28. juni 2026</p>
+      </div>
+    </div>
+
+    {# ── BLOCKQUOTE ────────────────────────────────────── #}
+    <blockquote style="border-left:4px solid #f75c03;padding:24px 28px;margin:40px 0 0;background:#FFFCF9;border-radius:0 14px 14px 0;">
+      <p style="font-size:1.05rem;font-weight:600;font-style:italic;line-height:1.5;color:#0F0F0F;">"Fleksibilitet er ikke det modsatte af disciplin — det er disciplin tilpasset virkeligheden."</p>
+      <p style="font-size:.82rem;color:#6F6A66;margin-top:8px;">— Yoga Bible</p>
+    </blockquote>
+
+  </div>
+
+  {# ── DARK CTA ──────────────────────────────────────── #}
+  <div style="background:#0F0F0F;color:#fff;padding:60px 24px;text-align:center;">
+    <div style="max-width:600px;margin:0 auto;">
+      <h2 style="font-size:1.6rem;font-weight:700;margin-bottom:12px;">Klar til at starte?</h2>
+      <p style="color:rgba(255,255,255,.68);margin-bottom:28px;line-height:1.55;">18 uger, dit tempo. Book et uforpligtende infomøde eller start din forberedelsesfase i dag.</p>
+      <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;">
+        <button onclick="openBookingModal('info-session')" style="background:transparent;color:#fff;border:1.5px solid rgba(255,255,255,.5);padding:14px 28px;border-radius:50px;font-size:.95rem;font-weight:600;cursor:pointer;font-family:inherit;transition:all .2s;" onmouseenter="this.style.borderColor='#fff';this.style.background='rgba(255,255,255,.08)'" onmouseleave="this.style.borderColor='rgba(255,255,255,.5)';this.style.background='transparent'">Book infomøde</button>
+        <button onclick="startCheckoutFunnel('100078')" style="background:#f75c03;color:#fff;border:none;padding:14px 28px;border-radius:50px;font-size:.95rem;font-weight:600;cursor:pointer;font-family:inherit;transition:background .2s;" onmouseenter="this.style.background='#d94f02'" onmouseleave="this.style.background='#f75c03'">Start Forberedelsesfasen</button>
+      </div>
+    </div>
+  </div>
+
+</section>
+
+
+
+
+{# ── Accordion toggle script ─────────────────────────────── #}
+<script>
+(function() {
+  /* ── 18-week route toggle ─────────────────── */
+  window.ss18SetRoute = function(route) {
+    /* Update tab styles */
+    var tabs = document.querySelectorAll('[data-ss18-tab]');
+    tabs.forEach(function(btn) {
+      if (btn.dataset.ss18Tab === route) {
+        btn.style.background = '#f75c03';
+        btn.style.color = '#fff';
+        btn.style.boxShadow = '0 4px 12px rgba(247,92,3,.3)';
+      } else {
+        btn.style.background = 'transparent';
+        btn.style.color = '#6F6A66';
+        btn.style.boxShadow = 'none';
+      }
+    });
+
+    var viewBoth = document.getElementById('ss18-view-both');
+    var viewSingle = document.getElementById('ss18-view-single');
+
+    if (route === 'both') {
+      /* Show paired ELLER view, hide accordion */
+      if (viewBoth) viewBoth.style.display = '';
+      if (viewSingle) viewSingle.style.display = 'none';
+    } else {
+      /* Show accordion view, hide paired */
+      if (viewBoth) viewBoth.style.display = 'none';
+      if (viewSingle) viewSingle.style.display = '';
+
+      /* Filter day rows in accordion */
+      var days = document.querySelectorAll('.ss18-day');
+      days.forEach(function(row) {
+        var dayRoute = row.dataset.ss18Route;
+        row.style.display = (dayRoute === 'shared' || dayRoute === route) ? 'flex' : 'none';
+      });
+
+      /* Hide route labels (redundant when filtered) */
+      document.querySelectorAll('.ss18-route-label').forEach(function(lbl) {
+        lbl.style.display = 'none';
+      });
+
+      /* Hide accordion weeks with zero visible days */
+      document.querySelectorAll('.ss18-week').forEach(function(wk) {
+        if (wk.dataset.ss18Route === 'shared') { wk.style.display = ''; return; }
+        var vis = wk.querySelectorAll('.ss18-day');
+        if (!vis.length) { wk.style.display = ''; return; }
+        var any = false;
+        vis.forEach(function(d) { if (d.style.display !== 'none') any = true; });
+        wk.style.display = any ? '' : 'none';
+      });
+
+      /* Fix border-bottom on last-visible day rows */
+      document.querySelectorAll('#design-combo-18w .ss-combo-accordion').forEach(function(acc) {
+        var rows = acc.querySelectorAll('.ss18-day');
+        var last = null;
+        rows.forEach(function(r) {
+          if (r.style.display !== 'none') { r.style.borderBottom = '1px solid #F0EDE9'; last = r; }
+        });
+        if (last) last.style.borderBottom = 'none';
+      });
+    }
+
+    /* Update stats */
+    var statDays = document.getElementById('ss18-stat-days');
+    var statLabel = document.getElementById('ss18-stat-days-label');
+    if (statDays && statLabel) {
+      if (route === 'both') {
+        statDays.textContent = '25';
+        statLabel.textContent = 'dage pr. hold';
+      } else {
+        var count = 0;
+        document.querySelectorAll('.ss18-day').forEach(function(d) { if (d.style.display !== 'none') count++; });
+        statDays.textContent = count;
+        statLabel.textContent = 'uddannelsesdage';
+      }
+    }
+  };
+
+  /* ── Busy-day row toggle ────────────────────── */
+  window.ss18ToggleBusyRow = function(cb) {
+    var row = cb.closest('.ss18-busy-row');
+    var times = row.querySelector('.ss18-busy-times');
+    if (cb.checked) {
+      row.style.background = '#F5F3F0';
+      times.style.opacity = '1';
+      times.style.pointerEvents = '';
+    } else {
+      row.style.background = 'transparent';
+      times.style.opacity = '.3';
+      times.style.pointerEvents = 'none';
+    }
+  };
+
+  /* ── 18-week conflict checker (per-day times) ─ */
+  var ss18Schedule = [
+    {dow:1,s:'10:00',e:'15:00',r:'weekday'},{dow:3,s:'10:00',e:'15:00',r:'weekday'},
+    {dow:6,s:'13:00',e:'18:00',r:'weekend'},{dow:0,s:'14:00',e:'19:00',r:'weekend'},
+    {dow:6,s:'13:00',e:'17:00',r:'shared'},{dow:0,s:'14:00',e:'17:00',r:'shared'}
+  ];
+  function ss18TimeMin(t){var p=t.split(':');return parseInt(p[0])*60+parseInt(p[1]);}
+
+  function ss18GetBusySlots() {
+    var slots = {};
+    var rows = document.querySelectorAll('.ss18-busy-row');
+    rows.forEach(function(row) {
+      var cb = row.querySelector('input[name="ss18-busy"]');
+      if (!cb.checked) return;
+      var dow = parseInt(cb.value);
+      var from = row.querySelector('.ss18-time-from').value || '09:00';
+      var to = row.querySelector('.ss18-time-to').value || '17:00';
+      slots[dow] = { s: ss18TimeMin(from), e: ss18TimeMin(to) };
+    });
+    return slots;
+  }
+
+  function ss18Count(route, busySlots) {
+    var days = ss18Schedule.filter(function(d) { return d.r === route || d.r === 'shared'; });
+    var c = 0;
+    days.forEach(function(d) {
+      var slot = busySlots[d.dow];
+      if (!slot) return;
+      var sessS = ss18TimeMin(d.s), sessE = ss18TimeMin(d.e);
+      if (sessS < slot.e && sessE > slot.s) c++;
+    });
+    return { total: days.length, conflicts: c, clear: days.length - c };
+  }
+
+  window.ss18CheckConflicts = function() {
+    var busySlots = ss18GetBusySlots();
+    var el = document.getElementById('ss18-conflict-results');
+    if (!el) return;
+    el.style.display = 'block';
+    var wd = ss18Count('weekday', busySlots);
+    var wec = ss18Count('weekend', busySlots);
+    var wdPct = Math.round((wd.clear / wd.total) * 100);
+    var wePct = Math.round((wec.clear / wec.total) * 100);
+    var wdBest = wd.conflicts < wec.conflicts;
+    var weBest = wec.conflicts < wd.conflicts;
+    var html = '<div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">';
+    html += '<div style="background:' + (wdBest ? '#f0fff0' : '#fff') + ';border:2px solid ' + (wdBest ? '#2ecc71' : '#E8E4E0') + ';border-radius:12px;padding:16px;text-align:center;position:relative;">';
+    if (wdBest) html += '<span style="position:absolute;top:-10px;left:50%;transform:translateX(-50%);background:#2ecc71;color:#fff;padding:3px 12px;border-radius:50px;font-size:.68rem;font-weight:700;">Bedste match</span>';
+    html += '<p style="font-weight:700;font-size:.85rem;margin-bottom:4px;">Hverdagshold</p>';
+    html += '<p style="font-size:2.2rem;font-weight:700;' + (wd.conflicts === 0 ? 'color:#2ecc71;' : 'color:#0F0F0F;') + '">' + wd.conflicts + '</p>';
+    html += '<p style="font-size:.75rem;color:#6F6A66;">konflikter af ' + wd.total + '</p>';
+    html += '<div style="background:#E8E4E0;border-radius:50px;height:6px;overflow:hidden;margin-top:10px;"><div style="background:#2ecc71;height:100%;width:' + wdPct + '%;border-radius:50px;"></div></div></div>';
+    html += '<div style="background:' + (weBest ? '#f0fff0' : '#fff') + ';border:2px solid ' + (weBest ? '#2ecc71' : '#E8E4E0') + ';border-radius:12px;padding:16px;text-align:center;position:relative;">';
+    if (weBest) html += '<span style="position:absolute;top:-10px;left:50%;transform:translateX(-50%);background:#2ecc71;color:#fff;padding:3px 12px;border-radius:50px;font-size:.68rem;font-weight:700;">Bedste match</span>';
+    html += '<p style="font-weight:700;font-size:.85rem;margin-bottom:4px;">Weekendhold</p>';
+    html += '<p style="font-size:2.2rem;font-weight:700;' + (wec.conflicts === 0 ? 'color:#2ecc71;' : 'color:#0F0F0F;') + '">' + wec.conflicts + '</p>';
+    html += '<p style="font-size:.75rem;color:#6F6A66;">konflikter af ' + wec.total + '</p>';
+    html += '<div style="background:#E8E4E0;border-radius:50px;height:6px;overflow:hidden;margin-top:10px;"><div style="background:#2ecc71;height:100%;width:' + wePct + '%;border-radius:50px;"></div></div></div>';
+    html += '</div>';
+    if (wd.conflicts === 0 && wec.conflicts === 0) {
+      html += '<div style="background:#f0fff0;border:1px solid #c3e6c3;border-radius:12px;padding:16px;text-align:center;margin-top:12px;"><p style="font-weight:700;color:#2ecc71;">Begge hold passer perfekt!</p></div>';
+    } else {
+      var bestName = wdBest ? 'Hverdagshold' : 'Weekendhold';
+      var bestCount = Math.min(wd.conflicts, wec.conflicts);
+      html += '<div style="background:#FFF8F3;border:1px solid #FFE5D0;border-radius:12px;padding:16px;margin-top:12px;"><p style="font-size:.88rem;"><strong>Anbefaling:</strong> Brug ' + bestName + ' som base' + (bestCount > 0 ? ' og byt de ' + bestCount + ' konfliktuger til det andet hold' : '') + '.</p></div>';
+    }
+    el.innerHTML = html;
+  };
+
+  /* ── Conflict finder chevron ──────────────── */
+  var cfDetails = document.getElementById('ss18-conflict-finder');
+  if (cfDetails) {
+    cfDetails.addEventListener('toggle', function() {
+      var chev = cfDetails.querySelector('.ss18-cf-chevron');
+      if (chev) chev.style.transform = cfDetails.open ? 'rotate(180deg)' : '';
+    });
+  }
+
+})();
+</script>
+
+<style>
+  /* Combo accordion styles */
+  .ss-combo-accordion summary::-webkit-details-marker { display: none; }
+  .ss-combo-accordion summary::marker { display: none; content: ''; }
+  .ss-combo-summary:hover { box-shadow: 0 4px 16px rgba(0,0,0,.06); transform: translateY(-1px); }
+  .ss-combo-accordion[open] .ss-combo-summary {
+    border-radius: 14px 14px 0 0 !important;
+    border-bottom-color: transparent !important;
+  }
+  .ss-combo-accordion[open] .ss-combo-icon {
+    transform: rotate(45deg);
+  }
+
+  /* 18w route filter transitions */
+  .ss18-day { transition: opacity .2s; }
+  .ss18-week { transition: opacity .2s; }
+
+  /* Smooth scroll */
+  html { scroll-behavior: smooth; }
+
+  /* Responsive — hide day abbreviations on small screens */
+  @media (max-width: 700px) {
+    #design-combo-18w .ss-combo-summary [style*="gap:12px"]:last-child > span:first-child {
+      display: none !important;
+    }
+  }
+</style>

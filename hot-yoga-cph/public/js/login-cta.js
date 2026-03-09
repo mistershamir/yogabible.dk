@@ -59,6 +59,11 @@
       // Try to access parent — works for same-origin / srcdoc iframes
       var topDoc = window.top.document;
       if (topDoc && topDoc.body) {
+        // The Framer page may embed this script in multiple iframes.
+        // Only ONE instance should own the parent-document injection;
+        // others must bail out to avoid duplicate modals + event listeners.
+        if (window.top.__hyc_login_cta_injected) return;
+        window.top.__hyc_login_cta_injected = true;
         targetDoc = topDoc;
       }
     }
@@ -183,8 +188,19 @@
   }
 
   function doForgotPassword(email, callback) {
-    firebase.auth().sendPasswordResetEmail(email)
-      .then(function () { callback(null); })
+    // Send branded reset email via Resend (better deliverability than
+    // Firebase's built-in noreply@*.firebaseapp.com emails).
+    var apiBase = 'https://www.hotyogacph.dk/.netlify/functions';
+    fetch(apiBase + '/send-password-reset', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: email, lang: isDa ? 'da' : 'en' })
+    })
+      .then(function (res) { return res.json(); })
+      .then(function (data) {
+        if (data.ok) { callback(null); }
+        else { callback({ code: 'custom', message: data.error || 'Failed' }); }
+      })
       .catch(function (err) { callback(err); });
   }
 
@@ -278,13 +294,15 @@
     var css = [
 
       // ── CTA button ──────────────────────────────────────────────
-      '.hyc-cta{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;display:inline-flex;align-items:center;gap:0.5rem;-webkit-font-smoothing:antialiased}',
-      '.hyc-cta__btn{display:inline-flex;align-items:center;gap:0.4rem;padding:0.55rem 1.25rem;border-radius:999px;font-family:inherit;font-size:0.88rem;font-weight:700;text-decoration:none;border:1.5px solid transparent;cursor:pointer;transition:all .2s;white-space:nowrap;line-height:1.2}',
+      // Override Framer srcdoc defaults (body { display:flex } and * { box-sizing:border-box })
+      'html,body{margin:0;padding:0;min-height:0;overflow:visible;background:transparent}',
+      '.hyc-cta{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;display:inline-flex;align-items:center;gap:0.5rem;-webkit-font-smoothing:antialiased;overflow:visible}',
+      '.hyc-cta__btn{display:inline-flex;align-items:center;gap:0.4rem;padding:0.55rem 1.25rem;border-radius:999px;font-family:inherit;font-size:0.88rem;font-weight:700;text-decoration:none;border:1.5px solid transparent;cursor:pointer;transition:all .2s;white-space:nowrap;line-height:1.2;box-sizing:content-box}',
       '.hyc-cta__btn svg{width:16px;height:16px;flex-shrink:0}',
       '.hyc-cta__btn--login{background:' + BRAND + ';color:#fff;border-color:' + BRAND + '}',
       '.hyc-cta__btn--login:hover{background:' + BRAND_DARK + ';border-color:' + BRAND_DARK + ';transform:translateY(-1px);box-shadow:0 4px 12px rgba(63,153,165,.3)}',
-      '.hyc-cta__btn--user{background:#fff;color:' + BRAND + ';border-color:' + BRAND + '}',
-      '.hyc-cta__btn--user:hover{background:' + BRAND_LIGHT + ';transform:translateY(-1px)}',
+      '.hyc-cta__btn--user{background:' + BRAND + ';color:#fff;border-color:' + BRAND + '}',
+      '.hyc-cta__btn--user:hover{background:' + BRAND_DARK + ';border-color:' + BRAND_DARK + ';transform:translateY(-1px);box-shadow:0 4px 12px rgba(63,153,165,.3)}',
 
       // ── Modal overlay ─────────────────────────────────────────
       '.hyc-ua{position:fixed;inset:0;z-index:10000;display:flex;align-items:center;justify-content:center;padding:16px}',
@@ -445,6 +463,9 @@
 
   function createModal() {
     if (modalEl) return;
+    // Also guard against a previous instance that already injected the modal
+    var existing = targetDoc.getElementById('hyc-ua-modal');
+    if (existing) { modalEl = existing; return; }
     // Create in targetDoc (parent page if framed) so modal covers full viewport
     modalEl = targetDoc.createElement('div');
     modalEl.className = 'hyc-ua';
@@ -569,8 +590,55 @@
         btn.disabled = false;
         btn.textContent = t('Log ind', 'Sign in');
         if (err) {
-          errorEl.textContent = authErrorMsg(err);
-          errorEl.classList.add('is-visible');
+          var code = err.code || '';
+          if (code === 'auth/user-not-found' || code === 'auth/invalid-credential') {
+            // Try migrating from Mindbody with their password
+            fetch(API_BASE + '/migrate-mb-user', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ email: email, password: password })
+            })
+              .then(function(res) { return res.json(); })
+              .then(function(data) {
+                if (data.created) {
+                  // Account created — sign in seamlessly
+                  doLogin(email, password, function(err2) {
+                    if (err2) {
+                      errorEl.textContent = authErrorMsg(err2);
+                      errorEl.classList.add('is-visible');
+                      return;
+                    }
+                    closeModal();
+                  });
+                  return;
+                }
+                // Not in MB or already has Firebase account — show error
+                errorEl.innerHTML = t(
+                  'Vi kunne ikke finde en konto med disse oplysninger. Allerede klient hos os? <a href="#" onclick="return false" id="hyc-err-register" style="color:inherit;font-weight:700;text-decoration:underline">Opret profil</a> med samme email som du booker med. Har du allerede en konto her? <a href="#" onclick="return false" id="hyc-err-forgot" style="color:inherit;font-weight:700;text-decoration:underline">Nulstil adgangskode \u2192</a>',
+                  'We couldn\'t find an account with these details. Already a client? <a href="#" onclick="return false" id="hyc-err-register" style="color:inherit;font-weight:700;text-decoration:underline">Create a profile</a> with the same email you book with. Already have one here? <a href="#" onclick="return false" id="hyc-err-forgot" style="color:inherit;font-weight:700;text-decoration:underline">Reset password \u2192</a>'
+                );
+                errorEl.classList.add('is-visible');
+                var regLink = targetDoc.getElementById('hyc-err-register');
+                var forgotLink = targetDoc.getElementById('hyc-err-forgot');
+                if (regLink) regLink.addEventListener('click', function () { openModal('auth-register'); });
+                if (forgotLink) forgotLink.addEventListener('click', function () { openModal('auth-forgot'); });
+              })
+              .catch(function() {
+                errorEl.innerHTML = t(
+                  'Vi kunne ikke finde en konto med disse oplysninger. Allerede klient hos os? <a href="#" onclick="return false" id="hyc-err-register2" style="color:inherit;font-weight:700;text-decoration:underline">Opret profil</a> med samme email som du booker med. Har du allerede en konto her? <a href="#" onclick="return false" id="hyc-err-forgot2" style="color:inherit;font-weight:700;text-decoration:underline">Nulstil adgangskode \u2192</a>',
+                  'We couldn\'t find an account with these details. Already a client? <a href="#" onclick="return false" id="hyc-err-register2" style="color:inherit;font-weight:700;text-decoration:underline">Create a profile</a> with the same email you book with. Already have one here? <a href="#" onclick="return false" id="hyc-err-forgot2" style="color:inherit;font-weight:700;text-decoration:underline">Reset password \u2192</a>'
+                );
+                errorEl.classList.add('is-visible');
+              })
+              .finally(function() {
+                btn.disabled = false;
+                btn.textContent = t('Log ind', 'Sign in');
+              });
+            return;
+          } else {
+            errorEl.textContent = authErrorMsg(err);
+            errorEl.classList.add('is-visible');
+          }
           return;
         }
         // Auth state change will handle UI update and close modal
@@ -705,8 +773,25 @@
         btn.disabled = false;
         btn.textContent = t('Opret profil', 'Create profile');
         if (err) {
-          errorEl.textContent = authErrorMsg(err);
-          errorEl.classList.add('is-visible');
+          var code = err.code || '';
+          if (code === 'auth/email-already-in-use') {
+            errorEl.innerHTML = t(
+              'Der findes allerede en konto med denne email. Vi har sendt dig en email til at oprette din adgangskode. Tjek din indbakke (og spam), eller <a href="#" onclick="return false" id="hyc-reg-reset-link" style="color:inherit;font-weight:700;text-decoration:underline">nulstil adgangskode \u2192</a>',
+              'An account with this email already exists. We\'ve sent you an email to set your password. Check your inbox (and spam), or <a href="#" onclick="return false" id="hyc-reg-reset-link" style="color:inherit;font-weight:700;text-decoration:underline">reset password \u2192</a>'
+            );
+            errorEl.classList.add('is-visible');
+            var rl = targetDoc.getElementById('hyc-reg-reset-link');
+            if (rl) rl.addEventListener('click', function () { openModal('auth-forgot'); });
+            var resetUrl = 'https://www.hotyogacph.dk/.netlify/functions';
+            fetch(resetUrl + '/send-password-reset', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ email: email, lang: isDa ? 'da' : 'en' })
+            }).catch(function() {});
+          } else {
+            errorEl.textContent = authErrorMsg(err);
+            errorEl.classList.add('is-visible');
+          }
           return;
         }
         // Auth state change will handle UI update and close modal
@@ -871,6 +956,36 @@
   // CTA BUTTON RENDERS
   // ═══════════════════════════════════════════════════════════════════
 
+  // Tell Framer's parent frame about our height so the embed iframe
+  // is sized correctly (Framer HTML embeds start at height:0).
+  // Framer's srcdoc includes a ResizeObserver that posts { embedHeight }
+  // to the parent, but it can report 0 before our content renders.
+  // We send our own measured height and keep a persistent interval
+  // running for a few seconds to ensure Framer picks it up.
+  var _heightInterval = null;
+
+  function _sendHeight() {
+    try {
+      if (window.parent && window.parent !== window) {
+        var h = document.body.scrollHeight || document.body.offsetHeight || 0;
+        if (h > 0) window.parent.postMessage({ embedHeight: h }, '*');
+      }
+    } catch (e) { /* cross-origin — ignore */ }
+  }
+
+  function notifyFramerHeight() {
+    _sendHeight();
+    setTimeout(_sendHeight, 50);
+    setTimeout(_sendHeight, 200);
+  }
+
+  // Also respond when Framer asks for height (its poll mechanism)
+  window.addEventListener('message', function (e) {
+    try {
+      if (e.data === 'getEmbedHeight') _sendHeight();
+    } catch (x) {}
+  });
+
   function renderLoggedOut() {
     if (!container) return;
     container.innerHTML =
@@ -881,6 +996,7 @@
     document.getElementById('hyc-cta-login').addEventListener('click', function () {
       openModal('auth-login');
     });
+    notifyFramerHeight();
   }
 
   function renderLoggedIn(user) {
@@ -893,6 +1009,7 @@
     document.getElementById('hyc-cta-user').addEventListener('click', function () {
       openModal('user-area');
     });
+    notifyFramerHeight();
   }
 
 
@@ -944,6 +1061,16 @@
       return;
     }
 
+    // Safety timeout: if restore hangs, force-show the login button
+    var restoreTimeout = setTimeout(function () {
+      if (_restoring) {
+        console.warn('[login-cta] Restore timed out — forcing logged-out state');
+        _restoring = false;
+        clearAuthToken();
+        renderLoggedOut();
+      }
+    }, 5000);
+
     fetch(API_BASE + '/auth-token', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -957,8 +1084,14 @@
         // No custom token returned — endpoint rejected it
         throw new Error('No customToken in response');
       })
+      .then(function () {
+        // Success — onAuthStateChanged will handle rendering
+        clearTimeout(restoreTimeout);
+        _restoring = false;
+      })
       .catch(function () {
         // Token expired / invalid / endpoint error — clean up
+        clearTimeout(restoreTimeout);
         _restoring = false;
         clearAuthToken();
         renderLoggedOut();
@@ -1000,46 +1133,64 @@
 
   function initAuth() {
     loadFirebaseSDK(function () {
+      // Guard: if Firebase SDK failed to load (blocked by Safari ITP,
+      // content blocker, or network error), just show the login button.
+      if (typeof firebase === 'undefined' || !firebase.auth) {
+        console.warn('[login-cta] Firebase SDK unavailable — showing login button');
+        renderLoggedOut();
+        return;
+      }
+
       firebaseReady = true;
 
       // Read token BEFORE registering listener (prevents race condition)
       var savedToken = null;
       var s = _parentStorage();
-      if (s) savedToken = s.getItem(SESSION_KEY);
-      if (savedToken && !firebase.auth().currentUser) _restoring = true;
-
-      firebase.auth().onAuthStateChanged(function (user) {
-        currentUser = user;
-        if (user) {
-          _restoring = false;
-          persistAuthToken(user);
-          resolveMbClient(user);
-          renderLoggedIn(user);
-          // If auth modal is open, close it — user just logged in
-          if (modalMode && modalMode.indexOf('auth-') === 0) {
-            closeModal();
-          }
-        } else {
-          mbClientId = null;
-          // Don't wipe stored token while we're still restoring
-          if (!_restoring) {
-            clearAuthToken();
-            renderLoggedOut();
-          }
-          // Close user area modal if open
-          if (modalMode === 'user-area') {
-            closeModal();
-          }
-        }
-      });
-
-      // If no user yet, try to restore from stored token
-      if (!firebase.auth().currentUser && savedToken) {
-        restoreSession();
+      if (s) {
+        try { savedToken = s.getItem(SESSION_KEY); } catch (e) { /* storage blocked */ }
       }
+      try {
+        if (savedToken && !firebase.auth().currentUser) _restoring = true;
+      } catch (e) { /* auth() threw */ }
 
-      // Start polling for auth changes from other iframes
-      startAuthPolling();
+      try {
+        firebase.auth().onAuthStateChanged(function (user) {
+          currentUser = user;
+          if (user) {
+            _restoring = false;
+            persistAuthToken(user);
+            resolveMbClient(user);
+            renderLoggedIn(user);
+            // If auth modal is open, close it — user just logged in
+            if (modalMode && modalMode.indexOf('auth-') === 0) {
+              closeModal();
+            }
+          } else {
+            mbClientId = null;
+            // Don't wipe stored token while we're still restoring —
+            // but always render the logged-out state so the button is never invisible
+            if (!_restoring) {
+              clearAuthToken();
+            }
+            renderLoggedOut();
+            // Close user area modal if open
+            if (modalMode === 'user-area') {
+              closeModal();
+            }
+          }
+        });
+
+        // If no user yet, try to restore from stored token
+        if (!firebase.auth().currentUser && savedToken) {
+          restoreSession();
+        }
+
+        // Start polling for auth changes from other iframes
+        startAuthPolling();
+      } catch (e) {
+        console.warn('[login-cta] Firebase auth error:', e.message);
+        renderLoggedOut();
+      }
     });
   }
 
@@ -1076,11 +1227,20 @@
     var hasStoredToken = s && s.getItem(SESSION_KEY);
     if (hasStoredToken) {
       container.innerHTML = '<span class="hyc-ua__loading" style="padding:6px 12px">' + ICON.spinner + '</span>';
+      notifyFramerHeight();
     } else {
       renderLoggedOut();
     }
 
     initAuth();
+
+    // Keep posting height to Framer every 500ms for 8 seconds.
+    // Framer's ResizeObserver can report height:0 before our content
+    // renders, and once Framer collapses the iframe to 0px it won't
+    // recover unless it receives a new embedHeight message.
+    if (_heightInterval) clearInterval(_heightInterval);
+    _heightInterval = setInterval(_sendHeight, 500);
+    setTimeout(function () { clearInterval(_heightInterval); }, 8000);
   }
 
   if (document.readyState === 'loading') {

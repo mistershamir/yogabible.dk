@@ -10,7 +10,7 @@ const CONFIG = {
   EMAIL_ADMIN: 'info@yogabible.dk',
   FROM_NAME: 'Yoga Bible',
   BUNDLE_PROGRAM_ID: '__bundle__',
-  MEETING_LINK: 'https://calendly.com/yogabible/studio-tour-consultation-yoga-teacher-training',
+  MEETING_LINK: 'https://yogabible.dk/?booking=1',
   APPLICATION_FORM_URL: 'https://www.yogabible.dk/apply',
   STUDIO_ADDRESS: 'Torvegade 66, 1400 Kobenhavn K, Danmark',
   STUDIO_MAPS_URL: 'https://www.google.com/maps/search/?api=1&query=Torvegade+66,+1400+Copenhagen,+Denmark',
@@ -27,16 +27,19 @@ const CONFIG = {
 const AUTO_SMS_CONFIG = {
   enabled: true,
   templates: {
-    'ytt': "Hi {{first_name}}! Thank you for your interest in our Yoga Teacher Training. We have just sent detailed information to your email - please check your inbox and spam or promotions folder. Feel free to reply here or call anytime with questions. Warm regards, Yoga Bible",
-    'course': "Hi {{first_name}}! Thank you for your interest in our {{program}} course. We have just sent you all the details by email - please check your inbox and spam or promotions folder. Reply here anytime with questions! Warm regards, Yoga Bible",
-    'mentorship': "Hi {{first_name}}! Thank you for your interest in our Personlig Mentorship program. We have sent you more information by email - check your inbox and spam or promotions folder. Looking forward to connecting! Warm regards, Yoga Bible",
-    'default': "Hi {{first_name}}! Thank you for reaching out to Yoga Bible. We have sent you information by email - please check your inbox and spam or promotions folder. Feel free to reply here or call us with any questions! Warm regards, Yoga Bible"
+    'ytt': "Hi {{first_name}}! Thank you for your interest in our Yoga Teacher Training. We've sent details to your email (check inbox + spam). Book a free info session: https://yogabible.dk/?booking=1 — Warm regards, Yoga Bible",
+    'ytt_multi': "Hi {{first_name}}! Thank you for requesting schedules for our {{program}}. We've sent all the schedules to your email (check inbox + spam) so you can compare. Book a free info session: https://yogabible.dk/?booking=1 — Yoga Bible",
+    'course': "Hi {{first_name}}! Thank you for your interest in our {{program}} course. We've sent details to your email (check inbox + spam). Book a consultation: https://yogabible.dk/?booking=1 — Warm regards, Yoga Bible",
+    'mentorship': "Hi {{first_name}}! Thank you for your interest in our Mentorship program. We've sent details to your email (check inbox + spam). Book a free consultation: https://yogabible.dk/?booking=1 — Warm regards, Yoga Bible",
+    'default': "Hi {{first_name}}! Thank you for reaching out to Yoga Bible. We've sent info to your email (check inbox + spam). Book a consultation: https://yogabible.dk/?booking=1 — Warm regards, Yoga Bible"
   }
 };
 
 const YTT_PROGRAM_TYPES = {
-  '18-week': { keywords: ['18 uger', '18-week', '18 week', 'fleksibel', 'flexible', '18w'], label: '18-Week Flexible', shortLabel: '18W' },
-  '4-week': { keywords: ['4 uger', '4-week', '4 week', 'intensiv', 'intensive', '4w'], label: '4-Week Intensive', shortLabel: '4W' },
+  '18-week': { keywords: ['18 uger', '18-week', '18 week', 'fleksibel', 'flexible', '18w', '18w-mar'], label: '18-Week Flexible (Spring)', shortLabel: '18W' },
+  '18-week-aug': { keywords: ['18w-aug', 'efterår 18w', 'autumn 18w', 'august 18w'], label: '18-Week Flexible (Autumn)', shortLabel: '18W-AUG' },
+  '4-week': { keywords: ['4 uger', '4-week', '4 week', 'intensiv', 'intensive', '4w', '4w-apr'], label: '4-Week Intensive', shortLabel: '4W' },
+  '4-week-jul': { keywords: ['4w-jul', 'vinyasa plus', 'vinyasa+', 'juli 4w'], label: '4-Week Vinyasa Plus (July)', shortLabel: '4W-VP' },
   '8-week': { keywords: ['8 uger', '8-week', '8 week', 'semi-intensiv', 'semi-intensive', '8w'], label: '8-Week Semi-Intensive', shortLabel: '8W' },
   '300h': { keywords: ['300 hour', '300h', '300 timer', '300-hour', 'advanced'], label: '300-Hour Advanced', shortLabel: '300H' },
   '50h': { keywords: ['50 hour', '50h', '50 timer', '50-hour'], label: '50-Hour Specialty', shortLabel: '50H' },

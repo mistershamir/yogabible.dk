@@ -1,0 +1,60 @@
+<svg viewBox="0 0 1200 630" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <filter id="shadow" x="-50%" y="-50%" width="200%" height="200%">
+      <feDropShadow dx="3" dy="5" stdDeviation="6" flood-opacity="0.25" flood-color="#000"/>
+    </filter>
+  </defs>
+
+  <rect width="1200" height="630" fill="#f5f3f0"/>
+  <circle cx="150" cy="180" r="120" fill="#ff9966" opacity="0.07"/>
+  <circle cx="1050" cy="420" r="150" fill="#f75c03" opacity="0.06"/>
+
+  <!-- Office chair (left) -->
+  <g filter="url(#shadow)" transform="translate(220, 100)">
+    <rect x="40" y="0" width="120" height="150" rx="12" fill="#6F6A66" opacity="0.8"/>
+    <rect x="50" y="10" width="100" height="130" rx="8" fill="#0f0f0f" opacity="0.12"/>
+    <rect x="30" y="150" width="140" height="28" rx="6" fill="#6F6A66" opacity="0.9"/>
+    <line x1="100" y1="178" x2="100" y2="235" stroke="#6F6A66" stroke-width="6"/>
+    <line x1="40" y1="245" x2="160" y2="245" stroke="#6F6A66" stroke-width="5" stroke-linecap="round"/>
+    <circle cx="50" cy="250" r="8" fill="#6F6A66"/>
+    <circle cx="150" cy="250" r="8" fill="#6F6A66"/>
+  </g>
+
+  <!-- Transformation arrow -->
+  <path d="M 470 250 Q 520 170 580 195 Q 640 220 700 170 Q 740 145 770 250" fill="none" stroke="#f75c03" stroke-width="5" stroke-linecap="round" stroke-dasharray="12,8" opacity="0.75"/>
+  <g transform="translate(615, 155)">
+    <line x1="-10" y1="0" x2="10" y2="0" stroke="#f75c03" stroke-width="2.5"/>
+    <line x1="0" y1="-10" x2="0" y2="10" stroke="#f75c03" stroke-width="2.5"/>
+    <line x1="-7" y1="-7" x2="7" y2="7" stroke="#ff9966" stroke-width="2"/>
+    <line x1="7" y1="-7" x2="-7" y2="7" stroke="#ff9966" stroke-width="2"/>
+  </g>
+
+  <!-- Yoga mat (right) -->
+  <g filter="url(#shadow)" transform="translate(780, 130)">
+    <ellipse cx="40" cy="170" rx="38" ry="52" fill="#f75c03" opacity="0.85"/>
+    <ellipse cx="40" cy="170" rx="28" ry="38" fill="#ff9966" opacity="0.6"/>
+    <ellipse cx="40" cy="170" rx="14" ry="20" fill="#f5f3f0" opacity="0.5"/>
+    <rect x="40" y="118" width="180" height="104" rx="4" fill="#f75c03" opacity="0.7"/>
+    <rect x="40" y="123" width="180" height="94" rx="4" fill="#ff9966" opacity="0.25"/>
+    <line x1="90" y1="125" x2="90" y2="215" stroke="#d94f02" stroke-width="1" opacity="0.3"/>
+    <line x1="140" y1="125" x2="140" y2="215" stroke="#d94f02" stroke-width="1" opacity="0.3"/>
+    <line x1="190" y1="125" x2="190" y2="215" stroke="#d94f02" stroke-width="1" opacity="0.3"/>
+  </g>
+
+  <!-- 5 numbered signs -->
+  <g opacity="0.85">
+    <circle cx="300" cy="420" r="22" fill="#f75c03" filter="url(#shadow)"/>
+    <text x="300" y="427" font-family="Abacaxi, Helvetica, Arial, sans-serif" font-size="20" font-weight="bold" fill="#FFFCF9" text-anchor="middle">1</text>
+    <circle cx="420" cy="420" r="22" fill="#ff9966" filter="url(#shadow)"/>
+    <text x="420" y="427" font-family="Abacaxi, Helvetica, Arial, sans-serif" font-size="20" font-weight="bold" fill="#FFFCF9" text-anchor="middle">2</text>
+    <circle cx="540" cy="420" r="22" fill="#d94f02" filter="url(#shadow)"/>
+    <text x="540" y="427" font-family="Abacaxi, Helvetica, Arial, sans-serif" font-size="20" font-weight="bold" fill="#FFFCF9" text-anchor="middle">3</text>
+    <circle cx="660" cy="420" r="22" fill="#f75c03" filter="url(#shadow)"/>
+    <text x="660" y="427" font-family="Abacaxi, Helvetica, Arial, sans-serif" font-size="20" font-weight="bold" fill="#FFFCF9" text-anchor="middle">4</text>
+    <circle cx="780" cy="420" r="22" fill="#ff9966" filter="url(#shadow)"/>
+    <text x="780" y="427" font-family="Abacaxi, Helvetica, Arial, sans-serif" font-size="20" font-weight="bold" fill="#FFFCF9" text-anchor="middle">5</text>
+  </g>
+
+  <text x="600" y="555" font-family="Abacaxi, Helvetica, Arial, sans-serif" font-size="36" font-weight="bold" fill="#0f0f0f" text-anchor="middle">From Office Chair to Yoga Mat</text>
+  <text x="600" y="590" font-family="Abacaxi, Helvetica, Arial, sans-serif" font-size="18" fill="#6F6A66" text-anchor="middle">5 Signs You're Ready</text>
+</svg>

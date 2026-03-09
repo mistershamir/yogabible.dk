@@ -15,8 +15,8 @@
   // Teacher Training Preparation Phase
   var PRODUCT_MAP = {
     '100078': { da: '18 Ugers Fleksibelt Program — Marts–Juni 2026', en: '18-Week Flexible Program — March–June 2026', category: 'teacher' },
-    '100121': { da: '4 Ugers Intensiv — April 2026', en: '4-Week Intensive — April 2026', category: 'teacher' },
-    '100211': { da: '4 Ugers Intensiv — Juli 2026', en: '4-Week Intensive — July 2026', category: 'teacher' },
+    '100121': { da: '4 Ugers Complete Program — April 2026', en: '4-Week Complete Program — April 2026', category: 'teacher' },
+    '100211': { da: '4 Ugers Vinyasa Plus — Juli 2026', en: '4-Week Vinyasa Plus — July 2026', category: 'teacher' },
     '100209': { da: '8 Ugers Semi-Intensiv — Maj–Juni 2026', en: '8-Week Semi-Intensive — May–June 2026', category: 'teacher' },
     '100210': { da: '18 Ugers Fleksibelt Program — August–December 2026', en: '18-Week Flexible Program — August–December 2026', category: 'teacher' },
     // 300-Hour Advanced Teacher Training
@@ -312,16 +312,35 @@
   }
 
   // =========================================================================
+  // URL PARAMETER — Auto-open checkout via ?product=XXXXX
+  // Usage: yogabible.dk/any-page?product=100078
+  // =========================================================================
+  function checkUrlProduct() {
+    try {
+      var params = new URLSearchParams(window.location.search);
+      var prodId = params.get('product');
+      if (!prodId) return;
+      // Clean URL so reload doesn't re-trigger
+      var clean = window.location.pathname + window.location.hash;
+      window.history.replaceState(null, '', clean);
+      // Small delay to let checkout-flow.js initialize
+      setTimeout(function () { startCheckoutFunnel(prodId); }, 300);
+    } catch (e) { /* URLSearchParams not supported */ }
+  }
+
+  // =========================================================================
   // INIT
   // =========================================================================
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', function () {
       attachClickHandlers();
       initAuthListener();
+      checkUrlProduct();
     });
   } else {
     attachClickHandlers();
     initAuthListener();
+    checkUrlProduct();
   }
 
   // ── Public API ──

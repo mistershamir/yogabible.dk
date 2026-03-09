@@ -1,0 +1,70 @@
+<svg viewBox="0 0 1200 630" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <filter id="shadow" x="-50%" y="-50%" width="200%" height="200%">
+      <feDropShadow dx="3" dy="5" stdDeviation="6" flood-opacity="0.25" flood-color="#000"/>
+    </filter>
+  </defs>
+
+  <rect width="1200" height="630" fill="#f5f3f0"/>
+  <circle cx="100" cy="250" r="110" fill="#ff9966" opacity="0.07"/>
+  <circle cx="1100" cy="350" r="140" fill="#f75c03" opacity="0.06"/>
+
+  <!-- Crow pose figure -->
+  <g filter="url(#shadow)" transform="translate(600, 230)">
+    <!-- Hands planted -->
+    <circle cx="-30" cy="80" r="10" fill="#d94f02" opacity="0.85"/>
+    <circle cx="30" cy="80" r="10" fill="#d94f02" opacity="0.85"/>
+    
+    <!-- Arms (bent, supporting) -->
+    <path d="M -30 70 Q -35 40 -20 20" fill="none" stroke="#f75c03" stroke-width="6" stroke-linecap="round"/>
+    <path d="M 30 70 Q 35 40 20 20" fill="none" stroke="#f75c03" stroke-width="6" stroke-linecap="round"/>
+    
+    <!-- Torso (compact, tilted forward) -->
+    <path d="M -15 20 Q 0 10 15 20" fill="none" stroke="#d94f02" stroke-width="7" stroke-linecap="round"/>
+    
+    <!-- Knees on triceps -->
+    <circle cx="-25" cy="30" r="8" fill="#ff9966" opacity="0.7"/>
+    <circle cx="25" cy="30" r="8" fill="#ff9966" opacity="0.7"/>
+    
+    <!-- Legs tucked -->
+    <path d="M -25 30 Q -30 50 -15 60" fill="none" stroke="#f75c03" stroke-width="4" stroke-linecap="round"/>
+    <path d="M 25 30 Q 30 50 15 60" fill="none" stroke="#f75c03" stroke-width="4" stroke-linecap="round"/>
+    
+    <!-- Head -->
+    <circle cx="0" cy="-10" r="18" fill="#f75c03" opacity="0.85"/>
+    
+    <!-- Gaze line -->
+    <line x1="0" y1="-10" x2="0" y2="50" stroke="#f75c03" stroke-width="1" opacity="0.3" stroke-dasharray="3,3"/>
+  </g>
+
+  <!-- "Courage to fall" — falling figures (ghosted) -->
+  <g opacity="0.15">
+    <!-- Falling left -->
+    <g transform="translate(380, 260) rotate(-25)">
+      <circle cx="0" cy="-10" r="14" fill="#f75c03"/>
+      <line x1="0" y1="4" x2="0" y2="40" stroke="#f75c03" stroke-width="4"/>
+      <line x1="-15" y1="15" x2="15" y2="15" stroke="#f75c03" stroke-width="3"/>
+    </g>
+    <!-- Falling right -->
+    <g transform="translate(820, 260) rotate(20)">
+      <circle cx="0" cy="-10" r="14" fill="#f75c03"/>
+      <line x1="0" y1="4" x2="0" y2="40" stroke="#f75c03" stroke-width="4"/>
+      <line x1="-15" y1="15" x2="15" y2="15" stroke="#f75c03" stroke-width="3"/>
+    </g>
+  </g>
+
+  <!-- Ground line -->
+  <line x1="300" y1="390" x2="900" y2="390" stroke="#E8E4E0" stroke-width="2"/>
+
+  <!-- Courage keywords -->
+  <g font-family="Abacaxi, Helvetica, Arial, sans-serif" font-size="15" text-anchor="middle" opacity="0.6">
+    <text x="320" y="440" fill="#f75c03" font-weight="bold">Fall</text>
+    <text x="480" y="440" fill="#d94f02" font-weight="bold">Learn</text>
+    <text x="600" y="430" fill="#f75c03" font-weight="bold" font-size="20">Balance</text>
+    <text x="720" y="440" fill="#d94f02" font-weight="bold">Trust</text>
+    <text x="880" y="440" fill="#ff9966" font-weight="bold">Fly</text>
+  </g>
+
+  <text x="600" y="530" font-family="Abacaxi, Helvetica, Arial, sans-serif" font-size="38" font-weight="bold" fill="#0f0f0f" text-anchor="middle">Arm Balances</text>
+  <text x="600" y="570" font-family="Abacaxi, Helvetica, Arial, sans-serif" font-size="18" fill="#6F6A66" text-anchor="middle">The Courage to Fall</text>
+</svg>

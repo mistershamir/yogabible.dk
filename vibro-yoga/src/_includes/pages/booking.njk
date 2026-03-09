@@ -1,0 +1,65 @@
+{% set t = i18n.booking[lang or "da"] %}
+{% set tc = i18n.common[lang or "da"] %}
+{% set lp = "/en" if lang == "en" else "" %}
+
+<section class="vy-hero vy-hero--compact">
+  <div class="vy-hero__bg"><div class="vy-hero__gradient"></div></div>
+  <div class="container vy-hero__content">
+    <p class="vy-hero__tagline">{{ t.hero_eyebrow }}</p>
+    <h1 class="vy-hero__title">{{ t.hero_title }}</h1>
+    <p class="vy-hero__subtitle">{{ t.hero_subtitle }}</p>
+  </div>
+</section>
+
+<section class="section bg-light">
+  <div class="container">
+    <div class="vy-booking vy-reveal">
+      <div class="vy-booking__widget">
+        <h2>{{ t.widget_title }}</h2>
+        <p>{{ t.widget_text }}</p>
+        {# Mindbody widget integration placeholder #}
+        <div class="vy-booking__mb-widget" id="mb-widget">
+          <div class="vy-session-card__placeholder" style="min-height:500px;display:flex;align-items:center;justify-content:center">
+            <p style="color:var(--vy-muted)">Mindbody Widget Placeholder</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="vy-spacer"></div>
+
+    <div class="vy-booking__info vy-reveal">
+      <h2>{{ t.info_title }}</h2>
+      <div class="vy-info-grid">
+        <div class="vy-info-grid__item">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--vy-primary)" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+          <span>{{ t.info1 }}</span>
+        </div>
+        <div class="vy-info-grid__item">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--vy-primary)" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+          <span>{{ t.info2 }}</span>
+        </div>
+        <div class="vy-info-grid__item">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--vy-primary)" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+          <span>{{ t.info3 }}</span>
+        </div>
+        <div class="vy-info-grid__item">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--vy-primary)" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+          <span>{{ t.info4 }}</span>
+        </div>
+        <div class="vy-info-grid__item">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--vy-primary)" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+          <span>{{ t.info5 }}</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="vy-spacer"></div>
+
+    <div class="vy-booking__private vy-reveal">
+      <h2>{{ t.private_title }}</h2>
+      <p>{{ t.private_text }}</p>
+      <a href="{{ lp }}/kontakt" class="btn btn--outline btn--large">{{ t.private_btn }}</a>
+    </div>
+  </div>
+</section>

@@ -140,13 +140,442 @@ Every page follows this pattern — **no exceptions**:
 - **Listing:** `src/yoga-journal.njk` → `/yoga-journal/`
 - **Posts:** `src/yoga-journal-post.njk` (Eleventy pagination, size:1)
 - **JS:** `src/js/journal.js` — language switching, search, progress bar, share
-- **CSS:** `src/css/main.css` — all journal styles prefixed `yj-`, all store/profile styles prefixed `yb-store__`
+- **CSS:** `src/css/main.css` — all journal styles prefixed `yj-`, all store/profile styles prefixed `yb-store__`, admin knowledge styles `yb-kb__`
 - **CMS:** Decap CMS at `/admin/` with Netlify Identity
 - **i18n:** Build-time via JSON files in `src/_data/i18n/`, path-based (`/en/` prefix). Journal uses `data-yj-da`/`data-yj-en` attributes toggled by path detection.
 - **Deploy:** Netlify from `main` branch
 - **Design System:** `src/samples.njk` → `/samples/` — the single source of truth for all UI components
 - **Profile/Store:** `src/js/profile.js` — user profile, store catalog, checkout, waiver, schedule, membership
 - **Hot Yoga CPH:** `hot-yoga-cph/public/js/profile.js` + `hot-yoga-cph/public/css/profile.css` — mirrored store/profile for HYC site
+- **Apps Script:** `apps-script/` — legacy Google Sheets-based lead/application system (13 files). Being replaced by Netlify functions + Firestore.
+
+### Netlify Functions Reference
+
+All serverless functions live in `netlify/functions/`. Shared code in `netlify/functions/shared/` (auth, firestore, utils, config).
+
+**Auth pattern:** Client sends Firebase ID token via `Authorization: Bearer <token>`. Server uses `requireAuth(event, ['admin'])` from `shared/auth.js`. Roles stored in Firestore `users/{uid}.role`.
+
+| Function | Purpose |
+|----------|---------|
+| **Lead & CRM** | |
+| `lead` | Lead capture endpoint (public — forms, webhooks) |
+| `leads` | Leads CRUD API (admin) |
+| `facebook-leads-webhook` | Facebook Lead Ads real-time webhook |
+| `facebook-leads-backfill` | Backfill historical Facebook leads |
+| `campaign-log` | Campaign log endpoint |
+| `sms-webhook` | Inbound SMS webhook (GatewayAPI) |
+| `sms-conversations` | SMS conversations API (admin) |
+| `send-email` | Send email endpoint |
+| `send-sms` | Send SMS endpoint |
+| `send-acceptance-email` | Send acceptance email to applicants |
+| `unsubscribe` | Email unsubscribe endpoint |
+| **Applications** | |
+| `apply` | Application builder (public form submission) |
+| `applications` | Applications CRUD API (admin) |
+| `activate-applicant` | Activate applicant account after acceptance |
+| `status` | Application status lookup (public) |
+| `migrate-applications` | One-time migration from legacy system |
+| **Appointments** | |
+| `appointments` | Appointments CRUD (admin) |
+| `appointment-book` | Appointment booking (public) |
+| `appointment-reminders` | Scheduled appointment reminders |
+| **MindBody Integration** (`mb-*`) | |
+| `mb-client` | Client lookup/create/update + stored card detection |
+| `mb-classes` | Fetch class schedules |
+| `mb-class-descriptions` | Fetch class descriptions |
+| `mb-services` | List available services |
+| `mb-book` | Book/cancel class visits |
+| `mb-checkout` | Payment checkout (card + stored card) |
+| `mb-contracts` | List contracts |
+| `mb-contract-manage` | Manage contract actions |
+| `mb-purchases` | Purchase history |
+| `mb-return-sale` | Process sale returns |
+| `mb-client-services` | Client active services/passes |
+| `mb-giftcards` | Gift card endpoints |
+| `mb-visits` | Visit history |
+| `mb-waitlist` | Waitlist management |
+| `mb-waiver` | Liability waiver check/sign |
+| `mb-staff` | Staff list |
+| `mb-site` | Site info |
+| `mb-sync` | Sync MindBody data |
+| **Admin Panels** | |
+| `catalog-admin` | Course catalog CRUD (admin) |
+| `economic-admin` | e-conomic invoicing API (admin) |
+| `live-admin` | Live stream schedule CRUD + MindBody import (admin) |
+| `knowledge-admin` | Agent knowledge base CRUD — 3 brands (admin) |
+| `email-templates` | Email template preview/management (admin) |
+| `cloudinary-browser` | Cloudinary folder/asset browser (admin) |
+| **Other** | |
+| `catalog` | Public course catalog endpoint |
+| `catalog-seed` | Seed catalog with initial data |
+| `careers` | Careers form submission |
+| `careers-seed` | Seed careers with initial data |
+| `member-documents` | Member training documents |
+| `seed-trainee-materials` | Seed trainee course materials |
+| `schedule-token` | Schedule token validator |
+| `auth-token` | Firebase auth token helper |
+| `health` | Health check endpoint |
+| `meta-capi` | Meta Conversions API (Facebook pixel server-side) |
+| `mux-webhook` | Mux video webhook (live streaming) |
+| `mux-stream` | Browser-based Mux live stream creation for Teacher Studio |
+| `livekit-token` | LiveKit room creation + JWT token generation (interactive/panel streams) |
+| `ai-process-recording-background` | Recording → captions → AI summary + quiz pipeline (15-min timeout) |
+| `ai-backfill` | Utility for reprocessing past recordings (debug, reconcile, retranscribe) |
+| `instagram-webhook` | Instagram webhook handler |
+| `instagram-send` | Send Instagram messages |
+| `instagram-token-refresh` | Scheduled: refresh Instagram API token |
+
+### Client-Side JS Reference
+
+All JS files in `src/js/`. No bundler — each is a standalone IIFE loaded via `<script>` tags.
+
+| File | Purpose |
+|------|---------|
+| **Core** | |
+| `header.js` | Navigation, mobile menu, scroll behavior |
+| `footer.js` | Footer interactions |
+| `main.js` | Global utilities, animations, scroll triggers |
+| `cookies.js` | Cookie consent banner |
+| `tracking.js` | Analytics tracking (Meta pixel, GA) |
+| `firebase-auth.js` | Firebase auth (login/register/reset modals) |
+| `roles-permissions.js` | Role-based access control |
+| **Profile & Store** | |
+| `profile.js` | User profile, store catalog, checkout, waiver, schedule, membership (main store logic) |
+| `checkout-flow.js` | Multi-step checkout modal (auth → register → pay → success) |
+| `ytt-funnel.js` | YTT purchase funnel entry point — calls `openCheckoutFlow()` |
+| `mindbody.js` | MindBody API client-side helpers |
+| **Page-Specific** | |
+| `journal.js` | Blog listing — language switch, search, progress bar, share |
+| `glossary.js` | Yoga glossary page — search, filter, letter nav |
+| `schedule-embed.js` | MindBody schedule embed |
+| `appointment-booking.js` | Appointment booking flow |
+| `course.js` | Course page interactions |
+| `course-viewer.js` | Course content viewer (enrolled students) |
+| `member.js` | Member area |
+| `member-courses.js` | Member course list |
+| `member-materials.js` | Member training materials viewer |
+| `live.js` | Live stream page (broadcast + interactive + panel modes, LiveKit/Mux) |
+| `link.js` | Link-in-bio page |
+| `cb.js` | Course bundles page |
+| `ytt-schedule.js` | YTT schedule page |
+| `vibroyoga.js` | Vibro Yoga page |
+| `vibroyoga-showcase.js` | Vibro Yoga showcase page |
+| `photo-booking.js` | Photography booking |
+| `om200.js` | 200hr YTT overview page |
+| `p300.js` | 300hr YTT overview page |
+| `modal-200ytt.js` | 200hr YTT info modal |
+| `modal-300ytt.js` | 300hr YTT info modal |
+| `campaign-wizard.js` | Email/SMS campaign wizard (admin) |
+| **Admin** | |
+| `course-admin.js` | Course builder admin |
+| `catalog-admin.js` | Catalog CRUD admin |
+| `lead-admin.js` | Lead management + drip campaigns admin |
+| `live-admin.js` | Live schedule admin |
+| `billing-admin.js` | e-conomic invoicing admin |
+| `doc-admin.js` | Document management admin |
+| `careers-admin.js` | Careers/jobs admin |
+| `appointments-admin.js` | Appointment management admin |
+| `knowledge-admin.js` | Agent knowledge base admin (3 brand tabs) |
+
+### Admin Panel
+
+Located at `/admin/` (`src/admin-panel.njk` → `src/_includes/pages/admin.njk`). Firebase auth-gated with role check. Translations in `src/_data/i18n/course-admin.json`.
+
+**Tabs:** Courses, Users, Analytics, Leads, Applications, Careers, Appointments, Catalog, Documents, Live, Billing, Knowledge
+
+Each tab has a partial in `src/_includes/partials/admin-{name}-panel.njk` and a corresponding JS file in `src/js/{name}-admin.js`.
+
+### Environment Variables
+
+**Netlify Functions** (set in Netlify dashboard):
+
+| Variable | Purpose |
+|----------|---------|
+| `FIREBASE_PROJECT_ID` | Firebase project ID |
+| `FIREBASE_CLIENT_EMAIL` | Firebase service account email |
+| `FIREBASE_PRIVATE_KEY` | Firebase service account private key |
+| `MB_API_KEY` | MindBody API key |
+| `MB_SITE_ID` | MindBody site ID |
+| `MB_SOURCE_NAME` | MindBody source credentials |
+| `MB_SOURCE_PASSWORD` | MindBody source credentials |
+| `GMAIL_USER` | Gmail SMTP user (info@yogabible.dk) |
+| `GMAIL_APP_PASSWORD` | Gmail app-specific password |
+| `GATEWAYAPI_TOKEN` | GatewayAPI (SMS) token |
+| `ECONOMIC_APP_SECRET` | e-conomic API app secret |
+| `ECONOMIC_AGREEMENT_TOKEN` | e-conomic agreement token |
+| `UNSUBSCRIBE_SECRET` | HMAC secret for unsubscribe tokens |
+| `MUX_TOKEN_ID` | Mux video token |
+| `MUX_TOKEN_SECRET` | Mux video secret |
+| `META_ACCESS_TOKEN` | Meta Conversions API token |
+| `META_PIXEL_ID` | Meta pixel ID |
+| `INSTAGRAM_ACCESS_TOKEN` | Instagram API token |
+| `INSTAGRAM_VERIFY_TOKEN` | Instagram webhook verify token |
+| `CLOUDINARY_API_KEY` | Cloudinary API key (`617726211878669`) |
+| `CLOUDINARY_API_SECRET` | Cloudinary API secret |
+| `LIVEKIT_API_KEY` | LiveKit API key (interactive/panel streaming) |
+| `LIVEKIT_API_SECRET` | LiveKit API secret |
+| `LIVEKIT_URL` | LiveKit server URL (wss://...) |
+| `ANTHROPIC_API_KEY` | Claude API key (for AI recording processing) |
+
+**Lead Agent** (`lead-agent/.env`):
+
+| Variable | Purpose |
+|----------|---------|
+| `ANTHROPIC_API_KEY` | Claude API key |
+| `GMAIL_USER` | Gmail SMTP (same as Netlify) |
+| `GMAIL_APP_PASSWORD` | Gmail app password (same as Netlify) |
+| `GATEWAYAPI_TOKEN` | SMS token (same as Netlify) |
+| `GOOGLE_APPLICATION_CREDENTIALS` | Path to Firebase service account JSON |
+| `TELEGRAM_BOT_TOKEN` | Telegram bot token |
+| `TELEGRAM_OWNER_CHAT_ID` | Shamir's Telegram chat ID |
+| `AGENT_MODEL` | Claude model ID (default: `claude-sonnet-4-20250514`) |
+| `DRIP_CHECK_INTERVAL_MINUTES` | Drip scheduler interval (default: 60) |
+| `SITE_URL` | Site URL (default: `https://yogabible.dk`) |
+
+---
+
+## AI Lead Management Agent
+
+The project includes a Python AI agent that manages YTT leads via Telegram. It lives in `lead-agent/` and runs 24/7 on a Mac Mini.
+
+### Key Files
+
+| File | Purpose |
+|------|---------|
+| `lead-agent/agent.py` | Main entry — Telegram bot + APScheduler + Firestore real-time listener |
+| `lead-agent/knowledge.py` | Builds the agent's system prompt from project files + Firestore knowledge base |
+| `lead-agent/scheduler.py` | Drip email/SMS sequence logic (5 steps over 10 days) |
+| `lead-agent/monitor.py` | Uptime monitoring — startup/shutdown/error Telegram notifications |
+| `lead-agent/tools/firestore.py` | Firestore CRUD — leads, drip status, notes, pipeline stats |
+| `lead-agent/tools/email.py` | Email sending — welcome, drip templates, custom emails via Gmail |
+| `lead-agent/tools/sms.py` | SMS via GatewayAPI |
+| `lead-agent/tools/telegram.py` | Telegram bot helpers — send messages, inline keyboards |
+
+### How It Works
+
+1. **Firestore listener** watches the `leads` collection for new leads
+2. **Telegram notifies** Shamir when a new lead arrives (with action buttons)
+3. **Drip scheduler** (APScheduler) sends email/SMS sequences: Day 0, 2-3, 5, 7, 10
+4. **Shamir chats** via Telegram to pause drips, update leads, send custom emails
+5. **Claude API** (Anthropic) processes natural language commands with tool-use
+
+### Dynamic Knowledge Base
+
+The agent's system prompt is built from two sources:
+
+1. **Static knowledge** — hardcoded in `knowledge.py` (business info, programs, workflow rules)
+2. **Dynamic knowledge** — fetched from Firestore `agent_knowledge` collection at prompt build time
+
+Admin manages dynamic knowledge via `/admin/` → **Knowledge** tab → 3 brand tabs (Yoga Bible, Hot Yoga CPH, Vibro Yoga). Each brand's sections are injected into the respective agent's system prompt.
+
+**API:** `knowledge-admin.js` Netlify function (admin-auth protected CRUD)
+
+**For future agents (HYC, Vibro):** Call `get_knowledge_for_brand('hot-yoga-cph')` from `knowledge.py` to get that brand's knowledge sections.
+
+### Running the Agent
+
+```bash
+cd lead-agent
+pip install -r requirements.txt
+cp .env.example .env  # Fill in API keys
+python agent.py           # Telegram bot mode
+python agent.py --cli     # Terminal mode (testing)
+python agent.py --daemon  # launchd daemon mode
+```
+
+### Daemon Setup (macOS)
+
+Run `./install-daemon.sh` to create launchd plists for auto-start on boot:
+
+1. **Agent daemon** (`com.yogabible.lead-agent`) — runs `agent.py --daemon`, auto-restarts on crash
+2. **Auto-deploy daemon** (`com.yogabible.auto-deploy`) — checks GitHub every 5 min, pulls + restarts agent if code changed
+
+```bash
+# Check status
+launchctl list | grep yogabible
+
+# View logs
+tail -f lead-agent/logs/agent-stderr.log   # Real-time errors
+tail -f lead-agent/logs/auto-deploy.log    # Auto-deploy checks
+
+# Manual restart
+launchctl kickstart -k gui/$(id -u)/com.yogabible.lead-agent
+```
+
+### Agent Tools (35 total)
+
+| Category | Tools |
+|----------|-------|
+| **Lead Management** | `get_new_leads`, `find_lead`, `update_lead_status`, `pause_lead_emails`, `resume_lead_emails`, `get_drip_info` |
+| **Communication** | `send_custom_email`, `send_template_email`, `send_sms_message`, `schedule_email`, `schedule_sms` |
+| **Pipeline** | `get_pipeline_stats`, `get_stale_leads` |
+| **Appointments** | `get_upcoming_appointments`, `get_todays_appointments`, `find_appointment`, `get_pending_requests`, `confirm_appointment_request`, `cancel_appointment`, `reschedule_appointment`, `send_appointment_sms` |
+| **System** | `read_project_file`, `get_recent_git_changes`, `refresh_knowledge` |
+
+### Firestore Collections (Agent)
+
+| Collection | Purpose |
+|------------|---------|
+| `leads` | Lead documents (email, name, phone, type, ytt_program_type, status, temperature, notes) |
+| `lead_drip_sequences` | Drip tracking per lead (current_step, next_send_at, paused, completed) |
+| `email_log` | Audit trail of every email sent (lead_id, to, subject, template_id, sent_at, status) |
+| `appointments` | Bookings (date, time, client info, type, status, preferred_slots for photo sessions) |
+| `agent_knowledge` | Admin-curated knowledge sections (brand, title, content, active, sort_order) |
+
+### Drip Sequence
+
+| Step | Day | Channel | Content |
+|------|-----|---------|---------|
+| 1 | 0 | Email | Welcome + schedule (sent by Netlify, agent skips) |
+| 2 | 2-3 | Email + SMS | Social proof (500+ graduates, alumni quote) |
+| 3 | 5 | Email | Investment framing (3750 DKK Preparation Phase) |
+| 4 | 7 | Email + SMS | Urgency (limited spots) + booking CTA |
+| 5 | 10 | Email | Personal final nudge (direct phone number) |
+
+### Scheduled Jobs (APScheduler)
+
+- **Drip scheduler** — every 60 min, sends due emails/SMS
+- **Appointment reminders** — 18:00 evening briefing (tomorrow), 9:00 morning briefing (today + pending)
+- **Daily heartbeat** — 9:00 AM uptime report + error summary
+
+---
+
+## SEO/AEO Monitoring Agent
+
+Automated SEO health checks with Telegram notifications. Lives in `seo-agent/`.
+
+### Key Files
+
+| File | Purpose |
+|------|---------|
+| `seo-agent/agent.py` | Main entry — APScheduler daemon with weekly/daily checks |
+| `seo-agent/checks.py` | Individual check functions (health, schema, prices, PageSpeed, Search Console) |
+| `seo-agent/telegram_notify.py` | Telegram notification service |
+
+### How It Works
+
+- **Weekly full report** (Monday 8am CET): Site health, structured data, price consistency, PageSpeed, Search Console rankings, keyword monitoring
+- **Daily quick check** (7am CET): Site health + price verification (silent unless issues found)
+- Monitors 14 key pages (DA/EN homepage, YTT programs, journal, glossary, contact)
+- Validates YTT pricing consistency across pages (23.750 DKK is correct price)
+- Tracks 10 target keywords (Danish + English)
+
+### Running
+
+```bash
+cd seo-agent
+pip install -r requirements.txt
+python agent.py           # Daemon mode (APScheduler)
+python agent.py --once    # One-time report
+```
+
+---
+
+## Scripts & Automation
+
+Utility scripts in `scripts/` for DevOps tasks.
+
+### Git Auto-Sync (`scripts/git-auto-sync.sh`)
+
+Bidirectional sync between local (iCloud) repo and GitHub. Runs every 5 min via launchd.
+
+- Safe fast-forward pulls + push for local changes
+- Handles iCloud `.git` corruption (conflict files, stale index.lock)
+- Lock file prevents concurrent syncs
+- Retry with exponential backoff for network failures
+- Config: `scripts/com.yogabible.git-sync.plist`
+
+### Cloudinary Asset Optimizer (`scripts/cloudinary-optimize-assets.sh`)
+
+Finds oversized images (>1MB) on Cloudinary and re-uploads optimized versions.
+
+- Converts to JPG (keeps PNG for brand assets)
+- Applies quality=85, scales to max 2400px
+- Reports savings percentage per asset
+
+### Cloudinary Storage Audit (`scripts/cloudinary-storage-audit.sh`)
+
+Detailed audit: largest images/videos, unoptimized formats, storage per folder.
+
+### Cloudinary Folder Creator (`scripts/cloudinary-create-missing-folders.sh`)
+
+Creates the full Cloudinary folder structure (16 folders).
+
+---
+
+## Live Streaming System
+
+Two-mode live streaming: one-way broadcast (Mux) + Zoom-style interactive (LiveKit).
+
+### Architecture
+
+| Component | Technology | Purpose |
+|-----------|-----------|---------|
+| One-way broadcast | Mux | Teacher → students via HLS player |
+| Interactive mode | LiveKit | Group video call (camera, mic, raise hand, chat) |
+| Panel mode | LiveKit | Multiple speakers + audience |
+| Google Meet | External | Alternative for quick sessions |
+
+### Key Files
+
+| File | Purpose |
+|------|---------|
+| `src/js/live.js` | Student-facing viewer + interactive mode toggle |
+| `src/js/live-admin.js` | Admin: schedule management, stream controls, Teacher Studio |
+| `netlify/functions/live-admin.js` | Schedule CRUD + MindBody import |
+| `netlify/functions/livekit-token.js` | LiveKit room creation + JWT tokens |
+| `netlify/functions/mux-stream.js` | Browser-based Mux stream creation |
+| `netlify/functions/mux-webhook.js` | Mux recording/asset webhooks |
+
+### Stream Types
+
+| Type | Description |
+|------|-------------|
+| `broadcast` | One-way (teacher → students via Mux HLS) |
+| `interactive` | LiveKit group call (requires login, all participants have camera/mic) |
+| `panel` | Expert panel with named speakers + audience |
+| `google-meet` | External Google Meet link |
+
+### AI Recording Processing
+
+After a live session ends, recordings are automatically processed:
+
+1. Mux webhook fires when asset is ready
+2. `ai-process-recording-background` requests captions from Mux
+3. Polls for caption readiness (up to 10 min)
+4. Downloads VTT transcript
+5. Claude generates summary + quiz
+6. Saved to Firestore `live-schedule` document
+
+**Fields:** `aiStatus` (`processing` → `captions_requested` → `captions_ready` → `summarizing` → `done`), `aiSummary`, `aiQuiz`, `aiSummaryLang`
+
+---
+
+## Purchase Funnel Tracking
+
+Multi-stage funnel analytics for YTT and course purchases.
+
+### Funnel Stages
+
+| Stage | Trigger |
+|-------|---------|
+| `cta_click` | User clicks CTA button |
+| `auth_complete` | User logs in or registers |
+| `profile_complete` | User fills phone + DOB |
+| `checkout_opened` | Checkout modal shown |
+| `purchased` | Payment complete |
+| `checkout_abandoned` | Modal closed without purchase |
+
+### Key Files
+
+| File | Purpose |
+|------|---------|
+| `src/js/ytt-funnel.js` | Funnel stage tracking + GA DataLayer pushes |
+| Firestore `lead_funnel` | `{userId}_{prodId}` documents with full history array |
+
+### URL Parameter Support
+
+The checkout flow supports `?product=100078` URL parameters to auto-open the checkout modal for a specific product. Useful for direct payment links in emails and SMS.
 
 ---
 
@@ -172,6 +601,7 @@ The store catalog lives in `src/js/profile.js` as the `storeCatalog` object with
 | `daily` | `memberships`, `timebased`, `clips`, `trials`, `tourist` | `service` or `contract` |
 | `teacher` | `deposits` (internal ID) | `service` |
 | `courses` | `individual`, `bundle` | `service` |
+| `workshops` | — | `service` |
 | `private` | — | `service` |
 
 Each catalog item can have: `name_da`, `name_en`, `desc_da`, `desc_en`, `features_da`, `features_en`, `period_da`, `period_en`, `format_da`, `format_en`, `price`, `prodId`, `vat_pct`.
@@ -266,8 +696,20 @@ The checkout flow modal replaces the old "auth modal → redirect to profile sto
 The `PRODUCTS` object in `checkout-flow.js` contains all CTA-purchasable items with: `price`, `name_da/en`, `period_da/en`, `format_da/en`, `desc_da/en`, `category`. **This must be kept in sync with `storeCatalog` in `profile.js`** when products are added/changed.
 
 Current products:
-- **Teacher Training (5):** 100078, 100121, 100211, 100209, 100210 — all 3750 DKK
-- **Courses (3):** 100145, 100150, 100140 — all 2300 DKK
+- **Teacher Training (5):** 100078, 100121, 100211, 100209, 100210 — all 3750 DKK (Preparation Phase)
+- **300h Advanced:** 100212 — 5750 DKK
+- **Courses (3):** 100145 (Inversions), 100150 (Splits), 100140 (Backbends) — all 2300 DKK
+- **Course Bundles (4):** 119, 120, 121 (2-course combos), 127 (All-In 3-course + free 1-month pass)
+- **Workshop (1):** 100075 — 975 DKK (individual YTT workshop pass, redirects to `/weekly-schedule/?filter=ytt`)
+
+**Active YTT Cohorts (as of March 2026):**
+- 100078 — 4-Week Intensive (April 2026)
+- 100121 — 8-Week Semi-Intensive (April–May 2026)
+- 100211 — 4-Week Vinyasa Plus (July 2026, 70% Vinyasa / 30% Yin + Hot Yoga)
+- 100209 — 18-Week Flexible (April–August 2026)
+- 100210 — 18-Week Flexible (August–December 2026)
+
+**WARNING:** `ytt-funnel.js` line 33 contains a test product (`100203: Test Klippekort`) marked "REMOVE before production". Do NOT use in live checkout flows.
 
 #### CSS Class Prefix
 
@@ -325,9 +767,14 @@ yoga-bible-DK/
 ├── studio/           ← studio facility photos (hot room, main room)
 ├── location/         ← venue/location photos
 ├── courses/          ← course hero images
-│   └── inversions/   ← inversions course specific
+│   ├── inversions/   ← inversions course specific
+│   ├── backbends/    ← backbends course specific
+│   └── splits/       ← splits course specific
 ├── programs/         ← program pages
-│   └── p4w/          ← 4-week program (accommodation, certificates)
+│   ├── p4w/          ← 4-week program (accommodation, certificates)
+│   ├── p8w/          ← 8-week semi-intensive program
+│   ├── p18w/         ← 18-week flexible program
+│   └── om200/        ← about 200-hour YTT overview
 ├── accommodation/    ← student housing photos
 ├── concepts/         ← concept pages
 │   ├── hotyoga/      ← Hot Yoga CPH images & videos
@@ -339,9 +786,20 @@ yoga-bible-DK/
 ├── compare/          ← teacher comparison avatars
 ├── mentorship/       ← mentorship page images
 ├── link/             ← link page hero & video
-├── schedule/         ← schedule page images
+├── schedule/         ← schedule page shared assets
+├── schedule-pages/   ← variant-specific schedule images
+│   ├── 4w/           ← 4-week schedule hero/OG
+│   ├── 8w/           ← 8-week schedule hero/OG
+│   ├── 18w/          ← 18-week schedule hero/OG
+│   └── 4w-jul/       ← 4-week July schedule hero/OG
 ├── member/           ← member area images
-└── journal/          ← blog post featured images
+├── journal/          ← blog post featured images
+├── materials/        ← course materials (doc-admin browser)
+├── tutorials/        ← video tutorial assets
+│   └── homepage/     ← homepage tutorial videos
+├── yogamusic/        ← yoga music page videos & posters
+└── yogaphotography/  ← photography page images
+    └── models/       ← model showcase photos
 ```
 
 ### Auto-Create Cloudinary Folder for New Pages (MANDATORY)

@@ -88,13 +88,16 @@
     var perms = base.slice(); // copy
     roleDetails = roleDetails || {};
 
-    // Trainee: grant access to their specific program materials + method
+    // Trainee: grant access to their specific program materials + method + cohort
     if (role === 'trainee') {
       if (roleDetails.program) {
         perms.push('materials:' + roleDetails.program);
       }
       if (roleDetails.method) {
         perms.push('method:' + roleDetails.method);
+      }
+      if (roleDetails.cohort) {
+        perms.push('cohort:' + roleDetails.cohort);
       }
       // Trainee may also have courseTypes (if they applied for courses too)
       if (roleDetails.courseTypes && roleDetails.courseTypes.length) {
@@ -133,6 +136,9 @@
     if (role === 'admin') {
       Object.keys(TRAINEE_PROGRAMS).forEach(function(p) {
         if (perms.indexOf('materials:' + p) === -1) perms.push('materials:' + p);
+      });
+      Object.keys(TRAINEE_METHODS).forEach(function(m) {
+        if (perms.indexOf('method:' + m) === -1) perms.push('method:' + m);
       });
       perms.push('admin:courses', 'admin:users', 'admin:content');
       // Deduplicate

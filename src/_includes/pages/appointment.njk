@@ -57,12 +57,16 @@
 
       {# Action buttons #}
       <div id="yb-appt-manage-actions" style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;"></div>
+
+      {# Calendar buttons (shown for confirmed appointments) #}
+      <div id="yb-appt-manage-calendar" hidden style="margin-top:16px;text-align:center;"></div>
     </div>
 
     {# Success state #}
     <div id="yb-appt-manage-success" hidden style="text-align:center;padding:40px;">
       <div style="font-size:48px;margin-bottom:16px;">&#9989;</div>
       <p id="yb-appt-success-msg" style="font-size:16px;color:#333;"></p>
+      <div id="yb-appt-success-calendar" style="margin:16px 0;"></div>
       <div style="margin-top:24px;display:flex;gap:12px;justify-content:center;flex-wrap:wrap;">
         <a href="{{ lp }}/link" class="yb-btn yb-btn--primary">{{ t.book_new }}</a>
         <a href="{{ lp }}/" class="yb-btn yb-btn--outline">{{ t.back_home }}</a>
@@ -89,6 +93,133 @@
   var errorEl = document.getElementById('yb-appt-manage-error');
   var detailsEl = document.getElementById('yb-appt-manage-details');
   var successEl = document.getElementById('yb-appt-manage-success');
+  var cardEl = document.getElementById('yb-appt-manage-card');
+  var actionsEl = document.getElementById('yb-appt-manage-actions');
+  var cancelSection = document.getElementById('yb-appt-manage-cancel');
+  var rescheduleSection = document.getElementById('yb-appt-manage-reschedule');
+
+  var calendarEl = document.getElementById('yb-appt-manage-calendar');
+  var successCalEl = document.getElementById('yb-appt-success-calendar');
+
+  var adminToken = params.get('admin_token');
+  var slotIndex = params.get('slot');
+
+  // Calendar helper — renders "Add to Calendar" buttons
+  function renderCalendarButtons(container, date, time, duration, typeName, location) {
+    if (!container || !date || !time) return;
+    var icsHelper = window.ybBuildIcsFile;
+    var gcalHelper = window.ybGetGoogleCalendarUrl;
+    if (!icsHelper) return;
+
+    var gcalUrl = gcalHelper ? gcalHelper(date, time, duration || 30, typeName || 'Appointment', location || 'studio') : '';
+
+    container.innerHTML = '<div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:center;">' +
+      '<button type="button" class="yb-appt-cal-ics" style="display:inline-flex;align-items:center;gap:6px;padding:8px 16px;background:#fff;border:1px solid #E8E4E0;border-radius:8px;font-size:13px;cursor:pointer;font-family:inherit;color:#333;">&#128197; ' + (isDa ? 'Tilføj til kalender (.ics)' : 'Add to calendar (.ics)') + '</button>' +
+      (gcalUrl ? '<a href="' + gcalUrl + '" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:6px;padding:8px 16px;background:#fff;border:1px solid #E8E4E0;border-radius:8px;font-size:13px;text-decoration:none;color:#333;">&#128279; Google Calendar</a>' : '') +
+      '</div>' +
+      '<p style="font-size:11px;color:#999;margin-top:6px;">' + (isDa ? '.ics virker med Apple Calendar, Outlook og de fleste kalenderapps' : '.ics works with Apple Calendar, Outlook, and most calendar apps') + '</p>';
+    container.hidden = false;
+
+    container.querySelector('.yb-appt-cal-ics').addEventListener('click', function() {
+      if (window.ybDownloadIcsFile) {
+        window.ybDownloadIcsFile(date, time, duration || 30, typeName || 'Appointment', location || 'studio');
+      }
+    });
+  }
+
+  // ── Admin confirm (approve request) ──
+  if (action === 'admin-confirm' && apptId && adminToken) {
+    loadingEl.innerHTML = '<p style="color:#f75c03;font-weight:600;">' + (isDa ? 'Godkender anmodning...' : 'Approving request...') + '</p>';
+    fetch(API, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'confirm-request', id: apptId, admin_token: adminToken, slot_index: slotIndex !== null ? parseInt(slotIndex) : undefined })
+    })
+    .then(function(r) { return r.json(); })
+    .then(function(res) {
+      loadingEl.hidden = true;
+      successEl.hidden = false;
+      document.getElementById('yb-appt-success-msg').textContent = res.ok
+        ? (isDa ? 'Anmodningen er godkendt! Klienten modtager en bekræftelse på email.' : 'Request approved! The client will receive a confirmation email.')
+        : (isDa ? 'Fejl: ' : 'Error: ') + (res.error || 'Unknown');
+      if (res.ok && res.date && res.time) {
+        renderCalendarButtons(successCalEl, res.date, res.time, res.duration);
+      }
+    })
+    .catch(function() {
+      loadingEl.hidden = true;
+      successEl.hidden = false;
+      document.getElementById('yb-appt-success-msg').textContent = isDa ? 'Netværksfejl. Prøv igen.' : 'Network error. Please try again.';
+    });
+    return;
+  }
+
+  // ── Admin suggest alternative ──
+  if (action === 'admin-suggest' && apptId && adminToken) {
+    loadingEl.hidden = true;
+    detailsEl.hidden = false;
+    cardEl.innerHTML = '<h2 style="font-size:18px;margin:0 0 12px;">' + (isDa ? 'Foreslå alternativ tid' : 'Suggest Alternative Time') + '</h2>' +
+      '<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;">' +
+      '<div><label style="display:block;margin-bottom:4px;font-size:14px;color:#666;">' + (isDa ? 'Dato' : 'Date') + '</label><input type="date" id="yb-appt-suggest-date" style="width:100%;padding:10px;border:1px solid #E8E4E0;border-radius:8px;font-family:inherit;font-size:14px;"></div>' +
+      '<div><label style="display:block;margin-bottom:4px;font-size:14px;color:#666;">' + (isDa ? 'Tid' : 'Time') + '</label><input type="time" id="yb-appt-suggest-time" style="width:100%;padding:10px;border:1px solid #E8E4E0;border-radius:8px;font-family:inherit;font-size:14px;"></div>' +
+      '</div>' +
+      '<div style="margin-bottom:16px;"><label style="display:block;margin-bottom:4px;font-size:14px;color:#666;">' + (isDa ? 'Besked til klienten (valgfri)' : 'Message to client (optional)') + '</label><textarea id="yb-appt-suggest-msg" rows="2" style="width:100%;padding:10px;border:1px solid #E8E4E0;border-radius:8px;font-family:inherit;font-size:14px;"></textarea></div>' +
+      '<button class="yb-btn yb-btn--primary" id="yb-appt-suggest-btn">' + (isDa ? 'Send forslag' : 'Send Suggestion') + '</button>';
+    actionsEl.innerHTML = '';
+    document.getElementById('yb-appt-suggest-btn').addEventListener('click', function() {
+      var sDate = document.getElementById('yb-appt-suggest-date').value;
+      var sTime = document.getElementById('yb-appt-suggest-time').value;
+      if (!sDate || !sTime) { alert(isDa ? 'Vælg dato og tid' : 'Please select date and time'); return; }
+      var btn = this;
+      btn.disabled = true;
+      btn.textContent = isDa ? 'Sender...' : 'Sending...';
+      fetch(API, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'suggest-alternative', id: apptId, admin_token: adminToken, suggested_date: sDate, suggested_time: sTime, admin_message: document.getElementById('yb-appt-suggest-msg').value })
+      })
+      .then(function(r) { return r.json(); })
+      .then(function(res) {
+        if (res.ok) {
+          detailsEl.hidden = true;
+          successEl.hidden = false;
+          document.getElementById('yb-appt-success-msg').textContent = isDa ? 'Forslag sendt! Klienten modtager en email med mulighed for at acceptere.' : 'Suggestion sent! The client will receive an email to accept.';
+        } else {
+          alert((isDa ? 'Fejl: ' : 'Error: ') + (res.error || ''));
+          btn.disabled = false;
+          btn.textContent = isDa ? 'Send forslag' : 'Send Suggestion';
+        }
+      });
+    });
+    return;
+  }
+
+  // ── Client accepts admin suggestion ──
+  if (action === 'accept-suggestion' && apptId && email && token) {
+    loadingEl.innerHTML = '<p style="color:#f75c03;font-weight:600;">' + (isDa ? 'Accepterer tidspunkt...' : 'Accepting time...') + '</p>';
+    fetch(API, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'accept-suggestion', id: apptId, email: email, token: token })
+    })
+    .then(function(r) { return r.json(); })
+    .then(function(res) {
+      loadingEl.hidden = true;
+      successEl.hidden = false;
+      document.getElementById('yb-appt-success-msg').textContent = res.ok
+        ? (isDa ? 'Tidspunktet er accepteret! Du modtager en bekræftelse på email.' : 'Time accepted! You\'ll receive a confirmation email.')
+        : (isDa ? 'Fejl: ' : 'Error: ') + (res.error || 'Unknown');
+      if (res.ok && res.date && res.time) {
+        renderCalendarButtons(successCalEl, res.date, res.time, res.duration);
+      }
+    })
+    .catch(function() {
+      loadingEl.hidden = true;
+      successEl.hidden = false;
+      document.getElementById('yb-appt-success-msg').textContent = isDa ? 'Netværksfejl.' : 'Network error.';
+    });
+    return;
+  }
 
   if (!apptId || !email || !token) {
     loadingEl.hidden = true;
@@ -103,11 +234,6 @@
   // Render the page based on URL action parameter
   loadingEl.hidden = true;
   detailsEl.hidden = false;
-
-  var cardEl = document.getElementById('yb-appt-manage-card');
-  var actionsEl = document.getElementById('yb-appt-manage-actions');
-  var cancelSection = document.getElementById('yb-appt-manage-cancel');
-  var rescheduleSection = document.getElementById('yb-appt-manage-reschedule');
 
   // We show a simple management page
   cardEl.innerHTML = '<p style="color:#666;text-align:center;">' + T.your_appointment + '</p>' +
@@ -191,6 +317,7 @@
           detailsEl.hidden = true;
           successEl.hidden = false;
           document.getElementById('yb-appt-success-msg').textContent = T.reschedule_success;
+          renderCalendarButtons(successCalEl, newDate, newTime);
         } else {
           alert(T.error + ' (' + (res.error || '') + ')');
           btn.disabled = false;

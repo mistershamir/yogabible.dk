@@ -308,6 +308,7 @@
     var mobileLoginBtn = document.getElementById('yb-auth-mobile-login');
     var mobileUserSection = document.getElementById('yb-auth-mobile-user');
     var mobileUserName = document.getElementById('yb-auth-mobile-name');
+    var mobileAvatar = mobileUserSection ? mobileUserSection.querySelector('.yb-drawer__auth-avatar') : null;
 
     if (user) {
       var displayName = user.displayName || user.email.split('@')[0];
@@ -323,6 +324,7 @@
       if (mobileLoginBtn) mobileLoginBtn.style.display = 'none';
       if (mobileUserSection) mobileUserSection.style.display = 'flex';
       if (mobileUserName) mobileUserName.textContent = displayName;
+      if (mobileAvatar) mobileAvatar.textContent = initials;
     } else {
       // Desktop: show login link, hide user info
       if (loginLink) loginLink.style.display = '';
@@ -464,17 +466,55 @@
       submitBtn.disabled = true;
       submitBtn.textContent = detectLocale() === 'da' ? 'Logger ind...' : 'Signing in...';
 
+      var resetBtn = function() {
+        submitBtn.disabled = false;
+        submitBtn.textContent = detectLocale() === 'da' ? 'Log ind' : 'Sign in';
+      };
+
+      // Timeout wrapper — prevents mobile from hanging forever on stalled requests
+      var loginTimeout = setTimeout(function() {
+        resetBtn();
+        showError(errorEl, detectLocale() === 'da' ? 'Login tog for lang tid. Prøv igen.' : 'Login timed out. Please try again.');
+      }, 15000);
+
       auth.signInWithEmailAndPassword(email, password)
         .then(function() {
+          clearTimeout(loginTimeout);
           closeAuthModal();
         })
         .catch(function(error) {
-          showError(errorEl, getAuthErrorMessage(error.code));
+          clearTimeout(loginTimeout);
+          if (error.code === 'auth/user-not-found' || error.code === 'auth/invalid-credential') {
+            // Check Mindbody — if they exist, create Firebase account with
+            // their password and sign in seamlessly.
+            fetch('/.netlify/functions/migrate-mb-user', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ email: email, password: password })
+            })
+              .then(function(res) {
+                if (!res.ok) throw new Error('Server error');
+                return res.json();
+              })
+              .then(function(data) {
+                if (data.created) {
+                  // Account created with their password — sign in now
+                  return auth.signInWithEmailAndPassword(email, password)
+                    .then(function() { closeAuthModal(); });
+                }
+                // Not in MB or already has Firebase account — show normal error
+                showErrorWithReset(errorEl);
+              })
+              .catch(function() {
+                showErrorWithReset(errorEl);
+              })
+              .finally(resetBtn);
+            return;
+          } else {
+            showError(errorEl, getAuthErrorMessage(error.code));
+          }
         })
-        .finally(function() {
-          submitBtn.disabled = false;
-          submitBtn.textContent = detectLocale() === 'da' ? 'Log ind' : 'Sign in';
-        });
+        .finally(resetBtn);
     });
   }
 
@@ -507,7 +547,7 @@
 
       if (!termsChecked || !conductChecked) {
         showError(errorEl, detectLocale() === 'da'
-          ? 'Du skal acceptere vores vilkår, privatlivspolitik og code of conduct.'
+          ? 'Du skal acceptere vores vilkår, privatlivspolitik og adfærdskodeks.'
           : 'You must agree to our terms, privacy policy and code of conduct.');
         return;
       }
@@ -536,7 +576,30 @@
           closeAuthModal();
         })
         .catch(function(error) {
-          showError(errorEl, getAuthErrorMessage(error.code));
+          if (error.code === 'auth/email-already-in-use') {
+            var isDa = detectLocale() === 'da';
+            if (errorEl) {
+              errorEl.innerHTML = isDa
+                ? 'Der findes allerede en konto med denne email. Vi har sendt dig en email til at oprette din adgangskode. Tjek din indbakke (og spam), eller <a href="#" id="yb-reg-reset-link" style="color:inherit;font-weight:700;text-decoration:underline">nulstil adgangskode &rarr;</a>'
+                : 'An account with this email already exists. We\'ve sent you an email to set your password. Check your inbox (and spam), or <a href="#" id="yb-reg-reset-link" style="color:inherit;font-weight:700;text-decoration:underline">reset password &rarr;</a>';
+              errorEl.hidden = false;
+              var resetLink = document.getElementById('yb-reg-reset-link');
+              if (resetLink) {
+                resetLink.addEventListener('click', function(ev) {
+                  ev.preventDefault();
+                  switchToPanel('yb-auth-reset');
+                });
+              }
+            }
+            // Send branded reset email via Resend
+            fetch('/.netlify/functions/send-password-reset', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ email: email, lang: isDa ? 'da' : 'en' })
+            }).catch(function() {});
+          } else {
+            showError(errorEl, getAuthErrorMessage(error.code));
+          }
         })
         .finally(function() {
           submitBtn.disabled = false;
@@ -565,21 +628,60 @@
 
       submitBtn.disabled = true;
 
-      auth.sendPasswordResetEmail(email)
-        .then(function() {
-          if (errorEl) { errorEl.hidden = true; }
-          if (successEl) {
-            successEl.textContent = detectLocale() === 'da'
-              ? 'Vi har sendt dig en email med et link til at nulstille din adgangskode.'
-              : 'We\'ve sent you an email with a link to reset your password.';
-            successEl.hidden = false;
+      // Send branded reset email via Resend (better deliverability than
+      // Firebase's built-in noreply@*.firebaseapp.com emails).
+      var lang = detectLocale();
+      fetch('/.netlify/functions/send-password-reset', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: email, lang: lang })
+      })
+        .then(function(res) { return res.json(); })
+        .then(function(data) {
+          if (data.ok) {
+            if (errorEl) { errorEl.hidden = true; }
+            if (successEl) {
+              successEl.textContent = lang === 'da'
+                ? 'Vi har sendt dig en email med et link til at nulstille din adgangskode.'
+                : 'We\'ve sent you an email with a link to reset your password.';
+              successEl.hidden = false;
+            }
+          } else {
+            showError(errorEl, lang === 'da' ? 'Der opstod en fejl. Prøv igen.' : 'An error occurred. Please try again.');
           }
         })
-        .catch(function(error) {
-          showError(errorEl, getAuthErrorMessage(error.code));
+        .catch(function() {
+          showError(errorEl, lang === 'da' ? 'Der opstod en fejl. Prøv igen.' : 'An error occurred. Please try again.');
         })
         .finally(function() {
           submitBtn.disabled = false;
+        });
+    });
+  }
+
+  // ============================================
+  // GOOGLE SIGN-IN
+  // ============================================
+
+  var googleProvider = new firebase.auth.GoogleAuthProvider();
+
+  var googleBtn = document.getElementById('yb-google-signin');
+  if (googleBtn) {
+    googleBtn.addEventListener('click', function() {
+      googleBtn.disabled = true;
+
+      auth.signInWithPopup(googleProvider)
+        .then(function() {
+          closeAuthModal();
+        })
+        .catch(function(error) {
+          // Ignore user-dismissed popups — not an error worth showing
+          if (error.code !== 'auth/popup-closed-by-user' && error.code !== 'auth/cancelled-popup-request') {
+            showError(document.getElementById('yb-login-error'), getAuthErrorMessage(error.code));
+          }
+        })
+        .finally(function() {
+          googleBtn.disabled = false;
         });
     });
   }
@@ -666,6 +768,16 @@
   function showError(el, message) {
     if (!el) return;
     el.textContent = message;
+    el.hidden = false;
+  }
+
+  // When all auth methods fail, show error with an inline link to the reset view
+  function showErrorWithReset(el) {
+    if (!el) return;
+    var isDa = detectLocale() === 'da';
+    el.innerHTML = isDa
+      ? 'Vi kunne ikke finde en konto med disse oplysninger. Allerede klient hos os? <a href="#" data-yb-auth-switch="register" style="color:inherit;font-weight:700;text-decoration:underline">Opret konto</a> med samme email som du booker med. Har du allerede en konto her? <a href="#" data-yb-auth-switch="reset" style="color:inherit;font-weight:700;text-decoration:underline">Nulstil adgangskode &rarr;</a>'
+      : 'We couldn\'t find an account with these details. Already a client? <a href="#" data-yb-auth-switch="register" style="color:inherit;font-weight:700;text-decoration:underline">Create an account</a> with the same email you book with. Already have one here? <a href="#" data-yb-auth-switch="reset" style="color:inherit;font-weight:700;text-decoration:underline">Reset password &rarr;</a>';
     el.hidden = false;
   }
 

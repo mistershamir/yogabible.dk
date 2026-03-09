@@ -57,9 +57,17 @@
     if (cityInput) cityInput.hidden = true;
     toggleBtns.forEach(b => b.classList.toggle('is-active', b.dataset.acc === 'No'));
 
-    // Pre-check default format
+    // Pre-check default format(s)
+    // Support '4w' as a shorthand that selects both 4w-apr and 4w-jul
+    // Support '18w' as a shorthand that selects both 18w-mar and 18w-aug
     modal.querySelectorAll('input[name="format"]').forEach(cb => {
-      cb.checked = cb.value === defaultFormat;
+      if (defaultFormat === '4w') {
+        cb.checked = cb.value === '4w-apr' || cb.value === '4w-jul';
+      } else if (defaultFormat === '18w') {
+        cb.checked = cb.value === '18w-mar' || cb.value === '18w-aug';
+      } else {
+        cb.checked = cb.value === defaultFormat;
+      }
     });
 
     // Lock body scroll
@@ -148,18 +156,19 @@
       submitBtn.textContent = 'Sender…';
 
       const p = new URLSearchParams();
-      p.append('action', 'lead_schedule_' + fmts[0]);
+      if (fmts.length > 1) {
+        p.append('action', 'lead_schedule_multi');
+        p.append('allFormats', fmts.join(','));
+      } else {
+        p.append('action', 'lead_schedule_' + fmts[0]);
+      }
       p.append('firstName', fn);
       p.append('lastName', ln);
       p.append('email', em);
       p.append('phone', ph);
       p.append('accommodation', acc);
-      p.append('source', 'Modal-' + (fmts.length > 1 ? 'Multi' : fmts[0]));
+      p.append('source', 'Modal-' + (fmts.length > 1 ? 'Multi-' + fmts.join('+') : fmts[0]));
       if (city) p.append('cityCountry', city);
-      if (fmts.length > 1) {
-        p.append('multiFormat', 'Yes');
-        p.append('allFormats', fmts.join(','));
-      }
 
       // POST to Netlify Function with query params as body
       fetch(FORM_URL, { method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, body: p.toString() })

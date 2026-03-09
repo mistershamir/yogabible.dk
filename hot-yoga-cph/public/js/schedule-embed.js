@@ -25,13 +25,27 @@
   var isDa = window.location.pathname.indexOf('/en/') !== 0;
   function t(da, en) { return isDa ? da : en; }
 
+  // ── Filter aliases (URL ?filter=key → sessionTypeName match) ──────
+  var FILTER_ALIASES = {
+    'ytt': '200hrs Teacher Training Workshops'
+  };
+
   // ── State ───────────────────────────────────────────────────────────
   var scheduleUser = null;
   var scheduleMbClientId = null;
   var schedulePassData = null;
   var scheduleWaiverSigned = false;
   var scheduleWeekOffset = 0;
-  var scheduleClassFilter = 'all';
+  var scheduleInitialFilter = (function () {
+    try {
+      var p = new URLSearchParams(window.location.search);
+      var f = p.get('filter');
+      if (f && FILTER_ALIASES[f]) return FILTER_ALIASES[f];
+      if (f) return f;
+    } catch (e) {}
+    return 'all';
+  })();
+  var scheduleClassFilter = scheduleInitialFilter;
   var scheduleShowAllDays = false;
   var scheduleAllClasses = [];
   var scheduleWeekStart = null;
@@ -539,6 +553,9 @@
         filters.push({ id: st, label: st });
       }
     });
+    if (scheduleClassFilter !== 'all' && !seen[scheduleClassFilter]) {
+      filters.push({ id: scheduleClassFilter, label: scheduleClassFilter });
+    }
     filters.sort(function (a, b) {
       if (a.id === 'all') return -1;
       if (b.id === 'all') return 1;
@@ -1312,6 +1329,13 @@
     setLang: function (lang) {
       isDa = lang === 'da';
       rebuildUI();
+    },
+    setFilter: function (f) {
+      scheduleClassFilter = (FILTER_ALIASES[f] || f || 'all');
+      scheduleShowAllDays = false;
+      renderFilterDropdown(scheduleAllClasses);
+      var listEl = document.getElementById('ybs-list');
+      if (listEl) renderSchedule(listEl, scheduleAllClasses, scheduleWeekStart);
     }
   };
 

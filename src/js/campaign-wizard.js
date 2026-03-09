@@ -33,7 +33,7 @@
       recency: null,
       housing: false,
       meta: false,
-      excludeConverted: false,
+      excludeConverted: true,
       excludeRecent: false,
       excludeNotInterested: true,
       excludeBadLeads: true,
@@ -43,6 +43,14 @@
     selectedIds: new Set(),
     excludedIds: new Set(),
     searchTerm: '',
+
+    // All leads/apps loaded for this campaign session (not limited to the current page)
+    campaignLeads: [],
+    campaignApps: [],
+    recipientsLoading: false,
+
+    // When opened from bulk bar: these IDs are pinned and survive filter changes
+    pinnedIds: new Set(),
 
     // Compose state
     smsTemplateId: '',
@@ -57,10 +65,15 @@
     attachment: null,          // { name, type, data (base64) }
 
     // Send state
+    provider: 'resend',  // 'gmail' | 'resend' — auto-set when wizard opens
     schedule: 'now',
     customSchedule: '',
     sending: false,
-    results: null
+    results: null,
+
+    // Recent campaign history (fetched from campaign-log on open)
+    recentCampaigns: [],
+    recentCampaignsLoaded: false
   };
 
   /* ══════════════════════════════════════════
@@ -75,6 +88,24 @@
     if (cls) e.className = cls;
     if (html !== undefined) e.innerHTML = html;
     return e;
+  }
+
+  /* ══════════════════════════════════════════
+     PERIOD HELPERS
+     ══════════════════════════════════════════ */
+  var MONTH_IDS = ['january','february','march','april','may','june','july','august','september','october','november','december'];
+  var MONTH_LABELS = ['Jan','Feb','Mar','Apr','Maj','Jun','Jul','Aug','Sep','Okt','Nov','Dec'];
+
+  function getNextMonths(count) {
+    var result = [];
+    var now = new Date();
+    for (var i = 0; i < count; i++) {
+      var d = new Date(now.getFullYear(), now.getMonth() + i, 1);
+      var mo = d.getMonth();
+      var yr = d.getFullYear();
+      result.push({ id: MONTH_IDS[mo], label: MONTH_LABELS[mo] + ' ' + yr });
+    }
+    return result;
   }
 
   /* ══════════════════════════════════════════
@@ -130,11 +161,16 @@
     var course = String(lead.course_name || '').toLowerCase();
 
     if (programId === '200h') {
+      // Matches YTT leads where program type is 18w/8w/4w (or unspecified, which defaults to 200h)
+      // Specifically excludes 300h / 50h / 30h which always have their ytt_program_type set
       var isYtt = type === 'ytt';
+      if (!isYtt) return false;
+      if (yttSub === '300h' || yttSub === '50h' || yttSub === '30h') return false;
       var hasWeekFormat = /\b(4|8|18).?(uge|week)/i.test(prog);
       var hasYttSubtype = /^(4|8|18)/i.test(yttSub);
       var has200 = /200/i.test(prog);
-      return isYtt && (hasWeekFormat || hasYttSubtype || has200);
+      var isUnspecified = yttSub === '' || yttSub === '200h';
+      return hasWeekFormat || hasYttSubtype || has200 || isUnspecified;
     }
     if (programId === '30h') return /\b30.?(h|hour|timer)/i.test(prog) || yttSub === '30h';
     if (programId === '50h') return /\b50.?(h|hour|timer)/i.test(prog) || yttSub === '50h';
@@ -174,13 +210,24 @@
 
   function matchesStatus(lead, statusId) {
     var status = String(lead.status || '').toLowerCase();
+    // Lead statuses
     if (statusId === 'new') return status === '' || status === 'new' || status.includes('ny');
-    if (statusId === 'hot') return status.includes('hot') || status.includes('strongly');
+    if (statusId === 'hot') return status === 'hot';
+    if (statusId === 'strongly-interested') return status === 'strongly interested';
+    if (statusId === 'next-round') return status === 'interested in next round';
     if (statusId === 'no-answer') return status.includes('no answer') || status.includes('ikke svar');
     if (statusId === 'contacted') return status.includes('contact');
     if (statusId === 'follow-up') return status.includes('follow');
+    if (statusId === 'engaged') return status === 'engaged';
+    if (statusId === 'on-hold') return status === 'on hold';
     if (statusId === 'pending') return status.includes('pending') || status.includes('afventer');
     if (statusId === 'deposit') return status.includes('deposit') || status.includes('depositum');
+    // Application statuses
+    if (statusId === 'app-approved')   return status === 'approved';
+    if (statusId === 'app-active')     return status === 'active';
+    if (statusId === 'app-waitlisted') return status.includes('waitlist');
+    if (statusId === 'app-rejected')   return status === 'rejected' || status.includes('rejected');
+    if (statusId === 'app-withdrawn')  return status.includes('withdrawn') || status.includes('trukket');
     return false;
   }
 
@@ -188,12 +235,14 @@
      FILTER ENGINE
      ══════════════════════════════════════════ */
   function getAllLeads() {
-    if (!bridge) return [];
     var result = [];
     var src = campaignState.filters.source;
 
     if (src === 'all' || src === 'leads' || src === 'careers') {
-      var lds = bridge.getLeads() || [];
+      // Prefer campaign-local full load; fall back to bridge's paginated array
+      var lds = campaignState.campaignLeads.length > 0
+        ? campaignState.campaignLeads
+        : (bridge ? bridge.getLeads() || [] : []);
       lds.forEach(function (l) {
         l._source = (l.type === 'careers') ? 'career' : 'lead';
         // Filter: 'leads' excludes careers, 'careers' includes only careers
@@ -203,7 +252,9 @@
       });
     }
     if (src === 'all' || src === 'apps') {
-      var apps = bridge.getApplications() || [];
+      var apps = campaignState.campaignApps.length > 0
+        ? campaignState.campaignApps
+        : (bridge ? bridge.getApplications() || [] : []);
       apps.forEach(function (a) { a._source = 'app'; result.push(a); });
     }
     return result;
@@ -324,7 +375,9 @@
       // Exclude filters
       if (f.excludeConverted) {
         var st = String(lead.status || '').toLowerCase();
-        if (st === 'converted' || st.includes('konverteret')) return false;
+        if (st === 'converted' || st.includes('konverteret') || st === 'existing applicant') return false;
+        // Only check application_id for lead records — application docs always have this field as their own ID
+        if (lead._source !== 'app' && lead.application_id) return false;
       }
       if (f.excludeNotInterested) {
         var st2 = String(lead.status || '').toLowerCase();
@@ -339,7 +392,8 @@
         if (st4 === 'unsubscribed' || st4.includes('afmeld')) return false;
       }
       if (f.excludeRecent) {
-        var lastContact = lead.last_contact_at || lead.last_sms_at;
+        // Check all possible field names for last contact timestamp
+        var lastContact = lead.last_contact || lead.last_contact_at || lead.last_sms_at;
         if (lastContact) {
           if (lastContact.toDate) lastContact = lastContact.toDate();
           else lastContact = new Date(lastContact);
@@ -365,12 +419,26 @@
 
     campaignState.allRecipients = filtered;
 
-    // Auto-select all if selectedIds is empty and we haven't manually changed
-    if (campaignState.selectedIds.size === 0 && filtered.length > 0) {
-      filtered.forEach(function (l) { campaignState.selectedIds.add(l.id); });
+    var filteredIdSet = new Set(filtered.map(function (l) { return l.id; }));
+
+    if (campaignState.pinnedIds.size > 0) {
+      // Pinned mode: leads were pre-selected from the table — keep them even if filters change
+      var allIds = new Set(filtered.map(function (l) { return l.id; }));
+      campaignState.pinnedIds.forEach(function (id) {
+        if (!allIds.has(id)) {
+          var allPool = getAllLeads();
+          var pinned = allPool.find(function (l) { return l.id === id; });
+          if (pinned) { filtered.push(pinned); filteredIdSet.add(id); }
+        }
+        campaignState.selectedIds.add(id);
+      });
+      campaignState.selectedIds.forEach(function (id) {
+        if (!filteredIdSet.has(id) && !campaignState.pinnedIds.has(id)) {
+          campaignState.selectedIds.delete(id);
+        }
+      });
     } else {
-      // Remove selectedIds that are no longer in filtered
-      var filteredIdSet = new Set(filtered.map(function (l) { return l.id; }));
+      // No pinned leads — remove de-filtered IDs but never auto-select anything
       campaignState.selectedIds.forEach(function (id) {
         if (!filteredIdSet.has(id)) campaignState.selectedIds.delete(id);
       });
@@ -399,16 +467,34 @@
       { id: 'careers', label: t('campaign_filter_source_careers') || 'Careers' }
     ], [f.source], 'source', true);
 
-    // Status
-    html += buildChipSection('campaign_filter_status', [
-      { id: 'new', label: t('campaign_filter_status_new') },
-      { id: 'hot', label: t('campaign_filter_status_hot') },
-      { id: 'no-answer', label: t('campaign_filter_status_noanswer') },
-      { id: 'contacted', label: t('campaign_filter_status_contacted') },
-      { id: 'follow-up', label: t('campaign_filter_status_followup') },
-      { id: 'pending', label: t('campaign_filter_status_pending') },
-      { id: 'deposit', label: t('campaign_filter_status_deposit') }
-    ], f.statuses, 'statuses');
+    // Status — chips adapt to the selected data source
+    var statusChips;
+    if (f.source === 'apps') {
+      // Application statuses
+      statusChips = [
+        { id: 'app-approved',   label: '✅ Approved' },
+        { id: 'app-active',     label: '🎓 Active' },
+        { id: 'app-waitlisted', label: '⏳ Waitlisted' },
+        { id: 'app-rejected',   label: '❌ Rejected' },
+        { id: 'app-withdrawn',  label: '↩️ Withdrawn' }
+      ];
+    } else {
+      // Lead statuses
+      statusChips = [
+        { id: 'new', label: t('campaign_filter_status_new') },
+        { id: 'hot', label: t('campaign_filter_status_hot') },
+        { id: 'no-answer', label: t('campaign_filter_status_noanswer') },
+        { id: 'contacted', label: t('campaign_filter_status_contacted') },
+        { id: 'follow-up', label: t('campaign_filter_status_followup') },
+        { id: 'engaged', label: 'Engaged' },
+        { id: 'strongly-interested', label: '⭐ Strongly Interested' },
+        { id: 'on-hold', label: 'On Hold' },
+        { id: 'next-round', label: '📅 Next Round' },
+        { id: 'pending', label: t('campaign_filter_status_pending') },
+        { id: 'deposit', label: t('campaign_filter_status_deposit') }
+      ];
+    }
+    html += buildChipSection('campaign_filter_status', statusChips, f.statuses, 'statuses');
 
     // Program
     html += buildChipSection('campaign_filter_program', [
@@ -474,12 +560,8 @@
     });
     html += '</div></div>';
 
-    // Period
-    html += buildChipSection('campaign_filter_period', [
-      { id: 'february', label: 'Feb' }, { id: 'march', label: 'Mar' },
-      { id: 'april', label: 'Apr' }, { id: 'may', label: 'Maj' },
-      { id: 'june', label: 'Jun' }
-    ], f.periods, 'periods');
+    // Period — dynamically generated: current month + next 11 months
+    html += buildChipSection('campaign_filter_period', getNextMonths(12), f.periods, 'periods');
 
     // Track (Weekday / Weekend) — for applications
     html += buildChipSection('campaign_filter_track', [
@@ -577,47 +659,110 @@
   }
 
   /* ══════════════════════════════════════════
+     STATUS BADGE COLORS
+     ══════════════════════════════════════════ */
+  var STATUS_BADGE = {
+    'New':                { bg: '#F0EDE8', color: '#6F6A66' },
+    'Contacted':          { bg: '#e3f2fd', color: '#1565c0' },
+    'No Answer':          { bg: '#fff3e0', color: '#e65100' },
+    'Follow-up':          { bg: '#fff8e1', color: '#f57f17' },
+    'Engaged':            { bg: '#f3e5f5', color: '#6a1b9a' },
+    'Qualified':          { bg: '#e8f5e9', color: '#2e7d32' },
+    'Negotiating':        { bg: '#fce4ec', color: '#880e4f' },
+    'Converted':          { bg: '#d4edda', color: '#155724' },
+    'Existing Applicant': { bg: '#cce5ff', color: '#004085' },
+    'On Hold':            { bg: '#eeeeee', color: '#616161' },
+    'Not too keen':       { bg: '#ffeeba', color: '#856404' },
+    'Unsubscribed':       { bg: '#ffeeba', color: '#856404' },
+    'Lost':               { bg: '#f8d7da', color: '#721c24' },
+    'Closed':             { bg: '#e2e3e5', color: '#383d41' },
+    'Hot':                { bg: '#ff5252', color: '#fff' }
+  };
+
+  function getStatusBadge(status) {
+    return STATUS_BADGE[status] || { bg: '#F0EDE8', color: '#6F6A66' };
+  }
+
+  /* ══════════════════════════════════════════
      RECIPIENT LIST RENDERING
      ══════════════════════════════════════════ */
   function renderRecipientList(container) {
     var recipients = campaignState.allRecipients;
     var selectedCount = campaignState.selectedIds.size;
     var contactField = campaignState.type === 'sms' ? 'phone' : 'email';
+    var totalInPool = campaignState.campaignLeads.length + campaignState.campaignApps.length;
 
     // Header: count + match label on one line
+    var totalNote = totalInPool > 0 && totalInPool > recipients.length
+      ? ' <span class="yb-lead__campaign-rl-pool-note">(' + totalInPool + ' i alt)</span>'
+      : '';
+    var pinnedNote = campaignState.pinnedIds.size > 0
+      ? ' <span class="yb-lead__campaign-rl-pinned-note">· ' + campaignState.pinnedIds.size + ' fastlåst fra bulk-valg</span>'
+      : '';
+
     var html = '<div class="yb-lead__campaign-recipient-header">' +
-      '<span class="yb-lead__campaign-recipient-count">' + recipients.length + '</span> ' +
+      '<span class="yb-lead__campaign-recipient-count">' + recipients.length + '</span>' +
       '<span class="yb-lead__campaign-recipient-label">' + esc(t('campaign_recipients_count')) + '</span>' +
+      totalNote + pinnedNote +
       '</div>';
 
-    // Toolbar: select all | selected count | deselect
+    // Toolbar
     html += '<div class="yb-lead__campaign-recipient-toolbar">' +
-      '<button type="button" data-action="campaign-select-all">' + esc(t('campaign_recipients_select_all')) + '</button>' +
-      '<span class="yb-lead__campaign-recipient-toolbar-count">' + selectedCount + ' ' + esc(t('campaign_recipients_selected')) + '</span>' +
-      '<button type="button" data-action="campaign-deselect-all">' + esc(t('campaign_recipients_deselect_all')) + '</button>' +
+      '<button type="button" data-action="campaign-select-all" class="yb-lead__campaign-rl-tbtn">' + esc(t('campaign_recipients_select_all')) + '</button>' +
+      '<span class="yb-lead__campaign-rl-selected">' + selectedCount + ' ' + esc(t('campaign_recipients_selected')) + '</span>' +
+      '<button type="button" data-action="campaign-deselect-all" class="yb-lead__campaign-rl-tbtn">' + esc(t('campaign_recipients_deselect_all')) + '</button>' +
       '</div>';
 
     if (recipients.length === 0) {
       html += '<div class="yb-lead__campaign-no-match">' + esc(t('campaign_recipients_no_match')) + '</div>';
     } else {
-      // Grid-based recipient list — columns: checkbox | flag | name (1fr) | contact | program
       html += '<div class="yb-lead__campaign-recipient-list">';
+
       recipients.forEach(function (lead) {
-        var checked = campaignState.selectedIds.has(lead.id) ? ' checked' : '';
+        var isSelected = campaignState.selectedIds.has(lead.id);
+        var checked = isSelected ? ' checked' : '';
         var country = detectCountry(lead);
         var fullName = ((lead.first_name || '') + ' ' + (lead.last_name || '')).trim();
         var name = esc(fullName) || esc(lead.email || lead.phone || 'Unknown');
-        var contact = esc(lead[contactField] || '');
-        var prog = esc(lead.program || lead.type || '');
+        var initial = (lead.first_name || lead.email || '?').charAt(0).toUpperCase();
+        var contact = esc(lead[contactField] || '—');
+        var prog = esc(lead.program || lead.type || lead.program_type || '');
+        var status = lead.status || lead._source === 'app' ? (lead.status || 'Applicant') : 'Lead';
+        var badge = getStatusBadge(status);
+        var source = lead._source === 'app' ? 'app' : 'lead';
 
-        html += '<div class="yb-lead__campaign-recipient-row" data-lead-id="' + lead.id + '">' +
+        // Per-lead communication history badges
+        var histBadges = '';
+        var contactField2 = campaignState.type;
+        if (lead.last_email_campaign && lead.last_email_campaign.sentAt) {
+          var emailDate = lead.last_email_campaign.sentAt.substring(0, 10);
+          var emailSubj = lead.last_email_campaign.subject || 'Email';
+          histBadges += '<span class="yb-lead__campaign-ri-hist yb-lead__campaign-ri-hist--email" title="Last email: ' + esc(emailSubj) + ' · ' + esc(emailDate) + '">📧 ' + esc(emailDate) + '</span>';
+        }
+        if (lead.last_sms_campaign && lead.last_sms_campaign.sentAt) {
+          var smsDate = lead.last_sms_campaign.sentAt.substring(0, 10);
+          histBadges += '<span class="yb-lead__campaign-ri-hist yb-lead__campaign-ri-hist--sms" title="Last SMS · ' + esc(smsDate) + '">📱 ' + esc(smsDate) + '</span>';
+        }
+
+        html += '<label class="yb-lead__campaign-recipient-row' + (isSelected ? ' is-selected' : '') + '" data-lead-id="' + lead.id + '">' +
           '<input type="checkbox" class="yb-lead__campaign-recipient-check" data-action="campaign-toggle-recipient"' + checked + '>' +
-          '<span class="yb-lead__campaign-recipient-flag">' + getFlag(country) + '</span>' +
-          '<span class="yb-lead__campaign-recipient-name">' + name + '</span>' +
-          '<span class="yb-lead__campaign-recipient-contact">' + contact + '</span>' +
-          '<span class="yb-lead__campaign-recipient-program">' + prog + '</span>' +
-          '</div>';
+          '<div class="yb-lead__campaign-ri-avatar">' + esc(initial) + '</div>' +
+          '<div class="yb-lead__campaign-ri-body">' +
+            '<div class="yb-lead__campaign-ri-top">' +
+              '<span class="yb-lead__campaign-ri-name">' + name + '</span>' +
+              '<span class="yb-lead__campaign-ri-status" style="background:' + badge.bg + ';color:' + badge.color + '">' + esc(status) + '</span>' +
+              histBadges +
+            '</div>' +
+            '<div class="yb-lead__campaign-ri-sub">' +
+              '<span class="yb-lead__campaign-ri-flag">' + getFlag(country) + '</span>' +
+              '<span class="yb-lead__campaign-ri-contact">' + contact + '</span>' +
+              (prog ? '<span class="yb-lead__campaign-ri-dot">·</span><span class="yb-lead__campaign-ri-prog">' + prog + '</span>' : '') +
+              (source === 'app' ? '<span class="yb-lead__campaign-ri-src">APP</span>' : '') +
+            '</div>' +
+          '</div>' +
+        '</label>';
       });
+
       html += '</div>';
     }
 
@@ -631,11 +776,19 @@
     applyFilters();
 
     var prefix = campaignState.type; // 'sms' or 'email'
-    panelEl.innerHTML = '<div class="yb-lead__campaign-recipients">' +
-      '<div class="yb-lead__campaign-filters" id="yb-campaign-' + prefix + '-filters-area"></div>' +
-      '<div class="yb-lead__campaign-recipient-list-wrap" id="yb-campaign-' + prefix + '-recipients-list"></div>' +
+    var loadingBanner = campaignState.recipientsLoading
+      ? '<div class="yb-lead__campaign-loading-banner">Indlæser alle leads fra databasen…</div>'
+      : '';
+
+    panelEl.innerHTML =
+      loadingBanner +
+      '<div id="yb-campaign-' + prefix + '-history"></div>' +
+      '<div class="yb-lead__campaign-recipients">' +
+        '<div class="yb-lead__campaign-filters" id="yb-campaign-' + prefix + '-filters-area"></div>' +
+        '<div class="yb-lead__campaign-recipient-list-wrap" id="yb-campaign-' + prefix + '-recipients-list"></div>' +
       '</div>';
 
+    renderCampaignHistory($('yb-campaign-' + prefix + '-history'));
     renderFilterPanel($('yb-campaign-' + prefix + '-filters-area'));
     renderRecipientList($('yb-campaign-' + prefix + '-recipients-list'));
     updateRecipientBadge();
@@ -1005,6 +1158,40 @@
         '</div>';
     }
 
+    // ── Delivery provider selector (email only) ──────────────────────────────
+    if (!isSMS) {
+      var isResend = campaignState.provider === 'resend';
+      var autoNote = selectedCount > 10
+        ? '<span class="yb-lead__campaign-provider-auto-note">Auto-valgt for ' + selectedCount + '+ modtagere</span>'
+        : '';
+      html += '<div class="yb-lead__campaign-provider-section">' +
+        '<div class="yb-lead__campaign-filter-label">Afsendelsesmetode</div>' +
+        '<div class="yb-lead__campaign-provider-cards">' +
+
+        // Gmail card
+        '<label class="yb-lead__campaign-provider-card' + (!isResend ? ' is-selected' : '') + '">' +
+          '<input type="radio" name="campaign-provider" value="gmail" data-action="campaign-set-provider"' + (!isResend ? ' checked' : '') + '>' +
+          '<div class="yb-lead__campaign-provider-icon">✉️</div>' +
+          '<div class="yb-lead__campaign-provider-body">' +
+            '<div class="yb-lead__campaign-provider-name">Gmail SMTP</div>' +
+            '<div class="yb-lead__campaign-provider-desc">Personlig 1:1-afsendelse · Vises i Sendt-mappe · Bedst til &lt;25 modtagere</div>' +
+          '</div>' +
+        '</label>' +
+
+        // Resend card
+        '<label class="yb-lead__campaign-provider-card' + (isResend ? ' is-selected' : '') + '">' +
+          '<input type="radio" name="campaign-provider" value="resend" data-action="campaign-set-provider"' + (isResend ? ' checked' : '') + '>' +
+          '<div class="yb-lead__campaign-provider-icon">🚀</div>' +
+          '<div class="yb-lead__campaign-provider-body">' +
+            '<div class="yb-lead__campaign-provider-name">Resend <span class="yb-lead__campaign-provider-badge">Anbefalet</span>' + autoNote + '</div>' +
+            '<div class="yb-lead__campaign-provider-desc">Inbox-optimeret bulk · Ingen Gmail-rod · List-Unsubscribe header · 3.000 gratis/md</div>' +
+          '</div>' +
+        '</label>' +
+
+        '</div>' + // .provider-cards
+        '</div>'; // .provider-section
+    }
+
     // Schedule options
     html += '<div class="yb-lead__campaign-filter-section">' +
       '<span class="yb-lead__campaign-filter-label">' + esc(t('campaign_send_schedule')) + '</span></div>';
@@ -1112,44 +1299,16 @@
     var idx = tabs.indexOf(tabName);
     if (idx === -1) return;
 
-    var currentIdx = tabs.indexOf(campaignState.tab);
-    var isAdvancing = idx > currentIdx;
-
-    // Only validate when advancing FORWARD — going back is always free
-    if (isAdvancing) {
-      // Must have recipients selected to go past recipients tab
-      if (tabName !== 'recipients' && campaignState.selectedIds.size === 0) {
-        if (bridge) bridge.toast(t('campaign_recipients_no_match'), true);
-        return;
-      }
-      // Must have composed message to go to preview or send
-      var needsCompose = (tabName === 'preview' || tabName === 'send');
-      if (needsCompose) {
-        if (campaignState.type === 'sms' && !campaignState.smsMessage.trim()) {
-          if (bridge) bridge.toast(t('leads_sms_empty'), true);
-          return;
-        }
-        if (campaignState.type === 'email' && !campaignState.emailSubject.trim() && !campaignState.emailBodyHtml.trim()) {
-          if (bridge) bridge.toast(t('leads_email_empty'), true);
-          return;
-        }
-      }
-    }
-
     campaignState.tab = tabName;
-
-    // Track highest visited tab — allows free back-navigation to any visited step
     campaignState.maxVisitedTab = Math.max(campaignState.maxVisitedTab, idx);
 
-    // Update tab buttons
+    // Update tab buttons — all tabs always clickable
     var tabBtns = document.querySelectorAll('#yb-campaign-' + prefix + '-tabs .yb-lead__campaign-tab');
     tabBtns.forEach(function (btn) {
       var tName = btn.getAttribute('data-tab');
       var tIdx = tabs.indexOf(tName);
       btn.classList.toggle('is-active', tName === tabName);
-      // Allow clicking any tab up to maxVisitedTab
-      btn.disabled = tIdx > campaignState.maxVisitedTab;
-      // Mark previously visited tabs for styling
+      btn.disabled = false;
       btn.classList.toggle('is-visited', tIdx <= campaignState.maxVisitedTab && tName !== tabName);
     });
 
@@ -1221,20 +1380,26 @@
     var isSMS = campaignState.type === 'sms';
     var recipients = campaignState.allRecipients.filter(function (l) { return campaignState.selectedIds.has(l.id); });
     var total = recipients.length;
-    var batchSize = 10;
-    var results = { sent: 0, failed: 0, skipped: 0, scheduled: 0, errors: [] };
 
-    // Show progress
+    // Show progress bar + disable send button
     var progressEl = $('yb-campaign-progress');
     if (progressEl) progressEl.classList.add('is-active');
     var sendBtn = $('yb-campaign-send-all-btn');
     if (sendBtn) sendBtn.disabled = true;
 
+    // ── Resend path (email only): one batch request to backend ────────────
+    if (!isSMS && campaignState.provider === 'resend') {
+      sendAllViaResend(recipients, total);
+      return;
+    }
+
+    // ── Gmail / SMS path: sequential per-lead loop ─────────────────────────
+    var batchSize = 10;
+    var results = { sent: 0, failed: 0, skipped: 0, scheduled: 0, errors: [] };
     var batches = [];
     for (var i = 0; i < recipients.length; i += batchSize) {
       batches.push(recipients.slice(i, i + batchSize));
     }
-
     var batchIdx = 0;
 
     function processBatch() {
@@ -1264,9 +1429,8 @@
 
       Promise.all(promises).then(function () {
         batchIdx++;
-        var done = Math.min((batchIdx * batchSize), total);
+        var done = Math.min(batchIdx * batchSize, total);
         updateProgress(done, total, batchIdx, batches.length);
-        // Small delay between batches
         setTimeout(processBatch, 200);
       });
     }
@@ -1274,15 +1438,83 @@
     processBatch();
   }
 
+  // One-shot Resend bulk call — backend fetches leads, personalises, and
+  // sends in Resend batch API calls (100/request). Much faster than looping.
+  function sendAllViaResend(recipients, total) {
+    var leadIds = recipients.filter(function (l) { return l._source !== 'app'; }).map(function (l) { return l.id; });
+    var appIds = recipients.filter(function (l) { return l._source === 'app'; }).map(function (l) { return l.id; });
+
+    updateProgress(0, total, 0, 1);
+
+    bridge.getAuthToken().then(function (token) {
+      var body = {
+        subject: campaignState.emailSubject,
+        bodyHtml: campaignState.emailBodyHtml,
+        bodyPlain: '',
+        provider: 'resend'
+      };
+      if (leadIds.length > 0) body.leadIds = leadIds;
+      if (appIds.length > 0) body.applicationIds = appIds;
+
+      // If there are both leads and apps, send two requests
+      var requests = [];
+      if (leadIds.length > 0) {
+        requests.push(fetch('/.netlify/functions/send-email', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+          body: JSON.stringify({ leadIds: leadIds, subject: body.subject, bodyHtml: body.bodyHtml, bodyPlain: body.bodyPlain, provider: 'resend' })
+        }).then(function (r) { return r.json(); }));
+      }
+      if (appIds.length > 0) {
+        requests.push(fetch('/.netlify/functions/send-email', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+          body: JSON.stringify({ applicationIds: appIds, subject: body.subject, bodyHtml: body.bodyHtml, bodyPlain: body.bodyPlain, provider: 'resend' })
+        }).then(function (r) { return r.json(); }));
+      }
+
+      return Promise.all(requests);
+    }).then(function (responses) {
+      // Merge results from leads + apps responses
+      var merged = { sent: 0, failed: 0, skipped: 0, errors: [] };
+      responses.forEach(function (data) {
+        if (data.results) {
+          merged.sent += data.results.sent || 0;
+          merged.failed += data.results.failed || 0;
+          merged.skipped += data.results.skipped || 0;
+          if (data.results.errors) merged.errors = merged.errors.concat(data.results.errors);
+        } else if (!data.ok) {
+          merged.failed += total;
+          merged.errors.push({ id: 'batch', error: data.error || 'Unknown error' });
+        }
+      });
+
+      campaignState.sending = false;
+      campaignState.results = merged;
+      updateProgress(total, total, 1, 1);
+      showResults(merged);
+      logCampaign(merged, total);
+    }).catch(function (err) {
+      campaignState.sending = false;
+      var btn = $('yb-campaign-send-all-btn');
+      if (btn) btn.disabled = false;
+      if (bridge) bridge.toast('Afsendelse fejlede: ' + err.message, true);
+    });
+  }
+
   function sendToLead(lead, isSMS) {
     if (!bridge) return Promise.reject(new Error('No bridge'));
 
+    var isApp = lead._source === 'app';
+
     return bridge.getAuthToken().then(function (token) {
       var url, body;
+      var idKey = isApp ? 'applicationId' : 'leadId';
 
       if (isSMS) {
         var message = personalizeMessage(campaignState.smsMessage, lead);
-        body = { leadId: lead.id, message: message };
+        body = { message: message };
+        body[idKey] = lead.id;
         if (campaignState.schedule !== 'now') {
           body.scheduledFor = getScheduledTime();
         }
@@ -1291,11 +1523,11 @@
         var subject = personalizeMessage(campaignState.emailSubject, lead);
         var htmlBody = personalizeMessage(campaignState.emailBodyHtml, lead);
         body = {
-          leadId: lead.id,
           subject: subject,
           bodyHtml: htmlBody,
           preheader: campaignState.emailPreheader
         };
+        body[idKey] = lead.id;
         if (campaignState.emailTemplateId) {
           body.templateId = campaignState.emailTemplateId;
         }
@@ -1316,9 +1548,30 @@
     });
   }
 
+  function flashTestBtn(btn, ok, okText, failText) {
+    if (!btn) return;
+    var origText = btn.textContent;
+    btn.disabled = false;
+    if (ok) {
+      btn.textContent = '✓ ' + okText;
+      btn.style.cssText = 'background:#4CAF50;color:#fff;border-color:#4CAF50;transition:background 0.2s,color 0.2s';
+    } else {
+      btn.textContent = '✗ ' + failText;
+      btn.style.cssText = 'background:#ef5350;color:#fff;border-color:#ef5350;transition:background 0.2s,color 0.2s';
+    }
+    setTimeout(function () {
+      btn.textContent = origText;
+      btn.style.cssText = '';
+    }, 3000);
+  }
+
   function sendTestSMS() {
-    var phone = ($('yb-campaign-test-phone') || {}).value;
+    var phoneEl = $('yb-campaign-test-phone');
+    var phone = (phoneEl || {}).value;
     if (!phone) return;
+
+    var btn = phoneEl ? phoneEl.closest('.yb-lead__campaign-test-send').querySelector('[data-action="campaign-test-sms"]') : null;
+    if (btn) { btn.disabled = true; btn.textContent = '...'; }
 
     if (!bridge) return;
     bridge.getAuthToken().then(function (token) {
@@ -1330,15 +1583,22 @@
       });
     }).then(function (res) { return res.json(); })
       .then(function (data) {
-        if (bridge) bridge.toast(data.ok ? t('campaign_send_test_sent') : t('campaign_send_test_failed'));
+        flashTestBtn(btn, data.ok, t('campaign_send_test_sent'), t('campaign_send_test_failed'));
       }).catch(function () {
-        if (bridge) bridge.toast(t('campaign_send_test_failed'), true);
+        flashTestBtn(btn, false, '', t('campaign_send_test_failed'));
       });
   }
 
   function sendTestEmail() {
-    var email = ($('yb-campaign-test-email-input') || $('yb-campaign-test-email') || {}).value;
+    var inputEl = campaignState.tab === 'send'
+      ? $('yb-campaign-test-email')
+      : $('yb-campaign-test-email-input');
+    var email = (inputEl || {}).value;
     if (!email) return;
+
+    var isSendTab = campaignState.tab === 'send';
+    var btn = inputEl ? inputEl.closest('.yb-lead__campaign-test-send').querySelector('[data-action="campaign-test-email"]') : null;
+    if (btn) { btn.disabled = true; btn.textContent = '...'; }
 
     if (!bridge) return;
     bridge.getAuthToken().then(function (token) {
@@ -1358,9 +1618,12 @@
       });
     }).then(function (res) { return res.json(); })
       .then(function (data) {
-        if (bridge) bridge.toast(data.ok ? t('campaign_preview_test_sent') : t('campaign_preview_test_failed'));
+        var okKey = isSendTab ? 'campaign_send_test_sent' : 'campaign_preview_test_sent';
+        var failKey = isSendTab ? 'campaign_send_test_failed' : 'campaign_preview_test_failed';
+        flashTestBtn(btn, data.ok, t(okKey), t(failKey));
       }).catch(function () {
-        if (bridge) bridge.toast(t('campaign_preview_test_failed'), true);
+        var failKey = isSendTab ? 'campaign_send_test_failed' : 'campaign_preview_test_failed';
+        flashTestBtn(btn, false, '', t(failKey));
       });
   }
 
@@ -1410,25 +1673,58 @@
     }
 
     if (bridge) bridge.toast(t('campaign_send_complete'));
+    if (bridge && bridge.onCampaignSent) bridge.onCampaignSent(campaignState.type, results);
   }
 
   function logCampaign(results, total) {
-    // Log campaign to Firestore or Netlify function
     if (!bridge) return;
+    var isEmail = campaignState.type === 'email';
+    var sentAt = new Date().toISOString();
+    var campaignSummary = {
+      type: campaignState.type,
+      subject: isEmail ? (campaignState.emailSubject || '') : '',
+      templateId: isEmail ? campaignState.emailTemplateId : campaignState.smsTemplateId,
+      sentAt: sentAt
+    };
+
     bridge.getAuthToken().then(function (token) {
+      // 1. Log to campaign-log
       fetch('/.netlify/functions/campaign-log', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
         body: JSON.stringify({
           type: campaignState.type,
-          templateId: campaignState.type === 'sms' ? campaignState.smsTemplateId : campaignState.emailTemplateId,
-          subject: campaignState.emailSubject || '',
+          templateId: campaignSummary.templateId,
+          subject: campaignSummary.subject,
           recipientCount: total,
           results: results,
           schedule: campaignState.schedule,
-          sentAt: new Date().toISOString()
+          sentAt: sentAt
         })
-      }).catch(function () { /* silent fail for logging */ });
+      }).catch(function () { /* silent */ });
+
+      // 2. Write per-lead history back to Firestore (so badges show next time)
+      if (window.firebase) {
+        var db = firebase.firestore();
+        var fieldKey = isEmail ? 'last_email_campaign' : 'last_sms_campaign';
+        var leadIds = [];
+        campaignState.selectedIds.forEach(function (id) {
+          // Only leads (not apps)
+          var lead = campaignState.allRecipients.find(function (l) { return l.id === id; });
+          if (lead && lead._source !== 'app') leadIds.push(id);
+        });
+        // Batch in groups of 500 (Firestore limit)
+        for (var i = 0; i < leadIds.length; i += 400) {
+          var chunk = leadIds.slice(i, i + 400);
+          var batch = db.batch();
+          chunk.forEach(function (lid) {
+            batch.update(db.collection('leads').doc(lid), {
+              [fieldKey]: campaignSummary
+            });
+          });
+          batch.commit().catch(function () { /* silent */ });
+        }
+      }
     });
   }
 
@@ -1437,34 +1733,96 @@
      ══════════════════════════════════════════ */
   function openSMSCampaign(preSelectedLeads) {
     resetState('sms');
+    loadEmailTemplatesIfNeeded();
+    loadRecentCampaigns();
+
+    // Pin pre-selected leads so they survive filter changes
     if (preSelectedLeads && preSelectedLeads.length > 0) {
-      // Pre-populate from selected leads (from bulk bar)
       preSelectedLeads.forEach(function (l) {
-        if (l.phone) campaignState.selectedIds.add(l.id);
+        if (l.phone) {
+          campaignState.pinnedIds.add(l.id);
+          campaignState.selectedIds.add(l.id);
+        }
       });
+      // Pre-seed campaign leads with what we already have
+      campaignState.campaignLeads = bridge ? (bridge.getLeads() || []) : [];
     }
 
     var modal = $('yb-campaign-sms-modal');
-    if (modal) {
-      modal.hidden = false;
-      switchTab('recipients');
-      loadEmailTemplatesIfNeeded();
-    }
+    if (!modal) return;
+    modal.hidden = false;
+    switchTab('recipients');
+
+    // Load all leads from DB in background — updates recipient list when done
+    loadAllLeadsForCampaign(function () {
+      if (!modal.hidden) {
+        var panelEl = modal.querySelector('.yb-lead__campaign-panel[data-panel="recipients"]');
+        if (panelEl && campaignState.tab === 'recipients') renderRecipientsTab(panelEl);
+      }
+    });
   }
 
   function openEmailCampaign(preSelectedLeads) {
     resetState('email');
+    loadEmailTemplatesIfNeeded();
+    loadRecentCampaigns();
+
+    // Pin pre-selected leads so they survive filter changes
     if (preSelectedLeads && preSelectedLeads.length > 0) {
       preSelectedLeads.forEach(function (l) {
-        if (l.email) campaignState.selectedIds.add(l.id);
+        if (l.email) {
+          campaignState.pinnedIds.add(l.id);
+          campaignState.selectedIds.add(l.id);
+        }
       });
+      // Pre-seed campaign leads with what we already have
+      campaignState.campaignLeads = bridge ? (bridge.getLeads() || []) : [];
     }
 
     var modal = $('yb-campaign-email-modal');
-    if (modal) {
-      modal.hidden = false;
-      switchTab('recipients');
-      loadEmailTemplatesIfNeeded();
+    if (!modal) return;
+    modal.hidden = false;
+    switchTab('recipients');
+
+    // Load all leads from DB in background — updates recipient list when done
+    loadAllLeadsForCampaign(function () {
+      if (!modal.hidden) {
+        var panelEl = modal.querySelector('.yb-lead__campaign-panel[data-panel="recipients"]');
+        if (panelEl && campaignState.tab === 'recipients') renderRecipientsTab(panelEl);
+      }
+    });
+  }
+
+  function loadAllLeadsForCampaign(onComplete) {
+    if (!bridge || !bridge.loadAllLeadsForCampaign) { if (onComplete) onComplete(); return; }
+    campaignState.recipientsLoading = true;
+
+    var leadsLoaded = false;
+    var appsLoaded = false;
+
+    function checkDone() {
+      if (leadsLoaded && appsLoaded) {
+        campaignState.recipientsLoading = false;
+        if (onComplete) onComplete();
+      }
+    }
+
+    bridge.loadAllLeadsForCampaign(function (err, allLeads) {
+      if (!err && allLeads) campaignState.campaignLeads = allLeads;
+      leadsLoaded = true;
+      checkDone();
+    });
+
+    if (bridge.loadAllAppsForCampaign) {
+      bridge.loadAllAppsForCampaign(function (err, allApps) {
+        if (!err && allApps) campaignState.campaignApps = allApps;
+        appsLoaded = true;
+        checkDone();
+      });
+    } else {
+      campaignState.campaignApps = bridge.getApplications() || [];
+      appsLoaded = true;
+      checkDone();
     }
   }
 
@@ -1477,18 +1835,22 @@
   function resetState(type) {
     campaignState.type = type;
     campaignState.tab = 'recipients';
-    campaignState.maxVisitedTab = 0;
+    campaignState.maxVisitedTab = 3; // all tabs unlocked from the start
     campaignState.filters = {
       source: 'all', statuses: [], programs: [], subtypes: [], routes: [],
       countries: [], periods: [], tracks: [], cohorts: [], paymentStatuses: [],
       recency: null, housing: false, meta: false,
-      excludeConverted: false, excludeRecent: false,
+      excludeConverted: true, excludeRecent: false,
       excludeNotInterested: true, excludeBadLeads: true, excludeUnsubscribed: true
     };
     campaignState.allRecipients = [];
     campaignState.selectedIds = new Set();
     campaignState.excludedIds = new Set();
+    campaignState.pinnedIds = new Set();
     campaignState.searchTerm = '';
+    campaignState.campaignLeads = [];
+    campaignState.campaignApps = [];
+    campaignState.recipientsLoading = false;
     campaignState.smsTemplateId = '';
     campaignState.smsMessage = '';
     campaignState.emailMode = 'template';
@@ -1498,10 +1860,72 @@
     campaignState.emailBodyHtml = '';
     campaignState.emailEditorMode = 'visual';
     campaignState.attachment = null;
+    campaignState.provider = 'resend'; // always default Resend for new campaigns
     campaignState.schedule = 'now';
     campaignState.customSchedule = '';
     campaignState.sending = false;
     campaignState.results = null;
+    campaignState.recentCampaigns = [];
+    campaignState.recentCampaignsLoaded = false;
+  }
+
+  /* ══════════════════════════════════════════
+     RECENT CAMPAIGNS HISTORY
+     ══════════════════════════════════════════ */
+  function loadRecentCampaigns() {
+    if (campaignState.recentCampaignsLoaded || !bridge) return;
+    bridge.getAuthToken().then(function (token) {
+      return fetch('/.netlify/functions/campaign-log?limit=8', {
+        headers: { 'Authorization': 'Bearer ' + token }
+      });
+    }).then(function (res) { return res.json(); })
+      .then(function (data) {
+        if (data.ok && Array.isArray(data.campaigns)) {
+          campaignState.recentCampaigns = data.campaigns;
+          campaignState.recentCampaignsLoaded = true;
+          // Re-render recipient list if still on recipients tab
+          var prefix = campaignState.type;
+          if (prefix && campaignState.tab === 'recipients') {
+            var histEl = $('yb-campaign-' + prefix + '-history');
+            if (histEl) renderCampaignHistory(histEl);
+          }
+        }
+      }).catch(function () { /* silent */ });
+  }
+
+  function renderCampaignHistory(container) {
+    if (!container) return;
+    var campaigns = campaignState.recentCampaigns;
+    if (!campaigns.length) {
+      container.innerHTML = '';
+      return;
+    }
+
+    var typeFilter = campaignState.type; // only show campaigns of same type
+    var filtered = campaigns.filter(function (c) { return c.type === typeFilter; });
+    if (!filtered.length) { container.innerHTML = ''; return; }
+
+    var isDa = window.location.pathname.indexOf('/en/') !== 0;
+    var heading = isDa ? 'Sendte kampagner (seneste)' : 'Recent campaigns sent';
+    var html = '<details class="yb-lead__campaign-history" open>' +
+      '<summary class="yb-lead__campaign-history-toggle">' + heading + '</summary>' +
+      '<div class="yb-lead__campaign-history-list">';
+
+    filtered.forEach(function (c) {
+      var icon = c.type === 'sms' ? '📱' : '📧';
+      var label = c.subject || c.templateId || (c.type === 'sms' ? 'SMS kampagne' : 'Email kampagne');
+      var date = c.sentAt ? c.sentAt.substring(0, 10) : '';
+      var count = c.recipientCount || 0;
+      var sent = (c.results && c.results.sent) || 0;
+      html += '<div class="yb-lead__campaign-history-row">' +
+        '<span class="yb-lead__campaign-history-icon">' + icon + '</span>' +
+        '<span class="yb-lead__campaign-history-label">' + esc(label) + '</span>' +
+        '<span class="yb-lead__campaign-history-meta">' + sent + '/' + count + ' · ' + esc(date) + '</span>' +
+      '</div>';
+    });
+
+    html += '</div></details>';
+    container.innerHTML = html;
   }
 
   /* ══════════════════════════════════════════
@@ -1692,6 +2116,17 @@
         return;
       }
 
+      // Provider radio change (handled on 'change' event below, but keep as fallback)
+      if (action === 'campaign-set-provider') {
+        campaignState.provider = btn.value || 'resend';
+        // Re-style cards
+        document.querySelectorAll('.yb-lead__campaign-provider-card').forEach(function (card) {
+          var radio = card.querySelector('input[type="radio"]');
+          card.classList.toggle('is-selected', radio && radio.checked);
+        });
+        return;
+      }
+
       // Test sends
       if (action === 'campaign-test-sms') { sendTestSMS(); return; }
       if (action === 'campaign-test-email') { sendTestEmail(); return; }
@@ -1703,12 +2138,13 @@
       if (action === 'campaign-clear-filters') {
         campaignState.filters = {
           source: 'all', statuses: [], programs: [], subtypes: [], routes: [],
-          countries: [], periods: [], recency: null, housing: false, meta: false,
-          excludeConverted: false, excludeRecent: false,
+          countries: [], periods: [], tracks: [], cohorts: [], paymentStatuses: [],
+          recency: null, housing: false, meta: false,
+          excludeConverted: true, excludeRecent: false,
           excludeNotInterested: true, excludeBadLeads: true, excludeUnsubscribed: true
         };
         campaignState.searchTerm = '';
-        campaignState.selectedIds.clear();
+        if (campaignState.pinnedIds.size === 0) campaignState.selectedIds.clear();
         switchTab('recipients');
         return;
       }
@@ -1746,6 +2182,17 @@
       }
     });
 
+    // Provider radio toggle
+    document.addEventListener('change', function (e) {
+      if (e.target && e.target.getAttribute('data-action') === 'campaign-set-provider') {
+        campaignState.provider = e.target.value || 'resend';
+        document.querySelectorAll('.yb-lead__campaign-provider-card').forEach(function (card) {
+          var radio = card.querySelector('input[type="radio"]');
+          card.classList.toggle('is-selected', radio && radio.checked);
+        });
+      }
+    });
+
     // Search input in filters
     document.addEventListener('input', function (e) {
       if (e.target.id === 'yb-campaign-sms-filter-search' || e.target.id === 'yb-campaign-email-filter-search') {
@@ -1774,10 +2221,18 @@
       chip.classList.toggle('is-active');
     } else if (filterKey === 'source' || filterKey === 'recency') {
       // Single-select filter
+      var prevSource = f.source;
       f[filterKey] = value === 'all' ? 'all' : value;
       chip.parentElement.querySelectorAll('.yb-lead__campaign-chip').forEach(function (c) {
         c.classList.toggle('is-active', c.getAttribute('data-value') === value);
       });
+      // When source changes between leads/apps, clear statuses so stale chips don't persist
+      if (filterKey === 'source' && value !== prevSource) {
+        f.statuses = [];
+        var prefix = campaignState.type;
+        var panel = document.querySelector('#yb-campaign-' + prefix + '-modal .yb-lead__campaign-panel[data-panel="recipients"]');
+        if (panel) { renderRecipientsTab(panel); return; }
+      }
     } else {
       // Multi-select toggle
       var arr = f[filterKey];

@@ -21,6 +21,14 @@
       <div class="yb-book__step-dot" data-step="3">3</div>
     </div>
 
+    {# ── Request mode badge (hidden by default, shown by JS for request-only types) ── #}
+    <div class="yb-book__request-badge" style="display:none;">
+      <span>&#128233;</span>
+      <span data-yj-da="Anmodning — vi bekræfter inden for 24 timer" data-yj-en="Request — we'll confirm within 24 hours">
+        {% if lang == "en" %}Request — we'll confirm within 24 hours{% else %}Anmodning — vi bekræfter inden for 24 timer{% endif %}
+      </span>
+    </div>
+
     {# ═══ STEP 1: Type + Date ═══ #}
     <div class="yb-book__panel is-active" data-book-step="1">
       <h2 class="yb-book__title" data-yj-da="Book en aftale" data-yj-en="Book an Appointment">
@@ -32,10 +40,10 @@
 
       {# Appointment types #}
       <div class="yb-book__types" id="yb-book-types">
-        <button class="yb-book__type-btn is-active" data-type="studio-tour" type="button">
+        <button class="yb-book__type-btn is-active" data-type="info-session" type="button">
           <span class="yb-book__type-icon">&#127963;</span>
-          <span class="yb-book__type-name" data-yj-da="Studiebesøg & konsultation" data-yj-en="Studio Tour & Consultation">
-            {% if lang == "en" %}Studio Tour & Consultation{% else %}Studiebesøg & konsultation{% endif %}
+          <span class="yb-book__type-name" data-yj-da="Gratis infomøde" data-yj-en="Free Info Session">
+            {% if lang == "en" %}Free Info Session{% else %}Gratis infomøde{% endif %}
           </span>
           <span class="yb-book__type-dur">30 min</span>
         </button>
@@ -52,6 +60,9 @@
             {% if lang == "en" %}Free Trial Class{% else %}Gratis prøvetime{% endif %}
           </span>
           <span class="yb-book__type-dur">60 min</span>
+          <span class="yb-book__type-req" data-yj-da="Anmodning" data-yj-en="Request">
+            {% if lang == "en" %}Request{% else %}Anmodning{% endif %}
+          </span>
         </button>
       </div>
 
@@ -107,6 +118,9 @@
 
       {# Form #}
       <form class="yb-book__form" id="yb-book-form">
+        {# Spam protection — hidden honeypot (bots fill this; humans don't) #}
+        <input type="text" id="yb-book-hp" style="position:absolute;left:-9999px;opacity:0;width:1px;height:1px;pointer-events:none;" tabindex="-1" autocomplete="off" aria-hidden="true">
+        <input type="hidden" id="yb-book-opened-at">
         <div class="yb-book__field">
           <label data-yj-da="Navn *" data-yj-en="Name *">{% if lang == "en" %}Name *{% else %}Navn *{% endif %}</label>
           <input type="text" id="yb-book-name" required placeholder="{% if lang == 'en' %}Your full name{% else %}Dit fulde navn{% endif %}">

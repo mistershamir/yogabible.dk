@@ -38,8 +38,10 @@
   var PAGE_SIZE = 50;
   var totalLeadCount = null; // true DB count (from aggregation query)
   var searchTerm = '';
-  var filterStatus = '';
-  var filterType = '';
+  var filterStatuses = []; // multi-select array
+  var filterTypes = [];    // multi-select array
+  var filterSubType = '';      // client-side sub-filter value
+  var filterSubTypeField = ''; // which lead field to match filterSubType against
   var filterSource = '';
   var filterPriority = '';
   var filterTemperature = '';
@@ -51,7 +53,9 @@
   var expandedLeadIds = new Set();
 
   // Kanban columns
-  var KANBAN_COLUMNS = ['New', 'Contacted', 'No Answer', 'Follow-up', 'Engaged', 'Qualified', 'Negotiating', 'Converted'];
+  // 'Converted' and 'Existing Applicant' are intentionally excluded — those leads are
+  // hidden from the active leads view and live in the Applications tab instead.
+  var KANBAN_COLUMNS = ['New', 'Contacted', 'No Answer', 'Follow-up', 'Engaged', 'Qualified', 'Negotiating'];
 
   // Application state
   var applications = [];
@@ -74,8 +78,8 @@
   var COURSE_CATALOG = {
     ytt: [
       { id: '100078', name_da: '18 Ugers Fleksibelt Program (Mar-Jun)', name_en: '18 Weeks Flexible Program (Mar-Jun)', cohorts: [{ label_da: 'Marts\u2013Juni 2026', label_en: 'March\u2013June 2026' }] },
-      { id: '100121', name_da: '4 Ugers Intensiv (Apr)', name_en: '4 Weeks Intensive (Apr)', cohorts: [{ label_da: 'April 2026', label_en: 'April 2026' }] },
-      { id: '100211', name_da: '4 Ugers Intensiv (Jul)', name_en: '4 Weeks Intensive (Jul)', cohorts: [{ label_da: 'Juli 2026', label_en: 'July 2026' }] },
+      { id: '100121', name_da: '4 Ugers Complete Program (Apr)', name_en: '4-Week Complete Program (Apr)', cohorts: [{ label_da: 'April 2026', label_en: 'April 2026' }] },
+      { id: '100211', name_da: '4 Ugers Vinyasa Plus (Jul)', name_en: '4-Week Vinyasa Plus (Jul)', cohorts: [{ label_da: 'Juli 2026', label_en: 'July 2026' }] },
       { id: '100209', name_da: '8 Ugers Semi-Intensiv (Maj-Jun)', name_en: '8 Weeks Semi-Intensive (May-Jun)', cohorts: [{ label_da: 'Maj\u2013Juni 2026', label_en: 'May\u2013June 2026' }] },
       { id: '100210', name_da: '18 Ugers Fleksibelt Program (Aug-Dec)', name_en: '18 Weeks Flexible Program (Aug-Dec)', cohorts: [{ label_da: 'August\u2013December 2026', label_en: 'August\u2013December 2026' }] }
     ],
@@ -246,11 +250,13 @@
     { value: 'No Answer', label: 'No Answer', color: '#FFE0CC', text: '#BF360C', icon: '\ud83d\udcf5' },
     { value: 'Follow-up', label: 'Follow-up', color: '#e8daef', text: '#6c3483', icon: '\ud83d\udd04' },
     { value: 'Engaged', label: 'Engaged', color: '#DCEDC8', text: '#33691E', icon: '\ud83d\udcac' },
+    { value: 'Strongly Interested', label: 'Strongly Interested', color: '#FFF9C4', text: '#F57F17', icon: '\u2B50' },
     { value: 'Qualified', label: 'Qualified', color: '#B3E5FC', text: '#01579B', icon: '\u2705' },
     { value: 'Negotiating', label: 'Negotiating', color: '#FFE0B2', text: '#E65100', icon: '\ud83e\udd1d' },
     { value: 'Converted', label: 'Converted', color: '#d4edda', text: '#155724', icon: '\ud83c\udf89' },
     { value: 'Existing Applicant', label: 'Existing Applicant', color: '#cce5ff', text: '#004085', icon: '\ud83d\udcc4' },
     { value: 'On Hold', label: 'On Hold', color: '#FFF9C4', text: '#F57F17', icon: '\u23f8\ufe0f' },
+    { value: 'Interested In Next Round', label: 'Interested In Next Round', color: '#E0F2F1', text: '#00695C', icon: '\ud83d\udcc5' },
     { value: 'Not too keen', label: 'Not too keen', color: '#CFD8DC', text: '#37474F', icon: '\ud83d\ude10' },
     { value: 'Unsubscribed', label: 'Unsubscribed', color: '#f8d7da', text: '#721c24', icon: '\ud83d\udeab' },
     { value: 'Lost', label: 'Lost', color: '#ECEFF1', text: '#546E7F', icon: '\ud83d\udc4e' },
@@ -264,11 +270,13 @@
     'No Answer': ['1st Attempt', '2nd Attempt', '3rd Attempt', 'Voicemail Left', 'Try Again Later'],
     'Follow-up': ['Scheduled Call', 'Waiting Reply', 'Second Follow-up', 'Third Follow-up', 'Final Attempt'],
     'Engaged': ['Asking Questions', 'Price Discussion', 'Scheduling Visit', 'Reviewing Materials'],
+    'Strongly Interested': ['Application Ready', 'Price Sensitive', 'Needs More Info', 'Almost Converted', 'Second Thoughts'],
     'Qualified': ['Ready to Apply', 'Needs Payment Info', 'Considering Dates'],
     'Negotiating': ['Payment Plan', 'Scholarship Request', 'Group Discount'],
     'Converted': ['Application Submitted', 'Payment Received', 'Enrolled'],
     'Existing Applicant': ['Re-inquiry', 'Upgrade Request', 'Referral'],
     'On Hold': ['Travel Issues', 'Financial', 'Personal Reasons', 'Next Cohort'],
+    'Interested In Next Round': [], // populated dynamically from COURSE_CATALOG cohorts
     'Not too keen': ['Price Too High', 'Bad Timing', 'Lost Interest', 'Considering Alternatives', 'No Reason Given'],
     'Unsubscribed': ['Email Only', 'All Communications'],
     'Lost': ['No Response', 'Chose Competitor', 'Budget', 'Not Interested', 'Wrong Fit'],
@@ -409,37 +417,35 @@
 
     var query = db.collection('leads').orderBy(sortField, sortDir);
 
-    // Filter by archived state — only show archived when explicitly toggled
+    // Archived mode: Firestore filter
     if (showArchived) {
       query = query.where('archived', '==', true);
-    } else if (filterStatus === 'Archived') {
-      query = query.where('status', '==', 'Archived');
-    } else {
-      // Firestore doesn't support != well, so we filter client-side for non-archived
     }
 
-    if (filterStatus && filterStatus !== 'Archived') query = query.where('status', '==', filterStatus);
-    if (filterType) query = query.where('type', '==', filterType);
-    if (filterSource) query = query.where('source', '==', filterSource);
-    if (filterPriority) query = query.where('priority', '==', filterPriority);
-    if (filterTemperature) query = query.where('temperature', '==', filterTemperature);
-    if (lastDoc) query = query.startAfter(lastDoc);
+    // When any chip filter is active, load a large batch and filter client-side.
+    // This avoids composite index requirements and supports multi-select combinations.
+    var hasFilters = filterStatuses.length > 0 || filterTypes.length > 0 ||
+      filterSource || filterPriority || filterTemperature || filterSubType;
 
-    query.limit(PAGE_SIZE).get().then(function (snap) {
+    var batchSize = hasFilters ? 1000 : PAGE_SIZE;
+    if (!hasFilters && lastDoc) query = query.startAfter(lastDoc);
+
+    query.limit(batchSize).get().then(function (snap) {
       snap.forEach(function (doc) {
         var data = Object.assign({ id: doc.id }, doc.data());
-        // Client-side filter: skip archived leads unless showing archived
         if (!showArchived && data.archived === true) return;
         leads.push(data);
       });
-      lastDoc = snap.docs.length ? snap.docs[snap.docs.length - 1] : null;
+
+      // Pagination only applies when no client-side filters are active
+      lastDoc = (!hasFilters && snap.docs.length) ? snap.docs[snap.docs.length - 1] : null;
 
       renderLeadView();
       renderLeadStats();
       updateBulkBar();
 
       var loadMore = $('yb-lead-load-more-wrap');
-      if (loadMore && leadViewMode === 'table') loadMore.hidden = snap.docs.length < PAGE_SIZE;
+      if (loadMore) loadMore.hidden = hasFilters || snap.docs.length < PAGE_SIZE;
 
     }).catch(function (err) {
       console.error('[lead-admin] Load error:', err);
@@ -503,13 +509,92 @@
   }
 
   /* ══════════════════════════════════════════
+     SOURCE FILTER — smart matching
+     Maps dropdown values → lead fields (type, ytt_program_type, source)
+     so that old leads with verbose sources still match.
+     ══════════════════════════════════════════ */
+  function matchesSourceFilter(lead, filterValue) {
+    var src  = (lead.source || '').toLowerCase();
+    var type = (lead.type   || '').toLowerCase();
+    var ytt  = (lead.ytt_program_type || '').toLowerCase();
+    switch (filterValue) {
+      case '200h YTT':
+        // Type must be ytt (or education from apply form), and NOT 300h / 50h / 30h
+        return (type === 'ytt' || type === 'education') &&
+               ytt !== '300h' && ytt !== '50h' && ytt !== '30h';
+      case '300h YTT':
+        return (type === 'ytt' || type === 'education') && ytt === '300h';
+      case '50h YTT':
+        return (type === 'ytt' || type === 'education') && ytt === '50h';
+      case '30h YTT':
+        return (type === 'ytt' || type === 'education') && ytt === '30h';
+      case 'Courses':
+        return type === 'course' || type === 'bundle';
+      case 'Mentorship':
+        return type === 'mentorship';
+      case 'Contact page':
+        return type === 'contact' || src.indexOf('contact') !== -1;
+      case 'Apply page':
+        return src.indexOf('apply') !== -1 || src === 'ansøgningsside' || src === 'application page';
+      case 'Careers page':
+        return type === 'careers' || src.indexOf('career') !== -1;
+      case 'Manual entry':
+        return src === 'manual entry' || src.indexOf('manual') !== -1;
+      case 'Facebook Ad':
+        return src.indexOf('meta lead') !== -1 || src.indexOf('facebook') !== -1;
+      default:
+        return lead.source === filterValue;
+    }
+  }
+
+  /* ══════════════════════════════════════════
      RENDER LEAD TABLE
      ══════════════════════════════════════════ */
   function getFilteredLeads() {
     var filtered = leads;
+
+    // Hide converted/existing-applicant unless explicitly filtered
+    var CONVERTED_STATUSES = ['Converted', 'Existing Applicant'];
+    var isConvertedFilter = filterStatuses.some(function (s) { return CONVERTED_STATUSES.indexOf(s) !== -1; });
+    if (!isConvertedFilter) {
+      filtered = filtered.filter(function (l) {
+        return CONVERTED_STATUSES.indexOf(l.status) === -1 && !l.application_id;
+      });
+    }
+
+    // Multi-select status filter (OR within same filter type)
+    if (filterStatuses.length > 0) {
+      filtered = filtered.filter(function (l) { return filterStatuses.indexOf(l.status) !== -1; });
+    } else if (!showArchived) {
+      filtered = filtered.filter(function (l) { return l.status !== 'Archived'; });
+    }
+
+    // Multi-select type filter
+    if (filterTypes.length > 0) {
+      filtered = filtered.filter(function (l) { return filterTypes.indexOf(l.type) !== -1; });
+    }
+
+    // Single-select secondary filters
+    if (filterSource) filtered = filtered.filter(function (l) { return matchesSourceFilter(l, filterSource); });
+    if (filterPriority) filtered = filtered.filter(function (l) { return l.priority === filterPriority; });
+    if (filterTemperature) filtered = filtered.filter(function (l) { return l.temperature === filterTemperature; });
+
+    // Sub-type filter — matches on a specific field (ytt_program_type for YTT, or program text for others)
+    if (filterSubType) {
+      var st = filterSubType.toLowerCase();
+      filtered = filtered.filter(function (l) {
+        if (filterSubTypeField) {
+          return (String(l[filterSubTypeField] || '').toLowerCase()).indexOf(st) !== -1;
+        }
+        // fallback: check program text
+        var prog = (l.program || '').toLowerCase();
+        return prog.indexOf(st) !== -1;
+      });
+    }
+
     if (searchTerm) {
       var s = searchTerm.toLowerCase();
-      filtered = leads.filter(function (l) {
+      filtered = filtered.filter(function (l) {
         return (l.email || '').toLowerCase().indexOf(s) !== -1 ||
           (l.first_name || '').toLowerCase().indexOf(s) !== -1 ||
           (l.last_name || '').toLowerCase().indexOf(s) !== -1 ||
@@ -519,6 +604,88 @@
       });
     }
     return filtered;
+  }
+
+  /* ══════════════════════════════════════════
+     MULTI-SELECT CHIP FILTERS
+     ══════════════════════════════════════════ */
+  function renderLeadFilterChips() {
+    // Status chips (all statuses except Archived, which is managed by the toggle button)
+    var sc = $('yb-lead-status-chips');
+    if (sc) {
+      var html = '';
+      STATUSES.filter(function (s) { return s.value !== 'Archived'; }).forEach(function (s) {
+        var active = filterStatuses.indexOf(s.value) !== -1 ? ' is-active' : '';
+        html += '<button type="button" class="yb-lead__campaign-chip' + active + '" data-status-chip="' + esc(s.value) + '">' +
+          s.icon + ' ' + esc(s.label) + '</button>';
+      });
+      sc.innerHTML = html;
+    }
+
+    // Type chips
+    var tc = $('yb-lead-type-chips');
+    if (tc) {
+      var types = [
+        { value: 'ytt', label: '🧘 YTT' },
+        { value: 'course', label: '📚 Course' },
+        { value: 'bundle', label: '📦 Bundle' },
+        { value: 'mentorship', label: '🎓 Mentorship' },
+        { value: 'careers', label: '💼 Career' },
+        { value: 'contact', label: '📞 Contact' }
+      ];
+      var html2 = '';
+      types.forEach(function (typ) {
+        var active = filterTypes.indexOf(typ.value) !== -1 ? ' is-active' : '';
+        html2 += '<button type="button" class="yb-lead__campaign-chip' + active + '" data-type-chip="' + esc(typ.value) + '">' +
+          esc(typ.label) + '</button>';
+      });
+      tc.innerHTML = html2;
+    }
+  }
+
+  // Sub-type definitions per lead type.
+  // `field` = which lead property to match against (defaults to 'program' text if omitted).
+  var SUB_TYPE_OPTIONS = {
+    ytt: [
+      { label: '18W Spring',   match: '18-week', field: 'ytt_program_type' },
+      { label: '18W Autumn',   match: '18-week-aug', field: 'ytt_program_type' },
+      { label: '8W Semi',      match: '8-week',  field: 'ytt_program_type' },
+      { label: '4W Intensive', match: '4-week',  field: 'ytt_program_type' },
+      { label: '300h Adv.',    match: '300h',    field: 'ytt_program_type' },
+      { label: '50h Specialty',match: '50h',     field: 'ytt_program_type' },
+      { label: '30h Module',   match: '30h',     field: 'ytt_program_type' }
+    ],
+    course: [
+      { label: 'Inversions', match: 'inversion', field: 'program' },
+      { label: 'Splits',     match: 'split',     field: 'program' },
+      { label: 'Backbends',  match: 'backbend',  field: 'program' }
+    ],
+    bundle: [
+      { label: '2-Course',        match: '2-course', field: 'program' },
+      { label: '3-Course All-In', match: 'all-in',   field: 'program' }
+    ]
+  };
+
+  function renderSubTypeFilter(type) {
+    var row = $('yb-lead-subtype-row');
+    var chipsEl = $('yb-lead-subtype-chips');
+    if (!row || !chipsEl) return;
+
+    var options = SUB_TYPE_OPTIONS[type];
+    if (!options || options.length === 0) {
+      row.hidden = true;
+      chipsEl.innerHTML = '';
+      return;
+    }
+
+    chipsEl.innerHTML = '<span class="yb-lead__subtype-label">Sub-filter:</span>' +
+      options.map(function (opt) {
+        var active = filterSubType === opt.match ? ' is-active' : '';
+        var fieldAttr = opt.field ? ' data-subtype-field="' + esc(opt.field) + '"' : '';
+        return '<button type="button" class="yb-lead__campaign-chip' + active + '"' +
+          ' data-subtype="' + esc(opt.match) + '"' + fieldAttr + '>' + esc(opt.label) + '</button>';
+      }).join('');
+    row.hidden = false;
   }
 
   /* ── View dispatcher ── */
@@ -537,6 +704,7 @@
       if (tableContainer) tableContainer.hidden = false;
       if (kanbanEl) kanbanEl.hidden = true;
       renderLeadTable();
+      updateBulkBar();
     }
   }
 
@@ -704,16 +872,16 @@
     }
 
     // Quick action buttons
-    html += '<div class="yb-lead__exp-actions">';
+    html += '<div class="yb-lead__exp-actions yb-lead__actions">';
     if (l.phone) {
-      html += '<a href="tel:' + esc(l.phone) + '" class="yb-btn yb-btn--outline yb-btn--sm" data-action="log-call-inline" data-id="' + l.id + '">\ud83d\udcde ' + t('leads_call') + '</a>';
-      html += '<button class="yb-btn yb-btn--outline yb-btn--sm" data-action="sms-inline" data-id="' + l.id + '">\ud83d\udcf1 ' + t('leads_sms') + '</button>';
-      html += '<a href="https://wa.me/' + esc((l.phone || '').replace(/[^0-9+]/g, '')) + '" target="_blank" rel="noopener" class="yb-btn yb-btn--outline yb-btn--sm">WhatsApp</a>';
+      html += '<a href="tel:' + esc(l.phone) + '" class="yb-btn" data-action="log-call-inline" data-id="' + l.id + '">\ud83d\udcde ' + t('leads_call') + '</a>';
+      html += '<button class="yb-btn" data-action="sms-inline" data-id="' + l.id + '">\ud83d\udcf1 ' + t('leads_sms') + '</button>';
+      html += '<a href="https://wa.me/' + esc((l.phone || '').replace(/[^0-9+]/g, '')) + '" target="_blank" rel="noopener" class="yb-btn">WhatsApp</a>';
     }
     if (l.email) {
-      html += '<button class="yb-btn yb-btn--outline yb-btn--sm" data-action="email-inline" data-id="' + l.id + '">\u2709 ' + t('leads_email') + '</button>';
+      html += '<button class="yb-btn" data-action="email-inline" data-id="' + l.id + '">\u2709 ' + t('leads_email') + '</button>';
     }
-    html += '<button class="yb-btn yb-btn--primary yb-btn--sm" data-action="view-lead" data-id="' + l.id + '">' + t('leads_detail_title') + ' \u2192</button>';
+    html += '<button class="yb-btn yb-btn--primary" data-action="view-lead" data-id="' + l.id + '">' + t('leads_detail_title') + ' \u2192</button>';
     html += '</div>';
 
     html += '</div></td></tr>';
@@ -1270,11 +1438,13 @@
     var email = currentLead.email || '';
 
     var html =
-      (phone ? '<a href="tel:' + esc(phone) + '" class="yb-btn yb-btn--outline yb-btn--sm" data-action="log-call">\ud83d\udcde ' + t('leads_call') + '</a>' : '') +
-      (phone ? '<button class="yb-btn yb-btn--outline yb-btn--sm" data-action="lead-sms">\ud83d\udcf1 ' + t('leads_sms') + '</button>' : '') +
-      (phone ? '<a href="https://wa.me/' + esc(phone.replace(/[^0-9+]/g, '')) + '" target="_blank" class="yb-btn yb-btn--outline yb-btn--sm">\ud83d\udcac WhatsApp</a>' : '') +
-      (email ? '<button class="yb-btn yb-btn--outline yb-btn--sm" data-action="lead-email">\u2709\ufe0f ' + t('leads_email') + '</button>' : '') +
-      '<button class="yb-btn yb-btn--outline yb-btn--sm" data-action="lead-add-note">\ud83d\udcdd ' + t('leads_add_note') + '</button>';
+      (phone ? '<a href="tel:' + esc(phone) + '" class="yb-btn" data-action="log-call">\ud83d\udcde ' + t('leads_call') + '</a>' : '') +
+      (phone ? '<button class="yb-btn" data-action="lead-sms">\ud83d\udcf1 ' + t('leads_sms') + '</button>' : '') +
+      (phone ? '<a href="https://wa.me/' + esc(phone.replace(/[^0-9+]/g, '')) + '" target="_blank" class="yb-btn">\ud83d\udcac WhatsApp</a>' : '') +
+      (email ? '<button class="yb-btn" data-action="lead-email">\u2709\ufe0f ' + t('leads_email') + '</button>' : '') +
+      (phone ? '<button class="yb-btn yb-btn--primary" data-action="send-booking-sms" title="Send booking link via SMS">\ud83d\udcc5 Booking SMS</button>' : '') +
+      (email ? '<button class="yb-btn yb-btn--primary" data-action="send-booking-email" title="Send booking link via Email">\ud83d\udcc5 Booking Email</button>' : '') +
+      '<button class="yb-btn" data-action="lead-add-note">\ud83d\udcdd ' + t('leads_add_note') + '</button>';
 
     // Admin actions: archive (soft delete) or restore
     if (currentUserRole === 'admin') {
@@ -1425,6 +1595,23 @@
     var status = statusSelect.value;
     var subs = SUB_STATUSES[status] || [];
 
+    // For "Interested In Next Round", use all cohort labels from COURSE_CATALOG
+    if (status === 'Interested In Next Round') {
+      subs = [];
+      ['ytt', 'course', 'bundle'].forEach(function (type) {
+        (COURSE_CATALOG[type] || []).forEach(function (item) {
+          var name = catalogName(item);
+          (item.cohorts || []).forEach(function (coh) {
+            subs.push(cohortLabel(coh) + ' — ' + name);
+          });
+          // For courses/bundles with no cohorts, just use the name
+          if (!item.cohorts || item.cohorts.length === 0) {
+            subs.push(name);
+          }
+        });
+      });
+    }
+
     subStatusSelect.innerHTML = '<option value="">-- ' + t('leads_no_sub_status') + ' --</option>' +
       subs.map(function (s) {
         return '<option value="' + esc(s) + '">' + esc(s) + '</option>';
@@ -1475,10 +1662,26 @@
       var idx = leads.findIndex(function (l) { return l.id === currentLeadId; });
       if (idx !== -1) Object.assign(leads[idx], updates);
 
-      renderLeadDetailCard();
-      renderLeadStats();
-      saveBtnSuccess(btn);
-      toast(t('saved'));
+      // Converted / Existing Applicant → remove from active leads view
+      if (newStatus === 'Converted' || newStatus === 'Existing Applicant') {
+        saveBtnSuccess(btn);
+        var msg = newStatus === 'Converted'
+          ? 'Lead markeret som konverteret — se dem under Applications-fanen'
+          : 'Lead markeret som Existing Applicant — se dem under Applications-fanen';
+        toast(msg);
+        // Close detail panel and refresh list (lead disappears from active view)
+        $('yb-admin-v-lead-list').hidden = false;
+        $('yb-admin-v-lead-detail').hidden = true;
+        currentLeadId = null;
+        currentLead = null;
+        renderLeadView();
+        renderLeadStats();
+      } else {
+        renderLeadDetailCard();
+        renderLeadStats();
+        saveBtnSuccess(btn);
+        toast(t('saved'));
+      }
     }).catch(function (err) {
       console.error('[lead-admin] Save error:', err);
       saveBtnError(btn);
@@ -1762,21 +1965,39 @@
      SMS TEMPLATES (from config)
      ══════════════════════════════════════════ */
   var SMS_TEMPLATES = {
-    ytt: "Hi {{first_name}}! Thank you for your interest in our Yoga Teacher Training. We have just sent detailed information to your email - please check your inbox and spam or promotions folder. Feel free to reply here or call anytime with questions. Warm regards, Yoga Bible",
-    course: "Hi {{first_name}}! Thank you for your interest in our {{program}} course. We have just sent you all the details by email - please check your inbox and spam or promotions folder. Reply here anytime with questions! Warm regards, Yoga Bible",
-    mentorship: "Hi {{first_name}}! Thank you for your interest in our Personlig Mentorship program. We have sent you more information by email - check your inbox and spam or promotions folder. Looking forward to connecting! Warm regards, Yoga Bible",
-    'default': "Hi {{first_name}}! Thank you for reaching out to Yoga Bible. We have sent you information by email - please check your inbox and spam or promotions folder. Feel free to reply here or call us with any questions! Warm regards, Yoga Bible"
+    booking: { label: '\ud83d\udcc5 Book aftale', msg: "Hej {{first_name}}! Book et gratis infom\u00f8de, samtale eller pr\u00f8vetime her: https://yogabible.dk/?booking=1 \u2014 Yoga Bible" },
+    followup: { label: '\ud83d\udd04 F\u00f8lg op', msg: "Hej {{first_name}}! Jeg ville lige h\u00f8re om du har haft tid til at kigge p\u00e5 vores uddannelse? Du er velkommen til at booke et infom\u00f8de: https://yogabible.dk/?booking=1 \u2014 Yoga Bible" },
+    ytt: { label: '\ud83c\udf93 YTT velkomst', msg: "Hej {{first_name}}! Tak for din interesse i vores yogal\u00e6reruddannelse. Vi har sendt detaljer til din email (tjek ogs\u00e5 spam). Book et infom\u00f8de: https://yogabible.dk/?booking=1 \u2014 Yoga Bible" },
+    course: { label: '\ud83d\udcda Kursus velkomst', msg: "Hej {{first_name}}! Tak for din interesse i vores {{program}} kursus. Vi har sendt detaljer til din email. Book en samtale: https://yogabible.dk/?booking=1 \u2014 Yoga Bible" },
+    mentorship: { label: '\ud83e\uddd8 Mentorship', msg: "Hej {{first_name}}! Tak for din interesse i vores mentorship-program. Book en gratis samtale: https://yogabible.dk/?booking=1 \u2014 Yoga Bible" },
+    reminder: { label: '\u23f0 P\u00e5mindelse', msg: "Hej {{first_name}}! Husk at vi har reserveret en plads til dig. Holdene fylder op \u2014 sikr din plads: https://yogabible.dk/?booking=1 \u2014 Yoga Bible" },
+    general: { label: '\ud83d\udcac Generel', msg: "Hej {{first_name}}! Tak fordi du kontaktede Yoga Bible. Vi har sendt info til din email. Book en samtale: https://yogabible.dk/?booking=1 \u2014 Yoga Bible" }
   };
+
+  function applySMSTemplate(key) {
+    var tpl = SMS_TEMPLATES[key];
+    if (!tpl) return;
+    var ta = $('yb-sms-message');
+    if (!ta) return;
+    var msg = tpl.msg;
+    if (currentLead) {
+      msg = msg.replace(/\{\{first_name\}\}/gi, currentLead.first_name || '');
+      msg = msg.replace(/\{\{program\}\}/gi, currentLead.program || 'yoga program');
+    }
+    ta.value = msg;
+    updateSMSCharCount();
+    ta.focus();
+  }
 
   function updateSMSCharCount() {
     var ta = $('yb-sms-message');
     if (!ta) return;
     var len = ta.value.length;
     var segments = Math.ceil(len / 160) || 1;
-    var charEl = $('yb-sms-char-count');
-    var segEl = $('yb-sms-segment-count');
-    if (charEl) charEl.textContent = len + '/160';
-    if (segEl) segEl.textContent = segments > 1 ? '(' + segments + ' ' + t('leads_sms_segments') + ')' : '';
+    var charEl = $('yb-sms-charcount');
+    var segEl = $('yb-sms-segments');
+    if (charEl) charEl.textContent = len;
+    if (segEl) segEl.textContent = segments;
   }
 
   /* ══════════════════════════════════════════
@@ -1872,6 +2093,27 @@
   }
 
   /* ══════════════════════════════════════════
+     BOOKING LINK SHORTCUTS (SMS + Email)
+     ══════════════════════════════════════════ */
+  function sendBookingSMS() {
+    if (!currentLead || !currentLead.phone) { toast('No phone number', true); return; }
+    openSMSComposer();
+    setTimeout(function () { applySMSTemplate('booking'); }, 50);
+  }
+
+  function sendBookingEmail() {
+    if (!currentLead || !currentLead.email) { toast('No email', true); return; }
+    openEmailComposer();
+    setTimeout(function () {
+      var subj = $('yb-email-subject');
+      var body = $('yb-email-body');
+      var name = currentLead.first_name || '';
+      if (subj) subj.value = 'Book en aftale — Yoga Bible';
+      if (body) body.value = 'Hej ' + name + ',\n\nTak for din interesse! Book et gratis infom\u00f8de, samtale eller pr\u00f8vetime her:\nhttps://yogabible.dk/?booking=1\n\nVi gl\u00e6der os til at se dig.\n\nVarme hilsner,\nYoga Bible';
+    }, 50);
+  }
+
+  /* ══════════════════════════════════════════
      EMAIL COMPOSER (Modal)
      ══════════════════════════════════════════ */
   var emailTemplatesLoaded = false;
@@ -1958,7 +2200,7 @@
     getAuthToken().then(function (token) {
       var body;
       if (isBulk) {
-        var leadIds = recipients.map(function (l) { return l.id; });
+        var leadIds = recipients.filter(function (l) { return l && l.email; }).map(function (l) { return l.id; });
         body = JSON.stringify({ leadIds: leadIds, subject: subject, bodyHtml: htmlBody, bodyPlain: bodyHtml });
       } else {
         body = JSON.stringify({ leadId: recipients[0].id, subject: subject, bodyHtml: htmlBody, bodyPlain: bodyHtml });
@@ -2024,20 +2266,31 @@
     var bar = $('yb-lead-bulk-bar');
     if (!bar) return;
 
-    if (selectedIds.size === 0) {
-      bar.hidden = true;
-      return;
-    }
+    // Bar is always visible in table mode; kanban hides it via renderLeadView
+    var hasSelection = selectedIds.size > 0;
 
-    bar.hidden = false;
-    var selected = leads.filter(function (l) { return selectedIds.has(l.id); });
-    var withPhone = selected.filter(function (l) { return l.phone; }).length;
-    var withEmail = selected.filter(function (l) { return l.email; }).length;
-    var dbTotal = totalLeadCount !== null ? totalLeadCount : leads.length;
-    var notAllLoaded = leads.length < dbTotal;
-    $('yb-lead-bulk-count').innerHTML = '<strong>' + selectedIds.size + '</strong> ' + t('leads_selected') +
-      ' &nbsp;·&nbsp; 📱 ' + withPhone + ' &nbsp;·&nbsp; ✉️ ' + withEmail +
-      (notAllLoaded ? ' &nbsp;·&nbsp; <span style="color:var(--yb-muted);font-size:0.8em">(' + leads.length + ' ' + t('leads_loaded') + ' ' + t('leads_of') + ' ' + dbTotal + ')</span>' : '');
+    // Selection-only buttons
+    bar.querySelectorAll('.yb-lead__bulk-sel-only').forEach(function (btn) {
+      btn.hidden = !hasSelection;
+    });
+
+    // Count text
+    var countEl = $('yb-lead-bulk-count');
+    if (countEl) {
+      if (hasSelection) {
+        var selected = leads.filter(function (l) { return selectedIds.has(l.id); });
+        var withPhone = selected.filter(function (l) { return l.phone; }).length;
+        var withEmail = selected.filter(function (l) { return l.email; }).length;
+        var dbTotal = totalLeadCount !== null ? totalLeadCount : leads.length;
+        var notAllLoaded = leads.length < dbTotal;
+        countEl.innerHTML = '<strong>' + selectedIds.size + '</strong> ' + t('leads_selected') +
+          ' &nbsp;·&nbsp; 📱 ' + withPhone + ' &nbsp;·&nbsp; ✉️ ' + withEmail +
+          (notAllLoaded ? ' &nbsp;·&nbsp; <span style="color:var(--yb-muted);font-size:0.8em">(' + leads.length + ' ' + t('leads_loaded') + ' ' + t('leads_of') + ' ' + dbTotal + ')</span>' : '');
+        countEl.hidden = false;
+      } else {
+        countEl.hidden = true;
+      }
+    }
   }
 
   function toggleSelectAll() {
@@ -2070,11 +2323,16 @@
   function bulkUpdateStatus() {
     openBulkStatusPicker(STATUSES, selectedIds.size, function (newStatus) {
       var batch = db.batch();
+      var extraFields = {};
+      if (newStatus === 'Converted') {
+        extraFields.converted = true;
+        extraFields.converted_at = firebase.firestore.FieldValue.serverTimestamp();
+      }
       selectedIds.forEach(function (id) {
-        batch.update(db.collection('leads').doc(id), {
+        batch.update(db.collection('leads').doc(id), Object.assign({
           status: newStatus,
           updated_at: firebase.firestore.FieldValue.serverTimestamp()
-        });
+        }, extraFields));
       });
 
       batch.commit().then(function () {
@@ -2094,26 +2352,26 @@
   }
 
   function bulkSMS() {
-    var selected = leads.filter(function (l) { return selectedIds.has(l.id); });
-    var withPhone = selected.filter(function (l) { return l.phone; });
-    if (!withPhone.length) { toast(t('leads_no_phone'), true); return; }
-    // Delegate to campaign wizard if available
-    if (typeof window.openSMSCampaign === 'function') {
-      window.openSMSCampaign(selected);
+    if (selectedIds.size > 0) {
+      var selected = leads.filter(function (l) { return selectedIds.has(l.id); });
+      if (!selected.some(function (l) { return l.phone; })) { toast(t('leads_no_phone'), true); return; }
+      if (typeof window.openSMSCampaign === 'function') { window.openSMSCampaign(selected); }
+      else { openSMSComposer(selected); }
     } else {
-      openSMSComposer(selected);
+      // No pre-selection: open wizard fresh, admin picks recipients inside
+      if (typeof window.openSMSCampaign === 'function') { window.openSMSCampaign([]); }
     }
   }
 
   function bulkEmail() {
-    var selected = leads.filter(function (l) { return selectedIds.has(l.id); });
-    var withEmail = selected.filter(function (l) { return l.email; });
-    if (!withEmail.length) { toast(t('leads_no_email_addr'), true); return; }
-    // Delegate to campaign wizard if available
-    if (typeof window.openEmailCampaign === 'function') {
-      window.openEmailCampaign(selected);
+    if (selectedIds.size > 0) {
+      var selected = leads.filter(function (l) { return selectedIds.has(l.id); });
+      if (!selected.some(function (l) { return l.email; })) { toast(t('leads_no_email_addr'), true); return; }
+      if (typeof window.openEmailCampaign === 'function') { window.openEmailCampaign(selected); }
+      else { openEmailComposer(selected); }
     } else {
-      openEmailComposer(selected);
+      // No pre-selection: open wizard fresh, admin picks recipients inside
+      if (typeof window.openEmailCampaign === 'function') { window.openEmailCampaign([]); }
     }
   }
 
@@ -2399,6 +2657,7 @@
     renderApplicationDetailCard();
     renderAppInvoiceStatus();
     renderAppQuickActions();
+    updateActivateBtn();
     renderAppEditForm();
     renderAppNotesTimeline();
     loadAppSMSConversation(appId);
@@ -3381,6 +3640,60 @@
   }
 
   /* ══════════════════════════════════════════
+     APPLICATION — ACTIVATE USER ACCOUNT
+     ══════════════════════════════════════════ */
+
+  function activateApplicant() {
+    if (!currentAppId || !currentApp) return;
+
+    if (currentApp.firebase_uid) {
+      toast(t('apps_user_already_activated'));
+      return;
+    }
+
+    if (!confirm(t('apps_activate_confirm'))) return;
+
+    getAuthToken().then(function (token) {
+      return fetch('/.netlify/functions/activate-applicant', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+        body: JSON.stringify({ applicationId: currentAppId })
+      });
+    }).then(function (res) { return res.json(); })
+    .then(function (data) {
+      if (data.ok) {
+        currentApp.firebase_uid = data.firebaseUid;
+        currentApp.status = 'Enrolled';
+        var idx = applications.findIndex(function (a) { return a.id === currentAppId; });
+        if (idx !== -1) {
+          applications[idx].firebase_uid = data.firebaseUid;
+          applications[idx].status = 'Enrolled';
+        }
+        renderAppQuickActions();
+        updateActivateBtn();
+        toast(t('apps_user_activated'));
+      } else {
+        toast('Failed: ' + (data.error || 'Unknown error'), true);
+      }
+    }).catch(function (err) {
+      console.error('[lead-admin] Activate applicant error:', err);
+      toast('Failed to activate user', true);
+    });
+  }
+
+  function updateActivateBtn() {
+    var btn = $('yb-app-activate-btn');
+    if (!btn || !currentApp) return;
+    if (currentApp.firebase_uid) {
+      btn.style.opacity = '0.6';
+      btn.textContent = '\u2705 ' + t('apps_user_already_activated');
+    } else {
+      btn.style.opacity = '';
+      btn.textContent = '\ud83d\udc64 ' + t('apps_activate_user');
+    }
+  }
+
+  /* ══════════════════════════════════════════
      APPLICATION — ARCHIVE / RESTORE
      ══════════════════════════════════════════ */
 
@@ -3769,6 +4082,8 @@
         case 'toggle-show-archived': toggleShowArchived(); break;
         case 'lead-sms': openSMSComposer(); break;
         case 'lead-email': openEmailComposer(); break;
+        case 'send-booking-sms': sendBookingSMS(); break;
+        case 'send-booking-email': sendBookingEmail(); break;
         case 'lead-add-note': addNote('note'); break;
         case 'log-call': e.preventDefault(); logCall(); break;
         case 'toggle-expand':
@@ -3825,6 +4140,7 @@
         case 'app-send-sms': /* Open SMS section — scroll to it */ var smsEl = $('yb-app-sms-conversation'); if (smsEl) smsEl.scrollIntoView({ behavior: 'smooth' }); var smsInput = $('yb-app-sms-reply-input'); if (smsInput) smsInput.focus(); break;
         case 'app-sms-reply': sendAppSMSReply(); break;
         case 'app-send-acceptance': sendAcceptanceEmail(); break;
+        case 'app-activate-user': activateApplicant(); break;
         case 'app-archive': archiveApp(id || currentAppId); break;
         case 'app-restore': restoreApp(id || currentAppId); break;
         case 'toggle-show-archived-apps': toggleShowArchivedApps(); break;
@@ -3858,6 +4174,12 @@
           if (linkedLeadAppId) viewLinkedLead(linkedLeadAppId);
           break;
       }
+
+      // Close modals on overlay click
+      if (e.target.classList.contains('yb-lead__modal-overlay')) {
+        var parentModal = e.target.closest('.yb-lead__modal');
+        if (parentModal) parentModal.hidden = true;
+      }
     });
 
     // Checkbox changes
@@ -3868,12 +4190,11 @@
       if (e.target.id === 'yb-lead-select-all') {
         toggleSelectAll();
       }
-      // SMS template selector
+      // SMS template chip or select
       if (e.target.id === 'yb-sms-template-select') {
         var key = e.target.value;
         if (key && SMS_TEMPLATES[key]) {
-          $('yb-sms-message').value = SMS_TEMPLATES[key];
-          updateSMSCharCount();
+          applySMSTemplate(key);
         }
       }
       // Email template selector (from Firestore)
@@ -3964,13 +4285,11 @@
       }
     }
 
-    // Filters — Leads
-    ['yb-lead-status-filter', 'yb-lead-type-filter', 'yb-lead-source-filter', 'yb-lead-priority-filter', 'yb-lead-temperature-filter'].forEach(function (filterId) {
+    // Filters — compact selects (source / priority / temperature)
+    ['yb-lead-source-filter', 'yb-lead-priority-filter', 'yb-lead-temperature-filter'].forEach(function (filterId) {
       var el = $(filterId);
       if (el) {
         el.addEventListener('change', function () {
-          if (filterId === 'yb-lead-status-filter') filterStatus = el.value;
-          if (filterId === 'yb-lead-type-filter') filterType = el.value;
           if (filterId === 'yb-lead-source-filter') filterSource = el.value;
           if (filterId === 'yb-lead-priority-filter') filterPriority = el.value;
           if (filterId === 'yb-lead-temperature-filter') filterTemperature = el.value;
@@ -3978,6 +4297,80 @@
         });
       }
     });
+
+    // Multi-select status chips
+    var scEl = $('yb-lead-status-chips');
+    if (scEl) {
+      scEl.addEventListener('click', function (e) {
+        var chip = e.target.closest('[data-status-chip]');
+        if (!chip) return;
+        var val = chip.getAttribute('data-status-chip');
+        var idx = filterStatuses.indexOf(val);
+        if (idx !== -1) filterStatuses.splice(idx, 1); else filterStatuses.push(val);
+        renderLeadFilterChips();
+        loadLeads();
+      });
+    }
+
+    // Multi-select type chips
+    var tcEl = $('yb-lead-type-chips');
+    if (tcEl) {
+      tcEl.addEventListener('click', function (e) {
+        var chip = e.target.closest('[data-type-chip]');
+        if (!chip) return;
+        var val = chip.getAttribute('data-type-chip');
+        var idx = filterTypes.indexOf(val);
+        if (idx !== -1) filterTypes.splice(idx, 1); else filterTypes.push(val);
+        filterSubType = '';
+        filterSubTypeField = '';
+        renderLeadFilterChips();
+        renderSubTypeFilter(filterTypes.length === 1 ? filterTypes[0] : '');
+        loadLeads();
+      });
+    }
+
+    // Clear all filters button
+    var clearFiltersBtn = $('yb-lead-clear-filters');
+    if (clearFiltersBtn) {
+      clearFiltersBtn.addEventListener('click', function () {
+        filterStatuses = [];
+        filterTypes = [];
+        filterSource = '';
+        filterPriority = '';
+        filterTemperature = '';
+        filterSubType = '';
+        filterSubTypeField = '';
+        var sel; // reset compact selects
+        sel = $('yb-lead-source-filter'); if (sel) sel.value = '';
+        sel = $('yb-lead-priority-filter'); if (sel) sel.value = '';
+        sel = $('yb-lead-temperature-filter'); if (sel) sel.value = '';
+        renderLeadFilterChips();
+        var subtypeRow2 = $('yb-lead-subtype-row');
+        if (subtypeRow2) subtypeRow2.hidden = true;
+        loadLeads();
+      });
+    }
+
+    // Sub-type filter chips
+    var subtypeRow = $('yb-lead-subtype-row');
+    if (subtypeRow) {
+      subtypeRow.addEventListener('click', function (e) {
+        var chip = e.target.closest('[data-subtype]');
+        if (!chip) return;
+        var val = chip.getAttribute('data-subtype');
+        if (filterSubType === val) {
+          filterSubType = '';
+          filterSubTypeField = '';
+        } else {
+          filterSubType = val;
+          filterSubTypeField = chip.getAttribute('data-subtype-field') || '';
+        }
+        subtypeRow.querySelectorAll('[data-subtype]').forEach(function (c) {
+          c.classList.toggle('is-active', c.getAttribute('data-subtype') === filterSubType);
+        });
+        renderLeadView();
+      });
+    }
 
     // Filters — Applications
     var appStatusFilter = $('yb-app-status-filter');
@@ -4143,9 +4536,8 @@
       var card = e.target.closest('[data-filter-status]');
       if (card) {
         var st = card.getAttribute('data-filter-status');
-        filterStatus = st || '';
-        var filterEl = $('yb-lead-status-filter');
-        if (filterEl) filterEl.value = filterStatus;
+        filterStatuses = st ? [st] : [];
+        renderLeadFilterChips();
         loadLeads();
       }
     });
@@ -4181,6 +4573,73 @@
   /* ══════════════════════════════════════════
      INIT
      ══════════════════════════════════════════ */
+  function createModals() {
+    // SMS Composer Modal — uses existing .yb-lead__modal structure
+    if (!$('yb-lead-sms-modal')) {
+      var sms = document.createElement('div');
+      sms.id = 'yb-lead-sms-modal';
+      sms.className = 'yb-lead__modal';
+      sms.hidden = true;
+      sms.innerHTML =
+        '<div class="yb-lead__modal-overlay"></div>' +
+        '<div class="yb-lead__modal-box">' +
+          '<h3>\ud83d\udcf1 Send SMS</h3>' +
+          '<div class="yb-lead__modal-to">' +
+            'Til: <strong id="yb-sms-recipient-info"></strong>' +
+          '</div>' +
+          '<div class="yb-lead__tpl-chips" id="yb-sms-tpl-chips"></div>' +
+          '<textarea id="yb-sms-message" class="yb-lead__modal-textarea" rows="4" placeholder="Skriv din SMS her..."></textarea>' +
+          '<div class="yb-lead__sms-charcount"><span id="yb-sms-charcount">0</span> tegn \u00b7 <span id="yb-sms-segments">1</span> segment(er)</div>' +
+          '<div id="yb-sms-progress" class="yb-lead__send-progress" hidden>' +
+            '<div class="yb-lead__progress-bar"><div id="yb-sms-progress-bar" class="yb-lead__progress-fill"></div></div>' +
+          '</div>' +
+          '<div class="yb-lead__modal-actions">' +
+            '<button class="yb-btn yb-btn--outline yb-btn--sm" data-action="sms-cancel" type="button">Annuller</button>' +
+            '<button class="yb-btn yb-btn--primary yb-btn--sm" data-action="sms-send" id="yb-sms-send-btn" type="button">\u27a4 Send SMS</button>' +
+          '</div>' +
+        '</div>';
+      document.body.appendChild(sms);
+
+      // Build template chips
+      var chipsEl = $('yb-sms-tpl-chips');
+      if (chipsEl) {
+        Object.keys(SMS_TEMPLATES).forEach(function (key) {
+          var tpl = SMS_TEMPLATES[key];
+          var chip = document.createElement('button');
+          chip.type = 'button';
+          chip.className = 'yb-lead__tpl-chip' + (key === 'booking' ? ' is-booking' : '');
+          chip.textContent = tpl.label;
+          chip.addEventListener('click', function () { applySMSTemplate(key); });
+          chipsEl.appendChild(chip);
+        });
+      }
+    }
+
+    // Email Composer Modal — uses existing .yb-lead__modal structure
+    if (!$('yb-lead-email-modal')) {
+      var email = document.createElement('div');
+      email.id = 'yb-lead-email-modal';
+      email.className = 'yb-lead__modal';
+      email.hidden = true;
+      email.innerHTML =
+        '<div class="yb-lead__modal-overlay"></div>' +
+        '<div class="yb-lead__modal-box">' +
+          '<h3>\u2709\ufe0f Send Email</h3>' +
+          '<div class="yb-lead__modal-to">' +
+            'Til: <strong id="yb-email-recipient-info"></strong>' +
+          '</div>' +
+          '<select id="yb-email-template-select" class="yb-lead__modal-select"><option value="">V\u00e6lg skabelon...</option></select>' +
+          '<input type="text" id="yb-email-subject" class="yb-lead__modal-input" placeholder="Emne...">' +
+          '<textarea id="yb-email-body" class="yb-lead__modal-textarea" rows="8" placeholder="Skriv din email her..."></textarea>' +
+          '<div class="yb-lead__modal-actions">' +
+            '<button class="yb-btn yb-btn--outline yb-btn--sm" data-action="email-cancel" type="button">Annuller</button>' +
+            '<button class="yb-btn yb-btn--primary yb-btn--sm" data-action="email-send" id="yb-email-send-btn" type="button">\u27a4 Send Email</button>' +
+          '</div>' +
+        '</div>';
+      document.body.appendChild(email);
+    }
+  }
+
   function initLeadAdmin() {
     T = window._ybAdminT || {};
 
@@ -4209,7 +4668,9 @@
       if (u && currentUserRole === 'user') resolveRole(u);
     });
 
+    createModals();
     bindLeadEvents();
+    renderLeadFilterChips();
 
     // Hook into tab switching — Leads (admin page)
     document.querySelectorAll('[data-yb-admin-tab]').forEach(function (btn) {
@@ -4253,7 +4714,47 @@
     getTranslations: function () { return T; },
     toast: toast,
     getCurrentLead: function () { return currentLead; },
-    getSelectedIds: function () { return selectedIds; }
+    getSelectedIds: function () { return selectedIds; },
+
+    // Load ALL non-archived leads for campaign wizard (not paginated)
+    loadAllLeadsForCampaign: function (callback) {
+      var SKIP_STATUSES = ['Converted', 'Existing Applicant'];
+      db.collection('leads').orderBy('created_at', 'desc').limit(2000).get()
+        .then(function (snap) {
+          var all = [];
+          snap.forEach(function (doc) {
+            var d = Object.assign({ id: doc.id }, doc.data());
+            // Skip archived, converted, and leads that already have an application
+            if (d.archived) return;
+            if (d.application_id) return;
+            if (SKIP_STATUSES.indexOf(d.status) !== -1) return;
+            all.push(d);
+          });
+          callback(null, all);
+        })
+        .catch(function (err) { callback(err, null); });
+    },
+
+    // Load ALL applications for campaign wizard
+    loadAllAppsForCampaign: function (callback) {
+      db.collection('applications').orderBy('created_at', 'desc').limit(500).get()
+        .then(function (snap) {
+          var all = [];
+          snap.forEach(function (doc) {
+            all.push(Object.assign({ id: doc.id }, doc.data()));
+          });
+          callback(null, all);
+        })
+        .catch(function (err) { callback(err, null); });
+    },
+
+    // Called by campaign wizard when a campaign send completes
+    onCampaignSent: function (type, results) {
+      selectedIds.clear();
+      selectAll = false;
+      updateBulkBar();
+      renderLeadView();
+    }
   };
 
   // Bootstrap

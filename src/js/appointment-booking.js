@@ -10,8 +10,8 @@
  *
  * Usage:
  *   <button data-open-booking>Book</button>
- *   <button data-open-booking="studio-tour">Book Studio Tour</button>
- *   window.openBookingModal('studio-tour');
+ *   <button data-open-booking="info-session">Book Info Session</button>
+ *   window.openBookingModal('info-session');
  */
 (function () {
   'use strict';
@@ -20,7 +20,7 @@
   var isDa = window.location.pathname.indexOf('/en/') !== 0;
 
   // State
-  var selectedType = 'studio-tour';
+  var selectedType = 'info-session';
   var selectedDate = null;
   var selectedTime = null;
   var calYear, calMonth;
@@ -37,7 +37,78 @@
     ? ['Man', 'Tir', 'Ons', 'Tor', 'Fre', 'Lør', 'Søn']
     : ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 
-  var TYPE_DURATIONS = { 'studio-tour': 30, 'consultation': 30, 'intro-class': 60 };
+  var TYPE_DURATIONS = { 'info-session': 30, 'consultation': 30, 'intro-class': 60 };
+  var REQUEST_TYPES = ['intro-class']; // Types that are request-only (not instant booking)
+
+  /* ══════════════════════════════════════════
+     ICS CALENDAR HELPER
+     ══════════════════════════════════════════ */
+  function buildIcsFile(date, time, duration, typeName, location) {
+    var dateClean = date.replace(/-/g, '');
+    var timeClean = time.replace(/:/g, '') + '00';
+    var h = parseInt(time.split(':')[0]);
+    var m = parseInt(time.split(':')[1]);
+    var endMin = h * 60 + m + (duration || 30);
+    var endH = Math.floor(endMin / 60);
+    var endM = endMin % 60;
+    var endTime = String(endH).padStart(2, '0') + String(endM).padStart(2, '0') + '00';
+    var loc = location === 'online' ? 'Online' : 'Yoga Bible, Torvegade 66, 1400 København K';
+    var uid = date + '-' + time.replace(/:/g, '') + '@yogabible.dk';
+
+    return [
+      'BEGIN:VCALENDAR',
+      'VERSION:2.0',
+      'PRODID:-//Yoga Bible//Appointment//DA',
+      'CALSCALE:GREGORIAN',
+      'METHOD:REQUEST',
+      'BEGIN:VEVENT',
+      'DTSTART;TZID=Europe/Copenhagen:' + dateClean + 'T' + timeClean,
+      'DTEND;TZID=Europe/Copenhagen:' + dateClean + 'T' + endTime,
+      'SUMMARY:' + (typeName || 'Appointment') + ' - Yoga Bible',
+      'DESCRIPTION:' + (typeName || 'Appointment') + ' at Yoga Bible',
+      'LOCATION:' + loc,
+      'UID:' + uid,
+      'STATUS:CONFIRMED',
+      'BEGIN:VALARM',
+      'TRIGGER:-PT1H',
+      'ACTION:DISPLAY',
+      'DESCRIPTION:Reminder: ' + (typeName || 'Appointment') + ' at Yoga Bible',
+      'END:VALARM',
+      'END:VEVENT',
+      'END:VCALENDAR'
+    ].join('\r\n');
+  }
+
+  function downloadIcsFile(date, time, duration, typeName, location) {
+    var ics = buildIcsFile(date, time, duration, typeName, location);
+    var blob = new Blob([ics], { type: 'text/calendar;charset=utf-8' });
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement('a');
+    a.href = url;
+    a.download = 'appointment-' + date + '.ics';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }
+
+  function getGoogleCalendarUrl(date, time, duration, typeName, location) {
+    var h = parseInt(time.split(':')[0]);
+    var m = parseInt(time.split(':')[1]);
+    var endMin = h * 60 + m + (duration || 30);
+    var endH = Math.floor(endMin / 60);
+    var endM = endMin % 60;
+    var dateClean = date.replace(/-/g, '');
+    var startStr = dateClean + 'T' + String(h).padStart(2, '0') + String(m).padStart(2, '0') + '00';
+    var endStr = dateClean + 'T' + String(endH).padStart(2, '0') + String(endM).padStart(2, '0') + '00';
+    var loc = location === 'online' ? 'Online' : 'Yoga Bible, Torvegade 66, 1400 København K';
+    return 'https://calendar.google.com/calendar/render?action=TEMPLATE' +
+      '&text=' + encodeURIComponent((typeName || 'Appointment') + ' - Yoga Bible') +
+      '&dates=' + startStr + '/' + endStr +
+      '&ctz=Europe/Copenhagen' +
+      '&details=' + encodeURIComponent((typeName || 'Appointment') + ' at Yoga Bible') +
+      '&location=' + encodeURIComponent(loc);
+  }
 
   /* ══════════════════════════════════════════
      MODAL OPEN / CLOSE
@@ -68,6 +139,10 @@
 
     modal.setAttribute('aria-hidden', 'false');
     document.body.style.overflow = 'hidden';
+
+    // Record the time the modal was opened (used for spam timing check)
+    var openedAtEl = $('yb-book-opened-at');
+    if (openedAtEl) openedAtEl.value = String(Date.now());
   }
 
   function closeModal() {
@@ -78,6 +153,9 @@
   }
 
   window.openBookingModal = openModal;
+  window.ybBuildIcsFile = buildIcsFile;
+  window.ybDownloadIcsFile = downloadIcsFile;
+  window.ybGetGoogleCalendarUrl = getGoogleCalendarUrl;
 
   /* ══════════════════════════════════════════
      STEP NAVIGATION
@@ -226,6 +304,35 @@
   }
 
   /* ══════════════════════════════════════════
+     REQUEST MODE — toggle UI for request-only types
+     ══════════════════════════════════════════ */
+  function isRequestType() {
+    return REQUEST_TYPES.indexOf(selectedType) !== -1;
+  }
+
+  function updateRequestMode() {
+    var modal = $('yb-book-modal');
+    if (!modal) return;
+    var isReq = isRequestType();
+    // Toggle request badge visibility
+    var badge = modal.querySelector('.yb-book__request-badge');
+    if (badge) badge.style.display = isReq ? 'flex' : 'none';
+    // Update submit button text
+    var submitBtn = $('yb-book-submit');
+    if (submitBtn) {
+      if (isReq) {
+        submitBtn.textContent = t('Send anmodning', 'Send Request');
+        submitBtn.setAttribute('data-yj-da', 'Send anmodning');
+        submitBtn.setAttribute('data-yj-en', 'Send Request');
+      } else {
+        submitBtn.textContent = t('Bekræft aftale', 'Confirm Appointment');
+        submitBtn.setAttribute('data-yj-da', 'Bekræft aftale');
+        submitBtn.setAttribute('data-yj-en', 'Confirm Appointment');
+      }
+    }
+  }
+
+  /* ══════════════════════════════════════════
      STEP 3: SUMMARY + FORM
      ══════════════════════════════════════════ */
   function renderSummary() {
@@ -236,24 +343,36 @@
     var dateFormatted = d.getDate() + '. ' + monthNames[d.getMonth()] + ' ' + d.getFullYear();
 
     var typeLabels = {
-      'studio-tour': t('Studiebesøg & konsultation', 'Studio Tour & Consultation'),
+      'info-session': t('Gratis infomøde', 'Free Info Session'),
       'consultation': t('Online konsultation', 'Online Consultation'),
       'intro-class': t('Gratis prøvetime', 'Free Trial Class')
     };
 
     var locationLabels = {
-      'studio-tour': 'Yoga Bible, Torvegade 66, 1400 København K',
+      'info-session': 'Yoga Bible, Torvegade 66, 1400 København K',
       'consultation': t('Online (link sendes på email)', 'Online (link sent via email)'),
       'intro-class': 'Yoga Bible, Torvegade 66, 1400 København K'
     };
 
-    el.innerHTML = '<div class="yb-book__summary-card">' +
-      '<div class="yb-book__summary-row"><span class="yb-book__summary-label">' + t('Type', 'Type') + '</span><span>' + (typeLabels[selectedType] || selectedType) + '</span></div>' +
-      '<div class="yb-book__summary-row"><span class="yb-book__summary-label">' + t('Dato', 'Date') + '</span><span>' + dateFormatted + '</span></div>' +
-      '<div class="yb-book__summary-row"><span class="yb-book__summary-label">' + t('Tid', 'Time') + '</span><span style="font-weight:bold;color:#f75c03;">' + selectedTime + '</span></div>' +
+    var isReq = isRequestType();
+    var requestNotice = isReq
+      ? '<div class="yb-book__request-notice">' +
+          '<span style="margin-right:6px;">&#128233;</span>' +
+          t('Dette er en anmodning — vi bekræfter din tid inden for 24 timer.', 'This is a request — we\'ll confirm your time within 24 hours.') +
+        '</div>'
+      : '';
+
+    el.innerHTML = requestNotice +
+      '<div class="yb-book__summary-card">' +
+      '<div class="yb-book__summary-row"><span class="yb-book__summary-label">' + t('Type', 'Type') + '</span><span>' + (typeLabels[selectedType] || selectedType) + (isReq ? ' <span class="yb-book__req-chip">' + t('Anmodning', 'Request') + '</span>' : '') + '</span></div>' +
+      '<div class="yb-book__summary-row"><span class="yb-book__summary-label">' + (isReq ? t('Ønsket dato', 'Preferred date') : t('Dato', 'Date')) + '</span><span>' + dateFormatted + '</span></div>' +
+      '<div class="yb-book__summary-row"><span class="yb-book__summary-label">' + (isReq ? t('Ønsket tid', 'Preferred time') : t('Tid', 'Time')) + '</span><span style="font-weight:bold;color:#f75c03;">' + selectedTime + '</span></div>' +
       '<div class="yb-book__summary-row"><span class="yb-book__summary-label">' + t('Varighed', 'Duration') + '</span><span>' + (TYPE_DURATIONS[selectedType] || 30) + ' min</span></div>' +
       '<div class="yb-book__summary-row"><span class="yb-book__summary-label">' + t('Sted', 'Location') + '</span><span>' + (locationLabels[selectedType] || '') + '</span></div>' +
       '</div>';
+
+    // Update submit button text for request mode
+    updateRequestMode();
   }
 
   /* ══════════════════════════════════════════
@@ -270,7 +389,11 @@
     if (!name || !email) return;
 
     var btn = $('yb-book-submit');
-    if (btn) { btn.disabled = true; btn.textContent = t('Booker...', 'Booking...'); }
+    var isReq = isRequestType();
+    if (btn) { btn.disabled = true; btn.textContent = isReq ? t('Sender...', 'Sending...') : t('Booker...', 'Booking...'); }
+
+    var hpEl       = $('yb-book-hp');
+    var openedAtEl = $('yb-book-opened-at');
 
     fetch(API, {
       method: 'POST',
@@ -284,7 +407,9 @@
         email: email,
         phone: phone,
         message: message,
-        source: 'website-modal'
+        source: 'website-modal',
+        _hp: hpEl ? hpEl.value : '',
+        formOpenedAt: openedAtEl ? openedAtEl.value : ''
       })
     })
     .then(function (r) { return r.json(); })
@@ -293,12 +418,12 @@
         showSuccess();
       } else {
         alert(t('Fejl: ', 'Error: ') + (res.error || 'Unknown error'));
-        if (btn) { btn.disabled = false; btn.textContent = t('Bekræft aftale', 'Confirm Appointment'); }
+        if (btn) { btn.disabled = false; btn.textContent = isReq ? t('Send anmodning', 'Send Request') : t('Bekræft aftale', 'Confirm Appointment'); }
       }
     })
     .catch(function (err) {
       alert(t('Netværksfejl. Prøv igen.', 'Network error. Please try again.'));
-      if (btn) { btn.disabled = false; btn.textContent = t('Bekræft aftale', 'Confirm Appointment'); }
+      if (btn) { btn.disabled = false; btn.textContent = isReq ? t('Send anmodning', 'Send Request') : t('Bekræft aftale', 'Confirm Appointment'); }
     });
   }
 
@@ -307,13 +432,53 @@
 
     var d = new Date(selectedDate + 'T12:00:00');
     var dateFormatted = d.getDate() + '. ' + monthNames[d.getMonth()] + ' ' + d.getFullYear();
+    var isReq = isRequestType();
+
+    // Update success title and text for request mode
+    var titleEl = $('yb-book-modal').querySelector('[data-book-step="4"] .yb-book__title');
+    var textEl = $('yb-book-success-text');
+    if (isReq && titleEl) {
+      titleEl.textContent = t('Anmodning sendt!', 'Request Sent!');
+    }
+    if (isReq && textEl) {
+      textEl.textContent = t(
+        'Vi har modtaget din anmodning og vender tilbage med en bekræftelse inden for 24 timer. Tjek din email.',
+        'We\'ve received your request and will confirm within 24 hours. Check your email.'
+      );
+    }
 
     var detailsEl = $('yb-book-success-details');
     if (detailsEl) {
+      var duration = TYPE_DURATIONS[selectedType] || 30;
+      var location = selectedType === 'consultation' ? 'online' : 'studio';
+      var typeName = isDa ? selectedType : selectedType;
+
+      var calendarBtns = '';
+      if (!isReq) {
+        var gcalUrl = getGoogleCalendarUrl(selectedDate, selectedTime, duration, typeName, location);
+        calendarBtns = '<div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap;justify-content:center;">' +
+          '<button type="button" id="yb-book-download-ics" style="display:inline-flex;align-items:center;gap:6px;padding:8px 16px;background:#fff;border:1px solid #E8E4E0;border-radius:8px;font-size:13px;cursor:pointer;font-family:inherit;color:#333;">&#128197; ' + t('Download .ics', 'Download .ics') + '</button>' +
+          '<a href="' + gcalUrl + '" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:6px;padding:8px 16px;background:#fff;border:1px solid #E8E4E0;border-radius:8px;font-size:13px;text-decoration:none;color:#333;">&#128279; Google Calendar</a>' +
+          '</div>';
+      }
+
       detailsEl.innerHTML = '<div style="background:#F5F3F0;border-radius:8px;padding:16px;margin:16px 0;text-align:left;">' +
+        (isReq ? '<p style="margin:0 0 8px;color:#f75c03;font-weight:600;font-size:13px;">&#128233; ' + t('Anmodning — afventer bekræftelse', 'Request — awaiting confirmation') + '</p>' : '') +
         '<p style="margin:4px 0;">&#128197; <strong>' + dateFormatted + '</strong> ' + t('kl.', 'at') + ' <strong>' + selectedTime + '</strong></p>' +
         '<p style="margin:4px 0;">&#128205; ' + (selectedType === 'consultation' ? 'Online' : 'Yoga Bible, Torvegade 66') + '</p>' +
-        '</div>';
+        '</div>' +
+        calendarBtns +
+        (!isReq ? '<p style="font-size:12px;color:#999;margin-top:8px;text-align:center;">' + t('Kalenderfilen sendes også med din bekræftelsesmail', 'A calendar file is also included in your confirmation email') + '</p>' : '');
+
+      // Bind ICS download button
+      if (!isReq) {
+        var icsBtn = document.getElementById('yb-book-download-ics');
+        if (icsBtn) {
+          icsBtn.addEventListener('click', function() {
+            downloadIcsFile(selectedDate, selectedTime, duration, typeName, location);
+          });
+        }
+      }
     }
   }
 
@@ -348,6 +513,7 @@
           selectedType = btn.getAttribute('data-type');
           typesEl.querySelectorAll('[data-type]').forEach(function (b) { b.classList.remove('is-active'); });
           btn.classList.add('is-active');
+          updateRequestMode();
         });
       });
     }
@@ -396,6 +562,14 @@
     // Form submit
     var form = $('yb-book-form');
     if (form) form.addEventListener('submit', submitBooking);
+
+    // Auto-open from URL: ?booking=1 or ?booking=info-session
+    var urlParams = new URLSearchParams(window.location.search);
+    var bookParam = urlParams.get('booking');
+    if (bookParam) {
+      var type = (bookParam === '1' || bookParam === 'true') ? null : bookParam;
+      openModal(type);
+    }
   }
 
   if (document.readyState === 'loading') {

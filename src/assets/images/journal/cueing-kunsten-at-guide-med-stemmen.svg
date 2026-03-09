@@ -1,0 +1,13 @@
+<svg viewBox="0 0 1200 630" xmlns="http://www.w3.org/2000/svg">
+  <rect width="1200" height="630" fill="#f5f3f0"/>
+  <circle cx="600" cy="280" r="80" fill="#f75c03" opacity="0.2"/>
+  <path d="M 520 280 Q 560 240 600 260 Q 640 240 680 280" fill="none" stroke="#d94f02" stroke-width="5" opacity="0.9" stroke-linecap="round"/>
+  <path d="M 500 320 Q 550 350 600 330 Q 650 350 700 320" fill="none" stroke="#ff9966" stroke-width="5" opacity="0.85" stroke-linecap="round"/>
+  <g id="sound-waves">
+    <path d="M 350 280 Q 370 250 390 280" fill="none" stroke="#f75c03" stroke-width="3" opacity="0.7"/>
+    <path d="M 810 280 Q 830 250 850 280" fill="none" stroke="#d94f02" stroke-width="3" opacity="0.7"/>
+  </g>
+  <text x="600" y="570" font-family="Abacaxi, Helvetica, Arial, sans-serif" font-size="32" font-weight="bold" fill="#0f0f0f" text-anchor="middle">
+    Cueing: Art of Guiding
+  </text>
+</svg>

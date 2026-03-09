@@ -1,0 +1,78 @@
+<svg viewBox="0 0 1200 630" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <filter id="shadow" x="-50%" y="-50%" width="200%" height="200%">
+      <feDropShadow dx="3" dy="5" stdDeviation="6" flood-opacity="0.25" flood-color="#000"/>
+    </filter>
+    <linearGradient id="progressGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#ff9966;stop-opacity:0.6"/>
+      <stop offset="100%" style="stop-color:#d94f02;stop-opacity:0.9"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="1200" height="630" fill="#f5f3f0"/>
+  <circle cx="120" cy="200" r="100" fill="#ff9966" opacity="0.07"/>
+  <circle cx="1080" cy="400" r="130" fill="#f75c03" opacity="0.06"/>
+
+  <!-- Stage 1: Bridge Pose (left) -->
+  <g filter="url(#shadow)" transform="translate(250, 280)">
+    <!-- Bridge arc -->
+    <path d="M -80 40 Q -40 -30 0 -40 Q 40 -30 80 40" fill="none" stroke="#ff9966" stroke-width="5" stroke-linecap="round"/>
+    <!-- Feet -->
+    <circle cx="-80" cy="40" r="8" fill="#ff9966" opacity="0.8"/>
+    <circle cx="80" cy="40" r="8" fill="#ff9966" opacity="0.8"/>
+    <!-- Head resting -->
+    <circle cx="0" cy="-55" r="14" fill="#ff9966" opacity="0.7"/>
+    <!-- Ground -->
+    <line x1="-100" y1="50" x2="100" y2="50" stroke="#E8E4E0" stroke-width="2"/>
+    <text x="0" y="80" font-family="Abacaxi, Helvetica, Arial, sans-serif" font-size="15" fill="#6F6A66" text-anchor="middle" font-weight="bold">Bridge</text>
+  </g>
+
+  <!-- Arrow -->
+  <path d="M 400 280 L 470 280" fill="none" stroke="#f75c03" stroke-width="3" opacity="0.5" stroke-linecap="round"/>
+  <polygon points="470,280 460,274 460,286" fill="#f75c03" opacity="0.5"/>
+
+  <!-- Stage 2: Halfway Wheel (center) -->
+  <g filter="url(#shadow)" transform="translate(600, 260)">
+    <!-- Higher arc -->
+    <path d="M -90 50 Q -50 -50 0 -70 Q 50 -50 90 50" fill="none" stroke="#f75c03" stroke-width="5" stroke-linecap="round"/>
+    <!-- Hands planted -->
+    <circle cx="-90" cy="50" r="9" fill="#f75c03" opacity="0.8"/>
+    <circle cx="90" cy="50" r="9" fill="#f75c03" opacity="0.8"/>
+    <!-- Head back -->
+    <circle cx="0" cy="-85" r="15" fill="#f75c03" opacity="0.8"/>
+    <!-- Straight arms indicated -->
+    <line x1="-90" y1="50" x2="-70" y2="-10" stroke="#f75c03" stroke-width="4" stroke-linecap="round" opacity="0.6"/>
+    <line x1="90" y1="50" x2="70" y2="-10" stroke="#f75c03" stroke-width="4" stroke-linecap="round" opacity="0.6"/>
+    <!-- Ground -->
+    <line x1="-110" y1="60" x2="110" y2="60" stroke="#E8E4E0" stroke-width="2"/>
+    <text x="0" y="95" font-family="Abacaxi, Helvetica, Arial, sans-serif" font-size="15" fill="#6F6A66" text-anchor="middle" font-weight="bold">Half Wheel</text>
+  </g>
+
+  <!-- Arrow -->
+  <path d="M 750 270 L 820 270" fill="none" stroke="#f75c03" stroke-width="3" opacity="0.5" stroke-linecap="round"/>
+  <polygon points="820,270 810,264 810,276" fill="#f75c03" opacity="0.5"/>
+
+  <!-- Stage 3: Full Wheel (right) -->
+  <g filter="url(#shadow)" transform="translate(960, 240)">
+    <!-- Full wheel arc -->
+    <path d="M -100 60 Q -60 -80 0 -100 Q 60 -80 100 60" fill="none" stroke="#d94f02" stroke-width="6" stroke-linecap="round"/>
+    <!-- Hands and feet -->
+    <circle cx="-100" cy="60" r="10" fill="#d94f02" opacity="0.9"/>
+    <circle cx="100" cy="60" r="10" fill="#d94f02" opacity="0.9"/>
+    <!-- Head fully back -->
+    <circle cx="0" cy="-115" r="16" fill="#d94f02" opacity="0.9"/>
+    <!-- Straight arms and legs -->
+    <line x1="-100" y1="60" x2="-75" y2="-20" stroke="#d94f02" stroke-width="4" stroke-linecap="round" opacity="0.7"/>
+    <line x1="100" y1="60" x2="75" y2="-20" stroke="#d94f02" stroke-width="4" stroke-linecap="round" opacity="0.7"/>
+    <!-- Ground -->
+    <line x1="-120" y1="70" x2="120" y2="70" stroke="#E8E4E0" stroke-width="2"/>
+    <text x="0" y="105" font-family="Abacaxi, Helvetica, Arial, sans-serif" font-size="15" fill="#d94f02" text-anchor="middle" font-weight="bold">Full Wheel!</text>
+  </g>
+
+  <!-- Progress bar -->
+  <rect x="200" y="430" width="800" height="8" rx="4" fill="#E8E4E0"/>
+  <rect x="200" y="430" width="800" height="8" rx="4" fill="url(#progressGrad)"/>
+
+  <text x="600" y="510" font-family="Abacaxi, Helvetica, Arial, sans-serif" font-size="38" font-weight="bold" fill="#0f0f0f" text-anchor="middle">From Bridge to Wheel</text>
+  <text x="600" y="548" font-family="Abacaxi, Helvetica, Arial, sans-serif" font-size="18" fill="#6F6A66" text-anchor="middle">A Complete Guide</text>
+</svg>

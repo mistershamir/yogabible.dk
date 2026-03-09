@@ -46,7 +46,7 @@
     <p class="p8w-hero__styles">{{ t.hero_styles }}</p>
     <div class="yb-hero__line"></div>
     <div class="yb-hero__ctas">
-      <button class="yb-btn yb-btn--primary yb-btn--large" data-checkout-product="100209">{{ t.hero_cta_prep }}</button>
+      <a href="?product=100209" class="yb-btn yb-btn--primary yb-btn--large" data-checkout-product="100209">{{ t.hero_cta_prep }}</a>
       <button onclick="openYBScheduleModal('8w')" class="yb-btn yb-btn--outline-white yb-btn--large">{{ t.hero_cta_schedule }}</button>
     </div>
     <p class="yb-hero__read-more">
@@ -146,35 +146,50 @@
 
     <div class="p4w-certval__grid">
 
-      <!-- Left: Content -->
+      <!-- Left: Content with Feature Card -->
       <div class="p4w-certval__content">
 
-        <h3 class="p4w-certval__heading">{{ t.certval_learn_title }}</h3>
-        <ul class="p4w-certval__list">
-          {% for i in [1, 2, 3, 4, 5] %}
-          <li>
-            <span class="p4w-certval__check" aria-hidden="true">&#x2713;</span>
-            <span>{{ t["certval_learn" + i] }}</span>
-          </li>
-          {% endfor %}
-        </ul>
+        <!-- What You Learn Card -->
+        <div class="p4w-certval__card">
+          <div class="p4w-certval__card-header">
+            <h3 class="p4w-certval__card-title">{{ t.certval_learn_title }}</h3>
+          </div>
+          <ul class="p4w-certval__list">
+            {% for i in [1, 2, 3, 4, 5] %}
+            <li>
+              <svg class="p4w-certval__check-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                <polyline points="20 6 9 17 4 12"></polyline>
+              </svg>
+              <span>{{ t["certval_learn" + i] }}</span>
+            </li>
+            {% endfor %}
+          </ul>
+        </div>
 
-        <h3 class="p4w-certval__heading">{{ t.certval_upgrade_title }}</h3>
-        <p class="p4w-certval__text">{{ t.certval_upgrade_text | safe }}</p>
+        <!-- Additional sections -->
+        <div class="p4w-certval__section">
+          <h3 class="p4w-certval__heading">{{ t.certval_upgrade_title }}</h3>
+          <p class="p4w-certval__text">{{ t.certval_upgrade_text | safe }}</p>
+        </div>
 
-        <h3 class="p4w-certval__heading">{{ t.certval_exam_title }}</h3>
-        <p class="p4w-certval__text">{{ t.certval_exam_text }}</p>
+        <div class="p4w-certval__section">
+          <h3 class="p4w-certval__heading">{{ t.certval_exam_title }}</h3>
+          <p class="p4w-certval__text">{{ t.certval_exam_text }}</p>
+        </div>
 
       </div>
 
-      <!-- Right: Certificate image placeholder -->
+      <!-- Right: Certificate image (featured) -->
       <div class="p4w-certval__media">
-        <div class="p4w-certval__image-placeholder">
-          <img
-            src="https://res.cloudinary.com/ddcynsa30/image/upload/w_600,q_auto,f_auto/yoga-bible-DK/programs/yoga-alliance-ryt200-certificate-sample"
-            alt="{{ t.certval_image_alt }}"
-            loading="lazy"
-          >
+        <div class="p4w-certval__image-container">
+          <div class="p4w-certval__image-wrapper">
+            {# CLOUDINARY: Sample_Certificate_jzjtfx — optimized for display #}
+            <img
+              src="https://res.cloudinary.com/ddcynsa30/image/upload/w_800,q_auto,f_auto/v1771966816/Sample_Certificate_jzjtfx.png"
+              alt="{{ t.certval_image_alt }}"
+              loading="lazy"
+            >
+          </div>
         </div>
       </div>
 
@@ -389,15 +404,17 @@
       <p class="yb-modal-visit__subtitle">{{ t.visit_modal_subtitle }}</p>
     </div>
 
-    <link href="https://assets.calendly.com/assets/external/widget.css" rel="stylesheet">
-    <div class="calendly-inline-widget"
-         data-url="https://calendly.com/yogabible/studio-tour-consultation-yoga-teacher-training"
-         style="min-width:320px;height:680px;"></div>
-    <script src="https://assets.calendly.com/assets/external/widget.js" type="text/javascript" async></script>
-
-    <p class="yb-modal-visit__fallback">
-      {{ t.visit_modal_fallback }} <a href="https://calendly.com/yogabible/studio-tour-consultation-yoga-teacher-training" target="_blank" rel="noopener">{{ t.visit_modal_fallback_link }}</a>
-    </p>
+    <div class="yb-modal-visit__booking" style="text-align:center;padding:32px 16px;">
+      <p style="font-size:18px;margin-bottom:20px;">{{ t.visit_modal_subtitle }}</p>
+      <button class="yb-btn yb-btn--primary" data-open-booking="info-session" data-close style="font-size:16px;padding:14px 32px;">
+        &#127963; {% if lang == 'en' %}Book Free Info Session{% else %}Book et gratis infomøde{% endif %}
+      </button>
+      <div style="margin-top:16px;">
+        <button class="yb-btn yb-btn--outline" data-open-booking="consultation" data-close style="font-size:14px;padding:10px 24px;">
+          &#128187; {% if lang == 'en' %}Online Consultation{% else %}Online konsultation{% endif %}
+        </button>
+      </div>
+    </div>
   </div>
 </section>
 
@@ -695,11 +712,10 @@
         </ul>
 
         <div class="p4w-early-card__cta">
-          <button class="yb-btn yb-btn--cta" data-checkout-product="100209">{{ t.early_cta_text }}</button>
+          <a href="?product=100209" class="yb-btn yb-btn--cta" data-checkout-product="100209">{{ t.early_cta_text }}</a>
           <div class="p4w-early-card__pricing">
             <span class="p4w-early-card__deposit">{{ t.early_deposit_label }}</span>
             <span class="p4w-early-card__remainder">{{ t.early_remainder_label }}</span>
-            <span class="p4w-early-card__refund">{{ t.early_refund_note }}</span>
           </div>
         </div>
       </div>
@@ -736,7 +752,7 @@
     <p class="p18-final-cta__text">{{ t.final_text }}</p>
     <div style="display:flex;flex-wrap:wrap;gap:1rem;justify-content:center">
       <button onclick="openYBScheduleModal('8w')" class="btn btn--large btn--primary">{{ t.final_cta }}</button>
-      <button class="yb-btn yb-btn--primary yb-btn--large" data-checkout-product="100209">{{ t.final_prep_cta }}</button>
+      <a href="?product=100209" class="yb-btn yb-btn--primary yb-btn--large" data-checkout-product="100209">{{ t.final_prep_cta }}</a>
     </div>
   </div>
 </section>

@@ -1,0 +1,78 @@
+<svg viewBox="0 0 1200 630" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <filter id="shadowDeep" x="-50%" y="-50%" width="200%" height="200%">
+      <feDropShadow dx="4" dy="6" stdDeviation="8" flood-opacity="0.35" flood-color="#000"/>
+    </filter>
+    <filter id="glowBright">
+      <feGaussianBlur stdDeviation="4" result="coloredBlur"/>
+      <feMerge><feMergeNode in="coloredBlur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <radialGradient id="chakra1-red" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" style="stop-color:#ff6b6b;stop-opacity:1"/>
+      <stop offset="100%" style="stop-color:#c92a2a;stop-opacity:1"/>
+    </radialGradient>
+    <radialGradient id="chakra2-orange" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" style="stop-color:#ff9966;stop-opacity:1"/>
+      <stop offset="100%" style="stop-color:#f75c03;stop-opacity:1"/>
+    </radialGradient>
+    <radialGradient id="chakra3-yellow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" style="stop-color:#ffd93d;stop-opacity:1"/>
+      <stop offset="100%" style="stop-color:#f0ad0e;stop-opacity:1"/>
+    </radialGradient>
+    <radialGradient id="chakra4-green" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" style="stop-color:#51cf66;stop-opacity:1"/>
+      <stop offset="100%" style="stop-color:#2f9e44;stop-opacity:1"/>
+    </radialGradient>
+    <radialGradient id="chakra5-blue" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" style="stop-color:#74c0fc;stop-opacity:1"/>
+      <stop offset="100%" style="stop-color:#1971c2;stop-opacity:1"/>
+    </radialGradient>
+    <radialGradient id="chakra6-indigo" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" style="stop-color:#b197fc;stop-opacity:1"/>
+      <stop offset="100%" style="stop-color:#6f42c1;stop-opacity:1"/>
+    </radialGradient>
+    <radialGradient id="chakra7-violet" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" style="stop-color:#e599f7;stop-opacity:1"/>
+      <stop offset="100%" style="stop-color:#9c36b5;stop-opacity:1"/>
+    </radialGradient>
+  </defs>
+
+  <rect width="1200" height="630" fill="#f5f3f0"/>
+
+  <circle cx="100" cy="200" r="100" fill="#ff9966" opacity="0.1"/>
+  <circle cx="1100" cy="450" r="130" fill="#f75c03" opacity="0.08"/>
+
+  <line x1="600" y1="80" x2="600" y2="550" stroke="#0f0f0f" stroke-width="3" opacity="0.2"/>
+
+  <g filter="url(#shadowDeep)">
+    <circle cx="600" cy="500" r="50" fill="url(#chakra1-red)" opacity="0.95" stroke="#c92a2a" stroke-width="4"/>
+    <circle cx="600" cy="500" r="42" fill="none" stroke="#ff6b6b" stroke-width="2" opacity="0.6"/>
+
+    <line x1="600" y1="450" x2="600" y2="430" stroke="#ff9966" stroke-width="3" opacity="0.4"/>
+
+    <circle cx="600" cy="370" r="48" fill="url(#chakra2-orange)" opacity="0.95" stroke="#d94f02" stroke-width="4"/>
+    <circle cx="600" cy="370" r="40" fill="none" stroke="#ffb380" stroke-width="2" opacity="0.6"/>
+
+    <line x1="600" y1="322" x2="600" y2="302" stroke="#ffd93d" stroke-width="3" opacity="0.4"/>
+
+    <circle cx="600" cy="240" r="46" fill="url(#chakra3-yellow)" opacity="0.95" stroke="#f0ad0e" stroke-width="4"/>
+    <circle cx="600" cy="240" r="38" fill="none" stroke="#ffe066" stroke-width="2" opacity="0.6"/>
+
+    <line x1="600" y1="194" x2="600" y2="174" stroke="#51cf66" stroke-width="3" opacity="0.4"/>
+
+    <circle cx="600" cy="110" r="44" fill="url(#chakra4-green)" opacity="0.95" stroke="#2f9e44" stroke-width="4"/>
+    <circle cx="600" cy="110" r="36" fill="none" stroke="#69db7c" stroke-width="2" opacity="0.6"/>
+  </g>
+
+  <g opacity="0.7" filter="url(#glowBright)">
+    <rect x="250" y="180" width="6" height="6" fill="#f75c03" rx="1"/>
+    <rect x="250" y="200" width="6" height="6" fill="#ff9966" rx="1"/>
+    <rect x="250" y="220" width="6" height="6" fill="#f75c03" rx="1"/>
+
+    <rect x="944" y="180" width="6" height="6" fill="#f75c03" rx="1"/>
+    <rect x="944" y="200" width="6" height="6" fill="#ff9966" rx="1"/>
+    <rect x="944" y="220" width="6" height="6" fill="#f75c03" rx="1"/>
+  </g>
+
+  <text x="600" y="590" font-family="Abacaxi, Helvetica, Arial, sans-serif" font-size="38" font-weight="bold" fill="#0f0f0f" text-anchor="middle">The Seven Chakras</text>
+</svg>

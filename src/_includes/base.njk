@@ -81,6 +81,17 @@
   <!-- Appointment Booking Modal (Calendly replacement) -->
   {% include "modal-appointment.njk" %}
 
+  <!-- Photo Session Request Modal -->
+  {% include "modal-photo-booking.njk" %}
+
+  <!-- Workshop Browser Modal -->
+  {% include "modal-workshops.njk" %}
+
+  <!-- Video Tutorial Widget (per-page, opt-in via front matter) -->
+  {% if videoTutorial %}
+    {% include "widget-video-tutorial.njk" %}
+  {% endif %}
+
   <!-- Cookie Consent -->
   {% include "cookies.njk" %}
   <script src="/js/cookies.js"></script>
@@ -97,8 +108,10 @@
   <script src="/js/roles-permissions.js"></script>
   <script src="/js/firebase-auth.js"></script>
   <script src="/js/appointment-booking.js"></script>
+  <script src="/js/photo-booking.js"></script>
   <script src="/js/ytt-funnel.js"></script>
   <script src="/js/checkout-flow.js"></script>
+  <script src="/js/workshop-browser.js"></script>
   <script src="/js/mindbody.js"></script>
   {% if includeScheduleModal %}
     <script src="/js/modal-200ytt.js"></script>
@@ -108,6 +121,9 @@
   {% endif %}
   {% if includeCourseJS %}
     <script src="/js/course.js" defer></script>
+  {% endif %}
+  {% if videoTutorial %}
+    <script src="/js/video-tutorial.js" defer></script>
   {% endif %}
 </body>
 </html>
