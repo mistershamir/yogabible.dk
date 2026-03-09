@@ -157,14 +157,13 @@
         var time = formatTime(ws.startDateTime) + ' – ' + formatTime(ws.endDateTime);
         var spots = ws.spotsLeft !== null ? ws.spotsLeft : '–';
         var isFull = ws.spotsLeft !== null && ws.spotsLeft <= 0;
+        var loc = ws.location || (isDa ? 'Christianshavn, København' : 'Christianshavn, Copenhagen');
+        var hasDesc = ws.description && ws.description.trim();
+        var descId = 'ywb-desc-' + ws.id;
 
         card.innerHTML =
-          '<div class="ywb-card__main">' +
+          '<div class="ywb-card__top">' +
             '<div class="ywb-card__time">' + time + '</div>' +
-            '<div class="ywb-card__info">' +
-              '<div class="ywb-card__name">' + ws.name + '</div>' +
-              '<div class="ywb-card__instructor">' + ws.instructor + '</div>' +
-            '</div>' +
             '<div class="ywb-card__right">' +
               (ws.isBooked
                 ? '<span class="ywb-badge ywb-badge--booked">' + t('Booket', 'Booked') + '</span>'
@@ -178,7 +177,19 @@
                 ? '<button type="button" class="ywb-cancel-btn" data-class-id="' + ws.id + '">' + t('Afmeld', 'Cancel') + '</button>'
                 : '') +
             '</div>' +
-          '</div>';
+          '</div>' +
+          '<div class="ywb-card__name">' + ws.name + '</div>' +
+          '<div class="ywb-card__meta">' +
+            '<span class="ywb-card__instructor">' + ws.instructor + '</span>' +
+            '<span class="ywb-card__location">' + loc + '</span>' +
+          '</div>' +
+          (hasDesc
+            ? '<button type="button" class="ywb-card__toggle" data-desc="' + descId + '">' +
+                t('Beskrivelse', 'Description') +
+                ' <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M3 4.5L6 7.5L9 4.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>' +
+              '</button>' +
+              '<div class="ywb-card__desc" id="' + descId + '" hidden>' + ws.description + '</div>'
+            : '');
 
         section.appendChild(card);
       });
@@ -196,6 +207,17 @@
     container.querySelectorAll('.ywb-cancel-btn').forEach(function (btn) {
       btn.addEventListener('click', function () {
         handleCancel(btn.getAttribute('data-class-id'), btn);
+      });
+    });
+
+    // Description toggles
+    container.querySelectorAll('.ywb-card__toggle').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        var desc = document.getElementById(btn.getAttribute('data-desc'));
+        if (!desc) return;
+        var open = !desc.hidden;
+        desc.hidden = open;
+        btn.classList.toggle('ywb-card__toggle--open', !open);
       });
     });
   }

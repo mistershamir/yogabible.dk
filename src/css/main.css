@@ -11188,7 +11188,7 @@ button.yb-btn--outline-white:hover {
 
 /* Workshop card */
 .ywb-card {
-  padding: 12px 14px;
+  padding: 14px 16px;
   border-radius: 12px;
   background: #F5F3F0;
   margin-bottom: 6px;
@@ -11208,10 +11208,12 @@ button.yb-btn--outline-white:hover {
   background: #e6f5e6;
 }
 
-.ywb-card__main {
+.ywb-card__top {
   display: flex;
   align-items: center;
-  gap: 14px;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 6px;
 }
 
 .ywb-card__time {
@@ -11219,28 +11221,69 @@ button.yb-btn--outline-white:hover {
   font-weight: 600;
   color: #0F0F0F;
   white-space: nowrap;
-  min-width: 90px;
-}
-
-.ywb-card__info {
-  flex: 1;
-  min-width: 0;
 }
 
 .ywb-card__name {
-  font-size: 0.88rem;
+  font-size: 0.92rem;
   font-weight: 600;
   color: #0F0F0F;
-  line-height: 1.3;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  line-height: 1.35;
+  margin-bottom: 4px;
+}
+
+.ywb-card__meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  font-size: 0.78rem;
+  color: #6F6A66;
+}
+
+.ywb-card__meta > span:not(:last-child)::after {
+  content: '·';
+  margin-left: 8px;
+  color: #ccc;
 }
 
 .ywb-card__instructor {
-  font-size: 0.78rem;
+  /* inherits from .ywb-card__meta */
+}
+
+.ywb-card__location {
+  /* inherits from .ywb-card__meta */
+}
+
+.ywb-card__toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 8px;
+  padding: 0;
+  border: none;
+  background: none;
+  font-family: inherit;
+  font-size: 0.76rem;
+  font-weight: 600;
+  color: #f75c03;
+  cursor: pointer;
+}
+
+.ywb-card__toggle svg {
+  transition: transform 0.2s;
+}
+
+.ywb-card__toggle--open svg {
+  transform: rotate(180deg);
+}
+
+.ywb-card__desc {
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid #E8E4E0;
+  font-size: 0.82rem;
+  line-height: 1.5;
   color: #6F6A66;
-  margin-top: 2px;
 }
 
 .ywb-card__right {
@@ -11375,13 +11418,9 @@ button.yb-btn--outline-white:hover {
     max-height: 92vh;
   }
 
-  .ywb-card__main {
+  .ywb-card__top {
     flex-wrap: wrap;
     gap: 8px;
-  }
-
-  .ywb-card__time {
-    min-width: auto;
   }
 
   .ywb-card__right {
