@@ -299,10 +299,10 @@ exports.handler = async (event) => {
 
   try {
     const db = getDb();
-    const col = db.collection('careers');
+    const col = db.collection('leads');
 
-    // Build set of existing emails to avoid duplicates
-    const existingSnap = await col.select('email').get();
+    // Build set of existing career emails to avoid duplicates
+    const existingSnap = await col.where('type', '==', 'careers').select('email').get();
     const existingEmails = new Set();
     existingSnap.forEach(doc => {
       const d = doc.data();
@@ -322,10 +322,29 @@ exports.handler = async (event) => {
       const ref = col.doc();
       batch.set(ref, {
         ...row,
+        type: 'careers',
+        source: 'Careers page',
+        converted: false,
+        converted_at: null,
+        application_id: null,
+        unsubscribed: false,
+        call_attempts: 0,
+        sms_status: '',
+        last_contact: null,
+        followup_date: null,
+        ytt_program_type: '',
+        program: '',
+        course_id: '',
+        cohort_label: '',
+        preferred_month: '',
+        accommodation: 'No',
+        housing_months: '',
+        service: row.category || 'Careers',
+        subcategories: row.subcategory || '',
         created_at: new Date(row.submitted_at),
         updated_at: new Date()
       });
-      existingEmails.add(emailKey); // prevent duplicates within same batch
+      existingEmails.add(emailKey);
       added++;
     }
 
