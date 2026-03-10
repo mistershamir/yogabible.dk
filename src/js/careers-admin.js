@@ -223,6 +223,8 @@
     loadCareers();
   }
 
+  var autoSeeded = false;
+
   function loadCareers(append) {
     if (!append) {
       careers = [];
@@ -230,58 +232,55 @@
       expandedCareerIds.clear();
     }
 
-    // Fetch from both collections: leads (type=careers) + legacy careers collection
-    var leadsQuery = db.collection('leads')
+    // Single source of truth: leads collection (type=careers)
+    db.collection('leads')
       .where('type', '==', 'careers')
-      .get();
-    var legacyQuery = db.collection('careers').get().catch(function () {
-      // Legacy collection may not exist — ignore errors
-      return { forEach: function () {} };
-    });
+      .get()
+      .then(function (snap) {
+        snap.forEach(function (doc) {
+          var d = Object.assign({ id: doc.id, _col: 'leads' }, doc.data());
+          careers.push(d);
+        });
 
-    Promise.all([leadsQuery, legacyQuery]).then(function (results) {
-      var seenEmails = {};
+        // Auto-seed: if no non-archived career leads exist, call seed function once
+        var hasActive = careers.some(function (c) { return c.status !== 'Archived' && !c.archived; });
+        if (!hasActive && !autoSeeded && firebase.auth().currentUser) {
+          autoSeeded = true;
+          firebase.auth().currentUser.getIdToken().then(function (token) {
+            return fetch('/.netlify/functions/careers-seed?confirm=seed', {
+              method: 'POST',
+              headers: { Authorization: 'Bearer ' + token }
+            });
+          }).then(function (r) { return r.json(); }).then(function (data) {
+            if (data.ok && (data.added > 0 || data.updated > 0)) {
+              careers = [];
+              careerLastDoc = null;
+              loadCareers(); // reload with seeded data
+            }
+          }).catch(function () { /* silent */ });
+          return;
+        }
 
-      // Primary: leads collection (type=careers)
-      results[0].forEach(function (doc) {
-        var d = Object.assign({ id: doc.id, _col: 'leads' }, doc.data());
-        careers.push(d);
-        seenEmails[(d.email || '').toLowerCase()] = true;
+        // Sort client-side
+        careers.sort(function (a, b) {
+          var av = a[careerSortField], bv = b[careerSortField];
+          if (av && av.toDate) av = av.toDate();
+          if (bv && bv.toDate) bv = bv.toDate();
+          if (av < bv) return careerSortDir === 'asc' ? -1 : 1;
+          if (av > bv) return careerSortDir === 'asc' ? 1 : -1;
+          return 0;
+        });
+
+        renderCareersTable();
+        renderCareerStats();
+
+        var loadMore = $('yb-career-load-more-wrap');
+        if (loadMore) loadMore.hidden = true; // all loaded at once
+
+      }).catch(function (err) {
+        console.error('[careers-admin] Load error:', err);
+        toast(t('error_load'), true);
       });
-
-      // Legacy: careers collection (skip duplicates already in leads)
-      results[1].forEach(function (doc) {
-        var d = Object.assign({ id: doc.id, _col: 'careers' }, doc.data());
-        var em = (d.email || '').toLowerCase();
-        if (em && seenEmails[em]) return; // already in leads
-        seenEmails[em] = true;
-        // Normalize legacy fields to match leads schema
-        if (!d.first_name && d.firstName) d.first_name = d.firstName;
-        if (!d.last_name && d.lastName) d.last_name = d.lastName;
-        if (!d.status) d.status = 'New';
-        careers.push(d);
-      });
-
-      // Sort client-side
-      careers.sort(function (a, b) {
-        var av = a[careerSortField], bv = b[careerSortField];
-        if (av && av.toDate) av = av.toDate();
-        if (bv && bv.toDate) bv = bv.toDate();
-        if (av < bv) return careerSortDir === 'asc' ? -1 : 1;
-        if (av > bv) return careerSortDir === 'asc' ? 1 : -1;
-        return 0;
-      });
-
-      renderCareersTable();
-      renderCareerStats();
-
-      var loadMore = $('yb-career-load-more-wrap');
-      if (loadMore) loadMore.hidden = true; // all loaded at once
-
-    }).catch(function (err) {
-      console.error('[careers-admin] Load error:', err);
-      toast(t('error_load'), true);
-    });
   }
 
   /* ══════════════════════════════════════════
@@ -851,95 +850,9 @@
         return;
       }
 
-      // Migrate old careers collection → leads
-      if (e.target.closest('[data-action="careers-migrate"]')) {
-        if (!confirm('Migrate all documents from the old "careers" collection into "leads"? Duplicates (same email + type) will be skipped.')) return;
-        toast('Migrating…');
-        db.collection('careers').get().then(function (snap) {
-          if (snap.empty) { toast('No old career docs found.'); return; }
-          // Get existing career-type leads to skip duplicates
-          return db.collection('leads').where('type', '==', 'careers').get().then(function (leadsSnap) {
-            var existingEmails = {};
-            leadsSnap.forEach(function (d) { existingEmails[(d.data().email || '').toLowerCase()] = true; });
-            var batch = db.batch();
-            var added = 0;
-            var skipped = 0;
-            snap.forEach(function (doc) {
-              var c = doc.data();
-              // Skip archived spam from old collection
-              if (c.archived === true || c.status === 'Archived') { skipped++; return; }
-              var em = (c.email || '').toLowerCase();
-              if (em && existingEmails[em]) { skipped++; return; }
-              var ref = db.collection('leads').doc();
-              batch.set(ref, Object.assign({}, c, {
-                type: 'careers',
-                source: c.source || 'Careers page',
-                status: 'New',
-                archived: false,
-                notes: c.notes || [],
-                converted: false,
-                converted_at: null,
-                application_id: null,
-                unsubscribed: false,
-                call_attempts: 0,
-                sms_status: '',
-                last_contact: null,
-                followup_date: null,
-                ytt_program_type: '',
-                program: '',
-                course_id: '',
-                cohort_label: '',
-                preferred_month: '',
-                accommodation: 'No',
-                housing_months: '',
-                service: c.category || 'Careers',
-                subcategories: c.subcategory || '',
-                updated_at: new Date()
-              }));
-              added++;
-            });
-            if (added === 0) { toast('All ' + skipped + ' already migrated.'); return; }
-            return batch.commit().then(function () {
-              toast('Migrated ' + added + ' career applications (' + skipped + ' skipped).');
-              careers = [];
-              careerLastDoc = null;
-              loadCareers();
-            });
-          });
-        }).catch(function (err) {
-          console.error('[careers-admin] Migration error:', err);
-          toast('Migration error: ' + err.message, true);
-        });
-        return;
-      }
-
       // Export CSV
       if (e.target.closest('[data-action="careers-export-csv"]')) {
         exportCareersCsv();
-        return;
-      }
-
-      // Seed from CSV (careers-seed netlify function)
-      if (e.target.closest('[data-action="careers-seed"]')) {
-        if (!confirm('Seed careers from CSV data? Duplicate emails will be skipped.')) return;
-        toast('Seeding…');
-        firebase.auth().currentUser.getIdToken().then(function (token) {
-          return fetch('/.netlify/functions/careers-seed?confirm=seed', {
-            method: 'POST',
-            headers: { Authorization: 'Bearer ' + token }
-          });
-        }).then(function (r) { return r.json(); }).then(function (data) {
-          if (data.ok) {
-            toast('Seeded: ' + data.added + ' added, ' + (data.updated || 0) + ' restored, ' + data.skipped + ' skipped.');
-            careers = [];
-            careerLastDoc = null;
-            loadCareers();
-          } else {
-            toast(data.error || 'Seed failed.', true);
-          }
-        }).catch(function (err) {
-          toast('Seed error: ' + err.message, true);
-        });
         return;
       }
 
