@@ -866,12 +866,16 @@
             var skipped = 0;
             snap.forEach(function (doc) {
               var c = doc.data();
+              // Skip archived spam from old collection
+              if (c.archived === true || c.status === 'Archived') { skipped++; return; }
               var em = (c.email || '').toLowerCase();
               if (em && existingEmails[em]) { skipped++; return; }
               var ref = db.collection('leads').doc();
               batch.set(ref, Object.assign({}, c, {
                 type: 'careers',
                 source: c.source || 'Careers page',
+                status: 'New',
+                archived: false,
                 notes: c.notes || [],
                 converted: false,
                 converted_at: null,
@@ -926,7 +930,7 @@
           });
         }).then(function (r) { return r.json(); }).then(function (data) {
           if (data.ok) {
-            toast('Seeded: ' + data.added + ' added, ' + data.skipped + ' skipped.');
+            toast('Seeded: ' + data.added + ' added, ' + (data.updated || 0) + ' restored, ' + data.skipped + ' skipped.');
             careers = [];
             careerLastDoc = null;
             loadCareers();
