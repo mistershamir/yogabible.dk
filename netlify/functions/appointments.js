@@ -40,6 +40,11 @@ exports.handler = async (event) => {
 async function handleGet(event) {
   const params = event.queryStringParameters || {};
 
+  // Contact search (for appointment form autocomplete)
+  if (params.action === 'search-contacts') {
+    return await searchContacts(params.q || '');
+  }
+
   // Single appointment
   if (params.id) {
     const doc = await getDoc(COLLECTION, params.id);
@@ -133,4 +138,72 @@ async function handleDelete(event, user) {
 
   await deleteDoc(COLLECTION, params.id);
   return jsonResponse(200, { ok: true });
+}
+
+// ─── CONTACT SEARCH ─────────────────────────────────────────────────
+// Searches leads, applications, and career submissions for autocomplete
+async function searchContacts(query) {
+  if (!query || query.length < 2) {
+    return jsonResponse(400, { ok: false, error: 'Query too short (min 2 chars)' });
+  }
+
+  const db = getDb();
+  const q = query.toLowerCase().trim();
+  const contacts = [];
+  const seen = new Set(); // dedupe by email
+
+  // Helper: add contact if matches query and not already seen
+  function tryAdd(doc, source) {
+    const d = doc.data ? doc.data() : doc;
+    const email = (d.email || '').toLowerCase().trim();
+    const firstName = (d.first_name || d.firstName || '').trim();
+    const lastName = (d.last_name || d.lastName || '').trim();
+    const name = firstName && lastName ? `${firstName} ${lastName}` : (d.name || d.client_name || firstName || '').trim();
+    const phone = (d.phone || d.client_phone || '').trim();
+
+    if (!email && !name) return;
+
+    // Match against name, email, or phone
+    const searchable = `${name} ${email} ${phone}`.toLowerCase();
+    if (!searchable.includes(q)) return;
+
+    if (email && seen.has(email)) return;
+    if (email) seen.add(email);
+
+    contacts.push({
+      name: name,
+      email: email,
+      phone: phone,
+      source: source,
+      type: d.type || d.ytt_program_type || '',
+      status: d.status || ''
+    });
+  }
+
+  try {
+    // Search leads collection
+    const leadsSnap = await db.collection('leads').limit(500).get();
+    leadsSnap.forEach(doc => tryAdd(doc, 'lead'));
+
+    // Search applications collection
+    const appsSnap = await db.collection('applications').limit(500).get();
+    appsSnap.forEach(doc => tryAdd(doc, 'application'));
+
+    // Search career submissions
+    const careersSnap = await db.collection('careers').limit(200).get();
+    careersSnap.forEach(doc => tryAdd(doc, 'career'));
+
+    // Sort: exact matches first, then alphabetically
+    contacts.sort((a, b) => {
+      const aExact = a.name.toLowerCase().startsWith(q) || a.email.toLowerCase().startsWith(q) ? 0 : 1;
+      const bExact = b.name.toLowerCase().startsWith(q) || b.email.toLowerCase().startsWith(q) ? 0 : 1;
+      if (aExact !== bExact) return aExact - bExact;
+      return (a.name || a.email).localeCompare(b.name || b.email);
+    });
+
+    return jsonResponse(200, { ok: true, contacts: contacts.slice(0, 20) });
+  } catch (err) {
+    console.error('[appointments] Contact search error:', err.message);
+    return jsonResponse(500, { ok: false, error: err.message });
+  }
 }
