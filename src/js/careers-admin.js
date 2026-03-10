@@ -915,6 +915,30 @@
         return;
       }
 
+      // Seed from CSV (careers-seed netlify function)
+      if (e.target.closest('[data-action="careers-seed"]')) {
+        if (!confirm('Seed careers from CSV data? Duplicate emails will be skipped.')) return;
+        toast('Seeding…');
+        firebase.auth().currentUser.getIdToken().then(function (token) {
+          return fetch('/.netlify/functions/careers-seed?confirm=seed', {
+            method: 'POST',
+            headers: { Authorization: 'Bearer ' + token }
+          });
+        }).then(function (r) { return r.json(); }).then(function (data) {
+          if (data.ok) {
+            toast('Seeded: ' + data.added + ' added, ' + data.skipped + ' skipped.');
+            careers = [];
+            careerLastDoc = null;
+            loadCareers();
+          } else {
+            toast(data.error || 'Seed failed.', true);
+          }
+        }).catch(function (err) {
+          toast('Seed error: ' + err.message, true);
+        });
+        return;
+      }
+
       // Load more
       if (e.target.closest('[data-action="careers-load-more"]')) {
         loadCareers(true);
