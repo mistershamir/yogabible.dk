@@ -24564,6 +24564,7 @@ details[open] .yb-lead__campaign-history-toggle::before { transform: rotate(90de
 .yb-appt__contact-badge--lead { background: #FFF3E6; color: #f75c03; }
 .yb-appt__contact-badge--application { background: #E8F5E9; color: #2E7D32; }
 .yb-appt__contact-badge--career { background: #E3F2FD; color: #1565C0; }
+.yb-appt__contact-badge--user { background: #F3E8FD; color: #7B1FA2; }
 .yb-appt__contact-empty {
   padding: 16px;
   text-align: center;

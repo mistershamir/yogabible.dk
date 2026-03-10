@@ -1025,7 +1025,7 @@
       }
 
       var html = res.contacts.map(function (c, i) {
-        var sourceLabel = c.source === 'lead' ? 'Lead' : c.source === 'application' ? 'Ansøger' : 'Karriere';
+        var sourceLabel = c.source === 'lead' ? 'Lead' : c.source === 'application' ? 'Ansøger' : c.source === 'user' ? 'Bruger' : 'Karriere';
         var badgeClass = 'yb-appt__contact-badge--' + c.source;
         var extra = c.type ? ' · ' + c.type : '';
         return '<div class="yb-appt__contact-item" data-idx="' + i + '">' +
