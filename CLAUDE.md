@@ -320,7 +320,7 @@ Each tab has a partial in `src/_includes/partials/admin-{name}-panel.njk` and a 
 | `GOOGLE_APPLICATION_CREDENTIALS` | Path to Firebase service account JSON |
 | `TELEGRAM_BOT_TOKEN` | Telegram bot token |
 | `TELEGRAM_OWNER_CHAT_ID` | Shamir's Telegram chat ID |
-| `AGENT_MODEL` | Claude model ID (default: `claude-sonnet-4-20250514`) |
+| `AGENT_MODEL` | Claude model ID (default: `claude-sonnet-4-6`) |
 | `DRIP_CHECK_INTERVAL_MINUTES` | Drip scheduler interval (default: 60) |
 | `SITE_URL` | Site URL (default: `https://yogabible.dk`) |
 

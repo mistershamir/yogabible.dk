@@ -51,7 +51,7 @@ logger = logging.getLogger('lead-agent')
 
 # ── Anthropic client ──────────────────────────────────
 client = anthropic.Anthropic()
-MODEL = os.getenv('AGENT_MODEL', 'claude-haiku-4-5-20251001')
+MODEL = os.getenv('AGENT_MODEL', 'claude-sonnet-4-6')
 
 # ── Shared scheduler reference (set in main_telegram) ──
 _scheduler = None
