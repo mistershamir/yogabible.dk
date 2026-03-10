@@ -42,6 +42,16 @@
      HELPERS
      ══════════════════════════════════════════ */
   function t(k) { return T[k] || k; } // legacy helper — prefer T.key directly
+
+  // Resolve the Firestore doc ref for a career entry (legacy 'careers' or 'leads' collection)
+  function careerDocRef(entry) {
+    var col = (entry && entry._col === 'careers') ? 'careers' : 'leads';
+    return db.collection(col).doc(entry.id);
+  }
+  function careerDocRefById(id) {
+    var entry = careers.find(function (c) { return c.id === id; });
+    return careerDocRef(entry || { id: id });
+  }
   function esc(s) { var d = document.createElement('div'); d.textContent = s || ''; return d.innerHTML; }
   function $(id) { return document.getElementById(id); }
 
@@ -138,7 +148,7 @@
     var ids = Array.from(selectedCareerIds);
     var batch = db.batch();
     ids.forEach(function (id) {
-      batch.update(db.collection('leads').doc(id), { status: newStatus, updated_at: new Date() });
+      batch.update(careerDocRefById(id), { status: newStatus, updated_at: new Date() });
     });
 
     batch.commit().then(function () {
@@ -175,7 +185,7 @@
     var ids = Array.from(selectedCareerIds);
     var batch = db.batch();
     ids.forEach(function (id) {
-      batch.update(db.collection('leads').doc(id), { archived: true, status: 'Archived', updated_at: new Date() });
+      batch.update(careerDocRefById(id), { archived: true, status: 'Archived', updated_at: new Date() });
     });
 
     batch.commit().then(function () {
@@ -220,12 +230,36 @@
       expandedCareerIds.clear();
     }
 
-    // Read all career-type leads (no orderBy to avoid composite index requirement)
-    db.collection('leads')
+    // Fetch from both collections: leads (type=careers) + legacy careers collection
+    var leadsQuery = db.collection('leads')
       .where('type', '==', 'careers')
-      .get().then(function (snap) {
-      snap.forEach(function (doc) {
-        careers.push(Object.assign({ id: doc.id }, doc.data()));
+      .get();
+    var legacyQuery = db.collection('careers').get().catch(function () {
+      // Legacy collection may not exist — ignore errors
+      return { forEach: function () {} };
+    });
+
+    Promise.all([leadsQuery, legacyQuery]).then(function (results) {
+      var seenEmails = {};
+
+      // Primary: leads collection (type=careers)
+      results[0].forEach(function (doc) {
+        var d = Object.assign({ id: doc.id, _col: 'leads' }, doc.data());
+        careers.push(d);
+        seenEmails[(d.email || '').toLowerCase()] = true;
+      });
+
+      // Legacy: careers collection (skip duplicates already in leads)
+      results[1].forEach(function (doc) {
+        var d = Object.assign({ id: doc.id, _col: 'careers' }, doc.data());
+        var em = (d.email || '').toLowerCase();
+        if (em && seenEmails[em]) return; // already in leads
+        seenEmails[em] = true;
+        // Normalize legacy fields to match leads schema
+        if (!d.first_name && d.firstName) d.first_name = d.firstName;
+        if (!d.last_name && d.lastName) d.last_name = d.lastName;
+        if (!d.status) d.status = 'New';
+        careers.push(d);
       });
 
       // Sort client-side
@@ -544,7 +578,7 @@
       author: (firebase.auth().currentUser && firebase.auth().currentUser.email) || 'admin'
     };
 
-    db.collection('leads').doc(currentCareerId).update({
+    careerDocRef(currentCareer).update({
       notes: firebase.firestore.FieldValue.arrayUnion(note),
       updated_at: new Date()
     }).then(function () {
@@ -573,7 +607,7 @@
     var update = { status: newStatus, updated_at: new Date() };
     if (doArchive) update.archived = true;
 
-    db.collection('leads').doc(currentCareerId).update(update).then(function () {
+    careerDocRef(currentCareer).update(update).then(function () {
       currentCareer.status = newStatus;
       if (doArchive) currentCareer.archived = true;
       // Also update in-memory list
