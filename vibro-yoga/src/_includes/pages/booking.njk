@@ -2,6 +2,9 @@
 {% set tc = i18n.common[lang or "da"] %}
 {% set lp = "/en" if lang == "en" else "" %}
 
+{# ═══════════════════════════════════════════
+   HERO — Compact Dark
+   ═══════════════════════════════════════════ #}
 <section class="vy-hero vy-hero--compact">
   <div class="vy-hero__bg"><div class="vy-hero__gradient"></div></div>
   <div class="container vy-hero__content">
@@ -11,12 +14,17 @@
   </div>
 </section>
 
+{# ═══════════════════════════════════════════
+   BOOKING WIDGET — Available Sessions
+   ═══════════════════════════════════════════ #}
 <section class="section bg-light">
   <div class="container">
+    <p class="eyebrow vy-reveal">{{ t.widget_eyebrow }}</p>
+    <h2 class="section-title vy-reveal">{{ t.widget_title }}</h2>
+    <p class="section-text vy-reveal">{{ t.widget_text }}</p>
+
     <div class="vy-booking vy-reveal">
       <div class="vy-booking__widget">
-        <h2>{{ t.widget_title }}</h2>
-        <p>{{ t.widget_text }}</p>
         {# Mindbody widget integration placeholder #}
         <div class="vy-booking__mb-widget" id="mb-widget">
           <div class="vy-session-card__placeholder" style="min-height:500px;display:flex;align-items:center;justify-content:center">
@@ -25,41 +33,81 @@
         </div>
       </div>
     </div>
+  </div>
+</section>
 
-    <div class="vy-spacer"></div>
+{# ═══════════════════════════════════════════
+   HOW IT WORKS — Three Steps
+   ═══════════════════════════════════════════ #}
+<section class="section bg-dark">
+  <div class="container">
+    <p class="eyebrow eyebrow--light vy-reveal">{{ t.steps_eyebrow }}</p>
+    <h2 class="section-title section-title--light vy-reveal">{{ t.steps_title }}</h2>
+    <p class="section-text section-text--light vy-reveal">{{ t.steps_subtitle }}</p>
 
-    <div class="vy-booking__info vy-reveal">
-      <h2>{{ t.info_title }}</h2>
-      <div class="vy-info-grid">
-        <div class="vy-info-grid__item">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--vy-primary)" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
-          <span>{{ t.info1 }}</span>
-        </div>
-        <div class="vy-info-grid__item">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--vy-primary)" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
-          <span>{{ t.info2 }}</span>
-        </div>
-        <div class="vy-info-grid__item">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--vy-primary)" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
-          <span>{{ t.info3 }}</span>
-        </div>
-        <div class="vy-info-grid__item">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--vy-primary)" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
-          <span>{{ t.info4 }}</span>
-        </div>
-        <div class="vy-info-grid__item">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--vy-primary)" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
-          <span>{{ t.info5 }}</span>
-        </div>
+    <div class="vy-steps vy-stagger">
+      <div class="vy-step">
+        <div class="vy-step__number">{{ t.step1_number }}</div>
+        <h3 class="vy-step__title">{{ t.step1_title }}</h3>
+        <p class="vy-step__text">{{ t.step1_text }}</p>
+      </div>
+      <div class="vy-step">
+        <div class="vy-step__number">{{ t.step2_number }}</div>
+        <h3 class="vy-step__title">{{ t.step2_title }}</h3>
+        <p class="vy-step__text">{{ t.step2_text }}</p>
+      </div>
+      <div class="vy-step">
+        <div class="vy-step__number">{{ t.step3_number }}</div>
+        <h3 class="vy-step__title">{{ t.step3_title }}</h3>
+        <p class="vy-step__text">{{ t.step3_text }}</p>
       </div>
     </div>
+  </div>
+</section>
 
-    <div class="vy-spacer"></div>
+{# ═══════════════════════════════════════════
+   BEFORE YOUR SESSION — Preparation Tips
+   ═══════════════════════════════════════════ #}
+<section class="section bg-light">
+  <div class="container">
+    <p class="eyebrow vy-reveal">{{ t.prep_eyebrow }}</p>
+    <h2 class="section-title vy-reveal">{{ t.prep_title }}</h2>
 
-    <div class="vy-booking__private vy-reveal">
-      <h2>{{ t.private_title }}</h2>
-      <p>{{ t.private_text }}</p>
-      <a href="{{ lp }}/kontakt" class="btn btn--outline btn--large">{{ t.private_btn }}</a>
+    <div class="vy-practical vy-stagger">
+      <div class="vy-practical__item">
+        <h4>{{ t.prep1_title }}</h4>
+        <p>{{ t.prep1_text }}</p>
+      </div>
+      <div class="vy-practical__item">
+        <h4>{{ t.prep2_title }}</h4>
+        <p>{{ t.prep2_text }}</p>
+      </div>
+      <div class="vy-practical__item">
+        <h4>{{ t.prep3_title }}</h4>
+        <p>{{ t.prep3_text }}</p>
+      </div>
+      <div class="vy-practical__item">
+        <h4>{{ t.prep4_title }}</h4>
+        <p>{{ t.prep4_text }}</p>
+      </div>
+      <div class="vy-practical__item">
+        <h4>{{ t.prep5_title }}</h4>
+        <p>{{ t.prep5_text }}</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+{# ═══════════════════════════════════════════
+   PRIVATE EVENTS CTA
+   ═══════════════════════════════════════════ #}
+<section class="vy-cta">
+  <div class="container vy-reveal">
+    <h2 class="vy-cta__title">{{ t.cta_title }}</h2>
+    <p class="vy-cta__text">{{ t.cta_text }}</p>
+    <div class="vy-cta__actions">
+      <a href="{{ lp }}/kontakt" class="btn btn--primary btn--large">{{ t.cta_btn }}</a>
+      <a href="{{ lp }}/#priser" class="btn btn--outline-light btn--large">{{ t.cta_btn2 }}</a>
     </div>
   </div>
 </section>

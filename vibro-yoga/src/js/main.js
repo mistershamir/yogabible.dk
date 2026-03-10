@@ -19,12 +19,14 @@
     burger.addEventListener('click', function() {
       var open = drawer.classList.toggle('vy-drawer--open');
       burger.classList.toggle('vy-header__burger--open', open);
+      burger.setAttribute('aria-expanded', open ? 'true' : 'false');
       document.body.style.overflow = open ? 'hidden' : '';
     });
     drawer.querySelectorAll('a').forEach(function(link) {
       link.addEventListener('click', function() {
         drawer.classList.remove('vy-drawer--open');
         burger.classList.remove('vy-header__burger--open');
+        burger.setAttribute('aria-expanded', 'false');
         document.body.style.overflow = '';
       });
     });

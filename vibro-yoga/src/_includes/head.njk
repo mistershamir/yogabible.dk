@@ -1,7 +1,10 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="icon" href="/assets/images/brand/logo-white.svg" type="image/svg+xml">
+<meta name="theme-color" content="#141414">
 <title>{{ title or site.name }} — {% if lang == "en" %}{{ site.description_en }}{% else %}{{ site.description_da }}{% endif %}</title>
 <meta name="description" content="{{ description or (site.description_da if lang != 'en' else site.description_en) }}">
+{% if noindex %}<meta name="robots" content="noindex, nofollow">{% endif %}
 <link rel="canonical" href="{{ site.url }}{{ page.url }}">
 {% if lang == "en" %}
 <link rel="alternate" hreflang="da" href="{{ site.url }}{{ page.url | replace('/en/', '/') }}">
@@ -13,7 +16,20 @@
 <meta property="og:title" content="{{ title or site.name }}">
 <meta property="og:description" content="{{ description or (site.description_da if lang != 'en' else site.description_en) }}">
 <meta property="og:url" content="{{ site.url }}{{ page.url }}">
-<meta property="og:type" content="website">
+<meta property="og:type" content="{% if pageType == 'article' %}article{% else %}website{% endif %}">
 <meta property="og:site_name" content="{{ site.name }}">
+{% if lang == "en" %}
+<meta property="og:locale" content="en_GB">
+<meta property="og:locale:alternate" content="da_DK">
+{% else %}
+<meta property="og:locale" content="da_DK">
+<meta property="og:locale:alternate" content="en_GB">
+{% endif %}
+{% if post and post.image %}
+<meta property="og:image" content="{{ site.url }}{{ post.image }}">
+{% elif site.og_image %}
+<meta property="og:image" content="{{ site.url }}{{ site.og_image }}">
+{% endif %}
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="/css/main.css">
+{% include "jsonld.njk" %}

@@ -9,8 +9,11 @@ eleventyComputed:
   title: "{{ post.title_en }} — Vibro Yoga"
   description: "{{ post.excerpt_en }}"
   lang: "en"
+pageType: article
 ---
 {% set tc = i18n.common["en"] %}
+{% set entries = resources.entries %}
+{% set currentIndex = pagination.pageNumber %}
 
 <article class="vy-post">
   <header class="vy-hero vy-hero--compact">
@@ -19,7 +22,7 @@ eleventyComputed:
       <p class="vy-hero__tagline">{{ post.category }}</p>
       <h1 class="vy-hero__title">{{ post.title_en }}</h1>
       <div class="vy-post__meta">
-        <time>{{ post.date }}</time>
+        <time datetime="{{ post.date }}">{{ post.date }}</time>
         <span>{{ post.readTime_en }}</span>
       </div>
     </div>
@@ -27,12 +30,35 @@ eleventyComputed:
 
   <section class="section bg-light">
     <div class="container">
+      <nav class="vy-breadcrumb" aria-label="Breadcrumb">
+        <ol>
+          <li><a href="/en/">Home</a></li>
+          <li><a href="/en/ressourcer/">Resources</a></li>
+          <li aria-current="page">{{ post.title_en }}</li>
+        </ol>
+      </nav>
       <div class="vy-post__body vy-reveal">
         {{ post.content_en | safe }}
       </div>
       <div class="vy-post__footer vy-reveal">
-        <a href="/en/ressourcer" class="btn btn--outline">&larr; {{ tc.cta_read_more }}</a>
+        <a href="/en/ressourcer/" class="btn btn--outline">&larr; All resources</a>
       </div>
+      <nav class="vy-post-nav" aria-label="Article navigation">
+        {% if currentIndex > 0 %}
+          {% set prev = entries[currentIndex - 1] %}
+          <a href="/en/ressourcer/{{ prev.slug }}/" class="vy-post-nav__prev">
+            <span>&larr; Previous</span>
+            <strong>{{ prev.title_en }}</strong>
+          </a>
+        {% endif %}
+        {% if currentIndex < entries.length - 1 %}
+          {% set next = entries[currentIndex + 1] %}
+          <a href="/en/ressourcer/{{ next.slug }}/" class="vy-post-nav__next">
+            <span>Next &rarr;</span>
+            <strong>{{ next.title_en }}</strong>
+          </a>
+        {% endif %}
+      </nav>
     </div>
   </section>
 </article>

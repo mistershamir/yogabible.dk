@@ -6,6 +6,15 @@
   "email": "info@vibroyoga.dk",
   "phone": "+45 53 88 12 09",
   "address": "Torvegade 66, 1400 København K",
+  "address_street": "Torvegade 66",
+  "address_city": "København",
+  "address_postal": "1400",
+  "address_country": "DK",
   "cvr": "41295252",
-  "company": "Hot Yoga Copenhagen ApS"
+  "company": "Hot Yoga Copenhagen ApS",
+  "geo_lat": 55.6726,
+  "geo_lng": 12.5946,
+  "founder": "Shahab Mirsadri",
+  "founding_year": "2023",
+  "og_image": "/assets/images/brand/logo-white.svg"
 }
