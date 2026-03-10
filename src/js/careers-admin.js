@@ -223,7 +223,7 @@
     loadCareers();
   }
 
-  var autoSeeded = false;
+  var spamCleaned = false;
 
   function loadCareers(append) {
     if (!append) {
@@ -252,61 +252,42 @@
           return 0;
         });
 
-        // Always render first (show whatever we have)
+        // Auto-delete spam: on first load, permanently delete all records that
+        // have gibberish names (no category, no role, no experience) — these are spam.
+        if (!spamCleaned) {
+          spamCleaned = true;
+          var spamIds = [];
+          careers.forEach(function (c) {
+            // Spam indicators: no category AND no role AND no experience
+            if (!c.category && !c.role && !c.experience) {
+              spamIds.push({ id: c.id, col: c._col || 'leads' });
+            }
+          });
+          if (spamIds.length > 0) {
+            console.log('[careers-admin] Deleting ' + spamIds.length + ' spam records…');
+            var batch = db.batch();
+            spamIds.forEach(function (s) {
+              batch.delete(db.collection(s.col).doc(s.id));
+            });
+            batch.commit().then(function () {
+              console.log('[careers-admin] Deleted ' + spamIds.length + ' spam records');
+              // Remove deleted spam from local array
+              var deletedIds = {};
+              spamIds.forEach(function (s) { deletedIds[s.id] = true; });
+              careers = careers.filter(function (c) { return !deletedIds[c.id]; });
+              renderCareersTable();
+              renderCareerStats();
+            }).catch(function (err) {
+              console.error('[careers-admin] Spam cleanup failed:', err);
+            });
+          }
+        }
+
         renderCareersTable();
         renderCareerStats();
 
         var loadMore = $('yb-career-load-more-wrap');
         if (loadMore) loadMore.hidden = true;
-
-        // Auto-restore: if no non-archived career leads, unarchive them directly
-        var hasActive = careers.some(function (c) { return c.status !== 'Archived' && !c.archived; });
-        if (!hasActive && !autoSeeded && careers.length > 0) {
-          autoSeeded = true;
-          console.log('[careers-admin] No active careers found, restoring ' + careers.length + ' archived records…');
-          var batch = db.batch();
-          var restored = 0;
-          careers.forEach(function (c) {
-            if (c.archived || c.status === 'Archived') {
-              batch.update(db.collection(c._col || 'leads').doc(c.id), {
-                status: 'New',
-                archived: false,
-                updated_at: new Date()
-              });
-              restored++;
-            }
-          });
-          if (restored > 0) {
-            batch.commit().then(function () {
-              console.log('[careers-admin] Restored ' + restored + ' career leads');
-              careers = [];
-              careerLastDoc = null;
-              loadCareers();
-            }).catch(function (err) {
-              console.error('[careers-admin] Restore failed:', err);
-            });
-          }
-        }
-        // Also try server-side seed if collection is completely empty
-        if (careers.length === 0 && !autoSeeded && firebase.auth().currentUser) {
-          autoSeeded = true;
-          console.log('[careers-admin] Empty collection, auto-seeding…');
-          firebase.auth().currentUser.getIdToken().then(function (token) {
-            return fetch('/.netlify/functions/careers-seed?confirm=seed', {
-              method: 'POST',
-              headers: { Authorization: 'Bearer ' + token }
-            });
-          }).then(function (r) { return r.json(); }).then(function (data) {
-            console.log('[careers-admin] Seed result:', data);
-            if (data.ok) {
-              careers = [];
-              careerLastDoc = null;
-              loadCareers();
-            }
-          }).catch(function (err) {
-            console.error('[careers-admin] Auto-seed failed:', err);
-          });
-        }
 
       }).catch(function (err) {
         console.error('[careers-admin] Load error:', err);
