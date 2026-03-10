@@ -242,25 +242,6 @@
           careers.push(d);
         });
 
-        // Auto-seed: if no non-archived career leads exist, call seed function once
-        var hasActive = careers.some(function (c) { return c.status !== 'Archived' && !c.archived; });
-        if (!hasActive && !autoSeeded && firebase.auth().currentUser) {
-          autoSeeded = true;
-          firebase.auth().currentUser.getIdToken().then(function (token) {
-            return fetch('/.netlify/functions/careers-seed?confirm=seed', {
-              method: 'POST',
-              headers: { Authorization: 'Bearer ' + token }
-            });
-          }).then(function (r) { return r.json(); }).then(function (data) {
-            if (data.ok && (data.added > 0 || data.updated > 0)) {
-              careers = [];
-              careerLastDoc = null;
-              loadCareers(); // reload with seeded data
-            }
-          }).catch(function () { /* silent */ });
-          return;
-        }
-
         // Sort client-side
         careers.sort(function (a, b) {
           var av = a[careerSortField], bv = b[careerSortField];
@@ -271,11 +252,61 @@
           return 0;
         });
 
+        // Always render first (show whatever we have)
         renderCareersTable();
         renderCareerStats();
 
         var loadMore = $('yb-career-load-more-wrap');
-        if (loadMore) loadMore.hidden = true; // all loaded at once
+        if (loadMore) loadMore.hidden = true;
+
+        // Auto-restore: if no non-archived career leads, unarchive them directly
+        var hasActive = careers.some(function (c) { return c.status !== 'Archived' && !c.archived; });
+        if (!hasActive && !autoSeeded && careers.length > 0) {
+          autoSeeded = true;
+          console.log('[careers-admin] No active careers found, restoring ' + careers.length + ' archived records…');
+          var batch = db.batch();
+          var restored = 0;
+          careers.forEach(function (c) {
+            if (c.archived || c.status === 'Archived') {
+              batch.update(db.collection(c._col || 'leads').doc(c.id), {
+                status: 'New',
+                archived: false,
+                updated_at: new Date()
+              });
+              restored++;
+            }
+          });
+          if (restored > 0) {
+            batch.commit().then(function () {
+              console.log('[careers-admin] Restored ' + restored + ' career leads');
+              careers = [];
+              careerLastDoc = null;
+              loadCareers();
+            }).catch(function (err) {
+              console.error('[careers-admin] Restore failed:', err);
+            });
+          }
+        }
+        // Also try server-side seed if collection is completely empty
+        if (careers.length === 0 && !autoSeeded && firebase.auth().currentUser) {
+          autoSeeded = true;
+          console.log('[careers-admin] Empty collection, auto-seeding…');
+          firebase.auth().currentUser.getIdToken().then(function (token) {
+            return fetch('/.netlify/functions/careers-seed?confirm=seed', {
+              method: 'POST',
+              headers: { Authorization: 'Bearer ' + token }
+            });
+          }).then(function (r) { return r.json(); }).then(function (data) {
+            console.log('[careers-admin] Seed result:', data);
+            if (data.ok) {
+              careers = [];
+              careerLastDoc = null;
+              loadCareers();
+            }
+          }).catch(function (err) {
+            console.error('[careers-admin] Auto-seed failed:', err);
+          });
+        }
 
       }).catch(function (err) {
         console.error('[careers-admin] Load error:', err);
