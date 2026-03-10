@@ -85,6 +85,16 @@
     </div>
     <div style="padding:20px 24px;">
       <form id="yb-appt-new-form" class="yb-admin__form">
+        {# ── Contact Search (pull from leads/applications/careers) ── #}
+        <div class="yb-admin__field yb-admin__field--full" style="margin-bottom:16px;">
+          <label for="yb-appt-f-contact-search">{{ t.appt_search_contact }}</label>
+          <div style="position:relative;">
+            <input type="text" id="yb-appt-f-contact-search" class="yb-admin__select" autocomplete="off" placeholder="{{ t.appt_search_contact_placeholder }}">
+            <div id="yb-appt-contact-results" class="yb-appt__contact-dropdown" hidden></div>
+          </div>
+          <small style="color:#6F6A66;margin-top:4px;display:block;">{{ t.appt_search_contact_hint }}</small>
+        </div>
+
         <div class="yb-lead__status-grid">
           <div class="yb-admin__field">
             <label for="yb-appt-f-date">{{ t.appt_new_date }} *</label>

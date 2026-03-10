@@ -953,6 +953,122 @@
     if (modal) modal.hidden = true;
     var form = $('yb-appt-new-form');
     if (form) form.reset();
+    // Also clear contact search
+    var searchEl = $('yb-appt-f-contact-search');
+    if (searchEl) searchEl.value = '';
+    var dropdown = $('yb-appt-contact-results');
+    if (dropdown) dropdown.hidden = true;
+  }
+
+  /* ══════════════════════════════════════════
+     CONTACT SEARCH (autocomplete)
+     ══════════════════════════════════════════ */
+  var _contactSearchTimer = null;
+  var _contactActiveIdx = -1;
+
+  function initContactSearch() {
+    var input = $('yb-appt-f-contact-search');
+    var dropdown = $('yb-appt-contact-results');
+    if (!input || !dropdown) return;
+
+    input.addEventListener('input', function () {
+      clearTimeout(_contactSearchTimer);
+      var q = input.value.trim();
+      if (q.length < 2) { dropdown.hidden = true; return; }
+      _contactSearchTimer = setTimeout(function () { searchContacts(q); }, 300);
+    });
+
+    input.addEventListener('keydown', function (e) {
+      if (dropdown.hidden) return;
+      var items = dropdown.querySelectorAll('.yb-appt__contact-item');
+      if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        _contactActiveIdx = Math.min(_contactActiveIdx + 1, items.length - 1);
+        updateActiveItem(items);
+      } else if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        _contactActiveIdx = Math.max(_contactActiveIdx - 1, 0);
+        updateActiveItem(items);
+      } else if (e.key === 'Enter' && _contactActiveIdx >= 0) {
+        e.preventDefault();
+        items[_contactActiveIdx].click();
+      } else if (e.key === 'Escape') {
+        dropdown.hidden = true;
+      }
+    });
+
+    // Close dropdown when clicking outside
+    document.addEventListener('click', function (e) {
+      if (!input.contains(e.target) && !dropdown.contains(e.target)) {
+        dropdown.hidden = true;
+      }
+    });
+  }
+
+  function updateActiveItem(items) {
+    items.forEach(function (el, i) {
+      el.classList.toggle('is-active', i === _contactActiveIdx);
+    });
+    if (items[_contactActiveIdx]) {
+      items[_contactActiveIdx].scrollIntoView({ block: 'nearest' });
+    }
+  }
+
+  function searchContacts(query) {
+    var dropdown = $('yb-appt-contact-results');
+    apiCall('GET', { action: 'search-contacts', q: query }).then(function (res) {
+      if (!res.ok || !res.contacts || res.contacts.length === 0) {
+        dropdown.innerHTML = '<div class="yb-appt__contact-empty">Ingen kontakter fundet</div>';
+        dropdown.hidden = false;
+        _contactActiveIdx = -1;
+        return;
+      }
+
+      var html = res.contacts.map(function (c, i) {
+        var sourceLabel = c.source === 'lead' ? 'Lead' : c.source === 'application' ? 'Ansøger' : 'Karriere';
+        var badgeClass = 'yb-appt__contact-badge--' + c.source;
+        var extra = c.type ? ' · ' + c.type : '';
+        return '<div class="yb-appt__contact-item" data-idx="' + i + '">' +
+          '<div>' +
+            '<div class="yb-appt__contact-name">' + escapeHtml(c.name || '(no name)') + '</div>' +
+            '<div class="yb-appt__contact-email">' + escapeHtml(c.email) + (c.phone ? ' · ' + escapeHtml(c.phone) : '') + '</div>' +
+          '</div>' +
+          '<span class="yb-appt__contact-badge ' + badgeClass + '">' + sourceLabel + extra + '</span>' +
+        '</div>';
+      }).join('');
+
+      dropdown.innerHTML = html;
+      dropdown.hidden = false;
+      _contactActiveIdx = -1;
+
+      // Bind click handlers
+      dropdown.querySelectorAll('.yb-appt__contact-item').forEach(function (el) {
+        el.addEventListener('click', function () {
+          var idx = parseInt(el.getAttribute('data-idx'));
+          selectContact(res.contacts[idx]);
+        });
+      });
+    });
+  }
+
+  function selectContact(contact) {
+    var nameEl = $('yb-appt-f-name');
+    var emailEl = $('yb-appt-f-email');
+    var phoneEl = $('yb-appt-f-phone');
+    var searchEl = $('yb-appt-f-contact-search');
+    var dropdown = $('yb-appt-contact-results');
+
+    if (nameEl) nameEl.value = contact.name || '';
+    if (emailEl) emailEl.value = contact.email || '';
+    if (phoneEl) phoneEl.value = contact.phone || '';
+    if (searchEl) searchEl.value = contact.name || contact.email || '';
+    if (dropdown) dropdown.hidden = true;
+  }
+
+  function escapeHtml(str) {
+    var div = document.createElement('div');
+    div.textContent = str;
+    return div.innerHTML;
   }
 
   /* ══════════════════════════════════════════
@@ -1123,6 +1239,7 @@
               });
             });
             initEventListeners();
+            initContactSearch();
           }
         });
       }
