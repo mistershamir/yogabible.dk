@@ -26,7 +26,7 @@
   var currentCareerId = null;
   var currentCareer = null;
   var careerLastDoc = null;
-  var PAGE_SIZE = 50;
+  var PAGE_SIZE = 10000; // Load all at once for instant search
   var careerSearch = '';
   var careerFilterStatus = '';
   var careerFilterCategory = '';
@@ -229,19 +229,18 @@
       query = query.where('status', '==', 'Archived');
     }
 
-    if (careerLastDoc) query = query.startAfter(careerLastDoc);
-
     query.limit(PAGE_SIZE).get().then(function (snap) {
       snap.forEach(function (doc) {
         careers.push(Object.assign({ id: doc.id }, doc.data()));
       });
-      careerLastDoc = snap.docs.length ? snap.docs[snap.docs.length - 1] : null;
+      careerLastDoc = null; // No pagination needed — all loaded at once
 
       renderCareersTable();
       renderCareerStats();
 
+      // Hide Load More — everything is already loaded
       var loadMore = $('yb-career-load-more-wrap');
-      if (loadMore) loadMore.hidden = snap.docs.length < PAGE_SIZE;
+      if (loadMore) loadMore.hidden = true;
 
     }).catch(function (err) {
       console.error('[careers-admin] Load error:', err);

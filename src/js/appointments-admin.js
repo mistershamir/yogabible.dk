@@ -164,7 +164,7 @@
      LOAD DATA (via API)
      ══════════════════════════════════════════ */
   function loadAppointments() {
-    apiCall('GET', { limit: 500 }).then(function (res) {
+    apiCall('GET', { limit: 10000 }).then(function (res) {
       if (res.ok) {
         appointments = res.data || [];
         apptLoaded = true;

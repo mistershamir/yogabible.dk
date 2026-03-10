@@ -35,7 +35,7 @@
   var currentLeadId = null;
   var currentLead = null;
   var lastDoc = null;
-  var PAGE_SIZE = 50;
+  var PAGE_SIZE = 10000; // Load all leads at once for instant search
   var totalLeadCount = null; // true DB count (from aggregation query)
   var searchTerm = '';
   var filterStatuses = []; // multi-select array
@@ -422,30 +422,22 @@
       query = query.where('archived', '==', true);
     }
 
-    // When any chip filter is active, load a large batch and filter client-side.
-    // This avoids composite index requirements and supports multi-select combinations.
-    var hasFilters = filterStatuses.length > 0 || filterTypes.length > 0 ||
-      filterSource || filterPriority || filterTemperature || filterSubType;
-
-    var batchSize = hasFilters ? 1000 : PAGE_SIZE;
-    if (!hasFilters && lastDoc) query = query.startAfter(lastDoc);
-
-    query.limit(batchSize).get().then(function (snap) {
+    query.limit(PAGE_SIZE).get().then(function (snap) {
       snap.forEach(function (doc) {
         var data = Object.assign({ id: doc.id }, doc.data());
         if (!showArchived && data.archived === true) return;
         leads.push(data);
       });
 
-      // Pagination only applies when no client-side filters are active
-      lastDoc = (!hasFilters && snap.docs.length) ? snap.docs[snap.docs.length - 1] : null;
+      lastDoc = null; // No pagination needed — all loaded at once
 
       renderLeadView();
       renderLeadStats();
       updateBulkBar();
 
+      // Hide Load More — everything is already loaded
       var loadMore = $('yb-lead-load-more-wrap');
-      if (loadMore) loadMore.hidden = hasFilters || snap.docs.length < PAGE_SIZE;
+      if (loadMore) loadMore.hidden = true;
 
     }).catch(function (err) {
       console.error('[lead-admin] Load error:', err);
@@ -496,15 +488,11 @@
     var countEl = $('yb-lead-count');
     if (!countEl) return;
     var filtered = getFilteredLeads();
-    var dbTotal = totalLeadCount !== null ? totalLeadCount : leads.length;
-    if (filtered.length < leads.length) {
-      // Search filter active: "X matching / Y loaded / Z total"
-      countEl.textContent = filtered.length + ' ' + t('leads_matching') + ' / ' + leads.length + ' ' + t('leads_loaded') + ' / ' + dbTotal + ' ' + t('leads_stat_total').toLowerCase();
-    } else if (leads.length < dbTotal) {
-      // Not all loaded yet: "Y loaded / Z total"
-      countEl.textContent = leads.length + ' ' + t('leads_loaded') + ' ' + t('leads_of') + ' ' + dbTotal;
+    var total = leads.length;
+    if (filtered.length < total) {
+      countEl.textContent = filtered.length + ' ' + t('leads_matching') + ' ' + t('leads_of') + ' ' + total;
     } else {
-      countEl.textContent = filtered.length + ' ' + t('leads_of') + ' ' + dbTotal;
+      countEl.textContent = total + ' ' + t('leads_stat_total').toLowerCase();
     }
   }
 
@@ -2470,7 +2458,7 @@
   function loadApplications() {
     applications = [];
 
-    db.collection('applications').orderBy('created_at', 'desc').limit(200).get().then(function (snap) {
+    db.collection('applications').orderBy('created_at', 'desc').limit(10000).get().then(function (snap) {
       snap.forEach(function (doc) {
         applications.push(Object.assign({ id: doc.id }, doc.data()));
       });
@@ -3985,7 +3973,7 @@
     if (!appLoaded) {
       // Load first, then navigate
       applications = [];
-      db.collection('applications').orderBy('created_at', 'desc').limit(200).get().then(function (snap) {
+      db.collection('applications').orderBy('created_at', 'desc').limit(10000).get().then(function (snap) {
         snap.forEach(function (doc) {
           applications.push(Object.assign({ id: doc.id }, doc.data()));
         });
@@ -4059,7 +4047,7 @@
         // Lead actions
         case 'view-lead': e.preventDefault(); showLeadDetail(id); break;
         case 'back-leads': backToLeadList(); break;
-        case 'leads-refresh': loadLeads(); loadTotalLeadCount(); break;
+        case 'leads-refresh': loadLeads(); break;
         case 'leads-load-more': loadLeads(true); break;
         case 'delete-lead': deleteLead(id || currentLeadId); break;
         case 'restore-lead': restoreLead(id || currentLeadId); break;
@@ -4651,7 +4639,6 @@
         var tab = btn.getAttribute('data-yb-admin-tab');
         if (tab === 'leads' && !leadsLoaded) {
           loadLeads();
-          loadTotalLeadCount();
           leadsLoaded = true;
         }
         if (tab === 'applications' && !appLoaded) {
@@ -4667,7 +4654,6 @@
         var tab = btn.getAttribute('data-yb-tab');
         if (tab === 'crm-leads' && !leadsLoaded) {
           loadLeads();
-          loadTotalLeadCount();
           leadsLoaded = true;
         }
         if (tab === 'crm-applications' && !appLoaded) {
