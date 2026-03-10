@@ -301,29 +301,32 @@ exports.handler = async (event) => {
     const db = getDb();
     const col = db.collection('leads');
 
-    // Build set of existing career emails to avoid duplicates
-    const existingSnap = await col.where('type', '==', 'careers').select('email').get();
-    const existingEmails = new Set();
+    // Build map of existing career emails → doc ref (to overwrite archived ones)
+    const existingSnap = await col.where('type', '==', 'careers').get();
+    const existingByEmail = {};
     existingSnap.forEach(doc => {
       const d = doc.data();
-      if (d.email) existingEmails.add(d.email.toLowerCase().trim());
+      if (d.email) {
+        const key = d.email.toLowerCase().trim();
+        existingByEmail[key] = { ref: doc.ref, archived: d.archived === true || d.status === 'Archived' };
+      }
     });
 
     let added = 0;
+    let updated = 0;
     let skipped = 0;
     const batch = db.batch();
 
     for (const row of SEED_DATA) {
       const emailKey = (row.email || '').toLowerCase().trim();
-      if (existingEmails.has(emailKey)) {
-        skipped++;
-        continue;
-      }
-      const ref = col.doc();
-      batch.set(ref, {
+      const existing = existingByEmail[emailKey];
+
+      const seedDoc = {
         ...row,
         type: 'careers',
         source: 'Careers page',
+        status: row.status || 'New',
+        archived: false,
         converted: false,
         converted_at: null,
         application_id: null,
@@ -343,15 +346,26 @@ exports.handler = async (event) => {
         subcategories: row.subcategory || '',
         created_at: new Date(row.submitted_at),
         updated_at: new Date()
-      });
-      existingEmails.add(emailKey);
-      added++;
+      };
+
+      if (existing && existing.archived) {
+        // Overwrite archived duplicate with fresh seed data
+        batch.set(existing.ref, seedDoc);
+        updated++;
+      } else if (existing) {
+        // Already exists and is active — skip
+        skipped++;
+      } else {
+        // New entry
+        batch.set(col.doc(), seedDoc);
+        added++;
+      }
     }
 
     await batch.commit();
 
-    console.log(`[careers-seed] Added ${added}, skipped ${skipped}`);
-    return jsonResponse(200, { ok: true, added, skipped });
+    console.log(`[careers-seed] Added ${added}, updated ${updated}, skipped ${skipped}`);
+    return jsonResponse(200, { ok: true, added, updated, skipped });
 
   } catch (err) {
     console.error('[careers-seed] Error:', err);
