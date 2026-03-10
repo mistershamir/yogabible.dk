@@ -69,7 +69,10 @@
     "recommendLabel": "Anbefaling",
     "conflictsOfLabel": "konflikter af",
     "conflictBaseRecommend": "Brug {name} som base og byt de {n} konfliktuger til det andet hold",
-    "conflictNoConflict": "Brug {name} som base"
+    "conflictNoConflict": "Brug {name} som base",
+    "crossLinkTitle": "Se også: August–December 2026-holdet",
+    "crossLinkDesc": "Vores efterårshold starter 10. august 2026 med hverdags- og weekendhold. Åben for tilmelding.",
+    "crossLinkCta": "Se efterårsskemaet"
   },
   "en": {
     "pageTitle": "18-Week Yoga Teacher Training — Schedule | YOGA BIBLE",
@@ -141,6 +144,9 @@
     "recommendLabel": "Recommendation",
     "conflictsOfLabel": "conflicts out of",
     "conflictBaseRecommend": "Use {name} as your base and swap the {n} conflicting weeks to the other track",
-    "conflictNoConflict": "Use {name} as your base"
+    "conflictNoConflict": "Use {name} as your base",
+    "crossLinkTitle": "See also: August–December 2026 cohort",
+    "crossLinkDesc": "Our autumn cohort starts August 10, 2026 with weekday and weekend tracks. Open for enrollment.",
+    "crossLinkCta": "See autumn schedule"
   }
 }

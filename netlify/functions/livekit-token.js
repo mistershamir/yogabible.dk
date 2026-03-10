@@ -20,6 +20,31 @@ const { getDoc, updateDoc } = require('./shared/firestore');
 const { jsonResponse, optionsResponse } = require('./shared/utils');
 
 const COLLECTION = 'live-schedule';
+const MUX_API_BASE = 'https://api.mux.com';
+
+/**
+ * Make authenticated request to Mux API (for recording setup).
+ */
+async function muxFetch(path, method, body) {
+  var tokenId = process.env.MUX_TOKEN_ID;
+  var tokenSecret = process.env.MUX_TOKEN_SECRET;
+  if (!tokenId || !tokenSecret) throw new Error('MUX_TOKEN_ID/SECRET not set');
+
+  var auth = Buffer.from(tokenId + ':' + tokenSecret).toString('base64');
+  var opts = {
+    method: method || 'GET',
+    headers: { 'Authorization': 'Basic ' + auth, 'Content-Type': 'application/json' }
+  };
+  if (body) opts.body = JSON.stringify(body);
+
+  var res = await fetch(MUX_API_BASE + path, opts);
+  var data = await res.json();
+  if (!res.ok) {
+    var errMsg = data.error ? (data.error.message || JSON.stringify(data.error)) : 'Mux API error';
+    throw new Error(errMsg);
+  }
+  return data;
+}
 
 exports.handler = async function (event) {
   if (event.httpMethod === 'OPTIONS') return optionsResponse();
@@ -31,6 +56,8 @@ exports.handler = async function (event) {
     switch (action) {
       case 'create-room':
         return handleCreateRoom(event);
+      case 'test-room':
+        return handleTestRoom(event);
       case 'viewer-token':
         return handleViewerToken(event, params);
       case 'close-room':
@@ -97,7 +124,10 @@ function createToken(opts) {
       canSubscribe: !!opts.canSubscribe,
       canPublishData: true
     },
-    metadata: JSON.stringify({ name: opts.name || opts.identity }),
+    metadata: JSON.stringify({
+      name: opts.name || opts.identity,
+      role: opts.role || 'viewer'
+    }),
     name: opts.name || opts.identity
   };
 
@@ -123,7 +153,7 @@ function createToken(opts) {
  * Call LiveKit Server API using Twirp protocol.
  * LiveKit uses Twirp RPC over HTTP POST with JSON bodies.
  */
-async function livekitApi(method, body) {
+async function livekitApi(method, body, service) {
   var url = process.env.LIVEKIT_URL;
   if (!url) throw new Error('LIVEKIT_URL must be set');
 
@@ -141,7 +171,8 @@ async function livekitApi(method, body) {
     ttl: 60
   });
 
-  var apiUrl = httpUrl + '/twirp/livekit.RoomService/' + method;
+  var svc = service || 'livekit.RoomService';
+  var apiUrl = httpUrl + '/twirp/' + svc + '/' + method;
   var res = await fetch(apiUrl, {
     method: 'POST',
     headers: {
@@ -151,7 +182,13 @@ async function livekitApi(method, body) {
     body: JSON.stringify(body || {})
   });
 
-  var data = await res.json();
+  var text = await res.text();
+  var data;
+  try {
+    data = JSON.parse(text);
+  } catch (e) {
+    throw new Error('LiveKit API error (' + res.status + '): non-JSON response — ' + text.substring(0, 200));
+  }
   if (!res.ok) {
     var errMsg = data.msg || data.message || JSON.stringify(data);
     throw new Error('LiveKit API error (' + res.status + '): ' + errMsg);
@@ -178,7 +215,7 @@ async function handleCreateRoom(event) {
   if (!session) {
     return jsonResponse(404, { ok: false, error: 'Session not found' });
   }
-  if (session.status !== 'scheduled') {
+  if (session.status !== 'scheduled' && session.status !== 'live') {
     return jsonResponse(400, { ok: false, error: 'Session is not in scheduled state (current: ' + session.status + ')' });
   }
 
@@ -194,7 +231,8 @@ async function handleCreateRoom(event) {
       metadata: JSON.stringify({
         sessionId: sessionId,
         title: session.title_da || session.title_en || '',
-        instructor: session.instructor || ''
+        instructor: session.instructor || '',
+        streamType: session.streamType || (session.interactive ? 'interactive' : 'broadcast')
       })
     });
     console.log('[livekit-token] Created room:', roomName);
@@ -210,7 +248,8 @@ async function handleCreateRoom(event) {
   // Generate publisher token for the teacher
   var token = createToken({
     identity: 'teacher-' + user.uid,
-    name: user.email.split('@')[0],
+    name: session.instructor || user.email.split('@')[0],
+    role: 'teacher',
     room: roomName,
     canPublish: true,
     canSubscribe: true,
@@ -219,12 +258,52 @@ async function handleCreateRoom(event) {
     ttl: 21600
   });
 
-  // Update session with LiveKit room info
-  await updateDoc(COLLECTION, sessionId, {
+  // ── Set up Mux recording via Room Composite Egress ──
+  var muxStreamId = null;
+  var muxPlaybackId = null;
+  try {
+    var muxResult = await muxFetch('/video/v1/live-streams', 'POST', {
+      playback_policy: ['public'],
+      new_asset_settings: { playback_policy: ['public'] },
+      latency_mode: 'low',
+      reconnect_window: 60,
+      max_continuous_duration: 21600
+    });
+    var muxStream = muxResult.data;
+    muxStreamId = muxStream.id;
+    muxPlaybackId = muxStream.playback_ids && muxStream.playback_ids[0]
+      ? muxStream.playback_ids[0].id : null;
+
+    // Start LiveKit Room Composite Egress → RTMP to Mux
+    var rtmpUrl = 'rtmps://global-live.mux.com:443/app/' + muxStream.stream_key;
+    await livekitApi('StartRoomCompositeEgress', {
+      room_name: roomName,
+      stream_urls: [rtmpUrl],
+      layout: 'grid',
+      audio_only: false,
+      video_only: false
+    }, 'livekit.Egress');
+
+    console.log('[livekit-token] Recording egress started → Mux stream:', muxStreamId);
+  } catch (egressErr) {
+    // Recording failure should not block the session
+    console.error('[livekit-token] Recording setup failed (non-blocking):', egressErr.message);
+  }
+
+  // Update session with LiveKit room info + Mux recording info
+  // Also set status to 'live' and liveStartedAt here (not just in set-live)
+  // to avoid timer discrepancy between teacher and viewer
+  var sessionUpdate = {
     livekitRoom: roomName,
     streamSource: 'remote',
+    status: 'live',
+    liveStartedAt: new Date().toISOString(),
     updated_by: user.email
-  });
+  };
+  if (muxStreamId) sessionUpdate.muxLiveStreamId = muxStreamId;
+  if (muxPlaybackId) sessionUpdate.muxPlaybackId = muxPlaybackId;
+
+  await updateDoc(COLLECTION, sessionId, sessionUpdate);
 
   var wsUrl = process.env.LIVEKIT_URL || '';
 
@@ -240,6 +319,52 @@ async function handleCreateRoom(event) {
 }
 
 // ═══════════════════════════════════════════════════════
+// Test room — quick LiveKit test, no Firestore/Mux (teacher/admin only)
+// ═══════════════════════════════════════════════════════
+async function handleTestRoom(event) {
+  var user = await requireAuth(event, ['teacher', 'admin']);
+  if (user.error) return user.error;
+
+  var roomName = 'yb-test-' + user.uid.substring(0, 8) + '-' + Date.now();
+
+  try {
+    await livekitApi('CreateRoom', {
+      name: roomName,
+      empty_timeout: 120,
+      max_participants: 10,
+      metadata: JSON.stringify({ test: true, teacher: user.email })
+    });
+  } catch (err) {
+    if (!err.message || err.message.indexOf('already exists') === -1) {
+      throw err;
+    }
+  }
+
+  var token = createToken({
+    identity: 'teacher-' + user.uid,
+    name: user.email.split('@')[0],
+    role: 'teacher',
+    room: roomName,
+    canPublish: true,
+    canSubscribe: true,
+    roomCreate: true,
+    roomAdmin: true,
+    ttl: 3600
+  });
+
+  var wsUrl = process.env.LIVEKIT_URL || '';
+  console.log('[livekit-token] Test room created:', roomName, 'by:', user.email);
+
+  return jsonResponse(200, {
+    ok: true,
+    token: token,
+    wsUrl: wsUrl,
+    roomName: roomName,
+    test: true
+  });
+}
+
+// ═══════════════════════════════════════════════════════
 // Viewer token (any authenticated user or public)
 // ═══════════════════════════════════════════════════════
 async function handleViewerToken(event, params) {
@@ -248,21 +373,69 @@ async function handleViewerToken(event, params) {
     return jsonResponse(400, { ok: false, error: 'room parameter is required' });
   }
 
-  // Optional auth — viewers can be anonymous
+  // Check session type — extract sessionId from room name (yb-live-{sessionId})
+  var isInteractive = false;
+  var streamType = 'broadcast';
+  var coTeachers = [];
+  var sessionId = roomName.replace('yb-live-', '');
+  if (sessionId && sessionId !== roomName) {
+    try {
+      var session = await getDoc(COLLECTION, sessionId);
+      if (session) {
+        streamType = session.streamType || (session.interactive ? 'interactive' : 'broadcast');
+        isInteractive = streamType === 'interactive' || streamType === 'panel';
+        coTeachers = session.coTeachers || [];
+      }
+    } catch (err) {
+      console.log('[livekit-token] Could not check session:', err.message);
+    }
+  }
+
+  // Optional auth — viewers can be anonymous (but interactive/panel requires auth)
   var user = await optionalAuth(event);
+
+  if (isInteractive && !user) {
+    return jsonResponse(401, { ok: false, error: 'Authentication required for interactive sessions' });
+  }
+
+  // Determine viewer's role and publish rights
+  var viewerRole = 'viewer';
+  var canPublish = false;
+  if (user && streamType === 'panel' && coTeachers.indexOf(user.email) !== -1) {
+    // Co-teacher in a panel session → gets teacher role + publish rights
+    viewerRole = 'teacher';
+    canPublish = true;
+  } else if (user && streamType === 'interactive') {
+    viewerRole = 'participant';
+    canPublish = true;
+  }
+
   var identity = user
-    ? 'viewer-' + user.uid
+    ? (viewerRole === 'teacher' ? 'teacher-' : viewerRole === 'participant' ? 'participant-' : 'viewer-') + user.uid
     : 'anon-' + Math.random().toString(36).substring(2, 10);
   var displayName = user
     ? (user.email || '').split('@')[0]
     : 'Viewer';
 
+  // Look up user's Firestore profile for a better display name
+  if (user) {
+    try {
+      var userDoc = await getDoc('users', user.uid);
+      if (userDoc && (userDoc.firstName || userDoc.displayName)) {
+        displayName = userDoc.firstName || userDoc.displayName.split(' ')[0];
+      }
+    } catch (e) {}
+  }
+
   var token = createToken({
     identity: identity,
     name: displayName,
+    role: viewerRole,
     room: roomName,
-    canPublish: false,
+    canPublish: canPublish,
     canSubscribe: true,
+    roomCreate: viewerRole === 'teacher',
+    roomAdmin: viewerRole === 'teacher',
     ttl: 21600
   });
 
@@ -272,7 +445,10 @@ async function handleViewerToken(event, params) {
     ok: true,
     token: token,
     wsUrl: wsUrl,
-    roomName: roomName
+    roomName: roomName,
+    interactive: isInteractive,
+    streamType: streamType,
+    role: viewerRole
   });
 }
 

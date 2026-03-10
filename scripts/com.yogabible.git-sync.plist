@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>com.yogabible.git-sync</string>
+
+    <key>ProgramArguments</key>
+    <array>
+        <string>/bin/bash</string>
+        <string>/Users/mistershamir/Library/Mobile Documents/com~apple~CloudDocs/Claude Drive/Claude Projects/Yoga Bible DK (Claude)/scripts/git-auto-sync.sh</string>
+        <string>main</string>
+    </array>
+
+    <key>EnvironmentVariables</key>
+    <dict>
+        <key>REPO_DIR</key>
+        <string>/Users/mistershamir/Library/Mobile Documents/com~apple~CloudDocs/Claude Drive/Claude Projects/Yoga Bible DK (Claude)</string>
+        <key>PATH</key>
+        <string>/usr/local/bin:/usr/bin:/bin:/opt/homebrew/bin</string>
+    </dict>
+
+    <key>StartInterval</key>
+    <integer>300</integer>
+
+    <key>StandardOutPath</key>
+    <string>/tmp/yogabible-git-sync.log</string>
+
+    <key>StandardErrorPath</key>
+    <string>/tmp/yogabible-git-sync-error.log</string>
+
+    <key>RunAtLoad</key>
+    <true/>
+</dict>
+</plist>

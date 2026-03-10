@@ -1,0 +1,190 @@
+<!--
+  HOT YOGA COPENHAGEN — Pricing Page JSON-LD
+
+  Paste this into Framer:
+  Pricing page → Page Settings → Custom Code → Start of <head> tag
+
+  Contains: Product offers with pricing + BreadcrumbList
+-->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        {
+          "@type": "ListItem",
+          "position": 1,
+          "name": "Hot Yoga Copenhagen",
+          "item": "https://www.hotyogacph.dk"
+        },
+        {
+          "@type": "ListItem",
+          "position": 2,
+          "name": "Pricing & Sign Up",
+          "item": "https://www.hotyogacph.dk/yoga-pricing-1"
+        }
+      ]
+    },
+    {
+      "@type": "OfferCatalog",
+      "name": "Hot Yoga Copenhagen Pricing",
+      "description": "Class passes, memberships, and trial offers for hot yoga in Copenhagen. Under-30 discounts available on all products.",
+      "itemListElement": [
+        {
+          "@type": "OfferCatalog",
+          "name": "Trial & Intro Passes",
+          "description": "First-time offers to experience Hot Yoga Copenhagen",
+          "itemListElement": [
+            {
+              "@type": "Offer",
+              "name": "Try One Class",
+              "description": "Single drop-in hot yoga class. No commitment, all levels welcome.",
+              "price": "299",
+              "priceCurrency": "DKK"
+            },
+            {
+              "@type": "Offer",
+              "name": "KickStarter — 10 Classes / 3 Weeks",
+              "description": "Best intro deal for Copenhagen residents. 10 hot yoga classes within 3 weeks. Experience the transformation.",
+              "price": "599",
+              "priceCurrency": "DKK"
+            },
+            {
+              "@type": "Offer",
+              "name": "14-Day Unlimited Trial",
+              "description": "Two weeks of unlimited hot yoga classes. Perfect for testing if hot yoga is right for you.",
+              "price": "649",
+              "priceCurrency": "DKK"
+            },
+            {
+              "@type": "Offer",
+              "name": "21-Day Unlimited Trial",
+              "description": "Three weeks of unlimited hot yoga. Enough time to feel real results in flexibility, strength, and wellbeing.",
+              "price": "749",
+              "priceCurrency": "DKK"
+            }
+          ]
+        },
+        {
+          "@type": "OfferCatalog",
+          "name": "Tourist Pass",
+          "description": "Hot yoga pass for visitors to Copenhagen",
+          "itemListElement": [
+            {
+              "@type": "Offer",
+              "name": "Tourist Pass — 7 Days Unlimited",
+              "description": "7 days unlimited hot yoga including mat and 2 towels (practice + shower). Perfect for visitors to Copenhagen.",
+              "price": "895",
+              "priceCurrency": "DKK"
+            }
+          ]
+        },
+        {
+          "@type": "OfferCatalog",
+          "name": "Class Cards (Clip Cards)",
+          "description": "Pay-per-class packages with flexible validity periods",
+          "itemListElement": [
+            {
+              "@type": "Offer",
+              "name": "5-Class Card",
+              "description": "5 hot yoga classes valid for 30 days",
+              "price": "1199",
+              "priceCurrency": "DKK"
+            },
+            {
+              "@type": "Offer",
+              "name": "10-Class Card",
+              "description": "10 hot yoga classes valid for 50 days",
+              "price": "1999",
+              "priceCurrency": "DKK"
+            },
+            {
+              "@type": "Offer",
+              "name": "20-Class Card",
+              "description": "20 hot yoga classes valid for 90 days. Great for regular practice.",
+              "price": "3599",
+              "priceCurrency": "DKK"
+            },
+            {
+              "@type": "Offer",
+              "name": "100-Class Card",
+              "description": "100 hot yoga classes valid for 12 months. Shareable with up to 2 others. Best per-class value.",
+              "price": "9999",
+              "priceCurrency": "DKK"
+            }
+          ]
+        },
+        {
+          "@type": "OfferCatalog",
+          "name": "Monthly Memberships",
+          "description": "Recurring monthly contracts with first month free",
+          "itemListElement": [
+            {
+              "@type": "Offer",
+              "name": "10 Classes/Month Membership",
+              "description": "10 hot yoga classes per month. Access to all class types. Wellness perks included: towels, showers, herbal tea.",
+              "price": "999",
+              "priceCurrency": "DKK",
+              "priceSpecification": {
+                "@type": "UnitPriceSpecification",
+                "price": "999",
+                "priceCurrency": "DKK",
+                "billingDuration": "P1M"
+              }
+            },
+            {
+              "@type": "Offer",
+              "name": "Unlimited Monthly Membership",
+              "description": "Unlimited hot yoga classes per month. All class types and times. Member-only events and discounts. Wellness amenities included.",
+              "price": "1249",
+              "priceCurrency": "DKK",
+              "priceSpecification": {
+                "@type": "UnitPriceSpecification",
+                "price": "1249",
+                "priceCurrency": "DKK",
+                "billingDuration": "P1M"
+              }
+            },
+            {
+              "@type": "Offer",
+              "name": "Premium Unlimited Membership",
+              "description": "All-inclusive premium: unlimited classes, priority booking (31 days ahead), mat storage, laundry service, personal storage. The ultimate hot yoga experience.",
+              "price": "1649",
+              "priceCurrency": "DKK",
+              "priceSpecification": {
+                "@type": "UnitPriceSpecification",
+                "price": "1649",
+                "priceCurrency": "DKK",
+                "billingDuration": "P1M"
+              }
+            }
+          ]
+        },
+        {
+          "@type": "OfferCatalog",
+          "name": "Time-Based Passes (No Binding)",
+          "description": "Unlimited passes with no registration fee or lock-in",
+          "itemListElement": [
+            {
+              "@type": "Offer",
+              "name": "6-Month Unlimited Pass",
+              "description": "6 months unlimited hot yoga. Save 899 DKK vs monthly membership. No registration fee, no binding.",
+              "price": "6899",
+              "priceCurrency": "DKK"
+            },
+            {
+              "@type": "Offer",
+              "name": "12+1 Month Unlimited Pass",
+              "description": "Best value: 13 months unlimited hot yoga for the price of 12. Save 2,688 DKK vs monthly. No registration fee.",
+              "price": "12599",
+              "priceCurrency": "DKK"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
+</script>

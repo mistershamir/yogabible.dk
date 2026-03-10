@@ -1,0 +1,32 @@
+{% set t = i18n.ressourcer[lang or "da"] %}
+{% set tc = i18n.common[lang or "da"] %}
+{% set lp = "/en" if lang == "en" else "" %}
+
+<section class="vy-hero vy-hero--compact">
+  <div class="vy-hero__bg"><div class="vy-hero__gradient"></div></div>
+  <div class="container vy-hero__content">
+    <p class="vy-hero__tagline">{{ t.hero_eyebrow }}</p>
+    <h1 class="vy-hero__title">{{ t.hero_title }}</h1>
+    <p class="vy-hero__subtitle">{{ t.hero_subtitle }}</p>
+  </div>
+</section>
+
+<section class="section bg-light">
+  <div class="container">
+    <div class="vy-resources__grid vy-reveal">
+      {% for post in resources.entries %}
+      <a href="{{ lp }}/ressourcer/{{ post.slug }}" class="vy-resource-card">
+        <div class="vy-resource-card__img">
+          <div class="vy-session-card__placeholder"></div>
+        </div>
+        <div class="vy-resource-card__body">
+          <span class="vy-resource-card__date">{{ post.date }}</span>
+          <h3>{% if lang == "en" %}{{ post.title_en }}{% else %}{{ post.title_da }}{% endif %}</h3>
+          <p>{% if lang == "en" %}{{ post.excerpt_en }}{% else %}{{ post.excerpt_da }}{% endif %}</p>
+          <span class="vy-resource-card__link">{{ tc.cta_read_more }} &rarr;</span>
+        </div>
+      </a>
+      {% endfor %}
+    </div>
+  </div>
+</section>

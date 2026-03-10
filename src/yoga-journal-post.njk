@@ -10,6 +10,12 @@ eleventyComputed:
   title: "{{ journal.title_da }} | Yoga Journal — YOGA BIBLE"
   description: "{{ journal.excerpt_da }}"
   journalPost: true
+  isJournalPost: true
+  journalDate: "{{ journal.date }}"
+  ogType: "article"
+  breadcrumb2: "Yoga Journal"
+  breadcrumb2url: "/yoga-journal/"
+  breadcrumb3: "{{ journal.title_da }}"
 ---
 
 {% include "pages/yoga-journal-post-content.njk" %}

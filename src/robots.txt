@@ -1,4 +1,20 @@
 User-agent: *
 Allow: /
 
+# Block non-public areas
+Disallow: /admin/
+Disallow: /samples/
+Disallow: /vibroyogadesign/
+Disallow: /vibroyoga-showcase/
+Disallow: /hotyogacph-user-area/
+Disallow: /embed/
+
+# Allow important resources for rendering
+Allow: /css/
+Allow: /js/
+Allow: /assets/
+
 Sitemap: https://yogabible.dk/sitemap.xml
+
+# Host
+Host: https://yogabible.dk

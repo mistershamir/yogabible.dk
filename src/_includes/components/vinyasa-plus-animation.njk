@@ -1,0 +1,92 @@
+{# ═══════════════════════════════════════════════════════════
+   VINYASA PLUS ANIMATION — Flowing split visualization
+   70% Vinyasa (dynamic wave) + 30% Yin (calm)
+   Pure HTML + CSS, no dependencies
+   ═══════════════════════════════════════════════════════════ #}
+<div class="vp-anim" aria-label="Vinyasa Plus — 70% Vinyasa, 30% Yin" role="img">
+  <svg class="vp-anim__svg" viewBox="0 0 400 200" fill="none" preserveAspectRatio="xMidYMid meet">
+    <defs>
+      <linearGradient id="vp-vin-grad" x1="0%" y1="0%" x2="100%" y2="0%">
+        <stop offset="0%" stop-color="#f75c03" />
+        <stop offset="100%" stop-color="#EA8E52" />
+      </linearGradient>
+      <linearGradient id="vp-yin-grad" x1="0%" y1="0%" x2="100%" y2="0%">
+        <stop offset="0%" stop-color="#F0A778" />
+        <stop offset="100%" stop-color="#F5BE99" />
+      </linearGradient>
+    </defs>
+
+    {# Vinyasa section (70%) — with animated wave top edge #}
+    <path class="vp-anim__vinyasa" d="M0 200 L0 80 Q70 60 140 80 T280 80 L280 200 Z" fill="url(#vp-vin-grad)" opacity="0.9">
+      <animate attributeName="d"
+        values="M0 200 L0 80 Q70 60 140 80 T280 80 L280 200 Z;
+                M0 200 L0 75 Q70 95 140 75 T280 75 L280 200 Z;
+                M0 200 L0 80 Q70 60 140 80 T280 80 L280 200 Z"
+        dur="4s" repeatCount="indefinite" />
+    </path>
+
+    {# Yin section (30%) — calm, minimal movement #}
+    <path class="vp-anim__yin" d="M280 200 L280 90 Q320 85 360 90 T400 90 L400 200 Z" fill="url(#vp-yin-grad)" opacity="0.7">
+      <animate attributeName="d"
+        values="M280 200 L280 90 Q320 85 360 90 T400 90 L400 200 Z;
+                M280 200 L280 88 Q320 92 360 88 T400 88 L400 200 Z;
+                M280 200 L280 90 Q320 85 360 90 T400 90 L400 200 Z"
+        dur="6s" repeatCount="indefinite" />
+    </path>
+
+    {# Dividing line at 70% mark #}
+    <line class="vp-anim__divider" x1="280" y1="60" x2="280" y2="200" stroke="#fff" stroke-width="2" opacity="0.4" stroke-dasharray="4 4" />
+
+    {# Percentage labels #}
+    <text class="vp-anim__pct" x="140" y="155" text-anchor="middle" fill="#fff" font-size="28" font-weight="700" opacity="0.9">70%</text>
+    <text class="vp-anim__type" x="140" y="178" text-anchor="middle" fill="#fff" font-size="12" font-weight="700" letter-spacing="0.1em" opacity="0.7">VINYASA</text>
+
+    <text class="vp-anim__pct" x="340" y="155" text-anchor="middle" fill="#fff" font-size="22" font-weight="700" opacity="0.9">30%</text>
+    <text class="vp-anim__type" x="340" y="175" text-anchor="middle" fill="#fff" font-size="11" font-weight="700" letter-spacing="0.1em" opacity="0.7">YIN</text>
+
+    {# Flowing energy dots on the Vinyasa wave #}
+    <circle r="3" fill="#fff" opacity="0.5">
+      <animateMotion dur="3s" repeatCount="indefinite" path="M0 80 Q70 60 140 80 T280 80" />
+    </circle>
+    <circle r="2.5" fill="#fff" opacity="0.35">
+      <animateMotion dur="3s" repeatCount="indefinite" begin="1s" path="M0 80 Q70 60 140 80 T280 80" />
+    </circle>
+  </svg>
+
+  <style>
+    .vp-anim {
+      width: 100%;
+      max-width: 380px;
+      margin: 20px auto;
+      background: #141414;
+      border-radius: 16px;
+      overflow: hidden;
+      border: 1px solid #E8E4E0;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.06);
+    }
+    .vp-anim__svg {
+      width: 100%;
+      height: auto;
+      display: block;
+    }
+    .vp-anim__pct,
+    .vp-anim__type {
+      font-family: 'Abacaxi', "Helvetica Neue", Helvetica, Arial, system-ui, sans-serif;
+    }
+
+    /* Fade in on load */
+    .vp-anim__vinyasa,
+    .vp-anim__yin {
+      animation: vpFadeIn 1s ease-out forwards;
+    }
+    .vp-anim__yin { animation-delay: 0.3s; }
+    @keyframes vpFadeIn {
+      from { opacity: 0; }
+      to { opacity: 0.9; }
+    }
+
+    @media (max-width: 599px) {
+      .vp-anim { max-width: 300px; }
+    }
+  </style>
+</div>

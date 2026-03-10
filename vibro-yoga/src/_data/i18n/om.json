@@ -1,0 +1,96 @@
+{
+  "da": {
+    "hero_eyebrow": "OM VIBRO YOGA",
+    "hero_title": "En Ny Dimension af Ro",
+    "hero_subtitle": "Verdens f\u00f8rste vibroakustiske yogastudie \u2014 bygget fra bunden i K\u00f8benhavn.",
+
+    "story_title": "Historien",
+    "story_text1": "Vibro Yoga blev grundlagt i 2023 af Shamir, grundl\u00e6gger af Hot Yoga Copenhagen. Visionen var klar: at skabe et rum, hvor vibration kunne berolige nervesystemet og l\u00f8fte yogaoplevelsen til et nyt niveau.",
+    "story_text2": "Udfordringen var, at ingen f\u00f8r havde bygget et komplet yogastudie med vibrerende gulve. Der fandtes ingen manual, intet forbillede. Kun en id\u00e9 og viljen til at eksperimentere.",
+    "story_text3": "Gennem otte m\u00e5neders intens udvikling, utallige prototyper og en testfase med over 300 deltagere blev Vibro Yoga en realitet. Studiet \u00e5bnede i januar 2025.",
+
+    "timeline_title": "Rejsen",
+    "tl1_year": "2023",
+    "tl1_title": "Ideen F\u00f8des",
+    "tl1_text": "Shamir begynder at eksperimentere med vibroakustisk teknologi og yoga.",
+    "tl2_year": "2024",
+    "tl2_title": "Byggeriet",
+    "tl2_text": "Hele gulvet bygges fra bunden. Dolby Atmos-lydsystem installeres. Elektromagnetisk sikkerhed sikres.",
+    "tl3_year": "2024",
+    "tl3_title": "Testfasen",
+    "tl3_text": "Over 300 deltagere tester konceptet i tre m\u00e5neder. Feedback former den endelige oplevelse.",
+    "tl4_year": "2025",
+    "tl4_title": "\u00c5bning",
+    "tl4_text": "Vibro Yoga \u00e5bner som verdens f\u00f8rste vibroakustiske yogastudie.",
+
+    "philosophy_eyebrow": "FILOSOFI",
+    "philosophy_title": "Ikke Pr\u00e6station. Bare V\u00e6ren.",
+    "philosophy_text": "I Vibro Yoga laver du ikke yoga \u2014 du modtager yoga. Vibrationerne omg\u00e5r hovedet og taler direkte til kroppen. Der er ingen krav om pr\u00e6station, ingen m\u00e5l at n\u00e5. Bare tilstedev\u00e6relse, stilhed og en dyb forbindelse til dig selv.",
+
+    "tech_eyebrow": "TEKNOLOGI",
+    "tech_title": "Bygget til Wellness",
+    "tech1_title": "Vibrerende Gulv",
+    "tech1_text": "Hele gulvet er bygget med vibroakustiske transducere, der konverterer musik til taktile vibrationer.",
+    "tech2_title": "Dolby Atmos Lyd",
+    "tech2_text": "3D spatial lyd skaber en multidimensionel oplevelse, hvor lyden bev\u00e6ger sig omkring og igennem dig.",
+    "tech3_title": "Individuel Kontrol",
+    "tech3_text": "Hver deltager har sin egen kontrol over vibrationsintensiteten.",
+    "tech4_title": "EMS Beskyttelse",
+    "tech4_text": "Studiet er designet med minimal elektromagnetisk stress for at skabe et rum, hvor nervesystemet virkelig kan slappe af.",
+
+    "location_eyebrow": "BELIGGENHED",
+    "location_title": "Christianshavn, K\u00f8benhavn",
+    "location_text": "Vibro Yoga ligger p\u00e5 Torvegade 66, i hjertet af Christianshavn. T\u00e6t p\u00e5 metro, let tilg\u00e6ngeligt p\u00e5 cykel og med parkering i de sm\u00e5 sidegader.",
+
+    "cta_title": "Oplev Det Selv",
+    "cta_text": "Ord kan ikke beskrive vibrationernes virkning. Det m\u00e5 m\u00e6rkes.",
+    "cta_btn": "Book en Session"
+  },
+  "en": {
+    "hero_eyebrow": "ABOUT VIBRO YOGA",
+    "hero_title": "A New Dimension of Calm",
+    "hero_subtitle": "The world\u2019s first vibroacoustic yoga studio \u2014 built from scratch in Copenhagen.",
+
+    "story_title": "The Story",
+    "story_text1": "Vibro Yoga was founded in 2023 by Shamir, founder of Hot Yoga Copenhagen. The vision was clear: to create a space where vibration could soothe the nervous system and elevate the yoga experience.",
+    "story_text2": "The challenge was that no one had previously built a complete yoga studio with vibrating floors. There was no manual, no blueprint. Only an idea and the will to experiment.",
+    "story_text3": "Through eight months of intense development, countless prototypes, and a testing phase with over 300 participants, Vibro Yoga became reality. The studio opened in January 2025.",
+
+    "timeline_title": "The Journey",
+    "tl1_year": "2023",
+    "tl1_title": "The Idea Is Born",
+    "tl1_text": "Shamir begins experimenting with vibroacoustic technology and yoga.",
+    "tl2_year": "2024",
+    "tl2_title": "Construction",
+    "tl2_text": "The entire floor is built from scratch. Dolby Atmos sound system installed. Electromagnetic safety ensured.",
+    "tl3_year": "2024",
+    "tl3_title": "Testing Phase",
+    "tl3_text": "Over 300 participants test the concept over three months. Feedback shapes the final experience.",
+    "tl4_year": "2025",
+    "tl4_title": "Opening",
+    "tl4_text": "Vibro Yoga opens as the world\u2019s first vibroacoustic yoga studio.",
+
+    "philosophy_eyebrow": "PHILOSOPHY",
+    "philosophy_title": "Not Performance. Just Being.",
+    "philosophy_text": "In Vibro Yoga, you don\u2019t do yoga \u2014 you receive yoga. The vibrations bypass the mind and speak directly to the body. There are no performance demands, no goals to reach. Just presence, silence, and a deep connection to yourself.",
+
+    "tech_eyebrow": "TECHNOLOGY",
+    "tech_title": "Built for Wellness",
+    "tech1_title": "Vibrating Floor",
+    "tech1_text": "The entire floor is built with vibroacoustic transducers that convert music into tactile vibrations.",
+    "tech2_title": "Dolby Atmos Audio",
+    "tech2_text": "3D spatial audio creates a multidimensional experience where sound moves around and through you.",
+    "tech3_title": "Individual Control",
+    "tech3_text": "Each participant has their own control over vibration intensity.",
+    "tech4_title": "EMS Protection",
+    "tech4_text": "The studio is designed with minimal electromagnetic stress to create a space where the nervous system can truly relax.",
+
+    "location_eyebrow": "LOCATION",
+    "location_title": "Christianshavn, Copenhagen",
+    "location_text": "Vibro Yoga is located at Torvegade 66, in the heart of Christianshavn. Near the metro, easily accessible by bike, with street parking in nearby side streets.",
+
+    "cta_title": "Experience It Yourself",
+    "cta_text": "Words can\u2019t describe the effect of vibrations. It must be felt.",
+    "cta_btn": "Book a Session"
+  }
+}

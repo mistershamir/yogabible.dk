@@ -1,0 +1,166 @@
+<!--
+  HOT YOGA COPENHAGEN — Homepage JSON-LD
+
+  Paste this ENTIRE block into Framer:
+  Homepage → Page Settings → Custom Code → Start of <head> tag
+
+  Contains: LocalBusiness + YogaStudio + AggregateRating + Offers
+-->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": ["LocalBusiness", "HealthAndBeautyBusiness", "SportsActivityLocation"],
+      "@id": "https://www.hotyogacph.dk/#organization",
+      "name": "Hot Yoga Copenhagen",
+      "alternateName": ["Hot Yoga CPH", "Hot Yoga København"],
+      "description": "Premium infrared hot yoga studio in Christianshavn, Copenhagen. Offering 4-5 daily classes in 30-35°C heat since 2014. All classes taught in English. Yoga teacher training (200hr YTT), memberships, clip cards, and trial passes available.",
+      "url": "https://www.hotyogacph.dk",
+      "telephone": "+4553881209",
+      "email": "info@hotyogacph.dk",
+      "address": {
+        "@type": "PostalAddress",
+        "streetAddress": "Torvegade 66",
+        "addressLocality": "København K",
+        "postalCode": "1400",
+        "addressRegion": "Hovedstaden",
+        "addressCountry": "DK"
+      },
+      "geo": {
+        "@type": "GeoCoordinates",
+        "latitude": 55.6716,
+        "longitude": 12.5897
+      },
+      "image": [
+        "https://www.hotyogacph.dk/og-image.jpg"
+      ],
+      "logo": "https://www.hotyogacph.dk/logo.png",
+      "priceRange": "$$",
+      "currenciesAccepted": "DKK",
+      "paymentAccepted": "Cash, Credit Card, MobilePay",
+      "openingHoursSpecification": [
+        {
+          "@type": "OpeningHoursSpecification",
+          "dayOfWeek": ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"],
+          "opens": "06:30",
+          "closes": "21:00"
+        },
+        {
+          "@type": "OpeningHoursSpecification",
+          "dayOfWeek": ["Saturday", "Sunday"],
+          "opens": "08:00",
+          "closes": "18:00"
+        }
+      ],
+      "aggregateRating": {
+        "@type": "AggregateRating",
+        "ratingValue": "4.9",
+        "bestRating": "5",
+        "worstRating": "1",
+        "ratingCount": "500",
+        "reviewCount": "500"
+      },
+      "hasOfferCatalog": {
+        "@type": "OfferCatalog",
+        "name": "Hot Yoga Copenhagen Class Passes & Memberships",
+        "itemListElement": [
+          {
+            "@type": "Offer",
+            "name": "Single Class",
+            "description": "Drop-in hot yoga class in infrared-heated studio",
+            "price": "299",
+            "priceCurrency": "DKK",
+            "availability": "https://schema.org/InStock",
+            "url": "https://www.hotyogacph.dk/yoga-pricing-1"
+          },
+          {
+            "@type": "Offer",
+            "name": "KickStarter Trial — 10 Classes in 3 Weeks",
+            "description": "Introductory offer for Copenhagen residents: 10 hot yoga classes within 3 weeks",
+            "price": "599",
+            "priceCurrency": "DKK",
+            "availability": "https://schema.org/InStock",
+            "url": "https://www.hotyogacph.dk/yoga-pricing-1"
+          },
+          {
+            "@type": "Offer",
+            "name": "Tourist Pass — 7 Days Unlimited",
+            "description": "7 days unlimited hot yoga including mat and towels for visitors to Copenhagen",
+            "price": "895",
+            "priceCurrency": "DKK",
+            "availability": "https://schema.org/InStock",
+            "url": "https://www.hotyogacph.dk/yoga-pricing-1"
+          },
+          {
+            "@type": "Offer",
+            "name": "Unlimited Monthly Membership",
+            "description": "Unlimited hot yoga classes per month with wellness amenities: towels, showers, herbal tea, post-class snacks",
+            "price": "1249",
+            "priceCurrency": "DKK",
+            "availability": "https://schema.org/InStock",
+            "url": "https://www.hotyogacph.dk/yoga-pricing-1"
+          },
+          {
+            "@type": "Offer",
+            "name": "12+1 Months Unlimited Pass",
+            "description": "Best value: 13 months unlimited hot yoga for the price of 12. Save 2,688 DKK compared to monthly membership.",
+            "price": "12599",
+            "priceCurrency": "DKK",
+            "availability": "https://schema.org/InStock",
+            "url": "https://www.hotyogacph.dk/yoga-pricing-1"
+          }
+        ]
+      },
+      "amenityFeature": [
+        { "@type": "LocationFeatureSpecification", "name": "Infrared Heated Studio", "value": true },
+        { "@type": "LocationFeatureSpecification", "name": "Showers", "value": true },
+        { "@type": "LocationFeatureSpecification", "name": "Towel Service", "value": true },
+        { "@type": "LocationFeatureSpecification", "name": "Herbal Tea Lounge", "value": true },
+        { "@type": "LocationFeatureSpecification", "name": "Mat Rental", "value": true },
+        { "@type": "LocationFeatureSpecification", "name": "Changing Rooms", "value": true }
+      ],
+      "sameAs": [
+        "https://www.instagram.com/hotyogacph/",
+        "https://www.facebook.com/hotyogacph/",
+        "https://www.tripadvisor.com/Attraction_Review-g189541-d10596318-Reviews-Hot_Yoga_Copenhagen-Copenhagen_Zealand.html",
+        "https://www.google.com/maps/place/Hot+Yoga+Copenhagen"
+      ],
+      "knowsAbout": [
+        "Hot Yoga", "Infrared Yoga", "Vinyasa Flow", "Yin Yoga",
+        "Power Yoga", "Yoga Teacher Training", "200hr YTT",
+        "Meditation", "Pranayama", "Yoga for Beginners"
+      ],
+      "foundingDate": "2014",
+      "knowsLanguage": ["da", "en"],
+      "areaServed": {
+        "@type": "City",
+        "name": "Copenhagen",
+        "containedInPlace": {
+          "@type": "Country",
+          "name": "Denmark"
+        }
+      }
+    },
+    {
+      "@type": "WebSite",
+      "@id": "https://www.hotyogacph.dk/#website",
+      "url": "https://www.hotyogacph.dk",
+      "name": "Hot Yoga Copenhagen",
+      "description": "Premium infrared hot yoga studio in Christianshavn, Copenhagen",
+      "publisher": {
+        "@id": "https://www.hotyogacph.dk/#organization"
+      },
+      "inLanguage": ["da", "en"],
+      "potentialAction": {
+        "@type": "SearchAction",
+        "target": {
+          "@type": "EntryPoint",
+          "urlTemplate": "https://www.hotyogacph.dk/book-a-class?q={search_term_string}"
+        },
+        "query-input": "required name=search_term_string"
+      }
+    }
+  ]
+}
+</script>

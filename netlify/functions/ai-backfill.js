@@ -5,6 +5,7 @@
  *   ?debug=1    — Show status of all sessions (read-only)
  *   ?reconcile=1 — Find missing recordings from Mux and link them to Firestore sessions
  *   ?check=1    — Phase 2: check if Mux captions are ready, download transcript, run Claude
+ *   ?retranscribe=SESSION_ID — Delete old subtitle track, re-request captions from Mux (use ?check=1 after)
  *   (default)   — Phase 1: trigger caption requests for sessions with recordings but no AI data
  *
  * All modes require: ?secret=YOUR_AI_INTERNAL_SECRET
@@ -246,6 +247,84 @@ exports.handler = async function (event) {
       return jsonResponse(200, { ok: true, message: 'Reset ' + resetResults.length + ' sessions. Now run default mode.', results: resetResults });
     }
 
+    // ── Retranscribe mode: delete old subtitle track, re-request captions from Mux ──
+    // ?retranscribe=SESSION_ID  — then use ?check=1 after a few minutes to process
+    if (params.retranscribe) {
+      var sessId = params.retranscribe;
+      var sess = all.find(function (item) { return item.id === sessId; });
+      if (!sess) {
+        return jsonResponse(404, { ok: false, error: 'Session not found: ' + sessId });
+      }
+      if (!sess.recordingAssetId) {
+        return jsonResponse(400, { ok: false, error: 'Session has no recording asset' });
+      }
+
+      // Step 1: Get current tracks on the asset
+      var assetResult = await muxRequest('GET', '/video/v1/assets/' + sess.recordingAssetId);
+      var tracks = (assetResult.data && assetResult.data.tracks) || [];
+      var deletedTracks = [];
+
+      // Step 2: Delete any existing subtitle tracks
+      for (var dt = 0; dt < tracks.length; dt++) {
+        if (tracks[dt].type === 'text' && tracks[dt].text_type === 'subtitles') {
+          try {
+            await muxRequest('DELETE', '/video/v1/assets/' + sess.recordingAssetId + '/tracks/' + tracks[dt].id);
+            deletedTracks.push(tracks[dt].id);
+            console.log('[ai-backfill] Deleted subtitle track:', tracks[dt].id);
+          } catch (delErr) {
+            console.error('[ai-backfill] Failed to delete track', tracks[dt].id, ':', delErr.message);
+          }
+        }
+      }
+
+      // Step 3: Find the audio track and request fresh captions
+      var audioTrackId = null;
+      for (var at = 0; at < tracks.length; at++) {
+        if (tracks[at].type === 'audio') {
+          audioTrackId = tracks[at].id;
+          break;
+        }
+      }
+
+      if (!audioTrackId) {
+        return jsonResponse(400, { ok: false, error: 'No audio track found on asset' });
+      }
+
+      var captionResult = await muxRequest('POST',
+        '/video/v1/assets/' + sess.recordingAssetId + '/tracks/' + audioTrackId + '/generate-subtitles',
+        {
+          generated_subtitles: [{
+            language_code: 'en',
+            name: 'English CC'
+          }]
+        }
+      );
+
+      // Get the new track ID
+      var newTrackId = null;
+      var newTracks = captionResult.data || [];
+      if (Array.isArray(newTracks) && newTracks.length > 0) {
+        newTrackId = newTracks[0].id;
+      }
+
+      // Update session status so ?check=1 picks it up
+      await updateDoc(COLLECTION, sessId, {
+        aiStatus: 'captions_requested',
+        aiCaptionTrackId: newTrackId,
+        aiError: null
+      });
+
+      console.log('[ai-backfill] Retranscribe:', sessId, '— deleted', deletedTracks.length, 'old tracks, new track:', newTrackId);
+
+      return jsonResponse(200, {
+        ok: true,
+        message: 'Deleted ' + deletedTracks.length + ' old subtitle track(s) and requested fresh captions. Wait 2-3 minutes then call ?check=1 to process.',
+        sessionId: sessId,
+        deletedTracks: deletedTracks,
+        newTrackId: newTrackId
+      });
+    }
+
     // ── Check mode (Phase 2): check if Mux captions are ready, download + Claude ──
     if (params.check === '1') {
       var waiting = all.filter(function (item) {
@@ -316,7 +395,7 @@ exports.handler = async function (event) {
           // Send to Claude for summary + quiz
           var sessionTitle = sess.title_da || sess.title_en || 'Yoga Class';
           var sessionInstructor = sess.instructor || '';
-          var aiResult = await generateSummaryAndQuiz(transcript, sessionTitle, sessionInstructor);
+          var aiResult = await generateSummaryAndQuiz(transcript, sessionTitle, sessionInstructor, null, !!sess.interactive);
 
           // Save to Firestore
           await updateDoc(COLLECTION, sess.id, {
@@ -376,7 +455,7 @@ exports.handler = async function (event) {
 
       var sessionTitle = sess.title_da || sess.title_en || 'Yoga Class';
       var sessionInstructor = sess.instructor || '';
-      var aiResult = await generateSummaryAndQuiz(transcript, sessionTitle, sessionInstructor, params.lang || null);
+      var aiResult = await generateSummaryAndQuiz(transcript, sessionTitle, sessionInstructor, params.lang || null, !!sess.interactive);
 
       await updateDoc(COLLECTION, sessId, {
         aiStatus: 'complete',
@@ -524,8 +603,8 @@ function claudeRequest(messages, systemPrompt) {
 
   return new Promise(function (resolve, reject) {
     var body = JSON.stringify({
-      model: 'claude-haiku-4-5-20251001',
-      max_tokens: 4096,
+      model: 'claude-sonnet-4-6',
+      max_tokens: 8192,
       system: systemPrompt,
       messages: messages
     });
@@ -565,7 +644,7 @@ function claudeRequest(messages, systemPrompt) {
   });
 }
 
-function generateSummaryAndQuiz(transcript, title, instructor, forceLang) {
+function generateSummaryAndQuiz(transcript, title, instructor, forceLang, isInteractive) {
   // Detect language from transcript (or use forced language)
   // Use only unambiguous words (no overlap between languages)
   // Danish-only words (never appear in English yoga instruction)
@@ -584,35 +663,126 @@ function generateSummaryAndQuiz(transcript, title, instructor, forceLang) {
   console.log('[ai-backfill] Language detection — DA:', daScore, 'EN:', enScore, '→', lang, forceLang ? '(forced)' : '');
 
   var systemPrompt = lang === 'da'
-    ? 'Du er en yogaekspert, der hjælper med at opsummere yogaklasser og lave quizzer. Svar KUN på dansk. Svar i valid JSON.'
-    : 'You are a yoga expert who helps summarize yoga classes and create quizzes. Respond ONLY in English. Respond in valid JSON.';
+    ? 'Du er en erfaren yogauddannelsesekspert med dyb viden om yogafilosofi, anatomi, undervisningsmetodik, pranayama, asana-alignment og sekventering. '
+      + 'Du hjælper yogalærerstuderende med at lære ved at lave præcise opsummeringer og meningsfulde quizzer af optagede undervisningssessioner. '
+      + 'Svar KUN på dansk. Svar i valid JSON.'
+    : 'You are an experienced yoga teacher training expert with deep knowledge of yoga philosophy, anatomy, teaching methodology, pranayama, asana alignment, and sequencing. '
+      + 'You help yoga teacher trainees learn by creating precise summaries and meaningful quizzes from recorded training sessions. '
+      + 'Respond ONLY in English. Respond in valid JSON.';
+
+  var focusInstructions = lang === 'da'
+    ? '\n\nVIGTIGT — Indholdsprioritering:\n'
+      + 'Disse optagelser er fra et yogalæreruddannelsesprogram (ofte 3-4 timer lange). '
+      + 'Du SKAL fokusere på det fagligt relevante indhold og IGNORERE alt irrelevant.\n\n'
+      + 'FOKUSÉR PÅ (høj prioritet):\n'
+      + '- Yoga-teknikker, asanas, alignment cues og fysiske instruktioner\n'
+      + '- Pranayama (åndedrætsteknikker) og meditation\n'
+      + '- Yogafilosofi, sutraer, yamas, niyamas, chakraer\n'
+      + '- Anatomi og fysiologi relateret til yogapraksis\n'
+      + '- Undervisningsmetodik: hvordan man guider elever, cue-teknikker, sekventering\n'
+      + '- Justeringer (adjustments/assists) og sikkerhed\n'
+      + '- Yogastilarter og deres forskelle (vinyasa, yin, hot yoga, hatha osv.)\n'
+      + '- Professionelle aspekter: klassestruktur, musikvalg, rumopsætning, forretning\n\n'
+      + 'IGNORÉR HELT (medtag ALDRIG i summary eller quiz):\n'
+      + '- Personlige introduktioner, baghistorier og anekdoter om underviseren\n'
+      + '- Logistik: pauser, skemaer, madbestillinger, praktiske detaljer\n'
+      + '- Small talk, jokes, og uformel samtale mellem deltagere\n'
+      + '- Navne og personlige detaljer om underviseren eller studerende\n'
+      + '- Tekniske problemer med lyd, kamera eller streaming\n'
+      + '- Trivia om underviseren (fx antal studier, rejser, personlig historik)\n'
+    : '\n\nIMPORTANT — Content Prioritization:\n'
+      + 'These recordings are from a yoga teacher training program (often 3-4 hours long). '
+      + 'You MUST focus on professionally relevant content and IGNORE everything irrelevant.\n\n'
+      + 'FOCUS ON (high priority):\n'
+      + '- Yoga techniques, asanas, alignment cues, and physical instructions\n'
+      + '- Pranayama (breathing techniques) and meditation\n'
+      + '- Yoga philosophy, sutras, yamas, niyamas, chakras\n'
+      + '- Anatomy and physiology related to yoga practice\n'
+      + '- Teaching methodology: how to guide students, cueing techniques, sequencing\n'
+      + '- Adjustments/assists and safety considerations\n'
+      + '- Yoga styles and their differences (vinyasa, yin, hot yoga, hatha, etc.)\n'
+      + '- Professional aspects: class structure, music selection, room setup, business\n\n'
+      + 'COMPLETELY IGNORE (NEVER include in summary or quiz):\n'
+      + '- Personal introductions, backstories, and anecdotes about the instructor\n'
+      + '- Logistics: breaks, schedules, food orders, practical arrangements\n'
+      + '- Small talk, jokes, and casual conversation between participants\n'
+      + '- Names and personal details about the instructor or students\n'
+      + '- Technical issues with audio, camera, or streaming\n'
+      + '- Trivia about the instructor (e.g., how many studios they own, travel history)\n';
+
+  // Interactive session: add multi-speaker handling instructions
+  if (isInteractive) {
+    var interactiveInstructions = lang === 'da'
+      ? '\n\nINTERAKTIV SESSION — Flerspeaker-håndtering:\n'
+        + 'Denne optagelse er fra en interaktiv session med flere deltagere (Zoom-stil gruppeundervisning). '
+        + 'Der vil være flere stemmer i transskriptionen.\n\n'
+        + (instructor ? 'UNDERVISER: ' + instructor + ' — denne persons udtalelser er det primære faglige indhold.\n' : '')
+        + 'REGLER:\n'
+        + '- Underviseren er den autoritative kilde. Prioritér undervisernes forklaringer, instruktioner og svar.\n'
+        + '- Studerendes spørgsmål: Medtag vigtige faglige spørgsmål som "Diskussionspunkter" i opsummeringen — men kun spørgsmål der fører til fagligt værdifulde svar fra underviseren.\n'
+        + '- IGNORÉR studerendes small talk, personlige kommentarer, "ja/nej"-svar og casual snak mellem deltagere.\n'
+        + '- Hvis en studerende stiller et godt spørgsmål og underviseren svarer uddybende, medtag BÅDE spørgsmålet og svaret.\n'
+        + '- Quiz-spørgsmål skal baseres på undervisernes svar, IKKE på studerendes udtalelser.\n'
+      : '\n\nINTERACTIVE SESSION — Multi-Speaker Handling:\n'
+        + 'This recording is from an interactive session with multiple participants (Zoom-style group class). '
+        + 'There will be multiple voices in the transcript.\n\n'
+        + (instructor ? 'INSTRUCTOR: ' + instructor + ' — this person\'s statements are the primary educational content.\n' : '')
+        + 'RULES:\n'
+        + '- The instructor is the authoritative source. Prioritize the instructor\'s explanations, instructions, and answers.\n'
+        + '- Student questions: Include important educational questions as "Discussion Points" in the summary — but only questions that led to valuable answers from the instructor.\n'
+        + '- IGNORE student small talk, personal comments, "yes/no" responses, and casual chat between participants.\n'
+        + '- If a student asks a good question and the instructor gives an in-depth answer, include BOTH the question and answer.\n'
+        + '- Quiz questions must be based on the instructor\'s answers, NOT on student statements.\n';
+
+    focusInstructions += interactiveInstructions;
+  }
 
   var userPrompt = lang === 'da'
-    ? 'Her er en transskription af en yogaklasse'
+    ? 'Her er en transskription af en yogalæreruddannelsessession'
       + (title ? ' med titlen "' + title + '"' : '')
       + (instructor ? ' undervist af ' + instructor : '')
-      + '.\n\nTransskription:\n' + transcript.substring(0, 30000)
+      + '.'
+      + focusInstructions
+      + '\nTransskription:\n' + transcript.substring(0, 30000)
       + '\n\nGenerer et JSON-objekt med:\n'
-      + '1. "summary": En detaljeret opsummering af klassen (2-3 afsnit) med bullet points. Brug HTML: <p>, <ul><li>, <strong>.\n'
-      + '2. "quiz": Et array med 8-10 spørgsmål. Mix af multiple choice og sandt/falsk. Hvert:\n'
+      + '1. "summary": En struktureret opsummering af sessionens FAGLIGE indhold (3-5 afsnit). '
+      + 'Organisér efter emner/temaer der blev dækket. '
+      + 'Fremhæv de vigtigste læringspointer for en yogalærerstuderende. '
+      + 'Brug HTML: <h3> for emneoverskrifter, <p> for afsnit, <ul><li> for nøglepunkter, <strong> for vigtige begreber.\n'
+      + '2. "quiz": Et array med 8-12 spørgsmål der tester FAGLIG forståelse. Spørgsmålene skal hjælpe studerende med at huske og forstå det vigtigste fra sessionen. Mix af:\n'
+      + '   - Teknik-spørgsmål (alignment, cues, variationer)\n'
+      + '   - Filosofi-spørgsmål (hvis relevant)\n'
+      + '   - Anatomi-spørgsmål (hvis relevant)\n'
+      + '   - Undervisningsmetodik-spørgsmål\n'
+      + '   Hvert spørgsmål:\n'
       + '   - "question": Spørgsmålstekst\n'
       + '   - "type": "multiple" eller "truefalse"\n'
-      + '   - "options": Array af svarmuligheder\n'
+      + '   - "options": Array af svarmuligheder (4 for multiple choice)\n'
       + '   - "correct": Index af korrekt svar (0-baseret)\n'
-      + '   - "explanation": Kort forklaring\n\n'
+      + '   - "explanation": Kort forklaring der uddyber det korrekte svar og styrker læringen\n\n'
       + 'Svar KUN med det rå JSON-objekt.'
-    : 'Here is a transcript of a yoga class'
+    : 'Here is a transcript of a yoga teacher training session'
       + (title ? ' titled "' + title + '"' : '')
       + (instructor ? ' taught by ' + instructor : '')
-      + '.\n\nTranscript:\n' + transcript.substring(0, 30000)
+      + '.'
+      + focusInstructions
+      + '\nTranscript:\n' + transcript.substring(0, 30000)
       + '\n\nGenerate a JSON object with:\n'
-      + '1. "summary": Detailed summary (2-3 paragraphs) with bullets. Use HTML: <p>, <ul><li>, <strong>.\n'
-      + '2. "quiz": Array of 8-10 questions. Mix multiple choice and true/false. Each:\n'
+      + '1. "summary": A structured summary of the session\'s EDUCATIONAL content (3-5 paragraphs). '
+      + 'Organize by topics/themes covered. '
+      + 'Highlight the most important learning points for a yoga teacher trainee. '
+      + 'Use HTML: <h3> for topic headings, <p> for paragraphs, <ul><li> for key points, <strong> for important concepts.\n'
+      + '2. "quiz": Array of 8-12 questions testing PROFESSIONAL understanding. Questions should help trainees retain and understand the most important content from the session. Mix of:\n'
+      + '   - Technique questions (alignment, cues, variations)\n'
+      + '   - Philosophy questions (if covered)\n'
+      + '   - Anatomy questions (if covered)\n'
+      + '   - Teaching methodology questions\n'
+      + '   Each question:\n'
       + '   - "question": Question text\n'
       + '   - "type": "multiple" or "truefalse"\n'
-      + '   - "options": Array of answer options\n'
+      + '   - "options": Array of answer options (4 for multiple choice)\n'
       + '   - "correct": Index of correct answer (0-based)\n'
-      + '   - "explanation": Brief explanation\n\n'
+      + '   - "explanation": Brief explanation that reinforces the learning\n\n'
       + 'Respond ONLY with the raw JSON object.';
 
   return claudeRequest([{ role: 'user', content: userPrompt }], systemPrompt)
@@ -641,7 +811,7 @@ function callAiProcess(sessionId, assetId) {
 
     var opts = {
       hostname: 'yogabible.dk',
-      path: '/.netlify/functions/ai-process-recording',
+      path: '/.netlify/functions/ai-process-recording-background',
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

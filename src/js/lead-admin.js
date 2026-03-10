@@ -635,7 +635,8 @@
   // `field` = which lead property to match against (defaults to 'program' text if omitted).
   var SUB_TYPE_OPTIONS = {
     ytt: [
-      { label: '18W Flex',     match: '18-week', field: 'ytt_program_type' },
+      { label: '18W Spring',   match: '18-week', field: 'ytt_program_type' },
+      { label: '18W Autumn',   match: '18-week-aug', field: 'ytt_program_type' },
       { label: '8W Semi',      match: '8-week',  field: 'ytt_program_type' },
       { label: '4W Intensive', match: '4-week',  field: 'ytt_program_type' },
       { label: '300h Adv.',    match: '300h',    field: 'ytt_program_type' },
@@ -950,6 +951,21 @@
           '</span>' +
         '</div>'
       : '');
+
+    // Update mobile summary toggle
+    var summaryEl = $('yb-lead-stats-summary');
+    if (summaryEl) {
+      var parts = [
+        '<span class="yb-lead__stats-summary-item"><strong>' + total + '</strong> ' + t('leads_stat_total') + '</span>',
+        '<span class="yb-lead__stats-summary-item yb-lead__stats-summary-item--new"><strong>' + (counts['New'] || 0) + '</strong> ' + t('leads_stat_new') + '</span>',
+        '<span class="yb-lead__stats-summary-item yb-lead__stats-summary-item--pipeline"><strong>' + pipeline + '</strong> ' + t('leads_stat_pipeline') + '</span>',
+        '<span class="yb-lead__stats-summary-item yb-lead__stats-summary-item--converted"><strong>' + convertedCount + '</strong> ' + t('leads_stat_converted') + '</span>'
+      ];
+      if (overdueCount + todayCount > 0) {
+        parts.push('<span class="yb-lead__stats-summary-item yb-lead__stats-summary-item--followup"><strong>' + (overdueCount + todayCount) + '</strong> ' + t('leads_overdue') + '</span>');
+      }
+      summaryEl.innerHTML = parts.join('<span style="color:#E8E4E0">·</span>');
+    }
   }
 
   /* ══════════════════════════════════════════
@@ -4210,6 +4226,17 @@
       ta.setSelectionRange(start + varText.length, start + varText.length);
       if (targetId === 'yb-sms-message') updateSMSCharCount();
     });
+
+    // Stats toggle (mobile collapsible)
+    var statsToggle = $('yb-lead-stats-toggle');
+    if (statsToggle) {
+      statsToggle.addEventListener('click', function () {
+        var grid = $('yb-lead-stats');
+        var expanded = statsToggle.getAttribute('aria-expanded') === 'true';
+        statsToggle.setAttribute('aria-expanded', !expanded);
+        if (grid) grid.classList.toggle('is-expanded', !expanded);
+      });
+    }
 
     // Search form — Leads
     var searchForm = $('yb-lead-search-form');

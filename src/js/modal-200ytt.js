@@ -59,9 +59,12 @@
 
     // Pre-check default format(s)
     // Support '4w' as a shorthand that selects both 4w-apr and 4w-jul
+    // Support '18w' as a shorthand that selects both 18w-mar and 18w-aug
     modal.querySelectorAll('input[name="format"]').forEach(cb => {
       if (defaultFormat === '4w') {
         cb.checked = cb.value === '4w-apr' || cb.value === '4w-jul';
+      } else if (defaultFormat === '18w') {
+        cb.checked = cb.value === '18w-mar' || cb.value === '18w-aug';
       } else {
         cb.checked = cb.value === defaultFormat;
       }

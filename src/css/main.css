@@ -509,6 +509,19 @@ p, span, li, a, div {
 }
 .yb-drawer__link:hover { border-color: var(--yb-brand); }
 
+.yb-drawer__link--member {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border-color: var(--yb-brand);
+  color: var(--yb-brand);
+}
+.yb-drawer__link--member:hover {
+  background: var(--yb-brand);
+  color: #fff;
+}
+.yb-drawer__link--member svg { flex-shrink: 0; }
+
 /* Drawer CTA */
 .yb-drawer__cta {
   display: block;
@@ -9677,6 +9690,19 @@ button.yb-btn--outline-white:hover {
    AUTH: UTILITY BAR & DRAWER AUTH
    ======================================== */
 
+/* Utility bar member link */
+.yb-util__member {
+  color: #fff;
+  text-decoration: none;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  transition: color 0.18s ease;
+}
+.yb-util__member:hover {
+  color: var(--yb-brand);
+}
+
 /* Utility bar auth link */
 .yb-util__auth {
   color: #fff;
@@ -11178,6 +11204,443 @@ button.yb-btn--outline-white:hover {
   .ycf-product__price {
     margin-left: 0;
   }
+}
+
+/* ========================================
+   WORKSHOP BROWSER MODAL (ywb-)
+   ======================================== */
+
+.ywb-box {
+  max-width: 560px;
+  padding: 36px 32px 24px;
+  display: flex;
+  flex-direction: column;
+  max-height: 85vh;
+}
+
+.ywb-header {
+  text-align: center;
+  margin-bottom: 24px;
+  flex-shrink: 0;
+}
+
+.ywb-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #0F0F0F;
+  margin: 0 0 6px;
+}
+
+.ywb-subtitle {
+  font-size: 0.88rem;
+  color: #6F6A66;
+  margin: 0;
+}
+
+/* Loading spinner */
+.ywb-loading {
+  text-align: center;
+  padding: 48px 0;
+  color: #6F6A66;
+  font-size: 0.9rem;
+}
+
+.ywb-spinner {
+  width: 32px;
+  height: 32px;
+  border: 3px solid #E8E4E0;
+  border-top-color: #f75c03;
+  border-radius: 50%;
+  margin: 0 auto 12px;
+  animation: ywb-spin 0.7s linear infinite;
+}
+
+@keyframes ywb-spin {
+  to { transform: rotate(360deg); }
+}
+
+/* Error / empty states */
+.ywb-error,
+.ywb-empty {
+  text-align: center;
+  padding: 40px 0;
+  color: #6F6A66;
+  font-size: 0.9rem;
+}
+
+.ywb-retry-btn {
+  margin-top: 12px;
+  padding: 8px 20px;
+  border-radius: 999px;
+  border: 1.5px solid #f75c03;
+  background: transparent;
+  color: #f75c03;
+  font-weight: 600;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s;
+}
+
+.ywb-retry-btn:hover {
+  background: #f75c03;
+  color: #fff;
+}
+
+/* Workshop list */
+.ywb-list {
+  overflow-y: auto;
+  flex: 1 1 auto;
+  min-height: 0;
+  padding-right: 4px;
+}
+
+/* Day group */
+.ywb-day {
+  margin-bottom: 20px;
+}
+
+.ywb-day__header {
+  font-size: 0.82rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #6F6A66;
+  padding: 0 0 8px;
+  border-bottom: 1px solid #E8E4E0;
+  margin-bottom: 8px;
+}
+
+/* Workshop card */
+.ywb-card {
+  padding: 14px 16px;
+  border-radius: 12px;
+  background: #F5F3F0;
+  margin-bottom: 6px;
+  transition: background 0.15s;
+}
+
+.ywb-card:hover {
+  background: #EDEAE6;
+}
+
+.ywb-card--booked {
+  background: #f0faf0;
+  border: 1px solid #b8e6b8;
+}
+
+.ywb-card--booked:hover {
+  background: #e6f5e6;
+}
+
+.ywb-card__top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 6px;
+}
+
+.ywb-card__time {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: #0F0F0F;
+  white-space: nowrap;
+}
+
+.ywb-card__name {
+  font-size: 0.92rem;
+  font-weight: 600;
+  color: #0F0F0F;
+  line-height: 1.35;
+  margin-bottom: 4px;
+}
+
+.ywb-card__meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  font-size: 0.78rem;
+  color: #6F6A66;
+}
+
+.ywb-card__meta > span:not(:last-child)::after {
+  content: '·';
+  margin-left: 8px;
+  color: #ccc;
+}
+
+.ywb-card__instructor {
+  /* inherits from .ywb-card__meta */
+}
+
+.ywb-card__location {
+  /* inherits from .ywb-card__meta */
+}
+
+.ywb-card__toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 8px;
+  padding: 0;
+  border: none;
+  background: none;
+  font-family: inherit;
+  font-size: 0.76rem;
+  font-weight: 600;
+  color: #f75c03;
+  cursor: pointer;
+}
+
+.ywb-card__toggle svg {
+  transition: transform 0.2s;
+}
+
+.ywb-card__toggle--open svg {
+  transform: rotate(180deg);
+}
+
+.ywb-card__desc {
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid #E8E4E0;
+  font-size: 0.82rem;
+  line-height: 1.5;
+  color: #6F6A66;
+}
+
+.ywb-card__right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+.ywb-card__spots {
+  font-size: 0.75rem;
+  color: #6F6A66;
+  white-space: nowrap;
+}
+
+/* Badges */
+.ywb-badge {
+  font-size: 0.72rem;
+  font-weight: 600;
+  padding: 3px 10px;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+
+.ywb-badge--booked {
+  background: #d4edda;
+  color: #1a6b2a;
+}
+
+.ywb-badge--full {
+  background: #f0e0d6;
+  color: #8a4a20;
+}
+
+/* Book button */
+.ywb-book-btn {
+  padding: 6px 16px;
+  border-radius: 999px;
+  border: none;
+  background: #f75c03;
+  color: #fff;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.2s, transform 0.1s;
+}
+
+.ywb-book-btn:hover {
+  background: #d94f02;
+  transform: translateY(-1px);
+}
+
+.ywb-book-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* Cancel button */
+.ywb-cancel-btn {
+  padding: 5px 14px;
+  border-radius: 999px;
+  border: 1.5px solid #6F6A66;
+  background: transparent;
+  color: #6F6A66;
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: border-color 0.2s, color 0.2s;
+}
+
+.ywb-cancel-btn:hover {
+  border-color: #c0392b;
+  color: #c0392b;
+}
+
+.ywb-cancel-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Footer CTA */
+.ywb-footer {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 0 0;
+  margin-top: 16px;
+  border-top: 1px solid #E8E4E0;
+}
+
+.ywb-footer__info {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+}
+
+.ywb-footer__price {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #0F0F0F;
+}
+
+.ywb-footer__label {
+  font-size: 0.8rem;
+  color: #6F6A66;
+}
+
+.ywb-footer__buy {
+  padding: 10px 22px;
+  border-radius: 999px;
+  border: none;
+  background: #0F0F0F;
+  color: #fff;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.ywb-footer__buy:hover {
+  background: #333;
+}
+
+/* Responsive */
+@media (max-width: 480px) {
+  .ywb-box {
+    padding: 28px 20px 20px;
+    max-height: 92vh;
+  }
+
+  .ywb-card__top {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .ywb-card__right {
+    width: 100%;
+    justify-content: flex-end;
+  }
+
+  .ywb-footer {
+    flex-direction: column;
+    gap: 12px;
+    align-items: stretch;
+    text-align: center;
+  }
+
+  .ywb-footer__info {
+    justify-content: center;
+  }
+
+  .ywb-footer__buy {
+    width: 100%;
+  }
+}
+
+/* Workshop browser — branded dialog (replaces native alert/confirm) */
+.ywb-dialog__overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 100001;
+  background: rgba(15, 15, 15, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  animation: ywbFadeIn 0.18s ease;
+}
+
+@keyframes ywbFadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+.ywb-dialog {
+  background: #FFFCF9;
+  border-radius: 16px;
+  padding: 28px 24px 20px;
+  max-width: 360px;
+  width: 100%;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.18);
+}
+
+.ywb-dialog__message {
+  font-size: 0.95rem;
+  line-height: 1.5;
+  color: #0F0F0F;
+  margin: 0 0 24px;
+  text-align: center;
+}
+
+.ywb-dialog__actions {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+}
+
+.ywb-dialog__btn {
+  flex: 1;
+  padding: 10px 20px;
+  border-radius: 50px;
+  font-size: 0.88rem;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  transition: background 0.2s, transform 0.15s;
+  border: none;
+}
+
+.ywb-dialog__btn:active {
+  transform: scale(0.97);
+}
+
+.ywb-dialog__btn--cancel {
+  background: #F5F3F0;
+  color: #0F0F0F;
+}
+
+.ywb-dialog__btn--cancel:hover {
+  background: #E8E4E0;
+}
+
+.ywb-dialog__btn--confirm {
+  background: #f75c03;
+  color: #fff;
+}
+
+.ywb-dialog__btn--confirm:hover {
+  background: #d94f02;
 }
 
 /* ========================================
@@ -18816,6 +19279,41 @@ button.yb-btn--outline-white:hover {
 /* ── Toolbar ── */
 .yb-lead__toolbar-right { display: flex; gap: 0.5rem; align-items: center; }
 
+/* ── Stats Toggle (mobile only) ── */
+.yb-lead__stats-toggle {
+  display: none; /* hidden on desktop */
+  width: 100%;
+  padding: 0.6rem 0.75rem;
+  background: #FFFCF9;
+  border: 1px solid #e5e0db;
+  border-radius: 12px;
+  cursor: pointer;
+  align-items: center;
+  justify-content: space-between;
+  font-family: inherit;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: #161616;
+  margin-bottom: 0.5rem;
+  transition: border-color 0.15s;
+}
+.yb-lead__stats-toggle:hover { border-color: #f75c03; }
+.yb-lead__stats-summary { display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center; }
+.yb-lead__stats-summary-item { white-space: nowrap; }
+.yb-lead__stats-summary-item--new { color: #856404; }
+.yb-lead__stats-summary-item--pipeline { color: #0c5460; }
+.yb-lead__stats-summary-item--converted { color: #155724; }
+.yb-lead__stats-summary-item--rate { color: #f75c03; }
+.yb-lead__stats-summary-item--followup { color: #EF5350; }
+.yb-lead__stats-chevron {
+  flex-shrink: 0;
+  transition: transform 0.2s;
+  color: #6F6A66;
+}
+.yb-lead__stats-toggle[aria-expanded="true"] .yb-lead__stats-chevron {
+  transform: rotate(180deg);
+}
+
 /* ── Pipeline Stats ── */
 .yb-lead__stats-grid {
   display: grid;
@@ -24728,8 +25226,16 @@ a.yb-appt__phone-link:hover { text-decoration: underline; }
   .yb-lead__search-form { width: 100%; min-width: 0; }
   .yb-lead__filter { width: 100%; min-width: 0; }
 
-  /* Stats grid: 2 columns */
-  .yb-lead__stats-grid { grid-template-columns: repeat(2, 1fr); gap: 0.4rem; }
+  /* Stats toggle: visible on mobile */
+  .yb-lead__stats-toggle { display: flex; }
+
+  /* Stats grid: collapsed by default on mobile */
+  .yb-lead__stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.4rem;
+    display: none; /* collapsed by default */
+  }
+  .yb-lead__stats-grid.is-expanded { display: grid; }
   .yb-lead__stat-card { padding: 0.65rem; }
   .yb-lead__stat-value { font-size: 1.2rem; }
   .yb-lead__stat-label { font-size: 0.65rem; }
@@ -25234,6 +25740,279 @@ a.yb-appt__phone-link:hover { text-decoration: underline; }
   .yb-billing__customer-row { flex-wrap: wrap; }
   .yb-billing__cr-email { margin-left: 0; }
   .yb-billing__actions { flex-direction: column; }
+  .yb-billing__actions .yb-btn { width: 100%; text-align: center; }
+
+  /* Extra lines: stack on mobile */
+  .yb-billing__extra-line {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.35rem;
+  }
+  .yb-billing__extra-line .yb-billing__input-with-suffix { flex: 1; }
+  .yb-billing__extra-header { flex-wrap: wrap; gap: 0.5rem; }
+
+  /* Customer badge: wrap and compact */
+  .yb-billing__customer-badge {
+    flex-wrap: wrap;
+    gap: 0.35rem;
+    padding: 0.4rem 0.6rem;
+    font-size: 0.8rem;
+  }
+
+  /* Source tabs: scrollable */
+  .yb-billing__source-tabs {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+  .yb-billing__source-tabs::-webkit-scrollbar { display: none; }
+  .yb-billing__source-tab { white-space: nowrap; font-size: 0.8rem; padding: 0.4rem 0.75rem; }
+
+  /* Invoice table: scrollable with min-width */
+  .yb-billing__section .yb-admin__table-wrap {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    margin: 0 -1rem;
+    padding: 0 1rem;
+  }
+  .yb-billing__section .yb-admin__table { min-width: 500px; font-size: 0.78rem; }
+
+  /* Applicant banner: wrap */
+  .yb-billing__applicant-banner { flex-wrap: wrap; font-size: 0.8rem; padding: 0.5rem 0.75rem; }
+
+  /* Modal: full-width on small screens */
+  .yb-billing__modal-box,
+  .yb-app-invoice__modal {
+    width: 96%;
+    max-width: none;
+    padding: 1rem;
+    border-radius: 12px;
+  }
+  .yb-billing__modal-header h3 { font-size: 0.95rem; }
+  .yb-billing__modal-footer { flex-wrap: wrap; gap: 0.4rem; }
+  .yb-billing__modal-footer .yb-btn { flex: 1; min-width: 0; text-align: center; font-size: 0.8rem; }
+  .yb-billing__detail-row { font-size: 0.8rem; }
+
+  /* Preview table: compact */
+  .yb-billing__preview-table { font-size: 0.78rem; }
+  .yb-billing__preview-table th,
+  .yb-billing__preview-table td { padding: 0.3rem 0.35rem; }
+
+  /* New customer form: stack */
+  .yb-billing__new-customer .yb-admin__form-row { grid-template-columns: 1fr; }
+}
+
+/* ═══════════════════════════════════════════════════════════
+   AUTH MODAL & CHECKOUT FLOW — SMALL PHONE RESPONSIVE
+   Fix for normal-sized iPhones (375px) and small phones
+   ═══════════════════════════════════════════════════════════ */
+
+/* ── Auth modal: fit on 375px screens ── */
+@media (max-width: 420px) {
+  .yb-auth-modal {
+    padding: 8px;
+  }
+  .yb-auth-modal__box {
+    padding: 24px 18px;
+    border-radius: 12px;
+    max-width: 100%;
+    max-height: 94vh;
+  }
+  .yb-auth-modal__title { font-size: 1.2rem; }
+  .yb-auth-modal__subtitle { font-size: 0.82rem; }
+  .yb-auth-modal__logo img { max-height: 28px; }
+
+  /* Register split: reduce visual panel and form padding */
+  .yb-auth-modal__box[data-view="register"] {
+    max-width: 100%;
+  }
+  .yb-auth-modal__box[data-view="register"] .yb-auth-modal__visual {
+    min-height: 100px;
+    padding: 20px 16px;
+  }
+  .yb-auth-modal__box[data-view="register"] .yb-auth-view {
+    padding: 24px 18px;
+  }
+
+  /* Inputs: prevent iOS zoom and reduce size */
+  .yb-auth-form input,
+  .yb-auth-form select {
+    font-size: 16px;
+    padding: 10px 12px;
+  }
+  .yb-auth-submit {
+    padding: 12px 16px;
+    font-size: 0.9rem;
+  }
+
+  /* Consent checkboxes: tighter */
+  .yb-auth-consent { gap: 8px; margin-bottom: 12px; }
+  .yb-auth-consent__item { gap: 8px; font-size: 0.78rem; line-height: 1.35; }
+  .yb-auth-consent__item input[type="checkbox"] { width: 16px; height: 16px; min-width: 16px; }
+
+  /* Auth links: smaller */
+  .yb-auth-links { font-size: 0.82rem; }
+  .yb-auth-divider { font-size: 0.82rem; }
+}
+
+/* ── Checkout flow modal: fit on small phones ── */
+@media (max-width: 420px) {
+  .ycf-box {
+    padding: 24px 16px;
+    max-width: 100%;
+  }
+
+  /* Step indicator: tighter */
+  .ycf-steps { margin-bottom: 20px; }
+  .ycf-steps__dot { width: 8px; height: 8px; }
+  .ycf-steps__line { width: 28px; }
+
+  /* Product badge on login: compact */
+  .ycf-product-badge { padding: 10px 12px; margin-bottom: 16px; }
+  .ycf-product-badge__name { font-size: 0.82rem; }
+  .ycf-product-badge__price { font-size: 0.88rem; }
+  .ycf-product-badge__cohort { font-size: 0.72rem; }
+  .ycf-product-badge__desc { font-size: 0.72rem; }
+
+  /* Product breakdown on checkout: compact */
+  .ycf-product { padding: 14px; margin-bottom: 16px; }
+  .ycf-product__name { font-size: 0.95rem; }
+  .ycf-product__price { font-size: 1rem; }
+  .ycf-product__desc { font-size: 0.82rem; }
+  .ycf-product__note { font-size: 0.78rem; gap: 6px; }
+  .ycf-product__benefits { font-size: 0.82rem; }
+
+  /* Chips: compact */
+  .ycf-chip { padding: 3px 8px; font-size: 0.68rem; }
+
+  /* Payment methods: compact */
+  .ycf-payment-option { padding: 10px 12px; gap: 8px; }
+  .ycf-payment-option__label { font-size: 0.82rem; }
+  .ycf-payment-option__card { font-size: 0.78rem; }
+
+  /* Back link: smaller */
+  .ycf-back { font-size: 0.78rem; margin-bottom: 8px; }
+
+  /* Two-column row: always stack on small phones */
+  .yb-auth-row { grid-template-columns: 1fr; gap: 12px; }
+
+  /* Checkout divider text */
+  .yb-checkout-divider { font-size: 0.78rem; }
+}
+
+/* ── Extra small phones (320px, iPhone SE) ── */
+@media (max-width: 360px) {
+  .yb-auth-modal { padding: 4px; }
+  .yb-auth-modal__box { padding: 20px 14px; }
+  .ycf-box { padding: 20px 12px; }
+  .yb-auth-modal__title { font-size: 1.1rem; }
+  .yb-auth-form input,
+  .yb-auth-form select { padding: 9px 10px; }
+  .yb-auth-submit { padding: 11px 14px; }
+  .yb-auth-consent__item { font-size: 0.72rem; }
+}
+
+/* ═══════════════════════════════════════════════════════════
+   ADMIN PANEL — ADDITIONAL MOBILE IMPROVEMENTS
+   Better touch targets, user detail, and table column hiding
+   ═══════════════════════════════════════════════════════════ */
+
+/* ── Tablet: hide less important user table columns ── */
+@media (max-width: 1024px) {
+  #yb-user-table th:nth-child(6),
+  #yb-user-table td:nth-child(6) { display: none; }  /* tier */
+}
+
+/* ── Mobile: user table and detail improvements ── */
+@media (max-width: 768px) {
+  /* Hide more user table columns */
+  #yb-user-table th:nth-child(4),
+  #yb-user-table td:nth-child(4),  /* phone */
+  #yb-user-table th:nth-child(6),
+  #yb-user-table td:nth-child(6),  /* tier */
+  #yb-user-table th:nth-child(7),
+  #yb-user-table td:nth-child(7),  /* waiver */
+  #yb-user-table th:nth-child(8),
+  #yb-user-table td:nth-child(8),  /* mb */
+  #yb-user-table th:nth-child(9),
+  #yb-user-table td:nth-child(9) { display: none; }  /* joined */
+
+  /* User detail: compact sections */
+  #yb-admin-v-user-detail .yb-admin__section-divider { margin: 0.75rem 0; }
+  #yb-admin-v-user-detail h3 { font-size: 0.88rem !important; margin-bottom: 0.5rem !important; }
+  #yb-admin-v-user-detail .yb-lead__actions { gap: 0.3rem; }
+  #yb-admin-v-user-detail .yb-lead__actions .yb-btn { font-size: 0.75rem; padding: 5px 8px; }
+
+  /* User profile card: stack meta */
+  .yb-admin__user-meta { gap: 0.5rem; }
+  .yb-admin__user-meta > div { font-size: 0.82rem; }
+
+  /* User invoices table inside detail: scrollable */
+  #yb-admin-user-invoices .yb-admin__table-wrap {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  #yb-admin-user-invoices .yb-admin__table { min-width: 400px; font-size: 0.78rem; }
+
+  /* Filter dropdowns: improve touch targets */
+  .yb-lead__filter-bar .yb-admin__select,
+  .yb-lead__filter-bar .yb-lead__filter {
+    min-height: 40px;
+    font-size: 16px;  /* prevent iOS zoom */
+  }
+  .yb-lead__search-input { min-height: 40px; font-size: 16px; }
+
+  /* Admin view head buttons: better wrapping */
+  .yb-admin__view-head .yb-lead__toolbar-right {
+    display: flex;
+    gap: 0.35rem;
+    flex-wrap: wrap;
+  }
+  .yb-admin__view-head .yb-lead__toolbar-right .yb-btn {
+    font-size: 0.72rem;
+    padding: 5px 8px;
+    white-space: nowrap;
+  }
+
+  /* Section titles in admin */
+  .yb-lead__section-title { font-size: 0.85rem; }
+
+  /* Back button: better tap target */
+  .yb-admin__back-btn { min-height: 36px; font-size: 0.85rem; padding: 6px 10px; }
+
+  /* Enrollment form: compact */
+  .yb-admin__enroll-form .yb-admin__select { font-size: 16px; min-height: 40px; }
+
+  /* Note form: better touch */
+  .yb-lead__note-input { min-height: 40px; font-size: 16px; }
+}
+
+/* ── Small mobile admin improvements ── */
+@media (max-width: 480px) {
+  /* User table: also hide email column, show only name + role + actions */
+  #yb-user-table th:nth-child(3),
+  #yb-user-table td:nth-child(3) { display: none; }  /* email */
+
+  /* Admin tabs: improve scrollability hint */
+  .yb-admin .yb-profile__tabs {
+    -webkit-mask-image: linear-gradient(to right, black 90%, transparent);
+    mask-image: linear-gradient(to right, black 90%, transparent);
+  }
+
+  /* User detail: full-width buttons */
+  #yb-admin-v-user-detail .yb-lead__actions {
+    flex-direction: column;
+  }
+  #yb-admin-v-user-detail .yb-lead__actions .yb-btn { width: 100%; text-align: center; }
+
+  /* View head buttons: stack */
+  .yb-admin__view-head .yb-lead__toolbar-right {
+    width: 100%;
+  }
+  .yb-admin__view-head .yb-lead__toolbar-right .yb-btn { flex: 1; text-align: center; }
+
+  /* Billing invoices filter: full width */
+  #yb-billing-invoice-filter { width: 100%; }
 }
 
 /* ═══════════════════════════════════════════════════════

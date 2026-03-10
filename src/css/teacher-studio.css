@@ -6,6 +6,7 @@
   background: #0F0F0F;
   min-height: 100vh;
   padding: 0;
+  overflow-x: hidden;
 }
 
 /* ── Auth Gate ── */
@@ -363,6 +364,32 @@
   border: 1px solid rgba(247,92,3,0.3);
 }
 
+/* Stream type badge on session cards */
+.yts-sessions__item-type {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 0.6rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  padding: 0.15rem 0.4rem;
+  border-radius: 3px;
+  margin-top: 0.2rem;
+  color: #6F6A66;
+  background: rgba(111,106,102,0.1);
+}
+
+.yts-sessions__item-type--interactive {
+  color: #3f99a5;
+  background: rgba(63,153,165,0.1);
+}
+
+.yts-sessions__item-type--panel {
+  color: #f59e0b;
+  background: rgba(245,158,11,0.1);
+}
+
 /* ── Status ── */
 .yts-status {
   display: flex;
@@ -544,7 +571,158 @@
     padding: 0 0.75rem;
   }
 
+  .yts-devices__row {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.35rem;
+  }
+
+  .yts-devices__label {
+    min-width: 0;
+  }
+
+  .yts-sessions__item-name {
+    white-space: normal;
+    word-break: break-word;
+  }
+
   .yts-actions {
     flex-direction: column;
   }
+}
+
+/* ═══════════════════════════════════════════════════════
+   LIVE MODE — video becomes main, controls overlay
+   ═══════════════════════════════════════════════════════ */
+
+.yts--live-mode .yts-hero {
+  display: none;
+}
+
+.yts--live-mode .yts-main {
+  max-width: 100%;
+  padding: 0;
+}
+
+.yts--live-mode .yts-main__grid {
+  grid-template-columns: 1fr;
+  gap: 0;
+}
+
+.yts--live-mode .yts-preview {
+  border-radius: 0;
+  border: none;
+  background: #000;
+}
+
+.yts--live-mode .yts-preview__header {
+  display: none;
+}
+
+.yts--live-mode .yts-preview__viewport {
+  aspect-ratio: auto;
+  height: calc(100vh - 160px);
+  min-height: 300px;
+  max-height: 80vh;
+}
+
+.yts--live-mode #yts-preview-video {
+  object-fit: contain;
+  background: #000;
+}
+
+.yts--live-mode .yts-devices {
+  display: none;
+}
+
+.yts--live-mode .yts-controls {
+  padding: 0.75rem 1.5rem;
+  flex-direction: row;
+  align-items: center;
+  gap: 1rem;
+  background: #111;
+}
+
+.yts--live-mode .yts-sessions {
+  display: none;
+}
+
+.yts--live-mode .yts-status {
+  background: transparent;
+  border: none;
+  padding: 0;
+  flex-shrink: 0;
+}
+
+.yts--live-mode .yts-actions {
+  margin-left: auto;
+  flex-shrink: 0;
+}
+
+.yts--live-mode .yts-footer {
+  display: none;
+}
+
+/* ── Live Controls Overlay (on video) ── */
+.yts-live-controls {
+  position: absolute;
+  bottom: 3.5rem;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  padding: 0.5rem 0.75rem;
+  border-radius: 2rem;
+  z-index: 10;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.yts-preview__viewport:hover .yts-live-controls,
+.yts-live-controls:hover {
+  opacity: 1;
+}
+
+/* Always show on touch devices */
+@media (hover: none) {
+  .yts-live-controls {
+    opacity: 1;
+  }
+}
+
+.yts-live-controls__btn {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: 1.5px solid rgba(255,255,255,0.25);
+  background: rgba(255,255,255,0.08);
+  color: #FFFCF9;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background 0.2s, border-color 0.2s, transform 0.15s;
+}
+
+.yts-live-controls__btn:active {
+  transform: scale(0.92);
+}
+
+.yts-live-controls__btn--active {
+  border-color: rgba(247, 92, 3, 0.5);
+  background: rgba(247, 92, 3, 0.15);
+}
+
+.yts-live-controls__btn--off {
+  border-color: rgba(239, 68, 68, 0.5);
+  background: rgba(239, 68, 68, 0.2);
+  color: #ef4444;
+}
+
+.yts-live-controls__btn:hover {
+  background: rgba(255,255,255,0.15);
 }

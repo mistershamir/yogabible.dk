@@ -179,6 +179,21 @@
   /* ══════════════════════════════════════════
      FORM
      ══════════════════════════════════════════ */
+  // Toggle co-teachers field visibility based on stream type
+  function toggleStreamTypeFields(type) {
+    var coTeachersField = $('yb-la-coteachers-field');
+    var meetingUrlField = $('yb-la-meeting-url-field');
+    if (coTeachersField) coTeachersField.style.display = type === 'panel' ? '' : 'none';
+    if (meetingUrlField) meetingUrlField.style.display = type === 'meet' ? '' : 'none';
+  }
+
+  var streamTypeSelect = $('yb-la-stream-type');
+  if (streamTypeSelect) {
+    streamTypeSelect.addEventListener('change', function () {
+      toggleStreamTypeFields(this.value);
+    });
+  }
+
   function openForm(item) {
     var isEdit = !!item;
     $('yb-live-admin-form-title').textContent = isEdit ? t('live_form_edit_title') : t('live_form_title');
@@ -195,6 +210,26 @@
     $('yb-la-recurrence').value = (item && item.recurrence && item.recurrence.type) || 'none';
     $('yb-la-recurrence-end').value = (item && item.recurrence && item.recurrence.endDate) || '';
     $('yb-la-cohorts').value = (item && item.cohorts && item.cohorts.length) ? item.cohorts.join(', ') : '';
+
+    // Stream type (migrate from old interactive boolean)
+    var streamTypeSel = $('yb-la-stream-type');
+    if (streamTypeSel) {
+      var st = (item && item.streamType) || (item && item.interactive ? 'interactive' : 'broadcast');
+      streamTypeSel.value = st;
+      toggleStreamTypeFields(st);
+    }
+
+    // Meeting URL
+    var meetingUrlInput = $('yb-la-meeting-url');
+    if (meetingUrlInput) {
+      meetingUrlInput.value = (item && item.meetingUrl) || '';
+    }
+
+    // Co-teachers
+    var coteachersInput = $('yb-la-coteachers');
+    if (coteachersInput) {
+      coteachersInput.value = (item && item.coTeachers && item.coTeachers.length) ? item.coTeachers.join(', ') : '';
+    }
 
     // Start/end datetime-local
     if (item && item.startDateTime) {
@@ -222,9 +257,35 @@
       permCbs[i].checked = permsList.indexOf(permCbs[i].value) !== -1;
     }
 
+    // AI content section — show only for ended sessions with recordings
+    var aiSection = $('yb-la-ai-section');
+    if (aiSection) {
+      var showAi = isEdit && item.status === 'ended' && item.recordingPlaybackId;
+      aiSection.hidden = !showAi;
+      if (showAi) {
+        $('yb-la-ai-summary').value = item.aiSummary || '';
+        $('yb-la-ai-quiz').value = item.aiQuiz ? (typeof item.aiQuiz === 'string' ? formatJsonStr(item.aiQuiz) : JSON.stringify(item.aiQuiz, null, 2)) : '';
+        var statusEl = $('yb-la-ai-status');
+        var st = item.aiStatus || 'none';
+        statusEl.textContent = st;
+        statusEl.style.background = st === 'complete' ? '#34c759' : st === 'processing' || st === 'captions_requested' ? '#ff9500' : st === 'error' ? '#ff453a' : '#E8E4E0';
+        statusEl.style.color = st === 'none' ? '#6F6A66' : '#fff';
+        // Hide preview
+        var previewEl = $('yb-la-ai-preview');
+        if (previewEl) previewEl.hidden = true;
+        // Clear quiz error
+        var quizErr = $('yb-la-ai-quiz-error');
+        if (quizErr) quizErr.hidden = true;
+      }
+    }
+
     toggleSourceFields();
     toggleRecurrenceEnd();
     showView('form');
+  }
+
+  function formatJsonStr(s) {
+    try { return JSON.stringify(JSON.parse(s), null, 2); } catch (e) { return s; }
   }
 
   function toggleSourceFields() {
@@ -276,11 +337,54 @@
       data.cohorts = [];
     }
 
+    // Stream type + co-teachers + meeting URL
+    var streamTypeSel = $('yb-la-stream-type');
+    data.streamType = streamTypeSel ? streamTypeSel.value : 'broadcast';
+    data.interactive = data.streamType === 'interactive'; // backwards compat
+
+    // Meeting URL (for Google Meet / external meeting sessions)
+    if (data.streamType === 'meet') {
+      var meetUrl = ($('yb-la-meeting-url') ? $('yb-la-meeting-url').value : '').trim();
+      if (!meetUrl) {
+        alert(isDa ? 'Indtast en meeting URL' : 'Please enter a meeting URL');
+        return;
+      }
+      data.meetingUrl = meetUrl;
+    } else {
+      data.meetingUrl = null;
+    }
+
+    var coTeachersStr = ($('yb-la-coteachers') ? $('yb-la-coteachers').value : '').trim();
+    if (coTeachersStr && data.streamType === 'panel') {
+      data.coTeachers = coTeachersStr.split(',').map(function (s) { return s.trim(); }).filter(Boolean);
+    } else {
+      data.coTeachers = [];
+    }
+
     var recType = $('yb-la-recurrence').value;
     if (recType !== 'none' && data.source === 'manual') {
       data.recurrence = { type: recType, endDate: $('yb-la-recurrence-end').value || null };
     } else {
       data.recurrence = { type: 'none' };
+    }
+
+    // AI content — only include if the section is visible (ended sessions)
+    var aiSection = $('yb-la-ai-section');
+    if (aiSection && !aiSection.hidden) {
+      var summaryVal = $('yb-la-ai-summary').value.trim();
+      var quizVal = $('yb-la-ai-quiz').value.trim();
+      if (summaryVal !== undefined) data.aiSummary = summaryVal;
+      if (quizVal) {
+        // Validate JSON before sending
+        try {
+          JSON.parse(quizVal);
+          data.aiQuiz = quizVal;
+        } catch (e) {
+          // Show error but still allow save — the old value stays
+          var quizErr = $('yb-la-ai-quiz-error');
+          if (quizErr) { quizErr.textContent = 'Quiz JSON er ugyldig: ' + e.message; quizErr.hidden = false; }
+        }
+      }
     }
 
     return data;
@@ -942,6 +1046,60 @@
     ['yb-la-mb-filter-program', 'yb-la-mb-filter-instructor', 'yb-la-mb-filter-session-type', 'yb-la-mb-filter-day'].forEach(function (id) {
       var el = $(id);
       if (el) el.addEventListener('change', renderMbTable);
+    });
+
+    // AI summary preview toggle
+    var previewBtn = $('yb-la-ai-preview-btn');
+    if (previewBtn) previewBtn.addEventListener('click', function () {
+      var previewEl = $('yb-la-ai-preview');
+      if (previewEl.hidden) {
+        previewEl.innerHTML = $('yb-la-ai-summary').value;
+        previewEl.hidden = false;
+        previewBtn.textContent = 'Hide preview';
+      } else {
+        previewEl.hidden = true;
+        previewBtn.textContent = 'Preview summary';
+      }
+    });
+
+    // AI reprocess button
+    var reprocessBtn = $('yb-la-ai-reprocess-btn');
+    if (reprocessBtn) reprocessBtn.addEventListener('click', function () {
+      var id = $('yb-la-id').value;
+      if (!id) return;
+      if (!confirm('Re-run AI processing on this session? This will overwrite the current summary and quiz.')) return;
+      reprocessBtn.disabled = true;
+      reprocessBtn.textContent = '↻ Processing...';
+      // Call ai-backfill reprocess endpoint
+      var secret = prompt('Enter AI_INTERNAL_SECRET:');
+      if (!secret) { reprocessBtn.disabled = false; reprocessBtn.textContent = '↻ Reprocess AI'; return; }
+      fetch('/.netlify/functions/ai-backfill?reprocess=' + id + '&secret=' + encodeURIComponent(secret))
+        .then(function (r) { return r.json(); })
+        .then(function (res) {
+          if (res.ok) {
+            toast('AI reprocessed successfully (' + res.lang + ')');
+            // Reload the item to get fresh AI content
+            apiFetch('get', { params: { id: id } }).then(function (r) {
+              if (r.ok && r.item) {
+                $('yb-la-ai-summary').value = r.item.aiSummary || '';
+                $('yb-la-ai-quiz').value = r.item.aiQuiz ? formatJsonStr(r.item.aiQuiz) : '';
+                var statusEl = $('yb-la-ai-status');
+                statusEl.textContent = 'complete';
+                statusEl.style.background = '#34c759';
+                statusEl.style.color = '#fff';
+              }
+            });
+          } else {
+            toast(res.error || 'Reprocess failed', true);
+          }
+          reprocessBtn.disabled = false;
+          reprocessBtn.textContent = '↻ Reprocess AI';
+        })
+        .catch(function (err) {
+          toast('Reprocess error: ' + err.message, true);
+          reprocessBtn.disabled = false;
+          reprocessBtn.textContent = '↻ Reprocess AI';
+        });
     });
 
     // Tab listener — lazy load on first visit

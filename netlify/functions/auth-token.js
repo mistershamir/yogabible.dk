@@ -7,22 +7,11 @@
  *
  * POST { idToken: "..." }  →  { customToken: "..." }
  *
- * Requires env var: FIREBASE_SERVICE_ACCOUNT_HYC (JSON string of service account)
+ * Requires env: FIREBASE_PROJECT_ID, FIREBASE_CLIENT_EMAIL, FIREBASE_PRIVATE_KEY
  */
 
 const { jsonResponse, optionsResponse } = require('./shared/utils');
-
-let admin;
-
-function getAdmin() {
-  if (admin) return admin;
-  admin = require('firebase-admin');
-  if (!admin.apps.length) {
-    const sa = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT_HYC || '{}');
-    admin.initializeApp({ credential: admin.credential.cert(sa) });
-  }
-  return admin;
-}
+const { getAuth } = require('./shared/firestore');
 
 exports.handler = async function (event) {
   if (event.httpMethod === 'OPTIONS') return optionsResponse();
@@ -39,9 +28,9 @@ exports.handler = async function (event) {
       return jsonResponse(400, { error: 'idToken is required' });
     }
 
-    var fb = getAdmin();
-    var decoded = await fb.auth().verifyIdToken(idToken);
-    var customToken = await fb.auth().createCustomToken(decoded.uid);
+    var auth = getAuth();
+    var decoded = await auth.verifyIdToken(idToken);
+    var customToken = await auth.createCustomToken(decoded.uid);
 
     return jsonResponse(200, { customToken: customToken });
   } catch (err) {

@@ -148,6 +148,7 @@ function processLead(payload, action) {
 
   switch (action) {
     case 'lead_schedule_18w':
+    case 'lead_schedule_18w-mar':
       return {
         ...base,
         type: 'ytt',
@@ -165,7 +166,26 @@ function processLead(payload, action) {
         source: '200h YTT'
       };
 
+    case 'lead_schedule_18w-aug':
+      return {
+        ...base,
+        type: 'ytt',
+        ytt_program_type: '18-week-aug',
+        program: payload.program || '18 UGERS FLEKSIBELT PROGRAM - August-December 2026',
+        course_id: '',
+        cohort_label: 'August-December 2026',
+        preferred_month: '',
+        accommodation: normalizeYesNo(payload.housing || payload.accommodation || 'No'),
+        city_country: payload.origin || payload.cityCountry || '',
+        housing_months: getHousingMonths(payload),
+        service: '',
+        subcategories: '',
+        message: '',
+        source: '200h YTT'
+      };
+
     case 'lead_schedule_4w':
+    case 'lead_schedule_4w-apr':
       return {
         ...base,
         type: 'ytt',
@@ -173,6 +193,24 @@ function processLead(payload, action) {
         program: payload.program || '4-Week Intensive YTT',
         course_id: '',
         cohort_label: payload.program || '',
+        preferred_month: '',
+        accommodation: normalizeYesNo(payload.accommodation || 'No'),
+        city_country: payload.cityCountry || '',
+        housing_months: '',
+        service: '',
+        subcategories: '',
+        message: '',
+        source: '200h YTT'
+      };
+
+    case 'lead_schedule_4w-jul':
+      return {
+        ...base,
+        type: 'ytt',
+        ytt_program_type: '4-week-jul',
+        program: payload.program || '4-Week Vinyasa Plus YTT (July)',
+        course_id: '',
+        cohort_label: 'Juli 2026',
         preferred_month: '',
         accommodation: normalizeYesNo(payload.accommodation || 'No'),
         city_country: payload.cityCountry || '',

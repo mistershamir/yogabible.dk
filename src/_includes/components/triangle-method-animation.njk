@@ -1,0 +1,159 @@
+{# ═══════════════════════════════════════════════════════════
+   TRIANGLE METHOD ANIMATION — Looping SVG triangle with
+   Hatha (top), Vinyasa (bottom-left), Yin (bottom-right)
+   Pure HTML + CSS + vanilla JS, no dependencies
+   ═══════════════════════════════════════════════════════════ #}
+<div class="tri-anim" aria-label="The Triangle Method — Hatha, Vinyasa, Yin" role="img">
+  <svg class="tri-anim__svg" viewBox="0 0 400 360" fill="none" preserveAspectRatio="xMidYMid meet">
+    {# Triangle path: top-center → bottom-left → bottom-right → close #}
+    <path class="tri-anim__path"
+          d="M200 40 L50 310 L350 310 Z"
+          stroke="url(#tri-grad)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"
+          fill="none" />
+
+    {# Gradient for triangle stroke #}
+    <defs>
+      <linearGradient id="tri-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" stop-color="#f75c03" />
+        <stop offset="50%" stop-color="#EA8E52" />
+        <stop offset="100%" stop-color="#F0A778" />
+      </linearGradient>
+      <radialGradient id="tri-glow">
+        <stop offset="0%" stop-color="rgba(247,92,3,0.12)" />
+        <stop offset="100%" stop-color="rgba(247,92,3,0)" />
+      </radialGradient>
+    </defs>
+
+    {# Soft inner glow #}
+    <path d="M200 70 L75 295 L325 295 Z" fill="url(#tri-glow)" opacity="0" class="tri-anim__glow" />
+
+    {# Vertex dots #}
+    <circle class="tri-anim__dot tri-anim__dot--hatha" cx="200" cy="40" r="6" fill="#f75c03" />
+    <circle class="tri-anim__dot tri-anim__dot--vinyasa" cx="50" cy="310" r="6" fill="#EA8E52" />
+    <circle class="tri-anim__dot tri-anim__dot--yin" cx="350" cy="310" r="6" fill="#F0A778" />
+
+    {# Labels #}
+    <text class="tri-anim__label tri-anim__label--hatha" x="200" y="22" text-anchor="middle">Hatha</text>
+    <text class="tri-anim__label tri-anim__label--vinyasa" x="40" y="340" text-anchor="middle">Vinyasa</text>
+    <text class="tri-anim__label tri-anim__label--yin" x="360" y="340" text-anchor="middle">Yin</text>
+
+    {# Traveling dot along the path #}
+    <circle class="tri-anim__traveler" r="4" fill="#fff">
+      <animateMotion dur="4s" repeatCount="indefinite" path="M200 40 L50 310 L350 310 Z" />
+    </circle>
+  </svg>
+
+  <style>
+    .tri-anim {
+      width: 100%;
+      max-width: 340px;
+      margin: 20px auto;
+      position: relative;
+    }
+    .tri-anim__svg {
+      width: 100%;
+      height: auto;
+      display: block;
+    }
+
+    /* Stroke draw-in animation */
+    .tri-anim__path {
+      stroke-dasharray: 920;
+      stroke-dashoffset: 920;
+      animation: triDraw 2.5s ease-out forwards;
+    }
+    @keyframes triDraw {
+      to { stroke-dashoffset: 0; }
+    }
+
+    /* Glow fade-in after draw completes */
+    .tri-anim__glow {
+      animation: triGlow 1.5s ease-out 2.2s forwards;
+    }
+    @keyframes triGlow {
+      to { opacity: 1; }
+    }
+
+    /* Vertex dots scale-in sequentially */
+    .tri-anim__dot {
+      opacity: 0;
+      transform-origin: center;
+      animation: triDotIn 0.4s ease-out forwards;
+    }
+    .tri-anim__dot--hatha   { animation-delay: 0.6s; }
+    .tri-anim__dot--vinyasa { animation-delay: 1.3s; }
+    .tri-anim__dot--yin     { animation-delay: 2.0s; }
+    @keyframes triDotIn {
+      from { opacity: 0; r: 0; }
+      to   { opacity: 1; r: 6; }
+    }
+
+    /* Labels fade-in with dots */
+    .tri-anim__label {
+      font-family: 'Abacaxi', "Helvetica Neue", Helvetica, Arial, system-ui, sans-serif;
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 0.05em;
+      fill: #6F6A66;
+      opacity: 0;
+      animation: triFadeIn 0.5s ease-out forwards;
+    }
+    .tri-anim__label--hatha   { fill: #f75c03; animation-delay: 0.8s; }
+    .tri-anim__label--vinyasa { fill: #EA8E52; animation-delay: 1.5s; }
+    .tri-anim__label--yin     { fill: #F0A778; animation-delay: 2.2s; }
+    @keyframes triFadeIn {
+      to { opacity: 1; }
+    }
+
+    /* Traveling dot — subtle pulse */
+    .tri-anim__traveler {
+      opacity: 0;
+      animation: triTravelerIn 0.3s ease-out 2.5s forwards;
+      filter: drop-shadow(0 0 4px rgba(255,255,255,0.6));
+    }
+    @keyframes triTravelerIn {
+      to { opacity: 0.85; }
+    }
+
+    /* Breathe pulse on dots after initial animation */
+    .tri-anim__dot {
+      animation: triDotIn 0.4s ease-out forwards, triBreathe 3s ease-in-out 3s infinite;
+    }
+    @keyframes triBreathe {
+      0%, 100% { r: 6; }
+      50% { r: 8; }
+    }
+
+    @media (max-width: 599px) {
+      .tri-anim { max-width: 260px; }
+      .tri-anim__label { font-size: 11px; }
+    }
+  </style>
+
+  <script>
+    (function () {
+      var wrap = document.currentScript.closest('.tri-anim');
+      if (!wrap) return;
+
+      /* Pause animations until visible */
+      var svg = wrap.querySelector('.tri-anim__svg');
+      if (!svg) return;
+
+      /* Reset animations when entering viewport */
+      if ('IntersectionObserver' in window) {
+        svg.style.animationPlayState = 'paused';
+        var animEls = svg.querySelectorAll('[class*="tri-anim__"]');
+        animEls.forEach(function (el) { el.style.animationPlayState = 'paused'; });
+
+        var obs = new IntersectionObserver(function (entries) {
+          if (entries[0].isIntersecting) {
+            svg.style.animationPlayState = '';
+            animEls.forEach(function (el) { el.style.animationPlayState = ''; });
+            obs.disconnect();
+          }
+        }, { threshold: 0.3 });
+        obs.observe(wrap);
+      }
+    })();
+  </script>
+</div>

@@ -25,7 +25,7 @@
     "confirm_end": "Er du sikker på, at du vil afslutte streamen?",
     "confirm_end_yes": "Ja, afslut",
     "confirm_end_no": "Annuller",
-    "permission_denied": "Kamera- eller mikrofontilladelse blev nægtet. Tjek venligst dine browserindstillinger.",
+    "permission_denied": "Kamera- eller mikrofontilladelse blev nægtet.\n\nKlik på lås-ikonet i adresselinjen → tillad Kamera og Mikrofon → genindlæs siden.",
     "no_session_selected": "Vælg en session først.",
     "stream_quality_label": "Kvalitet",
     "stream_quality_720": "720p (anbefalet)",
@@ -33,7 +33,9 @@
     "stream_quality_480": "480p (langsom forbindelse)",
     "teacher_only_notice": "Denne side er kun for undervisere.",
     "footer_note": "Streamen sendes direkte til studerende på",
-    "footer_link_text": "live-siden"
+    "footer_link_text": "live-siden",
+    "test_stream_btn": "Test Stream",
+    "test_stream_end": "Afslut Test"
   },
   "en": {
     "hero_tagline": "Yoga Bible · Teacher Studio",
@@ -61,7 +63,7 @@
     "confirm_end": "Are you sure you want to end the stream?",
     "confirm_end_yes": "Yes, end it",
     "confirm_end_no": "Cancel",
-    "permission_denied": "Camera or microphone permission was denied. Please check your browser settings.",
+    "permission_denied": "Camera or microphone permission was denied.\n\nClick the lock icon in the address bar → allow Camera and Microphone → reload the page.",
     "no_session_selected": "Please select a session first.",
     "stream_quality_label": "Quality",
     "stream_quality_720": "720p (recommended)",
@@ -69,6 +71,8 @@
     "stream_quality_480": "480p (slow connection)",
     "teacher_only_notice": "This page is for teachers only.",
     "footer_note": "Stream is sent directly to students on the",
-    "footer_link_text": "live page"
+    "footer_link_text": "live page",
+    "test_stream_btn": "Test Stream",
+    "test_stream_end": "End Test"
   }
 }
