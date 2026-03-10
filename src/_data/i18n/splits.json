@@ -1,5 +1,6 @@
 {
   "da": {
+    "hero_video_src": "https://res.cloudinary.com/ddcynsa30/video/upload/q_auto/v1773139302/Splits_Hero_DK_Site_Compressed_cnk6mk.mp4",
     "hero_tagline": "Yoga Bible · Kursus",
     "hero_title": "Splits-<br class=\"hide-sm\">Kursus",
     "hero_lead": "Opbyg fleksibilitet og kontrol i dine splits med tydelige teknikker, trin-for-trin progressioner og trygge rammer – en investering i din krop, der holder.",
@@ -138,6 +139,7 @@
     "s7_blog_slugs": ["splits-fleksibilitet-guide", "hoftefleksibilitet-kontorarbejdere", "aktiv-vs-passiv-fleksibilitet"]
   },
   "en": {
+    "hero_video_src": "https://res.cloudinary.com/ddcynsa30/video/upload/q_auto/v1773139302/Splits_Hero_DK_Site_Compressed_cnk6mk.mp4",
     "hero_tagline": "Yoga Bible · Course",
     "hero_title": "Splits<br class=\"hide-sm\"> Course",
     "hero_lead": "Build flexibility and control in your splits with clear techniques, step-by-step progressions and a safe environment — an investment in your body that lasts.",
