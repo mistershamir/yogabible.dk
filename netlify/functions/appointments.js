@@ -141,7 +141,7 @@ async function handleDelete(event, user) {
 }
 
 // ─── CONTACT SEARCH ─────────────────────────────────────────────────
-// Searches leads, applications, and career submissions for autocomplete
+// Searches leads, applications, careers, and registered users for autocomplete
 async function searchContacts(query) {
   if (!query || query.length < 2) {
     return jsonResponse(400, { ok: false, error: 'Query too short (min 2 chars)' });
@@ -192,6 +192,10 @@ async function searchContacts(query) {
     // Search career submissions
     const careersSnap = await db.collection('careers').limit(200).get();
     careersSnap.forEach(doc => tryAdd(doc, 'career'));
+
+    // Search registered users (Firebase auth users stored in Firestore)
+    const usersSnap = await db.collection('users').limit(500).get();
+    usersSnap.forEach(doc => tryAdd(doc, 'user'));
 
     // Sort: exact matches first, then alphabetically
     contacts.sort((a, b) => {
