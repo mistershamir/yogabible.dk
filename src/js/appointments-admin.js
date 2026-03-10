@@ -553,11 +553,29 @@
     html += '<div style="display:flex;flex-wrap:wrap;gap:8px;">';
 
     if (a.status === 'confirmed' || a.status === 'rescheduled') {
+      html += '<button class="yb-btn yb-btn--primary yb-btn--sm" data-action="appt-send-confirm-toggle">&#9993; ' + t('appt_send_confirmation') + '</button>';
       html += '<button class="yb-btn yb-btn--outline yb-btn--sm" data-action="appt-send-reminder">&#128276; ' + t('appt_send_reminder') + '</button>';
       html += '<button class="yb-btn yb-btn--outline yb-btn--sm" data-action="appt-complete">&#9989; ' + t('appt_mark_completed') + '</button>';
       html += '<button class="yb-btn yb-btn--outline yb-btn--sm" data-action="appt-no-show">&#128683; ' + t('appt_mark_no_show') + '</button>';
       html += '<button class="yb-btn yb-btn--outline yb-btn--sm yb-admin__icon-btn--danger" data-action="appt-cancel-appt">&#10006; ' + t('appt_cancel') + '</button>';
     }
+
+    // Send confirmation panel (hidden by default, toggled by button above)
+    html += '<div id="yb-appt-confirm-panel" hidden style="width:100%;background:#F5F3F0;border-radius:10px;padding:16px;margin-top:12px;">';
+    html += '<p style="margin:0 0 10px;font-weight:700;font-size:14px;">' + t('appt_send_confirmation') + '</p>';
+    var hasPhone = !!(a.client_phone);
+    html += '<div style="display:flex;gap:10px;flex-wrap:wrap;">';
+    html += '<button class="yb-btn yb-btn--primary yb-btn--sm" data-action="appt-confirm-email" style="min-width:120px;">&#9993; ' + t('appt_notify_email') + '</button>';
+    html += '<button class="yb-btn yb-btn--outline yb-btn--sm" data-action="appt-confirm-sms" style="min-width:120px;"' + (hasPhone ? '' : ' disabled title="' + (isDa() ? 'Intet telefonnummer' : 'No phone number') + '"') + '>&#128241; ' + t('appt_notify_sms') + '</button>';
+    html += '<button class="yb-btn yb-btn--primary yb-btn--sm" data-action="appt-confirm-both" style="min-width:120px;"' + (hasPhone ? '' : ' disabled') + '>&#128232; ' + t('appt_notify_both') + '</button>';
+    html += '</div>';
+    if (a.confirmation_email_sent || a.confirmation_sms_sent) {
+      html += '<p style="margin:8px 0 0;font-size:12px;color:#6F6A66;">';
+      if (a.confirmation_email_sent) html += '&#9989; ' + (isDa() ? 'Email sendt tidligere' : 'Email sent previously') + ' ';
+      if (a.confirmation_sms_sent) html += '&#9989; ' + (isDa() ? 'SMS sendt tidligere' : 'SMS sent previously');
+      html += '</p>';
+    }
+    html += '</div>';
 
     html += '<button class="yb-btn yb-btn--outline yb-btn--sm" data-action="appt-download-ics">&#128197; ' + (isDa() ? 'Download .ics' : 'Download .ics') + '</button>';
     html += '<button class="yb-btn yb-btn--outline yb-btn--sm yb-admin__icon-btn--danger" data-action="appt-delete">&#128465; ' + t('appt_delete') + '</button>';
@@ -574,7 +592,16 @@
   function handleDetailAction(action, el) {
     if (!currentAppt || !currentApptId) return;
 
-    if (action === 'appt-send-reminder') {
+    if (action === 'appt-send-confirm-toggle') {
+      var panel = document.getElementById('yb-appt-confirm-panel');
+      if (panel) panel.hidden = !panel.hidden;
+    } else if (action === 'appt-confirm-email') {
+      sendConfirmation(true, false);
+    } else if (action === 'appt-confirm-sms') {
+      sendConfirmation(false, true);
+    } else if (action === 'appt-confirm-both') {
+      sendConfirmation(true, true);
+    } else if (action === 'appt-send-reminder') {
       sendManualReminder();
     } else if (action === 'appt-complete') {
       updateStatus('completed');
@@ -766,6 +793,43 @@
     });
   }
 
+  function sendConfirmation(sendEmail, sendSms) {
+    if (!currentAppt || !currentApptId) return;
+
+    // Disable buttons while sending
+    var panel = document.getElementById('yb-appt-confirm-panel');
+    var btns = panel ? panel.querySelectorAll('button') : [];
+    btns.forEach(function (b) { b.disabled = true; });
+
+    apiCall('POST', null, {
+      action: 'notify',
+      id: currentApptId,
+      email: !!sendEmail,
+      sms: !!sendSms
+    }).then(function (data) {
+      if (data.ok) {
+        var parts = [];
+        if (data.results.email === 'sent') parts.push(isDa() ? 'Email sendt' : 'Email sent');
+        if (data.results.email === 'failed') parts.push(isDa() ? 'Email fejlede' : 'Email failed');
+        if (data.results.sms === 'sent') parts.push(isDa() ? 'SMS sendt' : 'SMS sent');
+        if (data.results.sms === 'failed') parts.push(isDa() ? 'SMS fejlede' : 'SMS failed');
+        if (data.results.sms === 'skipped') parts.push(isDa() ? 'SMS sprunget over (intet tlf.)' : 'SMS skipped (no phone)');
+        toast(parts.join(', ') || t('appt_confirmation_sent'));
+
+        // Update local state
+        if (data.results.email === 'sent') currentAppt.confirmation_email_sent = true;
+        if (data.results.sms === 'sent') currentAppt.confirmation_sms_sent = true;
+        renderActions(); // re-render to show "sent previously" labels
+      } else {
+        toast('Error: ' + (data.error || 'Unknown'), true);
+      }
+    }).catch(function (err) {
+      toast('Error: ' + err.message, true);
+    }).finally(function () {
+      btns.forEach(function (b) { b.disabled = false; });
+    });
+  }
+
   function downloadIcs() {
     if (!currentAppt) return;
     var a = currentAppt;
@@ -901,7 +965,17 @@
 
     apiCall('POST', null, formData).then(function (data) {
       if (data.ok) {
-        toast(t('appt_created'));
+        var msg = t('appt_created');
+        // Show notification status if any were requested
+        if (data.notify) {
+          var parts = [];
+          if (data.notify.email === 'sent') parts.push(isDa() ? 'Email sendt' : 'Email sent');
+          if (data.notify.email === 'failed') parts.push(isDa() ? 'Email fejlede' : 'Email failed');
+          if (data.notify.sms === 'sent') parts.push(isDa() ? 'SMS sendt' : 'SMS sent');
+          if (data.notify.sms === 'failed') parts.push(isDa() ? 'SMS fejlede' : 'SMS failed');
+          if (parts.length) msg += ' (' + parts.join(', ') + ')';
+        }
+        toast(msg);
         closeNewModal();
         loadAppointments();
       } else {
@@ -1094,7 +1168,9 @@
           client_phone: ($('yb-appt-f-phone').value || ''),
           location: $('yb-appt-f-location').value,
           notes: ($('yb-appt-f-notes').value || ''),
-          status: 'confirmed'
+          status: 'confirmed',
+          notify_email: $('yb-appt-f-notify-email') ? $('yb-appt-f-notify-email').checked : false,
+          notify_sms: $('yb-appt-f-notify-sms') ? $('yb-appt-f-notify-sms').checked : false
         });
       });
     }
