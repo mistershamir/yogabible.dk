@@ -1,5 +1,6 @@
 {
   "da": {
+    "hero_video_src": "https://res.cloudinary.com/ddcynsa30/video/upload/q_auto/v1773146194/Backbends_Hero_Page_u1zuyt.mp4",
     "hero_tagline": "Yoga Bible · Kursus",
     "hero_title": "Backbends-<br class=\"hide-sm\">Kursus",
     "hero_lead": "Lær stabile backbends uden at klemme lænden. Vi bygger styrke i bagsiden, åbner skuldre og hofter, og arbejder trin-for-trin – en investering i din rygsøjles frihed.",
@@ -139,6 +140,7 @@
     "s7_blog_slugs": ["backbends-uden-smerter", "rygsojlens-anatomi-yogaudovere", "fra-bro-til-wheel-guide"]
   },
   "en": {
+    "hero_video_src": "https://res.cloudinary.com/ddcynsa30/video/upload/q_auto/v1773146194/Backbends_Hero_Page_u1zuyt.mp4",
     "hero_tagline": "Yoga Bible · Course",
     "hero_title": "Backbends<br class=\"hide-sm\"> Course",
     "hero_lead": "Learn stable backbends without compressing the lower back. We build strength in the posterior chain, open shoulders and hips, and work step by step — an investment in your spine's freedom.",
