@@ -223,7 +223,7 @@
     loadCareers();
   }
 
-  var autoSeeded = false;
+  var spamCleaned = false;
 
   function loadCareers(append) {
     if (!append) {
@@ -242,25 +242,6 @@
           careers.push(d);
         });
 
-        // Auto-seed: if no non-archived career leads exist, call seed function once
-        var hasActive = careers.some(function (c) { return c.status !== 'Archived' && !c.archived; });
-        if (!hasActive && !autoSeeded && firebase.auth().currentUser) {
-          autoSeeded = true;
-          firebase.auth().currentUser.getIdToken().then(function (token) {
-            return fetch('/.netlify/functions/careers-seed?confirm=seed', {
-              method: 'POST',
-              headers: { Authorization: 'Bearer ' + token }
-            });
-          }).then(function (r) { return r.json(); }).then(function (data) {
-            if (data.ok && (data.added > 0 || data.updated > 0)) {
-              careers = [];
-              careerLastDoc = null;
-              loadCareers(); // reload with seeded data
-            }
-          }).catch(function () { /* silent */ });
-          return;
-        }
-
         // Sort client-side
         careers.sort(function (a, b) {
           var av = a[careerSortField], bv = b[careerSortField];
@@ -271,11 +252,42 @@
           return 0;
         });
 
+        // Auto-delete spam: on first load, permanently delete all records that
+        // have gibberish names (no category, no role, no experience) — these are spam.
+        if (!spamCleaned) {
+          spamCleaned = true;
+          var spamIds = [];
+          careers.forEach(function (c) {
+            // Spam indicators: no category AND no role AND no experience
+            if (!c.category && !c.role && !c.experience) {
+              spamIds.push({ id: c.id, col: c._col || 'leads' });
+            }
+          });
+          if (spamIds.length > 0) {
+            console.log('[careers-admin] Deleting ' + spamIds.length + ' spam records…');
+            var batch = db.batch();
+            spamIds.forEach(function (s) {
+              batch.delete(db.collection(s.col).doc(s.id));
+            });
+            batch.commit().then(function () {
+              console.log('[careers-admin] Deleted ' + spamIds.length + ' spam records');
+              // Remove deleted spam from local array
+              var deletedIds = {};
+              spamIds.forEach(function (s) { deletedIds[s.id] = true; });
+              careers = careers.filter(function (c) { return !deletedIds[c.id]; });
+              renderCareersTable();
+              renderCareerStats();
+            }).catch(function (err) {
+              console.error('[careers-admin] Spam cleanup failed:', err);
+            });
+          }
+        }
+
         renderCareersTable();
         renderCareerStats();
 
         var loadMore = $('yb-career-load-more-wrap');
-        if (loadMore) loadMore.hidden = true; // all loaded at once
+        if (loadMore) loadMore.hidden = true;
 
       }).catch(function (err) {
         console.error('[careers-admin] Load error:', err);
