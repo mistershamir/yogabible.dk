@@ -126,6 +126,41 @@ async function handleBulkList(payload, campaignId) {
 
   const results = { sent: 0, failed: 0, skipped: 0, errors: [] };
 
+  // Build set of emails already being sent to via leads/applications
+  // so we don't double-send to contacts that also exist as leads
+  const excludeEmails = new Set();
+  if (payload.leadIds && payload.leadIds.length > 0) {
+    const leadSnaps = await Promise.all(
+      payload.leadIds.map(id => db.collection('leads').doc(id).get())
+    );
+    leadSnaps.forEach(snap => {
+      if (snap.exists && snap.data().email) excludeEmails.add(snap.data().email.toLowerCase());
+    });
+  }
+  if (payload.applicationIds && payload.applicationIds.length > 0) {
+    const appSnaps = await Promise.all(
+      payload.applicationIds.map(id => db.collection('applications').doc(id).get())
+    );
+    appSnaps.forEach(snap => {
+      if (snap.exists && snap.data().email) excludeEmails.add(snap.data().email.toLowerCase());
+    });
+  }
+
+  // Also exclude all lead emails to prevent double-sending to anyone who is already a lead
+  // (even if they weren't selected in this campaign)
+  if (payload.excludeLeadEmails !== false) {
+    const leadsSnap = await db.collection('leads').select('email').get();
+    leadsSnap.forEach(doc => {
+      const email = (doc.data().email || '').toLowerCase();
+      if (email) excludeEmails.add(email);
+    });
+    const appsSnap = await db.collection('applications').select('email').get();
+    appsSnap.forEach(doc => {
+      const email = (doc.data().email || '').toLowerCase();
+      if (email) excludeEmails.add(email);
+    });
+  }
+
   // Fetch contacts from all specified lists
   const allContacts = [];
   const seenEmails = new Set();
@@ -140,6 +175,11 @@ async function handleBulkList(payload, campaignId) {
       const data = doc.data();
       const email = (data.email || '').toLowerCase();
       if (!email || seenEmails.has(email)) {
+        results.skipped++;
+        return;
+      }
+      // Skip contacts that already exist as leads/applicants
+      if (excludeEmails.has(email)) {
         results.skipped++;
         return;
       }

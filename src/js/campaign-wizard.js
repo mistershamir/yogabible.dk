@@ -444,9 +444,13 @@
       });
     } else {
       // No pinned leads — remove de-filtered IDs but never auto-select anything
-      campaignState.selectedIds.forEach(function (id) {
-        if (!filteredIdSet.has(id)) campaignState.selectedIds.delete(id);
-      });
+      // IMPORTANT: Don't remove selected IDs just because they're hidden by search.
+      // Only remove when a real filter (status, program, etc.) excludes them.
+      if (!campaignState.searchTerm) {
+        campaignState.selectedIds.forEach(function (id) {
+          if (!filteredIdSet.has(id)) campaignState.selectedIds.delete(id);
+        });
+      }
     }
 
     return filtered;
@@ -961,7 +965,7 @@
       '</div></div>';
 
     if (campaignState.emailEditorMode === 'visual') {
-      html += '<div contenteditable="true" class="yb-lead__campaign-email-editor" id="yb-campaign-email-editor">' + (campaignState.emailBodyHtml || '') + '</div>';
+      html += '<div class="yb-lead__campaign-editor-contain"><div contenteditable="true" class="yb-lead__campaign-email-editor" id="yb-campaign-email-editor">' + (campaignState.emailBodyHtml || '') + '</div></div>';
     } else {
       html += '<textarea class="yb-lead__campaign-email-html-textarea" id="yb-campaign-email-editor-html" rows="10">' + esc(campaignState.emailBodyHtml) + '</textarea>';
     }
@@ -1157,13 +1161,28 @@
     var selectedCount = campaignState.selectedIds.size;
     var isSMS = campaignState.type === 'sms';
 
+    // Calculate list contact counts
+    var listContactCount = 0;
+    var listNames = [];
+    if (!isSMS && campaignState.selectedListIds.size > 0) {
+      campaignState.selectedListIds.forEach(function (id) {
+        var list = campaignState.emailLists.find(function (l) { return l.id === id; });
+        if (list) { listContactCount += (list.contact_count || 0); listNames.push(list.name); }
+      });
+    }
+    var grandTotal = selectedCount + listContactCount;
+
     var html = '<div class="yb-lead__campaign-send-wrap">';
 
     // Summary cards
+    var recipientLabel = esc(t('campaign_send_recipients_count'));
+    if (listContactCount > 0) {
+      recipientLabel += '<br><small style="font-weight:400;color:#6F6A66;">' + selectedCount + ' leads + ' + listContactCount + ' list contacts</small>';
+    }
     html += '<div class="yb-lead__campaign-summary-cards">' +
       '<div class="yb-lead__campaign-summary-card">' +
-      '<div class="yb-lead__campaign-summary-value">' + selectedCount + '</div>' +
-      '<div class="yb-lead__campaign-summary-label">' + esc(t('campaign_send_recipients_count')) + '</div>' +
+      '<div class="yb-lead__campaign-summary-value">' + grandTotal + '</div>' +
+      '<div class="yb-lead__campaign-summary-label">' + recipientLabel + '</div>' +
       '</div>' +
       '<div class="yb-lead__campaign-summary-card">' +
       '<div class="yb-lead__campaign-summary-value" style="font-size:1rem;color:#0F0F0F">' +
@@ -1239,7 +1258,7 @@
       '</div>';
 
     // Warning
-    html += '<div class="yb-lead__campaign-warning">\u26a0\ufe0f ' + esc(t('campaign_send_warning').replace('{count}', selectedCount)) + '</div>';
+    html += '<div class="yb-lead__campaign-warning">\u26a0\ufe0f ' + esc(t('campaign_send_warning').replace('{count}', grandTotal)) + '</div>';
 
     // Test send
     html += '<div class="yb-lead__campaign-test-send">';
@@ -1509,7 +1528,7 @@
         requests.push(fetch('/.netlify/functions/send-email', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
-          body: JSON.stringify({ listIds: listIds, subject: campaignState.emailSubject, bodyHtml: campaignState.emailBodyHtml, bodyPlain: '', provider: 'resend', campaignId: campaignId })
+          body: JSON.stringify({ listIds: listIds, leadIds: leadIds, applicationIds: appIds, subject: campaignState.emailSubject, bodyHtml: campaignState.emailBodyHtml, bodyPlain: '', provider: 'resend', campaignId: campaignId })
         }).then(function (r) { return r.json(); }));
       }
 
@@ -1686,7 +1705,9 @@
   }
 
   function updateProgress(done, total, batch, totalBatches) {
-    var pct = Math.round((done / total) * 100);
+    var progressEl = $('yb-campaign-progress');
+    if (progressEl) progressEl.classList.add('is-active');
+    var pct = total > 0 ? Math.round((done / total) * 100) : 0;
     var fill = $('yb-campaign-progress-fill');
     var text = $('yb-campaign-progress-text');
     if (fill) fill.style.width = pct + '%';
@@ -1695,23 +1716,37 @@
   }
 
   function showResults(results) {
+    // Show progress section
+    var progressEl = $('yb-campaign-progress');
+    if (progressEl) progressEl.classList.add('is-active');
+
+    // Show results section
     var resultsEl = $('yb-campaign-results');
     if (resultsEl) resultsEl.classList.add('is-active');
 
     var el;
-    el = $('yb-campaign-result-sent'); if (el) el.textContent = results.sent;
-    el = $('yb-campaign-result-failed'); if (el) el.textContent = results.failed;
-    el = $('yb-campaign-result-skipped'); if (el) el.textContent = results.skipped;
-    el = $('yb-campaign-result-scheduled'); if (el) el.textContent = results.scheduled;
+    el = $('yb-campaign-result-sent'); if (el) el.textContent = results.sent || 0;
+    el = $('yb-campaign-result-failed'); if (el) el.textContent = results.failed || 0;
+    el = $('yb-campaign-result-skipped'); if (el) el.textContent = results.skipped || 0;
+    el = $('yb-campaign-result-scheduled'); if (el) el.textContent = results.scheduled || 0;
 
-    if (results.errors.length > 0) {
+    if (results.errors && results.errors.length > 0) {
       var errorsHtml = '';
       results.errors.forEach(function (err) {
-        errorsHtml += '<div>' + esc(err.lead) + ': ' + esc(err.error) + '</div>';
+        errorsHtml += '<div>' + esc(err.lead || err.id || '') + ': ' + esc(err.error) + '</div>';
       });
       var errList = $('yb-campaign-errors-list');
       if (errList) errList.innerHTML = errorsHtml;
     }
+
+    // Scroll results into view
+    if (resultsEl) {
+      setTimeout(function () { resultsEl.scrollIntoView({ behavior: 'smooth', block: 'center' }); }, 200);
+    }
+
+    // Disable send button to prevent double send
+    var sendBtn = $('yb-campaign-send-all-btn');
+    if (sendBtn) { sendBtn.disabled = true; sendBtn.textContent = t('campaign_send_complete') || 'Done!'; }
 
     if (bridge) bridge.toast(t('campaign_send_complete'));
     if (bridge && bridge.onCampaignSent) bridge.onCampaignSent(campaignState.type, results);
@@ -2398,8 +2433,7 @@
       }
     }
 
-    // Reset selections and re-filter
-    campaignState.selectedIds.clear();
+    // Re-filter (applyFilters will prune selections to filtered set when no search is active)
     applyFilters();
     var listEl = $('yb-campaign-' + campaignState.type + '-recipients-list');
     if (listEl) renderRecipientList(listEl);
@@ -2421,7 +2455,6 @@
   function handleExcludeToggle(checkbox) {
     var key = checkbox.getAttribute('data-exclude');
     campaignState.filters[key] = checkbox.checked;
-    campaignState.selectedIds.clear();
     applyFilters();
     var listEl = $('yb-campaign-' + campaignState.type + '-recipients-list');
     if (listEl) renderRecipientList(listEl);

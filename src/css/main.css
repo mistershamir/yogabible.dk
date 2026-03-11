@@ -20276,7 +20276,7 @@ button.yb-btn--outline-white:hover {
   padding: 1.5rem 2rem;
   min-height: 320px;
 }
-.yb-lead__campaign-panel { display: none; }
+.yb-lead__campaign-panel { display: none; color: #0F0F0F; background: transparent; }
 .yb-lead__campaign-panel.is-active { display: block; }
 
 /* ── Footer ── */
@@ -20789,6 +20789,8 @@ details[open] .yb-lead__campaign-history-toggle::before { transform: rotate(90de
   grid-template-columns: 240px 1fr;
   gap: 1.25rem;
   min-height: 400px;
+  color: #0F0F0F;
+  background: transparent;
 }
 .yb-lead__campaign-email-sidebar {
   border-right: 1px solid #E8E4E0;
@@ -20935,10 +20937,23 @@ details[open] .yb-lead__campaign-history-toggle::before { transform: rotate(90de
   line-height: 1.6;
   box-sizing: border-box;
   overflow-y: auto;
+  /* Isolate pasted email HTML so its styles don't leak into the wizard */
+  color: #1a1a1a;
+  background-color: #fff;
 }
 .yb-lead__campaign-email-editor:focus { border-color: #f75c03; outline: none; }
 .yb-lead__campaign-email-editor[contenteditable] {
   min-height: 220px;
+}
+/* Force all children of the email editor to not leak styles upward */
+.yb-lead__campaign-email-editor * {
+  max-width: 100%;
+}
+/* Wrapper around the email editor to contain any absolute/fixed positioned email content */
+.yb-lead__campaign-editor-contain {
+  contain: style layout;
+  overflow: hidden;
+  border-radius: 10px;
 }
 .yb-lead__campaign-email-html-textarea {
   width: 100%;
@@ -21109,6 +21124,7 @@ details[open] .yb-lead__campaign-history-toggle::before { transform: rotate(90de
 .yb-lead__campaign-test-input:focus { border-color: #f75c03; outline: none; }
 .yb-lead__campaign-test-btn {
   background: #F5F3F0;
+  color: #0F0F0F;
   border: 1px solid #E8E4E0;
   border-radius: 8px;
   padding: 0.4rem 0.75rem;
@@ -21118,13 +21134,14 @@ details[open] .yb-lead__campaign-history-toggle::before { transform: rotate(90de
   font-weight: 600;
   transition: all 0.15s;
 }
-.yb-lead__campaign-test-btn:hover { border-color: #f75c03; }
+.yb-lead__campaign-test-btn:hover { border-color: #f75c03; color: #d94f02; }
 
 /* ── Send Tab ── */
 .yb-lead__campaign-send-wrap {
   max-width: 520px;
   margin: 0 auto;
   padding-top: 0.5rem;
+  color: #0F0F0F;
 }
 .yb-lead__campaign-summary-cards {
   display: grid;
@@ -21207,6 +21224,7 @@ details[open] .yb-lead__campaign-history-toggle::before { transform: rotate(90de
 }
 .yb-lead__campaign-schedule-option {
   background: #fff;
+  color: #0F0F0F;
   border: 1.5px solid #E8E4E0;
   border-radius: 10px;
   padding: 0.6rem 0.75rem;
@@ -21217,7 +21235,7 @@ details[open] .yb-lead__campaign-history-toggle::before { transform: rotate(90de
   font-weight: 600;
   transition: all 0.15s;
 }
-.yb-lead__campaign-schedule-option:hover { border-color: #f75c03; }
+.yb-lead__campaign-schedule-option:hover { border-color: #f75c03; color: #d94f02; }
 .yb-lead__campaign-schedule-option.is-selected {
   border-color: #f75c03;
   background: #FFF3E0;
