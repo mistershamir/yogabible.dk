@@ -117,19 +117,52 @@ async function processLeadgenChange(value) {
   }
 
   // Parse name — Meta may send full_name or separate first_name/last_name
+  // Danish forms use: fornavn (first name), efternavn (last name)
   const fullName = fields.full_name || fields.name || '';
   const nameParts = fullName.trim().split(/\s+/);
-  const firstName = fields.first_name || nameParts[0] || '';
-  const lastName = fields.last_name || nameParts.slice(1).join(' ') || '';
-  const email = (fields.email || '').toLowerCase().trim();
-  const phone = fields.phone_number || fields.phone || '';
-  const city = fields.city || fields.location || '';
-  const program = fields.program || fields.which_program || fields.interested_in || '';
+  const firstName = fields.first_name || fields.fornavn || nameParts[0] || '';
+  const lastName = fields.last_name || fields.efternavn || nameParts.slice(1).join(' ') || '';
+  const email = (fields.email || fields['e-mail'] || '').toLowerCase().trim();
+  const phone = fields.phone_number || fields.phone || fields.telefonnummer || '';
+  const city = fields.city || fields.location || fields.by || '';
+
+  // Parse custom questions — Meta sends these as field_data with the question text as key
+  // We do a fuzzy match since Meta may vary casing/encoding of Danish characters
+  const programAnswer = findFieldByKeyword(fields, ['program', 'interesseret', 'hvilket']) || '';
+  const housingAnswer = findFieldByKeyword(fields, ['bolig', 'housing', 'hjælp med bolig', 'hjaelp']) || '';
+  const program = fields.program || fields.which_program || fields.interested_in || programAnswer || '';
+
+  // Parse tracking parameters (set in Meta form settings)
+  const metaCampaignName = fields.campaign_name || '';
+  const metaAdsetName = fields.adset_name || '';
+  const metaAdName = fields.ad_name || '';
+  const metaFormNameParam = fields.form_name || '';
+  const metaPlatform = fields.platform || '';
+  const metaLang = fields.lang || 'da';
+  const metaCohort = fields.cohort || '';
+
+  console.log(`[fb-leads] Parsed fields — program="${program}", housing="${housingAnswer}", platform="${metaPlatform}", lang="${metaLang}"`);
 
   if (!email) {
     console.warn('[fb-leads] Lead has no email — skipping:', leadgen_id);
     return;
   }
+
+  // Resolve program type: FORM_ID_MAP first, then answer mapping, then keyword fallback
+  let resolvedType;
+  const formMapType = FORM_ID_MAP[form_id];
+  if (formMapType === 'from-answer') {
+    // This form has a program question — use the answer
+    resolvedType = mapProgramAnswer(programAnswer) || detectYTTType(program, ad_name || formName || '', '');
+    console.log(`[fb-leads] Program answer "${programAnswer}" → type "${resolvedType}"`);
+  } else {
+    resolvedType = detectYTTType(program, ad_name || formName || '', form_id);
+  }
+
+  // Resolve accommodation from housing question
+  const accommodationValue = housingAnswer
+    ? normalizeHousingAnswer(housingAnswer)
+    : normalizeYesNo(fields.housing || fields.accommodation || 'No');
 
   // Check if already an applicant in Firestore
   const db = getDb();
@@ -147,12 +180,12 @@ async function processLeadgenChange(value) {
     phone,
     // Program info — use form name for detection when ad_name is missing
     type: 'ytt',
-    ytt_program_type: detectYTTType(program, ad_name || formName || '', form_id),
+    ytt_program_type: resolvedType,
     program: program || ad_name || formName || 'Facebook Lead Form',
     course_id: '',
-    cohort_label: '',
+    cohort_label: metaCohort || '',
     preferred_month: '',
-    accommodation: normalizeYesNo(fields.housing || fields.accommodation || 'No'),
+    accommodation: accommodationValue,
     city_country: city,
     housing_months: '',
     service: '',
@@ -161,11 +194,15 @@ async function processLeadgenChange(value) {
     source: 'Facebook Ad',
     // Meta metadata (useful for reporting)
     meta_form_id: form_id || '',
-    meta_form_name: formName || '',
+    meta_form_name: formName || metaFormNameParam || '',
     meta_ad_id: ad_id || '',
-    meta_campaign: ad_name || '',
+    meta_campaign: metaCampaignName || ad_name || '',
+    meta_adset_name: metaAdsetName || '',
+    meta_ad_name: metaAdName || ad_name || '',
     meta_leadgen_id: leadgen_id || '',
     meta_page_id: page_id || '',
+    meta_platform: metaPlatform || '',
+    meta_lang: metaLang || 'da',
     // Status
     converted: false,
     converted_at: null,
@@ -242,12 +279,39 @@ function fetchFormNameFromGraph(formId) {
 //   1. It appears in the admin notification email as "meta_form_id"
 //   2. Or: Meta Ads Manager → Instant Forms → click the form → check the URL
 //
-// Program types: '18-week' | '8-week' | '4-week' | '300h' | '50h' | '30h'
+// Program types: '18-week' | '8-week' | '4-week' | '4-week-jul' | '18-week-aug' | '300h' | '50h' | '30h' | 'undecided'
+// 'from-answer' = use the answer to the program question (multi-program forms)
 const FORM_ID_MAP = {
-  '1974647360148367': '18-week'   // 18 Ugers Fleksibelt YTT — March–June 2026 cohort
+  '1974647360148367': '18-week',        // 18 Ugers Fleksibelt YTT — March–June 2026 cohort
+  '961808297026346':  'from-answer'     // General YTT form — program determined by Q2 answer
   // Add new forms below:
-  // '123456789012345': '8-week',
 };
+
+// ─── Program Answer → Type Map ───────────────────────────────────────────────
+// Maps the user's answer to "Hvilket program er du mest interesseret i?" → ytt_program_type
+const PROGRAM_ANSWER_MAP = {
+  '4 ugers intensiv':       '4-week',
+  '4 ugers intensiv — april': '4-week',
+  'vinyasa plus 4 uger':    '4-week-jul',
+  'vinyasa plus 4 uger — juli': '4-week-jul',
+  '8 ugers semi-intensiv':  '8-week',
+  '8 ugers semi-intensiv — maj-juni': '8-week',
+  '18 ugers fleksibel':     '18-week-aug',
+  '18 ugers fleksibel — august-december': '18-week-aug',
+  'ved ikke endnu':          'undecided'
+};
+
+// ─── Housing Answer Normalization ────────────────────────────────────────────
+// Maps Danish housing question answers to our internal yes/no/self values
+function normalizeHousingAnswer(val) {
+  if (!val) return 'No';
+  const v = String(val).toLowerCase().trim();
+  if (v === 'ja') return 'Yes';
+  if (v === 'nej') return 'No';
+  if (v.includes('finder selv')) return 'Self';
+  // Fallback to generic yes/no
+  return normalizeYesNo(val);
+}
 
 function fetchLeadFromGraph(leadgenId) {
   const token = process.env.FB_PAGE_ACCESS_TOKEN || process.env.META_ACCESS_TOKEN;
@@ -276,20 +340,53 @@ function fetchLeadFromGraph(leadgenId) {
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
 /**
+ * Find a field value by keyword matching on field names.
+ * Meta form custom questions arrive with the question text as the field name,
+ * which may include Danish characters and varying formats.
+ */
+function findFieldByKeyword(fields, keywords) {
+  for (const [key, value] of Object.entries(fields)) {
+    const lowerKey = key.toLowerCase();
+    for (const kw of keywords) {
+      if (lowerKey.includes(kw.toLowerCase())) return value;
+    }
+  }
+  return '';
+}
+
+/**
+ * Map a program answer string → ytt_program_type using PROGRAM_ANSWER_MAP.
+ * Does fuzzy matching: lowercases and checks if the answer starts with any key.
+ */
+function mapProgramAnswer(answer) {
+  if (!answer) return '';
+  const lower = answer.toLowerCase().trim();
+  // Exact match first
+  if (PROGRAM_ANSWER_MAP[lower]) return PROGRAM_ANSWER_MAP[lower];
+  // Partial match — check if answer starts with or contains a known key
+  for (const [key, type] of Object.entries(PROGRAM_ANSWER_MAP)) {
+    if (lower.includes(key) || key.includes(lower)) return type;
+  }
+  return '';
+}
+
+/**
  * Detect YTT program type.
- * Priority: 1) FORM_ID_MAP (exact match) → 2) keyword matching on program/formName.
+ * Priority: 1) FORM_ID_MAP (exact match, excluding 'from-answer') → 2) keyword matching on program/formName.
  */
 function detectYTTType(program, formName, formId) {
   // 1. Exact form ID match — most reliable
-  if (formId && FORM_ID_MAP[formId]) {
+  if (formId && FORM_ID_MAP[formId] && FORM_ID_MAP[formId] !== 'from-answer') {
     console.log(`[fb-leads] detectYTTType: matched form_id ${formId} → ${FORM_ID_MAP[formId]}`);
     return FORM_ID_MAP[formId];
   }
   // 2. Keyword matching fallback
   const combined = `${program} ${formName}`.toLowerCase();
+  if (combined.includes('ved ikke') || combined.includes('don\'t know') || combined.includes('not sure')) return 'undecided';
   if (combined.includes('300')) return '300h';
   if (combined.includes('50h') || combined.includes('50 hour')) return '50h';
   if (combined.includes('30h') || combined.includes('30 hour')) return '30h';
+  if (combined.includes('vinyasa plus') || (combined.includes('4') && combined.includes('jul'))) return '4-week-jul';
   if (combined.includes('18') || combined.includes('fleksib') || combined.includes('flexible')) return '18-week';
   if (combined.includes('8') && (combined.includes('uge') || combined.includes('week') || combined.includes('semi'))) return '8-week';
   if (combined.includes('4') && (combined.includes('uge') || combined.includes('week') || combined.includes('intensi'))) return '4-week';
@@ -302,13 +399,16 @@ function detectYTTType(program, formName, formId) {
  */
 function yttTypeToAction(programType) {
   switch (programType) {
-    case '18-week':  return 'lead_schedule_18w';
-    case '8-week':   return 'lead_schedule_8w';
-    case '4-week':   return 'lead_schedule_4w';
-    case '300h':     return 'lead_schedule_300h';
-    case '50h':      return 'lead_schedule_50h';
-    case '30h':      return 'lead_schedule_30h';
-    default:         return 'lead_meta'; // generic fallback
+    case '18-week':      return 'lead_schedule_18w';
+    case '18-week-aug':  return 'lead_schedule_18w-aug';
+    case '8-week':       return 'lead_schedule_8w';
+    case '4-week':       return 'lead_schedule_4w';
+    case '4-week-jul':   return 'lead_schedule_4w-jul';
+    case '300h':         return 'lead_schedule_300h';
+    case '50h':          return 'lead_schedule_50h';
+    case '30h':          return 'lead_schedule_30h';
+    case 'undecided':    return 'lead_undecided';
+    default:             return 'lead_meta'; // generic fallback
   }
 }
 
