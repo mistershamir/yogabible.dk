@@ -308,6 +308,7 @@ Each tab has a partial in `src/_includes/partials/admin-{name}-panel.njk` and a 
 | `INSTAGRAM_VERIFY_TOKEN` | Instagram webhook verify token |
 | `CLOUDINARY_API_KEY` | Cloudinary API key (`617726211878669`) |
 | `CLOUDINARY_API_SECRET` | Cloudinary API secret |
+| `AI_INTERNAL_SECRET` | AI backfill/Mux processing secret (`2f8a6b592a15b8ac92021d791fdbd0fb48ef61c96899407c2d2e50030933c576`) |
 
 **Lead Agent** (`lead-agent/.env`):
 
