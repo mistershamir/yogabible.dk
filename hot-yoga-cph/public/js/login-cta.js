@@ -272,10 +272,51 @@
 
   function resolveMbClient(user) {
     if (typeof firebase === 'undefined' || !firebase.firestore) return;
-    firebase.firestore().collection('users').doc(user.uid).get()
+    var userRef = firebase.firestore().collection('users').doc(user.uid);
+    userRef.get()
       .then(function (doc) {
         if (doc.exists && doc.data().mindbodyClientId) {
           mbClientId = doc.data().mindbodyClientId;
+          return;
+        }
+        // No Firestore profile or no mindbodyClientId — look up MB client by email and link
+        linkMindbodyClient(user, userRef, doc.exists);
+      })
+      .catch(function () {});
+  }
+
+  function linkMindbodyClient(user, userRef, profileExists) {
+    fetch(API_BASE + '/mb-client?email=' + encodeURIComponent(user.email))
+      .then(function (res) { return res.json(); })
+      .then(function (data) {
+        if (!data.found || !data.client || !data.client.id) return;
+        var clientId = String(data.client.id);
+        mbClientId = clientId;
+
+        if (profileExists) {
+          // Profile exists but missing MB link — update it
+          userRef.update({
+            mindbodyClientId: clientId,
+            updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+          }).catch(function () {});
+        } else {
+          // No profile at all (migrated user) — create one
+          var displayName = user.displayName || user.email.split('@')[0];
+          var nameParts = displayName.split(' ');
+          userRef.set({
+            uid: user.uid,
+            email: user.email,
+            firstName: nameParts[0] || '',
+            lastName: nameParts.slice(1).join(' ') || '',
+            displayName: displayName,
+            phone: '',
+            role: 'member',
+            mindbodyClientId: clientId,
+            source: 'login-cta',
+            sourceSite: 'hotyogacph.dk',
+            createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+            updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+          }, { merge: true }).catch(function () {});
         }
       })
       .catch(function () {});
