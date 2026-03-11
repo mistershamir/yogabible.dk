@@ -16686,6 +16686,70 @@ button.yb-btn--outline-white:hover {
 .yb-kb__editor-actions { display: flex; align-items: center; gap: 0.75rem; margin-top: 1rem; }
 .yb-kb__delete-btn { color: #dc2626 !important; margin-left: auto; }
 
+/* ── Email Lists Admin (yb-el__) ─────────────────────────────────── */
+.yb-el__toolbar { margin-bottom: 0; }
+.yb-el__stats { margin-bottom: 1.5rem; }
+.yb-el__view[hidden] { display: none; }
+.yb-el__tag {
+  display: inline-block; padding: 2px 8px; border-radius: 999px; font-size: 11px;
+  background: #F5F3F0; color: #6F6A66; border: 1px solid #E8E4E0; margin-right: 4px;
+}
+.yb-el__status { display: inline-block; padding: 2px 10px; border-radius: 999px; font-size: 12px; font-weight: 600; }
+.yb-el__status--active { background: #E8F5E9; color: #2E7D32; }
+.yb-el__status--unsub { background: #FFF3E0; color: #E65100; }
+.yb-el__status--bounced { background: #FFEBEE; color: #C62828; }
+.yb-el__detail-header {
+  display: flex; align-items: center; gap: 1rem; flex-wrap: wrap; margin-bottom: 1rem;
+}
+.yb-el__detail-header h3 { flex: 1; margin: 0; }
+.yb-el__detail-actions { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+.yb-el__list-stats { margin-bottom: 1rem; }
+.yb-el__filter-bar {
+  display: flex; gap: 0.75rem; align-items: center; margin-bottom: 1rem; flex-wrap: wrap;
+}
+.yb-el__filter-bar .yb-admin__search { flex: 1; min-width: 200px; }
+.yb-el__filter-bar .yb-admin__select { min-width: 150px; }
+.yb-el__drop-zone {
+  border: 2px dashed #E8E4E0; border-radius: 12px; padding: 2rem; text-align: center;
+  cursor: pointer; transition: border-color 0.2s, background 0.2s;
+}
+.yb-el__drop-zone:hover, .yb-el__drop-zone--active {
+  border-color: #f75c03; background: rgba(247,92,3,0.03);
+}
+.yb-el__drop-zone p { margin: 8px 0 0; color: #6F6A66; }
+.yb-el__progress-bar {
+  height: 8px; background: #E8E4E0; border-radius: 4px; overflow: hidden;
+}
+.yb-el__progress-fill {
+  height: 100%; background: #f75c03; border-radius: 4px; transition: width 0.3s ease;
+  width: 0;
+}
+.yb-btn--xs {
+  padding: 3px 10px; font-size: 12px; border-radius: 6px;
+}
+
+/* Campaign wizard: list cards */
+.yb-lead__campaign-lists-section { margin-bottom: 12px; }
+.yb-lead__campaign-lists-grid {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 8px;
+}
+.yb-lead__campaign-list-card {
+  display: flex; align-items: flex-start; gap: 8px; padding: 10px 12px;
+  border: 1px solid #E8E4E0; border-radius: 10px; cursor: pointer;
+  transition: border-color 0.15s, background 0.15s;
+}
+.yb-lead__campaign-list-card:hover { border-color: #f75c03; }
+.yb-lead__campaign-list-card.is-selected {
+  border-color: #f75c03; background: rgba(247,92,3,0.04);
+}
+.yb-lead__campaign-list-card input[type="checkbox"] { margin-top: 3px; accent-color: #f75c03; }
+.yb-lead__campaign-list-info { display: flex; flex-direction: column; gap: 2px; }
+.yb-lead__campaign-list-info strong { font-size: 13px; }
+.yb-lead__campaign-lists-summary {
+  margin-top: 8px; padding: 8px 12px; background: #E8F5E9; border-radius: 8px;
+  font-size: 13px; color: #2E7D32;
+}
+
 /* Enrollment */
 .yb-admin__enroll-form { display: flex; gap: 0.5rem; margin-bottom: 1rem; }
 .yb-admin__enroll-form input {

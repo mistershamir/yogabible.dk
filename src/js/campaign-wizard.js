@@ -73,7 +73,12 @@
 
     // Recent campaign history (fetched from campaign-log on open)
     recentCampaigns: [],
-    recentCampaignsLoaded: false
+    recentCampaignsLoaded: false,
+
+    // Email list integration
+    emailLists: [],             // loaded from email-lists API
+    selectedListIds: new Set(), // which lists to include in campaign
+    listsLoaded: false
   };
 
   /* ══════════════════════════════════════════
@@ -789,6 +794,18 @@
       '</div>';
 
     renderCampaignHistory($('yb-campaign-' + prefix + '-history'));
+    // Email lists section (email campaigns only)
+    if (campaignState.type === 'email') {
+      var listsHtml = '<div class="yb-lead__campaign-lists-section" id="yb-campaign-lists-section">' +
+        '<div class="yb-lead__campaign-filter-label" style="margin-bottom:8px;">&#128203; Email Lists</div>' +
+        '<div id="yb-campaign-lists-area" style="margin-bottom:12px;">' +
+          (campaignState.listsLoaded ? '' : '<span style="color:#6F6A66;">Loading lists...</span>') +
+        '</div>' +
+        '</div>';
+      var histEl = $('yb-campaign-' + prefix + '-history');
+      if (histEl) histEl.insertAdjacentHTML('afterend', listsHtml);
+      loadEmailLists();
+    }
     renderFilterPanel($('yb-campaign-' + prefix + '-filters-area'));
     renderRecipientList($('yb-campaign-' + prefix + '-recipients-list'));
     updateRecipientBadge();
@@ -796,6 +813,13 @@
 
   function updateRecipientBadge() {
     var count = campaignState.selectedIds.size;
+    // Include list contact counts
+    if (campaignState.type === 'email' && campaignState.selectedListIds.size > 0) {
+      campaignState.selectedListIds.forEach(function (id) {
+        var list = campaignState.emailLists.find(function (l) { return l.id === id; });
+        if (list) count += (list.contact_count || 0);
+      });
+    }
     var prefix = campaignState.type === 'sms' ? 'sms' : 'email';
     var badge = $('yb-campaign-' + prefix + '-recipient-badge');
     if (badge) badge.textContent = count > 0 ? count : '';
@@ -1440,42 +1464,58 @@
 
   // One-shot Resend bulk call — backend fetches leads, personalises, and
   // sends in Resend batch API calls (100/request). Much faster than looping.
+  // Also sends to selected email lists (via listIds).
   function sendAllViaResend(recipients, total) {
     var leadIds = recipients.filter(function (l) { return l._source !== 'app'; }).map(function (l) { return l.id; });
     var appIds = recipients.filter(function (l) { return l._source === 'app'; }).map(function (l) { return l.id; });
+    var listIds = Array.from(campaignState.selectedListIds);
 
-    updateProgress(0, total, 0, 1);
+    // Calculate total including list contacts
+    var listContactCount = 0;
+    listIds.forEach(function (id) {
+      var list = campaignState.emailLists.find(function (l) { return l.id === id; });
+      if (list) listContactCount += (list.contact_count || 0);
+    });
+    var grandTotal = total + listContactCount;
+
+    updateProgress(0, grandTotal, 0, 1);
+
+    // Generate a campaign ID for tracking (used by tracking pixel + click tracker)
+    var campaignId = 'cmp_' + Date.now() + '_' + Math.random().toString(36).slice(2, 8);
 
     bridge.getAuthToken().then(function (token) {
-      var body = {
-        subject: campaignState.emailSubject,
-        bodyHtml: campaignState.emailBodyHtml,
-        bodyPlain: '',
-        provider: 'resend'
-      };
-      if (leadIds.length > 0) body.leadIds = leadIds;
-      if (appIds.length > 0) body.applicationIds = appIds;
-
-      // If there are both leads and apps, send two requests
       var requests = [];
+
+      // Send to leads
       if (leadIds.length > 0) {
         requests.push(fetch('/.netlify/functions/send-email', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
-          body: JSON.stringify({ leadIds: leadIds, subject: body.subject, bodyHtml: body.bodyHtml, bodyPlain: body.bodyPlain, provider: 'resend' })
+          body: JSON.stringify({ leadIds: leadIds, subject: campaignState.emailSubject, bodyHtml: campaignState.emailBodyHtml, bodyPlain: '', provider: 'resend', campaignId: campaignId })
         }).then(function (r) { return r.json(); }));
       }
+
+      // Send to applications
       if (appIds.length > 0) {
         requests.push(fetch('/.netlify/functions/send-email', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
-          body: JSON.stringify({ applicationIds: appIds, subject: body.subject, bodyHtml: body.bodyHtml, bodyPlain: body.bodyPlain, provider: 'resend' })
+          body: JSON.stringify({ applicationIds: appIds, subject: campaignState.emailSubject, bodyHtml: campaignState.emailBodyHtml, bodyPlain: '', provider: 'resend', campaignId: campaignId })
+        }).then(function (r) { return r.json(); }));
+      }
+
+      // Send to email lists
+      if (listIds.length > 0) {
+        requests.push(fetch('/.netlify/functions/send-email', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+          body: JSON.stringify({ listIds: listIds, subject: campaignState.emailSubject, bodyHtml: campaignState.emailBodyHtml, bodyPlain: '', provider: 'resend', campaignId: campaignId })
         }).then(function (r) { return r.json(); }));
       }
 
       return Promise.all(requests);
     }).then(function (responses) {
-      // Merge results from leads + apps responses
+      // Merge results from leads + apps + lists responses
       var merged = { sent: 0, failed: 0, skipped: 0, errors: [] };
       responses.forEach(function (data) {
         if (data.results) {
@@ -1484,16 +1524,17 @@
           merged.skipped += data.results.skipped || 0;
           if (data.results.errors) merged.errors = merged.errors.concat(data.results.errors);
         } else if (!data.ok) {
-          merged.failed += total;
+          merged.failed += grandTotal;
           merged.errors.push({ id: 'batch', error: data.error || 'Unknown error' });
         }
       });
 
       campaignState.sending = false;
       campaignState.results = merged;
-      updateProgress(total, total, 1, 1);
+      campaignState._lastCampaignId = campaignId;
+      updateProgress(grandTotal, grandTotal, 1, 1);
       showResults(merged);
-      logCampaign(merged, total);
+      logCampaign(merged, grandTotal);
     }).catch(function (err) {
       campaignState.sending = false;
       var btn = $('yb-campaign-send-all-btn');
@@ -1699,7 +1740,17 @@
           recipientCount: total,
           results: results,
           schedule: campaignState.schedule,
-          sentAt: sentAt
+          sentAt: sentAt,
+          listIds: Array.from(campaignState.selectedListIds),
+          includesListContacts: campaignState.selectedListIds.size > 0,
+          listContactCount: (function () {
+            var c = 0;
+            campaignState.selectedListIds.forEach(function (id) {
+              var l = campaignState.emailLists.find(function (x) { return x.id === id; });
+              if (l) c += (l.contact_count || 0);
+            });
+            return c;
+          })()
         })
       }).catch(function () { /* silent */ });
 
@@ -1725,6 +1776,82 @@
           batch.commit().catch(function () { /* silent */ });
         }
       }
+    });
+  }
+
+  /* ══════════════════════════════════════════
+     EMAIL LISTS INTEGRATION
+     ══════════════════════════════════════════ */
+  function loadEmailLists() {
+    if (campaignState.listsLoaded || !bridge) return;
+    bridge.getAuthToken().then(function (token) {
+      return fetch('/.netlify/functions/email-lists', {
+        headers: { 'Authorization': 'Bearer ' + token }
+      });
+    }).then(function (r) { return r.json(); })
+      .then(function (data) {
+        if (data.ok && Array.isArray(data.lists)) {
+          campaignState.emailLists = data.lists;
+          campaignState.listsLoaded = true;
+          renderEmailListsSection();
+        }
+      }).catch(function () { /* silent */ });
+  }
+
+  function renderEmailListsSection() {
+    var area = $('yb-campaign-lists-area');
+    if (!area) return;
+
+    var lists = campaignState.emailLists;
+    if (lists.length === 0) {
+      area.innerHTML = '<span style="color:#6F6A66;">No email lists found. Create lists in the Email Lists tab.</span>';
+      return;
+    }
+
+    var html = '<div class="yb-lead__campaign-lists-grid">';
+    lists.forEach(function (list) {
+      var checked = campaignState.selectedListIds.has(list.id) ? ' checked' : '';
+      var count = list.contact_count || 0;
+      var tags = (list.tags || []).slice(0, 3).map(function (t) {
+        return '<span class="yb-el__tag" style="font-size:11px;">' + esc(t) + '</span>';
+      }).join(' ');
+      html += '<label class="yb-lead__campaign-list-card' + (checked ? ' is-selected' : '') + '">' +
+        '<input type="checkbox" class="yb-lead__campaign-list-cb" data-list-id="' + list.id + '"' + checked + '>' +
+        '<div class="yb-lead__campaign-list-info">' +
+          '<strong>' + esc(list.name) + '</strong>' +
+          '<span style="color:#6F6A66;font-size:13px;">' + count + ' contacts</span>' +
+          (tags ? '<div>' + tags + '</div>' : '') +
+        '</div>' +
+      '</label>';
+    });
+    html += '</div>';
+
+    var listCount = 0;
+    var listContacts = 0;
+    campaignState.selectedListIds.forEach(function (id) {
+      var l = lists.find(function (x) { return x.id === id; });
+      if (l) { listCount++; listContacts += (l.contact_count || 0); }
+    });
+    if (listCount > 0) {
+      html += '<div class="yb-lead__campaign-lists-summary">' +
+        '&#9993; ' + listCount + ' list' + (listCount > 1 ? 's' : '') + ' selected (' + listContacts + ' contacts will receive this campaign in addition to selected leads)' +
+        '</div>';
+    }
+
+    area.innerHTML = html;
+
+    // Bind checkbox events
+    area.querySelectorAll('.yb-lead__campaign-list-cb').forEach(function (cb) {
+      cb.addEventListener('change', function () {
+        var listId = cb.getAttribute('data-list-id');
+        if (cb.checked) {
+          campaignState.selectedListIds.add(listId);
+        } else {
+          campaignState.selectedListIds.delete(listId);
+        }
+        renderEmailListsSection();
+        updateRecipientBadge();
+      });
     });
   }
 
@@ -1867,6 +1994,9 @@
     campaignState.results = null;
     campaignState.recentCampaigns = [];
     campaignState.recentCampaignsLoaded = false;
+    campaignState.emailLists = [];
+    campaignState.selectedListIds = new Set();
+    campaignState.listsLoaded = false;
   }
 
   /* ══════════════════════════════════════════
@@ -2429,9 +2559,23 @@
     return true;
   }
 
+  // Open email campaign pre-targeted at a specific email list
+  function openEmailCampaignForList(list) {
+    openEmailCampaign([]);
+    // Pre-select the list after wizard opens
+    setTimeout(function () {
+      if (list && list.id) {
+        campaignState.selectedListIds.add(list.id);
+        renderEmailListsSection();
+        updateRecipientBadge();
+      }
+    }, 300);
+  }
+
   // Expose global functions for lead-admin.js to call
   window.openSMSCampaign = openSMSCampaign;
   window.openEmailCampaign = openEmailCampaign;
+  window.openEmailCampaignForList = openEmailCampaignForList;
 
   // Bootstrap — wait for bridge
   var retries = 0;

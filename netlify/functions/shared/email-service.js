@@ -8,9 +8,37 @@
  */
 
 const nodemailer = require('nodemailer');
+const crypto = require('crypto');
 const { CONFIG } = require('./config');
 const { buildUnsubscribeUrl, escapeHtml, formatDate } = require('./utils');
 const { getDb } = require('./firestore');
+
+// ─── Tracking helpers (shared with resend-service) ───────────────────────────
+
+function hashEmail(email) {
+  return crypto.createHash('sha256').update(email.toLowerCase().trim()).digest('hex').slice(0, 12);
+}
+
+const TRACK_BASE_FN = () => (CONFIG.SITE_URL || 'https://yogabible.dk') + '/.netlify/functions/email-track';
+
+function injectTrackingPixel(html, campaignId, email) {
+  if (!campaignId) return html;
+  const base = TRACK_BASE_FN();
+  const eh = hashEmail(email);
+  const pixelUrl = base + '?t=open&cid=' + encodeURIComponent(campaignId) + '&e=' + eh;
+  return html + '<img src="' + pixelUrl + '" width="1" height="1" style="display:none" alt="" />';
+}
+
+function wrapLinksForTracking(html, campaignId, email) {
+  if (!campaignId) return html;
+  const base = TRACK_BASE_FN();
+  const eh = hashEmail(email);
+  return html.replace(/href="(https?:\/\/[^"]+)"/gi, function (match, url) {
+    if (url.includes('/unsubscribe') || url.includes('/email-track')) return match;
+    const trackUrl = base + '?t=click&cid=' + encodeURIComponent(campaignId) + '&e=' + eh + '&url=' + encodeURIComponent(url);
+    return 'href="' + trackUrl + '"';
+  });
+}
 
 let transporter = null;
 
@@ -167,7 +195,7 @@ async function sendTemplateEmail({ to, templateId, vars, leadId }) {
 /**
  * Send a custom email (admin-composed, not from template)
  */
-async function sendCustomEmail({ to, subject, bodyHtml, bodyPlain, leadId, includeSignature = true, includeUnsubscribe = true }) {
+async function sendCustomEmail({ to, subject, bodyHtml, bodyPlain, leadId, includeSignature = true, includeUnsubscribe = true, campaignId }) {
   let html = '<div style="font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Helvetica,Arial,sans-serif;color:#1a1a1a;line-height:1.65;font-size:16px;">';
   html += bodyHtml;
   if (includeSignature) {
@@ -179,12 +207,18 @@ async function sendCustomEmail({ to, subject, bodyHtml, bodyPlain, leadId, inclu
   }
   html += '</div>';
 
+  // Inject tracking if campaignId provided
+  if (campaignId) {
+    html = wrapLinksForTracking(html, campaignId, to);
+    html = injectTrackingPixel(html, campaignId, to);
+  }
+
   let text = bodyPlain || '';
   if (includeSignature) text += getEnglishNotePlain() + getSignaturePlain();
   if (includeUnsubscribe) text += getUnsubscribeFooterPlain(to);
 
   const result = await sendRawEmail({ to, subject, html, text });
-  await logEmail({ to, subject, templateId: null, leadId, messageId: result.messageId });
+  await logEmail({ to, subject, templateId: null, leadId, messageId: result.messageId, campaignId });
   return result;
 }
 
@@ -218,10 +252,10 @@ async function sendAdminNotification(leadData) {
 // Email Log
 // =========================================================================
 
-async function logEmail({ to, subject, templateId, leadId, messageId }) {
+async function logEmail({ to, subject, templateId, leadId, messageId, campaignId }) {
   try {
     const db = getDb();
-    await db.collection('email_log').add({
+    const entry = {
       to,
       subject,
       template_id: templateId || null,
@@ -229,7 +263,9 @@ async function logEmail({ to, subject, templateId, leadId, messageId }) {
       message_id: messageId || null,
       sent_at: new Date(),
       status: 'sent'
-    });
+    };
+    if (campaignId) entry.campaign_id = campaignId;
+    await db.collection('email_log').add(entry);
   } catch (err) {
     console.error('[email] Failed to log email:', err.message);
   }
