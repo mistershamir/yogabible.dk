@@ -198,6 +198,12 @@
     var isEdit = !!item;
     $('yb-live-admin-form-title').textContent = isEdit ? t('live_form_edit_title') : t('live_form_title');
     $('yb-la-id').value = isEdit ? item.id : '';
+    var idDisplay = $('yb-la-id-display');
+    var idText = $('yb-la-id-text');
+    if (idDisplay && idText) {
+      if (isEdit) { idText.textContent = item.id; idDisplay.style.display = 'block'; }
+      else { idDisplay.style.display = 'none'; }
+    }
     $('yb-la-source').value = (item && item.source) || 'manual';
     $('yb-la-status').value = (item && item.status) || 'scheduled';
     $('yb-la-title-da').value = (item && item.title_da) || '';
