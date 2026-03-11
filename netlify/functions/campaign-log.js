@@ -153,6 +153,49 @@ async function handleGet(db, event) {
     });
   });
 
+  // Fetch basic tracking stats for each campaign (for list view)
+  if (params.tracking === '1' && campaigns.length > 0) {
+    // Batch-fetch all tracking events for these campaign IDs
+    const campaignIds = campaigns.map(c => c.id);
+    // Firestore 'in' queries support max 30 values
+    const trackingMap = {};
+    for (let i = 0; i < campaignIds.length; i += 30) {
+      const chunk = campaignIds.slice(i, i + 30);
+      const trackSnap = await db.collection('email_tracking')
+        .where('campaign_id', 'in', chunk)
+        .get();
+      trackSnap.forEach(tdoc => {
+        const data = tdoc.data();
+        const cid = data.campaign_id;
+        if (!trackingMap[cid]) trackingMap[cid] = { opens: new Set(), clicks: new Set(), totalOpens: 0, totalClicks: 0 };
+        if (data.type === 'open') {
+          trackingMap[cid].totalOpens++;
+          trackingMap[cid].opens.add(data.email_hash);
+        } else if (data.type === 'click') {
+          trackingMap[cid].totalClicks++;
+          trackingMap[cid].clicks.add(data.email_hash);
+        }
+      });
+    }
+
+    campaigns.forEach(c => {
+      const t = trackingMap[c.id];
+      const sent = (c.results && c.results.sent) || c.recipientCount || 0;
+      if (t) {
+        c.tracking = {
+          unique_opens: t.opens.size,
+          total_opens: t.totalOpens,
+          unique_clicks: t.clicks.size,
+          total_clicks: t.totalClicks,
+          open_rate: sent > 0 ? Math.round((t.opens.size / sent) * 100) : 0,
+          click_rate: sent > 0 ? Math.round((t.clicks.size / sent) * 100) : 0
+        };
+      } else {
+        c.tracking = { unique_opens: 0, total_opens: 0, unique_clicks: 0, total_clicks: 0, open_rate: 0, click_rate: 0 };
+      }
+    });
+  }
+
   return jsonResponse(200, {
     ok: true,
     campaigns,

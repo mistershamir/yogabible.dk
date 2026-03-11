@@ -1,109 +1,195 @@
-{# ── Email Lists Admin Panel ── #}
+{# ── Campaign Management Panel (formerly Email Lists) ── #}
 
-{# Toolbar #}
-<div class="yb-admin__view-head yb-el__toolbar">
-  <h2>{{ t.el_title or "Email Lists" }}</h2>
-  <div>
-    <button type="button" class="yb-btn yb-btn--primary yb-btn--sm" data-action="el-new-list">+ {{ t.el_new_list or "New List" }}</button>
-    <button type="button" class="yb-btn yb-btn--outline yb-btn--sm" data-action="el-refresh">&#8635; {{ t.el_refresh or "Refresh" }}</button>
-  </div>
+{# Sub-navigation: Lists | Campaign Reports #}
+<div class="yb-el__subnav" id="yb-el-subnav">
+  <button type="button" class="yb-el__subnav-btn is-active" data-action="el-subnav" data-subnav="lists">{{ t.el_subnav_lists or "Email Lists" }}</button>
+  <button type="button" class="yb-el__subnav-btn" data-action="el-subnav" data-subnav="campaigns">{{ t.el_subnav_campaigns or "Campaign Reports" }}</button>
 </div>
 
-{# Stats bar #}
-<div class="yb-admin__stats-grid yb-el__stats" id="yb-el-stats">
-  <div class="yb-admin__stat-card">
-    <span class="yb-admin__stat-value" id="yb-el-stat-lists">&mdash;</span>
-    <span class="yb-admin__stat-label">{{ t.el_stat_lists or "Lists" }}</span>
-  </div>
-  <div class="yb-admin__stat-card">
-    <span class="yb-admin__stat-value" id="yb-el-stat-contacts">&mdash;</span>
-    <span class="yb-admin__stat-label">{{ t.el_stat_contacts or "Total Contacts" }}</span>
-  </div>
-  <div class="yb-admin__stat-card">
-    <span class="yb-admin__stat-value" id="yb-el-stat-campaigns">&mdash;</span>
-    <span class="yb-admin__stat-label">{{ t.el_stat_campaigns or "Campaigns Sent" }}</span>
-  </div>
-</div>
+{# ═══════════════════════════════════
+   SECTION: Email Lists
+   ═══════════════════════════════════ #}
+<div class="yb-el__section" id="yb-el-sec-lists">
 
-{# VIEW: Lists overview (default) #}
-<div class="yb-el__view" id="yb-el-v-lists">
-  <div class="yb-admin__table-wrap">
-    <table class="yb-admin__table" id="yb-el-table">
-      <thead>
-        <tr>
-          <th>{{ t.el_col_name or "Name" }}</th>
-          <th>{{ t.el_col_contacts or "Contacts" }}</th>
-          <th>{{ t.el_col_tags or "Tags" }}</th>
-          <th>{{ t.el_col_source or "Source" }}</th>
-          <th>{{ t.el_col_created or "Created" }}</th>
-          <th>{{ t.el_col_actions or "Actions" }}</th>
-        </tr>
-      </thead>
-      <tbody id="yb-el-tbody">
-        <tr><td colspan="6" class="yb-admin__empty">{{ t.loading or "Loading..." }}</td></tr>
-      </tbody>
-    </table>
-  </div>
-</div>
-
-{# VIEW: Single list detail (hidden until clicked) #}
-<div class="yb-el__view" id="yb-el-v-detail" hidden>
-  <div class="yb-el__detail-header">
-    <button type="button" class="yb-admin__back-btn" data-action="el-back">&larr; {{ t.back or "Back" }}</button>
-    <h3 id="yb-el-detail-title"></h3>
-    <div class="yb-el__detail-actions">
-      <button type="button" class="yb-btn yb-btn--primary yb-btn--sm" data-action="el-import-csv">&#128196; {{ t.el_import_csv or "Import CSV" }}</button>
-      <button type="button" class="yb-btn yb-btn--outline yb-btn--sm" data-action="el-add-contact">+ {{ t.el_add_contact or "Add Contact" }}</button>
-      <button type="button" class="yb-btn yb-btn--outline yb-btn--sm" data-action="el-export-csv">&#8681; {{ t.el_export or "Export" }}</button>
-      <button type="button" class="yb-btn yb-btn--outline yb-btn--sm" data-action="el-send-to-list">&#9993; {{ t.el_send_email or "Send Email" }}</button>
+  {# Toolbar #}
+  <div class="yb-admin__view-head yb-el__toolbar">
+    <h2>{{ t.el_title or "Email Lists" }}</h2>
+    <div>
+      <button type="button" class="yb-btn yb-btn--primary yb-btn--sm" data-action="el-new-list">+ {{ t.el_new_list or "New List" }}</button>
+      <button type="button" class="yb-btn yb-btn--outline yb-btn--sm" data-action="el-refresh">&#8635; {{ t.el_refresh or "Refresh" }}</button>
     </div>
   </div>
 
-  {# List stats #}
-  <div class="yb-admin__stats-grid yb-el__list-stats" id="yb-el-list-stats"></div>
-
-  {# Search + filter #}
-  <div class="yb-el__filter-bar">
-    <input type="text" id="yb-el-contact-search" placeholder="{{ t.el_search_placeholder or 'Search contacts...' }}" class="yb-admin__search">
-    <select id="yb-el-contact-filter" class="yb-admin__select">
-      <option value="all">{{ t.el_filter_all or "All" }}</option>
-      <option value="active">{{ t.el_filter_active or "Active" }}</option>
-      <option value="unsubscribed">{{ t.el_filter_unsubscribed or "Unsubscribed" }}</option>
-      <option value="bounced">{{ t.el_filter_bounced or "Bounced" }}</option>
-    </select>
+  {# Stats bar #}
+  <div class="yb-admin__stats-grid yb-el__stats" id="yb-el-stats">
+    <div class="yb-admin__stat-card">
+      <span class="yb-admin__stat-value" id="yb-el-stat-lists">&mdash;</span>
+      <span class="yb-admin__stat-label">{{ t.el_stat_lists or "Lists" }}</span>
+    </div>
+    <div class="yb-admin__stat-card">
+      <span class="yb-admin__stat-value" id="yb-el-stat-contacts">&mdash;</span>
+      <span class="yb-admin__stat-label">{{ t.el_stat_contacts or "Total Contacts" }}</span>
+    </div>
+    <div class="yb-admin__stat-card">
+      <span class="yb-admin__stat-value" id="yb-el-stat-campaigns">&mdash;</span>
+      <span class="yb-admin__stat-label">{{ t.el_stat_campaigns or "Campaigns Sent" }}</span>
+    </div>
   </div>
 
-  {# Contact table #}
-  <div class="yb-admin__table-wrap">
-    <table class="yb-admin__table" id="yb-el-contact-table">
-      <thead>
-        <tr>
-          <th><input type="checkbox" id="yb-el-select-all"></th>
-          <th>{{ t.el_col_email or "Email" }}</th>
-          <th>{{ t.el_col_first_name or "First Name" }}</th>
-          <th>{{ t.el_col_last_name or "Last Name" }}</th>
-          <th>{{ t.el_col_status or "Status" }}</th>
-          <th>{{ t.el_col_sent or "Sent" }}</th>
-          <th>{{ t.el_col_opened or "Opened" }}</th>
-          <th>{{ t.el_col_clicked or "Clicked" }}</th>
-          <th>{{ t.el_col_tags or "Tags" }}</th>
-          <th>{{ t.el_col_actions or "Actions" }}</th>
-        </tr>
-      </thead>
-      <tbody id="yb-el-contact-tbody"></tbody>
-    </table>
+  {# VIEW: Lists overview (default) #}
+  <div class="yb-el__view" id="yb-el-v-lists">
+    <div class="yb-admin__table-wrap">
+      <table class="yb-admin__table" id="yb-el-table">
+        <thead>
+          <tr>
+            <th>{{ t.el_col_name or "Name" }}</th>
+            <th>{{ t.el_col_contacts or "Contacts" }}</th>
+            <th>{{ t.el_col_tags or "Tags" }}</th>
+            <th>{{ t.el_col_source or "Source" }}</th>
+            <th>{{ t.el_col_created or "Created" }}</th>
+            <th>{{ t.el_col_actions or "Actions" }}</th>
+          </tr>
+        </thead>
+        <tbody id="yb-el-tbody">
+          <tr><td colspan="6" class="yb-admin__empty">{{ t.loading or "Loading..." }}</td></tr>
+        </tbody>
+      </table>
+    </div>
   </div>
-  <div class="yb-el__pagination" id="yb-el-pagination"></div>
-</div>
 
-{# VIEW: Campaign reports (hidden until clicked) #}
-<div class="yb-el__view" id="yb-el-v-reports" hidden>
-  <div class="yb-el__detail-header">
-    <button type="button" class="yb-admin__back-btn" data-action="el-back">&larr; {{ t.back or "Back" }}</button>
-    <h3>{{ t.el_campaign_reports or "Campaign Reports" }}</h3>
+  {# VIEW: Single list detail (hidden until clicked) #}
+  <div class="yb-el__view" id="yb-el-v-detail" hidden>
+    <div class="yb-el__detail-header">
+      <button type="button" class="yb-admin__back-btn" data-action="el-back">&larr; {{ t.back or "Back" }}</button>
+      <h3 id="yb-el-detail-title"></h3>
+      <div class="yb-el__detail-actions">
+        <button type="button" class="yb-btn yb-btn--primary yb-btn--sm" data-action="el-import-csv">&#128196; {{ t.el_import_csv or "Import CSV" }}</button>
+        <button type="button" class="yb-btn yb-btn--outline yb-btn--sm" data-action="el-add-contact">+ {{ t.el_add_contact or "Add Contact" }}</button>
+        <button type="button" class="yb-btn yb-btn--outline yb-btn--sm" data-action="el-export-csv">&#8681; {{ t.el_export or "Export" }}</button>
+        <button type="button" class="yb-btn yb-btn--outline yb-btn--sm" data-action="el-send-to-list">&#9993; {{ t.el_send_email or "Send Email" }}</button>
+      </div>
+    </div>
+
+    {# List stats #}
+    <div class="yb-admin__stats-grid yb-el__list-stats" id="yb-el-list-stats"></div>
+
+    {# Search + filter #}
+    <div class="yb-el__filter-bar">
+      <input type="text" id="yb-el-contact-search" placeholder="{{ t.el_search_placeholder or 'Search contacts...' }}" class="yb-admin__search">
+      <select id="yb-el-contact-filter" class="yb-admin__select">
+        <option value="all">{{ t.el_filter_all or "All" }}</option>
+        <option value="active">{{ t.el_filter_active or "Active" }}</option>
+        <option value="unsubscribed">{{ t.el_filter_unsubscribed or "Unsubscribed" }}</option>
+        <option value="bounced">{{ t.el_filter_bounced or "Bounced" }}</option>
+      </select>
+    </div>
+
+    {# Contact table #}
+    <div class="yb-admin__table-wrap">
+      <table class="yb-admin__table" id="yb-el-contact-table">
+        <thead>
+          <tr>
+            <th><input type="checkbox" id="yb-el-select-all"></th>
+            <th>{{ t.el_col_email or "Email" }}</th>
+            <th>{{ t.el_col_first_name or "First Name" }}</th>
+            <th>{{ t.el_col_last_name or "Last Name" }}</th>
+            <th>{{ t.el_col_status or "Status" }}</th>
+            <th>{{ t.el_col_sent or "Sent" }}</th>
+            <th>{{ t.el_col_opened or "Opened" }}</th>
+            <th>{{ t.el_col_clicked or "Clicked" }}</th>
+            <th>{{ t.el_col_tags or "Tags" }}</th>
+            <th>{{ t.el_col_actions or "Actions" }}</th>
+          </tr>
+        </thead>
+        <tbody id="yb-el-contact-tbody"></tbody>
+      </table>
+    </div>
+    <div class="yb-el__pagination" id="yb-el-pagination"></div>
   </div>
-  <div id="yb-el-reports-content"></div>
-</div>
+
+</div>{# end yb-el-sec-lists #}
+
+{# ═══════════════════════════════════
+   SECTION: Campaign Reports
+   ═══════════════════════════════════ #}
+<div class="yb-el__section" id="yb-el-sec-campaigns" hidden>
+
+  <div class="yb-admin__view-head yb-el__toolbar">
+    <h2>{{ t.el_campaign_reports or "Campaign Reports" }}</h2>
+    <div>
+      <button type="button" class="yb-btn yb-btn--primary yb-btn--sm" data-action="el-new-campaign">&#9993; {{ t.el_new_campaign or "New Campaign" }}</button>
+      <button type="button" class="yb-btn yb-btn--outline yb-btn--sm" data-action="el-refresh-campaigns">&#8635; {{ t.el_refresh or "Refresh" }}</button>
+    </div>
+  </div>
+
+  {# Campaign stats bar #}
+  <div class="yb-admin__stats-grid yb-el__stats" id="yb-el-campaign-stats">
+    <div class="yb-admin__stat-card">
+      <span class="yb-admin__stat-value" id="yb-el-cstat-total">&mdash;</span>
+      <span class="yb-admin__stat-label">{{ t.el_cstat_total or "Total Campaigns" }}</span>
+    </div>
+    <div class="yb-admin__stat-card">
+      <span class="yb-admin__stat-value" id="yb-el-cstat-emails">&mdash;</span>
+      <span class="yb-admin__stat-label">{{ t.el_cstat_emails or "Emails Sent" }}</span>
+    </div>
+    <div class="yb-admin__stat-card">
+      <span class="yb-admin__stat-value" id="yb-el-cstat-avgopen">&mdash;</span>
+      <span class="yb-admin__stat-label">{{ t.el_cstat_avgopen or "Avg Open Rate" }}</span>
+    </div>
+    <div class="yb-admin__stat-card">
+      <span class="yb-admin__stat-value" id="yb-el-cstat-avgclick">&mdash;</span>
+      <span class="yb-admin__stat-label">{{ t.el_cstat_avgclick or "Avg Click Rate" }}</span>
+    </div>
+  </div>
+
+  {# Campaign list view #}
+  <div class="yb-el__view" id="yb-el-v-campaign-list">
+    <div class="yb-admin__table-wrap">
+      <table class="yb-admin__table" id="yb-el-campaign-table">
+        <thead>
+          <tr>
+            <th>{{ t.el_ccol_subject or "Subject" }}</th>
+            <th>{{ t.el_ccol_type or "Type" }}</th>
+            <th>{{ t.el_ccol_recipients or "Recipients" }}</th>
+            <th>{{ t.el_ccol_sent or "Sent" }}</th>
+            <th>{{ t.el_ccol_opens or "Opens" }}</th>
+            <th>{{ t.el_ccol_clicks or "Clicks" }}</th>
+            <th>{{ t.el_ccol_date or "Date" }}</th>
+            <th>{{ t.el_col_actions or "Actions" }}</th>
+          </tr>
+        </thead>
+        <tbody id="yb-el-campaign-tbody">
+          <tr><td colspan="8" class="yb-admin__empty">{{ t.loading or "Loading..." }}</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  {# Campaign detail view (hidden until clicked) #}
+  <div class="yb-el__view" id="yb-el-v-campaign-detail" hidden>
+    <div class="yb-el__detail-header">
+      <button type="button" class="yb-admin__back-btn" data-action="el-campaign-back">&larr; {{ t.back or "Back" }}</button>
+      <h3 id="yb-el-campaign-detail-title"></h3>
+      <div class="yb-el__detail-actions">
+        <button type="button" class="yb-btn yb-btn--outline yb-btn--sm" data-action="el-campaign-resend-opened">&#128172; {{ t.el_resend_opened or "Resend to Openers" }}</button>
+        <button type="button" class="yb-btn yb-btn--outline yb-btn--sm" data-action="el-campaign-resend-noopen">&#128232; {{ t.el_resend_noopen or "Resend to Non-Openers" }}</button>
+      </div>
+    </div>
+
+    {# Campaign detail stats #}
+    <div class="yb-admin__stats-grid yb-el__stats" id="yb-el-campaign-detail-stats"></div>
+
+    {# Engagement timeline chart area #}
+    <div id="yb-el-campaign-timeline" style="margin:16px 0;"></div>
+
+    {# Click URL breakdown #}
+    <div id="yb-el-campaign-clicks" style="margin:16px 0;"></div>
+
+    {# Who opened / who clicked lists #}
+    <div id="yb-el-campaign-contacts" style="margin:16px 0;"></div>
+  </div>
+
+</div>{# end yb-el-sec-campaigns #}
 
 {# CSV Import modal #}
 <div id="yb-el-import-modal" class="yb-lead__modal" hidden>
