@@ -16,6 +16,7 @@
  */
 
 const https = require('https');
+const crypto = require('crypto');
 const { CONFIG } = require('./config');
 const { buildUnsubscribeUrl } = require('./utils');
 const { getDb } = require('./firestore');
@@ -28,6 +29,10 @@ const {
   getUnsubscribeFooterPlain,
   substituteVars
 } = require('./email-service');
+
+function hashEmail(email) {
+  return crypto.createHash('sha256').update(email.toLowerCase().trim()).digest('hex').slice(0, 12);
+}
 
 // ─── Low-level Resend HTTP helper ────────────────────────────────────────────
 
@@ -97,15 +102,44 @@ function buildResendMessage({ to, subject, html, text }) {
   };
 }
 
+// ─── Tracking injection helpers ──────────────────────────────────────────────
+
+const TRACK_BASE = CONFIG.SITE_URL + '/.netlify/functions/email-track';
+
+function injectTrackingPixel(html, campaignId, email) {
+  if (!campaignId) return html;
+  const eh = hashEmail(email);
+  const pixelUrl = TRACK_BASE + '?t=open&cid=' + encodeURIComponent(campaignId) + '&e=' + eh;
+  return html + '<img src="' + pixelUrl + '" width="1" height="1" style="display:none" alt="" />';
+}
+
+function wrapLinksForTracking(html, campaignId, email) {
+  if (!campaignId) return html;
+  const eh = hashEmail(email);
+  // Replace href="https://..." links (not unsubscribe or tracking links)
+  return html.replace(/href="(https?:\/\/[^"]+)"/gi, function (match, url) {
+    // Skip unsubscribe links and tracking pixels
+    if (url.includes('/unsubscribe') || url.includes('/email-track')) return match;
+    const trackUrl = TRACK_BASE + '?t=click&cid=' + encodeURIComponent(campaignId) + '&e=' + eh + '&url=' + encodeURIComponent(url);
+    return 'href="' + trackUrl + '"';
+  });
+}
+
 // ─── Wrap body HTML with standard signature + unsubscribe ────────────────────
 
-function wrapHtml(bodyHtml, recipientEmail) {
-  return '<div style="font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Helvetica,Arial,sans-serif;color:#1a1a1a;line-height:1.65;font-size:16px;">' +
+function wrapHtml(bodyHtml, recipientEmail, campaignId) {
+  let html = '<div style="font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Helvetica,Arial,sans-serif;color:#1a1a1a;line-height:1.65;font-size:16px;">' +
     bodyHtml +
     getEnglishNoteHtml() +
     getSignatureHtml() +
     getUnsubscribeFooterHtml(recipientEmail) +
     '</div>';
+  // Inject tracking if campaignId provided
+  if (campaignId) {
+    html = wrapLinksForTracking(html, campaignId, recipientEmail);
+    html = injectTrackingPixel(html, campaignId, recipientEmail);
+  }
+  return html;
 }
 
 function wrapText(bodyPlain, recipientEmail) {
@@ -114,14 +148,14 @@ function wrapText(bodyPlain, recipientEmail) {
 
 // ─── Send a single email via Resend ──────────────────────────────────────────
 
-async function sendSingleViaResend({ to, subject, bodyHtml, bodyPlain, leadId }) {
-  const html = wrapHtml(bodyHtml, to);
+async function sendSingleViaResend({ to, subject, bodyHtml, bodyPlain, leadId, campaignId }) {
+  const html = wrapHtml(bodyHtml, to, campaignId);
   const text = wrapText(bodyPlain || '', to);
 
   const message = buildResendMessage({ to, subject, html, text });
   const result = await resendPost('/emails', message);
 
-  await logResendEmail({ to, subject, leadId, messageId: result.id });
+  await logResendEmail({ to, subject, leadId, messageId: result.id, campaignId });
   return { success: true, messageId: result.id };
 }
 
@@ -129,7 +163,7 @@ async function sendSingleViaResend({ to, subject, bodyHtml, bodyPlain, leadId })
 // Sends up to 100 messages per Resend batch call.
 // leads = array of { id, collection, record } objects where record is the Firestore doc data.
 
-async function sendBulkViaResend(recipients, { subjectTemplate, bodyHtmlTemplate, bodyPlainTemplate }) {
+async function sendBulkViaResend(recipients, { subjectTemplate, bodyHtmlTemplate, bodyPlainTemplate, campaignId }) {
   const db = getDb();
   const results = { sent: 0, failed: 0, skipped: 0, errors: [] };
 
@@ -159,7 +193,7 @@ async function sendBulkViaResend(recipients, { subjectTemplate, bodyHtmlTemplate
       messages.push(buildResendMessage({
         to: record.email,
         subject,
-        html: wrapHtml(bodyHtml, record.email),
+        html: wrapHtml(bodyHtml, record.email, campaignId),
         text: wrapText(bodyPlain, record.email)
       }));
 
@@ -179,7 +213,7 @@ async function sendBulkViaResend(recipients, { subjectTemplate, bodyHtmlTemplate
           const updates = { updated_at: new Date() };
           if (!isApp) updates.last_contact = new Date();
           await db.collection(collection).doc(id).update(updates);
-          await logResendEmail({ to: email, subject, leadId: isApp ? null : id, messageId: null });
+          await logResendEmail({ to: email, subject, leadId: isApp ? null : id, messageId: null, campaignId });
         } catch (logErr) {
           console.error('[resend] Post-send update error for', id, ':', logErr.message);
         }
@@ -199,10 +233,10 @@ async function sendBulkViaResend(recipients, { subjectTemplate, bodyHtmlTemplate
 
 // ─── Email log ───────────────────────────────────────────────────────────────
 
-async function logResendEmail({ to, subject, leadId, messageId }) {
+async function logResendEmail({ to, subject, leadId, messageId, campaignId }) {
   try {
     const db = getDb();
-    await db.collection('email_log').add({
+    const entry = {
       to,
       subject,
       lead_id: leadId || null,
@@ -210,7 +244,9 @@ async function logResendEmail({ to, subject, leadId, messageId }) {
       sent_at: new Date(),
       provider: 'resend',
       status: 'sent'
-    });
+    };
+    if (campaignId) entry.campaign_id = campaignId;
+    await db.collection('email_log').add(entry);
   } catch (err) {
     console.error('[resend] Log error:', err.message);
   }

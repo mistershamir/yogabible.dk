@@ -1,0 +1,247 @@
+{# ── Email Lists Admin Panel ── #}
+
+{# Toolbar #}
+<div class="yb-admin__view-head yb-el__toolbar">
+  <h2>{{ t.el_title or "Email Lists" }}</h2>
+  <div>
+    <button type="button" class="yb-btn yb-btn--primary yb-btn--sm" data-action="el-new-list">+ {{ t.el_new_list or "New List" }}</button>
+    <button type="button" class="yb-btn yb-btn--outline yb-btn--sm" data-action="el-refresh">&#8635; {{ t.el_refresh or "Refresh" }}</button>
+  </div>
+</div>
+
+{# Stats bar #}
+<div class="yb-admin__stats-grid yb-el__stats" id="yb-el-stats">
+  <div class="yb-admin__stat-card">
+    <span class="yb-admin__stat-value" id="yb-el-stat-lists">&mdash;</span>
+    <span class="yb-admin__stat-label">{{ t.el_stat_lists or "Lists" }}</span>
+  </div>
+  <div class="yb-admin__stat-card">
+    <span class="yb-admin__stat-value" id="yb-el-stat-contacts">&mdash;</span>
+    <span class="yb-admin__stat-label">{{ t.el_stat_contacts or "Total Contacts" }}</span>
+  </div>
+  <div class="yb-admin__stat-card">
+    <span class="yb-admin__stat-value" id="yb-el-stat-campaigns">&mdash;</span>
+    <span class="yb-admin__stat-label">{{ t.el_stat_campaigns or "Campaigns Sent" }}</span>
+  </div>
+</div>
+
+{# VIEW: Lists overview (default) #}
+<div class="yb-el__view" id="yb-el-v-lists">
+  <div class="yb-admin__table-wrap">
+    <table class="yb-admin__table" id="yb-el-table">
+      <thead>
+        <tr>
+          <th>{{ t.el_col_name or "Name" }}</th>
+          <th>{{ t.el_col_contacts or "Contacts" }}</th>
+          <th>{{ t.el_col_tags or "Tags" }}</th>
+          <th>{{ t.el_col_source or "Source" }}</th>
+          <th>{{ t.el_col_created or "Created" }}</th>
+          <th>{{ t.el_col_actions or "Actions" }}</th>
+        </tr>
+      </thead>
+      <tbody id="yb-el-tbody">
+        <tr><td colspan="6" class="yb-admin__empty">{{ t.loading or "Loading..." }}</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+{# VIEW: Single list detail (hidden until clicked) #}
+<div class="yb-el__view" id="yb-el-v-detail" hidden>
+  <div class="yb-el__detail-header">
+    <button type="button" class="yb-admin__back-btn" data-action="el-back">&larr; {{ t.back or "Back" }}</button>
+    <h3 id="yb-el-detail-title"></h3>
+    <div class="yb-el__detail-actions">
+      <button type="button" class="yb-btn yb-btn--primary yb-btn--sm" data-action="el-import-csv">&#128196; {{ t.el_import_csv or "Import CSV" }}</button>
+      <button type="button" class="yb-btn yb-btn--outline yb-btn--sm" data-action="el-add-contact">+ {{ t.el_add_contact or "Add Contact" }}</button>
+      <button type="button" class="yb-btn yb-btn--outline yb-btn--sm" data-action="el-export-csv">&#8681; {{ t.el_export or "Export" }}</button>
+      <button type="button" class="yb-btn yb-btn--outline yb-btn--sm" data-action="el-send-to-list">&#9993; {{ t.el_send_email or "Send Email" }}</button>
+    </div>
+  </div>
+
+  {# List stats #}
+  <div class="yb-admin__stats-grid yb-el__list-stats" id="yb-el-list-stats"></div>
+
+  {# Search + filter #}
+  <div class="yb-el__filter-bar">
+    <input type="text" id="yb-el-contact-search" placeholder="{{ t.el_search_placeholder or 'Search contacts...' }}" class="yb-admin__search">
+    <select id="yb-el-contact-filter" class="yb-admin__select">
+      <option value="all">{{ t.el_filter_all or "All" }}</option>
+      <option value="active">{{ t.el_filter_active or "Active" }}</option>
+      <option value="unsubscribed">{{ t.el_filter_unsubscribed or "Unsubscribed" }}</option>
+      <option value="bounced">{{ t.el_filter_bounced or "Bounced" }}</option>
+    </select>
+  </div>
+
+  {# Contact table #}
+  <div class="yb-admin__table-wrap">
+    <table class="yb-admin__table" id="yb-el-contact-table">
+      <thead>
+        <tr>
+          <th><input type="checkbox" id="yb-el-select-all"></th>
+          <th>{{ t.el_col_email or "Email" }}</th>
+          <th>{{ t.el_col_first_name or "First Name" }}</th>
+          <th>{{ t.el_col_last_name or "Last Name" }}</th>
+          <th>{{ t.el_col_status or "Status" }}</th>
+          <th>{{ t.el_col_sent or "Sent" }}</th>
+          <th>{{ t.el_col_opened or "Opened" }}</th>
+          <th>{{ t.el_col_clicked or "Clicked" }}</th>
+          <th>{{ t.el_col_tags or "Tags" }}</th>
+          <th>{{ t.el_col_actions or "Actions" }}</th>
+        </tr>
+      </thead>
+      <tbody id="yb-el-contact-tbody"></tbody>
+    </table>
+  </div>
+  <div class="yb-el__pagination" id="yb-el-pagination"></div>
+</div>
+
+{# VIEW: Campaign reports (hidden until clicked) #}
+<div class="yb-el__view" id="yb-el-v-reports" hidden>
+  <div class="yb-el__detail-header">
+    <button type="button" class="yb-admin__back-btn" data-action="el-back">&larr; {{ t.back or "Back" }}</button>
+    <h3>{{ t.el_campaign_reports or "Campaign Reports" }}</h3>
+  </div>
+  <div id="yb-el-reports-content"></div>
+</div>
+
+{# CSV Import modal #}
+<div id="yb-el-import-modal" class="yb-lead__modal" hidden>
+  <div class="yb-lead__modal-overlay" data-action="el-import-close"></div>
+  <div class="yb-lead__modal-box" style="max-width:560px;">
+    <div class="yb-lead__modal-header">
+      <h3>{{ t.el_import_title or "Import Contacts from CSV" }}</h3>
+      <button type="button" class="yb-lead__modal-close" data-action="el-import-close">&times;</button>
+    </div>
+    <div class="yb-lead__modal-body">
+      <p style="color:#6F6A66;margin-bottom:12px;">{{ t.el_import_desc or "Upload a CSV file with columns: email, first_name, last_name (in any order). First row should be headers." }}</p>
+
+      <div class="yb-el__drop-zone" id="yb-el-drop-zone">
+        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#6F6A66" stroke-width="1.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+        <p>{{ t.el_drop_csv or "Drop CSV file here or click to browse" }}</p>
+        <input type="file" id="yb-el-file-input" accept=".csv,.txt" hidden>
+      </div>
+
+      <div id="yb-el-import-preview" hidden>
+        <h4 style="margin:16px 0 8px;">{{ t.el_preview or "Preview" }}</h4>
+        <div class="yb-admin__table-wrap" style="max-height:240px;overflow-y:auto;">
+          <table class="yb-admin__table" id="yb-el-preview-table">
+            <thead><tr id="yb-el-preview-head"></tr></thead>
+            <tbody id="yb-el-preview-body"></tbody>
+          </table>
+        </div>
+        <p id="yb-el-import-summary" style="margin:8px 0;color:#6F6A66;"></p>
+      </div>
+
+      {# Column mapping #}
+      <div id="yb-el-column-mapping" hidden>
+        <h4 style="margin:16px 0 8px;">{{ t.el_map_columns or "Map Columns" }}</h4>
+        <div class="yb-admin__form-row">
+          <div class="yb-admin__field">
+            <label>{{ t.el_col_email or "Email" }} *</label>
+            <select id="yb-el-map-email" class="yb-admin__select"></select>
+          </div>
+          <div class="yb-admin__field">
+            <label>{{ t.el_col_first_name or "First Name" }}</label>
+            <select id="yb-el-map-first" class="yb-admin__select"></select>
+          </div>
+          <div class="yb-admin__field">
+            <label>{{ t.el_col_last_name or "Last Name" }}</label>
+            <select id="yb-el-map-last" class="yb-admin__select"></select>
+          </div>
+        </div>
+      </div>
+
+      <div id="yb-el-import-progress" hidden>
+        <div class="yb-el__progress-bar">
+          <div class="yb-el__progress-fill" id="yb-el-progress-fill"></div>
+        </div>
+        <p id="yb-el-progress-text" style="text-align:center;color:#6F6A66;margin-top:8px;"></p>
+      </div>
+    </div>
+    <div class="yb-lead__modal-footer">
+      <button type="button" class="yb-btn yb-btn--outline" data-action="el-import-close">{{ t.cancel or "Cancel" }}</button>
+      <button type="button" class="yb-btn yb-btn--primary" id="yb-el-import-btn" disabled>{{ t.el_import_btn or "Import Contacts" }}</button>
+    </div>
+  </div>
+</div>
+
+{# New List / Edit List modal #}
+<div id="yb-el-list-modal" class="yb-lead__modal" hidden>
+  <div class="yb-lead__modal-overlay" data-action="el-list-modal-close"></div>
+  <div class="yb-lead__modal-box" style="max-width:480px;">
+    <div class="yb-lead__modal-header">
+      <h3 id="yb-el-list-modal-title">{{ t.el_new_list or "New List" }}</h3>
+      <button type="button" class="yb-lead__modal-close" data-action="el-list-modal-close">&times;</button>
+    </div>
+    <div class="yb-lead__modal-body">
+      <form id="yb-el-list-form" class="yb-admin__form">
+        <input type="hidden" id="yb-el-list-id">
+        <div class="yb-admin__field">
+          <label for="yb-el-list-name">{{ t.el_list_name or "List Name" }} *</label>
+          <input type="text" id="yb-el-list-name" required placeholder="e.g. Newsletter Subscribers Q1 2026">
+        </div>
+        <div class="yb-admin__field">
+          <label for="yb-el-list-desc">{{ t.el_list_desc or "Description" }}</label>
+          <textarea id="yb-el-list-desc" rows="3" placeholder="e.g. Imported from Squarespace, 2024 newsletter list"></textarea>
+        </div>
+        <div class="yb-admin__field">
+          <label for="yb-el-list-tags">{{ t.el_list_tags or "Tags" }}</label>
+          <input type="text" id="yb-el-list-tags" placeholder="newsletter, squarespace, 2024 (comma separated)">
+          <small class="yb-admin__field-hint">{{ t.el_tags_hint or "Comma-separated tags for organizing lists" }}</small>
+        </div>
+        <div class="yb-admin__field">
+          <label for="yb-el-list-source">{{ t.el_list_source or "Source" }}</label>
+          <select id="yb-el-list-source" class="yb-admin__select">
+            <option value="squarespace">Squarespace</option>
+            <option value="mailchimp">Mailchimp</option>
+            <option value="csv">CSV Upload</option>
+            <option value="manual">Manual</option>
+            <option value="other">Other</option>
+          </select>
+        </div>
+      </form>
+    </div>
+    <div class="yb-lead__modal-footer">
+      <button type="button" class="yb-btn yb-btn--outline" data-action="el-list-modal-close">{{ t.cancel or "Cancel" }}</button>
+      <button type="button" class="yb-btn yb-btn--primary" id="yb-el-list-save-btn">{{ t.save or "Save" }}</button>
+    </div>
+  </div>
+</div>
+
+{# Add Contact modal #}
+<div id="yb-el-contact-modal" class="yb-lead__modal" hidden>
+  <div class="yb-lead__modal-overlay" data-action="el-contact-modal-close"></div>
+  <div class="yb-lead__modal-box" style="max-width:420px;">
+    <div class="yb-lead__modal-header">
+      <h3>{{ t.el_add_contact or "Add Contact" }}</h3>
+      <button type="button" class="yb-lead__modal-close" data-action="el-contact-modal-close">&times;</button>
+    </div>
+    <div class="yb-lead__modal-body">
+      <form id="yb-el-contact-form" class="yb-admin__form">
+        <div class="yb-admin__field">
+          <label>{{ t.el_col_email or "Email" }} *</label>
+          <input type="email" id="yb-el-c-email" required>
+        </div>
+        <div class="yb-admin__form-row">
+          <div class="yb-admin__field">
+            <label>{{ t.el_col_first_name or "First Name" }}</label>
+            <input type="text" id="yb-el-c-first">
+          </div>
+          <div class="yb-admin__field">
+            <label>{{ t.el_col_last_name or "Last Name" }}</label>
+            <input type="text" id="yb-el-c-last">
+          </div>
+        </div>
+        <div class="yb-admin__field">
+          <label>{{ t.el_col_tags or "Tags" }}</label>
+          <input type="text" id="yb-el-c-tags" placeholder="vip, newsletter">
+        </div>
+      </form>
+    </div>
+    <div class="yb-lead__modal-footer">
+      <button type="button" class="yb-btn yb-btn--outline" data-action="el-contact-modal-close">{{ t.cancel or "Cancel" }}</button>
+      <button type="button" class="yb-btn yb-btn--primary" id="yb-el-contact-save-btn">{{ t.el_add_contact or "Add Contact" }}</button>
+    </div>
+  </div>
+</div>
