@@ -272,10 +272,51 @@
 
   function resolveMbClient(user) {
     if (typeof firebase === 'undefined' || !firebase.firestore) return;
-    firebase.firestore().collection('users').doc(user.uid).get()
+    var userRef = firebase.firestore().collection('users').doc(user.uid);
+    userRef.get()
       .then(function (doc) {
         if (doc.exists && doc.data().mindbodyClientId) {
           mbClientId = doc.data().mindbodyClientId;
+          return;
+        }
+        // No Firestore profile or no mindbodyClientId — look up MB client by email and link
+        linkMindbodyClient(user, userRef, doc.exists);
+      })
+      .catch(function () {});
+  }
+
+  function linkMindbodyClient(user, userRef, profileExists) {
+    fetch(API_BASE + '/mb-client?email=' + encodeURIComponent(user.email))
+      .then(function (res) { return res.json(); })
+      .then(function (data) {
+        if (!data.found || !data.client || !data.client.id) return;
+        var clientId = String(data.client.id);
+        mbClientId = clientId;
+
+        if (profileExists) {
+          // Profile exists but missing MB link — update it
+          userRef.update({
+            mindbodyClientId: clientId,
+            updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+          }).catch(function () {});
+        } else {
+          // No profile at all (migrated user) — create one
+          var displayName = user.displayName || user.email.split('@')[0];
+          var nameParts = displayName.split(' ');
+          userRef.set({
+            uid: user.uid,
+            email: user.email,
+            firstName: nameParts[0] || '',
+            lastName: nameParts.slice(1).join(' ') || '',
+            displayName: displayName,
+            phone: '',
+            role: 'member',
+            mindbodyClientId: clientId,
+            source: 'login-cta',
+            sourceSite: 'hotyogacph.dk',
+            createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+            updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+          }, { merge: true }).catch(function () {});
         }
       })
       .catch(function () {});
@@ -301,8 +342,8 @@
       '.hyc-cta__btn svg{width:16px;height:16px;flex-shrink:0}',
       '.hyc-cta__btn--login{background:' + BRAND + ';color:#fff;border-color:' + BRAND + '}',
       '.hyc-cta__btn--login:hover{background:' + BRAND_DARK + ';border-color:' + BRAND_DARK + ';transform:translateY(-1px);box-shadow:0 4px 12px rgba(63,153,165,.3)}',
-      '.hyc-cta__btn--user{background:#fff;color:' + BRAND + ';border-color:' + BRAND + '}',
-      '.hyc-cta__btn--user:hover{background:' + BRAND_LIGHT + ';transform:translateY(-1px)}',
+      '.hyc-cta__btn--user{background:' + BRAND + ';color:#fff;border-color:' + BRAND + '}',
+      '.hyc-cta__btn--user:hover{background:' + BRAND_DARK + ';border-color:' + BRAND_DARK + ';transform:translateY(-1px);box-shadow:0 4px 12px rgba(63,153,165,.3)}',
 
       // ── Modal overlay ─────────────────────────────────────────
       '.hyc-ua{position:fixed;inset:0;z-index:10000;display:flex;align-items:center;justify-content:center;padding:16px}',

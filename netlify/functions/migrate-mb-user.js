@@ -15,38 +15,15 @@
  *   { found: true, hasFirebaseAccount: true }     — already has Firebase account (wrong password)
  *   { found: true, created: true, name: "..." }   — Firebase account just created
  *
- * Requires env var: FIREBASE_SERVICE_ACCOUNT_HYC (JSON string of service account)
+ * Requires env: FIREBASE_PROJECT_ID, FIREBASE_CLIENT_EMAIL, FIREBASE_PRIVATE_KEY
  */
 
 'use strict';
 
 const { jsonResponse, optionsResponse } = require('./shared/utils');
 const { mbFetch } = require('./shared/mb-api');
+const { getAuth } = require('./shared/firestore');
 const crypto = require('crypto');
-
-let admin;
-
-function getAdmin() {
-  if (admin) return admin;
-  admin = require('firebase-admin');
-  if (!admin.apps.length) {
-    if (process.env.FIREBASE_SERVICE_ACCOUNT_HYC) {
-      // HYC deployment: full service account JSON in one env var
-      const sa = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT_HYC);
-      admin.initializeApp({ credential: admin.credential.cert(sa) });
-    } else {
-      // YB deployment: individual env vars
-      admin.initializeApp({
-        credential: admin.credential.cert({
-          projectId: process.env.FIREBASE_PROJECT_ID,
-          clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
-          privateKey: (process.env.FIREBASE_PRIVATE_KEY || '').replace(/\\n/g, '\n')
-        })
-      });
-    }
-  }
-  return admin;
-}
 
 exports.handler = async function (event) {
   if (event.httpMethod === 'OPTIONS') return optionsResponse();
@@ -83,12 +60,12 @@ exports.handler = async function (event) {
     const mbClient = clients[0];
     const displayName = ((mbClient.FirstName || '') + ' ' + (mbClient.LastName || '')).trim();
 
-    const fb = getAdmin();
+    const auth = getAuth();
 
     // 2. Check if a Firebase account already exists for this email
     let firebaseUser = null;
     try {
-      firebaseUser = await fb.auth().getUserByEmail(email);
+      firebaseUser = await auth.getUserByEmail(email);
     } catch (err) {
       if (err.code !== 'auth/user-not-found') throw err;
     }
@@ -107,7 +84,7 @@ exports.handler = async function (event) {
       ? password
       : crypto.randomBytes(32).toString('hex');
 
-    await fb.auth().createUser({
+    await auth.createUser({
       email: email,
       password: usePassword,
       displayName: displayName || undefined,

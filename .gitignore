@@ -5,6 +5,9 @@ node_modules/
 .env
 create-cloudinary-folders.js
 
+# Firebase private key (written at build time by scripts/write-firebase-key.js)
+netlify/functions/shared/firebase-key-data.js
+
 # Local Netlify folder
 .netlify
 
@@ -15,3 +18,7 @@ lead-agent/*.json
 lead-agent/__pycache__/
 lead-agent/tools/__pycache__/
 lead-agent/.knowledge-refresh-needed
+
+# SEO agent secrets (never commit)
+seo-agent/.env
+seo-agent/__pycache__/

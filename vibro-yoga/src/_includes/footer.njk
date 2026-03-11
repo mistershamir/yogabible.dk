@@ -1,0 +1,53 @@
+{% set tc = i18n.common[lang or "da"] %}
+{% set lp = "/en" if lang == "en" else "" %}
+
+<footer class="vy-footer">
+  <div class="container">
+    <div class="vy-footer__grid">
+      {# Brand Column #}
+      <div class="vy-footer__brand">
+        <img src="/assets/images/brand/logo-white.svg" alt="Vibro Yoga" width="120" height="34">
+        <p class="vy-footer__tagline">{{ tc.footer_tagline }}</p>
+        <p class="vy-footer__company">{{ tc.footer_company }}<br>{{ tc.footer_cvr }}</p>
+      </div>
+
+      {# Navigation Column #}
+      <div class="vy-footer__col">
+        <h4>{{ tc.footer_nav_title }}</h4>
+        <nav aria-label="{% if lang == 'en' %}Footer navigation{% else %}Sidefod navigation{% endif %}">
+          <ul>
+            <li><a href="{{ lp }}/#sessions">{{ tc.nav_sessions }}</a></li>
+            <li><a href="{{ lp }}/#priser">{{ tc.nav_pricing }}</a></li>
+            <li><a href="{{ lp }}/ressourcer">{{ tc.nav_resources }}</a></li>
+            <li><a href="{{ lp }}/om">{{ tc.nav_about }}</a></li>
+            <li><a href="{{ lp }}/kontakt">{{ tc.nav_contact }}</a></li>
+          </ul>
+        </nav>
+      </div>
+
+      {# Contact Column #}
+      <div class="vy-footer__col">
+        <h4>{{ tc.footer_contact_title }}</h4>
+        <ul>
+          <li>{{ site.address }}</li>
+          <li><a href="tel:{{ site.phone | replace(' ', '') }}">{{ site.phone }}</a></li>
+          <li><a href="mailto:{{ site.email }}">{{ site.email }}</a></li>
+        </ul>
+      </div>
+
+      {# Newsletter Column #}
+      <div class="vy-footer__col">
+        <h4>{{ tc.footer_newsletter_title }}</h4>
+        <p>{{ tc.footer_newsletter_text }}</p>
+        <form class="vy-footer__form" action="#" method="post">
+          <input type="email" placeholder="{{ tc.footer_newsletter_placeholder }}" required>
+          <button type="submit" class="btn btn--primary btn--pill">{{ tc.footer_newsletter_btn }}</button>
+        </form>
+      </div>
+    </div>
+
+    <div class="vy-footer__bottom">
+      <p>{{ tc.footer_copyright }}</p>
+    </div>
+  </div>
+</footer>

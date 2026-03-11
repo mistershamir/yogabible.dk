@@ -312,16 +312,35 @@
   }
 
   // =========================================================================
+  // URL PARAMETER — Auto-open checkout via ?product=XXXXX
+  // Usage: yogabible.dk/any-page?product=100078
+  // =========================================================================
+  function checkUrlProduct() {
+    try {
+      var params = new URLSearchParams(window.location.search);
+      var prodId = params.get('product');
+      if (!prodId) return;
+      // Clean URL so reload doesn't re-trigger
+      var clean = window.location.pathname + window.location.hash;
+      window.history.replaceState(null, '', clean);
+      // Small delay to let checkout-flow.js initialize
+      setTimeout(function () { startCheckoutFunnel(prodId); }, 300);
+    } catch (e) { /* URLSearchParams not supported */ }
+  }
+
+  // =========================================================================
   // INIT
   // =========================================================================
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', function () {
       attachClickHandlers();
       initAuthListener();
+      checkUrlProduct();
     });
   } else {
     attachClickHandlers();
     initAuthListener();
+    checkUrlProduct();
   }
 
   // ── Public API ──

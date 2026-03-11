@@ -1,0 +1,53 @@
+<!-- Workshop Browser Modal — Browse & book individual YTT workshops -->
+<div id="ywb-modal" class="yb-auth-modal" aria-hidden="true" role="dialog" aria-modal="true" aria-label="Workshops">
+  <div class="yb-auth-modal__overlay" data-ywb-close></div>
+
+  <div class="yb-auth-modal__box ywb-box">
+    <button class="yb-auth-modal__close" type="button" data-ywb-close aria-label="Luk">&#10005;</button>
+
+    <!-- Header -->
+    <div class="ywb-header">
+      <h2 class="ywb-title" data-yj-da>Kommende workshops</h2>
+      <h2 class="ywb-title" data-yj-en hidden>Upcoming workshops</h2>
+      <p class="ywb-subtitle" data-yj-da>Deltag i individuelle workshops fra yogal&aelig;reruddannelsen &mdash; 975 kr. per workshop</p>
+      <p class="ywb-subtitle" data-yj-en hidden>Join individual workshops from the yoga teacher training &mdash; 975 DKK per workshop</p>
+    </div>
+
+    <!-- Loading state -->
+    <div class="ywb-loading" id="ywb-loading">
+      <div class="ywb-spinner"></div>
+      <p data-yj-da>Henter workshops&hellip;</p>
+      <p data-yj-en hidden>Loading workshops&hellip;</p>
+    </div>
+
+    <!-- Error state -->
+    <div class="ywb-error" id="ywb-error" hidden>
+      <p data-yj-da>Kunne ikke hente workshops. Pr&oslash;v igen senere.</p>
+      <p data-yj-en hidden>Could not load workshops. Please try again later.</p>
+      <button type="button" class="ywb-retry-btn" id="ywb-retry" data-yj-da>Pr&oslash;v igen</button>
+      <button type="button" class="ywb-retry-btn" id="ywb-retry-en" data-yj-en hidden>Try again</button>
+    </div>
+
+    <!-- Empty state -->
+    <div class="ywb-empty" id="ywb-empty" hidden>
+      <p data-yj-da>Ingen kommende workshops i &oslash;jeblikket.</p>
+      <p data-yj-en hidden>No upcoming workshops at this time.</p>
+    </div>
+
+    <!-- Workshop list (populated by JS) -->
+    <div class="ywb-list" id="ywb-list"></div>
+
+    <!-- Footer CTA — buy pass if user doesn't have one -->
+    <div class="ywb-footer" id="ywb-footer" hidden>
+      <div class="ywb-footer__info">
+        <span class="ywb-footer__price">975 kr.</span>
+        <span class="ywb-footer__label" data-yj-da>per workshop &middot; drop-in</span>
+        <span class="ywb-footer__label" data-yj-en hidden>per workshop &middot; drop-in</span>
+      </div>
+      <button type="button" class="ywb-footer__buy" id="ywb-buy-pass">
+        <span data-yj-da>K&oslash;b workshop-pass</span>
+        <span data-yj-en hidden>Buy workshop pass</span>
+      </button>
+    </div>
+  </div>
+</div>

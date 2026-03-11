@@ -1,0 +1,86 @@
+{
+  "da": {
+    "hero_tagline": "Verdens Første · Christianshavn, København",
+    "hero_title": "Vibro Yoga",
+    "hero_subtitle": "Verdens første vibroakustiske yogastudio. En multidimensional oplevelse, der kombinerer yoga med Dolby Atmos-lyd og vibrerende gulve for den dybeste afslapning.",
+    "hero_trust1": "Verdens Første",
+    "hero_trust2": "Dolby Atmos",
+    "hero_trust3": "Christianshavn",
+    "hero_trust4": "Unik Oplevelse",
+    "hero_cta1": "Book en Klasse",
+    "hero_cta2": "Læs Mere",
+
+    "what_title": "Hvad Er Vibro Yoga?",
+    "what_text": "Vibro Yoga er en revolutionerende yogaoplevelse, der kombinerer traditionel yogapraksis med avanceret <strong>vibroakustisk teknologi</strong>. Vores studiegulve vibrerer gennem musik og lydfrekvenser, der vækker kroppens sanser, fremmer blodcirkulationen og efterlader dig let og energisk.",
+    "what_text2": "De blide vibrationer hjælper med at frigøre spændinger, reducere stress og skabe en harmonisk forbindelse mellem krop og sind. Det er yoga, som du aldrig har oplevet det før.",
+
+    "tech_title": "Teknologien",
+    "tech_subtitle": "Dolby Atmos Immersiv Lyd",
+    "tech_text": "Vibro Yoga bruger Dolby Atmos-teknologi til at skabe en unik og immersiv lydoplevelse, hvor lyd bevæger sig i alle dimensioner. Du kan mærke hver tone og vibration i hele kroppen.",
+    "tech_point1": "Vibrerende gulve med kontrollerede frekvenser",
+    "tech_point2": "Dolby Atmos surround-lyd i alle dimensioner",
+    "tech_point3": "Kuraterede lydlandskaber til hver klasse",
+    "tech_point4": "Frekvenser designet til dyb afslapning",
+    "tech_point5": "Multisensorisk oplevelse — lyd, vibration og bevægelse",
+
+    "benefits_title": "Fordele ved Vibro Yoga",
+    "ben1_title": "Dyb Afslapning",
+    "ben1_desc": "Vibrationer stimulerer det parasympatiske nervesystem og fremmer dyb afslapning hurtigere end traditionel yoga.",
+    "ben2_title": "Stressreduktion",
+    "ben2_desc": "Kombinationen af lyd, vibration og bevægelse reducerer kortisol og fremmer mental ro.",
+    "ben3_title": "Forbedret Cirkulation",
+    "ben3_desc": "Vibrationerne øger blodcirkulationen og hjælper kroppen med at udrense toksiner effektivt.",
+    "ben4_title": "Sensorisk Fordybelse",
+    "ben4_desc": "Dolby Atmos-lyd og kropsvibrationer skaber en meditativ tilstand, der er dybere end traditionel praksis.",
+
+    "location_title": "Oplev Vibro Yoga",
+    "location_address": "Christianshavn, København",
+    "location_text": "Vibro Yoga-studiet ligger i Christianshavn, København — det samme område som Hot Yoga Copenhagen. Book din første klasse og oplev fremtidens yoga.",
+
+    "cta_title": "Prøv Vibro Yoga",
+    "cta_subtitle": "En oplevelse du aldrig glemmer. Book i dag.",
+    "cta_button": "Book en Klasse"
+  },
+  "en": {
+    "hero_tagline": "World's First · Christianshavn, Copenhagen",
+    "hero_title": "Vibro Yoga",
+    "hero_subtitle": "The world's first vibroacoustic yoga studio. A multidimensional experience combining yoga with Dolby Atmos sound and vibrating floors for the deepest relaxation.",
+    "hero_trust1": "World's First",
+    "hero_trust2": "Dolby Atmos",
+    "hero_trust3": "Christianshavn",
+    "hero_trust4": "Unique Experience",
+    "hero_cta1": "Book a Class",
+    "hero_cta2": "Learn More",
+
+    "what_title": "What Is Vibro Yoga?",
+    "what_text": "Vibro Yoga is a revolutionary yoga experience that combines traditional yoga practice with advanced <strong>vibroacoustic technology</strong>. Our studio floors vibrate through music and sound frequencies that awaken the body's senses, promote blood circulation, and leave you feeling light and energized.",
+    "what_text2": "The gentle vibrations help release tension, reduce stress, and create a harmonious connection between body and mind. It's yoga like you've never experienced it before.",
+
+    "tech_title": "The Technology",
+    "tech_subtitle": "Dolby Atmos Immersive Sound",
+    "tech_text": "Vibro Yoga uses Dolby Atmos technology to create a unique and immersive audio experience where sound moves in all dimensions. You can feel every note and vibration throughout your entire body.",
+    "tech_point1": "Vibrating floors with controlled frequencies",
+    "tech_point2": "Dolby Atmos surround sound in all dimensions",
+    "tech_point3": "Curated soundscapes for each class",
+    "tech_point4": "Frequencies designed for deep relaxation",
+    "tech_point5": "Multisensory experience — sound, vibration and movement",
+
+    "benefits_title": "Benefits of Vibro Yoga",
+    "ben1_title": "Deep Relaxation",
+    "ben1_desc": "Vibrations stimulate the parasympathetic nervous system, promoting deep relaxation faster than traditional yoga.",
+    "ben2_title": "Stress Reduction",
+    "ben2_desc": "The combination of sound, vibration, and movement reduces cortisol and promotes mental calm.",
+    "ben3_title": "Improved Circulation",
+    "ben3_desc": "Vibrations increase blood circulation, helping the body effectively flush toxins.",
+    "ben4_title": "Sensory Immersion",
+    "ben4_desc": "Dolby Atmos sound and body vibrations create a meditative state deeper than traditional practice.",
+
+    "location_title": "Experience Vibro Yoga",
+    "location_address": "Christianshavn, Copenhagen",
+    "location_text": "The Vibro Yoga studio is located in Christianshavn, Copenhagen — the same area as Hot Yoga Copenhagen. Book your first class and experience the future of yoga.",
+
+    "cta_title": "Try Vibro Yoga",
+    "cta_subtitle": "An experience you'll never forget. Book today.",
+    "cta_button": "Book a Class"
+  }
+}

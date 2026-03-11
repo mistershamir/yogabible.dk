@@ -1,7 +1,7 @@
 /**
  * YOGA BIBLE — CAREER APPLICATIONS ADMIN
  * Manages the "Careers" tab in the admin panel.
- * Reads/writes directly to Firestore `careers` collection.
+ * Reads/writes from Firestore `leads` collection (type='careers').
  *
  * Features:
  *  - Sortable table (date)
@@ -26,7 +26,7 @@
   var currentCareerId = null;
   var currentCareer = null;
   var careerLastDoc = null;
-  var PAGE_SIZE = 50;
+  var PAGE_SIZE = 10000; // Load all at once for instant search
   var careerSearch = '';
   var careerFilterStatus = '';
   var careerFilterCategory = '';
@@ -42,6 +42,16 @@
      HELPERS
      ══════════════════════════════════════════ */
   function t(k) { return T[k] || k; } // legacy helper — prefer T.key directly
+
+  // Resolve the Firestore doc ref for a career entry (legacy 'careers' or 'leads' collection)
+  function careerDocRef(entry) {
+    var col = (entry && entry._col === 'careers') ? 'careers' : 'leads';
+    return db.collection(col).doc(entry.id);
+  }
+  function careerDocRefById(id) {
+    var entry = careers.find(function (c) { return c.id === id; });
+    return careerDocRef(entry || { id: id });
+  }
   function esc(s) { var d = document.createElement('div'); d.textContent = s || ''; return d.innerHTML; }
   function $(id) { return document.getElementById(id); }
 
@@ -138,7 +148,7 @@
     var ids = Array.from(selectedCareerIds);
     var batch = db.batch();
     ids.forEach(function (id) {
-      batch.update(db.collection('careers').doc(id), { status: newStatus, updated_at: new Date() });
+      batch.update(careerDocRefById(id), { status: newStatus, updated_at: new Date() });
     });
 
     batch.commit().then(function () {
@@ -175,7 +185,7 @@
     var ids = Array.from(selectedCareerIds);
     var batch = db.batch();
     ids.forEach(function (id) {
-      batch.update(db.collection('careers').doc(id), { archived: true, status: 'Archived', updated_at: new Date() });
+      batch.update(careerDocRefById(id), { archived: true, status: 'Archived', updated_at: new Date() });
     });
 
     batch.commit().then(function () {
@@ -213,6 +223,8 @@
     loadCareers();
   }
 
+  var spamCleaned = false;
+
   function loadCareers(append) {
     if (!append) {
       careers = [];
@@ -220,28 +232,69 @@
       expandedCareerIds.clear();
     }
 
-    var query = db.collection('careers').orderBy(careerSortField, careerSortDir);
+    // Single source of truth: leads collection (type=careers)
+    db.collection('leads')
+      .where('type', '==', 'careers')
+      .get()
+      .then(function (snap) {
+        snap.forEach(function (doc) {
+          var d = Object.assign({ id: doc.id, _col: 'leads' }, doc.data());
+          careers.push(d);
+        });
 
-    // Only server-side filter by status when not in archived view (no composite indexes needed)
-    if (!showArchivedCareers && careerFilterStatus && careerFilterStatus !== 'Archived') {
-      query = query.where('status', '==', careerFilterStatus);
-    } else if (showArchivedCareers) {
-      query = query.where('status', '==', 'Archived');
-    }
-
-    if (careerLastDoc) query = query.startAfter(careerLastDoc);
+        // Sort client-side
+        careers.sort(function (a, b) {
+          var av = a[careerSortField], bv = b[careerSortField];
+          if (av && av.toDate) av = av.toDate();
+          if (bv && bv.toDate) bv = bv.toDate();
+          if (av < bv) return careerSortDir === 'asc' ? -1 : 1;
+          if (av > bv) return careerSortDir === 'asc' ? 1 : -1;
+          return 0;
+        });
 
     query.limit(PAGE_SIZE).get().then(function (snap) {
       snap.forEach(function (doc) {
         careers.push(Object.assign({ id: doc.id }, doc.data()));
       });
-      careerLastDoc = snap.docs.length ? snap.docs[snap.docs.length - 1] : null;
+      careerLastDoc = null; // No pagination needed — all loaded at once
+
+        // Auto-delete spam: on first load, permanently delete all records that
+        // have gibberish names (no category, no role, no experience) — these are spam.
+        if (!spamCleaned) {
+          spamCleaned = true;
+          var spamIds = [];
+          careers.forEach(function (c) {
+            // Spam indicators: no category AND no role AND no experience
+            if (!c.category && !c.role && !c.experience) {
+              spamIds.push({ id: c.id, col: c._col || 'leads' });
+            }
+          });
+          if (spamIds.length > 0) {
+            console.log('[careers-admin] Deleting ' + spamIds.length + ' spam records…');
+            var batch = db.batch();
+            spamIds.forEach(function (s) {
+              batch.delete(db.collection(s.col).doc(s.id));
+            });
+            batch.commit().then(function () {
+              console.log('[careers-admin] Deleted ' + spamIds.length + ' spam records');
+              // Remove deleted spam from local array
+              var deletedIds = {};
+              spamIds.forEach(function (s) { deletedIds[s.id] = true; });
+              careers = careers.filter(function (c) { return !deletedIds[c.id]; });
+              renderCareersTable();
+              renderCareerStats();
+            }).catch(function (err) {
+              console.error('[careers-admin] Spam cleanup failed:', err);
+            });
+          }
+        }
 
       renderCareersTable();
       renderCareerStats();
 
+      // Hide Load More — everything is already loaded
       var loadMore = $('yb-career-load-more-wrap');
-      if (loadMore) loadMore.hidden = snap.docs.length < PAGE_SIZE;
+      if (loadMore) loadMore.hidden = true;
 
     }).catch(function (err) {
       console.error('[careers-admin] Load error:', err);
@@ -255,12 +308,18 @@
   function getFilteredCareers() {
     var filtered = careers;
 
-    // Filter archived client-side
-    if (!showArchivedCareers) {
-      filtered = filtered.filter(function (c) { return !c.archived; });
+    // Filter archived / status client-side (avoids Firestore composite index requirements)
+    if (showArchivedCareers) {
+      filtered = filtered.filter(function (c) { return c.status === 'Archived' || c.archived; });
+    } else {
+      filtered = filtered.filter(function (c) { return c.status !== 'Archived' && !c.archived; });
     }
 
-    // Client-side category + role + exp filters (not in Firestore query to avoid composite index requirements)
+    if (careerFilterStatus) {
+      filtered = filtered.filter(function (c) { return (c.status || 'New') === careerFilterStatus; });
+    }
+
+    // Client-side category + role + exp filters
     if (careerFilterCategory) {
       filtered = filtered.filter(function (c) {
         return (c.category || '').indexOf(careerFilterCategory) !== -1;
@@ -537,7 +596,7 @@
       author: (firebase.auth().currentUser && firebase.auth().currentUser.email) || 'admin'
     };
 
-    db.collection('careers').doc(currentCareerId).update({
+    careerDocRef(currentCareer).update({
       notes: firebase.firestore.FieldValue.arrayUnion(note),
       updated_at: new Date()
     }).then(function () {
@@ -566,7 +625,7 @@
     var update = { status: newStatus, updated_at: new Date() };
     if (doArchive) update.archived = true;
 
-    db.collection('careers').doc(currentCareerId).update(update).then(function () {
+    careerDocRef(currentCareer).update(update).then(function () {
       currentCareer.status = newStatus;
       if (doArchive) currentCareer.archived = true;
       // Also update in-memory list
@@ -659,14 +718,13 @@
       searchForm.addEventListener('submit', function (e) { e.preventDefault(); });
     }
 
-    // Status filter
+    // Status filter (client-side to avoid composite index requirements)
     var statusFilter = $('yb-career-status-filter');
     if (statusFilter) {
       statusFilter.addEventListener('change', function () {
         careerFilterStatus = statusFilter.value;
-        careers = [];
-        careerLastDoc = null;
-        loadCareers();
+        renderCareersTable();
+        renderCareerStats();
       });
     }
 
@@ -811,29 +869,6 @@
         return;
       }
 
-      // Seed from CSV
-      if (e.target.closest('[data-action="careers-seed"]')) {
-        if (!confirm('Seed careers collection from CSV data? Duplicate emails will be skipped.')) return;
-        firebase.auth().currentUser.getIdToken().then(function (token) {
-          return fetch('/.netlify/functions/careers-seed?confirm=seed', {
-            method: 'POST',
-            headers: { Authorization: 'Bearer ' + token }
-          });
-        }).then(function (r) { return r.json(); }).then(function (data) {
-          if (data.ok) {
-            toast('Seeded: ' + data.added + ' added, ' + data.skipped + ' skipped.');
-            careers = [];
-            careerLastDoc = null;
-            loadCareers();
-          } else {
-            toast(data.error || 'Seed failed.', true);
-          }
-        }).catch(function (err) {
-          toast('Seed error: ' + err.message, true);
-        });
-        return;
-      }
-
       // Export CSV
       if (e.target.closest('[data-action="careers-export-csv"]')) {
         exportCareersCsv();
@@ -846,7 +881,7 @@
         return;
       }
 
-      // Sort by date
+      // Sort by date (client-side sort of loaded data)
       var sortBtn = e.target.closest('[data-career-sort]');
       if (sortBtn) {
         var field = sortBtn.getAttribute('data-career-sort');
@@ -856,22 +891,26 @@
           careerSortField = field;
           careerSortDir = 'desc';
         }
-        careers = [];
-        careerLastDoc = null;
-        loadCareers();
+        careers.sort(function (a, b) {
+          var av = a[field], bv = b[field];
+          if (av && av.toDate) av = av.toDate();
+          if (bv && bv.toDate) bv = bv.toDate();
+          if (av < bv) return careerSortDir === 'asc' ? -1 : 1;
+          if (av > bv) return careerSortDir === 'asc' ? 1 : -1;
+          return 0;
+        });
+        renderCareersTable();
         return;
       }
 
-      // Stats card click — filter by status
+      // Stats card click — filter by status (client-side)
       var statCard = e.target.closest('[data-filter-career-status]');
       if (statCard) {
         var st = statCard.getAttribute('data-filter-career-status');
         careerFilterStatus = st || '';
         var sel = $('yb-career-status-filter');
         if (sel) sel.value = careerFilterStatus;
-        careers = [];
-        careerLastDoc = null;
-        loadCareers();
+        renderCareersTable();
         return;
       }
 

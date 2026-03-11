@@ -49,7 +49,7 @@
       <span class="p18-urgency-bar__deadline">{{ t.urgency_deadline }}</span>
     </div>
     <div class="yb-hero__ctas">
-      <button class="yb-btn yb-btn--primary yb-btn--large" data-checkout-product="100078">{{ t.hero_cta_prep }}</button>
+      <a href="?product=100210" class="yb-btn yb-btn--primary yb-btn--large" data-checkout-product="100210">{{ t.hero_cta_prep }}</a>
       <button onclick="openYBScheduleModal('18w')" class="yb-btn yb-btn--outline-white yb-btn--large">{{ t.hero_cta_schedule }}</button>
     </div>
     <p class="yb-hero__read-more">
@@ -68,6 +68,91 @@
     <div class="yb-hero__scroll-line"></div>
   </div>
 </section>
+
+<!-- ═══════════════════════════════════════
+     1b. COHORT SELECTION — Spring (archive) + Autumn (active)
+     ═══════════════════════════════════════ -->
+<section class="p18-cohorts" id="cohorts">
+  <div class="container">
+    <span class="p18-eyebrow">{{ t.cohort_eyebrow }}</span>
+    <h2 class="p18-section-title">{{ t.cohort_title }}</h2>
+    <p class="p18-section-sub">{{ t.cohort_subtitle }}</p>
+
+    <div class="p18-cohorts__grid">
+
+      <!-- March–June 2026 — Archived / Sold Out -->
+      <div class="p18-cohort-card p18-cohort-card--archive" id="p18-cohort-spring">
+        <div class="p18-cohort-card__header">
+          <h3 class="p18-cohort-card__title">{{ t.cohort_spring_title }}</h3>
+          <span class="p18-cohort-card__badge p18-cohort-card__badge--sold">{{ t.cohort_spring_badge }}</span>
+        </div>
+        <p class="p18-cohort-card__proof">{{ t.cohort_spring_proof }}</p>
+        <p class="p18-cohort-card__proof-detail">{{ t.cohort_spring_proof_detail }}</p>
+
+        <!-- Phase 1: Until mid-April — Join Late + Workshops -->
+        <div class="p18-cohort-spring__phase" data-phase="late">
+          <p class="p18-cohort-card__desc">{{ t.cohort_spring_late_desc }}</p>
+          <button class="yb-btn yb-btn--outline" onclick="openYBScheduleModal('18w-mar')" style="width:100%;margin-bottom:0.75rem">{{ t.cohort_spring_late_cta }}</button>
+          <button class="yb-btn yb-btn--outline" data-open-workshops style="width:100%;margin-bottom:0.75rem">{{ t.cohort_spring_workshop_cta }}</button>
+          <a href="#p18-cohort-autumn" class="p18-cohort-card__redirect">{{ t.cohort_spring_redirect }}</a>
+        </div>
+
+        <!-- Phase 2: Mid-April to end June — Workshops + Redirect -->
+        <div class="p18-cohort-spring__phase" data-phase="workshops" hidden>
+          <p class="p18-cohort-card__desc">{{ t.cohort_spring_workshop_desc }}</p>
+          <button class="yb-btn yb-btn--outline" data-open-workshops style="width:100%;margin-bottom:0.75rem">{{ t.cohort_spring_workshop_cta }}</button>
+          <a href="#p18-cohort-autumn" class="p18-cohort-card__redirect">{{ t.cohort_spring_redirect }}</a>
+        </div>
+
+        <!-- Phase 3: After end June — Informational only -->
+        <div class="p18-cohort-spring__phase" data-phase="ended" hidden>
+          <p class="p18-cohort-card__desc">{{ t.cohort_spring_ended }}</p>
+          <a href="#p18-cohort-autumn" class="p18-cohort-card__redirect">{{ t.cohort_spring_redirect }}</a>
+        </div>
+      </div>
+
+      <!-- August–December 2026 — Active -->
+      <div class="p18-cohort-card p18-cohort-card--active" id="p18-cohort-autumn">
+        <div class="p18-cohort-card__header">
+          <h3 class="p18-cohort-card__title">{{ t.cohort_autumn_title }}</h3>
+          <span class="p18-cohort-card__badge p18-cohort-card__badge--open">{{ t.cohort_autumn_badge }}</span>
+        </div>
+        <p class="p18-cohort-card__desc">{{ t.cohort_autumn_desc }}</p>
+        <ul class="p18-cohort-card__list">
+          <li>{{ t.cohort_autumn_list1 }}</li>
+          <li>{{ t.cohort_autumn_list2 }}</li>
+          <li>{{ t.cohort_autumn_list3 }}</li>
+        </ul>
+        <a href="?product=100210" class="yb-btn yb-btn--cta" data-checkout-product="100210" style="width:100%;margin-bottom:0.75rem">{{ t.cohort_autumn_cta_prep }}</a>
+        <a href="{% if lang == 'en' %}/en/schedule/18-weeks-august/{% else %}/skema/18-uger-august/{% endif %}" class="yb-btn yb-btn--outline" style="width:100%">{{ t.cohort_autumn_cta_schedule }}</a>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- Cohort phase logic — time-based display -->
+<script>
+(function() {
+  var now = new Date();
+  var midApril = new Date(2026, 3, 15);  // April 15, 2026
+  var endJune = new Date(2026, 5, 30);   // June 30, 2026
+
+  var phase;
+  if (now < midApril) {
+    phase = 'late';
+  } else if (now < endJune) {
+    phase = 'workshops';
+  } else {
+    phase = 'ended';
+  }
+
+  var phases = document.querySelectorAll('.p18-cohort-spring__phase');
+  phases.forEach(function(el) {
+    el.hidden = el.getAttribute('data-phase') !== phase;
+  });
+})();
+</script>
 
 <!-- ═══════════════════════════════════════
      2. WHAT YOU LEARN — Lifting Cards
@@ -389,15 +474,31 @@
 
     <!-- Video -->
     <figure class="yb-tracks__video">
-      <div class="yb-tracks__video-container">
-        <video id="tracksVideo" preload="metadata" playsinline>
+      <div class="yb-tracks__video-container" id="tracksVideoWrap">
+        <video id="tracksVideo" preload="metadata" playsinline
+               poster="https://res.cloudinary.com/ddcynsa30/video/upload/so_0,w_1280,f_jpg,q_auto/yoga-bible-DK/programs/testimonial-weekday.jpg">
           <source src="https://res.cloudinary.com/ddcynsa30/video/upload/f_auto,q_auto/yoga-bible-DK/programs/testimonial-weekday.mp4" type="video/mp4">
         </video>
         <div class="yb-tracks__video-overlay" id="tracksVideoOverlay">
           <button class="yb-tracks__video-btn" id="tracksVideoBtn" aria-label="{{ t.tracks_video_play_aria }}">
-            <span>▶</span>
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5.14v14l11-7-11-7z"/></svg>
           </button>
           <span class="yb-tracks__video-label">{{ t.tracks_video_label }}</span>
+        </div>
+        {# Controls bar — visible during playback #}
+        <div class="yb-tracks__controls" id="tracksControls">
+          <button class="yb-tracks__ctrl-btn" id="tracksCtrlPlay" aria-label="Play/Pause">
+            <svg class="yb-tracks__icon-pause" width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M6 4h4v16H6zm8 0h4v16h-4z"/></svg>
+            <svg class="yb-tracks__icon-play" width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5.14v14l11-7-11-7z"/></svg>
+          </button>
+          <span class="yb-tracks__time" id="tracksTime">0:00</span>
+          <div class="yb-tracks__progress" id="tracksProgress">
+            <div class="yb-tracks__progress-fill" id="tracksProgressFill"></div>
+          </div>
+          <span class="yb-tracks__duration" id="tracksDuration">0:00</span>
+          <button class="yb-tracks__ctrl-btn" id="tracksFullscreen" aria-label="Fullscreen">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H5a2 2 0 00-2 2v3m18 0V5a2 2 0 00-2-2h-3m0 18h3a2 2 0 002-2v-3M3 16v3a2 2 0 002 2h3"/></svg>
+          </button>
         </div>
       </div>
       <figcaption class="yb-tracks__video-caption">{{ t.tracks_video_caption }}</figcaption>
@@ -599,7 +700,7 @@
           <span>{{ t.urgency_inline | safe }}</span>
         </div>
         <div class="p4w-early-card__cta">
-          <button class="yb-btn yb-btn--cta" data-checkout-product="100078">{{ t.invest_deposit_cta }}</button>
+          <a href="?product=100210" class="yb-btn yb-btn--cta" data-checkout-product="100210">{{ t.invest_deposit_cta }}</a>
           <div class="p4w-early-card__pricing">
             <span class="p4w-early-card__deposit">{{ t.early_deposit }}</span>
             <span class="p4w-early-card__remainder">{{ t.early_installment }}</span>
@@ -794,7 +895,7 @@
     <p class="p18-final-cta__urgency">{{ t.final_urgency }}</p>
     <div style="display:flex;flex-wrap:wrap;gap:1rem;justify-content:center">
       <button onclick="openYBScheduleModal('18w')" class="btn btn--large btn--primary">{{ t.final_cta }}</button>
-      <button class="yb-btn yb-btn--primary yb-btn--large" data-checkout-product="100078">{{ t.final_prep_cta }}</button>
+      <a href="?product=100210" class="yb-btn yb-btn--primary yb-btn--large" data-checkout-product="100210">{{ t.final_prep_cta }}</a>
     </div>
   </div>
 </section>
@@ -928,13 +1029,35 @@
   var tracksVideo = document.getElementById('tracksVideo');
   var tracksOverlay = document.getElementById('tracksVideoOverlay');
   var tracksPlayBtn = document.getElementById('tracksVideoBtn');
+  var tracksControls = document.getElementById('tracksControls');
+  var tracksCtrlPlay = document.getElementById('tracksCtrlPlay');
+  var tracksProgress = document.getElementById('tracksProgress');
+  var tracksProgressFill = document.getElementById('tracksProgressFill');
+  var tracksTime = document.getElementById('tracksTime');
+  var tracksDuration = document.getElementById('tracksDuration');
+  var tracksFullscreen = document.getElementById('tracksFullscreen');
+  var tracksWrap = document.getElementById('tracksVideoWrap');
+  var controlsTimeout;
 
   if (tracksVideo && tracksOverlay && tracksPlayBtn) {
     tracksVideo.volume = 1.0;
 
+    function fmtTime(s) {
+      var m = Math.floor(s / 60);
+      var sec = Math.floor(s % 60);
+      return m + ':' + (sec < 10 ? '0' : '') + sec;
+    }
+
+    var setPlaying = function(playing) {
+      tracksOverlay.classList.toggle('is-playing', playing);
+      if (tracksControls) tracksControls.classList.toggle('is-visible', playing);
+      if (tracksWrap) tracksWrap.classList.toggle('is-playing', playing);
+    };
+
     var playVideo = function() {
       tracksVideo.play().then(function() {
-        tracksOverlay.classList.add('is-playing');
+        setPlaying(true);
+        showControlsBriefly();
       }).catch(function(err) {
         console.log('Video play failed:', err);
       });
@@ -942,12 +1065,20 @@
 
     var pauseVideo = function() {
       tracksVideo.pause();
-      tracksOverlay.classList.remove('is-playing');
+      setPlaying(false);
     };
 
     var toggleVideo = function() {
       if (tracksVideo.paused) { playVideo(); } else { pauseVideo(); }
     };
+
+    function showControlsBriefly() {
+      if (tracksControls) tracksControls.classList.add('is-visible');
+      clearTimeout(controlsTimeout);
+      controlsTimeout = setTimeout(function() {
+        if (!tracksVideo.paused) tracksControls.classList.remove('is-visible');
+      }, 3000);
+    }
 
     tracksPlayBtn.addEventListener('click', function(e) {
       e.stopPropagation();
@@ -955,14 +1086,60 @@
     });
     tracksOverlay.addEventListener('click', toggleVideo);
     tracksVideo.addEventListener('click', function() {
-      if (!tracksVideo.paused) pauseVideo();
+      toggleVideo();
+      if (!tracksVideo.paused) showControlsBriefly();
     });
     tracksVideo.addEventListener('ended', function() {
-      tracksOverlay.classList.remove('is-playing');
+      setPlaying(false);
     });
     tracksVideo.addEventListener('pause', function() {
-      tracksOverlay.classList.remove('is-playing');
+      setPlaying(false);
     });
+
+    /* Progress + time updates */
+    tracksVideo.addEventListener('loadedmetadata', function() {
+      if (tracksDuration) tracksDuration.textContent = fmtTime(tracksVideo.duration);
+    });
+    tracksVideo.addEventListener('timeupdate', function() {
+      if (!tracksVideo.duration) return;
+      var pct = (tracksVideo.currentTime / tracksVideo.duration) * 100;
+      if (tracksProgressFill) tracksProgressFill.style.width = pct + '%';
+      if (tracksTime) tracksTime.textContent = fmtTime(tracksVideo.currentTime);
+    });
+
+    /* Seek on progress bar click */
+    if (tracksProgress) {
+      tracksProgress.addEventListener('click', function(e) {
+        var rect = tracksProgress.getBoundingClientRect();
+        var pct = (e.clientX - rect.left) / rect.width;
+        tracksVideo.currentTime = pct * tracksVideo.duration;
+      });
+    }
+
+    /* Control bar play/pause */
+    if (tracksCtrlPlay) {
+      tracksCtrlPlay.addEventListener('click', function(e) {
+        e.stopPropagation();
+        toggleVideo();
+      });
+    }
+
+    /* Fullscreen */
+    if (tracksFullscreen && tracksWrap) {
+      tracksFullscreen.addEventListener('click', function(e) {
+        e.stopPropagation();
+        if (tracksWrap.requestFullscreen) tracksWrap.requestFullscreen();
+        else if (tracksWrap.webkitRequestFullscreen) tracksWrap.webkitRequestFullscreen();
+        else if (tracksVideo.webkitEnterFullScreen) tracksVideo.webkitEnterFullScreen();
+      });
+    }
+
+    /* Show controls on mouse move during playback */
+    if (tracksWrap) {
+      tracksWrap.addEventListener('mousemove', function() {
+        if (!tracksVideo.paused) showControlsBriefly();
+      });
+    }
   }
 
   /* ── Visit Gallery Slider ── */

@@ -375,7 +375,7 @@ def _build_18w_welcome(lead):
         '<div style="margin-top:20px;padding:14px;background:#FFFCF9;border-left:3px solid #f75c03;border-radius:4px;">'
         '<strong>Normalpris:</strong> <span style="text-decoration:line-through;color:#999;">23.750 kr.</span> &rarr; <strong style="color:#166534;">22.750 kr.</strong> med last-minute-rabat<br>'
         '<strong>Forberedelsesfasen:</strong> 3.750 kr. sikrer din plads<br>'
-        '<strong>Rest:</strong> 19.000 kr. (kan betales i op til 5 rater)'
+        '<strong>Rest:</strong> 19.000 kr. (fleksibel ratebetaling)'
         '</div>'
     )
     body += _preparation_phase_html(program_page)
@@ -395,7 +395,7 @@ def _build_18w_welcome(lead):
     text += f'Uddannelsesskema og datoer:\n{schedule_url}\n\n'
     text += _program_highlights_plain(['Vælg hverdags- eller weekendspor — skift frit undervejs', 'Online backup hvis du ikke kan møde op', '60 yogaklasser inkluderet'])
     text += '\nNormalpris: 23.750 kr. — din pris med last-minute-rabat: 22.750 kr.\n'
-    text += 'Forberedelsesfasen: 3.750 kr. · Rest: 19.000 kr. (op til 5 rater)\n'
+    text += 'Forberedelsesfasen: 3.750 kr. · Rest: 19.000 kr. (fleksibel ratebetaling)\n'
     text += _preparation_phase_plain(program_page)
     text += f'\nLæs mere: {program_page}\n'
     text += f'Book infomøde: {MEETING_LINK}\n'
@@ -420,7 +420,7 @@ def _build_4w_welcome(lead):
     full_price = '20.750' if is_february else '23.750'
     remaining = '17.000' if is_february else '20.000'
     discount_note = ' (inkl. 3.000 kr. early bird-rabat)' if is_february else ''
-    rate_note = 'kan betales i 2–4 rater'
+    rate_note = 'fleksibel ratebetaling'
 
     body = f'<p>Hej {first_name},</p>'
     body += '<p>Tak fordi du viste interesse for vores <strong>4-ugers intensive 200-timers yogalæreruddannelse</strong>.</p>'
@@ -486,7 +486,7 @@ def _build_8w_welcome(lead):
     if needs_housing:
         body += _accommodation_html(city_country)
 
-    body += _pricing_section_html('23.750', '3.750', '20.000', 'kan betales i 2–4 rater')
+    body += _pricing_section_html('23.750', '3.750', '20.000', 'fleksibel ratebetaling')
     body += _preparation_phase_html(program_page)
     body += f'<p style="margin-top:20px;"><a href="{program_page}" style="color:#f75c03;">Læs mere om 8-ugers programmet</a>'
     body += ' · <a href="https://www.yogabible.dk/om-200hrs-yogalreruddannelser" style="color:#f75c03;">Om vores 200-timers uddannelse</a></p>'
@@ -500,7 +500,7 @@ def _build_8w_welcome(lead):
     text += 'Tak fordi du viste interesse for vores 8-ugers semi-intensive 200-timers yogalæreruddannelse.\n\n'
     text += f'Uddannelsesskema og datoer:\n{schedule_url}\n\n'
     text += _program_highlights_plain(['Online backup hvis du ikke kan møde op'])
-    text += '\nPris: 23.750 kr. (ingen ekstra gebyrer)\nForberedelsesfasen: 3.750 kr.\nRest: 20.000 kr. (kan betales i 2–4 rater)\n\n'
+    text += '\nPris: 23.750 kr. (ingen ekstra gebyrer)\nForberedelsesfasen: 3.750 kr.\nRest: 20.000 kr. (fleksibel ratebetaling)\n\n'
     text += _preparation_phase_plain(program_page)
     text += f'\nLæs mere: {program_page}\n'
     text += f'Book infomøde: {MEETING_LINK}\n'

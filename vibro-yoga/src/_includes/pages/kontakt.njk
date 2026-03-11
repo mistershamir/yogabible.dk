@@ -1,0 +1,68 @@
+{% set t = i18n.kontakt[lang or "da"] %}
+{% set tc = i18n.common[lang or "da"] %}
+{% set lp = "/en" if lang == "en" else "" %}
+
+<section class="vy-hero vy-hero--compact">
+  <div class="vy-hero__bg"><div class="vy-hero__gradient"></div></div>
+  <div class="container vy-hero__content">
+    <p class="vy-hero__tagline">{{ t.hero_eyebrow }}</p>
+    <h1 class="vy-hero__title">{{ t.hero_title }}</h1>
+    <p class="vy-hero__subtitle">{{ t.hero_subtitle }}</p>
+  </div>
+</section>
+
+<section class="section bg-light">
+  <div class="container">
+    <div class="vy-contact vy-reveal">
+      <div class="vy-contact__form-wrap">
+        <h2>{{ t.form_title }}</h2>
+        <form class="vy-contact__form" action="#" method="post">
+          <div class="vy-contact__form-row">
+            <div class="vy-contact__form-group">
+              <label for="c-name">{{ t.form_name }}</label>
+              <input type="text" id="c-name" name="name" required>
+            </div>
+            <div class="vy-contact__form-group">
+              <label for="c-email">{{ t.form_email }}</label>
+              <input type="email" id="c-email" name="email" required>
+            </div>
+          </div>
+          <div class="vy-contact__form-group">
+            <label for="c-subject">{{ t.form_subject }}</label>
+            <input type="text" id="c-subject" name="subject">
+          </div>
+          <div class="vy-contact__form-group">
+            <label for="c-message">{{ t.form_message }}</label>
+            <textarea id="c-message" name="message" rows="6" required></textarea>
+          </div>
+          <button type="submit" class="btn btn--primary btn--large">{{ t.form_submit }}</button>
+        </form>
+      </div>
+
+      <div class="vy-contact__info">
+        <h2>{{ t.info_title }}</h2>
+        <div class="vy-contact__info-item">
+          <h4>{{ t.info_address_label }}</h4>
+          <p>{{ site.address }}</p>
+          <p class="text-muted">{{ t.info_metro }}</p>
+        </div>
+        <div class="vy-contact__info-item">
+          <h4>{{ t.info_phone_label }}</h4>
+          <p><a href="tel:{{ site.phone | replace(' ', '') }}">{{ site.phone }}</a></p>
+        </div>
+        <div class="vy-contact__info-item">
+          <h4>{{ t.info_email_label }}</h4>
+          <p><a href="mailto:{{ site.email }}">{{ site.email }}</a></p>
+        </div>
+        <div class="vy-contact__info-item">
+          <h4>{{ t.info_hours_label }}</h4>
+          <p>{{ t.info_hours_text }}</p>
+        </div>
+        <div class="vy-contact__info-item vy-contact__info-item--highlight">
+          <h4>{{ t.rent_title }}</h4>
+          <p>{{ t.rent_text }}</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>

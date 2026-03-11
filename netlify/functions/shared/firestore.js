@@ -7,24 +7,39 @@ const admin = require('firebase-admin');
 
 let initialized = false;
 
+/**
+ * Read the Firebase private key. Prefers the JS module written at build time
+ * (bundled by esbuild, so the env var can be scoped to "Builds" only and stay
+ * out of the Lambda 4KB env limit). Falls back to the env var for local dev.
+ */
+function getPrivateKey() {
+  try {
+    // Build-time generated module — esbuild bundles this into each function
+    return require('./firebase-key-data');
+  } catch (e) {
+    // Fallback: env var (local dev or if build script didn't run)
+    const key = process.env.FIREBASE_PRIVATE_KEY;
+    if (key) return key.replace(/\\n/g, '\n');
+    return null;
+  }
+}
+
 function initFirebase() {
   if (initialized) return;
 
-  // Use individual env vars to stay under the 4KB Lambda env limit.
-  // Extract these 3 fields from your Firebase service account JSON.
   const projectId = process.env.FIREBASE_PROJECT_ID;
   const clientEmail = process.env.FIREBASE_CLIENT_EMAIL;
-  const privateKey = process.env.FIREBASE_PRIVATE_KEY;
+  const privateKey = getPrivateKey();
 
   if (!projectId || !clientEmail || !privateKey) {
-    throw new Error('Firebase credentials not set. Add FIREBASE_PROJECT_ID, FIREBASE_CLIENT_EMAIL, and FIREBASE_PRIVATE_KEY to Netlify environment variables.');
+    throw new Error('Firebase credentials not set. Need FIREBASE_PROJECT_ID, FIREBASE_CLIENT_EMAIL, and either firebase-key.pem or FIREBASE_PRIVATE_KEY.');
   }
 
   admin.initializeApp({
     credential: admin.credential.cert({
       projectId,
       clientEmail,
-      privateKey: privateKey.replace(/\\n/g, '\n')
+      privateKey
     })
   });
 

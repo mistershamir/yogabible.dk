@@ -257,3 +257,183 @@ def listen_new_leads(callback):
     cutoff = datetime.now(timezone.utc)
     query = db.collection('leads').where('created_at', '>=', cutoff)
     query.on_snapshot(on_snapshot)
+
+
+# ═══════════════════════════════════════════════════════════════════
+# APPOINTMENT TOOLS
+# ═══════════════════════════════════════════════════════════════════
+
+APPT_COLLECTION = 'appointments'
+
+def get_upcoming_appointments(days=7):
+    """Get confirmed/rescheduled appointments in the next N days."""
+    db = get_db()
+    today = datetime.now(timezone.utc).strftime('%Y-%m-%d')
+    future = (datetime.now(timezone.utc) + __import__('datetime').timedelta(days=days)).strftime('%Y-%m-%d')
+
+    appts = []
+    docs = (db.collection(APPT_COLLECTION)
+            .where('status', 'in', ['confirmed', 'rescheduled'])
+            .where('date', '>=', today)
+            .where('date', '<=', future)
+            .stream())
+    for doc in docs:
+        d = doc.to_dict()
+        d['id'] = doc.id
+        appts.append(d)
+
+    appts.sort(key=lambda a: (a.get('date', ''), a.get('time', '')))
+    return appts
+
+
+def get_appointment(appt_id):
+    """Get a single appointment by ID."""
+    db = get_db()
+    doc = db.collection(APPT_COLLECTION).document(appt_id).get()
+    if doc.exists:
+        d = doc.to_dict()
+        d['id'] = doc.id
+        return d
+    return None
+
+
+def find_appointment_by_client(name_or_email):
+    """Find appointments by client name or email."""
+    db = get_db()
+    appts = []
+
+    # Try email first
+    if '@' in (name_or_email or ''):
+        docs = (db.collection(APPT_COLLECTION)
+                .where('client_email', '==', name_or_email.lower().strip())
+                .order_by('date', direction=firestore.Query.DESCENDING)
+                .limit(10)
+                .stream())
+        for doc in docs:
+            d = doc.to_dict()
+            d['id'] = doc.id
+            appts.append(d)
+    else:
+        # Search by name — scan recent appointments
+        docs = (db.collection(APPT_COLLECTION)
+                .order_by('date', direction=firestore.Query.DESCENDING)
+                .limit(100)
+                .stream())
+        search = (name_or_email or '').lower()
+        for doc in docs:
+            d = doc.to_dict()
+            d['id'] = doc.id
+            if search in (d.get('client_name', '') or '').lower():
+                appts.append(d)
+                if len(appts) >= 10:
+                    break
+
+    return appts
+
+
+def update_appointment(appt_id, updates):
+    """Update an appointment document."""
+    db = get_db()
+    updates['updated_at'] = datetime.now(timezone.utc)
+    db.collection(APPT_COLLECTION).document(appt_id).update(updates)
+    return True
+
+
+def cancel_appointment(appt_id, reason=''):
+    """Cancel an appointment."""
+    return update_appointment(appt_id, {
+        'status': 'cancelled',
+        'cancelled_at': datetime.now(timezone.utc).isoformat(),
+        'cancel_reason': reason or 'Cancelled by admin via AI agent'
+    })
+
+
+def reschedule_appointment(appt_id, new_date, new_time):
+    """Reschedule an appointment to a new date/time."""
+    db = get_db()
+    doc = db.collection(APPT_COLLECTION).document(appt_id).get()
+    if not doc.exists:
+        return False
+    old = doc.to_dict()
+    return update_appointment(appt_id, {
+        'date': new_date,
+        'time': new_time,
+        'status': 'rescheduled',
+        'rescheduled_from': f"{old.get('date', '')} {old.get('time', '')}"
+    })
+
+
+def confirm_appointment_request(appt_id, slot_index=None):
+    """Confirm a pending appointment request. Optionally pick a preferred slot."""
+    db = get_db()
+    doc = db.collection(APPT_COLLECTION).document(appt_id).get()
+    if not doc.exists:
+        return {'success': False, 'error': 'Not found'}
+    appt = doc.to_dict()
+    if appt.get('status') != 'pending_request':
+        return {'success': False, 'error': f"Status is {appt.get('status')}, not pending_request"}
+
+    confirmed_date = appt.get('date')
+    confirmed_time = appt.get('time')
+    if appt.get('preferred_slots') and slot_index is not None:
+        slots = appt['preferred_slots']
+        if 0 <= slot_index < len(slots):
+            confirmed_date = slots[slot_index].get('date', confirmed_date)
+            confirmed_time = slots[slot_index].get('time', confirmed_time)
+
+    update_appointment(appt_id, {
+        'status': 'confirmed',
+        'date': confirmed_date,
+        'time': confirmed_time,
+        'confirmed_at': datetime.now(timezone.utc).isoformat()
+    })
+    return {'success': True, 'date': confirmed_date, 'time': confirmed_time}
+
+
+def get_pending_requests():
+    """Get all pending appointment requests awaiting approval."""
+    db = get_db()
+    appts = []
+    docs = (db.collection(APPT_COLLECTION)
+            .where('status', '==', 'pending_request')
+            .stream())
+    for doc in docs:
+        d = doc.to_dict()
+        d['id'] = doc.id
+        appts.append(d)
+    appts.sort(key=lambda a: (a.get('date', ''), a.get('time', '')))
+    return appts
+
+
+def get_todays_appointments():
+    """Get all appointments for today."""
+    db = get_db()
+    today = datetime.now(timezone.utc).strftime('%Y-%m-%d')
+    appts = []
+    docs = (db.collection(APPT_COLLECTION)
+            .where('date', '==', today)
+            .where('status', 'in', ['confirmed', 'rescheduled'])
+            .stream())
+    for doc in docs:
+        d = doc.to_dict()
+        d['id'] = doc.id
+        appts.append(d)
+    appts.sort(key=lambda a: a.get('time', ''))
+    return appts
+
+
+def listen_new_appointments(callback):
+    """Real-time listener for new appointments."""
+    db = get_db()
+
+    def on_snapshot(doc_snapshot, changes, read_time):
+        for change in changes:
+            if change.type.name == 'ADDED':
+                d = change.document.to_dict()
+                d['id'] = change.document.id
+                callback(d)
+
+    cutoff = datetime.now(timezone.utc).isoformat()
+    # Listen for appointments created from now on
+    query = db.collection(APPT_COLLECTION).where('status', 'in', ['confirmed', 'pending_request'])
+    query.on_snapshot(on_snapshot)

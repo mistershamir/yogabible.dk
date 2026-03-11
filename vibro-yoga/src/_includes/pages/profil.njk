@@ -1,0 +1,91 @@
+{% set t = i18n.profil[lang or "da"] %}
+{% set tc = i18n.common[lang or "da"] %}
+{% set lp = "/en" if lang == "en" else "" %}
+
+<section class="vy-hero vy-hero--compact">
+  <div class="vy-hero__bg"><div class="vy-hero__gradient"></div></div>
+  <div class="container vy-hero__content">
+    <p class="vy-hero__tagline">{{ t.hero_eyebrow }}</p>
+    <h1 class="vy-hero__title">{{ t.hero_title }}</h1>
+  </div>
+</section>
+
+<section class="section bg-light">
+  <div class="container">
+    {# Login Form (shown when not authenticated) #}
+    <div class="vy-auth" id="vy-auth-login">
+      <div class="vy-auth__card vy-reveal">
+        <h2>{{ t.login_title }}</h2>
+        <form class="vy-auth__form" id="vy-login-form">
+          <div class="vy-contact__form-group">
+            <label for="login-email">{{ t.login_email }}</label>
+            <input type="email" id="login-email" required>
+          </div>
+          <div class="vy-contact__form-group">
+            <label for="login-password">{{ t.login_password }}</label>
+            <input type="password" id="login-password" required>
+          </div>
+          <button type="submit" class="btn btn--primary btn--large btn--block">{{ t.login_btn }}</button>
+          <p class="vy-auth__links">
+            <a href="#" id="vy-forgot-link">{{ t.login_forgot }}</a>
+            <a href="#" id="vy-register-link">{{ t.login_register }}</a>
+          </p>
+        </form>
+      </div>
+    </div>
+
+    {# Register Form (hidden by default) #}
+    <div class="vy-auth" id="vy-auth-register" style="display:none">
+      <div class="vy-auth__card vy-reveal">
+        <h2>{{ t.register_title }}</h2>
+        <form class="vy-auth__form" id="vy-register-form">
+          <div class="vy-contact__form-row">
+            <div class="vy-contact__form-group">
+              <label for="reg-first">{{ t.register_first }}</label>
+              <input type="text" id="reg-first" required>
+            </div>
+            <div class="vy-contact__form-group">
+              <label for="reg-last">{{ t.register_last }}</label>
+              <input type="text" id="reg-last" required>
+            </div>
+          </div>
+          <div class="vy-contact__form-group">
+            <label for="reg-email">{{ t.register_email }}</label>
+            <input type="email" id="reg-email" required>
+          </div>
+          <div class="vy-contact__form-group">
+            <label for="reg-phone">{{ t.register_phone }}</label>
+            <input type="tel" id="reg-phone">
+          </div>
+          <div class="vy-contact__form-group">
+            <label for="reg-password">{{ t.register_password }}</label>
+            <input type="password" id="reg-password" required>
+          </div>
+          <button type="submit" class="btn btn--primary btn--large btn--block">{{ t.register_btn }}</button>
+          <p class="vy-auth__links">
+            <a href="#" id="vy-login-link">{{ t.register_login }}</a>
+          </p>
+        </form>
+      </div>
+    </div>
+
+    {# Profile Dashboard (hidden by default, shown when authenticated) #}
+    <div id="vy-profile-dashboard" style="display:none">
+      <div class="vy-profile vy-reveal">
+        <div class="vy-profile__section">
+          <h2>{{ t.profile_passes }}</h2>
+          <div class="vy-session-card__placeholder" style="min-height:200px;display:flex;align-items:center;justify-content:center">
+            <p style="color:var(--vy-muted)">Booking history from Mindbody</p>
+          </div>
+        </div>
+        <div class="vy-profile__section">
+          <h2>{{ t.profile_info }}</h2>
+          <div class="vy-session-card__placeholder" style="min-height:200px;display:flex;align-items:center;justify-content:center">
+            <p style="color:var(--vy-muted)">User profile details</p>
+          </div>
+        </div>
+        <button class="btn btn--outline" id="vy-logout-btn">{{ t.profile_logout }}</button>
+      </div>
+    </div>
+  </div>
+</section>
