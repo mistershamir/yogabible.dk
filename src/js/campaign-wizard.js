@@ -30,6 +30,7 @@
       tracks: [],
       cohorts: [],
       paymentStatuses: [],
+      selectedLists: [],    // which list IDs to filter by (empty = all lists)
       recency: null,
       housing: false,
       meta: false,
@@ -76,9 +77,11 @@
     recentCampaignsLoaded: false,
 
     // Email list integration
-    emailLists: [],             // loaded from email-lists API
-    selectedListIds: new Set(), // which lists to include in campaign
-    listsLoaded: false
+    emailLists: [],             // loaded from email-lists API (metadata only)
+    listContacts: [],           // loaded contact records from selected lists
+    selectedListIds: new Set(), // which lists to include in campaign (legacy, used by send)
+    listsLoaded: false,
+    listContactsLoaded: false
   };
 
   /* ══════════════════════════════════════════
@@ -262,6 +265,17 @@
         : (bridge ? bridge.getApplications() || [] : []);
       apps.forEach(function (a) { a._source = 'app'; result.push(a); });
     }
+    // Include email list contacts in the recipient pool
+    if ((src === 'all' || src === 'lists') && campaignState.type === 'email') {
+      var listContacts = campaignState.listContacts || [];
+      var selectedLists = campaignState.filters.selectedLists || [];
+      listContacts.forEach(function (c) {
+        // If specific lists are selected, only include contacts from those lists
+        if (selectedLists.length > 0 && selectedLists.indexOf(c.list_id) === -1) return;
+        c._source = 'list';
+        result.push(c);
+      });
+    }
     return result;
   }
 
@@ -274,8 +288,11 @@
       // Must have contact info
       if (!lead[contactField]) return false;
 
+      // List contacts skip lead-specific filters (status, program, etc.)
+      var isListContact = lead._source === 'list';
+
       // Status filter
-      if (f.statuses.length > 0) {
+      if (!isListContact && f.statuses.length > 0) {
         var matches = false;
         for (var i = 0; i < f.statuses.length; i++) {
           if (matchesStatus(lead, f.statuses[i])) { matches = true; break; }
@@ -283,128 +300,134 @@
         if (!matches) return false;
       }
 
-      // Program filter
-      if (f.programs.length > 0) {
-        var progMatch = false;
-        for (var i = 0; i < f.programs.length; i++) {
-          if (matchesProgramType(lead, f.programs[i])) { progMatch = true; break; }
+      // Lead-specific filters: skip for list contacts
+      if (!isListContact) {
+        // Program filter
+        if (f.programs.length > 0) {
+          var progMatch = false;
+          for (var i = 0; i < f.programs.length; i++) {
+            if (matchesProgramType(lead, f.programs[i])) { progMatch = true; break; }
+          }
+          if (!progMatch) return false;
         }
-        if (!progMatch) return false;
-      }
 
-      // Subtype filter
-      if (f.subtypes.length > 0) {
-        var subMatch = false;
-        for (var i = 0; i < f.subtypes.length; i++) {
-          if (matchesSubtype(lead, f.subtypes[i])) { subMatch = true; break; }
+        // Subtype filter
+        if (f.subtypes.length > 0) {
+          var subMatch = false;
+          for (var i = 0; i < f.subtypes.length; i++) {
+            if (matchesSubtype(lead, f.subtypes[i])) { subMatch = true; break; }
+          }
+          if (!subMatch) return false;
         }
-        if (!subMatch) return false;
-      }
 
-      // Route filter (weekday/weekend)
-      if (f.routes.length > 0) {
-        var routeMatch = false;
-        for (var i = 0; i < f.routes.length; i++) {
-          if (matchesSubtype(lead, f.routes[i])) { routeMatch = true; break; }
+        // Route filter (weekday/weekend)
+        if (f.routes.length > 0) {
+          var routeMatch = false;
+          for (var i = 0; i < f.routes.length; i++) {
+            if (matchesSubtype(lead, f.routes[i])) { routeMatch = true; break; }
+          }
+          if (!routeMatch) return false;
         }
-        if (!routeMatch) return false;
-      }
 
-      // Track filter (applications)
-      // Stored values may be "Hverdagsprogram"/"Weekendprogram" (DA) or "Weekday program"/"Weekend program" (EN)
-      if (f.tracks.length > 0) {
-        var track = String(lead.track || '').toLowerCase();
-        var trackMatch = false;
-        for (var i = 0; i < f.tracks.length; i++) {
-          var fVal = f.tracks[i]; // 'weekday' or 'weekend'
-          if (fVal === 'weekday' && (track === 'weekday' || track.indexOf('hverdag') !== -1 || track.indexOf('weekday') !== -1)) { trackMatch = true; break; }
-          if (fVal === 'weekend' && (track === 'weekend' || track.indexOf('weekend') !== -1)) { trackMatch = true; break; }
+        // Track filter (applications)
+        if (f.tracks.length > 0) {
+          var track = String(lead.track || '').toLowerCase();
+          var trackMatch = false;
+          for (var i = 0; i < f.tracks.length; i++) {
+            var fVal = f.tracks[i];
+            if (fVal === 'weekday' && (track === 'weekday' || track.indexOf('hverdag') !== -1 || track.indexOf('weekday') !== -1)) { trackMatch = true; break; }
+            if (fVal === 'weekend' && (track === 'weekend' || track.indexOf('weekend') !== -1)) { trackMatch = true; break; }
+          }
+          if (!trackMatch) return false;
         }
-        if (!trackMatch) return false;
-      }
 
-      // Cohort filter (applications)
-      if (f.cohorts.length > 0) {
-        var cohort = lead.cohort_label || '';
-        if (f.cohorts.indexOf(cohort) === -1) return false;
-      }
-
-      // Payment status filter (applications)
-      if (f.paymentStatuses.length > 0) {
-        var payChoice = lead.payment_choice || '';
-        if (f.paymentStatuses.indexOf(payChoice) === -1) return false;
-      }
-
-      // Country filter
-      if (f.countries.length > 0) {
-        var country = detectCountry(lead);
-        if (f.countries.indexOf(country) === -1) return false;
-      }
-
-      // Period filter
-      if (f.periods.length > 0) {
-        var preferred = String(lead.preferred_month || lead.cohort || '').toLowerCase();
-        var periodMatch = false;
-        for (var i = 0; i < f.periods.length; i++) {
-          if (preferred.indexOf(f.periods[i]) !== -1) { periodMatch = true; break; }
+        // Cohort filter (applications)
+        if (f.cohorts.length > 0) {
+          var cohort = lead.cohort_label || '';
+          if (f.cohorts.indexOf(cohort) === -1) return false;
         }
-        if (!periodMatch) return false;
-      }
 
-      // Recency filter
-      if (f.recency) {
-        var created = lead.created_at;
-        if (created && created.toDate) created = created.toDate();
-        else if (created) created = new Date(created);
-        if (created) {
-          var now = new Date();
-          var diffDays = Math.floor((now - created) / (1000 * 60 * 60 * 24));
-          if (f.recency === '7d' && diffDays > 7) return false;
-          if (f.recency === '30d' && diffDays > 30) return false;
-          if (f.recency === 'older' && diffDays <= 30) return false;
+        // Payment status filter (applications)
+        if (f.paymentStatuses.length > 0) {
+          var payChoice = lead.payment_choice || '';
+          if (f.paymentStatuses.indexOf(payChoice) === -1) return false;
         }
-      }
 
-      // Housing filter
-      if (f.housing) {
-        var accom = String(lead.accommodation || lead.housing || '').toLowerCase();
-        if (!accom || accom === 'no' || accom === 'nej') return false;
-      }
-
-      // Meta ads filter
-      if (f.meta) {
-        var src = String(lead.source || '').toLowerCase();
-        if (src.indexOf('meta') === -1 && src.indexOf('facebook') === -1 && src.indexOf('instagram') === -1) return false;
-      }
-
-      // Exclude filters
-      if (f.excludeConverted) {
-        var st = String(lead.status || '').toLowerCase();
-        if (st === 'converted' || st.includes('konverteret') || st === 'existing applicant') return false;
-        // Only check application_id for lead records — application docs always have this field as their own ID
-        if (lead._source !== 'app' && lead.application_id) return false;
-      }
-      if (f.excludeNotInterested) {
-        var st2 = String(lead.status || '').toLowerCase();
-        if (st2.includes('not interested') || st2.includes('ikke interesse')) return false;
-      }
-      if (f.excludeBadLeads) {
-        var st3 = String(lead.status || '').toLowerCase();
-        if (st3 === 'lost' || st3 === 'closed' || st3.includes('bad')) return false;
-      }
-      if (f.excludeUnsubscribed) {
-        var st4 = String(lead.status || '').toLowerCase();
-        if (st4 === 'unsubscribed' || st4.includes('afmeld')) return false;
-      }
-      if (f.excludeRecent) {
-        // Check all possible field names for last contact timestamp
-        var lastContact = lead.last_contact || lead.last_contact_at || lead.last_sms_at;
-        if (lastContact) {
-          if (lastContact.toDate) lastContact = lastContact.toDate();
-          else lastContact = new Date(lastContact);
-          var hoursSince = (new Date() - lastContact) / (1000 * 60 * 60);
-          if (hoursSince < 48) return false; // Skip if contacted < 48h ago
+        // Country filter
+        if (f.countries.length > 0) {
+          var country = detectCountry(lead);
+          if (f.countries.indexOf(country) === -1) return false;
         }
+
+        // Period filter
+        if (f.periods.length > 0) {
+          var preferred = String(lead.preferred_month || lead.cohort || '').toLowerCase();
+          var periodMatch = false;
+          for (var i = 0; i < f.periods.length; i++) {
+            if (preferred.indexOf(f.periods[i]) !== -1) { periodMatch = true; break; }
+          }
+          if (!periodMatch) return false;
+        }
+
+        // Recency filter
+        if (f.recency) {
+          var created = lead.created_at;
+          if (created && created.toDate) created = created.toDate();
+          else if (created) created = new Date(created);
+          if (created) {
+            var now = new Date();
+            var diffDays = Math.floor((now - created) / (1000 * 60 * 60 * 24));
+            if (f.recency === '7d' && diffDays > 7) return false;
+            if (f.recency === '30d' && diffDays > 30) return false;
+            if (f.recency === 'older' && diffDays <= 30) return false;
+          }
+        }
+
+        // Housing filter
+        if (f.housing) {
+          var accom = String(lead.accommodation || lead.housing || '').toLowerCase();
+          if (!accom || accom === 'no' || accom === 'nej') return false;
+        }
+
+        // Meta ads filter
+        if (f.meta) {
+          var src = String(lead.source || '').toLowerCase();
+          if (src.indexOf('meta') === -1 && src.indexOf('facebook') === -1 && src.indexOf('instagram') === -1) return false;
+        }
+
+        // Exclude filters
+        if (f.excludeConverted) {
+          var st = String(lead.status || '').toLowerCase();
+          if (st === 'converted' || st.includes('konverteret') || st === 'existing applicant') return false;
+          if (lead._source !== 'app' && lead.application_id) return false;
+        }
+        if (f.excludeNotInterested) {
+          var st2 = String(lead.status || '').toLowerCase();
+          if (st2.includes('not interested') || st2.includes('ikke interesse')) return false;
+        }
+        if (f.excludeBadLeads) {
+          var st3 = String(lead.status || '').toLowerCase();
+          if (st3 === 'lost' || st3 === 'closed' || st3.includes('bad')) return false;
+        }
+        if (f.excludeUnsubscribed) {
+          var st4 = String(lead.status || '').toLowerCase();
+          if (st4 === 'unsubscribed' || st4.includes('afmeld')) return false;
+        }
+        if (f.excludeRecent) {
+          var lastContact = lead.last_contact || lead.last_contact_at || lead.last_sms_at;
+          if (lastContact) {
+            if (lastContact.toDate) lastContact = lastContact.toDate();
+            else lastContact = new Date(lastContact);
+            var hoursSince = (new Date() - lastContact) / (1000 * 60 * 60);
+            if (hoursSince < 48) return false;
+          }
+        }
+      } // end lead-specific filters
+
+      // List contact: skip if unsubscribed/bounced
+      if (isListContact) {
+        var cStatus = String(lead.status || '').toLowerCase();
+        if (cStatus === 'unsubscribed' || cStatus === 'bounced') return false;
       }
 
       // Search term
@@ -469,12 +492,38 @@
       '</div>';
 
     // Data source
-    html += buildChipSection('campaign_filter_source', [
+    var sourceChips = [
       { id: 'all', label: t('campaign_filter_source_all') },
       { id: 'leads', label: t('campaign_filter_source_leads') },
       { id: 'apps', label: t('campaign_filter_source_apps') },
       { id: 'careers', label: t('campaign_filter_source_careers') || 'Careers' }
-    ], [f.source], 'source', true);
+    ];
+    // Add Lists option for email campaigns
+    if (campaignState.type === 'email') {
+      sourceChips.push({ id: 'lists', label: '📋 Lists' });
+    }
+    html += buildChipSection('campaign_filter_source', sourceChips, [f.source], 'source', true);
+
+    // Email Lists filter chips (shown when source is 'all' or 'lists')
+    if (campaignState.type === 'email' && (f.source === 'all' || f.source === 'lists')) {
+      var listChips = campaignState.emailLists.map(function (list) {
+        return { id: list.id, label: '📋 ' + list.name + ' (' + (list.contact_count || 0) + ')' };
+      });
+      if (listChips.length > 0) {
+        html += buildChipSection('EMAIL LISTS', listChips, f.selectedLists, 'selectedLists');
+      } else {
+        html += '<div class="yb-lead__campaign-filter-section">' +
+          '<span class="yb-lead__campaign-filter-label">EMAIL LISTS</span>' +
+          '<div style="color:#6F6A66;font-size:13px;padding:4px 0;">' +
+          (campaignState.listsLoaded ? 'No email lists found. Create lists in the Email Lists tab.' : 'Loading lists...') +
+          '</div></div>';
+      }
+      // Load lists if not loaded yet
+      if (!campaignState.listsLoaded) loadEmailLists();
+    }
+
+    // Show lead/app filters only when not in "lists only" mode
+    if (f.source !== 'lists') {
 
     // Status — chips adapt to the selected data source
     var statusChips;
@@ -615,6 +664,8 @@
     html += '<button type="button" class="yb-lead__campaign-chip' + (f.meta ? ' is-active' : '') + '" data-filter="meta" data-value="toggle">' + t('campaign_filter_meta') + '</button>';
     html += '</div></div>';
 
+    } // end if (f.source !== 'lists')
+
     // Exclude section
     html += '<div class="yb-lead__campaign-filter-section">' +
       '<span class="yb-lead__campaign-filter-label">' + esc(t('campaign_filter_exclude')) + '</span>' +
@@ -699,7 +750,7 @@
     var recipients = campaignState.allRecipients;
     var selectedCount = campaignState.selectedIds.size;
     var contactField = campaignState.type === 'sms' ? 'phone' : 'email';
-    var totalInPool = campaignState.campaignLeads.length + campaignState.campaignApps.length;
+    var totalInPool = campaignState.campaignLeads.length + campaignState.campaignApps.length + (campaignState.listContacts || []).length;
 
     // Header: count + match label on one line
     var totalNote = totalInPool > 0 && totalInPool > recipients.length
@@ -736,9 +787,9 @@
         var initial = (lead.first_name || lead.email || '?').charAt(0).toUpperCase();
         var contact = esc(lead[contactField] || '—');
         var prog = esc(lead.program || lead.type || lead.program_type || '');
-        var status = lead.status || lead._source === 'app' ? (lead.status || 'Applicant') : 'Lead';
-        var badge = getStatusBadge(status);
-        var source = lead._source === 'app' ? 'app' : 'lead';
+        var status = lead._source === 'list' ? 'List Contact' : (lead.status || (lead._source === 'app' ? 'Applicant' : 'Lead'));
+        var badge = lead._source === 'list' ? { bg: '#e8eaf6', color: '#3949ab' } : getStatusBadge(status);
+        var source = lead._source || 'lead';
 
         // Per-lead communication history badges
         var histBadges = '';
@@ -767,6 +818,7 @@
               '<span class="yb-lead__campaign-ri-contact">' + contact + '</span>' +
               (prog ? '<span class="yb-lead__campaign-ri-dot">·</span><span class="yb-lead__campaign-ri-prog">' + prog + '</span>' : '') +
               (source === 'app' ? '<span class="yb-lead__campaign-ri-src">APP</span>' : '') +
+              (source === 'list' ? '<span class="yb-lead__campaign-ri-src" style="background:#e8eaf6;color:#3949ab;">LIST</span>' : '') +
             '</div>' +
           '</div>' +
         '</label>';
@@ -798,16 +850,8 @@
       '</div>';
 
     renderCampaignHistory($('yb-campaign-' + prefix + '-history'));
-    // Email lists section (email campaigns only)
-    if (campaignState.type === 'email') {
-      var listsHtml = '<div class="yb-lead__campaign-lists-section" id="yb-campaign-lists-section">' +
-        '<div class="yb-lead__campaign-filter-label" style="margin-bottom:8px;">&#128203; Email Lists</div>' +
-        '<div id="yb-campaign-lists-area" style="margin-bottom:12px;">' +
-          (campaignState.listsLoaded ? '' : '<span style="color:#6F6A66;">Loading lists...</span>') +
-        '</div>' +
-        '</div>';
-      var histEl = $('yb-campaign-' + prefix + '-history');
-      if (histEl) histEl.insertAdjacentHTML('afterend', listsHtml);
+    // Load email lists for filter chips (email campaigns only)
+    if (campaignState.type === 'email' && !campaignState.listsLoaded) {
       loadEmailLists();
     }
     renderFilterPanel($('yb-campaign-' + prefix + '-filters-area'));
@@ -817,13 +861,6 @@
 
   function updateRecipientBadge() {
     var count = campaignState.selectedIds.size;
-    // Include list contact counts
-    if (campaignState.type === 'email' && campaignState.selectedListIds.size > 0) {
-      campaignState.selectedListIds.forEach(function (id) {
-        var list = campaignState.emailLists.find(function (l) { return l.id === id; });
-        if (list) count += (list.contact_count || 0);
-      });
-    }
     var prefix = campaignState.type === 'sms' ? 'sms' : 'email';
     var badge = $('yb-campaign-' + prefix + '-recipient-badge');
     if (badge) badge.textContent = count > 0 ? count : '';
@@ -1158,26 +1195,24 @@
      SEND TAB
      ══════════════════════════════════════════ */
   function renderSendTab(panelEl) {
-    var selectedCount = campaignState.selectedIds.size;
     var isSMS = campaignState.type === 'sms';
 
-    // Calculate list contact counts
+    // Count leads vs list contacts in selectedIds
+    var leadCount = 0;
     var listContactCount = 0;
-    var listNames = [];
-    if (!isSMS && campaignState.selectedListIds.size > 0) {
-      campaignState.selectedListIds.forEach(function (id) {
-        var list = campaignState.emailLists.find(function (l) { return l.id === id; });
-        if (list) { listContactCount += (list.contact_count || 0); listNames.push(list.name); }
-      });
-    }
-    var grandTotal = selectedCount + listContactCount;
+    campaignState.selectedIds.forEach(function (id) {
+      var r = campaignState.allRecipients.find(function (l) { return l.id === id; });
+      if (r && r._source === 'list') listContactCount++;
+      else leadCount++;
+    });
+    var grandTotal = leadCount + listContactCount;
 
     var html = '<div class="yb-lead__campaign-send-wrap">';
 
     // Summary cards
     var recipientLabel = esc(t('campaign_send_recipients_count'));
     if (listContactCount > 0) {
-      recipientLabel += '<br><small style="font-weight:400;color:#6F6A66;">' + selectedCount + ' leads + ' + listContactCount + ' list contacts</small>';
+      recipientLabel += '<br><small style="font-weight:400;color:#6F6A66;">' + leadCount + ' leads + ' + listContactCount + ' list contacts</small>';
     }
     html += '<div class="yb-lead__campaign-summary-cards">' +
       '<div class="yb-lead__campaign-summary-card">' +
@@ -1485,17 +1520,15 @@
   // sends in Resend batch API calls (100/request). Much faster than looping.
   // Also sends to selected email lists (via listIds).
   function sendAllViaResend(recipients, total) {
-    var leadIds = recipients.filter(function (l) { return l._source !== 'app'; }).map(function (l) { return l.id; });
+    var leadIds = recipients.filter(function (l) { return l._source === 'lead' || l._source === 'career'; }).map(function (l) { return l.id; });
     var appIds = recipients.filter(function (l) { return l._source === 'app'; }).map(function (l) { return l.id; });
-    var listIds = Array.from(campaignState.selectedListIds);
+    // Derive list IDs from selected list contacts in the recipient pool
+    var listContactRecipients = recipients.filter(function (l) { return l._source === 'list'; });
+    var listIdSet = {};
+    listContactRecipients.forEach(function (c) { if (c.list_id) listIdSet[c.list_id] = true; });
+    var listIds = Object.keys(listIdSet);
 
-    // Calculate total including list contacts
-    var listContactCount = 0;
-    listIds.forEach(function (id) {
-      var list = campaignState.emailLists.find(function (l) { return l.id === id; });
-      if (list) listContactCount += (list.contact_count || 0);
-    });
-    var grandTotal = total + listContactCount;
+    var grandTotal = total;
 
     updateProgress(0, grandTotal, 0, 1);
 
@@ -1776,13 +1809,13 @@
           results: results,
           schedule: campaignState.schedule,
           sentAt: sentAt,
-          listIds: Array.from(campaignState.selectedListIds),
-          includesListContacts: campaignState.selectedListIds.size > 0,
+          listIds: getActiveListIds(),
+          includesListContacts: getActiveListIds().length > 0,
           listContactCount: (function () {
             var c = 0;
-            campaignState.selectedListIds.forEach(function (id) {
-              var l = campaignState.emailLists.find(function (x) { return x.id === id; });
-              if (l) c += (l.contact_count || 0);
+            campaignState.selectedIds.forEach(function (id) {
+              var r = campaignState.allRecipients.find(function (l) { return l.id === id; });
+              if (r && r._source === 'list') c++;
             });
             return c;
           })()
@@ -1822,72 +1855,82 @@
     bridge.getAuthToken().then(function (token) {
       return fetch('/.netlify/functions/email-lists', {
         headers: { 'Authorization': 'Bearer ' + token }
-      });
-    }).then(function (r) { return r.json(); })
-      .then(function (data) {
-        if (data.ok && Array.isArray(data.lists)) {
-          campaignState.emailLists = data.lists;
-          campaignState.listsLoaded = true;
-          renderEmailListsSection();
-        }
-      }).catch(function () { /* silent */ });
+      }).then(function (r) { return r.json(); })
+        .then(function (data) {
+          if (data.ok && Array.isArray(data.lists)) {
+            campaignState.emailLists = data.lists;
+            campaignState.listsLoaded = true;
+            // Re-render filter panel to show list chips
+            var prefix = campaignState.type;
+            var filterArea = $('yb-campaign-' + prefix + '-filters-area');
+            if (filterArea) renderFilterPanel(filterArea);
+            var listEl = $('yb-campaign-' + prefix + '-recipients-list');
+            if (listEl) renderRecipientList(listEl);
+            updateRecipientBadge();
+          }
+          // Now load all contacts from all lists in background
+          return loadAllListContacts(token, data.lists || []);
+        });
+    }).catch(function () { /* silent */ });
   }
 
-  function renderEmailListsSection() {
-    var area = $('yb-campaign-lists-area');
-    if (!area) return;
-
-    var lists = campaignState.emailLists;
-    if (lists.length === 0) {
-      area.innerHTML = '<span style="color:#6F6A66;">No email lists found. Create lists in the Email Lists tab.</span>';
-      return;
+  function loadAllListContacts(token, lists) {
+    if (!lists || lists.length === 0) {
+      campaignState.listContacts = [];
+      campaignState.listContactsLoaded = true;
+      return Promise.resolve();
     }
-
-    var html = '<div class="yb-lead__campaign-lists-grid">';
-    lists.forEach(function (list) {
-      var checked = campaignState.selectedListIds.has(list.id) ? ' checked' : '';
-      var count = list.contact_count || 0;
-      var tags = (list.tags || []).slice(0, 3).map(function (t) {
-        return '<span class="yb-el__tag" style="font-size:11px;">' + esc(t) + '</span>';
-      }).join(' ');
-      html += '<label class="yb-lead__campaign-list-card' + (checked ? ' is-selected' : '') + '">' +
-        '<input type="checkbox" class="yb-lead__campaign-list-cb" data-list-id="' + list.id + '"' + checked + '>' +
-        '<div class="yb-lead__campaign-list-info">' +
-          '<strong>' + esc(list.name) + '</strong>' +
-          '<span style="color:#6F6A66;font-size:13px;">' + count + ' contacts</span>' +
-          (tags ? '<div>' + tags + '</div>' : '') +
-        '</div>' +
-      '</label>';
+    // Fetch contacts for each list in parallel
+    var fetches = lists.map(function (list) {
+      return fetch('/.netlify/functions/email-lists?id=' + list.id + '&contacts=1', {
+        headers: { 'Authorization': 'Bearer ' + token }
+      }).then(function (r) { return r.json(); })
+        .then(function (data) {
+          if (data.ok && data.list && Array.isArray(data.list.contacts)) {
+            return data.list.contacts.map(function (c) {
+              c.list_id = list.id;
+              c._listName = list.name;
+              return c;
+            });
+          }
+          return [];
+        }).catch(function () { return []; });
     });
-    html += '</div>';
-
-    var listCount = 0;
-    var listContacts = 0;
-    campaignState.selectedListIds.forEach(function (id) {
-      var l = lists.find(function (x) { return x.id === id; });
-      if (l) { listCount++; listContacts += (l.contact_count || 0); }
-    });
-    if (listCount > 0) {
-      html += '<div class="yb-lead__campaign-lists-summary">' +
-        '&#9993; ' + listCount + ' list' + (listCount > 1 ? 's' : '') + ' selected (' + listContacts + ' contacts will receive this campaign in addition to selected leads)' +
-        '</div>';
-    }
-
-    area.innerHTML = html;
-
-    // Bind checkbox events
-    area.querySelectorAll('.yb-lead__campaign-list-cb').forEach(function (cb) {
-      cb.addEventListener('change', function () {
-        var listId = cb.getAttribute('data-list-id');
-        if (cb.checked) {
-          campaignState.selectedListIds.add(listId);
-        } else {
-          campaignState.selectedListIds.delete(listId);
-        }
-        renderEmailListsSection();
+    return Promise.all(fetches).then(function (results) {
+      var all = [];
+      results.forEach(function (contacts) { all = all.concat(contacts); });
+      campaignState.listContacts = all;
+      campaignState.listContactsLoaded = true;
+      // Re-render if still on recipients tab
+      var prefix = campaignState.type;
+      var listEl = $('yb-campaign-' + prefix + '-recipients-list');
+      if (listEl) {
+        applyFilters();
+        renderRecipientList(listEl);
         updateRecipientBadge();
-      });
+      }
     });
+  }
+
+  // Helper: get active list IDs from filter chips (replaces old selectedListIds)
+  function getActiveListIds() {
+    var f = campaignState.filters;
+    var src = f.source;
+    if (src !== 'all' && src !== 'lists') return [];
+    // If selectedLists has entries, use those; otherwise all lists are included
+    if (f.selectedLists && f.selectedLists.length > 0) return f.selectedLists.slice();
+    // When source is 'lists' or 'all' and no specific lists selected, include all
+    return campaignState.emailLists.map(function (l) { return l.id; });
+  }
+
+  function getActiveListContactCount() {
+    var ids = getActiveListIds();
+    var count = 0;
+    ids.forEach(function (id) {
+      var list = campaignState.emailLists.find(function (l) { return l.id === id; });
+      if (list) count += (list.contact_count || 0);
+    });
+    return count;
   }
 
   /* ══════════════════════════════════════════
@@ -2030,8 +2073,10 @@
     campaignState.recentCampaigns = [];
     campaignState.recentCampaignsLoaded = false;
     campaignState.emailLists = [];
+    campaignState.listContacts = [];
     campaignState.selectedListIds = new Set();
     campaignState.listsLoaded = false;
+    campaignState.listContactsLoaded = false;
   }
 
   /* ══════════════════════════════════════════
@@ -2391,9 +2436,13 @@
       chip.parentElement.querySelectorAll('.yb-lead__campaign-chip').forEach(function (c) {
         c.classList.toggle('is-active', c.getAttribute('data-value') === value);
       });
-      // When source changes between leads/apps, clear statuses so stale chips don't persist
+      // When source changes, clear stale filters and re-render
       if (filterKey === 'source' && value !== prevSource) {
         f.statuses = [];
+        // Clear selectedLists when leaving lists mode
+        if (prevSource === 'lists' && value !== 'lists' && value !== 'all') {
+          f.selectedLists = [];
+        }
         var prefix = campaignState.type;
         var panel = document.querySelector('#yb-campaign-' + prefix + '-modal .yb-lead__campaign-panel[data-panel="recipients"]');
         if (panel) { renderRecipientsTab(panel); return; }
@@ -2595,12 +2644,18 @@
   // Open email campaign pre-targeted at a specific email list
   function openEmailCampaignForList(list) {
     openEmailCampaign([]);
-    // Pre-select the list after wizard opens
+    // Pre-select the list in filters after wizard opens
     setTimeout(function () {
       if (list && list.id) {
-        campaignState.selectedListIds.add(list.id);
-        renderEmailListsSection();
-        updateRecipientBadge();
+        campaignState.filters.source = 'lists';
+        campaignState.filters.selectedLists = [list.id];
+        // Re-render recipients tab with the list pre-selected
+        var prefix = campaignState.type;
+        var modal = $('yb-campaign-' + prefix + '-modal');
+        if (modal) {
+          var panelEl = modal.querySelector('.yb-lead__campaign-panel[data-panel="recipients"]');
+          if (panelEl) renderRecipientsTab(panelEl);
+        }
       }
     }, 300);
   }

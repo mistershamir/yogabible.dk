@@ -85,6 +85,11 @@
     }
   });
 
+  // Campaign reports state
+  var campaigns = [];
+  var currentCampaign = null;
+  var campaignsLoaded = false;
+
   /* ═══════════════════════════════════════════
      EVENT HANDLERS
      ═══════════════════════════════════════════ */
@@ -104,6 +109,14 @@
       case 'el-add-contact':    openContactModal(); break;
       case 'el-export-csv':     exportCSV(); break;
       case 'el-send-to-list':   sendToList(); break;
+      // Sub-navigation
+      case 'el-subnav':         switchSubnav(action.getAttribute('data-subnav')); break;
+      // Campaign reports
+      case 'el-new-campaign':   if (window.openEmailCampaign) window.openEmailCampaign([]); break;
+      case 'el-refresh-campaigns': loadCampaigns(); break;
+      case 'el-campaign-back':  showCampaignList(); break;
+      case 'el-campaign-resend-opened': resendToCampaignAudience('opened'); break;
+      case 'el-campaign-resend-noopen': resendToCampaignAudience('not_opened'); break;
     }
 
     // Row actions
@@ -115,6 +128,10 @@
     var contactId = action.getAttribute('data-contact-id');
     if (a === 'el-delete-contact' && contactId) deleteContact(contactId);
     if (a === 'el-tag-contact' && contactId) tagContact(contactId);
+
+    // Campaign row actions
+    var campaignId = action.getAttribute('data-campaign-id');
+    if (a === 'el-view-campaign' && campaignId) openCampaignDetail(campaignId);
 
     // Pagination
     if (a === 'el-page') {
@@ -723,11 +740,9 @@
      ═══════════════════════════════════════════ */
   function sendToList() {
     if (!currentList) { toast('No list selected', true); return; }
-    // Bridge to campaign wizard — pass list info
     if (window.openEmailCampaignForList) {
       window.openEmailCampaignForList(currentList);
     } else if (window.openEmailCampaign) {
-      // Fallback: open campaign wizard with notification
       toast('List send mode: ' + currentList.name + ' (' + (currentList.contact_count || 0) + ' contacts). Select recipients from campaign wizard.');
       window.openEmailCampaign([]);
     } else {
@@ -735,4 +750,261 @@
     }
   }
 
+  /* ═══════════════════════════════════════════
+     SUB-NAVIGATION (Lists / Campaign Reports)
+     ═══════════════════════════════════════════ */
+  function switchSubnav(target) {
+    var btns = document.querySelectorAll('.yb-el__subnav-btn');
+    btns.forEach(function (b) {
+      b.classList.toggle('is-active', b.getAttribute('data-subnav') === target);
+    });
+
+    var listsSec = $('yb-el-sec-lists');
+    var campSec = $('yb-el-sec-campaigns');
+    if (listsSec) listsSec.hidden = (target !== 'lists');
+    if (campSec) campSec.hidden = (target !== 'campaigns');
+
+    if (target === 'campaigns' && !campaignsLoaded) {
+      loadCampaigns();
+    }
+  }
+
+  /* ═══════════════════════════════════════════
+     CAMPAIGN REPORTS
+     ═══════════════════════════════════════════ */
+  function loadCampaigns() {
+    var tbody = $('yb-el-campaign-tbody');
+    if (tbody) tbody.innerHTML = '<tr><td colspan="8" class="yb-admin__empty">Loading campaigns...</td></tr>';
+
+    getToken().then(function (token) {
+      return fetch('/.netlify/functions/campaign-log?limit=50&tracking=1', {
+        headers: { 'Authorization': 'Bearer ' + token }
+      });
+    }).then(function (r) { return r.json(); })
+      .then(function (data) {
+        if (data.ok) {
+          campaigns = data.campaigns || [];
+          campaignsLoaded = true;
+          renderCampaignList();
+          updateCampaignStats();
+        }
+      }).catch(function (err) {
+        toast('Failed to load campaigns: ' + err.message, true);
+      });
+  }
+
+  function renderCampaignList() {
+    var tbody = $('yb-el-campaign-tbody');
+    if (!tbody) return;
+
+    if (campaigns.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="8" class="yb-admin__empty">No campaigns sent yet. Start by sending an email campaign.</td></tr>';
+      return;
+    }
+
+    var html = '';
+    campaigns.forEach(function (c) {
+      var results = c.results || {};
+      var sent = results.sent || c.recipientCount || 0;
+      var tracking = c.tracking || {};
+      var openRate = tracking.open_rate || 0;
+      var clickRate = tracking.click_rate || 0;
+      var date = (c.sentAt || c.createdAt || '').substring(0, 16).replace('T', ' ');
+      var typeLabel = c.type === 'sms' ? '<span style="background:#e1f5fe;color:#0277bd;padding:2px 8px;border-radius:10px;font-size:11px;">SMS</span>'
+        : '<span style="background:#fce4ec;color:#c62828;padding:2px 8px;border-radius:10px;font-size:11px;">Email</span>';
+
+      html += '<tr>' +
+        '<td><a href="#" data-action="el-view-campaign" data-campaign-id="' + c.id + '" style="color:#f75c03;font-weight:600;">' + esc(c.subject || '(no subject)') + '</a></td>' +
+        '<td>' + typeLabel + '</td>' +
+        '<td>' + sent + '</td>' +
+        '<td>' + (results.sent || 0) + ' / ' + (results.failed || 0) + '</td>' +
+        '<td>' + (tracking.unique_opens || '—') + (openRate ? ' <small style="color:#6F6A66;">(' + openRate + '%)</small>' : '') + '</td>' +
+        '<td>' + (tracking.unique_clicks || '—') + (clickRate ? ' <small style="color:#6F6A66;">(' + clickRate + '%)</small>' : '') + '</td>' +
+        '<td style="color:#6F6A66;font-size:13px;">' + esc(date) + '</td>' +
+        '<td><button class="yb-btn yb-btn--outline yb-btn--xs" data-action="el-view-campaign" data-campaign-id="' + c.id + '">Details</button></td>' +
+        '</tr>';
+    });
+
+    tbody.innerHTML = html;
+  }
+
+  function updateCampaignStats() {
+    var totalEl = $('yb-el-cstat-total');
+    var emailsEl = $('yb-el-cstat-emails');
+    var avgOpenEl = $('yb-el-cstat-avgopen');
+    var avgClickEl = $('yb-el-cstat-avgclick');
+
+    if (totalEl) totalEl.textContent = campaigns.length;
+
+    var totalEmails = 0;
+    var openRateSum = 0;
+    var clickRateSum = 0;
+    var trackedCount = 0;
+
+    campaigns.forEach(function (c) {
+      var results = c.results || {};
+      totalEmails += (results.sent || c.recipientCount || 0);
+      var tracking = c.tracking || {};
+      if (tracking.open_rate !== undefined) {
+        openRateSum += tracking.open_rate;
+        clickRateSum += (tracking.click_rate || 0);
+        trackedCount++;
+      }
+    });
+
+    if (emailsEl) emailsEl.textContent = totalEmails.toLocaleString();
+    if (avgOpenEl) avgOpenEl.textContent = trackedCount > 0 ? Math.round(openRateSum / trackedCount) + '%' : '—';
+    if (avgClickEl) avgClickEl.textContent = trackedCount > 0 ? Math.round(clickRateSum / trackedCount) + '%' : '—';
+  }
+
+  function openCampaignDetail(campaignId) {
+    // Show loading state
+    var listView = $('yb-el-v-campaign-list');
+    var detailView = $('yb-el-v-campaign-detail');
+    if (listView) listView.hidden = true;
+    if (detailView) detailView.hidden = false;
+
+    var title = $('yb-el-campaign-detail-title');
+    if (title) title.textContent = 'Loading...';
+
+    getToken().then(function (token) {
+      return fetch('/.netlify/functions/campaign-log?id=' + campaignId, {
+        headers: { 'Authorization': 'Bearer ' + token }
+      });
+    }).then(function (r) { return r.json(); })
+      .then(function (data) {
+        if (data.ok && data.campaign) {
+          currentCampaign = data.campaign;
+          renderCampaignDetail(data.campaign);
+        } else {
+          toast('Campaign not found', true);
+          showCampaignList();
+        }
+      }).catch(function (err) {
+        toast('Error: ' + err.message, true);
+        showCampaignList();
+      });
+  }
+
+  function renderCampaignDetail(campaign) {
+    var title = $('yb-el-campaign-detail-title');
+    if (title) title.textContent = campaign.subject || '(no subject)';
+
+    var results = campaign.results || {};
+    var tracking = campaign.tracking || {};
+    var sent = results.sent || campaign.recipientCount || 0;
+
+    // Stats cards
+    var statsEl = $('yb-el-campaign-detail-stats');
+    if (statsEl) {
+      statsEl.innerHTML =
+        '<div class="yb-admin__stat-card"><span class="yb-admin__stat-value">' + sent + '</span><span class="yb-admin__stat-label">Sent</span></div>' +
+        '<div class="yb-admin__stat-card"><span class="yb-admin__stat-value">' + (results.failed || 0) + '</span><span class="yb-admin__stat-label">Failed</span></div>' +
+        '<div class="yb-admin__stat-card"><span class="yb-admin__stat-value">' + (tracking.unique_opens || 0) + ' <small style="font-size:0.7em;color:#6F6A66;">(' + (tracking.open_rate || 0) + '%)</small></span><span class="yb-admin__stat-label">Unique Opens</span></div>' +
+        '<div class="yb-admin__stat-card"><span class="yb-admin__stat-value">' + (tracking.total_opens || 0) + '</span><span class="yb-admin__stat-label">Total Opens</span></div>' +
+        '<div class="yb-admin__stat-card"><span class="yb-admin__stat-value">' + (tracking.unique_clicks || 0) + ' <small style="font-size:0.7em;color:#6F6A66;">(' + (tracking.click_rate || 0) + '%)</small></span><span class="yb-admin__stat-label">Unique Clicks</span></div>' +
+        '<div class="yb-admin__stat-card"><span class="yb-admin__stat-value">' + (tracking.total_clicks || 0) + '</span><span class="yb-admin__stat-label">Total Clicks</span></div>' +
+        '<div class="yb-admin__stat-card"><span class="yb-admin__stat-value">' + (results.skipped || 0) + '</span><span class="yb-admin__stat-label">Skipped</span></div>' +
+        '<div class="yb-admin__stat-card"><span class="yb-admin__stat-value">' + esc((campaign.sentAt || campaign.createdAt || '').substring(0, 16).replace('T', ' ')) + '</span><span class="yb-admin__stat-label">Sent At</span></div>';
+    }
+
+    // Open/Click timeline
+    var timelineEl = $('yb-el-campaign-timeline');
+    if (timelineEl) {
+      var openTimeline = tracking.open_timeline || {};
+      var clickTimeline = tracking.click_timeline || {};
+      var allDays = Object.keys(openTimeline).concat(Object.keys(clickTimeline));
+      allDays = allDays.filter(function (d, i) { return allDays.indexOf(d) === i; }).sort();
+
+      if (allDays.length > 0) {
+        var maxVal = 0;
+        allDays.forEach(function (d) {
+          maxVal = Math.max(maxVal, openTimeline[d] || 0, clickTimeline[d] || 0);
+        });
+
+        var html = '<h4 style="margin-bottom:8px;">Engagement Timeline</h4>';
+        html += '<div class="yb-el__timeline-chart">';
+        allDays.forEach(function (day) {
+          var opens = openTimeline[day] || 0;
+          var clicks = clickTimeline[day] || 0;
+          var openPct = maxVal > 0 ? Math.round((opens / maxVal) * 100) : 0;
+          var clickPct = maxVal > 0 ? Math.round((clicks / maxVal) * 100) : 0;
+          html += '<div class="yb-el__timeline-day">' +
+            '<div class="yb-el__timeline-bars">' +
+            '<div class="yb-el__timeline-bar yb-el__timeline-bar--open" style="height:' + openPct + '%" title="Opens: ' + opens + '"></div>' +
+            '<div class="yb-el__timeline-bar yb-el__timeline-bar--click" style="height:' + clickPct + '%" title="Clicks: ' + clicks + '"></div>' +
+            '</div>' +
+            '<span class="yb-el__timeline-label">' + day.substring(5) + '</span>' +
+            '</div>';
+        });
+        html += '</div>';
+        html += '<div style="display:flex;gap:16px;font-size:12px;color:#6F6A66;margin-top:6px;">' +
+          '<span><span style="display:inline-block;width:10px;height:10px;background:#f75c03;border-radius:2px;margin-right:4px;"></span>Opens</span>' +
+          '<span><span style="display:inline-block;width:10px;height:10px;background:#3949ab;border-radius:2px;margin-right:4px;"></span>Clicks</span>' +
+          '</div>';
+        timelineEl.innerHTML = html;
+      } else {
+        timelineEl.innerHTML = '<p style="color:#6F6A66;font-size:13px;">No engagement data yet. It may take time for opens/clicks to register.</p>';
+      }
+    }
+
+    // Click URL breakdown
+    var clicksEl = $('yb-el-campaign-clicks');
+    if (clicksEl) {
+      var clickUrls = tracking.click_urls || {};
+      var urls = Object.keys(clickUrls);
+      if (urls.length > 0) {
+        urls.sort(function (a, b) { return clickUrls[b] - clickUrls[a]; });
+        var html = '<h4 style="margin-bottom:8px;">Click Breakdown</h4>';
+        html += '<div class="yb-admin__table-wrap"><table class="yb-admin__table"><thead><tr><th>URL</th><th>Clicks</th></tr></thead><tbody>';
+        urls.forEach(function (url) {
+          var displayUrl = url.length > 60 ? url.substring(0, 57) + '...' : url;
+          html += '<tr><td><a href="' + esc(url) + '" target="_blank" style="color:#f75c03;">' + esc(displayUrl) + '</a></td><td><strong>' + clickUrls[url] + '</strong></td></tr>';
+        });
+        html += '</tbody></table></div>';
+        clicksEl.innerHTML = html;
+      } else {
+        clicksEl.innerHTML = '';
+      }
+    }
+
+    // Campaign metadata
+    var contactsEl = $('yb-el-campaign-contacts');
+    if (contactsEl) {
+      var meta = [];
+      if (campaign.sentBy) meta.push('Sent by: ' + esc(campaign.sentBy));
+      if (campaign.schedule && campaign.schedule !== 'now') meta.push('Scheduled: ' + esc(campaign.schedule));
+      if (campaign.includesListContacts) meta.push('Includes list contacts: ' + (campaign.listContactCount || 0));
+      if (campaign.templateId) meta.push('Template: ' + esc(campaign.templateId));
+
+      contactsEl.innerHTML = meta.length > 0
+        ? '<h4 style="margin-bottom:8px;">Campaign Details</h4><div style="color:#6F6A66;font-size:13px;">' + meta.join(' &middot; ') + '</div>'
+        : '';
+    }
+  }
+
+  function showCampaignList() {
+    var listView = $('yb-el-v-campaign-list');
+    var detailView = $('yb-el-v-campaign-detail');
+    if (listView) listView.hidden = false;
+    if (detailView) detailView.hidden = true;
+    currentCampaign = null;
+  }
+
+  function resendToCampaignAudience(audience) {
+    if (!currentCampaign) { toast('No campaign selected', true); return; }
+    if (!window.openEmailCampaign) { toast('Campaign wizard not loaded', true); return; }
+
+    // Store campaign engagement data for the campaign wizard to use as a filter
+    window._ybRetargetCampaign = {
+      campaignId: currentCampaign.id,
+      audience: audience, // 'opened', 'not_opened', 'clicked'
+      subject: currentCampaign.subject
+    };
+
+    toast('Opening campaign wizard with ' + (audience === 'opened' ? 'openers' : 'non-openers') + ' from "' + (currentCampaign.subject || 'campaign') + '"');
+    window.openEmailCampaign([]);
+  }
+
 })();
+

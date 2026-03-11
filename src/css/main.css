@@ -16750,6 +16750,38 @@ button.yb-btn--outline-white:hover {
   font-size: 13px; color: #2E7D32;
 }
 
+/* Campaign Management sub-nav */
+.yb-el__subnav {
+  display: flex; gap: 0; margin-bottom: 1.5rem; border-bottom: 2px solid #E8E4E0;
+}
+.yb-el__subnav-btn {
+  padding: 10px 20px; border: none; background: none; cursor: pointer;
+  font-size: 14px; font-weight: 600; color: #6F6A66; font-family: inherit;
+  border-bottom: 2px solid transparent; margin-bottom: -2px; transition: color 0.2s, border-color 0.2s;
+}
+.yb-el__subnav-btn:hover { color: #0F0F0F; }
+.yb-el__subnav-btn.is-active { color: #f75c03; border-bottom-color: #f75c03; }
+.yb-el__section[hidden] { display: none; }
+
+/* Campaign timeline chart */
+.yb-el__timeline-chart {
+  display: flex; align-items: flex-end; gap: 4px; height: 120px; padding: 0 4px;
+  border-bottom: 1px solid #E8E4E0;
+}
+.yb-el__timeline-day {
+  flex: 1; display: flex; flex-direction: column; align-items: center; min-width: 28px;
+}
+.yb-el__timeline-bars {
+  display: flex; gap: 2px; align-items: flex-end; width: 100%; height: 100px;
+  justify-content: center;
+}
+.yb-el__timeline-bar {
+  width: 8px; min-height: 2px; border-radius: 2px 2px 0 0; transition: height 0.3s ease;
+}
+.yb-el__timeline-bar--open { background: #f75c03; }
+.yb-el__timeline-bar--click { background: #3949ab; }
+.yb-el__timeline-label { font-size: 10px; color: #6F6A66; margin-top: 4px; }
+
 /* Enrollment */
 .yb-admin__enroll-form { display: flex; gap: 0.5rem; margin-bottom: 1rem; }
 .yb-admin__enroll-form input {
