@@ -27,6 +27,7 @@ const { getDb } = require('./shared/firestore');
 const { sendAdminNotification } = require('./shared/email-service');
 const { sendWelcomeSMS } = require('./shared/sms-service');
 const { sendWelcomeEmail } = require('./shared/lead-emails');
+const { sendLeadEvent } = require('./shared/meta-events');
 
 const GRAPH_API_VERSION = 'v21.0';
 const TOKEN_SECRET = process.env.UNSUBSCRIBE_SECRET || 'yb-appt-secret';
@@ -234,7 +235,7 @@ async function processLeadgenChange(value) {
   const emailAction = yttTypeToAction(lead.ytt_program_type);
   console.log(`[fb-leads] Email action for type "${lead.ytt_program_type}": ${emailAction}`);
 
-  // Fire notifications in parallel — same as lead.js
+  // Fire notifications + Meta CAPI event in parallel — same as lead.js
   await Promise.all([
     process.env.GMAIL_APP_PASSWORD
       ? sendAdminNotification(lead).catch(e => console.error('[fb-leads] Admin email failed:', e.message))
@@ -245,7 +246,9 @@ async function processLeadgenChange(value) {
       : Promise.resolve(),
     process.env.GATEWAYAPI_TOKEN && phone
       ? sendWelcomeSMS(lead, docRef.id).catch(e => console.error('[fb-leads] SMS failed:', e.message))
-      : Promise.resolve()
+      : Promise.resolve(),
+    // Report Lead event back to Meta CAPI + Offline Event Set for closed-loop attribution
+    sendLeadEvent(lead, docRef.id).catch(e => console.error('[fb-leads] Meta CAPI event failed:', e.message))
   ]);
 }
 

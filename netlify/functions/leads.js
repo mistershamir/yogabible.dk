@@ -12,6 +12,7 @@
 const { getDb } = require('./shared/firestore');
 const { requireAuth } = require('./shared/auth');
 const { jsonResponse, optionsResponse } = require('./shared/utils');
+const { sendLeadStatusEvent } = require('./shared/meta-events');
 
 exports.handler = async (event) => {
   if (event.httpMethod === 'OPTIONS') return optionsResponse();
@@ -153,7 +154,15 @@ async function update(db, event, user) {
 
   await docRef.update(updates);
   const updated = await docRef.get();
-  return jsonResponse(200, { ok: true, lead: { id: updated.id, ...updated.data() } });
+  const updatedLead = { id: updated.id, ...updated.data() };
+
+  // Send Meta CAPI event for trackable status changes (Qualified, Converted, etc.)
+  if (updates.status || updates.converted !== undefined) {
+    sendLeadStatusEvent(updatedLead, data.id, updates)
+      .catch(e => console.error('[leads] Meta CAPI status event failed:', e.message));
+  }
+
+  return jsonResponse(200, { ok: true, lead: updatedLead });
 }
 
 async function remove(db, event) {
