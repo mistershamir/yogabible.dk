@@ -7271,6 +7271,7 @@ section {
   align-items: center;
   overflow: hidden;
   background: #0F0F0F;
+  padding: 0;
 }
 
 .yb-cph-cinema__bg {
