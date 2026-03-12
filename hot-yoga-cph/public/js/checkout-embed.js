@@ -21,7 +21,7 @@
   var BRAND_RGBA04 = 'rgba(63,153,165,.04)';
   var API_BASE     = 'https://profile.hotyogacph.dk/.netlify/functions';
   var PROFILE_URL  = 'https://profile.hotyogacph.dk';
-  var FIREBASE_VER = '10.14.1';
+  var FIREBASE_VER = '12.10.0';
   var FIREBASE_CDN = 'https://www.gstatic.com/firebasejs/' + FIREBASE_VER;
 
   // Firebase config — placeholders replaced at Netlify build time
