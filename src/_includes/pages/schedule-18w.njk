@@ -104,7 +104,10 @@
           </div>
         </div>
       </div>
-      <figcaption style="font-size:.72rem;color:#6F6A66;padding:8px 4px 0;text-align:left;">{{ t.videoCaption }}</figcaption>
+      <figcaption style="display:flex;align-items:center;gap:6px;font-size:.72rem;color:#6F6A66;padding:10px 4px 0;">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#f75c03" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>
+        <span>{{ t.videoCaption }}</span>
+      </figcaption>
     </figure>
   </div>
   <script>
@@ -162,8 +165,18 @@
           </div>
           {% endfor %}
         </div>
+
+        {# Specific dates #}
+        <div style="margin-top:18px;padding-top:14px;border-top:1px dashed #E8E4E0;">
+          <p style="font-size:.82rem;font-weight:700;margin:0 0 2px;">{{ t.conflictSpecificLabel }}</p>
+          <p style="font-size:.72rem;color:#6F6A66;margin:0 0 10px;">{{ t.conflictSpecificHint }}</p>
+          <div id="s18w-specific-dates" style="display:flex;flex-direction:column;gap:6px;"></div>
+          <button type="button" onclick="s18wAddSpecificDate()" style="margin-top:8px;background:none;border:1.5px dashed #E8E4E0;border-radius:10px;padding:8px 16px;font-size:.78rem;font-weight:600;color:#f75c03;cursor:pointer;font-family:inherit;transition:border-color .2s;" onmouseenter="this.style.borderColor='#f75c03'" onmouseleave="this.style.borderColor='#E8E4E0'">{{ t.conflictAddDate }}</button>
+        </div>
+
         <button onclick="s18wCheckConflicts()" style="margin-top:16px;background:#f75c03;color:#fff;border:none;padding:12px 24px;border-radius:50px;font-size:.88rem;font-weight:600;cursor:pointer;font-family:inherit;transition:background .2s;" onmouseenter="this.style.background='#d94f02'" onmouseleave="this.style.background='#f75c03'">{{ t.conflictBtn }}</button>
         <div id="s18w-conflict-results" style="display:none;margin-top:16px;"></div>
+        <p style="font-size:.75rem;color:#6F6A66;margin:16px 0 0;line-height:1.5;">{{ t.conflictNote | safe }}</p>
       </div>
     </details>
   </div>
@@ -678,6 +691,47 @@
     else { row.style.background = 'transparent'; times.style.opacity = '.3'; times.style.pointerEvents = 'none'; }
   };
 
+  /* ── Specific date rows ─────────────────────── */
+  var s18wDateCounter = 0;
+  {% if lang == "en" %}
+  var s18wFromLabel = 'from'; var s18wToLabel = 'to';
+  {% else %}
+  var s18wFromLabel = 'fra'; var s18wToLabel = 'til';
+  {% endif %}
+  window.s18wAddSpecificDate = function() {
+    var wrap = document.getElementById('s18w-specific-dates');
+    if (!wrap) return;
+    var id = 's18w-sd-' + (s18wDateCounter++);
+    var row = document.createElement('div');
+    row.id = id;
+    row.className = 's18w-specific-row';
+    row.style.cssText = 'display:flex;align-items:center;gap:8px;padding:8px 12px;border-radius:12px;background:#F5F3F0;flex-wrap:wrap;';
+    row.innerHTML =
+      '<input type="date" class="s18w-sd-date" style="border:1px solid #E8E4E0;border-radius:8px;padding:5px 8px;font-family:inherit;font-size:.8rem;flex:1;min-width:130px;">' +
+      '<span style="color:#6F6A66;font-size:.75rem;">' + s18wFromLabel + '</span>' +
+      '<input type="time" value="09:00" class="s18w-sd-from" style="border:1px solid #E8E4E0;border-radius:8px;padding:5px 8px;font-family:inherit;font-size:.8rem;width:90px;">' +
+      '<span style="color:#6F6A66;font-size:.75rem;">' + s18wToLabel + '</span>' +
+      '<input type="time" value="17:00" class="s18w-sd-to" style="border:1px solid #E8E4E0;border-radius:8px;padding:5px 8px;font-family:inherit;font-size:.8rem;width:90px;">' +
+      '<button type="button" onclick="this.parentElement.remove()" style="background:none;border:none;cursor:pointer;padding:4px;color:#6F6A66;font-size:1.1rem;line-height:1;" aria-label="Remove">&times;</button>';
+    wrap.appendChild(row);
+  };
+  /* Add one row by default */
+  s18wAddSpecificDate();
+
+  /* ── Specific dates → get entries ──────────── */
+  function s18wGetSpecificDates() {
+    var entries = [];
+    document.querySelectorAll('.s18w-specific-row').forEach(function(row) {
+      var dateVal = row.querySelector('.s18w-sd-date').value;
+      if (!dateVal) return;
+      var from = row.querySelector('.s18w-sd-from').value || '09:00';
+      var to = row.querySelector('.s18w-sd-to').value || '17:00';
+      var d = new Date(dateVal + 'T12:00:00');
+      entries.push({ dow: d.getDay(), s: s18wTimeMin(from), e: s18wTimeMin(to) });
+    });
+    return entries;
+  }
+
   /* ── Conflict checker ──────────────────────── */
   var s18wSchedule = [
     {dow:1,s:'10:00',e:'15:00',r:'weekday'},{dow:3,s:'10:00',e:'15:00',r:'weekday'},
@@ -697,7 +751,7 @@
     });
     return slots;
   }
-  function s18wCount(route, busySlots) {
+  function s18wCount(route, busySlots, specificDates) {
     var days = s18wSchedule.filter(function(d) { return d.r === route || d.r === 'shared'; });
     var c = 0;
     days.forEach(function(d) {
@@ -705,19 +759,31 @@
       if (!slot) return;
       if (s18wTimeMin(d.s) < slot.e && s18wTimeMin(d.e) > slot.s) c++;
     });
-    return { total: days.length, conflicts: c, clear: days.length - c };
+    /* specific date conflicts: check if date's dow matches any scheduled dow + time overlap */
+    var sc = 0;
+    if (specificDates && specificDates.length) {
+      specificDates.forEach(function(sd) {
+        days.forEach(function(d) {
+          if (sd.dow === d.dow && sd.s < s18wTimeMin(d.e) && sd.e > s18wTimeMin(d.s)) sc++;
+        });
+      });
+    }
+    return { total: days.length, conflicts: c, specificConflicts: sc, clear: days.length - c };
   }
   window.s18wCheckConflicts = function() {
     var busySlots = s18wGetBusySlots();
+    var specificDates = s18wGetSpecificDates();
     var el = document.getElementById('s18w-conflict-results');
     if (!el) return;
     el.style.display = 'block';
-    var wd = s18wCount('weekday', busySlots);
-    var wec = s18wCount('weekend', busySlots);
+    var wd = s18wCount('weekday', busySlots, specificDates);
+    var wec = s18wCount('weekend', busySlots, specificDates);
     var wdPct = Math.round((wd.clear / wd.total) * 100);
     var wePct = Math.round((wec.clear / wec.total) * 100);
-    var wdBest = wd.conflicts < wec.conflicts;
-    var weBest = wec.conflicts < wd.conflicts;
+    var wdTotal = wd.conflicts + wd.specificConflicts;
+    var weTotal = wec.conflicts + wec.specificConflicts;
+    var wdBest = wdTotal < weTotal;
+    var weBest = weTotal < wdTotal;
     {% if lang == "en" %}
     var wdName = 'Weekday Track'; var weName = 'Weekend Track';
     var bestMatch = 'Best match'; var conflictsOf = 'conflicts out of';
@@ -732,20 +798,24 @@
     if (wdBest) html += '<span style="position:absolute;top:-10px;left:50%;transform:translateX(-50%);background:#2ecc71;color:#fff;padding:3px 12px;border-radius:50px;font-size:.68rem;font-weight:700;">'+bestMatch+'</span>';
     html += '<p style="font-weight:700;font-size:.85rem;margin-bottom:4px;">'+wdName+'</p>';
     html += '<p style="font-size:2.2rem;font-weight:700;'+(wd.conflicts===0?'color:#2ecc71;':'color:#0F0F0F;')+'">'+wd.conflicts+'</p>';
+    if (wd.specificConflicts>0) html += '<p style="font-size:.68rem;color:#f75c03;margin-top:6px;">+'+wd.specificConflicts+' {{ t.conflictSpecificHits }}</p>';
     html += '<p style="font-size:.75rem;color:#6F6A66;">'+conflictsOf+' '+wd.total+'</p>';
     html += '<div style="background:#E8E4E0;border-radius:50px;height:6px;overflow:hidden;margin-top:10px;"><div style="background:#2ecc71;height:100%;width:'+wdPct+'%;border-radius:50px;"></div></div></div>';
     html += '<div style="background:'+(weBest?'#f0fff0':'#fff')+';border:2px solid '+(weBest?'#2ecc71':'#E8E4E0')+';border-radius:12px;padding:16px;text-align:center;position:relative;">';
     if (weBest) html += '<span style="position:absolute;top:-10px;left:50%;transform:translateX(-50%);background:#2ecc71;color:#fff;padding:3px 12px;border-radius:50px;font-size:.68rem;font-weight:700;">'+bestMatch+'</span>';
     html += '<p style="font-weight:700;font-size:.85rem;margin-bottom:4px;">'+weName+'</p>';
     html += '<p style="font-size:2.2rem;font-weight:700;'+(wec.conflicts===0?'color:#2ecc71;':'color:#0F0F0F;')+'">'+wec.conflicts+'</p>';
+    if (wec.specificConflicts>0) html += '<p style="font-size:.68rem;color:#f75c03;margin-top:6px;">+'+wec.specificConflicts+' {{ t.conflictSpecificHits }}</p>';
     html += '<p style="font-size:.75rem;color:#6F6A66;">'+conflictsOf+' '+wec.total+'</p>';
     html += '<div style="background:#E8E4E0;border-radius:50px;height:6px;overflow:hidden;margin-top:10px;"><div style="background:#2ecc71;height:100%;width:'+wePct+'%;border-radius:50px;"></div></div></div>';
     html += '</div>';
-    if (wd.conflicts===0 && wec.conflicts===0) {
+    var totalWd = wd.conflicts + wd.specificConflicts;
+    var totalWe = wec.conflicts + wec.specificConflicts;
+    if (totalWd===0 && totalWe===0) {
       html += '<div style="background:#f0fff0;border:1px solid #c3e6c3;border-radius:12px;padding:16px;text-align:center;margin-top:12px;"><p style="font-weight:700;color:#2ecc71;">'+bothFit+'</p></div>';
     } else {
       var bestName2 = wdBest ? wdName : weName;
-      var bestCount = Math.min(wd.conflicts, wec.conflicts);
+      var bestCount = Math.min(wdTotal, weTotal);
       {% if lang == "en" %}
       var rec = 'Use '+bestName2+' as your base'+(bestCount>0?' and swap the '+bestCount+' conflicting weeks to the other track':'');
       {% else %}
