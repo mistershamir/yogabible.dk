@@ -438,13 +438,18 @@
                   return auth.signInWithEmailAndPassword(email, password)
                     .then(function() { closeAuthModal(); });
                 }
-                // Account exists in Firebase — wrong password
+                // Account exists in Firebase — wrong password. Auto-send reset email.
                 if (data.hasFirebaseAccount) {
+                  fetch('/.netlify/functions/send-password-reset', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email: email, lang: detectLocale() })
+                  }).catch(function() {});
                   if (errorEl) {
                     var isDaLoc = detectLocale() === 'da';
                     errorEl.innerHTML = isDaLoc
-                      ? 'Forkert adgangskode. <a href="#" data-yb-auth-switch="reset" style="color:inherit;font-weight:700;text-decoration:underline">Nulstil adgangskode &rarr;</a>'
-                      : 'Incorrect password. <a href="#" data-yb-auth-switch="reset" style="color:inherit;font-weight:700;text-decoration:underline">Reset password &rarr;</a>';
+                      ? 'Forkert adgangskode. Vi har sendt en email til <strong>' + email + '</strong> s\u00e5 du kan nulstille din adgangskode. Tjek din indbakke (og spam).'
+                      : 'Incorrect password. We\u2019ve sent an email to <strong>' + email + '</strong> to reset your password. Check your inbox (and spam).';
                     errorEl.style.color = '';
                     errorEl.hidden = false;
                   }

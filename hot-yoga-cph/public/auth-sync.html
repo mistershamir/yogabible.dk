@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html><head><meta charset="utf-8"><title>Auth Sync</title></head>
+<body>
+<!--
+  Shared auth-sync bridge for Hot Yoga CPH.
+  Loaded as a hidden iframe by login-cta.js and checkout-embed.js.
+  Since this iframe has origin profile.hotyogacph.dk, it has reliable
+  localStorage access (unlike srcdoc Framer embeds with null origin).
+  It relays auth tokens between sibling iframes via postMessage.
+-->
+<script>
+(function () {
+  var KEY = 'hyc_auth_token';
+  var listeners = [];
+
+  // Accept messages from any origin (Framer embeds have null origin)
+  window.addEventListener('message', function (e) {
+    if (!e.data || e.data.type !== 'hyc-auth-sync') return;
+
+    if (e.data.action === 'login' && e.data.idToken) {
+      try { localStorage.setItem(KEY, e.data.idToken); } catch (x) {}
+      // Relay to all other listeners
+      broadcast({ type: 'hyc-auth-sync', action: 'login', idToken: e.data.idToken }, e.source);
+    } else if (e.data.action === 'logout') {
+      try { localStorage.removeItem(KEY); } catch (x) {}
+      broadcast({ type: 'hyc-auth-sync', action: 'logout' }, e.source);
+    } else if (e.data.action === 'query') {
+      // A new iframe is asking: "is anyone logged in?"
+      var token = null;
+      try { token = localStorage.getItem(KEY); } catch (x) {}
+      if (token && e.source) {
+        e.source.postMessage({ type: 'hyc-auth-sync', action: 'login', idToken: token }, '*');
+      }
+    }
+
+    // Track message sources so we can relay
+    if (e.source && listeners.indexOf(e.source) === -1) {
+      listeners.push(e.source);
+    }
+  });
+
+  // Also react to storage events (cross-tab sync)
+  window.addEventListener('storage', function (e) {
+    if (e.key !== KEY) return;
+    if (e.newValue) {
+      broadcast({ type: 'hyc-auth-sync', action: 'login', idToken: e.newValue }, null);
+    } else {
+      broadcast({ type: 'hyc-auth-sync', action: 'logout' }, null);
+    }
+  });
+
+  function broadcast(msg, excludeSource) {
+    for (var i = listeners.length - 1; i >= 0; i--) {
+      try {
+        if (listeners[i] !== excludeSource) {
+          listeners[i].postMessage(msg, '*');
+        }
+      } catch (x) {
+        // Dead frame — remove
+        listeners.splice(i, 1);
+      }
+    }
+  }
+})();
+</script>
+</body>
+</html>
