@@ -3610,6 +3610,10 @@ section {
     flex-direction: column;
     gap: 4px;
   }
+
+  .yb-hero__scroll {
+    display: none;
+  }
 }
 
 /* ── Hero responsive: mobile ── */
@@ -3652,11 +3656,7 @@ section {
   }
 
   .yb-hero__scroll {
-    bottom: 12px;
-  }
-
-  .yb-hero__scroll-line {
-    height: 20px;
+    display: none;
   }
 }
 
