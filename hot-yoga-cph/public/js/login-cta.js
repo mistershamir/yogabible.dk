@@ -653,7 +653,18 @@
                   });
                   return;
                 }
-                // Not in MB or already has Firebase account — show error
+                // Account exists in Firebase — wrong password
+                if (data.hasFirebaseAccount) {
+                  errorEl.innerHTML = t(
+                    'Forkert adgangskode. <a href="#" onclick="return false" id="hyc-err-forgot" style="color:inherit;font-weight:700;text-decoration:underline">Nulstil adgangskode \u2192</a>',
+                    'Incorrect password. <a href="#" onclick="return false" id="hyc-err-forgot" style="color:inherit;font-weight:700;text-decoration:underline">Reset password \u2192</a>'
+                  );
+                  errorEl.classList.add('is-visible');
+                  var forgotLinkPw = targetDoc.getElementById('hyc-err-forgot');
+                  if (forgotLinkPw) forgotLinkPw.addEventListener('click', function () { openModal('auth-forgot'); });
+                  return;
+                }
+                // Not in MB — show generic error
                 errorEl.innerHTML = t(
                   'Vi kunne ikke finde en konto med disse oplysninger. Allerede klient hos os? <a href="#" onclick="return false" id="hyc-err-register" style="color:inherit;font-weight:700;text-decoration:underline">Opret profil</a> med samme email som du booker med. Har du allerede en konto her? <a href="#" onclick="return false" id="hyc-err-forgot" style="color:inherit;font-weight:700;text-decoration:underline">Nulstil adgangskode \u2192</a>',
                   'We couldn\'t find an account with these details. Already a client? <a href="#" onclick="return false" id="hyc-err-register" style="color:inherit;font-weight:700;text-decoration:underline">Create a profile</a> with the same email you book with. Already have one here? <a href="#" onclick="return false" id="hyc-err-forgot" style="color:inherit;font-weight:700;text-decoration:underline">Reset password \u2192</a>'
