@@ -28,6 +28,7 @@ const { sendAdminNotification } = require('./shared/email-service');
 const { sendWelcomeSMS } = require('./shared/sms-service');
 const { sendWelcomeEmail } = require('./shared/lead-emails');
 const { sendLeadEvent } = require('./shared/meta-events');
+const { triggerNewLeadSequences } = require('./shared/sequence-trigger');
 
 const GRAPH_API_VERSION = 'v21.0';
 const TOKEN_SECRET = process.env.UNSUBSCRIBE_SECRET || 'yb-appt-secret';
@@ -248,7 +249,9 @@ async function processLeadgenChange(value) {
       ? sendWelcomeSMS(lead, docRef.id).catch(e => console.error('[fb-leads] SMS failed:', e.message))
       : Promise.resolve(),
     // Report Lead event back to Meta CAPI + Offline Event Set for closed-loop attribution
-    sendLeadEvent(lead, docRef.id).catch(e => console.error('[fb-leads] Meta CAPI event failed:', e.message))
+    sendLeadEvent(lead, docRef.id).catch(e => console.error('[fb-leads] Meta CAPI event failed:', e.message)),
+    // Auto-enroll in matching sequences
+    triggerNewLeadSequences(docRef.id, lead).catch(e => console.error('[fb-leads] Sequence trigger failed:', e.message))
   ]);
 }
 

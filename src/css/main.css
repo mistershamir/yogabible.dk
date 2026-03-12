@@ -16692,6 +16692,142 @@ button.yb-btn--outline-white:hover {
 .yb-kb__editor-actions { display: flex; align-items: center; gap: 0.75rem; margin-top: 1rem; }
 .yb-kb__delete-btn { color: #dc2626 !important; margin-left: auto; }
 
+/* ── Sequence Automation Admin (yb-seq__) ────────────────────────── */
+.yb-seq__toolbar { margin-bottom: 0; }
+.yb-seq__list { display: flex; flex-direction: column; gap: 1rem; }
+.yb-seq__card {
+  background: #fff; border: 1px solid #E8E4E0; border-radius: 12px;
+  padding: 1.25rem; transition: box-shadow 0.2s;
+}
+.yb-seq__card:hover { box-shadow: 0 4px 16px rgba(0,0,0,0.06); }
+.yb-seq__card-header { margin-bottom: 0.75rem; }
+.yb-seq__card-title-row { display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.25rem; }
+.yb-seq__card-title { font-size: 1.05rem; font-weight: 700; margin: 0; }
+.yb-seq__card-desc { font-size: 0.85rem; color: #6F6A66; margin: 0; }
+.yb-seq__status {
+  display: inline-block; padding: 2px 10px; border-radius: 999px;
+  font-size: 12px; font-weight: 600; white-space: nowrap;
+}
+.yb-seq__status--active { background: #E8F5E9; color: #2E7D32; }
+.yb-seq__status--inactive { background: #FFF3E0; color: #E65100; }
+.yb-seq__card-meta {
+  display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap;
+  font-size: 0.8rem; color: #6F6A66; margin-bottom: 0.75rem;
+}
+.yb-seq__meta-sep { color: #E8E4E0; }
+.yb-seq__card-actions { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+
+/* Builder */
+.yb-seq__builder-header { display: flex; align-items: center; gap: 1rem; margin-bottom: 1.5rem; }
+.yb-seq__builder-header h3 { margin: 0; font-size: 1.1rem; }
+.yb-seq__fieldset {
+  border: 1px solid #E8E4E0; border-radius: 12px; padding: 1.25rem;
+  margin: 1.25rem 0;
+}
+.yb-seq__fieldset legend {
+  font-size: 0.85rem; font-weight: 700; text-transform: uppercase;
+  letter-spacing: 0.04em; color: #6F6A66; padding: 0 0.5rem;
+}
+.yb-seq__trigger-row { display: flex; gap: 1.25rem; flex-wrap: wrap; margin-bottom: 0.75rem; }
+.yb-seq__radio-label { display: flex; align-items: center; gap: 0.35rem; font-size: 0.9rem; cursor: pointer; }
+.yb-seq__trigger-conditions { margin-top: 0.75rem; padding-top: 0.75rem; border-top: 1px dashed #E8E4E0; }
+.yb-seq__exit-checks { display: flex; gap: 1.25rem; flex-wrap: wrap; }
+.yb-seq__builder-actions {
+  display: flex; align-items: center; gap: 0.75rem; margin-top: 1.5rem;
+  padding-top: 1rem; border-top: 1px solid #E8E4E0;
+}
+.yb-seq__delete-btn { color: #dc2626 !important; margin-left: auto; }
+
+/* Steps builder */
+.yb-seq__steps { position: relative; padding-left: 1.5rem; }
+.yb-seq__steps::before {
+  content: ''; position: absolute; left: 9px; top: 16px; bottom: 16px;
+  width: 2px; background: #E8E4E0;
+}
+.yb-seq__step {
+  position: relative; background: #FFFCF9; border: 1px solid #E8E4E0;
+  border-radius: 10px; margin-bottom: 1rem; overflow: hidden;
+}
+.yb-seq__step-header {
+  display: flex; align-items: center; gap: 0.75rem;
+  padding: 0.75rem 1rem; background: #F5F3F0; border-bottom: 1px solid #E8E4E0;
+}
+.yb-seq__step-dot {
+  width: 12px; height: 12px; border-radius: 50%;
+  background: #f75c03; flex-shrink: 0;
+  position: relative; z-index: 1;
+}
+.yb-seq__step-label { font-weight: 700; font-size: 0.9rem; }
+.yb-seq__step-header-right { margin-left: auto; display: flex; gap: 0.25rem; }
+.yb-seq__step-move {
+  background: none; border: 1px solid #E8E4E0; border-radius: 4px;
+  width: 28px; height: 28px; cursor: pointer; font-size: 10px;
+  display: flex; align-items: center; justify-content: center;
+  color: #6F6A66; transition: border-color 0.2s;
+}
+.yb-seq__step-move:hover { border-color: #f75c03; color: #f75c03; }
+.yb-seq__step-remove {
+  background: none; border: 1px solid #E8E4E0; border-radius: 4px;
+  width: 28px; height: 28px; cursor: pointer; font-size: 16px;
+  display: flex; align-items: center; justify-content: center;
+  color: #dc2626; transition: border-color 0.2s;
+}
+.yb-seq__step-remove:hover { border-color: #dc2626; background: #FEF2F2; }
+.yb-seq__step-body { padding: 1rem; }
+.yb-seq__step-body .yb-admin__field { margin-bottom: 0.75rem; }
+.yb-seq__step-body textarea {
+  width: 100%; border: 1px solid #E8E4E0; border-radius: 8px;
+  padding: 0.6rem 0.75rem; font-family: monospace; font-size: 0.85rem;
+  resize: vertical; transition: border-color 0.2s;
+}
+.yb-seq__step-body textarea:focus { border-color: #f75c03; outline: none; box-shadow: 0 0 0 3px rgba(247,92,3,0.12); }
+.yb-seq__delay-row { display: flex; align-items: center; gap: 0.5rem; }
+.yb-seq__delay-input {
+  width: 70px; border: 1px solid #E8E4E0; border-radius: 8px;
+  padding: 0.45rem 0.5rem; text-align: center; font-size: 0.9rem;
+}
+.yb-seq__delay-input:focus { border-color: #f75c03; outline: none; }
+.yb-seq__add-step-btn { margin-top: 0.5rem; margin-left: 1.5rem; }
+
+/* Enrollments */
+.yb-seq__enroll-bar {
+  display: flex; gap: 0.75rem; margin-bottom: 1rem; align-items: center;
+}
+.yb-seq__enroll-input {
+  flex: 1; border: 1px solid #f75c03; border-radius: 12px;
+  padding: 0.55rem 1rem; font-size: 0.9rem;
+}
+.yb-seq__enroll-input:focus { outline: none; box-shadow: 0 0 0 3px rgba(247,92,3,0.12); }
+.yb-seq__lead-results {
+  background: #F5F3F0; border-radius: 10px; padding: 0.75rem;
+  margin-bottom: 1rem; max-height: 300px; overflow-y: auto;
+}
+.yb-seq__lead-result-list { display: flex; flex-direction: column; gap: 0.5rem; }
+.yb-seq__lead-result-item {
+  display: flex; align-items: center; justify-content: space-between;
+  background: #fff; border-radius: 8px; padding: 0.6rem 0.75rem;
+  border: 1px solid #E8E4E0;
+}
+.yb-seq__enroll-status {
+  display: inline-block; padding: 2px 10px; border-radius: 999px;
+  font-size: 12px; font-weight: 600;
+}
+.yb-seq__enroll-status--active { background: #E8F5E9; color: #2E7D32; }
+.yb-seq__enroll-status--paused { background: #FFF3E0; color: #E65100; }
+.yb-seq__enroll-status--completed { background: #E3F2FD; color: #1565C0; }
+.yb-seq__enroll-status--exited { background: #F5F3F0; color: #6F6A66; }
+
+/* Responsive */
+@media (max-width: 640px) {
+  .yb-seq__card-meta { flex-direction: column; gap: 0.25rem; }
+  .yb-seq__meta-sep { display: none; }
+  .yb-seq__trigger-row { flex-direction: column; }
+  .yb-seq__exit-checks { flex-direction: column; }
+  .yb-seq__delay-row { flex-wrap: wrap; }
+  .yb-seq__enroll-bar { flex-direction: column; }
+  .yb-seq__builder-actions { flex-wrap: wrap; }
+}
+
 /* ── Email Lists Admin (yb-el__) ─────────────────────────────────── */
 .yb-el__toolbar { margin-bottom: 0; }
 .yb-el__stats { margin-bottom: 1.5rem; }
@@ -21069,6 +21205,145 @@ details[open] .yb-lead__campaign-history-toggle::before { transform: rotate(90de
   transition: all 0.15s;
 }
 .yb-lead__campaign-archive-btn:hover { border-color: #f75c03; }
+
+/* Newsletter save form (inline) */
+.yb-lead__campaign-newsletter-save-form {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin-top: 0.5rem;
+}
+.yb-lead__campaign-newsletter-name-input {
+  flex: 1;
+  padding: 0.35rem 0.6rem;
+  border: 1px solid #E8E4E0;
+  border-radius: 8px;
+  font-size: 0.78rem;
+  font-family: inherit;
+  outline: none;
+  transition: border-color 0.15s;
+}
+.yb-lead__campaign-newsletter-name-input:focus { border-color: #f75c03; }
+.yb-lead__campaign-newsletter-save-btn { white-space: nowrap; }
+.yb-lead__campaign-newsletter-cancel-btn {
+  background: none;
+  border: none;
+  font-size: 1.1rem;
+  cursor: pointer;
+  color: #6F6A66;
+  padding: 0 0.3rem;
+  line-height: 1;
+}
+.yb-lead__campaign-newsletter-cancel-btn:hover { color: #0F0F0F; }
+
+/* Newsletter picker panel */
+.yb-lead__campaign-newsletter-picker {
+  margin-top: 0.5rem;
+  border: 1px solid #E8E4E0;
+  border-radius: 10px;
+  background: #FFFCF9;
+  overflow: hidden;
+}
+.yb-lead__campaign-newsletter-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.5rem 0.75rem;
+  border-bottom: 1px solid #E8E4E0;
+  background: #F5F3F0;
+}
+.yb-lead__campaign-newsletter-title {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #0F0F0F;
+}
+.yb-lead__campaign-newsletter-close {
+  background: none;
+  border: none;
+  font-size: 1.1rem;
+  cursor: pointer;
+  color: #6F6A66;
+  line-height: 1;
+  padding: 0 0.2rem;
+}
+.yb-lead__campaign-newsletter-close:hover { color: #0F0F0F; }
+.yb-lead__campaign-newsletter-search {
+  width: 100%;
+  padding: 0.45rem 0.75rem;
+  border: none;
+  border-bottom: 1px solid #E8E4E0;
+  font-size: 0.78rem;
+  font-family: inherit;
+  outline: none;
+  background: #FFFCF9;
+  box-sizing: border-box;
+}
+.yb-lead__campaign-newsletter-search:focus { background: #fff; }
+.yb-lead__campaign-newsletter-list {
+  max-height: 260px;
+  overflow-y: auto;
+}
+.yb-lead__campaign-newsletter-item {
+  display: flex;
+  align-items: center;
+  border-bottom: 1px solid #E8E4E0;
+  transition: background 0.1s;
+}
+.yb-lead__campaign-newsletter-item:last-child { border-bottom: none; }
+.yb-lead__campaign-newsletter-item:hover { background: #F5F3F0; }
+.yb-lead__campaign-newsletter-item-main {
+  flex: 1;
+  padding: 0.5rem 0.75rem;
+  cursor: pointer;
+  min-width: 0;
+}
+.yb-lead__campaign-newsletter-item-name {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #0F0F0F;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.yb-lead__campaign-newsletter-item-meta {
+  display: flex;
+  gap: 0.5rem;
+  font-size: 0.7rem;
+  color: #6F6A66;
+  margin-top: 0.15rem;
+}
+.yb-lead__campaign-newsletter-item-subject {
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
+}
+.yb-lead__campaign-newsletter-item-date { white-space: nowrap; }
+.yb-lead__campaign-newsletter-item-uses {
+  white-space: nowrap;
+  color: #f75c03;
+  font-weight: 600;
+}
+.yb-lead__campaign-newsletter-item-delete {
+  background: none;
+  border: none;
+  color: #6F6A66;
+  font-size: 1rem;
+  cursor: pointer;
+  padding: 0.5rem 0.6rem;
+  line-height: 1;
+  flex-shrink: 0;
+  transition: color 0.15s;
+}
+.yb-lead__campaign-newsletter-item-delete:hover { color: #e53e3e; }
+.yb-lead__campaign-newsletter-empty,
+.yb-lead__campaign-newsletter-loading {
+  padding: 1.2rem 0.75rem;
+  text-align: center;
+  font-size: 0.78rem;
+  color: #6F6A66;
+}
 
 /* ── Email Preview ── */
 .yb-lead__campaign-email-preview-wrap {
